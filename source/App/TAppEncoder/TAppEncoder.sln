@@ -1,0 +1,43 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 10.00
+# Visual Studio 2008
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "TAppEncoder", "TAppEncoder.vcproj", "{9D518E36-45AA-4856-BD85-7BE029F2CAC9}"
+	ProjectSection(ProjectDependencies) = postProject
+		{7D6AFB23-FCBE-4808-9DF4-02EAE9AD3A23} = {7D6AFB23-FCBE-4808-9DF4-02EAE9AD3A23}
+		{27402960-5145-434E-BFEE-7124D2328461} = {27402960-5145-434E-BFEE-7124D2328461}
+		{53B18F02-721C-4182-8A11-3E4A0AB9C006} = {53B18F02-721C-4182-8A11-3E4A0AB9C006}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "TLibCommon", "..\..\Lib\TLibCommon\TLibCommon.vcproj", "{7D6AFB23-FCBE-4808-9DF4-02EAE9AD3A23}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "TLibEncoder", "..\..\Lib\TLibEncoder\TLibEncoder.vcproj", "{53B18F02-721C-4182-8A11-3E4A0AB9C006}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "TLibVideoIO", "..\..\Lib\TLibVideoIO\TLibVideoIO.vcproj", "{27402960-5145-434E-BFEE-7124D2328461}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Win32 = Debug|Win32
+		Release|Win32 = Release|Win32
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{9D518E36-45AA-4856-BD85-7BE029F2CAC9}.Debug|Win32.ActiveCfg = Debug|Win32
+		{9D518E36-45AA-4856-BD85-7BE029F2CAC9}.Debug|Win32.Build.0 = Debug|Win32
+		{9D518E36-45AA-4856-BD85-7BE029F2CAC9}.Release|Win32.ActiveCfg = Release|Win32
+		{9D518E36-45AA-4856-BD85-7BE029F2CAC9}.Release|Win32.Build.0 = Release|Win32
+		{7D6AFB23-FCBE-4808-9DF4-02EAE9AD3A23}.Debug|Win32.ActiveCfg = Debug|Win32
+		{7D6AFB23-FCBE-4808-9DF4-02EAE9AD3A23}.Debug|Win32.Build.0 = Debug|Win32
+		{7D6AFB23-FCBE-4808-9DF4-02EAE9AD3A23}.Release|Win32.ActiveCfg = Release|Win32
+		{7D6AFB23-FCBE-4808-9DF4-02EAE9AD3A23}.Release|Win32.Build.0 = Release|Win32
+		{53B18F02-721C-4182-8A11-3E4A0AB9C006}.Debug|Win32.ActiveCfg = Debug|Win32
+		{53B18F02-721C-4182-8A11-3E4A0AB9C006}.Debug|Win32.Build.0 = Debug|Win32
+		{53B18F02-721C-4182-8A11-3E4A0AB9C006}.Release|Win32.ActiveCfg = Release|Win32
+		{53B18F02-721C-4182-8A11-3E4A0AB9C006}.Release|Win32.Build.0 = Release|Win32
+		{27402960-5145-434E-BFEE-7124D2328461}.Debug|Win32.ActiveCfg = Debug|Win32
+		{27402960-5145-434E-BFEE-7124D2328461}.Debug|Win32.Build.0 = Debug|Win32
+		{27402960-5145-434E-BFEE-7124D2328461}.Release|Win32.ActiveCfg = Release|Win32
+		{27402960-5145-434E-BFEE-7124D2328461}.Release|Win32.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

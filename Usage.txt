@@ -1,0 +1,38 @@
+Contact: Woo-Jin Han, wjhan.han@samsung.com
+- Feel free to contact to me if any question about software
+
+[CS1]
+
+A124:
+
+TAppEncoder.exe -c RaceHorses.cfg -q QP -b test.bin -o test_enc.yuv -g 8 -r 4 -rb0 2 -rb1 2 -s 64 -h 4
+TAppDecoder.exe -b test.bin -o test.yuv
+
+A125:
+
+TAppEncoder.exe -c RaceHorses.cfg -p 0 -q QP -b test.bin -o test_enc.yuv -g 8 -r 4 -rb0 2 -rb1 2 -s 64 -h 4
+TAppDecoder.exe -b test.bin -o test.yuv
+
+[CS2-HierP]
+
+A124:
+
+TAppEncoder.exe -c RaceHorses.cfg -q QP -b test.bin -o test_enc.yuv -g 1 -rg 4 -r 4 -rb0 2 -rb1 2 -s 64 -h 4 -1 LDC -ldm 0
+TAppDecoder.exe -b test.bin -o test.yuv
+
+A125:
+
+TAppEncoder.exe -c RaceHorses.cfg -p 0 -q QP -b test.bin -o test_enc.yuv -g 1 -rg 4 -r 4 -rb0 2 -rb1 2 -s 64 -h 4 -1 LDC -ldm 0
+TAppDecoder.exe -b test.bin -o test.yuv
+
+[CS2-IPPP]
+
+A124:
+
+TAppEncoder.exe -c RaceHorses.cfg -q QP -b test.bin -o test_enc.yuv -g 1 -rg 4 -r 4 -rb0 2 -rb1 2 -s 64 -h 4 -1 LDC -ldm 1
+TAppDecoder.exe -b test.bin -o test.yuv
+
+A125:
+
+TAppEncoder.exe -c RaceHorses.cfg -p 0 -q QP -b test.bin -o test_enc.yuv -g 1 -rg 4 -r 4 -rb0 2 -rb1 2 -s 64 -h 4 -1 LDC -ldm 1
+TAppDecoder.exe -b test.bin -o test.yuv
