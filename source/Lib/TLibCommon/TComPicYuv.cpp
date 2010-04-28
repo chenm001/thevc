@@ -33,9 +33,9 @@
     \brief		picture YUV buffer class
 */
 
+#include <cstdlib>
 #include <assert.h>
 #include <memory.h>
-#include <malloc.h>
 #include "TComPicYuv.h"
 
 TComPicYuv::TComPicYuv()
