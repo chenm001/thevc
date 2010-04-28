@@ -33,6 +33,7 @@
     \brief		Handle encoder configuration parameters
 */
 
+#include <cstring>
 #include "TAppEncCfg.h"
 
 // ====================================================================================================================

@@ -33,6 +33,7 @@
     \brief		YUV file I/O class
 */
 
+#include <cstdlib>
 #include <fcntl.h>
 #include <assert.h>
 #include <sys/stat.h>

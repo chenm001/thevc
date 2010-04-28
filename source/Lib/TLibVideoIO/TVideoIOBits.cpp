@@ -33,6 +33,7 @@
     \brief		bitstream file I/O class
 */
 
+#include <cstdlib>
 //#include <io.h>
 #include <fcntl.h>
 #include <assert.h>

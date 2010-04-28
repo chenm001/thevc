@@ -63,6 +63,7 @@
     \brief		kishan's text parsing library
 */
 
+#include <cstring>
 #include "TAppEncOption.h"
 
 TAppOption::TAppOption()
