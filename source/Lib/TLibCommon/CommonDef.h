@@ -67,12 +67,18 @@
   #define NVM_COMPILEDBY	"[VS %d]", _MSC_VER
 #endif
 
+#ifndef NVM_COMPILEDBY
+# define NVM_COMPILEDBY "[Unk-CXX]"
+#endif
+
 #ifdef _WIN32
   #define NVM_ONOS				"[Windows]"
 #elif  __linux
   #define NVM_ONOS				"[Linux]"
 #elif  __CYGWIN__
   #define NVM_ONOS				"[Cygwin]"
+#else
+# define NVM_ONOS "[Unk-OS]"
 #endif
 
 #define NVM_BITS					"[%d bit] ", (sizeof(void*) == 8 ? 64 : 32)	///< used for checking 64-bit O/S
