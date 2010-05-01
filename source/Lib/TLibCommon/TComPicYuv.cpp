@@ -55,26 +55,23 @@ TComPicYuv::~TComPicYuv()
 {
 }
 
-// Void TComPicYuv::create( Int iPicWidth, Int iPicHeight, Int iCuWidth, Int iCuHeight, Int iBaseWidth, Int iBaseHeight ) --> After config finished!
-Void TComPicYuv::create( Int iPicWidth, Int iPicHeight, UInt iMaxCUWidth, UInt iMaxCUHeight, UChar uhMaxCUDepth )
+Void TComPicYuv::create( Int iPicWidth, Int iPicHeight, UInt uiMaxCUWidth, UInt uiMaxCUHeight, UInt uiMaxCUDepth )
 {
   m_iPicWidth       = iPicWidth;
   m_iPicHeight      = iPicHeight;
 
   // --> After config finished!
-  m_iCuWidth        = iMaxCUWidth;
-  m_iCuHeight       = iMaxCUHeight;
+  m_iCuWidth        = uiMaxCUWidth;
+  m_iCuHeight       = uiMaxCUHeight;
 
   m_iNumCuInWidth   = m_iPicWidth / m_iCuWidth;
   m_iNumCuInWidth  += ( m_iPicWidth % m_iCuWidth ) ? 1 : 0;
 
-  m_iBaseUnitWidth  = iMaxCUWidth  >> uhMaxCUDepth;
-  m_iBaseUnitHeight = iMaxCUHeight >> uhMaxCUDepth;
+  m_iBaseUnitWidth  = uiMaxCUWidth  >> uiMaxCUDepth;
+  m_iBaseUnitHeight = uiMaxCUHeight >> uiMaxCUDepth;
 
-//  m_iLumaMarginX    = g_uiMaxCUWidth  + 6;
-//  m_iLumaMarginY    = g_uiMaxCUHeight + 6;
-  m_iLumaMarginX    = g_uiMaxCUWidth  + 12; //DIF
-  m_iLumaMarginY    = g_uiMaxCUHeight + 12; //DIF
+  m_iLumaMarginX    = g_uiMaxCUWidth  + 12; // up to 12-tap DIF
+  m_iLumaMarginY    = g_uiMaxCUHeight + 12; // up to 12-tap DIF
 
   m_iChromaMarginX  = m_iLumaMarginX>>1;
   m_iChromaMarginY  = m_iLumaMarginY>>1;
@@ -103,23 +100,23 @@ Void TComPicYuv::destroy()
   if( m_apiPicBufV ){ xFree( m_apiPicBufV );    m_apiPicBufV = NULL; }
 }
 
-Void TComPicYuv::createLuma( Int iPicWidth, Int iPicHeight, UInt iMaxCUWidth, UInt iMaxCUHeight, UChar uhMaxCUDepth )
+Void TComPicYuv::createLuma( Int iPicWidth, Int iPicHeight, UInt uiMaxCUWidth, UInt uiMaxCUHeight, UInt uiMaxCUDepth )
 {
   m_iPicWidth       = iPicWidth;
   m_iPicHeight      = iPicHeight;
 
   // --> After config finished!
-  m_iCuWidth        = iMaxCUWidth;
-  m_iCuHeight       = iMaxCUHeight;
+  m_iCuWidth        = uiMaxCUWidth;
+  m_iCuHeight       = uiMaxCUHeight;
 
   m_iNumCuInWidth   = m_iPicWidth / m_iCuWidth;
   m_iNumCuInWidth  += ( m_iPicWidth % m_iCuWidth ) ? 1 : 0;
 
-  m_iBaseUnitWidth  = iMaxCUWidth  >> uhMaxCUDepth;
-  m_iBaseUnitHeight = iMaxCUHeight >> uhMaxCUDepth;
+  m_iBaseUnitWidth  = uiMaxCUWidth  >> uiMaxCUDepth;
+  m_iBaseUnitHeight = uiMaxCUHeight >> uiMaxCUDepth;
 
-  m_iLumaMarginX    = g_uiMaxCUWidth  + 12; //DIF
-  m_iLumaMarginY    = g_uiMaxCUHeight + 12; //DIF
+  m_iLumaMarginX    = g_uiMaxCUWidth  + 12; // up to 12-tap DIF
+  m_iLumaMarginY    = g_uiMaxCUHeight + 12; // up to 12-tap DIF
 
 	m_apiPicBufY      = (Pel*)xMalloc( Pel, ( m_iPicWidth       + (m_iLumaMarginX  <<1)) * ( m_iPicHeight       + (m_iLumaMarginY  <<1)));
   m_piPicOrgY       = m_apiPicBufY + m_iLumaMarginY   * getStride()  + m_iLumaMarginX;
@@ -149,7 +146,7 @@ Pel*  TComPicYuv::getLumaAddr( Int iCuAddr, Int uiAbsZorderIdx )
   Int iOffsetCu      = iCuY*m_iCuHeight*getStride() + iCuX*m_iCuWidth;
 
   Int iCuSizeInBases = m_iCuWidth / m_iBaseUnitWidth;
-  Int iRastPartIdx   = g_auiConvertRelToAbsIdx[uiAbsZorderIdx];
+  Int iRastPartIdx   = g_auiZscanToRaster[uiAbsZorderIdx];
   Int iBaseX         = iRastPartIdx % iCuSizeInBases;
   Int iBaseY         = iRastPartIdx / iCuSizeInBases;
   Int iOffsetBase    = iBaseY*m_iBaseUnitHeight*getStride() + iBaseX*m_iBaseUnitWidth;
@@ -172,7 +169,7 @@ Pel*  TComPicYuv::getCbAddr( Int iCuAddr, Int uiAbsZorderIdx )
   Int iOffsetCu      = iCuY*m_iCuHeight*getCStride() + iCuX*m_iCuWidth;
 
   Int iCuSizeInBases = m_iCuWidth / m_iBaseUnitWidth;
-  Int iRastPartIdx   = g_auiConvertRelToAbsIdx[uiAbsZorderIdx];
+  Int iRastPartIdx   = g_auiZscanToRaster[uiAbsZorderIdx];
   Int iBaseX         = iRastPartIdx % iCuSizeInBases;
   Int iBaseY         = iRastPartIdx / iCuSizeInBases;
   Int iOffsetBase    = iBaseY*m_iBaseUnitHeight*getCStride() + iBaseX*m_iBaseUnitWidth;
@@ -195,7 +192,7 @@ Pel*  TComPicYuv::getCrAddr( Int iCuAddr, Int uiAbsZorderIdx )
   Int iOffsetCu      = iCuY*m_iCuHeight*getCStride() + iCuX*m_iCuWidth;
 
   Int iCuSizeInBases = m_iCuWidth / m_iBaseUnitWidth;
-  Int iRastPartIdx   = g_auiConvertRelToAbsIdx[uiAbsZorderIdx];
+  Int iRastPartIdx   = g_auiZscanToRaster[uiAbsZorderIdx];
   Int iBaseX         = iRastPartIdx % iCuSizeInBases;
   Int iBaseY         = iRastPartIdx / iCuSizeInBases;
   Int iOffsetBase    = iBaseY*m_iBaseUnitHeight*getCStride() + iBaseX*m_iBaseUnitWidth;

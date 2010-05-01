@@ -73,10 +73,6 @@ public:
   virtual Void  codeTerminatingBit      ( UInt uilsLast )                                       = 0;
   virtual Void  codeSliceFinish         ()                                                      = 0;
 
-  virtual Void  codeExtremeValue( Int iMinVal, Int iMaxVal, Int iExtremeType )  = 0;
-
-  // EXCBand
-  virtual Void  codeCorrBandExType(Int iCorVal, Int iBandNumber) = 0;
   virtual Void codeAlfCtrlDepth() = 0;
   virtual Void codeMVPIdx ( TComDataCU* pcCU, UInt uiAbsPartIdx, RefPicList eRefList ) = 0;
 
@@ -101,7 +97,6 @@ public:
   virtual Void codeCbf           ( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eType, UInt uiTrDepth ) = 0;
   virtual Void codeCoeffNxN      ( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx, UInt uiWidth, UInt uiHeight, UInt uiDepth, TextType eTType, Bool bRD = false ) = 0;
 
-  virtual Void codeMPIindex( TComDataCU* pcCU, UInt uiAbsPartIdx ) = 0;
   virtual Void codeROTindex( TComDataCU* pcCU, UInt uiAbsPartIdx, Bool bRD ) = 0;
   virtual Void codeCIPflag ( TComDataCU* pcCU, UInt uiAbsPartIdx, Bool bRD ) = 0;
 
@@ -110,8 +105,6 @@ public:
   virtual Void codeAlfSvlc					( Int   iCode ) = 0;
 
   virtual Void estBit               (estBitsSbacStruct* pcEstBitsSbac, UInt uiCTXIdx, TextType eTType) = 0;
-
-  virtual Void codeULTUsedFlag( TComDataCU* pcCU, UInt uiAbsPartIdx ) = 0;
 };
 
 /// entropy encoder class
@@ -130,13 +123,7 @@ public:
   Void    encodeTerminatingBit      ( UInt uiIsLast );
   Void    encodeSliceFinish         ();
 
-  // Adaptive Loop filter
   Void encodeAlfParam(ALFParam* pAlfParam);
-  Void encodeExtremeValue( TComPic*& rpcPic);
-
-  // EXCBand
-  Void encodeBandCorrValue( TComPic*& rpcPic);
-
   Void encodeMVPIdx( TComDataCU* pcCU, UInt uiAbsPartIdx, RefPicList eRefList, Bool bRD = false );
 
   TEncEntropyIf*      m_pcEntropyCoderIf;
@@ -177,8 +164,6 @@ public:
   Void encodeCoeffNxN         ( TComDataCU* pcCU, TCoeff* pcCoeff, UInt uiAbsPartIdx, UInt uiTrWidth, UInt uiTrHeight, UInt uiDepth, TextType eType, Bool bRD = false );
 
   Void estimateBit             ( estBitsSbacStruct* pcEstBitsSbac, UInt uiWidth, TextType eTType);
-
-  Void encodeULTUsedFlag( TComDataCU* pcCU, UInt uiAbsPartIdx, Bool bRD = false );
 };// END CLASS DEFINITION TEncEntropy
 
 

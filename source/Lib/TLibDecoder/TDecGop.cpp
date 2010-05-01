@@ -39,26 +39,9 @@
 
 #include <time.h>
 
-//////////////////////////////////////////////////////////////////////
-// Construction/Destruction
-//////////////////////////////////////////////////////////////////////
-
-inline int mSign(int x)
- {
-  // http://bits.stephan-brumme.com/sign.html
-  // only for 32-bit integer with C-style shifts
-  // may be unportable!
-  // minusOne will be 0xFFFFFFFF (=> -1) for negative numbers, else 0x00000000
-   int minusOne = x >> 31;
-
-   // plusOne will be 0x00000001 for positive numbers, else 0x00000000
-   unsigned int negateX = (unsigned int) -x;
-   int plusOne = (int)(negateX >> 31);
-
-   // at least minusOne or plusOne is zero, the other one gives our desired result
-   int result = minusOne | plusOne;
-   return result;
- }
+// ====================================================================================================================
+// Constructor / destructor / initialization / destroy
+// ====================================================================================================================
 
 TDecGop::TDecGop()
 {
@@ -80,17 +63,19 @@ Void TDecGop::destroy()
 
 }
 
-Void TDecGop::init (TDecEntropy* pcEntropyDecoder, TDecSbac* pcSbacDecoder, TDecCavlc* pcCavlcDecoder, TDecSlice* pcSliceDecoder, TComLoopFilter* pcLoopFilter, TComAdaptiveLoopFilter* pcAdaptiveLoopFilter )
+Void TDecGop::init( TDecEntropy* pcEntropyDecoder, TDecSbac* pcSbacDecoder, TDecCavlc* pcCavlcDecoder, TDecSlice* pcSliceDecoder, TComLoopFilter* pcLoopFilter, TComAdaptiveLoopFilter* pcAdaptiveLoopFilter )
 {
-  m_pcEntropyDecoder  = pcEntropyDecoder;
-  m_pcSbacDecoder    = pcSbacDecoder;
-  m_pcCavlcDecoder    = pcCavlcDecoder;
-  m_pcSliceDecoder    = pcSliceDecoder;
-  m_pcLoopFilter      = pcLoopFilter;
-  // Adaptive Loop filter
-  m_pcAdaptiveLoopFilter      = pcAdaptiveLoopFilter;
-  //--Adaptive Loop filter
+  m_pcEntropyDecoder			= pcEntropyDecoder;
+  m_pcSbacDecoder					= pcSbacDecoder;
+  m_pcCavlcDecoder				= pcCavlcDecoder;
+  m_pcSliceDecoder				= pcSliceDecoder;
+  m_pcLoopFilter					= pcLoopFilter;
+  m_pcAdaptiveLoopFilter  = pcAdaptiveLoopFilter;
 }
+
+// ====================================================================================================================
+// Public member functions
+// ====================================================================================================================
 
 Void TDecGop::decompressGop (Bool bEos, TComBitstream* pcBitstream, TComPic*& rpcPic)
 {
@@ -126,37 +111,17 @@ Void TDecGop::decompressGop (Bool bEos, TComBitstream* pcBitstream, TComPic*& rp
     m_pcEntropyDecoder->decodeAlfParam(&cAlfParam);
 	}
 
-  m_pcSliceDecoder->decompressSliceCU(pcBitstream, rpcPic);
+  m_pcSliceDecoder->decompressSlice(pcBitstream, rpcPic);
 
-  //-- Loop filter
+  // deblocking filter
   m_pcLoopFilter->setCfg(pcSlice->getLoopFilterDisable(), 0, 0);
   m_pcLoopFilter->loopFilterPic( rpcPic );
 
-	if( pcSlice->getSPS()->getUseExC() )
-	{
-		// Nothing to do if B-slice or small picture
-		// Moved here from xExtremePass body
-		//kolya
-		if (rpcPic->getSlice()->getSliceType() != B_SLICE
-			|| rpcPic->getFrameHeightInCU() > EXC_NO_EC_BSLICE)
-			xExtremePass( rpcPic );
-	}
-
-  // Adaptive Loop filter
+  // adaptive loop filter
   if( rpcPic->getSlice()->getSPS()->getUseALF() )
   {
     m_pcAdaptiveLoopFilter->ALFProcess(rpcPic, &cAlfParam);
     m_pcAdaptiveLoopFilter->freeALFParam(&cAlfParam);
-	}
-  //--Adaptive Loop filter
-
-	// EXCBand
-	// condition check moved here //kolya
-	if( pcSlice->getSPS()->getUseExC() )
-	{
-		if (!(rpcPic->getSlice()->getSliceType() == B_SLICE
-			&& rpcPic->getFrameHeightInCU() <= EXC_NO_EC_BSLICE))
-			xCorrBand( rpcPic );
 	}
 
 	//-- For time output for each slice
@@ -176,19 +141,13 @@ Void TDecGop::decompressGop (Bool bEos, TComBitstream* pcBitstream, TComPic*& rp
       UInt uiOrgNumRefIdx;
       uiOrgNumRefIdx = pcSlice->getNumRefIdx(RefPicList(iRefList))-pcSlice->getAddRefCnt(RefPicList(iRefList));
       UInt uiNewRefIdx= iRefIndex-uiOrgNumRefIdx;
-      if (iRefIndex >= (int)uiOrgNumRefIdx) {
-        if (pcSlice->getEffectMode(RefPicList(iRefList), uiNewRefIdx)==EFF_WP_P1)
-          printf ("%dr+ ", pcSlice->getRefPOC(RefPicList(iRefList), iRefIndex));
-        else if (pcSlice->getEffectMode(RefPicList(iRefList), uiNewRefIdx)==EFF_WP_M1)
-          printf ("%dr- ", pcSlice->getRefPOC(RefPicList(iRefList), iRefIndex));
-        else if (pcSlice->getEffectMode(RefPicList(iRefList), uiNewRefIdx)==EFF_WP_SO)
+      if (iRefIndex >= (int)uiOrgNumRefIdx)
+			{
+        if ( pcSlice->getEffectMode(RefPicList(iRefList), uiNewRefIdx) == EFF_WP_SO ||
+					   pcSlice->getEffectMode(RefPicList(iRefList), uiNewRefIdx) == EFF_WP_O )
+				{
           printf ("%dw ", pcSlice->getRefPOC(RefPicList(iRefList), iRefIndex));
-        else if (pcSlice->getEffectMode(RefPicList(iRefList), uiNewRefIdx)==EFF_AM)
-          printf ("%da ", pcSlice->getRefPOC(RefPicList(iRefList), iRefIndex));
-        else if (pcSlice->getEffectMode(RefPicList(iRefList), uiNewRefIdx)==EFF_IM)
-          printf ("%di ", pcSlice->getRefPOC(RefPicList(iRefList), iRefIndex));
-        else if (pcSlice->getEffectMode(RefPicList(iRefList), uiNewRefIdx)==EFF_PM)
-          printf ("%dp ", pcSlice->getRefPOC(RefPicList(iRefList), iRefIndex));
+				}
       }
       else {
         printf ("%d ", pcSlice->getRefPOC(RefPicList(iRefList), iRefIndex));
@@ -198,150 +157,4 @@ Void TDecGop::decompressGop (Bool bEos, TComBitstream* pcBitstream, TComPic*& rp
   }
 
   rpcPic->setReconMark(true);
-}
-
-//EXCBand
-Void
-TDecGop::xCorrBand(TComPic*& rpcPic)
-{
-	Int x, y;
-	Pel* pRec = rpcPic->getPicYuvRec()->getLumaAddr();
-
-	Int iStride = rpcPic->getStride();
-	Int iWidth = rpcPic->getPicYuvRec()->getWidth();
-	Int iHeight = rpcPic->getPicYuvRec()->getHeight();
-
-	// Moved here for getMaxBandNumber not to be called from within loop
-	//kolya
-	Int iMaxBandNumber =  rpcPic->getMaxBandNumber();
-	Int iExtractingMask = (EXB_NB - 1) << ( 12 - EXB_BITS );
-
-	Int aiCor[64];
-
-	////for overhead writing
-	for (int i = 0; i < iMaxBandNumber; i++)
-	{
-		aiCor[i] = rpcPic->getCorrBandExType(i);
-#if EXB_CUT
-		aiCor[i] = aiCor[i] * 2;
-#endif
-	}
-
-	pRec = rpcPic->getPicYuvRec()->getLumaAddr();
-
-	Pel   iMax = ((1<<(g_uiBitDepth+g_uiBitIncrement))-1);
-
-	for (y = 0; y < iHeight; y++)
-	{
-		for (x = 0; x < iWidth; x++)
-		{
-			pRec[x] = Clip3(0,iMax,pRec[x] + aiCor[ (pRec[x] & iExtractingMask) >> (12 - EXB_BITS)  ]);
-		}
-		pRec += iStride;
-	}
-}
-//EXCBand
-
-Void
-TDecGop::xExtremePass(TComPic*& rpcPic)
-{
-	Int x = 0;
-	Int y = 0;
-
-	Pel* pRec = rpcPic->getPicYuvRec()->getLumaAddr();
-	Int iStride = rpcPic->getStride();
-  Int iWidth = rpcPic->getPicYuvRec()->getWidth();
-	Int iHeight = rpcPic->getPicYuvRec()->getHeight();
-
-	Int iExtremeType;
-
-	// NOTE: all "new"s here may be substitude by constant, e.g. for IPPP case
-	// where "new" will be called frequently
-	// but still I think this won't bother anyone //kolya
-
-	// Array of upper signs
-	//kolya
-	Int* iUpperSignBits = new Int[iWidth];
-
-	// Array of corrections //kolya (optimized for EXC_CORR_LIMIT 1)
-	Int iExtremeCorrArray[9];
-	iExtremeCorrArray[4] = 0;
-	iExtremeCorrArray[3] = 0;
-	iExtremeCorrArray[5] = 0;
-
-	for (x = 6; x < 9; x++)
-	{
-		iExtremeCorrArray[x] = rpcPic->getMinValCorr(x - 4);
-		iExtremeCorrArray[8 - x] = rpcPic->getMaxValCorr(x - 4);
-	}
-
-	Pel iMax = ((1 << (g_uiBitDepth + g_uiBitIncrement)) - 1);
-
-	// Temporary storage
-	Pel* pRecD = new Pel[iWidth - 2];
-	Pel* pRecD2 = new Pel[iWidth - 2];
-	Pel* pSwap;
-	memcpy( pRecD2, pRec + 1, sizeof(Pel)*(iWidth - 2) );
-
-	Int iLeft = 0;
-	Int iRight = 0;
-	Int iSignL = 0;
-	Int iSignR = 0;
-	Int iSignD = 0;
-
-	pRec += iStride;
-
-	// augmented for not to do arithmetic inside loop //kolya
-	pRecD--;
-	pRecD2--;
-
-	// Upper signs array explicit initialization
-	for (x = 1; x < iWidth - 1; x++)
-	{
-		iUpperSignBits[x] = mSign(pRec[x - iStride] - pRec[x]);
-	}
-
-	for (y = 1; y < iHeight - 1; y++)
-	{
-		iLeft = pRec[0] - pRec[1];
-		iSignL = mSign(iLeft);
-
-		for (x = 1; x < iWidth - 1; x++)
-		{
-			iExtremeType = 4;
-
-			// left-right pair
-			iRight = pRec[x + 1] - pRec[x];
-			iSignR = mSign( iRight );
-
-			iExtremeType = iExtremeType + iSignR + iSignL;
-
-			// save sign for next step
-			iSignL = -iSignR;
-
-			// upper-lower pair
-			iSignD = mSign(pRec[x + iStride] - pRec[x]);
-
-			iExtremeType = iExtremeType + iSignD + iUpperSignBits[x];
-			iUpperSignBits[x] = -iSignD;
-
-			pRecD[x] = Clip3(0,iMax,(Int)pRec[x]+iExtremeCorrArray[iExtremeType]);
-		}
-		// copy previous line
-		memcpy( pRec - iStride + 1, pRecD2 + 1, sizeof(Pel)*(iWidth-2) );
-		// swap saving lines
-		pSwap = pRecD2;
-		pRecD2 = pRecD;
-		pRecD = pSwap;
-
-		pRec += iStride;
-	}
-	memcpy( pRec - iStride + 1, pRecD2 + 1, sizeof(Pel)*(iWidth-2) );
-
-	pRecD2++;
-	pRecD++;
-
-	delete [] iUpperSignBits;
-	delete [] pRecD;
-	delete [] pRecD2;
 }

@@ -290,28 +290,6 @@
 				</FileConfiguration>
 			</File>
 			<File
-				RelativePath="TComGlobalMotion.cpp"
-				>
-				<FileConfiguration
-					Name="Debug|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions=""
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions=""
-					/>
-				</FileConfiguration>
-			</File>
-			<File
 				RelativePath="TComLoopFilter.cpp"
 				>
 				<FileConfiguration
@@ -638,10 +616,6 @@
 			</File>
 			<File
 				RelativePath="TComDataCU.h"
-				>
-			</File>
-			<File
-				RelativePath="TComGlobalMotion.h"
 				>
 			</File>
 			<File

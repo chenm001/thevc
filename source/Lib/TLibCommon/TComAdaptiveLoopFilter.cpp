@@ -71,6 +71,33 @@ const Int TComAdaptiveLoopFilter::m_aiSymmetricMag5x5[13] =
 };
 
 // ====================================================================================================================
+// Constructor / destructor / create / destroy
+// ====================================================================================================================
+
+TComAdaptiveLoopFilter::TComAdaptiveLoopFilter()
+{
+	m_pcTempPicYuv = NULL;
+}
+
+Void TComAdaptiveLoopFilter::create( Int iPicWidth, Int iPicHeight, UInt uiMaxCUWidth, UInt uiMaxCUHeight, UInt uiMaxCUDepth )
+{
+	if ( !m_pcTempPicYuv )
+	{
+		m_pcTempPicYuv = new TComPicYuv;
+		m_pcTempPicYuv->create( iPicWidth, iPicHeight, uiMaxCUWidth, uiMaxCUHeight, uiMaxCUDepth );
+	}
+}
+
+Void TComAdaptiveLoopFilter::destroy()
+{
+	if ( m_pcTempPicYuv )
+	{
+		m_pcTempPicYuv->destroy();
+		delete m_pcTempPicYuv;
+	}
+}
+
+// ====================================================================================================================
 // Public member functions
 // ====================================================================================================================
 
@@ -82,11 +109,11 @@ Void TComAdaptiveLoopFilter::allocALFParam(ALFParam* pAlfParam)
 {
   pAlfParam->alf_flag = 0;
 
-  pAlfParam->coeff = new Int[ALF_MAX_NUM_COEF];
+  pAlfParam->coeff				= new Int[ALF_MAX_NUM_COEF];
   pAlfParam->coeff_chroma = new Int[ALF_MAX_NUM_COEF_C];
 
-  ::memset(pAlfParam->coeff, 0, sizeof(Int)*ALF_MAX_NUM_COEF);
-  ::memset(pAlfParam->coeff_chroma, 0, sizeof(Int)*ALF_MAX_NUM_COEF_C);
+  ::memset(pAlfParam->coeff,				0, sizeof(Int)*ALF_MAX_NUM_COEF		);
+  ::memset(pAlfParam->coeff_chroma, 0, sizeof(Int)*ALF_MAX_NUM_COEF_C	);
 }
 
 Void TComAdaptiveLoopFilter::freeALFParam(ALFParam* pAlfParam)
@@ -204,11 +231,11 @@ Void TComAdaptiveLoopFilter::ALFProcess(TComPic* pcPic, ALFParam* pcAlfParam)
   }
 
   TComPicYuv* pcPicYuvRec    = pcPic->getPicYuvRec();
-  TComPicYuv* pcPicYuvExtRec = pcPic->getPicYuvResi();
-  pcPicYuvRec->copyToPic(pcPicYuvExtRec);
+  TComPicYuv* pcPicYuvExtRec = m_pcTempPicYuv;
 
-	pcPicYuvExtRec->setBorderExtension( false );
-  pcPicYuvExtRec->extendPicBorder	  ();
+  pcPicYuvRec		->copyToPic						( pcPicYuvExtRec );
+	pcPicYuvExtRec->setBorderExtension	( false );
+  pcPicYuvExtRec->extendPicBorder			();
 
 	predictALFCoeff(pcAlfParam);
   xALFLuma(pcPic, pcAlfParam, pcPicYuvExtRec, pcPicYuvRec);
@@ -267,9 +294,9 @@ Void TComAdaptiveLoopFilter::xSubCUAdaptive(TComDataCU* pcCU, ALFParam* pcAlfPar
   TComPic* pcPic = pcCU->getPic();
 
   Bool bBoundary = false;
-  UInt uiLPelX   = pcCU->getCUPelX() + g_auiConvertPartIdxToPelX[ g_auiConvertRelToAbsIdx[uiAbsPartIdx] ];
+  UInt uiLPelX   = pcCU->getCUPelX() + g_auiRasterToPelX[ g_auiZscanToRaster[uiAbsPartIdx] ];
   UInt uiRPelX   = uiLPelX + (g_uiMaxCUWidth>>uiDepth)  - 1;
-  UInt uiTPelY   = pcCU->getCUPelY() + g_auiConvertPartIdxToPelY[ g_auiConvertRelToAbsIdx[uiAbsPartIdx] ];
+  UInt uiTPelY   = pcCU->getCUPelY() + g_auiRasterToPelY[ g_auiZscanToRaster[uiAbsPartIdx] ];
   UInt uiBPelY   = uiTPelY + (g_uiMaxCUHeight>>uiDepth) - 1;
 
 	// check picture boundary
@@ -284,8 +311,8 @@ Void TComAdaptiveLoopFilter::xSubCUAdaptive(TComDataCU* pcCU, ALFParam* pcAlfPar
     UInt uiQNumParts = ( pcPic->getNumPartInCU() >> (uiDepth<<1) )>>2;
     for ( UInt uiPartUnitIdx = 0; uiPartUnitIdx < 4; uiPartUnitIdx++, uiAbsPartIdx+=uiQNumParts )
     {
-      uiLPelX   = pcCU->getCUPelX() + g_auiConvertPartIdxToPelX[ g_auiConvertRelToAbsIdx[uiAbsPartIdx] ];
-      uiTPelY   = pcCU->getCUPelY() + g_auiConvertPartIdxToPelY[ g_auiConvertRelToAbsIdx[uiAbsPartIdx] ];
+      uiLPelX   = pcCU->getCUPelX() + g_auiRasterToPelX[ g_auiZscanToRaster[uiAbsPartIdx] ];
+      uiTPelY   = pcCU->getCUPelY() + g_auiRasterToPelY[ g_auiZscanToRaster[uiAbsPartIdx] ];
 
       if( ( uiLPelX < pcCU->getSlice()->getSPS()->getWidth() ) && ( uiTPelY < pcCU->getSlice()->getSPS()->getHeight() ) )
         xSubCUAdaptive(pcCU, pcAlfParam, pcPicDec, pcPicRest, uiAbsPartIdx, uiDepth+1);

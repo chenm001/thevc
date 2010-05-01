@@ -61,29 +61,43 @@ public:
   Int   m_iROIHeight;
   Int   m_iPatternStride;
 
+	/// return starting position of buffer
   Pel*  getPatternOrigin()        { return  m_piPatternOrigin; }
 
+	/// return starting position of ROI (ROI = &pattern[AboveOffset][LeftOffset])
 	__inline Pel*  getROIOrigin()
   {
     return  m_piPatternOrigin + m_iPatternStride * m_iOffsetAbove + m_iOffsetLeft;
   }
 
+	// availability check of neighbouring pixels
   Bool  isLeftAvailable()         { return (m_iOffsetLeft  > 0) ? true : false; }
   Bool  isAboveAvailable()        { return (m_iOffsetAbove > 0) ? true : false; }
   Bool  isAboveRightAvailable()   { return (m_iOffsetAbove > 0 && m_iOffsetRight > 0) ? true : false; }
   Bool  isAboveLeftAvailable()    { return (m_iOffsetLeft  > 0 && m_iOffsetAbove > 0) ? true : false; }
   Bool  isAllAboveLeftAvailable() { return (m_iOffsetLeft  > 0 && m_iOffsetAbove > 0) ? true : false; }
 
-  Void setPatternParam (  Pel* piTexture,
-                          Int iRoiWidth,
-                          Int iRoiHeight,
-                          Int iStride,
-                          Int iOffsetLeft,
-                          Int iOffsetRight,
-                          Int iOffsetAbove,
-                          Int iOffsetBottom );
+	/// set parameters from Pel buffer for accessing neighbouring pixels
+  Void setPatternParamPel	( Pel*				piTexture,
+														Int					iRoiWidth,
+														Int					iRoiHeight,
+														Int					iStride,
+														Int					iOffsetLeft,
+														Int					iOffsetRight,
+														Int					iOffsetAbove,
+														Int					iOffsetBottom );
 
-  Void setPatternParam	( TComDataCU* pcCU, UChar iComp, Int left, Int right, Int above, Int bottom, UChar iWidth, UChar iHeight, UInt uiPartDepth, UInt uiAbsZorderIdx );
+	/// set parameters of one color component from CU data for accessing neighbouring pixels
+  Void setPatternParamCU	( TComDataCU*	pcCU,
+														UChar				iComp,
+														UChar				iRoiWidth,
+														UChar				iRoiHeight,
+														Int					iOffsetLeft,
+														Int					iOffsetRight,
+														Int					iOffsetAbove,
+														Int					iOffsetBottom,
+														UInt				uiPartDepth,
+														UInt				uiAbsZorderIdx );
 };
 
 /// neighbouring pixel access class for all components
@@ -95,47 +109,72 @@ private:
   TComPatternParam  m_cPatternCr;
 
 public:
-  Pel*  getROIY()     { return m_cPatternY.getROIOrigin();  }
-  Pel*  getROICb()    { return m_cPatternCb.getROIOrigin(); }
-  Pel*  getROICr()    { return m_cPatternCr.getROIOrigin(); }
 
-  Int   getROIYWidth()     { return m_cPatternY.m_iROIWidth;  }
-  Int   getROIYHeight()     { return m_cPatternY.m_iROIHeight;  }
+	// ROI & pattern information, (ROI = &pattern[AboveOffset][LeftOffset])
+  Pel*  getROIY()									{ return m_cPatternY.getROIOrigin();		}
+  Pel*  getROICb()								{ return m_cPatternCb.getROIOrigin();		}
+  Pel*  getROICr()								{ return m_cPatternCr.getROIOrigin();		}
+  Int   getROIYWidth()						{ return m_cPatternY.m_iROIWidth;				}
+  Int   getROIYHeight()						{ return m_cPatternY.m_iROIHeight;			}
+  Int   getPatternLStride()				{ return m_cPatternY.m_iPatternStride;  }
+  Int   getPatternCStride()				{ return m_cPatternCb.m_iPatternStride; }
 
-  Int   getPatternLStride()   { return m_cPatternY.m_iPatternStride;  }
-  Int   getPatternCStride()   { return m_cPatternCb.m_iPatternStride; }
+	// get pixel pointer from specified luma block index (remained for AVC intra prediction)
+  Pel*  getROIYBlk								( Int iLumaBlkIdx );
 
-  Pel*  getROIYBlk   ( Int iLumaBlkIdx );
-
-  Bool  isLeftAvailable()         { return m_cPatternY.isLeftAvailable(); }
-  Bool  isAboveAvailable()        { return m_cPatternY.isAboveAvailable(); }
-  Bool  isAboveRightAvailable()   { return m_cPatternY.isAboveRightAvailable(); }
-  Bool  isAboveLeftAvailable()    { return m_cPatternY.isAboveLeftAvailable(); }
+	// availability check of neighbouring pixels
+  Bool  isLeftAvailable()         { return m_cPatternY.isLeftAvailable();					}
+  Bool  isAboveAvailable()        { return m_cPatternY.isAboveAvailable();				}
+  Bool  isAboveRightAvailable()   { return m_cPatternY.isAboveRightAvailable();		}
+  Bool  isAboveLeftAvailable()    { return m_cPatternY.isAboveLeftAvailable();		}
   Bool  isAllAboveLeftAvailable() { return m_cPatternY.isAllAboveLeftAvailable(); }
 
-  Void initPattern (  Pel* piY,
-                      Pel* piCb,
-                      Pel* piCr,
-                      Int iRoiWidth,
-                      Int iRoiHeight,
-                      Int iStride,
-                      Int iOffsetLeft,
-                      Int iOffsetRight,
-                      Int iOffsetAbove,
-                      Int iOffsetBottom );
+	// access functions of ADI buffers
+	Int*  getAdiOrgBuf							( Int iCuWidth, Int iCuHeight, Int* piAdiBuf );
+	Int*  getAdiFilteredBuf1				( Int iCuWidth, Int iCuHeight, Int* piAdiBuf );
+	Int*  getAdiFilteredBuf2				( Int iCuWidth, Int iCuHeight, Int* piAdiBuf );
+	Int*  getAdiCbBuf								( Int iCuWidth, Int iCuHeight, Int* piAdiBuf );
+	Int*  getAdiCrBuf								( Int iCuWidth, Int iCuHeight, Int* piAdiBuf );
 
- Void  initPattern					( TComDataCU* pcCU, UInt uiPartDepth, UInt uiAbsPartIdx );
- Void  initAdiPattern				( TComDataCU* pcCU, UInt uiZorderIdxInPart, UInt uiPartDepth, Int* piAdiBuf, Int iOrgBufStride, Int iOrgBufHeight,Bool& bAbove,Bool& bLeft);
- Void  initAdiPatternChroma	( TComDataCU* pcCU, UInt uiZorderIdxInPart,Int* piAdiBuf, Int iOrgBufStride, Int iOrgBufHeight,Bool& bAbove,Bool& bLeft);
+	// -------------------------------------------------------------------------------------------------------------------
+	// initialization functions
+	// -------------------------------------------------------------------------------------------------------------------
 
- Int*  getAdiOrgBuf					( Int iCuWidth, Int iCuHeight, Int* piAdiBuf );
- Int*  getAdiFilteredBuf1		( Int iCuWidth, Int iCuHeight, Int* piAdiBuf );
- Int*  getAdiFilteredBuf2		( Int iCuWidth, Int iCuHeight, Int* piAdiBuf );
- Int*  getAdiCbBuf					( Int iCuWidth, Int iCuHeight, Int* piAdiBuf );
- Int*  getAdiCrBuf					( Int iCuWidth, Int iCuHeight, Int* piAdiBuf );
+	/// set parameters from Pel buffers for accessing neighbouring pixels
+  Void initPattern						( Pel*				piY,
+																Pel*				piCb,
+																Pel*				piCr,
+																Int					iRoiWidth,
+																Int					iRoiHeight,
+																Int					iStride,
+																Int					iOffsetLeft,
+																Int					iOffsetRight,
+																Int					iOffsetAbove,
+																Int					iOffsetBottom );
+
+	/// set parameters from CU data for accessing neighbouring pixels
+	Void  initPattern						( TComDataCU* pcCU,
+																UInt				uiPartDepth,
+																UInt				uiAbsPartIdx );
+
+	/// set luma parameters from CU data for accessing ADI data
+	Void  initAdiPattern				( TComDataCU* pcCU,
+																UInt				uiZorderIdxInPart,
+																UInt				uiPartDepth,
+																Int*				piAdiBuf,
+																Int					iOrgBufStride,
+																Int					iOrgBufHeight,
+																Bool&				bAbove,
+																Bool&				bLeft );
+
+	/// set chroma parameters from CU data for accessing ADI data
+	Void  initAdiPatternChroma	( TComDataCU* pcCU,
+																UInt				uiZorderIdxInPart,
+																Int*				piAdiBuf,
+																Int					iOrgBufStride,
+																Int					iOrgBufHeight,
+																Bool&				bAbove,
+																Bool&				bLeft );
 };
-
-// END CLASS DEFINITION TComPattern
-
 
 #endif // __TCOMPATTERN__

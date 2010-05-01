@@ -97,65 +97,29 @@ protected:
   UInt      m_uiMaxTrDepth;																		///< max. TU depth
   UInt			m_uiMaxTrSize;																		///< max. physical transform size
 
-	// profile definition
-  Int       m_iProfileIdx;																		///< profile index for pre-defined setting, 0 = low-complexity, 1 = normal
-
 	// coding tools (bit-depth)
 	UInt      m_uiBitDepth;																			///< base bit-depth
 	UInt      m_uiBitIncrement;																	///< bit-depth increment
 
 	// coding tools (inter - motion)
-	Bool      m_bUseMVAC;																				///< flag for half-pel only motion accuracy
-	Bool			m_bUseAMVP;																				///< flag for using advanced motion vector prediction
-	Bool			m_bUseIMR;																				///< flag for using implicit MV candidate removal
-  Bool			m_bUseAMP;																				///< flag for using asymmetric motion partition
-  Bool			m_bUseSHV;																				///< flag for using simultaneous H & V partition
-	char*     m_pchGeneratedReferenceMode;											///< array of generated reference modes
+	char*     m_pchGRefMode;																		///< array of generated reference modes
 
 	// coding tools (inter - interpolation filter)
-	Bool			m_bUseDIF;																				///< flag for using DCT-based interpolation filter
 	Int				m_iDIFTap;																				///< number of taps in DIF (luma)
-	Int				m_iDIFTapC;																				///< number of taps in DIF (chroma)
-  Bool      m_bUseHAP;																				///< flag for using high accuracy motion in P-slice
-  Bool      m_bUseHAB;																				///< flag for using high accuracy motion in B-slice
-  Bool      m_bUseHME;																				///< flag for using high accuracy motion in ME stage
-
-	// coding tools (intra)
-	Bool      m_bUseADI;																				///< flag for using arbitrary directional intra
-  Bool			m_bUseTMI;																				///< flag for using template matching intra
-	Bool			m_bUseCIP;																				///< flag for using combined intra prediction
-	Bool			m_bUseMPI;																				///< flag for using multi-parameter intra
-  Bool			m_bUseCCP;																				///< flag for using color correlation based prediction
-
-	// coding tools (transform)
-	Bool			m_bUseROT;																				///< flag for using rotational transform
-  Bool      m_bUseLOT;																				///< flag for using logical transform
-  Bool      m_bUseLCT;																				///< flag for using low-complexity transform
 
   // coding tools (loop filter)
 	Bool      m_bUseALF;																				///< flag for using adaptive loop filter
   Bool      m_bLoopFilterDisable;															///< flag for using deblocking filter
   Int       m_iLoopFilterAlphaC0Offset;												///< alpha offset for deblocking filter
   Int       m_iLoopFilterBetaOffset;													///< beta offset for deblocking filter
-  Bool      m_bUseEXC;																				///< flag for using extreme correction
-	Bool			m_bUseCADR;																				///< flag for using context-adaptive dynamic range
-	Int				m_iMinCADR;																				///< min. value for CADR
-	Int				m_iMaxCADR;																				///< max. value for CADR
-	Bool			m_bUseRNG;																				///< flag for using random noise generation for perceptual optimization
 
 	// coding tools (entropy coder)
   Int       m_iSymbolMode;																		///< entropy coder mode, 0 = VLC, 1 = SBAC
-  Bool			m_bUseACS;																				///< flag for using adaptive coefficient scanning
 
 	// coding tools (encoder-only parameters)
-	Bool      m_bUseMVACRD;																			///< flag for using RD optimization for MVAC
 	Bool      m_bUseSBACRD;																			///< flag for using RD optimization based on SBAC
-	Bool			m_bUseACC;																				///< flag for using additional coefficient clear
 	Bool		  m_bUseASR;																				///< flag for using adaptive motion search range
-	Bool			m_bUseJMQP;																				///< flag for using JM-style QP assignment
-	Bool			m_bUseJMLAMBDA;																		///< flag for using JM-stype lambda computation
 	Bool			m_bUseHADME;																			///< flag for using HAD in sub-pel ME
-  Bool			m_bUseFAM;																				///< flag for using fast decision of AMP
   Bool      m_bUseRDOQ;																				///< flag for using RD optimized quantization
 	Bool			m_bUseBQP;																				///< flag for using B-slice based QP assignment in low-delay hier. structure
   Int       m_iFastSearch;																		///< ME mode, 0 = full, 1 = diamond, 2 = PMVFAST
@@ -164,7 +128,7 @@ protected:
 	// internal member functions
 	Void  xSetCfgFile     ( TAppOption* pcOpt );								///< parse configuration file
   Void  xSetCfgCommand  ( int iArgc, char** pArgv );					///< parse command line options
-  Void  xSetProfile     ();																		///< set configuration values according to profile index
+  Void  xSetCfgTool     ();																		///< set configuration values for each coding tool
 	Void	xSetGlobal      ();																		///< set global variables
   Void  xCheckParameter ();																		///< check validity of configuration values
 	Void  xPrintParameter ();																		///< print configuration values

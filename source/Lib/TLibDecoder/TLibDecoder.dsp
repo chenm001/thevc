@@ -89,10 +89,6 @@ SOURCE=.\TDecCAVLC.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=.\TDecCfg.cpp
-# End Source File
-# Begin Source File
-
 SOURCE=.\TDecCu.cpp
 # End Source File
 # Begin Source File

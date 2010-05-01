@@ -69,8 +69,6 @@ public:
 
   Void parseMVPIdx      ( TComDataCU* pcCU, Int& riMVPIdx, Int iMVPNum, UInt uiAbsPartIdx, UInt uiDepth, RefPicList eRefList );
 
-  Void parseULTUsedFlag( TComDataCU* pcCU, UInt uiAbsPartIdx );
-
 protected:
   Void  xReadCode             (UInt uiLength, UInt& ruiCode);
   Void  xReadUvlc             (UInt& ruiVal);
@@ -98,40 +96,34 @@ private:
   UInt m_uiMaxAlfCtrlDepth;
 
 public:
-  Void parseSkipFlag      ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
-  Void parseSplitFlag     ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
-  Void parsePartSize      ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
-  Void parsePredMode      ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
+  Void parseSkipFlag				( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
+  Void parseSplitFlag				( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
+  Void parsePartSize				( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
+  Void parsePredMode				( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
 
-  Void parseIntraDirLuma  ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
+  Void parseIntraDirLuma		( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
 
-  Void parseIntraDirLumaAdi( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
+  Void parseIntraDirLumaAdi	( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
 
-  Void parseIntraDirChroma( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
+  Void parseIntraDirChroma	( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
 
-  Void parseInterDir      ( TComDataCU* pcCU, UInt& ruiInterDir, UInt uiAbsPartIdx, UInt uiDepth );
-  Void parseRefFrmIdx     ( TComDataCU* pcCU, Int& riRefFrmIdx, UInt uiAbsPartIdx, UInt uiDepth, RefPicList eRefList );
-  Void parseMvd           ( TComDataCU* pcCU, UInt uiAbsPartAddr, UInt uiPartIdx, UInt uiDepth, RefPicList eRefList );
+  Void parseInterDir				( TComDataCU* pcCU, UInt& ruiInterDir, UInt uiAbsPartIdx, UInt uiDepth );
+  Void parseRefFrmIdx				( TComDataCU* pcCU, Int& riRefFrmIdx,	 UInt uiAbsPartIdx, UInt uiDepth, RefPicList eRefList );
+  Void parseMvd							( TComDataCU* pcCU, UInt uiAbsPartAddr,UInt uiPartIdx,		UInt uiDepth, RefPicList eRefList );
 
-  Void parseTransformIdx  ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
-  Void parseDeltaQP       ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
-  Void parseCbf           ( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eType, UInt uiTrDepth, UInt uiDepth );
-  Void parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx, UInt uiWidth, UInt uiHeight, UInt uiDepth, TextType eTType );
+  Void parseTransformIdx		( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
+  Void parseDeltaQP					( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
+  Void parseCbf							( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eType, UInt uiTrDepth, UInt uiDepth );
+  Void parseCoeffNxN				( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx, UInt uiWidth, UInt uiHeight, UInt uiDepth, TextType eTType );
 
-  Void parseMPIindex( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth);
-  Void parseROTindex( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
-  Void parseCIPflag ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth);
+  Void parseROTindex				( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
+  Void parseCIPflag					( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth);
 
-  Void parseExtremeValue( Int& iMinVal, Int& iMaxVal, Int iExtremeType);
+  Void parseAlfFlag					( UInt& ruiVal );
+  Void parseAlfUvlc					( UInt& ruiVal );
+  Void parseAlfSvlc					( Int&  riVal  );
 
-//EXCBand
-  Void parseCorrBandExType( Int& iCorVal, Int& iBandNumber);
-
-  Void parseAlfFlag		( UInt& ruiVal						);
-  Void parseAlfUvlc		( UInt& ruiVal						);
-  Void parseAlfSvlc		( Int&  riVal							);
-
-  Void  parseAlfCtrlDepth              ( UInt& ruiAlfCtrlDepth );
+  Void parseAlfCtrlDepth	( UInt& ruiAlfCtrlDepth );
   Void parseAlfCtrlFlag		( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
 };
 

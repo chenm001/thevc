@@ -97,10 +97,6 @@ SOURCE=.\TComAdaptiveLoopFilter.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=.\TComBitcounter.cpp
-# End Source File
-# Begin Source File
-
 SOURCE=.\TComBitStream.cpp
 # End Source File
 # Begin Source File
@@ -109,23 +105,11 @@ SOURCE=.\TComDataCU.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=.\TComGlobalMotion.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=.\TComList.cpp
-# End Source File
-# Begin Source File
-
 SOURCE=.\TComLoopFilter.cpp
 # End Source File
 # Begin Source File
 
 SOURCE=..\..\..\source\Lib\TLibCommon\TComMotionInfo.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\..\source\Lib\TLibCommon\TComMV.cpp
 # End Source File
 # Begin Source File
 

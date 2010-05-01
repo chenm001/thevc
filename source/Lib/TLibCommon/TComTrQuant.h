@@ -122,7 +122,7 @@ private:
 public:
   Int m_iBits;
 
-  Void initOffsetParam(Int iStartQP = MIN_QP, Int iEndQP = MAX_QP, Bool bUseJMCFG = false );
+  Void initOffsetParam(Int iStartQP = MIN_QP, Int iEndQP = MAX_QP );
   Void setQOffset( Int iQP, SliceType eSliceType )
   {
     m_iAdd2x2 = m_aiAdd2x2[iQP][eSliceType];
@@ -174,7 +174,7 @@ public:
   ~TComTrQuant();
 
   // initialize class
-  Void init									( UInt uiMaxWidth, UInt uiMaxHeight, UInt uiMaxTrSize, Bool bUseADI, Bool bUseROT, Bool bUseLCT, Bool bUseACS, Bool bUseJMCFG = false, Bool bUseRDOQ = false, Bool bEnc = false );
+  Void init									( UInt uiMaxWidth, UInt uiMaxHeight, UInt uiMaxTrSize, Bool bUseRDOQ = false, Bool bEnc = false );
 
 	// transform & inverse transform functions
   Void transformNxN					( TComDataCU* pcCU, Pel*   pcResidual, UInt uiStride, TCoeff*& rpcCoeff, UInt uiWidth, UInt uiHeight,
@@ -204,81 +204,56 @@ protected:
   UInt*    m_puiQuantMtx;
 
   QpParam  m_cQP;
-  Int      m_iLTRChromaQP;
-  Double   m_dLTROffset;
-
-	UInt		 m_uiMaxTrSize;
-  Bool     m_bUseADI;
-	Bool		 m_bUseROT;
-  Bool     m_bUseJMCFG;
-	Bool		 m_bEnc;
-
-  Bool     m_bUseRDOQ;
-  Bool     m_bUseACS;
-  Bool     m_bUseLCT;
-
   Double	 m_dLambda;
 
+	UInt		 m_uiMaxTrSize;
+	Bool		 m_bEnc;
+  Bool     m_bUseRDOQ;
+
 private:
-  // Forward Transform
-  Void (*xT16) (Pel* , UInt , Long* );
-  Void (*xT32) (Pel* , UInt , Long* );
+  // forward Transform
+	Void xT		( Pel* pResidual, UInt uiStride, Long* plCoeff, Int iSize );
+  Void xT2	( Pel* pResidual, UInt uiStride, Long* plCoeff );
+  Void xT4	( Pel* pResidual, UInt uiStride, Long* plCoeff );
+  Void xT8	( Pel* pResidual, UInt uiStride, Long* plCoeff );
+  Void xT16 ( Pel* pResidual, UInt uiStride, Long* plCoeff );
+  Void xT32 ( Pel* pResidual, UInt uiStride, Long* plCoeff );
+  Void xT64 ( Pel* pResidual, UInt uiStride, Long* plCoeff );
 
-	Void xT  ( Pel* pResidual, UInt uiStride, Long* plCoeff, Int iSize );
-  Void xT2 ( Pel* pResidual, UInt uiStride, Long* plCoeff );
-  Void xT4 ( Pel* pResidual, UInt uiStride, Long* plCoeff );
-  Void xT8 ( Pel* pResidual, UInt uiStride, Long* plCoeff );
-  static Void xT16_Chen ( Pel* pResidual, UInt uiStride, Long* plCoeff );
-  static Void xT16_Loeffler_Lifting ( Pel* pResidual, UInt uiStride, Long* plCoeff );
-  static Void xT32_Chen( Pel* pResidual, UInt uiStride, Long* plCoeff );
-  static Void xT32_Loeffler_Lifting ( Pel* pResidual, UInt uiStride, Long* plCoeff );
-  Void xT64( Pel* pResidual, UInt uiStride, Long* plCoeff );
-
-  Void xQuant( TComDataCU* pcCU, Long* pSrc, TCoeff*& pDes, Int iWidth, Int iHeight, UInt& uiAcSum, TextType eTType, UInt uiAbsPartIdx, UChar indexROT );
-  Void xDeQuant( TCoeff* pSrc, Long*& pDes, Int iWidth, Int iHeight, UChar indexROT );
-  Void xUniQuantLTR  ( TComDataCU* pcCU, Long*  pSrc,   TCoeff*&  pDes, Int iWidth, Int iHeight, UInt& uiAcSum, TextType eTType, UInt uiAbsPartIdx, UChar indexROT  );
-  Void xQuant2x2  ( Long* plSrcCoef, TCoeff*& pDstCoef, UInt& uiAbsSum, UChar indexROT );
+	// quantization
+  Void xQuant			( TComDataCU* pcCU, Long* pSrc, TCoeff*& pDes, Int iWidth, Int iHeight, UInt& uiAcSum, TextType eTType, UInt uiAbsPartIdx, UChar indexROT );
+  Void xQuantLTR  ( TComDataCU* pcCU, Long* pSrc, TCoeff*& pDes, Int iWidth, Int iHeight, UInt& uiAcSum, TextType eTType, UInt uiAbsPartIdx, UChar indexROT );
+	Void xQuant2x2  ( Long* plSrcCoef, TCoeff*& pDstCoef, UInt& uiAbsSum, UChar indexROT );
   Void xQuant4x4  ( TComDataCU* pcCU, Long* plSrcCoef, TCoeff*& pDstCoef, UInt& uiAbsSum, TextType eTType, UInt uiAbsPartIdx, UChar indexROT );
   Void xQuant8x8  ( TComDataCU* pcCU, Long* plSrcCoef, TCoeff*& pDstCoef, UInt& uiAbsSum, TextType eTType, UInt uiAbsPartIdx, UChar indexROT );
 
-  // ACS
+	// RDOQ functions
   Void xRateDistOptQuant ( TComDataCU* pcCU, Long* pSrcCoef, TCoeff*& pDstCoeff, UInt uiWidth, UInt uiHeight, UInt& uiAbsSum, TextType eTType, UInt uiAbsPartIdx, UChar indexROT );
-
-  // ACS
-  Double xEst_writeRunLevel_SBAC ( levelDataStruct* levelData, Int* levelTabMin, TextType eTType, Double lambda, Int& kInit, Int kStop, Int noCoeff, Int estCBP, UInt uiWidth, UInt uiHeight, UInt uiDepth, UInt uiScanIdx );
+  Double xEst_writeRunLevel_SBAC ( levelDataStruct* levelData, Int* levelTabMin, TextType eTType, Double lambda, Int& kInit, Int kStop, Int noCoeff, Int estCBP, UInt uiWidth, UInt uiHeight, UInt uiDepth );
   Int  xEst_write_and_store_CBP_block_bit ( TComDataCU* pcCU, TextType eTType );
   Int  est_unary_exp_golomb_level_encode (UInt symbol, Int ctx, TextType eTType, UInt uiDepth);
   Int  est_exp_golomb_encode_eq_prob (UInt symbol);
   Int  est_unary_exp_golomb_level_bits( UInt symbol, Int bits0, Int bits1);
 
-#if IQC_ROUND_OFF
-  __inline Int  xRound ( Int i )   { return ((i)+i/25+(1<<5))>>6; }
-#else
-  __inline Int  xRound ( Int i )   { return ((i)+(1<<5))>>6; }
-#endif
-
+  __inline Int					xRound	 ( Int i )   { return ((i)+(1<<5))>>6; }
   __inline static Long  xTrRound ( Long i, UInt uiShift ) { return ((i)>>uiShift); }
 
-  // Backward Transform
-  Void xDeQuant2x2  ( TCoeff* pSrcCoef, Long*& rplDstCoef, UChar indexROT );
-  Void xDeQuant4x4  ( TCoeff* pSrcCoef, Long*& rplDstCoef, UChar indexROT );
-  Void xDeQuant8x8  ( TCoeff* pSrcCoef, Long*& rplDstCoef, UChar indexROT );
+  // dequantization
+  Void xDeQuant					( TCoeff* pSrc,			Long*& pDes,			 Int iWidth, Int iHeight, UChar indexROT );
+  Void xDeQuantLTR			( TCoeff* pSrc,			Long*&  pDes,			 Int iWidth, Int iHeight, UChar indexROT );
+	Void xDeQuant2x2			( TCoeff* pSrcCoef, Long*& rplDstCoef, UChar indexROT );
+  Void xDeQuant4x4			( TCoeff* pSrcCoef, Long*& rplDstCoef, UChar indexROT );
+  Void xDeQuant8x8			( TCoeff* pSrcCoef, Long*& rplDstCoef, UChar indexROT );
 
-  Void xUniDeQuantLTR		( TCoeff* pSrc, Double*& pfDes, Int iWidth, Int iHeight );
-  Void xUniDeQuantLTR		( TCoeff* pSrc, Long*&	 pDes,	Int iWidth, Int iHeight, UChar indexROT );
+	// inverse transform
+	Void xIT		( Long* plCoef, Pel* pResidual, UInt uiStride, Int iSize );
+  Void xIT2		( Long* plCoef, Pel* pResidual, UInt uiStride );
+  Void xIT4		( Long* plCoef, Pel* pResidual, UInt uiStride );
+  Void xIT8		( Long* plCoef, Pel* pResidual, UInt uiStride );
+	Void xIT16	( Long* plCoef, Pel* pResidual, UInt uiStride );
+	Void xIT32	( Long* plCoef, Pel* pResidual, UInt uiStride );
+	Void xIT64	( Long* plCoef, Pel* pResidual, UInt uiStride );
 
-  Void (*xIT16) (Long* , Pel* , UInt );
-  Void (*xIT32) (Long* , Pel* , UInt );
-
-	Void xIT  ( Long* plCoef, Pel* pResidual, UInt uiStride, Int iSize );
-  Void xIT2 ( Long* plCoef, Pel* pResidual, UInt uiStride );
-  Void xIT4 ( Long* plCoef, Pel* pResidual, UInt uiStride );
-  Void xIT8 ( Long* plCoef, Pel* pResidual, UInt uiStride );
-  static Void xIT16_Chen( Long* plCoef, Pel* pResidual, UInt uiStride );
-  static Void xIT16_Loeffler_Lifting ( Long* plCoef, Pel* pResidual, UInt uiStride );
-  static Void xIT32_Chen ( Long* plCoef, Pel* pResidual, UInt uiStride );
-  static Void xIT32_Loeffler_Lifting ( Long* plCoef, Pel* pResidual, UInt uiStride );
-  Void xIT64( Long* plCoef, Pel* pResidual, UInt uiStride );
 };// END CLASS DEFINITION TComTrQuant
 
 

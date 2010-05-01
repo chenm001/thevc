@@ -51,14 +51,6 @@ class TComPattern;
 // for function pointer
 typedef UInt (*FpDistFunc) (DistParam*);
 
-typedef struct _NonRectPartInfo
-{
-  Int iStartX[2];
-  Int iStartY[2];
-  Int   iRows[2];
-  Int   iCols[2];
-} NonRectPartInfo;
-
 // ====================================================================================================================
 // Class definition
 // ====================================================================================================================
@@ -76,10 +68,6 @@ public:
   Int   iStep;
   FpDistFunc DistFunc;
 
-  Bool  bNonRectPartFlag;
-  NonRectPartInfo eNonRectPartInfo;
-  FpDistFunc DistFuncSHVPart;
-
   // for DF_YUV_SAD
   Pel*  pCbOrg;
   Pel*  pCbCur;
@@ -91,7 +79,7 @@ public:
 class TComRdCost
 {
 private:
-  // for Distortion
+  // for distortion
   Int                     m_iBlkWidth;
   Int                     m_iBlkHeight;
 
@@ -102,7 +90,7 @@ private:
   UInt                    m_uiLambdaMotionSSE;
   Double									m_dFrameLambda;
 
-  //--> srlee : motion cost
+  // for motion cost
   UInt*                   m_puiComponentCostOriginP;
   UInt*                   m_puiComponentCost;
   UInt*                   m_puiVerCost;
@@ -134,7 +122,7 @@ public:
 
 	UInt    calcHAD         ( Pel* pi0, Int iStride0, Pel* pi1, Int iStride1, Int iWidth, Int iHeight );
 
-  //--> srlee : motion cost
+  // for motion cost
   Void    initRateDistortionModel( Int iSubPelSearchLimit );
   Void    xUninit();
   UInt    xGetComponentBits( Int iVal );
@@ -184,10 +172,6 @@ private:
   static UInt xCalcHADs2x2			( Pel *piOrg, Pel *piCurr, Int iStrideOrg, Int iStrideCur, Int iStep );
   static UInt xCalcHADs4x4			( Pel *piOrg, Pel *piCurr, Int iStrideOrg, Int iStrideCur, Int iStep );
 	static UInt xCalcHADs8x8			( Pel *piOrg, Pel *piCurr, Int iStrideOrg, Int iStrideCur, Int iStep );
-
-  static UInt xGetSADSHVPart    ( DistParam* pcDtParam );
-  static UInt xGetSADsSHVPart   ( DistParam* pcDtParam );
-  static UInt xGetHADsSHVPart   ( DistParam* pcDtParam );
 
 public:
   UInt   getDistPart( Pel* piCur, Int iCurStride,  Pel* piOrg, Int iOrgStride, UInt uiBlkWidth, UInt uiBlkHeight, DFunc eDFunc = DF_SSE );

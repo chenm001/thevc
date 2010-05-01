@@ -46,12 +46,11 @@ int main(int argc, char* argv[])
 
 	// print information
   fprintf( stdout, "\n" );
-  fprintf( stdout, "Samsung Neo Video Encoder version [%s] ", NV_VERSION );
+  fprintf( stdout, "TMuC SW candidate: Encoder Version [%s]", NV_VERSION );
   fprintf( stdout, NVM_ONOS );
   fprintf( stdout, NVM_COMPILEDBY );
   fprintf( stdout, NVM_BITS );
   fprintf( stdout, "\n" );
-  fprintf( stdout, "Copyright by M/M Platform Lab, DMC R&D Center, Samsung Electronics, Co., LTD.\n" );
 
 	// create application encoder class
   cTAppEncTop.create();

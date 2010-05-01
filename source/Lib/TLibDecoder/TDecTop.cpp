@@ -88,6 +88,9 @@ Void TDecTop::deletePicBuffer ( )
     pcPic = NULL;
   }
 
+	// destroy ALF temporary buffers
+	m_cAdaptiveLoopFilter.destroy();
+
 	// destroy ROM
 	destroyROM();
 }
@@ -160,33 +163,26 @@ Void TDecTop::decode (Bool bEos, TComBitstream* pcBitstream, UInt& ruiPOC, TComL
 		m_bSeqFirst = false;
 
     Int i;
-
-		if ( g_bUseCADR )
-		{
-      initCADRQPTable( m_cSPS.getUseLCT() );
-    }
-
     for (i = 0; i < m_cSPS.getMaxCUDepth() - 1; i++)
     {
-      m_cSPS.setFMPAccuracy( i, 1 );
+      m_cSPS.setAMPAcc( i, 1 );
     }
 
     for (i = m_cSPS.getMaxCUDepth() - 1; i < m_cSPS.getMaxCUDepth(); i++)
     {
-      m_cSPS.setFMPAccuracy( i, 0 );
+      m_cSPS.setAMPAcc( i, 0 );
     }
 
 		// initialize DIF
 		m_cPrediction.setDIFTap ( m_cSPS.getDIFTap () );
-		m_cPrediction.setDIFTapC( m_cSPS.getDIFTapC() );
+
+		// create ALF temporary buffer
+		m_cAdaptiveLoopFilter.create( m_cSPS.getWidth(), m_cSPS.getHeight(), g_uiMaxCUWidth, g_uiMaxCUHeight, g_uiMaxCUDepth );
 	}
 
   //  Read slice header
 	m_apcSlicePilot->setSPS( &m_cSPS );
   m_cEntropyDecoder.decodeSliceHeader (m_apcSlicePilot);
-
-	// Prediction class initiaization
-	m_cPrediction.init( m_apcSlicePilot->getSPS()->getUseMPI() );
 
   // Buffer initialize for prediction.
   m_cPrediction.initTempBuff();
@@ -195,9 +191,9 @@ Void TDecTop::decode (Bool bEos, TComBitstream* pcBitstream, UInt& ruiPOC, TComL
   xGetNewPicBuffer (m_apcSlicePilot, pcPic);
 
   // Recursive structure
-  m_cCuDecoder.create( g_uiMaxCUDepth, g_uiMaxCUWidth, g_uiMaxCUHeight );
-  m_cCuDecoder.init(&m_cEntropyDecoder, &m_cTrQuant, &m_cPrediction);
-  m_cTrQuant.init( g_uiMaxCUWidth, g_uiMaxCUHeight, m_apcSlicePilot->getSPS()->getMaxTrSize(), m_apcSlicePilot->getSPS()->getUseADI(), m_apcSlicePilot->getSPS()->getUseROT(), m_apcSlicePilot->getSPS()->getUseLCT(), m_apcSlicePilot->getSPS()->getUseACS()); // ACS
+  m_cCuDecoder.create	( g_uiMaxCUDepth, g_uiMaxCUWidth, g_uiMaxCUHeight );
+  m_cCuDecoder.init		( &m_cEntropyDecoder, &m_cTrQuant, &m_cPrediction );
+  m_cTrQuant.init			( g_uiMaxCUWidth, g_uiMaxCUHeight, m_apcSlicePilot->getSPS()->getMaxTrSize() );
 
   m_cSliceDecoder.create( m_apcSlicePilot, m_apcSlicePilot->getSPS()->getWidth(), m_apcSlicePilot->getSPS()->getHeight(), g_uiMaxCUWidth, g_uiMaxCUHeight, g_uiMaxCUDepth );
 
@@ -280,7 +276,7 @@ Void TDecTop::decode (Bool bEos, TComBitstream* pcBitstream, UInt& ruiPOC, TComL
   pcSlice->setRefPOCList();
 
   //  Decode a picture
-  m_cGopDecoder.decompressGop (bEos, pcBitstream, pcPic);
+  m_cGopDecoder.decompressGop ( bEos, pcBitstream, pcPic );
 
 	// quality-based reference reordering (QBO)
 	if ( !pcSlice->isIntra() && pcSlice->getSPS()->getUseQBO() )

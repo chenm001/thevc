@@ -646,8 +646,8 @@ Pel* TComYuv::getLumaAddr( UInt uiPartUnitIdx )
 {
   UInt iBlkX;
   UInt iBlkY;
-  iBlkX = g_auiConvertPartIdxToPelX[g_auiConvertRelToAbsIdx[uiPartUnitIdx]];
-  iBlkY = g_auiConvertPartIdxToPelY[g_auiConvertRelToAbsIdx[uiPartUnitIdx]];
+  iBlkX = g_auiRasterToPelX[g_auiZscanToRaster[uiPartUnitIdx]];
+  iBlkY = g_auiRasterToPelY[g_auiZscanToRaster[uiPartUnitIdx]];
 
   return m_apiBufY + iBlkY*getStride() + iBlkX;
 }
@@ -656,8 +656,8 @@ Pel* TComYuv::getCbAddr( UInt uiPartUnitIdx )
 {
   UInt iBlkX;
   UInt iBlkY;
-  iBlkX = g_auiConvertPartIdxToPelX[g_auiConvertRelToAbsIdx[uiPartUnitIdx]] >> 1;
-  iBlkY = g_auiConvertPartIdxToPelY[g_auiConvertRelToAbsIdx[uiPartUnitIdx]] >> 1;
+  iBlkX = g_auiRasterToPelX[g_auiZscanToRaster[uiPartUnitIdx]] >> 1;
+  iBlkY = g_auiRasterToPelY[g_auiZscanToRaster[uiPartUnitIdx]] >> 1;
 
   return m_apiBufU + iBlkY*getCStride() + iBlkX;
 }
@@ -666,8 +666,8 @@ Pel* TComYuv::getCrAddr( UInt uiPartUnitIdx )
 {
   UInt iBlkX;
   UInt iBlkY;
-  iBlkX = g_auiConvertPartIdxToPelX[g_auiConvertRelToAbsIdx[uiPartUnitIdx]] >> 1;
-  iBlkY = g_auiConvertPartIdxToPelY[g_auiConvertRelToAbsIdx[uiPartUnitIdx]] >> 1;
+  iBlkX = g_auiRasterToPelX[g_auiZscanToRaster[uiPartUnitIdx]] >> 1;
+  iBlkY = g_auiRasterToPelY[g_auiZscanToRaster[uiPartUnitIdx]] >> 1;
 
   return m_apiBufV + iBlkY*getCStride() + iBlkX;
 }

@@ -68,7 +68,7 @@ private:
 	// -------------------------------------------------------------------------------------------------------------------
 
   UInt					m_uiCUAddr;						///< CU address in a slice
-  UInt					m_uiAbsZorderIdx;			///< absolute address in a CU. It's Z scan order
+  UInt					m_uiAbsIdxInLCU;			///< absolute address in a CU. It's Z scan order
   UInt					m_uiCUPelX;						///< CU position in a pixel (X)
   UInt					m_uiCUPelY;						///< CU position in a pixel (Y)
   UInt					m_uiNumPartition;			///< total number of minimum partitions in a CU
@@ -113,11 +113,8 @@ private:
   UChar*				m_puhInterDir;        ///< array of inter directions
   Int*					m_apiMVPIdx[2];				///< array of motion vector predictor candidates
   Int*					m_apiMVPNum[2];				///< array of number of possible motion vectors predictors
-  UChar*				m_pMPIindex;          ///< array of MPI indices
   UChar*				m_pROTindex;          ///< array of ROT indices
 	UChar*				m_pCIPflag;           ///< array of CIP flags
-  UChar*				m_pScanOrder;         ///< array of scan order indices
-  UChar*				m_phHAMUsed;					///< array of high accuracy motion compensation flags
   UInt*					m_puiAlfCtrlFlag;			///< array of ALF flags
   UInt*					m_puiTmpAlfCtrlFlag;	///< temporal array of ALF flags
 
@@ -178,7 +175,7 @@ public:
   TComPic*			getPic								()												{ return m_pcPic;						}
 	TComSlice*		getSlice							()												{ return m_pcSlice;					}
 	UInt&					getAddr								()												{ return m_uiCUAddr;				}
-	UInt&					getZorderIdxInCU			()												{ return m_uiAbsZorderIdx;	}
+	UInt&					getZorderIdxInCU			()												{ return m_uiAbsIdxInLCU;	}
 	UInt					getCUPelX							()												{ return m_uiCUPelX;        }
 	UInt					getCUPelY							()												{ return m_uiCUPelY;        }
 	TComPattern*	getPattern						()												{ return m_pcPattern;       }
@@ -261,11 +258,6 @@ public:
   Void					setInterDir						( UInt uiIdx, UChar  uh ) { m_puhInterDir[uiIdx] = uh;					}
   Void					setInterDirSubParts   ( UInt uiDir,  UInt uiAbsPartIdx, UInt uiPartIdx, UInt uiDepth );
 
-  UChar*				getMPIindex						()												{ return m_pMPIindex;                 }
-  UChar					getMPIindex						( UInt uiIdx )            { return m_pMPIindex[uiIdx];					}
-  Void					setMPIindex						( UInt uiIdx, UChar  uh ) { m_pMPIindex[uiIdx] = uh;						}
-  Void					setMPIindexSubParts   ( UChar MPIindex, UInt uiAbsPartIdx, UInt uiDepth );
-
 	UChar*				getROTindex						()												{ return m_pROTindex;                 }
   UChar					getROTindex						( UInt uiIdx )            { return m_pROTindex[uiIdx];					}
   Void					setROTindex						( UInt uiIdx, UChar  uh ) { m_pROTindex[uiIdx] = uh;						}
@@ -286,23 +278,12 @@ public:
   Void					setCIPflag						( UInt uiIdx, UChar  uh ) { m_pCIPflag[uiIdx] = uh;							}
 	Void					setCIPflagSubParts    ( UChar CIPflag, UInt uiAbsPartIdx, UInt uiDepth );
 
-  Void					setHAMUsed						( UInt ui, UChar uh )			{ m_phHAMUsed[ui] = uh;								}
-  UChar					getHAMUsed						( UInt ui )								{ return m_phHAMUsed[ui];							}
-	UChar*				getHAMUsed						()												{ return m_phHAMUsed;									}
-  Void					setHAMUsedSubParts		( UChar uhHAMUsed, UInt uiAbsPartIdx, UInt uiDepth );
-  Bool					checkHAMVal						( UInt uiAbsPartIdx, UInt uiDepth );
-
 	// -------------------------------------------------------------------------------------------------------------------
 	// member functions for accessing partition information
 	// -------------------------------------------------------------------------------------------------------------------
 
   Void					getPartIndexAndSize		( UInt uiPartIdx, UInt& ruiPartAddr, Int& riWidth, Int& riHeight );
-	Bool					isNonRectPart					( UInt uiPartIdx );
-  Void					getNonRectPartinfo		( UInt uiPartIdx, Int* piStartX, Int* piStartY, Int* piRows, Int* piCols );
-  UInt					getFirstPartIdx				( UInt uiPartIdx, UInt uiCUPartAddr );
-  Void					getLeftTopIdxSizeVirt ( UInt uiVirtPartIdx, UInt& ruiLTIdx, Int& riWidth, Int& riHeight );
   UChar					getNumPartInter				();
-  UChar					getNumVirtPartInter		();
   Bool					isFirstAbsZorderIdxInDepth (UInt uiAbsPartIdx, UInt uiDepth);
 
 	// -------------------------------------------------------------------------------------------------------------------
@@ -310,8 +291,6 @@ public:
 	// -------------------------------------------------------------------------------------------------------------------
 
   Void					getMvField						( TComDataCU* pcCU, UInt uiAbsPartIdx, RefPicList eRefPicList, TComMvField& rcMvField );
-  Void					getMvPred							( PartSize eCUMode, UInt uiPartIdx,    RefPicList eRefPicList, Int iRefIdx, TComMv& rcMvPred );
-  Void					getMvPredSkip					( Bool bBi = false );
   AMVP_MODE			getAMVPMode						( UInt uiIdx );
   Void					fillMvpCand						( UInt uiPartIdx, UInt uiPartAddr, RefPicList eRefPicList, Int iRefIdx, AMVPInfo* pInfo );
   Bool					clearMVPCand					( TComMv cMvd, AMVPInfo* pInfo );
@@ -332,17 +311,6 @@ public:
   Void					getMvPredLeft					( TComMv&     rcMvPred )   { rcMvPred = m_cMvFieldA.getMv(); }
   Void					getMvPredAbove				( TComMv&     rcMvPred )   { rcMvPred = m_cMvFieldB.getMv(); }
   Void					getMvPredAboveRight		( TComMv&     rcMvPred )   { rcMvPred = m_cMvFieldC.getMv(); }
-
-	Void					restrictMvpAccuracy   ( TComMv&			rcMvp		 );
-
-	// -------------------------------------------------------------------------------------------------------------------
-	// member functions for scan order
-	// -------------------------------------------------------------------------------------------------------------------
-
-  UChar					getScanOrder					( UInt uiAbsPartIdx )							{ return m_pScanOrder[uiAbsPartIdx]; }
-	UChar*				getScanOrder          ()																{ return m_pScanOrder;							 }
-  Void					setScanOrder          ( UInt uiAbsPartIdx, Int iMode )	{ if( iMode >= 0 ) m_pScanOrder[uiAbsPartIdx] = iMode; }
-  Void					setScanOrderSubParts  ( UInt uiScanMode, UInt uiAbsPartIdx, UInt uiDepth );
 
 	// -------------------------------------------------------------------------------------------------------------------
 	// utility functions for neighbouring information
@@ -368,10 +336,6 @@ public:
 
   Void					deriveLeftRightTopIdxAdi		( UInt& ruiPartIdxLT, UInt& ruiPartIdxRT, UInt uiPartOffset, UInt uiPartDepth );
   Void					deriveLeftBottomIdxAdi			( UInt& ruiPartIdxLB, UInt  uiPartOffset, UInt uiPartDepth );
-
-  Void					deriveLeftTopIdxVirt				( PartSize eCUMode, UInt uiVirtPartIdx, UInt& ruiPartIdxLT );
-  Void					deriveRightTopIdxVirt				( PartSize eCUMode, UInt uiVirtPartIdx, UInt& ruiPartIdxRT );
-  Void					deriveLeftBottomIdxVirt			( PartSize eCUMode, UInt uiVirtPartIdx, UInt& ruiPartIdxLB );
 
 	// -------------------------------------------------------------------------------------------------------------------
 	// member functions for modes

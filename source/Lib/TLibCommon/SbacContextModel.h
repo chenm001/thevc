@@ -67,4 +67,4 @@ public:
 	Void init( Int iQp, Short asCtxInit[] );																								///< initialize state with initial prob.
 };
 
-#endif // !defined(AFX_SBACCONTEXTMODEL_H__2D76E021_2277_44AD_95CC_EE831C7AC09F__INCLUDED_)
+#endif

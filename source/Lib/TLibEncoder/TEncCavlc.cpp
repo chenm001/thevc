@@ -118,59 +118,24 @@ Void TEncCavlc::codeSPS( TComSPS* pcSPS )
   xWriteUvlc  ( pcSPS->getMaxTrSize() == 2 ? 0 : g_aucConvertToBit[pcSPS->getMaxTrSize()]+1 );
 
 	// Tools
-	xWriteFlag	( (pcSPS->getUseMVAC()) ? 1 : 0 );
-  xWriteFlag	( (pcSPS->getUseADI ()) ? 1 : 0 );
-	xWriteFlag	( (pcSPS->getUseROT ()) ? 1 : 0 );
-	xWriteFlag	( 0 ); // reserved
-	xWriteFlag	( (pcSPS->getUseMPI ()) ? 1 : 0 );
-	xWriteFlag	( (pcSPS->getUseAMVP()) ? 1 : 0 );
-	xWriteFlag	( (pcSPS->getUseIMR ()) ? 1 : 0 );
-	xWriteFlag	( (pcSPS->getUseDIF ()) ? 1 : 0 );
-  xWriteFlag	( 0 ); // reserved
-	xWriteFlag	( (pcSPS->getUseALF()) ? 1 : 0 );
+	xWriteFlag	( (pcSPS->getUseALF ()) ? 1 : 0 );
 	xWriteFlag	( (pcSPS->getUseDQP ()) ? 1 : 0 );
-	xWriteFlag	( (pcSPS->getUseRNG ()) ? 1 : 0 );
-	xWriteFlag	( (pcSPS->getUseAMP ()) ? 1 : 0 );
-  xWriteFlag	( (pcSPS->getUseSHV ()) ? 1 : 0 );
 	xWriteFlag	( (pcSPS->getUseWPG () || pcSPS->getUseWPO ()) ? 1 : 0 );
-	xWriteFlag	( (pcSPS->getUseWPR ()) ? 1 : 0 );
-  if (pcSPS->getUseIME())      xWriteUvlc(1);
-  else if (pcSPS->getUseAME()) xWriteUvlc(2);
-  else if (pcSPS->getUsePME()) xWriteUvlc(3);
-  else                         xWriteUvlc(0);
-  xWriteFlag  ( (pcSPS->getUseLOT ()) ? 1 : 0 );
-  xWriteFlag  ( (pcSPS->getUseExC ()) ? 1 : 0 );
-  xWriteFlag  ( (pcSPS->getUseCCP ()) ? 1 : 0 );
-  xWriteFlag  ( (pcSPS->getUseTMI ()) ? 1 : 0 );
   xWriteFlag  ( (pcSPS->getUseLDC ()) ? 1 : 0 );
-  xWriteFlag  ( (pcSPS->getUseCIP ()) ? 1 : 0 );
-  xWriteFlag  ( (pcSPS->getUseLCT ()) ? 1 : 0 );
   xWriteFlag  ( (pcSPS->getUseQBO ()) ? 1 : 0 );
-  xWriteFlag  ( (pcSPS->getUseACS ()) ? 1 : 0 );
 
-  xWriteFlag  ( (pcSPS->getUseHAP ()) ? 1 : 0 );
-  xWriteFlag  ( (pcSPS->getUseHAB ()) ? 1 : 0 );
-
+	// write number of taps for DIF
   xWriteUvlc  ( (pcSPS->getDIFTap ()>>1)-2 );	// 4, 6, 8, 10, 12
-	xWriteUvlc  ( (pcSPS->getDIFTapC()>>1)-1 ); // 2, 4, 6,  8, 10, 12
 
-	xWriteFlag  ( (g_bUseCADR) ? 1 : 0 );
-	if ( g_bUseCADR )
+	// AMVP mode for each depth
+	for (Int i = 0; i < pcSPS->getMaxCUDepth(); i++)
 	{
-		xWriteUvlc( g_iMinCADR );
-		xWriteUvlc( (1<<CADR_BITS) - g_iMaxCADR - 1 );
+		xWriteFlag( pcSPS->getAMVPMode(i) ? 1 : 0);
 	}
 
-	if ( pcSPS->getUseAMVP() )
-	{
-		for (Int i = 0; i < pcSPS->getMaxCUDepth(); i++)
-		{
-			xWriteFlag( pcSPS->getAMVPMode(i) ? 1 : 0);
-		}
-	}
+	// Bit-depth information
   xWriteUvlc( pcSPS->getBitDepth() - 8 );
   xWriteUvlc( pcSPS->getBitIncrement() );
-
 }
 
 Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
@@ -245,46 +210,14 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
         }
       }
     }
-
-    if (pcSlice->getSPS()->getUseWPR())
-    {
-      UInt uiRfMode =  pcSlice->getRFmode();
-      xWriteCode  (uiRfMode, 1 );
-    }
-
-    if (pcSlice->getSPS()->getUseAME() || pcSlice->getSPS()->getUseIME() || pcSlice->getSPS()->getUsePME())
-    {
-      for (Int n=0; n<iNumPredDir; n++)
-      {
-        RefPicList eRefPicList = (RefPicList)n;
-
-        UInt uiGmMode =  pcSlice->getGMmode(eRefPicList);
-        xWriteFlag (uiGmMode > 0 ? 1 : 0);
-
-        if (uiGmMode)
-        {
-          for (UInt ui=0; ui<pcSlice->getNumOfSpritePoints(); ui++)
-          {
-            TrajPoint cTrajPoint = pcSlice->getDiffTrajPoint(eRefPicList, ui);
-            xWriteSvlc (cTrajPoint.x);
-            xWriteSvlc (cTrajPoint.y);
-          }
-        }
-      }
-    }
   }
 
 #if AMVP_NEIGH_COL
-  if (pcSlice->getSPS()->getUseAMVP() && pcSlice->getSliceType() == B_SLICE)
+  if ( pcSlice->getSliceType() == B_SLICE )
   {
-    xWriteFlag(pcSlice->getColDir());
+    xWriteFlag( pcSlice->getColDir() );
   }
 #endif
-
-  if ( pcSlice->getSPS()->getUseMVAC() && pcSlice->isInterB() )
-  {
-    xWriteFlag( pcSlice->getUseMVAC() ? 1 : 0 );
-  }
 }
 
 Void TEncCavlc::codeTerminatingBit      ( UInt uilsLast )
@@ -690,153 +623,74 @@ Void TEncCavlc::codePartSize( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth 
   UInt uiSize         = (UInt)(pcCU->getPartitionSize( uiAbsPartIdx ));
   UInt uiSymbol       = ( uiMostProbable == uiSize ) ? 1 : 0;
 
-  if( pcCU->getSlice()->isIntra() ) // for flexible size intra, delete this part
+  if( pcCU->getSlice()->isIntra() )		// for flexible size intra, delete this part
   {
-    xWriteFlag( uiSymbol );                            // Square size intra only : 2Nx2N, NxN
+    xWriteFlag( uiSymbol );           // Square size intra only : 2Nx2N, NxN
     return;
   }
 
-  PartSize eSize      = pcCU->getPartitionSize( uiAbsPartIdx );
+  PartSize eSize = pcCU->getPartitionSize( uiAbsPartIdx );
 
-  if (!pcCU->getSlice()->getSPS()->getUseSHV())
+  switch(eSize)
   {
-    switch(eSize)
+  case SIZE_2Nx2N:
     {
-    case SIZE_2Nx2N:
-      {
-        xWriteFlag( 1 );
-        break;
-      }
-    case SIZE_2NxN:
-    case SIZE_2NxnU:
-    case SIZE_2NxnD:
-      {
-        xWriteFlag( 0 );
-        xWriteFlag( 1 );
-        if (pcCU->getSlice()->getSPS()->getUseAMP() && pcCU->getSlice()->getFMPAccuracy( uiDepth ))
-        {
-          if (eSize == SIZE_2NxN)
-          {
-            xWriteFlag( 1 );
-          }
-          else
-          {
-            xWriteFlag( 0 );
-            xWriteFlag( eSize == SIZE_2NxnU? 0: 1 );
-          }
-        }
-        break;
-      }
-    case SIZE_Nx2N:
-    case SIZE_nLx2N:
-    case SIZE_nRx2N:
-      {
-        xWriteFlag( 0 );
-        xWriteFlag( 0 );
-        xWriteFlag( 1 );
-        if (pcCU->getSlice()->getSPS()->getUseAMP() && pcCU->getSlice()->getFMPAccuracy( uiDepth ))
-        {
-          if (eSize == SIZE_Nx2N)
-          {
-            xWriteFlag( 1 );
-          }
-          else
-          {
-            xWriteFlag( 0 );
-            xWriteFlag( eSize == SIZE_nLx2N? 0: 1);
-          }
-        }
-        break;
-      }
-    case SIZE_NxN:
-      {
-        xWriteFlag( 0 );
-        xWriteFlag( 0 );
-        xWriteFlag( 0 );
-        break;
-      }
-    default:
-      {
-        assert(0);
-      }
+      xWriteFlag( 1 );
+      break;
     }
-  }
-  else
-  {
-    switch(eSize)
+  case SIZE_2NxN:
+  case SIZE_2NxnU:
+  case SIZE_2NxnD:
     {
-    case SIZE_2Nx2N:
-      {
-        xWriteFlag( 1 );
-        break;
-      }
-    case SIZE_2NxN:
-    case SIZE_2NxnU:
-    case SIZE_2NxnD:
-      {
-        xWriteFlag( 0 );
-        xWriteFlag( 1 );
-        xWriteFlag( 0 );
-        if (pcCU->getSlice()->getSPS()->getUseAMP() && pcCU->getSlice()->getFMPAccuracy( uiDepth ))
-        {
-          if (eSize == SIZE_2NxN)
-          {
-            xWriteFlag( 1 );
-          }
-          else
-          {
-            xWriteFlag( 0 );
-            xWriteFlag( eSize == SIZE_2NxnU? 0: 1);
-          }
-        }
-        break;
-      }
-    case SIZE_Nx2N:
-    case SIZE_nLx2N:
-    case SIZE_nRx2N:
-      {
-        xWriteFlag( 0 );
-        xWriteFlag( 1 );
-        xWriteFlag( 1 );
-        if (pcCU->getSlice()->getSPS()->getUseAMP() && pcCU->getSlice()->getFMPAccuracy( uiDepth ))
-        {
-          if (eSize == SIZE_Nx2N)
-          {
-            xWriteFlag( 1 );
-          }
-          else
-          {
-            xWriteFlag( 0 );
-            xWriteFlag( eSize == SIZE_nLx2N? 0: 1 );
-          }
-        }
-        break;
-      }
-    case SIZE_NxN:
-      {
-        xWriteFlag( 0 );
-        xWriteFlag( 0 );
-        xWriteFlag( 1 );
-        break;
-      }
-    case SIZE_SHV_LT:
-    case SIZE_SHV_RT:
-    case SIZE_SHV_LB:
-    case SIZE_SHV_RB:
-      {
-        UInt uiSize = eSize - SIZE_SHV_LT;
-        xWriteFlag( 0 );
-        xWriteFlag( 0 );
-        xWriteFlag( 0 );
+      xWriteFlag( 0 );
+      xWriteFlag( 1 );
 
-        xWriteFlag( uiSize&1 );
-        xWriteFlag( uiSize>>1 );
-        break;
-      }
-    default:
+      if ( pcCU->getSlice()->getAMPAcc( uiDepth ) )
       {
-        assert(0);
+        if (eSize == SIZE_2NxN)
+        {
+          xWriteFlag( 1 );
+        }
+        else
+        {
+          xWriteFlag( 0 );
+          xWriteFlag( eSize == SIZE_2NxnU? 0: 1 );
+        }
       }
+      break;
+    }
+  case SIZE_Nx2N:
+  case SIZE_nLx2N:
+  case SIZE_nRx2N:
+    {
+      xWriteFlag( 0 );
+      xWriteFlag( 0 );
+      xWriteFlag( 1 );
+
+      if ( pcCU->getSlice()->getAMPAcc( uiDepth ) )
+      {
+        if (eSize == SIZE_Nx2N)
+        {
+          xWriteFlag( 1 );
+        }
+        else
+        {
+          xWriteFlag( 0 );
+          xWriteFlag( eSize == SIZE_nLx2N? 0: 1);
+        }
+      }
+      break;
+    }
+  case SIZE_NxN:
+    {
+      xWriteFlag( 0 );
+      xWriteFlag( 0 );
+      xWriteFlag( 0 );
+      break;
+    }
+  default:
+    {
+      assert(0);
     }
   }
 }
@@ -931,40 +785,12 @@ Void TEncCavlc::codeRefFrmIdx( TComDataCU* pcCU, UInt uiAbsPartIdx, RefPicList e
   return;
 }
 
-Void TEncCavlc::codeULTUsedFlag( TComDataCU* pcCU, UInt uiAbsPartIdx )
-{
-  printf("\nCaVLC ULTUsedFlag : Not coded yet!!!!");
-}
-
 Void TEncCavlc::codeMvd( TComDataCU* pcCU, UInt uiAbsPartIdx, RefPicList eRefList )
 {
   TComCUMvField* pcCUMvField = pcCU->getCUMvField( eRefList );
   UInt uiTemp;
   Int iHor = pcCUMvField->getMvd( uiAbsPartIdx ).getHor();
   Int iVer = pcCUMvField->getMvd( uiAbsPartIdx ).getVer();
-
-  // MVAC
-  if ( pcCU->getSlice()->getUseMVAC() )
-  {
-    UInt	uiHor;
-    UInt	uiVer;
-
-    Int	iSignHor;
-    Int iSignVer;
-
-    uiHor	= (UInt)abs(iHor);
-    uiVer	=	(UInt)abs(iVer);
-
-    iSignHor = iHor >= 0 ? 1 : -1;
-    iSignVer = iVer >= 0 ? 1 : -1;
-
-    uiHor >>=	1;
-    uiVer >>=	1;
-
-    iHor = uiHor * iSignHor;
-    iVer = uiVer * iSignVer;
-  }
-  //--MVAC
 
   uiTemp = xConvertToUInt( iHor );
   xWriteUvlc( uiTemp );
@@ -1063,11 +889,11 @@ Void TEncCavlc::codeCoeffNxN    ( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPa
       break;
     }
   case  4:
-  case  8: pucScan = g_auiFrameScanXY[SCAN_ZIGZAG][ uiConvBit ]; pucScanX = g_auiFrameScanX[SCAN_ZIGZAG][uiConvBit]; pucScanY = g_auiFrameScanY[SCAN_ZIGZAG][uiConvBit]; break;
+  case  8: pucScan = g_auiFrameScanXY[ uiConvBit ]; pucScanX = g_auiFrameScanX[uiConvBit]; pucScanY = g_auiFrameScanY[uiConvBit]; break;
   case 16:
   case 32:
   case 64:
-  default: pucScan = g_auiFrameScanXY[SCAN_ZIGZAG][ uiConvBit ]; pucScanX = g_auiFrameScanX[SCAN_ZIGZAG][uiConvBit]; pucScanY = g_auiFrameScanY[SCAN_ZIGZAG][uiConvBit]; break;
+  default: pucScan = g_auiFrameScanXY[ uiConvBit ]; pucScanX = g_auiFrameScanX[uiConvBit]; pucScanY = g_auiFrameScanY[uiConvBit]; break;
   }
 
 	// point to coefficient
@@ -1139,29 +965,16 @@ Void TEncCavlc::codeCoeffNxN    ( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPa
 	return;
 }
 
-Void TEncCavlc::codeMPIindex( TComDataCU* pcCU, UInt uiAbsPartIdx )
-{
-  UChar uiMode = pcCU->getMPIindex( uiAbsPartIdx );
-  xWriteFlag( uiMode ? 1 : 0 );
-}
-
 Void TEncCavlc::codeCIPflag( TComDataCU* pcCU, UInt uiAbsPartIdx, Bool bRD )
 {
   UChar uiMode = pcCU->getCIPflag( uiAbsPartIdx );
   xWriteFlag( uiMode ? 1 : 0 );
 }
 
-Void  TEncCavlc::codeExtremeValue( Int iMinVal, Int iMaxVal, Int iExtremeType )
-{}
-
-// EXCBand
-  Void  TEncCavlc::codeCorrBandExType(Int iCorVal, Int iBandNumber)
-  {}
-
 Void TEncCavlc::codeROTindex( TComDataCU* pcCU, UInt uiAbsPartIdx , Bool bRD)
 {
   UChar uiMode = pcCU->getROTindex( uiAbsPartIdx );
-  xWriteFlag( 1 );
+  xWriteUvlc( uiMode );
 }
 
 Void TEncCavlc::codeAlfFlag( UInt uiCode )

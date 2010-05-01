@@ -97,10 +97,6 @@ SOURCE=.\TEncCavlc.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=.\TEncCfg.cpp
-# End Source File
-# Begin Source File
-
 SOURCE=.\TEncCu.cpp
 # End Source File
 # Begin Source File

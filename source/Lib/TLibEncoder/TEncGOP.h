@@ -67,7 +67,6 @@ private:
 	Int                     m_iRateGopSize;
   Int                     m_iNumPicCoded;
   Bool                    m_bFirst;
-  Double                  m_dScalingFactor[MAX_GOP + 1];
 
   //  Access channel
 	TEncTop*								m_pcEncTop;
@@ -77,7 +76,7 @@ private:
 
   TEncEntropy*            m_pcEntropyCoder;
   TEncCavlc*              m_pcCavlcCoder;
-  TEncSbac*              m_pcSbacCoder;
+  TEncSbac*								m_pcSbacCoder;
   TComLoopFilter*         m_pcLoopFilter;
 
   // Adaptive Loop filter
@@ -107,22 +106,16 @@ public:
   TComList<TComPic*>*   getListPic()      { return m_pcListPic; }
 
   Void  printOutSummary      ( UInt uiNumAllPicCoded );
-  Void  preLoopFilterPicAll     ( TComPic* pcPic, UInt64& ruiDist, UInt64& ruiBits );
+  Void  preLoopFilterPicAll  ( TComPic* pcPic, UInt64& ruiDist, UInt64& ruiBits );
 
 protected:
   Void  xInitGOP          ( Int iPOC, Int iNumPicRcvd, TComList<TComPic*>& rcListPic, TComList<TComPicYuv*>& rcListPicYuvRecOut );
-  Void  xSetScalingFactor ( Int iLevel, Int iNumPicRcvd );
   Void  xGetBuffer        ( TComList<TComPic*>& rcListPic, TComList<TComPicYuv*>& rcListPicYuvRecOut, TComList<TComBitstream*>& rcListBitstream, Int iNumPicRcvd, Int iTimeOffset, TComPic*& rpcPic, TComPicYuv*& rpcPicYuvRecOut, TComBitstream*& rpcBitstreamOut, UInt uiPOCCurr );
 
-  Void  xExtremeCorr			( TComPic* pcPic, TComPicYuv* pcPicD );
-
 	// for scaling & descaing of picture
-	// note: IBDI & CADR is handled here
+	// note: IBDI is handled here
 	Void  xScalePic			    ( TComPic* pcPic );
   Void  xDeScalePic			  ( TComPic* pcPic, TComPicYuv* pcPicD );
-
-  // EXCBand
-  Void xCorrBand( TComPic* pcPic , TComPicYuv* pcPicD );
 
 	Void  xCalculateAddPSNR ( TComPic* pcPic, TComPicYuv* pcPicD, UInt uiBits );
   Void  xCalculateAddPSNR ( TComPic* pcPic, TComPicYuv* pcPicD, UInt uiBits, Double dEncTime );

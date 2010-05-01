@@ -60,52 +60,57 @@ class TComAdaptiveLoopFilter
 {
 protected:
   // quantized filter coefficients
-  static const Int m_aiSymmetricMag9x9[41];														///< quantization scaling factor for 9x9 filter
-  static const Int m_aiSymmetricMag7x7[25];														///< quantization scaling factor for 7x7 filter
-  static const Int m_aiSymmetricMag5x5[13];														///< quantization scaling factor for 5x5 filter
+  static const	Int m_aiSymmetricMag9x9[41];														///< quantization scaling factor for 9x9 filter
+  static const	Int m_aiSymmetricMag7x7[25];														///< quantization scaling factor for 7x7 filter
+  static const	Int m_aiSymmetricMag5x5[13];														///< quantization scaling factor for 5x5 filter
 
-protected:
+	// temporary picture buffer
+	TComPicYuv*		m_pcTempPicYuv;																					///< temporary picture buffer for ALF processing
 
 	// ------------------------------------------------------------------------------------------------------------------
 	// For luma component
 	// ------------------------------------------------------------------------------------------------------------------
 
 	/// ALF for luma component
-  Void xALFLuma( TComPic* pcPic, ALFParam* pcAlfParam, TComPicYuv* pcPicDec, TComPicYuv* pcPicRest );
+  Void	xALFLuma				( TComPic* pcPic, ALFParam* pcAlfParam, TComPicYuv* pcPicDec, TComPicYuv* pcPicRest );
 
 	/// sub function: CU-adaptive ALF process for luma
-  Void xCUAdaptive		( TComPic*	  pcPic, ALFParam* pcAlfParam, TComPicYuv* pcPicDec, TComPicYuv* pcPicRest );
-  Void xSubCUAdaptive	( TComDataCU* pcCU,  ALFParam* pcAlfParam, TComPicYuv* pcPicDec, TComPicYuv* pcPicRest,
-											  UInt uiAbsPartIdx, UInt uiDepth );
-  Void xSubCUFilter		( Pel* pDec, Pel* pRest, Int *qh, Int iTap, Int iWidth, Int iHeight, Int iDecStride, Int iRestStride );
+  Void	xCUAdaptive			( TComPic*	  pcPic, ALFParam* pcAlfParam, TComPicYuv* pcPicDec, TComPicYuv* pcPicRest );
+  Void	xSubCUAdaptive	( TComDataCU* pcCU,  ALFParam* pcAlfParam, TComPicYuv* pcPicDec, TComPicYuv* pcPicRest,
+													UInt uiAbsPartIdx, UInt uiDepth );
+  Void	xSubCUFilter		( Pel* pDec, Pel* pRest, Int *qh, Int iTap, Int iWidth, Int iHeight, Int iDecStride, Int iRestStride );
 
 	/// sub function: non-adaptive ALF process for luma
-  Void xFrame					( TComPicYuv* pcPicDec, TComPicYuv* pcPicRest, Int *qh, Int iTap );
+  Void	xFrame					( TComPicYuv* pcPicDec, TComPicYuv* pcPicRest, Int *qh, Int iTap );
 
 	// ------------------------------------------------------------------------------------------------------------------
 	// For chroma component
 	// ------------------------------------------------------------------------------------------------------------------
 
 	/// ALF for chroma component
-  Void xALFChroma			( ALFParam* pcAlfParam, TComPicYuv* pcPicDec, TComPicYuv* pcPicRest );
+  Void	xALFChroma			( ALFParam* pcAlfParam, TComPicYuv* pcPicDec, TComPicYuv* pcPicRest );
 
 	/// sub function: non-adaptive ALF process for chroma
-  Void xFrameChroma		( TComPicYuv* pcPicDec, TComPicYuv* pcPicRest, Int *qh, Int iTap, Int iColor );
+  Void	xFrameChroma		( TComPicYuv* pcPicDec, TComPicYuv* pcPicRest, Int *qh, Int iTap, Int iColor );
 
 public:
-	TComAdaptiveLoopFilter()					{}
+	TComAdaptiveLoopFilter();
 	virtual ~TComAdaptiveLoopFilter() {}
 
+	// initialize & destory temporary buffer
+	Void	create									( Int iPicWidth, Int iPicHeight, UInt uiMaxCUWidth, UInt uiMaxCUHeight, UInt uiMaxCUDepth );
+	Void	destroy									();
+
 	// alloc & free & set functions
-  Void allocALFParam						( ALFParam* pAlfParam );
-  Void freeALFParam							( ALFParam* pAlfParam );
-  Void copyALFParam							( ALFParam* pDesAlfParam, ALFParam* pSrcAlfParam );
+  Void	allocALFParam						( ALFParam* pAlfParam );
+  Void	freeALFParam						( ALFParam* pAlfParam );
+  Void	copyALFParam						( ALFParam* pDesAlfParam, ALFParam* pSrcAlfParam );
 
 	// predict filter coefficients
-  Void predictALFCoeff					( ALFParam* pAlfParam );									///< prediction of luma ALF coefficients
-  Void predictALFCoeffChroma		( ALFParam* pAlfParam );									///< prediction of chroma ALF coefficients
+  Void	predictALFCoeff					( ALFParam* pAlfParam );									///< prediction of luma ALF coefficients
+  Void	predictALFCoeffChroma		( ALFParam* pAlfParam );									///< prediction of chroma ALF coefficients
 
 	// interface function
-  Void ALFProcess								( TComPic* pcPic, ALFParam* pcAlfParam );	///< interface function for ALF process
+  Void	ALFProcess							( TComPic* pcPic, ALFParam* pcAlfParam );	///< interface function for ALF process
 };
 #endif

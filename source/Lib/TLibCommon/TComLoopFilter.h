@@ -62,11 +62,6 @@ protected:
   Void xSetEdgefilter							( TComDataCU* pcCU, UInt uiAbsZorderIdx );
   Void xGetBoundaryStrength				( TComDataCU* pcCU, UInt uiAbsZorderIdx, Int iDir, Int iEdge, UInt uiDepth );
 
-	// perceptual processing: random noise masking
-	Void xPseudoRandomNoiseMasking	( TComPic* pcPic, TComDataCU* pcCU, Int iCount);
-	Bool xApplyNoiseMask						( Pel* piSrc, Int iStride, Int iWeight, UInt MinCuSize );
-	Void xNoise_filter							( TComDataCU* pcCU,  Int iCount, Int iZorder);
-
 	// filtering functions
   Void xEdgeFilterLuma						( TComDataCU* pcCU, UInt uiAbsZorderIdx, Int iDir, Int iEdge );
   Void xEdgeFilterChroma					( TComDataCU* pcCU, UInt uiAbsZorderIdx, Int iDir, Int iEdge );

@@ -36,7 +36,7 @@
 #ifndef __COMMONDEF__
 #define __COMMONDEF__
 
-// wjhan@note: this pragma can be used for turning off "signed and unsigned mismatch"
+// this pragma can be used for turning off "signed and unsigned mismatch"
 #pragma warning( disable : 4018 )
 
 #include "TypeDef.h"
@@ -46,7 +46,7 @@
 // Version information
 // ====================================================================================================================
 
-#define NV_VERSION				"NVM_v2.0.0.7"	///< Current software version
+#define NV_VERSION				"0.0"									///< Current software version
 
 // ====================================================================================================================
 // Platform information
@@ -76,6 +76,10 @@
 #endif
 
 #define NVM_BITS					"[%d bit] ", (sizeof(void*) == 8 ? 64 : 32)	///< used for checking 64-bit O/S
+
+#ifndef NULL
+#define NULL							0
+#endif
 
 // ====================================================================================================================
 // Common constants
@@ -122,7 +126,6 @@
 // Bug fixes
 // ====================================================================================================================
 
-#define CIP_FIX											1						///< CIPflag context model is not initialized properly
 #define ALF_FIX											1						///< very rarely ALF estimation makes divide-by-zero error
 
 // ====================================================================================================================
@@ -131,81 +134,17 @@
 
 // GRF: generated reference frame
 #define GRF_MAX_NUM_EFF							2  					///< maximum number of effects
-#define GRF_MAX_NUM_WEFF   					4  					///< maximum number of wp effects
+#define GRF_MAX_NUM_WEFF   					2  					///< maximum number of wp effects
 #define GRF_WP_CHROMA								1						///< weighted prediction of chroma
-
-// GMC: global motion compensation
-#define GMC_SIX_TAP									0						///< six tap filter used for half-pel generation of GMC
-#define GMC_AFF_ACC									2						///< affine accuracy : default = 2 (2: Half, 4: Quarter pel encoding for parameters)
-#define GMC_WRF_ACC									3						///< warping accuracy: default = 3, max = 3 (3: 1/16 pel)
-
-// IQC: inverse quantization correction
-#define IQC_ROUND_OFF								0						///< inverse quantization correction for 4x4 and 8x8
-#define IQC_ROUND_OFF_L             0						///< inverse quantization correction for sizes greater than 8x8
 
 // ROT: rotational transform
 #define ROT_DICT										5						///< intra ROT dictionary size (1, 2, 4, 5, 9)
 #define ROT_DICT_INTER		        	1						///< inter ROT dictionary size (1, 2, 4, 5, 9)
 #define ROT_TRY_NONZERO_CBP         1						///< try ROT (in encoder) for non-zero cbp case only
 
-// MPI: multi-parameter intra
-#define MPI_DICT										2						///< MPI dictionary size (1, 2, 4, 5) / 1 = no search/no overhead
-
 // AMVP: advanced motion vector prediction
-#define AMVP_NEIGH_ALL							0						///< whether use all neighbor MVs or only three typical MVs in AMVP
 #define AMVP_NEIGH_COL							1						///< use of colocated MB in AMVP
-#define AMVP_TEMP_SR								0						///< default AMVP template search range
-#define AMVP_TEMP_SIZE							1						///< default size of AMVP template
-#define AMVP_MAX_TEMP_SIZE					4						///< max size of AMVP template
-#define AMVP_MAX_TEMP_SR						16					///< max size of AMVP template search area
-
-#if AMVP_NEIGH_ALL
-#define AMVP_MAX_NUM_CANDS					70
-#else
-  #if AMVP_NEIGH_COL
-	#define AMVP_MAX_NUM_CANDS				5
-  #else
-	#define AMVP_MAX_NUM_CANDS				4
-  #endif
-#endif
-
-// EXC: extreme correction
-#define EXC_CORR_LIMIT              1						///< correlation value limit for EXC
-#define EXC_NO_EC_BSLICE            4						///< block size limit for EXC in B-slice
-
-// EXB: band extreme correction
-#define EXB_NB											16					///< number of bands in EXB
-#define EXB_BITS										4						///< 2^EXB_BITS = EXB_NB
-#define EXB_CUT											1
-
-// CCCP: color-component-correlation-based prediction
-#define CCCP_ADI_MODE								2						///< ADI mode index assigned for CCCP
-#define CCCP_MODE										0						///< mode index assigned for CCCP
-#define CCCP_BOUNDARY_EXT						2						///< block boundary extension size of neighboring pixels, should be even, default = 2
-
-// TMI: template matching intra
-#define TMI_AVERAGE									1						///< use of average mode in template matching
-
-// HAM: high-accuracy motion
-#define HAM_ACC											12					///< MV accuracy for HAM
-#define HAM_ANC_ACC									(HAM_ACC>>2)///< anchor MV accuracy for HAM
-#define HAM_ZEROMV_REP							1						///< mix Hor and Ver
-#define HAM_BLACKBOX								1						///< 1: determines optimal Additional MV, 0: tries 9 possible additioanl MV
-#define HAM_OVH_OPT									0						///< overhead optimization for (-1, 0, 1) case
-#define HAM_RANGE										1						///< range value for overhead of HAM
-
-// CADR: context-adaptive dynamic range
-#define CADR_BITS										8																												///< base bit-depth in CADR
-#define CADR_OFFSET									( 1 << (   CADR_BITS-1 ) )															///< rounding offset of CADR
-#define CADR_FWD_L(x, A, B)					(  (((x)-(A))<<CADR_BITS) / (B) )												///< forward conversion of CADR (luma)
-#define CADR_FWD_C(x, A, B)					(  (((x)-(A))<<CADR_BITS) / (B) + (A) )									///< forward conversion of CADR (chroma)
-#define CADR_INV_L(y, A, B)					(  (((y)     *(B)+CADR_OFFSET )>>CADR_BITS) + (A) )			///< inverse conversion of CADR (luma)
-#define CADR_INV_C(y, A, B)					( ((((y)-(A))*(B)+0           )>>CADR_BITS) + (A) )			///< inverse conversion of CADR (chroma)
-#define CADR_SCALE(x, B)						(  ( (x)                       <<CADR_BITS) / (B) )			///< scaling function of CADR
-#define CADR_DESCALE(y, B)					(  (((y)     *(B)+CADR_OFFSET )>>CADR_BITS)       )			///< descaling function of CADR for SAD
-#define CADR_DESCALE2(y, B)					(   ((y)*(B)*(B)/(1<<(2*CADR_BITS)))              )			///< descaling function of CADR for SSE
-#define CADR_DIST										1																												///< modify distortion function with CADR
-#define CADR_DERIVE_BT709						0																												///< try to follow BT.709
+#define AMVP_MAX_NUM_CANDS					5						///< max number of final candidates
 
 // CIP: combined intra prediction
 #define CIP_ADAPTIVE								1																												///< adaptive use of CIP
@@ -234,5 +173,8 @@
 
 // Adaptive search range depending on POC difference
 #define ADAPT_SR_SCALE							1 					///< division factor for adaptive search range
+
+// IBDI range restriction for skipping clip
+#define IBDI_NOCLIP_RANGE						1						///< restrict max. value after IBDI to skip clip
 
 #endif // end of #ifndef	__COMMONDEF__

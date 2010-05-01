@@ -158,21 +158,21 @@ public:
   Pel*    getCrAddr         ( UInt iTransUnitIdx, UInt iBlkSize );
 
   //  Get stride value of YUV buffer
-  UInt     getStride   ()    { return  m_iWidth;  }
-  UInt     getCStride  ()    { return  m_iCWidth; }
-  UInt     getHeight   ()    { return  m_iHeight; }
+  UInt		getStride		()    { return  m_iWidth;		}
+  UInt    getCStride	()    { return  m_iCWidth;	}
+  UInt    getHeight		()    { return  m_iHeight;	}
 
-  UInt     getWidth   ()    { return  m_iWidth; }
-  UInt     getCHeight   ()    { return  m_iCHeight; }
-  UInt     getCWidth   ()    { return  m_iCWidth; }
+  UInt    getWidth		()    { return  m_iWidth;		}
+  UInt    getCHeight	()    { return  m_iCHeight; }
+  UInt    getCWidth		()    { return  m_iCWidth;	}
 
-	Void printout();
+	Void		printout();
 
   // ------------------------------------------------------------------------------------------------------------------
   //  Miscellaneous
   // ------------------------------------------------------------------------------------------------------------------
 
-  __inline Int  xClip  (Pel x )      { return ( (x < 0) ? 0 : (x > (Pel)g_uiIBDI_MAX) ? (Pel)g_uiIBDI_MAX : x ); }
+  __inline Pel	xClip  (Pel x )      { return ( (x < 0) ? 0 : (x > (Pel)g_uiIBDI_MAX) ? (Pel)g_uiIBDI_MAX : x ); }
 
 };// END CLASS DEFINITION TComYuv
 

@@ -137,19 +137,18 @@ Void TEncSlice::init( TEncTop* pcEncTop )
   m_piRdPicQp					= (Int*   )xMalloc( Int,    m_pcCfg->getDeltaQpRD() * 2 + 1 );
 
   // allocate additional reference frame here
-  if ( m_pcCfg->getGeneratedReferenceMode() != NULL )
+  if ( m_pcCfg->getGRefMode() != NULL )
   {
     UInt uiNumEffFrames = 0;
-    if (pcEncTop->getSPS()->getUseWPG() || pcEncTop->getSPS()->getUseWPO() || pcEncTop->getSPS()->getUseWPR()) uiNumEffFrames++;
-    if (pcEncTop->getSPS()->getUseAME() || pcEncTop->getSPS()->getUseIME() || pcEncTop->getSPS()->getUsePME()) uiNumEffFrames++;
+    if ( pcEncTop->getSPS()->getUseWPG() || pcEncTop->getSPS()->getUseWPO() ) uiNumEffFrames++;
 
     Int iWidth		= m_apcPicYuvPred->getWidth ();
     Int iHeight		= m_apcPicYuvPred->getHeight();
 
-    for (Int i=0; i<uiNumEffFrames; i++)
-    for (Int j=0; j<2; j++)
+    for ( Int i=0; i<uiNumEffFrames; i++ )
+    for ( Int j=0; j<2; j++ )
     {
-      if(m_apcVirtPic[j][i] == NULL)
+      if ( m_apcVirtPic[j][i] == NULL)
       {
         m_apcVirtPic[j][i] = new TComPic;
         m_apcVirtPic[j][i]->create( iWidth, iHeight, g_uiMaxCUWidth, g_uiMaxCUHeight, g_uiMaxCUDepth, true );
@@ -169,10 +168,9 @@ Void TEncSlice::init( TEncTop* pcEncTop )
 	 \param	iNumPicRcvd		number of received pictures
 	 \param	iTimeOffset		POC offset for hierarchical structure
 	 \param	iDepth				temporal layer depth
-	 \param	dScaleFactor	scaling factor according to depth
 	 \param rpcSlice			slice header class
  */
-Void TEncSlice::initEncSlice( TComPic* pcPic, Int iPOCLast, UInt uiPOCCurr, Int iNumPicRcvd, Int iTimeOffset, Int iDepth, Double dScaleFactor, TComSlice*& rpcSlice )
+Void TEncSlice::initEncSlice( TComPic* pcPic, Int iPOCLast, UInt uiPOCCurr, Int iNumPicRcvd, Int iTimeOffset, Int iDepth, TComSlice*& rpcSlice )
 {
 	Double dQP;
 	Double dLambda;
@@ -256,27 +254,20 @@ Void TEncSlice::initEncSlice( TComPic* pcPic, Int iPOCLast, UInt uiPOCCurr, Int 
   }
   else
   {
-    if ( m_pcCfg->getUseJMQP() )
+    if ( ( iPOCLast != 0 ) && ( ( uiPOCCurr % m_pcCfg->getIntraPeriod() ) != 0 ) && ( m_pcGOPEncoder->getGOPSize() != 0 ) )	// P or B-slice
     {
-      if ( ( iPOCLast != 0 ) && ( ( uiPOCCurr % m_pcCfg->getIntraPeriod() ) != 0 ) && ( m_pcGOPEncoder->getGOPSize() != 0 ) )	// P or B-slice
+			if ( m_pcCfg->getUseLDC() && !m_pcCfg->getUseBQP() )
       {
-				if ( m_pcCfg->getUseLDC() && !m_pcCfg->getUseBQP() )
-        {
-          if ( iDepth == 0 ) dQP += 1.0;
-          else
-          {
-            dQP += iDepth+3;
-          }
-        }
+        if ( iDepth == 0 ) dQP += 1.0;
         else
         {
-           dQP += iDepth+1;
+          dQP += iDepth+3;
         }
       }
-    }
-    else // JSVM QP ???
-    {
-      dQP = m_pcCfg->getQP() - 6.0 * log10( dScaleFactor ) / log10( 2.0 );
+      else
+      {
+         dQP += iDepth+1;
+      }
     }
   }
 
@@ -297,67 +288,62 @@ Void TEncSlice::initEncSlice( TComPic* pcPic, Int iPOCLast, UInt uiPOCCurr, Int 
 	// pre-compute lambda and QP values for all possible QP candidates
   for ( Int iDQpIdx = 0; iDQpIdx < 2 * m_pcCfg->getDeltaQpRD() + 1; iDQpIdx++ )
   {
+		// compute QP value
     dQP = dOrigQP + ((iDQpIdx+1)>>1)*(iDQpIdx%2 ? -1 : 1);
 
-    if ( m_pcCfg->getUseJMLAMBDA() )
+		// compute lambda value
+    Int    NumberBFrames = ( m_pcCfg->getRateGOPSize() - 1 );
+    Int		 SHIFT_QP = 12;
+    Double dLambda_scale = 1.0 - Clip3( 0.0, 0.5, 0.05*(Double)NumberBFrames );
+    Int		 bitdepth_luma_qp_scale = 0;
+    Double qp_temp = (double) dQP + bitdepth_luma_qp_scale - SHIFT_QP;
+
+    // Case #1: I or P-slices (key-frame)
+    if ( iDepth == 0 )
     {
-      Int    NumberBFrames = ( m_pcCfg->getRateGOPSize() - 1 );
-      Int		 SHIFT_QP = 12;
-      Double dLambda_scale = 1.0 - Clip3( 0.0, 0.5, 0.05*(Double)NumberBFrames );
-      Int		 bitdepth_luma_qp_scale = 0;
-      Double qp_temp = (double) dQP + bitdepth_luma_qp_scale - SHIFT_QP;
-
-      // Case #1: I or P-slices (key-frame)
-      if ( iDepth == 0 )
+      if ( m_pcCfg->getUseRDOQ() && pcPic->getSlice()->isIntra() && dQP == dOrigQP )
       {
-        if ( m_pcCfg->getUseRDOQ() && pcPic->getSlice()->isIntra() && dQP == dOrigQP )
-        {
-          dLambda = 0.57 * pow( 2.0, qp_temp/3.0 );
-        }
-        else
-        {
-          if ( NumberBFrames > 0 ) // HB structure or HP structure
-          {
-            dLambda = 0.68 * pow( 2.0, qp_temp/3.0 );
-          }
-          else                     // IPP structure
-          {
-            dLambda = 0.85 * pow( 2.0, qp_temp/3.0 );
-          }
-        }
-        dLambda *= dLambda_scale;
+        dLambda = 0.57 * pow( 2.0, qp_temp/3.0 );
       }
-      else // P or B slices for HB or HP structure
+      else
       {
-        dLambda = 0.68 * pow( 2.0, qp_temp/3.0 );
-        if ( pcPic->getSlice()->isInterB () )
+        if ( NumberBFrames > 0 ) // HB structure or HP structure
         {
-          dLambda *= Clip3( 2.00, 4.00, (qp_temp / 6.0) ); // (j == B_SLICE && p_cur_frm->layer != 0 )
-          if ( rpcSlice->isReferenced() ) // HB structure and referenced
-          {
-            Int		 iMaxDepth = 0;
-            Int		 iCnt = 1;
-            Int		 hierarchy_layer;
-
-            while ( iCnt < m_pcCfg->getRateGOPSize() ) { iCnt <<= 1; iMaxDepth++; }
-            hierarchy_layer = iMaxDepth - iDepth;
-
-            dLambda *= 0.80;
-            dLambda *= dLambda_scale;
-          }
+          dLambda = 0.68 * pow( 2.0, qp_temp/3.0 );
         }
-        else
+        else                     // IPP structure
         {
+          dLambda = 0.85 * pow( 2.0, qp_temp/3.0 );
+        }
+      }
+      dLambda *= dLambda_scale;
+    }
+    else // P or B slices for HB or HP structure
+    {
+      dLambda = 0.68 * pow( 2.0, qp_temp/3.0 );
+      if ( pcPic->getSlice()->isInterB () )
+      {
+        dLambda *= Clip3( 2.00, 4.00, (qp_temp / 6.0) ); // (j == B_SLICE && p_cur_frm->layer != 0 )
+        if ( rpcSlice->isReferenced() ) // HB structure and referenced
+        {
+          Int		 iMaxDepth = 0;
+          Int		 iCnt = 1;
+          Int		 hierarchy_layer;
+
+          while ( iCnt < m_pcCfg->getRateGOPSize() ) { iCnt <<= 1; iMaxDepth++; }
+          hierarchy_layer = iMaxDepth - iDepth;
+
+          dLambda *= 0.80;
           dLambda *= dLambda_scale;
         }
       }
-			// if hadamard is used in ME process
-      if ( !m_pcCfg->getUseHADME() ) dLambda *= 0.95;
+      else
+      {
+        dLambda *= dLambda_scale;
+      }
     }
-    else
-    {
-      dLambda = 0.85 * pow( 2.0, Min( 52.0, dQP ) / 3.0 - 4.0 );
-    }
+		// if hadamard is used in ME process
+    if ( !m_pcCfg->getUseHADME() ) dLambda *= 0.95;
 
     iQP = Max( MIN_QP, Min( MAX_QP, (Int)floor( dQP + 0.5 ) ) );
 
@@ -401,23 +387,11 @@ Void TEncSlice::initEncSlice( TComPic* pcPic, Int iPOCLast, UInt uiPOCCurr, Int 
   rpcSlice->setDRBFlag          ( true );
   rpcSlice->setERBIndex         ( ERB_NONE );
 
-  // srlee: generalized B info. (for non-reference B)
+  // generalized B info. (for non-reference B)
   if ( m_pcCfg->getHierarchicalCoding() == false && iDepth != 0 )
   {
     rpcSlice->setDRBFlag        ( false );
     rpcSlice->setERBIndex       ( ERB_NONE );
-  }
-
-	// set high accuracy motion (HAM) flag
-  if( ( rpcSlice->getSliceType() == P_SLICE && m_pcCfg->getUseHAP() ) || ( rpcSlice->getSliceType() == B_SLICE && m_pcCfg->getUseHAB() ) )
-  {
-    rpcSlice->setUseHAM( true );
-    rpcSlice->setUseHME( m_pcCfg->getUseHME() );
-  }
-  else
-  {
-    rpcSlice->setUseHAM( false );
-    rpcSlice->setUseHME( false );
   }
 
   assert( m_apcPicYuvPred );
@@ -425,9 +399,6 @@ Void TEncSlice::initEncSlice( TComPic* pcPic, Int iPOCLast, UInt uiPOCCurr, Int 
 
 	pcPic->setPicYuvPred( m_apcPicYuvPred );
   pcPic->setPicYuvResi( m_apcPicYuvResi );
-
-	// initialize RD variables by QP
-  m_pcPredSearch->initRateDistortionModel( dQP, AMVP_MAX_TEMP_SR );
 }
 
 // ====================================================================================================================
@@ -460,7 +431,7 @@ Void TEncSlice::setSearchRange( TComSlice* pcSlice )
 	 .
 	 \param rpcPic		picture class
  */
-Void TEncSlice::precompressSliceCU( TComPic*& rpcPic )
+Void TEncSlice::precompressSlice( TComPic*& rpcPic )
 {
 	// if deltaQP RD is not used, simply return
   if ( m_pcCfg->getDeltaQpRD() == 0 ) return;
@@ -493,10 +464,9 @@ Void TEncSlice::precompressSliceCU( TComPic*& rpcPic )
     m_pcRdCost    ->setLambda              ( m_pdRdPicLambda[uiQpIdx] );
     m_pcTrQuant   ->setLambda              ( m_pdRdPicLambda[uiQpIdx] );
     pcSlice       ->setLambda              ( m_pdRdPicLambda[uiQpIdx] );
-    m_pcPredSearch->initRateDistortionModel( m_pdRdPicQp    [uiQpIdx], AMVP_MAX_TEMP_SR);
 
 		// try compress
-    compressSliceCU   ( rpcPic );
+    compressSlice   ( rpcPic );
 
     Double dPicRdCost;
       UInt64 uiPicDist        = m_uiPicDist;
@@ -523,12 +493,11 @@ Void TEncSlice::precompressSliceCU( TComPic*& rpcPic )
   m_pcRdCost    ->setLambda              ( m_pdRdPicLambda[uiQpIdxBest] );
   m_pcTrQuant   ->setLambda              ( m_pdRdPicLambda[uiQpIdxBest] );
   pcSlice       ->setLambda              ( m_pdRdPicLambda[uiQpIdxBest] );
-  m_pcPredSearch->initRateDistortionModel( m_pdRdPicQp    [uiQpIdxBest], AMVP_MAX_TEMP_SR);
 }
 
 /** \param rpcPic		picture class
  */
-Void TEncSlice::compressSliceCU( TComPic*& rpcPic )
+Void TEncSlice::compressSlice( TComPic*& rpcPic )
 {
   UInt  uiCUAddr;
 
@@ -598,7 +567,7 @@ Void TEncSlice::compressSliceCU( TComPic*& rpcPic )
 /** \param	rpcPic				picture class
 		\retval	rpcBitstream	bitstream class
  */
-Void TEncSlice::encodeSliceCU   ( TComPic*& rpcPic, TComBitstream*& rpcBitstream )
+Void TEncSlice::encodeSlice   ( TComPic*& rpcPic, TComBitstream*& rpcBitstream )
 {
   UInt			 uiCUAddr;
   TComSlice* pcSlice = rpcPic->getSlice();
@@ -616,13 +585,6 @@ Void TEncSlice::encodeSliceCU   ( TComPic*& rpcPic, TComBitstream*& rpcBitstream
 
 	// set bitstream
   m_pcEntropyCoder->setBitstream( rpcBitstream );
-
-	// write EXC parameters before CU data
-  if ( pcSlice->getSPS()->getUseExC() )
-  {
-    m_pcEntropyCoder->encodeExtremeValue	( rpcPic );
-		m_pcEntropyCoder->encodeBandCorrValue	( rpcPic );
-  }
 
 	// for every CU
   for( uiCUAddr = 0; uiCUAddr < rpcPic->getPicSym()->getNumberOfCUsInFrame() ; uiCUAddr++ )
@@ -664,44 +626,6 @@ Void TEncSlice::generateRefPicNew ( TComSlice* rpcSlice )
     rpcSlice->addEffectMode(REF_PIC_LIST_1, EFF_WP_O);		// scale
   }
 
-  if ( rpcSlice->getSPS()->getUseWPR() )
-  {
-    rpcSlice->setRFmode(1);
-    rpcSlice->addEffectMode(REF_PIC_LIST_0, EFF_WP_P1);		// +1
-    rpcSlice->addEffectMode(REF_PIC_LIST_0, EFF_WP_M1);		// -1
-
-    rpcSlice->addEffectMode(REF_PIC_LIST_1, EFF_WP_P1);		// +1
-    rpcSlice->addEffectMode(REF_PIC_LIST_1, EFF_WP_M1);		// -1
-  }
-
-	// isotropic
-  if ( rpcSlice->getSPS()->getUseIME() )
-  {
-    rpcSlice->setGMmode(REF_PIC_LIST_0, 1);
-    rpcSlice->addEffectMode(REF_PIC_LIST_0, EFF_IM);
-
-    rpcSlice->setGMmode(REF_PIC_LIST_1, 1);
-    rpcSlice->addEffectMode(REF_PIC_LIST_1, EFF_IM);
-  }
-	// affine
-  else if ( rpcSlice->getSPS()->getUseAME() )
-  {
-    rpcSlice->setGMmode(REF_PIC_LIST_0, 2);
-    rpcSlice->addEffectMode(REF_PIC_LIST_0, EFF_AM);
-
-    rpcSlice->setGMmode(REF_PIC_LIST_1, 2);
-    rpcSlice->addEffectMode(REF_PIC_LIST_1, EFF_AM);
-  }
-	// perspective
-  else if ( rpcSlice->getSPS()->getUsePME() )
-  {
-    rpcSlice->setGMmode(REF_PIC_LIST_0, 3);
-    rpcSlice->addEffectMode(REF_PIC_LIST_0, EFF_PM);
-
-    rpcSlice->setGMmode(REF_PIC_LIST_1, 3);
-    rpcSlice->addEffectMode(REF_PIC_LIST_1, EFF_PM);
-  }
-
 	// if no virtual reference is needed, return
   if (rpcSlice->getAddRefCnt(REF_PIC_LIST_0) == 0 && rpcSlice->getAddRefCnt(REF_PIC_LIST_1) == 0) return;
 
@@ -717,15 +641,10 @@ Void TEncSlice::generateRefPicNew ( TComSlice* rpcSlice )
     for ( Int i = 0; i < rpcSlice->getAddRefCnt(eRefPicList); i++ )
     {
       EFF_MODE eEffMode = rpcSlice->getEffectMode(eRefPicList, i);
-      if (eEffMode >= EFF_WP_SO && eEffMode <= EFF_WP_M1)
+      if (eEffMode >= EFF_WP_SO && eEffMode <= EFF_WP_O)
       {
         Bool bGen = xEstimateWPSlice(rpcSlice, eRefPicList, eEffMode);
         if (bGen) rpcSlice->generateWPSlice(eRefPicList, eEffMode, i);
-      }
-      if (eEffMode >= EFF_IM && eEffMode <= EFF_PM)
-      {
-        Bool bGen = xEstimateGMSlice(rpcSlice, eRefPicList);
-        if (bGen) rpcSlice->generateGMSlice(eRefPicList, i, &m_cGlobalMotion);
       }
     }
 
@@ -739,121 +658,24 @@ Void TEncSlice::generateRefPicNew ( TComSlice* rpcSlice )
         rpcSlice->setWPmode(eRefPicList, 0);
       }
     }
-    if ( rpcSlice->getWPmode(eRefPicList) && rpcSlice->getRFmode() )
-    {
-      EFF_MODE eEffMode = (rpcSlice->getSPS()->getUseWPG()? EFF_WP_SO : EFF_WP_O);
-      if (rpcSlice->isEqualWPAllParam(eRefPicList, eEffMode, EFF_WP_P1))
-      {
-        rpcSlice->removeEffectMode(eRefPicList, eEffMode);
-        rpcSlice->setWPmode(eRefPicList, 0);
-      }
-      else if (rpcSlice->isEqualWPAllParam(eRefPicList, eEffMode, EFF_WP_M1))
-      {
-        rpcSlice->removeEffectMode(eRefPicList, eEffMode);
-        rpcSlice->setWPmode(eRefPicList, 0);
-      }
-    }
-    if (rpcSlice->getGMmode(eRefPicList))
-    {
-      if (rpcSlice->isTrajAllZero(eRefPicList))
-      {
-        //FIXME: initialization or some other action is necessary here
-        //coz assert hushes in release build //kolya
-        EFF_MODE eEffMode;
-        if (rpcSlice->getGMmode(eRefPicList) == 1)
-        {
-          eEffMode = EFF_IM;
-        }
-        else if (rpcSlice->getGMmode(eRefPicList) == 2)
-        {
-          eEffMode = EFF_AM;
-        }
-        else if (rpcSlice->getGMmode(eRefPicList) == 3)
-        {
-          eEffMode = EFF_PM;
-        }
-        else
-        {
-          assert(0);
-        }
-        rpcSlice->removeEffectMode(eRefPicList, eEffMode);
-        rpcSlice->setGMmode(eRefPicList, 0);
-      }
-    }
   }
 
 	// add virtual reference to reference list
   rpcSlice->linkVirtRefPic();
 }
 
-Bool TEncSlice::xEstimateGMSlice( TComSlice* rpcSlice, RefPicList eRefPicList )
-{
-  UInt ui;
-  UInt uiNumOfSpritePoints	= rpcSlice->getNumOfSpritePoints();
-  Int iHorSpatRef						= rpcSlice->getHorSpatRef();
-  Int iVerSpatRef						= rpcSlice->getVerSpatRef();
-
-  SpriteMotion cAffineMotion = {1, 0, 0, 0, 1, 0, 0, 0};
-  m_cGlobalMotion.globalMotionEstimation( rpcSlice->getRefPic(eRefPicList, 0)->getPicYuvRec(),
-																					rpcSlice->getPic()->getPicYuvOrg(),
-																					cAffineMotion, uiNumOfSpritePoints, iHorSpatRef, iVerSpatRef);
-
-	TrajPoint* pcRefPointCoord  = new TrajPoint[uiNumOfSpritePoints];
-  TrajPoint* pcTrajPointCoord = new TrajPoint[uiNumOfSpritePoints];
-
-  for (ui = 0; ui < uiNumOfSpritePoints; ui++)
-  {
-    pcRefPointCoord[ui].x = iHorSpatRef + (ui%2)*rpcSlice->getSPS()->getWidth();
-    pcRefPointCoord[ui].y = iVerSpatRef + (ui>>1)*rpcSlice->getSPS()->getHeight();
-    rpcSlice->setRefPoint(eRefPicList, ui, pcRefPointCoord[ui]);
-  }
-
-  // produce trajectories and quant the motion param
-  // compute trajectories from global motion
-  UInt uiAbsSum = m_cGlobalMotion.makeTraj(cAffineMotion, uiNumOfSpritePoints, pcRefPointCoord, pcTrajPointCoord);
-
-  for (ui = 0; ui < uiNumOfSpritePoints; ui++)
-  {
-    rpcSlice->setTrajPoint(eRefPicList, ui, pcTrajPointCoord[ui]);
-  }
-
-  if (uiAbsSum == 0)
-  {
-    delete[] pcRefPointCoord;
-    delete[] pcTrajPointCoord;
-    return false;
-  }
-
-  // predict the motion param
-  TrajPoint* pcDiffTrajPointCoord = new TrajPoint[uiNumOfSpritePoints];
-  m_cGlobalMotion.makeDiffTraj(uiNumOfSpritePoints, pcTrajPointCoord, pcDiffTrajPointCoord);
-
-  for (ui = 0; ui < uiNumOfSpritePoints; ui++)
-  {
-    rpcSlice->setDiffTrajPoint(eRefPicList, ui, pcDiffTrajPointCoord[ui]);
-  }
-
-  delete[] pcRefPointCoord;
-  delete[] pcTrajPointCoord;
-  delete[] pcDiffTrajPointCoord;
-
-  return true;
-}
-
 Bool TEncSlice::xEstimateWPSlice( TComSlice* rpcSlice, RefPicList eRefPicList, EFF_MODE eEffMode )
 {
   Int iDefaultWeight[3];
+  Int iWeight				[3];
+  Int iOffset				[3] = {0, 0, 0};
 
-  Int numDir = ((rpcSlice->getSliceType()) == P_SLICE) ? 1 : 2;
-  Int iWeight[3];
-  Int iOffset[3] = {0, 0, 0};
-
-  Double dDCOrg = 0.;
-  Double dDCRef = 0.;
-  Double dNormOrg =0.;
-  Double dNormRef =0.;
-  Double dNumer=0.;
-  Double dDenom =0.;
+  Double dDCOrg		= 0.;
+  Double dDCRef		= 0.;
+  Double dNormOrg = 0.;
+  Double dNormRef = 0.;
+  Double dNumer		= 0.;
+  Double dDenom		= 0.;
 
   TComPicYuv* pcPicYuvOrg = rpcSlice->getPic()->getPicYuvOrg();
   TComPicYuv* pcPicYuvRef;
@@ -867,8 +689,6 @@ Bool TEncSlice::xEstimateWPSlice( TComSlice* rpcSlice, RefPicList eRefPicList, E
   iDefaultWeight[0] = rpcSlice->getWPWeight(eRefPicList, eEffMode, 0);
   iDefaultWeight[1] = rpcSlice->getWPWeight(eRefPicList, eEffMode, 1);
   iDefaultWeight[2] = rpcSlice->getWPWeight(eRefPicList, eEffMode, 2);
-
-  if ( eEffMode==EFF_WP_P1 || eEffMode==EFF_WP_M1 ) return true;
 
   dDCOrg	 = xComputeImgSum(pcPicYuvOrg->getLumaAddr(), iWidth, iHeight, iStride);
   dNormOrg = dDCOrg / (Double)(iWidth * iHeight);

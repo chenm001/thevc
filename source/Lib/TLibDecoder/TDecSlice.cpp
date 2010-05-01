@@ -41,9 +41,6 @@
 
 TDecSlice::TDecSlice()
 {
-  m_apcPicYuvPred = NULL;
-  m_apcPicYuvResi = NULL;
-
   for (Int i=0; i<GRF_MAX_NUM_EFF; i++)
   for (Int j=0; j<2; j++)
   {
@@ -57,19 +54,7 @@ TDecSlice::~TDecSlice()
 
 Void TDecSlice::create( TComSlice* pcSlice, Int iWidth, Int iHeight, UInt uiMaxWidth, UInt uiMaxHeight, UInt uiMaxDepth )
 {
-  //-- create once...
-  if ( m_apcPicYuvPred == NULL)
-  {
-    m_apcPicYuvPred  = new TComPicYuv;
-    m_apcPicYuvPred->create( iWidth, iHeight, uiMaxWidth, uiMaxHeight, uiMaxDepth );
-  }
-  if ( m_apcPicYuvResi == NULL)
-  {
-    m_apcPicYuvResi  = new TComPicYuv;
-    m_apcPicYuvResi->create( iWidth, iHeight, uiMaxWidth, uiMaxHeight, uiMaxDepth );
-  }
-
-	// allocate only required memory
+	// allocate required memory for generated reference frame
   for (Int j=0; j<2; j++)
 	for (Int i=0; i<pcSlice->getAddRefCnt( (RefPicList)j ) ; i++ )
   {
@@ -83,20 +68,7 @@ Void TDecSlice::create( TComSlice* pcSlice, Int iWidth, Int iHeight, UInt uiMaxW
 
 Void TDecSlice::destroy()
 {
-  if(m_apcPicYuvPred)
-  {
-    m_apcPicYuvPred->destroy();
-    delete m_apcPicYuvPred;
-    m_apcPicYuvPred  = NULL;
-  }
-  if(m_apcPicYuvResi)
-  {
-    m_apcPicYuvResi->destroy();
-    delete m_apcPicYuvResi;
-    m_apcPicYuvResi  = NULL;
-  }
-
-	// free non-NULL buffer
+	// free buffers for generated reference frame
   for (Int i=0; i<GRF_MAX_NUM_EFF; i++)
   for (Int j=0; j<2; j++)
   {
@@ -115,35 +87,23 @@ Void TDecSlice::init(TDecEntropy* pcEntropyDecoder, TDecCu* pcCuDecoder)
   m_pcCuDecoder       = pcCuDecoder;
 }
 
-Void TDecSlice::decompressSliceCU(TComBitstream* pcBitstream, TComPic*& rpcPic)
+Void TDecSlice::decompressSlice(TComBitstream* pcBitstream, TComPic*& rpcPic)
 {
-  UInt    uiIsLast = 0;
   TComDataCU* pcCU;
+	UInt				uiIsLast = 0;
 
-  UInt uiNumPartsInWidth = rpcPic->getNumPartInWidth();
-  UInt uiNumParts        = rpcPic->getNumPartInCU();
+	// decoder don't need prediction & residual frame buffer
+	rpcPic->setPicYuvPred( 0 );
+  rpcPic->setPicYuvResi( 0 );
 
-  assert(m_apcPicYuvPred);
-  assert(m_apcPicYuvResi);
-
-	rpcPic->setPicYuvPred(m_apcPicYuvPred);
-  rpcPic->setPicYuvResi(m_apcPicYuvResi);
-
-  if(rpcPic->getSlice()->getSPS()->getUseExC())
-  {
-    m_pcEntropyDecoder->decodeExtremeValue(rpcPic);
-
-    //EXCBand
-	  m_pcEntropyDecoder->decodeBandCorrValue( rpcPic);
-  }
-
+	// for all CUs
 	for( Int iCUAddr = 0; !uiIsLast; iCUAddr++ )
   {
     pcCU = rpcPic->getCU( iCUAddr );
     pcCU->initCU( rpcPic, iCUAddr );
 
-    m_pcCuDecoder->decodeCU    ( pcCU, uiIsLast );
-    m_pcCuDecoder->decompressCU( pcCU );
+    m_pcCuDecoder->decodeCU			( pcCU, uiIsLast );
+    m_pcCuDecoder->decompressCU	( pcCU );
   }
 }
 
@@ -164,35 +124,14 @@ Void TDecSlice::generateRefPicNew ( TComSlice* rpcSlice )
     for (Int i = 0; i < rpcSlice->getAddRefCnt(eRefPicList); i++)
     {
       EFF_MODE eEffMode = rpcSlice->getEffectMode(eRefPicList, i);
-      if (eEffMode >= EFF_WP_SO && eEffMode <= EFF_WP_M1)
+      if (eEffMode >= EFF_WP_SO && eEffMode <= EFF_WP_O)
+			{
         rpcSlice->generateWPSlice(eRefPicList, eEffMode, i);
-      if (eEffMode >= EFF_IM && eEffMode <= EFF_PM)
-      {
-        xSetGMParam(rpcSlice, eRefPicList);
-        rpcSlice->generateGMSlice(eRefPicList, i, &m_cGlobalMotion);
-      }
+			}
     }
   }
   rpcSlice->linkVirtRefPic();
 }
 
-Void TDecSlice::xSetGMParam(TComSlice* rpcSlice, RefPicList e)
-{
-  UInt ui;
-  UInt uiNumOfSpritePoints = rpcSlice->getNumOfSpritePoints();
-  Int iHorSpatRef = rpcSlice->getHorSpatRef();
-  Int iVerSpatRef = rpcSlice->getVerSpatRef();
-
-  TrajPoint* pcRefPointCoord = new TrajPoint[uiNumOfSpritePoints];
-  for (ui = 0; ui < uiNumOfSpritePoints; ui++)
-  {
-    pcRefPointCoord[ui].x = iHorSpatRef + (ui%2)*rpcSlice->getSPS()->getWidth();
-    pcRefPointCoord[ui].y = iVerSpatRef + (ui>>1)*rpcSlice->getSPS()->getHeight();
-    rpcSlice->setRefPoint(e, ui, pcRefPointCoord[ui]);
-  }
-
-  m_cGlobalMotion.addTraj(uiNumOfSpritePoints, rpcSlice->getDiffTrajPoints(e), rpcSlice->getTrajPoints(e));
-  delete[] pcRefPointCoord;
-}
 
 

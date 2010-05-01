@@ -75,13 +75,12 @@ public:
   UInt  getValue()                { return  m_uiValue;  }
   //--
 
-  Void parseMVPIdx      ( TComDataCU* pcCU, Int& riMVPIdx, Int iMVPNum, UInt uiAbsPartIdx, UInt uiDepth, RefPicList eRefList );
+  Void parseMVPIdx				( TComDataCU* pcCU, Int& riMVPIdx, Int iMVPNum, UInt uiAbsPartIdx, UInt uiDepth, RefPicList eRefList );
 
-  Void parseAlfFlag		( UInt& ruiVal						);
-  Void parseAlfUvlc		( UInt& ruiVal						);
-  Void parseAlfSvlc		( Int&  riVal							);
-  Void  parseAlfCtrlDepth 			 ( UInt& ruiAlfCtrlDepth );
-  Void parseULTUsedFlag( TComDataCU* pcCU, UInt uiAbsPartIdx );
+  Void parseAlfFlag				( UInt& ruiVal						);
+  Void parseAlfUvlc				( UInt& ruiVal						);
+  Void parseAlfSvlc				( Int&  riVal							);
+  Void parseAlfCtrlDepth 	( UInt& ruiAlfCtrlDepth		);
 
 private:
   __inline Void  xReadSymbol         ( UInt& ruiSymbol, SbacContextModel& rcSCModel );
@@ -97,11 +96,6 @@ private:
 
   Void  xReadMvd            ( Int& riMvdComp, UInt uiAbsSum, UInt uiCtx );
   Void  xReadExGolombMvd    ( UInt& ruiSymbol, SbacContextModel* pcSCModel, UInt uiMaxBin );
-
-  Void  xReadMvDd            ( Int& riMvdComp, UInt uiAbsSum, UInt uiCtx );
-#if HAM_ZEROMV_REP
-  Void  xReadMvDN            ( Int& riHorD, Int& riVerD );
-#endif
 
 private:
   TComBitstream*    m_pcBitstream;
@@ -134,14 +128,8 @@ public:
   Void parseCbf           ( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eType, UInt uiTrDepth, UInt uiDepth );
   Void parseCoeffNxN      ( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx, UInt uiWidth, UInt uiHeight, UInt uiDepth, TextType eTType );
 
-  Void parseMPIindex      ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
   Void parseROTindex      ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
   Void parseCIPflag       ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
-
-  Void parseExtremeValue( Int& iMinVal, Int& iMaxVal, Int iExtremeType);
-
-//EXCBand
-  Void parseCorrBandExType( Int& iCorVal, Int& iBandNumber);
 
 private:
   UInt m_uiLastDQpNonZero;
@@ -168,32 +156,16 @@ private:
   SbacContextModel3DBuffer m_cCUOneSCModel;
   SbacContextModel3DBuffer m_cCUAbsSCModel;
 
-  SbacContextModel3DBuffer m_cCUTSigMapSCModel;
-
   SbacContextModel3DBuffer m_cMVPIdxSCModel;
 
-  SbacContextModel3DBuffer m_cCUMPIindexSCModel;
   SbacContextModel3DBuffer m_cCUROTindexSCModel;
   SbacContextModel3DBuffer m_cCUCIPflagCCModel;
-
-  SbacContextModel3DBuffer m_cCUExtremValSCModel;
-
-//EXCBand
-    SbacContextModel3DBuffer m_cCUBandCorrValSCModel;
-
 
 	SbacContextModel3DBuffer m_cALFFlagSCModel;
 	SbacContextModel3DBuffer m_cALFUvlcSCModel;
 	SbacContextModel3DBuffer m_cALFSvlcSCModel;
   SbacContextModel3DBuffer m_cCUXPosiSCModel;
   SbacContextModel3DBuffer m_cCUYPosiSCModel;
-
-  // ACS
-  SbacContextModel3DBuffer m_cScanSCModel;
-
-  SbacContextModel3DBuffer m_cCUMvDdSCModel;
-  SbacContextModel3DBuffer m_cCUMvDdSignCModel;
-  SbacContextModel3DBuffer m_cCUULTUseSCModel;
 };
 
 #endif // !defined(AFX_TDECSBAC_H__CFCAAA19_8110_47F4_9A16_810C4B5499D5__INCLUDED_)

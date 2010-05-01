@@ -54,8 +54,6 @@ class TComMv
 private:
   Int   m_iHor;			///< horizontal component of motion vector
   Int   m_iVer;			///< vertical component of motion vector
-  Int   m_iHorD;		///< horizontal component of motion vector difference
-  Int   m_iVerD;		///< vertical component of motion vector difference
 
 public:
 
@@ -67,16 +65,12 @@ public:
     m_iHor(0),
     m_iVer(0)
   {
-    m_iHorD = 0;
-    m_iVerD = 0;
   }
 
-  TComMv( Int iHor, Int iVer, Int iHorD = 0, Int iVerD = 0 ) :
+	TComMv( Int iHor, Int iVer ) :
     m_iHor(iHor),
     m_iVer(iVer)
   {
-    m_iHorD = iHorD;
-    m_iVerD = iVerD;
   }
 
 	// ------------------------------------------------------------------------------------------------------------------
@@ -86,11 +80,7 @@ public:
   Void  set				( Int iHor, Int iVer)			{ m_iHor = iHor;  m_iVer = iVer;						}
   Void  setHor		( Int i )									{ m_iHor = i;																}
   Void  setVer		( Int i )									{ m_iVer = i;																}
-  Void  setD			( Int iHorD, Int iVerD)		{ m_iHorD = iHorD;  m_iVerD = iVerD;				}
-  Void  setHorD		( Int i )									{ m_iHorD = i;															}
-  Void  setVerD		( Int i )									{ m_iVerD = i;															}
-  Void  setZero		()                        { m_iHor = m_iVer = m_iHorD = m_iVerD = 0;  }
-  Void  setZeroD	()                        { m_iHorD = m_iVerD = 0;										}
+  Void  setZero		()                        { m_iHor = m_iVer = 0;  }
 
 	// ------------------------------------------------------------------------------------------------------------------
 	// get
@@ -100,10 +90,6 @@ public:
   Int   getVer		()  { return m_iVer;					}
   Int   getAbsHor	()  { return abs( m_iHor );		}
   Int   getAbsVer	()  { return abs( m_iVer );		}
-  Int   getHorD		()  { return m_iHorD;					}
-  Int   getVerD		()  { return m_iVerD;					}
-  Int   getAbsHorD()  { return abs( m_iHorD );	}
-  Int   getAbsVerD()  { return abs( m_iVerD );	}
 
 	// ------------------------------------------------------------------------------------------------------------------
 	// operations
@@ -113,8 +99,6 @@ public:
   {
     m_iHor = rcMv.m_iHor;
     m_iVer = rcMv.m_iVer;
-    m_iHorD = rcMv.m_iHorD;
-    m_iVerD = rcMv.m_iVerD;
     return  *this;
   }
 

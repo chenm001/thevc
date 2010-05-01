@@ -88,15 +88,10 @@ public:
   Void  codeTerminatingBit      ( UInt uilsLast );
   Void  codeSliceFinish         ();
 
-  Void  codeExtremeValue( Int iMinVal, Int iMaxVal, Int iExtremeType ) ;
-
-// EXCBand
-  Void  codeCorrBandExType(Int iCorVal, Int iBandNumber);
-
   Void	codeAlfFlag				( UInt uiCode );
   Void	codeAlfUvlc				( UInt uiCode );
   Void	codeAlfSvlc				( Int  uiCode );
-  Void codeAlfCtrlDepth();
+  Void  codeAlfCtrlDepth	();
 private:
   Void  xWriteSymbol         ( UInt uiSymbol, SbacContextModel& rcSCModel );
   Void  xWriteUnarySymbol    ( UInt uiSymbol, SbacContextModel* pcSCModel, Int iOffset );
@@ -111,24 +106,11 @@ private:
   __inline Void xPutByte( UChar ucByte);
   __inline Void xCarryPropagate( UInt& ruiCode );
 
-  Void  xWriteMvd               ( Int iMvd, UInt uiAbsSum, UInt uiCtx );
-  Void  xWriteExGolombMvd       ( UInt uiSymbol, SbacContextModel* pcSCModel, UInt uiMaxBin );
+  Void  xWriteMvd            ( Int iMvd, UInt uiAbsSum, UInt uiCtx );
+  Void  xWriteExGolombMvd    ( UInt uiSymbol, SbacContextModel* pcSCModel, UInt uiMaxBin );
 
-  Void xWriteMvDd( Int iMvd, UInt uiAbsSum, UInt uiCtx );
-
-#if HAM_ZEROMV_REP
-  Void xWriteMvDN( Int iMvdHor, Int iMvdVer );
-#endif
-
-  // SBAC RD
-  Void  xCopyFrom( TEncSbac* pSrc );
-  //--SBAC RD
-
-	//-- wjhan
-	UInt		getCTXIdxFromWidth( Int iWidth );
-	//--
-
-  Void codeULTUsedFlag( TComDataCU* pcCU, UInt uiAbsPartIdx );
+  Void  xCopyFrom						 ( TEncSbac* pSrc );
+	UInt	xGetCTXIdxFromWidth	 ( Int iWidth );
 
 protected:
   TComBitIf*    m_pcBitIf;
@@ -174,7 +156,6 @@ public:
   Void codeCbf           ( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eType, UInt uiTrDepth );
   Void codeCoeffNxN      ( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx, UInt uiWidth, UInt uiHeight, UInt uiDepth, TextType eTType, Bool bRD = false );
 
-  Void codeMPIindex( TComDataCU* pcCU, UInt uiAbsPartIdx );
   Void codeROTindex( TComDataCU* pcCU, UInt uiAbsPartIdx, Bool bRD );
   Void codeCIPflag ( TComDataCU* pcCU, UInt uiAbsPartIdx, Bool bRD );
 
@@ -209,30 +190,16 @@ private:
   SbacContextModel3DBuffer m_cCUOneSCModel;
   SbacContextModel3DBuffer m_cCUAbsSCModel;
 
-  SbacContextModel3DBuffer m_cCUTSigMapSCModel;
-
   SbacContextModel3DBuffer m_cMVPIdxSCModel;
 
-  SbacContextModel3DBuffer m_cCUMPIindexSCModel;
   SbacContextModel3DBuffer m_cCUROTindexSCModel;
   SbacContextModel3DBuffer m_cCUCIPflagCCModel;
-  SbacContextModel3DBuffer m_cCUExtremValSCModel;
-
-  // EXCBand
-  SbacContextModel3DBuffer m_cCUBandCorrValSCModel;
 
   SbacContextModel3DBuffer m_cALFFlagSCModel;
 	SbacContextModel3DBuffer m_cALFUvlcSCModel;
 	SbacContextModel3DBuffer m_cALFSvlcSCModel;
   SbacContextModel3DBuffer m_cCUXPosiSCModel;
   SbacContextModel3DBuffer m_cCUYPosiSCModel;
-
-  // ACS
-  SbacContextModel3DBuffer m_cScanSCModel;
-
-  SbacContextModel3DBuffer m_cCUMvDdSignCModel;
-  SbacContextModel3DBuffer m_cCUMvDdSCModel;
-  SbacContextModel3DBuffer m_cCUULTUseSCModel;
 };
 
 #endif // !defined(AFX_TENCSBAC_H__DDA7CDC4_EDE3_4015_9D32_2156249C82AA__INCLUDED_)

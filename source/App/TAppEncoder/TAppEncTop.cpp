@@ -61,8 +61,6 @@ Void TAppEncTop::xInitLibCfg()
   m_cTEncTop.setSourceHeight                 ( m_iSourceHeight );
   m_cTEncTop.setFrameToBeEncoded             ( m_iFrameToBeEncoded );
 
-  m_cTEncTop.setGeneratedReferenceMode       ( m_pchGeneratedReferenceMode );
-
   //====== Coding Structure ========
   m_cTEncTop.setIntraPeriod                  ( m_iIntraPeriod );
   m_cTEncTop.setGOPSize                      ( m_iGOPSize );
@@ -95,48 +93,23 @@ Void TAppEncTop::xInitLibCfg()
   m_cTEncTop.setSearchRange                  ( m_iSearchRange );
   m_cTEncTop.setMaxDeltaQP                   ( m_iMaxDeltaQP  );
 
-  //====== IP list ========
+  //====== Tool list ========
+  m_cTEncTop.setGRefMode										 ( m_pchGRefMode  );
   m_cTEncTop.setUseSBACRD										 ( m_bUseSBACRD		);
-  m_cTEncTop.setUseMVAC                      ( m_bUseMVAC			);
-  m_cTEncTop.setUseMVACRD                    ( m_bUseMVACRD   );
   m_cTEncTop.setDeltaQpRD										 ( m_uiDeltaQpRD  );
-  m_cTEncTop.setUseADI                       ( m_bUseADI			);
-	m_cTEncTop.setUseACC                       ( m_bUseACC			);
   m_cTEncTop.setUseASR                       ( m_bUseASR      );
-	m_cTEncTop.setUseROT                       ( m_bUseROT			);
-	m_cTEncTop.setUseMPI                       ( m_bUseMPI			);
-	m_cTEncTop.setUseJMQP                      ( m_bUseJMQP			);
-	m_cTEncTop.setUseJMLAMBDA                  ( m_bUseJMLAMBDA	);
-	m_cTEncTop.setUseAMVP                      ( m_bUseAMVP			);
-	m_cTEncTop.setUseIMR                       ( m_bUseIMR			);
-	m_cTEncTop.setUseDIF                       ( m_bUseDIF			);
 	m_cTEncTop.setUseHADME                     ( m_bUseHADME		);
 	m_cTEncTop.setUseALF	                     ( m_bUseALF  		);
-	m_cTEncTop.setUseRNG	                     ( m_bUseRNG	 		);
 	m_cTEncTop.setUseGPB	                     ( m_bUseGPB	 		);
-	m_cTEncTop.setUseAMP	                     ( m_bUseAMP	 		);
-  m_cTEncTop.setUseSHV											 ( m_bUseSHV			);
-	m_cTEncTop.setUseFAM	                     ( m_bUseFAM	 		);
 	m_cTEncTop.setdQPs                         ( m_aidQP        );
   m_cTEncTop.setUseRDOQ                      ( m_bUseRDOQ     );
-  m_cTEncTop.setUseLOT                       ( m_bUseLOT      );
-  m_cTEncTop.setUseExC                       ( m_bUseEXC      );
-  m_cTEncTop.setUseCCP                       ( m_bUseCCP      );
-  m_cTEncTop.setUseTMI                       ( m_bUseTMI      );
   m_cTEncTop.setUseLDC                       ( m_bUseLDC      );
-  m_cTEncTop.setUseLCT                       ( m_bUseLCT      );
-	m_cTEncTop.setUseCIP                       ( m_bUseCIP      );
 	m_cTEncTop.setUsePAD                       ( m_bUsePAD      );
 	m_cTEncTop.setMaxTrSize										 ( m_uiMaxTrSize  );
-  m_cTEncTop.setUseACS                       ( m_bUseACS      );
   m_cTEncTop.setUseQBO                       ( m_bUseQBO      );
 	m_cTEncTop.setUseNRF                       ( m_bUseNRF      );
 	m_cTEncTop.setUseBQP                       ( m_bUseBQP      );
-  m_cTEncTop.setUseHAP                       ( m_bUseHAP      );
-  m_cTEncTop.setUseHAB                       ( m_bUseHAB      );
-  m_cTEncTop.setUseHME                       ( m_bUseHME      );
 	m_cTEncTop.setDIFTap                       ( m_iDIFTap      );
-	m_cTEncTop.setDIFTapC                      ( m_iDIFTapC     );
 }
 
 Void TAppEncTop::xCreateLib()

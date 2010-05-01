@@ -78,9 +78,6 @@ public:
   TComMv& getMv     ()      { return  m_acMv;							}
   Int     getRefIdx ()      { return  m_iRefIdx;					}
 
-  Int     getHorD   ()      { return  m_acMv.getHorD();		}
-  Int     getVerD   ()      { return  m_acMv.getVerD();		}
-
   Int     getHor    ()      { return  m_acMv.getHor();		}
   Int     getVer    ()      { return  m_acMv.getVer();		}
 };

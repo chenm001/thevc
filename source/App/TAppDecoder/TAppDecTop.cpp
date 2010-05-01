@@ -99,6 +99,7 @@ Void TAppDecTop::decode()
   TComBitstream*      pcBitstream = m_apcBitstream;
   UInt                uiPOC;
   TComList<TComPic*>* pcListPic;
+	Bool								bAlloc = false;
 
 	// create & initialize internal classes
   xCreateDecLib();
@@ -118,8 +119,14 @@ Void TAppDecTop::decode()
     m_cTDecTop.decode( bEos, pcBitstream, uiPOC, pcListPic );
 
 		// write reconstuction to file
-		xWriteOutput( pcListPic );
+		xWriteOutput( pcListPic, bAlloc );
   }
+
+	// delete temporary buffer
+	if ( bAlloc )
+	{
+		m_cTempPicYuv.destroy();
+	}
 
 	// delete buffers
   m_cTDecTop.deletePicBuffer();
@@ -167,29 +174,34 @@ Void TAppDecTop::xInitDecLib()
 }
 
 /** \param pcListPic list of pictures to be written to file
-    \todo            DYN_REF_FREE should be revised \n
-										 no need to alloc pcPicD if no scaling is needed
+		\aram  bFirst		 first picture?
+    \todo            DYN_REF_FREE should be revised
  */
-Void TAppDecTop::xWriteOutput( TComList<TComPic*>* pcListPic )
+Void TAppDecTop::xWriteOutput( TComList<TComPic*>* pcListPic, Bool& rbAlloc )
 {
 	TComList<TComPic*>::iterator iterPic   = pcListPic->begin();
-	TComPicYuv* pcPicD = new TComPicYuv();
 
 	while (iterPic != pcListPic->end())
 	{
 		TComPic* pcPic = *(iterPic);
 
-		if (pcPic->getReconMark() && pcPic->getPOC() == (m_iPOCLastDisplay + 1))
+		if ( pcPic->getReconMark() && pcPic->getPOC() == (m_iPOCLastDisplay + 1) )
 		{
-			// descaling case: CADR || IBDI
-			if ( g_uiBitIncrement || g_bUseCADR )
+			// descaling case: IBDI
+			if ( g_uiBitIncrement )
 			{
-				// allocate destination buffer
-				pcPicD->create( pcPic->getPicYuvRec()->getWidth (),
-												pcPic->getPicYuvRec()->getHeight(),
-												g_uiMaxCUWidth,
-												g_uiMaxCUHeight,
-												g_uiMaxCUDepth );
+				TComPicYuv* pcPicD = &m_cTempPicYuv;
+
+				// allocate temporary buffer if first time
+				if ( !rbAlloc )
+				{
+					m_cTempPicYuv.create( pcPic->getPicYuvRec()->getWidth (),
+																pcPic->getPicYuvRec()->getHeight(),
+																g_uiMaxCUWidth,
+																g_uiMaxCUHeight,
+																g_uiMaxCUDepth );
+					rbAlloc = true;
+				}
 
 				// descaling of frame
 				xDeScalePic( pcPic, pcPicD );
@@ -199,9 +211,6 @@ Void TAppDecTop::xWriteOutput( TComList<TComPic*>* pcListPic )
 				{
 					m_cTVideoIOYuvReconFile.write( pcPicD, pcPic->getSlice()->getSPS()->getPad() );
 				}
-
-				// destroy temporary buffer
-				pcPicD->destroy();
 			}
 			// normal case
 			else
@@ -227,7 +236,7 @@ Void TAppDecTop::xWriteOutput( TComList<TComPic*>* pcListPic )
 #else
 				pcPic->destroy();
 				pcListPic->erase( iterPic );
-				iterPic = pcListPic->begin(); // kenti@rewind to the beginning, non-efficient way, have to be revised!
+				iterPic = pcListPic->begin(); // to the beginning, non-efficient way, have to be revised!
 				continue;
 #endif
 			}
@@ -235,13 +244,10 @@ Void TAppDecTop::xWriteOutput( TComList<TComPic*>* pcListPic )
 
 		iterPic++;
 	}
-
-	delete pcPicD;
 }
 
 /** \param		pcPic		input picture to be descaled
     \retval		pcPicD	output picture which is descaled
-		\todo							check validity of clip when IBDI=0
  */
 Void TAppDecTop::xDeScalePic( TComPic* pcPic, TComPicYuv* pcPicD )
 {
@@ -257,54 +263,24 @@ Void TAppDecTop::xDeScalePic( TComPic* pcPic, TComPicYuv* pcPicD )
   Int   iHeight = pcPic->getPicYuvRec()->getHeight();
   Int   offset  = (g_uiBitIncrement>0)?(1<<(g_uiBitIncrement-1)):0;
 
-	Int   x, y, itmp, itmp2;
-  itmp2 = g_iMinCADR << g_uiBitIncrement;
+	Int   x, y;
 
 	// ------------------------------------------------------------------------------------------------------------------
 	// Luma descaling
 	// ------------------------------------------------------------------------------------------------------------------
 
-	// Case #1: both CADR & IBDI are used - clip max is used since the value lies from 0 to 2^{basebit}
-	if ( g_bUseCADR && g_uiBitIncrement )
+	for( y = iHeight-1; y >= 0; y-- )
 	{
-		for( y = iHeight-1; y >= 0; y-- )
+		for( x = iWidth-1; x >= 0; x-- )
 		{
-			for( x = iWidth-1; x >= 0; x-- )
-			{
-				itmp = (CADR_INV_L( pRec[x], itmp2, g_iRangeCADR ) + offset) >> g_uiBitIncrement;
-				pRecD[x] = ClipMax( itmp );
-			}
-			pRecD += iStride;
-			pRec  += iStride;
+#if IBDI_NOCLIP_RANGE
+			pRecD[x] = ( pRec[x] + offset ) >> g_uiBitIncrement;
+#else
+			pRecD[x] = ClipMax( ( pRec[x] + offset ) >> g_uiBitIncrement );
+#endif
 		}
-	}
-	else
-	// Case #2: only IBDI is used - clip max is used since the value lies from 0 to 2^{basebit}
-	if ( g_uiBitIncrement )
-	{
-		for( y = iHeight-1; y >= 0; y-- )
-		{
-			for( x = iWidth-1; x >= 0; x-- )
-			{
-				itmp = ( pRec[x] + offset ) >> g_uiBitIncrement;
-				pRecD[x] = ClipMax( itmp );
-			}
-			pRecD += iStride;
-			pRec  += iStride;
-		}
-	}
-	else
-	// Case #3: only CADR is used - no clipping is needed since CADR always decreases the range
-	{
-		for( y = iHeight-1; y >= 0; y-- )
-		{
-			for( x = iWidth-1; x >= 0; x-- )
-			{
-				pRecD[x] = CADR_INV_L( pRec[x], itmp2, g_iRangeCADR );
-			}
-			pRecD += iStride;
-			pRec  += iStride;
-		}
+		pRecD += iStride;
+		pRec  += iStride;
 	}
 
 	// ------------------------------------------------------------------------------------------------------------------
@@ -314,61 +290,22 @@ Void TAppDecTop::xDeScalePic( TComPic* pcPic, TComPicYuv* pcPicD )
   iHeight >>= 1;
   iWidth  >>= 1;
   iStride >>= 1;
-  itmp2 = CADR_OFFSET << g_uiBitIncrement;
 
-	// Case #1: both CADR & IBDI are used - clip max is used since the value lies from 0 to 2^{basebit}
-	if ( g_bUseCADR && g_uiBitIncrement )
+	for( y = iHeight-1; y >= 0; y-- )
 	{
-		for( y = iHeight-1; y >= 0; y-- )
+		for( x = iWidth-1; x >= 0; x-- )
 		{
-			for( x = iWidth-1; x >= 0; x-- )
-			{
-				itmp = (CADR_INV_C( pRecCb[x], itmp2, g_iRangeCADR ) + offset) >> g_uiBitIncrement;
-				pRecDCb[x] = ClipMax(itmp                );
-
-				itmp = (CADR_INV_C( pRecCr[x], itmp2, g_iRangeCADR ) + offset) >> g_uiBitIncrement;
-				pRecDCr[x] = ClipMax(itmp                );
-			}
-			pRecDCb += iStride;
-			pRecCb  += iStride;
-			pRecDCr += iStride;
-			pRecCr  += iStride;
+#if IBDI_NOCLIP_RANGE
+			pRecDCb[x] = ( pRecCb[x] + offset) >> g_uiBitIncrement;
+			pRecDCr[x] = ( pRecCr[x] + offset) >> g_uiBitIncrement;
+#else
+			pRecDCb[x] = ClipMax( ( pRecCb[x] + offset) >> g_uiBitIncrement );
+			pRecDCr[x] = ClipMax( ( pRecCr[x] + offset) >> g_uiBitIncrement );
+#endif
 		}
-	}
-	else
-	// Case #2: only IBDI is used - clip max is used since the value lies from 0 to 2^{basebit}
-	if ( g_uiBitIncrement )
-	{
-		for( y = iHeight-1; y >= 0; y-- )
-		{
-			for( x = iWidth-1; x >= 0; x-- )
-			{
-				itmp = ( pRecCb[x] + offset) >> g_uiBitIncrement;
-				pRecDCb[x] = ClipMax(itmp                );
-
-				itmp = ( pRecCr[x] + offset) >> g_uiBitIncrement;
-				pRecDCr[x] = ClipMax(itmp                );
-			}
-			pRecDCb += iStride;
-			pRecCb  += iStride;
-			pRecDCr += iStride;
-			pRecCr  += iStride;
-		}
-	}
-	else
-	// Case #3: only CADR is used - no clipping is needed since CADR always decreases the range
-	{
-		for( y = iHeight-1; y >= 0; y-- )
-		{
-			for( x = iWidth-1; x >= 0; x-- )
-			{
-				pRecDCb[x] = CADR_INV_C( pRecCb[x], itmp2, g_iRangeCADR );
-				pRecDCr[x] = CADR_INV_C( pRecCr[x], itmp2, g_iRangeCADR );
-			}
-			pRecDCb += iStride;
-			pRecCb  += iStride;
-			pRecDCr += iStride;
-			pRecCr  += iStride;
-		}
+		pRecDCb += iStride;
+		pRecCb  += iStride;
+		pRecDCr += iStride;
+		pRecCr  += iStride;
 	}
 }

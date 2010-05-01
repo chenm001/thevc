@@ -91,10 +91,10 @@ public:
   //  Memory management
   // ------------------------------------------------------------------------------------------------
 
-  Void  create      ( Int iPicWidth, Int iPicHeight, UInt iMaxCUWidth, UInt iMaxCUHeight, UChar uhMaxCUDepth );
+  Void  create      ( Int iPicWidth, Int iPicHeight, UInt uiMaxCUWidth, UInt uiMaxCUHeight, UInt uiMaxCUDepth );
   Void  destroy     ();
 
-  Void  createLuma  ( Int iPicWidth, Int iPicHeight, UInt iMaxCUWidth, UInt iMaxCUHeight, UChar uhMaxCUDepth );
+  Void  createLuma  ( Int iPicWidth, Int iPicHeight, UInt uiMaxCUWidth, UInt uiMaxCUHeight, UInt uhMaxCUDepth );
   Void  destroyLuma ();
 
   // ------------------------------------------------------------------------------------------------

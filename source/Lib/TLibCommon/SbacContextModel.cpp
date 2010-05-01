@@ -60,7 +60,8 @@ Void SbacContextModel::init( Int iQp, Short asCtxInit[] )
     m_ucState = iInitialState;
     toggleMps();
   }
-  else {
+  else
+	{
     m_ucState = 71-iInitialState;
   }
 }

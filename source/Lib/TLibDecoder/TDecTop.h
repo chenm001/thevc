@@ -55,37 +55,33 @@
 class TDecTop
 {
 private:
-  Int                   m_iGopSize;
-  Bool                  m_bGopSizeSet;
-  int                   m_iMaxRefPicNum;
+  Int											m_iGopSize;
+  Bool										m_bGopSizeSet;
+  int											m_iMaxRefPicNum;
 
-	Bool									m_bSeqFirst;
-  TComList<TComPic*>    m_cListPic;         //  Dynamic buffer
-	TComSPS               m_cSPS;
-  TComSlice*            m_apcSlicePilot;
+	Bool										m_bSeqFirst;
+  TComList<TComPic*>			m_cListPic;         //  Dynamic buffer
+	TComSPS									m_cSPS;
+  TComSlice*							m_apcSlicePilot;
 
-  //  functional classes
-  TComPrediction        m_cPrediction;
-  //<--
-  TComTrQuant           m_cTrQuant;
-
-  TDecGop               m_cGopDecoder;
-  TDecSlice             m_cSliceDecoder;
-  TDecCu                m_cCuDecoder;
-  TDecEntropy           m_cEntropyDecoder;
-  TDecCavlc             m_cCavlcDecoder;
-  TDecSbac              m_cSbacDecoder;
-  TComLoopFilter        m_cLoopFilter;
-  // Adaptive Loop filter
-  TComAdaptiveLoopFilter        m_cAdaptiveLoopFilter;
-  //--Adaptive Loop filter
+  // functional classes
+  TComPrediction					m_cPrediction;
+  TComTrQuant							m_cTrQuant;
+  TDecGop									m_cGopDecoder;
+  TDecSlice								m_cSliceDecoder;
+  TDecCu									m_cCuDecoder;
+  TDecEntropy							m_cEntropyDecoder;
+  TDecCavlc								m_cCavlcDecoder;
+  TDecSbac								m_cSbacDecoder;
+  TComLoopFilter					m_cLoopFilter;
+  TComAdaptiveLoopFilter  m_cAdaptiveLoopFilter;
 
 public:
   TDecTop();
   virtual ~TDecTop();
 
-  Void  create();
-  Void  destroy();
+  Void  create	();
+  Void  destroy	();
 
   Void  init();
   Void  decode ( Bool bEos, TComBitstream* pcBitstream, UInt& ruiPOC, TComList<TComPic*>*& rpcListPic );

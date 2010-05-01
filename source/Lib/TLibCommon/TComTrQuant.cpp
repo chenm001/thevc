@@ -46,7 +46,6 @@
 #define LTR_Q_OFFSET_I              (1.0/3.0)		///< LTR quantization offset of I slice
 #define LTR_Q_OFFSET_P              (1.0/6.0)		///< LTR quantization offset of P slice
 #define LTR_Q_OFFSET_B              (1.0/6.0)		///< LTR quantization offset of B slice
-#define LOT_MAX_WLT_TAP							2						///< number of wavelet transform tap, (5-3)
 #define RDOQ_CHROMA                 1						///< use of RDOQ in chroma
 #define RDOQ_ROT_IDX0_ONLY          0						///< use of RDOQ with ROT
 
@@ -191,170 +190,6 @@ static const Int estErr32x32[6] = { 25351, 30674, 42843, 49687, 64898, 82136 };
 static const Int estErr64x64[6] = { 102400, 123904, 173056, 200704, 262144, 331776 };
 
 // ====================================================================================================================
-// Tables
-// ====================================================================================================================
-
-static Pel		iTBuff[ MAX_CU_SIZE * MAX_CU_SIZE  ];
-static Long		iCBuff[ MAX_CU_SIZE * MAX_CU_SIZE  ];
-static Pel		iEBuff[ MAX_CU_SIZE + LOT_MAX_WLT_TAP*2 ];
-static Pel		iOBuff[ MAX_CU_SIZE + LOT_MAX_WLT_TAP*2 ];
-
-// ====================================================================================================================
-// Local functions
-// ====================================================================================================================
-
-void xWavelet53( Pel* pInp, Int iSize, Pel* pOut, Int iLevel )
-{
-	::memcpy( pOut, pInp, sizeof(Pel)*iSize*iSize );
-	if ( iLevel == 0 ) return;
-
-	Pel* pXExt = &iEBuff[ LOT_MAX_WLT_TAP ];
-	Pel* pY    = &iOBuff[ LOT_MAX_WLT_TAP ];
-	Int  i, n, x, y;
-	Int  iN, iN2;
-
-  Int ySize, n2, y2, x2;
-
-	iN = iSize; iN2 = iN>>1;
-	for ( i=0; i<iLevel; i++ )
-	{
-		// step #1: horizontal transform
-		for ( y=0, ySize=0; y<iN; y++, ySize+=iSize )
-		{
-			// copy
-			::memcpy( pXExt, &pOut[ ySize ], sizeof(Pel)*iN );
-
-			// reflection
-			pXExt[ -1		] = pXExt[ +1   ];
-			pXExt[ -2		] = pXExt[ +2	  ];
-			pXExt[ iN   ] = pXExt[ iN-2 ];
-			pXExt[ iN+1 ] = pXExt[ iN-3 ];
-
-			// filtering (H)
-      for ( n=-1; n<iN2; n++ ){ n2 = n<<1; pY[ n2+1 ] = pXExt[ n2+1 ] - ( ( pXExt[ n2+0 ] + pXExt[ n2+2 ] + 0 ) >> 1 ); }
-
-			// filtering (L)
-      for ( n =0; n<iN2; n++ ){ n2 = n<<1; pY[ n2+0 ] = pXExt[ n2+0 ] + ( ( pY   [ n2-1 ] + pY   [ n2+1 ] + 2 ) >> 2 ); }
-
-			// copy
-			for ( x=0; x<iN2; x++ )
-			{
-        x2 = x<<1;
-				pOut[ x+ySize		  ] = pY[ x2   ];
-				pOut[ x+ySize+iN2 ] = pY[ x2+1 ];
-			}
-		}
-
-		// step #2: vertical transform
-		for ( x=0; x<iN; x++ )
-		{
-			// copy
-			for ( y=0, ySize=0; y<iN; y++, ySize += iSize ) pXExt[ y ] = pOut[ x+ySize ];
-
-			// reflection
-			pXExt[ -1		] = pXExt[ +1   ];
-			pXExt[ -2		] = pXExt[ +2	  ];
-			pXExt[ iN   ] = pXExt[ iN-2 ];
-			pXExt[ iN+1 ] = pXExt[ iN-3 ];
-
-			// filtering (H)
-      for ( n=-1; n<iN2; n++ ){ n2 = n<<1; pY[ n2+1 ] = pXExt[ n2+1 ] - ( ( pXExt[ n2+0 ] + pXExt[ n2+2 ] + 0 ) >> 1 ); }
-
-			// filtering (L)
-      for ( n =0; n<iN2; n++ ){ n2 = n<<1; pY[ n2+0 ] = ( pXExt[ n2+0 ] + ( ( pY   [ n2-1 ] + pY   [ n2+1 ] + 2 ) >> 2 ) ) << 1; }
-
-			// copy
-      n2 = iN2*iSize;
-			for ( y=0, ySize=0; y<iN2; y++, ySize+=iSize )
-			{
-        y2 = y<<1;
-				pOut[ x+ySize    ] = pY[ y2   ];
-				pOut[ x+ySize+n2 ] = pY[ y2+1 ];
-			}
-		}
-
-		// shift size
-		iN >>= 1;
-		iN2 = iN >> 1;
-	}
-}
-
-void xInvWavelet53( Pel* pInp, Int iSize, Pel* pOut, Int iLevel )
-{
-	::memcpy( pOut, pInp, sizeof(Pel)*iSize*iSize );
-	if ( iLevel == 0 ) return;
-
-	Pel* pYExt = &iEBuff[ LOT_MAX_WLT_TAP ];
-	Pel* pX    = &iOBuff[ LOT_MAX_WLT_TAP ];
-	Int  i, n, x, y;
-	Int  iN, iN2;
-
-  Int ySize, n2, y2, iN3, x2;
-
-	iN = iSize >> ( iLevel-1 ); iN2 = iN>>1; iN3 = iN2*iSize;
-	for ( i=iLevel-1; i>=0; i-- )
-	{
-		// step #1: vertical transform
-		for ( x=0; x<iN; x++ )
-		{
-			// copy
-			for ( y=0, ySize=0; y<iN2; y++, ySize+=iSize )
-			{
-        y2 = y<<1;
-				pYExt[ y2   ] = pOut[ x+ySize     ];
-				pYExt[ y2+1 ] = pOut[ x+ySize+iN3 ];
-			}
-
-			// reflection
-			pYExt[ -1		] = pYExt[ +1   ];
-			pYExt[ -2		] = pYExt[ +2	  ];
-			pYExt[ iN   ] = pYExt[ iN-2 ];
-			pYExt[ iN+1 ] = pYExt[ iN-3 ];
-
-			// filtering (even pixel)
-      for ( n=0; n<=iN2; n++ ){ n2 = n<<1; pX[ n2+0 ] = ( ( pYExt[ n2+0 ] + 1 ) >> 1 ) - ( ( pYExt[ n2-1 ] + pYExt[ n2+1 ] + 2 ) >> 2 ); }
-
-			// filtering (odd pixel)
-      for ( n=0; n< iN2; n++ ){ n2 = n<<1;  pX[ n2+1 ] = pYExt[ n2+1 ] + ( ( pX   [ n2+0 ] + pX   [ n2+2 ] + 0 ) >> 1 ); }
-
-			// copy
-			for ( y=0, ySize=0; y<iN; y++, ySize+=iSize ) pOut[ x+ySize ] = pX[ y ];
-		}
-
-		// step #2: horizontal transform
-    for ( y=0, ySize=0; y<iN; y++, ySize+=iSize )
-		{
-			// copy
-			for ( x=0; x<iN2; x++ )
-			{
-        x2 = x<<1;
-				pYExt[ x2   ] = pOut[ ySize + x     ];
-				pYExt[ x2+1 ] = pOut[ ySize + x+iN2 ];
-			}
-
-			// reflection
-			pYExt[ -1		] = pYExt[ +1   ];
-			pYExt[ -2		] = pYExt[ +2	  ];
-			pYExt[ iN   ] = pYExt[ iN-2 ];
-			pYExt[ iN+1 ] = pYExt[ iN-3 ];
-
-			// filtering
-      for ( n=0; n<=iN2; n++ ){ n2 = n<<1; pX[ n2+0 ] = pYExt[ n2+0 ] - ( ( pYExt[ n2-1 ] + pYExt[ n2+1 ] + 2 ) >> 2 ); }
-      for ( n=0; n< iN2; n++ ){ n2 = n<<1; pX[ n2+1 ] = pYExt[ n2+1 ] + ( ( pX   [ n2+0 ] + pX   [ n2+2 ] + 0 ) >> 1 ); }
-
-			// copy
-			::memcpy( &pOut[ ySize ], pX, sizeof(Pel)*iN );
-		}
-
-		// shift size
-		iN <<= 1;
-		iN2 = iN >> 1;
-    // BugFix for 1603
-    iN3 = iN2*iSize;
-	}
-}
-
-// ====================================================================================================================
 // Qp class member functions
 // ====================================================================================================================
 
@@ -362,7 +197,7 @@ QpParam::QpParam()
 {
 }
 
-Void QpParam::initOffsetParam(Int iStartQP, Int iEndQP, Bool bUseJMCFG)
+Void QpParam::initOffsetParam( Int iStartQP, Int iEndQP )
 {
   Int iDefaultOffset;
   Int iDefaultOffset_LTR;
@@ -374,12 +209,13 @@ Void QpParam::initOffsetParam(Int iStartQP, Int iEndQP, Bool bUseJMCFG)
   {
     Int k =  (iQP + 6*g_uiBitIncrement)/6;
 
-    Bool bLowPass = (bUseJMCFG? uiSliceType == 0 : uiSliceType <= 1);
-    iDefaultOffset = (bLowPass? 10922 : 5462); //this value should be adjusted depends on QOFFSET_BITS
-    bLowPass = (uiSliceType == 0);
-    iDefaultOffset_LTR = (bLowPass? 170 : 86); //this value should be adjusted depends on QOFFSET_BITS_LTR
-//    iDefaultOffset_LTR = (bLowPass? 682 : 342); //this value should be adjusted depends on QOFFSET_BITS_LTR
-    iPer = QP_BITS + k - QOFFSET_BITS;
+    Bool bLowPass = (uiSliceType == 0);
+    iDefaultOffset = (bLowPass? 10922 : 5462);
+
+		bLowPass = (uiSliceType == 0);
+    iDefaultOffset_LTR = (bLowPass? 170 : 86);
+
+		iPer = QP_BITS + k - QOFFSET_BITS;
     m_aiAdd2x2[iQP][uiSliceType] = iDefaultOffset << iPer;
     m_aiAdd4x4[iQP][uiSliceType] = iDefaultOffset << iPer;
 
@@ -405,11 +241,6 @@ Void QpParam::initOffsetParam(Int iStartQP, Int iEndQP, Bool bUseJMCFG)
 TComTrQuant::TComTrQuant()
 {
   m_cQP.clear();
-
-  m_dLTROffset	= 1.0/6.0;
-  m_bUseADI			= false;
-  m_bUseJMCFG		= false;
-  m_bUseLCT			= false;
 
 	// allocate temporary buffers
   m_plTempCoeff  = new Long[ MAX_CU_SIZE*MAX_CU_SIZE ];
@@ -442,19 +273,6 @@ Void TComTrQuant::setQPforQuant( Int iQP, Bool bLowpass, SliceType eSliceType, T
   }
 
   m_cQP.setQpParam( iQP, bLowpass, eSliceType, m_bEnc );
-
-  if (eSliceType == I_SLICE)
-  {
-    m_dLTROffset = LTR_Q_OFFSET_I;
-  }
-  else if (eSliceType == P_SLICE)
-  {
-    m_dLTROffset = (m_bUseJMCFG? LTR_Q_OFFSET_B : LTR_Q_OFFSET_P);
-  }
-  else
-  {
-    m_dLTROffset = LTR_Q_OFFSET_B;
-  }
 }
 
 Void TComTrQuant::xT64  ( Pel* pSrc, UInt uiStride, Long* pDes )
@@ -1477,671 +1295,7 @@ Void TComTrQuant::xT64  ( Pel* pSrc, UInt uiStride, Long* pDes )
   }
 }
 
-Void TComTrQuant::xT32_Loeffler_Lifting  ( Pel* pSrc, UInt uiStride, Long* pDes )
-{
-  Int x, y;
-  Long aaiTemp[32][32];
-
-  Long A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31;
-  Long B0, B1, B2, B3, B4, B5, B6, B7, B8, B9, B10, B11, B12, B13, B14, B15, B16, B17, B18, B19, B20, B21, B22, B23, B24, B25, B26, B27, B28, B29, B30, B31;
-  Long C0, C1, C2, C3, C4, C5, C6, C7, C8, C9, C10, C11, C12, C13, C14, C15, C16, C17, C18, C19, C20, C21, C22, C23, C24, C25, C26, C27, C28, C29, C30, C31;
-  Long D0, D1, D2, D3, D4, D5, D6, D7, D8, D9, D10, D11, D12, D13, D14, D15, D16, D17, D18, D19, D20, D21, D22, D23, D24, D25, D26, D27, D28, D29, D30, D31;
-  Long E0, E1, E2, E3, E4, E5, E6, E7, E8, E9, E10, E11, E12, E13, E14, E15, E16, E19, E20, E21, E22, E23, E24, E25, E26, E27, E28, E31;
-  Long F4, F7, F8, F9, F11, F12, F14, F15, F16, F17, F18, F19, F20, F21, F23, F24, F26, F27, F28, F29, F30, F31;
-  Long G16, G17, G18, G19, G28, G29, G30, G31;
-
-  //--Butterfly
-  for( y=0 ; y<32 ; y++ )
-  {
-    A0 = pSrc[0] + pSrc[31];
-    A31 = pSrc[0] - pSrc[31];
-    A1 = pSrc[1] + pSrc[30];
-    A30 = pSrc[1] - pSrc[30];
-    A2 = pSrc[2] + pSrc[29];
-    A29 = pSrc[2] - pSrc[29];
-    A3 = pSrc[3] + pSrc[28];
-    A28 = pSrc[3] - pSrc[28];
-    A4 = pSrc[4] + pSrc[27];
-    A27 = pSrc[4] - pSrc[27];
-    A5 = pSrc[5] + pSrc[26];
-    A26 = pSrc[5] - pSrc[26];
-    A6 = pSrc[6] + pSrc[25];
-    A25 = pSrc[6] - pSrc[25];
-    A7 = pSrc[7] + pSrc[24];
-    A24 = pSrc[7] - pSrc[24];
-    A8 = pSrc[8] + pSrc[23];
-    A23 = pSrc[8] - pSrc[23];
-    A9 = pSrc[9] + pSrc[22];
-    A22 = pSrc[9] - pSrc[22];
-    A10 = pSrc[10] + pSrc[21];
-    A21 = pSrc[10] - pSrc[21];
-    A11 = pSrc[11] + pSrc[20];
-    A20 = pSrc[11] - pSrc[20];
-    A12 = pSrc[12] + pSrc[19];
-    A19 = pSrc[12] - pSrc[19];
-    A13 = pSrc[13] + pSrc[18];
-    A18 = pSrc[13] - pSrc[18];
-    A14 = pSrc[14] + pSrc[17];
-    A17 = pSrc[14] - pSrc[17];
-    A15 = pSrc[15] + pSrc[16];
-    A16 = pSrc[15] - pSrc[16];
-
-    B0 = A0 + A15;
-    B15 = A0 - A15;
-    B1 = A1 + A14;
-    B14 = A1 - A14;
-    B2 = A2 + A13;
-    B13 = A2 - A13;
-    B3 = A3 + A12;
-    B12 = A3 - A12;
-    B4 = A4 + A11;
-    B11 = A4 - A11;
-    B5 = A5 + A10;
-    B10 = A5 - A10;
-    B6 = A6 + A9;
-    B9 = A6 - A9;
-    B7 = A7 + A8;
-    B8 = A7 - A8;
-
-    B16 = A16 - xTrRound(113*A31, DenShift32);
-    B31 = A31 + xTrRound(189*B16, DenShift32);
-    B16 = B16 - xTrRound(113*B31, DenShift32);
-
-    B17 = A17 + xTrRound(21*A30, DenShift32-2);
-    B30 = A30 - xTrRound(152*B17, DenShift32);
-    B17 = B17 + xTrRound(21*B30, DenShift32-2);
-
-    B18 = A18 - xTrRound(145*A29, DenShift32);
-    B29 = A29 + xTrRound(219*B18, DenShift32);
-    B18 = B18 - xTrRound(145*B29, DenShift32);
-
-    B19 = A19 + xTrRound(57*A28, DenShift32);
-    B28 = A28 - xTrRound(109*B19, DenShift32);
-    B19 = B19 + xTrRound(57*B28, DenShift32);
-
-    B20 = A20 - xTrRound(45*A27, DenShift32-2);
-    B27 = A27 + xTrRound(241*B20, DenShift32);
-    B20 = B20 - xTrRound(45*B27, DenShift32-2);
-
-    B21 = A21 + xTrRound(31*A26, DenShift32);
-    B26 = A26 - xTrRound(31*B21, DenShift32-1);
-    B21 = B21 + xTrRound(31*B26, DenShift32);
-
-    B22 = A22 - xTrRound(55*A25, DenShift32-2);
-    B25 = A25 + xTrRound(253*B22, DenShift32);
-    B22 = B22 - xTrRound(55*B25, DenShift32-2);
-
-    B23 = A23 + xTrRound(3*A24, DenShift32-1);
-    B24 = A24 - xTrRound(3*B23, DenShift32-2);
-    B23 = B23 + xTrRound(3*B24, DenShift32-1);
-
-
-    C0 = B0 + B7;
-    C7 = B0 - B7;
-    C1 = B1 + B6;
-    C6 = B1 - B6;
-    C2 = B2 + B5;
-    C5 = B2 - B5;
-    C3 = B3 + B4;
-    C4 = B3 - B4;
-
-    C15 = B15 - xTrRound(B8*91, DenShift32);
-    C8  = B8  + xTrRound(C15*81, DenShift32-1);
-    C15 = C15 - xTrRound(C8*91, DenShift32);
-
-    C9  = B9  - xTrRound(B14*153, DenShift32);
-    C14 = B14 + xTrRound(C9*225, DenShift32);
-    C9  = C9  - xTrRound(C14*153,DenShift32);
-
-    C13 = B13 - xTrRound(B10*37, DenShift32);
-    C10 = B10 + xTrRound(C13*37, DenShift32-1);
-    C13 = C13 - xTrRound(C10*37, DenShift32);
-
-    C11 = B11 - xTrRound(B12*29, DenShift32-3);
-    C12 = B12 + xTrRound(C11*127, DenShift32-1);
-    C11 = C11 - xTrRound(C12*29, DenShift32-3);
-
-    C16 = B16 + B23;
-    C23 = B16 - B23;
-    C17 = B17 + B22;
-    C22 = B17 - B22;
-    C18 = B18 + B21;
-    C21 = B18 - B21;
-    C19 = B19 + B20;
-    C20 = B19 - B20;
-
-    C24 = B24 + B31;
-    C31 = B24 - B31;
-    C25 = B25 + B30;
-    C30 = B25 - B30;
-    C26 = B26 + B29;
-    C29 = B26 - B29;
-    C27 = B27 + B28;
-    C28 = B27 - B28;
-
-    D0 = C0 + C3;
-    D3 = C0 - C3;
-    D1 = C1 + C2;
-    D2 = C1 - C2;
-
-    D7 = C7 - xTrRound(C4*77, DenShift32);
-    D4 = C4 + xTrRound(D7*71, DenShift32-1);
-    D7 = D7 - xTrRound(D4*77, DenShift32);
-
-    D6 = C6 - xTrRound(C5*25, DenShift32);
-    D5 = C5 + xTrRound(D6*49, DenShift32);
-    D6 = D6 - xTrRound(D5*25, DenShift32);
-
-    D8  = C8 + C11;
-    D11 = C8 - C11;
-    D9  = C9 + C10;
-    D10 = C9 - C10;
-
-    D12 = C12 + C15;
-    D15 = C12 - C15;
-    D13 = C13 + C14;
-    D14 = C13 - C14;
-
-    D16 = C16 + C28;
-    D28 = C16 - C28;
-    D17 = C17 + C29;
-    D29 = C17 - C29;
-    D18 = C18 + C30;
-    D30 = C18 - C30;
-    D19 = C19 + C31;
-    D31 = C19 - C31;
-
-    D20 = C20 + C23;
-    D23 = C20 - C23;
-    D21 = C21 + C22;
-    D22 = C21 - C22;
-
-    D24 = C24 + C27;
-    D27 = C24 - C27;
-    D25 = C25 + C26;
-    D26 = C25 - C26;
-
-    E0 = D0 + D1;
-    E1 = (E0>>1) - D1;
-
-    E2 = -D2 + xTrRound(D3*53, DenShift32-1);
-    E3 =  D3 - xTrRound(E2*45, DenShift32-1);
-
-    E4 = D4 + D6;
-    E6 = D4 - D6;
-    E5 = D7 - D5;
-    E7 = D7 + D5;
-
-    E8  = D8  + D14;
-    E14 = D8  - D14;
-    E9  = D9  + D15;
-    E15 = D9  - D15;
-    E10 = D10 + D11;
-    E11 = D10 - D11;
-    E12 = D12 + D13;
-    E13 = D12 - D13;
-
-    E16 = xTrRound((D16 + D19)*181, DenShift32);
-    E19 = xTrRound((-D16 + D19)*181, DenShift32);
-    //E16 = D16 + xTrRound(D19*106, DenShift32);
-    //E19 = D19 - xTrRound(E16*181, DenShift32);
-    //E16 = E16 + xTrRound(E19*106, DenShift32);
-
-    E20 = D20 + D26;
-    E26 = D20 - D26;
-    E21 = D21 + D27;
-    E27 = D21 - D27;
-    E22 = D22 + D23;
-    E23 = D22 - D23;
-    E24 = D24 + D25;
-    E25 = D24 - D25;
-
-    E28 = xTrRound((D28 + D31)*181, DenShift32);
-    E31 = xTrRound((-D28 + D31)*181, DenShift32);
-    //E28 = D28 + xTrRound(D31*106, DenShift32);
-    //E31 = D31 - xTrRound(E28*181, DenShift32);
-    //E28 = E28 + xTrRound(E31*106, DenShift32);
-
-    F7 = E7 + E4;
-    F4 = (F7>>1) - E4;
-
-    F8  =  E8 + xTrRound(E9*53, DenShift32-1);
-    F9  = -E9 + xTrRound(F8*45, DenShift32-1);
-
-    F11 = E11 + E12;
-    F12 = E12 - (F11 >> 1);
-
-    F14 = E14 + xTrRound(E15*53, DenShift32-1);
-    F15 = E15 - xTrRound(F14*45, DenShift32-1);
-
-    F16 = E16 + D18;
-    F18 = E16 - D18;
-    F17 = D17 + E19;
-    F19 = D17 - E19;
-
-    F20 = E20 + xTrRound(E21*53, DenShift32-1);
-    F21 = E21 - xTrRound(F20*45, DenShift32-1);
-    /*F20 = E20 + xTrRound(E21*50, DenShift32);
-    F21 = E21 - xTrRound(F20*97, DenShift32);
-    F20 = F20 + xTrRound(F21*50, DenShift32);*/
-
-
-    F23 = E23 + xTrRound(E24*255, DenShift32);
-    F24 = E24 - xTrRound(F23*1, DenShift32-7);
-    /*F23 = E23 + xTrRound(E24*106,DenShift32);
-    F24 = E24 - xTrRound(F23*181,DenShift32);
-    F23 = F23 + xTrRound(F24*106,DenShift32);*/
-
-    F26 = E26 + xTrRound(E27*53, DenShift32-1);
-    F27 = E27 - xTrRound(F26*45, DenShift32-1);
-    /*F26 = E26 + xTrRound(E27*50, DenShift32);
-    F27 = E27 - xTrRound(F26*97, DenShift32);
-    F26 = F26 + xTrRound(F27*50, DenShift32);*/
-
-    F28 = -E28 + D30;
-    F30 = E28 + D30;
-    F29 = -D29 +E31;
-    F31 = D29 + E31;
-
-    G16 = F16 - xTrRound(F17*25, DenShift32-1);
-    G17 = F17 + xTrRound(G16*3, DenShift32-4);
-
-    G18 = F18 - xTrRound(F19*171, DenShift32);
-    G19 = F19 + xTrRound(G18*59, DenShift32-1);
-
-    G28 = F28 - xTrRound(F29*171, DenShift32);
-    G29 = F29 + xTrRound(G28*59, DenShift32-1);
-
-    G30 = F30 - xTrRound(F31*25, DenShift32-1);
-    G31 = F31 + xTrRound(G30*3, DenShift32-4);
-
-    //G16 = F16 - xTrRound(F17*25, DenShift32);
-    //G17 = F17 + xTrRound(G16*49, DenShift32);
-    //G16 = G16 - xTrRound(G17*25, DenShift32);
-
-    //
-
-    //G18 = F18 - xTrRound(F19*77, DenShift32);
-    //G19 = F19 + xTrRound(G18*142, DenShift32);
-    //G18 = G18 - xTrRound(G19*77, DenShift32);
-
-
-    //
-
-    //G28 = F28 - xTrRound(F29*77, DenShift32);
-    //G29 = F29 + xTrRound(G28*142, DenShift32);
-    //G28 = G28 - xTrRound(G29*77, DenShift32);
-
-    //
-
-    //G30 = F30 - xTrRound(F31*25, DenShift32);
-    //G31 = F31 + xTrRound(G30*49, DenShift32);
-    //G30 = G30 - xTrRound(G31*25, DenShift32);
-
-    aaiTemp[0][y] = E0;
-    aaiTemp[1][y] = F24;
-    aaiTemp[2][y] = F12;
-    aaiTemp[3][y] = -G16;
-    aaiTemp[4][y] = F7;
-    aaiTemp[5][y] = G31;
-    aaiTemp[6][y] = F9;
-    aaiTemp[7][y] = -F26;
-    aaiTemp[8][y] = E3;
-    aaiTemp[9][y] = F21;
-    aaiTemp[10][y] = F14;
-    aaiTemp[11][y] = G29;
-    aaiTemp[12][y] = E5;
-    aaiTemp[13][y] = -G18;
-    aaiTemp[14][y] = E13;
-    aaiTemp[15][y] = E22;
-    aaiTemp[16][y] = E1;
-    aaiTemp[17][y] = E25;
-    aaiTemp[18][y] = E10;
-    aaiTemp[19][y] =  -G19;
-    aaiTemp[20][y] = E6;
-    aaiTemp[21][y] = -G28;
-    aaiTemp[22][y] = F15;
-    aaiTemp[23][y] = -F20;
-    aaiTemp[24][y] = E2;
-    aaiTemp[25][y] = -F27;
-    aaiTemp[26][y] = F8;
-    aaiTemp[27][y] = -G30;
-    aaiTemp[28][y] =  F4;
-    aaiTemp[29][y] = -G17;
-    aaiTemp[30][y] = F11;
-    aaiTemp[31][y] = -F23;
-
-    pSrc += uiStride;
-
-  }
-
-
-  for( x=0 ; x<32 ; x++, pDes++ )
-  {
-	  A0 = aaiTemp[x][0] + aaiTemp[x][31];
-	  A31 = aaiTemp[x][0] - aaiTemp[x][31];
-	  A1 = aaiTemp[x][1] + aaiTemp[x][30];
-	  A30 = aaiTemp[x][1] - aaiTemp[x][30];
-	  A2 = aaiTemp[x][2] + aaiTemp[x][29];
-	  A29 = aaiTemp[x][2] - aaiTemp[x][29];
-	  A3 = aaiTemp[x][3] + aaiTemp[x][28];
-	  A28 = aaiTemp[x][3] - aaiTemp[x][28];
-	  A4 = aaiTemp[x][4] + aaiTemp[x][27];
-	  A27 = aaiTemp[x][4] - aaiTemp[x][27];
-	  A5 = aaiTemp[x][5] + aaiTemp[x][26];
-	  A26 = aaiTemp[x][5] - aaiTemp[x][26];
-	  A6 = aaiTemp[x][6] + aaiTemp[x][25];
-	  A25 = aaiTemp[x][6] - aaiTemp[x][25];
-	  A7 = aaiTemp[x][7] + aaiTemp[x][24];
-	  A24 = aaiTemp[x][7] - aaiTemp[x][24];
-	  A8 = aaiTemp[x][8] + aaiTemp[x][23];
-	  A23 = aaiTemp[x][8] - aaiTemp[x][23];
-	  A9 = aaiTemp[x][9] + aaiTemp[x][22];
-	  A22 = aaiTemp[x][9] - aaiTemp[x][22];
-	  A10 = aaiTemp[x][10] + aaiTemp[x][21];
-	  A21 = aaiTemp[x][10] - aaiTemp[x][21];
-	  A11 = aaiTemp[x][11] + aaiTemp[x][20];
-	  A20 = aaiTemp[x][11] - aaiTemp[x][20];
-	  A12 = aaiTemp[x][12] + aaiTemp[x][19];
-	  A19 = aaiTemp[x][12] - aaiTemp[x][19];
-    A13 = aaiTemp[x][13] + aaiTemp[x][18];
-    A18 = aaiTemp[x][13] - aaiTemp[x][18];
-    A14 = aaiTemp[x][14] + aaiTemp[x][17];
-    A17 = aaiTemp[x][14] - aaiTemp[x][17];
-    A15 = aaiTemp[x][15] + aaiTemp[x][16];
-    A16 = aaiTemp[x][15] - aaiTemp[x][16];
-
-    B0 = A0 + A15;
-    B15 = A0 - A15;
-    B1 = A1 + A14;
-    B14 = A1 - A14;
-    B2 = A2 + A13;
-    B13 = A2 - A13;
-    B3 = A3 + A12;
-    B12 = A3 - A12;
-    B4 = A4 + A11;
-    B11 = A4 - A11;
-    B5 = A5 + A10;
-    B10 = A5 - A10;
-    B6 = A6 + A9;
-    B9 = A6 - A9;
-    B7 = A7 + A8;
-    B8 = A7 - A8;
-
-    B16 = A16 - xTrRound(113*A31, DenShift32);
-    B31 = A31 + xTrRound(189*B16, DenShift32);
-    B16 = B16 - xTrRound(113*B31, DenShift32);
-
-    B17 = A17 + xTrRound(21*A30, DenShift32-2);
-    B30 = A30 - xTrRound(19*B17, DenShift32-3);
-    B17 = B17 + xTrRound(21*B30, DenShift32-2);
-
-    B18 = A18 - xTrRound(145*A29, DenShift32);
-    B29 = A29 + xTrRound(219*B18, DenShift32);
-    B18 = B18 - xTrRound(145*B29, DenShift32);
-
-    B19 = A19 + xTrRound(57*A28, DenShift32);
-    B28 = A28 - xTrRound(109*B19, DenShift32);
-    B19 = B19 + xTrRound(57*B28, DenShift32);
-
-    B20 = A20 - xTrRound(45*A27, DenShift32-2);
-    B27 = A27 + xTrRound(241*B20, DenShift32);
-    B20 = B20 - xTrRound(45*B27, DenShift32-2);
-
-    B21 = A21 + xTrRound(31*A26, DenShift32);
-    B26 = A26 - xTrRound(31*B21, DenShift32-1);
-    B21 = B21 + xTrRound(31*B26, DenShift32);
-
-    B22 = A22 - xTrRound(55*A25, DenShift32-2);
-    B25 = A25 + xTrRound(253*B22, DenShift32);
-    B22 = B22 - xTrRound(55*B25, DenShift32-2);
-
-    B23 = A23 + xTrRound(3*A24, DenShift32-1);
-    B24 = A24 - xTrRound(3*B23, DenShift32-2);
-    B23 = B23 + xTrRound(3*B24, DenShift32-1);
-
-
-    C0 = B0 + B7;
-    C7 = B0 - B7;
-    C1 = B1 + B6;
-    C6 = B1 - B6;
-    C2 = B2 + B5;
-    C5 = B2 - B5;
-    C3 = B3 + B4;
-    C4 = B3 - B4;
-
-    C15 = B15 - xTrRound(B8*91, DenShift32);
-    C8  = B8  + xTrRound(C15*81, DenShift32-1);
-    C15 = C15 - xTrRound(C8*91, DenShift32);
-
-    C9  = B9  - xTrRound(B14*153, DenShift32);
-    C14 = B14 + xTrRound(C9*225, DenShift32);
-    C9  = C9  - xTrRound(C14*153,DenShift32);
-
-    C13 = B13 - xTrRound(B10*37, DenShift32);
-    C10 = B10 + xTrRound(C13*37, DenShift32-1);
-    C13 = C13 - xTrRound(C10*37, DenShift32);
-
-    C11 = B11 - xTrRound(B12*29, DenShift32-3);
-    C12 = B12 + xTrRound(C11*127, DenShift32-1);
-    C11 = C11 - xTrRound(C12*29, DenShift32-3);
-
-    C16 = B16 + B23;
-    C23 = B16 - B23;
-    C17 = B17 + B22;
-    C22 = B17 - B22;
-    C18 = B18 + B21;
-    C21 = B18 - B21;
-    C19 = B19 + B20;
-    C20 = B19 - B20;
-
-    C24 = B24 + B31;
-    C31 = B24 - B31;
-    C25 = B25 + B30;
-    C30 = B25 - B30;
-    C26 = B26 + B29;
-    C29 = B26 - B29;
-    C27 = B27 + B28;
-    C28 = B27 - B28;
-
-    D0 = C0 + C3;
-    D3 = C0 - C3;
-    D1 = C1 + C2;
-    D2 = C1 - C2;
-
-    D7 = C7 - xTrRound(C4*77, DenShift32);
-    D4 = C4 + xTrRound(D7*71, DenShift32-1);
-    D7 = D7 - xTrRound(D4*77, DenShift32);
-
-    D6 = C6 - xTrRound(C5*25, DenShift32);
-    D5 = C5 + xTrRound(D6*49, DenShift32);
-    D6 = D6 - xTrRound(D5*25, DenShift32);
-
-    D8  = C8 + C11;
-    D11 = C8 - C11;
-    D9  = C9 + C10;
-    D10 = C9 - C10;
-
-    D12 = C12 + C15;
-    D15 = C12 - C15;
-    D13 = C13 + C14;
-    D14 = C13 - C14;
-
-    D16 = C16 + C28;
-    D28 = C16 - C28;
-    D17 = C17 + C29;
-    D29 = C17 - C29;
-    D18 = C18 + C30;
-    D30 = C18 - C30;
-    D19 = C19 + C31;
-    D31 = C19 - C31;
-
-    D20 = C20 + C23;
-    D23 = C20 - C23;
-    D21 = C21 + C22;
-    D22 = C21 - C22;
-
-    D24 = C24 + C27;
-    D27 = C24 - C27;
-    D25 = C25 + C26;
-    D26 = C25 - C26;
-
-    E0 = D0 + D1;
-    E1 = (E0>>1) - D1;
-
-    E2 = -D2 + xTrRound(D3*53, DenShift32-1);
-    E3 =  D3 - xTrRound(E2*45, DenShift32-1);
-
-    E4 = D4 + D6;
-    E6 = D4 - D6;
-    E5 = D7 - D5;
-    E7 = D7 + D5;
-
-    E8  = D8  + D14;
-    E14 = D8  - D14;
-    E9  = D9  + D15;
-    E15 = D9  - D15;
-    E10 = D10 + D11;
-    E11 = D10 - D11;
-    E12 = D12 + D13;
-    E13 = D12 - D13;
-
-    E16 = xTrRound((D16 + D19)*181, DenShift32);
-    E19 = xTrRound((-D16 + D19)*181, DenShift32);
-    //E16 = D16 + xTrRound(D19*106, DenShift32);
-    //E19 = D19 - xTrRound(E16*181, DenShift32);
-    //E16 = E16 + xTrRound(E19*106, DenShift32);
-
-
-    E20 = D20 + D26;
-    E26 = D20 - D26;
-    E21 = D21 + D27;
-    E27 = D21 - D27;
-    E22 = D22 + D23;
-    E23 = D22 - D23;
-    E24 = D24 + D25;
-    E25 = D24 - D25;
-
-    E28 = xTrRound((D28 + D31)*181, DenShift32);
-    E31 = xTrRound((-D28 + D31)*181, DenShift32);
-    //E28 = D28 + xTrRound(D31*106, DenShift32);
-    //E31 = D31 - xTrRound(E28*181, DenShift32);
-    //E28 = E28 + xTrRound(E31*106, DenShift32);
-
-
-    F7 = E7 + E4;
-    F4 = (F7>>1) - E4;
-
-    F8  =  E8 + xTrRound(E9*53, DenShift32-1);
-    F9  = -E9 + xTrRound(F8*45, DenShift32-1);
-
-    F11 = E11 + E12;
-    F12 = E12 - (F11 >> 1);
-
-    F14 = E14 + xTrRound(E15*53, DenShift32-1);
-    F15 = E15 - xTrRound(F14*45, DenShift32-1);
-
-    F16 = E16 + D18;
-    F18 = E16 - D18;
-    F17 = D17 + E19;
-    F19 = D17 - E19;
-
-    F20 = E20 + xTrRound(E21*53, DenShift32-1);
-    F21 = E21 - xTrRound(F20*45, DenShift32-1);
-    /*F20 = E20 + xTrRound(E21*50, DenShift32);
-    F21 = E21 - xTrRound(F20*97, DenShift32);
-    F20 = F20 + xTrRound(F21*50, DenShift32);*/
-
-
-    F23 = E23 + xTrRound(E24*255, DenShift32);
-    F24 = E24 - xTrRound(F23*1, DenShift32-7);
-    /*F23 = E23 + xTrRound(E24*106,DenShift32);
-    F24 = E24 - xTrRound(F23*181,DenShift32);
-    F23 = F23 + xTrRound(F24*106,DenShift32);*/
-
-    F26 = E26 + xTrRound(E27*53, DenShift32-1);
-    F27 = E27 - xTrRound(F26*45, DenShift32-1);
-    /*F26 = E26 + xTrRound(E27*50, DenShift32);
-    F27 = E27 - xTrRound(F26*97, DenShift32);
-    F26 = F26 + xTrRound(F27*50, DenShift32);*/
-
-    F28 = -E28 + D30;
-    F30 = E28 + D30;
-    F29 = -D29 +E31;
-    F31 = D29 + E31;
-
-    G16 = F16 - xTrRound(F17*25, DenShift32-1);
-    G17 = F17 + xTrRound(G16*3, DenShift32-4);
-
-    G18 = F18 - xTrRound(F19*171, DenShift32);
-    G19 = F19 + xTrRound(G18*59, DenShift32-1);
-
-    G28 = F28 - xTrRound(F29*171, DenShift32);
-    G29 = F29 + xTrRound(G28*59, DenShift32-1);
-
-    G30 = F30 - xTrRound(F31*25, DenShift32-1);
-    G31 = F31 + xTrRound(G30*3, DenShift32-4);
-
-    //G16 = F16 - xTrRound(F17*25, DenShift32);
-    //G17 = F17 + xTrRound(G16*49, DenShift32);
-    //G16 = G16 - xTrRound(G17*25, DenShift32);
-
-    //
-
-    //G18 = F18 - xTrRound(F19*77, DenShift32);
-    //G19 = F19 + xTrRound(G18*142, DenShift32);
-    //G18 = G18 - xTrRound(G19*77, DenShift32);
-
-
-    //
-
-    //G28 = F28 - xTrRound(F29*77, DenShift32);
-    //G29 = F29 + xTrRound(G28*142, DenShift32);
-    //G28 = G28 - xTrRound(G29*77, DenShift32);
-
-    //
-
-    //G30 = F30 - xTrRound(F31*25, DenShift32);
-    //G31 = F31 + xTrRound(G30*49, DenShift32);
-    //G30 = G30 - xTrRound(G31*25, DenShift32);
-
-    pDes[0] = E0;
-    pDes[32] = F24;
-    pDes[64] = F12;
-    pDes[96] = -G16;
-    pDes[128] = F7;
-    pDes[160] = G31;
-    pDes[192] = F9;
-    pDes[224] = -F26;
-    pDes[256] = E3;
-    pDes[288] = F21;
-    pDes[320] = F14;
-    pDes[352] = G29;
-    pDes[384] = E5;
-    pDes[416] = -G18;
-    pDes[448] = E13;
-    pDes[480] = E22;
-    pDes[512] = E1;
-    pDes[544] = E25;
-    pDes[576] = E10;
-    pDes[608] =  -G19;
-    pDes[640] = E6;
-    pDes[672] = -G28;
-    pDes[704] = F15;
-    pDes[736] = -F20;
-    pDes[768] = E2;
-    pDes[800] = -F27;
-    pDes[832] = F8;
-    pDes[864] = -G30;
-    pDes[896] =  F4;
-    pDes[928] = -G17;
-    pDes[960] = F11;
-    pDes[992] = -F23;
-
-  }
-}
-// #else
-Void TComTrQuant::xT32_Chen  ( Pel* pSrc, UInt uiStride, Long* pDes )
+Void TComTrQuant::xT32( Pel* pSrc, UInt uiStride, Long* pDes )
 {
   Int x, y;
   Long aaiTemp[32][32];
@@ -2568,266 +1722,7 @@ Void TComTrQuant::xT32_Chen  ( Pel* pSrc, UInt uiStride, Long* pDes )
   }
 }
 
-Void TComTrQuant::xT16_Loeffler_Lifting  ( Pel* pSrc, UInt uiStride, Long* pDes )
-{
-  Int x, y;
-
-  Long aaiTemp[16][16];
-
-  Long x0, x1, x2, x3, x4, x5, x6, x7, x8, x9, x10, x11, x12, x13, x14, x15;
-  Long y0, y1, y2, y3, y4, y5, y6, y7, y8, y9, y10, y11, y12, y13, y14, y15;
-
-  //--Butterfly
-  for( y=0 ; y<16 ; y++ )
-  {
-    // stage 1
-    y0  = pSrc[0] + pSrc[15];
-    y1  = pSrc[1] + pSrc[14];
-    y2  = pSrc[2] + pSrc[13];
-    y3  = pSrc[3] + pSrc[12];
-    y4  = pSrc[4] + pSrc[11];
-    y5  = pSrc[5] + pSrc[10];
-    y6  = pSrc[6] + pSrc[9];
-    y7  = pSrc[7] + pSrc[8];
-    y8  = pSrc[7] - pSrc[8];
-    y9  = pSrc[6] - pSrc[9];
-    y10 = pSrc[5] - pSrc[10];
-    y11 = pSrc[4] - pSrc[11];
-    y12 = pSrc[3] - pSrc[12];
-    y13 = pSrc[2] - pSrc[13];
-    y14 = pSrc[1] - pSrc[14];
-    y15 = pSrc[0] - pSrc[15];
-
-    // stage 2
-    x0 = y0 + y7;
-    x7 = y0 - y7;
-    x1 = y1 + y6;
-    x6 = y1 - y6;
-    x2 = y2 + y5;
-    x5 = y2 - y5;
-    x3 = y3 + y4;
-    x4 = y3 - y4;
-
-    x15 = y15 - xTrRound(y8*11, 5);
-    x8  = y8  + xTrRound(x15*10, 4);
-    x15 = x15 - xTrRound(x8*11, 5);
-
-    x9  = y9  - xTrRound(y14*19, 5);
-    x14 = y14 + xTrRound(x9*7, 3);
-    x9  = x9  - xTrRound(x14*19, 5);
-
-    x13 = y13 - xTrRound(y10*9, 6);
-    x10 = y10 + xTrRound(x13*9, 5);
-    x13 = x13 - xTrRound(x10*9, 6);
-
-    x11 = y11 - xTrRound(y12*29, 5);
-    x12 = y12 + xTrRound(x11*63, 6);
-    x11 = x11 - xTrRound(x12*29, 5);
-
-    // stage 3
-    y0 = x0 + x3;
-    y3 = x0 - x3;
-    y1 = x1 + x2;
-    y2 = x1 - x2;
-
-    y7 = x7 - xTrRound(x4*19, 6);
-    y4 = x4 + xTrRound(y7*35, 6);
-    y7 = y7 - xTrRound(y4*19, 6);
-
-    y6 = x6 - xTrRound(x5*3, 5);
-    y5 = x5 + xTrRound(y6*3, 4);
-    y6 = y6 - xTrRound(y5*3, 5);
-
-    y8  = x8 + x11;
-    y11 = x8 - x11;
-    y9  = x9 + x10;
-    y10 = x9 - x10;
-
-    y12 = x12 + x15;
-    y15 = x12 - x15;
-    y13 = x13 + x14;
-    y14 = x13 - x14;
-
-    // stage 4
-    x0 = y0 + y1;
-    x1 = xTrRound(x0, 1) - y1;
-
-    x2 = -y2 + xTrRound(y3*13, 5);
-    x3 =  y3 - xTrRound(x2*11, 5);
-
-    x4 = y4 + y6;
-    x6 = y4 - y6;
-    x5 = y7 - y5;
-    x7 = y7 + y5;
-
-    x8  = y8  + y14;
-    x14 = y8  - y14;
-    x9  = y9  + y15;
-    x15 = y9  - y15;
-    x10 = y10 + y11;
-    x11 = y10 - y11;
-    x12 = y12 + y13;
-    x13 = y12 - y13;
-
-    // stage 5
-    aaiTemp[0][y] = x0;
-    aaiTemp[8][y] = x1;
-    aaiTemp[12][y] = x2;
-    aaiTemp[4][y] = x3;
-    aaiTemp[6][y] = x5;
-    aaiTemp[10][y] = x6;
-    aaiTemp[9][y] = x10;
-    aaiTemp[7][y] = x13;
-
-    y7 = x7 + x4;
-    y4 = xTrRound(y7, 1) - x4;
-
-    y8  =  x8 + xTrRound(x9*13, 5);
-    y9  = -x9 + xTrRound(y8*11, 5);
-
-    y11 = x11 + x12;
-    y12 = x12 - xTrRound(y11, 1);
-
-    y14 = x14 + xTrRound(x15*13, 5);
-    y15 = x15 - xTrRound(y14*11, 5);
-
-    aaiTemp[14][y] = y4;
-    aaiTemp[2][y] = y7;
-    aaiTemp[13][y] = y8;
-    aaiTemp[3][y] = y9;
-    aaiTemp[15][y] = y11;
-    aaiTemp[1][y] = y12;
-    aaiTemp[5][y] = y14;
-    aaiTemp[11][y] = y15;
-
-    pSrc += uiStride;
-  }
-
-  for( x=0 ; x<16 ; x++, pDes++ )
-  {
-    // stage 1
-    y0  = aaiTemp[x][0] + aaiTemp[x][15];
-    y1  = aaiTemp[x][1] + aaiTemp[x][14];
-    y2  = aaiTemp[x][2] + aaiTemp[x][13];
-    y3  = aaiTemp[x][3] + aaiTemp[x][12];
-    y4  = aaiTemp[x][4] + aaiTemp[x][11];
-    y5  = aaiTemp[x][5] + aaiTemp[x][10];
-    y6  = aaiTemp[x][6] + aaiTemp[x][9];
-    y7  = aaiTemp[x][7] + aaiTemp[x][8];
-    y8  = aaiTemp[x][7] - aaiTemp[x][8];
-    y9  = aaiTemp[x][6] - aaiTemp[x][9];
-    y10 = aaiTemp[x][5] - aaiTemp[x][10];
-    y11 = aaiTemp[x][4] - aaiTemp[x][11];
-    y12 = aaiTemp[x][3] - aaiTemp[x][12];
-    y13 = aaiTemp[x][2] - aaiTemp[x][13];
-    y14 = aaiTemp[x][1] - aaiTemp[x][14];
-    y15 = aaiTemp[x][0] - aaiTemp[x][15];
-
-    // stage 2
-    x0 = y0 + y7;
-    x7 = y0 - y7;
-    x1 = y1 + y6;
-    x6 = y1 - y6;
-    x2 = y2 + y5;
-    x5 = y2 - y5;
-    x3 = y3 + y4;
-    x4 = y3 - y4;
-
-    x15 = y15 - xTrRound(y8*11, 5);
-    x8  = y8  + xTrRound(x15*10, 4);
-    x15 = x15 - xTrRound(x8*11, 5);
-
-    x9  = y9  - xTrRound(y14*19, 5);
-    x14 = y14 + xTrRound(x9*7, 3);
-    x9  = x9  - xTrRound(x14*19, 5);
-
-    x13 = y13 - xTrRound(y10*9, 6);
-    x10 = y10 + xTrRound(x13*9, 5);
-    x13 = x13 - xTrRound(x10*9, 6);
-
-    x11 = y11 - xTrRound(y12*29, 5);
-    x12 = y12 + xTrRound(x11*63, 6);
-    x11 = x11 - xTrRound(x12*29, 5);
-
-    // stage 3
-    y0 = x0 + x3;
-    y3 = x0 - x3;
-    y1 = x1 + x2;
-    y2 = x1 - x2;
-
-    y7 = x7 - xTrRound(x4*19, 6);
-    y4 = x4 + xTrRound(y7*35, 6);
-    y7 = y7 - xTrRound(y4*19, 6);
-
-    y6 = x6 - xTrRound(x5*3, 5);
-    y5 = x5 + xTrRound(y6*3, 4);
-    y6 = y6 - xTrRound(y5*3, 5);
-
-    y8  = x8 + x11;
-    y11 = x8 - x11;
-    y9  = x9 + x10;
-    y10 = x9 - x10;
-
-    y12 = x12 + x15;
-    y15 = x12 - x15;
-    y13 = x13 + x14;
-    y14 = x13 - x14;
-
-    // stage 4
-    x0 = y0 + y1;
-    x1 = xTrRound(x0, 1) - y1;
-
-    x2 = -y2 + xTrRound(y3*13, 5);
-    x3 =  y3 - xTrRound(x2*11, 5);
-
-    x4 = y4 + y6;
-    x6 = y4 - y6;
-    x5 = y7 - y5;
-    x7 = y7 + y5;
-
-    x8  = y8  + y14;
-    x14 = y8  - y14;
-    x9  = y9  + y15;
-    x15 = y9  - y15;
-    x10 = y10 + y11;
-    x11 = y10 - y11;
-    x12 = y12 + y13;
-    x13 = y12 - y13;
-
-    // stage 5
-    pDes[0] = x0;
-    pDes[128] = x1;
-    pDes[192] = x2;
-    pDes[64] = x3;
-    pDes[96] = x5;
-    pDes[160] = x6;
-    pDes[144] = x10;
-    pDes[112] = x13;
-
-    y7 = x7 + x4;
-    y4 = xTrRound(y7, 1) - x4;
-
-    y8  =  x8 + xTrRound(x9*13, 5);
-    y9  = -x9 + xTrRound(y8*11, 5);
-
-    y11 = x11 + x12;
-    y12 = x12 - xTrRound(y11, 1);
-
-    y14 = x14 + xTrRound(x15*13, 5);
-    y15 = x15 - xTrRound(y14*11, 5);
-
-    pDes[224] = y4;
-    pDes[32] = y7;
-    pDes[208] = y8;
-    pDes[48] = y9;
-    pDes[240] = y11;
-    pDes[16] = y12;
-    pDes[80] = y14;
-    pDes[176] = y15;
-  }
-}
-
-Void TComTrQuant::xT16_Chen  ( Pel* pSrc, UInt uiStride, Long* pDes )
+Void TComTrQuant::xT16( Pel* pSrc, UInt uiStride, Long* pDes )
 {
   Int x, y;
 
@@ -3008,7 +1903,7 @@ Void TComTrQuant::xT16_Chen  ( Pel* pSrc, UInt uiStride, Long* pDes )
   }
 }
 
-Void TComTrQuant::xUniQuantLTR  (TComDataCU* pcCU, Long* pSrc, TCoeff*& pDes, Int iWidth, Int iHeight, UInt& uiAcSum, TextType eTType, UInt uiAbsPartIdx, UChar indexROT )
+Void TComTrQuant::xQuantLTR  (TComDataCU* pcCU, Long* pSrc, TCoeff*& pDes, Int iWidth, Int iHeight, UInt& uiAcSum, TextType eTType, UInt uiAbsPartIdx, UChar indexROT )
 {
   UInt* piQuantCoef = NULL;
   Int   iNewBits    = 0;
@@ -3036,110 +1931,58 @@ Void TComTrQuant::xUniQuantLTR  (TComDataCU* pcCU, Long* pSrc, TCoeff*& pDes, In
   case 4:
     {
       m_puiQuantMtx = &g_aiQuantCoef[m_cQP.m_iRem][0];
-      xQuant4x4(pcCU, piCoef, piQCoef, uiAcSum, eTType, uiAbsPartIdx, indexROT ); // ACS
+      xQuant4x4(pcCU, piCoef, piQCoef, uiAcSum, eTType, uiAbsPartIdx, indexROT );
       return;
     }
   case 8:
     {
       m_puiQuantMtx = &g_aiQuantCoef64[m_cQP.m_iRem][0];
-      xQuant8x8(pcCU, piCoef, piQCoef, uiAcSum, eTType, uiAbsPartIdx, indexROT ); // ACS
+      xQuant8x8(pcCU, piCoef, piQCoef, uiAcSum, eTType, uiAbsPartIdx, indexROT );
       return;
     }
   case 16:
     {
-      piQuantCoef = ( m_bUseLCT ? g_aiQuantCoef256_Loeffler_Lifting[m_cQP.rem()] : g_aiQuantCoef256_Chen[m_cQP.rem()]);
+      piQuantCoef = ( g_aiQuantCoef256[m_cQP.rem()] );
       iNewBits = ECore16Shift + m_cQP.per();
 		  iAdd = m_cQP.m_iAdd16x16;
       break;
     }
   case 32:
     {
-      piQuantCoef = ( m_bUseLCT ? g_aiQuantCoef1024_Loeffler_Lifting[m_cQP.rem()] : g_aiQuantCoef1024_Chen[m_cQP.rem()]);
+      piQuantCoef = ( g_aiQuantCoef1024[m_cQP.rem()] );
       iNewBits = ECore32Shift + m_cQP.per();
 		  iAdd = m_cQP.m_iAdd32x32;
       break;
     }
   case 64:
     {
-      Int iQuantCoef = g_aiQuantCoef4096[m_cQP.rem()];	 // To save the memory for g_aiQuantCoef4096
-      iNewBits       = ECore64Shift + m_cQP.per();
-
+      piQuantCoef = g_aiQuantCoef4096;	 // To save the memory for g_aiQuantCoef4096
+      iNewBits = ECore64Shift + m_cQP.per();
       iAdd = bLogical ? m_cQP.m_iAddNxN : m_cQP.m_iAdd64x64;
-
-		  if ( m_bUseROT && indexROT )
-		  {
-			  Int x, y, y2, y3;
-			  Long ROT_DOMAIN[64];
-			  for( y = 0, y2 = 0, y3 = 0; y < 8; y++, y2+=8, y3+=iWidth )
-				  for(  x = 0; x < 8; x++ )
-					  ROT_DOMAIN[x+y2] = piCoef[x+y3] * iQuantCoef;
-
-			  RotTransformLI2(ROT_DOMAIN, indexROT);
-
-			  for( y = 0, y2 = 0, y3 = 0; y < 8; y++, y2+=8, y3+=iWidth )
-				  memcpy( piCoef+y3, ROT_DOMAIN+y2 , sizeof(Long)*8 );
-		  }
-
-      if ( m_bUseRDOQ && (eTType == TEXT_LUMA || RDOQ_CHROMA) && (!RDOQ_ROT_IDX0_ONLY || indexROT == 0) )
-      {
-        xRateDistOptQuant( pcCU, piCoef, pDes, iWidth, iHeight, uiAcSum, eTType, uiAbsPartIdx, indexROT );
-      }
-      else
-			{
-
-        for( Int n = 0; n < iWidth*iHeight; n++ )
-        {
-          Long iLevel;
-          Int  iSign;
-          if ( m_bUseROT && indexROT )
-          {
-            iLevel  = (Long) piCoef[n];
-            iSign   = (iLevel < 0 ? -1: 1);
-            if ( ( (n/iWidth)<8) && ( (n%iWidth)<8) )
-							iLevel = abs( iLevel ) ;
-            else
-							iLevel = abs( iLevel ) * iQuantCoef;
-
-          }
-          else
-          {
-            iLevel  = (Long) piCoef[n];
-            iSign   = (iLevel < 0 ? -1: 1);
-						iLevel = abs( iLevel ) * iQuantCoef;
-					}
-
-          Int iScaledLevel = iLevel;
-          iLevel      = ( iLevel + iAdd ) >> iNewBits;
-
-          if( 0 != iLevel )
-          {
-            uiAcSum += iLevel;
-            iLevel    *= iSign;
-            piQCoef[n] = iLevel;
-          }
-          else
-          {
-            piQCoef[n] = 0;
-          }
-        }
-			}
-
-      return;
+      break;
     }
   }
 
-  if ( m_bUseROT && indexROT )
+	if ( indexROT )
 	{
-	  Int x, x2, y, y2, y3;
-    Long ROT_DOMAIN[64];
-    for( y = 0, y2 = 0, y3 = 0; y < 8; y++, y2+=8, y3+=iWidth )
-      for(  x = 0, x2=y3; x < 8; x++, x2++ )
-        ROT_DOMAIN[x+y2] = piCoef [x2] * piQuantCoef[x2];
+		Int x, x2, y, y2, y3;
+		static Long ROT_DOMAIN[64];
 
-    RotTransformLI2(ROT_DOMAIN, indexROT);
+		for( y = 0, y2 = 0, y3 = 0; y < 8; y++, y2+=8, y3+=iWidth )
+		{
+			for(  x = 0, x2=y3; x < 8; x++, x2++ )
+			{
+				if ( iWidth == 64) ROT_DOMAIN[x+y2] = piCoef [x2] * piQuantCoef[m_cQP.rem()];
+				else							 ROT_DOMAIN[x+y2] = piCoef [x2] * piQuantCoef[x2];
+			}
+		}
 
-    for( y = 0, y2 = 0, y3 = 0; y < 8; y++, y2+=8, y3+=iWidth )
-	   memcpy( piCoef+y3, ROT_DOMAIN+y2 , sizeof(Long)*8 );
+		RotTransformLI2(ROT_DOMAIN, indexROT);
+
+		for( y = 0, y2 = 0, y3 = 0; y < 8; y++, y2+=8, y3+=iWidth )
+		{
+			::memcpy( piCoef+y3, ROT_DOMAIN+y2 , sizeof(Long)*8 );
+		}
 	}
 
   if ( m_bUseRDOQ && (eTType == TEXT_LUMA || RDOQ_CHROMA) && (!RDOQ_ROT_IDX0_ONLY || indexROT == 0) )
@@ -3152,27 +1995,34 @@ Void TComTrQuant::xUniQuantLTR  (TComDataCU* pcCU, Long* pSrc, TCoeff*& pDes, In
 		{
       Long iLevel;
       Int  iSign;
-      if ( m_bUseROT && indexROT )
+      if ( indexROT )
       {
         iLevel  = (Long) piCoef[n];
         iSign   = (iLevel < 0 ? -1: 1);
-        if (n/iWidth<8 && n%iWidth<8) iLevel      = abs( iLevel ) ;
-        else      			iLevel      = abs( iLevel ) *  piQuantCoef[n];
+
+				if ( ( n/iWidth ) < 8 && ( n%iWidth ) < 8 )
+				{
+					iLevel = abs( iLevel );
+				}
+        else
+        {
+          if ( iWidth == 64 ) iLevel = abs( iLevel ) * piQuantCoef[m_cQP.rem()];
+          else								iLevel = abs( iLevel ) * piQuantCoef[n];
+        }
       }
       else
       {
         iLevel  = (Long) piCoef[n];
         iSign   = (iLevel < 0 ? -1: 1);
-				iLevel      = abs( iLevel ) *  piQuantCoef[n];
+        if ( iWidth == 64 )	iLevel = abs( iLevel ) * piQuantCoef[m_cQP.rem()];
+        else								iLevel = abs( iLevel ) * piQuantCoef[n];
       }
 
-      Int iScaledLevel = iLevel;
-      iLevel      = ( iLevel + iAdd ) >> iNewBits;
+      iLevel = ( iLevel + iAdd ) >> iNewBits;
 
       if( 0 != iLevel )
       {
         uiAcSum += iLevel;
-
         iLevel    *= iSign;
         piQCoef[n] = iLevel;
       }
@@ -3184,11 +2034,9 @@ Void TComTrQuant::xUniQuantLTR  (TComDataCU* pcCU, Long* pSrc, TCoeff*& pDes, In
   }
 }
 
-Void TComTrQuant::xUniDeQuantLTR( TCoeff* pSrc, Long*& pDes, Int iWidth, Int iHeight, UChar indexROT )
+Void TComTrQuant::xDeQuantLTR( TCoeff* pSrc, Long*& pDes, Int iWidth, Int iHeight, UChar indexROT )
 {
   UInt* piDeQuantCoef = NULL;
-  UInt  uiShift = sizeof(Long)*8 - 1;
-  UInt  uiSign;
 
 	TCoeff* piQCoef		= pSrc;
 	Long*		piCoef		= pDes;
@@ -3218,360 +2066,60 @@ Void TComTrQuant::xUniDeQuantLTR( TCoeff* pSrc, Long*& pDes, Int iWidth, Int iHe
     }
   case 16:
     {
-      piDeQuantCoef = ( m_bUseLCT ? g_aiDeQuantCoef256_Loeffler_Lifting[m_cQP.rem()] : g_aiDeQuantCoef256_Chen[m_cQP.rem()]);
+      piDeQuantCoef = ( g_aiDeQuantCoef256[m_cQP.rem()] );
       break;
     }
   case 32:
     {
-      piDeQuantCoef = ( m_bUseLCT ? g_aiDeQuantCoef1024_Loeffler_Lifting[m_cQP.rem()] : g_aiDeQuantCoef1024_Chen[m_cQP.rem()]);
+      piDeQuantCoef = ( g_aiDeQuantCoef1024[m_cQP.rem()] );
       break;
     }
   case 64:
     {
-      Int iDeQuantCoef = g_aiDeQuantCoef4096[m_cQP.rem()]; // To save the memory for g_aiDeQuantCoef4096
-
-      Int iLevel;
-      Int iDeScale;
-
-      for( Int n = 0; n < iWidth*iHeight; n++ )
-      {
-        iLevel = piQCoef[n];
-
-        if( 0 != iLevel )
-        {
-          iDeScale = iDeQuantCoef;
-
-          piCoef[n] = (Long) (iLevel*iDeScale) << m_cQP.per();
-
-#if IQC_ROUND_OFF_L
-          uiSign     = piCoef[n] >> uiShift;
-          piCoef[n]  = abs(piCoef[n]);
-          piCoef[n]  = ( (piCoef[n]<<6) + piCoef[n] + 32 ) >> 6;
-          piCoef[n] ^= uiSign;
-          piCoef[n] -= uiSign;
-#endif
-        }
-        else
-        {
-          piCoef [n] = 0;
-        }
-      }
-
-		  if ( m_bUseROT && indexROT )
-		  {
-			  Int y,y2, y3;
-			  Long ROT_DOMAIN[64];
-			  for( y = 0, y2 = 0, y3 = 0; y < 8; y++, y2+=8, y3+=iWidth )
-				  memcpy( ROT_DOMAIN+y2, piCoef+y3, sizeof(Long)*8 );
-
-			  InvRotTransformLI2(ROT_DOMAIN, indexROT);
-
-			  for( y = 0, y2 = 0, y3 = 0; y < 8; y++, y2+=8, y3+=iWidth )
-				  memcpy( piCoef+y3, ROT_DOMAIN+y2 , sizeof(Long)*8 );
-		  }
-		  return;
+      piDeQuantCoef = ( g_aiDeQuantCoef4096 ); // To save the memory for g_aiDeQuantCoef4096
+      break;
 	  }
   }
 
   Int iLevel;
   Int iDeScale;
 
-  for( Int n = 0; n < iWidth*iHeight; n++ )
-  {
-    iLevel  = piQCoef[n];
+	for( Int n = 0; n < iWidth*iHeight; n++ )
+	{
+		iLevel  = piQCoef[n];
 
-    if( 0 != iLevel )
-    {
-      iDeScale = piDeQuantCoef[n];
-      piCoef[n] = (Long) (iLevel*iDeScale) << m_cQP.per();
+		if( 0 != iLevel )
+		{
+			if ( iWidth == 64 ) iDeScale = piDeQuantCoef[m_cQP.rem()];
+			else								iDeScale = piDeQuantCoef[n];
+			piCoef[n] = (Long) (iLevel*iDeScale) << m_cQP.per();
+		}
+		else
+		{
+			piCoef [n] = 0;
+		}
+	}
 
-#if IQC_ROUND_OFF_L
-        uiSign   = piCoef[n] >> uiShift;
-        piCoef[n]  = abs(piCoef[n]);
-        piCoef[n]  = ( (piCoef[n]<<6) + piCoef[n] + 32 ) >> 6;
-        piCoef[n] ^= uiSign;
-        piCoef[n] -= uiSign;
-#endif
-    }
-    else
-    {
-      piCoef [n] = 0;
-    }
-  }
-
-	if ( m_bUseROT && indexROT )
+	if ( indexROT )
 	{
 		Int y,y2, y3;
-		Long ROT_DOMAIN[64];
+		static Long ROT_DOMAIN[64];
+
 		for( y = 0, y2 = 0, y3 = 0; y < 8; y++, y2+=8, y3+=iWidth )
-			memcpy( ROT_DOMAIN+y2, piCoef+y3, sizeof(Long)*8 );
+		{
+			::memcpy( ROT_DOMAIN+y2, piCoef+y3, sizeof(Long)*8 );
+		}
 
 		InvRotTransformLI2(ROT_DOMAIN, indexROT);
 
 		for( y = 0, y2 = 0, y3 = 0; y < 8; y++, y2+=8, y3+=iWidth )
-			memcpy( piCoef+y3, ROT_DOMAIN+y2 , sizeof(Long)*8 );
+		{
+			::memcpy( piCoef+y3, ROT_DOMAIN+y2 , sizeof(Long)*8 );
+		}
 	}
 }
 
-Void TComTrQuant::xIT16_Loeffler_Lifting ( Long* pSrc, Pel* pDes, UInt uiStride )
-{
-  Int x, y;
-  Long aaiTemp[16][16];
-
-  Long x0, x1, x2, x3, x4, x5, x6, x7, x8, x9, x10, x11, x12, x13, x14, x15;
-  Long y0, y1, y2, y3, y4, y5, y6, y7, y8, y9, y10, y11, y12, y13, y14, y15;
-
-  UInt uiStride2  = uiStride<<1;
-  UInt uiStride3  = uiStride2  + uiStride;
-  UInt uiStride4  = uiStride3  + uiStride;
-  UInt uiStride5  = uiStride4  + uiStride;
-  UInt uiStride6  = uiStride5  + uiStride;
-  UInt uiStride7  = uiStride6  + uiStride;
-  UInt uiStride8  = uiStride7  + uiStride;
-  UInt uiStride9  = uiStride8  + uiStride;
-  UInt uiStride10 = uiStride9  + uiStride;
-  UInt uiStride11 = uiStride10 + uiStride;
-  UInt uiStride12 = uiStride11 + uiStride;
-  UInt uiStride13 = uiStride12 + uiStride;
-  UInt uiStride14 = uiStride13 + uiStride;
-  UInt uiStride15 = uiStride14 + uiStride;
-
-  //--Butterfly
-  for( y=0 ; y<16 ; y++ )
-  {
-    // stage 5
-    y0 = pSrc[0];
-    y8 = pSrc[8];
-    y12 = pSrc[12];
-    y4 = pSrc[4];
-
-    y14 = xTrRound(pSrc[2], 1) - pSrc[14];
-    y2  = pSrc[2] - y14;
-
-    y6 = pSrc[6];
-    y10 = pSrc[10];
-
-    y3  = -pSrc[3]  + xTrRound(pSrc[13]*11, 5);
-    y13 =  pSrc[13] - xTrRound(y3*13, 5);
-
-    y9 = pSrc[9];
-
-    y1  = pSrc[1] + xTrRound(pSrc[15], 1);
-    y15 = pSrc[15] - y1;
-
-    y7 = pSrc[7];
-
-    y11 = pSrc[11] + xTrRound(pSrc[5]*11, 5);
-    y5  = pSrc[5]  - xTrRound(y11*13, 5);
-
-    // stage 4
-
-    x8  = xTrRound(y0,1) - y8;
-    x0  = y0 - x8;
-    x4  = y4 + xTrRound(y12*11, 5);
-    x12 =-y12 + xTrRound(x4*13, 5);
-
-    x14 = y14 + y10;
-    x10 = y14 - y10;
-    x6  = y2 - y6;
-    x2  = y2 + y6;
-    x13 = y13 + y5;
-    x5  = y13 - y5;
-    x3  = y3 + y11;
-    x11 = y3 - y11;
-    x9  = y9 + y15;
-    x15 = y9 - y15;
-    x1  = y1 + y7;
-    x7  = y1 - y7;
-
-    // stage 3
-    y8  = x8 + x12;
-    y12 = x8 - x12;
-    y0  = x0 + x4;
-    y4  = x0 - x4;
-
-    y10 = x10 + xTrRound(x6*3, 5);
-    y6  = x6 - xTrRound(y10*3, 4);
-    y10 = y10 + xTrRound(y6*3, 5);
-
-    y2  = x2 + xTrRound(x14*19, 6);
-    y14 = x14 - xTrRound(y2*35, 6);
-    y2  = y2 + xTrRound(y14*19, 6);
-
-    y13 = x13 + x15;
-    y15 = x13 - x15;
-    y3  = x3 + x9;
-    y9  = x3 - x9;
-    y1  = x1 + x11;
-    y11 = x1 - x11;
-    y7  = x7 + x5;
-    y5  = x7 - x5;
-
-    // stage 2
-    x4  = y4 + y14;
-    x14 = y4 - y14;
-    x12 = y12 + y6;
-    x6  = y12 - y6;
-    x8  = y8 + y10;
-    x10 = y8 - y10;
-    x0  = y0 + y2;
-    x2  = y0 - y2;
-
-    x15 = y15 + xTrRound(y1*29, 5);
-    x1  = y1 - xTrRound(x15*63, 6);
-    x15 = x15 + xTrRound(x1*29, 5);
-
-    x7  = y7 + xTrRound(y9*9, 6);
-    x9  = y9 - xTrRound(x7*9, 5);
-    x7  = x7 + xTrRound(x9*9, 6);
-
-    x3  = y3 + xTrRound(y5*19, 5);
-    x5  = y5 - xTrRound(x3*7, 3);
-    x3  = x3 + xTrRound(x5*19, 5);
-
-    x11 = y11 + xTrRound(y13*11, 5);
-    x13 = y13 - xTrRound(x11*10, 4);
-    x11 = x11 + xTrRound(x13*11, 5);
-
-    // stage 1
-    aaiTemp[0][y]  = x0 + x11;
-    aaiTemp[15][y] = x0 - x11;
-    aaiTemp[1][y]  = x8 + x5;
-    aaiTemp[14][y]  = x8 - x5;
-    aaiTemp[2][y] = x12 + x7;
-    aaiTemp[13][y]  = x12 - x7;
-    aaiTemp[3][y]  = x4 + x1;
-    aaiTemp[12][y]  = x4 - x1;
-    aaiTemp[4][y] = x14 + x15;
-    aaiTemp[11][y] = x14 - x15;
-    aaiTemp[5][y]  = x6 + x9;
-    aaiTemp[10][y]  = x6 - x9;
-    aaiTemp[6][y] = x10 + x3;
-    aaiTemp[9][y]  = x10 - x3;
-    aaiTemp[7][y]  = x2 + x13;
-    aaiTemp[8][y] = x2 - x13;
-
-    pSrc += 16;
-  }
-
-  for( x=0 ; x<16 ; x++, pDes++ )
-  {
-    // stage 5
-    y0 = aaiTemp[x][0];
-    y8 = aaiTemp[x][8];
-    y12 = aaiTemp[x][12];
-    y4 = aaiTemp[x][4];
-
-    y14 = xTrRound(aaiTemp[x][2],1) - aaiTemp[x][14];
-    y2  = aaiTemp[x][2] - y14;
-
-    y6 = aaiTemp[x][6];
-    y10 = aaiTemp[x][10];
-
-    y3  = -aaiTemp[x][3]  + xTrRound(aaiTemp[x][13]*11, 5);
-    y13 =  aaiTemp[x][13] - xTrRound(y3*13, 5);
-
-    y9 = aaiTemp[x][9];
-
-    y1  = aaiTemp[x][1] + xTrRound(aaiTemp[x][15],1);
-    y15 = aaiTemp[x][15] - y1;
-
-    y7 = aaiTemp[x][7];
-
-    y11 = aaiTemp[x][11] + xTrRound(aaiTemp[x][5]*11, 5);
-    y5  = aaiTemp[x][5]  - xTrRound(y11*13, 5);
-
-    // stage 4
-
-    x8  = xTrRound(y0,1) - y8;
-    x0  = y0 - x8;
-    x4  = y4 + xTrRound(y12*11, 5);
-    x12 =-y12 + xTrRound(x4*13, 5);
-
-    x14 = y14 + y10;
-    x10 = y14 - y10;
-    x6  = y2 - y6;
-    x2  = y2 + y6;
-    x13 = y13 + y5;
-    x5  = y13 - y5;
-    x3  = y3 + y11;
-    x11 = y3 - y11;
-    x9  = y9 + y15;
-    x15 = y9 - y15;
-    x1  = y1 + y7;
-    x7  = y1 - y7;
-
-    // stage 3
-    y8  = x8 + x12;
-    y12 = x8 - x12;
-    y0  = x0 + x4;
-    y4  = x0 - x4;
-
-    y10 = x10 + xTrRound(x6*3, 5);
-    y6  = x6 - xTrRound(y10*3, 4);
-    y10 = y10 + xTrRound(y6*3, 5);
-
-    y2  = x2 + xTrRound(x14*19, 6);
-    y14 = x14 - xTrRound(y2*35, 6);
-    y2  = y2 + xTrRound(y14*19, 6);
-
-    y13 = x13 + x15;
-    y15 = x13 - x15;
-    y3  = x3 + x9;
-    y9  = x3 - x9;
-    y1  = x1 + x11;
-    y11 = x1 - x11;
-    y7  = x7 + x5;
-    y5  = x7 - x5;
-
-    // stage 2
-    x4  = y4 + y14;
-    x14 = y4 - y14;
-    x12 = y12 + y6;
-    x6  = y12 - y6;
-    x8  = y8 + y10;
-    x10 = y8 - y10;
-    x0  = y0 + y2;
-    x2  = y0 - y2;
-
-    x15 = y15 + xTrRound(y1*29, 5);
-    x1  = y1 -  xTrRound(x15*63, 6);
-    x15 = x15 + xTrRound(x1*29, 5);
-
-    x7  = y7 + xTrRound(y9*9, 6);
-    x9  = y9 - xTrRound(x7*9, 5);
-    x7  = x7 + xTrRound(x9*9, 6);
-
-    x3  = y3 + xTrRound(y5*19, 5);
-    x5  = y5 - xTrRound(x3*7, 3);
-    x3  = x3 + xTrRound(x5*19, 5);
-
-    x11 = y11 + xTrRound(y13*11, 5);
-    x13 = y13 - xTrRound(x11*10, 4);
-    x11 = x11 + xTrRound(x13*11, 5);
-
-    // stage 1
-    pDes[0         ] = (Pel)xTrRound(x0 + x11, DCore16Shift);
-    pDes[uiStride  ] = (Pel)xTrRound(x8 + x5, DCore16Shift);
-    pDes[uiStride2 ] = (Pel)xTrRound(x12 + x7, DCore16Shift);
-    pDes[uiStride3 ] = (Pel)xTrRound(x4 + x1, DCore16Shift);
-    pDes[uiStride4 ] = (Pel)xTrRound(x14 + x15, DCore16Shift);
-    pDes[uiStride5 ] = (Pel)xTrRound(x6 + x9, DCore16Shift);
-    pDes[uiStride6 ] = (Pel)xTrRound(x10 + x3, DCore16Shift);
-    pDes[uiStride7 ] = (Pel)xTrRound(x2 + x13, DCore16Shift);
-    pDes[uiStride8 ] = (Pel)xTrRound(x2 - x13, DCore16Shift);
-    pDes[uiStride9 ] = (Pel)xTrRound(x10 - x3, DCore16Shift);
-    pDes[uiStride10] = (Pel)xTrRound(x6 - x9, DCore16Shift);
-    pDes[uiStride11] = (Pel)xTrRound(x14 - x15, DCore16Shift);
-    pDes[uiStride12] = (Pel)xTrRound(x4 - x1, DCore16Shift);
-    pDes[uiStride13] = (Pel)xTrRound(x12 - x7, DCore16Shift);
-    pDes[uiStride14] = (Pel)xTrRound(x8 - x5, DCore16Shift);
-    pDes[uiStride15] = (Pel)xTrRound(x0 - x11, DCore16Shift) ;
-  }
-
-}
-
-Void TComTrQuant::xIT16_Chen ( Long* pSrc, Pel* pDes, UInt uiStride )
+Void TComTrQuant::xIT16( Long* pSrc, Pel* pDes, UInt uiStride )
 {
   Int x, y;
   Long aaiTemp[16][16];
@@ -3767,704 +2315,7 @@ Void TComTrQuant::xIT16_Chen ( Long* pSrc, Pel* pDes, UInt uiStride )
   }
 }
 
-Void TComTrQuant::xIT32_Loeffler_Lifting ( Long* pSrc, Pel* pDes, UInt uiStride )
-{
-  Int x, y;
-  Long aaiTemp[32][32];
-
-  Long A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31;
-  Long B0, B1, B2, B3, B4, B5, B6, B7, B8, B9, B10, B11, B12, B13, B14, B15, B16, B17, B18, B19, B20, B21, B22, B23, B24, B25, B26, B27, B28, B29, B30, B31;
-  Long C0, C1, C2, C3, C4, C5, C6, C7, C8, C9, C10, C11, C12, C13, C14, C15, C16, C17, C18, C19, C20, C21, C22, C23, C24, C25, C26, C27, C28, C29, C30, C31;
-  Long D0, D1, D2, D3, D4, D5, D6, D7, D8, D9, D10, D11, D12, D13, D14, D15, D16, D17, D18, D19, D20, D21, D22, D23, D24, D25, D26, D27, D28, D29, D30, D31;
-  Long E0, E1, E2, E3, E4, E5, E6, E7, E8, E9, E10, E11, E12, E13, E14, E15, E16, E19, E20, E21, E22, E23, E24, E25, E26, E27, E28, E31;
-  Long F4, F7, F8, F9, F11, F12, F14, F15, F16, F17, F18, F19, F20, F21, F23, F24, F26, F27, F28, F29, F30, F31;
-  Long G16, G17, G18, G19, G28, G29, G30, G31;
-
-  UInt uiStride2  = uiStride<<1;
-  UInt uiStride3  = uiStride2  + uiStride;
-  UInt uiStride4  = uiStride3  + uiStride;
-  UInt uiStride5  = uiStride4  + uiStride;
-  UInt uiStride6  = uiStride5  + uiStride;
-  UInt uiStride7  = uiStride6  + uiStride;
-  UInt uiStride8  = uiStride7  + uiStride;
-  UInt uiStride9  = uiStride8  + uiStride;
-  UInt uiStride10 = uiStride9  + uiStride;
-  UInt uiStride11 = uiStride10 + uiStride;
-  UInt uiStride12 = uiStride11 + uiStride;
-  UInt uiStride13 = uiStride12 + uiStride;
-  UInt uiStride14 = uiStride13 + uiStride;
-  UInt uiStride15 = uiStride14 + uiStride;
-  UInt uiStride16 = uiStride15 + uiStride;
-  UInt uiStride17 = uiStride16 + uiStride;
-  UInt uiStride18 = uiStride17 + uiStride;
-  UInt uiStride19 = uiStride18 + uiStride;
-  UInt uiStride20 = uiStride19 + uiStride;
-  UInt uiStride21 = uiStride20 + uiStride;
-  UInt uiStride22 = uiStride21 + uiStride;
-  UInt uiStride23 = uiStride22 + uiStride;
-  UInt uiStride24 = uiStride23 + uiStride;
-  UInt uiStride25 = uiStride24 + uiStride;
-  UInt uiStride26 = uiStride25 + uiStride;
-  UInt uiStride27 = uiStride26 + uiStride;
-  UInt uiStride28 = uiStride27 + uiStride;
-  UInt uiStride29 = uiStride28 + uiStride;
-  UInt uiStride30 = uiStride29 + uiStride;
-  UInt uiStride31 = uiStride30 + uiStride;
-
-  //--Butterfly
-  for( y=0 ; y<32 ; y++ )
-  {
-    E0= pSrc[0];
-    F24 = pSrc[1];
-    F12 = pSrc[2];
-    G16 = -pSrc[3];
-    F7 = pSrc[4];
-    G31 = pSrc[5];
-    F9 = pSrc[6];
-    F26 = -pSrc[7];
-    E3 = pSrc[8];
-    F21 = pSrc[9];
-    F14 = pSrc[10];
-    G29 = pSrc[11];
-    E5 = pSrc[12];
-    G18 = -pSrc[13];
-    E13 = pSrc[14];
-    E22 = pSrc[15];
-    E1 = pSrc[16];
-    E25 = pSrc[17];
-    E10 = pSrc[18];
-    G19 = -pSrc[19];
-    E6 = pSrc[20];
-    G28 = -pSrc[21] ;
-    F15 = pSrc[22];
-    F20 = -pSrc[23];
-    E2 = pSrc[24];
-    F27 = -pSrc[25];
-    F8 = pSrc[26];
-    G30 = -pSrc[27];
-    F4 = pSrc[28];
-    G17 = -pSrc[29] ;
-    F11 = pSrc[30];
-    F23 = -pSrc[31];
-
-    F17 = G17 - xTrRound(G16*12, DenShift32-2);
-    F16 = G16 + xTrRound(F17*25, DenShift32-1);
-
-    F19 = G19 - xTrRound(G18*59, DenShift32-1);
-    F18 = G18 + xTrRound(F19*171, DenShift32);
-
-    F29 = G29 - xTrRound(G28*59, DenShift32-1);
-    F28 = G28 + xTrRound(F29*171, DenShift32);
-
-    F31 = G31 - xTrRound(G30*3, DenShift32-4);
-    F30 = G30 + xTrRound(F31*25, DenShift32-1);
-
-    //G16 = G16 + xTrRound(G17*25, DenShift32);
-    //F17 = G17 - xTrRound(G16*49, DenShift32);
-    //F16 = G16 + xTrRound(F17*25, DenShift32);
-
-
-    //G18 = G18 + xTrRound(G19*77, DenShift32);
-    //F19 = G19 - xTrRound(G18*142, DenShift32);
-    //F18 = G18 + xTrRound(F19*77, DenShift32);
-
-    // G28 = G28 + xTrRound(G29*77, DenShift32);
-    // F29 = G29 - xTrRound(G28*142, DenShift32);
-    // F28 = G28 + xTrRound(F29*77, DenShift32);
-
-
-    //G30 = G30 + xTrRound(G31*25, DenShift32);
-    //F31 = G31 - xTrRound(G30*49, DenShift32);
-    //F30 = G30 + xTrRound(F31*25, DenShift32);
-
-
-    E4 = (F7>>1) - F4;
-    E7 = F7 - E4;
-
-    E9  = -F9 + xTrRound(F8*45, DenShift32-1);
-    E8  =  F8 - xTrRound(E9*53, DenShift32-1);
-
-    E12 = F12 + (F11>>1);
-    E11 = F11 - E12;
-
-    E15 = F15 + xTrRound(F14*45, DenShift32-1);
-    E14 = F14 - xTrRound(E15*53, DenShift32-1);
-
-
-    E16 = F16 + F18;
-    D18 = F16 - F18;
-    D17 = F17 + F19;
-    E19 = F17 - F19;
-
-    E21 = F21 + xTrRound(F20*45, DenShift32-1);
-    E20 = F20 - xTrRound(E21*53, DenShift32-1);
-    //F20 = F20 - xTrRound(F21*50, DenShift32);
-    //E21 = F21 + xTrRound(F20*97, DenShift32);
-    //E20 = F20 - xTrRound(E21*50, DenShift32);
-
-    E24 = F24 + xTrRound(F23*1, DenShift32-7);
-    E23 = F23 - xTrRound(E24*255, DenShift32);
-    /*F23 = F23 - xTrRound(F24*106,DenShift32);
-    E24 = F24 + xTrRound(F23*181,DenShift32);
-    E23 = F23 - xTrRound(E24*106,DenShift32);*/
-
-    E27 = F27 + xTrRound(F26*45, DenShift32-1);
-    E26 = F26 - xTrRound(E27*53, DenShift32-1);
-    /*F26 = F26 - xTrRound(F27*50, DenShift32);
-    E27 = F27 + xTrRound(F26*97, DenShift32);
-    E26 = F26 - xTrRound(E27*50, DenShift32);*/
-
-    E28 = -F28 + F30;
-    D30 = F28 + F30;
-    D29 = -F29 + F31;
-    E31 = F29 + F31;
-
-    D1 = (E0>>1) - E1;
-    D0 = E0 - D1;
-
-    D3 = E3 + xTrRound(E2*45, DenShift32-1);
-    D2 = xTrRound(D3*53, DenShift32-1)- E2;
-
-    D4 = E4 + E6;
-    D6 = E4 - E6;
-    D5 = E7 - E5;
-    D7 = E7 + E5;
-
-    D8  = E8  + E14;
-    D14 = E8  - E14;
-    D9  = E9  + E15;
-    D15 = E9  - E15;
-    D10 = E10 + E11;
-    D11 = E10 - E11;
-    D12 = E12 + E13;
-    D13 = E12 - E13;
-
-    D16 = xTrRound((E16 - E19)*181, DenShift32);
-    D19 = xTrRound((E16 + E19)*181, DenShift32);
-    //E16 = E16 - xTrRound(E19*106, DenShift32);
-    //D19 = E19 + xTrRound(E16*181, DenShift32);
-    //D16 = E16 - xTrRound(D19*106, DenShift32);
-
-
-    D20 = E20 + E26;
-    D26 = E20 - E26;
-    D21 = E21 + E27;
-    D27 = E21 - E27;
-    D22 = E22 + E23;
-    D23 = E22 - E23;
-    D24 = E24 + E25;
-    D25 = E24 - E25;
-
-    D28 = xTrRound((E28 - E31)*181, DenShift32);
-    D31 = xTrRound((E28 + E31)*181, DenShift32);
-    //E28 = E28 - xTrRound(E31*106, DenShift32);
-    //D31 = E31 + xTrRound(E28*181, DenShift32);
-    //D28 = E28 - xTrRound(D31*106, DenShift32);
-
-    C0 = D0 + D3;
-    C3 = D0 - D3;
-    C1 = D1 + D2;
-    C2 = D1 - D2;
-
-    D7 = D7 + xTrRound(D4*77, DenShift32);
-    C4 = D4 - xTrRound(D7*71, DenShift32-1);
-    C7 = D7 + xTrRound(C4*77, DenShift32);
-
-    D6 = D6 + xTrRound(D5*25, DenShift32);
-    C5 = D5 - xTrRound(D6*49, DenShift32);
-    C6 = D6 + xTrRound(C5*25, DenShift32);
-
-    C8  = D8 + D11;
-    C11 = D8 - D11;
-    C9  = D9 + D10;
-    C10 = D9 - D10;
-
-    C12 = D12 + D15;
-    C15 = D12 - D15;
-    C13 = D13 + D14;
-    C14 = D13 - D14;
-
-    C16 = D16 + D28;
-    C28 = D16 - D28;
-    C17 = D17 + D29;
-    C29 = D17 - D29;
-    C18 = D18 + D30;
-    C30 = D18 - D30;
-    C19 = D19 + D31;
-    C31 = D19 - D31;
-
-    C20 = D20 + D23;
-    C23 = D20 - D23;
-    C21 = D21 + D22;
-    C22 = D21 - D22;
-
-    C24 = D24 + D27;
-    C27 = D24 - D27;
-    C25 = D25 + D26;
-    C26 = D25 - D26;
-
-
-    B0 = C0 + C7;
-    B7 = C0 - C7;
-    B1 = C1 + C6;
-    B6 = C1 - C6;
-    B2 = C2 + C5;
-    B5 = C2 - C5;
-    B3 = C3 + C4;
-    B4 = C3 - C4;
-
-    C15 = C15 + xTrRound(C8*91, DenShift32);
-    B8 = C8 - xTrRound(C15*81, DenShift32-1);
-    B15 = C15 + xTrRound(B8*91, DenShift32);
-
-    C9 = C9  + xTrRound(C14*153,DenShift32);
-    B14 = C14 - xTrRound(C9*225, DenShift32);
-    B9 = C9 + xTrRound(B14*153, DenShift32);
-
-    C13 = C13 + xTrRound(C10*37, DenShift32);
-    B10 = C10 - xTrRound(C13*37, DenShift32-1);
-    B13 = C13 + xTrRound(B10*37, DenShift32);
-
-    C11 = C11 + xTrRound(C12*29, DenShift32-3);
-    B12 = C12 - xTrRound(C11*127, DenShift32-1);
-    B11 = C11 + xTrRound(B12*29, DenShift32-3);
-
-    B16 = C16 + C23;
-    B23 = C16 - C23;
-    B17 = C17 + C22;
-    B22 = C17 - C22;
-    B18 = C18 + C21;
-    B21 = C18 - C21;
-    B19 = C19 + C20;
-    B20 = C19 - C20;
-
-    B24 = C24 + C31;
-    B31 = C24 - C31;
-    B25 = C25 + C30;
-    B30 = C25 - C30;
-    B26 = C26 + C29;
-    B29 = C26 - C29;
-    B27 = C27 + C28;
-    B28 = C27 - C28;
-
-    A0  = B0 + B15;
-    A1  = B1 + B14;
-    A2  = B2 + B13;
-    A3  = B3 + B12;
-    A4  = B4 + B11;
-    A5  = B5 + B10;
-    A6  = B6 + B9;
-    A7  = B7 + B8;
-    A8  = B7 - B8;
-    A9  = B6 - B9;
-    A10 = B5 - B10;
-    A11 = B4 - B11;
-    A12 = B3 - B12;
-    A13 = B2 - B13;
-    A14 = B1 - B14;
-    A15 = B0 - B15;
-
-
-    B16 = B16 + xTrRound(113*B31, DenShift32);
-    A31 = B31 - xTrRound(189*B16, DenShift32);
-    A16 = B16 + xTrRound(113*A31, DenShift32);
-
-    B17 = B17 - xTrRound(21*B30, DenShift32-2);
-    A30 = B30 + xTrRound(19*B17, DenShift32-3);
-    A17 = B17 - xTrRound(21*A30, DenShift32-2);
-
-    B18 = B18 + xTrRound(145*B29, DenShift32);
-    A29 = B29 - xTrRound(219*B18, DenShift32);
-    A18 = B18 + xTrRound(145*A29, DenShift32);
-
-    B19 = B19 - xTrRound(57*B28, DenShift32);
-    A28 = B28 + xTrRound(109*B19, DenShift32);
-    A19 = B19 - xTrRound(57*A28, DenShift32);
-
-    B20 = B20 + xTrRound(45*B27, DenShift32-2);
-    A27 = B27 - xTrRound(241*B20, DenShift32);
-    A20 = B20 + xTrRound(45*A27, DenShift32-2);
-
-    B21 = B21 - xTrRound(31*B26, DenShift32);
-    A26 = B26 + xTrRound(31*B21, DenShift32-1);
-    A21 = B21 - xTrRound(31*A26, DenShift32);
-
-    B22 = B22 + xTrRound(55*B25, DenShift32-2);
-    A25 = B25 - xTrRound(253*B22, DenShift32);
-    A22 = B22 + xTrRound(55*A25, DenShift32-2);
-
-    B23 = B23 - xTrRound(3*B24, DenShift32-1);
-    A24 = B24 + xTrRound(3*B23, DenShift32-2);
-    A23 = B23 - xTrRound(3*A24, DenShift32-1);
-
-    aaiTemp[0][y] = A0 + A31;
-    aaiTemp[31][y] = A0 - A31;
-    aaiTemp[1][y] = A1 + A30;
-    aaiTemp[30][y] = A1 - A30;
-    aaiTemp[2][y] = A2 + A29;
-    aaiTemp[29][y] = A2 - A29;
-    aaiTemp[3][y] = A3 + A28;
-    aaiTemp[28][y] = A3 - A28;
-    aaiTemp[4][y] = A4 + A27;
-    aaiTemp[27][y] = A4 - A27;
-    aaiTemp[5][y] = A5 + A26;
-    aaiTemp[26][y] = A5 - A26;
-    aaiTemp[6][y] = A6 + A25;
-    aaiTemp[25][y] = A6 - A25;
-    aaiTemp[7][y] = A7 + A24;
-    aaiTemp[24][y] = A7 - A24;
-    aaiTemp[8][y] = A8 + A23;
-    aaiTemp[23][y] = A8 - A23;
-    aaiTemp[9][y] = A9 + A22;
-    aaiTemp[22][y] = A9 - A22;
-    aaiTemp[10][y] = A10 + A21;
-    aaiTemp[21][y] = A10 - A21;
-    aaiTemp[11][y] = A11 + A20;
-    aaiTemp[20][y] = A11 - A20;
-    aaiTemp[12][y] = A12 + A19;
-    aaiTemp[19][y] = A12 - A19;
-    aaiTemp[13][y] = A13 + A18;
-    aaiTemp[18][y] = A13 - A18;
-    aaiTemp[14][y] = A14 + A17;
-    aaiTemp[17][y] = A14 - A17;
-    aaiTemp[15][y] = A15 + A16;
-    aaiTemp[16][y] = A15 - A16;
-
-    pSrc += 32;
-  }
-
-  for( x=0 ; x<32 ; x++, pDes++ )
-  {
-
-    E0=  aaiTemp[x][0];
-    F24 =  aaiTemp[x][1];
-    F12 =  aaiTemp[x][2];
-    G16 = -aaiTemp[x][3];
-    F7 =  aaiTemp[x][4];
-    G31 =  aaiTemp[x][5];
-    F9 =  aaiTemp[x][6];
-    F26 =  -aaiTemp[x][7];
-    E3 =  aaiTemp[x][8];
-    F21 =  aaiTemp[x][9];
-    F14 =  aaiTemp[x][10];
-    G29 =  aaiTemp[x][11];
-    E5 =  aaiTemp[x][12];
-    G18 = - aaiTemp[x][13];
-    E13 =  aaiTemp[x][14];
-    E22 =  aaiTemp[x][15];
-    E1 =  aaiTemp[x][16];
-    E25 =  aaiTemp[x][17];
-    E10 =  aaiTemp[x][18];
-    G19 = - aaiTemp[x][19];
-    E6 =  aaiTemp[x][20];
-    G28 = - aaiTemp[x][21] ;
-    F15 =  aaiTemp[x][22];
-    F20 = - aaiTemp[x][23];
-    E2 =  aaiTemp[x][24];
-    F27 = - aaiTemp[x][25];
-    F8 =  aaiTemp[x][26];
-    G30 = - aaiTemp[x][27];
-    F4 =  aaiTemp[x][28];
-    G17 = - aaiTemp[x][29] ;
-    F11 =  aaiTemp[x][30];
-    F23 =  -aaiTemp[x][31];
-
-
-
-    F17 = G17 - xTrRound(G16*3, DenShift32-4);
-    F16 = G16 + xTrRound(F17*25, DenShift32-1);
-
-    F19 = G19 - xTrRound(G18*59, DenShift32-1);
-    F18 = G18 + xTrRound(F19*171, DenShift32);
-
-    F29 = G29 - xTrRound(G28*59, DenShift32-1);
-    F28 = G28 + xTrRound(F29*171, DenShift32);
-
-    F31 = G31 - xTrRound(G30*3, DenShift32-4);
-    F30 = G30 + xTrRound(F31*25, DenShift32-1);
-
-    //G16 = G16 + xTrRound(G17*25, DenShift32);
-    //F17 = G17 - xTrRound(G16*49, DenShift32);
-    //F16 = G16 + xTrRound(F17*25, DenShift32);
-
-
-    /*G18 = G18 + xTrRound(G19*77, DenShift32);
-    F19 = G19 - xTrRound(G18*142, DenShift32);
-    F18 = G18 + xTrRound(F19*77, DenShift32);
-
-
-
-          G28 = G28 + xTrRound(G29*77, DenShift32);
-          F29 = G29 - xTrRound(G28*142, DenShift32);
-    F28 = G28 + xTrRound(F29*77, DenShift32);*/
-
-
-    //G30 = G30 + xTrRound(G31*25, DenShift32);
-    //F31 = G31 - xTrRound(G30*49, DenShift32);
-    //F30 = G30 + xTrRound(F31*25, DenShift32);
-
-
-    E4 = (F7>>1) - F4;
-    E7 = F7 - E4;
-
-    E9  = -F9 + xTrRound(F8*45, DenShift32-1);
-    E8  =  F8 - xTrRound(E9*53, DenShift32-1);
-
-    E12 = F12 + (F11>>1);
-    E11 = F11 - E12;
-
-    E15 = F15 + xTrRound(F14*45, DenShift32-1);
-    E14 = F14 - xTrRound(E15*53, DenShift32-1);
-
-
-    E16 = F16 + F18;
-    D18 = F16 - F18;
-    D17 = F17 + F19;
-    E19 = F17 - F19;
-
-    E21 = F21 + xTrRound(F20*45, DenShift32-1);
-    E20 = F20 - xTrRound(E21*53, DenShift32-1);
-    //F20 = F20 - xTrRound(F21*50, DenShift32);
-    //E21 = F21 + xTrRound(F20*97, DenShift32);
-    //E20 = F20 - xTrRound(E21*50, DenShift32);
-
-    E24 = F24 + xTrRound(F23*1, DenShift32-7);
-    E23 = F23 - xTrRound(E24*255, DenShift32);
-    /*F23 = F23 - xTrRound(F24*106,DenShift32);
-    E24 = F24 + xTrRound(F23*181,DenShift32);
-    E23 = F23 - xTrRound(E24*106,DenShift32);*/
-
-    E27 = F27 + xTrRound(F26*45, DenShift32-1);
-    E26 = F26 - xTrRound(E27*53, DenShift32-1);
-    /*F26 = F26 - xTrRound(F27*50, DenShift32);
-    E27 = F27 + xTrRound(F26*97, DenShift32);
-    E26 = F26 - xTrRound(E27*50, DenShift32);*/
-
-
-
-    E28 = -F28 + F30;
-    D30 = F28 + F30;
-    D29 = -F29 + F31;
-    E31 = F29 + F31;
-
-    D1 = (E0>>1) - E1;
-    D0 = E0 - D1;
-
-    D3 = E3 + xTrRound(E2*45, DenShift32-1);
-    D2 = xTrRound(D3*53, DenShift32-1)- E2;
-
-    D4 = E4 + E6;
-    D6 = E4 - E6;
-    D5 = E7 - E5;
-    D7 = E7 + E5;
-
-    D8  = E8  + E14;
-    D14 = E8  - E14;
-    D9  = E9  + E15;
-    D15 = E9  - E15;
-    D10 = E10 + E11;
-    D11 = E10 - E11;
-    D12 = E12 + E13;
-    D13 = E12 - E13;
-
-    D16 = xTrRound((E16 - E19)*181, DenShift32);
-    D19 = xTrRound((E16 + E19)*181, DenShift32);
-    //E16 = E16 - xTrRound(E19*106, DenShift32);
-    //D19 = E19 + xTrRound(E16*181, DenShift32);
-    //D16 = E16 - xTrRound(D19*106, DenShift32);
-
-
-    D20 = E20 + E26;
-    D26 = E20 - E26;
-    D21 = E21 + E27;
-    D27 = E21 - E27;
-    D22 = E22 + E23;
-    D23 = E22 - E23;
-    D24 = E24 + E25;
-    D25 = E24 - E25;
-
-    D28 = xTrRound((E28 - E31)*181, DenShift32);
-    D31 = xTrRound((E28 + E31)*181, DenShift32);
-    //E28 = E28 - xTrRound(E31*106, DenShift32);
-    //D31 = E31 + xTrRound(E28*181, DenShift32);
-    //D28 = E28 - xTrRound(D31*106, DenShift32);
-
-
-
-    C0 = D0 + D3;
-    C3 = D0 - D3;
-    C1 = D1 + D2;
-    C2 = D1 - D2;
-
-    D7 = D7 + xTrRound(D4*77, DenShift32);
-    C4 = D4 - xTrRound(D7*71, DenShift32-1);
-    C7 = D7 + xTrRound(C4*77, DenShift32);
-
-    D6 = D6 + xTrRound(D5*25, DenShift32);
-    C5 = D5 - xTrRound(D6*49, DenShift32);
-    C6 = D6 + xTrRound(C5*25, DenShift32);
-
-    C8  = D8 + D11;
-    C11 = D8 - D11;
-    C9  = D9 + D10;
-    C10 = D9 - D10;
-
-    C12 = D12 + D15;
-    C15 = D12 - D15;
-    C13 = D13 + D14;
-    C14 = D13 - D14;
-
-    C16 = D16 + D28;
-    C28 = D16 - D28;
-    C17 = D17 + D29;
-    C29 = D17 - D29;
-    C18 = D18 + D30;
-    C30 = D18 - D30;
-    C19 = D19 + D31;
-    C31 = D19 - D31;
-
-    C20 = D20 + D23;
-    C23 = D20 - D23;
-    C21 = D21 + D22;
-    C22 = D21 - D22;
-
-    C24 = D24 + D27;
-    C27 = D24 - D27;
-    C25 = D25 + D26;
-    C26 = D25 - D26;
-
-
-    B0 = C0 + C7;
-    B7 = C0 - C7;
-    B1 = C1 + C6;
-    B6 = C1 - C6;
-    B2 = C2 + C5;
-    B5 = C2 - C5;
-    B3 = C3 + C4;
-    B4 = C3 - C4;
-
-    C15 = C15 + xTrRound(C8*91, DenShift32);
-    B8 = C8 - xTrRound(C15*81, DenShift32-1);
-    B15 = C15 + xTrRound(B8*91, DenShift32);
-
-    C9 = C9  + xTrRound(C14*153,DenShift32);
-    B14 = C14 - xTrRound(C9*225, DenShift32);
-    B9 = C9 + xTrRound(B14*153, DenShift32);
-
-    C13 = C13 + xTrRound(C10*37, DenShift32);
-    B10 = C10 - xTrRound(C13*37, DenShift32-1);
-    B13 = C13 + xTrRound(B10*37, DenShift32);
-
-    C11 = C11 + xTrRound(C12*29, DenShift32-3);
-    B12 = C12 - xTrRound(C11*127, DenShift32-1);
-    B11 = C11 + xTrRound(B12*29, DenShift32-3);
-
-    B16 = C16 + C23;
-    B23 = C16 - C23;
-    B17 = C17 + C22;
-    B22 = C17 - C22;
-    B18 = C18 + C21;
-    B21 = C18 - C21;
-    B19 = C19 + C20;
-    B20 = C19 - C20;
-
-    B24 = C24 + C31;
-    B31 = C24 - C31;
-    B25 = C25 + C30;
-    B30 = C25 - C30;
-    B26 = C26 + C29;
-    B29 = C26 - C29;
-    B27 = C27 + C28;
-    B28 = C27 - C28;
-
-    A0  = B0 + B15;
-    A1  = B1 + B14;
-    A2  = B2 + B13;
-    A3  = B3 + B12;
-    A4  = B4 + B11;
-    A5  = B5 + B10;
-    A6  = B6 + B9;
-    A7  = B7 + B8;
-    A8  = B7 - B8;
-    A9  = B6 - B9;
-    A10 = B5 - B10;
-    A11 = B4 - B11;
-    A12 = B3 - B12;
-    A13 = B2 - B13;
-    A14 = B1 - B14;
-    A15 = B0 - B15;
-
-
-    B16 = B16 + xTrRound(113*B31, DenShift32);
-    A31 = B31 - xTrRound(189*B16, DenShift32);
-    A16 = B16 + xTrRound(113*A31, DenShift32);
-
-    B17 = B17 - xTrRound(21*B30, DenShift32-2);
-    A30 = B30 + xTrRound(152*B17, DenShift32);
-    A17 = B17 - xTrRound(21*A30, DenShift32-2);
-
-    B18 = B18 + xTrRound(145*B29, DenShift32);
-    A29 = B29 - xTrRound(219*B18, DenShift32);
-    A18 = B18 + xTrRound(145*A29, DenShift32);
-
-    B19 = B19 - xTrRound(57*B28, DenShift32);
-    A28 = B28 + xTrRound(109*B19, DenShift32);
-    A19 = B19 - xTrRound(57*A28, DenShift32);
-
-    B20 = B20 + xTrRound(45*B27, DenShift32-2);
-    A27 = B27 - xTrRound(241*B20, DenShift32);
-    A20 = B20 + xTrRound(45*A27, DenShift32-2);
-
-    B21 = B21 - xTrRound(31*B26, DenShift32);
-    A26 = B26 + xTrRound(31*B21, DenShift32-1);
-    A21 = B21 - xTrRound(31*A26, DenShift32);
-
-    B22 = B22 + xTrRound(55*B25, DenShift32-2);
-    A25 = B25 - xTrRound(253*B22, DenShift32);
-    A22 = B22 + xTrRound(55*A25, DenShift32-2);
-
-    B23 = B23 - xTrRound(3*B24, DenShift32-1);
-    A24 = B24 + xTrRound(3*B23, DenShift32-2);
-    A23 = B23 - xTrRound(3*A24, DenShift32-1);
-
-
-    pDes[         0] = (Pel)xTrRound( A0 + A31 , DCore32Shift);
-    pDes[uiStride31] = (Pel)xTrRound( A0 - A31 , DCore32Shift);
-    pDes[uiStride  ] = (Pel)xTrRound( A1 + A30 , DCore32Shift);
-    pDes[uiStride30] = (Pel)xTrRound( A1 - A30 , DCore32Shift);
-    pDes[uiStride2 ] = (Pel)xTrRound( A2 + A29 , DCore32Shift);
-    pDes[uiStride29] = (Pel)xTrRound( A2 - A29 , DCore32Shift);
-    pDes[uiStride3 ] = (Pel)xTrRound( A3 + A28 , DCore32Shift);
-    pDes[uiStride28] = (Pel)xTrRound( A3 - A28 , DCore32Shift);
-    pDes[uiStride4 ] = (Pel)xTrRound( A4 + A27 , DCore32Shift);
-    pDes[uiStride27] = (Pel)xTrRound( A4 - A27 , DCore32Shift);
-    pDes[uiStride5 ] = (Pel)xTrRound( A5 + A26 , DCore32Shift);
-    pDes[uiStride26] = (Pel)xTrRound( A5 - A26 , DCore32Shift);
-    pDes[uiStride6 ] = (Pel)xTrRound( A6 + A25 , DCore32Shift);
-    pDes[uiStride25] = (Pel)xTrRound( A6 - A25 , DCore32Shift);
-    pDes[uiStride7 ] = (Pel)xTrRound( A7 + A24 , DCore32Shift);
-    pDes[uiStride24] = (Pel)xTrRound( A7 - A24 , DCore32Shift);
-    pDes[uiStride8 ] = (Pel)xTrRound( A8 + A23 , DCore32Shift);
-    pDes[uiStride23] = (Pel)xTrRound( A8 - A23 , DCore32Shift);
-    pDes[uiStride9 ] = (Pel)xTrRound( A9 + A22 , DCore32Shift);
-    pDes[uiStride22] = (Pel)xTrRound( A9 - A22 , DCore32Shift);
-    pDes[uiStride10] = (Pel)xTrRound( A10 + A21 , DCore32Shift);
-    pDes[uiStride21] = (Pel)xTrRound( A10 - A21 , DCore32Shift);
-    pDes[uiStride11] = (Pel)xTrRound( A11 + A20 , DCore32Shift);
-    pDes[uiStride20] = (Pel)xTrRound( A11 - A20 , DCore32Shift);
-    pDes[uiStride12] = (Pel)xTrRound( A12 + A19 , DCore32Shift);
-    pDes[uiStride19] = (Pel)xTrRound( A12 - A19 , DCore32Shift);
-    pDes[uiStride13] = (Pel)xTrRound( A13 + A18 , DCore32Shift);
-    pDes[uiStride18] = (Pel)xTrRound( A13 - A18 , DCore32Shift);
-    pDes[uiStride14] = (Pel)xTrRound( A14 + A17 , DCore32Shift);
-    pDes[uiStride17] = (Pel)xTrRound( A14 - A17 , DCore32Shift);
-    pDes[uiStride15] = (Pel)xTrRound( A15 + A16 , DCore32Shift);
-    pDes[uiStride16] = (Pel)xTrRound( A15 - A16 , DCore32Shift);
-
-  }
-}
-// #else
-Void TComTrQuant::xIT32_Chen ( Long* pSrc, Pel* pDes, UInt uiStride )
+Void TComTrQuant::xIT32( Long* pSrc, Pel* pDes, UInt uiStride )
 {
   Int x, y;
   Long aaiTemp[32][32];
@@ -6002,55 +3853,32 @@ Void TComTrQuant::xIT64 ( Long* pSrc, Pel* pDes, UInt uiStride )
   }
 }
 
-Void TComTrQuant::init( UInt uiMaxWidth, UInt uiMaxHeight, UInt uiMaxTrSize, Bool bUseADI, Bool bUseROT, Bool bUseLCT, Bool bUseACS, Bool bUseJMCFG, Bool bUseRDOQ, Bool bEnc )
+Void TComTrQuant::init( UInt uiMaxWidth, UInt uiMaxHeight, UInt uiMaxTrSize, Bool bUseRDOQ, Bool bEnc )
 {
 	m_uiMaxTrSize	 = uiMaxTrSize;
-  m_bUseADI			 = bUseADI;
-  m_bUseROT			 = bUseROT;
-  m_bUseJMCFG		 = bUseJMCFG;
 	m_bEnc         = bEnc;
-
   m_bUseRDOQ     = bUseRDOQ;
-  m_bUseACS      = bUseACS;
-  m_bUseLCT      = bUseLCT;
-
-  if ( m_bUseLCT )
-  {
-    xT16 = xT16_Loeffler_Lifting;
-    xIT16 = xIT16_Loeffler_Lifting;
-
-    xT32 = xT32_Loeffler_Lifting;
-    xIT32 = xIT32_Loeffler_Lifting;
-  }
-  else
-  {
-    xT16 = xT16_Chen;
-    xIT16 = xIT16_Chen;
-
-    xT32 = xT32_Chen;
-    xIT32 = xIT32_Chen;
-  }
 
 	if ( m_bEnc )
 	{
-		m_cQP.initOffsetParam(MIN_QP, MAX_QP, bUseJMCFG);
+		m_cQP.initOffsetParam( MIN_QP, MAX_QP );
 	}
 }
 
 Void TComTrQuant::xQuant( TComDataCU* pcCU, Long* pSrc, TCoeff*& pDes, Int iWidth, Int iHeight, UInt& uiAcSum, TextType eTType, UInt uiAbsPartIdx, UChar indexROT )
 {
-  xUniQuantLTR(pcCU, pSrc, pDes, iWidth, iHeight, uiAcSum, eTType, uiAbsPartIdx, indexROT );
+  xQuantLTR(pcCU, pSrc, pDes, iWidth, iHeight, uiAcSum, eTType, uiAbsPartIdx, indexROT );
 }
 Void TComTrQuant::xDeQuant( TCoeff* pSrc, Long*& pDes, Int iWidth, Int iHeight, UChar indexROT )
 {
-  xUniDeQuantLTR( pSrc, pDes, iWidth, iHeight, indexROT );
+  xDeQuantLTR( pSrc, pDes, iWidth, iHeight, indexROT );
 }
 
 Void TComTrQuant::transformNxN( TComDataCU* pcCU, Pel* pcResidual, UInt uiStride, TCoeff*& rpcCoeff, UInt uiWidth, UInt uiHeight, UInt& uiAbsSum, TextType eTType, UInt uiAbsPartIdx, UChar indexROT )
 {
   uiAbsSum = 0;
 
-  assert( pcCU->getSlice()->getSPS()->getUseLOT() || (pcCU->getSlice()->getSPS()->getMaxTrSize() >= uiWidth) );
+  assert( (pcCU->getSlice()->getSPS()->getMaxTrSize() >= uiWidth) );
 
   xT( pcResidual, uiStride, m_plTempCoeff, uiWidth );
   xQuant( pcCU, m_plTempCoeff, rpcCoeff, uiWidth, uiHeight, uiAbsSum, eTType, uiAbsPartIdx, indexROT );
@@ -6268,12 +4096,13 @@ Void TComTrQuant::xQuant2x2( Long* plSrcCoef, TCoeff*& pDstCoef, UInt& uiAbsSum,
 }
 Void TComTrQuant::xQuant4x4( TComDataCU* pcCU, Long* plSrcCoef, TCoeff*& pDstCoef, UInt& uiAbsSum, TextType eTType, UInt uiAbsPartIdx, UChar indexROT )
 {
-  if ( m_bUseROT )
-  {
-    for( Int i=0; i<16; i++ )
-      plSrcCoef[i] *= m_puiQuantMtx[i];
-    RotTransform4I( plSrcCoef, indexROT );
-  }
+  for( Int i=0; i<16; i++ )
+    plSrcCoef[i] *= m_puiQuantMtx[i];
+
+	if ( indexROT )
+	{
+		RotTransform4I( plSrcCoef, indexROT );
+	}
 
   if ( m_bUseRDOQ && (eTType == TEXT_LUMA || RDOQ_CHROMA) && (!RDOQ_ROT_IDX0_ONLY || indexROT == 0 ) )
   {
@@ -6284,20 +4113,11 @@ Void TComTrQuant::xQuant4x4( TComDataCU* pcCU, Long* plSrcCoef, TCoeff*& pDstCoe
     for( Int n = 0; n < 16; n++ )
     {
       Int iLevel, iSign;
-      if ( m_bUseROT )
-      {
-        iLevel  = plSrcCoef[n];
-        iSign   = iLevel;
-        iLevel  = abs( iLevel ) ;
-      }
-      else
-      {
-        iLevel  = plSrcCoef[n];
-        iSign   = iLevel;
-        iLevel  = abs( iLevel ) * m_puiQuantMtx[n];
-      }
 
-      Int iScaledLevel = iLevel;
+      iLevel  = plSrcCoef[n];
+      iSign   = iLevel;
+      iLevel  = abs( iLevel ) ;
+
       iLevel      = ( iLevel + m_cQP.m_iAdd4x4 ) >> m_cQP.m_iBits;
 
       if( 0 != iLevel )
@@ -6318,12 +4138,13 @@ Void TComTrQuant::xQuant4x4( TComDataCU* pcCU, Long* plSrcCoef, TCoeff*& pDstCoe
 
 Void TComTrQuant::xQuant8x8( TComDataCU* pcCU, Long* plSrcCoef, TCoeff*& pDstCoef, UInt& uiAbsSum, TextType eTType, UInt uiAbsPartIdx, UChar indexROT )
 {
-  if ( m_bUseROT )
-  {
-    for( Int i=0; i<64; i++ )
-      plSrcCoef[i] *= m_puiQuantMtx[i];
-    RotTransformLI2( plSrcCoef, indexROT );
-  }
+  for( Int i=0; i<64; i++ )
+    plSrcCoef[i] *= m_puiQuantMtx[i];
+
+	if ( indexROT )
+	{
+		RotTransformLI2( plSrcCoef, indexROT );
+	}
 
   Int iBit = m_cQP.m_iBits + 1;
 
@@ -6337,19 +4158,11 @@ Void TComTrQuant::xQuant8x8( TComDataCU* pcCU, Long* plSrcCoef, TCoeff*& pDstCoe
     for( Int n = 0; n < 64; n++ )
     {
       Int iLevel, iSign;
-      if ( m_bUseROT )
-      {
-        iLevel  = plSrcCoef[n];
-        iSign   = iLevel;
-        iLevel  = abs( iLevel ) ;
-      }
-      else
-      {
-        iLevel  = plSrcCoef[n];
-        iSign   = iLevel;
-        iLevel  = abs( iLevel ) * m_puiQuantMtx[n];
-      }
-      Int iScaledLevel = iLevel;
+
+      iLevel  = plSrcCoef[n];
+      iSign   = iLevel;
+      iLevel  = abs( iLevel ) ;
+
       iLevel      = ( iLevel + m_cQP.m_iAdd8x8 ) >> iBit;
 
       if( 0 != iLevel )
@@ -6579,7 +4392,7 @@ Void TComTrQuant::xDeQuant4x4( TCoeff* pSrcCoef, Long*& rplDstCoef, UChar indexR
   Int iLevel;
   Int iDeScale;
 
-	if ( !m_bUseROT || !indexROT )
+	if ( !indexROT )
 	{
     for( Int n = 0; n < 16; n++ )
 		{
@@ -6617,7 +4430,7 @@ Void TComTrQuant::xDeQuant8x8( TCoeff* pSrcCoef, Long*& rplDstCoef, UChar indexR
 
   Int iAdd = ( 1 << 5 ) >> m_cQP.m_iPer;
 
-  if ( !m_bUseROT || !indexROT )
+  if ( !indexROT )
 	{
 
   for( Int n = 0; n < 64; n++ )
@@ -8010,129 +5823,43 @@ TComTrQuant::InvRotTransformLI2( Long* matrix , UChar index)
 
 Void TComTrQuant::xT( Pel* piBlkResi, UInt uiStride, Long* psCoeff, Int iSize )
 {
-	Int iPSize = m_uiMaxTrSize;
-
-	// Case #1: logical = physical
-	if ( iSize <= iPSize )
+	switch( iSize )
 	{
-		switch( iSize )
-		{
-    case  2: xT2 ( piBlkResi, uiStride, psCoeff ); break;
+		case  2: xT2 ( piBlkResi, uiStride, psCoeff ); break;
 		case  4: xT4 ( piBlkResi, uiStride, psCoeff ); break;
 		case  8: xT8 ( piBlkResi, uiStride, psCoeff ); break;
 		case 16: xT16( piBlkResi, uiStride, psCoeff ); break;
 		case 32: xT32( piBlkResi, uiStride, psCoeff ); break;
 		case 64: xT64( piBlkResi, uiStride, psCoeff ); break;
 		default: assert(0); break;
-		}
-		return;
-	}
-
-	// Case #2: logical > physical
-
-	// Step #1: estimate level
-	Int iLevel = 0;
-	while ( iSize > ( iPSize << iLevel ) ) iLevel++;
-
-	// Step #2: prepare buffer
-	Int y, ySize, yPSize;
-  UInt yStride;
-	for ( y=0, yStride=0, ySize=0; y<iSize; y++, yStride+=uiStride, ySize+=iSize )
-	{
-		::memcpy( &iTBuff[ ySize ], &piBlkResi[ yStride ], sizeof(Pel)*iSize );
-	}
-
-	// Step #3: wavelet transform
-	xWavelet53( iTBuff, iSize, iTBuff, iLevel );
-
-	// Step #4: DCT
-	switch( iPSize )
-	{
-    case  2: xT2 ( iTBuff, iSize, iCBuff ); break;
-		case  4: xT4 ( iTBuff, iSize, iCBuff ); break;
-		case  8: xT8 ( iTBuff, iSize, iCBuff ); break;
-		case 16: xT16( iTBuff, iSize, iCBuff ); break;
-		case 32: xT32( iTBuff, iSize, iCBuff ); break;
-		case 64: xT64( iTBuff, iSize, iCBuff ); break;
-		default: assert(0); break;
-	}
-
-	// Step #5: copy coefficients
-	::memset( psCoeff, 0, sizeof(Long)*iSize*iSize );
-  for ( y=0, yPSize=0, ySize=0; y<iPSize; y++, yPSize+=iPSize, ySize+=iSize )
-	{
-		::memcpy( &psCoeff[ yPSize ], &iCBuff[ yPSize ], sizeof(Pel)*iPSize );
-    //::memcpy( &psCoeff[ ySize ], &iCBuff[ yPSize ], sizeof(Pel)*iPSize );
 	}
 }
 
 Void TComTrQuant::xIT( Long* plCoef, Pel* pResidual, UInt uiStride, Int iSize )
 {
-	Int iPSize = m_uiMaxTrSize;
-
-	// Case #1: logical = physical
-	if ( iSize <= iPSize )
+	switch( iSize )
 	{
-		switch( iSize )
-		{
-    case  2: xIT2 ( plCoef, pResidual, uiStride ); break;
+		case  2: xIT2 ( plCoef, pResidual, uiStride ); break;
 		case  4: xIT4 ( plCoef, pResidual, uiStride ); break;
 		case  8: xIT8 ( plCoef, pResidual, uiStride ); break;
 		case 16: xIT16( plCoef, pResidual, uiStride ); break;
 		case 32: xIT32( plCoef, pResidual, uiStride ); break;
 		case 64: xIT64( plCoef, pResidual, uiStride ); break;
 		default: assert(0); break;
-		}
-		return;
-	}
-
-	// Case #2: logical > physical
-
-	// Step #1: estimate level
-	Int iLevel = 0;
-	while ( iSize > ( iPSize << iLevel ) ) iLevel++;
-
-	// Step #2: prepare buffer
-	Int y, yPSize, ySize;
-// 	for ( y=0, yPSize=0, ySize=0; y<iPSize; y++, yPSize+=iPSize, ySize+=iSize )
-// 	{
-// 		::memcpy( &iCBuff[ yPSize ], &plCoef[ ySize ], sizeof(Pel)*iPSize );
-// 	}
-
-	// Step #3: inverse DCT
-	::memset( iTBuff, 0, sizeof(Pel)*iSize*iSize );
-	switch( iPSize )
-	{
-  case  2: xIT2 ( plCoef, iTBuff, iSize ); break;
-  case  4: xIT4 ( plCoef, iTBuff, iSize ); break;
-  case  8: xIT8 ( plCoef, iTBuff, iSize ); break;
-  case 16: xIT16( plCoef, iTBuff, iSize ); break;
-  case 32: xIT32( plCoef, iTBuff, iSize ); break;
-	case 64: xIT64( plCoef, iTBuff, iSize ); break;
-	default: assert(0); break;
-	}
-
-	// Step #4: wavelet transform
-	xInvWavelet53( iTBuff, iSize, iTBuff, iLevel );
-
-	// Step #5: copy reconstruction
-	for ( y=0, yPSize=0, ySize=0; y<iSize; y++, yPSize+=uiStride, ySize+=iSize )
-	{
-		::memcpy( &pResidual[ yPSize ], &iTBuff[ ySize ], sizeof(Pel)*iSize );
 	}
 }
 
-// temporal buffer for speed (wjhan)
-static levelDataStruct slevelData[ MAX_CU_SIZE*MAX_CU_SIZE ];
-static Int             slevelRDOQ[2][ MAX_CU_SIZE*MAX_CU_SIZE ]; // add one buffer for ACS (Vadim)
+// temporal buffer for speed
+static levelDataStruct slevelData		[ MAX_CU_SIZE*MAX_CU_SIZE ];
+static Int             slevelRDOQ[2][ MAX_CU_SIZE*MAX_CU_SIZE ];
 
-// ACS
+// RDOQ
 Void TComTrQuant::xRateDistOptQuant( TComDataCU* pcCU, Long* pSrcCoeff, TCoeff*& pDstCoeff, UInt uiWidth, UInt uiHeight, UInt& uiAbsSum, TextType eTType, UInt uiAbsPartIdx, UChar indexROT )
 {
   Int			i, j, coeff_ctr;
   Int			kStart = 0, kStop = 0, noCoeff, estBits;
 	Int			iShift;
-  Int			qp_per, qp_rem, q_bits;
+  Int			qp_rem, q_bits;
   Int			iMaxNumCoeff = uiWidth*uiHeight;
 	Double	err, normFact, fTemp;
   Int			iQuantCoef;
@@ -8141,21 +5868,13 @@ Void TComTrQuant::xRateDistOptQuant( TComDataCU* pcCU, Long* pSrcCoeff, TCoeff*&
 	Int			iShiftQBits;
 
   levelDataStruct* levelData = &slevelData[0];
+  Int*		piLevelRDOQTemp = slevelRDOQ[0];
+  Int*		piLevelRDOQBest = slevelRDOQ[1];
+  Int*    pTemp;
 
-  Int*						 piLevelRDOQTemp = slevelRDOQ[0];
-  Int*						 piLevelRDOQBest = slevelRDOQ[1];
-  Int*             pTemp;
-  Int iBestStop = kStop, iPos;
+	Int			iBestStop = kStop, iPos;
+  Double	dBestCost = MAX_DOUBLE, dCost = MAX_DOUBLE;
 
-  UInt uiSize = iMaxNumCoeff;
-  Int iScanMax = MAX_COEFF_SCAN, iBestScan = 0;
-
-  Double dBestCost = MAX_DOUBLE, dCost = MAX_DOUBLE;
-  Bool bApplyScan = eTType == TEXT_LUMA && m_bUseACS;
-
-  iScanMax = bApplyScan ? iScanMax : 1;
-
-  qp_per    = m_cQP.m_iPer;
   qp_rem    = m_cQP.m_iRem;
   q_bits    = m_cQP.m_iBits;
 
@@ -8184,7 +5903,7 @@ Void TComTrQuant::xRateDistOptQuant( TComDataCU* pcCU, Long* pSrcCoeff, TCoeff*&
 		if ( g_uiBitIncrement ) normFact *= 1<<(2*g_uiBitIncrement);
 		fTemp = estErr16x16[qp_rem]/normFact;
 
-    m_puiQuantMtx = ( m_bUseLCT ? &g_aiQuantCoef256_Loeffler_Lifting[m_cQP.m_iRem][0] : &g_aiQuantCoef256_Chen[m_cQP.m_iRem][0]);
+    m_puiQuantMtx = ( &g_aiQuantCoef256[m_cQP.m_iRem][0] );
 		iShift = 4;
 		bExt8x8Flag = true;
   }
@@ -8196,7 +5915,7 @@ Void TComTrQuant::xRateDistOptQuant( TComDataCU* pcCU, Long* pSrcCoeff, TCoeff*&
 		if ( g_uiBitIncrement ) normFact *= 1<<(2*g_uiBitIncrement);
 		fTemp = estErr32x32[qp_rem]/normFact;
 
-    m_puiQuantMtx = ( m_bUseLCT ? &g_aiQuantCoef1024_Loeffler_Lifting[m_cQP.m_iRem][0] : &g_aiQuantCoef1024_Chen[m_cQP.m_iRem][0]);
+    m_puiQuantMtx = ( &g_aiQuantCoef1024[m_cQP.m_iRem][0] );
 		iShift = 5;
 		bExt8x8Flag = true;
   }
@@ -8220,7 +5939,7 @@ Void TComTrQuant::xRateDistOptQuant( TComDataCU* pcCU, Long* pSrcCoeff, TCoeff*&
 
 	iShiftQBits = (1 <<( q_bits - 1));
 
-  const UInt* pucScan = g_auiFrameScanXY[ SCAN_ZIGZAG ][ g_aucConvertToBit[ uiWidth ] ];
+  const UInt* pucScan = g_auiFrameScanXY[ g_aucConvertToBit[ uiWidth ] ];
 
   // Step #2: compute level
   for( iPos = 0; iPos < iMaxNumCoeff; iPos++ )
@@ -8228,82 +5947,64 @@ Void TComTrQuant::xRateDistOptQuant( TComDataCU* pcCU, Long* pSrcCoeff, TCoeff*&
     j = iPos >> iShift;
     i = iPos % uiWidth;
 
-    if ( m_bUseROT )
+    if ( bExt8x8Flag )
     {
-      if ( bExt8x8Flag )
-      {
-        if ( ( j < 8 ) && ( i < 8 ) && indexROT )
-          levelData[iPos].levelDouble = abs( pSrcCoeff[iPos] );
-        else
-          levelData[iPos].levelDouble = abs( pSrcCoeff[iPos] * (Long)( b64Flag ? iQuantCoef : m_puiQuantMtx[iPos] ) );
-      }
-      else
+      if ( ( j < 8 ) && ( i < 8 ) && indexROT )
         levelData[iPos].levelDouble = abs( pSrcCoeff[iPos] );
+      else
+        levelData[iPos].levelDouble = abs( pSrcCoeff[iPos] * (Long)( b64Flag ? iQuantCoef : m_puiQuantMtx[iPos] ) );
     }
     else
-      levelData[iPos].levelDouble = abs( pSrcCoeff[iPos] * (Long)( b64Flag ? iQuantCoef : m_puiQuantMtx[iPos] ) );
+		{
+      levelData[iPos].levelDouble = abs( pSrcCoeff[iPos] );
+		}
 
     levelData[iPos].levelQ		= ( levelData[iPos].levelDouble >> q_bits );
     levelData[iPos].lowerInt = ( ( levelData[iPos].levelDouble - (levelData[iPos].levelQ << q_bits) ) < iShiftQBits ) ? true : false;
   }
 
-  for( Int iScan = 0; iScan < iScanMax; iScan++ )
-  {
-    pucScan = g_auiFrameScanXY[ iScan ][ g_aucConvertToBit[ uiWidth ] ];
-    noCoeff = 0;
+  noCoeff = 0;
 
-    // Step #2.1: compute kStop
-    for( coeff_ctr = 0; coeff_ctr < iMaxNumCoeff; coeff_ctr++ )
+  // Step #2.1: compute kStop
+  for( coeff_ctr = 0; coeff_ctr < iMaxNumCoeff; coeff_ctr++ )
+  {
+    iPos = pucScan[coeff_ctr];
+    if ( !levelData[iPos].levelQ )
     {
-      iPos = pucScan[coeff_ctr];
-      if ( !levelData[iPos].levelQ )
+      if ( !levelData[iPos].lowerInt ) kStop = coeff_ctr;
+    }
+    else
+    {
+      kStop = coeff_ctr;
+      if ( !levelData[iPos].lowerInt ) kStart = coeff_ctr;
+    }
+  }
+
+  // Step #3: compute errLevel
+  for( coeff_ctr = 0; coeff_ctr < kStop + 1; coeff_ctr++ )
+  {
+    iPos = pucScan[coeff_ctr];
+
+    j = iPos >> iShift;
+    i = iPos % uiWidth;
+
+    levelData[iPos].level[0] = 0;
+
+    if      ( uiWidth == 4 ) fTemp = estErr4x4[qp_rem][i][j]/normFact;
+    else if ( uiWidth == 8 ) fTemp = estErr8x8[qp_rem][i][j]/normFact;
+
+    if ( !levelData[iPos].levelQ )
+    {
+      if ( levelData[iPos].lowerInt )
       {
-        if ( !levelData[iPos].lowerInt ) kStop = coeff_ctr;
+        levelData[iPos].noLevels = 1;
+
+        err = (Double)(levelData[iPos].levelDouble);
+        levelData[iPos].errLevel[0] = err*err*fTemp;
       }
       else
       {
-        kStop = coeff_ctr;
-        if ( !levelData[iPos].lowerInt ) kStart = coeff_ctr;
-      }
-    }
-
-    // Step #3: compute errLevel
-    for( coeff_ctr = 0; coeff_ctr < kStop + 1; coeff_ctr++ )
-    {
-      iPos = pucScan[coeff_ctr];
-
-      j = iPos >> iShift;
-      i = iPos % uiWidth;
-
-      levelData[iPos].level[0] = 0;
-
-      if      ( uiWidth == 4 ) fTemp = estErr4x4[qp_rem][i][j]/normFact;
-      else if ( uiWidth == 8 ) fTemp = estErr8x8[qp_rem][i][j]/normFact;
-
-      if ( !levelData[iPos].levelQ )
-      {
-        if ( levelData[iPos].lowerInt )
-        {
-          levelData[iPos].noLevels = 1;
-
-          err = (Double)(levelData[iPos].levelDouble);
-          levelData[iPos].errLevel[0] = err*err*fTemp;
-        }
-        else
-        {
-          levelData[iPos].level[1] = 1;
-          levelData[iPos].noLevels = 2;
-          noCoeff++;
-
-          err = (Double)(levelData[iPos].levelDouble);
-          levelData[iPos].errLevel[0] = err*err*fTemp;
-          err = (Double)((levelData[iPos].level[1]<<q_bits) - levelData[iPos].levelDouble);
-          levelData[iPos].errLevel[1] = err*err*fTemp;
-        }
-      }
-      else if ( levelData[iPos].lowerInt )
-      {
-        levelData[iPos].level[1] = levelData[iPos].levelQ;
+        levelData[iPos].level[1] = 1;
         levelData[iPos].noLevels = 2;
         noCoeff++;
 
@@ -8312,68 +6013,66 @@ Void TComTrQuant::xRateDistOptQuant( TComDataCU* pcCU, Long* pSrcCoeff, TCoeff*&
         err = (Double)((levelData[iPos].level[1]<<q_bits) - levelData[iPos].levelDouble);
         levelData[iPos].errLevel[1] = err*err*fTemp;
       }
-      else
-      {
-        levelData[iPos].level[1] = levelData[iPos].levelQ;
-        levelData[iPos].level[2] = levelData[iPos].levelQ + 1;
-        levelData[iPos].noLevels = 3;
-        noCoeff++;
-
-        err = (Double)(levelData[iPos].levelDouble);
-        levelData[iPos].errLevel[0] = err*err*fTemp;
-        err = (Double)((levelData[iPos].level[1]<<q_bits) - levelData[iPos].levelDouble);
-        levelData[iPos].errLevel[1] = err*err*fTemp;
-        err = (Double)((levelData[iPos].level[2]<<q_bits) - levelData[iPos].levelDouble);
-        levelData[iPos].errLevel[2] = err*err*fTemp;
-      }
     }
-
-    for (coeff_ctr = kStop+1; coeff_ctr < iMaxNumCoeff && bApplyScan; coeff_ctr++ )
+    else if ( levelData[iPos].lowerInt )
     {
-      iPos = pucScan[coeff_ctr];
-
-      j = iPos >> iShift;
-      i = iPos % uiWidth;
-
-      levelData[iPos].level[0] = 0;
-
-      if      ( uiWidth == 4 ) fTemp = estErr4x4[qp_rem][i][j]/normFact;
-      else if ( uiWidth == 8 ) fTemp = estErr8x8[qp_rem][i][j]/normFact;
-
-      levelData[iPos].noLevels = 1;
+      levelData[iPos].level[1] = levelData[iPos].levelQ;
+      levelData[iPos].noLevels = 2;
+      noCoeff++;
 
       err = (Double)(levelData[iPos].levelDouble);
       levelData[iPos].errLevel[0] = err*err*fTemp;
+      err = (Double)((levelData[iPos].level[1]<<q_bits) - levelData[iPos].levelDouble);
+      levelData[iPos].errLevel[1] = err*err*fTemp;
     }
-
-    estBits = xEst_write_and_store_CBP_block_bit ( pcCU, eTType);
-
-    Int kStartEst = kStart;
-
-    dCost = xEst_writeRunLevel_SBAC (levelData, piLevelRDOQTemp, ( eTType == TEXT_LUMA ? TEXT_LUMA : TEXT_CHROMA ), m_dLambda, kStartEst, kStop, noCoeff, estBits, uiWidth, uiHeight, pcCU->getDepth(0) + pcCU->getTransformIdx(0), iScan );
-
-    if( kStartEst > 0 )
+    else
     {
-      UInt uiScanBits = m_pcEstBitsSbac->scanZigzag[iScan > 0];
-      uiScanBits += iScan > 0 ? m_pcEstBitsSbac->scanNonZigzag[iScan > 1] : 0;
-      dCost += uiScanBits * m_dLambda;
+      levelData[iPos].level[1] = levelData[iPos].levelQ;
+      levelData[iPos].level[2] = levelData[iPos].levelQ + 1;
+      levelData[iPos].noLevels = 3;
+      noCoeff++;
+
+      err = (Double)(levelData[iPos].levelDouble);
+      levelData[iPos].errLevel[0] = err*err*fTemp;
+      err = (Double)((levelData[iPos].level[1]<<q_bits) - levelData[iPos].levelDouble);
+      levelData[iPos].errLevel[1] = err*err*fTemp;
+      err = (Double)((levelData[iPos].level[2]<<q_bits) - levelData[iPos].levelDouble);
+      levelData[iPos].errLevel[2] = err*err*fTemp;
     }
+  }
 
-    if( dCost < dBestCost )
-    {
-      dBestCost = dCost;
-      iBestScan = iScan;
-      pTemp = piLevelRDOQBest;
-      piLevelRDOQBest = piLevelRDOQTemp;
-      piLevelRDOQTemp = pTemp;
-      iBestStop = kStop;
-    }
-  } // for iScan
+  for (coeff_ctr = kStop+1; coeff_ctr < iMaxNumCoeff; coeff_ctr++ )
+  {
+    iPos = pucScan[coeff_ctr];
 
-  if( bApplyScan )
-    pcCU->setScanOrder( uiAbsPartIdx, iBestScan );
+    j = iPos >> iShift;
+    i = iPos % uiWidth;
 
-  pucScan = g_auiFrameScanXY[ iBestScan ][ g_aucConvertToBit[ uiWidth ] ];
+    levelData[iPos].level[0] = 0;
+
+    if      ( uiWidth == 4 ) fTemp = estErr4x4[qp_rem][i][j]/normFact;
+    else if ( uiWidth == 8 ) fTemp = estErr8x8[qp_rem][i][j]/normFact;
+
+    levelData[iPos].noLevels = 1;
+
+    err = (Double)(levelData[iPos].levelDouble);
+    levelData[iPos].errLevel[0] = err*err*fTemp;
+  }
+
+  estBits = xEst_write_and_store_CBP_block_bit ( pcCU, eTType);
+
+  Int kStartEst = kStart;
+
+  dCost = xEst_writeRunLevel_SBAC (levelData, piLevelRDOQTemp, ( eTType == TEXT_LUMA ? TEXT_LUMA : TEXT_CHROMA ), m_dLambda, kStartEst, kStop, noCoeff, estBits, uiWidth, uiHeight, pcCU->getDepth(0) + pcCU->getTransformIdx(0) );
+
+  if( dCost < dBestCost )
+  {
+    dBestCost = dCost;
+    pTemp = piLevelRDOQBest;
+    piLevelRDOQBest = piLevelRDOQTemp;
+    piLevelRDOQTemp = pTemp;
+    iBestStop = kStop;
+  }
 
   // restore coefficients including sign information
   ::memset( pDstCoeff, 0, sizeof(TCoeff)*iMaxNumCoeff );
@@ -8399,7 +6098,6 @@ Int TComTrQuant::xEst_write_and_store_CBP_block_bit ( TComDataCU* pcCU, TextType
 {
   Int estBits;
   UInt uiAbsPartIdx = 0;
-  UInt uiDepth = 0;
 
   Int ctx = pcCU->getCtxCbf( uiAbsPartIdx, eTType, pcCU->getTransformIdx(0) );
 
@@ -8416,11 +6114,10 @@ Int TComTrQuant::xEst_write_and_store_CBP_block_bit ( TComDataCU* pcCU, TextType
  ****************************************************************************
  */
 
-// temporal buffer for speed (wjhan)
+// temporal buffer for speed
 static Int slevelTab[ MAX_CU_SIZE*MAX_CU_SIZE ];
 
-// ACS
-Double TComTrQuant::xEst_writeRunLevel_SBAC(levelDataStruct* levelData, Int* levelTabMin, TextType eTType, Double lambda, Int& kInit, Int kStop, Int noCoeff, Int estCBP, UInt uiWidth, UInt uiHeight, UInt uiDepth, UInt uiScanIdx )
+Double TComTrQuant::xEst_writeRunLevel_SBAC(levelDataStruct* levelData, Int* levelTabMin, TextType eTType, Double lambda, Int& kInit, Int kStop, Int noCoeff, Int estCBP, UInt uiWidth, UInt uiHeight, UInt uiDepth )
 {
   Int    k, i, iPos;
   Int    estBits;
@@ -8448,9 +6145,9 @@ Double TComTrQuant::xEst_writeRunLevel_SBAC(levelDataStruct* levelData, Int* lev
 
   UInt uiCtxSigMap, uiCtxLastBit;
   UInt uiConvBit = g_aucConvertToBit[ uiWidth ];
-  const UInt*  pucScanX = g_auiFrameScanX[ uiScanIdx ][ uiConvBit ];
-  const UInt*  pucScanY = g_auiFrameScanY[ uiScanIdx ][ uiConvBit ];
-  const UInt*  pucScan = g_auiFrameScanXY[ uiScanIdx ][ uiConvBit ];
+  const UInt*  pucScanX = g_auiFrameScanX[ uiConvBit ];
+  const UInt*  pucScanY = g_auiFrameScanY[ uiConvBit ];
+  const UInt*  pucScan = g_auiFrameScanXY[ uiConvBit ];
 
   if ( noCoeff > 0 )
   {

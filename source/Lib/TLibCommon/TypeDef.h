@@ -60,7 +60,7 @@ typedef       double							Double;
 #ifdef _MSC_VER
 typedef       __int64							Int64;
 
-#if _MSC_VER == 1100 // MS VC6
+#if _MSC_VER <= 1200 // MS VC6
 typedef       __int64							UInt64;		// MS VC6 does not support unsigned __int64 to double conversion
 #else
 typedef       unsigned __int64		UInt64;
@@ -105,26 +105,6 @@ typedef struct _LFCUParam
   Int  iBsEdgeSum[2][4];									///< array of Bs edge sum values
 } LFCUParam;
 
-/// (x, y) parameters for global motion compensation
-typedef struct _TrajPoint
-{
-  Int x;
-  Int y;
-} TrajPoint;
-
-/// affine parameters for global motion compensation
-typedef struct _SpriteMotion
-{
-	Double	a1;
-	Double	a2;
-	Double	a3;
-	Double	a4;
-	Double	a5;
-	Double	a6;
-	Double	a7;
-	Double	a8;
-} SpriteMotion;
-
 // ====================================================================================================================
 // Enumeration
 // ====================================================================================================================
@@ -149,11 +129,6 @@ enum PartSize
   SIZE_2NxnD,						///< asymmetric motion partition, 2Nx(3N/2) + 2Nx( N/2)
   SIZE_nLx2N,						///< asymmetric motion partition, ( N/2)x2N + (3N/2)x2N
   SIZE_nRx2N,						///< asymmetric motion partition, (3N/2)x2N + ( N/2)x2N
-
-  SIZE_SHV_LT,					///< simultaneous H&V partition,  left-top     NxN
-  SIZE_SHV_RT,					///< simultaneous H&V partition,  right-top    NxN
-  SIZE_SHV_LB,					///< simultaneous H&V partition,  left-bottom  NxN
-  SIZE_SHV_RB,					///< simultaneous H&V partition,  right-bottom NxN
 
   SIZE_NONE = 15
 };
@@ -223,11 +198,6 @@ enum DFunc
   DF_HADS64   = 27,     ///<  64xM HAD with step
 	DF_HADS16N	= 28,     ///< 16NxM HAD with step
 
-  DF_SHV      = 29,     ///< SAD for SHV
-  DF_SHV_SAD  = 30,			///< SAD for SHV
-  DF_SHV_SADs = 31,			///< SAD with step for SHV
-  DF_SHV_HADs = 32,			///< HAD with step for SHV
-
   DF_SSE_FRAME = 33			///< Frame-based SSE
 };
 
@@ -263,7 +233,6 @@ enum AMVP_MODE
 {
   AM_NONE = 0,					///< no AMVP mode
   AM_EXPL,							///< explicit signalling of motion vector index
-  AM_IMPL								///< implicit signalling based on pattern matching
 };
 
 /// effect mode used in GRF
@@ -271,20 +240,7 @@ enum EFF_MODE
 {
   EFF_WP_SO = 0,				///< weighted prediction (scale+offset)
   EFF_WP_O,							///< weighted prediction (offset)
-  EFF_WP_P1,						///< weighted prediction (offset of +1)
-  EFF_WP_M1,						///< weighted prediction (offset of -1)
-  EFF_IM,								///< Isotropic motion
-  EFF_AM,								///< Affine motion
-  EFF_PM,								///< perspective motion
   EFF_NONE
-};
-
-/// coefficient scanning type used in ACS
-enum COEFF_SCAN_TYPE
-{
-  SCAN_ZIGZAG = 0,			///< typical zigzag scan
-  SCAN_HOR,							///< horizontal first scan
-  SCAN_VER							///< vertical first scan
 };
 
 #endif

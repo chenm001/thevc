@@ -43,7 +43,6 @@
 #include "../TLibCommon/CommonDef.h"
 #include "../TLibCommon/TComBitStream.h"
 #include "../TLibCommon/TComPic.h"
-#include "../TLibCommon/TComGlobalMotion.h"
 #include "TDecEntropy.h"
 #include "TDecCu.h"
 
@@ -55,28 +54,23 @@
 class TDecSlice
 {
 private:
-  //  Access channel
-  TDecEntropy*            m_pcEntropyDecoder;
-  TDecCu*                 m_pcCuDecoder;
-  TComGlobalMotion             m_cGlobalMotion;
+  // access channel
+  TDecEntropy*		m_pcEntropyDecoder;
+  TDecCu*         m_pcCuDecoder;
 
-  TComPicYuv*             m_apcPicYuvPred;
-  TComPicYuv*             m_apcPicYuvResi;
-  TComPic* m_apcVirtPic[2][GRF_MAX_NUM_EFF];
+	// additional buffers for generated reference frames
+  TComPic*				m_apcVirtPic[2][GRF_MAX_NUM_EFF];
 
 public:
 	TDecSlice();
 	virtual ~TDecSlice();
 
-  Void  init            (TDecEntropy* pcEntropyDecoder, TDecCu* pcMbDecoder);
+  Void  init							( TDecEntropy* pcEntropyDecoder, TDecCu* pcMbDecoder );
+  Void  create						( TComSlice* pcSlice, Int iWidth, Int iHeight, UInt uiMaxWidth, UInt uiMaxHeight, UInt uiMaxDepth );
+  Void  destroy						();
 
-  Void  create( TComSlice* pcSlice, Int iWidth, Int iHeight, UInt uiMaxWidth, UInt uiMaxHeight, UInt uiMaxDepth );
-  Void  destroy();
-  Void  generateRefPicNew ( TComSlice* rpcSlice );
-  Void decompressSliceCU  (TComBitstream* pcBitstream, TComPic*& rpcPic);
-
-private:
-  Void xSetGMParam(TComSlice* rpcSlice, RefPicList e);
+  Void	decompressSlice		( TComBitstream* pcBitstream, TComPic*& rpcPic );
+	Void  generateRefPicNew ( TComSlice* rpcSlice );
 };
 
-#endif // !defined(AFX_TDECSLICE_H__17321B7B_37B8_497F_AFEB_6A7BDA4ECF15__INCLUDED_)
+#endif

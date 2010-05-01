@@ -41,9 +41,7 @@
 #endif // _MSC_VER > 1000
 
 #include "../TLibCommon/TComTrQuant.h"
-//--> srlee : 2007/12/26
 #include "../TLibCommon/TComPrediction.h"
-//<--
 #include "TDecEntropy.h"
 
 // ====================================================================================================================
@@ -54,48 +52,51 @@
 class TDecCu
 {
 private:
-  TComTrQuant*      m_pcTrQuant;
-  TComPrediction*   m_pcPrediction;
-  TDecEntropy*      m_pcEntropyDecoder;
+  UInt								m_uiMaxDepth;				///< max. number of depth
+  TComYuv**						m_ppcYuvResi;				///< array of residual buffer
+  TComYuv**						m_ppcYuvReco;				///< array of prediction & reconstruction buffer
+  TComDataCU**				m_ppcCU;						///< CU data array
+
+	// access channel
+  TComTrQuant*				m_pcTrQuant;
+  TComPrediction*			m_pcPrediction;
+  TDecEntropy*				m_pcEntropyDecoder;
 
 public:
 	TDecCu();
 	virtual ~TDecCu();
 
-  Void  create             ( UInt uiMaxDepth, UInt uiMaxWidth, UInt uiMaxHeight );
-  Void  destroy            ();
+	/// initialize access channels
+  Void  init										( TDecEntropy* pcEntropyDecoder, TComTrQuant* pcTrQuant, TComPrediction* pcPrediction );
 
-  Void  init               (TDecEntropy* pcEntropyDecoder, TComTrQuant* pcTrQuant, TComPrediction* pcPrediction);
+	/// create internal buffers
+  Void  create									( UInt uiMaxDepth, UInt uiMaxWidth, UInt uiMaxHeight );
+
+	/// destroy internal buffers
+  Void  destroy									();
+
+	/// decode CU information
+  Void	decodeCU								( TComDataCU* pcCU, UInt& ruiIsLast );
+
+	/// reconstruct CU information
+  Void	decompressCU						( TComDataCU* pcCU );
 
 protected:
-  UInt      m_uiMaxDepth;
-  TComYuv** m_ppcYuvPred;
-  TComYuv** m_ppcYuvResi;
-  TComYuv** m_ppcYuvReco;
 
-  TComDataCU** m_ppcCU;
+  Void xDecodeCU								( TComDataCU* pcCU,												UInt uiAbsPartIdx, UInt uiDepth );
+  Void xDecompressCU						( TComDataCU* pcCU, TComDataCU* pcCUCur,	UInt uiAbsPartIdx, UInt uiDepth );
 
-public:
-  Void decodeCU            ( TComDataCU* pcCU, UInt& ruiIsLast );
-  Void decompressCU        ( TComDataCU* pcCU );
+  Void xReconInter							( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
+  Void xReconIntra							( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
 
-private:
-  Void xDecodeCU           ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
-  Void xDecompressCU       ( TComDataCU* pcCU, TComDataCU* pcCUCur, UInt uiAbsPartIdx,  UInt uiDepth );
+  Void xDecodeInterTexture			( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
+  Void xDecodeIntraTexture			( TComDataCU* pcCU, UInt uiPartIdx, Pel* piReco, Pel* pPred, Pel* piResi, UInt uiStride, TCoeff* pCoeff, UInt uiWidth, UInt uiHeight, UInt uiCurrDepth, UInt indexROT );
+  Void xRecurIntraInvTrans			( TComDataCU* pcCU, UInt uiAbsPartIdx, Pel* piResi, Pel* piPred, Pel* piReco, UInt uiStride, TCoeff* piCoeff, UInt uiWidth, UInt uiHeight, UInt uiCurrTrMode, UInt indexROT );
+  Void xRecurIntraInvTransChroma( TComDataCU* pcCU, UInt uiAbsPartIdx, Pel* piResi, Pel* piPred, Pel* piReco, UInt uiStride, TCoeff* piCoeff, UInt uiWidth, UInt uiHeight, UInt uiTrMode, UInt uiCurrTrMode, TextType eText );
 
-  Void xReconInter         ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
-  Void xReconIntra         ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
-
-  Void xCopyToPic          ( TComDataCU* pcCU, TComPic* pcPic, UInt uiZorderIdx, UInt uiDepth );
-
-  Void xCopyToPicLuma      ( TComPic* pcPic, UInt uiCUAddr, UInt uiZorderIdx, UInt uiDepth );
-  Void xCopyToPicChroma    ( TComPic* pcPic, UInt uiCUAddr, UInt uiZorderIdx, UInt uiDepth );
-
-  Void xDecodeInterTexture ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
-  Void xDecodeIntraTexture ( TComDataCU* pcCU, UInt uiPartIdx, Pel* piReco, Pel* pPred, Pel* piResi, UInt uiStride, TCoeff* pCoeff, UInt uiWidth, UInt uiHeight, UInt uiCurrDepth, UInt indexROT, UInt indexMPI );
-  Void xRecurIntraInvTrans ( TComDataCU* pcCU, UInt uiAbsPartIdx, Pel* piResi, Pel* piPred, Pel* piReco, UInt uiStride, TCoeff* piCoeff, UInt uiWidth, UInt uiHeight, UInt uiCurrTrMode, UInt indexROT );
-  Void xRecurIntraInvTransChroma(TComDataCU* pcCU, UInt uiAbsPartIdx, Pel* piResi, Pel* piPred, Pel* piReco, UInt uiStride, TCoeff* piCoeff, UInt uiWidth, UInt uiHeight, UInt uiTrMode, UInt uiCurrTrMode, TextType eText );
-  Void xRecurIntraInvTransChromaADI(TComDataCU* pcCU, UInt uiAbsPartIdx, Pel* piResi, Pel* piPred, Pel* piReco, UInt uiStride, TCoeff* piCoeff, UInt uiWidth, UInt uiHeight, UInt uiTrMode, UInt uiCurrTrMode, TextType eText );
+  Void xCopyToPic								( TComDataCU* pcCU, TComPic* pcPic, UInt uiZorderIdx, UInt uiDepth );
+  Void xCopyToPicLuma						( TComPic* pcPic, UInt uiCUAddr, UInt uiZorderIdx, UInt uiDepth );
+  Void xCopyToPicChroma					( TComPic* pcPic, UInt uiCUAddr, UInt uiZorderIdx, UInt uiDepth );
 };
 
-#endif // !defined(AFX_TDECMB_H__E142CACA_675B_41F8_9089_D4075DB08795__INCLUDED_)
+#endif

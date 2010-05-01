@@ -61,17 +61,17 @@ class TEncCu
 {
 private:
 
-  TComDataCU**            m_ppcBestCU;			///< Best CUs in each level
-  TComDataCU**            m_ppcTempCU;			///< Temporary CUs in each level
+  TComDataCU**            m_ppcBestCU;			///< Best CUs in each depth
+  TComDataCU**            m_ppcTempCU;			///< Temporary CUs in each depth
   UChar                   m_uhTotalDepth;
 
-  TComYuv**               m_ppcPredYuvBest; ///< Best Prediction Yuv for each level
-  TComYuv**               m_ppcResiYuvBest; ///< Best Residual Yuv for each level
-  TComYuv**               m_ppcRecoYuvBest; ///< Best Reconstruction Yuv for each level
-  TComYuv**               m_ppcPredYuvTemp; ///< Temporary Prediction Yuv for each level
-  TComYuv**               m_ppcResiYuvTemp; ///< Temporary Residual Yuv for each level
-  TComYuv**               m_ppcRecoYuvTemp; ///< Temporary Reconstruction Yuv for each level
-  TComYuv**               m_ppcOrigYuv;     ///< Original Yuv for each level
+  TComYuv**               m_ppcPredYuvBest; ///< Best Prediction Yuv for each depth
+  TComYuv**               m_ppcResiYuvBest; ///< Best Residual Yuv for each depth
+  TComYuv**               m_ppcRecoYuvBest; ///< Best Reconstruction Yuv for each depth
+  TComYuv**               m_ppcPredYuvTemp; ///< Temporary Prediction Yuv for each depth
+  TComYuv**               m_ppcResiYuvTemp; ///< Temporary Residual Yuv for each depth
+  TComYuv**               m_ppcRecoYuvTemp; ///< Temporary Reconstruction Yuv for each depth
+  TComYuv**               m_ppcOrigYuv;     ///< Original Yuv for each depth
 
   //  Data : encoder control
   Int                     m_iQp;            ///< Last QP
@@ -86,50 +86,46 @@ private:
 
   TEncEntropy*            m_pcEntropyCoder;
   TEncCavlc*              m_pcCavlcCoder;
-  TEncSbac*              m_pcSbacCoder;
+  TEncSbac*								m_pcSbacCoder;
 
-  //=== New IPs ===
   // SBAC RD
-  TEncSbac***            m_pppcRDSbacCoder;
-  TEncSbac*              m_pcRDGoOnSbacCoder;
+  TEncSbac***							m_pppcRDSbacCoder;
+  TEncSbac*								m_pcRDGoOnSbacCoder;
+  Bool										m_bUseSBACRD;
 
-  Bool                    m_bUseSBACRD;
-  //-- SBAC RD
-
-  // Advanced Directional Intra
-  Bool                    m_bUseADI;
 public:
-  Void  create      ( UChar uhTotalDepth, UInt iMaxWidth, UInt iMaxHeight );
-  Void  destroy     ();
-  Void  init        ( TEncTop* pcEncTop );
-  Void  initMbCtrl  ( TComSlice* pcSlice );
+	/// copy parameters from encoder class
+  Void  init								( TEncTop* pcEncTop );
 
-  Int   getQp       ()                    { return  m_iQp;             }
-  Void  setQp       (Int iQp)             { m_iQp = iQp; }
+	/// create internal buffers
+	Void  create							( UChar uhTotalDepth, UInt iMaxWidth, UInt iMaxHeight );
 
-  Void compressCU            ( TComDataCU*&  rpcCU );
-  Void encodeCU              ( TComDataCU*    pcCU, Bool bUpdateStatistics = true );
+	/// destroy internal buffers
+  Void  destroy							();
 
-  Void setQpLast( Int iQp ) { m_iQp = iQp; }
+	/// CU analysis function
+  Void	compressCU					( TComDataCU*&  rpcCU );
 
-  Void CopyYuv2Pic           ( TComPic* rpcPic, UInt uiCUAddr, UInt uiAbsZorderIdx, UInt uiDepth );
-  Void CopyYuv2Tmp           ( UInt uhPartUnitIdx, UInt uiDepth );
+	/// CU encoding function
+  Void	encodeCU						( TComDataCU*    pcCU );
+
+	/// set QP value
+  Void	setQpLast						( Int iQp ) { m_iQp = iQp; }
 
 protected:
-  Void xCompressCU           ( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, UChar uhDepth, Bool bTrial = false );
+  Void	xCompressCU					( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, UInt uiDepth				);
+  Void	xEncodeCU						( TComDataCU*  pcCU, UInt uiAbsPartIdx,						UInt uiDepth				);
 
-  Void xCheckRDCostAMVPSkip           ( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU );
-  Void xCopyAMVPInfo (AMVPInfo* pSrc, AMVPInfo* pDst);
-  Void xCheckRDCostSkip      ( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, Bool bBSkipRes );
-  Void xCheckRDCostInter     ( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, PartSize ePartSize );
+  Void	xCheckRDCostAMVPSkip( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU											);
+  Void	xCheckRDCostSkip		( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, Bool bBSkipRes			);
+  Void	xCheckRDCostInter		( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, PartSize ePartSize	);
+  Void	xCheckRDCostIntra		( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, PartSize ePartSize	);
+  Void	xCheckBestMode			( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU											);
 
-  Void xCheckRDCostInterHAM( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU );
-
-  Void xCheckRDCostIntra     ( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, PartSize ePartSize );
-
-  Void xCheckBestMode        ( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU );
-  Void xEncodeCU             ( TComDataCU*    pcCU, UInt uiAbsPartIdx, UInt uiDepth );
-};// END CLASS DEFINITION TEncMB
+  Void	xCopyAMVPInfo				( AMVPInfo* pSrc, AMVPInfo* pDst );
+  Void	xCopyYuv2Pic				( TComPic* rpcPic, UInt uiCUAddr, UInt uiAbsZorderIdx, UInt uiDepth );
+  Void	xCopyYuv2Tmp				( UInt uhPartUnitIdx, UInt uiDepth );
+};
 
 
 #endif // __TENCMB__

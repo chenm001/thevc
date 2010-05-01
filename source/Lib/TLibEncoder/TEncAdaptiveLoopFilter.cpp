@@ -169,7 +169,7 @@ Void TEncAdaptiveLoopFilter::ALFProcess( ALFParam* pcAlfParam, Double dLambda, U
 
   // extend image for filtering
   TComPicYuv* pcPicYuvRec    = m_pcPic->getPicYuvRec();
-  TComPicYuv* pcPicYuvExtRec = m_pcPic->getPicYuvResi();
+  TComPicYuv* pcPicYuvExtRec = m_pcTempPicYuv;
 
   pcPicYuvRec->copyToPic(pcPicYuvExtRec);
 	pcPicYuvExtRec->setBorderExtension( false );
@@ -401,11 +401,7 @@ Void TEncAdaptiveLoopFilter::xCUAdaptiveControl(TComPicYuv* pcPicOrg, TComPicYuv
       Double dCost;
       xSetCUAlfCtrlFlags(uiDepth, pcPicOrg, pcPicDec, m_pcPicYuvTmp, uiDist);
 
-      if ( g_bUseCADR )
-      {
-        uiDist = CADR_DESCALE2( uiDist, g_iRangeCADR );
-      }
-
+			// compute RD cost
       xCalcRDCost(m_pcTempAlfParam, uiRate, uiDist, dCost);
 
       if (dCost < rdMinCost)
@@ -465,11 +461,7 @@ Void TEncAdaptiveLoopFilter::xFilterTapDecision(TComPicYuv* pcPicOrg, TComPicYuv
       xFrame(pcPicDec, m_pcPicYuvTmp, m_pcTempAlfParam->coeff, m_pcTempAlfParam->tap);
       xSetCUAlfCtrlFlags(m_pcEntropyCoder->getMaxAlfCtrlDepth(), pcPicOrg, pcPicDec, m_pcPicYuvTmp, uiDist);
 
-    	if ( g_bUseCADR )
-    	{
-        uiDist = CADR_DESCALE2( uiDist, g_iRangeCADR );
-      }
-
+			// compute RD cost
       xCalcRDCost(m_pcTempAlfParam, uiRate, uiDist, dCost);
     }
     else
@@ -684,8 +676,8 @@ Void TEncAdaptiveLoopFilter::xReadOrCalcCorrFromCUs(TComPicYuv* pcPicOrg, TComPi
     TComDataCU* pcCU = m_pcPic->getCU( uiCUAddr );
     for (UInt uiIdx = 0; uiIdx < pcCU->getTotalNumPart(); uiIdx+=4)
     {
-      UInt uiLPelX   = pcCU->getCUPelX() + g_auiConvertPartIdxToPelX[ g_auiConvertRelToAbsIdx[uiIdx] ];
-      UInt uiTPelY   = pcCU->getCUPelY() + g_auiConvertPartIdxToPelY[ g_auiConvertRelToAbsIdx[uiIdx] ];
+      UInt uiLPelX   = pcCU->getCUPelX() + g_auiRasterToPelX[ g_auiZscanToRaster[uiIdx] ];
+      UInt uiTPelY   = pcCU->getCUPelY() + g_auiRasterToPelY[ g_auiZscanToRaster[uiIdx] ];
 
       if (uiLPelX >= pcPicOrg->getWidth() || uiTPelY >= pcPicOrg->getHeight())
       {
@@ -728,9 +720,9 @@ Void TEncAdaptiveLoopFilter::xEncodeCUAlfCtrlFlags()
 Void TEncAdaptiveLoopFilter::xEncodeCUAlfCtrlFlag(TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth)
 {
   Bool bBoundary = false;
-  UInt uiLPelX   = pcCU->getCUPelX() + g_auiConvertPartIdxToPelX[ g_auiConvertRelToAbsIdx[uiAbsPartIdx] ];
+  UInt uiLPelX   = pcCU->getCUPelX() + g_auiRasterToPelX[ g_auiZscanToRaster[uiAbsPartIdx] ];
   UInt uiRPelX   = uiLPelX + (g_uiMaxCUWidth>>uiDepth)  - 1;
-  UInt uiTPelY   = pcCU->getCUPelY() + g_auiConvertPartIdxToPelY[ g_auiConvertRelToAbsIdx[uiAbsPartIdx] ];
+  UInt uiTPelY   = pcCU->getCUPelY() + g_auiRasterToPelY[ g_auiZscanToRaster[uiAbsPartIdx] ];
   UInt uiBPelY   = uiTPelY + (g_uiMaxCUHeight>>uiDepth) - 1;
 
   if( ( uiRPelX >= pcCU->getSlice()->getSPS()->getWidth() ) || ( uiBPelY >= pcCU->getSlice()->getSPS()->getHeight() ) )
@@ -743,8 +735,8 @@ Void TEncAdaptiveLoopFilter::xEncodeCUAlfCtrlFlag(TComDataCU* pcCU, UInt uiAbsPa
     UInt uiQNumParts = ( m_pcPic->getNumPartInCU() >> (uiDepth<<1) )>>2;
     for ( UInt uiPartUnitIdx = 0; uiPartUnitIdx < 4; uiPartUnitIdx++, uiAbsPartIdx+=uiQNumParts )
     {
-      uiLPelX   = pcCU->getCUPelX() + g_auiConvertPartIdxToPelX[ g_auiConvertRelToAbsIdx[uiAbsPartIdx] ];
-      uiTPelY   = pcCU->getCUPelY() + g_auiConvertPartIdxToPelY[ g_auiConvertRelToAbsIdx[uiAbsPartIdx] ];
+      uiLPelX   = pcCU->getCUPelX() + g_auiRasterToPelX[ g_auiZscanToRaster[uiAbsPartIdx] ];
+      uiTPelY   = pcCU->getCUPelY() + g_auiRasterToPelY[ g_auiZscanToRaster[uiAbsPartIdx] ];
 
       if( ( uiLPelX < pcCU->getSlice()->getSPS()->getWidth() ) && ( uiTPelY < pcCU->getSlice()->getSPS()->getHeight() ) )
         xEncodeCUAlfCtrlFlag(pcCU, uiAbsPartIdx, uiDepth+1);
@@ -761,11 +753,10 @@ Void TEncAdaptiveLoopFilter::xCalcALFCoeff( ALFParam* pAlfParam )
 
   Int    *qh;
 
-  Int tap  = pAlfParam->tap;
-  Int N    = pAlfParam->num_coeff;
-  Double** corr = m_ppdAlfCorr;
-  Double* h    = m_pdDoubleAlfCoeff;
-  qh   = pAlfParam->coeff;
+  Int tap			= pAlfParam->tap;
+  Int N				= pAlfParam->num_coeff;
+  Double* h   = m_pdDoubleAlfCoeff;
+  qh					= pAlfParam->coeff;
 
   iErrCode = xGauss(m_ppdAlfCorr, N);
 
@@ -800,6 +791,7 @@ Void TEncAdaptiveLoopFilter::xCalcStoredCorrelationFuncBlock(Pel* pOrg, Pel* pCm
     pFiltPos = m_aiSymmetricArray9x9;
     break;
   default:
+		pFiltPos = m_aiSymmetricArray9x9;
     assert(0);
     break;
   }
@@ -865,6 +857,7 @@ Void TEncAdaptiveLoopFilter::xCalcCorrelationFunc(Pel* pOrg, Pel* pCmp, Int iTap
     pFiltPos = m_aiSymmetricArray9x9;
     break;
   default:
+		pFiltPos = m_aiSymmetricArray9x9;
     assert(0);
     break;
   }
@@ -936,6 +929,7 @@ Void TEncAdaptiveLoopFilter::xCalcCorrelationFuncBlock(Pel* pOrg, Pel* pCmp, Int
     pFiltPos = m_aiSymmetricArray9x9;
     break;
   default:
+		pFiltPos = m_aiSymmetricArray9x9;
     assert(0);
     break;
   }
@@ -981,45 +975,25 @@ Void TEncAdaptiveLoopFilter::xCalcCorrelationFuncBlock(Pel* pOrg, Pel* pCmp, Int
   pTerm = NULL;
 }
 
-UInt64 TEncAdaptiveLoopFilter::xCalcSSD(Pel* pOrg, Pel* pCmp, Int iWidth, Int iHeight, Int iStride, Bool bCADRDsc)
+UInt64 TEncAdaptiveLoopFilter::xCalcSSD(Pel* pOrg, Pel* pCmp, Int iWidth, Int iHeight, Int iStride )
 {
   UInt64 uiSSD = 0;
   Int x, y;
 
-  if (g_uiBitIncrement)
-  {
-    UInt uiShift = g_uiBitIncrement<<1;
-    Int iTemp;
+  UInt uiShift = g_uiBitIncrement<<1;
+  Int iTemp;
 
-    for( y = 0; y < iHeight; y++ )
-    {
-      for( x = 0; x < iWidth; x++ )
-      {
-        iTemp = pOrg[x] - pCmp[x]; uiSSD += ( iTemp * iTemp ) >> uiShift;
-      }
-      pOrg += iStride;
-      pCmp += iStride;
-    }
-  }
-  else
+  for( y = 0; y < iHeight; y++ )
   {
-    for( y = 0; y < iHeight; y++ )
+    for( x = 0; x < iWidth; x++ )
     {
-      for( x = 0; x < iWidth; x++ )
-      {
-        uiSSD += g_puiSqrBase[pOrg[x] - pCmp[x]];
-      }
-      pOrg += iStride;
-      pCmp += iStride;
+      iTemp = pOrg[x] - pCmp[x]; uiSSD += ( iTemp * iTemp ) >> uiShift;
     }
+    pOrg += iStride;
+    pCmp += iStride;
   }
 
-	if ( g_bUseCADR && bCADRDsc)
-	{
-		uiSSD = CADR_DESCALE2( uiSSD, g_iRangeCADR );
-	}
-
-  return uiSSD;;
+	return uiSSD;;
 }
 
 Int TEncAdaptiveLoopFilter::xGauss(Double **a, Int N)
@@ -1108,6 +1082,7 @@ Void TEncAdaptiveLoopFilter::xQuantFilterCoef(Double* h, Int* qh, Int tap, int b
     pFiltMag = m_aiSymmetricMag9x9;
     break;
   default:
+		pFiltMag = m_aiSymmetricMag9x9;
     assert(0);
     break;
   }
@@ -1336,8 +1311,8 @@ Void TEncAdaptiveLoopFilter::xFilteringFrameLuma(TComPicYuv* pcPicOrg, TComPicYu
     for( UInt uiIdx = 0; uiIdx < m_pcPic->getNumPartInCU() ; uiIdx+=4 )
     {
       TComDataCU* pcCU = m_pcPic->getCU(uiCUAddr);
-      UInt uiLPelX   = pcCU->getCUPelX() + g_auiConvertPartIdxToPelX[ g_auiConvertRelToAbsIdx[uiIdx] ];
-      UInt uiTPelY   = pcCU->getCUPelY() + g_auiConvertPartIdxToPelY[ g_auiConvertRelToAbsIdx[uiIdx] ];
+      UInt uiLPelX   = pcCU->getCUPelX() + g_auiRasterToPelX[ g_auiZscanToRaster[uiIdx] ];
+      UInt uiTPelY   = pcCU->getCUPelY() + g_auiRasterToPelY[ g_auiZscanToRaster[uiIdx] ];
 
       if (uiLPelX >= pcPicOrg->getWidth() || uiTPelY >= pcPicOrg->getHeight())
       {
@@ -1497,9 +1472,9 @@ Void TEncAdaptiveLoopFilter::xSetCUAlfCtrlFlags(UInt uiAlfCtrlDepth, TComPicYuv*
 Void TEncAdaptiveLoopFilter::xSetCUAlfCtrlFlag(TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth, UInt uiAlfCtrlDepth, TComPicYuv* pcPicOrg, TComPicYuv* pcPicDec, TComPicYuv* pcPicRest, UInt64& ruiDist)
 {
   Bool bBoundary = false;
-  UInt uiLPelX   = pcCU->getCUPelX() + g_auiConvertPartIdxToPelX[ g_auiConvertRelToAbsIdx[uiAbsPartIdx] ];
+  UInt uiLPelX   = pcCU->getCUPelX() + g_auiRasterToPelX[ g_auiZscanToRaster[uiAbsPartIdx] ];
   UInt uiRPelX   = uiLPelX + (g_uiMaxCUWidth>>uiDepth)  - 1;
-  UInt uiTPelY   = pcCU->getCUPelY() + g_auiConvertPartIdxToPelY[ g_auiConvertRelToAbsIdx[uiAbsPartIdx] ];
+  UInt uiTPelY   = pcCU->getCUPelY() + g_auiRasterToPelY[ g_auiZscanToRaster[uiAbsPartIdx] ];
   UInt uiBPelY   = uiTPelY + (g_uiMaxCUHeight>>uiDepth) - 1;
 
   if( ( uiRPelX >= pcCU->getSlice()->getSPS()->getWidth() ) || ( uiBPelY >= pcCU->getSlice()->getSPS()->getHeight() ) )
@@ -1512,8 +1487,8 @@ Void TEncAdaptiveLoopFilter::xSetCUAlfCtrlFlag(TComDataCU* pcCU, UInt uiAbsPartI
     UInt uiQNumParts = ( m_pcPic->getNumPartInCU() >> (uiDepth<<1) )>>2;
     for ( UInt uiPartUnitIdx = 0; uiPartUnitIdx < 4; uiPartUnitIdx++, uiAbsPartIdx+=uiQNumParts )
     {
-      uiLPelX   = pcCU->getCUPelX() + g_auiConvertPartIdxToPelX[ g_auiConvertRelToAbsIdx[uiAbsPartIdx] ];
-      uiTPelY   = pcCU->getCUPelY() + g_auiConvertPartIdxToPelY[ g_auiConvertRelToAbsIdx[uiAbsPartIdx] ];
+      uiLPelX   = pcCU->getCUPelX() + g_auiRasterToPelX[ g_auiZscanToRaster[uiAbsPartIdx] ];
+      uiTPelY   = pcCU->getCUPelY() + g_auiRasterToPelY[ g_auiZscanToRaster[uiAbsPartIdx] ];
 
       if( ( uiLPelX < pcCU->getSlice()->getSPS()->getWidth() ) && ( uiTPelY < pcCU->getSlice()->getSPS()->getHeight() ) )
         xSetCUAlfCtrlFlag(pcCU, uiAbsPartIdx, uiDepth+1, uiAlfCtrlDepth, pcPicOrg, pcPicDec, pcPicRest, ruiDist);
@@ -1565,8 +1540,8 @@ Void TEncAdaptiveLoopFilter::xSetCUAlfCtrlFlag(TComDataCU* pcCU, UInt uiAbsPartI
   Pel* pRec = pcPicDec->getLumaAddr(uiCUAddr, uiAbsPartIdx);
   Pel* pFilt = pcPicRest->getLumaAddr(uiCUAddr, uiAbsPartIdx);
 
-  uiRecSSD += xCalcSSD(pOrg, pRec, iWidth, iHeight, pcPicOrg->getStride(), false);
-  uiFiltSSD += xCalcSSD(pOrg, pFilt, iWidth, iHeight, pcPicOrg->getStride(), false);
+  uiRecSSD  += xCalcSSD( pOrg, pRec,  iWidth, iHeight, pcPicOrg->getStride() );
+  uiFiltSSD += xCalcSSD( pOrg, pFilt, iWidth, iHeight, pcPicOrg->getStride() );
 
   if (uiFiltSSD < uiRecSSD)
   {
@@ -1592,9 +1567,9 @@ Void TEncAdaptiveLoopFilter::xCopyDecToRestCUs(TComPicYuv* pcPicDec, TComPicYuv*
 Void TEncAdaptiveLoopFilter::xCopyDecToRestCU(TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth, TComPicYuv* pcPicDec, TComPicYuv* pcPicRest)
 {
   Bool bBoundary = false;
-  UInt uiLPelX   = pcCU->getCUPelX() + g_auiConvertPartIdxToPelX[ g_auiConvertRelToAbsIdx[uiAbsPartIdx] ];
+  UInt uiLPelX   = pcCU->getCUPelX() + g_auiRasterToPelX[ g_auiZscanToRaster[uiAbsPartIdx] ];
   UInt uiRPelX   = uiLPelX + (g_uiMaxCUWidth>>uiDepth)  - 1;
-  UInt uiTPelY   = pcCU->getCUPelY() + g_auiConvertPartIdxToPelY[ g_auiConvertRelToAbsIdx[uiAbsPartIdx] ];
+  UInt uiTPelY   = pcCU->getCUPelY() + g_auiRasterToPelY[ g_auiZscanToRaster[uiAbsPartIdx] ];
   UInt uiBPelY   = uiTPelY + (g_uiMaxCUHeight>>uiDepth) - 1;
 
   if( ( uiRPelX >= pcCU->getSlice()->getSPS()->getWidth() ) || ( uiBPelY >= pcCU->getSlice()->getSPS()->getHeight() ) )
@@ -1607,8 +1582,8 @@ Void TEncAdaptiveLoopFilter::xCopyDecToRestCU(TComDataCU* pcCU, UInt uiAbsPartId
     UInt uiQNumParts = ( m_pcPic->getNumPartInCU() >> (uiDepth<<1) )>>2;
     for ( UInt uiPartUnitIdx = 0; uiPartUnitIdx < 4; uiPartUnitIdx++, uiAbsPartIdx+=uiQNumParts )
     {
-      uiLPelX   = pcCU->getCUPelX() + g_auiConvertPartIdxToPelX[ g_auiConvertRelToAbsIdx[uiAbsPartIdx] ];
-      uiTPelY   = pcCU->getCUPelY() + g_auiConvertPartIdxToPelY[ g_auiConvertRelToAbsIdx[uiAbsPartIdx] ];
+      uiLPelX   = pcCU->getCUPelX() + g_auiRasterToPelX[ g_auiZscanToRaster[uiAbsPartIdx] ];
+      uiTPelY   = pcCU->getCUPelY() + g_auiRasterToPelY[ g_auiZscanToRaster[uiAbsPartIdx] ];
 
       if( ( uiLPelX < pcCU->getSlice()->getSPS()->getWidth() ) && ( uiTPelY < pcCU->getSlice()->getSPS()->getHeight() ) )
         xCopyDecToRestCU(pcCU, uiAbsPartIdx, uiDepth+1, pcPicDec, pcPicRest);

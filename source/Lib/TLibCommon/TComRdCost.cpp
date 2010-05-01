@@ -175,11 +175,6 @@ Void TComRdCost::init()
   m_afpDistortFunc[27] = TComRdCost::xGetHADs;
   m_afpDistortFunc[28] = TComRdCost::xGetHADs;
 
-  m_afpDistortFunc[29] = TComRdCost::xGetSADSHVPart;
-  m_afpDistortFunc[30] = TComRdCost::xGetSADSHVPart;
-  m_afpDistortFunc[31] = TComRdCost::xGetSADsSHVPart;
-  m_afpDistortFunc[32] = TComRdCost::xGetHADsSHVPart;
-
   m_puiComponentCostOriginP = NULL;
   m_puiComponentCost        = NULL;
   m_puiVerCost              = NULL;
@@ -244,7 +239,7 @@ Void TComRdCost::setDistParam( UInt uiBlkWidth, UInt uiBlkHeight, DFunc eDFunc, 
   // set Block Width / Height
   rcDistParam.iCols    = uiBlkWidth;
   rcDistParam.iRows    = uiBlkHeight;
-  rcDistParam.DistFunc = m_afpDistortFunc[DF_SSE + g_aucConvertToBit[ rcDistParam.iCols ] + 1 ];
+  rcDistParam.DistFunc = m_afpDistortFunc[eDFunc + g_aucConvertToBit[ rcDistParam.iCols ] + 1 ];
 }
 
 // Setting the Distortion Parameter for Inter (ME)
@@ -260,11 +255,7 @@ Void TComRdCost::setDistParam( TComPattern* pcPatternKey, Pel* piRefY, Int iRefS
   // set Block Width / Height
   rcDistParam.iCols    = pcPatternKey->getROIYWidth();
   rcDistParam.iRows    = pcPatternKey->getROIYHeight();
-
-  if (rcDistParam.bNonRectPartFlag )
-    rcDistParam.DistFunc = m_afpDistortFunc[DF_SHV_SAD];
-  else
-  	rcDistParam.DistFunc = m_afpDistortFunc[DF_SAD + g_aucConvertToBit[ rcDistParam.iCols ] + 1 ];
+ 	rcDistParam.DistFunc = m_afpDistortFunc[DF_SAD + g_aucConvertToBit[ rcDistParam.iCols ] + 1 ];
 }
 
 // Setting the Distortion Parameter for Inter (subpel ME with step)
@@ -287,17 +278,11 @@ Void TComRdCost::setDistParam( TComPattern* pcPatternKey, Pel* piRefY, Int iRefS
 	// set distortion function
 	if ( !bHADME )
 	{
-    if (rcDistParam.bNonRectPartFlag )
-      rcDistParam.DistFunc = m_afpDistortFunc[DF_SHV_SADs];
-    else
 		rcDistParam.DistFunc = m_afpDistortFunc[DF_SADS + g_aucConvertToBit[ rcDistParam.iCols ] + 1 ];
 	}
 	else
 	{
-    if (rcDistParam.bNonRectPartFlag )
-      rcDistParam.DistFunc = m_afpDistortFunc[DF_SHV_HADs];
-    else
-  		rcDistParam.DistFunc = m_afpDistortFunc[DF_HADS + g_aucConvertToBit[ rcDistParam.iCols ] + 1 ];
+ 		rcDistParam.DistFunc = m_afpDistortFunc[DF_HADS + g_aucConvertToBit[ rcDistParam.iCols ] + 1 ];
 	}
 }
 
@@ -343,18 +328,7 @@ UInt TComRdCost::calcHAD( Pel* pi0, Int iStride0, Pel* pi1, Int iStride1, Int iW
 		}
 	}
 
-#if CADR_DIST
-	if ( !g_bUseCADR )
-	{
-		return ( uiSum >> g_uiBitIncrement );
-	}
-	else
-	{
-		return CADR_DESCALE( uiSum >> g_uiBitIncrement, g_iRangeCADR );
-	}
-#else
 	return ( uiSum >> g_uiBitIncrement );
-#endif
 }
 
 UInt TComRdCost::getDistPart( Pel* piCur, Int iCurStride,  Pel* piOrg, Int iOrgStride, UInt uiBlkWidth, UInt uiBlkHeight, DFunc eDFunc )
@@ -397,18 +371,7 @@ UInt TComRdCost::xGetSAD( DistParam* pcDtParam )
     piCur += iStrideCur;
   }
 
-#if CADR_DIST
-	if ( !g_bUseCADR )
-	{
-		return ( uiSum >> g_uiBitIncrement );
-	}
-	else
-	{
-		return CADR_DESCALE( uiSum >> g_uiBitIncrement, g_iRangeCADR );
-	}
-#else
 	return ( uiSum >> g_uiBitIncrement );
-#endif
 }
 
 UInt TComRdCost::xGetSAD4( DistParam* pcDtParam )
@@ -432,18 +395,7 @@ UInt TComRdCost::xGetSAD4( DistParam* pcDtParam )
     piCur += iStrideCur;
   }
 
-#if CADR_DIST
-	if ( !g_bUseCADR )
-	{
-		return ( uiSum >> g_uiBitIncrement );
-	}
-	else
-	{
-		return CADR_DESCALE( uiSum >> g_uiBitIncrement, g_iRangeCADR );
-	}
-#else
 	return ( uiSum >> g_uiBitIncrement );
-#endif
 }
 
 UInt TComRdCost::xGetSAD8( DistParam* pcDtParam )
@@ -471,18 +423,7 @@ UInt TComRdCost::xGetSAD8( DistParam* pcDtParam )
     piCur += iStrideCur;
   }
 
-#if CADR_DIST
-	if ( !g_bUseCADR )
-	{
-		return ( uiSum >> g_uiBitIncrement );
-	}
-	else
-	{
-		return CADR_DESCALE( uiSum >> g_uiBitIncrement, g_iRangeCADR );
-	}
-#else
 	return ( uiSum >> g_uiBitIncrement );
-#endif
 }
 
 UInt TComRdCost::xGetSAD16( DistParam* pcDtParam )
@@ -519,18 +460,7 @@ UInt TComRdCost::xGetSAD16( DistParam* pcDtParam )
     piCur += iStrideCur;
   }
 
-#if CADR_DIST
-	if ( !g_bUseCADR )
-	{
-		return ( uiSum >> g_uiBitIncrement );
-	}
-	else
-	{
-		return CADR_DESCALE( uiSum >> g_uiBitIncrement, g_iRangeCADR );
-	}
-#else
 	return ( uiSum >> g_uiBitIncrement );
-#endif
 }
 
 UInt TComRdCost::xGetSAD16N( DistParam* pcDtParam )
@@ -569,18 +499,7 @@ UInt TComRdCost::xGetSAD16N( DistParam* pcDtParam )
     piCur += iStrideCur;
   }
 
-#if CADR_DIST
-	if ( !g_bUseCADR )
-	{
-		return ( uiSum >> g_uiBitIncrement );
-	}
-	else
-	{
-		return CADR_DESCALE( uiSum >> g_uiBitIncrement, g_iRangeCADR );
-	}
-#else
 	return ( uiSum >> g_uiBitIncrement );
-#endif
 }
 
 UInt TComRdCost::xGetSAD32( DistParam* pcDtParam )
@@ -633,18 +552,7 @@ UInt TComRdCost::xGetSAD32( DistParam* pcDtParam )
     piCur += iStrideCur;
   }
 
-#if CADR_DIST
-	if ( !g_bUseCADR )
-	{
-		return ( uiSum >> g_uiBitIncrement );
-	}
-	else
-	{
-		return CADR_DESCALE( uiSum >> g_uiBitIncrement, g_iRangeCADR );
-	}
-#else
 	return ( uiSum >> g_uiBitIncrement );
-#endif
 }
 
 UInt TComRdCost::xGetSAD64( DistParam* pcDtParam )
@@ -728,18 +636,7 @@ UInt TComRdCost::xGetSAD64( DistParam* pcDtParam )
     piCur += iStrideCur;
   }
 
-#if CADR_DIST
-	if ( !g_bUseCADR )
-	{
-		return ( uiSum >> g_uiBitIncrement );
-	}
-	else
-	{
-		return CADR_DESCALE( uiSum >> g_uiBitIncrement, g_iRangeCADR );
-	}
-#else
 	return ( uiSum >> g_uiBitIncrement );
-#endif
 }
 
 // --------------------------------------------------------------------------------------------------------------------
@@ -768,18 +665,7 @@ UInt TComRdCost::xGetSADs( DistParam* pcDtParam )
     piCur += iStrideCur;
   }
 
-#if CADR_DIST
-	if ( !g_bUseCADR )
-	{
-		return ( uiSum >> g_uiBitIncrement );
-	}
-	else
-	{
-		return CADR_DESCALE( uiSum >> g_uiBitIncrement, g_iRangeCADR );
-	}
-#else
 	return ( uiSum >> g_uiBitIncrement );
-#endif
 }
 
 UInt TComRdCost::xGetSADs4( DistParam* pcDtParam )
@@ -806,18 +692,7 @@ UInt TComRdCost::xGetSADs4( DistParam* pcDtParam )
     piCur += iStrideCur;
   }
 
-#if CADR_DIST
-	if ( !g_bUseCADR )
-	{
-		return ( uiSum >> g_uiBitIncrement );
-	}
-	else
-	{
-		return CADR_DESCALE( uiSum >> g_uiBitIncrement, g_iRangeCADR );
-	}
-#else
 	return ( uiSum >> g_uiBitIncrement );
-#endif
 }
 
 UInt TComRdCost::xGetSADs8( DistParam* pcDtParam )
@@ -852,18 +727,7 @@ UInt TComRdCost::xGetSADs8( DistParam* pcDtParam )
     piCur += iStrideCur;
   }
 
-#if CADR_DIST
-	if ( !g_bUseCADR )
-	{
-		return ( uiSum >> g_uiBitIncrement );
-	}
-	else
-	{
-		return CADR_DESCALE( uiSum >> g_uiBitIncrement, g_iRangeCADR );
-	}
-#else
 	return ( uiSum >> g_uiBitIncrement );
-#endif
 }
 
 UInt TComRdCost::xGetSADs16( DistParam* pcDtParam )
@@ -914,18 +778,7 @@ UInt TComRdCost::xGetSADs16( DistParam* pcDtParam )
     piCur += iStrideCur;
   }
 
-#if CADR_DIST
-	if ( !g_bUseCADR )
-	{
-		return ( uiSum >> g_uiBitIncrement );
-	}
-	else
-	{
-		return CADR_DESCALE( uiSum >> g_uiBitIncrement, g_iRangeCADR );
-	}
-#else
 	return ( uiSum >> g_uiBitIncrement );
-#endif
 }
 
 UInt TComRdCost::xGetSADs16N( DistParam* pcDtParam )
@@ -965,18 +818,7 @@ UInt TComRdCost::xGetSADs16N( DistParam* pcDtParam )
     piCur += iStrideCur;
   }
 
-#if CADR_DIST
-	if ( !g_bUseCADR )
-	{
-		return ( uiSum >> g_uiBitIncrement );
-	}
-	else
-	{
-		return CADR_DESCALE( uiSum >> g_uiBitIncrement, g_iRangeCADR );
-	}
-#else
 	return ( uiSum >> g_uiBitIncrement );
-#endif
 }
 
 UInt TComRdCost::xGetSADs32( DistParam* pcDtParam )
@@ -1059,18 +901,7 @@ UInt TComRdCost::xGetSADs32( DistParam* pcDtParam )
     piCur += iStrideCur;
   }
 
-#if CADR_DIST
-	if ( !g_bUseCADR )
-	{
-		return ( uiSum >> g_uiBitIncrement );
-	}
-	else
-	{
-		return CADR_DESCALE( uiSum >> g_uiBitIncrement, g_iRangeCADR );
-	}
-#else
 	return ( uiSum >> g_uiBitIncrement );
-#endif
 }
 
 UInt TComRdCost::xGetSADs64( DistParam* pcDtParam )
@@ -1217,18 +1048,7 @@ UInt TComRdCost::xGetSADs64( DistParam* pcDtParam )
     piCur += iStrideCur;
   }
 
-#if CADR_DIST
-	if ( !g_bUseCADR )
-	{
-		return ( uiSum >> g_uiBitIncrement );
-	}
-	else
-	{
-		return CADR_DESCALE( uiSum >> g_uiBitIncrement, g_iRangeCADR );
-	}
-#else
 	return ( uiSum >> g_uiBitIncrement );
-#endif
 }
 
 // --------------------------------------------------------------------------------------------------------------------
@@ -1237,70 +1057,56 @@ UInt TComRdCost::xGetSADs64( DistParam* pcDtParam )
 
 UInt TComRdCost::xGetSSE( DistParam* pcDtParam )
 {
-  Pel* piOrg   = pcDtParam->pOrg;
-  Pel* piCur   = pcDtParam->pCur;
-  Int  iRows   = pcDtParam->iRows;
-  Int  iCols   = pcDtParam->iCols;
-  Int  iStrideOrg = pcDtParam->iStrideOrg;
-  Int  iStrideCur = pcDtParam->iStrideCur;
+	Pel* piOrg   = pcDtParam->pOrg;
+	Pel* piCur   = pcDtParam->pCur;
+	Int  iRows   = pcDtParam->iRows;
+	Int  iCols   = pcDtParam->iCols;
+	Int  iStrideOrg = pcDtParam->iStrideOrg;
+	Int  iStrideCur = pcDtParam->iStrideCur;
 
-  UInt uiSum = 0;
-  UInt uiShift = g_uiBitIncrement<<1;
+	UInt uiSum = 0;
+	UInt uiShift = g_uiBitIncrement<<1;
 
-  Int iTemp;
+	Int iTemp;
 
 	for( ; iRows != 0; iRows-- )
-	  {
+	{
 		for (Int n = 0; n < iCols; n++ )
 		{
-		  iTemp = piOrg[n  ] - piCur[n  ];
-		  uiSum += ( iTemp * iTemp ) >> uiShift;
+			iTemp = piOrg[n  ] - piCur[n  ];
+			uiSum += ( iTemp * iTemp ) >> uiShift;
 		}
 		piOrg += iStrideOrg;
 		piCur += iStrideCur;
-	  }
-
-#if CADR_DIST
-	if ( g_bUseCADR )
-	{
-		uiSum = (UInt)CADR_DESCALE2( (Double)uiSum, g_iRangeCADR );
 	}
-#endif
 
 	return ( uiSum );
 }
 
 UInt TComRdCost::xGetSSE4( DistParam* pcDtParam )
 {
-  Pel* piOrg   = pcDtParam->pOrg;
-  Pel* piCur   = pcDtParam->pCur;
-  Int  iRows   = pcDtParam->iRows;
-  Int  iStrideOrg = pcDtParam->iStrideOrg;
-  Int  iStrideCur = pcDtParam->iStrideCur;
+	Pel* piOrg   = pcDtParam->pOrg;
+	Pel* piCur   = pcDtParam->pCur;
+	Int  iRows   = pcDtParam->iRows;
+	Int  iStrideOrg = pcDtParam->iStrideOrg;
+	Int  iStrideCur = pcDtParam->iStrideCur;
 
-  UInt uiSum = 0;
-  UInt uiShift = g_uiBitIncrement<<1;
+	UInt uiSum = 0;
+	UInt uiShift = g_uiBitIncrement<<1;
 
 	Int  iTemp;
 
-  for( ; iRows != 0; iRows-- )
-  {
-
-    iTemp = piOrg[0] - piCur[0]; uiSum += ( iTemp * iTemp ) >> uiShift;
-    iTemp = piOrg[1] - piCur[1]; uiSum += ( iTemp * iTemp ) >> uiShift;
-    iTemp = piOrg[2] - piCur[2]; uiSum += ( iTemp * iTemp ) >> uiShift;
-    iTemp = piOrg[3] - piCur[3]; uiSum += ( iTemp * iTemp ) >> uiShift;
-
-    piOrg += iStrideOrg;
-    piCur += iStrideCur;
-  }
-
-#if CADR_DIST
-	if ( g_bUseCADR )
+	for( ; iRows != 0; iRows-- )
 	{
-		uiSum = (UInt)CADR_DESCALE2( (Double)uiSum, g_iRangeCADR );
+
+		iTemp = piOrg[0] - piCur[0]; uiSum += ( iTemp * iTemp ) >> uiShift;
+		iTemp = piOrg[1] - piCur[1]; uiSum += ( iTemp * iTemp ) >> uiShift;
+		iTemp = piOrg[2] - piCur[2]; uiSum += ( iTemp * iTemp ) >> uiShift;
+		iTemp = piOrg[3] - piCur[3]; uiSum += ( iTemp * iTemp ) >> uiShift;
+
+		piOrg += iStrideOrg;
+		piCur += iStrideCur;
 	}
-#endif
 
 	return ( uiSum );
 }
@@ -1332,13 +1138,6 @@ UInt TComRdCost::xGetSSE8( DistParam* pcDtParam )
     piOrg += iStrideOrg;
     piCur += iStrideCur;
   }
-
-#if CADR_DIST
-	if ( g_bUseCADR )
-	{
-		uiSum = (UInt)CADR_DESCALE2( (Double)uiSum, g_iRangeCADR );
-	}
-#endif
 
 	return ( uiSum );
 }
@@ -1379,13 +1178,6 @@ UInt TComRdCost::xGetSSE16( DistParam* pcDtParam )
     piOrg += iStrideOrg;
     piCur += iStrideCur;
   }
-
-#if CADR_DIST
-	if ( g_bUseCADR )
-	{
-		uiSum = (UInt)CADR_DESCALE2( (Double)uiSum, g_iRangeCADR );
-	}
-#endif
 
 	return ( uiSum );
 }
@@ -1429,13 +1221,6 @@ UInt TComRdCost::xGetSSE16N( DistParam* pcDtParam )
     piOrg += iStrideOrg;
     piCur += iStrideCur;
   }
-
-#if CADR_DIST
-	if ( g_bUseCADR )
-	{
-		uiSum = (UInt)CADR_DESCALE2( (Double)uiSum, g_iRangeCADR );
-	}
-#endif
 
 	return ( uiSum );
 }
@@ -1491,13 +1276,6 @@ UInt TComRdCost::xGetSSE32( DistParam* pcDtParam )
     piOrg += iStrideOrg;
     piCur += iStrideCur;
   }
-
-#if CADR_DIST
-	if ( g_bUseCADR )
-	{
-		uiSum = (UInt)CADR_DESCALE2( (Double)uiSum, g_iRangeCADR );
-	}
-#endif
 
 	return ( uiSum );
 }
@@ -1584,13 +1362,6 @@ UInt TComRdCost::xGetSSE64( DistParam* pcDtParam )
     piOrg += iStrideOrg;
     piCur += iStrideCur;
   }
-
-#if CADR_DIST
-	if ( g_bUseCADR )
-	{
-		uiSum = (UInt)CADR_DESCALE2( (Double)uiSum, g_iRangeCADR );
-	}
-#endif
 
 	return ( uiSum );
 }
@@ -1831,18 +1602,7 @@ UInt TComRdCost::xGetHADs4( DistParam* pcDtParam )
 		piCur += iOffsetCur;
 	}
 
-#if CADR_DIST
-	if ( !g_bUseCADR )
-	{
-		return ( uiSum >> g_uiBitIncrement );
-	}
-	else
-	{
-		return CADR_DESCALE( uiSum >> g_uiBitIncrement, g_iRangeCADR );
-	}
-#else
 	return ( uiSum >> g_uiBitIncrement );
-#endif
 }
 
 UInt TComRdCost::xGetHADs8( DistParam* pcDtParam )
@@ -1874,18 +1634,7 @@ UInt TComRdCost::xGetHADs8( DistParam* pcDtParam )
 		}
 	}
 
-#if CADR_DIST
-	if ( !g_bUseCADR )
-	{
-		return ( uiSum >> g_uiBitIncrement );
-	}
-	else
-	{
-		return CADR_DESCALE( uiSum >> g_uiBitIncrement, g_iRangeCADR );
-	}
-#else
 	return ( uiSum >> g_uiBitIncrement );
-#endif
 }
 
 UInt TComRdCost::xGetHADs( DistParam* pcDtParam )
@@ -1944,145 +1693,5 @@ UInt TComRdCost::xGetHADs( DistParam* pcDtParam )
 	  }
   }
 
-#if CADR_DIST
-	if ( !g_bUseCADR )
-	{
-		return ( uiSum >> g_uiBitIncrement );
-	}
-	else
-	{
-		return CADR_DESCALE( uiSum >> g_uiBitIncrement, g_iRangeCADR );
-	}
-#else
 	return ( uiSum >> g_uiBitIncrement );
-#endif
-}
-
-UInt TComRdCost::xGetSADSHVPart( DistParam* pcDtParam )
-{
-  Pel*  pOrg_backup   = pcDtParam->pOrg;
-  Pel*  pCur_backup   = pcDtParam->pCur;
-  Int   iRows_backup  = pcDtParam->iRows;
-  Int   iCols_backup  = pcDtParam->iCols;
-
-  Int i;
-
-  UInt uiSad = 0;
-  for ( i = 0; i < 2; i++ )
-  {
-    pcDtParam->pOrg  = pOrg_backup + pcDtParam->iStrideOrg*pcDtParam->eNonRectPartInfo.iStartY[i] + pcDtParam->eNonRectPartInfo.iStartX[i];
-    pcDtParam->pCur  = pCur_backup + pcDtParam->iStrideCur*pcDtParam->eNonRectPartInfo.iStartY[i] + pcDtParam->eNonRectPartInfo.iStartX[i];
-    pcDtParam->iRows = pcDtParam->eNonRectPartInfo.iRows[i];
-    pcDtParam->iCols = pcDtParam->eNonRectPartInfo.iCols[i];
-    switch ( pcDtParam->iCols )
-    {
-    case 4:
-      uiSad += xGetSAD4(pcDtParam);
-      break;
-    case 8:
-      uiSad += xGetSAD8(pcDtParam);
-      break;
-    case 16:
-      uiSad += xGetSAD16(pcDtParam);
-      break;
-    case 32:
-      uiSad += xGetSAD32(pcDtParam);
-      break;
-    case 64:
-      uiSad += xGetSAD64(pcDtParam);
-      break;
-    case 128:
-      uiSad += xGetSAD16N(pcDtParam);
-      break;
-    default:
-      uiSad += xGetSAD(pcDtParam);
-      break;
-    }
-  }
-
-  pcDtParam->pOrg  = pOrg_backup;
-  pcDtParam->pCur  = pCur_backup;
-  pcDtParam->iRows = iRows_backup;
-  pcDtParam->iCols = iCols_backup;
-
-  return uiSad;
-}
-
-UInt TComRdCost::xGetSADsSHVPart( DistParam* pcDtParam )
-{
-  Pel*  pOrg_backup   = pcDtParam->pOrg;
-  Pel*  pCur_backup   = pcDtParam->pCur;
-  Int   iRows_backup  = pcDtParam->iRows;
-  Int   iCols_backup  = pcDtParam->iCols;
-
-  Int i;
-
-  Int uiSads = 0;
-  for ( i = 0; i < 2; i++ )
-  {
-    pcDtParam->pOrg  = pOrg_backup + pcDtParam->iStrideOrg*pcDtParam->eNonRectPartInfo.iStartY[i] + pcDtParam->eNonRectPartInfo.iStartX[i];
-    pcDtParam->pCur  = pCur_backup + pcDtParam->iStrideCur*pcDtParam->eNonRectPartInfo.iStartY[i] + pcDtParam->eNonRectPartInfo.iStartX[i]*pcDtParam->iStep;
-    pcDtParam->iRows = pcDtParam->eNonRectPartInfo.iRows[i];
-    pcDtParam->iCols = pcDtParam->eNonRectPartInfo.iCols[i];
-
-    switch ( pcDtParam->iCols )
-    {
-    case 4:
-      uiSads += xGetSADs4(pcDtParam);
-      break;
-    case 8:
-      uiSads += xGetSADs8(pcDtParam);
-      break;
-    case 16:
-      uiSads += xGetSADs16(pcDtParam);
-      break;
-    case 32:
-      uiSads += xGetSADs32(pcDtParam);
-      break;
-    case 64:
-      uiSads += xGetSADs64(pcDtParam);
-      break;
-    case 128:
-      uiSads += xGetSADs16N(pcDtParam);
-      break;
-    default:
-      uiSads += xGetSADs(pcDtParam);
-      break;
-    }
-  }
-
-  pcDtParam->pOrg  = pOrg_backup;
-  pcDtParam->pCur  = pCur_backup;
-  pcDtParam->iRows = iRows_backup;
-  pcDtParam->iCols = iCols_backup;
-
-  return uiSads;
-}
-
-UInt TComRdCost::xGetHADsSHVPart( DistParam* pcDtParam )
-{
-  Pel*  pOrg_backup   = pcDtParam->pOrg;
-  Pel*  pCur_backup   = pcDtParam->pCur;
-  Int   iRows_backup  = pcDtParam->iRows;
-  Int   iCols_backup  = pcDtParam->iCols;
-
-  Int i;
-
-  Int uiHads = 0;
-  for ( i = 0; i < 2; i++ )
-  {
-    pcDtParam->pOrg  = pOrg_backup + pcDtParam->iStrideOrg*pcDtParam->eNonRectPartInfo.iStartY[i] + pcDtParam->eNonRectPartInfo.iStartX[i];
-    pcDtParam->pCur  = pCur_backup + pcDtParam->iStrideCur*pcDtParam->eNonRectPartInfo.iStartY[i] + pcDtParam->eNonRectPartInfo.iStartX[i]*pcDtParam->iStep;
-    pcDtParam->iRows = pcDtParam->eNonRectPartInfo.iRows[i];
-    pcDtParam->iCols = pcDtParam->eNonRectPartInfo.iCols[i];
-
-    uiHads += xGetHADs(pcDtParam);
-  }
-
-  pcDtParam->pOrg  = pOrg_backup;
-  pcDtParam->pCur  = pCur_backup;
-  pcDtParam->iRows = iRows_backup;
-  pcDtParam->iCols = iCols_backup;
-
-  return uiHads;
 }

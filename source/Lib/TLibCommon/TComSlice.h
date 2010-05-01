@@ -41,7 +41,6 @@
 #include "TComList.h"
 
 class TComPic;
-class TComGlobalMotion;
 
 // ====================================================================================================================
 // Class definition
@@ -61,41 +60,15 @@ private:
   UInt        m_uiMinTrDepth;
   UInt        m_uiMaxTrDepth;
 
-  // IP list
-  Bool        m_bUseMVAC;
-  Bool        m_bUseADI;
-  Bool				m_bUseROT;
-  Bool				m_bUseMPI;
-  Bool				m_bUseAMVP;
-  Bool				m_bUseIMR;
-  Bool				m_bUseDIF;
+  // Tool list
   Bool				m_bUseALF;
   Bool				m_bUseDQP;
-  Bool				m_bUseRNG;
-  Bool				m_bUseAMP;
-  Bool			  m_bUseSHV;
-
   Bool        m_bUseWPG;
   Bool        m_bUseWPO;
-  Bool        m_bUseWPR;
-  Bool        m_bUseAME;
-  Bool        m_bUseIME;
-  Bool        m_bUsePME;
-  Bool        m_bUseLOT;
-  Bool        m_bUseEXC;
-  Bool        m_bUseCCP;
-  Bool        m_bUseTMI;
   Bool        m_bUseLDC;
-	Bool        m_bUseCIP;
 	Bool        m_bUsePAD;
-  Bool        m_bUseLCT;
 	Bool        m_bUseQBO;
-  Bool        m_bUseACS;
-  Bool				m_bUseHAP;
-  Bool				m_bUseHAB;
-  Bool				m_bUseHME;
 	Int					m_iDIFTap;
-	Int					m_iDIFTapC;
 
 	// Parameter
   AMVP_MODE		m_aeAMVPMode[MAX_CU_DEPTH];
@@ -105,7 +78,7 @@ private:
 	// Max physical transform size
   UInt				m_uiMaxTrSize;
 
-  Int m_iFMPAccuracy[MAX_CU_DEPTH];
+  Int m_iAMPAcc[MAX_CU_DEPTH];
 
 public:
   TComSPS();
@@ -136,92 +109,43 @@ public:
 	Void setMaxTrSize		( UInt u ) { m_uiMaxTrSize = u;       }
 	UInt getMaxTrSize		()				 { return  m_uiMaxTrSize;		}
 
-  // IP List
-	Bool getUseMVAC			()				 { return m_bUseMVAC;				}
-  Bool getUseADI			()				 { return m_bUseADI;				}
-  Bool getUseROT			()				 { return m_bUseROT;				}
-  Bool getUseMPI			()				 { return m_bUseMPI;				}
-  Bool getUseAMVP			()				 { return m_bUseAMVP;				}
-  Bool getUseIMR			()				 { return m_bUseIMR;				}
-  Bool getUseDIF			()				 { return m_bUseDIF;				}
+  // Tool list
   Bool getUseALF			()				 { return m_bUseALF;				}
   Bool getUseDQP			()				 { return m_bUseDQP;				}
-  Bool getUseRNG			()				 { return m_bUseRNG;				}
-  Bool getUseAMP			()				 { return m_bUseAMP;				}
-  Bool getUseSHV			()				 { return m_bUseSHV;				}
 
   Bool getUseWPG			()				 { return m_bUseWPG;				}
   Bool getUseWPO			()				 { return m_bUseWPO;				}
-  Bool getUseWPR			()				 { return m_bUseWPR;				}
-  Bool getUseAME			()				 { return m_bUseAME;				}
-  Bool getUseIME			()				 { return m_bUseIME;				}
-  Bool getUsePME			()				 { return m_bUsePME;				}
-  Bool getUseLOT      ()         { return m_bUseLOT;        }
-  Bool getUseExC      ()         { return m_bUseEXC;        }
-  Bool getUseCCP      ()         { return m_bUseCCP;        }
-  Bool getUseTMI      ()         { return m_bUseTMI;        }
   Bool getUseLDC      ()         { return m_bUseLDC;        }
-	Bool getUseCIP      ()         { return m_bUseCIP;        }
 	Bool getUsePAD      ()         { return m_bUsePAD;        }
-  Bool getUseLCT      ()         { return m_bUseLCT;        }
 	Bool getUseQBO      ()         { return m_bUseQBO;        }
 
-  Bool getUseACS      ()         { return m_bUseACS;        }
-
-  Bool getUseHAP      ()         { return m_bUseHAP;        }
-  Bool getUseHAB      ()         { return m_bUseHAB;        }
-  Bool getUseHME      ()         { return m_bUseHME;        }
-
 	Int	 getDIFTap			()				 { return m_iDIFTap;				}
-	Int	 getDIFTapC			()				 { return m_iDIFTapC;				}
 
-  Void setUseMVAC			( Bool b ) { m_bUseMVAC  = b;					}
-  Void setUseADI			( Bool b ) { m_bUseADI	 = b;					}
-  Void setUseROT			( Bool b ) { m_bUseROT	 = b;					}
-  Void setUseMPI			( Bool b ) { m_bUseMPI	 = b;					}
-  Void setUseAMVP			( Bool b ) { m_bUseAMVP  = b;					}
-  Void setUseIMR			( Bool b ) { m_bUseIMR  = b;					}
-  Void setUseDIF			( Bool b ) { m_bUseDIF  = b;					}
   Void setUseALF			( Bool b ) { m_bUseALF  = b;					}
   Void setUseDQP			( Bool b ) { m_bUseDQP   = b;					}
-  Void setUseRNG			( Bool b ) { m_bUseRNG   = b;					}
-  Void setUseAMP			( Bool b ) { m_bUseAMP   = b;					}
-  Void setUseSHV			( Bool b ) { m_bUseSHV	 = b;					}
 
   Void setUseWPG			( Bool b ) { m_bUseWPG	 = b; if (m_bUseWPG && m_bUseWPO) m_bUseWPO =  false;}
   Void setUseWPO			( Bool b ) { m_bUseWPO	 = b; if (m_bUseWPG && m_bUseWPO) m_bUseWPG =  false;}
-  Void setUseWPR			( Bool b ) { m_bUseWPR	 = b;					}
-  Void setUseAME			( Bool b ) { m_bUseAME	 = b;					}
-  Void setUseIME			( Bool b ) { m_bUseIME	 = b;					}
-  Void setUsePME			( Bool b ) { m_bUsePME	 = b;					}
-  Void setUseLOT      ( Bool b ) { m_bUseLOT   = b;         }
-  Void setUseExC      ( Bool b ) { m_bUseEXC   = b;         }
-  Void setUseCCP      ( Bool b ) { m_bUseCCP   = b;         }
-  Void setUseTMI      ( Bool b ) { m_bUseTMI   = b;         }
   Void setUseLDC      ( Bool b ) { m_bUseLDC   = b;         }
-	Void setUseCIP      ( Bool b ) { m_bUseCIP   = b;         }
 	Void setUsePAD      ( Bool b ) { m_bUsePAD   = b;         }
-  Void setUseLCT      ( Bool b ) { m_bUseLCT   = b;         }
 	Void setUseQBO      ( Bool b ) { m_bUseQBO   = b;         }
-  Void setUseACS      ( Bool b ) { m_bUseACS   = b;         }
-
-  Void setUseHAP      ( Bool b ) { m_bUseHAP   = b;         }
-  Void setUseHAB      ( Bool b ) { m_bUseHAB   = b;         }
-  Void setUseHME      ( Bool b ) { m_bUseHME   = b;         }
 
 	Void setDIFTap			( Int  i ) { m_iDIFTap   = i;         }
-	Void setDIFTapC			( Int  i ) { m_iDIFTapC  = i;         }
 
-	// Parameter
-  AMVP_MODE getAMVPMode(UInt uiDepth) { assert(uiDepth < g_uiMaxCUDepth);	return m_aeAMVPMode[uiDepth]; }
-  Void			setAMVPMode(UInt uiDepth, AMVP_MODE eMode) { assert(uiDepth < g_uiMaxCUDepth);	m_aeAMVPMode[uiDepth] = eMode; }
-  Int   getFMPAccuracy (UInt uiDepth) { return m_iFMPAccuracy[uiDepth]; }
-  Void  setFMPAccuracy (UInt uiDepth, Int iAccu) { assert( uiDepth < g_uiMaxCUDepth);	m_iFMPAccuracy[uiDepth] = iAccu; }
-	UInt getBitDepth		()				 { return m_uiBitDepth;			}
-	Void setBitDepth		( UInt u ) { m_uiBitDepth = u;        }
-	UInt getBitIncrement()				 { return m_uiBitIncrement;	}
-	Void setBitIncrement( UInt u ) { m_uiBitIncrement = u;    }
-};// END CLASS DEFINITION TComSPS
+	// AMVP mode (for each depth)
+  AMVP_MODE getAMVPMode	( UInt uiDepth ) { assert(uiDepth < g_uiMaxCUDepth);	return m_aeAMVPMode[uiDepth]; }
+  Void			setAMVPMode	( UInt uiDepth, AMVP_MODE eMode) { assert(uiDepth < g_uiMaxCUDepth);	m_aeAMVPMode[uiDepth] = eMode; }
+
+	// AMP accuracy
+  Int				getAMPAcc		( UInt uiDepth ) { return m_iAMPAcc[uiDepth]; }
+  Void			setAMPAcc		( UInt uiDepth, Int iAccu ) { assert( uiDepth < g_uiMaxCUDepth);	m_iAMPAcc[uiDepth] = iAccu; }
+
+	// Bit-depth
+	UInt			getBitDepth			()				 { return m_uiBitDepth;			}
+	Void			setBitDepth			( UInt u ) { m_uiBitDepth = u;        }
+	UInt			getBitIncrement	()				 { return m_uiBitIncrement;	}
+	Void			setBitIncrement	( UInt u ) { m_uiBitIncrement = u;    }
+};
 
 /// slice header class
 class TComSlice
@@ -245,54 +169,35 @@ private:
   Int m_aiRefPOCList[2][MAX_NUM_REF+GRF_MAX_NUM_EFF];
   Int         m_iDepth;
 
-	// Referenced slice?
+	// referenced slice?
   Bool        m_bRefenced;
 
-  //  Access channel
+  // access channel
   TComSPS*		m_pcSPS;
   TComPic*    m_pcPic;
 
-  UInt m_uiColDir;  // direction to get colocated CUs
+  UInt				m_uiColDir;  // direction to get colocated CUs
 
 	Double			m_dLambda;
 
-  Int m_iWPWeight[2][GRF_MAX_NUM_WEFF][3];
-  Int m_iWPOffset[2][GRF_MAX_NUM_WEFF][3];
-  Int m_aiWPmode[2]; // flag wheter wp is used
-  Int m_iRFmode; // flag wheter wp refinement is used
-  Int m_iLumaLogWeightDenom;
-  Int m_iChromaLogWeightDenom;
-  Int m_iWPLumaRound;
-  Int m_iWPChromaRound;
+	// generated reference frame for weighted prediction
+  EFF_MODE		m_aeEffectMode[2][GRF_MAX_NUM_EFF];
+  UInt				m_auiAddRefCnt[2];
+  TComPic*		m_apcVirtPic	[2][GRF_MAX_NUM_EFF];
+  Bool				m_abEqualRef	[2][MAX_NUM_REF+GRF_MAX_NUM_EFF][MAX_NUM_REF+GRF_MAX_NUM_EFF];
 
-  EFF_MODE m_aeEffectMode[2][GRF_MAX_NUM_EFF];
-  UInt m_auiAddRefCnt[2];
-  TComPic* m_apcVirtPic[2][GRF_MAX_NUM_EFF];
-  Bool m_abEqualRef[2][MAX_NUM_REF+GRF_MAX_NUM_EFF][MAX_NUM_REF+GRF_MAX_NUM_EFF];
-
-  UInt m_auiGMmode[2]; // Global motion model (0: 0ff, 1: isotropic, 2: affine, 3: perspective)
-
-  UInt m_uiNumOfSpritePoints;
-  UInt m_uiWarpingAccuracy;
-  Int m_iHorSpatRef;
-  Int m_iVerSpatRef;
-
-  TrajPoint m_acRefPointCoord[2][4];
-  TrajPoint m_acTrajPointCoord[2][4];
-  TrajPoint m_acDiffTrajPointCoord[2][4];
-
-  Bool m_bUseMVAC;
-  Bool m_bUseHAM;
-  Bool m_bUseHME;
+  Int					m_iWPWeight		[2][GRF_MAX_NUM_WEFF][3];
+  Int					m_iWPOffset		[2][GRF_MAX_NUM_WEFF][3];
+  Int					m_aiWPmode[2];
+  Int					m_iRFmode;
+  Int					m_iLumaLogWeightDenom;
+  Int					m_iChromaLogWeightDenom;
+  Int					m_iWPLumaRound;
+  Int					m_iWPChromaRound;
 
 public:
   TComSlice();
   virtual ~TComSlice();
-
-  Bool getUseHAM      ()         { return m_bUseHAM;        }
-  Bool getUseHME      ()         { return m_bUseHME;        }
-  Void setUseHAM      ( Bool b ) { m_bUseHAM   = b;         }
-  Void setUseHME      ( Bool b ) { m_bUseHME   = b;         }
 
   Void      initSlice       ();
 
@@ -311,18 +216,9 @@ public:
   Int       getNumRefIdx        ( RefPicList e )                { return  m_aiNumRefIdx[e];             }
   TComPic*  getPic              ()                              { return  m_pcPic;                      }
   TComPic*  getRefPic           ( RefPicList e, Int iRefIdx)    { return  m_apcRefPicList[e][iRefIdx];  }
-  Int  getRefPOC           ( RefPicList e, Int iRefIdx)    { return  m_aiRefPOCList[e][iRefIdx];  }
+  Int				getRefPOC           ( RefPicList e, Int iRefIdx)    { return  m_aiRefPOCList[e][iRefIdx];		}
   Int       getDepth            ()                              { return  m_iDepth;                     }
-  UInt getColDir() { return m_uiColDir; }
-
-  UInt                getNumOfSpritePoints     () { return (m_auiGMmode[0]? m_auiGMmode[0]+1 : m_auiGMmode[1]+1); }
-  UInt                getWarpingAccuracy       () { return m_uiWarpingAccuracy; }
-  Int                getHorSpatRef      () { return m_iHorSpatRef; }
-  Int                getVerSpatRef      () { return m_iVerSpatRef; }
-
-  Void                setWarpingAccuracy (UInt ui)    { m_uiWarpingAccuracy = ui;   }
-  Void                setHorSpatRef (Int i)    { m_iHorSpatRef = i;   }
-  Void                setVerSpatRef (Int i)    { m_iVerSpatRef = i;   }
+  UInt			getColDir						()															{ return  m_uiColDir;										}
 
   Void      setReferenced(Bool b)                               { m_bRefenced = b; }
   Bool      isReferenced()                                      { return m_bRefenced; }
@@ -361,31 +257,15 @@ public:
   Bool isEqualWPParam( RefPicList e, EFF_MODE eEffMode1, EFF_MODE eEffMode2, Int colorChannel);
   Bool isEqualWPAllParam( RefPicList e, EFF_MODE eEffMode1, EFF_MODE eEffMode2);
 
-  Void setWPWeight ( RefPicList e, EFF_MODE eEffMode, Int colorChannel, Int weight)    { m_iWPWeight[e][eEffMode-EFF_WP_SO][colorChannel]=weight; }
-  Void setWPOffset ( RefPicList e, EFF_MODE eEffMode, Int colorChannel, Int offset)    { m_iWPOffset[e][eEffMode-EFF_WP_SO][colorChannel]=offset; }
-  Int getWPWeight ( RefPicList e, EFF_MODE eEffMode, Int colorChannel ) { return m_iWPWeight[e][eEffMode-EFF_WP_SO][colorChannel]; }
-  Int getWPOffset ( RefPicList e, EFF_MODE eEffMode, Int colorChannel ) { return m_iWPOffset[e][eEffMode-EFF_WP_SO][colorChannel]; }
+  Void	setWPWeight ( RefPicList e, EFF_MODE eEffMode, Int colorChannel, Int weight)    { m_iWPWeight[e][eEffMode-EFF_WP_SO][colorChannel]=weight; }
+  Void	setWPOffset ( RefPicList e, EFF_MODE eEffMode, Int colorChannel, Int offset)    { m_iWPOffset[e][eEffMode-EFF_WP_SO][colorChannel]=offset; }
+  Int		getWPWeight ( RefPicList e, EFF_MODE eEffMode, Int colorChannel ) { return m_iWPWeight[e][eEffMode-EFF_WP_SO][colorChannel]; }
+  Int		getWPOffset ( RefPicList e, EFF_MODE eEffMode, Int colorChannel ) { return m_iWPOffset[e][eEffMode-EFF_WP_SO][colorChannel]; }
 
-  Void setWPmode(RefPicList e, Int iWpMode) { m_aiWPmode[e]=iWpMode; }
-  Int  getWPmode(RefPicList e) { return m_aiWPmode[e]; }
-  Void setRFmode(Int iRfMode) { m_iRFmode=iRfMode; }
-  Int  getRFmode() { return m_iRFmode; }
-  Bool isTrajAllZero(RefPicList e);
-  Bool isTrajZero(RefPicList e, UInt uiPoint);
-  Void setGMmode(RefPicList e, UInt uiGmMode) { m_auiGMmode[e] = uiGmMode; }
-  UInt  getGMmode(RefPicList e) { return m_auiGMmode[e]; }
-
-  Void setDiffTrajPoint(RefPicList e, UInt uiPoint, TrajPoint cTrajPoint) { m_acDiffTrajPointCoord[e][uiPoint] = cTrajPoint; }
-  TrajPoint  getDiffTrajPoint(RefPicList e, UInt uiPoint) { return m_acDiffTrajPointCoord[e][uiPoint]; }
-  TrajPoint*  getDiffTrajPoints(RefPicList e) { return m_acDiffTrajPointCoord[e]; }
-
-  Void setTrajPoint(RefPicList e, UInt uiPoint, TrajPoint cTrajPoint) { m_acTrajPointCoord[e][uiPoint] = cTrajPoint; }
-  TrajPoint*  getTrajPoints(RefPicList e) { return m_acTrajPointCoord[e]; }
-
-  Void setRefPoint(RefPicList e, UInt uiPoint, TrajPoint cTrajPoint) { m_acRefPointCoord[e][uiPoint] = cTrajPoint; }
-  TrajPoint*  getRefPoints(RefPicList e) { return m_acRefPointCoord[e]; }
-
-  Void generateGMSlice( RefPicList e, UInt uiInsertIdx, TComGlobalMotion* pcGlobalMotion);
+  Void	setWPmode(RefPicList e, Int iWpMode) { m_aiWPmode[e]=iWpMode; }
+  Int		getWPmode(RefPicList e) { return m_aiWPmode[e]; }
+  Void	setRFmode(Int iRfMode) { m_iRFmode=iRfMode; }
+  Int		getRFmode() { return m_iRFmode; }
 
   EFF_MODE getEffectMode(RefPicList e, Int i) {return m_aeEffectMode[e][i]; }
   Void addEffectMode(RefPicList e, EFF_MODE eEffMode) {m_aeEffectMode[e][m_auiAddRefCnt[e]]=eEffMode; m_auiAddRefCnt[e] ++;}
@@ -403,10 +283,7 @@ public:
 
   static Void      sortPicList         (TComList<TComPic*>& rcListPic);
 
-  Bool getUseMVAC()         { return m_bUseMVAC; }
-  Void setUseMVAC( Bool b ) { m_bUseMVAC = b;    }
-
-  Int   getFMPAccuracy (UInt uiDepth) { return m_pcSPS->getFMPAccuracy(uiDepth); }
+  Int   getAMPAcc (UInt uiDepth) { return m_pcSPS->getAMPAcc(uiDepth); }
 
 protected:
   TComPic*  xGetRefPic  (TComList<TComPic*>& rcListPic,

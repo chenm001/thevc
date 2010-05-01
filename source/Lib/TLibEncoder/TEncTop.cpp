@@ -57,20 +57,11 @@ Void TEncTop::create ()
 	// initialize global variables
 	initROM();
 
-	// re-compute quantization scaling matrix if CADR is used
-  if ( g_bUseCADR )
-	{
-		// if g_iMinCADR < 0, then range is derived from analysis
-		if ( g_iMinCADR >= 0 )
-		{
-			initCADRQPTable( m_bUseLCT );
-		}
-	}
-
 	// create processing unit classes
-  m_cGOPEncoder.  create();
-  m_cSliceEncoder.create( getSourceWidth(), getSourceHeight(), g_uiMaxCUWidth, g_uiMaxCUHeight, g_uiMaxCUDepth );
-  m_cCuEncoder.   create( g_uiMaxCUDepth, g_uiMaxCUWidth, g_uiMaxCUHeight );
+  m_cGOPEncoder.				create();
+  m_cSliceEncoder.			create( getSourceWidth(), getSourceHeight(), g_uiMaxCUWidth, g_uiMaxCUHeight, g_uiMaxCUDepth );
+  m_cCuEncoder.					create( g_uiMaxCUDepth, g_uiMaxCUWidth, g_uiMaxCUHeight );
+	m_cAdaptiveLoopFilter.create( getSourceWidth(), getSourceHeight(), g_uiMaxCUWidth, g_uiMaxCUHeight, g_uiMaxCUDepth );
 
   // if SBAC-based RD optimization is used
   if( m_bUseSBACRD )
@@ -92,9 +83,10 @@ Void TEncTop::create ()
 Void TEncTop::destroy ()
 {
 	// destroy processing unit classes
-  m_cGOPEncoder.  destroy();
-  m_cSliceEncoder.destroy();
-  m_cCuEncoder.   destroy();
+  m_cGOPEncoder.				destroy();
+  m_cSliceEncoder.			destroy();
+  m_cCuEncoder.					destroy();
+	m_cAdaptiveLoopFilter.destroy();
 
   // SBAC RD
   if( m_bUseSBACRD )
@@ -132,11 +124,9 @@ Void TEncTop::init()
 
 	// initialize DIF
 	m_cSearch.setDIFTap ( m_cSPS.getDIFTap () );
-	m_cSearch.setDIFTapC( m_cSPS.getDIFTapC() );
 
 	// initialize transform & quantization class
-  m_cTrQuant.init( g_uiMaxCUWidth, g_uiMaxCUHeight, m_uiMaxTrSize,
-									 m_bUseADI, m_bUseROT, m_bUseLCT, m_bUseACS, m_bUseJMQP, m_bUseRDOQ, true );
+  m_cTrQuant.init( g_uiMaxCUWidth, g_uiMaxCUHeight, m_uiMaxTrSize, m_bUseRDOQ, true );
 
 	// initialize encoder search class
 	m_cSearch.init( this, &m_cTrQuant, m_iSearchRange, m_iFastSearch, 0, &m_cEntropyCoder, &m_cRdCost, getRDSbacCoder(), getRDGoOnSbacCoder() );
@@ -214,12 +204,12 @@ Void TEncTop::xGetNewPicBuffer ( TComPic*& rpcPic )
 {
   TComSlice::sortPicList(m_cListPic);
 
-  // srlee: bug-fix - erase frame memory (previous GOP) which is not used for reference any more
+  // bug-fix - erase frame memory (previous GOP) which is not used for reference any more
   if (m_cListPic.size() >= (UInt)(m_iGOPSize + 2 * getNumOfReference() + 1) )  // 2)   //  K. Lee bug fix - for multiple reference > 2
   {
     rpcPic = m_cListPic.popFront();
 
-		// wjhan: is it necessary without long-term reference?
+		// is it necessary without long-term reference?
     if ( rpcPic->getERBIndex() > 0 && abs(rpcPic->getPOC() - m_iPOCLast) <= 0 )
     {
       m_cListPic.pushFront(rpcPic);
@@ -267,35 +257,13 @@ Void TEncTop::xInitSPS()
   m_cSPS.setMinTrDepth	( m_uiMinTrDepth			);
   m_cSPS.setMaxTrDepth	( m_uiMaxTrDepth			);
 
-	m_cSPS.setUseMVAC			( m_bUseMVAC					);
-	m_cSPS.setUseADI			( m_bUseADI						);
-	m_cSPS.setUseROT			( m_bUseROT						);
-	m_cSPS.setUseMPI			( m_bUseMPI						);
-	m_cSPS.setUseAMVP			( m_bUseAMVP					);
-	m_cSPS.setUseIMR			( m_bUseIMR						);
-	m_cSPS.setUseDIF			( m_bUseDIF						);
 	m_cSPS.setUseALF			( m_bUseALF						);
 	m_cSPS.setUseDQP			( m_iMaxDeltaQP != 0	);
-	m_cSPS.setUseRNG			( m_bUseRNG						);
-	m_cSPS.setUseAMP			( m_bUseAMP						);
-  m_cSPS.setUseSHV			( m_bUseSHV 					);
-  m_cSPS.setUseLOT      ( m_bUseLOT           );
-  m_cSPS.setUseExC      ( m_bUseEXC           );
-  m_cSPS.setUseCCP      ( m_bUseCCP           );
-  m_cSPS.setUseTMI      ( m_bUseTMI           );
   m_cSPS.setUseLDC      ( m_bUseLDC           );
-	m_cSPS.setUseCIP      ( m_bUseCIP           );
 	m_cSPS.setUsePAD      ( m_bUsePAD           );
-  m_cSPS.setUseLCT      ( m_bUseLCT           );
 	m_cSPS.setUseQBO      ( m_bUseQBO           );
-  m_cSPS.setUseACS      ( m_bUseACS           );
-
-  m_cSPS.setUseHAP      ( m_bUseHAP           );
-  m_cSPS.setUseHAB      ( m_bUseHAB           );
-  m_cSPS.setUseHME      ( m_bUseHME           );
 
 	m_cSPS.setDIFTap			( m_iDIFTap						);
-	m_cSPS.setDIFTapC			( m_iDIFTapC					);
 
 	m_cSPS.setMaxTrSize	  ( m_uiMaxTrSize       );
 
@@ -307,33 +275,23 @@ Void TEncTop::xInitSPS()
 
   for (i = 0; i < g_uiMaxCUDepth; i++ )
   {
-    m_cSPS.setFMPAccuracy( i, 1 );
+    m_cSPS.setAMPAcc( i, 1 );
   }
 
   for (i = 0; i < g_uiMaxCUDepth; i++ )
   {
-    if (m_cSPS.getFMPAccuracy(i) > g_uiMaxCUDepth - 1 - i)
+    if (m_cSPS.getAMPAcc(i) > g_uiMaxCUDepth - 1 - i)
     {
-      m_cSPS.setFMPAccuracy(i, g_uiMaxCUDepth - 1 - i);
+      m_cSPS.setAMPAcc(i, g_uiMaxCUDepth - 1 - i);
     }
   }
 
 	m_cSPS.setBitDepth		( g_uiBitDepth				);
 	m_cSPS.setBitIncrement( g_uiBitIncrement    );
 
-  if (getGeneratedReferenceMode())
+  if (getGRefMode())
 	{
-    if (strchr(getGeneratedReferenceMode() ,'w'))
-      m_cSPS.setUseWPG(true);
-    if (strchr(getGeneratedReferenceMode() ,'o'))
-      m_cSPS.setUseWPO(true);
-    if (strchr(getGeneratedReferenceMode() ,'r'))
-      m_cSPS.setUseWPR(true);
-    if (strchr(getGeneratedReferenceMode() ,'a'))
-      m_cSPS.setUseAME(true);
-    if (strchr(getGeneratedReferenceMode() ,'i'))
-      m_cSPS.setUseIME(true);
-    if (strchr(getGeneratedReferenceMode() ,'p'))
-      m_cSPS.setUsePME(true);
+    if (strchr(getGRefMode() ,'w')) m_cSPS.setUseWPG(true);
+    if (strchr(getGRefMode() ,'o')) m_cSPS.setUseWPO(true);
   }
 }

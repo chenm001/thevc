@@ -41,7 +41,6 @@
 #include "../TLibCommon/TComList.h"
 #include "../TLibCommon/TComPic.h"
 #include "../TLibCommon/TComPicYuv.h"
-#include "../TLibCommon/TComGlobalMotion.h"
 #include "TEncCu.h"
 
 class TEncTop;
@@ -75,7 +74,6 @@ private:
   TEncEntropy*            m_pcEntropyCoder;											///< entropy encoder
   TEncCavlc*              m_pcCavlcCoder;												///< CAVLC encoder
   TEncSbac*								m_pcSbacCoder;												///< SBAC encoder
-  TComGlobalMotion				m_cGlobalMotion;											///< global motion compensation
   TComTrQuant*            m_pcTrQuant;													///< transform & quantization
 
 	// RD optimization
@@ -92,7 +90,6 @@ private:
 
 protected:
   Bool    xEstimateWPSlice		( TComSlice* rpcSlice, RefPicList eRefPicList, EFF_MODE eEffMode	);	///< generate effect virtual ref.
-  Bool    xEstimateGMSlice		( TComSlice* rpcSlice, RefPicList eRefPicList											);	///< generate warped virtual ref.
 
 	Double  xComputeImgSum			( Pel* img,										Int width, Int height, Int stride		);	///< compute sum of pixel values
   Double  xComputeNormMean		( Pel* img, Double meanValue, Int width, Int height, Int stride		);	///< compute sum of abs pixel values
@@ -107,12 +104,12 @@ public:
 
 	/// preparation of slice encoding (reference marking, QP and lambda)
   Void    initEncSlice				( TComPic*  pcPic, Int iPOCLast, UInt uiPOCCurr, Int iNumPicRcvd,
-																Int iTimeOffset, Int iDepth, Double dScaleFactor, TComSlice*& rpcSlice );
+																Int iTimeOffset, Int iDepth,   TComSlice*& rpcSlice );
 
 	// compress and encode slice
-  Void    precompressSliceCU	( TComPic*& rpcPic																);			///< precompress slice for multi-loop opt.
-	Void    compressSliceCU			( TComPic*& rpcPic																);			///< analysis stage of slice
-  Void    encodeSliceCU				( TComPic*& rpcPic, TComBitstream*& rpcBitstream	);			///< entropy coding of slice
+  Void    precompressSlice		( TComPic*& rpcPic																);			///< precompress slice for multi-loop opt.
+	Void    compressSlice				( TComPic*& rpcPic																);			///< analysis stage of slice
+  Void    encodeSlice					( TComPic*& rpcPic, TComBitstream*& rpcBitstream	);			///< entropy coding of slice
 
 	// misc. functions
   Void    setSearchRange			( TComSlice* pcSlice  );																	///< set ME range adaptively

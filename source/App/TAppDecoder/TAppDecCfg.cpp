@@ -49,7 +49,7 @@ Bool TAppDecCfg::parseCfg( Int argc, Char* argv[] )
   m_apcOpt->autoUsagePrint(true);
 
   // set usage
-  m_apcOpt->addUsage( "options:" );
+	m_apcOpt->addUsage( "options: (if only -b is specified, YUV writing is skipped)" );
   m_apcOpt->addUsage( "  -b  bitstream file name" );
   m_apcOpt->addUsage( "  -o  decoded YUV output file name" );
 

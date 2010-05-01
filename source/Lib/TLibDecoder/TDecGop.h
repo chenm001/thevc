@@ -68,23 +68,20 @@ private:
   TDecCavlc*            m_pcCavlcDecoder;
   TDecSlice*            m_pcSliceDecoder;
   TComLoopFilter*       m_pcLoopFilter;
-  // Adaptive Loop filter
+
+	// Adaptive Loop filter
   TComAdaptiveLoopFilter*       m_pcAdaptiveLoopFilter;
-  //--Extreme correction filter
-  Void  xExtremePass( TComPic*& rpcPic );
-//EXCBand
-  Void  xCorrBand( TComPic*& rpcPic  );
 
 public:
 	TDecGop();
 	virtual ~TDecGop();
 
-	Void  create();
-  Void  destroy();
+  Void  init		( TDecEntropy* pcEntropyDecoder, TDecSbac* pcSbacDecoder, TDecCavlc* pcCavlcDecoder, TDecSlice* pcSliceDecoder, TComLoopFilter* pcLoopFilter, TComAdaptiveLoopFilter* pcAdaptiveLoopFilter );
+	Void  create	();
+  Void  destroy	();
 
-  Void  setGopSize(Int  i)    { m_iGopSize = i; }
-  Void  init (TDecEntropy* pcEntropyDecoder, TDecSbac* pcSbacDecoder, TDecCavlc* pcCavlcDecoder, TDecSlice* pcSliceDecoder, TComLoopFilter* pcLoopFilter, TComAdaptiveLoopFilter* pcAdaptiveLoopFilter );
   Void  decompressGop ( Bool bEos, TComBitstream* pcBitstream, TComPic*& rpcPic );
+  Void  setGopSize( Int i) { m_iGopSize = i; }
 };
 
 #endif // !defined(AFX_TDECGOP_H__29440B7A_7CC0_48C7_8DD5_1A531D3CED45__INCLUDED_)

@@ -89,23 +89,16 @@ public:
   virtual Void parseDeltaQP       ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth ) = 0;
   virtual Void parseCbf           ( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eType, UInt uiTrDepth, UInt uiDepth ) = 0;
 
-  virtual Void parseMPIindex( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth ) = 0;
   virtual Void parseROTindex( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth ) = 0;
   virtual Void parseCIPflag ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth ) = 0;
-  virtual Void parseExtremeValue( Int& iMinVal, Int& iMaxVal, Int iExtremeType) = 0;
-
-//EXCBand
-  virtual Void parseCorrBandExType( Int& iCorVal, Int& iBandNumber) = 0;
 
   virtual Void parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx, UInt uiWidth, UInt uiHeight, UInt uiDepth, TextType eTType ) = 0;
 
-  virtual Void parseAlfFlag		( UInt& ruiVal					 ) = 0;
-  virtual Void parseAlfUvlc		( UInt& ruiVal					 ) = 0;
-  virtual Void parseAlfSvlc		( Int&  riVal		         ) = 0;
-  virtual Void  parseAlfCtrlDepth              ( UInt& ruiAlfCtrlDepth )                                   = 0;
+  virtual Void parseAlfFlag				( UInt& ruiVal					 ) = 0;
+  virtual Void parseAlfUvlc				( UInt& ruiVal					 ) = 0;
+  virtual Void parseAlfSvlc				( Int&  riVal		         ) = 0;
+  virtual Void parseAlfCtrlDepth  ( UInt& ruiAlfCtrlDepth  ) = 0;
   virtual Void parseAlfCtrlFlag		( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth ) = 0;
-
-  virtual Void parseULTUsedFlag( TComDataCU* pcCU, UInt uiAbsPartIdx ) = 0;
 };
 
 /// entropy decoder class
@@ -158,16 +151,10 @@ public:
 
   Void decodeTransformIdx      ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
   Void decodeQP                ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
-  Void decodeExtremeValue(TComPic*& rpcPic);
-
-//EXCBand
-  Void  decodeBandCorrValue( TComPic*& rpcPic);
-
 
   Void xDecodeCoeff            ( TComDataCU* pcCU, TCoeff* pcCoeff, UInt uiAbsPartIdx, UInt uiDepth, UInt uiWidth, UInt uiHeight, UInt uiTrIdx, UInt uiCurrTrIdx, TextType eType );
   Void decodeCoeff             ( TComDataCU* pcCU                 , UInt uiAbsPartIdx, UInt uiDepth, UInt uiWidth, UInt uiHeight );
 
-  Void decodeULTUsedFlag( TComDataCU* pcCU, UInt uiAbsPartIdx );
 };// END CLASS DEFINITION TDecEntropy
 
 

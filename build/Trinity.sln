@@ -1,6 +1,6 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 10.00
-# Visual C++ Express 2008
+# Visual Studio 2008
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "TAppDecoder", "..\source\App\TAppDecoder\TAppDecoder.vcproj", "{A7A515D9-E917-4706-BD5B-57DC6C78D612}"
 	ProjectSection(ProjectDependencies) = postProject
 		{F8B77A48-AF6C-4746-A89F-B706ABA6AD94} = {F8B77A48-AF6C-4746-A89F-B706ABA6AD94}

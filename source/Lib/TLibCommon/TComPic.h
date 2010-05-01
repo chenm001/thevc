@@ -54,14 +54,7 @@ private:
   TComPicYuv*           m_apcPicYuv[2];           //  Texture,  0:org / 1:rec
   TComPicYuv*           m_pcPicYuvPred;           //  Prediction
   TComPicYuv*           m_pcPicYuvResi;           //  Residual
-
   Bool                  m_bReconstructed;
-
-	// extreme correction
-  Int iLocalMinimumCorr[5];
-  Int iLocalMaximumCorr[5];
-  Int iCorrBandExType[64];
-  Int iBandNumberMax;
 
 public:
   TComPic();
@@ -85,27 +78,17 @@ public:
   Void          setPicYuvPred( TComPicYuv* pcPicYuv )       { m_pcPicYuvPred = pcPicYuv; }
   Void          setPicYuvResi( TComPicYuv* pcPicYuv )       { m_pcPicYuvResi = pcPicYuv; }
 
-  UInt           getNumCUsInFrame()      { return m_apcPicSym->getNumberOfCUsInFrame(); }
-  UInt           getNumPartInWidth()     { return m_apcPicSym->getNumPartInWidth();     }
-  UInt           getNumPartInHeight()    { return m_apcPicSym->getNumPartInHeight();    }
-  UInt           getNumPartInCU()        { return m_apcPicSym->getNumPartition();       }
-  UInt           getFrameWidthInCU()     { return m_apcPicSym->getFrameWidthInCU();     }
-  UInt           getFrameHeightInCU()    { return m_apcPicSym->getFrameHeightInCU();    }
-  UInt           getMinCUWidth()         { return m_apcPicSym->getMinCUWidth();         }
-  UInt           getMinCUHeight()        { return m_apcPicSym->getMinCUHeight();        }
+  UInt          getNumCUsInFrame()      { return m_apcPicSym->getNumberOfCUsInFrame(); }
+  UInt          getNumPartInWidth()     { return m_apcPicSym->getNumPartInWidth();     }
+  UInt          getNumPartInHeight()    { return m_apcPicSym->getNumPartInHeight();    }
+  UInt          getNumPartInCU()        { return m_apcPicSym->getNumPartition();       }
+  UInt          getFrameWidthInCU()     { return m_apcPicSym->getFrameWidthInCU();     }
+  UInt          getFrameHeightInCU()    { return m_apcPicSym->getFrameHeightInCU();    }
+  UInt          getMinCUWidth()         { return m_apcPicSym->getMinCUWidth();         }
+  UInt          getMinCUHeight()        { return m_apcPicSym->getMinCUHeight();        }
 
-  UInt           getParPelX(UChar uhPartIdx){ return getParPelX(uhPartIdx);      }
-  UInt           getParPelY(UChar uhPartIdx){ return getParPelX(uhPartIdx);      }
-
-  Void setLocalExtremeValues(Int iExtremeType, Int iMinValCorr, Int iMaxValCorr) {iLocalMinimumCorr[iExtremeType] = iMinValCorr; iLocalMaximumCorr[iExtremeType] = iMaxValCorr;}
-  Int getMinValCorr(Int iExtremeType) {return iLocalMinimumCorr[iExtremeType];}
-  Int getMaxValCorr(Int iExtremeType) {return iLocalMaximumCorr[iExtremeType];}
-
-	// EXCBand
-  Int getCorrBandExType(Int iBandNumber) {return iCorrBandExType[iBandNumber];}
-  Void setCorrBandExType(Int iBandNumber,  Int iCorrVal) {iCorrBandExType[iBandNumber] = iCorrVal;}
-  Int getMaxBandNumber() {return iBandNumberMax;}
-  Void setMaxBandNumber(Int iBandNumber) {iBandNumberMax = iBandNumber;}
+  UInt          getParPelX(UChar uhPartIdx)	{ return getParPelX(uhPartIdx); }
+  UInt          getParPelY(UChar uhPartIdx)	{ return getParPelX(uhPartIdx); }
 
   Int           getStride()           { return m_apcPicYuv[1]->getStride(); }
   Int           getCStride()          { return m_apcPicYuv[1]->getCStride(); }

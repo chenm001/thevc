@@ -36,7 +36,6 @@
 #include "CommonDef.h"
 #include "TComSlice.h"
 #include "TComPic.h"
-#include "TComGlobalMotion.h"
 
 TComSlice::TComSlice()
 {
@@ -71,17 +70,7 @@ TComSlice::TComSlice()
   m_auiAddRefCnt[0]  = 0;
   m_auiAddRefCnt[1]  = 0;
 
-  m_bUseMVAC = false;
-
   initEqualRef();
-
-  m_auiGMmode[0] = 0;
-  m_auiGMmode[1] = 0;
-
-  m_uiWarpingAccuracy = GMC_WRF_ACC;
-
-  m_iHorSpatRef	= 0;
-  m_iVerSpatRef	= 0;
 }
 
 TComSlice::~TComSlice()
@@ -110,19 +99,7 @@ Void TComSlice::initSlice()
   m_auiAddRefCnt[0]  = 0;
   m_auiAddRefCnt[1]  = 0;
 
-  m_bUseMVAC = false;
-
   initEqualRef();
-
-  m_auiGMmode[0] = 0;
-  m_auiGMmode[1] = 0;
-
-  m_uiWarpingAccuracy = GMC_WRF_ACC;
-
-  m_iHorSpatRef	= 0;
-  m_iVerSpatRef	= 0;
-  m_bUseHAM = true;
-  m_bUseHME = true;
 }
 
 Void  TComSlice::sortPicList        (TComList<TComPic*>& rcListPic)
@@ -356,7 +333,6 @@ Void TComSlice::setRefPicList       ( TComList<TComPic*>& rcListPic )
       uiActualListSize++;
     }
 
-    //--> srlee : limit ref.frame number
     if ( (Int)uiActualListSize >= m_aiNumRefIdx[eRefPicList] )
     {
       m_aiNumRefIdx[eRefPicList] = uiActualListSize;
@@ -402,7 +378,7 @@ Void TComSlice::setRefPicList       ( TComList<TComPic*>& rcListPic )
     while (1)
     {
       uiBreakCount--;
-      if ((Int)uiActualListSize >= m_aiNumRefIdx[eRefPicList] || uiBreakCount == 0) //--> srlee : limit ref.frame number
+      if ( (Int)uiActualListSize >= m_aiNumRefIdx[eRefPicList] || uiBreakCount == 0 )
       {
         break;
       }
@@ -501,11 +477,7 @@ Void TComSlice::linkVirtRefPic()
 		{
 			setRefPic(m_apcVirtPic[n][i], eRefPicList, numRefIdx+i);
 			m_apcVirtPic[n][i]->getPicYuvRec()->extendPicBorder();
-
-			if (getEffectMode(eRefPicList, i) < EFF_IM || getEffectMode(eRefPicList, i) > EFF_PM)
-			{
-				setEqualRef(eRefPicList, 0, numRefIdx+i, true);
-			}
+			setEqualRef(eRefPicList, 0, numRefIdx+i, true);
 		}
 		setNumRefIdx(eRefPicList, numRefIdx+numRefIdxN);
 	}
@@ -513,7 +485,7 @@ Void TComSlice::linkVirtRefPic()
 
 Void TComSlice::removeEffectMode(RefPicList e, EFF_MODE eEffMode)
 {
-  Int iPosIdx, iTmpIdx;
+  Int iPosIdx = 0, iTmpIdx;
 
   for (iTmpIdx = 0; iTmpIdx < m_auiAddRefCnt[e]; iTmpIdx++)
   {
@@ -553,20 +525,9 @@ Void TComSlice::initWPParam( RefPicList eRefPicList, EFF_MODE eEffMode, Int colo
   }
 
   Int iDefaultOffset = 0;
-  if (eEffMode == EFF_WP_P1 && colorChannel == 0)
-  {
-    Int iShift = g_uiBitDepth+g_uiBitIncrement-8;
-    iDefaultOffset = 1<<(iShift);
-  }
-  else if (eEffMode == EFF_WP_M1 && colorChannel == 0)
-  {
-    Int iShift = g_uiBitDepth+g_uiBitIncrement-8;
-    iDefaultOffset = -1*1<<(iShift);
-  }
 
-  setWPWeight(eRefPicList, eEffMode, colorChannel, iDefaultWeight);
+	setWPWeight(eRefPicList, eEffMode, colorChannel, iDefaultWeight);
   setWPOffset(eRefPicList, eEffMode, colorChannel, iDefaultOffset);
-
 }
 
 Void TComSlice::initWPAllParam( RefPicList eRefPicList, EFF_MODE eEffMode)
@@ -626,7 +587,7 @@ Bool TComSlice::isEqualWPAllParam( RefPicList e, EFF_MODE eEffMode1, EFF_MODE eE
 
 Void TComSlice::generateWPSlice( RefPicList e, EFF_MODE eEffMode, UInt uiInsertIdx)
 {
-  assert(eEffMode >= EFF_WP_SO && eEffMode <= EFF_WP_M1);
+  assert( eEffMode >= EFF_WP_SO && eEffMode <= EFF_WP_O );
 
   Int x, y, iWidth, iHeight, iStride, iWeight, iOffset;
   TComPicYuv* pcPicYuvRef;
@@ -690,26 +651,6 @@ Void TComSlice::generateWPSlice( RefPicList e, EFF_MODE eEffMode, UInt uiInsertI
   }
 }
 
-Bool TComSlice::isTrajAllZero(RefPicList e)
-{
-  for (UInt ui = 0; ui < getNumOfSpritePoints(); ui++)
-  {
-    if (!isTrajZero(e, ui))  return false;
-  }
-  return true;
-}
-
-Bool TComSlice::isTrajZero(RefPicList e, UInt uiPoint)
-{
-  return (m_acTrajPointCoord[e][uiPoint].x == 0 && m_acTrajPointCoord[e][uiPoint].y == 0);
-}
-
-Void TComSlice::generateGMSlice( RefPicList e, UInt uiInsertIdx, TComGlobalMotion* pcGlobalMotion)
-{
-  m_apcVirtPic[e][uiInsertIdx]->getSlice()->setPOC( getRefPic(e, 0)->getPOC() );
-  pcGlobalMotion->getGlobalWarpPic(m_apcVirtPic[e][uiInsertIdx]->getPicYuvRec(), getRefPic(e, 0)->getPicYuvRec(), getNumOfSpritePoints(), m_acRefPointCoord[e], m_acTrajPointCoord[e], m_uiWarpingAccuracy, m_iHorSpatRef, m_iVerSpatRef);
-}
-
 // ------------------------------------------------------------------------------------------------
 // Sequence parameter set (SPS)
 // ------------------------------------------------------------------------------------------------
@@ -726,25 +667,12 @@ TComSPS::TComSPS()
   m_uiMaxTrDepth  = 1;
   m_uiMaxTrSize   = 64;
 
-  // IP list
-  m_bUseMVAC			= false;
-  m_bUseADI				= false;
-  m_bUseROT				= false;
-  m_bUseMPI				= false;
-  m_bUseAMVP			= false;
-  m_bUseIMR			  = false;
-  m_bUseDIF			  = false;
+  // Tool list
   m_bUseALF				= false;
   m_bUseDQP				= false;
-  m_bUseRNG				= false;
-  m_bUseLOT       = true;
 
   m_bUseWPG      = false;
   m_bUseWPO      = false;
-  m_bUseWPR      = false;
-  m_bUseAME      = false;
-  m_bUseIME      = false;
-  m_bUsePME      = false;
 
 	// AMVP parameter
 	::memset( m_aeAMVPMode, 0, sizeof( m_aeAMVPMode ) );

@@ -76,10 +76,6 @@ public:
   Void  codeTerminatingBit      ( UInt uilsLast );
   Void  codeSliceFinish         ();
 
-  Void  codeExtremeValue( Int iMinVal, Int iMaxVal, Int iExtremeType ) ;
-  // EXCBand
-  Void  codeCorrBandExType(Int iCorVal, Int iBandNumber);
-
   Void codeMVPIdx ( TComDataCU* pcCU, UInt uiAbsPartIdx, RefPicList eRefList );
 
   Void codeAlfFlag       ( UInt uiCode );
@@ -139,12 +135,10 @@ public:
   Void codeCbf           ( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eType, UInt uiTrDepth );
   Void codeCoeffNxN      ( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx, UInt uiWidth, UInt uiHeight, UInt uiDepth, TextType eTType, Bool bRD = false );
 
-  Void codeMPIindex( TComDataCU* pcCU, UInt uiAbsPartIdx);
   Void codeROTindex( TComDataCU* pcCU, UInt uiAbsPartIdx, Bool bRD );
   Void codeCIPflag ( TComDataCU* pcCU, UInt uiAbsPartIdx, Bool bRD );
 
   Void estBit             (estBitsSbacStruct* pcEstBitsSbac, UInt uiCTXIdx, TextType eTType);
-  Void codeULTUsedFlag( TComDataCU* pcCU, UInt uiAbsPartIdx );
 };
 
 #endif // !defined(AFX_TENCCAVLC_H__EE8A0B30_945B_4169_B290_24D3AD52296F__INCLUDED_)

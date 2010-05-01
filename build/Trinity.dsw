@@ -1,0 +1,107 @@
+Microsoft Developer Studio Workspace File, Format Version 6.00
+# WARNING: DO NOT EDIT OR DELETE THIS WORKSPACE FILE!
+
+###############################################################################
+
+Project: "TAppDecoder"=..\source\App\TAppDecoder\TAppDecoder.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name TLibCommon
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name TLibDecoder
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name TLibVideoIO
+    End Project Dependency
+}}}
+
+###############################################################################
+
+Project: "TAppEncoder"=..\source\App\TAppEncoder\TAppEncoder.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name TLibCommon
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name TLibEncoder
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name TLibVideoIO
+    End Project Dependency
+}}}
+
+###############################################################################
+
+Project: "TLibCommon"=..\source\Lib\TLibCommon\TLibCommon.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+}}}
+
+###############################################################################
+
+Project: "TLibDecoder"=..\source\Lib\TLibDecoder\TLibDecoder.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+}}}
+
+###############################################################################
+
+Project: "TLibEncoder"=..\source\Lib\TLibEncoder\TLibEncoder.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+}}}
+
+###############################################################################
+
+Project: "TLibVideoIO"=..\source\Lib\TLibVideoIO\TLibVideoIO.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+}}}
+
+###############################################################################
+
+Global:
+
+Package=<5>
+{{{
+}}}
+
+Package=<3>
+{{{
+}}}
+
+###############################################################################
+
