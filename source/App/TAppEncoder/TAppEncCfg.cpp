@@ -299,8 +299,17 @@ Void TAppEncCfg::xCheckParameter()
       xConfirmPara( ui != 1 , "Height should be 2^n");
   }
 
-	// RDOQ only supports in SBAC
-  if( !m_bUseSBACRD ) m_bUseRDOQ = false;
+	// SBACRD is supported only for SBAC
+	if ( m_iSymbolMode == 0 )
+	{
+		m_bUseSBACRD = false;
+	}
+
+	// RDOQ is supported only for SBAC
+  if ( !m_bUseSBACRD )
+	{
+		m_bUseRDOQ = false;
+	}
 }
 
 /** \todo use of global variables	should be removed later
@@ -353,6 +362,7 @@ Void TAppEncCfg::xSetCfgTool()
 	m_bUseBQP												= false;
 	m_iLDMode												= -1;
   m_bUsePAD                       = false;
+	m_bUseFastEnc										= false;
 
 	// decoder tools
   m_uiBitDepth                    = 8;
@@ -363,74 +373,74 @@ Void TAppEncCfg::xSetCfgTool()
 
 Void TAppEncCfg::xSetCfgFile( TAppOption* pcOpt )
 {
-  if ( pcOpt->getValue( "InputFile" ) )                     m_pchInputFile                  = pcOpt->getValue( "InputFile" );
-  if ( pcOpt->getValue( "BitstreamFile" ) )                 m_pchBitstreamFile              = pcOpt->getValue( "BitstreamFile" );
-  if ( pcOpt->getValue( "ReconFile" ) )                     m_pchReconFile                  = pcOpt->getValue( "ReconFile" );
+  if ( pcOpt->getValue( "InputFile" ) )                 m_pchInputFile              =				pcOpt->getValue( "InputFile"			);
+  if ( pcOpt->getValue( "BitstreamFile" ) )             m_pchBitstreamFile          =				pcOpt->getValue( "BitstreamFile"	);
+  if ( pcOpt->getValue( "ReconFile" ) )                 m_pchReconFile              =				pcOpt->getValue( "ReconFile"			);
 
-  if ( pcOpt->getValue( "dQPFile" ) )                       m_pchdQPFile										= pcOpt->getValue( "dQPFile" );
-  if ( pcOpt->getValue( "FrameRate" ) )                     m_iFrameRate                    = atoi( pcOpt->getValue( "FrameRate" ) );
-  if ( pcOpt->getValue( "FrameSkip" ) )                     m_iFrameSkip                    = atoi( pcOpt->getValue( "FrameSkip" ) );
-  if ( pcOpt->getValue( "SourceWidth" ) )                   m_iSourceWidth                  = atoi( pcOpt->getValue( "SourceWidth" ) );
-  if ( pcOpt->getValue( "SourceHeight" ) )                  m_iSourceHeight                 = atoi( pcOpt->getValue( "SourceHeight" ) );
-  if ( pcOpt->getValue( "FrameToBeEncoded" ) )              m_iFrameToBeEncoded             = atoi( pcOpt->getValue( "FrameToBeEncoded" ) );
+  if ( pcOpt->getValue( "dQPFile" ) )                   m_pchdQPFile								=				pcOpt->getValue( "dQPFile" );
+  if ( pcOpt->getValue( "FrameRate" ) )                 m_iFrameRate                = atoi( pcOpt->getValue( "FrameRate"				) );
+  if ( pcOpt->getValue( "FrameSkip" ) )                 m_iFrameSkip                = atoi( pcOpt->getValue( "FrameSkip"				) );
+  if ( pcOpt->getValue( "SourceWidth" ) )               m_iSourceWidth              = atoi( pcOpt->getValue( "SourceWidth"			) );
+  if ( pcOpt->getValue( "SourceHeight" ) )              m_iSourceHeight             = atoi( pcOpt->getValue( "SourceHeight"			) );
+  if ( pcOpt->getValue( "FrameToBeEncoded" ) )          m_iFrameToBeEncoded         = atoi( pcOpt->getValue( "FrameToBeEncoded" ) );
 
-  if ( pcOpt->getValue( "IntraPeriod" ) )                   m_iIntraPeriod                  = atoi( pcOpt->getValue( "IntraPeriod" ) );
-	if ( pcOpt->getValue( "GOPSize" ) )                       { m_iGOPSize                      = atoi( pcOpt->getValue( "GOPSize" ) ); m_iRateGOPSize = m_iGOPSize; }
-	if ( pcOpt->getValue( "RateGOPSize" ) )                   m_iRateGOPSize                  = atoi( pcOpt->getValue( "RateGOPSize" ) );
-  if ( pcOpt->getValue( "NumOfReference" ) )                m_iNumOfReference               = atoi( pcOpt->getValue( "NumOfReference" ) );
-	if ( pcOpt->getValue( "NumOfReferenceB_L0" ) )            m_iNumOfReferenceB_L0						= atoi( pcOpt->getValue( "NumOfReferenceB_L0" ) );
-	if ( pcOpt->getValue( "NumOfReferenceB_L1" ) )            m_iNumOfReferenceB_L1						= atoi( pcOpt->getValue( "NumOfReferenceB_L1" ) );
+  if ( pcOpt->getValue( "IntraPeriod" ) )               m_iIntraPeriod              = atoi( pcOpt->getValue( "IntraPeriod"				) );
+	if ( pcOpt->getValue( "GOPSize" ) )                   { m_iGOPSize                = atoi( pcOpt->getValue( "GOPSize"						) ); m_iRateGOPSize = m_iGOPSize; }
+	if ( pcOpt->getValue( "RateGOPSize" ) )               m_iRateGOPSize              = atoi( pcOpt->getValue( "RateGOPSize"				) );
+  if ( pcOpt->getValue( "NumOfReference" ) )            m_iNumOfReference           = atoi( pcOpt->getValue( "NumOfReference"			) );
+	if ( pcOpt->getValue( "NumOfReferenceB_L0" ) )        m_iNumOfReferenceB_L0				= atoi( pcOpt->getValue( "NumOfReferenceB_L0" ) );
+	if ( pcOpt->getValue( "NumOfReferenceB_L1" ) )        m_iNumOfReferenceB_L1				= atoi( pcOpt->getValue( "NumOfReferenceB_L1" ) );
 
-  if ( pcOpt->getValue( "QP" ) )                            m_fQP                           = atof( pcOpt->getValue( "QP" ) );
+  if ( pcOpt->getValue( "QP" ) )                        m_fQP                       = atof( pcOpt->getValue( "QP" ) );
 
-  if ( pcOpt->getValue( "TemporalLayerQPOffset_L0" ) )      m_aiTLayerQPOffset[0]			= atoi( pcOpt->getValue( "TemporalLayerQPOffset_L0" ) );
-  if ( pcOpt->getValue( "TemporalLayerQPOffset_L1" ) )      m_aiTLayerQPOffset[1]			= atoi( pcOpt->getValue( "TemporalLayerQPOffset_L1" ) );
-  if ( pcOpt->getValue( "TemporalLayerQPOffset_L2" ) )      m_aiTLayerQPOffset[2]			= atoi( pcOpt->getValue( "TemporalLayerQPOffset_L2" ) );
-  if ( pcOpt->getValue( "TemporalLayerQPOffset_L3" ) )      m_aiTLayerQPOffset[3]			= atoi( pcOpt->getValue( "TemporalLayerQPOffset_L3" ) );
+  if ( pcOpt->getValue( "TemporalLayerQPOffset_L0" ) )	m_aiTLayerQPOffset[0]				= atoi( pcOpt->getValue( "TemporalLayerQPOffset_L0" ) );
+  if ( pcOpt->getValue( "TemporalLayerQPOffset_L1" ) )  m_aiTLayerQPOffset[1]				= atoi( pcOpt->getValue( "TemporalLayerQPOffset_L1" ) );
+  if ( pcOpt->getValue( "TemporalLayerQPOffset_L2" ) )  m_aiTLayerQPOffset[2]				= atoi( pcOpt->getValue( "TemporalLayerQPOffset_L2" ) );
+  if ( pcOpt->getValue( "TemporalLayerQPOffset_L3" ) )  m_aiTLayerQPOffset[3]				= atoi( pcOpt->getValue( "TemporalLayerQPOffset_L3" ) );
 
-  if ( pcOpt->getValue( "HorizontalPadding" ) )							m_aiPad[0]			= atoi( pcOpt->getValue( "HorizontalPadding" ) );
-  if ( pcOpt->getValue( "VerticalPadding" ) )								m_aiPad[1]			= atoi( pcOpt->getValue( "VerticalPadding" ) );
+  if ( pcOpt->getValue( "HorizontalPadding" ) )					m_aiPad[0]									= atoi( pcOpt->getValue( "HorizontalPadding"	) );
+  if ( pcOpt->getValue( "VerticalPadding" ) )						m_aiPad[1]									= atoi( pcOpt->getValue( "VerticalPadding"		) );
 
-  if ( pcOpt->getValue( "HierarchicalCoding" ) )            m_bHierarchicalCoding           = atoi( pcOpt->getValue( "HierarchicalCoding" ) ) == 0 ? false : true;
+  if ( pcOpt->getValue( "HierarchicalCoding" ) )        m_bHierarchicalCoding       = atoi( pcOpt->getValue( "HierarchicalCoding" ) ) == 0 ? false : true;
 
-  if ( pcOpt->getValue( "SymbolMode" ) )                    m_iSymbolMode                   = atoi( pcOpt->getValue( "SymbolMode" ) );
+  if ( pcOpt->getValue( "SymbolMode" ) )                m_iSymbolMode               = atoi( pcOpt->getValue( "SymbolMode"					) );
 
-  if ( pcOpt->getValue( "LoopFilterDisable" ) )             m_bLoopFilterDisable            = atoi( pcOpt->getValue( "LoopFilterDisable" ) ) == 0 ? false : true;
-  if ( pcOpt->getValue( "LoopFilterAlphaC0Offset" ) )       m_iLoopFilterAlphaC0Offset      = atoi( pcOpt->getValue( "LoopFilterAlphaC0Offset" ) );
-  if ( pcOpt->getValue( "LoopFilterBetaOffset" ) )          m_iLoopFilterBetaOffset         = atoi( pcOpt->getValue( "LoopFilterBetaOffset" ) );
+  if ( pcOpt->getValue( "LoopFilterDisable" ) )         m_bLoopFilterDisable        = atoi( pcOpt->getValue( "LoopFilterDisable"				) ) == 0 ? false : true;
+  if ( pcOpt->getValue( "LoopFilterAlphaC0Offset" ) )   m_iLoopFilterAlphaC0Offset	= atoi( pcOpt->getValue( "LoopFilterAlphaC0Offset"	) );
+  if ( pcOpt->getValue( "LoopFilterBetaOffset" ) )      m_iLoopFilterBetaOffset     = atoi( pcOpt->getValue( "LoopFilterBetaOffset"			) );
 
-  if ( pcOpt->getValue( "FastSearch" ) )                    m_iFastSearch                   = atoi( pcOpt->getValue( "FastSearch" ) );
-  if ( pcOpt->getValue( "SearchRange" ) )                   m_iSearchRange                  = atoi( pcOpt->getValue( "SearchRange" ) );
-  if ( pcOpt->getValue( "MaxDeltaQP" ) )                    m_iMaxDeltaQP                   = atoi( pcOpt->getValue( "MaxDeltaQP" ) );
-	if ( pcOpt->getValue( "HadamardME" ) )                    m_bUseHADME											= atoi( pcOpt->getValue( "HadamardME" ) ) == 0 ? false : true;
+  if ( pcOpt->getValue( "FastSearch" ) )                m_iFastSearch               = atoi( pcOpt->getValue( "FastSearch"			) );
+  if ( pcOpt->getValue( "SearchRange" ) )               m_iSearchRange              = atoi( pcOpt->getValue( "SearchRange"		) );
+  if ( pcOpt->getValue( "MaxDeltaQP" ) )                m_iMaxDeltaQP               = atoi( pcOpt->getValue( "MaxDeltaQP"			) );
+	if ( pcOpt->getValue( "HadamardME" ) )                m_bUseHADME									= atoi( pcOpt->getValue( "HadamardME"			) ) == 0 ? false : true;
 
-  if ( pcOpt->getValue( "MaxCUWidth" ) )                    m_uiMaxCUWidth                  = atoi( pcOpt->getValue( "MaxCUWidth" ) );
-  if ( pcOpt->getValue( "MaxCUHeight" ) )                   m_uiMaxCUHeight                 = atoi( pcOpt->getValue( "MaxCUHeight" ) );
-  if ( pcOpt->getValue( "MaxPartitionDepth" ) )             m_uiMaxCUDepth                  = atoi( pcOpt->getValue( "MaxPartitionDepth" ) );
+  if ( pcOpt->getValue( "MaxCUWidth" ) )                m_uiMaxCUWidth              = atoi( pcOpt->getValue( "MaxCUWidth"			) );
+  if ( pcOpt->getValue( "MaxCUHeight" ) )               m_uiMaxCUHeight             = atoi( pcOpt->getValue( "MaxCUHeight"		) );
+  if ( pcOpt->getValue( "MaxPartitionDepth" ) )         m_uiMaxCUDepth              = atoi( pcOpt->getValue( "MaxPartitionDepth" ) );
 
-  if ( pcOpt->getValue( "MinTrDepth" ) )										m_uiMinTrDepth  								= atoi( pcOpt->getValue( "MinTrDepth" ) );
-  if ( pcOpt->getValue( "MaxTrDepth" ) )										m_uiMaxTrDepth									= atoi( pcOpt->getValue( "MaxTrDepth" ) );
+  if ( pcOpt->getValue( "MinTrDepth" ) )								m_uiMinTrDepth  						= atoi( pcOpt->getValue( "MinTrDepth"			) );
+  if ( pcOpt->getValue( "MaxTrDepth" ) )								m_uiMaxTrDepth							= atoi( pcOpt->getValue( "MaxTrDepth"			) );
 
-  if ( pcOpt->getValue( "ALF" ) )                           m_bUseALF                       = atoi( pcOpt->getValue( "ALF" ) ) == 0  ? false : true;
-  if ( pcOpt->getValue( "BitDepth" ) )                      m_uiBitDepth                    = atoi( pcOpt->getValue( "BitDepth" ) );
-  if ( pcOpt->getValue( "BitIncrement" ) )                  m_uiBitIncrement                = atoi( pcOpt->getValue( "BitIncrement" ) );
+  if ( pcOpt->getValue( "ALF" ) )                       m_bUseALF                   = atoi( pcOpt->getValue( "ALF"						) ) == 0  ? false : true;
+  if ( pcOpt->getValue( "BitDepth" ) )                  m_uiBitDepth                = atoi( pcOpt->getValue( "BitDepth"				) );
+  if ( pcOpt->getValue( "BitIncrement" ) )              m_uiBitIncrement            = atoi( pcOpt->getValue( "BitIncrement"		) );
 
-  if ( pcOpt->getValue( "DeltaQpRD" ) )                     m_uiDeltaQpRD                   = atoi( pcOpt->getValue( "DeltaQpRD"  ) );
-  if ( pcOpt->getValue( "SBACRD" ) )												m_bUseSBACRD                    = atoi( pcOpt->getValue( "SBACRD" ) ) == 0 ? false : true;
-	if ( pcOpt->getValue( "DIFTap" ) )											  m_iDIFTap 										  = atoi( pcOpt->getValue( "DIFTap"  ) );
-  if ( pcOpt->getValue( "ASR" ) )                           m_bUseASR                       = atoi( pcOpt->getValue( "ASR"     ) ) == 0 ? false : true;
-	if ( pcOpt->getValue( "GPB" ) )														m_bUseGPB												= atoi( pcOpt->getValue( "GPB"     ) ) == 0 ? false : true;
+  if ( pcOpt->getValue( "DeltaQpRD" ) )                 m_uiDeltaQpRD               = atoi( pcOpt->getValue( "DeltaQpRD"			) );
+  if ( pcOpt->getValue( "SBACRD" ) )										m_bUseSBACRD                = atoi( pcOpt->getValue( "SBACRD"					) ) == 0 ? false : true;
+	if ( pcOpt->getValue( "DIFTap" ) )										m_iDIFTap 									= atoi( pcOpt->getValue( "DIFTap"					) );
+  if ( pcOpt->getValue( "ASR" ) )                       m_bUseASR                   = atoi( pcOpt->getValue( "ASR"						) ) == 0 ? false : true;
+	if ( pcOpt->getValue( "GPB" ) )												m_bUseGPB										= atoi( pcOpt->getValue( "GPB"						) ) == 0 ? false : true;
 
-	if ( pcOpt->getValue( "MaxTrSize" ) )											m_uiMaxTrSize										= atoi( pcOpt->getValue( "MaxTrSize" ) );
+	if ( pcOpt->getValue( "MaxTrSize" ) )									m_uiMaxTrSize								= atoi( pcOpt->getValue( "MaxTrSize"			) );
 
-  if ( pcOpt->getValue( "RDOQ" ) )													m_bUseRDOQ											= atoi( pcOpt->getValue( "RDOQ"      ) ) == 0 ? false : true;
-  if ( pcOpt->getValue( "GRefMode" ) )				m_pchGRefMode     = pcOpt->getValue( "GRefMode" );
-  if ( pcOpt->getValue( "LowDelayCoding" ) )								m_bUseLDC                       = atoi( pcOpt->getValue( "LowDelayCoding"    ) ) == 0 ? false : true;
-  if ( pcOpt->getValue( "PAD" ) )														m_bUsePAD												= atoi( pcOpt->getValue( "PAD"       ) ) == 0 ? false : true;
+  if ( pcOpt->getValue( "RDOQ" ) )											m_bUseRDOQ									= atoi( pcOpt->getValue( "RDOQ"						) ) == 0 ? false : true;
+  if ( pcOpt->getValue( "GRefMode" ) )									m_pchGRefMode								=       pcOpt->getValue( "GRefMode"				);
+  if ( pcOpt->getValue( "LowDelayCoding" ) )						m_bUseLDC                   = atoi( pcOpt->getValue( "LowDelayCoding" ) ) == 0 ? false : true;
+  if ( pcOpt->getValue( "PAD" ) )												m_bUsePAD										= atoi( pcOpt->getValue( "PAD"						) ) == 0 ? false : true;
 
-	if ( pcOpt->getValue( "QBO" ) )														m_bUseQBO												= atoi( pcOpt->getValue( "QBO"       ) ) == 0 ? false : true;
-	if ( pcOpt->getValue( "NRF" ) )														m_bUseNRF												= atoi( pcOpt->getValue( "NRF"       ) ) == 0 ? false : true;
-	if ( pcOpt->getValue( "BQP" ) )														m_bUseBQP												= atoi( pcOpt->getValue( "BQP"       ) ) == 0 ? false : true;
+	if ( pcOpt->getValue( "QBO" ) )												m_bUseQBO										= atoi( pcOpt->getValue( "QBO"						) ) == 0 ? false : true;
+	if ( pcOpt->getValue( "NRF" ) )												m_bUseNRF										= atoi( pcOpt->getValue( "NRF"						) ) == 0 ? false : true;
+	if ( pcOpt->getValue( "BQP" ) )												m_bUseBQP										= atoi( pcOpt->getValue( "BQP"						) ) == 0 ? false : true;
 
   return;
 }
@@ -472,8 +482,10 @@ Void TAppEncCfg::xSetCfgCommand( int iArgc, char** pArgv )
 		else if ( !strcmp( pStr, "-tq3" ) )	{	i++; m_aiTLayerQPOffset[3]	= atoi( pArgv[i] );	i++; }
     else if ( !strcmp( pStr, "-pdx" ) )	{	i++; m_aiPad[0]	            = atoi( pArgv[i] );	i++; }
 		else if ( !strcmp( pStr, "-pdy" ) )	{	i++; m_aiPad[1]	            = atoi( pArgv[i] );	i++; }
+		else if ( !strcmp( pStr, "-sym" ) )	{	i++; m_iSymbolMode	        = atoi( pArgv[i] );	i++; }
 		else if ( !strcmp( pStr, "-ldm" ) )	{	i++; m_iLDMode              = atoi( pArgv[i] ); i++; }
 		else if ( !strcmp( pStr, "-tap" ) )	{	i++; m_iDIFTap              = atoi( pArgv[i] ); i++; }
+		else if ( !strcmp( pStr, "-sr"  ) )	{	i++; m_iSearchRange         = atoi( pArgv[i] ); i++; }
 		else
 		if ( !strcmp( pStr, "-1" ) )
 		{
@@ -502,6 +514,12 @@ Void TAppEncCfg::xSetCfgCommand( int iArgc, char** pArgv )
       if ( !strcmp( pToolName, "NRF" ) )	m_bUseNRF         = true;
       else
       if ( !strcmp( pToolName, "BQP" ) )	m_bUseBQP         = true;
+      else
+			if ( !strcmp( pToolName, "FEN" ) )
+			{
+				m_bUseFastEnc			= true;
+				m_bUseASR         = true;
+			}
 			i++;
 		}
 		else
@@ -509,7 +527,7 @@ Void TAppEncCfg::xSetCfgCommand( int iArgc, char** pArgv )
 		{
 			i++;
 			pToolName = pArgv[i];
-      if ( !strcmp( pToolName, "ASR" ) )m_bUseASR						= false;
+      if ( !strcmp( pToolName, "ASR" ) )	m_bUseASR					= false;
 			else
 			if ( !strcmp( pToolName, "ALF" ) )	m_bUseALF					= false;
 			else
@@ -532,6 +550,8 @@ Void TAppEncCfg::xSetCfgCommand( int iArgc, char** pArgv )
       if ( !strcmp( pToolName, "NRF" ) )	m_bUseNRF         = false;
       else
       if ( !strcmp( pToolName, "BQP" ) )	m_bUseBQP         = false;
+      else
+      if ( !strcmp( pToolName, "FEN" ) )	m_bUseFastEnc     = false;
 			i++;
 		}
 		else
@@ -614,6 +634,7 @@ Void TAppEncCfg::xPrintParameter()
 	printf("BQP:%d ", m_bUseBQP							);
   printf("QBO:%d ", m_bUseQBO							);
 	printf("GPB:%d ",	m_bUseGPB							);
+	printf("FEN:%d ",	m_bUseFastEnc					);
   printf("\n");
 
   fflush(stdout);
@@ -652,6 +673,8 @@ Void TAppEncCfg::xPrintUsage()
 	printf( "  -tq3    QP offset of temporal layer 3\n" );
   printf( "  -pdx    horizontal source padding size\n");
 	printf( "  -pdy    vertical source padding size\n");
+	printf( "  -sym    symbol mode (0=VLC, 1=SBAC)\n");
+	printf( "  -sr     motion search range\n");
 	printf( "  -1/0    <name>: turn on/off <name>\n");
 	printf( "          <name> = ALF - adaptive loop filter\n");
 	printf( "                   IBD - bit-depth increasement\n");
@@ -665,6 +688,7 @@ Void TAppEncCfg::xPrintUsage()
 	printf( "                   PAD - automatic source padding of multiple of 16\n");
 	printf( "                   QBO - skip refers highest quality picture\n");
 	printf( "                   ASR - adaptive motion search range\n");
+	printf( "                   FEN - fast encoder setting\n");
 	printf( "\n" );
 	printf( "  Example 1) TAppEncoder.exe -c test.cfg -q 32 -g 8 -f 9 -s 64 -h 4\n");
 	printf("              -> QP 32, hierarchical-B GOP 8, 9 frames, 64x64-8x8 CU (~4x4 PU)\n\n");

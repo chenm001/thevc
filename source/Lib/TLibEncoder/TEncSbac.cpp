@@ -36,14 +36,12 @@
 #include "TEncTop.h"
 #include "TEncSbac.h"
 
-#define MAX_VALUE           0xdead
+extern UChar	stateMappingTable[113];
+extern Int		entropyBits[128];
 
-extern UChar stateMappingTable[113];
-extern Int entropyBits[128];
-
-//////////////////////////////////////////////////////////////////////
-// Construction/Destruction
-//////////////////////////////////////////////////////////////////////
+// ====================================================================================================================
+// Constructor / destructor / create / destroy
+// ====================================================================================================================
 
 TEncSbac::TEncSbac():
   // new structure here
@@ -91,6 +89,10 @@ TEncSbac::~TEncSbac()
 {
 }
 
+// ====================================================================================================================
+// Public member functions
+// ====================================================================================================================
+
 Void TEncSbac::resetEntropy           ()
 {
   Int  iQp              = m_pcSlice->getSliceQp();
@@ -133,8 +135,6 @@ Void TEncSbac::resetEntropy           ()
   m_bIsPendingByte = false;
   m_uiStackedFFs = 0;
   m_uiStackedZeros = 0;
-
-  m_uiLastDQpNonZero  = 0;
 
   // new structure
   m_uiLastQp          = iQp;
@@ -197,6 +197,764 @@ Void TEncSbac::codeSliceFinish()
     m_uiStackedZeros--;
   }
 }
+
+// SBAC RD
+Void  TEncSbac::load ( TEncSbac* pScr)
+{
+  this->xCopyFrom(pScr);
+}
+
+Void  TEncSbac::store( TEncSbac* pDest)
+{
+  pDest->xCopyFrom( this );
+}
+
+// CIP
+Void TEncSbac::codeCIPflag( TComDataCU* pcCU, UInt uiAbsPartIdx, Bool bRD )
+{
+  if( bRD )
+    uiAbsPartIdx = 0;
+
+  Int CIPflag = pcCU->getCIPflag   ( uiAbsPartIdx );
+  Int iCtx    = pcCU->getCtxCIPFlag( uiAbsPartIdx );
+
+  xWriteSymbol ( (CIPflag) ? 1 : 0, m_cCUCIPflagCCModel.get( 0, 0, iCtx ) );
+}
+
+Void TEncSbac::codeROTindex( TComDataCU* pcCU, UInt uiAbsPartIdx, Bool bRD )
+{
+  if( bRD )
+    uiAbsPartIdx = 0;
+
+  Int indexROT = pcCU->getROTindex( uiAbsPartIdx );
+  Int dictSize = ROT_DICT;
+
+  switch (dictSize)
+  {
+	 case 9:
+    {
+      xWriteSymbol( indexROT> 0 ? 0 : 1 , m_cCUROTindexSCModel.get( 0, 0, 0 ) );
+      if ( indexROT > 0 )
+      {
+        indexROT = indexROT-1;
+        xWriteSymbol( (indexROT & 0x01),      m_cCUROTindexSCModel.get( 0, 0, 1 ) );
+        xWriteSymbol( (indexROT & 0x02) >> 1, m_cCUROTindexSCModel.get( 0, 0, 2 ) );
+		xWriteSymbol( (indexROT & 0x04) >> 2, m_cCUROTindexSCModel.get( 0, 0, 2 ) );
+      }
+    }
+    break;
+  case 4:
+    {
+      xWriteSymbol( (indexROT & 0x01),      m_cCUROTindexSCModel.get( 0, 0, 0 ) );
+      xWriteSymbol( (indexROT & 0x02) >> 1, m_cCUROTindexSCModel.get( 0, 0, 1 ) );
+    }
+    break;
+  case 2:
+    {
+      xWriteSymbol( indexROT> 0 ? 0 : 1 , m_cCUROTindexSCModel.get( 0, 0, 0 ) );
+    }
+    break;
+  case 5:
+    {
+      xWriteSymbol( indexROT> 0 ? 0 : 1 , m_cCUROTindexSCModel.get( 0, 0, 0 ) );
+      if ( indexROT > 0 )
+      {
+        indexROT = indexROT-1;
+        xWriteSymbol( (indexROT & 0x01),      m_cCUROTindexSCModel.get( 0, 0, 1 ) );
+        xWriteSymbol( (indexROT & 0x02) >> 1, m_cCUROTindexSCModel.get( 0, 0, 2 ) );
+      }
+    }
+    break;
+  case 1:
+    {
+    }
+    break;
+  }
+  return;
+}
+
+Void TEncSbac::codeMVPIdx ( TComDataCU* pcCU, UInt uiAbsPartIdx, RefPicList eRefList )
+{
+  Int iSymbol = pcCU->getMVPIdx(eRefList, uiAbsPartIdx);
+  Int iNum    = pcCU->getMVPNum(eRefList, uiAbsPartIdx);
+
+  xWriteUnaryMaxSymbol(iSymbol, m_cMVPIdxSCModel.get(0), 1, iNum-1);
+}
+
+Void TEncSbac::codePartSize( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
+{
+  PartSize eSize         = pcCU->getPartitionSize( uiAbsPartIdx );
+
+  if ( pcCU->getSlice()->isInterB() && pcCU->isIntra( uiAbsPartIdx ) )
+  {
+    xWriteSymbol( 0, m_cCUPartSizeSCModel.get( 0, 0, 0) );
+    xWriteSymbol( 0, m_cCUPartSizeSCModel.get( 0, 0, 1) );
+    xWriteSymbol( 0, m_cCUPartSizeSCModel.get( 0, 0, 2) );
+    xWriteSymbol( 0, m_cCUPartSizeSCModel.get( 0, 0, 3) );
+    xWriteSymbol( (eSize == SIZE_2Nx2N? 0 : 1), m_cCUPartSizeSCModel.get( 0, 0, 4) );
+    return;
+  }
+
+  if ( pcCU->isIntra( uiAbsPartIdx ) )
+  {
+    xWriteSymbol( eSize == SIZE_2Nx2N? 1 : 0, m_cCUPartSizeSCModel.get( 0, 0, 0 ) );
+    return;
+  }
+
+	switch(eSize)
+	{
+	case SIZE_2Nx2N:
+		{
+			xWriteSymbol( 1, m_cCUPartSizeSCModel.get( 0, 0, 0) );
+			break;
+		}
+	case SIZE_2NxN:
+	case SIZE_2NxnU:
+	case SIZE_2NxnD:
+		{
+			xWriteSymbol( 0, m_cCUPartSizeSCModel.get( 0, 0, 0) );
+			xWriteSymbol( 1, m_cCUPartSizeSCModel.get( 0, 0, 1) );
+
+			if ( pcCU->getSlice()->getSPS()->getAMPAcc( uiDepth ) )
+			{
+			  if (eSize == SIZE_2NxN)
+		  	{
+          xWriteSymbol(1, m_cCUYPosiSCModel.get( 0, 0, 0 ));
+		  	}
+			  else
+		  	{
+          xWriteSymbol(0, m_cCUYPosiSCModel.get( 0, 0, 0 ));
+          xWriteSymbol((eSize == SIZE_2NxnU? 0: 1), m_cCUYPosiSCModel.get( 0, 0, 1 ));
+		  	}
+			}
+			break;
+		}
+	case SIZE_Nx2N:
+	case SIZE_nLx2N:
+	case SIZE_nRx2N:
+		{
+			xWriteSymbol( 0, m_cCUPartSizeSCModel.get( 0, 0, 0) );
+			xWriteSymbol( 0, m_cCUPartSizeSCModel.get( 0, 0, 1) );
+			xWriteSymbol( 1, m_cCUPartSizeSCModel.get( 0, 0, 2) );
+
+			if ( pcCU->getSlice()->getSPS()->getAMPAcc( uiDepth ) )
+			{
+			  if (eSize == SIZE_Nx2N)
+		  	{
+          xWriteSymbol(1, m_cCUXPosiSCModel.get( 0, 0, 0 ));
+		  	}
+			  else
+		  	{
+          xWriteSymbol(0, m_cCUXPosiSCModel.get( 0, 0, 0 ));
+          xWriteSymbol((eSize == SIZE_nLx2N? 0: 1), m_cCUXPosiSCModel.get( 0, 0, 1 ));
+		  	}
+			}
+			break;
+		}
+	case SIZE_NxN:
+		{
+			xWriteSymbol( 0, m_cCUPartSizeSCModel.get( 0, 0, 0) );
+			xWriteSymbol( 0, m_cCUPartSizeSCModel.get( 0, 0, 1) );
+			xWriteSymbol( 0, m_cCUPartSizeSCModel.get( 0, 0, 2) );
+
+      if (pcCU->getSlice()->isInterB())
+      {
+  			xWriteSymbol( 1, m_cCUPartSizeSCModel.get( 0, 0, 3) );
+			}
+			break;
+		}
+	default:
+		{
+			assert(0);
+		}
+	}
+}
+
+Void TEncSbac::codePredMode( TComDataCU* pcCU, UInt uiAbsPartIdx )
+{
+  // get context function is here
+  Int iPredMode = pcCU->getPredictionMode( uiAbsPartIdx );
+  UInt uiSymbol = iPredMode == 0 ? 0 : 1;
+  xWriteSymbol( uiSymbol, m_cCUPredModeSCModel.get( 0, 0, 0 ) );
+
+  if (pcCU->getSlice()->isInterB() )
+  {
+    return;
+  }
+
+  if ( uiSymbol == 1 )
+  {
+    xWriteSymbol( iPredMode == 1 ? 0 : 1, m_cCUPredModeSCModel.get( 0, 0, 1 ) );
+  }
+}
+
+Void TEncSbac::codeAlfCtrlFlag( TComDataCU* pcCU, UInt uiAbsPartIdx )
+{
+  if (!m_bAlfCtrl)
+    return;
+
+  if( pcCU->getDepth(uiAbsPartIdx) > m_uiMaxAlfCtrlDepth && !pcCU->isFirstAbsZorderIdxInDepth(uiAbsPartIdx, m_uiMaxAlfCtrlDepth))
+  {
+    return;
+  }
+
+  // get context function is here
+  UInt uiSymbol = pcCU->getAlfCtrlFlag( uiAbsPartIdx ) ? 1 : 0;
+
+  xWriteSymbol( uiSymbol, m_cCUAlfCtrlFlagSCModel.get( 0, 0, pcCU->getCtxAlfCtrlFlag( uiAbsPartIdx) ) );
+}
+
+Void TEncSbac::codeAlfCtrlDepth()
+{
+  if (!m_bAlfCtrl)
+    return;
+
+  UInt uiDepth = m_uiMaxAlfCtrlDepth;
+  xWriteUnaryMaxSymbol(uiDepth, m_cALFUvlcSCModel.get(0), 1, g_uiMaxCUDepth-1);
+}
+
+Void TEncSbac::codeSkipFlag( TComDataCU* pcCU, UInt uiAbsPartIdx )
+{
+  // get context function is here
+  UInt uiSymbol = pcCU->isSkipped( uiAbsPartIdx ) ? 1 : 0;
+  xWriteSymbol( uiSymbol, m_cCUSkipFlagSCModel.get( 0, 0, pcCU->getCtxSkipFlag( uiAbsPartIdx) ) );
+}
+
+Void TEncSbac::codeSplitFlag   ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
+{
+  if( uiDepth == g_uiMaxCUDepth - g_uiAddCUDepth )
+    return;
+
+  UInt uiCtx           = pcCU->getCtxSplitFlag( uiAbsPartIdx, uiDepth );
+  UInt uiCurrSplitFlag = ( pcCU->getDepth( uiAbsPartIdx ) > uiDepth ) ? 1 : 0;
+
+  assert( uiCtx < 3 );
+  xWriteSymbol( uiCurrSplitFlag, m_cCUSplitFlagSCModel.get( 0, 0, uiCtx ) );
+  return;
+}
+
+Void TEncSbac::codeTransformIdx( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
+{
+  UInt uiTrLevel = 0;
+
+  UInt uiWidthInBit  = g_aucConvertToBit[pcCU->getWidth(uiAbsPartIdx)]+2;
+  UInt uiTrSizeInBit = g_aucConvertToBit[pcCU->getSlice()->getSPS()->getMaxTrSize()]+2;
+  uiTrLevel          = uiWidthInBit >= uiTrSizeInBit ? uiWidthInBit - uiTrSizeInBit : 0;
+
+  UInt uiMinTrDepth = pcCU->getSlice()->getSPS()->getMinTrDepth() + uiTrLevel;
+  UInt uiMaxTrDepth = pcCU->getSlice()->getSPS()->getMaxTrDepth() + uiTrLevel;
+
+  if ( uiMinTrDepth == uiMaxTrDepth )
+  {
+    return;
+  }
+
+  UInt uiSymbol = pcCU->getTransformIdx(uiAbsPartIdx) - uiMinTrDepth;
+
+  xWriteSymbol( uiSymbol ? 1 : 0, m_cCUTransIdxSCModel.get( 0, 0, pcCU->getCtxTransIdx( uiAbsPartIdx ) ) );
+
+  if ( !uiSymbol )
+  {
+    return;
+  }
+
+  if (pcCU->getPartitionSize(uiAbsPartIdx) >= SIZE_2NxnU && pcCU->getPartitionSize(uiAbsPartIdx) <= SIZE_nRx2N && uiMinTrDepth == 0 && uiMaxTrDepth == 1 && uiSymbol)
+  {
+    return;
+  }
+
+  Int  iCount = 1;
+  uiSymbol--;
+  while( ++iCount <= (Int)( uiMaxTrDepth - uiMinTrDepth ) )
+  {
+    xWriteSymbol( uiSymbol ? 1 : 0, m_cCUTransIdxSCModel.get( 0, 0, 3 ) );
+    if ( uiSymbol == 0 )
+    {
+      return;
+    }
+    uiSymbol--;
+  }
+
+  return;
+}
+
+Void TEncSbac::codeIntraDirLumaAdi( TComDataCU* pcCU, UInt uiAbsPartIdx )
+{
+	Int iIntraDirLuma = pcCU->convertIntraDirLumaAdi( pcCU, uiAbsPartIdx );
+	Int iIntraIdx= pcCU->getIntraSizeIdx(uiAbsPartIdx);
+
+	xWriteSymbol( iIntraDirLuma >= 0 ? 0 : 1, m_cCUIntraPredSCModel.get( 0, 0, 0 ) );
+
+	if (iIntraDirLuma >= 0)
+	{
+		xWriteSymbol((iIntraDirLuma & 0x01), m_cCUIntraPredSCModel.get(0, 0, 1));
+
+		xWriteSymbol((iIntraDirLuma & 0x02) >> 1, m_cCUIntraPredSCModel.get(0, 0, 1));
+
+		if (g_aucIntraModeBits[iIntraIdx] >= 4)
+		{
+			xWriteSymbol((iIntraDirLuma & 0x04) >> 2, m_cCUIntraPredSCModel.get(0, 0, 1));
+
+			if (g_aucIntraModeBits[iIntraIdx] >= 5)
+			{
+				xWriteSymbol((iIntraDirLuma & 0x08) >> 3,
+					m_cCUIntraPredSCModel.get(0, 0, 1));
+
+				if (g_aucIntraModeBits[iIntraIdx] >= 6)
+				{
+					xWriteSymbol((iIntraDirLuma & 0x10) >> 4,
+						m_cCUIntraPredSCModel.get(0, 0, 1));
+				}
+			}
+		}
+	}
+	return;
+}
+
+Void TEncSbac::codeIntraDirChroma( TComDataCU* pcCU, UInt uiAbsPartIdx )
+{
+	UInt uiCtx            = pcCU->getCtxIntraDirChroma( uiAbsPartIdx );
+	UInt uiIntraDirChroma = pcCU->getChromaIntraDir   ( uiAbsPartIdx );
+
+	if ( 0 == uiIntraDirChroma )
+	{
+		xWriteSymbol( 0, m_cCUChromaPredSCModel.get( 0, 0, uiCtx ) );
+	}
+	else
+	{
+		xWriteSymbol( 1, m_cCUChromaPredSCModel.get( 0, 0, uiCtx ) );
+		xWriteUnaryMaxSymbol( uiIntraDirChroma - 1, m_cCUChromaPredSCModel.get( 0, 0 ) + 3, 0, 3 );
+	}
+
+	return;
+}
+
+Void TEncSbac::codeInterDir( TComDataCU* pcCU, UInt uiAbsPartIdx )
+{
+  UInt uiInterDir = pcCU->getInterDir   ( uiAbsPartIdx );
+  UInt uiCtx      = pcCU->getCtxInterDir( uiAbsPartIdx );
+  uiInterDir--;
+  xWriteSymbol( ( uiInterDir == 2 ? 1 : 0 ), m_cCUInterDirSCModel.get( 0, 0, uiCtx ) );
+
+  if ( uiInterDir < 2 )
+  {
+    xWriteSymbol( uiInterDir, m_cCUInterDirSCModel.get( 0, 0, 3 ) );
+  }
+
+  return;
+}
+
+Void TEncSbac::codeRefFrmIdx( TComDataCU* pcCU, UInt uiAbsPartIdx, RefPicList eRefList )
+{
+  Int iRefFrame = pcCU->getCUMvField( eRefList )->getRefIdx( uiAbsPartIdx );
+
+  UInt uiCtx = pcCU->getCtxRefIdx( uiAbsPartIdx, eRefList );
+
+  xWriteSymbol( ( iRefFrame == 0 ? 0 : 1 ), m_cCURefPicSCModel.get( 0, 0, uiCtx ) );
+
+  if ( iRefFrame > 0 )
+  {
+		xWriteUnaryMaxSymbol( iRefFrame - 1, &m_cCURefPicSCModel.get( 0, 0, 4 ), 1, pcCU->getSlice()->getNumRefIdx( eRefList )-2 );
+  }
+  return;
+}
+
+Void TEncSbac::codeMvd( TComDataCU* pcCU, UInt uiAbsPartIdx, RefPicList eRefList )
+{
+  TComCUMvField* pcCUMvField = pcCU->getCUMvField( eRefList );
+  Int iHor = pcCUMvField->getMvd( uiAbsPartIdx ).getHor();
+  Int iVer = pcCUMvField->getMvd( uiAbsPartIdx ).getVer();
+
+  UInt uiAbsPartIdxL, uiAbsPartIdxA;
+  Int iHorPred, iVerPred;
+
+  TComDataCU* pcCUL   = pcCU->getPULeft ( uiAbsPartIdxL, pcCU->getZorderIdxInCU() + uiAbsPartIdx );
+  TComDataCU* pcCUA   = pcCU->getPUAbove( uiAbsPartIdxA, pcCU->getZorderIdxInCU() + uiAbsPartIdx );
+
+  TComCUMvField* pcCUMvFieldL = ( pcCUL == NULL || pcCUL->isIntra( uiAbsPartIdxL ) ) ? NULL : pcCUL->getCUMvField( eRefList );
+  TComCUMvField* pcCUMvFieldA = ( pcCUA == NULL || pcCUA->isIntra( uiAbsPartIdxA ) ) ? NULL : pcCUA->getCUMvField( eRefList );
+
+  iHorPred = ( (pcCUMvFieldL == NULL) ? 0 : pcCUMvFieldL->getMvd( uiAbsPartIdxL ).getAbsHor() ) +
+			 ( (pcCUMvFieldA == NULL) ? 0 : pcCUMvFieldA->getMvd( uiAbsPartIdxA ).getAbsHor() );
+  iVerPred = ( (pcCUMvFieldL == NULL) ? 0 : pcCUMvFieldL->getMvd( uiAbsPartIdxL ).getAbsVer() ) +
+			 ( (pcCUMvFieldA == NULL) ? 0 : pcCUMvFieldA->getMvd( uiAbsPartIdxA ).getAbsVer() );
+
+  xWriteMvd( iHor, iHorPred, 0 );
+  xWriteMvd( iVer, iVerPred, 1 );
+
+  return;
+}
+
+Void TEncSbac::codeDeltaQP( TComDataCU* pcCU, UInt uiAbsPartIdx )
+{
+  Int iDQp  = pcCU->getQP( uiAbsPartIdx ) - pcCU->getSlice()->getSliceQp();
+
+	if ( iDQp == 0 )
+	{
+		xWriteSymbol( 0, m_cCUDeltaQpSCModel.get( 0, 0, 0 ) );
+	}
+	else
+	{
+		xWriteSymbol( 1, m_cCUDeltaQpSCModel.get( 0, 0, 0 ) );
+
+    UInt uiDQp = (UInt)( iDQp > 0 ? ( 2 * iDQp - 2 ) : ( -2 * iDQp - 1 ) );
+    xWriteUnarySymbol( uiDQp, &m_cCUDeltaQpSCModel.get( 0, 0, 2 ), 1 );
+  }
+
+  return;
+}
+
+Void TEncSbac::codeCbf( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eType, UInt uiTrDepth )
+{
+  UInt uiCbf = pcCU->getCbf   ( uiAbsPartIdx, eType, uiTrDepth );
+  UInt uiCtx = pcCU->getCtxCbf( uiAbsPartIdx, eType, uiTrDepth );
+
+  xWriteSymbol( uiCbf , m_cCUCbfSCModel.get( 0, eType == TEXT_LUMA ? 0 : 1, 3 - uiCtx ) );
+
+  return;
+}
+
+Void TEncSbac::codeCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx, UInt uiWidth, UInt uiHeight, UInt uiDepth, TextType eTType, Bool bRD )
+{
+  UInt uiCTXIdx = xGetCTXIdxFromWidth( uiWidth );
+
+  if( uiWidth > m_pcSlice->getSPS()->getMaxTrSize() )
+  {
+    uiWidth  = m_pcSlice->getSPS()->getMaxTrSize();
+    uiHeight = m_pcSlice->getSPS()->getMaxTrSize();
+  }
+  UInt uiSize   = uiWidth*uiHeight;
+
+	// point to coefficient
+  TCoeff* piCoeff = pcCoef;
+  UInt uiNumSig = 0;
+  UInt ui;
+
+	// compute number of significant coefficients
+  UInt  uiPart = 0;
+  xCheckCoeff(piCoeff, uiWidth, 0, uiNumSig, uiPart );
+
+  if ( bRD )
+  {
+    UInt uiTempDepth = uiDepth - pcCU->getDepth( uiAbsPartIdx );
+    pcCU->setCbfSubParts( ( uiNumSig ? 1 : 0 ) << uiTempDepth, eTType, uiAbsPartIdx, uiDepth );
+    codeCbf( pcCU, uiAbsPartIdx, eTType, uiTempDepth );
+  }
+
+  if ( uiNumSig == 0 )
+    return;
+
+  UInt uiCodedSig = 0;
+  UInt uiCtxSize  = 64;
+
+  const Int* pos2ctx_map  = pos2ctx_map8x8;
+  const Int* pos2ctx_last = pos2ctx_last8x8;
+  if ( uiWidth < 8 )
+  {
+    pos2ctx_map  = pos2ctx_nomap;
+    pos2ctx_last = pos2ctx_nomap;
+    uiCtxSize    = 16;
+  }
+
+  eTType = eTType == TEXT_LUMA ? TEXT_LUMA : ( eTType == TEXT_NONE ? TEXT_NONE : TEXT_CHROMA );
+
+  UInt uiSig, uiCtx, uiLast;
+  uiLast = 0;
+  uiSig = piCoeff[0] ? 1 : 0;
+
+  xWriteSymbol( uiSig, m_cCUMapSCModel.get( uiCTXIdx, eTType, pos2ctx_map[ 0 ] ) );
+
+  if( uiSig )
+  {
+    uiLast = (++uiCodedSig == uiNumSig ? 1 : 0);
+    xWriteSymbol( uiLast, m_cCULastSCModel.get( uiCTXIdx, eTType, pos2ctx_last[ 0 ] ) );
+  }
+
+  // initialize scan
+  const UInt*  pucScan;
+  const UInt*  pucScanX;
+  const UInt*  pucScanY;
+
+  UInt uiConvBit = g_aucConvertToBit[ uiWidth ];
+
+  switch(uiWidth)
+  {
+  case  2:
+    {
+      static UInt uiScanOrder [4] = {0, 1, 2, 3};
+      static UInt uiScanOrderX[4] = {0, 1, 0, 1};
+      static UInt uiScanOrderY[4] = {0, 0, 1, 1};
+      pucScan  = &uiScanOrder [0];
+      pucScanX = &uiScanOrderX[0];
+      pucScanY = &uiScanOrderY[0];
+      break;
+    }
+  case  4:
+  case  8: pucScan = g_auiFrameScanXY[ uiConvBit ]; pucScanX = g_auiFrameScanX[uiConvBit]; pucScanY = g_auiFrameScanY[uiConvBit]; break;
+  case 16:
+  case 32:
+  case 64:
+  default: pucScan = g_auiFrameScanXY[ uiConvBit ]; pucScanX = g_auiFrameScanX[uiConvBit]; pucScanY = g_auiFrameScanY[uiConvBit]; break;
+  }
+
+	//----- encode significance map -----
+  // DC is coded in the beginning
+  for( ui = 1; ui < ( uiSize - 1 ) && !uiLast; ui++ ) // if last coeff is reached, it has to be significant
+	{
+		uiSig = piCoeff[ pucScan[ ui ] ] ? 1 : 0;
+
+    if (uiCtxSize != uiSize)
+    {
+      UInt uiXX, uiYY;
+      uiXX = pucScanX[ui]/(uiWidth / 8);
+      uiYY = pucScanY[ui]/(uiHeight / 8);
+
+      uiCtx = g_auiAntiScan8[uiYY*8+uiXX];
+    }
+    else
+      uiCtx = ui * uiCtxSize / uiSize;
+
+		xWriteSymbol( uiSig, m_cCUMapSCModel.get( uiCTXIdx, eTType, pos2ctx_map[ uiCtx ] ) );
+
+		if( uiSig )
+		{
+      uiCtx = ui * uiCtxSize / uiSize;
+			uiLast = (++uiCodedSig == uiNumSig ? 1 : 0);
+			xWriteSymbol( uiLast, m_cCULastSCModel.get( uiCTXIdx, eTType, pos2ctx_last[ uiCtx ] ) );
+
+			if( uiLast )
+			{
+				break;
+			}
+		}
+	}
+
+  Int   c1 = 1;
+  Int   c2 = 0;
+  //----- encode significant coefficients -----
+  ui++;
+  while( (ui--) != 0 )
+  {
+    UInt  uiAbs, uiSign;
+    Int   iCoeff = piCoeff[ pucScan[ ui ] ];
+
+    if( iCoeff )
+    {
+      if( iCoeff > 0) { uiAbs = static_cast<UInt>( iCoeff);  uiSign = 0; }
+      else            { uiAbs = static_cast<UInt>(-iCoeff);  uiSign = 1; }
+
+      UInt uiCtx    = Min (c1, 4);
+      UInt uiSymbol = uiAbs > 1 ? 1 : 0;
+      xWriteSymbol( uiSymbol, m_cCUOneSCModel.get( uiCTXIdx, eTType, uiCtx ) );
+
+      if( uiSymbol )
+      {
+        uiCtx  = Min (c2,4);
+        uiAbs -= 2;
+        c1     = 0;
+        c2++;
+				xWriteExGolombLevel( uiAbs, m_cCUAbsSCModel.get( uiCTXIdx, eTType, uiCtx ) );
+      }
+      else if( c1 )
+      {
+        c1++;
+      }
+      xWriteEPSymbol( uiSign );
+    }
+  }
+  return;
+}
+
+Void TEncSbac::codeAlfFlag       ( UInt uiCode )
+{
+	UInt uiSymbol = ( ( uiCode == 0 ) ? 0 : 1 );
+	xWriteSymbol( uiSymbol, m_cALFFlagSCModel.get( 0, 0, 0 ) );
+}
+
+Void TEncSbac::codeAlfUvlc       ( UInt uiCode )
+{
+	Int i;
+
+	if ( uiCode == 0 )
+	{
+		xWriteSymbol( 0, m_cALFUvlcSCModel.get( 0, 0, 0 ) );
+	}
+	else
+	{
+		xWriteSymbol( 1, m_cALFUvlcSCModel.get( 0, 0, 0 ) );
+		for ( i=0; i<uiCode-1; i++ )
+		{
+			xWriteSymbol( 1, m_cALFUvlcSCModel.get( 0, 0, 1 ) );
+		}
+		xWriteSymbol( 0, m_cALFUvlcSCModel.get( 0, 0, 1 ) );
+	}
+}
+
+Void TEncSbac::codeAlfSvlc       ( Int iCode )
+{
+	Int i;
+
+	if ( iCode == 0 )
+	{
+		xWriteSymbol( 0, m_cALFSvlcSCModel.get( 0, 0, 0 ) );
+	}
+	else
+	{
+		xWriteSymbol( 1, m_cALFSvlcSCModel.get( 0, 0, 0 ) );
+
+		// write sign
+		if ( iCode > 0 )
+		{
+			xWriteSymbol( 0, m_cALFSvlcSCModel.get( 0, 0, 1 ) );
+		}
+		else
+		{
+			xWriteSymbol( 1, m_cALFSvlcSCModel.get( 0, 0, 1 ) );
+			iCode = -iCode;
+		}
+
+		// write magnitude
+		for ( i=0; i<iCode-1; i++ )
+		{
+			xWriteSymbol( 1, m_cALFSvlcSCModel.get( 0, 0, 2 ) );
+		}
+		xWriteSymbol( 0, m_cALFSvlcSCModel.get( 0, 0, 2 ) );
+	}
+}
+
+/*!
+ ****************************************************************************
+ * \brief
+ *   estimate bit cost for CBP, significant map and significant coefficients
+ ****************************************************************************
+ */
+Void TEncSbac::estBit (estBitsSbacStruct* pcEstBitsSbac, UInt uiCTXIdx, TextType eTType)
+{
+  estCBFBit (pcEstBitsSbac, 0, eTType);
+
+  // encode significance map
+  estSignificantMapBit (pcEstBitsSbac, uiCTXIdx, eTType);
+
+  // encode significant coefficients
+  estSignificantCoefficientsBit (pcEstBitsSbac, uiCTXIdx, eTType);
+}
+
+/*!
+ ****************************************************************************
+ * \brief
+ *    estimate bit cost for each CBP bit
+ ****************************************************************************
+ */
+Void TEncSbac::estCBFBit (estBitsSbacStruct* pcEstBitsSbac, UInt uiCTXIdx, TextType eTType)
+{
+  Int ctx;
+  Short cbp_bit;
+
+  for ( ctx = 0; ctx <= 3; ctx++ )
+  {
+    cbp_bit = 0;
+    pcEstBitsSbac->blockCbpBits[ctx][cbp_bit] = biari_no_bits (cbp_bit, m_cCUCbfSCModel.get( uiCTXIdx, eTType, ctx ));
+
+    cbp_bit = 1;
+    pcEstBitsSbac->blockCbpBits[ctx][cbp_bit] = biari_no_bits (cbp_bit, m_cCUCbfSCModel.get( uiCTXIdx, eTType, ctx ));
+  }
+}
+
+/*!
+ ****************************************************************************
+ * \brief
+ *    estimate SAMBAC bit cost for significant coefficient map
+ ****************************************************************************
+ */
+Void TEncSbac::estSignificantMapBit (estBitsSbacStruct* pcEstBitsSbac, UInt uiCTXIdx, TextType eTType)
+{
+  Int    k;
+  UShort sig, last;
+  Int    k1 = 15;
+
+  const Int* pos2ctx_map  = pos2ctx_nomap;
+  const Int* pos2ctx_last = pos2ctx_nomap;
+
+
+  for ( k = 0; k < k1; k++ ) // if last coeff is reached, it has to be significant
+  {
+    sig = 0;
+    pcEstBitsSbac->significantBits[pos2ctx_map[k]][sig] = biari_no_bits (sig, m_cCUMapSCModel.get( uiCTXIdx, eTType, pos2ctx_map[ k ] ));
+
+    sig = 1;
+    pcEstBitsSbac->significantBits[pos2ctx_map[k]][sig] = biari_no_bits (sig, m_cCUMapSCModel.get( uiCTXIdx, eTType, pos2ctx_map[ k ] ));
+
+    last = 0;
+    pcEstBitsSbac->lastBits[pos2ctx_last[k]][last] = biari_no_bits (last, m_cCULastSCModel.get( uiCTXIdx, eTType, pos2ctx_last[ k ] ));
+
+    last = 1;
+    pcEstBitsSbac->lastBits[pos2ctx_last[k]][last] = biari_no_bits (last, m_cCULastSCModel.get( uiCTXIdx, eTType, pos2ctx_last[ k ] ));
+  }
+
+  // if last coeff is reached, it has to be significant
+  pcEstBitsSbac->significantBits[pos2ctx_map[k1]][0] = 0;
+  pcEstBitsSbac->significantBits[pos2ctx_map[k1]][1] = 0;
+  pcEstBitsSbac->lastBits[pos2ctx_last[k1]][0] = 0;
+  pcEstBitsSbac->lastBits[pos2ctx_last[k1]][1] = 0;
+}
+
+/*!
+ ****************************************************************************
+ * \brief
+ *    estimate bit cost of significant coefficient
+ ****************************************************************************
+ */
+Void TEncSbac::estSignificantCoefficientsBit (estBitsSbacStruct* pcEstBitsSbac, UInt uiCTXIdx, TextType eTType)
+{
+  Int   ctx;
+  Short greater_one;
+
+  for ( ctx = 0; ctx <= 4; ctx++ )
+  {
+    greater_one = 0;
+    pcEstBitsSbac->greaterOneBits[0][ctx][greater_one] = biari_no_bits (greater_one, m_cCUOneSCModel.get( uiCTXIdx, eTType, ctx ));
+
+    greater_one = 1;
+    pcEstBitsSbac->greaterOneBits[0][ctx][greater_one] = biari_no_bits (greater_one, m_cCUOneSCModel.get( uiCTXIdx, eTType, ctx ));
+  }
+
+  for ( ctx = 0; ctx <= 4; ctx++ )
+  {
+    pcEstBitsSbac->greaterOneBits[1][ctx][0] = biari_no_bits(0, m_cCUAbsSCModel.get( uiCTXIdx, eTType, ctx ));
+
+    pcEstBitsSbac->greaterOneState[ctx] = biari_state(0, m_cCUAbsSCModel.get( uiCTXIdx, eTType, ctx ));
+
+    pcEstBitsSbac->greaterOneBits[1][ctx][1] = biari_no_bits(1, m_cCUAbsSCModel.get( uiCTXIdx, eTType, ctx ));
+  }
+}
+
+Int TEncSbac::biari_no_bits (Short symbol, SbacContextModel& rcSCModel)
+{
+  Int ctx_state, estBits;
+
+  symbol = (Short) (symbol != 0);
+
+  ctx_state = (symbol == rcSCModel.getMps() ) ? 64 + stateMappingTable[rcSCModel.getState()] : 63 - stateMappingTable[rcSCModel.getState()];
+
+  estBits = entropyBits[127-ctx_state];
+
+  return estBits;
+}
+
+Int TEncSbac::biari_state (Short symbol, SbacContextModel& rcSCModel)
+{
+  Int ctx_state;
+
+  symbol = (Short) (symbol != 0);
+
+  ctx_state = ( symbol == rcSCModel.getMps() ) ? 64 + stateMappingTable[rcSCModel.getState()] : 63 - stateMappingTable[rcSCModel.getState()];
+
+  return ctx_state;
+}
+
+// ====================================================================================================================
+// Protected member functions
+// ====================================================================================================================
 
 __inline Void TEncSbac::xPutByte( UChar ucByte)
 {
@@ -432,17 +1190,6 @@ Void TEncSbac::xWriteTerminatingBit( UInt uiSymbol )
   return;
 }
 
-// SBAC RD
-Void  TEncSbac::load ( TEncSbac* pScr)
-{
-  this->xCopyFrom(pScr);
-}
-
-Void  TEncSbac::store( TEncSbac* pDest)
-{
-  pDest->xCopyFrom( this );
-}
-
 Void TEncSbac::xCopyFrom( TEncSbac* pSrc )
 {
   this->m_uiRange            = pSrc->m_uiRange;
@@ -454,7 +1201,6 @@ Void TEncSbac::xCopyFrom( TEncSbac* pSrc )
   this->m_uiStackedZeros     = pSrc->m_uiStackedZeros;
 
   this->m_uiCoeffCost        = pSrc->m_uiCoeffCost;
-  this->m_uiLastDQpNonZero   = pSrc->m_uiLastDQpNonZero;
   this->m_uiLastQp           = pSrc->m_uiLastQp;
 
   this->m_cCUSplitFlagSCModel .copyFrom( &pSrc->m_cCUSplitFlagSCModel   );
@@ -481,443 +1227,6 @@ Void TEncSbac::xCopyFrom( TEncSbac* pSrc )
   this->m_cCUCIPflagCCModel		.copyFrom( &pSrc->m_cCUCIPflagCCModel			);
   this->m_cCUXPosiSCModel			.copyFrom( &pSrc->m_cCUXPosiSCModel				);
   this->m_cCUYPosiSCModel			.copyFrom( &pSrc->m_cCUXPosiSCModel				);
-}
-
-// CIP
-Void TEncSbac::codeCIPflag( TComDataCU* pcCU, UInt uiAbsPartIdx, Bool bRD )
-{
-  if( bRD )
-    uiAbsPartIdx = 0;
-
-  Int CIPflag = pcCU->getCIPflag   ( uiAbsPartIdx );
-  Int iCtx    = pcCU->getCtxCIPFlag( uiAbsPartIdx );
-
-  xWriteSymbol ( (CIPflag) ? 1 : 0, m_cCUCIPflagCCModel.get( 0, 0, iCtx ) );
-}
-
-Void TEncSbac::codeROTindex( TComDataCU* pcCU, UInt uiAbsPartIdx, Bool bRD )
-{
-  if( bRD )
-    uiAbsPartIdx = 0;
-
-  Int indexROT = pcCU->getROTindex( uiAbsPartIdx );
-  Int dictSize;
-
-  if( pcCU->getPredictionMode(uiAbsPartIdx) == MODE_INTRA )
-    dictSize = ROT_DICT;
-  else
-    dictSize = ROT_DICT_INTER;
-  switch (dictSize)
-  {
-	 case 9:
-    {
-      xWriteSymbol( indexROT> 0 ? 0 : 1 , m_cCUROTindexSCModel.get( 0, 0, 0 ) );
-      if ( indexROT > 0 )
-      {
-        indexROT = indexROT-1;
-        xWriteSymbol( (indexROT & 0x01),      m_cCUROTindexSCModel.get( 0, 0, 1 ) );
-        xWriteSymbol( (indexROT & 0x02) >> 1, m_cCUROTindexSCModel.get( 0, 0, 2 ) );
-		xWriteSymbol( (indexROT & 0x04) >> 2, m_cCUROTindexSCModel.get( 0, 0, 2 ) );
-      }
-    }
-    break;
-  case 4:
-    {
-      xWriteSymbol( (indexROT & 0x01),      m_cCUROTindexSCModel.get( 0, 0, 0 ) );
-      xWriteSymbol( (indexROT & 0x02) >> 1, m_cCUROTindexSCModel.get( 0, 0, 1 ) );
-    }
-    break;
-  case 2:
-    {
-      xWriteSymbol( indexROT> 0 ? 0 : 1 , m_cCUROTindexSCModel.get( 0, 0, 0 ) );
-    }
-    break;
-  case 5:
-    {
-      xWriteSymbol( indexROT> 0 ? 0 : 1 , m_cCUROTindexSCModel.get( 0, 0, 0 ) );
-      if ( indexROT > 0 )
-      {
-        indexROT = indexROT-1;
-        xWriteSymbol( (indexROT & 0x01),      m_cCUROTindexSCModel.get( 0, 0, 1 ) );
-        xWriteSymbol( (indexROT & 0x02) >> 1, m_cCUROTindexSCModel.get( 0, 0, 2 ) );
-      }
-    }
-    break;
-  case 1:
-    {
-    }
-    break;
-  }
-  return;
-}
-
-Void TEncSbac::codeMVPIdx ( TComDataCU* pcCU, UInt uiAbsPartIdx, RefPicList eRefList )
-{
-  Int iSymbol = pcCU->getMVPIdx(eRefList, uiAbsPartIdx);
-  Int iNum    = pcCU->getMVPNum(eRefList, uiAbsPartIdx);
-
-  xWriteUnaryMaxSymbol(iSymbol, m_cMVPIdxSCModel.get(0), 1, iNum-1);
-}
-
-Void TEncSbac::codePartSize( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
-{
-  PartSize eSize         = pcCU->getPartitionSize( uiAbsPartIdx );
-
-  if ( pcCU->getSlice()->isInterB() && pcCU->isIntra( uiAbsPartIdx ) )
-  {
-    xWriteSymbol( 0, m_cCUPartSizeSCModel.get( 0, 0, 0) );
-    xWriteSymbol( 0, m_cCUPartSizeSCModel.get( 0, 0, 1) );
-    xWriteSymbol( 0, m_cCUPartSizeSCModel.get( 0, 0, 2) );
-    xWriteSymbol( 0, m_cCUPartSizeSCModel.get( 0, 0, 3) );
-    xWriteSymbol( (eSize == SIZE_2Nx2N? 0 : 1), m_cCUPartSizeSCModel.get( 0, 0, 4) );
-    return;
-  }
-
-  if ( pcCU->isIntra( uiAbsPartIdx ) )
-  {
-    xWriteSymbol( eSize == SIZE_2Nx2N? 1 : 0, m_cCUPartSizeSCModel.get( 0, 0, 0 ) );
-    return;
-  }
-
-	switch(eSize)
-	{
-	case SIZE_2Nx2N:
-		{
-			xWriteSymbol( 1, m_cCUPartSizeSCModel.get( 0, 0, 0) );
-			break;
-		}
-	case SIZE_2NxN:
-	case SIZE_2NxnU:
-	case SIZE_2NxnD:
-		{
-			xWriteSymbol( 0, m_cCUPartSizeSCModel.get( 0, 0, 0) );
-			xWriteSymbol( 1, m_cCUPartSizeSCModel.get( 0, 0, 1) );
-
-			if ( pcCU->getSlice()->getAMPAcc( uiDepth ) )
-			{
-			  if (eSize == SIZE_2NxN)
-		  	{
-          xWriteSymbol(1, m_cCUYPosiSCModel.get( 0, 0, 0 ));
-		  	}
-			  else
-		  	{
-          xWriteSymbol(0, m_cCUYPosiSCModel.get( 0, 0, 0 ));
-          xWriteSymbol((eSize == SIZE_2NxnU? 0: 1), m_cCUYPosiSCModel.get( 0, 0, 1 ));
-		  	}
-			}
-			break;
-		}
-	case SIZE_Nx2N:
-	case SIZE_nLx2N:
-	case SIZE_nRx2N:
-		{
-			xWriteSymbol( 0, m_cCUPartSizeSCModel.get( 0, 0, 0) );
-			xWriteSymbol( 0, m_cCUPartSizeSCModel.get( 0, 0, 1) );
-			xWriteSymbol( 1, m_cCUPartSizeSCModel.get( 0, 0, 2) );
-
-			if ( pcCU->getSlice()->getAMPAcc( uiDepth ) )
-			{
-			  if (eSize == SIZE_Nx2N)
-		  	{
-          xWriteSymbol(1, m_cCUXPosiSCModel.get( 0, 0, 0 ));
-		  	}
-			  else
-		  	{
-          xWriteSymbol(0, m_cCUXPosiSCModel.get( 0, 0, 0 ));
-          xWriteSymbol((eSize == SIZE_nLx2N? 0: 1), m_cCUXPosiSCModel.get( 0, 0, 1 ));
-		  	}
-			}
-			break;
-		}
-	case SIZE_NxN:
-		{
-			xWriteSymbol( 0, m_cCUPartSizeSCModel.get( 0, 0, 0) );
-			xWriteSymbol( 0, m_cCUPartSizeSCModel.get( 0, 0, 1) );
-			xWriteSymbol( 0, m_cCUPartSizeSCModel.get( 0, 0, 2) );
-
-      if (pcCU->getSlice()->isInterB())
-      {
-  			xWriteSymbol( 1, m_cCUPartSizeSCModel.get( 0, 0, 3) );
-			}
-			break;
-		}
-	default:
-		{
-			assert(0);
-		}
-	}
-}
-
-Void TEncSbac::codePredMode( TComDataCU* pcCU, UInt uiAbsPartIdx )
-{
-  // get context function is here
-  Int iPredMode = pcCU->getPredictionMode( uiAbsPartIdx );
-  UInt uiSymbol = iPredMode == 0 ? 0 : 1;
-  xWriteSymbol( uiSymbol, m_cCUPredModeSCModel.get( 0, 0, 0 ) );
-
-  if (pcCU->getSlice()->isInterB() )
-  {
-    return;
-  }
-
-  if ( uiSymbol == 1 )
-  {
-    xWriteSymbol( iPredMode == 1 ? 0 : 1, m_cCUPredModeSCModel.get( 0, 0, 1 ) );
-  }
-}
-
-Void TEncSbac::codeAlfCtrlFlag( TComDataCU* pcCU, UInt uiAbsPartIdx )
-{
-  if (!m_bAlfCtrl)
-    return;
-
-  if( pcCU->getDepth(uiAbsPartIdx) > m_uiMaxAlfCtrlDepth && !pcCU->isFirstAbsZorderIdxInDepth(uiAbsPartIdx, m_uiMaxAlfCtrlDepth))
-  {
-    return;
-  }
-
-  // get context function is here
-  UInt uiSymbol = pcCU->getAlfCtrlFlag( uiAbsPartIdx ) ? 1 : 0;
-
-  xWriteSymbol( uiSymbol, m_cCUAlfCtrlFlagSCModel.get( 0, 0, pcCU->getCtxAlfCtrlFlag( uiAbsPartIdx) ) );
-}
-
-Void TEncSbac::codeAlfCtrlDepth()
-{
-  if (!m_bAlfCtrl)
-    return;
-
-  UInt uiDepth = m_uiMaxAlfCtrlDepth;
-  xWriteUnaryMaxSymbol(uiDepth, m_cALFUvlcSCModel.get(0), 1, g_uiMaxCUDepth-1);
-}
-
-Void TEncSbac::codeSkipFlag( TComDataCU* pcCU, UInt uiAbsPartIdx )
-{
-  // get context function is here
-  UInt uiSymbol = pcCU->isSkipped( uiAbsPartIdx ) ? 1 : 0;
-  xWriteSymbol( uiSymbol, m_cCUSkipFlagSCModel.get( 0, 0, pcCU->getCtxSkipFlag( uiAbsPartIdx) ) );
-}
-
-Void TEncSbac::codeSplitFlag   ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
-{
-  if( uiDepth == g_uiMaxCUDepth - g_uiAddCUDepth )
-    return;
-
-  UInt uiCtx           = pcCU->getCtxSplitFlag( uiAbsPartIdx, uiDepth );
-  UInt uiCurrSplitFlag = ( pcCU->getDepth( uiAbsPartIdx ) > uiDepth ) ? 1 : 0;
-
-  assert( uiCtx < 3 );
-  xWriteSymbol( uiCurrSplitFlag, m_cCUSplitFlagSCModel.get( 0, 0, uiCtx ) );
-  return;
-}
-
-Void TEncSbac::codeTransformIdx( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
-{
-  UInt uiTrLevel = 0;
-
-  UInt uiWidthInBit  = g_aucConvertToBit[pcCU->getWidth(uiAbsPartIdx)]+2;
-  UInt uiTrSizeInBit = g_aucConvertToBit[pcCU->getSlice()->getSPS()->getMaxTrSize()]+2;
-  uiTrLevel          = uiWidthInBit >= uiTrSizeInBit ? uiWidthInBit - uiTrSizeInBit : 0;
-
-  UInt uiMinTrDepth = pcCU->getSlice()->getSPS()->getMinTrDepth() + uiTrLevel;
-  UInt uiMaxTrDepth = pcCU->getSlice()->getSPS()->getMaxTrDepth() + uiTrLevel;
-
-  if ( uiMinTrDepth == uiMaxTrDepth )
-  {
-    return;
-  }
-
-  UInt uiSymbol = pcCU->getTransformIdx(uiAbsPartIdx) - uiMinTrDepth;
-
-  xWriteSymbol( uiSymbol ? 1 : 0, m_cCUTransIdxSCModel.get( 0, 0, pcCU->getCtxTransIdx( uiAbsPartIdx ) ) );
-
-  if ( !uiSymbol )
-  {
-    return;
-  }
-
-  if (pcCU->getPartitionSize(uiAbsPartIdx) >= SIZE_2NxnU && pcCU->getPartitionSize(uiAbsPartIdx) <= SIZE_nRx2N && uiMinTrDepth == 0 && uiMaxTrDepth == 1 && uiSymbol)
-  {
-    return;
-  }
-
-  Int  iCount = 1;
-  uiSymbol--;
-  while( ++iCount <= (Int)( uiMaxTrDepth - uiMinTrDepth ) )
-  {
-    xWriteSymbol( uiSymbol ? 1 : 0, m_cCUTransIdxSCModel.get( 0, 0, 3 ) );
-    if ( uiSymbol == 0 )
-    {
-      return;
-    }
-    uiSymbol--;
-  }
-
-  return;
-}
-
-Void TEncSbac::codeIntraDirLuma( TComDataCU* pcCU, UInt uiAbsPartIdx )
-{
-	Int iIntraDirLuma = pcCU->convertIntraDirLuma( uiAbsPartIdx );
-
-	xWriteSymbol( iIntraDirLuma >= 0 ? 0 : 1, m_cCUIntraPredSCModel.get( 0, 0, 0 ) );
-
-	if ( iIntraDirLuma >= 0 )
-	{
-		xWriteSymbol( (iIntraDirLuma & 0x01),      m_cCUIntraPredSCModel.get( 0, 0, 1 ) );
-		xWriteSymbol( (iIntraDirLuma & 0x02) >> 1, m_cCUIntraPredSCModel.get( 0, 0, 1 ) );
-
-		// note: only 4 directions are allowed if PU size >= 16
-		Int iPartWidth = pcCU->getWidth( uiAbsPartIdx );
-		if ( pcCU->getPartitionSize( uiAbsPartIdx) == SIZE_NxN ) iPartWidth >>= 1;
-		if ( iPartWidth <= 8 )
-		{
-			xWriteSymbol( (iIntraDirLuma & 0x04) >> 2, m_cCUIntraPredSCModel.get( 0, 0, 1 ) );
-		}
-	}
-	return;
-}
-
-
-Void TEncSbac::codeIntraDirLumaAdi( TComDataCU* pcCU, UInt uiAbsPartIdx )
-{
-	Int iIntraDirLuma = pcCU->convertIntraDirLumaAdi( pcCU, uiAbsPartIdx );
-	Int iIntraIdx= pcCU->getIntraSizeIdx(uiAbsPartIdx);
-
-	xWriteSymbol( iIntraDirLuma >= 0 ? 0 : 1, m_cCUIntraPredSCModel.get( 0, 0, 0 ) );
-
-	if (iIntraDirLuma >= 0)
-	{
-		xWriteSymbol((iIntraDirLuma & 0x01), m_cCUIntraPredSCModel.get(0, 0, 1));
-
-		xWriteSymbol((iIntraDirLuma & 0x02) >> 1, m_cCUIntraPredSCModel.get(0, 0, 1));
-
-		if (g_aucIntraModeBits[iIntraIdx] >= 4)
-		{
-			xWriteSymbol((iIntraDirLuma & 0x04) >> 2, m_cCUIntraPredSCModel.get(0, 0, 1));
-
-			if (g_aucIntraModeBits[iIntraIdx] >= 5)
-			{
-				xWriteSymbol((iIntraDirLuma & 0x08) >> 3,
-					m_cCUIntraPredSCModel.get(0, 0, 1));
-
-				if (g_aucIntraModeBits[iIntraIdx] >= 6)
-				{
-					xWriteSymbol((iIntraDirLuma & 0x10) >> 4,
-						m_cCUIntraPredSCModel.get(0, 0, 1));
-				}
-			}
-		}
-	}
-	return;
-}
-
-Void TEncSbac::codeIntraDirChroma( TComDataCU* pcCU, UInt uiAbsPartIdx )
-{
-	UInt uiCtx            = pcCU->getCtxIntraDirChroma( uiAbsPartIdx );
-	UInt uiIntraDirChroma = pcCU->getChromaIntraDir   ( uiAbsPartIdx );
-
-	if ( 0 == uiIntraDirChroma )
-	{
-		xWriteSymbol( 0, m_cCUChromaPredSCModel.get( 0, 0, uiCtx ) );
-	}
-	else
-	{
-		xWriteSymbol( 1, m_cCUChromaPredSCModel.get( 0, 0, uiCtx ) );
-		xWriteUnaryMaxSymbol( uiIntraDirChroma - 1, m_cCUChromaPredSCModel.get( 0, 0 ) + 3, 0, 3 );
-	}
-
-	return;
-}
-
-Void TEncSbac::codeInterDir( TComDataCU* pcCU, UInt uiAbsPartIdx )
-{
-  UInt uiInterDir = pcCU->getInterDir   ( uiAbsPartIdx );
-  UInt uiCtx      = pcCU->getCtxInterDir( uiAbsPartIdx );
-  uiInterDir--;
-  xWriteSymbol( ( uiInterDir == 2 ? 1 : 0 ), m_cCUInterDirSCModel.get( 0, 0, uiCtx ) );
-
-  if ( uiInterDir < 2 )
-  {
-    xWriteSymbol( uiInterDir, m_cCUInterDirSCModel.get( 0, 0, 3 ) );
-  }
-
-  return;
-}
-
-Void TEncSbac::codeRefFrmIdx( TComDataCU* pcCU, UInt uiAbsPartIdx, RefPicList eRefList )
-{
-  Int iRefFrame = pcCU->getCUMvField( eRefList )->getRefIdx( uiAbsPartIdx );
-
-  UInt uiCtx = pcCU->getCtxRefIdx( uiAbsPartIdx, eRefList );
-
-  xWriteSymbol( ( iRefFrame == 0 ? 0 : 1 ), m_cCURefPicSCModel.get( 0, 0, uiCtx ) );
-
-  if ( iRefFrame > 0 )
-  {
-		xWriteUnaryMaxSymbol( iRefFrame - 1, &m_cCURefPicSCModel.get( 0, 0, 4 ), 1, pcCU->getSlice()->getNumRefIdx( eRefList )-2 );
-  }
-  return;
-}
-
-Void TEncSbac::codeMvd( TComDataCU* pcCU, UInt uiAbsPartIdx, RefPicList eRefList )
-{
-  TComCUMvField* pcCUMvField = pcCU->getCUMvField( eRefList );
-  Int iHor = pcCUMvField->getMvd( uiAbsPartIdx ).getHor();
-  Int iVer = pcCUMvField->getMvd( uiAbsPartIdx ).getVer();
-
-  UInt uiAbsPartIdxL, uiAbsPartIdxA;
-  Int iHorPred, iVerPred;
-
-  TComDataCU* pcCUL   = pcCU->getPULeft ( uiAbsPartIdxL, pcCU->getZorderIdxInCU() + uiAbsPartIdx );
-  TComDataCU* pcCUA   = pcCU->getPUAbove( uiAbsPartIdxA, pcCU->getZorderIdxInCU() + uiAbsPartIdx );
-
-  TComCUMvField* pcCUMvFieldL = ( pcCUL == NULL || pcCUL->isIntra( uiAbsPartIdxL ) ) ? NULL : pcCUL->getCUMvField( eRefList );
-  TComCUMvField* pcCUMvFieldA = ( pcCUA == NULL || pcCUA->isIntra( uiAbsPartIdxA ) ) ? NULL : pcCUA->getCUMvField( eRefList );
-
-  iHorPred = ( (pcCUMvFieldL == NULL) ? 0 : pcCUMvFieldL->getMvd( uiAbsPartIdxL ).getAbsHor() ) +
-			 ( (pcCUMvFieldA == NULL) ? 0 : pcCUMvFieldA->getMvd( uiAbsPartIdxA ).getAbsHor() );
-  iVerPred = ( (pcCUMvFieldL == NULL) ? 0 : pcCUMvFieldL->getMvd( uiAbsPartIdxL ).getAbsVer() ) +
-			 ( (pcCUMvFieldA == NULL) ? 0 : pcCUMvFieldA->getMvd( uiAbsPartIdxA ).getAbsVer() );
-
-  xWriteMvd( iHor, iHorPred, 0 );
-  xWriteMvd( iVer, iVerPred, 1 );
-
-  return;
-}
-
-Void TEncSbac::codeDeltaQP( TComDataCU* pcCU, UInt uiAbsPartIdx )
-{
-  Int iDQp  = pcCU->getQP( uiAbsPartIdx ) - pcCU->getSlice()->getSliceQp();
-
-	if ( iDQp == 0 )
-	{
-		xWriteSymbol( 0, m_cCUDeltaQpSCModel.get( 0, 0, 0 ) );
-	}
-	else
-	{
-		xWriteSymbol( 1, m_cCUDeltaQpSCModel.get( 0, 0, 0 ) );
-
-    UInt uiDQp = (UInt)( iDQp > 0 ? ( 2 * iDQp - 2 ) : ( -2 * iDQp - 1 ) );
-    xWriteUnarySymbol( uiDQp, &m_cCUDeltaQpSCModel.get( 0, 0, 2 ), 1 );
-  }
-
-  return;
-}
-
-Void TEncSbac::codeCbf( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eType, UInt uiTrDepth )
-{
-  UInt uiCbf = pcCU->getCbf   ( uiAbsPartIdx, eType, uiTrDepth );
-  UInt uiCtx = pcCU->getCtxCbf( uiAbsPartIdx, eType, uiTrDepth );
-
-  xWriteSymbol( uiCbf , m_cCUCbfSCModel.get( 0, eType == TEXT_LUMA ? 0 : 1, 3 - uiCtx ) );
-
-  if( !uiCbf )
-  {
-    m_uiLastDQpNonZero = 0;
-  }
-
-  return;
 }
 
 Void TEncSbac::xCheckCoeff( TCoeff* pcCoef, UInt uiSize, UInt uiDepth, UInt& uiNumofCoeff, UInt& uiPart )
@@ -965,157 +1274,6 @@ Void TEncSbac::xCheckCoeff( TCoeff* pcCoef, UInt uiSize, UInt uiDepth, UInt& uiN
       pCeoff += uiSize;
     }
   }
-}
-
-Void TEncSbac::codeCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx, UInt uiWidth, UInt uiHeight, UInt uiDepth, TextType eTType, Bool bRD )
-{
-  UInt uiCTXIdx = xGetCTXIdxFromWidth( uiWidth );
-
-  if( uiWidth > m_pcSlice->getSPS()->getMaxTrSize() )
-  {
-    uiWidth  = m_pcSlice->getSPS()->getMaxTrSize();
-    uiHeight = m_pcSlice->getSPS()->getMaxTrSize();
-  }
-  UInt uiSize   = uiWidth*uiHeight;
-
-	// point to coefficient
-  TCoeff* piCoeff = pcCoef;
-  UInt uiNumSig = 0;
-  UInt ui;
-
-	// compute number of significant coefficients
-  UInt  uiPart = 0;
-  xCheckCoeff(piCoeff, uiWidth, 0, uiNumSig, uiPart );
-
-  if ( bRD )
-  {
-    UInt uiTempDepth = uiDepth - pcCU->getDepth( uiAbsPartIdx );
-    pcCU->setCbfSubParts( ( uiNumSig ? 1 : 0 ) << uiTempDepth, eTType, uiAbsPartIdx, uiDepth );
-    codeCbf( pcCU, uiAbsPartIdx, eTType, uiTempDepth );
-  }
-
-  if ( uiNumSig == 0 )
-    return;
-
-  UInt uiCodedSig = 0;
-  UInt uiCtxSize  = 64;
-
-  const Int* pos2ctx_map  = pos2ctx_map8x8;
-  const Int* pos2ctx_last = pos2ctx_last8x8;
-  if ( uiWidth < 8 )
-  {
-    pos2ctx_map  = pos2ctx_nomap;
-    pos2ctx_last = pos2ctx_nomap;
-    uiCtxSize    = 16;
-  }
-
-  eTType = eTType == TEXT_LUMA ? TEXT_LUMA : ( eTType == TEXT_NONE ? TEXT_NONE : TEXT_CHROMA );
-
-  UInt uiSig, uiCtx, uiLast;
-  uiLast = 0;
-  uiSig = piCoeff[0] ? 1 : 0;
-
-  xWriteSymbol( uiSig, m_cCUMapSCModel.get( uiCTXIdx, eTType, pos2ctx_map[ 0 ] ) );
-
-  if( uiSig )
-  {
-    uiLast = (++uiCodedSig == uiNumSig ? 1 : 0);
-    xWriteSymbol( uiLast, m_cCULastSCModel.get( uiCTXIdx, eTType, pos2ctx_last[ 0 ] ) );
-  }
-
-  // initialize scan
-  const UInt*  pucScan;
-  const UInt*  pucScanX;
-  const UInt*  pucScanY;
-
-  UInt uiConvBit = g_aucConvertToBit[ uiWidth ];
-
-  switch(uiWidth)
-  {
-  case  2:
-    {
-      static UInt uiScanOrder [4] = {0, 1, 2, 3};
-      static UInt uiScanOrderX[4] = {0, 1, 0, 1};
-      static UInt uiScanOrderY[4] = {0, 0, 1, 1};
-      pucScan  = &uiScanOrder [0];
-      pucScanX = &uiScanOrderX[0];
-      pucScanY = &uiScanOrderY[0];
-      break;
-    }
-  case  4:
-  case  8: pucScan = g_auiFrameScanXY[ uiConvBit ]; pucScanX = g_auiFrameScanX[uiConvBit]; pucScanY = g_auiFrameScanY[uiConvBit]; break;
-  case 16:
-  case 32:
-  case 64:
-  default: pucScan = g_auiFrameScanXY[ uiConvBit ]; pucScanX = g_auiFrameScanX[uiConvBit]; pucScanY = g_auiFrameScanY[uiConvBit]; break;
-  }
-
-	//----- encode significance map -----
-  // DC is coded in the beginning
-  for( ui = 1; ui < ( uiSize - 1 ) && !uiLast; ui++ ) // if last coeff is reached, it has to be significant
-	{
-		uiSig = piCoeff[ pucScan[ ui ] ] ? 1 : 0;
-
-    if (uiCtxSize != uiSize)
-    {
-      UInt uiXX, uiYY;
-      uiXX = pucScanX[ui]/(uiWidth / 8);
-      uiYY = pucScanY[ui]/(uiHeight / 8);
-
-      uiCtx = g_auiAntiScan8[uiYY*8+uiXX];
-    }
-    else
-      uiCtx = ui * uiCtxSize / uiSize;
-
-		xWriteSymbol( uiSig, m_cCUMapSCModel.get( uiCTXIdx, eTType, pos2ctx_map[ uiCtx ] ) );
-
-		if( uiSig )
-		{
-      uiCtx = ui * uiCtxSize / uiSize;
-			uiLast = (++uiCodedSig == uiNumSig ? 1 : 0);
-			xWriteSymbol( uiLast, m_cCULastSCModel.get( uiCTXIdx, eTType, pos2ctx_last[ uiCtx ] ) );
-
-			if( uiLast )
-			{
-				break;
-			}
-		}
-	}
-
-  Int   c1 = 1;
-  Int   c2 = 0;
-  //----- encode significant coefficients -----
-  ui++;
-  while( (ui--) != 0 )
-  {
-    UInt  uiAbs, uiSign;
-    Int   iCoeff = piCoeff[ pucScan[ ui ] ];
-
-    if( iCoeff )
-    {
-      if( iCoeff > 0) { uiAbs = static_cast<UInt>( iCoeff);  uiSign = 0; }
-      else            { uiAbs = static_cast<UInt>(-iCoeff);  uiSign = 1; }
-
-      UInt uiCtx    = Min (c1, 4);
-      UInt uiSymbol = uiAbs > 1 ? 1 : 0;
-      xWriteSymbol( uiSymbol, m_cCUOneSCModel.get( uiCTXIdx, eTType, uiCtx ) );
-
-      if( uiSymbol )
-      {
-        uiCtx  = Min (c2,4);
-        uiAbs -= 2;
-        c1     = 0;
-        c2++;
-				xWriteExGolombLevel( uiAbs, m_cCUAbsSCModel.get( uiCTXIdx, eTType, uiCtx ) );
-      }
-      else if( c1 )
-      {
-        c1++;
-      }
-      xWriteEPSymbol( uiSign );
-    }
-  }
-  return;
 }
 
 Void TEncSbac::xWriteMvd( Int iMvd, UInt uiAbsSum, UInt uiCtx )
@@ -1183,191 +1341,3 @@ Void  TEncSbac::xWriteExGolombMvd( UInt uiSymbol, SbacContextModel* pcSCModel, U
 
   return;
 }
-
-Void TEncSbac::codeAlfFlag       ( UInt uiCode )
-{
-	UInt uiSymbol = ( ( uiCode == 0 ) ? 0 : 1 );
-	xWriteSymbol( uiSymbol, m_cALFFlagSCModel.get( 0, 0, 0 ) );
-}
-
-Void TEncSbac::codeAlfUvlc       ( UInt uiCode )
-{
-	Int i;
-
-	if ( uiCode == 0 )
-	{
-		xWriteSymbol( 0, m_cALFUvlcSCModel.get( 0, 0, 0 ) );
-	}
-	else
-	{
-		xWriteSymbol( 1, m_cALFUvlcSCModel.get( 0, 0, 0 ) );
-		for ( i=0; i<uiCode-1; i++ )
-		{
-			xWriteSymbol( 1, m_cALFUvlcSCModel.get( 0, 0, 1 ) );
-		}
-		xWriteSymbol( 0, m_cALFUvlcSCModel.get( 0, 0, 1 ) );
-	}
-}
-
-Void TEncSbac::codeAlfSvlc       ( Int iCode )
-{
-	Int i;
-
-	if ( iCode == 0 )
-	{
-		xWriteSymbol( 0, m_cALFSvlcSCModel.get( 0, 0, 0 ) );
-	}
-	else
-	{
-		xWriteSymbol( 1, m_cALFSvlcSCModel.get( 0, 0, 0 ) );
-
-		// write sign
-		if ( iCode > 0 )
-		{
-			xWriteSymbol( 0, m_cALFSvlcSCModel.get( 0, 0, 1 ) );
-		}
-		else
-		{
-			xWriteSymbol( 1, m_cALFSvlcSCModel.get( 0, 0, 1 ) );
-			iCode = -iCode;
-		}
-
-		// write magnitude
-		for ( i=0; i<iCode-1; i++ )
-		{
-			xWriteSymbol( 1, m_cALFSvlcSCModel.get( 0, 0, 2 ) );
-		}
-		xWriteSymbol( 0, m_cALFSvlcSCModel.get( 0, 0, 2 ) );
-	}
-}
-
-/*!
- ****************************************************************************
- * \brief
- *   estimate bit cost for CBP, significant map and significant coefficients
- ****************************************************************************
- */
-Void TEncSbac::estBit (estBitsSbacStruct* pcEstBitsSbac, UInt uiCTXIdx, TextType eTType)
-{
-  estCBFBit (pcEstBitsSbac, 0, eTType);
-
-  // encode significance map
-  estSignificantMapBit (pcEstBitsSbac, uiCTXIdx, eTType);
-
-  // encode significant coefficients
-  estSignificantCoefficientsBit (pcEstBitsSbac, uiCTXIdx, eTType);
-}
-
-/*!
- ****************************************************************************
- * \brief
- *    estimate bit cost for each CBP bit
- ****************************************************************************
- */
-Void TEncSbac::estCBFBit (estBitsSbacStruct* pcEstBitsSbac, UInt uiCTXIdx, TextType eTType)
-{
-  Int ctx;
-  Short cbp_bit;
-
-  for ( ctx = 0; ctx <= 3; ctx++ )
-  {
-    cbp_bit = 0;
-    pcEstBitsSbac->blockCbpBits[ctx][cbp_bit] = biari_no_bits (cbp_bit, m_cCUCbfSCModel.get( uiCTXIdx, eTType, ctx ));
-
-    cbp_bit = 1;
-    pcEstBitsSbac->blockCbpBits[ctx][cbp_bit] = biari_no_bits (cbp_bit, m_cCUCbfSCModel.get( uiCTXIdx, eTType, ctx ));
-  }
-}
-
-/*!
- ****************************************************************************
- * \brief
- *    estimate SAMBAC bit cost for significant coefficient map
- ****************************************************************************
- */
-Void TEncSbac::estSignificantMapBit (estBitsSbacStruct* pcEstBitsSbac, UInt uiCTXIdx, TextType eTType)
-{
-  Int    k;
-  UShort sig, last;
-  Int    k1 = 15;
-
-  const Int* pos2ctx_map  = pos2ctx_nomap;
-  const Int* pos2ctx_last = pos2ctx_nomap;
-
-
-  for ( k = 0; k < k1; k++ ) // if last coeff is reached, it has to be significant
-  {
-    sig = 0;
-    pcEstBitsSbac->significantBits[pos2ctx_map[k]][sig] = biari_no_bits (sig, m_cCUMapSCModel.get( uiCTXIdx, eTType, pos2ctx_map[ k ] ));
-
-    sig = 1;
-    pcEstBitsSbac->significantBits[pos2ctx_map[k]][sig] = biari_no_bits (sig, m_cCUMapSCModel.get( uiCTXIdx, eTType, pos2ctx_map[ k ] ));
-
-    last = 0;
-    pcEstBitsSbac->lastBits[pos2ctx_last[k]][last] = biari_no_bits (last, m_cCULastSCModel.get( uiCTXIdx, eTType, pos2ctx_last[ k ] ));
-
-    last = 1;
-    pcEstBitsSbac->lastBits[pos2ctx_last[k]][last] = biari_no_bits (last, m_cCULastSCModel.get( uiCTXIdx, eTType, pos2ctx_last[ k ] ));
-  }
-
-  // if last coeff is reached, it has to be significant
-  pcEstBitsSbac->significantBits[pos2ctx_map[k1]][0] = 0;
-  pcEstBitsSbac->significantBits[pos2ctx_map[k1]][1] = 0;
-  pcEstBitsSbac->lastBits[pos2ctx_last[k1]][0] = 0;
-  pcEstBitsSbac->lastBits[pos2ctx_last[k1]][1] = 0;
-}
-
-/*!
- ****************************************************************************
- * \brief
- *    estimate bit cost of significant coefficient
- ****************************************************************************
- */
-Void TEncSbac::estSignificantCoefficientsBit (estBitsSbacStruct* pcEstBitsSbac, UInt uiCTXIdx, TextType eTType)
-{
-  Int   ctx;
-  Short greater_one;
-
-  for ( ctx = 0; ctx <= 4; ctx++ )
-  {
-    greater_one = 0;
-    pcEstBitsSbac->greaterOneBits[0][ctx][greater_one] = biari_no_bits (greater_one, m_cCUOneSCModel.get( uiCTXIdx, eTType, ctx ));
-
-    greater_one = 1;
-    pcEstBitsSbac->greaterOneBits[0][ctx][greater_one] = biari_no_bits (greater_one, m_cCUOneSCModel.get( uiCTXIdx, eTType, ctx ));
-  }
-
-  for ( ctx = 0; ctx <= 4; ctx++ )
-  {
-    pcEstBitsSbac->greaterOneBits[1][ctx][0] = biari_no_bits(0, m_cCUAbsSCModel.get( uiCTXIdx, eTType, ctx ));
-
-    pcEstBitsSbac->greaterOneState[ctx] = biari_state(0, m_cCUAbsSCModel.get( uiCTXIdx, eTType, ctx ));
-
-    pcEstBitsSbac->greaterOneBits[1][ctx][1] = biari_no_bits(1, m_cCUAbsSCModel.get( uiCTXIdx, eTType, ctx ));
-  }
-}
-
-Int TEncSbac::biari_no_bits (Short symbol, SbacContextModel& rcSCModel)
-{
-  Int ctx_state, estBits;
-
-  symbol = (Short) (symbol != 0);
-
-  ctx_state = (symbol == rcSCModel.getMps() ) ? 64 + stateMappingTable[rcSCModel.getState()] : 63 - stateMappingTable[rcSCModel.getState()];
-
-  estBits = entropyBits[127-ctx_state];
-
-  return estBits;
-}
-
-Int TEncSbac::biari_state (Short symbol, SbacContextModel& rcSCModel)
-{
-  Int ctx_state;
-
-  symbol = (Short) (symbol != 0);
-
-  ctx_state = ( symbol == rcSCModel.getMps() ) ? 64 + stateMappingTable[rcSCModel.getState()] : 63 - stateMappingTable[rcSCModel.getState()];
-
-  return ctx_state;
-}
-

@@ -113,12 +113,6 @@ Void TComPrediction::predIntraLumaAdi(TComPattern* pcTComPattern, UInt uiDirMode
 	// get starting pixel in block
 	Int sw = ( iWidth<<1 ) + 1;
 
-	// clear block
-	for( Int i=0; i<iHeight; i++ )
-	{
-		::memset( &pDst[i*uiStride],  0x00, iWidth*sizeof(Pel) );
-	}
-
 	// for each case
 	switch( uiDirMode )
 	{
@@ -164,12 +158,6 @@ Void TComPrediction::predIntraChromaAdi( TComPattern* pcTComPattern, Int* piSrc,
 	// get starting pixel in block
 	Int sw = ( iWidth<<1 ) + 1;
 
-	// clear block
-	for( Int i=0; i<iHeight; i++ )
-	{
-		::memset( &pDst[i*uiStride],  0x00, iWidth*sizeof(Pel) );
-	}
-
 	// for each case
 	switch( uiDirMode )
 	{
@@ -208,159 +196,91 @@ Void TComPrediction::predIntraChromaAdi( TComPattern* pcTComPattern, Int* piSrc,
 
 Void TComPrediction::xPredIntraAngleAdi( Int* pSrc, Int iSrcStride, Pel*& rpDst, Int iDstStride, UInt iWidth, UInt iHeight, UInt uiDirMode )
 {
-	Int		iDx      = g_aucDirDx[ uiDirMode-4 ];
-	Int		iDy      = g_aucDirDy[ uiDirMode-4 ];
-	UInt	uixyflag = g_aucXYflg[ uiDirMode   ];
-	Pel*  pDst     = rpDst;
-	Int*	ptrSrc	 = pSrc;
+	Int		iDx					= g_aucDirDx[ uiDirMode-4 ];
+	Int		iDy					= g_aucDirDy[ uiDirMode-4 ];
+	Int		iDxy				= iDx*iDy;
+	UInt	uixyflag		= g_aucXYflg[ uiDirMode   ];
+	Pel*  pDst				= rpDst;
+	Int*	ptrSrc			= pSrc;
+	Int		iWidth2M1		= ( iWidth  << 1 ) - 1;
+	Int		iHeight2M1	= ( iHeight << 1 ) - 1;
 
-	Int		iStride;
-	Int		iDyP, iDyN;
-	Int		iHeight2 = iHeight<<1;
-	Int		iDxy = iDx*iDy;
+  Int   iX, iY, iXn, iYn, iYy;
+	Int		iTemp;
+	Bool	bCenter = false, bCenterTemp;
 	Int   i, j;
-	Int		iTempDx, iTempDy;
-	Bool	bCenter;
-	Int   iX, iY, iXn, iYn, iXx, iYx, iXy, iYy;
-	Int		iWidth2 = iWidth << 1;
 
-	for( i = 0, iDyP = iDy, iDyN = -iDy, iStride = 0; i < iHeight; i++, iStride+=iDstStride, iDyP++, iDyN++ )
+	// compute step
+	if ( iDxy < 0 ) iDxy = -1;
+	else            iDxy = +1;
+
+	// for all pixels inside PU
+	for( i = 0; i < iHeight; i++ )
 	{
-		Int iDxP, iDxN;
-		Int iStrideJ;
-		Int iDyPStride = iDyP*iDstStride;
-		Int iDyNStride = iDyN*iDstStride;
-		for( j = 0, iDxP = iDx, iDxN = -iDx, iStrideJ = iStride; j < iWidth; j++, iDxP++, iDxN++, iStrideJ++ )
-		{
-			Bool bSetFlag1=false;
-			Bool bSetFlag2=false;
-
-			if ( ( iDyP >= 0 ) && ( iDyP < iHeight ) && ( iDxP >= 0 ) && ( iDxP < iWidth ) )
-				if ( pDst[ iDyPStride+iDxP ] > 0 )
-					bSetFlag1=true;
-
-			if( !bSetFlag1 )
-				if ( ( iDyN >= 0 ) && ( iDyN < iHeight ) && ( iDxN >= 0 ) && ( iDxN < iWidth ) )
-					if (pDst[ iDyNStride+iDxN ]>0)
-						bSetFlag2=true;
-
-			if( bSetFlag1 )
+		for( j = 0; j < iWidth; j++ )
+    {
+			if ( iDxy < 0 )   // select context pixel based on uixyflag
 			{
-				pDst[ iStrideJ ] = pDst[ iDyPStride+iDxP ];
-			}
-			else if(bSetFlag2)
-			{
-				pDst[ iStrideJ ] = pDst[ iDyNStride+iDxN ];
-			}
-			else
-			{
-				if ( iDxy < 0 )   // select context pixel based on uixyflag
+				if ( uixyflag == 0 )
 				{
-					if ( uixyflag == 0 )
-					{
-						iTempDy = i-(-1);
+					// case xline
+					iTemp = xGetContextPixel( uiDirMode, 0, i-(-1), bCenter );
 
-						// case xline
-						iTempDx = xGetContextPixel( uiDirMode,0,iTempDy, bCenter );
-
-						iX = j+iTempDx;
-						iY = -1;
-					}
-					else
-					{
-						iTempDx = j-(-1);
-
-						// case yline
-						iTempDy = xGetContextPixel(uiDirMode,1, iTempDx, bCenter);
-
-						iX = -1;
-						iY = i+iTempDy;
-					}
+					iX = Clip3( -1, iWidth2M1, j+iTemp );
+					iY = -1;
 				}
-				else  // select context pixel based on the distance
-				{
-					Bool bCenterx, bCentery;
-					iTempDy = i-(-1);
-
-					iTempDx = xGetContextPixel( uiDirMode, 0, iTempDy, bCenterx);
-					iTempDx = -iTempDx;
-
-					iXx     = j+iTempDx;
-					iYx     = -1;
-
-					iTempDx = j-(-1);
-					iTempDy = xGetContextPixel( uiDirMode, 1, iTempDx, bCentery );
-					iTempDy = -iTempDy;
-
-					iXy     = -1;
-					iYy     = i+iTempDy;
-
-					if( iYy < -1 )
-					{
-						iX=iXx;
-						iY=iYx;
-						bCenter=bCenterx;
-					}
-					else
-					{
-						iX=iXy;
-						iY=iYy;
-						bCenter=bCentery;
-					}
-				}
-
-				if( iY == -1 )
-				{
-					if(iX<-1)
-						iX = -1;
-					else if( iX >= iWidth2 )
-						iX = iWidth2-1;
-				}
-				else if( iX == -1 )
-				{
-					if( iY < -1 )
-						iY = -1;
-					else if( iY >= iHeight2 )
-						iY = iHeight2-1;
-				}
-
-				if (bCenter)
-					pDst[iStrideJ] = ptrSrc[(iY)*iSrcStride+iX];
 				else
 				{
-					if( iY == -1 )
-					{
-						if ( iDxy < 0 )
-							iXn=iX+1;
-						else
-							iXn=iX-1;
-						if(iXn<-1)
-							iXn = -1;
-						else if( iXn >= iWidth2 )
-							iXn = iWidth2-1;
+					// case yline
+					iTemp = xGetContextPixel( uiDirMode, 1, j-(-1), bCenter );
 
-						Int iTemp = (iY)*iSrcStride;
+					iX = -1;
+					iY = Clip3( -1, iHeight2M1, i+iTemp );
+				}
+			}
+			else  // select context pixel based on the distance
+			{
+				// case yline
+				iTemp = xGetContextPixel( uiDirMode, 1, j-(-1), bCenterTemp );
+				iYy   = i-iTemp;
 
-						pDst[iStrideJ] = (ptrSrc[iTemp+iX]+ptrSrc[iTemp+iXn]+1)>>1;
-					}
-					else if( iX == -1 )
-					{
-						if ( iDxy < 0 )
-							iYn=iY+1;
-						else
-							iYn=iY-1;
-						if( iYn < -1 )
-							iYn = -1;
-						else if( iYn >= iHeight2 )
-							iYn = iHeight2-1;
+				if( iYy < -1 )
+				{
+					// case xline
+				  iTemp = xGetContextPixel( uiDirMode, 0, i-(-1), bCenter );
+          iX	  = Clip3( -1, iWidth2M1, j-iTemp );
+          iY	  = -1;
+				}
+				else
+				{
+					iX=-1;
+					iY=Clip3( -1, iHeight2M1, iYy );
+  				bCenter=bCenterTemp;
+				}
+			}
 
-						Int iTemp = iX;
-
-						pDst[iStrideJ] = (ptrSrc[(iY)*iSrcStride+iTemp]+ptrSrc[(iYn)*iSrcStride+iTemp]+1)>>1;
-					}
+			// copy
+			if ( bCenter )
+			{
+				pDst[ j ] = ptrSrc[ iY*iSrcStride+iX ];
+			}
+			// averaging
+			else
+			{
+				if( iY == -1 )
+				{
+					iXn = Clip3( -1, iWidth2M1, iX-iDxy );
+					pDst[ j ] = ( ptrSrc[ iY*iSrcStride+iX ] + ptrSrc[ iY*iSrcStride+iXn ] + 1 ) >> 1;
+				}
+				else
+				if( iX == -1 )
+				{
+					iYn = Clip3( -1, iHeight2M1, iY-iDxy );
+					pDst[ j ] = ( ptrSrc[ iY*iSrcStride+iX ] + ptrSrc[ iYn*iSrcStride+iX ] + 1 ) >> 1;
 				}
 			}
 		}
+		pDst += iDstStride;
 	}
 }
 
@@ -566,38 +486,24 @@ Void TComPrediction::xPredIntraBiAdi( Int* pSrc, Int iSrcStride, Pel*& rpDst, In
   return;
 }
 
-
-Int TComPrediction::xGetContextPixel(UInt uiDirMode,UInt uiXYflag,Int iTempD, Bool& bCenter)
+__inline Int TComPrediction::xGetContextPixel( UInt uiDirMode, UInt uiXYflag, Int iTempD, Bool& bCenter )
 {
-  Int iDxt,iDyt,iDx,iDy,iTempm, iTempr,iTempDn;
+	Int iDx = abs( g_aucDirDx[uiDirMode-4] );
+	Int iDy = abs( g_aucDirDy[uiDirMode-4] );
+	Int iTempDn;
 
-  iTempDn=0;
+	if ( uiXYflag == 0 )
+	{
+		iTempDn = iDx*iTempD/iDy;
+		bCenter = ( iDx*iTempD ) % iDy == 0;
+	}
+	else
+	{
+		iTempDn = iDy*iTempD/iDx;
+		bCenter = ( iDy*iTempD ) % iDx == 0;
+	}
 
-  iTempm=0;
-  iTempr=0;
-
-  iDxt=g_aucDirDx[uiDirMode-4];
-  iDyt=g_aucDirDy[uiDirMode-4];
-
-  iDx=abs(g_aucDirDx[uiDirMode-4]);
-  iDy=abs(g_aucDirDy[uiDirMode-4]);
-
-
-  if (uiXYflag==0)
-  {
-    iTempDn=iDx*iTempD/iDy;
-    if ((iDx*iTempD)%iDy==0) {bCenter=true;     }
-    else { bCenter=false;                           }
-  }
-  else
-  {
-    iTempDn=iDy*iTempD/iDx;
-
-    if ((iDy*iTempD)%iDx==0) { bCenter=true;   }
-    else {  bCenter=false;                            }
-  }
-
-  return iTempDn;
+	return iTempDn;
 }
 
 Void TComPrediction::motionCompensation ( TComDataCU* pcCU, TComYuv* pcYuvPred, RefPicList eRefPicList, Int iPartIdx )

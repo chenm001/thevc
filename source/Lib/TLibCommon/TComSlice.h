@@ -240,7 +240,7 @@ public:
 
   Void      setRefPicList       ( TComList<TComPic*>& rcListPic );
   Void      setRefPOCList       ();
-  Void setColDir (UInt uiDir) { m_uiColDir = uiDir; }
+  Void			setColDir (UInt uiDir) { m_uiColDir = uiDir; }
 
   Bool      isIntra         ()                          { return  m_eSliceType == I_SLICE;  }
   Bool      isInterB        ()                          { return  m_eSliceType == B_SLICE;  }
@@ -249,41 +249,47 @@ public:
 	Void			setLambda( Double d ) { m_dLambda = d; }
 	Double		getLambda() { return m_dLambda;				 }
 
-  Void generateWPSlice( RefPicList e, EFF_MODE eEffMode, UInt uiInsertIdx);
+  Void			generateWPSlice( RefPicList e, EFF_MODE eEffMode, UInt uiInsertIdx);
 
-  Void initWPParam( RefPicList e, EFF_MODE eEffMode, Int colorChannel);
-  Void initWPAllParam( RefPicList e, EFF_MODE eEffMode);
+  Void			initWPParam( RefPicList e, EFF_MODE eEffMode, Int colorChannel);
+  Void			initWPAllParam( RefPicList e, EFF_MODE eEffMode);
 
-  Bool isEqualWPParam( RefPicList e, EFF_MODE eEffMode1, EFF_MODE eEffMode2, Int colorChannel);
-  Bool isEqualWPAllParam( RefPicList e, EFF_MODE eEffMode1, EFF_MODE eEffMode2);
+  Bool			isEqualWPParam( RefPicList e, EFF_MODE eEffMode1, EFF_MODE eEffMode2, Int colorChannel);
+  Bool			isEqualWPAllParam( RefPicList e, EFF_MODE eEffMode1, EFF_MODE eEffMode2);
 
-  Void	setWPWeight ( RefPicList e, EFF_MODE eEffMode, Int colorChannel, Int weight)    { m_iWPWeight[e][eEffMode-EFF_WP_SO][colorChannel]=weight; }
-  Void	setWPOffset ( RefPicList e, EFF_MODE eEffMode, Int colorChannel, Int offset)    { m_iWPOffset[e][eEffMode-EFF_WP_SO][colorChannel]=offset; }
-  Int		getWPWeight ( RefPicList e, EFF_MODE eEffMode, Int colorChannel ) { return m_iWPWeight[e][eEffMode-EFF_WP_SO][colorChannel]; }
-  Int		getWPOffset ( RefPicList e, EFF_MODE eEffMode, Int colorChannel ) { return m_iWPOffset[e][eEffMode-EFF_WP_SO][colorChannel]; }
+  Void			setWPWeight ( RefPicList e, EFF_MODE eEffMode, Int colorChannel, Int weight) { m_iWPWeight[e][eEffMode-EFF_WP_SO][colorChannel]=weight; }
+  Void			setWPOffset ( RefPicList e, EFF_MODE eEffMode, Int colorChannel, Int offset) { m_iWPOffset[e][eEffMode-EFF_WP_SO][colorChannel]=offset; }
+  Int				getWPWeight ( RefPicList e, EFF_MODE eEffMode, Int colorChannel ) { return m_iWPWeight[e][eEffMode-EFF_WP_SO][colorChannel]; }
+  Int				getWPOffset ( RefPicList e, EFF_MODE eEffMode, Int colorChannel ) { return m_iWPOffset[e][eEffMode-EFF_WP_SO][colorChannel]; }
 
-  Void	setWPmode(RefPicList e, Int iWpMode) { m_aiWPmode[e]=iWpMode; }
-  Int		getWPmode(RefPicList e) { return m_aiWPmode[e]; }
-  Void	setRFmode(Int iRfMode) { m_iRFmode=iRfMode; }
-  Int		getRFmode() { return m_iRFmode; }
+  Void			setWPmode( RefPicList e, Int iWpMode )	{ m_aiWPmode[e]=iWpMode;	}
+  Int				getWPmode( RefPicList e )								{ return m_aiWPmode[e];		}
+  Void			setRFmode( Int iRfMode)									{ m_iRFmode=iRfMode;			}
+  Int				getRFmode()															{ return m_iRFmode;				}
 
-  EFF_MODE getEffectMode(RefPicList e, Int i) {return m_aeEffectMode[e][i]; }
-  Void addEffectMode(RefPicList e, EFF_MODE eEffMode) {m_aeEffectMode[e][m_auiAddRefCnt[e]]=eEffMode; m_auiAddRefCnt[e] ++;}
-  Void removeEffectMode(RefPicList e, EFF_MODE eEffMode);
+  EFF_MODE	getEffectMode( RefPicList e, Int i )							{ return m_aeEffectMode[e][i]; }
+  Void			addEffectMode( RefPicList e, EFF_MODE eEffMode )	{ m_aeEffectMode[e][m_auiAddRefCnt[e]]=eEffMode; m_auiAddRefCnt[e] ++; }
+  Void			removeEffectMode( RefPicList e, EFF_MODE eEffMode );
 
-  UInt getAddRefCnt(RefPicList e) { return m_auiAddRefCnt[e];  }
-	Void clearAddRefCnt(RefPicList e) { m_auiAddRefCnt[e] = 0;     }
+  UInt			getAddRefCnt	( RefPicList e) { return m_auiAddRefCnt[e];  }
+	Void			clearAddRefCnt( RefPicList e) { m_auiAddRefCnt[e] = 0;     }
 
-  Void setVirtRefBuffer(TComPic* pSrc[2][GRF_MAX_NUM_EFF]);
-  Void linkVirtRefPic();
+  Void			setVirtRefBuffer( TComPic* pSrc[2][GRF_MAX_NUM_EFF] );
+  Void			linkVirtRefPic	();
 
-  Void initEqualRef();
-  Bool isEqualRef(RefPicList e, Int iRefIdx1, Int iRefIdx2) { if (iRefIdx1 < 0 || iRefIdx2 < 0) return false;	return m_abEqualRef[e][iRefIdx1][iRefIdx2]; }
-  Void setEqualRef(RefPicList e, Int iRefIdx1, Int iRefIdx2, Bool b) { m_abEqualRef[e][iRefIdx1][iRefIdx2] = m_abEqualRef[e][iRefIdx2][iRefIdx1] = b; }
+  Void			initEqualRef();
+  Bool			isEqualRef	( RefPicList e, Int iRefIdx1, Int iRefIdx2 )
+	{
+		if (iRefIdx1 < 0 || iRefIdx2 < 0) return false;
+		return m_abEqualRef[e][iRefIdx1][iRefIdx2];
+	}
 
-  static Void      sortPicList         (TComList<TComPic*>& rcListPic);
+	Void setEqualRef( RefPicList e, Int iRefIdx1, Int iRefIdx2, Bool b)
+	{
+		m_abEqualRef[e][iRefIdx1][iRefIdx2] = m_abEqualRef[e][iRefIdx2][iRefIdx1] = b;
+	}
 
-  Int   getAMPAcc (UInt uiDepth) { return m_pcSPS->getAMPAcc(uiDepth); }
+  static Void      sortPicList         ( TComList<TComPic*>& rcListPic );
 
 protected:
   TComPic*  xGetRefPic  (TComList<TComPic*>& rcListPic,

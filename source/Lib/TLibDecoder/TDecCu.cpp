@@ -395,62 +395,6 @@ Void TDecCu::xDecodeIntraTexture( TComDataCU* pcCU, UInt uiPartIdx, Pel* piReco,
   }
 }
 
-Void TDecCu::xRecurIntraInvTrans(TComDataCU* pcCU, UInt uiAbsPartIdx, Pel* piResi, Pel* piPred, Pel* piReco, UInt uiStride, TCoeff* piCoeff, UInt uiWidth, UInt uiHeight, UInt uiCurrTrMode, UInt indexROT )
-{
-  if( pcCU->getTransformIdx(0) == uiCurrTrMode )
-  {
-    UInt uiX, uiY;
-    UInt uiZorder    = pcCU->getZorderIdxInCU()+uiAbsPartIdx;
-    Pel* pResi       = piResi;
-    Pel* pPred       = piPred;
-    Pel* piPicReco   = pcCU->getPic()->getPicYuvRec()->getLumaAddr(pcCU->getAddr(), uiZorder);
-    UInt uiPicStride = pcCU->getPic()->getPicYuvRec()->getStride();
-
-    m_pcTrQuant->setQPforQuant( pcCU->getQP(0), !pcCU->getSlice()->getDepth(), pcCU->getSlice()->getSliceType(), TEXT_LUMA );
-    m_pcTrQuant->invtransformNxN( pResi, uiStride, piCoeff, uiWidth, uiHeight, indexROT );
-
-    pResi = piResi;
-    for( uiY = 0; uiY < uiHeight; uiY++ )
-    {
-      for( uiX = 0; uiX < uiWidth; uiX++ )
-      {
-        piReco   [uiX] = Clip(pPred[uiX]+pResi[uiX]);
-        piPicReco[uiX] = piReco[uiX];
-      }
-
-      pPred     += uiStride;
-      pResi     += uiStride;
-      piReco    += uiStride;
-      piPicReco += uiPicStride;
-    }
-  }
-  else
-  {
-    uiCurrTrMode++;
-    uiWidth  >>= 1;
-    uiHeight >>= 1;
-    UInt uiCoeffOffset = uiWidth*uiHeight;
-    UInt uiPelOffset   = uiHeight*uiStride;
-    UInt uiPartOffst   = pcCU->getTotalNumPart()>>(uiCurrTrMode<<1);
-    Pel* pResi = piResi;
-    Pel* pPred = piPred;
-    Pel* pReco = piReco;
-    xRecurIntraInvTrans( pcCU, uiAbsPartIdx, pResi, pPred, pReco, uiStride, piCoeff, uiWidth, uiHeight, uiCurrTrMode, indexROT );
-    uiAbsPartIdx += uiPartOffst;
-    piCoeff      += uiCoeffOffset;
-    pResi         = piResi + uiWidth; pPred = piPred + uiWidth; pReco = piReco + uiWidth;
-    xRecurIntraInvTrans( pcCU, uiAbsPartIdx, pResi, pPred, pReco, uiStride, piCoeff, uiWidth, uiHeight, uiCurrTrMode, indexROT );
-    uiAbsPartIdx += uiPartOffst;
-    piCoeff      += uiCoeffOffset;
-    pResi         = piResi + uiPelOffset; pPred = piPred + uiPelOffset; pReco = piReco + uiPelOffset;
-    xRecurIntraInvTrans( pcCU, uiAbsPartIdx, pResi, pPred, pReco, uiStride, piCoeff, uiWidth, uiHeight, uiCurrTrMode, indexROT );
-    uiAbsPartIdx += uiPartOffst;
-    piCoeff      += uiCoeffOffset;
-    pResi         = piResi + uiPelOffset + uiWidth; pPred = piPred + uiPelOffset + uiWidth; pReco = piReco + uiPelOffset + uiWidth;
-    xRecurIntraInvTrans( pcCU, uiAbsPartIdx, pResi, pPred, pReco, uiStride, piCoeff, uiWidth, uiHeight, uiCurrTrMode, indexROT );
-  }
-}
-
 // ADI chroma
 Void TDecCu::xRecurIntraInvTransChroma(TComDataCU* pcCU, UInt uiAbsPartIdx, Pel* piResi, Pel* piPred, Pel* piReco, UInt uiStride, TCoeff* piCoeff, UInt uiWidth, UInt uiHeight, UInt uiTrMode, UInt uiCurrTrMode, TextType eText )
 {

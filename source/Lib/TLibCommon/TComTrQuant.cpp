@@ -43,15 +43,16 @@
 // Constants
 // ====================================================================================================================
 
-#define LTR_Q_OFFSET_I              (1.0/3.0)		///< LTR quantization offset of I slice
-#define LTR_Q_OFFSET_P              (1.0/6.0)		///< LTR quantization offset of P slice
-#define LTR_Q_OFFSET_B              (1.0/6.0)		///< LTR quantization offset of B slice
-#define RDOQ_CHROMA                 1						///< use of RDOQ in chroma
-#define RDOQ_ROT_IDX0_ONLY          0						///< use of RDOQ with ROT
+#define RDOQ_CHROMA                 1												///< use of RDOQ in chroma
+#define RDOQ_ROT_IDX0_ONLY          0												///< use of RDOQ with ROT
 
 #define DQ_BITS											6
 #define Q_BITS_8										16
 #define SIGN_BITS										1
+
+#define INV_ROT_BITS								8												///< accuracy for inverse ROT process
+#define FWD_ROT_BITS								12											///< accuracy for forward ROT process
+#define ROT_OFF_SET_FWD							(1<<(FWD_ROT_BITS-1))		///< pre-computed forward ROT offset
 
 // ====================================================================================================================
 // Tables
@@ -1905,13 +1906,12 @@ Void TComTrQuant::xT16( Pel* pSrc, UInt uiStride, Long* pDes )
 
 Void TComTrQuant::xQuantLTR  (TComDataCU* pcCU, Long* pSrc, TCoeff*& pDes, Int iWidth, Int iHeight, UInt& uiAcSum, TextType eTType, UInt uiAbsPartIdx, UChar indexROT )
 {
-  UInt* piQuantCoef = NULL;
-  Int   iNewBits    = 0;
-  Int   iAdd;
-  Bool  bLogical    = false;
-
-	Long*		piCoef		= pSrc;
-	TCoeff* piQCoef		= pDes;
+	Long*		piCoef				= pSrc;
+	TCoeff* piQCoef				= pDes;
+	UInt*		piQuantCoef		= NULL;
+  Int			iNewBits			= 0;
+  Int			iAdd;
+  Bool		bLogical			= false;
 
 	if ( iWidth > (Int)m_uiMaxTrSize )
 	{
@@ -1977,7 +1977,7 @@ Void TComTrQuant::xQuantLTR  (TComDataCU* pcCU, Long* pSrc, TCoeff*& pDes, Int i
 			}
 		}
 
-		RotTransformLI2(ROT_DOMAIN, indexROT);
+		RotTransformLI2( ROT_DOMAIN, indexROT-1, iWidth );
 
 		for( y = 0, y2 = 0, y3 = 0; y < 8; y++, y2+=8, y3+=iWidth )
 		{
@@ -2110,7 +2110,7 @@ Void TComTrQuant::xDeQuantLTR( TCoeff* pSrc, Long*& pDes, Int iWidth, Int iHeigh
 			::memcpy( ROT_DOMAIN+y2, piCoef+y3, sizeof(Long)*8 );
 		}
 
-		InvRotTransformLI2(ROT_DOMAIN, indexROT);
+		InvRotTransformLI2(ROT_DOMAIN, indexROT-1 );
 
 		for( y = 0, y2 = 0, y3 = 0; y < 8; y++, y2+=8, y3+=iWidth )
 		{
@@ -4101,7 +4101,7 @@ Void TComTrQuant::xQuant4x4( TComDataCU* pcCU, Long* plSrcCoef, TCoeff*& pDstCoe
 
 	if ( indexROT )
 	{
-		RotTransform4I( plSrcCoef, indexROT );
+		RotTransform4I( plSrcCoef, indexROT-1 );
 	}
 
   if ( m_bUseRDOQ && (eTType == TEXT_LUMA || RDOQ_CHROMA) && (!RDOQ_ROT_IDX0_ONLY || indexROT == 0 ) )
@@ -4143,7 +4143,7 @@ Void TComTrQuant::xQuant8x8( TComDataCU* pcCU, Long* plSrcCoef, TCoeff*& pDstCoe
 
 	if ( indexROT )
 	{
-		RotTransformLI2( plSrcCoef, indexROT );
+		RotTransformLI2( plSrcCoef, indexROT-1, 8 );
 	}
 
   Int iBit = m_cQP.m_iBits + 1;
@@ -4419,37 +4419,37 @@ Void TComTrQuant::xDeQuant4x4( TCoeff* pSrcCoef, Long*& rplDstCoef, UChar indexR
       else
         rplDstCoef[n] = 0;
     }
-
-    InvRotTransform4I( rplDstCoef, indexROT );
+    InvRotTransform4I( rplDstCoef, indexROT-1 );
 	}
 }
 Void TComTrQuant::xDeQuant8x8( TCoeff* pSrcCoef, Long*& rplDstCoef, UChar indexROT )
 {
-  Int iLevel;
-  Int iDeScale;
+	Int iLevel;
+	Int iDeScale;
 
-  Int iAdd = ( 1 << 5 ) >> m_cQP.m_iPer;
+	Int iAdd = ( 1 << 5 ) >> m_cQP.m_iPer;
 
-  if ( !indexROT )
+	// without ROT case
+	if ( !indexROT )
 	{
+		for( Int n = 0; n < 64; n++ )
+		{
+			iLevel  = pSrcCoef[n];
 
-  for( Int n = 0; n < 64; n++ )
-  {
-    iLevel  = pSrcCoef[n];
-
-    if( 0 != iLevel )
-    {
-			iDeScale = g_aiDequantCoef64[m_cQP.m_iRem][n];
-      rplDstCoef[n]   = ( (iLevel*iDeScale*16 + iAdd) << m_cQP.m_iPer ) >> 6;
-    }
-    else
-    {
-      rplDstCoef[n] = 0;
-    }
-  }
-  }
-  else
-  {
+			if( 0 != iLevel )
+			{
+				iDeScale = g_aiDequantCoef64[m_cQP.m_iRem][n];
+				rplDstCoef[n]   = ( (iLevel*iDeScale*16 + iAdd) << m_cQP.m_iPer ) >> 6;
+			}
+			else
+			{
+				rplDstCoef[n] = 0;
+			}
+		}
+	}
+	// with ROT case
+	else
+	{
 		for( Int n = 0; n < 64; n++ )
 		{
 			iLevel  = pSrcCoef[n];
@@ -4465,13 +4465,13 @@ Void TComTrQuant::xDeQuant8x8( TCoeff* pSrcCoef, Long*& rplDstCoef, UChar indexR
 			}
 		}
 
-    InvRotTransformLI2( rplDstCoef, indexROT );
+		InvRotTransformLI2( rplDstCoef, indexROT-1 );
 
-    for( Int i=0; i<64; i++ )
-    {
-      if( rplDstCoef[i] != 0 )
-        rplDstCoef[i] *= g_aiDequantCoef64[m_cQP.m_iRem][i];
-    }
+		for( Int i=0; i<64; i++ )
+		{
+			if( rplDstCoef[i] != 0 )
+				rplDstCoef[i] *= g_aiDequantCoef64[m_cQP.m_iRem][i];
+		}
 	}
 }
 
@@ -4499,1323 +4499,261 @@ Void TComTrQuant::invRecurTransformNxN( TComDataCU* pcCU, UInt uiAbsPartIdx, Tex
     invRecurTransformNxN( pcCU, uiAbsPartIdx, eTxt, rpcResidual, uiAddr + uiAddrOffset + uiWidth, uiStride, uiWidth, uiHeight, uiMaxTrMode, uiTrMode, rpcCoeff, indexROT );
   }
 }
+// ====================================================================================================================
+// ROT
+// ====================================================================================================================
 
-// ROT_SHIFT_ONLY
-Void
-TComTrQuant::InvRotTransform4I(  Long* matrix, UChar index )
+Void TComTrQuant::InvRotTransform4I(  Long* matrix, UChar index )
 {
-  Int t[8][16];
-  Int r[2],m[6];
-  Int itemp = 0;
-
-  Int n = 0;
-  for (n=0; n<13; n+=4)
-  {
-    t[0][n]=0;   t[1][n]=0;  t[2][n]=0;
-
-    if (matrix[n]>=0) {m[0] = matrix[n]>>13;		m[1]=matrix[n]-(m[0]<<13);}
-    else              {m[0] = (abs(matrix[n]))>>13;	m[1]=matrix[n]+(m[0]<<13);  m[0]=-m[0];}
-    r[0] = ROT_MATRIX_S[0][index][16]; r[1] = ROT_MATRIX_S[1][index][16];
-    t[0][n] += r[0]*m[0]; t[1][n] +=r[0]*m[1]+m[0]*r[1]; t[2][n]  += m[1]*r[1];
-
-    if (matrix[n+1]>=0) {m[2] = matrix[n+1]>>13;		m[3]=matrix[n+1]-(m[2]<<13);}
-    else                {m[2] = (abs(matrix[n+1]))>>13;	m[3]=matrix[n+1]+(m[2]<<13);  m[2]=-m[2];}
-    r[0] = ROT_MATRIX_S[0][index][20];   r[1] = ROT_MATRIX_S[1][index][20];
-    t[0][n] += r[0]*m[2]; t[1][n] +=r[0]*m[3]+m[2]*r[1]; t[2][n]  += m[3]*r[1];
-
-    if (matrix[n+2]>=0) {m[4] = matrix[n+2]>>13;		m[5]=matrix[n+2]-(m[4]<<13);}
-    else              {m[4] = (abs(matrix[n+2]))>>13;	m[5]=matrix[n+2]+(m[4]<<13);  m[4]=-m[4];}
-    r[0] = ROT_MATRIX_S[0][index][24];   r[1] = ROT_MATRIX_S[1][index][24];
-    t[0][n] += r[0]*m[4]; t[1][n] +=r[0]*m[5]+m[4]*r[1]; t[2][n]  += m[5]*r[1];
-
-
-    t[0][n+1]=0;   t[1][n+1]=0;  t[2][n+1]=0;
-
-    r[0] = ROT_MATRIX_S[0][index][17];   r[1] = ROT_MATRIX_S[1][index][17];
-    t[0][n+1] += r[0]*m[0]; t[1][n+1] +=r[0]*m[1]+m[0]*r[1]; t[2][n+1]  += m[1]*r[1];
-
-    r[0] = ROT_MATRIX_S[0][index][21];   r[1] = ROT_MATRIX_S[1][index][21];
-    t[0][n+1] += r[0]*m[2]; t[1][n+1] +=r[0]*m[3]+m[2]*r[1]; t[2][n+1]  += m[3]*r[1];
-
-    r[0] = ROT_MATRIX_S[0][index][25];   r[1] = ROT_MATRIX_S[1][index][25];
-    t[0][n+1] += r[0]*m[4]; t[1][n+1] +=r[0]*m[5]+m[4]*r[1]; t[2][n+1]  += m[5]*r[1];
-
-
-    t[0][n+2]=0;   t[1][n+2]=0;  t[2][n+2]=0;
-
-    r[0] = ROT_MATRIX_S[0][index][18];   r[1] = ROT_MATRIX_S[1][index][18];
-    t[0][n+2] += r[0]*m[0]; t[1][n+2] +=r[0]*m[1]+m[0]*r[1]; t[2][n+2]  += m[1]*r[1];
-
-    r[0] = ROT_MATRIX_S[0][index][22];   r[1] = ROT_MATRIX_S[1][index][22];
-    t[0][n+2] += r[0]*m[2]; t[1][n+2] +=r[0]*m[3]+m[2]*r[1]; t[2][n+2]  += m[3]*r[1];
-
-
-
-    r[0] = ROT_MATRIX_S[0][index][26];   r[1] = ROT_MATRIX_S[1][index][26];
-    t[0][n+2] += r[0]*m[4]; t[1][n+2] +=r[0]*m[5]+m[4]*r[1]; t[2][n+2]  += m[5]*r[1];
-
-
-    t[0][n+3] = matrix[n+3]; t[1][n+3] = 0; t[2][n+3] = 0;
-  }
-  Int res[4];
-  for (n=0; n<4; n++)
-  {
-    res[0]=0;res[1]=0;res[2]=0;
-
-    if (t[0][n]>=0)   {t[3][n] = t[0][n]>>13;		    t[4][n]=t[0][n]-(t[3][n]<<13);}
-    else              {t[3][n] = (abs(t[0][n]))>>13;	t[4][n]=t[0][n]+(t[3][n]<<13);  t[3][n]=-t[3][n];}
-
-    if (t[1][n]>=0)   {t[5][n] = t[1][n]>>13;		    t[6][n]=t[1][n]-(t[5][n]<<13);}
-    else              {t[5][n] = (abs(t[1][n]))>>13;	t[6][n]=t[1][n]+(t[5][n]<<13);  t[5][n]=-t[5][n];}
-
-    if (t[2][n]>=0)   {t[7][n] = t[2][n]>>13;		   }
-    else              {t[7][n] = (abs(t[2][n]))>>13;	t[7][n]=-t[7][n];}
-
-    if (ROT_MATRIX[index][0]*g_aiDequantCoef[m_cQP.m_iRem][n]>=0)
-    {r[0] = (ROT_MATRIX[index][0]*g_aiDequantCoef[m_cQP.m_iRem][n])>>13;		    r[1]=(ROT_MATRIX[index][0]*g_aiDequantCoef[m_cQP.m_iRem][n])-(r[0]<<13);}
-    else
-    {r[0] = (abs(ROT_MATRIX[index][0]*g_aiDequantCoef[m_cQP.m_iRem][n]))>>13;	r[1]=(ROT_MATRIX[index][0]*g_aiDequantCoef[m_cQP.m_iRem][n])+(r[0]<<13);  r[0]=-r[0];}
-
-
-    res[0] += r[0]*t[3][n];  res[1] +=r[0]*t[4][n]+r[1]*t[3][n]+r[0]*t[5][n]; res[2] +=r[1]*t[4][n]+r[0]*t[6][n]+r[1]*t[5][n]+r[0]*t[7][n];
-
-
-    if (t[0][n+4]>=0)   {t[3][n+4] = t[0][n+4]>>13;		    t[4][n+4]=t[0][n+4]-(t[3][n+4]<<13);}
-    else              {t[3][n+4] = (abs(t[0][n+4]))>>13;	t[4][n+4]=t[0][n+4]+(t[3][n+4]<<13);  t[3][n+4]=-t[3][n+4];}
-
-    if (t[1][n+4]>=0)   {t[5][n+4] = t[1][n+4]>>13;		    t[6][n+4]=t[1][n+4]-(t[5][n+4]<<13);}
-    else              {t[5][n+4] = (abs(t[1][n+4]))>>13;	t[6][n+4]=t[1][n+4]+(t[5][n+4]<<13);  t[5][n+4]=-t[5][n+4];}
-
-    if (t[2][n+4]>=0)   {t[7][n+4] = t[2][n+4]>>13;		   }
-    else              {t[7][n+4] = (abs(t[2][n+4]))>>13;	t[7][n+4]=-t[7][n+4];}
-
-    if (ROT_MATRIX[index][4]*g_aiDequantCoef[m_cQP.m_iRem][n]>=0)
-    {r[0] = (ROT_MATRIX[index][4]*g_aiDequantCoef[m_cQP.m_iRem][n])>>13;		    r[1]=(ROT_MATRIX[index][4]*g_aiDequantCoef[m_cQP.m_iRem][n])-(r[0]<<13);}
-    else
-    {r[0] = (abs(ROT_MATRIX[index][4]*g_aiDequantCoef[m_cQP.m_iRem][n]))>>13;	r[1]=(ROT_MATRIX[index][4]*g_aiDequantCoef[m_cQP.m_iRem][n])+(r[0]<<13);  r[0]=-r[0];}
-
-
-    res[0] += r[0]*t[3][n+4];  res[1] +=r[0]*t[4][n+4]+r[1]*t[3][n+4]+r[0]*t[5][n+4]; res[2] +=r[1]*t[4][n+4]+r[0]*t[6][n+4]+r[1]*t[5][n+4]+r[0]*t[7][n+4];
-
-    if (t[0][n+8]>=0)   {t[3][n+8] = t[0][n+8]>>13;		    t[4][n+8]=t[0][n+8]-(t[3][n+8]<<13);}
-    else              {t[3][n+8] = (abs(t[0][n+8]))>>13;	t[4][n+8]=t[0][n+8]+(t[3][n+8]<<13);  t[3][n+8]=-t[3][n+8];}
-
-    if (t[1][n+8]>=0)   {t[5][n+8] = t[1][n+8]>>13;		    t[6][n+8]=t[1][n+8]-(t[5][n+8]<<13);}
-    else              {t[5][n+8] = (abs(t[1][n+8]))>>13;	t[6][n+8]=t[1][n+8]+(t[5][n+8]<<13);  t[5][n+8]=-t[5][n+8];}
-
-    if (t[2][n+8]>=0)   {t[7][n+8] = t[2][n+8]>>13;		   }
-    else              {t[7][n+8] = (abs(t[2][n+8]))>>13;	t[7][n+8]=-t[7][n+8];}
-
-    if (ROT_MATRIX[index][8]*g_aiDequantCoef[m_cQP.m_iRem][n]>=0)
-    {r[0] = (ROT_MATRIX[index][8]*g_aiDequantCoef[m_cQP.m_iRem][n])>>13;
-    r[1]=(ROT_MATRIX[index][8]*g_aiDequantCoef[m_cQP.m_iRem][n])-(r[0]<<13);}
-    else
-    {r[0] = (abs(ROT_MATRIX[index][8]*g_aiDequantCoef[m_cQP.m_iRem][n]))>>13;
-    r[1]=(ROT_MATRIX[index][8]*g_aiDequantCoef[m_cQP.m_iRem][n])+(r[0]<<13);  r[0]=-r[0];}
-
-    res[0] += r[0]*t[3][n+8];  res[1] +=r[0]*t[4][n+8]+r[1]*t[3][n+8]+r[0]*t[5][n+8]; res[2] +=r[1]*t[4][n+8]+r[0]*t[6][n+8]+r[1]*t[5][n+8]+r[0]*t[7][n+8];
-
-    if (res[1]>=0) {res[3]=res[1]>>13;res[3]=res[1]-(res[3]<<13);}
-    else {res[3]=(abs(res[1]))>>13;res[3]=res[1]+(res[3]<<13);}
-    res[3]=res[3]<<13;
-
-    if (res[2]>=0) {itemp=res[2]>>26;itemp=res[2]-(itemp<<26);}
-    else {itemp=(abs(res[2]))>>26;itemp=res[2]+(itemp<<26);}
-
-    res[3]+=itemp;
-    if (res[3]>=0) res[3]+=(1<<25);
-    else res[3]-=(1<<25);
-
-    matrix[n] = res[0] ;
-    if (res[1]>=0) {itemp=res[1]>>13;}
-    else {itemp=(abs(res[1]))>>13;itemp=-itemp;}
-    matrix[n] += itemp;
-    if (res[2]>=0) {itemp=res[2]>>26;}
-    else {itemp=(abs(res[2]))>>26;itemp=-itemp;}
-    matrix[n] += itemp;
-    if (res[3]>=0) {itemp=res[3]>>26;}
-    else {itemp=(abs(res[3]))>>26;itemp=-itemp;}
-    matrix[n] += itemp;
-
-    res[0]=0;res[1]=0;res[2]=0;
-
-    if (ROT_MATRIX[index][1]*g_aiDequantCoef[m_cQP.m_iRem][n+4]>=0)
-    {r[0] = (ROT_MATRIX[index][1]*g_aiDequantCoef[m_cQP.m_iRem][n+4])>>13;		    r[1]=(ROT_MATRIX[index][1]*g_aiDequantCoef[m_cQP.m_iRem][n+4])-(r[0]<<13);}
-    else
-    {r[0] = (abs(ROT_MATRIX[index][1]*g_aiDequantCoef[m_cQP.m_iRem][n+4]))>>13;	r[1]=(ROT_MATRIX[index][1]*g_aiDequantCoef[m_cQP.m_iRem][n+4])+(r[0]<<13);  r[0]=-r[0];}
-
-    res[0] += r[0]*t[3][n];  res[1] +=r[0]*t[4][n]+r[1]*t[3][n]+r[0]*t[5][n]; res[2] +=r[1]*t[4][n]+r[0]*t[6][n]+r[1]*t[5][n]+r[0]*t[7][n];
-
-    if (ROT_MATRIX[index][5]*g_aiDequantCoef[m_cQP.m_iRem][n+4]>=0)
-    {r[0] = (ROT_MATRIX[index][5]*g_aiDequantCoef[m_cQP.m_iRem][n+4])>>13;		    r[1]=(ROT_MATRIX[index][5]*g_aiDequantCoef[m_cQP.m_iRem][n+4])-(r[0]<<13);}
-    else
-    {r[0] = (abs(ROT_MATRIX[index][5]*g_aiDequantCoef[m_cQP.m_iRem][n+4]))>>13;	r[1]=(ROT_MATRIX[index][5]*g_aiDequantCoef[m_cQP.m_iRem][n+4])+(r[0]<<13);  r[0]=-r[0];}
-
-    res[0] += r[0]*t[3][n+4];  res[1] +=r[0]*t[4][n+4]+r[1]*t[3][n+4]+r[0]*t[5][n+4]; res[2] +=r[1]*t[4][n+4]+r[0]*t[6][n+4]+r[1]*t[5][n+4]+r[0]*t[7][n+4];
-
-    if (ROT_MATRIX[index][9]*g_aiDequantCoef[m_cQP.m_iRem][n+4]>=0)
-    {r[0] = (ROT_MATRIX[index][9]*g_aiDequantCoef[m_cQP.m_iRem][n+4])>>13;		    r[1]=(ROT_MATRIX[index][9]*g_aiDequantCoef[m_cQP.m_iRem][n+4])-(r[0]<<13);}
-    else
-    {r[0] = (abs(ROT_MATRIX[index][9]*g_aiDequantCoef[m_cQP.m_iRem][n+4]))>>13;	r[1]=(ROT_MATRIX[index][9]*g_aiDequantCoef[m_cQP.m_iRem][n+4])+(r[0]<<13);  r[0]=-r[0];}
-
-    res[0] += r[0]*t[3][n+8];  res[1] +=r[0]*t[4][n+8]+r[1]*t[3][n+8]+r[0]*t[5][n+8]; res[2] +=r[1]*t[4][n+8]+r[0]*t[6][n+8]+r[1]*t[5][n+8]+r[0]*t[7][n+8];
-
-    if (res[1]>=0) {res[3]=res[1]>>13;res[3]=res[1]-(res[3]<<13);}
-    else {res[3]=(abs(res[1]))>>13;res[3]=res[1]+(res[3]<<13);}
-    res[3]=res[3]<<13;
-
-    if (res[2]>=0) {itemp=res[2]>>26;itemp=res[2]-(itemp<<26);}
-    else {itemp=(abs(res[2]))>>26;itemp=res[2]+(itemp<<26);}
-
-    res[3]+=itemp;
-    if (res[3]>=0) res[3]+=(1<<25);
-    else res[3]-=(1<<25);
-
-    matrix[n+4] = res[0] ;
-    if (res[1]>=0) {itemp=res[1]>>13;}
-    else {itemp=(abs(res[1]))>>13;itemp=-itemp;}
-    matrix[n+4] += itemp;
-    if (res[2]>=0) {itemp=res[2]>>26;}
-    else {itemp=(abs(res[2]))>>26;itemp=-itemp;}
-    matrix[n+4] += itemp;
-    if (res[3]>=0) {itemp=res[3]>>26;}
-    else {itemp=(abs(res[3]))>>26;itemp=-itemp;}
-    matrix[n+4] += itemp;
-
-    res[0]=0;res[1]=0;res[2]=0;res[3]=0;
-
-    if (ROT_MATRIX[index][2]*g_aiDequantCoef[m_cQP.m_iRem][n+8]>=0)
-    {r[0] = (ROT_MATRIX[index][2]*g_aiDequantCoef[m_cQP.m_iRem][n+8])>>13;		    r[1]=(ROT_MATRIX[index][2]*g_aiDequantCoef[m_cQP.m_iRem][n+8])-(r[0]<<13);}
-    else
-    {r[0] = (abs(ROT_MATRIX[index][2]*g_aiDequantCoef[m_cQP.m_iRem][n+8]))>>13;	r[1]=(ROT_MATRIX[index][2]*g_aiDequantCoef[m_cQP.m_iRem][n+8])+(r[0]<<13);  r[0]=-r[0];}
-
-    res[0] += r[0]*t[3][n];  res[1] +=r[0]*t[4][n]+r[1]*t[3][n]+r[0]*t[5][n]; res[2] +=r[1]*t[4][n]+r[0]*t[6][n]+r[1]*t[5][n]+r[0]*t[7][n];
-
-    if (ROT_MATRIX[index][6]*g_aiDequantCoef[m_cQP.m_iRem][n+8]>=0)
-    {r[0] = (ROT_MATRIX[index][6]*g_aiDequantCoef[m_cQP.m_iRem][n+8])>>13;		    r[1]=(ROT_MATRIX[index][6]*g_aiDequantCoef[m_cQP.m_iRem][n+8])-(r[0]<<13);}
-    else
-    {r[0] = (abs(ROT_MATRIX[index][6]*g_aiDequantCoef[m_cQP.m_iRem][n+8]))>>13;	r[1]=(ROT_MATRIX[index][6]*g_aiDequantCoef[m_cQP.m_iRem][n+8])+(r[0]<<13);  r[0]=-r[0];}
-
-    res[0] += r[0]*t[3][n+4];  res[1] +=r[0]*t[4][n+4]+r[1]*t[3][n+4]+r[0]*t[5][n+4]; res[2] +=r[1]*t[4][n+4]+r[0]*t[6][n+4]+r[1]*t[5][n+4]+r[0]*t[7][n+4];
-
-    if (ROT_MATRIX[index][10]*g_aiDequantCoef[m_cQP.m_iRem][n+8]>=0)
-    {r[0] = (ROT_MATRIX[index][10]*g_aiDequantCoef[m_cQP.m_iRem][n+8])>>13;		    r[1]=(ROT_MATRIX[index][10]*g_aiDequantCoef[m_cQP.m_iRem][n+8])-(r[0]<<13);}
-    else
-    {r[0] = (abs(ROT_MATRIX[index][10]*g_aiDequantCoef[m_cQP.m_iRem][n+8]))>>13;	r[1]=(ROT_MATRIX[index][10]*g_aiDequantCoef[m_cQP.m_iRem][n+8])+(r[0]<<13);  r[0]=-r[0];}
-
-    res[0] += r[0]*t[3][n+8];  res[1] +=r[0]*t[4][n+8]+r[1]*t[3][n+8]+r[0]*t[5][n+8]; res[2] +=r[1]*t[4][n+8]+r[0]*t[6][n+8]+r[1]*t[5][n+8]+r[0]*t[7][n+8];
-
-    if (res[1]>=0) {res[3]=res[1]>>13;res[3]=res[1]-(res[3]<<13);}
-    else {res[3]=(abs(res[1]))>>13;res[3]=res[1]+(res[3]<<13);}
-    res[3]=res[3]<<13;
-
-    if (res[2]>=0) {itemp=res[2]>>26;itemp=res[2]-(itemp<<26);}
-    else {itemp=(abs(res[2]))>>26;itemp=res[2]+(itemp<<26);}
-
-    res[3]+=itemp;
-    if (res[3]>=0) res[3]+=(1<<25);
-    else res[3]-=(1<<25);
-
-    matrix[n+8] = res[0] ;
-    if (res[1]>=0) {itemp=res[1]>>13;}
-    else {itemp=(abs(res[1]))>>13;itemp=-itemp;}
-    matrix[n+8] += itemp;
-    if (res[2]>=0) {itemp=res[2]>>26;}
-    else {itemp=(abs(res[2]))>>26;itemp=-itemp;}
-    matrix[n+8] += itemp;
-    if (res[3]>=0) {itemp=res[3]>>26;}
-    else {itemp=(abs(res[3]))>>26;itemp=-itemp;}
-    matrix[n+8] += itemp;
-
-    res[0]=t[0][n+12]*g_aiDequantCoef[m_cQP.m_iRem][n+12];
-    res[1]=t[1][n+12]*g_aiDequantCoef[m_cQP.m_iRem][n+12];
-    res[2]=t[2][n+12]*g_aiDequantCoef[m_cQP.m_iRem][n+12];
-
-    if (res[1]>=0) {res[3]=res[1]>>13;res[3]=res[1]-(res[3]<<13);}
-    else {res[3]=(abs(res[1]))>>13;res[3]=res[1]+(res[3]<<13);}
-    res[3]=res[3]<<13;
-
-    if (res[2]>=0) {itemp=res[2]>>26;itemp=res[2]-(itemp<<26);}
-    else {itemp=(abs(res[2]))>>26;itemp=res[2]+(itemp<<26);}
-
-    res[3]+=itemp;
-    if (res[3]>=0) res[3]+=(1<<25);
-    else res[3]-=(1<<25);
-
-    matrix[n+12] = res[0] ;
-    if (res[1]>=0) {itemp=res[1]>>13;}
-    else {itemp=(abs(res[1]))>>13;itemp=-itemp;}
-    matrix[n+12] += itemp;
-    if (res[2]>=0) {itemp=res[2]>>26;}
-    else {itemp=(abs(res[2]))>>26;itemp=-itemp;}
-    matrix[n+12] += itemp;
-    if (res[3]>=0) {itemp=res[3]>>26;}
-    else {itemp=(abs(res[3]))>>26;itemp=-itemp;}
-    matrix[n+12] += itemp;
-  }
-}
-Void
-TComTrQuant::RotTransform4I( Long* matrix, UChar index )
-{
-  if (index==0) return;
-
-  Int m[6],r[2],t[8][16];
-  Int itemp = 0;
-  Int n = 0;
-
-  for (n=0; n<4; n++)
-  {
-    t[0][n]=0;   t[1][n]=0;  t[2][n]=0;
-
-    if (matrix[n]>=0) {m[0] = matrix[n]>>13;		m[1]=matrix[n]-(m[0]<<13);}
-    else              {m[0] = (abs(matrix[n]))>>13;	m[1]=matrix[n]+(m[0]<<13);  m[0]=-m[0];}
-    r[0] = ROT_MATRIX_S[0][index][0]; r[1] = ROT_MATRIX_S[1][index][0];
-    t[0][n] += r[0]*m[0]; t[1][n] +=r[0]*m[1]+m[0]*r[1]; t[2][n]  += m[1]*r[1];
-
-    if (matrix[n+4]>=0) {m[2] = matrix[n+4]>>13;		m[3]=matrix[n+4]-(m[2]<<13);}
-    else                {m[2] = (abs(matrix[n+4]))>>13;	m[3]=matrix[n+4]+(m[2]<<13);  m[2]=-m[2];}
-    r[0] = ROT_MATRIX_S[0][index][1]; r[1] = ROT_MATRIX_S[1][index][1];
-    t[0][n] += r[0]*m[2]; t[1][n] +=r[0]*m[3]+m[2]*r[1]; t[2][n]  += m[3]*r[1];
-
-    if (matrix[n+8]>=0) {m[4] = matrix[n+8]>>13;		m[5]=matrix[n+8]-(m[4]<<13);}
-    else                {m[4] = (abs(matrix[n+8]))>>13;	m[5]=matrix[n+8]+(m[4]<<13);  m[4]=-m[4];}
-    r[0] = ROT_MATRIX_S[0][index][2]; r[1] = ROT_MATRIX_S[1][index][2];
-    t[0][n] += r[0]*m[4]; t[1][n] +=r[0]*m[5]+m[4]*r[1]; t[2][n]  += m[5]*r[1];
-
-
-    t[0][n+4]=0;   t[1][n+4]=0;  t[2][n+4]=0;
-
-    r[0] = ROT_MATRIX_S[0][index][4]; r[1] = ROT_MATRIX_S[1][index][4];
-    t[0][n+4] += r[0]*m[0]; t[1][n+4] +=r[0]*m[1]+m[0]*r[1]; t[2][n+4]  += m[1]*r[1];
-
-
-
-    r[0] = ROT_MATRIX_S[0][index][5]; r[1] = ROT_MATRIX_S[1][index][5];
-    t[0][n+4] += r[0]*m[2]; t[1][n+4] +=r[0]*m[3]+m[2]*r[1]; t[2][n+4]  += m[3]*r[1];
-
-    r[0] = ROT_MATRIX_S[0][index][6]; r[1] = ROT_MATRIX_S[1][index][6];
-    t[0][n+4] += r[0]*m[4]; t[1][n+4] +=r[0]*m[5]+m[4]*r[1]; t[2][n+4]  += m[5]*r[1];
-
-
-    t[0][n+8]=0;   t[1][n+8]=0;  t[2][n+8]=0;
-
-    r[0] = ROT_MATRIX_S[0][index][8]; r[1] = ROT_MATRIX_S[1][index][8];
-    t[0][n+8] += r[0]*m[0]; t[1][n+8] +=r[0]*m[1]+m[0]*r[1]; t[2][n+8]  += m[1]*r[1];
-
-    r[0] = ROT_MATRIX_S[0][index][9]; r[1] = ROT_MATRIX_S[1][index][9];
-    t[0][n+8] += r[0]*m[2]; t[1][n+8] +=r[0]*m[3]+m[2]*r[1]; t[2][n+8]  += m[3]*r[1];
-
-    r[0] = ROT_MATRIX_S[0][index][10]; r[1] = ROT_MATRIX_S[1][index][10];
-    t[0][n+8] += r[0]*m[4]; t[1][n+8] +=r[0]*m[5]+m[4]*r[1]; t[2][n+8]  += m[5]*r[1];
-
-    t[0][n+12] = matrix[n+12]; t[1][n+12] = 0; t[2][n+12] = 0;
-  }
-
-  Int res[4];
-  for (n=0; n<13; n+=4)
-  {
-    res[0]=0;res[1]=0;res[2]=0;res[3]=0;
-
-    if (t[0][n]>=0)   {t[3][n] = t[0][n]>>13;		    t[4][n]=t[0][n]-(t[3][n]<<13);}
-    else              {t[3][n] = (abs(t[0][n]))>>13;	t[4][n]=t[0][n]+(t[3][n]<<13);  t[3][n]=-t[3][n];}
-
-    if (t[1][n]>=0)   {t[5][n] = t[1][n]>>13;		    t[6][n]=t[1][n]-(t[5][n]<<13);}
-    else              {t[5][n] = (abs(t[1][n]))>>13;	t[6][n]=t[1][n]+(t[5][n]<<13);  t[5][n]=-t[5][n];}
-
-    if (t[2][n]>=0)   {t[7][n] = t[2][n]>>13;		   }
-    else              {t[7][n] = (abs(t[2][n]))>>13;	t[7][n]=-t[7][n];}
-    r[0] = ROT_MATRIX_S[0][index][16]; r[1] = ROT_MATRIX_S[1][index][16];
-
-    res[0] += r[0]*t[3][n];  res[1] +=r[0]*t[4][n]+r[1]*t[3][n]+r[0]*t[5][n]; res[2] +=r[1]*t[4][n]+r[0]*t[6][n]+r[1]*t[5][n]+r[0]*t[7][n];
-
-
-    if (t[0][n+1]>=0)   {t[3][n+1] = t[0][n+1]>>13;		    t[4][n+1]=t[0][n+1]-(t[3][n+1]<<13);}
-    else              {t[3][n+1] = (abs(t[0][n+1]))>>13;	t[4][n+1]=t[0][n+1]+(t[3][n+1]<<13);  t[3][n+1]=-t[3][n+1];}
-
-    if (t[1][n+1]>=0)   {t[5][n+1] = t[1][n+1]>>13;		    t[6][n+1]=t[1][n+1]-(t[5][n+1]<<13);}
-    else              {t[5][n+1] = (abs(t[1][n+1]))>>13;	t[6][n+1]=t[1][n+1]+(t[5][n+1]<<13);  t[5][n+1]=-t[5][n+1];}
-
-    if (t[2][n+1]>=0)   {t[7][n+1] = t[2][n+1]>>13;		   }
-    else              {t[7][n+1] = (abs(t[2][n+1]))>>13;	t[7][n+1]=-t[7][n+1];}
-    r[0] = ROT_MATRIX_S[0][index][17]; r[1] = ROT_MATRIX_S[1][index][17];
-
-
-    res[0] += r[0]*t[3][n+1];  res[1] +=r[0]*t[4][n+1]+r[1]*t[3][n+1]+r[0]*t[5][n+1]; res[2] +=r[1]*t[4][n+1]+r[0]*t[6][n+1]+r[1]*t[5][n+1]+r[0]*t[7][n+1];
-
-    if (t[0][n+2]>=0)   {t[3][n+2] = t[0][n+2]>>13;		    t[4][n+2]=t[0][n+2]-(t[3][n+2]<<13);}
-    else              {t[3][n+2] = (abs(t[0][n+2]))>>13;	t[4][n+2]=t[0][n+2]+(t[3][n+2]<<13);  t[3][n+2]=-t[3][n+2];}
-
-    if (t[1][n+2]>=0)   {t[5][n+2] = t[1][n+2]>>13;		    t[6][n+2]=t[1][n+2]-(t[5][n+2]<<13);}
-    else              {t[5][n+2] = (abs(t[1][n+2]))>>13;	t[6][n+2]=t[1][n+2]+(t[5][n+2]<<13);  t[5][n+2]=-t[5][n+2];}
-
-    if (t[2][n+2]>=0)   {t[7][n+2] = t[2][n+2]>>13;		   }
-    else              {t[7][n+2] = (abs(t[2][n+2]))>>13;	t[7][n+2]=-t[7][n+2];}
-    r[0] = ROT_MATRIX_S[0][index][18]; r[1] = ROT_MATRIX_S[1][index][18];
-
-
-    res[0] += r[0]*t[3][n+2];  res[1] +=r[0]*t[4][n+2]+r[1]*t[3][n+2]+r[0]*t[5][n+2]; res[2] +=r[1]*t[4][n+2]+r[0]*t[6][n+2]+r[1]*t[5][n+2]+r[0]*t[7][n+2];
-
-    if (res[1]>=0) {res[3]=res[1]>>13;res[3]=res[1]-(res[3]<<13);}
-    else {res[3]=(abs(res[1]))>>13;res[3]=res[1]+(res[3]<<13);}
-    res[3]=res[3]<<13;
-
-    if (res[2]>=0) {itemp=res[2]>>26;itemp=res[2]-(itemp<<26);}
-    else {itemp=(abs(res[2]))>>26;itemp=res[2]+(itemp<<26);}
-
-    res[3]+=itemp;
-    if (res[3]>=0) res[3]+=(1<<25);
-    else res[3]-=(1<<25);
-
-    matrix[n] = res[0] ;
-    if (res[1]>=0) {itemp=res[1]>>13;}
-    else {itemp=(abs(res[1]))>>13;itemp=-itemp;}
-    matrix[n] += itemp;
-    if (res[2]>=0) {itemp=res[2]>>26;}
-    else {itemp=(abs(res[2]))>>26;itemp=-itemp;}
-    matrix[n] += itemp;
-    if (res[3]>=0) {itemp=res[3]>>26;}
-    else {itemp=(abs(res[3]))>>26;itemp=-itemp;}
-    matrix[n] += itemp;
-
-
-    res[0]=0;res[1]=0;res[2]=0;res[3]=0;
-
-    r[0] = ROT_MATRIX_S[0][index][20]; r[1] = ROT_MATRIX_S[1][index][20];
-    res[0] += r[0]*t[3][n];  res[1] +=r[0]*t[4][n]+r[1]*t[3][n]+r[0]*t[5][n]; res[2] +=r[1]*t[4][n]+r[0]*t[6][n]+r[1]*t[5][n]+r[0]*t[7][n];
-
-
-    r[0] = ROT_MATRIX_S[0][index][21]; r[1] = ROT_MATRIX_S[1][index][21];
-    res[0] += r[0]*t[3][n+1];  res[1] +=r[0]*t[4][n+1]+r[1]*t[3][n+1]+r[0]*t[5][n+1]; res[2] +=r[1]*t[4][n+1]+r[0]*t[6][n+1]+r[1]*t[5][n+1]+r[0]*t[7][n+1];
-
-    r[0] = ROT_MATRIX_S[0][index][22]; r[1] = ROT_MATRIX_S[1][index][22];
-    res[0] += r[0]*t[3][n+2];  res[1] +=r[0]*t[4][n+2]+r[1]*t[3][n+2]+r[0]*t[5][n+2]; res[2] +=r[1]*t[4][n+2]+r[0]*t[6][n+2]+r[1]*t[5][n+2]+r[0]*t[7][n+2];
-
-
-    if (res[1]>=0) {res[3]=res[1]>>13;res[3]=res[1]-(res[3]<<13);}
-    else {res[3]=(abs(res[1]))>>13;res[3]=res[1]+(res[3]<<13);}
-    res[3]=res[3]<<13;
-
-    if (res[2]>=0) {itemp=res[2]>>26;itemp=res[2]-(itemp<<26);}
-    else {itemp=(abs(res[2]))>>26;itemp=res[2]+(itemp<<26);}
-
-    res[3]+=itemp;
-    if (res[3]>=0) res[3]+=(1<<25);
-    else res[3]-=(1<<25);
-
-    matrix[n+1] = res[0] ;
-    if (res[1]>=0) {itemp=res[1]>>13;}
-    else {itemp=(abs(res[1]))>>13;itemp=-itemp;}
-    matrix[n+1] += itemp;
-    if (res[2]>=0) {itemp=res[2]>>26;}
-    else {itemp=(abs(res[2]))>>26;itemp=-itemp;}
-    matrix[n+1] += itemp;
-    if (res[3]>=0) {itemp=res[3]>>26;}
-    else {itemp=(abs(res[3]))>>26;itemp=-itemp;}
-    matrix[n+1] += itemp;
-
-    res[0]=0;res[1]=0;res[2]=0;res[3]=0;
-
-    r[0] = ROT_MATRIX_S[0][index][24]; r[1] = ROT_MATRIX_S[1][index][24];
-    res[0] += r[0]*t[3][n];  res[1] +=r[0]*t[4][n]+r[1]*t[3][n]+r[0]*t[5][n]; res[2] +=r[1]*t[4][n]+r[0]*t[6][n]+r[1]*t[5][n]+r[0]*t[7][n];
-
-
-    r[0] = ROT_MATRIX_S[0][index][25]; r[1] = ROT_MATRIX_S[1][index][25];
-    res[0] += r[0]*t[3][n+1];  res[1] +=r[0]*t[4][n+1]+r[1]*t[3][n+1]+r[0]*t[5][n+1]; res[2] +=r[1]*t[4][n+1]+r[0]*t[6][n+1]+r[1]*t[5][n+1]+r[0]*t[7][n+1];
-
-    r[0] = ROT_MATRIX_S[0][index][26]; r[1] = ROT_MATRIX_S[1][index][26];
-    res[0] += r[0]*t[3][n+2];  res[1] +=r[0]*t[4][n+2]+r[1]*t[3][n+2]+r[0]*t[5][n+2]; res[2] +=r[1]*t[4][n+2]+r[0]*t[6][n+2]+r[1]*t[5][n+2]+r[0]*t[7][n+2];
-
-
-    if (res[1]>=0) {res[3]=res[1]>>13;res[3]=res[1]-(res[3]<<13);}
-    else {res[3]=(abs(res[1]))>>13;res[3]=res[1]+(res[3]<<13);}
-    res[3]=res[3]<<13;
-
-    if (res[2]>=0) {itemp=res[2]>>26;itemp=res[2]-(itemp<<26);}
-    else {itemp=(abs(res[2]))>>26;itemp=res[2]+(itemp<<26);}
-
-    res[3]+=itemp;
-    if (res[3]>=0) res[3]+=(1<<25);
-    else res[3]-=(1<<25);
-
-    matrix[n+2] = res[0] ;
-    if (res[1]>=0) {itemp=res[1]>>13;}
-    else {itemp=(abs(res[1]))>>13;itemp=-itemp;}
-    matrix[n+2] += itemp;
-    if (res[2]>=0) {itemp=res[2]>>26;}
-    else {itemp=(abs(res[2]))>>26;itemp=-itemp;}
-    matrix[n+2] += itemp;
-    if (res[3]>=0) {itemp=res[3]>>26;}
-    else {itemp=(abs(res[3]))>>26;itemp=-itemp;}
-    matrix[n+2] += itemp;
-
-    res[0]=t[0][n+3];res[1]=t[1][n+3];res[2]=t[2][n+3];
-
-    if (res[1]>=0) {res[3]=res[1]>>13;res[3]=res[1]-(res[3]<<13);}
-    else {res[3]=(abs(res[1]))>>13;res[3]=res[1]+(res[3]<<13);}
-    res[3]=res[3]<<13;
-
-    if (res[2]>=0) {itemp=res[2]>>26;itemp=res[2]-(itemp<<26);}
-    else {itemp=(abs(res[2]))>>26;itemp=res[2]+(itemp<<26);}
-
-    res[3]+=itemp;
-    if (res[3]>=0) res[3]+=(1<<25);
-    else res[3]-=(1<<25);
-
-    matrix[n+3] = res[0] ;
-    if (res[1]>=0) {itemp=res[1]>>13;}
-    else {itemp=(abs(res[1]))>>13;itemp=-itemp;}
-    matrix[n+3] += itemp;
-    if (res[2]>=0) {itemp=res[2]>>26;}
-    else {itemp=(abs(res[2]))>>26;itemp=-itemp;}
-    matrix[n+3] += itemp;
-    if (res[3]>=0) {itemp=res[3]>>26;}
-    else {itemp=(abs(res[3]))>>26;itemp=-itemp;}
-    matrix[n+3] += itemp;
-  }
-}
-Void
-TComTrQuant::RotTransformLI2( Long* matrix, UChar index )
-{
-  if (index==0) return;
-  Int m[6],r[2],t[8][64];
-  Int itemp = 0;
-
-  Int n = 0;
-
-  for (n=0; n<8; n++)
-  {
-
-    t[0][n]=0;   t[1][n]=0;  t[2][n]=0;
-    if (matrix[n]>=0) {m[0] = matrix[n]>>13;		m[1]=matrix[n]-(m[0]<<13);}
-    else              {m[0] = (abs(matrix[n]))>>13;	m[1]=matrix[n]+(m[0]<<13);  m[0]=-m[0];}
-    r[0] = ROT_MATRIX_S[0][index][32]; r[1] = ROT_MATRIX_S[1][index][32];
-    t[0][n] += r[0]*m[0]; t[1][n] +=r[0]*m[1]+m[0]*r[1]; t[2][n]  += m[1]*r[1];
-
-    if (matrix[n+8]>=0) {m[2] = matrix[n+8]>>13;		m[3]=matrix[n+8]-(m[2]<<13);}
-    else              {m[2] = (abs(matrix[n+8]))>>13;	m[3]=matrix[n+8]+(m[2]<<13);  m[2]=-m[2];}
-    r[0] = ROT_MATRIX_S[0][index][33]; r[1] = ROT_MATRIX_S[1][index][33];
-    t[0][n] += r[0]*m[2]; t[1][n] +=r[0]*m[3]+m[2]*r[1]; t[2][n]  += m[3]*r[1];
-
-    if (matrix[n+16]>=0) {m[4] = matrix[n+16]>>13;		m[5]=matrix[n+16]-(m[4]<<13);}
-    else              {m[4] = (abs(matrix[n+16]))>>13;	m[5]=matrix[n+16]+(m[4]<<13);  m[4]=-m[4];}
-    r[0] = ROT_MATRIX_S[0][index][34]; r[1] = ROT_MATRIX_S[1][index][34];
-    t[0][n] += r[0]*m[4]; t[1][n] +=r[0]*m[5]+m[4]*r[1]; t[2][n]  += m[5]*r[1];
-
-    t[0][n+8]=0;   t[1][n+8]=0;  t[2][n+8]=0;
-
-    r[0] = ROT_MATRIX_S[0][index][36]; r[1] = ROT_MATRIX_S[1][index][36];
-    t[0][n+8] += r[0]*m[0]; t[1][n+8] +=r[0]*m[1]+m[0]*r[1]; t[2][n+8]  += m[1]*r[1];
-
-    r[0] = ROT_MATRIX_S[0][index][37]; r[1] = ROT_MATRIX_S[1][index][37];
-    t[0][n+8] += r[0]*m[2]; t[1][n+8] +=r[0]*m[3]+m[2]*r[1]; t[2][n+8]  += m[3]*r[1];
-    r[0] = ROT_MATRIX_S[0][index][38]; r[1] = ROT_MATRIX_S[1][index][38];
-    t[0][n+8] += r[0]*m[4]; t[1][n+8] +=r[0]*m[5]+m[4]*r[1]; t[2][n+8]  += m[5]*r[1];
-
-    t[0][n+16]=0;   t[1][n+16]=0;  t[2][n+16]=0;
-
-    r[0] = ROT_MATRIX_S[0][index][40]; r[1] = ROT_MATRIX_S[1][index][40];
-    t[0][n+16] += r[0]*m[0]; t[1][n+16] +=r[0]*m[1]+m[0]*r[1]; t[2][n+16]  += m[1]*r[1];
-
-    r[0] = ROT_MATRIX_S[0][index][41]; r[1] = ROT_MATRIX_S[1][index][41];
-    t[0][n+16] += r[0]*m[2]; t[1][n+16] +=r[0]*m[3]+m[2]*r[1]; t[2][n+16]  += m[3]*r[1];
-    r[0] = ROT_MATRIX_S[0][index][42]; r[1] = ROT_MATRIX_S[1][index][42];
-    t[0][n+16] += r[0]*m[4]; t[1][n+16] +=r[0]*m[5]+m[4]*r[1]; t[2][n+16]  += m[5]*r[1];
-
-
-    t[0][n+24]=0;   t[1][n+24]=0;  t[2][n+24]=0;
-
-    if (matrix[n+24]>=0) {m[0] = matrix[n+24]>>13;		m[1]=matrix[n+24]-(m[0]<<13);}
-    else              {m[0] = (abs(matrix[n+24]))>>13;	m[1]=matrix[n+24]+(m[0]<<13);  m[0]=-m[0];}
-
-    r[0] = ROT_MATRIX_S[0][index][64]; r[1] = ROT_MATRIX_S[1][index][64];
-    t[0][n+24] += r[0]*m[0]; t[1][n+24] +=r[0]*m[1]+m[0]*r[1]; t[2][n+24]  += m[1]*r[1];
-
-    if (matrix[n+32]>=0) {m[2] = matrix[n+32]>>13;		m[3]=matrix[n+32]-(m[2]<<13);}
-    else              {m[2] = (abs(matrix[n+32]))>>13;	m[3]=matrix[n+32]+(m[2]<<13);  m[2]=-m[2];}
-
-    r[0] = ROT_MATRIX_S[0][index][65]; r[1] = ROT_MATRIX_S[1][index][65];
-    t[0][n+24] += r[0]*m[2]; t[1][n+24] +=r[0]*m[3]+m[2]*r[1]; t[2][n+24]  += m[3]*r[1];
-
-    if (matrix[n+40]>=0) {m[4] = matrix[n+40]>>13;		m[5]=matrix[n+40]-(m[4]<<13);}
-    else              {m[4] = (abs(matrix[n+40]))>>13;	m[5]=matrix[n+40]+(m[4]<<13);  m[4]=-m[4];}
-
-    r[0] = ROT_MATRIX_S[0][index][66]; r[1] = ROT_MATRIX_S[1][index][66];
-    t[0][n+24] += r[0]*m[4]; t[1][n+24] +=r[0]*m[5]+m[4]*r[1]; t[2][n+24]  += m[5]*r[1];
-
-    t[0][n+32]=0;   t[1][n+32]=0;  t[2][n+32]=0;
-
-    r[0] = ROT_MATRIX_S[0][index][68]; r[1] = ROT_MATRIX_S[1][index][68];
-    t[0][n+32] += r[0]*m[0]; t[1][n+32] +=r[0]*m[1]+m[0]*r[1]; t[2][n+32]  += m[1]*r[1];
-
-    r[0] = ROT_MATRIX_S[0][index][69]; r[1] = ROT_MATRIX_S[1][index][69];
-    t[0][n+32] += r[0]*m[2]; t[1][n+32] +=r[0]*m[3]+m[2]*r[1]; t[2][n+32]  += m[3]*r[1];
-
-
-    r[0] = ROT_MATRIX_S[0][index][70]; r[1] = ROT_MATRIX_S[1][index][70];
-    t[0][n+32] += r[0]*m[4]; t[1][n+32] +=r[0]*m[5]+m[4]*r[1]; t[2][n+32]  += m[5]*r[1];
-
-
-    t[0][n+40]=0;   t[1][n+40]=0;  t[2][n+40]=0;
-    r[0] = ROT_MATRIX_S[0][index][72]; r[1] = ROT_MATRIX_S[1][index][72];
-    t[0][n+40] += r[0]*m[0]; t[1][n+40] +=r[0]*m[1]+m[0]*r[1]; t[2][n+40]  += m[1]*r[1];
-
-
-
-    r[0] = ROT_MATRIX_S[0][index][73]; r[1] = ROT_MATRIX_S[1][index][73];
-    t[0][n+40] += r[0]*m[2]; t[1][n+40] +=r[0]*m[3]+m[2]*r[1]; t[2][n+40]  += m[3]*r[1];
-
-
-
-    r[0] = ROT_MATRIX_S[0][index][74]; r[1] = ROT_MATRIX_S[1][index][74];
-    t[0][n+40] += r[0]*m[4]; t[1][n+40] +=r[0]*m[5]+m[4]*r[1]; t[2][n+40]  += m[5]*r[1];
-
-
-    t[0][n+48] = matrix[n+48]; t[1][n+48] = 0; t[2][n+48] = 0;
-    t[0][n+56] = matrix[n+56]; t[1][n+56] = 0; t[2][n+56] = 0;
-  }
-
-  Int res[4];
-
-  for (n=0; n<64; n+=8)
-  {
-    res[0]=0;res[1]=0;res[2]=0;res[3]=0;
-
-    if (t[0][n]>=0)   {t[3][n] = t[0][n]>>13;		    t[4][n]=t[0][n]-(t[3][n]<<13);}
-    else              {t[3][n] = (abs(t[0][n]))>>13;	t[4][n]=t[0][n]+(t[3][n]<<13);  t[3][n]=-t[3][n];}
-
-    if (t[1][n]>=0)   {t[5][n] = t[1][n]>>13;		    t[6][n]=t[1][n]-(t[5][n]<<13);}
-    else              {t[5][n] = (abs(t[1][n]))>>13;	t[6][n]=t[1][n]+(t[5][n]<<13);  t[5][n]=-t[5][n];}
-
-    if (t[2][n]>=0)   {t[7][n] = t[2][n]>>13;		   }
-    else              {t[7][n] = (abs(t[2][n]))>>13;	t[7][n]=-t[7][n];}
-
-    r[0] = ROT_MATRIX_S[0][index][48]; r[1] = ROT_MATRIX_S[1][index][48];
-
-    res[0] += r[0]*t[3][n];  res[1] +=r[0]*t[4][n]+r[1]*t[3][n]+r[0]*t[5][n]; res[2] +=r[1]*t[4][n]+r[0]*t[6][n]+r[1]*t[5][n]+r[0]*t[7][n];
-
-    if (t[0][n+1]>=0)   {t[3][n+1] = t[0][n+1]>>13;		    t[4][n+1]=t[0][n+1]-(t[3][n+1]<<13);}
-    else              {t[3][n+1] = (abs(t[0][n+1]))>>13;	t[4][n+1]=t[0][n+1]+(t[3][n+1]<<13);  t[3][n+1]=-t[3][n+1];}
-
-    if (t[1][n+1]>=0)   {t[5][n+1] = t[1][n+1]>>13;		    t[6][n+1]=t[1][n+1]-(t[5][n+1]<<13);}
-    else              {t[5][n+1] = (abs(t[1][n+1]))>>13;	t[6][n+1]=t[1][n+1]+(t[5][n+1]<<13);  t[5][n+1]=-t[5][n+1];}
-
-    if (t[2][n+1]>=0)   {t[7][n+1] = t[2][n+1]>>13;		   }
-    else              {t[7][n+1] = (abs(t[2][n+1]))>>13;	t[7][n+1]=-t[7][n+1];}
-
-    r[0] = ROT_MATRIX_S[0][index][49]; r[1] = ROT_MATRIX_S[1][index][49];
-
-    res[0] += r[0]*t[3][n+1];  res[1] +=r[0]*t[4][n+1]+r[1]*t[3][n+1]+r[0]*t[5][n+1]; res[2] +=r[1]*t[4][n+1]+r[0]*t[6][n+1]+r[1]*t[5][n+1]+r[0]*t[7][n+1];
-
-    if (t[0][n+2]>=0)   {t[3][n+2] = t[0][n+2]>>13;		    t[4][n+2]=t[0][n+2]-(t[3][n+2]<<13);}
-    else              {t[3][n+2] = (abs(t[0][n+2]))>>13;	t[4][n+2]=t[0][n+2]+(t[3][n+2]<<13);  t[3][n+2]=-t[3][n+2];}
-
-    if (t[1][n+2]>=0)   {t[5][n+2] = t[1][n+2]>>13;		    t[6][n+2]=t[1][n+2]-(t[5][n+2]<<13);}
-    else              {t[5][n+2] = (abs(t[1][n+2]))>>13;	t[6][n+2]=t[1][n+2]+(t[5][n+2]<<13);  t[5][n+2]=-t[5][n+2];}
-
-    if (t[2][n+2]>=0)   {t[7][n+2] = t[2][n+2]>>13;		   }
-    else              {t[7][n+2] = (abs(t[2][n+2]))>>13;	t[7][n+2]=-t[7][n+2];}
-
-    r[0] = ROT_MATRIX_S[0][index][50]; r[1] = ROT_MATRIX_S[1][index][50];
-    res[0] += r[0]*t[3][n+2];  res[1] +=r[0]*t[4][n+2]+r[1]*t[3][n+2]+r[0]*t[5][n+2]; res[2] +=r[1]*t[4][n+2]+r[0]*t[6][n+2]+r[1]*t[5][n+2]+r[0]*t[7][n+2];
-
-    if (res[1]>=0) {res[3]=res[1]>>13;res[3]=res[1]-(res[3]<<13);}
-    else {res[3]=(abs(res[1]))>>13;res[3]=res[1]+(res[3]<<13);}
-    res[3]=res[3]<<13;
-
-    if (res[2]>=0) {itemp=res[2]>>26;itemp=res[2]-(itemp<<26);}
-    else {itemp=(abs(res[2]))>>26;itemp=res[2]+(itemp<<26);}
-
-    res[3]+=itemp;
-    if (res[3]>=0) res[3]+=(1<<25);
-    else res[3]-=(1<<25);
-
-    matrix[n] = res[0] ;
-    if (res[1]>=0) {itemp=res[1]>>13;}
-    else {itemp=(abs(res[1]))>>13;itemp=-itemp;}
-    matrix[n] += itemp;
-    if (res[2]>=0) {itemp=res[2]>>26;}
-    else {itemp=(abs(res[2]))>>26;itemp=-itemp;}
-    matrix[n] += itemp;
-    if (res[3]>=0) {itemp=res[3]>>26;}
-    else {itemp=(abs(res[3]))>>26;itemp=-itemp;}
-    matrix[n] += itemp;
-
-    res[0]=0;res[1]=0;res[2]=0;res[3]=0;
-
-    r[0] = ROT_MATRIX_S[0][index][52]; r[1] = ROT_MATRIX_S[1][index][52];
-    res[0] += r[0]*t[3][n];  res[1] +=r[0]*t[4][n]+r[1]*t[3][n]+r[0]*t[5][n]; res[2] +=r[1]*t[4][n]+r[0]*t[6][n]+r[1]*t[5][n]+r[0]*t[7][n];
-
-
-    r[0] = ROT_MATRIX_S[0][index][53]; r[1] = ROT_MATRIX_S[1][index][53];
-    res[0] += r[0]*t[3][n+1];  res[1] +=r[0]*t[4][n+1]+r[1]*t[3][n+1]+r[0]*t[5][n+1]; res[2] +=r[1]*t[4][n+1]+r[0]*t[6][n+1]+r[1]*t[5][n+1]+r[0]*t[7][n+1];
-
-
-    r[0] = ROT_MATRIX_S[0][index][54]; r[1] = ROT_MATRIX_S[1][index][54];
-    res[0] += r[0]*t[3][n+2];  res[1] +=r[0]*t[4][n+2]+r[1]*t[3][n+2]+r[0]*t[5][n+2]; res[2] +=r[1]*t[4][n+2]+r[0]*t[6][n+2]+r[1]*t[5][n+2]+r[0]*t[7][n+2];
-
-    if (res[1]>=0) {res[3]=res[1]>>13;res[3]=res[1]-(res[3]<<13);}
-    else {res[3]=(abs(res[1]))>>13;res[3]=res[1]+(res[3]<<13);}
-    res[3]=res[3]<<13;
-
-    if (res[2]>=0) {itemp=res[2]>>26;itemp=res[2]-(itemp<<26);}
-    else {itemp=(abs(res[2]))>>26;itemp=res[2]+(itemp<<26);}
-
-    res[3]+=itemp;
-    if (res[3]>=0) res[3]+=(1<<25);
-    else res[3]-=(1<<25);
-
-    matrix[n+1] = res[0] ;
-    if (res[1]>=0) {itemp=res[1]>>13;}
-    else {itemp=(abs(res[1]))>>13;itemp=-itemp;}
-    matrix[n+1] += itemp;
-    if (res[2]>=0) {itemp=res[2]>>26;}
-    else {itemp=(abs(res[2]))>>26;itemp=-itemp;}
-    matrix[n+1] += itemp;
-    if (res[3]>=0) {itemp=res[3]>>26;}
-    else {itemp=(abs(res[3]))>>26;itemp=-itemp;}
-    matrix[n+1] += itemp;
-
-    res[0]=0;res[1]=0;res[2]=0;res[3]=0;
-
-    r[0] = ROT_MATRIX_S[0][index][56]; r[1] = ROT_MATRIX_S[1][index][56];
-    res[0] += r[0]*t[3][n];  res[1] +=r[0]*t[4][n]+r[1]*t[3][n]+r[0]*t[5][n]; res[2] +=r[1]*t[4][n]+r[0]*t[6][n]+r[1]*t[5][n]+r[0]*t[7][n];
-
-
-    r[0] = ROT_MATRIX_S[0][index][57]; r[1] = ROT_MATRIX_S[1][index][57];
-    res[0] += r[0]*t[3][n+1];  res[1] +=r[0]*t[4][n+1]+r[1]*t[3][n+1]+r[0]*t[5][n+1]; res[2] +=r[1]*t[4][n+1]+r[0]*t[6][n+1]+r[1]*t[5][n+1]+r[0]*t[7][n+1];
-
-    r[0] = ROT_MATRIX_S[0][index][58]; r[1] = ROT_MATRIX_S[1][index][58];
-    res[0] += r[0]*t[3][n+2];  res[1] +=r[0]*t[4][n+2]+r[1]*t[3][n+2]+r[0]*t[5][n+2]; res[2] +=r[1]*t[4][n+2]+r[0]*t[6][n+2]+r[1]*t[5][n+2]+r[0]*t[7][n+2];
-
-    if (res[1]>=0) {res[3]=res[1]>>13;res[3]=res[1]-(res[3]<<13);}
-    else {res[3]=(abs(res[1]))>>13;res[3]=res[1]+(res[3]<<13);}
-    res[3]=res[3]<<13;
-
-    if (res[2]>=0) {itemp=res[2]>>26;itemp=res[2]-(itemp<<26);}
-    else {itemp=(abs(res[2]))>>26;itemp=res[2]+(itemp<<26);}
-
-    res[3]+=itemp;
-    if (res[3]>=0) res[3]+=(1<<25);
-    else res[3]-=(1<<25);
-
-    matrix[n+2] = res[0] ;
-    if (res[1]>=0) {itemp=res[1]>>13;}
-    else {itemp=(abs(res[1]))>>13;itemp=-itemp;}
-    matrix[n+2] += itemp;
-    if (res[2]>=0) {itemp=res[2]>>26;}
-    else {itemp=(abs(res[2]))>>26;itemp=-itemp;}
-    matrix[n+2] += itemp;
-    if (res[3]>=0) {itemp=res[3]>>26;}
-    else {itemp=(abs(res[3]))>>26;itemp=-itemp;}
-    matrix[n+2] += itemp;
-
-    res[0]=0;res[1]=0;res[2]=0;res[3]=0;
-
-    if (t[0][n+3]>=0)   {t[3][n+3] = t[0][n+3]>>13;		    t[4][n+3]=t[0][n+3]-(t[3][n+3]<<13);}
-    else              {t[3][n+3] = (abs(t[0][n+3]))>>13;	t[4][n+3]=t[0][n+3]+(t[3][n+3]<<13);  t[3][n+3]=-t[3][n+3];}
-
-    if (t[1][n+3]>=0)   {t[5][n+3] = t[1][n+3]>>13;		    t[6][n+3]=t[1][n+3]-(t[5][n+3]<<13);}
-    else              {t[5][n+3] = (abs(t[1][n+3]))>>13;	t[6][n+3]=t[1][n+3]+(t[5][n+3]<<13);  t[5][n+3]=-t[5][n+3];}
-
-    if (t[2][n+3]>=0)   {t[7][n+3] = t[2][n+3]>>13;		   }
-    else              {t[7][n+3] = (abs(t[2][n+3]))>>13;	t[7][n+3]=-t[7][n+3];}
-
-    r[0] = ROT_MATRIX_S[0][index][80]; r[1] = ROT_MATRIX_S[1][index][80];
-
-    res[0] += r[0]*t[3][n+3];  res[1] +=r[0]*t[4][n+3]+r[1]*t[3][n+3]+r[0]*t[5][n+3]; res[2] +=r[1]*t[4][n+3]+r[0]*t[6][n+3]+r[1]*t[5][n+3]+r[0]*t[7][n+3];
-
-
-    if (t[0][n+4]>=0)   {t[3][n+4] = t[0][n+4]>>13;		    t[4][n+4]=t[0][n+4]-(t[3][n+4]<<13);}
-    else              {t[3][n+4] = (abs(t[0][n+4]))>>13;	t[4][n+4]=t[0][n+4]+(t[3][n+4]<<13);  t[3][n+4]=-t[3][n+4];}
-
-    if (t[1][n+4]>=0)   {t[5][n+4] = t[1][n+4]>>13;		    t[6][n+4]=t[1][n+4]-(t[5][n+4]<<13);}
-    else              {t[5][n+4] = (abs(t[1][n+4]))>>13;	t[6][n+4]=t[1][n+4]+(t[5][n+4]<<13);  t[5][n+4]=-t[5][n+4];}
-
-    if (t[2][n+4]>=0)   {t[7][n+4] = t[2][n+4]>>13;		   }
-    else              {t[7][n+4] = (abs(t[2][n+4]))>>13;	t[7][n+4]=-t[7][n+4];}
-
-    r[0] = ROT_MATRIX_S[0][index][81]; r[1] = ROT_MATRIX_S[1][index][81];
-
-    res[0] += r[0]*t[3][n+4];  res[1] +=r[0]*t[4][n+4]+r[1]*t[3][n+4]+r[0]*t[5][n+4]; res[2] +=r[1]*t[4][n+4]+r[0]*t[6][n+4]+r[1]*t[5][n+4]+r[0]*t[7][n+4];
-
-
-    if (t[0][n+5]>=0)   {t[3][n+5] = t[0][n+5]>>13;		    t[4][n+5]=t[0][n+5]-(t[3][n+5]<<13);}
-    else              {t[3][n+5] = (abs(t[0][n+5]))>>13;	t[4][n+5]=t[0][n+5]+(t[3][n+5]<<13);  t[3][n+5]=-t[3][n+5];}
-
-    if (t[1][n+5]>=0)   {t[5][n+5] = t[1][n+5]>>13;		    t[6][n+5]=t[1][n+5]-(t[5][n+5]<<13);}
-    else              {t[5][n+5] = (abs(t[1][n+5]))>>13;	t[6][n+5]=t[1][n+5]+(t[5][n+5]<<13);  t[5][n+5]=-t[5][n+5];}
-
-    if (t[2][n+5]>=0)   {t[7][n+5] = t[2][n+5]>>13;		   }
-    else              {t[7][n+5] = (abs(t[2][n+5]))>>13;	t[7][n+5]=-t[7][n+5];}
-
-    r[0] = ROT_MATRIX_S[0][index][82]; r[1] = ROT_MATRIX_S[1][index][82];
-    res[0] += r[0]*t[3][n+5];  res[1] +=r[0]*t[4][n+5]+r[1]*t[3][n+5]+r[0]*t[5][n+5]; res[2] +=r[1]*t[4][n+5]+r[0]*t[6][n+5]+r[1]*t[5][n+5]+r[0]*t[7][n+5];
-
-    if (res[1]>=0) {res[3]=res[1]>>13;res[3]=res[1]-(res[3]<<13);}
-    else {res[3]=(abs(res[1]))>>13;res[3]=res[1]+(res[3]<<13);}
-    res[3]=res[3]<<13;
-
-    if (res[2]>=0) {itemp=res[2]>>26;itemp=res[2]-(itemp<<26);}
-    else {itemp=(abs(res[2]))>>26;itemp=res[2]+(itemp<<26);}
-
-    res[3]+=itemp;
-    if (res[3]>=0) res[3]+=(1<<25);
-    else res[3]-=(1<<25);
-
-    matrix[n+3] = res[0] ;
-    if (res[1]>=0) {itemp=res[1]>>13;}
-    else {itemp=(abs(res[1]))>>13;itemp=-itemp;}
-    matrix[n+3] += itemp;
-    if (res[2]>=0) {itemp=res[2]>>26;}
-    else {itemp=(abs(res[2]))>>26;itemp=-itemp;}
-    matrix[n+3] += itemp;
-    if (res[3]>=0) {itemp=res[3]>>26;}
-    else {itemp=(abs(res[3]))>>26;itemp=-itemp;}
-    matrix[n+3] += itemp;
-
-    res[0]=0;res[1]=0;res[2]=0;res[3]=0;
-
-    r[0] = ROT_MATRIX_S[0][index][84]; r[1] = ROT_MATRIX_S[1][index][84];
-    res[0] += r[0]*t[3][n+3];  res[1] +=r[0]*t[4][n+3]+r[1]*t[3][n+3]+r[0]*t[5][n+3]; res[2] +=r[1]*t[4][n+3]+r[0]*t[6][n+3]+r[1]*t[5][n+3]+r[0]*t[7][n+3];
-
-    r[0] = ROT_MATRIX_S[0][index][85]; r[1] = ROT_MATRIX_S[1][index][85];
-    res[0] += r[0]*t[3][n+4];  res[1] +=r[0]*t[4][n+4]+r[1]*t[3][n+4]+r[0]*t[5][n+4]; res[2] +=r[1]*t[4][n+4]+r[0]*t[6][n+4]+r[1]*t[5][n+4]+r[0]*t[7][n+4];
-
-    r[0] = ROT_MATRIX_S[0][index][86]; r[1] = ROT_MATRIX_S[1][index][86];
-    res[0] += r[0]*t[3][n+5];  res[1] +=r[0]*t[4][n+5]+r[1]*t[3][n+5]+r[0]*t[5][n+5]; res[2] +=r[1]*t[4][n+5]+r[0]*t[6][n+5]+r[1]*t[5][n+5]+r[0]*t[7][n+5];
-
-    if (res[1]>=0) {res[3]=res[1]>>13;res[3]=res[1]-(res[3]<<13);}
-    else {res[3]=(abs(res[1]))>>13;res[3]=res[1]+(res[3]<<13);}
-    res[3]=res[3]<<13;
-
-    if (res[2]>=0) {itemp=res[2]>>26;itemp=res[2]-(itemp<<26);}
-    else {itemp=(abs(res[2]))>>26;itemp=res[2]+(itemp<<26);}
-
-    res[3]+=itemp;
-    if (res[3]>=0) res[3]+=(1<<25);
-    else res[3]-=(1<<25);
-
-    matrix[n+4] = res[0] ;
-    if (res[1]>=0) {itemp=res[1]>>13;}
-    else {itemp=(abs(res[1]))>>13;itemp=-itemp;}
-    matrix[n+4] += itemp;
-    if (res[2]>=0) {itemp=res[2]>>26;}
-    else {itemp=(abs(res[2]))>>26;itemp=-itemp;}
-    matrix[n+4] += itemp;
-    if (res[3]>=0) {itemp=res[3]>>26;}
-    else {itemp=(abs(res[3]))>>26;itemp=-itemp;}
-    matrix[n+4] += itemp;
-
-    res[0]=0;res[1]=0;res[2]=0;res[3]=0;
-
-    r[0] = ROT_MATRIX_S[0][index][88]; r[1] = ROT_MATRIX_S[1][index][88];
-    res[0] += r[0]*t[3][n+3];  res[1] +=r[0]*t[4][n+3]+r[1]*t[3][n+3]+r[0]*t[5][n+3]; res[2] +=r[1]*t[4][n+3]+r[0]*t[6][n+3]+r[1]*t[5][n+3]+r[0]*t[7][n+3];
-
-    r[0] = ROT_MATRIX_S[0][index][89]; r[1] = ROT_MATRIX_S[1][index][89];
-    res[0] += r[0]*t[3][n+4];  res[1] +=r[0]*t[4][n+4]+r[1]*t[3][n+4]+r[0]*t[5][n+4]; res[2] +=r[1]*t[4][n+4]+r[0]*t[6][n+4]+r[1]*t[5][n+4]+r[0]*t[7][n+4];
-
-    r[0] = ROT_MATRIX_S[0][index][90]; r[1] = ROT_MATRIX_S[1][index][90];
-    res[0] += r[0]*t[3][n+5];  res[1] +=r[0]*t[4][n+5]+r[1]*t[3][n+5]+r[0]*t[5][n+5]; res[2] +=r[1]*t[4][n+5]+r[0]*t[6][n+5]+r[1]*t[5][n+5]+r[0]*t[7][n+5];
-
-    if (res[1]>=0) {res[3]=res[1]>>13;res[3]=res[1]-(res[3]<<13);}
-    else {res[3]=(abs(res[1]))>>13;res[3]=res[1]+(res[3]<<13);}
-    res[3]=res[3]<<13;
-
-    if (res[2]>=0) {itemp=res[2]>>26;itemp=res[2]-(itemp<<26);}
-    else {itemp=(abs(res[2]))>>26;itemp=res[2]+(itemp<<26);}
-
-    res[3]+=itemp;
-    if (res[3]>=0) res[3]+=(1<<25);
-    else res[3]-=(1<<25);
-
-    matrix[n+5] = res[0] ;
-    if (res[1]>=0) {itemp=res[1]>>13;}
-    else {itemp=(abs(res[1]))>>13;itemp=-itemp;}
-    matrix[n+5] += itemp;
-    if (res[2]>=0) {itemp=res[2]>>26;}
-    else {itemp=(abs(res[2]))>>26;itemp=-itemp;}
-    matrix[n+5] += itemp;
-    if (res[3]>=0) {itemp=res[3]>>26;}
-    else {itemp=(abs(res[3]))>>26;itemp=-itemp;}
-    matrix[n+5] += itemp;
-
-    res[0]=t[0][n+6];res[1]=t[1][n+6];res[2]=t[2][n+6];
-
-    if (res[1]>=0) {res[3]=res[1]>>13;res[3]=res[1]-(res[3]<<13);}
-    else {res[3]=(abs(res[1]))>>13;res[3]=res[1]+(res[3]<<13);}
-    res[3]=res[3]<<13;
-
-    if (res[2]>=0) {itemp=res[2]>>26;itemp=res[2]-(itemp<<26);}
-    else {itemp=(abs(res[2]))>>26;itemp=res[2]+(itemp<<26);}
-
-    res[3]+=itemp;
-    if (res[3]>=0) res[3]+=(1<<25);
-    else res[3]-=(1<<25);
-
-    matrix[n+6] = res[0] ;
-    if (res[1]>=0) {itemp=res[1]>>13;}
-    else {itemp=(abs(res[1]))>>13;itemp=-itemp;}
-    matrix[n+6] += itemp;
-    if (res[2]>=0) {itemp=res[2]>>26;}
-    else {itemp=(abs(res[2]))>>26;itemp=-itemp;}
-    matrix[n+6] += itemp;
-    if (res[3]>=0) {itemp=res[3]>>26;}
-    else {itemp=(abs(res[3]))>>26;itemp=-itemp;}
-    matrix[n+6] += itemp;
-
-    res[0]=t[0][n+7];res[1]=t[1][n+7];res[2]=t[2][n+7];
-
-    if (res[1]>=0) {res[3]=res[1]>>13;res[3]=res[1]-(res[3]<<13);}
-    else {res[3]=(abs(res[1]))>>13;res[3]=res[1]+(res[3]<<13);}
-    res[3]=res[3]<<13;
-
-    if (res[2]>=0) {itemp=res[2]>>26;itemp=res[2]-(itemp<<26);}
-    else {itemp=(abs(res[2]))>>26;itemp=res[2]+(itemp<<26);}
-
-    res[3]+=itemp;
-    if (res[3]>=0) res[3]+=(1<<25);
-    else res[3]-=(1<<25);
-
-    matrix[n+7] = res[0] ;
-    if (res[1]>=0) {itemp=res[1]>>13;}
-    else {itemp=(abs(res[1]))>>13;itemp=-itemp;}
-    matrix[n+7] += itemp;
-    if (res[2]>=0) {itemp=res[2]>>26;}
-    else {itemp=(abs(res[2]))>>26;itemp=-itemp;}
-    matrix[n+7] += itemp;
-    if (res[3]>=0) {itemp=res[3]>>26;}
-    else {itemp=(abs(res[3]))>>26;itemp=-itemp;}
-    matrix[n+7] += itemp;
-  }
-}
-Void
-TComTrQuant::InvRotTransformLI2( Long* matrix , UChar index)
-{
-  if (index==0) return;
-
-  Int m[6],r[2],t[8][64];
-  Int itemp = 0;
-
-  Int n = 0;
-
-  for (n=0; n<64; n+=8)
-  {
-    t[0][n]=0;   t[1][n]=0;  t[2][n]=0;
-    if (matrix[n]>=0) {m[0] = matrix[n]>>13;		m[1]=matrix[n]-(m[0]<<13);}
-    else              {m[0] = (abs(matrix[n]))>>13;	m[1]=matrix[n]+(m[0]<<13);  m[0]=-m[0];}
-
-    r[0] = ROT_MATRIX_S[0][index][48]; r[1] = ROT_MATRIX_S[1][index][48];
-    t[0][n] += r[0]*m[0]; t[1][n] +=r[0]*m[1]+m[0]*r[1]; t[2][n]  += m[1]*r[1];
-
-
-    if (matrix[n+1]>=0) {m[2] = matrix[n+1]>>13;		m[3]=matrix[n+1]-(m[2]<<13);}
-    else              {m[2] = (abs(matrix[n+1]))>>13;	m[3]=matrix[n+1]+(m[2]<<13);  m[2]=-m[2];}
-
-    r[0] = ROT_MATRIX_S[0][index][52]; r[1] = ROT_MATRIX_S[1][index][52];
-    t[0][n] += r[0]*m[2]; t[1][n] +=r[0]*m[3]+m[2]*r[1]; t[2][n]  += m[3]*r[1];
-
-    if (matrix[n+2]>=0) {m[4] = matrix[n+2]>>13;		m[5]=matrix[n+2]-(m[4]<<13);}
-    else              {m[4] = (abs(matrix[n+2]))>>13;	m[5]=matrix[n+2]+(m[4]<<13);  m[4]=-m[4];}
-
-    r[0] = ROT_MATRIX_S[0][index][56]; r[1] = ROT_MATRIX_S[1][index][56];
-    t[0][n] += r[0]*m[4]; t[1][n] +=r[0]*m[5]+m[4]*r[1]; t[2][n]  += m[5]*r[1];
-
-
-    t[0][n+1]=0;   t[1][n+1]=0;  t[2][n+1]=0;
-
-
-    r[0] = ROT_MATRIX_S[0][index][49]; r[1] = ROT_MATRIX_S[1][index][49];
-    t[0][n+1] += r[0]*m[0]; t[1][n+1] +=r[0]*m[1]+m[0]*r[1]; t[2][n+1]  += m[1]*r[1];
-
-
-
-    r[0] = ROT_MATRIX_S[0][index][53]; r[1] = ROT_MATRIX_S[1][index][53];
-    t[0][n+1] += r[0]*m[2]; t[1][n+1] +=r[0]*m[3]+m[2]*r[1]; t[2][n+1]  += m[3]*r[1];
-
-    r[0] = ROT_MATRIX_S[0][index][57]; r[1] = ROT_MATRIX_S[1][index][57];
-    t[0][n+1] += r[0]*m[4]; t[1][n+1] +=r[0]*m[5]+m[4]*r[1]; t[2][n+1]  += m[5]*r[1];
-
-
-    t[0][n+2]=0;   t[1][n+2]=0;  t[2][n+2]=0;
-
-    r[0] = ROT_MATRIX_S[0][index][50]; r[1] = ROT_MATRIX_S[1][index][50];
-    t[0][n+2] += r[0]*m[0]; t[1][n+2] +=r[0]*m[1]+m[0]*r[1]; t[2][n+2]  += m[1]*r[1];
-
-    r[0] = ROT_MATRIX_S[0][index][54]; r[1] = ROT_MATRIX_S[1][index][54];
-    t[0][n+2] += r[0]*m[2]; t[1][n+2] +=r[0]*m[3]+m[2]*r[1]; t[2][n+2]  += m[3]*r[1];
-
-    r[0] = ROT_MATRIX_S[0][index][58]; r[1] = ROT_MATRIX_S[1][index][58];
-    t[0][n+2] += r[0]*m[4]; t[1][n+2] +=r[0]*m[5]+m[4]*r[1]; t[2][n+2]  += m[5]*r[1];
-
-
-    t[0][n+3]=0;   t[1][n+3]=0;  t[2][n+3]=0;
-
-    if (matrix[n+3]>=0) {m[0] = matrix[n+3]>>13;		m[1]=matrix[n+3]-(m[0]<<13);}
-    else               {m[0] = (abs(matrix[n+3]))>>13;	m[1]=matrix[n+3]+(m[0]<<13);  m[0]=-m[0];}
-
-    r[0] = ROT_MATRIX_S[0][index][80]; r[1] = ROT_MATRIX_S[1][index][80];
-    t[0][n+3] += r[0]*m[0]; t[1][n+3] +=r[0]*m[1]+m[0]*r[1]; t[2][n+3]  += m[1]*r[1];
-
-    if (matrix[n+4]>=0) {m[2] = matrix[n+4]>>13;		m[3]=matrix[n+4]-(m[2]<<13);}
-    else              {m[2] = (abs(matrix[n+4]))>>13;	m[3]=matrix[n+4]+(m[2]<<13);  m[2]=-m[2];}
-
-    r[0] = ROT_MATRIX_S[0][index][84]; r[1] = ROT_MATRIX_S[1][index][84];
-    t[0][n+3] += r[0]*m[2]; t[1][n+3] +=r[0]*m[3]+m[2]*r[1]; t[2][n+3]  += m[3]*r[1];
-
-    if (matrix[n+5]>=0) {m[4] = matrix[n+5]>>13;		m[5]=matrix[n+5]-(m[4]<<13);}
-    else              {m[4] = (abs(matrix[n+5]))>>13;	m[5]=matrix[n+5]+(m[4]<<13);  m[4]=-m[4];}
-
-    r[0] = ROT_MATRIX_S[0][index][88]; r[1] = ROT_MATRIX_S[1][index][88];
-    t[0][n+3] += r[0]*m[4]; t[1][n+3] +=r[0]*m[5]+m[4]*r[1]; t[2][n+3]  += m[5]*r[1];
-
-
-    t[0][n+4]=0;   t[1][n+4]=0;  t[2][n+4]=0;
-
-    r[0] = ROT_MATRIX_S[0][index][81]; r[1] = ROT_MATRIX_S[1][index][81];
-    t[0][n+4] += r[0]*m[0]; t[1][n+4] +=r[0]*m[1]+m[0]*r[1]; t[2][n+4]  += m[1]*r[1];
-
-    r[0] = ROT_MATRIX_S[0][index][85]; r[1] = ROT_MATRIX_S[1][index][85];
-    t[0][n+4] += r[0]*m[2]; t[1][n+4] +=r[0]*m[3]+m[2]*r[1]; t[2][n+4]  += m[3]*r[1];
-
-    r[0] = ROT_MATRIX_S[0][index][89]; r[1] = ROT_MATRIX_S[1][index][89];
-    t[0][n+4] += r[0]*m[4]; t[1][n+4] +=r[0]*m[5]+m[4]*r[1]; t[2][n+4]  += m[5]*r[1];
-
-
-    t[0][n+5]=0;   t[1][n+5]=0;  t[2][n+5]=0;
-
-    r[0] = ROT_MATRIX_S[0][index][82]; r[1] = ROT_MATRIX_S[1][index][82];
-    t[0][n+5] += r[0]*m[0]; t[1][n+5] +=r[0]*m[1]+m[0]*r[1]; t[2][n+5]  += m[1]*r[1];
-
-    r[0] = ROT_MATRIX_S[0][index][86]; r[1] = ROT_MATRIX_S[1][index][86];
-    t[0][n+5] += r[0]*m[2]; t[1][n+5] +=r[0]*m[3]+m[2]*r[1]; t[2][n+5]  += m[3]*r[1];
-
-    r[0] = ROT_MATRIX_S[0][index][90]; r[1] = ROT_MATRIX_S[1][index][90];
-    t[0][n+5] += r[0]*m[4]; t[1][n+5] +=r[0]*m[5]+m[4]*r[1]; t[2][n+5]  += m[5]*r[1];
-
-    t[0][n+6] = matrix[n+6]; t[1][n+6] = 0; t[2][n+6] = 0;
-    t[0][n+7] = matrix[n+7]; t[1][n+7] = 0; t[2][n+7] = 0;
-  }
-
-  Int res[4];
-  for (n=0; n<8; n++)
-  {
-    res[0]=0;res[1]=0;res[2]=0;
-
-    if (t[0][n]>=0)   {t[3][n] = t[0][n]>>13;		    t[4][n]=t[0][n]-(t[3][n]<<13);}
-    else              {t[3][n] = (abs(t[0][n]))>>13;	t[4][n]=t[0][n]+(t[3][n]<<13);  t[3][n]=-t[3][n];}
-
-    if (t[1][n]>=0)   {t[5][n] = t[1][n]>>13;		    t[6][n]=t[1][n]-(t[5][n]<<13);}
-    else              {t[5][n] = (abs(t[1][n]))>>13;	t[6][n]=t[1][n]+(t[5][n]<<13);  t[5][n]=-t[5][n];}
-
-    if (t[2][n]>=0)   {t[7][n] = t[2][n]>>13;		   }
-    else              {t[7][n] = (abs(t[2][n]))>>13;	t[7][n]=-t[7][n];}
-
-    r[0] = ROT_MATRIX_S[0][index][32]; r[1] = ROT_MATRIX_S[1][index][32];
-
-    res[0] += r[0]*t[3][n];  res[1] +=r[0]*t[4][n]+r[1]*t[3][n]+r[0]*t[5][n]; res[2] +=r[1]*t[4][n]+r[0]*t[6][n]+r[1]*t[5][n]+r[0]*t[7][n];
-
-
-    if (t[0][n+8]>=0)   {t[3][n+8] = t[0][n+8]>>13;		    t[4][n+8]=t[0][n+8]-(t[3][n+8]<<13);}
-    else              {t[3][n+8] = (abs(t[0][n+8]))>>13;	t[4][n+8]=t[0][n+8]+(t[3][n+8]<<13);  t[3][n+8]=-t[3][n+8];}
-
-    if (t[1][n+8]>=0)   {t[5][n+8] = t[1][n+8]>>13;		    t[6][n+8]=t[1][n+8]-(t[5][n+8]<<13);}
-    else              {t[5][n+8] = (abs(t[1][n+8]))>>13;	t[6][n+8]=t[1][n+8]+(t[5][n+8]<<13);  t[5][n+8]=-t[5][n+8];}
-
-    if (t[2][n+8]>=0)   {t[7][n+8] = t[2][n+8]>>13;		   }
-    else              {t[7][n+8] = (abs(t[2][n+8]))>>13;	t[7][n+8]=-t[7][n+8];}
-
-    r[0] = ROT_MATRIX_S[0][index][36]; r[1] = ROT_MATRIX_S[1][index][36];
-
-    res[0] += r[0]*t[3][n+8];  res[1] +=r[0]*t[4][n+8]+r[1]*t[3][n+8]+r[0]*t[5][n+8]; res[2] +=r[1]*t[4][n+8]+r[0]*t[6][n+8]+r[1]*t[5][n+8]+r[0]*t[7][n+8];
-
-
-    if (t[0][n+16]>=0)   {t[3][n+16] = t[0][n+16]>>13;		    t[4][n+16]=t[0][n+16]-(t[3][n+16]<<13);}
-    else              {t[3][n+16] = (abs(t[0][n+16]))>>13;	t[4][n+16]=t[0][n+16]+(t[3][n+16]<<13);  t[3][n+16]=-t[3][n+16];}
-
-    if (t[1][n+16]>=0)   {t[5][n+16] = t[1][n+16]>>13;		    t[6][n+16]=t[1][n+16]-(t[5][n+16]<<13);}
-    else              {t[5][n+16] = (abs(t[1][n+16]))>>13;	t[6][n+16]=t[1][n+16]+(t[5][n+16]<<13);  t[5][n+16]=-t[5][n+16];}
-
-    if (t[2][n+16]>=0)   {t[7][n+16] = t[2][n+16]>>13;		   }
-    else              {t[7][n+16] = (abs(t[2][n+16]))>>13;	t[7][n+16]=-t[7][n+16];}
-
-    r[0] = ROT_MATRIX_S[0][index][40]; r[1] = ROT_MATRIX_S[1][index][40];
-
-    res[0] += r[0]*t[3][n+16];  res[1] +=r[0]*t[4][n+16]+r[1]*t[3][n+16]+r[0]*t[5][n+16]; res[2] +=r[1]*t[4][n+16]+r[0]*t[6][n+16]+r[1]*t[5][n+16]+r[0]*t[7][n+16];
-
-    if (res[1]>=0) {res[3]=res[1]>>13;res[3]=res[1]-(res[3]<<13);}
-    else {res[3]=(abs(res[1]))>>13;res[3]=res[1]+(res[3]<<13);}
-    res[3]=res[3]<<13;
-
-    if (res[2]>=0) {itemp=res[2]>>26;itemp=res[2]-(itemp<<26);}
-    else {itemp=(abs(res[2]))>>26;itemp=res[2]+(itemp<<26);}
-
-    res[3]+=itemp;
-    if (res[3]>=0) res[3]+=(1<<25);
-    else res[3]-=(1<<25);
-
-    matrix[n] = res[0] ;
-    if (res[1]>=0) {itemp=res[1]>>13;}
-    else {itemp=(abs(res[1]))>>13;itemp=-itemp;}
-    matrix[n] += itemp;
-    if (res[2]>=0) {itemp=res[2]>>26;}
-    else {itemp=(abs(res[2]))>>26;itemp=-itemp;}
-    matrix[n] += itemp;
-    if (res[3]>=0) {itemp=res[3]>>26;}
-    else {itemp=(abs(res[3]))>>26;itemp=-itemp;}
-    matrix[n] += itemp;
-
-    res[0]=0;res[1]=0;res[2]=0;
-
-
-    r[0] = ROT_MATRIX_S[0][index][33]; r[1] = ROT_MATRIX_S[1][index][33];
-    res[0] += r[0]*t[3][n];  res[1] +=r[0]*t[4][n]+r[1]*t[3][n]+r[0]*t[5][n]; res[2] +=r[1]*t[4][n]+r[0]*t[6][n]+r[1]*t[5][n]+r[0]*t[7][n];
-
-
-    r[0] = ROT_MATRIX_S[0][index][37]; r[1] = ROT_MATRIX_S[1][index][37];
-    res[0] += r[0]*t[3][n+8];  res[1] +=r[0]*t[4][n+8]+r[1]*t[3][n+8]+r[0]*t[5][n+8]; res[2] +=r[1]*t[4][n+8]+r[0]*t[6][n+8]+r[1]*t[5][n+8]+r[0]*t[7][n+8];
-
-    r[0] = ROT_MATRIX_S[0][index][41]; r[1] = ROT_MATRIX_S[1][index][41];
-    res[0] += r[0]*t[3][n+16];  res[1] +=r[0]*t[4][n+16]+r[1]*t[3][n+16]+r[0]*t[5][n+16]; res[2] +=r[1]*t[4][n+16]+r[0]*t[6][n+16]+r[1]*t[5][n+16]+r[0]*t[7][n+16];
-
-    if (res[1]>=0) {res[3]=res[1]>>13;res[3]=res[1]-(res[3]<<13);}
-    else {res[3]=(abs(res[1]))>>13;res[3]=res[1]+(res[3]<<13);}
-    res[3]=res[3]<<13;
-
-    if (res[2]>=0) {itemp=res[2]>>26;itemp=res[2]-(itemp<<26);}
-    else {itemp=(abs(res[2]))>>26;itemp=res[2]+(itemp<<26);}
-
-    res[3]+=itemp;
-    if (res[3]>=0) res[3]+=(1<<25);
-    else res[3]-=(1<<25);
-
-    matrix[n+8] = res[0] ;
-    if (res[1]>=0) {itemp=res[1]>>13;}
-    else {itemp=(abs(res[1]))>>13;itemp=-itemp;}
-    matrix[n+8] += itemp;
-    if (res[2]>=0) {itemp=res[2]>>26;}
-    else {itemp=(abs(res[2]))>>26;itemp=-itemp;}
-    matrix[n+8] += itemp;
-    if (res[3]>=0) {itemp=res[3]>>26;}
-    else {itemp=(abs(res[3]))>>26;itemp=-itemp;}
-    matrix[n+8] += itemp;
-
-    res[0]=0;res[1]=0;res[2]=0;res[3]=0;
-
-    r[0] = ROT_MATRIX_S[0][index][34]; r[1] = ROT_MATRIX_S[1][index][34];
-    res[0] += r[0]*t[3][n];  res[1] +=r[0]*t[4][n]+r[1]*t[3][n]+r[0]*t[5][n]; res[2] +=r[1]*t[4][n]+r[0]*t[6][n]+r[1]*t[5][n]+r[0]*t[7][n];
-
-    r[0] = ROT_MATRIX_S[0][index][38]; r[1] = ROT_MATRIX_S[1][index][38];
-    res[0] += r[0]*t[3][n+8];  res[1] +=r[0]*t[4][n+8]+r[1]*t[3][n+8]+r[0]*t[5][n+8]; res[2] +=r[1]*t[4][n+8]+r[0]*t[6][n+8]+r[1]*t[5][n+8]+r[0]*t[7][n+8];
-
-    r[0] = ROT_MATRIX_S[0][index][42]; r[1] = ROT_MATRIX_S[1][index][42];
-    res[0] += r[0]*t[3][n+16];  res[1] +=r[0]*t[4][n+16]+r[1]*t[3][n+16]+r[0]*t[5][n+16]; res[2] +=r[1]*t[4][n+16]+r[0]*t[6][n+16]+r[1]*t[5][n+16]+r[0]*t[7][n+16];
-
-    if (res[1]>=0) {res[3]=res[1]>>13;res[3]=res[1]-(res[3]<<13);}
-    else {res[3]=(abs(res[1]))>>13;res[3]=res[1]+(res[3]<<13);}
-    res[3]=res[3]<<13;
-
-    if (res[2]>=0) {itemp=res[2]>>26;itemp=res[2]-(itemp<<26);}
-    else {itemp=(abs(res[2]))>>26;itemp=res[2]+(itemp<<26);}
-
-    res[3]+=itemp;
-    if (res[3]>=0) res[3]+=(1<<25);
-    else res[3]-=(1<<25);
-
-    matrix[n+16] = res[0] ;
-    if (res[1]>=0) {itemp=res[1]>>13;}
-    else {itemp=(abs(res[1]))>>13;itemp=-itemp;}
-    matrix[n+16] += itemp;
-    if (res[2]>=0) {itemp=res[2]>>26;}
-    else {itemp=(abs(res[2]))>>26;itemp=-itemp;}
-    matrix[n+16] += itemp;
-    if (res[3]>=0) {itemp=res[3]>>26;}
-    else {itemp=(abs(res[3]))>>26;itemp=-itemp;}
-    matrix[n+16] += itemp;
-
-    res[0]=0;res[1]=0;res[2]=0;
-
-    if (t[0][n+24]>=0)   {t[3][n+24] = t[0][n+24]>>13;		    t[4][n+24]=t[0][n+24]-(t[3][n+24]<<13);}
-    else              {t[3][n+24] = (abs(t[0][n+24]))>>13;	t[4][n+24]=t[0][n+24]+(t[3][n+24]<<13);  t[3][n+24]=-t[3][n+24];}
-
-    if (t[1][n+24]>=0)   {t[5][n+24] = t[1][n+24]>>13;		    t[6][n+24]=t[1][n+24]-(t[5][n+24]<<13);}
-    else              {t[5][n+24] = (abs(t[1][n+24]))>>13;	t[6][n+24]=t[1][n+24]+(t[5][n+24]<<13);  t[5][n+24]=-t[5][n+24];}
-
-    if (t[2][n+24]>=0)   {t[7][n+24] = t[2][n+24]>>13;		   }
-    else              {t[7][n+24] = (abs(t[2][n+24]))>>13;	t[7][n+24]=-t[7][n+24];}
-
-    r[0] = ROT_MATRIX_S[0][index][64]; r[1] = ROT_MATRIX_S[1][index][64];
-
-    res[0] += r[0]*t[3][n+24];  res[1] +=r[0]*t[4][n+24]+r[1]*t[3][n+24]+r[0]*t[5][n+24]; res[2] +=r[1]*t[4][n+24]+r[0]*t[6][n+24]+r[1]*t[5][n+24]+r[0]*t[7][n+24];
-
-
-    if (t[0][n+32]>=0)   {t[3][n+32] = t[0][n+32]>>13;		    t[4][n+32]=t[0][n+32]-(t[3][n+32]<<13);}
-    else              {t[3][n+32] = (abs(t[0][n+32]))>>13;	t[4][n+32]=t[0][n+32]+(t[3][n+32]<<13);  t[3][n+32]=-t[3][n+32];}
-
-    if (t[1][n+32]>=0)   {t[5][n+32] = t[1][n+32]>>13;		    t[6][n+32]=t[1][n+32]-(t[5][n+32]<<13);}
-    else              {t[5][n+32] = (abs(t[1][n+32]))>>13;	t[6][n+32]=t[1][n+32]+(t[5][n+32]<<13);  t[5][n+32]=-t[5][n+32];}
-
-    if (t[2][n+32]>=0)   {t[7][n+32] = t[2][n+32]>>13;		   }
-    else              {t[7][n+32] = (abs(t[2][n+32]))>>13;	t[7][n+32]=-t[7][n+32];}
-
-    r[0] = ROT_MATRIX_S[0][index][68]; r[1] = ROT_MATRIX_S[1][index][68];
-
-    res[0] += r[0]*t[3][n+32];  res[1] +=r[0]*t[4][n+32]+r[1]*t[3][n+32]+r[0]*t[5][n+32]; res[2] +=r[1]*t[4][n+32]+r[0]*t[6][n+32]+r[1]*t[5][n+32]+r[0]*t[7][n+32];
-
-    if (t[0][n+40]>=0)   {t[3][n+40] = t[0][n+40]>>13;		    t[4][n+40]=t[0][n+40]-(t[3][n+40]<<13);}
-    else              {t[3][n+40] = (abs(t[0][n+40]))>>13;	t[4][n+40]=t[0][n+40]+(t[3][n+40]<<13);  t[3][n+40]=-t[3][n+40];}
-
-    if (t[1][n+40]>=0)   {t[5][n+40] = t[1][n+40]>>13;		    t[6][n+40]=t[1][n+40]-(t[5][n+40]<<13);}
-    else              {t[5][n+40] = (abs(t[1][n+40]))>>13;	t[6][n+40]=t[1][n+40]+(t[5][n+40]<<13);  t[5][n+40]=-t[5][n+40];}
-
-    if (t[2][n+40]>=0)   {t[7][n+40] = t[2][n+40]>>13;		   }
-    else              {t[7][n+40] = (abs(t[2][n+40]))>>13;	t[7][n+40]=-t[7][n+40];}
-
-    r[0] = ROT_MATRIX_S[0][index][72]; r[1] = ROT_MATRIX_S[1][index][72];
-
-    res[0] += r[0]*t[3][n+40];  res[1] +=r[0]*t[4][n+40]+r[1]*t[3][n+40]+r[0]*t[5][n+40]; res[2] +=r[1]*t[4][n+40]+r[0]*t[6][n+40]+r[1]*t[5][n+40]+r[0]*t[7][n+40];
-
-    if (res[1]>=0) {res[3]=res[1]>>13;res[3]=res[1]-(res[3]<<13);}
-    else {res[3]=(abs(res[1]))>>13;res[3]=res[1]+(res[3]<<13);}
-    res[3]=res[3]<<13;
-
-    if (res[2]>=0) {itemp=res[2]>>26;itemp=res[2]-(itemp<<26);}
-    else {itemp=(abs(res[2]))>>26;itemp=res[2]+(itemp<<26);}
-
-    res[3]+=itemp;
-    if (res[3]>=0) res[3]+=(1<<25);
-    else res[3]-=(1<<25);
-
-    matrix[n+24] = res[0] ;
-    if (res[1]>=0) {itemp=res[1]>>13;}
-    else {itemp=(abs(res[1]))>>13;itemp=-itemp;}
-    matrix[n+24] += itemp;
-    if (res[2]>=0) {itemp=res[2]>>26;}
-    else {itemp=(abs(res[2]))>>26;itemp=-itemp;}
-    matrix[n+24] += itemp;
-    if (res[3]>=0) {itemp=res[3]>>26;}
-    else {itemp=(abs(res[3]))>>26;itemp=-itemp;}
-    matrix[n+24] += itemp;
-
-    res[0]=0;res[1]=0;res[2]=0;
-
-    r[0] = ROT_MATRIX_S[0][index][65]; r[1] = ROT_MATRIX_S[1][index][65];
-    res[0] += r[0]*t[3][n+24];  res[1] +=r[0]*t[4][n+24]+r[1]*t[3][n+24]+r[0]*t[5][n+24]; res[2] +=r[1]*t[4][n+24]+r[0]*t[6][n+24]+r[1]*t[5][n+24]+r[0]*t[7][n+24];
-
-
-    r[0] = ROT_MATRIX_S[0][index][69]; r[1] = ROT_MATRIX_S[1][index][69];
-    res[0] += r[0]*t[3][n+32];  res[1] +=r[0]*t[4][n+32]+r[1]*t[3][n+32]+r[0]*t[5][n+32]; res[2] +=r[1]*t[4][n+32]+r[0]*t[6][n+32]+r[1]*t[5][n+32]+r[0]*t[7][n+32];
-
-    r[0] = ROT_MATRIX_S[0][index][73]; r[1] = ROT_MATRIX_S[1][index][73];
-    res[0] += r[0]*t[3][n+40];  res[1] +=r[0]*t[4][n+40]+r[1]*t[3][n+40]+r[0]*t[5][n+40]; res[2] +=r[1]*t[4][n+40]+r[0]*t[6][n+40]+r[1]*t[5][n+40]+r[0]*t[7][n+40];
-
-    if (res[1]>=0) {res[3]=res[1]>>13;res[3]=res[1]-(res[3]<<13);}
-    else {res[3]=(abs(res[1]))>>13;res[3]=res[1]+(res[3]<<13);}
-    res[3]=res[3]<<13;
-
-    if (res[2]>=0) {itemp=res[2]>>26;itemp=res[2]-(itemp<<26);}
-    else {itemp=(abs(res[2]))>>26;itemp=res[2]+(itemp<<26);}
-
-    res[3]+=itemp;
-    if (res[3]>=0) res[3]+=(1<<25);
-    else res[3]-=(1<<25);
-
-    matrix[n+32] = res[0] ;
-    if (res[1]>=0) {itemp=res[1]>>13;}
-    else {itemp=(abs(res[1]))>>13;itemp=-itemp;}
-    matrix[n+32] += itemp;
-    if (res[2]>=0) {itemp=res[2]>>26;}
-    else {itemp=(abs(res[2]))>>26;itemp=-itemp;}
-    matrix[n+32] += itemp;
-    if (res[3]>=0) {itemp=res[3]>>26;}
-    else {itemp=(abs(res[3]))>>26;itemp=-itemp;}
-    matrix[n+32] += itemp;
-
-    res[0]=0;res[1]=0;res[2]=0;
-
-    r[0] = ROT_MATRIX_S[0][index][66]; r[1] = ROT_MATRIX_S[1][index][66];
-    res[0] += r[0]*t[3][n+24];  res[1] +=r[0]*t[4][n+24]+r[1]*t[3][n+24]+r[0]*t[5][n+24]; res[2] +=r[1]*t[4][n+24]+r[0]*t[6][n+24]+r[1]*t[5][n+24]+r[0]*t[7][n+24];
-
-
-    r[0] = ROT_MATRIX_S[0][index][70]; r[1] = ROT_MATRIX_S[1][index][70];
-    res[0] += r[0]*t[3][n+32];  res[1] +=r[0]*t[4][n+32]+r[1]*t[3][n+32]+r[0]*t[5][n+32]; res[2] +=r[1]*t[4][n+32]+r[0]*t[6][n+32]+r[1]*t[5][n+32]+r[0]*t[7][n+32];
-
-    r[0] = ROT_MATRIX_S[0][index][74]; r[1] = ROT_MATRIX_S[1][index][74];
-    res[0] += r[0]*t[3][n+40];  res[1] +=r[0]*t[4][n+40]+r[1]*t[3][n+40]+r[0]*t[5][n+40]; res[2] +=r[1]*t[4][n+40]+r[0]*t[6][n+40]+r[1]*t[5][n+40]+r[0]*t[7][n+40];
-
-    if (res[1]>=0) {res[3]=res[1]>>13;res[3]=res[1]-(res[3]<<13);}
-    else {res[3]=(abs(res[1]))>>13;res[3]=res[1]+(res[3]<<13);}
-    res[3]=res[3]<<13;
-
-    if (res[2]>=0) {itemp=res[2]>>26;itemp=res[2]-(itemp<<26);}
-    else {itemp=(abs(res[2]))>>26;itemp=res[2]+(itemp<<26);}
-
-    res[3]+=itemp;
-    if (res[3]>=0) res[3]+=(1<<25);
-    else res[3]-=(1<<25);
-
-    matrix[n+40] = res[0] ;
-    if (res[1]>=0) {itemp=res[1]>>13;}
-    else {itemp=(abs(res[1]))>>13;itemp=-itemp;}
-    matrix[n+40] += itemp;
-    if (res[2]>=0) {itemp=res[2]>>26;}
-    else {itemp=(abs(res[2]))>>26;itemp=-itemp;}
-    matrix[n+40] += itemp;
-    if (res[3]>=0) {itemp=res[3]>>26;}
-    else {itemp=(abs(res[3]))>>26;itemp=-itemp;}
-    matrix[n+40] += itemp;
-
-    res[0] =t[0][n+48];res[1]=t[1][n+48] ;res[2]=t[2][n+48];
-
-    if (res[1]>=0) {res[3]=res[1]>>13;res[3]=res[1]-(res[3]<<13);}
-    else {res[3]=(abs(res[1]))>>13;res[3]=res[1]+(res[3]<<13);}
-    res[3]=res[3]<<13;
-
-    if (res[2]>=0) {itemp=res[2]>>26;itemp=res[2]-(itemp<<26);}
-    else {itemp=(abs(res[2]))>>26;itemp=res[2]+(itemp<<26);}
-
-    res[3]+=itemp;
-    if (res[3]>=0) res[3]+=(1<<25);
-    else res[3]-=(1<<25);
-
-
-    matrix[n+48] = res[0] ;
-    if (res[1]>=0) {itemp=res[1]>>13;}
-    else {itemp=(abs(res[1]))>>13;itemp=-itemp;}
-    matrix[n+48] += itemp;
-    if (res[2]>=0) {itemp=res[2]>>26;}
-    else {itemp=(abs(res[2]))>>26;itemp=-itemp;}
-    matrix[n+48] += itemp;
-    if (res[3]>=0) {itemp=res[3]>>26;}
-    else {itemp=(abs(res[3]))>>26;itemp=-itemp;}
-    matrix[n+48] += itemp;
-
-
-    res[0] =t[0][n+56];res[1]=t[1][n+56] ;res[2]=t[2][n+56];
-
-    if (res[1]>=0) {res[3]=res[1]>>13;res[3]=res[1]-(res[3]<<13);}
-    else {res[3]=(abs(res[1]))>>13;res[3]=res[1]+(res[3]<<13);}
-    res[3]=res[3]<<13;
-
-    if (res[2]>=0) {itemp=res[2]>>26;itemp=res[2]-(itemp<<26);}
-    else {itemp=(abs(res[2]))>>26;itemp=res[2]+(itemp<<26);}
-
-    res[3]+=itemp;
-    if (res[3]>=0) res[3]+=(1<<25);
-    else res[3]-=(1<<25);
-
-    matrix[n+56] = res[0] ;
-    if (res[1]>=0) {itemp=res[1]>>13;}
-    else {itemp=(abs(res[1]))>>13;itemp=-itemp;}
-    matrix[n+56] += itemp;
-    if (res[2]>=0) {itemp=res[2]>>26;}
-    else {itemp=(abs(res[2]))>>26;itemp=-itemp;}
-    matrix[n+56] += itemp;
-    if (res[3]>=0) {itemp=res[3]>>26;}
-    else {itemp=(abs(res[3]))>>26;itemp=-itemp;}
-    matrix[n+56] += itemp;
-  }
+	int temp[16];
+	Int n=0;
+	Int iAddShift = Min(Max(0, 4-(Int)g_uiBitIncrement),INV_ROT_BITS);
+	Int iAddOffSet = 0;
+	if (iAddShift) iAddOffSet = 1<<(iAddShift-1);
+
+	Int iShift1 = INV_ROT_BITS-iAddShift;
+	Int iShift2 = INV_ROT_BITS+iAddShift;
+	Int iOffSet2 = (iAddOffSet<<INV_ROT_BITS);
+
+	// rot process
+	for (n=0; n<13; n+=4)
+	{
+		temp[n]  =g_INV_ROT_MATRIX_4[index][9] *matrix[n]+g_INV_ROT_MATRIX_4[index][12]*matrix[n+1]+g_INV_ROT_MATRIX_4[index][15]*matrix[n+2];
+		temp[n+1]=g_INV_ROT_MATRIX_4[index][10]*matrix[n]+g_INV_ROT_MATRIX_4[index][13]*matrix[n+1]+g_INV_ROT_MATRIX_4[index][16]*matrix[n+2];
+		temp[n+2]=g_INV_ROT_MATRIX_4[index][11]*matrix[n]+g_INV_ROT_MATRIX_4[index][14]*matrix[n+1]+g_INV_ROT_MATRIX_4[index][17]*matrix[n+2];
+
+		if (temp[n  ]>=0) temp[n  ]=(temp[n  ])>>iShift1; else temp[n  ] = -((-temp[n  ])>>iShift1);
+		if (temp[n+1]>=0) temp[n+1]=(temp[n+1])>>iShift1; else temp[n+1] = -((-temp[n+1])>>iShift1);
+		if (temp[n+2]>=0) temp[n+2]=(temp[n+2])>>iShift1; else temp[n+2] = -((-temp[n+2])>>iShift1);
+
+		temp[n+3]=matrix[n+3]<<iAddShift;
+	}
+	for (n=0; n<4; n++)
+	{
+		matrix[n]   =(g_INV_ROT_MATRIX_4[index][0]*temp[n]+g_INV_ROT_MATRIX_4[index][3]*temp[n+4]+g_INV_ROT_MATRIX_4[index][6]*temp[n+8])*g_aiDequantCoef[m_cQP.m_iRem][n]  ;
+		matrix[n+4] =(g_INV_ROT_MATRIX_4[index][1]*temp[n]+g_INV_ROT_MATRIX_4[index][4]*temp[n+4]+g_INV_ROT_MATRIX_4[index][7]*temp[n+8])*g_aiDequantCoef[m_cQP.m_iRem][n+4];
+		matrix[n+8] =(g_INV_ROT_MATRIX_4[index][2]*temp[n]+g_INV_ROT_MATRIX_4[index][5]*temp[n+4]+g_INV_ROT_MATRIX_4[index][8]*temp[n+8])*g_aiDequantCoef[m_cQP.m_iRem][n+8];
+		matrix[n+12]=temp[n+12]*g_aiDequantCoef[m_cQP.m_iRem][n+12];
+
+		if (matrix[n  ]>=0) matrix[n  ]=((matrix[n  ]+iOffSet2)>>iShift2); else matrix[n  ] = -((-matrix[n  ]+iOffSet2)>>iShift2);
+		if (matrix[n+4]>=0) matrix[n+4]=((matrix[n+4]+iOffSet2)>>iShift2); else matrix[n+4] = -((-matrix[n+4]+iOffSet2)>>iShift2);
+		if (matrix[n+8]>=0) matrix[n+8]=((matrix[n+8]+iOffSet2)>>iShift2); else matrix[n+8] = -((-matrix[n+8]+iOffSet2)>>iShift2);
+
+		if (matrix[n+12]>=0) matrix[n+12]=((matrix[n+12]+iAddOffSet)>>iAddShift); else matrix[n+12] = -((-matrix[n+12]+iAddOffSet)>>iAddShift);
+	}
 }
 
+Void TComTrQuant::InvRotTransformLI2( Long* matrix , UChar index )
+{
+	Int temp[64];
+	Int n=0;
+	Int iAddShift = Min(Max(0, 4-(Int)g_uiBitIncrement),INV_ROT_BITS);
+	Int iAddOffSet = 0;
+	if (iAddShift) iAddOffSet = 1<<(iAddShift-1);
+
+	Int iShift1 = INV_ROT_BITS-iAddShift;
+	Int iShift2 = INV_ROT_BITS+iAddShift;
+	Int iOffSet2 = (iAddOffSet<<INV_ROT_BITS);
+
+	// Rot process
+	for (n=0; n<64; n+=8)
+	{
+		temp[n]  =g_INV_ROT_MATRIX_8[index][9 ]*matrix[n]+g_INV_ROT_MATRIX_8[index][12]*matrix[n+1]+g_INV_ROT_MATRIX_8[index][15]*matrix[n+2];
+		temp[n+1]=g_INV_ROT_MATRIX_8[index][10]*matrix[n]+g_INV_ROT_MATRIX_8[index][13]*matrix[n+1]+g_INV_ROT_MATRIX_8[index][16]*matrix[n+2];
+		temp[n+2]=g_INV_ROT_MATRIX_8[index][11]*matrix[n]+g_INV_ROT_MATRIX_8[index][14]*matrix[n+1]+g_INV_ROT_MATRIX_8[index][17]*matrix[n+2];
+
+		temp[n+3]=g_INV_ROT_MATRIX_8[index][27]*matrix[n+3]+g_INV_ROT_MATRIX_8[index][30]*matrix[n+4]+g_INV_ROT_MATRIX_8[index][33]*matrix[n+5];
+		temp[n+4]=g_INV_ROT_MATRIX_8[index][28]*matrix[n+3]+g_INV_ROT_MATRIX_8[index][31]*matrix[n+4]+g_INV_ROT_MATRIX_8[index][34]*matrix[n+5];
+		temp[n+5]=g_INV_ROT_MATRIX_8[index][29]*matrix[n+3]+g_INV_ROT_MATRIX_8[index][32]*matrix[n+4]+g_INV_ROT_MATRIX_8[index][35]*matrix[n+5];
+
+		if (temp[n  ]>=0) temp[n  ]=(temp[n  ])>>iShift1; else temp[n  ] = -((-temp[n  ])>>iShift1);
+		if (temp[n+1]>=0) temp[n+1]=(temp[n+1])>>iShift1; else temp[n+1] = -((-temp[n+1])>>iShift1);
+		if (temp[n+2]>=0) temp[n+2]=(temp[n+2])>>iShift1; else temp[n+2] = -((-temp[n+2])>>iShift1);
+
+		if (temp[n+3]>=0) temp[n+3]=(temp[n+3])>>iShift1; else temp[n+3] = -((-temp[n+3])>>iShift1);
+		if (temp[n+4]>=0) temp[n+4]=(temp[n+4])>>iShift1; else temp[n+4] = -((-temp[n+4])>>iShift1);
+		if (temp[n+5]>=0) temp[n+5]=(temp[n+5])>>iShift1; else temp[n+5] = -((-temp[n+5])>>iShift1);
+
+
+		temp[n+6]=matrix[n+6]<<iAddShift;
+		temp[n+7]=matrix[n+7]<<iAddShift;
+
+	}
+	for (n=0; n<8; n++)
+	{
+		matrix[n]    =g_INV_ROT_MATRIX_8[index][0]*temp[n]+g_INV_ROT_MATRIX_8[index][3]*temp[n+8]+g_INV_ROT_MATRIX_8[index][6]*temp[n+16];
+		matrix[n+8]  =g_INV_ROT_MATRIX_8[index][1]*temp[n]+g_INV_ROT_MATRIX_8[index][4]*temp[n+8]+g_INV_ROT_MATRIX_8[index][7]*temp[n+16];
+		matrix[n+16] =g_INV_ROT_MATRIX_8[index][2]*temp[n]+g_INV_ROT_MATRIX_8[index][5]*temp[n+8]+g_INV_ROT_MATRIX_8[index][8]*temp[n+16];
+
+		matrix[n+24] =g_INV_ROT_MATRIX_8[index][18]*temp[n+24]+g_INV_ROT_MATRIX_8[index][21]*temp[n+32]+g_INV_ROT_MATRIX_8[index][24]*temp[n+40];
+		matrix[n+32] =g_INV_ROT_MATRIX_8[index][19]*temp[n+24]+g_INV_ROT_MATRIX_8[index][22]*temp[n+32]+g_INV_ROT_MATRIX_8[index][25]*temp[n+40];
+		matrix[n+40] =g_INV_ROT_MATRIX_8[index][20]*temp[n+24]+g_INV_ROT_MATRIX_8[index][23]*temp[n+32]+g_INV_ROT_MATRIX_8[index][26]*temp[n+40];
+
+		matrix[n+48]=temp[n+48];
+		matrix[n+56]=temp[n+56];
+
+		if (matrix[n   ]>=0) matrix[n   ]=(matrix[n   ]+iOffSet2)>>iShift2; else matrix[n   ] = -((-matrix[n   ]+iOffSet2)>>iShift2);
+		if (matrix[n+ 8]>=0) matrix[n+ 8]=(matrix[n+ 8]+iOffSet2)>>iShift2; else matrix[n+ 8] = -((-matrix[n+ 8]+iOffSet2)>>iShift2);
+		if (matrix[n+16]>=0) matrix[n+16]=(matrix[n+16]+iOffSet2)>>iShift2; else matrix[n+16] = -((-matrix[n+16]+iOffSet2)>>iShift2);
+
+		if (matrix[n+24]>=0) matrix[n+24]=(matrix[n+24]+iOffSet2)>>iShift2; else matrix[n+24] = -((-matrix[n+24]+iOffSet2)>>iShift2);
+		if (matrix[n+32]>=0) matrix[n+32]=(matrix[n+32]+iOffSet2)>>iShift2; else matrix[n+32] = -((-matrix[n+32]+iOffSet2)>>iShift2);
+		if (matrix[n+40]>=0) matrix[n+40]=(matrix[n+40]+iOffSet2)>>iShift2; else matrix[n+40] = -((-matrix[n+40]+iOffSet2)>>iShift2);
+
+		if (matrix[n+48]>=0) matrix[n+48]=(matrix[n+48]+iAddOffSet)>>iAddShift; else matrix[n+48] = -((-matrix[n+48]+iAddOffSet)>>iAddShift);
+		if (matrix[n+56]>=0) matrix[n+56]=(matrix[n+56]+iAddOffSet)>>iAddShift; else matrix[n+56] = -((-matrix[n+56]+iAddOffSet)>>iAddShift);
+	}
+}
+
+Void TComTrQuant::RotTransform4I( Long* matrix, UChar index )
+{
+	int temp[16];
+	Int n=0;
+	Int iLocalShift		= g_auiROTFwdShift[0] - g_uiBitIncrement;	// index 0 means 4x4
+	Int iLocalOffSet	= 0;
+
+	// scale data
+	if ( iLocalShift )
+	{
+		iLocalOffSet = 1 << ( abs(iLocalShift) - 1 );
+
+		if ( iLocalShift > 0 )
+		{
+			for (n=0; n<16; n++)  matrix[n] <<= iLocalShift;
+		}
+		else
+		if ( iLocalShift < 0 )
+		{
+			for (n=0; n<16; n++)
+				if (matrix[n] >= 0) matrix[n]=(matrix[n]+iLocalOffSet)>>(-iLocalShift);
+				else matrix[n] =- ((-matrix[n]+iLocalOffSet)>>(-iLocalShift));
+		}
+	}
+
+	// rot process
+	for (n=0; n<13; n+=4)
+	{
+		temp[n]  =g_FWD_ROT_MATRIX_4[index][9] *matrix[n]+g_FWD_ROT_MATRIX_4[index][10]*matrix[n+1]+g_FWD_ROT_MATRIX_4[index][11]*matrix[n+2];
+		temp[n+1]=g_FWD_ROT_MATRIX_4[index][12]*matrix[n]+g_FWD_ROT_MATRIX_4[index][13]*matrix[n+1]+g_FWD_ROT_MATRIX_4[index][14]*matrix[n+2];
+		temp[n+2]=g_FWD_ROT_MATRIX_4[index][15]*matrix[n]+g_FWD_ROT_MATRIX_4[index][16]*matrix[n+1]+g_FWD_ROT_MATRIX_4[index][17]*matrix[n+2];
+
+		if (temp[n  ]>=0) temp[n  ]=(temp[n  ]+ROT_OFF_SET_FWD)>>FWD_ROT_BITS; else temp[n  ] = -((-temp[n  ]+ROT_OFF_SET_FWD)>>FWD_ROT_BITS);
+		if (temp[n+1]>=0) temp[n+1]=(temp[n+1]+ROT_OFF_SET_FWD)>>FWD_ROT_BITS; else temp[n+1] = -((-temp[n+1]+ROT_OFF_SET_FWD)>>FWD_ROT_BITS);
+		if (temp[n+2]>=0) temp[n+2]=(temp[n+2]+ROT_OFF_SET_FWD)>>FWD_ROT_BITS; else temp[n+2] = -((-temp[n+2]+ROT_OFF_SET_FWD)>>FWD_ROT_BITS);
+
+		temp[n+3]=matrix[n+3];
+	}
+	for (n=0; n<4; n++)
+	{
+		matrix[n]   =(g_FWD_ROT_MATRIX_4[index][0]*temp[n]+g_FWD_ROT_MATRIX_4[index][1]*temp[n+4]+g_FWD_ROT_MATRIX_4[index][2]*temp[n+8]);
+		matrix[n+4] =(g_FWD_ROT_MATRIX_4[index][3]*temp[n]+g_FWD_ROT_MATRIX_4[index][4]*temp[n+4]+g_FWD_ROT_MATRIX_4[index][5]*temp[n+8]);
+		matrix[n+8] =(g_FWD_ROT_MATRIX_4[index][6]*temp[n]+g_FWD_ROT_MATRIX_4[index][7]*temp[n+4]+g_FWD_ROT_MATRIX_4[index][8]*temp[n+8]);
+
+		if (matrix[n  ]>=0) matrix[n  ]=((matrix[n  ]+ROT_OFF_SET_FWD)>>FWD_ROT_BITS); else matrix[n  ] = -((-matrix[n  ]+ROT_OFF_SET_FWD)>>FWD_ROT_BITS);
+		if (matrix[n+4]>=0) matrix[n+4]=((matrix[n+4]+ROT_OFF_SET_FWD)>>FWD_ROT_BITS); else matrix[n+4] = -((-matrix[n+4]+ROT_OFF_SET_FWD)>>FWD_ROT_BITS);
+		if (matrix[n+8]>=0) matrix[n+8]=((matrix[n+8]+ROT_OFF_SET_FWD)>>FWD_ROT_BITS); else matrix[n+8] = -((-matrix[n+8]+ROT_OFF_SET_FWD)>>FWD_ROT_BITS);
+
+		matrix[n+12]=temp[n+12];
+	}
+
+	// de-scale the data
+	if (iLocalShift>0)
+	{
+		for (n=0; n<16; n++)
+			if (matrix[n]>=0) matrix[n]=(matrix[n]+iLocalOffSet)>>iLocalShift;
+			else matrix[n]=- ((-matrix[n]+iLocalOffSet)>>iLocalShift);
+	}
+	if (iLocalShift<0)
+	{
+		for (n=0; n<16; n++)  matrix[n]<<=(-iLocalShift);
+	}
+}
+
+Void TComTrQuant::RotTransformLI2( Long* matrix, UChar index, UInt uiWidth )
+{
+	Int temp[64];
+	Int n=0;
+	Int iLocalShift		= g_auiROTFwdShift[ g_aucConvertToBit[uiWidth] ] - g_uiBitIncrement;
+	Int iLocalOffset  = 0;
+
+	// scaling
+	if ( iLocalShift )
+	{
+		iLocalOffset = 1<<(abs(iLocalShift)-1);
+
+		if (iLocalShift>0)
+		{
+			for (n=0; n<64; n++)  matrix[n]<<=iLocalShift;
+		}
+		else
+		if (iLocalShift<0)
+		{
+			for (n=0; n<64; n++)
+				if (matrix[n]>=0) matrix[n]=(matrix[n]+iLocalOffset)>>(-iLocalShift);
+				else matrix[n]=- ((-matrix[n]+iLocalOffset)>>(-iLocalShift));
+		}
+	}
+
+	// Rot process
+	for (n=0; n<64; n+=8)
+	{
+		temp[n]  =g_FWD_ROT_MATRIX_8[index][9 ]*matrix[n]+g_FWD_ROT_MATRIX_8[index][10]*matrix[n+1]+g_FWD_ROT_MATRIX_8[index][11]*matrix[n+2];
+		temp[n+1]=g_FWD_ROT_MATRIX_8[index][12]*matrix[n]+g_FWD_ROT_MATRIX_8[index][13]*matrix[n+1]+g_FWD_ROT_MATRIX_8[index][14]*matrix[n+2];
+		temp[n+2]=g_FWD_ROT_MATRIX_8[index][15]*matrix[n]+g_FWD_ROT_MATRIX_8[index][16]*matrix[n+1]+g_FWD_ROT_MATRIX_8[index][17]*matrix[n+2];
+
+		temp[n+3]=g_FWD_ROT_MATRIX_8[index][27]*matrix[n+3]+g_FWD_ROT_MATRIX_8[index][28]*matrix[n+4]+g_FWD_ROT_MATRIX_8[index][29]*matrix[n+5];
+		temp[n+4]=g_FWD_ROT_MATRIX_8[index][30]*matrix[n+3]+g_FWD_ROT_MATRIX_8[index][31]*matrix[n+4]+g_FWD_ROT_MATRIX_8[index][32]*matrix[n+5];
+		temp[n+5]=g_FWD_ROT_MATRIX_8[index][33]*matrix[n+3]+g_FWD_ROT_MATRIX_8[index][34]*matrix[n+4]+g_FWD_ROT_MATRIX_8[index][35]*matrix[n+5];
+
+		if (temp[n  ]>=0) temp[n  ]=(temp[n  ]+ROT_OFF_SET_FWD)>>FWD_ROT_BITS; else temp[n  ] = -((-temp[n  ]+ROT_OFF_SET_FWD)>>FWD_ROT_BITS);
+		if (temp[n+1]>=0) temp[n+1]=(temp[n+1]+ROT_OFF_SET_FWD)>>FWD_ROT_BITS; else temp[n+1] = -((-temp[n+1]+ROT_OFF_SET_FWD)>>FWD_ROT_BITS);
+		if (temp[n+2]>=0) temp[n+2]=(temp[n+2]+ROT_OFF_SET_FWD)>>FWD_ROT_BITS; else temp[n+2] = -((-temp[n+2]+ROT_OFF_SET_FWD)>>FWD_ROT_BITS);
+
+		if (temp[n+3]>=0) temp[n+3]=(temp[n+3]+ROT_OFF_SET_FWD)>>FWD_ROT_BITS; else temp[n+3] = -((-temp[n+3]+ROT_OFF_SET_FWD)>>FWD_ROT_BITS);
+		if (temp[n+4]>=0) temp[n+4]=(temp[n+4]+ROT_OFF_SET_FWD)>>FWD_ROT_BITS; else temp[n+4] = -((-temp[n+4]+ROT_OFF_SET_FWD)>>FWD_ROT_BITS);
+		if (temp[n+5]>=0) temp[n+5]=(temp[n+5]+ROT_OFF_SET_FWD)>>FWD_ROT_BITS; else temp[n+5] = -((-temp[n+5]+ROT_OFF_SET_FWD)>>FWD_ROT_BITS);
+
+
+		temp[n+6]=matrix[n+6];
+		temp[n+7]=matrix[n+7];
+
+	}
+	for (n=0; n<8; n++)
+	{
+		matrix[n]    =g_FWD_ROT_MATRIX_8[index][0]*temp[n]+g_FWD_ROT_MATRIX_8[index][1]*temp[n+8]+g_FWD_ROT_MATRIX_8[index][2]*temp[n+16];
+		matrix[n+8]  =g_FWD_ROT_MATRIX_8[index][3]*temp[n]+g_FWD_ROT_MATRIX_8[index][4]*temp[n+8]+g_FWD_ROT_MATRIX_8[index][5]*temp[n+16];
+		matrix[n+16] =g_FWD_ROT_MATRIX_8[index][6]*temp[n]+g_FWD_ROT_MATRIX_8[index][7]*temp[n+8]+g_FWD_ROT_MATRIX_8[index][8]*temp[n+16];
+
+		matrix[n+24] =g_FWD_ROT_MATRIX_8[index][18]*temp[n+24]+g_FWD_ROT_MATRIX_8[index][19]*temp[n+32]+g_FWD_ROT_MATRIX_8[index][20]*temp[n+40];
+		matrix[n+32] =g_FWD_ROT_MATRIX_8[index][21]*temp[n+24]+g_FWD_ROT_MATRIX_8[index][22]*temp[n+32]+g_FWD_ROT_MATRIX_8[index][23]*temp[n+40];
+		matrix[n+40] =g_FWD_ROT_MATRIX_8[index][24]*temp[n+24]+g_FWD_ROT_MATRIX_8[index][25]*temp[n+32]+g_FWD_ROT_MATRIX_8[index][26]*temp[n+40];
+
+		if (matrix[n   ]>=0) matrix[n   ]=(matrix[n   ]+ROT_OFF_SET_FWD)>>FWD_ROT_BITS; else matrix[n   ] = -((-matrix[n   ]+ROT_OFF_SET_FWD)>>FWD_ROT_BITS);
+		if (matrix[n+ 8]>=0) matrix[n+ 8]=(matrix[n+ 8]+ROT_OFF_SET_FWD)>>FWD_ROT_BITS; else matrix[n+ 8] = -((-matrix[n+ 8]+ROT_OFF_SET_FWD)>>FWD_ROT_BITS);
+		if (matrix[n+16]>=0) matrix[n+16]=(matrix[n+16]+ROT_OFF_SET_FWD)>>FWD_ROT_BITS; else matrix[n+16] = -((-matrix[n+16]+ROT_OFF_SET_FWD)>>FWD_ROT_BITS);
+
+		if (matrix[n+24]>=0) matrix[n+24]=(matrix[n+24]+ROT_OFF_SET_FWD)>>FWD_ROT_BITS; else matrix[n+24] = -((-matrix[n+24]+ROT_OFF_SET_FWD)>>FWD_ROT_BITS);
+		if (matrix[n+32]>=0) matrix[n+32]=(matrix[n+32]+ROT_OFF_SET_FWD)>>FWD_ROT_BITS; else matrix[n+32] = -((-matrix[n+32]+ROT_OFF_SET_FWD)>>FWD_ROT_BITS);
+		if (matrix[n+40]>=0) matrix[n+40]=(matrix[n+40]+ROT_OFF_SET_FWD)>>FWD_ROT_BITS; else matrix[n+40] = -((-matrix[n+40]+ROT_OFF_SET_FWD)>>FWD_ROT_BITS);
+
+
+		matrix[n+48]=temp[n+48];
+		matrix[n+56]=temp[n+56];
+	}
+
+	// de-scale the data
+	if ( iLocalShift > 0 )
+	{
+		for (n=0; n<64; n++)
+			if (matrix[n]>=0) matrix[n]=(matrix[n]+iLocalOffset)>>iLocalShift;
+			else matrix[n]=- ((-matrix[n]+iLocalOffset)>>iLocalShift);
+	}
+	else
+	if ( iLocalShift < 0 )
+	{
+		for (n=0; n<64; n++)  matrix[n]<<=(-iLocalShift);
+	}
+}
 
 // ------------------------------------------------------------------------------------------------
 // Logical transform

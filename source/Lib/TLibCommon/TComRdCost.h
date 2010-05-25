@@ -73,6 +73,10 @@ public:
   Pel*  pCbCur;
   Pel*  pCrOrg;
   Pel*  pCrCur;
+
+	// (vertical) subsampling shift (for reducing complexity)
+	// - 0 = no subsampling, 1 = even rows, 2 = every 4th, etc.
+	Int		iSubShift;
 };
 
 /// RD cost computation class

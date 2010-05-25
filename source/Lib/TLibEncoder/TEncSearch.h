@@ -327,39 +327,9 @@ protected:
 	// -------------------------------------------------------------------------------------------------------------------
 
 	Void xEncodeInterTexture				( TComDataCU*&	rpcCU, UInt uiQp, Bool bHighPass, TComYuv*& rpcYuv, UInt uiTrMode );
-  Void xEncodeIntraTexture				( TComDataCU*		pcCU,
-																		TComPattern*	pcPattern,
-																		TComYuv*			pcOrgYuv,
-																		TComYuv*&			rpcResiYuv,
-																		TComYuv*&			rpcPredYuv,
-																		TComYuv*&			rpcRecoYuv,
-																		UInt					uiMode,
-																		UInt					uiTU,
-																		UInt					uiPU,
-																		UInt					uiPartDepth,
-																		UInt					uiPartOffset,
-																		UInt					uiCoeffOffset,
-																		UInt					uiWidth,
-																		UInt					uiHeight);
-
   Void xRecurTransformNxN					( TComDataCU*		rpcCU,
 																		UInt					uiAbsPartIdx,
 																		Pel*					pcResidual,
-																		UInt					uiAddr,
-																		UInt					uiStride,
-																		UInt					uiWidth,
-																		UInt					uiHeight,
-																		UInt					uiMaxTrMode,
-																		UInt					uiTrMode,
-																		TCoeff*&			rpcCoeff,
-																		TextType			eType,
-																		Int						indexROT = 0 );
-
-  Void xRecurTransformNxNIntra		( TComDataCU*		rpcCU,
-																		UInt					uiAbsPartIdx,
-																		Pel*					pcResidual,
-																		Pel*					pcPrediction,
-																		Pel*					piReconstruction,
 																		UInt					uiAddr,
 																		UInt					uiStride,
 																		UInt					uiWidth,

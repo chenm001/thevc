@@ -337,6 +337,21 @@ Void TEncCu::xCompressCU( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, UInt u
   // get Original YUV data from picture
   m_ppcOrigYuv[uiDepth]->copyFromPicYuv( pcPic->getPicYuvOrg(), rpcBestCU->getAddr(), rpcBestCU->getZorderIdxInCU() );
 
+	// variables for fast encoder decision
+	TComDataCU* pcTempCU;
+	Bool		bEarlySkip	= false;
+	Bool		bTrySplit		= true;
+	Bool		bTryAsym		= true;
+	Double	fRD_Skip		= MAX_DOUBLE;
+
+	static	Double  afCost[ MAX_CU_DEPTH ];
+	static	Int			aiNum [ MAX_CU_DEPTH ];
+
+	if ( rpcBestCU->getAddr() == 0 )
+	{
+		::memset( afCost, 0, sizeof( afCost ) );
+		::memset( aiNum,  0, sizeof( aiNum  ) );
+	}
 
   Bool bBoundary = false;
   UInt uiLPelX   = rpcBestCU->getCUPelX();
@@ -346,48 +361,51 @@ Void TEncCu::xCompressCU( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, UInt u
 
   if( ( uiRPelX < rpcBestCU->getSlice()->getSPS()->getWidth() ) && ( uiBPelY < rpcBestCU->getSlice()->getSPS()->getHeight() ) )
   {
+		// do inter modes
     if( pcPic->getSlice()->getSliceType() != I_SLICE )
     {
-			// SKIP, 2Nx2N, 2NxN, Nx2N, NxN
-		  xCheckRDCostAMVPSkip ( rpcBestCU, rpcTempCU );				rpcTempCU->initEstData();
+			// SKIP
+			pcTempCU = rpcTempCU;
+			xCheckRDCostAMVPSkip( rpcBestCU, rpcTempCU ); fRD_Skip = pcTempCU->getTotalCost(); rpcTempCU->initEstData();
 
-      xCheckRDCostInter( rpcBestCU, rpcTempCU, SIZE_2Nx2N );	rpcTempCU->initEstData();
-      xCheckRDCostInter( rpcBestCU, rpcTempCU, SIZE_2NxN  );	rpcTempCU->initEstData();
-      xCheckRDCostInter( rpcBestCU, rpcTempCU, SIZE_Nx2N  );	rpcTempCU->initEstData();
-      xCheckRDCostInter( rpcBestCU, rpcTempCU, SIZE_NxN   );	rpcTempCU->initEstData();
+			// fast encoder decision for early skip
+			if ( m_pcEncCfg->getUseFastEnc() )
+			{
+				Int iIdx = g_aucConvertToBit[ rpcBestCU->getWidth(0) ];
+				if ( aiNum [ iIdx ] > 5 && fRD_Skip < EARLY_SKIP_THRES*afCost[ iIdx ]/aiNum[ iIdx ] )
+				{
+					bEarlySkip = true;
+					bTrySplit  = false;
+					bTryAsym	 = false;
+				}
+			}
+
+			// 2Nx2N, NxN
+			if ( !bEarlySkip )
+			{
+				xCheckRDCostInter( rpcBestCU, rpcTempCU, SIZE_2Nx2N ); rpcTempCU->initEstData();
+				xCheckRDCostInter( rpcBestCU, rpcTempCU, SIZE_NxN	  ); rpcTempCU->initEstData();
+			}
+
+			// 2NxN, Nx2N
+			xCheckRDCostInter			( rpcBestCU, rpcTempCU, SIZE_Nx2N  );	rpcTempCU->initEstData();
+			xCheckRDCostInter			( rpcBestCU, rpcTempCU, SIZE_2NxN  );	rpcTempCU->initEstData();
+
+			// fast encoder decision for asymmetric motion partition: try asymmetric motion partition only when best != 2Nx2N
+			if ( m_pcEncCfg->getUseFastEnc() )
+			{
+				// Best is skip or 2Nx2N
+				if ( rpcBestCU->getPartitionSize(0) == SIZE_2Nx2N ) bTryAsym = false;
+			}
 
 			// SIZE_2NxnU, SIZE_2NxnD, SIZE_nLx2N, SIZE_nRx2N
-      if( pcPic->getSlice()->getAMPAcc(uiDepth) )
-      {
-        xCheckRDCostInter( rpcBestCU, rpcTempCU, SIZE_2NxnU );   rpcTempCU->initEstData();
-        xCheckRDCostInter( rpcBestCU, rpcTempCU, SIZE_2NxnD );   rpcTempCU->initEstData();
-        xCheckRDCostInter( rpcBestCU, rpcTempCU, SIZE_nLx2N );   rpcTempCU->initEstData();
-        xCheckRDCostInter( rpcBestCU, rpcTempCU, SIZE_nRx2N );   rpcTempCU->initEstData();
-      }
-
-	    PartSize eSize = rpcBestCU->getPartitionSize(0);
-		  PredMode  ePredMode    = rpcBestCU->getPredictionMode( 0 );
-
-#if ROT_TRY_NONZERO_CBP
-      if ( rpcBestCU->getCbf(0,TEXT_LUMA,			0) != 0 ||
-					 rpcBestCU->getCbf(0,TEXT_CHROMA_U, 0) != 0 ||
-					 rpcBestCU->getCbf(0,TEXT_CHROMA_V, 0) != 0 )
-      {
-#endif
-		    if ( ePredMode != MODE_SKIP )
-			  {
-          for ( UChar indexROT = 1; indexROT < ROT_DICT_INTER; indexROT++ )
-					{
-					  rpcTempCU->setROTindex				( 0, indexROT );
-					  rpcTempCU->setROTindexSubParts( indexROT, 0, rpcTempCU->getDepth(0) );
-            xCheckRDCostInter( rpcBestCU, rpcTempCU, eSize );  rpcTempCU->initEstData();
-					}
-			  }
-	      rpcTempCU->setROTindex(0,0);
-        rpcTempCU->setROTindexSubParts( 0, 0, rpcTempCU->getDepth(0) );
-#if ROT_TRY_NONZERO_CBP
-      }
-#endif
+			if( bTryAsym && pcPic->getSlice()->getSPS()->getAMPAcc(uiDepth) )
+			{
+				xCheckRDCostInter		( rpcBestCU, rpcTempCU, SIZE_2NxnU ); rpcTempCU->initEstData();
+				xCheckRDCostInter		( rpcBestCU, rpcTempCU, SIZE_2NxnD ); rpcTempCU->initEstData();
+				xCheckRDCostInter		( rpcBestCU, rpcTempCU, SIZE_nLx2N ); rpcTempCU->initEstData();
+				xCheckRDCostInter		( rpcBestCU, rpcTempCU, SIZE_nRx2N ); rpcTempCU->initEstData();
+			}
     }
 
     // initialize special intra tools
@@ -398,8 +416,11 @@ Void TEncCu::xCompressCU( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, UInt u
     rpcTempCU->setCIPflagSubParts ( 0, 0, rpcTempCU->getDepth(0) );
 
     // do normal intra modes
-    xCheckRDCostIntra( rpcBestCU, rpcTempCU, SIZE_2Nx2N ); rpcTempCU->initEstData();
-    xCheckRDCostIntra( rpcBestCU, rpcTempCU, SIZE_NxN   ); rpcTempCU->initEstData();
+		if ( !bEarlySkip )
+		{
+			xCheckRDCostIntra( rpcBestCU, rpcTempCU, SIZE_2Nx2N ); rpcTempCU->initEstData();
+			xCheckRDCostIntra( rpcBestCU, rpcTempCU, SIZE_NxN   ); rpcTempCU->initEstData();
+		}
 
     PartSize eSize = rpcBestCU->getPartitionSize(0);
 
@@ -424,13 +445,25 @@ Void TEncCu::xCompressCU( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, UInt u
     m_pcEntropyCoder->encodeSplitFlag( rpcBestCU, 0, uiDepth, true );
     rpcBestCU->getTotalBits() += m_pcEntropyCoder->getNumberOfWrittenBits(); // split bits
     rpcBestCU->getTotalCost()  = m_pcRdCost->calcRdCost( rpcBestCU->getTotalBits(), rpcBestCU->getTotalDistortion() );
+
+		// accumulate statistics for early skip
+		if ( m_pcEncCfg->getUseFastEnc() )
+		{
+			if ( rpcBestCU->isSkipped(0) )
+			{
+				Int iIdx = g_aucConvertToBit[ rpcBestCU->getWidth(0) ];
+				afCost[ iIdx ] += rpcBestCU->getTotalCost();
+				aiNum [ iIdx ] ++;
+			}
+		}
   }
   else
   {
     bBoundary = true;
   }
 
-	if( uiDepth < g_uiMaxCUDepth - g_uiAddCUDepth )
+	// further split
+	if( bTrySplit && uiDepth < g_uiMaxCUDepth - g_uiAddCUDepth )
 	{
 		UChar       uhNextDepth         = uiDepth+1;
 		TComDataCU* pcSubBestPartCU     = m_ppcBestCU[uhNextDepth];

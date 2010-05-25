@@ -35,9 +35,9 @@
 
 #include "TDecSbac.h"
 
-//////////////////////////////////////////////////////////////////////
-// Construction/Destruction
-//////////////////////////////////////////////////////////////////////
+// ====================================================================================================================
+// Constructor / destructor / create / destroy
+// ====================================================================================================================
 
 TDecSbac::TDecSbac() :
     // new structure here
@@ -75,6 +75,10 @@ TDecSbac::TDecSbac() :
 TDecSbac::~TDecSbac()
 {
 }
+
+// ====================================================================================================================
+// Public member functions
+// ====================================================================================================================
 
 Void TDecSbac::resetEntropy          (TComSlice* pcSlice)
 {
@@ -116,13 +120,15 @@ Void TDecSbac::resetEntropy          (TComSlice* pcSlice)
   m_uiWord            = 0;
   m_uiBitsLeft        = 0;
 
-  m_uiLastDQpNonZero  = 0;
-
   // new structure
   m_uiLastQp          = iQp;
 }
 
-// CIP
+Void TDecSbac::parseTerminatingBit( UInt& ruiBit )
+{
+  xReadTerminatingBit(ruiBit);
+}
+
 Void TDecSbac::parseCIPflag( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
 {
   UInt uiSymbol;
@@ -136,12 +142,7 @@ Void TDecSbac::parseROTindex  ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDept
 {
   UInt uiSymbol;
   UInt indexROT = 0;
-
-  Int dictSize;
-  if( pcCU->getPredictionMode(uiAbsPartIdx) == MODE_INTRA )
-    dictSize = ROT_DICT;
-  else
-    dictSize = ROT_DICT_INTER;
+  Int	 dictSize	= ROT_DICT;
 
   switch (dictSize)
   {
@@ -193,301 +194,6 @@ Void TDecSbac::parseROTindex  ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDept
     break;
   }
   pcCU->setROTindexSubParts( indexROT, uiAbsPartIdx, uiDepth );
-
-  return;
-}
-
-__inline Void TDecSbac::xReadSymbol( UInt& ruiSymbol, SbacContextModel& rcSCModel )
-{
-	UInt uiRange = m_uiRange;
-	UInt uiValue = m_uiValue;
-	UInt uiLPS;
-	UChar ucNextStateLPS, ucNextStateMPS;
-
-	uiLPS = g_auiStandardProbFsm[rcSCModel.getState()];
-	ucNextStateLPS = uiLPS & 0xFF;
-	uiLPS >>= 8;
-	ucNextStateMPS = uiLPS & 0xFF;
-	uiLPS >>= 8;
-
-	UInt uiRangeIdx = (uiRange>>13)&3;
-
-	uiLPS += ( (uiLPS >> (g_auiShiftParameters[uiRangeIdx][0])) + (uiLPS >> (g_auiShiftParameters[uiRangeIdx][1])) );
-
-	ruiSymbol = rcSCModel.getMps();
-	uiRange -= uiLPS;
-
-	if ( uiValue < uiRange )
-	{
-		if ( uiRange >= 0x8000 )
-		{
-			m_uiRange = uiRange;
-			m_uiValue = uiValue;
-			return;
-		}
-		else
-		{
-			if ( uiRange < uiLPS )
-			{
-				ruiSymbol = 1 - ruiSymbol;
-				rcSCModel.setStateMps(ucNextStateLPS);
-			}
-			else
-			{
-				rcSCModel.setStateMps(ucNextStateMPS);
-			}
-		}
-	}
-	else
-	{
-		uiValue -= uiRange;
-		if ( uiRange < uiLPS )
-		{
-			rcSCModel.setStateMps(ucNextStateMPS);
-		}
-		else
-		{
-			ruiSymbol = 1 - ruiSymbol;
-			rcSCModel.setStateMps(ucNextStateLPS);
-		}
-		uiRange = uiLPS;
-	}
-
-	do
-	{
-		uiRange <<= 1;
-		xReadBit(uiValue);
-	}
-	while ( uiRange < 0x8000 );
-
-	m_uiRange = uiRange;
-	m_uiValue = uiValue;
-}
-
-__inline Void TDecSbac::xReadBit( UInt& ruiValue )
-{
-  if( 0 == m_uiBitsLeft-- )
-  {
-    m_pcBitstream->read( 8, m_uiWord );
-    m_uiBitsLeft = 7;
-  }
-  ruiValue += ruiValue + ((m_uiWord >> 7)&1);
-  m_uiWord <<= 1;
-  ruiValue &= 0xFFFF;
-}
-
-Void TDecSbac::parseTerminatingBit( UInt& ruiBit )
-{
-
-  xReadTerminatingBit (ruiBit);
-}
-
-Void TDecSbac::xReadTerminatingBit( UInt& ruiSymbol )
-{
-  UInt uiRange = m_uiRange - 1;
-  UInt uiValue = m_uiValue;
-
-  if ( uiValue < uiRange ) {
-    ruiSymbol = 0;
-    if ( uiRange >= 0x8000 ) {
-      m_uiRange = uiRange;
-      m_uiValue = uiValue;
-      return;
-    }
-  }
-  else {
-    ruiSymbol = 1;
-    uiValue -= uiRange;
-    uiRange = 1;
-    return;
-  }
-
-  do {
-    uiRange <<= 1;
-    xReadBit(uiValue);
-  } while ( uiRange < 0x8000 );
-
-  m_uiRange = uiRange;
-  m_uiValue = uiValue;
-}
-
-Void TDecSbac::xReadUnaryMaxSymbol( UInt& ruiSymbol, SbacContextModel* pcSCModel, Int iOffset, UInt uiMaxSymbol )
-{
-  xReadSymbol( ruiSymbol, pcSCModel[0] );
-
-  if (ruiSymbol == 0 || uiMaxSymbol == 1)
-  {
-    return;
-  }
-
-  UInt uiSymbol = 0;
-  UInt uiCont;
-
-  do
-  {
-    xReadSymbol( uiCont, pcSCModel[ iOffset ] );
-    uiSymbol++;
-  }
-  while( uiCont && (uiSymbol < uiMaxSymbol-1) );
-
-  if( uiCont && (uiSymbol == uiMaxSymbol-1) )
-  {
-    uiSymbol++;
-  }
-
-  ruiSymbol = uiSymbol;
-}
-
-Void TDecSbac::xReadMvd( Int& riMvdComp, UInt uiAbsSum, UInt uiCtx )
-{
-  UInt uiLocalCtx = 0;
-
-  if( uiAbsSum >= 3)
-  {
-    uiLocalCtx += ( uiAbsSum > 32) ? 2 : 1;
-  }
-
-  riMvdComp = 0;
-
-  UInt uiSymbol;
-  xReadSymbol( uiSymbol, m_cCUMvdSCModel.get( 0, uiCtx, uiLocalCtx ) );
-
-  if (!uiSymbol)
-  {
-    return;
-  }
-
-  xReadExGolombMvd( uiSymbol, &m_cCUMvdSCModel.get( 0, uiCtx, 3 ), 3 );
-  uiSymbol++;
-
-  UInt uiSign;
-  xReadEpSymbol( uiSign );
-
-  riMvdComp = ( 0 != uiSign ) ? -(Int)uiSymbol : (Int)uiSymbol;
-
-  return;
-}
-
-Void TDecSbac::xReadExGolombMvd( UInt& ruiSymbol, SbacContextModel* pcSCModel, UInt uiMaxBin )
-{
-  UInt uiSymbol;
-
-  xReadSymbol( ruiSymbol, pcSCModel[0] );
-
-  if (!ruiSymbol) { return; }
-
-  xReadSymbol( uiSymbol, pcSCModel[1] );
-
-  ruiSymbol = 1;
-
-  if (!uiSymbol)  { return; }
-
-  pcSCModel += 2;
-  UInt uiCount = 2;
-
-  do
-  {
-    if( uiMaxBin == uiCount )
-    {
-      pcSCModel++;
-    }
-    xReadSymbol( uiSymbol, *pcSCModel );
-    uiCount++;
-  }
-  while( uiSymbol && (uiCount != 8));
-
-  ruiSymbol = uiCount-1;
-
-	if( uiSymbol )
-  {
-    xReadEpExGolomb( uiSymbol, 3 );
-    ruiSymbol += uiSymbol+1;
-  }
-
-  return;
-}
-
-Void TDecSbac::xReadEpExGolomb( UInt& ruiSymbol, UInt uiCount )
-{
-  UInt uiSymbol = 0;
-  UInt uiBit = 1;
-
-
-  while( uiBit )
-  {
-    xReadEpSymbol( uiBit );
-    uiSymbol += uiBit << uiCount++;
-  }
-
-  uiCount--;
-	while( uiCount-- )
-  {
-    xReadEpSymbol( uiBit );
-  	uiSymbol += uiBit << uiCount;
-  }
-
-  ruiSymbol = uiSymbol;
-
-  return;
-}
-
-Void TDecSbac::xReadEpSymbol( UInt& ruiSymbol )
-{
-  UInt uiRange = m_uiRange >> 1;
-  UInt uiValue = m_uiValue;
-
-  if ( uiValue < uiRange ) {
-    ruiSymbol = 0;
-  }
-  else {
-    uiValue -= uiRange;
-    ruiSymbol = 1;
-  }
-
-  uiRange <<= 1;
-  xReadBit(uiValue);
-
-  m_uiRange = uiRange;
-  m_uiValue = uiValue;
-}
-
-Void TDecSbac::xReadUnarySymbol( UInt& ruiSymbol, SbacContextModel* pcSCModel, Int iOffset )
-{
-  xReadSymbol( ruiSymbol, pcSCModel[0] );
-
-  if (!ruiSymbol) { return; }
-
-  UInt uiSymbol = 0;
-  UInt uiCont;
-
-  do
-  {
-    xReadSymbol( uiCont, pcSCModel[ iOffset ] );
-    uiSymbol++;
-  }
-  while( uiCont );
-
-  ruiSymbol = uiSymbol;
-}
-
-Void TDecSbac::xReadExGolombLevel( UInt& ruiSymbol, SbacContextModel& rcSCModel  )
-{
-  UInt uiSymbol;
-  UInt uiCount = 0;
-  do
-  {
-    xReadSymbol( uiSymbol, rcSCModel );
-    uiCount++;
-  }
-  while( uiSymbol && (uiCount != 13));
-
-  ruiSymbol = uiCount-1;
-
-	if( uiSymbol )
-  {
-    xReadEpExGolomb( uiSymbol, 0 );
-    ruiSymbol += uiSymbol+1;
-  }
 
   return;
 }
@@ -656,7 +362,7 @@ Void TDecSbac::parsePartSize( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth 
   		}
     }
 
-    if ( pcCU->getSlice()->getAMPAcc( uiDepth ) )
+    if ( pcCU->getSlice()->getSPS()->getAMPAcc( uiDepth ) )
     {
       if (eMode == SIZE_2NxN)
       {
@@ -984,11 +690,6 @@ Void TDecSbac::parseCbf( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eType, UI
   xReadSymbol( uiSymbol , m_cCUCbfSCModel.get( 0, eType == TEXT_LUMA ? 0 : 1, 3 - uiCtx ) );
   pcCU->setCbfSubParts( uiCbf | ( uiSymbol << uiTrDepth ), eType, uiAbsPartIdx, uiDepth );
 
-  if( !uiSymbol )
-  {
-    m_uiLastDQpNonZero = 0;
-  }
-
   return;
 }
 
@@ -1223,4 +924,297 @@ Void TDecSbac::parseAlfSvlc (Int&  riVal)
 	}
 
 	riVal = i*iSign;
+}
+
+// ====================================================================================================================
+// Protected member functions
+// ====================================================================================================================
+
+__inline Void TDecSbac::xReadSymbol( UInt& ruiSymbol, SbacContextModel& rcSCModel )
+{
+	UInt uiRange = m_uiRange;
+	UInt uiValue = m_uiValue;
+	UInt uiLPS;
+	UChar ucNextStateLPS, ucNextStateMPS;
+
+	uiLPS = g_auiStandardProbFsm[rcSCModel.getState()];
+	ucNextStateLPS = uiLPS & 0xFF;
+	uiLPS >>= 8;
+	ucNextStateMPS = uiLPS & 0xFF;
+	uiLPS >>= 8;
+
+	UInt uiRangeIdx = (uiRange>>13)&3;
+
+	uiLPS += ( (uiLPS >> (g_auiShiftParameters[uiRangeIdx][0])) + (uiLPS >> (g_auiShiftParameters[uiRangeIdx][1])) );
+
+	ruiSymbol = rcSCModel.getMps();
+	uiRange -= uiLPS;
+
+	if ( uiValue < uiRange )
+	{
+		if ( uiRange >= 0x8000 )
+		{
+			m_uiRange = uiRange;
+			m_uiValue = uiValue;
+			return;
+		}
+		else
+		{
+			if ( uiRange < uiLPS )
+			{
+				ruiSymbol = 1 - ruiSymbol;
+				rcSCModel.setStateMps(ucNextStateLPS);
+			}
+			else
+			{
+				rcSCModel.setStateMps(ucNextStateMPS);
+			}
+		}
+	}
+	else
+	{
+		uiValue -= uiRange;
+		if ( uiRange < uiLPS )
+		{
+			rcSCModel.setStateMps(ucNextStateMPS);
+		}
+		else
+		{
+			ruiSymbol = 1 - ruiSymbol;
+			rcSCModel.setStateMps(ucNextStateLPS);
+		}
+		uiRange = uiLPS;
+	}
+
+	do
+	{
+		uiRange <<= 1;
+		xReadBit(uiValue);
+	}
+	while ( uiRange < 0x8000 );
+
+	m_uiRange = uiRange;
+	m_uiValue = uiValue;
+}
+
+__inline Void TDecSbac::xReadBit( UInt& ruiValue )
+{
+  if( 0 == m_uiBitsLeft-- )
+  {
+    m_pcBitstream->read( 8, m_uiWord );
+    m_uiBitsLeft = 7;
+  }
+  ruiValue += ruiValue + ((m_uiWord >> 7)&1);
+  m_uiWord <<= 1;
+  ruiValue &= 0xFFFF;
+}
+
+Void TDecSbac::xReadTerminatingBit( UInt& ruiSymbol )
+{
+  UInt uiRange = m_uiRange - 1;
+  UInt uiValue = m_uiValue;
+
+  if ( uiValue < uiRange ) {
+    ruiSymbol = 0;
+    if ( uiRange >= 0x8000 ) {
+      m_uiRange = uiRange;
+      m_uiValue = uiValue;
+      return;
+    }
+  }
+  else {
+    ruiSymbol = 1;
+    uiValue -= uiRange;
+    uiRange = 1;
+    return;
+  }
+
+  do {
+    uiRange <<= 1;
+    xReadBit(uiValue);
+  } while ( uiRange < 0x8000 );
+
+  m_uiRange = uiRange;
+  m_uiValue = uiValue;
+}
+
+Void TDecSbac::xReadUnaryMaxSymbol( UInt& ruiSymbol, SbacContextModel* pcSCModel, Int iOffset, UInt uiMaxSymbol )
+{
+  xReadSymbol( ruiSymbol, pcSCModel[0] );
+
+  if (ruiSymbol == 0 || uiMaxSymbol == 1)
+  {
+    return;
+  }
+
+  UInt uiSymbol = 0;
+  UInt uiCont;
+
+  do
+  {
+    xReadSymbol( uiCont, pcSCModel[ iOffset ] );
+    uiSymbol++;
+  }
+  while( uiCont && (uiSymbol < uiMaxSymbol-1) );
+
+  if( uiCont && (uiSymbol == uiMaxSymbol-1) )
+  {
+    uiSymbol++;
+  }
+
+  ruiSymbol = uiSymbol;
+}
+
+Void TDecSbac::xReadMvd( Int& riMvdComp, UInt uiAbsSum, UInt uiCtx )
+{
+  UInt uiLocalCtx = 0;
+
+  if( uiAbsSum >= 3)
+  {
+    uiLocalCtx += ( uiAbsSum > 32) ? 2 : 1;
+  }
+
+  riMvdComp = 0;
+
+  UInt uiSymbol;
+  xReadSymbol( uiSymbol, m_cCUMvdSCModel.get( 0, uiCtx, uiLocalCtx ) );
+
+  if (!uiSymbol)
+  {
+    return;
+  }
+
+  xReadExGolombMvd( uiSymbol, &m_cCUMvdSCModel.get( 0, uiCtx, 3 ), 3 );
+  uiSymbol++;
+
+  UInt uiSign;
+  xReadEpSymbol( uiSign );
+
+  riMvdComp = ( 0 != uiSign ) ? -(Int)uiSymbol : (Int)uiSymbol;
+
+  return;
+}
+
+Void TDecSbac::xReadExGolombMvd( UInt& ruiSymbol, SbacContextModel* pcSCModel, UInt uiMaxBin )
+{
+  UInt uiSymbol;
+
+  xReadSymbol( ruiSymbol, pcSCModel[0] );
+
+  if (!ruiSymbol) { return; }
+
+  xReadSymbol( uiSymbol, pcSCModel[1] );
+
+  ruiSymbol = 1;
+
+  if (!uiSymbol)  { return; }
+
+  pcSCModel += 2;
+  UInt uiCount = 2;
+
+  do
+  {
+    if( uiMaxBin == uiCount )
+    {
+      pcSCModel++;
+    }
+    xReadSymbol( uiSymbol, *pcSCModel );
+    uiCount++;
+  }
+  while( uiSymbol && (uiCount != 8));
+
+  ruiSymbol = uiCount-1;
+
+	if( uiSymbol )
+  {
+    xReadEpExGolomb( uiSymbol, 3 );
+    ruiSymbol += uiSymbol+1;
+  }
+
+  return;
+}
+
+Void TDecSbac::xReadEpExGolomb( UInt& ruiSymbol, UInt uiCount )
+{
+  UInt uiSymbol = 0;
+  UInt uiBit = 1;
+
+
+  while( uiBit )
+  {
+    xReadEpSymbol( uiBit );
+    uiSymbol += uiBit << uiCount++;
+  }
+
+  uiCount--;
+	while( uiCount-- )
+  {
+    xReadEpSymbol( uiBit );
+  	uiSymbol += uiBit << uiCount;
+  }
+
+  ruiSymbol = uiSymbol;
+
+  return;
+}
+
+Void TDecSbac::xReadEpSymbol( UInt& ruiSymbol )
+{
+  UInt uiRange = m_uiRange >> 1;
+  UInt uiValue = m_uiValue;
+
+  if ( uiValue < uiRange ) {
+    ruiSymbol = 0;
+  }
+  else {
+    uiValue -= uiRange;
+    ruiSymbol = 1;
+  }
+
+  uiRange <<= 1;
+  xReadBit(uiValue);
+
+  m_uiRange = uiRange;
+  m_uiValue = uiValue;
+}
+
+Void TDecSbac::xReadUnarySymbol( UInt& ruiSymbol, SbacContextModel* pcSCModel, Int iOffset )
+{
+  xReadSymbol( ruiSymbol, pcSCModel[0] );
+
+  if (!ruiSymbol) { return; }
+
+  UInt uiSymbol = 0;
+  UInt uiCont;
+
+  do
+  {
+    xReadSymbol( uiCont, pcSCModel[ iOffset ] );
+    uiSymbol++;
+  }
+  while( uiCont );
+
+  ruiSymbol = uiSymbol;
+}
+
+Void TDecSbac::xReadExGolombLevel( UInt& ruiSymbol, SbacContextModel& rcSCModel  )
+{
+  UInt uiSymbol;
+  UInt uiCount = 0;
+  do
+  {
+    xReadSymbol( uiSymbol, rcSCModel );
+    uiCount++;
+  }
+  while( uiSymbol && (uiCount != 13));
+
+  ruiSymbol = uiCount-1;
+
+	if( uiSymbol )
+  {
+    xReadEpExGolomb( uiSymbol, 0 );
+    ruiSymbol += uiSymbol+1;
+  }
+
+  return;
 }

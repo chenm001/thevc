@@ -279,7 +279,7 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
 			}
 
 			// write SliceHeader
-      m_pcEntropyCoder->encodeSliceHeader ( pcSlice                 );
+      m_pcEntropyCoder->encodeSliceHeader ( pcSlice );
 
 			// is it needed?
 			if ( pcSlice->getSymbolMode() )
@@ -299,7 +299,16 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
         ALFParam cAlfParam;
         m_pcAdaptiveLoopFilter->allocALFParam(&cAlfParam);
 
-        m_pcEntropyCoder->setEntropyCoder ( m_pcEncTop->getRDGoOnSbacCoder(), pcPic->getSlice() );
+				// set entropy coder for RD
+				if ( pcSlice->getSymbolMode() )
+				{
+					m_pcEntropyCoder->setEntropyCoder ( m_pcEncTop->getRDGoOnSbacCoder(), pcPic->getSlice() );
+				}
+				else
+				{
+					m_pcEntropyCoder->setEntropyCoder ( m_pcCavlcCoder, pcPic->getSlice() );
+				}
+
         m_pcEntropyCoder->resetEntropy    ();
         m_pcEntropyCoder->setBitstream    ( m_pcBitCounter );
         m_pcAdaptiveLoopFilter->startALFEnc(pcPic, m_pcEntropyCoder);
@@ -310,7 +319,15 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
         m_pcAdaptiveLoopFilter->endALFEnc();
 
         // set entropy coder for writing
-        m_pcEntropyCoder->setEntropyCoder ( m_pcSbacCoder, pcPic->getSlice() );
+				if ( pcSlice->getSymbolMode() )
+				{
+	        m_pcEntropyCoder->setEntropyCoder ( m_pcSbacCoder, pcPic->getSlice() );
+				}
+				else
+				{
+					m_pcEntropyCoder->setEntropyCoder ( m_pcCavlcCoder, pcPic->getSlice() );
+				}
+
         m_pcEntropyCoder->resetEntropy    ();
         m_pcEntropyCoder->setBitstream    ( pcBitstreamOut );
         if (cAlfParam.cu_control_flag)

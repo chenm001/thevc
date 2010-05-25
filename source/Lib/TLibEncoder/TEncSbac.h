@@ -61,37 +61,6 @@ public:
 	TEncSbac();
 	virtual ~TEncSbac();
 
-  //  Virtual list for SBAC/CAVLC
-  Void  resetEntropy          ();
-  Void  setBitstream          ( TComBitIf* p )  { m_pcBitIf = p;                                }
-  Void  setSlice              ( TComSlice* p )  { m_pcSlice = p;                                }
-  Bool getAlfCtrl() {return m_bAlfCtrl;}
-  UInt getMaxAlfCtrlDepth() {return m_uiMaxAlfCtrlDepth;}
-  Void setAlfCtrl(Bool bAlfCtrl) {m_bAlfCtrl = bAlfCtrl;}
-  Void setMaxAlfCtrlDepth(UInt uiMaxAlfCtrlDepth) {m_uiMaxAlfCtrlDepth = uiMaxAlfCtrlDepth;}
-
-
-  // SBAC RD
-  Void  resetCoeffCost        ()                { m_uiCoeffCost = 0;  }
-  UInt  getCoeffCost          ()                { return  m_uiCoeffCost;  }
-
-  Void  load ( TEncSbac* pScr);
-  Void  store( TEncSbac* pDest);
-
-  Void  resetBits             ()                { m_uiCode &= 0x7FFFF; m_uiCodeBits = 11; m_ucPendingByte = 0; m_bIsPendingByte = false; m_uiStackedFFs = 0; m_uiStackedZeros = 0;  m_pcBitIf->resetBits(); }
-  //--SBAC RD
-
-  UInt  getNumberOfWrittenBits()                { return  m_pcBitIf->getNumberOfWrittenBits() + 8 * (m_uiStackedZeros + m_uiStackedFFs) + 8 * (m_bIsPendingByte ? 1 : 0) + 8 - m_uiCodeBits + 3; }
-
-	Void  codeSPS									( TComSPS* pcSPS );
-  Void  codeSliceHeader         ( TComSlice* pcSlice );
-  Void  codeTerminatingBit      ( UInt uilsLast );
-  Void  codeSliceFinish         ();
-
-  Void	codeAlfFlag				( UInt uiCode );
-  Void	codeAlfUvlc				( UInt uiCode );
-  Void	codeAlfSvlc				( Int  uiCode );
-  Void  codeAlfCtrlDepth	();
 private:
   Void  xWriteSymbol         ( UInt uiSymbol, SbacContextModel& rcSCModel );
   Void  xWriteUnarySymbol    ( UInt uiSymbol, SbacContextModel* pcSCModel, Int iOffset );
@@ -115,60 +84,86 @@ private:
 protected:
   TComBitIf*    m_pcBitIf;
   TComSlice*    m_pcSlice;
-  Bool m_bAlfCtrl;
 
-  UInt   m_uiRange;
-  UInt   m_uiCode;
-  UInt   m_uiCodeBits;
-  UInt   m_uiStackedFFs;
-  UInt   m_uiStackedZeros;
-  UChar  m_ucPendingByte;
-  Bool   m_bIsPendingByte;
+	Bool	m_bAlfCtrl;
+  UInt  m_uiRange;
+  UInt  m_uiCode;
+  UInt  m_uiCodeBits;
+  UInt  m_uiStackedFFs;
+  UInt  m_uiStackedZeros;
+  UChar m_ucPendingByte;
+  Bool  m_bIsPendingByte;
 
-  //SBAC RD
-  UInt									m_uiCoeffCost;
-
-  // Adaptive loop filter
-  UInt m_uiMaxAlfCtrlDepth;
-  //--Adaptive loop filter
+  UInt	m_uiCoeffCost;
+  UInt	m_uiMaxAlfCtrlDepth;
 
 public:
-  Void codeAlfCtrlFlag	 ( TComDataCU* pcCU, UInt uiAbsPartIdx );
-  Void codeSkipFlag      ( TComDataCU* pcCU, UInt uiAbsPartIdx );
-  Void codeSplitFlag     ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
+  Void  resetEntropy						();
+  Void  setBitstream						( TComBitIf* p )  { m_pcBitIf = p; }
+  Void  setSlice								( TComSlice* p )  { m_pcSlice = p; }
 
-  Void codeMVPIdx ( TComDataCU* pcCU, UInt uiAbsPartIdx, RefPicList eRefList );
+  Void  resetCoeffCost					()	{ m_uiCoeffCost = 0;			}
+  UInt  getCoeffCost						()  { return  m_uiCoeffCost;  }
 
-  Void codePartSize      ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
-  Void codePredMode      ( TComDataCU* pcCU, UInt uiAbsPartIdx );
+  Bool	getAlfCtrl							() { return m_bAlfCtrl; }
+  UInt	getMaxAlfCtrlDepth			() { return m_uiMaxAlfCtrlDepth; }
+  Void	setAlfCtrl							(	Bool bAlfCtrl ) { m_bAlfCtrl = bAlfCtrl; }
+  Void	setMaxAlfCtrlDepth			( UInt uiMaxAlfCtrlDepth ) { m_uiMaxAlfCtrlDepth = uiMaxAlfCtrlDepth; }
 
-  Void codeTransformIdx  ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
-  Void codeIntraDirLuma  ( TComDataCU* pcCU, UInt uiAbsPartIdx );
+	// -------------------------------------------------------------------------------------------------------------------
+	// for syntax writing
+	// -------------------------------------------------------------------------------------------------------------------
 
-  Void codeIntraDirLumaAdi( TComDataCU* pcCU, UInt uiAbsPartIdx );
+	Void  codeSPS									( TComSPS* pcSPS );
+  Void  codeSliceHeader         ( TComSlice* pcSlice );
+  Void  codeTerminatingBit      ( UInt uilsLast );
+  Void  codeSliceFinish         ();
 
-  Void codeIntraDirChroma( TComDataCU* pcCU, UInt uiAbsPartIdx );
-  Void codeInterDir      ( TComDataCU* pcCU, UInt uiAbsPartIdx );
-  Void codeRefFrmIdx     ( TComDataCU* pcCU, UInt uiAbsPartIdx, RefPicList eRefList );
-  Void codeMvd           ( TComDataCU* pcCU, UInt uiAbsPartIdx, RefPicList eRefList );
+  Void	codeAlfFlag							( UInt uiCode );
+  Void	codeAlfUvlc							( UInt uiCode );
+  Void	codeAlfSvlc							( Int  uiCode );
+  Void  codeAlfCtrlDepth				();
 
-  Void codeDeltaQP       ( TComDataCU* pcCU, UInt uiAbsPartIdx );
-  Void codeCbf           ( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eType, UInt uiTrDepth );
-  Void codeCoeffNxN      ( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx, UInt uiWidth, UInt uiHeight, UInt uiDepth, TextType eTType, Bool bRD = false );
+  Void	codeAlfCtrlFlag					( TComDataCU* pcCU, UInt uiAbsPartIdx );
+  Void	codeSkipFlag						( TComDataCU* pcCU, UInt uiAbsPartIdx );
+  Void	codeSplitFlag						( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
 
-  Void codeROTindex( TComDataCU* pcCU, UInt uiAbsPartIdx, Bool bRD );
-  Void codeCIPflag ( TComDataCU* pcCU, UInt uiAbsPartIdx, Bool bRD );
+  Void	codeMVPIdx							( TComDataCU* pcCU, UInt uiAbsPartIdx, RefPicList eRefList );
 
-  Void estBit                        ( estBitsSbacStruct* pcEstBitsSbac, UInt uiCTXIdx, TextType eTType );
-  Void estCBFBit                     ( estBitsSbacStruct* pcEstBitsSbac, UInt uiCTXIdx, TextType eTType );
-  Void estSignificantMapBit          ( estBitsSbacStruct* pcEstBitsSbac, UInt uiCTXIdx, TextType eTType );
-  Void estSignificantCoefficientsBit ( estBitsSbacStruct* pcEstBitsSbac, UInt uiCTXIdx, TextType eTType );
+  Void	codePartSize						( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
+  Void	codePredMode						( TComDataCU* pcCU, UInt uiAbsPartIdx );
 
-	__inline Int  biari_no_bits        ( Short symbol, SbacContextModel& rcSCModel );
-  Int  biari_state									 ( Short symbol, SbacContextModel& rcSCModel );
+  Void	codeTransformIdx				( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
+  Void	codeIntraDirLumaAdi			( TComDataCU* pcCU, UInt uiAbsPartIdx );
+
+  Void	codeIntraDirChroma			( TComDataCU* pcCU, UInt uiAbsPartIdx );
+  Void	codeInterDir						( TComDataCU* pcCU, UInt uiAbsPartIdx );
+  Void	codeRefFrmIdx						( TComDataCU* pcCU, UInt uiAbsPartIdx, RefPicList eRefList );
+  Void	codeMvd									( TComDataCU* pcCU, UInt uiAbsPartIdx, RefPicList eRefList );
+
+  Void	codeDeltaQP							( TComDataCU* pcCU, UInt uiAbsPartIdx );
+  Void	codeCbf									( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eType, UInt uiTrDepth );
+  Void	codeCoeffNxN						( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx, UInt uiWidth, UInt uiHeight, UInt uiDepth, TextType eTType, Bool bRD = false );
+
+  Void	codeROTindex						( TComDataCU* pcCU, UInt uiAbsPartIdx, Bool bRD );
+  Void	codeCIPflag							( TComDataCU* pcCU, UInt uiAbsPartIdx, Bool bRD );
+
+	// -------------------------------------------------------------------------------------------------------------------
+	// for RD-optimizatioon
+	// -------------------------------------------------------------------------------------------------------------------
+
+  Void  load													( TEncSbac* pScr);
+  Void  store													( TEncSbac* pDest);
+  Void  resetBits											() { m_uiCode &= 0x7FFFF; m_uiCodeBits = 11; m_ucPendingByte = 0; m_bIsPendingByte = false; m_uiStackedFFs = 0; m_uiStackedZeros = 0;  m_pcBitIf->resetBits(); }
+  UInt  getNumberOfWrittenBits				() { return  m_pcBitIf->getNumberOfWrittenBits() + 8 * (m_uiStackedZeros + m_uiStackedFFs) + 8 * (m_bIsPendingByte ? 1 : 0) + 8 - m_uiCodeBits + 3; }
+  Void	estBit                        ( estBitsSbacStruct* pcEstBitsSbac, UInt uiCTXIdx, TextType eTType );
+  Void	estCBFBit                     ( estBitsSbacStruct* pcEstBitsSbac, UInt uiCTXIdx, TextType eTType );
+  Void	estSignificantMapBit          ( estBitsSbacStruct* pcEstBitsSbac, UInt uiCTXIdx, TextType eTType );
+  Void	estSignificantCoefficientsBit ( estBitsSbacStruct* pcEstBitsSbac, UInt uiCTXIdx, TextType eTType );
+	__inline Int  biari_no_bits					( Short symbol, SbacContextModel& rcSCModel );
+  Int  biari_state										( Short symbol, SbacContextModel& rcSCModel );
 
 private:
-  UInt m_uiLastDQpNonZero;
   UInt m_uiLastQp;
   SbacContextModel3DBuffer m_cCUSplitFlagSCModel;
 

@@ -185,17 +185,19 @@ public:
 
   Void invRecurTransformNxN	( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eTxt, Pel*& rpcResidual, UInt uiAddr,		UInt uiStride, UInt uiWidth, UInt uiHeight,
 															UInt uiMaxTrMode,  UInt uiTrMode, TCoeff* rpcCoeff, Int indexROT = 0);
-public:
-  Void setQPforQuant( Int iQP, Bool bLowpass, SliceType eSliceType, TextType eTxtType);
 
-  Void RotTransform4I     ( Long* matrix, UChar index		);
-  Void InvRotTransform4I  ( Long* matrix, UChar index		);
-  Void RotTransformLI2    ( Long* matrix, UChar index		);
-  Void InvRotTransformLI2 ( Long* matrix, UChar index		);
+	// ROT functions
+  Void RotTransform4I				( Long* matrix, UChar index );
+  Void InvRotTransform4I    ( Long* matrix, UChar index );
+	Void RotTransformLI2			( Long* matrix, UChar index, UInt uiWidth );
+  Void InvRotTransformLI2   ( Long* matrix, UChar index );
 
-  Void precalculateUnaryExpGolombLevel();
+	// Misc functions
+	Void setQPforQuant( Int iQP, Bool bLowpass, SliceType eSliceType, TextType eTxtType);
   Void setLambda(Double dLambda) { m_dLambda = dLambda;}
+  Void precalculateUnaryExpGolombLevel();
 
+	// for RDOQ
   estBitsSbacStruct* m_pcEstBitsSbac;
   Int m_aiPrecalcUnaryLevelTab[128][RDOQ_MAX_PREC_COEFF];
 

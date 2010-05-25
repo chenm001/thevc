@@ -240,6 +240,9 @@ Void TComRdCost::setDistParam( UInt uiBlkWidth, UInt uiBlkHeight, DFunc eDFunc, 
   rcDistParam.iCols    = uiBlkWidth;
   rcDistParam.iRows    = uiBlkHeight;
   rcDistParam.DistFunc = m_afpDistortFunc[eDFunc + g_aucConvertToBit[ rcDistParam.iCols ] + 1 ];
+
+	// initialize
+	rcDistParam.iSubShift	= 0;
 }
 
 // Setting the Distortion Parameter for Inter (ME)
@@ -256,6 +259,9 @@ Void TComRdCost::setDistParam( TComPattern* pcPatternKey, Pel* piRefY, Int iRefS
   rcDistParam.iCols    = pcPatternKey->getROIYWidth();
   rcDistParam.iRows    = pcPatternKey->getROIYHeight();
  	rcDistParam.DistFunc = m_afpDistortFunc[DF_SAD + g_aucConvertToBit[ rcDistParam.iCols ] + 1 ];
+
+	// initialize
+	rcDistParam.iSubShift	= 0;
 }
 
 // Setting the Distortion Parameter for Inter (subpel ME with step)
@@ -284,6 +290,9 @@ Void TComRdCost::setDistParam( TComPattern* pcPatternKey, Pel* piRefY, Int iRefS
 	{
  		rcDistParam.DistFunc = m_afpDistortFunc[DF_HADS + g_aucConvertToBit[ rcDistParam.iCols ] + 1 ];
 	}
+
+	// initialize
+	rcDistParam.iSubShift	= 0;
 }
 
 UInt TComRdCost::calcHAD( Pel* pi0, Int iStride0, Pel* pi1, Int iStride1, Int iWidth, Int iHeight )
@@ -379,12 +388,14 @@ UInt TComRdCost::xGetSAD4( DistParam* pcDtParam )
   Pel* piOrg   = pcDtParam->pOrg;
   Pel* piCur   = pcDtParam->pCur;
   Int  iRows   = pcDtParam->iRows;
-  Int  iStrideCur = pcDtParam->iStrideCur;
-  Int  iStrideOrg = pcDtParam->iStrideOrg;
+	Int	 iSubShift  = pcDtParam->iSubShift;
+	Int  iSubStep   = ( 1 << iSubShift );
+  Int  iStrideCur = pcDtParam->iStrideCur*iSubStep;
+  Int  iStrideOrg = pcDtParam->iStrideOrg*iSubStep;
 
 	UInt uiSum = 0;
 
-  for( ; iRows != 0; iRows-- )
+  for( ; iRows != 0; iRows-=iSubStep )
   {
     uiSum += abs( piOrg[0] - piCur[0] );
     uiSum += abs( piOrg[1] - piCur[1] );
@@ -394,7 +405,8 @@ UInt TComRdCost::xGetSAD4( DistParam* pcDtParam )
     piOrg += iStrideOrg;
     piCur += iStrideCur;
   }
-
+	
+	uiSum <<= iSubShift;
 	return ( uiSum >> g_uiBitIncrement );
 }
 
@@ -403,12 +415,14 @@ UInt TComRdCost::xGetSAD8( DistParam* pcDtParam )
   Pel* piOrg      = pcDtParam->pOrg;
   Pel* piCur      = pcDtParam->pCur;
   Int  iRows      = pcDtParam->iRows;
-  Int  iStrideCur = pcDtParam->iStrideCur;
-  Int  iStrideOrg = pcDtParam->iStrideOrg;
+	Int	 iSubShift  = pcDtParam->iSubShift;
+	Int  iSubStep   = ( 1 << iSubShift );
+  Int  iStrideCur = pcDtParam->iStrideCur*iSubStep;
+  Int  iStrideOrg = pcDtParam->iStrideOrg*iSubStep;
 
   UInt uiSum = 0;
 
-  for( ; iRows != 0; iRows-- )
+  for( ; iRows != 0; iRows-=iSubStep )
   {
     uiSum += abs( piOrg[0] - piCur[0] );
     uiSum += abs( piOrg[1] - piCur[1] );
@@ -423,21 +437,23 @@ UInt TComRdCost::xGetSAD8( DistParam* pcDtParam )
     piCur += iStrideCur;
   }
 
+	uiSum <<= iSubShift;
 	return ( uiSum >> g_uiBitIncrement );
 }
 
 UInt TComRdCost::xGetSAD16( DistParam* pcDtParam )
 {
-  Pel* piOrg   = pcDtParam->pOrg;
-  Pel* piCur   = pcDtParam->pCur;
-  Int  iRows   = pcDtParam->iRows;
-
-  Int  iStrideCur = pcDtParam->iStrideCur;
-  Int  iStrideOrg = pcDtParam->iStrideOrg;
+  Pel* piOrg			= pcDtParam->pOrg;
+  Pel* piCur			= pcDtParam->pCur;
+  Int  iRows			= pcDtParam->iRows;
+	Int	 iSubShift  = pcDtParam->iSubShift;
+	Int  iSubStep   = ( 1 << iSubShift );
+  Int  iStrideCur = pcDtParam->iStrideCur*iSubStep;
+  Int  iStrideOrg = pcDtParam->iStrideOrg*iSubStep;
 
   UInt uiSum = 0;
 
-  for( ; iRows != 0; iRows-- )
+  for( ; iRows != 0; iRows-=iSubStep )
   {
     uiSum += abs( piOrg[0] - piCur[0] );
     uiSum += abs( piOrg[1] - piCur[1] );
@@ -460,6 +476,7 @@ UInt TComRdCost::xGetSAD16( DistParam* pcDtParam )
     piCur += iStrideCur;
   }
 
+	uiSum <<= iSubShift;
 	return ( uiSum >> g_uiBitIncrement );
 }
 
@@ -469,12 +486,14 @@ UInt TComRdCost::xGetSAD16N( DistParam* pcDtParam )
   Pel* piCur   = pcDtParam->pCur;
   Int  iRows   = pcDtParam->iRows;
   Int  iCols   = pcDtParam->iCols;
-  Int  iStrideCur = pcDtParam->iStrideCur;
-  Int  iStrideOrg = pcDtParam->iStrideOrg;
+	Int	 iSubShift  = pcDtParam->iSubShift;
+	Int  iSubStep   = ( 1 << iSubShift );
+  Int  iStrideCur = pcDtParam->iStrideCur*iSubStep;
+  Int  iStrideOrg = pcDtParam->iStrideOrg*iSubStep;
 
   UInt uiSum = 0;
 
-  for( ; iRows != 0; iRows-- )
+  for( ; iRows != 0; iRows-=iSubStep )
   {
     for (Int n = 0; n < iCols; n+=16 )
     {
@@ -499,6 +518,7 @@ UInt TComRdCost::xGetSAD16N( DistParam* pcDtParam )
     piCur += iStrideCur;
   }
 
+	uiSum <<= iSubShift;
 	return ( uiSum >> g_uiBitIncrement );
 }
 
@@ -507,13 +527,14 @@ UInt TComRdCost::xGetSAD32( DistParam* pcDtParam )
   Pel* piOrg   = pcDtParam->pOrg;
   Pel* piCur   = pcDtParam->pCur;
   Int  iRows   = pcDtParam->iRows;
-
-  Int  iStrideCur = pcDtParam->iStrideCur;
-  Int  iStrideOrg = pcDtParam->iStrideOrg;
+	Int	 iSubShift  = pcDtParam->iSubShift;
+	Int  iSubStep   = ( 1 << iSubShift );
+  Int  iStrideCur = pcDtParam->iStrideCur*iSubStep;
+  Int  iStrideOrg = pcDtParam->iStrideOrg*iSubStep;
 
   UInt uiSum = 0;
 
-  for( ; iRows != 0; iRows-- )
+  for( ; iRows != 0; iRows-=iSubStep )
   {
     uiSum += abs( piOrg[0] - piCur[0] );
     uiSum += abs( piOrg[1] - piCur[1] );
@@ -552,6 +573,7 @@ UInt TComRdCost::xGetSAD32( DistParam* pcDtParam )
     piCur += iStrideCur;
   }
 
+	uiSum <<= iSubShift;
 	return ( uiSum >> g_uiBitIncrement );
 }
 
@@ -560,12 +582,14 @@ UInt TComRdCost::xGetSAD64( DistParam* pcDtParam )
   Pel* piOrg   = pcDtParam->pOrg;
   Pel* piCur   = pcDtParam->pCur;
   Int  iRows   = pcDtParam->iRows;
-  Int  iStrideCur = pcDtParam->iStrideCur;
-  Int  iStrideOrg = pcDtParam->iStrideOrg;
+	Int	 iSubShift  = pcDtParam->iSubShift;
+	Int  iSubStep   = ( 1 << iSubShift );
+  Int  iStrideCur = pcDtParam->iStrideCur*iSubStep;
+  Int  iStrideOrg = pcDtParam->iStrideOrg*iSubStep;
 
   UInt uiSum = 0;
 
-  for( ; iRows != 0; iRows-- )
+  for( ; iRows != 0; iRows-=iSubStep )
   {
     uiSum += abs( piOrg[0] - piCur[0] );
     uiSum += abs( piOrg[1] - piCur[1] );
@@ -636,6 +660,7 @@ UInt TComRdCost::xGetSAD64( DistParam* pcDtParam )
     piCur += iStrideCur;
   }
 
+	uiSum <<= iSubShift;
 	return ( uiSum >> g_uiBitIncrement );
 }
 

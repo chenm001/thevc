@@ -110,6 +110,7 @@ Void TAppEncTop::xInitLibCfg()
 	m_cTEncTop.setUseNRF                       ( m_bUseNRF      );
 	m_cTEncTop.setUseBQP                       ( m_bUseBQP      );
 	m_cTEncTop.setDIFTap                       ( m_iDIFTap      );
+	m_cTEncTop.setUseFastEnc                   ( m_bUseFastEnc  );
 }
 
 Void TAppEncTop::xCreateLib()
@@ -153,7 +154,7 @@ Void TAppEncTop::xInitLib()
  */
 Void TAppEncTop::encode()
 {
-  TComPicYuv*       pcPicYuvOrg = NULL;
+  TComPicYuv*       pcPicYuvOrg = new TComPicYuv;
   TComPicYuv*       pcPicYuvRec = NULL;
   TComBitstream*    pcBitstream = NULL;
 
@@ -166,10 +167,13 @@ Void TAppEncTop::encode()
   Int   iNumEncoded = 0;
   Bool  bEos = false;
 
+	// allocate original YUV buffer
+  pcPicYuvOrg->create( m_iSourceWidth, m_iSourceHeight, m_uiMaxCUWidth, m_uiMaxCUHeight, m_uiMaxCUDepth );
+
 	while ( !bEos )
   {
 		// get buffers
-    xGetBuffer( pcPicYuvOrg, pcPicYuvRec, pcBitstream );
+    xGetBuffer( pcPicYuvRec, pcBitstream );
 
 		// read input YUV file
     m_cTVideoIOYuvInputFile.read( pcPicYuvOrg, m_aiPad );
@@ -191,6 +195,11 @@ Void TAppEncTop::encode()
 		}
   }
 
+	// delete original YUV buffer
+  pcPicYuvOrg->destroy();
+  delete pcPicYuvOrg;
+  pcPicYuvOrg = NULL;
+
 	// delete used buffers in encoder class
   m_cTEncTop.deletePicBuffer();
 
@@ -211,32 +220,25 @@ Void TAppEncTop::encode()
     - end of the list has the latest picture
 		.
  */
-Void TAppEncTop::xGetBuffer( TComPicYuv*& rpcPicYuvOrg, TComPicYuv*& rpcPicYuvRec, TComBitstream*& rpcBitStream )
+Void TAppEncTop::xGetBuffer( TComPicYuv*& rpcPicYuvRec, TComBitstream*& rpcBitStream )
 {
-  assert ( m_cListPicYuvOrg.size() == m_cListPicYuvRec.size() );
-
   if ( m_iGOPSize == 0 )
   {
-    if (m_cListPicYuvOrg.size() == 0)
+    if (m_cListPicYuvRec.size() == 0)
     {
-      rpcPicYuvOrg = new TComPicYuv;
       rpcPicYuvRec = new TComPicYuv;
       rpcBitStream = new TComBitstream;
 
-      rpcPicYuvOrg->create( m_iSourceWidth, m_iSourceHeight, m_uiMaxCUWidth, m_uiMaxCUHeight, m_uiMaxCUDepth );
       rpcPicYuvRec->create( m_iSourceWidth, m_iSourceHeight, m_uiMaxCUWidth, m_uiMaxCUHeight, m_uiMaxCUDepth );
       rpcBitStream->create( (m_iSourceWidth * m_iSourceHeight * 3) >> 1 );
 
-      m_cListPicYuvOrg.pushBack( rpcPicYuvOrg );
       m_cListPicYuvRec.pushBack( rpcPicYuvRec );
       m_cListBitstream.pushBack( rpcBitStream );
     }
 
-    rpcPicYuvOrg = m_cListPicYuvOrg.popFront();
     rpcPicYuvRec = m_cListPicYuvRec.popFront();
     rpcBitStream = m_cListBitstream.popFront();
 
-    m_cListPicYuvOrg.pushBack( rpcPicYuvOrg );
     m_cListPicYuvRec.pushBack( rpcPicYuvRec );
     m_cListBitstream.pushBack( rpcBitStream );
 
@@ -244,9 +246,8 @@ Void TAppEncTop::xGetBuffer( TComPicYuv*& rpcPicYuvOrg, TComPicYuv*& rpcPicYuvRe
   }
 
   // org. buffer
-  if ( m_cListPicYuvOrg.size() == (UInt)m_iGOPSize )
+  if ( m_cListPicYuvRec.size() == (UInt)m_iGOPSize )
   {
-    rpcPicYuvOrg = m_cListPicYuvOrg.popFront();
     rpcPicYuvRec = m_cListPicYuvRec.popFront();
     rpcBitStream = m_cListBitstream.popFront();
 
@@ -254,38 +255,31 @@ Void TAppEncTop::xGetBuffer( TComPicYuv*& rpcPicYuvOrg, TComPicYuv*& rpcPicYuvRe
   }
   else
   {
-    rpcPicYuvOrg = new TComPicYuv;
     rpcPicYuvRec = new TComPicYuv;
     rpcBitStream = new TComBitstream;
 
-    rpcPicYuvOrg->create( m_iSourceWidth, m_iSourceHeight, m_uiMaxCUWidth, m_uiMaxCUHeight, m_uiMaxCUDepth );
     rpcPicYuvRec->create( m_iSourceWidth, m_iSourceHeight, m_uiMaxCUWidth, m_uiMaxCUHeight, m_uiMaxCUDepth );
     rpcBitStream->create( (m_iSourceWidth * m_iSourceHeight * 3) >> 1 );
   }
-  m_cListPicYuvOrg.pushBack( rpcPicYuvOrg );
   m_cListPicYuvRec.pushBack( rpcPicYuvRec );
   m_cListBitstream.pushBack( rpcBitStream );
 }
 
 Void TAppEncTop::xDeleteBuffer( )
 {
-  TComList<TComPicYuv*>::iterator iterPicYuvOrg  = m_cListPicYuvOrg.begin();
   TComList<TComPicYuv*>::iterator iterPicYuvRec  = m_cListPicYuvRec.begin();
   TComList<TComBitstream*>::iterator iterBitstream = m_cListBitstream.begin();
 
-  Int iSize = m_cListPicYuvOrg.size();
+  Int iSize = m_cListPicYuvRec.size();
 
   for ( Int i = 0; i < iSize; i++ )
   {
-    TComPicYuv*  pcPicYuvOrg  = *(iterPicYuvOrg++);
     TComPicYuv*  pcPicYuvRec  = *(iterPicYuvRec++);
     TComBitstream* pcBitstream = *(iterBitstream++);
 
-    pcPicYuvOrg->destroy();
     pcPicYuvRec->destroy();
     pcBitstream->destroy();
 
-    delete pcPicYuvOrg; pcPicYuvOrg = NULL;
     delete pcPicYuvRec; pcPicYuvRec = NULL;
     delete pcBitstream; pcBitstream = NULL;
   }

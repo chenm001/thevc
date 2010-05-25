@@ -53,56 +53,12 @@ class TEncTop;
 /// CAVLC encoder class
 class TEncCavlc : public TEncEntropyIf
 {
+private:
+	Bool m_bAdaptFlag;
+
 public:
   TEncCavlc();
   virtual ~TEncCavlc();
-
-  //  Virtual list for SBAC/CAVLC
-  Void  resetEntropy          ();
-  Void  setBitstream          ( TComBitIf* p )  { m_pcBitIf = p;  }
-  Void  setSlice              ( TComSlice* p )  { m_pcSlice = p;  }
-  Bool getAlfCtrl() {return m_bAlfCtrl;}
-  UInt getMaxAlfCtrlDepth() {return m_uiMaxAlfCtrlDepth;}
-  Void setAlfCtrl(Bool bAlfCtrl) {m_bAlfCtrl = bAlfCtrl;}
-  Void setMaxAlfCtrlDepth(UInt uiMaxAlfCtrlDepth) {m_uiMaxAlfCtrlDepth = uiMaxAlfCtrlDepth;}
-  Void  resetBits             ()                { m_pcBitIf->resetBits(); }
-  Void  resetCoeffCost        ()                { m_uiCoeffCost = 0;  }
-  UInt  getNumberOfWrittenBits()                { return  m_pcBitIf->getNumberOfWrittenBits();  }
-  UInt  getCoeffCost          ()                { return  m_uiCoeffCost;  }
-
-	Void  codeSPS									( TComSPS* pcSPS );
-  Void  codeSliceHeader         ( TComSlice* pcSlice );
-
-  Void  codeTerminatingBit      ( UInt uilsLast );
-  Void  codeSliceFinish         ();
-
-  Void codeMVPIdx ( TComDataCU* pcCU, UInt uiAbsPartIdx, RefPicList eRefList );
-
-  Void codeAlfFlag       ( UInt uiCode );
-  Void codeAlfUvlc       ( UInt uiCode );
-  Void codeAlfSvlc       ( Int   iCode );
-  Void codeAlfCtrlDepth();
-protected:
-  Void  xCheckCoeff( TCoeff* pcCoef, UInt uiSize, UInt uiDepth, UInt& uiNumofCoeff, UInt& uiPart );
-
-  Void  xWriteCode      ( UInt uiCode, UInt uiLength );
-  Void  xWriteUvlc      ( UInt uiCode );
-  Void  xWriteSvlc      ( Int iCode );
-  Void  xWriteFlag      ( UInt uiCode );
-
-  UInt  xConvertToUInt        ( Int iValue )    {  return ( iValue <= 0) ? -iValue<<1 : (iValue<<1)-1; }
-
-  Void  xWriteTrailingOnes4   ( UInt uiCoeffCount, UInt uiTrailingOnes );
-  Void  xWriteTrailingOnes16  ( UInt uiLastCoeffCount, UInt uiCoeffCount, UInt uiTrailingOnes );
-  Void  xWriteRunLevel        ( Int* aiLevelRun, UInt uiCoeffCnt, UInt uiTrailingOnes, UInt uiMaxCoeffs, UInt uiTotalRun );
-  Void  xWriteLevelVLC0       ( Int iLevel );
-  Void  xWriteLevelVLCN       ( Int iLevel, UInt uiVlcLength );
-  Void  xWriteTotalRun4       ( UInt uiVlcPos, UInt uiTotalRun );
-  Void  xWriteTotalRun16      ( UInt uiVlcPos, UInt uiTotalRun );
-  Void  xWriteRun             ( UInt uiVlcPos, UInt uiRun  );
-
-  Void	xWriteExGolombLevel   (UInt uiLevel);
-  Void	xWriteEpExGolomb      (UInt uiLevel, UInt uiCount );
 
 protected:
   TComBitIf*    m_pcBitIf;
@@ -110,35 +66,82 @@ protected:
   UInt          m_uiCoeffCost;
   Bool          m_bRunLengthCoding;
   UInt          m_uiRun;
-  Bool m_bAlfCtrl;
-  UInt m_uiMaxAlfCtrlDepth;
+  Bool					m_bAlfCtrl;
+  UInt					m_uiMaxAlfCtrlDepth;
+  UInt          m_uiLPTableE4[3][32];
+  UInt          m_uiLPTableD4[3][32];
+  UInt          m_uiLPTableE8[10][128];
+  UInt          m_uiLPTableD8[10][128];
+  UInt          m_uiLastPosVlcIndex[10];
+
+  Void  xCheckCoeff( TCoeff* pcCoef, UInt uiSize, UInt uiDepth, UInt& uiNumofCoeff, UInt& uiPart );
+
+  Void  xWriteCode						( UInt uiCode, UInt uiLength );
+  Void  xWriteUvlc						( UInt uiCode );
+  Void  xWriteSvlc						( Int iCode   );
+  Void  xWriteFlag						( UInt uiCode );
+	Void  xWriteEpExGolomb			( UInt uiSymbol, UInt uiCount );
+	Void  xWriteExGolombLevel		( UInt uiSymbol );
+	Void  xWriteUnaryMaxSymbol	( UInt uiSymbol, UInt uiMaxSymbol );
+
+	UInt	xLeadingZeros         ( UInt uiCode );
+  Void	xWriteVlc             ( UInt uiTableNumber, UInt uiCodeNumber );
+  Void	xCodeCoeff4x4					( TCoeff* scoeff, Int iTableNumber );
+  Void	xCodeCoeff8x8					( TCoeff* scoeff, Int iTableNumber );
+
+  UInt  xConvertToUInt				( Int iValue ) {  return ( iValue <= 0) ? -iValue<<1 : (iValue<<1)-1; }
 
 public:
-  Void codeSkipFlag      ( TComDataCU* pcCU, UInt uiAbsPartIdx );
-  Void codeAlfCtrlFlag	   ( TComDataCU* pcCU, UInt uiAbsPartIdx );
-  Void codeSplitFlag     ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
 
-  Void codePartSize      ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
-  Void codePredMode      ( TComDataCU* pcCU, UInt uiAbsPartIdx );
+  Void  resetEntropy          ();
+  Void  setBitstream          ( TComBitIf* p )						{ m_pcBitIf = p;																}
+  Void  setSlice              ( TComSlice* p )						{ m_pcSlice = p;																}
+  Bool	getAlfCtrl						()													{ return m_bAlfCtrl;														}
+  UInt	getMaxAlfCtrlDepth		()													{ return m_uiMaxAlfCtrlDepth;										}
+  Void	setAlfCtrl						( Bool bAlfCtrl )						{ m_bAlfCtrl = bAlfCtrl;												}
+  Void	setMaxAlfCtrlDepth		( UInt uiMaxAlfCtrlDepth )	{ m_uiMaxAlfCtrlDepth = uiMaxAlfCtrlDepth;			}
+  Void  resetBits             ()													{ m_pcBitIf->resetBits();												}
+  Void  resetCoeffCost        ()													{ m_uiCoeffCost = 0;														}
+  UInt  getNumberOfWrittenBits()													{ return  m_pcBitIf->getNumberOfWrittenBits();  }
+  UInt  getCoeffCost          ()													{ return  m_uiCoeffCost;												}
 
-  Void codeTransformIdx  ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
-  Void codeIntraDirLuma  ( TComDataCU* pcCU, UInt uiAbsPartIdx );
+	Void  codeSPS								( TComSPS* pcSPS			);
+  Void  codeSliceHeader       ( TComSlice* pcSlice	);
+  Void  codeTerminatingBit    ( UInt uilsLast				);
+  Void  codeSliceFinish       ();
 
-  Void codeIntraDirLumaAdi( TComDataCU* pcCU, UInt uiAbsPartIdx );
+  Void	codeMVPIdx						( TComDataCU* pcCU, UInt uiAbsPartIdx, RefPicList eRefList );
+  Void	codeAlfFlag						( UInt uiCode );
+  Void	codeAlfUvlc						( UInt uiCode );
+  Void	codeAlfSvlc						( Int   iCode );
+  Void	codeAlfCtrlDepth			();
 
-  Void codeIntraDirChroma( TComDataCU* pcCU, UInt uiAbsPartIdx );
-  Void codeInterDir      ( TComDataCU* pcCU, UInt uiAbsPartIdx );
-  Void codeRefFrmIdx     ( TComDataCU* pcCU, UInt uiAbsPartIdx, RefPicList eRefList );
-  Void codeMvd           ( TComDataCU* pcCU, UInt uiAbsPartIdx, RefPicList eRefList );
+  Void	codeSkipFlag					( TComDataCU* pcCU, UInt uiAbsPartIdx );
+  Void	codeAlfCtrlFlag				( TComDataCU* pcCU, UInt uiAbsPartIdx );
+  Void	codeSplitFlag					( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
 
-  Void codeDeltaQP       ( TComDataCU* pcCU, UInt uiAbsPartIdx );
-  Void codeCbf           ( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eType, UInt uiTrDepth );
-  Void codeCoeffNxN      ( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx, UInt uiWidth, UInt uiHeight, UInt uiDepth, TextType eTType, Bool bRD = false );
+  Void	codePartSize					( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
+  Void	codePredMode					( TComDataCU* pcCU, UInt uiAbsPartIdx );
 
-  Void codeROTindex( TComDataCU* pcCU, UInt uiAbsPartIdx, Bool bRD );
-  Void codeCIPflag ( TComDataCU* pcCU, UInt uiAbsPartIdx, Bool bRD );
+  Void	codeTransformIdx			( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
+  Void	codeIntraDirLumaAdi		( TComDataCU* pcCU, UInt uiAbsPartIdx );
 
-  Void estBit             (estBitsSbacStruct* pcEstBitsSbac, UInt uiCTXIdx, TextType eTType);
+  Void	codeIntraDirChroma		( TComDataCU* pcCU, UInt uiAbsPartIdx );
+  Void	codeInterDir					( TComDataCU* pcCU, UInt uiAbsPartIdx );
+  Void	codeRefFrmIdx					( TComDataCU* pcCU, UInt uiAbsPartIdx, RefPicList eRefList );
+  Void	codeMvd								( TComDataCU* pcCU, UInt uiAbsPartIdx, RefPicList eRefList );
+
+  Void	codeDeltaQP						( TComDataCU* pcCU, UInt uiAbsPartIdx );
+  Void	codeCbf								( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eType, UInt uiTrDepth );
+  Void	codeCoeffNxN					( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx, UInt uiWidth, UInt uiHeight, UInt uiDepth, TextType eTType, Bool bRD = false );
+
+  Void	codeROTindex					( TComDataCU* pcCU, UInt uiAbsPartIdx, Bool bRD );
+  Void	codeCIPflag						( TComDataCU* pcCU, UInt uiAbsPartIdx, Bool bRD );
+
+  Void	estBit								( estBitsSbacStruct* pcEstBitsSbac, UInt uiCTXIdx, TextType eTType );
+
+	Bool	getAdaptFlag					()					{ return m_bAdaptFlag; }
+	Void	setAdaptFlag					( Bool b )	{ m_bAdaptFlag = b;		 }
 };
 
 #endif // !defined(AFX_TENCCAVLC_H__EE8A0B30_945B_4169_B290_24D3AD52296F__INCLUDED_)

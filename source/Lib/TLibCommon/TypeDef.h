@@ -105,6 +105,13 @@ typedef struct _LFCUParam
   Int  iBsEdgeSum[2][4];									///< array of Bs edge sum values
 } LFCUParam;
 
+/// parapeters for TENTM coefficient VLC
+typedef struct _LastCoeffStruct
+{
+    int level;
+    int last_pos;
+} LastCoeffStruct;
+
 // ====================================================================================================================
 // Enumeration
 // ====================================================================================================================

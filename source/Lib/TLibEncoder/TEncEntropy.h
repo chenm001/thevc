@@ -54,57 +54,52 @@ class TEncCavlc;
 class TEncEntropyIf
 {
 public:
-  //  Virtual list for SBAC/CAVLC
-  virtual Bool getAlfCtrl()                = 0;
-  virtual UInt getMaxAlfCtrlDepth()                = 0;
-  virtual Void setAlfCtrl(Bool bAlfCtrl)                = 0;
-  virtual Void setMaxAlfCtrlDepth(UInt uiMaxAlfCtrlDepth)                = 0;
+  virtual Bool	getAlfCtrl							()													= 0;
+  virtual UInt	getMaxAlfCtrlDepth			()													= 0;
+  virtual Void	setAlfCtrl							( Bool bAlfCtrl )           = 0;
+  virtual Void	setMaxAlfCtrlDepth			( UInt uiMaxAlfCtrlDepth )  = 0;
 
-  virtual Void  resetEntropy          ()                = 0;
-  virtual Void  setBitstream          ( TComBitIf* p )  = 0;
-  virtual Void  setSlice              ( TComSlice* p )  = 0;
-  virtual Void  resetBits             ()                = 0;
-  virtual Void  resetCoeffCost        ()                = 0;
-  virtual UInt  getNumberOfWrittenBits()                = 0;
-  virtual UInt  getCoeffCost          ()                = 0;
+  virtual Void  resetEntropy						()													= 0;
+  virtual Void  setBitstream						( TComBitIf* p )						= 0;
+  virtual Void  setSlice								( TComSlice* p )						= 0;
+  virtual Void  resetBits								()													= 0;
+  virtual Void  resetCoeffCost					()													= 0;
+  virtual UInt  getNumberOfWrittenBits	()													= 0;
+  virtual UInt  getCoeffCost						()													= 0;
 
-	virtual Void  codeSPS									( TComSPS* pcSPS )																			= 0;
-  virtual Void  codeSliceHeader         ( TComSlice* pcSlice )                                  = 0;
-  virtual Void  codeTerminatingBit      ( UInt uilsLast )                                       = 0;
-  virtual Void  codeSliceFinish         ()                                                      = 0;
+	virtual Void  codeSPS									( TComSPS* pcSPS )					= 0;
+  virtual Void  codeSliceHeader         ( TComSlice* pcSlice )      = 0;
+  virtual Void  codeTerminatingBit      ( UInt uilsLast )           = 0;
+  virtual Void  codeSliceFinish         ()                          = 0;
 
-  virtual Void codeAlfCtrlDepth() = 0;
-  virtual Void codeMVPIdx ( TComDataCU* pcCU, UInt uiAbsPartIdx, RefPicList eRefList ) = 0;
+  virtual Void	codeAlfCtrlDepth				()													= 0;
 
-public:
-  virtual Void codeAlfCtrlFlag	   ( TComDataCU* pcCU, UInt uiAbsPartIdx ) = 0;
-  virtual Void codeSkipFlag      ( TComDataCU* pcCU, UInt uiAbsPartIdx ) = 0;
-  virtual Void codeSplitFlag     ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth ) = 0;
+	virtual Void	codeMVPIdx					( TComDataCU* pcCU, UInt uiAbsPartIdx, RefPicList eRefList ) = 0;
+  virtual Void	codeAlfCtrlFlag			( TComDataCU* pcCU, UInt uiAbsPartIdx ) = 0;
+  virtual Void	codeSkipFlag				( TComDataCU* pcCU, UInt uiAbsPartIdx ) = 0;
+  virtual Void	codeSplitFlag				( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth ) = 0;
 
-  virtual Void codePartSize      ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth ) = 0;
-  virtual Void codePredMode      ( TComDataCU* pcCU, UInt uiAbsPartIdx ) = 0;
+  virtual Void	codePartSize				( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth ) = 0;
+  virtual Void	codePredMode				( TComDataCU* pcCU, UInt uiAbsPartIdx ) = 0;
 
-  virtual Void codeTransformIdx  ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth ) = 0;
-  virtual Void codeIntraDirLuma  ( TComDataCU* pcCU, UInt uiAbsPartIdx ) = 0;
+  virtual Void	codeTransformIdx		( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth ) = 0;
+  virtual Void	codeIntraDirLumaAdi	( TComDataCU* pcCU, UInt uiAbsPartIdx ) = 0;
+  virtual Void	codeIntraDirChroma	( TComDataCU* pcCU, UInt uiAbsPartIdx ) = 0;
+  virtual Void	codeInterDir				( TComDataCU* pcCU, UInt uiAbsPartIdx ) = 0;
+  virtual Void	codeRefFrmIdx				( TComDataCU* pcCU, UInt uiAbsPartIdx, RefPicList eRefList )      = 0;
+  virtual Void	codeMvd							( TComDataCU* pcCU, UInt uiAbsPartIdx, RefPicList eRefList )      = 0;
+  virtual Void	codeDeltaQP					( TComDataCU* pcCU, UInt uiAbsPartIdx ) = 0;
+  virtual Void	codeCbf							( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eType, UInt uiTrDepth ) = 0;
+  virtual Void	codeCoeffNxN				( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx, UInt uiWidth, UInt uiHeight, UInt uiDepth, TextType eTType, Bool bRD = false ) = 0;
 
-  virtual Void codeIntraDirLumaAdi( TComDataCU* pcCU, UInt uiAbsPartIdx ) = 0;
+  virtual Void	codeROTindex				( TComDataCU* pcCU, UInt uiAbsPartIdx, Bool bRD ) = 0;
+  virtual Void	codeCIPflag					( TComDataCU* pcCU, UInt uiAbsPartIdx, Bool bRD ) = 0;
 
-  virtual Void codeIntraDirChroma( TComDataCU* pcCU, UInt uiAbsPartIdx ) = 0;
-  virtual Void codeInterDir      ( TComDataCU* pcCU, UInt uiAbsPartIdx ) = 0;
-  virtual Void codeRefFrmIdx     ( TComDataCU* pcCU, UInt uiAbsPartIdx, RefPicList eRefList )      = 0;
-  virtual Void codeMvd           ( TComDataCU* pcCU, UInt uiAbsPartIdx, RefPicList eRefList )      = 0;
-  virtual Void codeDeltaQP       ( TComDataCU* pcCU, UInt uiAbsPartIdx ) = 0;
-  virtual Void codeCbf           ( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eType, UInt uiTrDepth ) = 0;
-  virtual Void codeCoeffNxN      ( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx, UInt uiWidth, UInt uiHeight, UInt uiDepth, TextType eTType, Bool bRD = false ) = 0;
+  virtual Void	codeAlfFlag					( UInt uiCode ) = 0;
+  virtual Void	codeAlfUvlc					( UInt uiCode ) = 0;
+  virtual Void	codeAlfSvlc					( Int   iCode ) = 0;
 
-  virtual Void codeROTindex( TComDataCU* pcCU, UInt uiAbsPartIdx, Bool bRD ) = 0;
-  virtual Void codeCIPflag ( TComDataCU* pcCU, UInt uiAbsPartIdx, Bool bRD ) = 0;
-
-  virtual Void codeAlfFlag					( UInt uiCode ) = 0;
-  virtual Void codeAlfUvlc					( UInt uiCode ) = 0;
-  virtual Void codeAlfSvlc					( Int   iCode ) = 0;
-
-  virtual Void estBit               (estBitsSbacStruct* pcEstBitsSbac, UInt uiCTXIdx, TextType eTType) = 0;
+  virtual Void	estBit							( estBitsSbacStruct* pcEstBitsSbac, UInt uiCTXIdx, TextType eTType ) = 0;
 };
 
 /// entropy encoder class

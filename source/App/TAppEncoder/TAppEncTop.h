@@ -56,7 +56,6 @@ private:
   TVideoIOYuv                m_cTVideoIOYuvReconFile;				///< output reconstruction file
   TVideoIOBits               m_cTVideoIOBitsFile;						///< output bitstream file
 
-  TComList<TComPicYuv*>      m_cListPicYuvOrg;							///< list of original YUV files
   TComList<TComPicYuv*>      m_cListPicYuvRec;							///< list of reconstruction YUV files
   TComList<TComBitstream*>   m_cListBitstream;							///< list of bitstreams
 
@@ -70,8 +69,7 @@ protected:
   Void  xDestroyLib				();																///< destroy encoder class
 
 	/// obtain required buffers
-  Void  xGetBuffer				( TComPicYuv*& rpcPicYuvOrg,
-														TComPicYuv*& rpcPicYuvRec,
+  Void  xGetBuffer				( TComPicYuv*& rpcPicYuvRec,
 														TComBitstream*& rpcBitStream );
 
 	/// delete allocated buffers

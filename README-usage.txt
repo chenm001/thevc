@@ -58,6 +58,8 @@ Contact: Woo-Jin Han, wjhan.han@samsung.com
             -tq3    QP offset of temporal layer 3
             -pdx    horizontal source padding size
             -pdy    vertical source padding size
+            -sym    symbol mode (0=VLC, 1=SBAC)
+            -sr     motion search range
             -1/0    <name>: turn on/off <name>
                     <name> = ALF - adaptive loop filter
                              IBD - bit-depth increasement
@@ -71,6 +73,7 @@ Contact: Woo-Jin Han, wjhan.han@samsung.com
                              PAD - automatic source padding of multiple of 16
                              QBO - skip refers highest quality picture
                              ASR - adaptive motion search range
+                             FEN - fast encoder setting
    2.2 Config file (example)
 
       #======== File I/O ===============
@@ -122,6 +125,11 @@ Contact: Woo-Jin Han, wjhan.han@samsung.com
 
       Example 3) TAppEncoder.exe -c test.cfg -q 32 -g 1 -f 9 -s 64 -h 4 -1 LDC
       (IPPP)      -> QP 32, hierarchical-P GOP 4, 9 frames, 64x64-8x8 CU (~4x4 PU)
+
+   2.4 Typical example (fast encoder setting)
+
+      Example 1) TAppEncoder.exe -c test.cfg -q 32 -g 8 -f 9 -s 64 -h 4 -1 FEN -sr 64
+      (Hier-B)    -> QP 32, hierarchical-B GOP 8, 9 frames, 64x64-8x8 CU (~4x4 PU), fast encoder decision, ME range: 64
 
 3. Decoder option
    3.1 Parameters

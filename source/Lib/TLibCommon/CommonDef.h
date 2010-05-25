@@ -46,7 +46,7 @@
 // Version information
 // ====================================================================================================================
 
-#define NV_VERSION				"0.0"									///< Current software version
+#define NV_VERSION				"0.1"									///< Current software version
 
 // ====================================================================================================================
 // Platform information
@@ -145,8 +145,6 @@
 
 // ROT: rotational transform
 #define ROT_DICT										5						///< intra ROT dictionary size (1, 2, 4, 5, 9)
-#define ROT_DICT_INTER		        	1						///< inter ROT dictionary size (1, 2, 4, 5, 9)
-#define ROT_TRY_NONZERO_CBP         1						///< try ROT (in encoder) for non-zero cbp case only
 
 // AMVP: advanced motion vector prediction
 #define AMVP_NEIGH_COL							1						///< use of colocated MB in AMVP
@@ -182,5 +180,11 @@
 
 // IBDI range restriction for skipping clip
 #define IBDI_NOCLIP_RANGE						1						///< restrict max. value after IBDI to skip clip
+
+// VLC texture coding
+#define VLC_SIG_RUN									1						///< run-coding of sigmap
+
+// Early-skip threshold (encoder)
+#define EARLY_SKIP_THRES						1.50				///< if RD < thres*avg[BestSkipRD]
 
 #endif // end of #ifndef	__COMMONDEF__

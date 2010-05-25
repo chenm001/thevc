@@ -127,7 +127,7 @@ Void TDecEntropy::decodePartSize( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDe
 
 Void TDecEntropy::decodeROTIdx( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
 {
-	if (pcCU->getPredictionMode( uiAbsPartIdx )!=MODE_SKIP)
+	if (pcCU->getPredictionMode( uiAbsPartIdx )==MODE_INTRA)
 	{
 		if( ( pcCU->getCbf(uiAbsPartIdx, TEXT_LUMA) + pcCU->getCbf(uiAbsPartIdx, TEXT_CHROMA_U) + pcCU->getCbf(uiAbsPartIdx, TEXT_CHROMA_V) ) == 0 )
 		{
@@ -138,6 +138,7 @@ Void TDecEntropy::decodeROTIdx( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDept
 		m_pcEntropyDecoderIf->parseROTindex( pcCU, uiAbsPartIdx, uiDepth );
 		return;
 	}
+
 	pcCU->setROTindexSubParts( 0, uiAbsPartIdx, uiDepth );
 }
 

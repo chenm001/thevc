@@ -170,8 +170,16 @@ __inline Void TEncSearch::xTZSearchHelp( TComPattern* pcPatternKey, IntTZSearchS
   piRefSrch = rcStruct.piRefY + iSearchY * rcStruct.iYStride + iSearchX;
 
   //-- jclee for using the SAD function pointer
-
   m_pcRdCost->setDistParam( pcPatternKey, piRefSrch, rcStruct.iYStride,  m_cDistParam );
+
+	// fast encoder decision: use subsampled SAD when rows > 8 for integer ME
+	if ( m_pcEncCfg->getUseFastEnc() )
+	{
+		if ( m_cDistParam.iRows > 8 )
+		{
+			m_cDistParam.iSubShift = 1;
+		}
+	}
 
   // distortion
   uiSad = m_cDistParam.DistFunc( &m_cDistParam );
@@ -580,39 +588,6 @@ UInt TEncSearch::xPatternRefinement    ( TComPattern* pcPatternKey, Pel* piRef, 
   rcMvFrac = pcMvRefine[uiDirecBest];
 
   return uiDistBest;
-}
-
-Void TEncSearch::xEncodeIntraTexture( TComDataCU* pcCU,
-                                      TComPattern* pcPattern,
-                                      TComYuv* pcOrgYuv,
-                                      TComYuv*& rpcResiYuv,
-                                      TComYuv*& rpcPredYuv,
-                                      TComYuv*& rpcRecoYuv,
-                                      UInt uiMode,
-                                      UInt uiTU,
-                                      UInt uiPU,
-                                      UInt uiPartDepth,
-                                      UInt uiPartOffset,
-                                      UInt uiCoeffOffset,
-                                      UInt uiWidth,
-                                      UInt uiHeight )
-{
-  TCoeff* pCoeff = pcCU->getCoeffY()  + uiCoeffOffset;
-  TCoeff* pCoef  = pCoeff;
-
-  Pel* pResi = rpcResiYuv->getLumaAddr(uiPU, uiWidth);
-  Pel* pPred = rpcPredYuv->getLumaAddr(uiPU, uiWidth);
-  Pel* pReco = rpcRecoYuv->getLumaAddr(uiPU, uiWidth);
-  UInt uiStride = rpcResiYuv->getStride();
-
-  pcCU->clearCbf(uiPartOffset, TEXT_LUMA,     pcCU->getTotalNumPart()>>(uiPartDepth<<1));
-
-  rpcResiYuv->subtractLuma( pcOrgYuv, rpcPredYuv, uiPU, uiWidth );
-
-  UChar indexROT = pcCU->getROTindex(0);
-
-  xRecurTransformNxNIntra( pcCU, uiPartOffset, pResi, pPred, pReco, 0, uiStride, uiWidth, uiHeight, uiTU, uiPartDepth, pCoef, TEXT_LUMA, indexROT );
-  pcCU->setCuCbfLuma( uiPartOffset, uiTU, uiPartDepth );
 }
 
 Void TEncSearch::xRecurIntraChromaSearchADI( TComDataCU* pcCU, UInt uiAbsPartIdx, Pel* piOrg, Pel* piPred, Pel* piResi, Pel* piReco, UInt uiStride, TCoeff* piCoeff, UInt uiMode, UInt uiWidth, UInt uiHeight, UInt uiMaxDepth, UInt uiCurrDepth, TextType eText )
@@ -1448,7 +1423,16 @@ Void TEncSearch::predInterSearch( TComDataCU* pcCU, TComYuv* pcOrgYuv, TComYuv*&
       UInt uiMotBits[2] = { uiBits[0] - uiMbBits[0], uiBits[1] - uiMbBits[1] };
       uiBits[2] = uiMbBits[2] + uiMotBits[0] + uiMotBits[1];
 
-      for ( Int iIter = 0; iIter < 4; iIter++ )
+			// 4-times iteration (default)
+			Int iNumIter = 4;
+
+			// fast encoder setting: only one iteration
+			if ( m_pcEncCfg->getUseFastEnc() )
+			{
+				iNumIter = 1;
+			}
+
+      for ( Int iIter = 0; iIter < iNumIter; iIter++ )
       {
         Int         iRefList    = iIter % 2;
         RefPicList  eRefPicList = ( iRefList ? REF_PIC_LIST_1 : REF_PIC_LIST_0 );
@@ -1947,6 +1931,14 @@ Void TEncSearch::xPatternSearch( TComPattern* pcPatternKey, Pel* piRefY, Int iRe
   //-- jclee for using the SAD function pointer
   m_pcRdCost->setDistParam( pcPatternKey, piRefY, iRefStride,  m_cDistParam );
 
+	// fast encoder decision: use subsampled SAD for integer ME
+	if ( m_pcEncCfg->getUseFastEnc() )
+	{
+		if ( m_cDistParam.iRows > 8 )
+		{
+			m_cDistParam.iSubShift = 1;
+		}
+	}
 
   piRefY += (iSrchRngVerTop * iRefStride);
   for ( Int y = iSrchRngVerTop; y <= iSrchRngVerBottom; y++ )
@@ -2473,77 +2465,6 @@ Void TEncSearch::xEncodeInterTexture ( TComDataCU*& rpcCU, UInt uiQp, Bool bHigh
   m_pcTrQuant->invRecurTransformNxN( rpcCU, 0, TEXT_CHROMA_V, pResi, 0, rpcYuv->getCStride(), uiCWidth, uiCHeight, uiChromaTrMode, 0, piCoeff, indexROT );
 }
 
-Void TEncSearch::xRecurTransformNxNIntra( TComDataCU* rpcCU, UInt uiAbsPartIdx, Pel* pcResidual, Pel* pcPrediction, Pel* piReconstruction, UInt uiAddr, UInt uiStride, UInt uiWidth, UInt uiHeight, UInt uiMaxTrMode, UInt uiTrMode, TCoeff*& rpcCoeff, TextType eType, Int indexROT )
-{
-  if ( uiTrMode == uiMaxTrMode )
-  {
-    UInt uiX, uiY;
-    UInt uiAbsSum = 0;
-    Pel* piResi = pcResidual       + uiAddr;
-    Pel* piPred = pcPrediction     + uiAddr;
-    Pel* piReco = piReconstruction + uiAddr;
-    Pel* pResi  = piResi;
-    UInt uiCoeffOffset = uiWidth*uiHeight;
-
-    UInt uiZorder    = rpcCU->getZorderIdxInCU()+uiAbsPartIdx;
-    Pel* pPicReco    = rpcCU->getPic()->getPicYuvRec()->getLumaAddr(rpcCU->getAddr(), uiZorder);
-    UInt uiPicStride = rpcCU->getPic()->getPicYuvRec()->getStride();
-
-    if (m_pcEncCfg->getUseRDOQ())
-      m_pcEntropyCoder->estimateBit(m_pcTrQuant->m_pcEstBitsSbac, uiWidth, eType );
-
-    m_pcTrQuant->transformNxN( rpcCU, piResi, uiStride, rpcCoeff, uiWidth, uiHeight, uiAbsSum, eType, uiAbsPartIdx, indexROT );
-
-    if ( uiAbsSum )
-    {
-      m_pcTrQuant->invtransformNxN( pResi, uiStride, rpcCoeff, uiWidth, uiHeight, indexROT );
-    }
-    else
-    {
-      memset(rpcCoeff, 0, sizeof(TCoeff)*uiCoeffOffset);
-      for( uiY = 0; uiY < uiHeight; uiY++ )
-      {
-        memset(pResi, 0, sizeof(Pel)*uiWidth);
-        pResi += uiStride;
-      }
-    }
-
-    m_pcEntropyCoder->encodeCoeffNxN( rpcCU, rpcCoeff, uiAbsPartIdx, uiWidth, uiHeight, rpcCU->getDepth( 0 ) + uiTrMode, eType, true );
-
-    pResi = piResi;
-
-    // Reconstruction
-    for( uiY = 0; uiY < uiHeight; uiY++ )
-    {
-      for( uiX = 0; uiX < uiWidth; uiX++ )
-      {
-        piReco  [uiX] = Clip(piPred[uiX] + pResi[uiX]);
-        pPicReco[uiX] = piReco[uiX];
-      }
-      piReco   += uiStride;
-      pResi    += uiStride;
-      piPred   += uiStride;
-      pPicReco += uiPicStride;
-    }
-
-    rpcCoeff += uiCoeffOffset;
-  }
-  else
-  {
-    uiTrMode++;
-    uiWidth  = uiWidth  >> 1;
-    uiHeight = uiHeight >> 1;
-    UInt uiQPartNum    = rpcCU->getPic()->getNumPartInCU() >> ( ( rpcCU->getDepth(0)+uiTrMode ) << 1 );
-    xRecurTransformNxNIntra( rpcCU, uiAbsPartIdx, pcResidual, pcPrediction, piReconstruction, uiAddr                                , uiStride, uiWidth, uiHeight, uiMaxTrMode, uiTrMode, rpcCoeff, eType, indexROT );
-    uiAbsPartIdx += uiQPartNum;
-    xRecurTransformNxNIntra( rpcCU, uiAbsPartIdx, pcResidual, pcPrediction, piReconstruction, uiAddr + uiWidth                      , uiStride, uiWidth, uiHeight, uiMaxTrMode, uiTrMode, rpcCoeff, eType, indexROT );
-    uiAbsPartIdx += uiQPartNum;
-    xRecurTransformNxNIntra( rpcCU, uiAbsPartIdx, pcResidual, pcPrediction, piReconstruction, uiAddr + uiHeight * uiStride          , uiStride, uiWidth, uiHeight, uiMaxTrMode, uiTrMode, rpcCoeff, eType, indexROT );
-    uiAbsPartIdx += uiQPartNum;
-    xRecurTransformNxNIntra( rpcCU, uiAbsPartIdx, pcResidual, pcPrediction, piReconstruction, uiAddr + uiHeight * uiStride + uiWidth, uiStride, uiWidth, uiHeight, uiMaxTrMode, uiTrMode, rpcCoeff, eType, indexROT );
-  }
-}
-
 Void TEncSearch::xRecurTransformNxN( TComDataCU* rpcCU, UInt uiAbsPartIdx, Pel* pcResidual, UInt uiAddr, UInt uiStride, UInt uiWidth, UInt uiHeight, UInt uiMaxTrMode, UInt uiTrMode, TCoeff*& rpcCoeff, TextType eType, Int indexROT )
 {
   if ( uiTrMode == uiMaxTrMode )
@@ -2684,9 +2605,10 @@ Void  TEncSearch::xAddSymbolBitsInter( TComDataCU* pcCU, UInt uiQp, UInt uiTrMod
     m_pcEntropyCoder->encodePredInfo( pcCU, 0, true );
     m_pcEntropyCoder->encodeCoeff		( pcCU, 0, pcCU->getDepth(0), pcCU->getWidth(0), pcCU->getHeight(0) );
 
-    // ROT index
+ #if !USLESS_TR_CODE
+	// ROT index
     m_pcEntropyCoder->encodeROTindex( pcCU, 0, pcCU->getDepth(0) );
-
+#endif
     ruiBits += m_pcEntropyCoder->getNumberOfWrittenBits();
   }
 }

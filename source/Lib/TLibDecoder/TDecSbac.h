@@ -132,7 +132,6 @@ public:
   Void parseCIPflag       ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
 
 private:
-  UInt m_uiLastDQpNonZero;
   UInt m_uiLastQp;
 
   SbacContextModel3DBuffer m_cCUSkipFlagSCModel;

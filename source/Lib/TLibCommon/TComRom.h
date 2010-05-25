@@ -114,9 +114,6 @@ extern       UInt		g_auiAntiScan8[64];										// 2D context mapping for coeffi
 // CAVLC table
 // ====================================================================================================================
 
-extern const UInt		g_auiIncVlc[];
-extern const UChar	g_aucCodeTableTO16[3][4][17];
-extern const UChar	g_aucLenTableTO16 [3][4][17];
 extern const UChar	g_aucCodeTable3[7][15];
 extern const UChar	g_aucLenTable3 [7][15];
 extern const UChar	g_aucCodeTableTZ4[3][4];
@@ -127,6 +124,16 @@ extern const UChar	g_aucCodeTableTO4[4][5];
 extern const UChar	g_aucLenTableTO4 [4][5];
 extern const UChar	g_aucACTab[6];
 extern const UChar	g_aucFrameBits[32];
+
+extern const UInt		g_auiLPTableE8[10][128];
+extern const UInt		g_auiLPTableD8[10][128];
+extern const UInt		g_auiLPTableE4[3][32];
+extern const UInt		g_auiLPTableD4[3][32];
+extern const UInt		g_auiLastPosVlcIndex[10];
+extern const UInt		g_auiLastPosVlcNum[10][17];
+extern const UInt		g_auiLumaRun8x8[29][2][64];
+extern const UInt		g_auiVlcTable8x8[28];
+extern const LastCoeffStruct g_acstructLumaRun8x8[29][127];
 
 // ====================================================================================================================
 // ADI table
@@ -152,23 +159,26 @@ extern const UChar	g_aucIntraModeBitsC[7];
 // ROT table
 // ====================================================================================================================
 
-extern const Long		ROT_MATRIX		 [27][96];
-extern const Long		ROT_MATRIX_S[2][27][96];
+extern const Int		g_FWD_ROT_MATRIX_4[4][18];
+extern const Int		g_FWD_ROT_MATRIX_8[4][36];
+extern const Int		g_INV_ROT_MATRIX_4[4][18];
+extern const Int		g_INV_ROT_MATRIX_8[4][36];
+extern const Int		g_auiROTFwdShift[5];
 
 // ====================================================================================================================
 // Bit-depth
 // ====================================================================================================================
 
-extern       UInt g_uiBitDepth;
-extern       UInt g_uiBitIncrement;
-extern       UInt g_uiIBDI_MAX;
-extern       UInt g_uiBASE_MAX;
+extern       UInt		g_uiBitDepth;
+extern       UInt		g_uiBitIncrement;
+extern       UInt		g_uiIBDI_MAX;
+extern       UInt		g_uiBASE_MAX;
 
 // ====================================================================================================================
 // Texture type to integer mapping
 // ====================================================================================================================
 
-extern const UChar g_aucConvertTxtTypeToIdx[4];
+extern const UChar	g_aucConvertTxtTypeToIdx[4];
 
 // ====================================================================================================================
 // Misc.
