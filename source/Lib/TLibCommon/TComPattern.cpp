@@ -1,36 +1,36 @@
 /* ====================================================================================================================
 
-	The copyright in this software is being made available under the License included below.
-	This software may be subject to other third party and 	contributor rights, including patent rights, and no such
-	rights are granted under this license.
+  The copyright in this software is being made available under the License included below.
+  This software may be subject to other third party and   contributor rights, including patent rights, and no such
+  rights are granted under this license.
 
-	Copyright (c) 2010, SAMSUNG ELECTRONICS CO., LTD. and BRITISH BROADCASTING CORPORATION
-	All rights reserved.
+  Copyright (c) 2010, SAMSUNG ELECTRONICS CO., LTD. and BRITISH BROADCASTING CORPORATION
+  All rights reserved.
 
-	Redistribution and use in source and binary forms, with or without modification, are permitted only for
-	the purpose of developing standards within the Joint Collaborative Team on Video Coding and for testing and
-	promoting such standards. The following conditions are required to be met:
+  Redistribution and use in source and binary forms, with or without modification, are permitted only for
+  the purpose of developing standards within the Joint Collaborative Team on Video Coding and for testing and
+  promoting such standards. The following conditions are required to be met:
 
-		* Redistributions of source code must retain the above copyright notice, this list of conditions and
-		  the following disclaimer.
-		* Redistributions in binary form must reproduce the above copyright notice, this list of conditions and
-		  the following disclaimer in the documentation and/or other materials provided with the distribution.
-		* Neither the name of SAMSUNG ELECTRONICS CO., LTD. nor the name of the BRITISH BROADCASTING CORPORATION
-		  may be used to endorse or promote products derived from this software without specific prior written permission.
+    * Redistributions of source code must retain the above copyright notice, this list of conditions and
+      the following disclaimer.
+    * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and
+      the following disclaimer in the documentation and/or other materials provided with the distribution.
+    * Neither the name of SAMSUNG ELECTRONICS CO., LTD. nor the name of the BRITISH BROADCASTING CORPORATION
+      may be used to endorse or promote products derived from this software without specific prior written permission.
 
-	THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES,
-	INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-	ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
-	INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
-	SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-	THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-	ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES,
+  INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+  ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+  SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+  THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
  * ====================================================================================================================
 */
 
-/** \file			TComPattern.cpp
-    \brief		neighbouring pixel access classes
+/** \file     TComPattern.cpp
+    \brief    neighbouring pixel access classes
 */
 
 #include "TComPic.h"
@@ -44,7 +44,7 @@
 const UChar g_aaucAvailableBlkMask[16][8] =
 {
   // 4x4 block neighbor availability      // MB neighbor availability
-  {0x0,0x0,0x0,0x0,  0x0,0x8,0x0,0x08  }, // L, A, AL, AR   <== 일반적인 경우 (blkIdx < 8)
+  {0x0,0x0,0x0,0x0,  0x0,0x8,0x0,0x08  }, // L, A, AL, AR   <== WTF (blkIdx < 8)
   {0x1,0x0,0x0,0x0,  0x1,0x8,0x0,0x08  }, //    A, AL, AR
   {0xA,0xE,0xE,0x6,  0x0,0x8,0x0,0x08  }, // L,    AL, AR
   {0xB,0xE,0xE,0x6,  0x1,0x8,0x0,0x08  }, //       AL, AR
@@ -54,7 +54,7 @@ const UChar g_aaucAvailableBlkMask[16][8] =
   {0xE,0xE,0xE,0x6,  0x0,0x8,0x0,0x08  }, // L,        AR
   {0xF,0xE,0xE,0x6,  0x1,0x8,0x0,0x08  }, //           AR
 
-  {0x0,0x0,0x0,0x8,  0x0,0x8,0x0,0x08  }, // L, A, AL       <== 일반적인 경우 (blkIdx < 8 || blkIdx >= 8)
+  {0x0,0x0,0x0,0x8,  0x0,0x8,0x0,0x08  }, // L, A, AL       <== WTF (blkIdx < 8 || blkIdx >= 8)
   {0x1,0x0,0x0,0x8,  0x1,0x8,0x0,0x08  }, //    A, AL
   {0xA,0xE,0xE,0xE,  0x0,0x8,0x0,0x08  }, // L,    AL
   {0xB,0xE,0xE,0xE,  0x1,0x8,0x0,0x08  }, //       AL
@@ -69,23 +69,23 @@ const UChar g_aaucAvailableBlkMask[16][8] =
 // Public member functions (TComPatternParam)
 // ====================================================================================================================
 
-/** \param	piTexture			pixel data
-		\param	iRoiWidth			pattern width
-		\param	iRoiHeight		pattern height
-		\param	iStride				buffer stride
-		\param	iOffsetLeft		neighbour offset (left)
-		\param	iOffsetRight	neighbour offset (right)
-		\param	iOffsetAbove	neighbour offset (above)
-		\param	iOffsetBottom	neighbour offset (bottom)
+/** \param  piTexture     pixel data
+    \param  iRoiWidth     pattern width
+    \param  iRoiHeight    pattern height
+    \param  iStride       buffer stride
+    \param  iOffsetLeft   neighbour offset (left)
+    \param  iOffsetRight  neighbour offset (right)
+    \param  iOffsetAbove  neighbour offset (above)
+    \param  iOffsetBottom neighbour offset (bottom)
  */
 Void TComPatternParam::setPatternParamPel ( Pel* piTexture,
-																						Int iRoiWidth,
-																						Int iRoiHeight,
-																						Int iStride,
-																						Int iOffsetLeft,
-																						Int iOffsetRight,
-																						Int iOffsetAbove,
-																						Int iOffsetBottom )
+                                            Int iRoiWidth,
+                                            Int iRoiHeight,
+                                            Int iStride,
+                                            Int iOffsetLeft,
+                                            Int iOffsetRight,
+                                            Int iOffsetAbove,
+                                            Int iOffsetBottom )
 {
   m_piPatternOrigin = piTexture;
   m_iROIWidth       = iRoiWidth;
@@ -97,28 +97,28 @@ Void TComPatternParam::setPatternParamPel ( Pel* piTexture,
   m_iOffsetBottom   = iOffsetBottom;
 }
 
-/** \param	pcCU					CU data structure
-		\param	iComp					component index (0=Y, 1=Cb, 2=Cr)
-		\param	iRoiWidth			pattern width
-		\param	iRoiHeight		pattern height
-		\param	iStride				buffer stride
-		\param	iOffsetLeft		neighbour offset (left)
-		\param	iOffsetRight	neighbour offset (right)
-		\param	iOffsetAbove	neighbour offset (above)
-		\param	iOffsetBottom	neighbour offset (bottom)
-		\param	uiPartDepth		CU depth
-		\param	uiAbsPartIdx	part index
+/** \param  pcCU          CU data structure
+    \param  iComp         component index (0=Y, 1=Cb, 2=Cr)
+    \param  iRoiWidth     pattern width
+    \param  iRoiHeight    pattern height
+    \param  iStride       buffer stride
+    \param  iOffsetLeft   neighbour offset (left)
+    \param  iOffsetRight  neighbour offset (right)
+    \param  iOffsetAbove  neighbour offset (above)
+    \param  iOffsetBottom neighbour offset (bottom)
+    \param  uiPartDepth   CU depth
+    \param  uiAbsPartIdx  part index
  */
 Void TComPatternParam::setPatternParamCU( TComDataCU* pcCU,
-																					UChar				iComp,
-																					UChar				iRoiWidth,
-																					UChar				iRoiHeight,
-																					Int					iOffsetLeft,
-																					Int					iOffsetRight,
-																					Int					iOffsetAbove,
-																					Int					iOffsetBottom,
-																					UInt				uiPartDepth,
-																					UInt				uiAbsPartIdx )
+                                          UChar       iComp,
+                                          UChar       iRoiWidth,
+                                          UChar       iRoiHeight,
+                                          Int         iOffsetLeft,
+                                          Int         iOffsetRight,
+                                          Int         iOffsetAbove,
+                                          Int         iOffsetBottom,
+                                          UInt        uiPartDepth,
+                                          UInt        uiAbsPartIdx )
 {
   m_iOffsetLeft   = iOffsetLeft;
   m_iOffsetRight  = iOffsetRight;
@@ -198,9 +198,9 @@ Void TComPattern::initPattern( TComDataCU* pcCU, UInt uiPartDepth, UInt uiAbsPar
       else // if it is CU boundary
       {
         if( g_auiZscanToRaster[uiAbsZorderIdx] < pcPic->getNumPartInWidth() && (uiCurrPicPelX+uiWidth) < pcPic->getPicYuvRec()->getWidth() ) // first line
-				{
+        {
           uiOffsetRight = 1;
-				}
+        }
       }
     }
   }
@@ -255,75 +255,95 @@ Void TComPattern::initAdiPattern( TComDataCU* pcCU, UInt uiZorderIdxInPart, UInt
   piRoiOrigin = pcCU->getPic()->getPicYuvRec()->getLumaAddr(pcCU->getAddr(), pcCU->getZorderIdxInCU()+uiZorderIdxInPart);
 
   piAdiTemp   = piAdiBuf;
-
   Int iDCValue = ( 1<<( g_uiBitDepth + g_uiBitIncrement - 1) );
 
+  //BB: fill border with DC value - needed if( bAboveFlag=false || bLeftFlag=false )
   for (i=0;i<uiWidth;i++)
     piAdiTemp[i]=iDCValue;
-  for (i=0;i<uiHeight;i++)
+  for (i=0;i<uiHeight;i++) //BB: can start from 1?
     piAdiTemp[i*uiWidth]=iDCValue;
 
-  piRoiTemp=piRoiOrigin;
+  piRoiTemp=piRoiOrigin; //BB: not needed?
 
-  if (bAboveFlag){
+  if (bAboveFlag)
+  {
+    // BB: fill top border with rec. samples
     piRoiTemp=piRoiOrigin-iPicStride;
     for (i=0;i<uiCuWidth;i++)
       piAdiTemp[1+i]=piRoiTemp[i];
-    if (bAboveRightFlag){
+    // BB: fill top right border with rec. samples
+    if (bAboveRightFlag)
+    {
       piRoiTemp=piRoiOrigin-iPicStride+uiCuWidth;
       for (i=0;i<uiCuWidth;i++)
         piAdiTemp[1+uiCuWidth+i]=piRoiTemp[i];
     }
-    else {
+    // BB: fill top right border with last sample from top
+    else
+    {
       for (i=0;i<uiCuWidth;i++)
         piAdiTemp[1+uiCuWidth+i]=piAdiTemp[uiCuWidth];
     }
-    if (bLeftFlag){
+    // BB: fill top left border corner with rec. sample
+    if (bLeftFlag)//BB: why left not top left?
+    {
       piRoiTemp=piRoiOrigin-iPicStride-1;
       piAdiTemp[0]=piRoiTemp[0];
     }
   }
 
-  if (bLeftFlag){
+  if (bLeftFlag)
+  {
+    // BB: fill left border with rec. samples
     piRoiTemp=piRoiOrigin-1;
-    for (i=0;i<uiCuHeight;i++){
+    for (i=0;i<uiCuHeight;i++)
+    {
       piAdiTemp[(1+i)*uiWidth]=piRoiTemp[0];
       piRoiTemp+=iPicStride;
     }
-    if (bBelowLeftFlag){
-      for (i=0;i<uiCuHeight;i++){
+    // BB: fill below left border with rec. samples
+    if (bBelowLeftFlag)
+    {
+      for (i=0;i<uiCuHeight;i++)
+      {
         piAdiTemp[(1+uiCuHeight+i)*uiWidth]=piRoiTemp[0];
         piRoiTemp+=iPicStride;
       }
     }
-    else {
+    // BB: fill below left border with last sample from left
+    else
+    {
       for (i=0;i<uiCuHeight;i++)
         piAdiTemp[(1+uiCuHeight+i)*uiWidth]=piAdiTemp[(uiCuHeight)*uiWidth];
     }
   }
 
-  Int l=0, iBufSize;
-  iBufSize=uiCuHeight2+uiCuWidth2+1;
+  Int iBufSize=uiCuHeight2+uiCuWidth2+1;    // BB: left and left above border + above and above right border + top left corner = length of 3. filter buffer
 
-  UInt uiWH = uiWidth*uiHeight;
+  UInt uiWH = uiWidth*uiHeight;             // BB: number of elements in one buffer
 
-  Int* piFilteredBuf1=piAdiBuf+uiWH;
-  Int* piFilteredBuf2=piFilteredBuf1+uiWH;
+  Int* piFilteredBuf1=piAdiBuf+uiWH;        // BB: 1. filter buffer
+  Int* piFilteredBuf2=piFilteredBuf1+uiWH;  // BB: 2. filter buffer
+  Int* piFilterBuf=piFilteredBuf2+uiWH;     // BB: buffer for 2. filtering (sequential)
+  Int* piFilterBufN=piFilterBuf+iBufSize;   // BB: buffer for 1. filtering (sequential)
 
-	// 3 filter
-  Int* piFilterBuf=piFilteredBuf2+uiWH;
-  Int* piFilterBufN=piFilterBuf+iBufSize;
-
+  Int l=0;
+  // BB: left border from bottom to top
   for (i=0;i<uiCuHeight2;i++)
     piFilterBuf[l++]=piAdiTemp[uiWidth*(uiCuHeight2-i)];
+  // BB: top left corner
   piFilterBuf[l++]=piAdiTemp[0];
+  // BB: above border from left to right
   for (i=0;i<uiCuWidth2;i++)
     piFilterBuf[l++]=piAdiTemp[1+i];
+
+  // BB: 1. filtering with [1 2 1]
   piFilterBufN[0]=piFilterBuf[0];
   piFilterBufN[iBufSize-1]=piFilterBuf[iBufSize-1];
-
   for (i=1;i<iBufSize-1;i++)
     piFilterBufN[i]=(piFilterBuf[i-1]+2*piFilterBuf[i]+piFilterBuf[i+1]+2)>>2;
+
+  // BB: fill 1. filter buffer with filtered values
   l=0;
   for (i=0;i<uiCuHeight2;i++)
     piFilteredBuf1[uiWidth*(uiCuHeight2-i)]=piFilterBufN[l++];
@@ -331,10 +351,13 @@ Void TComPattern::initAdiPattern( TComDataCU* pcCU, UInt uiZorderIdxInPart, UInt
   for (i=0;i<uiCuWidth2;i++)
     piFilteredBuf1[1+i]=piFilterBufN[l++];
 
-  piFilterBuf[0]=piFilterBufN[0];
-  piFilterBuf[iBufSize-1]=piFilterBufN[iBufSize-1];
+  // BB: 2. filtering with [1 2 1]
+  piFilterBuf[0]=piFilterBufN[0];                   //BB: needed? value not modified
+  piFilterBuf[iBufSize-1]=piFilterBufN[iBufSize-1]; //BB: needed? value not modified
   for (i=1;i<iBufSize-1;i++)
     piFilterBuf[i]=(piFilterBufN[i-1]+2*piFilterBufN[i]+piFilterBufN[i+1]+2)>>2;
+
+  // BB: fill 2. filter buffer with filtered values
   l=0;
   for (i=0;i<uiCuHeight2;i++)
     piFilteredBuf2[uiWidth*(uiCuHeight2-i)]=piFilterBuf[l++];
@@ -343,13 +366,22 @@ Void TComPattern::initAdiPattern( TComDataCU* pcCU, UInt uiZorderIdxInPart, UInt
     piFilteredBuf2[1+i]=piFilterBuf[l++];
 }
 
+#if HHI_RQT_INTRA
+Void TComPattern::initAdiPatternChroma( TComDataCU* pcCU, UInt uiZorderIdxInPart, UInt uiPartDepth, Int* piAdiBuf, Int iOrgBufStride, Int iOrgBufHeight, Bool& bAbove, Bool& bLeft )
+#else
 Void TComPattern::initAdiPatternChroma( TComDataCU* pcCU, UInt uiZorderIdxInPart, Int* piAdiBuf, Int iOrgBufStride, Int iOrgBufHeight, Bool& bAbove, Bool& bLeft )
+#endif
 {
   Pel*  piRoiOrigin;
   Pel*  piRoiTemp;
   Int*  piAdiTemp;
+#if HHI_RQT_INTRA
+  UInt  uiCuWidth  = pcCU->getWidth (0) >> uiPartDepth;
+  UInt  uiCuHeight = pcCU->getHeight(0) >> uiPartDepth;
+#else
   UInt  uiCuWidth  = pcCU->getWidth(0);
   UInt  uiCuHeight = pcCU->getHeight(0);
+#endif
   UInt  uiWidth;
   UInt  uiHeight;
   Int   iPicStride = pcCU->getPic()->getCStride();
@@ -364,8 +396,13 @@ Void TComPattern::initAdiPatternChroma( TComDataCU* pcCU, UInt uiZorderIdxInPart
 
   UInt uiPartIdxLT, uiPartIdxRT, uiPartIdxLB,uiPartDum;
 
+#if HHI_RQT_INTRA
+  pcCU->deriveLeftRightTopIdxAdi( uiPartIdxLT, uiPartIdxRT, uiZorderIdxInPart, uiPartDepth );
+  pcCU->deriveLeftBottomIdxAdi  ( uiPartIdxLB,              uiZorderIdxInPart, uiPartDepth );
+#else
   pcCU->deriveLeftRightTopIdxAdi( uiPartIdxLT, uiPartIdxRT,uiZorderIdxInPart,0 );
   pcCU->deriveLeftBottomIdxAdi  ( uiPartIdxLB ,uiZorderIdxInPart,0);
+#endif
 
   if( pcCU->getPUAbove     ( uiPartDum, uiPartIdxLT ) ) bAboveFlag      = true;
   if( pcCU->getPUAboveRightAdi( uiPartDum,uiCuWidth, uiPartIdxRT ) ) bAboveRightFlag = true;
@@ -385,7 +422,7 @@ Void TComPattern::initAdiPatternChroma( TComDataCU* pcCU, UInt uiZorderIdxInPart
 
   Int iDCValue = ( 1<<( g_uiBitDepth + g_uiBitIncrement - 1) );
 
-	// get Cb pattern
+  // get Cb pattern
   piRoiOrigin = pcCU->getPic()->getPicYuvRec()->getCbAddr(pcCU->getAddr(), pcCU->getZorderIdxInCU()+uiZorderIdxInPart);
   piAdiTemp   = piAdiBuf;
 
@@ -435,7 +472,7 @@ Void TComPattern::initAdiPatternChroma( TComDataCU* pcCU, UInt uiZorderIdxInPart
     }
   }
 
-	// get Cr pattern
+  // get Cr pattern
   piRoiOrigin = pcCU->getPic()->getPicYuvRec()->getCrAddr(pcCU->getAddr(), pcCU->getZorderIdxInCU()+uiZorderIdxInPart);
   piAdiTemp   = piAdiBuf+uiWidth*uiHeight;
 
@@ -516,3 +553,4 @@ Int* TComPattern::getAdiCrBuf(Int iCuWidth,Int iCuHeight, Int* piAdiBuf)
 {
   return piAdiBuf+(iCuWidth*2+1)*(iCuHeight*2+1);
 }
+

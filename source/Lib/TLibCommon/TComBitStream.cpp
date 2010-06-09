@@ -1,39 +1,40 @@
 /* ====================================================================================================================
 
-	The copyright in this software is being made available under the License included below.
-	This software may be subject to other third party and 	contributor rights, including patent rights, and no such
-	rights are granted under this license.
+  The copyright in this software is being made available under the License included below.
+  This software may be subject to other third party and   contributor rights, including patent rights, and no such
+  rights are granted under this license.
 
-	Copyright (c) 2010, SAMSUNG ELECTRONICS CO., LTD. and BRITISH BROADCASTING CORPORATION
-	All rights reserved.
+  Copyright (c) 2010, SAMSUNG ELECTRONICS CO., LTD. and BRITISH BROADCASTING CORPORATION
+  All rights reserved.
 
-	Redistribution and use in source and binary forms, with or without modification, are permitted only for
-	the purpose of developing standards within the Joint Collaborative Team on Video Coding and for testing and
-	promoting such standards. The following conditions are required to be met:
+  Redistribution and use in source and binary forms, with or without modification, are permitted only for
+  the purpose of developing standards within the Joint Collaborative Team on Video Coding and for testing and
+  promoting such standards. The following conditions are required to be met:
 
-		* Redistributions of source code must retain the above copyright notice, this list of conditions and
-		  the following disclaimer.
-		* Redistributions in binary form must reproduce the above copyright notice, this list of conditions and
-		  the following disclaimer in the documentation and/or other materials provided with the distribution.
-		* Neither the name of SAMSUNG ELECTRONICS CO., LTD. nor the name of the BRITISH BROADCASTING CORPORATION
-		  may be used to endorse or promote products derived from this software without specific prior written permission.
+    * Redistributions of source code must retain the above copyright notice, this list of conditions and
+      the following disclaimer.
+    * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and
+      the following disclaimer in the documentation and/or other materials provided with the distribution.
+    * Neither the name of SAMSUNG ELECTRONICS CO., LTD. nor the name of the BRITISH BROADCASTING CORPORATION
+      may be used to endorse or promote products derived from this software without specific prior written permission.
 
-	THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES,
-	INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-	ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
-	INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
-	SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-	THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-	ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES,
+  INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+  ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+  SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+  THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
  * ====================================================================================================================
 */
 
-/** \file			TComBitStream.cpp
-    \brief		class for handling bitstream
+/** \file     TComBitStream.cpp
+    \brief    class for handling bitstream
 */
 
 #include "TComBitStream.h"
+#include <memory.h>
 
 // ====================================================================================================================
 // Constructor / destructor / create / destroy
@@ -252,3 +253,92 @@ __inline Void TComBitstream::xReadNextWord()
     }
   }
 }
+
+#if HHI_NAL_UNIT_SYNTAX
+
+Void TComBitstream::initParsingConvertPayloadToRBSP( const UInt uiBytesRead )
+{
+  UInt uiZeroCount    = 0;
+  UInt uiReadOffset   = 0;
+  UInt uiWriteOffset  = 0;
+  const UChar* pucRead = reinterpret_cast<UChar*> (getBuffer());
+  UChar* pucWrite      = reinterpret_cast<UChar*> (getBuffer());
+
+  for( ; uiReadOffset < uiBytesRead; uiReadOffset++ )
+  {
+    if( 2 == uiZeroCount && 0x03 == pucRead[uiReadOffset] )
+    {
+      uiReadOffset++;
+      uiZeroCount = 0;
+      if (uiReadOffset>=uiBytesRead)
+      {
+        break;
+      }
+    }
+
+    pucWrite[uiWriteOffset++] = pucRead[uiReadOffset];
+
+    if( 0x00 == pucRead[uiReadOffset] )
+    {
+      uiZeroCount++;
+    }
+    else
+    {
+      uiZeroCount = 0;
+    }
+  }
+
+  // th just clear the remaining bits in the buffer
+  for( UInt ui = uiWriteOffset; ui < uiBytesRead; ui++)
+  {
+    pucWrite[ui] = 0;
+  }
+
+  initParsing( uiWriteOffset );
+}
+
+Void TComBitstream::convertRBSPToPayload( UInt uiStartPos )
+{
+  UInt uiZeroCount    = 0;
+
+  //make sure the buffer is flushed
+  assert( 0 == getBitsUntilByteAligned() );
+
+  const UInt uiBytesInBuffer = getNumberOfWrittenBits()>>3;
+  //make sure there's something in the buffer
+  assert( 0 != uiBytesInBuffer );
+
+  //make sure start pos is inside the buffer
+//  assert( uiStartPos > uiBytesInBuffer );
+  
+  UChar* pucRead = new UChar[ uiBytesInBuffer ];
+  //th this is not nice but ...
+  memcpy( pucRead, getStartStream(), uiBytesInBuffer );
+
+  UChar* pucWrite      =  reinterpret_cast<UChar*> (getStartStream());
+
+  UInt uiWriteOffset  = uiStartPos;
+  for( UInt uiReadOffset = uiStartPos; uiReadOffset < uiBytesInBuffer ; uiReadOffset++ )
+  {
+    if( 2 == uiZeroCount && 0 == (pucRead[uiReadOffset] & 0xfc) )
+    {
+      pucWrite[uiWriteOffset++] = 0x03;
+      uiZeroCount = 0;
+    }
+
+    pucWrite[uiWriteOffset++] = pucRead[uiReadOffset];
+
+    if( 0 == pucRead[uiReadOffset] )
+    {
+      uiZeroCount++;
+    }
+    else
+    {
+      uiZeroCount = 0;
+    }
+  }
+
+  delete [] pucRead;
+  m_uiBitsWritten = uiWriteOffset << 3;
+}
+#endif

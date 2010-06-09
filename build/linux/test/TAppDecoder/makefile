@@ -12,7 +12,7 @@ SRC_DIR2		=
 SRC_DIR3		=
 SRC_DIR4		=
 
-USER_INC_DIRS	= -I$(SRC_DIR)
+USER_INC_DIRS	= -I$(SRC_DIR) 
 USER_LIB_DIRS	=
 
 # intermediate directory for object files

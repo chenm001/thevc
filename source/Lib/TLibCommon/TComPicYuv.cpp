@@ -1,41 +1,48 @@
 /* ====================================================================================================================
 
-	The copyright in this software is being made available under the License included below.
-	This software may be subject to other third party and 	contributor rights, including patent rights, and no such
-	rights are granted under this license.
+  The copyright in this software is being made available under the License included below.
+  This software may be subject to other third party and   contributor rights, including patent rights, and no such
+  rights are granted under this license.
 
-	Copyright (c) 2010, SAMSUNG ELECTRONICS CO., LTD. and BRITISH BROADCASTING CORPORATION
-	All rights reserved.
+  Copyright (c) 2010, SAMSUNG ELECTRONICS CO., LTD. and BRITISH BROADCASTING CORPORATION
+  All rights reserved.
 
-	Redistribution and use in source and binary forms, with or without modification, are permitted only for
-	the purpose of developing standards within the Joint Collaborative Team on Video Coding and for testing and
-	promoting such standards. The following conditions are required to be met:
+  Redistribution and use in source and binary forms, with or without modification, are permitted only for
+  the purpose of developing standards within the Joint Collaborative Team on Video Coding and for testing and
+  promoting such standards. The following conditions are required to be met:
 
-		* Redistributions of source code must retain the above copyright notice, this list of conditions and
-		  the following disclaimer.
-		* Redistributions in binary form must reproduce the above copyright notice, this list of conditions and
-		  the following disclaimer in the documentation and/or other materials provided with the distribution.
-		* Neither the name of SAMSUNG ELECTRONICS CO., LTD. nor the name of the BRITISH BROADCASTING CORPORATION
-		  may be used to endorse or promote products derived from this software without specific prior written permission.
+    * Redistributions of source code must retain the above copyright notice, this list of conditions and
+      the following disclaimer.
+    * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and
+      the following disclaimer in the documentation and/or other materials provided with the distribution.
+    * Neither the name of SAMSUNG ELECTRONICS CO., LTD. nor the name of the BRITISH BROADCASTING CORPORATION
+      may be used to endorse or promote products derived from this software without specific prior written permission.
 
-	THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES,
-	INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-	ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
-	INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
-	SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-	THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-	ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES,
+  INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+  ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+  SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+  THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
  * ====================================================================================================================
 */
 
-/** \file			TComPicYuv.cpp
-    \brief		picture YUV buffer class
+/** \file     TComPicYuv.cpp
+    \brief    picture YUV buffer class
 */
 
 #include <cstdlib>
 #include <assert.h>
 #include <memory.h>
+
+#ifdef __APPLE__
+	#include <malloc/malloc.h>
+#else
+	#include <malloc.h>
+#endif
+
 #include "TComPicYuv.h"
 
 TComPicYuv::TComPicYuv()
@@ -48,7 +55,7 @@ TComPicYuv::TComPicYuv()
   m_piPicOrgU       = NULL;
   m_piPicOrgV       = NULL;
 
-	m_bIsBorderExtended = false;
+  m_bIsBorderExtended = false;
 }
 
 TComPicYuv::~TComPicYuv()
@@ -84,7 +91,7 @@ Void TComPicYuv::create( Int iPicWidth, Int iPicHeight, UInt uiMaxCUWidth, UInt 
   m_piPicOrgU       = m_apiPicBufU + m_iChromaMarginY * getCStride() + m_iChromaMarginX;
   m_piPicOrgV       = m_apiPicBufV + m_iChromaMarginY * getCStride() + m_iChromaMarginX;
 
-	m_bIsBorderExtended	= false;
+  m_bIsBorderExtended = false;
 
   return;
 }
@@ -118,7 +125,7 @@ Void TComPicYuv::createLuma( Int iPicWidth, Int iPicHeight, UInt uiMaxCUWidth, U
   m_iLumaMarginX    = g_uiMaxCUWidth  + 12; // up to 12-tap DIF
   m_iLumaMarginY    = g_uiMaxCUHeight + 12; // up to 12-tap DIF
 
-	m_apiPicBufY      = (Pel*)xMalloc( Pel, ( m_iPicWidth       + (m_iLumaMarginX  <<1)) * ( m_iPicHeight       + (m_iLumaMarginY  <<1)));
+  m_apiPicBufY      = (Pel*)xMalloc( Pel, ( m_iPicWidth       + (m_iLumaMarginX  <<1)) * ( m_iPicHeight       + (m_iLumaMarginY  <<1)));
   m_piPicOrgY       = m_apiPicBufY + m_iLumaMarginY   * getStride()  + m_iLumaMarginX;
 
   return;
@@ -241,34 +248,34 @@ Void  TComPicYuv::copyToPicCr (TComPicYuv*  pcPicYuvDst)
 
 Void TComPicYuv::getLumaMinMax( Int *pMin, Int *pMax )
 {
-	Pel*  piY   = getLumaAddr();
+  Pel*  piY   = getLumaAddr();
   Int   iMin  = (1<<(g_uiBitDepth))-1;
-	Int		iMax  = 0;
-	Int		x, y;
+  Int   iMax  = 0;
+  Int   x, y;
 
   for ( y = 0; y < m_iPicHeight; y++ )
   {
     for ( x = 0; x < m_iPicWidth; x++ )
     {
-			if ( piY[x] < iMin ) iMin = piY[x];
-			if ( piY[x] > iMax ) iMax = piY[x];
+      if ( piY[x] < iMin ) iMin = piY[x];
+      if ( piY[x] > iMax ) iMax = piY[x];
     }
     piY += getStride();
   }
 
-	*pMin = iMin;
-	*pMax = iMax;
+  *pMin = iMin;
+  *pMax = iMax;
 }
 
 Void TComPicYuv::extendPicBorder ()
 {
-	if ( m_bIsBorderExtended ) return;
+  if ( m_bIsBorderExtended ) return;
 
   xExtendPicCompBorder( getLumaAddr(), getStride(),  getWidth(),      getHeight(),      m_iLumaMarginX,   m_iLumaMarginY   );
   xExtendPicCompBorder( getCbAddr()  , getCStride(), getWidth() >> 1, getHeight() >> 1, m_iChromaMarginX, m_iChromaMarginY );
   xExtendPicCompBorder( getCrAddr()  , getCStride(), getWidth() >> 1, getHeight() >> 1, m_iChromaMarginX, m_iChromaMarginY );
 
-	m_bIsBorderExtended = true;
+  m_bIsBorderExtended = true;
 }
 
 Void TComPicYuv::xExtendPicCompBorder  (Pel* piTxt, Int iStride, Int iWidth, Int iHeight, Int iMarginX, Int iMarginY)
@@ -299,6 +306,57 @@ Void TComPicYuv::xExtendPicCompBorder  (Pel* piTxt, Int iStride, Int iWidth, Int
     ::memcpy( pi - (y+1)*iStride, pi, sizeof(Pel)*(iWidth + (iMarginX<<1)) );
   }
 }
+
+#if HHI_INTERP_FILTER
+Void TComPicYuv::extendPicBorder ( Int iInterpFilterType )
+{
+  if ( m_bIsBorderExtended ) return;
+
+  if ( iInterpFilterType == IPF_HHI_4TAP_MOMS || iInterpFilterType == IPF_HHI_6TAP_MOMS ) 
+  {
+    xMirrorPicCompBorder( getLumaAddr(), getStride(),  getWidth(),      getHeight(),      m_iLumaMarginX,   m_iLumaMarginY   );
+    xMirrorPicCompBorder( getCbAddr()  , getCStride(), getWidth() >> 1, getHeight() >> 1, m_iChromaMarginX, m_iChromaMarginY );
+    xMirrorPicCompBorder( getCrAddr()  , getCStride(), getWidth() >> 1, getHeight() >> 1, m_iChromaMarginX, m_iChromaMarginY );
+  }
+  else
+  {
+    xExtendPicCompBorder( getLumaAddr(), getStride(),  getWidth(),      getHeight(),      m_iLumaMarginX,   m_iLumaMarginY   );
+    xExtendPicCompBorder( getCbAddr()  , getCStride(), getWidth() >> 1, getHeight() >> 1, m_iChromaMarginX, m_iChromaMarginY );
+    xExtendPicCompBorder( getCrAddr()  , getCStride(), getWidth() >> 1, getHeight() >> 1, m_iChromaMarginX, m_iChromaMarginY );
+  }
+
+  m_bIsBorderExtended = true;
+}
+
+Void TComPicYuv::xMirrorPicCompBorder  (Pel* piTxt, Int iStride, Int iWidth, Int iHeight, Int iMarginX, Int iMarginY)
+{
+  Int   x, y;
+  Pel*  pi;
+
+  pi = piTxt;
+  for ( y = 0; y < iHeight; y++)
+  {
+    for ( x = 0; x < iMarginX; x++ )
+    {
+      pi[ -iMarginX + x ] = pi[iMarginX - x];
+      pi[    iWidth + x ] = pi[iWidth   - x - 2];
+    }
+    pi += iStride;
+  }
+
+  pi -= (iStride + iMarginX);
+  for ( y = 0; y < iMarginY; y++ )
+  {
+    ::memcpy( pi + (y+1)*iStride, pi - (y+1)*iStride, sizeof(Pel)*(iWidth + (iMarginX<<1)) );
+  }
+
+  pi -= ((iHeight-1) * iStride);
+  for ( y = 0; y < iMarginY; y++ )
+  {
+    ::memcpy( pi - (y+1)*iStride, pi + (y+1)*iStride, sizeof(Pel)*(iWidth + (iMarginX<<1)) );
+  }
+}
+#endif
 
 Void TComPicYuv::dump (char* pFileName, Bool bAdd)
 {
@@ -357,3 +415,4 @@ Void TComPicYuv::dump (char* pFileName, Bool bAdd)
 
   fclose(pFile);
 }
+

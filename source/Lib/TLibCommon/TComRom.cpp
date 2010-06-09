@@ -1,36 +1,36 @@
 /* ====================================================================================================================
 
-	The copyright in this software is being made available under the License included below.
-	This software may be subject to other third party and 	contributor rights, including patent rights, and no such
-	rights are granted under this license.
+  The copyright in this software is being made available under the License included below.
+  This software may be subject to other third party and   contributor rights, including patent rights, and no such
+  rights are granted under this license.
 
-	Copyright (c) 2010, SAMSUNG ELECTRONICS CO., LTD. and BRITISH BROADCASTING CORPORATION
-	All rights reserved.
+  Copyright (c) 2010, SAMSUNG ELECTRONICS CO., LTD. and BRITISH BROADCASTING CORPORATION
+  All rights reserved.
 
-	Redistribution and use in source and binary forms, with or without modification, are permitted only for
-	the purpose of developing standards within the Joint Collaborative Team on Video Coding and for testing and
-	promoting such standards. The following conditions are required to be met:
+  Redistribution and use in source and binary forms, with or without modification, are permitted only for
+  the purpose of developing standards within the Joint Collaborative Team on Video Coding and for testing and
+  promoting such standards. The following conditions are required to be met:
 
-		* Redistributions of source code must retain the above copyright notice, this list of conditions and
-		  the following disclaimer.
-		* Redistributions in binary form must reproduce the above copyright notice, this list of conditions and
-		  the following disclaimer in the documentation and/or other materials provided with the distribution.
-		* Neither the name of SAMSUNG ELECTRONICS CO., LTD. nor the name of the BRITISH BROADCASTING CORPORATION
-		  may be used to endorse or promote products derived from this software without specific prior written permission.
+    * Redistributions of source code must retain the above copyright notice, this list of conditions and
+      the following disclaimer.
+    * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and
+      the following disclaimer in the documentation and/or other materials provided with the distribution.
+    * Neither the name of SAMSUNG ELECTRONICS CO., LTD. nor the name of the BRITISH BROADCASTING CORPORATION
+      may be used to endorse or promote products derived from this software without specific prior written permission.
 
-	THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES,
-	INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-	ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
-	INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
-	SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-	THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-	ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES,
+  INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+  ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+  SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+  THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
  * ====================================================================================================================
 */
 
-/** \file			TComRom.cpp
-    \brief		global variables & functions
+/** \file     TComRom.cpp
+    \brief    global variables & functions
 */
 
 #include "TComRom.h"
@@ -44,40 +44,62 @@
 // initialize ROM variables
 Void initROM()
 {
-	Int i, c;
+  Int i, c;
 
-	// g_aucConvertToBit[ x ]: log2(x/4), if x=4 -> 0, x=8 -> 1, x=16 -> 2, ...
-	::memset( g_aucConvertToBit,   -1, sizeof( g_aucConvertToBit ) );
-	c=0;
-	for ( i=4; i<MAX_CU_SIZE; i*=2 )
+  // g_aucConvertToBit[ x ]: log2(x/4), if x=4 -> 0, x=8 -> 1, x=16 -> 2, ...
+  ::memset( g_aucConvertToBit,   -1, sizeof( g_aucConvertToBit ) );
+  c=0;
+  for ( i=4; i<MAX_CU_SIZE; i*=2 )
   {
     g_aucConvertToBit[ i ] = c;
     c++;
   }
   g_aucConvertToBit[ i ] = c;
 
-	// g_auiFrameScanXY[ g_aucConvertToBit[ transformSize ] ]: zigzag scan array for transformSize
-	c=4;
-	for ( i=0; i<MAX_CU_DEPTH; i++ )
-	{
-		g_auiFrameScanXY[ i ] = new UInt[ c*c ];
+  // g_auiFrameScanXY[ g_aucConvertToBit[ transformSize ] ]: zigzag scan array for transformSize
+#if HHI_RQT
+  c=2;
+#else
+  c=4;
+#endif
+  for ( i=0; i<MAX_CU_DEPTH; i++ )
+  {
+    g_auiFrameScanXY[ i ] = new UInt[ c*c ];
     g_auiFrameScanX [ i ] = new UInt[ c*c ];
     g_auiFrameScanY [ i ] = new UInt[ c*c ];
-		initFrameScanXY( g_auiFrameScanXY[i], g_auiFrameScanX[i], g_auiFrameScanY[i], c, c );
-		c <<= 1;
-	}
+    initFrameScanXY( g_auiFrameScanXY[i], g_auiFrameScanX[i], g_auiFrameScanY[i], c, c );
+    c <<= 1;
+  }
+
+#if HHI_TRANSFORM_CODING
+  // init adaptive scan for sig/last SE coding
+  for ( i = 0; i < MAX_CU_DEPTH; i++ )
+  {
+    const int   iBlockSize    = 1 << i;
+    const UInt  uiNumScanPos  = UInt( iBlockSize * iBlockSize );
+    g_auiSigLastScan[ i ][ 0 ] = new UInt[ uiNumScanPos ];
+    g_auiSigLastScan[ i ][ 1 ] = new UInt[ uiNumScanPos ];
+    initSigLastScanPattern( g_auiSigLastScan[ i ][ 1 ], i, true  );
+    initSigLastScanPattern( g_auiSigLastScan[ i ][ 0 ], i, false );
+  }
+#endif
 }
 
 Void destroyROM()
 {
-	Int i;
+  Int i;
 
-	for ( i=0; i<MAX_CU_DEPTH; i++ )
-	{
+  for ( i=0; i<MAX_CU_DEPTH; i++ )
+  {
     delete[] g_auiFrameScanXY[i];
     delete[] g_auiFrameScanX [i];
     delete[] g_auiFrameScanY [i];
-	}
+
+#if HHI_TRANSFORM_CODING
+    delete[] g_auiSigLastScan[i][0];
+    delete[] g_auiSigLastScan[i][1];
+#endif
+  }
 }
 
 // ====================================================================================================================
@@ -89,10 +111,10 @@ UInt g_uiMaxCUHeight = MAX_CU_SIZE;
 UInt g_uiMaxCUDepth  = MAX_CU_DEPTH;
 UInt g_uiAddCUDepth  = 0;
 
-UInt g_auiZscanToRaster	[ MAX_NUM_SPU_W*MAX_NUM_SPU_W ] = { 0, };
-UInt g_auiRasterToZscan	[ MAX_NUM_SPU_W*MAX_NUM_SPU_W ] = { 0, };
-UInt g_auiRasterToPelX	[ MAX_NUM_SPU_W*MAX_NUM_SPU_W ] = {	0, };
-UInt g_auiRasterToPelY	[ MAX_NUM_SPU_W*MAX_NUM_SPU_W ] = {	0, };
+UInt g_auiZscanToRaster [ MAX_NUM_SPU_W*MAX_NUM_SPU_W ] = { 0, };
+UInt g_auiRasterToZscan [ MAX_NUM_SPU_W*MAX_NUM_SPU_W ] = { 0, };
+UInt g_auiRasterToPelX  [ MAX_NUM_SPU_W*MAX_NUM_SPU_W ] = { 0, };
+UInt g_auiRasterToPelY  [ MAX_NUM_SPU_W*MAX_NUM_SPU_W ] = { 0, };
 
 Void initZscanToRaster ( Int iMaxDepth, Int iDepth, UInt uiStartVal, UInt*& rpuiCurrIdx )
 {
@@ -1076,9 +1098,9 @@ const UInt g_auiLastPosVlcNum[10][17] =
 };
 
 const UInt g_auiLumaRun8x8[29][2][64] =
-    {
+{
         /* 0 */
-        {
+  {
             {  1,  0, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
               -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
               -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
@@ -1087,9 +1109,9 @@ const UInt g_auiLumaRun8x8[29][2][64] =
               -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
               -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
               -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1}
-        },
+  },
         /* 1 */
-        {
+  {
             {  2,  1,  0, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
               -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
               -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
@@ -1098,9 +1120,9 @@ const UInt g_auiLumaRun8x8[29][2][64] =
               -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
               -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
               -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1}
-        },
+  },
         /* 2 */
-        {
+  {
             {  1,  3,  2,  0, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
               -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
               -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
@@ -1109,9 +1131,9 @@ const UInt g_auiLumaRun8x8[29][2][64] =
               -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
               -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
               -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1}
-        },
+  },
         /* 3 */
-        {
+{
             {  2,  1,  3,  4,  0, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
               -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
               -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
@@ -1120,9 +1142,9 @@ const UInt g_auiLumaRun8x8[29][2][64] =
               -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
               -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
               -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1}
-        },
+  },
         /* 4 */
-        {
+  {
             {  1,  5,  3,  2,  4,  0, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
               -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
               -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
@@ -1131,9 +1153,9 @@ const UInt g_auiLumaRun8x8[29][2][64] =
               -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
               -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
               -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1}
-        },
+  },
         /* 5 */
-        {
+  {
             {  1,  2,  6,  5,  3,  4,  0, -1, -1, -1, -1, -1, -1, -1, -1, -1,
               -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
               -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
@@ -1142,9 +1164,9 @@ const UInt g_auiLumaRun8x8[29][2][64] =
               -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
               -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
               -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1}
-        },
+  },
         /* 6 */
-        {
+{
             {  2,  1,  3,  5,  4,  7,  6,  0, -1, -1, -1, -1, -1, -1, -1, -1,
               -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
               -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
@@ -1155,7 +1177,7 @@ const UInt g_auiLumaRun8x8[29][2][64] =
               -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1}
         },
         /* 7 */
-        {
+{
             {  1,  5,  4,  2,  3,  6,  8,  7,  0, -1, -1, -1, -1, -1, -1, -1,
               -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
               -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
@@ -1166,7 +1188,7 @@ const UInt g_auiLumaRun8x8[29][2][64] =
               -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1}
         },
         /* 8 */
-        {
+{
             {  1,  3,  8,  7,  5,  2,  4,  9,  6,  0, -1, -1, -1, -1, -1, -1,
               -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
               -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
@@ -1177,7 +1199,7 @@ const UInt g_auiLumaRun8x8[29][2][64] =
               -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1}
         },
         /* 9 */
-        {
+{
             {  1,  2,  5, 10,  9,  7,  3,  4, 11,  6,  0, -1, -1, -1, -1, -1,
               -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
               -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
@@ -1187,7 +1209,7 @@ const UInt g_auiLumaRun8x8[29][2][64] =
               -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
               -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1}
         },
-        {
+{
             {  2,  1,  3,  4,  7,  8,  5,  6,  9, 11, 10,  0, -1, -1, -1, -1,
               -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
               -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
@@ -1377,12 +1399,12 @@ const UInt g_auiLumaRun8x8[29][2][64] =
               89, 93, 96, 99,100,102,101, 97,105,103,106,107,108,109,110,111,
              112,113,114,115,116,117,118,119,120,121,122,123,124,125,126, -1}
         }
-    };
+};
 
 const UInt g_auiVlcTable8x8[28] = {8,0,0,5,5,5,5,5,5,5,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6};
 
 const LastCoeffStruct g_acstructLumaRun8x8[29][127] =
-    {
+{
         {{0,1},{0,0},{1,0},{-1,-1},{-1,-1},{-1,-1},{-1,-1},{-1,-1},{-1,-1},{-1,-1},{-1,-1},{-1,-1},{-1,-1},{-1,-1},{-1,-1},{-1,-1},{-1,-1},{-1,-1},
          {-1,-1},{-1,-1},{-1,-1},{-1,-1},{-1,-1},{-1,-1},{-1,-1},{-1,-1},{-1,-1},{-1,-1},{-1,-1},{-1,-1},{-1,-1},{-1,-1},{-1,-1},{-1,-1},{-1,-1},
          {-1,-1},{-1,-1},{-1,-1},{-1,-1},{-1,-1},{-1,-1},{-1,-1},{-1,-1},{-1,-1},{-1,-1},{-1,-1},{-1,-1},{-1,-1},{-1,-1},{-1,-1},{-1,-1},{-1,-1},
@@ -1632,7 +1654,7 @@ const LastCoeffStruct g_acstructLumaRun8x8[29][127] =
          {1,21},{0,59},{1,25},{1,20},{1,26},{0,58},{1,27},{0,61},{1,32},{0,60},{1,28},{1,30},{1,33},{0,63},{1,29},{1,34},{1,39},{0,62},{1,35},
          {1,36},{1,38},{1,37},{1,41},{1,31},{1,40},{1,42},{1,43},{1,44},{1,45},{1,46},{1,47},{1,48},{1,49},{1,50},{1,51},{1,52},{1,53},{1,54},
          {1,55},{1,56},{1,57},{1,58},{1,59},{1,60},{1,61},{1,62}}
-    };
+};
 
 // ====================================================================================================================
 // ADI
@@ -1986,7 +2008,7 @@ const UChar g_aucConvertTxtTypeToIdx[4] = { 0, 1, 1, 2 };
 // ====================================================================================================================
 
 const Int g_INV_ROT_MATRIX_4[4][18]=
-{
+  {
    { 248,   -55,   -28,   -60,  -244,   -52,   -16,    57,  -249,   250,   -49,   -26,   -54,  -240,   -71,   -11,    75,  -245,},
    { 255,    22,    -8,   -22,   254,   -17,     6,    17,   255,   241,   -84,   -18,    69,   221,  -110,    52,    98,   231,},
    { 237,   -96,    -9,    90,   229,   -73,    35,    64,   245,   243,   -80,    -6,    70,   222,  -107,    38,   100,   233,},
@@ -2000,37 +2022,37 @@ const Int g_INV_ROT_MATRIX_8[4][36]=
    { 174,  -186,    23,   181,   158,   -87,    49,    75,   240,   236,   -99,   -10,   -99,  -235,   -25,     1,    27,  -255,   174,  -186,    23,   181,   158,   -87,    49,    75,   240,   236,   -99,   -10,   -99,  -235,   -25,     1,    27,  -255,},
 };
 const Int g_FWD_ROT_MATRIX_4[4][18]=
-{
+  {
   { 3981,  -881,  -458,  -955, -3886,  -828,  -248,   911, -3987,  3999,  -776,  -417,  -870, -3837, -1136,  -172,  1194, -3907,},
   { 4079,   345,  -119,  -360,  4079,  -263,   104,   283,  4091,  3858, -1351,  -295,  1101,  3532, -1746,   825,  1577,  3685,},
   { 3796, -1537,  -141,  1433,  3647, -1157,   566,  1030,  3930,  3894, -1271,   -90,  1125,  3546, -1706,   617,  1596,  3715,},
   { 3988,  -277,  -861,  -199,  3510, -2091,   889,  2088,  3419,  3394, -2292,   142,  2146,  3078, -1651,   814,  1443,  3749,},
 };
 const Int g_FWD_ROT_MATRIX_8[4][36]=
-{
+  {
   { 4032,  -587,  -494,   357,  3791, -1509,   672,  1433,  3777,  3763, -1603,    48,  1597,  3756,  -397,   112,   387,  4073,  4032,  -587,  -494,   357,  3791, -1509,   672,  1433,  3777,  3763, -1603,    48,  1597,  3756,  -397,   112,   387,  4073,},
   { 3903,  -983,  -802, -1200, -3686, -1335,  -403,  1498, -3788,  4062,  -426,  -299,   359,  3978,  -897,   374,   864,  3988,  3903,  -983,  -802, -1200, -3686, -1335,  -403,  1498, -3788,  4062,  -426,  -299,   359,  3978,  -897,   374,   864,  3988,},
   { 3874, -1292,   200,  1298,  3725, -1133,   180,  1123,  3930,  4048,  -662,  -139,  -669, -4016,  -448,   -70,   466, -4074,  3874, -1292,   200,  1298,  3725, -1133,   180,  1123,  3930,  4048,  -662,  -139,  -669, -4016,  -448,   -70,   466, -4074,},
   { 2784, -2988,   365,  2904,  2545, -1388,   786,  1209,  3831,  3776, -1575,  -152, -1590, -3749,  -403,     8,   429, -4067,  2784, -2988,   365,  2904,  2545, -1388,   786,  1209,  3831,  3776, -1575,  -152, -1590, -3749,  -403,     8,   429, -4067,},
 };
 
-const	Int g_auiROTFwdShift[5] =
+const  Int g_auiROTFwdShift[5] =
 {
-	-6,	// 4x4
-	-7,	// 8x8
-	-3,	// 16x16
-	-4,	// 32x32
-	-5	// 64x64
+  -6,  // 4x4
+  -7,  // 8x8
+  -3,  // 16x16
+  -4,  // 32x32
+  -5  // 64x64
 };
 
 // ====================================================================================================================
 // Bit-depth
 // ====================================================================================================================
 
-UInt g_uiBitDepth     = 8;		// base bit-depth
-UInt g_uiBitIncrement = 0;		// increments
-UInt g_uiIBDI_MAX     = 255;	// max. value after  IBDI
-UInt g_uiBASE_MAX			= 255;	// max. value before IBDI
+UInt g_uiBitDepth     = 8;    // base bit-depth
+UInt g_uiBitIncrement = 0;    // increments
+UInt g_uiIBDI_MAX     = 255;  // max. value after  IBDI
+UInt g_uiBASE_MAX     = 255;  // max. value before IBDI
 
 // ====================================================================================================================
 // Misc.
@@ -2038,6 +2060,15 @@ UInt g_uiBASE_MAX			= 255;	// max. value before IBDI
 
 Char  g_aucConvertToBit  [ MAX_CU_SIZE+1 ];
 
+#if HHI_RQT
+#if ENC_DEC_TRACE
+FILE*  g_hTrace = NULL;
+const Bool g_bEncDecTraceEnable  = true;
+const Bool g_bEncDecTraceDisable = false;
+Bool   g_bJustDoIt = false;
+UInt64 g_nSymbolCounter = 0;
+#endif
+#endif
 // ====================================================================================================================
 // Scanning order & context model mapping
 // ====================================================================================================================
@@ -2047,8 +2078,12 @@ UInt* g_auiFrameScanXY[ MAX_CU_DEPTH  ];
 UInt* g_auiFrameScanX [ MAX_CU_DEPTH  ];
 UInt* g_auiFrameScanY [ MAX_CU_DEPTH  ];
 
+#if HHI_TRANSFORM_CODING
+UInt* g_auiSigLastScan[ MAX_CU_DEPTH  ][ 2 ];
+#endif
+
 // scanning order to 8x8 context model mapping table
-UInt  g_auiAntiScan8	[64];
+UInt  g_auiAntiScan8  [64];
 
 // initialize g_auiFrameScanXY
 Void initFrameScanXY( UInt* pBuff, UInt* pBuffX, UInt* pBuffY, Int iWidth, Int iHeight )
@@ -2103,3 +2138,30 @@ Void initFrameScanXY( UInt* pBuff, UInt* pBuffX, UInt* pBuffY, Int iWidth, Int i
     }
   }
 }
+
+#if HHI_TRANSFORM_CODING
+Void initSigLastScanPattern( UInt* puiScanPattern, const UInt uiLog2BlockSize, const bool bDownLeft )
+{
+  const int   iBlockSize    = 1 << uiLog2BlockSize;
+  const UInt  uiNumScanPos  = UInt( iBlockSize * iBlockSize );
+  UInt        uiNextScanPos = 0;
+
+  for( UInt uiScanLine = 0; uiNextScanPos < uiNumScanPos; uiScanLine++ )
+  {
+    int    iPrimDim  = int( uiScanLine );
+    int    iScndDim  = 0;
+    while( iPrimDim >= iBlockSize )
+    {
+      iScndDim++;
+      iPrimDim--;
+    }
+    while( iPrimDim >= 0 && iScndDim < iBlockSize )
+    {
+      puiScanPattern[ uiNextScanPos++ ] = ( bDownLeft ? iScndDim * iBlockSize + iPrimDim : iPrimDim * iBlockSize + iScndDim );
+      iScndDim++;
+      iPrimDim--;
+    }
+  }
+  return;
+}
+#endif

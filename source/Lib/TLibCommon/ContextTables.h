@@ -1,37 +1,37 @@
 /* ====================================================================================================================
 
-	The copyright in this software is being made available under the License included below.
-	This software may be subject to other third party and 	contributor rights, including patent rights, and no such
-	rights are granted under this license.
+  The copyright in this software is being made available under the License included below.
+  This software may be subject to other third party and   contributor rights, including patent rights, and no such
+  rights are granted under this license.
 
-	Copyright (c) 2010, SAMSUNG ELECTRONICS CO., LTD. and BRITISH BROADCASTING CORPORATION
-	All rights reserved.
+  Copyright (c) 2010, SAMSUNG ELECTRONICS CO., LTD. and BRITISH BROADCASTING CORPORATION
+  All rights reserved.
 
-	Redistribution and use in source and binary forms, with or without modification, are permitted only for
-	the purpose of developing standards within the Joint Collaborative Team on Video Coding and for testing and
-	promoting such standards. The following conditions are required to be met:
+  Redistribution and use in source and binary forms, with or without modification, are permitted only for
+  the purpose of developing standards within the Joint Collaborative Team on Video Coding and for testing and
+  promoting such standards. The following conditions are required to be met:
 
-		* Redistributions of source code must retain the above copyright notice, this list of conditions and
-		  the following disclaimer.
-		* Redistributions in binary form must reproduce the above copyright notice, this list of conditions and
-		  the following disclaimer in the documentation and/or other materials provided with the distribution.
-		* Neither the name of SAMSUNG ELECTRONICS CO., LTD. nor the name of the BRITISH BROADCASTING CORPORATION
-		  may be used to endorse or promote products derived from this software without specific prior written permission.
+    * Redistributions of source code must retain the above copyright notice, this list of conditions and
+      the following disclaimer.
+    * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and
+      the following disclaimer in the documentation and/or other materials provided with the distribution.
+    * Neither the name of SAMSUNG ELECTRONICS CO., LTD. nor the name of the BRITISH BROADCASTING CORPORATION
+      may be used to endorse or promote products derived from this software without specific prior written permission.
 
-	THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES,
-	INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-	ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
-	INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
-	SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-	THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-	ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES,
+  INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+  ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+  SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+  THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
  * ====================================================================================================================
 */
 
-/** \file			ContextTables.h
-    \brief		Defines constants and tables for SBAC
-		\todo     number of context models is not matched to actual use, should be fixed
+/** \file     ContextTables.h
+    \brief    Defines constants and tables for SBAC
+    \todo     number of context models is not matched to actual use, should be fixed
 */
 
 #ifndef __CONTEXTTABLES__
@@ -43,29 +43,57 @@
 
 #define NUM_SPLIT_FLAG_CTX            3       ///< number of context models for split flag
 #define NUM_SKIP_FLAG_CTX             3       ///< number of context models for skip flag
+
+#if HHI_MRG
+#define NUM_MERGE_FLAG_CTX            3       ///< number of context models for merge flag
+#define NUM_MERGE_INDEX_CTX           3       ///< number of context models for merge index
+#endif
+
 #define NUM_ALF_CTRL_FLAG_CTX         3       ///< number of context models for ALF control flag
 #define NUM_PART_SIZE_CTX             5       ///< number of context models for partition size
 #define NUM_CU_X_POS_CTX              2       ///< number of context models for partition size (AMP)
 #define NUM_CU_Y_POS_CTX              2       ///< number of context models for partition size (AMP)
 #define NUM_PRED_MODE_CTX             2       ///< number of context models for prediction mode
-#define NUM_ADI_CTX										2				///< number of context models for intra prediction
+#define NUM_ADI_CTX                   2       ///< number of context models for intra prediction
+
+#if HHI_AIS
+#define NUM_ADI_FILT_CTX              5       ///< BB: number of context models for AIS flag (one for every row in Table 2‑5 in JCTVC-A125r1 except DC)
+#endif
+
 #define NUM_CHROMA_PRED_CTX           4       ///< number of context models for intra prediction (chroma)
 #define NUM_INTER_DIR_CTX             4       ///< number of context models for inter prediction direction
-#define NUM_MV_RES_CTX								7			  ///< number of context models for motion vector difference
-#define NUM_REF_NO_CTX								6				///< number of context models for reference index
-#define NUM_TRANS_IDX_CTX				      4		    ///< number of context models for transform index
-#define NUM_DELTA_QP_CTX							4				///< number of context models for dQP
-#define NUM_CBF_CTX										4 			///< number of context models for CBF
+#define NUM_MV_RES_CTX                7       ///< number of context models for motion vector difference
+#define NUM_REF_NO_CTX                6       ///< number of context models for reference index
+#if HHI_RQT
+#define NUM_TRANS_SUBDIV_FLAG_CTX     10      ///< number of context models for transform subdivision flags
+#define NUM_QT_CBF_CTX                15      ///< number of context models for QT CBF
+#endif
+#define NUM_TRANS_IDX_CTX             4       ///< number of context models for transform index
+#define NUM_DELTA_QP_CTX              4       ///< number of context models for dQP
+#define NUM_CBF_CTX                   4       ///< number of context models for CBF
+
+#if HHI_TRANSFORM_CODING
+#define NUM_SIG_FLAG_CTX              16      ///< number of context models for sig flag
+#define NUM_LAST_FLAG_CTX             16      ///< number of context models for last flag
+#define NUM_ABS_GREATER_ONE_CTX       40      ///< number of context models for greater than one
+#define NUM_COEFF_LEVEL_MINUS_ONE_CTX 40      ///< number of context models for magnitude
+#else
 #define NUM_MAP_CTX										15			///< number of context models for sigmap
 #define NUM_LAST_CTX									15			///< number of context models for lastbit
 #define NUM_ONE_CTX										5				///< number of context models for greater than one
 #define NUM_ABS_CTX										5				///< number of context models for magnitude
+#endif
+
 #define NUM_MVP_IDX_CTX               2       ///< number of context models for MVP index
 #define NUM_ROT_IDX_CTX               3       ///< number of context models for ROT index
 #define NUM_CIP_FLAG_CTX              3       ///< number of context models for CIP flag
 #define NUM_ALF_FLAG_CTX              1       ///< number of context models for ALF flag
 #define NUM_ALF_UVLC_CTX              2       ///< number of context models for ALF UVLC (filter length)
 #define NUM_ALF_SVLC_CTX              3       ///< number of context models for ALF SVLC (filter coeff.)
+
+#if HHI_ALF
+#define NUM_ALF_SPLITFLAG_CTX         1       ///< number of context models for ALF split flag
+#endif
 
 // ====================================================================================================================
 // Tables
@@ -89,124 +117,635 @@ static const int  pos2ctx_nomap   []  = { 0,  1,  2,  3,  4,  5,  6,  7,  8,  9,
 
 // initial probability for split flag
 static const Short INIT_SPLIT_FLAG[3][NUM_SPLIT_FLAG_CTX][2] = {
-	// for I slice
-	{{-31,37},{-36,42},{-54,49}},
-	// for P slice
-	{{-32,36},{-47,43},{-21,43}},
-	// for B slice
-	{{-63,39},{-15,37},{-7,40}}};
+  // for I slice
+  {{-31,37},{-36,42},{-54,49}},
+  // for P slice
+  {{-32,36},{-47,43},{-21,43}},
+  // for B slice
+  {{-63,39},{-15,37},{-7,40}}};
 
 // initial probability for skip flag
 static const Short INIT_SKIP_FLAG[3][NUM_SKIP_FLAG_CTX][2] = {
-	// for I slice
-	{{0,0},{0,0},{0,0}},
-	// for P slice
-	{{71,15},{10,33},{-2,39}},
-	// for B slice
-	{{0,0},{26,32},{38,36}}};
+  // for I slice
+  {{0,0},{0,0},{0,0}},
+  // for P slice
+  {{71,15},{10,33},{-2,39}},
+  // for B slice
+  {{0,0},{26,32},{38,36}}};
+
+#if HHI_MRG
+// initial probability for merge flag
+static const Short INIT_MERGE_FLAG[3][NUM_MERGE_FLAG_CTX][2] = { 
+  // for I slice
+  {{0,0},{0,0},{0,0}},
+  // for P slice
+  {{0,0},{0,37},{0,39}},
+  // for B slice
+  {{0,0},{0,37},{0,39}}};
+
+// initial probability for merge index
+static const Short INIT_MERGE_INDEX[3][NUM_MERGE_INDEX_CTX][2] = {
+  // for I slice
+  {{0,0},{0,0},{0,0}},
+  // for P slice
+  {{0,0},{0,0},{0,0}},
+  // for B slice
+  {{0,0},{0,0},{0,0}}};
+#endif
 
 // initial probability for PU size
 static const Short INIT_PART_SIZE[3][NUM_PART_SIZE_CTX][2] = {
-	// for I slice
-	{{35,31},{0,0},{0,0},{0,0},{0,0}},
-	// for P slice
-	{{47,30},{16,31},{0,0},{0,0},{0,0}},
-	// for B slice
-	{{29,31},{-7,34},{0,0},{0,0},{0,0}}};
+  // for I slice
+  {{35,31},{0,0},{0,0},{0,0},{0,0}},
+  // for P slice
+  {{47,30},{16,31},{0,0},{0,0},{0,0}},
+  // for B slice
+  {{29,31},{-7,34},{0,0},{0,0},{0,0}}};
 
 // initial probability for AMP split position (X)
 static const Short INIT_CU_X_POS[3][NUM_CU_X_POS_CTX][2] = {
-	// for I slice
-	{{0,0},{0,0}},
-	// for P slice
-	{{-10,35},{-40,42}},
-	// for B slice
-	{{-3,33},{0,35}}};
+  // for I slice
+  {{0,0},{0,0}},
+  // for P slice
+  {{-10,35},{-40,42}},
+  // for B slice
+  {{-3,33},{0,35}}};
 
 // initial probability for AMP split position (Y)
 static const Short INIT_CU_Y_POS[3][NUM_CU_Y_POS_CTX][2] = {
-	// for I slice
-	{{0,0},{0,0}},
-	// for P slice
-	{{21,31},{-35,41}},
-	// for B slice
-	{{0,0},{-11,37}}};
+  // for I slice
+  {{0,0},{0,0}},
+  // for P slice
+  {{21,31},{-35,41}},
+  // for B slice
+  {{0,0},{-11,37}}};
 
 // initial probability for prediction mode
 static const Short INIT_PRED_MODE[3][NUM_PRED_MODE_CTX][2] = {
-	// for I slice
-	{{0,0},{0,0}},
-	// for P slice
-	{{113,27},{-2,38}},
-	// for B slice
-	{{-30,42},{0,0}}};
+  // for I slice
+  {{0,0},{0,0}},
+  // for P slice
+  {{113,27},{-2,38}},
+  // for B slice
+  {{-30,42},{0,0}}};
 
 // initial probability for intra direction of luma
 static const Short INIT_INTRA_PRED_MODE[3][NUM_ADI_CTX][2] = {
-	// for I slice
-	{{43,27},{-15,38}},
-	// for P slice
-	{{48,25},{-20,38}},
-	// for B slice
-	{{0,0},{-3,35}}};
+  // for I slice
+  {{43,27},{-15,38}},
+  // for P slice
+  {{48,25},{-20,38}},
+  // for B slice
+  {{0,0},{-3,35}}};
+
+#if HHI_AIS
+// BB: initial probability for intra reference pixel filtering
+static const Short INIT_INTRA_PRED_FILT[3][NUM_ADI_FILT_CTX][2] = {
+  // for I slice
+  {{0,0},{0,0},{0,0},{0,0},{0,0}},
+  // for P slice
+  {{0,0},{0,0},{0,0},{0,0},{0,0}},
+  // for B slice
+  {{0,0},{0,0},{0,0},{0,0},{0,0}}};
+#endif
 
 // initial probability for intra direction of chroma
 static const Short INIT_CHROMA_PRED_MODE[3][4][2] = {
-	// for I slice
-	{{0,0},{-29,37},{-98,43},{-55,45}},
-	// for P slice
-	{{-194,58},{0,0},{-145,49},{-16,41}},
-	// for B slice
-	{{0,0},{0,0},{0,0},{0,0}}};
+  // for I slice
+  {{0,0},{-29,37},{-98,43},{-55,45}},
+  // for P slice
+  {{-194,58},{0,0},{-145,49},{-16,41}},
+  // for B slice
+  {{0,0},{0,0},{0,0},{0,0}}};
 
 // initial probability for temporal direction
 static const Short INIT_INTER_DIR[3][4][2] = {
-	// for I slice
-	{{0,0},{0,0},{0,0},{0,0}},
-	// for P slice
-	{{0,0},{0,0},{0,0},{0,0}},
-	// for B slice
-	{{-57,36},{-57,39},{-55,41},{-18,36}}};
+  // for I slice
+  {{0,0},{0,0},{0,0},{0,0}},
+  // for P slice
+  {{0,0},{0,0},{0,0},{0,0}},
+  // for B slice
+  {{-57,36},{-57,39},{-55,41},{-18,36}}};
 
 // initial probability for motion vector difference
 static const Short INIT_MVD[3][14][2] = {
-	// for I slice
-	{{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},
-	 {0,0},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0}},
-	// for P slice
-	{{58,29},{-25,42},{76,28},{103,23},{103,28},{10,38},{9,44},
-	 {27,32},{7,36},{-12,40},{92,25},{62,33},{43,34},{-13,46}},
-	// for B slice
-	{{30,32},{0,37},{17,35},{59,30},{72,32},{48,32},{24,40},
-	 {26,32},{-7,38},{0,0},{69,29},{87,30},{38,34},{39,38}}};
+  // for I slice
+  {{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},
+   {0,0},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0}},
+  // for P slice
+  {{58,29},{-25,42},{76,28},{103,23},{103,28},{10,38},{9,44},
+   {27,32},{7,36},{-12,40},{92,25},{62,33},{43,34},{-13,46}},
+  // for B slice
+  {{30,32},{0,37},{17,35},{59,30},{72,32},{48,32},{24,40},
+   {26,32},{-7,38},{0,0},{69,29},{87,30},{38,34},{39,38}}};
 
 // initial probability for reference frame index
 static const Short INIT_REF_PIC[3][NUM_REF_NO_CTX][2] = {
-	// for I slice
-	{{0,0},{0,0},{0,0},{0,0},{0,0},{0,0}},
-	// for P slice
-	{{0,0},{0,0},{0,0},{0,0},{0,0},{0,0}},
-	// for B slice
-	{{-26,33},{-35,41},{-18,40},{0,0},{0,8},{0,0}}};
+  // for I slice
+  {{0,0},{0,0},{0,0},{0,0},{0,0},{0,0}},
+  // for P slice
+  {{0,0},{0,0},{0,0},{0,0},{0,0},{0,0}},
+  // for B slice
+  {{-26,33},{-35,41},{-18,40},{0,0},{0,8},{0,0}}};
 
 // initial probability for dQP
 static const Short INIT_DQP[3][NUM_DELTA_QP_CTX][2] = {
-	// for I slice
-	{{0,0},{0,0},{0,0},{0,0}},
-	// for P slice
-	{{0,0},{0,0},{0,0},{0,0}},
-	// for B slice
-	{{0,0},{0,0},{0,0},{0,0}}};
+  // for I slice
+  {{0,0},{0,0},{0,0},{0,0}},
+  // for P slice
+  {{0,0},{0,0},{0,0},{0,0}},
+  // for B slice
+  {{0,0},{0,0},{0,0},{0,0}}};
 
 // initial probability for CBF
 static const Short INIT_CBF[3][8][2] = {
-	// for I slice
-	{{-87,53},{-28,41},{-10,38},{-15,37},{-63,45},{-51,40},{-55,40},{-70,38}},
-	// for P slice
-	{{-76,51},{-29,42},{-30,41},{-24,38},{-73,45},{-19,35},{-56,40},{-187,51}},
-	// for B slice
-	{{0,0},{0,0},{0,0},{-179,55},{0,0},{0,0},{0,0},{-41,15}}};
+  // for I slice
+  {{-87,53},{-28,41},{-10,38},{-15,37},{-63,45},{-51,40},{-55,40},{-70,38}},
+  // for P slice
+  {{-76,51},{-29,42},{-30,41},{-24,38},{-73,45},{-19,35},{-56,40},{-187,51}},
+  // for B slice
+  {{0,0},{0,0},{0,0},{-179,55},{0,0},{0,0},{0,0},{-41,15}}};
 
+#if HHI_RQT
+static const Short INIT_QT_CBF[3][3*NUM_QT_CBF_CTX][2] = {
+  // for I slice
+  {{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0}},
+  // for P slice
+  {{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0}},
+  // for B slice
+  {{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0}}};
+#endif
+
+#if HHI_TRANSFORM_CODING
+static const Short INIT_SIG_FLAG[3][224][2] = {
+  {
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0}
+  },
+  {
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0}
+  },
+  {
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0}
+  }
+};
+
+static const Short INIT_LAST_FLAG[3][224][2] = {
+  {
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0}
+  },
+  {
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0}
+  },
+  {
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0}
+  }
+};
+
+static const Short INIT_ABS_GREATER_ONE_FLAG[3][80][2] = {
+  {
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0}
+  },
+  {
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0}
+  },
+  {
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0}
+  }
+};
+
+
+static const Short INIT_COEFF_LEVEL_MINUS_ONE_FLAG[3][80][2] = {
+  {
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0}
+  },
+  {
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0}
+  },
+  {
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0},
+    {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0}, {   0,   0}
+  }
+};
+#else
 // initial probability for sigmap
 static const Short INIT_SIGMAP[3][210][2] = {
 	// for I slice
@@ -399,68 +938,91 @@ static const Short INIT_TCOEFF_LEVEL[3][70][2] = {
 	 {0,0},{0,0},{0,0},{0,0},{0,0},
 	 {0,0},{0,0},{0,0},{0,0},{0,0},
 	 {0,0},{0,0},{0,0},{0,0},{0,0}}};
+#endif
 
 // initial probability for motion vector predictor index
 static const Short INIT_MVP_IDX[3][NUM_MVP_IDX_CTX][2] = {
-	// for I slice
-	{{0,0},{0,0}},
-	// for P slice
-	{{17,33},{1,35}},
-	// for B slice
-	{{38,29},{40,30}}};
+  // for I slice
+  {{0,0},{0,0}},
+  // for P slice
+  {{17,33},{1,35}},
+  // for B slice
+  {{38,29},{40,30}}};
 
 // initial probability for ROT index
 static const Short INIT_ROT_IDX[3][3][2] = {
-	// for I slice
-	{{1,32},{43,28},{-29,40}},
-	// for P slice
-	{{3,33},{28,31},{-61,44}},
-	// for B slice
-	{{0,0},{0,0},{0,0}}};
+  // for I slice
+  {{1,32},{43,28},{-29,40}},
+  // for P slice
+  {{3,33},{28,31},{-61,44}},
+  // for B slice
+  {{0,0},{0,0},{0,0}}};
 
 // initial probability for CIP index
 static const Short INIT_CIP_IDX[3][NUM_CIP_FLAG_CTX][2] = {
-	// for I slice
-	{{-46,36},{-29,35},{-28,37}},
-	// for P slice
-	{{-37,32},{-56,39},{-29,37}},
-	// for B slice
-	{{0,0},{0,0},{0,0}}};
+  // for I slice
+  {{-46,36},{-29,35},{-28,37}},
+  // for P slice
+  {{-37,32},{-56,39},{-29,37}},
+  // for B slice
+  {{0,0},{0,0},{0,0}}};
 
 // initial probability for ALF flag
 static const Short INIT_ALF_FLAG[3][NUM_ALF_FLAG_CTX][2] = {
-	// for I slice
-	{{-4,38}},
-	// for P slice
-	{{10,34}},
-	// for B slice
-	{{0,0}}};
+  // for I slice
+  {{-4,38}},
+  // for P slice
+  {{10,34}},
+  // for B slice
+  {{0,0}}};
+
+#if HHI_ALF
+// initial probability for ALF flag
+static const Short INIT_ALF_SPLITFLAG[3][NUM_ALF_SPLITFLAG_CTX][2] = {
+  // for I slice
+  {{0,0}},
+  // for P slice
+  {{0,0}},
+  // for B slice
+  {{0,0}}};
+#endif
 
 // initial probability for ALF side information (unsigned)
 static const Short INIT_ALF_UVLC[3][NUM_ALF_UVLC_CTX][2] = {
-	// for I slice
-	{{-46,44},{-7,39}},
-	// for P slice
-	{{-51,44},{33,34}},
-	// for B slice
-	{{0,0},{0,0}}};
+  // for I slice
+  {{-46,44},{-7,39}},
+  // for P slice
+  {{-51,44},{33,34}},
+  // for B slice
+  {{0,0},{0,0}}};
 
 // initial probability for ALF side information (signed)
 static const Short INIT_ALF_SVLC[3][NUM_ALF_SVLC_CTX][2] = {
-	// for I slice
-	{{31,38},{14,34},{137,27}},
-	// for P slice
-	{{0,0},{9,35},{74,34}},
-	// for B slice
-	{{0,0},{0,0},{0,0}}};
+  // for I slice
+  {{31,38},{14,34},{137,27}},
+  // for P slice
+  {{0,0},{9,35},{74,34}},
+  // for B slice
+  {{0,0},{0,0},{0,0}}};
+
+#if HHI_RQT
+static const Short INIT_TRANS_SUBDIV_FLAG[3][NUM_TRANS_SUBDIV_FLAG_CTX][2] = {
+  // for I slice
+  {{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0}},
+  // for P slice
+  {{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0}},
+  // for B slice
+  {{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0}}};
+#endif
 
 // initial probability for transform index
 static const Short INIT_TRANS_IDX[3][4][2] = {
-	// for I slice
-	{{0,0},{0,0},{0,0},{0,0}},
-	// for P slice
-	{{0,0},{38,28},{-54,42},{0,0}},
-	// for B slice
-	{{0,0},{0,0},{0,0},{0,0}}};
+  // for I slice
+  {{0,0},{0,0},{0,0},{0,0}},
+  // for P slice
+  {{0,0},{38,28},{-54,42},{0,0}},
+  // for B slice
+  {{0,0},{0,0},{0,0},{0,0}}};
 
 #endif
+

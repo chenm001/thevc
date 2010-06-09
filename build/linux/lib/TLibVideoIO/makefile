@@ -34,9 +34,9 @@ DEFS			= -DMSYS_LINUX -D_LARGEFILE64_SOURCE -D_FILE_OFFSET_BITS=64 -DMSYS_UNIX_L
 OBJS          	= \
 			$(OBJ_DIR)/TVideoIOBits.o \
 			$(OBJ_DIR)/TVideoIOYuv.o \
+						
 
-
-LIBS				= -lpthread
+LIBS				= -lpthread 
 
 DEBUG_LIBS			=
 RELEASE_LIBS		=
@@ -45,8 +45,8 @@ STAT_LIBS			=
 DYN_LIBS			=
 
 # the libraries to link with
-STAT_DEBUG_LIBS		=
-STAT_RELEASE_LIBS	=
+STAT_DEBUG_LIBS		= 
+STAT_RELEASE_LIBS	= 
 DYN_DEBUG_LIBS		=
 DYN_RELEASE_LIBS	=
 

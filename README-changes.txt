@@ -1,49 +1,10 @@
 Changes from JCTVC-A124
 Contact: Woo-Jin Han, wjhan.han@samsung.com
 
---------------- v0.1 -------------------------------------------------------------------------------
-* Modified tools
-
-	- ADI (arbitrary directiona intra)
-	    - Code clean-up (lossless)
-	- ROT (rotational transform)
-	    - Code clean-up
-			- Reduce ROT matrix dynamic range to 8-bit
-
-* Fast encoder feature
-
-  - FEN (fast encoder) option is added (approx. 3 times speed-up to A124-stripped, now x2.7 to JM17)
-      - '-1 FEN' to enable this feature
-      - Following things are applied
-        - Early skip decision (not very aggressive)
-				- Asymmetric motion partition is tried only if horizontal or veritical split is the best
-				- Large block SAD is derived by partial results
-        - ASR (adaptive search range) is turned on automatically - reduces ME range in high-depth
-				  temporal layers
-	- New configuration directory is added (approx. 5 times speed-up to A124-stripped, now x1.6 to JM17)
-	    - cfg/cfp_fast directory
-			- No change in configuration files, only batch files is modified as
-			  - Class D uses up to 32x32 instead of 64x64 block size
-				- Class A, B and use up to 64x64 instead of 128x128 block size
-			  - '-1 FEN -sr 64' is added: fast encoder option + ME range is reduced from 128 to 64
-
-* New additions
-
-  - Symbol mode 0 (VLC) is now working
-      - '-sym 0' to use VLC instead of SBAC
-      - Most parts use simple flag coding except:
-			  - TENTM coefficient coding is implemented (4x4, 8x8) and extended to larger size transform blocks
-				  (by simple interleaving)
-
-* Known problems
-
-  - VLC + RDOQ
-      - Not supported yet	(when -sym 0 is used, RDOQ is turned off automatically)
---------------- v0.0 -------------------------------------------------------------------------------
 1. Removed tools
 
   1.1 MVAC (motion vector accuracy control)
-      - Enables to limit the motion accuracy up to 1/2 accuracy in B-slices for complexity reduction
+      - Enables to limit the motion accuracy up to 1/2 accuracy in B-slices for complexity reductio
 			- Not used in CfP submission
       - Command line option in A124: MVA
   1.2 SHV (simultaneous H & V motion partition)
@@ -144,7 +105,7 @@ Contact: Woo-Jin Han, wjhan.han@samsung.com
       - Option is removed and ACC is always turned on
   3.A Profile option (-p)
       - It was used to separate A124 and A125 coding tools
-      - Removed, now
+      - Removed, now 
 
 4. Misc. changes
 
@@ -155,7 +116,7 @@ Contact: Woo-Jin Han, wjhan.han@samsung.com
 	4.3 Source code improvements
 	    - Unused functions are removed
 			- Variable & function namings are changed to clarify its purpose
-
+	
 5. Known problems
 
   5.1 POC coding

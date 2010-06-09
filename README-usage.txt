@@ -19,7 +19,7 @@ Contact: Woo-Jin Han, wjhan.han@samsung.com
                    |--- TLibDecoder
                    |--- TLibEncoder
                    |--- TLibVideoIO
-
+                   
    1.2 Windows using MS Visual Studio
        - Workspaces of VC6 and VC2008 are included in Root/build directory
    1.3 Linux
@@ -58,8 +58,6 @@ Contact: Woo-Jin Han, wjhan.han@samsung.com
             -tq3    QP offset of temporal layer 3
             -pdx    horizontal source padding size
             -pdy    vertical source padding size
-            -sym    symbol mode (0=VLC, 1=SBAC)
-            -sr     motion search range
             -1/0    <name>: turn on/off <name>
                     <name> = ALF - adaptive loop filter
                              IBD - bit-depth increasement
@@ -73,9 +71,8 @@ Contact: Woo-Jin Han, wjhan.han@samsung.com
                              PAD - automatic source padding of multiple of 16
                              QBO - skip refers highest quality picture
                              ASR - adaptive motion search range
-                             FEN - fast encoder setting
    2.2 Config file (example)
-
+   
       #======== File I/O ===============
       InputFile                     : d:\test\origcfp\RaceHorses_416x240_30.yuv
       BitstreamFile                 : RaceHorses.bin
@@ -111,26 +108,21 @@ Contact: Woo-Jin Han, wjhan.han@samsung.com
       LoopFilterBetaOffset          : 0           # Range: -26 ~ 26
 
       #=========== Motion search =============
-      FastSearch                    : 1           # 0:Full search  1:Diamond  2:PMVFAST(not supported)
+      FastSearch                    : 1           # 0:Full search  1:Diamond  2:PMVFAST(not supported) 
       SearchRange                   : 128         # (0: Search range is a Full frame)
       MaxDeltaQP                    : 0           # Absolute delta QP (1:default)
-
+      
    2.3 Typical example
-
+  
       Example 1) TAppEncoder.exe -c test.cfg -q 32 -g 8 -f 9 -s 64 -h 4
       (Hier-B)    -> QP 32, hierarchical-B GOP 8, 9 frames, 64x64-8x8 CU (~4x4 PU)
 
       Example 2) TAppEncoder.exe -c test.cfg -q 32 -g 4 -f 9 -s 64 -h 4 -1 LDC
       (Hier-P)    -> QP 32, hierarchical-P GOP 4, 9 frames, 64x64-8x8 CU (~4x4 PU)
-
+			
       Example 3) TAppEncoder.exe -c test.cfg -q 32 -g 1 -f 9 -s 64 -h 4 -1 LDC
       (IPPP)      -> QP 32, hierarchical-P GOP 4, 9 frames, 64x64-8x8 CU (~4x4 PU)
-
-   2.4 Typical example (fast encoder setting)
-
-      Example 1) TAppEncoder.exe -c test.cfg -q 32 -g 8 -f 9 -s 64 -h 4 -1 FEN -sr 64
-      (Hier-B)    -> QP 32, hierarchical-B GOP 8, 9 frames, 64x64-8x8 CU (~4x4 PU), fast encoder decision, ME range: 64
-
+      
 3. Decoder option
    3.1 Parameters
         - TAppDecoder.exe -b test.bin -o test.yuv
@@ -140,16 +132,16 @@ Contact: Woo-Jin Han, wjhan.han@samsung.com
 
 4. Contact point
 
-    ===========================================================
+    =========================================================== 
     Woo-Jin Han, Principal Engineer
     (wjhan.han@samsung.com)
 
-    M/M Platform Lab
+    M/M Platform Lab 
 
-    Digital Media & Communications R&D Center
+    Digital Media & Communications R&D Center 
     Digital Media & Communications Business
     Samsung Electronics Co. Ltd.
 
-    Korea phone)
+    Korea phone) 
     +82-31-279-8831 (office), +82-10-3329-6393 (cellular)
     ===========================================================

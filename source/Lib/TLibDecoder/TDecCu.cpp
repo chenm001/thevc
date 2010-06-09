@@ -1,36 +1,36 @@
 /* ====================================================================================================================
 
-	The copyright in this software is being made available under the License included below.
-	This software may be subject to other third party and 	contributor rights, including patent rights, and no such
-	rights are granted under this license.
+  The copyright in this software is being made available under the License included below.
+  This software may be subject to other third party and   contributor rights, including patent rights, and no such
+  rights are granted under this license.
 
-	Copyright (c) 2010, SAMSUNG ELECTRONICS CO., LTD. and BRITISH BROADCASTING CORPORATION
-	All rights reserved.
+  Copyright (c) 2010, SAMSUNG ELECTRONICS CO., LTD. and BRITISH BROADCASTING CORPORATION
+  All rights reserved.
 
-	Redistribution and use in source and binary forms, with or without modification, are permitted only for
-	the purpose of developing standards within the Joint Collaborative Team on Video Coding and for testing and
-	promoting such standards. The following conditions are required to be met:
+  Redistribution and use in source and binary forms, with or without modification, are permitted only for
+  the purpose of developing standards within the Joint Collaborative Team on Video Coding and for testing and
+  promoting such standards. The following conditions are required to be met:
 
-		* Redistributions of source code must retain the above copyright notice, this list of conditions and
-		  the following disclaimer.
-		* Redistributions in binary form must reproduce the above copyright notice, this list of conditions and
-		  the following disclaimer in the documentation and/or other materials provided with the distribution.
-		* Neither the name of SAMSUNG ELECTRONICS CO., LTD. nor the name of the BRITISH BROADCASTING CORPORATION
-		  may be used to endorse or promote products derived from this software without specific prior written permission.
+    * Redistributions of source code must retain the above copyright notice, this list of conditions and
+      the following disclaimer.
+    * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and
+      the following disclaimer in the documentation and/or other materials provided with the distribution.
+    * Neither the name of SAMSUNG ELECTRONICS CO., LTD. nor the name of the BRITISH BROADCASTING CORPORATION
+      may be used to endorse or promote products derived from this software without specific prior written permission.
 
-	THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES,
-	INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-	ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
-	INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
-	SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-	THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-	ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES,
+  INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+  ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+  SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+  THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
  * ====================================================================================================================
 */
 
-/** \file			TDecCu.cpp
-    \brief		CU decoder class
+/** \file     TDecCu.cpp
+    \brief    CU decoder class
 */
 
 #include "TDecCu.h"
@@ -57,9 +57,9 @@ Void TDecCu::init( TDecEntropy* pcEntropyDecoder, TComTrQuant* pcTrQuant, TComPr
   m_pcPrediction      = pcPrediction;
 }
 
-/** \param		uiMaxDepth		total number of allowable depth
-    \param		uiMaxWidth		largest CU width
-		\param		uiMaxHeight		largest CU height
+/** \param    uiMaxDepth    total number of allowable depth
+    \param    uiMaxWidth    largest CU width
+    \param    uiMaxHeight   largest CU height
  */
 Void TDecCu::create( UInt uiMaxDepth, UInt uiMaxWidth, UInt uiMaxHeight )
 {
@@ -108,31 +108,31 @@ Void TDecCu::destroy()
 // Public member functions
 // ====================================================================================================================
 
-/** \param		pcCU				pointer of CU data
-    \param		ruiIsLast		last data?
+/** \param    pcCU        pointer of CU data
+    \param    ruiIsLast   last data?
  */
 Void TDecCu::decodeCU( TComDataCU* pcCU, UInt& ruiIsLast )
 {
-	// start from the top level CU
+  // start from the top level CU
   xDecodeCU( pcCU, 0, 0 );
 
   // dQP: only for LCU
-	if ( pcCU->getSlice()->getSPS()->getUseDQP() )
-	{
-		if ( pcCU->isSkipped( 0 ) && pcCU->getDepth( 0 ) == 0 )
-		{
-		}
-		else
-		{
-			m_pcEntropyDecoder->decodeQP( pcCU, 0, 0 );
-		}
-	}
+  if ( pcCU->getSlice()->getSPS()->getUseDQP() )
+  {
+    if ( pcCU->isSkipped( 0 ) && pcCU->getDepth( 0 ) == 0 )
+    {
+    }
+    else
+    {
+      m_pcEntropyDecoder->decodeQP( pcCU, 0, 0 );
+    }
+  }
 
   //--- Read terminating bit ---
   m_pcEntropyDecoder->decodeTerminatingBit( ruiIsLast );
 }
 
-/** \param		pcCU				pointer of CU data
+/** \param    pcCU        pointer of CU data
  */
 Void TDecCu::decompressCU( TComDataCU* pcCU )
 {
@@ -157,7 +157,7 @@ Void TDecCu::xDecodeCU( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
 
   if( ( uiRPelX < pcCU->getSlice()->getSPS()->getWidth() ) && ( uiBPelY < pcCU->getSlice()->getSPS()->getHeight() ) )
   {
-	  m_pcEntropyDecoder->decodeSplitFlag( pcCU, uiAbsPartIdx, uiDepth );
+    m_pcEntropyDecoder->decodeSplitFlag( pcCU, uiAbsPartIdx, uiDepth );
   }
   else
   {
@@ -181,7 +181,15 @@ Void TDecCu::xDecodeCU( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
     return;
   }
 
+#if HHI_ALF
+  if( !pcCU->getSlice()->getSPS()->getALFSeparateQt() )
+  {
+    m_pcEntropyDecoder->decodeAlfCtrlFlag( pcCU, uiAbsPartIdx, uiDepth );
+  }
+#else
   m_pcEntropyDecoder->decodeAlfCtrlFlag( pcCU, uiAbsPartIdx, uiDepth );
+#endif
+
   // decode CU mode and the partition size
   if( !pcCU->getSlice()->isIntra() )
   {
@@ -191,23 +199,26 @@ Void TDecCu::xDecodeCU( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
   if( pcCU->isSkip( uiAbsPartIdx ) )
   {
     pcCU->setMVPIdxSubParts( -1, REF_PIC_LIST_0, uiAbsPartIdx, 0, uiDepth);
-		pcCU->setMVPNumSubParts( -1, REF_PIC_LIST_0, uiAbsPartIdx, 0, uiDepth);
+    pcCU->setMVPNumSubParts( -1, REF_PIC_LIST_0, uiAbsPartIdx, 0, uiDepth);
 
-		pcCU->setMVPIdxSubParts( -1, REF_PIC_LIST_1, uiAbsPartIdx, 0, uiDepth);
-		pcCU->setMVPNumSubParts( -1, REF_PIC_LIST_1, uiAbsPartIdx, 0, uiDepth);
+    pcCU->setMVPIdxSubParts( -1, REF_PIC_LIST_1, uiAbsPartIdx, 0, uiDepth);
+    pcCU->setMVPNumSubParts( -1, REF_PIC_LIST_1, uiAbsPartIdx, 0, uiDepth);
 
-		if ( pcCU->getSlice()->getNumRefIdx( REF_PIC_LIST_0 ) > 0 ) //if ( ref. frame list0 has at least 1 entry )
-		{
-			m_pcEntropyDecoder->decodeMVPIdx( pcCU, uiAbsPartIdx, uiDepth, REF_PIC_LIST_0, m_ppcCU[uiDepth]);
-		}
+    if ( pcCU->getSlice()->getNumRefIdx( REF_PIC_LIST_0 ) > 0 ) //if ( ref. frame list0 has at least 1 entry )
+    {
+      m_pcEntropyDecoder->decodeMVPIdx( pcCU, uiAbsPartIdx, uiDepth, REF_PIC_LIST_0, m_ppcCU[uiDepth]);
+    }
 
-		if ( pcCU->getSlice()->getNumRefIdx( REF_PIC_LIST_1 ) > 0 ) //if ( ref. frame list1 has at least 1 entry )
-		{
-			m_pcEntropyDecoder->decodeMVPIdx( pcCU, uiAbsPartIdx, uiDepth, REF_PIC_LIST_1, m_ppcCU[uiDepth]);
-		}
+    if ( pcCU->getSlice()->getNumRefIdx( REF_PIC_LIST_1 ) > 0 ) //if ( ref. frame list1 has at least 1 entry )
+    {
+      m_pcEntropyDecoder->decodeMVPIdx( pcCU, uiAbsPartIdx, uiDepth, REF_PIC_LIST_1, m_ppcCU[uiDepth]);
+    }
     return;
   }
 
+#if HHI_MRG
+  m_pcEntropyDecoder->decodeMergeInfo( pcCU, uiAbsPartIdx, uiDepth, m_ppcCU[uiDepth] );
+#endif
   m_pcEntropyDecoder->decodePredMode( pcCU, uiAbsPartIdx, uiDepth );
   m_pcEntropyDecoder->decodePartSize( pcCU, uiAbsPartIdx, uiDepth );
 
@@ -220,14 +231,25 @@ Void TDecCu::xDecodeCU( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
   // Coefficient decoding
   m_pcEntropyDecoder->decodeCoeff( pcCU, uiAbsPartIdx, uiDepth, uiCurrWidth, uiCurrHeight );
 
-	// ROT index
+  // ROT index
+#if HHI_ALLOW_ROT_SWITCH
+  if ( pcCU->getSlice()->getSPS()->getUseROT() )
+  {
+    m_pcEntropyDecoder->decodeROTIdx( pcCU, uiAbsPartIdx, uiDepth );
+  }
+#else
   m_pcEntropyDecoder->decodeROTIdx( pcCU, uiAbsPartIdx, uiDepth );
+#endif
 
-	// CIP flag
-	if ( pcCU->isIntra( uiAbsPartIdx ) )
-	{
-		m_pcEntropyDecoder->decodeCIPflag( pcCU, uiAbsPartIdx, uiDepth );
-	}
+  // CIP flag
+#if HHI_ALLOW_CIP_SWITCH
+  if ( pcCU->isIntra( uiAbsPartIdx ) && pcCU->getSlice()->getSPS()->getUseCIP() )
+#else
+  if ( pcCU->isIntra( uiAbsPartIdx ) )
+#endif
+  {
+    m_pcEntropyDecoder->decodeCIPflag( pcCU, uiAbsPartIdx, uiDepth );
+  }
 }
 
 Void TDecCu::xDecompressCU( TComDataCU* pcCU, TComDataCU* pcCUCur, UInt uiAbsPartIdx,  UInt uiDepth )
@@ -275,7 +297,18 @@ Void TDecCu::xDecompressCU( TComDataCU* pcCU, TComDataCU* pcCUCur, UInt uiAbsPar
     xReconInter( m_ppcCU[uiDepth], uiAbsPartIdx, uiDepth );
     break;
   case MODE_INTRA:
+#if HHI_RQT_INTRA
+    if( m_ppcCU[uiDepth]->getSlice()->getSPS()->getQuadtreeTUFlag() )
+    {
+      xReconIntraQT( m_ppcCU[uiDepth], uiAbsPartIdx, uiDepth );
+    }
+    else
+    {
+      xReconIntra( m_ppcCU[uiDepth], uiAbsPartIdx, uiDepth );
+    }
+#else
     xReconIntra( m_ppcCU[uiDepth], uiAbsPartIdx, uiDepth );
+#endif
     break;
   default:
     assert(0);
@@ -294,15 +327,15 @@ Void TDecCu::xReconInter( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
   // inter recon
   xDecodeInterTexture( pcCU, 0, uiDepth );
 
-	// clip for only non-zero cbp case
-	if  ( ( pcCU->getCbf( 0, TEXT_LUMA ) ) || ( pcCU->getCbf( 0, TEXT_CHROMA_U ) ) || ( pcCU->getCbf(0, TEXT_CHROMA_V ) ) )
-	{
-		m_ppcYuvReco[uiDepth]->addClip( m_ppcYuvReco[uiDepth], m_ppcYuvResi[uiDepth], 0, pcCU->getWidth( 0 ) );
-	}
-	else
-	{
-		m_ppcYuvReco[uiDepth]->copyPartToPartYuv( m_ppcYuvReco[uiDepth],0, pcCU->getWidth( 0 ),pcCU->getHeight( 0 ));
-	}
+  // clip for only non-zero cbp case
+  if  ( ( pcCU->getCbf( 0, TEXT_LUMA ) ) || ( pcCU->getCbf( 0, TEXT_CHROMA_U ) ) || ( pcCU->getCbf(0, TEXT_CHROMA_V ) ) )
+  {
+    m_ppcYuvReco[uiDepth]->addClip( m_ppcYuvReco[uiDepth], m_ppcYuvResi[uiDepth], 0, pcCU->getWidth( 0 ) );
+  }
+  else
+  {
+    m_ppcYuvReco[uiDepth]->copyPartToPartYuv( m_ppcYuvReco[uiDepth],0, pcCU->getWidth( 0 ),pcCU->getHeight( 0 ));
+  }
 }
 
 Void TDecCu::xDecodeIntraTexture( TComDataCU* pcCU, UInt uiPartIdx, Pel* piReco, Pel* piPred, Pel* piResi, UInt uiStride, TCoeff* pCoeff, UInt uiWidth, UInt uiHeight, UInt uiCurrDepth, UInt indexROT )
@@ -323,13 +356,21 @@ Void TDecCu::xDecodeIntraTexture( TComDataCU* pcCU, UInt uiPartIdx, Pel* piReco,
     Bool bLeftAvail  = false;
 
     pcPattern->initAdiPattern(pcCU, uiPartIdx, uiCurrDepth, m_pcPrediction->getPredicBuf(), m_pcPrediction->getPredicBufWidth(), m_pcPrediction->getPredicBufHeight(), bAboveAvail, bLeftAvail);
+#if HHI_AIS
+    m_pcPrediction->predIntraLumaAdi( pcPattern, pcCU->getLumaIntraDir(uiPartIdx), pcCU->getLumaIntraFiltFlag(uiPartIdx), pPred, uiStride, uiWidth, uiHeight, pcCU, bAboveAvail, bLeftAvail );
+#else
     m_pcPrediction->predIntraLumaAdi( pcPattern, pcCU->getLumaIntraDir(uiPartIdx), pPred, uiStride, uiWidth, uiHeight, pcCU, bAboveAvail, bLeftAvail );
+#endif
 
     m_pcTrQuant->setQPforQuant( pcCU->getQP(uiPartIdx), !pcCU->getSlice()->getDepth(), pcCU->getSlice()->getSliceType(), TEXT_LUMA );
     m_pcTrQuant->invtransformNxN( pResi, uiStride, pCoeff, uiWidth, uiHeight, indexROT );
 
     // Reconstruction
+#if HHI_ALLOW_CIP_SWITCH
+    if ( pcCU->getSlice()->getSPS()->getUseCIP() && pcCU->getCIPflag( uiPartIdx ) )
+#else
     if ( pcCU->getCIPflag( uiPartIdx ) )
+#endif
     {
       m_pcPrediction->recIntraLumaCIP( pcCU->getPattern(), piPred, piResi, piReco, uiStride, uiWidth, uiHeight, pcCU, bAboveAvail, bLeftAvail );
 
@@ -419,24 +460,28 @@ Void TDecCu::xRecurIntraInvTransChroma(TComDataCU* pcCU, UInt uiAbsPartIdx, Pel*
     Bool bAboveAvail = false;
     Bool bLeftAvail  = false;
 
+#if HHI_RQT_INTRA
+    pcCU->getPattern()->initAdiPatternChroma(pcCU,uiAbsPartIdx, uiCurrTrMode, m_pcPrediction->getPredicBuf(),m_pcPrediction->getPredicBufWidth(),m_pcPrediction->getPredicBufHeight(),bAboveAvail,bLeftAvail);
+#else
     pcCU->getPattern()->initAdiPatternChroma(pcCU,uiAbsPartIdx, m_pcPrediction->getPredicBuf(),m_pcPrediction->getPredicBufWidth(),m_pcPrediction->getPredicBufHeight(),bAboveAvail,bLeftAvail);
+#endif
 
     Int  iIntraIdx      = pcCU->getIntraSizeIdx(0);
     UInt uiModeL        = g_aucIntraModeOrder[iIntraIdx][pcCU->getLumaIntraDir(0)];
-    UInt uiMode					= pcCU->getChromaIntraDir(0);
+    UInt uiMode         = pcCU->getChromaIntraDir(0);
 
-		if (uiMode==4) uiMode = uiModeL;
+    if (uiMode==4) uiMode = uiModeL;
 
     Int*   pPatChr;
 
     if (eText==TEXT_CHROMA_U)
-		{
+    {
       pPatChr=  pcCU->getPattern()->getAdiCbBuf( uiWidth, uiHeight, m_pcPrediction->getPredicBuf() );
-		}
+    }
     else // (eText==TEXT_CHROMA_V)
-		{
+    {
       pPatChr=  pcCU->getPattern()->getAdiCrBuf( uiWidth, uiHeight, m_pcPrediction->getPredicBuf() );
-		}
+    }
 
     m_pcPrediction-> predIntraChromaAdi( pcCU->getPattern(), pPatChr, uiMode, pPred, uiStride, uiWidth, uiHeight, pcCU, bAboveAvail, bLeftAvail );
 
@@ -488,6 +533,220 @@ Void TDecCu::xRecurIntraInvTransChroma(TComDataCU* pcCU, UInt uiAbsPartIdx, Pel*
     xRecurIntraInvTransChroma( pcCU, uiAbsPartIdx, pResi, pPred, pReco, uiStride, piCoeff, uiWidth, uiHeight, uiTrMode, uiCurrTrMode, eText );
   }
 }
+
+#if HHI_RQT_INTRA
+
+Void
+TDecCu::xIntraRecLumaBlk( TComDataCU* pcCU,
+                          UInt        uiTrDepth,
+                          UInt        uiAbsPartIdx,
+                          TComYuv*    pcRecoYuv,
+                          TComYuv*    pcPredYuv, 
+                          TComYuv*    pcResiYuv )
+{
+  UInt    uiWidth           = pcCU     ->getWidth   ( 0 ) >> uiTrDepth;
+  UInt    uiHeight          = pcCU     ->getHeight  ( 0 ) >> uiTrDepth;
+  UInt    uiStride          = pcRecoYuv->getStride  ();
+  Pel*    piReco            = pcRecoYuv->getLumaAddr( uiAbsPartIdx );
+  Pel*    piPred            = pcPredYuv->getLumaAddr( uiAbsPartIdx );
+  Pel*    piResi            = pcResiYuv->getLumaAddr( uiAbsPartIdx );
+
+  UInt    uiNumCoeffInc     = ( pcCU->getSlice()->getSPS()->getMaxCUWidth() * pcCU->getSlice()->getSPS()->getMaxCUHeight() ) >> ( pcCU->getSlice()->getSPS()->getMaxCUDepth() << 1 );
+  TCoeff* pcCoeff           = pcCU->getCoeffY() + ( uiNumCoeffInc * uiAbsPartIdx );
+  
+  UInt    uiLumaPredMode    = pcCU->getLumaIntraDir     ( uiAbsPartIdx );
+#if HHI_AIS
+  Bool    bIntraSmoothing   = pcCU->getLumaIntraFiltFlag( uiAbsPartIdx );
+#endif
+  
+  UInt    uiZOrder          = pcCU->getZorderIdxInCU() + uiAbsPartIdx;
+  Pel*    piRecIPred        = pcCU->getPic()->getPicYuvRec()->getLumaAddr( pcCU->getAddr(), uiZOrder );
+  UInt    uiRecIPredStride  = pcCU->getPic()->getPicYuvRec()->getStride  ();
+
+  //===== init availability pattern =====
+  Bool  bAboveAvail = false;
+  Bool  bLeftAvail  = false;
+  pcCU->getPattern()->initPattern   ( pcCU, uiTrDepth, uiAbsPartIdx );
+  pcCU->getPattern()->initAdiPattern( pcCU, uiAbsPartIdx, uiTrDepth, 
+                                      m_pcPrediction->getPredicBuf       (),
+                                      m_pcPrediction->getPredicBufWidth  (),
+                                      m_pcPrediction->getPredicBufHeight (),
+                                      bAboveAvail, bLeftAvail );
+
+  //===== get prediction signal =====
+#if HHI_AIS
+  m_pcPrediction->predIntraLumaAdi( pcCU->getPattern(), uiLumaPredMode, bIntraSmoothing, piPred, uiStride, uiWidth, uiHeight, pcCU, bAboveAvail, bLeftAvail );
+#else
+  m_pcPrediction->predIntraLumaAdi( pcCU->getPattern(), uiLumaPredMode, piPred, uiStride, uiWidth, uiHeight, pcCU, bAboveAvail, bLeftAvail );
+#endif
+
+  //===== inverse transform =====
+  m_pcTrQuant->setQPforQuant  ( pcCU->getQP(0), !pcCU->getSlice()->getDepth(), pcCU->getSlice()->getSliceType(), TEXT_LUMA );
+  m_pcTrQuant->invtransformNxN( piResi, uiStride, pcCoeff, uiWidth, uiHeight, pcCU->getROTindex(0) );
+
+  //===== reconstruction =====
+  if( pcCU->getCIPflag( uiAbsPartIdx ) )
+  {
+    m_pcPrediction->recIntraLumaCIP( pcCU->getPattern(), piPred, piResi, piReco, uiStride, uiWidth, uiHeight, pcCU, bAboveAvail, bLeftAvail );
+    Pel* pReco      = piReco;
+    Pel* pRecIPred  = piRecIPred;
+    for( UInt uiY = 0; uiY < uiHeight; uiY++ )
+    {
+      for( UInt uiX = 0; uiX < uiWidth; uiX++ )
+      {
+        pRecIPred[ uiX ] = pReco[ uiX ];
+      }
+      pReco     += uiStride;
+      pRecIPred += uiRecIPredStride;
+    }
+  }
+  else
+  {
+    Pel* pPred      = piPred;
+    Pel* pResi      = piResi;
+    Pel* pReco      = piReco;
+    Pel* pRecIPred  = piRecIPred;
+    for( UInt uiY = 0; uiY < uiHeight; uiY++ )
+    {
+      for( UInt uiX = 0; uiX < uiWidth; uiX++ )
+      {
+        pReco    [ uiX ] = Clip( pPred[ uiX ] + pResi[ uiX ] );
+        pRecIPred[ uiX ] = pReco[ uiX ];
+      }
+      pPred     += uiStride;
+      pResi     += uiStride;
+      pReco     += uiStride;
+      pRecIPred += uiRecIPredStride;
+    }
+  }
+}
+
+
+Void
+TDecCu::xIntraRecChromaBlk( TComDataCU* pcCU,
+                            UInt        uiTrDepth,
+                            UInt        uiAbsPartIdx,
+                            TComYuv*    pcRecoYuv,
+                            TComYuv*    pcPredYuv, 
+                            TComYuv*    pcResiYuv,
+                            UInt        uiChromaId )
+{
+  UInt uiFullDepth  = pcCU->getDepth( 0 ) + uiTrDepth;
+  UInt uiLog2TrSize = g_aucConvertToBit[ pcCU->getSlice()->getSPS()->getMaxCUWidth() >> uiFullDepth ] + 2;
+  if( uiLog2TrSize == pcCU->getSlice()->getSPS()->getQuadtreeTULog2MinSize() )
+  {
+    assert( uiTrDepth > 0 );
+    uiTrDepth--;
+    UInt uiQPDiv = pcCU->getPic()->getNumPartInCU() >> ( ( pcCU->getDepth( 0 ) + uiTrDepth ) << 1 );
+    Bool bFirstQ = ( ( uiAbsPartIdx % uiQPDiv ) == 0 );
+    if( !bFirstQ )
+    {
+      return;
+    }
+  }
+
+  TextType  eText             = ( uiChromaId > 0 ? TEXT_CHROMA_V : TEXT_CHROMA_U );
+  UInt      uiWidth           = pcCU     ->getWidth   ( 0 ) >> ( uiTrDepth + 1 );
+  UInt      uiHeight          = pcCU     ->getHeight  ( 0 ) >> ( uiTrDepth + 1 );
+  UInt      uiStride          = pcRecoYuv->getCStride ();
+  Pel*      piReco            = ( uiChromaId > 0 ? pcRecoYuv->getCrAddr( uiAbsPartIdx ) : pcRecoYuv->getCbAddr( uiAbsPartIdx ) );
+  Pel*      piPred            = ( uiChromaId > 0 ? pcPredYuv->getCrAddr( uiAbsPartIdx ) : pcPredYuv->getCbAddr( uiAbsPartIdx ) );
+  Pel*      piResi            = ( uiChromaId > 0 ? pcResiYuv->getCrAddr( uiAbsPartIdx ) : pcResiYuv->getCbAddr( uiAbsPartIdx ) );
+
+  UInt      uiNumCoeffInc     = ( ( pcCU->getSlice()->getSPS()->getMaxCUWidth() * pcCU->getSlice()->getSPS()->getMaxCUHeight() ) >> ( pcCU->getSlice()->getSPS()->getMaxCUDepth() << 1 ) ) >> 2;
+  TCoeff*   pcCoeff           = ( uiChromaId > 0 ? pcCU->getCoeffCr() : pcCU->getCoeffCb() ) + ( uiNumCoeffInc * uiAbsPartIdx );
+  
+  UInt      uiChromaPredMode  = pcCU->getChromaIntraDir( 0 );
+  if( uiChromaPredMode == 4 )
+  {
+    UInt    uiIntraIdx        = pcCU->getIntraSizeIdx( 0 );
+    uiChromaPredMode          = g_aucIntraModeOrder[ uiIntraIdx ][ pcCU->getLumaIntraDir( 0 ) ];
+  }
+  
+  UInt      uiZOrder          = pcCU->getZorderIdxInCU() + uiAbsPartIdx;
+  Pel*      piRecIPred        = ( uiChromaId > 0 ? pcCU->getPic()->getPicYuvRec()->getCrAddr( pcCU->getAddr(), uiZOrder ) : pcCU->getPic()->getPicYuvRec()->getCbAddr( pcCU->getAddr(), uiZOrder ) );
+  UInt      uiRecIPredStride  = pcCU->getPic()->getPicYuvRec()->getCStride();
+
+  //===== init availability pattern =====
+  Bool  bAboveAvail = false;
+  Bool  bLeftAvail  = false;
+  pcCU->getPattern()->initPattern         ( pcCU, uiTrDepth, uiAbsPartIdx );
+  pcCU->getPattern()->initAdiPatternChroma( pcCU, uiAbsPartIdx, uiTrDepth, 
+                                            m_pcPrediction->getPredicBuf       (),
+                                            m_pcPrediction->getPredicBufWidth  (),
+                                            m_pcPrediction->getPredicBufHeight (),
+                                            bAboveAvail, bLeftAvail );
+  Int* pPatChroma   = ( uiChromaId > 0 ? pcCU->getPattern()->getAdiCrBuf( uiWidth, uiHeight, m_pcPrediction->getPredicBuf() ) : pcCU->getPattern()->getAdiCbBuf( uiWidth, uiHeight, m_pcPrediction->getPredicBuf() ) );
+
+  //===== get prediction signal =====
+  m_pcPrediction->predIntraChromaAdi( pcCU->getPattern(), pPatChroma, uiChromaPredMode, piPred, uiStride, uiWidth, uiHeight, pcCU, bAboveAvail, bLeftAvail );
+
+  //===== inverse transform =====
+  m_pcTrQuant->setQPforQuant  ( pcCU->getQP(0), !pcCU->getSlice()->getDepth(), pcCU->getSlice()->getSliceType(), eText );
+  m_pcTrQuant->invtransformNxN( piResi, uiStride, pcCoeff, uiWidth, uiHeight, pcCU->getROTindex(0) );
+
+  //===== reconstruction =====
+  {
+    Pel* pPred      = piPred;
+    Pel* pResi      = piResi;
+    Pel* pReco      = piReco;
+    Pel* pRecIPred  = piRecIPred;
+    for( UInt uiY = 0; uiY < uiHeight; uiY++ )
+    {
+      for( UInt uiX = 0; uiX < uiWidth; uiX++ )
+      {
+        pReco    [ uiX ] = Clip( pPred[ uiX ] + pResi[ uiX ] );
+        pRecIPred[ uiX ] = pReco[ uiX ];
+      }
+      pPred     += uiStride;
+      pResi     += uiStride;
+      pReco     += uiStride;
+      pRecIPred += uiRecIPredStride;
+    }
+  }
+}
+
+Void
+TDecCu::xIntraRecQT( TComDataCU* pcCU,
+                     UInt        uiTrDepth,
+                     UInt        uiAbsPartIdx,
+                     TComYuv*    pcRecoYuv,
+                     TComYuv*    pcPredYuv, 
+                     TComYuv*    pcResiYuv )
+{
+  UInt uiFullDepth  = pcCU->getDepth(0) + uiTrDepth;
+  UInt uiTrMode     = pcCU->getTransformIdx( uiAbsPartIdx );
+  if( uiTrMode == uiTrDepth )
+  {
+    xIntraRecLumaBlk  ( pcCU, uiTrDepth, uiAbsPartIdx, pcRecoYuv, pcPredYuv, pcResiYuv );
+    xIntraRecChromaBlk( pcCU, uiTrDepth, uiAbsPartIdx, pcRecoYuv, pcPredYuv, pcResiYuv, 0 );
+    xIntraRecChromaBlk( pcCU, uiTrDepth, uiAbsPartIdx, pcRecoYuv, pcPredYuv, pcResiYuv, 1 );
+  }
+  else
+  {
+    UInt uiNumQPart  = pcCU->getPic()->getNumPartInCU() >> ( ( uiFullDepth + 1 ) << 1 );
+    for( UInt uiPart = 0; uiPart < 4; uiPart++ )
+    {
+      xIntraRecQT( pcCU, uiTrDepth + 1, uiAbsPartIdx + uiPart * uiNumQPart, pcRecoYuv, pcPredYuv, pcResiYuv );
+    }
+  }
+}
+
+Void
+TDecCu::xReconIntraQT( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
+{
+  UInt  uiInitTrDepth = ( pcCU->getPartitionSize(0) == SIZE_2Nx2N ? 0 : 1 );
+  UInt  uiNumPart     = pcCU->getNumPartInter();
+  UInt  uiNumQParts   = pcCU->getTotalNumPart() >> 2;
+  for( UInt uiPU = 0; uiPU < uiNumPart; uiPU++ )
+  {
+    xIntraRecQT( pcCU, uiInitTrDepth, uiPU * uiNumQParts, m_ppcYuvReco[uiDepth], m_ppcYuvReco[uiDepth], m_ppcYuvResi[uiDepth] );
+  }
+}
+
+#endif
+
+
 
 Void TDecCu::xReconIntra( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
 {
@@ -586,7 +845,7 @@ Void TDecCu::xDecodeInterTexture ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiD
 
   pcCU->convertTransIdx( uiAbsPartIdx, pcCU->getTransformIdx( uiAbsPartIdx ), uiLumaTrMode, uiChromaTrMode );
 
-	UChar indexROT = pcCU->getROTindex(0);
+  UChar indexROT = pcCU->getROTindex(0);
 
   // Y
   piCoeff = pcCU->getCoeffY();
@@ -604,3 +863,4 @@ Void TDecCu::xDecodeInterTexture ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiD
   piCoeff = pcCU->getCoeffCr(); pResi = m_ppcYuvResi[uiDepth]->getCrAddr();
   m_pcTrQuant->invRecurTransformNxN ( pcCU, 0, TEXT_CHROMA_V, pResi, 0, m_ppcYuvResi[uiDepth]->getCStride(), uiWidth, uiHeight, uiChromaTrMode, 0, piCoeff, indexROT );
 }
+

@@ -1,36 +1,36 @@
 /* ====================================================================================================================
 
-	The copyright in this software is being made available under the License included below.
-	This software may be subject to other third party and 	contributor rights, including patent rights, and no such
-	rights are granted under this license.
+  The copyright in this software is being made available under the License included below.
+  This software may be subject to other third party and   contributor rights, including patent rights, and no such
+  rights are granted under this license.
 
-	Copyright (c) 2010, SAMSUNG ELECTRONICS CO., LTD. and BRITISH BROADCASTING CORPORATION
-	All rights reserved.
+  Copyright (c) 2010, SAMSUNG ELECTRONICS CO., LTD. and BRITISH BROADCASTING CORPORATION
+  All rights reserved.
 
-	Redistribution and use in source and binary forms, with or without modification, are permitted only for
-	the purpose of developing standards within the Joint Collaborative Team on Video Coding and for testing and
-	promoting such standards. The following conditions are required to be met:
+  Redistribution and use in source and binary forms, with or without modification, are permitted only for
+  the purpose of developing standards within the Joint Collaborative Team on Video Coding and for testing and
+  promoting such standards. The following conditions are required to be met:
 
-		* Redistributions of source code must retain the above copyright notice, this list of conditions and
-		  the following disclaimer.
-		* Redistributions in binary form must reproduce the above copyright notice, this list of conditions and
-		  the following disclaimer in the documentation and/or other materials provided with the distribution.
-		* Neither the name of SAMSUNG ELECTRONICS CO., LTD. nor the name of the BRITISH BROADCASTING CORPORATION
-		  may be used to endorse or promote products derived from this software without specific prior written permission.
+    * Redistributions of source code must retain the above copyright notice, this list of conditions and
+      the following disclaimer.
+    * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and
+      the following disclaimer in the documentation and/or other materials provided with the distribution.
+    * Neither the name of SAMSUNG ELECTRONICS CO., LTD. nor the name of the BRITISH BROADCASTING CORPORATION
+      may be used to endorse or promote products derived from this software without specific prior written permission.
 
-	THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES,
-	INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-	ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
-	INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
-	SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-	THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-	ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES,
+  INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+  ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+  SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+  THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
  * ====================================================================================================================
 */
 
-/** \file			TAppEncTop.cpp
-    \brief		Encoder application class
+/** \file     TAppEncTop.cpp
+    \brief    Encoder application class
 */
 
 #include <list>
@@ -64,10 +64,10 @@ Void TAppEncTop::xInitLibCfg()
   //====== Coding Structure ========
   m_cTEncTop.setIntraPeriod                  ( m_iIntraPeriod );
   m_cTEncTop.setGOPSize                      ( m_iGOPSize );
-	m_cTEncTop.setRateGOPSize                  ( m_iRateGOPSize );
+  m_cTEncTop.setRateGOPSize                  ( m_iRateGOPSize );
   m_cTEncTop.setNumOfReference               ( m_iNumOfReference );
-	m_cTEncTop.setNumOfReferenceB_L0           ( m_iNumOfReferenceB_L0 );
-	m_cTEncTop.setNumOfReferenceB_L1           ( m_iNumOfReferenceB_L1 );
+  m_cTEncTop.setNumOfReferenceB_L0           ( m_iNumOfReferenceB_L0 );
+  m_cTEncTop.setNumOfReferenceB_L1           ( m_iNumOfReferenceB_L1 );
 
   m_cTEncTop.setQP                           ( m_iQP );
 
@@ -82,11 +82,20 @@ Void TAppEncTop::xInitLibCfg()
 
   //====== Entropy Coding ========
   m_cTEncTop.setSymbolMode                   ( m_iSymbolMode );
+  m_cTEncTop.setMCWThreshold                 ( m_uiMCWThreshold );
+  m_cTEncTop.setMaxPIPEDelay                 ( m_uiMaxPIPEDelay );
 
   //====== Loop/Deblock Filter ========
-  m_cTEncTop.setLoopFilterDisable            ( m_bLoopFilterDisable );
+  m_cTEncTop.setLoopFilterDisable            ( m_bLoopFilterDisable       );
   m_cTEncTop.setLoopFilterAlphaC0Offset      ( m_iLoopFilterAlphaC0Offset );
-  m_cTEncTop.setLoopFilterBetaOffset         ( m_iLoopFilterBetaOffset );
+  m_cTEncTop.setLoopFilterBetaOffset         ( m_iLoopFilterBetaOffset    );
+
+#if HHI_ALF
+  m_cTEncTop.setALFSeparateQt                ( m_bALFUseSeparateQT        ); //MS
+  m_cTEncTop.setALFSymmetry                  ( m_bALFFilterSymmetry       ); //MS
+  m_cTEncTop.setALFMinLength                 ( m_iAlfMinLength            ); //MS
+  m_cTEncTop.setALFMaxLength                 ( m_iAlfMaxLength            ); //MS
+#endif
 
   //====== Motion search ========
   m_cTEncTop.setFastSearch                   ( m_iFastSearch  );
@@ -94,31 +103,54 @@ Void TAppEncTop::xInitLibCfg()
   m_cTEncTop.setMaxDeltaQP                   ( m_iMaxDeltaQP  );
 
   //====== Tool list ========
-  m_cTEncTop.setGRefMode										 ( m_pchGRefMode  );
-  m_cTEncTop.setUseSBACRD										 ( m_bUseSBACRD		);
-  m_cTEncTop.setDeltaQpRD										 ( m_uiDeltaQpRD  );
+  m_cTEncTop.setGRefMode                     ( m_pchGRefMode  );
+  m_cTEncTop.setUseSBACRD                    ( m_bUseSBACRD   );
+  m_cTEncTop.setDeltaQpRD                    ( m_uiDeltaQpRD  );
   m_cTEncTop.setUseASR                       ( m_bUseASR      );
-	m_cTEncTop.setUseHADME                     ( m_bUseHADME		);
-	m_cTEncTop.setUseALF	                     ( m_bUseALF  		);
-	m_cTEncTop.setUseGPB	                     ( m_bUseGPB	 		);
-	m_cTEncTop.setdQPs                         ( m_aidQP        );
+  m_cTEncTop.setUseHADME                     ( m_bUseHADME    );
+  m_cTEncTop.setUseALF                       ( m_bUseALF      );
+  m_cTEncTop.setUseGPB                       ( m_bUseGPB      );
+  m_cTEncTop.setdQPs                         ( m_aidQP        );
   m_cTEncTop.setUseRDOQ                      ( m_bUseRDOQ     );
   m_cTEncTop.setUseLDC                       ( m_bUseLDC      );
-	m_cTEncTop.setUsePAD                       ( m_bUsePAD      );
-	m_cTEncTop.setMaxTrSize										 ( m_uiMaxTrSize  );
+  m_cTEncTop.setUsePAD                       ( m_bUsePAD      );
+#if HHI_RQT
+  m_cTEncTop.setQuadtreeTUFlag               ( m_bQuadtreeTUFlag );
+  m_cTEncTop.setQuadtreeTULog2MaxSize        ( m_uiQuadtreeTULog2MaxSize );
+  m_cTEncTop.setQuadtreeTULog2MinSize        ( m_uiQuadtreeTULog2MinSize );
+#endif
+  m_cTEncTop.setMaxTrSize                    ( m_uiMaxTrSize  );
   m_cTEncTop.setUseQBO                       ( m_bUseQBO      );
-	m_cTEncTop.setUseNRF                       ( m_bUseNRF      );
-	m_cTEncTop.setUseBQP                       ( m_bUseBQP      );
-	m_cTEncTop.setDIFTap                       ( m_iDIFTap      );
-	m_cTEncTop.setUseFastEnc                   ( m_bUseFastEnc  );
+  m_cTEncTop.setUseNRF                       ( m_bUseNRF      );
+  m_cTEncTop.setUseBQP                       ( m_bUseBQP      );
+  m_cTEncTop.setDIFTap                       ( m_iDIFTap      );
+  m_cTEncTop.setUseFastEnc                   ( m_bUseFastEnc  );
+#if HHI_ALLOW_CIP_SWITCH
+	m_cTEncTop.setUseCIP                       ( m_bUseCIP      );
+#endif
+#if HHI_ALLOW_ROT_SWITCH
+	m_cTEncTop.setUseROT                       ( m_bUseROT			);
+#endif
+#if HHI_AIS
+  m_cTEncTop.setUseAIS                       ( m_bUseAIS      ); // BB:
+#endif
+#if HHI_MRG
+  m_cTEncTop.setUseMRG                       ( m_bUseMRG      ); // SOPH:
+#endif
+#if HHI_IMVP
+  m_cTEncTop.setUseIMP                       ( m_bUseIMP      ); // SOPH:
+#endif
+#if HHI_INTERP_FILTER
+  m_cTEncTop.setInterpFilterType             ( m_iInterpFilterType );
+#endif
 }
 
 Void TAppEncTop::xCreateLib()
 {
   // Video I/O
-  m_cTVideoIOYuvInputFile.open( m_pchInputFile,			false );	// read  mode
-  m_cTVideoIOYuvReconFile.open( m_pchReconFile,			true  );	// write mode
-  m_cTVideoIOBitsFile.openBits( m_pchBitstreamFile,	true  );	// write mode
+  m_cTVideoIOYuvInputFile.open( m_pchInputFile,     false );  // read  mode
+  m_cTVideoIOYuvReconFile.open( m_pchReconFile,     true  );  // write mode
+  m_cTVideoIOBitsFile.openBits( m_pchBitstreamFile, true  );  // write mode
 
   // Neo Decoder
   m_cTEncTop.create();
@@ -147,10 +179,10 @@ Void TAppEncTop::xInitLib()
 /**
     - create internal class
     - initialize internal variable
-		- until the end of input YUV file, call encoding function in TEncTop class
-		- delete allocated buffers
-		- destroy internal class
-		.
+    - until the end of input YUV file, call encoding function in TEncTop class
+    - delete allocated buffers
+    - destroy internal class
+    .
  */
 Void TAppEncTop::encode()
 {
@@ -158,52 +190,52 @@ Void TAppEncTop::encode()
   TComPicYuv*       pcPicYuvRec = NULL;
   TComBitstream*    pcBitstream = NULL;
 
-	// initialize internal class & member variables
+  // initialize internal class & member variables
   xInitLibCfg();
   xCreateLib();
   xInitLib();
 
-	// main encoder loop
+  // main encoder loop
   Int   iNumEncoded = 0;
   Bool  bEos = false;
 
-	// allocate original YUV buffer
+  // allocate original YUV buffer
   pcPicYuvOrg->create( m_iSourceWidth, m_iSourceHeight, m_uiMaxCUWidth, m_uiMaxCUHeight, m_uiMaxCUDepth );
 
-	while ( !bEos )
+  while ( !bEos )
   {
-		// get buffers
+    // get buffers
     xGetBuffer( pcPicYuvRec, pcBitstream );
 
-		// read input YUV file
+    // read input YUV file
     m_cTVideoIOYuvInputFile.read( pcPicYuvOrg, m_aiPad );
 
-		// increase number of received frames
+    // increase number of received frames
     m_iFrameRcvd++;
 
-		// check end of file
+    // check end of file
     bEos = ( m_cTVideoIOYuvInputFile.isEof() == 1 ?   true : false  );
     bEos = ( m_iFrameRcvd == m_iFrameToBeEncoded ?    true : bEos   );
 
-		// call encoding function for one frame
+    // call encoding function for one frame
     m_cTEncTop.encode( bEos, pcPicYuvOrg, m_cListPicYuvRec, m_cListBitstream, iNumEncoded );
 
-		// write bistream to file if necessary
+    // write bistream to file if necessary
     if ( iNumEncoded > 0 )
-		{
+    {
       xWriteOutput( iNumEncoded );
-		}
+    }
   }
 
-	// delete original YUV buffer
+  // delete original YUV buffer
   pcPicYuvOrg->destroy();
   delete pcPicYuvOrg;
   pcPicYuvOrg = NULL;
 
-	// delete used buffers in encoder class
+  // delete used buffers in encoder class
   m_cTEncTop.deletePicBuffer();
 
-	// delete buffers & classes
+  // delete buffers & classes
   xDeleteBuffer();
   xDestroyLib();
 
@@ -218,7 +250,7 @@ Void TAppEncTop::encode()
     - application has picture buffer list with size of GOP
     - picture buffer list acts as ring buffer
     - end of the list has the latest picture
-		.
+    .
  */
 Void TAppEncTop::xGetBuffer( TComPicYuv*& rpcPicYuvRec, TComBitstream*& rpcBitStream )
 {
@@ -270,7 +302,7 @@ Void TAppEncTop::xDeleteBuffer( )
   TComList<TComPicYuv*>::iterator iterPicYuvRec  = m_cListPicYuvRec.begin();
   TComList<TComBitstream*>::iterator iterBitstream = m_cListBitstream.begin();
 
-  Int iSize = m_cListPicYuvRec.size();
+  Int iSize = Int( m_cListPicYuvRec.size() );
 
   for ( Int i = 0; i < iSize; i++ )
   {
@@ -286,7 +318,7 @@ Void TAppEncTop::xDeleteBuffer( )
 
 }
 
-/** \param iNumEncoded	number of encoded frames
+/** \param iNumEncoded  number of encoded frames
  */
 Void TAppEncTop::xWriteOutput( Int iNumEncoded )
 {
@@ -309,3 +341,4 @@ Void TAppEncTop::xWriteOutput( Int iNumEncoded )
     m_cTVideoIOBitsFile.writeBits( pcBitstream );
   }
 }
+

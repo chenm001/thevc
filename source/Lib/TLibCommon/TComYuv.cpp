@@ -1,37 +1,37 @@
 /* ====================================================================================================================
 
-	The copyright in this software is being made available under the License included below.
-	This software may be subject to other third party and 	contributor rights, including patent rights, and no such
-	rights are granted under this license.
+  The copyright in this software is being made available under the License included below.
+  This software may be subject to other third party and   contributor rights, including patent rights, and no such
+  rights are granted under this license.
 
-	Copyright (c) 2010, SAMSUNG ELECTRONICS CO., LTD. and BRITISH BROADCASTING CORPORATION
-	All rights reserved.
+  Copyright (c) 2010, SAMSUNG ELECTRONICS CO., LTD. and BRITISH BROADCASTING CORPORATION
+  All rights reserved.
 
-	Redistribution and use in source and binary forms, with or without modification, are permitted only for
-	the purpose of developing standards within the Joint Collaborative Team on Video Coding and for testing and
-	promoting such standards. The following conditions are required to be met:
+  Redistribution and use in source and binary forms, with or without modification, are permitted only for
+  the purpose of developing standards within the Joint Collaborative Team on Video Coding and for testing and
+  promoting such standards. The following conditions are required to be met:
 
-		* Redistributions of source code must retain the above copyright notice, this list of conditions and
-		  the following disclaimer.
-		* Redistributions in binary form must reproduce the above copyright notice, this list of conditions and
-		  the following disclaimer in the documentation and/or other materials provided with the distribution.
-		* Neither the name of SAMSUNG ELECTRONICS CO., LTD. nor the name of the BRITISH BROADCASTING CORPORATION
-		  may be used to endorse or promote products derived from this software without specific prior written permission.
+    * Redistributions of source code must retain the above copyright notice, this list of conditions and
+      the following disclaimer.
+    * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and
+      the following disclaimer in the documentation and/or other materials provided with the distribution.
+    * Neither the name of SAMSUNG ELECTRONICS CO., LTD. nor the name of the BRITISH BROADCASTING CORPORATION
+      may be used to endorse or promote products derived from this software without specific prior written permission.
 
-	THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES,
-	INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-	ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
-	INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
-	SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-	THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-	ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES,
+  INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+  ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+  SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+  THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
  * ====================================================================================================================
 */
 
-/** \file			TComYuv.cpp
-    \brief		general YUV buffer class
-		\todo     this should be merged with TComPicYuv
+/** \file     TComYuv.cpp
+    \brief    general YUV buffer class
+    \todo     this should be merged with TComPicYuv
 */
 
 #include <stdlib.h>
@@ -76,7 +76,7 @@ Void TComYuv::printout()
 Void TComYuv::create( UInt iWidth, UInt iHeight )
 {
   // memory allocation
-  m_apiBufY  = (Pel*)xMalloc( Pel, iWidth*iHeight	   );
+  m_apiBufY  = (Pel*)xMalloc( Pel, iWidth*iHeight    );
   m_apiBufU  = (Pel*)xMalloc( Pel, iWidth*iHeight >> 2 );
   m_apiBufV  = (Pel*)xMalloc( Pel, iWidth*iHeight >> 2 );
 
@@ -90,9 +90,9 @@ Void TComYuv::create( UInt iWidth, UInt iHeight )
 Void TComYuv::destroy()
 {
   // memory free
-	xFree( m_apiBufY ); m_apiBufY = NULL;
-	xFree( m_apiBufU ); m_apiBufU = NULL;
-	xFree( m_apiBufV ); m_apiBufV = NULL;
+  xFree( m_apiBufY ); m_apiBufY = NULL;
+  xFree( m_apiBufU ); m_apiBufU = NULL;
+  xFree( m_apiBufV ); m_apiBufV = NULL;
 }
 
 Void TComYuv::clear()
@@ -324,6 +324,12 @@ Void TComYuv::copyPartToPartLuma  ( TComYuv* pcYuvDst, UInt uiPartIdx, UInt iWid
 {
   Pel* pSrc =           getLumaAddr(uiPartIdx);
   Pel* pDst = pcYuvDst->getLumaAddr(uiPartIdx);
+  if( pSrc == pDst )
+  {
+    //th not a good idea
+    //th best would be to fix the caller 
+    return ;
+  }
 
   UInt  iSrcStride = getStride();
   UInt  iDstStride = pcYuvDst->getStride();
@@ -341,6 +347,13 @@ Void TComYuv::copyPartToPartChroma( TComYuv* pcYuvDst, UInt uiPartIdx, UInt iWid
   Pel*  pSrcV =           getCrAddr(uiPartIdx);
   Pel*  pDstU = pcYuvDst->getCbAddr(uiPartIdx);
   Pel*  pDstV = pcYuvDst->getCrAddr(uiPartIdx);
+
+  if( pSrcU == pDstU && pSrcV == pDstV)
+  {
+    //th not a good idea
+    //th best would be to fix the caller 
+    return ;
+  }
 
   UInt   iSrcStride = getCStride();
   UInt   iDstStride = pcYuvDst->getCStride();
@@ -509,15 +522,15 @@ Void TComYuv::addAvg( TComYuv* pcYuvSrc0, TComYuv* pcYuvSrc1, UInt iPartUnitIdx,
   UInt  iSrc1Stride = pcYuvSrc1->getStride();
   UInt  iDstStride  = getStride();
 
-	for ( y = iHeight-1; y >= 0; y-- )
+  for ( y = iHeight-1; y >= 0; y-- )
   {
     for ( x = iWidth-1; x >= 0; )
     {
-			// note: luma min width is 4
+      // note: luma min width is 4
       pDstY[x] = (pSrcY0[x] + pSrcY1[x] + 1) >> 1; x--;
-			pDstY[x] = (pSrcY0[x] + pSrcY1[x] + 1) >> 1; x--;
       pDstY[x] = (pSrcY0[x] + pSrcY1[x] + 1) >> 1; x--;
-			pDstY[x] = (pSrcY0[x] + pSrcY1[x] + 1) >> 1; x--;
+      pDstY[x] = (pSrcY0[x] + pSrcY1[x] + 1) >> 1; x--;
+      pDstY[x] = (pSrcY0[x] + pSrcY1[x] + 1) >> 1; x--;
     }
     pSrcY0 += iSrc0Stride;
     pSrcY1 += iSrc1Stride;
@@ -528,14 +541,14 @@ Void TComYuv::addAvg( TComYuv* pcYuvSrc0, TComYuv* pcYuvSrc1, UInt iPartUnitIdx,
   iSrc1Stride = pcYuvSrc1->getCStride();
   iDstStride  = getCStride();
 
-	iWidth  >>=1;
-	iHeight >>=1;
+  iWidth  >>=1;
+  iHeight >>=1;
 
   for ( y = iHeight-1; y >= 0; y-- )
   {
     for ( x = iWidth-1; x >= 0; )
     {
-			// note: chroma min width is 2
+      // note: chroma min width is 2
       pDstU[x] = (pSrcU0[x] + pSrcU1[x] + 1) >> 1;
       pDstV[x] = (pSrcV0[x] + pSrcV1[x] + 1) >> 1; x--;
       pDstU[x] = (pSrcU0[x] + pSrcU1[x] + 1) >> 1;

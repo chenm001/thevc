@@ -32,10 +32,12 @@ DEFS			= -DMSYS_LINUX
 
 # set objects
 OBJS          	= \
-			$(OBJ_DIR)/SbacContextModel.o \
-			$(OBJ_DIR)/SbacContextModel3DBuffer.o \
+			$(OBJ_DIR)/ContextModel.o \
+			$(OBJ_DIR)/ContextModel3DBuffer.o \
+			$(OBJ_DIR)/TComCABACTables.o \
 			$(OBJ_DIR)/TComAdaptiveLoopFilter.o \
 			$(OBJ_DIR)/TComBitStream.o \
+			$(OBJ_DIR)/TComBitBuffer.o \
 			$(OBJ_DIR)/TComDataCU.o \
 			$(OBJ_DIR)/TComLoopFilter.o \
 			$(OBJ_DIR)/TComMotionInfo.o \
@@ -44,6 +46,7 @@ OBJS          	= \
 			$(OBJ_DIR)/TComPicSym.o \
 			$(OBJ_DIR)/TComPicYuv.o \
 			$(OBJ_DIR)/TComPredFilter.o \
+			$(OBJ_DIR)/TComPredFilterMOMS.o \
 			$(OBJ_DIR)/TComPrediction.o \
 			$(OBJ_DIR)/TComRdCost.o \
 			$(OBJ_DIR)/TComRom.o \

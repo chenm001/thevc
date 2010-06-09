@@ -1,36 +1,36 @@
 /* ====================================================================================================================
 
-	The copyright in this software is being made available under the License included below.
-	This software may be subject to other third party and 	contributor rights, including patent rights, and no such
-	rights are granted under this license.
+  The copyright in this software is being made available under the License included below.
+  This software may be subject to other third party and   contributor rights, including patent rights, and no such
+  rights are granted under this license.
 
-	Copyright (c) 2010, SAMSUNG ELECTRONICS CO., LTD. and BRITISH BROADCASTING CORPORATION
-	All rights reserved.
+  Copyright (c) 2010, SAMSUNG ELECTRONICS CO., LTD. and BRITISH BROADCASTING CORPORATION
+  All rights reserved.
 
-	Redistribution and use in source and binary forms, with or without modification, are permitted only for
-	the purpose of developing standards within the Joint Collaborative Team on Video Coding and for testing and
-	promoting such standards. The following conditions are required to be met:
+  Redistribution and use in source and binary forms, with or without modification, are permitted only for
+  the purpose of developing standards within the Joint Collaborative Team on Video Coding and for testing and
+  promoting such standards. The following conditions are required to be met:
 
-		* Redistributions of source code must retain the above copyright notice, this list of conditions and
-		  the following disclaimer.
-		* Redistributions in binary form must reproduce the above copyright notice, this list of conditions and
-		  the following disclaimer in the documentation and/or other materials provided with the distribution.
-		* Neither the name of SAMSUNG ELECTRONICS CO., LTD. nor the name of the BRITISH BROADCASTING CORPORATION
-		  may be used to endorse or promote products derived from this software without specific prior written permission.
+    * Redistributions of source code must retain the above copyright notice, this list of conditions and
+      the following disclaimer.
+    * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and
+      the following disclaimer in the documentation and/or other materials provided with the distribution.
+    * Neither the name of SAMSUNG ELECTRONICS CO., LTD. nor the name of the BRITISH BROADCASTING CORPORATION
+      may be used to endorse or promote products derived from this software without specific prior written permission.
 
-	THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES,
-	INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-	ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
-	INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
-	SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-	THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-	ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES,
+  INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+  ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+  SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+  THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
  * ====================================================================================================================
 */
 
-/** \file			TEncEntropy.cpp
-    \brief		entropy encoder class
+/** \file     TEncEntropy.cpp
+    \brief    entropy encoder class
 */
 
 #include "TEncEntropy.h"
@@ -59,6 +59,12 @@ Void TEncEntropy::encodeSliceFinish()
   m_pcEntropyCoderIf->codeSliceFinish();
 }
 
+Void TEncEntropy::encodePPS( TComPPS* pcPPS )
+{
+  m_pcEntropyCoderIf->codePPS( pcPPS );
+  return;
+}
+
 Void TEncEntropy::encodeSPS( TComSPS* pcSPS )
 {
   m_pcEntropyCoderIf->codeSPS( pcSPS );
@@ -67,6 +73,13 @@ Void TEncEntropy::encodeSPS( TComSPS* pcSPS )
 
 Void TEncEntropy::encodeSkipFlag( TComDataCU* pcCU, UInt uiAbsPartIdx, Bool bRD )
 {
+#if HHI_MRG
+  if ( pcCU->getSlice()->getSPS()->getUseMRG() )
+  {
+    return;
+  }
+#endif
+
   if( bRD )
     uiAbsPartIdx = 0;
 
@@ -78,8 +91,117 @@ Void TEncEntropy::encodeSkipFlag( TComDataCU* pcCU, UInt uiAbsPartIdx, Bool bRD 
   m_pcEntropyCoderIf->codeSkipFlag( pcCU, uiAbsPartIdx );
 }
 
+#if HHI_MRG
+Void TEncEntropy::encodeMergeFlag( TComDataCU* pcCU, UInt uiAbsPartIdx, Bool bRD )
+{
+  if( bRD )
+    uiAbsPartIdx = 0;
+
+  m_pcEntropyCoderIf->codeMergeFlag( pcCU, uiAbsPartIdx );
+}
+  
+Void TEncEntropy::encodeMergeIndex( TComDataCU* pcCU, UInt uiAbsPartIdx, Bool bRD )
+{
+  if( bRD )
+    uiAbsPartIdx = 0;
+
+  m_pcEntropyCoderIf->codeMergeIndex( pcCU, uiAbsPartIdx );
+}
+#endif
+
 Void TEncEntropy::encodeAlfParam(ALFParam* pAlfParam)
 {
+#if HHI_ALF
+  m_pcEntropyCoderIf->codeAlfFlag(pAlfParam->alf_flag);
+  if (!pAlfParam->alf_flag)
+    return;
+  Int pos;
+  Int iCenterPos ;
+
+  // filter parameters for luma
+  // horizontal filter
+  AlfFilter *pHorizontalFilter = &(pAlfParam->acHorizontalAlfFilter[0]) ;
+  iCenterPos = ( pHorizontalFilter->iFilterSymmetry == 0 ) ? (pHorizontalFilter->iFilterLength + 1) >> 1 : pHorizontalFilter->iNumOfCoeffs - 1 ;
+
+  m_pcEntropyCoderIf->codeAlfUvlc( (pHorizontalFilter->iFilterLength-ALF_MIN_LENGTH)/2 );
+  m_pcEntropyCoderIf->codeAlfUvlc( pHorizontalFilter->iFilterSymmetry );
+
+  Int iCoeff;
+  for(pos=0; pos < pHorizontalFilter->iNumOfCoeffs; pos++)
+  {
+    iCoeff = pHorizontalFilter->aiQuantFilterCoeffs[pos] ;
+    m_pcEntropyCoderIf->codeAlfCoeff(iCoeff,pHorizontalFilter->iFilterLength, pos );
+  }
+#if ALF_DC_CONSIDERED
+  m_pcEntropyCoderIf->codeAlfDc( pHorizontalFilter->aiQuantFilterCoeffs[ pHorizontalFilter->iNumOfCoeffs ] );
+#endif
+  // vertical filter
+  AlfFilter *pVerticalFilter = &(pAlfParam->acVerticalAlfFilter[0]) ;
+
+  m_pcEntropyCoderIf->codeAlfUvlc( (pVerticalFilter->iFilterLength-ALF_MIN_LENGTH)/2 );
+  m_pcEntropyCoderIf->codeAlfUvlc( pVerticalFilter->iFilterSymmetry );
+
+  iCenterPos = ( pVerticalFilter->iFilterSymmetry == 0 ) ? (pVerticalFilter->iFilterLength + 1) >> 1 : pVerticalFilter->iNumOfCoeffs - 1 ;
+  for(pos=0; pos < pVerticalFilter->iNumOfCoeffs ; pos++ )
+  {
+    iCoeff = pVerticalFilter->aiQuantFilterCoeffs[pos] ;
+    m_pcEntropyCoderIf->codeAlfCoeff(iCoeff,pVerticalFilter->iFilterLength, pos );
+  }
+#if ALF_DC_CONSIDERED
+  m_pcEntropyCoderIf->codeAlfDc( pVerticalFilter->aiQuantFilterCoeffs[ pVerticalFilter->iNumOfCoeffs ] );
+#endif
+  // filter parameters for chroma
+  m_pcEntropyCoderIf->codeAlfUvlc(pAlfParam->chroma_idc);
+  for(Int iPlane = 1; iPlane <3; iPlane++)
+  {
+    if(pAlfParam->chroma_idc&iPlane)
+    {
+      m_pcEntropyCoderIf->codeAlfUvlc( pAlfParam->aiPlaneFilterMapping[iPlane] ) ;
+      if( pAlfParam->aiPlaneFilterMapping[iPlane] == iPlane )
+      {
+        // horizontal filter
+        pHorizontalFilter = &(pAlfParam->acHorizontalAlfFilter[iPlane]) ;
+        iCenterPos = ( pHorizontalFilter->iFilterSymmetry == 0 ) ? (pHorizontalFilter->iFilterLength + 1) >> 1 : pHorizontalFilter->iNumOfCoeffs - 1 ;
+
+        m_pcEntropyCoderIf->codeAlfUvlc( (pHorizontalFilter->iFilterLength-ALF_MIN_LENGTH)/2 );
+        m_pcEntropyCoderIf->codeAlfUvlc( pHorizontalFilter->iFilterSymmetry );
+
+        for(pos=0; pos < pHorizontalFilter->iNumOfCoeffs; pos++)
+        {
+          iCoeff = pHorizontalFilter->aiQuantFilterCoeffs[pos] ;
+          m_pcEntropyCoderIf->codeAlfCoeff(iCoeff,pHorizontalFilter->iFilterLength, pos );
+        }
+#if ALF_DC_CONSIDERED
+        m_pcEntropyCoderIf->codeAlfDc( pHorizontalFilter->aiQuantFilterCoeffs[ pHorizontalFilter->iNumOfCoeffs ] );
+#endif
+        // vertical filter
+        pVerticalFilter = &(pAlfParam->acVerticalAlfFilter[iPlane]) ;
+
+        m_pcEntropyCoderIf->codeAlfUvlc( (pVerticalFilter->iFilterLength-ALF_MIN_LENGTH)/2 );
+        m_pcEntropyCoderIf->codeAlfUvlc( pVerticalFilter->iFilterSymmetry );
+
+        iCenterPos = ( pVerticalFilter->iFilterSymmetry == 0 ) ? (pVerticalFilter->iFilterLength + 1) >> 1 : pVerticalFilter->iNumOfCoeffs - 1 ;
+        for(pos=0; pos < pVerticalFilter->iNumOfCoeffs ; pos++ )
+        {
+          iCoeff = pVerticalFilter->aiQuantFilterCoeffs[pos] ;
+    			m_pcEntropyCoderIf->codeAlfCoeff(iCoeff,pVerticalFilter->iFilterLength, pos );
+        }
+#if ALF_DC_CONSIDERED
+        m_pcEntropyCoderIf->codeAlfDc( pVerticalFilter->aiQuantFilterCoeffs[ pVerticalFilter->iNumOfCoeffs ] );
+#endif
+      }
+    }
+  }
+
+  // region control parameters for luma
+  m_pcEntropyCoderIf->codeAlfFlag(pAlfParam->cu_control_flag);
+  if (pAlfParam->cu_control_flag)
+  {
+    assert( (pAlfParam->cu_control_flag && m_pcEntropyCoderIf->getAlfCtrl()) || (!pAlfParam->cu_control_flag && !m_pcEntropyCoderIf->getAlfCtrl()));
+    m_pcEntropyCoderIf->codeAlfFlag( pAlfParam->bSeparateQt );
+    m_pcEntropyCoderIf->codeAlfCtrlDepth();
+  }
+#else
   m_pcEntropyCoderIf->codeAlfFlag(pAlfParam->alf_flag);
   if (!pAlfParam->alf_flag)
     return;
@@ -111,8 +233,33 @@ Void TEncEntropy::encodeAlfParam(ALFParam* pAlfParam)
     assert( (pAlfParam->cu_control_flag && m_pcEntropyCoderIf->getAlfCtrl()) || (!pAlfParam->cu_control_flag && !m_pcEntropyCoderIf->getAlfCtrl()));
     m_pcEntropyCoderIf->codeAlfCtrlDepth();
   }
+#endif
 }
 
+#if HHI_ALF
+Void TEncEntropy::encodeAlfCtrlFlag( TComDataCU* pcCU, UInt uiAbsPartIdx, Bool bRD, Bool bSeparateQt )
+{
+  if( bRD )
+    uiAbsPartIdx = 0;
+
+  if( bSeparateQt )
+  {
+    m_pcEntropyCoderIf->codeAlfQTCtrlFlag( pcCU, uiAbsPartIdx );
+  }
+  else
+  {
+    m_pcEntropyCoderIf->codeAlfCtrlFlag( pcCU, uiAbsPartIdx );
+  }
+}
+
+Void TEncEntropy::encodeAlfQTSplitFlag( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth, UInt uiMaxDepth, Bool bRD )
+{
+  if( bRD )
+      uiAbsPartIdx = 0;
+
+  m_pcEntropyCoderIf->codeAlfQTSplitFlag( pcCU, uiAbsPartIdx, uiDepth, uiMaxDepth );
+}
+#else
 Void TEncEntropy::encodeAlfCtrlFlag( TComDataCU* pcCU, UInt uiAbsPartIdx, Bool bRD )
 {
   if( bRD )
@@ -120,6 +267,7 @@ Void TEncEntropy::encodeAlfCtrlFlag( TComDataCU* pcCU, UInt uiAbsPartIdx, Bool b
 
   m_pcEntropyCoderIf->codeAlfCtrlFlag( pcCU, uiAbsPartIdx );
 }
+#endif
 
 Void TEncEntropy::encodePredMode( TComDataCU* pcCU, UInt uiAbsPartIdx, Bool bRD )
 {
@@ -131,8 +279,15 @@ Void TEncEntropy::encodePredMode( TComDataCU* pcCU, UInt uiAbsPartIdx, Bool bRD 
     return;
   }
 
+#if HHI_MRG
+  if ( pcCU->getMergeFlag( uiAbsPartIdx ) )
+  {
+    return;
+  }
+#endif
+
   if (pcCU->isSkipped( uiAbsPartIdx ))
-  	return;
+    return;
 
   m_pcEntropyCoderIf->codePredMode( pcCU, uiAbsPartIdx );
 }
@@ -151,35 +306,154 @@ Void TEncEntropy::encodePartSize( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDe
   if( bRD )
     uiAbsPartIdx = 0;
 
+#if HHI_MRG
+  if ( pcCU->getMergeFlag( uiAbsPartIdx ) )
+  {
+    return;
+  }
+#endif
+
   if ( pcCU->isSkip( uiAbsPartIdx ) )
-  	return;
+    return;
 
   m_pcEntropyCoderIf->codePartSize( pcCU, uiAbsPartIdx, uiDepth );
 }
 
+#if HHI_RQT
+Void TEncEntropy::xEncodeTransformSubdiv( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth, UInt uiInnerQuadIdx )
+{
+  const UInt uiSubdiv = pcCU->getTransformIdx( uiAbsPartIdx ) + pcCU->getDepth( uiAbsPartIdx ) > uiDepth;
+  const UInt uiLog2TrafoSize = g_aucConvertToBit[pcCU->getSlice()->getSPS()->getMaxCUWidth()]+2 - uiDepth;
+
+#if HHI_RQT_INTRA
+  if( pcCU->getPredictionMode(uiAbsPartIdx) == MODE_INTRA && pcCU->getPartitionSize(uiAbsPartIdx) == SIZE_NxN && uiDepth == pcCU->getDepth(uiAbsPartIdx) )
+  {
+    assert( uiSubdiv );
+  }
+  else
+#endif
+  if( uiLog2TrafoSize > pcCU->getSlice()->getSPS()->getQuadtreeTULog2MaxSize() )
+  {
+    assert( uiSubdiv );
+  }
+  else if( uiLog2TrafoSize == pcCU->getSlice()->getSPS()->getQuadtreeTULog2MinSize() )
+  {
+    assert( !uiSubdiv );
+  }
+  else
+  {
+    assert( uiLog2TrafoSize > pcCU->getSlice()->getSPS()->getQuadtreeTULog2MinSize() );
+    m_pcEntropyCoderIf->codeTransformSubdivFlag( uiSubdiv, uiDepth );
+  }
+
+#if HHI_RQT_CHROMA_CBF_MOD
+  if( pcCU->getPredictionMode(uiAbsPartIdx) != MODE_INTRA && uiLog2TrafoSize <= pcCU->getSlice()->getSPS()->getQuadtreeTULog2MaxSize() )
+  {
+    const UInt uiTrDepthCurr = uiDepth - pcCU->getDepth( uiAbsPartIdx );
+    const Bool bFirstCbfOfCU = uiLog2TrafoSize == pcCU->getSlice()->getSPS()->getQuadtreeTULog2MaxSize() || uiTrDepthCurr == 0;
+    if( bFirstCbfOfCU || uiLog2TrafoSize > pcCU->getSlice()->getSPS()->getQuadtreeTULog2MinSize() )
+    {
+      if( bFirstCbfOfCU || pcCU->getCbf( uiAbsPartIdx, TEXT_CHROMA_U, uiTrDepthCurr - 1 ) )
+      {
+        m_pcEntropyCoderIf->codeQtCbf( pcCU, uiAbsPartIdx, TEXT_CHROMA_U, uiTrDepthCurr );
+      }
+      if( bFirstCbfOfCU || pcCU->getCbf( uiAbsPartIdx, TEXT_CHROMA_V, uiTrDepthCurr - 1 ) )
+      {
+        m_pcEntropyCoderIf->codeQtCbf( pcCU, uiAbsPartIdx, TEXT_CHROMA_V, uiTrDepthCurr );
+      }
+    }
+    else if( uiLog2TrafoSize == pcCU->getSlice()->getSPS()->getQuadtreeTULog2MinSize() )
+    {
+      assert( pcCU->getCbf( uiAbsPartIdx, TEXT_CHROMA_U, uiTrDepthCurr ) == pcCU->getCbf( uiAbsPartIdx, TEXT_CHROMA_U, uiTrDepthCurr - 1 ) );
+      assert( pcCU->getCbf( uiAbsPartIdx, TEXT_CHROMA_V, uiTrDepthCurr ) == pcCU->getCbf( uiAbsPartIdx, TEXT_CHROMA_V, uiTrDepthCurr - 1 ) );
+    }
+  }
+#endif
+
+  if( uiSubdiv )
+  {
+    ++uiDepth;
+    const UInt uiQPartNum = pcCU->getPic()->getNumPartInCU() >> (uiDepth << 1);
+    xEncodeTransformSubdiv( pcCU, uiAbsPartIdx, uiDepth, 0 );
+    uiAbsPartIdx += uiQPartNum;
+    xEncodeTransformSubdiv( pcCU, uiAbsPartIdx, uiDepth, 1 );
+    uiAbsPartIdx += uiQPartNum;
+    xEncodeTransformSubdiv( pcCU, uiAbsPartIdx, uiDepth, 2 );
+    uiAbsPartIdx += uiQPartNum;
+    xEncodeTransformSubdiv( pcCU, uiAbsPartIdx, uiDepth, 3 );
+  }
+  else
+  {
+    {
+      DTRACE_CABAC_V( g_nSymbolCounter++ );
+      DTRACE_CABAC_T( "\tTrIdx: abspart=" );
+      DTRACE_CABAC_V( uiAbsPartIdx );
+      DTRACE_CABAC_T( "\tdepth=" );
+      DTRACE_CABAC_V( uiDepth );
+      DTRACE_CABAC_T( "\ttrdepth=" );
+      DTRACE_CABAC_V( pcCU->getTransformIdx( uiAbsPartIdx ) );
+      DTRACE_CABAC_T( "\n" );
+    }
+    UInt uiLumaTrMode, uiChromaTrMode;
+    pcCU->convertTransIdx( uiAbsPartIdx, pcCU->getTransformIdx( uiAbsPartIdx ), uiLumaTrMode, uiChromaTrMode );
+    m_pcEntropyCoderIf->codeQtCbf( pcCU, uiAbsPartIdx, TEXT_LUMA, uiLumaTrMode );
+#if HHI_RQT_CHROMA_CBF_MOD
+    if( pcCU->getPredictionMode(uiAbsPartIdx) == MODE_INTRA )
+#endif
+    {
+      Bool bCodeChroma = true;
+      if( uiLog2TrafoSize == pcCU->getSlice()->getSPS()->getQuadtreeTULog2MinSize() )
+      {
+        UInt uiQPDiv = pcCU->getPic()->getNumPartInCU() >> ( ( uiDepth - 1 ) << 1 );
+        bCodeChroma  = ( ( uiAbsPartIdx % uiQPDiv ) == 0 );
+      }
+      if( bCodeChroma )
+      {
+        m_pcEntropyCoderIf->codeQtCbf( pcCU, uiAbsPartIdx, TEXT_CHROMA_U, uiChromaTrMode );
+        m_pcEntropyCoderIf->codeQtCbf( pcCU, uiAbsPartIdx, TEXT_CHROMA_V, uiChromaTrMode );
+      }
+    }
+  }
+}
+#endif
+
 // transform index
 Void TEncEntropy::encodeTransformIdx( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth, Bool bRD )
 {
+#if HHI_RQT
+  assert( !bRD ); // parameter bRD can be removed
+#endif
   if( bRD )
     uiAbsPartIdx = 0;
 
+#if HHI_RQT
+  if( pcCU->getSlice()->getSPS()->getQuadtreeTUFlag() )
+  {
+    DTRACE_CABAC_V( g_nSymbolCounter++ )
+    DTRACE_CABAC_T( "\tdecodeTransformIdx()\tCUDepth=" )
+    DTRACE_CABAC_V( uiDepth )
+    DTRACE_CABAC_T( "\n" )
+    xEncodeTransformSubdiv( pcCU, uiAbsPartIdx, uiDepth, 0 );
+  }
+  else
+#endif
   m_pcEntropyCoderIf->codeTransformIdx( pcCU, uiAbsPartIdx, uiDepth );
 }
 
 // ROT index
 Void TEncEntropy::encodeROTindex  ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth, Bool bRD )
 {
-	if( bRD )
-		uiAbsPartIdx = 0;
+  if( bRD )
+    uiAbsPartIdx = 0;
 
-	if (pcCU->getPredictionMode( uiAbsPartIdx )==MODE_INTRA)
-	{
-		if( ( pcCU->getCbf(uiAbsPartIdx, TEXT_LUMA) + pcCU->getCbf(uiAbsPartIdx, TEXT_CHROMA_U) + pcCU->getCbf(uiAbsPartIdx, TEXT_CHROMA_V) ) == 0 )
-		{
-			return;
-		}
-		m_pcEntropyCoderIf->codeROTindex( pcCU, uiAbsPartIdx, bRD );
-	}
+    if (pcCU->getPredictionMode( uiAbsPartIdx )==MODE_INTRA)
+    {
+      if( ( pcCU->getCbf(uiAbsPartIdx, TEXT_LUMA) + pcCU->getCbf(uiAbsPartIdx, TEXT_CHROMA_U) + pcCU->getCbf(uiAbsPartIdx, TEXT_CHROMA_V) ) == 0 )
+      {
+        return;
+      }
+      m_pcEntropyCoderIf->codeROTindex( pcCU, uiAbsPartIdx, bRD );
+  }
 }
 
 // CIP index
@@ -188,7 +462,7 @@ Void TEncEntropy::encodeCIPflag( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDep
   if( bRD )
   uiAbsPartIdx = 0;
 
-	if ( pcCU->isIntra( uiAbsPartIdx ) )
+  if ( pcCU->isIntra( uiAbsPartIdx ) )
   {
     m_pcEntropyCoderIf->codeCIPflag( pcCU, uiAbsPartIdx, bRD );
   }
@@ -199,6 +473,17 @@ Void TEncEntropy::encodeIntraDirModeLuma  ( TComDataCU* pcCU, UInt uiAbsPartIdx 
 {
   m_pcEntropyCoderIf->codeIntraDirLumaAdi( pcCU, uiAbsPartIdx );
 }
+
+#if HHI_AIS
+// BB: Intra ref. samples filtering for Luma
+Void TEncEntropy::encodeIntraFiltFlagLuma ( TComDataCU* pcCU, UInt uiAbsPartIdx )
+{
+  // DC (mode 2) always uses DEFAULT_IS so no signaling needed
+  // (no g_aucIntraModeOrder[][] mapping needed because mode 2 always mapped to 2)
+  if( (pcCU->getSlice()->getSPS()->getUseAIS()) && (pcCU->getLumaIntraDir( uiAbsPartIdx ) != 2) )
+    m_pcEntropyCoderIf->codeIntraFiltFlagLumaAdi( pcCU, uiAbsPartIdx );
+}
+#endif
 
 // Intra direction for Chroma
 Void TEncEntropy::encodeIntraDirModeChroma( TComDataCU* pcCU, UInt uiAbsPartIdx, Bool bRD )
@@ -214,21 +499,28 @@ Void TEncEntropy::encodePredInfo( TComDataCU* pcCU, UInt uiAbsPartIdx, Bool bRD 
   if( bRD )
     uiAbsPartIdx = 0;
 
+#if HHI_MRG
+  if ( pcCU->getMergeFlag( uiAbsPartIdx ) )
+  {
+    return;
+  }
+#endif
+
   if (pcCU->isSkip( uiAbsPartIdx ))
   {
     if (pcCU->getSlice()->isInterB())
     {
-    	encodeInterDir(pcCU, uiAbsPartIdx, bRD);
+      encodeInterDir(pcCU, uiAbsPartIdx, bRD);
     }
-		if ( pcCU->getSlice()->getNumRefIdx( REF_PIC_LIST_0 ) > 0 ) //if ( ref. frame list0 has at least 1 entry )
-		{
-			encodeMVPIdx( pcCU, uiAbsPartIdx, REF_PIC_LIST_0);
-		}
-		if ( pcCU->getSlice()->getNumRefIdx( REF_PIC_LIST_1 ) > 0 ) //if ( ref. frame list1 has at least 1 entry )
-		{
-			encodeMVPIdx( pcCU, uiAbsPartIdx, REF_PIC_LIST_1);
-		}
-  	return;
+    if ( pcCU->getSlice()->getNumRefIdx( REF_PIC_LIST_0 ) > 0 ) //if ( ref. frame list0 has at least 1 entry )
+    {
+      encodeMVPIdx( pcCU, uiAbsPartIdx, REF_PIC_LIST_0);
+    }
+    if ( pcCU->getSlice()->getNumRefIdx( REF_PIC_LIST_1 ) > 0 ) //if ( ref. frame list1 has at least 1 entry )
+    {
+      encodeMVPIdx( pcCU, uiAbsPartIdx, REF_PIC_LIST_1);
+    }
+    return;
   }
 
   PartSize eSize = pcCU->getPartitionSize( uiAbsPartIdx );
@@ -243,11 +535,24 @@ Void TEncEntropy::encodePredInfo( TComDataCU* pcCU, UInt uiAbsPartIdx, Bool bRD 
       encodeIntraDirModeLuma( pcCU, uiAbsPartIdx + uiPartOffset   );
       encodeIntraDirModeLuma( pcCU, uiAbsPartIdx + uiPartOffset*2 );
       encodeIntraDirModeLuma( pcCU, uiAbsPartIdx + uiPartOffset*3 );
+#if HHI_AIS
+      //BB: intra ref. samples filtering flag
+      encodeIntraFiltFlagLuma( pcCU, uiAbsPartIdx                  );
+      encodeIntraFiltFlagLuma( pcCU, uiAbsPartIdx + uiPartOffset   );
+      encodeIntraFiltFlagLuma( pcCU, uiAbsPartIdx + uiPartOffset*2 );
+      encodeIntraFiltFlagLuma( pcCU, uiAbsPartIdx + uiPartOffset*3 );
+      //
+#endif
       encodeIntraDirModeChroma( pcCU, uiAbsPartIdx, bRD );
     }
     else                                                              // if it is not NxN size, encode 1 intra directions
     {
       encodeIntraDirModeLuma  ( pcCU, uiAbsPartIdx );
+#if HHI_AIS
+      //BB: intra ref. samples filtering flag
+      encodeIntraFiltFlagLuma ( pcCU, uiAbsPartIdx );
+      //
+#endif
       encodeIntraDirModeChroma( pcCU, uiAbsPartIdx, bRD );
     }
   }
@@ -255,21 +560,65 @@ Void TEncEntropy::encodePredInfo( TComDataCU* pcCU, UInt uiAbsPartIdx, Bool bRD 
   {
     encodeInterDir( pcCU, uiAbsPartIdx, bRD );
 
-    if ( pcCU->getSlice()->getNumRefIdx( REF_PIC_LIST_0 ) > 0 )				// if ( ref. frame list0 has at least 1 entry )
+    if ( pcCU->getSlice()->getNumRefIdx( REF_PIC_LIST_0 ) > 0 )       // if ( ref. frame list0 has at least 1 entry )
     {
-			encodeRefFrmIdx ( pcCU, uiAbsPartIdx, REF_PIC_LIST_0, bRD );
-			encodeMvd       ( pcCU, uiAbsPartIdx, REF_PIC_LIST_0, bRD );
-			encodeMVPIdx    ( pcCU, uiAbsPartIdx, REF_PIC_LIST_0		  );
+      encodeRefFrmIdx ( pcCU, uiAbsPartIdx, REF_PIC_LIST_0, bRD );
+      encodeMvd       ( pcCU, uiAbsPartIdx, REF_PIC_LIST_0, bRD );
+      encodeMVPIdx    ( pcCU, uiAbsPartIdx, REF_PIC_LIST_0      );
     }
 
-		if ( pcCU->getSlice()->getNumRefIdx( REF_PIC_LIST_1 ) > 0 )				// if ( ref. frame list1 has at least 1 entry )
-		{
-			encodeRefFrmIdx ( pcCU, uiAbsPartIdx, REF_PIC_LIST_1, bRD );
-			encodeMvd       ( pcCU, uiAbsPartIdx, REF_PIC_LIST_1, bRD );
-			encodeMVPIdx    ( pcCU, uiAbsPartIdx, REF_PIC_LIST_1			);
-		}
+    if ( pcCU->getSlice()->getNumRefIdx( REF_PIC_LIST_1 ) > 0 )       // if ( ref. frame list1 has at least 1 entry )
+    {
+      encodeRefFrmIdx ( pcCU, uiAbsPartIdx, REF_PIC_LIST_1, bRD );
+      encodeMvd       ( pcCU, uiAbsPartIdx, REF_PIC_LIST_1, bRD );
+      encodeMVPIdx    ( pcCU, uiAbsPartIdx, REF_PIC_LIST_1      );
+    }
   }
 }
+
+#if HHI_MRG
+Void TEncEntropy::encodeMergeInfo( TComDataCU* pcCU, UInt uiAbsPartIdx, Bool bRD )
+{
+  if ( !pcCU->getSlice()->getSPS()->getUseMRG() )
+  {
+    return;
+  }
+
+  if ( pcCU->getSlice()->isIntra() )
+  {
+    return;
+  }
+
+  // find left and top vectors. take vectors from PUs to the left and above.
+  TComMvField cMvFieldNeighbours[4]; // above ref_list_0, above ref_list_1, left ref_list_0, left ref_list_1
+  UInt uiNeighbourInfo;
+  UChar uhInterDirNeighbours[2];
+  pcCU->getInterMergeCandidates( uiAbsPartIdx, cMvFieldNeighbours, uhInterDirNeighbours, uiNeighbourInfo );
+  
+  if ( uiNeighbourInfo )
+  {
+    // at least one merge candidate exists
+    encodeMergeFlag( pcCU, uiAbsPartIdx, bRD );
+  }
+  else
+  {
+    assert( !pcCU->getMergeFlag( uiAbsPartIdx ) );
+  }
+
+  if ( !pcCU->getMergeFlag( uiAbsPartIdx ) )
+  {
+    // CU is not merged
+    return;
+  }
+
+  if ( uiNeighbourInfo == 3 )
+  {
+    // different merge candidates exist. write Merge Index
+    encodeMergeIndex( pcCU, uiAbsPartIdx, bRD );
+  }
+  
+}
+#endif
 
 Void TEncEntropy::encodeInterDir( TComDataCU* pcCU, UInt uiAbsPartIdx, Bool bRD )
 {
@@ -706,6 +1055,18 @@ Void TEncEntropy::encodeMvd( TComDataCU* pcCU, UInt uiAbsPartIdx, RefPicList eRe
   return;
 }
 
+#if HHI_RQT
+Void TEncEntropy::encodeQtCbf( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eType, UInt uiTrDepth )
+{
+  m_pcEntropyCoderIf->codeQtCbf( pcCU, uiAbsPartIdx, eType, uiTrDepth );
+}
+
+Void TEncEntropy::encodeTransformSubdivFlag( UInt uiSymbol, UInt uiCtx )
+{
+  m_pcEntropyCoderIf->codeTransformSubdivFlag( uiSymbol, uiCtx );
+}
+#endif
+
 // Coded block flag
 Void TEncEntropy::encodeCbf( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eType, UInt uiTrDepth, Bool bRD )
 {
@@ -721,10 +1082,10 @@ Void TEncEntropy::encodeQP( TComDataCU* pcCU, UInt uiAbsPartIdx, Bool bRD )
   if( bRD )
     uiAbsPartIdx = 0;
 
-	if ( pcCU->getSlice()->getSPS()->getUseDQP() )
-	{
-		m_pcEntropyCoderIf->codeDeltaQP( pcCU, uiAbsPartIdx );
-	}
+  if ( pcCU->getSlice()->getSPS()->getUseDQP() )
+  {
+    m_pcEntropyCoderIf->codeDeltaQP( pcCU, uiAbsPartIdx );
+  }
 }
 
 
@@ -733,14 +1094,53 @@ Void TEncEntropy::xEncodeCoeff( TComDataCU* pcCU, TCoeff* pcCoeff, UInt uiAbsPar
 {
   if ( pcCU->getCbf( uiAbsPartIdx, eType, uiTrIdx ) )
   {
+#if HHI_RQT
+    UInt uiLumaTrMode, uiChromaTrMode;
+    pcCU->convertTransIdx( uiAbsPartIdx, pcCU->getTransformIdx( uiAbsPartIdx ), uiLumaTrMode, uiChromaTrMode );
+    const UInt uiStopTrMode = eType == TEXT_LUMA ? uiLumaTrMode : uiChromaTrMode;
+
+    assert( pcCU->getSlice()->getSPS()->getQuadtreeTUFlag() || uiStopTrMode == uiCurrTrIdx ); // as long as quadtrees are not used for residual transform
+
+    if( uiTrIdx == uiStopTrMode )
+#else
     if( uiCurrTrIdx == uiTrIdx )
+#endif
     {
+#if HHI_RQT
+      assert( !bRD ); // parameter bRD can be removed
+
+      UInt uiLog2TrSize = g_aucConvertToBit[ pcCU->getSlice()->getSPS()->getMaxCUWidth() >> uiDepth ] + 2;
+      if( eType != TEXT_LUMA && uiLog2TrSize == pcCU->getSlice()->getSPS()->getQuadtreeTULog2MinSize() )
+      {
+        UInt uiQPDiv = pcCU->getPic()->getNumPartInCU() >> ( ( uiDepth - 1 ) << 1 );
+        if( ( uiAbsPartIdx % uiQPDiv ) != 0 )
+        {
+          return;
+        }
+        uiWidth  <<= 1;
+        uiHeight <<= 1;
+      }
+#endif
       m_pcEntropyCoderIf->codeCoeffNxN( pcCU, pcCoeff, uiAbsPartIdx, uiWidth, uiHeight, uiDepth, eType, bRD );
     }
     else
     {
+#if HHI_RQT
+      {
+        DTRACE_CABAC_V( g_nSymbolCounter++ );
+        DTRACE_CABAC_T( "\tgoing down\tdepth=" );
+        DTRACE_CABAC_V( uiDepth );
+        DTRACE_CABAC_T( "\ttridx=" );
+        DTRACE_CABAC_V( uiTrIdx );
+        DTRACE_CABAC_T( "\n" );
+      }
+#endif
       if( uiCurrTrIdx <= uiTrIdx )
+#if HHI_RQT
+        assert( pcCU->getSlice()->getSPS()->getQuadtreeTUFlag() );
+#else
         assert(0);
+#endif
 
       UInt uiSize;
       uiWidth  >>= 1;
@@ -763,6 +1163,12 @@ Void TEncEntropy::xEncodeCoeff( TComDataCU* pcCU, TCoeff* pcCoeff, UInt uiAbsPar
 
       m_pcEntropyCoderIf->codeCbf( pcCU, uiIdx, eType, uiTrIdx );
       xEncodeCoeff( pcCU, pcCoeff, uiIdx, uiDepth, uiWidth, uiHeight, uiTrIdx, uiCurrTrIdx, eType, bRD );
+#if HHI_RQT
+      {
+        DTRACE_CABAC_V( g_nSymbolCounter++ );
+        DTRACE_CABAC_T( "\tgoing up\n" );
+      }
+#endif
     }
   }
 }
@@ -783,6 +1189,17 @@ Void TEncEntropy::encodeCoeff( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth
 
   if( pcCU->isIntra(uiAbsPartIdx) )
   {
+#if HHI_RQT_INTRA
+    if( pcCU->getSlice()->getSPS()->getQuadtreeTUFlag() )
+    {
+      DTRACE_CABAC_V( g_nSymbolCounter++ )
+      DTRACE_CABAC_T( "\tdecodeTransformIdx()\tCUDepth=" )
+      DTRACE_CABAC_V( uiDepth )
+      DTRACE_CABAC_T( "\n" )
+      xEncodeTransformSubdiv( pcCU, uiAbsPartIdx, uiDepth, 0 );
+    }
+#endif
+
     m_pcEntropyCoderIf->codeCbf(pcCU, uiAbsPartIdx, TEXT_LUMA, 0);
     xEncodeCoeff( pcCU, pcCU->getCoeffY()  + uiLumaOffset,   uiAbsPartIdx, uiDepth, uiWidth,    uiHeight,    0, uiLumaTrMode,   TEXT_LUMA     );
 
@@ -798,7 +1215,11 @@ Void TEncEntropy::encodeCoeff( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth
     m_pcEntropyCoderIf->codeCbf( pcCU, uiAbsPartIdx, TEXT_CHROMA_U, 0 );
     m_pcEntropyCoderIf->codeCbf( pcCU, uiAbsPartIdx, TEXT_CHROMA_V, 0 );
 
+#if HHI_RQT
+    if( pcCU->getSlice()->getSPS()->getQuadtreeTUFlag() || pcCU->getCbf(uiAbsPartIdx, TEXT_LUMA, 0) || pcCU->getCbf(uiAbsPartIdx, TEXT_CHROMA_U, 0) || pcCU->getCbf(uiAbsPartIdx, TEXT_CHROMA_V, 0) )
+#else
     if( pcCU->getCbf(uiAbsPartIdx, TEXT_LUMA, 0) || pcCU->getCbf(uiAbsPartIdx, TEXT_CHROMA_U, 0) || pcCU->getCbf(uiAbsPartIdx, TEXT_CHROMA_V, 0) )
+#endif
       encodeTransformIdx( pcCU, uiAbsPartIdx, pcCU->getDepth(uiAbsPartIdx) );
 
     xEncodeCoeff( pcCU, pcCU->getCoeffY()  + uiLumaOffset,   uiAbsPartIdx, uiDepth, uiWidth,    uiHeight,    0, uiLumaTrMode,   TEXT_LUMA     );
@@ -832,3 +1253,4 @@ Void TEncEntropy::estimateBit (estBitsSbacStruct* pcEstBitsSbac, UInt uiWidth, T
 
   m_pcEntropyCoderIf->estBit ( pcEstBitsSbac, uiCTXIdx, eTType );
 }
+

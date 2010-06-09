@@ -28,7 +28,7 @@ STAT_RELEASE_OUT  	= $(LIB_DIR)/lib$(PRJ_NAME)Static.a
 DYN_DEBUG_OUT     	= $(LIB_DIR)/lib$(PRJ_NAME)d.so
 DYN_RELEASE_OUT   	= $(LIB_DIR)/lib$(PRJ_NAME).so
 #
-else
+else 
 ifeq ($(CONFIG), CONSOLE)
 # the executables that can be created
 STAT_DEBUG_OUT    = $(BIN_DIR)/$(PRJ_NAME)Staticd
@@ -47,6 +47,16 @@ endif
 # default cpp flags for all configurations
 #CPPFLAGS          = -Wall -fPIC $(DEFS) -I$(CURDIR)/$(INC_DIR) $(USER_INC_DIRS)
 CPPFLAGS          = -fPIC $(DEFS) -I$(CURDIR)/$(INC_DIR) $(USER_INC_DIRS) -Wall -Wshadow -Wno-reorder -Wno-sign-compare
+
+########## 
+# enforce 32-bit build : 1=yes, 0=no
+##########
+M32?= 0
+ifeq ($(M32),1)
+CPPFLAGS+=-m32
+endif
+##########
+
 #
 # debug cpp flags
 DEBUG_CPPFLAGS    = -g  -D_DEBUG
@@ -76,6 +86,14 @@ RELEASE_ASMFLAGS  =
 
 # linker flags for all
 ALL_LDFLAGS       = -Wall
+
+########## 
+# enforce 32-bit build : 1=yes, 0=no
+##########
+ifeq ($(M32),1)
+ALL_LDFLAGS+=-m32
+endif
+##########
 
 
 ifeq ($(CONFIG), LIBRARY)
@@ -109,7 +127,7 @@ endif
 # objects that have to be created
 #########################################################
 
-# the object types that have to be created
+# the object types that have to be created      
 RELEASE_OBJS  = $(OBJS:.o=.r.o)
 DEBUG_OBJS    = $(OBJS:.o=.d.o)
 
@@ -278,7 +296,7 @@ release:          	check_errors \
 #stat_debug:       	check_errors \
 #					$(CHECK_DIRS) \
 #					$(STAT_DEBUG_OUT)
-#
+#          
 #dyn_debug:        	check_errors \
 #					$(CHECK_DIRS) \
 #					$(DYN_DEBUG_OUT)
@@ -286,7 +304,7 @@ release:          	check_errors \
 #stat_release:     	check_errors \
 #					$(CHECK_DIRS) \
 #					$(STAT_RELEASE_OUT)
-#
+#        
 #dyn_release:      	check_errors \
 #					$(CHECK_DIRS) \
 #					$(DYN_RELEASE_OUT)
@@ -339,11 +357,11 @@ $(STAT_RELEASE_OUT): $(RELEASE_OBJS)
 #
 #
 # create dynamic debug out
-$(DYN_DEBUG_OUT): $(DYN_DEBUG_OUT).$(VER)
+$(DYN_DEBUG_OUT): $(DYN_DEBUG_OUT).$(VER) 
 	ln -fs lib$(PRJ_NAME)d.so.$(VER) $@
 #
 # create dynamic debug out
-$(DYN_DEBUG_OUT).$(VER): $(DEBUG_OBJS)
+$(DYN_DEBUG_OUT).$(VER): $(DEBUG_OBJS) 
 	$(LD) $(LDFLAGS) $(DEBUG_LDFLAGS) -o $@ $(DEBUG_OBJS) -L$(LIB_DIR) $(USER_LIB_DIRS) $(LIBS) $(DEBUG_LIBS) $(DYN_LIBS) $(DYN_DEBUG_LIBS)
 #
 #

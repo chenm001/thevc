@@ -1,66 +1,65 @@
 /* ====================================================================================================================
 
-	The copyright in this software is being made available under the License included below.
-	This software may be subject to other third party and 	contributor rights, including patent rights, and no such
-	rights are granted under this license.
+  The copyright in this software is being made available under the License included below.
+  This software may be subject to other third party and   contributor rights, including patent rights, and no such
+  rights are granted under this license.
 
-	Copyright (c) 2010, SAMSUNG ELECTRONICS CO., LTD. and BRITISH BROADCASTING CORPORATION
-	All rights reserved.
+  Copyright (c) 2010, SAMSUNG ELECTRONICS CO., LTD. and BRITISH BROADCASTING CORPORATION
+  All rights reserved.
 
-	Redistribution and use in source and binary forms, with or without modification, are permitted only for
-	the purpose of developing standards within the Joint Collaborative Team on Video Coding and for testing and
-	promoting such standards. The following conditions are required to be met:
+  Redistribution and use in source and binary forms, with or without modification, are permitted only for
+  the purpose of developing standards within the Joint Collaborative Team on Video Coding and for testing and
+  promoting such standards. The following conditions are required to be met:
 
-		* Redistributions of source code must retain the above copyright notice, this list of conditions and
-		  the following disclaimer.
-		* Redistributions in binary form must reproduce the above copyright notice, this list of conditions and
-		  the following disclaimer in the documentation and/or other materials provided with the distribution.
-		* Neither the name of SAMSUNG ELECTRONICS CO., LTD. nor the name of the BRITISH BROADCASTING CORPORATION
-		  may be used to endorse or promote products derived from this software without specific prior written permission.
+    * Redistributions of source code must retain the above copyright notice, this list of conditions and
+      the following disclaimer.
+    * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and
+      the following disclaimer in the documentation and/or other materials provided with the distribution.
+    * Neither the name of SAMSUNG ELECTRONICS CO., LTD. nor the name of the BRITISH BROADCASTING CORPORATION
+      may be used to endorse or promote products derived from this software without specific prior written permission.
 
-	THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES,
-	INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-	ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
-	INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
-	SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-	THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-	ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES,
+  INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+  ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+  SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+  THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
  * ====================================================================================================================
 */
 
-/** \file			TComTrQuant.cpp
-    \brief		transform and quantization class
+/** \file     TComTrQuant.cpp
+    \brief    transform and quantization class
 */
 
 #include <stdlib.h>
 #include <math.h>
 #include <memory.h>
 #include "TComTrQuant.h"
+#if HHI_RQT
+#include "TComPic.h"
+#endif
 #include "ContextTables.h"
 
 // ====================================================================================================================
 // Constants
 // ====================================================================================================================
 
-#define RDOQ_CHROMA                 1												///< use of RDOQ in chroma
-#define RDOQ_ROT_IDX0_ONLY          0												///< use of RDOQ with ROT
+#define RDOQ_CHROMA                 1           ///< use of RDOQ in chroma
+#define RDOQ_ROT_IDX0_ONLY          0           ///< use of RDOQ with ROT
 
-#define DQ_BITS											6
-#define Q_BITS_8										16
-#define SIGN_BITS										1
+#define DQ_BITS                     6
+#define Q_BITS_8                    16
+#define SIGN_BITS                   1
 
-#define INV_ROT_BITS								8												///< accuracy for inverse ROT process
-#define FWD_ROT_BITS								12											///< accuracy for forward ROT process
-#define ROT_OFF_SET_FWD							(1<<(FWD_ROT_BITS-1))		///< pre-computed forward ROT offset
+#define INV_ROT_BITS                8                        ///< accuracy for inverse ROT process
+#define FWD_ROT_BITS                12                      ///< accuracy for forward ROT process
+#define ROT_OFF_SET_FWD              (1<<(FWD_ROT_BITS-1))    ///< pre-computed forward ROT offset
 
 // ====================================================================================================================
 // Tables
 // ====================================================================================================================
-
-UChar stateMappingTable[113]=
-// Modified state mapping table
-{0, 16, 31, 43, 54, 62, 62, 62, 62, 62, 62, 62, 62, 62, 0, 7, 13, 19, 25, 30, 35, 40, 45, 49, 53, 57, 60, 62, 62, 62, 62, 62, 62, 62, 62, 62, 0, 4, 8, 12, 16, 20, 23, 27, 30, 33, 37, 40, 42, 45, 48, 50, 53, 55, 57, 59, 61, 62, 62, 62, 62, 62, 62, 62, 0, 3, 6, 9, 12, 15, 18, 20, 23, 25, 28, 30, 32, 35, 37, 39, 1, 3, 6, 8, 10, 12, 15, 17, 1, 3, 5, 7, 9, 11, 13, 1, 3, 4, 6, 8, 9, 2, 3, 5, 6, 1, 2, 4, 1, 2, 0, 1, 0};
 
 // RDOQ parameter
 Int entropyBits[128]=
@@ -213,10 +212,10 @@ Void QpParam::initOffsetParam( Int iStartQP, Int iEndQP )
     Bool bLowPass = (uiSliceType == 0);
     iDefaultOffset = (bLowPass? 10922 : 5462);
 
-		bLowPass = (uiSliceType == 0);
+    bLowPass = (uiSliceType == 0);
     iDefaultOffset_LTR = (bLowPass? 170 : 86);
 
-		iPer = QP_BITS + k - QOFFSET_BITS;
+    iPer = QP_BITS + k - QOFFSET_BITS;
     m_aiAdd2x2[iQP][uiSliceType] = iDefaultOffset << iPer;
     m_aiAdd4x4[iQP][uiSliceType] = iDefaultOffset << iPer;
 
@@ -243,23 +242,23 @@ TComTrQuant::TComTrQuant()
 {
   m_cQP.clear();
 
-	// allocate temporary buffers
+  // allocate temporary buffers
   m_plTempCoeff  = new Long[ MAX_CU_SIZE*MAX_CU_SIZE ];
 
-	// allocate bit estimation class	(for RDOQ)
+  // allocate bit estimation class  (for RDOQ)
   m_pcEstBitsSbac = new estBitsSbacStruct;
 }
 
 TComTrQuant::~TComTrQuant()
 {
-	// delete temporary buffers
-	if ( m_plTempCoeff )
-	{
-		delete [] m_plTempCoeff;
-		m_plTempCoeff = NULL;
-	}
+  // delete temporary buffers
+  if ( m_plTempCoeff )
+  {
+    delete [] m_plTempCoeff;
+    m_plTempCoeff = NULL;
+  }
 
-	// delete bit estimation class
+  // delete bit estimation class
   if ( m_pcEstBitsSbac ) delete m_pcEstBitsSbac;
 }
 
@@ -1906,19 +1905,19 @@ Void TComTrQuant::xT16( Pel* pSrc, UInt uiStride, Long* pDes )
 
 Void TComTrQuant::xQuantLTR  (TComDataCU* pcCU, Long* pSrc, TCoeff*& pDes, Int iWidth, Int iHeight, UInt& uiAcSum, TextType eTType, UInt uiAbsPartIdx, UChar indexROT )
 {
-	Long*		piCoef				= pSrc;
-	TCoeff* piQCoef				= pDes;
-	UInt*		piQuantCoef		= NULL;
-  Int			iNewBits			= 0;
-  Int			iAdd;
-  Bool		bLogical			= false;
+  Long*   piCoef    = pSrc;
+  TCoeff* piQCoef   = pDes;
+  UInt* piQuantCoef = NULL;
+  Int   iNewBits    = 0;
+  Int   iAdd = 0;
+  Bool  bLogical    = false;
 
-	if ( iWidth > (Int)m_uiMaxTrSize )
-	{
-		iWidth  = m_uiMaxTrSize;
-		iHeight = m_uiMaxTrSize;
+  if ( iWidth > (Int)m_uiMaxTrSize )
+  {
+    iWidth  = m_uiMaxTrSize;
+    iHeight = m_uiMaxTrSize;
     bLogical = true;
-	}
+  }
 
   switch(iWidth)
   {
@@ -1944,46 +1943,50 @@ Void TComTrQuant::xQuantLTR  (TComDataCU* pcCU, Long* pSrc, TCoeff*& pDes, Int i
     {
       piQuantCoef = ( g_aiQuantCoef256[m_cQP.rem()] );
       iNewBits = ECore16Shift + m_cQP.per();
-		  iAdd = m_cQP.m_iAdd16x16;
+      iAdd = m_cQP.m_iAdd16x16;
       break;
     }
   case 32:
     {
       piQuantCoef = ( g_aiQuantCoef1024[m_cQP.rem()] );
       iNewBits = ECore32Shift + m_cQP.per();
-		  iAdd = m_cQP.m_iAdd32x32;
+      iAdd = m_cQP.m_iAdd32x32;
       break;
     }
   case 64:
     {
-      piQuantCoef = g_aiQuantCoef4096;	 // To save the memory for g_aiQuantCoef4096
+      piQuantCoef = g_aiQuantCoef4096;   // To save the memory for g_aiQuantCoef4096
       iNewBits = ECore64Shift + m_cQP.per();
       iAdd = bLogical ? m_cQP.m_iAddNxN : m_cQP.m_iAdd64x64;
       break;
     }
   }
 
-	if ( indexROT )
-	{
-		Int x, x2, y, y2, y3;
-		static Long ROT_DOMAIN[64];
+#if HHI_ALLOW_ROT_SWITCH
+  if ( m_bUseROT && indexROT )
+#else
+  if ( indexROT )
+#endif
+  {
+    Int x, x2, y, y2, y3;
+    static Long ROT_DOMAIN[64];
 
-		for( y = 0, y2 = 0, y3 = 0; y < 8; y++, y2+=8, y3+=iWidth )
-		{
-			for(  x = 0, x2=y3; x < 8; x++, x2++ )
-			{
-				if ( iWidth == 64) ROT_DOMAIN[x+y2] = piCoef [x2] * piQuantCoef[m_cQP.rem()];
-				else							 ROT_DOMAIN[x+y2] = piCoef [x2] * piQuantCoef[x2];
-			}
-		}
+    for( y = 0, y2 = 0, y3 = 0; y < 8; y++, y2+=8, y3+=iWidth )
+    {
+      for(  x = 0, x2=y3; x < 8; x++, x2++ )
+      {
+        if ( iWidth == 64) ROT_DOMAIN[x+y2] = piCoef [x2] * piQuantCoef[m_cQP.rem()];
+        else               ROT_DOMAIN[x+y2] = piCoef [x2] * piQuantCoef[x2];
+      }
+    }
 
-		RotTransformLI2( ROT_DOMAIN, indexROT-1, iWidth );
+    RotTransformLI2( ROT_DOMAIN, indexROT-1, iWidth );
 
-		for( y = 0, y2 = 0, y3 = 0; y < 8; y++, y2+=8, y3+=iWidth )
-		{
-			::memcpy( piCoef+y3, ROT_DOMAIN+y2 , sizeof(Long)*8 );
-		}
-	}
+    for( y = 0, y2 = 0, y3 = 0; y < 8; y++, y2+=8, y3+=iWidth )
+    {
+      ::memcpy( piCoef+y3, ROT_DOMAIN+y2 , sizeof(Long)*8 );
+    }
+  }
 
   if ( m_bUseRDOQ && (eTType == TEXT_LUMA || RDOQ_CHROMA) && (!RDOQ_ROT_IDX0_ONLY || indexROT == 0) )
   {
@@ -1992,30 +1995,34 @@ Void TComTrQuant::xQuantLTR  (TComDataCU* pcCU, Long* pSrc, TCoeff*& pDes, Int i
   else
   {
     for( Int n = 0; n < iWidth*iHeight; n++ )
-		{
+    {
       Long iLevel;
       Int  iSign;
+#if HHI_ALLOW_ROT_SWITCH
+      if ( m_bUseROT && indexROT )
+#else
       if ( indexROT )
+#endif
       {
         iLevel  = (Long) piCoef[n];
         iSign   = (iLevel < 0 ? -1: 1);
 
-				if ( ( n/iWidth ) < 8 && ( n%iWidth ) < 8 )
-				{
-					iLevel = abs( iLevel );
-				}
+        if ( ( n/iWidth ) < 8 && ( n%iWidth ) < 8 )
+        {
+          iLevel = abs( iLevel );
+        }
         else
         {
           if ( iWidth == 64 ) iLevel = abs( iLevel ) * piQuantCoef[m_cQP.rem()];
-          else								iLevel = abs( iLevel ) * piQuantCoef[n];
+          else                iLevel = abs( iLevel ) * piQuantCoef[n];
         }
       }
       else
       {
         iLevel  = (Long) piCoef[n];
         iSign   = (iLevel < 0 ? -1: 1);
-        if ( iWidth == 64 )	iLevel = abs( iLevel ) * piQuantCoef[m_cQP.rem()];
-        else								iLevel = abs( iLevel ) * piQuantCoef[n];
+        if ( iWidth == 64 ) iLevel = abs( iLevel ) * piQuantCoef[m_cQP.rem()];
+        else                iLevel = abs( iLevel ) * piQuantCoef[n];
       }
 
       iLevel = ( iLevel + iAdd ) >> iNewBits;
@@ -2038,14 +2045,14 @@ Void TComTrQuant::xDeQuantLTR( TCoeff* pSrc, Long*& pDes, Int iWidth, Int iHeigh
 {
   UInt* piDeQuantCoef = NULL;
 
-	TCoeff* piQCoef		= pSrc;
-	Long*		piCoef		= pDes;
+  TCoeff* piQCoef   = pSrc;
+  Long*   piCoef    = pDes;
 
-	if ( iWidth > (Int)m_uiMaxTrSize )
-	{
-		iWidth  = m_uiMaxTrSize;
-		iHeight = m_uiMaxTrSize;
-	}
+  if ( iWidth > (Int)m_uiMaxTrSize )
+  {
+    iWidth  = m_uiMaxTrSize;
+    iHeight = m_uiMaxTrSize;
+  }
 
   switch(iWidth)
   {
@@ -2078,45 +2085,49 @@ Void TComTrQuant::xDeQuantLTR( TCoeff* pSrc, Long*& pDes, Int iWidth, Int iHeigh
     {
       piDeQuantCoef = ( g_aiDeQuantCoef4096 ); // To save the memory for g_aiDeQuantCoef4096
       break;
-	  }
+    }
   }
 
   Int iLevel;
   Int iDeScale;
 
-	for( Int n = 0; n < iWidth*iHeight; n++ )
-	{
-		iLevel  = piQCoef[n];
+  for( Int n = 0; n < iWidth*iHeight; n++ )
+  {
+    iLevel  = piQCoef[n];
 
-		if( 0 != iLevel )
-		{
-			if ( iWidth == 64 ) iDeScale = piDeQuantCoef[m_cQP.rem()];
-			else								iDeScale = piDeQuantCoef[n];
-			piCoef[n] = (Long) (iLevel*iDeScale) << m_cQP.per();
-		}
-		else
-		{
-			piCoef [n] = 0;
-		}
-	}
+    if( 0 != iLevel )
+    {
+      if ( iWidth == 64 ) iDeScale = piDeQuantCoef[m_cQP.rem()];
+      else                iDeScale = piDeQuantCoef[n];
+      piCoef[n] = (Long) (iLevel*iDeScale) << m_cQP.per();
+    }
+    else
+    {
+      piCoef [n] = 0;
+    }
+  }
 
-	if ( indexROT )
-	{
-		Int y,y2, y3;
-		static Long ROT_DOMAIN[64];
+#if HHI_ALLOW_ROT_SWITCH
+  if ( m_bUseROT && indexROT )
+#else
+  if ( indexROT )
+#endif
+  {
+    Int y,y2, y3;
+    static Long ROT_DOMAIN[64];
 
-		for( y = 0, y2 = 0, y3 = 0; y < 8; y++, y2+=8, y3+=iWidth )
-		{
-			::memcpy( ROT_DOMAIN+y2, piCoef+y3, sizeof(Long)*8 );
-		}
+    for( y = 0, y2 = 0, y3 = 0; y < 8; y++, y2+=8, y3+=iWidth )
+    {
+      ::memcpy( ROT_DOMAIN+y2, piCoef+y3, sizeof(Long)*8 );
+    }
 
-		InvRotTransformLI2(ROT_DOMAIN, indexROT-1 );
+    InvRotTransformLI2(ROT_DOMAIN, indexROT-1 );
 
-		for( y = 0, y2 = 0, y3 = 0; y < 8; y++, y2+=8, y3+=iWidth )
-		{
-			::memcpy( piCoef+y3, ROT_DOMAIN+y2 , sizeof(Long)*8 );
-		}
-	}
+    for( y = 0, y2 = 0, y3 = 0; y < 8; y++, y2+=8, y3+=iWidth )
+    {
+      ::memcpy( piCoef+y3, ROT_DOMAIN+y2 , sizeof(Long)*8 );
+    }
+  }
 }
 
 Void TComTrQuant::xIT16( Long* pSrc, Pel* pDes, UInt uiStride )
@@ -3853,16 +3864,23 @@ Void TComTrQuant::xIT64 ( Long* pSrc, Pel* pDes, UInt uiStride )
   }
 }
 
+#if HHI_ALLOW_ROT_SWITCH
+Void TComTrQuant::init( UInt uiMaxWidth, UInt uiMaxHeight, UInt uiMaxTrSize, Bool bUseROT, Bool bUseRDOQ, Bool bEnc )
+#else
 Void TComTrQuant::init( UInt uiMaxWidth, UInt uiMaxHeight, UInt uiMaxTrSize, Bool bUseRDOQ, Bool bEnc )
+#endif
 {
-	m_uiMaxTrSize	 = uiMaxTrSize;
-	m_bEnc         = bEnc;
+  m_uiMaxTrSize  = uiMaxTrSize;
+  m_bEnc         = bEnc;
   m_bUseRDOQ     = bUseRDOQ;
+#if HHI_ALLOW_ROT_SWITCH
+  m_bUseROT			 = bUseROT;
+#endif
 
-	if ( m_bEnc )
-	{
-		m_cQP.initOffsetParam( MIN_QP, MAX_QP );
-	}
+  if ( m_bEnc )
+  {
+    m_cQP.initOffsetParam( MIN_QP, MAX_QP );
+  }
 }
 
 Void TComTrQuant::xQuant( TComDataCU* pcCU, Long* pSrc, TCoeff*& pDes, Int iWidth, Int iHeight, UInt& uiAcSum, TextType eTType, UInt uiAbsPartIdx, UChar indexROT )
@@ -4096,14 +4114,27 @@ Void TComTrQuant::xQuant2x2( Long* plSrcCoef, TCoeff*& pDstCoef, UInt& uiAbsSum,
 }
 Void TComTrQuant::xQuant4x4( TComDataCU* pcCU, Long* plSrcCoef, TCoeff*& pDstCoef, UInt& uiAbsSum, TextType eTType, UInt uiAbsPartIdx, UChar indexROT )
 {
+#if HHI_ALLOW_ROT_SWITCH
+  if ( m_bUseROT )
+  {
+    for( Int i=0; i<16; i++ )
+      plSrcCoef[i] *= m_puiQuantMtx[i];
+
+    if ( indexROT ) // BB: always > 0 ???
+    {
+      RotTransform4I( plSrcCoef, indexROT-1 );
+    }
+  }
+#else
   for( Int i=0; i<16; i++ )
     plSrcCoef[i] *= m_puiQuantMtx[i];
 
-	if ( indexROT )
-	{
-		RotTransform4I( plSrcCoef, indexROT-1 );
-	}
+  if ( indexROT )
+  {
+    RotTransform4I( plSrcCoef, indexROT-1 );
+  }
 
+#endif
   if ( m_bUseRDOQ && (eTType == TEXT_LUMA || RDOQ_CHROMA) && (!RDOQ_ROT_IDX0_ONLY || indexROT == 0 ) )
   {
     xRateDistOptQuant(pcCU, plSrcCoef, pDstCoef, 4, 4, uiAbsSum, eTType, uiAbsPartIdx, indexROT);
@@ -4113,10 +4144,25 @@ Void TComTrQuant::xQuant4x4( TComDataCU* pcCU, Long* plSrcCoef, TCoeff*& pDstCoe
     for( Int n = 0; n < 16; n++ )
     {
       Int iLevel, iSign;
+#if HHI_ALLOW_ROT_SWITCH
+      if ( m_bUseROT )
+      {
+        iLevel  = plSrcCoef[n];
+        iSign   = iLevel;
+        iLevel  = abs( iLevel ) ;
+      }
+      else
+      {
+        iLevel  = plSrcCoef[n];
+        iSign   = iLevel;
+        iLevel  = abs( iLevel ) * m_puiQuantMtx[n];
+      }
+#else
 
       iLevel  = plSrcCoef[n];
       iSign   = iLevel;
       iLevel  = abs( iLevel ) ;
+#endif
 
       iLevel      = ( iLevel + m_cQP.m_iAdd4x4 ) >> m_cQP.m_iBits;
 
@@ -4138,13 +4184,26 @@ Void TComTrQuant::xQuant4x4( TComDataCU* pcCU, Long* plSrcCoef, TCoeff*& pDstCoe
 
 Void TComTrQuant::xQuant8x8( TComDataCU* pcCU, Long* plSrcCoef, TCoeff*& pDstCoef, UInt& uiAbsSum, TextType eTType, UInt uiAbsPartIdx, UChar indexROT )
 {
+#if HHI_ALLOW_ROT_SWITCH
+  if ( m_bUseROT )
+  {
+    for( Int i=0; i<64; i++ )
+      plSrcCoef[i] *= m_puiQuantMtx[i];
+
+    if ( indexROT ) // BB: always > 0 ???
+    {
+      RotTransformLI2( plSrcCoef, indexROT-1, 8 );
+    }
+  }
+#else
   for( Int i=0; i<64; i++ )
     plSrcCoef[i] *= m_puiQuantMtx[i];
 
-	if ( indexROT )
-	{
-		RotTransformLI2( plSrcCoef, indexROT-1, 8 );
-	}
+  if ( indexROT )
+  {
+    RotTransformLI2( plSrcCoef, indexROT-1, 8 );
+  }
+#endif
 
   Int iBit = m_cQP.m_iBits + 1;
 
@@ -4159,9 +4218,24 @@ Void TComTrQuant::xQuant8x8( TComDataCU* pcCU, Long* plSrcCoef, TCoeff*& pDstCoe
     {
       Int iLevel, iSign;
 
+#if HHI_ALLOW_ROT_SWITCH
+      if ( m_bUseROT )
+      {
       iLevel  = plSrcCoef[n];
       iSign   = iLevel;
       iLevel  = abs( iLevel ) ;
+      }
+      else
+      {
+        iLevel  = plSrcCoef[n];
+        iSign   = iLevel;	
+        iLevel  = abs( iLevel ) * m_puiQuantMtx[n];
+      }
+#else
+      iLevel  = plSrcCoef[n];
+      iSign   = iLevel;
+      iLevel  = abs( iLevel ) ;
+#endif
 
       iLevel      = ( iLevel + m_cQP.m_iAdd8x8 ) >> iBit;
 
@@ -4392,26 +4466,30 @@ Void TComTrQuant::xDeQuant4x4( TCoeff* pSrcCoef, Long*& rplDstCoef, UChar indexR
   Int iLevel;
   Int iDeScale;
 
-	if ( !indexROT )
-	{
+#if HHI_ALLOW_ROT_SWITCH
+  if ( !m_bUseROT || !indexROT )
+#else
+  if ( !indexROT )
+#endif
+  {
     for( Int n = 0; n < 16; n++ )
-		{
-			iLevel  = pSrcCoef[n];
+    {
+      iLevel  = pSrcCoef[n];
 
-			if( 0 != iLevel )
-			{
-				iDeScale = g_aiDequantCoef[m_cQP.m_iRem][n];
+      if( 0 != iLevel )
+      {
+        iDeScale = g_aiDequantCoef[m_cQP.m_iRem][n];
 
-				rplDstCoef[n] = iLevel*iDeScale << m_cQP.m_iPer;
-			}
-			else
-			{
-				rplDstCoef[n] = 0;
-			}
-		}
-	}
-	else
-	{
+        rplDstCoef[n] = iLevel*iDeScale << m_cQP.m_iPer;
+      }
+      else
+      {
+        rplDstCoef[n] = 0;
+      }
+    }
+  }
+  else
+  {
     for( Int n=0; n<16; n++)
     {
       if( 0 != pSrcCoef[n] )
@@ -4420,59 +4498,63 @@ Void TComTrQuant::xDeQuant4x4( TCoeff* pSrcCoef, Long*& rplDstCoef, UChar indexR
         rplDstCoef[n] = 0;
     }
     InvRotTransform4I( rplDstCoef, indexROT-1 );
-	}
+  }
 }
 Void TComTrQuant::xDeQuant8x8( TCoeff* pSrcCoef, Long*& rplDstCoef, UChar indexROT )
 {
-	Int iLevel;
-	Int iDeScale;
+  Int iLevel;
+  Int iDeScale;
 
-	Int iAdd = ( 1 << 5 ) >> m_cQP.m_iPer;
+  Int iAdd = ( 1 << 5 ) >> m_cQP.m_iPer;
 
-	// without ROT case
-	if ( !indexROT )
-	{
-		for( Int n = 0; n < 64; n++ )
-		{
-			iLevel  = pSrcCoef[n];
+  // without ROT case
+#if HHI_ALLOW_ROT_SWITCH
+  if ( !m_bUseROT || !indexROT )
+#else  
+  if ( !indexROT )
+#endif
+  {
+    for( Int n = 0; n < 64; n++ )
+    {
+      iLevel  = pSrcCoef[n];
 
-			if( 0 != iLevel )
-			{
-				iDeScale = g_aiDequantCoef64[m_cQP.m_iRem][n];
-				rplDstCoef[n]   = ( (iLevel*iDeScale*16 + iAdd) << m_cQP.m_iPer ) >> 6;
-			}
-			else
-			{
-				rplDstCoef[n] = 0;
-			}
-		}
-	}
-	// with ROT case
-	else
-	{
-		for( Int n = 0; n < 64; n++ )
-		{
-			iLevel  = pSrcCoef[n];
+      if( 0 != iLevel )
+      {
+        iDeScale = g_aiDequantCoef64[m_cQP.m_iRem][n];
+        rplDstCoef[n]   = ( (iLevel*iDeScale*16 + iAdd) << m_cQP.m_iPer ) >> 6;
+      }
+      else
+      {
+        rplDstCoef[n] = 0;
+      }
+    }
+  }
+  // with ROT case
+  else
+  {
+    for( Int n = 0; n < 64; n++ )
+    {
+      iLevel  = pSrcCoef[n];
 
-			if( 0 != iLevel )
-			{
-				iDeScale = 1;
-				rplDstCoef[n]   = ( (iLevel*iDeScale*16 + iAdd) << m_cQP.m_iPer ) >> 6;
-			}
-			else
-			{
-				rplDstCoef[n] = 0;
-			}
-		}
+      if( 0 != iLevel )
+      {
+        iDeScale = 1;
+        rplDstCoef[n]   = ( (iLevel*iDeScale*16 + iAdd) << m_cQP.m_iPer ) >> 6;
+      }
+      else
+      {
+        rplDstCoef[n] = 0;
+      }
+    }
 
-		InvRotTransformLI2( rplDstCoef, indexROT-1 );
+    InvRotTransformLI2( rplDstCoef, indexROT-1 );
 
-		for( Int i=0; i<64; i++ )
-		{
-			if( rplDstCoef[i] != 0 )
-				rplDstCoef[i] *= g_aiDequantCoef64[m_cQP.m_iRem][i];
-		}
-	}
+    for( Int i=0; i<64; i++ )
+    {
+      if( rplDstCoef[i] != 0 )
+        rplDstCoef[i] *= g_aiDequantCoef64[m_cQP.m_iRem][i];
+    }
+  }
 }
 
 Void TComTrQuant::invRecurTransformNxN( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eTxt, Pel*& rpcResidual, UInt uiAddr, UInt uiStride, UInt uiWidth, UInt uiHeight, UInt uiMaxTrMode, UInt uiTrMode, TCoeff* rpcCoeff, Int indexROT )
@@ -4480,8 +4562,32 @@ Void TComTrQuant::invRecurTransformNxN( TComDataCU* pcCU, UInt uiAbsPartIdx, Tex
   if( !pcCU->getCbf(uiAbsPartIdx, eTxt, uiTrMode) )
       return;
 
+#if HHI_RQT
+  UInt uiLumaTrMode, uiChromaTrMode;
+  pcCU->convertTransIdx( uiAbsPartIdx, pcCU->getTransformIdx( uiAbsPartIdx ), uiLumaTrMode, uiChromaTrMode );
+  const UInt uiStopTrMode = eTxt == TEXT_LUMA ? uiLumaTrMode : uiChromaTrMode;
+
+  assert( pcCU->getSlice()->getSPS()->getQuadtreeTUFlag() || uiStopTrMode == uiMaxTrMode ); // as long as quadtrees are not used for residual transform
+
+  if( uiTrMode == uiStopTrMode )
+#else
   if ( uiTrMode == uiMaxTrMode )
+#endif
   {
+#if HHI_RQT
+    UInt uiDepth      = pcCU->getDepth( uiAbsPartIdx ) + uiTrMode;
+    UInt uiLog2TrSize = g_aucConvertToBit[ pcCU->getSlice()->getSPS()->getMaxCUWidth() >> uiDepth ] + 2;
+    if( eTxt != TEXT_LUMA && uiLog2TrSize == pcCU->getSlice()->getSPS()->getQuadtreeTULog2MinSize() )
+    {
+      UInt uiQPDiv = pcCU->getPic()->getNumPartInCU() >> ( ( uiDepth - 1 ) << 1 );
+      if( ( uiAbsPartIdx % uiQPDiv ) != 0 )
+      {
+        return;
+      }
+      uiWidth  <<= 1;
+      uiHeight <<= 1;
+    }
+#endif
     Pel* pResi = rpcResidual + uiAddr;
     invtransformNxN( pResi, uiStride, rpcCoeff, uiWidth, uiHeight, indexROT );
   }
@@ -4505,254 +4611,254 @@ Void TComTrQuant::invRecurTransformNxN( TComDataCU* pcCU, UInt uiAbsPartIdx, Tex
 
 Void TComTrQuant::InvRotTransform4I(  Long* matrix, UChar index )
 {
-	int temp[16];
-	Int n=0;
-	Int iAddShift = Min(Max(0, 4-(Int)g_uiBitIncrement),INV_ROT_BITS);
-	Int iAddOffSet = 0;
-	if (iAddShift) iAddOffSet = 1<<(iAddShift-1);
+  int temp[16];
+  Int n = 0;
+  Int iAddShift = Min(Max(0, 4-(Int)g_uiBitIncrement),INV_ROT_BITS);
+  Int iAddOffSet = 0;
+  if (iAddShift) iAddOffSet = 1<<(iAddShift-1);
 
-	Int iShift1 = INV_ROT_BITS-iAddShift;
-	Int iShift2 = INV_ROT_BITS+iAddShift;
-	Int iOffSet2 = (iAddOffSet<<INV_ROT_BITS);
+  Int iShift1 = INV_ROT_BITS-iAddShift;
+  Int iShift2 = INV_ROT_BITS+iAddShift;
+  Int iOffSet2 = (iAddOffSet<<INV_ROT_BITS);
 
-	// rot process
-	for (n=0; n<13; n+=4)
-	{
-		temp[n]  =g_INV_ROT_MATRIX_4[index][9] *matrix[n]+g_INV_ROT_MATRIX_4[index][12]*matrix[n+1]+g_INV_ROT_MATRIX_4[index][15]*matrix[n+2];
-		temp[n+1]=g_INV_ROT_MATRIX_4[index][10]*matrix[n]+g_INV_ROT_MATRIX_4[index][13]*matrix[n+1]+g_INV_ROT_MATRIX_4[index][16]*matrix[n+2];
-		temp[n+2]=g_INV_ROT_MATRIX_4[index][11]*matrix[n]+g_INV_ROT_MATRIX_4[index][14]*matrix[n+1]+g_INV_ROT_MATRIX_4[index][17]*matrix[n+2];
+  // rot process
+  for (n=0; n<13; n+=4)
+  {
+    temp[n]  =g_INV_ROT_MATRIX_4[index][9] *matrix[n]+g_INV_ROT_MATRIX_4[index][12]*matrix[n+1]+g_INV_ROT_MATRIX_4[index][15]*matrix[n+2];
+    temp[n+1]=g_INV_ROT_MATRIX_4[index][10]*matrix[n]+g_INV_ROT_MATRIX_4[index][13]*matrix[n+1]+g_INV_ROT_MATRIX_4[index][16]*matrix[n+2];
+    temp[n+2]=g_INV_ROT_MATRIX_4[index][11]*matrix[n]+g_INV_ROT_MATRIX_4[index][14]*matrix[n+1]+g_INV_ROT_MATRIX_4[index][17]*matrix[n+2];
 
-		if (temp[n  ]>=0) temp[n  ]=(temp[n  ])>>iShift1; else temp[n  ] = -((-temp[n  ])>>iShift1);
-		if (temp[n+1]>=0) temp[n+1]=(temp[n+1])>>iShift1; else temp[n+1] = -((-temp[n+1])>>iShift1);
-		if (temp[n+2]>=0) temp[n+2]=(temp[n+2])>>iShift1; else temp[n+2] = -((-temp[n+2])>>iShift1);
+    if (temp[n  ]>=0) temp[n  ]=(temp[n  ])>>iShift1; else temp[n  ] = -((-temp[n  ])>>iShift1);
+    if (temp[n+1]>=0) temp[n+1]=(temp[n+1])>>iShift1; else temp[n+1] = -((-temp[n+1])>>iShift1);
+    if (temp[n+2]>=0) temp[n+2]=(temp[n+2])>>iShift1; else temp[n+2] = -((-temp[n+2])>>iShift1);
 
-		temp[n+3]=matrix[n+3]<<iAddShift;
-	}
-	for (n=0; n<4; n++)
-	{
-		matrix[n]   =(g_INV_ROT_MATRIX_4[index][0]*temp[n]+g_INV_ROT_MATRIX_4[index][3]*temp[n+4]+g_INV_ROT_MATRIX_4[index][6]*temp[n+8])*g_aiDequantCoef[m_cQP.m_iRem][n]  ;
-		matrix[n+4] =(g_INV_ROT_MATRIX_4[index][1]*temp[n]+g_INV_ROT_MATRIX_4[index][4]*temp[n+4]+g_INV_ROT_MATRIX_4[index][7]*temp[n+8])*g_aiDequantCoef[m_cQP.m_iRem][n+4];
-		matrix[n+8] =(g_INV_ROT_MATRIX_4[index][2]*temp[n]+g_INV_ROT_MATRIX_4[index][5]*temp[n+4]+g_INV_ROT_MATRIX_4[index][8]*temp[n+8])*g_aiDequantCoef[m_cQP.m_iRem][n+8];
-		matrix[n+12]=temp[n+12]*g_aiDequantCoef[m_cQP.m_iRem][n+12];
+    temp[n+3]=matrix[n+3]<<iAddShift;
+  }
+  for (n=0; n<4; n++)
+  {
+    matrix[n]   =(g_INV_ROT_MATRIX_4[index][0]*temp[n]+g_INV_ROT_MATRIX_4[index][3]*temp[n+4]+g_INV_ROT_MATRIX_4[index][6]*temp[n+8])*g_aiDequantCoef[m_cQP.m_iRem][n]  ;
+    matrix[n+4] =(g_INV_ROT_MATRIX_4[index][1]*temp[n]+g_INV_ROT_MATRIX_4[index][4]*temp[n+4]+g_INV_ROT_MATRIX_4[index][7]*temp[n+8])*g_aiDequantCoef[m_cQP.m_iRem][n+4];
+    matrix[n+8] =(g_INV_ROT_MATRIX_4[index][2]*temp[n]+g_INV_ROT_MATRIX_4[index][5]*temp[n+4]+g_INV_ROT_MATRIX_4[index][8]*temp[n+8])*g_aiDequantCoef[m_cQP.m_iRem][n+8];
+    matrix[n+12]=temp[n+12]*g_aiDequantCoef[m_cQP.m_iRem][n+12];
 
-		if (matrix[n  ]>=0) matrix[n  ]=((matrix[n  ]+iOffSet2)>>iShift2); else matrix[n  ] = -((-matrix[n  ]+iOffSet2)>>iShift2);
-		if (matrix[n+4]>=0) matrix[n+4]=((matrix[n+4]+iOffSet2)>>iShift2); else matrix[n+4] = -((-matrix[n+4]+iOffSet2)>>iShift2);
-		if (matrix[n+8]>=0) matrix[n+8]=((matrix[n+8]+iOffSet2)>>iShift2); else matrix[n+8] = -((-matrix[n+8]+iOffSet2)>>iShift2);
+    if (matrix[n  ]>=0) matrix[n  ]=((matrix[n  ]+iOffSet2)>>iShift2); else matrix[n  ] = -((-matrix[n  ]+iOffSet2)>>iShift2);
+    if (matrix[n+4]>=0) matrix[n+4]=((matrix[n+4]+iOffSet2)>>iShift2); else matrix[n+4] = -((-matrix[n+4]+iOffSet2)>>iShift2);
+    if (matrix[n+8]>=0) matrix[n+8]=((matrix[n+8]+iOffSet2)>>iShift2); else matrix[n+8] = -((-matrix[n+8]+iOffSet2)>>iShift2);
 
-		if (matrix[n+12]>=0) matrix[n+12]=((matrix[n+12]+iAddOffSet)>>iAddShift); else matrix[n+12] = -((-matrix[n+12]+iAddOffSet)>>iAddShift);
-	}
+    if (matrix[n+12]>=0) matrix[n+12]=((matrix[n+12]+iAddOffSet)>>iAddShift); else matrix[n+12] = -((-matrix[n+12]+iAddOffSet)>>iAddShift);
+  }
 }
 
 Void TComTrQuant::InvRotTransformLI2( Long* matrix , UChar index )
 {
-	Int temp[64];
-	Int n=0;
-	Int iAddShift = Min(Max(0, 4-(Int)g_uiBitIncrement),INV_ROT_BITS);
-	Int iAddOffSet = 0;
-	if (iAddShift) iAddOffSet = 1<<(iAddShift-1);
+  Int temp[64];
+  Int n=0;
+  Int iAddShift = Min(Max(0, 4-(Int)g_uiBitIncrement),INV_ROT_BITS);
+  Int iAddOffSet = 0;
+  if (iAddShift) iAddOffSet = 1<<(iAddShift-1);
 
-	Int iShift1 = INV_ROT_BITS-iAddShift;
-	Int iShift2 = INV_ROT_BITS+iAddShift;
-	Int iOffSet2 = (iAddOffSet<<INV_ROT_BITS);
+  Int iShift1 = INV_ROT_BITS-iAddShift;
+  Int iShift2 = INV_ROT_BITS+iAddShift;
+  Int iOffSet2 = (iAddOffSet<<INV_ROT_BITS);
 
-	// Rot process
-	for (n=0; n<64; n+=8)
-	{
-		temp[n]  =g_INV_ROT_MATRIX_8[index][9 ]*matrix[n]+g_INV_ROT_MATRIX_8[index][12]*matrix[n+1]+g_INV_ROT_MATRIX_8[index][15]*matrix[n+2];
-		temp[n+1]=g_INV_ROT_MATRIX_8[index][10]*matrix[n]+g_INV_ROT_MATRIX_8[index][13]*matrix[n+1]+g_INV_ROT_MATRIX_8[index][16]*matrix[n+2];
-		temp[n+2]=g_INV_ROT_MATRIX_8[index][11]*matrix[n]+g_INV_ROT_MATRIX_8[index][14]*matrix[n+1]+g_INV_ROT_MATRIX_8[index][17]*matrix[n+2];
+  // Rot process
+  for (n=0; n<64; n+=8)
+  {
+    temp[n]  =g_INV_ROT_MATRIX_8[index][9 ]*matrix[n]+g_INV_ROT_MATRIX_8[index][12]*matrix[n+1]+g_INV_ROT_MATRIX_8[index][15]*matrix[n+2];
+    temp[n+1]=g_INV_ROT_MATRIX_8[index][10]*matrix[n]+g_INV_ROT_MATRIX_8[index][13]*matrix[n+1]+g_INV_ROT_MATRIX_8[index][16]*matrix[n+2];
+    temp[n+2]=g_INV_ROT_MATRIX_8[index][11]*matrix[n]+g_INV_ROT_MATRIX_8[index][14]*matrix[n+1]+g_INV_ROT_MATRIX_8[index][17]*matrix[n+2];
 
-		temp[n+3]=g_INV_ROT_MATRIX_8[index][27]*matrix[n+3]+g_INV_ROT_MATRIX_8[index][30]*matrix[n+4]+g_INV_ROT_MATRIX_8[index][33]*matrix[n+5];
-		temp[n+4]=g_INV_ROT_MATRIX_8[index][28]*matrix[n+3]+g_INV_ROT_MATRIX_8[index][31]*matrix[n+4]+g_INV_ROT_MATRIX_8[index][34]*matrix[n+5];
-		temp[n+5]=g_INV_ROT_MATRIX_8[index][29]*matrix[n+3]+g_INV_ROT_MATRIX_8[index][32]*matrix[n+4]+g_INV_ROT_MATRIX_8[index][35]*matrix[n+5];
+    temp[n+3]=g_INV_ROT_MATRIX_8[index][27]*matrix[n+3]+g_INV_ROT_MATRIX_8[index][30]*matrix[n+4]+g_INV_ROT_MATRIX_8[index][33]*matrix[n+5];
+    temp[n+4]=g_INV_ROT_MATRIX_8[index][28]*matrix[n+3]+g_INV_ROT_MATRIX_8[index][31]*matrix[n+4]+g_INV_ROT_MATRIX_8[index][34]*matrix[n+5];
+    temp[n+5]=g_INV_ROT_MATRIX_8[index][29]*matrix[n+3]+g_INV_ROT_MATRIX_8[index][32]*matrix[n+4]+g_INV_ROT_MATRIX_8[index][35]*matrix[n+5];
 
-		if (temp[n  ]>=0) temp[n  ]=(temp[n  ])>>iShift1; else temp[n  ] = -((-temp[n  ])>>iShift1);
-		if (temp[n+1]>=0) temp[n+1]=(temp[n+1])>>iShift1; else temp[n+1] = -((-temp[n+1])>>iShift1);
-		if (temp[n+2]>=0) temp[n+2]=(temp[n+2])>>iShift1; else temp[n+2] = -((-temp[n+2])>>iShift1);
+    if (temp[n  ]>=0) temp[n  ]=(temp[n  ])>>iShift1; else temp[n  ] = -((-temp[n  ])>>iShift1);
+    if (temp[n+1]>=0) temp[n+1]=(temp[n+1])>>iShift1; else temp[n+1] = -((-temp[n+1])>>iShift1);
+    if (temp[n+2]>=0) temp[n+2]=(temp[n+2])>>iShift1; else temp[n+2] = -((-temp[n+2])>>iShift1);
 
-		if (temp[n+3]>=0) temp[n+3]=(temp[n+3])>>iShift1; else temp[n+3] = -((-temp[n+3])>>iShift1);
-		if (temp[n+4]>=0) temp[n+4]=(temp[n+4])>>iShift1; else temp[n+4] = -((-temp[n+4])>>iShift1);
-		if (temp[n+5]>=0) temp[n+5]=(temp[n+5])>>iShift1; else temp[n+5] = -((-temp[n+5])>>iShift1);
+    if (temp[n+3]>=0) temp[n+3]=(temp[n+3])>>iShift1; else temp[n+3] = -((-temp[n+3])>>iShift1);
+    if (temp[n+4]>=0) temp[n+4]=(temp[n+4])>>iShift1; else temp[n+4] = -((-temp[n+4])>>iShift1);
+    if (temp[n+5]>=0) temp[n+5]=(temp[n+5])>>iShift1; else temp[n+5] = -((-temp[n+5])>>iShift1);
 
 
-		temp[n+6]=matrix[n+6]<<iAddShift;
-		temp[n+7]=matrix[n+7]<<iAddShift;
+    temp[n+6]=matrix[n+6]<<iAddShift;
+    temp[n+7]=matrix[n+7]<<iAddShift;
 
-	}
-	for (n=0; n<8; n++)
-	{
-		matrix[n]    =g_INV_ROT_MATRIX_8[index][0]*temp[n]+g_INV_ROT_MATRIX_8[index][3]*temp[n+8]+g_INV_ROT_MATRIX_8[index][6]*temp[n+16];
-		matrix[n+8]  =g_INV_ROT_MATRIX_8[index][1]*temp[n]+g_INV_ROT_MATRIX_8[index][4]*temp[n+8]+g_INV_ROT_MATRIX_8[index][7]*temp[n+16];
-		matrix[n+16] =g_INV_ROT_MATRIX_8[index][2]*temp[n]+g_INV_ROT_MATRIX_8[index][5]*temp[n+8]+g_INV_ROT_MATRIX_8[index][8]*temp[n+16];
+  }
+  for (n=0; n<8; n++)
+  {
+    matrix[n]    =g_INV_ROT_MATRIX_8[index][0]*temp[n]+g_INV_ROT_MATRIX_8[index][3]*temp[n+8]+g_INV_ROT_MATRIX_8[index][6]*temp[n+16];
+    matrix[n+8]  =g_INV_ROT_MATRIX_8[index][1]*temp[n]+g_INV_ROT_MATRIX_8[index][4]*temp[n+8]+g_INV_ROT_MATRIX_8[index][7]*temp[n+16];
+    matrix[n+16] =g_INV_ROT_MATRIX_8[index][2]*temp[n]+g_INV_ROT_MATRIX_8[index][5]*temp[n+8]+g_INV_ROT_MATRIX_8[index][8]*temp[n+16];
 
-		matrix[n+24] =g_INV_ROT_MATRIX_8[index][18]*temp[n+24]+g_INV_ROT_MATRIX_8[index][21]*temp[n+32]+g_INV_ROT_MATRIX_8[index][24]*temp[n+40];
-		matrix[n+32] =g_INV_ROT_MATRIX_8[index][19]*temp[n+24]+g_INV_ROT_MATRIX_8[index][22]*temp[n+32]+g_INV_ROT_MATRIX_8[index][25]*temp[n+40];
-		matrix[n+40] =g_INV_ROT_MATRIX_8[index][20]*temp[n+24]+g_INV_ROT_MATRIX_8[index][23]*temp[n+32]+g_INV_ROT_MATRIX_8[index][26]*temp[n+40];
+    matrix[n+24] =g_INV_ROT_MATRIX_8[index][18]*temp[n+24]+g_INV_ROT_MATRIX_8[index][21]*temp[n+32]+g_INV_ROT_MATRIX_8[index][24]*temp[n+40];
+    matrix[n+32] =g_INV_ROT_MATRIX_8[index][19]*temp[n+24]+g_INV_ROT_MATRIX_8[index][22]*temp[n+32]+g_INV_ROT_MATRIX_8[index][25]*temp[n+40];
+    matrix[n+40] =g_INV_ROT_MATRIX_8[index][20]*temp[n+24]+g_INV_ROT_MATRIX_8[index][23]*temp[n+32]+g_INV_ROT_MATRIX_8[index][26]*temp[n+40];
 
-		matrix[n+48]=temp[n+48];
-		matrix[n+56]=temp[n+56];
+    matrix[n+48]=temp[n+48];
+    matrix[n+56]=temp[n+56];
 
-		if (matrix[n   ]>=0) matrix[n   ]=(matrix[n   ]+iOffSet2)>>iShift2; else matrix[n   ] = -((-matrix[n   ]+iOffSet2)>>iShift2);
-		if (matrix[n+ 8]>=0) matrix[n+ 8]=(matrix[n+ 8]+iOffSet2)>>iShift2; else matrix[n+ 8] = -((-matrix[n+ 8]+iOffSet2)>>iShift2);
-		if (matrix[n+16]>=0) matrix[n+16]=(matrix[n+16]+iOffSet2)>>iShift2; else matrix[n+16] = -((-matrix[n+16]+iOffSet2)>>iShift2);
+    if (matrix[n   ]>=0) matrix[n   ]=(matrix[n   ]+iOffSet2)>>iShift2; else matrix[n   ] = -((-matrix[n   ]+iOffSet2)>>iShift2);
+    if (matrix[n+ 8]>=0) matrix[n+ 8]=(matrix[n+ 8]+iOffSet2)>>iShift2; else matrix[n+ 8] = -((-matrix[n+ 8]+iOffSet2)>>iShift2);
+    if (matrix[n+16]>=0) matrix[n+16]=(matrix[n+16]+iOffSet2)>>iShift2; else matrix[n+16] = -((-matrix[n+16]+iOffSet2)>>iShift2);
 
-		if (matrix[n+24]>=0) matrix[n+24]=(matrix[n+24]+iOffSet2)>>iShift2; else matrix[n+24] = -((-matrix[n+24]+iOffSet2)>>iShift2);
-		if (matrix[n+32]>=0) matrix[n+32]=(matrix[n+32]+iOffSet2)>>iShift2; else matrix[n+32] = -((-matrix[n+32]+iOffSet2)>>iShift2);
-		if (matrix[n+40]>=0) matrix[n+40]=(matrix[n+40]+iOffSet2)>>iShift2; else matrix[n+40] = -((-matrix[n+40]+iOffSet2)>>iShift2);
+    if (matrix[n+24]>=0) matrix[n+24]=(matrix[n+24]+iOffSet2)>>iShift2; else matrix[n+24] = -((-matrix[n+24]+iOffSet2)>>iShift2);
+    if (matrix[n+32]>=0) matrix[n+32]=(matrix[n+32]+iOffSet2)>>iShift2; else matrix[n+32] = -((-matrix[n+32]+iOffSet2)>>iShift2);
+    if (matrix[n+40]>=0) matrix[n+40]=(matrix[n+40]+iOffSet2)>>iShift2; else matrix[n+40] = -((-matrix[n+40]+iOffSet2)>>iShift2);
 
-		if (matrix[n+48]>=0) matrix[n+48]=(matrix[n+48]+iAddOffSet)>>iAddShift; else matrix[n+48] = -((-matrix[n+48]+iAddOffSet)>>iAddShift);
-		if (matrix[n+56]>=0) matrix[n+56]=(matrix[n+56]+iAddOffSet)>>iAddShift; else matrix[n+56] = -((-matrix[n+56]+iAddOffSet)>>iAddShift);
-	}
+    if (matrix[n+48]>=0) matrix[n+48]=(matrix[n+48]+iAddOffSet)>>iAddShift; else matrix[n+48] = -((-matrix[n+48]+iAddOffSet)>>iAddShift);
+    if (matrix[n+56]>=0) matrix[n+56]=(matrix[n+56]+iAddOffSet)>>iAddShift; else matrix[n+56] = -((-matrix[n+56]+iAddOffSet)>>iAddShift);
+  }
 }
 
 Void TComTrQuant::RotTransform4I( Long* matrix, UChar index )
 {
-	int temp[16];
-	Int n=0;
-	Int iLocalShift		= g_auiROTFwdShift[0] - g_uiBitIncrement;	// index 0 means 4x4
-	Int iLocalOffSet	= 0;
+  int temp[16];
+  Int n = 0;
+  Int iLocalShift    = g_auiROTFwdShift[0] - g_uiBitIncrement;  // index 0 means 4x4
+  Int iLocalOffSet  = 0;
 
-	// scale data
-	if ( iLocalShift )
-	{
-		iLocalOffSet = 1 << ( abs(iLocalShift) - 1 );
+  // scale data
+  if ( iLocalShift )
+  {
+    iLocalOffSet = 1 << ( abs(iLocalShift) - 1 );
 
-		if ( iLocalShift > 0 )
-		{
-			for (n=0; n<16; n++)  matrix[n] <<= iLocalShift;
-		}
-		else
-		if ( iLocalShift < 0 )
-		{
-			for (n=0; n<16; n++)
-				if (matrix[n] >= 0) matrix[n]=(matrix[n]+iLocalOffSet)>>(-iLocalShift);
-				else matrix[n] =- ((-matrix[n]+iLocalOffSet)>>(-iLocalShift));
-		}
-	}
+    if ( iLocalShift > 0 )
+    {
+      for (n=0; n<16; n++)  matrix[n] <<= iLocalShift;
+    }
+    else
+    if ( iLocalShift < 0 )
+    {
+      for (n=0; n<16; n++)
+        if (matrix[n] >= 0) matrix[n]=(matrix[n]+iLocalOffSet)>>(-iLocalShift);
+        else matrix[n] =- ((-matrix[n]+iLocalOffSet)>>(-iLocalShift));
+    }
+  }
 
-	// rot process
-	for (n=0; n<13; n+=4)
-	{
-		temp[n]  =g_FWD_ROT_MATRIX_4[index][9] *matrix[n]+g_FWD_ROT_MATRIX_4[index][10]*matrix[n+1]+g_FWD_ROT_MATRIX_4[index][11]*matrix[n+2];
-		temp[n+1]=g_FWD_ROT_MATRIX_4[index][12]*matrix[n]+g_FWD_ROT_MATRIX_4[index][13]*matrix[n+1]+g_FWD_ROT_MATRIX_4[index][14]*matrix[n+2];
-		temp[n+2]=g_FWD_ROT_MATRIX_4[index][15]*matrix[n]+g_FWD_ROT_MATRIX_4[index][16]*matrix[n+1]+g_FWD_ROT_MATRIX_4[index][17]*matrix[n+2];
+  // rot process
+  for (n=0; n<13; n+=4)
+  {
+    temp[n]  =g_FWD_ROT_MATRIX_4[index][9] *matrix[n]+g_FWD_ROT_MATRIX_4[index][10]*matrix[n+1]+g_FWD_ROT_MATRIX_4[index][11]*matrix[n+2];
+    temp[n+1]=g_FWD_ROT_MATRIX_4[index][12]*matrix[n]+g_FWD_ROT_MATRIX_4[index][13]*matrix[n+1]+g_FWD_ROT_MATRIX_4[index][14]*matrix[n+2];
+    temp[n+2]=g_FWD_ROT_MATRIX_4[index][15]*matrix[n]+g_FWD_ROT_MATRIX_4[index][16]*matrix[n+1]+g_FWD_ROT_MATRIX_4[index][17]*matrix[n+2];
 
-		if (temp[n  ]>=0) temp[n  ]=(temp[n  ]+ROT_OFF_SET_FWD)>>FWD_ROT_BITS; else temp[n  ] = -((-temp[n  ]+ROT_OFF_SET_FWD)>>FWD_ROT_BITS);
-		if (temp[n+1]>=0) temp[n+1]=(temp[n+1]+ROT_OFF_SET_FWD)>>FWD_ROT_BITS; else temp[n+1] = -((-temp[n+1]+ROT_OFF_SET_FWD)>>FWD_ROT_BITS);
-		if (temp[n+2]>=0) temp[n+2]=(temp[n+2]+ROT_OFF_SET_FWD)>>FWD_ROT_BITS; else temp[n+2] = -((-temp[n+2]+ROT_OFF_SET_FWD)>>FWD_ROT_BITS);
+    if (temp[n  ]>=0) temp[n  ]=(temp[n  ]+ROT_OFF_SET_FWD)>>FWD_ROT_BITS; else temp[n  ] = -((-temp[n  ]+ROT_OFF_SET_FWD)>>FWD_ROT_BITS);
+    if (temp[n+1]>=0) temp[n+1]=(temp[n+1]+ROT_OFF_SET_FWD)>>FWD_ROT_BITS; else temp[n+1] = -((-temp[n+1]+ROT_OFF_SET_FWD)>>FWD_ROT_BITS);
+    if (temp[n+2]>=0) temp[n+2]=(temp[n+2]+ROT_OFF_SET_FWD)>>FWD_ROT_BITS; else temp[n+2] = -((-temp[n+2]+ROT_OFF_SET_FWD)>>FWD_ROT_BITS);
 
-		temp[n+3]=matrix[n+3];
-	}
-	for (n=0; n<4; n++)
-	{
-		matrix[n]   =(g_FWD_ROT_MATRIX_4[index][0]*temp[n]+g_FWD_ROT_MATRIX_4[index][1]*temp[n+4]+g_FWD_ROT_MATRIX_4[index][2]*temp[n+8]);
-		matrix[n+4] =(g_FWD_ROT_MATRIX_4[index][3]*temp[n]+g_FWD_ROT_MATRIX_4[index][4]*temp[n+4]+g_FWD_ROT_MATRIX_4[index][5]*temp[n+8]);
-		matrix[n+8] =(g_FWD_ROT_MATRIX_4[index][6]*temp[n]+g_FWD_ROT_MATRIX_4[index][7]*temp[n+4]+g_FWD_ROT_MATRIX_4[index][8]*temp[n+8]);
+    temp[n+3]=matrix[n+3];
+  }
+  for (n=0; n<4; n++)
+  {
+    matrix[n]   =(g_FWD_ROT_MATRIX_4[index][0]*temp[n]+g_FWD_ROT_MATRIX_4[index][1]*temp[n+4]+g_FWD_ROT_MATRIX_4[index][2]*temp[n+8]);
+    matrix[n+4] =(g_FWD_ROT_MATRIX_4[index][3]*temp[n]+g_FWD_ROT_MATRIX_4[index][4]*temp[n+4]+g_FWD_ROT_MATRIX_4[index][5]*temp[n+8]);
+    matrix[n+8] =(g_FWD_ROT_MATRIX_4[index][6]*temp[n]+g_FWD_ROT_MATRIX_4[index][7]*temp[n+4]+g_FWD_ROT_MATRIX_4[index][8]*temp[n+8]);
 
-		if (matrix[n  ]>=0) matrix[n  ]=((matrix[n  ]+ROT_OFF_SET_FWD)>>FWD_ROT_BITS); else matrix[n  ] = -((-matrix[n  ]+ROT_OFF_SET_FWD)>>FWD_ROT_BITS);
-		if (matrix[n+4]>=0) matrix[n+4]=((matrix[n+4]+ROT_OFF_SET_FWD)>>FWD_ROT_BITS); else matrix[n+4] = -((-matrix[n+4]+ROT_OFF_SET_FWD)>>FWD_ROT_BITS);
-		if (matrix[n+8]>=0) matrix[n+8]=((matrix[n+8]+ROT_OFF_SET_FWD)>>FWD_ROT_BITS); else matrix[n+8] = -((-matrix[n+8]+ROT_OFF_SET_FWD)>>FWD_ROT_BITS);
+    if (matrix[n  ]>=0) matrix[n  ]=((matrix[n  ]+ROT_OFF_SET_FWD)>>FWD_ROT_BITS); else matrix[n  ] = -((-matrix[n  ]+ROT_OFF_SET_FWD)>>FWD_ROT_BITS);
+    if (matrix[n+4]>=0) matrix[n+4]=((matrix[n+4]+ROT_OFF_SET_FWD)>>FWD_ROT_BITS); else matrix[n+4] = -((-matrix[n+4]+ROT_OFF_SET_FWD)>>FWD_ROT_BITS);
+    if (matrix[n+8]>=0) matrix[n+8]=((matrix[n+8]+ROT_OFF_SET_FWD)>>FWD_ROT_BITS); else matrix[n+8] = -((-matrix[n+8]+ROT_OFF_SET_FWD)>>FWD_ROT_BITS);
 
-		matrix[n+12]=temp[n+12];
-	}
+    matrix[n+12]=temp[n+12];
+  }
 
-	// de-scale the data
-	if (iLocalShift>0)
-	{
-		for (n=0; n<16; n++)
-			if (matrix[n]>=0) matrix[n]=(matrix[n]+iLocalOffSet)>>iLocalShift;
-			else matrix[n]=- ((-matrix[n]+iLocalOffSet)>>iLocalShift);
-	}
-	if (iLocalShift<0)
-	{
-		for (n=0; n<16; n++)  matrix[n]<<=(-iLocalShift);
-	}
+  // de-scale the data
+  if (iLocalShift>0)
+  {
+    for (n=0; n<16; n++)
+      if (matrix[n]>=0) matrix[n]=(matrix[n]+iLocalOffSet)>>iLocalShift;
+      else matrix[n]=- ((-matrix[n]+iLocalOffSet)>>iLocalShift);
+}
+  if (iLocalShift<0)
+{
+    for (n=0; n<16; n++)  matrix[n]<<=(-iLocalShift);
+  }
 }
 
 Void TComTrQuant::RotTransformLI2( Long* matrix, UChar index, UInt uiWidth )
 {
-	Int temp[64];
-	Int n=0;
-	Int iLocalShift		= g_auiROTFwdShift[ g_aucConvertToBit[uiWidth] ] - g_uiBitIncrement;
-	Int iLocalOffset  = 0;
+  Int temp[64];
+  Int n = 0;
+  Int iLocalShift    = g_auiROTFwdShift[ (int)g_aucConvertToBit[uiWidth] ] - g_uiBitIncrement;
+  Int iLocalOffset  = 0;
 
-	// scaling
-	if ( iLocalShift )
-	{
-		iLocalOffset = 1<<(abs(iLocalShift)-1);
+  // scaling
+  if ( iLocalShift )
+  {
+    iLocalOffset = 1<<(abs(iLocalShift)-1);
 
-		if (iLocalShift>0)
-		{
-			for (n=0; n<64; n++)  matrix[n]<<=iLocalShift;
-		}
-		else
-		if (iLocalShift<0)
-		{
-			for (n=0; n<64; n++)
-				if (matrix[n]>=0) matrix[n]=(matrix[n]+iLocalOffset)>>(-iLocalShift);
-				else matrix[n]=- ((-matrix[n]+iLocalOffset)>>(-iLocalShift));
-		}
-	}
+    if (iLocalShift>0)
+    {
+      for (n=0; n<64; n++)  matrix[n]<<=iLocalShift;
+  }
+    else
+    if (iLocalShift<0)
+  {
+      for (n=0; n<64; n++)
+        if (matrix[n]>=0) matrix[n]=(matrix[n]+iLocalOffset)>>(-iLocalShift);
+        else matrix[n]=- ((-matrix[n]+iLocalOffset)>>(-iLocalShift));
+  }
+}
 
-	// Rot process
-	for (n=0; n<64; n+=8)
-	{
-		temp[n]  =g_FWD_ROT_MATRIX_8[index][9 ]*matrix[n]+g_FWD_ROT_MATRIX_8[index][10]*matrix[n+1]+g_FWD_ROT_MATRIX_8[index][11]*matrix[n+2];
-		temp[n+1]=g_FWD_ROT_MATRIX_8[index][12]*matrix[n]+g_FWD_ROT_MATRIX_8[index][13]*matrix[n+1]+g_FWD_ROT_MATRIX_8[index][14]*matrix[n+2];
-		temp[n+2]=g_FWD_ROT_MATRIX_8[index][15]*matrix[n]+g_FWD_ROT_MATRIX_8[index][16]*matrix[n+1]+g_FWD_ROT_MATRIX_8[index][17]*matrix[n+2];
+  // Rot process
+  for (n=0; n<64; n+=8)
+  {
+    temp[n]  =g_FWD_ROT_MATRIX_8[index][9 ]*matrix[n]+g_FWD_ROT_MATRIX_8[index][10]*matrix[n+1]+g_FWD_ROT_MATRIX_8[index][11]*matrix[n+2];
+    temp[n+1]=g_FWD_ROT_MATRIX_8[index][12]*matrix[n]+g_FWD_ROT_MATRIX_8[index][13]*matrix[n+1]+g_FWD_ROT_MATRIX_8[index][14]*matrix[n+2];
+    temp[n+2]=g_FWD_ROT_MATRIX_8[index][15]*matrix[n]+g_FWD_ROT_MATRIX_8[index][16]*matrix[n+1]+g_FWD_ROT_MATRIX_8[index][17]*matrix[n+2];
 
-		temp[n+3]=g_FWD_ROT_MATRIX_8[index][27]*matrix[n+3]+g_FWD_ROT_MATRIX_8[index][28]*matrix[n+4]+g_FWD_ROT_MATRIX_8[index][29]*matrix[n+5];
-		temp[n+4]=g_FWD_ROT_MATRIX_8[index][30]*matrix[n+3]+g_FWD_ROT_MATRIX_8[index][31]*matrix[n+4]+g_FWD_ROT_MATRIX_8[index][32]*matrix[n+5];
-		temp[n+5]=g_FWD_ROT_MATRIX_8[index][33]*matrix[n+3]+g_FWD_ROT_MATRIX_8[index][34]*matrix[n+4]+g_FWD_ROT_MATRIX_8[index][35]*matrix[n+5];
+    temp[n+3]=g_FWD_ROT_MATRIX_8[index][27]*matrix[n+3]+g_FWD_ROT_MATRIX_8[index][28]*matrix[n+4]+g_FWD_ROT_MATRIX_8[index][29]*matrix[n+5];
+    temp[n+4]=g_FWD_ROT_MATRIX_8[index][30]*matrix[n+3]+g_FWD_ROT_MATRIX_8[index][31]*matrix[n+4]+g_FWD_ROT_MATRIX_8[index][32]*matrix[n+5];
+    temp[n+5]=g_FWD_ROT_MATRIX_8[index][33]*matrix[n+3]+g_FWD_ROT_MATRIX_8[index][34]*matrix[n+4]+g_FWD_ROT_MATRIX_8[index][35]*matrix[n+5];
 
-		if (temp[n  ]>=0) temp[n  ]=(temp[n  ]+ROT_OFF_SET_FWD)>>FWD_ROT_BITS; else temp[n  ] = -((-temp[n  ]+ROT_OFF_SET_FWD)>>FWD_ROT_BITS);
-		if (temp[n+1]>=0) temp[n+1]=(temp[n+1]+ROT_OFF_SET_FWD)>>FWD_ROT_BITS; else temp[n+1] = -((-temp[n+1]+ROT_OFF_SET_FWD)>>FWD_ROT_BITS);
-		if (temp[n+2]>=0) temp[n+2]=(temp[n+2]+ROT_OFF_SET_FWD)>>FWD_ROT_BITS; else temp[n+2] = -((-temp[n+2]+ROT_OFF_SET_FWD)>>FWD_ROT_BITS);
+    if (temp[n  ]>=0) temp[n  ]=(temp[n  ]+ROT_OFF_SET_FWD)>>FWD_ROT_BITS; else temp[n  ] = -((-temp[n  ]+ROT_OFF_SET_FWD)>>FWD_ROT_BITS);
+    if (temp[n+1]>=0) temp[n+1]=(temp[n+1]+ROT_OFF_SET_FWD)>>FWD_ROT_BITS; else temp[n+1] = -((-temp[n+1]+ROT_OFF_SET_FWD)>>FWD_ROT_BITS);
+    if (temp[n+2]>=0) temp[n+2]=(temp[n+2]+ROT_OFF_SET_FWD)>>FWD_ROT_BITS; else temp[n+2] = -((-temp[n+2]+ROT_OFF_SET_FWD)>>FWD_ROT_BITS);
 
-		if (temp[n+3]>=0) temp[n+3]=(temp[n+3]+ROT_OFF_SET_FWD)>>FWD_ROT_BITS; else temp[n+3] = -((-temp[n+3]+ROT_OFF_SET_FWD)>>FWD_ROT_BITS);
-		if (temp[n+4]>=0) temp[n+4]=(temp[n+4]+ROT_OFF_SET_FWD)>>FWD_ROT_BITS; else temp[n+4] = -((-temp[n+4]+ROT_OFF_SET_FWD)>>FWD_ROT_BITS);
-		if (temp[n+5]>=0) temp[n+5]=(temp[n+5]+ROT_OFF_SET_FWD)>>FWD_ROT_BITS; else temp[n+5] = -((-temp[n+5]+ROT_OFF_SET_FWD)>>FWD_ROT_BITS);
-
-
-		temp[n+6]=matrix[n+6];
-		temp[n+7]=matrix[n+7];
-
-	}
-	for (n=0; n<8; n++)
-	{
-		matrix[n]    =g_FWD_ROT_MATRIX_8[index][0]*temp[n]+g_FWD_ROT_MATRIX_8[index][1]*temp[n+8]+g_FWD_ROT_MATRIX_8[index][2]*temp[n+16];
-		matrix[n+8]  =g_FWD_ROT_MATRIX_8[index][3]*temp[n]+g_FWD_ROT_MATRIX_8[index][4]*temp[n+8]+g_FWD_ROT_MATRIX_8[index][5]*temp[n+16];
-		matrix[n+16] =g_FWD_ROT_MATRIX_8[index][6]*temp[n]+g_FWD_ROT_MATRIX_8[index][7]*temp[n+8]+g_FWD_ROT_MATRIX_8[index][8]*temp[n+16];
-
-		matrix[n+24] =g_FWD_ROT_MATRIX_8[index][18]*temp[n+24]+g_FWD_ROT_MATRIX_8[index][19]*temp[n+32]+g_FWD_ROT_MATRIX_8[index][20]*temp[n+40];
-		matrix[n+32] =g_FWD_ROT_MATRIX_8[index][21]*temp[n+24]+g_FWD_ROT_MATRIX_8[index][22]*temp[n+32]+g_FWD_ROT_MATRIX_8[index][23]*temp[n+40];
-		matrix[n+40] =g_FWD_ROT_MATRIX_8[index][24]*temp[n+24]+g_FWD_ROT_MATRIX_8[index][25]*temp[n+32]+g_FWD_ROT_MATRIX_8[index][26]*temp[n+40];
-
-		if (matrix[n   ]>=0) matrix[n   ]=(matrix[n   ]+ROT_OFF_SET_FWD)>>FWD_ROT_BITS; else matrix[n   ] = -((-matrix[n   ]+ROT_OFF_SET_FWD)>>FWD_ROT_BITS);
-		if (matrix[n+ 8]>=0) matrix[n+ 8]=(matrix[n+ 8]+ROT_OFF_SET_FWD)>>FWD_ROT_BITS; else matrix[n+ 8] = -((-matrix[n+ 8]+ROT_OFF_SET_FWD)>>FWD_ROT_BITS);
-		if (matrix[n+16]>=0) matrix[n+16]=(matrix[n+16]+ROT_OFF_SET_FWD)>>FWD_ROT_BITS; else matrix[n+16] = -((-matrix[n+16]+ROT_OFF_SET_FWD)>>FWD_ROT_BITS);
-
-		if (matrix[n+24]>=0) matrix[n+24]=(matrix[n+24]+ROT_OFF_SET_FWD)>>FWD_ROT_BITS; else matrix[n+24] = -((-matrix[n+24]+ROT_OFF_SET_FWD)>>FWD_ROT_BITS);
-		if (matrix[n+32]>=0) matrix[n+32]=(matrix[n+32]+ROT_OFF_SET_FWD)>>FWD_ROT_BITS; else matrix[n+32] = -((-matrix[n+32]+ROT_OFF_SET_FWD)>>FWD_ROT_BITS);
-		if (matrix[n+40]>=0) matrix[n+40]=(matrix[n+40]+ROT_OFF_SET_FWD)>>FWD_ROT_BITS; else matrix[n+40] = -((-matrix[n+40]+ROT_OFF_SET_FWD)>>FWD_ROT_BITS);
+    if (temp[n+3]>=0) temp[n+3]=(temp[n+3]+ROT_OFF_SET_FWD)>>FWD_ROT_BITS; else temp[n+3] = -((-temp[n+3]+ROT_OFF_SET_FWD)>>FWD_ROT_BITS);
+    if (temp[n+4]>=0) temp[n+4]=(temp[n+4]+ROT_OFF_SET_FWD)>>FWD_ROT_BITS; else temp[n+4] = -((-temp[n+4]+ROT_OFF_SET_FWD)>>FWD_ROT_BITS);
+    if (temp[n+5]>=0) temp[n+5]=(temp[n+5]+ROT_OFF_SET_FWD)>>FWD_ROT_BITS; else temp[n+5] = -((-temp[n+5]+ROT_OFF_SET_FWD)>>FWD_ROT_BITS);
 
 
-		matrix[n+48]=temp[n+48];
-		matrix[n+56]=temp[n+56];
-	}
+    temp[n+6]=matrix[n+6];
+    temp[n+7]=matrix[n+7];
 
-	// de-scale the data
-	if ( iLocalShift > 0 )
-	{
-		for (n=0; n<64; n++)
-			if (matrix[n]>=0) matrix[n]=(matrix[n]+iLocalOffset)>>iLocalShift;
-			else matrix[n]=- ((-matrix[n]+iLocalOffset)>>iLocalShift);
-	}
-	else
-	if ( iLocalShift < 0 )
-	{
-		for (n=0; n<64; n++)  matrix[n]<<=(-iLocalShift);
-	}
+  }
+  for (n=0; n<8; n++)
+  {
+    matrix[n]    =g_FWD_ROT_MATRIX_8[index][0]*temp[n]+g_FWD_ROT_MATRIX_8[index][1]*temp[n+8]+g_FWD_ROT_MATRIX_8[index][2]*temp[n+16];
+    matrix[n+8]  =g_FWD_ROT_MATRIX_8[index][3]*temp[n]+g_FWD_ROT_MATRIX_8[index][4]*temp[n+8]+g_FWD_ROT_MATRIX_8[index][5]*temp[n+16];
+    matrix[n+16] =g_FWD_ROT_MATRIX_8[index][6]*temp[n]+g_FWD_ROT_MATRIX_8[index][7]*temp[n+8]+g_FWD_ROT_MATRIX_8[index][8]*temp[n+16];
+
+    matrix[n+24] =g_FWD_ROT_MATRIX_8[index][18]*temp[n+24]+g_FWD_ROT_MATRIX_8[index][19]*temp[n+32]+g_FWD_ROT_MATRIX_8[index][20]*temp[n+40];
+    matrix[n+32] =g_FWD_ROT_MATRIX_8[index][21]*temp[n+24]+g_FWD_ROT_MATRIX_8[index][22]*temp[n+32]+g_FWD_ROT_MATRIX_8[index][23]*temp[n+40];
+    matrix[n+40] =g_FWD_ROT_MATRIX_8[index][24]*temp[n+24]+g_FWD_ROT_MATRIX_8[index][25]*temp[n+32]+g_FWD_ROT_MATRIX_8[index][26]*temp[n+40];
+
+    if (matrix[n   ]>=0) matrix[n   ]=(matrix[n   ]+ROT_OFF_SET_FWD)>>FWD_ROT_BITS; else matrix[n   ] = -((-matrix[n   ]+ROT_OFF_SET_FWD)>>FWD_ROT_BITS);
+    if (matrix[n+ 8]>=0) matrix[n+ 8]=(matrix[n+ 8]+ROT_OFF_SET_FWD)>>FWD_ROT_BITS; else matrix[n+ 8] = -((-matrix[n+ 8]+ROT_OFF_SET_FWD)>>FWD_ROT_BITS);
+    if (matrix[n+16]>=0) matrix[n+16]=(matrix[n+16]+ROT_OFF_SET_FWD)>>FWD_ROT_BITS; else matrix[n+16] = -((-matrix[n+16]+ROT_OFF_SET_FWD)>>FWD_ROT_BITS);
+
+    if (matrix[n+24]>=0) matrix[n+24]=(matrix[n+24]+ROT_OFF_SET_FWD)>>FWD_ROT_BITS; else matrix[n+24] = -((-matrix[n+24]+ROT_OFF_SET_FWD)>>FWD_ROT_BITS);
+    if (matrix[n+32]>=0) matrix[n+32]=(matrix[n+32]+ROT_OFF_SET_FWD)>>FWD_ROT_BITS; else matrix[n+32] = -((-matrix[n+32]+ROT_OFF_SET_FWD)>>FWD_ROT_BITS);
+    if (matrix[n+40]>=0) matrix[n+40]=(matrix[n+40]+ROT_OFF_SET_FWD)>>FWD_ROT_BITS; else matrix[n+40] = -((-matrix[n+40]+ROT_OFF_SET_FWD)>>FWD_ROT_BITS);
+
+
+    matrix[n+48]=temp[n+48];
+    matrix[n+56]=temp[n+56];
+  }
+
+  // de-scale the data
+  if ( iLocalShift > 0 )
+  {
+    for (n=0; n<64; n++)
+      if (matrix[n]>=0) matrix[n]=(matrix[n]+iLocalOffset)>>iLocalShift;
+      else matrix[n]=- ((-matrix[n]+iLocalOffset)>>iLocalShift);
+  }
+  else
+  if ( iLocalShift < 0 )
+  {
+    for (n=0; n<64; n++)  matrix[n]<<=(-iLocalShift);
+  }
 }
 
 // ------------------------------------------------------------------------------------------------
@@ -4761,46 +4867,488 @@ Void TComTrQuant::RotTransformLI2( Long* matrix, UChar index, UInt uiWidth )
 
 Void TComTrQuant::xT( Pel* piBlkResi, UInt uiStride, Long* psCoeff, Int iSize )
 {
-	switch( iSize )
-	{
-		case  2: xT2 ( piBlkResi, uiStride, psCoeff ); break;
-		case  4: xT4 ( piBlkResi, uiStride, psCoeff ); break;
-		case  8: xT8 ( piBlkResi, uiStride, psCoeff ); break;
-		case 16: xT16( piBlkResi, uiStride, psCoeff ); break;
-		case 32: xT32( piBlkResi, uiStride, psCoeff ); break;
-		case 64: xT64( piBlkResi, uiStride, psCoeff ); break;
-		default: assert(0); break;
-	}
+  switch( iSize )
+  {
+    case  2: xT2 ( piBlkResi, uiStride, psCoeff ); break;
+    case  4: xT4 ( piBlkResi, uiStride, psCoeff ); break;
+    case  8: xT8 ( piBlkResi, uiStride, psCoeff ); break;
+    case 16: xT16( piBlkResi, uiStride, psCoeff ); break;
+    case 32: xT32( piBlkResi, uiStride, psCoeff ); break;
+    case 64: xT64( piBlkResi, uiStride, psCoeff ); break;
+    default: assert(0); break;
+  }
 }
 
 Void TComTrQuant::xIT( Long* plCoef, Pel* pResidual, UInt uiStride, Int iSize )
 {
-	switch( iSize )
-	{
-		case  2: xIT2 ( plCoef, pResidual, uiStride ); break;
-		case  4: xIT4 ( plCoef, pResidual, uiStride ); break;
-		case  8: xIT8 ( plCoef, pResidual, uiStride ); break;
-		case 16: xIT16( plCoef, pResidual, uiStride ); break;
-		case 32: xIT32( plCoef, pResidual, uiStride ); break;
-		case 64: xIT64( plCoef, pResidual, uiStride ); break;
-		default: assert(0); break;
-	}
+  switch( iSize )
+  {
+    case  2: xIT2 ( plCoef, pResidual, uiStride ); break;
+    case  4: xIT4 ( plCoef, pResidual, uiStride ); break;
+    case  8: xIT8 ( plCoef, pResidual, uiStride ); break;
+    case 16: xIT16( plCoef, pResidual, uiStride ); break;
+    case 32: xIT32( plCoef, pResidual, uiStride ); break;
+    case 64: xIT64( plCoef, pResidual, uiStride ); break;
+    default: assert(0); break;
+  }
 }
 
+// RDOQ
+#if HHI_TRANSFORM_CODING
+Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*                     pcCU,
+                                                      Long*                           plSrcCoeff,
+                                                      TCoeff*&                        piDstCoeff,
+                                                      UInt                            uiWidth,
+                                                      UInt                            uiHeight,
+                                                      UInt&                           uiAbsSum,
+                                                      TextType                        eTType,
+                                                      UInt                            uiAbsPartIdx,
+                                                      UChar                           ucIndexROT    )
+{
+  UInt uiCTXIdx;
+
+  switch(uiWidth)
+  {
+    case  2: uiCTXIdx = 6; break;
+    case  4: uiCTXIdx = 5; break;
+    case  8: uiCTXIdx = 4; break;
+    case 16: uiCTXIdx = 3; break;
+    case 32: uiCTXIdx = 2; break;
+    case 64: uiCTXIdx = 1; break;
+    default: uiCTXIdx = 0; break;
+  }
+
+  Int    iQuantCoeff;
+  Double dTemp;
+  Double dNormFactor = 0.0;
+
+  dTemp = 0;
+  iQuantCoeff = 0;
+  Bool bExt8x8Flag = false;
+  Bool b64Flag     = false;
+  Int  iQpRem      = m_cQP.m_iRem;
+  Int  iQBits      = m_cQP.m_iBits;
+
+  if ( uiWidth == 4 && uiHeight == 4 )
+  {
+    dNormFactor = pow(2., (2*DQ_BITS+19));
+    if ( g_uiBitIncrement ) dNormFactor *= 1<<(2*g_uiBitIncrement);
+    m_puiQuantMtx = &g_aiQuantCoef  [m_cQP.m_iRem][0];
+  }
+  else if ( uiWidth == 8 && uiHeight == 8 )
+  {
+    iQBits++;
+    dNormFactor = pow(2., (2*Q_BITS_8+9));
+    if ( g_uiBitIncrement ) dNormFactor *= 1<<(2*g_uiBitIncrement);
+    m_puiQuantMtx = &g_aiQuantCoef64[m_cQP.m_iRem][0];
+  }
+  else if ( uiWidth == 16 && uiHeight == 16 )
+  {
+    iQBits = ECore16Shift + m_cQP.per();
+    dNormFactor = pow(2., 21);
+    if ( g_uiBitIncrement ) dNormFactor *= 1<<(2*g_uiBitIncrement);
+    dTemp = estErr16x16[iQpRem]/dNormFactor;
+
+    m_puiQuantMtx = ( &g_aiQuantCoef256[m_cQP.m_iRem][0] );
+    bExt8x8Flag = true;
+  }
+  else if ( uiWidth == 32 && uiHeight == 32 )
+  {
+    iQBits = ECore32Shift + m_cQP.per();
+    dNormFactor = pow(2., 21);
+    if ( g_uiBitIncrement ) dNormFactor *= 1<<(2*g_uiBitIncrement);
+    dTemp = estErr32x32[iQpRem]/dNormFactor;
+
+    m_puiQuantMtx = ( &g_aiQuantCoef1024[m_cQP.m_iRem][0] );
+    bExt8x8Flag = true;
+  }
+  else if ( uiWidth == 64 && uiHeight == 64 )
+  {
+    iQBits = ECore64Shift + m_cQP.per();
+    dNormFactor = pow(2., 21);
+    if ( g_uiBitIncrement ) dNormFactor *= 1<<(2*g_uiBitIncrement);
+    dTemp = estErr64x64[iQpRem]/dNormFactor;
+
+    iQuantCoeff = g_aiQuantCoef4096[iQpRem];
+    b64Flag = true;
+    bExt8x8Flag = true;
+  }
+  else
+  {
+    assert(0);
+  }
+
+  UInt    uiLog2BlkSize       = g_aucConvertToBit[ uiWidth ] + 2;
+  UInt    uiBlkSizeM1         = ( 1 << uiLog2BlkSize ) - 1;
+  UInt    uiMaxNumCoeff       = 1 << ( uiLog2BlkSize << 1 );
+  UInt    uiDownLeft          = 1;
+  UInt    uiNumSigTopRight    = 0;
+  UInt    uiNumSigBotLeft     = 0;
+  UInt    uiMaxLineNum        = 0;
+  Bool    bSubBlockCoding     = ( uiLog2BlkSize > 2 );
+  Double  d64BlockUncodedCost = 0;
+
+  Int*  piCoeff            = new Int [ uiMaxNumCoeff      ];
+  Long* plLevelDouble      = new Long[ uiMaxNumCoeff      ];
+  UInt* puiCtxAbsGreOne    = new UInt[ uiMaxNumCoeff      ];
+  UInt* puiCtxCoeffLevelM1 = new UInt[ uiMaxNumCoeff      ];
+  UInt* puiBaseCtx         = new UInt[ uiMaxNumCoeff / 16 ];
+  const UInt uiNumOfSets   = 4;
+  const UInt uiNum4x4Blk   = max<UInt>( 1, uiMaxNumCoeff / 16 );
+
+  ::memset( piDstCoeff,         0, sizeof(TCoeff) * uiMaxNumCoeff      );
+  ::memset( piCoeff,            0, sizeof(Int)    * uiMaxNumCoeff      );
+  ::memset( plLevelDouble,      0, sizeof(Long)   * uiMaxNumCoeff      );
+  ::memset( puiCtxAbsGreOne,    0, sizeof(UInt)   * uiMaxNumCoeff      );
+  ::memset( puiCtxCoeffLevelM1, 0, sizeof(UInt)   * uiMaxNumCoeff      );
+  ::memset( puiBaseCtx,         0, sizeof(UInt)   * uiMaxNumCoeff / 16 );
+
+  //===== quantization =====
+  for( UInt uiScanPos = 0; uiScanPos < uiMaxNumCoeff; uiScanPos++ )
+  {
+    UInt    uiBlkPos = g_auiSigLastScan[ uiLog2BlkSize ][ uiDownLeft ][ uiScanPos ];
+    UInt    uiPosY   = uiBlkPos >> uiLog2BlkSize;
+    UInt    uiPosX   = uiBlkPos - ( uiPosY << uiLog2BlkSize );
+
+    Long lLevelDouble = plSrcCoeff[ uiBlkPos ];
+
+    if      ( uiWidth == 4 ) dTemp = estErr4x4[ iQpRem ][ uiPosX ][ uiPosY ] / dNormFactor;
+    else if ( uiWidth == 8 ) dTemp = estErr8x8[ iQpRem ][ uiPosX ][ uiPosY ] / dNormFactor;
+#if HHI_ALLOW_ROT_SWITCH
+    if ( m_bUseROT )
+    {
+#endif
+      if ( bExt8x8Flag )
+      {
+        if ( ( uiPosX < 8 ) && ( uiPosY < 8 ) && ucIndexROT )
+          lLevelDouble = abs( lLevelDouble );
+        else
+          lLevelDouble = abs( lLevelDouble * (Long)( b64Flag ? iQuantCoeff : m_puiQuantMtx[ uiBlkPos ] ) );
+      }
+      else
+      {
+        lLevelDouble = abs( lLevelDouble );
+      }
+#if HHI_ALLOW_ROT_SWITCH
+    }
+    else
+      lLevelDouble = abs( lLevelDouble * (Long)( b64Flag ? iQuantCoeff : m_puiQuantMtx[ uiBlkPos ] ) );
+#endif
+    plLevelDouble[ uiBlkPos ] = lLevelDouble;
+    UInt uiMaxAbsLevel = lLevelDouble >> iQBits;
+    Bool bLowerInt = ( ( lLevelDouble - Long( uiMaxAbsLevel << iQBits ) ) < Long( 1 <<( iQBits - 1 ) ) ) ? true : false;
+
+    if ( !bLowerInt )
+    {
+      uiMaxAbsLevel++;
+    }
+
+    Double dErr          = Double( lLevelDouble );
+    d64BlockUncodedCost += dErr * dErr * dTemp;
+
+    piCoeff[ uiBlkPos ] = plSrcCoeff[ uiBlkPos ] > 0 ? uiMaxAbsLevel : -Int(uiMaxAbsLevel);
+
+    if ( uiMaxAbsLevel > 0 )
+    {
+      UInt  uiLineNum = uiPosY + uiPosX;
+      if(   uiLineNum > uiMaxLineNum )
+      {
+        uiMaxLineNum = uiLineNum;
+      }
+
+      //----- update coeff counts -----
+      if( uiPosX > uiPosY )
+      {
+        uiNumSigTopRight++;
+      }
+      else if( uiPosY > uiPosX )
+      {
+        uiNumSigBotLeft ++;
+      }
+    }
+
+    //===== update scan direction =====
+    if( ( uiDownLeft == 1 && ( uiPosX == 0 || uiPosY == uiBlkSizeM1 ) ) ||
+        ( uiDownLeft == 0 && ( uiPosY == 0 || uiPosX == uiBlkSizeM1 ) )   )
+    {
+      uiDownLeft = ( uiNumSigTopRight >= uiNumSigBotLeft ? 1 : 0 );
+    }
+  }
+
+  //===== estimate context models =====
+  if ( bSubBlockCoding )
+  {
+    Bool bFirstBlock = true;
+    UInt uiPrevAbsGreOne = 0;
+
+    for ( UInt uiSubBlk = 0; uiSubBlk < uiNum4x4Blk; uiSubBlk++ )
+    {
+      UInt uiCtxSet    = 0;
+      UInt uiSubNumSig = 0;
+      UInt uiSubLog2M2 = uiLog2BlkSize - 2;
+      UInt uiSubPosX   = 0;
+      UInt uiSubPosY   = 0;
+
+      if ( uiSubLog2M2 > 1 )
+      {
+#if HHI_RQT
+        uiSubPosX = g_auiFrameScanX[ uiSubLog2M2 - 1 ][ uiSubBlk ] * 4;
+        uiSubPosY = g_auiFrameScanY[ uiSubLog2M2 - 1 ][ uiSubBlk ] * 4;
+#else
+        uiSubPosX = g_auiFrameScanX[ uiSubLog2M2 - 2 ][ uiSubBlk ] * 4;
+        uiSubPosY = g_auiFrameScanY[ uiSubLog2M2 - 2 ][ uiSubBlk ] * 4;
+#endif
+      }
+      else
+      {
+        uiSubPosX = ( uiSubBlk < 2      ) ? 0 : 1;
+        uiSubPosY = ( uiSubBlk % 2 == 0 ) ? 0 : 1;
+        uiSubPosX *= 4;
+        uiSubPosY *= 4;
+      }
+
+      Int* piCurr = &piCoeff[ uiSubPosX + uiSubPosY * uiWidth ];
+
+      for ( UInt uiY = 0; uiY < 4; uiY++ )
+      {
+        for ( UInt uiX = 0; uiX < 4; uiX++ )
+        {
+          if( piCurr[ uiX ] )
+          {
+            uiSubNumSig++;
+          }
+        }
+        piCurr += uiWidth;
+      }
+
+      if ( uiSubNumSig > 0 )
+      {
+        Int c1 = 1;
+        Int c2 = 0;
+        UInt uiAbs  = 0;
+        UInt uiSign = 0;
+
+        if ( bFirstBlock )
+        {
+          bFirstBlock = false;
+          uiCtxSet = uiNumOfSets + 1;
+        }
+        else
+        {
+          uiCtxSet = uiPrevAbsGreOne / uiNumOfSets + 1;
+          uiPrevAbsGreOne = 0;
+        }
+
+        puiBaseCtx[ uiSubPosX / 4 + uiSubPosY / 4 * uiWidth / 4 ] = uiCtxSet;
+
+        for ( UInt uiScanPos = 0; uiScanPos < 16; uiScanPos++ )
+        {
+#if HHI_RQT
+          UInt  uiBlkPos  = g_auiFrameScanXY[ 1 ][ 15 - uiScanPos ];
+#else
+          UInt  uiBlkPos  = g_auiFrameScanXY[ 0 ][ 15 - uiScanPos ];
+#endif
+          UInt  uiPosY    = uiBlkPos >> 2;
+          UInt  uiPosX    = uiBlkPos - ( uiPosY << 2 );
+          UInt  uiIndex   = (uiSubPosY + uiPosY) * uiWidth + uiSubPosX + uiPosX;
+
+          puiCtxAbsGreOne   [ uiIndex ] = min<UInt>(c1, 4);
+          puiCtxCoeffLevelM1[ uiIndex ] = min<UInt>(c2, 4);
+
+          if( piCoeff[ uiIndex ]  )
+          {
+            if( piCoeff[ uiIndex ] > 0) { uiAbs = static_cast<UInt>( piCoeff[ uiIndex ]);  uiSign = 0; }
+            else                        { uiAbs = static_cast<UInt>(-piCoeff[ uiIndex ]);  uiSign = 1; }
+
+            UInt uiCtx    = min<UInt>(c1, 4);
+            UInt uiSymbol = uiAbs > 1 ? 1 : 0;
+
+            if( uiSymbol )
+            {
+              uiCtx  = min<UInt>(c2, 4);
+              uiAbs -= 2;
+              c1     = 0;
+              c2++;
+              uiPrevAbsGreOne++;
+            }
+            else if( c1 )
+            {
+              c1++;
+            }
+          }
+        }
+      }
+    }
+  }
+  else
+  {
+    Int c1 = 1;
+    Int c2 = 0;
+    UInt uiAbs  = 0;
+    UInt uiSign = 0;
+
+    for ( UInt uiScanPos = 0; uiScanPos < uiWidth*uiHeight; uiScanPos++ )
+    {
+#if HHI_RQT
+      UInt uiIndex = g_auiFrameScanXY[ (int)g_aucConvertToBit[ uiWidth ] + 1 ][ uiWidth*uiHeight - uiScanPos - 1 ];
+#else
+      UInt uiIndex = g_auiFrameScanXY[ (int)g_aucConvertToBit[ uiWidth ] ][ uiWidth*uiHeight - uiScanPos - 1 ];
+#endif
+
+      puiCtxAbsGreOne   [ uiIndex ] = min<UInt>(c1, 4);
+      puiCtxCoeffLevelM1[ uiIndex ] = min<UInt>(c2, 4);
+
+      if( piCoeff[ uiIndex ]  )
+      {
+        if( piCoeff[ uiIndex ] > 0) { uiAbs = static_cast<UInt>( piCoeff[ uiIndex ]);  uiSign = 0; }
+        else                        { uiAbs = static_cast<UInt>(-piCoeff[ uiIndex ]);  uiSign = 1; }
+
+        UInt uiCtx    = min<UInt>(c1, 4);
+        UInt uiSymbol = uiAbs > 1 ? 1 : 0;
+
+        if( uiSymbol )
+        {
+          uiCtx  = min<UInt>(c2, 4);
+          uiAbs -= 2;
+          c1     = 0;
+          c2++;
+        }
+        else if( c1 )
+        {
+          c1++;
+        }
+      }
+    }
+  }
+
+  uiDownLeft        = 1;
+  uiNumSigTopRight  = 0;
+  uiNumSigBotLeft   = 0;
+
+  Int     ui16CtxCbf        = pcCU->getCtxCbf( uiAbsPartIdx, eTType, pcCU->getTransformIdx(0) );
+  Double  dCBPCost          = xGetICost( m_pcEstBitsSbac->blockCbpBits[ 3 - ui16CtxCbf ][ 0 ] ) + xGetICost( m_pcEstBitsSbac->blockCbpBits[ 3 - ui16CtxCbf ][ 1 ] );
+  UInt    uiBestLastIdxP1   = 0;
+  Double  d64BestCost       = d64BlockUncodedCost + xGetICost( dCBPCost );
+  Double  d64BaseCost       = d64BestCost - xGetICost( m_pcEstBitsSbac->blockCbpBits[ 3 - ui16CtxCbf ][ 0 ] ) + xGetICost( m_pcEstBitsSbac->blockCbpBits[ 3 - ui16CtxCbf ][ 1 ] );
+  Double  d64CodedCost      = 0;
+  Double  d64UncodedCost    = 0;
+
+  for( UInt uiScanPos = 0; uiScanPos < uiMaxNumCoeff; uiScanPos++ )
+  {
+    UInt   uiBlkPos     = g_auiSigLastScan[ uiLog2BlkSize ][ uiDownLeft ][ uiScanPos ];
+    UInt   uiPosY       = uiBlkPos >> uiLog2BlkSize;
+    UInt   uiPosX       = uiBlkPos - ( uiPosY << uiLog2BlkSize );
+    UInt   uiCtxBase    = bSubBlockCoding ? puiBaseCtx[ ( uiPosX / 4 ) + ( uiPosY / 4 ) * ( uiWidth / 4 ) ] : 0;
+
+    if( uiPosY + uiPosX > uiMaxLineNum )
+    {
+      break;
+    }
+
+    if      ( uiWidth == 4 ) dTemp = estErr4x4[ iQpRem ][ uiPosX ][ uiPosY ] / dNormFactor;
+    else if ( uiWidth == 8 ) dTemp = estErr8x8[ iQpRem ][ uiPosX ][ uiPosY ] / dNormFactor;
+
+    UShort  uiCtxSig                = getSigCtxInc( piDstCoeff, uiPosX, uiPosY, uiLog2BlkSize, uiWidth, ( uiDownLeft > 0 ) );
+    Bool    bLastScanPos            = ( uiScanPos == uiMaxNumCoeff - 1 );
+    UInt    uiLevel                 = xGetCodedLevel( d64UncodedCost, d64CodedCost, plLevelDouble[ uiBlkPos ], abs( piCoeff[ uiBlkPos ] ), bLastScanPos, uiCtxSig, puiCtxAbsGreOne[ uiBlkPos ], puiCtxCoeffLevelM1[ uiBlkPos ], iQBits, dTemp, ucIndexROT, uiCtxBase );
+    piDstCoeff[ uiBlkPos ]          = plSrcCoeff[ uiBlkPos ] < 0 ? -Int( uiLevel ) : uiLevel;
+    d64BaseCost                    -= d64UncodedCost;
+    d64BaseCost                    += d64CodedCost;
+
+    if( uiLevel )
+    {
+      //----- check for last flag -----
+      UShort  uiCtxLast             = getLastCtxInc( uiPosX, uiPosY, uiLog2BlkSize );
+      Double  d64CostLastZero       = xGetICost( m_pcEstBitsSbac->lastBits[ uiCtxLast ][ 0 ] );
+      Double  d64CostLastOne        = xGetICost( m_pcEstBitsSbac->lastBits[ uiCtxLast ][ 1 ] );
+      Double  d64CurrIsLastCost     = d64BaseCost + d64CostLastOne;
+      d64BaseCost                  += d64CostLastZero;
+
+      if( d64CurrIsLastCost < d64BestCost )
+      {
+        d64BestCost       = d64CurrIsLastCost;
+        uiBestLastIdxP1   = uiScanPos + 1;
+      }
+
+      //----- update coeff counts -----
+      if( uiPosX > uiPosY )
+      {
+        uiNumSigTopRight++;
+      }
+      else if( uiPosY > uiPosX )
+      {
+        uiNumSigBotLeft ++;
+      }
+    }
+    //===== update scan direction =====
+    if( ( uiDownLeft == 1 && ( uiPosX == 0 || uiPosY == uiBlkSizeM1 ) ) ||
+        ( uiDownLeft == 0 && ( uiPosY == 0 || uiPosX == uiBlkSizeM1 ) )   )
+    {
+      uiDownLeft = ( uiNumSigTopRight >= uiNumSigBotLeft ? 1 : 0 );
+    }
+  }
+
+  //===== clean uncoded coefficients =====
+  {
+    uiDownLeft          = 1;
+    uiNumSigTopRight    = 0;
+    uiNumSigBotLeft     = 0;
+    for( UInt uiScanPos = 0; uiScanPos < uiMaxNumCoeff; uiScanPos++ )
+    {
+      UInt    uiBlkPos  = g_auiSigLastScan[ uiLog2BlkSize ][ uiDownLeft ][ uiScanPos ];
+      UInt    uiPosY    = uiBlkPos >> uiLog2BlkSize;
+      UInt    uiPosX    = uiBlkPos - ( uiPosY << uiLog2BlkSize );
+
+      if( uiScanPos < uiBestLastIdxP1 )
+      {
+        if( piDstCoeff[ uiBlkPos ] )
+        {
+          if( uiPosX > uiPosY )
+          {
+            uiNumSigTopRight++;
+          }
+          else if( uiPosY > uiPosX )
+          {
+            uiNumSigBotLeft ++;
+          }
+        }
+      }
+      else
+      {
+        piDstCoeff[ uiBlkPos ] = 0;
+      }
+
+      uiAbsSum += abs( piDstCoeff[ uiBlkPos ] );
+
+      if( ( uiDownLeft == 1 && ( uiPosX == 0 || uiPosY == uiBlkSizeM1 ) ) ||
+          ( uiDownLeft == 0 && ( uiPosY == 0 || uiPosX == uiBlkSizeM1 ) )   )
+      {
+        uiDownLeft = ( uiNumSigTopRight >= uiNumSigBotLeft ? 1 : 0 );
+      }
+    }
+  }
+
+  delete[] piCoeff;
+  delete[] plLevelDouble;
+  delete[] puiCtxAbsGreOne;
+  delete[] puiCtxCoeffLevelM1;
+  delete[] puiBaseCtx;
+#else
 // temporal buffer for speed
 static levelDataStruct slevelData		[ MAX_CU_SIZE*MAX_CU_SIZE ];
 static Int             slevelRDOQ[2][ MAX_CU_SIZE*MAX_CU_SIZE ];
 
-// RDOQ
 Void TComTrQuant::xRateDistOptQuant( TComDataCU* pcCU, Long* pSrcCoeff, TCoeff*& pDstCoeff, UInt uiWidth, UInt uiHeight, UInt& uiAbsSum, TextType eTType, UInt uiAbsPartIdx, UChar indexROT )
 {
   Int			i, j, coeff_ctr;
   Int			kStart = 0, kStop = 0, noCoeff, estBits;
-	Int			iShift;
+	Int			iShift = 0;
   Int			qp_rem, q_bits;
   Int			iMaxNumCoeff = uiWidth*uiHeight;
-	Double	err, normFact, fTemp;
-  Int			iQuantCoef;
+	Double	err;
+  Double	normFact = 0.0;
+  Double	fTemp = 0.0;
+  Int			iQuantCoef = 0;
 	Bool		b64Flag		  = false;
 	Bool		bExt8x8Flag = false;
 	Int			iShiftQBits;
@@ -4877,7 +5425,11 @@ Void TComTrQuant::xRateDistOptQuant( TComDataCU* pcCU, Long* pSrcCoeff, TCoeff*&
 
 	iShiftQBits = (1 <<( q_bits - 1));
 
-  const UInt* pucScan = g_auiFrameScanXY[ g_aucConvertToBit[ uiWidth ] ];
+#if HHI_RQT
+  const UInt* pucScan = g_auiFrameScanXY[ (int)g_aucConvertToBit[ uiWidth ] + 1 ];
+#else
+  const UInt* pucScan = g_auiFrameScanXY[ (int)g_aucConvertToBit[ uiWidth ] ];
+#endif
 
   // Step #2: compute level
   for( iPos = 0; iPos < iMaxNumCoeff; iPos++ )
@@ -5024,14 +5576,204 @@ Void TComTrQuant::xRateDistOptQuant( TComDataCU* pcCU, Long* pSrcCoeff, TCoeff*&
       pDstCoeff[iPos] = pSrcCoeff[iPos] < 0 ? -piLevelRDOQBest[iPos] : piLevelRDOQBest[iPos];
     }
   }
+#endif
 }
 
-/*!
- ****************************************************************************
- * \brief
- *    estimate SBAC CBP bits
- ****************************************************************************
- */
+#if HHI_TRANSFORM_CODING
+UInt TComTrQuant::getSigCtxInc    ( TCoeff*                         pcCoeff,
+                                    const UInt                      uiPosX,
+                                    const UInt                      uiPosY,
+                                    const UInt                      uiLog2BlkSize,
+                                    const UInt                      uiStride,
+                                    const bool                      bDownLeft )
+{
+  UInt  uiCtxInc  = 0;
+  UInt  uiSizeM1  = ( 1 << uiLog2BlkSize ) - 1;
+  if( uiLog2BlkSize <= 3 )
+  {
+    UInt  uiShift = max<UInt>( 0, uiLog2BlkSize - 2 );
+    uiCtxInc      = ( ( uiPosY >> uiShift ) << 2 ) + ( uiPosX >> uiShift );
+  }
+  else if( uiPosX <= 1 && uiPosY <= 1 )
+  {
+    uiCtxInc            = ( uiPosY << 1 ) + uiPosX;
+  }
+  else if( uiPosY == 0 )
+  {
+    const int*  pData   = &pcCoeff[ uiPosX + uiPosY * uiStride ];
+    int         iStride =  uiStride;
+    UInt        uiCnt   = ( pData[         -1 ] ? 1 : 0 );
+    uiCnt              += ( pData[         -2 ] ? 1 : 0 );
+    uiCnt              += ( pData[ iStride -2 ] ? 1 : 0 );
+    if( ! bDownLeft )
+    {
+      uiCnt            += ( pData[ iStride -1 ] ? 1 : 0 );
+    }
+    uiCtxInc            = 4 + ( ( uiCnt + 1 ) >> 1 );
+  }
+  else if( uiPosX == 0 )
+  {
+    const int*  pData   = &pcCoeff[ uiPosX + uiPosY * uiStride ];
+    int         iStride =  uiStride;
+    int         iStride2=  iStride << 1;
+    UInt        uiCnt   = ( pData[  -iStride  ] ? 1 : 0 );
+    uiCnt              += ( pData[  -iStride2 ] ? 1 : 0 );
+    uiCnt              += ( pData[ 1-iStride2 ] ? 1 : 0 );
+    if( bDownLeft )
+    {
+      uiCnt            += ( pData[ 1-iStride  ] ? 1 : 0 );
+    }
+    uiCtxInc            = 7 + ( ( uiCnt + 1 ) >> 1 );
+  }
+  else
+  {
+    const int*  pData   = &pcCoeff[ uiPosX + uiPosY * uiStride ];
+    int         iStride =  uiStride;
+    int         iStride2=  iStride << 1;
+    UInt        uiCnt   = ( pData[    -iStride  ] ? 1 : 0 );
+    uiCnt              += ( pData[ -1           ] ? 1 : 0 );
+    uiCnt              += ( pData[ -1 -iStride  ] ? 1 : 0 );
+    if( uiPosX > 1 )
+    {
+      uiCnt            += ( pData[ -2           ] ? 1 : 0 );
+      uiCnt            += ( pData[ -2 -iStride  ] ? 1 : 0 );
+      if( uiPosY < uiSizeM1 )
+      {
+        uiCnt          += ( pData[ -2 +iStride  ] ? 1 : 0 );
+      }
+    }
+    if( uiPosY > 1 )
+    {
+      uiCnt            += ( pData[    -iStride2 ] ? 1 : 0 );
+      uiCnt            += ( pData[ -1 -iStride2 ] ? 1 : 0 );
+      if( uiPosX < uiSizeM1 )
+      {
+        uiCnt          += ( pData[  1 -iStride2 ] ? 1 : 0 );
+      }
+    }
+    if( bDownLeft )
+    {
+      if( uiPosX < uiSizeM1 )
+      {
+        uiCnt          += ( pData[  1 -iStride  ] ? 1 : 0 );
+      }
+    }
+    else
+    {
+      if( uiPosY < uiSizeM1 )
+      {
+        uiCnt          += ( pData[ -1 +iStride  ] ? 1 : 0 );
+      }
+    }
+    uiCtxInc      = 10 + min<UInt>( 4, ( uiCnt + 1 ) >> 1 );
+  }
+  return uiCtxInc;
+}
+
+UInt TComTrQuant::getLastCtxInc   ( const UInt                      uiPosX,
+                                    const UInt                      uiPosY,
+                                    const UInt                      uiLog2BlkSize )
+{
+  UInt uiCtxInc = 0;
+  if( uiLog2BlkSize <= 2 )
+  {
+    UInt  uiShift = max<UInt>( 0, uiLog2BlkSize - 2 );
+    uiCtxInc      = ( ( uiPosY >> uiShift ) << 2 ) + ( uiPosX >> uiShift );
+  }
+  else
+  {
+    uiCtxInc      = ( uiPosX + uiPosY ) >> ( uiLog2BlkSize - 3 );
+  }
+  return uiCtxInc;
+}
+
+__inline UInt TComTrQuant::xGetCodedLevel  ( Double&                         rd64UncodedCost,
+                                             Double&                         rd64CodedCost,
+                                             Long                            lLevelDouble,
+                                             UInt                            uiMaxAbsLevel,
+                                             bool                            bLastScanPos,
+                                             UShort                          ui16CtxNumSig,
+                                             UShort                          ui16CtxNumOne,
+                                             UShort                          ui16CtxNumAbs,
+                                             Int                             iQBits,
+                                             Double                          dTemp,
+                                             UChar                           ucIndexROT,
+                                             UShort                          ui16CtxBase   ) const
+{
+  UInt    uiBestAbsLevel  = 0;
+
+  Double dErr1     = Double( lLevelDouble );
+  rd64UncodedCost = dErr1 * dErr1 * dTemp;
+  rd64CodedCost   = rd64UncodedCost + xGetICRateCost( 0, bLastScanPos, ui16CtxNumSig, ui16CtxNumOne, ui16CtxNumAbs, ui16CtxBase );
+
+  UInt uiMinAbsLevel = ( uiMaxAbsLevel > 1 ? uiMaxAbsLevel - 1 : 1 );
+  for( UInt uiAbsLevel = uiMaxAbsLevel; uiAbsLevel >= uiMinAbsLevel ; uiAbsLevel-- )
+  {
+    Double i64Delta  = Double( lLevelDouble  - Long( uiAbsLevel << iQBits ) );
+    Double dErr      = Double( i64Delta );
+    Double dCurrCost = dErr * dErr * dTemp + xGetICRateCost( uiAbsLevel, bLastScanPos, ui16CtxNumSig, ui16CtxNumOne, ui16CtxNumAbs, ui16CtxBase );
+
+    if( dCurrCost < rd64CodedCost )
+    {
+      uiBestAbsLevel  = uiAbsLevel;
+      rd64CodedCost   = dCurrCost;
+    }
+  }
+  return uiBestAbsLevel;
+}
+
+__inline Double TComTrQuant::xGetICRateCost  ( UInt                            uiAbsLevel,
+                                               bool                            bLastScanPos,
+                                               UShort                          ui16CtxNumSig,
+                                               UShort                          ui16CtxNumOne,
+                                               UShort                          ui16CtxNumAbs,
+                                               UShort                          ui16CtxBase   ) const
+{
+  if( uiAbsLevel == 0 )
+  {
+    Double iRate = 0;
+    if( ! bLastScanPos )
+    {
+      iRate += m_pcEstBitsSbac->significantBits[ ui16CtxNumSig ][ 0 ];
+    }
+    return xGetICost( iRate );
+  }
+  Double iRate = xGetIEPRate();
+  if( ! bLastScanPos )
+  {
+    iRate += m_pcEstBitsSbac->significantBits[ ui16CtxNumSig ][ 1 ];
+  }
+  if( uiAbsLevel == 1 )
+  {
+    iRate += m_pcEstBitsSbac->greaterOneBits[ ui16CtxBase ][ 0 ][ ui16CtxNumOne ][ 0 ];
+  }
+  else if( uiAbsLevel < 15 )
+  {
+    iRate += m_pcEstBitsSbac->greaterOneBits[ ui16CtxBase ][ 0 ][ ui16CtxNumOne ][ 1 ];
+    iRate += m_pcEstBitsSbac->greaterOneBits[ ui16CtxBase ][ 1 ][ ui16CtxNumAbs ][ 0 ];
+    iRate += m_pcEstBitsSbac->greaterOneBits[ ui16CtxBase ][ 1 ][ ui16CtxNumAbs ][ 1 ] * (int)( uiAbsLevel - 2 );
+  }
+  else
+  {
+    uiAbsLevel -= 14;
+    int iEGS    = 1;  for( UInt uiMax = 2; uiAbsLevel >= uiMax; uiMax <<= 1, iEGS += 2 );
+    iRate += m_pcEstBitsSbac->greaterOneBits[ ui16CtxBase ][ 0 ][ ui16CtxNumOne ][ 1 ];
+    iRate += m_pcEstBitsSbac->greaterOneBits[ ui16CtxBase ][ 1 ][ ui16CtxNumAbs ][ 1 ] * 13;
+    iRate += xGetIEPRate() * iEGS;
+  }
+  return xGetICost( iRate );
+}
+
+__inline Double TComTrQuant::xGetICost        ( Double                          dRate         ) const
+{
+  return m_dLambda * dRate;
+}
+
+__inline Double TComTrQuant::xGetIEPRate      (                                               ) const
+{
+  return 32768;
+}
+#else
 Int TComTrQuant::xEst_write_and_store_CBP_block_bit ( TComDataCU* pcCU, TextType eTType )
 {
   Int estBits;
@@ -5083,9 +5825,15 @@ Double TComTrQuant::xEst_writeRunLevel_SBAC(levelDataStruct* levelData, Int* lev
 
   UInt uiCtxSigMap, uiCtxLastBit;
   UInt uiConvBit = g_aucConvertToBit[ uiWidth ];
+#if HHI_RQT
+  const UInt*  pucScanX = g_auiFrameScanX[ uiConvBit + 1 ];
+  const UInt*  pucScanY = g_auiFrameScanY[ uiConvBit + 1 ];
+  const UInt*  pucScan = g_auiFrameScanXY[ uiConvBit + 1 ];
+#else
   const UInt*  pucScanX = g_auiFrameScanX[ uiConvBit ];
   const UInt*  pucScanY = g_auiFrameScanY[ uiConvBit ];
   const UInt*  pucScan = g_auiFrameScanXY[ uiConvBit ];
+#endif
 
   if ( noCoeff > 0 )
   {
@@ -5395,5 +6143,4 @@ Int TComTrQuant::est_exp_golomb_encode_eq_prob (UInt symbol)
   }
   return (estBits << 15);
 }
-
-
+#endif
