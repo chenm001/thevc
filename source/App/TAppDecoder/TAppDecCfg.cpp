@@ -63,6 +63,7 @@ Bool TAppDecCfg::parseCfg( Int argc, Char* argv[] )
   {
     m_apcOpt->printUsage();
     delete m_apcOpt;
+    m_apcOpt = NULL;
     return false;
   }
 
