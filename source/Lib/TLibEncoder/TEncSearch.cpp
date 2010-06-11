@@ -83,6 +83,7 @@ TEncSearch::TEncSearch()
   m_puhQTTempCbf[0] = m_puhQTTempCbf[1] = m_puhQTTempCbf[2] = NULL;
   m_pcQTTempTComYuv  = NULL;
 #endif
+  m_pcEncCfg = NULL;
   m_pcEntropyCoder = NULL;
   m_pTempPel = NULL;
 }
@@ -95,7 +96,7 @@ TEncSearch::~TEncSearch()
     m_pTempPel = NULL;
   }
 #if HHI_RQT
-  if( m_pcEncCfg->getQuadtreeTUFlag() )
+  if( m_pcEncCfg && m_pcEncCfg->getQuadtreeTUFlag() )
   {
     const UInt uiNumLayersAllocated = m_pcEncCfg->getQuadtreeTULog2MaxSize()-m_pcEncCfg->getQuadtreeTULog2MinSize()+1;
     for( UInt ui = 0; ui < uiNumLayersAllocated; ++ui )
