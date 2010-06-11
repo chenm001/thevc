@@ -62,6 +62,11 @@ public:
 
   TEncBinCABAC* getTEncBinCABAC()  { return this; }
 
+  UInt  m_uiCntFlag;
+  Void  clearStats();
+  Void  processStats();
+  Void setCntFlag(UInt ui);
+
 private:
   Void  xWriteBit               ( UInt uiBit );
   Void  xWriteBitAndBitsToFollow( UInt uiBit );

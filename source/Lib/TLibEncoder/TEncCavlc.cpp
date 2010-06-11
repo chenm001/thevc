@@ -153,6 +153,8 @@ Void TEncCavlc::codeSPS( TComSPS* pcSPS )
   // Bit-depth information
   xWriteUvlc( pcSPS->getBitDepth() - 8 );
   xWriteUvlc( pcSPS->getBitIncrement() );
+
+  xWriteCode( pcSPS->getBalancedCPUs(), 8);
 }
 
 Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )

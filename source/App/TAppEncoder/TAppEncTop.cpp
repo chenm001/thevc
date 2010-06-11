@@ -84,6 +84,7 @@ Void TAppEncTop::xInitLibCfg()
   m_cTEncTop.setSymbolMode                   ( m_iSymbolMode );
   m_cTEncTop.setMCWThreshold                 ( m_uiMCWThreshold );
   m_cTEncTop.setMaxPIPEDelay                 ( m_uiMaxPIPEDelay );
+  m_cTEncTop.setBalancedCPUs                 ( m_uiBalancedCPUs );
 
   //====== Loop/Deblock Filter ========
   m_cTEncTop.setLoopFilterDisable            ( m_bLoopFilterDisable       );

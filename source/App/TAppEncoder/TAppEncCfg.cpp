@@ -88,6 +88,7 @@ TAppEncCfg::TAppEncCfg()
   m_iSymbolMode                   = 1;
   m_uiMCWThreshold                = 0;
   m_uiMaxPIPEDelay                = 0;
+  m_uiBalancedCPUs                = 8;
   m_pchGRefMode     = NULL;
   m_bLoopFilterDisable            = false;
   m_iLoopFilterAlphaC0Offset      = 0;
@@ -226,6 +227,7 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
   m_apcOpt->setFileOption( "MultiCodewordThreshold"   );
   m_apcOpt->setFileOption( "MaxPIPEBufferDelay"       );
   m_apcOpt->setFileOption( "FEN"                      );
+  m_apcOpt->setFileOption( "BalancedCPUs"             );
 
   // command line parsing
   m_apcOpt->processCommandArgs( argc, argv );
@@ -351,6 +353,7 @@ Void TAppEncCfg::xCheckParameter()
   xConfirmPara( m_iSymbolMode < 0 || m_iSymbolMode > 3,                                     "SymbolMode must be equal to 0, 1, 2, or 3" );
   xConfirmPara( m_uiMaxPIPEDelay != 0 && m_uiMaxPIPEDelay < 64,                             "MaxPIPEBufferDelay must be greater than or equal to 64" );
   m_uiMaxPIPEDelay = ( m_uiMCWThreshold > 0 ? 0 : ( m_uiMaxPIPEDelay >> 6 ) << 6 );
+  xConfirmPara( m_uiBalancedCPUs > 255,                                                     "BalancedCPUs must not be greater than 255" );
 
   // max CU width and height should be power of 2
   UInt ui = m_uiMaxCUWidth;
@@ -499,6 +502,7 @@ Void TAppEncCfg::xSetCfgFile( TAppOption* pcOpt )
   if ( pcOpt->getValue( "SymbolMode" ) )                    m_iSymbolMode                   = atoi( pcOpt->getValue( "SymbolMode" ) );
   if ( pcOpt->getValue( "MultiCodewordThreshold" ) )        m_uiMCWThreshold                = atoi( pcOpt->getValue( "MultiCodewordThreshold" ) );
   if ( pcOpt->getValue( "MaxPIPEBufferDelay" ) )            m_uiMaxPIPEDelay                = atoi( pcOpt->getValue( "MaxPIPEBufferDelay" ) );
+  if ( pcOpt->getValue( "BalancedCPUs" ) )                  m_uiBalancedCPUs                = atoi( pcOpt->getValue( "BalancedCPUs" ) );
 
   if ( pcOpt->getValue( "LoopFilterDisable" ) )             m_bLoopFilterDisable            = atoi( pcOpt->getValue( "LoopFilterDisable" ) ) == 0 ? false : true;
   if ( pcOpt->getValue( "LoopFilterAlphaC0Offset" ) )       m_iLoopFilterAlphaC0Offset      = atoi( pcOpt->getValue( "LoopFilterAlphaC0Offset" ) );
@@ -812,7 +816,7 @@ Void TAppEncCfg::xPrintParameter()
   }
   else
   {
-    printf("Entropy coder                : V2V with load balancing\n");
+    printf("Entropy coder                : V2V with load balancing on %d bin decoders\n", m_uiBalancedCPUs);
   }
 
   printf("\n");

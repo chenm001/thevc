@@ -1,6 +1,6 @@
 /*! ====================================================================================================================
  * \file
-    TEncV2V.cpp
+    TEncBinCoderV2VwLB.cpp
  *  \brief
     Copyright information.
  *  \par Copyright statements
@@ -36,17 +36,30 @@
  * ====================================================================================================================
 */
  
+#include <cmath>
 #include "TEncBinCoderV2VwLB.h"
+#include "TEncV2VTrees.h"
+
+extern UInt    uiState[StateCount];
+extern UInt    uipState[StateCount][2];
+
+
 
 void TEncClearBuffer::init () {
-    for (buffer_tail = 0; buffer_tail < TREE_NUM; ++buffer_tail) {
+    for (buffer_tail = 0; buffer_tail < StateCount; ++buffer_tail) {
         code_pos[buffer_tail] = buffer_tail;
         bit_pos[buffer_tail] = 0;
         buffer[buffer_tail].code = buffer[buffer_tail].next = 0;
     }
+    for (int k = 0; k < StateCount; k++)
+        symbolCount[k] = LPSCount[k] = 0;
+    sourceSelectionDone = false;
 }
 
 void TEncClearBuffer::storeBit(char bit, int state) {
+    assert(0 <= state && state < mergedStateCount);
+    ++symbolCount[state];
+    if (bit) ++LPSCount[state];
 
     if (bit_pos[state] == 32) {
         if (buffer_tail >= BUFFER_SIZE) {
@@ -65,48 +78,58 @@ void TEncClearBuffer::storeBit(char bit, int state) {
 
 Void TEncClearBuffer::encodeBin(UInt uiSymbol, ContextModel& rcSCModel) {
 
+    if (!sourceSelectionDone) { groupStates(); sourceSelectionDone = true; }
+
     char bit = uiSymbol != rcSCModel.getMps();
-
-    storeBit(bit, rcSCModel.getState());
-
+    storeBit(bit, mergedStatesMapping[rcSCModel.getState()]);
     if( bit ) {
       rcSCModel.updateLPS();
     } else {
       rcSCModel.updateMPS();
     }
-        /*
-        if (cts_index < TEMP_SIZE2) {
-            cabac_tmp_spc[cts_index++] = (bit << 7) | state;
-            if (cabac_cost < input->minimum_encoded_frame_size << 7 && cabac_cost < 0xff000000)
-                cabac_cost += entropyBits[bit ? 64 + state : 63 - state] >> 8;
-        }
-        */
 }
 
 
 Void TEncClearBuffer::finish() {
     int k;
     offset = 0;
+
     m_pcBitIf->writeAlignOne();
 
-    for (k = 0; k < TREE_NUM; ++k) {
+    UChar buf = 0;
+    for (k = 0; k < StateCount; ++k) {
+        if (lastStateOfGroup[k]) buf |= 1 << (k%8);
+        if (k%8 == 7 || k == StateCount - 1) {
+            myPutByte(buf);
+            buf = 0;
+        }
+    }
+    assert(buf == 0);
+    for (k = 0; k < TreeCount; ++k) {
+        if (selectedTree[k]) buf |= 1 << (k%8);
+        if (k%8 == 7 || k == TreeCount - 1) {
+            myPutByte(buf);
+            buf = 0;
+        }
+    }
+
+    for (k = 0; k < mergedStateCount; ++k) {
         UInt len = encode_seq(k); 
-        put_pref_code(len);
+        putPrefCode(len);
     }
 
     addLoadBalancingHeader();
-
     for (k = 0; k < offset; myPutByte(temp_space[k++]));
 
     init();
 }
 
 
-void TEncClearBuffer::put_pref_code(UInt v) {
+UInt TEncClearBuffer::putPrefCode(UInt v) {
 
     if (v < 128) {
         myPutByte(v << 1);
-        return;
+        return 1;
     }
 
     v -= 128;
@@ -114,7 +137,7 @@ void TEncClearBuffer::put_pref_code(UInt v) {
         v = (v << 2) | 1;
         myPutByte(v & 0xff);
         myPutByte(v >> 8);
-        return;
+        return 2;
     }
 
     v -= 16384;
@@ -124,12 +147,12 @@ void TEncClearBuffer::put_pref_code(UInt v) {
         v >>= 8;
         myPutByte(v & 0xff);
         myPutByte(v >> 8);
-        return;
+        return 3;
     }
 
     v -= 2097152;
     if (v >= 536870912) {
-        fputs("Overflow in put_pref_code\n", stderr);
+        fputs("Overflow in putPrefCode\n", stderr);
         exit(1);
     }
     v = (v << 3) | 7;
@@ -139,6 +162,11 @@ void TEncClearBuffer::put_pref_code(UInt v) {
     v >>= 8;
     myPutByte(v & 0xff);
     myPutByte(v >> 8);
+    return 4;
+}
+
+UInt TEncClearBuffer::getPrefCost(UInt v) {
+    return v < 128 ? 8 : v < 16512 ? 16 : v < 2113664 ? 24 : 32;
 }
 
 UInt TEncClearBuffer::encode_seq(int tree) {
@@ -163,16 +191,90 @@ UInt TEncClearBuffer::encode_seq(int tree) {
     return len;
 }
 
+UInt TEncV2V::getBestTree(UInt totalCount, UInt LPSCount) {
+    if (LPSCount >= totalCount / 2) return 0;
+    if (LPSCount == 0)  return TreeCount - 1;
 
-#include "TEncV2VTrees67k.h"
+    double p = double(LPSCount) / totalCount;
+    UInt k = 0;
+    while (k + 1 < TreeCount && p < TreeProb[k+1]) ++k;
+    if (k + 1 == TreeCount) return TreeCount - 1;
+    double loss_k = p * log(p / TreeProb[k]) + (1-p) * log((1-p) / (1-TreeProb[k]));
+    double loss_k1 = p * log(p / TreeProb[k+1]) + (1-p) * log((1-p) / (1-TreeProb[k+1]));
+
+    return loss_k < loss_k1 ? k : k + 1;
+}
+
+double TEncV2V::getTotalCost(UInt tree, UInt totalCount, UInt LPSCount) {
+    double rawCost = - (LPSCount * log(TreeProb[tree])
+                          + (totalCount-LPSCount) * log(1.-TreeProb[tree])) / log(2.);
+    double seqLen = (1 + TreeLoss[tree]) * rawCost + TermCost[tree] + 4;
+    return seqLen + getPrefCost(int(seqLen));
+}
+
+void TEncV2V::groupStates() {
+
+    mergedStateCount = StateCount;
+    for (int k = 0; k < StateCount; k++)
+        lastStateOfGroup[k] = true;
+    for (int k = 0; k < 64; k++)
+        mergedStatesMapping[k] = QStatesMapping[k];
+    for (int k = 0; k < TreeCount; selectedTree[k++] = false);
+
+    for (;;) {
+
+        int bestMergeCandidate = -1;
+        double bestMergeGain = -100000000.0;
+        UInt k, n;
+
+        for (k = 0; k < mergedStateCount - 1; k++) {
+            int bestTreeThis = getBestTree(uiState[k], uipState[k][1]);
+            int bestTreeNext = getBestTree(uiState[k+1], uipState[k+1][1]);
+            int bestTreeMerged = getBestTree(uiState[k] + uiState[k+1], uipState[k][1] + uipState[k+1][1]);
+            double totalCostThis = getTotalCost(bestTreeThis, uiState[k], uipState[k][1]);
+            double totalCostNext = getTotalCost(bestTreeNext, uiState[k+1], uipState[k+1][1]);
+            double totalCostMerged = getTotalCost(bestTreeMerged, uiState[k] + uiState[k+1], uipState[k][1] + uipState[k+1][1]);
+            if (totalCostThis + totalCostNext - totalCostMerged > bestMergeGain) {
+                bestMergeCandidate = k;
+                bestMergeGain = totalCostThis + totalCostNext - totalCostMerged;
+            }
+        }
+
+        if (bestMergeGain < 0) break;
+
+        for (n = k = 0; ; k++, n++) {
+            while (!lastStateOfGroup[n]) ++n;
+            if (k == bestMergeCandidate) break;
+        }
+        lastStateOfGroup[n] = false;
+        for (k = 0; k < 64; k++)
+            if (mergedStatesMapping[k] > bestMergeCandidate)
+                --mergedStatesMapping[k];
+
+        uiState[bestMergeCandidate] += uiState[bestMergeCandidate + 1];
+        uipState[bestMergeCandidate][0] += uipState[bestMergeCandidate + 1][0];
+        uipState[bestMergeCandidate][1] += uipState[bestMergeCandidate + 1][1];
+        for (k = bestMergeCandidate + 1; k < mergedStateCount - 1; k++) {
+            uiState[k] = uiState[k + 1];
+            uipState[k][0] = uipState[k + 1][0];
+            uipState[k][1] = uipState[k + 1][1];
+        }
+        --mergedStateCount;
+    }
+
+    for (int k = 0; k < mergedStateCount; k++) {
+        mergedTree[k] = getBestTree(uiState[k], uipState[k][1]);
+        selectedTree[mergedTree[k]] = true;
+    }
+}
+
 
 void TEncV2V::encode_bit(unsigned short state, UChar symbol) {
 
-    vlc_pos[state] = (enc_tree[state][vlc_pos[state]] >> 20) + !symbol;
-    if ((enc_tree[state][vlc_pos[state]] >> 20) == 0) {
-        int code_length = ((enc_tree[state][vlc_pos[state]] >> 16) & 0xf) + 1;
-        //code_offset = code_length + bitsUsed;
-        codeBuffer |= (enc_tree[state][vlc_pos[state]] & 0xffff) << bitsUsed;
+    vlc_pos[state] = (QEncodingTree[mergedTree[state]][vlc_pos[state]] >> 20) + !symbol;
+    if ((QEncodingTree[mergedTree[state]][vlc_pos[state]] >> 20) == 0) {
+        int code_length = ((QEncodingTree[mergedTree[state]][vlc_pos[state]] >> 16) & 0xf) + 1;
+        codeBuffer |= (QEncodingTree[mergedTree[state]][vlc_pos[state]] & 0xffff) << bitsUsed;
         bitsUsed += code_length;
         while (bitsUsed >= 8) {
             LB_temp_space[offset] = bitsUsed;
@@ -188,7 +290,7 @@ UInt TEncV2V::encode_seq(int tree) {
     UInt pos = tree, old_offset = offset, cw, k;
 
     bitsUsed = codeBuffer = 0;
-    for (k = 0; k < TREE_NUM; vlc_pos[k++] = 0);
+    for (k = 0; k < StateCount; vlc_pos[k++] = 0);
 
     while (buffer[pos].next) {
         cw = buffer[pos].code;
@@ -201,13 +303,13 @@ UInt TEncV2V::encode_seq(int tree) {
     for (k = 0; k < bit_pos[tree]; ++k, cw >>= 1)
         encode_bit(tree, cw & 1);
 
-    if (vlc_pos[tree] && (enc_tree[tree][vlc_pos[tree]] >> 20)) {
+    if (vlc_pos[tree] && (QEncodingTree[mergedTree[tree]][vlc_pos[tree]] >> 20)) {
         int code_length;
         do {
-            vlc_pos[tree] = (enc_tree[tree][vlc_pos[tree]] >> 20) + 1;
-        } while (enc_tree[tree][vlc_pos[tree]] >> 20);
-        code_length = ((enc_tree[tree][vlc_pos[tree]] >> 16) & 0xf) + 1;
-        codeBuffer |= (enc_tree[tree][vlc_pos[tree]] & 0xffff) << bitsUsed;
+            vlc_pos[tree] = (QEncodingTree[mergedTree[tree]][vlc_pos[tree]] >> 20) + 1;
+        } while (QEncodingTree[mergedTree[tree]][vlc_pos[tree]] >> 20);
+        code_length = ((QEncodingTree[mergedTree[tree]][vlc_pos[tree]] >> 16) & 0xf) + 1;
+        codeBuffer |= (QEncodingTree[mergedTree[tree]][vlc_pos[tree]] & 0xffff) << bitsUsed;
         bitsUsed += code_length;
         while (bitsUsed >= 8) {
             LB_temp_space[offset] = bitsUsed;

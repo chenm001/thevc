@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="ks_c_5601-1987"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="9,00"
+	Version="9.00"
 	Name="TLibDecoder"
 	ProjectGUID="{F8B77A48-AF6C-4746-A89F-B706ABA6AD94}"
 	TargetFrameworkVersion="0"
@@ -645,6 +645,10 @@
 					/>
 				</FileConfiguration>
 			</File>
+			<File
+				RelativePath=".\TDecV2VTrees.cpp"
+				>
+			</File>
 		</Filter>
 		<Filter
 			Name="Header Files"
@@ -707,7 +711,7 @@
 				>
 			</File>
 			<File
-				RelativePath=".\TDecV2VTrees67k.h"
+				RelativePath=".\TDecV2VTrees.h"
 				>
 			</File>
 		</Filter>

@@ -67,6 +67,7 @@ private:
   Int                     m_iRateGopSize;
   Int                     m_iNumPicCoded;
   Bool                    m_bFirst;
+  UInt                    m_uiBalancedCPUs;
 
   //  Access channel
   TEncTop*                m_pcEncTop;
@@ -100,6 +101,9 @@ public:
   Void  create      ();
   Void  destroy     ();
 
+  Void setBalancedCPUs( UInt u ) { m_uiBalancedCPUs = u; }
+  UInt getBalancedCPUs()         { return m_uiBalancedCPUs; }
+
   Void  init        ( TEncTop* pcTEncTop );
   Void  compressGOP ( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rcListPic, TComList<TComPicYuv*>& rcListPicYuvRec, TComList<TComBitstream*> rcListBitstream );
 
@@ -112,6 +116,8 @@ public:
 
   Void  printOutSummary      ( UInt uiNumAllPicCoded );
   Void  preLoopFilterPicAll  ( TComPic* pcPic, UInt64& ruiDist, UInt64& ruiBits );
+
+  TEncSlice*  getSliceEncoder()   { return m_pcSliceEncoder; }
 
 protected:
   Void  xInitGOP          ( Int iPOC, Int iNumPicRcvd, TComList<TComPic*>& rcListPic, TComList<TComPicYuv*>& rcListPicYuvRecOut );

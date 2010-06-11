@@ -120,6 +120,8 @@ public:
   Void    setSearchRange      ( TComSlice* pcSlice  );                                  ///< set ME range adaptively
   Void    generateRefPicNew   ( TComSlice* rpcSlice );                                  ///< generate virtual reference frames
   UInt64  getTotalBits        ()  { return m_uiPicTotalBits; }
+
+  TEncCu*        getCUEncoder() { return m_pcCuEncoder; }                        ///< CU encoder
 };
 
 

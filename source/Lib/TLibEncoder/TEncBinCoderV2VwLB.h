@@ -1,6 +1,6 @@
 /*! ====================================================================================================================
  * \file
-    TEncV2V.h
+    TEncBinCoderV2VwLB.h
  *  \brief
     Copyright information.
  *  \par Copyright statements
@@ -42,9 +42,8 @@
 #define __TENCV2V__
 
 #include "TEncBinCoder.h"
+#include "TEncV2VTrees.h"
 #include <stdlib.h>
-
-//using namespace std;
 
 class TEncClearBit : public TEncBinIf {
 
@@ -59,6 +58,9 @@ public:
   virtual Void  resetBits         () { assert(0); }
   virtual UInt  getNumWrittenBits () { assert(0); return 0; }
 
+  Void    setBalancedCPUs( UInt ui ) { m_uiBalancedCPUs = ui; }
+  UInt    getBalancedCPUs() { return m_uiBalancedCPUs; }
+
 protected:
   virtual Void  encodeBin ( UInt uiSymbol, ContextModel& rcSCModel ) {
       m_pcBitIf->write( uiSymbol, 1 );
@@ -72,44 +74,57 @@ protected:
 
 protected:
   TComBitIf*  m_pcBitIf;
+
+private:
+  UInt m_uiBalancedCPUs;
 };
 
-const int TREE_NUM = 64;
-//const int TREE_NUM = 28;    // Using stateMappingTable
 const int BUFFER_SIZE = 5000000;
 const int TEMP_SIZE = 5000000;
-
-const int BALANCED_CPUS = 8;   // TODO: this will be user-adjustable in a later version
 
 typedef struct {
     UInt code, next;
 } parallel_buffer;
-
-//extern UChar stateMappingTable[113];
 
 
 class TEncClearBuffer : public TEncClearBit {
 
 protected:
     parallel_buffer *buffer;
-    UInt buffer_tail, code_pos[TREE_NUM], bit_pos[TREE_NUM];
+    UInt buffer_tail, code_pos[StateCount], bit_pos[StateCount];
     UChar *temp_space;
     UInt offset;
 
 private:
+    bool sourceSelectionDone;
+    UInt symbolCount[StateCount], LPSCount[StateCount];
     void init ();
     void storeBit(char bit, int state);
 
 public:
     virtual Void encodeBin(UInt uiSymbol, ContextModel& rcSCModel);
-    virtual Void encodeBinTrm ( UInt bit ) { storeBit(bit, TREE_NUM - 1); }
-    virtual Void encodeBinEP ( UInt bit ) { storeBit(bit, 0);  }
+    virtual Void encodeBinTrm ( UInt bit ) {
+        if (!sourceSelectionDone) { groupStates(); sourceSelectionDone = true; }
+        storeBit(bit, mergedStatesMapping[62]);
+    }
+    virtual Void encodeBinEP ( UInt bit ) {
+        if (!sourceSelectionDone) { groupStates(); sourceSelectionDone = true; }
+        storeBit(bit, mergedStatesMapping[0]);
+    }
     virtual Void finish();
 
 protected:
     void myPutByte(UChar v) { m_pcBitIf->write( v, 8 ); }
-    virtual void addLoadBalancingHeader() {}
-    void put_pref_code(UInt v);
+    virtual UInt addLoadBalancingHeader() { return 0; }
+    virtual void groupStates() { }
+    UInt putPrefCode(UInt v);
+    UInt getPrefCost(UInt v);
+
+    UInt mergedStateCount;
+    bool lastStateOfGroup[StateCount];
+    bool selectedTree[TreeCount];
+    UInt mergedStatesMapping[64];
+    UInt mergedTree[StateCount];
 
 private:
     virtual UInt encode_seq(int tree);
@@ -131,16 +146,23 @@ public:
 class TEncV2V : public TEncClearBuffer {
 
     UInt bitsUsed, codeBuffer;
-    UInt vlc_pos[TREE_NUM]; 
+    UInt vlc_pos[StateCount];
     UChar *LB_temp_space;
 
+    UInt getBestTree(UInt totalCount, UInt LPSCount);
+    double getTotalCost(UInt tree, UInt totalCount, UInt LPSCount);
     void encode_bit(unsigned short state, UChar symbol);
     virtual UInt encode_seq(int tree);
 
-    virtual void addLoadBalancingHeader() {
-        for (int k = 1; k < BALANCED_CPUS; ++k)
-            put_pref_code(LB_temp_space[k * offset / BALANCED_CPUS]);
+    virtual UInt addLoadBalancingHeader() {
+        UInt res = 0;
+        UInt cpus = getBalancedCPUs();
+        for (int k = 1; k < cpus; ++k)
+            res += putPrefCode(LB_temp_space[k * offset / cpus]);
+        return res;
     }
+
+    virtual void groupStates();
 
 public:
     TEncV2V() { LB_temp_space = new UChar[TEMP_SIZE]; }

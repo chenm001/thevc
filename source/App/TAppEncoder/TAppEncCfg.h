@@ -130,6 +130,7 @@ protected:
   Int       m_iSymbolMode;                                    ///< entropy coder mode, 0 = VLC, 1 = CABAC, 2 = PIPE, 3 = V2V with load balancing
   UInt      m_uiMCWThreshold;                                 ///< threshold in bits for multi-codeword coding (CABAC & PIPE)
   UInt      m_uiMaxPIPEDelay;                                 ///< maximum buffer delay for single-codeword PIPE
+  UInt      m_uiBalancedCPUs;                                 ///< number of CPUs for load balancing: 0 or 1 - ignored
 
 	// coding tools (intra)
 #if HHI_ALLOW_CIP_SWITCH

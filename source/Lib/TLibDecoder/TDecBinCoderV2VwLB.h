@@ -1,6 +1,6 @@
 /*! ====================================================================================================================
  * \file
-    TDecV2V.h
+    TDecBinCoderV2VwLB.h
  *  \brief
     Copyright information.
  *  \par Copyright statements
@@ -39,7 +39,9 @@
 #ifndef __TDECV2V__
 #define __TDECV2V__
 
+#include <cstdlib>
 #include "TDecBinCoder.h"
+#include "TDecV2VTrees.h"
 
 class TDecClearBit : public TDecBinIf {
 
@@ -62,25 +64,26 @@ public:
       m_pcBitstream->read( 1, ruiBit    );
   }                   
 
+  Void  setBalancedCPUs( UInt ui ) { m_uiBalancedCPUs = ui; }
+  UInt  getBalancedCPUs() { return m_uiBalancedCPUs; }
+
 protected:
   TComBitstream*  m_pcBitstream;
+
+private:
+	UInt m_uiBalancedCPUs;
 };
 
 
-const int TREE_NUM = 64;
-//const int TREE_NUM = 28;
 const int TEMP_SIZE = 5000000;
 
-const int BALANCED_CPUS = 8;   // TODO: make it user-adjustable
-
-//extern UChar stateMappingTable[113];
 
 class TDecClearBuffer : public TDecClearBit {
 
-    UInt seq_coded_len[TREE_NUM];
-    UInt offset[TREE_NUM];
-    UInt term_offset[TREE_NUM];
-    UInt bit_pos[TREE_NUM];
+    UInt seq_coded_len[StateCount];
+    UInt offset[StateCount];
+    UInt term_offset[StateCount];
+    UInt bit_pos[StateCount];
 
 protected:
     UChar *temp_space;
@@ -98,6 +101,12 @@ protected:
         m_pcBitstream->read( 8, c );
         return c;
     }
+
+    UInt mergedStateCount;
+    bool lastStateOfGroup[StateCount];
+    bool selectedTree[TreeCount];
+    UInt mergedStatesMapping[64];
+    UInt mergedTree[StateCount];
 
 private:
     UInt get_pref_code() {
@@ -126,25 +135,7 @@ private:
             temp_space[index++] = myReadByte();
     }
 
-    void init() {
-
-        int k;
-
-        for (k = 0; k < TREE_NUM; ++k)
-            seq_coded_len[k] = get_pref_code();
-        for (k = 1; k < BALANCED_CPUS; ++k)
-            get_pref_code();   // Ignore load-balancing information in this version
-            // TODO: multi-threading
-
-        temp_space[1] = temp_space[0] = 0;
-        index = 1;
-        for (k = 0; k < TREE_NUM; ++k) {
-            offset[k] = index;
-            bit_pos[k] = 0;
-            decode_seq(k, seq_coded_len[k]);
-            term_offset[k] = index;
-        }
-    }
+    void init();
 
     char retrieveBit(int state) {
 
@@ -167,7 +158,7 @@ private:
     virtual Void decodeBin(UInt& ruiSymbol, ContextModel& rcSCModel) {
 
         ruiSymbol = rcSCModel.getMps();
-        if (retrieveBit(rcSCModel.getState())) {
+        if (retrieveBit(mergedStatesMapping[rcSCModel.getState()])) {
             ruiSymbol = !ruiSymbol;
             rcSCModel.updateLPS();
         } else {
@@ -175,8 +166,8 @@ private:
         }
     }
 
-    virtual Void decodeBinEP( UInt& bit )        { bit = retrieveBit(0);  }
-    virtual Void decodeBinTrm ( UInt& bit ) { bit = retrieveBit(TREE_NUM - 1); }
+    virtual Void decodeBinEP( UInt& bit ) { bit = retrieveBit(mergedStatesMapping[0]); }
+    virtual Void decodeBinTrm ( UInt& bit ) { bit = retrieveBit(mergedStatesMapping[62]); }
 
 public:
     TDecClearBuffer() { temp_space = new UChar[TEMP_SIZE]; }

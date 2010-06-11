@@ -72,6 +72,8 @@ private:
   Int                   m_iGopSize;
   TComList<TComPic*>    m_cListPic;         //  Dynamic buffer
 
+  UInt                  m_uiBalancedCPUs;
+
   //  Access channel
   TDecEntropy*          m_pcEntropyDecoder;
   TDecSbac*             m_pcSbacDecoder;
@@ -107,6 +109,9 @@ public:
 
   Void  decompressGop ( Bool bEos, TComBitstream* pcBitstream, TComPic*& rpcPic );
   Void  setGopSize( Int i) { m_iGopSize = i; }
+
+  UInt  getBalancedCPUs()  { return m_uiBalancedCPUs; }
+  Void  setBalancedCPUs( UInt ui ) { m_uiBalancedCPUs = ui; }
 };
 
 #endif // !defined(AFX_TDECGOP_H__29440B7A_7CC0_48C7_8DD5_1A531D3CED45__INCLUDED_)

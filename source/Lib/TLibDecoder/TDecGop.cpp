@@ -111,6 +111,7 @@ Void TDecGop::decompressGop (Bool bEos, TComBitstream* pcBitstream, TComPic*& rp
     if( iSymbolMode == 3 )
     {
       m_pcSbacDecoder->init( m_pcBinV2VwLB );
+      m_pcBinV2VwLB->setBalancedCPUs( getBalancedCPUs() );
     }
     else if( iSymbolMode == 1 )
     {

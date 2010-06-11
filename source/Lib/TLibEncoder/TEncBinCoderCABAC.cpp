@@ -34,7 +34,31 @@
 */
 
 #include "TEncBinCoderCABAC.h"
+#include "TEncV2VTrees.h"
 
+UInt    uiState[StateCount];
+UInt    uipState[StateCount][2];
+
+static UInt    cntFlag;
+
+Void  TEncBinCABAC::clearStats(){
+        for(int i = 0; i < StateCount; i++)
+        {
+          uiState[i] = 0;
+          uipState[i][0] = 0;
+          uipState[i][1] = 0;
+        }
+  }
+
+Void TEncBinCABAC::setCntFlag(UInt ui)
+{
+  cntFlag = ui;
+}
+
+
+Void  TEncBinCABAC::processStats()
+{
+}
 
 TEncBinCABAC::TEncBinCABAC()
 : m_pcTComBitIf( 0 )
@@ -116,6 +140,15 @@ TEncBinCABAC::getNumWrittenBits()
 Void
 TEncBinCABAC::encodeBin( UInt uiBin, ContextModel &rcCtxModel )
 {
+  UInt  ctxState = rcCtxModel.getState();
+  UInt  sym;
+  if(cntFlag)
+  {
+    sym = rcCtxModel.getMps();
+    uiState[QStatesMapping[ctxState]]++;
+    uipState[QStatesMapping[ctxState]][rcCtxModel.getMps()!=uiBin]++;
+  }
+
 #if HHI_RQT
   {
     DTRACE_CABAC_V( g_nSymbolCounter++ )
@@ -163,6 +196,12 @@ TEncBinCABAC::encodeBin( UInt uiBin, ContextModel &rcCtxModel )
 Void
 TEncBinCABAC::encodeBinEP( UInt uiBin )
 {
+  if(cntFlag)
+  {
+    uiState[QStatesMapping[0]]++;
+    uipState[QStatesMapping[0]][1==uiBin]++;
+  }
+
 #if HHI_RQT
   {
     DTRACE_CABAC_V( g_nSymbolCounter++ )
@@ -196,6 +235,12 @@ TEncBinCABAC::encodeBinEP( UInt uiBin )
 Void
 TEncBinCABAC::encodeBinTrm( UInt uiBin )
 {
+  if(cntFlag)
+  {
+    uiState[QStatesMapping[63]]++;
+    uipState[QStatesMapping[63]][1==uiBin]++;
+  }
+
   m_uiRange -= 2;
   if( uiBin )
   {

@@ -1,6 +1,6 @@
 /*! ====================================================================================================================
  * \file
-    TDecV2V.cpp
+    TDecBinCoderV2VwLB.cpp
  *  \brief
     Copyright information.
  *  \par Copyright statements
@@ -37,8 +37,48 @@
 */
  
 #include "TDecBinCoderV2VwLB.h"
+#include "TDecV2VTrees.h"
 
-#include "TDecV2VTrees67k.h"
+void TDecClearBuffer::init() {
+
+    int k, n;
+    UInt cpus = getBalancedCPUs();
+
+    UChar buf = 0;
+    mergedStateCount = 0;
+    for (k = 0; k < StateCount; ++k) {
+        if (k%8 == 0) buf = myReadByte();
+        lastStateOfGroup[k] = bool(buf & (1 << (k%8)));
+        if (lastStateOfGroup[k]) ++mergedStateCount;
+    }
+    for (k = n = 0; k < TreeCount; ++k) {
+        if (k%8 == 0) buf = myReadByte();
+        selectedTree[k] = bool(buf & (1 << (k%8)));
+        if (selectedTree[k]) mergedTree[n++] = k;
+    }
+    assert(n == mergedStateCount);
+
+    UInt tempTable[StateCount];
+    tempTable[0] = 0;
+    for (k = 1; k < StateCount; ++k)
+        tempTable[k] = tempTable[k - 1] + int(lastStateOfGroup[k - 1]);
+    for (k = 0; k < 64; ++k)
+        mergedStatesMapping[k] = tempTable[QStatesMapping[k]];
+
+    for (k = 0; k < mergedStateCount; ++k)
+        seq_coded_len[k] = get_pref_code();
+    for (k = 1; k < cpus; ++k)
+        get_pref_code();
+
+    temp_space[1] = temp_space[0] = 0;
+    index = 1;
+    for (k = 0; k < mergedStateCount; ++k) {
+        offset[k] = index;
+        bit_pos[k] = 0;
+        decode_seq(k, seq_coded_len[k]);
+        term_offset[k] = index;
+    }
+}
 
 void TDecV2V::decode_seq(int state, int scl) {
 
@@ -60,7 +100,7 @@ void TDecV2V::decode_seq(int state, int scl) {
         else {
 
             int pos = 0;
-            UInt dpp = dec_tree_complete[state][0];
+            UInt dpp = QDecodingTree[mergedTree[state]][0];
 
             while (!(dpp >> 30)) {
                 int len = dpp >> 16;
@@ -79,7 +119,7 @@ void TDecV2V::decode_seq(int state, int scl) {
 
                 pos = (dpp & 0xffff) + (codeBuffer & ((1 << len) - 1));
                 codeBuffer >>= len; bitsUsed -= len;
-                dpp = dec_tree_complete[state][pos];
+                dpp = QDecodingTree[mergedTree[state]][pos];
             }
 
             switch (dpp >> 30) {

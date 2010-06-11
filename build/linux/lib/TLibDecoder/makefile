@@ -45,6 +45,7 @@ OBJS          	= \
 				$(OBJ_DIR)/TDecSbac.o \
 				$(OBJ_DIR)/TDecSlice.o \
 				$(OBJ_DIR)/TDecTop.o \
+				$(OBJ_DIR)/TDecV2VTrees.o \
 
 LIBS				= -lpthread
 

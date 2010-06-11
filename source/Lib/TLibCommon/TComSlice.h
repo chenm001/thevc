@@ -107,6 +107,8 @@ private:
 
   Int m_iAMPAcc[MAX_CU_DEPTH];
 
+  UInt        m_uiBalancedCPUs;
+
 public:
   TComSPS();
   virtual ~TComSPS();
@@ -139,6 +141,8 @@ public:
   Void setPadY        ( Int  u ) { m_aiPad[1] = u; }
   Int  getPad         ( Int  u ) { assert(u < 2); return m_aiPad[u];}
   Int* getPad         ( )        { return m_aiPad; }
+  Void setBalancedCPUs( UInt u ) { m_uiBalancedCPUs = u; }
+  UInt getBalancedCPUs()         { return m_uiBalancedCPUs; }
 
   // physical transform
   Void setMaxTrSize   ( UInt u ) { m_uiMaxTrSize = u;       }
@@ -249,6 +253,8 @@ private:
   UInt        m_uiMaxPIPEDelay;
   Bool        m_bLoopFilterDisable;
 
+  UInt        m_uiBalancedCPUs;
+
   Bool        m_bDRBFlag;             //  flag for future usage as reference buffer
   ERBIndex    m_eERBIndex;            //  flag for future usage as reference buffer
   Int         m_aiNumRefIdx   [2];    //  for multiple reference of current slice
@@ -312,6 +318,7 @@ public:
   Bool      getMultiCodeword    ()                      { return  m_bMultiCodeword;     }
   UInt      getMaxPIPEDelay     ()                      { return  m_uiMaxPIPEDelay;     }
   Bool      getLoopFilterDisable()                      { return  m_bLoopFilterDisable; }
+  UInt      getBalancedCPUs     ()                      { return  m_uiBalancedCPUs;     }
 
   Int       getNumRefIdx        ( RefPicList e )                { return  m_aiNumRefIdx[e];             }
   TComPic*  getPic              ()                              { return  m_pcPic;                      }
@@ -333,6 +340,7 @@ public:
   Void      setMultiCodeword    ( Bool b )                      { m_bMultiCodeword    = b;      }
   Void      setMaxPIPEDelay     ( UInt ui )                     { m_uiMaxPIPEDelay    = ui;     }
   Void      setLoopFilterDisable( Bool b )                      { m_bLoopFilterDisable= b;      }
+  Void      setBalancedCPUs     ( UInt ui )                     { m_uiBalancedCPUs    = ui;     }
 
   Void      setRefPic           ( TComPic* p, RefPicList e, Int iRefIdx ) { m_apcRefPicList[e][iRefIdx] = p; }
   Void      setRefPOC           ( Int i, RefPicList e, Int iRefIdx ) { m_aiRefPOCList[e][iRefIdx] = i; }
