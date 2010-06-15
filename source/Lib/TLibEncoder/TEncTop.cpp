@@ -209,7 +209,6 @@ Void TEncTop::encode( bool bEos, TComPicYuv* pcPicYuvOrg, TComList<TComPicYuv*>&
     return;
   }
 
-  m_cGOPEncoder.setBalancedCPUs( getBalancedCPUs() );
   // compress GOP
   m_cGOPEncoder.compressGOP( m_iPOCLast, m_iNumPicRcvd, m_cListPic, rcListPicYuvRecOut, rcListBitstreamOut );
 

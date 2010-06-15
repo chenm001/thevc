@@ -755,6 +755,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\TEncBinCoderCABAC4V2V.h"
+				>
+			</File>
+			<File
 				RelativePath=".\TEncBinCoderMultiCABAC.h"
 				>
 			</File>

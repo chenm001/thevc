@@ -40,11 +40,6 @@
 #include "TEncBinCoderV2VwLB.h"
 #include "TEncV2VTrees.h"
 
-extern UInt    uiState[StateCount];
-extern UInt    uipState[StateCount][2];
-
-
-
 void TEncClearBuffer::init () {
     for (buffer_tail = 0; buffer_tail < StateCount; ++buffer_tail) {
         code_pos[buffer_tail] = buffer_tail;
@@ -227,17 +222,20 @@ void TEncV2V::groupStates() {
         double bestMergeGain = -100000000.0;
         UInt k, n;
 
+        int bestTreeThis = getBestTree(m_uiState[0], m_uipState[0][1]);
+        double totalCostThis = getTotalCost(bestTreeThis, m_uiState[0], m_uipState[0][1]);
+
         for (k = 0; k < mergedStateCount - 1; k++) {
-            int bestTreeThis = getBestTree(uiState[k], uipState[k][1]);
-            int bestTreeNext = getBestTree(uiState[k+1], uipState[k+1][1]);
-            int bestTreeMerged = getBestTree(uiState[k] + uiState[k+1], uipState[k][1] + uipState[k+1][1]);
-            double totalCostThis = getTotalCost(bestTreeThis, uiState[k], uipState[k][1]);
-            double totalCostNext = getTotalCost(bestTreeNext, uiState[k+1], uipState[k+1][1]);
-            double totalCostMerged = getTotalCost(bestTreeMerged, uiState[k] + uiState[k+1], uipState[k][1] + uipState[k+1][1]);
+            int bestTreeNext = getBestTree(m_uiState[k+1], m_uipState[k+1][1]);
+            int bestTreeMerged = getBestTree(m_uiState[k] + m_uiState[k+1], m_uipState[k][1] + m_uipState[k+1][1]);
+            double totalCostNext = getTotalCost(bestTreeNext, m_uiState[k+1], m_uipState[k+1][1]);
+            double totalCostMerged = getTotalCost(bestTreeMerged, m_uiState[k] + m_uiState[k+1], m_uipState[k][1] + m_uipState[k+1][1]);
             if (totalCostThis + totalCostNext - totalCostMerged > bestMergeGain) {
                 bestMergeCandidate = k;
                 bestMergeGain = totalCostThis + totalCostNext - totalCostMerged;
             }
+            bestTreeThis = bestTreeNext;
+            totalCostThis = totalCostNext;
         }
 
         if (bestMergeGain < 0) break;
@@ -251,19 +249,19 @@ void TEncV2V::groupStates() {
             if (mergedStatesMapping[k] > bestMergeCandidate)
                 --mergedStatesMapping[k];
 
-        uiState[bestMergeCandidate] += uiState[bestMergeCandidate + 1];
-        uipState[bestMergeCandidate][0] += uipState[bestMergeCandidate + 1][0];
-        uipState[bestMergeCandidate][1] += uipState[bestMergeCandidate + 1][1];
+        m_uiState[bestMergeCandidate] += m_uiState[bestMergeCandidate + 1];
+        m_uipState[bestMergeCandidate][0] += m_uipState[bestMergeCandidate + 1][0];
+        m_uipState[bestMergeCandidate][1] += m_uipState[bestMergeCandidate + 1][1];
         for (k = bestMergeCandidate + 1; k < mergedStateCount - 1; k++) {
-            uiState[k] = uiState[k + 1];
-            uipState[k][0] = uipState[k + 1][0];
-            uipState[k][1] = uipState[k + 1][1];
+            m_uiState[k] = m_uiState[k + 1];
+            m_uipState[k][0] = m_uipState[k + 1][0];
+            m_uipState[k][1] = m_uipState[k + 1][1];
         }
         --mergedStateCount;
     }
 
     for (int k = 0; k < mergedStateCount; k++) {
-        mergedTree[k] = getBestTree(uiState[k], uipState[k][1]);
+        mergedTree[k] = getBestTree(m_uiState[k], m_uipState[k][1]);
         selectedTree[mergedTree[k]] = true;
     }
 }

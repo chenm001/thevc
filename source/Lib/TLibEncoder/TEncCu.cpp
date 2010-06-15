@@ -201,6 +201,7 @@ Void TEncCu::init( TEncTop* pcEncTop )
   m_pcBinPIPE          = pcEncTop->getBinPIPE();
   m_pcBinMultiPIPE     = pcEncTop->getBinMultiPIPE();
   m_pcBinV2VwLB        = pcEncTop->getBinV2VwLB();
+  m_pcBinCABAC4V2V     = pcEncTop->getBinCABAC4V2V();
 
   m_pppcRDSbacCoder   = pcEncTop->getRDSbacCoder();
   m_pcRDGoOnSbacCoder = pcEncTop->getRDGoOnSbacCoder();

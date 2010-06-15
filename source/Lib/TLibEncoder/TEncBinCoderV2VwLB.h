@@ -43,7 +43,8 @@
 
 #include "TEncBinCoder.h"
 #include "TEncV2VTrees.h"
-#include <stdlib.h>
+#include <cstdlib>
+#include <cstring>
 
 class TEncClearBit : public TEncBinIf {
 
@@ -140,6 +141,13 @@ public:
         delete [] temp_space;
         delete [] buffer;
     }
+
+    Void setState ( UInt* pui ) { memcpy( m_uiState, pui, sizeof(UInt) * StateCount ); }
+    Void setpState( UInt* pui ) { memcpy( &m_uipState[0][0], pui, sizeof(UInt) * StateCount * 2 ); }
+
+protected:
+    UInt m_uiState[StateCount];
+    UInt m_uipState[StateCount][2];
 };
 
 

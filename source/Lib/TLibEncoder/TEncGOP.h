@@ -84,6 +84,7 @@ private:
   TEncBinMultiPIPE*       m_pcBinMultiPIPE;
   TEncV2V*                m_pcBinV2VwLB;
   TComLoopFilter*         m_pcLoopFilter;
+  TEncBinCABAC4V2V*       m_pcBinCABAC4V2V;
 
   // Adaptive Loop filter
   TEncAdaptiveLoopFilter* m_pcAdaptiveLoopFilter;
@@ -118,6 +119,8 @@ public:
   Void  preLoopFilterPicAll  ( TComPic* pcPic, UInt64& ruiDist, UInt64& ruiBits );
 
   TEncSlice*  getSliceEncoder()   { return m_pcSliceEncoder; }
+
+  Void setCABAC4V2V (TEncBinCABAC4V2V* p) { m_pcBinCABAC4V2V = p; }
 
 protected:
   Void  xInitGOP          ( Int iPOC, Int iNumPicRcvd, TComList<TComPic*>& rcListPic, TComList<TComPicYuv*>& rcListPicYuvRecOut );

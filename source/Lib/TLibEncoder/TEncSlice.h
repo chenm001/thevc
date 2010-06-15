@@ -80,6 +80,7 @@ private:
   TEncBinMultiPIPE*       m_pcBinMultiPIPE;                     ///< Bin encoder PIPE with multiple partitions
   TEncV2V*                m_pcBinV2VwLB;                        ///< Bin encoder V2V with load balancing
   TComTrQuant*            m_pcTrQuant;                          ///< transform & quantization
+  TEncBinCABAC4V2V*       m_pcBinCABAC4V2V;                     ///< Bin encoder CABAC
 
   // RD optimization
   TComBitCounter*         m_pcBitCounter;                       ///< bit counter
@@ -92,6 +93,8 @@ private:
   Double*                 m_pdRdPicLambda;                      ///< array of lambda candidates
   Double*                 m_pdRdPicQp;                          ///< array of picture QP candidates (double-type for lambda)
   Int*                    m_piRdPicQp;                          ///< array of picture QP candidates (int-type)
+
+  UInt                    m_uiV2V;
 
 protected:
   Bool    xEstimateWPSlice    ( TComSlice* rpcSlice, RefPicList eRefPicList, EFF_MODE eEffMode  );  ///< generate effect virtual ref.
@@ -122,6 +125,9 @@ public:
   UInt64  getTotalBits        ()  { return m_uiPicTotalBits; }
 
   TEncCu*        getCUEncoder() { return m_pcCuEncoder; }                        ///< CU encoder
+
+  UInt    getV2Vflag()          { return m_uiV2V; }
+  Void    setV2Vflag( UInt ui ) { m_uiV2V = ui;   }
 };
 
 

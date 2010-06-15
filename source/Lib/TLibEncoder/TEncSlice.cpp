@@ -54,6 +54,8 @@ TEncSlice::TEncSlice()
   m_pdRdPicLambda = NULL;
   m_pdRdPicQp     = NULL;
   m_piRdPicQp     = NULL;
+
+  m_uiV2V = 0;
 }
 TEncSlice::~TEncSlice()
 {
@@ -130,6 +132,7 @@ Void TEncSlice::init( TEncTop* pcEncTop )
   m_pcBinMultiPIPE    = pcEncTop->getBinMultiPIPE();
   m_pcBinV2VwLB       = pcEncTop->getBinV2VwLB();
   m_pcTrQuant         = pcEncTop->getTrQuant();
+  m_pcBinCABAC4V2V    = pcEncTop->getBinCABAC4V2V();
 
   m_pcBitCounter      = pcEncTop->getBitCounter();
   m_pcRdCost          = pcEncTop->getRdCost();
@@ -597,7 +600,14 @@ Void TEncSlice::encodeSlice   ( TComPic*& rpcPic, TComBitstream*& rpcBitstream )
     }
     else if( pcSlice->getSymbolMode() == 1 )
     {
-      m_pcSbacCoder->init( pcSlice->getMultiCodeword() ? (TEncBinIf*)m_pcBinMultiCABAC : (TEncBinIf*)m_pcBinCABAC );
+      if(m_uiV2V)
+      {
+        m_pcSbacCoder->init( pcSlice->getMultiCodeword() ? (TEncBinIf*)m_pcBinMultiCABAC : (TEncBinIf*)m_pcBinCABAC4V2V );
+      }
+      else
+      {
+        m_pcSbacCoder->init( pcSlice->getMultiCodeword() ? (TEncBinIf*)m_pcBinMultiCABAC : (TEncBinIf*)m_pcBinCABAC );
+      }
     }
     else if( pcSlice->getMultiCodeword() )
     {

@@ -62,12 +62,7 @@ public:
 
   TEncBinCABAC* getTEncBinCABAC()  { return this; }
 
-  UInt  m_uiCntFlag;
-  Void  clearStats();
-  Void  processStats();
-  Void setCntFlag(UInt ui);
-
-private:
+protected: // defined as protected for TEncBinCABAC4V2V
   Void  xWriteBit               ( UInt uiBit );
   Void  xWriteBitAndBitsToFollow( UInt uiBit );
 
