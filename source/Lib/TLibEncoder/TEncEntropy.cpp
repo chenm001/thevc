@@ -471,8 +471,28 @@ Void TEncEntropy::encodeCIPflag( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDep
 // Intra direction for Luma
 Void TEncEntropy::encodeIntraDirModeLuma  ( TComDataCU* pcCU, UInt uiAbsPartIdx )
 {
+#if ANG_INTRA
+  if ( pcCU->angIntraEnabledPredPart(uiAbsPartIdx) )
+    m_pcEntropyCoderIf->codeIntraDirLumaAng( pcCU, uiAbsPartIdx );
+  else
+    m_pcEntropyCoderIf->codeIntraDirLumaAdi( pcCU, uiAbsPartIdx );
+#else
   m_pcEntropyCoderIf->codeIntraDirLumaAdi( pcCU, uiAbsPartIdx );
+#endif
 }
+
+#if PLANAR_INTRA
+Void TEncEntropy::encodePlanarInfo( TComDataCU* pcCU, UInt uiAbsPartIdx, Bool bRD )
+{
+  if ( pcCU->getSlice()->isInterB() )
+    return;
+
+  if( bRD )
+    uiAbsPartIdx = 0;
+
+  m_pcEntropyCoderIf->codePlanarInfo( pcCU, uiAbsPartIdx );
+}
+#endif
 
 #if HHI_AIS
 // BB: Intra ref. samples filtering for Luma

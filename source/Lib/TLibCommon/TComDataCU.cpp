@@ -90,6 +90,13 @@ TComDataCU::TComDataCU()
   m_pROTindex          = NULL;
   m_pCIPflag           = NULL;
 
+#if PLANAR_INTRA
+  m_piPlanarInfo[0]    = NULL;
+  m_piPlanarInfo[1]    = NULL;
+  m_piPlanarInfo[2]    = NULL;
+  m_piPlanarInfo[3]    = NULL;
+#endif
+
   m_bDecSubCu          = false;
 }
 
@@ -136,6 +143,13 @@ Void TComDataCU::create(UInt uiNumPartition, UInt uiWidth, UInt uiHeight, Bool b
 
     m_pROTindex          = (UChar* )xMalloc(UChar,  uiNumPartition);
     m_pCIPflag           = (UChar* )xMalloc(UChar,  uiNumPartition);
+
+#if PLANAR_INTRA
+    m_piPlanarInfo[0]    = (Int*   )xMalloc(Int,    uiNumPartition);
+    m_piPlanarInfo[1]    = (Int*   )xMalloc(Int,    uiNumPartition);
+    m_piPlanarInfo[2]    = (Int*   )xMalloc(Int,    uiNumPartition);
+    m_piPlanarInfo[3]    = (Int*   )xMalloc(Int,    uiNumPartition);
+#endif
 
     m_apiMVPIdx[0]       = (Int*   )xMalloc(Int,  uiNumPartition);
     m_apiMVPIdx[1]       = (Int*   )xMalloc(Int,  uiNumPartition);
@@ -190,6 +204,12 @@ Void TComDataCU::destroy()
     if ( m_puhCbf[2]          ) { xFree(m_puhCbf[2]);           m_puhCbf[2]         = NULL; }
     if ( m_puiAlfCtrlFlag     ) { xFree(m_puiAlfCtrlFlag);      m_puiAlfCtrlFlag    = NULL; }
     if ( m_puhInterDir        ) { xFree(m_puhInterDir);         m_puhInterDir       = NULL; }
+#if PLANAR_INTRA
+    if ( m_piPlanarInfo[0]    ) { xFree(m_piPlanarInfo[0]);     m_piPlanarInfo[0]   = NULL; }
+    if ( m_piPlanarInfo[1]    ) { xFree(m_piPlanarInfo[1]);     m_piPlanarInfo[1]   = NULL; }
+    if ( m_piPlanarInfo[2]    ) { xFree(m_piPlanarInfo[2]);     m_piPlanarInfo[2]   = NULL; }
+    if ( m_piPlanarInfo[3]    ) { xFree(m_piPlanarInfo[3]);     m_piPlanarInfo[3]   = NULL; }
+#endif
 #if HHI_MRG
     if ( m_pbMergeFlag        ) { xFree(m_pbMergeFlag);         m_pbMergeFlag       = NULL; }
     if ( m_puhMergeIndex      ) { xFree(m_puhMergeIndex);       m_puhMergeIndex     = NULL; }
@@ -258,6 +278,9 @@ Void TComDataCU::initCU( TComPic* pcPic, UInt iCUAddr )
 #if HHI_AIS || HHI_MRG
   Int iSizeInBool  = sizeof( Bool  ) * m_uiNumPartition;
 #endif
+#if PLANAR_INTRA
+  Int iSizeInInt   = sizeof( Int   ) * m_uiNumPartition;
+#endif
 
   memset( m_phQP,              m_pcPic->getSlice()->getSliceQp(), iSizeInUchar );
 
@@ -285,6 +308,13 @@ Void TComDataCU::initCU( TComPic* pcPic, UInt iCUAddr )
 
   memset( m_pROTindex,         0, iSizeInUchar );
   memset( m_pCIPflag,          0, iSizeInUchar );
+
+#if PLANAR_INTRA
+  memset( m_piPlanarInfo[0],   0, iSizeInInt );
+  memset( m_piPlanarInfo[1],   0, iSizeInInt );
+  memset( m_piPlanarInfo[2],   0, iSizeInInt );
+  memset( m_piPlanarInfo[3],   0, iSizeInInt );
+#endif
 
   for (UInt ui = 0; ui < m_uiNumPartition; ui++)
   {
@@ -360,6 +390,9 @@ Void TComDataCU::initEstData()
 #if HHI_AIS || HHI_MRG
   Int iSizeInBool  = sizeof( Bool   ) * m_uiNumPartition;
 #endif
+#if PLANAR_INTRA
+  Int iSizeInInt   = sizeof( Int   ) * m_uiNumPartition;
+#endif
 
   memset( m_phQP,              m_pcPic->getSlice()->getSliceQp(), iSizeInUchar );
 
@@ -381,6 +414,13 @@ Void TComDataCU::initEstData()
 
   memset( m_pROTindex,         0, iSizeInUchar );
   memset( m_pCIPflag,          0, iSizeInUchar );
+
+#if PLANAR_INTRA
+  memset( m_piPlanarInfo[0],   0, iSizeInInt );
+  memset( m_piPlanarInfo[1],   0, iSizeInInt );
+  memset( m_piPlanarInfo[2],   0, iSizeInInt );
+  memset( m_piPlanarInfo[3],   0, iSizeInInt );
+#endif
 
   for (UInt ui = 0; ui < m_uiNumPartition; ui++)
   {
@@ -429,6 +469,9 @@ Void TComDataCU::initSubCU( TComDataCU* pcCU, UInt uiPartUnitIdx, UInt uiDepth )
 #if HHI_AIS || HHI_MRG
   Int iSizeInBool  = sizeof( Bool   ) * m_uiNumPartition;
 #endif
+#if PLANAR_INTRA
+  Int iSizeInInt   = sizeof( Int    ) * m_uiNumPartition;
+#endif
 
   memset( m_phQP,              m_pcPic->getSlice()->getSliceQp(), iSizeInUchar );
 
@@ -456,6 +499,13 @@ Void TComDataCU::initSubCU( TComDataCU* pcCU, UInt uiPartUnitIdx, UInt uiDepth )
 
   memset( m_pROTindex,         0, iSizeInUchar );
   memset( m_pCIPflag,          0, iSizeInUchar );
+
+#if PLANAR_INTRA
+  memset( m_piPlanarInfo[0],   0, iSizeInInt );
+  memset( m_piPlanarInfo[1],   0, iSizeInInt );
+  memset( m_piPlanarInfo[2],   0, iSizeInInt );
+  memset( m_piPlanarInfo[3],   0, iSizeInInt );
+#endif
 
   for (UInt ui = 0; ui < m_uiNumPartition; ui++)
   {
@@ -537,6 +587,13 @@ Void TComDataCU::copySubCU( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
 
   m_pROTindex= pcCU->getROTindex()                + uiPart;
   m_pCIPflag=  pcCU->getCIPflag()                 + uiPart;
+
+#if PLANAR_INTRA
+  m_piPlanarInfo[0] = pcCU->getPlanarInfo(PLANAR_FLAG)    + uiPart;
+  m_piPlanarInfo[1] = pcCU->getPlanarInfo(PLANAR_DELTAY)  + uiPart;
+  m_piPlanarInfo[2] = pcCU->getPlanarInfo(PLANAR_DELTAU)  + uiPart;
+  m_piPlanarInfo[3] = pcCU->getPlanarInfo(PLANAR_DELTAV)  + uiPart;
+#endif
 
   m_pcCUAboveLeft      = pcCU->getCUAboveLeft();
   m_pcCUAboveRight     = pcCU->getCUAboveRight();
@@ -663,6 +720,13 @@ Void TComDataCU::copyPartFrom( TComDataCU* pcCU, UInt uiPartUnitIdx, UInt uiDept
   memcpy( m_pROTindex  + uiOffset, pcCU->getROTindex(),  iSizeInUchar );
   memcpy( m_pCIPflag   + uiOffset, pcCU->getCIPflag(),   iSizeInUchar );
 
+#if PLANAR_INTRA
+  memcpy( m_piPlanarInfo[0] + uiOffset, pcCU->getPlanarInfo(PLANAR_FLAG)    , iSizeInInt );
+  memcpy( m_piPlanarInfo[1] + uiOffset, pcCU->getPlanarInfo(PLANAR_DELTAY)  , iSizeInInt );
+  memcpy( m_piPlanarInfo[2] + uiOffset, pcCU->getPlanarInfo(PLANAR_DELTAU)  , iSizeInInt );
+  memcpy( m_piPlanarInfo[3] + uiOffset, pcCU->getPlanarInfo(PLANAR_DELTAV)  , iSizeInInt );
+#endif
+
   memcpy( m_apiMVPIdx[0] + uiOffset, pcCU->getMVPIdx(REF_PIC_LIST_0), iSizeInInt );
   memcpy( m_apiMVPIdx[1] + uiOffset, pcCU->getMVPIdx(REF_PIC_LIST_1), iSizeInInt );
   memcpy( m_apiMVPNum[0] + uiOffset, pcCU->getMVPNum(REF_PIC_LIST_0), iSizeInInt );
@@ -735,6 +799,13 @@ Void TComDataCU::copyToPic( UChar uhDepth )
   memcpy( rpcCU->getROTindex()  + m_uiAbsIdxInLCU, m_pROTindex,  iSizeInUchar );
   memcpy( rpcCU->getCIPflag()   + m_uiAbsIdxInLCU, m_pCIPflag,   iSizeInUchar );
 
+#if PLANAR_INTRA
+  memcpy( rpcCU->getPlanarInfo(PLANAR_FLAG)     + m_uiAbsIdxInLCU, m_piPlanarInfo[0], iSizeInInt );
+  memcpy( rpcCU->getPlanarInfo(PLANAR_DELTAY)   + m_uiAbsIdxInLCU, m_piPlanarInfo[1], iSizeInInt );
+  memcpy( rpcCU->getPlanarInfo(PLANAR_DELTAU)   + m_uiAbsIdxInLCU, m_piPlanarInfo[2], iSizeInInt );
+  memcpy( rpcCU->getPlanarInfo(PLANAR_DELTAV)   + m_uiAbsIdxInLCU, m_piPlanarInfo[3], iSizeInInt );
+#endif
+
   memcpy( rpcCU->getMVPIdx(REF_PIC_LIST_0) + m_uiAbsIdxInLCU, m_apiMVPIdx[0], iSizeInInt );
   memcpy( rpcCU->getMVPIdx(REF_PIC_LIST_1) + m_uiAbsIdxInLCU, m_apiMVPIdx[1], iSizeInInt );
   memcpy( rpcCU->getMVPNum(REF_PIC_LIST_0) + m_uiAbsIdxInLCU, m_apiMVPNum[0], iSizeInInt );
@@ -799,6 +870,13 @@ Void TComDataCU::copyToPic( UChar uhDepth, UInt uiPartIdx, UInt uiPartDepth )
 
   memcpy( rpcCU->getROTindex()  + uiPartOffset, m_pROTindex,  iSizeInUchar );
   memcpy( rpcCU->getCIPflag()   + uiPartOffset, m_pCIPflag,   iSizeInUchar );
+
+#if PLANAR_INTRA
+  memcpy( rpcCU->getPlanarInfo(PLANAR_FLAG)     + uiPartOffset, m_piPlanarInfo[0], iSizeInInt );
+  memcpy( rpcCU->getPlanarInfo(PLANAR_DELTAY)   + uiPartOffset, m_piPlanarInfo[1], iSizeInInt );
+  memcpy( rpcCU->getPlanarInfo(PLANAR_DELTAU)   + uiPartOffset, m_piPlanarInfo[2], iSizeInInt );
+  memcpy( rpcCU->getPlanarInfo(PLANAR_DELTAV)   + uiPartOffset, m_piPlanarInfo[3], iSizeInInt );
+#endif
 
   memcpy( rpcCU->getMVPIdx(REF_PIC_LIST_0) + uiPartOffset, m_apiMVPIdx[0], iSizeInInt );
   memcpy( rpcCU->getMVPIdx(REF_PIC_LIST_1) + uiPartOffset, m_apiMVPIdx[1], iSizeInInt );
@@ -1612,7 +1690,28 @@ UInt TComDataCU::getCtxTransIdx( UInt uiAbsPartIdx )
 
   return uiCtx;
 }
+
+
+
 #if HHI_AIS
+
+#if ANG_INTRA
+UInt TComDataCU::getCtxIntraFiltFlagLumaAng( UInt uiAbsPartIdx )
+{
+  UInt uiIntraDir    = (UInt)getLumaIntraDir( uiAbsPartIdx );
+  UInt uiCtx         = 0;
+
+  if( uiIntraDir < 2 )        // vert., hor.
+    uiCtx = uiIntraDir;
+  else if( uiIntraDir == 2 )  // DC
+    assert(0);
+  else                        // angular
+    uiCtx = 3;
+
+  return uiCtx;
+}
+#endif
+
 UInt TComDataCU::getCtxIntraFiltFlagLuma( UInt uiAbsPartIdx )
 {
   UInt uiIntraDir    = (UInt)getLumaIntraDir( uiAbsPartIdx );
@@ -1759,6 +1858,21 @@ Void TComDataCU::setMergeIndexSubParts ( UInt uiMergeIndex, UInt uiAbsPartIdx, U
   UInt uiCurrPartNumb = m_pcPic->getNumPartInCU() >> (uiDepth << 1);
 
   memset( m_puhMergeIndex + uiAbsPartIdx, uiMergeIndex, sizeof(UChar)*uiCurrPartNumb );
+}
+#endif
+
+#if ANG_INTRA
+Bool TComDataCU::angIntraEnabledPredPart( UInt uiAbsPartIdx )
+{
+#if (ANG_INTRA == 2)
+  return true;
+#else
+  // Return true for 8x8 blocks
+  if (getIntraSizeIdx(uiAbsPartIdx) == 2 )
+    return true;
+  else
+    return false;
+#endif
 }
 #endif
 
@@ -3164,6 +3278,22 @@ Void TComDataCU::clearCbf( UInt uiIdx, TextType eType, UInt uiNumParts )
 {
   ::memset( &m_puhCbf[g_aucConvertTxtTypeToIdx[eType]][uiIdx], 0, sizeof(UChar)*uiNumParts);
 }
+
+#if PLANAR_INTRA
+Void TComDataCU::setPlanarInfoSubParts( Int iPlanarFlag, Int iPlanarDeltaY, Int iPlanarDeltaU, Int iPlanarDeltaV, UInt uiAbsPartIdx, UInt uiDepth )
+{
+  UInt uiCurrPartNumb = m_pcPic->getNumPartInCU() >> (uiDepth << 1);
+  UInt uiCounter;
+
+  for (uiCounter = 0;uiCounter < uiCurrPartNumb;uiCounter++)
+  {
+    m_piPlanarInfo[0][uiAbsPartIdx+uiCounter] = iPlanarFlag;
+    m_piPlanarInfo[1][uiAbsPartIdx+uiCounter] = iPlanarDeltaY;
+    m_piPlanarInfo[2][uiAbsPartIdx+uiCounter] = iPlanarDeltaU;
+    m_piPlanarInfo[3][uiAbsPartIdx+uiCounter] = iPlanarDeltaV;
+  }
+}
+#endif
 
 Bool TComDataCU::isSkipped( UInt uiPartIdx )
 {

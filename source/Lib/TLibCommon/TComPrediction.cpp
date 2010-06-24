@@ -85,6 +85,312 @@ Void TComPrediction::initTempBuff()
 // Public member functions
 // ====================================================================================================================
 
+#if (ANG_INTRA || PLANAR_INTRA)
+// Function for calculating DC value of the reference samples used in Intra prediction
+Pel TComPrediction::predIntraGetPredValDC( Int* pSrc, Int iSrcStride, UInt iWidth, UInt iHeight, Bool bAbove, Bool bLeft )
+{
+  Int iInd, iSum = 0;
+  Pel pDcVal;
+
+  if (bAbove) {
+    for (iInd = 0;iInd < iWidth;iInd++)
+      iSum += pSrc[iInd-iSrcStride];
+  }
+  if (bLeft) {
+    for (iInd = 0;iInd < iHeight;iInd++)
+      iSum += pSrc[iInd*iSrcStride-1];
+  }
+
+  if (bAbove && bLeft)
+    pDcVal = (iSum + iWidth) / (iWidth + iHeight);
+  else if (bAbove)
+    pDcVal = (iSum + iWidth/2) / iWidth;
+  else if (bLeft)
+    pDcVal = (iSum + iHeight/2) / iHeight;
+  else
+    pDcVal = pSrc[-1]; // Default DC value already calculated and placed in the prediction array if no neighbors are available
+
+  return pDcVal;
+}
+#endif
+
+#if PLANAR_INTRA
+// Function for deriving the planar Intra predictions
+Void TComPrediction::xPredIntraPlanar( Int* pSrc, Int iSrcStride, Pel*& rpDst, Int iDstStride, UInt iWidth, UInt iHeight, Int iSampleBottomRight, Bool bAbove, Bool bLeft )
+{
+  Int k, l, bottomleft, topright;
+  Int leftcolumn[MAX_CU_SIZE], toprow[MAX_CU_SIZE], bottomrow[MAX_CU_SIZE], rightcolumn[MAX_CU_SIZE];
+  Int blkSizeHalf = iWidth >> 1;
+  Int firstWeight = iWidth - 1;
+  Int offset1D    = iWidth >> 1;
+  Int offset2D    = iWidth;
+  Pel* pDst       = rpDst;
+  Int shift1D, shift2D;
+
+  switch (iWidth)
+  {
+  case 4:   shift1D = 2; break;
+  case 8:   shift1D = 3; break;
+  case 16:  shift1D = 4; break;
+  case 32:  shift1D = 5; break;
+  case 64:  shift1D = 6; break;
+  case 128: shift1D = 7; break;
+  default: break;
+  }
+
+  shift2D = shift1D + 1;
+
+  // Get left and above reference column and row
+  if (!bAbove && !bLeft) {
+    for(k=0;k<iWidth;k++)
+      leftcolumn[k] = toprow[k] = ( 1 << ( g_uiBitDepth + g_uiBitIncrement - 1 ) );
+  }
+  else {
+    if(bAbove) {
+      for(k=0;k<iWidth;k++)
+        toprow[k] = pSrc[k-iSrcStride];
+    }
+    else {
+      Int leftSample = pSrc[-1];
+      for(k=0;k<iWidth;k++)
+        toprow[k] = Clip(((firstWeight-k)*leftSample + (k+1)*iSampleBottomRight + offset1D) >> shift1D);
+    }
+    if(bLeft) {
+      for(k=0;k<iHeight;k++)
+        leftcolumn[k] = pSrc[k*iSrcStride-1];
+    }
+    else {
+      Int aboveSample = pSrc[-iSrcStride];
+      for(k=0;k<iHeight;k++)
+        leftcolumn[k] = Clip(((firstWeight-k)*aboveSample + (k+1)*iSampleBottomRight + offset1D) >> shift1D);
+    }
+  }
+
+  bottomleft = leftcolumn[iWidth-1];
+  topright   = toprow[iWidth-1];
+
+  // Linear interpolation to get the rightmost column and bottom row
+  for(k=0;k<iWidth;k++){
+    bottomrow[k]   = Clip(((firstWeight-k)*bottomleft + (k+1)*iSampleBottomRight + offset1D) >> shift1D);
+    rightcolumn[k] = Clip(((firstWeight-k)*topright   + (k+1)*iSampleBottomRight + offset1D) >> shift1D);
+  }
+
+  // Bilinear interpolation of the final planar samples
+  for (k=0;k<iHeight;k++){
+    for (l=0;l<iWidth;l++){
+      pDst[k*iDstStride+l] = Clip(( leftcolumn[k]*(firstWeight-l) + rightcolumn[k]*(l+1) + toprow[l]*(firstWeight-k) + bottomrow[l]*(k+1) + offset2D) >> shift2D);
+    }
+  }
+}
+
+Void TComPrediction::predIntraPlanar( Int* piSrc, Int iSampleBottomRight, Pel* piPred, UInt uiStride, Int iWidth, Int iHeight, Bool bAbove, Bool bLeft )
+{
+  Pel *pDst = piPred;
+
+  // get starting pixel in block
+  Int sw = ( iWidth<<1 ) + 1;
+
+  // Create the prediction
+  xPredIntraPlanar( piSrc+sw+1, sw, pDst, uiStride, iWidth, iHeight, iSampleBottomRight, bAbove,  bLeft );
+}
+#endif
+
+#if ANG_INTRA
+// Function for deriving the angular Intra predictions
+Void TComPrediction::xPredIntraAng( Int* pSrc, Int iSrcStride, Pel*& rpDst, Int iDstStride, UInt iWidth, UInt iHeight, UInt uiDirMode, Bool bAbove, Bool bLeft )
+{
+  Int k,l;
+  Int deltaInt, deltaFract, refMainIndex;
+  Int deltaIntSide, deltaFractSide, refSideIndex;
+  Int intraPredAngle = 0;
+  Int absAng         = 0;//abs(intraPredAngle);
+  Int signAng        = 0;//intraPredAngle < 0 ? -1 : 1;
+  Int blkSize        = iWidth;
+  Int blkSizeHalf    = iWidth >> 1;
+  Int bitShift;
+  Bool modeDC        = false;
+  Bool modeVer       = false;
+  Bool modeHor       = false;
+  Pel* pDst          = rpDst;
+  Int* ptrSrc        = pSrc;
+  Pel  refAbove[2*MAX_CU_SIZE+1];
+  Pel  refLeft[2*MAX_CU_SIZE+1];
+
+  // Map the mode index to main prediction direction and angle
+  if (uiDirMode == 0)
+    modeDC = true;
+  else if (uiDirMode < 18)
+    modeVer = true;
+  else
+    modeHor = true;
+
+  intraPredAngle = modeVer ? uiDirMode - 9 : modeHor ? uiDirMode - 25 : 0;
+  absAng         = abs(intraPredAngle);
+  signAng        = intraPredAngle < 0 ? -1 : 1;
+
+  // Set bitshifts and scale the angle parameter to block size
+  switch (blkSize)
+  {
+  case 4:   bitShift = 2; absAng = absAng >> 1; break;
+  case 8:   bitShift = 3; absAng = absAng << 0; break;
+  case 16:  bitShift = 4; absAng = absAng << 1; break;
+  case 32:  bitShift = 5; absAng = absAng << 2; break;
+  case 64:  bitShift = 6; absAng = absAng << 3; break;
+  case 128: bitShift = 7; absAng = absAng << 4; break;
+  default: break;
+  }
+
+  intraPredAngle = signAng * absAng;
+
+  // Do the DC prediction
+  if (modeDC)
+  {
+    Pel dcval = predIntraGetPredValDC(pSrc, iSrcStride, iWidth, iHeight, bAbove, bLeft);
+
+    for (k=0;k<blkSize;k++){
+      for (l=0;l<blkSize;l++){
+        pDst[k*iDstStride+l] = dcval;
+      }
+    }
+  }
+
+  // Do angular predictions
+  else
+  {
+    Pel  tmp;
+    Pel* refMain;
+    Pel* refSide;
+
+    for (k=0;k<2*blkSize+1;k++)
+      refAbove[k] = pSrc[k-iSrcStride-1];
+    for (k=0;k<2*blkSize+1;k++)
+      refLeft[k] = pSrc[(k-1)*iSrcStride-1];
+
+    refMain = modeVer ? refAbove : refLeft;
+    refSide = modeVer ? refLeft  : refAbove;
+
+    if (intraPredAngle == 0){
+      for (k=0;k<blkSize;k++){
+        for (l=0;l<blkSize;l++){
+          pDst[k*iDstStride+l] = refMain[l+1];
+        }
+      }
+    }
+    else{
+
+      for (k=0;k<blkSize;k++){
+
+        deltaInt   = ((k+1)*intraPredAngle) >> bitShift;
+        deltaFract = ((k+1)*absAng) % blkSize;
+
+        if (intraPredAngle < 0){
+            deltaFract = (blkSize - deltaFract) % blkSize;
+        }
+
+        // If the angle is positive all samples are from the main reference
+        if (intraPredAngle > 0){
+          if (deltaFract){
+            // Do linear filtering
+            for (l=0;l<blkSize;l++){
+              refMainIndex        = l+deltaInt+1;
+              pDst[k*iDstStride+l] = (Pel) ( ((blkSize-deltaFract)*refMain[refMainIndex]+deltaFract*refMain[refMainIndex+1]+blkSizeHalf) >> bitShift );
+            }
+          }
+          else{
+            // Just copy the integer samples
+            for (l=0;l<blkSize;l++){
+              pDst[k*iDstStride+l] = refMain[l+deltaInt+1];
+            }
+          }
+        }
+        else{
+          for (l=0;l<blkSize;l++){
+            refMainIndex = l+deltaInt+1;
+            if (refMainIndex >= 0)
+              pDst[k*iDstStride+l] = (Pel) ( ((blkSize-deltaFract)*refMain[refMainIndex]+deltaFract*refMain[refMainIndex+1]+blkSizeHalf) >> bitShift );
+            else{
+              // Interpolate from the side reference
+              deltaIntSide   = (blkSize*blkSize*(l+1)/absAng) >> bitShift;
+              deltaFractSide = (blkSize*blkSize*(l+1)/absAng)  % blkSize;
+              refSideIndex   = k+1-deltaIntSide;
+              if (deltaFractSide)
+                pDst[k*iDstStride+l] = (Pel) ( ((blkSize-deltaFractSide)*refSide[refSideIndex]+deltaFractSide*refSide[refSideIndex-1]+blkSizeHalf) >> bitShift );
+              else
+                pDst[k*iDstStride+l] = refSide[refSideIndex];
+            }
+          }
+        }
+      }
+    }
+
+    // Flip the block if this is the horizontal mode
+    if (modeHor){
+      for (k=0;k<blkSize-1;k++){
+        for (l=k+1;l<blkSize;l++){
+          tmp                  = pDst[k*iDstStride+l];
+          pDst[k*iDstStride+l] = pDst[l*iDstStride+k];
+          pDst[l*iDstStride+k] = tmp;
+        }
+      }
+    }
+  }
+}
+
+#if HHI_AIS
+Void TComPrediction::predIntraLumaAng(TComPattern* pcTComPattern, UInt uiDirMode, Bool bSmoothing, Pel* piPred, UInt uiStride, Int iWidth, Int iHeight,  TComDataCU* pcCU, Bool bAbove, Bool bLeft )
+#else
+Void TComPrediction::predIntraLumaAng(TComPattern* pcTComPattern, UInt uiDirMode, Pel* piPred, UInt uiStride, Int iWidth, Int iHeight,  TComDataCU* pcCU, Bool bAbove, Bool bLeft )
+#endif
+{
+  Pel *pDst = piPred;
+  Int *ptrSrc;
+
+  // get intra direction
+  Int iIntraSizeIdx = g_aucConvertToBit[ iWidth ] + 1;
+
+  assert( iIntraSizeIdx >= 1 ); //   4x  4
+  assert( iIntraSizeIdx <= 6 ); // 128x128
+  assert( iWidth == iHeight  );
+
+  // Unfiltered buffer for DC prediction, once filtered for the rest of the modes (if not disabled by AIS)
+  if( uiDirMode == 2 )
+    ptrSrc = pcTComPattern->getAdiOrgBuf( iWidth, iHeight, m_piYuvExt );
+#if HHI_AIS
+  else if ( !bSmoothing )
+    ptrSrc = pcTComPattern->getAdiOrgBuf( iWidth, iHeight, m_piYuvExt );
+#endif
+  else
+    ptrSrc = pcTComPattern->getAdiFilteredBuf1( iWidth, iHeight, m_piYuvExt );
+
+  // get starting pixel in block
+  Int sw = ( iWidth<<1 ) + 1;
+
+  // get converted direction
+  uiDirMode = g_aucAngIntraModeOrder[ uiDirMode ];
+
+  // Create the prediction
+  xPredIntraAng( ptrSrc+sw+1, sw, pDst, uiStride, iWidth, iHeight, uiDirMode, bAbove,  bLeft );
+}
+
+// Angular chroma
+Void TComPrediction::predIntraChromaAng( TComPattern* pcTComPattern, Int* piSrc, UInt uiDirMode, Pel* piPred, UInt uiStride, Int iWidth, Int iHeight, TComDataCU* pcCU, Bool bAbove, Bool bLeft )
+{
+  Pel *pDst = piPred;
+  Int *ptrSrc = piSrc;
+
+  // get starting pixel in block
+  Int sw = ( iWidth<<1 ) + 1;
+
+  // get converted direction
+  uiDirMode = g_aucAngIntraModeOrder[ uiDirMode ];
+
+  // Create the prediction
+  xPredIntraAng( ptrSrc+sw+1, sw, pDst, uiStride, iWidth, iHeight, uiDirMode, bAbove,  bLeft );
+}
+
+#endif
+
+
 // ADI luma
 #if HHI_AIS
 Void TComPrediction::predIntraLumaAdi(TComPattern* pcTComPattern, UInt uiDirMode, Bool bSmoothing, Pel* piPred, UInt uiStride, Int iWidth, Int iHeight,  TComDataCU* pcCU, Bool bAbove, Bool bLeft )
@@ -585,6 +891,12 @@ Void TComPrediction::xPredInterUni ( TComDataCU* pcCU, UInt uiPartAddr, Int iWid
 
   switch ( ePFilt )
   {
+#if TEN_DIRECTIONAL_INTERP
+  case IPF_TEN_DIF:
+    xPredInterLumaBlk_TEN   ( pcCU, pcCU->getSlice()->getRefPic( eRefPicList, iRefIdx )->getPicYuvRec()    , uiPartAddr, &cMv, iWidth, iHeight, rpcYuvPred );
+    xPredInterChromaBlk_TEN ( pcCU, pcCU->getSlice()->getRefPic( eRefPicList, iRefIdx )->getPicYuvRec()    , uiPartAddr, &cMv, iWidth, iHeight, rpcYuvPred );
+    break;
+#endif
   case IPF_HHI_4TAP_MOMS:
   case IPF_HHI_6TAP_MOMS:
     predInterLumaBlkMOMS    ( pcCU, pcCU->getSlice()->getRefPic( eRefPicList, iRefIdx )->getPicYuvRecFilt(), uiPartAddr, &cMv, iWidth, iHeight, rpcYuvPred, ePFilt );
@@ -969,6 +1281,414 @@ Void TComPrediction::xPredInterChromaBlk( TComDataCU* pcCU, TComPicYuv* pcPicYuv
     }
   }
 }
+
+#if TEN_DIRECTIONAL_INTERP
+Void  TComPrediction::xPredInterLumaBlk_TEN( TComDataCU* pcCU, TComPicYuv* pcPicYuvRef, UInt uiPartAddr, TComMv* pcMv, Int iWidth, Int iHeight, TComYuv*& rpcYuv )
+{
+  Int     iRefStride = pcPicYuvRef->getStride();
+  Int     iDstStride = rpcYuv->getStride();
+
+  Int     iRefOffset = ( pcMv->getHor() >> 2 ) + ( pcMv->getVer() >> 2 ) * iRefStride;
+  Pel*    piRefY     = pcPicYuvRef->getLumaAddr( pcCU->getAddr(), pcCU->getZorderIdxInCU() + uiPartAddr ) + iRefOffset;
+
+  Int     ixFrac  = pcMv->getHor() & 0x3;
+  Int     iyFrac  = pcMv->getVer() & 0x3;
+
+  Pel* piDstY = rpcYuv->getLumaAddr( uiPartAddr );
+
+  xCTI_FilterDIF_TEN ( piRefY, iRefStride, 1, iWidth, iHeight, iDstStride, 1, piDstY, iyFrac, ixFrac);
+  return;
+}
+
+Void TComPrediction::xPredInterChromaBlk_TEN( TComDataCU* pcCU, TComPicYuv* pcPicYuvRef, UInt uiPartAddr, TComMv* pcMv, Int iWidth, Int iHeight, TComYuv*& rpcYuv )
+{
+  Int     iRefStride  = pcPicYuvRef->getCStride();
+  Int     iDstStride  = rpcYuv->getCStride();
+
+  Int     iRefOffset  = (pcMv->getHor() >> 3) + (pcMv->getVer() >> 3) * iRefStride;
+
+  Pel*    piRefCb     = pcPicYuvRef->getCbAddr( pcCU->getAddr(), pcCU->getZorderIdxInCU() + uiPartAddr ) + iRefOffset;
+  Pel*    piRefCr     = pcPicYuvRef->getCrAddr( pcCU->getAddr(), pcCU->getZorderIdxInCU() + uiPartAddr ) + iRefOffset;
+
+  Pel* piDstCb = rpcYuv->getCbAddr( uiPartAddr );
+  Pel* piDstCr = rpcYuv->getCrAddr( uiPartAddr );
+
+  Int     ixFrac  = ((pcMv->getHor()>>1) & 0x3)<<1;
+  Int     iyFrac  = ((pcMv->getVer()>>1) & 0x3)<<1;
+
+  Int     x, y;
+  UInt    uiCWidth  = iWidth  >> 1;
+  UInt    uiCHeight = iHeight >> 1;
+
+  Pel tmp,tmp1,tmp2;
+  Pel* piNextRefCb;
+  Pel* piNextRefCr;
+
+  Pel* piRefCbP1;
+  Pel* piNextRefCbP1;
+  Pel* piRefCrP1;
+  Pel* piNextRefCrP1;
+
+  // Integer resolution
+  if ( iyFrac == 0 && ixFrac == 0 )
+  {
+    for ( y = 0; y < uiCHeight; y++ )
+    {
+      ::memcpy(piDstCb, piRefCb, sizeof(Pel)*uiCWidth);
+      ::memcpy(piDstCr, piRefCr, sizeof(Pel)*uiCWidth);
+      piDstCb += iDstStride;
+      piDstCr += iDstStride;
+      piRefCb += iRefStride;
+      piRefCr += iRefStride;
+    }
+
+  }
+
+  /* Half pixel positions */
+  else if ( iyFrac == 0 && ixFrac == 4)
+  {
+    for ( y = 0; y < uiCHeight; y++ )
+    {
+      piRefCbP1= piRefCb + 1;
+      piRefCrP1= piRefCr + 1;
+      for ( x = 0; x < uiCWidth; x++ )
+      {
+        piDstCb[x] = (piRefCb[x] + piRefCbP1[x] + 0) >> 1;
+        piDstCr[x] = (piRefCr[x] + piRefCrP1[x] + 0) >> 1;
+      }
+      piDstCb += iDstStride;
+      piDstCr += iDstStride;
+      piRefCb += iRefStride;
+      piRefCr += iRefStride;
+    }
+  }
+  else if ( iyFrac == 4 && ixFrac == 0)
+  {
+    for ( y = 0; y < uiCHeight; y++ )
+    {
+        piNextRefCb = piRefCb + iRefStride;
+        piNextRefCr = piRefCr + iRefStride;
+        for ( x = 0; x < uiCWidth; x++ )
+        {
+          piDstCb[x] = (piRefCb[x] + piNextRefCb[x] + 0) >> 1;
+          piDstCr[x] = (piRefCr[x] + piNextRefCr[x] + 0) >> 1;
+        }
+        piDstCb += iDstStride;
+        piDstCr += iDstStride;
+        piRefCb += iRefStride;
+        piRefCr += iRefStride;
+    }
+  }
+  else if ( iyFrac == 4 && ixFrac == 4)
+  {
+    for ( y = 0; y < uiCHeight; y++ )
+    {
+        piRefCbP1 = piRefCb + 1;
+        piRefCrP1 = piRefCr + 1;
+        piNextRefCb = piRefCb + iRefStride;
+        piNextRefCr = piRefCr + iRefStride;
+        for ( x = 0; x < uiCWidth; x++ )
+        {
+          piDstCb[x] = (piRefCbP1[x] + piNextRefCb[x] + 0) >> 1;
+          piDstCr[x] = (piRefCrP1[x] + piNextRefCr[x] + 0) >> 1;
+        }
+        piDstCb += iDstStride;
+        piDstCr += iDstStride;
+        piRefCb += iRefStride;
+        piRefCr += iRefStride;
+    }
+  }
+
+  //Horizontally aligned quarter pixel positions
+
+  else if ( iyFrac == 0 && ixFrac == 2)
+  {
+    for ( y = 0; y < uiCHeight; y++ )
+    {
+      piRefCbP1= piRefCb + 1;
+      piRefCrP1= piRefCr + 1;
+      for ( x = 0; x < uiCWidth; x++ )
+      {
+        tmp = (piRefCb[x] + piRefCbP1[x] + 0) >> 1;
+        piDstCb[x] = (piRefCb[x] + tmp + 1) >> 1;
+        tmp = (piRefCr[x] + piRefCrP1[x] + 0) >> 1;
+        piDstCr[x] = (piRefCr[x] + tmp + 1) >> 1;
+      }
+      piDstCb += iDstStride;
+      piDstCr += iDstStride;
+      piRefCb += iRefStride;
+      piRefCr += iRefStride;
+    }
+  }
+  else if ( iyFrac == 0 && ixFrac == 6)
+  {
+    for ( y = 0; y < uiCHeight; y++ )
+    {
+      piRefCbP1= piRefCb + 1;
+      piRefCrP1= piRefCr + 1;
+      for ( x = 0; x < uiCWidth; x++ )
+      {
+        tmp = (piRefCb[x] + piRefCbP1[x] + 0) >> 1;
+        piDstCb[x] = (piRefCbP1[x] + tmp + 1) >> 1;
+        tmp = (piRefCr[x] + piRefCrP1[x] + 0) >> 1;
+        piDstCr[x] = (piRefCrP1[x] + tmp + 1) >> 1;
+      }
+      piDstCb += iDstStride;
+      piDstCr += iDstStride;
+      piRefCb += iRefStride;
+      piRefCr += iRefStride;
+    }
+  }
+
+  //Vertically aligned quarter pixel positions
+
+  else if ( iyFrac == 2 && ixFrac == 0)
+  {
+    for ( y = 0; y < uiCHeight; y++ )
+    {
+      piNextRefCb = piRefCb + iRefStride;
+      piNextRefCr = piRefCr + iRefStride;
+      for ( x = 0; x < uiCWidth; x++ )
+      {
+        tmp = (piRefCb[x] + piNextRefCb[x] + 0) >> 1;
+        piDstCb[x] = (piRefCb[x] + tmp + 1) >> 1;
+        tmp = (piRefCr[x] + piNextRefCr[x] + 0) >> 1;
+        piDstCr[x] = (piRefCr[x] + tmp + 1) >> 1;
+      }
+      piDstCb += iDstStride;
+      piDstCr += iDstStride;
+      piRefCb += iRefStride;
+      piRefCr += iRefStride;
+    }
+  }
+  else if ( iyFrac == 6 && ixFrac == 0)
+  {
+    for ( y = 0; y < uiCHeight; y++ )
+    {
+      piNextRefCb = piRefCb + iRefStride;
+      piNextRefCr = piRefCr + iRefStride;
+      for ( x = 0; x < uiCWidth; x++ )
+      {
+        tmp = (piRefCb[x] + piNextRefCb[x] + 0) >> 1;
+        piDstCb[x] = (piNextRefCb[x] + tmp + 1) >> 1;
+        tmp = (piRefCr[x] + piNextRefCr[x] + 0) >> 1;
+        piDstCr[x] = (piNextRefCr[x] + tmp + 1) >> 1;
+      }
+      piDstCb += iDstStride;
+      piDstCr += iDstStride;
+      piRefCb += iRefStride;
+      piRefCr += iRefStride;
+    }
+  }
+
+  //Innermost quarter pixel positions
+
+  else if ( iyFrac == 2 && ixFrac == 2)
+  {
+    for ( y = 0; y < uiCHeight; y++ )
+    {
+      piNextRefCb = piRefCb + iRefStride;
+      piNextRefCr = piRefCr + iRefStride;
+      piRefCbP1= piRefCb + 1;
+      piNextRefCbP1 = piNextRefCb + 1;
+      piRefCrP1= piRefCr + 1;
+      piNextRefCrP1 = piNextRefCr + 1;
+      for ( x = 0; x < uiCWidth; x++ )
+      {
+        tmp1 = (piRefCb[x] + piRefCbP1[x] + 0) >> 1;
+        tmp2 = (piRefCb[x] + piNextRefCb[x] + 0) >> 1;
+        piDstCb[x] = (tmp1 + tmp2 + 1) >> 1;
+        tmp1 = (piRefCr[x] + piRefCrP1[x] + 0) >> 1;
+        tmp2 = (piRefCr[x] + piNextRefCr[x] + 0) >> 1;
+        piDstCr[x] = (tmp1 + tmp2 + 1) >> 1;
+      }
+      piDstCb += iDstStride;
+      piDstCr += iDstStride;
+      piRefCb += iRefStride;
+      piRefCr += iRefStride;
+    }
+  }
+  else if ( iyFrac == 2 && ixFrac == 4)
+  {
+    for ( y = 0; y < uiCHeight; y++ )
+    {
+      piNextRefCb = piRefCb + iRefStride;
+      piNextRefCr = piRefCr + iRefStride;
+      piRefCbP1= piRefCb + 1;
+      piNextRefCbP1 = piNextRefCb + 1;
+      piRefCrP1= piRefCr + 1;
+      piNextRefCrP1 = piNextRefCr + 1;
+      for ( x = 0; x < uiCWidth; x++ )
+      {
+        tmp1 = (piRefCb[x] + piRefCbP1[x] + 0) >> 1;
+        tmp2 = (piRefCbP1[x] + piNextRefCb[x] + 0) >> 1;
+        piDstCb[x] = (tmp1 + tmp2 + 1) >> 1;
+        tmp1 = (piRefCr[x] + piRefCrP1[x] + 0) >> 1;
+        tmp2 = (piRefCrP1[x] + piNextRefCr[x] + 0) >> 1;
+        piDstCr[x] = (tmp1 + tmp2 + 1) >> 1;
+      }
+      piDstCb += iDstStride;
+      piDstCr += iDstStride;
+      piRefCb += iRefStride;
+      piRefCr += iRefStride;
+    }
+  }
+  else if ( iyFrac == 2 && ixFrac == 6)
+  {
+    for ( y = 0; y < uiCHeight; y++ )
+    {
+      piNextRefCb = piRefCb + iRefStride;
+      piNextRefCr = piRefCr + iRefStride;
+      piRefCbP1= piRefCb + 1;
+      piNextRefCbP1 = piNextRefCb + 1;
+      piRefCrP1= piRefCr + 1;
+      piNextRefCrP1 = piNextRefCr + 1;
+      for ( x = 0; x < uiCWidth; x++ )
+      {
+        tmp1 = (piRefCb[x] + piRefCbP1[x] + 0) >> 1;
+        tmp2 = (piRefCbP1[x] + piNextRefCbP1[x] + 0) >> 1;
+        piDstCb[x] = (tmp1 + tmp2 + 1) >> 1;
+        tmp1 = (piRefCr[x] + piRefCrP1[x] + 0) >> 1;
+        tmp2 = (piRefCrP1[x] + piNextRefCrP1[x] + 0) >> 1;
+        piDstCr[x] = (tmp1 + tmp2 + 1) >> 1;
+      }
+      piDstCb += iDstStride;
+      piDstCr += iDstStride;
+      piRefCb += iRefStride;
+      piRefCr += iRefStride;
+    }
+  }
+  else if ( iyFrac == 4 && ixFrac == 2)
+  {
+    for ( y = 0; y < uiCHeight; y++ )
+    {
+      piNextRefCb = piRefCb + iRefStride;
+      piNextRefCr = piRefCr + iRefStride;
+      piRefCbP1= piRefCb + 1;
+      piNextRefCbP1 = piNextRefCb + 1;
+      piRefCrP1= piRefCr + 1;
+      piNextRefCrP1 = piNextRefCr + 1;
+      for ( x = 0; x < uiCWidth; x++ )
+      {
+        tmp1 = (piRefCb[x] + piNextRefCb[x] + 0) >> 1;
+        tmp2 = (piRefCbP1[x] + piNextRefCb[x] + 0) >> 1;
+        piDstCb[x] = (tmp1 + tmp2 + 1) >> 1;
+        tmp1 = (piRefCr[x] + piNextRefCr[x] + 0) >> 1;
+        tmp2 = (piRefCrP1[x] + piNextRefCr[x] + 0) >> 1;
+        piDstCr[x] = (tmp1 + tmp2 + 1) >> 1;
+      }
+      piDstCb += iDstStride;
+      piDstCr += iDstStride;
+      piRefCb += iRefStride;
+      piRefCr += iRefStride;
+    }
+  }
+  else if ( iyFrac == 4 && ixFrac == 6)
+  {
+    for ( y = 0; y < uiCHeight; y++ )
+    {
+      piNextRefCb = piRefCb + iRefStride;
+      piNextRefCr = piRefCr + iRefStride;
+      piRefCbP1= piRefCb + 1;
+      piNextRefCbP1 = piNextRefCb + 1;
+      piRefCrP1= piRefCr + 1;
+      piNextRefCrP1 = piNextRefCr + 1;
+      for ( x = 0; x < uiCWidth; x++ )
+      {
+        tmp1 = (piRefCbP1[x] + piNextRefCbP1[x] + 0) >> 1;
+        tmp2 = (piRefCbP1[x] + piNextRefCb[x] + 0) >> 1;
+        piDstCb[x] = (tmp1 + tmp2 + 1) >> 1;
+        tmp1 = (piRefCrP1[x] + piNextRefCrP1[x] + 0) >> 1;
+        tmp2 = (piRefCrP1[x] + piNextRefCr[x] + 0) >> 1;
+        piDstCr[x] = (tmp1 + tmp2 + 1) >> 1;
+      }
+      piDstCb += iDstStride;
+      piDstCr += iDstStride;
+      piRefCb += iRefStride;
+      piRefCr += iRefStride;
+    }
+  }
+  else if ( iyFrac == 6 && ixFrac == 2)
+  {
+    for ( y = 0; y < uiCHeight; y++ )
+    {
+      piNextRefCb = piRefCb + iRefStride;
+      piNextRefCr = piRefCr + iRefStride;
+      piRefCbP1= piRefCb + 1;
+      piNextRefCbP1 = piNextRefCb + 1;
+      piRefCrP1= piRefCr + 1;
+      piNextRefCrP1 = piNextRefCr + 1;
+      for ( x = 0; x < uiCWidth; x++ )
+      {
+        tmp1 = (piNextRefCb[x] + piNextRefCbP1[x] + 0) >> 1;
+        tmp2 = (piRefCb[x] + piNextRefCb[x] + 0) >> 1;
+        piDstCb[x] = (tmp1 + tmp2 + 1) >> 1;
+        tmp1 = (piNextRefCr[x] + piNextRefCrP1[x] + 0) >> 1;
+        tmp2 = (piRefCr[x] + piNextRefCr[x] + 0) >> 1;
+        piDstCr[x] = (tmp1 + tmp2 + 1) >> 1;
+      }
+      piDstCb += iDstStride;
+      piDstCr += iDstStride;
+      piRefCb += iRefStride;
+      piRefCr += iRefStride;
+    }
+  }
+  else if ( iyFrac == 6 && ixFrac == 4)
+  {
+    for ( y = 0; y < uiCHeight; y++ )
+    {
+      piNextRefCb = piRefCb + iRefStride;
+      piNextRefCr = piRefCr + iRefStride;
+      piRefCbP1= piRefCb + 1;
+      piNextRefCbP1 = piNextRefCb + 1;
+      piRefCrP1= piRefCr + 1;
+      piNextRefCrP1 = piNextRefCr + 1;
+      for ( x = 0; x < uiCWidth; x++ )
+      {
+        tmp1 = (piNextRefCb[x] + piNextRefCbP1[x] + 0) >> 1;
+        tmp2 = (piRefCbP1[x] + piNextRefCb[x] + 0) >> 1;
+        piDstCb[x] = (tmp1 + tmp2 + 1) >> 1;
+        tmp1 = (piNextRefCr[x] + piNextRefCrP1[x] + 0) >> 1;
+        tmp2 = (piRefCrP1[x] + piNextRefCr[x] + 0) >> 1;
+        piDstCr[x] = (tmp1 + tmp2 + 1) >> 1;
+      }
+      piDstCb += iDstStride;
+      piDstCr += iDstStride;
+      piRefCb += iRefStride;
+      piRefCr += iRefStride;
+    }
+  }
+  else if ( iyFrac == 6 && ixFrac == 6)
+  {
+    for ( y = 0; y < uiCHeight; y++ )
+    {
+      piNextRefCb = piRefCb + iRefStride;
+      piNextRefCr = piRefCr + iRefStride;
+      piRefCbP1= piRefCb + 1;
+      piNextRefCbP1 = piNextRefCb + 1;
+      piRefCrP1= piRefCr + 1;
+      piNextRefCrP1 = piNextRefCr + 1;
+      for ( x = 0; x < uiCWidth; x++ )
+      {
+        tmp1 = (piNextRefCb[x] + piNextRefCbP1[x] + 0) >> 1;
+        tmp2 = (piRefCbP1[x] + piNextRefCbP1[x] + 0) >> 1;
+        piDstCb[x] = (tmp1 + tmp2 + 1) >> 1;
+        tmp1 = (piNextRefCr[x] + piNextRefCrP1[x] + 0) >> 1;
+        tmp2 = (piRefCrP1[x] + piNextRefCrP1[x] + 0) >> 1;
+        piDstCr[x] = (tmp1 + tmp2 + 1) >> 1;
+      }
+      piDstCb += iDstStride;
+      piDstCr += iDstStride;
+      piRefCb += iRefStride;
+      piRefCr += iRefStride;
+    }
+  }
+  else
+  {
+    printf("Error in chroma interpolation: iyFrac=%4d ixFrac=%4d\n",iyFrac,ixFrac);
+  }
+}
+#endif
 
 Void TComPrediction::xWeightedAverage( TComDataCU* pcCU, TComYuv* pcYuvSrc0, TComYuv* pcYuvSrc1, Int iRefIdx0, Int iRefIdx1, UInt uiPartIdx, Int iWidth, Int iHeight, TComYuv*& rpcYuvDst )
 {

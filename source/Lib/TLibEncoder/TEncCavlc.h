@@ -91,6 +91,11 @@ protected:
 
   UInt  xConvertToUInt        ( Int iValue ) {  return ( iValue <= 0) ? -iValue<<1 : (iValue<<1)-1; }
 
+#if PLANAR_INTRA
+  Void xPutPlanarVlc          ( Int n, Int cn );
+  Void xCodePlanarDelta       ( TComDataCU* pcCU, UInt uiAbsPartIdx , Int iDelta );
+#endif
+
 public:
 
   Void  resetEntropy          ();
@@ -136,6 +141,10 @@ public:
   Void codePartSize      ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
   Void codePredMode      ( TComDataCU* pcCU, UInt uiAbsPartIdx );
 
+#if PLANAR_INTRA
+  Void codePlanarInfo    ( TComDataCU* pcCU, UInt uiAbsPartIdx );
+#endif
+
 #if HHI_RQT
   Void codeTransformSubdivFlag( UInt uiSymbol, UInt uiCtx );
   Void codeQtCbf         ( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eType, UInt uiTrDepth );
@@ -143,6 +152,9 @@ public:
 
   Void codeTransformIdx  ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
   Void codeIntraDirLumaAdi( TComDataCU* pcCU, UInt uiAbsPartIdx );
+#if ANG_INTRA
+  Void codeIntraDirLumaAng( TComDataCU* pcCU, UInt uiAbsPartIdx );
+#endif
 
 #if HHI_AIS
   Void codeIntraFiltFlagLumaAdi( TComDataCU* pcCU, UInt uiAbsPartIdx );

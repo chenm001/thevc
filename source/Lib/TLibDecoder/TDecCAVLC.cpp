@@ -627,6 +627,120 @@ Void TDecCavlc::parsePredMode( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth
   pcCU->setPredModeSubParts( (PredMode)iPredMode, uiAbsPartIdx, uiDepth );
 }
 
+#if PLANAR_INTRA
+// Temporary VLC function
+UInt TDecCavlc::xParsePlanarVlc( )
+{
+  Bool bDone    = false;
+  UInt uiZeroes = 0;
+  UInt uiBit;
+  UInt uiCodeword;
+
+  while (!bDone)
+  {
+    xReadFlag( uiBit );
+
+    if ( uiBit )
+    {
+      xReadFlag( uiCodeword );
+      bDone = true;
+    }
+    else
+      uiZeroes++;
+  }
+
+  return ( ( uiZeroes << 1 ) + uiCodeword );
+}
+
+Int TDecCavlc::xParsePlanarDelta( TextType ttText )
+{
+  /* Planar quantization
+  Y        qY              cW
+  0-3   :  0,1,2,3         0-3
+  4-15  :  4,6,8..14       4-9
+  16-63 : 18,22,26..62    10-21
+  64-.. : 68,76...        22-
+  */
+  UInt bDeltaNegative = 0;
+  Int  iDelta         = xParsePlanarVlc();
+
+  if( iDelta > 21 )
+    iDelta = ( ( iDelta - 14 ) << 3 ) + 4;
+  else if( iDelta > 9 )
+    iDelta = ( ( iDelta - 6 ) << 2 ) + 2;
+  else if( iDelta > 3 )
+    iDelta = ( iDelta - 2 ) << 1;
+
+  if( iDelta > 0 )
+  {
+    xReadFlag( bDeltaNegative );
+
+    if( bDeltaNegative )
+      iDelta = -iDelta;
+  }
+
+  return iDelta;
+}
+
+Void TDecCavlc::parsePlanarInfo( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
+{
+  UInt uiSymbol;
+
+  xReadFlag( uiSymbol );
+
+  if ( uiSymbol )
+  {
+    Int iPlanarFlag   = 1;
+    Int iPlanarDeltaY = xParsePlanarDelta( TEXT_LUMA );
+    Int iPlanarDeltaU = 0;
+    Int iPlanarDeltaV = 0;
+
+    xReadFlag( uiSymbol );
+
+    if ( !uiSymbol )
+    {
+      iPlanarDeltaU = xParsePlanarDelta( TEXT_CHROMA_U );
+      iPlanarDeltaV = xParsePlanarDelta( TEXT_CHROMA_V );
+    }
+
+    pcCU->setPartSizeSubParts  ( SIZE_2Nx2N, uiAbsPartIdx, uiDepth );
+    pcCU->setSizeSubParts      ( g_uiMaxCUWidth>>uiDepth, g_uiMaxCUHeight>>uiDepth, uiAbsPartIdx, uiDepth );
+    pcCU->setPlanarInfoSubParts( iPlanarFlag, iPlanarDeltaY, iPlanarDeltaU, iPlanarDeltaV, uiAbsPartIdx, uiDepth );
+  }
+}
+#endif
+
+#if ANG_INTRA
+Void TDecCavlc::parseIntraDirLumaAng  ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
+{
+  UInt uiSymbol;
+  Int  uiIPredMode;
+  Int  iMostProbable = pcCU->getMostProbableIntraDirLuma( uiAbsPartIdx );
+
+  xReadFlag( uiSymbol );
+
+  if ( uiSymbol )
+    uiIPredMode = iMostProbable;
+  else{
+    xReadFlag( uiSymbol ); uiIPredMode  = uiSymbol;
+    xReadFlag( uiSymbol ); uiIPredMode |= uiSymbol << 1;
+    xReadFlag( uiSymbol ); uiIPredMode |= uiSymbol << 2;
+    xReadFlag( uiSymbol ); uiIPredMode |= uiSymbol << 3;
+    xReadFlag( uiSymbol ); uiIPredMode |= uiSymbol << 4;
+
+    if (uiIPredMode == 31){ // Escape coding for the last two modes
+      xReadFlag( uiSymbol );
+      uiIPredMode = uiSymbol ? 32 : 31;
+    }
+
+    if (uiIPredMode >= iMostProbable)
+      uiIPredMode++;
+  }
+
+  pcCU->setLumaIntraDirSubParts( (UChar)uiIPredMode, uiAbsPartIdx, uiDepth );
+}
+#endif
+
 Void TDecCavlc::parseIntraDirLumaAdi  ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
 {
   UInt uiSymbol;

@@ -130,6 +130,14 @@ protected:
   /// sub-function for motion vector refinement used in fractional-pel accuracy
   UInt  xPatternRefinement( TComPattern* pcPatternKey, Pel* piRef, Int iRefStride, Int iIntStep, Int iFrac, TComMv& rcMvFrac );
 
+#if ANG_INTRA
+  Bool predIntraLumaDirAvailable( UInt uiMode, UInt uiWidthBit, Bool angIntraEnabled, Bool bAboveAvail, Bool bLeftAvail);
+#endif
+
+#if PLANAR_INTRA
+  Void xIntraPlanarRecon( TComDataCU* pcCU, UInt uiAbsPartIdx, Pel* piOrg, Pel* piPred, Pel* piResi, Pel* piReco, UInt uiStride, TCoeff* piCoeff, UInt uiWidth, UInt uiHeight, UInt uiCurrDepth, TextType eText );
+#endif
+
   typedef struct
   {
     Pel*  piRefY;
@@ -156,6 +164,15 @@ public:
                                   TComYuv*&   rpcPredYuv,
                                   TComYuv*&   rpcResiYuv,
                                   TComYuv*&   rpcRecoYuv );
+
+#if PLANAR_INTRA
+  /// encoder estimation - planar intra prediction (luma & chroma)
+  Void predIntraPlanarSearch    ( TComDataCU* pcCU,
+                                  TComYuv*    pcOrgYuv,
+                                  TComYuv*&   rpcPredYuv,
+                                  TComYuv*&   rpcResiYuv,
+                                  TComYuv*&   rpcRecoYuv );
+#endif
 
   /// encoder estimation - intra prediction (chroma)
   Void predIntraChromaAdiSearch ( TComDataCU* pcCU,
@@ -456,6 +473,27 @@ protected:
                                     Int*          piSrc,
                                     Int           iSrcStride,
                                     UInt          uiFilter  );
+
+#if TEN_DIRECTIONAL_INTERP
+  Void xPatternSearchFracDIF_TEN   ( TComDataCU*   pcCU,
+                                    TComPattern*  pcPatternKey,
+                                    Pel*          piRefY,
+                                    Int           iRefStride,
+                                    TComMv*       pcMvInt,
+                                    TComMv&       rcMvHalf,
+                                    TComMv&       rcMvQter,
+                                    UInt&         ruiCost );
+
+  Void xExtDIFUpSamplingH_TEN     ( TComPattern*  pcPattern, TComYuv* pcYuvExt  );
+  Void xExtDIFUpSamplingQ_TEN     ( TComPattern*  pcPatternKey,
+                                    Pel*          piDst,
+                                    Int           iDstStride,
+                                    Pel*          piSrcPel,
+                                    Int           iSrcPelStride,
+                                    Int*          piSrc,
+                                    Int           iSrcStride,
+                                    UInt          uiFilter  );
+#endif
 
 #if HHI_INTERP_FILTER
   Void xPatternSearchFracMOMS     ( TComDataCU*   pcCU,

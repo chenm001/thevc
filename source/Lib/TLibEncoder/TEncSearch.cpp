@@ -707,7 +707,14 @@ Void TEncSearch::xRecurIntraChromaSearchADI( TComDataCU* pcCU, UInt uiAbsPartIdx
     else // (eText==TEXT_CHROMA_V)
       pPatChr=  pcCU->getPattern()->getAdiCrBuf( uiWidth, uiHeight, m_piYuvExt );
 
+#if ANG_INTRA
+    if ( pcCU->angIntraEnabledPredPart( uiAbsPartIdx ) )
+      predIntraChromaAng( pcCU->getPattern(),pPatChr,uiMode, pPred, uiStride, uiWidth, uiHeight, pcCU, bAboveAvail, bLeftAvail );
+    else
+      predIntraChromaAdi( pcCU->getPattern(),pPatChr,uiMode, pPred, uiStride, uiWidth, uiHeight, pcCU, bAboveAvail, bLeftAvail );
+#else
     predIntraChromaAdi( pcCU->getPattern(),pPatChr,uiMode, pPred, uiStride, uiWidth, uiHeight, pcCU, bAboveAvail, bLeftAvail );
+#endif
 
     // Make residual from prediction. (MUST BE FIXED FOR EACH TRANSFORM UNIT PREDICTION)
     UChar indexROT = pcCU->getROTindex(0);
@@ -827,11 +834,29 @@ Void TEncSearch::xRecurIntraLumaSearchADI( TComDataCU* pcCU, UInt uiAbsPartIdx, 
       bAboveAvail=  bAbove;
       bLeftAvail=bLeft;
     }
+
+#if ANG_INTRA
+    if ( pcCU->angIntraEnabledPredPart( uiAbsPartIdx ) )
+#if HHI_AIS
+      predIntraLumaAng( pcCU->getPattern(), uiMode, bSmoothing, piPred, uiStride, uiWidth, uiHeight, pcCU, bAboveAvail, bLeftAvail );
+#else
+      predIntraLumaAng( pcCU->getPattern(), uiMode, piPred, uiStride, uiWidth, uiHeight, pcCU, bAboveAvail, bLeftAvail );
+#endif
+    else
+#if HHI_AIS
+      predIntraLumaAdi( pcCU->getPattern(), uiMode, bSmoothing, piPred, uiStride, uiWidth, uiHeight, pcCU, bAboveAvail, bLeftAvail );
+#else
+      predIntraLumaAdi( pcCU->getPattern(), uiMode, piPred, uiStride, uiWidth, uiHeight, pcCU, bAboveAvail, bLeftAvail );
+#endif
+
+#else // ANG_INTRA
+
 #if HHI_AIS
     predIntraLumaAdi( pcCU->getPattern(), uiMode, bSmoothing, piPred, uiStride, uiWidth, uiHeight, pcCU, bAboveAvail, bLeftAvail );
 #else
     predIntraLumaAdi( pcCU->getPattern(), uiMode, piPred, uiStride, uiWidth, uiHeight, pcCU, bAboveAvail, bLeftAvail );
 #endif
+#endif // ANG_INTRA
 
     // CIP
     if ( pcCU->getCIPflag( uiAbsPartIdx ) )
@@ -1107,6 +1132,14 @@ TEncSearch::xEncIntraHeader( TComDataCU*  pcCU,
         m_pcEntropyCoder->encodeSkipFlag( pcCU, 0, true );
         m_pcEntropyCoder->encodePredMode( pcCU, 0, true );
       }
+
+#if PLANAR_INTRA
+      m_pcEntropyCoder->encodePlanarInfo( pcCU, 0, true );
+
+      if ( pcCU->getPlanarInfo(0, PLANAR_FLAG) )
+        return;
+#endif
+
       m_pcEntropyCoder  ->encodePartSize( pcCU, 0, pcCU->getDepth(0), true );
     }
     // luma prediction mode
@@ -1223,11 +1256,28 @@ TEncSearch::xIntraCodingLumaBlk( TComDataCU* pcCU,
   pcCU->getPattern()->initAdiPattern( pcCU, uiAbsPartIdx, uiTrDepth, m_piYuvExt, m_iYuvExtStride, m_iYuvExtHeight, bAboveAvail, bLeftAvail );
 
   //===== get prediction signal =====
+#if ANG_INTRA
+  if ( pcCU->angIntraEnabledPredPart( uiAbsPartIdx ) )
+#if HHI_AIS
+    predIntraLumaAng( pcCU->getPattern(), uiLumaPredMode, bIntraSmoothing, piPred, uiStride, uiWidth, uiHeight, pcCU, bAboveAvail, bLeftAvail );
+#else
+    predIntraLumaAng( pcCU->getPattern(), uiLumaPredMode, piPred, uiStride, uiWidth, uiHeight, pcCU, bAboveAvail, bLeftAvail );
+#endif
+  else
+#if HHI_AIS
+    predIntraLumaAdi( pcCU->getPattern(), uiLumaPredMode, bIntraSmoothing, piPred, uiStride, uiWidth, uiHeight, pcCU, bAboveAvail, bLeftAvail );
+#else
+    predIntraLumaAdi( pcCU->getPattern(), uiLumaPredMode, piPred, uiStride, uiWidth, uiHeight, pcCU, bAboveAvail, bLeftAvail );
+#endif
+
+#else // ANG_INTRA
+
 #if HHI_AIS
   predIntraLumaAdi( pcCU->getPattern(), uiLumaPredMode, bIntraSmoothing, piPred, uiStride, uiWidth, uiHeight, pcCU, bAboveAvail, bLeftAvail );
 #else
   predIntraLumaAdi( pcCU->getPattern(), uiLumaPredMode, piPred, uiStride, uiWidth, uiHeight, pcCU, bAboveAvail, bLeftAvail );
 #endif
+#endif // ANG_INTRA
 
   //===== get residual signal =====
   if( pcCU->getCIPflag( uiAbsPartIdx ) )
@@ -1395,10 +1445,17 @@ TEncSearch::xIntraCodingChromaBlk( TComDataCU* pcCU,
 
   //===== update chroma mode =====
   if( uiChromaPredMode == 4 )
+#if ANG_INTRA
+  {
+    UInt    uiIntraIdx        = pcCU->getIntraSizeIdx( 0 );
+    uiChromaPredMode          = pcCU->angIntraEnabledPredPart( 0 ) ? pcCU->getLumaIntraDir( 0 ) : g_aucIntraModeOrder[ uiIntraIdx ][ pcCU->getLumaIntraDir( 0 ) ];
+  }
+#else
   {
     UInt    uiIntraIdx        = pcCU->getIntraSizeIdx( 0 );
     uiChromaPredMode          = g_aucIntraModeOrder[ uiIntraIdx ][ pcCU->getLumaIntraDir( 0 ) ];
   }
+#endif
 
   //===== init availability pattern =====
   Bool  bAboveAvail = false;
@@ -1408,7 +1465,14 @@ TEncSearch::xIntraCodingChromaBlk( TComDataCU* pcCU,
   Int*  pPatChroma  = ( uiChromaId > 0 ? pcCU->getPattern()->getAdiCrBuf( uiWidth, uiHeight, m_piYuvExt ) : pcCU->getPattern()->getAdiCbBuf( uiWidth, uiHeight, m_piYuvExt ) );
 
   //===== get prediction signal =====
+#if ANG_INTRA
+  if ( pcCU->angIntraEnabledPredPart( 0 ) )
+    predIntraChromaAng( pcCU->getPattern(), pPatChroma, uiChromaPredMode, piPred, uiStride, uiWidth, uiHeight, pcCU, bAboveAvail, bLeftAvail );
+  else
+    predIntraChromaAdi( pcCU->getPattern(), pPatChroma, uiChromaPredMode, piPred, uiStride, uiWidth, uiHeight, pcCU, bAboveAvail, bLeftAvail );
+#else
   predIntraChromaAdi( pcCU->getPattern(), pPatChroma, uiChromaPredMode, piPred, uiStride, uiWidth, uiHeight, pcCU, bAboveAvail, bLeftAvail );
+#endif
 
   //===== get residual signal =====
   {
@@ -1859,8 +1923,20 @@ TEncSearch::preestChromaPredMode( TComDataCU* pcCU,
   for( UInt uiMode  = uiMinMode; uiMode < uiMaxMode; uiMode++ )
   {
     //--- get prediction ---
+#if ANG_INTRA
+    if( pcCU->angIntraEnabledPredPart( 0 ) ){
+      predIntraChromaAng( pcCU->getPattern(), pPatChromaU, uiMode, piPredU, uiStride, uiWidth, uiHeight, pcCU, bAboveAvail, bLeftAvail );
+      predIntraChromaAng( pcCU->getPattern(), pPatChromaV, uiMode, piPredV, uiStride, uiWidth, uiHeight, pcCU, bAboveAvail, bLeftAvail );
+    }
+    else{
+      predIntraChromaAdi( pcCU->getPattern(), pPatChromaU, uiMode, piPredU, uiStride, uiWidth, uiHeight, pcCU, bAboveAvail, bLeftAvail );
+      predIntraChromaAdi( pcCU->getPattern(), pPatChromaV, uiMode, piPredV, uiStride, uiWidth, uiHeight, pcCU, bAboveAvail, bLeftAvail );
+    }
+#else
     predIntraChromaAdi( pcCU->getPattern(), pPatChromaU, uiMode, piPredU, uiStride, uiWidth, uiHeight, pcCU, bAboveAvail, bLeftAvail );
     predIntraChromaAdi( pcCU->getPattern(), pPatChromaV, uiMode, piPredV, uiStride, uiWidth, uiHeight, pcCU, bAboveAvail, bLeftAvail );
+#endif
+
     //--- get SAD ---
     UInt  uiSAD  = m_pcRdCost->calcHAD( piOrgU, uiStride, piPredU, uiStride, uiWidth, uiHeight );
     uiSAD       += m_pcRdCost->calcHAD( piOrgV, uiStride, piPredV, uiStride, uiWidth, uiHeight );
@@ -1898,6 +1974,9 @@ TEncSearch::estIntraPredQT( TComDataCU* pcCU,
   Bool    bAISEnabled    = pcCU->getSlice()->getSPS()->getUseAIS();
   Bool    bDefaultIS     = ( bAISEnabled ? true : DEFAULT_IS );
 #endif
+#if ANG_INTRA
+  Bool    angIntraEnabled= pcCU->angIntraEnabledPredPart( 0 );
+#endif
 
   //===== set QP and clear Cbf =====
   pcCU->setQPSubParts( pcCU->getSlice()->getSliceQp(), 0, uiDepth );
@@ -1913,7 +1992,11 @@ TEncSearch::estIntraPredQT( TComDataCU* pcCU,
     pcCU->getPattern()->initAdiPattern( pcCU, uiPartOffset, uiInitTrDepth, m_piYuvExt, m_iYuvExtStride, m_iYuvExtHeight, bAboveAvail, bLeftAvail );
 
     //===== determine set of modes to be tested (using prediction signal only) =====
+#if ANG_INTRA
+    UInt uiMaxMode     = angIntraEnabled ? 34 : g_aucIntraModeNum[uiWidthBit];
+#else
     UInt uiMaxMode     = g_aucIntraModeNum    [ uiWidthBit ];
+#endif
     UInt uiMaxModeFast = g_aucIntraModeNumFast[ uiWidthBit ];
     Pel* piOrg         = pcOrgYuv ->getLumaAddr( uiPU, uiWidth );
     Pel* piPred        = pcPredYuv->getLumaAddr( uiPU, uiWidth );
@@ -1922,6 +2005,27 @@ TEncSearch::estIntraPredQT( TComDataCU* pcCU,
     UInt iBestPreMode  = 0;
     for( UInt uiMode = uiMaxModeFast; uiMode < uiMaxMode; uiMode++ )
     {
+#if ANG_INTRA
+      if ( !predIntraLumaDirAvailable( uiMode, uiWidthBit, angIntraEnabled, bAboveAvail, bLeftAvail ) )
+        continue;
+
+      if ( angIntraEnabled ){
+#if HHI_AIS
+        predIntraLumaAng( pcCU->getPattern(), uiMode, bDefaultIS, piPred, uiStride, uiWidth, uiHeight, pcCU, bAboveAvail, bLeftAvail );
+#else
+        predIntraLumaAng( pcCU->getPattern(), uiMode, piPred, uiStride, uiWidth, uiHeight, pcCU, bAboveAvail, bLeftAvail );
+#endif
+      }
+      else{
+#if HHI_AIS
+        predIntraLumaAdi( pcCU->getPattern(), uiMode, bDefaultIS, piPred, uiStride, uiWidth, uiHeight, pcCU, bAboveAvail, bLeftAvail );
+#else
+        predIntraLumaAdi( pcCU->getPattern(), uiMode, piPred, uiStride, uiWidth, uiHeight, pcCU, bAboveAvail, bLeftAvail );
+#endif
+      }
+
+#else // ANG_INTRA
+
       UInt uiNewMode = g_aucIntraModeOrder[uiWidthBit][uiMode];
       if ( ( g_aucIntraAvail[uiNewMode][0] && (!bAboveAvail) ) || ( g_aucIntraAvail[uiNewMode][1] && (!bLeftAvail) ) )
       {
@@ -1932,6 +2036,8 @@ TEncSearch::estIntraPredQT( TComDataCU* pcCU,
 #else
       predIntraLumaAdi( pcCU->getPattern(), uiMode, piPred, uiStride, uiWidth, uiHeight, pcCU, bAboveAvail, bLeftAvail );
 #endif
+#endif // ANG_INTRA
+
       // use hadamard transform here
       UInt uiSad = m_pcRdCost->calcHAD( piOrg, uiStride, piPred, uiStride, uiWidth, uiHeight );
       if ( uiSad < uiBestSad )
@@ -1969,11 +2075,18 @@ TEncSearch::estIntraPredQT( TComDataCU* pcCU,
     {
       // set luma prediction mode
       UInt uiOrgMode = uiRdModeList[uiMode];
+
+#if ANG_INTRA
+      if ( !predIntraLumaDirAvailable( uiOrgMode, uiWidthBit, angIntraEnabled, bAboveAvail, bLeftAvail ) )
+        continue;
+#else
       UInt uiNewMode = g_aucIntraModeOrder[uiWidthBit][uiOrgMode];
       if ( ( g_aucIntraAvail[uiNewMode][0] && (!bAboveAvail) ) || ( g_aucIntraAvail[uiNewMode][1] && (!bLeftAvail) ) )
       {
         continue;
       }
+#endif
+
       pcCU->setLumaIntraDirSubParts ( uiOrgMode, uiPartOffset, uiDepth + uiInitTrDepth );
 
 #if HHI_AIS
@@ -2038,11 +2151,18 @@ TEncSearch::estIntraPredQT( TComDataCU* pcCU,
 
         // set luma prediction mode
         UInt uiOrgMode = uiRdModeList[uiMode];
+
+#if ANG_INTRA
+        if ( !predIntraLumaDirAvailable( uiOrgMode, uiWidthBit, angIntraEnabled, bAboveAvail, bLeftAvail ) )
+          continue;
+#else
         UInt uiNewMode = g_aucIntraModeOrder[uiWidthBit][uiOrgMode];
         if ( ( g_aucIntraAvail[uiNewMode][0] && (!bAboveAvail) ) || ( g_aucIntraAvail[uiNewMode][1] && (!bLeftAvail) ) )
         {
           continue;
         }
+#endif
+
         pcCU->setLumaIntraDirSubParts ( uiOrgMode, uiPartOffset, uiDepth + uiInitTrDepth );
 
         // set intra smoothing mode
@@ -2218,7 +2338,13 @@ TEncSearch::estIntraPredChromaQT( TComDataCU* pcCU,
   {
     uiModeList[i] = i;
   }
+
+#if ANG_INTRA
+  uiModeList[4]   = pcCU->angIntraEnabledPredPart( 0 ) ? pcCU->getLumaIntraDir(0) : g_aucIntraModeOrder[iIntraIdx][pcCU->getLumaIntraDir(0)];
+#else
   uiModeList[4]   = g_aucIntraModeOrder[iIntraIdx][pcCU->getLumaIntraDir(0)];
+#endif
+
   UInt  uiMinMode = 0;
   UInt  uiMaxMode = ( uiModeList[4] >= 4 ? 5 : 4 );
 
@@ -2268,7 +2394,226 @@ TEncSearch::estIntraPredChromaQT( TComDataCU* pcCU,
 
 #endif
 
+#if ANG_INTRA
+Bool TEncSearch::predIntraLumaDirAvailable( UInt uiMode, UInt uiWidthBit, Bool angIntraEnabled, Bool bAboveAvail, Bool bLeftAvail)
+{
+  Bool bDirAvailable = true;
+  UInt uiNewMode     = angIntraEnabled ? g_aucAngIntraModeOrder[uiMode] : g_aucIntraModeOrder[uiWidthBit][uiMode];
 
+  if ( angIntraEnabled ){
+    if ( uiNewMode > 0 && ( (!bAboveAvail) && uiNewMode < 18 ) || ( (!bLeftAvail) && uiNewMode > 17 ) )
+      bDirAvailable = false;
+  }
+  else{
+    if ( ( g_aucIntraAvail[uiNewMode][0] && (!bAboveAvail) ) || ( g_aucIntraAvail[uiNewMode][1] && (!bLeftAvail) ) )
+      bDirAvailable = false;
+  }
+
+  return bDirAvailable;
+}
+#endif
+
+#if PLANAR_INTRA
+Void TEncSearch::xIntraPlanarRecon( TComDataCU* pcCU, UInt uiAbsPartIdx, Pel* piOrg, Pel* piPred, Pel* piResi, Pel* piReco, UInt uiStride, TCoeff* piCoeff, UInt uiWidth, UInt uiHeight, UInt uiCurrDepth, TextType eText )
+{
+  UInt uiX, uiY;
+  UInt uiCoeffOffset = uiWidth*uiHeight;
+  UInt uiReconStride;
+  UInt uiAbsSum      = 0;
+  Int  iSample;
+
+  Pel* pOrg  = piOrg;
+  Pel* pPred = piPred;
+  Pel* pResi = piResi;
+  Pel* pReco = piReco;
+  Pel* pRecoPic;
+  Int* pPat;
+
+  pcCU->getPattern()->initPattern( pcCU, uiCurrDepth, uiAbsPartIdx );
+
+  Bool bAboveAvail = false;
+  Bool bLeftAvail  = false;
+
+  if( eText == TEXT_LUMA)
+  {
+    pcCU->getPattern()->initAdiPattern( pcCU, uiAbsPartIdx, uiCurrDepth, m_piYuvExt, m_iYuvExtStride, m_iYuvExtHeight, bAboveAvail, bLeftAvail);
+
+    pPat          = pcCU->getPattern()->getAdiOrgBuf( uiWidth, uiHeight, m_piYuvExt );
+    uiReconStride = pcCU->getPic()->getPicYuvRec()->getStride();
+    pRecoPic      = pcCU->getPic()->getPicYuvRec()->getLumaAddr(pcCU->getAddr(), pcCU->getZorderIdxInCU()+uiAbsPartIdx);
+  }
+  else
+  {
+
+#if HHI_RQT_INTRA
+    pcCU->getPattern()->initAdiPatternChroma(pcCU,uiAbsPartIdx, 0, m_piYuvExt,m_iYuvExtStride,m_iYuvExtHeight,bAboveAvail,bLeftAvail);
+#else
+    pcCU->getPattern()->initAdiPatternChroma(pcCU, uiAbsPartIdx, m_piYuvExt, m_iYuvExtStride, m_iYuvExtHeight, bAboveAvail, bLeftAvail);
+#endif
+
+    uiReconStride = pcCU->getPic()->getPicYuvRec()->getCStride();
+
+    if( eText == TEXT_CHROMA_U )
+    {
+      pRecoPic = pcCU->getPic()->getPicYuvRec()->getCbAddr(pcCU->getAddr(), pcCU->getZorderIdxInCU()+uiAbsPartIdx);
+      pPat     = pcCU->getPattern()->getAdiCbBuf( uiWidth, uiHeight, m_piYuvExt );
+    }
+    else
+    {
+      pRecoPic = pcCU->getPic()->getPicYuvRec()->getCrAddr(pcCU->getAddr(), pcCU->getZorderIdxInCU()+uiAbsPartIdx);
+      pPat     = pcCU->getPattern()->getAdiCrBuf( uiWidth, uiHeight, m_piYuvExt );
+    }
+  }
+
+  // Get the sample value for the bottom-right corner
+  iSample = ( piOrg[(uiHeight-1)*uiStride + uiWidth - 1] +
+              piOrg[(uiHeight-2)*uiStride + uiWidth - 1] +
+              piOrg[(uiHeight-1)*uiStride + uiWidth - 2] +
+              piOrg[(uiHeight-2)*uiStride + uiWidth - 2] + 2 ) >> 2;
+
+  // Get prediction for the bottom-right sample value
+  Int iPredBufStride = ( uiWidth<<1 ) + 1;
+  Int iSamplePred    = predIntraGetPredValDC(pPat+iPredBufStride+1, iPredBufStride, uiWidth, uiHeight, bAboveAvail, bLeftAvail );
+  Int iDelta         = iSample - iSamplePred;
+  Int iSign          = iDelta < 0 ? -1 : 1;
+  iDelta             = abs(iDelta) >> g_uiBitIncrement;
+
+  // Quantize the difference value
+  if( iDelta < 4 )
+      iDelta = iDelta;
+  else if( iDelta < 16 )
+      iDelta = (iDelta>>1)<<1;
+  else if( iDelta < 64 )
+      iDelta = ((iDelta>>2)<<2)+2;
+  else
+      iDelta = ((iDelta>>3)<<3)+4;
+
+  iDelta *= iSign;
+
+  // Intermediate value to be passed to entropy coding (would be better to have here a continuous index instead and avoid replicating quantization steps in the entropy coder)
+  if( eText == TEXT_LUMA)
+    pcCU->setPlanarInfo( uiAbsPartIdx, PLANAR_DELTAY, iDelta );
+  else if( eText == TEXT_CHROMA_U)
+    pcCU->setPlanarInfo( uiAbsPartIdx, PLANAR_DELTAU, iDelta );
+  else
+    pcCU->setPlanarInfo( uiAbsPartIdx, PLANAR_DELTAV, iDelta );
+
+  // Reconstructed sample value
+  iDelta  = iDelta << g_uiBitIncrement;
+  iSample = iDelta + iSamplePred;
+
+  predIntraPlanar( pPat, iSample, pPred, uiStride, uiWidth, uiHeight, bAboveAvail, bLeftAvail );
+
+  // Make residual from prediction. (MUST BE FIXED FOR EACH TRANSFORM UNIT PREDICTION)
+  for( uiY = 0; uiY < uiHeight; uiY++ )
+  {
+    for( uiX = 0; uiX < uiWidth; uiX++ )
+    {
+      pResi[uiX] = pOrg[uiX] - pPred[uiX];
+    }
+    pOrg  += uiStride;
+    pResi += uiStride;
+    pPred += uiStride;
+  }
+
+  pPred = piPred;
+  pResi = piResi;
+
+//  m_pcTrQuant->transformNxN( pcCU, pResi, uiStride, piCoeff, uiWidth, uiHeight, uiAbsSum, eText, uiAbsPartIdx, indexROT );
+
+  for( uiY = 0; uiY < uiHeight; uiY++ )
+  {
+    memset(pResi, 0, sizeof(Pel)*uiWidth);
+    pResi += uiStride;
+  }
+
+  pPred = piPred;
+  pResi = piResi;
+
+  // Reconstruction
+  for( uiY = 0; uiY < uiHeight; uiY++ )
+  {
+    for( uiX = 0; uiX < uiWidth; uiX++ )
+    {
+      pReco   [uiX] = Clip(pPred[uiX]);
+      pRecoPic[uiX] = pReco[uiX];
+    }
+    pReco    += uiStride;
+    pResi    += uiStride;
+    pPred    += uiStride;
+    pRecoPic += uiReconStride;
+  }
+}
+
+  /// encoder estimation - planar intra prediction (luma & chroma)
+Void TEncSearch::predIntraPlanarSearch( TComDataCU* pcCU, TComYuv* pcOrgYuv, TComYuv*& rpcPredYuv, TComYuv*& rpcResiYuv, TComYuv*& rpcRecoYuv )
+{
+  UInt   uiDepth        = pcCU->getDepth(0);
+  UInt   uiWidth        = pcCU->getWidth(0);
+  UInt   uiHeight       = pcCU->getHeight(0);
+  UInt   uiStride       = rpcPredYuv->getStride();
+  UInt   uiStrideC      = rpcPredYuv->getCStride();
+  UInt   uiWidthC       = uiWidth  >> 1;
+  UInt   uiHeightC      = uiHeight >> 1;
+  UInt   uiBits;
+  UInt   uiDistortion;
+
+  Double dCost;
+
+  Pel*    pOrig;
+  Pel*    pResi;
+  Pel*    pReco;
+  Pel*    pPred;
+  TCoeff* pCoeff;
+
+  // Planar for Luminance
+  pOrig    = pcOrgYuv->getLumaAddr(0, uiWidth);
+  pResi    = rpcResiYuv->getLumaAddr(0, uiWidth);
+  pPred    = rpcPredYuv->getLumaAddr(0, uiWidth);
+  pReco    = rpcRecoYuv->getLumaAddr(0, uiWidth);
+  pCoeff   = pcCU->getCoeffY();
+
+  xIntraPlanarRecon( pcCU, 0, pOrig, pPred, pResi, pReco, uiStride, pCoeff, uiWidth, uiHeight, 0, TEXT_LUMA );
+
+  uiDistortion  = m_pcRdCost->getDistPart( pReco, uiStride, pOrig, uiStride, uiWidth, uiHeight );
+
+  // Planar for U
+  pOrig    = pcOrgYuv->getCbAddr();
+  pResi    = rpcResiYuv->getCbAddr();
+  pPred    = rpcPredYuv->getCbAddr();
+  pReco    = rpcRecoYuv->getCbAddr();
+  pCoeff   = pcCU->getCoeffCb();
+
+  xIntraPlanarRecon( pcCU, 0, pOrig, pPred, pResi, pReco, uiStrideC, pCoeff, uiWidthC, uiHeightC, 0, TEXT_CHROMA_U );
+
+  uiDistortion += m_pcRdCost->getDistPart( pReco, uiStrideC, pOrig, uiStrideC, uiWidthC, uiHeightC );
+
+  // Planar for V
+  pOrig    = pcOrgYuv->getCrAddr();
+  pResi    = rpcResiYuv->getCrAddr();
+  pPred    = rpcPredYuv->getCrAddr();
+  pReco    = rpcRecoYuv->getCrAddr();
+  pCoeff   = pcCU->getCoeffCr();
+
+  xIntraPlanarRecon( pcCU, 0, pOrig, pPred, pResi, pReco, uiStrideC, pCoeff, uiWidthC, uiHeightC, 0, TEXT_CHROMA_V );
+
+  uiDistortion += m_pcRdCost->getDistPart( pReco, uiStrideC, pOrig, uiStrideC, uiWidthC, uiHeightC );
+
+  xAddSymbolBitsIntra( pcCU, pCoeff, 0, 0, 0, 1, 0, 0, uiWidth, uiHeight, uiBits );
+
+  dCost = m_pcRdCost->calcRdCost( uiBits, uiDistortion );
+
+  if(m_bUseSBACRD)
+    m_pcRDGoOnSbacCoder->load(m_pppcRDSbacCoder[uiDepth][CI_CURR_BEST]);
+
+  pcCU->getTotalBits()       = uiBits;
+  pcCU->getTotalCost()       = dCost;
+  pcCU->getTotalDistortion() = uiDistortion;
+
+  pcCU->copyToPic(uiDepth, 0, 0);
+
+}
+#endif
 
 
 
@@ -2348,6 +2693,10 @@ Void TEncSearch::predIntraLumaAdiSearch( TComDataCU* pcCU, TComYuv* pcOrgYuv, TC
 
   TComPattern* pcPattern  = pcCU->getPattern();
 
+#if ANG_INTRA
+  Bool angIntraEnabled    = pcCU->angIntraEnabledPredPart( 0 );
+#endif
+
   pcCU->setTrIdxSubParts( uiMaxTrDepth, 0, uiDepth );
   uiWidthBit = pcCU->getIntraSizeIdx(0);
 
@@ -2375,7 +2724,11 @@ Void TEncSearch::predIntraLumaAdiSearch( TComDataCU* pcCU, TComYuv* pcOrgYuv, TC
 
       pcPattern->initAdiPattern(pcCU, uiPartOffset, uiPartDepth, m_piYuvExt, m_iYuvExtStride, m_iYuvExtHeight, bAboveAvail, bLeftAvail);
 
+#if ANG_INTRA
+      uiMaxMode          = angIntraEnabled ? 34 : g_aucIntraModeNum[uiWidthBit];
+#else
       uiMaxMode          = g_aucIntraModeNum    [uiWidthBit];
+#endif
       UInt uiMaxModeFast = g_aucIntraModeNumFast[uiWidthBit];
 
       pOrg     = pcOrgYuv->getLumaAddr  (uiPU, uiWidth);
@@ -2391,6 +2744,26 @@ Void TEncSearch::predIntraLumaAdiSearch( TComDataCU* pcCU, TComYuv* pcOrgYuv, TC
 
       for ( uiMode = uiMaxModeFast; uiMode < uiMaxMode; uiMode++ )
       {
+#if ANG_INTRA
+        if ( !predIntraLumaDirAvailable( uiMode, uiWidthBit, angIntraEnabled, bAboveAvail, bLeftAvail ) )
+          continue;
+
+        if ( angIntraEnabled ){
+#if HHI_AIS
+          predIntraLumaAng( pcPattern, uiMode, bPUCurrFilt, pPred, uiStride, uiWidth, uiHeight, pcCU, bAboveAvail, bLeftAvail );
+#else
+          predIntraLumaAng( pcPattern, uiMode, pPred, uiStride, uiWidth, uiHeight, pcCU, bAboveAvail, bLeftAvail );
+#endif
+        }
+        else{
+#if HHI_AIS
+          predIntraLumaAdi( pcPattern, uiMode, bPUCurrFilt, pPred, uiStride, uiWidth, uiHeight, pcCU, bAboveAvail, bLeftAvail );
+#else
+          predIntraLumaAdi( pcPattern, uiMode, pPred, uiStride, uiWidth, uiHeight, pcCU, bAboveAvail, bLeftAvail );
+#endif
+        }
+
+#else // ANG_INTRA
         UInt uiNewMode = g_aucIntraModeOrder[uiWidthBit][uiMode];
 
         if ( ( g_aucIntraAvail[uiNewMode][0] && (!bAboveAvail) ) || ( g_aucIntraAvail[uiNewMode][1] && (!bLeftAvail) ) )
@@ -2401,6 +2774,7 @@ Void TEncSearch::predIntraLumaAdiSearch( TComDataCU* pcCU, TComYuv* pcOrgYuv, TC
 #else
         predIntraLumaAdi( pcPattern, uiMode, pPred, uiStride, uiWidth, uiHeight, pcCU, bAboveAvail, bLeftAvail );
 #endif
+#endif // ANG_INTRA
 
         Pel* piOrgY  = pcOrgYuv  ->getLumaAddr(uiPU, uiWidth);
         Pel* piPreY  = rpcPredYuv->getLumaAddr(uiPU, uiWidth);
@@ -2437,10 +2811,16 @@ Void TEncSearch::predIntraLumaAdiSearch( TComDataCU* pcCU, TComYuv* pcOrgYuv, TC
       for ( uiMode = uiMinMode; uiMode < uiNewMaxMode; uiMode++ )
       {
         UInt uiOrgMode = uiRdModeList[uiMode];
+
+#if ANG_INTRA
+        if ( !predIntraLumaDirAvailable( uiOrgMode, uiWidthBit, angIntraEnabled, bAboveAvail, bLeftAvail ) )
+          continue;
+#else
         UInt uiNewMode = g_aucIntraModeOrder[uiWidthBit][uiOrgMode];
 
         if ( ( g_aucIntraAvail[uiNewMode][0] && (!bAboveAvail) ) || ( g_aucIntraAvail[uiNewMode][1] && (!bLeftAvail) ) )
           continue;
+#endif
 
         uiBits = 0;
         pcCU->setLumaIntraDirSubParts     ( uiOrgMode,   uiPartOffset, uiPartDepth+uiDepth );
@@ -2781,7 +3161,12 @@ Void TEncSearch::predIntraChromaAdiSearch( TComDataCU* pcCU, TComYuv* pcOrgYuv, 
   UInt    uiModeList[5];
   for (Int i=0;i<4;i++)
     uiModeList[i]=i;
-  uiModeList[4]=g_aucIntraModeOrder[iIntraIdx][pcCU->getLumaIntraDir(0)];
+
+#if ANG_INTRA
+  uiModeList[4] = pcCU->angIntraEnabledPredPart( 0 ) ? pcCU->getLumaIntraDir( 0 ) : g_aucIntraModeOrder[iIntraIdx][pcCU->getLumaIntraDir( 0 )];
+#else
+  uiModeList[4] = g_aucIntraModeOrder[iIntraIdx][pcCU->getLumaIntraDir(0)];
+#endif
 
   if (uiModeList[4]>=4) uiMaxMode=5;
 
@@ -3587,6 +3972,11 @@ Void TEncSearch::xMotionEstimation( TComDataCU* pcCU, TComYuv* pcYuvOrg, Int iPa
   InterpFilterType ePFilt = (InterpFilterType)pcCU->getSlice()->getInterpFilterType();
   switch ( ePFilt )
   {
+#if TEN_DIRECTIONAL_INTERP
+  case IPF_TEN_DIF:
+    xPatternSearchFracDIF_TEN( pcCU, pcPatternKey, piRefY, iRefStride, &rcMv, cMvHalf, cMvQter, ruiCost );
+    break;
+#endif
   case IPF_HHI_4TAP_MOMS:
   case IPF_HHI_6TAP_MOMS:
     piRefY = pcCU->getSlice()->getRefPic( eRefPicList, iRefIdxPred )->getPicYuvRecFilt()->getLumaAddr( pcCU->getAddr(), pcCU->getZorderIdxInCU() + uiPartAddr );
@@ -3932,6 +4322,43 @@ Void TEncSearch::xPatternSearchFracDIF( TComDataCU* pcCU, TComPattern* pcPattern
   rcMvQter += rcMvHalf;  rcMvQter <<= 1;
   ruiCost = xPatternRefinement( pcPatternKey, piRef, iRefStride, 4, 1, rcMvQter );
 }
+
+#if TEN_DIRECTIONAL_INTERP
+Void TEncSearch::xPatternSearchFracDIF_TEN( TComDataCU* pcCU, TComPattern* pcPatternKey, Pel* piRefY, Int iRefStride, TComMv* pcMvInt, TComMv& rcMvHalf, TComMv& rcMvQter, UInt& ruiCost )
+{
+  //  Reference pattern initialization (integer scale)
+  TComPattern cPatternRoi;
+  Int         iOffset    = pcMvInt->getHor() + pcMvInt->getVer() * iRefStride;
+  cPatternRoi.initPattern( piRefY +  iOffset,
+                           NULL,
+                           NULL,
+                           pcPatternKey->getROIYWidth(),
+                           pcPatternKey->getROIYHeight(),
+                           iRefStride,
+                           0, 0, 0, 0 );
+  Pel*  piRef;
+  iRefStride  = m_cYuvExt.getStride();
+
+  //  Half-pel refinement
+  xExtDIFUpSamplingH_TEN ( &cPatternRoi, &m_cYuvExt );
+  piRef = m_cYuvExt.getLumaAddr() + ((iRefStride + 0) << 2);
+
+  rcMvHalf = *pcMvInt;   rcMvHalf <<= 1;    // for mv-cost
+  ruiCost = xPatternRefinement( pcPatternKey, piRef, iRefStride, 4, 2, rcMvHalf   );
+
+  m_pcRdCost->setCostScale( 0 );
+
+  //  Quater-pel refinement
+  Pel*  piSrcPel = cPatternRoi.getROIY() + (rcMvHalf.getHor() >> 1) + cPatternRoi.getPatternLStride() * (rcMvHalf.getVer() >> 1);
+  Int*  piSrc    = m_piYuvExt  + ((m_iYuvExtStride + m_iDIFHalfTap) << 2) + (rcMvHalf.getHor() << 1) + m_iYuvExtStride * (rcMvHalf.getVer() << 1);
+  piRef += (rcMvHalf.getHor() << 1) + iRefStride * (rcMvHalf.getVer() << 1);
+  xExtDIFUpSamplingQ_TEN ( pcPatternKey, piRef, iRefStride, piSrcPel, cPatternRoi.getPatternLStride(), piSrc, m_iYuvExtStride, m_puiDFilter[rcMvHalf.getHor()+rcMvHalf.getVer()*3] );
+
+  rcMvQter = *pcMvInt;   rcMvQter <<= 1;    // for mv-cost
+  rcMvQter += rcMvHalf;  rcMvQter <<= 1;
+  ruiCost = xPatternRefinement( pcPatternKey, piRef, iRefStride, 4, 1, rcMvQter );
+}
+#endif
 
 #if HHI_INTERP_FILTER
 Void TEncSearch::xPatternSearchFracMOMS( TComDataCU* pcCU, TComPattern* pcPatternKey, Pel* piRefY, Int iRefStride, TComMv* pcMvInt, TComMv& rcMvHalf, TComMv& rcMvQter, UInt& ruiCost, InterpFilterType ePFilt )
@@ -4971,6 +5398,19 @@ Void  TEncSearch::xAddSymbolBitsIntra( TComDataCU* pcCU, TCoeff* pCoeff, UInt ui
       m_pcEntropyCoder->encodePredMode( pcCU, 0, true );
     }
 
+#if PLANAR_INTRA
+    if( pcCU->isIntra( 0 ) )
+    {
+      m_pcEntropyCoder->encodePlanarInfo( pcCU, 0, true );
+
+      if ( pcCU->getPlanarInfo(0, PLANAR_FLAG) )
+      {
+        ruiBits = m_pcEntropyCoder->getNumberOfWrittenBits();
+        return;
+      }
+    }
+#endif
+
     //BugFix for 1603
     m_pcEntropyCoder->encodePartSize( pcCU, 0, pcCU->getDepth(0), true );
 
@@ -5340,6 +5780,83 @@ Void TEncSearch::xExtDIFUpSamplingQ   ( TComPattern* pcPatternKey, Pel* piDst, I
     }
   }
 }
+
+#if TEN_DIRECTIONAL_INTERP
+Void TEncSearch::xExtDIFUpSamplingH_TEN ( TComPattern* pcPattern, TComYuv* pcYuvExt  )
+{
+  Int   x, y;
+
+  Int   iWidth      = pcPattern->getROIYWidth();
+  Int   iHeight     = pcPattern->getROIYHeight();
+
+  Int   iPatStride  = pcPattern->getPatternLStride();
+  Int   iExtStride  = pcYuvExt ->getStride();
+
+  Pel*  piDstYPel;
+  Pel*  piSrcYPel;
+
+  //  Copy integer-pel
+  piSrcYPel = pcPattern->getROIY();
+  piDstYPel = pcYuvExt->getLumaAddr() + (iExtStride<<2);
+  for ( y = 0; y < iHeight + 1; y++ )
+  {
+    for ( x = 0; x < iWidth; x++ )
+    {
+      piDstYPel[x << 2] = piSrcYPel[x];
+    }
+    piSrcYPel +=  iPatStride;
+    piDstYPel += (iExtStride      << 2);
+  }
+
+  //  Half-pel NORM. : vertical
+  piSrcYPel = pcPattern->getROIY()    - iPatStride;
+  piDstYPel = pcYuvExt->getLumaAddr() + (iExtStride<<1);
+  xCTI_FilterDIF_TEN (piSrcYPel, iPatStride, 1, iWidth, iHeight + 1, iExtStride<<2, 4, piDstYPel, 2, 0);
+
+  //  Half-pel interpolation : horizontal
+  piSrcYPel = pcPattern->getROIY() - 1;
+  piDstYPel = pcYuvExt->getLumaAddr() + (iExtStride<<2) - 2;
+  xCTI_FilterDIF_TEN (piSrcYPel, iPatStride, 1, iWidth + 1, iHeight, iExtStride<<2, 4, piDstYPel, 0, 2);
+
+
+  //  Half-pel interpolation : center
+  piSrcYPel = pcPattern->getROIY()   -  iPatStride - 1;
+  piDstYPel = pcYuvExt->getLumaAddr() + (iExtStride<<1) - 2;
+  xCTI_FilterDIF_TEN (piSrcYPel, iPatStride, 1,  iWidth + 1, iHeight + 1, iExtStride<<2, 4, piDstYPel, 2, 2);
+}
+
+Void TEncSearch::xExtDIFUpSamplingQ_TEN   ( TComPattern* pcPatternKey, Pel* piDst, Int iDstStride, Pel* piSrcPel, Int iSrcPelStride, Int* piSrc, Int iSrcStride, UInt uiFilter )
+{
+  Int   iWidth      = pcPatternKey->getROIYWidth();
+  Int   iHeight     = pcPatternKey->getROIYHeight();
+
+  Pel*  piDstYPel;
+  Pel*  piSrcYPel;
+
+  Int iSrcStride4 = (iSrcStride<<2);
+  Int iDstStride4 = (iDstStride<<2);
+
+  Int i,j,i0,j0;
+
+  /* Position of quarter pixel search center relative to integer pixel grid in units of quarter pixels */
+  Int ioff = 2 - (uiFilter&2);
+  Int joff = 2 - 2*(uiFilter&1);
+
+  /* Loop over quarter pixel search candidates,
+     (i0,j0) is relative to quarter pixel search center
+     (i,j) is relative to the closest upper left integer pixel */
+  for (i0 = -1; i0 < 2; i0++){
+    i = (i0 + ioff)&3;
+    for (j0 = -1; j0 < 2; j0++){
+      j = (j0 + joff)&3;
+      piSrcYPel = piSrcPel - ((j-j0)>>2) - ((i-i0)>>2)*iSrcPelStride;
+      piDstYPel = piDst + j0 + i0*iDstStride;
+      if (i0 || j0)
+        xCTI_FilterDIF_TEN (piSrcYPel, iSrcPelStride, 1, iWidth, iHeight, iDstStride4, 4, piDstYPel, i, j);
+    }
+  }
+}
+#endif
 
 Void TEncSearch::xPredIntraLumaNxNCIPEnc( TComPattern* pcTComPattern, Pel* pOrig, Pel* pPredCL, UInt uiStride, Pel* pPred, UInt uiPredStride, Int iWidth, Int iHeight, TComDataCU* pcCU, Bool bAboveAvail, Bool bLeftAvail )
 {

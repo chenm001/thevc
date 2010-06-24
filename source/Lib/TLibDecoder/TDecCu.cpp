@@ -220,6 +220,21 @@ Void TDecCu::xDecodeCU( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
   m_pcEntropyDecoder->decodeMergeInfo( pcCU, uiAbsPartIdx, uiDepth, m_ppcCU[uiDepth] );
 #endif
   m_pcEntropyDecoder->decodePredMode( pcCU, uiAbsPartIdx, uiDepth );
+
+#if PLANAR_INTRA
+  pcCU->setPlanarInfoSubParts( 0,0,0,0, uiAbsPartIdx, uiDepth );
+
+  if ( pcCU->isIntra( uiAbsPartIdx ) )
+  {
+
+    m_pcEntropyDecoder->decodePlanarInfo( pcCU, uiAbsPartIdx, uiDepth );
+
+    // No more data needed for planar reconstruction
+    if ( pcCU->getPlanarInfo( uiAbsPartIdx, PLANAR_FLAG) )
+      return;
+  }
+#endif
+
   m_pcEntropyDecoder->decodePartSize( pcCU, uiAbsPartIdx, uiDepth );
 
   UInt uiCurrWidth      = pcCU->getWidth ( uiAbsPartIdx );
@@ -356,11 +371,29 @@ Void TDecCu::xDecodeIntraTexture( TComDataCU* pcCU, UInt uiPartIdx, Pel* piReco,
     Bool bLeftAvail  = false;
 
     pcPattern->initAdiPattern(pcCU, uiPartIdx, uiCurrDepth, m_pcPrediction->getPredicBuf(), m_pcPrediction->getPredicBufWidth(), m_pcPrediction->getPredicBufHeight(), bAboveAvail, bLeftAvail);
+
+#if ANG_INTRA
+    if ( pcCU->angIntraEnabledPredPart( uiPartIdx ) )
+#if HHI_AIS
+      m_pcPrediction->predIntraLumaAng( pcPattern, pcCU->getLumaIntraDir(uiPartIdx), pcCU->getLumaIntraFiltFlag(uiPartIdx), pPred, uiStride, uiWidth, uiHeight, pcCU, bAboveAvail, bLeftAvail );
+#else
+      m_pcPrediction->predIntraLumaAng( pcPattern, pcCU->getLumaIntraDir(uiPartIdx), pPred, uiStride, uiWidth, uiHeight, pcCU, bAboveAvail, bLeftAvail );
+#endif
+    else
+#if HHI_AIS
+      m_pcPrediction->predIntraLumaAdi( pcPattern, pcCU->getLumaIntraDir(uiPartIdx), pcCU->getLumaIntraFiltFlag(uiPartIdx), pPred, uiStride, uiWidth, uiHeight, pcCU, bAboveAvail, bLeftAvail );
+#else
+      m_pcPrediction->predIntraLumaAdi( pcPattern, pcCU->getLumaIntraDir(uiPartIdx), pPred, uiStride, uiWidth, uiHeight, pcCU, bAboveAvail, bLeftAvail );
+#endif
+
+#else // ANG_INTRA
+
 #if HHI_AIS
     m_pcPrediction->predIntraLumaAdi( pcPattern, pcCU->getLumaIntraDir(uiPartIdx), pcCU->getLumaIntraFiltFlag(uiPartIdx), pPred, uiStride, uiWidth, uiHeight, pcCU, bAboveAvail, bLeftAvail );
 #else
     m_pcPrediction->predIntraLumaAdi( pcPattern, pcCU->getLumaIntraDir(uiPartIdx), pPred, uiStride, uiWidth, uiHeight, pcCU, bAboveAvail, bLeftAvail );
 #endif
+#endif // ANG_INTRA
 
     m_pcTrQuant->setQPforQuant( pcCU->getQP(uiPartIdx), !pcCU->getSlice()->getDepth(), pcCU->getSlice()->getSliceType(), TEXT_LUMA );
     m_pcTrQuant->invtransformNxN( pResi, uiStride, pCoeff, uiWidth, uiHeight, indexROT );
@@ -467,7 +500,12 @@ Void TDecCu::xRecurIntraInvTransChroma(TComDataCU* pcCU, UInt uiAbsPartIdx, Pel*
 #endif
 
     Int  iIntraIdx      = pcCU->getIntraSizeIdx(0);
+#if ANG_INTRA
+    Bool angIntraEnabled= pcCU->angIntraEnabledPredPart(0);
+    UInt uiModeL        = angIntraEnabled ? pcCU->getLumaIntraDir(0) : g_aucIntraModeOrder[iIntraIdx][pcCU->getLumaIntraDir(0)];
+#else
     UInt uiModeL        = g_aucIntraModeOrder[iIntraIdx][pcCU->getLumaIntraDir(0)];
+#endif
     UInt uiMode         = pcCU->getChromaIntraDir(0);
 
     if (uiMode==4) uiMode = uiModeL;
@@ -483,7 +521,14 @@ Void TDecCu::xRecurIntraInvTransChroma(TComDataCU* pcCU, UInt uiAbsPartIdx, Pel*
       pPatChr=  pcCU->getPattern()->getAdiCrBuf( uiWidth, uiHeight, m_pcPrediction->getPredicBuf() );
     }
 
+#if ANG_INTRA
+    if ( angIntraEnabled )
+      m_pcPrediction-> predIntraChromaAng( pcCU->getPattern(), pPatChr, uiMode, pPred, uiStride, uiWidth, uiHeight, pcCU, bAboveAvail, bLeftAvail );
+    else
+      m_pcPrediction-> predIntraChromaAdi( pcCU->getPattern(), pPatChr, uiMode, pPred, uiStride, uiWidth, uiHeight, pcCU, bAboveAvail, bLeftAvail );
+#else
     m_pcPrediction-> predIntraChromaAdi( pcCU->getPattern(), pPatChr, uiMode, pPred, uiStride, uiWidth, uiHeight, pcCU, bAboveAvail, bLeftAvail );
+#endif
 
     // Inverse Transform
     if( pcCU->getCbf(0, eText, uiCurrTrMode) )
@@ -574,11 +619,28 @@ TDecCu::xIntraRecLumaBlk( TComDataCU* pcCU,
                                       bAboveAvail, bLeftAvail );
 
   //===== get prediction signal =====
+#if ANG_INTRA
+    if ( pcCU->angIntraEnabledPredPart( uiAbsPartIdx ) )
+#if HHI_AIS
+      m_pcPrediction->predIntraLumaAng( pcCU->getPattern(), uiLumaPredMode, bIntraSmoothing, piPred, uiStride, uiWidth, uiHeight, pcCU, bAboveAvail, bLeftAvail );
+#else
+      m_pcPrediction->predIntraLumaAng( pcCU->getPattern(), uiLumaPredMode, piPred, uiStride, uiWidth, uiHeight, pcCU, bAboveAvail, bLeftAvail );
+#endif
+    else
+#if HHI_AIS
+      m_pcPrediction->predIntraLumaAdi( pcCU->getPattern(), uiLumaPredMode, bIntraSmoothing, piPred, uiStride, uiWidth, uiHeight, pcCU, bAboveAvail, bLeftAvail );
+#else
+      m_pcPrediction->predIntraLumaAdi( pcCU->getPattern(), uiLumaPredMode, piPred, uiStride, uiWidth, uiHeight, pcCU, bAboveAvail, bLeftAvail );
+#endif
+
+#else // ANG_INTRA
+
 #if HHI_AIS
   m_pcPrediction->predIntraLumaAdi( pcCU->getPattern(), uiLumaPredMode, bIntraSmoothing, piPred, uiStride, uiWidth, uiHeight, pcCU, bAboveAvail, bLeftAvail );
 #else
   m_pcPrediction->predIntraLumaAdi( pcCU->getPattern(), uiLumaPredMode, piPred, uiStride, uiWidth, uiHeight, pcCU, bAboveAvail, bLeftAvail );
 #endif
+#endif // ANG_INTRA
 
   //===== inverse transform =====
   m_pcTrQuant->setQPforQuant  ( pcCU->getQP(0), !pcCU->getSlice()->getDepth(), pcCU->getSlice()->getSliceType(), TEXT_LUMA );
@@ -657,11 +719,19 @@ TDecCu::xIntraRecChromaBlk( TComDataCU* pcCU,
   TCoeff*   pcCoeff           = ( uiChromaId > 0 ? pcCU->getCoeffCr() : pcCU->getCoeffCb() ) + ( uiNumCoeffInc * uiAbsPartIdx );
   
   UInt      uiChromaPredMode  = pcCU->getChromaIntraDir( 0 );
+
   if( uiChromaPredMode == 4 )
+#if ANG_INTRA
+  {
+    UInt    uiIntraIdx        = pcCU->getIntraSizeIdx( 0 );
+    uiChromaPredMode          = pcCU->angIntraEnabledPredPart( 0 ) ? pcCU->getLumaIntraDir( 0 ) : g_aucIntraModeOrder[ uiIntraIdx ][ pcCU->getLumaIntraDir( 0 ) ];
+  }
+#else
   {
     UInt    uiIntraIdx        = pcCU->getIntraSizeIdx( 0 );
     uiChromaPredMode          = g_aucIntraModeOrder[ uiIntraIdx ][ pcCU->getLumaIntraDir( 0 ) ];
   }
+#endif
   
   UInt      uiZOrder          = pcCU->getZorderIdxInCU() + uiAbsPartIdx;
   Pel*      piRecIPred        = ( uiChromaId > 0 ? pcCU->getPic()->getPicYuvRec()->getCrAddr( pcCU->getAddr(), uiZOrder ) : pcCU->getPic()->getPicYuvRec()->getCbAddr( pcCU->getAddr(), uiZOrder ) );
@@ -679,7 +749,14 @@ TDecCu::xIntraRecChromaBlk( TComDataCU* pcCU,
   Int* pPatChroma   = ( uiChromaId > 0 ? pcCU->getPattern()->getAdiCrBuf( uiWidth, uiHeight, m_pcPrediction->getPredicBuf() ) : pcCU->getPattern()->getAdiCbBuf( uiWidth, uiHeight, m_pcPrediction->getPredicBuf() ) );
 
   //===== get prediction signal =====
+#if ANG_INTRA
+  if ( pcCU->angIntraEnabledPredPart( 0 ) )
+    m_pcPrediction->predIntraChromaAng( pcCU->getPattern(), pPatChroma, uiChromaPredMode, piPred, uiStride, uiWidth, uiHeight, pcCU, bAboveAvail, bLeftAvail );
+  else
+    m_pcPrediction->predIntraChromaAdi( pcCU->getPattern(), pPatChroma, uiChromaPredMode, piPred, uiStride, uiWidth, uiHeight, pcCU, bAboveAvail, bLeftAvail );
+#else
   m_pcPrediction->predIntraChromaAdi( pcCU->getPattern(), pPatChroma, uiChromaPredMode, piPred, uiStride, uiWidth, uiHeight, pcCU, bAboveAvail, bLeftAvail );
+#endif
 
   //===== inverse transform =====
   m_pcTrQuant->setQPforQuant  ( pcCU->getQP(0), !pcCU->getSlice()->getDepth(), pcCU->getSlice()->getSliceType(), eText );
@@ -738,6 +815,15 @@ TDecCu::xReconIntraQT( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
   UInt  uiInitTrDepth = ( pcCU->getPartitionSize(0) == SIZE_2Nx2N ? 0 : 1 );
   UInt  uiNumPart     = pcCU->getNumPartInter();
   UInt  uiNumQParts   = pcCU->getTotalNumPart() >> 2;
+
+#if PLANAR_INTRA
+  if ( pcCU->getPlanarInfo( 0, PLANAR_FLAG) )
+  {
+    xReconIntraPlanar( pcCU, 0, uiDepth );
+    return;
+  }
+#endif
+
   for( UInt uiPU = 0; uiPU < uiNumPart; uiPU++ )
   {
     xIntraRecQT( pcCU, uiInitTrDepth, uiPU * uiNumQParts, m_ppcYuvReco[uiDepth], m_ppcYuvReco[uiDepth], m_ppcYuvResi[uiDepth] );
@@ -746,6 +832,117 @@ TDecCu::xReconIntraQT( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
 
 #endif
 
+#if PLANAR_INTRA
+Void TDecCu::xDecodePlanarTexture( TComDataCU* pcCU, UInt uiPartIdx, Pel* piReco, Pel* piPred, Pel* piResi, UInt uiStride, UInt uiWidth, UInt uiHeight, UInt uiCurrDepth, TextType ttText )
+{
+  UInt uiX, uiY;
+  TComPattern* pcPattern = pcCU->getPattern();
+  Pel* pPred             = piPred;
+  Pel* pResi             = piResi;
+  Pel* piPicReco;
+  UInt uiPicStride;
+  Int* pPat;
+
+  pcPattern->initPattern( pcCU, uiCurrDepth, uiPartIdx );
+
+  Bool bAboveAvail = false;
+  Bool bLeftAvail  = false;
+
+  if( ttText == TEXT_LUMA)
+  {
+    pcCU->getPattern()->initAdiPattern( pcCU, uiPartIdx, uiCurrDepth, m_pcPrediction->getPredicBuf(), m_pcPrediction->getPredicBufWidth(), m_pcPrediction->getPredicBufHeight(), bAboveAvail, bLeftAvail );
+
+    pPat          = pcCU->getPattern()->getAdiOrgBuf( uiWidth, uiHeight, m_pcPrediction->getPredicBuf() );
+    uiPicStride   = pcCU->getPic()->getPicYuvRec()->getStride();
+    piPicReco     = pcCU->getPic()->getPicYuvRec()->getLumaAddr(pcCU->getAddr(), pcCU->getZorderIdxInCU()+uiPartIdx);
+  }
+  else
+  {
+#if HHI_RQT_INTRA
+    pcCU->getPattern()->initAdiPatternChroma(pcCU,uiPartIdx, 0, m_pcPrediction->getPredicBuf(),m_pcPrediction->getPredicBufWidth(),m_pcPrediction->getPredicBufHeight(),bAboveAvail,bLeftAvail);
+#else
+    pcCU->getPattern()->initAdiPatternChroma(pcCU, uiPartIdx, m_pcPrediction->getPredicBuf(), m_pcPrediction->getPredicBufWidth(), m_pcPrediction->getPredicBufHeight(), bAboveAvail, bLeftAvail);
+#endif
+    uiPicStride = pcCU->getPic()->getPicYuvRec()->getCStride();
+
+    if( ttText == TEXT_CHROMA_U )
+    {
+      piPicReco = pcCU->getPic()->getPicYuvRec()->getCbAddr(pcCU->getAddr(), pcCU->getZorderIdxInCU()+uiPartIdx);
+      pPat      = pcCU->getPattern()->getAdiCbBuf( uiWidth, uiHeight, m_pcPrediction->getPredicBuf() );
+    }
+    else
+    {
+      piPicReco = pcCU->getPic()->getPicYuvRec()->getCrAddr(pcCU->getAddr(), pcCU->getZorderIdxInCU()+uiPartIdx);
+      pPat      = pcCU->getPattern()->getAdiCrBuf( uiWidth, uiHeight, m_pcPrediction->getPredicBuf() );
+    }
+  }
+
+  Int iPredBufStride = ( uiWidth << 1 ) + 1;
+  Int iSamplePred    = m_pcPrediction->predIntraGetPredValDC(pPat+iPredBufStride+1, iPredBufStride, uiWidth, uiHeight, bAboveAvail, bLeftAvail );
+  Int iDelta         = ttText == TEXT_LUMA     ? pcCU->getPlanarInfo( uiPartIdx, PLANAR_DELTAY) :
+                       ttText == TEXT_CHROMA_U ? pcCU->getPlanarInfo( uiPartIdx, PLANAR_DELTAU) :
+                                                 pcCU->getPlanarInfo( uiPartIdx, PLANAR_DELTAV);
+  Int iSample;
+
+  // Reconstructed sample value
+  iDelta  = iDelta << g_uiBitIncrement;
+  iSample = iDelta + iSamplePred;
+
+  m_pcPrediction->predIntraPlanar( pPat, iSample, pPred, uiStride, uiWidth, uiHeight, bAboveAvail, bLeftAvail );
+
+  pResi = piResi;
+  pPred = piPred;
+  for( uiY = 0; uiY < uiHeight; uiY++ )
+  {
+    for( uiX = 0; uiX < uiWidth; uiX++ )
+    {
+      pResi    [uiX] = 0;
+      piReco   [uiX] = Clip(pPred[uiX]);
+      piPicReco[uiX] = piReco[uiX];
+    }
+    piReco    += uiStride;
+    pPred     += uiStride;
+    pResi     += uiStride;
+    piPicReco += uiPicStride;
+  }
+}
+
+Void TDecCu::xReconIntraPlanar( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
+{
+  UInt uiPartDepth = 0;
+
+  UInt uiWidth  = pcCU->getWidth (0);
+  UInt uiHeight = pcCU->getHeight(0);
+
+  UInt uiPartOffset = uiWidth*uiHeight;
+
+  Pel* piResi;
+  Pel* piPred;
+  Pel* piReco;
+  UInt uiStride = m_ppcYuvResi[uiDepth]->getStride();
+
+  // Luma
+  piResi    = m_ppcYuvResi[uiDepth]->getLumaAddr(0, uiWidth);
+  piPred    = m_ppcYuvReco[uiDepth]->getLumaAddr(0, uiWidth);
+  piReco    = m_ppcYuvReco[uiDepth]->getLumaAddr(0, uiWidth);
+
+  xDecodePlanarTexture( pcCU, 0, piReco, piPred, piResi, uiStride, uiWidth, uiHeight, 0, TEXT_LUMA );
+
+  // Cb and Cr
+  Pel* pResiCb   = m_ppcYuvResi[uiDepth]->getCbAddr();
+  Pel* pResiCr   = m_ppcYuvResi[uiDepth]->getCrAddr();
+  Pel* pPredCb   = m_ppcYuvReco[uiDepth]->getCbAddr();
+  Pel* pPredCr   = m_ppcYuvReco[uiDepth]->getCrAddr();
+  Pel* pRecoCb   = m_ppcYuvReco[uiDepth]->getCbAddr();
+  Pel* pRecoCr   = m_ppcYuvReco[uiDepth]->getCrAddr();
+  UInt uiCStride = m_ppcYuvReco[uiDepth]->getCStride();
+  UInt uiCWidth  = pcCU->getWidth (0)>>1;
+  UInt uiCHeight = pcCU->getHeight(0)>>1;
+
+  xDecodePlanarTexture( pcCU, 0, pRecoCb, pPredCb, pResiCb, uiCStride, uiCWidth, uiCHeight, 0, TEXT_CHROMA_U );
+  xDecodePlanarTexture( pcCU, 0, pRecoCr, pPredCr, pResiCr, uiCStride, uiCWidth, uiCHeight, 0, TEXT_CHROMA_V );
+}
+#endif
 
 
 Void TDecCu::xReconIntra( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
@@ -772,6 +969,14 @@ Void TDecCu::xReconIntra( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
 
   uiPartIdx     = 0;
   uiCoeffOffset = 0;
+
+#if PLANAR_INTRA
+  if ( pcCU->getPlanarInfo( uiPartIdx, PLANAR_FLAG) )
+  {
+    xReconIntraPlanar( pcCU, uiPartIdx, uiDepth );
+    return;
+  }
+#endif
 
   // Luma
   for( uiPU = 0 ; uiPU < uiNumPart; uiPU++ )

@@ -102,7 +102,7 @@ Void TDecTop::deletePicBuffer ( )
   // destroy ALF temporary buffers
   m_cAdaptiveLoopFilter.destroy();
 
-#if HHI_DEBLOCKING_FILTER
+#if HHI_DEBLOCKING_FILTER || TENTM_DEBLOCKING_FILTER
   m_cLoopFilter.        destroy();
 #endif
 
@@ -213,7 +213,7 @@ Void TDecTop::decode (Bool bEos, TComBitstream* pcBitstream, UInt& ruiPOC, TComL
     // create ALF temporary buffer
     m_cAdaptiveLoopFilter.create( m_cSPS.getWidth(), m_cSPS.getHeight(), g_uiMaxCUWidth, g_uiMaxCUHeight, g_uiMaxCUDepth );
 
-#if HHI_DEBLOCKING_FILTER
+#if HHI_DEBLOCKING_FILTER || TENTM_DEBLOCKING_FILTER
     m_cLoopFilter.        create( g_uiMaxCUDepth );
 #endif
     m_uiValidPS |= 1;

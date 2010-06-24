@@ -722,6 +722,102 @@ Void TEncCavlc::codeTransformIdx( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDe
   return;
 }
 
+#if PLANAR_INTRA
+// Temporary VLC function
+Void TEncCavlc::xPutPlanarVlc( Int n, Int cn )
+{
+  UInt tmp  = 1<<(n-4);
+  UInt code = tmp+cn%tmp;
+  UInt len  = 1+(n-4)+(cn>>(n-4));
+
+  xWriteCode( code, len );
+}
+
+Void TEncCavlc::xCodePlanarDelta( TComDataCU* pcCU, UInt uiAbsPartIdx , Int iDelta )
+{
+  /* Planar quantization
+  Y        qY              cW
+  0-3   :  0,1,2,3         0-3
+  4-15  :  4,6,8..14       4-9
+  16-63 : 18,22,26..62    10-21
+  64-.. : 68,76...        22-
+  */
+  Bool bDeltaNegative = iDelta < 0 ? true : false;
+  UInt uiDeltaAbs     = abs(iDelta);
+
+  if( uiDeltaAbs < 4 )
+    xPutPlanarVlc( 5, uiDeltaAbs );
+  else if( uiDeltaAbs < 16 )
+    xPutPlanarVlc( 5, (uiDeltaAbs>>1)+2 );
+  else if( uiDeltaAbs < 64)
+    xPutPlanarVlc( 5, (uiDeltaAbs>>2)+6 );
+  else
+    xPutPlanarVlc( 5, (uiDeltaAbs>>3)+14 );
+
+  if(uiDeltaAbs > 0)
+    xWriteFlag( bDeltaNegative ? 1 : 0 );
+
+}
+
+Void TEncCavlc::codePlanarInfo( TComDataCU* pcCU, UInt uiAbsPartIdx )
+{
+  if (pcCU->isIntra( uiAbsPartIdx ))
+  {
+    UInt uiPlanar = pcCU->getPlanarInfo(uiAbsPartIdx, PLANAR_FLAG);
+
+    xWriteFlag( uiPlanar );
+
+    if ( uiPlanar )
+    {
+      // Planar delta for Y
+      xCodePlanarDelta( pcCU, uiAbsPartIdx, pcCU->getPlanarInfo(uiAbsPartIdx, PLANAR_DELTAY) );
+
+      // Planar delta for U and V
+      Int  iPlanarDeltaU = pcCU->getPlanarInfo(uiAbsPartIdx, PLANAR_DELTAU);
+      Int  iPlanarDeltaV = pcCU->getPlanarInfo(uiAbsPartIdx, PLANAR_DELTAV);
+
+      xWriteFlag( ( iPlanarDeltaU == 0 && iPlanarDeltaV == 0 ) ? 1 : 0 );
+
+      if ( iPlanarDeltaU != 0 || iPlanarDeltaV != 0 )
+      {
+        xCodePlanarDelta( pcCU, uiAbsPartIdx, iPlanarDeltaU );
+        xCodePlanarDelta( pcCU, uiAbsPartIdx, iPlanarDeltaV );
+      }
+    }
+  }
+}
+#endif
+
+#if ANG_INTRA
+Void TEncCavlc::codeIntraDirLumaAng( TComDataCU* pcCU, UInt uiAbsPartIdx )
+{
+  UInt uiDir         = pcCU->getLumaIntraDir( uiAbsPartIdx );
+  Int  iMostProbable = pcCU->getMostProbableIntraDirLuma( uiAbsPartIdx );
+
+  if (uiDir == iMostProbable)
+    xWriteFlag( 1 );
+  else{
+    xWriteFlag( 0 );
+    uiDir = uiDir > iMostProbable ? uiDir - 1 : uiDir;
+    if (uiDir < 31){ // uiDir is here 0...32, 5 bits for uiDir 0...30, 31 is an escape code for coding one more bit for 31 and 32
+      xWriteFlag( uiDir & 0x01 ? 1 : 0 );
+      xWriteFlag( uiDir & 0x02 ? 1 : 0 );
+      xWriteFlag( uiDir & 0x04 ? 1 : 0 );
+      xWriteFlag( uiDir & 0x08 ? 1 : 0 );
+      xWriteFlag( uiDir & 0x10 ? 1 : 0 );
+    }
+    else{
+      xWriteFlag( 1 );
+      xWriteFlag( 1 );
+      xWriteFlag( 1 );
+      xWriteFlag( 1 );
+      xWriteFlag( 1 );
+      xWriteFlag( uiDir == 32 ? 1 : 0 );
+    }
+  }
+}
+#endif
+
 Void TEncCavlc::codeIntraDirLumaAdi( TComDataCU* pcCU, UInt uiAbsPartIdx )
 {
   Int iIntraDirLuma = pcCU->convertIntraDirLumaAdi( pcCU, uiAbsPartIdx );

@@ -100,6 +100,9 @@ TEncSbac::TEncSbac()
 #if HHI_ALF
   , m_cALFSplitFlagSCModel    ( 1,             1,               NUM_ALF_SPLITFLAG_CTX         )
 #endif
+#if PLANAR_INTRA
+  , m_cPlanarIntraSCModel     ( 1,             1,               NUM_PLANAR_INTRA_CTX          )
+#endif
 {
   m_pcBitIf = 0;
   m_pcSlice = 0;
@@ -177,6 +180,10 @@ Void TEncSbac::resetEntropy           ()
   m_cCUTransSubdivFlagSCModel.initBuffer( eSliceType, iQp, (Short*)INIT_TRANS_SUBDIV_FLAG );
 #endif
   m_cCUTransIdxSCModel.initBuffer     ( eSliceType, iQp, (Short*)INIT_TRANS_IDX );
+
+#if PLANAR_INTRA
+  m_cPlanarIntraSCModel.initBuffer    ( eSliceType, iQp, (Short*)INIT_PLANAR_INTRA );
+#endif
 
   // new structure
   m_uiLastQp          = iQp;
@@ -851,6 +858,105 @@ Void TEncSbac::codeTransformIdx( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDep
   return;
 }
 
+#if PLANAR_INTRA
+Void TEncSbac::xPutPlanarBins( Int n, Int cn )
+{
+  UInt tmp  = 1<<(n-4);
+  UInt code = tmp+cn%tmp;
+  UInt len  = 1+(n-4)+(cn>>(n-4));
+  Int  ctr;
+
+  for( ctr = len-1; ctr >= 0; ctr-- )
+    m_pcBinIf->encodeBinEP( (code & (1 << ctr)) >> ctr );
+}
+
+Void TEncSbac::xCodePlanarDelta( TComDataCU* pcCU, UInt uiAbsPartIdx , Int iDelta )
+{
+  /* Planar quantization
+  Y        qY              cW
+  0-3   :  0,1,2,3         0-3
+  4-15  :  4,6,8..14       4-9
+  16-63 : 18,22,26..62    10-21
+  64-.. : 68,76...        22-
+  */
+  Bool bDeltaNegative = iDelta < 0 ? true : false;
+  UInt uiDeltaAbs     = abs(iDelta);
+
+  if( uiDeltaAbs < 4 )
+    xPutPlanarBins( 5, uiDeltaAbs );
+  else if( uiDeltaAbs < 16 )
+    xPutPlanarBins( 5, (uiDeltaAbs>>1)+2 );
+  else if( uiDeltaAbs < 64)
+    xPutPlanarBins( 5, (uiDeltaAbs>>2)+6 );
+  else
+    xPutPlanarBins( 5, (uiDeltaAbs>>3)+14 );
+
+  if(uiDeltaAbs > 0)
+    m_pcBinIf->encodeBinEP( bDeltaNegative ? 1 : 0 );
+
+}
+
+Void TEncSbac::codePlanarInfo( TComDataCU* pcCU, UInt uiAbsPartIdx )
+{
+  if (pcCU->isIntra( uiAbsPartIdx ))
+  {
+    UInt uiPlanar = pcCU->getPlanarInfo(uiAbsPartIdx, PLANAR_FLAG);
+
+    m_pcBinIf->encodeBin( uiPlanar, m_cPlanarIntraSCModel.get( 0, 0, 0 ) );
+
+    if ( uiPlanar )
+    {
+      // Planar delta for Y
+      xCodePlanarDelta( pcCU, uiAbsPartIdx, pcCU->getPlanarInfo(uiAbsPartIdx, PLANAR_DELTAY) );
+
+      // Planar delta for U and V
+      Int  iPlanarDeltaU = pcCU->getPlanarInfo(uiAbsPartIdx, PLANAR_DELTAU);
+      Int  iPlanarDeltaV = pcCU->getPlanarInfo(uiAbsPartIdx, PLANAR_DELTAV);
+
+      m_pcBinIf->encodeBin( ( iPlanarDeltaU == 0 && iPlanarDeltaV == 0 ) ? 1 : 0, m_cPlanarIntraSCModel.get( 0, 0, 1 ) );
+
+      if ( iPlanarDeltaU != 0 || iPlanarDeltaV != 0 )
+      {
+        xCodePlanarDelta( pcCU, uiAbsPartIdx, iPlanarDeltaU );
+        xCodePlanarDelta( pcCU, uiAbsPartIdx, iPlanarDeltaV );
+      }
+    }
+  }
+}
+#endif
+
+#if ANG_INTRA
+Void TEncSbac::codeIntraDirLumaAng( TComDataCU* pcCU, UInt uiAbsPartIdx )
+{
+  UInt uiDir         = pcCU->getLumaIntraDir( uiAbsPartIdx );
+  Int  iMostProbable = pcCU->getMostProbableIntraDirLuma( uiAbsPartIdx );
+
+  if (uiDir == iMostProbable)
+    m_pcBinIf->encodeBin( 1, m_cCUIntraPredSCModel.get( 0, 0, 0 ) );
+  else{
+    m_pcBinIf->encodeBin( 0, m_cCUIntraPredSCModel.get( 0, 0, 0 ) );
+    uiDir = uiDir > iMostProbable ? uiDir - 1 : uiDir;
+    if (uiDir < 31){ // uiDir is here 0...32, 5 bits for uiDir 0...30, 31 is an escape code for coding one more bit for 31 and 32
+      m_pcBinIf->encodeBin((uiDir & 0x01),      m_cCUIntraPredSCModel.get(0, 0, 1));
+      m_pcBinIf->encodeBin((uiDir & 0x02) >> 1, m_cCUIntraPredSCModel.get(0, 0, 1));
+      m_pcBinIf->encodeBin((uiDir & 0x04) >> 2, m_cCUIntraPredSCModel.get(0, 0, 1));
+      m_pcBinIf->encodeBin((uiDir & 0x08) >> 3, m_cCUIntraPredSCModel.get(0, 0, 1));
+      m_pcBinIf->encodeBin((uiDir & 0x10) >> 4, m_cCUIntraPredSCModel.get(0, 0, 1));
+    }
+    else{
+      m_pcBinIf->encodeBin(1, m_cCUIntraPredSCModel.get(0, 0, 1));
+      m_pcBinIf->encodeBin(1, m_cCUIntraPredSCModel.get(0, 0, 1));
+      m_pcBinIf->encodeBin(1, m_cCUIntraPredSCModel.get(0, 0, 1));
+      m_pcBinIf->encodeBin(1, m_cCUIntraPredSCModel.get(0, 0, 1));
+      m_pcBinIf->encodeBin(1, m_cCUIntraPredSCModel.get(0, 0, 1));
+      m_pcBinIf->encodeBin((uiDir == 32) ? 1 : 0, m_cCUIntraPredSCModel.get(0, 0, 1));
+    }
+  }
+
+  return;
+}
+#endif
+
 Void TEncSbac::codeIntraDirLumaAdi( TComDataCU* pcCU, UInt uiAbsPartIdx )
 {
   Int iIntraDirLuma = pcCU->convertIntraDirLumaAdi( pcCU, uiAbsPartIdx );
@@ -888,7 +994,11 @@ Void TEncSbac::codeIntraDirLumaAdi( TComDataCU* pcCU, UInt uiAbsPartIdx )
 Void TEncSbac::codeIntraFiltFlagLumaAdi( TComDataCU* pcCU, UInt uiAbsPartIdx )
 {
   UInt uiSymbol = pcCU->getLumaIntraFiltFlag( uiAbsPartIdx );
+#if ANG_INTRA
+  UInt uiCtx    = pcCU->angIntraEnabledPredPart( uiAbsPartIdx ) ?  pcCU->getCtxIntraFiltFlagLumaAng( uiAbsPartIdx ) : pcCU->getCtxIntraFiltFlagLuma( uiAbsPartIdx );
+#else
   UInt uiCtx    = pcCU->getCtxIntraFiltFlagLuma( uiAbsPartIdx );
+#endif
   m_pcBinIf->encodeBin( uiSymbol, m_cCUIntraFiltFlagSCModel.get( 0, 0, uiCtx ) );
 
   return;

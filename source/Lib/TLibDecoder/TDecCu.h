@@ -89,6 +89,11 @@ protected:
   Void xReconInter              ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
   Void xReconIntra              ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
 
+#if PLANAR_INTRA
+  Void xReconIntraPlanar        ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
+  Void xDecodePlanarTexture     ( TComDataCU* pcCU, UInt uiPartIdx, Pel* piReco, Pel* piPred, Pel* piResi, UInt uiStride, UInt uiWidth, UInt uiHeight, UInt uiCurrDepth, TextType ttText );
+#endif
+
 #if HHI_RQT_INTRA
   Void  xReconIntraQT           ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
   Void  xIntraRecLumaBlk        ( TComDataCU* pcCU, UInt uiTrDepth, UInt uiAbsPartIdx, TComYuv* pcRecoYuv, TComYuv* pcPredYuv, TComYuv* pcResiYuv );

@@ -619,6 +619,9 @@ Void TAppEncCfg::xSetCfgCommand( int iArgc, char** pArgv )
     else if ( !strcmp( pStr, "-ldm" ) ) { i++; m_iLDMode              = atoi( pArgv[i] ); i++; }
     else if ( !strcmp( pStr, "-tap" ) ) { i++; m_iDIFTap              = atoi( pArgv[i] ); i++; }
     else if ( !strcmp( pStr, "-sr"  ) )  { i++; m_iSearchRange         = atoi( pArgv[i] ); i++; }
+#if TEN_DIRECTIONAL_INTERP
+    else if ( !strcmp( pStr, "-int"  ) )  { i++; m_iInterpFilterType  = atoi( pArgv[i] ); i++; }
+#endif
     else
     if ( !strcmp( pStr, "-1" ) )
     {
@@ -780,6 +783,12 @@ Void TAppEncCfg::xPrintParameter()
 #if HHI_INTERP_FILTER
   switch ( m_iInterpFilterType )
   {
+#if TEN_DIRECTIONAL_INTERP
+    case IPF_TEN_DIF:
+      printf("Luma interpolation           : %s\n", "TEN directional interpolation filter"  );
+      printf("Chroma interpolation         : %s\n", "TEN two-stage bi-linear filter"  );
+      break;
+#endif
     case IPF_HHI_4TAP_MOMS:
       printf("Luma interpolation           : %s\n", "HHI 4-tap MOMS filter"  );
       printf("Chroma interpolation         : %s\n", "HHI 4-tap MOMS filter"  );

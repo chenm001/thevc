@@ -2003,6 +2003,53 @@ const UChar g_aucIntraModeBitsC[7] =
 
 const UChar g_aucConvertTxtTypeToIdx[4] = { 0, 1, 1, 2 };
 
+#if ANG_INTRA
+// ====================================================================================================================
+// Angular Intra prediction
+// ====================================================================================================================
+
+// g_aucAngIntraModeOrder
+//   Indexing this array with the mode indicated in the bitstream
+//   gives a logical index used in the prediction functions.
+const UChar g_aucAngIntraModeOrder[34] =
+{     //  ModeOrder LogicalOrderInPredFunctions
+   9, //  0 VER     DC
+  25, //  1 HOR     VER-8 (diagonal from top-left to bottom-right = HOR-8)
+   0, //  2 DC      VER-7
+   1, //  3 VER-8   VER-6
+   5, //  4 VER-4   VER-5
+  13, //  5 VER+4   VER-4
+  17, //  6 VER+8   VER-3
+  21, //  7 HOR-4   VER-2
+  29, //  8 HOR+4   VER-1
+  33, //  9 HOR+8   VER
+   3, // 10 VER-6   VER+1
+   7, // 11 VER-2   VER+2
+  11, // 12 VER+2   VER+3
+  15, // 13 VER+6   VER+4
+  19, // 14 HOR-6   VER+5
+  23, // 15 HOR-2   VER+6
+  27, // 16 HOR+2   VER+7
+  31, // 17 HOR+6   VER+8
+   2, // 18 VER-7   HOR-7
+   4, // 19 VER-5   HOR-6
+   6, // 20 VER-3   HOR-5
+   8, // 21 VER-1   HOR-4
+  10, // 22 VER+1   HOR-3
+  12, // 23 VER+3   HOR-2
+  14, // 24 VER+5   HOR-1
+  16, // 25 VER+7   HOR
+  18, // 26 HOR-7   HOR+1
+  20, // 27 HOR-5   HOR+2
+  22, // 28 HOR-3   HOR+3
+  24, // 29 HOR-1   HOR+4
+  26, // 30 HOR+1   HOR+5
+  28, // 31 HOR+3   HOR+6
+  30, // 32 HOR+5   HOR+7
+  32, // 33 HOR+7   HOR+8
+};
+#endif
+
 // ====================================================================================================================
 // ROT
 // ====================================================================================================================

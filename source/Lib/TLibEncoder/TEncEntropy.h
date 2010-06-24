@@ -95,6 +95,9 @@ public:
 
   virtual Void codePartSize      ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth ) = 0;
   virtual Void codePredMode      ( TComDataCU* pcCU, UInt uiAbsPartIdx ) = 0;
+#if PLANAR_INTRA
+  virtual Void codePlanarInfo    ( TComDataCU* pcCU, UInt uiAbsPartIdx ) = 0;
+#endif
 
 #if HHI_RQT
   virtual Void codeTransformSubdivFlag( UInt uiSymbol, UInt uiCtx ) = 0;
@@ -102,6 +105,9 @@ public:
 #endif
   virtual Void codeTransformIdx  ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth ) = 0;
   virtual Void codeIntraDirLumaAdi( TComDataCU* pcCU, UInt uiAbsPartIdx ) = 0;
+#if ANG_INTRA
+  virtual Void codeIntraDirLumaAng( TComDataCU* pcCU, UInt uiAbsPartIdx ) = 0;
+#endif
 
 #if HHI_AIS
   virtual Void codeIntraFiltFlagLumaAdi( TComDataCU* pcCU, UInt uiAbsPartIdx ) = 0;
@@ -169,6 +175,9 @@ public:
 #endif
   Void encodePredMode          ( TComDataCU* pcCU, UInt uiAbsPartIdx, Bool bRD = false );
   Void encodePartSize          ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth, Bool bRD = false );
+#if PLANAR_INTRA
+  Void encodePlanarInfo        ( TComDataCU* pcCU, UInt uiAbsPartIdx, Bool bRD = false );
+#endif
 
   Void encodePredInfo          ( TComDataCU* pcCU, UInt uiAbsPartIdx, Bool bRD = false );
   Void encodeIntraDirModeLuma  ( TComDataCU* pcCU, UInt uiAbsPartIdx );

@@ -117,6 +117,11 @@ private:
   Void  xCopyFrom            ( TEncSbac* pSrc );
   UInt  xGetCTXIdxFromWidth  ( Int iWidth );
 
+#if PLANAR_INTRA
+  Void xPutPlanarBins( Int n, Int cn );
+  Void xCodePlanarDelta( TComDataCU* pcCU, UInt uiAbsPartIdx , Int iDelta );
+#endif
+
 protected:
   TComBitIf*    m_pcBitIf;
   TComSlice*    m_pcSlice;
@@ -151,6 +156,9 @@ public:
 
   Void codePartSize      ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
   Void codePredMode      ( TComDataCU* pcCU, UInt uiAbsPartIdx );
+#if PLANAR_INTRA
+  Void codePlanarInfo    ( TComDataCU* pcCU, UInt uiAbsPartIdx );
+#endif
 
 #if HHI_RQT
   Void codeTransformSubdivFlag( UInt uiSymbol, UInt uiCtx );
@@ -160,6 +168,9 @@ public:
   Void codeIntraDirLuma  ( TComDataCU* pcCU, UInt uiAbsPartIdx );
 
   Void codeIntraDirLumaAdi( TComDataCU* pcCU, UInt uiAbsPartIdx );
+#if ANG_INTRA
+  Void codeIntraDirLumaAng( TComDataCU* pcCU, UInt uiAbsPartIdx );
+#endif
 
 #if HHI_AIS
   Void codeIntraFiltFlagLumaAdi( TComDataCU* pcCU, UInt uiAbsPartIdx );
@@ -241,6 +252,9 @@ private:
   ContextModel3DBuffer m_cALFSvlcSCModel;
   ContextModel3DBuffer m_cCUXPosiSCModel;
   ContextModel3DBuffer m_cCUYPosiSCModel;
+#if PLANAR_INTRA
+  ContextModel3DBuffer m_cPlanarIntraSCModel;
+#endif
 };
 
 #endif // !defined(AFX_TENCSBAC_H__DDA7CDC4_EDE3_4015_9D32_2156249C82AA__INCLUDED_)

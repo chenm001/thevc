@@ -58,7 +58,7 @@
 #define HHI_IMVP                          1           ///< SOPH: Interleaved Motion Vector Predictor 
 #define HHI_MRG                           1           ///< SOPH: inter partition merging
 #define HHI_AMVP_OFF                      1           ///< SOPH: Advanced Motion Vector Predictor deactivated [not in TMuC]
-#define HHI_DEBLOCKING_FILTER             1           ///< MW: deblocking filter supporting residual quadtrees
+#define HHI_DEBLOCKING_FILTER             0           ///< MW: deblocking filter supporting residual quadtrees
 
 #if ( HHI_RQT_INTRA && !HHI_RQT )
 #error "HHI_RQT_INTRA can only be equal to 1 if HHI_RQT is equal to 1"
@@ -75,6 +75,22 @@
 //////////////////////////
 
 
+////////////////////////////
+// TEN defines section start
+////////////////////////////
+#define ANG_INTRA                         1           // Enable angular Intra coding (0: All ADI, 1: Ang for 8x8 PUs, 2: Ang for all PU sizes)
+#define PLANAR_INTRA                      1           // Enable planar Intra coding
+#define TENTM_DEBLOCKING_FILTER           1           // Enable TENTM deblocking
+#if HHI_INTERP_FILTER
+#define TEN_DIRECTIONAL_INTERP            1           ///< AF: interpolation filter
+#endif
+
+#if (HHI_DEBLOCKING_FILTER && TENTM_DEBLOCKING_FILTER)
+#error "Only one of TENTM_DEBLOCKING_FILTER and HHI_DEBLOCKING_FILTER can be defined"
+#endif
+//////////////////////////
+// TEN defines section end
+//////////////////////////
 
 
 // ====================================================================================================================
@@ -175,7 +191,7 @@ typedef struct _LFCUParam
   Bool bInternalEdge;                     ///< indicates internal edge
   Bool bLeftEdge;                         ///< indicates left edge
   Bool bTopEdge;                          ///< indicates top edge
-#if !HHI_DEBLOCKING_FILTER
+#if !HHI_DEBLOCKING_FILTER && !TENTM_DEBLOCKING_FILTER
   Bool bLumaEdgeFilter[2][4];             ///< array of luma edge decisions
   Int  iBsEdgeSum[2][4];                  ///< array of Bs edge sum values
 #endif
@@ -224,6 +240,16 @@ enum PredMode
   MODE_INTRA,           ///< intra-prediction mode
   MODE_NONE = 15
 };
+
+#if PLANAR_INTRA
+enum PlanarType
+{
+  PLANAR_FLAG   = 0,
+  PLANAR_DELTAY = 1,
+  PLANAR_DELTAU = 2,
+  PLANAR_DELTAV = 3,
+};
+#endif
 
 /// texture component type
 enum TextType
@@ -333,9 +359,16 @@ enum EFF_MODE
 #if HHI_INTERP_FILTER
 enum InterpFilterType
 {
+#if TEN_DIRECTIONAL_INTERP
+  IPF_SAMSUNG_DIF_DEFAULT = 0,          ///< Samsung DCT-based filter
+  IPF_HHI_4TAP_MOMS,                    ///< HHI 4-tap MOMS filter
+  IPF_HHI_6TAP_MOMS,                    ///< HHI 6-tap MOMS filter
+  IPF_TEN_DIF                           ///< TEN directional filter
+#else
   IPF_SAMSUNG_DIF_DEFAULT = 0,          ///< Samsung DCT-based filter
   IPF_HHI_4TAP_MOMS,                    ///< HHI 4-tap MOMS filter
   IPF_HHI_6TAP_MOMS                     ///< HHI 6-tap MOMS filter
+#endif
 };
 #endif
 

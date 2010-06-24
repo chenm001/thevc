@@ -100,6 +100,9 @@ public:
   Void  setDIFTap ( Int i );
 
   // DIF filter interface (for half & quarter)
+#if TEN_DIRECTIONAL_INTERP
+  __inline Void xCTI_FilterDIF_TEN(Pel* piSrc, Int iSrcStride, Int iSrcStep, Int iWidth, Int iHeight, Int iDstStride, Int iDstStep, Pel*& rpiDst, Int yFrac, Int xFrac);
+#endif
   __inline Void xCTI_FilterHalfHor(Pel* piSrc, Int iSrcStride, Int iSrcStep, Int iWidth, Int iHeight, Int iDstStride, Int iDstStep, Pel*& rpiDst);
   __inline Void xCTI_FilterHalfHor(Int* piSrc, Int iSrcStride, Int iSrcStep, Int iWidth, Int iHeight, Int iDstStride, Int iDstStep, Pel*& rpiDst);
 
@@ -173,6 +176,188 @@ private:
   __inline Int xCTI_Filter_VI12_QU1 ( Int* pSrc, Int* piCoeff, Int iStride );
 
 };
+
+#if TEN_DIRECTIONAL_INTERP
+__inline Void TComPredFilter::xCTI_FilterDIF_TEN(Pel* piSrc, Int iSrcStride, Int iSrcStep, Int iWidth, Int iHeight, Int iDstStride, Int iDstStep, Pel*& rpiDst, Int yFrac, Int xFrac)
+{
+  Pel*  piDst    = rpiDst;
+  Pel*  piSrcTmp;
+  Int pos = 4*yFrac+xFrac;
+
+  switch ( pos )
+  {
+    case 0:
+      for ( Int y=0; y<iHeight; y++ )
+      {
+        ::memcpy(piDst, piSrc, sizeof(Pel)*iWidth);
+        piSrc += iSrcStride;
+        piDst += iDstStride;
+      }
+      break;
+    case 1:
+      for (Int y=0; y<iHeight; y++)
+      {
+        piSrcTmp = piSrc-2;
+        for ( Int x = 0; x < iWidth; x++, piSrcTmp++)
+          piDst[x*iDstStep] = Clip( (3*piSrcTmp[0] + (-15)*piSrcTmp[1] + 111*piSrcTmp[2] + 37*piSrcTmp[3] + (-10)*piSrcTmp[4] + 2*piSrcTmp[5] + 64)>>7);
+        piSrc += iSrcStride;
+        piDst += iDstStride;
+      }
+      break;
+    case 2:
+      for (Int y=0; y<iHeight; y++)
+      {
+        piSrcTmp = piSrc-2;
+        for ( Int x = 0; x < iWidth; x++, piSrcTmp++)
+          piDst[x*iDstStep] = Clip( (3*piSrcTmp[0] + (-17)*piSrcTmp[1] + 78*piSrcTmp[2] + 78*piSrcTmp[3] + (-17)*piSrcTmp[4] + 3*piSrcTmp[5] + 64)>>7);
+        piSrc += iSrcStride;
+        piDst += iDstStride;
+      }
+      break;
+    case 3:
+      for (Int y=0; y<iHeight; y++)
+      {
+        piSrcTmp = piSrc-2;
+        for ( Int x = 0; x < iWidth; x++, piSrcTmp++)
+          piDst[x*iDstStep] = Clip( (2*piSrcTmp[0] + (-10)*piSrcTmp[1] + 37*piSrcTmp[2] + 111*piSrcTmp[3] + (-15)*piSrcTmp[4] + 3*piSrcTmp[5] + 64)>>7);
+        piSrc += iSrcStride;
+        piDst += iDstStride;
+      }
+      break;
+    case 4:
+      for (Int y=0; y<iHeight; y++)
+      {
+        piSrcTmp = piSrc-2*iSrcStride;
+        for ( Int x = 0; x < iWidth; x++, piSrcTmp++)
+          piDst[x*iDstStep] = Clip( (3*piSrcTmp[0*iSrcStride] + (-15)*piSrcTmp[1*iSrcStride] + 111*piSrcTmp[2*iSrcStride] + 37*piSrcTmp[3*iSrcStride] + (-10)*piSrcTmp[4*iSrcStride] + 2*piSrcTmp[5*iSrcStride] + 64)>>7);
+        piSrc += iSrcStride;
+        piDst += iDstStride;
+      }
+      break;
+    case 5:
+      for (Int y=0; y<iHeight; y++)
+      {
+        piSrcTmp = piSrc-2*iSrcStride-2;
+        for ( Int x = 0; x < iWidth; x++, piSrcTmp++)
+          piDst[x*iDstStep] = Clip( (3*piSrcTmp[0*iSrcStride+0] + (-15)*piSrcTmp[1*iSrcStride+1] + 111*piSrcTmp[2*iSrcStride+2] + 37*piSrcTmp[3*iSrcStride+3] + (-10)*piSrcTmp[4*iSrcStride+4] + 2*piSrcTmp[5*iSrcStride+5] + 64)>>7);
+        piSrc += iSrcStride;
+        piDst += iDstStride;
+      }
+      break;
+    case 6:
+      for (Int y=0; y<iHeight; y++)
+      {
+        piSrcTmp = piSrc-2*iSrcStride-2;
+        for ( Int x = 0; x < iWidth; x++, piSrcTmp++)
+          piDst[x*iDstStep] = Clip( (3*piSrcTmp[0*iSrcStride+0] + (-15)*piSrcTmp[1*iSrcStride+1] + 111*piSrcTmp[2*iSrcStride+2] + 37*piSrcTmp[3*iSrcStride+3] + (-10)*piSrcTmp[4*iSrcStride+4] + 2*piSrcTmp[5*iSrcStride+5] +
+                                     3*piSrcTmp[0*iSrcStride+5] + (-15)*piSrcTmp[1*iSrcStride+4] + 111*piSrcTmp[2*iSrcStride+3] + 37*piSrcTmp[3*iSrcStride+2] + (-10)*piSrcTmp[4*iSrcStride+1] + 2*piSrcTmp[5*iSrcStride+0] + 128)>>8);
+        piSrc += iSrcStride;
+        piDst += iDstStride;
+      }
+      break;
+    case 7:
+      for (Int y=0; y<iHeight; y++)
+      {
+        piSrcTmp = piSrc-2*iSrcStride-2;
+        for ( Int x = 0; x < iWidth; x++, piSrcTmp++)
+          piDst[x*iDstStep] = Clip( (3*piSrcTmp[0*iSrcStride+5] + (-15)*piSrcTmp[1*iSrcStride+4] + 111*piSrcTmp[2*iSrcStride+3] + 37*piSrcTmp[3*iSrcStride+2] + (-10)*piSrcTmp[4*iSrcStride+1] + 2*piSrcTmp[5*iSrcStride+0] + 64)>>7);
+        piSrc += iSrcStride;
+        piDst += iDstStride;
+      }
+      break;
+    case 8:
+      for (Int y=0; y<iHeight; y++)
+      {
+        piSrcTmp = piSrc-2*iSrcStride;
+        for ( Int x = 0; x < iWidth; x++, piSrcTmp++)
+          piDst[x*iDstStep] = Clip( (3*piSrcTmp[0*iSrcStride] + (-17)*piSrcTmp[1*iSrcStride] + 78*piSrcTmp[2*iSrcStride] + 78*piSrcTmp[3*iSrcStride] + (-17)*piSrcTmp[4*iSrcStride] + 3*piSrcTmp[5*iSrcStride] + 64)>>7);
+        piSrc += iSrcStride;
+        piDst += iDstStride;
+      }
+      break;
+   case 9:
+      for (Int y=0; y<iHeight; y++)
+      {
+        piSrcTmp = piSrc-2*iSrcStride-2;
+        for ( Int x = 0; x < iWidth; x++, piSrcTmp++)
+          piDst[x*iDstStep] = Clip( (3*piSrcTmp[0*iSrcStride+0] + (-15)*piSrcTmp[1*iSrcStride+1] + 111*piSrcTmp[2*iSrcStride+2] +  37*piSrcTmp[3*iSrcStride+3] + (-10)*piSrcTmp[4*iSrcStride+4] + 2*piSrcTmp[5*iSrcStride+5] +
+                                     2*piSrcTmp[0*iSrcStride+5] + (-10)*piSrcTmp[1*iSrcStride+4] +  37*piSrcTmp[2*iSrcStride+3] + 111*piSrcTmp[3*iSrcStride+2] + (-15)*piSrcTmp[4*iSrcStride+1] + 3*piSrcTmp[5*iSrcStride+0] + 128)>>8);
+        piSrc += iSrcStride;
+        piDst += iDstStride;
+      }
+      break;
+    case 10:
+      for (Int y=0; y<iHeight; y++)
+      {
+        piSrcTmp = piSrc-1*iSrcStride-1;
+        for ( Int x = 0; x < iWidth; x++, piSrcTmp++)
+          piDst[x*iDstStep] = Clip( (0*piSrcTmp[0*iSrcStride+0] +  5*piSrcTmp[0*iSrcStride+1] +  5*piSrcTmp[0*iSrcStride+2] + 0*piSrcTmp[0*iSrcStride+3] +
+                                     5*piSrcTmp[1*iSrcStride+0] + 22*piSrcTmp[1*iSrcStride+1] + 22*piSrcTmp[1*iSrcStride+2] + 5*piSrcTmp[1*iSrcStride+3] +
+                                     5*piSrcTmp[2*iSrcStride+0] + 22*piSrcTmp[2*iSrcStride+1] + 22*piSrcTmp[2*iSrcStride+2] + 5*piSrcTmp[2*iSrcStride+3] +
+                                     0*piSrcTmp[3*iSrcStride+0] +  5*piSrcTmp[3*iSrcStride+1] +  5*piSrcTmp[3*iSrcStride+2] + 0*piSrcTmp[3*iSrcStride+3] + 64)>>7);
+        piSrc += iSrcStride;
+        piDst += iDstStride;
+      }
+      break;
+    case 11:
+      for (Int y=0; y<iHeight; y++)
+      {
+        piSrcTmp = piSrc-2*iSrcStride-2;
+        for ( Int x = 0; x < iWidth; x++, piSrcTmp++)
+          piDst[x*iDstStep] = Clip( (2*piSrcTmp[0*iSrcStride+0] + (-10)*piSrcTmp[1*iSrcStride+1] +  37*piSrcTmp[2*iSrcStride+2] + 111*piSrcTmp[3*iSrcStride+3] + (-15)*piSrcTmp[4*iSrcStride+4] + 3*piSrcTmp[5*iSrcStride+5] +
+                                     3*piSrcTmp[0*iSrcStride+5] + (-15)*piSrcTmp[1*iSrcStride+4] + 111*piSrcTmp[2*iSrcStride+3] + 37*piSrcTmp[3*iSrcStride+2] + (-10)*piSrcTmp[4*iSrcStride+1] + 2*piSrcTmp[5*iSrcStride+0] + 128)>>8);
+        piSrc += iSrcStride;
+        piDst += iDstStride;
+      }
+      break;
+    case 12:
+      for (Int y=0; y<iHeight; y++)
+      {
+        piSrcTmp = piSrc-2*iSrcStride;
+        for ( Int x = 0; x < iWidth; x++, piSrcTmp++)
+          piDst[x*iDstStep] = Clip( (2*piSrcTmp[0*iSrcStride] + (-10)*piSrcTmp[1*iSrcStride] + 37*piSrcTmp[2*iSrcStride] + 111*piSrcTmp[3*iSrcStride] + (-15)*piSrcTmp[4*iSrcStride] + 3*piSrcTmp[5*iSrcStride] + 64)>>7);
+        piSrc += iSrcStride;
+        piDst += iDstStride;
+      }
+      break;
+   case 13:
+      for (Int y=0; y<iHeight; y++)
+      {
+        piSrcTmp = piSrc-2*iSrcStride-2;
+        for ( Int x = 0; x < iWidth; x++, piSrcTmp++)
+          piDst[x*iDstStep] = Clip( (2*piSrcTmp[0*iSrcStride+5] + (-10)*piSrcTmp[1*iSrcStride+4] + 111*piSrcTmp[2*iSrcStride+3] + 37*piSrcTmp[3*iSrcStride+2] + (-10)*piSrcTmp[4*iSrcStride+1] + 2*piSrcTmp[5*iSrcStride+0] + 64)>>7);
+        piSrc += iSrcStride;
+        piDst += iDstStride;
+      }
+      break;
+   case 14:
+      for (Int y=0; y<iHeight; y++)
+      {
+        piSrcTmp = piSrc-2*iSrcStride-2;
+        for ( Int x = 0; x < iWidth; x++, piSrcTmp++)
+          piDst[x*iDstStep] = Clip( (2*piSrcTmp[0*iSrcStride+0] + (-10)*piSrcTmp[1*iSrcStride+1] +  37*piSrcTmp[2*iSrcStride+2] + 111*piSrcTmp[3*iSrcStride+3] + (-15)*piSrcTmp[4*iSrcStride+4] + 3*piSrcTmp[5*iSrcStride+5] +
+                                     2*piSrcTmp[0*iSrcStride+5] + (-10)*piSrcTmp[1*iSrcStride+4] +  37*piSrcTmp[2*iSrcStride+3] + 111*piSrcTmp[3*iSrcStride+2] + (-15)*piSrcTmp[4*iSrcStride+1] + 3*piSrcTmp[5*iSrcStride+0] + 128)>>8);
+        piSrc += iSrcStride;
+        piDst += iDstStride;
+      }
+      break;
+    case 15:
+      for (Int y=0; y<iHeight; y++)
+      {
+        piSrcTmp = piSrc-2*iSrcStride-2;
+        for ( Int x = 0; x < iWidth; x++, piSrcTmp++)
+          piDst[x*iDstStep] = Clip( (2*piSrcTmp[0*iSrcStride+0] + (-10)*piSrcTmp[1*iSrcStride+1] + 37*piSrcTmp[2*iSrcStride+2] + 111*piSrcTmp[3*iSrcStride+3] + (-15)*piSrcTmp[4*iSrcStride+4] + 3*piSrcTmp[5*iSrcStride+5] + 64)>>7);
+        piSrc += iSrcStride;
+        piDst += iDstStride;
+      }
+      break;
+    default:
+      assert (0);
+      break;
+  }
+  return;
+}
+#endif
 
 // ------------------------------------------------------------------------------------------------
 // DIF filters

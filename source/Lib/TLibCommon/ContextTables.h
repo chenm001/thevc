@@ -91,6 +91,10 @@
 #define NUM_ALF_UVLC_CTX              2       ///< number of context models for ALF UVLC (filter length)
 #define NUM_ALF_SVLC_CTX              3       ///< number of context models for ALF SVLC (filter coeff.)
 
+#if PLANAR_INTRA
+#define NUM_PLANAR_INTRA_CTX          2
+#endif
+
 #if HHI_ALF
 #define NUM_ALF_SPLITFLAG_CTX         1       ///< number of context models for ALF split flag
 #endif
@@ -197,6 +201,16 @@ static const Short INIT_INTRA_PRED_MODE[3][NUM_ADI_CTX][2] = {
   {{48,25},{-20,38}},
   // for B slice
   {{0,0},{-3,35}}};
+
+#if PLANAR_INTRA
+static const Short INIT_PLANAR_INTRA[3][NUM_PLANAR_INTRA_CTX][2] = {
+  // for I slice
+  {{0,0},{0,0}},
+  // for P slice
+  {{0,0},{0,0}},
+  // for B slice
+  {{0,0},{0,0}}};
+#endif
 
 #if HHI_AIS
 // BB: initial probability for intra reference pixel filtering

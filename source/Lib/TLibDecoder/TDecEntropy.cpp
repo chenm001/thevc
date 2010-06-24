@@ -450,9 +450,29 @@ Void TDecEntropy::decodePredInfo    ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt 
   }
 }
 
+#if PLANAR_INTRA
+Void TDecEntropy::decodePlanarInfo( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
+{
+  if ( pcCU->getSlice()->isInterB() )
+    return;
+
+  if ( pcCU->isIntra( uiAbsPartIdx ) )
+  {
+    m_pcEntropyDecoderIf->parsePlanarInfo( pcCU, uiAbsPartIdx, uiDepth );
+  }
+}
+#endif
+
 Void TDecEntropy::decodeIntraDirModeLuma  ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
 {
+#if ANG_INTRA
+  if ( pcCU->angIntraEnabledPredPart( uiAbsPartIdx ) )
+    m_pcEntropyDecoderIf->parseIntraDirLumaAng( pcCU, uiAbsPartIdx, uiDepth );
+  else
+    m_pcEntropyDecoderIf->parseIntraDirLumaAdi( pcCU, uiAbsPartIdx, uiDepth );
+#else
   m_pcEntropyDecoderIf->parseIntraDirLumaAdi( pcCU, uiAbsPartIdx, uiDepth );
+#endif
 }
 
 #if HHI_AIS

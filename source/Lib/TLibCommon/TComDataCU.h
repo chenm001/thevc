@@ -158,7 +158,9 @@ private:
   UChar*        m_pCIPflag;           ///< array of CIP flags
   UInt*         m_puiAlfCtrlFlag;     ///< array of ALF flags
   UInt*         m_puiTmpAlfCtrlFlag;  ///< temporal array of ALF flags
-
+#if PLANAR_INTRA
+  Int*          m_piPlanarInfo[4];
+#endif
   // -------------------------------------------------------------------------------------------------------------------
   // misc. variables
   // -------------------------------------------------------------------------------------------------------------------
@@ -336,6 +338,17 @@ public:
   Void          setCIPflag            ( UInt uiIdx, UChar  uh ) { m_pCIPflag[uiIdx] = uh;             }
   Void          setCIPflagSubParts    ( UChar CIPflag, UInt uiAbsPartIdx, UInt uiDepth );
 
+#if ANG_INTRA
+  Bool          angIntraEnabledPredPart( UInt uiAbsPartIdx );
+#endif
+
+#if PLANAR_INTRA
+  Int           getPlanarInfo   ( UInt uiIdx, PlanarType pType )            { return m_piPlanarInfo[pType][uiIdx];  }
+  Int*          getPlanarInfo   ( PlanarType pType )                        { return m_piPlanarInfo[pType];         }
+  Void          setPlanarInfo   ( UInt uiIdx, PlanarType pType, Int i )     { m_piPlanarInfo[pType][uiIdx] = i;     }
+  Void          setPlanarInfoSubParts( Int iPlanarFlag, Int iPlanarDeltaY, Int iPlanarDeltaU, Int iPlanarDeltaV, UInt uiAbsPartIdx, UInt uiDepth );
+#endif
+
   // -------------------------------------------------------------------------------------------------------------------
   // member functions for accessing partition information
   // -------------------------------------------------------------------------------------------------------------------
@@ -469,6 +482,9 @@ public:
   UInt          getCtxIntraDirChroma            ( UInt   uiAbsPartIdx                                 );
   UInt          getCtxCIPFlag                   ( UInt   uiAbsPartIdx                                 );
 #if HHI_AIS
+#if ANG_INTRA
+  UInt          getCtxIntraFiltFlagLumaAng      ( UInt   uiAbsPartIdx                                 );
+#endif
   UInt          getCtxIntraFiltFlagLuma         ( UInt   uiAbsPartIdx                                 );
 #endif
 
