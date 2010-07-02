@@ -539,7 +539,6 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
       break;
   }
 
-  pcOut->destroy();
   delete pcOut;
 
   assert ( m_iNumPicCoded == iNumPicRcvd );
