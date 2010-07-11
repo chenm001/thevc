@@ -130,6 +130,12 @@ protected:
   /// sub-function for motion vector refinement used in fractional-pel accuracy
   UInt  xPatternRefinement( TComPattern* pcPatternKey, Pel* piRef, Int iRefStride, Int iIntStep, Int iFrac, TComMv& rcMvFrac );
 
+#ifdef QC_AMVRES
+#if HHI_INTERP_FILTER
+  UInt xPatternRefinementHAM_MOMS    ( TComPattern* pcPatternKey, Pel* piRef, Int iRefStride, Int iIntStep, TComMv& rcMvFrac ,UInt  uiDistBest_onefourth, InterpFilterType ePFilt,TComMv* PredMv);
+#endif
+  UInt xPatternRefinementHAM_DIF    ( TComPattern* pcPatternKey, Pel* piRef, Int iRefStride, Int iIntStep, TComMv& rcMvFrac ,UInt  uiDistBest_onefourth,TComMv* predMV);
+#endif
 #if ANG_INTRA
   Bool predIntraLumaDirAvailable( UInt uiMode, UInt uiWidthBit, Bool angIntraEnabled, Bool bAboveAvail, Bool bLeftAvail);
 #endif
@@ -382,6 +388,16 @@ protected:
                                     UInt&       ruiBits,
                                     UInt&       ruiCost );
 
+#ifdef QC_AMVRES
+  Void xCheckBestMVP_onefourth							( TComDataCU* pcCU,
+																		RefPicList	eRefPicList,
+																		TComMv			cMv,
+																		TComMv&			rcMvPred,
+																		Int&				riMVPIdx,
+																		UInt&				ruiBits,
+																		UInt&				ruiCost );
+#endif
+
   UInt xGetTemplateCost           ( TComDataCU* pcCU,
                                     UInt        uiPartIdx,
                                     UInt        uiPartAddr,
@@ -462,9 +478,34 @@ protected:
                                     TComMv*       pcMvInt,
                                     TComMv&       rcMvHalf,
                                     TComMv&       rcMvQter,
-                                    UInt&         ruiCost );
+																		UInt&					ruiCost 
+#ifdef QC_AMVRES																		
+																		,TComMv *PredMv 
+																		, Int iRefIdxPred 
+#endif
+																		);
+#ifdef QC_SIFO
+  Void xPatternSearchFracDIF_QC   ( TComDataCU*   pcCU,
+                                    TComPattern*  pcPatternKey,
+                                    Pel*          piRefY,
+                                    Int           iRefStride,
+                                    TComMv*       pcMvInt,
+                                    TComMv&       rcMvHalf,
+                                    TComMv&       rcMvQter,
+																		UInt&					ruiCost 
+#ifdef QC_AMVRES																		
+																		,TComMv *PredMv 
+																		, Int iRefIdxPred 
+#endif
+																		);
+  
+  Void xAddSubFullPelOffset    ( TComPattern* pcPatternKey, Int iOffset, Bool Add);
+  UInt xPatternRefinementMC    ( TComPattern* pcPatternKey, Pel* piRef, Int iRefStride, Int iIntStep, Int iFrac, TComMv& rcMvFrac);
+  Void xExtDIFUpSamplingH_QC   ( TComPattern*  pcPattern, TComYuv* pcYuvExt);
+#endif
 
   Void xExtDIFUpSamplingH         ( TComPattern*  pcPattern, TComYuv* pcYuvExt  );
+
   Void xExtDIFUpSamplingQ         ( TComPattern*  pcPatternKey,
                                     Pel*          piDst,
                                     Int           iDstStride,
@@ -504,7 +545,12 @@ protected:
                                     TComMv&       rcMvHalf,
                                     TComMv&       rcMvQter,
                                     UInt&         ruiCost,
-                                    InterpFilterType ePFilt );
+                                    InterpFilterType ePFilt 
+#ifdef QC_AMVRES
+									,TComMv *PredMv
+									, Int iRefIdxPred 
+#endif
+									);
 #endif
 
   // -------------------------------------------------------------------------------------------------------------------

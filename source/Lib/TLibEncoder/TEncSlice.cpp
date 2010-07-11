@@ -309,7 +309,11 @@ Void TEncSlice::initEncSlice( TComPic* pcPic, Int iPOCLast, UInt uiPOCCurr, Int 
     // Case #1: I or P-slices (key-frame)
     if ( iDepth == 0 )
     {
+#if QC_MDDT
+      if ( pcPic->getSlice()->isIntra() && dQP == dOrigQP )
+#else
       if ( m_pcCfg->getUseRDOQ() && pcPic->getSlice()->isIntra() && dQP == dOrigQP )
+#endif
       {
         dLambda = 0.57 * pow( 2.0, qp_temp/3.0 );
       }
@@ -520,6 +524,10 @@ Void TEncSlice::compressSlice( TComPic*& rpcPic )
   m_dPicRdCost      = 0;
   m_uiPicDist       = 0;
 
+#if QC_MDDT
+    InitScanOrderForSlice(); 
+#endif
+
   // set entropy coder
   if( m_pcCfg->getUseSBACRD() )
   {
@@ -569,6 +577,10 @@ Void TEncSlice::compressSlice( TComPic*& rpcPic )
       m_pcEntropyCoder->setBitstream    ( m_pcBitCounter );
 
       m_pcCuEncoder->encodeCU( pcCU );
+#if QC_MDDT//ADAPTIVE_SCAN
+      updateScanOrder(0);
+      normalizeScanStats();
+#endif
     }
     // other case: encodeCU is not called
     else
@@ -628,7 +640,9 @@ Void TEncSlice::encodeSlice   ( TComPic*& rpcPic, TComBitstream*& rpcBitstream )
 
   // set bitstream
   m_pcEntropyCoder->setBitstream( rpcBitstream );
-
+#if QC_MDDT//ADAPTIVE_SCAN
+    InitScanOrderForSlice(); 
+#endif
   // for every CU
 #if HHI_RQT
 #if ENC_DEC_TRACE
@@ -657,6 +671,12 @@ Void TEncSlice::encodeSlice   ( TComPic*& rpcPic, TComBitstream*& rpcBitstream )
 #if ENC_DEC_TRACE
     g_bJustDoIt = g_bEncDecTraceDisable;
 #endif
+#endif
+
+#if QC_MDDT//ADAPTIVE_SCAN
+	// synchronize with the scanning table with the one we obtain in compressSlice()
+    updateScanOrder(0);
+	normalizeScanStats();
 #endif
   }
 }

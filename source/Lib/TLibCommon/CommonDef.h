@@ -94,8 +94,8 @@
 // Common constants
 // ====================================================================================================================
 
-#define _SUMMARY_OUT_               1           ///< print-out PSNR results of all slices to summary.txt
-#define _SUMMARY_PIC_               1           ///< print-out PSNR results for each slice type to summary.txt
+#define _SUMMARY_OUT_               0           ///< print-out PSNR results of all slices to summary.txt
+#define _SUMMARY_PIC_               0           ///< print-out PSNR results for each slice type to summary.txt
 
 #define MAX_REF_PIC_NUM             64
 #define MAX_GOP                     64          ///< max. value of hierarchical GOP size
@@ -140,6 +140,13 @@
 // ====================================================================================================================
 // Coding tool configuration
 // ====================================================================================================================
+
+
+#ifdef QC_AMVRES
+#define AMVRES_ACC										8 					    ///< MV accuracy for AMVRES
+#define AMVRES_ACC_IDX_OFFSET				            (-1)
+#endif
+
 
 // GRF: generated reference frame
 #define GRF_MAX_NUM_EFF             2           ///< maximum number of effects

@@ -219,6 +219,12 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
   m_apcOpt->setFileOption( "QBO"                      );
   m_apcOpt->setFileOption( "NRF"                      );
   m_apcOpt->setFileOption( "BQP"                      );
+#ifdef QC_AMVRES
+	m_apcOpt->setFileOption( "AMVRES"											);
+#endif
+#ifdef QC_SIFO_PRED
+	m_apcOpt->setFileOption( "SPF"											);
+#endif
   m_apcOpt->setFileOption( "DIFTap"                   );
   m_apcOpt->setFileOption( "LoopFilterDisable"        );
   m_apcOpt->setFileOption( "LoopFilterAlphaC0Offset"  );
@@ -381,6 +387,11 @@ Void TAppEncCfg::xCheckParameter()
   {
     m_bUseRDOQ = false;
   }
+#ifdef QC_AMVRES
+  if(m_iInterpFilterType == IPF_TEN_DIF)
+    m_bUseAMVRes = false;
+#endif
+
 }
 
 /** \todo use of global variables should be removed later
@@ -433,6 +444,12 @@ Void TAppEncCfg::xSetCfgTool()
   m_bUseBQP                       = false;
   m_iLDMode                       = -1;
   m_bUsePAD                       = false;
+#ifdef QC_AMVRES
+  m_bUseAMVRes											= true;
+#endif
+#ifdef QC_SIFO_PRED
+  m_bUseSIFO_Pred               = true;
+#endif
 #if HHI_MRG
   m_bUseMRG                       = true; // SOPH: Merge Mode
 #endif
@@ -574,7 +591,12 @@ Void TAppEncCfg::xSetCfgFile( TAppOption* pcOpt )
 #if HHI_INTERP_FILTER
   if ( pcOpt->getValue( "InterpFilterType" ) )              m_iInterpFilterType             = atoi( pcOpt->getValue( "InterpFilterType" ) );
 #endif
-
+#ifdef QC_AMVRES
+	if ( pcOpt->getValue( "AMVRES" ) )														m_bUseAMVRes												= atoi( pcOpt->getValue( "AMVRES"       ) ) == 0 ? false : true;
+#endif
+#ifdef QC_SIFO_PRED
+	if ( pcOpt->getValue( "SPF" ) )														m_bUseSIFO_Pred									= atoi( pcOpt->getValue( "SPF"       ) ) == 0 ? false : true;
+#endif
   return;
 }
 
@@ -592,6 +614,12 @@ Void TAppEncCfg::xSetCfgCommand( int iArgc, char** pArgv )
     else if ( !strcmp( pStr, "-i" ) )   { i++; m_pchInputFile         = pArgv[i];         i++; }
     else if ( !strcmp( pStr, "-b" ) )   { i++; m_pchBitstreamFile     = pArgv[i];         i++; }
     else if ( !strcmp( pStr, "-o" ) )   { i++; m_pchReconFile         = pArgv[i];         i++; }
+#ifdef QC_CONFIG
+		else if ( !strcmp( pStr, "-wdt" ) )	{	i++; m_iSourceWidth					= atoi( pArgv[i] ); i++; }
+    else if ( !strcmp( pStr, "-hgt" ) )	{	i++; m_iSourceHeight				= atoi( pArgv[i] ); i++; }
+    else if ( !strcmp( pStr, "-fr" ) )	{	i++; m_iFrameRate					  = atoi( pArgv[i] ); i++; }
+    else if ( !strcmp( pStr, "-fs" ) )	{	i++; m_iFrameSkip					  = atoi( pArgv[i] ); i++; }
+#endif
     else if ( !strcmp( pStr, "-m" ) )   { i++; m_pchdQPFile           = pArgv[i];         i++; }
     else if ( !strcmp( pStr, "-v" ) )   { i++; m_pchGRefMode        = pArgv[i];         i++; }
     else if ( !strcmp( pStr, "-f" ) )   { i++; m_iFrameToBeEncoded    = atoi( pArgv[i] ); i++; }
@@ -677,6 +705,14 @@ Void TAppEncCfg::xSetCfgCommand( int iArgc, char** pArgv )
   m_bUseFastEnc  = true;
   m_bUseASR       = true;
       }
+#ifdef QC_AMVRES
+      else
+      if ( !strcmp( pToolName, "AMVRES" ) )	m_bUseAMVRes         = true;
+#endif
+#ifdef QC_SIFO_PRED
+      else
+      if ( !strcmp( pToolName, "SPF" ) )	m_bUseSIFO_Pred   = true;
+#endif
       i++;
     }
     else
@@ -730,6 +766,14 @@ Void TAppEncCfg::xSetCfgCommand( int iArgc, char** pArgv )
       if ( !strcmp( pToolName, "BQP" ) )  m_bUseBQP         = false;
       else
       if ( !strcmp( pToolName, "FEN" ) )  m_bUseFastEnc     = false;
+#ifdef QC_AMVRES
+      else
+      if ( !strcmp( pToolName, "AMVRES" ) )	m_bUseAMVRes         = false;
+#endif
+#ifdef QC_SIFO_PRED
+      else
+      if ( !strcmp( pToolName, "SPF" ) )	m_bUseSIFO_Pred   = false;
+#endif
       i++;
     }
     else
@@ -797,9 +841,20 @@ Void TAppEncCfg::xPrintParameter()
       printf("Luma interpolation           : %s\n", "HHI 6-tap MOMS filter"  );
       printf("Chroma interpolation         : %s\n", "HHI 6-tap MOMS filter"  );
       break;
+#ifdef QC_SIFO   
+    case IPF_QC_SIFO:
+      printf("Luma   interpolation         : Qualcomm %d-tap SIFO\n", m_iDIFTap  );
+      printf("Chroma interpolation         : %s\n", "Bi-linear filter"       );
+      break;
+#endif
     default:
+#ifdef QC_CONFIG
+      printf("Luma   interpolation         : Samsung %d-tap filter\n", m_iDIFTap  );
+      printf("Chroma interpolation         : %s\n", "Bi-linear filter"       );
+#else
       printf("Luma interpolation           : %s\n", "Samsung 12-tap filter"  );
       printf("Chroma interpolation         : %s\n", "Bi-linear filter"       );
+#endif
   }
 #else
   printf("Number of int. taps (luma)   : %d\n", m_iDIFTap  );
@@ -863,7 +918,12 @@ Void TAppEncCfg::xPrintParameter()
 #if HHI_IMVP
   printf("IMP:%d ", m_bUseIMP             ); // SOPH: Interleaved MV Predictor
 #endif
-
+#ifdef QC_AMVRES
+	printf("AMVRES:%d ", m_bUseAMVRes							);
+#endif
+#ifdef QC_SIFO_PRED
+	printf("SPF:%d ", m_bUseSIFO_Pred			);
+#endif
   printf("\n");
 
   fflush(stdout);
@@ -877,6 +937,12 @@ Void TAppEncCfg::xPrintUsage()
   printf( "  -i      original YUV input file name\n" );
   printf( "  -o      decoded YUV output file name\n" );
   printf( "  -b      bitstream file name\n" );
+#ifdef QC_CONFIG
+  printf( "  -wdt    Source Width\n" );
+  printf( "  -hgt    Source Height\n" );
+  printf( "  -fr     Frame Rate\n" );
+  printf( "  -fs     Frame Skip\n" );
+#endif
   printf( "  -m      dQP file name\n" );
   printf( "  -f      number of frames to be encoded (default EOS)\n" );
   printf( "  -q      Qp value, if value is float, QP is switched once during encoding\n" );
@@ -926,6 +992,9 @@ Void TAppEncCfg::xPrintUsage()
 #endif
 #if HHI_IMVP
   printf( "                   IMP - interleaved motion vector predictor\n"); /// SOPH: Interleaved MV Predictor
+#endif
+#ifdef QC_AMVRES
+	printf( "                   AMVRES - Adaptive motion resolution\n");
 #endif
   printf( "\n" );
   printf( "  Example 1) TAppEncoder.exe -c test.cfg -q 32 -g 8 -f 9 -s 64 -h 4\n");

@@ -58,6 +58,41 @@
 #define ALF_MAX_NUM_COEF_C    14                                      ///< number of filter taps for chroma
 #define ALF_NUM_BIT_SHIFT     8                                       ///< bit shift parameter for quantization of ALF param.
 #define ALF_ROUND_OFFSET      ( 1 << ( ALF_NUM_BIT_SHIFT - 1 ) )      ///< rounding offset for ALF quantization
+
+#if QC_ALF
+#include "../TLibCommon/CommonDef.h"
+
+#define FATAL_ERROR_0(MESSAGE, EXITCODE)                                \
+          {                                                             \
+            printf(MESSAGE);                                            \
+            exit(EXITCODE);                                             \
+          }
+
+#define NUM_BITS               9
+#define NO_TEST_FILT           3       // Filter supports (5/7/9)
+#define NO_VAR_BINS           16 
+#define NO_FILTERS            16
+#define VAR_SIZE               3
+#define FILTER_LENGTH          9
+
+#define MAX_SQR_FILT_LENGTH   ((FILTER_LENGTH*FILTER_LENGTH) / 2 + 2)
+#define SQR_FILT_LENGTH_9SYM  ((9*9) / 4 + 2) 
+#define SQR_FILT_LENGTH_7SYM  ((7*7) / 4 + 2) 
+#define SQR_FILT_LENGTH_5SYM  ((5*5) / 4 + 2) 
+#define MAX_SCAN_VAL    11
+#define MAX_EXP_GOLOMB  16
+
+#define min(a, b) (((a) < (b)) ? (a) : (b))
+#define max(a, b) (((a) > (b)) ? (a) : (b))
+#define imgpel  unsigned short
+
+extern Int depthInt9x9Sym[22];
+extern Int depthInt7x7Sym[14];
+extern Int depthInt5x5Sym[8];
+extern Int *pDepthIntTab[NO_TEST_FILT];
+void destroyMatrix_int(int **m2D);
+void initMatrix_int(int ***m2D, int d1, int d2);
+#endif
 #endif
 
 // ====================================================================================================================
@@ -145,7 +180,77 @@ protected:
 	// ------------------------------------------------------------------------------------------------------------------
 	// For luma component
 	// ------------------------------------------------------------------------------------------------------------------
+#if QC_ALF
+  static Int pattern9x9Sym[41];
+  static Int weights9x9Sym[22];
+  static Int pattern9x9Sym_Quart[42];
+  static Int pattern7x7Sym[25];
+  static Int weights7x7Sym[14];
+  static Int pattern7x7Sym_Quart[42];
+  static Int pattern5x5Sym[13];
+  static Int weights5x5Sym[8];
+  static Int pattern5x5Sym_Quart[45];
+  static Int pattern9x9Sym_9[41];
+  static Int pattern9x9Sym_7[25];
+  static Int pattern9x9Sym_5[13];
 
+  static Int *patternTab_filt[NO_TEST_FILT];
+  static Int flTab[NO_TEST_FILT];
+  static Int *patternTab[NO_TEST_FILT]; 
+  static Int *patternMapTab[NO_TEST_FILT];
+  static Int *weightsTab[NO_TEST_FILT];
+  static Int sqrFiltLengthTab[NO_TEST_FILT];
+
+  Int img_height,img_width;
+
+  imgpel **ImgDec;
+  imgpel **ImgRest;
+  imgpel **imgY_var;
+  imgpel **imgY_pad;
+  Int    **imgY_temp;
+  Int    **maskImgdec;
+
+  Int **filterCoeffSym;
+  Int **filterCoeffPrevSelected;
+  Int **filterCoeffTmp;
+  Int **filterCoeffSymTmp;
+
+	/// ALF for luma component
+  Void	xALFLuma_qc				( TComPic* pcPic, ALFParam* pcAlfParam, TComPicYuv* pcPicDec, TComPicYuv* pcPicRest );
+  Void	xCUAdaptive_qc			( TComPic*	  pcPic, ALFParam* pcAlfParam, TComPicYuv* pcPicDec, TComPicYuv* pcPicRest );
+  Void	xSubCUAdaptive_qc	( TComDataCU* pcCU,  ALFParam* pcAlfParam, TComPicYuv* pcPicDec, TComPicYuv* pcPicRest,
+													UInt uiAbsPartIdx, UInt uiDepth );
+
+  Void FilteringProcess_qc( imgpel **ImgDec, imgpel **ImgRest,ALFParam* pcAlfParam);
+  Void calcVar(imgpel **imgY_var, imgpel **imgY_pad,int pad_size, int fl, int img_height, int img_width);
+  Void filterFrame(imgpel **imgY_rec_post, imgpel **imgY_rec, imgpel **varImg,int filtNo);
+
+  Void DecFilter_qc(imgpel** imgY_rec,ALFParam* pcAlfParam,int inloop);
+  Void reconstructFilterCoeffs(ALFParam* pcAlfParam,int **pfilterCoeffSym, int bit_depth);
+  Void getCurrentFilter(int **filterCoeffSym,ALFParam* pcAlfParam);
+  Void padImage(imgpel **imgY,  imgpel **imgY_pad, int fl, int img_height, int img_width);
+  // memory allocation
+  Void destroyMatrix_imgpel(imgpel **m2D);
+  Void destroyMatrix_int(int **m2D);
+  Void initMatrix_int(int ***m2D, int d1, int d2);
+  Void initMatrix_imgpel(imgpel ***m2D, int d1, int d2);
+  Void destroyMatrix4D_double(double ****m4D, int d1, int d2);
+  Void destroyMatrix3D_double(double ***m3D, int d1);
+  Void destroyMatrix_ushort(unsigned short **m2D);
+  Void destroyMatrix_double(double **m2D);
+  Void initMatrix4D_double(double *****m4D, int d1, int d2, int d3, int d4);
+  Void initMatrix3D_double(double ****m3D, int d1, int d2, int d3);
+  Void initMatrix_ushort(unsigned short ***m2D, int d1, int d2);
+  Void initMatrix_double(double ***m2D, int d1, int d2);
+  Void free_mem1Dint(int *array1D);
+  Void get_mem1Dint(int **array1D, int rows);
+  Void free_mem2Dpel(imgpel **array2D);
+  Void get_mem2Dpel(imgpel ***array2D, int rows, int columns);
+  Void no_mem_exit(char *where);
+  Void error(char *text, int code);
+
+
+#endif
 	/// ALF for luma component
   Void	xALFLuma				( TComPic* pcPic, ALFParam* pcAlfParam, TComPicYuv* pcPicDec, TComPicYuv* pcPicRest );
 

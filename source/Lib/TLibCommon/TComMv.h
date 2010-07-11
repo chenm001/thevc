@@ -91,6 +91,12 @@ public:
   Int   getAbsHor ()  { return abs( m_iHor );   }
   Int   getAbsVer ()  { return abs( m_iVer );   }
 
+#ifdef QC_AMVRES
+  Bool isHAM (){ return ((m_iHor&1)||(m_iVer&1)); }
+  Void scale_down() { m_iHor = (m_iHor/2); m_iVer = (m_iVer/2); }
+  Void round() { m_iHor = (m_iHor/2)*2; m_iVer = (m_iVer/2)*2; }
+#endif
+
   // ------------------------------------------------------------------------------------------------------------------
   // operations
   // ------------------------------------------------------------------------------------------------------------------

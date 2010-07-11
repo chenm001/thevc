@@ -650,6 +650,10 @@
 				</FileConfiguration>
 			</File>
 			<File
+				RelativePath=".\TEncSIFO.cpp"
+				>
+			</File>
+			<File
 				RelativePath="TEncSlice.cpp"
 				>
 				<FileConfiguration
@@ -804,6 +808,10 @@
 			</File>
 			<File
 				RelativePath="TEncSearch.h"
+				>
+			</File>
+			<File
+				RelativePath=".\TEncSIFO.h"
 				>
 			</File>
 			<File

@@ -72,7 +72,9 @@ public:
   Void  parsePPS                  (TComPPS* pcPPS) {}
   Void  parseSliceHeader          (TComSlice*& rpcSlice)    {}
   Void  parseTerminatingBit       ( UInt& ruiBit );
-
+#ifdef QC_SIFO
+  Void  parseSwitched_Filters      (TComSlice*& rpcSlice, TComPrediction* m_cPrediction)   {}
+#endif
   Void parseMVPIdx        ( TComDataCU* pcCU, Int& riMVPIdx, Int iMVPNum, UInt uiAbsPartIdx, UInt uiDepth, RefPicList eRefList );
 
   Void parseAlfFlag       ( UInt& ruiVal            );
@@ -88,7 +90,9 @@ private:
 
   Void  xReadMvd            ( Int& riMvdComp, UInt uiAbsSum, UInt uiCtx );
   Void  xReadExGolombMvd    ( UInt& ruiSymbol, ContextModel* pcSCModel, UInt uiMaxBin );
-
+#ifdef QC_AMVRES
+  Void xReadMvResFlag ( Int& riVal, UInt uiCtx );
+#endif
 #if PLANAR_INTRA
   UInt xParsePlanarBins( );
   Int  xParsePlanarDelta( TextType ttText );
@@ -175,7 +179,9 @@ private:
   ContextModel3DBuffer m_cCUInterDirSCModel;
   ContextModel3DBuffer m_cCURefPicSCModel;
   ContextModel3DBuffer m_cCUMvdSCModel;
-
+#ifdef QC_AMVRES 
+  ContextModel3DBuffer m_cCUMvResCModel;
+#endif
 #if HHI_RQT
   ContextModel3DBuffer m_cCUTransSubdivFlagSCModel;
 #endif

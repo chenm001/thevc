@@ -105,7 +105,9 @@ Void TComSlice::initSlice()
 
   m_auiAddRefCnt[0]  = 0;
   m_auiAddRefCnt[1]  = 0;
-
+#ifdef QC_SIFO_PRED
+	m_bUseSIFO_Pred    = true;
+#endif
   initEqualRef();
 }
 

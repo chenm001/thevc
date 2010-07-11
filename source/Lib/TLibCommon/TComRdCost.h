@@ -141,6 +141,12 @@ public:
   {
     return (( m_uiCost * (m_puiHorCost[ x * (1<<m_iCostScale) ] + m_puiVerCost[ y * (1<<m_iCostScale) ]) ) >> 16);
   }
+#ifdef QC_AMVRES
+  __inline UInt getCost( Int x, Int y ,Int extrabits)
+  {
+    return (( m_uiCost * (m_puiHorCost[ x * (1<<m_iCostScale) ] + m_puiVerCost[ y * (1<<m_iCostScale) ]+extrabits) ) >> 16);
+  }
+#endif
   UInt    getCost( UInt b )                 { return ( m_uiCost * b ) >> 16; }
   UInt    getBits( Int x, Int y )           { return m_puiHorCost[ x * (1<<m_iCostScale)] + m_puiVerCost[ y * (1<<m_iCostScale) ]; }
 

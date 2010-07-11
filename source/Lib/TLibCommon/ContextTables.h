@@ -98,7 +98,9 @@
 #if HHI_ALF
 #define NUM_ALF_SPLITFLAG_CTX         1       ///< number of context models for ALF split flag
 #endif
-
+#ifdef QC_AMVRES
+#define NUM_MV_RES_FALG_CTX			  3			  ///< number of context models for motion vector resolution flag
+#endif
 // ====================================================================================================================
 // Tables
 // ====================================================================================================================
@@ -261,6 +263,17 @@ static const Short INIT_REF_PIC[3][NUM_REF_NO_CTX][2] = {
   {{0,0},{0,0},{0,0},{0,0},{0,0},{0,0}},
   // for B slice
   {{-26,33},{-35,41},{-18,40},{0,0},{0,8},{0,0}}};
+
+#ifdef QC_AMVRES
+// initial probability for MV resolution flag
+static const Short INIT_MVRES_FLAG[3][3][2] = {
+	// for I slice
+	{{0,0},{0,0},{0,0}},
+	// for P slice
+	{{0,0},{0,0},{0,0}},
+	// for B slice
+	{{0,0},{0,0},{0,0}}};
+#endif
 
 // initial probability for dQP
 static const Short INIT_DQP[3][NUM_DELTA_QP_CTX][2] = {

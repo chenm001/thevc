@@ -124,7 +124,9 @@ Void TEncCavlc::codeSPS( TComSPS* pcSPS )
   xWriteFlag  ( (pcSPS->getUseWPG () || pcSPS->getUseWPO ()) ? 1 : 0 );
   xWriteFlag  ( (pcSPS->getUseLDC ()) ? 1 : 0 );
   xWriteFlag  ( (pcSPS->getUseQBO ()) ? 1 : 0 );
-
+#ifdef QC_AMVRES
+  xWriteFlag  ( (pcSPS->getUseAMVRes ()) ? 1 : 0 );
+#endif
 #if HHI_ALLOW_CIP_SWITCH
   xWriteFlag  ( (pcSPS->getUseCIP ()) ? 1 : 0 ); // BB:
 #endif
@@ -885,12 +887,46 @@ Void TEncCavlc::codeRefFrmIdx( TComDataCU* pcCU, UInt uiAbsPartIdx, RefPicList e
 {
   Int iRefFrame = pcCU->getCUMvField( eRefList )->getRefIdx( uiAbsPartIdx );
 
+#ifdef QC_AMVRES
+  if(pcCU->getSlice()->getSPS()->getUseAMVRes())
+  {
+	  Bool Mvres = !pcCU->getCUMvField( eRefList )->getMv( uiAbsPartIdx ).isHAM();
+   
+	  if (iRefFrame == 0 )
+	  {
+		  if (Mvres)
+			 xWriteFlag(0);
+		  else
+		  {
+			 xWriteFlag(1);
+			 xWriteFlag(0);
+		  }
+	  }
+	  else
+	  {
+		  xWriteFlag(1);
+		  xWriteFlag(1);
+		  if (pcCU->getSlice()->getNumRefIdx( eRefList )>2)
+	 		  xWriteUnaryMaxSymbol( iRefFrame-1, pcCU->getSlice()->getNumRefIdx( eRefList )-2);
+	  }
+  }
+  else
+  {
+	  xWriteFlag( ( iRefFrame == 0 ? 0 : 1 ) );
+	  if ( iRefFrame > 0 )
+	  {
+		xWriteUnaryMaxSymbol( iRefFrame - 1, pcCU->getSlice()->getNumRefIdx( eRefList )-2 );
+	  }
+  }
+#else
+
   xWriteFlag( ( iRefFrame == 0 ? 0 : 1 ) );
 
   if ( iRefFrame > 0 )
   {
     xWriteUnaryMaxSymbol( iRefFrame - 1, pcCU->getSlice()->getNumRefIdx( eRefList )-2 );
   }
+#endif
   return;
 }
 
@@ -908,7 +944,18 @@ Void TEncCavlc::codeMvd( TComDataCU* pcCU, UInt uiAbsPartIdx, RefPicList eRefLis
 
   TComCUMvField* pcCUMvFieldL = ( pcCUL == NULL || pcCUL->isIntra( uiAbsPartIdxL ) ) ? NULL : pcCUL->getCUMvField( eRefList );
   TComCUMvField* pcCUMvFieldA = ( pcCUA == NULL || pcCUA->isIntra( uiAbsPartIdxA ) ) ? NULL : pcCUA->getCUMvField( eRefList );
-
+#ifdef QC_AMVRES
+  if(pcCU->getSlice()->getSPS()->getUseAMVRes()&& (!pcCUMvField->getMv ( uiAbsPartIdx ).isHAM()) )
+  {
+	  iHorPred = ( (pcCUMvFieldL == NULL) ? 0 : (pcCUMvFieldL->getMvd( uiAbsPartIdxL ).getAbsHor()>>1) ) +
+				 ( (pcCUMvFieldA == NULL) ? 0 : (pcCUMvFieldA->getMvd( uiAbsPartIdxA ).getAbsHor()>>1) );
+	  iVerPred = ( (pcCUMvFieldL == NULL) ? 0 : (pcCUMvFieldL->getMvd( uiAbsPartIdxL ).getAbsVer()>>1) ) +
+				 ( (pcCUMvFieldA == NULL) ? 0 : (pcCUMvFieldA->getMvd( uiAbsPartIdxA ).getAbsVer()>>1) );
+      xWriteSvlc( iHor/2);
+      xWriteSvlc( iVer/2);
+	  return;
+  }
+#endif
   iHorPred = ( (pcCUMvFieldL == NULL) ? 0 : pcCUMvFieldL->getMvd( uiAbsPartIdxL ).getAbsHor() ) +
        ( (pcCUMvFieldA == NULL) ? 0 : pcCUMvFieldA->getMvd( uiAbsPartIdxA ).getAbsHor() );
   iVerPred = ( (pcCUMvFieldL == NULL) ? 0 : pcCUMvFieldL->getMvd( uiAbsPartIdxL ).getAbsVer() ) +
@@ -960,7 +1007,11 @@ Void TEncCavlc::codeCbf( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eType, UI
   return;
 }
 
-Void TEncCavlc::codeCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx, UInt uiWidth, UInt uiHeight, UInt uiDepth, TextType eTType, Bool bRD )
+#if QC_MDDT
+Void TEncCavlc::codeCoeffNxN    ( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx, UInt uiWidth, UInt uiHeight, UInt uiDepth, TextType eTType, UInt uiMode, Bool bRD )
+#else
+Void TEncCavlc::codeCoeffNxN    ( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx, UInt uiWidth, UInt uiHeight, UInt uiDepth, TextType eTType, Bool bRD )
+#endif
 {
   if ( uiWidth > m_pcSlice->getSPS()->getMaxTrSize() ) {
     uiWidth  = m_pcSlice->getSPS()->getMaxTrSize();
@@ -996,6 +1047,71 @@ Void TEncCavlc::codeCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartId
   pucScan         = g_auiFrameScanXY  [ uiConvBit ];
 #endif
 
+#if QC_MDDT// VLC_MDDT ADAPTIVE_SCAN
+  UInt *scanStats;
+  int indexROT ;
+  if(pcCU->isIntra( uiAbsPartIdx ) && eTType == TEXT_LUMA && (uiWidth == 4 || uiWidth == 8 || uiWidth == 16 || uiWidth == 32 || uiWidth == 64))//!bRD &&  eTType == TEXT_LUMA)
+  {
+	indexROT = pcCU->getROTindex(uiAbsPartIdx);
+	int scan_index;
+    if(uiWidth == 4)// && uiMode<=8&&indexROT == 0)
+    {
+      UInt uiPredMode = g_aucIntra9Mode[uiMode];
+       pucScan = scanOrder4x4[uiPredMode]; //pucScanX = scanOrder4x4X[ipredmode]; pucScanY = scanOrder4x4Y[ipredmode];
+
+	   if(g_bUpdateStats)
+       {
+         scanStats = scanStats4x4[uiPredMode]; update4x4Count[uiPredMode]++;
+       }
+    }
+    else if(uiWidth == 8)// && uiMode<=8 && indexROT == 0)
+    {
+      UInt uiPredMode = ((1 << (pcCU->getIntraSizeIdx( uiAbsPartIdx ) + 1)) != uiWidth) ? g_aucIntra9Mode[uiMode] : g_aucAngIntra9Mode[uiMode];
+      pucScan = scanOrder8x8[uiPredMode]; //pucScanX = scanOrder8x8X[ipredmode]; pucScanY = scanOrder8x8Y[ipredmode];
+
+	   if(g_bUpdateStats)
+      {
+        scanStats = scanStats8x8[uiPredMode]; update8x8Count[uiPredMode]++;
+      }
+    }
+	else if(uiWidth == 16)
+	{
+		scan_index = LUT16x16[indexROT][uiMode];
+		pucScan = scanOrder16x16[scan_index]; //pucScanX = scanOrder16x16X[scan_index]; pucScanY = scanOrder16x16Y[scan_index];
+
+	   if(g_bUpdateStats)
+		{
+			scanStats = scanStats16x16[scan_index];
+		}
+    }
+    else if(uiWidth == 32)
+    {
+		scan_index = LUT32x32[indexROT][uiMode];
+		pucScan = scanOrder32x32[scan_index]; //pucScanX = scanOrder32x32X[scan_index]; pucScanY = scanOrder32x32Y[scan_index];
+
+	   if(g_bUpdateStats)
+		{
+			scanStats = scanStats32x32[scan_index];
+		}
+    }
+    else if(uiWidth == 64)
+    {
+		scan_index = LUT64x64[indexROT][uiMode];
+		pucScan = scanOrder64x64[scan_index]; //pucScanX = scanOrder64x64X[scan_index]; pucScanY = scanOrder64x64Y[scan_index];
+
+	   if(g_bUpdateStats)
+		{
+			scanStats = scanStats64x64[scan_index];
+		}
+    }
+    else
+    {
+      //printf("uiWidth = %d is not supported!\n", uiWidth);
+      //exit(1);
+    }
+  }
+#endif
+
   TCoeff scoeff[64];
   Int iBlockType;
   UInt uiNumSigInterleaved;
@@ -1021,6 +1137,15 @@ Void TEncCavlc::codeCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartId
     for (uiScanning=0; uiScanning<16; uiScanning++)
     {
       scoeff[15-uiScanning] = piCoeff[ pucScan[ uiScanning ] ];
+#if 0//QC_MDDT// VLC_MDDT ADAPTIVE_SCAN
+      if(scoeff[15-uiScanning])
+      {
+        if(g_bUpdateStats && pcCU->isIntra( uiAbsPartIdx ) && eTType == TEXT_LUMA)// && (uiWidth == 4 && uiMode<=8&&indexROT == 0))
+        {
+          scanStats[uiScanning]++;
+        }
+      }
+#endif
     }
     iBlockType = pcCU->isIntra(uiAbsPartIdx) ? 0 : pcCU->getSlice()->getSliceType();
 
@@ -1031,6 +1156,15 @@ Void TEncCavlc::codeCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartId
     for (uiScanning=0; uiScanning<64; uiScanning++)
     {
       scoeff[63-uiScanning] = piCoeff[ pucScan[ uiScanning ] ];
+#if 0//QC_MDDT// VLC_MDDT ADAPTIVE_SCAN
+      if(scoeff[63-uiScanning])
+      {
+        if(g_bUpdateStats && pcCU->isIntra( uiAbsPartIdx ) && eTType == TEXT_LUMA)// && (uiWidth == 8 && uiMode<=8 && indexROT == 0))
+        {
+          scanStats[uiScanning]++;
+        }
+      }
+#endif
     }
     iBlockType = 2 + ( pcCU->isIntra(uiAbsPartIdx) ? 0 : pcCU->getSlice()->getSliceType() );
 
@@ -1043,11 +1177,24 @@ Void TEncCavlc::codeCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartId
       uiNumSigInterleaved = 0;
       for (uiScanning=0; uiScanning<64; uiScanning++)
       {
+#if QC_MDDT// VLC_MDDT ADAPTIVE_SCAN
+        if(pcCU->isIntra( uiAbsPartIdx ) && eTType == TEXT_LUMA && (uiWidth == 16 || uiWidth == 32 || uiWidth == 64))
+          scoeff[63-uiScanning] = piCoeff[ pucScan[ uiScanning ] ];
+        else
+#endif
         scoeff[63-uiScanning] = piCoeff[ pucScan[ (uiSize/64) * uiScanning + uiInterleaving ] ];
+
         if ( scoeff[63-uiScanning] )
         {
           uiNumSigInterleaved++;
+#if 0//QC_MDDT// VLC_MDDT ADAPTIVE_SCAN
+          if(g_bUpdateStats && pcCU->isIntra( uiAbsPartIdx ) && eTType == TEXT_LUMA && (uiWidth == 16 || uiWidth == 32 || uiWidth == 64))
+          {
+            scanStats[ uiScanning ]++;
+          }
+#endif
         }
+
       }
       if ( uiNumSigInterleaved )
       {
@@ -1059,6 +1206,12 @@ Void TEncCavlc::codeCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartId
       {
         xWriteFlag( 0 );
       }
+
+#if QC_MDDT// VLC_MDDT ADAPTIVE_SCAN
+      if(pcCU->isIntra( uiAbsPartIdx ) && eTType == TEXT_LUMA && (uiWidth == 16 || uiWidth == 32 || uiWidth == 64))
+        break;
+#endif
+
     }
   }
 }
@@ -1670,3 +1823,184 @@ Void TEncCavlc::xCodeCoeff8x8( TCoeff* scoeff, Int n )
 
   return;
 }
+
+#ifdef QC_SIFO
+
+Void TEncCavlc::encodeSwitched_Filters(TComSlice* pcSlice,TComPrediction *m_cPrediction)
+{
+  if(pcSlice->getSliceType() != I_SLICE)
+  {	
+    UInt num_AVALABLE_FILTERS = m_cPrediction->getNum_AvailableFilters();
+    UInt num_SIFO = m_cPrediction->getNum_SIFOFilters();
+
+    Int bitsPerFilter=(Int)ceil(log10((Double)num_AVALABLE_FILTERS)/log10((Double)2)); 
+    Int bitsPer2Filters=(Int)ceil(log10((Double)num_SIFO)/log10((Double)2)); 
+    Int sub_pos;
+    //Int bestFilter = m_cPrediction->getBestFilter();
+
+#ifdef QC_SIFO_PRED
+    Int predict_filter_flag = pcSlice->getSPS()->getUseSIFO_Pred()? 1 : 0;
+    Int predFiltP = m_cPrediction->getPredictFilterP();
+    Int predFiltB = m_cPrediction->getPredictFilterB();
+
+    if (predict_filter_flag && pcSlice->getSliceType()==P_SLICE && predFiltP<2)
+      predict_filter_flag = 0;
+    if (predict_filter_flag && pcSlice->getSliceType()==B_SLICE && predFiltB<2)
+      predict_filter_flag = 0;
+
+      xWriteFlag ( predict_filter_flag );
+#endif
+
+    if (pcSlice->getSliceType()==P_SLICE)
+    {
+      Int bestFilter = m_cPrediction->getBestFilter_P();
+      Int predictFilterP = m_cPrediction->getPredictFilterP();
+#ifdef QC_SIFO_PRED
+      if (!predict_filter_flag)
+#else
+      if (predictFilterP < 2)
+#endif
+      {
+        xWriteCode(bestFilter==0,1);
+        if (bestFilter>0)
+        {
+          xWriteCode(bestFilter==1,1);
+          if (bestFilter>1)
+            xWriteCode(bestFilter-2,bitsPerFilter);
+        }
+
+        if (bestFilter == 0)
+        {
+          for(sub_pos = 1; sub_pos < 16; ++sub_pos)
+          {
+            if (sub_pos<=4 || sub_pos==8 || sub_pos==12)
+              xWriteCode(m_cPrediction->getSIFOFilter(sub_pos),bitsPerFilter);
+            else
+              xWriteCode(m_cPrediction->getSIFOFilter(sub_pos),bitsPer2Filters);
+          }
+        }
+
+        if (bestFilter == 1)
+        {
+          for(sub_pos = 1; sub_pos < 16; ++sub_pos)
+          {
+            xWriteCode(m_cPrediction->getSIFOFilter(sub_pos),bitsPerFilter);
+          }
+        }
+      }
+      else
+      {				// Predictive coding
+        xWriteCode(bestFilter==0,1);
+        if (bestFilter>0)
+        {
+          xWriteCode(bestFilter-1,bitsPerFilter);
+        }
+        if (bestFilter == 0)
+        {
+          for(sub_pos = 1; sub_pos < 16; ++sub_pos)
+          {
+            UInt predict = m_cPrediction->getPredictFilterSequenceP(sub_pos);
+            xWriteCode(predict,1);
+            if (predict==0)
+            {
+              if (sub_pos<=4 || sub_pos==8 || sub_pos==12)
+                xWriteCode(m_cPrediction->getSIFOFilter(sub_pos),bitsPerFilter);
+              else
+                xWriteCode(m_cPrediction->getSIFOFilter(sub_pos),bitsPer2Filters);
+            }
+          }
+        }
+      }
+    }
+    else  //B slice
+    {
+      Int bestFilter = m_cPrediction->getBestFilter_B();
+      Int predictFilterB = m_cPrediction->getPredictFilterB();
+#ifdef QC_SIFO_PRED
+      if (!predict_filter_flag)
+#else
+      if (predictFilterB < 2)
+#endif
+      {
+        xWriteCode(bestFilter==0,1);
+        if (bestFilter == 0)
+        {
+          for(sub_pos = 1; sub_pos < 16; ++sub_pos)
+          {
+            xWriteCode(m_cPrediction->getSIFOFilter(sub_pos),bitsPerFilter);
+          }
+        }
+        else
+        {
+          xWriteCode(bestFilter-1,bitsPerFilter);
+        }
+      }
+      else
+      {
+        xWriteCode(bestFilter==0,1);
+        if (bestFilter==0)
+        {
+          for(sub_pos = 1; sub_pos < 16; ++sub_pos)
+          {
+            UInt predict = m_cPrediction->getPredictFilterSequenceB(sub_pos);
+            xWriteCode(predict,1);
+            if (predict!=1)
+              xWriteCode(m_cPrediction->getSIFOFilter(sub_pos),bitsPerFilter);
+          }
+        }
+        else
+        {
+          xWriteCode(bestFilter-1,bitsPerFilter);
+        }
+      }
+    }
+  }
+
+#if PRINT_FILTERS==1
+  printf("\n");
+  for(UInt sub_pos = 1; sub_pos < 16; ++sub_pos)
+  {
+    Int SIFOFilter = m_cPrediction->getSIFOFilter(sub_pos);
+    Int f0 = m_cPrediction->getTabFilters(sub_pos,SIFOFilter,0);
+    Int f1 = m_cPrediction->getTabFilters(sub_pos,SIFOFilter,1);
+    printf("%2d,  %2d (%2d,%2d)\n", sub_pos, SIFOFilter, f0, f1);
+  }
+#endif
+
+//----encode Offsets
+  if(pcSlice->getSliceType() != I_SLICE)
+  {
+    Int offset;
+    Int listNo = (pcSlice->getSliceType() == B_SLICE)? 2: 1;
+    for(Int list = 0; list < listNo; ++list) 
+    {
+      UInt nonzero = 0;
+      nonzero = m_cPrediction->isOffsetZero(pcSlice, list);
+
+      xWriteCode(nonzero,1);
+      if(nonzero)
+      {
+        for(UInt frame = 0; frame < pcSlice->getNumRefIdx(RefPicList(list)); ++frame)
+        {
+          if(frame == 0)     
+          {    
+            for(UInt sub_pos = 0; sub_pos < 16; ++sub_pos)   
+            {
+              offset = m_cPrediction->getSubpelOffset(list,sub_pos);
+              offset /= (1<<g_uiBitIncrement);
+              xWriteSvlc(offset);
+            }         
+          }
+          else              
+          {
+            offset = m_cPrediction->getFrameOffset(list,frame);
+            offset /= (1<<g_uiBitIncrement);
+            xWriteSvlc(offset);
+          }
+        }
+      }
+    }
+  }
+
+}
+#endif

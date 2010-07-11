@@ -42,7 +42,9 @@
 #include "../TLibCommon/ContextModel.h"
 #include "../TLibCommon/TComPic.h"
 #include "../TLibCommon/TComTrQuant.h"
-
+#ifdef QC_SIFO
+#include "../TLibCommon/TComPrediction.h"
+#endif
 class TEncSbac;
 class TEncCavlc;
 
@@ -119,8 +121,11 @@ public:
   virtual Void codeMvd           ( TComDataCU* pcCU, UInt uiAbsPartIdx, RefPicList eRefList )      = 0;
   virtual Void codeDeltaQP       ( TComDataCU* pcCU, UInt uiAbsPartIdx ) = 0;
   virtual Void codeCbf           ( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eType, UInt uiTrDepth ) = 0;
+#if QC_MDDT
+  virtual Void codeCoeffNxN      ( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx, UInt uiWidth, UInt uiHeight, UInt uiDepth, TextType eTType, UInt uiMode, Bool bRD = false ) = 0;
+#else
   virtual Void codeCoeffNxN      ( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx, UInt uiWidth, UInt uiHeight, UInt uiDepth, TextType eTType, Bool bRD = false ) = 0;
-
+#endif
   virtual Void codeROTindex( TComDataCU* pcCU, UInt uiAbsPartIdx, Bool bRD ) = 0;
   virtual Void codeCIPflag ( TComDataCU* pcCU, UInt uiAbsPartIdx, Bool bRD ) = 0;
 
@@ -129,6 +134,9 @@ public:
   virtual Void codeAlfSvlc          ( Int   iCode ) = 0;
 
   virtual Void estBit               (estBitsSbacStruct* pcEstBitsSbac, UInt uiCTXIdx, TextType eTType) = 0;
+#ifdef QC_SIFO
+  virtual Void encodeSwitched_Filters(TComSlice* pcSlice,TComPrediction *m_cPrediction) = 0;
+#endif
 };
 
 /// entropy encoder class
@@ -219,6 +227,22 @@ public:
   Void encodeCoeffNxN         ( TComDataCU* pcCU, TCoeff* pcCoeff, UInt uiAbsPartIdx, UInt uiTrWidth, UInt uiTrHeight, UInt uiDepth, TextType eType, Bool bRD = false );
 
   Void estimateBit             ( estBitsSbacStruct* pcEstBitsSbac, UInt uiWidth, TextType eTType);
+#ifdef QC_SIFO
+  Void encodeSwitched_Filters(TComSlice* pcSlice,TComPrediction *m_cPrediction);
+#endif
+#if QC_ALF
+  Void codeAuxCountBit(ALFParam* pAlfParam, Int64* ruiRate);
+  Void codeFiltCountBit(ALFParam* pAlfParam, Int64* ruiRate);
+  Void codeAux (ALFParam* pAlfParam);
+  Void codeFilt (ALFParam* pAlfParam);
+  Int codeFilterCoeff(ALFParam* ALFp);
+  Int writeFilterCodingParams(int minKStart, int maxScanVal, int kMinTab[]);
+  Int writeFilterCoeffs(int sqrFiltLength, int filters_per_group, int pDepthInt[], 
+                      int **FilterCoeff, int kMinTab[]);
+  Int golombEncode(int coeff, int k);
+  Int lengthGolomb(int coeffVal, int k);
+
+#endif
 };// END CLASS DEFINITION TEncEntropy
 
 

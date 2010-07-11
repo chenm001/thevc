@@ -71,6 +71,10 @@ public:
 
   Void  decompressSlice   ( TComBitstream* pcBitstream, TComPic*& rpcPic );
   Void  generateRefPicNew ( TComSlice* rpcSlice );
+#ifdef QC_SIFO
+  Void initSIFOFilters     (Int Tap, TComPrediction *m_cPrediction);     
+  Void initSeparableFilter(Int Tap, TComPrediction *m_cPrediction);
+#endif
 };
 
 #endif

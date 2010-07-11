@@ -76,7 +76,11 @@ int main(int argc, char* argv[])
   // destroy application encoder class
   cTAppEncTop.destroy();
 
+#ifdef QC_CONFIG
+  return 0;
+#else
   return 1;
+#endif
 }
 
 

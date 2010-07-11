@@ -91,19 +91,27 @@ private:
   Int*      m_piRefIdx;
   UInt      m_uiNumPartition;
   AMVPInfo  m_cAMVPInfo;
-
+#ifdef QC_AMVRES
+  Bool*      m_bMVRes;
+#endif
 public:
   TComCUMvField()
   {
     m_pcMv     = NULL;
     m_pcMvd    = NULL;
     m_piRefIdx = NULL;
+#ifdef QC_AMVRES
+    m_bMVRes     = NULL;
+#endif
   }
   ~TComCUMvField()
   {
     m_pcMv     = NULL;
     m_pcMvd    = NULL;
     m_piRefIdx = NULL;
+#ifdef QC_AMVRES
+    m_bMVRes     = NULL;
+#endif
   }
 
   // ------------------------------------------------------------------------------------------------------------------
@@ -138,7 +146,10 @@ public:
   Int*    getRefIdx         ()                         { return  m_piRefIdx;       }
 
   AMVPInfo* getAMVPInfo () { return &m_cAMVPInfo; }
-
+#ifdef QC_AMVRES
+  Bool  getMVRes                        ( Int iIdx )               { return  m_bMVRes   [iIdx]; }     
+  Bool* getMVRes							()					    { return  m_bMVRes;           }
+#endif
   // ------------------------------------------------------------------------------------------------------------------
   // set
   // ------------------------------------------------------------------------------------------------------------------
@@ -156,6 +167,15 @@ public:
   Void    setAllMvd         ( TComMv& rcMvd,   PartSize eCUMode, Int iPartAddr, Int iPartIdx, UInt uiDepth );
   Void    setAllRefIdx      ( Int     iRefIdx, PartSize eMbMode, Int iPartAddr, Int iPartIdx, UInt uiDepth );
   Void    setAllMvField     ( TComMv& rcMv, Int iRefIdx, PartSize eMbMode, Int iPartAddr, Int iPartIdx, UInt uiDepth );
+
+#ifdef QC_AMVRES
+  Void    setAllMvField_AMVRes ( TComMv& rcMv, Int iRefIdx, PartSize eCUMode, Int iPartAddr, Int iPartIdx, UInt uiDepth );
+  Void    setMVRes				    ( Bool  bMVRes,     Int iIdx ) { m_bMVRes    [iIdx] = bMVRes;     }
+  Void    setMVResPtr					( Bool*  bMVResptr			) { m_bMVRes    = bMVResptr;					}
+  Void    setAllMVRes( Bool bMVRes, PartSize eCUMode, Int iPartAddr, Int iPartIdx, UInt uiDepth );
+#endif
+
+
 };
 
 #endif // __TCOMMOTIONINFO__
