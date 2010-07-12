@@ -97,6 +97,9 @@
 // QUALCOMM defines section start
 /////////////////////////////////
 #define QC_AMVRES    
+#ifdef QC_AMVRES  
+#define QC_AMVRES_LOW_COMPLEXTY
+#endif
 #define QC_CONFIG
 
 #if HHI_INTERP_FILTER
