@@ -6091,7 +6091,7 @@ Void TComTrQuant::xRateDistOptQuant( TComDataCU* pcCU, Long* pSrcCoeff, TCoeff*&
         }
         else if(uiWidth == 8)
         {
-          uiPredMode = m_bQT ?  g_aucIntra9Mode[uiMode]: g_aucAngIntra9Mode[uiMode];
+          UInt uiPredMode = m_bQT ?  g_aucIntra9Mode[uiMode]: g_aucAngIntra9Mode[uiMode];
           pucScan = scanOrder8x8[uiPredMode];
         }
 		    else if(uiWidth == 16)
