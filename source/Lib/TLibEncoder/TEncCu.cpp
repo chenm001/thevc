@@ -500,6 +500,10 @@ Void TEncCu::xCompressCU( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, UInt u
       xCheckRDCostIntra(rpcBestCU, rpcTempCU, eSize);  rpcTempCU->initEstData();
 #endif
       // try ROT
+#if QC_MDDT
+      if ((rpcBestCU->getWidth(0) > 16) || ((rpcBestCU->getWidth(0) == 16) && (eSize == SIZE_2Nx2N)))
+#endif
+      {
 #if HHI_ALLOW_ROT_SWITCH
       if ( rpcTempCU->getSlice()->getSPS()->getUseROT() )
       {
@@ -528,6 +532,7 @@ Void TEncCu::xCompressCU( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, UInt u
         xCheckPlanarIntra(rpcBestCU, rpcTempCU);  rpcTempCU->initEstData();
       }
 #endif
+    }
     }
 
     m_pcEntropyCoder->resetBits();
@@ -695,8 +700,11 @@ Void TEncCu::xEncodeCU( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
   m_pcEntropyCoder->encodePredInfo( pcCU, uiAbsPartIdx );
 
   // Encode Coefficients
+#if QC_MDDT//ADAPTIVE_SCAN
+  g_bUpdateStats = true;
   m_pcEntropyCoder->encodeCoeff( pcCU, uiAbsPartIdx, uiDepth, pcCU->getWidth (uiAbsPartIdx), pcCU->getHeight(uiAbsPartIdx) );
-
+#else
+  m_pcEntropyCoder->encodeCoeff( pcCU, uiAbsPartIdx, uiDepth, pcCU->getWidth (uiAbsPartIdx), pcCU->getHeight(uiAbsPartIdx) );
   // ROT index
 #if HHI_ALLOW_ROT_SWITCH
   if ( pcCU->getSlice()->getSPS()->getUseROT() )
@@ -706,6 +714,8 @@ Void TEncCu::xEncodeCU( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
 #else
   m_pcEntropyCoder->encodeROTindex( pcCU, uiAbsPartIdx, uiDepth );
 #endif
+#endif
+
 
   // CIP index
 #if HHI_ALLOW_CIP_SWITCH
@@ -931,6 +941,10 @@ Void TEncCu::xCheckRDCostIntra( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, 
   m_pcEntropyCoder->encodePredInfo( rpcTempCU, 0,          true );
 
   // Encode Coefficients
+#if QC_MDDT//ADAPTIVE_SCAN
+  g_bUpdateStats = false;
+  m_pcEntropyCoder->encodeCoeff( rpcTempCU, 0, uiDepth, rpcTempCU->getWidth (0), rpcTempCU->getHeight(0) );
+#else
   m_pcEntropyCoder->encodeCoeff( rpcTempCU, 0, uiDepth, rpcTempCU->getWidth (0), rpcTempCU->getHeight(0) );
 
   // ROT index
@@ -941,6 +955,7 @@ Void TEncCu::xCheckRDCostIntra( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, 
   }
 #else
   m_pcEntropyCoder->encodeROTindex( rpcTempCU, 0, uiDepth );
+#endif
 #endif
 
   // CIP index

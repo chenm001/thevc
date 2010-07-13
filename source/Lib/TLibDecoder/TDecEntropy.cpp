@@ -204,7 +204,6 @@ Void TDecEntropy::decodeAlfParam(ALFParam* pAlfParam, TComPic* pcPic )
       {
         TComDataCU* pcCU = pAlfParam->pcQuadTree->getCU(uiCUAddr );
         pcCU->initCU( pcPic , uiCUAddr );
-        pcCU->setIsDecoderCU( true );
       }
       decodeAlfQuadTree( pAlfParam->pcQuadTree , uiSymbol );
     }
@@ -266,6 +265,223 @@ Void TDecEntropy::decodeAlfQuadTreeNode( TComPicSym* pcQuadTree, TComDataCU* pcC
    m_pcEntropyDecoderIf->parseAlfQTCtrlFlag( pcCU , uiAbsPartIdx, uiDepth );
 }
 #else
+#if QC_ALF  
+#include "../TLibCommon/TComAdaptiveLoopFilter.h"
+
+Void TDecEntropy::decodeAux(ALFParam* pAlfParam)
+{
+  UInt uiSymbol;
+  Int sqrFiltLengthTab[3] = {SQR_FILT_LENGTH_9SYM, SQR_FILT_LENGTH_7SYM, SQR_FILT_LENGTH_5SYM};
+  Int FiltTab[3] = {9, 7, 5};
+
+  pAlfParam->filters_per_group = 0;
+  
+  memset (pAlfParam->filterPattern, 0 , sizeof(Int)*NO_VAR_BINS);
+#if ENABLE_FORCECOEFF0
+  m_pcEntropyDecoderIf->parseAlfFlag(uiSymbol);
+  if (!uiSymbol) pAlfParam->filtNo = -1;
+  else pAlfParam->filtNo = uiSymbol; //nonZeroCoeffs
+#else
+  pAlfParam->filtNo = 1; //nonZeroCoeffs
+#endif
+  m_pcEntropyDecoderIf->parseAlfUvlc(uiSymbol);
+  Int TabIdx = uiSymbol;
+  pAlfParam->realfiltNo = 2-TabIdx;
+  pAlfParam->tap = FiltTab[pAlfParam->realfiltNo];
+  pAlfParam->num_coeff = sqrFiltLengthTab[pAlfParam->realfiltNo];
+
+  if (pAlfParam->filtNo>=0)
+  {
+	if(pAlfParam->realfiltNo >= 0)
+	{
+	  // filters_per_fr
+	  m_pcEntropyDecoderIf->parseAlfUvlc(uiSymbol);
+	  pAlfParam->noFilters = uiSymbol + 1;
+	  pAlfParam->filters_per_group = pAlfParam->noFilters; 
+
+	  if(pAlfParam->noFilters == 2)
+	  {
+		m_pcEntropyDecoderIf->parseAlfUvlc(uiSymbol);
+		pAlfParam->startSecondFilter = uiSymbol;
+		pAlfParam->filterPattern [uiSymbol] = 1;
+	  }
+	  else if (pAlfParam->noFilters > 2)
+	  {
+		pAlfParam->filters_per_group = 1;
+		for (int i=1; i<NO_VAR_BINS; i++) 
+		{
+		  m_pcEntropyDecoderIf->parseAlfFlag (uiSymbol);
+		  pAlfParam->filterPattern[i] = uiSymbol;
+		  pAlfParam->filters_per_group += uiSymbol;
+		}
+	  }
+	}
+  }
+  else
+  {
+	memset (pAlfParam->filterPattern, 0, NO_VAR_BINS*sizeof(Int));
+  }
+ // Reconstruct varIndTab[]
+  memset(pAlfParam->varIndTab, 0, NO_VAR_BINS * sizeof(int));
+  if(pAlfParam->filtNo>=0)
+  {
+    for(Int i = 1; i < NO_VAR_BINS; ++i)
+      if(pAlfParam->filterPattern[i])
+        pAlfParam->varIndTab[i] = pAlfParam->varIndTab[i-1] + 1;
+      else
+        pAlfParam->varIndTab[i] = pAlfParam->varIndTab[i-1];
+  }
+}
+
+Void TDecEntropy::readFilterCodingParams(ALFParam* pAlfParam)
+{
+  UInt uiSymbol;
+  int ind, scanPos;
+  int golombIndexBit;
+  int kMin;
+  int maxScanVal;
+  int *pDepthInt;
+  int fl;
+
+  // Determine fl
+  if(pAlfParam->num_coeff == SQR_FILT_LENGTH_9SYM)
+    fl = 4;
+  else if(pAlfParam->num_coeff == SQR_FILT_LENGTH_7SYM)
+    fl = 3;
+  else
+    fl = 2;
+
+  // Determine maxScanVal
+  maxScanVal = 0;
+  pDepthInt = pDepthIntTab[fl - 2];
+  for(ind = 0; ind < pAlfParam->num_coeff; ind++)
+    maxScanVal = max(maxScanVal, pDepthInt[ind]);
+
+  // Golomb parameters
+  m_pcEntropyDecoderIf->parseAlfUvlc(uiSymbol);
+  pAlfParam->minKStart = 1 + uiSymbol;
+
+  kMin = pAlfParam->minKStart;
+  for(scanPos = 0; scanPos < maxScanVal; scanPos++)
+  {
+    m_pcEntropyDecoderIf->parseAlfFlag(uiSymbol);
+	golombIndexBit = uiSymbol;
+    if(golombIndexBit)
+      pAlfParam->kMinTab[scanPos] = kMin + 1;
+    else
+      pAlfParam->kMinTab[scanPos] = kMin;
+    kMin = pAlfParam->kMinTab[scanPos];
+  }
+}
+
+Int TDecEntropy::golombDecode(Int k)
+{
+  UInt uiSymbol;
+  Int q = -1;
+  Int nr = 0;
+  Int m = (Int)pow(2.0, k);
+  Int a;
+  
+  uiSymbol = 1;
+  while (uiSymbol)
+  {
+	m_pcEntropyDecoderIf->parseAlfFlag(uiSymbol);
+	q++;
+  }
+  for(a = 0; a < k; ++a)          // read out the sequential log2(M) bits
+  {
+	m_pcEntropyDecoderIf->parseAlfFlag(uiSymbol);
+    if(uiSymbol)
+      nr += 1 << a;
+  }
+  nr += q * m;                    // add the bits and the multiple of M
+  if(nr != 0){
+    m_pcEntropyDecoderIf->parseAlfFlag(uiSymbol);
+	nr = (uiSymbol)? nr: -nr;
+  }
+  return nr;
+}
+
+
+
+Void TDecEntropy::readFilterCoeffs(ALFParam* pAlfParam)
+{
+  int ind, scanPos, i;
+  int *pDepthInt;
+  int fl;
+
+  if(pAlfParam->num_coeff == SQR_FILT_LENGTH_9SYM)
+    fl = 4;
+  else if(pAlfParam->num_coeff == SQR_FILT_LENGTH_7SYM)
+    fl = 3;
+  else
+    fl = 2;
+    
+  pDepthInt = pDepthIntTab[fl - 2];
+
+  for(ind = 0; ind < pAlfParam->filters_per_group_diff; ++ind)
+  {
+    for(i = 0; i < pAlfParam->num_coeff; i++)
+    {	
+      scanPos = pDepthInt[i] - 1;
+	  pAlfParam->coeffmulti[ind][i] = golombDecode(pAlfParam->kMinTab[scanPos]);
+    }
+  }
+
+}
+Void TDecEntropy::decodeFilterCoeff (ALFParam* pAlfParam)
+{
+  readFilterCodingParams (pAlfParam);
+  readFilterCoeffs (pAlfParam);
+}
+
+
+
+Void TDecEntropy::decodeFilt(ALFParam* pAlfParam)
+{
+  UInt uiSymbol;
+
+  if (pAlfParam->filtNo >= 0)
+  {
+	pAlfParam->filters_per_group_diff = pAlfParam->filters_per_group;
+	if (pAlfParam->filters_per_group > 1)
+	{
+#if ENABLE_FORCECOEFF0
+	  m_pcEntropyDecoderIf->parseAlfFlag (uiSymbol);
+	  pAlfParam->forceCoeff0 = uiSymbol;
+
+	  if (pAlfParam->forceCoeff0)
+	  {
+		pAlfParam->filters_per_group_diff = 0;
+		for (int i=0; i<pAlfParam->filters_per_group; i++){
+		  m_pcEntropyDecoderIf->parseAlfFlag (uiSymbol);
+		  pAlfParam->codedVarBins[i] = uiSymbol;
+		  pAlfParam->filters_per_group_diff += uiSymbol;
+		}
+	  }
+	  else
+#endif
+	  {
+		for (int i=0; i<NO_VAR_BINS; i++)
+		  pAlfParam->codedVarBins[i] = 1;
+
+	  }
+	  m_pcEntropyDecoderIf->parseAlfFlag (uiSymbol);
+	  pAlfParam->predMethod = uiSymbol;
+	}
+	else
+	{
+	  pAlfParam->forceCoeff0 = 0;
+	  pAlfParam->predMethod = 0;
+	}
+
+	decodeFilterCoeff (pAlfParam);
+  }
+}
+
+
+#endif
+
 Void TDecEntropy::decodeAlfParam(ALFParam* pAlfParam)
 {
   UInt uiSymbol;
@@ -281,6 +497,10 @@ Void TDecEntropy::decodeAlfParam(ALFParam* pAlfParam)
   }
 
   Int pos;
+#if QC_ALF  //codeAuxInfo related
+  decodeAux(pAlfParam);
+  decodeFilt(pAlfParam);
+#else
   // filter parameters for luma
   m_pcEntropyDecoderIf->parseAlfUvlc(uiSymbol);
   pAlfParam->tap = (uiSymbol<<1) + 5;
@@ -291,7 +511,7 @@ Void TDecEntropy::decodeAlfParam(ALFParam* pAlfParam)
     m_pcEntropyDecoderIf->parseAlfSvlc(iSymbol);
     pAlfParam->coeff[pos] = iSymbol;
   }
-
+#endif
   // filter parameters for chroma
   m_pcEntropyDecoderIf->parseAlfUvlc(uiSymbol);
   pAlfParam->chroma_idc = uiSymbol;
@@ -556,13 +776,27 @@ Void TDecEntropy::decodeMergeInfo ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt ui
   if ( pcCU->getSlice()->getNumRefIdx( REF_PIC_LIST_0 ) > 0 ) //if ( ref. frame list0 has at least 1 entry )
   {
     pcSubCU->copyInterPredInfoFrom( pcCU, uiAbsPartIdx, REF_PIC_LIST_0 );
+#ifdef QC_AMVRES
+	if ( pcCU->getSlice()->getSPS()->getUseAMVRes())
+	   pcSubCU->getCUMvField( REF_PIC_LIST_0 )->setAllMvField_AMVRes( cMvFieldNeighbours[ 2*uiMergeIndex ].getMv(), cMvFieldNeighbours[ 2*uiMergeIndex ].getRefIdx(), SIZE_2Nx2N, 0, 0, 0 );
+	else
     pcSubCU->getCUMvField( REF_PIC_LIST_0 )->setAllMvField( cMvFieldNeighbours[ 2*uiMergeIndex ].getMv(), cMvFieldNeighbours[ 2*uiMergeIndex ].getRefIdx(), SIZE_2Nx2N, 0, 0, 0 );
+#else
+    pcSubCU->getCUMvField( REF_PIC_LIST_0 )->setAllMvField( cMvFieldNeighbours[ 2*uiMergeIndex ].getMv(), cMvFieldNeighbours[ 2*uiMergeIndex ].getRefIdx(), SIZE_2Nx2N, 0, 0, 0 );
+#endif
   }
 
   if ( pcCU->getSlice()->getNumRefIdx( REF_PIC_LIST_1 ) > 0 ) //if ( ref. frame list1 has at least 1 entry )
   {
     pcSubCU->copyInterPredInfoFrom( pcCU, uiAbsPartIdx, REF_PIC_LIST_1 );
+#ifdef QC_AMVRES
+	if ( pcCU->getSlice()->getSPS()->getUseAMVRes())
+		pcSubCU->getCUMvField( REF_PIC_LIST_1 )->setAllMvField_AMVRes( cMvFieldNeighbours[ 2*uiMergeIndex + 1 ].getMv(), cMvFieldNeighbours[ 2*uiMergeIndex + 1 ].getRefIdx(), SIZE_2Nx2N, 0, 0, 0 );
+    else
     pcSubCU->getCUMvField( REF_PIC_LIST_1 )->setAllMvField( cMvFieldNeighbours[ 2*uiMergeIndex + 1 ].getMv(), cMvFieldNeighbours[ 2*uiMergeIndex + 1 ].getRefIdx(), SIZE_2Nx2N, 0, 0, 0 );
+#else
+	pcSubCU->getCUMvField( REF_PIC_LIST_1 )->setAllMvField( cMvFieldNeighbours[ 2*uiMergeIndex + 1 ].getMv(), cMvFieldNeighbours[ 2*uiMergeIndex + 1 ].getRefIdx(), SIZE_2Nx2N, 0, 0, 0 );
+#endif
   }
 }
 #endif
@@ -699,8 +933,18 @@ Void TDecEntropy::decodeMVPIdx( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDept
       cMv = cZeroMv;
       pcSubCU->fillMvpCand(0, 0, eRefList, iRefIdx, pAMVPInfo);
 #if HHI_IMVP 
+#ifdef QC_AMVRES
+	  if (pcSubCUMvField->getMVRes(0))
+		  pcSubCU->clearMVPCand_one_fourth(pcSubCUMvField->getMvd(0), pAMVPInfo, eRefList, 0, iRefIdx);
+	  else
+#endif
       pcSubCU->clearMVPCand(pcSubCUMvField->getMvd(0), pAMVPInfo, eRefList, 0, iRefIdx);
 #else
+#ifdef QC_AMVRES
+	  if (pcSubCUMvField->getMVRes(0))
+		  pcSubCU->clearMVPCand_one_fourth(pcSubCUMvField->getMvd(0), pAMVPInfo);
+	  else
+#endif
       pcSubCU->clearMVPCand(pcSubCUMvField->getMvd(0), pAMVPInfo);
 #endif
       pcSubCU->setMVPNumSubParts(pAMVPInfo->iN, eRefList, 0, 0, uiDepth);
@@ -713,15 +957,41 @@ Void TDecEntropy::decodeMVPIdx( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDept
       if ( iRefIdx >= 0 )
       {
         m_pcPrediction->getMvPredAMVP( pcSubCU, 0, 0, eRefList, iRefIdx, cMv);
+#ifdef QC_AMVRES
+		if (pcSubCUMvField->getMVRes(0))
+		{
+#if HHI_IMVP
+			if (  pcSubCU->getSlice()->getSPS()->getUseIMP() && !pcSubCU->isSkip(0) )
+			{
+			  m_pcPrediction->getMvPredIMVP_onefourth( pcSubCU, 0, 0, eRefList, iRefIdx, pcSubCUMvField, cMv );
+			}
+#endif
+		   cMv.round();
+		}
+		else
+		{
+#if HHI_IMVP
+			if (  pcSubCU->getSlice()->getSPS()->getUseIMP() && !pcSubCU->isSkip(0) )
+			{
+			  m_pcPrediction->getMvPredIMVP( pcSubCU, 0, 0, eRefList, iRefIdx, pcSubCUMvField, cMv );
+			}
+#endif
+		}
+#else
 #if HHI_IMVP 
         if (  pcSubCU->getSlice()->getSPS()->getUseIMP() && !pcSubCU->isSkip(0) )
         {
           m_pcPrediction->getMvPredIMVP( pcSubCU, 0, 0, eRefList, iRefIdx, pcSubCUMvField, cMv );
         }
 #endif
+#endif
         cMv += pcSubCUMvField->getMvd( 0 );
       }
+
       pcSubCU->getCUMvField( eRefList )->setAllMv(cMv, ePartSize, 0, 0, 0);
+#ifdef QC_AMVRES
+	  pcSubCU->getCUMvField( eRefList )->setAllMVRes((!cMv.isHAM())&&(iRefIdx!=-1), ePartSize, 0, 0, 0);
+#endif
       break;
     }
   case SIZE_2NxN:
@@ -733,8 +1003,18 @@ Void TDecEntropy::decodeMVPIdx( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDept
         cMv = cZeroMv;
         pcSubCU->fillMvpCand(uiPartIdx, uiPartAddr, eRefList, iRefIdx, pAMVPInfo);
 #if HHI_IMVP
+#ifdef QC_AMVRES
+	  if (pcSubCUMvField->getMVRes(uiPartAddr))
+		  pcSubCU->clearMVPCand_one_fourth(pcSubCUMvField->getMvd(uiPartAddr), pAMVPInfo, eRefList, uiPartIdx, iRefIdx);
+	  else
+#endif
         pcSubCU->clearMVPCand(pcSubCUMvField->getMvd(uiPartAddr), pAMVPInfo, eRefList, uiPartIdx, iRefIdx);
 #else
+#ifdef QC_AMVRES
+	  if (pcSubCUMvField->getMVRes(uiPartAddr))
+		  pcSubCU->clearMVPCand_one_fourth(pcSubCUMvField->getMvd(uiPartAddr), pAMVPInfo);
+	  else
+#endif
         pcSubCU->clearMVPCand(pcSubCUMvField->getMvd(uiPartAddr), pAMVPInfo);
 #endif
         pcSubCU->setMVPNumSubParts(pAMVPInfo->iN, eRefList, uiPartAddr, uiPartIdx, uiDepth);
@@ -746,16 +1026,43 @@ Void TDecEntropy::decodeMVPIdx( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDept
         if ( iRefIdx >= 0 )
         {
           m_pcPrediction->getMvPredAMVP( pcSubCU, uiPartIdx, uiPartAddr, eRefList, iRefIdx, cMv);
+
+#ifdef QC_AMVRES
+		if (pcSubCUMvField->getMVRes(uiPartAddr))
+		{
+#if HHI_IMVP
+			if (  pcSubCU->getSlice()->getSPS()->getUseIMP() && !pcSubCU->isSkip(uiPartIdx) )
+			{
+			  m_pcPrediction->getMvPredIMVP_onefourth( pcSubCU, uiPartIdx, uiPartAddr, eRefList, iRefIdx, pcSubCUMvField, cMv );
+			}
+#endif
+		   cMv.round();
+		}
+		else
+		{
+#if HHI_IMVP
+			if (  pcSubCU->getSlice()->getSPS()->getUseIMP() && !pcSubCU->isSkip(uiPartIdx) )
+			{
+			  m_pcPrediction->getMvPredIMVP( pcSubCU, uiPartIdx, uiPartAddr, eRefList, iRefIdx, pcSubCUMvField, cMv );
+			}
+#endif
+		}
+#else
 #if HHI_IMVP
           if ( pcSubCU->getSlice()->getSPS()->getUseIMP() && !pcSubCU->isSkip(uiPartIdx) )
           {
             m_pcPrediction->getMvPredIMVP( pcSubCU, uiPartIdx, uiPartAddr, eRefList, iRefIdx, pcSubCUMvField, cMv );
           }
 #endif
+#endif
           cMv += pcSubCUMvField->getMvd( uiPartAddr );
         }
 
         pcSubCU->getCUMvField( eRefList )->setAllMv(cMv, ePartSize, uiPartAddr, uiPartIdx, 0);
+
+#ifdef QC_AMVRES
+  	   pcSubCU->getCUMvField( eRefList )->setAllMVRes(!cMv.isHAM()&&(iRefIdx!=-1), ePartSize, uiPartAddr, uiPartIdx, 0);
+#endif
       }
       break;
     }
@@ -768,8 +1075,18 @@ Void TDecEntropy::decodeMVPIdx( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDept
         cMv = cZeroMv;
         pcSubCU->fillMvpCand(uiPartIdx, uiPartAddr, eRefList, iRefIdx, pAMVPInfo);
 #if HHI_IMVP
+#ifdef QC_AMVRES
+	  if (pcSubCUMvField->getMVRes(uiPartAddr))
+		  pcSubCU->clearMVPCand_one_fourth(pcSubCUMvField->getMvd(uiPartAddr), pAMVPInfo, eRefList, uiPartIdx, iRefIdx);
+	  else
+#endif
         pcSubCU->clearMVPCand(pcSubCUMvField->getMvd(uiPartAddr), pAMVPInfo, eRefList, uiPartIdx, iRefIdx);
 #else
+#ifdef QC_AMVRES
+	  if (pcSubCUMvField->getMVRes(uiPartAddr))
+		  pcSubCU->clearMVPCand_one_fourth(pcSubCUMvField->getMvd(uiPartAddr), pAMVPInfo);
+	  else
+#endif
         pcSubCU->clearMVPCand(pcSubCUMvField->getMvd(uiPartAddr), pAMVPInfo);
 #endif
         pcSubCU->setMVPNumSubParts(pAMVPInfo->iN, eRefList, uiPartAddr, uiPartIdx, uiDepth);
@@ -782,16 +1099,42 @@ Void TDecEntropy::decodeMVPIdx( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDept
         if ( iRefIdx >= 0 )
         {
           m_pcPrediction->getMvPredAMVP( pcSubCU, uiPartIdx, uiPartAddr, eRefList, iRefIdx, cMv);
+#ifdef QC_AMVRES
+		if (pcSubCUMvField->getMVRes(uiPartAddr))
+		{
+#if HHI_IMVP
+			if (  pcSubCU->getSlice()->getSPS()->getUseIMP() && !pcSubCU->isSkip(uiPartIdx) )
+			{
+			  m_pcPrediction->getMvPredIMVP_onefourth( pcSubCU, uiPartIdx, uiPartAddr, eRefList, iRefIdx, pcSubCUMvField, cMv );
+			}
+#endif
+		   cMv.round();
+		}
+		else
+		{
+#if HHI_IMVP
+			if (  pcSubCU->getSlice()->getSPS()->getUseIMP() && !pcSubCU->isSkip(uiPartIdx) )
+			{
+			  m_pcPrediction->getMvPredIMVP( pcSubCU, uiPartIdx, uiPartAddr, eRefList, iRefIdx, pcSubCUMvField, cMv );
+			}
+#endif
+		}
+#else
 #if HHI_IMVP
           if ( pcSubCU->getSlice()->getSPS()->getUseIMP() && !pcSubCU->isSkip(uiPartIdx) )
           {
             m_pcPrediction->getMvPredIMVP( pcSubCU, uiPartIdx, uiPartAddr, eRefList, iRefIdx, pcSubCUMvField, cMv );
           }
 #endif
+#endif
           cMv += pcSubCUMvField->getMvd( uiPartAddr );
         }
 
         pcSubCU->getCUMvField( eRefList )->setAllMv(cMv, ePartSize, uiPartAddr, uiPartIdx, 0);
+
+#ifdef QC_AMVRES
+		pcSubCU->getCUMvField( eRefList )->setAllMVRes(!cMv.isHAM()&&(iRefIdx!=-1), ePartSize, uiPartAddr, uiPartIdx, 0);
+#endif
       }
       break;
     }
@@ -804,8 +1147,18 @@ Void TDecEntropy::decodeMVPIdx( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDept
         cMv = cZeroMv;
         pcSubCU->fillMvpCand(uiPartIdx, uiPartAddr, eRefList, iRefIdx, pAMVPInfo);
 #if HHI_IMVP
+#ifdef QC_AMVRES
+	  if (pcSubCUMvField->getMVRes(uiPartAddr))
+		  pcSubCU->clearMVPCand_one_fourth(pcSubCUMvField->getMvd(uiPartAddr), pAMVPInfo, eRefList, uiPartIdx, iRefIdx);
+	  else
+#endif
         pcSubCU->clearMVPCand(pcSubCUMvField->getMvd(uiPartAddr), pAMVPInfo, eRefList, uiPartIdx, iRefIdx);
 #else
+#ifdef QC_AMVRES
+	  if (pcSubCUMvField->getMVRes(uiPartAddr))
+		  pcSubCU->clearMVPCand_one_fourth(pcSubCUMvField->getMvd(uiPartAddr), pAMVPInfo);
+	  else
+#endif
         pcSubCU->clearMVPCand(pcSubCUMvField->getMvd(uiPartAddr), pAMVPInfo);
 #endif
         pcSubCU->setMVPNumSubParts(pAMVPInfo->iN, eRefList, uiPartAddr, uiPartIdx, uiDepth);
@@ -817,16 +1170,41 @@ Void TDecEntropy::decodeMVPIdx( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDept
         if ( iRefIdx >= 0 )
         {
           m_pcPrediction->getMvPredAMVP( pcSubCU, uiPartIdx, uiPartAddr, eRefList, iRefIdx, cMv);
+#ifdef QC_AMVRES
+		if (pcSubCUMvField->getMVRes(uiPartAddr))
+		{
+#if HHI_IMVP
+			if (  pcSubCU->getSlice()->getSPS()->getUseIMP() && !pcSubCU->isSkip(uiPartIdx) )
+			{
+			  m_pcPrediction->getMvPredIMVP_onefourth( pcSubCU, uiPartIdx, uiPartAddr, eRefList, iRefIdx, pcSubCUMvField, cMv );
+			}
+#endif
+		   cMv.round();
+		}
+		else
+		{
 #if HHI_IMVP
           if ( pcSubCU->getSlice()->getSPS()->getUseIMP() && !pcSubCU->isSkip(uiPartIdx) )
           {
             m_pcPrediction->getMvPredIMVP( pcSubCU, uiPartIdx, uiPartAddr, eRefList, iRefIdx, pcSubCUMvField, cMv );
           }
 #endif
+		}
+#else
+#if HHI_IMVP 
+          if ( pcSubCU->getSlice()->getSPS()->getUseIMP() && !pcSubCU->isSkip(uiPartIdx) )
+          {
+            m_pcPrediction->getMvPredIMVP( pcSubCU, uiPartIdx, uiPartAddr, eRefList, iRefIdx, pcSubCUMvField, cMv );
+          }
+#endif
+#endif
           cMv += pcSubCUMvField->getMvd( uiPartAddr );
         }
 
         pcSubCU->getCUMvField( eRefList )->setAllMv(cMv, ePartSize, uiPartAddr, uiPartIdx, 0);
+#ifdef QC_AMVRES
+		pcSubCU->getCUMvField( eRefList )->setAllMVRes(!cMv.isHAM()&&(iRefIdx!=-1), ePartSize, uiPartAddr, uiPartIdx, 0);
+#endif
       }
       break;
     }
@@ -839,8 +1217,18 @@ Void TDecEntropy::decodeMVPIdx( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDept
         cMv = cZeroMv;
         pcSubCU->fillMvpCand(uiPartIdx, uiPartAddr, eRefList, iRefIdx, pAMVPInfo);
 #if HHI_IMVP
+#ifdef QC_AMVRES
+	  if (pcSubCUMvField->getMVRes(uiPartAddr))
+		  pcSubCU->clearMVPCand_one_fourth(pcSubCUMvField->getMvd(uiPartAddr), pAMVPInfo, eRefList, uiPartIdx, iRefIdx);
+	  else
+#endif
         pcSubCU->clearMVPCand(pcSubCUMvField->getMvd(uiPartAddr), pAMVPInfo, eRefList, uiPartIdx, iRefIdx);
 #else
+#ifdef QC_AMVRES
+	  if (pcSubCUMvField->getMVRes(uiPartAddr))
+		  pcSubCU->clearMVPCand_one_fourth(pcSubCUMvField->getMvd(uiPartAddr), pAMVPInfo);
+	  else
+#endif
         pcSubCU->clearMVPCand(pcSubCUMvField->getMvd(uiPartAddr), pAMVPInfo);
 #endif
         pcSubCU->setMVPNumSubParts(pAMVPInfo->iN, eRefList, uiPartAddr, uiPartIdx, uiDepth);
@@ -852,16 +1240,42 @@ Void TDecEntropy::decodeMVPIdx( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDept
         if ( iRefIdx >= 0 )
         {
           m_pcPrediction->getMvPredAMVP( pcSubCU, uiPartIdx, uiPartAddr, eRefList, iRefIdx, cMv );
+#ifdef QC_AMVRES
+		if (pcSubCUMvField->getMVRes(uiPartAddr))
+		{
+#if HHI_IMVP
+			if (  pcSubCU->getSlice()->getSPS()->getUseIMP() && !pcSubCU->isSkip(uiPartIdx) )
+			{
+			  m_pcPrediction->getMvPredIMVP_onefourth( pcSubCU, uiPartIdx, uiPartAddr, eRefList, iRefIdx, pcSubCUMvField, cMv );
+			}
+#endif
+		   cMv.round();
+		}
+		else
+		{
+#if HHI_IMVP
+			if (  pcSubCU->getSlice()->getSPS()->getUseIMP() && !pcSubCU->isSkip(uiPartIdx) )
+			{
+			  m_pcPrediction->getMvPredIMVP( pcSubCU, uiPartIdx, uiPartAddr, eRefList, iRefIdx, pcSubCUMvField, cMv );
+			}
+#endif
+		}
+#else
 #if HHI_IMVP
           if ( pcSubCU->getSlice()->getSPS()->getUseIMP() && !pcSubCU->isSkip(uiPartIdx) )
           {
             m_pcPrediction->getMvPredIMVP( pcSubCU, uiPartIdx, uiPartAddr, eRefList, iRefIdx, pcSubCUMvField, cMv );
           }
 #endif
+#endif
           cMv += pcSubCUMvField->getMvd( uiPartAddr );
         }
 
         pcSubCU->getCUMvField( eRefList )->setAllMv(cMv, ePartSize, uiPartAddr, uiPartIdx, 0);
+
+#ifdef QC_AMVRES
+		pcSubCU->getCUMvField( eRefList )->setAllMVRes(!cMv.isHAM()&&(iRefIdx!=-1), ePartSize, uiPartAddr, uiPartIdx, 0);
+#endif
       }
       break;
     }
@@ -874,8 +1288,18 @@ Void TDecEntropy::decodeMVPIdx( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDept
         cMv = cZeroMv;
         pcSubCU->fillMvpCand(uiPartIdx, uiPartAddr, eRefList, iRefIdx, pAMVPInfo);
 #if HHI_IMVP
+#ifdef QC_AMVRES
+	  if (pcSubCUMvField->getMVRes(uiPartAddr))
+		  pcSubCU->clearMVPCand_one_fourth(pcSubCUMvField->getMvd(uiPartAddr), pAMVPInfo, eRefList, uiPartIdx, iRefIdx);
+	  else
+#endif
         pcSubCU->clearMVPCand(pcSubCUMvField->getMvd(uiPartAddr), pAMVPInfo, eRefList, uiPartIdx, iRefIdx);
 #else
+#ifdef QC_AMVRES
+	  if (pcSubCUMvField->getMVRes(uiPartAddr))
+		  pcSubCU->clearMVPCand_one_fourth(pcSubCUMvField->getMvd(uiPartAddr), pAMVPInfo);
+	  else
+#endif
         pcSubCU->clearMVPCand(pcSubCUMvField->getMvd(uiPartAddr), pAMVPInfo);
 #endif
         pcSubCU->setMVPNumSubParts(pAMVPInfo->iN, eRefList, uiPartAddr, uiPartIdx, uiDepth);
@@ -887,16 +1311,42 @@ Void TDecEntropy::decodeMVPIdx( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDept
         if ( iRefIdx >= 0 )
         {
           m_pcPrediction->getMvPredAMVP( pcSubCU, uiPartIdx, uiPartAddr, eRefList, iRefIdx, cMv);
+#ifdef QC_AMVRES
+		if (pcSubCUMvField->getMVRes(uiPartAddr))
+		{
+#if HHI_IMVP
+			if (  pcSubCU->getSlice()->getSPS()->getUseIMP() && !pcSubCU->isSkip(uiPartIdx) )
+			{
+			  m_pcPrediction->getMvPredIMVP_onefourth( pcSubCU, uiPartIdx, uiPartAddr, eRefList, iRefIdx, pcSubCUMvField, cMv );
+			}
+#endif
+		   cMv.round();
+		}
+		else
+		{
 #if HHI_IMVP
           if ( pcSubCU->getSlice()->getSPS()->getUseIMP() && !pcSubCU->isSkip(uiPartIdx) )
           {
             m_pcPrediction->getMvPredIMVP( pcSubCU, uiPartIdx, uiPartAddr, eRefList, iRefIdx, pcSubCUMvField, cMv );
           }
 #endif
+		}
+#else
+#if HHI_IMVP 
+          if ( pcSubCU->getSlice()->getSPS()->getUseIMP() && !pcSubCU->isSkip(uiPartIdx) )
+          {
+            m_pcPrediction->getMvPredIMVP( pcSubCU, uiPartIdx, uiPartAddr, eRefList, iRefIdx, pcSubCUMvField, cMv );
+          }
+#endif
+#endif
           cMv += pcSubCUMvField->getMvd( uiPartAddr );
         }
 
         pcSubCU->getCUMvField( eRefList )->setAllMv(cMv, ePartSize, uiPartAddr, uiPartIdx, 0);
+
+#ifdef QC_AMVRES
+		pcSubCU->getCUMvField( eRefList )->setAllMVRes(!cMv.isHAM()&&(iRefIdx!=-1), ePartSize, uiPartAddr, uiPartIdx, 0);
+#endif
       }
       break;
     }
@@ -909,8 +1359,18 @@ Void TDecEntropy::decodeMVPIdx( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDept
         cMv = cZeroMv;
         pcSubCU->fillMvpCand(uiPartIdx, uiPartAddr, eRefList, iRefIdx, pAMVPInfo);
 #if HHI_IMVP
+#ifdef QC_AMVRES
+	  if (pcSubCUMvField->getMVRes(uiPartAddr))
+		  pcSubCU->clearMVPCand_one_fourth(pcSubCUMvField->getMvd(uiPartAddr), pAMVPInfo, eRefList, uiPartIdx, iRefIdx);
+	  else
+#endif
         pcSubCU->clearMVPCand(pcSubCUMvField->getMvd(uiPartAddr), pAMVPInfo, eRefList, uiPartIdx, iRefIdx);
 #else
+#ifdef QC_AMVRES
+	  if (pcSubCUMvField->getMVRes(uiPartAddr))
+		  pcSubCU->clearMVPCand_one_fourth(pcSubCUMvField->getMvd(uiPartAddr), pAMVPInfo);
+	  else
+#endif
         pcSubCU->clearMVPCand(pcSubCUMvField->getMvd(uiPartAddr), pAMVPInfo);
 #endif
         pcSubCU->setMVPNumSubParts(pAMVPInfo->iN, eRefList, uiPartAddr, uiPartIdx, uiDepth);
@@ -922,16 +1382,41 @@ Void TDecEntropy::decodeMVPIdx( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDept
         if ( iRefIdx >= 0 )
         {
           m_pcPrediction->getMvPredAMVP( pcSubCU, uiPartIdx, uiPartAddr, eRefList, iRefIdx, cMv);
+#ifdef QC_AMVRES
+		if (pcSubCUMvField->getMVRes(uiPartAddr))
+		{
+#if HHI_IMVP
+			if (  pcSubCU->getSlice()->getSPS()->getUseIMP() && !pcSubCU->isSkip(uiPartIdx) )
+			{
+			  m_pcPrediction->getMvPredIMVP_onefourth( pcSubCU, uiPartIdx, uiPartAddr, eRefList, iRefIdx, pcSubCUMvField, cMv );
+			}
+#endif
+		   cMv.round();
+		}
+		else
+		{
 #if HHI_IMVP
           if ( pcSubCU->getSlice()->getSPS()->getUseIMP() && !pcSubCU->isSkip(uiPartIdx) )
           {
             m_pcPrediction->getMvPredIMVP( pcSubCU, uiPartIdx, uiPartAddr, eRefList, iRefIdx, pcSubCUMvField, cMv );
           }
 #endif
+		}
+#else
+#if HHI_IMVP 
+          if ( pcSubCU->getSlice()->getSPS()->getUseIMP() && !pcSubCU->isSkip(uiPartIdx) )
+          {
+            m_pcPrediction->getMvPredIMVP( pcSubCU, uiPartIdx, uiPartAddr, eRefList, iRefIdx, pcSubCUMvField, cMv );
+          }
+#endif
+#endif
           cMv += pcSubCUMvField->getMvd( uiPartAddr );
         }
 
         pcSubCU->getCUMvField( eRefList )->setAllMv(cMv, ePartSize, uiPartAddr, uiPartIdx, 0);
+#ifdef QC_AMVRES
+		pcSubCU->getCUMvField( eRefList )->setAllMVRes(!cMv.isHAM()&&(iRefIdx!=-1), ePartSize, uiPartAddr, uiPartIdx, 0);
+#endif
       }
       break;
     }
@@ -943,8 +1428,18 @@ Void TDecEntropy::decodeMVPIdx( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDept
       cMv = cZeroMv;
       pcSubCU->fillMvpCand(0, uiPartAddr, eRefList, iRefIdx, pAMVPInfo);
 #if HHI_IMVP
+#ifdef QC_AMVRES
+	  if (pcSubCUMvField->getMVRes(uiPartAddr))
+		  pcSubCU->clearMVPCand_one_fourth(pcSubCUMvField->getMvd(uiPartAddr), pAMVPInfo, eRefList, 0, iRefIdx);
+	  else
+#endif
       pcSubCU->clearMVPCand(pcSubCUMvField->getMvd(uiPartAddr), pAMVPInfo, eRefList, 0, iRefIdx);
 #else
+#ifdef QC_AMVRES
+	  if (pcSubCUMvField->getMVRes(uiPartAddr))
+		  pcSubCU->clearMVPCand_one_fourth(pcSubCUMvField->getMvd(uiPartAddr), pAMVPInfo);
+	  else
+#endif
       pcSubCU->clearMVPCand(pcSubCUMvField->getMvd(uiPartAddr), pAMVPInfo);
 #endif
       pcSubCU->setMVPNumSubParts(pAMVPInfo->iN, eRefList, uiPartAddr, 0, uiDepth);
@@ -957,16 +1452,42 @@ Void TDecEntropy::decodeMVPIdx( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDept
       if ( iRefIdx >= 0 )
       {
         m_pcPrediction->getMvPredAMVP( pcSubCU, 0, uiPartAddr, eRefList, iRefIdx, cMv);
+#ifdef QC_AMVRES
+		if (pcSubCUMvField->getMVRes(uiPartAddr))
+		{
+#if HHI_IMVP
+			if (  pcSubCU->getSlice()->getSPS()->getUseIMP() && !pcSubCU->isSkip(0) )
+			{
+			  m_pcPrediction->getMvPredIMVP_onefourth( pcSubCU, 0, uiPartAddr, eRefList, iRefIdx, pcSubCUMvField, cMv );
+			}
+#endif
+		   cMv.round();
+		}
+		else
+		{
+#if HHI_IMVP
+			if (  pcSubCU->getSlice()->getSPS()->getUseIMP() && !pcSubCU->isSkip(0) )
+			{
+			  m_pcPrediction->getMvPredIMVP( pcSubCU, 0, uiPartAddr, eRefList, iRefIdx, pcSubCUMvField, cMv );
+			}
+#endif
+		}
+#else
 #if HHI_IMVP
         if ( pcSubCU->getSlice()->getSPS()->getUseIMP() && !pcSubCU->isSkip(0) )
         {
           m_pcPrediction->getMvPredIMVP( pcSubCU, 0, uiPartAddr, eRefList, iRefIdx, pcSubCUMvField, cMv );
         }
 #endif
+#endif
         cMv += pcSubCUMvField->getMvd( uiPartAddr );
       }
 
       pcSubCU->getCUMvField( eRefList )->setAllMv(cMv, ePartSize, uiPartAddr, 0, 0);
+
+#ifdef QC_AMVRES
+		pcSubCU->getCUMvField( eRefList )->setAllMVRes(!cMv.isHAM()&&(iRefIdx!=-1), ePartSize, uiPartAddr, 0, 0);
+#endif
 
       uiPartAddr = uiPartOffset + (uiPartOffset>>2);
       iRefIdx = pcSubCUMvField->getRefIdx(uiPartAddr);
@@ -974,8 +1495,18 @@ Void TDecEntropy::decodeMVPIdx( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDept
       cMv = cZeroMv;
       pcSubCU->fillMvpCand(1, uiPartAddr, eRefList, iRefIdx, pAMVPInfo);
 #if HHI_IMVP
+#ifdef QC_AMVRES
+	  if (pcSubCUMvField->getMVRes(uiPartAddr))
+		  pcSubCU->clearMVPCand_one_fourth(pcSubCUMvField->getMvd(uiPartAddr), pAMVPInfo, eRefList, 1, iRefIdx);
+	  else
+#endif
       pcSubCU->clearMVPCand(pcSubCUMvField->getMvd(uiPartAddr), pAMVPInfo, eRefList, 1, iRefIdx);
 #else
+#ifdef QC_AMVRES
+	  if (pcSubCUMvField->getMVRes(uiPartAddr))
+		  pcSubCU->clearMVPCand_one_fourth(pcSubCUMvField->getMvd(uiPartAddr), pAMVPInfo);
+	  else
+#endif
       pcSubCU->clearMVPCand(pcSubCUMvField->getMvd(uiPartAddr), pAMVPInfo);
 #endif
       pcSubCU->setMVPNumSubParts(pAMVPInfo->iN, eRefList, uiPartAddr, 1, uiDepth);
@@ -988,16 +1519,42 @@ Void TDecEntropy::decodeMVPIdx( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDept
       if ( iRefIdx >= 0 )
       {
         m_pcPrediction->getMvPredAMVP( pcSubCU, 1, uiPartAddr, eRefList, iRefIdx, cMv);
+#ifdef QC_AMVRES
+		if (pcSubCUMvField->getMVRes(uiPartAddr))
+		{
+#if HHI_IMVP
+			if (  pcSubCU->getSlice()->getSPS()->getUseIMP() && !pcSubCU->isSkip(1) )
+			{
+			  m_pcPrediction->getMvPredIMVP_onefourth( pcSubCU, 1, uiPartAddr, eRefList, iRefIdx, pcSubCUMvField, cMv );
+			}
+#endif
+		   cMv.round();
+		}
+		else
+		{
+#if HHI_IMVP
+			if (  pcSubCU->getSlice()->getSPS()->getUseIMP() && !pcSubCU->isSkip(1) )
+			{
+			  m_pcPrediction->getMvPredIMVP( pcSubCU, 1, uiPartAddr, eRefList, iRefIdx, pcSubCUMvField, cMv );
+			}
+#endif
+		}
+#else
 #if HHI_IMVP
         if ( pcSubCU->getSlice()->getSPS()->getUseIMP() && !pcSubCU->isSkip(1) )
         {
           m_pcPrediction->getMvPredIMVP( pcSubCU, 1, uiPartAddr, eRefList, iRefIdx, pcSubCUMvField, cMv );
         }
 #endif
+#endif
         cMv += pcSubCUMvField->getMvd( uiPartAddr );
       }
 
       pcSubCU->getCUMvField( eRefList )->setAllMv(cMv, ePartSize, uiPartAddr, 1, 0);
+
+#ifdef QC_AMVRES
+		pcSubCU->getCUMvField( eRefList )->setAllMVRes(!cMv.isHAM()&&(iRefIdx!=-1), ePartSize, uiPartAddr, 1, 0);
+#endif
       break;
     }
   default:
@@ -1006,6 +1563,30 @@ Void TDecEntropy::decodeMVPIdx( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDept
 
   return;
 }
+
+#ifdef QC_AMVRES
+Void TDecEntropy::xDecodeMvRes(TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth, RefPicList eRefList, Int &iRefFrmIdx, Int iParseRefFrmIdx, PartSize ePartSize,UInt PartIdx)
+{
+	  if (pcCU->getSlice()->getSymbolMode()==0 && pcCU->getSlice()->getSPS()->getUseAMVRes() && iRefFrmIdx >= 0)
+	  {
+		  Bool bMVres=true;
+		  if (pcCU->getSlice()->getNumRefIdx( eRefList ) == 1&& iParseRefFrmIdx)
+		  {
+			   m_pcEntropyDecoderIf->parseRefFrmIdx( pcCU, iRefFrmIdx, uiAbsPartIdx, uiDepth, eRefList );
+		  }
+		  if (iRefFrmIdx == pcCU->getSlice()->getNumRefIdx( eRefList ))
+		  {
+			  bMVres = 0;
+			  iRefFrmIdx = 0;
+		  }	
+		  pcCU->getCUMvField( eRefList )->setAllMVRes (bMVres, ePartSize, uiAbsPartIdx, PartIdx, uiDepth );
+	  }
+	  else
+	  {
+		  pcCU->getCUMvField( eRefList )->setAllMVRes (false, ePartSize, uiAbsPartIdx, PartIdx, uiDepth );
+	  }
+}
+#endif
 
 Void TDecEntropy::decodeRefFrmIdx( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth, RefPicList eRefList )
 {
@@ -1046,6 +1627,10 @@ Void TDecEntropy::decodeRefFrmIdx( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiD
       {
         iRefFrmIdx = 0;
       }
+
+#ifdef QC_AMVRES
+	  xDecodeMvRes(pcCU, uiAbsPartIdx, uiDepth, eRefList, iRefFrmIdx, iParseRefFrmIdx, SIZE_2Nx2N,0);
+#endif
       pcCU->getCUMvField( eRefList )->setAllRefIdx( iRefFrmIdx, SIZE_2Nx2N, uiAbsPartIdx, 0, uiDepth );
       break;
     }
@@ -1063,6 +1648,10 @@ Void TDecEntropy::decodeRefFrmIdx( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiD
       {
         iRefFrmIdx = 0;
       }
+#ifdef QC_AMVRES
+	  xDecodeMvRes(pcCU, uiAbsPartIdx, uiDepth, eRefList, iRefFrmIdx, iParseRefFrmIdx, SIZE_2NxN,0);
+#endif
+
       pcCU->getCUMvField( eRefList )->setAllRefIdx( iRefFrmIdx, SIZE_2NxN, uiAbsPartIdx, 0, uiDepth );
       uiAbsPartIdx += (uiPartOffset << 1);
 
@@ -1080,6 +1669,9 @@ Void TDecEntropy::decodeRefFrmIdx( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiD
       {
         iRefFrmIdx = 0;
       }
+#ifdef QC_AMVRES
+	  xDecodeMvRes(pcCU, uiAbsPartIdx, uiDepth, eRefList, iRefFrmIdx, iParseRefFrmIdx, SIZE_2NxN,1);
+#endif
       pcCU->getCUMvField( eRefList )->setAllRefIdx( iRefFrmIdx, SIZE_2NxN, uiAbsPartIdx, 1, uiDepth );
       break;
     }
@@ -1097,6 +1689,9 @@ Void TDecEntropy::decodeRefFrmIdx( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiD
       {
         iRefFrmIdx = 0;
       }
+#ifdef QC_AMVRES
+	  xDecodeMvRes(pcCU, uiAbsPartIdx, uiDepth, eRefList, iRefFrmIdx, iParseRefFrmIdx, SIZE_Nx2N,0);
+#endif
       pcCU->getCUMvField( eRefList )->setAllRefIdx( iRefFrmIdx, SIZE_Nx2N, uiAbsPartIdx, 0, uiDepth );
       uiAbsPartIdx += uiPartOffset;
 
@@ -1114,6 +1709,9 @@ Void TDecEntropy::decodeRefFrmIdx( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiD
       {
         iRefFrmIdx = 0;
       }
+#ifdef QC_AMVRES
+	  	  xDecodeMvRes(pcCU, uiAbsPartIdx, uiDepth, eRefList, iRefFrmIdx, iParseRefFrmIdx, SIZE_Nx2N,0);
+#endif
       pcCU->getCUMvField( eRefList )->setAllRefIdx( iRefFrmIdx, SIZE_Nx2N, uiAbsPartIdx, 1, uiDepth );
       break;
     }
@@ -1135,6 +1733,9 @@ Void TDecEntropy::decodeRefFrmIdx( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiD
         {
           iRefFrmIdx = 0;
         }
+#ifdef QC_AMVRES
+      xDecodeMvRes(pcCU, uiAbsPartIdx, uiDepth, eRefList, iRefFrmIdx, iParseRefFrmIdx, SIZE_NxN,iPartIdx);
+#endif
         pcCU->getCUMvField( eRefList )->setAllRefIdx( iRefFrmIdx, SIZE_NxN, uiAbsPartIdx, iPartIdx, uiDepth );
         uiAbsPartIdx += uiPartOffset;
       }
@@ -1154,6 +1755,9 @@ Void TDecEntropy::decodeRefFrmIdx( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiD
       {
         iRefFrmIdx = 0;
       }
+#ifdef QC_AMVRES
+	  xDecodeMvRes(pcCU, uiAbsPartIdx, uiDepth, eRefList, iRefFrmIdx, iParseRefFrmIdx, SIZE_2NxnU,0);
+#endif
       pcCU->getCUMvField( eRefList )->setAllRefIdx( iRefFrmIdx, SIZE_2NxnU, uiAbsPartIdx, 0, uiDepth );
       uiAbsPartIdx += (uiPartOffset >> 1);
 
@@ -1171,6 +1775,9 @@ Void TDecEntropy::decodeRefFrmIdx( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiD
       {
         iRefFrmIdx = 0;
       }
+#ifdef QC_AMVRES
+ 	  xDecodeMvRes(pcCU, uiAbsPartIdx, uiDepth, eRefList, iRefFrmIdx, iParseRefFrmIdx, SIZE_2NxnU,1);
+#endif
       pcCU->getCUMvField( eRefList )->setAllRefIdx( iRefFrmIdx, SIZE_2NxnU, uiAbsPartIdx, 1, uiDepth );
       break;
     }
@@ -1188,6 +1795,9 @@ Void TDecEntropy::decodeRefFrmIdx( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiD
       {
         iRefFrmIdx = 0;
       }
+#ifdef QC_AMVRES
+ 	  xDecodeMvRes(pcCU, uiAbsPartIdx, uiDepth, eRefList, iRefFrmIdx, iParseRefFrmIdx, SIZE_2NxnD,0);
+#endif
       pcCU->getCUMvField( eRefList )->setAllRefIdx( iRefFrmIdx, SIZE_2NxnD, uiAbsPartIdx, 0, uiDepth );
       uiAbsPartIdx += (uiPartOffset<<1) + (uiPartOffset >> 1);
 
@@ -1205,6 +1815,9 @@ Void TDecEntropy::decodeRefFrmIdx( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiD
       {
         iRefFrmIdx = 0;
       }
+#ifdef QC_AMVRES
+   	  xDecodeMvRes(pcCU, uiAbsPartIdx, uiDepth, eRefList, iRefFrmIdx, iParseRefFrmIdx, SIZE_2NxnD,1);
+#endif
       pcCU->getCUMvField( eRefList )->setAllRefIdx( iRefFrmIdx, SIZE_2NxnD, uiAbsPartIdx, 1, uiDepth );
       break;
     }
@@ -1222,6 +1835,9 @@ Void TDecEntropy::decodeRefFrmIdx( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiD
       {
         iRefFrmIdx = 0;
       }
+#ifdef QC_AMVRES
+   	  xDecodeMvRes(pcCU, uiAbsPartIdx, uiDepth, eRefList, iRefFrmIdx, iParseRefFrmIdx, SIZE_nLx2N,0);
+#endif
       pcCU->getCUMvField( eRefList )->setAllRefIdx( iRefFrmIdx, SIZE_nLx2N, uiAbsPartIdx, 0, uiDepth );
       uiAbsPartIdx += (uiPartOffset >> 2);
 
@@ -1239,6 +1855,9 @@ Void TDecEntropy::decodeRefFrmIdx( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiD
       {
         iRefFrmIdx = 0;
       }
+#ifdef QC_AMVRES
+ 	  xDecodeMvRes(pcCU, uiAbsPartIdx, uiDepth, eRefList, iRefFrmIdx, iParseRefFrmIdx, SIZE_nLx2N,1);
+#endif
       pcCU->getCUMvField( eRefList )->setAllRefIdx( iRefFrmIdx, SIZE_nLx2N, uiAbsPartIdx, 1, uiDepth );
       break;
     }
@@ -1256,6 +1875,9 @@ Void TDecEntropy::decodeRefFrmIdx( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiD
       {
         iRefFrmIdx = 0;
       }
+#ifdef QC_AMVRES
+   	  xDecodeMvRes(pcCU, uiAbsPartIdx, uiDepth, eRefList, iRefFrmIdx, iParseRefFrmIdx, SIZE_nRx2N,0);
+#endif
       pcCU->getCUMvField( eRefList )->setAllRefIdx( iRefFrmIdx, SIZE_nRx2N, uiAbsPartIdx, 0, uiDepth );
       uiAbsPartIdx += uiPartOffset + (uiPartOffset >> 2);
 
@@ -1273,6 +1895,9 @@ Void TDecEntropy::decodeRefFrmIdx( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiD
       {
         iRefFrmIdx = 0;
       }
+#ifdef QC_AMVRES
+   	  xDecodeMvRes(pcCU, uiAbsPartIdx, uiDepth, eRefList, iRefFrmIdx, iParseRefFrmIdx, SIZE_nRx2N,1);
+#endif
       pcCU->getCUMvField( eRefList )->setAllRefIdx( iRefFrmIdx, SIZE_nRx2N, uiAbsPartIdx, 1, uiDepth );
       break;
     }
@@ -1290,7 +1915,7 @@ Void TDecEntropy::decodeMvd( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth, 
     pcCU->getCUMvField( eRefList )->setAllMvd( cZeroMv, SIZE_2Nx2N, uiAbsPartIdx, 0, uiDepth );
     return;
   }
- 
+
   UInt uiPartOffset = ( pcCU->getPic()->getNumPartInCU() >> ( uiDepth << 1 ) ) >> 2;
 
   switch ( pcCU->getPartitionSize( uiAbsPartIdx ) )
@@ -1656,6 +2281,18 @@ Void TDecEntropy::decodeCoeff( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth
 
     pcCU->convertTransIdx( uiAbsPartIdx, pcCU->getTransformIdx(uiAbsPartIdx), uiLumaTrMode, uiChromaTrMode );
 
+#if QC_MDDT
+	m_pcEntropyDecoderIf->parseCbf(pcCU, uiAbsPartIdx, TEXT_LUMA, 0, uiDepth);
+	m_pcEntropyDecoderIf->parseCbf(pcCU, uiAbsPartIdx, TEXT_CHROMA_U, 0, uiDepth);
+	m_pcEntropyDecoderIf->parseCbf(pcCU, uiAbsPartIdx, TEXT_CHROMA_V, 0, uiDepth);
+
+    if (uiWidth >= 16)
+  		decodeROTIdx( pcCU, uiAbsPartIdx, uiDepth );
+	xDecodeCoeff( pcCU, pcCU->getCoeffY()  + uiLumaOffset,   uiAbsPartIdx, uiDepth, uiWidth,    uiHeight,    0, uiLumaTrMode,   TEXT_LUMA     );
+	xDecodeCoeff( pcCU, pcCU->getCoeffCb() + uiChromaOffset, uiAbsPartIdx, uiDepth, uiWidth>>1, uiHeight>>1, 0, uiChromaTrMode, TEXT_CHROMA_U );
+	xDecodeCoeff( pcCU, pcCU->getCoeffCr() + uiChromaOffset, uiAbsPartIdx, uiDepth, uiWidth>>1, uiHeight>>1, 0, uiChromaTrMode, TEXT_CHROMA_V );
+	
+#else
     m_pcEntropyDecoderIf->parseCbf(pcCU, uiAbsPartIdx, TEXT_LUMA, 0, uiDepth);
     xDecodeCoeff( pcCU, pcCU->getCoeffY()  + uiLumaOffset,   uiAbsPartIdx, uiDepth, uiWidth,    uiHeight,    0, uiLumaTrMode,   TEXT_LUMA     );
 
@@ -1664,6 +2301,7 @@ Void TDecEntropy::decodeCoeff( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth
 
     m_pcEntropyDecoderIf->parseCbf(pcCU, uiAbsPartIdx, TEXT_CHROMA_V, 0, uiDepth);
     xDecodeCoeff( pcCU, pcCU->getCoeffCr() + uiChromaOffset, uiAbsPartIdx, uiDepth, uiWidth>>1, uiHeight>>1, 0, uiChromaTrMode, TEXT_CHROMA_V );
+#endif
   }
   else
   {

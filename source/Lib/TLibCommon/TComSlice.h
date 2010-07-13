@@ -90,6 +90,12 @@ private:
   Bool        m_bUseIMP; // SOPH:
 #endif
 
+#ifdef QC_AMVRES
+	Bool					m_bUseAMVRes;
+#endif
+#ifdef QC_SIFO_PRED
+  Bool          m_bUseSIFO_Pred;
+#endif
   // Parameter
   AMVP_MODE   m_aeAMVPMode[MAX_CU_DEPTH];
   UInt        m_uiBitDepth;
@@ -174,7 +180,9 @@ public:
 #endif
 
   Int  getDIFTap      ()         { return m_iDIFTap;        }
-
+#ifdef QC_AMVRES
+	Bool getUseAMVRes      ()         { return m_bUseAMVRes;        }
+#endif
   Void setUseALF      ( Bool b ) { m_bUseALF  = b;          }
   Void setUseDQP      ( Bool b ) { m_bUseDQP   = b;         }
 
@@ -200,7 +208,9 @@ public:
 #endif
 
   Void setDIFTap      ( Int  i ) { m_iDIFTap   = i;         }
-
+#ifdef QC_AMVRES
+	Void setUseAMVRes      ( Bool b ) { m_bUseAMVRes    =b;        }
+#endif
 #if HHI_ALF
   // ALF Parameters
   Bool getALFSeparateQt ()         { return m_bALFSeparateQt; }
@@ -211,6 +221,11 @@ public:
   Void setALFSymmetry   ( Bool b ) { m_bALFSymmetry   = b;    }
   Void setALFMinLength  ( Int  i ) { m_iALFMinLength  = i;    }
   Void setALFMaxLength  ( Int  i ) { m_iALFMaxLength  = i;    }
+#endif
+
+#ifdef QC_SIFO_PRED
+	Void setUseSIFO_Pred      ( Bool b ) { m_bUseSIFO_Pred    =b;        }
+	Bool getUseSIFO_Pred      ()         { return m_bUseSIFO_Pred;        }
 #endif
 
   // AMVP mode (for each depth)
@@ -295,7 +310,9 @@ private:
 #if HHI_INTERP_FILTER
   Int         m_iInterpFilterType;
 #endif
-
+#ifdef QC_SIFO_PRED
+	Bool        m_bUseSIFO_Pred;
+#endif
 public:
   TComSlice();
   virtual ~TComSlice();
@@ -319,7 +336,10 @@ public:
   UInt      getMaxPIPEDelay     ()                      { return  m_uiMaxPIPEDelay;     }
   Bool      getLoopFilterDisable()                      { return  m_bLoopFilterDisable; }
   UInt      getBalancedCPUs     ()                      { return  m_uiBalancedCPUs;     }
-
+#ifdef QC_SIFO_PRED
+	Void setUseSIFO_Pred      ( Bool b ) { m_bUseSIFO_Pred    =b;        }
+	Bool getUseSIFO_Pred      ()         { return m_bUseSIFO_Pred;        }
+#endif
   Int       getNumRefIdx        ( RefPicList e )                { return  m_aiNumRefIdx[e];             }
   TComPic*  getPic              ()                              { return  m_pcPic;                      }
   TComPic*  getRefPic           ( RefPicList e, Int iRefIdx)    { return  m_apcRefPicList[e][iRefIdx];  }
@@ -405,6 +425,10 @@ public:
   Int  getInterpFilterType     ()         { return m_iInterpFilterType;       }
   Void setInterpFilterType     ( Int  i ) { m_iInterpFilterType  = i;         }
   Bool getUseMOMS              ()         { return ( ( m_iInterpFilterType == IPF_HHI_4TAP_MOMS || m_iInterpFilterType == IPF_HHI_6TAP_MOMS ) ); }
+#endif
+
+#ifdef QC_SIFO
+  Bool getUseSIFO              ()         { return ( m_iInterpFilterType == IPF_QC_SIFO); }
 #endif
 
 protected:

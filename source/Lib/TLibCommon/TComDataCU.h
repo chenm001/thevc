@@ -177,7 +177,13 @@ protected:
 
   /// remove redundant candidates
   Void          xUniqueMVPCand        ( AMVPInfo* pInfo );
-
+#ifdef QC_AMVRES
+#if HHI_IMVP
+  Void          xUniqueMVPCand_one_fourth(AMVPInfo* pInfo, Int uiPartIdx);
+#else
+  Void          xUniqueMVPCand_one_fourth(AMVPInfo* pInfo);
+#endif
+#endif
   /// compute required bits to encode MVD (used in AMVP)
   UInt          xGetMvdBits           ( TComMv cMvd );
   UInt          xGetComponentBits     ( Int iVal );
@@ -378,6 +384,14 @@ public:
 
   AMVP_MODE     getAMVPMode           ( UInt uiIdx );
   Void          fillMvpCand           ( UInt uiPartIdx, UInt uiPartAddr, RefPicList eRefPicList, Int iRefIdx, AMVPInfo* pInfo );
+#ifdef QC_AMVRES
+#if HHI_IMVP
+  Bool          clearMVPCand_one_fourth        ( TComMv cMvd, AMVPInfo* pInfo, RefPicList eRefPicList, UInt uiPartIdx, Int iRefIdx );
+#else
+  Bool          clearMVPCand_one_fourth        ( TComMv cMvd, AMVPInfo* pInfo);
+#endif
+  Int           searchMVPIdx_one_fourth(TComMv cMv, AMVPInfo* pInfo);
+#endif
 #if HHI_IMVP
   Bool          clearMVPCand          ( TComMv cMvd, AMVPInfo* pInfo, RefPicList eRefPicList, UInt uiPartIdx, Int iRefIdx );
 #else

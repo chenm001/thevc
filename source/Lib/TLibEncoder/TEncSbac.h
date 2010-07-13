@@ -113,7 +113,9 @@ private:
 
   Void  xWriteMvd            ( Int iMvd, UInt uiAbsSum, UInt uiCtx );
   Void  xWriteExGolombMvd    ( UInt uiSymbol, ContextModel* pcSCModel, UInt uiMaxBin );
-
+#ifdef QC_AMVRES
+  Void xWriteMvResFlag( Int iVal ,Int Ctx_idx);
+#endif
   Void  xCopyFrom            ( TEncSbac* pSrc );
   UInt  xGetCTXIdxFromWidth  ( Int iWidth );
 
@@ -183,8 +185,11 @@ public:
 
   Void codeDeltaQP       ( TComDataCU* pcCU, UInt uiAbsPartIdx );
   Void codeCbf           ( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eType, UInt uiTrDepth );
+#if QC_MDDT
+  Void codeCoeffNxN      ( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx, UInt uiWidth, UInt uiHeight, UInt uiDepth, TextType eTType, UInt uiMode, Bool bRD = false );
+#else
   Void codeCoeffNxN      ( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx, UInt uiWidth, UInt uiHeight, UInt uiDepth, TextType eTType, Bool bRD = false );
-
+#endif
   Void codeROTindex( TComDataCU* pcCU, UInt uiAbsPartIdx, Bool bRD );
   Void codeCIPflag ( TComDataCU* pcCU, UInt uiAbsPartIdx, Bool bRD );
 
@@ -199,7 +204,9 @@ public:
 
   __inline Int  biari_no_bits        ( Short symbol, ContextModel& rcSCModel );
   Int  biari_state                   ( Short symbol, ContextModel& rcSCModel );
-
+#ifdef QC_SIFO
+	Void encodeSwitched_Filters(TComSlice* pcSlice,TComPrediction *m_cPrediction);
+#endif
 private:
   UInt m_uiLastQp;
   ContextModel3DBuffer m_cCUSplitFlagSCModel;
@@ -221,6 +228,9 @@ private:
   ContextModel3DBuffer m_cCUInterDirSCModel;
   ContextModel3DBuffer m_cCURefPicSCModel;
   ContextModel3DBuffer m_cCUMvdSCModel;
+#ifdef QC_AMVRES
+  ContextModel3DBuffer m_cCUMvResCModel;
+#endif
   ContextModel3DBuffer m_cCUCbfSCModel;
 #if HHI_RQT
   ContextModel3DBuffer m_cCUQtCbfSCModel;

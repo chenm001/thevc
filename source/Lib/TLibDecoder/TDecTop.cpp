@@ -239,6 +239,13 @@ Void TDecTop::decode (Bool bEos, TComBitstream* pcBitstream, UInt& ruiPOC, TComL
   m_apcSlicePilot->setSPS( &m_cSPS );
   m_apcSlicePilot->setPPS( &m_cPPS );
   m_cEntropyDecoder.decodeSliceHeader (m_apcSlicePilot);
+#ifdef QC_SIFO
+  if( m_apcSlicePilot->getUseSIFO() )
+  {
+    m_cSliceDecoder.initSIFOFilters(m_cSPS.getDIFTap(),&m_cPrediction);
+    m_cEntropyDecoder.decodeSwitched_Filters(m_apcSlicePilot, &m_cPrediction);
+  }
+#endif
 
   // Buffer initialize for prediction.
   m_cPrediction.initTempBuff();

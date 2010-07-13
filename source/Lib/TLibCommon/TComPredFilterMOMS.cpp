@@ -55,6 +55,44 @@ Void  TComPredFilterMOMS::predInterLumaBlkMOMS( TComDataCU* pcCU, TComPicYuv* pc
   setFiltType( ePFilt );
   m_pcInterpIf->interpolate( piDstY, iDstStride, piRefY, iRefStride, iHeight, iWidth, ixFrac<<1, iyFrac<<1, 1 );
 }
+#ifdef QC_AMVRES
+// predict luma block for a given motion vector for motion compensation
+Void  TComPredFilterMOMS::predInterLumaBlkHAM_MOMS( TComDataCU* pcCU, TComPicYuv* pcPicYuvRef, UInt uiPartAddr, TComMv* pcMv, Int iWidth, Int iHeight, TComYuv*& rpcYuv, InterpFilterType ePFilt )
+{
+  Int     iRefStride  = pcPicYuvRef->getStride();
+  Int     iDstStride  = rpcYuv->getStride();
+
+  Int     iRefOffset  = ( pcMv->getHor() >> 3 ) + ( pcMv->getVer() >> 3 ) * iRefStride;
+  Pel*    piRefY      = pcPicYuvRef->getLumaAddr( pcCU->getAddr(), pcCU->getZorderIdxInCU() + uiPartAddr ) + iRefOffset;
+
+  Int     ixFrac      = pcMv->getHor() & 0x7;
+  Int     iyFrac      = pcMv->getVer() & 0x7;
+
+  Pel*    piDstY      = rpcYuv->getLumaAddr( uiPartAddr );
+
+  setFiltType( ePFilt );
+  m_pcInterpIf->interpolate( piDstY, iDstStride, piRefY, iRefStride, iHeight, iWidth, ixFrac, iyFrac, 1 );
+}
+// predict luma block for a given motion vector for motion compensation
+Void  TComPredFilterMOMS::predInterLumaBlkHAM_ME_MOMS(Pel* piSrcY, Int iSrcStride, Pel* piDstY, Int iDstStride, TComMv* pcMv, 
+                                                    Int iWidth, Int iHeight, InterpFilterType ePFilt, Int dMVx, Int dMVy)
+{
+
+  Int     mv_x = pcMv->getHor()+dMVx;
+  Int     mv_y = pcMv->getVer()+dMVy;
+ 
+  Int 		iOffset = (mv_x >>3) + (mv_y >>3) * iSrcStride;
+  Pel*		piRefY		 = piSrcY + iOffset; 
+  Int       iRefStride = iSrcStride;
+
+  Int 		ixFrac	= (mv_x & 0x7);
+  Int 		iyFrac	= (mv_y & 0x7);
+ 
+  setFiltType( ePFilt );
+  m_pcInterpIf->interpolate( piDstY, iDstStride, piRefY, iRefStride, iHeight, iWidth, ixFrac, iyFrac, 1 );
+  pcMv->set(mv_x,  mv_y  ); 
+}
+#endif
 
 
 // predict chroma block for a given motion vector for motion compensation

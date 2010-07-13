@@ -65,6 +65,9 @@ public:
   virtual Void  parsePPS                  ( TComPPS* pcPPS )                                      = 0;
   virtual Void  parseSliceHeader          ( TComSlice*& rpcSlice )                                = 0;
   virtual Void  parseTerminatingBit       ( UInt& ruilsLast )                                     = 0;
+#ifdef QC_SIFO
+  virtual Void  parseSwitched_Filters      (TComSlice*& rpcSlice, TComPrediction* m_cPrediction)                                 = 0;
+#endif
 
   virtual Void parseMVPIdx      ( TComDataCU* pcCU, Int& riMVPIdx, Int iMVPNum, UInt uiAbsPartIdx, UInt uiDepth, RefPicList eRefList ) = 0;
   
@@ -146,6 +149,9 @@ public:
   Void    decodePPS                   ( TComPPS* pcPPS     )    { m_pcEntropyDecoderIf->parsePPS(pcPPS);                    }
   Void    decodeSliceHeader           ( TComSlice*& rpcSlice )  { m_pcEntropyDecoderIf->parseSliceHeader(rpcSlice);         }
   Void    decodeTerminatingBit        ( UInt& ruiIsLast )       { m_pcEntropyDecoderIf->parseTerminatingBit(ruiIsLast);     }
+#ifdef QC_SIFO
+  Void    decodeSwitched_Filters      ( TComSlice*& rpcSlice, TComPrediction* m_cPrediction )  { m_pcEntropyDecoderIf->parseSwitched_Filters(rpcSlice,m_cPrediction);		}
+#endif
 
   // Adaptive Loop filter
 #if HHI_ALF
@@ -193,17 +199,30 @@ public:
 
   Void decodeTransformIdx      ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
   Void decodeQP                ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
+
+
+
 #if HHI_RQT
 private:
   Void xDecodeTransformSubdiv  ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth, UInt uiInnerQuadIdx );
 #endif
 
+#ifdef QC_AMVRES
+Void xDecodeMvRes(TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth, RefPicList eRefList, Int &iRefFrmIdx, Int iParseRefFrmIdx, PartSize ePartSize,UInt PartIdx);
+#endif
   Void xDecodeCoeff            ( TComDataCU* pcCU, TCoeff* pcCoeff, UInt uiAbsPartIdx, UInt uiDepth, UInt uiWidth, UInt uiHeight, UInt uiTrIdx, UInt uiCurrTrIdx, TextType eType );
 #if HHI_RQT
 public:
 #endif
   Void decodeCoeff             ( TComDataCU* pcCU                 , UInt uiAbsPartIdx, UInt uiDepth, UInt uiWidth, UInt uiHeight );
-
+#if QC_ALF
+  Void decodeAux(ALFParam* pAlfParam);
+  Void decodeFilt(ALFParam* pAlfParam);
+  Void readFilterCodingParams(ALFParam* pAlfParam);
+  Void readFilterCoeffs(ALFParam* pAlfParam);
+  Void decodeFilterCoeff (ALFParam* pAlfParam);
+  Int golombDecode(Int k);
+#endif
 };// END CLASS DEFINITION TDecEntropy
 
 

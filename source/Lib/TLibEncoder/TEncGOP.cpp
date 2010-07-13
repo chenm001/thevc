@@ -52,6 +52,9 @@ TEncGOP::TEncGOP()
 
   m_pcCfg               = NULL;
   m_pcSliceEncoder      = NULL;
+#ifdef QC_SIFO
+  m_pcSIFOEncoder       = NULL;
+#endif
   m_pcListPic           = NULL;
 
   m_pcEntropyCoder      = NULL;
@@ -85,6 +88,9 @@ Void TEncGOP::init ( TEncTop* pcTEncTop )
   m_pcEncTop     = pcTEncTop;
   m_pcCfg                = pcTEncTop;
   m_pcSliceEncoder       = pcTEncTop->getSliceEncoder();
+#ifdef QC_SIFO
+  m_pcSIFOEncoder        = pcTEncTop->getSIFOEncoder();
+#endif
   m_pcListPic            = pcTEncTop->getListPic();
 
   m_pcEntropyCoder       = pcTEncTop->getEntropyCoder();
@@ -261,6 +267,21 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
         m_pcSliceEncoder->setSearchRange(pcSlice);
       }
 
+#ifdef QC_SIFO
+      if( pcSlice->getUseSIFO() )
+      {
+        m_pcSIFOEncoder->initEncSIFO(pcSlice);  //use prev frame filters while compressing current frame
+        if(pcSlice->getSliceType() != I_SLICE)
+        {
+          m_pcSIFOEncoder->setFirstPassSubpelOffset(REF_PIC_LIST_0, pcSlice);
+          if(pcSlice->getSliceType() == B_SLICE)
+            m_pcSIFOEncoder->setFirstPassSubpelOffset(REF_PIC_LIST_1, pcSlice);
+        }
+#if PRINT_OFFSETS
+        m_pcSIFOEncoder->printSIFOOffsets(pcSlice);
+#endif
+      }
+#endif
       m_pcSliceEncoder->precompressSlice( pcPic );
       m_pcSliceEncoder->compressSlice   ( pcPic );
 
@@ -319,6 +340,10 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
         pcSlice->setMultiCodeword( m_pcCfg->getMCWThreshold() > 0 && m_pcSliceEncoder->getTotalBits() >= (UInt64)m_pcCfg->getMCWThreshold() );
       }
       m_pcEntropyCoder->encodeSliceHeader ( pcSlice                 );
+#ifdef QC_SIFO
+      if( pcSlice->getUseSIFO() )
+        m_pcEntropyCoder->encodeSwitched_Filters(pcSlice,m_pcEncTop->getPredSearch());
+#endif
 
       // is it needed?
       if ( pcSlice->getSymbolMode() )
@@ -371,7 +396,7 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
 #if HHI_ALF
         if ( pcSlice->getSymbolMode() )
         {
-          m_pcAdaptiveLoopFilter->startALFEnc(pcPic, m_pcEntropyCoder, m_pcEncTop->getRDSbacCoder(), m_pcEncTop->getRDGoOnSbacCoder() );
+          m_pcAdaptiveLoopFilter->startALFEnc(pcPic, m_pcEntropyCoder, m_pcEncTop->getRDSbacCoder(), m_pcCfg->getUseSBACRD() ?  m_pcEncTop->getRDGoOnSbacCoder() : NULL );
         }
         else
         {
@@ -405,11 +430,12 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
           else
             m_pcEntropyCoder->setAlfCtrl( false );
           m_pcEntropyCoder->encodeAlfParam(&cAlfParam);
+#if HHI_ALF
           if( pcSlice->getSPS()->getALFSeparateQt() && cAlfParam.cu_control_flag )
           {
             m_pcAdaptiveLoopFilter->encodeQuadTree ( &cAlfParam, m_pcEntropyCoder, uiMaxAlfCtrlDepth );
           }
-
+#endif
           pcPic->getSlice()->setSymbolMode(1);
           m_pcSliceEncoder->setV2Vflag(1);
           m_pcSliceEncoder->encodeSlice( pcPic, pcOut );
@@ -493,7 +519,10 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
 
       // File writing
       m_pcSliceEncoder->encodeSlice( pcPic, pcBitstreamOut );
-
+#ifdef QC_SIFO
+      if( pcSlice->getUseSIFO() )
+        m_pcSIFOEncoder->ComputeFiltersAndOffsets(pcPic);
+#endif
       getSliceEncoder()->getCUEncoder()->getCABAC4V2V()->setCntFlag(0);
 
       //  End of bitstream & byte align
@@ -539,6 +568,7 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
       break;
   }
 
+  pcOut->destroy();
   delete pcOut;
 
   assert ( m_iNumPicCoded == iNumPicRcvd );

@@ -1994,6 +1994,9 @@ Void TComTrQuant::xQuantLTR  (TComDataCU* pcCU, Long* pSrc, TCoeff*& pDes, Int i
   }
   else
   {
+#if QC_MDDT//VLC_MDDT ADAPTIVE_SCAN
+    UInt uiAcSum_init = uiAcSum;
+#endif
     for( Int n = 0; n < iWidth*iHeight; n++ )
     {
       Long iLevel;
@@ -2038,10 +2041,60 @@ Void TComTrQuant::xQuantLTR  (TComDataCU* pcCU, Long* pSrc, TCoeff*& pDes, Int i
         piQCoef[n] = 0;
       }
     }
+#if QC_MDDT//VLC_MDDT ADAPTIVE_SCAN  
+  const UInt*  pucScan;
+  int indexROT ;
+  if(pcCU->isIntra( uiAbsPartIdx ) && eTType == TEXT_LUMA && (iWidth == 16 || iWidth == 32 || iWidth == 64))//!bRD &&  eTType == TEXT_LUMA)
+  {
+    UInt uiMode;
+    uiMode = pcCU->getLumaIntraDir( uiAbsPartIdx );
+    int ipredmode = uiMode; 
+
+    indexROT = pcCU->getROTindex(uiAbsPartIdx);
+	int scan_index;
+
+	if(iWidth == 16)
+	{
+		scan_index = LUT16x16[indexROT][ipredmode];
+		pucScan = scanOrder16x16[scan_index]; //pucScanX = scanOrder16x16X[scan_index]; pucScanY = scanOrder16x16Y[scan_index];
+    }
+    else if(iWidth == 32)
+    {
+		scan_index = LUT32x32[indexROT][ipredmode];
+		pucScan = scanOrder32x32[scan_index]; //pucScanX = scanOrder32x32X[scan_index]; pucScanY = scanOrder32x32Y[scan_index];
+    }
+    else if(iWidth == 64)
+    {
+		scan_index = LUT64x64[indexROT][ipredmode];
+		pucScan = scanOrder64x64[scan_index]; //pucScanX = scanOrder64x64X[scan_index]; pucScanY = scanOrder64x64Y[scan_index];
+    }
+    else
+    {
+      printf("uiWidth = %d is not supported!\n", iWidth);
+      exit(1);
+    }
+
+    for( Int n = 64; n < iWidth*iHeight; n++ )
+    {
+      piQCoef[ pucScan[ n ] ] = 0;
+    }
+
+    uiAcSum = uiAcSum_init;
+
+    for( Int n = 0; n < iWidth*iHeight; n++ )
+    {
+      uiAcSum += abs(piQCoef[ pucScan[ n ] ]);
+    }
+  }
+#endif
+
   }
 }
-
+#if QC_MDDT
+Void TComTrQuant::xDeQuantLTR( TextType eText, UInt uiMode, TCoeff* pSrc, Long*& pDes, Int iWidth, Int iHeight, UChar indexROT )
+#else
 Void TComTrQuant::xDeQuantLTR( TCoeff* pSrc, Long*& pDes, Int iWidth, Int iHeight, UChar indexROT )
+#endif
 {
   UInt* piDeQuantCoef = NULL;
 
@@ -2063,11 +2116,21 @@ Void TComTrQuant::xDeQuantLTR( TCoeff* pSrc, Long*& pDes, Int iWidth, Int iHeigh
     }
   case 4:
     {
+#if QC_MDDT
+      if(getUseMDDT(uiMode, indexROT))
+        xDeQuant_klt( 4, piQCoef, piCoef, indexROT );
+      else
+#endif
       xDeQuant4x4( piQCoef, piCoef, indexROT );
       return;
     }
   case 8:
     {
+#if QC_MDDT
+      if(getUseMDDT(uiMode, indexROT))
+        xDeQuant_klt( 8, piQCoef, piCoef, indexROT );
+      else
+#endif
       xDeQuant8x8( piQCoef, piCoef, indexROT );
       return;
     }
@@ -3887,11 +3950,39 @@ Void TComTrQuant::xQuant( TComDataCU* pcCU, Long* pSrc, TCoeff*& pDes, Int iWidt
 {
   xQuantLTR(pcCU, pSrc, pDes, iWidth, iHeight, uiAcSum, eTType, uiAbsPartIdx, indexROT );
 }
+#if QC_MDDT
+Void TComTrQuant::xDeQuant( TextType eText, UInt uiMode, TCoeff* pSrc, Long*& pDes, Int iWidth, Int iHeight, UChar indexROT )
+{
+  xDeQuantLTR( eText, uiMode, pSrc, pDes, iWidth, iHeight, indexROT );
+}
+#else
 Void TComTrQuant::xDeQuant( TCoeff* pSrc, Long*& pDes, Int iWidth, Int iHeight, UChar indexROT )
 {
   xDeQuantLTR( pSrc, pDes, iWidth, iHeight, indexROT );
 }
+#endif
 
+
+#if QC_MDDT
+Void TComTrQuant::transformNxN( TComDataCU* pcCU, Pel* pcResidual, UInt uiStride, TCoeff*& rpcCoeff, UInt uiWidth, UInt uiHeight, UInt& uiAbsSum, TextType eTType, UInt uiAbsPartIdx, UChar indexROT )
+{
+  UInt uiMode;//luma intra pred
+
+  if(eTType == TEXT_LUMA && pcCU->getPredictionMode(uiAbsPartIdx) == MODE_INTRA )
+    uiMode = pcCU->getLumaIntraDir( uiAbsPartIdx );
+  else
+    uiMode = REG_DCT;
+
+  uiAbsSum = 0;
+
+  assert( (pcCU->getSlice()->getSPS()->getMaxTrSize() >= uiWidth) );
+
+  m_bQT =  (1 << (pcCU->getIntraSizeIdx( uiAbsPartIdx ) + 1)) != uiWidth;
+
+  xT( eTType, uiMode, pcResidual, uiStride, m_plTempCoeff, uiWidth, indexROT );
+  xQuant( pcCU, m_plTempCoeff, rpcCoeff, uiWidth, uiHeight, uiAbsSum, eTType, uiAbsPartIdx, indexROT );
+}
+#else
 Void TComTrQuant::transformNxN( TComDataCU* pcCU, Pel* pcResidual, UInt uiStride, TCoeff*& rpcCoeff, UInt uiWidth, UInt uiHeight, UInt& uiAbsSum, TextType eTType, UInt uiAbsPartIdx, UChar indexROT )
 {
   uiAbsSum = 0;
@@ -3902,11 +3993,21 @@ Void TComTrQuant::transformNxN( TComDataCU* pcCU, Pel* pcResidual, UInt uiStride
   xQuant( pcCU, m_plTempCoeff, rpcCoeff, uiWidth, uiHeight, uiAbsSum, eTType, uiAbsPartIdx, indexROT );
 }
 
+#endif
+
+#if QC_MDDT
+Void TComTrQuant::invtransformNxN( TextType eText, UInt uiMode, Pel*& rpcResidual, UInt uiStride, TCoeff* pcCoeff, UInt uiWidth, UInt uiHeight, UChar indexROT )
+{
+  xDeQuant( eText, uiMode, pcCoeff, m_plTempCoeff, uiWidth, uiHeight, indexROT );
+  xIT( eText, uiMode, m_plTempCoeff, rpcResidual, uiStride, uiWidth, indexROT );
+}
+#else
 Void TComTrQuant::invtransformNxN( Pel*& rpcResidual, UInt uiStride, TCoeff* pcCoeff, UInt uiWidth, UInt uiHeight, UChar indexROT )
 {
   xDeQuant( pcCoeff, m_plTempCoeff, uiWidth, uiHeight, indexROT );
   xIT( m_plTempCoeff, rpcResidual, uiStride, uiWidth );
 }
+#endif
 
 Void TComTrQuant::xT2( Pel* piBlkResi, UInt uiStride, Long* psCoeff )
 {
@@ -3924,7 +4025,129 @@ Void TComTrQuant::xT2( Pel* piBlkResi, UInt uiStride, Long* psCoeff )
   psCoeff[2] = itmp1 + itmp2;
   psCoeff[3] = itmp1 - itmp2;
 }
+#if QC_MDDT
+Void TComTrQuant::xQuantKLT( Long* plSrcCoef, TCoeff*& pDstCoef, UInt& uiAbsSum, UInt uiWidth, UInt uiHeight)
+{
+  Int iMaxNumCoeff = uiWidth*uiHeight;
+  Int KLTprec=14;
+  Int q_bits = m_cQP.m_iBits;
+  q_bits += 8+KLTprec-QP_BITS;//q_bits already includes QP_BITS
+  
+  Int64 roundOffset=((Int64)1<<(q_bits))/3;
 
+  if(uiWidth == 4)
+    m_puiQuantMtx = &g_aiQuantCoef_klt  [m_cQP.m_iRem][0];
+  else if(uiWidth == 8)
+    m_puiQuantMtx = &g_aiQuantCoef64_klt  [m_cQP.m_iRem][0];
+  else
+  {
+    printf("uiWidth = %d is not support\n", uiWidth);
+    exit(-1);
+  }
+
+  for( Int n = 0; n < iMaxNumCoeff; n++ )
+  {
+    Int64 iLevel, iSign;
+
+    iLevel  = plSrcCoef[n];
+    iSign   = iLevel;
+    iLevel  = absm( iLevel ) * m_puiQuantMtx[n];
+
+
+    iLevel      = ( iLevel + roundOffset ) >> q_bits;
+
+    if( 0 != iLevel )
+    {
+      //iSign     >>= 31;
+      uiAbsSum   += (Int)iLevel;
+      //iLevel     ^= iSign;
+      //iLevel     -= iSign;
+      pDstCoef[n] = (Int)((iSign>0)? iLevel : -iLevel);
+    }
+    else
+    {
+      pDstCoef [n] = 0;
+    }
+  }
+}
+
+Void TComTrQuant::xT4_klt( UInt ipmode, Pel* piBlkResi, UInt uiStride, Long* psCoeff )
+{
+  Int i, j, k;
+  Long block[4][4];
+  Long tmp[4][4];
+  const Short (*trMatrix)[4] = kltRow4x4[ipmode];
+
+  for (i=0; i<4; i++){
+    for (j=0; j<4; j++){
+      block[i][j] = piBlkResi[i*uiStride+j];
+    }
+  }
+
+    // Horizontal transform
+    for (i=0; i<4; i++) 
+    {
+        Int sum[4] = {0,};
+        for (j=0; j<4; j++) 
+      for(k = 0; k < 4; k++)
+                sum[j] += trMatrix[i][k]*block[j][k];
+        for (j=0; j<4; j++)
+            tmp[i][j] = sum[j];
+  }
+
+    trMatrix = kltCol4x4[ipmode];
+
+    // Vertical transform
+    for (i=0; i<4; i++) 
+    {
+        Int sum[4] = {0,}; 
+        for (j=0; j<4; j++) 
+      for(k = 0; k < 4; k++)
+                sum[j] += trMatrix[i][k]*tmp[j][k]; 
+
+        for (j=0; j<4; j++)
+            psCoeff[i*4+j] = sum[j];
+    }
+}
+Void TComTrQuant::xT8_klt( UInt ipmode, Pel* piBlkResi, UInt uiStride, Long* psCoeff )
+{
+  Int i, j, k;
+  Long block[8][8];
+  Long tmp[8][8];
+  const Short (*trMatrix)[8] = kltRow8x8[ipmode];
+
+  for (i=0; i<8; i++){
+    for (j=0; j<8; j++){
+      block[i][j] = piBlkResi[i*uiStride+j];
+    }
+  }
+
+    // Horizontal transform
+    for (i=0; i<8; i++) 
+    {
+        Long sum[8] = {0,};
+        for (j=0; j<8; j++) 
+            for (k=0; k<8; k++) 
+                sum[j] += trMatrix[i][k]*block[j][k];
+        for (j=0; j<8; j++)
+            tmp[i][j] = sum[j];
+    }
+
+    trMatrix = kltCol8x8[ipmode];
+    
+    // Vertical transform
+    for (i=0; i<8; i++) 
+    {
+        Long sum[8] = {0,}; 
+        for (j=0; j<8; j++) 
+            for (k=0; k<8; k++) 
+                sum[j] += trMatrix[i][k]*tmp[j][k]; 
+
+        for (j=0; j<8; j++)
+            psCoeff[i*8+j] = sum[j];
+    }
+}
+#endif
 Void TComTrQuant::xT4( Pel* piBlkResi, UInt uiStride, Long* psCoeff )
 {
   Int aai[4][4];
@@ -4114,9 +4337,22 @@ Void TComTrQuant::xQuant2x2( Long* plSrcCoef, TCoeff*& pDstCoef, UInt& uiAbsSum,
 }
 Void TComTrQuant::xQuant4x4( TComDataCU* pcCU, Long* plSrcCoef, TCoeff*& pDstCoef, UInt& uiAbsSum, TextType eTType, UInt uiAbsPartIdx, UChar indexROT )
 {
+#if QC_MDDT
+  UInt uiMode;
+  if(eTType == TEXT_LUMA && pcCU->getPredictionMode(uiAbsPartIdx) == MODE_INTRA )
+  {
+    uiMode = pcCU->getLumaIntraDir( uiAbsPartIdx );
+  }
+  else
+    uiMode = REG_DCT;
+#endif
+
 #if HHI_ALLOW_ROT_SWITCH
   if ( m_bUseROT )
   {
+#if QC_MDDT
+  if(!getUseMDDT(uiMode, indexROT))
+#endif
     for( Int i=0; i<16; i++ )
       plSrcCoef[i] *= m_puiQuantMtx[i];
 
@@ -4126,6 +4362,9 @@ Void TComTrQuant::xQuant4x4( TComDataCU* pcCU, Long* plSrcCoef, TCoeff*& pDstCoe
     }
   }
 #else
+#if QC_MDDT
+  if(!getUseMDDT(uiMode, indexROT))
+#endif
   for( Int i=0; i<16; i++ )
     plSrcCoef[i] *= m_puiQuantMtx[i];
 
@@ -4141,6 +4380,18 @@ Void TComTrQuant::xQuant4x4( TComDataCU* pcCU, Long* plSrcCoef, TCoeff*& pDstCoe
   }
   else
   {
+#if QC_MDDT//noRDOQ
+    UInt uiMode;
+    if(eTType == TEXT_LUMA && pcCU->getPredictionMode(uiAbsPartIdx) == MODE_INTRA )
+    {
+      uiMode = pcCU->getLumaIntraDir( uiAbsPartIdx );            
+      if ( getUseMDDT(uiMode, indexROT))
+      {    
+        xQuantKLT(plSrcCoef, pDstCoef, uiAbsSum, 4, 4);
+        return;
+      }      
+    }
+#endif
     for( Int n = 0; n < 16; n++ )
     {
       Int iLevel, iSign;
@@ -4184,9 +4435,21 @@ Void TComTrQuant::xQuant4x4( TComDataCU* pcCU, Long* plSrcCoef, TCoeff*& pDstCoe
 
 Void TComTrQuant::xQuant8x8( TComDataCU* pcCU, Long* plSrcCoef, TCoeff*& pDstCoef, UInt& uiAbsSum, TextType eTType, UInt uiAbsPartIdx, UChar indexROT )
 {
+#if QC_MDDT
+  UInt uiMode;
+  if(eTType == TEXT_LUMA && pcCU->getPredictionMode(uiAbsPartIdx) == MODE_INTRA )
+  {
+    uiMode = pcCU->getLumaIntraDir( uiAbsPartIdx );
+  }
+  else
+    uiMode = REG_DCT;
+#endif
 #if HHI_ALLOW_ROT_SWITCH
   if ( m_bUseROT )
   {
+#if QC_MDDT
+  if(!getUseMDDT(uiMode, indexROT))
+#endif
     for( Int i=0; i<64; i++ )
       plSrcCoef[i] *= m_puiQuantMtx[i];
 
@@ -4196,6 +4459,9 @@ Void TComTrQuant::xQuant8x8( TComDataCU* pcCU, Long* plSrcCoef, TCoeff*& pDstCoe
     }
   }
 #else
+#if QC_MDDT
+  if(!getUseMDDT(uiMode, indexROT))
+#endif
   for( Int i=0; i<64; i++ )
     plSrcCoef[i] *= m_puiQuantMtx[i];
 
@@ -4213,7 +4479,18 @@ Void TComTrQuant::xQuant8x8( TComDataCU* pcCU, Long* plSrcCoef, TCoeff*& pDstCoe
   }
   else
   {
-
+#if QC_MDDT//noRDOQ
+    UInt uiMode;
+    if(eTType == TEXT_LUMA && pcCU->getPredictionMode(uiAbsPartIdx) == MODE_INTRA )
+    {
+      uiMode = pcCU->getLumaIntraDir( uiAbsPartIdx );            
+      if ( getUseMDDT(uiMode, indexROT))
+      {    
+        xQuantKLT(plSrcCoef, pDstCoef, uiAbsSum, 8, 8);
+        return;
+      }      
+    }
+#endif
     for( Int n = 0; n < 64; n++ )
     {
       Int iLevel, iSign;
@@ -4292,6 +4569,82 @@ Void TComTrQuant::xIT2( Long* plCoef, Pel* pResidual, UInt uiStride )
   pResidual[uiStride+1] ^= iSign;
   pResidual[uiStride+1] -= iSign;
 }
+#if QC_MDDT
+Void TComTrQuant::xIT4_klt( UInt ipmode, Long* plCoef, Pel* pResidual, UInt uiStride )
+{
+  Int i, j, k;
+  Int64 ilev[4][4], tmp[4][4];//[y][x] precision increase
+  const Short (*trMatrix)[4] = kltRow4x4[ipmode];
+
+  for (i=0; i<4; i++){
+    for (j=0; j<4;j++){
+      ilev[i][j] = plCoef[i*4+j];
+    }
+  }
+
+    // Horizontal transform
+    for (i=0; i<4; i++) 
+      {
+        Int64 sum[4] = {0,};
+        for (j=0; j<4; j++) 
+            for (k=0; k<4; k++) 
+                sum[j] += trMatrix[k][i]*ilev[j][k];
+        for (j=0; j<4; j++)
+            tmp[i][j] = sum[j];
+    }
+
+    trMatrix = kltCol4x4[ipmode];
+    // Vertical transform
+    for (i=0; i<4; i++) 
+      {
+        Int64 sum[4] = {0,}; 
+        for (j=0; j<4; j++) 
+            for (k=0; k<4; k++) 
+                sum[j] += trMatrix[k][i]*tmp[j][k]; 
+
+        for (j=0; j<4; j++)
+            pResidual[i*uiStride+j] = xRound_klt(sum[j]);
+    }
+}
+
+Void TComTrQuant::xIT8_klt( UInt ipmode, Long* plCoef, Pel* pResidual, UInt uiStride )
+{
+  Int i, j, k;
+  Int64 ilev[8][8], tmp[8][8];//[y][x] precision increase
+  const Short (*trMatrix)[8] = kltRow8x8[ipmode];
+
+  for (i=0; i<8; i++){
+    for (j=0; j<8;j++){
+      ilev[i][j] = plCoef[i*8+j];
+    }
+  }
+
+    // Horizontal transform
+    for (i=0; i<8; i++) 
+    {
+        Int64 sum[8] = {0,};
+        for (j=0; j<8; j++) 
+            for (k=0; k<8; k++) 
+                sum[j] += trMatrix[k][i]*ilev[j][k];
+        for (j=0; j<8; j++)
+            tmp[i][j] = sum[j];
+    }
+
+    trMatrix = kltCol8x8[ipmode];
+    // Vertical transform
+    for (i=0; i<8; i++) 
+    {
+        Int64 sum[8] = {0,}; 
+        for (j=0; j<8; j++) 
+            for (k=0; k<8; k++) 
+                sum[j] += trMatrix[k][i]*tmp[j][k]; 
+
+        for (j=0; j<8; j++)
+            pResidual[i*uiStride+j] = xRound_klt(sum[j]);
+    }
+}
+
+#endif
 
 Void TComTrQuant::xIT4( Long* plCoef, Pel* pResidual, UInt uiStride )
 {
@@ -4460,7 +4813,50 @@ Void TComTrQuant::xDeQuant2x2( TCoeff* pSrcCoef, Long*& rplDstCoef, UChar indexR
     rplDstCoef[3] = 0;
   }
 }
+#if QC_MDDT
+Void TComTrQuant::xDeQuant_klt( Int size, TCoeff* pSrcCoef, Long*& rplDstCoef, UChar indexROT )
+{
+  Int iLevel;
+  Int iDeScale;
+#if ROT_CHECK
+	if ( !indexROT )
+	{
+#endif
+    for( Int n = 0; n < size*size; n++ )
+		{
+			iLevel  = pSrcCoef[n];
 
+			if( 0 != iLevel )
+			{
+				iDeScale = g_aiDequantCoef_klt[m_cQP.m_iRem][0];
+
+				rplDstCoef[n] = iLevel*iDeScale << m_cQP.m_iPer;
+			}
+			else
+			{
+				rplDstCoef[n] = 0;
+			}
+		}
+#if ROT_CHECK
+	}
+	else
+	{
+      printf("does not support ROT in KLT!");
+      exit(1);
+    for( Int n=0; n<16; n++)
+    {
+      if( 0 != pSrcCoef[n] )
+        rplDstCoef[n] = pSrcCoef[n] * ( 1 << m_cQP.m_iPer );
+      else
+        rplDstCoef[n] = 0;
+    }
+
+    InvRotTransform4I( rplDstCoef, indexROT );
+	}
+#endif
+}
+
+#endif
 Void TComTrQuant::xDeQuant4x4( TCoeff* pSrcCoef, Long*& rplDstCoef, UChar indexROT )
 {
   Int iLevel;
@@ -4589,7 +4985,11 @@ Void TComTrQuant::invRecurTransformNxN( TComDataCU* pcCU, UInt uiAbsPartIdx, Tex
     }
 #endif
     Pel* pResi = rpcResidual + uiAddr;
+#if QC_MDDT
+    invtransformNxN( eTxt, REG_DCT, pResi, uiStride, rpcCoeff, uiWidth, uiHeight, indexROT );
+#else
     invtransformNxN( pResi, uiStride, rpcCoeff, uiWidth, uiHeight, indexROT );
+#endif
   }
   else
   {
@@ -4865,27 +5265,94 @@ Void TComTrQuant::RotTransformLI2( Long* matrix, UChar index, UInt uiWidth )
 // Logical transform
 // ------------------------------------------------------------------------------------------------
 
+#if QC_MDDT
+Void TComTrQuant::xT( TextType eText, UInt uiMode, Pel* piBlkResi, UInt uiStride, Long* psCoeff, Int iSize, Int indexROT )
+#else
 Void TComTrQuant::xT( Pel* piBlkResi, UInt uiStride, Long* psCoeff, Int iSize )
+#endif
 {
   switch( iSize )
   {
     case  2: xT2 ( piBlkResi, uiStride, psCoeff ); break;
+#if QC_MDDT
+		case  4: 
+          if (getUseMDDT(uiMode, indexROT))
+          {
+            uiMode = g_aucIntra9Mode[uiMode];
+            xT4_klt ( uiMode, piBlkResi, uiStride, psCoeff ); 
+          }
+          else
+            xT4 ( piBlkResi, uiStride, psCoeff );
+
+          break;
+#else
     case  4: xT4 ( piBlkResi, uiStride, psCoeff ); break;
-    case  8: xT8 ( piBlkResi, uiStride, psCoeff ); break;
+#endif
+#if QC_MDDT
+		case  8: 
+          if (getUseMDDT(uiMode, indexROT))
+          {
+#if ANG_INTRA
+              uiMode = m_bQT ?  g_aucIntra9Mode[uiMode]: g_aucAngIntra9Mode[uiMode];
+#else
+              uiMode = g_aucIntra9Mode[uiMode];
+#endif
+            xT8_klt ( uiMode, piBlkResi, uiStride, psCoeff ); 
+          }
+          else
+            xT8 ( piBlkResi, uiStride, psCoeff ); 
+          
+          break;
+#else
+		case  8: xT8 ( piBlkResi, uiStride, psCoeff ); break;
+#endif
     case 16: xT16( piBlkResi, uiStride, psCoeff ); break;
     case 32: xT32( piBlkResi, uiStride, psCoeff ); break;
     case 64: xT64( piBlkResi, uiStride, psCoeff ); break;
     default: assert(0); break;
   }
 }
-
+#if QC_MDDT
+Void TComTrQuant::xIT( TextType eText, UInt uiMode, Long* plCoef, Pel* pResidual, UInt uiStride, Int iSize, UChar indexROT )
+#else
 Void TComTrQuant::xIT( Long* plCoef, Pel* pResidual, UInt uiStride, Int iSize )
+#endif
 {
   switch( iSize )
   {
     case  2: xIT2 ( plCoef, pResidual, uiStride ); break;
+#if QC_MDDT
+		case  4: 
+          if(getUseMDDT(uiMode, indexROT))
+          {
+            uiMode = g_aucIntra9Mode[uiMode];
+            xIT4_klt ( uiMode, plCoef, pResidual, uiStride ); 
+          }
+          else
+            xIT4 ( plCoef, pResidual, uiStride );
+
+          break;
+#else
     case  4: xIT4 ( plCoef, pResidual, uiStride ); break;
-    case  8: xIT8 ( plCoef, pResidual, uiStride ); break;
+#endif
+#if QC_MDDT
+		case  8: 
+          if(getUseMDDT(uiMode, indexROT))
+          {
+#if ANG_INTRA
+              uiMode = m_bQT ?  g_aucIntra9Mode[uiMode]: g_aucAngIntra9Mode[uiMode];
+#else
+              uiMode = g_aucIntra9Mode[uiMode];
+#endif
+            xIT8_klt ( uiMode, plCoef, pResidual, uiStride );
+          }
+          else
+            xIT8 ( plCoef, pResidual, uiStride );
+
+          break;
+#else
+		case  8: xIT8 ( plCoef, pResidual, uiStride ); break;
+#endif
     case 16: xIT16( plCoef, pResidual, uiStride ); break;
     case 32: xIT32( plCoef, pResidual, uiStride ); break;
     case 64: xIT64( plCoef, pResidual, uiStride ); break;
@@ -4929,6 +5396,42 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
   Int  iQpRem      = m_cQP.m_iRem;
   Int  iQBits      = m_cQP.m_iBits;
 
+#if QC_MDDT
+   UInt uiMode;
+  if(eTType == TEXT_LUMA && pcCU->getPredictionMode(uiAbsPartIdx) == MODE_INTRA )
+    uiMode = pcCU->getLumaIntraDir( uiAbsPartIdx );
+  else
+    uiMode = REG_DCT;
+
+  Int KLTprec=14;
+  if ( getUseMDDT(uiMode, ucIndexROT) && uiWidth == 4 && uiHeight == 4 )
+  {    
+    iQBits += 8+KLTprec-QP_BITS;//iQBits already includes QP_BITS
+    dNormFactor = pow(2., 2*(KLTprec+8+6)-15);
+    if ( g_uiBitIncrement ) dNormFactor *= 1<<(2*g_uiBitIncrement);
+
+    dTemp = g_aiDequantCoef_klt[m_cQP.m_iRem][0];
+    dTemp = dTemp*dTemp/dNormFactor;
+
+    m_puiQuantMtx = &g_aiQuantCoef_klt  [m_cQP.m_iRem][0];
+    bExt8x8Flag = true;
+  }
+  else
+    if ( getUseMDDT(uiMode, ucIndexROT) && uiWidth == 8 && uiHeight == 8 )
+  {
+    //q_bits++;
+    iQBits += 8+KLTprec-QP_BITS;
+    dNormFactor = pow(2., 2*(KLTprec+8+6)-15);
+    if ( g_uiBitIncrement ) dNormFactor *= 1<<(2*g_uiBitIncrement);
+
+    dTemp = g_aiDequantCoef64_klt[m_cQP.m_iRem][0];
+    dTemp = dTemp*dTemp/dNormFactor;
+
+    m_puiQuantMtx = &g_aiQuantCoef64_klt[m_cQP.m_iRem][0];
+    bExt8x8Flag = true;
+    }
+    else
+#endif
   if ( uiWidth == 4 && uiHeight == 4 )
   {
     dNormFactor = pow(2., (2*DQ_BITS+19));
@@ -4989,7 +5492,11 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
   Double  d64BlockUncodedCost = 0;
 
   Int*  piCoeff            = new Int [ uiMaxNumCoeff      ];
+#if QC_MDDT
+  Int64* plLevelDouble     = new Int64[ uiMaxNumCoeff      ];
+#else
   Long* plLevelDouble      = new Long[ uiMaxNumCoeff      ];
+#endif
   UInt* puiCtxAbsGreOne    = new UInt[ uiMaxNumCoeff      ];
   UInt* puiCtxCoeffLevelM1 = new UInt[ uiMaxNumCoeff      ];
   UInt* puiBaseCtx         = new UInt[ uiMaxNumCoeff / 16 ];
@@ -5009,15 +5516,37 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
     UInt    uiBlkPos = g_auiSigLastScan[ uiLog2BlkSize ][ uiDownLeft ][ uiScanPos ];
     UInt    uiPosY   = uiBlkPos >> uiLog2BlkSize;
     UInt    uiPosX   = uiBlkPos - ( uiPosY << uiLog2BlkSize );
-
+#if QC_MDDT
+    Int64 lLevelDouble = plSrcCoeff[ uiBlkPos ];
+#else
     Long lLevelDouble = plSrcCoeff[ uiBlkPos ];
+#endif
 
+#if QC_MDDT
+    if(!getUseMDDT(uiMode, ucIndexROT))
+#endif
+    {
     if      ( uiWidth == 4 ) dTemp = estErr4x4[ iQpRem ][ uiPosX ][ uiPosY ] / dNormFactor;
     else if ( uiWidth == 8 ) dTemp = estErr8x8[ iQpRem ][ uiPosX ][ uiPosY ] / dNormFactor;
+    }
+
 #if HHI_ALLOW_ROT_SWITCH
     if ( m_bUseROT )
     {
 #endif
+#if QC_MDDT
+      if ( bExt8x8Flag )
+      {
+        if ( ( uiPosX < 8 ) && ( uiPosY < 8 ) && ucIndexROT )
+          lLevelDouble = absm( lLevelDouble );
+        else
+          lLevelDouble = (Int64)absm( lLevelDouble) * (Int64)( b64Flag ? iQuantCoeff : m_puiQuantMtx[ uiBlkPos ] );//precision increase
+      }
+      else
+      {
+        lLevelDouble = absm( lLevelDouble );
+      }
+#else
       if ( bExt8x8Flag )
       {
         if ( ( uiPosX < 8 ) && ( uiPosY < 8 ) && ucIndexROT )
@@ -5029,14 +5558,27 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
       {
         lLevelDouble = abs( lLevelDouble );
       }
+#endif
+
 #if HHI_ALLOW_ROT_SWITCH
     }
     else
+#if QC_MDDT
+      lLevelDouble = (Int64)absm( lLevelDouble) * (Int64)( b64Flag ? iQuantCoeff : m_puiQuantMtx[ uiBlkPos ] );//precision increase
+#else
       lLevelDouble = abs( lLevelDouble * (Long)( b64Flag ? iQuantCoeff : m_puiQuantMtx[ uiBlkPos ] ) );
 #endif
+#endif
+
     plLevelDouble[ uiBlkPos ] = lLevelDouble;
+#if QC_MDDT
+    assert(iQBits < 32);
+    UInt uiMaxAbsLevel = (UInt)(lLevelDouble >> iQBits);
+    Bool bLowerInt = ( ( lLevelDouble - Int64( uiMaxAbsLevel << iQBits ) ) < Long( 1 <<( iQBits - 1 ) ) ) ? true : false;
+#else
     UInt uiMaxAbsLevel = lLevelDouble >> iQBits;
     Bool bLowerInt = ( ( lLevelDouble - Long( uiMaxAbsLevel << iQBits ) ) < Long( 1 <<( iQBits - 1 ) ) ) ? true : false;
+#endif
 
     if ( !bLowerInt )
     {
@@ -5232,21 +5774,81 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
   Double  d64BaseCost       = d64BestCost - xGetICost( m_pcEstBitsSbac->blockCbpBits[ 3 - ui16CtxCbf ][ 0 ] ) + xGetICost( m_pcEstBitsSbac->blockCbpBits[ 3 - ui16CtxCbf ][ 1 ] );
   Double  d64CodedCost      = 0;
   Double  d64UncodedCost    = 0;
+#if QC_MDDT
+    const UInt* pucScan;
+#if ROT_CHECK
+    if(uiMode != REG_DCT && ((uiWidth == 4 /*&& uiMode<=8*/&&ucIndexROT == 0)|| (uiWidth == 8 /*&& uiMode<=8*/ && ucIndexROT == 0) || uiWidth == 16 || uiWidth == 32 || uiWidth == 64) )
+#else
+   if(uiMode != REG_DCT)
+#endif
+    {
+      UInt uiPredMode = g_aucIntra9Mode[uiMode];
+      if(uiWidth == 4)
+        pucScan = scanOrder4x4[uiPredMode];
+      else if(uiWidth == 8)
+      {
+        uiPredMode = m_bQT ?  g_aucIntra9Mode[uiMode]: g_aucAngIntra9Mode[uiMode];
+        pucScan = scanOrder8x8[uiPredMode];
+      }
+      /*else if(uiWidth == 16) {
+        int scan_index;
+        scan_index = LUT16x16[indexROT][uiMode];
+        pucScan = scanOrder16x16[scan_index];
+      }
+      else if(uiWidth == 32) {
+        int scan_index;
+        scan_index = LUT32x32[indexROT][uiMode];
+        pucScan = scanOrder32x32[scan_index];
+      }
+      else if(uiWidth == 64) {
+        int scan_index;
+        scan_index = LUT64x64[indexROT][uiMode];
+        pucScan = scanOrder64x64[scan_index];
+      }*/
+      else
+      {
+        //printf("uiWidth = %d is not supported!\n", uiWidth);
+        //exit(1);
+      }
+    }
+#endif
 
   for( UInt uiScanPos = 0; uiScanPos < uiMaxNumCoeff; uiScanPos++ )
   {
     UInt   uiBlkPos     = g_auiSigLastScan[ uiLog2BlkSize ][ uiDownLeft ][ uiScanPos ];
+#if QC_MDDT
+#if ROT_CHECK
+    if(uiMode != REG_DCT && ((uiWidth == 4 && /*uiMode<=8&&*/ucIndexROT == 0)|| (uiWidth == 8 && /*uiMode<=8 &&*/ ucIndexROT == 0) /*|| uiWidth == 16 || uiWidth == 32 || uiWidth == 64*/) )
+#else
+    if(uiMode != REG_DCT && (uiWidth == 4 || uiWidth == 8) )
+#endif
+    {
+      uiBlkPos = pucScan[uiScanPos];
+    }
+#endif   
     UInt   uiPosY       = uiBlkPos >> uiLog2BlkSize;
     UInt   uiPosX       = uiBlkPos - ( uiPosY << uiLog2BlkSize );
     UInt   uiCtxBase    = bSubBlockCoding ? puiBaseCtx[ ( uiPosX / 4 ) + ( uiPosY / 4 ) * ( uiWidth / 4 ) ] : 0;
 
-    if( uiPosY + uiPosX > uiMaxLineNum )
+
+#if QC_MDDT
+#if ROT_CHECK
+    if(!(uiMode != REG_DCT && ((uiWidth == 4 && /* uiMode<=8&& */ucIndexROT == 0)|| (uiWidth == 8 && /* uiMode<=8  && */ ucIndexROT == 0) /*|| uiWidth == 16 || uiWidth == 32 || uiWidth == 64*/) ))
+#else
+   if(!(uiMode != REG_DCT && (uiWidth == 4 || uiWidth == 8)))
+#endif
+#endif
+      if( uiPosY + uiPosX > uiMaxLineNum )
     {
       break;
     }
-
+#if QC_MDDT
+    if(!getUseMDDT(uiMode, ucIndexROT))
+#endif
+    {
     if      ( uiWidth == 4 ) dTemp = estErr4x4[ iQpRem ][ uiPosX ][ uiPosY ] / dNormFactor;
     else if ( uiWidth == 8 ) dTemp = estErr8x8[ iQpRem ][ uiPosX ][ uiPosY ] / dNormFactor;
+    }
 
     UShort  uiCtxSig                = getSigCtxInc( piDstCoeff, uiPosX, uiPosY, uiLog2BlkSize, uiWidth, ( uiDownLeft > 0 ) );
     Bool    bLastScanPos            = ( uiScanPos == uiMaxNumCoeff - 1 );
@@ -5296,6 +5898,16 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
     for( UInt uiScanPos = 0; uiScanPos < uiMaxNumCoeff; uiScanPos++ )
     {
       UInt    uiBlkPos  = g_auiSigLastScan[ uiLog2BlkSize ][ uiDownLeft ][ uiScanPos ];
+#if QC_MDDT
+#if ROT_CHECK
+      if(uiMode != REG_DCT && ((uiWidth == 4 && /* uiMode<=8&& */ ucIndexROT == 0)|| (uiWidth == 8 && /* uiMode<=8 && */ ucIndexROT == 0) /*|| uiWidth == 16 || uiWidth == 32 || uiWidth == 64*/) )
+#else
+      if(uiMode != REG_DCT && (uiWidth == 4 || uiWidth == 8) )
+#endif
+      {
+        uiBlkPos = pucScan[uiScanPos];
+      }
+#endif  
       UInt    uiPosY    = uiBlkPos >> uiLog2BlkSize;
       UInt    uiPosX    = uiBlkPos - ( uiPosY << uiLog2BlkSize );
 
@@ -5365,6 +5977,44 @@ Void TComTrQuant::xRateDistOptQuant( TComDataCU* pcCU, Long* pSrcCoeff, TCoeff*&
   q_bits    = m_cQP.m_iBits;
 
 	// Step #1: compute scale
+#if QC_MDDT
+   UInt uiMode;
+  if(eTType == TEXT_LUMA && pcCU->getPredictionMode(uiAbsPartIdx) == MODE_INTRA )
+    uiMode = pcCU->getLumaIntraDir( uiAbsPartIdx );
+  else
+    uiMode = REG_DCT;
+
+  Int KLTprec=14;
+  if ( getUseMDDT(uiMode, indexROT) && uiWidth == 4 && uiHeight == 4 )
+  {    
+    q_bits += 8+KLTprec-QP_BITS;//q_bits already includes QP_BITS
+    normFact = pow(2., 2*(KLTprec+8+6)-15);
+    if ( g_uiBitIncrement ) normFact *= 1<<(2*g_uiBitIncrement);
+
+    fTemp = g_aiDequantCoef_klt[m_cQP.m_iRem][0];
+    fTemp = fTemp*fTemp/normFact;
+
+    m_puiQuantMtx = &g_aiQuantCoef_klt  [m_cQP.m_iRem][0];
+    iShift = 2;
+    bExt8x8Flag = true;
+  }
+  else
+    if ( getUseMDDT(uiMode, indexROT) && uiWidth == 8 && uiHeight == 8 )
+  {
+    //q_bits++;
+    q_bits += 8+KLTprec-QP_BITS;
+    normFact = pow(2., 2*(KLTprec+8+6)-15);
+    if ( g_uiBitIncrement ) normFact *= 1<<(2*g_uiBitIncrement);
+
+    fTemp = g_aiDequantCoef64_klt[m_cQP.m_iRem][0];
+    fTemp = fTemp*fTemp/normFact;
+
+    m_puiQuantMtx = &g_aiQuantCoef64_klt[m_cQP.m_iRem][0];
+    iShift = 3;
+    bExt8x8Flag = true;
+    }
+    else
+#endif
   if ( uiWidth == 4 && uiHeight == 4 )
   {
     normFact = pow(2., (2*DQ_BITS+19));
@@ -5426,9 +6076,98 @@ Void TComTrQuant::xRateDistOptQuant( TComDataCU* pcCU, Long* pSrcCoeff, TCoeff*&
 	iShiftQBits = (1 <<( q_bits - 1));
 
 #if HHI_RQT
+#if QC_MDDT//ADAPTIVE_SCAN
+      const UInt* pucScan;
+#if ROT_CHECK
+     if(uiMode != REG_DCT && (((uiWidth == 4 || uiWidth == 8) && indexROT == 0) || uiWidth == 16 || uiWidth == 32 || uiWidth == 64) )
+#else
+    if(uiMode != REG_DCT )
+#endif
+      {
+        if(uiWidth == 4)
+        {
+          UInt uiPredMode = g_aucIntra9Mode[uiMode];
+          pucScan = scanOrder4x4[uiPredMode];
+        }
+        else if(uiWidth == 8)
+        {
+          UInt uiPredMode = m_bQT ?  g_aucIntra9Mode[uiMode]: g_aucAngIntra9Mode[uiMode];
+          pucScan = scanOrder8x8[uiPredMode];
+        }
+		    else if(uiWidth == 16)
+        {
+		int scan_index;
+			    scan_index = LUT16x16[indexROT][uiMode];
+			pucScan = scanOrder16x16[scan_index];
+		}
+		else if(uiWidth == 32) {
+		int scan_index;
+			    scan_index = LUT32x32[indexROT][uiMode];
+			pucScan = scanOrder32x32[scan_index];
+		}
+		else if(uiWidth == 64) {
+          int scan_index;
+			    scan_index = LUT64x64[indexROT][uiMode];
+			pucScan = scanOrder64x64[scan_index];
+		}
+        else
+        {
+          printf("uiWidth = %d is not supported!\n", uiWidth);
+          exit(1);
+        }
+      }
+      else 
+      {
+        pucScan = g_auiFrameScanXY[ g_aucConvertToBit[ uiWidth ] + 1];
+      }
+#else
   const UInt* pucScan = g_auiFrameScanXY[ (int)g_aucConvertToBit[ uiWidth ] + 1 ];
+#endif
+#else
+#if QC_MDDT//ADAPTIVE_SCAN
+      const UInt* pucScan;
+      if(uiMode != REG_DCT )
+      {
+
+        if(uiWidth == 4)
+        {
+          UInt uiPredMode = g_aucIntra9Mode[uiMode];
+          pucScan = scanOrder4x4[uiPredMode];
+        }
+        else if(uiWidth == 8)
+        {
+          UInt uiPredMode = m_bQT ?  g_aucIntra9Mode[uiMode]: g_aucAngIntra9Mode[uiMode];
+          pucScan = scanOrder8x8[uiPredMode];
+        }
+		    else if(uiWidth == 16)
+        {
+		int scan_index;
+			    scan_index = LUT16x16[indexROT][uiMode];
+			pucScan = scanOrder16x16[scan_index];
+		}
+		else if(uiWidth == 32) {
+		int scan_index;
+			    scan_index = LUT32x32[indexROT][uiMode];
+			pucScan = scanOrder32x32[scan_index];
+		}
+		else if(uiWidth == 64) {
+          int scan_index;
+    			scan_index = LUT64x64[indexROT][uiMode];
+			pucScan = scanOrder64x64[scan_index];
+		}
+        else
+        {
+          printf("uiWidth = %d is not supported!\n", uiWidth);
+          exit(1);
+        }
+      }
+      else 
+      {
+        pucScan = g_auiFrameScanXY[ g_aucConvertToBit[ uiWidth ] ];
+      }
 #else
   const UInt* pucScan = g_auiFrameScanXY[ (int)g_aucConvertToBit[ uiWidth ] ];
+#endif
 #endif
 
   // Step #2: compute level
@@ -5442,15 +6181,24 @@ Void TComTrQuant::xRateDistOptQuant( TComDataCU* pcCU, Long* pSrcCoeff, TCoeff*&
       if ( ( j < 8 ) && ( i < 8 ) && indexROT )
         levelData[iPos].levelDouble = abs( pSrcCoeff[iPos] );
       else
+#if QC_MDDT
+        levelData[iPos].levelDouble =  (Int64)abs(pSrcCoeff[iPos]) * (Int64)( b64Flag ? iQuantCoef : m_puiQuantMtx[iPos] );//precision increase
+#else
         levelData[iPos].levelDouble = abs( pSrcCoeff[iPos] * (Long)( b64Flag ? iQuantCoef : m_puiQuantMtx[iPos] ) );
+#endif
     }
     else
 		{
       levelData[iPos].levelDouble = abs( pSrcCoeff[iPos] );
 		}
 
+#if QC_MDDT
+    levelData[iPos].levelQ		= (Long)( levelData[iPos].levelDouble >> q_bits );
+    levelData[iPos].lowerInt = ( ( levelData[iPos].levelDouble - ((Int64)levelData[iPos].levelQ << q_bits) ) < iShiftQBits ) ? true : false;
+#else
     levelData[iPos].levelQ		= ( levelData[iPos].levelDouble >> q_bits );
     levelData[iPos].lowerInt = ( ( levelData[iPos].levelDouble - (levelData[iPos].levelQ << q_bits) ) < iShiftQBits ) ? true : false;
+#endif
   }
 
   noCoeff = 0;
@@ -5480,8 +6228,13 @@ Void TComTrQuant::xRateDistOptQuant( TComDataCU* pcCU, Long* pSrcCoeff, TCoeff*&
 
     levelData[iPos].level[0] = 0;
 
+#if QC_MDDT
+    if(!getUseMDDT(uiMode, indexROT))
+#endif
+    {
     if      ( uiWidth == 4 ) fTemp = estErr4x4[qp_rem][i][j]/normFact;
     else if ( uiWidth == 8 ) fTemp = estErr8x8[qp_rem][i][j]/normFact;
+    }
 
     if ( !levelData[iPos].levelQ )
     {
@@ -5500,7 +6253,11 @@ Void TComTrQuant::xRateDistOptQuant( TComDataCU* pcCU, Long* pSrcCoeff, TCoeff*&
 
         err = (Double)(levelData[iPos].levelDouble);
         levelData[iPos].errLevel[0] = err*err*fTemp;
+#if QC_MDDT
+        err = (Double)(((Int64)levelData[iPos].level[1]<<q_bits) - levelData[iPos].levelDouble);
+#else
         err = (Double)((levelData[iPos].level[1]<<q_bits) - levelData[iPos].levelDouble);
+#endif
         levelData[iPos].errLevel[1] = err*err*fTemp;
       }
     }
@@ -5512,7 +6269,11 @@ Void TComTrQuant::xRateDistOptQuant( TComDataCU* pcCU, Long* pSrcCoeff, TCoeff*&
 
       err = (Double)(levelData[iPos].levelDouble);
       levelData[iPos].errLevel[0] = err*err*fTemp;
+#if QC_MDDT
+      err = (Double)(((Int64)levelData[iPos].level[1]<<q_bits) - levelData[iPos].levelDouble);
+#else
       err = (Double)((levelData[iPos].level[1]<<q_bits) - levelData[iPos].levelDouble);
+#endif
       levelData[iPos].errLevel[1] = err*err*fTemp;
     }
     else
@@ -5524,9 +6285,17 @@ Void TComTrQuant::xRateDistOptQuant( TComDataCU* pcCU, Long* pSrcCoeff, TCoeff*&
 
       err = (Double)(levelData[iPos].levelDouble);
       levelData[iPos].errLevel[0] = err*err*fTemp;
+#if QC_MDDT
+      err = (Double)(((Int64)levelData[iPos].level[1]<<q_bits) - levelData[iPos].levelDouble);
+#else
       err = (Double)((levelData[iPos].level[1]<<q_bits) - levelData[iPos].levelDouble);
+#endif
       levelData[iPos].errLevel[1] = err*err*fTemp;
+#if QC_MDDT
+      err = (Double)(((Int64)levelData[iPos].level[2]<<q_bits) - levelData[iPos].levelDouble);
+#else
       err = (Double)((levelData[iPos].level[2]<<q_bits) - levelData[iPos].levelDouble);
+#endif
       levelData[iPos].errLevel[2] = err*err*fTemp;
     }
   }
@@ -5540,8 +6309,13 @@ Void TComTrQuant::xRateDistOptQuant( TComDataCU* pcCU, Long* pSrcCoeff, TCoeff*&
 
     levelData[iPos].level[0] = 0;
 
+#if QC_MDDT
+    if(!getUseMDDT(uiMode, indexROT))
+#endif
+    {
     if      ( uiWidth == 4 ) fTemp = estErr4x4[qp_rem][i][j]/normFact;
     else if ( uiWidth == 8 ) fTemp = estErr8x8[qp_rem][i][j]/normFact;
+    }
 
     levelData[iPos].noLevels = 1;
 
@@ -5552,9 +6326,11 @@ Void TComTrQuant::xRateDistOptQuant( TComDataCU* pcCU, Long* pSrcCoeff, TCoeff*&
   estBits = xEst_write_and_store_CBP_block_bit ( pcCU, eTType);
 
   Int kStartEst = kStart;
-
+#if QC_MDDT//ADAPTIVE_SCAN
+  dCost = xEst_writeRunLevel_SBAC (pcCU, uiAbsPartIdx, uiMode, levelData, piLevelRDOQTemp, ( eTType == TEXT_LUMA ? TEXT_LUMA : TEXT_CHROMA ), m_dLambda, kStartEst, kStop, noCoeff, estBits, uiWidth, uiHeight, pcCU->getDepth(0) + pcCU->getTransformIdx(0), indexROT );
+#else
   dCost = xEst_writeRunLevel_SBAC (levelData, piLevelRDOQTemp, ( eTType == TEXT_LUMA ? TEXT_LUMA : TEXT_CHROMA ), m_dLambda, kStartEst, kStop, noCoeff, estBits, uiWidth, uiHeight, pcCU->getDepth(0) + pcCU->getTransformIdx(0) );
-
+#endif
   if( dCost < dBestCost )
   {
     dBestCost = dCost;
@@ -5689,7 +6465,11 @@ UInt TComTrQuant::getLastCtxInc   ( const UInt                      uiPosX,
 
 __inline UInt TComTrQuant::xGetCodedLevel  ( Double&                         rd64UncodedCost,
                                              Double&                         rd64CodedCost,
+#if QC_MDDT
+                                             Int64                           lLevelDouble,
+#else
                                              Long                            lLevelDouble,
+#endif
                                              UInt                            uiMaxAbsLevel,
                                              bool                            bLastScanPos,
                                              UShort                          ui16CtxNumSig,
@@ -5709,7 +6489,11 @@ __inline UInt TComTrQuant::xGetCodedLevel  ( Double&                         rd6
   UInt uiMinAbsLevel = ( uiMaxAbsLevel > 1 ? uiMaxAbsLevel - 1 : 1 );
   for( UInt uiAbsLevel = uiMaxAbsLevel; uiAbsLevel >= uiMinAbsLevel ; uiAbsLevel-- )
   {
+#if QC_MDDT
+    Double i64Delta  = Double( lLevelDouble  - ( Int64(uiAbsLevel) << iQBits ) );
+#else
     Double i64Delta  = Double( lLevelDouble  - Long( uiAbsLevel << iQBits ) );
+#endif
     Double dErr      = Double( i64Delta );
     Double dCurrCost = dErr * dErr * dTemp + xGetICRateCost( uiAbsLevel, bLastScanPos, ui16CtxNumSig, ui16CtxNumOne, ui16CtxNumAbs, ui16CtxBase );
 
@@ -5796,8 +6580,11 @@ Int TComTrQuant::xEst_write_and_store_CBP_block_bit ( TComDataCU* pcCU, TextType
 
 // temporal buffer for speed
 static Int slevelTab[ MAX_CU_SIZE*MAX_CU_SIZE ];
-
+#if QC_MDDT//ADAPTIVE_SCAN
+Double TComTrQuant::xEst_writeRunLevel_SBAC(TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiMode, levelDataStruct* levelData, Int* levelTabMin, TextType eTType, Double lambda, Int& kInit, Int kStop, Int noCoeff, Int estCBP, UInt uiWidth, UInt uiHeight, UInt uiDepth, UChar indexROT )
+#else
 Double TComTrQuant::xEst_writeRunLevel_SBAC(levelDataStruct* levelData, Int* levelTabMin, TextType eTType, Double lambda, Int& kInit, Int kStop, Int noCoeff, Int estCBP, UInt uiWidth, UInt uiHeight, UInt uiDepth )
+#endif
 {
   Int    k, i, iPos;
   Int    estBits;
@@ -5826,13 +6613,114 @@ Double TComTrQuant::xEst_writeRunLevel_SBAC(levelDataStruct* levelData, Int* lev
   UInt uiCtxSigMap, uiCtxLastBit;
   UInt uiConvBit = g_aucConvertToBit[ uiWidth ];
 #if HHI_RQT
+#if QC_MDDT//ADAPTIVE_SCAN
+  UInt  *pucScan, *pucScanX, *pucScanY;
+
+#if ROT_CHECK
+  if(pcCU->isIntra( uiAbsPartIdx ) && eTType == TEXT_LUMA && ((uiWidth == 4 && indexROT == 0)|| (uiWidth == 8 && indexROT == 0) || uiWidth == 16 || uiWidth == 32 || uiWidth == 64))
+#else
+ if(pcCU->isIntra( uiAbsPartIdx ) && eTType == TEXT_LUMA )
+#endif
+  {
+	int indexROT = pcCU->getROTindex(uiAbsPartIdx);
+	int scan_index;
+    if(uiWidth == 4)
+    {
+      UInt uiPredMode = g_aucIntra9Mode[uiMode];
+      pucScan = scanOrder4x4[uiPredMode]; pucScanX = scanOrder4x4X[uiPredMode]; pucScanY = scanOrder4x4Y[uiPredMode];
+    }
+    else if(uiWidth == 8)
+    {
+      UInt uiPredMode = m_bQT ?  g_aucIntra9Mode[uiMode]: g_aucAngIntra9Mode[uiMode];
+      pucScan = scanOrder8x8[uiPredMode]; pucScanX = scanOrder8x8X[uiPredMode]; pucScanY = scanOrder8x8Y[uiPredMode];
+    }
+	else if(uiWidth == 16)
+    {
+		scan_index = LUT16x16[indexROT][uiMode];
+		pucScan = scanOrder16x16[scan_index]; pucScanX = scanOrder16x16X[scan_index]; pucScanY = scanOrder16x16Y[scan_index];
+    }
+    else if(uiWidth == 32)
+    {
+		scan_index = LUT32x32[indexROT][uiMode];
+		pucScan = scanOrder32x32[scan_index]; pucScanX = scanOrder32x32X[scan_index]; pucScanY = scanOrder32x32Y[scan_index];
+    }
+    else if(uiWidth == 64)
+    {
+		scan_index = LUT64x64[indexROT][uiMode];
+		pucScan = scanOrder64x64[scan_index]; pucScanX = scanOrder64x64X[scan_index]; pucScanY = scanOrder64x64Y[scan_index];
+    }
+    else
+    {
+      printf("uiWidth = %d is not supported!\n", uiWidth);
+      exit(1);
+    }
+  }
+  else
+  {    
+    pucScanX = g_auiFrameScanX[ uiConvBit + 1];
+    pucScanY = g_auiFrameScanY[ uiConvBit + 1];
+    pucScan = g_auiFrameScanXY[ uiConvBit + 1];
+  }
+#else
   const UInt*  pucScanX = g_auiFrameScanX[ uiConvBit + 1 ];
   const UInt*  pucScanY = g_auiFrameScanY[ uiConvBit + 1 ];
   const UInt*  pucScan = g_auiFrameScanXY[ uiConvBit + 1 ];
+#endif
+#else
+#if QC_MDDT//ADAPTIVE_SCAN
+  UInt  *pucScan, *pucScanX, *pucScanY;
+#if ROT_CHECK
+  if(pcCU->isIntra( uiAbsPartIdx ) && eTType == TEXT_LUMA && ((uiWidth == 4 && indexROT == 0)|| (uiWidth == 8 && indexROT == 0) || uiWidth == 16 || uiWidth == 32 || uiWidth == 64))
+#else
+ if(pcCU->isIntra( uiAbsPartIdx ) && eTType == TEXT_LUMA )
+#endif
+  {
+    UInt uiPredMode = g_aucIntra9Mode[uiMode];
+
+	int indexROT = pcCU->getROTindex(uiAbsPartIdx);
+	int scan_index;
+    if(uiWidth == 4)
+    {
+      UInt uiPredMode = g_aucIntra9Mode[uiMode];
+      pucScan = scanOrder4x4[uiPredMode]; pucScanX = scanOrder4x4X[uiPredMode]; pucScanY = scanOrder4x4Y[uiPredMode];
+    }
+    else if(uiWidth == 8)
+    {
+      UInt uiPredMode = m_bQT ?  g_aucIntra9Mode[uiMode]: g_aucAngIntra9Mode[uiMode];
+      pucScan = scanOrder8x8[uiPredMode]; pucScanX = scanOrder8x8X[uiPredMode]; pucScanY = scanOrder8x8Y[uiPredMode];
+    }
+	else if(uiWidth == 16)
+    {
+		scan_index = LUT16x16[indexROT][uiMode];
+		pucScan = scanOrder16x16[scan_index]; pucScanX = scanOrder16x16X[scan_index]; pucScanY = scanOrder16x16Y[scan_index];
+    }
+    else if(uiWidth == 32)
+    {
+		scan_index = LUT32x32[indexROT][uiMode];
+		pucScan = scanOrder32x32[scan_index]; pucScanX = scanOrder32x32X[scan_index]; pucScanY = scanOrder32x32Y[scan_index];
+    }
+    else if(uiWidth == 64)
+    {
+		scan_index = LUT64x64[indexROT][uiMode];
+		pucScan = scanOrder64x64[scan_index]; pucScanX = scanOrder64x64X[scan_index]; pucScanY = scanOrder64x64Y[scan_index];
+    }
+    else
+    {
+      printf("uiWidth = %d is not supported!\n", uiWidth);
+      exit(1);
+    }
+  }
+  else
+  {    
+    pucScanX = g_auiFrameScanX[ uiConvBit ];
+    pucScanY = g_auiFrameScanY[ uiConvBit ];
+    pucScan = g_auiFrameScanXY[ uiConvBit ];
+  }
 #else
   const UInt*  pucScanX = g_auiFrameScanX[ uiConvBit ];
   const UInt*  pucScanY = g_auiFrameScanY[ uiConvBit ];
   const UInt*  pucScan = g_auiFrameScanXY[ uiConvBit ];
+#endif
 #endif
 
   if ( noCoeff > 0 )

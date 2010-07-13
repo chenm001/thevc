@@ -51,13 +51,13 @@
 #define HHI_RQT                           1           ///< MWHK: residual quadtree
 #define HHI_RQT_CHROMA_CBF_MOD            1           ///< HK: alternative syntax for coded block flag coding for chroma
 #define HHI_RQT_INTRA                     1           ///< HS: residual quadtree for intra blocks
-#define HHI_ALF                           1           ///< MS: separable adaptive loop filter 
+#define HHI_ALF                           0           ///< MS: separable adaptive loop filter 
 #define HHI_AIS                           1           ///< BB: adaptive intra smoothing
 #define HHI_INTERP_FILTER                 1           ///< HL: interpolation filter
 #define HHI_TRANSFORM_CODING              1           ///< TN: modified transform coefficient coding with RDOQ
 #define HHI_IMVP                          1           ///< SOPH: Interleaved Motion Vector Predictor 
 #define HHI_MRG                           1           ///< SOPH: inter partition merging
-#define HHI_AMVP_OFF                      1           ///< SOPH: Advanced Motion Vector Predictor deactivated [not in TMuC]
+#define HHI_AMVP_OFF                      0           ///< SOPH: Advanced Motion Vector Predictor deactivated [not in TMuC]
 #define HHI_DEBLOCKING_FILTER             0           ///< MW: deblocking filter supporting residual quadtrees
 
 #if ( HHI_RQT_INTRA && !HHI_RQT )
@@ -92,6 +92,53 @@
 // TEN defines section end
 //////////////////////////
 
+
+/////////////////////////////////
+// QUALCOMM defines section start
+/////////////////////////////////
+#define QC_AMVRES    
+#ifdef QC_AMVRES  
+#define QC_AMVRES_LOW_COMPLEXTY
+#endif
+#define QC_CONFIG
+
+#if HHI_INTERP_FILTER
+#define QC_SIFO
+#define QC_SIFO_PRED
+#if (defined QC_SIFO && TEN_DIRECTIONAL_INTERP==1)
+#define USE_DIAGONAL_FILT                1
+#endif
+
+#define PRINT_FILTERS               0
+#define PRINT_OFFSETS               0
+#define SIFO_DISABLE_OFFSET         0
+#define SIFO_DISABLE_FILTER         0
+#endif
+
+#define QC_ALF              1
+#if QC_ALF
+#define ENABLE_FORCECOEFF0  0
+#endif
+#if (QC_ALF && HHI_ALF)
+#error "Only one of QC_ALF and HHI_ALF can be defined"
+#endif
+
+#define QC_MDDT                            1
+#if QC_MDDT
+#define ROT_CHECK                          0
+#define absm(A) ((A)<(0) ? (-(A)):(A))
+#define REG_DCT 65535
+#define COMBINED_MAP
+void InitScanOrderForSlice();
+#define NUM_SCANS_16x16 9
+#define NUM_SCANS_32x32 9
+#define NUM_SCANS_64x64 9
+void updateScanOrder(int first);
+void normalizeScanStats();
+#endif
+///////////////////////////////
+// QUALCOMM defines section end
+///////////////////////////////
 
 // ====================================================================================================================
 // Basic type redefinition
@@ -170,6 +217,26 @@ struct _AlfParam
   Int tap_chroma;                         ///< number of filter taps (chroma)
   Int num_coeff_chroma;                   ///< number of filter coefficients (chroma)
   Int *coeff_chroma;                      ///< filter coefficient array (chroma)
+#if QC_ALF
+  //CodeAux related
+  Int realfiltNo;
+  Int filtNo;
+  Int filterPattern[16];
+  Int startSecondFilter;
+  Int noFilters;
+  Int varIndTab[16];
+
+  //Coeff send related
+  Int filters_per_group_diff; //this can be updated using codedVarBins
+  Int filters_per_group;
+  Int codedVarBins[16]; 
+  Int forceCoeff0;
+  Int predMethod;
+  Int **coeffmulti;
+  Int minKStart;
+  Int maxScanVal;
+  Int kMinTab[42];
+#endif
 };
 
 struct _AlfParamHHI
@@ -364,10 +431,16 @@ enum InterpFilterType
   IPF_HHI_4TAP_MOMS,                    ///< HHI 4-tap MOMS filter
   IPF_HHI_6TAP_MOMS,                    ///< HHI 6-tap MOMS filter
   IPF_TEN_DIF                           ///< TEN directional filter
+#ifdef QC_SIFO
+  ,IPF_QC_SIFO                          ///< Qualcomm Switched Interpolation Filters with Offsets
+#endif
 #else
   IPF_SAMSUNG_DIF_DEFAULT = 0,          ///< Samsung DCT-based filter
   IPF_HHI_4TAP_MOMS,                    ///< HHI 4-tap MOMS filter
   IPF_HHI_6TAP_MOMS                     ///< HHI 6-tap MOMS filter
+#ifdef QC_SIFO
+  ,IPF_QC_SIFO                          ///< Qualcomm Switched Interpolation Filters with Offsets
+#endif
 #endif
 };
 #endif

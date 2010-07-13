@@ -119,6 +119,52 @@ extern       UInt*  g_auiFrameScanX [ MAX_CU_DEPTH  ];    // raster index (x) fr
 extern       UInt*  g_auiFrameScanY [ MAX_CU_DEPTH  ];    // raster index (y) from scanning index
 extern       UInt   g_auiAntiScan8[64];                   // 2D context mapping for coefficients
 
+#if QC_MDDT//ADAPTIVE_SCAN
+extern  UInt *scanOrder4x4[9];
+extern  UInt *scanOrder4x4X[9];
+extern  UInt *scanOrder4x4Y[9];
+extern  UInt *scanOrder8x8[9];
+extern  UInt *scanOrder8x8X[9];
+extern  UInt *scanOrder8x8Y[9];
+extern  UInt *scanStats4x4[9];
+extern  UInt *scanStats8x8[9];
+
+extern  UInt *scanOrder16x16[NUM_SCANS_16x16];
+extern  UInt *scanOrder16x16X[NUM_SCANS_16x16];
+extern  UInt *scanOrder16x16Y[NUM_SCANS_16x16];
+extern  UInt *scanStats16x16[NUM_SCANS_16x16];
+
+extern  UInt *scanOrder32x32[NUM_SCANS_32x32];
+extern  UInt *scanOrder32x32X[NUM_SCANS_32x32];
+extern  UInt *scanOrder32x32Y[NUM_SCANS_32x32];
+extern  UInt *scanStats32x32[NUM_SCANS_32x32];
+
+extern  UInt *scanOrder64x64[NUM_SCANS_64x64];
+extern  UInt *scanOrder64x64X[NUM_SCANS_64x64];
+extern  UInt *scanOrder64x64Y[NUM_SCANS_64x64];
+extern  UInt *scanStats64x64[NUM_SCANS_64x64];
+
+extern  int  update4x4Count[9];
+extern  int  update8x8Count[9];
+
+extern Int g_aiDequantCoef_klt[6][16];
+extern UInt g_aiQuantCoef_klt[6][16] ;
+extern Int g_aiDequantCoef64_klt[6][64];
+extern UInt g_aiQuantCoef64_klt[6][64];
+extern const char LUT16x16[5][33];
+extern const char LUT32x32[5][33];
+extern const char LUT64x64[5][5];
+
+extern Bool g_bUpdateStats;
+
+
+extern const Short kltRow4x4[9][4][4];
+extern const Short kltCol4x4[9][4][4];
+extern const Short kltRow8x8[9][8][8];
+extern const Short kltCol8x8[9][8][8];
+
+
+#endif
 #if HHI_TRANSFORM_CODING
 extern       UInt*  g_auiSigLastScan[ MAX_CU_DEPTH  ][ 2 ];
 #endif
@@ -174,6 +220,13 @@ extern const UChar  g_aucIntraModeBitsC[7];
 // ====================================================================================================================
 
 extern const UChar g_aucAngIntraModeOrder[34];
+#if QC_MDDT
+extern const UChar g_aucAngIntra9Mode[34];
+#endif
+#endif
+
+#if QC_MDDT
+extern const UChar g_aucIntra9Mode[33];
 #endif
 
 // ====================================================================================================================

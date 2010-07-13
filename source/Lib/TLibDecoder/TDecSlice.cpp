@@ -91,7 +91,9 @@ Void TDecSlice::decompressSlice(TComBitstream* pcBitstream, TComPic*& rpcPic)
 {
   TComDataCU* pcCU;
   UInt        uiIsLast = 0;
-
+#if QC_MDDT//ADAPTIVE_SCAN
+    InitScanOrderForSlice(); 
+#endif
   // decoder don't need prediction & residual frame buffer
   rpcPic->setPicYuvPred( 0 );
   rpcPic->setPicYuvResi( 0 );
@@ -121,6 +123,11 @@ Void TDecSlice::decompressSlice(TComBitstream* pcBitstream, TComPic*& rpcPic)
 #endif
     m_pcCuDecoder->decodeCU     ( pcCU, uiIsLast );
     m_pcCuDecoder->decompressCU ( pcCU );
+
+#if QC_MDDT//ADAPTIVE_SCAN
+    updateScanOrder(0);
+    normalizeScanStats();
+#endif
 #if HHI_RQT
 #if ENC_DEC_TRACE
     g_bJustDoIt = g_bEncDecTraceDisable;
@@ -154,4 +161,75 @@ Void TDecSlice::generateRefPicNew ( TComSlice* rpcSlice )
   }
   rpcSlice->linkVirtRefPic();
 }
+
+
+#ifdef QC_SIFO
+Void TDecSlice::initSIFOFilters(Int Tap, TComPrediction *m_cPrediction )
+{
+  static Int first = 1;
+  UInt num_AVALABLE_FILTERS = m_cPrediction->getNum_AvailableFilters();
+  UInt num_SIFO = m_cPrediction->getNum_SIFOFilters();
+  
+  if(first == 1)
+  {  
+    Int i;
+    Int filterLength=Tap;
+    Int sqrFiltLength=filterLength*filterLength;
+
+    first = 0;
+    for (i=0; i<16; i++)
+	  {
+      m_cPrediction->setSIFOFilter(0,i);
+    }
+
+    initSeparableFilter(Tap, m_cPrediction);
+  }
+}
+
+
+Void TDecSlice::initSeparableFilter(Int Tap, TComPrediction *m_cPrediction)
+{
+  Int sub_pos, filterNo, filterNoV, filterNoH, filterIndV, filterIndH, counter;
+  UInt num_AVALABLE_FILTERS = m_cPrediction->getNum_AvailableFilters();
+  UInt num_SIFO = m_cPrediction->getNum_SIFOFilters();
+
+  for (sub_pos=1; sub_pos<16; sub_pos++)
+  {
+    filterIndV=  (sub_pos)/4;// filterSel[sub_pos][0];
+    filterIndH=  (sub_pos)%4;// filterSel[sub_pos][1];
+
+    if (filterIndV==0 || filterIndH==0)
+    {
+      for (filterNo=0; filterNo<num_AVALABLE_FILTERS; filterNo++)
+      {
+        m_cPrediction->setTabFilters(filterNo,sub_pos,filterNo,0); 
+        m_cPrediction->setTabFilters(-1,      sub_pos,filterNo,1);
+      }
+    } // if (filterIndV==0 || filterIndH==0){
+    else
+    {
+      counter=num_AVALABLE_FILTERS; // modify
+
+      for (filterNoV=0; filterNoV<num_AVALABLE_FILTERS; filterNoV++)
+      {
+        for (filterNoH=0; filterNoH<num_AVALABLE_FILTERS; filterNoH++)
+        {
+          if (filterNoV==filterNoH)
+          {
+            filterNo=filterNoV;
+          }
+          else
+          {
+            filterNo=counter;
+            counter++;
+          }
+          m_cPrediction->setTabFilters(filterNoV + ((Tap==6)?0:2),sub_pos,filterNo,0); 
+          m_cPrediction->setTabFilters(filterNoH + ((Tap==6)?0:2),sub_pos,filterNo,1);
+        }
+      }
+    }
+  } // for (sub_pos=0; sub_pos<15; sub_pos++){
+}
+
+#endif
 

@@ -246,6 +246,7 @@ Void TDecCu::xDecodeCU( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
   // Coefficient decoding
   m_pcEntropyDecoder->decodeCoeff( pcCU, uiAbsPartIdx, uiDepth, uiCurrWidth, uiCurrHeight );
 
+#if QC_MDDT == 0
   // ROT index
 #if HHI_ALLOW_ROT_SWITCH
   if ( pcCU->getSlice()->getSPS()->getUseROT() )
@@ -254,6 +255,7 @@ Void TDecCu::xDecodeCU( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
   }
 #else
   m_pcEntropyDecoder->decodeROTIdx( pcCU, uiAbsPartIdx, uiDepth );
+#endif
 #endif
 
   // CIP flag
@@ -396,8 +398,13 @@ Void TDecCu::xDecodeIntraTexture( TComDataCU* pcCU, UInt uiPartIdx, Pel* piReco,
 #endif // ANG_INTRA
 
     m_pcTrQuant->setQPforQuant( pcCU->getQP(uiPartIdx), !pcCU->getSlice()->getDepth(), pcCU->getSlice()->getSliceType(), TEXT_LUMA );
-    m_pcTrQuant->invtransformNxN( pResi, uiStride, pCoeff, uiWidth, uiHeight, indexROT );
+#if QC_MDDT
+    m_pcTrQuant->m_bQT = (1 << (pcCU->getIntraSizeIdx( uiPartIdx ) + 1)) != uiWidth; 
 
+    m_pcTrQuant->invtransformNxN( TEXT_LUMA, pcCU->getLumaIntraDir(uiPartIdx), pResi, uiStride, pCoeff, uiWidth, uiHeight, indexROT );
+#else
+    m_pcTrQuant->invtransformNxN( pResi, uiStride, pCoeff, uiWidth, uiHeight, indexROT );
+#endif
     // Reconstruction
 #if HHI_ALLOW_CIP_SWITCH
     if ( pcCU->getSlice()->getSPS()->getUseCIP() && pcCU->getCIPflag( uiPartIdx ) )
@@ -533,7 +540,11 @@ Void TDecCu::xRecurIntraInvTransChroma(TComDataCU* pcCU, UInt uiAbsPartIdx, Pel*
     // Inverse Transform
     if( pcCU->getCbf(0, eText, uiCurrTrMode) )
     {
+#if QC_MDDT
+      m_pcTrQuant->invtransformNxN( eText, REG_DCT, pResi, uiStride, piCoeff, uiWidth, uiHeight, indexROT );
+#else
       m_pcTrQuant->invtransformNxN( pResi, uiStride, piCoeff, uiWidth, uiHeight, indexROT );
+#endif
     }
 
     pResi = piResi;
@@ -644,8 +655,13 @@ TDecCu::xIntraRecLumaBlk( TComDataCU* pcCU,
 
   //===== inverse transform =====
   m_pcTrQuant->setQPforQuant  ( pcCU->getQP(0), !pcCU->getSlice()->getDepth(), pcCU->getSlice()->getSliceType(), TEXT_LUMA );
-  m_pcTrQuant->invtransformNxN( piResi, uiStride, pcCoeff, uiWidth, uiHeight, pcCU->getROTindex(0) );
+#if QC_MDDT
+  m_pcTrQuant->m_bQT = (1 << (pcCU->getIntraSizeIdx( uiAbsPartIdx ) + 1)) != uiWidth;
 
+  m_pcTrQuant->invtransformNxN( TEXT_LUMA, pcCU->getLumaIntraDir( uiAbsPartIdx ), piResi, uiStride, pcCoeff, uiWidth, uiHeight, pcCU->getROTindex(0) );
+#else
+  m_pcTrQuant->invtransformNxN( piResi, uiStride, pcCoeff, uiWidth, uiHeight, pcCU->getROTindex(0) );
+#endif
   //===== reconstruction =====
   if( pcCU->getCIPflag( uiAbsPartIdx ) )
   {
@@ -760,8 +776,11 @@ TDecCu::xIntraRecChromaBlk( TComDataCU* pcCU,
 
   //===== inverse transform =====
   m_pcTrQuant->setQPforQuant  ( pcCU->getQP(0), !pcCU->getSlice()->getDepth(), pcCU->getSlice()->getSliceType(), eText );
+#if QC_MDDT
+  m_pcTrQuant->invtransformNxN( eText, REG_DCT, piResi, uiStride, pcCoeff, uiWidth, uiHeight, pcCU->getROTindex(0) );
+#else
   m_pcTrQuant->invtransformNxN( piResi, uiStride, pcCoeff, uiWidth, uiHeight, pcCU->getROTindex(0) );
-
+#endif
   //===== reconstruction =====
   {
     Pel* pPred      = piPred;

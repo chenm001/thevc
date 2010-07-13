@@ -95,7 +95,11 @@ public:
   // motion compensation functions
   Void predInterLumaBlkMOMS   ( TComDataCU* pcCU, TComPicYuv* pcPicYuvRef, UInt uiPartAddr, TComMv* pcMv, Int iWidth, Int iHeight, TComYuv*& rpcYuv, InterpFilterType ePFilt );
   Void predInterChromaBlkMOMS ( TComDataCU* pcCU, TComPicYuv* pcPicYuvRef, UInt uiPartAddr, TComMv* pcMv, Int iWidth, Int iHeight, TComYuv*& rpcYuv, InterpFilterType ePFilt );
-
+#ifdef QC_AMVRES
+  Void predInterLumaBlkHAM_ME_MOMS ( Pel* piSrcY, Int iSrcStride, Pel* piDstY, Int iDstStride, TComMv* pcMv, 
+                                                   Int iWidth, Int iHeight, InterpFilterType ePFilt, Int dMVx, Int dMVy);
+  Void predInterLumaBlkHAM_MOMS  ( TComDataCU* pcCU, TComPicYuv* pcPicYuvRef, UInt uiPartAddr, TComMv* pcMv, Int iWidth, Int iHeight, TComYuv*& rpcYuv, InterpFilterType ePFilt );
+#endif
   // motion estimation functions
   Void extMOMSUpSamplingH     ( TComPattern* pcPattern );
   Void extMOMSUpSamplingQ     ( TComPattern* pcPattern, TComMv cMvHalf, Pel* piDst, Int iDstStride );

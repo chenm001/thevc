@@ -107,7 +107,9 @@ Void TDecCavlc::parseSPS(TComSPS* pcSPS)
   xReadFlag( uiCode ); pcSPS->setUseWPG ( uiCode ? true : false );
   xReadFlag( uiCode ); pcSPS->setUseLDC ( uiCode ? true : false );
   xReadFlag( uiCode ); pcSPS->setUseQBO ( uiCode ? true : false );
-
+#ifdef QC_AMVRES
+    xReadFlag( uiCode ); pcSPS->setUseAMVRes ( uiCode ? true : false );
+#endif
 #if HHI_ALLOW_CIP_SWITCH
   xReadFlag( uiCode ); pcSPS->setUseCIP ( uiCode ? true : false ); // BB:
 #endif
@@ -821,7 +823,44 @@ Void TDecCavlc::parseInterDir( TComDataCU* pcCU, UInt& ruiInterDir, UInt uiAbsPa
 Void TDecCavlc::parseRefFrmIdx( TComDataCU* pcCU, Int& riRefFrmIdx, UInt uiAbsPartIdx, UInt uiDepth, RefPicList eRefList )
 {
   UInt uiSymbol;
-
+#ifdef QC_AMVRES
+    UInt uiSymbol_MVres=1;
+	if(pcCU->getSlice()->getSPS()->getUseAMVRes())
+	{
+      xReadFlag ( uiSymbol );
+	  if ( uiSymbol )
+	  {
+		xReadFlag ( uiSymbol_MVres );
+		if (uiSymbol_MVres)
+		{
+			if (pcCU->getSlice()->getNumRefIdx( eRefList )>2)
+			{
+				xReadUnaryMaxSymbol( uiSymbol, pcCU->getSlice()->getNumRefIdx( eRefList )-2 );
+				uiSymbol++;
+			}
+		}
+		else
+		{
+			uiSymbol=0;
+		}
+	  }
+      riRefFrmIdx = uiSymbol;
+	  if (!uiSymbol_MVres)
+	  {
+		  riRefFrmIdx = pcCU->getSlice()->getNumRefIdx( eRefList );
+	  }
+	}
+	else
+	{
+	  xReadFlag ( uiSymbol );
+	  if ( uiSymbol  )
+	  {
+		xReadUnaryMaxSymbol( uiSymbol, pcCU->getSlice()->getNumRefIdx( eRefList )-2 );
+		uiSymbol++;
+	  }
+	  riRefFrmIdx = uiSymbol;
+	}
+#else
   xReadFlag ( uiSymbol );
   if ( uiSymbol )
   {
@@ -830,9 +869,53 @@ Void TDecCavlc::parseRefFrmIdx( TComDataCU* pcCU, Int& riRefFrmIdx, UInt uiAbsPa
     uiSymbol++;
   }
   riRefFrmIdx = uiSymbol;
+#endif
   return;
 }
+#ifdef QC_AMVRES
+Void TDecCavlc::parseMvd( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiPartIdx, UInt uiDepth, RefPicList eRefList )
+{
+  Int iHor, iVer;
+  UInt uiAbsPartIdxL, uiAbsPartIdxA;
+  Int iHorPred, iVerPred;
 
+  TComDataCU* pcCUL   = pcCU->getPULeft ( uiAbsPartIdxL, pcCU->getZorderIdxInCU() + uiAbsPartIdx );
+  TComDataCU* pcCUA   = pcCU->getPUAbove( uiAbsPartIdxA, pcCU->getZorderIdxInCU() + uiAbsPartIdx );
+
+  TComCUMvField* pcCUMvFieldL = ( pcCUL == NULL || pcCUL->isIntra( uiAbsPartIdxL ) ) ? NULL : pcCUL->getCUMvField( eRefList );
+  TComCUMvField* pcCUMvFieldA = ( pcCUA == NULL || pcCUA->isIntra( uiAbsPartIdxA ) ) ? NULL : pcCUA->getCUMvField( eRefList );
+  // reset mv
+  TComMv cTmpMv( 0, 0 );
+  pcCU->getCUMvField( eRefList )->setAllMv( cTmpMv, pcCU->getPartitionSize( uiAbsPartIdx ), uiAbsPartIdx, uiPartIdx, uiDepth );
+ 
+  if( pcCU->getSlice()->getSPS()->getUseAMVRes() && (pcCU->getCUMvField( eRefList )->getMVRes(uiAbsPartIdx)))
+  {
+		  iHorPred = ( (pcCUMvFieldL == NULL) ? 0 : pcCUMvFieldL->getMvd( uiAbsPartIdxL ).getAbsHor()>>1 ) +
+					 ( (pcCUMvFieldA == NULL) ? 0 : pcCUMvFieldA->getMvd( uiAbsPartIdxA ).getAbsHor()>>1 );
+		  iVerPred = ( (pcCUMvFieldL == NULL) ? 0 : pcCUMvFieldL->getMvd( uiAbsPartIdxL ).getAbsVer()>>1 ) +
+					 ( (pcCUMvFieldA == NULL) ? 0 : pcCUMvFieldA->getMvd( uiAbsPartIdxA ).getAbsVer()>>1 );
+		  xReadSvlc( iHor );
+		  xReadSvlc( iVer );
+		  iHor *=2;
+		  iVer *=2;
+  }
+  else
+  {
+	  iHorPred = ( (pcCUMvFieldL == NULL) ? 0 : pcCUMvFieldL->getMvd( uiAbsPartIdxL ).getAbsHor() ) +
+				 ( (pcCUMvFieldA == NULL) ? 0 : pcCUMvFieldA->getMvd( uiAbsPartIdxA ).getAbsHor() );
+	  iVerPred = ( (pcCUMvFieldL == NULL) ? 0 : pcCUMvFieldL->getMvd( uiAbsPartIdxL ).getAbsVer() ) +
+				 ( (pcCUMvFieldA == NULL) ? 0 : pcCUMvFieldA->getMvd( uiAbsPartIdxA ).getAbsVer() );
+
+	  xReadSvlc( iHor );
+	  xReadSvlc( iVer );
+  }
+  // set mvd
+  TComMv cMv( iHor, iVer );
+  pcCU->getCUMvField( eRefList )->setAllMvd( cMv, pcCU->getPartitionSize( uiAbsPartIdx ), uiAbsPartIdx, uiPartIdx, uiDepth );
+
+  return;
+}
+#else
 Void TDecCavlc::parseMvd( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiPartIdx, UInt uiDepth, RefPicList eRefList )
 {
   Int iHor, iVer;
@@ -862,7 +945,7 @@ Void TDecCavlc::parseMvd( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiPartIdx, U
 
   return;
 }
-
+#endif
 Void TDecCavlc::parseTransformIdx( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
 {
   UInt uiTrLevel = 0;
@@ -992,6 +1075,55 @@ Void TDecCavlc::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartI
   pucScan        = g_auiFrameScanXY  [ uiConvBit ];
 #endif
 
+#if QC_MDDT//VLC_MDDT ADAPTIVE_SCAN
+  UInt *scanStats;
+  UInt uiMode, uiPredMode;
+	int indexROT;
+  if(pcCU->isIntra( uiAbsPartIdx ) && eTType == TEXT_LUMA && (uiWidth == 4 || uiWidth == 8 || uiWidth==16 || uiWidth==32 || uiWidth==64))
+  {
+    uiMode = pcCU->getLumaIntraDir(uiAbsPartIdx);
+	indexROT = pcCU->getROTindex(uiAbsPartIdx);
+	int scan_index;
+    if(uiWidth == 4)// && ipredmode<=8&&indexROT == 0)
+    {
+      uiPredMode = g_aucIntra9Mode[uiMode];
+       pucScan = scanOrder4x4[uiPredMode]; //pucScanX = scanOrder4x4X[ipredmode]; pucScanY = scanOrder4x4Y[ipredmode];
+
+       scanStats = scanStats4x4[uiPredMode]; update4x4Count[uiPredMode]++;
+    }
+    else if(uiWidth == 8)// && ipredmode<=8 && indexROT == 0)
+    {
+      uiPredMode = ((1 << (pcCU->getIntraSizeIdx( uiAbsPartIdx ) + 1)) != uiWidth) ?  g_aucIntra9Mode[uiMode]: g_aucAngIntra9Mode[uiMode];
+      pucScan = scanOrder8x8[uiPredMode]; //pucScanX = scanOrder8x8X[ipredmode]; pucScanY = scanOrder8x8Y[ipredmode];
+ 
+      scanStats = scanStats8x8[uiPredMode]; update8x8Count[uiPredMode]++;
+    }
+	else if(uiWidth == 16)
+    {
+	  scan_index = LUT16x16[indexROT][uiMode];
+      pucScan = scanOrder16x16[scan_index]; //pucScanX = scanOrder16x16X[scan_index]; pucScanY = scanOrder16x16Y[scan_index];
+      scanStats = scanStats16x16[scan_index];
+    }
+    else if(uiWidth == 32)
+    {
+	  scan_index = LUT32x32[indexROT][uiMode];
+      pucScan = scanOrder32x32[scan_index]; //pucScanX = scanOrder32x32X[scan_index]; pucScanY = scanOrder32x32Y[scan_index];
+      scanStats = scanStats32x32[scan_index];
+    }
+    else if(uiWidth == 64)
+    {
+	  scan_index = LUT64x64[indexROT][uiMode];
+      pucScan = scanOrder64x64[scan_index]; //pucScanX = scanOrder64x64X[scan_index]; pucScanY = scanOrder64x64Y[scan_index];
+      scanStats = scanStats64x64[scan_index];
+    }
+    else
+    {
+      //printf("uiWidth = %d is not supported!\n", uiWidth);
+      //exit(1);
+    }
+  }
+#endif
+
   UInt uiScanning, uiInterleaving, uiIsCoded;
 
   TCoeff scoeff[64];
@@ -1019,6 +1151,16 @@ Void TDecCavlc::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartI
     for (uiScanning=0; uiScanning<16; uiScanning++)
     {
       piCoeff[ pucScan[ uiScanning ] ] = scoeff[15-uiScanning];
+#if 0//QC_MDDT//VLC_MDDT ADAPTIVE_SCAN
+      if(scoeff[15-uiScanning])
+      {
+        if(pcCU->isIntra( uiAbsPartIdx ) && eTType == TEXT_LUMA)//  && (uiWidth == 4 && ipredmode<=8&&indexROT == 0))
+        {
+          //scanStats[pucScan[ui]]++;
+          scanStats[uiScanning]++;
+        }
+      }
+#endif
     }
   }
   else if ( uiSize == 8*8 )
@@ -1029,11 +1171,31 @@ Void TDecCavlc::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartI
     for (uiScanning=0; uiScanning<64; uiScanning++)
     {
       piCoeff[ pucScan[ uiScanning ] ] = scoeff[63-uiScanning];
+#if 0//QC_MDDT//VLC_MDDT ADAPTIVE_SCAN
+      if(scoeff[63-uiScanning])
+      {
+        if(pcCU->isIntra( uiAbsPartIdx ) && eTType == TEXT_LUMA)//  && (uiWidth == 8 && ipredmode<=8 && indexROT == 0))
+        {
+          //scanStats[pucScan[ui]]++;
+          scanStats[uiScanning]++;
+        }
+      }
+#endif
     }
 
   }
   else
   {
+#if QC_MDDT//VLC_MDDT ADAPTIVE_SCAN
+    if(pcCU->isIntra( uiAbsPartIdx ) && eTType == TEXT_LUMA  && (uiWidth==16 || uiWidth==32 || uiWidth==64))
+    {
+      for (uiScanning=64; uiScanning<uiSize; uiScanning++)
+      {
+        piCoeff[ pucScan[ uiScanning ] ] = 0;
+      }
+    }
+#endif
+
     for (uiInterleaving=0; uiInterleaving<uiSize/64; uiInterleaving++)
     {
       xReadFlag( uiIsCoded );
@@ -1041,7 +1203,13 @@ Void TDecCavlc::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartI
       {
         for (uiScanning=0; uiScanning<64; uiScanning++)
         {
-          piCoeff[ pucScan[ (uiSize/64) * uiScanning + uiInterleaving ] ] = 0;
+#if QC_MDDT//VLC_MDDT ADAPTIVE_SCAN
+          if(pcCU->isIntra( uiAbsPartIdx ) && eTType == TEXT_LUMA  && (uiWidth==16 || uiWidth==32 || uiWidth==64))
+            piCoeff[ pucScan[ uiScanning ] ] = 0;
+          else
+#endif
+            piCoeff[ pucScan[ (uiSize/64) * uiScanning + uiInterleaving ] ] = 0;
+
         }
       }
       else
@@ -1051,10 +1219,33 @@ Void TDecCavlc::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartI
 
         for (uiScanning=0; uiScanning<64; uiScanning++)
         {
+#if QC_MDDT//VLC_MDDT ADAPTIVE_SCAN
+          if(pcCU->isIntra( uiAbsPartIdx ) && eTType == TEXT_LUMA  && (uiWidth==16 || uiWidth==32 || uiWidth==64))
+            piCoeff[ pucScan[ uiScanning ] ] = scoeff[63-uiScanning];
+          else
+#endif
           piCoeff[ pucScan[ (uiSize/64) * uiScanning + uiInterleaving ] ] = scoeff[63-uiScanning];
+
+
+#if 0//QC_MDDT//VLC_MDDT ADAPTIVE_SCAN
+          if(scoeff[63-uiScanning])
+          {
+            if(pcCU->isIntra( uiAbsPartIdx ) && eTType == TEXT_LUMA  && (uiWidth==16 || uiWidth==32 || uiWidth==64))
+            {
+              //scanStats[pucScan[ui]]++;
+              scanStats[ uiScanning ]++;
+            }
+          }
+#endif        
         }
 
       }
+#if QC_MDDT//VLC_MDDT ADAPTIVE_SCAN
+      if(pcCU->isIntra( uiAbsPartIdx ) && eTType == TEXT_LUMA  && (uiWidth==16 || uiWidth==32 || uiWidth==64))
+      {
+        break;
+      }
+#endif
     }
   }
 
@@ -1830,3 +2021,313 @@ Void TDecCavlc::xParseCoeff8x8(TCoeff* scoeff, int n)
   return;
 }
 
+#ifdef QC_SIFO
+
+Void TDecCavlc::parseSwitched_Filters (TComSlice*& rpcSlice, TComPrediction* m_cPrediction)
+{
+  UInt  uiCode;
+  if(rpcSlice->getSliceType() == I_SLICE)
+  {
+    m_cPrediction->setPredictFilterP(0);
+    m_cPrediction->setPredictFilterB(0);
+    for(UInt sub_pos = 0; sub_pos < 16; ++sub_pos)
+    {
+      m_cPrediction->setPrevP_SIFOFilter(0, sub_pos);
+      m_cPrediction->setPrevB_SIFOFilter(0, sub_pos);
+    }
+  }
+
+  if(rpcSlice->getSliceType() != I_SLICE)
+  {
+    UInt num_AVALABLE_FILTERS = m_cPrediction->getNum_AvailableFilters();
+    UInt num_SIFO = m_cPrediction->getNum_SIFOFilters();
+
+    Int bitsPerFilter=(Int)ceil(log10((Double)num_AVALABLE_FILTERS)/log10((Double)2)); 
+    Int bitsPer2Filters=(Int)ceil(log10((Double)num_SIFO)/log10((Double)2)); 
+    Int sub_pos, bestFilter,predictFilterP,predictFilterB;
+    Int SIFO_filter[16],prevFilterP[16],prevFilterB[16];
+
+    //========= get the values of previous frame SIFO filters=====
+    if (rpcSlice->getSliceType() == P_SLICE)
+    {
+      predictFilterP = m_cPrediction->getPredictFilterP();
+      for(sub_pos = 1; sub_pos < 16; ++sub_pos)
+        prevFilterP[sub_pos] = m_cPrediction->getPrevP_SIFOFilter(sub_pos);
+    }
+    else
+    {
+      predictFilterB = m_cPrediction->getPredictFilterB();
+      for(sub_pos = 1; sub_pos < 16; ++sub_pos)
+        prevFilterB[sub_pos] = m_cPrediction->getPrevB_SIFOFilter(sub_pos);
+    }
+    //==============================
+#ifdef QC_SIFO_PRED
+    UInt predict_filter_flag;
+    xReadFlag ( predict_filter_flag );
+    if (predict_filter_flag && rpcSlice->getSliceType()==P_SLICE && predictFilterP<2)
+      predict_filter_flag = 0;
+    if (predict_filter_flag && rpcSlice->getSliceType()==B_SLICE && predictFilterB<2)
+      predict_filter_flag = 0;
+#endif
+
+
+    if (rpcSlice->getSliceType() == P_SLICE)
+    {
+#ifdef QC_SIFO_PRED
+      if (!predict_filter_flag)
+#else
+      if (predictFilterP < 2)
+#endif
+      {
+        xReadCode(1,uiCode);
+        if(uiCode)    
+        {
+          for(UInt sub_pos = 1; sub_pos < 16; ++sub_pos)
+          {
+            if (sub_pos<=4 || sub_pos==8 || sub_pos==12)
+              xReadCode(bitsPerFilter, uiCode);
+            else
+              xReadCode(bitsPer2Filters, uiCode);
+
+            SIFO_filter[sub_pos] = uiCode;
+          }
+        }
+        else
+        {
+          xReadCode(1,uiCode);
+          if(uiCode)
+          {
+            for(UInt sub_pos = 1; sub_pos < 16; ++sub_pos)
+            {
+              xReadCode(bitsPerFilter, uiCode);
+              SIFO_filter[sub_pos] = uiCode;
+            }
+          }
+          else
+          {
+            xReadCode(bitsPerFilter, uiCode);
+            bestFilter = uiCode;
+            //m_cPrediction->setBestFilter(bestFilter);
+            for(sub_pos = 1; sub_pos < 16; ++sub_pos)
+            {
+              SIFO_filter[sub_pos] = bestFilter;
+            }
+          }
+        }
+      }
+      else
+      {
+        xReadCode(1,uiCode);
+        if(uiCode)
+        {
+          for(sub_pos = 1; sub_pos < 16; ++sub_pos)
+          {
+            xReadCode(1,uiCode);
+            if(uiCode)
+            {
+              SIFO_filter[sub_pos] = prevFilterP[sub_pos];
+            }
+            else
+            {
+              if (sub_pos<=4 || sub_pos==8 || sub_pos==12)
+                xReadCode(bitsPerFilter, uiCode);
+              else
+                xReadCode(bitsPer2Filters, uiCode);
+
+              SIFO_filter[sub_pos] = uiCode;
+            }
+          }
+        }
+        else
+        {
+          xReadCode(bitsPerFilter, uiCode);
+          bestFilter = uiCode;
+          //m_cPrediction->setBestFilter(bestFilter);
+          for(sub_pos = 1; sub_pos < 16; ++sub_pos)
+          {
+            SIFO_filter[sub_pos] = bestFilter;
+          }
+        }
+      }
+      predictFilterP++;
+      if (predictFilterP>2)
+        predictFilterP=2;
+    }
+    else  //B slice
+    {
+#ifdef QC_SIFO_PRED
+      if (!predict_filter_flag)
+#else
+      if (predictFilterB < 2)
+#endif
+      {
+        xReadCode(1,uiCode);
+        if(uiCode)    
+        {
+          //m_cPrediction->setBestFilter(0);
+          for(sub_pos = 1; sub_pos < 16; ++sub_pos)
+          {
+            xReadCode(bitsPerFilter, uiCode);
+            SIFO_filter[sub_pos] = uiCode;
+          }
+        }
+        else
+        {
+          xReadCode(bitsPerFilter, uiCode);
+          bestFilter = uiCode;
+          //m_cPrediction->setBestFilter(bestFilter);
+          for(sub_pos = 1; sub_pos < 16; ++sub_pos)
+          {
+            SIFO_filter[sub_pos] = bestFilter;
+          }
+        }
+      }
+      else
+      {
+        xReadCode(1,uiCode);
+        if(uiCode)    //bestFilter=0
+        {
+          //m_cPrediction->setBestFilter(0);
+          for(sub_pos = 1; sub_pos < 16; ++sub_pos)
+          {
+            xReadCode(1, uiCode);
+            if(uiCode==0)
+            {
+              xReadCode(bitsPerFilter, uiCode);
+              SIFO_filter[sub_pos] = uiCode;
+            }
+            else
+            {
+              SIFO_filter[sub_pos] = prevFilterB[sub_pos];
+            }
+          }
+        }
+        else
+        {
+          xReadCode(bitsPerFilter, uiCode);
+          bestFilter = uiCode;
+          //m_cPrediction->setBestFilter(bestFilter);
+          for(sub_pos = 1; sub_pos < 16; ++sub_pos)
+          {
+            SIFO_filter[sub_pos] = bestFilter;
+          }
+        }
+      }
+      predictFilterB++;
+      if (predictFilterB>2)
+        predictFilterB=2;
+    }
+
+    //========= set the values =====
+    if (rpcSlice->getSliceType() == P_SLICE)
+    {
+      m_cPrediction->setPredictFilterP(predictFilterP);
+      for(sub_pos = 1; sub_pos < 16; ++sub_pos)
+      {
+        m_cPrediction->setSIFOFilter      (SIFO_filter[sub_pos], sub_pos);
+        m_cPrediction->setPrevP_SIFOFilter(SIFO_filter[sub_pos], sub_pos);
+      }
+    }
+    else
+    {
+      m_cPrediction->setPredictFilterB(predictFilterB);
+      for(sub_pos = 1; sub_pos < 16; ++sub_pos)
+      {
+        m_cPrediction->setSIFOFilter      (SIFO_filter[sub_pos], sub_pos);
+        m_cPrediction->setPrevB_SIFOFilter(SIFO_filter[sub_pos], sub_pos);
+      }
+    }
+    //==============================
+
+  }
+
+#if PRINT_FILTERS==1
+  printf("\n");
+  for(UInt sub_pos = 1; sub_pos < 16; ++sub_pos)
+  {
+    Int SIFOFilter = m_cPrediction->getSIFOFilter(sub_pos);
+    Int f0 = m_cPrediction->getTabFilters(sub_pos,SIFOFilter,0);
+    Int f1 = m_cPrediction->getTabFilters(sub_pos,SIFOFilter,1);
+    printf("%2d,  %2d (%2d,%2d)\n", sub_pos, SIFOFilter, f0, f1);
+  }
+#endif
+
+#ifdef QC_SIFO
+  if(rpcSlice->getSliceType() != I_SLICE)
+  {
+    Int listNo = (rpcSlice->getSliceType() == B_SLICE)? 2: 1;
+    Int iCode;
+    UInt uiCode;
+
+    m_cPrediction->setOffsets_toZero();
+
+    for(Int list = 0; list < listNo; ++list) 
+    {
+      xReadCode(1,uiCode);
+      UInt nonzero = uiCode;
+      if(nonzero)
+      {
+        for(UInt frame = 0; frame < rpcSlice->getNumRefIdx(RefPicList(list)); ++frame)
+        {
+          if(frame == 0)     
+          {    
+            for(UInt sub_pos = 0; sub_pos < 16; ++sub_pos)   
+            {
+              xReadSvlc(iCode);
+              iCode *= (1<<g_uiBitIncrement);
+              m_cPrediction->setSubpelOffset(iCode,list,sub_pos);
+            }         
+          }
+          else              
+          {
+            xReadSvlc(iCode);
+            iCode *= (1<<g_uiBitIncrement);
+            m_cPrediction->setFrameOffset(iCode,list,frame);
+          }
+        }
+      }
+    }
+  }
+#endif
+
+#if PRINT_OFFSETS
+  if(rpcSlice->getSliceType() != I_SLICE)
+  {
+    UInt nonzero = 0;
+    Int subpelOffset[2][16];
+    Int imgOffset[2][MAX_REF_PIC_NUM];
+    Int listNo = (rpcSlice->getSliceType() == B_SLICE)? 2: 1;
+
+    for(Int list = 0; list < listNo; ++list) 
+    {
+      nonzero = m_cPrediction->isOffsetZero(rpcSlice, list);
+      if(nonzero)
+      {
+        for(UInt frame = 0; frame < rpcSlice->getNumRefIdx(RefPicList(list)); ++frame)
+        {
+          printf("\nList%1d_Image[%2d]   ",list,frame);
+          if(frame == 0)     
+          {    
+            for(UInt sub_pos = 0; sub_pos < 16; ++sub_pos)   
+            {
+              subpelOffset[list][sub_pos] = m_cPrediction->getSubpelOffset(list,sub_pos);
+              printf("%2d ",(subpelOffset[list][sub_pos]/(1<<g_uiBitIncrement)));
+            }         
+          }
+          else              
+          {
+            imgOffset[list][frame] =  m_cPrediction->getFrameOffset(list,frame);
+            printf("%2d ",(imgOffset[list][frame]/(1<<g_uiBitIncrement)));
+          }
+        }
+      }
+      else
+      {
+        printf("\nList%1d             No Offsets",list);
+      }
+    }
+  }
+#endif
+
+}
+#endif

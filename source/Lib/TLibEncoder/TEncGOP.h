@@ -50,6 +50,9 @@
 #include "TEncSbac.h"
 
 #include "TEncAnalyze.h"
+#ifdef QC_SIFO
+#include "TEncSIFO.h"
+#endif
 
 class TEncTop;
 
@@ -73,6 +76,9 @@ private:
   TEncTop*                m_pcEncTop;
   TEncCfg*                m_pcCfg;
   TEncSlice*              m_pcSliceEncoder;
+#ifdef QC_SIFO
+  TEncSIFO*               m_pcSIFOEncoder;
+#endif
   TComList<TComPic*>*     m_pcListPic;
 
   TEncEntropy*            m_pcEntropyCoder;

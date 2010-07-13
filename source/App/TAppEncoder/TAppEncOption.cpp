@@ -859,6 +859,14 @@ TAppOption::setValue( const char *option , char *value )
     return false;
   for( int i = 0 ; i < option_counter ; i++ ){
     if( strcmp( options[i], option ) == 0 ){
+#if 1      // as suggested by Xiang Li [li@ient.rwth-aachen.de]   
+      // lines for bug fixing
+      char * pComment = strchr( value , comment );
+      if( pComment != NULL )
+        *pComment = 0;
+      value = chomp( value );
+      // lines for bug fixing
+#endif
       values[ optionindex[i] ] = (char*) malloc((strlen(value)+1)*sizeof(char));
       strcpy( values[ optionindex[i] ], value );
       return true;
@@ -1072,6 +1080,16 @@ TAppOption::processLine( char *theline, int ilength  )
 char*
 TAppOption::chomp( char *str )
 {
+#if 1      // as suggested by Xiang Li [li@ient.rwth-aachen.de]
+const char cTab = 9;        // the char for tab
+  while( *str == whitespace || *str == cTab )
+    str++;
+  char *end = str+strlen(str)-1;
+  while( *end == whitespace || *end == cTab )
+    end--;
+  *(end+1) = nullterminate;
+  return str;
+#else
   while( *str == whitespace )
     str++;
   char *end = str+strlen(str)-1;
@@ -1079,6 +1097,7 @@ TAppOption::chomp( char *str )
     end--;
   *(end+1) = nullterminate;
   return str;
+#endif
 }
 
 void

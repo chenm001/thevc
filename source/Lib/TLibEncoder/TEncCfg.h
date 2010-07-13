@@ -137,7 +137,12 @@ protected:
 #if HHI_IMVP
   Bool      m_bUseIMP; // SOPH:
 #endif
-
+#ifdef QC_AMVRES
+  Bool      m_bUseAMVRes;
+#endif
+#ifdef QC_SIFO_PRED
+  Bool      m_bUseSIFO_Pred;
+#endif
   Int       m_iDIFTap;  // Number of interpolation filter taps
 
   Int*      m_aidQP;
@@ -296,6 +301,14 @@ public:
 #if HHI_IMVP
   Void      setUseIMP                       ( Bool  b )     { m_bUseIMP     = b; } // SOPH:
 #endif
+#ifdef QC_AMVRES
+ Void      setUseAMVRes                       ( Bool  b )     { m_bUseAMVRes     = b; }
+#endif
+#ifdef QC_SIFO_PRED
+ Void      setUseSIFO_Pred                       ( Bool  b )     { m_bUseSIFO_Pred     = b; }
+ Bool      getUseSIFO_Pred                     ()     {return  m_bUseSIFO_Pred; }
+#endif
+
   Void      setDIFTap                       ( Int   i )     { m_iDIFTap     = i; }
 
   Void      setdQPs                         ( Int*  p )     { m_aidQP       = p; }
@@ -329,7 +342,9 @@ public:
 #if HHI_IMVP
   Bool      getUseIMP                       ()      { return m_bUseIMP;     } // SOPH:
 #endif
-
+#ifdef QC_AMVRES
+ Bool      getUseAMVRes                     ()     {return  m_bUseAMVRes; }
+#endif
   Int       getDIFTap                       ()      { return m_iDIFTap;  }
 
   Int*      getdQPs                         ()      { return m_aidQP;       }

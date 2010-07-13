@@ -45,10 +45,15 @@
 // ====================================================================================================================
 
 // Local type definitions
+#ifdef QC_AMVRES
+#define HAL_IDX   3
+#define QU0_IDX   1
+#define QU1_IDX   5
+#else
 #define HAL_IDX   1
 #define QU0_IDX   0
 #define QU1_IDX   2
-
+#endif
 // ====================================================================================================================
 // Type definitions
 // ====================================================================================================================
@@ -58,8 +63,20 @@ typedef Int (*FpCTIFilter_VP) ( Pel* pSrc, Int* piCoeff, Int iStride );
 typedef Int (*FpCTIFilter_VI) ( Int* pSrc, Int* piCoeff, Int iStride );
 
 // filter coefficient array
+#ifdef QC_AMVRES
+extern Int CTI_Filter12 [5][7][12];
+#else
 extern Int CTI_Filter12 [5][3][12];
-
+#endif
+#ifdef QC_SIFO
+#ifdef QC_AMVRES
+extern Int SIFO_Filter6 [4][7][6];
+extern Int SIFO_Filter12[4][7][12];
+#else
+extern Int SIFO_Filter6 [4][3][6];
+extern Int SIFO_Filter12[4][3][12];
+#endif
+#endif
 // ====================================================================================================================
 // Class definition
 // ====================================================================================================================
@@ -70,6 +87,25 @@ class TComPredFilter
 protected:
   // filter description (luma & chroma)
   Int   m_iDIFTap;
+#ifdef QC_SIFO
+  Int    m_aiFilterSequence[16], m_aiPrevPFrameFilter[16],m_aiPrevBFrameFilter[16];
+  UInt   m_uiNum_AvailableFilters;
+  UInt   m_uiNum_SIFOFilters;
+  UInt   m_uiNUM_SIFO_TAB[16];
+  Int    m_aiTabFilters[16][16][2];   //16 subpels, max there are 4 different 1D filters, combining any 2 filters out of these 4 can create 16 different 2D filters.
+  Int    m_iBestFilterP,m_iBestFilterB;
+  UInt   m_uiPredictFilterP;
+  UInt   m_uiPredictFilterB;
+  UInt   m_auiPredictFilterSequenceP[16];   //contains 0 or 1...0 = code the subpel filter, 1 = use prev frame subpel filter               
+  UInt   m_auiPredictFilterSequenceB[16];   //contains 0 or 1...0 = code the subpel filter, 1 = use prev frame subpel filter               
+ Int m_aiSubpelOffset[2][16]; //2 list and 16 subpels
+ Int m_aiFrameOffset[2][MAX_REF_PIC_NUM];       
+ Int m_aiOffset_FullpelME[2][16];// Int offsetMETab[2][16];
+ Int m_aiNumOffset_FullpelME[2];
+ Int m_iCurrRefFrame;
+ Int m_iCurrList;
+#endif
+
 private:
 
   // filter description (luma)
@@ -99,6 +135,83 @@ public:
 
   Void  setDIFTap ( Int i );
 
+#ifdef QC_SIFO
+  Void  setSIFOFilter       (Int Val, Int i)      { m_aiFilterSequence  [i] = Val;  }
+  Void  setPrevP_SIFOFilter (Int Val, Int i)      { m_aiPrevPFrameFilter[i] = Val;  }
+  Void  setPrevB_SIFOFilter (Int Val, Int i)      { m_aiPrevBFrameFilter[i] = Val;  }
+  Int   getSIFOFilter       (Int i)               { return m_aiFilterSequence  [i]; }
+  Int   getPrevP_SIFOFilter (Int i)               { return m_aiPrevPFrameFilter[i]; }
+  Int   getPrevB_SIFOFilter (Int i)               { return m_aiPrevBFrameFilter[i]; }
+
+  Void  setNum_AvailableFilters (UInt Val)        { m_uiNum_AvailableFilters = Val;  }
+  UInt  getNum_AvailableFilters ()               { return m_uiNum_AvailableFilters; }
+
+  Void  setNum_SIFOFilters (UInt Val)        { m_uiNum_SIFOFilters = Val;  }
+  UInt  getNum_SIFOFilters ()                { return m_uiNum_SIFOFilters; }
+
+  UInt  getNum_SIFOTab (Int i)            { return m_uiNUM_SIFO_TAB[i]; }
+  
+  Void  setTabFilters  (Int Val, Int subpel, Int filter, Int i)   { m_aiTabFilters[subpel][filter][i] = Val ; }
+  Int   getTabFilters  (Int subpel, Int filter, Int i)            { return m_aiTabFilters[subpel][filter][i]; }
+
+  Void  setBestFilter_P  (Int Val)      { m_iBestFilterP = Val; }
+  Void  setBestFilter_B  (Int Val)      { m_iBestFilterB = Val; }
+  Int   getBestFilter_P  ()             { return m_iBestFilterP; }
+  Int   getBestFilter_B  ()             { return m_iBestFilterB; }
+
+
+  Void  setPredictFilterP (UInt Val)        { m_uiPredictFilterP = Val;  }
+  Void  setPredictFilterB (UInt Val)        { m_uiPredictFilterB = Val;  }
+  UInt  getPredictFilterP ()                { return m_uiPredictFilterP; }
+  UInt  getPredictFilterB ()                { return m_uiPredictFilterB; }
+
+  Void  setPredictFilterSequenceP (Int Val, Int i)      { m_auiPredictFilterSequenceP[i] = Val;  }
+  Int   getPredictFilterSequenceP (Int i)               { return m_auiPredictFilterSequenceP[i]; }
+  Void  setPredictFilterSequenceB (Int Val, Int i)      { m_auiPredictFilterSequenceB[i] = Val;  }
+  Int   getPredictFilterSequenceB (Int i)               { return m_auiPredictFilterSequenceB[i]; }
+
+  Void  setSubpelOffset       (Int Val, Int list, Int subpel)      { m_aiSubpelOffset[list][subpel] = Val;  }
+  Int   getSubpelOffset       (Int list, Int subpel)               { return m_aiSubpelOffset[list][subpel]; }
+  Void  setFrameOffset       (Int Val, Int list, Int frame)        { m_aiFrameOffset[list][frame] = Val;  }
+  Int   getFrameOffset       (Int list, Int frame)                 { return m_aiFrameOffset[list][frame]; }
+  Int   getSIFOOffset        (Int list, Int subpel, Int frame)     { return (frame ? m_aiFrameOffset[list][frame] : m_aiSubpelOffset[list][subpel]); }
+  Void  setOffsets_toZero    ()
+  { 
+      memset(m_aiSubpelOffset[0]  , 0, 16 * sizeof(Int));
+      memset(m_aiSubpelOffset[1]  , 0, 16 * sizeof(Int));
+      memset(m_aiFrameOffset[0]   , 0, MAX_REF_PIC_NUM * sizeof(Int));
+      memset(m_aiFrameOffset[1]   , 0, MAX_REF_PIC_NUM * sizeof(Int));
+  }
+  Int isOffsetZero          (TComSlice* pcSlice, Int list)
+  {
+    for(UInt frame = 0; frame < pcSlice->getNumRefIdx(RefPicList(list)); ++frame)
+    {
+      if(frame == 0)
+      {     
+        for(UInt sub_pos = 0; sub_pos < 16; ++sub_pos)   
+          if(m_aiSubpelOffset[list][sub_pos] != 0)
+            return 1;
+      }
+      else
+      {
+        if(m_aiFrameOffset[list][frame] != 0)
+          return 1;
+      }
+    }
+    return 0;
+  }
+  Void  setOffset_FullpelME       (Int Val, Int list, Int Tab)      { m_aiOffset_FullpelME[list][Tab] = Val;  }
+  Int   getOffset_FullpelME       (Int list, Int Tab)               { return m_aiOffset_FullpelME[list][Tab]; }
+  Void  setNum_Offset_FullpelME    (Int Val, Int list)      { m_aiNumOffset_FullpelME[list] = Val;  }
+  Int   getNum_Offset_FullpelME    (Int list)               { return m_aiNumOffset_FullpelME[list]; }
+
+  Void  setCurrRefFrame            (Int Val)    {  m_iCurrRefFrame = Val;}
+  Int   getCurrRefFrame            ()           { return m_iCurrRefFrame;}
+  Void  setCurrList                (Int Val)    {  m_iCurrList = Val;}
+  Int   getCurrList                ()           { return m_iCurrList;}
+
+#endif
+
   // DIF filter interface (for half & quarter)
 #if TEN_DIRECTIONAL_INTERP
   __inline Void xCTI_FilterDIF_TEN(Pel* piSrc, Int iSrcStride, Int iSrcStep, Int iWidth, Int iHeight, Int iDstStride, Int iDstStep, Pel*& rpiDst, Int yFrac, Int xFrac);
@@ -122,6 +235,32 @@ public:
   __inline Void xCTI_FilterQuarter1Ver (Pel* piSrc, Int iSrcStride, Int iSrcStep, Int iWidth, Int iHeight, Int iDstStride, Int iDstStep, Int*& rpiDst );
   __inline Void xCTI_FilterQuarter1Ver (Pel* piSrc, Int iSrcStride, Int iSrcStep, Int iWidth, Int iHeight, Int iDstStride, Int iDstStep, Pel*& rpiDst );
 
+#ifdef QC_SIFO //with offset parameter
+  __inline Void xCTI_FilterHalfHor(Pel* piSrc, Int iSrcStride, Int iSrcStep, Int iWidth, Int iHeight, Int iDstStride, Int iDstStep, Pel*& rpiDst, Int filter, Int Offset);
+  __inline Void xCTI_FilterHalfHor(Int* piSrc, Int iSrcStride, Int iSrcStep, Int iWidth, Int iHeight, Int iDstStride, Int iDstStep, Pel*& rpiDst, Int filter, Int Offset);
+
+  __inline Void xCTI_FilterQuarter0Hor(Pel* piSrc, Int iSrcStride, Int iSrcStep, Int iWidth, Int iHeight, Int iDstStride, Int iDstStep, Pel*& rpiDst, Int filter, Int Offset);
+  __inline Void xCTI_FilterQuarter0Hor(Int* piSrc, Int iSrcStride, Int iSrcStep, Int iWidth, Int iHeight, Int iDstStride, Int iDstStep, Pel*& rpiDst, Int filter, Int Offset);
+
+  __inline Void xCTI_FilterQuarter1Hor(Pel* piSrc, Int iSrcStride, Int iSrcStep, Int iWidth, Int iHeight, Int iDstStride, Int iDstStep, Pel*& rpiDst, Int filter, Int Offset);
+  __inline Void xCTI_FilterQuarter1Hor(Int* piSrc, Int iSrcStride, Int iSrcStep, Int iWidth, Int iHeight, Int iDstStride, Int iDstStep, Pel*& rpiDst, Int filter, Int Offset);
+
+  __inline Void xCTI_FilterHalfVer (Pel* piSrc, Int iSrcStride, Int iSrcStep, Int iWidth, Int iHeight, Int iDstStride, Int iDstStep, Int*& rpiDst, Int iDstStridePel, Pel*& rpiDstPel , Int filter, Int Offset);
+  __inline Void xCTI_FilterHalfVer (Pel* piSrc, Int iSrcStride, Int iSrcStep, Int iWidth, Int iHeight, Int iDstStride, Int iDstStep, Int*& rpiDst , Int filter, Int Offset);
+  __inline Void xCTI_FilterHalfVer (Pel* piSrc, Int iSrcStride, Int iSrcStep, Int iWidth, Int iHeight, Int iDstStride, Int iDstStep, Pel*& rpiDst , Int filter, Int Offset);
+  
+  __inline Void xCTI_FilterQuarter0Ver (Pel* piSrc, Int iSrcStride, Int iSrcStep, Int iWidth, Int iHeight, Int iDstStride, Int iDstStep, Int*& rpiDst , Int filter, Int Offset);
+  __inline Void xCTI_FilterQuarter0Ver (Pel* piSrc, Int iSrcStride, Int iSrcStep, Int iWidth, Int iHeight, Int iDstStride, Int iDstStep, Pel*& rpiDst , Int filter, Int Offset);
+
+  __inline Void xCTI_FilterQuarter1Ver (Pel* piSrc, Int iSrcStride, Int iSrcStep, Int iWidth, Int iHeight, Int iDstStride, Int iDstStep, Int*& rpiDst , Int filter, Int Offset);
+  __inline Void xCTI_FilterQuarter1Ver (Pel* piSrc, Int iSrcStride, Int iSrcStep, Int iWidth, Int iHeight, Int iDstStride, Int iDstStep, Pel*& rpiDst , Int filter, Int Offset);
+#endif
+#ifdef QC_AMVRES
+  __inline Void xCTI_Filter2DVer (Pel* piSrc, Int iSrcStride,  Int iWidth, Int iHeight, Int iDstStride,  Int*& rpiDst, Int iMv);
+  __inline Void xCTI_Filter2DHor (Int* piSrc, Int iSrcStride,  Int iWidth, Int iHeight, Int iDstStride,  Pel*& rpiDst, Int iMV);
+  __inline Void xCTI_Filter1DHor (Pel* piSrc, Int iSrcStride,  Int iWidth, Int iHeight, Int iDstStride,  Pel*& rpiDst, Int iMV);
+  __inline Void xCTI_Filter1DVer (Pel* piSrc, Int iSrcStride,  Int iWidth, Int iHeight, Int iDstStride,  Pel*& rpiDst, Int iMV);
+#endif
 private:
 
   // set of DIF filters
@@ -290,11 +429,11 @@ __inline Void TComPredFilter::xCTI_FilterDIF_TEN(Pel* piSrc, Int iSrcStride, Int
       for (Int y=0; y<iHeight; y++)
       {
         piSrcTmp = piSrc-1*iSrcStride-1;
-        for ( Int x = 0; x < iWidth; x++, piSrcTmp++)
-          piDst[x*iDstStep] = Clip( (0*piSrcTmp[0*iSrcStride+0] +  5*piSrcTmp[0*iSrcStride+1] +  5*piSrcTmp[0*iSrcStride+2] + 0*piSrcTmp[0*iSrcStride+3] +
-                                     5*piSrcTmp[1*iSrcStride+0] + 22*piSrcTmp[1*iSrcStride+1] + 22*piSrcTmp[1*iSrcStride+2] + 5*piSrcTmp[1*iSrcStride+3] +
-                                     5*piSrcTmp[2*iSrcStride+0] + 22*piSrcTmp[2*iSrcStride+1] + 22*piSrcTmp[2*iSrcStride+2] + 5*piSrcTmp[2*iSrcStride+3] +
-                                     0*piSrcTmp[3*iSrcStride+0] +  5*piSrcTmp[3*iSrcStride+1] +  5*piSrcTmp[3*iSrcStride+2] + 0*piSrcTmp[3*iSrcStride+3] + 64)>>7);
+          for ( Int x = 0; x < iWidth; x++, piSrcTmp++)
+            piDst[x*iDstStep] = Clip( (0*piSrcTmp[0*iSrcStride+0] +  5*piSrcTmp[0*iSrcStride+1] +  5*piSrcTmp[0*iSrcStride+2] + 0*piSrcTmp[0*iSrcStride+3] +
+                                       5*piSrcTmp[1*iSrcStride+0] + 22*piSrcTmp[1*iSrcStride+1] + 22*piSrcTmp[1*iSrcStride+2] + 5*piSrcTmp[1*iSrcStride+3] +
+                                       5*piSrcTmp[2*iSrcStride+0] + 22*piSrcTmp[2*iSrcStride+1] + 22*piSrcTmp[2*iSrcStride+2] + 5*piSrcTmp[2*iSrcStride+3] +
+                                       0*piSrcTmp[3*iSrcStride+0] +  5*piSrcTmp[3*iSrcStride+1] +  5*piSrcTmp[3*iSrcStride+2] + 0*piSrcTmp[3*iSrcStride+3] + 64)>>7);
         piSrc += iSrcStride;
         piDst += iDstStride;
       }
@@ -1099,6 +1238,314 @@ __inline Void TComPredFilter::xCTI_FilterQuarter1Ver (Pel* piSrc, Int iSrcStride
 }
 
 // ------------------------------------------------------------------------------------------------
+// DIF filters (for AMVRES)
+// ------------------------------------------------------------------------------------------------
+#ifdef QC_AMVRES
+__inline Void TComPredFilter::xCTI_Filter2DVer (Pel* piSrc, Int iSrcStride,  Int iWidth, Int iHeight, Int iDstStride,  Int*& rpiDst, Int iMV)
+{
+  Int*  piDst = rpiDst;
+	Int   iSum;
+	Pel*  piSrcTmp;
+	Int*  piFilter = CTI_Filter12[m_iTapIdx][iMV+AMVRES_ACC_IDX_OFFSET];
+
+	if ( m_iDIFTap == 12 )
+	{
+		if ( ( iMV+AMVRES_ACC_IDX_OFFSET ) == HAL_IDX )
+		{
+			for ( Int y = iHeight; y != 0; y-- )
+			{
+				piSrcTmp = &piSrc[ 0-m_iLeftMargin*iSrcStride ];
+				for ( Int x = 0; x < iWidth; x++ )
+				{
+					iSum      = xCTI_Filter_VPS12_HAL( piSrcTmp, piFilter, iSrcStride );
+					piDst[x ] = iSum;
+					piSrcTmp++;
+				}
+				piSrc += iSrcStride;
+				piDst += iDstStride;
+			}
+			return;
+		}
+		else
+		if ( ( iMV+AMVRES_ACC_IDX_OFFSET ) == QU0_IDX )
+		{
+			for ( Int y = iHeight; y != 0; y-- )
+			{
+				piSrcTmp = &piSrc[ 0-m_iLeftMargin*iSrcStride ];
+				for ( Int x = 0; x < iWidth; x++ )
+				{
+					iSum      = xCTI_Filter_VP12_QU0( piSrcTmp, piFilter, iSrcStride );
+					piDst[x ] = iSum;
+					piSrcTmp++;
+				}
+				piSrc += iSrcStride;
+				piDst += iDstStride;
+			}
+			return;
+		}
+		else
+		if ( ( iMV+AMVRES_ACC_IDX_OFFSET ) == QU1_IDX )
+		{
+			for ( Int y = iHeight; y != 0; y-- )
+			{
+				piSrcTmp = &piSrc[ 0-m_iLeftMargin*iSrcStride ];
+				for ( Int x = 0; x < iWidth; x++ )
+				{
+					iSum      = xCTI_Filter_VP12_QU1( piSrcTmp, piFilter, iSrcStride );
+					piDst[x ] = iSum;
+					piSrcTmp++;
+				}
+				piSrc += iSrcStride;
+				piDst += iDstStride;
+			}
+			return;
+		}
+	}
+
+  for ( Int y = iHeight; y != 0; y-- )
+  {
+		piSrcTmp = &piSrc[ 0-m_iLeftMargin*iSrcStride ];
+    for ( Int x = 0; x < iWidth; x++ )
+    {
+			iSum      = xCTI_Filter_VP[iMV+AMVRES_ACC_IDX_OFFSET]( piSrcTmp, piFilter, iSrcStride );
+			piDst[x ] = iSum;
+			piSrcTmp++;
+    }
+    piSrc += iSrcStride;
+    piDst += iDstStride;
+  }
+  return;
+}
+
+__inline Void TComPredFilter::xCTI_Filter2DHor(Int* piSrc, Int iSrcStride,  Int iWidth, Int iHeight, Int iDstStride,  Pel*& rpiDst, Int iMV)
+{
+  Pel*  piDst    = rpiDst;
+  Int   iSum;
+	Int*  piSrcTmp;
+	Int*  piFilter = CTI_Filter12[m_iTapIdx][iMV+AMVRES_ACC_IDX_OFFSET];
+
+	if ( m_iDIFTap == 12 )
+	{
+		if ( ( iMV+AMVRES_ACC_IDX_OFFSET ) == HAL_IDX )
+		{
+			for ( Int y = iHeight; y != 0; y-- )
+			{
+				piSrcTmp = &piSrc[ 0-m_iLeftMargin ];
+				for ( Int x = 0; x < iWidth; x++ )
+				{
+					iSum         = xCTI_Filter_VIS12_HAL( piSrcTmp, piFilter, 1 );
+					piDst   [x ] = Clip( (iSum +  32768) >>  16 );
+					piSrcTmp++;
+				}
+				piSrc += iSrcStride;
+				piDst += iDstStride;
+			}
+			return;
+		}
+		else
+		if ( ( iMV+AMVRES_ACC_IDX_OFFSET ) == QU0_IDX )
+		{
+			for ( Int y = iHeight; y != 0; y-- )
+			{
+				piSrcTmp = &piSrc[ 0-m_iLeftMargin ];
+				for ( Int x = 0; x < iWidth; x++ )
+				{
+					iSum         = xCTI_Filter_VI12_QU0( piSrcTmp, piFilter, 1 );
+					piDst   [x ] = Clip( (iSum +  32768) >>  16 );
+					piSrcTmp++;
+				}
+				piSrc += iSrcStride;
+				piDst += iDstStride;
+			}
+			return;
+		}
+		else
+		if ( ( iMV+AMVRES_ACC_IDX_OFFSET ) == QU1_IDX )
+		{
+			for ( Int y = iHeight; y != 0; y-- )
+			{
+				piSrcTmp = &piSrc[ 0-m_iLeftMargin ];
+				for ( Int x = 0; x < iWidth; x++ )
+				{
+					iSum         = xCTI_Filter_VI12_QU1( piSrcTmp, piFilter, 1 );
+					piDst   [x ] = Clip( (iSum +  32768) >>  16 );
+					piSrcTmp++;
+				}
+				piSrc += iSrcStride;
+				piDst += iDstStride;
+			}
+			return;
+		}
+	}
+
+  for ( Int y = iHeight; y != 0; y-- )
+  {
+		piSrcTmp = &piSrc[ 0-m_iLeftMargin ];
+    for ( Int x = 0; x < iWidth; x++ )
+    {
+			iSum         = xCTI_Filter_VI[iMV+AMVRES_ACC_IDX_OFFSET]( piSrcTmp, piFilter, 1 );
+			piDst   [x ] = Clip( (iSum +  32768) >>  16 );
+			piSrcTmp++;
+    }
+    piSrc += iSrcStride;
+    piDst += iDstStride;
+  }
+  return;
+}
+
+__inline Void TComPredFilter::xCTI_Filter1DVer (Pel* piSrc, Int iSrcStride, Int iWidth, Int iHeight, Int iDstStride,  Pel*& rpiDst, Int iMV)
+{
+  Pel*  piDst = rpiDst;
+  Int   iSum;
+	Pel*  piSrcTmp;
+	Int*  piFilter = CTI_Filter12[m_iTapIdx][iMV+AMVRES_ACC_IDX_OFFSET];
+
+	if ( m_iDIFTap == 12 )
+	{
+		if ( ( iMV+AMVRES_ACC_IDX_OFFSET ) == HAL_IDX )
+		{
+			for ( Int y = iHeight; y != 0; y-- )
+			{
+				piSrcTmp = &piSrc[ 0-m_iLeftMargin*iSrcStride ];
+				for ( Int x = 0; x < iWidth; x++ )
+				{
+					iSum      = xCTI_Filter_VPS12_HAL( piSrcTmp, piFilter, iSrcStride );
+					piDst[x ] = Clip( (iSum +  128) >>  8 );
+					piSrcTmp++;
+				}
+				piSrc += iSrcStride;
+				piDst += iDstStride;
+			}
+			return;
+		}
+		else
+		if ( ( iMV+AMVRES_ACC_IDX_OFFSET ) == QU0_IDX )
+		{
+			for ( Int y = iHeight; y != 0; y-- )
+			{
+				piSrcTmp = &piSrc[ 0-m_iLeftMargin*iSrcStride ];
+				for ( Int x = 0; x < iWidth; x++ )
+				{
+					iSum      = xCTI_Filter_VP12_QU0( piSrcTmp, piFilter, iSrcStride );
+					piDst[x ] = Clip( (iSum +  128) >>  8 );
+					piSrcTmp++;
+				}
+				piSrc += iSrcStride;
+				piDst += iDstStride;
+			}
+			return;
+		}
+		else
+		if ( ( iMV+AMVRES_ACC_IDX_OFFSET ) == QU1_IDX )
+		{
+			for ( Int y = iHeight; y != 0; y-- )
+			{
+				piSrcTmp = &piSrc[ 0-m_iLeftMargin*iSrcStride ];
+				for ( Int x = 0; x < iWidth; x++ )
+				{
+					iSum      = xCTI_Filter_VP12_QU1( piSrcTmp, piFilter, iSrcStride );
+					piDst[x ] = Clip( (iSum +  128) >>  8 );
+					piSrcTmp++;
+				}
+				piSrc += iSrcStride;
+				piDst += iDstStride;
+			}
+			return;
+		}
+	}
+
+  for ( Int y = iHeight; y != 0; y-- )
+  {
+		piSrcTmp = &piSrc[ 0-m_iLeftMargin*iSrcStride ];
+    for ( Int x = 0; x < iWidth; x++ )
+    {
+			iSum      = xCTI_Filter_VP[iMV+AMVRES_ACC_IDX_OFFSET]( piSrcTmp, piFilter, iSrcStride );
+			piDst[x ] = Clip( (iSum +  128) >>  8 );
+			piSrcTmp++;
+    }
+    piSrc += iSrcStride;
+    piDst += iDstStride;
+  }
+  return;
+}
+
+__inline Void TComPredFilter::xCTI_Filter1DHor(Pel* piSrc, Int iSrcStride, Int iWidth, Int iHeight, Int iDstStride, Pel*& rpiDst, Int iMV)
+{
+  Pel*  piDst    = rpiDst;
+  Int   iSum;
+	Pel*  piSrcTmp;
+	Int*  piFilter = CTI_Filter12[m_iTapIdx][iMV+AMVRES_ACC_IDX_OFFSET];
+
+	if ( m_iDIFTap == 12 )
+	{
+		if ( ( iMV+AMVRES_ACC_IDX_OFFSET ) == HAL_IDX )
+		{
+			for ( Int y = iHeight; y != 0; y-- )
+			{
+				piSrcTmp = &piSrc[ 0-m_iLeftMargin ];
+				for ( Int x = 0; x < iWidth; x++ )
+				{
+					iSum         = xCTI_Filter_VPS12_HAL( piSrcTmp, piFilter, 1 );
+					piDst   [x ] = Clip( (iSum +  128) >>  8 );
+					piSrcTmp++;
+				}
+				piSrc += iSrcStride;
+				piDst += iDstStride;
+			}
+			return;
+		}
+		else
+		if ( ( iMV+AMVRES_ACC_IDX_OFFSET ) == QU0_IDX )
+		{
+			for ( Int y = iHeight; y != 0; y-- )
+			{
+				piSrcTmp = &piSrc[ 0-m_iLeftMargin ];
+				for ( Int x = 0; x < iWidth; x++ )
+				{
+					iSum         = xCTI_Filter_VP12_QU0( piSrcTmp, piFilter, 1 );
+					piDst   [x ] = Clip( (iSum +  128) >>  8 );
+					piSrcTmp++;
+				}
+				piSrc += iSrcStride;
+				piDst += iDstStride;
+			}
+			return;
+		}
+		else
+		if ( ( iMV+AMVRES_ACC_IDX_OFFSET ) == QU1_IDX )
+		{
+			for ( Int y = iHeight; y != 0; y-- )
+			{
+				piSrcTmp = &piSrc[ 0-m_iLeftMargin ];
+				for ( Int x = 0; x < iWidth; x++ )
+				{
+					iSum         = xCTI_Filter_VP12_QU1( piSrcTmp, piFilter, 1 );
+					piDst   [x ] = Clip( (iSum +  128) >>  8 );
+					piSrcTmp++;
+				}
+				piSrc += iSrcStride;
+				piDst += iDstStride;
+			}
+			return;
+		}
+	}
+
+  for ( Int y = iHeight; y != 0; y-- )
+  {
+		piSrcTmp = &piSrc[ 0-m_iLeftMargin ];
+    for ( Int x = 0; x < iWidth; x++ )
+    {
+			iSum         = xCTI_Filter_VP[iMV+AMVRES_ACC_IDX_OFFSET]( piSrcTmp, piFilter, 1 );
+			piDst   [x ] = Clip( (iSum +  128) >>  8 );
+			piSrcTmp++;
+    }
+    piSrc += iSrcStride;
+    piDst += iDstStride;
+  }
+  return;
+}
+#endif
+// ------------------------------------------------------------------------------------------------
 // Optimized DIF filters
 // ------------------------------------------------------------------------------------------------
 
@@ -1346,5 +1793,314 @@ __inline Int TComPredFilter::xCTI_Filter_VI12_QU1( Int* pSrc, Int* piCoeff, Int 
   return iSum;
 }
 
-#endif // __TCOMPREDFILTER__
 
+#ifdef QC_SIFO// with offset parameter
+__inline Void TComPredFilter::xCTI_FilterHalfHor(Pel* piSrc, Int iSrcStride, Int iSrcStep, Int iWidth, Int iHeight, Int iDstStride, Int iDstStep, Pel*& rpiDst, Int filter, Int Offsets)
+{
+  Pel*  piDst    = rpiDst;
+  Int   iSum;
+  Pel*  piSrcTmp;
+  Int*  piFilter = (m_iTapIdx==1)? SIFO_Filter6[filter][HAL_IDX] : SIFO_Filter12[filter][HAL_IDX];
+
+  for ( Int y = iHeight; y != 0; y-- )
+  {
+    piSrcTmp = &piSrc[ (0-m_iLeftMargin)*iSrcStep ];
+    for ( Int x = 0; x < iWidth; x++ )
+    {
+      iSum                   = xCTI_Filter_VPS[HAL_IDX]( piSrcTmp, piFilter, iSrcStep );
+      piDst   [x * iDstStep] = Clip( (iSum +  128) >>  8 );
+      piDst   [x * iDstStep] = Clip( piDst   [x * iDstStep] + Offsets);
+      piSrcTmp += iSrcStep;
+    }
+    piSrc += iSrcStride;
+    piDst += iDstStride;
+  }
+  return;
+}
+
+__inline Void TComPredFilter::xCTI_FilterHalfHor(Int* piSrc, Int iSrcStride, Int iSrcStep, Int iWidth, Int iHeight, Int iDstStride, Int iDstStep, Pel*& rpiDst, Int filter, Int Offsets)
+{
+  Pel*  piDst    = rpiDst;
+  Int   iSum;
+  Int*  piSrcTmp;
+  Int*  piFilter = (m_iTapIdx==1)? SIFO_Filter6[filter][HAL_IDX] : SIFO_Filter12[filter][HAL_IDX];
+
+  for ( Int y = iHeight; y != 0; y-- )
+  {
+    piSrcTmp = &piSrc[ (0-m_iLeftMargin)*iSrcStep ];
+    for ( Int x = 0; x < iWidth; x++ )
+    {
+      iSum                   = xCTI_Filter_VIS[HAL_IDX]( piSrcTmp, piFilter, iSrcStep );
+      piDst   [x * iDstStep] = Clip( (iSum +  (1<<15)) >>  16 );
+      piDst   [x * iDstStep] = Clip( piDst   [x * iDstStep] + Offsets);
+      piSrcTmp += iSrcStep;
+    }
+    piSrc += iSrcStride;
+    piDst += iDstStride;
+  }
+  return;
+}
+
+__inline Void TComPredFilter::xCTI_FilterQuarter0Hor(Pel* piSrc, Int iSrcStride, Int iSrcStep, Int iWidth, Int iHeight, Int iDstStride, Int iDstStep, Pel*& rpiDst, Int filter, Int Offsets)
+{
+  Pel*  piDst    = rpiDst;
+  Int   iSum;
+  Pel*  piSrcTmp;
+  Int*  piFilter = (m_iTapIdx==1)? SIFO_Filter6[filter][QU0_IDX] : SIFO_Filter12[filter][QU0_IDX];
+
+  for ( Int y = iHeight; y != 0; y-- )
+  {
+    piSrcTmp = &piSrc[ (0-m_iLeftMargin)*iSrcStep ];
+    for ( Int x = 0; x < iWidth; x++ )
+    {
+      iSum                   = xCTI_Filter_VP[QU0_IDX]( piSrcTmp, piFilter, iSrcStep );
+      piDst   [x * iDstStep] = Clip( (iSum +  128) >>  8 );
+      piDst   [x * iDstStep] = Clip( piDst   [x * iDstStep] + Offsets);
+      piSrcTmp += iSrcStep;
+    }
+    piSrc += iSrcStride;
+    piDst += iDstStride;
+  }
+  return;
+}
+
+__inline Void TComPredFilter::xCTI_FilterQuarter0Hor(Int* piSrc, Int iSrcStride, Int iSrcStep, Int iWidth, Int iHeight, Int iDstStride, Int iDstStep, Pel*& rpiDst, Int filter, Int Offsets)
+{
+  Pel*  piDst    = rpiDst;
+  Int   iSum;
+  Int*  piSrcTmp;
+  Int*  piFilter = (m_iTapIdx==1)? SIFO_Filter6[filter][QU0_IDX] : SIFO_Filter12[filter][QU0_IDX];
+
+  for ( Int y = iHeight; y != 0; y-- )
+  {
+    piSrcTmp = &piSrc[ (0-m_iLeftMargin)*iSrcStep ];
+    for ( Int x = 0; x < iWidth; x++ )
+    {
+      iSum                   = xCTI_Filter_VI[QU0_IDX]( piSrcTmp, piFilter, iSrcStep );
+      piDst   [x * iDstStep] = Clip( (iSum +  (1<<15)) >>  16 );
+      piDst   [x * iDstStep] = Clip( piDst   [x * iDstStep] + Offsets);
+      piSrcTmp += iSrcStep;
+    }
+    piSrc += iSrcStride;
+    piDst += iDstStride;
+  }
+  return;
+}
+
+__inline Void TComPredFilter::xCTI_FilterQuarter1Hor(Pel* piSrc, Int iSrcStride, Int iSrcStep, Int iWidth, Int iHeight, Int iDstStride, Int iDstStep, Pel*& rpiDst, Int filter, Int Offsets)
+{
+  Pel*  piDst    = rpiDst;
+  Int   iSum;
+  Pel*  piSrcTmp;
+  Int*  piFilter = (m_iTapIdx==1)? SIFO_Filter6[filter][QU1_IDX] : SIFO_Filter12[filter][QU1_IDX];
+
+  for ( Int y = iHeight; y != 0; y-- )
+  {
+    piSrcTmp = &piSrc[ (0-m_iLeftMargin)*iSrcStep ];
+    for ( Int x = 0; x < iWidth; x++ )
+    {
+      iSum                   = xCTI_Filter_VP[QU1_IDX]( piSrcTmp, piFilter, iSrcStep );
+      piDst   [x * iDstStep] = Clip( (iSum +  128) >>  8 );
+      piDst   [x * iDstStep] = Clip( piDst   [x * iDstStep] + Offsets);
+      piSrcTmp += iSrcStep;
+    }
+    piSrc += iSrcStride;
+    piDst += iDstStride;
+  }
+  return;
+}
+
+__inline Void TComPredFilter::xCTI_FilterQuarter1Hor(Int* piSrc, Int iSrcStride, Int iSrcStep, Int iWidth, Int iHeight, Int iDstStride, Int iDstStep, Pel*& rpiDst, Int filter, Int Offsets)
+{
+  Pel*  piDst    = rpiDst;
+  Int   iSum;
+  Int*  piSrcTmp;
+  Int*  piFilter = (m_iTapIdx==1)? SIFO_Filter6[filter][QU1_IDX] : SIFO_Filter12[filter][QU1_IDX];
+
+  for ( Int y = iHeight; y != 0; y-- )
+  {
+    piSrcTmp = &piSrc[ (0-m_iLeftMargin)*iSrcStep ];
+    for ( Int x = 0; x < iWidth; x++ )
+    {
+      iSum                   = xCTI_Filter_VI[QU1_IDX]( piSrcTmp, piFilter, iSrcStep );
+      piDst   [x * iDstStep] = Clip( (iSum +  (1<<15)) >>  16 );
+      piDst   [x * iDstStep] = Clip( piDst   [x * iDstStep] + Offsets);
+      piSrcTmp += iSrcStep;
+    }
+    piSrc += iSrcStride;
+    piDst += iDstStride;
+  }
+  return;
+}
+
+__inline Void TComPredFilter::xCTI_FilterHalfVer (Pel* piSrc, Int iSrcStride, Int iSrcStep, Int iWidth, Int iHeight, Int iDstStride, Int iDstStep, Int*& rpiDst, Int iDstStridePel, Pel*& rpiDstPel , Int filter, Int Offsets)
+{
+  Int*  piDst = rpiDst;
+  Pel*  piDstPel = rpiDstPel;
+  Int   iSum;
+  Pel*  piSrcTmp;
+  Int*  piFilter = (m_iTapIdx==1)? SIFO_Filter6[filter][HAL_IDX] : SIFO_Filter12[filter][HAL_IDX];
+
+  for ( Int y = iHeight; y != 0; y-- )
+  {
+    piSrcTmp = &piSrc[ -m_iLeftMargin*iSrcStride ];
+    for ( Int x = 0; x < iWidth; x++ )
+    {
+      iSum									 = xCTI_Filter_VPS[HAL_IDX]( piSrcTmp, piFilter, iSrcStride );
+      piDst[x * iDstStep]		 = iSum; 
+      piDstPel[x * iDstStep] = Clip( (iSum +  128) >>  8 );
+      piDst   [x * iDstStep] =       piDst      [x * iDstStep] + Offsets;
+      piDstPel[x * iDstStep] = Clip( piDstPel   [x * iDstStep] + Offsets);
+      piSrcTmp += iSrcStep;
+    }
+    piSrc += iSrcStride;
+    piDst += iDstStride;
+    piDstPel += iDstStridePel;
+  }
+  return;
+}
+
+__inline Void TComPredFilter::xCTI_FilterHalfVer (Pel* piSrc, Int iSrcStride, Int iSrcStep, Int iWidth, Int iHeight, Int iDstStride, Int iDstStep, Int*& rpiDst, Int filter, Int Offsets)
+{
+  Int*  piDst = rpiDst;
+  Int   iSum;
+  Pel*  piSrcTmp;
+  Int*  piFilter = (m_iTapIdx==1)? SIFO_Filter6[filter][HAL_IDX] : SIFO_Filter12[filter][HAL_IDX];
+
+  for ( Int y = iHeight; y != 0; y-- )
+  {
+    piSrcTmp = &piSrc[ -m_iLeftMargin*iSrcStride ];
+    for ( Int x = 0; x < iWidth; x++ )
+    {
+      iSum                = xCTI_Filter_VPS[HAL_IDX]( piSrcTmp, piFilter, iSrcStride );
+      piDst[x * iDstStep] = iSum; 
+      piDst[x * iDstStep] =       piDst      [x * iDstStep] + Offsets;
+      piSrcTmp += iSrcStep;
+    }
+    piSrc += iSrcStride;
+    piDst += iDstStride;
+  }
+  return;
+}
+
+__inline Void TComPredFilter::xCTI_FilterHalfVer (Pel* piSrc, Int iSrcStride, Int iSrcStep, Int iWidth, Int iHeight, Int iDstStride, Int iDstStep, Pel*& rpiDst, Int filter, Int Offsets)
+{
+  Pel*  piDst = rpiDst;
+  Int   iSum;
+  Pel*  piSrcTmp;
+  Int*  piFilter = (m_iTapIdx==1)? SIFO_Filter6[filter][HAL_IDX] : SIFO_Filter12[filter][HAL_IDX];
+
+  for ( Int y = iHeight; y != 0; y-- )
+  {
+    piSrcTmp = &piSrc[ -m_iLeftMargin*iSrcStride ];
+    for ( Int x = 0; x < iWidth; x++ )
+    {
+      iSum                = xCTI_Filter_VPS[HAL_IDX]( piSrcTmp, piFilter, iSrcStride );
+      piDst[x * iDstStep] = Clip( (iSum +  128) >>  8 );
+      piDst[x * iDstStep] = Clip( piDst  [x * iDstStep] + Offsets);
+
+      piSrcTmp += iSrcStep;
+    }
+    piSrc += iSrcStride;
+    piDst += iDstStride;
+  }
+  return;
+}
+
+__inline Void TComPredFilter::xCTI_FilterQuarter0Ver (Pel* piSrc, Int iSrcStride, Int iSrcStep, Int iWidth, Int iHeight, Int iDstStride, Int iDstStep, Int*& rpiDst, Int filter, Int Offsets)
+{
+  Int*  piDst = rpiDst;
+  Int   iSum;
+  Pel*  piSrcTmp;
+  Int*  piFilter = (m_iTapIdx==1)? SIFO_Filter6[filter][QU0_IDX] : SIFO_Filter12[filter][QU0_IDX];
+
+  for ( Int y = iHeight; y != 0; y-- )
+  {
+    piSrcTmp = &piSrc[ -m_iLeftMargin*iSrcStride ];
+    for ( Int x = 0; x < iWidth; x++ )
+    {
+      iSum                = xCTI_Filter_VP[QU0_IDX]( piSrcTmp, piFilter, iSrcStride );
+      piDst[x * iDstStep] = iSum; 
+      piDst[x * iDstStep] =       piDst      [x * iDstStep] + Offsets;
+      piSrcTmp += iSrcStep;
+    }
+    piSrc += iSrcStride;
+    piDst += iDstStride;
+  }
+  return;
+}
+
+__inline Void TComPredFilter::xCTI_FilterQuarter0Ver (Pel* piSrc, Int iSrcStride, Int iSrcStep, Int iWidth, Int iHeight, Int iDstStride, Int iDstStep, Pel*& rpiDst, Int filter, Int Offsets)
+{
+  Pel*  piDst = rpiDst;
+  Int   iSum;
+  Pel*  piSrcTmp;
+  Int*  piFilter = (m_iTapIdx==1)? SIFO_Filter6[filter][QU0_IDX] : SIFO_Filter12[filter][QU0_IDX];
+
+  for ( Int y = iHeight; y != 0; y-- )
+  {
+    piSrcTmp = &piSrc[ -m_iLeftMargin*iSrcStride ];
+    for ( Int x = 0; x < iWidth; x++ )
+    {
+      iSum                = xCTI_Filter_VP[QU0_IDX]( piSrcTmp, piFilter, iSrcStride );
+      piDst[x * iDstStep] = Clip( (iSum +  128) >>  8 ); 
+      piDst[x * iDstStep] = Clip( piDst   [x * iDstStep] + Offsets);
+      piSrcTmp += iSrcStep;
+    }
+    piSrc += iSrcStride;
+    piDst += iDstStride;
+  }
+  return;
+}
+
+__inline Void TComPredFilter::xCTI_FilterQuarter1Ver (Pel* piSrc, Int iSrcStride, Int iSrcStep, Int iWidth, Int iHeight, Int iDstStride, Int iDstStep, Int*& rpiDst, Int filter, Int Offsets)
+{
+  Int*  piDst = rpiDst;
+  Int   iSum;
+  Pel*  piSrcTmp;
+  Int*  piFilter = (m_iTapIdx==1)? SIFO_Filter6[filter][QU1_IDX] : SIFO_Filter12[filter][QU1_IDX];
+
+  for ( Int y = iHeight; y != 0; y-- )
+  {
+    piSrcTmp = &piSrc[ -m_iLeftMargin*iSrcStride ];
+    for ( Int x = 0; x < iWidth; x++ )
+    {
+      iSum								= xCTI_Filter_VP[QU1_IDX]( piSrcTmp, piFilter, iSrcStride );
+      piDst[x * iDstStep] = iSum; 
+      piDst[x * iDstStep] =       piDst      [x * iDstStep] + Offsets;
+
+      piSrcTmp += iSrcStep;
+    }
+    piSrc += iSrcStride;
+    piDst += iDstStride;
+  }
+  return;
+}
+
+__inline Void TComPredFilter::xCTI_FilterQuarter1Ver (Pel* piSrc, Int iSrcStride, Int iSrcStep, Int iWidth, Int iHeight, Int iDstStride, Int iDstStep, Pel*& rpiDst, Int filter, Int Offsets)
+{
+  Pel*  piDst = rpiDst;
+  Int   iSum;
+  Pel*  piSrcTmp;
+  Int*  piFilter = (m_iTapIdx==1)? SIFO_Filter6[filter][QU1_IDX] : SIFO_Filter12[filter][QU1_IDX];
+
+  for ( Int y = iHeight; y != 0; y-- )
+  {
+    piSrcTmp = &piSrc[ -m_iLeftMargin*iSrcStride ];
+    for ( Int x = 0; x < iWidth; x++ )
+    {
+      iSum                = xCTI_Filter_VP[QU1_IDX]( piSrcTmp, piFilter, iSrcStride );
+      piDst[x * iDstStep] = Clip( (iSum +  128) >>  8 ); 
+      piDst[x * iDstStep] = Clip( piDst[x * iDstStep] + Offsets);
+
+      piSrcTmp += iSrcStep;
+    }
+    piSrc += iSrcStride;
+    piDst += iDstStride;
+  }
+  return;
+}
+
+#endif
+
+#endif // __TCOMPREDFILTER__
