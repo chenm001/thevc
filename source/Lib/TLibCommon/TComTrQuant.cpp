@@ -5572,7 +5572,7 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
 
     plLevelDouble[ uiBlkPos ] = lLevelDouble;
 #if QC_MDDT
-    assert(iQBits < 32);
+    //assert(iQBits < 32);
     UInt uiMaxAbsLevel = (UInt)(lLevelDouble >> iQBits);
     Bool bLowerInt = ( ( lLevelDouble - Int64( uiMaxAbsLevel << iQBits ) ) < Long( 1 <<( iQBits - 1 ) ) ) ? true : false;
 #else
