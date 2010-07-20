@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="ks_c_5601-1987"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="9,00"
+	Version="9.00"
 	Name="TAppDecoder"
 	ProjectGUID="{A7A515D9-E917-4706-BD5B-57DC6C78D612}"
 	TargetFrameworkVersion="0"
@@ -578,6 +578,14 @@
 			Filter="ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe"
 			>
 		</Filter>
+		<File
+			RelativePath=".\ClassDiagram1.cd"
+			>
+		</File>
+		<File
+			RelativePath=".\ClassDiagram2.cd"
+			>
+		</File>
 	</Files>
 	<Globals>
 	</Globals>

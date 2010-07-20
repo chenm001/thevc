@@ -382,11 +382,14 @@ Void TAppEncCfg::xCheckParameter()
   {
     m_bUseSBACRD = false;
   }
+
+#if !NEWVLC
   // RDOQ is supported only for SBAC
   if ( !m_bUseSBACRD )
   {
     m_bUseRDOQ = false;
   }
+#endif
 #ifdef QC_AMVRES
   if(m_iInterpFilterType == IPF_TEN_DIF)
     m_bUseAMVRes = false;

@@ -1903,6 +1903,278 @@ Void TComTrQuant::xT16( Pel* pSrc, UInt uiStride, Long* pDes )
   }
 }
 
+#if NEWVLC
+Int TComTrQuant::bitCountVLC(Int k,Int pos,Int n,Int lpflag,Int levelMode,Int run,Int maxrun,Int vlc_adaptive,Int N)
+{
+    UInt cn;
+    int vlc,x,cx,vlcNum,bits,temp;
+    static const int vlctable_8x8[28] = {8,0,0,5,5,5,5,5,5,5,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6};
+    static const int vlcTable8[8] = {10,10,3,3,3,4,4,4}; // U,V,Y8x8I,Y8x8P,Y8x8B,Y16x16I,Y16x16P,Y16x16B
+    static const int vlcTable4[3] = {2,2,2};             // Y4x4I,Y4x4P,Y4x4B,
+    static const int VLClength[11][128] = {
+        { 1, 2, 3, 4, 5, 6, 7, 9, 9,11,11,11,11,13,13,13,13,13,13,13,13,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19},
+        { 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7, 8, 8,10,10,10,10,12,12,12,12,12,12,12,12,14,14,14,14,14,14,14,14,14,14,14,14,14,14,14,14,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,18,18,18,18,18,18,18,18,18,18,18,18,18,18,18,18,18,18,18,18,18,18,18,18,18,18,18,18,18,18,18,18,18,18,18,18,18,18,18,18,18,18,18,18,18,18,18,18,18,18,18,18,18,18},
+        { 3, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5, 6, 6, 6, 6, 7, 7, 7, 7, 8, 8, 8, 8, 9, 9, 9, 9,11,11,11,11,11,11,11,11,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17},
+        { 4, 4, 4, 4, 4, 4, 4, 4, 5, 5, 5, 5, 5, 5, 5, 5, 6, 6, 6, 6, 6, 6, 6, 6, 7, 7, 7, 7, 7, 7, 7, 7, 8, 8, 8, 8, 8, 8, 8, 8, 9, 9, 9, 9, 9, 9, 9, 9,10,10,10,10,10,10,10,10,12,12,12,12,12,12,12,12,12,12,12,12,12,12,12,12,14,14,14,14,14,14,14,14,14,14,14,14,14,14,14,14,14,14,14,14,14,14,14,14,14,14,14,14,14,14,14,14,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16},
+        { 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13},
+        { 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7, 8, 8, 9, 9,10,10,11,11,12,12,13,13,14,14,15,15,16,16,17,17,18,18,19,19,20,20,21,21,22,22,23,23,24,24,25,25,26,26,27,27,28,28,29,29,30,30,31,31,32,32,33,33,34,34,35,35,36,36,37,37,38,38,39,39,40,40,41,41,42,42,43,43,44,44,45,45,46,46,47,47,48,48,49,49,50,50,51,51,52,52,53,53,54,54,55,55,56,56,57,57,58,58,59,59,60,60,61,61,62,62,63,63,64,64,65,65},
+        { 3, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5, 6, 6, 6, 6, 7, 7, 7, 7, 8, 8, 8, 8, 9, 9, 9, 9,10,10,10,10,11,11,11,11,12,12,12,12,13,13,13,13,14,14,14,14,15,15,15,15,16,16,16,16,17,17,17,17,18,18,18,18,19,19,19,19,20,20,20,20,21,21,21,21,22,22,22,22,23,23,23,23,24,24,24,24,25,25,25,25,26,26,26,26,27,27,27,27,28,28,28,28,29,29,29,29,30,30,30,30,31,31,31,31,32,32,32,32,33,33,33,33,34,34,34,34},
+        { 4, 4, 4, 4, 4, 4, 4, 4, 5, 5, 5, 5, 5, 5, 5, 5, 6, 6, 6, 6, 6, 6, 6, 6, 7, 7, 7, 7, 7, 7, 7, 7, 8, 8, 8, 8, 8, 8, 8, 8, 9, 9, 9, 9, 9, 9, 9, 9,10,10,10,10,10,10,10,10,11,11,11,11,11,11,11,11,12,12,12,12,12,12,12,12,13,13,13,13,13,13,13,13,14,14,14,14,14,14,14,14,15,15,15,15,15,15,15,15,16,16,16,16,16,16,16,16,17,17,17,17,17,17,17,17,18,18,18,18,18,18,18,18,19,19,19,19,19,19,19,19},
+        { 1, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+        { 3, 4, 4, 5, 5, 5, 5, 5, 5, 5, 5, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,12,12,12,12,12,12,12,12,12,12,12,12,12,12,12,12,13,13,13,13,13},
+        { 1, 3, 3, 5, 5, 5, 5, 7, 7, 7, 7, 7, 7, 7, 7, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,15}
+    };
+    int sign = k<0 ? 1 : 0;
+
+    
+
+    k = abs(k);
+    if (N != 4 && N!= 8)
+        printf("unsupported block size in bitCountVLC()");
+    if (k){
+        if (lpflag==1){                       
+            x = pos + (k==1 ? 0 : N*N);
+            if (N==8){
+                cx = g_auiLPTableE8[n][x];
+                vlcNum = vlcTable8[n];
+            }
+            else if(N==4){
+                cx = g_auiLPTableE4[n][x];                
+                vlcNum = vlcTable4[n];
+            }
+            bits = VLClength[vlcNum][cx];
+            if (k>1)
+            {
+                temp = 2*(k-2)+sign;
+                if(temp > 127)
+                    temp = 127;
+                bits += VLClength[0][temp];
+            }
+            else bits += 1;                                     
+        }
+        else{
+            if (!levelMode){                                                    
+                if (maxrun > 27)
+                {
+                  cn = g_auiLumaRun8x8[28][k>1 ? 1 : 0][run];
+                }
+                else
+                {
+                  cn = g_auiLumaRun8x8[maxrun][k>1 ? 1 : 0][run];
+                }
+                vlc = (maxrun>27) ? 3 : vlctable_8x8[maxrun];
+                bits = VLClength[vlc][cn];
+                if (k>1)
+                {
+                    temp = 2*(k-2)+sign;
+                    if(temp > 127)
+                        temp = 127;
+                    bits += VLClength[0][temp];
+                }
+                else
+                    bits += 1;  
+                               
+            }
+            else{
+                if(k > 127)
+                    k = 127;
+                bits = VLClength[vlc_adaptive][k] + 1;
+            }
+        }
+    }
+    else{
+        if (levelMode)
+            bits = VLClength[vlc_adaptive][k];
+        else{                        
+            if (pos==0 && lpflag==0){  
+                if (maxrun > 27)
+                {
+                  cn = g_auiLumaRun8x8[28][0][run+1];
+                }
+                else
+                {
+                  cn = g_auiLumaRun8x8[maxrun][0][run+1];
+                }
+                vlc = (maxrun>27) ? 3 : vlctable_8x8[maxrun];
+                bits = VLClength[vlc][cn];
+            }
+            else
+                bits = 0;
+        }
+    }
+    return bits;
+}
+
+Void TComTrQuant::xRateDistOptQuant_VLC             ( TComDataCU*                     pcCU,
+                                                      Long*                           plSrcCoeff,
+                                                      TCoeff*&                        piDstCoeff,
+                                                      UInt                            uiWidth,
+                                                      UInt                            uiHeight,
+                                                      UInt&                           uiAbsSum,
+                                                      TextType                        eTType,
+                                                      UInt                            uiAbsPartIdx,
+                                                      UChar                           ucIndexROT    )
+{
+  Int iLpFlag,iLevelMode,iRun,iMaxrun,iVlc_adaptive,iSum_big_coef,iSign;
+  Int atable[5] = {4,6,14,28,0xfffffff};
+  Int switch_thr[8] = {49,49,0,49,49,0,49,49};
+  
+  const UInt* pucScan;
+  UInt* piQuantCoef = NULL;
+  UInt uiBlkPos,uiPosY,uiPosX,uiLog2BlkSize,uiConvBit,uiLevel,uiMaxLevel,uiMinLevel,uiAbsLevel,uiBestAbsLevel,uiBitShift;
+  Int iScanning,iQpRem,iQBits,iBlockType,iRate;
+  Long lLevelDouble;
+  Double dErr,dTemp,dNormFactor,rd64UncodedCost,rd64CodedCost,dCurrCost;
+   
+  uiBitShift = 15;
+  iQpRem = m_cQP.m_iRem;
+
+  if (uiWidth == 4){
+    iBlockType = 0 + ( pcCU->isIntra(uiAbsPartIdx) ? 0 : pcCU->getSlice()->getSliceType() ); 
+    iQBits = m_cQP.m_iBits;                 
+    uiLog2BlkSize = g_aucConvertToBit[ 4 ] + 2; 
+    uiConvBit = g_aucConvertToBit[ 4 ];
+    dNormFactor = pow(2., (2*DQ_BITS+19));
+    if ( g_uiBitIncrement ) dNormFactor *= 1<<(2*g_uiBitIncrement);
+  }
+  else if (uiWidth == 8){
+    if (eTType==TEXT_CHROMA_U || eTType==TEXT_CHROMA_V) 
+      iBlockType = eTType-2;
+    else
+      iBlockType = 2 + ( pcCU->isIntra(uiAbsPartIdx) ? 0 : pcCU->getSlice()->getSliceType() ); 
+    iQBits = m_cQP.m_iBits + 1;                 
+    uiLog2BlkSize = g_aucConvertToBit[ 8 ] + 2; 
+    uiConvBit = g_aucConvertToBit[ 8 ];
+    dNormFactor = pow(2., (2*Q_BITS_8+9)); 
+    if ( g_uiBitIncrement ) dNormFactor *= 1<<(2*g_uiBitIncrement);
+  }
+  else{
+    if (eTType==TEXT_CHROMA_U || eTType==TEXT_CHROMA_V) 
+      iBlockType = eTType-2;
+    else
+      iBlockType = 5 + ( pcCU->isIntra(uiAbsPartIdx) ? 0 : pcCU->getSlice()->getSliceType() ); 
+                     
+    uiLog2BlkSize = g_aucConvertToBit[ 8 ] + 2; 
+    uiConvBit = g_aucConvertToBit[ 8 ];
+    dNormFactor = pow(2., 21);
+    if ( g_uiBitIncrement ) dNormFactor *= 1<<(2*g_uiBitIncrement);
+
+    if ( uiWidth == 16)
+    {
+      piQuantCoef = ( g_aiQuantCoef256[m_cQP.rem()] );
+      iQBits = ECore16Shift + m_cQP.per();     
+      dTemp = estErr16x16[iQpRem]/dNormFactor;
+    }
+    else if ( uiWidth == 32)
+    {
+      piQuantCoef = ( g_aiQuantCoef1024[m_cQP.rem()] );
+      iQBits = ECore32Shift + m_cQP.per();
+      dTemp = estErr32x32[iQpRem]/dNormFactor;
+    }
+    else if ( uiWidth ==64)
+    {
+      piQuantCoef = g_aiQuantCoef4096;   // To save the memory for g_aiQuantCoef4096
+      iQBits = ECore64Shift + m_cQP.per();
+      dTemp = estErr64x64[iQpRem]/dNormFactor;
+    }
+    memset(&piDstCoeff[0],0,uiWidth*uiHeight*sizeof(TCoeff)); 
+  }
+
+  
+
+#if HHI_RQT
+  pucScan = g_auiFrameScanXY [ uiConvBit + 1 ];
+#else
+  pucScan = g_auiFrameScanXY  [ uiConvBit ];
+#endif
+  
+  
+
+  iLpFlag = 1;
+  iLevelMode = 0;
+  iRun = 0;
+  iVlc_adaptive = 0;
+  iMaxrun = 0;
+  iSum_big_coef = 0;
+    
+ 
+  for (iScanning=(uiWidth<8 ? 15 : 63); iScanning>=0; iScanning--) 
+  {            
+    uiBlkPos = pucScan[iScanning];
+    uiPosY   = uiBlkPos >> uiLog2BlkSize;
+    uiPosX   = uiBlkPos - ( uiPosY << uiLog2BlkSize );
+    if (uiWidth==4)
+      dTemp = estErr4x4[ iQpRem ][ uiPosX ][ uiPosY ] / dNormFactor; 
+    else if(uiWidth==8)
+      dTemp = estErr8x8[ iQpRem ][ uiPosX ][ uiPosY ] / dNormFactor;
+    else
+      uiBlkPos = uiWidth*uiPosY+uiPosX;
+        
+    lLevelDouble = abs(plSrcCoeff[uiBlkPos]);
+    
+    if (ucIndexROT == 0 && uiWidth > 8 ){        
+      if ( uiWidth == 64 ) lLevelDouble = lLevelDouble * piQuantCoef[m_cQP.rem()];
+      else                 lLevelDouble = lLevelDouble * piQuantCoef[uiBlkPos];
+    }
+    
+    iSign = plSrcCoeff[uiBlkPos]<0 ? -1 : 1;
+
+
+    uiLevel = lLevelDouble  >> iQBits;      
+    uiMaxLevel = uiLevel + 1;
+    uiMinLevel = Max(1,(Int)uiLevel - 2);
+
+
+    uiBestAbsLevel = 0;
+    if (uiWidth==4)
+      iRate = bitCountVLC(0,iScanning,iBlockType,iLpFlag,iLevelMode,iRun,iMaxrun,iVlc_adaptive,4)<<uiBitShift; 
+    else 
+      iRate = bitCountVLC(0,iScanning,iBlockType,iLpFlag,iLevelMode,iRun,iMaxrun,iVlc_adaptive,8)<<uiBitShift; 
+
+    dErr = Double( lLevelDouble );
+    rd64UncodedCost = dErr * dErr * dTemp;     
+    rd64CodedCost   = rd64UncodedCost + xGetICost( iRate );
+    for(uiAbsLevel = uiMinLevel; uiAbsLevel <= uiMaxLevel ; uiAbsLevel++ )
+    {
+      if (uiWidth==4)
+        iRate = bitCountVLC(iSign*uiAbsLevel,iScanning,iBlockType,iLpFlag,iLevelMode,iRun,iMaxrun,iVlc_adaptive,4)<<uiBitShift; 
+      else 
+        iRate = bitCountVLC(iSign*uiAbsLevel,iScanning,iBlockType,iLpFlag,iLevelMode,iRun,iMaxrun,iVlc_adaptive,8)<<uiBitShift; 
+      dErr = Double( lLevelDouble  - Long( uiAbsLevel << iQBits ) );
+      rd64UncodedCost = dErr * dErr * dTemp;
+      dCurrCost = rd64UncodedCost + xGetICost( iRate );
+      if( dCurrCost < rd64CodedCost )
+      {         
+        uiBestAbsLevel  = uiAbsLevel;
+        rd64CodedCost   = dCurrCost;
+      }
+    }
+                         
+    if (uiBestAbsLevel){                  
+        if (uiWidth>4){ 
+            if (!iLpFlag && uiBestAbsLevel > 1){
+                iSum_big_coef += uiBestAbsLevel;
+                if ((63-iScanning) > switch_thr[iBlockType] || iSum_big_coef > 2) iLevelMode = 1;
+            }
+        }
+        else{
+            if (uiBestAbsLevel>1) iLevelMode = 1;
+        }
+        iMaxrun = iScanning-1;
+        iLpFlag = 0;
+        iRun = 0;
+        if (iLevelMode && (uiBestAbsLevel > atable[iVlc_adaptive])) iVlc_adaptive++;                    
+    }
+    else{
+        iRun += 1;         
+    }
+
+    uiAbsSum += uiBestAbsLevel;
+    piDstCoeff[uiBlkPos] = iSign*uiBestAbsLevel;
+  } // for uiScanning
+} 
+#endif
+
 Void TComTrQuant::xQuantLTR  (TComDataCU* pcCU, Long* pSrc, TCoeff*& pDes, Int iWidth, Int iHeight, UInt& uiAcSum, TextType eTType, UInt uiAbsPartIdx, UChar indexROT )
 {
   Long*   piCoef    = pSrc;
@@ -1988,8 +2260,17 @@ Void TComTrQuant::xQuantLTR  (TComDataCU* pcCU, Long* pSrc, TCoeff*& pDes, Int i
     }
   }
 
+#if NEWVLC
+if ( !(pcCU->isIntra( uiAbsPartIdx ) && m_iSymbolMode == 0 )  && m_bUseRDOQ  && (eTType == TEXT_LUMA || RDOQ_CHROMA) && (!RDOQ_ROT_IDX0_ONLY || indexROT == 0) )
+#else
   if ( m_bUseRDOQ && (eTType == TEXT_LUMA || RDOQ_CHROMA) && (!RDOQ_ROT_IDX0_ONLY || indexROT == 0) )
+#endif
   {
+#if NEWVLC
+    if ( m_iSymbolMode == 0)
+      xRateDistOptQuant_VLC(pcCU, piCoef, pDes, iWidth, iHeight, uiAcSum, eTType, uiAbsPartIdx, indexROT );
+    else
+#endif
     xRateDistOptQuant( pcCU, piCoef, pDes, iWidth, iHeight, uiAcSum, eTType, uiAbsPartIdx, indexROT );
   }
   else
@@ -2028,6 +2309,11 @@ Void TComTrQuant::xQuantLTR  (TComDataCU* pcCU, Long* pSrc, TCoeff*& pDes, Int i
         else                iLevel = abs( iLevel ) * piQuantCoef[n];
       }
 
+#if NEWVLC
+	    if (!pcCU->isIntra( uiAbsPartIdx ) && (m_iSymbolMode == 0) && ((n%iWidth)>=8 || (n/iWidth)>=8))
+		    iLevel = 0;
+      else
+#endif
       iLevel = ( iLevel + iAdd ) >> iNewBits;
 
       if( 0 != iLevel )
@@ -3928,7 +4214,11 @@ Void TComTrQuant::xIT64 ( Long* pSrc, Pel* pDes, UInt uiStride )
 }
 
 #if HHI_ALLOW_ROT_SWITCH
+#if NEWVLC
+Void TComTrQuant::init( UInt uiMaxWidth, UInt uiMaxHeight, UInt uiMaxTrSize, Bool bUseROT, Int iSymbolMode, /*UInt *aTableLP4, UInt *aTableLP8, */Bool bUseRDOQ,  Bool bEnc )
+#else
 Void TComTrQuant::init( UInt uiMaxWidth, UInt uiMaxHeight, UInt uiMaxTrSize, Bool bUseROT, Bool bUseRDOQ, Bool bEnc )
+#endif
 #else
 Void TComTrQuant::init( UInt uiMaxWidth, UInt uiMaxHeight, UInt uiMaxTrSize, Bool bUseRDOQ, Bool bEnc )
 #endif
@@ -3938,6 +4228,9 @@ Void TComTrQuant::init( UInt uiMaxWidth, UInt uiMaxHeight, UInt uiMaxTrSize, Boo
   m_bUseRDOQ     = bUseRDOQ;
 #if HHI_ALLOW_ROT_SWITCH
   m_bUseROT			 = bUseROT;
+#if NEWVLC
+  m_iSymbolMode = iSymbolMode;
+#endif
 #endif
 
   if ( m_bEnc )
@@ -4374,8 +4667,18 @@ Void TComTrQuant::xQuant4x4( TComDataCU* pcCU, Long* plSrcCoef, TCoeff*& pDstCoe
   }
 
 #endif
+
+#if NEWVLC
+  if ( !(getUseMDDT(uiMode, indexROT) && m_iSymbolMode == 0) && m_bUseRDOQ && (eTType == TEXT_LUMA || RDOQ_CHROMA) && (!RDOQ_ROT_IDX0_ONLY || indexROT == 0 ) )
+#else
   if ( m_bUseRDOQ && (eTType == TEXT_LUMA || RDOQ_CHROMA) && (!RDOQ_ROT_IDX0_ONLY || indexROT == 0 ) )
+#endif
   {
+#if NEWVLC
+    if ( m_iSymbolMode == 0)
+      xRateDistOptQuant_VLC(pcCU, plSrcCoef, pDstCoef, 4, 4, uiAbsSum, eTType, uiAbsPartIdx, indexROT);
+    else
+#endif
     xRateDistOptQuant(pcCU, plSrcCoef, pDstCoef, 4, 4, uiAbsSum, eTType, uiAbsPartIdx, indexROT);
   }
   else
@@ -4473,8 +4776,17 @@ Void TComTrQuant::xQuant8x8( TComDataCU* pcCU, Long* plSrcCoef, TCoeff*& pDstCoe
 
   Int iBit = m_cQP.m_iBits + 1;
 
+#if NEWVLC
+  if ( !(getUseMDDT(uiMode, indexROT) && m_iSymbolMode == 0) && m_bUseRDOQ && (eTType == TEXT_LUMA || RDOQ_CHROMA) && (!RDOQ_ROT_IDX0_ONLY || indexROT == 0 ) )
+#else
   if ( m_bUseRDOQ && (eTType == TEXT_LUMA || RDOQ_CHROMA) && (!RDOQ_ROT_IDX0_ONLY || indexROT == 0 ) )
+#endif
   {
+#if NEWVLC
+    if ( m_iSymbolMode == 0)
+      xRateDistOptQuant_VLC(pcCU, plSrcCoef, pDstCoef, 8, 8, uiAbsSum, eTType, uiAbsPartIdx, indexROT);
+    else
+#endif
     xRateDistOptQuant(pcCU, plSrcCoef, pDstCoef, 8, 8, uiAbsSum, eTType, uiAbsPartIdx, indexROT);
   }
   else
@@ -5572,7 +5884,7 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
 
     plLevelDouble[ uiBlkPos ] = lLevelDouble;
 #if QC_MDDT
-    assert(iQBits < 32);
+    //assert(iQBits < 32);
     UInt uiMaxAbsLevel = (UInt)(lLevelDouble >> iQBits);
     Bool bLowerInt = ( ( lLevelDouble - Int64( uiMaxAbsLevel << iQBits ) ) < Long( 1 <<( iQBits - 1 ) ) ) ? true : false;
 #else

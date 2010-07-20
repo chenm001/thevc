@@ -51,7 +51,7 @@
 #define HHI_RQT                           1           ///< MWHK: residual quadtree
 #define HHI_RQT_CHROMA_CBF_MOD            1           ///< HK: alternative syntax for coded block flag coding for chroma
 #define HHI_RQT_INTRA                     1           ///< HS: residual quadtree for intra blocks
-#define HHI_ALF                           0           ///< MS: separable adaptive loop filter 
+#define HHI_ALF                           1           ///< MS: separable adaptive loop filter 
 #define HHI_AIS                           1           ///< BB: adaptive intra smoothing
 #define HHI_INTERP_FILTER                 1           ///< HL: interpolation filter
 #define HHI_TRANSFORM_CODING              1           ///< TN: modified transform coefficient coding with RDOQ
@@ -88,6 +88,9 @@
 #if (HHI_DEBLOCKING_FILTER && TENTM_DEBLOCKING_FILTER)
 #error "Only one of TENTM_DEBLOCKING_FILTER and HHI_DEBLOCKING_FILTER can be defined"
 #endif
+
+#define NEWVLC                            1           // Improved VLC coding
+
 //////////////////////////
 // TEN defines section end
 //////////////////////////
@@ -115,7 +118,7 @@
 #define SIFO_DISABLE_FILTER         0
 #endif
 
-#define QC_ALF              1
+#define QC_ALF              0
 #if QC_ALF
 #define ENABLE_FORCECOEFF0  0
 #endif
