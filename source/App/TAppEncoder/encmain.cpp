@@ -59,7 +59,7 @@ int main(int argc, char* argv[])
   if(!cTAppEncTop.parseCfg( argc, argv ))
   {
     cTAppEncTop.destroy();
-    return 0;
+    return 1;
   }
 
   // starting time
@@ -76,11 +76,7 @@ int main(int argc, char* argv[])
   // destroy application encoder class
   cTAppEncTop.destroy();
 
-#ifdef QC_CONFIG
   return 0;
-#else
-  return 1;
-#endif
 }
 
 
