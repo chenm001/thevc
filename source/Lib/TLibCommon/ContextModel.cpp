@@ -48,32 +48,6 @@
 Void 
 ContextModel::init( Int iQp, Short asCtxInit[] )
 {
-#if 1 // use original init tables -> modify later
-  if( asCtxInit[ 0 ] == 0 && asCtxInit[ 1 ] == 0 )
-  {
-    m_ucState     = 0;
-    return;
-  }
-  UChar acStateMappingTable[ 113 ] =  { 0, 16, 31, 43, 54, 62, 62, 62,    62, 62, 62, 62, 62, 62,  0,  7,
-                                       13, 19, 25, 30, 35, 40, 45, 49,    53, 57, 60, 62, 62, 62, 62, 62, 
-                                       62, 62, 62, 62,  0,  4,  8, 12,    16, 20, 23, 27, 30, 33, 37, 40,
-                                       42, 45, 48, 50, 53, 55, 57, 59,    61, 62, 62, 62, 62, 62, 62, 62, 
-                                        0,  3,  6,  9, 12, 15, 18, 20,    23, 25, 28, 30, 32, 35, 37, 39, 
-                                        1,  3,  6,  8, 10, 12, 15, 17,     1,  3,  5,  7,  9, 11, 13,  1, 
-                                        3,  4,  6,  8,  9,  2,  3,  5,     6,  1,  2,  4,  1,  2,  0,  1,  0 };
-  Int iInitState  = ( ( asCtxInit[ 0 ] * iQp ) >> 8 ) + asCtxInit[ 1 ];
-  iInitState      = Min( Max( 8, iInitState ), 63 );
-  if( iInitState >= 36 )
-  {
-    m_ucState     = 1;
-  }
-  else
-  {
-    m_ucState     = 0;
-    iInitState    = 71 - iInitState;
-  }
-  m_ucState      += ( acStateMappingTable[ iInitState ] << 1 );
-#else // CABAC initialization as in H.264/AVC
   Int iInitState  = ( ( asCtxInit[ 0 ] * iQp ) >> 4 ) + asCtxInit[ 1 ];
   iInitState      = Min( Max( 1, iInitState ), 126 );
   if( iInitState >= 64 )
@@ -86,7 +60,6 @@ ContextModel::init( Int iQp, Short asCtxInit[] )
     m_ucState     = Min( 62, 63 - iInitState );
     m_ucState    += m_ucState;
   }
-#endif
 }
 
 
