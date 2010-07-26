@@ -607,15 +607,31 @@
 		6782E0E511AD692F00E8FFB8 /* TAppDecoder */ = {
 			isa = PBXGroup;
 			children = (
-				6782E0E711AD694400E8FFB8 /* decmain.cpp */,
-				6782E0E811AD694400E8FFB8 /* TAppDecCfg.cpp */,
-				6782E0E911AD694400E8FFB8 /* TAppDecCfg.h */,
-				6782E0EA11AD694400E8FFB8 /* TAppDecOption.cpp */,
-				6782E0EB11AD694400E8FFB8 /* TAppDecOption.h */,
-				6782E0EC11AD694400E8FFB8 /* TAppDecTop.cpp */,
-				6782E0ED11AD694400E8FFB8 /* TAppDecTop.h */,
+				7159526811FDCC9A00B8FF3F /* Source */,
+				7159526711FDCC8800B8FF3F /* Headers */,
 			);
 			name = TAppDecoder;
+			sourceTree = "<group>";
+		};
+		7159526711FDCC8800B8FF3F /* Headers */ = {
+			isa = PBXGroup;
+			children = (
+				6782E0ED11AD694400E8FFB8 /* TAppDecTop.h */,
+				6782E0EB11AD694400E8FFB8 /* TAppDecOption.h */,
+				6782E0E911AD694400E8FFB8 /* TAppDecCfg.h */,
+			);
+			name = Headers;
+			sourceTree = "<group>";
+		};
+		7159526811FDCC9A00B8FF3F /* Source */ = {
+			isa = PBXGroup;
+			children = (
+				6782E0EC11AD694400E8FFB8 /* TAppDecTop.cpp */,
+				6782E0EA11AD694400E8FFB8 /* TAppDecOption.cpp */,
+				6782E0E811AD694400E8FFB8 /* TAppDecCfg.cpp */,
+				6782E0E711AD694400E8FFB8 /* decmain.cpp */,
+			);
+			name = Source;
 			sourceTree = "<group>";
 		};
 		C6859E8C029090F304C91782 /* Documentation */ = {
