@@ -40,6 +40,10 @@
 #include "TAppEncCfg.h"
 #include "../../App/TAppCommon/program_options_lite.h"
 
+#ifdef WIN32
+#define strdup _strdup
+#endif
+
 using namespace std;
 namespace po = df::program_options_lite;
 
@@ -243,11 +247,11 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
    * Set any derived parameters
    */
   /* convert std::string to c string for compatability */
-  m_pchInputFile = cfg_InputFile.empty() ? NULL : _strdup(cfg_InputFile.c_str());
-  m_pchBitstreamFile = cfg_BitstreamFile.empty() ? NULL : _strdup(cfg_BitstreamFile.c_str());
-  m_pchReconFile = cfg_ReconFile.empty() ? NULL : _strdup(cfg_ReconFile.c_str());
-  m_pchdQPFile = cfg_dQPFile.empty() ? NULL : _strdup(cfg_dQPFile.c_str());
-  m_pchGRefMode = cfg_GRefMode.empty() ? NULL : _strdup(cfg_GRefMode.c_str());
+  m_pchInputFile = cfg_InputFile.empty() ? NULL : strdup(cfg_InputFile.c_str());
+  m_pchBitstreamFile = cfg_BitstreamFile.empty() ? NULL : strdup(cfg_BitstreamFile.c_str());
+  m_pchReconFile = cfg_ReconFile.empty() ? NULL : strdup(cfg_ReconFile.c_str());
+  m_pchdQPFile = cfg_dQPFile.empty() ? NULL : strdup(cfg_dQPFile.c_str());
+  m_pchGRefMode = cfg_GRefMode.empty() ? NULL : strdup(cfg_GRefMode.c_str());
 
   if (m_iRateGOPSize == -1) {
     /* if rateGOPSize has not been specified, the default value is GOPSize */
