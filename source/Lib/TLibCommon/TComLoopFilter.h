@@ -84,10 +84,6 @@ protected:
       return g_auiRasterToZscan[g_auiZscanToRaster[uiAbsZorderIdx] + iEdgeIdx * uiLCUWidthInBaseUnits + iBaseUnitIdx ];
   }
   Void xSetEdgefilterMultiple( TComDataCU* pcCU, UInt uiAbsZorderIdx, UInt uiDepth, Int iDir, Int iEdgeIdx, Bool bValue );
-#if PLANAR_INTRA
-  Void xPelFilterPlanarIntra      ( Pel* piSrc, Int iOffset, Int iBlkSize );
-  Void xEdgeFilterPlanarIntra     ( TComDataCU* pcCU, UInt uiAbsZorderIdx, Int iDir );
-#endif
 #else
   Void xSetEdgefilter             ( TComDataCU* pcCU, UInt uiAbsZorderIdx );
   Void xGetBoundaryStrength       ( TComDataCU* pcCU, UInt uiAbsZorderIdx, Int iDir, Int iEdge, UInt uiDepth );
@@ -95,6 +91,11 @@ protected:
   // filtering functions
   Void xEdgeFilterLuma            ( TComDataCU* pcCU, UInt uiAbsZorderIdx, Int iDir, Int iEdge );
   Void xEdgeFilterChroma          ( TComDataCU* pcCU, UInt uiAbsZorderIdx, Int iDir, Int iEdge );
+#endif
+
+#if PLANAR_INTRA
+  Void xPelFilterPlanarIntra      ( Pel* piSrc, Int iOffset, Int iBlkSize );
+  Void xEdgeFilterPlanarIntra     ( TComDataCU* pcCU, UInt uiAbsZorderIdx, Int iDir );
 #endif
 
 #if HHI_DEBLOCKING_FILTER
