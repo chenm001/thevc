@@ -28,7 +28,6 @@ DEFS				= -DMSYS_LINUX -D_LARGEFILE64_SOURCE -D_FILE_OFFSET_BITS=64 -DMSYS_UNIX_
 OBJS          		= 	\
 					$(OBJ_DIR)/encmain.o \
 					$(OBJ_DIR)/TAppEncCfg.o \
-					$(OBJ_DIR)/TAppEncOption.o \
 					$(OBJ_DIR)/TAppEncTop.o \
 
 # set libs to link with
@@ -41,15 +40,15 @@ STAT_LIBS			= -lpthread
 DYN_LIBS			=
 
 
-DYN_DEBUG_LIBS		= -lTLibEncoderd -lTLibCommond -lTLibVideoIOd
-DYN_DEBUG_PREREQS		= $(LIB_DIR)/libTLibEncoderd.a $(LIB_DIR)/libTLibCommond.a $(LIB_DIR)/libTLibVideoIOd.a
-STAT_DEBUG_LIBS		= -lTLibEncoderStaticd -lTLibCommonStaticd -lTLibVideoIOStaticd
-STAT_DEBUG_PREREQS		= $(LIB_DIR)/libTLibEncoderStaticd.a $(LIB_DIR)/libTLibCommonStaticd.a $(LIB_DIR)/libTLibVideoIOStaticd.a
+DYN_DEBUG_LIBS		= -lTLibEncoderd -lTLibCommond -lTLibVideoIOd -lTAppCommond
+DYN_DEBUG_PREREQS		= $(LIB_DIR)/libTLibEncoderd.a $(LIB_DIR)/libTLibCommond.a $(LIB_DIR)/libTLibVideoIOd.a $(LIB_DIR)/libTAppCommond.a
+STAT_DEBUG_LIBS		= -lTLibEncoderStaticd -lTLibCommonStaticd -lTLibVideoIOStaticd -lTAppCommonStaticd
+STAT_DEBUG_PREREQS		= $(LIB_DIR)/libTLibEncoderStaticd.a $(LIB_DIR)/libTLibCommonStaticd.a $(LIB_DIR)/libTLibVideoIOStaticd.a $(LIB_DIR)/libTAppCommonStaticd.a
 
-DYN_RELEASE_LIBS	= -lTLibEncoder -lTLibCommon -lTLibVideoIO
-DYN_RELEASE_PREREQS	= $(LIB_DIR)/libTLibEncoder.a $(LIB_DIR)/libTLibCommon.a $(LIB_DIR)/libTLibVideoIO.a
-STAT_RELEASE_LIBS	= -lTLibEncoderStatic -lTLibCommonStatic -lTLibVideoIOStatic
-STAT_RELEASE_PREREQS	= $(LIB_DIR)/libTLibEncoderStatic.a $(LIB_DIR)/libTLibCommonStatic.a $(LIB_DIR)/libTLibVideoIOStatic.a
+DYN_RELEASE_LIBS	= -lTLibEncoder -lTLibCommon -lTLibVideoIO -lTAppCommon
+DYN_RELEASE_PREREQS	= $(LIB_DIR)/libTLibEncoder.a $(LIB_DIR)/libTLibCommon.a $(LIB_DIR)/libTLibVideoIO.a $(LIB_DIR)/libTAppCommon.a
+STAT_RELEASE_LIBS	= -lTLibEncoderStatic -lTLibCommonStatic -lTLibVideoIOStatic -lTAppCommonStatic
+STAT_RELEASE_PREREQS	= $(LIB_DIR)/libTLibEncoderStatic.a $(LIB_DIR)/libTLibCommonStatic.a $(LIB_DIR)/libTLibVideoIOStatic.a $(LIB_DIR)/libTAppCommonStatic.a
 
 
 # name of the base makefile

@@ -44,8 +44,6 @@
 #define HHI_NAL_UNIT_SYNTAX               1           ///< enable/disable NalUnit syntax 
 #define HHI_ALLOW_CIP_SWITCH              1           ///< BB: allow to switch off CIP, via CIP : 0 in cfg file or -0 CIP in command line
 #define HHI_ALLOW_ROT_SWITCH              1           ///< BB: allow to switch off ROT, via ROT : 0 in cfg file or -0 ROT in command line
-#define HHI_ALLOW_RATEGOPSIZE_IN_CFG_FILE 1           ///< BB: allow to switch set RateGOPSize parameter via RateGOPSize : in cfg file
-#define HHI_ALLOW_GPB_IN_CFG_FILE         1           ///< BB: allow to switch off/on GPB  via GPB : 0/1 in cfg file
 
 // HHI tools
 #define HHI_RQT                           1           ///< MWHK: residual quadtree

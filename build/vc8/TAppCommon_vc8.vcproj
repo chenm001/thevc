@@ -2,9 +2,9 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="8.00"
-	Name="TAppEncoder"
-	ProjectGUID="{D759E4E1-D33A-4483-B57B-0FD248E022FE}"
-	RootNamespace="TAppEncoder"
+	Name="TAppCommon"
+	ProjectGUID="{8783AD3A-A5CA-42B7-AAC4-A07EB845A684}"
+	RootNamespace="TAppCommon"
 	Keyword="Win32Proj"
 	>
 	<Platforms>
@@ -20,9 +20,9 @@
 	<Configurations>
 		<Configuration
 			Name="Debug|Win32"
-			OutputDirectory="$(SolutionDir)\..\bin\vc8\$(PlatformName)\$(ConfigurationName)\"
+			OutputDirectory="$(SolutionDir)\vc8\$(PlatformName)\$(ConfigurationName)\$(RootNamespace)"
 			IntermediateDirectory="$(SolutionDir)\vc8\$(PlatformName)\$(ConfigurationName)\$(RootNamespace)"
-			ConfigurationType="1"
+			ConfigurationType="4"
 			CharacterSet="2"
 			>
 			<Tool
@@ -43,7 +43,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				PreprocessorDefinitions="WIN32;_DEBUG;_CONSOLE;_CRT_SECURE_NO_WARNINGS"
+				PreprocessorDefinitions="WIN32;_DEBUG;_LIB;_CRT_SECURE_NO_WARNINGS"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
@@ -60,17 +60,10 @@
 				Name="VCPreLinkEventTool"
 			/>
 			<Tool
-				Name="VCLinkerTool"
-				LinkIncremental="2"
-				GenerateDebugInformation="true"
-				SubSystem="1"
-				TargetMachine="1"
+				Name="VCLibrarianTool"
 			/>
 			<Tool
 				Name="VCALinkTool"
-			/>
-			<Tool
-				Name="VCManifestTool"
 			/>
 			<Tool
 				Name="VCXDCMakeTool"
@@ -82,17 +75,14 @@
 				Name="VCFxCopTool"
 			/>
 			<Tool
-				Name="VCAppVerifierTool"
-			/>
-			<Tool
 				Name="VCPostBuildEventTool"
 			/>
 		</Configuration>
 		<Configuration
 			Name="Release|Win32"
-			OutputDirectory="$(SolutionDir)\..\bin\vc8\$(PlatformName)\$(ConfigurationName)\"
+			OutputDirectory="$(SolutionDir)\vc8\$(PlatformName)\$(ConfigurationName)\$(RootNamespace)"
 			IntermediateDirectory="$(SolutionDir)\vc8\$(PlatformName)\$(ConfigurationName)\$(RootNamespace)"
-			ConfigurationType="1"
+			ConfigurationType="4"
 			CharacterSet="2"
 			WholeProgramOptimization="1"
 			>
@@ -117,7 +107,7 @@
 				InlineFunctionExpansion="2"
 				EnableIntrinsicFunctions="false"
 				FavorSizeOrSpeed="1"
-				PreprocessorDefinitions="WIN32;NDEBUG;_CONSOLE;_CRT_SECURE_NO_WARNINGS"
+				PreprocessorDefinitions="WIN32;NDEBUG;_LIB;_CRT_SECURE_NO_WARNINGS"
 				StringPooling="true"
 				RuntimeLibrary="0"
 				WarningLevel="3"
@@ -133,17 +123,10 @@
 				Name="VCPreLinkEventTool"
 			/>
 			<Tool
-				Name="VCLinkerTool"
-				LinkIncremental="1"
-				GenerateDebugInformation="true"
-				SubSystem="1"
-				TargetMachine="1"
+				Name="VCLibrarianTool"
 			/>
 			<Tool
 				Name="VCALinkTool"
-			/>
-			<Tool
-				Name="VCManifestTool"
 			/>
 			<Tool
 				Name="VCXDCMakeTool"
@@ -155,17 +138,14 @@
 				Name="VCFxCopTool"
 			/>
 			<Tool
-				Name="VCAppVerifierTool"
-			/>
-			<Tool
 				Name="VCPostBuildEventTool"
 			/>
 		</Configuration>
 		<Configuration
 			Name="Debug|x64"
-			OutputDirectory="$(SolutionDir)\..\bin\vc8\$(PlatformName)\$(ConfigurationName)\"
+			OutputDirectory="$(SolutionDir)\vc8\$(PlatformName)\$(ConfigurationName)\$(RootNamespace)"
 			IntermediateDirectory="$(SolutionDir)\vc8\$(PlatformName)\$(ConfigurationName)\$(RootNamespace)"
-			ConfigurationType="1"
+			ConfigurationType="4"
 			CharacterSet="2"
 			>
 			<Tool
@@ -187,7 +167,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				PreprocessorDefinitions="WIN32;_DEBUG;_CONSOLE;_CRT_SECURE_NO_WARNINGS"
+				PreprocessorDefinitions="WIN32;_DEBUG;_LIB;_CRT_SECURE_NO_WARNINGS"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
@@ -204,17 +184,10 @@
 				Name="VCPreLinkEventTool"
 			/>
 			<Tool
-				Name="VCLinkerTool"
-				LinkIncremental="2"
-				GenerateDebugInformation="true"
-				SubSystem="1"
-				TargetMachine="17"
+				Name="VCLibrarianTool"
 			/>
 			<Tool
 				Name="VCALinkTool"
-			/>
-			<Tool
-				Name="VCManifestTool"
 			/>
 			<Tool
 				Name="VCXDCMakeTool"
@@ -226,17 +199,14 @@
 				Name="VCFxCopTool"
 			/>
 			<Tool
-				Name="VCAppVerifierTool"
-			/>
-			<Tool
 				Name="VCPostBuildEventTool"
 			/>
 		</Configuration>
 		<Configuration
 			Name="Release|x64"
-			OutputDirectory="$(SolutionDir)\..\bin\vc8\$(PlatformName)\$(ConfigurationName)\"
+			OutputDirectory="$(SolutionDir)\vc8\$(PlatformName)\$(ConfigurationName)\$(RootNamespace)"
 			IntermediateDirectory="$(SolutionDir)\vc8\$(PlatformName)\$(ConfigurationName)\$(RootNamespace)"
-			ConfigurationType="1"
+			ConfigurationType="4"
 			CharacterSet="2"
 			WholeProgramOptimization="1"
 			>
@@ -262,7 +232,7 @@
 				InlineFunctionExpansion="2"
 				EnableIntrinsicFunctions="false"
 				FavorSizeOrSpeed="1"
-				PreprocessorDefinitions="WIN32;NDEBUG;_CONSOLE;_CRT_SECURE_NO_WARNINGS"
+				PreprocessorDefinitions="WIN32;NDEBUG;_LIB;_CRT_SECURE_NO_WARNINGS"
 				StringPooling="true"
 				RuntimeLibrary="0"
 				WarningLevel="3"
@@ -278,17 +248,10 @@
 				Name="VCPreLinkEventTool"
 			/>
 			<Tool
-				Name="VCLinkerTool"
-				LinkIncremental="1"
-				GenerateDebugInformation="true"
-				SubSystem="1"
-				TargetMachine="17"
+				Name="VCLibrarianTool"
 			/>
 			<Tool
 				Name="VCALinkTool"
-			/>
-			<Tool
-				Name="VCManifestTool"
 			/>
 			<Tool
 				Name="VCXDCMakeTool"
@@ -298,9 +261,6 @@
 			/>
 			<Tool
 				Name="VCFxCopTool"
-			/>
-			<Tool
-				Name="VCAppVerifierTool"
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
@@ -315,15 +275,7 @@
 			Filter="cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx"
 			>
 			<File
-				RelativePath="..\..\source\App\TAppEncoder\encmain.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\..\source\App\TAppEncoder\TAppEncCfg.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\..\source\App\TAppEncoder\TAppEncTop.cpp"
+				RelativePath="..\..\source\App\TAppCommon\program_options_lite.cpp"
 				>
 			</File>
 		</Filter>
@@ -332,18 +284,9 @@
 			Filter="h;hpp;hxx;hm;inl;inc;xsd"
 			>
 			<File
-				RelativePath="..\..\source\App\TAppEncoder\TAppEncCfg.h"
+				RelativePath="..\..\source\App\TAppCommon\program_options_lite.h"
 				>
 			</File>
-			<File
-				RelativePath="..\..\source\App\TAppEncoder\TAppEncTop.h"
-				>
-			</File>
-		</Filter>
-		<Filter
-			Name="Resource Files"
-			Filter="rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav"
-			>
 		</Filter>
 	</Files>
 	<Globals>
