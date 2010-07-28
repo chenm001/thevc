@@ -307,8 +307,6 @@ Int TEncEntropy::golombEncode(int coeff, int k)
 
 Void TEncEntropy::codeFilt(ALFParam* pAlfParam)
 {
-  Int pos;
-
   if(pAlfParam->filters_per_group > 1)
   {
 #if ENABLE_FORCECOEFF0
