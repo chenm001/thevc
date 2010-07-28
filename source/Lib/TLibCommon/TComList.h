@@ -44,10 +44,8 @@
 #include <assert.h>
 #include "CommonDef.h"
 
-#ifndef WIN32     // for gcc compiler
-  #include <cstdlib>
-  using namespace std;
-#endif
+#include <cstdlib>
+using namespace std;
 
 // ====================================================================================================================
 // Class definition
@@ -68,11 +66,7 @@ public:
 
   TComIterator find( const C& rcT ) // leszek
   {
-#ifdef WIN32
-    return std::find( this->begin(), this->end(), rcT );
-#else
     return find( this->begin(), this->end(), rcT );
-#endif
   }
 };
 
