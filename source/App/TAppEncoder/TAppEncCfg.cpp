@@ -68,7 +68,7 @@ TAppEncCfg::TAppEncCfg()
   m_iFrameToBeEncoded             = 0;
   m_iIntraPeriod                  = -1;
   m_iGOPSize                      = 1;
-  m_iRateGOPSize                  = m_iGOPSize;
+  m_iRateGOPSize                  = -1;
   m_iNumOfReference               = 1;
   m_iNumOfReferenceB_L0           = 1;
   m_iNumOfReferenceB_L1           = 1;
@@ -249,6 +249,11 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
   // set configuration from option handling class
   xSetCfgFile     ( m_apcOpt   );
   xSetCfgCommand  ( argc, argv );
+
+  if (m_iRateGOPSize == -1) {
+    /* if rateGOPSize has not been specified, the default value is GOPSize */
+    m_iRateGOPSize = m_iGOPSize;
+  }
 
   // compute source padding size
   if ( m_bUsePAD )
@@ -498,7 +503,7 @@ Void TAppEncCfg::xSetCfgFile( TAppOption* pcOpt )
   if ( pcOpt->getValue( "FrameToBeEncoded" ) )              m_iFrameToBeEncoded             = atoi( pcOpt->getValue( "FrameToBeEncoded" ) );
 
   if ( pcOpt->getValue( "IntraPeriod" ) )                   m_iIntraPeriod                  = atoi( pcOpt->getValue( "IntraPeriod" ) );
-  if ( pcOpt->getValue( "GOPSize" ) )                       { m_iGOPSize                      = atoi( pcOpt->getValue( "GOPSize" ) ); m_iRateGOPSize = m_iGOPSize; }
+  if ( pcOpt->getValue( "GOPSize" ) )                       m_iGOPSize                      = atoi( pcOpt->getValue( "GOPSize" ) );
   if ( pcOpt->getValue( "RateGOPSize" ) )                   m_iRateGOPSize                  = atoi( pcOpt->getValue( "RateGOPSize" ) );
   if ( pcOpt->getValue( "NumOfReference" ) )                m_iNumOfReference               = atoi( pcOpt->getValue( "NumOfReference" ) );
   if ( pcOpt->getValue( "NumOfReferenceB_L0" ) )            m_iNumOfReferenceB_L0           = atoi( pcOpt->getValue( "NumOfReferenceB_L0" ) );
@@ -624,7 +629,7 @@ Void TAppEncCfg::xSetCfgCommand( int iArgc, char** pArgv )
     else if ( !strcmp( pStr, "-v" ) )   { i++; m_pchGRefMode        = pArgv[i];         i++; }
     else if ( !strcmp( pStr, "-f" ) )   { i++; m_iFrameToBeEncoded    = atoi( pArgv[i] ); i++; }
     else if ( !strcmp( pStr, "-q" ) )   { i++; m_fQP                  = atof( pArgv[i] ); i++; }
-    else if ( !strcmp( pStr, "-g" ) )   { i++; m_iGOPSize             = atoi( pArgv[i] ); i++; m_iRateGOPSize = m_iGOPSize; }
+    else if ( !strcmp( pStr, "-g" ) )   { i++; m_iGOPSize             = atoi( pArgv[i] ); i++; }
     else if ( !strcmp( pStr, "-rg" ) )  { i++; m_iRateGOPSize         = atoi( pArgv[i] ); i++; }
     else if ( !strcmp( pStr, "-r" ) )   { i++; m_iNumOfReference      = atoi( pArgv[i] ); i++; }
     else if ( !strcmp( pStr, "-rb0" ) ) { i++; m_iNumOfReferenceB_L0  = atoi( pArgv[i] ); i++; }
