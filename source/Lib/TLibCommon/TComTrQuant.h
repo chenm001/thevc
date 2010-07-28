@@ -192,7 +192,11 @@ public:
 
   // initialize class
 #if HHI_ALLOW_ROT_SWITCH
+#if NEWVLC
+  Void init                 ( UInt uiMaxWidth, UInt uiMaxHeight, UInt uiMaxTrSize, Bool bUseROT, Int iSymbolMode = 0, Bool bUseRDOQ = false,  Bool bEnc = false );
+#else
   Void init                 ( UInt uiMaxWidth, UInt uiMaxHeight, UInt uiMaxTrSize, Bool bUseROT, Bool bUseRDOQ = false, Bool bEnc = false );
+#endif
 #else
   Void init                 ( UInt uiMaxWidth, UInt uiMaxHeight, UInt uiMaxTrSize, Bool bUseRDOQ = false, Bool bEnc = false );
 #endif
@@ -255,6 +259,10 @@ protected:
   Bool     m_bEnc;
   Bool     m_bUseRDOQ;
 
+#if NEWVLC
+  Bool     m_iSymbolMode;
+#endif
+
 private:
   // forward Transform
 #if QC_MDDT
@@ -296,6 +304,18 @@ private:
                                      TextType                        eTType,
                                      UInt                            uiAbsPartIdx,
                                      UChar                           ucIndexROT    );
+#if NEWVLC
+  Int            bitCountVLC(Int k,Int pos,Int n,Int lpflag,Int levelMode,Int run,Int maxrun,Int vlc_adaptive,Int N);
+  Void           xRateDistOptQuant_VLC ( TComDataCU*                     pcCU,
+                                     Long*                           plSrcCoeff,
+                                     TCoeff*&                        piDstCoeff,
+                                     UInt                            uiWidth,
+                                     UInt                            uiHeight,
+                                     UInt&                           uiAbsSum,
+                                     TextType                        eTType,
+                                     UInt                            uiAbsPartIdx,
+                                     UChar                           ucIndexROT    );
+#endif
   __inline UInt  xGetCodedLevel    ( Double&                         rd64UncodedCost,
                                      Double&                         rd64CodedCost,
 #if QC_MDDT

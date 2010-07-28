@@ -481,48 +481,10 @@ Void TEncCu::xCompressCU( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, UInt u
       xCheckRDCostIntra( rpcBestCU, rpcTempCU, SIZE_NxN   ); rpcTempCU->initEstData();
     }
 
-    PartSize eSize = rpcBestCU->getPartitionSize(0);
-
     // try special intra tool only when best = intra
     if ( rpcBestCU->getPredictionMode(0) == MODE_INTRA )
     {
-      // try CIP
-#if HHI_ALLOW_CIP_SWITCH
-      if ( rpcTempCU->getSlice()->getSPS()->getUseCIP() )
-      {
-        rpcTempCU->setCIPflag( 0, 1 );
-        rpcTempCU->setCIPflagSubParts( 1, 0, rpcTempCU->getDepth(0) );
-        xCheckRDCostIntra(rpcBestCU, rpcTempCU, eSize);  rpcTempCU->initEstData();
-      }
-#else
-      rpcTempCU->setCIPflag( 0, 1 );
-      rpcTempCU->setCIPflagSubParts( 1, 0, rpcTempCU->getDepth(0) );
-      xCheckRDCostIntra(rpcBestCU, rpcTempCU, eSize);  rpcTempCU->initEstData();
-#endif
-      // try ROT
-#if QC_MDDT
-      if ((rpcBestCU->getWidth(0) > 16) || ((rpcBestCU->getWidth(0) == 16) && (eSize == SIZE_2Nx2N)))
-#endif
-      {
-#if HHI_ALLOW_ROT_SWITCH
-      if ( rpcTempCU->getSlice()->getSPS()->getUseROT() )
-      {
-        for (UChar indexROT = 1; indexROT<ROT_DICT; indexROT++)
-        {
-          rpcTempCU->setROTindex(0,indexROT);
-          rpcTempCU->setROTindexSubParts( indexROT, 0, rpcTempCU->getDepth(0) );
-          xCheckRDCostIntra(rpcBestCU, rpcTempCU, eSize);  rpcTempCU->initEstData();
-        }
-      }
-#else
-      for (UChar indexROT = 1; indexROT<ROT_DICT; indexROT++)
-      {
-        rpcTempCU->setROTindex(0,indexROT);
-        rpcTempCU->setROTindexSubParts( indexROT, 0, rpcTempCU->getDepth(0) );
-        xCheckRDCostIntra(rpcBestCU, rpcTempCU, eSize);  rpcTempCU->initEstData();
-      }
-#endif
-
+      PartSize eSize = rpcBestCU->getPartitionSize(0);
 #if PLANAR_INTRA
       // Try planar mode
       if ( !rpcTempCU->getSlice()->isInterB() )
@@ -532,7 +494,51 @@ Void TEncCu::xCompressCU( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, UInt u
         xCheckPlanarIntra(rpcBestCU, rpcTempCU);  rpcTempCU->initEstData();
       }
 #endif
-    }
+#if HHI_ALLOW_CIP_SWITCH
+      if ( rpcTempCU->getSlice()->getSPS()->getUseCIP() )
+#else
+      if (1)
+#endif
+      {
+        rpcTempCU->setCIPflag( 0, 1 );
+        rpcTempCU->setCIPflagSubParts( 1, 0, rpcTempCU->getDepth(0) );
+        xCheckRDCostIntra(rpcBestCU, rpcTempCU, eSize);  rpcTempCU->initEstData();
+      }
+
+      // try ROT
+#if QC_MDDT
+      if ((rpcBestCU->getWidth(0) > 16) || ((rpcBestCU->getWidth(0) == 16) && (eSize == SIZE_2Nx2N)))
+#endif
+      {
+        // try ROT without CIP
+#if HHI_ALLOW_ROT_SWITCH
+        if ( rpcTempCU->getSlice()->getSPS()->getUseROT() )
+#else
+        if (1)
+#endif
+        {
+          for (UChar indexROT = 1; indexROT<ROT_DICT; indexROT++)
+          {
+            rpcTempCU->setROTindex(0,indexROT);
+            rpcTempCU->setROTindexSubParts( indexROT, 0, rpcTempCU->getDepth(0) );
+            rpcTempCU->setCIPflag( 0, 0 );
+            rpcTempCU->setCIPflagSubParts( 0, 0, rpcTempCU->getDepth(0) );
+            xCheckRDCostIntra(rpcBestCU, rpcTempCU, eSize);  rpcTempCU->initEstData();
+          }
+        } else {
+          rpcTempCU->setROTindex(0,0);
+          rpcTempCU->setROTindexSubParts(0, 0, rpcTempCU->getDepth(0) );
+          if (SIZE_NxN != eSize){
+            rpcTempCU->setCIPflag( 0, 1 );
+            rpcTempCU->setCIPflagSubParts( 1, 0, rpcTempCU->getDepth(0) );
+            xCheckRDCostIntra(rpcBestCU, rpcTempCU, SIZE_NxN);  rpcTempCU->initEstData();
+          } else {
+            rpcTempCU->setCIPflag( 0, 1 );
+            rpcTempCU->setCIPflagSubParts( 1, 0, rpcTempCU->getDepth(0) );
+            xCheckRDCostIntra(rpcBestCU, rpcTempCU, SIZE_2Nx2N);  rpcTempCU->initEstData();
+          }
+        }
+      }
     }
 
     m_pcEntropyCoder->resetBits();

@@ -1040,7 +1040,12 @@ Void TEncCavlc::codeCoeffNxN    ( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPa
 
   // initialize scan
   const UInt*  pucScan;
+#if NEWVLC
+  //UInt uiConvBit = g_aucConvertToBit[ Min(8,uiWidth)    ];
+  UInt uiConvBit = g_aucConvertToBit[ pcCU->isIntra( uiAbsPartIdx ) ? uiWidth : Min(8,uiWidth)    ];
+#else
   UInt uiConvBit = g_aucConvertToBit[ uiWidth    ];
+#endif
 #if HHI_RQT
   pucScan        = g_auiFrameScanXY [ uiConvBit + 1 ];
 #else
@@ -1115,6 +1120,32 @@ Void TEncCavlc::codeCoeffNxN    ( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPa
   TCoeff scoeff[64];
   Int iBlockType;
   UInt uiNumSigInterleaved;
+#if NEWVLC
+  UInt uiCodeDCCoef = 0;
+  TCoeff dcCoeff = 0;
+  if (pcCU->isIntra(uiAbsPartIdx))
+  {
+    UInt uiAbsPartIdxL, uiAbsPartIdxA;
+    TComDataCU* pcCUL   = pcCU->getPULeft (uiAbsPartIdxL, pcCU->getZorderIdxInCU() + uiAbsPartIdx);
+    TComDataCU* pcCUA   = pcCU->getPUAbove(uiAbsPartIdxA, pcCU->getZorderIdxInCU() + uiAbsPartIdx);
+    if (pcCUL == NULL && pcCUA == NULL)
+    {
+#if 1
+      uiCodeDCCoef = 1;
+      xWriteVlc((eTType == TEXT_LUMA ? 3 : 1) , abs(piCoeff[0]));
+      if (piCoeff[0] != 0)
+      {
+        UInt sign = (piCoeff[0] < 0) ? 1 : 0;
+        xWriteFlag(sign);
+      }
+      dcCoeff = piCoeff[0];
+      piCoeff[0] = 1;
+#else
+        xWriteFlag(1);
+#endif
+    }
+  }
+#endif
 
 #if HHI_RQT
   if( uiSize == 2*2 )
@@ -1166,12 +1197,32 @@ Void TEncCavlc::codeCoeffNxN    ( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPa
       }
 #endif
     }
+#if NEWVLC
+    if (eTType==TEXT_CHROMA_U || eTType==TEXT_CHROMA_V)
+      iBlockType = eTType-2;
+    else
+#endif
     iBlockType = 2 + ( pcCU->isIntra(uiAbsPartIdx) ? 0 : pcCU->getSlice()->getSliceType() );
 
     xCodeCoeff8x8( scoeff, iBlockType );
   }
   else
   {
+#if NEWVLC
+    if(!pcCU->isIntra( uiAbsPartIdx ))
+    {
+      for (uiScanning=0; uiScanning<64; uiScanning++)
+      {
+        scoeff[63-uiScanning] = piCoeff[(pucScan[uiScanning]/8)*uiWidth + (pucScan[uiScanning]%8)];      
+	    }
+      if (eTType==TEXT_CHROMA_U || eTType==TEXT_CHROMA_V) 
+        iBlockType = eTType-2;
+      else
+        iBlockType = 5 + ( pcCU->isIntra(uiAbsPartIdx) ? 0 : pcCU->getSlice()->getSliceType() );
+      xCodeCoeff8x8( scoeff, iBlockType );
+      return;
+    }    
+#endif
     for (uiInterleaving=0; uiInterleaving<uiSize/64; uiInterleaving++)
     {
       uiNumSigInterleaved = 0;
@@ -1213,7 +1264,16 @@ Void TEncCavlc::codeCoeffNxN    ( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPa
 #endif
 
     }
+//#endif
   }
+
+#if NEWVLC
+  if (uiCodeDCCoef == 1)
+  {
+    piCoeff[0] = dcCoeff;
+  }
+#endif
+
 }
 
 Void TEncCavlc::codeAlfFlag( UInt uiCode )
@@ -1233,7 +1293,9 @@ Void TEncCavlc::codeAlfSvlc( Int iCode )
 
 Void TEncCavlc::estBit( estBitsSbacStruct* pcEstBitsCabac, UInt uiCTXIdx, TextType eTType )
 {
+#if !NEWVLC
   assert(0);
+#endif
   // printf("error : no VLC mode support in this version\n");
   return;
 }

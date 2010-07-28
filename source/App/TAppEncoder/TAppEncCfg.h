@@ -37,7 +37,6 @@
 #define __TAPPENCCFG__
 
 #include "../../Lib/TLibCommon/CommonDef.h"
-#include "TAppEncOption.h"
 
 // ====================================================================================================================
 // Class definition
@@ -47,9 +46,6 @@
 class TAppEncCfg
 {
 protected:
-  // storage for encoder option handling
-  TAppOption*  m_apcOpt;                                      ///< option handling class
-
   // file I/O
   char*     m_pchInputFile;                                   ///< source file name
   char*     m_pchBitstreamFile;                               ///< output bitstream file
@@ -73,7 +69,6 @@ protected:
   Int       m_iNumOfReferenceB_L1;                            ///< total number of reference frames for reference list L1 in B-slice
   Bool      m_bHierarchicalCoding;                            ///< flag for specifying hierarchical B structure
   Bool      m_bUseLDC;                                        ///< flag for using low-delay coding mode
-  Int       m_iLDMode;                                        ///< pre-defined setting of low-delay mode, 0 = slow seq (QBO & NRF) / 1 = fast seq (BQP)
   Bool      m_bUseNRF;                                        ///< flag for using non-referenced frame in hierarchical structure
   Bool      m_bUseGPB;                                        ///< flag for using generalized P & B structure
   Bool      m_bUseQBO;                                        ///< flag for using quality-based reference ordering for skip mode
@@ -174,9 +169,6 @@ protected:
 #endif
 
   // internal member functions
-  Void  xSetCfgFile     ( TAppOption* pcOpt );                ///< parse configuration file
-  Void  xSetCfgCommand  ( int iArgc, char** pArgv );          ///< parse command line options
-  Void  xSetCfgTool     ();                                   ///< set configuration values for each coding tool
   Void  xSetGlobal      ();                                   ///< set global variables
   Void  xCheckParameter ();                                   ///< check validity of configuration values
   Void  xPrintParameter ();                                   ///< print configuration values

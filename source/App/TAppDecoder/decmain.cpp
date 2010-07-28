@@ -60,7 +60,7 @@ int main(int argc, char* argv[])
   if(!cTAppDecTop.parseCfg( argc, argv ))
   {
     cTAppDecTop.destroy();
-    return 0;
+    return 1;
   }
 
   // starting time
@@ -77,7 +77,7 @@ int main(int argc, char* argv[])
   // destroy application decoder class
   cTAppDecTop.destroy();
 
-  return 1;
+  return 0;
 }
 
 

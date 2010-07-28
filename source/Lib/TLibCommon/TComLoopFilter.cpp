@@ -383,6 +383,7 @@ Void TComLoopFilter::xSetEdgefilterPU( TComDataCU* pcCU, UInt uiAbsZorderIdx )
     }
 }
 }
+#endif
 
 #if PLANAR_INTRA
 Void TComLoopFilter::xPelFilterPlanarIntra( Pel* piSrc, Int iOffset, Int iBlkSize )
@@ -475,8 +476,8 @@ Void TComLoopFilter::xEdgeFilterPlanarIntra( TComDataCU* pcCU, UInt uiAbsZorderI
   }
 }
 #endif
-#else
 
+#if !HHI_DEBLOCKING_FILTER && !TENTM_DEBLOCKING_FILTER
 Void TComLoopFilter::xSetEdgefilter( TComDataCU* pcCU, UInt uiAbsZorderIdx )
 {
   switch ( pcCU->getPartitionSize( uiAbsZorderIdx ) )

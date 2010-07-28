@@ -33,8 +33,24 @@
     \brief    Handle encoder configuration parameters
 */
 
+#include <stdlib.h>
+#include <cassert>
 #include <cstring>
+#include <string>
 #include "TAppEncCfg.h"
+#include "../../App/TAppCommon/program_options_lite.h"
+
+#ifdef WIN32
+#define strdup _strdup
+#endif
+
+using namespace std;
+namespace po = df::program_options_lite;
+
+/* configuration helper funcs */
+void doOldStyleCmdlineLDM(po::Options& opts, const std::string& arg);
+void doOldStyleCmdlineOn(po::Options& opts, const std::string& arg);
+void doOldStyleCmdlineOff(po::Options& opts, const std::string& arg);
 
 // ====================================================================================================================
 // Local constants
@@ -50,63 +66,9 @@
 // ====================================================================================================================
 
 TAppEncCfg::TAppEncCfg()
-#if HHI_RQT
-: m_bQuadtreeTUFlag( true )
-, m_uiQuadtreeTULog2MaxSize( 6 )
-, m_uiQuadtreeTULog2MinSize( 2 )
-#endif
 {
-  // initialize member variables
-  m_pchInputFile                  = NULL;
-  m_pchBitstreamFile              = NULL;
-  m_pchReconFile                  = NULL;
-  m_pchdQPFile                    = NULL;
-  m_iFrameRate                    = 0;
-  m_iFrameSkip                    = 0;
-  m_iSourceWidth                  = 0;
-  m_iSourceHeight                 = 0;
-  m_iFrameToBeEncoded             = 0;
-  m_iIntraPeriod                  = -1;
-  m_iGOPSize                      = 1;
-  m_iRateGOPSize                  = m_iGOPSize;
-  m_iNumOfReference               = 1;
-  m_iNumOfReferenceB_L0           = 1;
-  m_iNumOfReferenceB_L1           = 1;
-  m_iQP                           = 30;
-  m_fQP                           = m_iQP;
-  m_aiTLayerQPOffset[0]           = ( MAX_QP + 1 );
-  m_aiTLayerQPOffset[1]           = ( MAX_QP + 1 );
-  m_aiTLayerQPOffset[2]           = ( MAX_QP + 1 );
-  m_aiTLayerQPOffset[3]           = ( MAX_QP + 1 );
-  m_aiPad[0]                      = 0;
-  m_aiPad[1]                      = 0;
-  m_aidQP                         = NULL;
-  m_bHierarchicalCoding           = true;
-
-  m_uiMinTrDepth                  = 0;
-  m_uiMaxTrDepth                  = 1;
-  m_iSymbolMode                   = 1;
-  m_uiMCWThreshold                = 0;
-  m_uiMaxPIPEDelay                = 0;
-  m_uiBalancedCPUs                = 8;
-  m_pchGRefMode     = NULL;
-  m_bLoopFilterDisable            = false;
-  m_iLoopFilterAlphaC0Offset      = 0;
-  m_iLoopFilterBetaOffset         = 0;
-  m_iFastSearch                   = 1;
-  m_iSearchRange                  = 96;
-  m_iMaxDeltaQP                   = 0;
-  m_uiMaxTrSize                   = 64;
-  m_iDIFTap                       = 12;
-#if HHI_ALF
-  m_bALFUseSeparateQT             = true;
-  m_bALFFilterSymmetry            = false;
-  m_iAlfMinLength                 = 3;
-  m_iAlfMaxLength                 = 9;
-#endif
-
-  // initialize configuration values for each tool
-  xSetCfgTool();
+  m_aidQP = NULL;
+  m_pchGRefMode = NULL;
 }
 
 TAppEncCfg::~TAppEncCfg()
@@ -119,12 +81,10 @@ TAppEncCfg::~TAppEncCfg()
 
 Void TAppEncCfg::create()
 {
-  m_apcOpt = new TAppOption();
 }
 
 Void TAppEncCfg::destroy()
 {
-  delete m_apcOpt;
 }
 
 // ====================================================================================================================
@@ -137,118 +97,166 @@ Void TAppEncCfg::destroy()
  */
 Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
 {
-  // '-c' option is used for specifying configuration file
-  m_apcOpt->setCommandOption( 'c' );
+  bool do_help = false;
 
-  // register configuration strings
-  m_apcOpt->setFileOption( "InputFile"                );
-  m_apcOpt->setFileOption( "BitstreamFile"            );
-  m_apcOpt->setFileOption( "ReconFile"                );
-  m_apcOpt->setFileOption( "FrameRate"                );
-  m_apcOpt->setFileOption( "FrameSkip"                );
-  m_apcOpt->setFileOption( "SourceWidth"              );
-  m_apcOpt->setFileOption( "SourceHeight"             );
-  m_apcOpt->setFileOption( "FrameToBeEncoded"         );
-  m_apcOpt->setFileOption( "IntraPeriod"              );
-  m_apcOpt->setFileOption( "GOPSize"                  );
-#if HHI_ALLOW_RATEGOPSIZE_IN_CFG_FILE
-  m_apcOpt->setFileOption( "RateGOPSize"              );
-#endif
-#if HHI_ALLOW_GPB_IN_CFG_FILE
-  m_apcOpt->setFileOption( "GPB"                      );
-#endif
-  m_apcOpt->setFileOption( "NumOfReference"           );
-  m_apcOpt->setFileOption( "NumOfReferenceB_L0"       );
-  m_apcOpt->setFileOption( "NumOfReferenceB_L1"       );
-  m_apcOpt->setFileOption( "QP"                       );
-  m_apcOpt->setFileOption( "HierarchicalCoding"       );
-  m_apcOpt->setFileOption( "FastSearch"               );
-  m_apcOpt->setFileOption( "SearchRange"              );
-  m_apcOpt->setFileOption( "MaxDeltaQP"               );
-  m_apcOpt->setFileOption( "HadamardME"               );
-  m_apcOpt->setFileOption( "PFI"                      );
-  m_apcOpt->setFileOption( "LowDelayCoding" );
+  string cfg_InputFile;
+  string cfg_BitstreamFile;
+  string cfg_ReconFile;
+  string cfg_dQPFile;
+  string cfg_GRefMode;
+  po::Options opts;
+  opts.addOptions()
+    ("help", do_help, false, "this help text")
+    ("c", po::parseConfigFile, "configuration file name")
 
-  m_apcOpt->setFileOption( "MaxCUWidth"               );
-  m_apcOpt->setFileOption( "MaxCUHeight"              );
-  m_apcOpt->setFileOption( "MaxPartitionDepth"        );
+    /* File, I/O and source parameters */
+    ("InputFile,i",     cfg_InputFile,     string(""), "original YUV input file name")
+    ("BitstreamFile,b", cfg_BitstreamFile, string(""), "bitstream output file name")
+    ("ReconFile,o",     cfg_ReconFile,     string(""), "reconstructed YUV output file name")
+
+    ("SourceWidth,wdt",       m_iSourceWidth,  0, "Source picture width")
+    ("SourceHeight,hgt",      m_iSourceHeight, 0, "Source picture height")
+    ("BitDepth",              m_uiBitDepth,    8u)
+    ("BitIncrement",          m_uiBitIncrement,4u, "bit-depth increasement")
+    ("HorizontalPadding,pdx", m_aiPad[0],      0, "horizontal source padding size")
+    ("VerticalPadding,pdy",   m_aiPad[1],      0, "vertical source padding size")
+    ("PAD",                   m_bUsePAD,   false, "automatic source padding of multiple of 16" )
+    ("FrameRate,fr",          m_iFrameRate,        0, "Frame rate")
+    ("FrameSkip,fs",          m_iFrameSkip,        0, "Number of frames to skip at start of input YUV")
+    ("FramesToBeEncoded,f",   m_iFrameToBeEncoded, 0, "number of frames to be encoded (default=all)")
+    ("FrameToBeEncoded",      m_iFrameToBeEncoded, 0, "depricated alias of FramesToBeEncoded")
+
+    /* Unit definition parameters */
+    ("MaxCUWidth",          m_uiMaxCUWidth,  64u)
+    ("MaxCUHeight",         m_uiMaxCUHeight, 64u)
+    /* todo: remove defaults from MaxCUSize */
+    ("MaxCUSize,s",         m_uiMaxCUWidth,  64u, "max CU size")
+    ("MaxCUSize,s",         m_uiMaxCUHeight, 64u, "max CU size")
+    ("MaxPartitionDepth,h", m_uiMaxCUDepth,   4u, "CU depth")
+
+    ("MaxTrSize,t",    m_uiMaxTrSize, 64u, "max transform size")
+    ("MaxTrDepth,utd", m_uiMaxTrDepth, 1u, "max transform depth")
+    ("MinTrDepth,ltd", m_uiMinTrDepth, 0u, "min transform depth")
 
 #if HHI_RQT
-  m_apcOpt->setFileOption( "QuadtreeTUFlag"           );
-  m_apcOpt->setFileOption( "QuadtreeTULog2MaxSize"    );
-  m_apcOpt->setFileOption( "QuadtreeTULog2MinSize"    );
+    ("QuadtreeTUFlag", m_bQuadtreeTUFlag, true)
+    ("QuadtreeTULog2MaxSize", m_uiQuadtreeTULog2MaxSize, 6u)
+    ("QuadtreeTULog2MinSize", m_uiQuadtreeTULog2MinSize, 2u)
 #endif
 
+    /* Coding structure paramters */
+    ("IntraPeriod,ip", m_iIntraPeriod, -1, "intra period in frames, (-1: only first frame)")
+    ("GOPSize,g",      m_iGOPSize,      1, "GOP size of temporal structure")
+    ("RateGOPSize,rg", m_iRateGOPSize, -1, "GOP size of hierarchical QP assignment")
+    ("NumOfReference,r",       m_iNumOfReference,     1, "Number of reference (P)")
+    ("NumOfReferenceB_L0,rb0", m_iNumOfReferenceB_L0, 1, "Number of reference (B_L0)")
+    ("NumOfReferenceB_L1,rb1", m_iNumOfReferenceB_L1, 1, "Number of reference (B_L1)")
+    ("HierarchicalCoding",     m_bHierarchicalCoding, true)
+    ("LowDelayCoding",         m_bUseLDC,             false, "low-delay mode")
+    ("GPB", m_bUseGPB, false, "generalized B instead of P in low-delay mode")
+    ("QBO", m_bUseQBO, false, "skip refers highest quality picture")
+    ("NRF", m_bUseNRF,  true, "non-reference frame marking in last layer")
+    ("BQP", m_bUseBQP, false, "hier-P style QP assignment in low-delay mode")
+    ("-ldm", doOldStyleCmdlineLDM, "recommended low-delay setting (with LDC), (0=slow sequence, 1=fast sequence)")
+
+    /* Interpolation filter options */
 #if HHI_INTERP_FILTER
-  m_apcOpt->setFileOption( "InterpFilterType"         );
+    ("InterpFilterType,-int", m_iInterpFilterType, (Int)IPF_SAMSUNG_DIF_DEFAULT)
+#endif
+    ("DIFTap,tap", m_iDIFTap, 12, "number of interpolation filter taps (luma)")
+#ifdef QC_SIFO_PRED
+    ("SPF",m_bUseSIFO_Pred, true)
 #endif
 
-  m_apcOpt->setFileOption( "ALF"                      );
-
-#if HHI_ALF
-  m_apcOpt->setFileOption( "ALFSeparateTree"          );
-  m_apcOpt->setFileOption( "ALFSymmetry"              );
-  m_apcOpt->setFileOption( "ALFMinLength"             );
-  m_apcOpt->setFileOption( "ALFMaxLength"             );
+    /* motion options */
+    ("FastSearch", m_iFastSearch, 1, "0:Full search  1:Diamond  2:PMVFAST")
+    ("SearchRange,sr", m_iSearchRange, 96, "motion search range")
+    ("HadamardME", m_bUseHADME, true, "hadamard ME for fractional-pel")
+    ("ASR", m_bUseASR, false, "adaptive motion search range")
+#ifdef QC_AMVRES
+    ("AMVRES", m_bUseAMVRes, true, "Adaptive motion resolution")
 #endif
+    ("GRefMode,v", cfg_GRefMode, string(""), "additional reference for weighted prediction (w: scale+offset, o: offset)")
 
+    /* Quantization parameters */
+    ("QP,q",          m_fQP,             30.0, "Qp value, if value is float, QP is switched once during encoding")
+    ("DeltaQpRD,dqr", m_uiDeltaQpRD,       0u, "max dQp offset for slice")
+    ("MaxDeltaQP,d",  m_iMaxDeltaQP,        0, "max dQp offset for block")
+    ("dQPFile,m",     cfg_dQPFile, string(""), "dQP file name")
+    ("RDOQ",          m_bUseRDOQ, true)
+    ("TemporalLayerQPOffset_L0,tq0", m_aiTLayerQPOffset[0], MAX_QP + 1, "QP offset of temporal layer 0")
+    ("TemporalLayerQPOffset_L1,tq1", m_aiTLayerQPOffset[1], MAX_QP + 1, "QP offset of temporal layer 1")
+    ("TemporalLayerQPOffset_L2,tq2", m_aiTLayerQPOffset[2], MAX_QP + 1, "QP offset of temporal layer 2")
+    ("TemporalLayerQPOffset_L3,tq3", m_aiTLayerQPOffset[3], MAX_QP + 1, "QP offset of temporal layer 3")
+
+    /* Entropy coding parameters */
+    ("SymbolMode,sym", m_iSymbolMode, 1, "symbol mode (0=VLC, 1=SBAC)")
+    ("SBACRD", m_bUseSBACRD, true, "SBAC based RD estimation")
+    ("MultiCodewordThreshold", m_uiMCWThreshold, 0u)
+    ("MaxPIPEBufferDelay", m_uiMaxPIPEDelay, 0u)
+    ("BalancedCPUs", m_uiBalancedCPUs, 8u)
+
+    /* Deblocking filter parameters */
+    ("LoopFilterDisable", m_bLoopFilterDisable, false)
+    ("LoopFilterAlphaC0Offset", m_iLoopFilterAlphaC0Offset, 0)
+    ("LoopFilterBetaOffset", m_iLoopFilterBetaOffset, 0 )
+
+    /* Coding tools */
 #if HHI_ALLOW_CIP_SWITCH
-  m_apcOpt->setFileOption( "CIP"                      );
+    ("CIP", m_bUseCIP, true, "combined intra prediction")
 #endif
 #if HHI_AIS
-  m_apcOpt->setFileOption( "AIS"                      );// BB: adaptive intra smoothing
+    ("AIS", m_bUseAIS, true, "adaptive intra smoothing")
 #endif
 #if HHI_MRG
-  m_apcOpt->setFileOption( "MRG"                      );// SOPH: merge mode
+    ("MRG", m_bUseMRG, true, "merging of motion partitions")
 #endif
 #if HHI_IMVP
-  m_apcOpt->setFileOption( "IMP"                      );// SOPH: interleaved motion vector predictor
+    ("IMP", m_bUseIMP, true, "interleaved motion vector predictor")
 #endif
-  m_apcOpt->setFileOption( "FilterLength"             );
-  m_apcOpt->setFileOption( "NumOfQBits"               );
-  m_apcOpt->setFileOption( "ColorNumber"              );
-  m_apcOpt->setFileOption( "FilterType"               );
-  m_apcOpt->setFileOption( "BitDepth"                 );
-  m_apcOpt->setFileOption( "BitIncrement"             );
-  m_apcOpt->setFileOption( "ROT"                      );
-  m_apcOpt->setFileOption( "DeltaQpRD"                );
-  m_apcOpt->setFileOption( "RDOQ"                     );
-  m_apcOpt->setFileOption( "LogicalTR"                );
-  m_apcOpt->setFileOption( "ExtremeCorrection"        );
-  m_apcOpt->setFileOption( "GRefMode"   );
-  m_apcOpt->setFileOption( "QBO"                      );
-  m_apcOpt->setFileOption( "NRF"                      );
-  m_apcOpt->setFileOption( "BQP"                      );
-#ifdef QC_AMVRES
-	m_apcOpt->setFileOption( "AMVRES"											);
+#if HHI_ALLOW_ROT_SWITCH
+    ("ROT", m_bUseROT, true)
 #endif
-#ifdef QC_SIFO_PRED
-	m_apcOpt->setFileOption( "SPF"											);
+    ("ALF", m_bUseALF, true, "Adaptive Loop Filter")
+#if HHI_ALF
+    ("ALFSeparateTree", m_bALFUseSeparateQT, true)
+    ("ALFSymmetry", m_bALFFilterSymmetry, false)
+    ("ALFMinLength", m_iAlfMinLength, 5)
+    ("ALFMaxLength", m_iAlfMaxLength, 9)
 #endif
-  m_apcOpt->setFileOption( "DIFTap"                   );
-  m_apcOpt->setFileOption( "LoopFilterDisable"        );
-  m_apcOpt->setFileOption( "LoopFilterAlphaC0Offset"  );
-  m_apcOpt->setFileOption( "LoopFilterBetaOffset"     );
-  m_apcOpt->setFileOption( "SymbolMode"               );
-  m_apcOpt->setFileOption( "MultiCodewordThreshold"   );
-  m_apcOpt->setFileOption( "MaxPIPEBufferDelay"       );
-  m_apcOpt->setFileOption( "FEN"                      );
-  m_apcOpt->setFileOption( "BalancedCPUs"             );
 
-  // command line parsing
-  m_apcOpt->processCommandArgs( argc, argv );
-  if( !m_apcOpt->hasOptions() || !m_apcOpt->getValue( 'c' ) )
-  {
+    /* Misc. */
+    ("FEN", m_bUseFastEnc, false, "fast encoder setting")
+
+    /* Compatability with old style -1 FOO or -0 FOO options. */
+    ("1", doOldStyleCmdlineOn, "turn option <name> on")
+    ("0", doOldStyleCmdlineOff, "turn option <name> off")
+    ;
+
+  po::setDefaults(opts);
+  po::scanArgv(opts, argc, (const char**) argv);
+
+  if (argc == 1 || do_help) {
+    /* argc == 1: no options have been specified */
+    po::doHelp(cout, opts);
     xPrintUsage();
     return false;
   }
 
-  // configuration file parsing
-  m_apcOpt->processFile( m_apcOpt->getValue( 'c' ) );
+  /*
+   * Set any derived parameters
+   */
+  /* convert std::string to c string for compatability */
+  m_pchInputFile = cfg_InputFile.empty() ? NULL : strdup(cfg_InputFile.c_str());
+  m_pchBitstreamFile = cfg_BitstreamFile.empty() ? NULL : strdup(cfg_BitstreamFile.c_str());
+  m_pchReconFile = cfg_ReconFile.empty() ? NULL : strdup(cfg_ReconFile.c_str());
+  m_pchdQPFile = cfg_dQPFile.empty() ? NULL : strdup(cfg_dQPFile.c_str());
+  m_pchGRefMode = cfg_GRefMode.empty() ? NULL : strdup(cfg_GRefMode.c_str());
 
-  // set configuration from option handling class
-  xSetCfgFile     ( m_apcOpt   );
-  xSetCfgCommand  ( argc, argv );
+  if (m_iRateGOPSize == -1) {
+    /* if rateGOPSize has not been specified, the default value is GOPSize */
+    m_iRateGOPSize = m_iGOPSize;
+  }
 
   // compute source padding size
   if ( m_bUsePAD )
@@ -382,11 +390,14 @@ Void TAppEncCfg::xCheckParameter()
   {
     m_bUseSBACRD = false;
   }
+
+#if !NEWVLC
   // RDOQ is supported only for SBAC
   if ( !m_bUseSBACRD )
   {
     m_bUseRDOQ = false;
   }
+#endif
 #ifdef QC_AMVRES
   if(m_iInterpFilterType == IPF_TEN_DIF)
     m_bUseAMVRes = false;
@@ -422,383 +433,6 @@ Void TAppEncCfg::xSetGlobal()
 #else
   g_uiIBDI_MAX     = ((1<<(g_uiBitDepth+g_uiBitIncrement))-1);
 #endif
-}
-
-Void TAppEncCfg::xSetCfgTool()
-{
-  // basic unit size
-  m_uiMaxCUWidth                  = 64;
-  m_uiMaxCUHeight                 = 64;
-  m_uiMaxCUDepth                  = 4;
-
-  // encoder tools
-  m_bUseSBACRD                    = true;
-  m_bUseHADME                     = true;
-  m_bUseRDOQ                      = true;
-  m_bUseNRF                       = true;
-  m_bUseASR                       = false;
-  m_uiDeltaQpRD                   = 0;
-  m_bUseGPB                       = false;
-  m_bUseLDC                       = false;
-  m_bUseQBO                       = false;
-  m_bUseBQP                       = false;
-  m_iLDMode                       = -1;
-  m_bUsePAD                       = false;
-#ifdef QC_AMVRES
-  m_bUseAMVRes											= true;
-#endif
-#ifdef QC_SIFO_PRED
-  m_bUseSIFO_Pred               = true;
-#endif
-#if HHI_MRG
-  m_bUseMRG                       = true; // SOPH: Merge Mode
-#endif
-#if HHI_IMVP
-  m_bUseIMP                       = true; // SOPH: Interleaved Motion Vector Predictor
-#endif
-  m_bUseFastEnc                   = false;
-  // decoder tools
-  m_uiBitDepth                    = 8;
-  m_uiBitIncrement                = 4;
-  m_bUseALF                       = true;
-
-#if HHI_ALF
-  m_bALFUseSeparateQT             = true;
-  m_bALFFilterSymmetry            = false;
-  m_iAlfMinLength                 = 5;
-  m_iAlfMaxLength                 = 9;
-#endif
-
-  m_iDIFTap                       = 12;
-#if HHI_ALLOW_CIP_SWITCH
-  m_bUseCIP                       = true;
-#endif
-#if HHI_ALLOW_ROT_SWITCH
-  m_bUseROT                       = true;
-#endif
-#if HHI_AIS
-  m_bUseAIS                       = true; // BB: adaptive intra smoothing
-#endif
-#if HHI_INTERP_FILTER
-  m_iInterpFilterType             = IPF_SAMSUNG_DIF_DEFAULT;
-#endif
-}
-
-Void TAppEncCfg::xSetCfgFile( TAppOption* pcOpt )
-{
-  if ( pcOpt->getValue( "InputFile" ) )                     m_pchInputFile                  = pcOpt->getValue( "InputFile" );
-  if ( pcOpt->getValue( "BitstreamFile" ) )                 m_pchBitstreamFile              = pcOpt->getValue( "BitstreamFile" );
-  if ( pcOpt->getValue( "ReconFile" ) )                     m_pchReconFile                  = pcOpt->getValue( "ReconFile" );
-
-  if ( pcOpt->getValue( "dQPFile" ) )                       m_pchdQPFile                    = pcOpt->getValue( "dQPFile" );
-  if ( pcOpt->getValue( "FrameRate" ) )                     m_iFrameRate                    = atoi( pcOpt->getValue( "FrameRate" ) );
-  if ( pcOpt->getValue( "FrameSkip" ) )                     m_iFrameSkip                    = atoi( pcOpt->getValue( "FrameSkip" ) );
-  if ( pcOpt->getValue( "SourceWidth" ) )                   m_iSourceWidth                  = atoi( pcOpt->getValue( "SourceWidth" ) );
-  if ( pcOpt->getValue( "SourceHeight" ) )                  m_iSourceHeight                 = atoi( pcOpt->getValue( "SourceHeight" ) );
-  if ( pcOpt->getValue( "FrameToBeEncoded" ) )              m_iFrameToBeEncoded             = atoi( pcOpt->getValue( "FrameToBeEncoded" ) );
-
-  if ( pcOpt->getValue( "IntraPeriod" ) )                   m_iIntraPeriod                  = atoi( pcOpt->getValue( "IntraPeriod" ) );
-  if ( pcOpt->getValue( "GOPSize" ) )                       { m_iGOPSize                      = atoi( pcOpt->getValue( "GOPSize" ) ); m_iRateGOPSize = m_iGOPSize; }
-  if ( pcOpt->getValue( "RateGOPSize" ) )                   m_iRateGOPSize                  = atoi( pcOpt->getValue( "RateGOPSize" ) );
-  if ( pcOpt->getValue( "NumOfReference" ) )                m_iNumOfReference               = atoi( pcOpt->getValue( "NumOfReference" ) );
-  if ( pcOpt->getValue( "NumOfReferenceB_L0" ) )            m_iNumOfReferenceB_L0           = atoi( pcOpt->getValue( "NumOfReferenceB_L0" ) );
-  if ( pcOpt->getValue( "NumOfReferenceB_L1" ) )            m_iNumOfReferenceB_L1           = atoi( pcOpt->getValue( "NumOfReferenceB_L1" ) );
-
-  if ( pcOpt->getValue( "QP" ) )                            m_fQP                           = atof( pcOpt->getValue( "QP" ) );
-
-  if ( pcOpt->getValue( "TemporalLayerQPOffset_L0" ) )      m_aiTLayerQPOffset[0]     = atoi( pcOpt->getValue( "TemporalLayerQPOffset_L0" ) );
-  if ( pcOpt->getValue( "TemporalLayerQPOffset_L1" ) )      m_aiTLayerQPOffset[1]     = atoi( pcOpt->getValue( "TemporalLayerQPOffset_L1" ) );
-  if ( pcOpt->getValue( "TemporalLayerQPOffset_L2" ) )      m_aiTLayerQPOffset[2]     = atoi( pcOpt->getValue( "TemporalLayerQPOffset_L2" ) );
-  if ( pcOpt->getValue( "TemporalLayerQPOffset_L3" ) )      m_aiTLayerQPOffset[3]     = atoi( pcOpt->getValue( "TemporalLayerQPOffset_L3" ) );
-
-  if ( pcOpt->getValue( "HorizontalPadding" ) )             m_aiPad[0]      = atoi( pcOpt->getValue( "HorizontalPadding" ) );
-  if ( pcOpt->getValue( "VerticalPadding" ) )               m_aiPad[1]      = atoi( pcOpt->getValue( "VerticalPadding" ) );
-
-  if ( pcOpt->getValue( "HierarchicalCoding" ) )            m_bHierarchicalCoding           = atoi( pcOpt->getValue( "HierarchicalCoding" ) ) == 0 ? false : true;
-
-  if ( pcOpt->getValue( "SymbolMode" ) )                    m_iSymbolMode                   = atoi( pcOpt->getValue( "SymbolMode" ) );
-  if ( pcOpt->getValue( "MultiCodewordThreshold" ) )        m_uiMCWThreshold                = atoi( pcOpt->getValue( "MultiCodewordThreshold" ) );
-  if ( pcOpt->getValue( "MaxPIPEBufferDelay" ) )            m_uiMaxPIPEDelay                = atoi( pcOpt->getValue( "MaxPIPEBufferDelay" ) );
-  if ( pcOpt->getValue( "BalancedCPUs" ) )                  m_uiBalancedCPUs                = atoi( pcOpt->getValue( "BalancedCPUs" ) );
-
-  if ( pcOpt->getValue( "LoopFilterDisable" ) )             m_bLoopFilterDisable            = atoi( pcOpt->getValue( "LoopFilterDisable" ) ) == 0 ? false : true;
-  if ( pcOpt->getValue( "LoopFilterAlphaC0Offset" ) )       m_iLoopFilterAlphaC0Offset      = atoi( pcOpt->getValue( "LoopFilterAlphaC0Offset" ) );
-  if ( pcOpt->getValue( "LoopFilterBetaOffset" ) )          m_iLoopFilterBetaOffset         = atoi( pcOpt->getValue( "LoopFilterBetaOffset" ) );
-
-  if ( pcOpt->getValue( "FastSearch" ) )                    m_iFastSearch                   = atoi( pcOpt->getValue( "FastSearch" ) );
-  if ( pcOpt->getValue( "SearchRange" ) )                   m_iSearchRange                  = atoi( pcOpt->getValue( "SearchRange" ) );
-  if ( pcOpt->getValue( "MaxDeltaQP" ) )                    m_iMaxDeltaQP                   = atoi( pcOpt->getValue( "MaxDeltaQP" ) );
-  if ( pcOpt->getValue( "HadamardME" ) )                    m_bUseHADME                     = atoi( pcOpt->getValue( "HadamardME" ) ) == 0 ? false : true;
-
-  if ( pcOpt->getValue( "MaxCUWidth" ) )                    m_uiMaxCUWidth                  = atoi( pcOpt->getValue( "MaxCUWidth" ) );
-  if ( pcOpt->getValue( "MaxCUHeight" ) )                   m_uiMaxCUHeight                 = atoi( pcOpt->getValue( "MaxCUHeight" ) );
-  if ( pcOpt->getValue( "MaxPartitionDepth" ) )             m_uiMaxCUDepth                  = atoi( pcOpt->getValue( "MaxPartitionDepth" ) );
-
-#if HHI_RQT
-  if ( pcOpt->getValue( "QuadtreeTUFlag"        ) )         m_bQuadtreeTUFlag               = atoi( pcOpt->getValue( "QuadtreeTUFlag"        ) ) != 0;
-  if ( pcOpt->getValue( "QuadtreeTULog2MaxSize" ) )         m_uiQuadtreeTULog2MaxSize       = atoi( pcOpt->getValue( "QuadtreeTULog2MaxSize" ) );
-  if ( pcOpt->getValue( "QuadtreeTULog2MinSize" ) )         m_uiQuadtreeTULog2MinSize       = atoi( pcOpt->getValue( "QuadtreeTULog2MinSize" ) );
-#endif
-
-  if ( pcOpt->getValue( "MinTrDepth" ) )                    m_uiMinTrDepth                  = atoi( pcOpt->getValue( "MinTrDepth" ) );
-  if ( pcOpt->getValue( "MaxTrDepth" ) )                    m_uiMaxTrDepth                  = atoi( pcOpt->getValue( "MaxTrDepth" ) );
-
-#if HHI_ALLOW_CIP_SWITCH
-	if ( pcOpt->getValue( "CIP" ) )														m_bUseCIP												= atoi( pcOpt->getValue( "CIP" ) ) == 0 ? false : true;	
-#endif
-#if HHI_ALLOW_ROT_SWITCH
- 	if ( pcOpt->getValue( "ROT" ) )														m_bUseROT												= atoi( pcOpt->getValue( "ROT" ) ) == 0 ? false : true;	 	
-#endif 	
-#if HHI_AIS
-  if ( pcOpt->getValue( "AIS" ) )                           m_bUseAIS                       = atoi( pcOpt->getValue( "AIS" ) ) == 0 ? false : true; // BB: adaptive intra smoothing
-#endif
-#if HHI_MRG
-  if ( pcOpt->getValue( "MRG" ) )                           m_bUseMRG                       = atoi( pcOpt->getValue( "MRG" ) ) == 0 ? false : true;  // SOPH:  Merge Mode
-#endif
-#if HHI_IMVP
-  if ( pcOpt->getValue( "IMP" ) )                           m_bUseIMP                       = atoi( pcOpt->getValue( "IMP" ) ) == 0 ? false : true;  // SOPH:  Interleaved MV Predictor
-#endif
-  if ( pcOpt->getValue( "ALF" ) )                           m_bUseALF                       = atoi( pcOpt->getValue( "ALF"             ) ) == 0 ? false : true;
-
-#if HHI_ALF
-  if ( pcOpt->getValue( "ALFSeparateTree" ) )               m_bALFUseSeparateQT             = atoi( pcOpt->getValue( "ALFSeparateTree" ) ) == 0 ? false : true;
-  if ( pcOpt->getValue( "ALFSymmetry" ) )                   m_bALFFilterSymmetry            = atoi( pcOpt->getValue( "ALFSymmetry"     ) ) == 0 ? false : true;
-  if ( pcOpt->getValue( "ALFMinLength" ) )                  m_iAlfMinLength                 = atoi( pcOpt->getValue( "ALFMinLength"    ) );
-  if ( pcOpt->getValue( "ALFMaxLength" ) )                  m_iAlfMaxLength                 = atoi( pcOpt->getValue( "ALFMaxLength"    ) );
-#endif
-
-  if ( pcOpt->getValue( "BitDepth" ) )                      m_uiBitDepth                    = atoi( pcOpt->getValue( "BitDepth" ) );
-  if ( pcOpt->getValue( "BitIncrement" ) )                  m_uiBitIncrement                = atoi( pcOpt->getValue( "BitIncrement" ) );
-
-  if ( pcOpt->getValue( "DeltaQpRD" ) )                     m_uiDeltaQpRD                   = atoi( pcOpt->getValue( "DeltaQpRD"  ) );
-  if ( pcOpt->getValue( "SBACRD" ) )                        m_bUseSBACRD                    = atoi( pcOpt->getValue( "SBACRD" ) ) == 0 ? false : true;
-  if ( pcOpt->getValue( "DIFTap" ) )                        m_iDIFTap                       = atoi( pcOpt->getValue( "DIFTap"  ) );
-  if ( pcOpt->getValue( "ASR" ) )                           m_bUseASR                       = atoi( pcOpt->getValue( "ASR"     ) ) == 0 ? false : true;
-  if ( pcOpt->getValue( "GPB" ) )                           m_bUseGPB                       = atoi( pcOpt->getValue( "GPB"     ) ) == 0 ? false : true;
-
-  if ( pcOpt->getValue( "MaxTrSize" ) )                     m_uiMaxTrSize                   = atoi( pcOpt->getValue( "MaxTrSize" ) );
-
-  if ( pcOpt->getValue( "RDOQ" ) )                          m_bUseRDOQ                      = atoi( pcOpt->getValue( "RDOQ"      ) ) == 0 ? false : true;
-  if ( pcOpt->getValue( "GRefMode" ) )        m_pchGRefMode     = pcOpt->getValue( "GRefMode" );
-  if ( pcOpt->getValue( "LowDelayCoding" ) )                m_bUseLDC                       = atoi( pcOpt->getValue( "LowDelayCoding"    ) ) == 0 ? false : true;
-  if ( pcOpt->getValue( "PAD" ) )                           m_bUsePAD                       = atoi( pcOpt->getValue( "PAD"       ) ) == 0 ? false : true;
-
-  if ( pcOpt->getValue( "QBO" ) )                           m_bUseQBO                       = atoi( pcOpt->getValue( "QBO"       ) ) == 0 ? false : true;
-  if ( pcOpt->getValue( "NRF" ) )                           m_bUseNRF                       = atoi( pcOpt->getValue( "NRF"       ) ) == 0 ? false : true;
-  if ( pcOpt->getValue( "BQP" ) )                           m_bUseBQP                       = atoi( pcOpt->getValue( "BQP"       ) ) == 0 ? false : true;
-  if ( pcOpt->getValue( "FEN" ) )                           m_bUseFastEnc                   = atoi( pcOpt->getValue( "FEN"       ) ) == 0 ? false : true;
-
-#if HHI_INTERP_FILTER
-  if ( pcOpt->getValue( "InterpFilterType" ) )              m_iInterpFilterType             = atoi( pcOpt->getValue( "InterpFilterType" ) );
-#endif
-#ifdef QC_AMVRES
-	if ( pcOpt->getValue( "AMVRES" ) )														m_bUseAMVRes												= atoi( pcOpt->getValue( "AMVRES"       ) ) == 0 ? false : true;
-#endif
-#ifdef QC_SIFO_PRED
-	if ( pcOpt->getValue( "SPF" ) )														m_bUseSIFO_Pred									= atoi( pcOpt->getValue( "SPF"       ) ) == 0 ? false : true;
-#endif
-  return;
-}
-
-Void TAppEncCfg::xSetCfgCommand( int iArgc, char** pArgv )
-{
-  Int    i;
-  char*  pStr;
-  char*  pToolName;
-
-  i=1;
-  while ( i < iArgc )
-  {
-    pStr = pArgv[i];
-    if      ( !strcmp( pStr, "-c" ) )   { i++; i++; }
-    else if ( !strcmp( pStr, "-i" ) )   { i++; m_pchInputFile         = pArgv[i];         i++; }
-    else if ( !strcmp( pStr, "-b" ) )   { i++; m_pchBitstreamFile     = pArgv[i];         i++; }
-    else if ( !strcmp( pStr, "-o" ) )   { i++; m_pchReconFile         = pArgv[i];         i++; }
-#ifdef QC_CONFIG
-		else if ( !strcmp( pStr, "-wdt" ) )	{	i++; m_iSourceWidth					= atoi( pArgv[i] ); i++; }
-    else if ( !strcmp( pStr, "-hgt" ) )	{	i++; m_iSourceHeight				= atoi( pArgv[i] ); i++; }
-    else if ( !strcmp( pStr, "-fr" ) )	{	i++; m_iFrameRate					  = atoi( pArgv[i] ); i++; }
-    else if ( !strcmp( pStr, "-fs" ) )	{	i++; m_iFrameSkip					  = atoi( pArgv[i] ); i++; }
-#endif
-    else if ( !strcmp( pStr, "-m" ) )   { i++; m_pchdQPFile           = pArgv[i];         i++; }
-    else if ( !strcmp( pStr, "-v" ) )   { i++; m_pchGRefMode        = pArgv[i];         i++; }
-    else if ( !strcmp( pStr, "-f" ) )   { i++; m_iFrameToBeEncoded    = atoi( pArgv[i] ); i++; }
-    else if ( !strcmp( pStr, "-q" ) )   { i++; m_fQP                  = atof( pArgv[i] ); i++; }
-    else if ( !strcmp( pStr, "-g" ) )   { i++; m_iGOPSize             = atoi( pArgv[i] ); i++; m_iRateGOPSize = m_iGOPSize; }
-    else if ( !strcmp( pStr, "-rg" ) )  { i++; m_iRateGOPSize         = atoi( pArgv[i] ); i++; }
-    else if ( !strcmp( pStr, "-r" ) )   { i++; m_iNumOfReference      = atoi( pArgv[i] ); i++; }
-    else if ( !strcmp( pStr, "-rb0" ) ) { i++; m_iNumOfReferenceB_L0  = atoi( pArgv[i] ); i++; }
-    else if ( !strcmp( pStr, "-rb1" ) ) { i++; m_iNumOfReferenceB_L1  = atoi( pArgv[i] ); i++; }
-    else if ( !strcmp( pStr, "-ip" ) )  { i++; m_iIntraPeriod         = atoi( pArgv[i] ); i++; }
-    else if ( !strcmp( pStr, "-d" ) )   { i++; m_iMaxDeltaQP          = atoi( pArgv[i] ); i++; }
-    else if ( !strcmp( pStr, "-dqr" ) ) { i++; m_uiDeltaQpRD          = atoi( pArgv[i] ); i++; }
-    else if ( !strcmp( pStr, "-s" ) )   { i++; m_uiMaxCUWidth         = m_uiMaxCUHeight  = atoi( pArgv[i] ); i++; }
-    else if ( !strcmp( pStr, "-h" ) )   { i++; m_uiMaxCUDepth         = atoi( pArgv[i] ); i++; }
-    else if ( !strcmp( pStr, "-t" ) )   { i++; m_uiMaxTrSize          = atoi( pArgv[i] ); i++; }
-    else if ( !strcmp( pStr, "-ltd" ) ) { i++; m_uiMinTrDepth         = atoi( pArgv[i] ); i++; }
-    else if ( !strcmp( pStr, "-utd" ) ) { i++; m_uiMaxTrDepth         = atoi( pArgv[i] ); i++; }
-    else if ( !strcmp( pStr, "-tq0" ) ) { i++; m_aiTLayerQPOffset[0]  = atoi( pArgv[i] ); i++; }
-    else if ( !strcmp( pStr, "-tq1" ) ) { i++; m_aiTLayerQPOffset[1]  = atoi( pArgv[i] ); i++; }
-    else if ( !strcmp( pStr, "-tq2" ) ) { i++; m_aiTLayerQPOffset[2]  = atoi( pArgv[i] ); i++; }
-    else if ( !strcmp( pStr, "-tq3" ) ) { i++; m_aiTLayerQPOffset[3]  = atoi( pArgv[i] ); i++; }
-    else if ( !strcmp( pStr, "-pdx" ) ) { i++; m_aiPad[0]             = atoi( pArgv[i] ); i++; }
-    else if ( !strcmp( pStr, "-pdy" ) ) { i++; m_aiPad[1]             = atoi( pArgv[i] ); i++; }
-    else if ( !strcmp( pStr, "-sym" ) )  { i++; m_iSymbolMode          = atoi( pArgv[i] );  i++; }
-    else if ( !strcmp( pStr, "-ldm" ) ) { i++; m_iLDMode              = atoi( pArgv[i] ); i++; }
-    else if ( !strcmp( pStr, "-tap" ) ) { i++; m_iDIFTap              = atoi( pArgv[i] ); i++; }
-    else if ( !strcmp( pStr, "-sr"  ) )  { i++; m_iSearchRange         = atoi( pArgv[i] ); i++; }
-#if TEN_DIRECTIONAL_INTERP
-    else if ( !strcmp( pStr, "-int"  ) )  { i++; m_iInterpFilterType  = atoi( pArgv[i] ); i++; }
-#endif
-    else
-    if ( !strcmp( pStr, "-1" ) )
-    {
-      i++;
-      pToolName = pArgv[i];
-      if ( !strcmp( pToolName, "ASR" ) )  m_bUseASR         = true;
-      else
-#if HHI_ALLOW_CIP_SWITCH
-      if ( !strcmp( pToolName, "CIP" ) )	m_bUseCIP         = true;
-      else
-#endif
-
-#if HHI_ALLOW_ROT_SWITCH
-      if ( !strcmp( pToolName, "ROT" ) )	m_bUseROT         = true;
-      else
-#endif
-#if HHI_AIS
-      if ( !strcmp( pToolName, "AIS" ) )  m_bUseAIS         = true; // BB: adaptive intra smoothing
-      else
-#endif      
-#if HHI_MRG
-      if ( !strcmp( pToolName, "MRG" ) )  m_bUseMRG         = true; // SOPH: Merge Mode
-      else
-#endif
-#if HHI_IMVP
-      if ( !strcmp( pToolName, "IMP" ) )  m_bUseIMP         = true; // SOPH: Interleaved MV Predictor
-      else
-#endif
-      if ( !strcmp( pToolName, "ALF" ) )  m_bUseALF         = true;
-      else
-      if ( !strcmp( pToolName, "IBD" ) )  m_uiBitIncrement  = 4;
-      else
-      if ( !strcmp( pToolName, "HAD" ) )  m_bUseHADME       = true;
-      else
-      if ( !strcmp( pToolName, "SRD" ) )  m_bUseSBACRD      = true;
-      else
-      if ( !strcmp( pToolName, "GPB" ) )  m_bUseGPB         = true;
-      else
-      if ( !strcmp( pToolName, "RDQ" ) )  m_bUseRDOQ        = true;
-      else
-      if ( !strcmp( pToolName, "LDC" ) )  m_bUseLDC         = true;
-      else
-      if ( !strcmp( pToolName, "PAD" ) )  m_bUsePAD         = true;
-      else
-      if ( !strcmp( pToolName, "QBO" ) )  m_bUseQBO         = true;
-      else
-      if ( !strcmp( pToolName, "NRF" ) )  m_bUseNRF         = true;
-      else
-      if ( !strcmp( pToolName, "BQP" ) )  m_bUseBQP         = true;
-      else
-      if ( !strcmp( pToolName, "FEN" ) )
-      {
-  m_bUseFastEnc  = true;
-  m_bUseASR       = true;
-      }
-#ifdef QC_AMVRES
-      else
-      if ( !strcmp( pToolName, "AMVRES" ) )	m_bUseAMVRes         = true;
-#endif
-#ifdef QC_SIFO_PRED
-      else
-      if ( !strcmp( pToolName, "SPF" ) )	m_bUseSIFO_Pred   = true;
-#endif
-      i++;
-    }
-    else
-    if ( !strcmp( pStr, "-0" ) )
-    {
-      i++;
-      pToolName = pArgv[i];
-      if ( !strcmp( pToolName, "ASR" ) )  m_bUseASR         = false;
-      else
-#if HHI_ALLOW_CIP_SWITCH
-      if ( !strcmp( pToolName, "CIP" ) )	m_bUseCIP         = false;
-      else
-#endif
-
-#if HHI_ALLOW_ROT_SWITCH
-      if ( !strcmp( pToolName, "ROT" ) )	m_bUseROT         = false;
-      else
-#endif
-#if HHI_AIS
-      if ( !strcmp( pToolName, "AIS" ) )  m_bUseAIS         = false; // BB: adaptive intra smoothing
-      else
-#endif     
-#if HHI_MRG
-      if ( !strcmp( pToolName, "MRG" ) )  m_bUseMRG         = false; // SOPH:  Merge Mode
-      else
-#endif
-#if HHI_IMVP
-      if ( !strcmp( pToolName, "IMP" ) )  m_bUseIMP         = false; // SOPH: Interleaved MV Predictor
-      else
-#endif
-      if ( !strcmp( pToolName, "ALF" ) )  m_bUseALF         = false;
-      else
-      if ( !strcmp( pToolName, "IBD" ) )  m_uiBitIncrement  = 0;
-      else
-      if ( !strcmp( pToolName, "HAD" ) )  m_bUseHADME       = false;
-      else
-      if ( !strcmp( pToolName, "SRD" ) )  m_bUseSBACRD      = false;
-      else
-      if ( !strcmp( pToolName, "GPB" ) )  m_bUseGPB         = false;
-      else
-      if ( !strcmp( pToolName, "RDQ" ) )  m_bUseRDOQ        = false;
-      else
-      if ( !strcmp( pToolName, "LDC" ) )  m_bUseLDC         = false;
-      else
-      if ( !strcmp( pToolName, "PAD" ) )  m_bUsePAD         = false;
-      else
-      if ( !strcmp( pToolName, "QBO" ) )  m_bUseQBO         = false;
-      else
-      if ( !strcmp( pToolName, "NRF" ) )  m_bUseNRF         = false;
-      else
-      if ( !strcmp( pToolName, "BQP" ) )  m_bUseBQP         = false;
-      else
-      if ( !strcmp( pToolName, "FEN" ) )  m_bUseFastEnc     = false;
-#ifdef QC_AMVRES
-      else
-      if ( !strcmp( pToolName, "AMVRES" ) )	m_bUseAMVRes         = false;
-#endif
-#ifdef QC_SIFO_PRED
-      else
-      if ( !strcmp( pToolName, "SPF" ) )	m_bUseSIFO_Pred   = false;
-#endif
-      i++;
-    }
-    else
-    {
-      i++;
-    }
-  }
-
-  // for convenience
-  if ( m_iLDMode != -1 )
-  {
-    if ( m_iLDMode == 0 )
-    {
-      m_bUseQBO = true;       // use quality-based reference reordering
-      m_bUseBQP = false;      // use hier-P QP
-      m_bUseNRF = true;       // use non-reference marking
-    }
-    else
-    if ( m_iLDMode == 1 )
-    {
-      m_bUseQBO = false;      // don't use quality-based reference reordering
-      m_bUseBQP = true;       // user hier-P QP
-      m_bUseNRF = false;      // don't use non-reference marking
-    }
-  }
 }
 
 Void TAppEncCfg::xPrintParameter()
@@ -931,46 +565,6 @@ Void TAppEncCfg::xPrintParameter()
 
 Void TAppEncCfg::xPrintUsage()
 {
-  printf("\n");
-
-  printf( "  -c      configuration file name\n" );
-  printf( "  -i      original YUV input file name\n" );
-  printf( "  -o      decoded YUV output file name\n" );
-  printf( "  -b      bitstream file name\n" );
-#ifdef QC_CONFIG
-  printf( "  -wdt    Source Width\n" );
-  printf( "  -hgt    Source Height\n" );
-  printf( "  -fr     Frame Rate\n" );
-  printf( "  -fs     Frame Skip\n" );
-#endif
-  printf( "  -m      dQP file name\n" );
-  printf( "  -f      number of frames to be encoded (default EOS)\n" );
-  printf( "  -q      Qp value, if value is float, QP is switched once during encoding\n" );
-  printf( "  -g      GOP size of temporal structure\n" );
-  printf( "  -rg     GOP size of hierarchical QP assignment\n" );
-  printf( "  -s      max CU size\n" );
-  printf( "  -h      CU depth\n" );
-  printf( "  -r      Number of reference (P)\n" );
-  printf( "  -rb0    Number of reference (B_L0)\n" );
-  printf( "  -rb1    Number of reference (B_L1)\n" );
-  printf( "  -ip     intra period in frames, (-1: only first frame)\n" );
-  printf( "  -ldm    recommended low-delay setting (with LDC), (0=slow sequence, 1=fast sequence)\n" );
-  printf( "  -d      max dQp offset for block\n");
-  printf( "  -dqr    max dQp offset for slice\n");
-  printf( "  -t      max transform size\n" );
-  printf( "  -ltd    min transform depth\n" );
-  printf( "  -utd    max transform depth\n" );
-  printf( "  -v      additional reference for weighted prediction (w: scale+offset, o: offset)\n" );
-  printf( "  -tap    number of interpolation filter taps (luma)\n");
-  printf( "  -tq0    QP offset of temporal layer 0\n" );
-  printf( "  -tq1    QP offset of temporal layer 1\n" );
-  printf( "  -tq2    QP offset of temporal layer 2\n" );
-  printf( "  -tq3    QP offset of temporal layer 3\n" );
-  printf( "  -pdx    horizontal source padding size\n");
-  printf( "  -pdy    vertical source padding size\n");
-  printf( "  -sym    symbol mode (0=VLC, 1=SBAC)\n");
-  printf( "  -sr     motion search range\n");
-  printf( "  -1/0    <name>: turn on/off <name>\n");
   printf( "          <name> = ALF - adaptive loop filter\n");
   printf( "                   IBD - bit-depth increasement\n");
   printf( "                   GPB - generalized B instead of P in low-delay mode\n");
@@ -994,7 +588,7 @@ Void TAppEncCfg::xPrintUsage()
   printf( "                   IMP - interleaved motion vector predictor\n"); /// SOPH: Interleaved MV Predictor
 #endif
 #ifdef QC_AMVRES
-	printf( "                   AMVRES - Adaptive motion resolution\n");
+  printf( "                   AMVRES - Adaptive motion resolution\n");
 #endif
   printf( "\n" );
   printf( "  Example 1) TAppEncoder.exe -c test.cfg -q 32 -g 8 -f 9 -s 64 -h 4\n");
@@ -1016,3 +610,63 @@ Void TAppEncCfg::xConfirmPara(Bool bflag, const char* message)
   }
 }
 
+/* helper for -ldm */
+void doOldStyleCmdlineLDM(po::Options& opts, const std::string& arg)
+{
+    /* xxx: warn this option is depricated */
+    if (arg == "1") {
+        po::storePair(opts, "QBO", "1");
+        po::storePair(opts, "BQP", "0");
+        po::storePair(opts, "NRF", "1");
+        return;
+    }
+    if (arg == "0") {
+        po::storePair(opts, "QBO", "0");
+        po::storePair(opts, "BQP", "1");
+        po::storePair(opts, "NRF", "0");
+        return;
+    }
+    /* invalid parse */
+    cerr << "Invalid argument to -ldm: `" << arg << "'" << endl;
+}
+
+/* helper function */
+/* for handling "-1/-0 FOO" */
+void translateOldStyleCmdline(const char* value, po::Options& opts, const std::string& arg)
+{
+	const char* argv[] = {arg.c_str(), value};
+	/* replace some short names with their long name varients */
+	if (arg == "LDC") {
+		argv[0] = "LowDelayCoding";
+	}
+	else if (arg == "RDQ") {
+		argv[0] = "RDOQ";
+	}
+	else if (arg == "HAD") {
+		argv[0] = "HadamardME";
+	}
+	else if (arg == "SRD") {
+		argv[0] = "SBACRD";
+	}
+	else if (arg == "IBD") {
+		argv[0] = "BitIncrement";
+	}
+	/* issue a warning for change in FEN behaviour */
+	if (arg == "FEN") {
+		/* xxx todo */
+	}
+	po::storePair(opts, argv[0], argv[1]);
+}
+
+void doOldStyleCmdlineOn(po::Options& opts, const std::string& arg)
+{
+	if (arg == "IBD") {
+		translateOldStyleCmdline("4", opts, arg);
+		return;
+	}
+	translateOldStyleCmdline("1", opts, arg);
+}
+void doOldStyleCmdlineOff(po::Options& opts, const std::string& arg)
+{
+	translateOldStyleCmdline("0", opts, arg);
+}

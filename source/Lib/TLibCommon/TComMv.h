@@ -39,10 +39,8 @@
 #include <math.h>
 #include "CommonDef.h"
 
-#ifndef WIN32    // for gcc compiler
-  #include <cstdlib>
-  using namespace std;
-#endif
+#include <cstdlib>
+using namespace std;
 
 // ====================================================================================================================
 // Class definition

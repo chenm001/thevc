@@ -156,7 +156,11 @@ Void TEncTop::init()
 
   // initialize transform & quantization class
 #if HHI_ALLOW_ROT_SWITCH
+#if NEWVLC 
+  m_cTrQuant.init( g_uiMaxCUWidth, g_uiMaxCUHeight, m_uiMaxTrSize, m_bUseROT, m_iSymbolMode, m_bUseRDOQ, true );
+#else
   m_cTrQuant.init( g_uiMaxCUWidth, g_uiMaxCUHeight, m_uiMaxTrSize, m_bUseROT, m_bUseRDOQ, true );
+#endif
 #else
   m_cTrQuant.init( g_uiMaxCUWidth, g_uiMaxCUHeight, m_uiMaxTrSize, m_bUseRDOQ, true );
 #endif

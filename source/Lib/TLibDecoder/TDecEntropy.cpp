@@ -460,6 +460,8 @@ Void TDecEntropy::decodeFilt(ALFParam* pAlfParam)
 		}
 	  }
 	  else
+#else
+      pAlfParam->forceCoeff0 = 0;
 #endif
 	  {
 		for (int i=0; i<NO_VAR_BINS; i++)

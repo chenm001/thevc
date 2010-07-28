@@ -168,7 +168,7 @@
 #define CIP_WEIGHT                  16                                                      ///< weighting factor of CIP
 #define CIP_MAX                     ( 1<<(CIP_BITS  ) )                                     ///< max value of CIP
 #define CIP_OFFSET                  ( 1<<(CIP_BITS-1) )                                     ///< rounding offset of CIP
-#define CIP_PRED(A, B, C)           (((A)*2 + (B)*2 + (C)*2 + 3)/6)                         ///< CIP weighting function
+#define CIP_PRED(A, B, C)           (((A)*3 + (B)*3 + (C)*2 + 4)/8)                         ///< CIP weighting function
 #define CIP_WSUM(A, B, W)           (((A)*(W) + (CIP_MAX-(W))*(B) + CIP_OFFSET)>>CIP_BITS)  ///< weighted average of CIP
 
 // Reference memory management

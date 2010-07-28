@@ -48,12 +48,12 @@ void TDecClearBuffer::init() {
     mergedStateCount = 0;
     for (k = 0; k < StateCount; ++k) {
         if (k%8 == 0) buf = myReadByte();
-        lastStateOfGroup[k] = bool(buf & (1 << (k%8)));
+        lastStateOfGroup[k] = (0!=(buf & (1 << (k%8))));
         if (lastStateOfGroup[k]) ++mergedStateCount;
     }
     for (k = n = 0; k < TreeCount; ++k) {
         if (k%8 == 0) buf = myReadByte();
-        selectedTree[k] = bool(buf & (1 << (k%8)));
+        selectedTree[k] = (0!=(buf & (1 << (k%8))));
         if (selectedTree[k]) mergedTree[n++] = k;
     }
     assert(n == mergedStateCount);

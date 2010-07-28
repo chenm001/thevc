@@ -1068,7 +1068,12 @@ Void TDecCavlc::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartI
   // initialize scan
   const UInt*  pucScan;
 
+#if NEWVLC
+  //UInt uiConvBit = g_aucConvertToBit[ Min(8,uiWidth) ];
+  UInt uiConvBit = g_aucConvertToBit[ pcCU->isIntra( uiAbsPartIdx ) ? uiWidth : Min(8,uiWidth)    ];
+#else
   UInt uiConvBit = g_aucConvertToBit[ uiWidth    ];
+#endif
 #if HHI_RQT
   pucScan        = g_auiFrameScanXY  [ uiConvBit + 1 ];
 #else
@@ -1124,6 +1129,36 @@ Void TDecCavlc::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartI
   }
 #endif
 
+#if NEWVLC
+  UInt uiDecodeDCCoeff = 0;
+  Int dcCoeff = 0;
+  if (pcCU->isIntra(uiAbsPartIdx))
+  {
+    UInt uiAbsPartIdxL, uiAbsPartIdxA;
+    TComDataCU* pcCUL   = pcCU->getPULeft (uiAbsPartIdxL, pcCU->getZorderIdxInCU() + uiAbsPartIdx);
+    TComDataCU* pcCUA   = pcCU->getPUAbove(uiAbsPartIdxA, pcCU->getZorderIdxInCU() + uiAbsPartIdx);
+	if (pcCUL == NULL && pcCUA == NULL)
+	{
+#if 1
+	  uiDecodeDCCoeff = 1;
+      dcCoeff = xReadVlc(eTType == TEXT_LUMA ? 3 : 1);
+      if (dcCoeff)
+      {
+	    UInt sign;
+        xReadFlag(sign);
+        if (sign)
+        {
+          dcCoeff = -dcCoeff;
+        }
+	  }
+#else
+      UInt sign;
+        xReadFlag(sign);
+#endif
+	}
+  }
+#endif
+
   UInt uiScanning, uiInterleaving, uiIsCoded;
 
   TCoeff scoeff[64];
@@ -1165,6 +1200,11 @@ Void TDecCavlc::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartI
   }
   else if ( uiSize == 8*8 )
   {
+#if NEWVLC
+    if (eTType==TEXT_CHROMA_U || eTType==TEXT_CHROMA_V) //8x8 specific
+      iBlockType = eTType-2;
+    else
+#endif
     iBlockType = 2 + ( pcCU->isIntra(uiAbsPartIdx) ? 0 : pcCU->getSlice()->getSliceType() );
     xParseCoeff8x8( scoeff, iBlockType );
 
@@ -1186,6 +1226,24 @@ Void TDecCavlc::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartI
   }
   else
   {
+#if NEWVLC
+    if (!pcCU->isIntra( uiAbsPartIdx ))
+    {
+	    memset(piCoeff,0,sizeof(TCoeff)*uiSize);
+      if (eTType==TEXT_CHROMA_U || eTType==TEXT_CHROMA_V) 
+        iBlockType = eTType-2;
+      else
+        iBlockType = 5 + ( pcCU->isIntra(uiAbsPartIdx) ? 0 : pcCU->getSlice()->getSliceType() );
+      xParseCoeff8x8( scoeff, iBlockType );
+
+      for (uiScanning=0; uiScanning<64; uiScanning++)
+      {	  
+        piCoeff[(pucScan[uiScanning]/8)*uiWidth + (pucScan[uiScanning]%8)] = scoeff[63-uiScanning];
+      }
+      return;
+    }
+#endif
+
 #if QC_MDDT//VLC_MDDT ADAPTIVE_SCAN
     if(pcCU->isIntra( uiAbsPartIdx ) && eTType == TEXT_LUMA  && (uiWidth==16 || uiWidth==32 || uiWidth==64))
     {
@@ -1247,7 +1305,15 @@ Void TDecCavlc::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartI
       }
 #endif
     }
+//#endif
   }
+
+#if NEWVLC
+  if (uiDecodeDCCoeff == 1)
+  {
+    piCoeff[0] = dcCoeff;
+  }
+#endif
 
   return ;
 }
