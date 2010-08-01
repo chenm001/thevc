@@ -1378,6 +1378,18 @@ Int TComDataCU::getMostProbableIntraDirLuma( UInt uiAbsPartIdx )
 
   iMostProbable  = Min( iLeftIntraDir, iAboveIntraDir );
 
+#if UNIFIED_DIRECTIONAL_INTRA
+  // Mode conversion process for blocks with different number of available prediction directions
+  Int iIdx  = getIntraSizeIdx(uiAbsPartIdx);
+  
+  if ( iMostProbable >= g_aucIntraModeNumAng[iIdx] ) {
+    if ( g_aucIntraModeNumAng[iIdx] == 5 )
+      iMostProbable = g_aucAngModeMapping[0][g_aucAngIntraModeOrder[iMostProbable]];
+    else
+      iMostProbable = g_aucAngModeMapping[1][g_aucAngIntraModeOrder[iMostProbable]]; 
+  } 
+#endif
+
   return ( NOT_VALID == iMostProbable ) ? 2 : iMostProbable;
 }
 

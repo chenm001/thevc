@@ -94,7 +94,7 @@
 // Common constants
 // ====================================================================================================================
 
-#define _SUMMARY_OUT_               0           ///< print-out PSNR results of all slices to summary.txt
+#define _SUMMARY_OUT_               1           ///< print-out PSNR results of all slices to summary.txt
 #define _SUMMARY_PIC_               0           ///< print-out PSNR results for each slice type to summary.txt
 
 #define MAX_REF_PIC_NUM             64
