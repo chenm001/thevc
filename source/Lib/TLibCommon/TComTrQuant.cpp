@@ -4668,7 +4668,7 @@ Void TComTrQuant::xQuant4x4( TComDataCU* pcCU, Long* plSrcCoef, TCoeff*& pDstCoe
 
 #endif
 
-#if NEWVLC
+#if NEWVLC && QC_MDDT
   if ( !(getUseMDDT(uiMode, indexROT) && m_iSymbolMode == 0) && m_bUseRDOQ && (eTType == TEXT_LUMA || RDOQ_CHROMA) && (!RDOQ_ROT_IDX0_ONLY || indexROT == 0 ) )
 #else
   if ( m_bUseRDOQ && (eTType == TEXT_LUMA || RDOQ_CHROMA) && (!RDOQ_ROT_IDX0_ONLY || indexROT == 0 ) )
@@ -4776,7 +4776,7 @@ Void TComTrQuant::xQuant8x8( TComDataCU* pcCU, Long* plSrcCoef, TCoeff*& pDstCoe
 
   Int iBit = m_cQP.m_iBits + 1;
 
-#if NEWVLC
+#if NEWVLC && QC_MDDT
   if ( !(getUseMDDT(uiMode, indexROT) && m_iSymbolMode == 0) && m_bUseRDOQ && (eTType == TEXT_LUMA || RDOQ_CHROMA) && (!RDOQ_ROT_IDX0_ONLY || indexROT == 0 ) )
 #else
   if ( m_bUseRDOQ && (eTType == TEXT_LUMA || RDOQ_CHROMA) && (!RDOQ_ROT_IDX0_ONLY || indexROT == 0 ) )
