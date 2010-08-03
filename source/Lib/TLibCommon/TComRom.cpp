@@ -83,6 +83,52 @@ Void initROM()
     initSigLastScanPattern( g_auiSigLastScan[ i ][ 0 ], i, false );
   }
 #endif
+
+#if QC_MDDT
+  int ipredmode;
+  for(ipredmode=0; ipredmode<9; ipredmode++)
+  {
+    scanOrder4x4[ipredmode] = new UInt[ 4*4 ];
+    scanOrder4x4X[ipredmode]= new UInt[ 4*4 ];
+    scanOrder4x4Y[ipredmode]= new UInt[ 4*4 ];
+    
+    scanStats4x4[ipredmode] = new UInt[ 4*4 ];
+    
+    
+    scanOrder8x8[ipredmode] = new UInt[ 8*8 ];
+    scanOrder8x8X[ipredmode]= new UInt[ 8*8 ];
+    scanOrder8x8Y[ipredmode]= new UInt[ 8*8 ];
+    
+    scanStats8x8[ipredmode] = new UInt[ 8*8 ];
+  }
+  
+  // 16x16
+  for (int z=0; z < NUM_SCANS_16x16; z++)
+  {
+    scanOrder16x16[z] = new UInt[ 16*16 ];
+    scanOrder16x16X[z] = new UInt[ 16*16 ];
+    scanOrder16x16Y[z] = new UInt[ 16*16 ];
+    scanStats16x16[z] = new UInt[ 16*16 ];
+  }
+  
+  // 32x32
+  for (int z=0; z < NUM_SCANS_32x32; z++)
+  {
+    scanOrder32x32[z] = new UInt[ 32*32 ];
+    scanOrder32x32X[z] = new UInt[ 32*32 ];
+    scanOrder32x32Y[z] = new UInt[ 32*32 ];
+    scanStats32x32[z] = new UInt[ 32*32 ];
+  }
+  
+  // 64x64
+  for (int z=0; z < NUM_SCANS_64x64; z++)
+  {
+    scanOrder64x64[z] = new UInt[ 64*64 ];
+    scanOrder64x64X[z] = new UInt[ 64*64 ];
+    scanOrder64x64Y[z] = new UInt[ 64*64 ];
+    scanStats64x64[z] = new UInt[ 64*64 ];
+  }
+#endif
 }
 
 Void destroyROM()
@@ -100,6 +146,47 @@ Void destroyROM()
     delete[] g_auiSigLastScan[i][1];
 #endif
   }
+
+#if QC_MDDT //ADAPTIVE_SCAN
+  int ipredmode;
+  for(ipredmode=0; ipredmode<9; ipredmode++)
+  {       
+    delete [] scanOrder4x4[ipredmode];      
+    delete [] scanOrder4x4X[ipredmode];      
+    delete [] scanOrder4x4Y[ipredmode];
+    delete [] scanStats4x4[ipredmode];
+    
+    delete [] scanOrder8x8[ipredmode];
+    delete [] scanOrder8x8X[ipredmode];
+    delete [] scanOrder8x8Y[ipredmode];
+    delete [] scanStats8x8[ipredmode];
+  }
+  
+  // 16x16
+  for (int z=0; z < NUM_SCANS_16x16; z++)
+  {
+    delete [] scanOrder16x16[z];
+    delete [] scanOrder16x16X[z];
+    delete [] scanOrder16x16Y[z];
+    delete [] scanStats16x16[z];
+  }
+  // 32x32
+  for (int z=0; z < NUM_SCANS_32x32; z++)
+  {
+    delete [] scanOrder32x32[z];
+    delete [] scanOrder32x32X[z];
+    delete [] scanOrder32x32Y[z];
+    delete [] scanStats32x32[z];
+  }
+  // 64x64
+  for (int z=0; z < NUM_SCANS_64x64; z++)
+  {
+    delete [] scanOrder64x64[z];
+    delete [] scanOrder64x64X[z];
+    delete [] scanOrder64x64Y[z];
+    delete [] scanStats64x64[z];
+  }
+#endif
 }
 
 // ====================================================================================================================
@@ -4453,56 +4540,6 @@ void InitScanOrderForSlice()
   UInt stats16x16[NUM_SCANS_16x16][256];
   UInt stats32x32[NUM_SCANS_32x32][1024];
   UInt stats64x64[NUM_SCANS_64x64][4096];
-  static int first = 0;
-
-  if(first == 0)
-  {
-
-    for(ipredmode=0; ipredmode<9; ipredmode++)
-    {
-      scanOrder4x4[ipredmode] = new UInt[ 4*4 ];
-      scanOrder4x4X[ipredmode]= new UInt[ 4*4 ];
-      scanOrder4x4Y[ipredmode]= new UInt[ 4*4 ];
-
-      scanStats4x4[ipredmode] = new UInt[ 4*4 ];
- 
-
-      scanOrder8x8[ipredmode] = new UInt[ 8*8 ];
-      scanOrder8x8X[ipredmode]= new UInt[ 8*8 ];
-      scanOrder8x8Y[ipredmode]= new UInt[ 8*8 ];
-
-      scanStats8x8[ipredmode] = new UInt[ 8*8 ];
-    }
-
-    // 16x16
-    for (int z=0; z < NUM_SCANS_16x16; z++)
-    {
-      scanOrder16x16[z] = new UInt[ 16*16 ];
-      scanOrder16x16X[z] = new UInt[ 16*16 ];
-      scanOrder16x16Y[z] = new UInt[ 16*16 ];
-      scanStats16x16[z] = new UInt[ 16*16 ];
-    }
-
-    // 32x32
-    for (int z=0; z < NUM_SCANS_32x32; z++)
-    {
-      scanOrder32x32[z] = new UInt[ 32*32 ];
-      scanOrder32x32X[z] = new UInt[ 32*32 ];
-      scanOrder32x32Y[z] = new UInt[ 32*32 ];
-      scanStats32x32[z] = new UInt[ 32*32 ];
-    }
-
-    // 64x64
-    for (int z=0; z < NUM_SCANS_64x64; z++)
-    {
-      scanOrder64x64[z] = new UInt[ 64*64 ];
-      scanOrder64x64X[z] = new UInt[ 64*64 ];
-      scanOrder64x64Y[z] = new UInt[ 64*64 ];
-      scanStats64x64[z] = new UInt[ 64*64 ];
-    }
-
-    first++;
-  }
 
 
   // 4x4 and 8x8
