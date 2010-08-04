@@ -5803,15 +5803,26 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
   Bool    bSubBlockCoding     = ( uiLog2BlkSize > 2 );
   Double  d64BlockUncodedCost = 0;
 
-  Int*  piCoeff            = new Int [ uiMaxNumCoeff      ];
+  // Allocation on stack to avoid recurring memory allocation/deallocation on heap
+  Int piCoeff[MAX_CU_SIZE * MAX_CU_SIZE];
 #if QC_MDDT
-  Int64* plLevelDouble     = new Int64[ uiMaxNumCoeff      ];
+  Int64 plLevelDouble[MAX_CU_SIZE * MAX_CU_SIZE];
 #else
-  Long* plLevelDouble      = new Long[ uiMaxNumCoeff      ];
+  Long plLevelDouble[MAX_CU_SIZE * MAX_CU_SIZE];
 #endif
-  UInt* puiCtxAbsGreOne    = new UInt[ uiMaxNumCoeff      ];
-  UInt* puiCtxCoeffLevelM1 = new UInt[ uiMaxNumCoeff      ];
-  UInt* puiBaseCtx         = new UInt[ uiMaxNumCoeff / 16 ];
+  UInt puiCtxAbsGreOne[MAX_CU_SIZE * MAX_CU_SIZE];
+  UInt puiCtxCoeffLevelM1[MAX_CU_SIZE * MAX_CU_SIZE];
+  UInt puiBaseCtx[MAX_CU_SIZE * MAX_CU_SIZE / 16];
+  
+//  Int*  piCoeff            = new Int [ uiMaxNumCoeff      ];
+//#if QC_MDDT
+//  Int64* plLevelDouble     = new Int64[ uiMaxNumCoeff      ];
+//#else
+//  Long* plLevelDouble      = new Long[ uiMaxNumCoeff      ];
+//#endif
+//  UInt* puiCtxAbsGreOne    = new UInt[ uiMaxNumCoeff      ];
+//  UInt* puiCtxCoeffLevelM1 = new UInt[ uiMaxNumCoeff      ];
+//  UInt* puiBaseCtx         = new UInt[ uiMaxNumCoeff / 16 ];
   const UInt uiNumOfSets   = 4;
   const UInt uiNum4x4Blk   = max<UInt>( 1, uiMaxNumCoeff / 16 );
 
@@ -6252,11 +6263,11 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
     }
   }
 
-  delete[] piCoeff;
-  delete[] plLevelDouble;
-  delete[] puiCtxAbsGreOne;
-  delete[] puiCtxCoeffLevelM1;
-  delete[] puiBaseCtx;
+//  delete[] piCoeff;
+//  delete[] plLevelDouble;
+//  delete[] puiCtxAbsGreOne;
+//  delete[] puiCtxCoeffLevelM1;
+//  delete[] puiBaseCtx;
 #else
 // temporal buffer for speed
 static levelDataStruct slevelData		[ MAX_CU_SIZE*MAX_CU_SIZE ];
