@@ -153,6 +153,10 @@ protected:
   Int       m_iInterpFilterType;
 #endif
 
+#if SAMSUNG_ALLOW_AMP_SWITCH
+  Bool		m_bUseAMP; // ilkoo.kim@samsung.com
+#endif
+
 public:
   TEncCfg()          {}
   virtual ~TEncCfg() {}
@@ -350,6 +354,10 @@ public:
   Int*      getdQPs                         ()      { return m_aidQP;       }
   UInt      getMaxTrSize                    ()      { return m_uiMaxTrSize; }
   UInt      getDeltaQpRD                    ()      { return m_uiDeltaQpRD; }
+#if SAMSUNG_ALLOW_AMP_SWITCH
+  Void      setUseAMP                       ( Bool  b )     { m_bUseAMP     = b; } // ilkoo.kim@samsung.com
+  Bool      getUseAMP                       ()      { return m_bUseAMP;     } // ilkoo.kim@samsung.com
+#endif
 
 #if HHI_INTERP_FILTER
   Void      setInterpFilterType             ( Int   i )     { m_iInterpFilterType = i;    }

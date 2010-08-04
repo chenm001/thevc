@@ -125,6 +125,9 @@ Void TDecCavlc::parseSPS(TComSPS* pcSPS)
 #if HHI_IMVP
   xReadFlag( uiCode ); pcSPS->setUseIMP ( uiCode ? true : false ); // SOPH:
 #endif
+#if SAMSUNG_ALLOW_AMP_SWITCH
+  xReadFlag( uiCode ); pcSPS->setUseAMP ( uiCode ? true : false ); // ilkoo.kim@samsung.com
+#endif
   // number of taps for DIF
   xReadUvlc( uiCode ); pcSPS->setDIFTap ( (uiCode+2)<<1 );  // 4, 6, 8, 10, 12
 

@@ -196,11 +196,19 @@ Void TDecTop::decode (Bool bEos, TComBitstream* pcBitstream, UInt& ruiPOC, TComL
   {
     m_cEntropyDecoder.decodeSPS( &m_cSPS );
 
+#if SAMSUNG_ALLOW_AMP_SWITCH
+	Int i;
+    for (i = 0; i < m_cSPS.getMaxCUDepth() - 1; i++)
+    {
+      m_cSPS.setAMPAcc( i, m_cSPS.getUseAMP() );
+    }
+#else
     Int i;
     for (i = 0; i < m_cSPS.getMaxCUDepth() - 1; i++)
     {
       m_cSPS.setAMPAcc( i, 1 );
     }
+#endif
 
     for (i = m_cSPS.getMaxCUDepth() - 1; i < m_cSPS.getMaxCUDepth(); i++)
     {

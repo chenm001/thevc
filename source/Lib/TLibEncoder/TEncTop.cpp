@@ -362,10 +362,22 @@ Void TEncTop::xInitSPS()
 #endif
   
 
+#if SAMSUNG_ALLOW_AMP_SWITCH
+  Int iSwitch = 0;
+  if ( m_bUseAMP ) iSwitch = 1;
+
+  for (i = 0; i < g_uiMaxCUDepth; i++ )
+  {
+    m_cSPS.setAMPAcc( i, iSwitch );
+  }
+
+  m_cSPS.setUseAMP ( m_bUseAMP );
+#else
   for (i = 0; i < g_uiMaxCUDepth; i++ )
   {
     m_cSPS.setAMPAcc( i, 1 );
   }
+#endif
 
   for (i = 0; i < g_uiMaxCUDepth; i++ )
   {

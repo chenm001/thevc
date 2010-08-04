@@ -141,6 +141,15 @@ void normalizeScanStats();
 // QUALCOMM defines section end
 ///////////////////////////////
 
+///////////////////////////////
+// SAMSUNG defines section start
+///////////////////////////////
+#define SAMSUNG_ALLOW_AMP_SWITCH              1           ///< ilkoo.kim@samsung.com: allow to switch off AMP
+#define SAMSUNG_REMOVE_AMP_FEN_PENALTY        1           ///< ilkoo.kim@samsung.com: removal of FEN penality of AMP
+///////////////////////////////
+// SAMSUNG defines section end
+///////////////////////////////
+
 // ====================================================================================================================
 // Basic type redefinition
 // ====================================================================================================================

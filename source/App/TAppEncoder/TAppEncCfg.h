@@ -153,6 +153,10 @@ protected:
   Bool      m_bUseIMP;                                        // SOPH : coding tools (interleaved MV Predictor)
 #endif
 
+#if SAMSUNG_ALLOW_AMP_SWITCH
+  Bool		m_bUseAMP;										  ///< ilkoo.kim@samsung.com: flag for using asymmetric partition
+#endif
+
   // coding tools (encoder-only parameters)
   Bool      m_bUseSBACRD;                                     ///< flag for using RD optimization based on SBAC
   Bool      m_bUseASR;                                        ///< flag for using adaptive motion search range
