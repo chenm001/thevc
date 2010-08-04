@@ -267,6 +267,13 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
         m_pcSliceEncoder->setSearchRange(pcSlice);
       }
 
+	  Bool b;
+	  if (m_pcCfg->getGOPSize()==1)
+		  b = ((pcSlice->getPOC()&1)==0);	
+	  else
+		  b = (pcSlice->isReferenced() == 0);	 
+	  pcSlice->setRounding(b);
+
 #ifdef QC_SIFO
       if( pcSlice->getUseSIFO() )
       {
@@ -277,9 +284,6 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
           if(pcSlice->getSliceType() == B_SLICE)
             m_pcSIFOEncoder->setFirstPassSubpelOffset(REF_PIC_LIST_1, pcSlice);
         }
-#if PRINT_OFFSETS
-        m_pcSIFOEncoder->printSIFOOffsets(pcSlice);
-#endif
       }
 #endif
       m_pcSliceEncoder->precompressSlice( pcPic );

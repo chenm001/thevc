@@ -190,7 +190,11 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
   }
 
   if (!pcSlice->isIntra())
+  {
     xWriteFlag  (pcSlice->isReferenced() ? 1 : 0);
+
+	xWriteFlag  (pcSlice->isRounding() ? 1 : 0);
+  }
 
   xWriteFlag  (pcSlice->getLoopFilterDisable());
 
@@ -2017,17 +2021,6 @@ Void TEncCavlc::encodeSwitched_Filters(TComSlice* pcSlice,TComPrediction *m_cPre
       }
     }
   }
-
-#if PRINT_FILTERS==1
-  printf("\n");
-  for(UInt sub_pos = 1; sub_pos < 16; ++sub_pos)
-  {
-    Int SIFOFilter = m_cPrediction->getSIFOFilter(sub_pos);
-    Int f0 = m_cPrediction->getTabFilters(sub_pos,SIFOFilter,0);
-    Int f1 = m_cPrediction->getTabFilters(sub_pos,SIFOFilter,1);
-    printf("%2d,  %2d (%2d,%2d)\n", sub_pos, SIFOFilter, f0, f1);
-  }
-#endif
 
 //----encode Offsets
   if(pcSlice->getSliceType() != I_SLICE)

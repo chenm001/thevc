@@ -200,6 +200,13 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice)
 
   rpcSlice->setReferenced       (uiCode ? true : false);
 
+  if(!rpcSlice->isIntra())
+  {
+	xReadFlag( uiCode );
+	Bool b = (uiCode != 0);
+	rpcSlice->setRounding(b);
+  }
+
   xReadFlag (   uiCode);  rpcSlice->setLoopFilterDisable(uiCode ? 1 : 0);
 
   if (!rpcSlice->isIntra())
@@ -2307,17 +2314,6 @@ Void TDecCavlc::parseSwitched_Filters (TComSlice*& rpcSlice, TComPrediction* m_c
 
   }
 
-#if PRINT_FILTERS==1
-  printf("\n");
-  for(UInt sub_pos = 1; sub_pos < 16; ++sub_pos)
-  {
-    Int SIFOFilter = m_cPrediction->getSIFOFilter(sub_pos);
-    Int f0 = m_cPrediction->getTabFilters(sub_pos,SIFOFilter,0);
-    Int f1 = m_cPrediction->getTabFilters(sub_pos,SIFOFilter,1);
-    printf("%2d,  %2d (%2d,%2d)\n", sub_pos, SIFOFilter, f0, f1);
-  }
-#endif
-
 #ifdef QC_SIFO
   if(rpcSlice->getSliceType() != I_SLICE)
   {
@@ -2351,45 +2347,6 @@ Void TDecCavlc::parseSwitched_Filters (TComSlice*& rpcSlice, TComPrediction* m_c
             m_cPrediction->setFrameOffset(iCode,list,frame);
           }
         }
-      }
-    }
-  }
-#endif
-
-#if PRINT_OFFSETS
-  if(rpcSlice->getSliceType() != I_SLICE)
-  {
-    UInt nonzero = 0;
-    Int subpelOffset[2][16];
-    Int imgOffset[2][MAX_REF_PIC_NUM];
-    Int listNo = (rpcSlice->getSliceType() == B_SLICE)? 2: 1;
-
-    for(Int list = 0; list < listNo; ++list) 
-    {
-      nonzero = m_cPrediction->isOffsetZero(rpcSlice, list);
-      if(nonzero)
-      {
-        for(UInt frame = 0; frame < rpcSlice->getNumRefIdx(RefPicList(list)); ++frame)
-        {
-          printf("\nList%1d_Image[%2d]   ",list,frame);
-          if(frame == 0)     
-          {    
-            for(UInt sub_pos = 0; sub_pos < 16; ++sub_pos)   
-            {
-              subpelOffset[list][sub_pos] = m_cPrediction->getSubpelOffset(list,sub_pos);
-              printf("%2d ",(subpelOffset[list][sub_pos]/(1<<g_uiBitIncrement)));
-            }         
-          }
-          else              
-          {
-            imgOffset[list][frame] =  m_cPrediction->getFrameOffset(list,frame);
-            printf("%2d ",(imgOffset[list][frame]/(1<<g_uiBitIncrement)));
-          }
-        }
-      }
-      else
-      {
-        printf("\nList%1d             No Offsets",list);
       }
     }
   }

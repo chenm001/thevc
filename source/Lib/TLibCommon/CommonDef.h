@@ -206,6 +206,11 @@
 // Early-skip threshold (encoder)
 #define EARLY_SKIP_THRES            1.50        ///< if RD < thres*avg[BestSkipRD]
 
+
+const int g_iShift8x8    = 7;
+const int g_iShift16x16  = 6;
+const int g_iShift32x32  = 5;
+const int g_iShift64x64  = 4;
 enum NalRefIdc
 {
   NAL_REF_IDC_PRIORITY_LOWEST = 0,
