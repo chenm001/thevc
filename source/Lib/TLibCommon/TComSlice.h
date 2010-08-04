@@ -306,7 +306,10 @@ private:
   Int         m_iChromaLogWeightDenom;
   Int         m_iWPLumaRound;
   Int         m_iWPChromaRound;
-
+#ifdef EDGE_BASED_PREDICTION
+  Bool        m_bEdgePredictionEnable;
+  Int         m_iEdgeDetectionThreshold;
+#endif //EDGE_BASED_PREDICTION
 #if HHI_INTERP_FILTER
   Int         m_iInterpFilterType;
 #endif
@@ -378,7 +381,12 @@ public:
 
   Void      setLambda( Double d ) { m_dLambda = d; }
   Double    getLambda() { return m_dLambda;        }
-
+#ifdef EDGE_BASED_PREDICTION
+  Void      setEdgePredictionEnable (Bool b)  { m_bEdgePredictionEnable = b; } 
+  Bool      getEdgePredictionEnable ()        { return m_bEdgePredictionEnable; }
+  Void      setEdgeDetectionThreshold (Int i) { m_iEdgeDetectionThreshold = i; }
+  Int       getEdgeDetectionThreshold ()      { return m_iEdgeDetectionThreshold; }
+#endif //EDGE_BASED_PREDICTION
   Void generateWPSlice( RefPicList e, EFF_MODE eEffMode, UInt uiInsertIdx);
 
   Void initWPParam( RefPicList e, EFF_MODE eEffMode, Int colorChannel);

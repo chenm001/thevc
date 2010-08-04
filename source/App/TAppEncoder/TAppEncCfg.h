@@ -163,6 +163,11 @@ protected:
   Int       m_iSearchRange;                                   ///< ME search range
   Bool      m_bUseFastEnc;                                    ///< flag for using fast encoder setting
 
+#ifdef EDGE_BASED_PREDICTION
+  // coding tool: edge based prediction
+  Bool      m_bEdgePredictionEnable;
+  Int       m_iEdgeDetectionThreshold;
+#endif //EDGE_BASED_PREDICTION
 #if HHI_INTERP_FILTER
   // coding tool (interpolation filter)
   Int       m_iInterpFilterType;                              ///< interpolation filter type

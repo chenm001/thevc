@@ -148,7 +148,10 @@ protected:
   Int*      m_aidQP;
   UInt      m_uiMaxTrSize;
   UInt      m_uiDeltaQpRD;
-
+#ifdef EDGE_BASED_PREDICTION
+  Bool      m_bEdgePredictionEnable;
+  Int       m_iEdgeDetectionThreshold;
+#endif //EDGE_BASED_PREDICTION
 #if HHI_INTERP_FILTER
   Int       m_iInterpFilterType;
 #endif
@@ -314,7 +317,10 @@ public:
   Void      setdQPs                         ( Int*  p )     { m_aidQP       = p; }
   Void      setMaxTrSize                    ( UInt  u )     { m_uiMaxTrSize = u; }
   Void      setDeltaQpRD                    ( UInt  u )     {m_uiDeltaQpRD  = u; }
-
+#ifdef EDGE_BASED_PREDICTION
+  Void      setEdgePredictionEnable         ( Bool b )      { m_bEdgePredictionEnable = b; }
+  Void      setEdgeDetectionThreshold       ( Int i )       { m_iEdgeDetectionThreshold = i; }
+#endif //EDGE_BASED_PREDICTION
   Bool      getUseSBACRD                    ()      { return m_bUseSBACRD;  }
   Bool      getUseASR                       ()      { return m_bUseASR;     }
   Bool      getUseHADME                     ()      { return m_bUseHADME;   }
@@ -350,7 +356,10 @@ public:
   Int*      getdQPs                         ()      { return m_aidQP;       }
   UInt      getMaxTrSize                    ()      { return m_uiMaxTrSize; }
   UInt      getDeltaQpRD                    ()      { return m_uiDeltaQpRD; }
-
+#ifdef EDGE_BASED_PREDICTION
+  Bool      getEdgePredictionEnable         ()      { return m_bEdgePredictionEnable; }
+  Int       getEdgeDetectionThreshold       ()      { return m_iEdgeDetectionThreshold; }
+#endif //EDGE_BASED_PREDICTION
 #if HHI_INTERP_FILTER
   Void      setInterpFilterType             ( Int   i )     { m_iInterpFilterType = i;    }
   Int       getInterpFilterType             ()              { return m_iInterpFilterType; }
