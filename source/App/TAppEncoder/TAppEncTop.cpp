@@ -273,6 +273,7 @@ Void TAppEncTop::encode()
     delete [] scanOrder64x64[z];
     delete [] scanOrder64x64X[z];
     delete [] scanOrder64x64Y[z];
+    delete [] scanStats64x64[z];
   }
 #endif
   // delete used buffers in encoder class
