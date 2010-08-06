@@ -224,9 +224,7 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
     ("ALFMinLength", m_iAlfMinLength, 5)
     ("ALFMaxLength", m_iAlfMaxLength, 9)
 #endif
-#if SAMSUNG_ALLOW_AMP_SWITCH
     ("AMP", m_bUseAMP, true, "Asymmetric motion partition")
-#endif
     /* Misc. */
     ("FEN", m_bUseFastEnc, false, "fast encoder setting")
 
@@ -560,9 +558,7 @@ Void TAppEncCfg::xPrintParameter()
 #ifdef QC_SIFO_PRED
 	printf("SPF:%d ", m_bUseSIFO_Pred			);
 #endif
-#if SAMSUNG_ALLOW_AMP_SWITCH
     printf("AMP:%d ", m_bUseAMP);
-#endif
   printf("\n");
 
   fflush(stdout);

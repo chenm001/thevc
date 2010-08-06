@@ -96,9 +96,7 @@ private:
 #ifdef QC_SIFO_PRED
   Bool          m_bUseSIFO_Pred;
 #endif
-#if SAMSUNG_ALLOW_AMP_SWITCH
   Bool        m_bUseAMP;
-#endif
   // Parameter
   AMVP_MODE   m_aeAMVPMode[MAX_CU_DEPTH];
   UInt        m_uiBitDepth;
@@ -231,10 +229,8 @@ public:
 	Bool getUseSIFO_Pred      ()         { return m_bUseSIFO_Pred;        }
 #endif
 
-#if SAMSUNG_ALLOW_AMP_SWITCH
   Bool getUseAMP      ()         { return m_bUseAMP; }
   Void setUseAMP      ( Bool b ) { m_bUseAMP  = b; }
-#endif
 
   // AMVP mode (for each depth)
   AMVP_MODE getAMVPMode ( UInt uiDepth ) { assert(uiDepth < g_uiMaxCUDepth);  return m_aeAMVPMode[uiDepth]; }

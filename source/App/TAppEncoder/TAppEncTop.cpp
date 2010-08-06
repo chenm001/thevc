@@ -150,9 +150,7 @@ Void TAppEncTop::xInitLibCfg()
 #ifdef QC_SIFO_PRED
     m_cTEncTop.setUseSIFO_Pred                ( m_bUseSIFO_Pred );
 #endif
-#if SAMSUNG_ALLOW_AMP_SWITCH
     m_cTEncTop.setUseAMP                      ( m_bUseAMP );
-#endif
 
 }
 
