@@ -150,6 +150,8 @@
 		71AD603911EBC28500F5F1FE /* libTLibCommon.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 6767959411AD61BB00421804 /* libTLibCommon.a */; };
 		71AD603A11EBC28D00F5F1FE /* libTLibEncoder.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 6767961911AD626F00421804 /* libTLibEncoder.a */; };
 		71AD603B11EBC29600F5F1FE /* libTLibVideoIO.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 6767964B11AD629200421804 /* libTLibVideoIO.a */; };
+		DB623EFC120CC66300A0C111 /* TComEdgeBased.cpp in Sources */ = {isa = PBXBuildFile; fileRef = DB623EFA120CC66300A0C111 /* TComEdgeBased.cpp */; };
+		DB623EFD120CC66300A0C111 /* TComEdgeBased.h in Headers */ = {isa = PBXBuildFile; fileRef = DB623EFB120CC66300A0C111 /* TComEdgeBased.h */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -243,7 +245,6 @@
 		671E0D7C11B6ADE900F3747B /* TEncBinCoderV2VwLB.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TEncBinCoderV2VwLB.h; path = source/Lib/TLibEncoder/TEncBinCoderV2VwLB.h; sourceTree = "<group>"; };
 		671E0D7D11B6ADE900F3747B /* TEncPIPETables.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = TEncPIPETables.cpp; path = source/Lib/TLibEncoder/TEncPIPETables.cpp; sourceTree = "<group>"; };
 		671E0D7E11B6ADE900F3747B /* TEncPIPETables.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TEncPIPETables.h; path = source/Lib/TLibEncoder/TEncPIPETables.h; sourceTree = "<group>"; };
-		6745C40C11AD7424007D801A /* encoder.cfg */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = encoder.cfg; path = cfg/encoder.cfg; sourceTree = "<group>"; };
 		6767959411AD61BB00421804 /* libTLibCommon.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libTLibCommon.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		6767959911AD61FC00421804 /* CommonDef.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = CommonDef.h; path = source/Lib/TLibCommon/CommonDef.h; sourceTree = "<group>"; };
 		6767959A11AD61FC00421804 /* ContextTables.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ContextTables.h; path = source/Lib/TLibCommon/ContextTables.h; sourceTree = "<group>"; };
@@ -354,6 +355,8 @@
 		710C2D5211EB7615005CD831 /* SbacContextModel3DBuffer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = SbacContextModel3DBuffer.cpp; path = source/Lib/TLibCommon/SbacContextModel3DBuffer.cpp; sourceTree = "<group>"; };
 		710C2D5311EB7615005CD831 /* SbacContextModel3DBuffer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = SbacContextModel3DBuffer.h; path = source/Lib/TLibCommon/SbacContextModel3DBuffer.h; sourceTree = "<group>"; };
 		710C2D5411EB7615005CD831 /* SbacTables.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = SbacTables.h; path = source/Lib/TLibCommon/SbacTables.h; sourceTree = "<group>"; };
+		DB623EFA120CC66300A0C111 /* TComEdgeBased.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = TComEdgeBased.cpp; path = source/Lib/TLibCommon/TComEdgeBased.cpp; sourceTree = "<group>"; };
+		DB623EFB120CC66300A0C111 /* TComEdgeBased.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TComEdgeBased.h; path = source/Lib/TLibCommon/TComEdgeBased.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -429,7 +432,6 @@
 		08FB7795FE84155DC02AAC07 /* Source */ = {
 			isa = PBXGroup;
 			children = (
-				6745C40C11AD7424007D801A /* encoder.cfg */,
 				7104E1DC12005AE200F42AA8 /* TAppCommon */,
 				6782E0E511AD692F00E8FFB8 /* TAppDecoder */,
 				6767966F11AD66E600421804 /* TAppEncoder */,
@@ -484,6 +486,8 @@
 				676795A411AD61FC00421804 /* TComBitStream.h */,
 				676795A511AD61FC00421804 /* TComDataCU.cpp */,
 				676795A611AD61FC00421804 /* TComDataCU.h */,
+				DB623EFA120CC66300A0C111 /* TComEdgeBased.cpp */,
+				DB623EFB120CC66300A0C111 /* TComEdgeBased.h */,
 				676795A711AD61FC00421804 /* TComList.h */,
 				676795A811AD61FC00421804 /* TComLoopFilter.cpp */,
 				676795A911AD61FC00421804 /* TComLoopFilter.h */,
@@ -691,6 +695,7 @@
 				710C2D5611EB7615005CD831 /* SbacContextModel.h in Headers */,
 				710C2D5811EB7615005CD831 /* SbacContextModel3DBuffer.h in Headers */,
 				710C2D5911EB7615005CD831 /* SbacTables.h in Headers */,
+				DB623EFD120CC66300A0C111 /* TComEdgeBased.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -942,6 +947,7 @@
 				671E0D5311B6AD8C00F3747B /* TComPredFilterMOMS.cpp in Sources */,
 				710C2D5511EB7615005CD831 /* SbacContextModel.cpp in Sources */,
 				710C2D5711EB7615005CD831 /* SbacContextModel3DBuffer.cpp in Sources */,
+				DB623EFC120CC66300A0C111 /* TComEdgeBased.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
