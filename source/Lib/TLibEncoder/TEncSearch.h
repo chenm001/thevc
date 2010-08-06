@@ -128,6 +128,16 @@ public:
 protected:
 
   /// sub-function for motion vector refinement used in fractional-pel accuracy
+#ifdef ROUNDING_CONTROL
+  UInt  xPatternRefinement_Bi( TComPattern* pcPatternKey, Pel* piRef, Int iRefStride, Int iIntStep, Int iFrac, TComMv& rcMvFrac, Pel* pRefY2, Bool bRound );
+#ifdef QC_AMVRES
+#if HHI_INTERP_FILTER
+  UInt xPatternRefinementHAM_MOMS_Bi    ( TComPattern* pcPatternKey, Pel* piRef, Int iRefStride, Int iIntStep, TComMv& rcMvFrac ,UInt  uiDistBest_onefourth, InterpFilterType ePFilt,TComMv* PredMv, Pel* pRefY2, Bool bRound );
+#endif
+  UInt xPatternRefinementHAM_DIF_Bi    ( TComPattern* pcPatternKey, Pel* piRef, Int iRefStride, Int iIntStep, TComMv& rcMvFrac ,UInt  uiDistBest_onefourth,TComMv* predMV, Pel* pRefY2, Bool bRound );
+#endif
+#endif
+
   UInt  xPatternRefinement( TComPattern* pcPatternKey, Pel* piRef, Int iRefStride, Int iIntStep, Int iFrac, TComMv& rcMvFrac );
 
 #ifdef QC_AMVRES
@@ -462,6 +472,84 @@ protected:
                                     TComMv*       pcMvSrchRngRB,
                                     TComMv&       rcMv,
                                     UInt&         ruiSAD );
+
+#ifdef ROUNDING_CONTROL
+  Void xPatternSearch_Bi             ( TComPattern*  pcPatternKey,
+                                    Pel*          piRefY,
+                                    Int           iRefStride,
+                                    TComMv*       pcMvSrchRngLT,
+                                    TComMv*       pcMvSrchRngRB,
+                                    TComMv&       rcMv,
+                                    UInt&         ruiSAD,
+				    Pel*		  pcRefY2,
+				    Bool		  bRound);
+
+  Void xPatternSearchFracDIF_Bi      ( TComDataCU*   pcCU,
+                                    TComPattern*  pcPatternKey,
+                                    Pel*          piRefY,
+                                    Int           iRefStride,
+                                    TComMv*       pcMvInt,
+                                    TComMv&       rcMvHalf,
+                                    TComMv&       rcMvQter,
+  									UInt&    	  ruiCost,
+#ifdef QC_AMVRES																		
+									TComMv         *PredMv, 
+									Int            iRefIdxPred, 
+#endif
+									Pel*		  pcRefY2,
+									Bool		  bRound);
+
+
+#ifdef QC_SIFO
+  Void xPatternSearchFracDIF_QC_Bi   ( TComDataCU*   pcCU,
+                                    TComPattern*  pcPatternKey,
+                                    Pel*          piRefY,
+                                    Int           iRefStride,
+                                    TComMv*       pcMvInt,
+                                    TComMv&       rcMvHalf,
+                                    TComMv&       rcMvQter,
+									UInt&					ruiCost, 
+#ifdef QC_AMVRES																		
+									TComMv *PredMv, 
+									Int iRefIdxPred, 
+#endif
+									Pel*		  pcRefY2,
+									Bool		  bRound	
+									);
+#endif
+  UInt xPatternRefinementMC_Bi    ( TComPattern* pcPatternKey, Pel* piRef, Int iRefStride, Int iIntStep, Int iFrac, TComMv& rcMvFrac,Pel* pcRefY2,	Bool bRound);
+#if TEN_DIRECTIONAL_INTERP
+  Void xPatternSearchFracDIF_TEN_Bi   ( TComDataCU*   pcCU,
+                                    TComPattern*  pcPatternKey,
+                                    Pel*          piRefY,
+                                    Int           iRefStride,
+                                    TComMv*       pcMvInt,
+                                    TComMv&       rcMvHalf,
+                                    TComMv&       rcMvQter,
+                                    UInt&         ruiCost, 
+									Pel*		  pcRefY2,
+									Bool		  bRound	
+									);
+#endif
+#if HHI_INTERP_FILTER
+  Void xPatternSearchFracMOMS_Bi     ( TComDataCU*   pcCU,
+                                    TComPattern*  pcPatternKey,
+                                    Pel*          piRefY,
+                                    Int           iRefStride,
+                                    TComMv*       pcMvInt,
+                                    TComMv&       rcMvHalf,
+                                    TComMv&       rcMvQter,
+                                    UInt&         ruiCost,
+                                    InterpFilterType ePFilt, 
+#ifdef QC_AMVRES
+									TComMv *PredMv,
+   				                    Int iRefIdxPred, 
+#endif			
+									Pel*		  pcRefY2,
+									Bool		  bRound	
+  				    );
+#endif
+#endif
 
   Void xPatternSearch             ( TComPattern*  pcPatternKey,
                                     Pel*          piRefY,

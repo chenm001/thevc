@@ -266,14 +266,14 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
       {
         m_pcSliceEncoder->setSearchRange(pcSlice);
       }
-
+#ifdef ROUNDING_CONTROL
 	  Bool b;
 	  if (m_pcCfg->getGOPSize()==1)
 		  b = ((pcSlice->getPOC()&1)==0);	
 	  else
 		  b = (pcSlice->isReferenced() == 0);	 
 	  pcSlice->setRounding(b);
-
+#endif
 #ifdef QC_SIFO
       if( pcSlice->getUseSIFO() )
       {
