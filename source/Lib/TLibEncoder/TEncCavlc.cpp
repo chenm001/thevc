@@ -266,6 +266,11 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
     xWriteFlag( pcSlice->getColDir() );
   }
 #endif
+#ifdef EDGE_BASED_PREDICTION
+  xWriteFlag(pcSlice->getEdgePredictionEnable());
+  if( pcSlice->getEdgePredictionEnable() )
+    xWriteCode((pcSlice->getEdgeDetectionThreshold()>>8), 8);
+#endif //EDGE_BASED_PREDICTION
 }
 
 Void TEncCavlc::codeTerminatingBit      ( UInt uilsLast )

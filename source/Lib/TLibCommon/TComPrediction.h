@@ -44,6 +44,10 @@
 #include "TComTrQuant.h"
 #include "TComPredFilter.h"
 
+#ifdef EDGE_BASED_PREDICTION
+#include "TComEdgeBased.h"
+#endif //EDGE_BASED_PREDICTION
+
 #if HHI_INTERP_FILTER
 #include "TComPredFilterMOMS.h"
 #endif
@@ -63,7 +67,9 @@ protected:
   Int       m_iYuvExtStride;
   Int       m_iYuvExtHeight;
   Int       m_iDIFHalfTap;
-
+#ifdef EDGE_BASED_PREDICTION
+  Int*      m_piYExtEdgeBased;
+#endif //EDGE_BASED_PREDICTION
   TComYuv   m_acYuvPred[2];
   TComYuv   m_cYuvPredTemp;
   TComYuv   m_cYuvExt;
@@ -95,6 +101,9 @@ protected:
   Void xPredInterChromaBlk_TEN  ( TComDataCU* pcCU, TComPicYuv* pcPicYuvRef, UInt uiPartAddr, TComMv* pcMv, Int iWidth, Int iHeight,                         TComYuv*& rpcYuv                            );
 #endif
   Void xWeightedAverage         ( TComDataCU* pcCU, TComYuv* pcYuvSrc0, TComYuv* pcYuvSrc1, Int iRefIdx0, Int iRefIdx1, UInt uiPartAddr, Int iWidth, Int iHeight, TComYuv*& rpcYuvDst );
+#ifdef EDGE_BASED_PREDICTION
+  TComEdgeBased* EdgeBasedPred;  
+#endif //EDGE_BASED_PREDICTION
 #ifdef QC_AMVRES
   Void  xPredInterLumaBlkHMV ( TComDataCU* pcCU, TComPicYuv* pcPicYuvRef, UInt uiPartAddr, TComMv* pcMv,Int iWidth, Int iHeight, TComYuv*& rpcYuv );
   Void  xPredInterLumaBlkHMVME ( Pel* piSrcY, Int iSrcStride, Pel* piDstY, Int iDstStride, TComMv* pcMv,Int iWidth, Int iHeight, Int dMVx, Int dMVy);
@@ -157,6 +166,10 @@ public:
   Int* getPredicBuf()             { return m_piYuvExt;      }
   Int  getPredicBufWidth()        { return m_iYuvExtStride; }
   Int  getPredicBufHeight()       { return m_iYuvExtHeight; }
+#ifdef EDGE_BASED_PREDICTION
+  TComEdgeBased* getEdgeBasedPred () { return EdgeBasedPred; }
+  Int* getEdgeBasedBuf()          { return m_piYExtEdgeBased; }
+#endif //EDGE_BASED_PREDICTION
 };
 
 

@@ -73,6 +73,9 @@ TComSlice::TComSlice()
   m_auiAddRefCnt[0]  = 0;
   m_auiAddRefCnt[1]  = 0;
 
+#ifdef EDGE_BASED_PREDICTION
+    m_bEdgePredictionEnable = false;
+#endif //EDGE_BASED_PREDICTION
   initEqualRef();
 }
 
