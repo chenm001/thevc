@@ -286,6 +286,9 @@ private:
 
   // referenced slice?
   Bool        m_bRefenced;
+#ifdef ROUNDING_CONTROL
+  Bool		  m_bRounding;
+#endif
 
   // access channel
   TComSPS*    m_pcSPS;
@@ -356,6 +359,10 @@ public:
 
   Void      setReferenced(Bool b)                               { m_bRefenced = b; }
   Bool      isReferenced()                                      { return m_bRefenced; }
+#ifdef ROUNDING_CONTROL
+  Void      setRounding(Bool bRound)                            { m_bRounding = bRound; }
+  Bool      isRounding()                                        { return m_bRounding; }
+#endif
 
   Void      setPOC              ( Int i )                       { m_iPOC              = i;      }
   Void      setSliceType        ( SliceType e )                 { m_eSliceType        = e;      }

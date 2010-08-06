@@ -502,6 +502,72 @@ Void TComYuv::subtractChroma( TComYuv* pcYuvSrc0, TComYuv* pcYuvSrc1, UInt uiTrU
   }
 }
 
+#ifdef ROUNDING_CONTROL
+
+Void TComYuv::addAvg( TComYuv* pcYuvSrc0, TComYuv* pcYuvSrc1, UInt iPartUnitIdx, UInt iWidth, UInt iHeight, Bool bRound )
+{
+  Int x, y;
+
+  Pel* pSrcY0  = pcYuvSrc0->getLumaAddr( iPartUnitIdx );
+  Pel* pSrcU0  = pcYuvSrc0->getCbAddr  ( iPartUnitIdx );
+  Pel* pSrcV0  = pcYuvSrc0->getCrAddr  ( iPartUnitIdx );
+
+  Pel* pSrcY1  = pcYuvSrc1->getLumaAddr( iPartUnitIdx );
+  Pel* pSrcU1  = pcYuvSrc1->getCbAddr  ( iPartUnitIdx );
+  Pel* pSrcV1  = pcYuvSrc1->getCrAddr  ( iPartUnitIdx );
+
+  Pel* pDstY   = getLumaAddr( iPartUnitIdx );
+  Pel* pDstU   = getCbAddr  ( iPartUnitIdx );
+  Pel* pDstV   = getCrAddr  ( iPartUnitIdx );
+
+  UInt  iSrc0Stride = pcYuvSrc0->getStride();
+  UInt  iSrc1Stride = pcYuvSrc1->getStride();
+  UInt  iDstStride  = getStride();
+
+  for ( y = iHeight-1; y >= 0; y-- )
+  {
+    for ( x = iWidth-1; x >= 0; )
+    {
+      // note: luma min width is 4
+      pDstY[x] = (pSrcY0[x] + pSrcY1[x] + bRound) >> 1; x--;
+      pDstY[x] = (pSrcY0[x] + pSrcY1[x] + bRound) >> 1; x--;
+      pDstY[x] = (pSrcY0[x] + pSrcY1[x] + bRound) >> 1; x--;
+      pDstY[x] = (pSrcY0[x] + pSrcY1[x] + bRound) >> 1; x--;
+    }
+    pSrcY0 += iSrc0Stride;
+    pSrcY1 += iSrc1Stride;
+    pDstY  += iDstStride;
+  }
+
+  iSrc0Stride = pcYuvSrc0->getCStride();
+  iSrc1Stride = pcYuvSrc1->getCStride();
+  iDstStride  = getCStride();
+
+  iWidth  >>=1;
+  iHeight >>=1;
+
+  for ( y = iHeight-1; y >= 0; y-- )
+  {
+    for ( x = iWidth-1; x >= 0; )
+    {
+      // note: chroma min width is 2
+      pDstU[x] = (pSrcU0[x] + pSrcU1[x] + bRound) >> 1;
+      pDstV[x] = (pSrcV0[x] + pSrcV1[x] + bRound) >> 1; x--;
+      pDstU[x] = (pSrcU0[x] + pSrcU1[x] + bRound) >> 1;
+      pDstV[x] = (pSrcV0[x] + pSrcV1[x] + bRound) >> 1; x--;
+    }
+
+    pSrcU0 += iSrc0Stride;
+    pSrcU1 += iSrc1Stride;
+    pSrcV0 += iSrc0Stride;
+    pSrcV1 += iSrc1Stride;
+    pDstU  += iDstStride;
+    pDstV  += iDstStride;
+  }
+}
+
+#endif
+
 Void TComYuv::addAvg( TComYuv* pcYuvSrc0, TComYuv* pcYuvSrc1, UInt iPartUnitIdx, UInt iWidth, UInt iHeight )
 {
   Int x, y;

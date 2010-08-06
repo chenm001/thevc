@@ -191,7 +191,12 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
   }
 
   if (!pcSlice->isIntra())
+  {
     xWriteFlag  (pcSlice->isReferenced() ? 1 : 0);
+#ifdef ROUNDING_CONTROL
+	xWriteFlag  (pcSlice->isRounding() ? 1 : 0);
+#endif
+  }
 
   xWriteFlag  (pcSlice->getLoopFilterDisable());
 
@@ -1039,7 +1044,10 @@ Void TEncCavlc::codeCoeffNxN    ( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPa
   // point to coefficient
   TCoeff* piCoeff = pcCoef;
   UInt uiNumSig = 0;
-  UInt uiScanning, uiInterleaving;
+  UInt uiScanning;
+#if !QC_MDDT
+  UInt uiInterleaving;
+#endif
 
   // compute number of significant coefficients
   UInt  uiPart = 0;
@@ -1136,7 +1144,9 @@ Void TEncCavlc::codeCoeffNxN    ( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPa
 
   TCoeff scoeff[64];
   Int iBlockType;
+#if !QC_MDDT
   UInt uiNumSigInterleaved;
+#endif
 #if NEWVLC
   UInt uiCodeDCCoef = 0;
   TCoeff dcCoeff = 0;
@@ -1185,7 +1195,8 @@ Void TEncCavlc::codeCoeffNxN    ( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPa
     for (uiScanning=0; uiScanning<16; uiScanning++)
     {
       scoeff[15-uiScanning] = piCoeff[ pucScan[ uiScanning ] ];
-#if 0//QC_MDDT// VLC_MDDT ADAPTIVE_SCAN
+
+#if QC_MDDT// VLC_MDDT ADAPTIVE_SCAN
       if(scoeff[15-uiScanning])
       {
         if(g_bUpdateStats && pcCU->isIntra( uiAbsPartIdx ) && eTType == TEXT_LUMA)// && (uiWidth == 4 && uiMode<=8&&indexROT == 0))
@@ -1204,7 +1215,8 @@ Void TEncCavlc::codeCoeffNxN    ( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPa
     for (uiScanning=0; uiScanning<64; uiScanning++)
     {
       scoeff[63-uiScanning] = piCoeff[ pucScan[ uiScanning ] ];
-#if 0//QC_MDDT// VLC_MDDT ADAPTIVE_SCAN
+
+#if QC_MDDT// VLC_MDDT ADAPTIVE_SCAN
       if(scoeff[63-uiScanning])
       {
         if(g_bUpdateStats && pcCU->isIntra( uiAbsPartIdx ) && eTType == TEXT_LUMA)// && (uiWidth == 8 && uiMode<=8 && indexROT == 0))
@@ -1240,29 +1252,38 @@ Void TEncCavlc::codeCoeffNxN    ( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPa
       return;
     }    
 #endif
+
+
+#if QC_MDDT
+    if(pcCU->isIntra( uiAbsPartIdx ))
+    {
+      for (uiScanning=0; uiScanning<64; uiScanning++)
+      {
+        if(scoeff[63-uiScanning] = piCoeff[ pucScan[ uiScanning ] ])
+        {
+          if(g_bUpdateStats && eTType == TEXT_LUMA )
+            scanStats[ uiScanning ]++;
+        }
+      }
+
+      if (eTType==TEXT_CHROMA_U || eTType==TEXT_CHROMA_V) 
+        iBlockType = eTType-2;
+      else
+        iBlockType = 5 + ( pcCU->isIntra(uiAbsPartIdx) ? 0 : pcCU->getSlice()->getSliceType() );
+      xCodeCoeff8x8( scoeff, iBlockType );
+    }
+#else
     for (uiInterleaving=0; uiInterleaving<uiSize/64; uiInterleaving++)
     {
       uiNumSigInterleaved = 0;
       for (uiScanning=0; uiScanning<64; uiScanning++)
       {
-#if QC_MDDT// VLC_MDDT ADAPTIVE_SCAN
-        if(pcCU->isIntra( uiAbsPartIdx ) && eTType == TEXT_LUMA && (uiWidth == 16 || uiWidth == 32 || uiWidth == 64))
-          scoeff[63-uiScanning] = piCoeff[ pucScan[ uiScanning ] ];
-        else
-#endif
         scoeff[63-uiScanning] = piCoeff[ pucScan[ (uiSize/64) * uiScanning + uiInterleaving ] ];
 
         if ( scoeff[63-uiScanning] )
         {
           uiNumSigInterleaved++;
-#if 0//QC_MDDT// VLC_MDDT ADAPTIVE_SCAN
-          if(g_bUpdateStats && pcCU->isIntra( uiAbsPartIdx ) && eTType == TEXT_LUMA && (uiWidth == 16 || uiWidth == 32 || uiWidth == 64))
-          {
-            scanStats[ uiScanning ]++;
-          }
-#endif
         }
-
       }
       if ( uiNumSigInterleaved )
       {
@@ -1274,13 +1295,8 @@ Void TEncCavlc::codeCoeffNxN    ( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPa
       {
         xWriteFlag( 0 );
       }
-
-#if QC_MDDT// VLC_MDDT ADAPTIVE_SCAN
-      if(pcCU->isIntra( uiAbsPartIdx ) && eTType == TEXT_LUMA && (uiWidth == 16 || uiWidth == 32 || uiWidth == 64))
-        break;
-#endif
-
     }
+#endif // QC_MDDT
 //#endif
   }
 
@@ -2034,17 +2050,6 @@ Void TEncCavlc::encodeSwitched_Filters(TComSlice* pcSlice,TComPrediction *m_cPre
       }
     }
   }
-
-#if PRINT_FILTERS==1
-  printf("\n");
-  for(UInt sub_pos = 1; sub_pos < 16; ++sub_pos)
-  {
-    Int SIFOFilter = m_cPrediction->getSIFOFilter(sub_pos);
-    Int f0 = m_cPrediction->getTabFilters(sub_pos,SIFOFilter,0);
-    Int f1 = m_cPrediction->getTabFilters(sub_pos,SIFOFilter,1);
-    printf("%2d,  %2d (%2d,%2d)\n", sub_pos, SIFOFilter, f0, f1);
-  }
-#endif
 
 //----encode Offsets
   if(pcSlice->getSliceType() != I_SLICE)

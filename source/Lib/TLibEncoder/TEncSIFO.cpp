@@ -501,25 +501,6 @@ Void TEncSIFO::setFirstPassSubpelOffset(RefPicList iRefList, TComSlice* pcSlice)
     }
   }
 
-#if SIFO_DISABLE_OFFSET==1
-    NumMEOffsets = 0;
-    for (Int ref_frame = 0; ref_frame < pcSlice->getNumRefIdx(RefPicList(iRefList)); ref_frame++)
-    { 
-      if(ref_frame==0)
-      {
-        for(i = 0; i < 16; i++)
-        {
-          subpelOffset[i] = 0;
-          offsetMETab[i]  = 0;
-        }
-
-      }
-      else
-      {
-        imgOffset[ref_frame] = 0;
-      }
-    }
-#endif
 
   //set the values..........
   m_pcPredSearch->setNum_Offset_FullpelME(NumMEOffsets,list);
@@ -951,14 +932,6 @@ Void TEncSIFO::xUpdateSequenceFilters_P(TComSlice* pcSlice)
       filterSequence[i] = filterCombination[i];
   }
 
-#if SIFO_DISABLE_FILTER==1
-  bestFilter=0+2;
-  for(i = 1; i < 16; ++i)
-  {
-    filterSequence[i] = 0;
-  }
-#endif
-
   for(i = 1; i < 16; ++i)
   {
     m_pcPredSearch->setSIFOFilter      (filterSequence[i],i);
@@ -1068,14 +1041,6 @@ Void TEncSIFO::xUpdateSequenceFilters_P_pred(TComSlice* pcSlice)
       filterSequence[i] = best;
   }
 
-#if SIFO_DISABLE_FILTER==1
-  bestFilter=0+1;
-  for(i = 1; i < 16; ++i)
-  {
-    filterSequence[i] = 0;
-    predictFilterSequence[i] = 0;
-  }
-#endif
 
   for(i = 1; i < 16; ++i)
   {
@@ -1200,13 +1165,6 @@ Void TEncSIFO::xUpdateSequenceFilters_B(TComSlice* pcSlice, Double ****err, Int 
     filterSequence[i]=combination[i];
   }
 
-#if SIFO_DISABLE_FILTER==1
-  bestFilter=0+1;
-  for(i = 1; i < 16; ++i)
-  {
-    filterSequence[i] = 0;
-  }
-#endif
 
   for(i = 1; i < 16; ++i)
   {
@@ -1309,15 +1267,6 @@ Void TEncSIFO::xUpdateSequenceFilters_B_pred(TComSlice* pcSlice, Double ****err,
 
   for(i = 1; i < 16; ++i)
     filterSequence[i]=combination[i];
-
-#if SIFO_DISABLE_FILTER==1
-  bestFilter=0+1;
-  for(i = 1; i < 16; ++i)
-  {
-    filterSequence[i] = 0;
-    predictFilterSequence[i] = 0;
-  }
-#endif
 
   for(i = 1; i < 16; ++i)
   {
@@ -1852,45 +1801,5 @@ Void TEncSIFO::xDoubleDiagonalFilt(Int sub_pos, Int filterIndD1, Int filterIndD2
   }
 
 }
-#endif
-#if PRINT_OFFSETS==1
-Void TEncSIFO::printSIFOOffsets(TComSlice* pcSlice)
-{
-  if(pcSlice->getSliceType() != I_SLICE)
-  {
-    Int listNo = (pcSlice->getSliceType() == B_SLICE)? 2: 1;
-    for(Int list = 0; list < listNo; ++list) 
-    {
-      UInt nonzero = 0;
-      Int offset;
-      nonzero = m_pcPredSearch->isOffsetZero(pcSlice,list);
-      if(nonzero)
-      {
-        for(UInt frame = 0; frame < pcSlice->getNumRefIdx(RefPicList(list)); ++frame)
-        {
-          printf("\nList%1d_Image[%2d]   ",list,frame);
-          if(frame == 0)     
-          {    
-            for(UInt sub_pos = 0; sub_pos < 16; ++sub_pos)   
-            {
-              offset = m_pcPredSearch->getSubpelOffset(list,sub_pos)/(1<<g_uiBitIncrement);
-              printf("%2d ",offset);
-            }         
-          }
-          else              
-          {
-            offset = m_pcPredSearch->getFrameOffset(list,frame)/(1<<g_uiBitIncrement);
-            printf("%2d ",offset);
-          }
-        }
-      }
-      else
-      {
-        printf("\nList%1d             No Offsets",list);
-      }
-    }
-  }
-}
-
 #endif
 #endif

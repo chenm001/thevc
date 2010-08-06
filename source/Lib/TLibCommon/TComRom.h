@@ -218,24 +218,22 @@ extern const UChar  g_aucIntraModeBitsC[7];
 // ====================================================================================================================
 // Angular Intra table
 // ====================================================================================================================
-#if UNIFIED_DIRECTIONAL_INTRA
+# if UNIFIED_DIRECTIONAL_INTRA
 extern const UChar g_aucIntraModeNumAng[7];
 extern const UChar g_aucIntraModeBitsAng[7];
 extern const UChar g_aucAngModeMapping[3][34];
-#endif
+# endif
 
 extern const UChar g_aucAngIntraModeOrder[34];
-#if QC_MDDT
-extern const UChar g_aucAngIntra9Mode[34];
-#endif
 #endif
 
 #if QC_MDDT
-#if UNIFIED_DIRECTIONAL_INTRA
+extern const UChar g_aucAngIntra9Mode[34];
+# if UNIFIED_DIRECTIONAL_INTRA || ANG_INTRA==2
 extern const UChar g_aucIntra9Mode[34];
-#else
+# else
 extern const UChar g_aucIntra9Mode[33];
-#endif
+# endif
 #endif
 
 // ====================================================================================================================

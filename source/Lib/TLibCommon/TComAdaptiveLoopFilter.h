@@ -208,7 +208,6 @@ protected:
   imgpel **imgY_var;
   imgpel **imgY_pad;
   Int    **imgY_temp;
-  Int    **maskImgdec;
 
   Int **filterCoeffSym;
   Int **filterCoeffPrevSelected;
@@ -217,15 +216,15 @@ protected:
 
 	/// ALF for luma component
   Void	xALFLuma_qc				( TComPic* pcPic, ALFParam* pcAlfParam, TComPicYuv* pcPicDec, TComPicYuv* pcPicRest );
-  Void	xCUAdaptive_qc			( TComPic*	  pcPic, ALFParam* pcAlfParam, TComPicYuv* pcPicDec, TComPicYuv* pcPicRest );
-  Void	xSubCUAdaptive_qc	( TComDataCU* pcCU,  ALFParam* pcAlfParam, TComPicYuv* pcPicDec, TComPicYuv* pcPicRest,
+  Void	xCUAdaptive_qc			( TComPic*	  pcPic, ALFParam* pcAlfParam, imgpel **imgY_rec_post, imgpel **imgY_rec );
+  Void	xSubCUAdaptive_qc	( TComDataCU* pcCU,  ALFParam* pcAlfParam, imgpel **imgY_rec_post, imgpel **imgY_rec,
 													UInt uiAbsPartIdx, UInt uiDepth );
 
-  Void FilteringProcess_qc( imgpel **ImgDec, imgpel **ImgRest,ALFParam* pcAlfParam);
   Void calcVar(imgpel **imgY_var, imgpel **imgY_pad,int pad_size, int fl, int img_height, int img_width);
-  Void filterFrame(imgpel **imgY_rec_post, imgpel **imgY_rec, imgpel **varImg,int filtNo);
+  Void filterFrame(imgpel **imgY_rec_post, imgpel **imgY_rec,int filtNo);
+  Void subfilterFrame(imgpel **imgY_rec_post, imgpel **imgY_rec, int filtNo, int start_height, int end_height, int start_width, int end_width);
 
-  Void DecFilter_qc(imgpel** imgY_rec,ALFParam* pcAlfParam,int inloop);
+  Void DecFilter_qc(imgpel** imgY_rec,ALFParam* pcAlfParam);
   Void reconstructFilterCoeffs(ALFParam* pcAlfParam,int **pfilterCoeffSym, int bit_depth);
   Void getCurrentFilter(int **filterCoeffSym,ALFParam* pcAlfParam);
   Void padImage(imgpel **imgY,  imgpel **imgY_pad, int fl, int img_height, int img_width);
