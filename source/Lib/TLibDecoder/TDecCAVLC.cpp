@@ -732,6 +732,18 @@ Void TDecCavlc::parseIntraDirLumaAng  ( TComDataCU* pcCU, UInt uiAbsPartIdx, UIn
   if ( uiSymbol )
     uiIPredMode = iMostProbable;
   else{
+#if UNIFIED_DIRECTIONAL_INTRA
+    Int iIntraIdx = pcCU->getIntraSizeIdx(uiAbsPartIdx);
+    if ( g_aucIntraModeBitsAng[iIntraIdx] < 6 )
+    {
+      xReadFlag( uiSymbol ); uiIPredMode  = uiSymbol;
+      if ( g_aucIntraModeBitsAng[iIntraIdx] > 2 ) { xReadFlag( uiSymbol ); uiIPredMode |= uiSymbol << 1; }
+      if ( g_aucIntraModeBitsAng[iIntraIdx] > 3 ) { xReadFlag( uiSymbol ); uiIPredMode |= uiSymbol << 2; }
+      if ( g_aucIntraModeBitsAng[iIntraIdx] > 4 ) { xReadFlag( uiSymbol ); uiIPredMode |= uiSymbol << 3; }
+    }
+    else
+    {
+#endif
     xReadFlag( uiSymbol ); uiIPredMode  = uiSymbol;
     xReadFlag( uiSymbol ); uiIPredMode |= uiSymbol << 1;
     xReadFlag( uiSymbol ); uiIPredMode |= uiSymbol << 2;
@@ -742,6 +754,9 @@ Void TDecCavlc::parseIntraDirLumaAng  ( TComDataCU* pcCU, UInt uiAbsPartIdx, UIn
       xReadFlag( uiSymbol );
       uiIPredMode = uiSymbol ? 32 : 31;
     }
+#if UNIFIED_DIRECTIONAL_INTRA
+    }
+#endif
 
     if (uiIPredMode >= iMostProbable)
       uiIPredMode++;
