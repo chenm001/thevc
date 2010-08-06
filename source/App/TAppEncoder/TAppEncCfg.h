@@ -154,7 +154,7 @@ protected:
 #endif
 
 #if SAMSUNG_ALLOW_AMP_SWITCH
-  Bool		m_bUseAMP;										  ///< ilkoo.kim@samsung.com: flag for using asymmetric partition
+  Bool      m_bUseAMP;                                        ///< flag for using asymmetric partition
 #endif
 
   // coding tools (encoder-only parameters)

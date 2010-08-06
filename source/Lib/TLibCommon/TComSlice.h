@@ -97,7 +97,7 @@ private:
   Bool          m_bUseSIFO_Pred;
 #endif
 #if SAMSUNG_ALLOW_AMP_SWITCH
-  Bool			m_bUseAMP; // ilkoo.kim@samsung.com
+  Bool        m_bUseAMP;
 #endif
   // Parameter
   AMVP_MODE   m_aeAMVPMode[MAX_CU_DEPTH];
@@ -232,8 +232,8 @@ public:
 #endif
 
 #if SAMSUNG_ALLOW_AMP_SWITCH
-	Bool getUseAMP      ()         { return m_bUseAMP;        } // ilkoo.kim@samsung.com
-	Void setUseAMP      ( Bool b ) { m_bUseAMP  = b;          } // ilkoo.kim@samsung.com
+  Bool getUseAMP      ()         { return m_bUseAMP; }
+  Void setUseAMP      ( Bool b ) { m_bUseAMP  = b; }
 #endif
 
   // AMVP mode (for each depth)

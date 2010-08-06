@@ -154,7 +154,7 @@ protected:
 #endif
 
 #if SAMSUNG_ALLOW_AMP_SWITCH
-  Bool		m_bUseAMP; // ilkoo.kim@samsung.com
+  Bool      m_bUseAMP; // ilkoo.kim@samsung.com
 #endif
 
 public:
@@ -355,8 +355,8 @@ public:
   UInt      getMaxTrSize                    ()      { return m_uiMaxTrSize; }
   UInt      getDeltaQpRD                    ()      { return m_uiDeltaQpRD; }
 #if SAMSUNG_ALLOW_AMP_SWITCH
-  Void      setUseAMP                       ( Bool  b )     { m_bUseAMP     = b; } // ilkoo.kim@samsung.com
-  Bool      getUseAMP                       ()      { return m_bUseAMP;     } // ilkoo.kim@samsung.com
+  Void      setUseAMP                       ( Bool  b )     { m_bUseAMP     = b; }
+  Bool      getUseAMP                       ()      { return m_bUseAMP; }
 #endif
 
 #if HHI_INTERP_FILTER

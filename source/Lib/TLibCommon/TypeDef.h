@@ -144,8 +144,8 @@ void normalizeScanStats();
 ///////////////////////////////
 // SAMSUNG defines section start
 ///////////////////////////////
-#define SAMSUNG_ALLOW_AMP_SWITCH              1           ///< ilkoo.kim@samsung.com: allow to switch off AMP
-#define SAMSUNG_REMOVE_AMP_FEN_PENALTY        1           ///< ilkoo.kim@samsung.com: removal of FEN penality of AMP
+#define SAMSUNG_ALLOW_AMP_SWITCH              1           ///< allow to switch off AMP
+#define SAMSUNG_REMOVE_AMP_FEN_PENALTY        1           ///< removal of FEN penality of AMP
 ///////////////////////////////
 // SAMSUNG defines section end
 ///////////////////////////////

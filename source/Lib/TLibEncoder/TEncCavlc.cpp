@@ -143,7 +143,7 @@ Void TEncCavlc::codeSPS( TComSPS* pcSPS )
    xWriteFlag ( (pcSPS->getUseIMP ()) ? 1 : 0 ); // SOPH:
 #endif
 #if SAMSUNG_ALLOW_AMP_SWITCH
-  xWriteFlag  ( (pcSPS->getUseAMP ()) ? 1 : 0 ); // ilkoo.kim@samsung.com
+  xWriteFlag  ( (pcSPS->getUseAMP ()) ? 1 : 0 );
 #endif
 
   // write number of taps for DIF
