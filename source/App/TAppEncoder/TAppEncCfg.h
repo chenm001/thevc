@@ -153,6 +153,8 @@ protected:
   Bool      m_bUseIMP;                                        // SOPH : coding tools (interleaved MV Predictor)
 #endif
 
+  Bool      m_bUseAMP;                                        ///< flag for using asymmetric partition
+
   // coding tools (encoder-only parameters)
   Bool      m_bUseSBACRD;                                     ///< flag for using RD optimization based on SBAC
   Bool      m_bUseASR;                                        ///< flag for using adaptive motion search range

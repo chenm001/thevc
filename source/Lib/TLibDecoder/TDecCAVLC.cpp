@@ -125,6 +125,7 @@ Void TDecCavlc::parseSPS(TComSPS* pcSPS)
 #if HHI_IMVP
   xReadFlag( uiCode ); pcSPS->setUseIMP ( uiCode ? true : false ); // SOPH:
 #endif
+  xReadFlag( uiCode ); pcSPS->setUseAMP ( uiCode ? true : false );
   // number of taps for DIF
   xReadUvlc( uiCode ); pcSPS->setDIFTap ( (uiCode+2)<<1 );  // 4, 6, 8, 10, 12
 

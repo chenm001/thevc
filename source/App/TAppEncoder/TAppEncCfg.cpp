@@ -224,7 +224,7 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
     ("ALFMinLength", m_iAlfMinLength, 5)
     ("ALFMaxLength", m_iAlfMaxLength, 9)
 #endif
-
+    ("AMP", m_bUseAMP, true, "Asymmetric motion partition")
 #ifdef EDGE_BASED_PREDICTION
     ("EdgePredictionEnable", m_bEdgePredictionEnable, true, "Enable edge based prediction for intra")
     ("EdgeDetectionThreshold", m_iEdgeDetectionThreshold, 10240, "Threshold for edge detection of edge based prediction")
@@ -578,6 +578,7 @@ Void TAppEncCfg::xPrintParameter()
 #ifdef QC_SIFO_PRED
 	printf("SPF:%d ", m_bUseSIFO_Pred			);
 #endif
+    printf("AMP:%d ", m_bUseAMP);
   printf("\n");
 
   fflush(stdout);

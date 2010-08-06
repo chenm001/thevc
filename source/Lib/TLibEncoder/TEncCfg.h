@@ -156,6 +156,8 @@ protected:
   Int       m_iInterpFilterType;
 #endif
 
+  Bool      m_bUseAMP; // ilkoo.kim@samsung.com
+
 public:
   TEncCfg()          {}
   virtual ~TEncCfg() {}
@@ -360,6 +362,9 @@ public:
   Bool      getEdgePredictionEnable         ()      { return m_bEdgePredictionEnable; }
   Int       getEdgeDetectionThreshold       ()      { return m_iEdgeDetectionThreshold; }
 #endif //EDGE_BASED_PREDICTION
+  Void      setUseAMP                       ( Bool  b )     { m_bUseAMP     = b; }
+  Bool      getUseAMP                       ()      { return m_bUseAMP; }
+
 #if HHI_INTERP_FILTER
   Void      setInterpFilterType             ( Int   i )     { m_iInterpFilterType = i;    }
   Int       getInterpFilterType             ()              { return m_iInterpFilterType; }

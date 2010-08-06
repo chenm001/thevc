@@ -199,7 +199,7 @@ Void TDecTop::decode (Bool bEos, TComBitstream* pcBitstream, UInt& ruiPOC, TComL
     Int i;
     for (i = 0; i < m_cSPS.getMaxCUDepth() - 1; i++)
     {
-      m_cSPS.setAMPAcc( i, 1 );
+      m_cSPS.setAMPAcc( i, m_cSPS.getUseAMP() );
     }
 
     for (i = m_cSPS.getMaxCUDepth() - 1; i < m_cSPS.getMaxCUDepth(); i++)

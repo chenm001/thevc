@@ -96,6 +96,7 @@ private:
 #ifdef QC_SIFO_PRED
   Bool          m_bUseSIFO_Pred;
 #endif
+  Bool        m_bUseAMP;
   // Parameter
   AMVP_MODE   m_aeAMVPMode[MAX_CU_DEPTH];
   UInt        m_uiBitDepth;
@@ -227,6 +228,9 @@ public:
 	Void setUseSIFO_Pred      ( Bool b ) { m_bUseSIFO_Pred    =b;        }
 	Bool getUseSIFO_Pred      ()         { return m_bUseSIFO_Pred;        }
 #endif
+
+  Bool getUseAMP      ()         { return m_bUseAMP; }
+  Void setUseAMP      ( Bool b ) { m_bUseAMP  = b; }
 
   // AMVP mode (for each depth)
   AMVP_MODE getAMVPMode ( UInt uiDepth ) { assert(uiDepth < g_uiMaxCUDepth);  return m_aeAMVPMode[uiDepth]; }
