@@ -205,9 +205,9 @@ Int TComEdgeBased::intrapred_luma_edge(Int iHeight, Int iWidth, Int uiStride, In
   if (edge_pred_computed)
   {
     int k, l;
-    int delta_x, delta_y[iWidth];
-    int weigh_left, weigh_right, weigh_up[iWidth], weigh_down[iWidth];
-    int floor_dx, ceil_dx, floor_dy[iWidth], ceil_dy[iWidth];
+    int delta_x, delta_y[MAX_CU_SIZE];
+    int weigh_left, weigh_right, weigh_up[MAX_CU_SIZE], weigh_down[MAX_CU_SIZE];
+    int floor_dx, ceil_dx, floor_dy[MAX_CU_SIZE], ceil_dy[MAX_CU_SIZE];
 
     for(l=0; l<iHeight; l++)
     {
