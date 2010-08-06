@@ -49,7 +49,7 @@
 #define HHI_RQT                           1           ///< MWHK: residual quadtree
 #define HHI_RQT_CHROMA_CBF_MOD            1           ///< HK: alternative syntax for coded block flag coding for chroma
 #define HHI_RQT_INTRA                     1           ///< HS: residual quadtree for intra blocks
-#define HHI_ALF                           1           ///< MS: separable adaptive loop filter 
+#define HHI_ALF                           0           ///< MS: separable adaptive loop filter 
 #define HHI_AIS                           1           ///< BB: adaptive intra smoothing
 #define HHI_INTERP_FILTER                 1           ///< HL: interpolation filter
 #define HHI_TRANSFORM_CODING              1           ///< TN: modified transform coefficient coding with RDOQ
@@ -97,6 +97,9 @@
 /////////////////////////////////
 // QUALCOMM defines section start
 /////////////////////////////////
+
+#define NEWVLC_ADAPT_ENABLE                1           // Enable CU level VLC adaptation 
+
 #define QC_AMVRES    
 #ifdef QC_AMVRES  
 #define QC_AMVRES_LOW_COMPLEXTY
@@ -109,14 +112,9 @@
 #if (defined QC_SIFO && TEN_DIRECTIONAL_INTERP==1)
 #define USE_DIAGONAL_FILT                1
 #endif
-
-#define PRINT_FILTERS               0
-#define PRINT_OFFSETS               0
-#define SIFO_DISABLE_OFFSET         0
-#define SIFO_DISABLE_FILTER         0
 #endif
 
-#define QC_ALF              0
+#define QC_ALF              1
 #if QC_ALF
 #define ENABLE_FORCECOEFF0  0
 #endif
@@ -124,6 +122,7 @@
 #error "Only one of QC_ALF and HHI_ALF can be defined"
 #endif
 
+#define DISABLE_ROT_LUMA_4x4_8x8           0
 #define QC_MDDT                            1
 #if QC_MDDT
 #define ROT_CHECK                          0

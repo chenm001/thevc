@@ -220,13 +220,15 @@ extern const UChar  g_aucIntraModeBitsC[7];
 // ====================================================================================================================
 
 extern const UChar g_aucAngIntraModeOrder[34];
-#if QC_MDDT
-extern const UChar g_aucAngIntra9Mode[34];
-#endif
 #endif
 
 #if QC_MDDT
+extern const UChar g_aucAngIntra9Mode[34];
+#if ANG_INTRA==2
+extern const UChar g_aucIntra9Mode[34];
+#else
 extern const UChar g_aucIntra9Mode[33];
+#endif
 #endif
 
 // ====================================================================================================================

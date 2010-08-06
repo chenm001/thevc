@@ -47,7 +47,9 @@ TComRdCost::~TComRdCost()
   xUninit();
 }
 
+#ifdef ROUNDING_CONTROL
   __inline Pel  xClip  (Pel x )      { return ( (x < 0) ? 0 : (x > (Pel)g_uiIBDI_MAX) ? (Pel)g_uiIBDI_MAX : x ); }
+#endif
 
 // Calculate RD functions
 Double TComRdCost::calcRdCost( UInt uiBits, UInt uiDistortion, Bool bFlag, DFunc eDFunc )
@@ -177,6 +179,7 @@ Void TComRdCost::init()
   m_afpDistortFunc[27] = TComRdCost::xGetHADs;
   m_afpDistortFunc[28] = TComRdCost::xGetHADs;
 
+#ifdef ROUNDING_CONTROL
   m_afpDistortFuncRnd[0]  =	NULL;
   m_afpDistortFuncRnd[1]  = TComRdCost::xGetSSE;
   m_afpDistortFuncRnd[2]  = TComRdCost::xGetSSE4;
@@ -209,6 +212,7 @@ Void TComRdCost::init()
   m_afpDistortFuncRnd[26] = TComRdCost::xGetHADs;
   m_afpDistortFuncRnd[27] = TComRdCost::xGetHADs;
   m_afpDistortFuncRnd[28] = TComRdCost::xGetHADs;
+#endif
 
   m_puiComponentCostOriginP = NULL;
   m_puiComponentCost        = NULL;
@@ -268,6 +272,7 @@ UInt TComRdCost::xGetComponentBits( Int iVal )
   return uiLength;
 }
 
+#ifdef ROUNDING_CONTROL
 // Setting the Distortion Parameter for Inter (ME)
 Void TComRdCost::setDistParam_Bi( TComPattern* pcPatternKey, Pel* piRefY, Int iRefStride, DistParam& rcDistParam )
 {
@@ -317,7 +322,7 @@ Void TComRdCost::setDistParam_Bi( TComPattern* pcPatternKey, Pel* piRefY, Int iR
   // initialize
   rcDistParam.iSubShift  = 0;
 }
-
+#endif
 // Setting the Distortion Parameter for getDistLumBlk / getDistCbBlk / getDistCrBlk
 Void TComRdCost::setDistParam( UInt uiBlkWidth, UInt uiBlkHeight, DFunc eDFunc, DistParam& rcDistParam )
 {
@@ -444,6 +449,7 @@ UInt TComRdCost::getDistPart( Pel* piCur, Int iCurStride,  Pel* piOrg, Int iOrgS
 // SAD
 // --------------------------------------------------------------------------------------------------------------------
 
+#ifdef ROUNDING_CONTROL
 
 UInt TComRdCost::xGetSAD( DistParam* pcDtParam, Pel* pRefY, Bool bRound )
 {
@@ -663,7 +669,7 @@ UInt TComRdCost::xGetSAD64( DistParam* pcDtParam, Pel* pRefY, Bool bRound )
   return ( uiSum >> g_uiBitIncrement );
 }
 
-
+#endif
 
 UInt TComRdCost::xGetSAD( DistParam* pcDtParam )
 {
@@ -974,6 +980,7 @@ UInt TComRdCost::xGetSAD64( DistParam* pcDtParam )
 // SAD with step (used in fractional search)
 // --------------------------------------------------------------------------------------------------------------------
 
+#ifdef ROUNDING_CONTROL
 
 UInt TComRdCost::xGetSADs( DistParam* pcDtParam, Pel* pRefY, Bool bRound )
 {
@@ -1183,6 +1190,7 @@ UInt TComRdCost::xGetSADs64( DistParam* pcDtParam, Pel* pRefY, Bool bRound )
   return ( uiSum >> g_uiBitIncrement );
 }
 
+#endif
 
 UInt TComRdCost::xGetSADs( DistParam* pcDtParam )
 {
@@ -1596,7 +1604,7 @@ UInt TComRdCost::xGetSADs64( DistParam* pcDtParam )
 // SSE
 // --------------------------------------------------------------------------------------------------------------------
 
-
+#ifdef ROUNDING_CONTROL
 
 UInt TComRdCost::xGetSSE( DistParam* pcDtParam, Pel* pRefY, Bool bRound )
 {
@@ -1818,7 +1826,7 @@ UInt TComRdCost::xGetSSE64( DistParam* pcDtParam, Pel* pRefY, Bool bRound )
   return ( uiSum );
 }
 
-
+#endif
 
 UInt TComRdCost::xGetSSE( DistParam* pcDtParam )
 {
@@ -2135,6 +2143,7 @@ UInt TComRdCost::xGetSSE64( DistParam* pcDtParam )
 // HADAMARD with step (used in fractional search)
 // --------------------------------------------------------------------------------------------------------------------
 
+#ifdef ROUNDING_CONTROL
 
 UInt TComRdCost::xCalcHADs2x2( Pel *piOrg, Pel *piCur, Int iStrideOrg, Int iStrideCur, Int iStep, Pel* pRefY, Int refYStride, Bool bRound )
 {
@@ -2483,6 +2492,7 @@ UInt TComRdCost::xGetHADs( DistParam* pcDtParam, Pel* pRefY, Bool bRound )
   return ( uiSum >> g_uiBitIncrement );
 }
 
+#endif
 
 UInt TComRdCost::xCalcHADs2x2( Pel *piOrg, Pel *piCur, Int iStrideOrg, Int iStrideCur, Int iStep )
 {

@@ -1835,7 +1835,11 @@ Void TComPrediction::xWeightedAverage( TComDataCU* pcCU, TComYuv* pcYuvSrc0, TCo
 {
   if( iRefIdx0 >= 0 && iRefIdx1 >= 0 )
   {
+#ifdef ROUNDING_CONTROL
     rpcYuvDst->addAvg( pcYuvSrc0, pcYuvSrc1, uiPartIdx, iWidth, iHeight, pcCU->getSlice()->isRounding());
+#else
+    rpcYuvDst->addAvg( pcYuvSrc0, pcYuvSrc1, uiPartIdx, iWidth, iHeight );
+#endif
   }
   else if ( iRefIdx0 >= 0 && iRefIdx1 <  0 )
   {

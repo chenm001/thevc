@@ -51,7 +51,9 @@ class TComPattern;
 // for function pointer
 typedef UInt (*FpDistFunc) (DistParam*);
 
+#ifdef ROUNDING_CONTROL
 typedef UInt (*FpDistFuncRnd) (DistParam*, Pel*, Bool);
+#endif
 
 // ====================================================================================================================
 // Class definition
@@ -69,7 +71,9 @@ public:
   Int   iCols;
   Int   iStep;
   FpDistFunc DistFunc;
+#ifdef ROUNDING_CONTROL
   FpDistFuncRnd DistFuncRnd;
+#endif
 
   // for DF_YUV_SAD
   Pel*  pCbOrg;
@@ -91,9 +95,9 @@ private:
   Int                     m_iBlkHeight;
 
   FpDistFunc              m_afpDistortFunc[33]; // [eDFunc]
-
+#ifdef ROUNDING_CONTROL
   FpDistFuncRnd           m_afpDistortFuncRnd[33];
-
+#endif
 
   Double                  m_dLambda;
   UInt                    m_uiLambdaMotionSAD;
@@ -126,9 +130,10 @@ public:
   Void    setDistParam( TComPattern* pcPatternKey, Pel* piRefY, Int iRefStride,            DistParam& rcDistParam );
   Void    setDistParam( TComPattern* pcPatternKey, Pel* piRefY, Int iRefStride, Int iStep, DistParam& rcDistParam, Bool bHADME=false );
 
+#ifdef ROUNDING_CONTROL
   Void    setDistParam_Bi( TComPattern* pcPatternKey, Pel* piRefY, Int iRefStride,            DistParam& rcDistParam );
   Void    setDistParam_Bi( TComPattern* pcPatternKey, Pel* piRefY, Int iRefStride, Int iStep, DistParam& rcDistParam, Bool bHADME=false );
-
+#endif
   UInt    getDistLumBlk  ( Pel *piCur, UInt uiBlkWidth, UInt uiBlkHeight, Int iBlkIdx, Int iStride, DFunc eDFunc = DF_SSE );
   UInt    getDistCbBlk   ( Pel *piCur, Int iStride, DFunc eDFunc = DF_SSE );  // 8x8 block only
   UInt    getDistCrBlk   ( Pel *piCur, Int iStride, DFunc eDFunc = DF_SSE );  // 8x8 block only
@@ -192,6 +197,7 @@ private:
   static UInt xCalcHADs4x4      ( Pel *piOrg, Pel *piCurr, Int iStrideOrg, Int iStrideCur, Int iStep );
   static UInt xCalcHADs8x8      ( Pel *piOrg, Pel *piCurr, Int iStrideOrg, Int iStrideCur, Int iStep );
 
+#ifdef ROUNDING_CONTROL
 
   static UInt xGetSSE           ( DistParam* pcDtParam, Pel* pRefY, Bool bRound );
   static UInt xGetSSE4          ( DistParam* pcDtParam, Pel* pRefY, Bool bRound );
@@ -224,6 +230,7 @@ private:
   static UInt xCalcHADs4x4      ( Pel *piOrg, Pel *piCurr, Int iStrideOrg, Int iStrideCur, Int iStep, Pel* pRefY, Int refYStride, Bool bRound );
   static UInt xCalcHADs8x8      ( Pel *piOrg, Pel *piCurr, Int iStrideOrg, Int iStrideCur, Int iStep, Pel* pRefY, Int refYStride, Bool bRound );
 
+#endif
 
 public:
   UInt   getDistPart( Pel* piCur, Int iCurStride,  Pel* piOrg, Int iOrgStride, UInt uiBlkWidth, UInt uiBlkHeight, DFunc eDFunc = DF_SSE );
