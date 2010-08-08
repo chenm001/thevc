@@ -9,7 +9,7 @@ namespace program_options_lite {
 
 struct Options;
 
-void doHelp(std::ostream& out, Options& opts);
+void doHelp(std::ostream& out, Options& opts, unsigned columns = 80);
 unsigned parseGNU(Options& opts, unsigned argc, const char* argv[]);
 unsigned parseSHORT(Options& opts, unsigned argc, const char* argv[]);
 void scanArgv(Options& opts, unsigned argc, const char* argv[]);

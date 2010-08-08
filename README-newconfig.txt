@@ -81,5 +81,16 @@ Caveats:
    variable.  Eg, an unsigned int, would need to be specified as "17u" not
    "17"
 
+Help text formatting:
+ - Help text will be automatically wrapped and aligned if longer than the
+   available space.
+ - To force wrapping at a particular point, insert a newline character '\n'
+   Eg: "Foo values:\n  value1 - a\n  value2 - b\n  value3 - c"
+   Gives:
+       Foo values:
+         value1 - a
+         value2 - b
+         value3 - c
+
 Please report any issues, or requests for support with the configuration to:
   David Flynn <davidf@rd.bbc.co.uk>
