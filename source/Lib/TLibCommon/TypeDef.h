@@ -427,22 +427,19 @@ enum EFF_MODE
 #if HHI_INTERP_FILTER
 enum InterpFilterType
 {
-#if TEN_DIRECTIONAL_INTERP
   IPF_SAMSUNG_DIF_DEFAULT = 0,          ///< Samsung DCT-based filter
   IPF_HHI_4TAP_MOMS,                    ///< HHI 4-tap MOMS filter
   IPF_HHI_6TAP_MOMS,                    ///< HHI 6-tap MOMS filter
+# if TEN_DIRECTIONAL_INTERP
   IPF_TEN_DIF                           ///< TEN directional filter
-#ifdef QC_SIFO
+# else
+  IPF_TEN_DIF_PLACEHOLDER               ///< Place holder to keep ordering if IPF_TEN_DIF not compiled-in
+# endif
+# ifdef QC_SIFO
   ,IPF_QC_SIFO                          ///< Qualcomm Switched Interpolation Filters with Offsets
-#endif
-#else
-  IPF_SAMSUNG_DIF_DEFAULT = 0,          ///< Samsung DCT-based filter
-  IPF_HHI_4TAP_MOMS,                    ///< HHI 4-tap MOMS filter
-  IPF_HHI_6TAP_MOMS                     ///< HHI 6-tap MOMS filter
-#ifdef QC_SIFO
-  ,IPF_QC_SIFO                          ///< Qualcomm Switched Interpolation Filters with Offsets
-#endif
-#endif
+# else
+  ,IPF_QC_SIFO_PLACEHOLDER              ///< Place holder to keep ordering if IPF_QC_SIFO not compiled-in
+# endif
 };
 #endif
 

@@ -364,6 +364,13 @@ Void TAppEncCfg::xCheckParameter()
   }
 #endif
 
+#if HHI_INTERP_FILTER && !TEN_DIRECTIONAL_INTERP
+  xConfirmPara( m_iInterpFilterType == IPF_TEN_DIF_PLACEHOLDER, "IPF_TEN_DIF is not configurable.  Please recompile using TEN_DIRECTIONAL_INTERP." );
+#endif
+#if HHI_INTERP_FILTER && !defined(QC_SIFO)
+  xConfirmPara( m_iInterpFilterType == IPF_QC_SIFO_PLACEHOLDER, "IPF_QC_SIFO is not configurable.  Please recompile using QC_SIFO." );
+#endif
+
   xConfirmPara( m_iSymbolMode < 0 || m_iSymbolMode > 3,                                     "SymbolMode must be equal to 0, 1, 2, or 3" );
   xConfirmPara( m_uiMaxPIPEDelay != 0 && m_uiMaxPIPEDelay < 64,                             "MaxPIPEBufferDelay must be greater than or equal to 64" );
   m_uiMaxPIPEDelay = ( m_uiMCWThreshold > 0 ? 0 : ( m_uiMaxPIPEDelay >> 6 ) << 6 );
