@@ -161,7 +161,17 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
 
     /* Interpolation filter options */
 #if HHI_INTERP_FILTER
-    ("InterpFilterType,-int", m_iInterpFilterType, (Int)IPF_SAMSUNG_DIF_DEFAULT)
+    ("InterpFilterType,-int", m_iInterpFilterType, (Int)IPF_SAMSUNG_DIF_DEFAULT, "Interpolation Filter:\n"
+                                                                                 "  0: DCT-IF\n"
+                                                                                 "  1: 4-tap MOMS\n"
+                                                                                 "  2: 6-tap MOMS\n"
+# if TEN_DIRECTIONAL_INTERP
+                                                                                 "  3: DIF\n"
+# endif
+# ifdef QC_SIFO
+                                                                                 "  4: SIFO"
+# endif
+                                                                                 )
 #endif
     ("DIFTap,tap", m_iDIFTap, 12, "number of interpolation filter taps (luma)")
 #ifdef QC_SIFO_PRED
