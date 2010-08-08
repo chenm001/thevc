@@ -161,7 +161,17 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
 
     /* Interpolation filter options */
 #if HHI_INTERP_FILTER
-    ("InterpFilterType,-int", m_iInterpFilterType, (Int)IPF_SAMSUNG_DIF_DEFAULT)
+    ("InterpFilterType,-int", m_iInterpFilterType, (Int)IPF_SAMSUNG_DIF_DEFAULT, "Interpolation Filter:\n"
+                                                                                 "  0: DCT-IF\n"
+                                                                                 "  1: 4-tap MOMS\n"
+                                                                                 "  2: 6-tap MOMS\n"
+# if TEN_DIRECTIONAL_INTERP
+                                                                                 "  3: DIF\n"
+# endif
+# ifdef QC_SIFO
+                                                                                 "  4: SIFO"
+# endif
+                                                                                 )
 #endif
     ("DIFTap,tap", m_iDIFTap, 12, "number of interpolation filter taps (luma)")
 #ifdef QC_SIFO_PRED
@@ -330,8 +340,12 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
 // Private member functions
 // ====================================================================================================================
 
+Bool confirmPara(Bool bflag, const char* message);
+
 Void TAppEncCfg::xCheckParameter()
 {
+  bool check_failed = false; /* abort if there is a fatal configuration problem */
+#define xConfirmPara(a,b) check_failed |= confirmPara(a,b)
   // check range of parameters
   xConfirmPara( m_iFrameRate <= 0,                                                          "Frame rate must be more than 1" );
   xConfirmPara( m_iFrameSkip < 0,                                                           "Frame Skipping must be more than 0" );
@@ -368,6 +382,14 @@ Void TAppEncCfg::xCheckParameter()
   }
 #endif
 
+#if HHI_INTERP_FILTER && !TEN_DIRECTIONAL_INTERP
+  xConfirmPara( m_iInterpFilterType == IPF_TEN_DIF_PLACEHOLDER, "IPF_TEN_DIF is not configurable.  Please recompile using TEN_DIRECTIONAL_INTERP." );
+#endif
+#if HHI_INTERP_FILTER && !defined(QC_SIFO)
+  xConfirmPara( m_iInterpFilterType == IPF_QC_SIFO_PLACEHOLDER, "IPF_QC_SIFO is not configurable.  Please recompile using QC_SIFO." );
+#endif
+  xConfirmPara( m_iInterpFilterType >= IPF_LAST,                "Invalid InterpFilterType" );
+
   xConfirmPara( m_iSymbolMode < 0 || m_iSymbolMode > 3,                                     "SymbolMode must be equal to 0, 1, 2, or 3" );
   xConfirmPara( m_uiMaxPIPEDelay != 0 && m_uiMaxPIPEDelay < 64,                             "MaxPIPEBufferDelay must be greater than or equal to 64" );
   m_uiMaxPIPEDelay = ( m_uiMCWThreshold > 0 ? 0 : ( m_uiMaxPIPEDelay >> 6 ) << 6 );
@@ -402,7 +424,7 @@ Void TAppEncCfg::xCheckParameter()
     m_bUseRDOQ = false;
   }
 #endif
-#ifdef QC_AMVRES
+#if defined(QC_AMVRES) && TEN_DIRECTIONAL_INTERP
   if(m_iInterpFilterType == IPF_TEN_DIF)
     m_bUseAMVRes = false;
 #endif
@@ -420,6 +442,11 @@ Void TAppEncCfg::xCheckParameter()
     m_iEdgeDetectionThreshold = tmpThreshold<<8;
   }
 #endif //EDGE_BASED_PREDICTION
+
+#undef xConfirmPara
+  if (check_failed) {
+    exit(EXIT_FAILURE);
+  }
 }
 
 /** \todo use of global variables should be removed later
@@ -622,13 +649,13 @@ Void TAppEncCfg::xPrintUsage()
   printf("              -> QP 32, IPPP with hierarchical-B of GOP 4 style QP, 9 frames, 64x64-8x8 CU (~4x4 PU)\n\n");
 }
 
-Void TAppEncCfg::xConfirmPara(Bool bflag, const char* message)
+Bool confirmPara(Bool bflag, const char* message)
 {
-  if( bflag )
-  {
-    printf("\n%s\n",message);
-    exit(0);
-  }
+  if (!bflag)
+    return false;
+
+  printf("Error: %s\n",message);
+  return true;
 }
 
 /* helper for -ldm */

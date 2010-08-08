@@ -61,20 +61,27 @@ static void setOptions(Options::NamesPtrList& opt_list, const string& value)
 	}
 }
 
+static const char spaces[41] = "                                        ";
+
 /* format help text for a single option:
  * using the formatting: "-x, --long",
  * if a short/long option isn't specified, it is not printed
  */
-static void doHelpOpt(ostream& out, const Options::Names& entry)
+static void doHelpOpt(ostream& out, const Options::Names& entry, unsigned pad_short = 0)
 {
+	pad_short = min(pad_short, 8u);
+
 	if (!entry.opt_short.empty()) {
+		unsigned pad = max((int)pad_short - (int)entry.opt_short.front().size(), 0);
 		out << "-" << entry.opt_short.front();
 		if (!entry.opt_long.empty()) {
 			out << ", ";
 		}
+		out << &(spaces[40 - pad]);
 	}
 	else {
-		out << "    ";
+		out << "   ";
+		out << &(spaces[40 - pad_short]);
 	}
 
 	if (!entry.opt_long.empty()) {
@@ -83,32 +90,87 @@ static void doHelpOpt(ostream& out, const Options::Names& entry)
 }
 
 /* format the help text */
-void doHelp(ostream& out, Options& opts)
+void doHelp(ostream& out, Options& opts, unsigned columns)
 {
+	const unsigned pad_short = 3;
 	/* first pass: work out the longest option name */
 	unsigned max_width = 0;
 	for(Options::NamesPtrList::iterator it = opts.opt_list.begin(); it != opts.opt_list.end(); it++) {
 		ostringstream line(ios_base::out);
-		doHelpOpt(line, **it);
+		doHelpOpt(line, **it, pad_short);
 		max_width = max(max_width, (unsigned) line.tellp());
 	}
 
-	unsigned opt_width = min(max_width+2, 28u) + 2;
+	unsigned opt_width = min(max_width+2, 28u + pad_short) + 2;
+	unsigned desc_width = columns - opt_width;
 
+	/* second pass: write out formatted option and help text.
+	 *  - align start of help text to start at opt_width
+	 *  - if the option text is longer than opt_width, place the help
+	 *    text at opt_width on the next line.
+	 */
 	for(Options::NamesPtrList::iterator it = opts.opt_list.begin(); it != opts.opt_list.end(); it++) {
 		ostringstream line(ios_base::out);
 		line << "  ";
-		doHelpOpt(line, **it);
+		doHelpOpt(line, **it, pad_short);
+
+		const string& opt_desc = (*it)->opt->opt_desc;
+		if (opt_desc.empty()) {
+			/* no help text: output option, skip further processing */
+			cout << line.str() << endl;
+			continue;
+		}
 		size_t currlength = line.tellp();
 		if (currlength > opt_width) {
-			/* if option was too long, split onto next line */
+			/* if option text is too long (and would collide with the
+			 * help text, split onto next line */
 			line << endl;
-			line << &("                              "[30 - opt_width]);
+			currlength = 0;
 		}
-		else {
-			line << &("                              "[30 - opt_width + currlength]);
+		/* split up the help text, taking into account new lines,
+		 *   (add opt_width of padding to each new line) */
+		for (size_t newline_pos = 0, cur_pos = 0; cur_pos != string::npos; currlength = 0) {
+			/* print any required padding space for vertical alignment */
+			line << &(spaces[40 - opt_width + currlength]);
+			newline_pos = opt_desc.find_first_of('\n', newline_pos);
+			if (newline_pos != string::npos) {
+				/* newline found, print substring (newline needn't be stripped) */
+				newline_pos++;
+				line << opt_desc.substr(cur_pos, newline_pos - cur_pos);
+				cur_pos = newline_pos = newline_pos;
+				continue;
+			}
+			if (cur_pos + desc_width > opt_desc.size()) {
+				/* no need to wrap text, remainder is less than avaliable width */
+				line << opt_desc.substr(cur_pos);
+				break;
+			}
+			/* find a suitable point to split text (avoid spliting in middle of word) */
+			size_t split_pos = opt_desc.find_last_of(' ', cur_pos + desc_width);
+			if (split_pos != string::npos) {
+				/* eat up multiple space characters */
+				split_pos = opt_desc.find_last_not_of(' ', split_pos) + 1;
+			}
+
+			/* bad split if no suitable space to split at.  fall back to width */
+			bool bad_split = split_pos == string::npos || split_pos <= cur_pos;
+			if (bad_split) {
+				split_pos = cur_pos + desc_width;
+			}
+			line << opt_desc.substr(cur_pos, split_pos - cur_pos);
+
+			/* eat up any space for the start of the next line */
+			if (!bad_split) {
+				split_pos = opt_desc.find_first_not_of(' ', split_pos);
+			}
+			cur_pos = newline_pos = split_pos;
+
+			if (cur_pos >= opt_desc.size()) {
+				break;
+			}
+			line << endl;
 		}
-		line << (*it)->opt->opt_desc;
+
 		cout << line.str() << endl;
 	}
 }
