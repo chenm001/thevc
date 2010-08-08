@@ -61,20 +61,27 @@ static void setOptions(Options::NamesPtrList& opt_list, const string& value)
 	}
 }
 
+static const char spaces[41] = "                                        ";
+
 /* format help text for a single option:
  * using the formatting: "-x, --long",
  * if a short/long option isn't specified, it is not printed
  */
-static void doHelpOpt(ostream& out, const Options::Names& entry)
+static void doHelpOpt(ostream& out, const Options::Names& entry, unsigned pad_short = 0)
 {
+	pad_short = min(pad_short, 8u);
+
 	if (!entry.opt_short.empty()) {
+		unsigned pad = max((int)pad_short - (int)entry.opt_short.front().size(), 0);
 		out << "-" << entry.opt_short.front();
 		if (!entry.opt_long.empty()) {
 			out << ", ";
 		}
+		out << &(spaces[40 - pad]);
 	}
 	else {
-		out << "    ";
+		out << "   ";
+		out << &(spaces[40 - pad_short]);
 	}
 
 	if (!entry.opt_long.empty()) {
@@ -85,15 +92,16 @@ static void doHelpOpt(ostream& out, const Options::Names& entry)
 /* format the help text */
 void doHelp(ostream& out, Options& opts, unsigned columns)
 {
+	const unsigned pad_short = 3;
 	/* first pass: work out the longest option name */
 	unsigned max_width = 0;
 	for(Options::NamesPtrList::iterator it = opts.opt_list.begin(); it != opts.opt_list.end(); it++) {
 		ostringstream line(ios_base::out);
-		doHelpOpt(line, **it);
+		doHelpOpt(line, **it, pad_short);
 		max_width = max(max_width, (unsigned) line.tellp());
 	}
 
-	unsigned opt_width = min(max_width+2, 28u) + 2;
+	unsigned opt_width = min(max_width+2, 28u + pad_short) + 2;
 	unsigned desc_width = columns - opt_width;
 
 	/* second pass: write out formatted option and help text.
@@ -104,7 +112,7 @@ void doHelp(ostream& out, Options& opts, unsigned columns)
 	for(Options::NamesPtrList::iterator it = opts.opt_list.begin(); it != opts.opt_list.end(); it++) {
 		ostringstream line(ios_base::out);
 		line << "  ";
-		doHelpOpt(line, **it);
+		doHelpOpt(line, **it, pad_short);
 
 		const string& opt_desc = (*it)->opt->opt_desc;
 		if (opt_desc.empty()) {
@@ -123,7 +131,7 @@ void doHelp(ostream& out, Options& opts, unsigned columns)
 		 *   (add opt_width of padding to each new line) */
 		for (size_t newline_pos = 0, cur_pos = 0; cur_pos != string::npos; currlength = 0) {
 			/* print any required padding space for vertical alignment */
-			line << &("                              "[30 - opt_width + currlength]);
+			line << &(spaces[40 - opt_width + currlength]);
 			newline_pos = opt_desc.find_first_of('\n', newline_pos);
 			if (newline_pos != string::npos) {
 				/* newline found, print substring (newline needn't be stripped) */
