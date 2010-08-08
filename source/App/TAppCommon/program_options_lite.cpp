@@ -95,17 +95,24 @@ void doHelp(ostream& out, Options& opts)
 
 	unsigned opt_width = min(max_width+2, 28u) + 2;
 
+	/* second pass: write out formatted option and help text.
+	 *  - align start of help text to start at opt_width
+	 *  - if the option text is longer than opt_width, place the help
+	 *    text at opt_width on the next line.
+	 */
 	for(Options::NamesPtrList::iterator it = opts.opt_list.begin(); it != opts.opt_list.end(); it++) {
 		ostringstream line(ios_base::out);
 		line << "  ";
 		doHelpOpt(line, **it);
 		size_t currlength = line.tellp();
-		if (currlength > opt_width) {
-			/* if option was too long, split onto next line */
-			line << endl;
-			line << &("                              "[30 - opt_width]);
-		}
-		else {
+		if (!(*it)->opt->opt_desc.empty()) {
+			/* if there is help text, add space padding to align help text */
+			if (currlength > opt_width) {
+				/* if option text is too long (and would collide with the
+				 * help text, split onto next line */
+				line << endl;
+				currlength = 0;
+			}
 			line << &("                              "[30 - opt_width + currlength]);
 		}
 		line << (*it)->opt->opt_desc;
