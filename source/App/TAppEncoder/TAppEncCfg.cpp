@@ -326,8 +326,12 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
 // Private member functions
 // ====================================================================================================================
 
+Bool confirmPara(Bool bflag, const char* message);
+
 Void TAppEncCfg::xCheckParameter()
 {
+  bool check_failed = false; /* abort if there is a fatal configuration problem */
+#define xConfirmPara(a,b) check_failed |= confirmPara(a,b)
   // check range of parameters
   xConfirmPara( m_iFrameRate <= 0,                                                          "Frame rate must be more than 1" );
   xConfirmPara( m_iFrameSkip < 0,                                                           "Frame Skipping must be more than 0" );
@@ -410,6 +414,10 @@ Void TAppEncCfg::xCheckParameter()
     m_bUseAMVRes = false;
 #endif
 
+#undef xConfirmPara
+  if (check_failed) {
+    exit(EXIT_FAILURE);
+  }
 }
 
 /** \todo use of global variables should be removed later
@@ -608,13 +616,13 @@ Void TAppEncCfg::xPrintUsage()
   printf("              -> QP 32, IPPP with hierarchical-B of GOP 4 style QP, 9 frames, 64x64-8x8 CU (~4x4 PU)\n\n");
 }
 
-Void TAppEncCfg::xConfirmPara(Bool bflag, const char* message)
+Bool confirmPara(Bool bflag, const char* message)
 {
-  if( bflag )
-  {
-    printf("\n%s\n",message);
-    exit(0);
-  }
+  if (!bflag)
+    return false;
+
+  printf("Error: %s\n",message);
+  return true;
 }
 
 /* helper for -ldm */

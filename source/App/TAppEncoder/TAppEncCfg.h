@@ -173,7 +173,6 @@ protected:
   Void  xCheckParameter ();                                   ///< check validity of configuration values
   Void  xPrintParameter ();                                   ///< print configuration values
   Void  xPrintUsage     ();                                   ///< print usage
-  Void  xConfirmPara    ( Bool bflag, const char* message );  ///< misc. function for printing configuration validity
 
 public:
   TAppEncCfg();
