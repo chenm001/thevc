@@ -405,7 +405,7 @@ Void TAppEncCfg::xCheckParameter()
     m_bUseRDOQ = false;
   }
 #endif
-#ifdef QC_AMVRES
+#if defined(QC_AMVRES) && TEN_DIRECTIONAL_INTERP
   if(m_iInterpFilterType == IPF_TEN_DIF)
     m_bUseAMVRes = false;
 #endif
