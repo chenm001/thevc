@@ -440,6 +440,7 @@ enum InterpFilterType
 # else
   ,IPF_QC_SIFO_PLACEHOLDER              ///< Place holder to keep ordering if IPF_QC_SIFO not compiled-in
 # endif
+  ,IPF_LAST
 };
 #endif
 

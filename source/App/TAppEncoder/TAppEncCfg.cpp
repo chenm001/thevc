@@ -374,6 +374,7 @@ Void TAppEncCfg::xCheckParameter()
 #if HHI_INTERP_FILTER && !defined(QC_SIFO)
   xConfirmPara( m_iInterpFilterType == IPF_QC_SIFO_PLACEHOLDER, "IPF_QC_SIFO is not configurable.  Please recompile using QC_SIFO." );
 #endif
+  xConfirmPara( m_iInterpFilterType >= IPF_LAST,                "Invalid InterpFilterType" );
 
   xConfirmPara( m_iSymbolMode < 0 || m_iSymbolMode > 3,                                     "SymbolMode must be equal to 0, 1, 2, or 3" );
   xConfirmPara( m_uiMaxPIPEDelay != 0 && m_uiMaxPIPEDelay < 64,                             "MaxPIPEBufferDelay must be greater than or equal to 64" );
