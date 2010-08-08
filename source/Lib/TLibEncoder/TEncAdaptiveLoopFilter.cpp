@@ -2019,12 +2019,15 @@ Void TEncAdaptiveLoopFilter::endALFEnc()
   xDestroyTmpAlfCtrlFlags();
 
   m_pcPicYuvTmp->destroyLuma();
+  delete m_pcPicYuvTmp;
   m_pcPicYuvTmp = NULL;
   m_pcPic = NULL;
   m_pcEntropyCoder = NULL;
 
   freeALFParam(m_pcBestAlfParam);
   freeALFParam(m_pcTempAlfParam);
+  delete m_pcBestAlfParam;
+  delete m_pcTempAlfParam;
 #if QC_ALF
   free_mem2Dpel (imgY_rec);
   free_mem2Dpel (imgY_org);
@@ -2047,6 +2050,8 @@ Void TEncAdaptiveLoopFilter::endALFEnc()
   //  FreeALFGlobalBurrers();
   freeALFParam(ALFp);
   freeALFParam(tempALFp);
+  delete ALFp;
+  delete tempALFp;
 #endif
 }
 
