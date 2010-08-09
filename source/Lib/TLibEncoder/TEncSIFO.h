@@ -104,9 +104,6 @@ public:
   Void initSeparableFilter(Int Tap);
   Void ComputeFiltersAndOffsets(TComPic*& rpcPic);
   Void    setFirstPassSubpelOffset(RefPicList iRefList, TComSlice* pcSlice);
-#if PRINT_OFFSETS==1
-  Void    printSIFOOffsets(TComSlice* pcSlice);
-#endif
 };
 
 

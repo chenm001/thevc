@@ -126,6 +126,10 @@ Void TAppEncTop::xInitLibCfg()
   m_cTEncTop.setUseBQP                       ( m_bUseBQP      );
   m_cTEncTop.setDIFTap                       ( m_iDIFTap      );
   m_cTEncTop.setUseFastEnc                   ( m_bUseFastEnc  );
+#ifdef EDGE_BASED_PREDICTION
+  m_cTEncTop.setEdgePredictionEnable         ( m_bEdgePredictionEnable );
+  m_cTEncTop.setEdgeDetectionThreshold       ( m_iEdgeDetectionThreshold );
+#endif //EDGE_BASED_PREDICTION
 #if HHI_ALLOW_CIP_SWITCH
 	m_cTEncTop.setUseCIP                       ( m_bUseCIP      );
 #endif
@@ -150,6 +154,7 @@ Void TAppEncTop::xInitLibCfg()
 #ifdef QC_SIFO_PRED
     m_cTEncTop.setUseSIFO_Pred                ( m_bUseSIFO_Pred );
 #endif
+    m_cTEncTop.setUseAMP                      ( m_bUseAMP );
 
 }
 
@@ -240,41 +245,6 @@ Void TAppEncTop::encode()
   delete pcPicYuvOrg;
   pcPicYuvOrg = NULL;
 
-#if QC_MDDT //ADAPTIVE_SCAN
-  int ipredmode;
-  for(ipredmode=0; ipredmode<9; ipredmode++)
-  {       
-    delete [] scanOrder4x4[ipredmode];      
-    delete [] scanOrder4x4X[ipredmode];      
-    delete [] scanOrder4x4Y[ipredmode];
-
-    delete [] scanOrder8x8[ipredmode];
-    delete [] scanOrder8x8X[ipredmode];
-    delete [] scanOrder8x8Y[ipredmode];
-  }
-
-  // 16x16
-  for (int z=0; z < NUM_SCANS_16x16; z++)
-  {
-    delete [] scanOrder16x16[z];
-    delete [] scanOrder16x16X[z];
-    delete [] scanOrder16x16Y[z];
-  }
-  // 32x32
-  for (int z=0; z < NUM_SCANS_32x32; z++)
-  {
-    delete [] scanOrder32x32[z];
-    delete [] scanOrder32x32X[z];
-    delete [] scanOrder32x32Y[z];
-  }
-  // 64x64
-  for (int z=0; z < NUM_SCANS_64x64; z++)
-  {
-    delete [] scanOrder64x64[z];
-    delete [] scanOrder64x64X[z];
-    delete [] scanOrder64x64Y[z];
-  }
-#endif
   // delete used buffers in encoder class
   m_cTEncTop.deletePicBuffer();
 

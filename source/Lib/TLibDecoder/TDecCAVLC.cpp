@@ -125,6 +125,7 @@ Void TDecCavlc::parseSPS(TComSPS* pcSPS)
 #if HHI_IMVP
   xReadFlag( uiCode ); pcSPS->setUseIMP ( uiCode ? true : false ); // SOPH:
 #endif
+  xReadFlag( uiCode ); pcSPS->setUseAMP ( uiCode ? true : false );
   // number of taps for DIF
   xReadUvlc( uiCode ); pcSPS->setDIFTap ( (uiCode+2)<<1 );  // 4, 6, 8, 10, 12
 
@@ -199,6 +200,15 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice)
     uiCode = 1;
 
   rpcSlice->setReferenced       (uiCode ? true : false);
+
+#ifdef ROUNDING_CONTROL
+  if(!rpcSlice->isIntra())
+  {
+	xReadFlag( uiCode );
+	Bool b = (uiCode != 0);
+	rpcSlice->setRounding(b);
+  }
+#endif
 
   xReadFlag (   uiCode);  rpcSlice->setLoopFilterDisable(uiCode ? 1 : 0);
 
@@ -292,7 +302,15 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice)
     rpcSlice->setColDir(uiCode);
   }
 #endif
-
+#ifdef EDGE_BASED_PREDICTION
+  xReadFlag(uiCode);
+  rpcSlice->setEdgePredictionEnable(uiCode);
+  if( rpcSlice->getEdgePredictionEnable() )
+  {
+    xReadCode(8, uiCode);
+    rpcSlice->setEdgeDetectionThreshold(((Int)uiCode<<8));
+  }
+#endif //EDGE_BASED_PREDICTION
   return;
 }
 
@@ -724,6 +742,18 @@ Void TDecCavlc::parseIntraDirLumaAng  ( TComDataCU* pcCU, UInt uiAbsPartIdx, UIn
   if ( uiSymbol )
     uiIPredMode = iMostProbable;
   else{
+#if UNIFIED_DIRECTIONAL_INTRA
+    Int iIntraIdx = pcCU->getIntraSizeIdx(uiAbsPartIdx);
+    if ( g_aucIntraModeBitsAng[iIntraIdx] < 6 )
+    {
+      xReadFlag( uiSymbol ); uiIPredMode  = uiSymbol;
+      if ( g_aucIntraModeBitsAng[iIntraIdx] > 2 ) { xReadFlag( uiSymbol ); uiIPredMode |= uiSymbol << 1; }
+      if ( g_aucIntraModeBitsAng[iIntraIdx] > 3 ) { xReadFlag( uiSymbol ); uiIPredMode |= uiSymbol << 2; }
+      if ( g_aucIntraModeBitsAng[iIntraIdx] > 4 ) { xReadFlag( uiSymbol ); uiIPredMode |= uiSymbol << 3; }
+    }
+    else
+    {
+#endif
     xReadFlag( uiSymbol ); uiIPredMode  = uiSymbol;
     xReadFlag( uiSymbol ); uiIPredMode |= uiSymbol << 1;
     xReadFlag( uiSymbol ); uiIPredMode |= uiSymbol << 2;
@@ -734,6 +764,9 @@ Void TDecCavlc::parseIntraDirLumaAng  ( TComDataCU* pcCU, UInt uiAbsPartIdx, UIn
       xReadFlag( uiSymbol );
       uiIPredMode = uiSymbol ? 32 : 31;
     }
+#if UNIFIED_DIRECTIONAL_INTRA
+    }
+#endif
 
     if (uiIPredMode >= iMostProbable)
       uiIPredMode++;
@@ -1159,7 +1192,10 @@ Void TDecCavlc::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartI
   }
 #endif
 
-  UInt uiScanning, uiInterleaving, uiIsCoded;
+  UInt uiScanning;
+#if !QC_MDDT
+  UInt uiInterleaving, uiIsCoded;
+#endif
 
   TCoeff scoeff[64];
   Int iBlockType;
@@ -1186,7 +1222,8 @@ Void TDecCavlc::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartI
     for (uiScanning=0; uiScanning<16; uiScanning++)
     {
       piCoeff[ pucScan[ uiScanning ] ] = scoeff[15-uiScanning];
-#if 0//QC_MDDT//VLC_MDDT ADAPTIVE_SCAN
+
+#if QC_MDDT//VLC_MDDT ADAPTIVE_SCAN
       if(scoeff[15-uiScanning])
       {
         if(pcCU->isIntra( uiAbsPartIdx ) && eTType == TEXT_LUMA)//  && (uiWidth == 4 && ipredmode<=8&&indexROT == 0))
@@ -1211,7 +1248,8 @@ Void TDecCavlc::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartI
     for (uiScanning=0; uiScanning<64; uiScanning++)
     {
       piCoeff[ pucScan[ uiScanning ] ] = scoeff[63-uiScanning];
-#if 0//QC_MDDT//VLC_MDDT ADAPTIVE_SCAN
+
+#if QC_MDDT//VLC_MDDT ADAPTIVE_SCAN
       if(scoeff[63-uiScanning])
       {
         if(pcCU->isIntra( uiAbsPartIdx ) && eTType == TEXT_LUMA)//  && (uiWidth == 8 && ipredmode<=8 && indexROT == 0))
@@ -1244,16 +1282,27 @@ Void TDecCavlc::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartI
     }
 #endif
 
-#if QC_MDDT//VLC_MDDT ADAPTIVE_SCAN
-    if(pcCU->isIntra( uiAbsPartIdx ) && eTType == TEXT_LUMA  && (uiWidth==16 || uiWidth==32 || uiWidth==64))
+#if QC_MDDT
+    if(pcCU->isIntra( uiAbsPartIdx ))
     {
-      for (uiScanning=64; uiScanning<uiSize; uiScanning++)
+	    memset(piCoeff,0,sizeof(TCoeff)*uiSize);
+
+      if (eTType==TEXT_CHROMA_U || eTType==TEXT_CHROMA_V) 
+        iBlockType = eTType-2;
+      else
+        iBlockType = 5 + ( pcCU->isIntra(uiAbsPartIdx) ? 0 : pcCU->getSlice()->getSliceType() );
+      xParseCoeff8x8( scoeff, iBlockType );
+
+      for (uiScanning=0; uiScanning<64; uiScanning++)
       {
-        piCoeff[ pucScan[ uiScanning ] ] = 0;
+        if(piCoeff[ pucScan[ uiScanning ] ] = scoeff[63-uiScanning])
+        {
+          if(eTType == TEXT_LUMA)
+            scanStats[ uiScanning ]++;
+        }
       }
     }
-#endif
-
+#else
     for (uiInterleaving=0; uiInterleaving<uiSize/64; uiInterleaving++)
     {
       xReadFlag( uiIsCoded );
@@ -1261,13 +1310,7 @@ Void TDecCavlc::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartI
       {
         for (uiScanning=0; uiScanning<64; uiScanning++)
         {
-#if QC_MDDT//VLC_MDDT ADAPTIVE_SCAN
-          if(pcCU->isIntra( uiAbsPartIdx ) && eTType == TEXT_LUMA  && (uiWidth==16 || uiWidth==32 || uiWidth==64))
-            piCoeff[ pucScan[ uiScanning ] ] = 0;
-          else
-#endif
-            piCoeff[ pucScan[ (uiSize/64) * uiScanning + uiInterleaving ] ] = 0;
-
+          piCoeff[ pucScan[ (uiSize/64) * uiScanning + uiInterleaving ] ] = 0;
         }
       }
       else
@@ -1277,34 +1320,11 @@ Void TDecCavlc::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartI
 
         for (uiScanning=0; uiScanning<64; uiScanning++)
         {
-#if QC_MDDT//VLC_MDDT ADAPTIVE_SCAN
-          if(pcCU->isIntra( uiAbsPartIdx ) && eTType == TEXT_LUMA  && (uiWidth==16 || uiWidth==32 || uiWidth==64))
-            piCoeff[ pucScan[ uiScanning ] ] = scoeff[63-uiScanning];
-          else
-#endif
           piCoeff[ pucScan[ (uiSize/64) * uiScanning + uiInterleaving ] ] = scoeff[63-uiScanning];
-
-
-#if 0//QC_MDDT//VLC_MDDT ADAPTIVE_SCAN
-          if(scoeff[63-uiScanning])
-          {
-            if(pcCU->isIntra( uiAbsPartIdx ) && eTType == TEXT_LUMA  && (uiWidth==16 || uiWidth==32 || uiWidth==64))
-            {
-              //scanStats[pucScan[ui]]++;
-              scanStats[ uiScanning ]++;
-            }
-          }
-#endif        
         }
-
       }
-#if QC_MDDT//VLC_MDDT ADAPTIVE_SCAN
-      if(pcCU->isIntra( uiAbsPartIdx ) && eTType == TEXT_LUMA  && (uiWidth==16 || uiWidth==32 || uiWidth==64))
-      {
-        break;
-      }
-#endif
     }
+#endif // QC_MDDT
 //#endif
   }
 
@@ -2307,17 +2327,6 @@ Void TDecCavlc::parseSwitched_Filters (TComSlice*& rpcSlice, TComPrediction* m_c
 
   }
 
-#if PRINT_FILTERS==1
-  printf("\n");
-  for(UInt sub_pos = 1; sub_pos < 16; ++sub_pos)
-  {
-    Int SIFOFilter = m_cPrediction->getSIFOFilter(sub_pos);
-    Int f0 = m_cPrediction->getTabFilters(sub_pos,SIFOFilter,0);
-    Int f1 = m_cPrediction->getTabFilters(sub_pos,SIFOFilter,1);
-    printf("%2d,  %2d (%2d,%2d)\n", sub_pos, SIFOFilter, f0, f1);
-  }
-#endif
-
 #ifdef QC_SIFO
   if(rpcSlice->getSliceType() != I_SLICE)
   {
@@ -2351,45 +2360,6 @@ Void TDecCavlc::parseSwitched_Filters (TComSlice*& rpcSlice, TComPrediction* m_c
             m_cPrediction->setFrameOffset(iCode,list,frame);
           }
         }
-      }
-    }
-  }
-#endif
-
-#if PRINT_OFFSETS
-  if(rpcSlice->getSliceType() != I_SLICE)
-  {
-    UInt nonzero = 0;
-    Int subpelOffset[2][16];
-    Int imgOffset[2][MAX_REF_PIC_NUM];
-    Int listNo = (rpcSlice->getSliceType() == B_SLICE)? 2: 1;
-
-    for(Int list = 0; list < listNo; ++list) 
-    {
-      nonzero = m_cPrediction->isOffsetZero(rpcSlice, list);
-      if(nonzero)
-      {
-        for(UInt frame = 0; frame < rpcSlice->getNumRefIdx(RefPicList(list)); ++frame)
-        {
-          printf("\nList%1d_Image[%2d]   ",list,frame);
-          if(frame == 0)     
-          {    
-            for(UInt sub_pos = 0; sub_pos < 16; ++sub_pos)   
-            {
-              subpelOffset[list][sub_pos] = m_cPrediction->getSubpelOffset(list,sub_pos);
-              printf("%2d ",(subpelOffset[list][sub_pos]/(1<<g_uiBitIncrement)));
-            }         
-          }
-          else              
-          {
-            imgOffset[list][frame] =  m_cPrediction->getFrameOffset(list,frame);
-            printf("%2d ",(imgOffset[list][frame]/(1<<g_uiBitIncrement)));
-          }
-        }
-      }
-      else
-      {
-        printf("\nList%1d             No Offsets",list);
       }
     }
   }

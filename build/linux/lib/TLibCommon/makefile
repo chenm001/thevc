@@ -39,6 +39,7 @@ OBJS          	= \
 			$(OBJ_DIR)/TComBitStream.o \
 			$(OBJ_DIR)/TComBitBuffer.o \
 			$(OBJ_DIR)/TComDataCU.o \
+			$(OBJ_DIR)/TComEdgeBased.o \
 			$(OBJ_DIR)/TComLoopFilter.o \
 			$(OBJ_DIR)/TComMotionInfo.o \
 			$(OBJ_DIR)/TComPattern.o \

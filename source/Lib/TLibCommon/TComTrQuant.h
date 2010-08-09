@@ -260,7 +260,7 @@ protected:
   Bool     m_bUseRDOQ;
 
 #if NEWVLC
-  Bool     m_iSymbolMode;
+  Int      m_iSymbolMode;
 #endif
 
 private:

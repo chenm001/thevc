@@ -298,9 +298,78 @@ Void TComTrQuant::xT64  ( Pel* pSrc, UInt uiStride, Long* pDes )
   Long G33, G34, G37, G38, G41, G42, G45, G46, G49, G50, G53, G54, G57, G58, G61, G62;
   Long H32;
   Long H33, H34, H35, H36, H37, H38, H39, H40, H41, H42, H43, H44, H45, H46, H47, H48, H49, H50, H51, H52, H53, H54, H55, H56, H57, H58, H59, H60, H61, H62, H63;
-
+#ifdef ROUNDING_CONTROL
+  Int uiBitDepthIncrease=g_iShift64x64-g_uiBitIncrement;
+  Int offset = (uiBitDepthIncrease==0)? 0:(1<<(uiBitDepthIncrease-1));
+#endif
   for( y=0 ; y<64 ; y++ )
   {
+#ifdef ROUNDING_CONTROL
+    O0  = (pSrc[0]+pSrc[63])<<uiBitDepthIncrease;
+    O63 = (pSrc[0]-pSrc[63])<<uiBitDepthIncrease;
+    O1  = (pSrc[1]+pSrc[62])<<uiBitDepthIncrease;
+    O62 = (pSrc[1]-pSrc[62])<<uiBitDepthIncrease;
+    O2  = (pSrc[2]+pSrc[61])<<uiBitDepthIncrease;
+    O61 = (pSrc[2]-pSrc[61])<<uiBitDepthIncrease;
+    O3  = (pSrc[3]+pSrc[60])<<uiBitDepthIncrease;
+    O60 = (pSrc[3]-pSrc[60])<<uiBitDepthIncrease;
+    O4  = (pSrc[4]+pSrc[59])<<uiBitDepthIncrease;
+    O59 = (pSrc[4]-pSrc[59])<<uiBitDepthIncrease;
+    O5  = (pSrc[5]+pSrc[58])<<uiBitDepthIncrease;
+    O58 = (pSrc[5]-pSrc[58])<<uiBitDepthIncrease;
+    O6  = (pSrc[6]+pSrc[57])<<uiBitDepthIncrease;
+    O57 = (pSrc[6]-pSrc[57])<<uiBitDepthIncrease;
+    O7  = (pSrc[7]+pSrc[56])<<uiBitDepthIncrease;
+    O56 = (pSrc[7]-pSrc[56])<<uiBitDepthIncrease;
+    O8  = (pSrc[8]+pSrc[55])<<uiBitDepthIncrease;
+    O55 = (pSrc[8]-pSrc[55])<<uiBitDepthIncrease;
+    O9  = (pSrc[9]+pSrc[54])<<uiBitDepthIncrease;
+    O54 = (pSrc[9]-pSrc[54])<<uiBitDepthIncrease;
+    O10 = (pSrc[10]+pSrc[53])<<uiBitDepthIncrease;
+    O53 = (pSrc[10]-pSrc[53])<<uiBitDepthIncrease;
+    O11 = (pSrc[11]+pSrc[52])<<uiBitDepthIncrease;
+    O52 = (pSrc[11]-pSrc[52])<<uiBitDepthIncrease;
+    O12 = (pSrc[12]+pSrc[51])<<uiBitDepthIncrease;
+    O51 = (pSrc[12]-pSrc[51])<<uiBitDepthIncrease;
+    O13 = (pSrc[13]+pSrc[50])<<uiBitDepthIncrease;
+    O50 = (pSrc[13]-pSrc[50])<<uiBitDepthIncrease;
+    O14 = (pSrc[14]+pSrc[49])<<uiBitDepthIncrease;
+    O49 = (pSrc[14]-pSrc[49])<<uiBitDepthIncrease;
+    O15 = (pSrc[15]+pSrc[48])<<uiBitDepthIncrease;
+    O48 = (pSrc[15]-pSrc[48])<<uiBitDepthIncrease;
+    O16 = (pSrc[16]+pSrc[47])<<uiBitDepthIncrease;
+    O47 = (pSrc[16]-pSrc[47])<<uiBitDepthIncrease;
+    O17 = (pSrc[17]+pSrc[46])<<uiBitDepthIncrease;
+    O46 = (pSrc[17]-pSrc[46])<<uiBitDepthIncrease;
+    O18 = (pSrc[18]+pSrc[45])<<uiBitDepthIncrease;
+    O45 = (pSrc[18]-pSrc[45])<<uiBitDepthIncrease;
+    O19 = (pSrc[19]+pSrc[44])<<uiBitDepthIncrease;
+    O44 = (pSrc[19]-pSrc[44])<<uiBitDepthIncrease;
+    O20 = (pSrc[20]+pSrc[43])<<uiBitDepthIncrease;
+    O43 = (pSrc[20]-pSrc[43])<<uiBitDepthIncrease;
+    O21 = (pSrc[21]+pSrc[42])<<uiBitDepthIncrease;
+    O42 = (pSrc[21]-pSrc[42])<<uiBitDepthIncrease;
+    O22 = (pSrc[22]+pSrc[41])<<uiBitDepthIncrease;
+    O41 = (pSrc[22]-pSrc[41])<<uiBitDepthIncrease;
+    O23 = (pSrc[23]+pSrc[40])<<uiBitDepthIncrease;
+    O40 = (pSrc[23]-pSrc[40])<<uiBitDepthIncrease;
+    O24 = (pSrc[24]+pSrc[39])<<uiBitDepthIncrease;
+    O39 = (pSrc[24]-pSrc[39])<<uiBitDepthIncrease;
+    O25 = (pSrc[25]+pSrc[38])<<uiBitDepthIncrease;
+    O38 = (pSrc[25]-pSrc[38])<<uiBitDepthIncrease;
+    O26 = (pSrc[26]+pSrc[37])<<uiBitDepthIncrease;
+    O37 = (pSrc[26]-pSrc[37])<<uiBitDepthIncrease;
+    O27 = (pSrc[27]+pSrc[36])<<uiBitDepthIncrease;
+    O36 = (pSrc[27]-pSrc[36])<<uiBitDepthIncrease;
+    O28 = (pSrc[28]+pSrc[35])<<uiBitDepthIncrease;
+    O35 = (pSrc[28]-pSrc[35])<<uiBitDepthIncrease;
+    O29 = (pSrc[29]+pSrc[34])<<uiBitDepthIncrease;
+    O34 = (pSrc[29]-pSrc[34])<<uiBitDepthIncrease;
+    O30 = (pSrc[30]+pSrc[33])<<uiBitDepthIncrease;
+    O33 = (pSrc[30]-pSrc[33])<<uiBitDepthIncrease;
+    O31 = (pSrc[31]+pSrc[32])<<uiBitDepthIncrease;
+    O32 = (pSrc[31]-pSrc[32])<<uiBitDepthIncrease;
+#else					  
     O0 = pSrc[0]+pSrc[63];
     O63 = pSrc[0]-pSrc[63];
     O1 = pSrc[1]+pSrc[62];
@@ -365,7 +434,7 @@ Void TComTrQuant::xT64  ( Pel* pSrc, UInt uiStride, Long* pDes )
     O33 = pSrc[30]-pSrc[33];
     O31 = pSrc[31]+pSrc[32];
     O32 = pSrc[31]-pSrc[32];
-
+#endif
     A0 = O0+O31;
     A31 = O0-O31;
     A1 = O1+O30;
@@ -1074,6 +1143,12 @@ Void TComTrQuant::xT64  ( Pel* pSrc, UInt uiStride, Long* pDes )
     pDes[2048] = xTrRound(724*(D0-D1), DenShift64);
     pDes[1024] = xTrRound(946*D3+392*D2, DenShift64);
     pDes[3072] = xTrRound(392*D3-946*D2, DenShift64);
+#ifdef ROUNDING_CONTROL
+    pDes[0]    = (pDes[0]   +offset)>>uiBitDepthIncrease;
+    pDes[2048] = (pDes[2048]+offset)>>uiBitDepthIncrease;
+    pDes[1024] = (pDes[1024]+offset)>>uiBitDepthIncrease;
+    pDes[3072] = (pDes[3072]+offset)>>uiBitDepthIncrease;
+#endif
     E4 = C4+D5;
     E5 = C4-D5;
     E6 = C7-D6;
@@ -1120,6 +1195,12 @@ Void TComTrQuant::xT64  ( Pel* pSrc, UInt uiStride, Long* pDes )
     pDes[2560] = xTrRound(851*E5+569*E6, DenShift64);
     pDes[1536] = xTrRound(851*E6-569*E5, DenShift64);
     pDes[3584] = xTrRound(200*E7-1004*E4, DenShift64);
+#ifdef ROUNDING_CONTROL
+    pDes[512]  = (pDes[512] +offset)>>uiBitDepthIncrease;
+    pDes[2560] = (pDes[2560]+offset)>>uiBitDepthIncrease;
+    pDes[1536] = (pDes[1536]+offset)>>uiBitDepthIncrease;
+    pDes[3584] = (pDes[3584]+offset)>>uiBitDepthIncrease;
+#endif
     F8 = D8+E9;
     F9 = D8-E9;
     F10 = D11-E10;
@@ -1177,6 +1258,16 @@ Void TComTrQuant::xT64  ( Pel* pSrc, UInt uiStride, Long* pDes )
     pDes[2816] = xTrRound(483*F13-903*F10, DenShift64);
     pDes[1792] = xTrRound(792*F14-650*F9, DenShift64);
     pDes[3840] = xTrRound(100*F15-1019*F8, DenShift64);
+#ifdef ROUNDING_CONTROL
+    pDes[256]  = (pDes[256] +offset)>>uiBitDepthIncrease;
+    pDes[2304] = (pDes[2304]+offset)>>uiBitDepthIncrease;
+    pDes[1280] = (pDes[1280]+offset)>>uiBitDepthIncrease;
+    pDes[3328] = (pDes[3328]+offset)>>uiBitDepthIncrease;
+    pDes[768]  = (pDes[768] +offset)>>uiBitDepthIncrease;
+    pDes[2816] = (pDes[2816]+offset)>>uiBitDepthIncrease;
+    pDes[1792] = (pDes[1792]+offset)>>uiBitDepthIncrease;
+    pDes[3840] = (pDes[3840]+offset)>>uiBitDepthIncrease;
+#endif
     G16 = E16+F17;
     G17 = E16-F17;
     G18 = E19-F18;
@@ -1226,6 +1317,25 @@ Void TComTrQuant::xT64  ( Pel* pSrc, UInt uiStride, Long* pDes )
     pDes[2944] = xTrRound(438*G29-926*G18, DenShift64);
     pDes[1920] = xTrRound(759*G30-688*G17, DenShift64);
     pDes[3968] = xTrRound(50*G31-1023*G16, DenShift64);
+#ifdef ROUNDING_CONTROL
+    pDes[128]  = (pDes[128] +offset)>>uiBitDepthIncrease;
+    pDes[2176] = (pDes[2176]+offset)>>uiBitDepthIncrease;
+    pDes[1152] = (pDes[1152]+offset)>>uiBitDepthIncrease;
+    pDes[3200] = (pDes[3200]+offset)>>uiBitDepthIncrease;
+    pDes[640]  = (pDes[640] +offset)>>uiBitDepthIncrease;
+    pDes[2688] = (pDes[2688]+offset)>>uiBitDepthIncrease;
+    pDes[1664] = (pDes[1664]+offset)>>uiBitDepthIncrease;
+    pDes[3712] = (pDes[3712]+offset)>>uiBitDepthIncrease;
+    pDes[384]  = (pDes[384] +offset)>>uiBitDepthIncrease;
+    pDes[2432] = (pDes[2432]+offset)>>uiBitDepthIncrease;
+    pDes[1408] = (pDes[1408]+offset)>>uiBitDepthIncrease;
+    pDes[3456] = (pDes[3456]+offset)>>uiBitDepthIncrease;
+    pDes[896]  = (pDes[896] +offset)>>uiBitDepthIncrease;
+    pDes[2944] = (pDes[2944]+offset)>>uiBitDepthIncrease;
+    pDes[1920] = (pDes[1920]+offset)>>uiBitDepthIncrease;
+    pDes[3968] = (pDes[3968]+offset)>>uiBitDepthIncrease;
+#endif
+
     H32 = F32+G33;
     H33 = F32-G33;
     H34 = F35-G34;
@@ -1291,6 +1401,40 @@ Void TComTrQuant::xT64  ( Pel* pSrc, UInt uiStride, Long* pDes )
     pDes[3008] = xTrRound(415*H61-936*H34, DenShift64);
     pDes[1984] = xTrRound(742*H62-706*H33, DenShift64);
     pDes[4032] = xTrRound(25*H63-1024*H32, DenShift64);
+#ifdef ROUNDING_CONTROL
+    pDes[64]   = (pDes[64]  +offset)>>uiBitDepthIncrease;
+    pDes[2112] = (pDes[2112]+offset)>>uiBitDepthIncrease;
+    pDes[1088] = (pDes[1088]+offset)>>uiBitDepthIncrease;
+    pDes[3136] = (pDes[3136]+offset)>>uiBitDepthIncrease;
+    pDes[576]  = (pDes[576] +offset)>>uiBitDepthIncrease;
+    pDes[2624] = (pDes[2624]+offset)>>uiBitDepthIncrease;
+    pDes[1600] = (pDes[1600]+offset)>>uiBitDepthIncrease;
+    pDes[3648] = (pDes[3648]+offset)>>uiBitDepthIncrease;
+    pDes[320]  = (pDes[320] +offset)>>uiBitDepthIncrease;
+    pDes[2368] = (pDes[2368]+offset)>>uiBitDepthIncrease;
+    pDes[1344] = (pDes[1344]+offset)>>uiBitDepthIncrease;
+    pDes[3392] = (pDes[3392]+offset)>>uiBitDepthIncrease;
+    pDes[832]  = (pDes[832] +offset)>>uiBitDepthIncrease;
+    pDes[2880] = (pDes[2880]+offset)>>uiBitDepthIncrease;
+    pDes[1856] = (pDes[1856]+offset)>>uiBitDepthIncrease;
+    pDes[3904] = (pDes[3904]+offset)>>uiBitDepthIncrease;
+    pDes[192]  = (pDes[192] +offset)>>uiBitDepthIncrease;
+    pDes[2240] = (pDes[2240]+offset)>>uiBitDepthIncrease;
+    pDes[1216] = (pDes[1216]+offset)>>uiBitDepthIncrease;
+    pDes[3264] = (pDes[3264]+offset)>>uiBitDepthIncrease;
+    pDes[704]  = (pDes[704] +offset)>>uiBitDepthIncrease;
+    pDes[2752] = (pDes[2752]+offset)>>uiBitDepthIncrease;
+    pDes[1728] = (pDes[1728]+offset)>>uiBitDepthIncrease;
+    pDes[3776] = (pDes[3776]+offset)>>uiBitDepthIncrease;
+    pDes[448]  = (pDes[448] +offset)>>uiBitDepthIncrease;
+    pDes[2496] = (pDes[2496]+offset)>>uiBitDepthIncrease;
+    pDes[1472] = (pDes[1472]+offset)>>uiBitDepthIncrease;
+    pDes[3520] = (pDes[3520]+offset)>>uiBitDepthIncrease;
+    pDes[960]  = (pDes[960] +offset)>>uiBitDepthIncrease;
+    pDes[3008] = (pDes[3008]+offset)>>uiBitDepthIncrease;
+    pDes[1984] = (pDes[1984]+offset)>>uiBitDepthIncrease;
+    pDes[4032] = (pDes[4032]+offset)>>uiBitDepthIncrease;
+#endif
 
   }
 }
@@ -1307,10 +1451,47 @@ Void TComTrQuant::xT32( Pel* pSrc, UInt uiStride, Long* pDes )
   Long E4, E5, E6, E7, E9, E10, E13, E14, E16, E17, E18, E19, E20, E21, E22, E23, E24, E25, E26, E27, E28, E29, E30, E31;
   Long F8, F9, F10, F11, F12, F13, F14, F15, F17, F18, F21, F22, F25, F26, F29, F30;
   Long G16, G17, G18, G19, G20, G21, G22, G23, G24, G25, G26, G27, G28, G29, G30, G31;
-
+#ifdef ROUNDING_CONTROL
+  Int uiBitDepthIncrease=g_iShift32x32-g_uiBitIncrement;
+  Int offset = (uiBitDepthIncrease==0)? 0:(1<<(uiBitDepthIncrease-1));
+#endif
 //--Butterfly
   for( y=0 ; y<32 ; y++ )
   {
+#ifdef ROUNDING_CONTROL
+    A0  = (pSrc[0] + pSrc[31])<<uiBitDepthIncrease;
+    A31 = (pSrc[0] - pSrc[31])<<uiBitDepthIncrease;
+    A1  = (pSrc[1] + pSrc[30])<<uiBitDepthIncrease;
+    A30 = (pSrc[1] - pSrc[30])<<uiBitDepthIncrease;
+    A2  = (pSrc[2] + pSrc[29])<<uiBitDepthIncrease;
+    A29 = (pSrc[2] - pSrc[29])<<uiBitDepthIncrease;
+    A3  = (pSrc[3] + pSrc[28])<<uiBitDepthIncrease;
+    A28 = (pSrc[3] - pSrc[28])<<uiBitDepthIncrease;
+    A4  = (pSrc[4] + pSrc[27])<<uiBitDepthIncrease;
+    A27 = (pSrc[4] - pSrc[27])<<uiBitDepthIncrease;
+    A5  = (pSrc[5] + pSrc[26])<<uiBitDepthIncrease;
+    A26 = (pSrc[5] - pSrc[26])<<uiBitDepthIncrease;
+    A6  = (pSrc[6] + pSrc[25])<<uiBitDepthIncrease;
+    A25 = (pSrc[6] - pSrc[25])<<uiBitDepthIncrease;
+    A7  = (pSrc[7] + pSrc[24])<<uiBitDepthIncrease;
+    A24 = (pSrc[7] - pSrc[24])<<uiBitDepthIncrease;
+    A8  = (pSrc[8] + pSrc[23])<<uiBitDepthIncrease;
+    A23 = (pSrc[8] - pSrc[23])<<uiBitDepthIncrease;
+    A9  = (pSrc[9] + pSrc[22])<<uiBitDepthIncrease;
+    A22 = (pSrc[9] - pSrc[22])<<uiBitDepthIncrease;
+    A10 = (pSrc[10] + pSrc[21])<<uiBitDepthIncrease;
+    A21 = (pSrc[10] - pSrc[21])<<uiBitDepthIncrease;
+    A11 = (pSrc[11] + pSrc[20])<<uiBitDepthIncrease;
+    A20 = (pSrc[11] - pSrc[20])<<uiBitDepthIncrease;
+    A12 = (pSrc[12] + pSrc[19])<<uiBitDepthIncrease;
+    A19 = (pSrc[12] - pSrc[19])<<uiBitDepthIncrease;
+    A13 = (pSrc[13] + pSrc[18])<<uiBitDepthIncrease;
+    A18 = (pSrc[13] - pSrc[18])<<uiBitDepthIncrease;
+    A14 = (pSrc[14] + pSrc[17])<<uiBitDepthIncrease;
+    A17 = (pSrc[14] - pSrc[17])<<uiBitDepthIncrease;
+    A15 = (pSrc[15] + pSrc[16])<<uiBitDepthIncrease;
+    A16 = (pSrc[15] - pSrc[16])<<uiBitDepthIncrease;
+#else
     A0 = pSrc[0] + pSrc[31];
     A31 = pSrc[0] - pSrc[31];
     A1 = pSrc[1] + pSrc[30];
@@ -1343,7 +1524,7 @@ Void TComTrQuant::xT32( Pel* pSrc, UInt uiStride, Long* pDes )
     A17 = pSrc[14] - pSrc[17];
     A15 = pSrc[15] + pSrc[16];
     A16 = pSrc[15] - pSrc[16];
-
+#endif
     B0 = A0 + A15;
     B15 = A0 - A15;
     B1 = A1 + A14;
@@ -1632,6 +1813,12 @@ Void TComTrQuant::xT32( Pel* pSrc, UInt uiStride, Long* pDes )
     pDes[512] = xTrRound( 181 * ( D0 - D1 ) , DenShift32);
     pDes[256] = xTrRound( 236 * D3 + 97 * D2 , DenShift32);
     pDes[768] = xTrRound( 97 * D3 - 236 * D2 , DenShift32);
+#ifdef ROUNDING_CONTROL
+    pDes[0]   = (pDes[0]  +offset)>>uiBitDepthIncrease;
+    pDes[512] = (pDes[512]+offset)>>uiBitDepthIncrease;
+    pDes[256] = (pDes[256]+offset)>>uiBitDepthIncrease;
+    pDes[768] = (pDes[768]+offset)>>uiBitDepthIncrease;
+#endif
     E4 = C4 + D5;
     E5 = C4 - D5;
     E6 = C7 - D6;
@@ -1661,6 +1848,12 @@ Void TComTrQuant::xT32( Pel* pSrc, UInt uiStride, Long* pDes )
     pDes[640] = xTrRound( 212 * E5 + 142 * E6 , DenShift32);
     pDes[384] = xTrRound( 212 * E6 - 142 * E5 , DenShift32);
     pDes[896] = xTrRound( 49 * E7 - 251 * E4 , DenShift32);
+#ifdef ROUNDING_CONTROL
+    pDes[128] = (pDes[128]+offset)>>uiBitDepthIncrease;
+    pDes[640] = (pDes[640]+offset)>>uiBitDepthIncrease;
+    pDes[384] = (pDes[384]+offset)>>uiBitDepthIncrease;
+    pDes[896] = (pDes[896]+offset)>>uiBitDepthIncrease;
+#endif
     F8 = D8 + E9;
     F9 = D8 - E9;
     F10 = D11 - E10;
@@ -1686,6 +1879,16 @@ Void TComTrQuant::xT32( Pel* pSrc, UInt uiStride, Long* pDes )
     pDes[704] = xTrRound( 120 * F13 - 225 * F10 , DenShift32);
     pDes[448] = xTrRound( 197 * F14 - 162 * F9 , DenShift32);
     pDes[960] = xTrRound( 25 * F15 - 254 * F8 , DenShift32);
+#ifdef ROUNDING_CONTROL
+    pDes[64]  = (pDes[64] +offset)>>uiBitDepthIncrease;
+    pDes[576] = (pDes[576]+offset)>>uiBitDepthIncrease;
+    pDes[320] = (pDes[320]+offset)>>uiBitDepthIncrease;
+    pDes[832] = (pDes[832]+offset)>>uiBitDepthIncrease;
+    pDes[192] = (pDes[192]+offset)>>uiBitDepthIncrease;
+    pDes[704] = (pDes[704]+offset)>>uiBitDepthIncrease;
+    pDes[448] = (pDes[448]+offset)>>uiBitDepthIncrease;
+    pDes[960] = (pDes[960]+offset)>>uiBitDepthIncrease;
+#endif
     G16 = E16 + F17;
     G17 = E16 - F17;
     G18 = E19 - F18;
@@ -1719,6 +1922,24 @@ Void TComTrQuant::xT32( Pel* pSrc, UInt uiStride, Long* pDes )
     pDes[736] = xTrRound( 109 * G29 - 231 * G18 , DenShift32);
     pDes[480] = xTrRound( 189 * G30 - 171 * G17 , DenShift32);
     pDes[992] = xTrRound( 12 * G31 - 255 * G16 , DenShift32);
+#ifdef ROUNDING_CONTROL
+    pDes[32]  = (pDes[32] +offset)>>uiBitDepthIncrease;
+    pDes[544] = (pDes[544]+offset)>>uiBitDepthIncrease;
+    pDes[288] = (pDes[288]+offset)>>uiBitDepthIncrease;
+    pDes[800] = (pDes[800]+offset)>>uiBitDepthIncrease;
+    pDes[160] = (pDes[160]+offset)>>uiBitDepthIncrease;
+    pDes[672] = (pDes[672]+offset)>>uiBitDepthIncrease;
+    pDes[416] = (pDes[416]+offset)>>uiBitDepthIncrease;
+    pDes[928] = (pDes[928]+offset)>>uiBitDepthIncrease;
+    pDes[96]  = (pDes[96] +offset)>>uiBitDepthIncrease;
+    pDes[608] = (pDes[608]+offset)>>uiBitDepthIncrease;
+    pDes[352] = (pDes[352]+offset)>>uiBitDepthIncrease;
+    pDes[864] = (pDes[864]+offset)>>uiBitDepthIncrease;
+    pDes[224] = (pDes[224]+offset)>>uiBitDepthIncrease;
+    pDes[736] = (pDes[736]+offset)>>uiBitDepthIncrease;
+    pDes[480] = (pDes[480]+offset)>>uiBitDepthIncrease;
+    pDes[992] = (pDes[992]+offset)>>uiBitDepthIncrease;
+#endif
   }
 }
 
@@ -1732,10 +1953,32 @@ Void TComTrQuant::xT16( Pel* pSrc, UInt uiStride, Long* pDes )
   Long D0, D1, D2, D3, D5, D6, D8, D9, D10, D11, D12, D13, D14, D15;
   Long E4, E5, E6, E7, E9, E10, E13, E14;
   Long F8, F9, F10, F11, F12, F13, F14, F15;
+#ifdef ROUNDING_CONTROL
+  Int uiBitDepthIncrease=g_iShift16x16-g_uiBitIncrement;
+  Int offset = (uiBitDepthIncrease==0)? 0:(1<<(uiBitDepthIncrease-1));
+#endif
 
 //--Butterfly
   for( y=0 ; y<16 ; y++ )
   {
+#ifdef ROUNDING_CONTROL
+    B0  = (pSrc[0] + pSrc[15])<<uiBitDepthIncrease;
+    B15 = (pSrc[0] - pSrc[15])<<uiBitDepthIncrease;
+    B1  = (pSrc[1] + pSrc[14])<<uiBitDepthIncrease;
+    B14 = (pSrc[1] - pSrc[14])<<uiBitDepthIncrease;
+    B2  = (pSrc[2] + pSrc[13])<<uiBitDepthIncrease;
+    B13 = (pSrc[2] - pSrc[13])<<uiBitDepthIncrease;
+    B3  = (pSrc[3] + pSrc[12])<<uiBitDepthIncrease;
+    B12 = (pSrc[3] - pSrc[12])<<uiBitDepthIncrease;
+    B4  = (pSrc[4] + pSrc[11])<<uiBitDepthIncrease;
+    B11 = (pSrc[4] - pSrc[11])<<uiBitDepthIncrease;
+    B5  = (pSrc[5] + pSrc[10])<<uiBitDepthIncrease;
+    B10 = (pSrc[5] - pSrc[10])<<uiBitDepthIncrease;
+    B6  = (pSrc[6] + pSrc[9])<<uiBitDepthIncrease;
+    B9  = (pSrc[6] - pSrc[9])<<uiBitDepthIncrease;
+    B7  = (pSrc[7] + pSrc[8])<<uiBitDepthIncrease;
+    B8  = (pSrc[7] - pSrc[8])<<uiBitDepthIncrease;
+#else
     B0 = pSrc[0] + pSrc[15];
     B15 = pSrc[0] - pSrc[15];
     B1 = pSrc[1] + pSrc[14];
@@ -1752,7 +1995,7 @@ Void TComTrQuant::xT16( Pel* pSrc, UInt uiStride, Long* pDes )
     B9 = pSrc[6] - pSrc[9];
     B7 = pSrc[7] + pSrc[8];
     B8 = pSrc[7] - pSrc[8];
-
+#endif
     C0 = B0 + B7;
     C7 = B0 - B7;
     C1 = B1 + B6;
@@ -1870,6 +2113,12 @@ Void TComTrQuant::xT16( Pel* pSrc, UInt uiStride, Long* pDes )
     pDes[128] = xTrRound( 45 * ( D0 - D1 ) , DenShift16);
     pDes[64] = xTrRound( 59 * D3 + 24 * D2 , DenShift16);
     pDes[192] = xTrRound( 24 * D3 - 59 * D2 , DenShift16);
+#ifdef ROUNDING_CONTROL
+    pDes[0  ] = (pDes[0  ]+offset)>>uiBitDepthIncrease;
+    pDes[128] = (pDes[128]+offset)>>uiBitDepthIncrease;
+    pDes[64 ] = (pDes[64 ]+offset)>>uiBitDepthIncrease;
+    pDes[192] = (pDes[192]+offset)>>uiBitDepthIncrease;
+#endif
     E4 = C4 + D5;
     E5 = C4 - D5;
     E6 = C7 - D6;
@@ -1883,6 +2132,12 @@ Void TComTrQuant::xT16( Pel* pSrc, UInt uiStride, Long* pDes )
     pDes[160] = xTrRound( 53 * E5 + 35 * E6 , DenShift16);
     pDes[96] = xTrRound( 53 * E6 - 35 * E5 , DenShift16);
     pDes[224] = xTrRound( 12 * E7 - 62 * E4 , DenShift16);
+#ifdef ROUNDING_CONTROL
+    pDes[32]  = (pDes[32] +offset)>>uiBitDepthIncrease;
+    pDes[160] = (pDes[160]+offset)>>uiBitDepthIncrease;
+    pDes[96]  = (pDes[96] +offset)>>uiBitDepthIncrease;
+    pDes[224] = (pDes[224]+offset)>>uiBitDepthIncrease;
+#endif
     F8 = D8 + E9;
     F9 = D8 - E9;
     F10 = D11 - E10;
@@ -1900,6 +2155,16 @@ Void TComTrQuant::xT16( Pel* pSrc, UInt uiStride, Long* pDes )
     pDes[176] = xTrRound( 30 * F13 - 56 * F10 , DenShift16);
     pDes[112] = xTrRound( 49 * F14 - 40 * F9 , DenShift16);
     pDes[240] = xTrRound( 6 * F15 - 63 * F8 , DenShift16);
+#ifdef ROUNDING_CONTROL
+    pDes[16]  = (pDes[16] +offset)>>uiBitDepthIncrease;
+    pDes[144] = (pDes[144]+offset)>>uiBitDepthIncrease;
+    pDes[80]  = (pDes[80] +offset)>>uiBitDepthIncrease;
+    pDes[208] = (pDes[208]+offset)>>uiBitDepthIncrease;
+    pDes[48]  = (pDes[48] +offset)>>uiBitDepthIncrease;
+    pDes[176] = (pDes[176]+offset)>>uiBitDepthIncrease;
+    pDes[112] = (pDes[112]+offset)>>uiBitDepthIncrease;
+    pDes[240] = (pDes[240]+offset)>>uiBitDepthIncrease;
+#endif
   }
 }
 
@@ -2004,6 +2269,257 @@ Int TComTrQuant::bitCountVLC(Int k,Int pos,Int n,Int lpflag,Int levelMode,Int ru
     }
     return bits;
 }
+
+#if QC_MDDT
+Void TComTrQuant::xRateDistOptQuant_VLC             ( TComDataCU*                     pcCU,
+                                                      Long*                           plSrcCoeff,
+                                                      TCoeff*&                        piDstCoeff,
+                                                      UInt                            uiWidth,
+                                                      UInt                            uiHeight,
+                                                      UInt&                           uiAbsSum,
+                                                      TextType                        eTType,
+                                                      UInt                            uiAbsPartIdx,
+                                                      UChar                           ucIndexROT    )
+{
+  Int iLpFlag,iLevelMode,iRun,iMaxrun,iVlc_adaptive,iSum_big_coef,iSign;
+  Int atable[5] = {4,6,14,28,0xfffffff};
+  Int switch_thr[8] = {49,49,0,49,49,0,49,49};
+  
+  const UInt* pucScan;
+  UInt* piQuantCoef = NULL;
+  UInt uiBlkPos,uiPosY,uiPosX,uiLog2BlkSize,uiConvBit,uiLevel,uiMaxLevel,uiMinLevel,uiAbsLevel,uiBestAbsLevel,uiBitShift;
+  Int iScanning,iQpRem,iBlockType,iRate;
+  Int  iQBits      = m_cQP.m_iBits;
+  Int64 lLevelDouble;
+  Double dErr,dTemp,dNormFactor,rd64UncodedCost,rd64CodedCost,dCurrCost;
+   
+  uiBitShift = 15;
+  iQpRem = m_cQP.m_iRem;
+
+  UInt uiMode;
+  Bool bExt8x8Flag = false;
+  if(eTType == TEXT_LUMA && pcCU->getPredictionMode(uiAbsPartIdx) == MODE_INTRA )
+    uiMode = pcCU->getLumaIntraDir( uiAbsPartIdx );
+  else
+    uiMode = REG_DCT;
+
+  Int KLTprec=14;
+
+  uiLog2BlkSize = g_aucConvertToBit[ uiWidth ] + 2; 
+  uiConvBit = g_aucConvertToBit[ uiWidth ];
+
+  if ( getUseMDDT(uiMode, ucIndexROT) && uiWidth == 4 )
+  {    
+    iBlockType = 0 + ( pcCU->isIntra(uiAbsPartIdx) ? 0 : pcCU->getSlice()->getSliceType() ); 
+    iQBits += 8+KLTprec-QP_BITS;//iQBits already includes QP_BITS
+    dNormFactor = pow(2., 2*(KLTprec+8+6)-15);
+    if ( g_uiBitIncrement ) dNormFactor *= 1<<(2*g_uiBitIncrement);
+
+    dTemp = g_aiDequantCoef_klt[m_cQP.m_iRem][0];
+    dTemp = dTemp*dTemp/dNormFactor;
+
+    piQuantCoef = &g_aiQuantCoef_klt  [m_cQP.m_iRem][0];
+    bExt8x8Flag = true;
+  }
+  else if ( getUseMDDT(uiMode, ucIndexROT) && uiWidth == 8 )
+  {
+    if (eTType==TEXT_CHROMA_U || eTType==TEXT_CHROMA_V) 
+      iBlockType = eTType-2;
+    else
+      iBlockType = 2 + ( pcCU->isIntra(uiAbsPartIdx) ? 0 : pcCU->getSlice()->getSliceType() ); 
+    iQBits += 8+KLTprec-QP_BITS;
+    dNormFactor = pow(2., 2*(KLTprec+8+6)-15);
+    if ( g_uiBitIncrement ) dNormFactor *= 1<<(2*g_uiBitIncrement);
+
+    dTemp = g_aiDequantCoef64_klt[m_cQP.m_iRem][0];
+    dTemp = dTemp*dTemp/dNormFactor;
+
+    piQuantCoef = &g_aiQuantCoef64_klt[m_cQP.m_iRem][0];
+    bExt8x8Flag = true;
+  }
+  else if (uiWidth == 4){
+    iBlockType = 0 + ( pcCU->isIntra(uiAbsPartIdx) ? 0 : pcCU->getSlice()->getSliceType() ); 
+    iQBits = m_cQP.m_iBits;                 
+    dNormFactor = pow(2., (2*DQ_BITS+19));
+    if ( g_uiBitIncrement ) dNormFactor *= 1<<(2*g_uiBitIncrement);
+    piQuantCoef = ( g_aiQuantCoef[m_cQP.rem()] );
+  }
+  else if (uiWidth == 8){
+    if (eTType==TEXT_CHROMA_U || eTType==TEXT_CHROMA_V) 
+      iBlockType = eTType-2;
+    else
+      iBlockType = 2 + ( pcCU->isIntra(uiAbsPartIdx) ? 0 : pcCU->getSlice()->getSliceType() ); 
+    iQBits = m_cQP.m_iBits + 1;                 
+    dNormFactor = pow(2., (2*Q_BITS_8+9)); 
+    if ( g_uiBitIncrement ) dNormFactor *= 1<<(2*g_uiBitIncrement);
+    piQuantCoef = ( g_aiQuantCoef64[m_cQP.rem()] );
+  }
+  else{
+    if (eTType==TEXT_CHROMA_U || eTType==TEXT_CHROMA_V) 
+      iBlockType = eTType-2;
+    else
+      iBlockType = 5 + ( pcCU->isIntra(uiAbsPartIdx) ? 0 : pcCU->getSlice()->getSliceType() ); 
+
+    if(!pcCU->isIntra(uiAbsPartIdx))
+    {
+      uiLog2BlkSize = g_aucConvertToBit[ 8 ] + 2; 
+      uiConvBit = g_aucConvertToBit[ 8 ];
+    }
+    dNormFactor = pow(2., 21);
+    if ( g_uiBitIncrement ) dNormFactor *= 1<<(2*g_uiBitIncrement);
+
+    bExt8x8Flag = true;
+
+    if ( uiWidth == 16)
+    {
+      piQuantCoef = ( g_aiQuantCoef256[m_cQP.rem()] );
+      iQBits = ECore16Shift + m_cQP.per();     
+      dTemp = estErr16x16[iQpRem]/dNormFactor;
+    }
+    else if ( uiWidth == 32)
+    {
+      piQuantCoef = ( g_aiQuantCoef1024[m_cQP.rem()] );
+      iQBits = ECore32Shift + m_cQP.per();
+      dTemp = estErr32x32[iQpRem]/dNormFactor;
+    }
+    else if ( uiWidth ==64)
+    {
+      piQuantCoef = g_aiQuantCoef4096;   // To save the memory for g_aiQuantCoef4096
+      iQBits = ECore64Shift + m_cQP.per();
+      dTemp = estErr64x64[iQpRem]/dNormFactor;
+    }
+    memset(&piDstCoeff[0],0,uiWidth*uiHeight*sizeof(TCoeff)); 
+  }
+
+  if(uiMode == REG_DCT)
+  {
+#if HHI_RQT
+    pucScan = g_auiFrameScanXY [ uiConvBit + 1 ];
+#else
+    pucScan = g_auiFrameScanXY  [ uiConvBit ];
+#endif
+  }
+  else  // uiMode != REG_DCT
+  {
+    if(uiWidth == 4)
+      pucScan = scanOrder4x4[g_aucIntra9Mode[uiMode]];
+    else if(uiWidth == 8)
+    {
+      UInt uiPredMode = m_bQT ?  g_aucIntra9Mode[uiMode]: g_aucAngIntra9Mode[uiMode];
+      pucScan = scanOrder8x8[uiPredMode];
+    }
+    else if(uiWidth == 16)
+    {
+		  int scan_index = LUT16x16[ucIndexROT][uiMode];
+			pucScan = scanOrder16x16[scan_index];
+		}
+		else if(uiWidth == 32) {
+		  int scan_index = LUT32x32[ucIndexROT][uiMode];
+			pucScan = scanOrder32x32[scan_index];
+		}
+		else if(uiWidth == 64) {
+      int scan_index = LUT64x64[ucIndexROT][uiMode];
+			pucScan = scanOrder64x64[scan_index];
+		}
+    else
+    {
+      printf("uiWidth = %d is not supported!\n", uiWidth);
+      exit(1);
+    }
+  }
+  
+  iLpFlag = 1;  // shawn note: last position flag
+  iLevelMode = 0;
+  iRun = 0;
+  iVlc_adaptive = 0;
+  iMaxrun = 0;
+  iSum_big_coef = 0;
+ 
+  for (iScanning=(uiWidth<8 ? 15 : 63); iScanning>=0; iScanning--) 
+  {            
+    uiBlkPos = pucScan[iScanning];
+    uiPosY   = uiBlkPos >> uiLog2BlkSize;
+    uiPosX   = uiBlkPos - ( uiPosY << uiLog2BlkSize );
+
+    if(!getUseMDDT(uiMode, ucIndexROT))
+    {
+      if (uiWidth==4)
+        dTemp = estErr4x4[ iQpRem ][ uiPosX ][ uiPosY ] / dNormFactor; 
+      else if(uiWidth==8)
+        dTemp = estErr8x8[ iQpRem ][ uiPosX ][ uiPosY ] / dNormFactor;
+      else if(!pcCU->isIntra(uiAbsPartIdx))
+        uiBlkPos = uiWidth*uiPosY+uiPosX;
+    }
+
+    lLevelDouble = abs(plSrcCoeff[uiBlkPos]);
+    
+    if(m_bUseROT)
+    {
+      if(bExt8x8Flag)
+        if (ucIndexROT == 0 || uiPosX >=8 || uiPosY >= 8)
+          lLevelDouble = lLevelDouble * (Int64) ( uiWidth == 64? piQuantCoef[m_cQP.rem()]: piQuantCoef[uiBlkPos] );
+    }
+    else
+      lLevelDouble = lLevelDouble * (Int64) ( uiWidth == 64? piQuantCoef[m_cQP.rem()]: piQuantCoef[uiBlkPos] );
+
+    iSign = plSrcCoeff[uiBlkPos]<0 ? -1 : 1;
+
+
+    uiLevel = (UInt)(lLevelDouble  >> iQBits);      
+    uiMaxLevel = uiLevel + 1;
+    uiMinLevel = Max(1,(Int)uiLevel - 2);
+
+    uiBestAbsLevel = 0;
+    if (uiWidth==4)
+      iRate = bitCountVLC(0,iScanning,iBlockType,iLpFlag,iLevelMode,iRun,iMaxrun,iVlc_adaptive,4)<<uiBitShift; 
+    else 
+      iRate = bitCountVLC(0,iScanning,iBlockType,iLpFlag,iLevelMode,iRun,iMaxrun,iVlc_adaptive,8)<<uiBitShift; 
+
+    dErr = Double( lLevelDouble );
+    rd64UncodedCost = dErr * dErr * dTemp;     
+    rd64CodedCost   = rd64UncodedCost + xGetICost( iRate ); 
+    for(uiAbsLevel = uiMinLevel; uiAbsLevel <= uiMaxLevel ; uiAbsLevel++ ) 
+    {
+      if (uiWidth==4)
+        iRate = bitCountVLC(iSign*uiAbsLevel,iScanning,iBlockType,iLpFlag,iLevelMode,iRun,iMaxrun,iVlc_adaptive,4)<<uiBitShift; 
+      else 
+        iRate = bitCountVLC(iSign*uiAbsLevel,iScanning,iBlockType,iLpFlag,iLevelMode,iRun,iMaxrun,iVlc_adaptive,8)<<uiBitShift; 
+      dErr = Double( lLevelDouble  - (((Int64)uiAbsLevel) << iQBits ) );
+      rd64UncodedCost = dErr * dErr * dTemp;
+      dCurrCost = rd64UncodedCost + xGetICost( iRate ); 
+      if( dCurrCost < rd64CodedCost )
+      {         
+        uiBestAbsLevel  = uiAbsLevel;
+        rd64CodedCost   = dCurrCost;
+      }
+    }
+
+                         
+    if (uiBestAbsLevel){                  
+        if (uiWidth>4){ 
+            if (!iLpFlag && uiBestAbsLevel > 1){
+                iSum_big_coef += uiBestAbsLevel;
+                if ((63-iScanning) > switch_thr[iBlockType] || iSum_big_coef > 2) iLevelMode = 1;
+            }
+        }
+        else{
+            if (uiBestAbsLevel>1) iLevelMode = 1;
+        }
+        iMaxrun = iScanning-1;
+        iLpFlag = 0;
+        iRun = 0;
+        if (iLevelMode && (uiBestAbsLevel > atable[iVlc_adaptive])) iVlc_adaptive++;                    
+    }
+    else{
+        iRun += 1;         
+    }
+
+    uiAbsSum += uiBestAbsLevel;
+    piDstCoeff[uiBlkPos] = iSign*uiBestAbsLevel;
+  } // for uiScanning
+} 
+
+#else
 
 Void TComTrQuant::xRateDistOptQuant_VLC             ( TComDataCU*                     pcCU,
                                                       Long*                           plSrcCoeff,
@@ -2173,6 +2689,7 @@ Void TComTrQuant::xRateDistOptQuant_VLC             ( TComDataCU*               
     piDstCoeff[uiBlkPos] = iSign*uiBestAbsLevel;
   } // for uiScanning
 } 
+#endif // QC_MDDT
 #endif
 
 Void TComTrQuant::xQuantLTR  (TComDataCU* pcCU, Long* pSrc, TCoeff*& pDes, Int iWidth, Int iHeight, UInt& uiAcSum, TextType eTType, UInt uiAbsPartIdx, UChar indexROT )
@@ -2261,7 +2778,11 @@ Void TComTrQuant::xQuantLTR  (TComDataCU* pcCU, Long* pSrc, TCoeff*& pDes, Int i
   }
 
 #if NEWVLC
+#if QC_MDDT
+if ( m_bUseRDOQ  && (eTType == TEXT_LUMA || RDOQ_CHROMA) && (!RDOQ_ROT_IDX0_ONLY || indexROT == 0) )
+#else
 if ( !(pcCU->isIntra( uiAbsPartIdx ) && m_iSymbolMode == 0 )  && m_bUseRDOQ  && (eTType == TEXT_LUMA || RDOQ_CHROMA) && (!RDOQ_ROT_IDX0_ONLY || indexROT == 0) )
+#endif
 #else
   if ( m_bUseRDOQ && (eTType == TEXT_LUMA || RDOQ_CHROMA) && (!RDOQ_ROT_IDX0_ONLY || indexROT == 0) )
 #endif
@@ -2330,34 +2851,46 @@ if ( !(pcCU->isIntra( uiAbsPartIdx ) && m_iSymbolMode == 0 )  && m_bUseRDOQ  && 
 #if QC_MDDT//VLC_MDDT ADAPTIVE_SCAN  
   const UInt*  pucScan;
   int indexROT ;
-  if(pcCU->isIntra( uiAbsPartIdx ) && eTType == TEXT_LUMA && (iWidth == 16 || iWidth == 32 || iWidth == 64))//!bRD &&  eTType == TEXT_LUMA)
+  if(pcCU->isIntra( uiAbsPartIdx ) && m_iSymbolMode == 0 && iWidth >= 16)
   {
-    UInt uiMode;
-    uiMode = pcCU->getLumaIntraDir( uiAbsPartIdx );
-    int ipredmode = uiMode; 
+    if(eTType == TEXT_LUMA)
+    {
+      UInt uiMode;
+      uiMode = pcCU->getLumaIntraDir( uiAbsPartIdx );
+      int ipredmode = uiMode; 
 
-    indexROT = pcCU->getROTindex(uiAbsPartIdx);
-	int scan_index;
+      indexROT = pcCU->getROTindex(uiAbsPartIdx);
+      int scan_index;
 
-	if(iWidth == 16)
-	{
-		scan_index = LUT16x16[indexROT][ipredmode];
-		pucScan = scanOrder16x16[scan_index]; //pucScanX = scanOrder16x16X[scan_index]; pucScanY = scanOrder16x16Y[scan_index];
+      if(iWidth == 16)
+      {
+        scan_index = LUT16x16[indexROT][ipredmode];
+        pucScan = scanOrder16x16[scan_index]; //pucScanX = scanOrder16x16X[scan_index]; pucScanY = scanOrder16x16Y[scan_index];
+      }
+      else if(iWidth == 32)
+      {
+        scan_index = LUT32x32[indexROT][ipredmode];
+        pucScan = scanOrder32x32[scan_index]; //pucScanX = scanOrder32x32X[scan_index]; pucScanY = scanOrder32x32Y[scan_index];
+      }
+      else if(iWidth == 64)
+      {
+        scan_index = LUT64x64[indexROT][ipredmode];
+        pucScan = scanOrder64x64[scan_index]; //pucScanX = scanOrder64x64X[scan_index]; pucScanY = scanOrder64x64Y[scan_index];
+      }
+      else
+      {
+        printf("uiWidth = %d is not supported!\n", iWidth);
+        exit(1);
+      }
     }
-    else if(iWidth == 32)
+    else // (eTType == TEXT_CHROMA_U || eTTYpe == TEXT_CHROMA_V)
     {
-		scan_index = LUT32x32[indexROT][ipredmode];
-		pucScan = scanOrder32x32[scan_index]; //pucScanX = scanOrder32x32X[scan_index]; pucScanY = scanOrder32x32Y[scan_index];
-    }
-    else if(iWidth == 64)
-    {
-		scan_index = LUT64x64[indexROT][ipredmode];
-		pucScan = scanOrder64x64[scan_index]; //pucScanX = scanOrder64x64X[scan_index]; pucScanY = scanOrder64x64Y[scan_index];
-    }
-    else
-    {
-      printf("uiWidth = %d is not supported!\n", iWidth);
-      exit(1);
+      UInt uiConvBit = g_aucConvertToBit[ iWidth ];
+#if HHI_RQT
+      pucScan        = g_auiFrameScanXY [ uiConvBit + 1 ];
+#else
+      pucScan        = g_auiFrameScanXY  [ uiConvBit ];
+#endif
     }
 
     for( Int n = 64; n < iWidth*iHeight; n++ )
@@ -2367,7 +2900,7 @@ if ( !(pcCU->isIntra( uiAbsPartIdx ) && m_iSymbolMode == 0 )  && m_bUseRDOQ  && 
 
     uiAcSum = uiAcSum_init;
 
-    for( Int n = 0; n < iWidth*iHeight; n++ )
+    for( Int n = 0; n < 64; n++ )
     {
       uiAcSum += abs(piQCoef[ pucScan[ n ] ]);
     }
@@ -2504,10 +3037,45 @@ Void TComTrQuant::xIT16( Long* pSrc, Pel* pDes, UInt uiStride )
   UInt uiStride13 = uiStride12 + uiStride;
   UInt uiStride14 = uiStride13 + uiStride;
   UInt uiStride15 = uiStride14 + uiStride;
-
+#ifdef ROUNDING_CONTROL
+  Int uiBitDepthIncrease=g_iShift16x16-g_uiBitIncrement;
+  Int offset = (uiBitDepthIncrease==0)? 0:(1<<(uiBitDepthIncrease-1));
+#endif
 //--Butterfly
   for( y=0 ; y<16 ; y++ )
   {
+#ifdef ROUNDING_CONTROL
+    Long     ai0[16];
+    ai0[0] =  pSrc[0]<<uiBitDepthIncrease;
+	ai0[1] =  pSrc[1]<<uiBitDepthIncrease;
+	ai0[2] =  pSrc[2]<<uiBitDepthIncrease;
+	ai0[3] =  pSrc[3]<<uiBitDepthIncrease;
+	ai0[4] =  pSrc[4]<<uiBitDepthIncrease;
+	ai0[5] =  pSrc[5]<<uiBitDepthIncrease;
+	ai0[6] =  pSrc[6]<<uiBitDepthIncrease;
+	ai0[7] =  pSrc[7]<<uiBitDepthIncrease;
+    ai0[8 ] =  pSrc[8 ]<<uiBitDepthIncrease;
+	ai0[9 ] =  pSrc[9 ]<<uiBitDepthIncrease;
+	ai0[10] =  pSrc[10]<<uiBitDepthIncrease;
+	ai0[11] =  pSrc[11]<<uiBitDepthIncrease;
+	ai0[12] =  pSrc[12]<<uiBitDepthIncrease;
+	ai0[13] =  pSrc[13]<<uiBitDepthIncrease;
+	ai0[14] =  pSrc[14]<<uiBitDepthIncrease;
+	ai0[15] =  pSrc[15]<<uiBitDepthIncrease;
+    F8 = xTrRound( 6 * ai0[1] - 63 * ai0[15] , DenShift16);
+    F9 = xTrRound( 49 * ai0[9] - 40 * ai0[7] , DenShift16);
+    F10 = xTrRound( 30 * ai0[5] - 56 * ai0[11] , DenShift16);
+    F11 = xTrRound( 61 * ai0[13] - 18 * ai0[3] , DenShift16);
+    F12 = xTrRound( 61 * ai0[3] + 18 * ai0[13] , DenShift16);
+    F13 = xTrRound( 30 * ai0[11] + 56 * ai0[5] , DenShift16);
+    F14 = xTrRound( 49 * ai0[7] + 40 * ai0[9] , DenShift16);
+    F15 = xTrRound( 6 * ai0[15] + 63 * ai0[1] , DenShift16);
+
+    E4 = xTrRound( 12 * ai0[2] - 62 * ai0[14] , DenShift16);
+    E5 = xTrRound( 53 * ai0[10] - 35 * ai0[6] , DenShift16);
+    E6 = xTrRound( 53 * ai0[6] + 35 * ai0[10] , DenShift16);
+    E7 = xTrRound( 12 * ai0[14] + 62 * ai0[2] , DenShift16);
+#else
     F8 = xTrRound( 6 * pSrc[1] - 63 * pSrc[15] , DenShift16);
     F9 = xTrRound( 49 * pSrc[9] - 40 * pSrc[7] , DenShift16);
     F10 = xTrRound( 30 * pSrc[5] - 56 * pSrc[11] , DenShift16);
@@ -2521,6 +3089,7 @@ Void TComTrQuant::xIT16( Long* pSrc, Pel* pDes, UInt uiStride )
     E5 = xTrRound( 53 * pSrc[10] - 35 * pSrc[6] , DenShift16);
     E6 = xTrRound( 53 * pSrc[6] + 35 * pSrc[10] , DenShift16);
     E7 = xTrRound( 12 * pSrc[14] + 62 * pSrc[2] , DenShift16);
+#endif
     E8 = F8 + F9;
     E9 = F8 - F9;
     E10 = F11 - F10;
@@ -2529,11 +3098,17 @@ Void TComTrQuant::xIT16( Long* pSrc, Pel* pDes, UInt uiStride )
     E13 = F12 - F13;
     E14 = F15 - F14;
     E15 = F15 + F14;
-
+#ifdef ROUNDING_CONTROL
+    D0 = xTrRound( 45 * ( ai0[0] + ai0[8] ) , DenShift16);
+    D1 = xTrRound( 45 * ( ai0[0] - ai0[8] ) , DenShift16);
+    D2 = xTrRound( 24 * ai0[4] - 59 * ai0[12] , DenShift16);
+    D3 = xTrRound( 59 * ai0[4] + 24 * ai0[12] , DenShift16);
+#else
     D0 = xTrRound( 45 * ( pSrc[0] + pSrc[8] ) , DenShift16);
     D1 = xTrRound( 45 * ( pSrc[0] - pSrc[8] ) , DenShift16);
     D2 = xTrRound( 24 * pSrc[4] - 59 * pSrc[12] , DenShift16);
     D3 = xTrRound( 59 * pSrc[4] + 24 * pSrc[12] , DenShift16);
+#endif
     D4 = E4 + E5;
     D5 = E4 - E5;
     D6 = E7 - E6;
@@ -2672,6 +3247,25 @@ Void TComTrQuant::xIT16( Long* pSrc, Pel* pDes, UInt uiStride )
     pDes[uiStride9 ] = (Pel)xTrRound(B6 - C9, DCore16Shift);
     pDes[uiStride7 ] = (Pel)xTrRound(B7 + C8, DCore16Shift);
     pDes[uiStride8 ] = (Pel)xTrRound(B7 - C8, DCore16Shift);
+#ifdef ROUNDING_CONTROL
+    pDes[        0 ] =  (pDes[        0 ]+offset)>>uiBitDepthIncrease;
+	pDes[uiStride  ] =  (pDes[uiStride  ]+offset)>>uiBitDepthIncrease;
+	pDes[uiStride2 ] =  (pDes[uiStride2 ]+offset)>>uiBitDepthIncrease;
+	pDes[uiStride3 ] =  (pDes[uiStride3 ]+offset)>>uiBitDepthIncrease;
+	pDes[uiStride4 ] =  (pDes[uiStride4 ]+offset)>>uiBitDepthIncrease;
+	pDes[uiStride5 ] =  (pDes[uiStride5 ]+offset)>>uiBitDepthIncrease;
+	pDes[uiStride6 ] =  (pDes[uiStride6 ]+offset)>>uiBitDepthIncrease;
+	pDes[uiStride7 ] =  (pDes[uiStride7 ]+offset)>>uiBitDepthIncrease;
+    pDes[uiStride8 ] =  (pDes[uiStride8 ]+offset)>>uiBitDepthIncrease;
+	pDes[uiStride9 ] =  (pDes[uiStride9 ]+offset)>>uiBitDepthIncrease;
+	pDes[uiStride10] =  (pDes[uiStride10]+offset)>>uiBitDepthIncrease;
+	pDes[uiStride11] =  (pDes[uiStride11]+offset)>>uiBitDepthIncrease;
+	pDes[uiStride12] =  (pDes[uiStride12]+offset)>>uiBitDepthIncrease;
+	pDes[uiStride13] =  (pDes[uiStride13]+offset)>>uiBitDepthIncrease;
+	pDes[uiStride14] =  (pDes[uiStride14]+offset)>>uiBitDepthIncrease;
+	pDes[uiStride15] =  (pDes[uiStride15]+offset)>>uiBitDepthIncrease;
+#endif
+
   }
 }
 
@@ -2718,10 +3312,73 @@ Void TComTrQuant::xIT32( Long* pSrc, Pel* pDes, UInt uiStride )
   UInt uiStride29 = uiStride28 + uiStride;
   UInt uiStride30 = uiStride29 + uiStride;
   UInt uiStride31 = uiStride30 + uiStride;
-
+#ifdef ROUNDING_CONTROL
+  Int uiBitDepthIncrease=g_iShift32x32-g_uiBitIncrement;
+  Int offset = (uiBitDepthIncrease==0)? 0:(1<<(uiBitDepthIncrease-1));
+#endif
 //--Butterfly
   for( y=0 ; y<32 ; y++ )
   {
+#ifdef ROUNDING_CONTROL
+    Long     ai0[32];
+    ai0[0] =  pSrc[0]<<uiBitDepthIncrease;
+	ai0[1] =  pSrc[1]<<uiBitDepthIncrease;
+	ai0[2] =  pSrc[2]<<uiBitDepthIncrease;
+	ai0[3] =  pSrc[3]<<uiBitDepthIncrease;
+	ai0[4] =  pSrc[4]<<uiBitDepthIncrease;
+	ai0[5] =  pSrc[5]<<uiBitDepthIncrease;
+	ai0[6] =  pSrc[6]<<uiBitDepthIncrease;
+	ai0[7] =  pSrc[7]<<uiBitDepthIncrease;
+    ai0[8 ] =  pSrc[8 ]<<uiBitDepthIncrease;
+	ai0[9 ] =  pSrc[9 ]<<uiBitDepthIncrease;
+	ai0[10] =  pSrc[10]<<uiBitDepthIncrease;
+	ai0[11] =  pSrc[11]<<uiBitDepthIncrease;
+	ai0[12] =  pSrc[12]<<uiBitDepthIncrease;
+	ai0[13] =  pSrc[13]<<uiBitDepthIncrease;
+	ai0[14] =  pSrc[14]<<uiBitDepthIncrease;
+	ai0[15] =  pSrc[15]<<uiBitDepthIncrease;
+    ai0[16] =  pSrc[16]<<uiBitDepthIncrease;
+	ai0[17] =  pSrc[17]<<uiBitDepthIncrease;
+	ai0[18] =  pSrc[18]<<uiBitDepthIncrease;
+	ai0[19] =  pSrc[19]<<uiBitDepthIncrease;
+	ai0[20] =  pSrc[20]<<uiBitDepthIncrease;
+	ai0[21] =  pSrc[21]<<uiBitDepthIncrease;
+	ai0[22] =  pSrc[22]<<uiBitDepthIncrease;
+	ai0[23] =  pSrc[23]<<uiBitDepthIncrease;
+    ai0[24] =  pSrc[24]<<uiBitDepthIncrease;
+	ai0[25] =  pSrc[25]<<uiBitDepthIncrease;
+	ai0[26] =  pSrc[26]<<uiBitDepthIncrease;
+	ai0[27] =  pSrc[27]<<uiBitDepthIncrease;
+	ai0[28] =  pSrc[28]<<uiBitDepthIncrease;
+	ai0[29] =  pSrc[29]<<uiBitDepthIncrease;
+	ai0[30] =  pSrc[30]<<uiBitDepthIncrease;
+	ai0[31] =  pSrc[31]<<uiBitDepthIncrease;
+    G16 = xTrRound(  12 * ai0[1]  - 255 * ai0[31], DenShift32);
+    G17 = xTrRound( 189 * ai0[17] - 171 * ai0[15], DenShift32);
+    G18 = xTrRound( 109 * ai0[9]  - 231 * ai0[23], DenShift32);
+    G19 = xTrRound( 241 * ai0[25] -  86 * ai0[7], DenShift32);
+    G20 = xTrRound(  62 * ai0[5]  - 248 * ai0[27], DenShift32);
+    G21 = xTrRound( 219 * ai0[21] - 131 * ai0[11], DenShift32);
+    G22 = xTrRound( 152 * ai0[13] - 205 * ai0[19], DenShift32);
+    G23 = xTrRound( 253 * ai0[29] -  37 * ai0[3], DenShift32);
+    G24 = xTrRound( 253 * ai0[3]  +  37 * ai0[29], DenShift32);
+    G25 = xTrRound( 152 * ai0[19] + 205 * ai0[13], DenShift32);
+    G26 = xTrRound( 219 * ai0[11] + 131 * ai0[21], DenShift32);
+    G27 = xTrRound(  62 * ai0[27] + 248 * ai0[5], DenShift32);
+    G28 = xTrRound( 241 * ai0[7]  +  86 * ai0[25], DenShift32);
+    G29 = xTrRound( 109 * ai0[23] + 231 * ai0[9], DenShift32);
+    G30 = xTrRound( 189 * ai0[15] + 171 * ai0[17], DenShift32);
+    G31 = xTrRound(  12 * ai0[31] + 255 * ai0[1], DenShift32);
+
+    F8  = xTrRound(  25 * ai0[2]  - 254 * ai0[30], DenShift32);
+    F9  = xTrRound( 197 * ai0[18] - 162 * ai0[14], DenShift32);
+    F10 = xTrRound( 120 * ai0[10] - 225 * ai0[22], DenShift32);
+    F11 = xTrRound( 244 * ai0[26] -  74 * ai0[6], DenShift32);
+    F12 = xTrRound( 244 * ai0[6]  +  74 * ai0[26], DenShift32);
+    F13 = xTrRound( 120 * ai0[22] + 225 * ai0[10], DenShift32);
+    F14 = xTrRound( 197 * ai0[14] + 162 * ai0[18], DenShift32);
+    F15 = xTrRound(  25 * ai0[30] + 254 * ai0[2], DenShift32);
+#else
     G16 = xTrRound( 12 * pSrc[1] - 255 * pSrc[31], DenShift32);
     G17 = xTrRound( 189 * pSrc[17] - 171 * pSrc[15], DenShift32);
     G18 = xTrRound( 109 * pSrc[9] - 231 * pSrc[23], DenShift32);
@@ -2747,6 +3404,7 @@ Void TComTrQuant::xIT32( Long* pSrc, Pel* pDes, UInt uiStride )
     F13 = xTrRound( 120 * pSrc[22] + 225 * pSrc[10], DenShift32);
     F14 = xTrRound( 197 * pSrc[14] + 162 * pSrc[18], DenShift32);
     F15 = xTrRound( 25 * pSrc[30] + 254 * pSrc[2], DenShift32);
+#endif
     F16 = G16 + G17;
     F17 = G16 - G17;
     F18 = G19 - G18;
@@ -2763,11 +3421,17 @@ Void TComTrQuant::xIT32( Long* pSrc, Pel* pDes, UInt uiStride )
     F29 = G28 - G29;
     F30 = G31 - G30;
     F31 = G31 + G30;
-
+#ifdef ROUNDING_CONTROL
+    E4 = xTrRound( 49 * ai0[4] - 251 * ai0[28], DenShift32);
+    E5 = xTrRound( 212 * ai0[20] - 142 * ai0[12], DenShift32);
+    E6 = xTrRound( 212 * ai0[12] + 142 * ai0[20], DenShift32);
+    E7 = xTrRound( 49 * ai0[28] + 251 * ai0[4], DenShift32);
+#else
     E4 = xTrRound( 49 * pSrc[4] - 251 * pSrc[28], DenShift32);
     E5 = xTrRound( 212 * pSrc[20] - 142 * pSrc[12], DenShift32);
     E6 = xTrRound( 212 * pSrc[12] + 142 * pSrc[20], DenShift32);
     E7 = xTrRound( 49 * pSrc[28] + 251 * pSrc[4], DenShift32);
+#endif
     E8 = F8 + F9;
     E9 = F8 - F9;
     E10 = F11 - F10;
@@ -2784,11 +3448,17 @@ Void TComTrQuant::xIT32( Long* pSrc, Pel* pDes, UInt uiStride )
     E26 = xTrRound( 142 * F26 + 212 * F21, DenShift32);
     E29 = xTrRound( 49 * F29 - 251 * F18, DenShift32);
     E30 = xTrRound( 251 * F30 + 49 * F17, DenShift32);
-
+#ifdef ROUNDING_CONTROL
+    D0 = xTrRound( 181 * ( ai0[0] + ai0[16] ), DenShift32);
+    D1 = xTrRound( 181 * ( ai0[0] - ai0[16] ), DenShift32);
+    D2 = xTrRound( 97 * ai0[8] - 236 * ai0[24], DenShift32);
+    D3 = xTrRound( 236 * ai0[8] + 97 * ai0[24], DenShift32);
+#else
     D0 = xTrRound( 181 * ( pSrc[0] + pSrc[16] ), DenShift32);
     D1 = xTrRound( 181 * ( pSrc[0] - pSrc[16] ), DenShift32);
     D2 = xTrRound( 97 * pSrc[8] - 236 * pSrc[24], DenShift32);
     D3 = xTrRound( 236 * pSrc[8] + 97 * pSrc[24], DenShift32);
+#endif
     D4 = E4 + E5;
     D5 = E4 - E5;
     D6 = E7 - E6;
@@ -3130,6 +3800,43 @@ Void TComTrQuant::xIT32( Long* pSrc, Pel* pDes, UInt uiStride )
     pDes[uiStride17] = (Pel)xTrRound( A14 - B17 , DCore32Shift);
     pDes[uiStride15] = (Pel)xTrRound( A15 + B16 , DCore32Shift);
     pDes[uiStride16] = (Pel)xTrRound( A15 - B16 , DCore32Shift);
+
+#ifdef ROUNDING_CONTROL
+    pDes[        0 ] =  (pDes[        0 ]+offset)>>uiBitDepthIncrease;
+	pDes[uiStride  ] =  (pDes[uiStride  ]+offset)>>uiBitDepthIncrease;
+	pDes[uiStride2 ] =  (pDes[uiStride2 ]+offset)>>uiBitDepthIncrease;
+	pDes[uiStride3 ] =  (pDes[uiStride3 ]+offset)>>uiBitDepthIncrease;
+	pDes[uiStride4 ] =  (pDes[uiStride4 ]+offset)>>uiBitDepthIncrease;
+	pDes[uiStride5 ] =  (pDes[uiStride5 ]+offset)>>uiBitDepthIncrease;
+	pDes[uiStride6 ] =  (pDes[uiStride6 ]+offset)>>uiBitDepthIncrease;
+	pDes[uiStride7 ] =  (pDes[uiStride7 ]+offset)>>uiBitDepthIncrease;
+    pDes[uiStride8 ] =  (pDes[uiStride8 ]+offset)>>uiBitDepthIncrease;
+	pDes[uiStride9 ] =  (pDes[uiStride9 ]+offset)>>uiBitDepthIncrease;
+	pDes[uiStride10] =  (pDes[uiStride10]+offset)>>uiBitDepthIncrease;
+	pDes[uiStride11] =  (pDes[uiStride11]+offset)>>uiBitDepthIncrease;
+	pDes[uiStride12] =  (pDes[uiStride12]+offset)>>uiBitDepthIncrease;
+	pDes[uiStride13] =  (pDes[uiStride13]+offset)>>uiBitDepthIncrease;
+	pDes[uiStride14] =  (pDes[uiStride14]+offset)>>uiBitDepthIncrease;
+	pDes[uiStride15] =  (pDes[uiStride15]+offset)>>uiBitDepthIncrease;
+    pDes[uiStride16] =  (pDes[uiStride16]+offset)>>uiBitDepthIncrease;
+	pDes[uiStride17] =  (pDes[uiStride17]+offset)>>uiBitDepthIncrease;
+	pDes[uiStride18] =  (pDes[uiStride18]+offset)>>uiBitDepthIncrease;
+	pDes[uiStride19] =  (pDes[uiStride19]+offset)>>uiBitDepthIncrease;
+	pDes[uiStride20] =  (pDes[uiStride20]+offset)>>uiBitDepthIncrease;
+	pDes[uiStride21] =  (pDes[uiStride21]+offset)>>uiBitDepthIncrease;
+	pDes[uiStride22] =  (pDes[uiStride22]+offset)>>uiBitDepthIncrease;
+	pDes[uiStride23] =  (pDes[uiStride23]+offset)>>uiBitDepthIncrease;
+    pDes[uiStride24] =  (pDes[uiStride24]+offset)>>uiBitDepthIncrease;
+	pDes[uiStride25] =  (pDes[uiStride25]+offset)>>uiBitDepthIncrease;
+	pDes[uiStride26] =  (pDes[uiStride26]+offset)>>uiBitDepthIncrease;
+	pDes[uiStride27] =  (pDes[uiStride27]+offset)>>uiBitDepthIncrease;
+	pDes[uiStride28] =  (pDes[uiStride28]+offset)>>uiBitDepthIncrease;
+	pDes[uiStride29] =  (pDes[uiStride29]+offset)>>uiBitDepthIncrease;
+	pDes[uiStride30] =  (pDes[uiStride30]+offset)>>uiBitDepthIncrease;
+	pDes[uiStride31] =  (pDes[uiStride31]+offset)>>uiBitDepthIncrease;
+#endif
+
+
   }
 }
 
@@ -3219,9 +3926,129 @@ Void TComTrQuant::xIT64 ( Long* pSrc, Pel* pDes, UInt uiStride )
   UInt uiStride61 = uiStride60 + uiStride;
   UInt uiStride62 = uiStride61 + uiStride;
   UInt uiStride63 = uiStride62 + uiStride;
-
+#ifdef ROUNDING_CONTROL
+  Int uiBitDepthIncrease=g_iShift64x64-g_uiBitIncrement;
+  Int offset = (uiBitDepthIncrease==0)? 0:(1<<(uiBitDepthIncrease-1));
+#endif
   for( y=0 ; y<64 ; y++ )
   {
+#ifdef ROUNDING_CONTROL
+    Long     ai0[64];
+    ai0[0] =  pSrc[0]<<uiBitDepthIncrease;
+	ai0[1] =  pSrc[1]<<uiBitDepthIncrease;
+	ai0[2] =  pSrc[2]<<uiBitDepthIncrease;
+	ai0[3] =  pSrc[3]<<uiBitDepthIncrease;
+	ai0[4] =  pSrc[4]<<uiBitDepthIncrease;
+	ai0[5] =  pSrc[5]<<uiBitDepthIncrease;
+	ai0[6] =  pSrc[6]<<uiBitDepthIncrease;
+	ai0[7] =  pSrc[7]<<uiBitDepthIncrease;
+    ai0[8 ] =  pSrc[8 ]<<uiBitDepthIncrease;
+	ai0[9 ] =  pSrc[9 ]<<uiBitDepthIncrease;
+	ai0[10] =  pSrc[10]<<uiBitDepthIncrease;
+	ai0[11] =  pSrc[11]<<uiBitDepthIncrease;
+	ai0[12] =  pSrc[12]<<uiBitDepthIncrease;
+	ai0[13] =  pSrc[13]<<uiBitDepthIncrease;
+	ai0[14] =  pSrc[14]<<uiBitDepthIncrease;
+	ai0[15] =  pSrc[15]<<uiBitDepthIncrease;
+    ai0[16] =  pSrc[16]<<uiBitDepthIncrease;
+	ai0[17] =  pSrc[17]<<uiBitDepthIncrease;
+	ai0[18] =  pSrc[18]<<uiBitDepthIncrease;
+	ai0[19] =  pSrc[19]<<uiBitDepthIncrease;
+	ai0[20] =  pSrc[20]<<uiBitDepthIncrease;
+	ai0[21] =  pSrc[21]<<uiBitDepthIncrease;
+	ai0[22] =  pSrc[22]<<uiBitDepthIncrease;
+	ai0[23] =  pSrc[23]<<uiBitDepthIncrease;
+    ai0[24] =  pSrc[24]<<uiBitDepthIncrease;
+	ai0[25] =  pSrc[25]<<uiBitDepthIncrease;
+	ai0[26] =  pSrc[26]<<uiBitDepthIncrease;
+	ai0[27] =  pSrc[27]<<uiBitDepthIncrease;
+	ai0[28] =  pSrc[28]<<uiBitDepthIncrease;
+	ai0[29] =  pSrc[29]<<uiBitDepthIncrease;
+	ai0[30] =  pSrc[30]<<uiBitDepthIncrease;
+	ai0[31] =  pSrc[31]<<uiBitDepthIncrease;
+	ai0[32] =  pSrc[32]<<uiBitDepthIncrease;
+	ai0[33] =  pSrc[33]<<uiBitDepthIncrease;
+	ai0[34] =  pSrc[34]<<uiBitDepthIncrease;
+	ai0[35] =  pSrc[35]<<uiBitDepthIncrease;
+    ai0[36] =  pSrc[36]<<uiBitDepthIncrease;
+	ai0[37] =  pSrc[37]<<uiBitDepthIncrease;
+	ai0[38] =  pSrc[38]<<uiBitDepthIncrease;
+	ai0[39] =  pSrc[39]<<uiBitDepthIncrease;
+	ai0[40] =  pSrc[40]<<uiBitDepthIncrease;
+	ai0[41] =  pSrc[41]<<uiBitDepthIncrease;
+	ai0[42] =  pSrc[42]<<uiBitDepthIncrease;
+	ai0[43] =  pSrc[43]<<uiBitDepthIncrease;
+    ai0[44] =  pSrc[44]<<uiBitDepthIncrease;
+	ai0[45] =  pSrc[45]<<uiBitDepthIncrease;
+	ai0[46] =  pSrc[46]<<uiBitDepthIncrease;
+	ai0[47] =  pSrc[47]<<uiBitDepthIncrease;
+	ai0[48] =  pSrc[48]<<uiBitDepthIncrease;
+	ai0[49] =  pSrc[49]<<uiBitDepthIncrease;
+	ai0[50] =  pSrc[50]<<uiBitDepthIncrease;
+	ai0[51] =  pSrc[51]<<uiBitDepthIncrease;
+	ai0[52] =  pSrc[52]<<uiBitDepthIncrease;
+	ai0[53] =  pSrc[53]<<uiBitDepthIncrease;
+    ai0[54] =  pSrc[54]<<uiBitDepthIncrease;
+	ai0[55] =  pSrc[55]<<uiBitDepthIncrease;
+	ai0[56] =  pSrc[56]<<uiBitDepthIncrease;
+	ai0[57] =  pSrc[57]<<uiBitDepthIncrease;
+	ai0[58] =  pSrc[58]<<uiBitDepthIncrease;
+	ai0[59] =  pSrc[59]<<uiBitDepthIncrease;
+	ai0[60] =  pSrc[60]<<uiBitDepthIncrease;
+	ai0[61] =  pSrc[61]<<uiBitDepthIncrease;
+	ai0[62] =  pSrc[62]<<uiBitDepthIncrease;
+	ai0[63] =  pSrc[63]<<uiBitDepthIncrease;
+
+    H32 = xTrRound(  25*ai0[1 ]-1024*ai0[63], DenShift64);
+    H33 = xTrRound( 742*ai0[33]- 706*ai0[31], DenShift64);
+    H34 = xTrRound( 415*ai0[17]- 936*ai0[47], DenShift64);
+    H35 = xTrRound( 955*ai0[49]- 369*ai0[15], DenShift64);
+    H36 = xTrRound( 224*ai0[9 ]- 999*ai0[55], DenShift64);
+    H37 = xTrRound( 865*ai0[41]- 548*ai0[23], DenShift64);
+    H38 = xTrRound( 590*ai0[25]- 837*ai0[39], DenShift64);
+    H39 = xTrRound(1009*ai0[57]- 175*ai0[7 ], DenShift64);
+    H40 = xTrRound( 125*ai0[5 ]-1016*ai0[59], DenShift64);
+    H41 = xTrRound( 807*ai0[37]- 630*ai0[27], DenShift64);
+    H42 = xTrRound( 505*ai0[21]- 891*ai0[43], DenShift64);
+    H43 = xTrRound( 987*ai0[53]- 273*ai0[11], DenShift64);
+    H44 = xTrRound( 321*ai0[13]- 972*ai0[51], DenShift64);
+    H45 = xTrRound( 915*ai0[45]- 460*ai0[19], DenShift64);
+    H46 = xTrRound( 669*ai0[29]- 775*ai0[35], DenShift64);
+    H47 = xTrRound(1021*ai0[61]-  75*ai0[3 ], DenShift64);
+    H48 = xTrRound(1021*ai0[3 ]+  75*ai0[61], DenShift64);
+    H49 = xTrRound( 669*ai0[35]+ 775*ai0[29], DenShift64);
+    H50 = xTrRound( 915*ai0[19]+ 460*ai0[45], DenShift64);
+    H51 = xTrRound( 321*ai0[51]+ 972*ai0[13], DenShift64);
+    H52 = xTrRound( 987*ai0[11]+ 273*ai0[53], DenShift64);
+    H53 = xTrRound( 505*ai0[43]+ 891*ai0[21], DenShift64);
+    H54 = xTrRound( 807*ai0[27]+ 630*ai0[37], DenShift64);
+    H55 = xTrRound( 125*ai0[59]+1016*ai0[5 ], DenShift64);
+    H56 = xTrRound(1009*ai0[7 ]+ 175*ai0[57], DenShift64);
+    H57 = xTrRound( 590*ai0[39]+ 837*ai0[25], DenShift64);
+    H58 = xTrRound( 865*ai0[23]+ 548*ai0[41], DenShift64);
+    H59 = xTrRound( 224*ai0[55]+ 999*ai0[9 ], DenShift64);
+    H60 = xTrRound( 955*ai0[15]+ 369*ai0[49], DenShift64);
+    H61 = xTrRound( 415*ai0[47]+ 936*ai0[17], DenShift64);
+    H62 = xTrRound( 742*ai0[31]+ 706*ai0[33], DenShift64);
+    H63 = xTrRound(  25*ai0[63]+1024*ai0[1 ], DenShift64);
+
+    G16 = xTrRound(  50*ai0[2 ]-1023*ai0[62], DenShift64);
+    G17 = xTrRound( 759*ai0[34]- 688*ai0[30], DenShift64);
+    G18 = xTrRound( 438*ai0[18]- 926*ai0[46], DenShift64);
+    G19 = xTrRound( 964*ai0[50]- 345*ai0[14], DenShift64);
+    G20 = xTrRound( 249*ai0[10]- 993*ai0[54], DenShift64);
+    G21 = xTrRound( 878*ai0[42]- 526*ai0[22], DenShift64);
+    G22 = xTrRound( 610*ai0[26]- 822*ai0[38], DenShift64);
+    G23 = xTrRound(1013*ai0[58]- 150*ai0[6 ], DenShift64);
+    G24 = xTrRound(1013*ai0[6 ]+ 150*ai0[58], DenShift64);
+    G25 = xTrRound( 610*ai0[38]+ 822*ai0[26], DenShift64);
+    G26 = xTrRound( 878*ai0[22]+ 526*ai0[42], DenShift64);
+    G27 = xTrRound( 249*ai0[54]+ 993*ai0[10], DenShift64);
+    G28 = xTrRound( 964*ai0[14]+ 345*ai0[50], DenShift64);
+    G29 = xTrRound( 438*ai0[46]+ 926*ai0[18], DenShift64);
+    G30 = xTrRound( 759*ai0[30]+ 688*ai0[34], DenShift64);
+    G31 = xTrRound(  50*ai0[62]+1023*ai0[2 ], DenShift64);
+#else
     H32 = xTrRound(25*pSrc[1]-1024*pSrc[63], DenShift64);
     H33 = xTrRound(742*pSrc[33]-706*pSrc[31], DenShift64);
     H34 = xTrRound(415*pSrc[17]-936*pSrc[47], DenShift64);
@@ -3271,6 +4098,7 @@ Void TComTrQuant::xIT64 ( Long* pSrc, Pel* pDes, UInt uiStride )
     G29 = xTrRound(438*pSrc[46]+926*pSrc[18], DenShift64);
     G30 = xTrRound(759*pSrc[30]+688*pSrc[34], DenShift64);
     G31 = xTrRound(50*pSrc[62]+1023*pSrc[2], DenShift64);
+#endif
     G32 = H32+H33;
     G33 = H32-H33;
     G34 = H35-H34;
@@ -3303,7 +4131,16 @@ Void TComTrQuant::xIT64 ( Long* pSrc, Pel* pDes, UInt uiStride )
     G61 = H60-H61;
     G62 = H63-H62;
     G63 = H63+H62;
-
+#ifdef ROUNDING_CONTROL
+    F8 = xTrRound(100*ai0[4]-1019*ai0[60], DenShift64);
+    F9 = xTrRound(792*ai0[36]-650*ai0[28], DenShift64);
+    F10 = xTrRound(483*ai0[20]-903*ai0[44], DenShift64);
+    F11 = xTrRound(980*ai0[52]-297*ai0[12], DenShift64);
+    F12 = xTrRound(980*ai0[12]+297*ai0[52], DenShift64);
+    F13 = xTrRound(483*ai0[44]+903*ai0[20], DenShift64);
+    F14 = xTrRound(792*ai0[28]+650*ai0[36], DenShift64);
+    F15 = xTrRound(100*ai0[60]+1019*ai0[4], DenShift64);
+#else
     F8 = xTrRound(100*pSrc[4]-1019*pSrc[60], DenShift64);
     F9 = xTrRound(792*pSrc[36]-650*pSrc[28], DenShift64);
     F10 = xTrRound(483*pSrc[20]-903*pSrc[44], DenShift64);
@@ -3312,6 +4149,7 @@ Void TComTrQuant::xIT64 ( Long* pSrc, Pel* pDes, UInt uiStride )
     F13 = xTrRound(483*pSrc[44]+903*pSrc[20], DenShift64);
     F14 = xTrRound(792*pSrc[28]+650*pSrc[36], DenShift64);
     F15 = xTrRound(100*pSrc[60]+1019*pSrc[4], DenShift64);
+#endif
     F16 = G16+G17;
     F17 = G16-G17;
     F18 = G19-G18;
@@ -3344,11 +4182,17 @@ Void TComTrQuant::xIT64 ( Long* pSrc, Pel* pDes, UInt uiStride )
     F58 = xTrRound(650*G58+792*G37, DenShift64);
     F61 = xTrRound(100*G61-1019*G34, DenShift64);
     F62 = xTrRound(1019*G62+100*G33, DenShift64);
-
+#ifdef ROUNDING_CONTROL
+    E4 = xTrRound(200*ai0[8]-1004*ai0[56], DenShift64);
+    E5 = xTrRound(851*ai0[40]-569*ai0[24], DenShift64);
+    E6 = xTrRound(851*ai0[24]+569*ai0[40], DenShift64);
+    E7 = xTrRound(200*ai0[56]+1004*ai0[8], DenShift64);
+#else
     E4 = xTrRound(200*pSrc[8]-1004*pSrc[56], DenShift64);
     E5 = xTrRound(851*pSrc[40]-569*pSrc[24], DenShift64);
     E6 = xTrRound(851*pSrc[24]+569*pSrc[40], DenShift64);
     E7 = xTrRound(200*pSrc[56]+1004*pSrc[8], DenShift64);
+#endif
     E8 = F8+F9;
     E9 = F8-F9;
     E10 = F11-F10;
@@ -3397,11 +4241,17 @@ Void TComTrQuant::xIT64 ( Long* pSrc, Pel* pDes, UInt uiStride )
     E61 = F62-F61;
     E62 = F62+F61;
     E63 = G63+G60;
-
+#ifdef ROUNDING_CONTROL
+    D0 = xTrRound(724*(ai0[0]+ai0[32]), DenShift64);
+    D1 = xTrRound(724*(ai0[0]-ai0[32]), DenShift64);
+    D2 = xTrRound(392*ai0[16]-946*ai0[48], DenShift64);
+    D3 = xTrRound(946*ai0[16]+392*ai0[48], DenShift64);
+#else
     D0 = xTrRound(724*(pSrc[0]+pSrc[32]), DenShift64);
     D1 = xTrRound(724*(pSrc[0]-pSrc[32]), DenShift64);
     D2 = xTrRound(392*pSrc[16]-946*pSrc[48], DenShift64);
     D3 = xTrRound(946*pSrc[16]+392*pSrc[48], DenShift64);
+#endif
     D4 = E4+E5;
     D5 = E4-E5;
     D6 = E7-E6;
@@ -4210,6 +5060,73 @@ Void TComTrQuant::xIT64 ( Long* pSrc, Pel* pDes, UInt uiStride )
     pDes[uiStride61] = (Pel)xTrRound( O2-A61, DCore64Shift);
     pDes[uiStride62] = (Pel)xTrRound( O1-A62, DCore64Shift);
     pDes[uiStride63] = (Pel)xTrRound( O0-A63, DCore64Shift);
+#ifdef ROUNDING_CONTROL
+    pDes[         0] =  (pDes[         0]+offset)>>uiBitDepthIncrease;
+	pDes[uiStride  ] =  (pDes[uiStride  ]+offset)>>uiBitDepthIncrease;
+	pDes[uiStride2 ] =  (pDes[uiStride2 ]+offset)>>uiBitDepthIncrease;
+	pDes[uiStride3 ] =  (pDes[uiStride3 ]+offset)>>uiBitDepthIncrease;
+	pDes[uiStride4 ] =  (pDes[uiStride4 ]+offset)>>uiBitDepthIncrease;
+	pDes[uiStride5 ] =  (pDes[uiStride5 ]+offset)>>uiBitDepthIncrease;
+	pDes[uiStride6 ] =  (pDes[uiStride6 ]+offset)>>uiBitDepthIncrease;
+	pDes[uiStride7 ] =  (pDes[uiStride7 ]+offset)>>uiBitDepthIncrease;
+    pDes[uiStride8 ] =  (pDes[uiStride8 ]+offset)>>uiBitDepthIncrease;
+	pDes[uiStride9 ] =  (pDes[uiStride9 ]+offset)>>uiBitDepthIncrease;
+	pDes[uiStride10] =  (pDes[uiStride10]+offset)>>uiBitDepthIncrease;
+	pDes[uiStride11] =  (pDes[uiStride11]+offset)>>uiBitDepthIncrease;
+	pDes[uiStride12] =  (pDes[uiStride12]+offset)>>uiBitDepthIncrease;
+	pDes[uiStride13] =  (pDes[uiStride13]+offset)>>uiBitDepthIncrease;
+	pDes[uiStride14] =  (pDes[uiStride14]+offset)>>uiBitDepthIncrease;
+	pDes[uiStride15] =  (pDes[uiStride15]+offset)>>uiBitDepthIncrease;
+    pDes[uiStride16] =  (pDes[uiStride16]+offset)>>uiBitDepthIncrease;
+	pDes[uiStride17] =  (pDes[uiStride17]+offset)>>uiBitDepthIncrease;
+	pDes[uiStride18] =  (pDes[uiStride18]+offset)>>uiBitDepthIncrease;
+	pDes[uiStride19] =  (pDes[uiStride19]+offset)>>uiBitDepthIncrease;
+	pDes[uiStride20] =  (pDes[uiStride20]+offset)>>uiBitDepthIncrease;
+	pDes[uiStride21] =  (pDes[uiStride21]+offset)>>uiBitDepthIncrease;
+	pDes[uiStride22] =  (pDes[uiStride22]+offset)>>uiBitDepthIncrease;
+	pDes[uiStride23] =  (pDes[uiStride23]+offset)>>uiBitDepthIncrease;
+    pDes[uiStride24] =  (pDes[uiStride24]+offset)>>uiBitDepthIncrease;
+	pDes[uiStride25] =  (pDes[uiStride25]+offset)>>uiBitDepthIncrease;
+	pDes[uiStride26] =  (pDes[uiStride26]+offset)>>uiBitDepthIncrease;
+	pDes[uiStride27] =  (pDes[uiStride27]+offset)>>uiBitDepthIncrease;
+	pDes[uiStride28] =  (pDes[uiStride28]+offset)>>uiBitDepthIncrease;
+	pDes[uiStride29] =  (pDes[uiStride29]+offset)>>uiBitDepthIncrease;
+	pDes[uiStride30] =  (pDes[uiStride30]+offset)>>uiBitDepthIncrease;
+	pDes[uiStride31] =  (pDes[uiStride31]+offset)>>uiBitDepthIncrease;
+	pDes[uiStride32] =  (pDes[uiStride32]+offset)>>uiBitDepthIncrease;
+	pDes[uiStride33] =  (pDes[uiStride33]+offset)>>uiBitDepthIncrease;
+	pDes[uiStride34] =  (pDes[uiStride34]+offset)>>uiBitDepthIncrease;
+	pDes[uiStride35] =  (pDes[uiStride35]+offset)>>uiBitDepthIncrease;
+    pDes[uiStride36] =  (pDes[uiStride36]+offset)>>uiBitDepthIncrease;
+	pDes[uiStride37] =  (pDes[uiStride37]+offset)>>uiBitDepthIncrease;
+	pDes[uiStride38] =  (pDes[uiStride38]+offset)>>uiBitDepthIncrease;
+	pDes[uiStride39] =  (pDes[uiStride39]+offset)>>uiBitDepthIncrease;
+	pDes[uiStride40] =  (pDes[uiStride40]+offset)>>uiBitDepthIncrease;
+	pDes[uiStride41] =  (pDes[uiStride41]+offset)>>uiBitDepthIncrease;
+	pDes[uiStride42] =  (pDes[uiStride42]+offset)>>uiBitDepthIncrease;
+	pDes[uiStride43] =  (pDes[uiStride43]+offset)>>uiBitDepthIncrease;
+    pDes[uiStride44] =  (pDes[uiStride44]+offset)>>uiBitDepthIncrease;
+	pDes[uiStride45] =  (pDes[uiStride45]+offset)>>uiBitDepthIncrease;
+	pDes[uiStride46] =  (pDes[uiStride46]+offset)>>uiBitDepthIncrease;
+	pDes[uiStride47] =  (pDes[uiStride47]+offset)>>uiBitDepthIncrease;
+	pDes[uiStride48] =  (pDes[uiStride48]+offset)>>uiBitDepthIncrease;
+	pDes[uiStride49] =  (pDes[uiStride49]+offset)>>uiBitDepthIncrease;
+	pDes[uiStride50] =  (pDes[uiStride50]+offset)>>uiBitDepthIncrease;
+	pDes[uiStride51] =  (pDes[uiStride51]+offset)>>uiBitDepthIncrease;
+	pDes[uiStride52] =  (pDes[uiStride52]+offset)>>uiBitDepthIncrease;
+	pDes[uiStride53] =  (pDes[uiStride53]+offset)>>uiBitDepthIncrease;
+	pDes[uiStride54] =  (pDes[uiStride54]+offset)>>uiBitDepthIncrease;
+	pDes[uiStride55] =  (pDes[uiStride55]+offset)>>uiBitDepthIncrease;
+	pDes[uiStride56] =  (pDes[uiStride56]+offset)>>uiBitDepthIncrease;
+	pDes[uiStride57] =  (pDes[uiStride57]+offset)>>uiBitDepthIncrease;
+	pDes[uiStride58] =  (pDes[uiStride58]+offset)>>uiBitDepthIncrease;
+	pDes[uiStride59] =  (pDes[uiStride59]+offset)>>uiBitDepthIncrease;
+	pDes[uiStride60] =  (pDes[uiStride60]+offset)>>uiBitDepthIncrease;
+	pDes[uiStride61] =  (pDes[uiStride61]+offset)>>uiBitDepthIncrease;
+	pDes[uiStride62] =  (pDes[uiStride62]+offset)>>uiBitDepthIncrease;
+	pDes[uiStride63] =  (pDes[uiStride63]+offset)>>uiBitDepthIncrease;
+					
+#endif				
   }
 }
 
@@ -4481,12 +5398,25 @@ Void TComTrQuant::xT4( Pel* piBlkResi, UInt uiStride, Long* psCoeff )
 Void TComTrQuant::xT8( Pel* piBlkResi, UInt uiStride, Long* psCoeff )
 {
   Int aai[8][8];
-
+#ifdef ROUNDING_CONTROL
+  Int uiBitDepthIncrease=g_iShift8x8-g_uiBitIncrement;
+  Int offset = (uiBitDepthIncrease==0)? 0:(1<<(uiBitDepthIncrease-1));
+#endif
   for( Int i = 0; i < 8; i++, piBlkResi += uiStride )
   {
     Int ai1 [8];
     Int ai2 [8];
+#ifdef ROUNDING_CONTROL
+    ai1[0] = (piBlkResi[0] + piBlkResi[7])<<uiBitDepthIncrease;
+    ai1[1] = (piBlkResi[1] + piBlkResi[6])<<uiBitDepthIncrease;
+    ai1[2] = (piBlkResi[2] + piBlkResi[5])<<uiBitDepthIncrease;
+    ai1[3] = (piBlkResi[3] + piBlkResi[4])<<uiBitDepthIncrease;
 
+    ai1[4] = (piBlkResi[0] - piBlkResi[7])<<uiBitDepthIncrease;
+    ai1[5] = (piBlkResi[1] - piBlkResi[6])<<uiBitDepthIncrease;
+    ai1[6] = (piBlkResi[2] - piBlkResi[5])<<uiBitDepthIncrease;
+    ai1[7] = (piBlkResi[3] - piBlkResi[4])<<uiBitDepthIncrease;
+#else
     ai1[0] = piBlkResi[0] + piBlkResi[7];
     ai1[1] = piBlkResi[1] + piBlkResi[6];
     ai1[2] = piBlkResi[2] + piBlkResi[5];
@@ -4496,7 +5426,7 @@ Void TComTrQuant::xT8( Pel* piBlkResi, UInt uiStride, Long* psCoeff )
     ai1[5] = piBlkResi[1] - piBlkResi[6];
     ai1[6] = piBlkResi[2] - piBlkResi[5];
     ai1[7] = piBlkResi[3] - piBlkResi[4];
-
+#endif
     ai2[0] = ai1[0] + ai1[3];
     ai2[1] = ai1[1] + ai1[2];
     ai2[2] = ai1[0] - ai1[3];
@@ -4550,6 +5480,17 @@ Void TComTrQuant::xT8( Pel* piBlkResi, UInt uiStride, Long* psCoeff )
     psCoeff[24] =  ai2[5]     + (ai2[6]>>2);
     psCoeff[40] =  ai2[6]     - (ai2[5]>>2);
     psCoeff[56] = (ai2[4]>>2) -  ai2[7];
+#ifdef ROUNDING_CONTROL
+    psCoeff[ 0] =  (psCoeff[ 0]+offset)>>uiBitDepthIncrease;
+    psCoeff[16] =  (psCoeff[16]+offset)>>uiBitDepthIncrease;
+    psCoeff[32] =  (psCoeff[32]+offset)>>uiBitDepthIncrease;
+    psCoeff[48] =  (psCoeff[48]+offset)>>uiBitDepthIncrease;
+										 
+    psCoeff[ 8] =  (psCoeff[ 8]+offset)>>uiBitDepthIncrease;
+    psCoeff[24] =  (psCoeff[24]+offset)>>uiBitDepthIncrease;
+    psCoeff[40] =  (psCoeff[40]+offset)>>uiBitDepthIncrease;	
+    psCoeff[56] =  (psCoeff[56]+offset)>>uiBitDepthIncrease;
+#endif
   }
 }
 
@@ -4668,8 +5609,8 @@ Void TComTrQuant::xQuant4x4( TComDataCU* pcCU, Long* plSrcCoef, TCoeff*& pDstCoe
 
 #endif
 
-#if NEWVLC
-  if ( !(getUseMDDT(uiMode, indexROT) && m_iSymbolMode == 0) && m_bUseRDOQ && (eTType == TEXT_LUMA || RDOQ_CHROMA) && (!RDOQ_ROT_IDX0_ONLY || indexROT == 0 ) )
+#if NEWVLC && (!QC_MDDT)
+  if ( !(pcCU->isIntra( uiAbsPartIdx ) && m_iSymbolMode == 0) && m_bUseRDOQ && (eTType == TEXT_LUMA || RDOQ_CHROMA) && (!RDOQ_ROT_IDX0_ONLY || indexROT == 0 ) )
 #else
   if ( m_bUseRDOQ && (eTType == TEXT_LUMA || RDOQ_CHROMA) && (!RDOQ_ROT_IDX0_ONLY || indexROT == 0 ) )
 #endif
@@ -4776,8 +5717,8 @@ Void TComTrQuant::xQuant8x8( TComDataCU* pcCU, Long* plSrcCoef, TCoeff*& pDstCoe
 
   Int iBit = m_cQP.m_iBits + 1;
 
-#if NEWVLC
-  if ( !(getUseMDDT(uiMode, indexROT) && m_iSymbolMode == 0) && m_bUseRDOQ && (eTType == TEXT_LUMA || RDOQ_CHROMA) && (!RDOQ_ROT_IDX0_ONLY || indexROT == 0 ) )
+#if NEWVLC && (!QC_MDDT)
+  if ( !(pcCU->isIntra( uiAbsPartIdx ) && m_iSymbolMode == 0) && m_bUseRDOQ && (eTType == TEXT_LUMA || RDOQ_CHROMA) && (!RDOQ_ROT_IDX0_ONLY || indexROT == 0 ) )
 #else
   if ( m_bUseRDOQ && (eTType == TEXT_LUMA || RDOQ_CHROMA) && (!RDOQ_ROT_IDX0_ONLY || indexROT == 0 ) )
 #endif
@@ -5001,7 +5942,10 @@ Void TComTrQuant::xIT8( Long* plCoef, Pel* pResidual, UInt uiStride )
 {
   Long aai[8][8];
   Int n;
-
+#ifdef ROUNDING_CONTROL
+  Int uiBitDepthIncrease=g_iShift8x8-g_uiBitIncrement;
+  Int offset = (uiBitDepthIncrease==0)? 0:(1<<(uiBitDepthIncrease-1));
+#endif
   UInt uiStride2 = uiStride<<1;
   UInt uiStride3 = uiStride2 + uiStride;
   UInt uiStride4 = uiStride3 + uiStride;
@@ -5014,7 +5958,27 @@ Void TComTrQuant::xIT8( Long* plCoef, Pel* pResidual, UInt uiStride )
     Long* pi = plCoef + (n<<3);
     Long     ai1[8];
     Long     ai2[8];
+#ifdef ROUNDING_CONTROL
+    Long     ai0[8];
+    ai0[0] =  pi[0]<<uiBitDepthIncrease;
+	ai0[1] =  pi[1]<<uiBitDepthIncrease;
+	ai0[2] =  pi[2]<<uiBitDepthIncrease;
+	ai0[3] =  pi[3]<<uiBitDepthIncrease;
+	ai0[4] =  pi[4]<<uiBitDepthIncrease;
+	ai0[5] =  pi[5]<<uiBitDepthIncrease;
+	ai0[6] =  pi[6]<<uiBitDepthIncrease;
+	ai0[7] =  pi[7]<<uiBitDepthIncrease;
+    ai1[0] = ai0[0] + ai0[4];
+    ai1[2] = ai0[0] - ai0[4];
 
+    ai1[4] = (ai0[2]>>1) -  ai0[6];
+    ai1[6] =  ai0[2]     + (ai0[6]>>1);
+
+    ai1[1] = ai0[5] - ai0[3] - ai0[7] - (ai0[7]>>1);
+    ai1[3] = ai0[1] + ai0[7] - ai0[3] - (ai0[3]>>1);;
+    ai1[5] = ai0[7] - ai0[1] + ai0[5] + (ai0[5]>>1);
+    ai1[7] = ai0[3] + ai0[5] + ai0[1] + (ai0[1]>>1);
+#else
     ai1[0] = pi[0] + pi[4];
     ai1[2] = pi[0] - pi[4];
 
@@ -5025,7 +5989,7 @@ Void TComTrQuant::xIT8( Long* plCoef, Pel* pResidual, UInt uiStride )
     ai1[3] = pi[1] + pi[7] - pi[3] - (pi[3]>>1);;
     ai1[5] = pi[7] - pi[1] + pi[5] + (pi[5]>>1);
     ai1[7] = pi[3] + pi[5] + pi[1] + (pi[1]>>1);
-
+#endif
     ai2[0] = ai1[0] + ai1[6];
     ai2[6] = ai1[0] - ai1[6];
 
@@ -5082,6 +6046,17 @@ Void TComTrQuant::xIT8( Long* plCoef, Pel* pResidual, UInt uiStride )
     pResidual[uiStride5] = xRound( ai2[4] - ai2[3] );
     pResidual[uiStride6] = xRound( ai2[2] - ai2[5] );
     pResidual[uiStride7] = xRound( ai2[0] - ai2[7] );
+
+#ifdef ROUNDING_CONTROL
+    pResidual[        0] =  (pResidual[        0]+offset)>>uiBitDepthIncrease;
+	pResidual[uiStride ] =  (pResidual[uiStride ]+offset)>>uiBitDepthIncrease;
+	pResidual[uiStride2] =  (pResidual[uiStride2]+offset)>>uiBitDepthIncrease;
+	pResidual[uiStride3] =  (pResidual[uiStride3]+offset)>>uiBitDepthIncrease;
+	pResidual[uiStride4] =  (pResidual[uiStride4]+offset)>>uiBitDepthIncrease;
+	pResidual[uiStride5] =  (pResidual[uiStride5]+offset)>>uiBitDepthIncrease;
+	pResidual[uiStride6] =  (pResidual[uiStride6]+offset)>>uiBitDepthIncrease;
+	pResidual[uiStride7] =  (pResidual[uiStride7]+offset)>>uiBitDepthIncrease;
+#endif
   }
 }
 
@@ -5803,15 +6778,26 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
   Bool    bSubBlockCoding     = ( uiLog2BlkSize > 2 );
   Double  d64BlockUncodedCost = 0;
 
-  Int*  piCoeff            = new Int [ uiMaxNumCoeff      ];
+  // Allocation on stack to avoid recurring memory allocation/deallocation on heap
+  Int piCoeff[MAX_CU_SIZE * MAX_CU_SIZE];
 #if QC_MDDT
-  Int64* plLevelDouble     = new Int64[ uiMaxNumCoeff      ];
+  Int64 plLevelDouble[MAX_CU_SIZE * MAX_CU_SIZE];
 #else
-  Long* plLevelDouble      = new Long[ uiMaxNumCoeff      ];
+  Long plLevelDouble[MAX_CU_SIZE * MAX_CU_SIZE];
 #endif
-  UInt* puiCtxAbsGreOne    = new UInt[ uiMaxNumCoeff      ];
-  UInt* puiCtxCoeffLevelM1 = new UInt[ uiMaxNumCoeff      ];
-  UInt* puiBaseCtx         = new UInt[ uiMaxNumCoeff / 16 ];
+  UInt puiCtxAbsGreOne[MAX_CU_SIZE * MAX_CU_SIZE];
+  UInt puiCtxCoeffLevelM1[MAX_CU_SIZE * MAX_CU_SIZE];
+  UInt puiBaseCtx[MAX_CU_SIZE * MAX_CU_SIZE / 16];
+  
+//  Int*  piCoeff            = new Int [ uiMaxNumCoeff      ];
+//#if QC_MDDT
+//  Int64* plLevelDouble     = new Int64[ uiMaxNumCoeff      ];
+//#else
+//  Long* plLevelDouble      = new Long[ uiMaxNumCoeff      ];
+//#endif
+//  UInt* puiCtxAbsGreOne    = new UInt[ uiMaxNumCoeff      ];
+//  UInt* puiCtxCoeffLevelM1 = new UInt[ uiMaxNumCoeff      ];
+//  UInt* puiBaseCtx         = new UInt[ uiMaxNumCoeff / 16 ];
   const UInt uiNumOfSets   = 4;
   const UInt uiNum4x4Blk   = max<UInt>( 1, uiMaxNumCoeff / 16 );
 
@@ -5886,7 +6872,7 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
 #if QC_MDDT
     //assert(iQBits < 32);
     UInt uiMaxAbsLevel = (UInt)(lLevelDouble >> iQBits);
-    Bool bLowerInt = ( ( lLevelDouble - Int64( uiMaxAbsLevel << iQBits ) ) < Long( 1 <<( iQBits - 1 ) ) ) ? true : false;
+    Bool bLowerInt = ( ( lLevelDouble - ((Int64)uiMaxAbsLevel << iQBits ) ) < ( (Int64)1 <<( iQBits - 1 ) ) ) ? true : false;
 #else
     UInt uiMaxAbsLevel = lLevelDouble >> iQBits;
     Bool bLowerInt = ( ( lLevelDouble - Long( uiMaxAbsLevel << iQBits ) ) < Long( 1 <<( iQBits - 1 ) ) ) ? true : false;
@@ -6252,11 +7238,11 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
     }
   }
 
-  delete[] piCoeff;
-  delete[] plLevelDouble;
-  delete[] puiCtxAbsGreOne;
-  delete[] puiCtxCoeffLevelM1;
-  delete[] puiBaseCtx;
+//  delete[] piCoeff;
+//  delete[] plLevelDouble;
+//  delete[] puiCtxAbsGreOne;
+//  delete[] puiCtxCoeffLevelM1;
+//  delete[] puiBaseCtx;
 #else
 // temporal buffer for speed
 static levelDataStruct slevelData		[ MAX_CU_SIZE*MAX_CU_SIZE ];

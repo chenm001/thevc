@@ -96,6 +96,7 @@ private:
 #ifdef QC_SIFO_PRED
   Bool          m_bUseSIFO_Pred;
 #endif
+  Bool        m_bUseAMP;
   // Parameter
   AMVP_MODE   m_aeAMVPMode[MAX_CU_DEPTH];
   UInt        m_uiBitDepth;
@@ -228,6 +229,9 @@ public:
 	Bool getUseSIFO_Pred      ()         { return m_bUseSIFO_Pred;        }
 #endif
 
+  Bool getUseAMP      ()         { return m_bUseAMP; }
+  Void setUseAMP      ( Bool b ) { m_bUseAMP  = b; }
+
   // AMVP mode (for each depth)
   AMVP_MODE getAMVPMode ( UInt uiDepth ) { assert(uiDepth < g_uiMaxCUDepth);  return m_aeAMVPMode[uiDepth]; }
   Void      setAMVPMode ( UInt uiDepth, AMVP_MODE eMode) { assert(uiDepth < g_uiMaxCUDepth);  m_aeAMVPMode[uiDepth] = eMode; }
@@ -282,6 +286,9 @@ private:
 
   // referenced slice?
   Bool        m_bRefenced;
+#ifdef ROUNDING_CONTROL
+  Bool		  m_bRounding;
+#endif
 
   // access channel
   TComSPS*    m_pcSPS;
@@ -306,7 +313,10 @@ private:
   Int         m_iChromaLogWeightDenom;
   Int         m_iWPLumaRound;
   Int         m_iWPChromaRound;
-
+#ifdef EDGE_BASED_PREDICTION
+  Bool        m_bEdgePredictionEnable;
+  Int         m_iEdgeDetectionThreshold;
+#endif //EDGE_BASED_PREDICTION
 #if HHI_INTERP_FILTER
   Int         m_iInterpFilterType;
 #endif
@@ -349,6 +359,10 @@ public:
 
   Void      setReferenced(Bool b)                               { m_bRefenced = b; }
   Bool      isReferenced()                                      { return m_bRefenced; }
+#ifdef ROUNDING_CONTROL
+  Void      setRounding(Bool bRound)                            { m_bRounding = bRound; }
+  Bool      isRounding()                                        { return m_bRounding; }
+#endif
 
   Void      setPOC              ( Int i )                       { m_iPOC              = i;      }
   Void      setSliceType        ( SliceType e )                 { m_eSliceType        = e;      }
@@ -378,7 +392,12 @@ public:
 
   Void      setLambda( Double d ) { m_dLambda = d; }
   Double    getLambda() { return m_dLambda;        }
-
+#ifdef EDGE_BASED_PREDICTION
+  Void      setEdgePredictionEnable (Bool b)  { m_bEdgePredictionEnable = b; } 
+  Bool      getEdgePredictionEnable ()        { return m_bEdgePredictionEnable; }
+  Void      setEdgeDetectionThreshold (Int i) { m_iEdgeDetectionThreshold = i; }
+  Int       getEdgeDetectionThreshold ()      { return m_iEdgeDetectionThreshold; }
+#endif //EDGE_BASED_PREDICTION
   Void generateWPSlice( RefPicList e, EFF_MODE eEffMode, UInt uiInsertIdx);
 
   Void initWPParam( RefPicList e, EFF_MODE eEffMode, Int colorChannel);

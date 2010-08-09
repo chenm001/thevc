@@ -83,6 +83,52 @@ Void initROM()
     initSigLastScanPattern( g_auiSigLastScan[ i ][ 0 ], i, false );
   }
 #endif
+
+#if QC_MDDT
+  int ipredmode;
+  for(ipredmode=0; ipredmode<9; ipredmode++)
+  {
+    scanOrder4x4[ipredmode] = new UInt[ 4*4 ];
+    scanOrder4x4X[ipredmode]= new UInt[ 4*4 ];
+    scanOrder4x4Y[ipredmode]= new UInt[ 4*4 ];
+    
+    scanStats4x4[ipredmode] = new UInt[ 4*4 ];
+    
+    
+    scanOrder8x8[ipredmode] = new UInt[ 8*8 ];
+    scanOrder8x8X[ipredmode]= new UInt[ 8*8 ];
+    scanOrder8x8Y[ipredmode]= new UInt[ 8*8 ];
+    
+    scanStats8x8[ipredmode] = new UInt[ 8*8 ];
+  }
+  
+  // 16x16
+  for (int z=0; z < NUM_SCANS_16x16; z++)
+  {
+    scanOrder16x16[z] = new UInt[ 16*16 ];
+    scanOrder16x16X[z] = new UInt[ 16*16 ];
+    scanOrder16x16Y[z] = new UInt[ 16*16 ];
+    scanStats16x16[z] = new UInt[ 16*16 ];
+  }
+  
+  // 32x32
+  for (int z=0; z < NUM_SCANS_32x32; z++)
+  {
+    scanOrder32x32[z] = new UInt[ 32*32 ];
+    scanOrder32x32X[z] = new UInt[ 32*32 ];
+    scanOrder32x32Y[z] = new UInt[ 32*32 ];
+    scanStats32x32[z] = new UInt[ 32*32 ];
+  }
+  
+  // 64x64
+  for (int z=0; z < NUM_SCANS_64x64; z++)
+  {
+    scanOrder64x64[z] = new UInt[ 64*64 ];
+    scanOrder64x64X[z] = new UInt[ 64*64 ];
+    scanOrder64x64Y[z] = new UInt[ 64*64 ];
+    scanStats64x64[z] = new UInt[ 64*64 ];
+  }
+#endif
 }
 
 Void destroyROM()
@@ -100,6 +146,47 @@ Void destroyROM()
     delete[] g_auiSigLastScan[i][1];
 #endif
   }
+
+#if QC_MDDT //ADAPTIVE_SCAN
+  int ipredmode;
+  for(ipredmode=0; ipredmode<9; ipredmode++)
+  {       
+    delete [] scanOrder4x4[ipredmode];      
+    delete [] scanOrder4x4X[ipredmode];      
+    delete [] scanOrder4x4Y[ipredmode];
+    delete [] scanStats4x4[ipredmode];
+    
+    delete [] scanOrder8x8[ipredmode];
+    delete [] scanOrder8x8X[ipredmode];
+    delete [] scanOrder8x8Y[ipredmode];
+    delete [] scanStats8x8[ipredmode];
+  }
+  
+  // 16x16
+  for (int z=0; z < NUM_SCANS_16x16; z++)
+  {
+    delete [] scanOrder16x16[z];
+    delete [] scanOrder16x16X[z];
+    delete [] scanOrder16x16Y[z];
+    delete [] scanStats16x16[z];
+  }
+  // 32x32
+  for (int z=0; z < NUM_SCANS_32x32; z++)
+  {
+    delete [] scanOrder32x32[z];
+    delete [] scanOrder32x32X[z];
+    delete [] scanOrder32x32Y[z];
+    delete [] scanStats32x32[z];
+  }
+  // 64x64
+  for (int z=0; z < NUM_SCANS_64x64; z++)
+  {
+    delete [] scanOrder64x64[z];
+    delete [] scanOrder64x64X[z];
+    delete [] scanOrder64x64Y[z];
+    delete [] scanStats64x64[z];
+  }
+#endif
 }
 
 // ====================================================================================================================
@@ -2048,20 +2135,76 @@ const UChar g_aucAngIntraModeOrder[34] =
   30, // 32 HOR+5   HOR+7
   32, // 33 HOR+7   HOR+8
 };
+
+# if UNIFIED_DIRECTIONAL_INTRA
+const UChar g_aucIntraModeNumAng[7] =
+{
+    3,  //   2x2
+   17,  //   4x4
+   34,  //   8x8
+   34,  //  16x16
+   34,  //  32x32
+    5,  //  64x64
+    5   // 128x128
+};
+
+const UChar g_aucIntraModeBitsAng[7] =
+{
+   2,  //   2x2     3   1+1
+   5,  //   4x4    17   4+1
+   6,  //   8x8    34   5+esc
+   6,  //  16x16   34   5+esc
+   6,  //  32x32   34   5+esc
+   3,  //  64x64    5   2+1
+   3   // 128x128   5   2+1
+};
+
+const UChar g_aucAngModeMapping[3][34] = // intra mode conversion for most probable
+{
+  {2,3,2,2,4, 4,4,0,0,0, 0,0,0,0,2, 2,2,2,2,2, 2,1,1,1,1, 1,1,1,1,1, 2,2,2,2},               // conversion to 5 modes
+  {2,3,3,2,4, 4,4,2,0,0, 0,2,5,5,5, 2,6,6,6,2, 7,7,7,2,1, 1,1,2,8,8, 8,2,2,2},               // conversion to 9 modes
+  {2,3,3,10,10, 4,11,11,0,0, 0,12,12,5,5, 13,13,6,14,14, 7,7,15,15,1, 1,1,16,16,8, 8,2,2,9}  // conversion to 17 modes
+};
+# endif
+#endif
+
 #if QC_MDDT
+# if UNIFIED_DIRECTIONAL_INTRA
+// Mapping each UDI prediction direction to MDDT transform directions
+const UChar g_aucAngIntra9Mode[34] =
+{ //0  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33
+    0, 1, 2, 4, 5, 7, 3, 6, 8, 3, 5, 0, 0, 7, 6, 1, 1, 8, 4, 5, 5, 0, 0, 7, 7, 3, 4, 6, 6, 1, 1, 8, 8, 3
+};
+
+# else
 const UChar g_aucAngIntra9Mode[34] =
 {
     0, 1, 2, 4, 5, 7, 3, 6, 8, 3, 4, 0, 0, 3, 4, 1, 1, 3, 4, 5, 5, 0, 0,
     7, 7, 3, 4, 6, 6, 1, 1, 8, 8, 3
 };
+# endif
 #endif
-#endif
+
 #if QC_MDDT
+# if UNIFIED_DIRECTIONAL_INTRA
+// Same table for all sizes
+const UChar g_aucIntra9Mode[34] =
+{
+    0, 1, 2, 4, 5, 7, 3, 6, 8, 3, 5, 0, 0, 7, 6, 1, 1, 8, 4, 5, 5, 0, 0, 7, 7, 3, 4, 6, 6, 1, 1, 8, 8, 3
+};
+# elif ANG_INTRA == 2
+const UChar g_aucIntra9Mode[34] =
+{
+    0, 1, 2, 4, 5, 7, 3, 6, 8, 3, 4, 0, 0, 3, 4, 1, 1, 3, 4, 5, 5, 0, 0,
+    7, 7, 3, 4, 6, 6, 1, 1, 8, 8, 3
+};
+# else
 const UChar g_aucIntra9Mode[33] =
 {
     0, 1, 2, 3, 4, 5, 6, 7, 8, 0, 3, 3, 6, 4, 0, 3, 8, 0, 7, 7,
     3, 3, 8, 1, 1, 6, 6, 4, 5, 3, 3, 8, 1
 };
+# endif
 #endif
 
 // ====================================================================================================================
@@ -4453,56 +4596,6 @@ void InitScanOrderForSlice()
   UInt stats16x16[NUM_SCANS_16x16][256];
   UInt stats32x32[NUM_SCANS_32x32][1024];
   UInt stats64x64[NUM_SCANS_64x64][4096];
-  static int first = 0;
-
-  if(first == 0)
-  {
-
-    for(ipredmode=0; ipredmode<9; ipredmode++)
-    {
-      scanOrder4x4[ipredmode] = new UInt[ 4*4 ];
-      scanOrder4x4X[ipredmode]= new UInt[ 4*4 ];
-      scanOrder4x4Y[ipredmode]= new UInt[ 4*4 ];
-
-      scanStats4x4[ipredmode] = new UInt[ 4*4 ];
- 
-
-      scanOrder8x8[ipredmode] = new UInt[ 8*8 ];
-      scanOrder8x8X[ipredmode]= new UInt[ 8*8 ];
-      scanOrder8x8Y[ipredmode]= new UInt[ 8*8 ];
-
-      scanStats8x8[ipredmode] = new UInt[ 8*8 ];
-    }
-
-    // 16x16
-    for (int z=0; z < NUM_SCANS_16x16; z++)
-    {
-      scanOrder16x16[z] = new UInt[ 16*16 ];
-      scanOrder16x16X[z] = new UInt[ 16*16 ];
-      scanOrder16x16Y[z] = new UInt[ 16*16 ];
-      scanStats16x16[z] = new UInt[ 16*16 ];
-    }
-
-    // 32x32
-    for (int z=0; z < NUM_SCANS_32x32; z++)
-    {
-      scanOrder32x32[z] = new UInt[ 32*32 ];
-      scanOrder32x32X[z] = new UInt[ 32*32 ];
-      scanOrder32x32Y[z] = new UInt[ 32*32 ];
-      scanStats32x32[z] = new UInt[ 32*32 ];
-    }
-
-    // 64x64
-    for (int z=0; z < NUM_SCANS_64x64; z++)
-    {
-      scanOrder64x64[z] = new UInt[ 64*64 ];
-      scanOrder64x64X[z] = new UInt[ 64*64 ];
-      scanOrder64x64Y[z] = new UInt[ 64*64 ];
-      scanStats64x64[z] = new UInt[ 64*64 ];
-    }
-
-    first++;
-  }
 
 
   // 4x4 and 8x8

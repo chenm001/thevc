@@ -153,6 +153,8 @@ protected:
   Bool      m_bUseIMP;                                        // SOPH : coding tools (interleaved MV Predictor)
 #endif
 
+  Bool      m_bUseAMP;                                        ///< flag for using asymmetric partition
+
   // coding tools (encoder-only parameters)
   Bool      m_bUseSBACRD;                                     ///< flag for using RD optimization based on SBAC
   Bool      m_bUseASR;                                        ///< flag for using adaptive motion search range
@@ -163,6 +165,11 @@ protected:
   Int       m_iSearchRange;                                   ///< ME search range
   Bool      m_bUseFastEnc;                                    ///< flag for using fast encoder setting
 
+#ifdef EDGE_BASED_PREDICTION
+  // coding tool: edge based prediction
+  Bool      m_bEdgePredictionEnable;
+  Int       m_iEdgeDetectionThreshold;
+#endif //EDGE_BASED_PREDICTION
 #if HHI_INTERP_FILTER
   // coding tool (interpolation filter)
   Int       m_iInterpFilterType;                              ///< interpolation filter type
@@ -173,7 +180,6 @@ protected:
   Void  xCheckParameter ();                                   ///< check validity of configuration values
   Void  xPrintParameter ();                                   ///< print configuration values
   Void  xPrintUsage     ();                                   ///< print usage
-  Void  xConfirmPara    ( Bool bflag, const char* message );  ///< misc. function for printing configuration validity
 
 public:
   TAppEncCfg();

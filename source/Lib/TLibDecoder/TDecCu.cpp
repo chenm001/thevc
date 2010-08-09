@@ -251,10 +251,32 @@ Void TDecCu::xDecodeCU( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
 #if HHI_ALLOW_ROT_SWITCH
   if ( pcCU->getSlice()->getSPS()->getUseROT() )
   {
+#if DISABLE_ROT_LUMA_4x4_8x8
+    if ( uiCurrWidth > 8)
+    {
+      m_pcEntropyDecoder->decodeROTIdx( pcCU, uiAbsPartIdx, uiDepth );
+    }
+    else
+    {
+      pcCU->setROTindexSubParts( 0, uiAbsPartIdx, uiDepth );
+    }
+#else
     m_pcEntropyDecoder->decodeROTIdx( pcCU, uiAbsPartIdx, uiDepth );
+#endif
+  }
+#else
+#if DISABLE_ROT_LUMA_4x4_8x8
+  if ( uiCurrWidth > 8)
+  {
+    m_pcEntropyDecoder->decodeROTIdx( pcCU, uiAbsPartIdx, uiDepth );
+  }
+  else
+  {
+    pcCU->setROTindexSubParts( 0, uiAbsPartIdx, uiDepth );
   }
 #else
   m_pcEntropyDecoder->decodeROTIdx( pcCU, uiAbsPartIdx, uiDepth );
+#endif
 #endif
 #endif
 
@@ -373,6 +395,10 @@ Void TDecCu::xDecodeIntraTexture( TComDataCU* pcCU, UInt uiPartIdx, Pel* piReco,
     Bool bLeftAvail  = false;
 
     pcPattern->initAdiPattern(pcCU, uiPartIdx, uiCurrDepth, m_pcPrediction->getPredicBuf(), m_pcPrediction->getPredicBufWidth(), m_pcPrediction->getPredicBufHeight(), bAboveAvail, bLeftAvail);
+#ifdef EDGE_BASED_PREDICTION
+    if( m_pcPrediction->getEdgeBasedPred()->get_edge_prediction_enable() )
+      m_pcPrediction->getEdgeBasedPred()->initEdgeBasedBuffer(pcCU, uiPartIdx, uiCurrDepth, m_pcPrediction->getEdgeBasedBuf());
+#endif //EDGE_BASED_PREDICTION
 
 #if ANG_INTRA
     if ( pcCU->angIntraEnabledPredPart( uiPartIdx ) )
@@ -403,7 +429,11 @@ Void TDecCu::xDecodeIntraTexture( TComDataCU* pcCU, UInt uiPartIdx, Pel* piReco,
 
     m_pcTrQuant->invtransformNxN( TEXT_LUMA, pcCU->getLumaIntraDir(uiPartIdx), pResi, uiStride, pCoeff, uiWidth, uiHeight, indexROT );
 #else
+#if DISABLE_ROT_LUMA_4x4_8x8
+    m_pcTrQuant->invtransformNxN( pResi, uiStride, pCoeff, uiWidth, uiHeight, uiWidth > 8 ? indexROT : 0 );
+#else
     m_pcTrQuant->invtransformNxN( pResi, uiStride, pCoeff, uiWidth, uiHeight, indexROT );
+#endif
 #endif
     // Reconstruction
 #if HHI_ALLOW_CIP_SWITCH
@@ -628,6 +658,10 @@ TDecCu::xIntraRecLumaBlk( TComDataCU* pcCU,
                                       m_pcPrediction->getPredicBufWidth  (),
                                       m_pcPrediction->getPredicBufHeight (),
                                       bAboveAvail, bLeftAvail );
+#ifdef EDGE_BASED_PREDICTION
+  if( m_pcPrediction->getEdgeBasedPred()->get_edge_prediction_enable() )
+    m_pcPrediction->getEdgeBasedPred()->initEdgeBasedBuffer(pcCU, uiAbsPartIdx, uiTrDepth, m_pcPrediction->getEdgeBasedBuf());
+#endif //EDGE_BASED_PREDICTION
 
   //===== get prediction signal =====
 #if ANG_INTRA
@@ -660,7 +694,11 @@ TDecCu::xIntraRecLumaBlk( TComDataCU* pcCU,
 
   m_pcTrQuant->invtransformNxN( TEXT_LUMA, pcCU->getLumaIntraDir( uiAbsPartIdx ), piResi, uiStride, pcCoeff, uiWidth, uiHeight, pcCU->getROTindex(0) );
 #else
+#if DISABLE_ROT_LUMA_4x4_8x8
+  m_pcTrQuant->invtransformNxN( piResi, uiStride, pcCoeff, uiWidth, uiHeight, uiWidth > 8 ? pcCU->getROTindex(0) : 0 );
+#else
   m_pcTrQuant->invtransformNxN( piResi, uiStride, pcCoeff, uiWidth, uiHeight, pcCU->getROTindex(0) );
+#endif
 #endif
   //===== reconstruction =====
   if( pcCU->getCIPflag( uiAbsPartIdx ) )

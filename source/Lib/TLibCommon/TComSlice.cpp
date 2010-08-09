@@ -59,6 +59,9 @@ TComSlice::TComSlice()
 
   m_pcPic               = NULL;
   m_bRefenced           = false;
+#ifdef ROUNDING_CONTROL
+  m_bRounding			= false;
+#endif
   m_uiColDir = 0;
 
   m_aiWPmode[0]    = 0;
@@ -73,6 +76,9 @@ TComSlice::TComSlice()
   m_auiAddRefCnt[0]  = 0;
   m_auiAddRefCnt[1]  = 0;
 
+#ifdef EDGE_BASED_PREDICTION
+    m_bEdgePredictionEnable = false;
+#endif //EDGE_BASED_PREDICTION
   initEqualRef();
 }
 

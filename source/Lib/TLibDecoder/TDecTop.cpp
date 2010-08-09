@@ -199,7 +199,7 @@ Void TDecTop::decode (Bool bEos, TComBitstream* pcBitstream, UInt& ruiPOC, TComL
     Int i;
     for (i = 0; i < m_cSPS.getMaxCUDepth() - 1; i++)
     {
-      m_cSPS.setAMPAcc( i, 1 );
+      m_cSPS.setAMPAcc( i, m_cSPS.getUseAMP() );
     }
 
     for (i = m_cSPS.getMaxCUDepth() - 1; i < m_cSPS.getMaxCUDepth(); i++)
@@ -249,7 +249,11 @@ Void TDecTop::decode (Bool bEos, TComBitstream* pcBitstream, UInt& ruiPOC, TComL
 
   // Buffer initialize for prediction.
   m_cPrediction.initTempBuff();
-
+#ifdef EDGE_BASED_PREDICTION
+  //Initialise edge based prediction for the current slice
+  m_cPrediction.getEdgeBasedPred()->setEdgePredictionEnable(m_apcSlicePilot->getEdgePredictionEnable());
+  m_cPrediction.getEdgeBasedPred()->setThreshold(m_apcSlicePilot->getEdgeDetectionThreshold());
+#endif //EDGE_BASED_PREDICTION
   //  Get a new picture buffer
   xGetNewPicBuffer (m_apcSlicePilot, pcPic);
 

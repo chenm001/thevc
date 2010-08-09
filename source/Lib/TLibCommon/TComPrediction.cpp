@@ -43,6 +43,10 @@
 TComPrediction::TComPrediction()
 {
   m_piYuvExt = NULL;
+#ifdef EDGE_BASED_PREDICTION
+  m_piYExtEdgeBased = NULL;
+  EdgeBasedPred = NULL;
+#endif //EDGE_BASED_PREDICTION
 }
 
 TComPrediction::~TComPrediction()
@@ -50,11 +54,18 @@ TComPrediction::~TComPrediction()
   m_cYuvExt.destroy();
 
   delete[] m_piYuvExt;
+#ifdef EDGE_BASED_PREDICTION
+  delete[] m_piYExtEdgeBased;
+#endif //EDGE_BASED_PREDICTION
 
   m_acYuvPred[0].destroy();
   m_acYuvPred[1].destroy();
 
   m_cYuvPredTemp.destroy();
+#ifdef EDGE_BASED_PREDICTION
+  delete EdgeBasedPred;
+#endif //EDGE_BASED_PREDICTION
+
 }
 
 Void TComPrediction::initTempBuff()
@@ -77,8 +88,15 @@ Void TComPrediction::initTempBuff()
     TComPredFilterMOMS::initTempBuff();
 #endif  
   }
+#ifdef EDGE_BASED_PREDICTION
+  if( m_piYExtEdgeBased == NULL )
+    m_piYExtEdgeBased = new Int[ ((g_uiMaxCUWidth<<1)+4) * ((g_uiMaxCUHeight<<1)+4) ];
+#endif //EDGE_BASED_PREDICTION
 
   m_iDIFHalfTap   = ( m_iDIFTap  >> 1 );
+#ifdef EDGE_BASED_PREDICTION
+  EdgeBasedPred = new TComEdgeBased;
+#endif //EDGE_BASED_PREDICTION
 }
 
 // ====================================================================================================================
@@ -197,6 +215,141 @@ Void TComPrediction::predIntraPlanar( Int* piSrc, Int iSampleBottomRight, Pel* p
 
 #if ANG_INTRA
 // Function for deriving the angular Intra predictions
+
+#if UNIFIED_DIRECTIONAL_INTRA
+// Function for deriving the angular Intra predictions
+Void TComPrediction::xPredIntraAng( Int* pSrc, Int iSrcStride, Pel*& rpDst, Int iDstStride, UInt iWidth, UInt iHeight, UInt uiDirMode, Bool bAbove, Bool bLeft )
+{
+  Int k,l;
+  Int deltaInt, deltaFract, refMainIndex;
+  Int deltaIntSide, deltaFractSide, refSideIndex;
+  Int intraPredAngle = 0;
+  Int absAng         = 0;
+  Int signAng        = 0;
+  Int blkSize        = iWidth;
+  Int blkSizeHalf    = iWidth >> 1;
+  Bool modeDC        = false;
+  Bool modeVer       = false;
+  Bool modeHor       = false;
+  Pel* pDst          = rpDst;
+  Int* ptrSrc        = pSrc;
+  Pel  refAbove[2*MAX_CU_SIZE+1];
+  Pel  refLeft[2*MAX_CU_SIZE+1];
+
+  // Map the mode index to main prediction direction and angle
+  if (uiDirMode == 0)
+    modeDC = true;
+  else if (uiDirMode < 18)
+    modeVer = true;
+  else
+    modeHor = true;
+
+  intraPredAngle = modeVer ? uiDirMode - 9 : modeHor ? uiDirMode - 25 : 0;
+  absAng         = abs(intraPredAngle);
+  signAng        = intraPredAngle < 0 ? -1 : 1;
+
+  // Set bitshifts and scale the angle parameter to block size
+  Int iAngTable[9]  = { 0,2,5,9,13,17,21,26,32 };
+  absAng            = iAngTable[absAng];
+
+  intraPredAngle = signAng * absAng;
+
+  // Do the DC prediction
+  if (modeDC)
+  {
+    Pel dcval = predIntraGetPredValDC(pSrc, iSrcStride, iWidth, iHeight, bAbove, bLeft);
+
+    for (k=0;k<blkSize;k++){
+      for (l=0;l<blkSize;l++){
+        pDst[k*iDstStride+l] = dcval;
+      }
+    }
+  }
+
+  // Do angular predictions
+  else
+  {
+    Pel  tmp;
+    Pel* refMain;
+    Pel* refSide;
+
+    for (k=0;k<2*blkSize+1;k++)
+      refAbove[k] = pSrc[k-iSrcStride-1];
+    for (k=0;k<2*blkSize+1;k++)
+      refLeft[k] = pSrc[(k-1)*iSrcStride-1];
+
+    refMain = modeVer ? refAbove : refLeft;
+    refSide = modeVer ? refLeft  : refAbove;
+
+    if (intraPredAngle == 0){
+      for (k=0;k<blkSize;k++){
+        for (l=0;l<blkSize;l++){
+          pDst[k*iDstStride+l] = refMain[l+1];
+        }
+      }
+    }
+    else{
+
+      for (k=0;k<blkSize;k++){
+
+        deltaInt   = ((k+1)*intraPredAngle) >> 5;
+        deltaFract = ((k+1)*absAng) % 32;
+
+        if (intraPredAngle < 0){
+            deltaFract = (32 - deltaFract) % 32;
+        }
+
+        // If the angle is positive all samples are from the main reference
+        if (intraPredAngle > 0){
+          if (deltaFract){
+            // Do linear filtering
+            for (l=0;l<blkSize;l++){
+              refMainIndex        = l+deltaInt+1;
+              pDst[k*iDstStride+l] = (Pel) ( ((32-deltaFract)*refMain[refMainIndex]+deltaFract*refMain[refMainIndex+1]+16) >> 5 );
+            }
+          }
+          else{
+            // Just copy the integer samples
+            for (l=0;l<blkSize;l++){
+              pDst[k*iDstStride+l] = refMain[l+deltaInt+1];
+            }
+          }
+        }
+        else{
+          for (l=0;l<blkSize;l++){
+            refMainIndex = l+deltaInt+1;
+            if (refMainIndex >= 0)
+              pDst[k*iDstStride+l] = (Pel) ( ((32-deltaFract)*refMain[refMainIndex]+deltaFract*refMain[refMainIndex+1]+16) >> 5 );
+            else{
+              // Interpolate from the side reference
+              deltaIntSide   = (32*32*(l+1)/absAng) >> 5;
+              deltaFractSide = (32*32*(l+1)/absAng)  % 32;
+              refSideIndex   = k+1-deltaIntSide;
+              if (deltaFractSide)
+                pDst[k*iDstStride+l] = (Pel) ( ((32-deltaFractSide)*refSide[refSideIndex]+deltaFractSide*refSide[refSideIndex-1]+16) >> 5 );
+              else
+                pDst[k*iDstStride+l] = refSide[refSideIndex];
+            }
+          }
+        }
+      }
+    }
+
+    // Flip the block if this is the horizontal mode
+    if (modeHor){
+      for (k=0;k<blkSize-1;k++){
+        for (l=k+1;l<blkSize;l++){
+          tmp                  = pDst[k*iDstStride+l];
+          pDst[k*iDstStride+l] = pDst[l*iDstStride+k];
+          pDst[l*iDstStride+k] = tmp;
+        }
+      }
+    }
+  }
+}
+
+#else // UNIFIED_DIRECTIONAL_INTRA
+
 Void TComPrediction::xPredIntraAng( Int* pSrc, Int iSrcStride, Pel*& rpDst, Int iDstStride, UInt iWidth, UInt iHeight, UInt uiDirMode, Bool bAbove, Bool bLeft )
 {
   Int k,l;
@@ -335,6 +488,7 @@ Void TComPrediction::xPredIntraAng( Int* pSrc, Int iSrcStride, Pel*& rpDst, Int 
     }
   }
 }
+#endif
 
 #if HHI_AIS
 Void TComPrediction::predIntraLumaAng(TComPattern* pcTComPattern, UInt uiDirMode, Bool bSmoothing, Pel* piPred, UInt uiStride, Int iWidth, Int iHeight,  TComDataCU* pcCU, Bool bAbove, Bool bLeft )
@@ -370,6 +524,11 @@ Void TComPrediction::predIntraLumaAng(TComPattern* pcTComPattern, UInt uiDirMode
 
   // Create the prediction
   xPredIntraAng( ptrSrc+sw+1, sw, pDst, uiStride, iWidth, iHeight, uiDirMode, bAbove,  bLeft );
+#ifdef EDGE_BASED_PREDICTION
+  //Edge based prediction
+  if( uiDirMode == 0 && EdgeBasedPred->get_edge_prediction_enable() )
+    EdgeBasedPred->intrapred_luma_edge(iHeight, iWidth, uiStride, sw+3, m_piYExtEdgeBased, pDst);
+#endif //EDGE_BASED_PREDICTION
 }
 
 // Angular chroma
@@ -466,6 +625,11 @@ Void TComPrediction::predIntraLumaAdi(TComPattern* pcTComPattern, UInt uiDirMode
   case 2:  // DC
     {
       xPredIntraDCAdi     ( ptrSrc+sw+1, sw, pDst, uiStride, iWidth, iHeight, bAbove,  bLeft );
+#ifdef EDGE_BASED_PREDICTION 
+      //Edge based prediction
+      if( EdgeBasedPred->get_edge_prediction_enable() )
+        EdgeBasedPred->intrapred_luma_edge(iHeight, iWidth, uiStride, sw+3, m_piYExtEdgeBased, pDst);
+#endif //EDGE_BASED_PREDICTION
       return;
     }
   case 3:  // Plane
@@ -1835,7 +1999,11 @@ Void TComPrediction::xWeightedAverage( TComDataCU* pcCU, TComYuv* pcYuvSrc0, TCo
 {
   if( iRefIdx0 >= 0 && iRefIdx1 >= 0 )
   {
+#ifdef ROUNDING_CONTROL
+    rpcYuvDst->addAvg( pcYuvSrc0, pcYuvSrc1, uiPartIdx, iWidth, iHeight, pcCU->getSlice()->isRounding());
+#else
     rpcYuvDst->addAvg( pcYuvSrc0, pcYuvSrc1, uiPartIdx, iWidth, iHeight );
+#endif
   }
   else if ( iRefIdx0 >= 0 && iRefIdx1 <  0 )
   {

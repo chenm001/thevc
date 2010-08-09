@@ -1272,7 +1272,6 @@ Void TComAdaptiveLoopFilter::create( Int iPicWidth, Int iPicHeight, UInt uiMaxCU
 	initMatrix_imgpel(&ImgRest, img_height, img_width); 
     initMatrix_imgpel(&imgY_pad, img_height+2*(FILTER_LENGTH/2), img_width+2*(FILTER_LENGTH/2));
     initMatrix_int(&imgY_temp, img_height+2*VAR_SIZE+3, img_width+2*VAR_SIZE+3);
-	initMatrix_int(&maskImgdec, img_height, img_width); 
 
     initMatrix_int(&filterCoeffSym, NO_VAR_BINS, MAX_SQR_FILT_LENGTH);
     initMatrix_int(&filterCoeffPrevSelected, NO_VAR_BINS, MAX_SQR_FILT_LENGTH); 
@@ -1294,7 +1293,6 @@ Void TComAdaptiveLoopFilter::destroy()
 	destroyMatrix_imgpel(ImgDec); 
 	destroyMatrix_imgpel(ImgRest);
 	destroyMatrix_int(imgY_temp);
-	destroyMatrix_int(maskImgdec);
 
 	destroyMatrix_int(filterCoeffSym);
 	destroyMatrix_int(filterCoeffPrevSelected);
@@ -1513,17 +1511,23 @@ Void TComAdaptiveLoopFilter::xALFLuma_qc(TComPic* pcPic, ALFParam* pcAlfParam, T
   for (Int i=0; i<Height; i++)
 	for (Int j=0; j<Width; j++)
 	{
-	  ImgDec[i][j]=pDec[j + i*LumaStride];
-	  maskImgdec[i][j] = 1;
+	  ImgDec[i][j] = ImgRest[i][j] = pDec[j + i*LumaStride];
 	}
+
+  //Decode and reconst filter coefficients
+  DecFilter_qc(ImgDec,pcAlfParam);
 
   //set maskImg using cu adaptive one.
   if(pcAlfParam->cu_control_flag)
   {
-	xCUAdaptive_qc(pcPic, pcAlfParam, pcPicDec, pcPicRest);
+	xCUAdaptive_qc(pcPic, pcAlfParam, ImgRest, ImgDec);
   }  
-   //then do filtering: FilteringProcess_qc
-  FilteringProcess_qc( ImgDec, ImgRest, pcAlfParam);
+  else
+  {
+	//then do whole frame filtering
+	filterFrame(ImgRest, ImgDec, pcAlfParam->realfiltNo);
+  }
+
   for (Int i=0; i<Height; i++)
 	for (Int j=0; j<Width; j++)
 	{
@@ -1531,20 +1535,13 @@ Void TComAdaptiveLoopFilter::xALFLuma_qc(TComPic* pcPic, ALFParam* pcAlfParam, T
 	}
 }
 
-Void TComAdaptiveLoopFilter::FilteringProcess_qc( imgpel **ImgDec, imgpel **ImgRest,ALFParam* pcAlfParam)
-{
-	int inloop =1;
 
-    DecFilter_qc(ImgDec,pcAlfParam,inloop);
-	filterFrame(ImgRest, ImgDec, imgY_var, pcAlfParam->realfiltNo);
-}
 
-Void TComAdaptiveLoopFilter::DecFilter_qc(imgpel** imgY_rec,ALFParam* pcAlfParam,int inloop)
+Void TComAdaptiveLoopFilter::DecFilter_qc(imgpel** imgY_rec,ALFParam* pcAlfParam)
 {
 	int i;
 	int numBits = NUM_BITS; 
     int fl=FILTER_LENGTH/2;
-	static int first =1;
 	int **pfilterCoeffSym;
 	pfilterCoeffSym= filterCoeffSym;
 
@@ -1816,11 +1813,10 @@ Void TComAdaptiveLoopFilter::calcVar(imgpel **imgY_var, imgpel **imgY_pad,int pa
 }
 
 
-Void TComAdaptiveLoopFilter::filterFrame(imgpel **imgY_rec_post, imgpel **imgY_rec, imgpel **varImg,int filtNo)
+Void TComAdaptiveLoopFilter::filterFrame(imgpel **imgY_rec_post, imgpel **imgY_rec, int filtNo)
 {
- int i, j, ii, jj, pixelInt,m=0;
- imgpel *p_imgY_var,*p_imgY_pad;
-// int max_val=(1 << (g_uiBitDepth+g_uiBitIncrement))-1;
+  int i, j, ii, jj, pixelInt,m=0;
+  imgpel *p_imgY_var,*p_imgY_pad;
   int max_val=g_uiIBDI_MAX;
   int fl=FILTER_LENGTH/2;
   int *pattern=pattern9x9Sym;
@@ -1832,6 +1828,7 @@ Void TComAdaptiveLoopFilter::filterFrame(imgpel **imgY_rec_post, imgpel **imgY_r
   int offset = (1<<(NUM_BITS-2));
   int *pattern_fix=patternTab_filt[filtNo];
   fl_temp=flTab[filtNo];
+  imgpel **varImg = imgY_var;
 
   // Filter
   for (i = fl; i < img_height+fl; i++)
@@ -1860,27 +1857,71 @@ Void TComAdaptiveLoopFilter::filterFrame(imgpel **imgY_rec_post, imgpel **imgY_r
 	  pixelInt+=(p_imgY_pad[j]*coef[*(pattern++)]);
 	  pixelInt=(int)((pixelInt+offset) >> (num_bits_minus_1));
 	  imgY_rec_post[i-fl][j-fl]=max(0, min(pixelInt,max_val));
-  	  if (maskImgdec[i-fl][j-fl]==0)
+    }
+  }
+}
+
+Void TComAdaptiveLoopFilter::subfilterFrame(imgpel **imgY_rec_post, imgpel **imgY_rec, int filtNo, int start_height, int end_height, int start_width, int end_width)
+{
+  int i, j, ii, jj, pixelInt,m=0;
+  imgpel *p_imgY_var,*p_imgY_pad;
+  int max_val=g_uiIBDI_MAX;
+  int fl=FILTER_LENGTH/2;
+  int *pattern=pattern9x9Sym;
+  int fl_temp;
+  int last_coef= MAX_SQR_FILT_LENGTH-1;
+  imgpel *im1,*im2;
+  int *coef;
+  int num_bits_minus_1= NUM_BITS-1;
+  int offset = (1<<(NUM_BITS-2));
+  int *pattern_fix=patternTab_filt[filtNo];
+  fl_temp=flTab[filtNo];
+  imgpel **varImg = imgY_var;
+
+  // Filter
+  for (i = fl + start_height; i < end_height+fl; i++)
+  {
+    p_imgY_var = imgY_var[i-fl] + start_width;
+	p_imgY_pad = imgY_pad[i];
+    for (j = fl + start_width; j < end_width+fl; j++)
+	{
+	  coef = filterCoeffPrevSelected[*(p_imgY_var++)];
+	  pixelInt=coef[last_coef];
+	  pattern=pattern_fix;
+    	  
+	  for (ii=-fl_temp, m = 0; ii<0; ii++,m++)
 	  {
-		imgY_rec_post[i-fl][j-fl] = imgY_rec[i-fl][j-fl];
+		im1= &(imgY_pad[i+ii][j-m]);
+		im2= &(imgY_pad[i-ii][j+m]);
+		for (jj=-m; jj<=m; jj++)
+			pixelInt+=((*(im1++)+ *(im2--))*coef[*(pattern++)]);
 	  }
+
+	  im1= &(p_imgY_pad[j-fl_temp]);
+	  im2= &(p_imgY_pad[j+fl_temp]);	
+	  for (jj=0; jj<fl_temp; jj++)
+		  pixelInt+=((*(im1++)+ *(im2--))*coef[*(pattern++)]);
+
+	  pixelInt+=(p_imgY_pad[j]*coef[*(pattern++)]);
+	  pixelInt=(int)((pixelInt+offset) >> (num_bits_minus_1));
+	  imgY_rec_post[i-fl][j-fl]=max(0, min(pixelInt,max_val));
     }
   }
 }
 
 
 
-Void TComAdaptiveLoopFilter::xCUAdaptive_qc(TComPic* pcPic, ALFParam* pcAlfParam, TComPicYuv* pcPicDec, TComPicYuv* pcPicRest)
+Void TComAdaptiveLoopFilter::xCUAdaptive_qc(TComPic* pcPic, ALFParam* pcAlfParam, imgpel **imgY_rec_post, imgpel **imgY_rec)
 {
 	// for every CU, call CU-adaptive ALF process
   for( UInt uiCUAddr = 0; uiCUAddr < pcPic->getNumCUsInFrame() ; uiCUAddr++ )
   {
     TComDataCU* pcCU = pcPic->getCU( uiCUAddr );
-    xSubCUAdaptive_qc(pcCU, pcAlfParam, pcPicDec, pcPicRest, 0, 0);
+    xSubCUAdaptive_qc(pcCU, pcAlfParam, imgY_rec_post, imgY_rec, 0, 0);
   }
 }
 
-Void TComAdaptiveLoopFilter::xSubCUAdaptive_qc(TComDataCU* pcCU, ALFParam* pcAlfParam, TComPicYuv* pcPicDec, TComPicYuv* pcPicRest, UInt uiAbsPartIdx, UInt uiDepth)
+Void TComAdaptiveLoopFilter::xSubCUAdaptive_qc(TComDataCU* pcCU, ALFParam* pcAlfParam, imgpel **imgY_rec_post, imgpel **imgY_rec, UInt uiAbsPartIdx, UInt uiDepth)
 {
   TComPic* pcPic = pcCU->getPic();
 
@@ -1906,7 +1947,7 @@ Void TComAdaptiveLoopFilter::xSubCUAdaptive_qc(TComDataCU* pcCU, ALFParam* pcAlf
       uiTPelY   = pcCU->getCUPelY() + g_auiRasterToPelY[ g_auiZscanToRaster[uiAbsPartIdx] ];
 
       if( ( uiLPelX < pcCU->getSlice()->getSPS()->getWidth() ) && ( uiTPelY < pcCU->getSlice()->getSPS()->getHeight() ) )
-        xSubCUAdaptive_qc(pcCU, pcAlfParam, pcPicDec, pcPicRest, uiAbsPartIdx, uiDepth+1);
+        xSubCUAdaptive_qc(pcCU, pcAlfParam, imgY_rec_post, imgY_rec, uiAbsPartIdx, uiDepth+1);
     }
     return;
   }
@@ -1914,19 +1955,8 @@ Void TComAdaptiveLoopFilter::xSubCUAdaptive_qc(TComDataCU* pcCU, ALFParam* pcAlf
 	// check maskImagedec
   if ( pcCU->getAlfCtrlFlag(uiAbsPartIdx) )
   {
-  	 for (int i=uiTPelY ;i<=min(uiBPelY,(unsigned int)(pcPicDec->getHeight()-1))  ;i++)
-	   for (int j=uiLPelX ;j<=min(uiRPelX,(unsigned int)(pcPicDec->getWidth()-1)) ;j++)
-	   { 
-		 maskImgdec[i][j]=1;
-	   }
-  }
-  else
-  {
-  	 for (int i=uiTPelY ;i<=min(uiBPelY,(unsigned int)(pcPicDec->getHeight()-1))  ;i++)
-	   for (int j=uiLPelX ;j<=min(uiRPelX,(unsigned int)(pcPicDec->getWidth()-1)) ;j++)
-	   { 
-		 maskImgdec[i][j]=0;
-	   }
+	 subfilterFrame(imgY_rec_post, imgY_rec, pcAlfParam->realfiltNo, uiTPelY, min(uiBPelY+1,(unsigned int)(img_height)), uiLPelX, min(uiRPelX+1,(unsigned int)(img_width)));
+
   }
 }
 

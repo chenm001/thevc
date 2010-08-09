@@ -114,15 +114,15 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
     ("BitstreamFile,b", cfg_BitstreamFile, string(""), "bitstream output file name")
     ("ReconFile,o",     cfg_ReconFile,     string(""), "reconstructed YUV output file name")
 
-    ("SourceWidth,wdt",       m_iSourceWidth,  0, "Source picture width")
-    ("SourceHeight,hgt",      m_iSourceHeight, 0, "Source picture height")
+    ("SourceWidth,-wdt",      m_iSourceWidth,  0, "Source picture width")
+    ("SourceHeight,-hgt",     m_iSourceHeight, 0, "Source picture height")
     ("BitDepth",              m_uiBitDepth,    8u)
     ("BitIncrement",          m_uiBitIncrement,4u, "bit-depth increasement")
-    ("HorizontalPadding,pdx", m_aiPad[0],      0, "horizontal source padding size")
-    ("VerticalPadding,pdy",   m_aiPad[1],      0, "vertical source padding size")
+    ("HorizontalPadding,-pdx",m_aiPad[0],      0, "horizontal source padding size")
+    ("VerticalPadding,-pdy",  m_aiPad[1],      0, "vertical source padding size")
     ("PAD",                   m_bUsePAD,   false, "automatic source padding of multiple of 16" )
-    ("FrameRate,fr",          m_iFrameRate,        0, "Frame rate")
-    ("FrameSkip,fs",          m_iFrameSkip,        0, "Number of frames to skip at start of input YUV")
+    ("FrameRate,-fr",         m_iFrameRate,        0, "Frame rate")
+    ("FrameSkip,-fs",         m_iFrameSkip,        0, "Number of frames to skip at start of input YUV")
     ("FramesToBeEncoded,f",   m_iFrameToBeEncoded, 0, "number of frames to be encoded (default=all)")
     ("FrameToBeEncoded",      m_iFrameToBeEncoded, 0, "depricated alias of FramesToBeEncoded")
 
@@ -135,8 +135,8 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
     ("MaxPartitionDepth,h", m_uiMaxCUDepth,   4u, "CU depth")
 
     ("MaxTrSize,t",    m_uiMaxTrSize, 64u, "max transform size")
-    ("MaxTrDepth,utd", m_uiMaxTrDepth, 1u, "max transform depth")
-    ("MinTrDepth,ltd", m_uiMinTrDepth, 0u, "min transform depth")
+    ("MaxTrDepth,-utd",m_uiMaxTrDepth, 1u, "max transform depth")
+    ("MinTrDepth,-ltd",m_uiMinTrDepth, 0u, "min transform depth")
 
 #if HHI_RQT
     ("QuadtreeTUFlag", m_bQuadtreeTUFlag, true)
@@ -145,12 +145,12 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
 #endif
 
     /* Coding structure paramters */
-    ("IntraPeriod,ip", m_iIntraPeriod, -1, "intra period in frames, (-1: only first frame)")
+    ("IntraPeriod,-ip",m_iIntraPeriod, -1, "intra period in frames, (-1: only first frame)")
     ("GOPSize,g",      m_iGOPSize,      1, "GOP size of temporal structure")
-    ("RateGOPSize,rg", m_iRateGOPSize, -1, "GOP size of hierarchical QP assignment")
+    ("RateGOPSize,-rg",m_iRateGOPSize, -1, "GOP size of hierarchical QP assignment")
     ("NumOfReference,r",       m_iNumOfReference,     1, "Number of reference (P)")
-    ("NumOfReferenceB_L0,rb0", m_iNumOfReferenceB_L0, 1, "Number of reference (B_L0)")
-    ("NumOfReferenceB_L1,rb1", m_iNumOfReferenceB_L1, 1, "Number of reference (B_L1)")
+    ("NumOfReferenceB_L0,-rb0",m_iNumOfReferenceB_L0, 1, "Number of reference (B_L0)")
+    ("NumOfReferenceB_L1,-rb1",m_iNumOfReferenceB_L1, 1, "Number of reference (B_L1)")
     ("HierarchicalCoding",     m_bHierarchicalCoding, true)
     ("LowDelayCoding",         m_bUseLDC,             false, "low-delay mode")
     ("GPB", m_bUseGPB, false, "generalized B instead of P in low-delay mode")
@@ -161,7 +161,17 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
 
     /* Interpolation filter options */
 #if HHI_INTERP_FILTER
-    ("InterpFilterType,-int", m_iInterpFilterType, (Int)IPF_SAMSUNG_DIF_DEFAULT)
+    ("InterpFilterType,-int", m_iInterpFilterType, (Int)IPF_SAMSUNG_DIF_DEFAULT, "Interpolation Filter:\n"
+                                                                                 "  0: DCT-IF\n"
+                                                                                 "  1: 4-tap MOMS\n"
+                                                                                 "  2: 6-tap MOMS\n"
+# if TEN_DIRECTIONAL_INTERP
+                                                                                 "  3: DIF\n"
+# endif
+# ifdef QC_SIFO
+                                                                                 "  4: SIFO"
+# endif
+                                                                                 )
 #endif
     ("DIFTap,tap", m_iDIFTap, 12, "number of interpolation filter taps (luma)")
 #ifdef QC_SIFO_PRED
@@ -170,7 +180,7 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
 
     /* motion options */
     ("FastSearch", m_iFastSearch, 1, "0:Full search  1:Diamond  2:PMVFAST")
-    ("SearchRange,sr", m_iSearchRange, 96, "motion search range")
+    ("SearchRange,-sr",m_iSearchRange, 96, "motion search range")
     ("HadamardME", m_bUseHADME, true, "hadamard ME for fractional-pel")
     ("ASR", m_bUseASR, false, "adaptive motion search range")
 #ifdef QC_AMVRES
@@ -180,17 +190,17 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
 
     /* Quantization parameters */
     ("QP,q",          m_fQP,             30.0, "Qp value, if value is float, QP is switched once during encoding")
-    ("DeltaQpRD,dqr", m_uiDeltaQpRD,       0u, "max dQp offset for slice")
+    ("DeltaQpRD,-dqr",m_uiDeltaQpRD,       0u, "max dQp offset for slice")
     ("MaxDeltaQP,d",  m_iMaxDeltaQP,        0, "max dQp offset for block")
     ("dQPFile,m",     cfg_dQPFile, string(""), "dQP file name")
     ("RDOQ",          m_bUseRDOQ, true)
-    ("TemporalLayerQPOffset_L0,tq0", m_aiTLayerQPOffset[0], MAX_QP + 1, "QP offset of temporal layer 0")
-    ("TemporalLayerQPOffset_L1,tq1", m_aiTLayerQPOffset[1], MAX_QP + 1, "QP offset of temporal layer 1")
-    ("TemporalLayerQPOffset_L2,tq2", m_aiTLayerQPOffset[2], MAX_QP + 1, "QP offset of temporal layer 2")
-    ("TemporalLayerQPOffset_L3,tq3", m_aiTLayerQPOffset[3], MAX_QP + 1, "QP offset of temporal layer 3")
+    ("TemporalLayerQPOffset_L0,-tq0", m_aiTLayerQPOffset[0], MAX_QP + 1, "QP offset of temporal layer 0")
+    ("TemporalLayerQPOffset_L1,-tq1", m_aiTLayerQPOffset[1], MAX_QP + 1, "QP offset of temporal layer 1")
+    ("TemporalLayerQPOffset_L2,-tq2", m_aiTLayerQPOffset[2], MAX_QP + 1, "QP offset of temporal layer 2")
+    ("TemporalLayerQPOffset_L3,-tq3", m_aiTLayerQPOffset[3], MAX_QP + 1, "QP offset of temporal layer 3")
 
     /* Entropy coding parameters */
-    ("SymbolMode,sym", m_iSymbolMode, 1, "symbol mode (0=VLC, 1=SBAC)")
+    ("SymbolMode,-sym", m_iSymbolMode, 1, "symbol mode (0=VLC, 1=SBAC)")
     ("SBACRD", m_bUseSBACRD, true, "SBAC based RD estimation")
     ("MultiCodewordThreshold", m_uiMCWThreshold, 0u)
     ("MaxPIPEBufferDelay", m_uiMaxPIPEDelay, 0u)
@@ -224,7 +234,11 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
     ("ALFMinLength", m_iAlfMinLength, 5)
     ("ALFMaxLength", m_iAlfMaxLength, 9)
 #endif
-
+    ("AMP", m_bUseAMP, true, "Asymmetric motion partition")
+#ifdef EDGE_BASED_PREDICTION
+    ("EdgePredictionEnable", m_bEdgePredictionEnable, true, "Enable edge based prediction for intra")
+    ("EdgeDetectionThreshold", m_iEdgeDetectionThreshold, 10240, "Threshold for edge detection of edge based prediction")
+#endif //EDGE_BASED_PREDICTION
     /* Misc. */
     ("FEN", m_bUseFastEnc, false, "fast encoder setting")
 
@@ -326,8 +340,12 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
 // Private member functions
 // ====================================================================================================================
 
+Bool confirmPara(Bool bflag, const char* message);
+
 Void TAppEncCfg::xCheckParameter()
 {
+  bool check_failed = false; /* abort if there is a fatal configuration problem */
+#define xConfirmPara(a,b) check_failed |= confirmPara(a,b)
   // check range of parameters
   xConfirmPara( m_iFrameRate <= 0,                                                          "Frame rate must be more than 1" );
   xConfirmPara( m_iFrameSkip < 0,                                                           "Frame Skipping must be more than 0" );
@@ -364,6 +382,14 @@ Void TAppEncCfg::xCheckParameter()
   }
 #endif
 
+#if HHI_INTERP_FILTER && !TEN_DIRECTIONAL_INTERP
+  xConfirmPara( m_iInterpFilterType == IPF_TEN_DIF_PLACEHOLDER, "IPF_TEN_DIF is not configurable.  Please recompile using TEN_DIRECTIONAL_INTERP." );
+#endif
+#if HHI_INTERP_FILTER && !defined(QC_SIFO)
+  xConfirmPara( m_iInterpFilterType == IPF_QC_SIFO_PLACEHOLDER, "IPF_QC_SIFO is not configurable.  Please recompile using QC_SIFO." );
+#endif
+  xConfirmPara( m_iInterpFilterType >= IPF_LAST,                "Invalid InterpFilterType" );
+
   xConfirmPara( m_iSymbolMode < 0 || m_iSymbolMode > 3,                                     "SymbolMode must be equal to 0, 1, 2, or 3" );
   xConfirmPara( m_uiMaxPIPEDelay != 0 && m_uiMaxPIPEDelay < 64,                             "MaxPIPEBufferDelay must be greater than or equal to 64" );
   m_uiMaxPIPEDelay = ( m_uiMCWThreshold > 0 ? 0 : ( m_uiMaxPIPEDelay >> 6 ) << 6 );
@@ -398,11 +424,29 @@ Void TAppEncCfg::xCheckParameter()
     m_bUseRDOQ = false;
   }
 #endif
-#ifdef QC_AMVRES
+#if defined(QC_AMVRES) && TEN_DIRECTIONAL_INTERP
   if(m_iInterpFilterType == IPF_TEN_DIF)
     m_bUseAMVRes = false;
 #endif
 
+#ifdef EDGE_BASED_PREDICTION
+  //Edge based prediction: adapt the value of the threshold to integrate it in the bitstream
+  if(m_bEdgePredictionEnable)
+  {
+    int maxThreshold = (1<<16) - (1<<8);
+    if(m_iEdgeDetectionThreshold < 0)
+      m_iEdgeDetectionThreshold = 0;
+    if(m_iEdgeDetectionThreshold > maxThreshold)
+      m_iEdgeDetectionThreshold = maxThreshold;
+    int tmpThreshold = (m_iEdgeDetectionThreshold>>8);
+    m_iEdgeDetectionThreshold = tmpThreshold<<8;
+  }
+#endif //EDGE_BASED_PREDICTION
+
+#undef xConfirmPara
+  if (check_failed) {
+    exit(EXIT_FAILURE);
+  }
 }
 
 /** \todo use of global variables should be removed later
@@ -534,6 +578,9 @@ Void TAppEncCfg::xPrintParameter()
   printf("QBO:%d ", m_bUseQBO             );
   printf("GPB:%d ", m_bUseGPB             );
   printf("FEN:%d ", m_bUseFastEnc         );
+#ifdef EDGE_BASED_PREDICTION
+    printf("EdgePrediction:%d ", m_bEdgePredictionEnable);
+#endif //EDGE_BASED_PREDICTION
 #if HHI_RQT
   printf("RQT:%d ", m_bQuadtreeTUFlag     );
 #endif
@@ -558,6 +605,7 @@ Void TAppEncCfg::xPrintParameter()
 #ifdef QC_SIFO_PRED
 	printf("SPF:%d ", m_bUseSIFO_Pred			);
 #endif
+    printf("AMP:%d ", m_bUseAMP);
   printf("\n");
 
   fflush(stdout);
@@ -601,13 +649,13 @@ Void TAppEncCfg::xPrintUsage()
   printf("              -> QP 32, IPPP with hierarchical-B of GOP 4 style QP, 9 frames, 64x64-8x8 CU (~4x4 PU)\n\n");
 }
 
-Void TAppEncCfg::xConfirmPara(Bool bflag, const char* message)
+Bool confirmPara(Bool bflag, const char* message)
 {
-  if( bflag )
-  {
-    printf("\n%s\n",message);
-    exit(0);
-  }
+  if (!bflag)
+    return false;
+
+  printf("Error: %s\n",message);
+  return true;
 }
 
 /* helper for -ldm */

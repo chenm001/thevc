@@ -426,11 +426,14 @@ Void TEncCu::xCompressCU( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, UInt u
       xCheckRDCostInter( rpcBestCU, rpcTempCU, SIZE_Nx2N  );  rpcTempCU->initEstData();
       xCheckRDCostInter      ( rpcBestCU, rpcTempCU, SIZE_2NxN  );  rpcTempCU->initEstData();
 
+
       // fast encoder decision for asymmetric motion partition: try asymmetric motion partition only when best != 2Nx2N
       if ( m_pcEncCfg->getUseFastEnc() )
       {
         // Best is skip or 2Nx2N
+#if !SAMSUNG_REMOVE_AMP_FEN_PENALTY
         if ( rpcBestCU->getPartitionSize(0) == SIZE_2Nx2N ) bTryAsym = false;
+#endif
       }
 
       // SIZE_2NxnU, SIZE_2NxnD, SIZE_nLx2N, SIZE_nRx2N
@@ -506,7 +509,7 @@ Void TEncCu::xCompressCU( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, UInt u
       }
 
       // try ROT
-#if QC_MDDT
+#if QC_MDDT || DISABLE_ROT_LUMA_4x4_8x8
       if ((rpcBestCU->getWidth(0) > 16) || ((rpcBestCU->getWidth(0) == 16) && (eSize == SIZE_2Nx2N)))
 #endif
       {
@@ -715,9 +718,15 @@ Void TEncCu::xEncodeCU( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
 #if HHI_ALLOW_ROT_SWITCH
   if ( pcCU->getSlice()->getSPS()->getUseROT() )
   {
+#if DISABLE_ROT_LUMA_4x4_8x8
+    if (pcCU->getWidth (uiAbsPartIdx) > 8)
+#endif
     m_pcEntropyCoder->encodeROTindex( pcCU, uiAbsPartIdx, uiDepth );
   }
 #else
+#if DISABLE_ROT_LUMA_4x4_8x8
+  if (pcCU->getWidth (uiAbsPartIdx) > 8)
+#endif
   m_pcEntropyCoder->encodeROTindex( pcCU, uiAbsPartIdx, uiDepth );
 #endif
 #endif
@@ -957,9 +966,15 @@ Void TEncCu::xCheckRDCostIntra( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, 
 #if HHI_ALLOW_ROT_SWITCH
   if ( rpcTempCU->getSlice()->getSPS()->getUseROT() )
   {
+#if DISABLE_ROT_LUMA_4x4_8x8
+    if (rpcTempCU->getWidth (0) > 8)
+#endif
     m_pcEntropyCoder->encodeROTindex( rpcTempCU, 0, uiDepth );
   }
 #else
+#if DISABLE_ROT_LUMA_4x4_8x8
+  if (rpcTempCU->getWidth (0) > 8)
+#endif
   m_pcEntropyCoder->encodeROTindex( rpcTempCU, 0, uiDepth );
 #endif
 #endif

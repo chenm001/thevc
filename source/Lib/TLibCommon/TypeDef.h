@@ -49,7 +49,7 @@
 #define HHI_RQT                           1           ///< MWHK: residual quadtree
 #define HHI_RQT_CHROMA_CBF_MOD            1           ///< HK: alternative syntax for coded block flag coding for chroma
 #define HHI_RQT_INTRA                     1           ///< HS: residual quadtree for intra blocks
-#define HHI_ALF                           1           ///< MS: separable adaptive loop filter 
+#define HHI_ALF                           0           ///< MS: separable adaptive loop filter 
 #define HHI_AIS                           1           ///< BB: adaptive intra smoothing
 #define HHI_INTERP_FILTER                 1           ///< HL: interpolation filter
 #define HHI_TRANSFORM_CODING              1           ///< TN: modified transform coefficient coding with RDOQ
@@ -76,7 +76,16 @@
 ////////////////////////////
 // TEN defines section start
 ////////////////////////////
+#define UNIFIED_DIRECTIONAL_INTRA         1           // Unified directional intra prediction as described in JCTVC-B100. ANG_INTRA needs to
+                                                      // be set to 2 when this is enabled. Unified intra renders number of old intra prediction
+                                                      // functions obsolete, but these functions have not disabled or removed from the code yet.
+
+#if UNIFIED_DIRECTIONAL_INTRA
+#define ANG_INTRA                         2           // Enable angular Intra coding (0: All ADI, 1: Ang for 8x8 PUs, 2: Ang for all PU sizes)
+#else
 #define ANG_INTRA                         1           // Enable angular Intra coding (0: All ADI, 1: Ang for 8x8 PUs, 2: Ang for all PU sizes)
+#endif
+
 #define PLANAR_INTRA                      1           // Enable planar Intra coding
 #define TENTM_DEBLOCKING_FILTER           1           // Enable TENTM deblocking
 #if HHI_INTERP_FILTER
@@ -97,6 +106,9 @@
 /////////////////////////////////
 // QUALCOMM defines section start
 /////////////////////////////////
+
+#define NEWVLC_ADAPT_ENABLE                1           // Enable CU level VLC adaptation 
+
 #define QC_AMVRES    
 #ifdef QC_AMVRES  
 #define QC_AMVRES_LOW_COMPLEXTY
@@ -109,14 +121,9 @@
 #if (defined QC_SIFO && TEN_DIRECTIONAL_INTERP==1)
 #define USE_DIAGONAL_FILT                1
 #endif
-
-#define PRINT_FILTERS               0
-#define PRINT_OFFSETS               0
-#define SIFO_DISABLE_OFFSET         0
-#define SIFO_DISABLE_FILTER         0
 #endif
 
-#define QC_ALF              0
+#define QC_ALF              1
 #if QC_ALF
 #define ENABLE_FORCECOEFF0  0
 #endif
@@ -124,6 +131,7 @@
 #error "Only one of QC_ALF and HHI_ALF can be defined"
 #endif
 
+#define DISABLE_ROT_LUMA_4x4_8x8           0
 #define QC_MDDT                            1
 #if QC_MDDT
 #define ROT_CHECK                          0
@@ -139,6 +147,25 @@ void normalizeScanStats();
 #endif
 ///////////////////////////////
 // QUALCOMM defines section end
+///////////////////////////////
+
+
+///////////////////////////////////
+// Panasonic defines section start
+///////////////////////////////////
+
+#define EDGE_BASED_PREDICTION   // Enable edge based prediction for intra
+
+///////////////////////////////////
+// Panasonic defines section start
+///////////////////////////////////
+
+///////////////////////////////
+// SAMSUNG defines section start
+///////////////////////////////
+#define SAMSUNG_REMOVE_AMP_FEN_PENALTY        1           ///< removal of FEN penality of AMP
+///////////////////////////////
+// SAMSUNG defines section end
 ///////////////////////////////
 
 // ====================================================================================================================
@@ -427,22 +454,20 @@ enum EFF_MODE
 #if HHI_INTERP_FILTER
 enum InterpFilterType
 {
-#if TEN_DIRECTIONAL_INTERP
   IPF_SAMSUNG_DIF_DEFAULT = 0,          ///< Samsung DCT-based filter
   IPF_HHI_4TAP_MOMS,                    ///< HHI 4-tap MOMS filter
   IPF_HHI_6TAP_MOMS,                    ///< HHI 6-tap MOMS filter
+# if TEN_DIRECTIONAL_INTERP
   IPF_TEN_DIF                           ///< TEN directional filter
-#ifdef QC_SIFO
+# else
+  IPF_TEN_DIF_PLACEHOLDER               ///< Place holder to keep ordering if IPF_TEN_DIF not compiled-in
+# endif
+# ifdef QC_SIFO
   ,IPF_QC_SIFO                          ///< Qualcomm Switched Interpolation Filters with Offsets
-#endif
-#else
-  IPF_SAMSUNG_DIF_DEFAULT = 0,          ///< Samsung DCT-based filter
-  IPF_HHI_4TAP_MOMS,                    ///< HHI 4-tap MOMS filter
-  IPF_HHI_6TAP_MOMS                     ///< HHI 6-tap MOMS filter
-#ifdef QC_SIFO
-  ,IPF_QC_SIFO                          ///< Qualcomm Switched Interpolation Filters with Offsets
-#endif
-#endif
+# else
+  ,IPF_QC_SIFO_PLACEHOLDER              ///< Place holder to keep ordering if IPF_QC_SIFO not compiled-in
+# endif
+  ,IPF_LAST
 };
 #endif
 
