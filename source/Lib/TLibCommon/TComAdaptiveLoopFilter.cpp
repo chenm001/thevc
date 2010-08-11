@@ -1023,14 +1023,14 @@ TComAdaptiveLoopFilter::TComAdaptiveLoopFilter()
 	m_pcTempPicYuv = NULL;
 }
 #if QC_ALF
-Void TComAdaptiveLoopFilter:: error(char *text, int code)
+Void TComAdaptiveLoopFilter:: error(const char *text, int code)
 {
   fprintf(stderr, "%s\n", text);
   exit(code);
 }
 
 
-Void TComAdaptiveLoopFilter:: no_mem_exit(char *where)
+Void TComAdaptiveLoopFilter:: no_mem_exit(const char *where)
 {
    char errortext[200];
    sprintf(errortext, "Could not allocate memory: %s",where);
@@ -1607,7 +1607,6 @@ Void TComAdaptiveLoopFilter::getCurrentFilter(int **filterCoeffSym,ALFParam* pcA
   int i,  k, varInd;
   int *patternMap;
   int *patternMapTab[3]={pattern9x9Sym_Quart, pattern7x7Sym_Quart, pattern5x5Sym_Quart};
-  static int first=1;
   {
     for(varInd=0; varInd<NO_VAR_BINS; ++varInd)
 	{		
@@ -1636,7 +1635,6 @@ Void TComAdaptiveLoopFilter::getCurrentFilter(int **filterCoeffSym,ALFParam* pcA
 Void TComAdaptiveLoopFilter::reconstructFilterCoeffs(ALFParam* pcAlfParam,int **pfilterCoeffSym, int bit_depth)
 {
   int i, src, ind;
-  int factor = (1 << (bit_depth - 1));
 
   // Copy non zero filters in filterCoeffTmp
   for(ind = 0; ind < pcAlfParam->filters_per_group_diff; ++ind)
@@ -1828,7 +1826,6 @@ Void TComAdaptiveLoopFilter::filterFrame(imgpel **imgY_rec_post, imgpel **imgY_r
   int offset = (1<<(NUM_BITS-2));
   int *pattern_fix=patternTab_filt[filtNo];
   fl_temp=flTab[filtNo];
-  imgpel **varImg = imgY_var;
 
   // Filter
   for (i = fl; i < img_height+fl; i++)
@@ -1876,7 +1873,6 @@ Void TComAdaptiveLoopFilter::subfilterFrame(imgpel **imgY_rec_post, imgpel **img
   int offset = (1<<(NUM_BITS-2));
   int *pattern_fix=patternTab_filt[filtNo];
   fl_temp=flTab[filtNo];
-  imgpel **varImg = imgY_var;
 
   // Filter
   for (i = fl + start_height; i < end_height+fl; i++)

@@ -1949,10 +1949,10 @@ Void TEncCavlc::encodeSwitched_Filters(TComSlice* pcSlice,TComPrediction *m_cPre
     if (pcSlice->getSliceType()==P_SLICE)
     {
       Int bestFilter = m_cPrediction->getBestFilter_P();
-      Int predictFilterP = m_cPrediction->getPredictFilterP();
 #ifdef QC_SIFO_PRED
       if (!predict_filter_flag)
 #else
+      Int predictFilterP = m_cPrediction->getPredictFilterP();
       if (predictFilterP < 2)
 #endif
       {
@@ -2010,10 +2010,10 @@ Void TEncCavlc::encodeSwitched_Filters(TComSlice* pcSlice,TComPrediction *m_cPre
     else  //B slice
     {
       Int bestFilter = m_cPrediction->getBestFilter_B();
-      Int predictFilterB = m_cPrediction->getPredictFilterB();
 #ifdef QC_SIFO_PRED
       if (!predict_filter_flag)
 #else
+      Int predictFilterB = m_cPrediction->getPredictFilterB();
       if (predictFilterB < 2)
 #endif
       {

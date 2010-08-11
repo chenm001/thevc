@@ -196,8 +196,6 @@ Int TComEdgeBased::intrapred_luma_edge(Int iHeight, Int iWidth, Int uiStride, In
   int limit_left_low = (above_flag) ? -1 : 0;
   int limit_left_high = a_end-4;
 
-  int max_value = 1<<(g_uiBitDepth + g_uiBitIncrement);
-
   /////////////////////////////////////////////////////////////////////////////
   // Calculate edge based prediction
   /////////////////////////////////////////////////////////////////////////////
@@ -273,7 +271,7 @@ Int TComEdgeBased::intrapred_luma_edge(Int iHeight, Int iWidth, Int uiStride, In
             pred_pix = ((pred-uiStride)[k-1] + (pred-uiStride)[k] + pred[k-1]) / 3;
         }
         
-        pred[k] = (Pel)Clip3(0, max_value, pred_pix);
+        pred[k] = (Pel)Clip(pred_pix);
       }
       pred += uiStride;
     }
@@ -298,7 +296,7 @@ Int TComEdgeBased::intrapred_luma_edge(Int iHeight, Int iWidth, Int uiStride, In
 //-----------------------------------------------------------------------------
 Int TComEdgeBased::check_direction_edge_vector(const Int ref_x, const Int ref_y, Int *dir_x, Int *dir_y, Int iHeight, Int iWidth)
 {
-  int dist_block, first_dist_block = 0;
+  int first_dist_block = 0;
   int delta_x, delta_y;
   int cross_block = 0;
   int cross_block_row, cross_block_col;
@@ -378,7 +376,6 @@ Void TComEdgeBased::initEdgeBasedBuffer( TComDataCU* pcCU, UInt uiZorderIdxInPar
   UInt  uiCuWidth   = pcCU->getWidth(0) >> uiPartDepth;
   UInt  uiCuHeight  = pcCU->getHeight(0)>> uiPartDepth;
   UInt  uiWidth     = (uiCuWidth<<1) + 4;
-  UInt  uiHeight    = (uiCuHeight<<1) + 4;
   Int   iPicStride  = pcCU->getPic()->getStride();
   Int   i;
   Bool  bAboveFlag      = false;
@@ -404,23 +401,6 @@ Void TComEdgeBased::initEdgeBasedBuffer( TComDataCU* pcCU, UInt uiZorderIdxInPar
   piRoiOrigin = pcCU->getPic()->getPicYuvRec()->getLumaAddr(pcCU->getAddr(), pcCU->getZorderIdxInCU()+uiZorderIdxInPart);
 
   piEdgeBasedTemp   = piEdgeBasedBuf;
-
-  Int iDCValue = ( 1<<( g_uiBitDepth + g_uiBitIncrement - 1) );
-
-  /*for (i=0;i<uiWidth;i++)
-  {
-    piEdgeBasedTemp[i]           = iDCValue;
-    piEdgeBasedTemp[i+uiWidth]   = iDCValue;
-    piEdgeBasedTemp[i+2*uiWidth] = iDCValue;
-    piEdgeBasedTemp[i+3*uiWidth] = iDCValue;
-  }
-  for (i=4;i<uiHeight;i++)
-  {
-    piEdgeBasedTemp[i*uiWidth]   = iDCValue;
-    piEdgeBasedTemp[i*uiWidth+1] = iDCValue;
-    piEdgeBasedTemp[i*uiWidth+2] = iDCValue;
-    piEdgeBasedTemp[i*uiWidth+3] = iDCValue;
-    }*/
 
   piRoiTemp=piRoiOrigin;
 

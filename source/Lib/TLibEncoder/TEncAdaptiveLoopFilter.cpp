@@ -3833,13 +3833,6 @@ Int TEncAdaptiveLoopFilter::xcodeAuxInfo(int filtNo, int noFilters, int varIndTa
   int i, filterPattern[NO_VAR_BINS], startSecondFilter=0, bitCt=0, codePrediction;
   Int64 NewbitCt;
 
-  int lentab_pred[3]={1, 2, 2};
-  int codtab_pred[3]={1, 1, 0};
-  int lentab_noFilters[3]={1, 2, 2};
-  int codtab_noFilters[3]={1, 1, 0};
-  int lentab_filtNo[3]={2, 2, 1};
-  int codtab_filtNo[3]={0, 1, 1};
-
   codePrediction = 0;
 
   //send realfiltNo (tap related)
@@ -4007,7 +4000,6 @@ Void   TEncAdaptiveLoopFilter::xEncALFLuma_qc ( TComPicYuv* pcPicOrg, TComPicYuv
   Int    Width = pcPicOrg->getWidth();
   Int    LumaStride = pcPicOrg->getStride();
   Pel* pOrg = pcPicOrg->getLumaAddr();
-  Pel* pDec = pcPicDec->getLumaAddr();
   Pel* pRest = pcPicRest->getLumaAddr();
 
 
@@ -4054,7 +4046,6 @@ Void   TEncAdaptiveLoopFilter::xFirstFilteringFrameLuma(imgpel** ImgOrg, imgpel*
 
 Void   TEncAdaptiveLoopFilter::xFilteringFrameLuma_qc(imgpel** ImgOrg, imgpel** imgY_pad, imgpel** ImgFilt, ALFParam* ALFp, Int tap)
 {
-	static Int first_local=0;
 	int  filtNo,filters_per_fr;
  	static double **ySym, ***ESym;
     int lambda_val = (Int) m_dLambdaLuma;
@@ -4187,7 +4178,7 @@ Void TEncAdaptiveLoopFilter::xfindBestFilterVarPred(double **ySym, double ***ESy
   static int **FilterCoeffQuantTemp;
   double  error, lambda, lagrangian, lagrangianMin;
 
-  int fl, flMax=flTab[0], sqrFiltLength;
+  int fl, sqrFiltLength;
   int *pattern, *patternMap, *weights;
   int numBits, coeffBits;
   double errorForce0CoeffTab[NO_VAR_BINS][2];
@@ -4547,8 +4538,6 @@ Void TEncAdaptiveLoopFilter::xReDesignFilterCoeff_qc(TComPicYuv* pcPicOrg, TComP
 {
 
   Int tap = m_pcTempAlfParam->tap;
-  Int N = m_pcTempAlfParam->num_coeff;
-  Int* qh = m_pcTempAlfParam->coeff;
   Int    Height = pcPicOrg->getHeight();
   Int    Width = pcPicOrg->getWidth();
   Int    LumaStride = pcPicOrg->getStride();

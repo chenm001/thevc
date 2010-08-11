@@ -147,7 +147,7 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
     /* Coding structure paramters */
     ("IntraPeriod,-ip",m_iIntraPeriod, -1, "intra period in frames, (-1: only first frame)")
     ("GOPSize,g",      m_iGOPSize,      1, "GOP size of temporal structure")
-    ("RateGOPSize,-rg",m_iRateGOPSize, -1, "GOP size of hierarchical QP assignment")
+    ("RateGOPSize,-rg",m_iRateGOPSize, -1, "GOP size of hierarchical QP assignment (-1: implies inherit GOPSize value)")
     ("NumOfReference,r",       m_iNumOfReference,     1, "Number of reference (P)")
     ("NumOfReferenceB_L0,-rb0",m_iNumOfReferenceB_L0, 1, "Number of reference (B_L0)")
     ("NumOfReferenceB_L1,-rb1",m_iNumOfReferenceB_L1, 1, "Number of reference (B_L1)")
@@ -379,7 +379,10 @@ Void TAppEncCfg::xCheckParameter()
     xConfirmPara( m_uiQuadtreeTULog2MaxSize < m_uiQuadtreeTULog2MinSize,                "QuadtreeTULog2MaxSize must be greater than or equal to m_uiQuadtreeTULog2MinSize.");
     xConfirmPara( (1<<m_uiQuadtreeTULog2MinSize)>(m_uiMaxCUWidth >>(m_uiMaxCUDepth-1)), "QuadtreeTULog2MinSize must not be greater than minimum CU size" ); // HS
     xConfirmPara( (1<<m_uiQuadtreeTULog2MinSize)>(m_uiMaxCUHeight>>(m_uiMaxCUDepth-1)), "QuadtreeTULog2MinSize must not be greater than minimum CU size" ); // HS
-  }
+
+    xConfirmPara( 8 != (m_uiMaxCUWidth >>(m_uiMaxCUDepth-1)), "Minimum CU width must be 8" );
+    xConfirmPara( 8 != (m_uiMaxCUHeight>>(m_uiMaxCUDepth-1)), "Minimum CU height must be 8" );
+}
 #endif
 
 #if HHI_INTERP_FILTER && !TEN_DIRECTIONAL_INTERP

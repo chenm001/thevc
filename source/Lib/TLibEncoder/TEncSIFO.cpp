@@ -117,7 +117,6 @@ Void TEncSIFO::initEncSIFO(TComSlice*& rpcSlice )
 Void TEncSIFO::initSIFOFilters(Int Tap)
 {
   static Int first = 1;
-  UInt num_AVALABLE_FILTERS = m_pcPredSearch->getNum_AvailableFilters();
   UInt num_SIFO = m_pcPredSearch->getNum_SIFOFilters();
 
   if(first == 1)
@@ -143,11 +142,8 @@ Void TEncSIFO::initSIFOFilters(Int Tap)
 Void TEncSIFO::initSeparableFilter(Int Tap)
 {
   Int filterLength = Tap;
-  Int tap_idx = (Tap==6)? 0:1;
-  Int sqrFiltLength=filterLength*filterLength;
 
   UInt num_AVALABLE_FILTERS = m_pcPredSearch->getNum_AvailableFilters();
-  UInt num_SIFO = m_pcPredSearch->getNum_SIFOFilters();
 
   Int oneMatrix[12];
   Double filterV[12], filterH[12], coeffQP=(Double)COEFF_QP;
@@ -625,7 +621,6 @@ Void TEncSIFO::xResetAll(TComSlice* pcSlice)
   Int a, b, c, d;
   static Int firstP = 1;
   static Int firstB = 1;
-  UInt num_AVALABLE_FILTERS = m_pcPredSearch->getNum_AvailableFilters();
   UInt num_SIFO = m_pcPredSearch->getNum_SIFOFilters();
 
   if(pcSlice->getSliceType() == P_SLICE)
@@ -788,7 +783,6 @@ Void TEncSIFO:: xGetInterpolatedPixelArray(int out[16], Pel *imgY, int x, int y,
   Pel *imgY_tmp, *imgY_tmp1;
   Int filter_length = m_pcCfg->getDIFTap();
   Int filter_offset = (filter_length/2 - 1);
-  UInt num_AVALABLE_FILTERS = m_pcPredSearch->getNum_AvailableFilters();
   UInt num_SIFO = m_pcPredSearch->getNum_SIFOFilters();
   UInt NUM_SIFO_TAB[16];
 
@@ -1059,7 +1053,6 @@ Double TEncSIFO::xGet_min_d(Double ****err, Int old_d[16], Int new_d[16], Double
   Double minSAD = currSAD;
   Double tmpSAD;
   UInt num_AVALABLE_FILTERS = m_pcPredSearch->getNum_AvailableFilters();
-  UInt num_SIFO = m_pcPredSearch->getNum_SIFOFilters();
 
   for(spp = 1; spp < 16; ++spp)
   {
@@ -1111,7 +1104,6 @@ Void TEncSIFO::xComputeFilterCombination_B_gd(Double ****err, Int out[16])
 Void TEncSIFO::xUpdateSequenceFilters_B(TComSlice* pcSlice, Double ****err, Int combination[16])
 {
   UInt num_AVALABLE_FILTERS = m_pcPredSearch->getNum_AvailableFilters();
-  UInt num_SIFO = m_pcPredSearch->getNum_SIFOFilters();
 
   Int bitsPerFilter1=(Int)ceil(log10((Double)num_AVALABLE_FILTERS)/log10((Double)2)); // modify
 
@@ -1178,7 +1170,6 @@ Void TEncSIFO::xUpdateSequenceFilters_B(TComSlice* pcSlice, Double ****err, Int 
 Void TEncSIFO::xUpdateSequenceFilters_B_pred(TComSlice* pcSlice, Double ****err, Int combination[16])
 {
   UInt num_AVALABLE_FILTERS = m_pcPredSearch->getNum_AvailableFilters();
-  UInt num_SIFO = m_pcPredSearch->getNum_SIFOFilters();
 
   Int bitsPerFilter1=(Int)ceil(log10((Double)num_AVALABLE_FILTERS)/log10((Double)2)); // modify
 
@@ -1291,7 +1282,6 @@ Void TEncSIFO::xAccumulateError_B(TComPic*& rpcPic)
   Int intPixelTab[16],intPixelTabF[16],intPixelTabB[16];
   Int iaRefIdx[2];
   UInt num_AVALABLE_FILTERS = m_pcPredSearch->getNum_AvailableFilters();
-  UInt num_SIFO = m_pcPredSearch->getNum_SIFOFilters();
 
   for( uiCUAddr = 0; uiCUAddr < rpcPic->getPicSym()->getNumberOfCUsInFrame() ; uiCUAddr++ )
   {	
@@ -1739,7 +1729,6 @@ Void TEncSIFO::xSingleDiagonalFilt(Int sub_pos, Int filterIndD1, Int dir)
 {
   Double filterD1[6], coeffQP=256;
   Int filterLength = 6;
-  Int sqrFiltLength=filterLength*filterLength;
   Int filterNo=DIAGONAL_FILETR_NO, j, k, l;
 
   for (j=0; j<filterLength; j++)
@@ -1778,7 +1767,6 @@ Void TEncSIFO::xDoubleDiagonalFilt(Int sub_pos, Int filterIndD1, Int filterIndD2
 {
   Double filterD1[6], filterD2[6], coeffQP=256;
   Int filterLength = 6;
-  Int sqrFiltLength=filterLength*filterLength;
   Int filterNo=DIAGONAL_FILETR_NO, j, k, l;
 
   for (j=0; j<filterLength; j++)

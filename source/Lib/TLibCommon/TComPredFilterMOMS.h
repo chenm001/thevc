@@ -136,11 +136,18 @@ class TComExpCoeff6TapMOMS
 public:
 
   TComExpCoeff6TapMOMS()  :   m_iShift_IBDI   ( (6-g_uiBitIncrement) ), 
+#if HHI_INTERP_FILTER_KERNEL_FIX
+    m_i16Q15Z1      ( Pel( -0.583910163218787*pow(2.0,15)+0.5 ) ), 
+    m_i16Q15Z1_c    ( Pel(  0.885989103928779*pow(2.0,15)+0.5 ) ), 
+    m_i16Q15Z2      ( Pel( -0.094330857473743*pow(2.0,15)+0.5 ) ), 
+    m_i16Q15Z2_c    ( Pel(  0.095177778919615*pow(2.0,15)+0.5 ) ) {}
+#else
     m_i16Q15Z1      ( Pel( -0.478368402923858*pow(2.0,15)+0.5 ) ), 
     m_i16Q15Z1_c    ( Pel(  0.620320200316728*pow(2.0,15)+0.5 ) ), 
     m_i16Q15Z2      ( Pel( -0.070202438211750*pow(2.0,15)+0.5 ) ), 
     m_i16Q15Z2_c    ( Pel(  0.070550136256718*pow(2.0,15)+0.5 ) ) {}
-
+#endif
+  
   virtual ~TComExpCoeff6TapMOMS() {}
 
   Void calcExpCoeffs          ( TComPicYuv *pcSrc, TComPicYuv *pcDst );
@@ -169,7 +176,11 @@ class TComExpCoeff4TapMOMS
 {
 public:
 
+#if HHI_INTERP_FILTER_KERNEL_FIX
+  TComExpCoeff4TapMOMS()  : m_iShift_IBDI( (6-g_uiBitIncrement) ), m_i16Q15Z1( -12854 ), m_i16Q15Z1_c( 15192 ) {}
+#else
   TComExpCoeff4TapMOMS()  : m_iShift_IBDI( (6-g_uiBitIncrement) ), m_i16Q15Z1( -11276 ), m_i16Q15Z1_c( 12791 ) {}
+#endif
   virtual ~TComExpCoeff4TapMOMS() {}
 
   Void calcExpCoeffs          ( TComPicYuv *pcSrc, TComPicYuv *pcDst );

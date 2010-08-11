@@ -966,12 +966,8 @@ Void TDecCu::xDecodePlanarTexture( TComDataCU* pcCU, UInt uiPartIdx, Pel* piReco
 
 Void TDecCu::xReconIntraPlanar( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
 {
-  UInt uiPartDepth = 0;
-
   UInt uiWidth  = pcCU->getWidth (0);
   UInt uiHeight = pcCU->getHeight(0);
-
-  UInt uiPartOffset = uiWidth*uiHeight;
 
   Pel* piResi;
   Pel* piPred;

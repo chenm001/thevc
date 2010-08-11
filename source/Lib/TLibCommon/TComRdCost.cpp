@@ -521,7 +521,7 @@ UInt TComRdCost::xGetSAD8( DistParam* pcDtParam, Pel* pRefY, Bool bRound )
   Int  iStrideCur = pcDtParam->iStrideCur*iSubStep;
   Int  iStrideOrg = pcDtParam->iStrideOrg*iSubStep;
   Pel  pred;
-  Int  i, k = 0;
+  Int  i;
 
   UInt uiSum = 0;
 
@@ -552,7 +552,7 @@ UInt TComRdCost::xGetSAD16( DistParam* pcDtParam, Pel* pRefY, Bool bRound )
   Int  iStrideCur = pcDtParam->iStrideCur*iSubStep;
   Int  iStrideOrg = pcDtParam->iStrideOrg*iSubStep;
   Pel  pred;
-  Int  i, k = 0;
+  Int  i;
 
   UInt uiSum = 0;
 
@@ -618,7 +618,7 @@ UInt TComRdCost::xGetSAD32( DistParam* pcDtParam, Pel* pRefY, Bool bRound )
   Int  iStrideCur = pcDtParam->iStrideCur*iSubStep;
   Int  iStrideOrg = pcDtParam->iStrideOrg*iSubStep;
   Pel  pred;
-  Int  i, k = 0;
+  Int  i;
 
   UInt uiSum = 0;
 
@@ -649,7 +649,7 @@ UInt TComRdCost::xGetSAD64( DistParam* pcDtParam, Pel* pRefY, Bool bRound )
   Int  iStrideCur = pcDtParam->iStrideCur*iSubStep;
   Int  iStrideOrg = pcDtParam->iStrideOrg*iSubStep;
   Pel  pred;
-  Int  i, k = 0;
+  Int  i;
 
   UInt uiSum = 0;
 
@@ -993,7 +993,6 @@ UInt TComRdCost::xGetSADs( DistParam* pcDtParam, Pel* pRefY, Bool bRound )
   Int  iStrideOrg = pcDtParam->iStrideOrg;
   Int  iStep  = pcDtParam->iStep;
   Pel  pred;
-  Int  k = 0;
 
   UInt uiSum = 0;
 
@@ -1022,7 +1021,7 @@ UInt TComRdCost::xGetSADs4( DistParam* pcDtParam, Pel* pRefY, Bool bRound )
   Int  iStrideOrg = pcDtParam->iStrideOrg;
   Int  iStep  = pcDtParam->iStep;
   Pel  pred;
-  Int  i, k = 0;
+  Int  i;
 
   UInt uiSum = 0;
 
@@ -1051,7 +1050,7 @@ UInt TComRdCost::xGetSADs8( DistParam* pcDtParam, Pel* pRefY, Bool bRound )
   Int  iStrideOrg = pcDtParam->iStrideOrg;
   Int  iStep  = pcDtParam->iStep;
   Pel  pred;
-  Int  i, k = 0;
+  Int  i;
 
   UInt uiSum = 0;
 
@@ -1080,7 +1079,7 @@ UInt TComRdCost::xGetSADs16( DistParam* pcDtParam, Pel* pRefY, Bool bRound )
   Int  iStrideOrg = pcDtParam->iStrideOrg;
   Int  iStep   = pcDtParam->iStep;
   Pel  pred;
-  Int  i, k = 0;
+  Int  i;
 
   UInt uiSum = 0;
 
@@ -1110,7 +1109,7 @@ UInt TComRdCost::xGetSADs16N( DistParam* pcDtParam, Pel* pRefY, Bool bRound )
   Int  iStrideOrg = pcDtParam->iStrideOrg;
   Int  iStep  = pcDtParam->iStep;
   Pel  pred;
-  Int  i, k = 0;
+  Int  i;
 
   UInt uiSum = 0;
 
@@ -1142,7 +1141,7 @@ UInt TComRdCost::xGetSADs32( DistParam* pcDtParam, Pel* pRefY, Bool bRound )
   Int  iStrideOrg = pcDtParam->iStrideOrg;
   Int  iStep  = pcDtParam->iStep;
   Pel  pred;
-  Int  i, k = 0;
+  Int  i;
 
   UInt uiSum = 0;
 
@@ -1171,7 +1170,7 @@ UInt TComRdCost::xGetSADs64( DistParam* pcDtParam, Pel* pRefY, Bool bRound )
   Int  iStrideOrg = pcDtParam->iStrideOrg;
   Int  iStep  = pcDtParam->iStep;
   Pel  pred;
-  Int  i, k = 0;
+  Int  i;
 
   UInt uiSum = 0;
 
@@ -1616,7 +1615,6 @@ UInt TComRdCost::xGetSSE( DistParam* pcDtParam, Pel* pRefY, Bool bRound )
   Int  iStrideOrg = pcDtParam->iStrideOrg;
   Int  iStrideCur = pcDtParam->iStrideCur;
   Pel  pred;
-  Int  k = 0;
 
   UInt uiSum = 0;
   UInt uiShift = g_uiBitIncrement<<1;
@@ -1648,7 +1646,7 @@ UInt TComRdCost::xGetSSE4( DistParam* pcDtParam, Pel* pRefY, Bool bRound )
   Int  iStrideOrg = pcDtParam->iStrideOrg;
   Int  iStrideCur = pcDtParam->iStrideCur;
   Pel  pred;
-  Int  i, k = 0;
+  Int  i;
 
   UInt uiSum = 0;
   UInt uiShift = g_uiBitIncrement<<1;
@@ -1679,7 +1677,7 @@ UInt TComRdCost::xGetSSE8( DistParam* pcDtParam, Pel* pRefY, Bool bRound )
   Int  iStrideOrg = pcDtParam->iStrideOrg;
   Int  iStrideCur = pcDtParam->iStrideCur;
   Pel  pred;
-  Int  i, k = 0;
+  Int  i;
 
   UInt uiSum = 0;
   UInt uiShift = g_uiBitIncrement<<1;
@@ -1710,7 +1708,7 @@ UInt TComRdCost::xGetSSE16( DistParam* pcDtParam, Pel* pRefY, Bool bRound )
   Int  iStrideOrg = pcDtParam->iStrideOrg;
   Int  iStrideCur = pcDtParam->iStrideCur;
   Pel  pred;
-  Int  i, k = 0;
+  Int  i;
 
   UInt uiSum = 0;
   UInt uiShift = g_uiBitIncrement<<1;
@@ -1742,7 +1740,7 @@ UInt TComRdCost::xGetSSE16N( DistParam* pcDtParam, Pel* pRefY, Bool bRound )
   Int  iStrideOrg = pcDtParam->iStrideOrg;
   Int  iStrideCur = pcDtParam->iStrideCur;
   Pel  pred;
-  Int  i, k = 0;
+  Int  i;
 
   UInt uiSum = 0;
   UInt uiShift = g_uiBitIncrement<<1;
@@ -1775,7 +1773,7 @@ UInt TComRdCost::xGetSSE32( DistParam* pcDtParam, Pel* pRefY, Bool bRound )
   Int  iStrideOrg = pcDtParam->iStrideOrg;
   Int  iStrideCur = pcDtParam->iStrideCur;
   Pel  pred;
-  Int  i, k = 0;
+  Int  i;
 
   UInt uiSum = 0;
   UInt uiShift = g_uiBitIncrement<<1;
@@ -1805,7 +1803,7 @@ UInt TComRdCost::xGetSSE64( DistParam* pcDtParam, Pel* pRefY, Bool bRound )
   Int  iStrideOrg = pcDtParam->iStrideOrg;
   Int  iStrideCur = pcDtParam->iStrideCur;
   Pel  pred;
-  Int  i, k = 0;
+  Int  i;
 
   UInt uiSum = 0;
   UInt uiShift = g_uiBitIncrement<<1;
@@ -2276,14 +2274,7 @@ UInt TComRdCost::xCalcHADs8x8( Pel *piOrg, Pel *piCur, Int iStrideOrg, Int iStri
 {
   Int k, i, j, jj, sad=0;
   Int diff[64], m1[8][8], m2[8][8], m3[8][8];
-  Int iStep2 = iStep<<1;
-  Int iStep3 = iStep2 + iStep;
-  Int iStep4 = iStep3 + iStep;
-  Int iStep5 = iStep4 + iStep;
-  Int iStep6 = iStep5 + iStep;
-  Int iStep7 = iStep6 + iStep;
   Pel pred;
-  Int l = 0;
   Pel* piRef = pRefY;
 
   for( k = 0; k < 64; k+=8 )

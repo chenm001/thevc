@@ -381,6 +381,11 @@ Void TEncEntropy::encodeMergeFlag( TComDataCU* pcCU, UInt uiAbsPartIdx, Bool bRD
   if( bRD )
     uiAbsPartIdx = 0;
 
+  if ( pcCU->getSlice()->isIntra() )
+  {
+    return;
+  }
+  
   m_pcEntropyCoderIf->codeMergeFlag( pcCU, uiAbsPartIdx );
 }
   
@@ -897,6 +902,9 @@ Void TEncEntropy::encodeMergeInfo( TComDataCU* pcCU, UInt uiAbsPartIdx, Bool bRD
   {
     return;
   }
+
+  if( bRD )
+    uiAbsPartIdx = 0;
 
   // find left and top vectors. take vectors from PUs to the left and above.
   TComMvField cMvFieldNeighbours[4]; // above ref_list_0, above ref_list_1, left ref_list_0, left ref_list_1
@@ -1529,7 +1537,11 @@ Void TEncEntropy::encodeCoeff( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth
 	m_pcEntropyCoderIf->codeCbf(pcCU, uiAbsPartIdx, TEXT_CHROMA_U, 0);
 	m_pcEntropyCoderIf->codeCbf(pcCU, uiAbsPartIdx, TEXT_CHROMA_V, 0);
 
-  if (uiWidth >= 16)
+#if HHI_ALLOW_ROT_SWITCH
+    if (pcCU->getSlice()->getSPS()->getUseROT() && uiWidth >= 16)
+#else
+    if (uiWidth >= 16)
+#endif
 		encodeROTindex( pcCU, uiAbsPartIdx, uiDepth );
 
 	xEncodeCoeff( pcCU, pcCU->getCoeffY()  + uiLumaOffset,   uiAbsPartIdx, uiDepth, uiWidth,    uiHeight,    0, uiLumaTrMode,   TEXT_LUMA     );

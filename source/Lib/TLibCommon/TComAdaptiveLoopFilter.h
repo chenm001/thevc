@@ -245,8 +245,8 @@ protected:
   Void get_mem1Dint(int **array1D, int rows);
   Void free_mem2Dpel(imgpel **array2D);
   Void get_mem2Dpel(imgpel ***array2D, int rows, int columns);
-  Void no_mem_exit(char *where);
-  Void error(char *text, int code);
+  Void no_mem_exit(const char *where);
+  Void error(const char *text, int code);
 
 
 #endif

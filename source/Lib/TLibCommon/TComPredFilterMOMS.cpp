@@ -314,6 +314,20 @@ Pel TComExpCoeff6TapMOMS::xInitColCausalCoeff( const Pel* pcSrc, Int iStride, In
 }
 
 
+#if HHI_INTERP_FILTER_KERNEL_FIX
+// table for 1/8th sample interpolation
+const Pel TComPredFilter6TapMOMS::sm_cFilterTable[8][6]=
+{
+  { 601,        7805,       15956,        7805,         601,           0, },
+  { 351,        6396,       15786,        9270,         969,          -4, },
+  { 189,        5091,       15288,       10733,        1471,          -4, },
+  {  90,        3932,       14481,       12136,        2124,           5, },
+  {  33,        2942,       13409,       13409,        2942,          33, },
+  {   5,        2124,       12136,       14481,        3932,          90, },
+  {  -4,        1471,       10733,       15288,        5091,         189, },
+  {  -4,         969,        9270,       15786,        6396,         351, },
+};
+#else
 // table for 1/8th sample interpolation
 const Pel TComPredFilter6TapMOMS::sm_cFilterTable[8][6]=
 {
@@ -326,14 +340,19 @@ const Pel TComPredFilter6TapMOMS::sm_cFilterTable[8][6]=
   {   4,      1138,    10731,    16207,      4551,       137, },
   {   1,       726,     9052,    16832,      5904,       253, },
 };
+#endif
 
 // main interpolation function
 Void TComPredFilter6TapMOMS::interpolate( Pel* pcDst, Int iDstStride, Pel* pcSrc, Int iSrcStride, Int iDstYMax, Int iDstXMax, Int iDx, Int iDy, Int iDstStep )
 {
   // temp buffer
   Pel* pcTmpBufOrg         = new Pel[iDstXMax*(iDstYMax+5)];
+#if HHI_INTERP_FILTER_KERNEL_FIX
+  const Int iQ6Gain        = Int( pow((54.545454545454550),2) * pow(2.0,6) + 0.5 );
+#else
   const Int iQ6Gain        = Int( pow((63360.0/850.0),2) * pow(2.0,6) + 0.5 );
-
+#endif
+  
   // interpolation in horizontal direction
   {
     Pel* piTmp             = pcTmpBufOrg;
@@ -416,6 +435,20 @@ Void TComPredFilter6TapMOMS::interpolate( Pel* pcDst, Int iDstStride, Pel* pcSrc
 }
 
 
+#if HHI_INTERP_FILTER_KERNEL_FIX
+// table for 1/8th sample interpolation
+const Pel TComPredFilter4TapMOMS::sm_cFilterTable[8][4]=
+{
+  { 8192,	24097,	 8192,	   0, },
+  { 5784,	24046,	10457,	 194, },
+  { 3930,	22967,	13117,	 467, },
+  { 2550,	21098,	15935,	 898, },
+  { 1566,	18674,	18674,	1566, },
+  {  898,	15935,	21098,	2550, },
+  {  467,	13117,	22967,	3930, },
+  {  194,	10457,	24046,	5784, },
+};
+#else
 // table for 1/8th sample interpolation
 const Pel TComPredFilter4TapMOMS::sm_cFilterTable[8][4]=
 {
@@ -428,7 +461,7 @@ const Pel TComPredFilter4TapMOMS::sm_cFilterTable[8][4]=
   {  368,   13808,   25040,   3792, },
   {  142,   10790,   26378,   5698, },
 };
-
+#endif
 
 // main interpolation function
 Void TComPredFilter4TapMOMS::interpolate( Pel* pcDst, Int iDstStride, Pel* pcSrc, Int iSrcStride, Int iDstYMax, Int iDstXMax, Int iDx, Int iDy, Int iDstStep )

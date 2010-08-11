@@ -12,6 +12,13 @@ maintained with the following exceptions:
     sets RateGOPSize.  If RateGOPSize is never set, it assumes as its
     default value, the value of GOPSize.
 
+    Unless it is specifically required, do not set the RateGOPSize to a
+    value other than -1.  This value (the default) causes RateGOPSize
+    to inherit the final value of GOPSize.  While setting config files
+    to have RateGOPSize = GOPSize does no immediate harm, it causes
+    confusion when GOPSize is altered (without altering RateGOPSize) and
+    behaviour changes relating to GPB.
+
 All configuration options may be specified on the command line using the
 following syntax:
   --CfgOptionName=value

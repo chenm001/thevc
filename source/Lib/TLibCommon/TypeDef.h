@@ -67,6 +67,9 @@
 #define DEFAULT_IS                        1           ///< BB: set intra filtering always 0:off 1:on if AIS is disabled
 #define AIS_TEST_BEST                     0           ///< BB: 0: compare every intra mode with filter on and off (encoder only)
                                                       ///<     1: compare best intra mode with filter on and off (encoder only)
+
+#define HHI_INTERP_FILTER_KERNEL_FIX      1           ///< BB: interpolation filter fixed spline kernel
+
 #endif
 //////////////////////////
 // HHI defines section end

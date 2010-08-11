@@ -2712,7 +2712,7 @@ Void TComDataCU::insertCollocated( RefPicList eRefPicList, Int uiPartIdx, Int iR
     {
       if( racNeighbourMvs[ uiIdx ] == cMv )
       {
-        break;
+        return;
       }
     }
     racNeighbourMvs.push_back( cMv );
@@ -3179,50 +3179,38 @@ Bool TComDataCU::clearMVPCand_one_fourth( TComMv cMvd, AMVPInfo* pInfo)
 		cMvd_round.round();
 		// recreate the MV 
 		cMvCand = cMvPred_round + cMvd_round;
+
+      cMvPred_round.scale_down();
+      cMvd_round.scale_down();
+      cMvCand = cMvPred_round + cMvd_round;
+      
 #if HHI_IMVP
-		Int iMvCompPredX = 0;
-		if ( getSlice()->getSPS()->getUseIMP() && !isSkip(uiPartIdx) )
-		{
-            // MVx : get the X component with the MVy
-            getMvPredXDep( eRefPicList, uiPartIdx, iRefIdx, cMvCand.getVer(), iMvCompPredX );  
-			cMvPred_round.setHor(iMvCompPredX);
-			cMvPred_round.round();
-			cMvCand.setHor(cMvPred_round.getHor() + cMvd_round.getHor() );
-		}
-		cMvCand.scale_down();
-		cMvd_round.scale_down();
-		cMvPred_round.scale_down();
-#else
-		cMvPred_round.scale_down();
-		cMvd_round.scale_down();
-		cMvCand = cMvPred_round + cMvd_round;
+      UInt uiBestYBits = xGetComponentBits(cMvd_round.getVer());
 #endif
-		UInt uiBestBits = xGetMvdBits(cMvd_round);
-		for ( j=0; j<pInfo->iN; j++ )
-		{
-			TComMv cMvPred_round_j;
+      UInt uiBestBits = xGetMvdBits(cMvd_round);
+      for ( j=0; j<pInfo->iN; j++ )
+      {
+        TComMv cMvPred_round_j;
+        
+        cMvPred_round_j=pInfo->m_acMvCand[j];
+        cMvPred_round_j.scale_down();
 #if HHI_IMVP
-			  if ( getSlice()->getSPS()->getUseIMP() && !isSkip(uiPartIdx) )
-			  {			
-				// MVy from the AMVP y component
-				cMvPred_round_j.setVer(pInfo->m_acMvCand[j].getVer());
-				// MVx : get the X component with the MVy 
-				cMvPred_round_j.setHor(iMvCompPredX);
-			  }
-			  else
-			  {   
-				  cMvPred_round_j=pInfo->m_acMvCand[j];
-			  }
-			  cMvPred_round_j.scale_down();
-#else
-			  cMvPred_round_j=pInfo->m_acMvCand[j];
-			  cMvPred_round_j.scale_down();
+        if ( getSlice()->getSPS()->getUseIMP() )
+        {
+          if (aiValid[j] && i!=j && xGetComponentBits(cMvCand.getVer()-cMvPred_round_j.getVer()) < uiBestYBits)
+          {
+            aiValid[i] = 0;
+          }
+        }
+        else
 #endif
-			if (aiValid[j] && i!=j && xGetMvdBits(cMvCand-cMvPred_round_j) < uiBestBits)
-			{
-			  aiValid[i] = 0;
-			}
-		}
+        {
+          if (aiValid[j] && i!=j && xGetMvdBits(cMvCand-cMvPred_round_j) < uiBestBits)
+          {
+            aiValid[i] = 0;
+          }
+        }
+      }
 	}
   iNTmp = 0;
   for ( i=0; i<pInfo->iN; i++ )
@@ -3300,9 +3288,45 @@ Bool TComDataCU::clearMVPCand( TComMv cMvd, AMVPInfo* pInfo )
     return false;
   }
 
+#if HHI_IMVP
+  Int iMvCandY[ AMVP_MAX_NUM_CANDS ];
+  Int iNOri = pInfo->iN;
+  if ( getSlice()->getSPS()->getUseIMP() && !isSkip(uiPartIdx) )
+  {
+    Int iNTmp, i, j;
+    // make it be unique
+    iNTmp = 0;
+    iMvCandY[ iNTmp++ ] = pInfo->m_acMvCand[0].getVer();
+    for ( i=1; i<pInfo->iN; i++ )
+    {
+      for ( j=iNTmp - 1; j>=0; j-- )
+      {
+        if ( pInfo->m_acMvCand[i].getVer() == iMvCandY[j] ) break;
+      }
+      if ( j<0 )
+      {
+        iMvCandY[ iNTmp++ ] = pInfo->m_acMvCand[i].getVer();
+      }
+    }
+    for ( i=0; i<iNTmp; i++ ) pInfo->m_acMvCand[i].setVer(iMvCandY[i]) ;
+    pInfo->iN = iNTmp;
+
+    if (pInfo->iN <= 1)
+    {
+      return true;
+    }
+  }  
+#endif
+  
   // only works for non-zero mvd case
   if (cMvd.getHor() == 0 && cMvd.getVer() == 0)
   {
+#if HHI_IMVP
+    if ( getSlice()->getSPS()->getUseIMP() )
+    {
+      return (iNOri != pInfo->iN);
+    }
+#endif
     return false;
   }
 
@@ -3320,15 +3344,13 @@ Bool TComDataCU::clearMVPCand( TComMv cMvd, AMVPInfo* pInfo )
   {
 #if HHI_IMVP
     TComMv cMvCand;
-    Int iMvCompPredX = 0;
-    if ( getSlice()->getSPS()->getUseIMP() && !isSkip(uiPartIdx) )
+    UInt uiBestYBits = 0;
+    if ( getSlice()->getSPS()->getUseIMP() )
     {
       // recreate the MV 
       // MVy from the AMVP y component
       cMvCand.setVer(  pInfo->m_acMvCand[i].getVer() + cMvd.getVer() );
-      // MVx : get the X component with the MVy
-      getMvPredXDep( eRefPicList, uiPartIdx, iRefIdx, cMvCand.getVer(), iMvCompPredX );
-      cMvCand.setHor(  iMvCompPredX + cMvd.getHor() );
+      uiBestYBits = xGetComponentBits(cMvd.getVer());
     }
     else
     {
@@ -3342,26 +3364,21 @@ Bool TComDataCU::clearMVPCand( TComMv cMvd, AMVPInfo* pInfo )
     for ( j=0; j<pInfo->iN; j++ )
     {
 #if HHI_IMVP
-      if ( getSlice()->getSPS()->getUseIMP() && !isSkip(uiPartIdx) )
+      if ( getSlice()->getSPS()->getUseIMP() )
       {
-        // recreate the new MVp to test
-        TComMv cMvPred;
-        // MVy from the AMVP y component
-        cMvPred.setVer(pInfo->m_acMvCand[j].getVer());
-        // MVx : get the X component with the MVy 
-        cMvPred.setHor(iMvCompPredX);
-        if (aiValid[j] && i!=j && xGetMvdBits(cMvCand-cMvPred) < uiBestBits)
+        int iYPred = pInfo->m_acMvCand[j].getVer();
+        if (aiValid[j] && i!=j && xGetComponentBits(cMvCand.getVer()-iYPred) < uiBestYBits)
         {
           aiValid[i] = 0;
         }
       }
       else
       {
-      if (aiValid[j] && i!=j && xGetMvdBits(cMvCand-pInfo->m_acMvCand[j]) < uiBestBits)
-      {
-        aiValid[i] = 0;
+        if (aiValid[j] && i!=j && xGetMvdBits(cMvCand-pInfo->m_acMvCand[j]) < uiBestBits)
+        {
+          aiValid[i] = 0;
+        }
       }
-    }
 #else
      if (aiValid[j] && i!=j && xGetMvdBits(cMvCand-pInfo->m_acMvCand[j]) < uiBestBits)
      {
@@ -3380,6 +3397,12 @@ Bool TComDataCU::clearMVPCand( TComMv cMvd, AMVPInfo* pInfo )
 
   if (iNTmp == pInfo->iN)
   {
+#if HHI_IMVP
+    if ( getSlice()->getSPS()->getUseIMP() )
+    {
+      return (iNOri != pInfo->iN);
+    }
+#endif
     return false;
   }
 

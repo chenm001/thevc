@@ -528,18 +528,6 @@ Void TEncCu::xCompressCU( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, UInt u
             rpcTempCU->setCIPflagSubParts( 0, 0, rpcTempCU->getDepth(0) );
             xCheckRDCostIntra(rpcBestCU, rpcTempCU, eSize);  rpcTempCU->initEstData();
           }
-        } else {
-          rpcTempCU->setROTindex(0,0);
-          rpcTempCU->setROTindexSubParts(0, 0, rpcTempCU->getDepth(0) );
-          if (SIZE_NxN != eSize){
-            rpcTempCU->setCIPflag( 0, 1 );
-            rpcTempCU->setCIPflagSubParts( 1, 0, rpcTempCU->getDepth(0) );
-            xCheckRDCostIntra(rpcBestCU, rpcTempCU, SIZE_NxN);  rpcTempCU->initEstData();
-          } else {
-            rpcTempCU->setCIPflag( 0, 1 );
-            rpcTempCU->setCIPflagSubParts( 1, 0, rpcTempCU->getDepth(0) );
-            xCheckRDCostIntra(rpcBestCU, rpcTempCU, SIZE_2Nx2N);  rpcTempCU->initEstData();
-          }
         }
       }
     }

@@ -138,7 +138,6 @@ Void TComPrediction::xPredIntraPlanar( Int* pSrc, Int iSrcStride, Pel*& rpDst, I
 {
   Int k, l, bottomleft, topright;
   Int leftcolumn[MAX_CU_SIZE], toprow[MAX_CU_SIZE], bottomrow[MAX_CU_SIZE], rightcolumn[MAX_CU_SIZE];
-  Int blkSizeHalf = iWidth >> 1;
   Int firstWeight = iWidth - 1;
   Int offset1D    = iWidth >> 1;
   Int offset2D    = iWidth;
@@ -227,12 +226,10 @@ Void TComPrediction::xPredIntraAng( Int* pSrc, Int iSrcStride, Pel*& rpDst, Int 
   Int absAng         = 0;
   Int signAng        = 0;
   Int blkSize        = iWidth;
-  Int blkSizeHalf    = iWidth >> 1;
   Bool modeDC        = false;
   Bool modeVer       = false;
   Bool modeHor       = false;
   Pel* pDst          = rpDst;
-  Int* ptrSrc        = pSrc;
   Pel  refAbove[2*MAX_CU_SIZE+1];
   Pel  refLeft[2*MAX_CU_SIZE+1];
 

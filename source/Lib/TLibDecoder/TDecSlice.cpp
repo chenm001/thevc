@@ -167,14 +167,10 @@ Void TDecSlice::generateRefPicNew ( TComSlice* rpcSlice )
 Void TDecSlice::initSIFOFilters(Int Tap, TComPrediction *m_cPrediction )
 {
   static Int first = 1;
-  UInt num_AVALABLE_FILTERS = m_cPrediction->getNum_AvailableFilters();
-  UInt num_SIFO = m_cPrediction->getNum_SIFOFilters();
   
   if(first == 1)
   {  
     Int i;
-    Int filterLength=Tap;
-    Int sqrFiltLength=filterLength*filterLength;
 
     first = 0;
     for (i=0; i<16; i++)
@@ -191,7 +187,6 @@ Void TDecSlice::initSeparableFilter(Int Tap, TComPrediction *m_cPrediction)
 {
   Int sub_pos, filterNo, filterNoV, filterNoH, filterIndV, filterIndH, counter;
   UInt num_AVALABLE_FILTERS = m_cPrediction->getNum_AvailableFilters();
-  UInt num_SIFO = m_cPrediction->getNum_SIFOFilters();
 
   for (sub_pos=1; sub_pos<16; sub_pos++)
   {

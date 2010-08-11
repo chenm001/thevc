@@ -29,36 +29,97 @@ Contact: Woo-Jin Han, wjhan.han@samsung.com
    2.1 Parameters
         - TAppEncoder.exe -c config.cfg [options]
         - Options
-            -c      configuration file name
-            -i      original YUV input file name
-            -o      decoded YUV output file name
-            -b      bitstream file name
-            -m      dQP file name
-            -f      number of frames to be encoded (default EOS)
-            -q      Qp value, if value is float, QP is switched once during encoding
-            -g      GOP size of temporal structure
-            -rg     GOP size of hierarchical QP assignment
-            -s      max CU size
-            -h      CU depth
-            -r      Number of reference (P)
-            -rb0    Number of reference (B_L0)
-            -rb1    Number of reference (B_L1)
-            -ip     intra period in frames, (-1: only first frame)
-            -ldm    recommended low-delay setting (with LDC), (0=slow sequence, 1=fast sequence)
-            -d      max dQp offset for block
-            -dqr    max dQp offset for slice
-            -t      max transform size
-            -ltd    min transform depth
-            -utd    max transform depth
-            -v      additional reference for weighted prediction (w: scale+offset, o: offset)
-            -tap    number of interpolation filter taps (luma)
-            -tq0    QP offset of temporal layer 0
-            -tq1    QP offset of temporal layer 1
-            -tq2    QP offset of temporal layer 2
-            -tq3    QP offset of temporal layer 3
-            -pdx    horizontal source padding size
-            -pdy    vertical source padding size
-            -1/0    <name>: turn on/off <name>
+                  --help                   this help text
+            -c                             configuration file name
+            -i,   --InputFile              original YUV input file name
+            -b,   --BitstreamFile          bitstream output file name
+            -o,   --ReconFile              reconstructed YUV output file name
+            -wdt, --SourceWidth            Source picture width
+            -hgt, --SourceHeight           Source picture height
+                  --BitDepth
+                  --BitIncrement           bit-depth increasement
+            -pdx, --HorizontalPadding      horizontal source padding size
+            -pdy, --VerticalPadding        vertical source padding size
+                  --PAD                    automatic source padding of multiple of 16
+            -fr,  --FrameRate              Frame rate
+            -fs,  --FrameSkip              Number of frames to skip at start of input YUV
+            -f,   --FramesToBeEncoded      number of frames to be encoded (default=all)
+                  --FrameToBeEncoded       depricated alias of FramesToBeEncoded
+                  --MaxCUWidth
+                  --MaxCUHeight
+            -s,   --MaxCUSize              max CU size
+            -h,   --MaxPartitionDepth      CU depth
+            -t,   --MaxTrSize              max transform size
+            -utd, --MaxTrDepth             max transform depth
+            -ltd, --MinTrDepth             min transform depth
+                  --QuadtreeTUFlag
+                  --QuadtreeTULog2MaxSize
+                  --QuadtreeTULog2MinSize
+            -ip,  --IntraPeriod            intra period in frames, (-1: only first frame)
+            -g,   --GOPSize                GOP size of temporal structure
+            -rg,  --RateGOPSize            GOP size of hierarchical QP assignment
+                                           (-1: implies inherit GOPSize value)
+            -r,   --NumOfReference         Number of reference (P)
+            -rb0, --NumOfReferenceB_L0     Number of reference (B_L0)
+            -rb1, --NumOfReferenceB_L1     Number of reference (B_L1)
+                  --HierarchicalCoding
+                  --LowDelayCoding         low-delay mode
+                  --GPB                    generalized B instead of P in low-delay mode
+                  --QBO                    skip refers highest quality picture
+                  --NRF                    non-reference frame marking in last layer
+                  --BQP                    hier-P style QP assignment in low-delay mode
+            -ldm                           recommended low-delay setting (with LDC),
+                                           (0=slow sequence, 1=fast sequence)
+            -int, --InterpFilterType       Interpolation Filter:
+                                             0: DCT-IF
+                                             1: 4-tap MOMS
+                                             2: 6-tap MOMS
+                                             3: DIF
+                                             4: SIFO
+                  --DIFTap                 number of interpolation filter taps (luma)
+                  --SPF
+                  --FastSearch             0:Full search  1:Diamond  2:PMVFAST
+            -sr,  --SearchRange            motion search range
+                  --HadamardME             hadamard ME for fractional-pel
+                  --ASR                    adaptive motion search range
+                  --AMVRES                 Adaptive motion resolution
+            -v,   --GRefMode               additional reference for weighted prediction
+                                           (w: scale+offset, o: offset)
+            -q,   --QP                     Qp value, if value is float, QP is switched
+                                           once during encoding
+            -dqr, --DeltaQpRD              max dQp offset for slice
+            -d,   --MaxDeltaQP             max dQp offset for block
+            -m,   --dQPFile                dQP file name
+                  --RDOQ
+            -tq0, --TemporalLayerQPOffset_L0
+                                           QP offset of temporal layer 0
+            -tq1, --TemporalLayerQPOffset_L1
+                                           QP offset of temporal layer 1
+            -tq2, --TemporalLayerQPOffset_L2
+                                           QP offset of temporal layer 2
+            -tq3, --TemporalLayerQPOffset_L3
+                                           QP offset of temporal layer 3
+            -sym, --SymbolMode             symbol mode (0=VLC, 1=SBAC)
+                  --SBACRD                 SBAC based RD estimation
+                  --MultiCodewordThreshold
+                  --MaxPIPEBufferDelay
+                  --BalancedCPUs
+                  --LoopFilterDisable
+                  --LoopFilterAlphaC0Offset
+                  --LoopFilterBetaOffset
+                  --CIP                    combined intra prediction
+                  --AIS                    adaptive intra smoothing
+                  --MRG                    merging of motion partitions
+                  --IMP                    interleaved motion vector predictor
+                  --ROT
+                  --ALF                    Adaptive Loop Filter
+                  --AMP                    Asymmetric motion partition
+                  --EdgePredictionEnable   Enable edge based prediction for intra
+                  --EdgeDetectionThreshold Threshold for edge detection of edge based
+                                           prediction
+                  --FEN                    fast encoder setting
+            -1                             turn option <name> on
+            -0                             turn option <name> off
                     <name> = ALF - adaptive loop filter
                              IBD - bit-depth increasement
                              GPB - generalized B instead of P in low-delay mode
@@ -71,6 +132,12 @@ Contact: Woo-Jin Han, wjhan.han@samsung.com
                              PAD - automatic source padding of multiple of 16
                              QBO - skip refers highest quality picture
                              ASR - adaptive motion search range
+                             FEN - fast encoder setting
+                             AIS - adaptive intra smoothing
+                             MRG - merging of motion partitions
+                             IMP - interleaved motion vector predictor
+                             AMVRES - Adaptive motion resolution
+
    2.2 Config file (example)
    
       #======== File I/O ===============
@@ -117,10 +184,10 @@ Contact: Woo-Jin Han, wjhan.han@samsung.com
       Example 1) TAppEncoder.exe -c test.cfg -q 32 -g 8 -f 9 -s 64 -h 4
       (Hier-B)    -> QP 32, hierarchical-B GOP 8, 9 frames, 64x64-8x8 CU (~4x4 PU)
 
-      Example 2) TAppEncoder.exe -c test.cfg -q 32 -g 4 -f 9 -s 64 -h 4 -1 LDC
+      Example 2) TAppEncoder.exe -c test.cfg -q 32 -g 4 -f 9 -s 64 -h 4 --LDC=1
       (Hier-P)    -> QP 32, hierarchical-P GOP 4, 9 frames, 64x64-8x8 CU (~4x4 PU)
 			
-      Example 3) TAppEncoder.exe -c test.cfg -q 32 -g 1 -f 9 -s 64 -h 4 -1 LDC
+      Example 3) TAppEncoder.exe -c test.cfg -q 32 -g 1 -f 9 -s 64 -h 4 --LDC=1
       (IPPP)      -> QP 32, hierarchical-P GOP 4, 9 frames, 64x64-8x8 CU (~4x4 PU)
       
 3. Decoder option
