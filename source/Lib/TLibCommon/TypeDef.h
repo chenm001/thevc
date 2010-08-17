@@ -67,10 +67,10 @@
 #define DEFAULT_IS                        1           ///< BB: set intra filtering always 0:off 1:on if AIS is disabled
 #define AIS_TEST_BEST                     0           ///< BB: 0: compare every intra mode with filter on and off (encoder only)
                                                       ///<     1: compare best intra mode with filter on and off (encoder only)
+#endif
 
 #define HHI_INTERP_FILTER_KERNEL_FIX      1           ///< BB: interpolation filter fixed spline kernel
 
-#endif
 //////////////////////////
 // HHI defines section end
 //////////////////////////
@@ -148,6 +148,9 @@ void InitScanOrderForSlice();
 void updateScanOrder(int first);
 void normalizeScanStats();
 #endif
+
+#define BUGFIX48 0
+
 ///////////////////////////////
 // QUALCOMM defines section end
 ///////////////////////////////
@@ -158,6 +161,7 @@ void normalizeScanStats();
 ///////////////////////////////////
 
 #define EDGE_BASED_PREDICTION   // Enable edge based prediction for intra
+#define BUGFIX51 0
 
 ///////////////////////////////////
 // Panasonic defines section start

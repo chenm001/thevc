@@ -4679,7 +4679,11 @@ Void TEncSearch::xMotionEstimation( TComDataCU* pcCU, TComYuv* pcYuvOrg, Int iPa
 #ifdef ROUNDING_CONTROL
 	  if( bBi ) 
 	  {
+#if BUGFIX48
+		xPatternSearch_Bi      ( pcPatternKey, piRefY, iRefStride, &cMvSrchRngLT, &cMvSrchRngRB, cMv_temp, uiCostTemp, pRefBufY, pcCU->getSlice()->isRounding() );
+#else
 		xPatternSearch_Bi      ( pcPatternKey, piRefY, iRefStride, &cMvSrchRngLT, &cMvSrchRngRB, rcMv, ruiCost, pRefBufY, pcCU->getSlice()->isRounding() );
+#endif
 	  }
 	  else
 	  {

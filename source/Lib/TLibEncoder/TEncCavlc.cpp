@@ -97,8 +97,15 @@ Void TEncCavlc::codeSPS( TComSPS* pcSPS )
 
   xWriteUvlc  ( pcSPS->getMaxCUWidth ()   );
   xWriteUvlc  ( pcSPS->getMaxCUHeight()   );
+#if HHI_RQT
+  if( pcSPS->getQuadtreeTUFlag() )
+  {
+    xWriteUvlc  ( pcSPS->getMaxCUDepth() - g_uiAddCUDepth );
+  }
+  else
+#endif
   xWriteUvlc  ( pcSPS->getMaxCUDepth ()-1 ); //xWriteUvlc ( pcSPS->getMaxCUDepth ()-g_uiAddCUDepth );
-
+  
   // Transform
   xWriteUvlc  ( pcSPS->getMinTrDepth()   );
   xWriteUvlc  ( pcSPS->getMaxTrDepth()   );

@@ -82,8 +82,13 @@ Void TDecCavlc::parseSPS(TComSPS* pcSPS)
 
   xReadUvlc ( uiCode ); pcSPS->setMaxCUWidth  ( uiCode    ); g_uiMaxCUWidth  = uiCode;
   xReadUvlc ( uiCode ); pcSPS->setMaxCUHeight ( uiCode    ); g_uiMaxCUHeight = uiCode;
+#if HHI_RQT
+  UInt uiMaxCUDepthCorrect = 0;
+  xReadUvlc ( uiMaxCUDepthCorrect );
+#else
   xReadUvlc ( uiCode ); pcSPS->setMaxCUDepth  ( uiCode+1  ); g_uiMaxCUDepth  = uiCode + 1;
-
+#endif
+  
   // Transform
   xReadUvlc ( uiCode ); pcSPS->setMinTrDepth  ( uiCode    );
   xReadUvlc ( uiCode ); pcSPS->setMaxTrDepth  ( uiCode    );
@@ -98,6 +103,18 @@ Void TDecCavlc::parseSPS(TComSPS* pcSPS)
       xReadUvlc( uiCode ); pcSPS->setQuadtreeTULog2MaxSize( uiCode + pcSPS->getQuadtreeTULog2MinSize() );
     }
   }
+  
+  if( pcSPS->getQuadtreeTUFlag() )
+  {
+    g_uiAddCUDepth = 0;
+    while( ( pcSPS->getMaxCUWidth() >> uiMaxCUDepthCorrect ) > ( 1 << ( pcSPS->getQuadtreeTULog2MinSize() + g_uiAddCUDepth )  ) ) g_uiAddCUDepth++;
+    
+    pcSPS->setMaxCUDepth( uiMaxCUDepthCorrect+g_uiAddCUDepth  ); g_uiMaxCUDepth  = uiMaxCUDepthCorrect+g_uiAddCUDepth;
+  }
+  else
+  {
+    pcSPS->setMaxCUDepth( uiMaxCUDepthCorrect+1  ); g_uiMaxCUDepth  = uiMaxCUDepthCorrect + 1;
+  }  
 #endif  // Max transform size
   xReadUvlc ( uiCode ); pcSPS->setMaxTrSize   ( (uiCode == 0) ? 2 : (1<<(uiCode+1)) );
 
@@ -150,14 +167,18 @@ Void TDecCavlc::parseSPS(TComSPS* pcSPS)
   g_uiIBDI_MAX  = ((1<<(g_uiBitDepth+g_uiBitIncrement))-1);
 #endif
 
-  g_uiAddCUDepth = 0;
-  if( ((g_uiMaxCUWidth>>(g_uiMaxCUDepth-1)) > pcSPS->getMaxTrSize()) )
+#if HHI_RQT
+  if( !pcSPS->getQuadtreeTUFlag() )
+#endif    
   {
-    while( (g_uiMaxCUWidth>>(g_uiMaxCUDepth-1)) > (pcSPS->getMaxTrSize()<<g_uiAddCUDepth) ) g_uiAddCUDepth++;
+    g_uiAddCUDepth = 0;
+    if( ((g_uiMaxCUWidth>>(g_uiMaxCUDepth-1)) > pcSPS->getMaxTrSize()) )
+    {
+      while( (g_uiMaxCUWidth>>(g_uiMaxCUDepth-1)) > (pcSPS->getMaxTrSize()<<g_uiAddCUDepth) ) g_uiAddCUDepth++;
+    }
+    g_uiMaxCUDepth += g_uiAddCUDepth;
+    g_uiAddCUDepth++;
   }
-  g_uiMaxCUDepth += g_uiAddCUDepth;
-  g_uiAddCUDepth++;
-
   return;
 }
 

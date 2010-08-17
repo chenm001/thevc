@@ -294,28 +294,29 @@ private:
   Void xQuant8x8  ( TComDataCU* pcCU, Long* plSrcCoef, TCoeff*& pDstCoef, UInt& uiAbsSum, TextType eTType, UInt uiAbsPartIdx, UChar indexROT );
 
   // RDOQ functions
-#if HHI_TRANSFORM_CODING
-  Void           xRateDistOptQuant ( TComDataCU*                     pcCU,
-                                     Long*                           plSrcCoeff,
-                                     TCoeff*&                        piDstCoeff,
-                                     UInt                            uiWidth,
-                                     UInt                            uiHeight,
-                                     UInt&                           uiAbsSum,
-                                     TextType                        eTType,
-                                     UInt                            uiAbsPartIdx,
-                                     UChar                           ucIndexROT    );
 #if NEWVLC
   Int            bitCountVLC(Int k,Int pos,Int n,Int lpflag,Int levelMode,Int run,Int maxrun,Int vlc_adaptive,Int N);
   Void           xRateDistOptQuant_VLC ( TComDataCU*                     pcCU,
-                                     Long*                           plSrcCoeff,
-                                     TCoeff*&                        piDstCoeff,
-                                     UInt                            uiWidth,
-                                     UInt                            uiHeight,
-                                     UInt&                           uiAbsSum,
-                                     TextType                        eTType,
-                                     UInt                            uiAbsPartIdx,
-                                     UChar                           ucIndexROT    );
+                                        Long*                           plSrcCoeff,
+                                        TCoeff*&                        piDstCoeff,
+                                        UInt                            uiWidth,
+                                        UInt                            uiHeight,
+                                        UInt&                           uiAbsSum,
+                                        TextType                        eTType,
+                                        UInt                            uiAbsPartIdx,
+                                        UChar                           ucIndexROT    );
 #endif
+#if HHI_TRANSFORM_CODING
+  Void           xRateDistOptQuant ( TComDataCU*                     pcCU,
+                                    Long*                           plSrcCoeff,
+                                    TCoeff*&                        piDstCoeff,
+                                    UInt                            uiWidth,
+                                    UInt                            uiHeight,
+                                    UInt&                           uiAbsSum,
+                                    TextType                        eTType,
+                                    UInt                            uiAbsPartIdx,
+                                    UChar                           ucIndexROT    );
+  
   __inline UInt  xGetCodedLevel    ( Double&                         rd64UncodedCost,
                                      Double&                         rd64CodedCost,
 #if QC_MDDT

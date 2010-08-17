@@ -380,8 +380,8 @@ Void TAppEncCfg::xCheckParameter()
     xConfirmPara( (1<<m_uiQuadtreeTULog2MinSize)>(m_uiMaxCUWidth >>(m_uiMaxCUDepth-1)), "QuadtreeTULog2MinSize must not be greater than minimum CU size" ); // HS
     xConfirmPara( (1<<m_uiQuadtreeTULog2MinSize)>(m_uiMaxCUHeight>>(m_uiMaxCUDepth-1)), "QuadtreeTULog2MinSize must not be greater than minimum CU size" ); // HS
 
-    xConfirmPara( 8 != (m_uiMaxCUWidth >>(m_uiMaxCUDepth-1)), "Minimum CU width must be 8" );
-    xConfirmPara( 8 != (m_uiMaxCUHeight>>(m_uiMaxCUDepth-1)), "Minimum CU height must be 8" );
+    xConfirmPara( ( 1 << m_uiQuadtreeTULog2MinSize ) > ( m_uiMaxCUWidth  >> m_uiMaxCUDepth ), "Minimum CU width must be greater than minimum transform size." );
+    xConfirmPara( ( 1 << m_uiQuadtreeTULog2MinSize ) > ( m_uiMaxCUHeight >> m_uiMaxCUDepth ), "Minimum CU height must be greater than minimum transform size." );
 }
 #endif
 
@@ -462,10 +462,20 @@ Void TAppEncCfg::xSetGlobal()
 
   // compute actual CU depth with respect to config depth and max transform size
   g_uiAddCUDepth  = 0;
-  if( ((m_uiMaxCUWidth>>(m_uiMaxCUDepth-1)) > (m_uiMaxTrSize>>m_uiMaxTrDepth)) )
+#if HHI_RQT
+  if( m_bQuadtreeTUFlag )
   {
-    while( (m_uiMaxCUWidth>>(m_uiMaxCUDepth-1)) > (m_uiMaxTrSize<<g_uiAddCUDepth) ) g_uiAddCUDepth++;
+    while( (m_uiMaxCUWidth>>m_uiMaxCUDepth) > ( 1 << ( m_uiQuadtreeTULog2MinSize + g_uiAddCUDepth )  ) ) g_uiAddCUDepth++;
   }
+  else
+#endif
+  {
+    if( ((m_uiMaxCUWidth>>(m_uiMaxCUDepth-1)) > (m_uiMaxTrSize>>m_uiMaxTrDepth)) )
+    {
+      while( (m_uiMaxCUWidth>>(m_uiMaxCUDepth-1)) > (m_uiMaxTrSize<<g_uiAddCUDepth) ) g_uiAddCUDepth++;
+    }
+  }
+  
   m_uiMaxCUDepth += g_uiAddCUDepth;
   g_uiAddCUDepth++;
   g_uiMaxCUDepth = m_uiMaxCUDepth;

@@ -2168,7 +2168,7 @@ Void TComTrQuant::xT16( Pel* pSrc, UInt uiStride, Long* pDes )
   }
 }
 
-#if NEWVLC && HHI_TRANSFORM_CODING
+#if NEWVLC
 Int TComTrQuant::bitCountVLC(Int k,Int pos,Int n,Int lpflag,Int levelMode,Int run,Int maxrun,Int vlc_adaptive,Int N)
 {
     UInt cn;
@@ -2476,8 +2476,12 @@ Void TComTrQuant::xRateDistOptQuant_VLC             ( TComDataCU*               
       iRate = bitCountVLC(0,iScanning,iBlockType,iLpFlag,iLevelMode,iRun,iMaxrun,iVlc_adaptive,8)<<uiBitShift; 
 
     dErr = Double( lLevelDouble );
-    rd64UncodedCost = dErr * dErr * dTemp;     
+    rd64UncodedCost = dErr * dErr * dTemp;
+#if HHI_TRANSFORM_CODING
     rd64CodedCost   = rd64UncodedCost + xGetICost( iRate ); 
+#else
+    rd64CodedCost   = rd64UncodedCost + m_dLambda * iRate; 
+#endif
     for(uiAbsLevel = uiMinLevel; uiAbsLevel <= uiMaxLevel ; uiAbsLevel++ ) 
     {
       if (uiWidth==4)
@@ -2486,7 +2490,11 @@ Void TComTrQuant::xRateDistOptQuant_VLC             ( TComDataCU*               
         iRate = bitCountVLC(iSign*uiAbsLevel,iScanning,iBlockType,iLpFlag,iLevelMode,iRun,iMaxrun,iVlc_adaptive,8)<<uiBitShift; 
       dErr = Double( lLevelDouble  - (((Int64)uiAbsLevel) << iQBits ) );
       rd64UncodedCost = dErr * dErr * dTemp;
+#if HHI_TRANSFORM_CODING
       dCurrCost = rd64UncodedCost + xGetICost( iRate ); 
+#else
+      dCurrCost = rd64UncodedCost + m_dLambda * iRate; 
+#endif
       if( dCurrCost < rd64CodedCost )
       {         
         uiBestAbsLevel  = uiAbsLevel;
@@ -2787,7 +2795,7 @@ if ( !(pcCU->isIntra( uiAbsPartIdx ) && m_iSymbolMode == 0 )  && m_bUseRDOQ  && 
   if ( m_bUseRDOQ && (eTType == TEXT_LUMA || RDOQ_CHROMA) && (!RDOQ_ROT_IDX0_ONLY || indexROT == 0) )
 #endif
   {
-#if NEWVLC && HHI_TRANSFORM_CODING
+#if NEWVLC
     if ( m_iSymbolMode == 0)
       xRateDistOptQuant_VLC(pcCU, piCoef, pDes, iWidth, iHeight, uiAcSum, eTType, uiAbsPartIdx, indexROT );
     else
@@ -5615,7 +5623,7 @@ Void TComTrQuant::xQuant4x4( TComDataCU* pcCU, Long* plSrcCoef, TCoeff*& pDstCoe
   if ( m_bUseRDOQ && (eTType == TEXT_LUMA || RDOQ_CHROMA) && (!RDOQ_ROT_IDX0_ONLY || indexROT == 0 ) )
 #endif
   {
-#if NEWVLC && HHI_TRANSFORM_CODING
+#if NEWVLC
     if ( m_iSymbolMode == 0)
       xRateDistOptQuant_VLC(pcCU, plSrcCoef, pDstCoef, 4, 4, uiAbsSum, eTType, uiAbsPartIdx, indexROT);
     else
@@ -5723,7 +5731,7 @@ Void TComTrQuant::xQuant8x8( TComDataCU* pcCU, Long* plSrcCoef, TCoeff*& pDstCoe
   if ( m_bUseRDOQ && (eTType == TEXT_LUMA || RDOQ_CHROMA) && (!RDOQ_ROT_IDX0_ONLY || indexROT == 0 ) )
 #endif
   {
-#if NEWVLC && HHI_TRANSFORM_CODING
+#if NEWVLC
     if ( m_iSymbolMode == 0)
       xRateDistOptQuant_VLC(pcCU, plSrcCoef, pDstCoef, 8, 8, uiAbsSum, eTType, uiAbsPartIdx, indexROT);
     else

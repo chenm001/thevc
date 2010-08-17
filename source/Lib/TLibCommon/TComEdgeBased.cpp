@@ -75,6 +75,10 @@ Void TComEdgeBased::setThreshold(Int p_threshold_edge_detection)
 //-----------------------------------------------------------------------------
 inline int TComEdgeBased::shift_right_round(int val, int b) 
 {
+#if BUGFIX51
+  if (b <= 0)
+    return val;
+#endif
   return (val + (1 << (b-1))) >> b;
 }
 
@@ -153,10 +157,10 @@ Int TComEdgeBased::intrapred_luma_edge(Int iHeight, Int iWidth, Int uiStride, In
     for (b = b_start_tmp; b < b_end_tmp; b++)
     {
       // Compute gradiants using Sobel filter
-      int diag1 = Clip3(0, 255, shift_right_round(Src[(a+1)*iSrcStride+(b+1)], g_uiBitIncrement)) - Clip3(0, 255, shift_right_round(Src[(a-1)*iSrcStride+(b-1)], g_uiBitIncrement));
-      int diag2 = Clip3(0, 255, shift_right_round(Src[(a-1)*iSrcStride+(b+1)], g_uiBitIncrement)) - Clip3(0, 255, shift_right_round(Src[(a+1)*iSrcStride+(b-1)], g_uiBitIncrement));
-      int grad_x = diag1 + diag2 + 2 * (Clip3(0, 255, shift_right_round(Src[a*iSrcStride+(b+1)], g_uiBitIncrement)) - Clip3(0, 255, shift_right_round(Src[a*iSrcStride+(b-1)], g_uiBitIncrement)));
-      int grad_y = diag1 - diag2 + 2 * (Clip3(0, 255, shift_right_round(Src[(a+1)*iSrcStride+b], g_uiBitIncrement)) - Clip3(0, 255, shift_right_round(Src[(a-1)*iSrcStride+b], g_uiBitIncrement)));
+      int diag1 = Clip3(0, g_uiBASE_MAX, shift_right_round(Src[(a+1)*iSrcStride+(b+1)], g_uiBitIncrement)) - Clip3(0, g_uiBASE_MAX, shift_right_round(Src[(a-1)*iSrcStride+(b-1)], g_uiBitIncrement));
+      int diag2 = Clip3(0, g_uiBASE_MAX, shift_right_round(Src[(a-1)*iSrcStride+(b+1)], g_uiBitIncrement)) - Clip3(0, g_uiBASE_MAX, shift_right_round(Src[(a+1)*iSrcStride+(b-1)], g_uiBitIncrement));
+      int grad_x = diag1 + diag2 + 2 * (Clip3(0, g_uiBASE_MAX, shift_right_round(Src[a*iSrcStride+(b+1)], g_uiBitIncrement)) - Clip3(0, g_uiBASE_MAX, shift_right_round(Src[a*iSrcStride+(b-1)], g_uiBitIncrement)));
+      int grad_y = diag1 - diag2 + 2 * (Clip3(0, g_uiBASE_MAX, shift_right_round(Src[(a+1)*iSrcStride+b], g_uiBitIncrement)) - Clip3(0, g_uiBASE_MAX, shift_right_round(Src[(a-1)*iSrcStride+b], g_uiBitIncrement)));
       int dir_x = (-grad_y);
       int dir_y = grad_x;
       int norm = dir_x * dir_x + dir_y * dir_y;
