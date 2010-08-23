@@ -51,7 +51,7 @@ class TComPattern;
 // for function pointer
 typedef UInt (*FpDistFunc) (DistParam*);
 
-#ifdef ROUNDING_CONTROL
+#ifdef ROUNDING_CONTROL_BIPRED
 typedef UInt (*FpDistFuncRnd) (DistParam*, Pel*, Bool);
 #endif
 
@@ -71,19 +71,29 @@ public:
   Int   iCols;
   Int   iStep;
   FpDistFunc DistFunc;
-#ifdef ROUNDING_CONTROL
+#ifdef ROUNDING_CONTROL_BIPRED
   FpDistFuncRnd DistFuncRnd;
 #endif
-
-  // for DF_YUV_SAD
-  Pel*  pCbOrg;
-  Pel*  pCbCur;
-  Pel*  pCrOrg;
-  Pel*  pCrCur;
 
   // (vertical) subsampling shift (for reducing complexity)
   // - 0 = no subsampling, 1 = even rows, 2 = every 4th, etc.
   Int   iSubShift;
+  
+  DistParam()
+  {
+    pOrg = NULL;
+    pCur = NULL;
+    iStrideOrg = 0;
+    iStrideCur = 0;
+    iRows = 0;
+    iCols = 0;
+    iStep = 1;
+    DistFunc = NULL;
+#ifdef ROUNDING_CONTROL_BIPRED
+    DistFuncRnd = NULL;
+#endif
+    iSubShift = 0;
+  }
 };
 
 /// RD cost computation class
@@ -95,7 +105,7 @@ private:
   Int                     m_iBlkHeight;
 
   FpDistFunc              m_afpDistortFunc[33]; // [eDFunc]
-#ifdef ROUNDING_CONTROL
+#ifdef ROUNDING_CONTROL_BIPRED
   FpDistFuncRnd           m_afpDistortFuncRnd[33];
 #endif
 
@@ -130,7 +140,7 @@ public:
   Void    setDistParam( TComPattern* pcPatternKey, Pel* piRefY, Int iRefStride,            DistParam& rcDistParam );
   Void    setDistParam( TComPattern* pcPatternKey, Pel* piRefY, Int iRefStride, Int iStep, DistParam& rcDistParam, Bool bHADME=false );
 
-#ifdef ROUNDING_CONTROL
+#ifdef ROUNDING_CONTROL_BIPRED
   Void    setDistParam_Bi( TComPattern* pcPatternKey, Pel* piRefY, Int iRefStride,            DistParam& rcDistParam );
   Void    setDistParam_Bi( TComPattern* pcPatternKey, Pel* piRefY, Int iRefStride, Int iStep, DistParam& rcDistParam, Bool bHADME=false );
 #endif
@@ -197,7 +207,7 @@ private:
   static UInt xCalcHADs4x4      ( Pel *piOrg, Pel *piCurr, Int iStrideOrg, Int iStrideCur, Int iStep );
   static UInt xCalcHADs8x8      ( Pel *piOrg, Pel *piCurr, Int iStrideOrg, Int iStrideCur, Int iStep );
 
-#ifdef ROUNDING_CONTROL
+#ifdef ROUNDING_CONTROL_BIPRED
 
   static UInt xGetSSE           ( DistParam* pcDtParam, Pel* pRefY, Bool bRound );
   static UInt xGetSSE4          ( DistParam* pcDtParam, Pel* pRefY, Bool bRound );

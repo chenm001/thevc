@@ -298,13 +298,13 @@ Void TComTrQuant::xT64  ( Pel* pSrc, UInt uiStride, Long* pDes )
   Long G33, G34, G37, G38, G41, G42, G45, G46, G49, G50, G53, G54, G57, G58, G61, G62;
   Long H32;
   Long H33, H34, H35, H36, H37, H38, H39, H40, H41, H42, H43, H44, H45, H46, H47, H48, H49, H50, H51, H52, H53, H54, H55, H56, H57, H58, H59, H60, H61, H62, H63;
-#ifdef ROUNDING_CONTROL
+#ifdef TRANS_PRECISION_EXT
   Int uiBitDepthIncrease=g_iShift64x64-g_uiBitIncrement;
   Int offset = (uiBitDepthIncrease==0)? 0:(1<<(uiBitDepthIncrease-1));
 #endif
   for( y=0 ; y<64 ; y++ )
   {
-#ifdef ROUNDING_CONTROL
+#ifdef TRANS_PRECISION_EXT
     O0  = (pSrc[0]+pSrc[63])<<uiBitDepthIncrease;
     O63 = (pSrc[0]-pSrc[63])<<uiBitDepthIncrease;
     O1  = (pSrc[1]+pSrc[62])<<uiBitDepthIncrease;
@@ -1143,7 +1143,7 @@ Void TComTrQuant::xT64  ( Pel* pSrc, UInt uiStride, Long* pDes )
     pDes[2048] = xTrRound(724*(D0-D1), DenShift64);
     pDes[1024] = xTrRound(946*D3+392*D2, DenShift64);
     pDes[3072] = xTrRound(392*D3-946*D2, DenShift64);
-#ifdef ROUNDING_CONTROL
+#ifdef TRANS_PRECISION_EXT
     pDes[0]    = (pDes[0]   +offset)>>uiBitDepthIncrease;
     pDes[2048] = (pDes[2048]+offset)>>uiBitDepthIncrease;
     pDes[1024] = (pDes[1024]+offset)>>uiBitDepthIncrease;
@@ -1195,7 +1195,7 @@ Void TComTrQuant::xT64  ( Pel* pSrc, UInt uiStride, Long* pDes )
     pDes[2560] = xTrRound(851*E5+569*E6, DenShift64);
     pDes[1536] = xTrRound(851*E6-569*E5, DenShift64);
     pDes[3584] = xTrRound(200*E7-1004*E4, DenShift64);
-#ifdef ROUNDING_CONTROL
+#ifdef TRANS_PRECISION_EXT
     pDes[512]  = (pDes[512] +offset)>>uiBitDepthIncrease;
     pDes[2560] = (pDes[2560]+offset)>>uiBitDepthIncrease;
     pDes[1536] = (pDes[1536]+offset)>>uiBitDepthIncrease;
@@ -1258,7 +1258,7 @@ Void TComTrQuant::xT64  ( Pel* pSrc, UInt uiStride, Long* pDes )
     pDes[2816] = xTrRound(483*F13-903*F10, DenShift64);
     pDes[1792] = xTrRound(792*F14-650*F9, DenShift64);
     pDes[3840] = xTrRound(100*F15-1019*F8, DenShift64);
-#ifdef ROUNDING_CONTROL
+#ifdef TRANS_PRECISION_EXT
     pDes[256]  = (pDes[256] +offset)>>uiBitDepthIncrease;
     pDes[2304] = (pDes[2304]+offset)>>uiBitDepthIncrease;
     pDes[1280] = (pDes[1280]+offset)>>uiBitDepthIncrease;
@@ -1317,7 +1317,7 @@ Void TComTrQuant::xT64  ( Pel* pSrc, UInt uiStride, Long* pDes )
     pDes[2944] = xTrRound(438*G29-926*G18, DenShift64);
     pDes[1920] = xTrRound(759*G30-688*G17, DenShift64);
     pDes[3968] = xTrRound(50*G31-1023*G16, DenShift64);
-#ifdef ROUNDING_CONTROL
+#ifdef TRANS_PRECISION_EXT
     pDes[128]  = (pDes[128] +offset)>>uiBitDepthIncrease;
     pDes[2176] = (pDes[2176]+offset)>>uiBitDepthIncrease;
     pDes[1152] = (pDes[1152]+offset)>>uiBitDepthIncrease;
@@ -1401,7 +1401,7 @@ Void TComTrQuant::xT64  ( Pel* pSrc, UInt uiStride, Long* pDes )
     pDes[3008] = xTrRound(415*H61-936*H34, DenShift64);
     pDes[1984] = xTrRound(742*H62-706*H33, DenShift64);
     pDes[4032] = xTrRound(25*H63-1024*H32, DenShift64);
-#ifdef ROUNDING_CONTROL
+#ifdef TRANS_PRECISION_EXT
     pDes[64]   = (pDes[64]  +offset)>>uiBitDepthIncrease;
     pDes[2112] = (pDes[2112]+offset)>>uiBitDepthIncrease;
     pDes[1088] = (pDes[1088]+offset)>>uiBitDepthIncrease;
@@ -1451,14 +1451,14 @@ Void TComTrQuant::xT32( Pel* pSrc, UInt uiStride, Long* pDes )
   Long E4, E5, E6, E7, E9, E10, E13, E14, E16, E17, E18, E19, E20, E21, E22, E23, E24, E25, E26, E27, E28, E29, E30, E31;
   Long F8, F9, F10, F11, F12, F13, F14, F15, F17, F18, F21, F22, F25, F26, F29, F30;
   Long G16, G17, G18, G19, G20, G21, G22, G23, G24, G25, G26, G27, G28, G29, G30, G31;
-#ifdef ROUNDING_CONTROL
+#ifdef TRANS_PRECISION_EXT
   Int uiBitDepthIncrease=g_iShift32x32-g_uiBitIncrement;
   Int offset = (uiBitDepthIncrease==0)? 0:(1<<(uiBitDepthIncrease-1));
 #endif
 //--Butterfly
   for( y=0 ; y<32 ; y++ )
   {
-#ifdef ROUNDING_CONTROL
+#ifdef TRANS_PRECISION_EXT
     A0  = (pSrc[0] + pSrc[31])<<uiBitDepthIncrease;
     A31 = (pSrc[0] - pSrc[31])<<uiBitDepthIncrease;
     A1  = (pSrc[1] + pSrc[30])<<uiBitDepthIncrease;
@@ -1813,7 +1813,7 @@ Void TComTrQuant::xT32( Pel* pSrc, UInt uiStride, Long* pDes )
     pDes[512] = xTrRound( 181 * ( D0 - D1 ) , DenShift32);
     pDes[256] = xTrRound( 236 * D3 + 97 * D2 , DenShift32);
     pDes[768] = xTrRound( 97 * D3 - 236 * D2 , DenShift32);
-#ifdef ROUNDING_CONTROL
+#ifdef TRANS_PRECISION_EXT
     pDes[0]   = (pDes[0]  +offset)>>uiBitDepthIncrease;
     pDes[512] = (pDes[512]+offset)>>uiBitDepthIncrease;
     pDes[256] = (pDes[256]+offset)>>uiBitDepthIncrease;
@@ -1848,7 +1848,7 @@ Void TComTrQuant::xT32( Pel* pSrc, UInt uiStride, Long* pDes )
     pDes[640] = xTrRound( 212 * E5 + 142 * E6 , DenShift32);
     pDes[384] = xTrRound( 212 * E6 - 142 * E5 , DenShift32);
     pDes[896] = xTrRound( 49 * E7 - 251 * E4 , DenShift32);
-#ifdef ROUNDING_CONTROL
+#ifdef TRANS_PRECISION_EXT
     pDes[128] = (pDes[128]+offset)>>uiBitDepthIncrease;
     pDes[640] = (pDes[640]+offset)>>uiBitDepthIncrease;
     pDes[384] = (pDes[384]+offset)>>uiBitDepthIncrease;
@@ -1879,7 +1879,7 @@ Void TComTrQuant::xT32( Pel* pSrc, UInt uiStride, Long* pDes )
     pDes[704] = xTrRound( 120 * F13 - 225 * F10 , DenShift32);
     pDes[448] = xTrRound( 197 * F14 - 162 * F9 , DenShift32);
     pDes[960] = xTrRound( 25 * F15 - 254 * F8 , DenShift32);
-#ifdef ROUNDING_CONTROL
+#ifdef TRANS_PRECISION_EXT
     pDes[64]  = (pDes[64] +offset)>>uiBitDepthIncrease;
     pDes[576] = (pDes[576]+offset)>>uiBitDepthIncrease;
     pDes[320] = (pDes[320]+offset)>>uiBitDepthIncrease;
@@ -1922,7 +1922,7 @@ Void TComTrQuant::xT32( Pel* pSrc, UInt uiStride, Long* pDes )
     pDes[736] = xTrRound( 109 * G29 - 231 * G18 , DenShift32);
     pDes[480] = xTrRound( 189 * G30 - 171 * G17 , DenShift32);
     pDes[992] = xTrRound( 12 * G31 - 255 * G16 , DenShift32);
-#ifdef ROUNDING_CONTROL
+#ifdef TRANS_PRECISION_EXT
     pDes[32]  = (pDes[32] +offset)>>uiBitDepthIncrease;
     pDes[544] = (pDes[544]+offset)>>uiBitDepthIncrease;
     pDes[288] = (pDes[288]+offset)>>uiBitDepthIncrease;
@@ -1953,7 +1953,7 @@ Void TComTrQuant::xT16( Pel* pSrc, UInt uiStride, Long* pDes )
   Long D0, D1, D2, D3, D5, D6, D8, D9, D10, D11, D12, D13, D14, D15;
   Long E4, E5, E6, E7, E9, E10, E13, E14;
   Long F8, F9, F10, F11, F12, F13, F14, F15;
-#ifdef ROUNDING_CONTROL
+#ifdef TRANS_PRECISION_EXT
   Int uiBitDepthIncrease=g_iShift16x16-g_uiBitIncrement;
   Int offset = (uiBitDepthIncrease==0)? 0:(1<<(uiBitDepthIncrease-1));
 #endif
@@ -1961,7 +1961,7 @@ Void TComTrQuant::xT16( Pel* pSrc, UInt uiStride, Long* pDes )
 //--Butterfly
   for( y=0 ; y<16 ; y++ )
   {
-#ifdef ROUNDING_CONTROL
+#ifdef TRANS_PRECISION_EXT
     B0  = (pSrc[0] + pSrc[15])<<uiBitDepthIncrease;
     B15 = (pSrc[0] - pSrc[15])<<uiBitDepthIncrease;
     B1  = (pSrc[1] + pSrc[14])<<uiBitDepthIncrease;
@@ -2113,7 +2113,7 @@ Void TComTrQuant::xT16( Pel* pSrc, UInt uiStride, Long* pDes )
     pDes[128] = xTrRound( 45 * ( D0 - D1 ) , DenShift16);
     pDes[64] = xTrRound( 59 * D3 + 24 * D2 , DenShift16);
     pDes[192] = xTrRound( 24 * D3 - 59 * D2 , DenShift16);
-#ifdef ROUNDING_CONTROL
+#ifdef TRANS_PRECISION_EXT
     pDes[0  ] = (pDes[0  ]+offset)>>uiBitDepthIncrease;
     pDes[128] = (pDes[128]+offset)>>uiBitDepthIncrease;
     pDes[64 ] = (pDes[64 ]+offset)>>uiBitDepthIncrease;
@@ -2132,7 +2132,7 @@ Void TComTrQuant::xT16( Pel* pSrc, UInt uiStride, Long* pDes )
     pDes[160] = xTrRound( 53 * E5 + 35 * E6 , DenShift16);
     pDes[96] = xTrRound( 53 * E6 - 35 * E5 , DenShift16);
     pDes[224] = xTrRound( 12 * E7 - 62 * E4 , DenShift16);
-#ifdef ROUNDING_CONTROL
+#ifdef TRANS_PRECISION_EXT
     pDes[32]  = (pDes[32] +offset)>>uiBitDepthIncrease;
     pDes[160] = (pDes[160]+offset)>>uiBitDepthIncrease;
     pDes[96]  = (pDes[96] +offset)>>uiBitDepthIncrease;
@@ -2155,7 +2155,7 @@ Void TComTrQuant::xT16( Pel* pSrc, UInt uiStride, Long* pDes )
     pDes[176] = xTrRound( 30 * F13 - 56 * F10 , DenShift16);
     pDes[112] = xTrRound( 49 * F14 - 40 * F9 , DenShift16);
     pDes[240] = xTrRound( 6 * F15 - 63 * F8 , DenShift16);
-#ifdef ROUNDING_CONTROL
+#ifdef TRANS_PRECISION_EXT
     pDes[16]  = (pDes[16] +offset)>>uiBitDepthIncrease;
     pDes[144] = (pDes[144]+offset)>>uiBitDepthIncrease;
     pDes[80]  = (pDes[80] +offset)>>uiBitDepthIncrease;
@@ -2657,7 +2657,11 @@ Void TComTrQuant::xRateDistOptQuant_VLC             ( TComDataCU*               
 
     dErr = Double( lLevelDouble );
     rd64UncodedCost = dErr * dErr * dTemp;     
-    rd64CodedCost   = rd64UncodedCost + xGetICost( iRate );
+#if HHI_TRANSFORM_CODING
+    rd64CodedCost = rd64UncodedCost + xGetICost( iRate ); 
+#else
+    rd64CodedCost = rd64UncodedCost + m_dLambda * iRate; 
+#endif
     for(uiAbsLevel = uiMinLevel; uiAbsLevel <= uiMaxLevel ; uiAbsLevel++ )
     {
       if (uiWidth==4)
@@ -2666,7 +2670,11 @@ Void TComTrQuant::xRateDistOptQuant_VLC             ( TComDataCU*               
         iRate = bitCountVLC(iSign*uiAbsLevel,iScanning,iBlockType,iLpFlag,iLevelMode,iRun,iMaxrun,iVlc_adaptive,8)<<uiBitShift; 
       dErr = Double( lLevelDouble  - Long( uiAbsLevel << iQBits ) );
       rd64UncodedCost = dErr * dErr * dTemp;
-      dCurrCost = rd64UncodedCost + xGetICost( iRate );
+#if HHI_TRANSFORM_CODING
+      dCurrCost = rd64UncodedCost + xGetICost( iRate ); 
+#else
+      dCurrCost = rd64UncodedCost + m_dLambda * iRate; 
+#endif
       if( dCurrCost < rd64CodedCost )
       {         
         uiBestAbsLevel  = uiAbsLevel;
@@ -3045,14 +3053,14 @@ Void TComTrQuant::xIT16( Long* pSrc, Pel* pDes, UInt uiStride )
   UInt uiStride13 = uiStride12 + uiStride;
   UInt uiStride14 = uiStride13 + uiStride;
   UInt uiStride15 = uiStride14 + uiStride;
-#ifdef ROUNDING_CONTROL
+#ifdef TRANS_PRECISION_EXT
   Int uiBitDepthIncrease=g_iShift16x16-g_uiBitIncrement;
   Int offset = (uiBitDepthIncrease==0)? 0:(1<<(uiBitDepthIncrease-1));
 #endif
 //--Butterfly
   for( y=0 ; y<16 ; y++ )
   {
-#ifdef ROUNDING_CONTROL
+#ifdef TRANS_PRECISION_EXT
     Long     ai0[16];
     ai0[0] =  pSrc[0]<<uiBitDepthIncrease;
 	ai0[1] =  pSrc[1]<<uiBitDepthIncrease;
@@ -3106,7 +3114,7 @@ Void TComTrQuant::xIT16( Long* pSrc, Pel* pDes, UInt uiStride )
     E13 = F12 - F13;
     E14 = F15 - F14;
     E15 = F15 + F14;
-#ifdef ROUNDING_CONTROL
+#ifdef TRANS_PRECISION_EXT
     D0 = xTrRound( 45 * ( ai0[0] + ai0[8] ) , DenShift16);
     D1 = xTrRound( 45 * ( ai0[0] - ai0[8] ) , DenShift16);
     D2 = xTrRound( 24 * ai0[4] - 59 * ai0[12] , DenShift16);
@@ -3255,7 +3263,7 @@ Void TComTrQuant::xIT16( Long* pSrc, Pel* pDes, UInt uiStride )
     pDes[uiStride9 ] = (Pel)xTrRound(B6 - C9, DCore16Shift);
     pDes[uiStride7 ] = (Pel)xTrRound(B7 + C8, DCore16Shift);
     pDes[uiStride8 ] = (Pel)xTrRound(B7 - C8, DCore16Shift);
-#ifdef ROUNDING_CONTROL
+#ifdef TRANS_PRECISION_EXT
     pDes[        0 ] =  (pDes[        0 ]+offset)>>uiBitDepthIncrease;
 	pDes[uiStride  ] =  (pDes[uiStride  ]+offset)>>uiBitDepthIncrease;
 	pDes[uiStride2 ] =  (pDes[uiStride2 ]+offset)>>uiBitDepthIncrease;
@@ -3320,14 +3328,14 @@ Void TComTrQuant::xIT32( Long* pSrc, Pel* pDes, UInt uiStride )
   UInt uiStride29 = uiStride28 + uiStride;
   UInt uiStride30 = uiStride29 + uiStride;
   UInt uiStride31 = uiStride30 + uiStride;
-#ifdef ROUNDING_CONTROL
+#ifdef TRANS_PRECISION_EXT
   Int uiBitDepthIncrease=g_iShift32x32-g_uiBitIncrement;
   Int offset = (uiBitDepthIncrease==0)? 0:(1<<(uiBitDepthIncrease-1));
 #endif
 //--Butterfly
   for( y=0 ; y<32 ; y++ )
   {
-#ifdef ROUNDING_CONTROL
+#ifdef TRANS_PRECISION_EXT
     Long     ai0[32];
     ai0[0] =  pSrc[0]<<uiBitDepthIncrease;
 	ai0[1] =  pSrc[1]<<uiBitDepthIncrease;
@@ -3429,7 +3437,7 @@ Void TComTrQuant::xIT32( Long* pSrc, Pel* pDes, UInt uiStride )
     F29 = G28 - G29;
     F30 = G31 - G30;
     F31 = G31 + G30;
-#ifdef ROUNDING_CONTROL
+#ifdef TRANS_PRECISION_EXT
     E4 = xTrRound( 49 * ai0[4] - 251 * ai0[28], DenShift32);
     E5 = xTrRound( 212 * ai0[20] - 142 * ai0[12], DenShift32);
     E6 = xTrRound( 212 * ai0[12] + 142 * ai0[20], DenShift32);
@@ -3456,7 +3464,7 @@ Void TComTrQuant::xIT32( Long* pSrc, Pel* pDes, UInt uiStride )
     E26 = xTrRound( 142 * F26 + 212 * F21, DenShift32);
     E29 = xTrRound( 49 * F29 - 251 * F18, DenShift32);
     E30 = xTrRound( 251 * F30 + 49 * F17, DenShift32);
-#ifdef ROUNDING_CONTROL
+#ifdef TRANS_PRECISION_EXT
     D0 = xTrRound( 181 * ( ai0[0] + ai0[16] ), DenShift32);
     D1 = xTrRound( 181 * ( ai0[0] - ai0[16] ), DenShift32);
     D2 = xTrRound( 97 * ai0[8] - 236 * ai0[24], DenShift32);
@@ -3809,7 +3817,7 @@ Void TComTrQuant::xIT32( Long* pSrc, Pel* pDes, UInt uiStride )
     pDes[uiStride15] = (Pel)xTrRound( A15 + B16 , DCore32Shift);
     pDes[uiStride16] = (Pel)xTrRound( A15 - B16 , DCore32Shift);
 
-#ifdef ROUNDING_CONTROL
+#ifdef TRANS_PRECISION_EXT
     pDes[        0 ] =  (pDes[        0 ]+offset)>>uiBitDepthIncrease;
 	pDes[uiStride  ] =  (pDes[uiStride  ]+offset)>>uiBitDepthIncrease;
 	pDes[uiStride2 ] =  (pDes[uiStride2 ]+offset)>>uiBitDepthIncrease;
@@ -3934,13 +3942,13 @@ Void TComTrQuant::xIT64 ( Long* pSrc, Pel* pDes, UInt uiStride )
   UInt uiStride61 = uiStride60 + uiStride;
   UInt uiStride62 = uiStride61 + uiStride;
   UInt uiStride63 = uiStride62 + uiStride;
-#ifdef ROUNDING_CONTROL
+#ifdef TRANS_PRECISION_EXT
   Int uiBitDepthIncrease=g_iShift64x64-g_uiBitIncrement;
   Int offset = (uiBitDepthIncrease==0)? 0:(1<<(uiBitDepthIncrease-1));
 #endif
   for( y=0 ; y<64 ; y++ )
   {
-#ifdef ROUNDING_CONTROL
+#ifdef TRANS_PRECISION_EXT
     Long     ai0[64];
     ai0[0] =  pSrc[0]<<uiBitDepthIncrease;
 	ai0[1] =  pSrc[1]<<uiBitDepthIncrease;
@@ -4139,7 +4147,7 @@ Void TComTrQuant::xIT64 ( Long* pSrc, Pel* pDes, UInt uiStride )
     G61 = H60-H61;
     G62 = H63-H62;
     G63 = H63+H62;
-#ifdef ROUNDING_CONTROL
+#ifdef TRANS_PRECISION_EXT
     F8 = xTrRound(100*ai0[4]-1019*ai0[60], DenShift64);
     F9 = xTrRound(792*ai0[36]-650*ai0[28], DenShift64);
     F10 = xTrRound(483*ai0[20]-903*ai0[44], DenShift64);
@@ -4190,7 +4198,7 @@ Void TComTrQuant::xIT64 ( Long* pSrc, Pel* pDes, UInt uiStride )
     F58 = xTrRound(650*G58+792*G37, DenShift64);
     F61 = xTrRound(100*G61-1019*G34, DenShift64);
     F62 = xTrRound(1019*G62+100*G33, DenShift64);
-#ifdef ROUNDING_CONTROL
+#ifdef TRANS_PRECISION_EXT
     E4 = xTrRound(200*ai0[8]-1004*ai0[56], DenShift64);
     E5 = xTrRound(851*ai0[40]-569*ai0[24], DenShift64);
     E6 = xTrRound(851*ai0[24]+569*ai0[40], DenShift64);
@@ -4249,7 +4257,7 @@ Void TComTrQuant::xIT64 ( Long* pSrc, Pel* pDes, UInt uiStride )
     E61 = F62-F61;
     E62 = F62+F61;
     E63 = G63+G60;
-#ifdef ROUNDING_CONTROL
+#ifdef TRANS_PRECISION_EXT
     D0 = xTrRound(724*(ai0[0]+ai0[32]), DenShift64);
     D1 = xTrRound(724*(ai0[0]-ai0[32]), DenShift64);
     D2 = xTrRound(392*ai0[16]-946*ai0[48], DenShift64);
@@ -5068,7 +5076,7 @@ Void TComTrQuant::xIT64 ( Long* pSrc, Pel* pDes, UInt uiStride )
     pDes[uiStride61] = (Pel)xTrRound( O2-A61, DCore64Shift);
     pDes[uiStride62] = (Pel)xTrRound( O1-A62, DCore64Shift);
     pDes[uiStride63] = (Pel)xTrRound( O0-A63, DCore64Shift);
-#ifdef ROUNDING_CONTROL
+#ifdef TRANS_PRECISION_EXT
     pDes[         0] =  (pDes[         0]+offset)>>uiBitDepthIncrease;
 	pDes[uiStride  ] =  (pDes[uiStride  ]+offset)>>uiBitDepthIncrease;
 	pDes[uiStride2 ] =  (pDes[uiStride2 ]+offset)>>uiBitDepthIncrease;
@@ -5406,7 +5414,7 @@ Void TComTrQuant::xT4( Pel* piBlkResi, UInt uiStride, Long* psCoeff )
 Void TComTrQuant::xT8( Pel* piBlkResi, UInt uiStride, Long* psCoeff )
 {
   Int aai[8][8];
-#ifdef ROUNDING_CONTROL
+#ifdef TRANS_PRECISION_EXT
   Int uiBitDepthIncrease=g_iShift8x8-g_uiBitIncrement;
   Int offset = (uiBitDepthIncrease==0)? 0:(1<<(uiBitDepthIncrease-1));
 #endif
@@ -5414,7 +5422,7 @@ Void TComTrQuant::xT8( Pel* piBlkResi, UInt uiStride, Long* psCoeff )
   {
     Int ai1 [8];
     Int ai2 [8];
-#ifdef ROUNDING_CONTROL
+#ifdef TRANS_PRECISION_EXT
     ai1[0] = (piBlkResi[0] + piBlkResi[7])<<uiBitDepthIncrease;
     ai1[1] = (piBlkResi[1] + piBlkResi[6])<<uiBitDepthIncrease;
     ai1[2] = (piBlkResi[2] + piBlkResi[5])<<uiBitDepthIncrease;
@@ -5488,7 +5496,7 @@ Void TComTrQuant::xT8( Pel* piBlkResi, UInt uiStride, Long* psCoeff )
     psCoeff[24] =  ai2[5]     + (ai2[6]>>2);
     psCoeff[40] =  ai2[6]     - (ai2[5]>>2);
     psCoeff[56] = (ai2[4]>>2) -  ai2[7];
-#ifdef ROUNDING_CONTROL
+#ifdef TRANS_PRECISION_EXT
     psCoeff[ 0] =  (psCoeff[ 0]+offset)>>uiBitDepthIncrease;
     psCoeff[16] =  (psCoeff[16]+offset)>>uiBitDepthIncrease;
     psCoeff[32] =  (psCoeff[32]+offset)>>uiBitDepthIncrease;
@@ -5950,7 +5958,7 @@ Void TComTrQuant::xIT8( Long* plCoef, Pel* pResidual, UInt uiStride )
 {
   Long aai[8][8];
   Int n;
-#ifdef ROUNDING_CONTROL
+#ifdef TRANS_PRECISION_EXT
   Int uiBitDepthIncrease=g_iShift8x8-g_uiBitIncrement;
   Int offset = (uiBitDepthIncrease==0)? 0:(1<<(uiBitDepthIncrease-1));
 #endif
@@ -5966,7 +5974,7 @@ Void TComTrQuant::xIT8( Long* plCoef, Pel* pResidual, UInt uiStride )
     Long* pi = plCoef + (n<<3);
     Long     ai1[8];
     Long     ai2[8];
-#ifdef ROUNDING_CONTROL
+#ifdef TRANS_PRECISION_EXT
     Long     ai0[8];
     ai0[0] =  pi[0]<<uiBitDepthIncrease;
 	ai0[1] =  pi[1]<<uiBitDepthIncrease;
@@ -6055,7 +6063,7 @@ Void TComTrQuant::xIT8( Long* plCoef, Pel* pResidual, UInt uiStride )
     pResidual[uiStride6] = xRound( ai2[2] - ai2[5] );
     pResidual[uiStride7] = xRound( ai2[0] - ai2[7] );
 
-#ifdef ROUNDING_CONTROL
+#ifdef TRANS_PRECISION_EXT
     pResidual[        0] =  (pResidual[        0]+offset)>>uiBitDepthIncrease;
 	pResidual[uiStride ] =  (pResidual[uiStride ]+offset)>>uiBitDepthIncrease;
 	pResidual[uiStride2] =  (pResidual[uiStride2]+offset)>>uiBitDepthIncrease;

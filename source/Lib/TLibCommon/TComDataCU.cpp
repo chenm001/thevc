@@ -157,8 +157,8 @@ Void TComDataCU::create(UInt uiNumPartition, UInt uiWidth, UInt uiHeight, Bool b
     m_apiMVPNum[1]       = (Int*   )xMalloc(Int,  uiNumPartition);
 
     m_pcTrCoeffY         = (TCoeff*)xMalloc(TCoeff, uiWidth*uiHeight);
-    m_pcTrCoeffCb        = (TCoeff*)xMalloc(TCoeff, uiWidth*uiHeight);
-    m_pcTrCoeffCr        = (TCoeff*)xMalloc(TCoeff, uiWidth*uiHeight);
+    m_pcTrCoeffCb        = (TCoeff*)xMalloc(TCoeff, uiWidth*uiHeight/4);
+    m_pcTrCoeffCr        = (TCoeff*)xMalloc(TCoeff, uiWidth*uiHeight/4);
 
     m_acCUMvField[0].create( uiNumPartition );
     m_acCUMvField[1].create( uiNumPartition );
@@ -1547,6 +1547,31 @@ UInt TComDataCU::getCtxQtCbf( UInt uiAbsPartIdx, TextType eType, UInt uiTrDepth 
   }
   return uiCtx;
 }
+
+#if HHI_RQT_ROOT
+UInt TComDataCU::getCtxQtRootCbf( UInt uiAbsPartIdx )
+{
+  UInt uiCtx = 0;
+  TComDataCU* pcTempCU;
+  UInt        uiTempPartIdx;
+
+  // Get RootCbf of left PU
+  pcTempCU = getPULeft( uiTempPartIdx, m_uiAbsIdxInLCU + uiAbsPartIdx );
+  if ( pcTempCU )
+  {
+    uiCtx = pcTempCU->getQtRootCbf( uiTempPartIdx );
+  }
+
+  // Get RootCbf of above PU
+  pcTempCU = getPUAbove( uiTempPartIdx, m_uiAbsIdxInLCU + uiAbsPartIdx );
+  if ( pcTempCU )
+  {
+    uiCtx += pcTempCU->getQtRootCbf( uiTempPartIdx ) << 1;
+  }
+
+  return uiCtx;
+}
+#endif
 #endif
 
 UInt TComDataCU::getCtxAlfCtrlFlag( UInt uiAbsPartIdx )

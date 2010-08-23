@@ -102,7 +102,7 @@ protected:
 #endif
   Void xWeightedAverage         ( TComDataCU* pcCU, TComYuv* pcYuvSrc0, TComYuv* pcYuvSrc1, Int iRefIdx0, Int iRefIdx1, UInt uiPartAddr, Int iWidth, Int iHeight, TComYuv*& rpcYuvDst );
 #ifdef EDGE_BASED_PREDICTION
-  TComEdgeBased* EdgeBasedPred;  
+  TComEdgeBased EdgeBasedPred;  
 #endif //EDGE_BASED_PREDICTION
 #ifdef QC_AMVRES
   Void  xPredInterLumaBlkHMV ( TComDataCU* pcCU, TComPicYuv* pcPicYuvRef, UInt uiPartAddr, TComMv* pcMv,Int iWidth, Int iHeight, TComYuv*& rpcYuv );
@@ -167,7 +167,7 @@ public:
   Int  getPredicBufWidth()        { return m_iYuvExtStride; }
   Int  getPredicBufHeight()       { return m_iYuvExtHeight; }
 #ifdef EDGE_BASED_PREDICTION
-  TComEdgeBased* getEdgeBasedPred () { return EdgeBasedPred; }
+  TComEdgeBased* getEdgeBasedPred () { return &EdgeBasedPred; }
   Int* getEdgeBasedBuf()          { return m_piYExtEdgeBased; }
 #endif //EDGE_BASED_PREDICTION
 };

@@ -266,7 +266,7 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
       {
         m_pcSliceEncoder->setSearchRange(pcSlice);
       }
-#ifdef ROUNDING_CONTROL
+#ifdef ROUNDING_CONTROL_BIPRED
 	  Bool b;
 	  if (m_pcCfg->getGOPSize()==1)
 		  b = ((pcSlice->getPOC()&1)==0);	

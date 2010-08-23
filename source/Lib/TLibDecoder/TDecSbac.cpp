@@ -65,6 +65,9 @@ TDecSbac::TDecSbac()
 #endif
 #if HHI_RQT
   , m_cCUTransSubdivFlagSCModel( 1,            1,               NUM_TRANS_SUBDIV_FLAG_CTX     )
+#if HHI_RQT_ROOT
+  , m_cCUQtRootCbfSCModel     ( 1,             1,               NUM_QT_ROOT_CBF_CTX           )
+#endif
 #endif
   , m_cCUTransIdxSCModel      ( 1,             1,               NUM_TRANS_IDX_CTX             )
   , m_cCUDeltaQpSCModel       ( 1,             1,               NUM_DELTA_QP_CTX              )
@@ -146,6 +149,9 @@ Void TDecSbac::resetEntropy          (TComSlice* pcSlice)
   m_cCUCbfSCModel.initBuffer          ( eSliceType, iQp, (Short*)INIT_CBF );
 #if HHI_RQT
   m_cCUQtCbfSCModel.initBuffer        ( eSliceType, iQp, (Short*)INIT_QT_CBF );
+#if HHI_RQT_ROOT
+  m_cCUQtRootCbfSCModel.initBuffer    ( eSliceType, iQp, (Short*)INIT_QT_ROOT_CBF );
+#endif
 #endif
 
 #if HHI_TRANSFORM_CODING
@@ -1249,6 +1255,26 @@ Void TDecSbac::parseTransformSubdivFlag( UInt& ruiSubdivFlag, UInt uiLog2Transfo
   DTRACE_CABAC_V( uiLog2TransformBlockSize )
   DTRACE_CABAC_T( "\n" )
 }
+
+#if HHI_RQT_ROOT
+Void TDecSbac::parseQtRootCbf( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth, UInt& uiQtRootCbf )
+{
+  UInt uiSymbol;
+  const UInt uiCtx = pcCU->getCtxQtRootCbf( uiAbsPartIdx );
+  m_pcTDecBinIf->decodeBin( uiSymbol , m_cCUQtRootCbfSCModel.get( 0, 0, uiCtx ) );
+  DTRACE_CABAC_V( g_nSymbolCounter++ )
+  DTRACE_CABAC_T( "\tparseQtRootCbf()" )
+  DTRACE_CABAC_T( "\tsymbol=" )
+  DTRACE_CABAC_V( uiSymbol )
+  DTRACE_CABAC_T( "\tctx=" )
+  DTRACE_CABAC_V( uiCtx )
+  DTRACE_CABAC_T( "\tuiAbsPartIdx=" )
+  DTRACE_CABAC_V( uiAbsPartIdx )
+  DTRACE_CABAC_T( "\n" )
+
+  uiQtRootCbf = uiSymbol;
+}
+#endif
 #endif
 
 Void TDecSbac::parseTransformIdx( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )

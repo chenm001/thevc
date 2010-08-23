@@ -73,7 +73,7 @@ Void initROM()
 
 #if HHI_TRANSFORM_CODING
   // init adaptive scan for sig/last SE coding
-  for ( i = 0; i < MAX_CU_DEPTH; i++ )
+  for ( i = 0; i < MAX_CU_DEPTH+1; i++ )
   {
     const int   iBlockSize    = 1 << i;
     const UInt  uiNumScanPos  = UInt( iBlockSize * iBlockSize );
@@ -140,12 +140,15 @@ Void destroyROM()
     delete[] g_auiFrameScanXY[i];
     delete[] g_auiFrameScanX [i];
     delete[] g_auiFrameScanY [i];
-
+  }
+  
 #if HHI_TRANSFORM_CODING
+  for ( i=0; i<MAX_CU_DEPTH+1; i++ )
+  {
     delete[] g_auiSigLastScan[i][0];
     delete[] g_auiSigLastScan[i][1];
-#endif
   }
+#endif
 
 #if QC_MDDT //ADAPTIVE_SCAN
   int ipredmode;
@@ -2283,7 +2286,7 @@ UInt* g_auiFrameScanX [ MAX_CU_DEPTH  ];
 UInt* g_auiFrameScanY [ MAX_CU_DEPTH  ];
 
 #if HHI_TRANSFORM_CODING
-UInt* g_auiSigLastScan[ MAX_CU_DEPTH  ][ 2 ];
+UInt* g_auiSigLastScan[ MAX_CU_DEPTH+1  ][ 2 ];
 #endif
 
 // scanning order to 8x8 context model mapping table

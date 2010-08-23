@@ -47,7 +47,7 @@ TComRdCost::~TComRdCost()
   xUninit();
 }
 
-#ifdef ROUNDING_CONTROL
+#ifdef ROUNDING_CONTROL_BIPRED
   __inline Pel  xClip  (Pel x )      { return ( (x < 0) ? 0 : (x > (Pel)g_uiIBDI_MAX) ? (Pel)g_uiIBDI_MAX : x ); }
 #endif
 
@@ -179,7 +179,7 @@ Void TComRdCost::init()
   m_afpDistortFunc[27] = TComRdCost::xGetHADs;
   m_afpDistortFunc[28] = TComRdCost::xGetHADs;
 
-#ifdef ROUNDING_CONTROL
+#ifdef ROUNDING_CONTROL_BIPRED
   m_afpDistortFuncRnd[0]  =	NULL;
   m_afpDistortFuncRnd[1]  = TComRdCost::xGetSSE;
   m_afpDistortFuncRnd[2]  = TComRdCost::xGetSSE4;
@@ -272,7 +272,7 @@ UInt TComRdCost::xGetComponentBits( Int iVal )
   return uiLength;
 }
 
-#ifdef ROUNDING_CONTROL
+#ifdef ROUNDING_CONTROL_BIPRED
 // Setting the Distortion Parameter for Inter (ME)
 Void TComRdCost::setDistParam_Bi( TComPattern* pcPatternKey, Pel* piRefY, Int iRefStride, DistParam& rcDistParam )
 {
@@ -449,7 +449,7 @@ UInt TComRdCost::getDistPart( Pel* piCur, Int iCurStride,  Pel* piOrg, Int iOrgS
 // SAD
 // --------------------------------------------------------------------------------------------------------------------
 
-#ifdef ROUNDING_CONTROL
+#ifdef ROUNDING_CONTROL_BIPRED
 
 UInt TComRdCost::xGetSAD( DistParam* pcDtParam, Pel* pRefY, Bool bRound )
 {
@@ -980,7 +980,7 @@ UInt TComRdCost::xGetSAD64( DistParam* pcDtParam )
 // SAD with step (used in fractional search)
 // --------------------------------------------------------------------------------------------------------------------
 
-#ifdef ROUNDING_CONTROL
+#ifdef ROUNDING_CONTROL_BIPRED
 
 UInt TComRdCost::xGetSADs( DistParam* pcDtParam, Pel* pRefY, Bool bRound )
 {
@@ -1603,7 +1603,7 @@ UInt TComRdCost::xGetSADs64( DistParam* pcDtParam )
 // SSE
 // --------------------------------------------------------------------------------------------------------------------
 
-#ifdef ROUNDING_CONTROL
+#ifdef ROUNDING_CONTROL_BIPRED
 
 UInt TComRdCost::xGetSSE( DistParam* pcDtParam, Pel* pRefY, Bool bRound )
 {
@@ -2141,7 +2141,7 @@ UInt TComRdCost::xGetSSE64( DistParam* pcDtParam )
 // HADAMARD with step (used in fractional search)
 // --------------------------------------------------------------------------------------------------------------------
 
-#ifdef ROUNDING_CONTROL
+#ifdef ROUNDING_CONTROL_BIPRED
 
 UInt TComRdCost::xCalcHADs2x2( Pel *piOrg, Pel *piCur, Int iStrideOrg, Int iStrideCur, Int iStep, Pel* pRefY, Int refYStride, Bool bRound )
 {

@@ -101,7 +101,7 @@ public:
   virtual ~TComBitstream()    {}
 
   // create / destroy
-  Void        create          ( UInt uiSize );
+  Void        create          ( UInt uiSizeInBytes );
   Void        destroy         ();
 
   // interface for encoding

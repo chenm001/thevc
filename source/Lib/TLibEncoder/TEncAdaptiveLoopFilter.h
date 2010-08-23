@@ -180,6 +180,9 @@ public:
 
 };
 #else
+
+typedef UInt CorrBlk[ALF_MIN_NUM_COEF][ALF_MIN_NUM_COEF+1];
+
 /// estimation part of adaptive loop filter class
 class TEncAdaptiveLoopFilter : public TComAdaptiveLoopFilter
 {
@@ -190,8 +193,8 @@ private:
 
   Double**					m_ppdAlfCorr;
   Double*						m_pdDoubleAlfCoeff;
-  UInt****					m_puiCUCorr;
-
+  CorrBlk** m_puiCUCorr;
+  
   SliceType					m_eSliceType;
   Int								m_iPicNalReferenceIdc;
 
@@ -257,8 +260,8 @@ private:
   Void xCalcALFCoeff										( ALFParam* pAlfParam );
   Void xCalcCorrelationFunc							( Pel* pOrg, Pel* pCmp, Int iTap, Int iWidth, Int iHeight, Int iOrgStride, Int iCmpStride);
   Void xCalcCorrelationFuncBlock				( Pel* pOrg, Pel* pCmp, Int iTap, Int iWidth, Int iHeight, Int iOrgStride, Int iCmpStride);
-  Void xCalcStoredCorrelationFuncBlock	( Pel* pOrg, Pel* pCmp, UInt** ppuiCorr, Int iTap, Int iWidth, Int iHeight, Int iOrgStride, Int iCmpStride);
-
+  Void xCalcStoredCorrelationFuncBlock	( Pel* pOrg, Pel* pCmp, CorrBlk& ppuiCorr, Int iTap, Int iWidth, Int iHeight, Int iOrgStride, Int iCmpStride);
+  
 	// functions related to filtering
 	Void xFilterCoefQuickSort		( Double *coef_data, Int *coef_num, Int upper, Int lower );
   Void xQuantFilterCoef				( Double* h, Int* qh, Int tap, int bit_depth );

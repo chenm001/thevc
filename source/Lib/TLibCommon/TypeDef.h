@@ -57,6 +57,7 @@
 #define HHI_MRG                           1           ///< SOPH: inter partition merging
 #define HHI_AMVP_OFF                      0           ///< SOPH: Advanced Motion Vector Predictor deactivated [not in TMuC]
 #define HHI_DEBLOCKING_FILTER             0           ///< MW: deblocking filter supporting residual quadtrees
+#define HHI_RQT_ROOT                      0           ///< PHHK: signaling of residual quadtree root flag
 
 #if ( HHI_RQT_INTRA && !HHI_RQT )
 #error "HHI_RQT_INTRA can only be equal to 1 if HHI_RQT is equal to 1"

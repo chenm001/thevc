@@ -40,8 +40,10 @@
 // Constructor / destructor / create / destroy
 // ====================================================================================================================
 
-Void TComBitstream::create( UInt uiSize )
+Void TComBitstream::create( UInt uiSizeInBytes )
 {
+  UInt uiSize = uiSizeInBytes / sizeof(UInt);
+  
   m_apulStreamPacketBegin = new UInt[uiSize];
   m_uiBufSize       = uiSize;
   m_uiBitSize       = 0;

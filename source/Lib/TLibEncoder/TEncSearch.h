@@ -128,7 +128,7 @@ public:
 protected:
 
   /// sub-function for motion vector refinement used in fractional-pel accuracy
-#ifdef ROUNDING_CONTROL
+#ifdef ROUNDING_CONTROL_BIPRED
   UInt  xPatternRefinement_Bi( TComPattern* pcPatternKey, Pel* piRef, Int iRefStride, Int iIntStep, Int iFrac, TComMv& rcMvFrac, Pel* pRefY2, Bool bRound );
 #ifdef QC_AMVRES
 #if HHI_INTERP_FILTER
@@ -473,7 +473,7 @@ protected:
                                     TComMv&       rcMv,
                                     UInt&         ruiSAD );
 
-#ifdef ROUNDING_CONTROL
+#ifdef ROUNDING_CONTROL_BIPRED
   Void xPatternSearch_Bi             ( TComPattern*  pcPatternKey,
                                     Pel*          piRefY,
                                     Int           iRefStride,
@@ -647,7 +647,11 @@ protected:
 
 #if HHI_RQT
   Void xEncodeResidualQT( TComDataCU* pcCU, UInt uiAbsPartIdx, const UInt uiDepth, Bool bSubdivAndCbf, TextType eType );
+#if HHI_RQT_ROOT
+  Void xEstimateResidualQT( TComDataCU* pcCU, UInt uiQuadrant, UInt uiAbsPartIdx, TComYuv* pcResi, const UInt uiDepth, Double &rdCost, UInt &ruiBits, UInt &ruiDist, UInt *puiZeroDist );
+#else
   Void xEstimateResidualQT( TComDataCU* pcCU, UInt uiAbsPartIdx, TComYuv* pcResi, const UInt uiDepth, Double &rdCost, UInt &ruiBits, UInt &ruiDist );
+#endif
   Void xSetResidualQTData( TComDataCU* pcCU, UInt uiAbsPartIdx, TComYuv* pcResi, UInt uiDepth, Bool bSpatial );
 #endif
   Void xEncodeInterTexture        ( TComDataCU*&  rpcCU, UInt uiQp, Bool bHighPass, TComYuv*& rpcYuv, UInt uiTrMode );

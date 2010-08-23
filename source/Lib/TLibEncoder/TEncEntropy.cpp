@@ -690,6 +690,14 @@ Void TEncEntropy::xEncodeTransformSubdiv( TComDataCU* pcCU, UInt uiAbsPartIdx, U
     }
     UInt uiLumaTrMode, uiChromaTrMode;
     pcCU->convertTransIdx( uiAbsPartIdx, pcCU->getTransformIdx( uiAbsPartIdx ), uiLumaTrMode, uiChromaTrMode );
+#if HHI_RQT_ROOT && HHI_RQT_CHROMA_CBF_MOD
+    if( pcCU->getPredictionMode(uiAbsPartIdx) != MODE_INTRA && uiDepth == pcCU->getDepth( uiAbsPartIdx ) && !pcCU->getCbf( uiAbsPartIdx, TEXT_CHROMA_U, 0 ) && !pcCU->getCbf( uiAbsPartIdx, TEXT_CHROMA_V, 0 ) )
+    {
+      assert( pcCU->getCbf( uiAbsPartIdx, TEXT_LUMA, 0 ) );
+      //      printf( "saved one bin! " );
+    }
+    else
+#endif
     m_pcEntropyCoderIf->codeQtCbf( pcCU, uiAbsPartIdx, TEXT_LUMA, uiLumaTrMode );
 #if HHI_RQT_CHROMA_CBF_MOD
     if( pcCU->getPredictionMode(uiAbsPartIdx) == MODE_INTRA )
@@ -1393,6 +1401,13 @@ Void TEncEntropy::encodeTransformSubdivFlag( UInt uiSymbol, UInt uiCtx )
 {
   m_pcEntropyCoderIf->codeTransformSubdivFlag( uiSymbol, uiCtx );
 }
+
+#if HHI_RQT_ROOT
+Void TEncEntropy::encodeQtRootCbf( TComDataCU* pcCU, UInt uiAbsPartIdx )
+{
+  m_pcEntropyCoderIf->codeQtRootCbf( pcCU, uiAbsPartIdx );
+}
+#endif
 #endif
 
 // Coded block flag
@@ -1560,6 +1575,17 @@ Void TEncEntropy::encodeCoeff( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth
   }
   else
   {
+#if HHI_RQT_ROOT
+    if( pcCU->getSlice()->getSPS()->getQuadtreeTUFlag() )
+    {
+      m_pcEntropyCoderIf->codeQtRootCbf( pcCU, uiAbsPartIdx );
+      if ( !pcCU->getQtRootCbf( uiAbsPartIdx ) )
+      {
+        return;
+      }
+    }
+#endif
+
     m_pcEntropyCoderIf->codeCbf( pcCU, uiAbsPartIdx, TEXT_LUMA, 0 );
     m_pcEntropyCoderIf->codeCbf( pcCU, uiAbsPartIdx, TEXT_CHROMA_U, 0 );
     m_pcEntropyCoderIf->codeCbf( pcCU, uiAbsPartIdx, TEXT_CHROMA_V, 0 );

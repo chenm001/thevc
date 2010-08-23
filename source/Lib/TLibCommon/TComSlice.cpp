@@ -59,7 +59,7 @@ TComSlice::TComSlice()
 
   m_pcPic               = NULL;
   m_bRefenced           = false;
-#ifdef ROUNDING_CONTROL
+#ifdef ROUNDING_CONTROL_BIPRED
   m_bRounding			= false;
 #endif
   m_uiColDir = 0;

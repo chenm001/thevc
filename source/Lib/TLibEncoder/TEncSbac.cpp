@@ -73,6 +73,9 @@ TEncSbac::TEncSbac()
 #endif
 #if HHI_RQT
   , m_cCUTransSubdivFlagSCModel( 1,          1,               NUM_TRANS_SUBDIV_FLAG_CTX )
+#if HHI_RQT_ROOT
+  , m_cCUQtRootCbfSCModel     ( 1,             1,               NUM_QT_ROOT_CBF_CTX   )
+#endif
 #endif
   , m_cCUTransIdxSCModel      ( 1,             1,               NUM_TRANS_IDX_CTX             )
   , m_cCUDeltaQpSCModel       ( 1,             1,               NUM_DELTA_QP_CTX              )
@@ -156,6 +159,9 @@ Void TEncSbac::resetEntropy           ()
   m_cCUCbfSCModel.initBuffer          ( eSliceType, iQp, (Short*)INIT_CBF );
 #if HHI_RQT
   m_cCUQtCbfSCModel.initBuffer        ( eSliceType, iQp, (Short*)INIT_QT_CBF );
+#if HHI_RQT_ROOT
+  m_cCUQtRootCbfSCModel.initBuffer    ( eSliceType, iQp, (Short*)INIT_QT_ROOT_CBF );
+#endif
 #endif
 
 #if HHI_TRANSFORM_CODING
@@ -376,6 +382,9 @@ Void TEncSbac::xCopyFrom( TEncSbac* pSrc )
 #if HHI_RQT
   this->m_cCUQtCbfSCModel     .copyFrom( &pSrc->m_cCUQtCbfSCModel       );
   this->m_cCUTransSubdivFlagSCModel.copyFrom( &pSrc->m_cCUTransSubdivFlagSCModel );
+#if HHI_RQT_ROOT
+  this->m_cCUQtRootCbfSCModel .copyFrom( &pSrc->m_cCUQtRootCbfSCModel   );
+#endif
 #endif
   this->m_cCUTransIdxSCModel  .copyFrom( &pSrc->m_cCUTransIdxSCModel    );
 
@@ -1203,6 +1212,24 @@ UInt xCheckCoeffPlainCNoRecur( const TCoeff* pcCoef, UInt uiSize, UInt uiDepth )
   }
   return uiNumofCoeff;
 }
+
+#if HHI_RQT_ROOT
+Void TEncSbac::codeQtRootCbf( TComDataCU* pcCU, UInt uiAbsPartIdx )
+{
+  UInt uiCbf = pcCU->getQtRootCbf( uiAbsPartIdx );
+  UInt uiCtx = pcCU->getCtxQtRootCbf( uiAbsPartIdx );
+  m_pcBinIf->encodeBin( uiCbf , m_cCUQtRootCbfSCModel.get( 0, 0, uiCtx ) );
+  DTRACE_CABAC_V( g_nSymbolCounter++ )
+  DTRACE_CABAC_T( "\tparseQtRootCbf()" )
+  DTRACE_CABAC_T( "\tsymbol=" )
+  DTRACE_CABAC_V( uiCbf )
+  DTRACE_CABAC_T( "\tctx=" )
+  DTRACE_CABAC_V( uiCtx )
+  DTRACE_CABAC_T( "\tuiAbsPartIdx=" )
+  DTRACE_CABAC_V( uiAbsPartIdx )
+  DTRACE_CABAC_T( "\n" )
+}
+#endif
 #endif
 
 Void TEncSbac::xCheckCoeff( TCoeff* pcCoef, UInt uiSize, UInt uiDepth, UInt& uiNumofCoeff, UInt& uiPart )

@@ -144,6 +144,9 @@ public:
 #if HHI_RQT
   Void parseTransformSubdivFlag( UInt& ruiSubdivFlag, UInt uiLog2TransformBlockSize );
   Void parseQtCbf         ( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eType, UInt uiTrDepth, UInt uiDepth );
+#if HHI_RQT_ROOT
+  Void parseQtRootCbf     ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth, UInt& uiQtRootCbf );
+#endif
 #endif
 
   Void parseTransformIdx  ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
@@ -184,6 +187,9 @@ private:
 #endif
 #if HHI_RQT
   ContextModel3DBuffer m_cCUTransSubdivFlagSCModel;
+#if HHI_RQT_ROOT
+  ContextModel3DBuffer m_cCUQtRootCbfSCModel;
+#endif
 #endif
   ContextModel3DBuffer m_cCUTransIdxSCModel;
   ContextModel3DBuffer m_cCUDeltaQpSCModel;

@@ -37,7 +37,7 @@
 #include "../TLibCommon/TComMotionInfo.h"
 #include "TEncSearch.h"
 
-#ifdef ROUNDING_CONTROL
+#ifdef ROUNDING_CONTROL_BIPRED
 __inline Pel  xClip  (Pel x )      { return ( (x < 0) ? 0 : (x > (Pel)g_uiIBDI_MAX) ? (Pel)g_uiIBDI_MAX : x ); }
 #endif
 
@@ -666,7 +666,7 @@ __inline Void TEncSearch::xTZ8PointDiamondSearch( TComPattern* pcPatternKey, Int
   } // iDist == 1
 }
 
-#ifdef ROUNDING_CONTROL
+#ifdef ROUNDING_CONTROL_BIPRED
 UInt TEncSearch::xPatternRefinement_Bi    ( TComPattern* pcPatternKey, Pel* piRef, Int iRefStride, Int iIntStep, Int iFrac, TComMv& rcMvFrac, Pel* pcRef2, Bool bRound )
 {
   UInt  uiDist;
@@ -4557,7 +4557,7 @@ Void TEncSearch::xMotionEstimation( TComDataCU* pcCU, TComYuv* pcYuvOrg, Int iPa
   TComMv        cMvSrchRngRB;
   
   TComYuv*  pcYuv = pcYuvOrg;
-#ifdef ROUNDING_CONTROL
+#ifdef ROUNDING_CONTROL_BIPRED
   Pel			pRefBufY[16384];  // 128x128
 #endif
 #ifdef QC_SIFO
@@ -4581,7 +4581,7 @@ Void TEncSearch::xMotionEstimation( TComDataCU* pcCU, TComYuv* pcYuvOrg, Int iPa
     
     pcYuvOrg->copyPartToPartYuv( pcYuv, uiPartAddr, iRoiWidth, iRoiHeight );
     
-#ifdef ROUNDING_CONTROL
+#ifdef ROUNDING_CONTROL_BIPRED
 	Int y;
 	//Int x;
 	Pel *pRefY = pcYuvOther->getLumaAddr(uiPartAddr);
@@ -4636,7 +4636,7 @@ Void TEncSearch::xMotionEstimation( TComDataCU* pcCU, TComYuv* pcYuvOrg, Int iPa
   m_pcRdCost->setCostScale  ( 2 );
   
   //  Do integer search
-#ifdef ROUNDING_CONTROL
+#ifdef ROUNDING_CONTROL_BIPRED
   if( bBi ) 
   {
 	xPatternSearch_Bi      ( pcPatternKey, piRefY, iRefStride, &cMvSrchRngLT, &cMvSrchRngRB, rcMv, ruiCost, pRefBufY, pcCU->getSlice()->isRounding() );
@@ -4676,7 +4676,7 @@ Void TEncSearch::xMotionEstimation( TComDataCU* pcCU, TComYuv* pcYuvOrg, Int iPa
       FullpelOffset = getOffset_FullpelME(iList,MEloop);
       xAddSubFullPelOffset(pcPatternKey, FullpelOffset, 1);
       //  Do integer search
-#ifdef ROUNDING_CONTROL
+#ifdef ROUNDING_CONTROL_BIPRED
 	  if( bBi ) 
 	  {
 #if BUGFIX48
@@ -4723,7 +4723,7 @@ Void TEncSearch::xMotionEstimation( TComDataCU* pcCU, TComYuv* pcYuvOrg, Int iPa
   m_pcRdCost->getMotionCost( 1, 0 );
   m_pcRdCost->setCostScale ( 1 );
   
-#ifdef ROUNDING_CONTROL
+#ifdef ROUNDING_CONTROL_BIPRED
   if( bBi ) 
   {
 	Bool bRound =  pcCU->getSlice()->isRounding() ;
@@ -4904,7 +4904,7 @@ Void TEncSearch::xSetSearchRange ( TComDataCU* pcCU, TComMv& cMvPred, Int iSrchR
 
 
 
-#ifdef ROUNDING_CONTROL
+#ifdef ROUNDING_CONTROL_BIPRED
 Void TEncSearch::xPatternSearch_Bi( TComPattern* pcPatternKey, Pel* piRefY, Int iRefStride, TComMv* pcMvSrchRngLT, TComMv* pcMvSrchRngRB, TComMv& rcMv, UInt& ruiSAD, Pel* pcRefY2, Bool bRound )
 {
   Int   iSrchRngHorLeft   = pcMvSrchRngLT->getHor();
@@ -5300,7 +5300,7 @@ Void TEncSearch::xTZSearch( TComDataCU* pcCU, TComPattern* pcPatternKey, Pel* pi
 }
 
 
-#ifdef ROUNDING_CONTROL
+#ifdef ROUNDING_CONTROL_BIPRED
 #ifdef QC_AMVRES
 Void TEncSearch::xPatternSearchFracDIF_Bi( TComDataCU* pcCU, TComPattern* pcPatternKey, Pel* piRefY, Int iRefStride, TComMv* pcMvInt, TComMv& rcMvHalf, TComMv& rcMvQter, UInt& ruiCost,TComMv *PredMv, Int iRefIdxPred , Pel* piRefY2, Bool bRound )
 #else
@@ -6180,8 +6180,35 @@ Void TEncSearch::encodeResAndCalcRdInterCU( TComDataCU* pcCU, TComYuv* pcYuvOrg,
         m_pcRDGoOnSbacCoder->load( m_pppcRDSbacCoder[ pcCU->getDepth( 0 ) ][ CI_CURR_BEST ] );
       }
       
+#if HHI_RQT_ROOT
+      UInt uiZeroDistortion = 0;
+      xEstimateResidualQT( pcCU, 0, 0, rpcYuvResi,  pcCU->getDepth(0), dCost, uiBits, uiDistortion, &uiZeroDistortion );
+
+      double dZeroCost = m_pcRdCost->calcRdCost( 0, uiZeroDistortion );
+      if ( dZeroCost < dCost )
+      {
+        dCost        = dZeroCost;
+        uiBits       = 0;
+        uiDistortion = uiZeroDistortion;
+
+        const UInt uiQPartNum = pcCU->getPic()->getNumPartInCU() >> (pcCU->getDepth(0) << 1);
+        ::memset( pcCU->getTransformIdx()      , 0, uiQPartNum * sizeof(UChar) );
+        ::memset( pcCU->getCbf( TEXT_LUMA )    , 0, uiQPartNum * sizeof(UChar) );
+        ::memset( pcCU->getCbf( TEXT_CHROMA_U ), 0, uiQPartNum * sizeof(UChar) );
+        ::memset( pcCU->getCbf( TEXT_CHROMA_V ), 0, uiQPartNum * sizeof(UChar) );
+        ::memset( pcCU->getCoeffY()            , 0, uiWidth * uiHeight * sizeof( TCoeff )      );
+        ::memset( pcCU->getCoeffCb()           , 0, uiWidth * uiHeight * sizeof( TCoeff ) >> 2 );
+        ::memset( pcCU->getCoeffCr()           , 0, uiWidth * uiHeight * sizeof( TCoeff ) >> 2 );
+      }
+      else
+      {
+        xSetResidualQTData( pcCU, 0, NULL, pcCU->getDepth(0), false );
+      }
+#else
       xEstimateResidualQT( pcCU, 0, rpcYuvResi,  pcCU->getDepth(0), dCost, uiBits, uiDistortion );
       xSetResidualQTData( pcCU, 0, NULL, pcCU->getDepth(0), false );
+#endif
+
       if( m_bUseSBACRD )
       {
         m_pcRDGoOnSbacCoder->load( m_pppcRDSbacCoder[pcCU->getDepth(0)][CI_CURR_BEST] );
@@ -6211,7 +6238,18 @@ Void TEncSearch::encodeResAndCalcRdInterCU( TComDataCU* pcCU, TComYuv* pcYuvOrg,
       
       if ( dCost < dCostBest )
       {
+#if HHI_RQT_ROOT
+        if ( !pcCU->getQtRootCbf( 0 ) )
+        {
+          rpcYuvResiBest->clear();
+        }
+        else
+        {
+          xSetResidualQTData( pcCU, 0, rpcYuvResiBest, pcCU->getDepth(0), true );
+        }
+#else
         xSetResidualQTData( pcCU, 0, rpcYuvResiBest, pcCU->getDepth(0), true );
+#endif
         
         if( uiQpMin != uiQpMax && uiQp != uiQpMax )
         {
@@ -6378,7 +6416,11 @@ Void TEncSearch::encodeResAndCalcRdInterCU( TComDataCU* pcCU, TComYuv* pcYuvOrg,
 }
 
 #if HHI_RQT
+#if HHI_RQT_ROOT
+      Void TEncSearch::xEstimateResidualQT( TComDataCU* pcCU, UInt uiQuadrant, UInt uiAbsPartIdx, TComYuv* pcResi, const UInt uiDepth, Double &rdCost, UInt &ruiBits, UInt &ruiDist, UInt *puiZeroDist )
+#else
 Void TEncSearch::xEstimateResidualQT( TComDataCU* pcCU, UInt uiAbsPartIdx, TComYuv* pcResi, const UInt uiDepth, Double &rdCost, UInt &ruiBits, UInt &ruiDist )
+#endif
 {
   const UInt uiTrMode = uiDepth - pcCU->getDepth( 0 );
   
@@ -6472,6 +6514,12 @@ Void TEncSearch::xEstimateResidualQT( TComDataCU* pcCU, UInt uiAbsPartIdx, TComY
     ::memset( m_pTempPel, 0, sizeof( Pel ) * uiNumSamplesLuma ); // not necessary needed for inside of recursion (only at the beginning)
     
     UInt uiDistY = m_pcRdCost->getDistPart( m_pTempPel, 1<< uiLog2TrSize, pcResi->getLumaAddr( uiAbsPartIdx ), pcResi->getStride(), 1<< uiLog2TrSize, 1<< uiLog2TrSize ); // initialized with zero residual destortion
+#if HHI_RQT_ROOT
+    if ( puiZeroDist )
+    {
+      *puiZeroDist += uiDistY;
+    }
+#endif
     if( uiAbsSumY )
     {
       Pel *pcResiCurrY = m_pcQTTempTComYuv[uiQTTempAccessLayer].getLumaAddr( uiAbsPartIdx );
@@ -6516,6 +6564,12 @@ Void TEncSearch::xEstimateResidualQT( TComDataCU* pcCU, UInt uiAbsPartIdx, TComY
     if( bCodeChroma )
     {
       uiDistU = m_pcRdCost->getDistPart( m_pTempPel, 1<<uiLog2TrSizeC, pcResi->getCbAddr( uiAbsPartIdx ), pcResi->getCStride(), 1<<uiLog2TrSizeC, 1<<uiLog2TrSizeC ); // initialized with zero residual destortion
+#if HHI_RQT_ROOT
+      if ( puiZeroDist )
+      {
+        *puiZeroDist += uiDistU;
+      }
+#endif
       if( uiAbsSumU )
       {
         Pel *pcResiCurrU = m_pcQTTempTComYuv[uiQTTempAccessLayer].getCbAddr( uiAbsPartIdx );
@@ -6551,6 +6605,12 @@ Void TEncSearch::xEstimateResidualQT( TComDataCU* pcCU, UInt uiAbsPartIdx, TComY
       }
       
       uiDistV = m_pcRdCost->getDistPart( m_pTempPel, 1<<uiLog2TrSizeC, pcResi->getCrAddr( uiAbsPartIdx ), pcResi->getCStride(), 1<<uiLog2TrSizeC, 1<<uiLog2TrSizeC ); // initialized with zero residual destortion
+#if HHI_RQT_ROOT
+      if ( puiZeroDist )
+      {
+        *puiZeroDist += uiDistV;
+      }
+#endif
       if( uiAbsSumV )
       {
         Pel *pcResiCurrV = m_pcQTTempTComYuv[uiQTTempAccessLayer].getCrAddr  ( uiAbsPartIdx );
@@ -6654,7 +6714,11 @@ Void TEncSearch::xEstimateResidualQT( TComDataCU* pcCU, UInt uiAbsPartIdx, TComY
     const UInt uiQPartNumSubdiv = pcCU->getPic()->getNumPartInCU() >> ((uiDepth + 1 ) << 1);
     for( UInt ui = 0; ui < 4; ++ui )
     {
+#if HHI_RQT_ROOT
+      xEstimateResidualQT( pcCU, ui, uiAbsPartIdx + ui * uiQPartNumSubdiv, pcResi, uiDepth + 1, dSubdivCost, uiSubdivBits, uiSubdivDist, bCheckFull ? NULL : puiZeroDist );
+#else
       xEstimateResidualQT( pcCU, uiAbsPartIdx + ui * uiQPartNumSubdiv, pcResi, uiDepth + 1, dSubdivCost, uiSubdivBits, uiSubdivDist );
+#endif
     }
     
     UInt uiYCbf = 0;

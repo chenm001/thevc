@@ -200,7 +200,7 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
   if (!pcSlice->isIntra())
   {
     xWriteFlag  (pcSlice->isReferenced() ? 1 : 0);
-#ifdef ROUNDING_CONTROL
+#ifdef ROUNDING_CONTROL_BIPRED
 	xWriteFlag  (pcSlice->isRounding() ? 1 : 0);
 #endif
   }
@@ -695,6 +695,14 @@ Void TEncCavlc::codeQtCbf( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eType, 
   UInt uiCbf = pcCU->getCbf( uiAbsPartIdx, eType, uiTrDepth );
   xWriteFlag( uiCbf );
 }
+
+#if HHI_RQT_ROOT
+Void TEncCavlc::codeQtRootCbf( TComDataCU* pcCU, UInt uiAbsPartIdx )
+{
+  UInt uiCbf = pcCU->getQtRootCbf( uiAbsPartIdx );
+  xWriteFlag( uiCbf ? 1 : 0 );
+}
+#endif
 #endif
 
 Void TEncCavlc::codeTransformIdx( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )

@@ -2133,6 +2133,13 @@ Void TDecEntropy::xDecodeTransformSubdiv( TComDataCU* pcCU, UInt uiAbsPartIdx, U
     UInt uiLumaTrMode, uiChromaTrMode;
     pcCU->convertTransIdx( uiAbsPartIdx, uiTrDepth, uiLumaTrMode, uiChromaTrMode );
     pcCU->setCbfSubParts ( 0, TEXT_LUMA, uiAbsPartIdx, uiDepth );
+#if HHI_RQT_ROOT && HHI_RQT_CHROMA_CBF_MOD
+    if( pcCU->getPredictionMode(uiAbsPartIdx) != MODE_INTRA && uiDepth == pcCU->getDepth( uiAbsPartIdx ) && !pcCU->getCbf( uiAbsPartIdx, TEXT_CHROMA_U, 0 ) && !pcCU->getCbf( uiAbsPartIdx, TEXT_CHROMA_V, 0 ) )
+    {
+      pcCU->setCbfSubParts( 1 << uiLumaTrMode, TEXT_LUMA, uiAbsPartIdx, uiDepth );
+    }
+    else
+#endif
     m_pcEntropyDecoderIf->parseQtCbf( pcCU, uiAbsPartIdx, TEXT_LUMA, uiLumaTrMode, uiDepth );
 #if HHI_RQT_CHROMA_CBF_MOD
     if( pcCU->getPredictionMode(uiAbsPartIdx) == MODE_INTRA )
@@ -2311,6 +2318,20 @@ Void TDecEntropy::decodeCoeff( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth
   }
   else
   {
+#if HHI_RQT_ROOT
+    if( pcCU->getSlice()->getSPS()->getQuadtreeTUFlag() )
+    {
+      UInt uiQtRootCbf;
+      m_pcEntropyDecoderIf->parseQtRootCbf( pcCU, uiAbsPartIdx, uiDepth, uiQtRootCbf );
+      if ( !uiQtRootCbf )
+      {
+        pcCU->setCbfSubParts( 0, 0, 0, uiAbsPartIdx, uiDepth );
+        pcCU->setTrIdxSubParts( 0 , uiAbsPartIdx, uiDepth );
+        return;
+      }
+    }
+#endif
+
     m_pcEntropyDecoderIf->parseCbf( pcCU, uiAbsPartIdx, TEXT_LUMA, 0, uiDepth );
     m_pcEntropyDecoderIf->parseCbf( pcCU, uiAbsPartIdx, TEXT_CHROMA_U, 0, uiDepth );
     m_pcEntropyDecoderIf->parseCbf( pcCU, uiAbsPartIdx, TEXT_CHROMA_V, 0, uiDepth );

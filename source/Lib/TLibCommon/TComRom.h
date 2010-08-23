@@ -166,7 +166,7 @@ extern const Short kltCol8x8[9][8][8];
 
 #endif
 #if HHI_TRANSFORM_CODING
-extern       UInt*  g_auiSigLastScan[ MAX_CU_DEPTH  ][ 2 ];
+extern       UInt*  g_auiSigLastScan[ MAX_CU_DEPTH+1  ][ 2 ];
 #endif
 
 // ====================================================================================================================

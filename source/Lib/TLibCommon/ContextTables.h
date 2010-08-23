@@ -67,6 +67,9 @@
 #if HHI_RQT
 #define NUM_TRANS_SUBDIV_FLAG_CTX     10      ///< number of context models for transform subdivision flags
 #define NUM_QT_CBF_CTX                15      ///< number of context models for QT CBF
+#if HHI_RQT_ROOT
+#define NUM_QT_ROOT_CBF_CTX           4       ///< number of context models for QT ROOT CBF
+#endif
 #endif
 #define NUM_TRANS_IDX_CTX             4       ///< number of context models for transform index
 #define NUM_DELTA_QP_CTX              4       ///< number of context models for dQP
@@ -465,6 +468,22 @@ INIT_QT_CBF[3][3*NUM_QT_CBF_CTX][2] =
     {    0,   64 }
   }
 };
+
+#if HHI_RQT_ROOT
+static const Short
+INIT_QT_ROOT_CBF[3][NUM_QT_ROOT_CBF_CTX][2] =
+{
+  {
+    {    0,   64 }, {    0,   64 }, {    0,   64 }, {    0,   64 },
+  },
+  {
+    {  -22,   85 }, {  -15,   86 }, {  -13,   84 }, {  -23,  116 },
+  },
+  {
+    {  -36,  103 }, {  -21,   95 }, {  -21,   97 }, {  -24,  114 },
+  }
+};
+#endif
 #endif
 
 #if HHI_TRANSFORM_CODING
