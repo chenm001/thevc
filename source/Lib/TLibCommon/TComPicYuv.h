@@ -138,6 +138,10 @@ public:
   Pel*  getCbAddr   ( Int iCuAddr, Int uiAbsZorderIdx );
   Pel*  getCrAddr   ( Int iCuAddr, Int uiAbsZorderIdx );
 
+#if BUGFIX50TMP
+  Pel *getMaxAddr   ()     { return m_apiPicBufY + (2*m_iLumaMarginY+m_iPicHeight) * (2*m_iLumaMarginX+m_iPicWidth); } 
+#endif
+  
   // ------------------------------------------------------------------------------------------------
   //  Miscellaneous
   // ------------------------------------------------------------------------------------------------

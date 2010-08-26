@@ -759,7 +759,11 @@ Void TEncSIFO::xAccumulateError_P(TComPic*& rpcPic)
         {
           for( x = 0; x < BasicUnit_Width; x++ )
           {	
+#if BUGFIX50TMP
+            xGetInterpolatedPixelArray(intPixelTab, (pRefY+x), uiLPelX, uiTPelY, iRefStride, pcPicRef->getWidth(), pcPicRef->getMaxAddr(), uiSubPos);
+#else
             xGetInterpolatedPixelArray(intPixelTab, (pRefY+x), uiLPelX, uiTPelY, iRefStride, pcPicRef->getWidth(), pcPicRef->getHeight(), uiSubPos);
+#endif
             for(f = 0; f < NUM_SIFO_TAB[uiSubPos]; ++f)
             {
               iTemp = *(pOrgY+x) - intPixelTab[f];
@@ -775,7 +779,11 @@ Void TEncSIFO::xAccumulateError_P(TComPic*& rpcPic)
   }
 }
 
+#if BUGFIX50TMP
+Void TEncSIFO:: xGetInterpolatedPixelArray(int out[16], Pel *imgY, int x, int y, int Stride, int img_width, Pel *maxAddr, UInt sub_pos)
+#else
 Void TEncSIFO:: xGetInterpolatedPixelArray(int out[16], Pel *imgY, int x, int y, int Stride, int img_width, int img_height, UInt sub_pos)
+#endif
 {
   Double ipVal[16];
   Int ii, jj;
@@ -802,8 +810,14 @@ Void TEncSIFO:: xGetInterpolatedPixelArray(int out[16], Pel *imgY, int x, int y,
       imgY_tmp1 = imgY_tmp;
       for(jj = 0; jj < filter_length; ++jj)
       {
+#if BUGFIX50TMP
+        if (imgY_tmp1 >= maxAddr)
+          break;
+#endif
         for (filterNo=0; filterNo < NUM_SIFO_TAB[sub_pos]; filterNo++)
+        {
           ipVal[filterNo] += (SIFO_FILTER[filterNo][sub_pos][filter_length * ii + jj] * (*imgY_tmp1));
+        }
         imgY_tmp1++;
       }
       imgY_tmp += Stride;
@@ -1346,8 +1360,13 @@ Void TEncSIFO::xAccumulateError_B(TComPic*& rpcPic)
         {
           for( x = 0; x < BasicUnit_Width; x++ )
           {	
+#if BUGFIX50TMP
+            xGetInterpolatedPixelArray(intPixelTabF, (pRefY0+x), uiLPelX, uiTPelY, iRefStride0, pcPicRefBi[0]->getWidth(), pcPicRefBi[0]->getMaxAddr(), uiSubPos0);
+            xGetInterpolatedPixelArray(intPixelTabB, (pRefY1+x), uiLPelX, uiTPelY, iRefStride1, pcPicRefBi[1]->getWidth(), pcPicRefBi[1]->getMaxAddr(), uiSubPos1);
+#else
             xGetInterpolatedPixelArray(intPixelTabF, (pRefY0+x), uiLPelX, uiTPelY, iRefStride0, pcPicRefBi[0]->getWidth(), pcPicRefBi[0]->getHeight(), uiSubPos0);
             xGetInterpolatedPixelArray(intPixelTabB, (pRefY1+x), uiLPelX, uiTPelY, iRefStride1, pcPicRefBi[1]->getWidth(), pcPicRefBi[1]->getHeight(), uiSubPos1);
+#endif
             for(f0 = 0; f0 < num_AVALABLE_FILTERS; ++f0)
             {
               for(f1 = 0; f1 < num_AVALABLE_FILTERS; ++f1)
@@ -1357,10 +1376,17 @@ Void TEncSIFO::xAccumulateError_B(TComPic*& rpcPic)
                 SequenceAccErrorB[f0][f1][uiSubPos0][uiSubPos1] += uiSSD;
               }
             }
+#if !BUGFIX50
             pOrgY  += iOrgStride;
             pRefY0 += iRefStride0;			
             pRefY1 += iRefStride1;
+#endif
           }  	
+#if BUGFIX50
+          pOrgY  += iOrgStride;
+          pRefY0 += iRefStride0;			
+          pRefY1 += iRefStride1;
+#endif
         }
       }
       else
@@ -1406,7 +1432,11 @@ Void TEncSIFO::xAccumulateError_B(TComPic*& rpcPic)
           for( x = 0; x < BasicUnit_Width; x++ )
           {	
             // Unidirectional error is accumulated along the diagonal
+#if BUGFIX50TMP
+            xGetInterpolatedPixelArray(intPixelTab, (pRefY+x), uiLPelX, uiTPelY, iRefStride, pcPicRef->getWidth(), pcPicRef->getMaxAddr(), uiSubPos);
+#else
             xGetInterpolatedPixelArray(intPixelTab, (pRefY+x), uiLPelX, uiTPelY, iRefStride, pcPicRef->getWidth(), pcPicRef->getHeight(), uiSubPos);
+#endif
             for(f = 0; f < num_AVALABLE_FILTERS; ++f)
             {
               iTemp = *(pOrgY+x) - intPixelTab[f];

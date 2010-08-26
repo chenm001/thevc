@@ -151,6 +151,8 @@ void normalizeScanStats();
 #endif
 
 #define BUGFIX48 0
+#define BUGFIX50 0
+#define BUGFIX50TMP 1 // for compatibility with previous versions without the crash
 
 ///////////////////////////////
 // QUALCOMM defines section end

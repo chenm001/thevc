@@ -80,7 +80,11 @@ protected:
   Double xGet_min_d(Double ****err, Int old_d[16], Int new_d[16], Double currSAD);
   Void xUpdateSequenceFilters_B(TComSlice* pcSlice, Double ****err, Int combination[16]);
   Void xUpdateSequenceFilters_B_pred(TComSlice* pcSlice, Double ****err, Int combination[16]);
+#if BUGFIX50TMP
+  Void xGetInterpolatedPixelArray(Int out[16], Pel* imgY, Int x, Int y, Int stride, Int img_width, Pel *maxAddr, UInt sub_pos);
+#else
   Void xGetInterpolatedPixelArray(Int out[16], Pel* imgY, Int x, Int y, Int stride, Int img_width, Int img_height, UInt sub_pos);
+#endif
   Double  xGetDCdiff(TComSlice* rpcSlice, RefPicList list, Int ref);
   Int     xGet_thDC(TComSlice* rpcSlice);
   Void    xBlockDC(TComSlice* rpcSlice, RefPicList list, Int *DCmin, Int *DCmax, Int noSamples);
