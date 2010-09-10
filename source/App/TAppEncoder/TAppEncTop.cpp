@@ -133,9 +133,7 @@ Void TAppEncTop::xInitLibCfg()
 #if HHI_ALLOW_CIP_SWITCH
 	m_cTEncTop.setUseCIP                       ( m_bUseCIP      );
 #endif
-#if HHI_ALLOW_ROT_SWITCH
 	m_cTEncTop.setUseROT                       ( m_bUseROT			);
-#endif
 #if HHI_AIS
   m_cTEncTop.setUseAIS                       ( m_bUseAIS      ); // BB:
 #endif
@@ -154,7 +152,13 @@ Void TAppEncTop::xInitLibCfg()
 #ifdef QC_SIFO_PRED
     m_cTEncTop.setUseSIFO_Pred                ( m_bUseSIFO_Pred );
 #endif
+#ifdef DCM_PBIC 
+  m_cTEncTop.setUseIC                        ( m_bUseIC       );
+#endif
     m_cTEncTop.setUseAMP                      ( m_bUseAMP );
+#if HHI_RMP_SWITCH
+    m_cTEncTop.setUseRMP                     ( m_bUseRMP );
+#endif
 
 }
 

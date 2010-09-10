@@ -107,6 +107,10 @@ typedef struct
   Bool lowerInt;
 } levelDataStruct;
 
+#if LCEC_PHASE2
+class TEncCavlc;
+#endif
+
 // ====================================================================================================================
 // Class definition
 // ====================================================================================================================
@@ -191,14 +195,14 @@ public:
   ~TComTrQuant();
 
   // initialize class
-#if HHI_ALLOW_ROT_SWITCH
-#if NEWVLC
-  Void init                 ( UInt uiMaxWidth, UInt uiMaxHeight, UInt uiMaxTrSize, Bool bUseROT, Int iSymbolMode = 0, Bool bUseRDOQ = false,  Bool bEnc = false );
+#if LCEC_PHASE1
+#if LCEC_PHASE2
+  Void init                 ( UInt uiMaxWidth, UInt uiMaxHeight, UInt uiMaxTrSize, Bool bUseROT, Int iSymbolMode = 0, UInt *aTable4 = NULL, UInt *aTable8 = NULL, Bool bUseRDOQ = false,  Bool bEnc = false );
 #else
-  Void init                 ( UInt uiMaxWidth, UInt uiMaxHeight, UInt uiMaxTrSize, Bool bUseROT, Bool bUseRDOQ = false, Bool bEnc = false );
+  Void init                 ( UInt uiMaxWidth, UInt uiMaxHeight, UInt uiMaxTrSize, Bool bUseROT, Int iSymbolMode = 0, Bool bUseRDOQ = false,  Bool bEnc = false );
 #endif
 #else
-  Void init                 ( UInt uiMaxWidth, UInt uiMaxHeight, UInt uiMaxTrSize, Bool bUseRDOQ = false, Bool bEnc = false );
+  Void init                 ( UInt uiMaxWidth, UInt uiMaxHeight, UInt uiMaxTrSize, Bool bUseROT, Bool bUseRDOQ = false, Bool bEnc = false );
 #endif
 
   // transform & inverse transform functions
@@ -253,13 +257,15 @@ protected:
   Double   m_dLambda;
 
   UInt     m_uiMaxTrSize;
-#if HHI_ALLOW_ROT_SWITCH
-	Bool		 m_bUseROT;
-#endif
+  Bool	   m_bUseROT;
   Bool     m_bEnc;
   Bool     m_bUseRDOQ;
 
-#if NEWVLC
+#if LCEC_PHASE1
+#if LCEC_PHASE2
+  UInt     *m_uiLPTableE8;
+  UInt     *m_uiLPTableE4;
+#endif
   Int      m_iSymbolMode;
 #endif
 
@@ -294,9 +300,9 @@ private:
   Void xQuant8x8  ( TComDataCU* pcCU, Long* plSrcCoef, TCoeff*& pDstCoef, UInt& uiAbsSum, TextType eTType, UInt uiAbsPartIdx, UChar indexROT );
 
   // RDOQ functions
-#if NEWVLC
-  Int            bitCountVLC(Int k,Int pos,Int n,Int lpflag,Int levelMode,Int run,Int maxrun,Int vlc_adaptive,Int N);
-  Void           xRateDistOptQuant_VLC ( TComDataCU*                     pcCU,
+#if LCEC_PHASE1
+  Int            bitCount_LCEC(Int k,Int pos,Int n,Int lpflag,Int levelMode,Int run,Int maxrun,Int vlc_adaptive,Int N);
+  Void           xRateDistOptQuant_LCEC ( TComDataCU*                     pcCU,
                                         Long*                           plSrcCoeff,
                                         TCoeff*&                        piDstCoeff,
                                         UInt                            uiWidth,

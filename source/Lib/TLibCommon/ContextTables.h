@@ -63,6 +63,11 @@
 #define NUM_CHROMA_PRED_CTX           4       ///< number of context models for intra prediction (chroma)
 #define NUM_INTER_DIR_CTX             4       ///< number of context models for inter prediction direction
 #define NUM_MV_RES_CTX                7       ///< number of context models for motion vector difference
+
+#ifdef DCM_PBIC
+#define NUM_IC_RES_CTX                7       ///< number of context models for IC parameter difference
+#endif
+
 #define NUM_REF_NO_CTX                6       ///< number of context models for reference index
 #if HHI_RQT
 #define NUM_TRANS_SUBDIV_FLAG_CTX     10      ///< number of context models for transform subdivision flags
@@ -88,6 +93,14 @@
 #endif
 
 #define NUM_MVP_IDX_CTX               2       ///< number of context models for MVP index
+
+#ifdef DCM_PBIC
+#define NUM_ICP_IDX_CTX               2       ///< number of context models for ICP index
+#define NUM_ZTREE_MV0_CTX             1       ///< number of context models for coding zero flag related to MVD & ICD
+#define NUM_ZTREE_MV1_CTX             6       ///< number of context models for coding MVD & ICD (Uni-pred case)
+#define NUM_ZTREE_MV2_CTX            12       ///< number of context models for coding MVD & ICD ( Bi-pred case)
+#endif
+
 #define NUM_ROT_IDX_CTX               3       ///< number of context models for ROT index
 #define NUM_CIP_FLAG_CTX              3       ///< number of context models for CIP flag
 #define NUM_ALF_FLAG_CTX              1       ///< number of context models for ALF flag
@@ -352,6 +365,25 @@ static const Short INIT_MVD[3][14][2] =
     {    5,   64 }, {   10,   67 }
   }
 };
+
+#ifdef DCM_PBIC
+// initial probability for IC parameter difference
+static const Short INIT_ICD[3][21][2] = 
+{
+  // for I slice
+  {{0,64},{0,64},{0,64},{0,64},{0,64},{0,64},{0,64},
+   {0,64},{0,64},{0,64},{0,64},{0,64},{0,64},{0,64},
+   {0,64},{0,64},{0,64},{0,64},{0,64},{0,64},{0,64}},
+  // for P slice
+  {{0,64},{0,64},{0,64},{0,64},{0,64},{0,64},{0,64},
+   {0,64},{0,64},{0,64},{0,64},{0,64},{0,64},{0,64},
+   {0,64},{0,64},{0,64},{0,64},{0,64},{0,64},{0,64}},
+  // for B slice
+  {{0,64},{0,64},{0,64},{0,64},{0,64},{0,64},{0,64},
+   {0,64},{0,64},{0,64},{0,64},{0,64},{0,64},{0,64},
+   {0,64},{0,64},{0,64},{0,64},{0,64},{0,64},{0,64}}
+};
+#endif 
 
 // initial probability for reference frame index
 static const Short
@@ -1476,6 +1508,52 @@ INIT_MVP_IDX[3][NUM_MVP_IDX_CTX][2] =
     {    0,   64 }, {    0,   64 }
   }
 };
+
+#ifdef DCM_PBIC
+// initial probability for intensity compensation predictor index
+static const Short INIT_ICP_IDX[3][NUM_ICP_IDX_CTX][2] = 
+{
+  // for I slice
+  {{0,64},{0,64}},
+  // for P slice
+  {{0,64},{0,64}},
+  // for B slice
+  {{0,64},{0,64}}
+};
+
+// initial probability for zero flag of zero tree
+static const Short INIT_ZTree_MV0[3][NUM_ZTREE_MV0_CTX][2] = 
+{
+  // for I slice
+  {{0,64}},
+  // for P slice
+  {{0,64}},
+  // for B slice
+  {{0,64}}
+};
+
+// initial probability for zero tree used to code MV and IC parameters in Uni-Pred case
+static const Short INIT_ZTree_MV1[3][NUM_ZTREE_MV1_CTX][2] = 
+{
+  // for I slice
+  {{0,64},{0,64},{0,64},{0,64},{0,64},{0,64}},
+  // for P slice
+  {{0,36},{0,117},{0,64},{0,59},{0,51},{0,80}},
+  // for B slice
+  {{0,36},{0,117},{0,64},{0,59},{0,51},{0,80}}
+};
+
+// initial probability for zero tree used to code MV and IC parameters in Bi-Pred case
+static const Short INIT_ZTree_MV2[3][NUM_ZTREE_MV2_CTX][2] = 
+{
+  // for I slice
+  {{0,64},{0,64},{0,64},{0,64},{0,64},{0,64},{0,64},{0,64},{0,64},{0,64},{0,64},{0,64}},
+  // for P slice
+  {{0,64},{0,64},{0,64},{0,64},{0,64},{0,64},{0,64},{0,64},{0,64},{0,64},{0,64},{0,64}},
+  // for B slice
+  {{0,30},{0,123},{0,68},{0,51},{0,63},{0,64},{0,64},{0,68},{0,43},{0,59},{0,43},{0,63}}
+};
+#endif
 
 // initial probability for ROT index
 static const Short

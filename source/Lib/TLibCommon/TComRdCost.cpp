@@ -48,7 +48,9 @@ TComRdCost::~TComRdCost()
 }
 
 #ifdef ROUNDING_CONTROL_BIPRED
+#ifndef ROUNDING_CONTROL_BIPRED_FIX
   __inline Pel  xClip  (Pel x )      { return ( (x < 0) ? 0 : (x > (Pel)g_uiIBDI_MAX) ? (Pel)g_uiIBDI_MAX : x ); }
+#endif
 #endif
 
 // Calculate RD functions
@@ -172,8 +174,13 @@ Void TComRdCost::init()
   m_afpDistortFunc[21] = TComRdCost::xGetSADs16N;
 
   m_afpDistortFunc[22] = TComRdCost::xGetHADs;
+#ifdef DCM_RDCOST_TEMP_FIX //Temporary fix since xGetHADs4 and xGetHADs8 assume that the row size cannot be 1, 2, 3 or 6 when the column size is 4 or 8.
+  m_afpDistortFunc[23] = TComRdCost::xGetHADs;
+  m_afpDistortFunc[24] = TComRdCost::xGetHADs;
+#else
   m_afpDistortFunc[23] = TComRdCost::xGetHADs4;
   m_afpDistortFunc[24] = TComRdCost::xGetHADs8;
+#endif
   m_afpDistortFunc[25] = TComRdCost::xGetHADs;
   m_afpDistortFunc[26] = TComRdCost::xGetHADs;
   m_afpDistortFunc[27] = TComRdCost::xGetHADs;
@@ -438,6 +445,9 @@ UInt TComRdCost::getDistPart( Pel* piCur, Int iCurStride,  Pel* piOrg, Int iOrgS
   cDtParam.pCur       = piCur;
   cDtParam.iStrideOrg = iOrgStride;
   cDtParam.iStrideCur = iCurStride;
+#ifdef DCM_RDCOST_TEMP_FIX //Temporary fix since DistParam is lacking a constructor and the variable iStep is not initialized
+  cDtParam.iStep      = 1;
+#endif
   return cDtParam.DistFunc( &cDtParam );
 }
 
@@ -468,7 +478,11 @@ UInt TComRdCost::xGetSAD( DistParam* pcDtParam, Pel* pRefY, Bool bRound )
   {
     for (Int n = 0; n < iCols; n++ )
     {
+#ifdef ROUNDING_CONTROL_BIPRED_FIX
+	  pred = (piCur[n] + piRef[n] + bRound) >> 1 ;
+#else
 	  pred = xClip( (piCur[n] + piRef[n] + bRound) >> 1 );
+#endif
 	  uiSum += abs( piOrg[n] - pred );
     }
     piOrg += iStrideOrg;
@@ -498,7 +512,11 @@ UInt TComRdCost::xGetSAD4( DistParam* pcDtParam, Pel* pRefY, Bool bRound )
   {
 	  for(i = 0; i < 4; i++)
 	  {
+#ifdef ROUNDING_CONTROL_BIPRED_FIX
+		pred = (piCur[i] + piRef[i] + bRound) >> 1 ;
+#else
 		pred = xClip( (piCur[i] + piRef[i] + bRound) >> 1 );
+#endif
 		uiSum += abs( piOrg[i] - pred );
 	  }
       piOrg += iStrideOrg;
@@ -529,7 +547,11 @@ UInt TComRdCost::xGetSAD8( DistParam* pcDtParam, Pel* pRefY, Bool bRound )
   {
 	  for( i = 0; i < 8; i++)
 	  {
+#ifdef ROUNDING_CONTROL_BIPRED_FIX
+		pred = (piCur[i] + piRef[i] + bRound) >> 1 ;
+#else
 		pred = xClip( (piCur[i] + piRef[i] + bRound) >> 1 );
+#endif
 		uiSum += abs( piOrg[i] - pred );
 	  }
       piOrg += iStrideOrg;
@@ -560,7 +582,11 @@ UInt TComRdCost::xGetSAD16( DistParam* pcDtParam, Pel* pRefY, Bool bRound )
   {
 	  for( i = 0; i < 16; i++)
 	  {
+#ifdef ROUNDING_CONTROL_BIPRED_FIX
+		pred = (piCur[i] + piRef[i] + bRound) >> 1 ;
+#else
 		pred = xClip( (piCur[i] + piRef[i] + bRound) >> 1 );
+#endif
 		uiSum += abs( piOrg[i] - pred );
 	  }
       piOrg += iStrideOrg;
@@ -594,7 +620,11 @@ UInt TComRdCost::xGetSAD16N( DistParam* pcDtParam, Pel* pRefY, Bool bRound )
     {
       for(i = 0; i < 16; i++)
 	  {
+#ifdef ROUNDING_CONTROL_BIPRED_FIX
+		  pred = (piCur[n+ i] + piRef[n+ i] + bRound) >> 1 ;
+#else
 		  pred = xClip( (piCur[n+ i] + piRef[n+ i] + bRound) >> 1 );
+#endif
 		  uiSum += abs( piOrg[n+ i] - pred );
 	  }
     }
@@ -626,7 +656,11 @@ UInt TComRdCost::xGetSAD32( DistParam* pcDtParam, Pel* pRefY, Bool bRound )
   {
 	  for(i = 0; i < 32; i++)
 	  {
+#ifdef ROUNDING_CONTROL_BIPRED_FIX
+		  pred = (piCur[i] + piRef[i] + bRound) >> 1 ;
+#else
 		  pred = xClip( (piCur[i] + piRef[i] + bRound) >> 1 );
+#endif
 		  uiSum += abs( piOrg[i] - pred );
 	  }
       piOrg += iStrideOrg;
@@ -657,7 +691,11 @@ UInt TComRdCost::xGetSAD64( DistParam* pcDtParam, Pel* pRefY, Bool bRound )
   {
 	  for(i = 0; i < 64; i++)
 	  {
+#ifdef ROUNDING_CONTROL_BIPRED_FIX
+		  pred = (piCur[i] + piRef[i] + bRound) >> 1 ;
+#else
 		  pred = xClip( (piCur[i] + piRef[i] + bRound) >> 1 );
+#endif
 		  uiSum += abs( piOrg[i] - pred );
 	  }
       piOrg += iStrideOrg;
@@ -1000,7 +1038,11 @@ UInt TComRdCost::xGetSADs( DistParam* pcDtParam, Pel* pRefY, Bool bRound )
   {
     for (Int n = 0; n < iCols; n++ )
     {
+#ifdef ROUNDING_CONTROL_BIPRED_FIX
+	  pred = (piCur[n*iStep] + piRef[n] + bRound) >> 1 ;
+#else
 	  pred = xClip( (piCur[n*iStep] + piRef[n] + bRound) >> 1 );
+#endif
       uiSum += abs( piOrg[n] - pred );
     }
     piOrg += iStrideOrg;
@@ -1029,7 +1071,11 @@ UInt TComRdCost::xGetSADs4( DistParam* pcDtParam, Pel* pRefY, Bool bRound )
   {
     for(i = 0; i < 4; i++)
 	{
+#ifdef ROUNDING_CONTROL_BIPRED_FIX
+		pred = (piCur[i*iStep] + piRef[i] + bRound) >> 1 ;
+#else
 		pred = xClip( (piCur[i*iStep] + piRef[i] + bRound) >> 1 );
+#endif
 		uiSum += abs( piOrg[i] - pred );
 	}
     piOrg += iStrideOrg;
@@ -1058,7 +1104,11 @@ UInt TComRdCost::xGetSADs8( DistParam* pcDtParam, Pel* pRefY, Bool bRound )
   {
 	  for(i = 0; i < 8; i++)
 	  {
+#ifdef ROUNDING_CONTROL_BIPRED_FIX
+		pred = (piCur[i*iStep] + piRef[i] + bRound) >> 1 ;
+#else
 		  pred = xClip( (piCur[i*iStep] + piRef[i] + bRound) >> 1 );
+#endif
 		  uiSum += abs( piOrg[i] - pred );
 	  }
       piOrg += iStrideOrg;
@@ -1087,7 +1137,11 @@ UInt TComRdCost::xGetSADs16( DistParam* pcDtParam, Pel* pRefY, Bool bRound )
   {
 	  for(i = 0; i < 16; i++)
 	  {
+#ifdef ROUNDING_CONTROL_BIPRED_FIX
+		pred = (piCur[i*iStep] + piRef[i] + bRound) >> 1 ;
+#else
 		pred = xClip( (piCur[i*iStep] + piRef[i] + bRound) >> 1 );
+#endif
 		uiSum += abs( piOrg[i] - pred );
 	  }
 	  piOrg += iStrideOrg;
@@ -1119,7 +1173,11 @@ UInt TComRdCost::xGetSADs16N( DistParam* pcDtParam, Pel* pRefY, Bool bRound )
     {
 		for(i = 0; i < 16; i++)
 		{
+#ifdef ROUNDING_CONTROL_BIPRED_FIX
+		pred = (piCur[iStep*(n +i)] + piRef[n + i] + bRound) >> 1 ;
+#else
 			pred = xClip( (piCur[iStep*(n +i)] + piRef[n + i] + bRound) >> 1 );
+#endif
 			uiSum += abs( piOrg[n +i] -  pred );
 		}
     }
@@ -1149,7 +1207,12 @@ UInt TComRdCost::xGetSADs32( DistParam* pcDtParam, Pel* pRefY, Bool bRound )
   {
 	  for(i = 0; i < 32; i++)
 	  {
+#ifdef ROUNDING_CONTROL_BIPRED_FIX
+		pred = (piCur[iStep*i] + piRef[i] + bRound) >> 1 ;
+#else
 		pred = xClip( (piCur[iStep*i] + piRef[i] + bRound) >> 1 );
+#endif
+
 		uiSum += abs( piOrg[i] - pred );
 	  }
       piOrg += iStrideOrg;
@@ -1178,7 +1241,11 @@ UInt TComRdCost::xGetSADs64( DistParam* pcDtParam, Pel* pRefY, Bool bRound )
   {
 	  for(i = 0; i < 64; i++)
 	  {
+#ifdef ROUNDING_CONTROL_BIPRED_FIX
+		pred = (piCur[iStep*i] + piRef[i] + bRound) >> 1 ;
+#else
 		pred = xClip( (piCur[iStep*i] + piRef[i] + bRound) >> 1 );
+#endif
 		uiSum += abs( piOrg[i] - pred );
 	  }
       piOrg += iStrideOrg;
@@ -1625,7 +1692,11 @@ UInt TComRdCost::xGetSSE( DistParam* pcDtParam, Pel* pRefY, Bool bRound )
   {
     for (Int n = 0; n < iCols; n++ )
     {
+#ifdef ROUNDING_CONTROL_BIPRED_FIX
+	  pred = (piCur[n] + piRef[n] + bRound) >> 1 ;
+#else
 	  pred = xClip( (piCur[n] + piRef[n] + bRound) >> 1 );
+#endif
       iTemp = piOrg[n] - pred;
       uiSum += ( iTemp * iTemp ) >> uiShift;
     }
@@ -1657,7 +1728,11 @@ UInt TComRdCost::xGetSSE4( DistParam* pcDtParam, Pel* pRefY, Bool bRound )
   {
 	  for(i = 0; i < 4; i++)
 	  {
+#ifdef ROUNDING_CONTROL_BIPRED_FIX
+	  pred = (piCur[i] + piRef[i] + bRound) >> 1;
+#else
 		  pred = xClip( (piCur[i] + piRef[i] + bRound) >> 1 );
+#endif
 		  iTemp = piOrg[i] - pred; uiSum += ( iTemp * iTemp ) >> uiShift;
 	  }    
       piOrg += iStrideOrg;
@@ -1688,7 +1763,11 @@ UInt TComRdCost::xGetSSE8( DistParam* pcDtParam, Pel* pRefY, Bool bRound )
   {
 	  for(i = 0; i < 8; i++)
 	  {
+#ifdef ROUNDING_CONTROL_BIPRED_FIX
+		pred = (piCur[i] + piRef[i] + bRound) >> 1;
+#else
 		pred = xClip( (piCur[i] + piRef[i] + bRound) >> 1);
+#endif
 		iTemp = piOrg[i] - pred; uiSum += ( iTemp * iTemp ) >> uiShift;
 	  }
       piOrg += iStrideOrg;
@@ -1719,7 +1798,11 @@ UInt TComRdCost::xGetSSE16( DistParam* pcDtParam, Pel* pRefY, Bool bRound )
   {
 	for(i = 0; i < 16; i++)
 	{
+#ifdef ROUNDING_CONTROL_BIPRED_FIX
+		pred = (piCur[i] + piRef[i] + bRound) >> 1;
+#else
 		pred = xClip( (piCur[i] + piRef[i] + bRound) >> 1);
+#endif
 		iTemp = piOrg[i] - pred; uiSum += ( iTemp * iTemp ) >> uiShift;
 	}
     piOrg += iStrideOrg;
@@ -1752,7 +1835,11 @@ UInt TComRdCost::xGetSSE16N( DistParam* pcDtParam, Pel* pRefY, Bool bRound )
     {
 		for(i = 0; i < 16; i++)
 		{
+#ifdef ROUNDING_CONTROL_BIPRED_FIX
+		pred = (piCur[n+ i] + piRef[n+ i] + bRound) >> 1;
+#else
 			pred = xClip( (piCur[n+ i] + piRef[n+ i] + bRound) >> 1);
+#endif
 			iTemp = piOrg[n+ i] - pred; uiSum += ( iTemp * iTemp ) >> uiShift;
 		}
     }
@@ -1783,7 +1870,11 @@ UInt TComRdCost::xGetSSE32( DistParam* pcDtParam, Pel* pRefY, Bool bRound )
   {
 	for(i = 0; i < 32; i++)
 	{
+#ifdef ROUNDING_CONTROL_BIPRED_FIX
+		pred = (piCur[i] + piRef[i] + bRound) >> 1;
+#else
 		pred = xClip( (piCur[i] + piRef[i] + bRound) >> 1);
+#endif
 		iTemp = piOrg[i] - pred; uiSum += ( iTemp * iTemp ) >> uiShift;
 	}
     piOrg += iStrideOrg;
@@ -1813,7 +1904,11 @@ UInt TComRdCost::xGetSSE64( DistParam* pcDtParam, Pel* pRefY, Bool bRound )
   {
 	for(i = 0; i < 32; i++)
 	{
+#ifdef ROUNDING_CONTROL_BIPRED_FIX
+		pred = (piCur[i] + piRef[i] + bRound) >> 1;
+#else
 		pred = xClip( (piCur[i] + piRef[i] + bRound) >> 1);
+#endif
 		iTemp = piOrg[i] - pred; uiSum += ( iTemp * iTemp ) >> uiShift;
 	}
     piOrg += iStrideOrg;
@@ -2148,6 +2243,16 @@ UInt TComRdCost::xCalcHADs2x2( Pel *piOrg, Pel *piCur, Int iStrideOrg, Int iStri
   Int satd = 0, diff[4], m[4];
   Pel pred;
 
+#ifdef ROUNDING_CONTROL_BIPRED_FIX
+  pred = ( (piCur[0] + pRefY[0] + bRound) >> 1);
+  diff[0] = (piOrg[0             ] - pred) << 1;
+  pred = ( (piCur[iStep] + pRefY[1] + bRound) >> 1);
+  diff[1] = (piOrg[1             ] - pred) << 1;
+  pred = ( (piCur[iStrideCur] + pRefY[refYStride] + bRound) >> 1);
+  diff[2] = (piOrg[iStrideOrg    ] - pred) << 1;
+  pred = ( (piCur[iStep + iStrideCur] + pRefY[refYStride + 1] + bRound) >> 1);
+  diff[3] = (piOrg[iStrideOrg + 1] - pred) << 1;
+#else
   pred = xClip( (piCur[0] + pRefY[0] + bRound) >> 1);
   diff[0] = (piOrg[0             ] - pred) << 1;
   pred = xClip( (piCur[iStep] + pRefY[1] + bRound) >> 1);
@@ -2156,6 +2261,7 @@ UInt TComRdCost::xCalcHADs2x2( Pel *piOrg, Pel *piCur, Int iStrideOrg, Int iStri
   diff[2] = (piOrg[iStrideOrg    ] - pred) << 1;
   pred = xClip( (piCur[iStep + iStrideCur] + pRefY[refYStride + 1] + bRound) >> 1);
   diff[3] = (piOrg[iStrideOrg + 1] - pred) << 1;
+#endif
 
   m[0] = diff[0] + diff[2];
   m[1] = diff[1] + diff[3];
@@ -2178,6 +2284,16 @@ UInt TComRdCost::xCalcHADs4x4( Pel *piOrg, Pel *piCur, Int iStrideOrg, Int iStri
 
   for( k = 0; k < 16; k+=4 )
   {
+#ifdef ROUNDING_CONTROL_BIPRED_FIX
+    pred = ( (piCur[0*iStep] + piRef[0] + bRound) >> 1);
+    diff[k+0] = (piOrg[0] - pred) << 1;
+	pred = ( (piCur[1*iStep] + piRef[1] + bRound) >> 1);
+    diff[k+1] = (piOrg[1] - pred) << 1;
+	pred = ( (piCur[2*iStep] + piRef[2] + bRound) >> 1);
+    diff[k+2] = (piOrg[2] - pred) << 1;
+	pred = ( (piCur[3*iStep] + piRef[3] + bRound) >> 1);
+    diff[k+3] = (piOrg[3] - pred) << 1;
+#else
     pred = xClip( (piCur[0*iStep] + piRef[0] + bRound) >> 1);
     diff[k+0] = (piOrg[0] - pred) << 1;
 	pred = xClip( (piCur[1*iStep] + piRef[1] + bRound) >> 1);
@@ -2186,6 +2302,7 @@ UInt TComRdCost::xCalcHADs4x4( Pel *piOrg, Pel *piCur, Int iStrideOrg, Int iStri
     diff[k+2] = (piOrg[2] - pred) << 1;
 	pred = xClip( (piCur[3*iStep] + piRef[3] + bRound) >> 1);
     diff[k+3] = (piOrg[3] - pred) << 1;
+#endif
 
     piCur += iStrideCur;
     piOrg += iStrideOrg;
@@ -2281,7 +2398,11 @@ UInt TComRdCost::xCalcHADs8x8( Pel *piOrg, Pel *piCur, Int iStrideOrg, Int iStri
   {
 	  for(i = 0; i < 8; i++)
 	  {
+#ifdef ROUNDING_CONTROL_BIPRED_FIX
+		pred = ( (piCur[i*iStep] + piRef[i] + bRound) >> 1 );
+#else
 		pred = xClip( (piCur[i*iStep] + piRef[i] + bRound) >> 1 );
+#endif
 		diff[k+i] = (piOrg[i] - pred) << 1;
 	  }
       piCur += iStrideCur;
@@ -2795,18 +2916,37 @@ UInt TComRdCost::xGetHADs( DistParam* pcDtParam )
       piCur += iOffsetCur;
     }
   }
+#ifdef DCM_RDCOST_TEMP_FIX //Temporary fix since row size can be 1 or 3 for chroma (such a case does not occur under current encoder settings)
+  else if( ( iRows % 2 == 0) && (iCols % 2 == 0) )
+  {
+    Int  iOffsetOrg = iStrideOrg<<1;
+    Int  iOffsetCur = iStrideCur<<1;
+#else
   else
   {
+#endif
     for ( y=0; y<iRows; y+=2 )
     {
       for ( x=0; x<iCols; x+=2 )
       {
         uiSum += xCalcHADs2x2( &piOrg[x], &piCur[x*iStep], iStrideOrg, iStrideCur, iStep );
       }
+#ifdef DCM_RDCOST_TEMP_FIX //Temporary fix since we need to increment by 2*iStride instead of iStride
+      piOrg += iOffsetOrg;
+      piCur += iOffsetCur;
+#else
       piOrg += iStrideOrg;
       piCur += iStrideCur;
+#endif
     }
   }
+#ifdef DCM_RDCOST_TEMP_FIX //Temporary fix to return MAX_UINT until this case is properly handled
+  else
+  {
+    printf("xGetHADs not supported for this dimension. Skipping computation of HAD and returning MAX_UINT\n");
+    return (MAX_UINT);
+  }
+#endif
 
   return ( uiSum >> g_uiBitIncrement );
 }

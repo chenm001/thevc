@@ -125,9 +125,7 @@ protected:
 #if HHI_ALLOW_CIP_SWITCH
   Bool      m_bUseCIP; // BB:
 #endif
-#if HHI_ALLOW_ROT_SWITCH
   Bool      m_bUseROT; // BB:
-#endif
 #if HHI_AIS
   Bool      m_bUseAIS; // BB:
 #endif
@@ -143,6 +141,9 @@ protected:
 #ifdef QC_SIFO_PRED
   Bool      m_bUseSIFO_Pred;
 #endif
+#ifdef DCM_PBIC 
+  Bool      m_bUseIC;
+#endif
   Int       m_iDIFTap;  // Number of interpolation filter taps
 
   Int*      m_aidQP;
@@ -157,6 +158,9 @@ protected:
 #endif
 
   Bool      m_bUseAMP; // ilkoo.kim@samsung.com
+#if HHI_RMP_SWITCH
+  Bool      m_bUseRMP;
+#endif
 
 public:
   TEncCfg()          {}
@@ -294,9 +298,7 @@ public:
 #if HHI_ALLOW_CIP_SWITCH
   Void      setUseCIP                       ( Bool  b )     { m_bUseCIP     = b; } // BB:
 #endif
-#if HHI_ALLOW_ROT_SWITCH
   Void      setUseROT                       ( Bool  b )     { m_bUseROT	    = b; } // BB:
-#endif
 #if HHI_AIS
   Void      setUseAIS                       ( Bool  b )     { m_bUseAIS     = b; } // BB:
 #endif
@@ -312,6 +314,9 @@ public:
 #ifdef QC_SIFO_PRED
  Void      setUseSIFO_Pred                       ( Bool  b )     { m_bUseSIFO_Pred     = b; }
  Bool      getUseSIFO_Pred                     ()     {return  m_bUseSIFO_Pred; }
+#endif
+#ifdef DCM_PBIC 
+  Void      setUseIC                        ( Bool  b )     { m_bUseIC      = b; }
 #endif
 
   Void      setDIFTap                       ( Int   i )     { m_iDIFTap     = i; }
@@ -338,9 +343,7 @@ public:
 #if HHI_ALLOW_CIP_SWITCH
 	Bool      getUseCIP                       ()      { return m_bUseCIP;     }	// BB:
 #endif
-#if HHI_ALLOW_ROT_SWITCH
 	Bool      getUseROT                       ()      { return m_bUseROT;     } // BB:
-#endif
 #if HHI_AIS
   Bool      getUseAIS                       ()      { return m_bUseAIS;     } // BB:
 #endif
@@ -353,6 +356,9 @@ public:
 #ifdef QC_AMVRES
  Bool      getUseAMVRes                     ()     {return  m_bUseAMVRes; }
 #endif
+#ifdef DCM_PBIC 
+  Bool      getUseIC                        ()      { return m_bUseIC;      }
+#endif
   Int       getDIFTap                       ()      { return m_iDIFTap;  }
 
   Int*      getdQPs                         ()      { return m_aidQP;       }
@@ -364,7 +370,10 @@ public:
 #endif //EDGE_BASED_PREDICTION
   Void      setUseAMP                       ( Bool  b )     { m_bUseAMP     = b; }
   Bool      getUseAMP                       ()      { return m_bUseAMP; }
-
+#if HHI_RMP_SWITCH
+  Void      setUseRMP                      ( Bool b ) { m_bUseRMP = b; }
+  Bool      getUseRMP                      ()      {return m_bUseRMP; }
+#endif
 #if HHI_INTERP_FILTER
   Void      setInterpFilterType             ( Int   i )     { m_iInterpFilterType = i;    }
   Int       getInterpFilterType             ()              { return m_iInterpFilterType; }

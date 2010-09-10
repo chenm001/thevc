@@ -143,6 +143,9 @@ Void TEncTop::destroy ()
 
 Void TEncTop::init()
 {
+#if LCEC_PHASE2
+  UInt *aTable4=NULL, *aTable8=NULL;
+#endif
   // initialize SPS
   xInitSPS();
 
@@ -155,14 +158,17 @@ Void TEncTop::init()
   m_cSearch.setDIFTap ( m_cSPS.getDIFTap () );
 
   // initialize transform & quantization class
-#if HHI_ALLOW_ROT_SWITCH
-#if NEWVLC 
+#if LCEC_PHASE1
+#if LCEC_PHASE2 
+  m_pcCavlcCoder = getCavlcCoder();
+  aTable8 = m_pcCavlcCoder->GetLP8Table();
+  aTable4 = m_pcCavlcCoder->GetLP4Table(); 
+  m_cTrQuant.init( g_uiMaxCUWidth, g_uiMaxCUHeight, m_uiMaxTrSize, m_bUseROT, m_iSymbolMode, aTable4, aTable8, m_bUseRDOQ, true );
+#else //LCEC_PHASE2
   m_cTrQuant.init( g_uiMaxCUWidth, g_uiMaxCUHeight, m_uiMaxTrSize, m_bUseROT, m_iSymbolMode, m_bUseRDOQ, true );
+#endif //LCEC_PHASE2
 #else
   m_cTrQuant.init( g_uiMaxCUWidth, g_uiMaxCUHeight, m_uiMaxTrSize, m_bUseROT, m_bUseRDOQ, true );
-#endif
-#else
-  m_cTrQuant.init( g_uiMaxCUWidth, g_uiMaxCUHeight, m_uiMaxTrSize, m_bUseRDOQ, true );
 #endif
 
   // initialize encoder search class
@@ -326,9 +332,7 @@ Void TEncTop::xInitSPS()
 #if HHI_ALLOW_CIP_SWITCH
   m_cSPS.setUseCIP        ( m_bUseCIP           ); // BB:
 #endif
-#if HHI_ALLOW_ROT_SWITCH
   m_cSPS.setUseROT        ( m_bUseROT           ); // BB:
-#endif
 #if HHI_AIS
   m_cSPS.setUseAIS        ( m_bUseAIS           ); // BB:
 #endif
@@ -343,6 +347,9 @@ Void TEncTop::xInitSPS()
 #endif
 #ifdef QC_SIFO_PRED
  m_cSPS.setUseSIFO_Pred ( m_bUseSIFO_Pred    );
+#endif
+#ifdef DCM_PBIC
+  m_cSPS.setUseIC         ( m_bUseIC            );
 #endif
   m_cSPS.setDIFTap        ( m_iDIFTap           );
 
@@ -376,6 +383,10 @@ Void TEncTop::xInitSPS()
       m_cSPS.setAMPAcc(i, g_uiMaxCUDepth - 1 - i);
     }
   }
+
+#if HHI_RMP_SWITCH
+  m_cSPS.setUseRMP( m_bUseRMP );
+#endif
 
   m_cSPS.setBitDepth    ( g_uiBitDepth        );
   m_cSPS.setBitIncrement( g_uiBitIncrement    );

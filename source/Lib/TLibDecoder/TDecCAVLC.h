@@ -57,6 +57,9 @@ protected:
   Void  xReadCode             (UInt uiLength, UInt& ruiCode);
   Void  xReadUvlc             (UInt& ruiVal);
   Void  xReadSvlc             (Int& riVal);
+#ifdef DCM_PBIC
+  Void  xReadSvlcNZ           (Int& riVal);
+#endif
   Void  xReadFlag             (UInt& ruiCode);
   Void  xReadEpExGolomb     ( UInt& ruiSymbol, UInt uiCount );
   Void  xReadExGolombLevel  ( UInt& ruiSymbol );
@@ -83,6 +86,20 @@ private:
   UInt                      m_uiLPTableD8[10][128];
   UInt                      m_uiLastPosVlcIndex[10];
 
+#if LCEC_PHASE2
+  UInt                      m_uiCBPTableD[2][8];
+  UInt                      m_uiCbpVlcIdx[2];
+#endif
+
+#if LCEC_PHASE2
+  Int                   m_iRefFrame0[1000];
+  Int                   m_iRefFrame1[1000];
+  UInt                  m_uiMITableD[8];  
+
+  UInt                  m_uiMITableVlcIdx;
+
+#endif
+
 public:
   Void  resetEntropy        ( TComSlice* pcSlice  );
   Void  setBitstream        ( TComBitstream* p    )      { m_pcBitstream = p; }
@@ -106,10 +123,20 @@ public:
   Void  parseTerminatingBit ( UInt& ruiBit );
 
   Void  parseMVPIdx         ( TComDataCU* pcCU, Int& riMVPIdx, Int iMVPNum, UInt uiAbsPartIdx, UInt uiDepth, RefPicList eRefList );
+
+#ifdef DCM_PBIC
+  Void  parseICPIdx         ( TComDataCU* pcCU, Int& riICPIdx, Int iICPNum, UInt uiAbsPartIdx, UInt uiDepth );
+#endif
+
   Void  parseSkipFlag       ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
 #if HHI_MRG
+#if HHI_MRG_PU
+  Void parseMergeFlag       ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth, UInt uiPUIdx );
+  Void parseMergeIndex      ( TComDataCU* pcCU, UInt& ruiMergeIndex, UInt uiAbsPartIdx, UInt uiDepth );
+#else
   Void parseMergeFlag       ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
   Void parseMergeIndex      ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
+#endif
 #endif
   Void parseSplitFlag       ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
   Void parsePartSize        ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
@@ -130,6 +157,11 @@ public:
   Void parseInterDir        ( TComDataCU* pcCU, UInt& ruiInterDir, UInt uiAbsPartIdx, UInt uiDepth );
   Void parseRefFrmIdx       ( TComDataCU* pcCU, Int& riRefFrmIdx,  UInt uiAbsPartIdx, UInt uiDepth, RefPicList eRefList );
   Void parseMvd             ( TComDataCU* pcCU, UInt uiAbsPartAddr,UInt uiPartIdx,    UInt uiDepth, RefPicList eRefList );
+#ifdef DCM_PBIC
+  Void parseMvdIcd          ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiPartIdx, UInt uiDepth, RefPicList eRefList );
+  Int  parseZTree           ( TComZeroTree* pcZTree );
+  ContextModel* getZTreeCtx ( Int iIdx );
+#endif
 
   Void parseTransformIdx    ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
   Void parseDeltaQP         ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );

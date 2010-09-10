@@ -46,6 +46,11 @@
 #include "TComRdCost.h"
 #include "TComPattern.h"
 
+#ifdef DCM_PBIC 
+#include "TComICInfo.h"
+#include "TComZeroTree.h"
+#endif
+
 #if HHI_IMVP || HHI_RQT
 #include <algorithm>
 #include <vector>
@@ -124,6 +129,10 @@ private:
   TCoeff*       m_pcTrCoeffCb;        ///< transformed coefficient buffer (Cb)
   TCoeff*       m_pcTrCoeffCr;        ///< transformed coefficient buffer (Cr)
 
+#ifdef DCM_PBIC
+  TComCUIcField m_acCUIcField;        ///< array of IC parameter vectors
+#endif
+
   // -------------------------------------------------------------------------------------------------------------------
   // neighbour access variables
   // -------------------------------------------------------------------------------------------------------------------
@@ -161,6 +170,12 @@ private:
 #if PLANAR_INTRA
   Int*          m_piPlanarInfo[4];
 #endif
+
+#ifdef DCM_PBIC
+  Int*			m_piICPIdx;		///< array of IC predictor candidates
+  Int*			m_piICPNum;		///< array of number of possible IC predictor candidates
+#endif
+
   // -------------------------------------------------------------------------------------------------------------------
   // misc. variables
   // -------------------------------------------------------------------------------------------------------------------
@@ -187,6 +202,17 @@ protected:
   /// compute required bits to encode MVD (used in AMVP)
   UInt          xGetMvdBits           ( TComMv cMvd );
   UInt          xGetComponentBits     ( Int iVal );
+
+#ifdef DCM_PBIC
+  /// add possible IC predictor candidates
+  Bool          xAddICPCand           ( AICPInfo* pInfo, UChar uhInterDir, Int* piRefIdx, UInt uiPartUnitIdx, MVP_DIR eDir );
+
+  /// remove redundant candidates
+  Void          xUniqueICPCand        ( AICPInfo* pInfo );
+
+  /// compute required bits to encode ICD (used in AICP)
+  UInt			    xGetIcdBits			      ( TComIc cIcd );
+#endif
 
   /// compute scaling factor from POC difference
   Int           xGetDistScaleFactor   ( Int iCurrPOC, Int iCurrRefPOC, Int iColPOC, Int iColRefPOC );
@@ -272,6 +298,10 @@ public:
 
   TComCUMvField* getCUMvField         ( RefPicList e )          { return  &m_acCUMvField[e];  }
 
+#ifdef DCM_PBIC 
+  TComCUIcField* getCUIcField         ()                        { return  &m_acCUIcField;  }
+#endif
+
   TCoeff*&      getCoeffY             ()                        { return m_pcTrCoeffY;        }
   TCoeff*&      getCoeffCb            ()                        { return m_pcTrCoeffCb;       }
   TCoeff*&      getCoeffCr            ()                        { return m_pcTrCoeffCr;       }
@@ -299,11 +329,21 @@ public:
   Bool*         getMergeFlag          ()                        { return m_pbMergeFlag;               }
   Bool          getMergeFlag          ( UInt uiIdx )            { return m_pbMergeFlag[uiIdx];        }
   Void          setMergeFlag          ( UInt uiIdx, Bool b )    { m_pbMergeFlag[uiIdx] = b;           }
+#if HHI_MRG_PU
+  Void          setMergeFlagSubParts  ( Bool bMergeFlag, UInt uiAbsPartIdx, UInt uiPartIdx, UInt uiDepth );
+#else
   Void          setMergeFlagSubParts  ( Bool bMergeFlag, UInt uiAbsPartIdx, UInt uiDepth );
+#endif
   UChar*        getMergeIndex         ()                        { return m_puhMergeIndex;                         }
   UChar         getMergeIndex         ( UInt uiIdx )            { return m_puhMergeIndex[uiIdx];                  }
   Void          setMergeIndex         ( UInt uiIdx, UInt uiMergeIndex ) { m_puhMergeIndex[uiIdx] = uiMergeIndex;  }
+#if HHI_MRG_PU
+  Void          setMergeIndexSubParts ( UInt uiMergeIndex, UInt uiAbsPartIdx, UInt uiPartIdx, UInt uiDepth );
+  Void          setSubPartBool        ( Bool bParameter, Bool* pbBaseLCU, UInt uiCUAddr, UInt uiCUDepth, UInt uiPUIdx );
+  Void          setSubPartUChar       ( UInt bParameter, UChar* pbBaseLCU, UInt uiCUAddr, UInt uiCUDepth, UInt uiPUIdx );
+#else
   Void          setMergeIndexSubParts ( UInt uiMergeIndex, UInt uiAbsPartIdx, UInt uiDepth );
+#endif
 #endif
 
   UChar*        getLumaIntraDir       ()                        { return m_puhLumaIntraDir;           }
@@ -418,6 +458,27 @@ public:
   Void          getMvPredAbove        ( TComMv&     rcMvPred )   { rcMvPred = m_cMvFieldB.getMv(); }
   Void          getMvPredAboveRight   ( TComMv&     rcMvPred )   { rcMvPred = m_cMvFieldC.getMv(); }
 
+#ifdef DCM_PBIC 
+// -------------------------------------------------------------------------------------------------------------------
+// member functions for IC data
+// -------------------------------------------------------------------------------------------------------------------
+  Void	getIc		( TComDataCU* pcCU, UInt uiAbsPartIdx, TComIc& rcIc );
+
+  Void	fillICPCand		( UInt uiPartIdx, UInt uiPartAddr, AICPInfo* pInfo );
+  Int 	searchICPIdx	( TComIc cIc,  AICPInfo* pInfo );
+
+  Void	setICPIdx	    ( UInt uiIdx, Int iICPIdx)	  { m_piICPIdx[uiIdx] = iICPIdx;	}
+  Int	  getICPIdx	    ( UInt uiIdx)  { return m_piICPIdx[uiIdx];		}
+  Int*	getICPIdx  () { return m_piICPIdx;				}
+
+  Void	setICPNum	    ( UInt uiIdx, Int iMVPNum )   { m_piICPNum[uiIdx] = iMVPNum;	}
+  Int	  getICPNum       ( UInt uiIdx )                { return m_piICPNum[uiIdx];}
+  Int*	getICPNum	    ()							  { return m_piICPNum;				}
+
+  Void	setICPIdxSubParts( Int iICPIdx, UInt uiAbsPartIdx, UInt uiPartIdx, UInt uiDepth );
+  Void	setICPNumSubParts( Int iICPNum, UInt uiAbsPartIdx, UInt uiPartIdx, UInt uiDepth );
+#endif
+
   // -------------------------------------------------------------------------------------------------------------------
   // utility functions for neighbouring information
   // -------------------------------------------------------------------------------------------------------------------
@@ -444,7 +505,11 @@ public:
   Void          deriveLeftBottomIdxAdi      ( UInt& ruiPartIdxLB, UInt  uiPartOffset, UInt uiPartDepth );
 
 #if HHI_MRG
+#ifdef DCM_PBIC
+  Void          getInterMergeCandidates     ( UInt uiAbsPartIdx, TComMvField cMFieldNeighbours[4],TComIc cIcNeighbours[2],UChar uhInterDirNeighbours[2], UInt& uiNeighbourInfos );
+#else
   Void          getInterMergeCandidates     ( UInt uiAbsPartIdx, TComMvField cMFieldNeighbours[4], UChar uhInterDirNeighbours[2], UInt& uiNeighbourInfos );
+#endif
 #endif
 
 

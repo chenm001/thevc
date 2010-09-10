@@ -40,6 +40,8 @@ OBJS          	= \
 			$(OBJ_DIR)/TComBitBuffer.o \
 			$(OBJ_DIR)/TComDataCU.o \
 			$(OBJ_DIR)/TComEdgeBased.o \
+			$(OBJ_DIR)/TComIc.o \
+			$(OBJ_DIR)/TComICInfo.o \
 			$(OBJ_DIR)/TComLoopFilter.o \
 			$(OBJ_DIR)/TComMotionInfo.o \
 			$(OBJ_DIR)/TComPattern.o \
@@ -54,6 +56,7 @@ OBJS          	= \
 			$(OBJ_DIR)/TComSlice.o \
 			$(OBJ_DIR)/TComTrQuant.o \
 			$(OBJ_DIR)/TComYuv.o \
+			$(OBJ_DIR)/TComZeroTree.o \
 
 LIBS				= -lpthread
 

@@ -152,6 +152,12 @@
 		71AD603B11EBC29600F5F1FE /* libTLibVideoIO.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 6767964B11AD629200421804 /* libTLibVideoIO.a */; };
 		DB623EFC120CC66300A0C111 /* TComEdgeBased.cpp in Sources */ = {isa = PBXBuildFile; fileRef = DB623EFA120CC66300A0C111 /* TComEdgeBased.cpp */; };
 		DB623EFD120CC66300A0C111 /* TComEdgeBased.h in Headers */ = {isa = PBXBuildFile; fileRef = DB623EFB120CC66300A0C111 /* TComEdgeBased.h */; };
+		DB79E599122DFAAE003E0057 /* TComIc.cpp in Sources */ = {isa = PBXBuildFile; fileRef = DB79E591122DFAAE003E0057 /* TComIc.cpp */; };
+		DB79E59A122DFAAE003E0057 /* TComIc.h in Headers */ = {isa = PBXBuildFile; fileRef = DB79E592122DFAAE003E0057 /* TComIc.h */; };
+		DB79E59B122DFAAE003E0057 /* TComICInfo.cpp in Sources */ = {isa = PBXBuildFile; fileRef = DB79E593122DFAAE003E0057 /* TComICInfo.cpp */; };
+		DB79E59C122DFAAE003E0057 /* TComICInfo.h in Headers */ = {isa = PBXBuildFile; fileRef = DB79E594122DFAAE003E0057 /* TComICInfo.h */; };
+		DB79E59F122DFAAE003E0057 /* TComZeroTree.cpp in Sources */ = {isa = PBXBuildFile; fileRef = DB79E597122DFAAE003E0057 /* TComZeroTree.cpp */; };
+		DB79E5A0122DFAAE003E0057 /* TComZeroTree.h in Headers */ = {isa = PBXBuildFile; fileRef = DB79E598122DFAAE003E0057 /* TComZeroTree.h */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -357,6 +363,12 @@
 		710C2D5411EB7615005CD831 /* SbacTables.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = SbacTables.h; path = source/Lib/TLibCommon/SbacTables.h; sourceTree = "<group>"; };
 		DB623EFA120CC66300A0C111 /* TComEdgeBased.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = TComEdgeBased.cpp; path = source/Lib/TLibCommon/TComEdgeBased.cpp; sourceTree = "<group>"; };
 		DB623EFB120CC66300A0C111 /* TComEdgeBased.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TComEdgeBased.h; path = source/Lib/TLibCommon/TComEdgeBased.h; sourceTree = "<group>"; };
+		DB79E591122DFAAE003E0057 /* TComIc.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = TComIc.cpp; path = source/Lib/TLibCommon/TComIc.cpp; sourceTree = "<group>"; };
+		DB79E592122DFAAE003E0057 /* TComIc.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TComIc.h; path = source/Lib/TLibCommon/TComIc.h; sourceTree = "<group>"; };
+		DB79E593122DFAAE003E0057 /* TComICInfo.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = TComICInfo.cpp; path = source/Lib/TLibCommon/TComICInfo.cpp; sourceTree = "<group>"; };
+		DB79E594122DFAAE003E0057 /* TComICInfo.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TComICInfo.h; path = source/Lib/TLibCommon/TComICInfo.h; sourceTree = "<group>"; };
+		DB79E597122DFAAE003E0057 /* TComZeroTree.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = TComZeroTree.cpp; path = source/Lib/TLibCommon/TComZeroTree.cpp; sourceTree = "<group>"; };
+		DB79E598122DFAAE003E0057 /* TComZeroTree.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TComZeroTree.h; path = source/Lib/TLibCommon/TComZeroTree.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -488,6 +500,10 @@
 				676795A611AD61FC00421804 /* TComDataCU.h */,
 				DB623EFA120CC66300A0C111 /* TComEdgeBased.cpp */,
 				DB623EFB120CC66300A0C111 /* TComEdgeBased.h */,
+				DB79E591122DFAAE003E0057 /* TComIc.cpp */,
+				DB79E592122DFAAE003E0057 /* TComIc.h */,
+				DB79E593122DFAAE003E0057 /* TComICInfo.cpp */,
+				DB79E594122DFAAE003E0057 /* TComICInfo.h */,
 				676795A711AD61FC00421804 /* TComList.h */,
 				676795A811AD61FC00421804 /* TComLoopFilter.cpp */,
 				676795A911AD61FC00421804 /* TComLoopFilter.h */,
@@ -516,6 +532,8 @@
 				676795C011AD61FC00421804 /* TComTrQuant.h */,
 				676795C111AD61FC00421804 /* TComYuv.cpp */,
 				676795C211AD61FC00421804 /* TComYuv.h */,
+				DB79E597122DFAAE003E0057 /* TComZeroTree.cpp */,
+				DB79E598122DFAAE003E0057 /* TComZeroTree.h */,
 				676795C311AD61FC00421804 /* TypeDef.h */,
 			);
 			name = TLibCommon;
@@ -696,6 +714,9 @@
 				710C2D5811EB7615005CD831 /* SbacContextModel3DBuffer.h in Headers */,
 				710C2D5911EB7615005CD831 /* SbacTables.h in Headers */,
 				DB623EFD120CC66300A0C111 /* TComEdgeBased.h in Headers */,
+				DB79E59A122DFAAE003E0057 /* TComIc.h in Headers */,
+				DB79E59C122DFAAE003E0057 /* TComICInfo.h in Headers */,
+				DB79E5A0122DFAAE003E0057 /* TComZeroTree.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -948,6 +969,9 @@
 				710C2D5511EB7615005CD831 /* SbacContextModel.cpp in Sources */,
 				710C2D5711EB7615005CD831 /* SbacContextModel3DBuffer.cpp in Sources */,
 				DB623EFC120CC66300A0C111 /* TComEdgeBased.cpp in Sources */,
+				DB79E599122DFAAE003E0057 /* TComIc.cpp in Sources */,
+				DB79E59B122DFAAE003E0057 /* TComICInfo.cpp in Sources */,
+				DB79E59F122DFAAE003E0057 /* TComZeroTree.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

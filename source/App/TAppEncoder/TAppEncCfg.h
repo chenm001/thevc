@@ -140,9 +140,7 @@ protected:
   Bool      m_bUseAIS;                                        ///< BB: flag for using adaptive intra smoothing
 #endif  
 	// coding tools (transform)
-#if HHI_ALLOW_ROT_SWITCH
 	Bool			m_bUseROT;																				///< flag for using rotational transform
-#endif
 
 #if HHI_MRG
   // coding tools (inter - merge motion partitions)
@@ -153,7 +151,14 @@ protected:
   Bool      m_bUseIMP;                                        // SOPH : coding tools (interleaved MV Predictor)
 #endif
 
+#ifdef DCM_PBIC 
+  Bool      m_bUseIC;                                         // Partition-based IC
+#endif
+
   Bool      m_bUseAMP;                                        ///< flag for using asymmetric partition
+#if HHI_RMP_SWITCH
+  Bool      m_bUseRMP;
+#endif
 
   // coding tools (encoder-only parameters)
   Bool      m_bUseSBACRD;                                     ///< flag for using RD optimization based on SBAC

@@ -56,6 +56,7 @@ class TEncCavlc : public TEncEntropyIf
 private:
   Bool m_bAdaptFlag;
 
+
 public:
   TEncCavlc();
   virtual ~TEncCavlc();
@@ -74,18 +75,88 @@ protected:
   UInt          m_uiLPTableD8[10][128];
   UInt          m_uiLastPosVlcIndex[10];
 
+#if LCEC_STAT 
+  UInt m_uiBitHLS;
+  UInt m_uiBitCIP;
+  UInt m_uiBitindexROT;
+  UInt m_uiBitMVPId;
+  UInt m_uiBitPartSize;
+  UInt m_uiBitPredMode;
+  UInt m_uiBitMergeFlag;
+  UInt m_uiBitMergeIndex;
+  UInt m_uiBitIntraFiltFlag;
+  UInt m_uiBitAlfCtrlFlag;
+  UInt m_uiBitAlfCtrlDepth;
+  UInt m_uiBitSkipFlag;
+  UInt m_uiBitCurrSplitFlag;
+  UInt m_uiBitTransformSubdivFlag;
+  UInt m_uiBitQtCbf;
+  UInt m_uiBitTransformIdx;
+  UInt m_uiBitPlanarVlc;
+  UInt m_uiBitIntraDir;
+  UInt m_uiBitIRefFrmIdx;
+  UInt m_uiBitMVD;
+  UInt m_uiBitDeltaQP;
+  UInt m_uiBitCbf;
+  UInt m_uiBitAlfFlag;
+  UInt m_uiBitAlfUvlc;
+  UInt m_uiBitAlfSvlc;
+  UInt m_uiBitMVPIdx;
+  UInt m_uiBitPlanarInfo;
+  UInt m_uiBitInterDir;
+#if LCEC_PHASE2
+  UInt m_uiBitMI;
+#endif
+  UInt m_uiBitSF;
+  UInt m_uiBitCoeff;
+#if LCEC_PHASE2
+  UInt m_uiBitCbp;
+#endif
+#endif
+
+#if LCEC_PHASE2
+  UInt          m_uiCBPTableE[2][8];
+  UInt          m_uiCBPTableD[2][8];
+  UInt          m_uiCbpVlcIdx[2];
+#endif
+
+#if LCEC_PHASE2
+  UInt          m_uiMITableE[8];
+  UInt          m_uiMITableD[8];
+
+  UInt          m_uiMITableVlcIdx;
+
+#endif
+
   Void  xCheckCoeff( TCoeff* pcCoef, UInt uiSize, UInt uiDepth, UInt& uiNumofCoeff, UInt& uiPart );
 
+#if LCEC_STAT
+  UInt  xWriteCode            ( UInt uiCode, UInt uiLength );
+  UInt  xWriteUvlc            ( UInt uiCode );
+  UInt  xWriteSvlc            ( Int iCode   );
+#ifdef DCM_PBIC
+  UInt  xWriteSvlcNZ          ( Int iCode   );
+#endif
+  Void  xWriteFlag            ( UInt uiCode );
+  UInt  xWriteEpExGolomb      ( UInt uiSymbol, UInt uiCount );
+  UInt  xWriteExGolombLevel   ( UInt uiSymbol );
+  UInt  xWriteUnaryMaxSymbol  ( UInt uiSymbol, UInt uiMaxSymbol );
+  UInt  xLeadingZeros         ( UInt uiCode );
+  UInt  xWriteVlc             ( UInt uiTableNumber, UInt uiCodeNumber );
+#else
   Void  xWriteCode            ( UInt uiCode, UInt uiLength );
   Void  xWriteUvlc            ( UInt uiCode );
   Void  xWriteSvlc            ( Int iCode   );
+#ifdef DCM_PBIC
+  Void  xWriteSvlcNZ          ( Int iCode   );
+#endif
   Void  xWriteFlag            ( UInt uiCode );
   Void  xWriteEpExGolomb      ( UInt uiSymbol, UInt uiCount );
   Void  xWriteExGolombLevel    ( UInt uiSymbol );
   Void  xWriteUnaryMaxSymbol  ( UInt uiSymbol, UInt uiMaxSymbol );
-
   UInt  xLeadingZeros         ( UInt uiCode );
   Void  xWriteVlc             ( UInt uiTableNumber, UInt uiCodeNumber );
+#endif
   Void  xCodeCoeff4x4          ( TCoeff* scoeff, Int iTableNumber );
   Void  xCodeCoeff8x8          ( TCoeff* scoeff, Int iTableNumber );
 
@@ -99,6 +170,13 @@ protected:
 public:
 
   Void  resetEntropy          ();
+#if LCEC_STAT
+  Void  statistics            ( Bool bResetFlag, UInt uiPrintVar );
+#endif
+#if LCEC_PHASE2
+  UInt* GetLP8Table();
+  UInt* GetLP4Table();
+#endif
   Void  setBitstream          ( TComBitIf* p )  { m_pcBitIf = p;  }
   Void  setSlice              ( TComSlice* p )  { m_pcSlice = p;  }
   Bool getAlfCtrl() {return m_bAlfCtrl;}
@@ -117,6 +195,9 @@ public:
   Void  codeSliceFinish         ();
 
   Void codeMVPIdx ( TComDataCU* pcCU, UInt uiAbsPartIdx, RefPicList eRefList );
+#ifdef DCM_PBIC
+  Void codeICPIdx ( TComDataCU* pcCU, UInt uiAbsPartIdx );
+#endif
   Void codeAlfFlag       ( UInt uiCode );
   Void codeAlfUvlc       ( UInt uiCode );
   Void codeAlfSvlc       ( Int   iCode );
@@ -167,6 +248,11 @@ public:
   Void codeInterDir      ( TComDataCU* pcCU, UInt uiAbsPartIdx );
   Void codeRefFrmIdx     ( TComDataCU* pcCU, UInt uiAbsPartIdx, RefPicList eRefList );
   Void codeMvd           ( TComDataCU* pcCU, UInt uiAbsPartIdx, RefPicList eRefList );
+#ifdef DCM_PBIC
+  Void codeMvdIcd        ( TComDataCU* pcCU, UInt uiAbsPartIdx, RefPicList eRefList );
+  Void codeZTree         ( TComZeroTree* pcZTree, TComZTNode* pcZTNode );
+  ContextModel* getZTreeCtx ( Int iIdx );
+#endif
 
   Void codeDeltaQP       ( TComDataCU* pcCU, UInt uiAbsPartIdx );
   Void codeCbf           ( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eType, UInt uiTrDepth );

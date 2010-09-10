@@ -106,6 +106,9 @@ protected:
   // AMVP cost computation
   // UInt            m_auiMVPIdxCost[AMVP_MAX_NUM_CANDS+1][AMVP_MAX_NUM_CANDS];
   UInt            m_auiMVPIdxCost[AMVP_MAX_NUM_CANDS+1][AMVP_MAX_NUM_CANDS+1]; //th array bounds
+#ifdef DCM_PBIC
+  UInt            m_auiICPIdxCost[AICP_MAX_NUM_CANDS+1][AICP_MAX_NUM_CANDS+1];
+#endif
 
 #if HHI_IMVP
   MvPredMeasure   m_cMvPredMeasure;
@@ -241,6 +244,9 @@ public:
                                    TComYuv*&   rpcResiYuv,
                                    TComYuv*&   rpcRecoYuv,
                                    TComMvField cMFieldNeighbourToTest[2],
+#ifdef DCM_PBIC
+                                   TComIc      cIcNeighbourToTest,
+#endif
                                    UChar uhInterDirNeighbourToTest);
 #endif
 
@@ -421,6 +427,19 @@ protected:
                                     Int         iSizeX,
                                     Int         iSizeY );
 
+#ifdef DCM_PBIC
+  UInt xGetTemplateCostIC         ( TComDataCU* pcCU,
+                                    UInt        uiPartIdx,
+                                    UInt        uiPartAddr,
+                                    TComYuv*    pcOrgYuv,
+                                    TComIc      cIcCand,
+                                    Int         iICPIdx,
+                                    Int         iICPNum,
+                                    RefPicList  eRefPicList,
+                                    Int         iSizeX,
+                                    Int         iSizeY );
+#endif
+
   Void xCopyAMVPInfo              ( AMVPInfo*   pSrc, AMVPInfo* pDst );
   UInt xGetMvpIdxBits             ( Int iIdx, Int iNum );
   Void xGetBlkBits                ( PartSize  eCUMode, Bool bPSlice, Int iPartIdx,  UInt uiLastMode, UInt uiBlkBit[3]);
@@ -433,7 +452,16 @@ protected:
                                     TComMv&         rcMvPred,
                                     MvPredMeasure&  rcMvPredMeasure );
 #endif
-
+#if HHI_MRG_PU
+Void xMergeEstimation             ( TComDataCU*     pcCU,
+                                    TComYuv*        pcYuvOrg,
+                                    Int             iPartIdx,
+                                    Int*            piRefIdxPred,
+                                    TComMv*         pcMvTemp,
+                                    UInt&           uiInterDir,
+                                    UInt&           uiMergeIndex,
+                                    UInt&           ruiCost);
+#endif
   // -------------------------------------------------------------------------------------------------------------------
   // motion estimation
   // -------------------------------------------------------------------------------------------------------------------
@@ -641,6 +669,33 @@ protected:
 									);
 #endif
 
+#ifdef DCM_PBIC
+  Void predICompSearch     ( TComDataCU* pcCU, 
+                             TComYuv* pcYuvOrg,
+                             TComYuv* pcYuvPred,
+                             Int iPartIdx, 
+                             Int uiLastMode
+                           ); 
+
+  Double xComputeSum       ( TComYuv* pcYuvSrc0,                     UInt uiPartAddr, Int width, Int height, Int YCbCr );
+  Double xComputeSquareSum ( TComYuv* pcYuvSrc0,                     UInt uiPartAddr, Int width, Int height, Int YCbCr );
+  Double xComputeSumMult   ( TComYuv* pcYuvSrc0, TComYuv* pcYuvSrc1, UInt uiPartAddr, Int width, Int height, Int YCbCr );
+
+  Void Calc_ICParam_LMS_Uni( TComYuv* pcYuvOrg, TComYuv* pcYuvPred,                       UInt uiPartAddr, Int iRoiHeight, Int iRoiWidth, TComIc* rcIc, RefPicList eRefPicList );
+  Void Calc_ICParam_LMS_Bi ( TComYuv* pcYuvOrg, TComYuv* pcYuvPred0, TComYuv* pcYuvPred1, UInt uiPartAddr, Int iRoiHeight, Int iRoiWidth, TComIc* rcIc                         );
+  
+  Void xEstimateIcPredAICP ( TComDataCU* pcCU, TComYuv* pcOrgYuv, UInt uiPartIdx, RefPicList eRefPicList, TComIc& rcIcPred, Bool bFilled = false );
+  UInt xGetIcpIdxBits      ( Int iIdx, Int iNum );
+
+  UInt xCalculateCostAfterICPred ( TComIc cIcCand, Int& riIcpIdx, TComDataCU* pcCU, TComYuv* pcYuvOrg, UInt uiPartIdx, RefPicList eRefPicList );
+  Bool xSearchBestICParam  ( TComIc* cIcSearchCenter, Int& riIcpIdx, Int SearchRng0, Int SearchRng1, Int SearchRng2, UInt uiPartIdx, TComDataCU* pcCU, TComYuv* pcYuvOrg, RefPicList eRefPicList, UInt& ruiCostBest, Bool bFlagReset = false);
+
+  UInt xGetComponentBits   ( Int iVal );
+  UInt xGetMvdBits         ( TComMv cMvd );
+  UInt xGetIcdBits         ( TComIc cIcd );
+
+#endif //#ifdef DCM_PBIC
+
   // -------------------------------------------------------------------------------------------------------------------
   // T & Q & Q-1 & T-1
   // -------------------------------------------------------------------------------------------------------------------
@@ -649,6 +704,8 @@ protected:
   Void xEncodeResidualQT( TComDataCU* pcCU, UInt uiAbsPartIdx, const UInt uiDepth, Bool bSubdivAndCbf, TextType eType );
 #if HHI_RQT_ROOT
   Void xEstimateResidualQT( TComDataCU* pcCU, UInt uiQuadrant, UInt uiAbsPartIdx, TComYuv* pcResi, const UInt uiDepth, Double &rdCost, UInt &ruiBits, UInt &ruiDist, UInt *puiZeroDist );
+#elif HHI_RQT_FORCE_SPLIT_ACC2_PU
+  Void xEstimateResidualQT( TComDataCU* pcCU, UInt uiQuadrant, UInt uiAbsPartIdx, TComYuv* pcResi, const UInt uiDepth, Double &rdCost, UInt &ruiBits, UInt &ruiDist );
 #else
   Void xEstimateResidualQT( TComDataCU* pcCU, UInt uiAbsPartIdx, TComYuv* pcResi, const UInt uiDepth, Double &rdCost, UInt &ruiBits, UInt &ruiDist );
 #endif
@@ -691,6 +748,15 @@ protected:
                                     UInt          uiWidth,
                                     UInt          uiHeight,
                                     UInt&         ruiBits );
+
+#ifdef DCM_PBIC
+  /// estimate required bits to encode MVD and ICD (used with zero-tree coding)
+  Int        xEstMvdIcdBits    ( TComDataCU* pcCU, TComMv* pcMvd, TComIc* pcIcd, RefPicList eRefList );
+
+  /// estimate required bits to encode zero-tree
+  Int        xcostZTree        ( TComZeroTree* pcZTree, TComZTNode* pcZTNode, ContextModel *pcCtxModel );
+  Int        xcostBin          ( UInt uiBin, ContextModel *pcCtxModel );
+#endif
 
 };// END CLASS DEFINITION TEncSearch
 

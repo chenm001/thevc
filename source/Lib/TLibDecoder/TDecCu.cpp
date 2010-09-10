@@ -213,10 +213,16 @@ Void TDecCu::xDecodeCU( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
     {
       m_pcEntropyDecoder->decodeMVPIdx( pcCU, uiAbsPartIdx, uiDepth, REF_PIC_LIST_1, m_ppcCU[uiDepth]);
     }
+#ifdef DCM_PBIC
+    if (pcCU->getSlice()->getSPS()->getUseIC())
+    {
+      m_pcEntropyDecoder->decodeICPIdx( pcCU, uiAbsPartIdx, uiDepth, m_ppcCU[uiDepth]);
+    }
+#endif
     return;
   }
 
-#if HHI_MRG
+#if HHI_MRG && !HHI_MRG_PU
   m_pcEntropyDecoder->decodeMergeInfo( pcCU, uiAbsPartIdx, uiDepth, m_ppcCU[uiDepth] );
 #endif
   m_pcEntropyDecoder->decodePredMode( pcCU, uiAbsPartIdx, uiDepth );
@@ -248,7 +254,6 @@ Void TDecCu::xDecodeCU( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
 
 #if QC_MDDT == 0
   // ROT index
-#if HHI_ALLOW_ROT_SWITCH
   if ( pcCU->getSlice()->getSPS()->getUseROT() )
   {
 #if DISABLE_ROT_LUMA_4x4_8x8
@@ -264,20 +269,6 @@ Void TDecCu::xDecodeCU( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
     m_pcEntropyDecoder->decodeROTIdx( pcCU, uiAbsPartIdx, uiDepth );
 #endif
   }
-#else
-#if DISABLE_ROT_LUMA_4x4_8x8
-  if ( uiCurrWidth > 8)
-  {
-    m_pcEntropyDecoder->decodeROTIdx( pcCU, uiAbsPartIdx, uiDepth );
-  }
-  else
-  {
-    pcCU->setROTindexSubParts( 0, uiAbsPartIdx, uiDepth );
-  }
-#else
-  m_pcEntropyDecoder->decodeROTIdx( pcCU, uiAbsPartIdx, uiDepth );
-#endif
-#endif
 #endif
 
   // CIP flag

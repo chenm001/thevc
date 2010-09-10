@@ -494,6 +494,12 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
         {
           m_pcEntropyCoder->setAlfCtrl(false);
         }
+#if LCEC_STAT
+        if (pcSlice->getSymbolMode() == 0)
+        {          
+          m_pcCavlcCoder->setAdaptFlag( true );
+        }
+#endif
         m_pcEntropyCoder->encodeAlfParam(&cAlfParam);
 
 #if HHI_ALF
@@ -581,6 +587,11 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
 Void TEncGOP::printOutSummary(UInt uiNumAllPicCoded)
 {
   assert (uiNumAllPicCoded == m_gcAnalyzeAll.getNumPic());
+
+
+#if LCEC_STAT
+  //m_pcCavlcCoder->statistics (0,2);
+#endif
 
   //--CFG_KDY
   m_gcAnalyzeAll.setFrmRate( m_pcCfg->getFrameRate() );

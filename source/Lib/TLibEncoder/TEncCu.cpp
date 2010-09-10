@@ -374,11 +374,15 @@ Void TEncCu::xCompressCU( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, UInt u
       pcTempCU = rpcTempCU;
 
 #if HHI_MRG
+#if HHI_MRG_PU
+      if( !pcPic->getSlice()->getSPS()->getUseMRG() )
+#else
       if( pcPic->getSlice()->getSPS()->getUseMRG() )
       {
         xCheckRDCostMerge( rpcBestCU, rpcTempCU );            rpcTempCU->initEstData();
       }
       else
+#endif
       {
         xCheckRDCostAMVPSkip ( rpcBestCU, rpcTempCU );        rpcTempCU->initEstData();
       }
@@ -418,14 +422,25 @@ Void TEncCu::xCompressCU( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, UInt u
       // 2Nx2N, NxN
       if ( !bEarlySkip )
       {
-      xCheckRDCostInter( rpcBestCU, rpcTempCU, SIZE_2Nx2N );  rpcTempCU->initEstData();
-      xCheckRDCostInter( rpcBestCU, rpcTempCU, SIZE_NxN   );  rpcTempCU->initEstData();
+#if HHI_DISABLE_INTER_NxN_SPLIT
+        xCheckRDCostInter( rpcBestCU, rpcTempCU, SIZE_2Nx2N );  rpcTempCU->initEstData();
+        if( rpcTempCU->getWidth( 0 ) == 8 )
+        {
+          xCheckRDCostInter( rpcBestCU, rpcTempCU, SIZE_NxN   );  rpcTempCU->initEstData();
+        }
+#else
+        xCheckRDCostInter( rpcBestCU, rpcTempCU, SIZE_2Nx2N );  rpcTempCU->initEstData();
+        xCheckRDCostInter( rpcBestCU, rpcTempCU, SIZE_NxN   );  rpcTempCU->initEstData();
+#endif
       }
 
-      // 2NxN, Nx2N
-      xCheckRDCostInter( rpcBestCU, rpcTempCU, SIZE_Nx2N  );  rpcTempCU->initEstData();
-      xCheckRDCostInter      ( rpcBestCU, rpcTempCU, SIZE_2NxN  );  rpcTempCU->initEstData();
-
+#if HHI_RMP_SWITCH
+      if( pcPic->getSlice()->getSPS()->getUseRMP() )
+#endif
+      { // 2NxN, Nx2N
+        xCheckRDCostInter( rpcBestCU, rpcTempCU, SIZE_Nx2N  );  rpcTempCU->initEstData();
+        xCheckRDCostInter      ( rpcBestCU, rpcTempCU, SIZE_2NxN  );  rpcTempCU->initEstData();
+      }
 
       // fast encoder decision for asymmetric motion partition: try asymmetric motion partition only when best != 2Nx2N
       if ( m_pcEncCfg->getUseFastEnc() )
@@ -514,11 +529,7 @@ Void TEncCu::xCompressCU( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, UInt u
 #endif
       {
         // try ROT without CIP
-#if HHI_ALLOW_ROT_SWITCH
         if ( rpcTempCU->getSlice()->getSPS()->getUseROT() )
-#else
-        if (1)
-#endif
         {
           for (UChar indexROT = 1; indexROT<ROT_DICT; indexROT++)
           {
@@ -674,10 +685,16 @@ Void TEncCu::xEncodeCU( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
     {
       m_pcEntropyCoder->encodeMVPIdx( pcCU, uiAbsPartIdx, REF_PIC_LIST_1);
     }
+#ifdef DCM_PBIC
+    if (pcCU->getSlice()->getSPS()->getUseIC())
+    {
+      m_pcEntropyCoder->encodeICPIdx( pcCU, uiAbsPartIdx );
+    }
+#endif
     return;
   }
 
-#if HHI_MRG
+#if HHI_MRG && !HHI_MRG_PU
   m_pcEntropyCoder->encodeMergeInfo( pcCU, uiAbsPartIdx );
 #endif
   m_pcEntropyCoder->encodePredMode( pcCU, uiAbsPartIdx );
@@ -703,7 +720,6 @@ Void TEncCu::xEncodeCU( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
 #else
   m_pcEntropyCoder->encodeCoeff( pcCU, uiAbsPartIdx, uiDepth, pcCU->getWidth (uiAbsPartIdx), pcCU->getHeight(uiAbsPartIdx) );
   // ROT index
-#if HHI_ALLOW_ROT_SWITCH
   if ( pcCU->getSlice()->getSPS()->getUseROT() )
   {
 #if DISABLE_ROT_LUMA_4x4_8x8
@@ -711,12 +727,6 @@ Void TEncCu::xEncodeCU( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
 #endif
     m_pcEntropyCoder->encodeROTindex( pcCU, uiAbsPartIdx, uiDepth );
   }
-#else
-#if DISABLE_ROT_LUMA_4x4_8x8
-  if (pcCU->getWidth (uiAbsPartIdx) > 8)
-#endif
-  m_pcEntropyCoder->encodeROTindex( pcCU, uiAbsPartIdx, uiDepth );
-#endif
 #endif
 
 
@@ -757,7 +767,7 @@ Void TEncCu::xCheckRDCostSkip( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, B
   xCheckBestMode(rpcBestCU, rpcTempCU);
 }
 
-#if HHI_MRG
+#if HHI_MRG && !HHI_MRG_PU
 Void TEncCu::xCheckRDCostMerge( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU )
 {
   // test if Top and Left exist
@@ -770,7 +780,12 @@ Void TEncCu::xCheckRDCostMerge( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU )
   TComMvField  cMFieldNeighbours[4]; // 0: above ref_list 0, above ref list 1, left ref list 0, left ref list 1
   UChar uhInterDirNeighbours[2];
 
+#ifdef DCM_PBIC
+  TComIc cIcNeighbours[2]; // 0: above 1: left
+  rpcTempCU->getInterMergeCandidates( 0, cMFieldNeighbours, cIcNeighbours,uhInterDirNeighbours, uiNeighbourInfos );
+#else
   rpcTempCU->getInterMergeCandidates( 0, cMFieldNeighbours, uhInterDirNeighbours, uiNeighbourInfos );
+#endif
 
   // uiNeighbourInfos (binary):
   // 000: no merge candidate
@@ -807,6 +822,9 @@ Void TEncCu::xCheckRDCostMerge( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU )
                                           m_ppcResiYuvTemp[uhDepth],
                                           m_ppcRecoYuvTemp[uhDepth],
                                           cMvFieldNeighbourToTest,
+#ifdef DCM_PBIC
+                                          cIcNeighbours[uiNeighbourIdx],
+#endif
                                           uhInterDirNeighbourToTest);
 
     m_pcPredSearch->encodeResAndCalcRdInterCU( rpcTempCU,
@@ -872,7 +890,7 @@ Void TEncCu::xCheckPlanarIntra( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU )
 
   m_pcEntropyCoder->resetBits();
   m_pcEntropyCoder->encodeSkipFlag ( rpcTempCU, 0,          true );
-#if HHI_MRG
+#if HHI_MRG && !HHI_MRG_PU
   m_pcEntropyCoder->encodeMergeInfo( rpcTempCU, 0,          true );
 #endif
   m_pcEntropyCoder->encodePredMode( rpcTempCU, 0,          true );
@@ -933,7 +951,7 @@ Void TEncCu::xCheckRDCostIntra( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, 
 
   m_pcEntropyCoder->resetBits();
   m_pcEntropyCoder->encodeSkipFlag ( rpcTempCU, 0,          true );
-#if HHI_MRG
+#if HHI_MRG && !HHI_MRG_PU
   m_pcEntropyCoder->encodeMergeInfo( rpcTempCU, 0,          true );
 #endif
   m_pcEntropyCoder->encodePredMode( rpcTempCU, 0,          true );
@@ -951,7 +969,6 @@ Void TEncCu::xCheckRDCostIntra( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, 
   m_pcEntropyCoder->encodeCoeff( rpcTempCU, 0, uiDepth, rpcTempCU->getWidth (0), rpcTempCU->getHeight(0) );
 
   // ROT index
-#if HHI_ALLOW_ROT_SWITCH
   if ( rpcTempCU->getSlice()->getSPS()->getUseROT() )
   {
 #if DISABLE_ROT_LUMA_4x4_8x8
@@ -959,12 +976,6 @@ Void TEncCu::xCheckRDCostIntra( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, 
 #endif
     m_pcEntropyCoder->encodeROTindex( rpcTempCU, 0, uiDepth );
   }
-#else
-#if DISABLE_ROT_LUMA_4x4_8x8
-  if (rpcTempCU->getWidth (0) > 8)
-#endif
-  m_pcEntropyCoder->encodeROTindex( rpcTempCU, 0, uiDepth );
-#endif
 #endif
 
   // CIP index

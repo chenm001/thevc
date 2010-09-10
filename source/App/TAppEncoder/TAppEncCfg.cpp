@@ -224,9 +224,7 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
 #if HHI_IMVP
     ("IMP", m_bUseIMP, true, "interleaved motion vector predictor")
 #endif
-#if HHI_ALLOW_ROT_SWITCH
     ("ROT", m_bUseROT, true)
-#endif
     ("ALF", m_bUseALF, true, "Adaptive Loop Filter")
 #if HHI_ALF
     ("ALFSeparateTree", m_bALFUseSeparateQT, true)
@@ -235,10 +233,16 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
     ("ALFMaxLength", m_iAlfMaxLength, 9)
 #endif
     ("AMP", m_bUseAMP, true, "Asymmetric motion partition")
+#if HHI_RMP_SWITCH
+    ("RMP", m_bUseRMP ,true, "Rectangular motion partition" )
+#endif
 #ifdef EDGE_BASED_PREDICTION
     ("EdgePredictionEnable", m_bEdgePredictionEnable, true, "Enable edge based prediction for intra")
     ("EdgeDetectionThreshold", m_iEdgeDetectionThreshold, 10240, "Threshold for edge detection of edge based prediction")
 #endif //EDGE_BASED_PREDICTION
+#ifdef DCM_PBIC 
+    ("PBIC", m_bUseIC, false,"Partition-based IC")// Partition-based IC
+#endif
     /* Misc. */
     ("FEN", m_bUseFastEnc, false, "fast encoder setting")
 
@@ -420,7 +424,7 @@ Void TAppEncCfg::xCheckParameter()
     m_bUseSBACRD = false;
   }
 
-#if !NEWVLC
+#if !LCEC_PHASE1
   // RDOQ is supported only for SBAC
   if ( !m_bUseSBACRD )
   {
@@ -600,9 +604,7 @@ Void TAppEncCfg::xPrintParameter()
 #if HHI_ALLOW_CIP_SWITCH
   printf("CIP:%d ", m_bUseCIP             );
 #endif
-#if HHI_ALLOW_ROT_SWITCH
   printf("ROT:%d ", m_bUseROT             );
-#endif
 #if HHI_AIS
   printf("AIS:%d ", m_bUseAIS             ); // BB: adaptive intra smoothing
 #endif
@@ -618,7 +620,13 @@ Void TAppEncCfg::xPrintParameter()
 #ifdef QC_SIFO_PRED
 	printf("SPF:%d ", m_bUseSIFO_Pred			);
 #endif
+#ifdef DCM_PBIC
+	printf("PBIC :%d ", m_bUseIC			);
+#endif
     printf("AMP:%d ", m_bUseAMP);
+#if HHI_RMP_SWITCH
+    printf("RMP:%d ", m_bUseRMP);
+#endif
   printf("\n");
 
   fflush(stdout);
@@ -650,6 +658,9 @@ Void TAppEncCfg::xPrintUsage()
 #endif
 #ifdef QC_AMVRES
   printf( "                   AMVRES - Adaptive motion resolution\n");
+#endif
+#ifdef DCM_PBIC 
+  printf( "                   PBIC - Partition-based Illumination Compensation \n");
 #endif
   printf( "\n" );
   printf( "  Example 1) TAppEncoder.exe -c test.cfg -q 32 -g 8 -f 9 -s 64 -h 4\n");

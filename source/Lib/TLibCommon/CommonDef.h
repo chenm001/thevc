@@ -209,6 +209,7 @@
 
 /* Rounding control */
 #define ROUNDING_CONTROL_BIPRED ///< From JCTVC-B074
+//#define ROUNDING_CONTROL_BIPRED_FIX
 #define TRANS_PRECISION_EXT     ///< From JCTVC-B074
 
 const int g_iShift8x8    = 7;
@@ -271,6 +272,25 @@ typedef _AlfParamHHI ALFParam;
 #else
 typedef _AlfParam    ALFParam;
 #endif
+
+#ifdef DCM_PBIC
+
+#define AICP_MAX_NUM_CANDS          5           ///< max number of final candidates
+#define IC_SCALE_PREC               6           ///< Scale precision in bits
+
+enum
+{
+  IDX_ZEROFLAG = -1,
+  IDX_ZTREE_MVDICDUNI,
+  IDX_ZTREE_MVDICDBI,
+  IDX_ZTREE_MVDUNI,
+  IDX_ZTREE_MVDBI,
+  MAX_NUM_ZTREE
+};
+
+#define ICROUND( Val )                ( ((Val) < 0) ? Int((Val)-0.5) : Int((Val)+0.5) )
+
+#endif //DCM_PBIC
 
 #endif // end of #ifndef  __COMMONDEF__
 

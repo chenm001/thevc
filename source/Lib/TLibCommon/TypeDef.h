@@ -43,7 +43,8 @@
 ////////////////////////////
 #define HHI_NAL_UNIT_SYNTAX               1           ///< enable/disable NalUnit syntax 
 #define HHI_ALLOW_CIP_SWITCH              1           ///< BB: allow to switch off CIP, via CIP : 0 in cfg file or -0 CIP in command line
-#define HHI_ALLOW_ROT_SWITCH              1           ///< BB: allow to switch off ROT, via ROT : 0 in cfg file or -0 ROT in command line
+#define HHI_DISABLE_INTER_NxN_SPLIT       0           ///< TN: disable redundant use of pu-mode NxN for CTBs larger 8x8 (inter only)
+#define HHI_RMP_SWITCH                    0
 
 // HHI tools
 #define HHI_RQT                           1           ///< MWHK: residual quadtree
@@ -55,12 +56,31 @@
 #define HHI_TRANSFORM_CODING              1           ///< TN: modified transform coefficient coding with RDOQ
 #define HHI_IMVP                          1           ///< SOPH: Interleaved Motion Vector Predictor 
 #define HHI_MRG                           1           ///< SOPH: inter partition merging
+#define HHI_MRG_PU                        0           ///< SOPH: inter partition merging on pu basis
 #define HHI_AMVP_OFF                      0           ///< SOPH: Advanced Motion Vector Predictor deactivated [not in TMuC]
 #define HHI_DEBLOCKING_FILTER             0           ///< MW: deblocking filter supporting residual quadtrees
 #define HHI_RQT_ROOT                      0           ///< PHHK: signaling of residual quadtree root flag
+#define HHI_RQT_FORCE_SPLIT_NxN           0           ///< MSHK: force split flags of residual quadtree for NxN PUs such that transform blocks are guaranteed to not span NxN PUs
+#define HHI_RQT_FORCE_SPLIT_RECT          0           ///< MSHK: force split flags of residual quadtree for rectangular PUs such that transform blocks are guaranteed to not span rectangular PUs
+#define HHI_RQT_FORCE_SPLIT_ASYM          0           ///< MSHK: force split flags of residual quadtree for asymmetric such that transform blocks are guaranteed to not span PUs asymmetric PUs
+
 
 #if ( HHI_RQT_INTRA && !HHI_RQT )
 #error "HHI_RQT_INTRA can only be equal to 1 if HHI_RQT is equal to 1"
+#endif
+
+#if ( HHI_MRG_PU && !HHI_MRG )
+#error "HHI_MRG_PU can only be equal to 1 if HHI_MRG is equal to 1"
+#endif
+
+#if ( HHI_RQT_FORCE_SPLIT_NxN || HHI_RQT_FORCE_SPLIT_RECT || HHI_RQT_FORCE_SPLIT_ASYM )
+#define HHI_RQT_FORCE_SPLIT_ACC2_PU       1
+#else
+#define HHI_RQT_FORCE_SPLIT_ACC2_PU       0
+#endif
+
+#if ( HHI_RQT_FORCE_SPLIT_ACC2_PU &&  !HHI_RQT  )
+#error "HHI_RQT_FORCE_SPLIT_ACC2_PU can only be equal to 1 if HHI_RQT is equal to 1"
 #endif
 
 #if HHI_AIS
@@ -100,7 +120,9 @@
 #error "Only one of TENTM_DEBLOCKING_FILTER and HHI_DEBLOCKING_FILTER can be defined"
 #endif
 
-#define NEWVLC                            1           // Improved VLC coding
+#define LCEC_PHASE1                       1           // LCEC - integration phase 1
+#define LCEC_PHASE2                       0           // LCEC - integration phase 2
+#define LCEC_STAT                         0           // LCEC - support for LCEC bitusage statistics
 
 //////////////////////////
 // TEN defines section end
@@ -111,7 +133,7 @@
 // QUALCOMM defines section start
 /////////////////////////////////
 
-#define NEWVLC_ADAPT_ENABLE                1           // Enable CU level VLC adaptation 
+#define LCEC_PHASE1_ADAPT_ENABLE                1           // Enable CU level VLC adaptation 
 
 #define QC_AMVRES    
 #ifdef QC_AMVRES  
@@ -153,6 +175,7 @@ void normalizeScanStats();
 #define BUGFIX48 0
 #define BUGFIX50 0
 #define BUGFIX50TMP 1 // for compatibility with previous versions without the crash
+#define SCAN_LUT_FIX 0
 
 ///////////////////////////////
 // QUALCOMM defines section end
@@ -177,6 +200,22 @@ void normalizeScanStats();
 ///////////////////////////////
 // SAMSUNG defines section end
 ///////////////////////////////
+
+///////////////////////////////
+// DOCOMO defines section start
+///////////////////////////////
+//#define DCM_PBIC //Partition-Based Illumination Compensation
+#define DCM_RDCOST_TEMP_FIX //Enables temporary bug fixes to RD cost computation (does not affect TMuC0.7 performance under current encoder settings, but is needed for proper RD cost computation when DCM_PBIC is enabled)
+
+#if defined(DCM_PBIC) && HHI_MRG_PU
+#error "Only one of DCM_PBIC and HHI_MRG_PU can be defined"
+#endif
+
+///////////////////////////////
+// DOCOMO defines section end
+///////////////////////////////
+
+#define BUGFIX85TMP 1 // Ignore cost of CBF (affects RQT off setting)
 
 // ====================================================================================================================
 // Basic type redefinition
@@ -363,7 +402,9 @@ enum TextType
   TEXT_CHROMA,          ///< chroma (U+V)
   TEXT_CHROMA_U,        ///< chroma U
   TEXT_CHROMA_V,        ///< chroma V
-
+#if LCEC_PHASE2
+  TEXT_ALL,             ///< Y+U+V
+#endif
   TEXT_NONE = 15
 };
 

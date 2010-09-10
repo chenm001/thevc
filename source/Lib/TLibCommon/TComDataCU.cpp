@@ -87,6 +87,11 @@ TComDataCU::TComDataCU()
   m_apiMVPNum[0]       = NULL;
   m_apiMVPNum[1]       = NULL;
 
+#ifdef DCM_PBIC
+  m_piICPIdx           = NULL;
+  m_piICPNum           = NULL;
+#endif
+
   m_pROTindex          = NULL;
   m_pCIPflag           = NULL;
 
@@ -156,17 +161,32 @@ Void TComDataCU::create(UInt uiNumPartition, UInt uiWidth, UInt uiHeight, Bool b
     m_apiMVPNum[0]       = (Int*   )xMalloc(Int,  uiNumPartition);
     m_apiMVPNum[1]       = (Int*   )xMalloc(Int,  uiNumPartition);
 
+#ifdef DCM_PBIC
+    m_piICPIdx           = (Int*   )xMalloc(Int,  uiNumPartition);
+    m_piICPNum           = (Int*   )xMalloc(Int,  uiNumPartition);
+#endif
+
     m_pcTrCoeffY         = (TCoeff*)xMalloc(TCoeff, uiWidth*uiHeight);
     m_pcTrCoeffCb        = (TCoeff*)xMalloc(TCoeff, uiWidth*uiHeight/4);
     m_pcTrCoeffCr        = (TCoeff*)xMalloc(TCoeff, uiWidth*uiHeight/4);
 
     m_acCUMvField[0].create( uiNumPartition );
     m_acCUMvField[1].create( uiNumPartition );
+
+#ifdef DCM_PBIC
+    m_acCUIcField.create( uiNumPartition );
+#endif
+
   }
   else
   {
     m_acCUMvField[0].setNumPartition(uiNumPartition );
     m_acCUMvField[1].setNumPartition(uiNumPartition );
+
+#ifdef DCM_PBIC
+    m_acCUIcField.setNumPartition(uiNumPartition );
+#endif
+
   }
 
   // create pattern memory
@@ -230,8 +250,18 @@ Void TComDataCU::destroy()
     if ( m_apiMVPNum[0]       ) { xFree(m_apiMVPNum[0]);        m_apiMVPNum[0]      = NULL; }
     if ( m_apiMVPNum[1]       ) { xFree(m_apiMVPNum[1]);        m_apiMVPNum[1]      = NULL; }
 
+#ifdef DCM_PBIC
+    if ( m_piICPIdx           ) { xFree(m_piICPIdx);            m_piICPIdx      = NULL; }
+    if ( m_piICPNum           ) { xFree(m_piICPNum);            m_piICPNum      = NULL; }
+#endif
+
     m_acCUMvField[0].destroy();
     m_acCUMvField[1].destroy();
+
+#ifdef DCM_PBIC
+	  m_acCUIcField.destroy();
+#endif
+
   }
 
   m_pcCUAboveLeft       = NULL;
@@ -325,10 +355,18 @@ Void TComDataCU::initCU( TComPic* pcPic, UInt iCUAddr )
     m_apiMVPIdx[1][ui] = -1;
     m_apiMVPNum[0][ui] = -1;
     m_apiMVPNum[1][ui] = -1;
+#ifdef DCM_PBIC
+    m_piICPIdx[ui] = -1;
+    m_piICPNum[ui] = -1;
+#endif
   }
 
   m_acCUMvField[0].clearMvField();
   m_acCUMvField[1].clearMvField();
+
+#ifdef DCM_PBIC
+  m_acCUIcField.clearIcField();
+#endif
 
   UInt uiTmp = m_puhWidth[0]*m_puhHeight[0];
   memset( m_pcTrCoeffY , 0, sizeof( TCoeff ) * uiTmp );
@@ -431,6 +469,10 @@ Void TComDataCU::initEstData()
     m_apiMVPIdx[1][ui] = -1;
     m_apiMVPNum[0][ui] = -1;
     m_apiMVPNum[1][ui] = -1;
+#ifdef DCM_PBIC
+    m_piICPIdx[ui] = -1;
+    m_piICPNum[ui] = -1;
+#endif
   }
 
   UInt uiTmp = m_puhWidth[0]*m_puhHeight[0];
@@ -442,6 +484,11 @@ Void TComDataCU::initEstData()
 
   m_acCUMvField[0].clearMvField();
   m_acCUMvField[1].clearMvField();
+
+#ifdef DCM_PBIC
+  m_acCUIcField.clearIcField();
+#endif
+
 }
 
 // initialize Sub partition
@@ -516,6 +563,11 @@ Void TComDataCU::initSubCU( TComDataCU* pcCU, UInt uiPartUnitIdx, UInt uiDepth )
     m_apiMVPIdx[1][ui] = -1;
     m_apiMVPNum[0][ui] = -1;
     m_apiMVPNum[1][ui] = -1;
+#ifdef DCM_PBIC
+    m_piICPIdx[ui] = -1;
+    m_piICPNum[ui] = -1;
+#endif
+
   }
 
   UInt uiTmp = m_puhWidth[0]*m_puhHeight[0];
@@ -535,6 +587,11 @@ Void TComDataCU::initSubCU( TComDataCU* pcCU, UInt uiPartUnitIdx, UInt uiDepth )
 
   m_acCUMvField[0].clearMvField();
   m_acCUMvField[1].clearMvField();
+
+#ifdef DCM_PBIC
+  m_acCUIcField.clearIcField();
+#endif
+
 }
 
 // --------------------------------------------------------------------------------------------------------------------
@@ -585,6 +642,11 @@ Void TComDataCU::copySubCU( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
   m_apiMVPNum[0]=pcCU->getMVPNum(REF_PIC_LIST_0)  + uiPart;
   m_apiMVPNum[1]=pcCU->getMVPNum(REF_PIC_LIST_1)  + uiPart;
 
+#ifdef DCM_PBIC
+  m_piICPIdx = pcCU->getICPIdx() + uiPart;
+  m_piICPNum = pcCU->getICPNum() + uiPart;
+#endif
+
   m_pROTindex= pcCU->getROTindex()                + uiPart;
   m_pCIPflag=  pcCU->getCIPflag()                 + uiPart;
 
@@ -628,6 +690,12 @@ Void TComDataCU::copySubCU( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
 #ifdef QC_AMVRES
   m_acCUMvField[1].setMVResPtr(pcCU->getCUMvField(REF_PIC_LIST_1)->getMVRes() + uiPart);
 #endif
+
+#ifdef DCM_PBIC
+  m_acCUIcField.setIcPtr(pcCU->getCUIcField()->getIc()     + uiPart);
+  m_acCUIcField.setIcdPtr(pcCU->getCUIcField()->getIcd()    + uiPart);
+#endif
+
 }
 
 // Copy inter prediction info from the biggest CU
@@ -658,15 +726,66 @@ Void TComDataCU::copyInterPredInfoFrom    ( TComDataCU* pcCU, UInt uiAbsPartIdx,
   m_puhWidth           = pcCU->getWidth ()                + uiAbsPartIdx;
   m_puhHeight          = pcCU->getHeight()                + uiAbsPartIdx;
 
+#ifdef DCM_PBIC
+  if ( eRefPicList == REF_PIC_LIST_X )
+  {
+    m_apiMVPIdx[REF_PIC_LIST_0] = pcCU->getMVPIdx(REF_PIC_LIST_0) + uiAbsPartIdx;
+    m_apiMVPNum[REF_PIC_LIST_0] = pcCU->getMVPNum(REF_PIC_LIST_0) + uiAbsPartIdx;
+
+    m_apiMVPIdx[REF_PIC_LIST_1] = pcCU->getMVPIdx(REF_PIC_LIST_1) + uiAbsPartIdx;
+    m_apiMVPNum[REF_PIC_LIST_1] = pcCU->getMVPNum(REF_PIC_LIST_1) + uiAbsPartIdx;
+
+    m_acCUMvField[REF_PIC_LIST_0].setMvPtr(pcCU->getCUMvField(REF_PIC_LIST_0)->getMv()     + uiAbsPartIdx);
+    m_acCUMvField[REF_PIC_LIST_0].setMvdPtr(pcCU->getCUMvField(REF_PIC_LIST_0)->getMvd()    + uiAbsPartIdx);
+    m_acCUMvField[REF_PIC_LIST_0].setRefIdxPtr(pcCU->getCUMvField(REF_PIC_LIST_0)->getRefIdx() + uiAbsPartIdx);
+#ifdef QC_AMVRES
+    m_acCUMvField[REF_PIC_LIST_0].setMVResPtr(pcCU->getCUMvField(REF_PIC_LIST_0)->getMVRes() + uiAbsPartIdx);
+#endif
+
+    m_acCUMvField[REF_PIC_LIST_1].setMvPtr(pcCU->getCUMvField(REF_PIC_LIST_1)->getMv()     + uiAbsPartIdx);
+    m_acCUMvField[REF_PIC_LIST_1].setMvdPtr(pcCU->getCUMvField(REF_PIC_LIST_1)->getMvd()    + uiAbsPartIdx);
+    m_acCUMvField[REF_PIC_LIST_1].setRefIdxPtr(pcCU->getCUMvField(REF_PIC_LIST_1)->getRefIdx() + uiAbsPartIdx);
+#ifdef QC_AMVRES
+    m_acCUMvField[REF_PIC_LIST_1].setMVResPtr(pcCU->getCUMvField(REF_PIC_LIST_1)->getMVRes() + uiAbsPartIdx);
+#endif
+  }
+  else
+  {
+    m_apiMVPIdx[eRefPicList] = pcCU->getMVPIdx(eRefPicList) + uiAbsPartIdx;
+    m_apiMVPNum[eRefPicList] = pcCU->getMVPNum(eRefPicList) + uiAbsPartIdx;
+
+    m_acCUMvField[eRefPicList].setMvPtr(pcCU->getCUMvField(eRefPicList)->getMv()     + uiAbsPartIdx);
+    m_acCUMvField[eRefPicList].setMvdPtr(pcCU->getCUMvField(eRefPicList)->getMvd()    + uiAbsPartIdx);
+    m_acCUMvField[eRefPicList].setRefIdxPtr(pcCU->getCUMvField(eRefPicList)->getRefIdx() + uiAbsPartIdx);
+#ifdef QC_AMVRES
+    m_acCUMvField[eRefPicList].setMVResPtr(pcCU->getCUMvField(eRefPicList)->getMVRes() + uiAbsPartIdx);
+#endif
+  }
+#else
   m_apiMVPIdx[eRefPicList] = pcCU->getMVPIdx(eRefPicList) + uiAbsPartIdx;
   m_apiMVPNum[eRefPicList] = pcCU->getMVPNum(eRefPicList) + uiAbsPartIdx;
 
   m_acCUMvField[eRefPicList].setMvPtr(pcCU->getCUMvField(eRefPicList)->getMv()     + uiAbsPartIdx);
   m_acCUMvField[eRefPicList].setMvdPtr(pcCU->getCUMvField(eRefPicList)->getMvd()    + uiAbsPartIdx);
   m_acCUMvField[eRefPicList].setRefIdxPtr(pcCU->getCUMvField(eRefPicList)->getRefIdx() + uiAbsPartIdx);
+#if HHI_MRG_PU
+  m_pbMergeFlag         = pcCU->getMergeFlag()        + uiAbsPartIdx;
+  m_puhMergeIndex       = pcCU->getMergeIndex()       + uiAbsPartIdx;
+#endif
+
 #ifdef QC_AMVRES
   m_acCUMvField[eRefPicList].setMVResPtr(pcCU->getCUMvField(eRefPicList)->getMVRes() + uiAbsPartIdx);
 #endif
+#endif
+
+#ifdef DCM_PBIC
+  m_piICPIdx = pcCU->getICPIdx() + uiAbsPartIdx;
+  m_piICPNum = pcCU->getICPNum() + uiAbsPartIdx;
+
+  m_acCUIcField.setIcPtr(pcCU->getCUIcField()->getIc()     + uiAbsPartIdx);
+  m_acCUIcField.setIcdPtr(pcCU->getCUIcField()->getIcd()    + uiAbsPartIdx);
+#endif
+
 }
 
 // Copy inter prediction info to the biggest CU
@@ -675,12 +794,23 @@ Void TComDataCU::copyInterPredInfoTo    ( TComDataCU* pcCU, UInt uiAbsPartIdx, R
   Int iSizeInInt    = sizeof( Int    ) * m_uiNumPartition;
   Int iSizeInTComMv = sizeof( TComMv ) * m_uiNumPartition;
 
+#ifdef DCM_PBIC
+  Int iSizeInTComIc = sizeof( TComIc ) * m_uiNumPartition;
+#endif
+
   memcpy( pcCU->getMVPIdx(eRefPicList) + uiAbsPartIdx, m_apiMVPIdx[eRefPicList], iSizeInInt );
   memcpy( pcCU->getMVPNum(eRefPicList) + uiAbsPartIdx, m_apiMVPNum[eRefPicList], iSizeInInt );
   memcpy( pcCU->getCUMvField(eRefPicList)->getMv() + uiAbsPartIdx, m_acCUMvField[eRefPicList].getMv(), iSizeInTComMv );
 #ifdef QC_AMVRES
   memcpy( pcCU->getCUMvField(eRefPicList)->getMVRes() + uiAbsPartIdx, m_acCUMvField[eRefPicList].getMVRes(), m_uiNumPartition );
 #endif
+
+#ifdef DCM_PBIC
+  memcpy( pcCU->getICPIdx() + uiAbsPartIdx, m_piICPIdx, iSizeInInt );
+  memcpy( pcCU->getICPNum() + uiAbsPartIdx, m_piICPNum, iSizeInInt );
+  memcpy( pcCU->getCUIcField()->getIc() + uiAbsPartIdx, m_acCUIcField.getIc(), iSizeInTComIc );
+#endif
+
 }
 
 // Copy small CU to bigger CU.
@@ -743,6 +873,11 @@ Void TComDataCU::copyPartFrom( TComDataCU* pcCU, UInt uiPartUnitIdx, UInt uiDept
   memcpy( m_apiMVPNum[0] + uiOffset, pcCU->getMVPNum(REF_PIC_LIST_0), iSizeInInt );
   memcpy( m_apiMVPNum[1] + uiOffset, pcCU->getMVPNum(REF_PIC_LIST_1), iSizeInInt );
 
+#ifdef DCM_PBIC
+  memcpy( m_piICPIdx + uiOffset, pcCU->getICPIdx(), iSizeInInt );
+  memcpy( m_piICPNum + uiOffset, pcCU->getICPNum(), iSizeInInt );
+#endif 
+
   m_pcCUAboveLeft      = pcCU->getCUAboveLeft();
   m_pcCUAboveRight     = pcCU->getCUAboveRight();
   m_pcCUAbove          = pcCU->getCUAbove();
@@ -753,6 +888,10 @@ Void TComDataCU::copyPartFrom( TComDataCU* pcCU, UInt uiPartUnitIdx, UInt uiDept
 
   m_acCUMvField[0].copyFrom( pcCU->getCUMvField( REF_PIC_LIST_0 ), pcCU->getTotalNumPart(), uiOffset );
   m_acCUMvField[1].copyFrom( pcCU->getCUMvField( REF_PIC_LIST_1 ), pcCU->getTotalNumPart(), uiOffset );
+
+#ifdef DCM_PBIC
+  m_acCUIcField.copyFrom( pcCU->getCUIcField(), pcCU->getTotalNumPart(), uiOffset );
+#endif
 
   UInt uiTmp  = g_uiMaxCUWidth*g_uiMaxCUHeight >> (uiDepth<<1);
   UInt uiTmp2 = uiPartUnitIdx*uiTmp;
@@ -822,8 +961,17 @@ Void TComDataCU::copyToPic( UChar uhDepth )
   memcpy( rpcCU->getMVPNum(REF_PIC_LIST_0) + m_uiAbsIdxInLCU, m_apiMVPNum[0], iSizeInInt );
   memcpy( rpcCU->getMVPNum(REF_PIC_LIST_1) + m_uiAbsIdxInLCU, m_apiMVPNum[1], iSizeInInt );
 
+#ifdef DCM_PBIC
+  memcpy( rpcCU->getICPIdx() + m_uiAbsIdxInLCU, m_piICPIdx, iSizeInInt );
+  memcpy( rpcCU->getICPNum() + m_uiAbsIdxInLCU, m_piICPNum, iSizeInInt );
+#endif 
+
   m_acCUMvField[0].copyTo( rpcCU->getCUMvField( REF_PIC_LIST_0 ), m_uiAbsIdxInLCU );
   m_acCUMvField[1].copyTo( rpcCU->getCUMvField( REF_PIC_LIST_1 ), m_uiAbsIdxInLCU );
+
+#ifdef DCM_PBIC
+  m_acCUIcField.copyTo( rpcCU->getCUIcField(), m_uiAbsIdxInLCU );
+#endif
 
   UInt uiTmp  = (g_uiMaxCUWidth*g_uiMaxCUHeight)>>(uhDepth<<1);
   UInt uiTmp2 = m_uiAbsIdxInLCU*m_pcPic->getMinCUWidth()*m_pcPic->getMinCUHeight();
@@ -894,8 +1042,16 @@ Void TComDataCU::copyToPic( UChar uhDepth, UInt uiPartIdx, UInt uiPartDepth )
   memcpy( rpcCU->getMVPNum(REF_PIC_LIST_0) + uiPartOffset, m_apiMVPNum[0], iSizeInInt );
   memcpy( rpcCU->getMVPNum(REF_PIC_LIST_1) + uiPartOffset, m_apiMVPNum[1], iSizeInInt );
 
+#ifdef DCM_PBIC
+  memcpy( rpcCU->getICPIdx() + uiPartOffset, m_piICPIdx, iSizeInInt );
+  memcpy( rpcCU->getICPNum() + uiPartOffset, m_piICPNum, iSizeInInt );
+#endif
   m_acCUMvField[0].copyTo( rpcCU->getCUMvField( REF_PIC_LIST_0 ), m_uiAbsIdxInLCU, uiPartStart, uiQNumPart );
   m_acCUMvField[1].copyTo( rpcCU->getCUMvField( REF_PIC_LIST_1 ), m_uiAbsIdxInLCU, uiPartStart, uiQNumPart );
+
+#ifdef DCM_PBIC
+  m_acCUIcField.copyTo( rpcCU->getCUIcField(), m_uiAbsIdxInLCU, uiPartStart, uiQNumPart );
+#endif
 
   UInt uiTmp  = (g_uiMaxCUWidth*g_uiMaxCUHeight)>>((uhDepth+uiPartDepth)<<1);
   UInt uiTmp2 = uiPartOffset*m_pcPic->getMinCUWidth()*m_pcPic->getMinCUHeight();
@@ -1893,7 +2049,174 @@ Void TComDataCU::setLumaIntraFiltFlagSubParts( Bool bFlag, UInt uiAbsPartIdx, UI
 }
 #endif
 
+#if HHI_MRG_PU
+Void TComDataCU::setSubPartUChar( UInt uiParameter, UChar* puhBaseLCU, UInt uiCUAddr, UInt uiCUDepth, UInt uiPUIdx )
+{
+  UInt uiCurrPartNumQ = (m_pcPic->getNumPartInCU() >> (uiCUDepth << 1)) >> 2;
+  switch ( m_pePartSize[ uiCUAddr ] )
+  {
+  case SIZE_2Nx2N:
+    memset( puhBaseLCU + uiCUAddr, uiParameter, sizeof(UChar)*uiCurrPartNumQ << 2 );                      break;
+  case SIZE_2NxN:
+    memset( puhBaseLCU + uiCUAddr, uiParameter, sizeof(UChar)*uiCurrPartNumQ << 1 );                      break;
+  case SIZE_Nx2N:
+    memset( puhBaseLCU + uiCUAddr, uiParameter, sizeof(UChar)*uiCurrPartNumQ );
+    memset( puhBaseLCU + uiCUAddr + ( uiCurrPartNumQ << 1 ), uiParameter, sizeof(UChar)*uiCurrPartNumQ ); break;
+  case SIZE_NxN:
+    memset( puhBaseLCU + uiCUAddr, uiParameter, sizeof(UChar)*uiCurrPartNumQ );                           break;
+  case SIZE_2NxnU:
+    {
+      memset( puhBaseLCU + uiCUAddr, uiParameter, sizeof(UChar)*(uiCurrPartNumQ>>1) );
+      if( uiPUIdx == 0 )
+        memset( puhBaseLCU + uiCUAddr + uiCurrPartNumQ, uiParameter, sizeof(UChar)*(uiCurrPartNumQ>>1) );
+      else
+        memset( puhBaseLCU + uiCUAddr + uiCurrPartNumQ, uiParameter, sizeof(UChar)*( (uiCurrPartNumQ>>1) + (uiCurrPartNumQ<<1) ) );
+      break;
+    }
+  case SIZE_2NxnD:
+    {
+      if( uiPUIdx == 0 )
+      {
+        memset( puhBaseLCU + uiCUAddr, uiParameter, sizeof(UChar)*( (uiCurrPartNumQ>>1) + (uiCurrPartNumQ<<1) ) );
+        memset( puhBaseLCU + uiCUAddr + ( uiCurrPartNumQ + (uiCurrPartNumQ<<1) ), uiParameter, sizeof(UChar)*(uiCurrPartNumQ>>1) );
+      }
+      else
+      {
+        memset( puhBaseLCU + uiCUAddr, uiParameter, sizeof(UChar)*(uiCurrPartNumQ>>1) );
+        memset( puhBaseLCU + uiCUAddr + uiCurrPartNumQ, uiParameter, sizeof(UChar)*(uiCurrPartNumQ>>1) );
+      }
+      break;
+    }
+  case SIZE_nLx2N:
+    {
+      memset( puhBaseLCU + uiCUAddr, uiParameter, sizeof(UChar)*(uiCurrPartNumQ>>2) );
+      memset( puhBaseLCU + uiCUAddr + (uiCurrPartNumQ<<1), uiParameter, sizeof(UChar)*(uiCurrPartNumQ>>2) );
+      if( uiPUIdx == 0 )
+      {
+        memset( puhBaseLCU + uiCUAddr + (uiCurrPartNumQ>>1), uiParameter, sizeof(UChar)*(uiCurrPartNumQ>>2) );
+        memset( puhBaseLCU + uiCUAddr + (uiCurrPartNumQ<<1) + (uiCurrPartNumQ>>1), uiParameter, sizeof(UChar)*(uiCurrPartNumQ>>2) );
+      }
+      else
+      {
+        memset( puhBaseLCU + uiCUAddr + (uiCurrPartNumQ>>1), uiParameter, sizeof(UChar)*( (uiCurrPartNumQ>>2) + uiCurrPartNumQ ) );
+        memset( puhBaseLCU + uiCUAddr + (uiCurrPartNumQ<<1) + (uiCurrPartNumQ>>1), uiParameter, sizeof(UChar)*( (uiCurrPartNumQ>>2) + uiCurrPartNumQ ) );
+      }
+      break;
+    }
+  case SIZE_nRx2N:
+    {
+      if( uiPUIdx == 0 )
+      {
+        memset( puhBaseLCU + uiCUAddr, uiParameter, sizeof(UChar)*( (uiCurrPartNumQ>>2) + uiCurrPartNumQ ) );
+        memset( puhBaseLCU + uiCUAddr + uiCurrPartNumQ + (uiCurrPartNumQ>>1), uiParameter, sizeof(UChar)*(uiCurrPartNumQ>>2) );
+        memset( puhBaseLCU + uiCUAddr + (uiCurrPartNumQ<<1), uiParameter, sizeof(UChar)*( (uiCurrPartNumQ>>2) + uiCurrPartNumQ ) );
+        memset( puhBaseLCU + uiCUAddr + (uiCurrPartNumQ<<1) + uiCurrPartNumQ + (uiCurrPartNumQ>>1), uiParameter, sizeof(UChar)*(uiCurrPartNumQ>>2) );
+      }
+      else
+      {
+        memset( puhBaseLCU + uiCUAddr, uiParameter, sizeof(UChar)*(uiCurrPartNumQ>>2) );
+        memset( puhBaseLCU + uiCUAddr + (uiCurrPartNumQ>>1), uiParameter, sizeof(UChar)*(uiCurrPartNumQ>>2) );
+        memset( puhBaseLCU + uiCUAddr + (uiCurrPartNumQ<<1), uiParameter, sizeof(UChar)*(uiCurrPartNumQ>>2) );
+        memset( puhBaseLCU + uiCUAddr + (uiCurrPartNumQ<<1) + (uiCurrPartNumQ>>1), uiParameter, sizeof(UChar)*(uiCurrPartNumQ>>2) );
+      }
+      break;
+    }
+  default:
+    assert( 0 );
+  }
+}
+
+Void TComDataCU::setSubPartBool( Bool bParameter, Bool* pbBaseLCU, UInt uiCUAddr, UInt uiCUDepth, UInt uiPUIdx )
+{
+  UInt uiQuaterCUPartNum = (m_pcPic->getNumPartInCU() >> (uiCUDepth << 1)) >> 2;
+  switch ( m_pePartSize[ uiCUAddr ] )
+  {
+  case SIZE_2Nx2N:
+    memset( pbBaseLCU + uiCUAddr, bParameter, sizeof(Bool)*uiQuaterCUPartNum << 2 );                      break;
+  case SIZE_2NxN:
+    memset( pbBaseLCU + uiCUAddr, bParameter, sizeof(Bool)*uiQuaterCUPartNum << 1 );                      break;
+  case SIZE_Nx2N:
+    memset( pbBaseLCU + uiCUAddr, bParameter, sizeof(Bool)*uiQuaterCUPartNum );
+    memset( pbBaseLCU + uiCUAddr + ( uiQuaterCUPartNum << 1 ), bParameter, sizeof(Bool)*uiQuaterCUPartNum ); break;
+  case SIZE_NxN:
+    memset( pbBaseLCU + uiCUAddr, bParameter, sizeof(Bool)*uiQuaterCUPartNum );                           break;
+  case SIZE_2NxnU:
+    {
+      memset( pbBaseLCU + uiCUAddr, bParameter, sizeof(Bool)*(uiQuaterCUPartNum>>1) );
+      if( uiPUIdx == 0 )
+        memset( pbBaseLCU + uiCUAddr + uiQuaterCUPartNum, bParameter, sizeof(Bool)*(uiQuaterCUPartNum>>1) );
+      else
+        memset( pbBaseLCU + uiCUAddr + uiQuaterCUPartNum, bParameter, sizeof(Bool)*( (uiQuaterCUPartNum>>1) + (uiQuaterCUPartNum<<1) ) );
+      break;
+    }
+  case SIZE_2NxnD:
+    {
+      if( uiPUIdx == 0 )
+      {
+        memset( pbBaseLCU + uiCUAddr, bParameter, sizeof(Bool)*( (uiQuaterCUPartNum>>1) + (uiQuaterCUPartNum<<1) ) );
+        memset( pbBaseLCU + uiCUAddr + ( uiQuaterCUPartNum + (uiQuaterCUPartNum<<1) ), bParameter, sizeof(Bool)*(uiQuaterCUPartNum>>1) );
+      }
+      else
+      {
+        memset( pbBaseLCU + uiCUAddr, bParameter, sizeof(Bool)*(uiQuaterCUPartNum>>1) );
+        memset( pbBaseLCU + uiCUAddr + uiQuaterCUPartNum, bParameter, sizeof(Bool)*(uiQuaterCUPartNum>>1) );
+      }
+      break;
+    }
+  case SIZE_nLx2N:
+    {
+      memset( pbBaseLCU + uiCUAddr, bParameter, sizeof(Bool)*(uiQuaterCUPartNum>>2) );
+      memset( pbBaseLCU + uiCUAddr + (uiQuaterCUPartNum<<1), bParameter, sizeof(Bool)*(uiQuaterCUPartNum>>2) );
+      if( uiPUIdx == 0 )
+      {
+        memset( pbBaseLCU + uiCUAddr + (uiQuaterCUPartNum>>1), bParameter, sizeof(Bool)*(uiQuaterCUPartNum>>2) );
+        memset( pbBaseLCU + uiCUAddr + (uiQuaterCUPartNum<<1) + (uiQuaterCUPartNum>>1), bParameter, sizeof(Bool)*(uiQuaterCUPartNum>>2) );
+      }
+      else
+      {
+        memset( pbBaseLCU + uiCUAddr + (uiQuaterCUPartNum>>1), bParameter, sizeof(Bool)*( (uiQuaterCUPartNum>>2) + uiQuaterCUPartNum ) );
+        memset( pbBaseLCU + uiCUAddr + (uiQuaterCUPartNum<<1) + (uiQuaterCUPartNum>>1), bParameter, sizeof(Bool)*( (uiQuaterCUPartNum>>2) + uiQuaterCUPartNum ) );
+      }
+      break;
+    }
+  case SIZE_nRx2N:
+    {
+      if( uiPUIdx == 0 )
+      {
+        memset( pbBaseLCU + uiCUAddr, bParameter, sizeof(Bool)*( (uiQuaterCUPartNum>>2) + uiQuaterCUPartNum ) );
+        memset( pbBaseLCU + uiCUAddr + uiQuaterCUPartNum + (uiQuaterCUPartNum>>1), bParameter, sizeof(Bool)*(uiQuaterCUPartNum>>2) );
+        memset( pbBaseLCU + uiCUAddr + (uiQuaterCUPartNum<<1), bParameter, sizeof(Bool)*( (uiQuaterCUPartNum>>2) + uiQuaterCUPartNum ) );
+        memset( pbBaseLCU + uiCUAddr + (uiQuaterCUPartNum<<1) + uiQuaterCUPartNum + (uiQuaterCUPartNum>>1), bParameter, sizeof(Bool)*(uiQuaterCUPartNum>>2) );
+      }
+      else
+      {
+        memset( pbBaseLCU + uiCUAddr, bParameter, sizeof(Bool)*(uiQuaterCUPartNum>>2) );
+        memset( pbBaseLCU + uiCUAddr + (uiQuaterCUPartNum>>1), bParameter, sizeof(Bool)*(uiQuaterCUPartNum>>2) );
+        memset( pbBaseLCU + uiCUAddr + (uiQuaterCUPartNum<<1), bParameter, sizeof(Bool)*(uiQuaterCUPartNum>>2) );
+        memset( pbBaseLCU + uiCUAddr + (uiQuaterCUPartNum<<1) + (uiQuaterCUPartNum>>1), bParameter, sizeof(Bool)*(uiQuaterCUPartNum>>2) );
+      }
+      break;
+    }
+  default:
+    assert( 0 );
+  }
+}
+#endif
+
 #if HHI_MRG
+#if HHI_MRG_PU
+Void TComDataCU::setMergeFlagSubParts ( Bool bMergeFlag, UInt uiAbsPartIdx, UInt uiPartIdx, UInt uiDepth )
+{
+  setSubPartBool( bMergeFlag, m_pbMergeFlag, uiAbsPartIdx, uiDepth, uiPartIdx );
+}
+
+Void TComDataCU::setMergeIndexSubParts ( UInt uiMergeIndex, UInt uiAbsPartIdx, UInt uiPartIdx, UInt uiDepth )
+{
+  setSubPartUChar( uiMergeIndex, m_puhMergeIndex, uiAbsPartIdx, uiDepth, uiPartIdx );
+}
+
+#else
+
 Void TComDataCU::setMergeFlagSubParts ( Bool bMergeFlag, UInt uiAbsPartIdx, UInt uiDepth )
 {
   UInt uiCurrPartNumb = m_pcPic->getNumPartInCU() >> (uiDepth << 1);
@@ -1907,6 +2230,7 @@ Void TComDataCU::setMergeIndexSubParts ( UInt uiMergeIndex, UInt uiAbsPartIdx, U
 
   memset( m_puhMergeIndex + uiAbsPartIdx, uiMergeIndex, sizeof(UChar)*uiCurrPartNumb );
 }
+#endif
 #endif
 
 #if ANG_INTRA
@@ -1931,6 +2255,14 @@ Void TComDataCU::setChromIntraDirSubParts( UInt uiDir, UInt uiAbsPartIdx, UInt u
   memset( m_puhChromaIntraDir + uiAbsPartIdx, uiDir, sizeof(UChar)*uiCurrPartNumb );
 }
 
+#if HHI_MRG_PU
+
+Void TComDataCU::setInterDirSubParts( UInt uiDir, UInt uiAbsPartIdx, UInt uiPartIdx, UInt uiDepth )
+{
+  setSubPartUChar( uiDir, m_puhInterDir, uiAbsPartIdx, uiDepth, uiPartIdx );
+}
+
+#else
 Void TComDataCU::setInterDirSubParts( UInt uiDir, UInt uiAbsPartIdx, UInt uiPartIdx, UInt uiDepth )
 {
   UInt uiCurrPartNumQ = (m_pcPic->getNumPartInCU() >> (uiDepth << 1)) >> 2;
@@ -2007,6 +2339,7 @@ Void TComDataCU::setInterDirSubParts( UInt uiDir, UInt uiAbsPartIdx, UInt uiPart
     assert( 0 );
   }
 }
+#endif
 
 Void TComDataCU::setMVPIdxSubParts( Int iMVPIdx, RefPicList eRefPicList, UInt uiAbsPartIdx, UInt uiPartIdx, UInt uiDepth )
 {
@@ -2367,6 +2700,364 @@ Void TComDataCU::setMVPNumSubParts( Int iMVPNum, RefPicList eRefPicList, UInt ui
   }
 }
 
+#ifdef DCM_PBIC
+Void TComDataCU::setICPIdxSubParts( Int iICPIdx, UInt uiAbsPartIdx, UInt uiPartIdx, UInt uiDepth )
+{
+  UInt uiCurrPartNumQ = m_pcPic->getNumPartInCU() >> (uiDepth << 1) >> 2;
+  Int i;
+  Int* pi;
+  switch ( m_pePartSize[ uiAbsPartIdx ] )
+  {
+  case SIZE_2Nx2N:
+    {
+      pi = m_piICPIdx + uiAbsPartIdx;
+      for (i = 0; i < (uiCurrPartNumQ << 2); i++)
+      {
+        pi[i] = iICPIdx;
+      }
+   }
+  break;
+  case SIZE_2NxN:
+    {
+      pi = m_piICPIdx + uiAbsPartIdx;
+      for (i = 0; i < (uiCurrPartNumQ << 1); i++)
+      {
+        pi[i] = iICPIdx;
+      }
+   }
+  break;
+  case SIZE_Nx2N:
+    {
+      Int* pi2 = m_piICPIdx + uiAbsPartIdx + ( uiCurrPartNumQ << 1 );
+      pi = m_piICPIdx + uiAbsPartIdx;
+      for (i = 0; i < uiCurrPartNumQ; i++)
+      {
+        pi [i] = iICPIdx;
+        pi2[i] = iICPIdx;
+      }
+      break;
+    }
+  case SIZE_NxN:
+    {
+      pi = m_piICPIdx + uiAbsPartIdx;
+      for (i = 0; i < uiCurrPartNumQ; i++)
+      {
+        pi[i] = iICPIdx;
+      }
+      break;
+    }
+  case SIZE_2NxnU:
+    {
+      if( uiPartIdx == 0 )
+      {
+             pi  = m_piICPIdx + uiAbsPartIdx;
+        Int* pi2 = m_piICPIdx + uiAbsPartIdx + uiCurrPartNumQ;
+        for (i = 0; i < (uiCurrPartNumQ>>1); i++)
+        {
+          pi [i] = iICPIdx;
+          pi2[i] = iICPIdx;
+        }
+      }
+      else
+      {
+        pi = m_piICPIdx + uiAbsPartIdx;
+        for (i = 0; i < (uiCurrPartNumQ>>1); i++)
+        {
+          pi[i] = iICPIdx;
+        }
+
+        pi = m_piICPIdx + uiAbsPartIdx + uiCurrPartNumQ;
+        for (i = 0; i < ( (uiCurrPartNumQ>>1) + (uiCurrPartNumQ<<1) ); i++)
+        {
+          pi[i] = iICPIdx;
+        }
+      }
+      break;
+    }
+  case SIZE_2NxnD:
+    {
+      if( uiPartIdx == 0 )
+      {
+        pi = m_piICPIdx + uiAbsPartIdx;
+        for (i = 0; i < ( (uiCurrPartNumQ>>1) + (uiCurrPartNumQ<<1) ); i++)
+        {
+          pi[i] = iICPIdx;
+        }
+        pi = m_piICPIdx + uiAbsPartIdx + ( uiCurrPartNumQ + (uiCurrPartNumQ<<1) );
+        for (i = 0; i < (uiCurrPartNumQ>>1); i++)
+        {
+          pi[i] = iICPIdx;
+        }
+      }
+      else
+      {
+             pi  = m_piICPIdx + uiAbsPartIdx;
+        Int* pi2 = m_piICPIdx + uiAbsPartIdx + uiCurrPartNumQ;
+        for (i = 0; i < (uiCurrPartNumQ>>1); i++)
+        {
+          pi [i] = iICPIdx;
+          pi2[i] = iICPIdx;
+        }
+      }
+      break;
+    }
+  case SIZE_nLx2N:
+    {
+      if( uiPartIdx == 0 )
+      {
+             pi  = m_piICPIdx + uiAbsPartIdx;
+        Int* pi2 = m_piICPIdx + uiAbsPartIdx + (uiCurrPartNumQ<<1);
+        Int* pi3 = m_piICPIdx + uiAbsPartIdx + (uiCurrPartNumQ>>1);
+        Int* pi4 = m_piICPIdx + uiAbsPartIdx + (uiCurrPartNumQ<<1) + (uiCurrPartNumQ>>1);
+
+        for (i = 0; i < (uiCurrPartNumQ>>2); i++)
+        {
+          pi [i] = iICPIdx;
+          pi2[i] = iICPIdx;
+          pi3[i] = iICPIdx;
+          pi4[i] = iICPIdx;
+        }
+      }
+      else
+      {
+             pi  = m_piICPIdx + uiAbsPartIdx;
+        Int* pi2 = m_piICPIdx + uiAbsPartIdx + (uiCurrPartNumQ<<1);
+        for (i = 0; i < (uiCurrPartNumQ>>2); i++)
+        {
+          pi [i] = iICPIdx;
+          pi2[i] = iICPIdx;
+        }
+
+        pi  = m_piICPIdx + uiAbsPartIdx + (uiCurrPartNumQ>>1);
+        pi2 = m_piICPIdx + uiAbsPartIdx + (uiCurrPartNumQ<<1) + (uiCurrPartNumQ>>1);
+        for (i = 0; i < ( (uiCurrPartNumQ>>2) + uiCurrPartNumQ ); i++)
+        {
+          pi [i] = iICPIdx;
+          pi2[i] = iICPIdx;
+        }
+      }
+      break;
+    }
+  case SIZE_nRx2N:
+    {
+      if( uiPartIdx == 0 )
+      {
+             pi  = m_piICPIdx + uiAbsPartIdx;
+        Int* pi2 = m_piICPIdx + uiAbsPartIdx + (uiCurrPartNumQ<<1);
+        for (i = 0; i < ( (uiCurrPartNumQ>>2) + uiCurrPartNumQ ); i++)
+        {
+          pi [i] = iICPIdx;
+          pi2[i] = iICPIdx;
+        }
+
+        pi  = m_piICPIdx + uiAbsPartIdx + uiCurrPartNumQ + (uiCurrPartNumQ>>1);
+        pi2 = m_piICPIdx + uiAbsPartIdx + (uiCurrPartNumQ<<1) + uiCurrPartNumQ + (uiCurrPartNumQ>>1);
+        for (i = 0; i < (uiCurrPartNumQ>>2); i++)
+        {
+          pi [i] = iICPIdx;
+          pi2[i] = iICPIdx;
+        }
+      }
+      else
+      {
+             pi  = m_piICPIdx + uiAbsPartIdx;
+        Int* pi2 = m_piICPIdx + uiAbsPartIdx + (uiCurrPartNumQ>>1);
+        Int* pi3 = m_piICPIdx + uiAbsPartIdx + (uiCurrPartNumQ<<1);
+        Int* pi4 = m_piICPIdx + uiAbsPartIdx + (uiCurrPartNumQ<<1) + (uiCurrPartNumQ>>1);
+        for (i = 0; i < (uiCurrPartNumQ>>2); i++)
+        {
+          pi [i] = iICPIdx;
+          pi2[i] = iICPIdx;
+          pi3[i] = iICPIdx;
+          pi4[i] = iICPIdx;
+        }
+      }
+      break;
+    }
+  default:
+    assert( 0 );
+  }
+}
+
+Void TComDataCU::setICPNumSubParts( Int iICPNum, UInt uiAbsPartIdx, UInt uiPartIdx, UInt uiDepth )
+{
+  UInt uiCurrPartNumQ = m_pcPic->getNumPartInCU() >> (uiDepth << 1) >> 2;
+  Int i;
+  Int* pi;
+  switch ( m_pePartSize[ uiAbsPartIdx ] )
+  {
+  case SIZE_2Nx2N:
+    {
+      pi = m_piICPNum + uiAbsPartIdx;
+      for (i = 0; i < (uiCurrPartNumQ << 2); i++)
+      {
+        pi[i] = iICPNum;
+      }
+   }
+  break;
+  case SIZE_2NxN:
+    {
+      pi = m_piICPNum + uiAbsPartIdx;
+      for (i = 0; i < (uiCurrPartNumQ << 1); i++)
+      {
+        pi[i] = iICPNum;
+      }
+   }
+  break;
+  case SIZE_Nx2N:
+    {
+      Int* pi2 = m_piICPNum + uiAbsPartIdx + ( uiCurrPartNumQ << 1 );
+      pi = m_piICPNum + uiAbsPartIdx;
+      for (i = 0; i < uiCurrPartNumQ; i++)
+      {
+        pi [i] = iICPNum;
+        pi2[i] = iICPNum;
+      }
+      break;
+    }
+  case SIZE_NxN:
+    {
+      pi = m_piICPNum + uiAbsPartIdx;
+      for (i = 0; i < uiCurrPartNumQ; i++)
+      {
+        pi[i] = iICPNum;
+      }
+      break;
+    }
+  case SIZE_2NxnU:
+    {
+      if( uiPartIdx == 0 )
+      {
+             pi  = m_piICPNum + uiAbsPartIdx;
+        Int* pi2 = m_piICPNum + uiAbsPartIdx + uiCurrPartNumQ;
+        for (i = 0; i < (uiCurrPartNumQ>>1); i++)
+        {
+          pi [i] = iICPNum;
+          pi2[i] = iICPNum;
+        }
+      }
+      else
+      {
+        pi = m_piICPNum + uiAbsPartIdx;
+        for (i = 0; i < (uiCurrPartNumQ>>1); i++)
+        {
+          pi[i] = iICPNum;
+        }
+
+        pi = m_piICPNum + uiAbsPartIdx + uiCurrPartNumQ;
+        for (i = 0; i < ( (uiCurrPartNumQ>>1) + (uiCurrPartNumQ<<1) ); i++)
+        {
+          pi[i] = iICPNum;
+        }
+      }
+      break;
+    }
+  case SIZE_2NxnD:
+    {
+      if( uiPartIdx == 0 )
+      {
+        pi = m_piICPNum + uiAbsPartIdx;
+        for (i = 0; i < ( (uiCurrPartNumQ>>1) + (uiCurrPartNumQ<<1) ); i++)
+        {
+          pi[i] = iICPNum;
+        }
+        pi = m_piICPNum + uiAbsPartIdx + ( uiCurrPartNumQ + (uiCurrPartNumQ<<1) );
+        for (i = 0; i < (uiCurrPartNumQ>>1); i++)
+        {
+          pi[i] = iICPNum;
+        }
+      }
+      else
+      {
+             pi  = m_piICPNum + uiAbsPartIdx;
+        Int* pi2 = m_piICPNum + uiAbsPartIdx + uiCurrPartNumQ;
+        for (i = 0; i < (uiCurrPartNumQ>>1); i++)
+        {
+          pi [i] = iICPNum;
+          pi2[i] = iICPNum;
+        }
+      }
+      break;
+    }
+  case SIZE_nLx2N:
+    {
+      if( uiPartIdx == 0 )
+      {
+             pi  = m_piICPNum + uiAbsPartIdx;
+        Int* pi2 = m_piICPNum + uiAbsPartIdx + (uiCurrPartNumQ<<1);
+        Int* pi3 = m_piICPNum + uiAbsPartIdx + (uiCurrPartNumQ>>1);
+        Int* pi4 = m_piICPNum + uiAbsPartIdx + (uiCurrPartNumQ<<1) + (uiCurrPartNumQ>>1);
+
+        for (i = 0; i < (uiCurrPartNumQ>>2); i++)
+        {
+          pi [i] = iICPNum;
+          pi2[i] = iICPNum;
+          pi3[i] = iICPNum;
+          pi4[i] = iICPNum;
+        }
+      }
+      else
+      {
+             pi  = m_piICPNum + uiAbsPartIdx;
+        Int* pi2 = m_piICPNum + uiAbsPartIdx + (uiCurrPartNumQ<<1);
+        for (i = 0; i < (uiCurrPartNumQ>>2); i++)
+        {
+          pi [i] = iICPNum;
+          pi2[i] = iICPNum;
+        }
+
+        pi  = m_piICPNum + uiAbsPartIdx + (uiCurrPartNumQ>>1);
+        pi2 = m_piICPNum + uiAbsPartIdx + (uiCurrPartNumQ<<1) + (uiCurrPartNumQ>>1);
+        for (i = 0; i < ( (uiCurrPartNumQ>>2) + uiCurrPartNumQ ); i++)
+        {
+          pi [i] = iICPNum;
+          pi2[i] = iICPNum;
+        }
+      }
+      break;
+    }
+  case SIZE_nRx2N:
+    {
+      if( uiPartIdx == 0 )
+      {
+             pi  = m_piICPNum + uiAbsPartIdx;
+        Int* pi2 = m_piICPNum + uiAbsPartIdx + (uiCurrPartNumQ<<1);
+        for (i = 0; i < ( (uiCurrPartNumQ>>2) + uiCurrPartNumQ ); i++)
+        {
+          pi [i] = iICPNum;
+          pi2[i] = iICPNum;
+        }
+
+        pi  = m_piICPNum + uiAbsPartIdx + uiCurrPartNumQ + (uiCurrPartNumQ>>1);
+        pi2 = m_piICPNum + uiAbsPartIdx + (uiCurrPartNumQ<<1) + uiCurrPartNumQ + (uiCurrPartNumQ>>1);
+        for (i = 0; i < (uiCurrPartNumQ>>2); i++)
+        {
+          pi [i] = iICPNum;
+          pi2[i] = iICPNum;
+        }
+      }
+      else
+      {
+             pi  = m_piICPNum + uiAbsPartIdx;
+        Int* pi2 = m_piICPNum + uiAbsPartIdx + (uiCurrPartNumQ>>1);
+        Int* pi3 = m_piICPNum + uiAbsPartIdx + (uiCurrPartNumQ<<1);
+        Int* pi4 = m_piICPNum + uiAbsPartIdx + (uiCurrPartNumQ<<1) + (uiCurrPartNumQ>>1);
+        for (i = 0; i < (uiCurrPartNumQ>>2); i++)
+        {
+          pi [i] = iICPNum;
+          pi2[i] = iICPNum;
+          pi3[i] = iICPNum;
+          pi4[i] = iICPNum;
+        }
+      }
+      break;
+    }
+  default:
+    assert( 0 );
+  }
+}
+#endif //DCM_PBIC
+
 Void TComDataCU::setTrIdxSubParts( UInt uiTrIdx, UInt uiAbsPartIdx, UInt uiDepth )
 {
   UInt uiCurrPartNumb = m_pcPic->getNumPartInCU() >> (uiDepth << 1);
@@ -2447,6 +3138,19 @@ Void TComDataCU::getMvField ( TComDataCU* pcCU, UInt uiAbsPartIdx, RefPicList eR
   TComCUMvField*  pcCUMvField = pcCU->getCUMvField( eRefPicList );
   rcMvField.setMvField( pcCUMvField->getMv( uiAbsPartIdx ), pcCUMvField->getRefIdx( uiAbsPartIdx ) );
 }
+
+#ifdef DCM_PBIC
+Void TComDataCU::getIc ( TComDataCU* pcCU, UInt uiAbsPartIdx, TComIc& rcIc )
+{
+  if ( pcCU == NULL )  // OUT OF BOUNDARY
+  {
+    rcIc.reset( );
+    return;
+  }
+
+  rcIc = pcCU->getCUIcField()->getIc(uiAbsPartIdx);
+}
+#endif
 
 Void TComDataCU::deriveLeftRightTopIdx ( PartSize eCUMode, UInt uiPartIdx, UInt& ruiPartIdxLT, UInt& ruiPartIdxRT )
 {
@@ -2532,7 +3236,11 @@ Void TComDataCU::deriveLeftBottomIdxAdi( UInt& ruiPartIdxLB, UInt uiPartOffset, 
 }
 
 #if HHI_MRG
+#ifdef DCM_PBIC
+Void TComDataCU::getInterMergeCandidates( UInt uiAbsPartIdx, TComMvField cMFieldNeighbours[4], TComIc cIcNeighbours[2],UChar uhInterDirNeighbours[2], UInt& uiNeighbourInfos )
+#else
 Void TComDataCU::getInterMergeCandidates( UInt uiAbsPartIdx, TComMvField cMFieldNeighbours[4], UChar uhInterDirNeighbours[2], UInt& uiNeighbourInfos )
+#endif
 {
   // uiNeighbourInfos (binary):
   // 000: no merge candidate
@@ -2572,6 +3280,12 @@ Void TComDataCU::getInterMergeCandidates( UInt uiAbsPartIdx, TComMvField cMField
     uhInterDirNeighbours[0] = pcCUAbove->getInterDir(uiAbovePartIdx);
     // get Mv from Above   
     pcCUAbove->getMvField( pcCUAbove, uiAbovePartIdx, REF_PIC_LIST_0, cMFieldNeighbours[0] );
+
+#ifdef DCM_PBIC
+	  // get Ic from Above
+		pcCUAbove->getIc ( pcCUAbove, uiAbovePartIdx, cIcNeighbours[0] );
+#endif
+
     if ( getSlice()->isInterB() )
     {
       pcCUAbove->getMvField( pcCUAbove, uiAbovePartIdx, REF_PIC_LIST_1, cMFieldNeighbours[1] );
@@ -2584,6 +3298,12 @@ Void TComDataCU::getInterMergeCandidates( UInt uiAbsPartIdx, TComMvField cMField
     uhInterDirNeighbours[1] = pcCULeft->getInterDir(uiLeftPartIdx);
     // get Mv from Left
     pcCULeft->getMvField( pcCULeft, uiLeftPartIdx, REF_PIC_LIST_0, cMFieldNeighbours[2] );
+
+#ifdef DCM_PBIC
+	  // get Ic from Left
+	  pcCULeft->getIc ( pcCULeft, uiLeftPartIdx, cIcNeighbours[1] );
+#endif 
+
     if ( getSlice()->isInterB() )
     {
       pcCULeft->getMvField( pcCULeft, uiLeftPartIdx, REF_PIC_LIST_1, cMFieldNeighbours[3] );
@@ -2597,7 +3317,11 @@ Void TComDataCU::getInterMergeCandidates( UInt uiAbsPartIdx, TComMvField cMField
     {
       if( cMFieldNeighbours[0].getRefIdx() ==  cMFieldNeighbours[2].getRefIdx() && cMFieldNeighbours[0].getMv() == cMFieldNeighbours[2].getMv() &&
         cMFieldNeighbours[1].getRefIdx() ==  cMFieldNeighbours[3].getRefIdx() && cMFieldNeighbours[1].getMv() == cMFieldNeighbours[3].getMv() && 
-         uhInterDirNeighbours[0] ==  uhInterDirNeighbours[1] )
+         uhInterDirNeighbours[0] ==  uhInterDirNeighbours[1]
+#ifdef DCM_PBIC 
+         && cIcNeighbours[0].isequalIcParam(cIcNeighbours[1])
+#endif
+        )
       {
         uiNeighbourInfos =4;
       }
@@ -2605,7 +3329,11 @@ Void TComDataCU::getInterMergeCandidates( UInt uiAbsPartIdx, TComMvField cMField
     else
     {
       if( cMFieldNeighbours[0].getRefIdx() ==  cMFieldNeighbours[2].getRefIdx() && cMFieldNeighbours[0].getMv() == cMFieldNeighbours[2].getMv() && 
-        uhInterDirNeighbours[0] ==  uhInterDirNeighbours[1] )
+        uhInterDirNeighbours[0] ==  uhInterDirNeighbours[1]
+#ifdef DCM_PBIC 
+        && cIcNeighbours[0].isequalIcParam(cIcNeighbours[1])
+#endif
+        )
       {
         uiNeighbourInfos =4;
       }
@@ -3496,6 +4224,118 @@ Void TComDataCU::clipMv    (TComMv&  rcMv)
   rcMv.setVer( Min (iVerMax, Max (iVerMin, rcMv.getVer())) );
 }
 
+#ifdef DCM_PBIC
+Void TComDataCU::fillICPCand( UInt uiPartIdx, UInt uiPartAddr, AICPInfo* pInfo )
+{
+  Bool bAdded;
+  UInt uiIdx;
+  UInt uiPartIdxLT, uiPartIdxRT, uiPartIdxLB;
+  UInt uiNumPartInCUWidth = m_pcPic->getNumPartInWidth();
+  Int aiRefIdx[2];
+  Int iLeftIcIdx = -1;
+  Int iAboveIcIdx = -1;
+  Int iCornerIcIdx = -1;
+  UChar uhInterDir = getInterDir(uiPartAddr);
+  PartSize eCUMode = m_pePartSize[0];
+  TComIc cIcDefault;
+
+  if (uhInterDir & 1)
+    aiRefIdx[REF_PIC_LIST_0] = getCUMvField(REF_PIC_LIST_0)->getRefIdx(uiPartAddr);
+  else
+    aiRefIdx[REF_PIC_LIST_0] = NOT_VALID;
+
+  if (uhInterDir & 2)
+    aiRefIdx[REF_PIC_LIST_1] = getCUMvField(REF_PIC_LIST_1)->getRefIdx(uiPartAddr);
+  else
+    aiRefIdx[REF_PIC_LIST_1] = NOT_VALID;
+
+  deriveLeftRightTopIdx( eCUMode, uiPartIdx, uiPartIdxLT, uiPartIdxRT );
+  deriveLeftBottomIdx( eCUMode, uiPartIdx, uiPartIdxLB );
+
+  pInfo->iN = 0;
+
+  //Add Default Predictor
+  pInfo->m_acIcCand[pInfo->iN++] = cIcDefault;
+
+  bAdded = false;
+  //Left
+  for ( uiIdx = g_auiZscanToRaster[uiPartIdxLT]; uiIdx <= g_auiZscanToRaster[uiPartIdxLB]; uiIdx+= uiNumPartInCUWidth )
+  {
+    bAdded = xAddICPCand( pInfo, uhInterDir, aiRefIdx, g_auiRasterToZscan[uiIdx], MD_LEFT );
+    if (bAdded && iLeftIcIdx < 0)
+    {
+      iLeftIcIdx = pInfo->iN-1;
+    }
+    if (bAdded) break;
+  }
+
+  bAdded = false;
+  //Above
+  for ( uiIdx = g_auiZscanToRaster[uiPartIdxLT]; uiIdx <= g_auiZscanToRaster[uiPartIdxRT]; uiIdx++ )
+  {
+    bAdded = xAddICPCand( pInfo, uhInterDir, aiRefIdx, g_auiRasterToZscan[uiIdx], MD_ABOVE);
+    if (bAdded && iAboveIcIdx < 0)
+    {
+      iAboveIcIdx = pInfo->iN-1;
+    }
+    if (bAdded) break;
+  }
+
+  bAdded = false;
+  //Above Right
+  bAdded = xAddICPCand( pInfo, uhInterDir, aiRefIdx, uiPartIdxRT, MD_ABOVE_RIGHT);
+  if (bAdded && iCornerIcIdx < 0)
+  {
+    iCornerIcIdx = pInfo->iN-1;
+  }
+  //Below Left
+  if (!bAdded)
+  {
+    bAdded = xAddICPCand( pInfo, uhInterDir, aiRefIdx, uiPartIdxLB, MD_BELOW_LEFT);
+  }
+  if (bAdded && iCornerIcIdx < 0)
+  {
+    iCornerIcIdx = pInfo->iN-1;
+  }
+  //Above Left
+  if (!bAdded)
+  {
+    bAdded = xAddICPCand( pInfo, uhInterDir, aiRefIdx, uiPartIdxLT, MD_ABOVE_LEFT);
+  }
+  if (bAdded && iCornerIcIdx < 0)
+  {
+    iCornerIcIdx = pInfo->iN-1;
+  }
+
+  if ( iLeftIcIdx >= 0 && iAboveIcIdx >= 0 &&
+       ( ( ((eCUMode == SIZE_2NxN) || (eCUMode == SIZE_2NxnU) || (eCUMode == SIZE_2NxnD)) && uiPartIdx == 0 ) ||
+         ( ((eCUMode == SIZE_Nx2N) || (eCUMode == SIZE_nLx2N) || (eCUMode == SIZE_nRx2N)) && uiPartIdx == 1 ) ))
+  {
+    //Swap Left and Above Predictors
+    TComIc cIcTemp;
+    cIcTemp                        = pInfo->m_acIcCand[iLeftIcIdx];
+    pInfo->m_acIcCand[iLeftIcIdx]  = pInfo->m_acIcCand[iAboveIcIdx];
+    pInfo->m_acIcCand[iAboveIcIdx] = cIcTemp;
+  }
+
+  //Remove Duplicates
+  xUniqueICPCand( pInfo );
+
+}
+
+Int TComDataCU::searchICPIdx(TComIc cIc, AICPInfo* pInfo)
+{
+  for ( Int i=0; i<pInfo->iN; i++ )
+  {
+    if ( cIc.isequalIcParam( pInfo->m_acIcCand[i] ) )
+      return i;
+  }
+  
+  assert(0);
+  return -1;
+}
+#endif
+
 Void TComDataCU::convertTransIdx( UInt uiAbsPartIdx, UInt uiTrIdx, UInt& ruiLumaTrMode, UInt& ruiChromaTrMode )
 {
 #if HHI_RQT_INTRA
@@ -3701,6 +4541,94 @@ UInt TComDataCU::xGetComponentBits(Int iVal)
 
   return uiLength;
 }
+
+#ifdef DCM_PBIC
+Bool TComDataCU::xAddICPCand( AICPInfo* pInfo, UChar uhInterDir, Int* piRefIdx, UInt uiPartUnitIdx, MVP_DIR eDir )
+{
+  TComDataCU* pcTmpCU = NULL;
+  UInt uiIdx;
+  switch( eDir )
+  {
+  case MD_LEFT:
+    {
+      pcTmpCU = getPULeft(uiIdx, uiPartUnitIdx);
+      break;
+    }
+  case MD_ABOVE:
+    {
+      pcTmpCU = getPUAbove(uiIdx, uiPartUnitIdx);
+      break;
+    }
+  case MD_ABOVE_RIGHT:
+    {
+      pcTmpCU = getPUAboveRight(uiIdx, uiPartUnitIdx);
+      break;
+    }
+  case MD_BELOW_LEFT:
+    {
+      pcTmpCU = getPUBelowLeft(uiIdx, uiPartUnitIdx);
+      break;
+    }
+  case MD_ABOVE_LEFT:
+    {
+      pcTmpCU = getPUAboveLeft(uiIdx, uiPartUnitIdx);
+      break;
+    }
+  default:
+    {
+      break;
+    }
+  }
+
+  if ( pcTmpCU != NULL )
+  {
+    if ( uhInterDir == pcTmpCU->getInterDir(uiIdx))
+    {
+      if      ( (uhInterDir & 1) && !(m_pcSlice->isEqualRef(REF_PIC_LIST_0, pcTmpCU->getCUMvField(REF_PIC_LIST_0)->getRefIdx(uiIdx), piRefIdx[REF_PIC_LIST_0])) )
+        pcTmpCU = NULL;
+      else if ( (uhInterDir & 2) && !(m_pcSlice->isEqualRef(REF_PIC_LIST_1, pcTmpCU->getCUMvField(REF_PIC_LIST_1)->getRefIdx(uiIdx), piRefIdx[REF_PIC_LIST_1])) )
+        pcTmpCU = NULL;
+    }
+    else
+      pcTmpCU = NULL;
+  }
+
+  if ( pcTmpCU != NULL )
+  {
+    TComIc cIcPred;
+    cIcPred.copyIcParam( pcTmpCU->getCUIcField()->getIc(uiIdx) );
+    pInfo->m_acIcCand[pInfo->iN++] = cIcPred;
+    return true;
+  }
+  return false;
+}
+
+Void TComDataCU::xUniqueICPCand(AICPInfo* pInfo)
+{
+  Int iNTmp, i, j;
+
+  iNTmp = 1;
+  for ( i=1; i<pInfo->iN; i++ )
+  {
+    for ( j=iNTmp-1; j>=0; j-- )
+    {
+      if ( pInfo->m_acIcCand[i].isequalIcParam( pInfo->m_acIcCand[j] ) ) break;
+    }
+    if ( j<0 )
+    {
+      pInfo->m_acIcCand[ iNTmp++ ] = pInfo->m_acIcCand[i];
+    }
+  }
+  pInfo->iN = iNTmp;
+}
+
+UInt TComDataCU::xGetIcdBits(TComIc cIcd)
+{
+  Int aiParam[3];
+  cIcd.getIcParam( aiParam[0], aiParam[1], aiParam[2] );
+  return ( xGetComponentBits(aiParam[0]) + xGetComponentBits(aiParam[1]) + xGetComponentBits(aiParam[2]) );
+}
+#endif
 
 Int TComDataCU::xGetDistScaleFactor(Int iCurrPOC, Int iCurrRefPOC, Int iColPOC, Int iColRefPOC)
 {
