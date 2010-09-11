@@ -1169,14 +1169,14 @@ const UInt g_auiCbpVlcNum[2][8] =
 
 
 #if LCEC_PHASE2
-const UInt g_auiMITableE[8] = {0,2,1,4,3,6,5,7};
-const UInt g_auiMITableD[8] = {0,2,1,4,3,6,5,7};
-
+const UInt g_auiMI1TableE[8] = {0,2,1,4,3,6,5,7};
+const UInt g_auiMI1TableD[8] = {0,2,1,4,3,6,5,7};
+const UInt g_auiMI2TableE[15] = {0,1,3,2,6,5,4,7,9,8,13,12,11,14,10};
+const UInt g_auiMI2TableD[15] = {0,1,3,2,6,5,4,7,9,8,14,12,11,10,13};
 
 // Below table need to be optimized
-const UInt g_auiMITableVlcNum[8] = 
-  {0, 0, 0, 0, 0, 0, 0, 0};
-
+const UInt g_auiMITableVlcNum[15] = 
+  {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 #endif
 
 

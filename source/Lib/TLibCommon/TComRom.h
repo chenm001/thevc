@@ -218,13 +218,11 @@ extern const UInt    g_auiCbpVlcNum[2][8];
 #endif
 
 #if LCEC_PHASE2
-extern const UInt g_auiMITableE[8];
-extern const UInt g_auiMITableD[8];
-
-
-extern const UInt    g_auiMITableVlcNum[8];
-
-
+extern const UInt g_auiMI1TableE[8];
+extern const UInt g_auiMI1TableD[8];
+extern const UInt g_auiMI2TableE[15];
+extern const UInt g_auiMI2TableD[15];
+extern const UInt    g_auiMITableVlcNum[15];
 #endif
 
 

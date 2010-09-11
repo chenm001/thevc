@@ -298,8 +298,10 @@ Void TEncCavlc::resetEntropy()
 #endif
 
 #if LCEC_PHASE2
-  ::memcpy(m_uiMITableE, g_auiMITableE, 8*sizeof(UInt));
-  ::memcpy(m_uiMITableD, g_auiMITableD, 8*sizeof(UInt));
+  ::memcpy(m_uiMI1TableE, g_auiMI1TableE, 8*sizeof(UInt));
+  ::memcpy(m_uiMI1TableD, g_auiMI1TableD, 8*sizeof(UInt));
+  ::memcpy(m_uiMI2TableE, g_auiMI2TableE, 15*sizeof(UInt));
+  ::memcpy(m_uiMI2TableD, g_auiMI2TableD, 15*sizeof(UInt));
 
   m_uiMITableVlcIdx = 0;  
 
@@ -1697,55 +1699,79 @@ Void TEncCavlc::codeInterDir( TComDataCU* pcCU, UInt uiAbsPartIdx )
   uiInterDir--;
 
 #if LCEC_PHASE2
-  /* TODO: Make joint coding of uiInterDir and RefFrmIdx work with AMVRES=1 and numRefIdx > 2 */
-#ifdef QC_AMVRES
-  if(!pcCU->getSlice()->getSPS()->getUseAMVRes() && pcCU->getSlice()->getNumRefIdx( REF_PIC_LIST_0 ) <= 2 && pcCU->getSlice()->getNumRefIdx( REF_PIC_LIST_1 ) <= 2)
-#else
   if(pcCU->getSlice()->getNumRefIdx( REF_PIC_LIST_0 ) <= 2 && pcCU->getSlice()->getNumRefIdx( REF_PIC_LIST_1 ) <= 2)
-#endif
   {
     Int x,cx,y,cy;
     Int iRefFrame0,iRefFrame1;
     UInt uiIndex;
-    
-    if (uiInterDir==0)
+
+#ifdef QC_AMVRES
+    UInt *m_uiMITableE;
+    UInt *m_uiMITableD;
+    if(pcCU->getSlice()->getSPS()->getUseAMVRes())    
     {
-      iRefFrame0 = pcCU->getCUMvField( REF_PIC_LIST_0 )->getRefIdx( uiAbsPartIdx );
-      uiIndex = iRefFrame0;
-    }
-    else if (uiInterDir==1)
-    {
-      iRefFrame1 = pcCU->getCUMvField( REF_PIC_LIST_1 )->getRefIdx( uiAbsPartIdx );
-      uiIndex = 2 + iRefFrame1;
+      Bool Mvres0,Mvres1;
+      m_uiMITableE = m_uiMI2TableE;
+      m_uiMITableD = m_uiMI2TableD;
+      if (uiInterDir==0)
+      {      
+        iRefFrame0 = pcCU->getCUMvField( REF_PIC_LIST_0 )->getRefIdx( uiAbsPartIdx );
+        Mvres0 = (iRefFrame0==0) ? pcCU->getCUMvField( REF_PIC_LIST_0 )->getMv( uiAbsPartIdx ).isHAM() : 0;
+        uiIndex = (Mvres0 ? 2 : iRefFrame0);
+      }
+      else if (uiInterDir==1)
+      {
+        iRefFrame1 = pcCU->getCUMvField( REF_PIC_LIST_1 )->getRefIdx( uiAbsPartIdx );
+        Mvres1 = (iRefFrame1==0) ? pcCU->getCUMvField( REF_PIC_LIST_1 )->getMv( uiAbsPartIdx ).isHAM() : 0;
+        uiIndex = 3 + (Mvres1 ? 2 : iRefFrame1);
+      }
+      else
+      {
+        iRefFrame0 = pcCU->getCUMvField( REF_PIC_LIST_0 )->getRefIdx( uiAbsPartIdx );
+        iRefFrame1 = pcCU->getCUMvField( REF_PIC_LIST_1 )->getRefIdx( uiAbsPartIdx );
+        Mvres0 = (iRefFrame0==0) ? pcCU->getCUMvField( REF_PIC_LIST_0 )->getMv( uiAbsPartIdx ).isHAM() : 0;        
+        Mvres1 = (iRefFrame1==0) ? pcCU->getCUMvField( REF_PIC_LIST_1 )->getMv( uiAbsPartIdx ).isHAM() : 0;
+        uiIndex = 6 + 3*(Mvres0 ? 2 : iRefFrame0) + (Mvres1 ? 2 : iRefFrame1);
+      }
     }
     else
-    {
-      iRefFrame0 = pcCU->getCUMvField( REF_PIC_LIST_0 )->getRefIdx( uiAbsPartIdx );
-      iRefFrame1 = pcCU->getCUMvField( REF_PIC_LIST_1 )->getRefIdx( uiAbsPartIdx );      
-      uiIndex = 4 + 2*iRefFrame0 + iRefFrame1;      
+#endif
+    {      
+      m_uiMITableE = m_uiMI1TableE;
+      m_uiMITableD = m_uiMI1TableD;
+      if (uiInterDir==0)
+      { 
+        iRefFrame0 = pcCU->getCUMvField( REF_PIC_LIST_0 )->getRefIdx( uiAbsPartIdx );
+        uiIndex = iRefFrame0;
+      }
+      else if (uiInterDir==1)
+      {
+        iRefFrame1 = pcCU->getCUMvField( REF_PIC_LIST_1 )->getRefIdx( uiAbsPartIdx );
+        uiIndex = 2 + iRefFrame1;
+      }
+      else
+      {
+        iRefFrame0 = pcCU->getCUMvField( REF_PIC_LIST_0 )->getRefIdx( uiAbsPartIdx );
+        iRefFrame1 = pcCU->getCUMvField( REF_PIC_LIST_1 )->getRefIdx( uiAbsPartIdx );
+        uiIndex = 4 + 2*iRefFrame0 + iRefFrame1;
+      }
     }
     
-
     x = uiIndex;
+    
     cx = m_uiMITableE[x];
    
     /* Adapt table */
-
     UInt vlcn = g_auiMITableVlcNum[m_uiMITableVlcIdx];    
-
     if ( m_bAdaptFlag )
-    { 
-      
-            
+    {        
       cy = Max(0,cx-1);
       y = m_uiMITableD[cy];
       m_uiMITableD[cy] = x;
       m_uiMITableD[cx] = y;
       m_uiMITableE[x] = cy;
       m_uiMITableE[y] = cx;   
-
-	  m_uiMITableVlcIdx += cx == m_uiMITableVlcIdx ? 0 : (cx < m_uiMITableVlcIdx ? -1 : 1);
-
+	    m_uiMITableVlcIdx += cx == m_uiMITableVlcIdx ? 0 : (cx < m_uiMITableVlcIdx ? -1 : 1);
     }
 
 #if LCEC_STAT
@@ -1753,8 +1779,7 @@ Void TEncCavlc::codeInterDir( TComDataCU* pcCU, UInt uiAbsPartIdx )
       m_uiBitMI += xWriteVlc( vlcn, cx );
     else
 #endif
-	xWriteVlc( vlcn, cx );
-
+	  xWriteVlc( vlcn, cx );
 
     return;
   }
@@ -1781,11 +1806,17 @@ Void TEncCavlc::codeRefFrmIdx( TComDataCU* pcCU, UInt uiAbsPartIdx, RefPicList e
 {
   Int iRefFrame = pcCU->getCUMvField( eRefList )->getRefIdx( uiAbsPartIdx );
 
+#if LCEC_PHASE2
+    if (pcCU->getSlice()->getNumRefIdx( REF_PIC_LIST_0 ) <= 2 && pcCU->getSlice()->getNumRefIdx( REF_PIC_LIST_1 ) <= 2)
+    {
+      return;
+    }
+#endif
+
 #ifdef QC_AMVRES
   if(pcCU->getSlice()->getSPS()->getUseAMVRes())
   {
 	  Bool Mvres = !pcCU->getCUMvField( eRefList )->getMv( uiAbsPartIdx ).isHAM();
-   
 	  if (iRefFrame == 0 )
 	  {
 		  if (Mvres)
@@ -1827,13 +1858,6 @@ Void TEncCavlc::codeRefFrmIdx( TComDataCU* pcCU, UInt uiAbsPartIdx, RefPicList e
   }
   else
   {
-#if LCEC_PHASE2
-    if (pcCU->getSlice()->getNumRefIdx( REF_PIC_LIST_0 ) <= 2 && pcCU->getSlice()->getNumRefIdx( REF_PIC_LIST_1 ) <= 2)
-    {
-      return;
-    }
-#endif
-
 	  xWriteFlag( ( iRefFrame == 0 ? 0 : 1 ) );
 #if LCEC_STAT
     if (m_bAdaptFlag)
@@ -1850,12 +1874,6 @@ Void TEncCavlc::codeRefFrmIdx( TComDataCU* pcCU, UInt uiAbsPartIdx, RefPicList e
 	  }
   }
 #else
-#if LCEC_PHASE2
-  if (pcCU->getSlice()->getNumRefIdx( REF_PIC_LIST_0 ) <= 2 && pcCU->getSlice()->getNumRefIdx( REF_PIC_LIST_1 ) <= 2)
-  {
-    return;
-  }
-#endif
   xWriteFlag( ( iRefFrame == 0 ? 0 : 1 ) );
 #if LCEC_STAT
   if (m_bAdaptFlag)

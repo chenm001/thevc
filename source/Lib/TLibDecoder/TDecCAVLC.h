@@ -94,10 +94,11 @@ private:
 #if LCEC_PHASE2
   Int                   m_iRefFrame0[1000];
   Int                   m_iRefFrame1[1000];
-  UInt                  m_uiMITableD[8];  
-
+  Bool                  m_bMVres0[1000];
+  Bool                  m_bMVres1[1000];
+  UInt                  m_uiMI1TableD[8];
+  UInt                  m_uiMI2TableD[15]; 
   UInt                  m_uiMITableVlcIdx;
-
 #endif
 
 public:

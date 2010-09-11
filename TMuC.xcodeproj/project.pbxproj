@@ -59,7 +59,6 @@
 		676795D411AD61FC00421804 /* TComLoopFilter.h in Headers */ = {isa = PBXBuildFile; fileRef = 676795A911AD61FC00421804 /* TComLoopFilter.h */; };
 		676795D511AD61FC00421804 /* TComMotionInfo.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 676795AA11AD61FC00421804 /* TComMotionInfo.cpp */; };
 		676795D611AD61FC00421804 /* TComMotionInfo.h in Headers */ = {isa = PBXBuildFile; fileRef = 676795AB11AD61FC00421804 /* TComMotionInfo.h */; };
-		676795D711AD61FC00421804 /* TComMV.h in Headers */ = {isa = PBXBuildFile; fileRef = 676795AC11AD61FC00421804 /* TComMV.h */; };
 		676795D811AD61FC00421804 /* TComPattern.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 676795AD11AD61FC00421804 /* TComPattern.cpp */; };
 		676795D911AD61FC00421804 /* TComPattern.h in Headers */ = {isa = PBXBuildFile; fileRef = 676795AE11AD61FC00421804 /* TComPattern.h */; };
 		676795DA11AD61FC00421804 /* TComPic.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 676795AF11AD61FC00421804 /* TComPic.cpp */; };
@@ -266,7 +265,6 @@
 		676795A911AD61FC00421804 /* TComLoopFilter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TComLoopFilter.h; path = source/Lib/TLibCommon/TComLoopFilter.h; sourceTree = "<group>"; };
 		676795AA11AD61FC00421804 /* TComMotionInfo.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = TComMotionInfo.cpp; path = source/Lib/TLibCommon/TComMotionInfo.cpp; sourceTree = "<group>"; };
 		676795AB11AD61FC00421804 /* TComMotionInfo.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TComMotionInfo.h; path = source/Lib/TLibCommon/TComMotionInfo.h; sourceTree = "<group>"; };
-		676795AC11AD61FC00421804 /* TComMV.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TComMV.h; path = source/Lib/TLibCommon/TComMV.h; sourceTree = "<group>"; };
 		676795AD11AD61FC00421804 /* TComPattern.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = TComPattern.cpp; path = source/Lib/TLibCommon/TComPattern.cpp; sourceTree = "<group>"; };
 		676795AE11AD61FC00421804 /* TComPattern.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TComPattern.h; path = source/Lib/TLibCommon/TComPattern.h; sourceTree = "<group>"; };
 		676795AF11AD61FC00421804 /* TComPic.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = TComPic.cpp; path = source/Lib/TLibCommon/TComPic.cpp; sourceTree = "<group>"; };
@@ -509,7 +507,6 @@
 				676795A911AD61FC00421804 /* TComLoopFilter.h */,
 				676795AA11AD61FC00421804 /* TComMotionInfo.cpp */,
 				676795AB11AD61FC00421804 /* TComMotionInfo.h */,
-				676795AC11AD61FC00421804 /* TComMV.h */,
 				676795AD11AD61FC00421804 /* TComPattern.cpp */,
 				676795AE11AD61FC00421804 /* TComPattern.h */,
 				676795AF11AD61FC00421804 /* TComPic.cpp */,
@@ -690,7 +687,6 @@
 				676795D211AD61FC00421804 /* TComList.h in Headers */,
 				676795D411AD61FC00421804 /* TComLoopFilter.h in Headers */,
 				676795D611AD61FC00421804 /* TComMotionInfo.h in Headers */,
-				676795D711AD61FC00421804 /* TComMV.h in Headers */,
 				676795D911AD61FC00421804 /* TComPattern.h in Headers */,
 				676795DB11AD61FC00421804 /* TComPic.h in Headers */,
 				676795DD11AD61FC00421804 /* TComPicSym.h in Headers */,

@@ -121,8 +121,10 @@ protected:
 #endif
 
 #if LCEC_PHASE2
-  UInt          m_uiMITableE[8];
-  UInt          m_uiMITableD[8];
+  UInt          m_uiMI1TableE[8];
+  UInt          m_uiMI1TableD[8];
+  UInt          m_uiMI2TableE[15];
+  UInt          m_uiMI2TableD[15];
 
   UInt          m_uiMITableVlcIdx;
 

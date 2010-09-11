@@ -207,11 +207,6 @@
 #define EARLY_SKIP_THRES            1.50        ///< if RD < thres*avg[BestSkipRD]
 
 
-/* Rounding control */
-#define ROUNDING_CONTROL_BIPRED ///< From JCTVC-B074
-//#define ROUNDING_CONTROL_BIPRED_FIX
-#define TRANS_PRECISION_EXT     ///< From JCTVC-B074
-
 const int g_iShift8x8    = 7;
 const int g_iShift16x16  = 6;
 const int g_iShift32x32  = 5;

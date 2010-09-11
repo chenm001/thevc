@@ -356,7 +356,8 @@ Void TDecCavlc::resetEntropy          (TComSlice* pcSlice)
 #endif
 
 #if LCEC_PHASE2
-  ::memcpy(m_uiMITableD,        g_auiMITableD,        8*sizeof(UInt));
+  ::memcpy(m_uiMI1TableD,        g_auiMI1TableD,        8*sizeof(UInt));
+  ::memcpy(m_uiMI2TableD,        g_auiMI2TableD,        15*sizeof(UInt));
 
   m_uiMITableVlcIdx = 0;
 
@@ -930,27 +931,26 @@ Void TDecCavlc::parseIntraDirChroma( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt u
 Void TDecCavlc::parseInterDir( TComDataCU* pcCU, UInt& ruiInterDir, UInt uiAbsPartIdx, UInt uiDepth )
 {
   UInt uiSymbol;
-
+  
 #if LCEC_PHASE2
-  /* Note: Joint coding of uiInterDir and RefFrmIdx should be done also for AMVRes */
-#ifdef QC_AMVRES
-  if(!pcCU->getSlice()->getSPS()->getUseAMVRes() && pcCU->getSlice()->getNumRefIdx( REF_PIC_LIST_0 ) <= 2 && pcCU->getSlice()->getNumRefIdx( REF_PIC_LIST_1 ) <= 2)
-#else
   if(pcCU->getSlice()->getNumRefIdx( REF_PIC_LIST_0 ) <= 2 && pcCU->getSlice()->getNumRefIdx( REF_PIC_LIST_1 ) <= 2)
-#endif
   {
     UInt uiIndex,uiInterDir,tmp;
     Int x,cx,y,cy;
-
-	  UInt vlcn = g_auiMITableVlcNum[m_uiMITableVlcIdx];
-	  tmp = xReadVlc( vlcn );
-
     
-
-
+    UInt vlcn = g_auiMITableVlcNum[m_uiMITableVlcIdx];
+    
+    UInt *m_uiMITableD = m_uiMI1TableD;
+    
+#ifdef QC_AMVRES
+    if(pcCU->getSlice()->getSPS()->getUseAMVRes())    
+      m_uiMITableD = m_uiMI2TableD;
+#endif
+    
+    tmp = xReadVlc( vlcn );
     x = m_uiMITableD[tmp];
     uiIndex = x;
-
+    
     /* Adapt table */
     
     cx = tmp;
@@ -958,25 +958,56 @@ Void TDecCavlc::parseInterDir( TComDataCU* pcCU, UInt& ruiInterDir, UInt uiAbsPa
     y = m_uiMITableD[cy];
     m_uiMITableD[cy] = x;
     m_uiMITableD[cx] = y;
-	m_uiMITableVlcIdx += cx == m_uiMITableVlcIdx ? 0 : (cx < m_uiMITableVlcIdx ? -1 : 1);
-
-
-    uiInterDir = Min(2,uiIndex>>1);  
-    if (uiInterDir==0)
-      m_iRefFrame0[uiAbsPartIdx] = uiIndex&1;
-    else if (uiInterDir==1)
-      m_iRefFrame1[uiAbsPartIdx] = uiIndex&1;
-    else
+    m_uiMITableVlcIdx += cx == m_uiMITableVlcIdx ? 0 : (cx < m_uiMITableVlcIdx ? -1 : 1);
+    
+#ifdef QC_AMVRES
+    if(pcCU->getSlice()->getSPS()->getUseAMVRes())   
     {
-      m_iRefFrame0[uiAbsPartIdx] = (uiIndex>>1)&1;
-      m_iRefFrame1[uiAbsPartIdx] = (uiIndex>>0)&1;
-    }  
+      if (uiIndex<3)
+        uiInterDir = 0;
+      else if (uiIndex<6)
+        uiInterDir = 1;
+      else
+        uiInterDir = 2;
+      
+      if (uiInterDir==0)
+      {
+        m_iRefFrame0[uiAbsPartIdx] = (uiIndex-0)&1;
+        m_bMVres0[uiAbsPartIdx] = (uiIndex-0)==2;
+      }
+      else if (uiInterDir==1)
+      {
+        m_iRefFrame1[uiAbsPartIdx] = (uiIndex-3)&1;
+        m_bMVres1[uiAbsPartIdx] = (uiIndex-3)==2;
+      }
+      else
+      {
+        m_iRefFrame0[uiAbsPartIdx] = ((uiIndex-6)/3)&1;
+        m_bMVres0[uiAbsPartIdx] = ((uiIndex-6)/3)==2;
+        m_iRefFrame1[uiAbsPartIdx] = ((uiIndex-6)%3)&1;
+        m_bMVres1[uiAbsPartIdx] = ((uiIndex-6)%3)==2;
+      }
+    }
+    else
+#endif
+    {
+      uiInterDir = Min(2,uiIndex>>1);  
+      if (uiInterDir==0)
+        m_iRefFrame0[uiAbsPartIdx] = uiIndex&1;
+      else if (uiInterDir==1)
+        m_iRefFrame1[uiAbsPartIdx] = uiIndex&1;
+      else
+      {
+        m_iRefFrame0[uiAbsPartIdx] = (uiIndex>>1)&1;
+        m_iRefFrame1[uiAbsPartIdx] = (uiIndex>>0)&1;
+      }
+    }
     ruiInterDir = uiInterDir+1;
     return;
   }
 #endif
   xReadFlag( uiSymbol );
-
+  
   if ( uiSymbol )
   {
     uiSymbol = 2;
@@ -994,27 +1025,52 @@ Void TDecCavlc::parseRefFrmIdx( TComDataCU* pcCU, Int& riRefFrmIdx, UInt uiAbsPa
 {
   UInt uiSymbol;
 #ifdef QC_AMVRES
-    UInt uiSymbol_MVres=1;
+  UInt uiSymbol_MVres=1;
 	if(pcCU->getSlice()->getSPS()->getUseAMVRes())
 	{
-      xReadFlag ( uiSymbol );
-	  if ( uiSymbol )
-	  {
-		xReadFlag ( uiSymbol_MVres );
-		if (uiSymbol_MVres)
-		{
-			if (pcCU->getSlice()->getNumRefIdx( eRefList )>2)
-			{
-				xReadUnaryMaxSymbol( uiSymbol, pcCU->getSlice()->getNumRefIdx( eRefList )-2 );
-				uiSymbol++;
-			}
-		}
-		else
-		{
-			uiSymbol=0;
-		}
-	  }
-      riRefFrmIdx = uiSymbol;
+#if LCEC_PHASE2 //AFU
+    if (pcCU->getSlice()->getNumRefIdx( REF_PIC_LIST_0 ) <= 2 && pcCU->getSlice()->getNumRefIdx( REF_PIC_LIST_1 ) <= 2)
+    {
+      if (eRefList==REF_PIC_LIST_0)
+      {
+        riRefFrmIdx = m_iRefFrame0[uiAbsPartIdx];      
+      }
+      if (eRefList==REF_PIC_LIST_1)
+      {
+         riRefFrmIdx = m_iRefFrame1[uiAbsPartIdx];
+      }
+      if (riRefFrmIdx==0)
+      {                
+        if (eRefList==REF_PIC_LIST_0)          
+          uiSymbol_MVres = !m_bMVres0[uiAbsPartIdx];
+        if (eRefList==REF_PIC_LIST_1)          
+          uiSymbol_MVres = !m_bMVres1[uiAbsPartIdx];
+	      if (!uiSymbol_MVres)
+	      {
+		      riRefFrmIdx = pcCU->getSlice()->getNumRefIdx( eRefList );
+	      }
+      }
+      return;
+    }    
+#endif
+    xReadFlag ( uiSymbol );
+    if ( uiSymbol )
+    {
+	    xReadFlag ( uiSymbol_MVres );
+	    if (uiSymbol_MVres)
+	    {
+		    if (pcCU->getSlice()->getNumRefIdx( eRefList )>2)
+		    {
+			    xReadUnaryMaxSymbol( uiSymbol, pcCU->getSlice()->getNumRefIdx( eRefList )-2 );
+			    uiSymbol++;
+		    }
+	    }
+	    else
+	    {
+		    uiSymbol=0;
+	    }
+    }
+    riRefFrmIdx = uiSymbol;
 	  if (!uiSymbol_MVres)
 	  {
 		  riRefFrmIdx = pcCU->getSlice()->getNumRefIdx( eRefList );
