@@ -296,6 +296,13 @@ public:
   Void          setTransformIdx       ( UInt uiIdx, UChar  uh ) { m_puhTrIdx[uiIdx] = uh;     }
   Void          setTrIdxSubParts      ( UInt uiTrIdx, UInt uiAbsPartIdx, UInt uiDepth );
 
+#if HHI_RQT_DEPTH || HHI_RQT_DISABLE_SUB
+  UInt          getQuadtreeTULog2MinSizeInCU( UInt uiIdx );
+#endif
+#if HHI_RQT_FORCE_SPLIT_ACC2_PU || HHI_RQT_DISABLE_SUB
+  UInt          getQuadtreeTULog2RootSizeInCU( UInt uiIdx );	
+#endif
+
   TComCUMvField* getCUMvField         ( RefPicList e )          { return  &m_acCUMvField[e];  }
 
 #ifdef DCM_PBIC 

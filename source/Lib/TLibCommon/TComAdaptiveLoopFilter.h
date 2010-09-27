@@ -203,10 +203,12 @@ protected:
 
   Int img_height,img_width;
 
+#if !ALF_MEM_PATCH
   imgpel **ImgDec;
   imgpel **ImgRest;
-  imgpel **imgY_var;
+#endif
   imgpel **imgY_pad;
+  imgpel **imgY_var;
   Int    **imgY_temp;
 
   Int **filterCoeffSym;
@@ -247,8 +249,18 @@ protected:
   Void get_mem2Dpel(imgpel ***array2D, int rows, int columns);
   Void no_mem_exit(const char *where);
   Void error(const char *text, int code);
-
-
+#if ALF_MEM_PATCH
+  Void calcVar(imgpel **imgY_var, imgpel *imgY_pad, int pad_size, int fl, int img_height, int img_width, int img_stride);
+  Void DecFilter_qc(imgpel* imgY_rec,ALFParam* pcAlfParam, int Stride);
+  Void xSubCUAdaptive_qc(TComDataCU* pcCU, ALFParam* pcAlfParam, imgpel *imgY_rec_post, imgpel *imgY_rec, UInt uiAbsPartIdx, UInt uiDepth, Int Stride);
+  Void xCUAdaptive_qc(TComPic* pcPic, ALFParam* pcAlfParam, imgpel *imgY_rec_post, imgpel *imgY_rec, Int Stride);
+  Void subfilterFrame(imgpel *imgY_rec_post, imgpel *imgY_rec, int filtNo, int start_height, int end_height, int start_width, int end_width, int Stride);
+  Void filterFrame(imgpel *imgY_rec_post, imgpel *imgY_rec, int filtNo, int Stride);
+#endif
+#if TSB_ALF_HEADER
+  UInt  m_uiNumCUsInFrame;
+  Void  setAlfCtrlFlags (ALFParam *pAlfParam, TComDataCU *pcCU, UInt uiAbsPartIdx, UInt uiDepth, UInt &idx);
+#endif
 #endif
 	/// ALF for luma component
   Void	xALFLuma				( TComPic* pcPic, ALFParam* pcAlfParam, TComPicYuv* pcPicDec, TComPicYuv* pcPicRest );
@@ -284,6 +296,9 @@ public:
   Void	allocALFParam						( ALFParam* pAlfParam );
   Void	freeALFParam						( ALFParam* pAlfParam );
   Void	copyALFParam						( ALFParam* pDesAlfParam, ALFParam* pSrcAlfParam );
+#if TSB_ALF_HEADER
+  Void  setNumCUsInFrame        (TComPic *pcPic);
+#endif
 
 	// predict filter coefficients
   Void	predictALFCoeff					( ALFParam* pAlfParam );									///< prediction of luma ALF coefficients

@@ -458,6 +458,9 @@ Void xMergeEstimation             ( TComDataCU*     pcCU,
                                     Int             iPartIdx,
                                     Int*            piRefIdxPred,
                                     TComMv*         pcMvTemp,
+#ifdef DCM_PBIC
+                                    TComIc&         rcIcTemp,
+#endif
                                     UInt&           uiInterDir,
                                     UInt&           uiMergeIndex,
                                     UInt&           ruiCost);

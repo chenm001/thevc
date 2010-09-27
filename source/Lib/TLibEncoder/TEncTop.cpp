@@ -156,6 +156,9 @@ Void TEncTop::init()
 
   // initialize DIF
   m_cSearch.setDIFTap ( m_cSPS.getDIFTap () );
+#if SAMSUNG_CHROMA_IF_EXT
+  m_cSearch.setDIFTapC( m_cSPS.getDIFTapC() );
+#endif
 
   // initialize transform & quantization class
 #if LCEC_PHASE1
@@ -315,6 +318,9 @@ Void TEncTop::xInitSPS()
   m_cSPS.setQuadtreeTUFlag       ( m_bQuadtreeTUFlag         );
   m_cSPS.setQuadtreeTULog2MaxSize( m_uiQuadtreeTULog2MaxSize );
   m_cSPS.setQuadtreeTULog2MinSize( m_uiQuadtreeTULog2MinSize );
+#if HHI_RQT_DEPTH
+  m_cSPS.setQuadtreeTUMaxDepth   ( m_uiQuadtreeTUMaxDepth    );
+#endif
 #endif
 
 #if HHI_ALF
@@ -352,6 +358,9 @@ Void TEncTop::xInitSPS()
   m_cSPS.setUseIC         ( m_bUseIC            );
 #endif
   m_cSPS.setDIFTap        ( m_iDIFTap           );
+#if SAMSUNG_CHROMA_IF_EXT
+  m_cSPS.setDIFTapC       ( m_iDIFTapC          );
+#endif
 
   m_cSPS.setMaxTrSize     ( m_uiMaxTrSize       );
 

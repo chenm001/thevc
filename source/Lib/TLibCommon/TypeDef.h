@@ -123,7 +123,7 @@
 #define LCEC_PHASE1                       1           // LCEC - integration phase 1
 #define LCEC_PHASE2                       0           // LCEC - integration phase 2
 #define LCEC_STAT                         0           // LCEC - support for LCEC bitusage statistics
-
+#define SIFO_DIF_COMPATIBILITY			  1           // SIFO Extensions
 //////////////////////////
 // TEN defines section end
 //////////////////////////
@@ -152,6 +152,7 @@
 #define QC_ALF              1
 #if QC_ALF
 #define ENABLE_FORCECOEFF0  0
+#define ALF_MEM_PATCH       1
 #endif
 #if (QC_ALF && HHI_ALF)
 #error "Only one of QC_ALF and HHI_ALF can be defined"
@@ -191,6 +192,9 @@ void normalizeScanStats();
 #define ROUNDING_CONTROL_BIPRED_FIX
 #endif // V0_7_COMPAT
 
+#define FIX_TICKET67  1     // solves memory leak problem in SIFO
+#define FIX_TICKET92  0     // faster SIFO encoder (encoder only change)
+
 ///////////////////////////////
 // QUALCOMM defines section end
 ///////////////////////////////
@@ -215,6 +219,29 @@ void normalizeScanStats();
 // SAMSUNG defines section start
 ///////////////////////////////
 #define SAMSUNG_REMOVE_AMP_FEN_PENALTY        1           ///< removal of FEN penality of AMP
+
+#if HHI_RQT
+#define HHI_RQT_DEPTH                         0           ///< controlling max quadtree depth
+#define HHI_RQT_DISABLE_SUB                   0           ///< disabling subtree whose node size is smaller than partition size
+#if     HHI_RQT_DEPTH && HHI_RQT_DISABLE_SUB
+#error "Only one of HHI_RQT_DEPTH and HHI_RQT_DISABLE_SUB can be defined"
+#endif
+#endif
+
+#if HHI_MRG
+#define SAMSUNG_MRG_SKIP_DIRECT               0           ///< enabling of skip and direct when mrg is on
+#endif
+
+#define SAMSUNG_CHROMA_IF_EXT                 0           ///< DCT-based Interpolation filter for chroma signal
+
+#if QC_MDDT
+#define QC_MDDT_ROT_UNIFIED                   0           ///< better unification of MDDT and ROT
+#endif
+
+#if HHI_TRANSFORM_CODING
+#define HHI_DISABLE_SCAN                      0           ///< disable adaptive scan
+#endif
+
 ///////////////////////////////
 // SAMSUNG defines section end
 ///////////////////////////////
@@ -225,13 +252,20 @@ void normalizeScanStats();
 //#define DCM_PBIC //Partition-Based Illumination Compensation
 #define DCM_RDCOST_TEMP_FIX //Enables temporary bug fixes to RD cost computation (does not affect TMuC0.7 performance under current encoder settings, but is needed for proper RD cost computation when DCM_PBIC is enabled)
 
-#if defined(DCM_PBIC) && HHI_MRG_PU
-#error "Only one of DCM_PBIC and HHI_MRG_PU can be defined"
-#endif
-
 ///////////////////////////////
 // DOCOMO defines section end
 ///////////////////////////////
+
+////////////////////////////////
+// TOSHIBA defines section start
+////////////////////////////////
+#define TSB_ALF_HEADER                 0           // Send ALF ON/OFF flag in slice header
+#if (TSB_ALF_HEADER && HHI_ALF)
+#error "Only one of TSB_ALF_HEADER and HHI_ALF can be defined"
+#endif
+////////////////////////////////
+// TOSHIBA defines section end
+////////////////////////////////
 
 #define BUGFIX85TMP 1 // Ignore cost of CBF (affects RQT off setting)
 
@@ -331,6 +365,12 @@ struct _AlfParam
   Int minKStart;
   Int maxScanVal;
   Int kMinTab[42];
+#endif
+#if TSB_ALF_HEADER
+  UInt num_alf_cu_flag;
+  UInt num_cus_in_frame;
+  UInt alf_max_depth;
+  UInt *alf_cu_flag;
 #endif
 };
 

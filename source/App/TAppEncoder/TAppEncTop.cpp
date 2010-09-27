@@ -102,6 +102,9 @@ Void TAppEncTop::xInitLibCfg()
   m_cTEncTop.setFastSearch                   ( m_iFastSearch  );
   m_cTEncTop.setSearchRange                  ( m_iSearchRange );
   m_cTEncTop.setMaxDeltaQP                   ( m_iMaxDeltaQP  );
+#if SAMSUNG_CHROMA_IF_EXT
+  m_cTEncTop.setDIFTapC                      ( m_iDIFTapC     );
+#endif
 
   //====== Tool list ========
   m_cTEncTop.setGRefMode                     ( m_pchGRefMode  );
@@ -119,6 +122,9 @@ Void TAppEncTop::xInitLibCfg()
   m_cTEncTop.setQuadtreeTUFlag               ( m_bQuadtreeTUFlag );
   m_cTEncTop.setQuadtreeTULog2MaxSize        ( m_uiQuadtreeTULog2MaxSize );
   m_cTEncTop.setQuadtreeTULog2MinSize        ( m_uiQuadtreeTULog2MinSize );
+#if HHI_RQT_DEPTH
+  m_cTEncTop.setQuadtreeTUMaxDepth           ( m_uiQuadtreeTUMaxDepth );
+#endif
 #endif
   m_cTEncTop.setMaxTrSize                    ( m_uiMaxTrSize  );
   m_cTEncTop.setUseQBO                       ( m_bUseQBO      );
@@ -243,7 +249,9 @@ Void TAppEncTop::encode()
       xWriteOutput( iNumEncoded );
     }
   }
-
+#if FIX_TICKET67==1  
+  m_cTEncTop.getSIFOEncoder()->destroy();
+#endif
   // delete original YUV buffer
   pcPicYuvOrg->destroy();
   delete pcPicYuvOrg;

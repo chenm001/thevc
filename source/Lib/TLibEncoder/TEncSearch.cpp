@@ -1374,9 +1374,19 @@ TEncSearch::xEncSubdivCbfQT( TComDataCU*  pcCU,
   {
     assert( !uiSubdiv );
   }
+#if HHI_RQT_DEPTH || HHI_RQT_DISABLE_SUB
+  else if( uiLog2TrafoSize == pcCU->getQuadtreeTULog2MinSizeInCU(uiAbsPartIdx) )
+  {
+    assert( !uiSubdiv );
+  }
+#endif  
   else
   {
+#if HHI_RQT_DEPTH || HHI_RQT_DISABLE_SUB
+    assert( uiLog2TrafoSize > pcCU->getQuadtreeTULog2MinSizeInCU(uiAbsPartIdx) );
+#else 
     assert( uiLog2TrafoSize > pcCU->getSlice()->getSPS()->getQuadtreeTULog2MinSize() );
+#endif
     if( bLuma )
     {
       m_pcEntropyCoder->encodeTransformSubdivFlag( uiSubdiv, uiFullDepth );
@@ -1949,7 +1959,11 @@ TEncSearch::xRecurIntraCodingQT( TComDataCU*  pcCU,
   UInt    uiFullDepth   = pcCU->getDepth( 0 ) +  uiTrDepth;
   UInt    uiLog2TrSize  = g_aucConvertToBit[ pcCU->getSlice()->getSPS()->getMaxCUWidth() >> uiFullDepth ] + 2;
   Bool    bCheckFull    = ( uiLog2TrSize  <= pcCU->getSlice()->getSPS()->getQuadtreeTULog2MaxSize() );
+#if HHI_RQT_DEPTH || HHI_RQT_DISABLE_SUB
+  Bool    bCheckSplit   = ( uiLog2TrSize  >  pcCU->getQuadtreeTULog2MinSizeInCU(uiAbsPartIdx) );
+#else
   Bool    bCheckSplit   = ( uiLog2TrSize  >  pcCU->getSlice()->getSPS()->getQuadtreeTULog2MinSize() );
+#endif
   
   Double  dSingleCost   = MAX_DOUBLE;
   UInt    uiSingleDistY = 0;
@@ -3642,10 +3656,17 @@ Void TEncSearch::predIntraChromaAdiSearch( TComDataCU* pcCU, TComYuv* pcOrgYuv, 
 }
 
 #if HHI_MRG_PU
+#ifdef DCM_PBIC
+Void TEncSearch::xMergeEstimation( TComDataCU* pcCU, TComYuv* pcYuvOrg, Int iPartIdx, Int* piRefIdxPred, TComMv* pcMvTemp, TComIc& rcIcTemp, UInt& uiInterDir, UInt& uiMergeIndex, UInt& ruiCost )
+#else
 Void TEncSearch::xMergeEstimation( TComDataCU* pcCU, TComYuv* pcYuvOrg, Int iPartIdx, Int* piRefIdxPred, TComMv* pcMvTemp, UInt& uiInterDir, UInt& uiMergeIndex, UInt& ruiCost )
+#endif
 {
   UInt        uiNeighbourInfos = 0;
   TComMvField  cMFieldNeighbours[4]; // 0: above ref_list 0, above ref list 1, left ref list 0, left ref list 1
+#ifdef DCM_PBIC
+  TComIc cIcNeighbours[2]; //above, left
+#endif
   UChar uhInterDirNeighbours[2];
   uhInterDirNeighbours[0] = 0;
   uhInterDirNeighbours[1] = 0;
@@ -3660,7 +3681,11 @@ Void TEncSearch::xMergeEstimation( TComDataCU* pcCU, TComYuv* pcYuvOrg, Int iPar
   Int iWidth = 0;
   Int iHeight = 0;
   pcCU->getPartIndexAndSize( iPartIdx, uiAbsPartIdx, iWidth, iHeight );
+#ifdef DCM_PBIC
+  pcCU->getInterMergeCandidates( uiAbsPartIdx, cMFieldNeighbours, cIcNeighbours, uhInterDirNeighbours, uiNeighbourInfos );
+#else
   pcCU->getInterMergeCandidates( uiAbsPartIdx, cMFieldNeighbours, uhInterDirNeighbours, uiNeighbourInfos );
+#endif
 
   UInt uiNeighbourIdx = 0; // 0: top, 1: left
   if ( uiNeighbourInfos == 2 )
@@ -3693,6 +3718,15 @@ Void TEncSearch::xMergeEstimation( TComDataCU* pcCU, TComYuv* pcYuvOrg, Int iPar
 #else
     pcCU->getCUMvField(REF_PIC_LIST_0)->setAllMvField( cMFieldNeighbours[0 + 2*uiNeighbourIdx].getMv(), cMFieldNeighbours[0 + 2*uiNeighbourIdx].getRefIdx(), ePartSize, uiAbsPartIdx, iPartIdx, 0 );
     pcCU->getCUMvField(REF_PIC_LIST_1)->setAllMvField( cMFieldNeighbours[1 + 2*uiNeighbourIdx].getMv(), cMFieldNeighbours[1 + 2*uiNeighbourIdx].getRefIdx(), ePartSize, uiAbsPartIdx, iPartIdx, 0 );
+#endif
+
+#ifdef DCM_PBIC
+    if (pcCU->getSlice()->getSPS()->getUseIC())
+    {
+      RefPicList eRefList = (uhInterDirNeighbours[uiNeighbourIdx] == 3) ? REF_PIC_LIST_X : ( (uhInterDirNeighbours[uiNeighbourIdx] == 2) ? REF_PIC_LIST_1 : REF_PIC_LIST_0);
+      cIcNeighbours[uiNeighbourIdx].computeScaleOffset( eRefList );
+      pcCU->getCUIcField()->setAllIcField( cIcNeighbours[uiNeighbourIdx], ePartSize, uiAbsPartIdx, iPartIdx, 0 );
+    }
 #endif
 
     motionCompensation( pcCU, &cYuvPred, REF_PIC_LIST_X, iPartIdx );
@@ -3734,6 +3768,9 @@ Void TEncSearch::xMergeEstimation( TComDataCU* pcCU, TComYuv* pcYuvOrg, Int iPar
       {
         ruiCost = uiCostTemp;
         pcMvTemp[0]    = cMFieldNeighbours[0 + 2*uiNeighbourIdx].getMv();
+#ifdef DCM_PBIC
+        rcIcTemp       = cIcNeighbours[uiNeighbourIdx];
+#endif
         piRefIdxPred[0] = cMFieldNeighbours[0 + 2*uiNeighbourIdx].getRefIdx();
         uiInterDir = 1;
         uiMergeIndex = uiNeighbourIdx;
@@ -3748,6 +3785,9 @@ Void TEncSearch::xMergeEstimation( TComDataCU* pcCU, TComYuv* pcYuvOrg, Int iPar
         {
           ruiCost = uiCostTemp;
           pcMvTemp[0]    = cMFieldNeighbours[0 + 2*uiNeighbourIdx].getMv();
+#ifdef DCM_PBIC
+          rcIcTemp       = cIcNeighbours[uiNeighbourIdx];
+#endif
           piRefIdxPred[0] = cMFieldNeighbours[0 + 2*uiNeighbourIdx].getRefIdx();
           uiInterDir = 1;
           uiMergeIndex = uiNeighbourIdx;
@@ -3760,6 +3800,9 @@ Void TEncSearch::xMergeEstimation( TComDataCU* pcCU, TComYuv* pcYuvOrg, Int iPar
         {
           ruiCost = uiCostTemp;
           pcMvTemp[1]    = cMFieldNeighbours[1 + 2*uiNeighbourIdx].getMv();
+#ifdef DCM_PBIC
+          rcIcTemp       = cIcNeighbours[uiNeighbourIdx];
+#endif
           piRefIdxPred[1] = cMFieldNeighbours[1 + 2*uiNeighbourIdx].getRefIdx();
           uiInterDir = 2;
           uiMergeIndex = uiNeighbourIdx;
@@ -3773,6 +3816,9 @@ Void TEncSearch::xMergeEstimation( TComDataCU* pcCU, TComYuv* pcYuvOrg, Int iPar
           ruiCost = uiCostTemp;
           pcMvTemp[0]    = cMFieldNeighbours[0 + 2*uiNeighbourIdx].getMv();
           pcMvTemp[1]    = cMFieldNeighbours[1 + 2*uiNeighbourIdx].getMv();
+#ifdef DCM_PBIC
+          rcIcTemp       = cIcNeighbours[uiNeighbourIdx];
+#endif
           piRefIdxPred[0] = cMFieldNeighbours[0 + 2*uiNeighbourIdx].getRefIdx();
           piRefIdxPred[1] = cMFieldNeighbours[1 + 2*uiNeighbourIdx].getRefIdx();
           uiInterDir = 3;
@@ -3855,6 +3901,9 @@ Void TEncSearch::predInterSearch( TComDataCU* pcCU, TComYuv* pcOrgYuv, TComYuv*&
   UInt uiMergeInterDir = 0;
   Int iMergeRefIdx[2];
   TComMv cMergeMv[2];
+#ifdef DCM_PBIC
+  TComIc cMergeIc;
+#endif
   Int iRefBestList= 0;
   UInt uiMergeCost = MAX_UINT;
   UInt uiMergeIndex = 0;
@@ -4151,7 +4200,11 @@ Void TEncSearch::predInterSearch( TComDataCU* pcCU, TComYuv* pcOrgYuv, TComYuv*&
     UInt uiMergeCost = MAX_INT;
     if ( pcCU->getSlice()->getSPS()->getUseMRG() )
     {
+#ifdef DCM_PBIC
+      xMergeEstimation( pcCU, pcOrgYuv, iPartIdx, iMergeRefIdx, cMergeMv , cMergeIc, uiMergeInterDir, uiMergeIndex, uiMergeCost );
+#else
       xMergeEstimation( pcCU, pcOrgYuv, iPartIdx, iMergeRefIdx, cMergeMv , uiMergeInterDir, uiMergeIndex, uiMergeCost );
+#endif
 
       if( pcCU->getSlice()->isInterP() )
       {
@@ -4426,11 +4479,24 @@ Void TEncSearch::predInterSearch( TComDataCU* pcCU, TComYuv* pcOrgYuv, TComYuv*&
       pcCU->setMVPNumSubParts( aaiMvpNum[1][iRefIdx[1]], REF_PIC_LIST_1, uiPartAddr, iPartIdx, pcCU->getDepth(uiPartAddr));
     }
     
+#if HHI_MRG_PU && defined(DCM_PBIC)
+    if (pcCU->getSlice()->getSPS()->getUseIC())
+    {
+      if (pcCU->getMergeFlag(uiPartAddr) == false)
+        cMergeIc.reset();
+      pcCU->getCUIcField()->setAllIc( cMergeIc, ePartSize, uiPartAddr, iPartIdx, 0 );
+    }
+#endif
+
     //  MC
     motionCompensation ( pcCU, rpcPredYuv, REF_PIC_LIST_X, iPartIdx );
 
 #ifdef DCM_PBIC
+#if HHI_MRG_PU
+    if (pcCU->getSlice()->getSPS()->getUseIC() && (pcCU->getMergeFlag(uiPartAddr) == false))
+#else
     if (pcCU->getSlice()->getSPS()->getUseIC())
+#endif
     {
       predICompSearch(pcCU, pcOrgYuv, rpcPredYuv, iPartIdx, uiLastMode);
     }
@@ -6082,6 +6148,25 @@ Void TEncSearch::xExtDIFUpSamplingH_QC ( TComPattern* pcPattern, TComYuv* pcYuvE
   
   //center
 #if USE_DIAGONAL_FILT==1
+#if SIFO_DIF_COMPATIBILITY==1
+  UInt DIF_filter_position = getNum_SIFOFilters() - getNum_AvailableFilters();
+  if(filterC>=DIF_filter_position && m_iDIFTap==6)
+  {
+    piSrcYPel = pcPattern->getROIY()   -  iPatStride - 1;
+    piDstYPel = pcYuvExt->getLumaAddr() + (iExtStride<<1) - 2;
+    xCTI_FilterDIF_TEN (piSrcYPel, iPatStride, 1,  iWidth + 1, iHeight + 1, iExtStride<<2, 4, piDstYPel, 2, 2, filterC-DIF_filter_position);
+    if(OffsetC)
+    {
+      for (Int y = 0; y < iHeight + 1; y++)
+      {
+        for ( Int x = 0; x < iWidth + 1; x++)
+          piDstYPel[x*4] = Clip( piDstYPel[x*4] + OffsetC);
+        piDstYPel += (iExtStride<<2);
+      }
+    }
+    return;
+  }
+#else
   if(filterC==5 && m_iDIFTap==6)
   {
     piSrcYPel = pcPattern->getROIY()   -  iPatStride - 1;
@@ -6098,6 +6183,7 @@ Void TEncSearch::xExtDIFUpSamplingH_QC ( TComPattern* pcPattern, TComYuv* pcYuvE
     }
     return;
   }
+#endif
 #endif
   i=10;
   Int filterC_0 = getTabFilters(i,getSIFOFilter(i),0);
@@ -6839,7 +6925,11 @@ Void TEncSearch::encodeResAndCalcRdInterCU( TComDataCU* pcCU, TComYuv* pcYuvOrg,
   const Bool bCheckFull    = ( uiLog2TrSize <= pcCU->getSlice()->getSPS()->getQuadtreeTULog2MaxSize() );
 #endif
 
+#if HHI_RQT_DEPTH || HHI_RQT_DISABLE_SUB
+  const Bool bCheckSplit  = ( uiLog2TrSize >  pcCU->getQuadtreeTULog2MinSizeInCU(uiAbsPartIdx) );
+#else
   const Bool bCheckSplit   = ( uiLog2TrSize >  pcCU->getSlice()->getSPS()->getQuadtreeTULog2MinSize() );
+#endif
   
   assert( bCheckFull || bCheckSplit );
   
@@ -7073,7 +7163,11 @@ Void TEncSearch::encodeResAndCalcRdInterCU( TComDataCU* pcCU, TComYuv* pcYuvOrg,
     }
     
     m_pcEntropyCoder->resetBits();
+#if HHI_RQT_DEPTH || HHI_RQT_DISABLE_SUB
+    if( uiLog2TrSize > pcCU->getQuadtreeTULog2MinSizeInCU(uiAbsPartIdx) )
+#else	
     if( uiLog2TrSize > pcCU->getSlice()->getSPS()->getQuadtreeTULog2MinSize() )
+#endif
     {
       m_pcEntropyCoder->encodeTransformSubdivFlag( 0, uiDepth );
     }
@@ -7201,7 +7295,11 @@ Void TEncSearch::xEncodeResidualQT( TComDataCU* pcCU, UInt uiAbsPartIdx, const U
   const Bool bSubdiv = uiCurrTrMode != uiTrMode;
   
   const UInt uiLog2TrSize = g_aucConvertToBit[pcCU->getSlice()->getSPS()->getMaxCUWidth() >> uiDepth]+2;
+#if HHI_RQT_DEPTH || HHI_RQT_DISABLE_SUB
+  if( bSubdivAndCbf && uiLog2TrSize <= pcCU->getSlice()->getSPS()->getQuadtreeTULog2MaxSize() && uiLog2TrSize > pcCU->getQuadtreeTULog2MinSizeInCU(uiAbsPartIdx) )
+#else
   if( bSubdivAndCbf && uiLog2TrSize <= pcCU->getSlice()->getSPS()->getQuadtreeTULog2MaxSize() && uiLog2TrSize > pcCU->getSlice()->getSPS()->getQuadtreeTULog2MinSize() )
+#endif
   {
     m_pcEntropyCoder->encodeTransformSubdivFlag( bSubdiv, uiDepth );
   }

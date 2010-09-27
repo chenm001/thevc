@@ -382,6 +382,9 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
       if ( pcSlice->getSPS()->getUseALF() )
       {
         ALFParam cAlfParam;
+#if TSB_ALF_HEADER
+        m_pcAdaptiveLoopFilter->setNumCUsInFrame(pcPic);
+#endif
         m_pcAdaptiveLoopFilter->allocALFParam(&cAlfParam);
 
         // set entropy coder for RD
@@ -502,12 +505,19 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
 #endif
         m_pcEntropyCoder->encodeAlfParam(&cAlfParam);
 
+#if TSB_ALF_HEADER
+        if(cAlfParam.cu_control_flag)
+        {
+          m_pcEntropyCoder->encodeAlfCtrlParam(&cAlfParam);
+        }
+#else
 #if HHI_ALF
         if( pcSlice->getSPS()->getALFSeparateQt() && cAlfParam.cu_control_flag )
         {
           m_pcAdaptiveLoopFilter->encodeQuadTree ( &cAlfParam, m_pcEntropyCoder, uiMaxAlfCtrlDepth );
           m_pcAdaptiveLoopFilter->destroyQuadTree( &cAlfParam );
         }
+#endif
 #endif
 
         m_pcAdaptiveLoopFilter->freeALFParam(&cAlfParam);
@@ -638,6 +648,9 @@ Void TEncGOP::preLoopFilterPicAll( TComPic* pcPic, UInt64& ruiDist, UInt64& ruiB
   if( pcSlice->getSPS()->getUseALF() )
   {
     ALFParam cAlfParam;
+#if TSB_ALF_HEADER
+    m_pcAdaptiveLoopFilter->setNumCUsInFrame(pcPic);
+#endif
     m_pcAdaptiveLoopFilter->allocALFParam(&cAlfParam);
 
 #if HHI_ALF

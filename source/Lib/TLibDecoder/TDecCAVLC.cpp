@@ -102,6 +102,9 @@ Void TDecCavlc::parseSPS(TComSPS* pcSPS)
     {
       xReadUvlc( uiCode ); pcSPS->setQuadtreeTULog2MaxSize( uiCode + pcSPS->getQuadtreeTULog2MinSize() );
     }
+#if HHI_RQT_DEPTH
+    xReadUvlc ( uiCode ); pcSPS->setQuadtreeTUMaxDepth( uiCode+1 );
+#endif	
   }
   
   if( pcSPS->getQuadtreeTUFlag() )
@@ -150,6 +153,9 @@ Void TDecCavlc::parseSPS(TComSPS* pcSPS)
 #endif
   // number of taps for DIF
   xReadUvlc( uiCode ); pcSPS->setDIFTap ( (uiCode+2)<<1 );  // 4, 6, 8, 10, 12
+#if SAMSUNG_CHROMA_IF_EXT
+  xReadUvlc( uiCode ); pcSPS->setDIFTapC ( (uiCode+1)<<1 );  //2, 4, 6, 8, 10, 12
+#endif
 
   // AMVP mode for each depth (AM_NONE or AM_EXPL)
   for (Int i = 0; i < pcSPS->getMaxCUDepth(); i++)
@@ -471,7 +477,7 @@ Void TDecCavlc::parseAlfCtrlFlag( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDe
 
 Void TDecCavlc::parseSkipFlag( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
 {
-#if HHI_MRG
+#if HHI_MRG && !SAMSUNG_MRG_SKIP_DIRECT
   if ( pcCU->getSlice()->getSPS()->getUseMRG() )
   {
     return;
@@ -709,7 +715,7 @@ Void TDecCavlc::parsePredMode( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth
   UInt uiSymbol;
   Int  iPredMode = MODE_INTER;
 
-#if HHI_MRG
+#if HHI_MRG && !SAMSUNG_MRG_SKIP_DIRECT
   if ( !pcCU->getSlice()->getSPS()->getUseMRG() )
   {
     xReadFlag( uiSymbol );
@@ -1875,6 +1881,39 @@ Void TDecCavlc::parseAlfFlag (UInt& ruiVal)
   xReadFlag( ruiVal );
 }
 
+#if TSB_ALF_HEADER
+Void TDecCavlc::parseAlfFlagNum( UInt& ruiVal, UInt minValue, UInt depth )
+{
+  UInt uiLength = 0;
+  UInt maxValue = (minValue << (depth*2));
+  UInt temp = maxValue - minValue;
+  for(UInt i=0; i<32; i++)
+  {
+    if(temp&0x1)
+    {
+      uiLength = i+1;
+    }
+    temp = (temp >> 1);
+  }
+  if(uiLength)
+  {
+    xReadCode( uiLength, ruiVal );
+  }
+  else
+  {
+    ruiVal = 0;
+  }
+  ruiVal += minValue;
+}
+
+Void TDecCavlc::parseAlfCtrlFlag( UInt &ruiAlfCtrlFlag )
+{
+  UInt uiSymbol;
+  xReadFlag( uiSymbol );
+  ruiAlfCtrlFlag = uiSymbol;
+}
+#endif
+
 Void TDecCavlc::parseAlfUvlc (UInt& ruiVal)
 {
   xReadUvlc( ruiVal );
@@ -2675,6 +2714,12 @@ Void TDecCavlc::parseSwitched_Filters (TComSlice*& rpcSlice, TComPrediction* m_c
     UInt num_AVALABLE_FILTERS = m_cPrediction->getNum_AvailableFilters();
     UInt num_SIFO = m_cPrediction->getNum_SIFOFilters();
 
+#if SIFO_DIF_COMPATIBILITY==1    //16,17,18,19 ----> 4,5,6,7
+    UInt DIF_filter_position = num_SIFO - num_AVALABLE_FILTERS;
+    if(rpcSlice->getSPS()->getDIFTap()==6 && rpcSlice->getSliceType()==B_SLICE)
+      num_AVALABLE_FILTERS <<= 1;
+#endif
+
     Int bitsPerFilter=(Int)ceil(log10((Double)num_AVALABLE_FILTERS)/log10((Double)2)); 
     Int bitsPer2Filters=(Int)ceil(log10((Double)num_SIFO)/log10((Double)2)); 
     Int sub_pos, bestFilter,predictFilterP,predictFilterB;
@@ -2802,12 +2847,20 @@ Void TDecCavlc::parseSwitched_Filters (TComSlice*& rpcSlice, TComPrediction* m_c
           {
             xReadCode(bitsPerFilter, uiCode);
             SIFO_filter[sub_pos] = uiCode;
+#if SIFO_DIF_COMPATIBILITY==1    //4,5,6,7 ----> 16,17,18,19
+            if(SIFO_filter[sub_pos] >= m_cPrediction->getNum_AvailableFilters() && rpcSlice->getSPS()->getDIFTap()==6)
+              SIFO_filter[sub_pos] += (num_SIFO-num_AVALABLE_FILTERS);
+#endif
           }
         }
         else
         {
           xReadCode(bitsPerFilter, uiCode);
           bestFilter = uiCode;
+#if SIFO_DIF_COMPATIBILITY==1    //4,5,6,7 ----> 16,17,18,19
+          if(bestFilter >= m_cPrediction->getNum_AvailableFilters() && rpcSlice->getSPS()->getDIFTap()==6)
+            bestFilter += (num_SIFO-num_AVALABLE_FILTERS);
+#endif
           //m_cPrediction->setBestFilter(bestFilter);
           for(sub_pos = 1; sub_pos < 16; ++sub_pos)
           {
@@ -2828,6 +2881,10 @@ Void TDecCavlc::parseSwitched_Filters (TComSlice*& rpcSlice, TComPrediction* m_c
             {
               xReadCode(bitsPerFilter, uiCode);
               SIFO_filter[sub_pos] = uiCode;
+#if SIFO_DIF_COMPATIBILITY==1    //4,5,6,7 ----> 16,17,18,19
+            if(SIFO_filter[sub_pos] >= m_cPrediction->getNum_AvailableFilters() && rpcSlice->getSPS()->getDIFTap()==6)
+              SIFO_filter[sub_pos] += (num_SIFO-num_AVALABLE_FILTERS);
+#endif
             }
             else
             {
@@ -2839,6 +2896,10 @@ Void TDecCavlc::parseSwitched_Filters (TComSlice*& rpcSlice, TComPrediction* m_c
         {
           xReadCode(bitsPerFilter, uiCode);
           bestFilter = uiCode;
+#if SIFO_DIF_COMPATIBILITY==1    //4,5,6,7 ----> 16,17,18,19
+          if(bestFilter >= m_cPrediction->getNum_AvailableFilters() && rpcSlice->getSPS()->getDIFTap()==6)
+            bestFilter += (num_SIFO-num_AVALABLE_FILTERS);
+#endif
           //m_cPrediction->setBestFilter(bestFilter);
           for(sub_pos = 1; sub_pos < 16; ++sub_pos)
           {

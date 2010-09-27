@@ -140,6 +140,9 @@ Void TDecGop::decompressGop (Bool bEos, TComBitstream* pcBitstream, TComPic*& rp
 
   if ( rpcPic->getSlice()->getSPS()->getUseALF() )
   {
+#if TSB_ALF_HEADER
+    m_pcAdaptiveLoopFilter->setNumCUsInFrame(rpcPic);
+#endif
     m_pcAdaptiveLoopFilter->allocALFParam(&cAlfParam);
 #if HHI_ALF
     m_pcEntropyDecoder->decodeAlfParam(&cAlfParam, rpcPic );

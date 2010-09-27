@@ -209,7 +209,9 @@ Void TDecTop::decode (Bool bEos, TComBitstream* pcBitstream, UInt& ruiPOC, TComL
 
     // initialize DIF
     m_cPrediction.setDIFTap ( m_cSPS.getDIFTap () );
-
+#if SAMSUNG_CHROMA_IF_EXT
+    m_cPrediction.setDIFTapC( m_cSPS.getDIFTapC () );
+#endif
     // create ALF temporary buffer
     m_cAdaptiveLoopFilter.create( m_cSPS.getWidth(), m_cSPS.getHeight(), g_uiMaxCUWidth, g_uiMaxCUHeight, g_uiMaxCUDepth );
 

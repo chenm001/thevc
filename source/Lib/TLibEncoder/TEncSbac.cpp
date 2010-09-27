@@ -659,7 +659,7 @@ Void TEncSbac::codePredMode( TComDataCU* pcCU, UInt uiAbsPartIdx )
   // get context function is here
   Int iPredMode = pcCU->getPredictionMode( uiAbsPartIdx );
 
-#if HHI_MRG
+#if HHI_MRG && !SAMSUNG_MRG_SKIP_DIRECT
   if ( !pcCU->getSlice()->getSPS()->getUseMRG() )
   {
     m_pcBinIf->encodeBin( iPredMode == MODE_SKIP ? 0 : 1, m_cCUPredModeSCModel.get( 0, 0, 0 ) );
@@ -1720,11 +1720,20 @@ Void TEncSbac::codeCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx
     }
 
     //===== update scan direction =====
+#if !HHI_DISABLE_SCAN
     if( ( uiDownLeft == 1 && ( uiPosX == 0 || uiPosY == uiHeight - 1 ) ) ||
         ( uiDownLeft == 0 && ( uiPosY == 0 || uiPosX == uiWidth  - 1 ) )   )
     {
       uiDownLeft = ( uiNumSigTopRight >= uiNumSigBotLeft ? 1 : 0 );
     }
+#else
+		if( uiScanPos && 
+			( ( uiDownLeft == 1 && ( uiPosX == 0 || uiPosY == uiHeight - 1 ) ) ||
+        ( uiDownLeft == 0 && ( uiPosY == 0 || uiPosX == uiWidth  - 1 ) )   ) )
+    {
+      uiDownLeft = 1 - uiDownLeft;
+    }
+#endif
   }
 
   Int  c1, c2;
@@ -2286,6 +2295,37 @@ Void TEncSbac::codeAlfFlag       ( UInt uiCode )
   UInt uiSymbol = ( ( uiCode == 0 ) ? 0 : 1 );
   m_pcBinIf->encodeBin( uiSymbol, m_cALFFlagSCModel.get( 0, 0, 0 ) );
 }
+
+#if TSB_ALF_HEADER
+Void TEncSbac::codeAlfFlagNum( UInt uiCode, UInt minValue )
+{
+  UInt uiLength = 0;
+  UInt maxValue = (minValue << (this->getMaxAlfCtrlDepth()*2));
+  assert((uiCode>=minValue)&&(uiCode<=maxValue));
+  UInt temp = maxValue - minValue;
+  for(UInt i=0; i<32; i++)
+  {
+    if(temp&0x1)
+    {
+      uiLength = i+1;
+    }
+    temp = (temp >> 1);
+  }
+  UInt uiSymbol = uiCode - minValue;
+  if(uiLength)
+  {
+    while( uiLength-- )
+    {
+      m_pcBinIf->encodeBinEP( (uiSymbol>>uiLength) & 0x1 );
+    }
+  }
+}
+
+Void TEncSbac::codeAlfCtrlFlag( UInt uiSymbol )
+{
+  m_pcBinIf->encodeBin( uiSymbol, m_cCUAlfCtrlFlagSCModel.get( 0, 0, 0) );
+}
+#endif
 
 Void TEncSbac::codeAlfUvlc       ( UInt uiCode )
 {

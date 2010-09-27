@@ -79,6 +79,9 @@ protected:
   Bool      m_bQuadtreeTUFlag;
   UInt      m_uiQuadtreeTULog2MaxSize;
   UInt      m_uiQuadtreeTULog2MinSize;
+#if HHI_RQT_DEPTH
+  UInt      m_uiQuadtreeTUMaxDepth;
+#endif
 #endif
   //====== B Slice ========
   Bool      m_bHierarchicalCoding;              //  hierarchical-B coding
@@ -145,6 +148,9 @@ protected:
   Bool      m_bUseIC;
 #endif
   Int       m_iDIFTap;  // Number of interpolation filter taps
+#if SAMSUNG_CHROMA_IF_EXT
+  Int       m_iDIFTapC;  // Number of chroma interpolation filter taps
+#endif
 
   Int*      m_aidQP;
   UInt      m_uiMaxTrSize;
@@ -193,6 +199,9 @@ public:
   Void      setQuadtreeTUFlag               ( Bool  b )      { m_bQuadtreeTUFlag = b; }
   Void      setQuadtreeTULog2MaxSize        ( UInt  u )      { m_uiQuadtreeTULog2MaxSize = u; }
   Void      setQuadtreeTULog2MinSize        ( UInt  u )      { m_uiQuadtreeTULog2MinSize = u; }
+#if HHI_RQT_DEPTH
+  Void      setQuadtreeTUMaxDepth              ( UInt  u )      { m_uiQuadtreeTUMaxDepth = u; }
+#endif
 #endif
   //====== b; Slice ========
   Void      setHierarchicalCoding           ( Bool  b )      { m_bHierarchicalCoding = b; }
@@ -251,6 +260,9 @@ public:
   Bool      getQuadtreeTUFlag               ()      const { return m_bQuadtreeTUFlag; }
   UInt      getQuadtreeTULog2MaxSize        ()      const { return m_uiQuadtreeTULog2MaxSize; }
   UInt      getQuadtreeTULog2MinSize        ()      const { return m_uiQuadtreeTULog2MinSize; }
+#if HHI_RQT_DEPTH
+  UInt      getQuadtreeTUMaxDepth              ()      const { return m_uiQuadtreeTUMaxDepth; }
+#endif
 #endif
   //==== b; Slice ========
   Bool      getHierarchicalCoding           ()      { return  m_bHierarchicalCoding; }
@@ -360,6 +372,10 @@ public:
   Bool      getUseIC                        ()      { return m_bUseIC;      }
 #endif
   Int       getDIFTap                       ()      { return m_iDIFTap;  }
+#if SAMSUNG_CHROMA_IF_EXT
+ Int       getDIFTapC                       ()      { return m_iDIFTapC;  }
+ Void      setDIFTapC              ( Int   i )      { m_iDIFTapC     = i; }
+#endif
 
   Int*      getdQPs                         ()      { return m_aidQP;       }
   UInt      getMaxTrSize                    ()      { return m_uiMaxTrSize; }

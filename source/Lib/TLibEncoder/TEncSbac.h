@@ -102,6 +102,10 @@ public:
   Void  codeAlfUvlc       ( UInt uiCode );
   Void  codeAlfSvlc       ( Int  uiCode );
   Void  codeAlfCtrlDepth  ();
+#if TSB_ALF_HEADER
+  Void codeAlfFlagNum        ( UInt uiCode, UInt minValue );
+  Void codeAlfCtrlFlag       ( UInt uiSymbol );
+#endif
 private:
   Void  xWriteUnarySymbol    ( UInt uiSymbol, ContextModel* pcSCModel, Int iOffset );
   Void  xWriteUnaryMaxSymbol ( UInt uiSymbol, ContextModel* pcSCModel, Int iOffset, UInt uiMaxSymbol );

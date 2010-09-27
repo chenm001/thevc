@@ -726,6 +726,11 @@ Void TComDataCU::copyInterPredInfoFrom    ( TComDataCU* pcCU, UInt uiAbsPartIdx,
   m_puhWidth           = pcCU->getWidth ()                + uiAbsPartIdx;
   m_puhHeight          = pcCU->getHeight()                + uiAbsPartIdx;
 
+#if HHI_MRG_PU
+  m_pbMergeFlag        = pcCU->getMergeFlag()             + uiAbsPartIdx;
+  m_puhMergeIndex      = pcCU->getMergeIndex()            + uiAbsPartIdx;
+#endif
+
 #ifdef DCM_PBIC
   if ( eRefPicList == REF_PIC_LIST_X )
   {
@@ -768,10 +773,6 @@ Void TComDataCU::copyInterPredInfoFrom    ( TComDataCU* pcCU, UInt uiAbsPartIdx,
   m_acCUMvField[eRefPicList].setMvPtr(pcCU->getCUMvField(eRefPicList)->getMv()     + uiAbsPartIdx);
   m_acCUMvField[eRefPicList].setMvdPtr(pcCU->getCUMvField(eRefPicList)->getMvd()    + uiAbsPartIdx);
   m_acCUMvField[eRefPicList].setRefIdxPtr(pcCU->getCUMvField(eRefPicList)->getRefIdx() + uiAbsPartIdx);
-#if HHI_MRG_PU
-  m_pbMergeFlag         = pcCU->getMergeFlag()        + uiAbsPartIdx;
-  m_puhMergeIndex       = pcCU->getMergeIndex()       + uiAbsPartIdx;
-#endif
 
 #ifdef QC_AMVRES
   m_acCUMvField[eRefPicList].setMVResPtr(pcCU->getCUMvField(eRefPicList)->getMVRes() + uiAbsPartIdx);
@@ -1726,6 +1727,127 @@ UInt TComDataCU::getCtxQtRootCbf( UInt uiAbsPartIdx )
   }
 
   return uiCtx;
+}
+#endif
+
+#if HHI_RQT_DEPTH || HHI_RQT_DISABLE_SUB
+UInt TComDataCU::getQuadtreeTULog2MinSizeInCU( UInt uiIdx )
+{
+#if HHI_RQT_DISABLE_SUB
+  return getQuadtreeTULog2RootSizeInCU(uiIdx);
+#else
+  #if HHI_RQT_FORCE_SPLIT_ACC2_PU
+  UInt uiLog2MinTUSizeInCU = getQuadtreeTULog2RootSizeInCU(uiIdx);
+  #else
+  UInt uiLog2MinTUSizeInCU = g_aucConvertToBit[getWidth( uiIdx )] + 2;
+
+  if ( getPredictionMode( uiIdx ) == MODE_INTRA && getPartitionSize( uiIdx ) == SIZE_NxN )
+  {
+    uiLog2MinTUSizeInCU--;
+  }
+
+  if ( uiLog2MinTUSizeInCU > m_pcSlice->getSPS()->getQuadtreeTULog2MaxSize())
+  {
+    uiLog2MinTUSizeInCU = m_pcSlice->getSPS()->getQuadtreeTULog2MaxSize();
+  }  
+  #endif  
+
+  if (uiLog2MinTUSizeInCU < m_pcSlice->getSPS()->getQuadtreeTULog2MinSize() + m_pcSlice->getSPS()->getQuadtreeTUMaxDepth() - 1)
+  {
+    uiLog2MinTUSizeInCU = m_pcSlice->getSPS()->getQuadtreeTULog2MinSize();  
+  }
+  else
+  {
+    uiLog2MinTUSizeInCU -= m_pcSlice->getSPS()->getQuadtreeTUMaxDepth() - 1;  
+  }
+  return uiLog2MinTUSizeInCU;
+#endif
+}
+#endif
+
+#if HHI_RQT_FORCE_SPLIT_ACC2_PU || HHI_RQT_DISABLE_SUB
+UInt TComDataCU::getQuadtreeTULog2RootSizeInCU( UInt uiIdx )
+{
+  UInt uiLog2RootTUSizeInCU = g_aucConvertToBit[getWidth( uiIdx )] +2;
+
+#if !HHI_RQT_FORCE_SPLIT_NxN && !HHI_RQT_DISABLE_SUB
+  if ( getPredictionMode( uiIdx ) == MODE_INTRA && getPartitionSize( uiIdx ) == SIZE_NxN )
+  {
+    uiLog2RootTUSizeInCU--;
+    return (uiLog2RootTUSizeInCU > m_pcSlice->getSPS()->getQuadtreeTULog2MaxSize() ? m_pcSlice->getSPS()->getQuadtreeTULog2MaxSize() : uiLog2RootTUSizeInCU);
+  }
+#endif
+
+  if (m_pePartSize[ uiIdx ] == SIZE_2Nx2N)
+  {
+    return (uiLog2RootTUSizeInCU > m_pcSlice->getSPS()->getQuadtreeTULog2MaxSize() ? m_pcSlice->getSPS()->getQuadtreeTULog2MaxSize() : uiLog2RootTUSizeInCU);
+  }	
+  else if (m_pePartSize[ uiIdx ] >= SIZE_2NxN && m_pePartSize[ uiIdx ] <= SIZE_Nx2N)  
+  {
+#if HHI_RQT_FORCE_SPLIT_RECT || HHI_RQT_DISABLE_SUB
+    uiLog2RootTUSizeInCU--;
+#endif
+    return (uiLog2RootTUSizeInCU > m_pcSlice->getSPS()->getQuadtreeTULog2MaxSize() ? m_pcSlice->getSPS()->getQuadtreeTULog2MaxSize() : uiLog2RootTUSizeInCU);
+  }	
+  else if (m_pePartSize[ uiIdx ] == SIZE_NxN)  
+  {
+#if HHI_RQT_FORCE_SPLIT_NxN || HHI_RQT_DISABLE_SUB
+    uiLog2RootTUSizeInCU--;
+#endif
+    return (uiLog2RootTUSizeInCU > m_pcSlice->getSPS()->getQuadtreeTULog2MaxSize() ? m_pcSlice->getSPS()->getQuadtreeTULog2MaxSize() : uiLog2RootTUSizeInCU);
+  }	
+
+#if HHI_RQT_FORCE_SPLIT_ASYM || HHI_RQT_DISABLE_SUB
+  UInt uiCurrPartNum = m_pcPic->getNumPartInCU() >> (m_puhDepth[uiIdx] << 1);
+  UInt uiCurrPartNumQ = uiCurrPartNum >> 2;
+  UInt uiAbsPartIdxOfCu = uiIdx - (uiIdx % uiCurrPartNum);
+
+  Bool bQuad0 = (                                 uiIdx < uiAbsPartIdxOfCu + uiCurrPartNumQ);
+  Bool bQuad1 = (!bQuad0 &&                       uiIdx < uiAbsPartIdxOfCu + (uiCurrPartNumQ<<1));
+  Bool bQuad2 = (!bQuad0 && !bQuad1 &&            uiIdx < uiAbsPartIdxOfCu + (uiCurrPartNumQ*3));
+  Bool bQuad3 = (!bQuad0 && !bQuad1 && !bQuad2 && uiIdx < uiAbsPartIdxOfCu + uiCurrPartNum);  
+
+  assert(bQuad0 || bQuad1 || bQuad2 || bQuad3);
+
+  switch ( m_pePartSize[ uiIdx ] )
+  {
+  case SIZE_2NxnU:
+    {
+      if ( bQuad0 || bQuad1 )		
+        uiLog2RootTUSizeInCU -= 2;
+	  else
+        uiLog2RootTUSizeInCU--;
+      break;
+    }
+  case SIZE_2NxnD:
+    {
+      if ( bQuad2 || bQuad3 ) 	  
+        uiLog2RootTUSizeInCU -= 2;
+      else
+        uiLog2RootTUSizeInCU--;
+      break;
+    }
+  case SIZE_nLx2N:
+    {
+      if ( bQuad0 || bQuad2 ) 	  
+        uiLog2RootTUSizeInCU -= 2;
+      else
+        uiLog2RootTUSizeInCU--;
+      break;
+    }
+  case SIZE_nRx2N:
+    {
+      if ( bQuad1 || bQuad3 ) 	  
+        uiLog2RootTUSizeInCU -= 2;
+      else
+        uiLog2RootTUSizeInCU--;
+      break;
+    }
+  default:
+    assert( 0 );
+  }    
+#endif
+  return (uiLog2RootTUSizeInCU > m_pcSlice->getSPS()->getQuadtreeTULog2MaxSize() ? m_pcSlice->getSPS()->getQuadtreeTULog2MaxSize() : uiLog2RootTUSizeInCU);
 }
 #endif
 #endif

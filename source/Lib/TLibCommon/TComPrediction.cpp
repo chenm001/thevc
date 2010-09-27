@@ -99,6 +99,9 @@ Void TComPrediction::initTempBuff()
 #endif //EDGE_BASED_PREDICTION
 
   m_iDIFHalfTap   = ( m_iDIFTap  >> 1 );
+#if SAMSUNG_CHROMA_IF_EXT
+  m_iDIFHalfTapC  = ( m_iDIFTapC >> 1 );
+#endif
 }
 
 // ====================================================================================================================
@@ -1432,6 +1435,16 @@ Void TComPrediction::xPredInterChromaBlk( TComDataCU* pcCU, TComPicYuv* pcPicYuv
   UInt    uiCWidth  = iWidth  >> 1;
   UInt    uiCHeight = iHeight >> 1;
 
+
+#if SAMSUNG_CHROMA_IF_EXT
+  if ( pcCU->getSlice()->getSPS()->getDIFTapC() > 2 )
+  {
+	xDCTIF_FilterC(piRefCb, iRefStride,piDstCb,iDstStride,uiCWidth,uiCHeight, iyFrac, ixFrac);
+	xDCTIF_FilterC(piRefCr, iRefStride,piDstCr,iDstStride,uiCWidth,uiCHeight, iyFrac, ixFrac);
+	return;
+  }
+#endif
+
   // Integer point
   if ( ixFrac == 0 && iyFrac == 0 )
   {
@@ -2274,7 +2287,28 @@ Void  TComPrediction::xSIFOFilter(Pel*  piRefY, Int iRefStride,Pel*  piDstY,Int 
   Int   iExtStride = m_iYuvExtStride;
 	Int*  piExtY     = m_piYuvExt;
 
-
+#if SIFO_DIF_COMPATIBILITY==1
+  UInt DIF_filter_position = getNum_SIFOFilters() - getNum_AvailableFilters();
+	if(SIFOFilter >= DIF_filter_position && m_iDIFTap==6)
+	{
+		// Directional filter is used
+		// Kemal TO-DO : Modify this so that different coefficients can be used for directional.
+    // Rahul...make sure that only 2D subpels are using DIF...
+    assert(uiSubPos>4 && uiSubPos!=8 && uiSubPos!=12);  
+		xCTI_FilterDIF_TEN ( piRefY, iRefStride, 1, iWidth, iHeight, iDstStride, 1, piDstY, iyFrac, ixFrac,SIFOFilter-DIF_filter_position);
+    if(iSubpelOffset)
+    {
+      piDstY = piDstY_Orig;
+      for (Int y=0; y<iHeight; y++)
+      {
+        for ( Int x = 0; x < iWidth; x++)
+          piDstY[x] = Clip( piDstY[x] + iSubpelOffset);
+        piDstY += iDstStride;
+      }
+    }
+		return;
+	}
+#else
 #if USE_DIAGONAL_FILT==1 
   Bool condition1=0,condition2=0,condition3=0;
   condition1 = (SIFOFilter==8 ) && (uiSubPos == 5 || uiSubPos ==  7 || uiSubPos == 13 || uiSubPos == 15);
@@ -2293,7 +2327,7 @@ Void  TComPrediction::xSIFOFilter(Pel*  piRefY, Int iRefStride,Pel*  piDstY,Int 
       return;
   }
 #endif
-
+#endif
   switch(uiSubPos)
   {
   case 0:
@@ -2363,6 +2397,9 @@ Void  TComPrediction::xSIFOFilter(Pel*  piRefY, Int iRefStride,Pel*  piDstY,Int 
     break;
   }
 
+#if SIFO_DIF_COMPATIBILITY==1
+  if(iSubpelOffset)
+  {
   piDstY = piDstY_Orig;
   for (Int y=0; y<iHeight; y++)
   {
@@ -2370,6 +2407,16 @@ Void  TComPrediction::xSIFOFilter(Pel*  piRefY, Int iRefStride,Pel*  piDstY,Int 
       piDstY[x] = Clip( piDstY[x] + iSubpelOffset);
     piDstY += iDstStride;
   }
+}
+#else
+  piDstY = piDstY_Orig;
+  for (Int y=0; y<iHeight; y++)
+  {
+    for ( Int x = 0; x < iWidth; x++)
+      piDstY[x] = Clip( piDstY[x] + iSubpelOffset);
+    piDstY += iDstStride;
+  }
+#endif
 }
 
 #endif
@@ -2415,5 +2462,40 @@ Void TComPrediction::xPredICompChromaBlk( TComIc* pcIc, Int iWidth, Int iHeight,
   }
   return;
 
+}
+#endif
+
+#if SAMSUNG_CHROMA_IF_EXT
+Void  TComPrediction::xDCTIF_FilterC ( Pel*  piRefC, Int iRefStride,Pel*  piDstC,Int iDstStride,
+                                       Int iWidth, Int iHeight,Int iMVyFrac,Int iMVxFrac)
+{
+  if ( iMVxFrac == 0 && iMVyFrac == 0 )
+  {
+    for ( Int y = 0; y < iHeight; y++ )
+    {
+      ::memcpy(piDstC, piRefC, sizeof(Pel)*iWidth);
+      piDstC += iDstStride;
+      piRefC+= iRefStride;
+    }
+    return;
+  }
+
+  if ( iMVyFrac == 0 )
+  {
+    xCTI_Filter1DHorC (piRefC, iRefStride,  iWidth, iHeight, iDstStride,  piDstC, iMVxFrac );
+    return;
+  }
+
+  if ( iMVxFrac == 0 )
+  {
+    xCTI_Filter1DVerC (piRefC, iRefStride,  iWidth, iHeight, iDstStride,  piDstC, iMVyFrac );
+    return;
+  }
+  
+  Int   iExtStride = m_iYuvExtStride;
+  Int*  piExtC     = m_piYuvExt;
+
+  xCTI_Filter2DVerC (piRefC - m_iDIFHalfTapC,  iRefStride,  iWidth + m_iDIFTapC, iHeight, iExtStride,  piExtC, iMVyFrac );
+  xCTI_Filter2DHorC (piExtC + m_iDIFHalfTapC,  iExtStride,  iWidth             , iHeight, iDstStride,  piDstC, iMVxFrac );
 }
 #endif

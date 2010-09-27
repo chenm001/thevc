@@ -379,6 +379,9 @@ Void TEncCu::xCompressCU( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, UInt u
 #else
       if( pcPic->getSlice()->getSPS()->getUseMRG() )
       {
+        #if SAMSUNG_MRG_SKIP_DIRECT
+        xCheckRDCostAMVPSkip ( rpcBestCU, rpcTempCU );        rpcTempCU->initEstData();
+        #endif
         xCheckRDCostMerge( rpcBestCU, rpcTempCU );            rpcTempCU->initEstData();
       }
       else
@@ -390,7 +393,7 @@ Void TEncCu::xCompressCU( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, UInt u
       xCheckRDCostAMVPSkip ( rpcBestCU, rpcTempCU );        rpcTempCU->initEstData();
 #endif
 
-#if HHI_MRG
+#if HHI_MRG && !SAMSUNG_MRG_SKIP_DIRECT
       if( !pcPic->getSlice()->getSPS()->getUseMRG() )
       {
         // fast encoder decision for early skip
@@ -524,7 +527,7 @@ Void TEncCu::xCompressCU( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, UInt u
       }
 
       // try ROT
-#if QC_MDDT || DISABLE_ROT_LUMA_4x4_8x8
+#if (QC_MDDT || DISABLE_ROT_LUMA_4x4_8x8) && !QC_MDDT_ROT_UNIFIED
       if ((rpcBestCU->getWidth(0) > 16) || ((rpcBestCU->getWidth(0) == 16) && (eSize == SIZE_2Nx2N)))
 #endif
       {
@@ -661,6 +664,8 @@ Void TEncCu::xEncodeCU( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
     return;
   }
 
+#if TSB_ALF_HEADER
+#else
 #if HHI_ALF
   if( !pcCU->getSlice()->getSPS()->getALFSeparateQt() )
   {
@@ -668,6 +673,7 @@ Void TEncCu::xEncodeCU( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
   }
 #else
   m_pcEntropyCoder->encodeAlfCtrlFlag( pcCU, uiAbsPartIdx );
+#endif
 #endif
 
   if( !pcCU->getSlice()->isIntra() )

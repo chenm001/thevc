@@ -68,6 +68,9 @@ private:
   Bool        m_bQuadtreeTUFlag;
   UInt        m_uiQuadtreeTULog2MaxSize;
   UInt        m_uiQuadtreeTULog2MinSize;
+#if HHI_RQT_DEPTH
+  UInt        m_uiQuadtreeTUMaxDepth;
+#endif
 #endif
   Bool        m_bUseALF;
   Bool        m_bUseDQP;
@@ -77,6 +80,10 @@ private:
   Bool        m_bUsePAD;
   Bool        m_bUseQBO;
   Int         m_iDIFTap;
+#if SAMSUNG_CHROMA_IF_EXT
+  Int         m_iDIFTapC;
+#endif
+
 #if HHI_ALLOW_CIP_SWITCH
 	Bool        m_bUseCIP; // BB:
 #endif
@@ -150,6 +157,10 @@ public:
   UInt getQuadtreeTULog2MaxSize()         { return m_uiQuadtreeTULog2MaxSize; }
   Void setQuadtreeTULog2MinSize( UInt u ) { m_uiQuadtreeTULog2MinSize = u;    }
   UInt getQuadtreeTULog2MinSize()         { return m_uiQuadtreeTULog2MinSize; }
+#if HHI_RQT_DEPTH
+  Void setQuadtreeTUMaxDepth( UInt u ) { m_uiQuadtreeTUMaxDepth = u;    }
+  UInt getQuadtreeTUMaxDepth()         { return m_uiQuadtreeTUMaxDepth; }
+#endif
 #endif
   Void setPad         (Int iPad[2]) { m_aiPad[0] = iPad[0]; m_aiPad[1] = iPad[1]; }
   Void setPadX        ( Int  u ) { m_aiPad[0] = u; }
@@ -187,6 +198,10 @@ public:
 #endif
 
   Int  getDIFTap      ()         { return m_iDIFTap;        }
+#if SAMSUNG_CHROMA_IF_EXT
+  Int  getDIFTapC     ()         { return m_iDIFTapC;       };
+#endif
+
 #ifdef QC_AMVRES
 	Bool getUseAMVRes      ()         { return m_bUseAMVRes;        }
 #endif
@@ -213,6 +228,10 @@ public:
 #endif
 
   Void setDIFTap      ( Int  i ) { m_iDIFTap   = i;         }
+ #if SAMSUNG_CHROMA_IF_EXT
+  Void setDIFTapC     ( Int  i ) { m_iDIFTapC = i;          };
+#endif
+
 #ifdef QC_AMVRES
 	Void setUseAMVRes      ( Bool b ) { m_bUseAMVRes    =b;        }
 #endif

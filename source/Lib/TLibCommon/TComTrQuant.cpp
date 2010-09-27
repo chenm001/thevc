@@ -6875,11 +6875,20 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
     }
 
     //===== update scan direction =====
+#if !HHI_DISABLE_SCAN
     if( ( uiDownLeft == 1 && ( uiPosX == 0 || uiPosY == uiBlkSizeM1 ) ) ||
         ( uiDownLeft == 0 && ( uiPosY == 0 || uiPosX == uiBlkSizeM1 ) )   )
     {
       uiDownLeft = ( uiNumSigTopRight >= uiNumSigBotLeft ? 1 : 0 );
     }
+#else
+    if( uiScanPos && 
+			( ( uiDownLeft == 1 && ( uiPosX == 0 || uiPosY == uiBlkSizeM1 ) ) ||
+        ( uiDownLeft == 0 && ( uiPosY == 0 || uiPosX == uiBlkSizeM1 ) )   ) )
+    {
+      uiDownLeft = 1 - uiDownLeft;
+    }
+#endif
   }
 
   //===== estimate context models =====
@@ -7148,11 +7157,20 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
       }
     }
     //===== update scan direction =====
+#if !HHI_DISABLE_SCAN
     if( ( uiDownLeft == 1 && ( uiPosX == 0 || uiPosY == uiBlkSizeM1 ) ) ||
         ( uiDownLeft == 0 && ( uiPosY == 0 || uiPosX == uiBlkSizeM1 ) )   )
     {
       uiDownLeft = ( uiNumSigTopRight >= uiNumSigBotLeft ? 1 : 0 );
     }
+#else
+		if( uiScanPos && 
+			( ( uiDownLeft == 1 && ( uiPosX == 0 || uiPosY == uiBlkSizeM1 ) ) ||
+        ( uiDownLeft == 0 && ( uiPosY == 0 || uiPosX == uiBlkSizeM1 ) )   ) )
+    {
+      uiDownLeft = 1 - uiDownLeft;
+    }
+#endif
   }
 
   //===== clean uncoded coefficients =====
@@ -7197,11 +7215,20 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
 
       uiAbsSum += abs( piDstCoeff[ uiBlkPos ] );
 
+#if !HHI_DISABLE_SCAN
       if( ( uiDownLeft == 1 && ( uiPosX == 0 || uiPosY == uiBlkSizeM1 ) ) ||
           ( uiDownLeft == 0 && ( uiPosY == 0 || uiPosX == uiBlkSizeM1 ) )   )
       {
         uiDownLeft = ( uiNumSigTopRight >= uiNumSigBotLeft ? 1 : 0 );
       }
+#else
+			if( uiScanPos && 
+				( ( uiDownLeft == 1 && ( uiPosX == 0 || uiPosY == uiBlkSizeM1 ) ) ||
+          ( uiDownLeft == 0 && ( uiPosY == 0 || uiPosX == uiBlkSizeM1 )   ) ) )
+      {
+        uiDownLeft = 1 - uiDownLeft;
+      }
+#endif
     }
   }
 

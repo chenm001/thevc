@@ -142,6 +142,9 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
     ("QuadtreeTUFlag", m_bQuadtreeTUFlag, true)
     ("QuadtreeTULog2MaxSize", m_uiQuadtreeTULog2MaxSize, 6u)
     ("QuadtreeTULog2MinSize", m_uiQuadtreeTULog2MinSize, 2u)
+#if HHI_RQT_DEPTH
+    ("QuadtreeTUMaxDepth", m_uiQuadtreeTUMaxDepth, 5u)
+#endif
 #endif
 
     /* Coding structure paramters */
@@ -174,6 +177,10 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
                                                                                  )
 #endif
     ("DIFTap,tap", m_iDIFTap, 12, "number of interpolation filter taps (luma)")
+#if SAMSUNG_CHROMA_IF_EXT
+    ("DIFTapC,tapC", m_iDIFTapC, 6, "number of interpolation filter taps (Chroma)")
+#endif
+
 #ifdef QC_SIFO_PRED
     ("SPF",m_bUseSIFO_Pred, true)
 #endif
@@ -372,6 +379,9 @@ Void TAppEncCfg::xCheckParameter()
   xConfirmPara( (m_iSourceWidth  % (m_uiMaxCUWidth  >> (m_uiMaxCUDepth-1)))!=0,             "Frame width should be multiple of minimum CU size");
   xConfirmPara( (m_iSourceHeight % (m_uiMaxCUHeight >> (m_uiMaxCUDepth-1)))!=0,             "Frame height should be multiple of minimum CU size");
   xConfirmPara( m_iDIFTap  != 4 && m_iDIFTap  != 6 && m_iDIFTap  != 8 && m_iDIFTap  != 10 && m_iDIFTap  != 12, "DIF taps 4, 6, 8, 10 and 12 are supported");
+#if SAMSUNG_CHROMA_IF_EXT
+  xConfirmPara( m_iDIFTapC != 2 && m_iDIFTapC  != 4 && m_iDIFTapC  != 6 && m_iDIFTapC  != 8 && m_iDIFTapC  != 10 && m_iDIFTapC  != 12, "DIF chroma taps 2, 4, 6, 8, 10 and 12 are supported");
+#endif
 
 #if HHI_RQT
   if( m_bQuadtreeTUFlag )
@@ -386,6 +396,10 @@ Void TAppEncCfg::xCheckParameter()
 
     xConfirmPara( ( 1 << m_uiQuadtreeTULog2MinSize ) > ( m_uiMaxCUWidth  >> m_uiMaxCUDepth ), "Minimum CU width must be greater than minimum transform size." );
     xConfirmPara( ( 1 << m_uiQuadtreeTULog2MinSize ) > ( m_uiMaxCUHeight >> m_uiMaxCUDepth ), "Minimum CU height must be greater than minimum transform size." );
+#if HHI_RQT_DEPTH
+    xConfirmPara( m_uiQuadtreeTUMaxDepth < 1,                                                         "QuadtreeTUMaxDepth must be greater than or equal to 1" );
+    xConfirmPara( m_uiQuadtreeTUMaxDepth > m_uiQuadtreeTULog2MaxSize - m_uiQuadtreeTULog2MinSize + 1, "QuadtreeTUMaxDepth must be less than or equal to the difference between QuadtreeTULog2MaxSize and QuadtreeTULog2MinSize plus 1" );
+#endif
 }
 #endif
 
@@ -511,6 +525,9 @@ Void TAppEncCfg::xPrintParameter()
   printf("Number of Reference frames   : %d\n", m_iNumOfReference);
   printf("CU size / depth              : %d / %d\n", m_uiMaxCUWidth, m_uiMaxCUDepth );
   printf("Transform depth (min / max)  : %d / %d\n", m_uiMinTrDepth, m_uiMaxTrDepth );
+#if HHI_RQT_DEPTH
+  printf("Max RQT depth                : %d\n", m_uiQuadtreeTUMaxDepth);
+#endif
   printf("Motion search range          : %d\n", m_iSearchRange );
   printf("Intra period                 : %d\n", m_iIntraPeriod );
   printf("QP                           : %5.2f\n", m_fQP );
@@ -539,21 +556,50 @@ Void TAppEncCfg::xPrintParameter()
 #ifdef QC_SIFO   
     case IPF_QC_SIFO:
       printf("Luma   interpolation         : Qualcomm %d-tap SIFO\n", m_iDIFTap  );
+#if SAMSUNG_CHROMA_IF_EXT
+	  if(m_iDIFTapC >=4)
+        printf("Chroma interpolation         : Samsung %d-tap filter\n", m_iDIFTapC );
+	  else
       printf("Chroma interpolation         : %s\n", "Bi-linear filter"       );
+#else
+      printf("Chroma interpolation         : %s\n", "Bi-linear filter"       );
+#endif
       break;
 #endif
     default:
 #ifdef QC_CONFIG
       printf("Luma   interpolation         : Samsung %d-tap filter\n", m_iDIFTap  );
+#if SAMSUNG_CHROMA_IF_EXT
+	  if(m_iDIFTapC >=4)
+        printf("Chroma interpolation         : Samsung %d-tap filter\n", m_iDIFTapC );
+	  else
       printf("Chroma interpolation         : %s\n", "Bi-linear filter"       );
 #else
-      printf("Luma interpolation           : %s\n", "Samsung 12-tap filter"  );
       printf("Chroma interpolation         : %s\n", "Bi-linear filter"       );
+#endif
+#else
+      printf("Luma interpolation           : %s\n", "Samsung 12-tap filter"  );
+#if SAMSUNG_CHROMA_IF_EXT
+	  if(m_iDIFTapC >=4)
+        printf("Chroma interpolation         : Samsung %d-tap filter\n", m_iDIFTapC );
+	  else
+      printf("Chroma interpolation         : %s\n", "Bi-linear filter"       );
+#else
+      printf("Chroma interpolation         : %s\n", "Bi-linear filter"       );
+#endif
+
 #endif
   }
 #else
   printf("Number of int. taps (luma)   : %d\n", m_iDIFTap  );
+#if SAMSUNG_CHROMA_IF_EXT
+	  if(m_iDIFTapC >=4)
+        printf("Chroma interpolation         : Samsung %d-tap filter\n", m_iDIFTapC );
+	  else
+    	printf("Chroma interpolation         : %s\n", "Bi-linear filter"       );
+#else
   printf("Number of int. taps (chroma) : %d\n", 2          );
+#endif
 #endif
 
   if ( m_pchGRefMode != NULL )

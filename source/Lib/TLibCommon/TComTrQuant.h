@@ -275,7 +275,11 @@ private:
 #if ROT_CHECK 
   Bool getUseMDDT (UInt uiMode, UChar indexROT)         { return ( (uiMode != REG_DCT && uiMode != 2 && indexROT == 0) ); }
 #else
+	#if QC_MDDT_ROT_UNIFIED
+	  Bool getUseMDDT (UInt uiMode, UChar indexROT)         { return ( uiMode != REG_DCT && uiMode != 2 && indexROT == 0 ); }
+	#else
   Bool getUseMDDT (UInt uiMode, UChar indexROT)         { return ( uiMode != REG_DCT && uiMode != 2 ); }
+	#endif
 #endif
 
   Void xQuantKLT( Long* pSrcCoeff, TCoeff*& pDstCoeff, UInt& uiAbsSum, UInt uiWidth, UInt uiHeight);

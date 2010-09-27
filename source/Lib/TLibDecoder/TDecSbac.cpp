@@ -832,7 +832,7 @@ Void TDecSbac::parseAlfCtrlFlag( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDep
 
 Void TDecSbac::parseSkipFlag( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
 {
-#if HHI_MRG
+#if HHI_MRG && !SAMSUNG_MRG_SKIP_DIRECT
   if ( pcCU->getSlice()->getSPS()->getUseMRG() )
   {
     return;
@@ -1109,7 +1109,7 @@ Void TDecSbac::parsePredMode( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth 
   UInt uiSymbol;
   Int  iPredMode = MODE_INTER;
 
-#if HHI_MRG
+#if HHI_MRG && !SAMSUNG_MRG_SKIP_DIRECT
   if ( !pcCU->getSlice()->getSPS()->getUseMRG() )
   {
     m_pcTDecBinIf->decodeBin( uiSymbol, m_cCUPredModeSCModel.get( 0, 0, 0 ) );
@@ -2021,11 +2021,20 @@ Void TDecSbac::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartId
     }
 
     //===== update scan direction =====
+#if !HHI_DISABLE_SCAN
     if( ( uiDownLeft == 1 && ( uiPosX == 0 || uiPosY == uiHeight - 1 ) ) ||
         ( uiDownLeft == 0 && ( uiPosY == 0 || uiPosX == uiWidth  - 1 ) )   )
     {
       uiDownLeft = ( uiNumSigTopRight >= uiNumSigBotLeft ? 1 : 0 );
     }
+#else
+		if( uiScanPos && 
+			( ( uiDownLeft == 1 && ( uiPosX == 0 || uiPosY == uiHeight - 1 ) ) ||
+        ( uiDownLeft == 0 && ( uiPosY == 0 || uiPosX == uiWidth  - 1 ) )   ) )
+    {
+      uiDownLeft = 1 - uiDownLeft;
+    }
+#endif
   }
   if( !bLastReceived )
   {
@@ -2464,6 +2473,45 @@ Void TDecSbac::parseAlfFlag (UInt& ruiVal)
 
   ruiVal = uiSymbol;
 }
+
+#if TSB_ALF_HEADER
+Void TDecSbac::parseAlfFlagNum( UInt& ruiVal, UInt minValue, UInt depth )
+{
+  UInt uiLength = 0;
+  UInt maxValue = (minValue << (depth*2));
+  UInt temp = maxValue - minValue;
+  for(UInt i=0; i<32; i++)
+  {
+    if(temp&0x1)
+    {
+      uiLength = i+1;
+    }
+    temp = (temp >> 1);
+  }
+  ruiVal = 0;
+  UInt uiBit;
+  if(uiLength)
+  {
+    while( uiLength-- )
+    {
+      m_pcTDecBinIf->decodeBinEP( uiBit );
+      ruiVal += uiBit << uiLength;
+    }
+  }
+  else
+  {
+    ruiVal = 0;
+  }
+  ruiVal += minValue;
+}
+
+Void TDecSbac::parseAlfCtrlFlag( UInt &ruiAlfCtrlFlag )
+{
+  UInt uiSymbol;
+  m_pcTDecBinIf->decodeBin( uiSymbol, m_cCUAlfCtrlFlagSCModel.get( 0, 0, 0 ) );
+  ruiAlfCtrlFlag = uiSymbol;
+}
+#endif
 
 Void TDecSbac::parseAlfUvlc (UInt& ruiVal)
 {

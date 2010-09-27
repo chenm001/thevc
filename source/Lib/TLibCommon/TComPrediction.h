@@ -67,6 +67,10 @@ protected:
   Int       m_iYuvExtStride;
   Int       m_iYuvExtHeight;
   Int       m_iDIFHalfTap;
+#if SAMSUNG_CHROMA_IF_EXT
+  Int		m_iDIFHalfTapC;
+#endif
+
 #ifdef EDGE_BASED_PREDICTION
   Int*      m_piYExtEdgeBased;
 #endif //EDGE_BASED_PREDICTION
@@ -121,6 +125,10 @@ protected:
 #ifdef DCM_PBIC
   Void xPredICompLumaBlk        (TComIc* pcIc, Int iWidth, Int iHeight, Int iDstStride, Int iDstStep, Pel* piDst, Int iSrcStride, Int iSrcStep, Pel* piSrc, RefPicList eRefPicList);
   Void xPredICompChromaBlk      (TComIc* pcIc, Int iWidth, Int iHeight, Int iDstStride, Int iDstStep, Pel* piDst, Int iSrcStride, Int iSrcStep, Pel* piSrc, RefPicList eRefPicList);
+#endif
+
+#if SAMSUNG_CHROMA_IF_EXT
+  Void  xDCTIF_FilterC ( Pel*  piRefC, Int iRefStride,Pel*  piDstC,Int iDstStride, Int iWidth, Int iHeight,Int iMVyFrac,Int iMVxFrac);
 #endif
 
 public:

@@ -61,7 +61,11 @@ private:
   Double ****SequenceAccErrorB;                    // [FilterF][FilterB][SpposF][SpposB]
   Double ***SIFO_FILTER;                           // [num_SIFO][16 subpels][SQR_FILTER]
 #if USE_DIAGONAL_FILT==1
+#if SIFO_DIF_COMPATIBILITY==1
+  Double ***SIFO_FILTER_DIAG;                       // [num_Diag][16 subpels][SQR_FILTER]
+#else
   Double **SIFO_FILTER_DIAG;                       //           [16 subpels][SQR_FILTER] 
+#endif
 #endif
   Int SequenceBestCombFilterB[16];                 // [Sppos]
 
@@ -69,6 +73,11 @@ protected:
   Int xGet_mem2Ddouble(Double ***array2D, Int rows, Int columns);
   Int xGet_mem3Ddouble(Double ****array3D, Int frames, Int rows, Int columns);
   Int xGet_mem4Ddouble(Double *****array4D, Int idx, Int frames, Int rows, Int columns );
+#if FIX_TICKET67==1
+  Void xFree_mem2Ddouble(Double **array2D);
+  Void xFree_mem3Ddouble(Double ***array3D, Int frames);
+  Void xFree_mem4Ddouble(Double ****array4D, Int idx, Int frames);
+#endif
   Double  xComputeImgSum			( Pel* img,										Int width, Int height, Int stride		);	///< compute sum of pixel values
   Void xResetAll(TComSlice* pcSlice);
   Void xResetSequenceFilters();
@@ -81,9 +90,20 @@ protected:
   Void xUpdateSequenceFilters_B(TComSlice* pcSlice, Double ****err, Int combination[16]);
   Void xUpdateSequenceFilters_B_pred(TComSlice* pcSlice, Double ****err, Int combination[16]);
 #if BUGFIX50TMP
+#if SIFO_DIF_COMPATIBILITY==1
+  Void xGetInterpolatedPixelArray(Int out[20], Pel* imgY, Int x, Int y, Int stride, Int img_width, Pel *maxAddr, UInt sub_pos);
+#else
   Void xGetInterpolatedPixelArray(Int out[16], Pel* imgY, Int x, Int y, Int stride, Int img_width, Pel *maxAddr, UInt sub_pos);
+#endif
+#else
+#if SIFO_DIF_COMPATIBILITY==1
+  Void xGetInterpolatedPixelArray(Int out[20], Pel* imgY, Int x, Int y, Int stride, Int img_width, Int img_height, UInt sub_pos);
 #else
   Void xGetInterpolatedPixelArray(Int out[16], Pel* imgY, Int x, Int y, Int stride, Int img_width, Int img_height, UInt sub_pos);
+#endif
+#endif
+#if SIFO_DIF_COMPATIBILITY==1
+  UInt xCheckHFPic(TComPic*& rpcPic);
 #endif
   Double  xGetDCdiff(TComSlice* rpcSlice, RefPicList list, Int ref);
   Int     xGet_thDC(TComSlice* rpcSlice);
@@ -93,14 +113,22 @@ protected:
 
 #if USE_DIAGONAL_FILT==1
   Void xInitDiagonalFilter(Int Tap);
+  
+#if SIFO_DIF_COMPATIBILITY==1
+  Void xSingleDiagonalFilt(Int sub_pos, Int filterIndD1, Int dir, Int filterNo);
+  Void xDoubleDiagonalFilt(Int sub_pos, Int filterIndD1, Int filterIndD2, Int filterNo);
+#else
   Void xSingleDiagonalFilt(Int sub_pos, Int filterIndD1, Int dir);
   Void xDoubleDiagonalFilt(Int sub_pos, Int filterIndD1, Int filterIndD2);
+#endif
 #endif
 
 public:
   TEncSIFO();
   virtual ~TEncSIFO();
-
+#if FIX_TICKET67==1
+  Void destroy();
+#endif
   Void    init								( TEncTop* pcEncTop, Int Tap);
   Void    initEncSIFO				  ( TComSlice*& rpcSlice );
 

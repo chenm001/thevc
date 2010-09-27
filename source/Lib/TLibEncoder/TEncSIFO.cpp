@@ -62,10 +62,40 @@ TEncSIFO::TEncSIFO()
   SequenceAccErrorP     = NULL;                    // [Filter][Sppos]
   SequenceAccErrorB     = NULL;                    // [FilterF][FilterB][SpposF][SpposB]
   SIFO_FILTER           = NULL;                    // [num_SIFO][16 subpels][SQR_FILTER]
+#if FIX_TICKET67==1
+  m_pcPredSearch        = NULL;
+#if USE_DIAGONAL_FILT==1
+  SIFO_FILTER_DIAG      = NULL;
+#endif
+#endif
 }
+
 TEncSIFO::~TEncSIFO()
 {
 }
+
+#if FIX_TICKET67==1
+Void TEncSIFO::destroy()
+{
+  if( m_pcPredSearch != NULL )
+  {
+    UInt num_SIFO = m_pcPredSearch->getNum_SIFOFilters();
+    if(AccErrorP)         { xFree_mem2Ddouble(AccErrorP);                             AccErrorP         = NULL; }
+    if(SequenceAccErrorP) { xFree_mem2Ddouble(SequenceAccErrorP);                     SequenceAccErrorP = NULL; }
+    if(SequenceAccErrorB) { xFree_mem4Ddouble(SequenceAccErrorB, num_SIFO, num_SIFO); SequenceAccErrorB = NULL; }
+    if (SIFO_FILTER)      { xFree_mem3Ddouble(SIFO_FILTER, num_SIFO);                 SIFO_FILTER       = NULL; }
+#if USE_DIAGONAL_FILT==1
+#if SIFO_DIF_COMPATIBILITY==1
+    UInt numFilters = m_pcPredSearch->getNum_AvailableFilters();
+    if (SIFO_FILTER_DIAG) { xFree_mem3Ddouble(SIFO_FILTER_DIAG, numFilters);          SIFO_FILTER_DIAG  = NULL; }
+#else
+    if (SIFO_FILTER_DIAG) { xFree_mem2Ddouble(SIFO_FILTER_DIAG);                      SIFO_FILTER_DIAG  = NULL; }
+#endif
+#endif
+  }
+}
+#endif
+
 // ====================================================================================================================
 // Public member functions
 // ====================================================================================================================
@@ -379,7 +409,10 @@ Void TEncSIFO::setFirstPassSubpelOffset(RefPicList iRefList, TComSlice* pcSlice)
 
     if(ref_frame==0)
     {
-
+#if FIX_TICKET92==1
+      if(fabs(DCdiff[ref_frame]) <= 1)
+        DCdiff[ref_frame] = 0;
+#endif
       sign = (DCdiff[ref_frame] >= 0)? 1: -1;
       noOffsets = (Int)(fabs(DCdiff[ref_frame]) + 0.5);
       DCint = noOffsets * sign;
@@ -443,28 +476,54 @@ Void TEncSIFO::setFirstPassSubpelOffset(RefPicList iRefList, TComSlice* pcSlice)
       {
         if((i != firstVal) && (i != secondVal))
         {
+#if FIX_TICKET92==1
+          if(abs(i) > 1)
+          {
           subpelOffset[subPelPosOrder[NumOffsets]] = i;
           offsetMETab[NumOffsets] = i + addOffset;
           NumOffsets++;
           if(NumOffsets == 15)
             break;
         }
+#else
+          subpelOffset[subPelPosOrder[NumOffsets]] = i;
+          offsetMETab[NumOffsets] = i + addOffset;
+          NumOffsets++;
+          if(NumOffsets == 15)
+            break;
+#endif
+        }
       }
 
       NumMEOffsets = NumOffsets;
       if((NumOffsets < 15) && (noOffsetsSecond > 0))
       {
+#if FIX_TICKET92==1
+        if(abs(secondVal) > 1)
+        {
+          offsetMETab[NumMEOffsets] = secondVal + addOffset;
+          (NumMEOffsets)++;
+        }
+#else
         offsetMETab[NumMEOffsets] = secondVal + addOffset;
         (NumMEOffsets)++;
+#endif
       }
 
       for(i = 0; i < noOffsetsSecond; i++)
       {
         if(NumOffsets == 15)
           break;
-
+#if FIX_TICKET92==1
+        if(abs(secondVal) > 1)
+        {
+          subpelOffset[subPelPosOrder[NumOffsets]] = secondVal;
+          (NumOffsets)++;
+        }
+#else
         subpelOffset[subPelPosOrder[NumOffsets]] = secondVal;
         (NumOffsets)++;
+#endif
       }
     }
     else
@@ -601,6 +660,50 @@ Int TEncSIFO::xGet_mem4Ddouble(Double *****array4D, Int idx, Int frames, Int row
   return idx*frames*rows*columns*sizeof(Double);
 }
 
+
+#if FIX_TICKET67==1
+Void TEncSIFO::xFree_mem2Ddouble(Double **array2D)
+{
+  if(array2D)
+  {
+    if(array2D[0])
+      free (array2D[0]);
+    else
+    {
+      printf("xFree_mem2Ddouble: trying to free unused memory");
+      exit(100);
+    }
+    free (array2D);
+  }
+}
+
+Void TEncSIFO::xFree_mem3Ddouble(Double ***array3D, Int frames)
+{
+  int i;
+
+  if(array3D)
+  {
+    for(i=0;i<frames;i++)
+    {
+      xFree_mem2Ddouble(array3D[i]);
+    }
+    free(array3D);
+  }
+}
+
+Void TEncSIFO::xFree_mem4Ddouble(Double ****array4D, Int idx, Int frames)
+{
+  int j;
+
+  if(array4D)
+  {
+    for(j=0;j<idx;j++)
+      xFree_mem3Ddouble( array4D[j], frames) ;
+    free(array4D);
+  }
+}
+#endif
+
 Void TEncSIFO::xResetSequenceFilters()
 {
   Int i; 
@@ -688,7 +791,11 @@ Void TEncSIFO::xAccumulateError_P(TComPic*& rpcPic)
   UInt uiShift = g_uiBitIncrement<<1;	
   Int iTemp;
   Int	iOrgStride = pcPicOrg->getStride();
+#if SIFO_DIF_COMPATIBILITY==1
+  Int intPixelTab[20];
+#else
   Int intPixelTab[16];
+#endif
   UInt NUM_SIFO_TAB[16];
 
   for(UInt i=0;i<16;i++)
@@ -780,12 +887,24 @@ Void TEncSIFO::xAccumulateError_P(TComPic*& rpcPic)
 }
 
 #if BUGFIX50TMP
+#if SIFO_DIF_COMPATIBILITY==1
+Void TEncSIFO:: xGetInterpolatedPixelArray(int out[20], Pel *imgY, int x, int y, int Stride, int img_width, Pel *maxAddr, UInt sub_pos)
+#else
 Void TEncSIFO:: xGetInterpolatedPixelArray(int out[16], Pel *imgY, int x, int y, int Stride, int img_width, Pel *maxAddr, UInt sub_pos)
+#endif
+#else
+#if SIFO_DIF_COMPATIBILITY==1
+Void TEncSIFO:: xGetInterpolatedPixelArray(int out[20], Pel *imgY, int x, int y, int Stride, int img_width, int img_height, UInt sub_pos)
 #else
 Void TEncSIFO:: xGetInterpolatedPixelArray(int out[16], Pel *imgY, int x, int y, int Stride, int img_width, int img_height, UInt sub_pos)
 #endif
+#endif
 {
+#if SIFO_DIF_COMPATIBILITY==1
+  Double ipVal[20];     //[num_SIFO]
+#else
   Double ipVal[16];
+#endif
   Int ii, jj;
   Int filterNo;
   Pel *imgY_tmp, *imgY_tmp1;
@@ -798,7 +917,12 @@ Void TEncSIFO:: xGetInterpolatedPixelArray(int out[16], Pel *imgY, int x, int y,
     NUM_SIFO_TAB[i] = m_pcPredSearch->getNum_SIFOTab(i);
 
   for (filterNo=0; filterNo < num_SIFO; filterNo++)
+  {
     ipVal[filterNo] = 0.0;
+#if SIFO_DIF_COMPATIBILITY==1
+    out[filterNo] = 0;
+#endif
+  }
 
   if(sub_pos)
   {
@@ -1067,7 +1191,10 @@ Double TEncSIFO::xGet_min_d(Double ****err, Int old_d[16], Int new_d[16], Double
   Double minSAD = currSAD;
   Double tmpSAD;
   UInt num_AVALABLE_FILTERS = m_pcPredSearch->getNum_AvailableFilters();
-
+#if SIFO_DIF_COMPATIBILITY==1
+  if(m_pcPredSearch->getDIFTap()==6)
+    num_AVALABLE_FILTERS <<= 1;
+#endif
   for(spp = 1; spp < 16; ++spp)
   {
     // Copy a fresh old_d into tmp_d        
@@ -1105,11 +1232,23 @@ Void TEncSIFO::xComputeFilterCombination_B_gd(Double ****err, Int out[16])
       oldSAD += err[0][0][sppF][sppB];
 
   // While SAD can be improved
+#if SIFO_DIF_COMPATIBILITY==1
+  Int counter=0;
+  while((minSAD = xGet_min_d(err, min_d, tmp_d, oldSAD)) < oldSAD)
+  {
+    oldSAD = minSAD;        
+    memcpy(min_d, tmp_d, sizeof(Int) * 16);
+    counter++;
+    if(counter>100)
+      break;
+  }
+#else
   while((minSAD = xGet_min_d(err, min_d, tmp_d, oldSAD)) < oldSAD)
   {
     oldSAD = minSAD;        
     memcpy(min_d, tmp_d, sizeof(Int) * 16);
   }
+#endif
 
   // Copy result
   memcpy(out, min_d, sizeof(Int) * 16);
@@ -1118,7 +1257,10 @@ Void TEncSIFO::xComputeFilterCombination_B_gd(Double ****err, Int out[16])
 Void TEncSIFO::xUpdateSequenceFilters_B(TComSlice* pcSlice, Double ****err, Int combination[16])
 {
   UInt num_AVALABLE_FILTERS = m_pcPredSearch->getNum_AvailableFilters();
-
+#if SIFO_DIF_COMPATIBILITY==1
+  if(m_pcPredSearch->getDIFTap()==6)
+    num_AVALABLE_FILTERS <<= 1;
+#endif
   Int bitsPerFilter1=(Int)ceil(log10((Double)num_AVALABLE_FILTERS)/log10((Double)2)); // modify
 
   Int bits = 0;
@@ -1169,6 +1311,10 @@ Void TEncSIFO::xUpdateSequenceFilters_B(TComSlice* pcSlice, Double ****err, Int 
   for(i = 1; i < 16; ++i)
   {
     filterSequence[i]=combination[i];
+#if SIFO_DIF_COMPATIBILITY==1    //4,5,6,7 ----> 16,17,18,19
+    if(filterSequence[i]>=m_pcPredSearch->getNum_AvailableFilters() && (m_pcPredSearch->getDIFTap()==6))
+      filterSequence[i] += m_pcPredSearch->getNum_SIFOFilters()-num_AVALABLE_FILTERS;
+#endif  
   }
 
 
@@ -1184,7 +1330,12 @@ Void TEncSIFO::xUpdateSequenceFilters_B(TComSlice* pcSlice, Double ****err, Int 
 Void TEncSIFO::xUpdateSequenceFilters_B_pred(TComSlice* pcSlice, Double ****err, Int combination[16])
 {
   UInt num_AVALABLE_FILTERS = m_pcPredSearch->getNum_AvailableFilters();
-
+#if SIFO_DIF_COMPATIBILITY==1
+  UInt num_SIFO = m_pcPredSearch->getNum_SIFOFilters();
+  UInt DIF_filter_position = num_SIFO - m_pcPredSearch->getNum_AvailableFilters();
+  if(m_pcPredSearch->getDIFTap()==6)
+    num_AVALABLE_FILTERS <<= 1;
+#endif
   Int bitsPerFilter1=(Int)ceil(log10((Double)num_AVALABLE_FILTERS)/log10((Double)2)); // modify
 
   Int bits = 0;
@@ -1199,6 +1350,10 @@ Void TEncSIFO::xUpdateSequenceFilters_B_pred(TComSlice* pcSlice, Double ****err,
   for(i = 1; i < 16; ++i)
   {
     prevFilterB[i] = m_pcPredSearch->getPrevB_SIFOFilter(i);
+#if SIFO_DIF_COMPATIBILITY==1    //16,17,18,19 ----> 4,5,6,7
+    if(prevFilterB[i] >= DIF_filter_position &&   (m_pcPredSearch->getDIFTap()==6))
+        prevFilterB[i] -= (num_SIFO-num_AVALABLE_FILTERS);
+#endif
   }
 
   // Lowest error with a single filter
@@ -1271,7 +1426,13 @@ Void TEncSIFO::xUpdateSequenceFilters_B_pred(TComSlice* pcSlice, Double ****err,
   }
 
   for(i = 1; i < 16; ++i)
+  {
     filterSequence[i]=combination[i];
+#if SIFO_DIF_COMPATIBILITY==1    //4,5,6,7 ----> 16,17,18,19
+    if(filterSequence[i]>=m_pcPredSearch->getNum_AvailableFilters()   && (m_pcPredSearch->getDIFTap()==6))
+      filterSequence[i] += m_pcPredSearch->getNum_SIFOFilters()-num_AVALABLE_FILTERS;
+#endif
+  }
 
   for(i = 1; i < 16; ++i)
   {
@@ -1281,6 +1442,77 @@ Void TEncSIFO::xUpdateSequenceFilters_B_pred(TComSlice* pcSlice, Double ****err,
   }
   m_pcPredSearch->setBestFilter_B(bestFilter);
 }
+
+#if SIFO_DIF_COMPATIBILITY==1
+UInt TEncSIFO::xCheckHFPic(TComPic*& rpcPic)
+{
+	TComPicYuv* pcPicOrg = rpcPic->getPicYuvOrg();
+	Int	iOrgStride = pcPicOrg->getStride();
+	Pel* pOrgY = pcPicOrg->getLumaAddr();
+	Long psCoeff[16];
+	Int  Height = pcPicOrg->getHeight();
+	Int  Width = pcPicOrg->getWidth();
+	UInt totalHFBlock = 0;
+	Long hfEnergy, hfEnergyThresh=50000;
+
+	for (Int i=0; i<Height; i+=4)
+	{
+		for (Int j=0; j<Width; j+=4)
+		{
+			Int aai[4][4];
+			Int tmp1, tmp2;
+
+			for( Int y = 0; y < 4; y++ )
+			{
+				tmp1 = pOrgY[j+0] + pOrgY[j+3];
+				tmp2 = pOrgY[j+1] + pOrgY[j+2];
+
+				aai[0][y] = tmp1 + tmp2;
+				aai[2][y] = tmp1 - tmp2;
+
+				tmp1 = pOrgY[j+0] - pOrgY[j+3];
+				tmp2 = pOrgY[j+1] - pOrgY[j+2];
+
+				aai[1][y] = tmp1 * 2 + tmp2 ;
+				aai[3][y] = tmp1  - tmp2 * 2;
+				pOrgY += iOrgStride;
+			}
+			pOrgY -= 4*iOrgStride;
+
+			for( Int x = 0; x < 4; x++ )
+			{
+				tmp1 = aai[x][0] + aai[x][3];
+				tmp2 = aai[x][1] + aai[x][2];
+
+				psCoeff[x+0] = tmp1 + tmp2;
+				psCoeff[x+8] = tmp1 - tmp2;
+
+				tmp1 = aai[x][0] - aai[x][3];
+				tmp2 = aai[x][1] - aai[x][2];
+
+				psCoeff[x+4]  = tmp1 * 2 + tmp2;
+				psCoeff[x+12] = tmp1 - tmp2 * 2;
+			}
+			hfEnergy = 0;
+			for( Int x = 2; x < 4; x++ )
+			{
+				for( Int y = 2; y < 4; y++ )
+				{
+					hfEnergy += psCoeff[2*y+x]*psCoeff[2*y+x];
+				}
+			}
+			if(hfEnergy > hfEnergyThresh)
+				totalHFBlock++;
+		}
+	}
+
+  if((totalHFBlock*16) < (Height*Width/16))
+    return 0;
+  else
+    return 1;
+
+}
+#endif
 
 Void TEncSIFO::xAccumulateError_B(TComPic*& rpcPic)
 {
@@ -1293,9 +1525,15 @@ Void TEncSIFO::xAccumulateError_B(TComPic*& rpcPic)
   UInt uiShift = g_uiBitIncrement<<1;	
   Int iTemp;
   Int	iOrgStride = pcPicOrg->getStride();
+#if SIFO_DIF_COMPATIBILITY==1
+  Int intPixelTab[20],intPixelTabF[20],intPixelTabB[20];
+  Int tapsize = rpcPic->getPicSym()->getSlice()->getSPS()->getDIFTap();
+#else
   Int intPixelTab[16],intPixelTabF[16],intPixelTabB[16];
+#endif
   Int iaRefIdx[2];
   UInt num_AVALABLE_FILTERS = m_pcPredSearch->getNum_AvailableFilters();
+  UInt num_SIFO = m_pcPredSearch->getNum_SIFOFilters();
 
   for( uiCUAddr = 0; uiCUAddr < rpcPic->getPicSym()->getNumberOfCUsInFrame() ; uiCUAddr++ )
   {	
@@ -1376,6 +1614,23 @@ Void TEncSIFO::xAccumulateError_B(TComPic*& rpcPic)
                 SequenceAccErrorB[f0][f1][uiSubPos0][uiSubPos1] += uiSSD;
               }
             }
+
+#if SIFO_DIF_COMPATIBILITY==1
+            if(tapsize==6)
+            {
+              UInt pos = num_SIFO-num_AVALABLE_FILTERS;
+              for(f0 = 0; f0 < num_AVALABLE_FILTERS; ++f0)
+              {
+                for(f1 = 0; f1 < num_AVALABLE_FILTERS; ++f1)
+                {
+                  iTemp = *(pOrgY+x) - ((intPixelTabF[pos+f0]+intPixelTabB[pos+f1]+1)>>1);
+                  uiSSD = ( iTemp * iTemp ) >> uiShift;
+                  SequenceAccErrorB[num_AVALABLE_FILTERS+f0][num_AVALABLE_FILTERS+f1][uiSubPos0][uiSubPos1] += uiSSD;
+                }
+              }
+            }
+#endif
+
 #if !BUGFIX50
             pOrgY  += iOrgStride;
             pRefY0 += iRefStride0;			
@@ -1444,6 +1699,20 @@ Void TEncSIFO::xAccumulateError_B(TComPic*& rpcPic)
               //AccErrorP[f][uiSubPos] += uiSSD;
               SequenceAccErrorB[f][f][uiSubPos][uiSubPos] += uiSSD;
             }
+
+#if SIFO_DIF_COMPATIBILITY==1
+            if(tapsize==6)
+            {
+              UInt pos = num_SIFO-num_AVALABLE_FILTERS;
+              for(f = 0; f < num_AVALABLE_FILTERS; ++f)
+              {
+                iTemp = *(pOrgY+x) - intPixelTab[pos+f];
+                uiSSD = ( iTemp * iTemp ) >> uiShift;
+                SequenceAccErrorB[num_AVALABLE_FILTERS+f][num_AVALABLE_FILTERS+f][uiSubPos][uiSubPos] += uiSSD;
+              }
+            }
+#endif			
+
           }
           pOrgY += iOrgStride;
           pRefY += iRefStride;			
@@ -1451,6 +1720,27 @@ Void TEncSIFO::xAccumulateError_B(TComPic*& rpcPic)
       }
     }
   }
+#if SIFO_DIF_COMPATIBILITY==1
+  if(tapsize==6)
+  {
+    UInt uiMax, uiSubPosIndx1, uiSubPosIndx2, uiHFPic;
+    uiMax = -1;
+    uiHFPic = xCheckHFPic(rpcPic);
+    if(uiHFPic == 1)
+    {
+      for(f = 0; f < num_AVALABLE_FILTERS; ++f)
+      {
+        for(uiSubPosIndx1=1; uiSubPosIndx1<16;uiSubPosIndx1++)
+        {
+          for(uiSubPosIndx2=1; uiSubPosIndx2<16;uiSubPosIndx2++)
+          {
+            SequenceAccErrorB[num_AVALABLE_FILTERS+f][num_AVALABLE_FILTERS+f][uiSubPosIndx1][uiSubPosIndx2] = uiMax;
+          }
+        }
+      }
+    }
+  }
+#endif
 }
 
 
@@ -1651,6 +1941,183 @@ Void TEncSIFO::xResetFirstPassSubpelOffset(Int list)
 #define DIAGONAL_FILETR_NO               1
 
 
+#if SIFO_DIF_COMPATIBILITY==1
+Void TEncSIFO::xInitDiagonalFilter(Int Tap)
+{
+  Int sub_pos, filterIndD1, filterIndD2, filterNo;
+  Int filterLength, sqrFiltLength, j;
+  UInt numFilters = m_pcPredSearch->getNum_AvailableFilters();
+
+  if(Tap!=6)
+    return;
+
+  filterLength = 6;
+  sqrFiltLength=filterLength*filterLength;
+
+  xGet_mem3Ddouble(&SIFO_FILTER_DIAG, numFilters, 16, sqrFiltLength);
+  for(filterNo=0; filterNo<numFilters; filterNo++)
+  {
+    for (sub_pos=1; sub_pos<16; sub_pos++)
+    {
+      if (sub_pos==5)
+      {
+        filterIndD1=QU0_IDX;
+        xSingleDiagonalFilt(sub_pos, filterIndD1, 0, filterNo);
+      }
+      if (sub_pos==7)
+      {
+        filterIndD1=QU0_IDX;
+        xSingleDiagonalFilt(sub_pos, filterIndD1, 1, filterNo);
+      }
+      if (sub_pos==15)
+      {
+        filterIndD1=QU1_IDX;
+        xSingleDiagonalFilt(sub_pos, filterIndD1, 0, filterNo);
+      }
+      if (sub_pos==13)
+      {
+        filterIndD1=QU1_IDX;
+        xSingleDiagonalFilt(sub_pos, filterIndD1, 1, filterNo);
+      }
+
+      if (sub_pos==6)
+      {
+        filterIndD1=QU0_IDX; filterIndD2=QU0_IDX;
+        xDoubleDiagonalFilt(sub_pos, filterIndD1, filterIndD2, filterNo);
+      }
+      if (sub_pos==14)
+      {
+        filterIndD1=QU1_IDX; filterIndD2=QU1_IDX;
+        xDoubleDiagonalFilt(sub_pos, filterIndD1, filterIndD2, filterNo);
+      }
+      if (sub_pos==9)
+      {
+        filterIndD1=QU0_IDX; filterIndD2=QU1_IDX;
+        xDoubleDiagonalFilt(sub_pos, filterIndD1, filterIndD2, filterNo);
+      }
+      if (sub_pos==11)
+      {
+        filterIndD1=QU1_IDX; filterIndD2=QU0_IDX;
+        xDoubleDiagonalFilt(sub_pos, filterIndD1, filterIndD2, filterNo);
+      }
+      //if (sub_pos==10)    //Rahul...not necessary, coz this subpos anyhow uses strong filter
+      //{
+      // filterIndD1=HAL_IDX; filterIndD2=HAL_IDX;
+      // xDoubleDiagonalFilt(sub_pos, filterIndD1, filterIndD2, filterNo);
+      //}
+    }
+  } // for (sub_pos=0; sub_pos<15; sub_pos++)
+
+
+  for (sub_pos=1; sub_pos<16; sub_pos++)
+  {
+    if (sub_pos>4 && sub_pos!=8 && sub_pos!=12)
+    {      	  
+      for( filterNo = numFilters*numFilters; filterNo < numFilters*(numFilters + 1); filterNo++)
+      {
+        for(j = 0; j < sqrFiltLength; ++j)
+        {
+          SIFO_FILTER[filterNo][sub_pos][j] = SIFO_FILTER_DIAG[filterNo-numFilters*numFilters][sub_pos][j];
+        }
+      }
+    }
+  }
+
+  static Double STRONG_FILT[4][4]=
+  {
+    {  0.0       ,  5.0/128.0   ,   5.0/128.0   ,    0.0      },
+    {5.0/128.0   , 22.0/128.0   ,  22.0/128.0  ,  5.0/128.0  }, 
+    {5.0/128.0   , 22.0/128.0   ,  22.0/128.0  ,  5.0/128.0  }, 
+    {  0.0       ,  5.0/128.0   ,   5.0/128.0   ,    0.0      }       
+  };
+
+  for( filterNo = numFilters*numFilters; filterNo < numFilters*(numFilters + 1); filterNo++)
+  {
+    for(j = 0; j < sqrFiltLength; ++j)
+    {
+      SIFO_FILTER[filterNo][10][j] = 0.0;      
+      SIFO_FILTER[filterNo][10][j] = 0.0;   
+    }
+    UInt start_strong_filt=(filterLength-4)/2;
+    UInt i;
+    //generating 6x6 filter by padding 0's surrounding 4x4 filter.....
+    for(i = start_strong_filt; i < start_strong_filt+4; ++i)
+    {
+      for(j = start_strong_filt; j < start_strong_filt+4; ++j)
+      {
+        SIFO_FILTER[filterNo][10][i*filterLength+j] = STRONG_FILT[i-start_strong_filt][j-start_strong_filt];   
+      }
+    }
+  }
+
+}
+
+Void TEncSIFO::xSingleDiagonalFilt(Int sub_pos, Int filterIndD1, Int dir, Int filterNo)
+{
+  Double filterD1[6], coeffQP=256;
+  Int filterLength = 6;
+  Int sqrFiltLength=filterLength*filterLength;
+  Int j, k, l;
+
+  for (j=0; j<filterLength; j++)
+    filterD1[j]=(Double)SIFO_Filter6[filterNo][filterIndD1][j]/coeffQP;
+
+  for (k=0; k<filterLength; k++){
+    for (l=0; l<filterLength; l++){
+      if (dir==0)
+      {
+        if (k==l)//(K==L)
+        {
+          SIFO_FILTER_DIAG[filterNo][sub_pos][k*filterLength+l]=filterD1[k];
+        }
+        else
+        {
+          SIFO_FILTER_DIAG[filterNo][sub_pos][k*filterLength+l]=0;
+        }
+      }
+      else
+      {
+        if ((k+l)==(filterLength-1))
+        {
+          SIFO_FILTER_DIAG[filterNo][sub_pos][k*filterLength+l]=filterD1[k];
+        }
+        else
+        {
+          SIFO_FILTER_DIAG[filterNo][sub_pos][k*filterLength+l]=0;
+        }
+      }
+    }
+  }
+}
+
+Void TEncSIFO::xDoubleDiagonalFilt(Int sub_pos, Int filterIndD1, Int filterIndD2, Int filterNo)
+{
+  Double filterD1[6], filterD2[6], coeffQP=256;
+  Int filterLength = 6;
+  Int sqrFiltLength=filterLength*filterLength;
+  Int j, k, l;
+
+  for (j=0; j<filterLength; j++)
+    filterD1[j]=(Double)SIFO_Filter6[filterNo][filterIndD1][j]/coeffQP;
+  for (j=0; j<filterLength; j++)
+    filterD2[j]=(Double)SIFO_Filter6[filterNo][filterIndD2][j]/coeffQP;
+
+  for (k=0; k<filterLength; k++){
+    for (l=0; l<filterLength; l++){
+      if (k==l){
+        SIFO_FILTER_DIAG[filterNo][sub_pos][k*filterLength+l]=0.5*filterD1[k];
+      }
+      else if ((k+l)==(filterLength-1)){
+        SIFO_FILTER_DIAG[filterNo][sub_pos][k*filterLength+l]=0.5*filterD2[k];
+      }
+      else{
+        SIFO_FILTER_DIAG[filterNo][sub_pos][k*filterLength+l]=0;
+      }
+    }
+  }
+
+}
+#else
 Void TEncSIFO::xInitDiagonalFilter(Int Tap)
 {
   Int sub_pos, filterIndD1, filterIndD2;
@@ -1819,5 +2286,7 @@ Void TEncSIFO::xDoubleDiagonalFilt(Int sub_pos, Int filterIndD1, Int filterIndD2
   }
 
 }
-#endif
-#endif
+#endif//SIFO_DIF_COMPATIBILITY
+
+#endif//USE_DIAGONAL_FILT
+#endif //QC_SIFO

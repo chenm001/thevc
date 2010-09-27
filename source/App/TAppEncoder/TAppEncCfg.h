@@ -97,6 +97,9 @@ protected:
   Bool      m_bQuadtreeTUFlag;
   UInt      m_uiQuadtreeTULog2MaxSize;
   UInt      m_uiQuadtreeTULog2MinSize;
+#if HHI_RQT_DEPTH
+  UInt      m_uiQuadtreeTUMaxDepth;
+#endif
 #endif
   UInt      m_uiMinTrDepth;                                   ///< min. TU depth
   UInt      m_uiMaxTrDepth;                                   ///< max. TU depth
@@ -111,6 +114,9 @@ protected:
 
   // coding tools (inter - interpolation filter)
   Int       m_iDIFTap;                                        ///< number of taps in DIF (luma)
+#if SAMSUNG_CHROMA_IF_EXT
+  Int   	m_iDIFTapC;                                       ///< number of taps in DIF (chroma)
+#endif
 
   // coding tools (loop filter)
   Bool      m_bUseALF;                                        ///< flag for using adaptive loop filter
