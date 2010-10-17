@@ -1072,7 +1072,11 @@ Void TComPrediction::xPredInterUni ( TComDataCU* pcCU, UInt uiPartAddr, Int iWid
 #if TEN_DIRECTIONAL_INTERP
   case IPF_TEN_DIF:
     xPredInterLumaBlk_TEN   ( pcCU, pcCU->getSlice()->getRefPic( eRefPicList, iRefIdx )->getPicYuvRec()    , uiPartAddr, &cMv, iWidth, iHeight, rpcYuvPred );
+#if TEN_DIRECTIONAL_INTERP_CHROMA
     xPredInterChromaBlk_TEN ( pcCU, pcCU->getSlice()->getRefPic( eRefPicList, iRefIdx )->getPicYuvRec()    , uiPartAddr, &cMv, iWidth, iHeight, rpcYuvPred );
+#else
+    xPredInterChromaBlk ( pcCU, pcCU->getSlice()->getRefPic( eRefPicList, iRefIdx )->getPicYuvRec()    , uiPartAddr, &cMv, iWidth, iHeight, rpcYuvPred );
+#endif
     break;
 #endif
 	  case IPF_HHI_4TAP_MOMS:
@@ -1093,7 +1097,11 @@ Void TComPrediction::xPredInterUni ( TComDataCU* pcCU, UInt uiPartAddr, Int iWid
 #if TEN_DIRECTIONAL_INTERP
   case IPF_TEN_DIF:
     xPredInterLumaBlk_TEN   ( pcCU, pcCU->getSlice()->getRefPic( eRefPicList, iRefIdx )->getPicYuvRec()    , uiPartAddr, &cMv, iWidth, iHeight, rpcYuvPred );
+#if TEN_DIRECTIONAL_INTERP_CHROMA
     xPredInterChromaBlk_TEN ( pcCU, pcCU->getSlice()->getRefPic( eRefPicList, iRefIdx )->getPicYuvRec()    , uiPartAddr, &cMv, iWidth, iHeight, rpcYuvPred );
+#else
+    xPredInterChromaBlk ( pcCU, pcCU->getSlice()->getRefPic( eRefPicList, iRefIdx )->getPicYuvRec()    , uiPartAddr, &cMv, iWidth, iHeight, rpcYuvPred );
+#endif
     break;
 #endif
 	  case IPF_HHI_4TAP_MOMS:
@@ -1639,6 +1647,7 @@ Void  TComPrediction::xPredInterLumaBlk_TEN( TComDataCU* pcCU, TComPicYuv* pcPic
   return;
 }
 
+#if TEN_DIRECTIONAL_INTERP_CHROMA
 Void TComPrediction::xPredInterChromaBlk_TEN( TComDataCU* pcCU, TComPicYuv* pcPicYuvRef, UInt uiPartAddr, TComMv* pcMv, Int iWidth, Int iHeight, TComYuv*& rpcYuv )
 {
   Int     iRefStride  = pcPicYuvRef->getCStride();
@@ -2027,6 +2036,7 @@ Void TComPrediction::xPredInterChromaBlk_TEN( TComDataCU* pcCU, TComPicYuv* pcPi
     printf("Error in chroma interpolation: iyFrac=%4d ixFrac=%4d\n",iyFrac,ixFrac);
   }
 }
+#endif // TEN_DIRECTIONAL_INTERP_CHROMA
 #endif
 
 Void TComPrediction::xWeightedAverage( TComDataCU* pcCU, TComYuv* pcYuvSrc0, TComYuv* pcYuvSrc1, Int iRefIdx0, Int iRefIdx1, UInt uiPartIdx, Int iWidth, Int iHeight, TComYuv*& rpcYuvDst )
