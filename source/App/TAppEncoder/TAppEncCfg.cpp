@@ -250,6 +250,9 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
 #ifdef DCM_PBIC 
     ("PBIC", m_bUseIC, false,"Partition-based IC")// Partition-based IC
 #endif
+#ifdef ROUNDING_CONTROL_BIPRED
+    ("RoundingControlBipred", m_useRoundingControlBipred, false, "Rounding control for bi-prediction")
+#endif
     /* Misc. */
     ("FEN", m_bUseFastEnc, false, "fast encoder setting")
 

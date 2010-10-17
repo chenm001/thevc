@@ -167,7 +167,9 @@ protected:
 #if HHI_RMP_SWITCH
   Bool      m_bUseRMP;
 #endif
-
+#ifdef ROUNDING_CONTROL_BIPRED
+  Bool m_useRoundingControlBipred;
+#endif
 public:
   TEncCfg()          {}
   virtual ~TEncCfg() {}
@@ -393,6 +395,10 @@ public:
 #if HHI_INTERP_FILTER
   Void      setInterpFilterType             ( Int   i )     { m_iInterpFilterType = i;    }
   Int       getInterpFilterType             ()              { return m_iInterpFilterType; }
+#endif
+#ifdef ROUNDING_CONTROL_BIPRED
+  Void setUseRoundingControlBipred(Bool b) { m_useRoundingControlBipred = b; }
+  Bool getUseRoundingControlBipred() { return m_useRoundingControlBipred; }
 #endif
 };
 

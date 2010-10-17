@@ -186,6 +186,10 @@ protected:
   Int       m_iInterpFilterType;                              ///< interpolation filter type
 #endif
 
+#ifdef ROUNDING_CONTROL_BIPRED
+  Bool m_useRoundingControlBipred;
+#endif
+  
   // internal member functions
   Void  xSetGlobal      ();                                   ///< set global variables
   Void  xCheckParameter ();                                   ///< check validity of configuration values
