@@ -59,7 +59,7 @@
 #define HHI_MRG_PU                        0           ///< SOPH: inter partition merging on pu basis
 #define HHI_AMVP_OFF                      0           ///< SOPH: Advanced Motion Vector Predictor deactivated [not in TMuC]
 #define HHI_DEBLOCKING_FILTER             0           ///< MW: deblocking filter supporting residual quadtrees
-#define HHI_RQT_ROOT                      0           ///< PHHK: signaling of residual quadtree root flag
+#define HHI_RQT_ROOT                      1           ///< PHHK: signaling of residual quadtree root flag
 #define HHI_RQT_FORCE_SPLIT_NxN           0           ///< MSHK: force split flags of residual quadtree for NxN PUs such that transform blocks are guaranteed to not span NxN PUs
 #define HHI_RQT_FORCE_SPLIT_RECT          0           ///< MSHK: force split flags of residual quadtree for rectangular PUs such that transform blocks are guaranteed to not span rectangular PUs
 #define HHI_RQT_FORCE_SPLIT_ASYM          0           ///< MSHK: force split flags of residual quadtree for asymmetric such that transform blocks are guaranteed to not span PUs asymmetric PUs
@@ -85,7 +85,7 @@
 
 #if HHI_AIS
 // AIS
-#define DEFAULT_IS                        1           ///< BB: set intra filtering always 0:off 1:on if AIS is disabled
+#define DEFAULT_IS                        0           ///< BB: set intra filtering always 0:off 1:on if AIS is disabled
 #define AIS_TEST_BEST                     0           ///< BB: 0: compare every intra mode with filter on and off (encoder only)
                                                       ///<     1: compare best intra mode with filter on and off (encoder only)
 #endif
@@ -110,7 +110,7 @@
 #define ANG_INTRA                         1           // Enable angular Intra coding (0: All ADI, 1: Ang for 8x8 PUs, 2: Ang for all PU sizes)
 #endif
 
-#define PLANAR_INTRA                      1           // Enable planar Intra coding
+#define PLANAR_INTRA                      0           // Enable planar Intra coding
 #define TENTM_DEBLOCKING_FILTER           1           // Enable TENTM deblocking
 #if HHI_INTERP_FILTER
 #define TEN_DIRECTIONAL_INTERP            1           ///< AF: interpolation filter
@@ -121,9 +121,8 @@
 #endif
 
 #define LCEC_PHASE1                       1           // LCEC - integration phase 1
-#define LCEC_PHASE2                       0           // LCEC - integration phase 2
+#define LCEC_PHASE2                       1           // LCEC - integration phase 2
 #define LCEC_STAT                         0           // LCEC - support for LCEC bitusage statistics
-#define SIFO_DIF_COMPATIBILITY			  1           // SIFO Extensions
 //////////////////////////
 // TEN defines section end
 //////////////////////////
@@ -135,14 +134,14 @@
 
 #define LCEC_PHASE1_ADAPT_ENABLE                1           // Enable CU level VLC adaptation 
 
-#define QC_AMVRES    
+//#define QC_AMVRES    
 #ifdef QC_AMVRES  
 #define QC_AMVRES_LOW_COMPLEXTY
 #endif
 #define QC_CONFIG
 
 #if HHI_INTERP_FILTER
-#define QC_SIFO
+//#define QC_SIFO
 #define QC_SIFO_PRED
 #if (defined QC_SIFO && TEN_DIRECTIONAL_INTERP==1)
 #define USE_DIAGONAL_FILT                1
@@ -159,7 +158,7 @@
 #endif
 
 #define DISABLE_ROT_LUMA_4x4_8x8           0
-#define QC_MDDT                            1
+#define QC_MDDT                            0
 #if QC_MDDT
 #define ROT_CHECK                          0
 #define absm(A) ((A)<(0) ? (-(A)):(A))
@@ -192,7 +191,10 @@ void normalizeScanStats();
 #define ROUNDING_CONTROL_BIPRED_FIX
 #endif // V0_7_COMPAT
 
+#ifdef QC_SIFO
+#define SIFO_DIF_COMPATIBILITY			  1           // SIFO Extensions
 #define FIX_TICKET67  1     // solves memory leak problem in SIFO
+#endif
 #define FIX_TICKET92  0     // faster SIFO encoder (encoder only change)
 
 ///////////////////////////////
@@ -204,7 +206,7 @@ void normalizeScanStats();
 // Panasonic defines section start
 ///////////////////////////////////
 
-#define EDGE_BASED_PREDICTION   // Enable edge based prediction for intra
+//#define EDGE_BASED_PREDICTION   // Enable edge based prediction for intra
 #if V0_7_COMPAT
 #define BUGFIX51 0
 #else
@@ -221,7 +223,7 @@ void normalizeScanStats();
 #define SAMSUNG_REMOVE_AMP_FEN_PENALTY        1           ///< removal of FEN penality of AMP
 
 #if HHI_RQT
-#define HHI_RQT_DEPTH                         0           ///< controlling max quadtree depth
+#define HHI_RQT_DEPTH                         1           ///< controlling max quadtree depth
 #define HHI_RQT_DISABLE_SUB                   0           ///< disabling subtree whose node size is smaller than partition size
 #if     HHI_RQT_DEPTH && HHI_RQT_DISABLE_SUB
 #error "Only one of HHI_RQT_DEPTH and HHI_RQT_DISABLE_SUB can be defined"
@@ -229,7 +231,7 @@ void normalizeScanStats();
 #endif
 
 #if HHI_MRG
-#define SAMSUNG_MRG_SKIP_DIRECT               0           ///< enabling of skip and direct when mrg is on
+#define SAMSUNG_MRG_SKIP_DIRECT               1           ///< enabling of skip and direct when mrg is on
 #endif
 
 #define SAMSUNG_CHROMA_IF_EXT                 0           ///< DCT-based Interpolation filter for chroma signal
@@ -259,7 +261,7 @@ void normalizeScanStats();
 ////////////////////////////////
 // TOSHIBA defines section start
 ////////////////////////////////
-#define TSB_ALF_HEADER                 0           // Send ALF ON/OFF flag in slice header
+#define TSB_ALF_HEADER                 1           // Send ALF ON/OFF flag in slice header
 #if (TSB_ALF_HEADER && HHI_ALF)
 #error "Only one of TSB_ALF_HEADER and HHI_ALF can be defined"
 #endif

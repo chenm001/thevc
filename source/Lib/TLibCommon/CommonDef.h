@@ -207,9 +207,9 @@
 #define EARLY_SKIP_THRES            1.50        ///< if RD < thres*avg[BestSkipRD]
 
 
-const int g_iShift8x8    = 7;
-const int g_iShift16x16  = 6;
-const int g_iShift32x32  = 5;
+const int g_iShift8x8    = 4;
+const int g_iShift16x16  = 4;
+const int g_iShift32x32  = 4;
 const int g_iShift64x64  = 4;
 
 /* End of Rounding control */

@@ -1754,9 +1754,9 @@ Void TEncCavlc::codeInterDir( TComDataCU* pcCU, UInt uiAbsPartIdx )
     Int iRefFrame0,iRefFrame1;
     UInt uiIndex;
 
-#ifdef QC_AMVRES
     UInt *m_uiMITableE;
     UInt *m_uiMITableD;
+#ifdef QC_AMVRES
     if(pcCU->getSlice()->getSPS()->getUseAMVRes())    
     {
       Bool Mvres0,Mvres1;
