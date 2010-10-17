@@ -374,7 +374,11 @@ Void TDecCavlc::resetEntropy          (TComSlice* pcSlice)
 
 Void TDecCavlc::parseTerminatingBit( UInt& ruiBit )
 {
+#if BUGFIX102
+  ruiBit = false;
+#else
   xReadFlag( ruiBit );
+#endif
 }
 
 Void TDecCavlc::parseCIPflag( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
