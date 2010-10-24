@@ -317,7 +317,11 @@ protected:
                                     TComYuv*     pcResiYuv, 
                                     UInt&        ruiDistY,
                                     UInt&        ruiDistC,
+#if HHI_RQT_INTRA_SPEEDUP
+                                    Bool         bCheckFirst,
+#endif
                                     Double&      dRDCost );
+
   Void  xSetIntraResultQT         ( TComDataCU*  pcCU,
                                     UInt         uiTrDepth,
                                     UInt         uiAbsPartIdx,

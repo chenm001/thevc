@@ -1954,6 +1954,9 @@ TEncSearch::xRecurIntraCodingQT( TComDataCU*  pcCU,
                                 TComYuv*     pcResiYuv, 
                                 UInt&        ruiDistY,
                                 UInt&        ruiDistC,
+#if HHI_RQT_INTRA_SPEEDUP
+                                Bool         bCheckFirst,
+#endif
                                 Double&      dRDCost )
 {
   UInt    uiFullDepth   = pcCU->getDepth( 0 ) +  uiTrDepth;
@@ -1964,7 +1967,13 @@ TEncSearch::xRecurIntraCodingQT( TComDataCU*  pcCU,
 #else
   Bool    bCheckSplit   = ( uiLog2TrSize  >  pcCU->getSlice()->getSPS()->getQuadtreeTULog2MinSize() );
 #endif
-  
+
+#if HHI_RQT_INTRA_SPEEDUP
+  if( bCheckFirst && bCheckFull )
+  {
+    bCheckSplit = false;
+  }
+#endif
   Double  dSingleCost   = MAX_DOUBLE;
   UInt    uiSingleDistY = 0;
   UInt    uiSingleDistC = 0;
@@ -2025,7 +2034,11 @@ TEncSearch::xRecurIntraCodingQT( TComDataCU*  pcCU,
     UInt    uiAbsPartIdxSub = uiAbsPartIdx;
     for( UInt uiPart = 0; uiPart < 4; uiPart++, uiAbsPartIdxSub += uiQPartsDiv )
     {
+#if HHI_RQT_INTRA_SPEEDUP
+      xRecurIntraCodingQT( pcCU, uiTrDepth + 1, uiAbsPartIdxSub, bLumaOnly, pcOrgYuv, pcPredYuv, pcResiYuv, uiSplitDistY, uiSplitDistC, bCheckFirst, dSplitCost );
+#else
       xRecurIntraCodingQT( pcCU, uiTrDepth + 1, uiAbsPartIdxSub, bLumaOnly, pcOrgYuv, pcPredYuv, pcResiYuv, uiSplitDistY, uiSplitDistC, dSplitCost );
+#endif
     }
     //----- restore context states -----
     if( m_bUseSBACRD )
@@ -2469,6 +2482,14 @@ TEncSearch::estIntraPredQT( TComDataCU* pcCU,
     }
     
     //===== check modes (using r-d costs) =====
+#if HHI_RQT_INTRA_SPEEDUP_MOD
+    UInt   uiSecondBestMode  = MAX_UINT;
+#if HHI_AIS
+    Bool   bSecondBestISMode = bDefaultIS;
+#endif
+    Double dSecondBestPUCost = MAX_DOUBLE;
+#endif
+
 #if HHI_AIS
     Bool    bBestISMode   = bDefaultIS;
 #endif
@@ -2510,11 +2531,19 @@ TEncSearch::estIntraPredQT( TComDataCU* pcCU,
       UInt   uiPUDistY = 0;
       UInt   uiPUDistC = 0;
       Double dPUCost   = 0.0;
+#if HHI_RQT_INTRA_SPEEDUP
+      xRecurIntraCodingQT( pcCU, uiInitTrDepth, uiPartOffset, bLumaOnly, pcOrgYuv, pcPredYuv, pcResiYuv, uiPUDistY, uiPUDistC, true, dPUCost );
+#else
       xRecurIntraCodingQT( pcCU, uiInitTrDepth, uiPartOffset, bLumaOnly, pcOrgYuv, pcPredYuv, pcResiYuv, uiPUDistY, uiPUDistC, dPUCost );
+#endif
       
       // check r-d cost
       if( dPUCost < dBestPUCost )
       {
+#if HHI_RQT_INTRA_SPEEDUP_MOD
+        uiSecondBestMode  = uiBestPUMode;
+        dSecondBestPUCost = dBestPUCost;
+#endif
         uiBestPUMode  = uiOrgMode;
         uiBestPUDistY = uiPUDistY;
         uiBestPUDistC = uiPUDistC;
@@ -2533,6 +2562,13 @@ TEncSearch::estIntraPredQT( TComDataCU* pcCU,
           m_pcRDGoOnSbacCoder->store( m_pppcRDSbacCoder[uiDepth+1][CI_NEXT_BEST] );
         }
       }
+#if HHI_RQT_INTRA_SPEEDUP_MOD
+      else if( dPUCost < dSecondBestPUCost )
+      {
+        uiSecondBestMode  = uiOrgMode;
+        dSecondBestPUCost = dPUCost;
+      }
+#endif
     } // Mode loop
     
     
@@ -2584,11 +2620,19 @@ TEncSearch::estIntraPredQT( TComDataCU* pcCU,
         UInt   uiPUDistY = 0;
         UInt   uiPUDistC = 0;
         Double dPUCost   = 0.0;
+#if HHI_RQT_INTRA_SPEEDUP
+        xRecurIntraCodingQT( pcCU, uiInitTrDepth, uiPartOffset, bLumaOnly, pcOrgYuv, pcPredYuv, pcResiYuv, uiPUDistY, uiPUDistC, true, dPUCost );
+#else
         xRecurIntraCodingQT( pcCU, uiInitTrDepth, uiPartOffset, bLumaOnly, pcOrgYuv, pcPredYuv, pcResiYuv, uiPUDistY, uiPUDistC, dPUCost );
-        
+#endif
         // check r-d cost
         if( dPUCost < dBestPUCost )
         {
+#if HHI_RQT_INTRA_SPEEDUP_MOD
+          uiSecondBestMode  = uiBestPUMode;
+          bSecondBestISMode = bBestISMode;
+          dSecondBestPUCost = dBestPUCost;
+#endif
           bBestISMode   = bTestISMode;
           uiBestPUMode  = uiOrgMode;
           uiBestPUDistY = uiPUDistY;
@@ -2608,11 +2652,97 @@ TEncSearch::estIntraPredQT( TComDataCU* pcCU,
             m_pcRDGoOnSbacCoder->store( m_pppcRDSbacCoder[uiDepth+1][CI_NEXT_BEST] );
           }
         }
+#if HHI_RQT_INTRA_SPEEDUP_MOD
+        else if( dPUCost < dSecondBestPUCost )
+        {
+          uiSecondBestMode  = uiOrgMode;
+          bSecondBestISMode = bTestISMode;
+          dSecondBestPUCost = dPUCost;
+        }
+#endif
       } // Mode loop
     } // AIS enabled
 #endif
     
-    
+#if HHI_RQT_INTRA_SPEEDUP
+#if HHI_RQT_INTRA_SPEEDUP_MOD
+    for( UInt ui =0; ui < 2; ++ui )
+#endif
+    {
+#if HHI_RQT_INTRA_SPEEDUP_MOD
+#if HHI_AIS
+      Bool bTestISMode = ui ? bSecondBestISMode : bBestISMode;
+#endif
+      UInt uiOrgMode   = ui ? uiSecondBestMode  : uiBestPUMode;
+      if( uiOrgMode == MAX_UINT )
+      {
+        break;
+      }
+#else
+#if HHI_AIS
+      Bool bTestISMode = bBestISMode;
+#endif
+      UInt uiOrgMode = uiBestPUMode;
+#endif
+
+#if ANG_INTRA
+      if ( !predIntraLumaDirAvailable( uiOrgMode, uiWidthBit, angIntraEnabled, bAboveAvail, bLeftAvail ) )
+        continue;
+#else
+      UInt uiNewMode = g_aucIntraModeOrder[uiWidthBit][uiOrgMode];
+      if ( ( g_aucIntraAvail[uiNewMode][0] && (!bAboveAvail) ) || ( g_aucIntraAvail[uiNewMode][1] && (!bLeftAvail) ) )
+      {
+        continue;
+      }
+#endif
+      
+      pcCU->setLumaIntraDirSubParts ( uiOrgMode, uiPartOffset, uiDepth + uiInitTrDepth );
+      
+#if HHI_AIS
+      // set intra smoothing mode
+      pcCU->setLumaIntraFiltFlagSubParts( bTestISMode, uiPartOffset, uiDepth + uiInitTrDepth );
+#endif
+      
+      // set context models
+      if( m_bUseSBACRD )
+      {
+        if( uiPU )  m_pcRDGoOnSbacCoder->load( m_pppcRDSbacCoder[uiDepth+1][CI_NEXT_BEST] );
+        else        m_pcRDGoOnSbacCoder->load( m_pppcRDSbacCoder[uiDepth  ][CI_CURR_BEST] );
+      }
+      
+      // determine residual for partition
+      UInt   uiPUDistY = 0;
+      UInt   uiPUDistC = 0;
+      Double dPUCost   = 0.0;
+      xRecurIntraCodingQT( pcCU, uiInitTrDepth, uiPartOffset, bLumaOnly, pcOrgYuv, pcPredYuv, pcResiYuv, uiPUDistY, uiPUDistC, false, dPUCost );
+      
+      // check r-d cost
+      if( dPUCost < dBestPUCost )
+      {
+#if HHI_AIS
+        bBestISMode   = bTestISMode;
+#endif
+        uiBestPUMode  = uiOrgMode;
+        uiBestPUDistY = uiPUDistY;
+        uiBestPUDistC = uiPUDistC;
+        dBestPUCost   = dPUCost;
+        
+        xSetIntraResultQT( pcCU, uiInitTrDepth, uiPartOffset, bLumaOnly, pcRecoYuv );
+        
+        UInt uiQPartNum = pcCU->getPic()->getNumPartInCU() >> ( ( pcCU->getDepth(0) + uiInitTrDepth ) << 1 );
+        ::memcpy( m_puhQTTempTrIdx,  pcCU->getTransformIdx()       + uiPartOffset, uiQPartNum * sizeof( UChar ) );
+        ::memcpy( m_puhQTTempCbf[0], pcCU->getCbf( TEXT_LUMA     ) + uiPartOffset, uiQPartNum * sizeof( UChar ) );
+        ::memcpy( m_puhQTTempCbf[1], pcCU->getCbf( TEXT_CHROMA_U ) + uiPartOffset, uiQPartNum * sizeof( UChar ) );
+        ::memcpy( m_puhQTTempCbf[2], pcCU->getCbf( TEXT_CHROMA_V ) + uiPartOffset, uiQPartNum * sizeof( UChar ) );
+        
+        if( m_bUseSBACRD )
+        {
+          m_pcRDGoOnSbacCoder->store( m_pppcRDSbacCoder[uiDepth+1][CI_NEXT_BEST] );
+        }
+      }
+    } // Mode loop
+#endif
+
     //--- update overall distortion ---
     uiOverallDistY += uiBestPUDistY;
     uiOverallDistC += uiBestPUDistC;
