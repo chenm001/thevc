@@ -119,7 +119,7 @@
 #define TENTM_DEBLOCKING_FILTER           1           // Enable TENTM deblocking
 #if HHI_INTERP_FILTER
 #define TEN_DIRECTIONAL_INTERP            1           ///< AF: interpolation filter
-#define TEN_DIRECTIONAL_INTERP_CHROMA     0           ///< DIF interpolation filter for chroma
+#define TEN_DIRECTIONAL_INTERP_CHROMA     1           ///< DIF interpolation filter for chroma
 #endif
 
 #if (HHI_DEBLOCKING_FILTER && TENTM_DEBLOCKING_FILTER)
