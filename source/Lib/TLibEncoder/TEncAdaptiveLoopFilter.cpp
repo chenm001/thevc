@@ -4848,8 +4848,6 @@ Void TEncAdaptiveLoopFilter::xReDesignFilterCoeff_qc(TComPicYuv* pcPicOrg, TComP
 {
 
   Int tap = m_pcTempAlfParam->tap;
-  Int    Height = pcPicOrg->getHeight();
-  Int    Width = pcPicOrg->getWidth();
   Int    LumaStride = pcPicOrg->getStride();
 #if ALF_MEM_PATCH
   imgpel* pOrg = (imgpel*)pcPicOrg->getLumaAddr();
@@ -4857,6 +4855,8 @@ Void TEncAdaptiveLoopFilter::xReDesignFilterCoeff_qc(TComPicYuv* pcPicOrg, TComP
   imgpel* pRest = (imgpel*)pcPicRest->getLumaAddr();
   xFirstFilteringFrameLuma(pOrg, pDec, pRest, m_pcTempAlfParam, tap, LumaStride); 
 #else
+  Int    Height = pcPicOrg->getHeight();
+  Int    Width = pcPicOrg->getWidth();
   Pel* pOrg = pcPicOrg->getLumaAddr();
   Pel* pDec = pcPicDec->getLumaAddr();
   Pel* pRest = pcPicRest->getLumaAddr();
