@@ -1989,6 +1989,8 @@ const UChar g_aucIntraModeBits[7] =
    3   // 128x128  33   4+1
 };
 
+#if SAMSUNG_FAST_UDI
+#if SAMSUNG_FAST_UDI_MODESET==0
 const UChar g_aucIntraModeNumFast[7] =
 {
    3,  //   2x2
@@ -1999,6 +2001,30 @@ const UChar g_aucIntraModeNumFast[7] =
    5,  //  64x64   33
    4   // 128x128  33
 };
+#else
+const UChar g_aucIntraModeNumFast[7] =
+{
+	3,  //   2x2
+	9,  //   4x4
+	9,  //   8x8
+	9,  //  16x16   33
+	9,  //  32x32   33
+	5,  //  64x64   33
+	4   // 128x128  33
+};
+#endif
+#else
+const UChar g_aucIntraModeNumFast[7] =
+{
+   3,  //   2x2
+   9,  //   4x4
+   9,  //   8x8
+   4,  //  16x16   33
+   4,  //  32x32   33
+   5,  //  64x64   33
+   4   // 128x128  33
+};
+#endif
 
 const UChar g_aucIntraAvail[40][2] =
 {

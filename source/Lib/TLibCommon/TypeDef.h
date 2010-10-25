@@ -250,6 +250,13 @@ void normalizeScanStats();
 #define HHI_DISABLE_SCAN                      0           ///< disable adaptive scan
 #endif
 
+#define FAST_UDI_MAX_RDMODE_NUM               10          ///< maximum number of RD comparison in fast-UDI estimation loop 
+
+#define SAMSUNG_FAST_UDI                      1           ///< improved mode decision for UDI (JCTVC-C207)
+#if     SAMSUNG_FAST_UDI                           
+#define SAMSUNG_FAST_UDI_MODESET              0           ///< 0: {9,9,4,4,5} (default) and 1: {9,9,9,9,5} for {4x4,8x8,16x16,32x32,64x64} 
+#endif
+
 ///////////////////////////////
 // SAMSUNG defines section end
 ///////////////////////////////
