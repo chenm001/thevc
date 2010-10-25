@@ -285,6 +285,16 @@ void normalizeScanStats();
 #define BUGFIX85TMP 1 // Ignore cost of CBF (affects RQT off setting)
 #define BUGFIX102 1 // Do not code terminating bit when using LCEC
 
+
+////////////////////////////////
+// MICROSOFT&USTC defines section start
+////////////////////////////////
+#define MS_NO_BACK_PRED_IN_B0           1           // disable backward prediction when list1 == list0, and disable list1 search, JCTVC-C278
+#define MS_LAST_CBF                     1           // last cbf handling, JCTVC-C277
+////////////////////////////////
+// MICROSOFT&USTC defines section end
+////////////////////////////////
+
 // ====================================================================================================================
 // Basic type redefinition
 // ====================================================================================================================

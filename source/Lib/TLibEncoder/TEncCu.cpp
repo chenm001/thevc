@@ -1114,6 +1114,13 @@ Void TEncCu::xCheckRDCostAMVPSkip           ( TComDataCU*& rpcBestCU, TComDataCU
       xCheckRDCostSkip ( rpcBestCU, rpcTempCU, false ); rpcTempCU->initEstData();
     }
     // List1
+
+#if MS_NO_BACK_PRED_IN_B0
+    if ( rpcTempCU->getSlice()->getNoBackPredFlag() )
+    {
+      return;
+    }
+#endif
     for (iMVP1 = (cAMVPInfo1.iN > 0? 0:-1); iMVP1 < cAMVPInfo1.iN; iMVP1++)
     {
       rpcTempCU->setPredModeSubParts( MODE_SKIP,    0,  uhDepth );

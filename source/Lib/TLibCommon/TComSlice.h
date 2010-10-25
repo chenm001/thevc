@@ -362,6 +362,10 @@ private:
   Void        xDeleteZTrees();
 #endif
 
+#if MS_NO_BACK_PRED_IN_B0
+  Bool m_bNoBackPredFlag;
+#endif
+
 public:
   TComSlice();
   virtual ~TComSlice();
@@ -490,6 +494,11 @@ public:
 
 #ifdef QC_SIFO
   Bool getUseSIFO              ()         { return ( m_iInterpFilterType == IPF_QC_SIFO); }
+#endif
+
+#if MS_NO_BACK_PRED_IN_B0
+  Bool getNoBackPredFlag() { return m_bNoBackPredFlag; }
+  Void setNoBackPredFlag( Bool b ) { m_bNoBackPredFlag = b; }
 #endif
 
 protected:

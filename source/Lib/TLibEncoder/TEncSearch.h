@@ -483,6 +483,18 @@ Void xMergeEstimation             ( TComDataCU*     pcCU,
                                     UInt&         ruiBits,
                                     UInt&         ruiCost,
                                     Bool          bBi = false  );
+#if MS_NO_BACK_PRED_IN_B0
+  Void xMotionEstimationForL1     ( TComDataCU*   pcCU,
+                                    TComYuv*      pcYuvOrg,
+                                    Int           iPartIdx,
+                                    RefPicList    eRefPicList,
+                                    TComMv*       pcMvPred,
+                                    Int           iRefIdxPred,
+                                    TComMv&       rcMv,
+                                    UInt&         ruiBits,
+                                    UInt&         ruiCost,
+                                    Bool          bBi = false  );
+#endif
 
   Void xTZSearch                  ( TComDataCU*   pcCU,
                                     TComPattern*  pcPatternKey,

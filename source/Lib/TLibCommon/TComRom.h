@@ -223,6 +223,13 @@ extern const UInt g_auiMI1TableD[8];
 extern const UInt g_auiMI2TableE[15];
 extern const UInt g_auiMI2TableD[15];
 extern const UInt    g_auiMITableVlcNum[15];
+
+#if MS_NO_BACK_PRED_IN_B0
+extern const UInt g_auiMI1TableENoL1[8];
+extern const UInt g_auiMI1TableDNoL1[8];
+extern const UInt g_auiMI2TableENoL1[15];
+extern const UInt g_auiMI2TableDNoL1[15];
+#endif
 #endif
 
 

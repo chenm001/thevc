@@ -1137,6 +1137,14 @@ Void TEncSbac::codeInterDir( TComDataCU* pcCU, UInt uiAbsPartIdx )
   uiInterDir--;
   m_pcBinIf->encodeBin( ( uiInterDir == 2 ? 1 : 0 ), m_cCUInterDirSCModel.get( 0, 0, uiCtx ) );
 
+#if MS_NO_BACK_PRED_IN_B0
+  if ( pcCU->getSlice()->getNoBackPredFlag() )
+  {
+    assert( uiInterDir != 1 );
+    return;
+  }
+#endif
+
   if ( uiInterDir < 2 )
   {
     m_pcBinIf->encodeBin( uiInterDir, m_cCUInterDirSCModel.get( 0, 0, 3 ) );

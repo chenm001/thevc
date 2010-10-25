@@ -333,6 +333,16 @@ Void TEncCavlc::resetEntropy()
   ::memcpy(m_uiMI2TableE, g_auiMI2TableE, 15*sizeof(UInt));
   ::memcpy(m_uiMI2TableD, g_auiMI2TableD, 15*sizeof(UInt));
 
+#if MS_NO_BACK_PRED_IN_B0
+  if ( m_pcSlice->getNoBackPredFlag() )
+  {
+    ::memcpy(m_uiMI1TableE, g_auiMI1TableENoL1, 8*sizeof(UInt));
+    ::memcpy(m_uiMI1TableD, g_auiMI1TableDNoL1, 8*sizeof(UInt));
+    ::memcpy(m_uiMI2TableE, g_auiMI2TableENoL1, 15*sizeof(UInt));
+    ::memcpy(m_uiMI2TableD, g_auiMI2TableDNoL1, 15*sizeof(UInt));
+  }
+#endif
+
   m_uiMITableVlcIdx = 0;  
 
 #endif
@@ -1840,6 +1850,13 @@ Void TEncCavlc::codeInterDir( TComDataCU* pcCU, UInt uiAbsPartIdx )
 #if LCEC_STAT
   if (m_bAdaptFlag)
     m_uiBitInterDir += 1;
+#endif
+#if MS_NO_BACK_PRED_IN_B0
+  if ( pcCU->getSlice()->getNoBackPredFlag() )
+  {
+    assert( uiInterDir != 1 );
+    return;
+  }
 #endif
   if ( uiInterDir < 2 )
   {

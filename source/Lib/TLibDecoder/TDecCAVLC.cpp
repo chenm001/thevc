@@ -365,6 +365,14 @@ Void TDecCavlc::resetEntropy          (TComSlice* pcSlice)
   ::memcpy(m_uiMI1TableD,        g_auiMI1TableD,        8*sizeof(UInt));
   ::memcpy(m_uiMI2TableD,        g_auiMI2TableD,        15*sizeof(UInt));
 
+#if MS_NO_BACK_PRED_IN_B0
+  if ( pcSlice->getNoBackPredFlag() )
+  {
+    ::memcpy(m_uiMI1TableD,        g_auiMI1TableDNoL1,        8*sizeof(UInt));
+    ::memcpy(m_uiMI2TableD,        g_auiMI2TableDNoL1,        15*sizeof(UInt));
+  }
+#endif
+
   m_uiMITableVlcIdx = 0;
 
 #endif
@@ -1022,6 +1030,12 @@ Void TDecCavlc::parseInterDir( TComDataCU* pcCU, UInt& ruiInterDir, UInt uiAbsPa
   {
     uiSymbol = 2;
   }
+#if MS_NO_BACK_PRED_IN_B0
+  else if ( pcCU->getSlice()->getNoBackPredFlag() )
+  {
+    uiSymbol = 0;
+  }
+#endif
   else
   {
     xReadFlag( uiSymbol );

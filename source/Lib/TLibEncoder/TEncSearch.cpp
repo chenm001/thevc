@@ -4169,7 +4169,11 @@ Void TEncSearch::predInterSearch( TComDataCU* pcCU, TComYuv* pcOrgYuv, TComYuv*&
 #if GPB_SIMPLE_UNI
         if ( pcCU->getSlice()->getSPS()->getUseLDC() )
         {
+#if MS_NO_BACK_PRED_IN_B0
+          if ( iRefList && ( iRefIdxTemp != iRefIdx[0] || pcCU->getSlice()->getNoBackPredFlag() ) )
+#else
           if ( iRefList && iRefIdxTemp != iRefIdx[0] )
+#endif
           {
             uiCostTemp = MAX_UINT;
 #ifdef QC_AMVRES
@@ -4178,6 +4182,13 @@ Void TEncSearch::predInterSearch( TComDataCU* pcCU, TComYuv* pcOrgYuv, TComYuv*&
             if ( pcCU->getSlice()->getSPS()->getUseIMP())
               cMvPred[iRefList][iRefIdxTemp] = m_cMvPredMeasure.getMVPred( cMvTemp[iRefList][iRefIdxTemp].getHor(), cMvTemp[iRefList][iRefIdxTemp].getVer() );
 #endif
+#endif
+#if MS_NO_BACK_PRED_IN_B0
+            if ( pcCU->getSlice()->getNoBackPredFlag() )
+            {
+              cMvTemp[1][iRefIdxTemp] = cMvTemp[0][iRefIdxTemp];
+              xMotionEstimationForL1 ( pcCU, pcOrgYuv, iPartIdx, eRefPicList, &cMvPred[iRefList][iRefIdxTemp], iRefIdxTemp, cMvTemp[iRefList][iRefIdxTemp], uiBitsTemp, uiCostTemp );
+            }
 #endif
           }
           else
@@ -4208,7 +4219,13 @@ Void TEncSearch::predInterSearch( TComDataCU* pcCU, TComYuv* pcOrgYuv, TComYuv*&
           }
 #endif
         }
+#if MS_NO_BACK_PRED_IN_B0
+        if ( ( iRefList == 0 && uiCostTemp < uiCost[iRefList] ) ||
+             ( iRefList == 1 &&  pcCU->getSlice()->getNoBackPredFlag() && iRefIdxTemp == iRefIdx[0] ) ||
+             ( iRefList == 1 && !pcCU->getSlice()->getNoBackPredFlag() && uiCostTemp < uiCost[iRefList] ) )
+#else
         if ( uiCostTemp < uiCost[iRefList] )
+#endif
         {
           uiCost[iRefList] = uiCostTemp;
           uiBits[iRefList] = uiBitsTemp; // storing for bi-prediction
@@ -4229,6 +4246,13 @@ Void TEncSearch::predInterSearch( TComDataCU* pcCU, TComYuv* pcOrgYuv, TComYuv*&
             TComYuv*  pcYuvPred = &m_acYuvPred[iRefList];
             motionCompensation ( pcCU, pcYuvPred, eRefPicList, iPartIdx );
           }
+#if MS_NO_BACK_PRED_IN_B0
+          if ( pcCU->getSlice()->getNoBackPredFlag() && eRefPicList == REF_PIC_LIST_0 )
+          {
+            TComYuv*  pcYuvPred = &m_acYuvPred[iRefList];
+            motionCompensation ( pcCU, pcYuvPred, eRefPicList, iPartIdx );
+          }
+#endif
         }
       }
     }
@@ -4236,6 +4260,7 @@ Void TEncSearch::predInterSearch( TComDataCU* pcCU, TComYuv* pcOrgYuv, TComYuv*&
     //  Bi-directional prediction
     if ( pcCU->getSlice()->isInterB() )
     {
+
       cMvBi[0] = cMv[0];            cMvBi[1] = cMv[1];
       iRefIdxBi[0] = iRefIdx[0];    iRefIdxBi[1] = iRefIdx[1];
       
@@ -4259,7 +4284,14 @@ Void TEncSearch::predInterSearch( TComDataCU* pcCU, TComYuv* pcOrgYuv, TComYuv*&
       
       for ( Int iIter = 0; iIter < iNumIter; iIter++ )
       {
+
         Int         iRefList    = iIter % 2;
+#if MS_NO_BACK_PRED_IN_B0
+        if ( pcCU->getSlice()->getSPS()->getUseLDC() && m_pcEncCfg->getUseFastEnc() && pcCU->getSlice()->getNoBackPredFlag() )
+        {
+          iRefList = 1;
+        }
+#endif
         RefPicList  eRefPicList = ( iRefList ? REF_PIC_LIST_1 : REF_PIC_LIST_0 );
         
         Bool bChanged = false;
@@ -4278,6 +4310,14 @@ Void TEncSearch::predInterSearch( TComDataCU* pcCU, TComYuv* pcOrgYuv, TComYuv*&
 #else
         iRefStart = 0;
         iRefEnd   = pcCU->getSlice()->getNumRefIdx(eRefPicList)-1;
+#endif
+
+#if MS_NO_BACK_PRED_IN_B0
+        if ( pcCU->getSlice()->getSPS()->getUseLDC() && m_pcEncCfg->getUseFastEnc() && pcCU->getSlice()->getNoBackPredFlag() )
+        {
+          iRefStart = 0;
+          iRefEnd   = pcCU->getSlice()->getNumRefIdx(eRefPicList)-1;
+        }
 #endif
         
         for ( Int iRefIdxTemp = iRefStart; iRefIdxTemp <= iRefEnd; iRefIdxTemp++ )
@@ -4513,6 +4553,12 @@ Void TEncSearch::predInterSearch( TComDataCU* pcCU, TComYuv* pcOrgYuv, TComYuv*&
     pcCU->setMVPNumSubParts( -1, REF_PIC_LIST_1, uiPartAddr, iPartIdx, pcCU->getDepth(uiPartAddr));
     
     // Set Motion Field_
+#if MS_NO_BACK_PRED_IN_B0
+    if ( pcCU->getSlice()->getNoBackPredFlag() )
+    {
+      uiCost[1] = MAX_UINT;
+    }
+#endif
     if ( uiCostBi <= uiCost[0] && uiCostBi <= uiCost[1])
     {
       uiLastMode = 2;
@@ -5147,6 +5193,70 @@ UInt TEncSearch::xGetTemplateCostIC   ( TComDataCU* pcCU,
 
 	return uiCost;
 }
+#endif
+
+#if MS_NO_BACK_PRED_IN_B0
+Void TEncSearch::xMotionEstimationForL1( TComDataCU* pcCU, TComYuv* pcYuvOrg, Int iPartIdx, RefPicList eRefPicList, TComMv* pcMvPred, Int iRefIdxPred, TComMv& rcMv, UInt& ruiBits, UInt& ruiCost, Bool bBi  )
+{
+
+  TComMv        cMvHalf, cMvQter;
+  TComMv        cMvSrchRngLT;
+  TComMv        cMvSrchRngRB;
+
+
+
+
+  TComMv      cMvPred = *pcMvPred;
+
+#ifdef QC_AMVRES
+  TComMv      cMvPred_onefourth;
+#endif
+
+
+  m_pcRdCost->setCostScale( 0 );
+#ifdef QC_AMVRES 
+
+  UInt uiMvBits;
+
+#if HHI_IMVP
+  if ( pcCU->getSlice()->getSPS()->getUseIMP() )
+  {
+    *pcMvPred = m_cMvPredMeasure.getMVPred( rcMv.getHor(), rcMv.getVer() ) ;
+  }
+#endif
+
+  if (!rcMv.isHAM()&& pcCU->getSlice()->getSPS()->getUseAMVRes())
+  {
+    cMvPred_onefourth=*pcMvPred;
+    cMvPred_onefourth.scale_down();
+    m_pcRdCost->setPredictor	( cMvPred_onefourth );
+    uiMvBits = m_pcRdCost->getBits( rcMv.getHor()/2, rcMv.getVer()/2 );
+  }
+  else
+  {
+    m_pcRdCost->setPredictor	( *pcMvPred );
+    uiMvBits = m_pcRdCost->getBits( rcMv.getHor(), rcMv.getVer())+pcCU->getSlice()->getSPS()->getUseAMVRes();
+  }
+#else
+  rcMv <<= 2;
+  rcMv += (cMvHalf <<= 1);
+  rcMv +=  cMvQter;
+
+#if HHI_IMVP
+  if ( pcCU->getSlice()->getSPS()->getUseIMP() )
+  {
+    *pcMvPred = m_cMvPredMeasure.getMVPred( rcMv.getHor(), rcMv.getVer() ) ;
+    m_pcRdCost->setPredictor(*pcMvPred); 
+  }
+#endif
+
+  UInt uiMvBits = m_pcRdCost->getBits( rcMv.getHor(), rcMv.getVer() );
+#endif
+
+  ruiBits      += uiMvBits;
+ 
+}
+
 #endif
 
 Void TEncSearch::xMotionEstimation( TComDataCU* pcCU, TComYuv* pcYuvOrg, Int iPartIdx, RefPicList eRefPicList, TComMv* pcMvPred, Int iRefIdxPred, TComMv& rcMv, UInt& ruiBits, UInt& ruiCost, Bool bBi  )
@@ -7417,8 +7527,8 @@ Void TEncSearch::encodeResAndCalcRdInterCU( TComDataCU* pcCU, TComYuv* pcYuvOrg,
     
     uiSingleDist = uiDistY + uiDistU + uiDistV;
     dSingleCost = m_pcRdCost->calcRdCost( uiSingleBits, uiSingleDist );
-  }
-  
+  }  
+ 
   // code sub-blocks
   if( bCheckSplit )
   {
@@ -7442,7 +7552,7 @@ Void TEncSearch::encodeResAndCalcRdInterCU( TComDataCU* pcCU, TComYuv* pcYuvOrg,
       xEstimateResidualQT( pcCU, uiAbsPartIdx + ui * uiQPartNumSubdiv, pcResi, uiDepth + 1, dSubdivCost, uiSubdivBits, uiSubdivDist );
 #endif
     }
-    
+
     UInt uiYCbf = 0;
     UInt uiUCbf = 0;
     UInt uiVCbf = 0;
@@ -7473,6 +7583,9 @@ Void TEncSearch::encodeResAndCalcRdInterCU( TComDataCU* pcCU, TComYuv* pcYuvOrg,
     uiSubdivBits = m_pcEntropyCoder->getNumberOfWrittenBits();
     dSubdivCost  = m_pcRdCost->calcRdCost( uiSubdivBits, uiSubdivDist );
     
+#if MS_LAST_CBF
+    if( uiYCbf || uiUCbf || uiVCbf || !bCheckFull )
+#endif
     if( dSubdivCost < dSingleCost )
     {
       rdCost += dSubdivCost;
