@@ -180,6 +180,8 @@ void normalizeScanStats();
 
 /* Rounding control */
 #define ROUNDING_CONTROL_BIPRED ///< From JCTVC-B074
+#define ROUNDING_CONTROL_BIPRED_SPEEDUP_BITEXACT
+
 #define TRANS_PRECISION_EXT     ///< From JCTVC-B074
 
 
