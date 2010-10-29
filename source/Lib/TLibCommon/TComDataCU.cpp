@@ -4483,10 +4483,8 @@ Int TComDataCU::searchICPIdx(TComIc cIc, AICPInfo* pInfo)
 Void TComDataCU::convertTransIdx( UInt uiAbsPartIdx, UInt uiTrIdx, UInt& ruiLumaTrMode, UInt& ruiChromaTrMode )
 {
 #if HHI_RQT_INTRA
-  if( getPredictionMode( uiAbsPartIdx ) == MODE_INTRA && !getSlice()->getSPS()->getQuadtreeTUFlag() )
 #else
   if( getPredictionMode( uiAbsPartIdx ) == MODE_INTRA )
-#endif
   {
     ruiLumaTrMode      = uiTrIdx;
 
@@ -4496,17 +4494,17 @@ Void TComDataCU::convertTransIdx( UInt uiAbsPartIdx, UInt uiTrIdx, UInt& ruiLuma
 
     return;
   }
-
-  UInt uiSizeBit        = g_aucConvertToBit[ Min( m_puhWidth [ uiAbsPartIdx ], m_puhHeight[ uiAbsPartIdx ] ) ] + 2;
-  UInt uiMinCUSizeBit   = g_aucConvertToBit[ Min( m_pcPic->getMinCUWidth(),    m_pcPic->getMinCUHeight()   ) ] + 2;
-  UInt uiLowerBnd       = uiMinCUSizeBit;//Max( uiMinCUSizeBit, 2 );
+#endif
 
   ruiLumaTrMode   = uiTrIdx;
   ruiChromaTrMode = uiTrIdx;
 
 #if HHI_RQT
-  if( !m_pcPic->getSlice()->getSPS()->getQuadtreeTUFlag() )
-#endif
+#else
+  UInt uiSizeBit        = g_aucConvertToBit[ Min( m_puhWidth [ uiAbsPartIdx ], m_puhHeight[ uiAbsPartIdx ] ) ] + 2;
+  UInt uiMinCUSizeBit   = g_aucConvertToBit[ Min( m_pcPic->getMinCUWidth(),    m_pcPic->getMinCUHeight()   ) ] + 2;
+  UInt uiLowerBnd       = uiMinCUSizeBit;//Max( uiMinCUSizeBit, 2 );
+
   if ( (Int)uiSizeBit - (Int)uiTrIdx <= (Int)uiLowerBnd  )
   {
     ruiLumaTrMode   = uiSizeBit - uiLowerBnd;
@@ -4519,7 +4517,7 @@ Void TComDataCU::convertTransIdx( UInt uiAbsPartIdx, UInt uiTrIdx, UInt& ruiLuma
       ruiChromaTrMode--;
     }
   }
-
+#endif
   return;
 }
 
@@ -4527,10 +4525,7 @@ UInt TComDataCU::getIntraSizeIdx(UInt uiAbsPartIdx)
 {
   UInt uiShift = ( (m_puhTrIdx[uiAbsPartIdx]==0) && (m_pePartSize[uiAbsPartIdx]==SIZE_NxN) ) ? m_puhTrIdx[uiAbsPartIdx]+1 : m_puhTrIdx[uiAbsPartIdx];
 #if HHI_RQT_INTRA
-  if( this->getSlice()->getSPS()->getQuadtreeTUFlag() )
-  {
-    uiShift = ( m_pePartSize[uiAbsPartIdx]==SIZE_NxN ? 1 : 0 );
-  }
+  uiShift = ( m_pePartSize[uiAbsPartIdx]==SIZE_NxN ? 1 : 0 );
 #endif
 
   UChar uiWidth = m_puhWidth[uiAbsPartIdx]>>uiShift;

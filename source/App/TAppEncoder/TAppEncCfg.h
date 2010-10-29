@@ -94,7 +94,6 @@ protected:
 
   // transfom unit (TU) definition
 #if HHI_RQT
-  Bool      m_bQuadtreeTUFlag;
   UInt      m_uiQuadtreeTULog2MaxSize;
   UInt      m_uiQuadtreeTULog2MinSize;
 #if HHI_RQT_DEPTH
@@ -105,10 +104,11 @@ protected:
   UInt      m_uiQuadtreeTUMaxDepth;
 #endif
 #endif
-#endif
+#else
   UInt      m_uiMinTrDepth;                                   ///< min. TU depth
   UInt      m_uiMaxTrDepth;                                   ///< max. TU depth
   UInt      m_uiMaxTrSize;                                    ///< max. physical transform size
+#endif
 
   // coding tools (bit-depth)
   UInt      m_uiBitDepth;                                     ///< base bit-depth

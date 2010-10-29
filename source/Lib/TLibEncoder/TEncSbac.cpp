@@ -1398,17 +1398,14 @@ Void TEncSbac::codeDeltaQP( TComDataCU* pcCU, UInt uiAbsPartIdx )
 Void TEncSbac::codeCbf( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eType, UInt uiTrDepth )
 {
 #if HHI_RQT
-  if( pcCU->getSlice()->getSPS()->getQuadtreeTUFlag() )
-  {
 #if HHI_RQT_INTRA
-    return;
+  return;
 #else
-    if( !pcCU->isIntra( uiAbsPartIdx ) )
-    {
-      return;
-    }
-#endif
+  if( !pcCU->isIntra( uiAbsPartIdx ) )
+  {
+    return;
   }
+#endif
 #endif
   UInt uiCbf = pcCU->getCbf   ( uiAbsPartIdx, eType, uiTrDepth );
   UInt uiCtx = pcCU->getCtxCbf( uiAbsPartIdx, eType, uiTrDepth );

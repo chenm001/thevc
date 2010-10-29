@@ -1800,17 +1800,14 @@ Void TDecSbac::parseDeltaQP( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
 Void TDecSbac::parseCbf( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eType, UInt uiTrDepth, UInt uiDepth )
 {
 #if HHI_RQT
-  if( pcCU->getSlice()->getSPS()->getQuadtreeTUFlag() )
-  {
 #if HHI_RQT_INTRA
-    return;
+  return;
 #else
-    if( !pcCU->isIntra( uiAbsPartIdx ) )
-    {
-      return;
-    }
-#endif
+  if( !pcCU->isIntra( uiAbsPartIdx ) )
+  {
+    return;
   }
+#endif
 #endif
   UInt uiSymbol;
   UInt uiCbf = pcCU->getCbf( uiAbsPartIdx, eType );

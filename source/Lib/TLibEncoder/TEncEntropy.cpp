@@ -1063,24 +1063,21 @@ Void TEncEntropy::encodeTransformIdx( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt 
     uiAbsPartIdx = 0;
 
 #if HHI_RQT
-  if( pcCU->getSlice()->getSPS()->getQuadtreeTUFlag() )
-  {
-    DTRACE_CABAC_V( g_nSymbolCounter++ )
-    DTRACE_CABAC_T( "\tdecodeTransformIdx()\tCUDepth=" )
-    DTRACE_CABAC_V( uiDepth )
-    DTRACE_CABAC_T( "\n" )
+  DTRACE_CABAC_V( g_nSymbolCounter++ )
+  DTRACE_CABAC_T( "\tdecodeTransformIdx()\tCUDepth=" )
+  DTRACE_CABAC_V( uiDepth )
+  DTRACE_CABAC_T( "\n" )
 #if MS_LAST_CBF
-    UInt temp = 0;
-    UInt temp1 = 0;
-    UInt temp2 = 0;
-    xEncodeTransformSubdiv( pcCU, uiAbsPartIdx, uiDepth, 0, temp, temp1, temp2 );
+  UInt temp = 0;
+  UInt temp1 = 0;
+  UInt temp2 = 0;
+  xEncodeTransformSubdiv( pcCU, uiAbsPartIdx, uiDepth, 0, temp, temp1, temp2 );
 #else
-    xEncodeTransformSubdiv( pcCU, uiAbsPartIdx, uiDepth, 0 );
+  xEncodeTransformSubdiv( pcCU, uiAbsPartIdx, uiDepth, 0 );
 #endif
-  }
-  else
-#endif
+#else
   m_pcEntropyCoderIf->codeTransformIdx( pcCU, uiAbsPartIdx, uiDepth );
+#endif
 }
 
 // ROT index
@@ -2154,7 +2151,7 @@ Void TEncEntropy::xEncodeCoeff( TComDataCU* pcCU, TCoeff* pcCoeff, UInt uiAbsPar
     pcCU->convertTransIdx( uiAbsPartIdx, pcCU->getTransformIdx( uiAbsPartIdx ), uiLumaTrMode, uiChromaTrMode );
     const UInt uiStopTrMode = eType == TEXT_LUMA ? uiLumaTrMode : uiChromaTrMode;
 
-    assert( pcCU->getSlice()->getSPS()->getQuadtreeTUFlag() || uiStopTrMode == uiCurrTrIdx ); // as long as quadtrees are not used for residual transform
+    assert(1); // as long as quadtrees are not used for residual transform
 
     if( uiTrIdx == uiStopTrMode )
 #else
@@ -2196,7 +2193,7 @@ Void TEncEntropy::xEncodeCoeff( TComDataCU* pcCU, TCoeff* pcCoeff, UInt uiAbsPar
 #endif
       if( uiCurrTrIdx <= uiTrIdx )
 #if HHI_RQT
-        assert( pcCU->getSlice()->getSPS()->getQuadtreeTUFlag() );
+        assert(1);
 #else
         assert(0);
 #endif
@@ -2215,7 +2212,7 @@ Void TEncEntropy::xEncodeCoeff( TComDataCU* pcCU, TCoeff* pcCoeff, UInt uiAbsPar
       if(pcCU->getSlice()->getSymbolMode() == 0)
       {
 #if HHI_RQT
-        if(pcCU->getSlice()->getSPS()->getQuadtreeTUFlag())
+        if(1)
         {
           UInt uiLog2TrSize = g_aucConvertToBit[ pcCU->getSlice()->getSPS()->getMaxCUWidth() >> uiDepth ] + 2;
           if( eType == TEXT_LUMA || uiLog2TrSize > pcCU->getSlice()->getSPS()->getQuadtreeTULog2MinSize() )
@@ -2284,21 +2281,18 @@ Void TEncEntropy::encodeCoeff( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth
     }
 #endif
 #if HHI_RQT_INTRA
-    if( pcCU->getSlice()->getSPS()->getQuadtreeTUFlag() )
-    {
-      DTRACE_CABAC_V( g_nSymbolCounter++ )
-      DTRACE_CABAC_T( "\tdecodeTransformIdx()\tCUDepth=" )
-      DTRACE_CABAC_V( uiDepth )
-      DTRACE_CABAC_T( "\n" )
+    DTRACE_CABAC_V( g_nSymbolCounter++ )
+    DTRACE_CABAC_T( "\tdecodeTransformIdx()\tCUDepth=" )
+    DTRACE_CABAC_V( uiDepth )
+    DTRACE_CABAC_T( "\n" )
 #if MS_LAST_CBF
-      UInt temp = 0;
-      UInt temp1 = 0;
-      UInt temp2 = 0;
-      xEncodeTransformSubdiv( pcCU, uiAbsPartIdx, uiDepth, 0, temp, temp1, temp2 );
+    UInt temp = 0;
+    UInt temp1 = 0;
+    UInt temp2 = 0;
+    xEncodeTransformSubdiv( pcCU, uiAbsPartIdx, uiDepth, 0, temp, temp1, temp2 );
 #else
-      xEncodeTransformSubdiv( pcCU, uiAbsPartIdx, uiDepth, 0 );
+    xEncodeTransformSubdiv( pcCU, uiAbsPartIdx, uiDepth, 0 );
 #endif
-    }
 #endif
 
 #if QC_MDDT
@@ -2378,9 +2372,9 @@ Void TEncEntropy::encodeCoeff( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth
   {
 #if HHI_RQT_ROOT
 #if LCEC_CBP_YUV_ROOT
-    if( pcCU->getSlice()->getSPS()->getQuadtreeTUFlag() && pcCU->getSlice()->getSymbolMode())
+    if (pcCU->getSlice()->getSymbolMode())
 #else
-    if( pcCU->getSlice()->getSPS()->getQuadtreeTUFlag() )
+    if (1)
 #endif
     {
       m_pcEntropyCoderIf->codeQtRootCbf( pcCU, uiAbsPartIdx );
@@ -2413,7 +2407,6 @@ Void TEncEntropy::encodeCoeff( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth
     m_pcEntropyCoderIf->codeCbf( pcCU, uiAbsPartIdx, TEXT_CHROMA_V, 0 );
 #endif
 #if HHI_RQT
-    if( pcCU->getSlice()->getSPS()->getQuadtreeTUFlag() || pcCU->getCbf(uiAbsPartIdx, TEXT_LUMA, 0) || pcCU->getCbf(uiAbsPartIdx, TEXT_CHROMA_U, 0) || pcCU->getCbf(uiAbsPartIdx, TEXT_CHROMA_V, 0) )
 #else
     if( pcCU->getCbf(uiAbsPartIdx, TEXT_LUMA, 0) || pcCU->getCbf(uiAbsPartIdx, TEXT_CHROMA_U, 0) || pcCU->getCbf(uiAbsPartIdx, TEXT_CHROMA_V, 0) )
 #endif

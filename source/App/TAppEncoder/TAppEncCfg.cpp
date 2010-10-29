@@ -133,13 +133,15 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
     ("MaxCUSize,s",         m_uiMaxCUWidth,  64u, "max CU size")
     ("MaxCUSize,s",         m_uiMaxCUHeight, 64u, "max CU size")
     ("MaxPartitionDepth,h", m_uiMaxCUDepth,   4u, "CU depth")
-
+  
+#if HHI_RQT
+#else
     ("MaxTrSize,t",    m_uiMaxTrSize, 64u, "max transform size")
     ("MaxTrDepth,-utd",m_uiMaxTrDepth, 1u, "max transform depth")
     ("MinTrDepth,-ltd",m_uiMinTrDepth, 0u, "min transform depth")
+#endif
 
 #if HHI_RQT
-    ("QuadtreeTUFlag", m_bQuadtreeTUFlag, true)
     ("QuadtreeTULog2MaxSize", m_uiQuadtreeTULog2MaxSize, 6u)
     ("QuadtreeTULog2MinSize", m_uiQuadtreeTULog2MinSize, 2u)
 #if HHI_RQT_DEPTH
@@ -383,9 +385,12 @@ Void TAppEncCfg::xCheckParameter()
   xConfirmPara( (m_uiMaxCUHeight >> m_uiMaxCUDepth) < 4,                                    "Minimum partition height size should be larger than or equal to 8");
   xConfirmPara( m_uiMaxCUWidth < 16,                                                        "Maximum partition width size should be larger than or equal to 16");
   xConfirmPara( m_uiMaxCUHeight < 16,                                                       "Maximum partition height size should be larger than or equal to 16");
+#if HHI_RQT
+#else
   xConfirmPara( m_uiMaxTrDepth < m_uiMinTrDepth,                                            "Max. transform depth should be equal or larger than Min. transform depth");
   xConfirmPara( m_uiMaxTrSize > 64,                                                         "Max physical transform size should be equal or smaller than 64");
   xConfirmPara( m_uiMaxTrSize < 2,                                                          "Max physical transform size should be equal or larger than 2");
+#endif
   xConfirmPara( (m_iSourceWidth  % (m_uiMaxCUWidth  >> (m_uiMaxCUDepth-1)))!=0,             "Frame width should be multiple of minimum CU size");
   xConfirmPara( (m_iSourceHeight % (m_uiMaxCUHeight >> (m_uiMaxCUDepth-1)))!=0,             "Frame height should be multiple of minimum CU size");
   xConfirmPara( m_iDIFTap  != 4 && m_iDIFTap  != 6 && m_iDIFTap  != 8 && m_iDIFTap  != 10 && m_iDIFTap  != 12, "DIF taps 4, 6, 8, 10 and 12 are supported");
@@ -394,35 +399,31 @@ Void TAppEncCfg::xCheckParameter()
 #endif
 
 #if HHI_RQT
-  if( m_bQuadtreeTUFlag )
-  {
-    xConfirmPara( m_uiQuadtreeTULog2MinSize < 2,                                        "QuadtreeTULog2MinSize must be 2 or greater.");
-    xConfirmPara( m_uiQuadtreeTULog2MinSize > 6,                                        "QuadtreeTULog2MinSize must be 6 or smaller.");
-    xConfirmPara( m_uiQuadtreeTULog2MaxSize < 2,                                        "QuadtreeTULog2MaxSize must be 2 or greater.");
-    xConfirmPara( m_uiQuadtreeTULog2MaxSize > 6,                                        "QuadtreeTULog2MaxSize must be 6 or smaller.");
-    xConfirmPara( m_uiQuadtreeTULog2MaxSize < m_uiQuadtreeTULog2MinSize,                "QuadtreeTULog2MaxSize must be greater than or equal to m_uiQuadtreeTULog2MinSize.");
-    xConfirmPara( (1<<m_uiQuadtreeTULog2MinSize)>(m_uiMaxCUWidth >>(m_uiMaxCUDepth-1)), "QuadtreeTULog2MinSize must not be greater than minimum CU size" ); // HS
-    xConfirmPara( (1<<m_uiQuadtreeTULog2MinSize)>(m_uiMaxCUHeight>>(m_uiMaxCUDepth-1)), "QuadtreeTULog2MinSize must not be greater than minimum CU size" ); // HS
-
-    xConfirmPara( ( 1 << m_uiQuadtreeTULog2MinSize ) > ( m_uiMaxCUWidth  >> m_uiMaxCUDepth ), "Minimum CU width must be greater than minimum transform size." );
-    xConfirmPara( ( 1 << m_uiQuadtreeTULog2MinSize ) > ( m_uiMaxCUHeight >> m_uiMaxCUDepth ), "Minimum CU height must be greater than minimum transform size." );
+  xConfirmPara( m_uiQuadtreeTULog2MinSize < 2,                                        "QuadtreeTULog2MinSize must be 2 or greater.");
+  xConfirmPara( m_uiQuadtreeTULog2MinSize > 6,                                        "QuadtreeTULog2MinSize must be 6 or smaller.");
+  xConfirmPara( m_uiQuadtreeTULog2MaxSize < 2,                                        "QuadtreeTULog2MaxSize must be 2 or greater.");
+  xConfirmPara( m_uiQuadtreeTULog2MaxSize > 6,                                        "QuadtreeTULog2MaxSize must be 6 or smaller.");
+  xConfirmPara( m_uiQuadtreeTULog2MaxSize < m_uiQuadtreeTULog2MinSize,                "QuadtreeTULog2MaxSize must be greater than or equal to m_uiQuadtreeTULog2MinSize.");
+  xConfirmPara( (1<<m_uiQuadtreeTULog2MinSize)>(m_uiMaxCUWidth >>(m_uiMaxCUDepth-1)), "QuadtreeTULog2MinSize must not be greater than minimum CU size" ); // HS
+  xConfirmPara( (1<<m_uiQuadtreeTULog2MinSize)>(m_uiMaxCUHeight>>(m_uiMaxCUDepth-1)), "QuadtreeTULog2MinSize must not be greater than minimum CU size" ); // HS
+  xConfirmPara( ( 1 << m_uiQuadtreeTULog2MinSize ) > ( m_uiMaxCUWidth  >> m_uiMaxCUDepth ), "Minimum CU width must be greater than minimum transform size." );
+  xConfirmPara( ( 1 << m_uiQuadtreeTULog2MinSize ) > ( m_uiMaxCUHeight >> m_uiMaxCUDepth ), "Minimum CU height must be greater than minimum transform size." );
 #if HHI_RQT_DEPTH
 #if HHI_C319
-    xConfirmPara( m_uiQuadtreeTUMaxDepthInter < 1,                                                         "QuadtreeTUMaxDepthInter must be greater than or equal to 1" );
-    xConfirmPara( m_uiQuadtreeTUMaxDepthInter > m_uiQuadtreeTULog2MaxSize - m_uiQuadtreeTULog2MinSize + 1, "QuadtreeTUMaxDepthInter must be less than or equal to the difference between QuadtreeTULog2MaxSize and QuadtreeTULog2MinSize plus 1" );
-    xConfirmPara( m_uiQuadtreeTUMaxDepthIntra < 1,                                                         "QuadtreeTUMaxDepthIntra must be greater than or equal to 1" );
-    xConfirmPara( m_uiQuadtreeTUMaxDepthIntra > m_uiQuadtreeTULog2MaxSize - m_uiQuadtreeTULog2MinSize + 1, "QuadtreeTUMaxDepthIntra must be less than or equal to the difference between QuadtreeTULog2MaxSize and QuadtreeTULog2MinSize plus 1" );
+  xConfirmPara( m_uiQuadtreeTUMaxDepthInter < 1,                                                         "QuadtreeTUMaxDepthInter must be greater than or equal to 1" );
+  xConfirmPara( m_uiQuadtreeTUMaxDepthInter > m_uiQuadtreeTULog2MaxSize - m_uiQuadtreeTULog2MinSize + 1, "QuadtreeTUMaxDepthInter must be less than or equal to the difference between QuadtreeTULog2MaxSize and QuadtreeTULog2MinSize plus 1" );
+  xConfirmPara( m_uiQuadtreeTUMaxDepthIntra < 1,                                                         "QuadtreeTUMaxDepthIntra must be greater than or equal to 1" );
+  xConfirmPara( m_uiQuadtreeTUMaxDepthIntra > m_uiQuadtreeTULog2MaxSize - m_uiQuadtreeTULog2MinSize + 1, "QuadtreeTUMaxDepthIntra must be less than or equal to the difference between QuadtreeTULog2MaxSize and QuadtreeTULog2MinSize plus 1" );
     if(m_iSymbolMode == 0)
     {
       xConfirmPara( m_uiQuadtreeTUMaxDepthIntra > 1,                                    "QuadtreeTUMaxDepthIntra must be equal to 1 when LCEC is used");
       xConfirmPara( m_uiQuadtreeTUMaxDepthInter > 2,                                    "QuadtreeTUMaxDepthInter must be less than or equal to 2 when LCEC is used");
     }
 #else
-    xConfirmPara( m_uiQuadtreeTUMaxDepth < 1,                                                         "QuadtreeTUMaxDepth must be greater than or equal to 1" );
-    xConfirmPara( m_uiQuadtreeTUMaxDepth > m_uiQuadtreeTULog2MaxSize - m_uiQuadtreeTULog2MinSize + 1, "QuadtreeTUMaxDepth must be less than or equal to the difference between QuadtreeTULog2MaxSize and QuadtreeTULog2MinSize plus 1" );
+  xConfirmPara( m_uiQuadtreeTUMaxDepth < 1,                                                         "QuadtreeTUMaxDepth must be greater than or equal to 1" );
+  xConfirmPara( m_uiQuadtreeTUMaxDepth > m_uiQuadtreeTULog2MaxSize - m_uiQuadtreeTULog2MinSize + 1, "QuadtreeTUMaxDepth must be less than or equal to the difference between QuadtreeTULog2MaxSize and QuadtreeTULog2MinSize plus 1" );
 #endif
 #endif
-}
 #endif
 
 #if HHI_INTERP_FILTER && !TEN_DIRECTIONAL_INTERP
@@ -503,18 +504,13 @@ Void TAppEncCfg::xSetGlobal()
   // compute actual CU depth with respect to config depth and max transform size
   g_uiAddCUDepth  = 0;
 #if HHI_RQT
-  if( m_bQuadtreeTUFlag )
+  while( (m_uiMaxCUWidth>>m_uiMaxCUDepth) > ( 1 << ( m_uiQuadtreeTULog2MinSize + g_uiAddCUDepth )  ) ) g_uiAddCUDepth++;
+#else
+  if( ((m_uiMaxCUWidth>>(m_uiMaxCUDepth-1)) > (m_uiMaxTrSize>>m_uiMaxTrDepth)) )
   {
-    while( (m_uiMaxCUWidth>>m_uiMaxCUDepth) > ( 1 << ( m_uiQuadtreeTULog2MinSize + g_uiAddCUDepth )  ) ) g_uiAddCUDepth++;
+    while( (m_uiMaxCUWidth>>(m_uiMaxCUDepth-1)) > (m_uiMaxTrSize<<g_uiAddCUDepth) ) g_uiAddCUDepth++;
   }
-  else
 #endif
-  {
-    if( ((m_uiMaxCUWidth>>(m_uiMaxCUDepth-1)) > (m_uiMaxTrSize>>m_uiMaxTrDepth)) )
-    {
-      while( (m_uiMaxCUWidth>>(m_uiMaxCUDepth-1)) > (m_uiMaxTrSize<<g_uiAddCUDepth) ) g_uiAddCUDepth++;
-    }
-  }
   
   m_uiMaxCUDepth += g_uiAddCUDepth;
   g_uiAddCUDepth++;
@@ -546,7 +542,11 @@ Void TAppEncCfg::xPrintParameter()
   printf("Number of Ref. frames (B_L1) : %d\n", m_iNumOfReferenceB_L1);
   printf("Number of Reference frames   : %d\n", m_iNumOfReference);
   printf("CU size / depth              : %d / %d\n", m_uiMaxCUWidth, m_uiMaxCUDepth );
+#if HHI_RQT
+  printf("RQT trans. size (min / max)  : %d / %d\n", 1 << m_uiQuadtreeTULog2MinSize, 1 << m_uiQuadtreeTULog2MaxSize );
+#else
   printf("Transform depth (min / max)  : %d / %d\n", m_uiMinTrDepth, m_uiMaxTrDepth );
+#endif
 #if HHI_RQT_DEPTH
 #if HHI_C319
   printf("Max RQT depth inter          : %d\n", m_uiQuadtreeTUMaxDepthInter);
@@ -560,7 +560,10 @@ Void TAppEncCfg::xPrintParameter()
   printf("QP                           : %5.2f\n", m_fQP );
   printf("GOP size                     : %d\n", m_iGOPSize );
   printf("Rate GOP size                : %d\n", m_iRateGOPSize );
+#if HHI_RQT
+#else
   printf("Max physical trans. size     : %d\n", m_uiMaxTrSize );
+#endif
   printf("Bit increment                : %d\n", m_uiBitIncrement );
 
 #if HHI_INTERP_FILTER
@@ -683,7 +686,7 @@ Void TAppEncCfg::xPrintParameter()
     printf("EdgePrediction:%d ", m_bEdgePredictionEnable);
 #endif //EDGE_BASED_PREDICTION
 #if HHI_RQT
-  printf("RQT:%d ", m_bQuadtreeTUFlag     );
+  printf("RQT:%d ", 1     );
 #endif
 #if HHI_ALLOW_CIP_SWITCH
   printf("CIP:%d ", m_bUseCIP             );

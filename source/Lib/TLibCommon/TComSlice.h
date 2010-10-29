@@ -65,7 +65,6 @@ private:
 
   // Tool list
 #if HHI_RQT
-  Bool        m_bQuadtreeTUFlag;
   UInt        m_uiQuadtreeTULog2MaxSize;
   UInt        m_uiQuadtreeTULog2MinSize;
 #if HHI_RQT_DEPTH
@@ -156,8 +155,6 @@ public:
   Void setMaxTrDepth  ( UInt u ) { m_uiMaxTrDepth = u;      }
   UInt getMaxTrDepth  ()         { return  m_uiMaxTrDepth;  }
 #if HHI_RQT
-  Void setQuadtreeTUFlag( Bool b )        { m_bQuadtreeTUFlag = b;            }
-  Bool getQuadtreeTUFlag()                { return m_bQuadtreeTUFlag;         }
   Void setQuadtreeTULog2MaxSize( UInt u ) { m_uiQuadtreeTULog2MaxSize = u;    }
   UInt getQuadtreeTULog2MaxSize()         { return m_uiQuadtreeTULog2MaxSize; }
   Void setQuadtreeTULog2MinSize( UInt u ) { m_uiQuadtreeTULog2MinSize = u;    }

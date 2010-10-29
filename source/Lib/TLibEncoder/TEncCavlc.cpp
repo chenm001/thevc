@@ -401,45 +401,62 @@ Void TEncCavlc::codeSPS( TComSPS* pcSPS )
   m_uiBitHLS += xWriteUvlc  ( pcSPS->getPad (0) );
   m_uiBitHLS += xWriteUvlc  ( pcSPS->getPad (1) );
 
+#if HHI_C319_SPS
+  assert( pcSPS->getMaxCUWidth() == pcSPS->getMaxCUHeight() );
+  m_uiBitHLS += xWriteUvlc  ( pcSPS->getMaxCUWidth()   );
+  m_uiBitHLS += xWriteUvlc  ( pcSPS->getMaxCUDepth()-g_uiAddCUDepth );
+  
+#if HHI_RQT
+  m_uiBitHLS += xWriteUvlc( pcSPS->getQuadtreeTULog2MinSize() - 2 );
+  m_uiBitHLS += xWriteUvlc( pcSPS->getQuadtreeTULog2MaxSize() - pcSPS->getQuadtreeTULog2MinSize() );
+#if HHI_RQT_DEPTH
+#if HHI_C319
+  m_uiBitHLS += xWriteUvlc( pcSPS->getQuadtreeTUMaxDepthInter() - 1 );
+  m_uiBitHLS += xWriteUvlc( pcSPS->getQuadtreeTUMaxDepthIntra() - 1 );
+#else
+  m_uiBitHLS += xWriteUvlc( pcSPS->getQuadtreeTUMaxDepth () - 1 );
+#endif
+#endif	
+#else // HHI_RQT
+  // Samsung Transform Parameters
+  m_uiBitHLS += xWriteUvlc  ( pcSPS->getMinTrDepth()   );
+  m_uiBitHLS += xWriteUvlc  ( pcSPS->getMaxTrDepth()   );
+  m_uiBitHLS += xWriteUvlc  ( pcSPS->getMaxTrSize() == 2 ? 0 : g_aucConvertToBit[pcSPS->getMaxTrSize()]+1 );
+#endif // HHI_RQT
+  
+#else // HHI_C319_SPS
   m_uiBitHLS += xWriteUvlc  ( pcSPS->getMaxCUWidth ()   );
   m_uiBitHLS += xWriteUvlc  ( pcSPS->getMaxCUHeight()   );
 #if HHI_RQT
-  if (pcSPS->getQuadtreeTUFlag())
-  {
-    m_uiBitHLS += xWriteUvlc  ( pcSPS->getMaxCUDepth () - g_uiAddCUDepth );
-  }
-  else
-#endif
+  m_uiBitHLS += xWriteUvlc  ( pcSPS->getMaxCUDepth () - g_uiAddCUDepth );
+#else
   m_uiBitHLS += xWriteUvlc  ( pcSPS->getMaxCUDepth ()-1 ); //xWriteUvlc ( pcSPS->getMaxCUDepth ()-g_uiAddCUDepth );
+#endif
 
   // Transform
   m_uiBitHLS += xWriteUvlc  ( pcSPS->getMinTrDepth()   );
   m_uiBitHLS += xWriteUvlc  ( pcSPS->getMaxTrDepth()   );
 
 #if HHI_RQT
-  xWriteFlag( pcSPS->getQuadtreeTUFlag() );
-  m_uiBitHLS += 1;
-  if( pcSPS->getQuadtreeTUFlag() )
+  m_uiBitHLS += xWriteUvlc( pcSPS->getQuadtreeTULog2MinSize() - 2 );
+  if( pcSPS->getQuadtreeTULog2MinSize() < 6 )
   {
-    m_uiBitHLS += xWriteUvlc( pcSPS->getQuadtreeTULog2MinSize() - 2 );
-    if( pcSPS->getQuadtreeTULog2MinSize() < 6 )
-    {
-      m_uiBitHLS += xWriteUvlc( pcSPS->getQuadtreeTULog2MaxSize() - pcSPS->getQuadtreeTULog2MinSize() );
-    }
+    m_uiBitHLS += xWriteUvlc( pcSPS->getQuadtreeTULog2MaxSize() - pcSPS->getQuadtreeTULog2MinSize() );
+  }
 #if HHI_RQT_DEPTH
 #if HHI_C319
-    m_uiBitHLS += xWriteUvlc( pcSPS->getQuadtreeTUMaxDepthInter() - 1 );
-    m_uiBitHLS += xWriteUvlc( pcSPS->getQuadtreeTUMaxDepthIntra() - 1 );
+  m_uiBitHLS += xWriteUvlc( pcSPS->getQuadtreeTUMaxDepthInter() - 1 );
+  m_uiBitHLS += xWriteUvlc( pcSPS->getQuadtreeTUMaxDepthIntra() - 1 );
 #else
-    m_uiBitHLS += xWriteUvlc( pcSPS->getQuadtreeTUMaxDepth () - 1 );
+  m_uiBitHLS += xWriteUvlc( pcSPS->getQuadtreeTUMaxDepth () - 1 );
 #endif
 #endif	
-  }
 #endif
 
   // Max transform size
   m_uiBitHLS += xWriteUvlc  ( pcSPS->getMaxTrSize() == 2 ? 0 : g_aucConvertToBit[pcSPS->getMaxTrSize()]+1 );
-
+#endif // HHI_C319_SPS
+  
   // Tools
   xWriteFlag  ( (pcSPS->getUseALF ()) ? 1 : 0 );
   xWriteFlag  ( (pcSPS->getUseDQP ()) ? 1 : 0 );
@@ -675,44 +692,61 @@ Void TEncCavlc::codeSPS( TComSPS* pcSPS )
   xWriteUvlc  ( pcSPS->getPad (0) );
   xWriteUvlc  ( pcSPS->getPad (1) );
 
+#if HHI_C319_SPS
+  assert( pcSPS->getMaxCUWidth() == pcSPS->getMaxCUHeight() );
+  xWriteUvlc  ( pcSPS->getMaxCUWidth()   );
+  xWriteUvlc  ( pcSPS->getMaxCUDepth()-g_uiAddCUDepth );
+  
+#if HHI_RQT
+  xWriteUvlc( pcSPS->getQuadtreeTULog2MinSize() - 2 );
+  xWriteUvlc( pcSPS->getQuadtreeTULog2MaxSize() - pcSPS->getQuadtreeTULog2MinSize() );
+#if HHI_RQT_DEPTH
+#if HHI_C319
+  xWriteUvlc( pcSPS->getQuadtreeTUMaxDepthInter() - 1 );
+  xWriteUvlc( pcSPS->getQuadtreeTUMaxDepthIntra() - 1 );
+#else
+  xWriteUvlc( pcSPS->getQuadtreeTUMaxDepth () - 1 );
+#endif
+#endif	
+#else // HHI_RQT
+  // Samsung Transform Parameters
+  xWriteUvlc  ( pcSPS->getMinTrDepth()   );
+  xWriteUvlc  ( pcSPS->getMaxTrDepth()   );
+  xWriteUvlc  ( pcSPS->getMaxTrSize() == 2 ? 0 : g_aucConvertToBit[pcSPS->getMaxTrSize()]+1 );
+#endif // HHI_RQT
+  
+#else // HHI_C319_SPS
   xWriteUvlc  ( pcSPS->getMaxCUWidth ()   );
   xWriteUvlc  ( pcSPS->getMaxCUHeight()   );
 #if HHI_RQT
-  if( pcSPS->getQuadtreeTUFlag() )
-  {
-    xWriteUvlc  ( pcSPS->getMaxCUDepth() - g_uiAddCUDepth );
-  }
-  else
-#endif
+  xWriteUvlc  ( pcSPS->getMaxCUDepth() - g_uiAddCUDepth );
+#else
   xWriteUvlc  ( pcSPS->getMaxCUDepth ()-1 ); //xWriteUvlc ( pcSPS->getMaxCUDepth ()-g_uiAddCUDepth );
-  
+#endif
   // Transform
   xWriteUvlc  ( pcSPS->getMinTrDepth()   );
   xWriteUvlc  ( pcSPS->getMaxTrDepth()   );
 
 #if HHI_RQT
-  xWriteFlag( pcSPS->getQuadtreeTUFlag() );
-  if( pcSPS->getQuadtreeTUFlag() )
+  xWriteUvlc( pcSPS->getQuadtreeTULog2MinSize() - 2 );
+  if( pcSPS->getQuadtreeTULog2MinSize() < 6 )
   {
-    xWriteUvlc( pcSPS->getQuadtreeTULog2MinSize() - 2 );
-    if( pcSPS->getQuadtreeTULog2MinSize() < 6 )
-    {
-      xWriteUvlc( pcSPS->getQuadtreeTULog2MaxSize() - pcSPS->getQuadtreeTULog2MinSize() );
-    }
+    xWriteUvlc( pcSPS->getQuadtreeTULog2MaxSize() - pcSPS->getQuadtreeTULog2MinSize() );
+  }
 #if HHI_RQT_DEPTH
 #if HHI_C319
-    xWriteUvlc( pcSPS->getQuadtreeTUMaxDepthInter() - 1 );
-    xWriteUvlc( pcSPS->getQuadtreeTUMaxDepthIntra() - 1 );
+  xWriteUvlc( pcSPS->getQuadtreeTUMaxDepthInter() - 1 );
+  xWriteUvlc( pcSPS->getQuadtreeTUMaxDepthIntra() - 1 );
 #else
-    xWriteUvlc( pcSPS->getQuadtreeTUMaxDepth () - 1 );
+  xWriteUvlc( pcSPS->getQuadtreeTUMaxDepth () - 1 );
 #endif
 #endif	
-  }
 #endif // HHI_RQT
 
   // Max transform size
   xWriteUvlc  ( pcSPS->getMaxTrSize() == 2 ? 0 : g_aucConvertToBit[pcSPS->getMaxTrSize()]+1 );
-
+#endif // HHI_C319_SPS
+  
   // Tools
   xWriteFlag  ( (pcSPS->getUseALF ()) ? 1 : 0 );
   xWriteFlag  ( (pcSPS->getUseDQP ()) ? 1 : 0 );
@@ -2278,9 +2312,9 @@ Void TEncCavlc::codeCbf( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eType, UI
 {
 #if HHI_RQT
 #if LCEC_CBP_YUV_ROOT
-  if( pcCU->getSlice()->getSPS()->getQuadtreeTUFlag() && eType != TEXT_ALL)
+  if( eType != TEXT_ALL)
 #else
-  if( pcCU->getSlice()->getSPS()->getQuadtreeTUFlag() )
+  if( 1 )
 #endif
   {
 #if HHI_RQT_INTRA

@@ -765,7 +765,7 @@ TComSPS::TComSPS()
   m_uiMaxCUDepth  = 3;
   m_uiMinTrDepth  = 0;
   m_uiMaxTrDepth  = 1;
-  m_uiMaxTrSize   = 64;
+  m_uiMaxTrSize   = 32;
 
   // Tool list
   m_bUseALF       = false;
