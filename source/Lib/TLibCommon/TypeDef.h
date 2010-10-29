@@ -284,6 +284,14 @@ void normalizeScanStats();
 // TOSHIBA defines section end
 ////////////////////////////////
 
+////////////////////////////////
+// TI defines section start
+////////////////////////////////
+#define TI_SIGN_BIN0_PCP  1 // Enable sign and bin0 plane coding
+////////////////////////////////
+// TI defines section end
+////////////////////////////////
+
 #define BUGFIX85TMP 1 // Ignore cost of CBF (affects RQT off setting)
 #define BUGFIX102 1 // Do not code terminating bit when using LCEC
 
