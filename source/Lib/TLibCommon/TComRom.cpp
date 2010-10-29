@@ -2276,12 +2276,22 @@ const UChar g_aucIntraModeBitsAng[7] =
    3   // 128x128   5   2+1
 };
 
+#if BUGFIX_106
+const UChar g_aucAngModeMapping[3][34] = // intra mode conversion for most probable
+{
+  {2,3,2,2,4, 4,4,0,0,0, 0,0,0,0,2, 2,2,2,2,2, 2,1,1,1,1, 1,1,1,1,1, 2,2,2,2},               // conversion to 5 modes
+  {2,3,3,2,4, 4,4,2,0,0, 0,2,5,5,5, 2,6,6,3,2, 7,7,7,2,1, 1,1,2,8,8, 8,2,2,2},               // conversion to 9 modes
+  {2,3,3,10,10, 4,11,11,0,0, 0,12,12,5,5, 13,13,6,14,14, 7,7,15,15,1, 1,1,16,16,8, 8,2,2,9}  // conversion to 17 modes
+};
+#else
 const UChar g_aucAngModeMapping[3][34] = // intra mode conversion for most probable
 {
   {2,3,2,2,4, 4,4,0,0,0, 0,0,0,0,2, 2,2,2,2,2, 2,1,1,1,1, 1,1,1,1,1, 2,2,2,2},               // conversion to 5 modes
   {2,3,3,2,4, 4,4,2,0,0, 0,2,5,5,5, 2,6,6,6,2, 7,7,7,2,1, 1,1,2,8,8, 8,2,2,2},               // conversion to 9 modes
   {2,3,3,10,10, 4,11,11,0,0, 0,12,12,5,5, 13,13,6,14,14, 7,7,15,15,1, 1,1,16,16,8, 8,2,2,9}  // conversion to 17 modes
 };
+#endif
+
 # endif
 #endif
 
