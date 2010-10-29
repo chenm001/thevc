@@ -4242,7 +4242,7 @@ Void TEncSearch::predInterSearch( TComDataCU* pcCU, TComYuv* pcOrgYuv, TComYuv*&
             if ( pcCU->getSlice()->getNoBackPredFlag() )
             {
               cMvTemp[1][iRefIdxTemp] = cMvTemp[0][iRefIdxTemp];
-              xMotionEstimationForL1 ( pcCU, pcOrgYuv, iPartIdx, eRefPicList, &cMvPred[iRefList][iRefIdxTemp], iRefIdxTemp, cMvTemp[iRefList][iRefIdxTemp], uiBitsTemp, uiCostTemp );
+              //xMotionEstimationForL1 ( pcCU, pcOrgYuv, iPartIdx, eRefPicList, &cMvPred[iRefList][iRefIdxTemp], iRefIdxTemp, cMvTemp[iRefList][iRefIdxTemp], uiBitsTemp, uiCostTemp );
             }
 #endif
           }
