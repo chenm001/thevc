@@ -327,6 +327,12 @@ Void TEncCavlc::resetEntropy()
   m_uiCbpVlcIdx[1] = 0;
 #endif
 
+#if QC_BLK_CBP
+  ::memcpy(m_uiBlkCBPTableE, g_auiBlkCBPTableE, 2*15*sizeof(UInt));
+  ::memcpy(m_uiBlkCBPTableD, g_auiBlkCBPTableD, 2*15*sizeof(UInt));
+  m_uiBlkCbpVlcIdx = 0;
+#endif
+
 #if LCEC_PHASE2
   ::memcpy(m_uiMI1TableE, g_auiMI1TableE, 8*sizeof(UInt));
   ::memcpy(m_uiMI1TableD, g_auiMI1TableD, 8*sizeof(UInt));
@@ -421,7 +427,12 @@ Void TEncCavlc::codeSPS( TComSPS* pcSPS )
       m_uiBitHLS += xWriteUvlc( pcSPS->getQuadtreeTULog2MaxSize() - pcSPS->getQuadtreeTULog2MinSize() );
     }
 #if HHI_RQT_DEPTH
-    m_uiBitHLS += xWriteUvlc  ( pcSPS->getQuadtreeTUMaxDepth () - 1 );
+#if HHI_C319
+    m_uiBitHLS += xWriteUvlc( pcSPS->getQuadtreeTUMaxDepthInter() - 1 );
+    m_uiBitHLS += xWriteUvlc( pcSPS->getQuadtreeTUMaxDepthIntra() - 1 );
+#else
+    m_uiBitHLS += xWriteUvlc( pcSPS->getQuadtreeTUMaxDepth () - 1 );
+#endif
 #endif	
   }
 #endif
@@ -689,10 +700,15 @@ Void TEncCavlc::codeSPS( TComSPS* pcSPS )
       xWriteUvlc( pcSPS->getQuadtreeTULog2MaxSize() - pcSPS->getQuadtreeTULog2MinSize() );
     }
 #if HHI_RQT_DEPTH
-    xWriteUvlc  ( pcSPS->getQuadtreeTUMaxDepth () - 1 );
+#if HHI_C319
+    xWriteUvlc( pcSPS->getQuadtreeTUMaxDepthInter() - 1 );
+    xWriteUvlc( pcSPS->getQuadtreeTUMaxDepthIntra() - 1 );
+#else
+    xWriteUvlc( pcSPS->getQuadtreeTUMaxDepth () - 1 );
+#endif
 #endif	
   }
-#endif
+#endif // HHI_RQT
 
   // Max transform size
   xWriteUvlc  ( pcSPS->getMaxTrSize() == 2 ? 0 : g_aucConvertToBit[pcSPS->getMaxTrSize()]+1 );
@@ -2261,7 +2277,11 @@ Void TEncCavlc::codeDeltaQP( TComDataCU* pcCU, UInt uiAbsPartIdx )
 Void TEncCavlc::codeCbf( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eType, UInt uiTrDepth )
 {
 #if HHI_RQT
+#if LCEC_CBP_YUV_ROOT
+  if( pcCU->getSlice()->getSPS()->getQuadtreeTUFlag() && eType != TEXT_ALL)
+#else
   if( pcCU->getSlice()->getSPS()->getQuadtreeTUFlag() )
+#endif
   {
 #if HHI_RQT_INTRA
     return;
@@ -2321,6 +2341,58 @@ Void TEncCavlc::codeCbf( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eType, UI
 
   return;
 }
+
+
+#if LCEC_CBP_YUV_ROOT
+Void TEncCavlc::codeBlockCbf( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eType, UInt uiTrDepth, UInt uiQPartNum, Bool bRD )
+{
+  UInt uiCbf0 = pcCU->getCbf   ( uiAbsPartIdx, eType, uiTrDepth );
+  UInt uiCbf1 = pcCU->getCbf   ( uiAbsPartIdx + uiQPartNum, eType, uiTrDepth );
+  UInt uiCbf2 = pcCU->getCbf   ( uiAbsPartIdx + uiQPartNum*2, eType, uiTrDepth );
+  UInt uiCbf3 = pcCU->getCbf   ( uiAbsPartIdx + uiQPartNum*3, eType, uiTrDepth );
+  UInt uiCbf = (uiCbf0<<3) | (uiCbf1<<2) | (uiCbf2<<1) | uiCbf3;
+
+  assert(uiTrDepth > 0);
+
+#if QC_BLK_CBP
+  if(bRD && uiCbf==0)
+  {
+    xWriteCode(0, 4); 
+    return;
+  }
+
+  assert(uiCbf > 0);
+
+  uiCbf --;
+
+  Int x,cx,y,cy;
+
+  UInt n = (pcCU->isIntra(uiAbsPartIdx) && eType == TEXT_LUMA)? 0:1;
+  cx = m_uiBlkCBPTableE[n][uiCbf];
+  x = uiCbf;
+  UInt vlcn = (n==0)?g_auiBlkCbpVlcNum[m_uiBlkCbpVlcIdx]:11;
+
+  if ( m_bAdaptFlag )
+  {                
+    cy = Max(0,cx-1);
+    y = m_uiBlkCBPTableD[n][cy];
+    m_uiBlkCBPTableD[n][cy] = x;
+    m_uiBlkCBPTableD[n][cx] = y;
+    m_uiBlkCBPTableE[n][x] = cy;
+    m_uiBlkCBPTableE[n][y] = cx;
+    if(n==0)
+      m_uiBlkCbpVlcIdx += cx == m_uiBlkCbpVlcIdx ? 0 : (cx < m_uiBlkCbpVlcIdx ? -1 : 1);
+
+  }
+
+  xWriteVlc( vlcn, cx );
+  return;
+#else
+  xWriteCode(uiCbf, 4);
+#endif
+}
+#endif
+
 
 #if QC_MDDT
 Void TEncCavlc::codeCoeffNxN    ( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx, UInt uiWidth, UInt uiHeight, UInt uiDepth, TextType eTType, UInt uiMode, Bool bRD )
@@ -2994,7 +3066,11 @@ UInt TEncCavlc::xWriteVlc(UInt uiTableNumber, UInt uiCodeNumber)
 Void TEncCavlc::xWriteVlc(UInt uiTableNumber, UInt uiCodeNumber)
 {
 #endif
+#if QC_BLK_CBP
+  assert( uiTableNumber<=11 );
+#else
   assert( uiTableNumber<=10 );
+#endif
 
   UInt uiTemp;
   UInt uiLength = 0;
@@ -3073,6 +3149,21 @@ Void TEncCavlc::xWriteVlc(UInt uiTableNumber, UInt uiCodeNumber)
     uiCode = uiCodeNumber+1;
     uiLength = 1+2*xLeadingZeros(uiCode);
   }
+#if QC_BLK_CBP
+  else if (uiTableNumber == 11)
+  {
+    if (uiCodeNumber == 0)
+    {
+      uiCode = 0;
+      uiLength = 3;
+    }
+    else
+    {
+      uiCode = uiCodeNumber + 1;
+      uiLength = 4;
+    }
+  }
+#endif
   xWriteCode(uiCode, uiLength);
 #if LCEC_STAT
   return uiLength;

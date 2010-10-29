@@ -91,6 +91,11 @@ private:
   UInt                      m_uiCbpVlcIdx[2];
 #endif
 
+#if QC_BLK_CBP
+  UInt                      m_uiBlkCBPTableD[2][15];
+  UInt                      m_uiBlkCbpVlcIdx;
+#endif
+
 #if LCEC_PHASE2
   Int                   m_iRefFrame0[1000];
   Int                   m_iRefFrame1[1000];
@@ -167,6 +172,9 @@ public:
   Void parseTransformIdx    ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
   Void parseDeltaQP         ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
   Void parseCbf             ( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eType, UInt uiTrDepth, UInt uiDepth );
+#if LCEC_CBP_YUV_ROOT
+  Void	parseBlockCbf			  ( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eType, UInt uiTrDepth, UInt uiDepth, UInt uiQPartNum );
+#endif
   Void parseCoeffNxN        ( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx, UInt uiWidth, UInt uiHeight, UInt uiDepth, TextType eTType );
 
   Void parseROTindex        ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );

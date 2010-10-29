@@ -98,7 +98,12 @@ protected:
   UInt      m_uiQuadtreeTULog2MaxSize;
   UInt      m_uiQuadtreeTULog2MinSize;
 #if HHI_RQT_DEPTH
+#if HHI_C319
+  UInt      m_uiQuadtreeTUMaxDepthInter;
+  UInt      m_uiQuadtreeTUMaxDepthIntra;
+#else
   UInt      m_uiQuadtreeTUMaxDepth;
+#endif
 #endif
 #endif
   UInt      m_uiMinTrDepth;                                   ///< min. TU depth

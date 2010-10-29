@@ -1418,6 +1418,14 @@ Void TEncSbac::codeCbf( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eType, UIn
   return;
 }
 
+
+#if LCEC_CBP_YUV_ROOT
+Void TEncSbac::codeBlockCbf( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eType, UInt uiTrDepth, UInt uiQPartNum, Bool bRD )
+{
+  return;
+}
+#endif
+
 #if HHI_RQT
 Void TEncSbac::codeQtCbf( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eType, UInt uiTrDepth )
 {

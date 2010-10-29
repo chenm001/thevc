@@ -80,7 +80,12 @@ protected:
   UInt      m_uiQuadtreeTULog2MaxSize;
   UInt      m_uiQuadtreeTULog2MinSize;
 #if HHI_RQT_DEPTH
+#if HHI_C319
+  UInt      m_uiQuadtreeTUMaxDepthInter;
+  UInt      m_uiQuadtreeTUMaxDepthIntra;
+#else  
   UInt      m_uiQuadtreeTUMaxDepth;
+#endif
 #endif
 #endif
   //====== B Slice ========
@@ -202,7 +207,12 @@ public:
   Void      setQuadtreeTULog2MaxSize        ( UInt  u )      { m_uiQuadtreeTULog2MaxSize = u; }
   Void      setQuadtreeTULog2MinSize        ( UInt  u )      { m_uiQuadtreeTULog2MinSize = u; }
 #if HHI_RQT_DEPTH
+#if HHI_C319
+  Void      setQuadtreeTUMaxDepthInter      ( UInt  u )      { m_uiQuadtreeTUMaxDepthInter = u; }
+  Void      setQuadtreeTUMaxDepthIntra      ( UInt  u )      { m_uiQuadtreeTUMaxDepthIntra = u; }
+#else
   Void      setQuadtreeTUMaxDepth              ( UInt  u )      { m_uiQuadtreeTUMaxDepth = u; }
+#endif
 #endif
 #endif
   //====== b; Slice ========
@@ -263,7 +273,12 @@ public:
   UInt      getQuadtreeTULog2MaxSize        ()      const { return m_uiQuadtreeTULog2MaxSize; }
   UInt      getQuadtreeTULog2MinSize        ()      const { return m_uiQuadtreeTULog2MinSize; }
 #if HHI_RQT_DEPTH
+#if HHI_C319
+  UInt      getQuadtreeTUMaxDepthInter      ()      const { return m_uiQuadtreeTUMaxDepthInter; }
+  UInt      getQuadtreeTUMaxDepthIntra      ()      const { return m_uiQuadtreeTUMaxDepthIntra; }
+#else
   UInt      getQuadtreeTUMaxDepth              ()      const { return m_uiQuadtreeTUMaxDepth; }
+#endif
 #endif
 #endif
   //==== b; Slice ========

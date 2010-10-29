@@ -143,7 +143,12 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
     ("QuadtreeTULog2MaxSize", m_uiQuadtreeTULog2MaxSize, 6u)
     ("QuadtreeTULog2MinSize", m_uiQuadtreeTULog2MinSize, 2u)
 #if HHI_RQT_DEPTH
+#if HHI_C319
+    ("QuadtreeTUMaxDepthIntra", m_uiQuadtreeTUMaxDepthIntra, 1u)
+    ("QuadtreeTUMaxDepthInter", m_uiQuadtreeTUMaxDepthInter, 2u)
+#else
     ("QuadtreeTUMaxDepth", m_uiQuadtreeTUMaxDepth, 5u)
+#endif
 #endif
 #endif
 
@@ -402,8 +407,20 @@ Void TAppEncCfg::xCheckParameter()
     xConfirmPara( ( 1 << m_uiQuadtreeTULog2MinSize ) > ( m_uiMaxCUWidth  >> m_uiMaxCUDepth ), "Minimum CU width must be greater than minimum transform size." );
     xConfirmPara( ( 1 << m_uiQuadtreeTULog2MinSize ) > ( m_uiMaxCUHeight >> m_uiMaxCUDepth ), "Minimum CU height must be greater than minimum transform size." );
 #if HHI_RQT_DEPTH
+#if HHI_C319
+    xConfirmPara( m_uiQuadtreeTUMaxDepthInter < 1,                                                         "QuadtreeTUMaxDepthInter must be greater than or equal to 1" );
+    xConfirmPara( m_uiQuadtreeTUMaxDepthInter > m_uiQuadtreeTULog2MaxSize - m_uiQuadtreeTULog2MinSize + 1, "QuadtreeTUMaxDepthInter must be less than or equal to the difference between QuadtreeTULog2MaxSize and QuadtreeTULog2MinSize plus 1" );
+    xConfirmPara( m_uiQuadtreeTUMaxDepthIntra < 1,                                                         "QuadtreeTUMaxDepthIntra must be greater than or equal to 1" );
+    xConfirmPara( m_uiQuadtreeTUMaxDepthIntra > m_uiQuadtreeTULog2MaxSize - m_uiQuadtreeTULog2MinSize + 1, "QuadtreeTUMaxDepthIntra must be less than or equal to the difference between QuadtreeTULog2MaxSize and QuadtreeTULog2MinSize plus 1" );
+    if(m_iSymbolMode == 0)
+    {
+      xConfirmPara( m_uiQuadtreeTUMaxDepthIntra > 1,                                    "QuadtreeTUMaxDepthIntra must be equal to 1 when LCEC is used");
+      xConfirmPara( m_uiQuadtreeTUMaxDepthInter > 2,                                    "QuadtreeTUMaxDepthInter must be less than or equal to 2 when LCEC is used");
+    }
+#else
     xConfirmPara( m_uiQuadtreeTUMaxDepth < 1,                                                         "QuadtreeTUMaxDepth must be greater than or equal to 1" );
     xConfirmPara( m_uiQuadtreeTUMaxDepth > m_uiQuadtreeTULog2MaxSize - m_uiQuadtreeTULog2MinSize + 1, "QuadtreeTUMaxDepth must be less than or equal to the difference between QuadtreeTULog2MaxSize and QuadtreeTULog2MinSize plus 1" );
+#endif
 #endif
 }
 #endif
@@ -531,7 +548,12 @@ Void TAppEncCfg::xPrintParameter()
   printf("CU size / depth              : %d / %d\n", m_uiMaxCUWidth, m_uiMaxCUDepth );
   printf("Transform depth (min / max)  : %d / %d\n", m_uiMinTrDepth, m_uiMaxTrDepth );
 #if HHI_RQT_DEPTH
+#if HHI_C319
+  printf("Max RQT depth inter          : %d\n", m_uiQuadtreeTUMaxDepthInter);
+  printf("Max RQT depth intra          : %d\n", m_uiQuadtreeTUMaxDepthIntra);
+#else
   printf("Max RQT depth                : %d\n", m_uiQuadtreeTUMaxDepth);
+#endif
 #endif
   printf("Motion search range          : %d\n", m_iSearchRange );
   printf("Intra period                 : %d\n", m_iIntraPeriod );

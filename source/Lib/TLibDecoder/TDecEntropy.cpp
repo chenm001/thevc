@@ -2744,6 +2744,33 @@ Void TDecEntropy::xDecodeTransformSubdiv( TComDataCU* pcCU, UInt uiAbsPartIdx, U
 
   const UInt uiTrDepth = uiDepth - pcCU->getDepth( uiAbsPartIdx );
 
+#if LCEC_CBP_YUV_ROOT
+  if(pcCU->getSlice()->getSymbolMode()==0)
+  {
+    if( uiSubdiv )
+    {
+      ++uiDepth;
+      const UInt uiQPartNum = pcCU->getPic()->getNumPartInCU() >> (uiDepth << 1);
+      const UInt uiStartAbsPartIdx = uiAbsPartIdx;
+  
+      for( Int i = 0; i < 4; i++ )
+      {
+        UInt uiDummyCbfY = 0;
+        UInt uiDummyCbfU = 0;
+        UInt uiDummyCbfV = 0;
+        xDecodeTransformSubdiv( pcCU, uiAbsPartIdx, uiDepth, i, uiDummyCbfY, uiDummyCbfU, uiDummyCbfV );
+        uiAbsPartIdx += uiQPartNum;
+      }
+    }
+    else
+    {
+      assert( uiDepth >= pcCU->getDepth( uiAbsPartIdx ) );
+      pcCU->setTrIdxSubParts( uiTrDepth, uiAbsPartIdx, uiDepth );
+    }
+  }
+  else
+  {
+#endif
 #if HHI_RQT_CHROMA_CBF_MOD
   if( pcCU->getPredictionMode(uiAbsPartIdx) != MODE_INTRA && uiLog2TrafoSize <= pcCU->getSlice()->getSPS()->getQuadtreeTULog2MaxSize() )
   {
@@ -2892,6 +2919,9 @@ Void TDecEntropy::xDecodeTransformSubdiv( TComDataCU* pcCU, UInt uiAbsPartIdx, U
       }
     }
   }
+#if LCEC_CBP_YUV_ROOT
+  }
+#endif
 }
 #else
 Void TDecEntropy::xDecodeTransformSubdiv( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth, UInt uiInnerQuadIdx )
@@ -2968,6 +2998,30 @@ Void TDecEntropy::xDecodeTransformSubdiv( TComDataCU* pcCU, UInt uiAbsPartIdx, U
 
   const UInt uiTrDepth = uiDepth - pcCU->getDepth( uiAbsPartIdx );
 
+#if LCEC_CBP_YUV_ROOT
+  if(pcCU->getSlice()->getSymbolMode()==0)
+  {
+    if( uiSubdiv )
+    {
+      ++uiDepth;
+      const UInt uiQPartNum = pcCU->getPic()->getNumPartInCU() >> (uiDepth << 1);
+      const UInt uiStartAbsPartIdx = uiAbsPartIdx;
+  
+      for( Int i = 0; i < 4; i++ )
+      {
+        xDecodeTransformSubdiv( pcCU, uiAbsPartIdx, uiDepth, i );
+        uiAbsPartIdx += uiQPartNum;
+      }
+    }
+    else
+    {
+      assert( uiDepth >= pcCU->getDepth( uiAbsPartIdx ) );
+      pcCU->setTrIdxSubParts( uiTrDepth, uiAbsPartIdx, uiDepth );
+    }
+  }
+  else
+  {
+#endif
 #if HHI_RQT_CHROMA_CBF_MOD
   if( pcCU->getPredictionMode(uiAbsPartIdx) != MODE_INTRA && uiLog2TrafoSize <= pcCU->getSlice()->getSPS()->getQuadtreeTULog2MaxSize() )
   {
@@ -3072,6 +3126,9 @@ Void TDecEntropy::xDecodeTransformSubdiv( TComDataCU* pcCU, UInt uiAbsPartIdx, U
       }
     }
   }
+#if LCEC_CBP_YUV_ROOT
+  }
+#endif
 }
 #endif
 #endif
@@ -3167,6 +3224,40 @@ Void TDecEntropy::xDecodeCoeff( TComDataCU* pcCU, TCoeff* pcCoeff, UInt uiAbsPar
       UInt uiQPartNum = pcCU->getPic()->getNumPartInCU() >> (uiDepth << 1);
       UInt uiIdx      = uiAbsPartIdx;
 
+#if LCEC_CBP_YUV_ROOT
+      if(pcCU->getSlice()->getSymbolMode() == 0)
+      {
+#if HHI_RQT
+        if(pcCU->getSlice()->getSPS()->getQuadtreeTUFlag())
+        {
+          UInt uiLog2TrSize = g_aucConvertToBit[ pcCU->getSlice()->getSPS()->getMaxCUWidth() >> uiDepth ] + 2;
+          if( eType == TEXT_LUMA || uiLog2TrSize > pcCU->getSlice()->getSPS()->getQuadtreeTULog2MinSize() )
+            m_pcEntropyDecoderIf->parseBlockCbf(pcCU, uiIdx, eType, uiTrIdx, uiDepth, uiQPartNum);
+          else
+          {
+            UInt uiCbf = pcCU->getCbf( uiIdx, eType );
+            pcCU->setCbfSubParts( uiCbf | ( 0x01 << uiTrIdx ), eType, uiIdx, uiDepth ); 
+            uiCbf = pcCU->getCbf( uiIdx + uiQPartNum, eType );
+            pcCU->setCbfSubParts( uiCbf | ( 0x01 << uiTrIdx ), eType, uiIdx + uiQPartNum, uiDepth ); 
+            uiCbf = pcCU->getCbf( uiIdx + 2*uiQPartNum, eType );
+            pcCU->setCbfSubParts( uiCbf | ( 0x01 << uiTrIdx ), eType, uiIdx + 2*uiQPartNum, uiDepth ); 
+            uiCbf = pcCU->getCbf( uiIdx + 3*uiQPartNum, eType );
+            pcCU->setCbfSubParts( uiCbf | ( 0x01 << uiTrIdx ), eType, uiIdx + 3*uiQPartNum, uiDepth ); 
+          }
+        }
+        else
+          m_pcEntropyDecoderIf->parseBlockCbf(pcCU, uiIdx, eType, uiTrIdx, uiDepth, uiQPartNum);
+#else
+        m_pcEntropyDecoderIf->parseBlockCbf(pcCU, uiIdx, eType, uiTrIdx, uiDepth, uiQPartNum);
+#endif
+        xDecodeCoeff( pcCU, pcCoeff, uiIdx, uiDepth, uiWidth, uiHeight, uiTrIdx, uiCurrTrIdx, eType ); pcCoeff += uiSize; uiIdx += uiQPartNum;
+        xDecodeCoeff( pcCU, pcCoeff, uiIdx, uiDepth, uiWidth, uiHeight, uiTrIdx, uiCurrTrIdx, eType ); pcCoeff += uiSize; uiIdx += uiQPartNum;
+        xDecodeCoeff( pcCU, pcCoeff, uiIdx, uiDepth, uiWidth, uiHeight, uiTrIdx, uiCurrTrIdx, eType ); pcCoeff += uiSize; uiIdx += uiQPartNum;
+        xDecodeCoeff( pcCU, pcCoeff, uiIdx, uiDepth, uiWidth, uiHeight, uiTrIdx, uiCurrTrIdx, eType );
+      }
+      else
+      {
+#endif
       m_pcEntropyDecoderIf->parseCbf( pcCU, uiIdx, eType, uiTrIdx, uiDepth );
       xDecodeCoeff( pcCU, pcCoeff, uiIdx, uiDepth, uiWidth, uiHeight, uiTrIdx, uiCurrTrIdx, eType ); pcCoeff += uiSize; uiIdx += uiQPartNum;
 
@@ -3178,6 +3269,9 @@ Void TDecEntropy::xDecodeCoeff( TComDataCU* pcCU, TCoeff* pcCoeff, UInt uiAbsPar
 
       m_pcEntropyDecoderIf->parseCbf( pcCU, uiIdx, eType, uiTrIdx, uiDepth );
       xDecodeCoeff( pcCU, pcCoeff, uiIdx, uiDepth, uiWidth, uiHeight, uiTrIdx, uiCurrTrIdx, eType );
+#if LCEC_CBP_YUV_ROOT
+      }
+#endif
 #if HHI_RQT
       {
         DTRACE_CABAC_V( g_nSymbolCounter++ );
@@ -3199,6 +3293,15 @@ Void TDecEntropy::decodeCoeff( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth
 
   if( pcCU->isIntra(uiAbsPartIdx) )
   {
+#if LCEC_CBP_YUV_ROOT
+    if (pcCU->getSlice()->getSymbolMode()==0)
+    {
+      m_pcEntropyDecoderIf->parseCbf( pcCU, uiAbsPartIdx, TEXT_ALL, 0, uiDepth );
+      if(pcCU->getCbf(uiAbsPartIdx, TEXT_LUMA, 0)==0 && pcCU->getCbf(uiAbsPartIdx, TEXT_CHROMA_U, 0)==0
+         && pcCU->getCbf(uiAbsPartIdx, TEXT_CHROMA_V, 0)==0)
+         return;
+    }
+#endif
 #if HHI_RQT_INTRA
     if( pcCU->getSlice()->getSPS()->getQuadtreeTUFlag() )
     {
@@ -3211,6 +3314,14 @@ Void TDecEntropy::decodeCoeff( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth
 #if QC_MDDT
 
 #if LCEC_PHASE2
+#if LCEC_CBP_YUV_ROOT
+    if (pcCU->getSlice()->getSymbolMode())
+    {
+      m_pcEntropyDecoderIf->parseCbf( pcCU, uiAbsPartIdx, TEXT_LUMA, 0, uiDepth );
+      m_pcEntropyDecoderIf->parseCbf( pcCU, uiAbsPartIdx, TEXT_CHROMA_U, 0, uiDepth );
+      m_pcEntropyDecoderIf->parseCbf( pcCU, uiAbsPartIdx, TEXT_CHROMA_V, 0, uiDepth );
+    }
+#else
     if (pcCU->getSlice()->getSymbolMode()==0)
     {
       m_pcEntropyDecoderIf->parseCbf( pcCU, uiAbsPartIdx, TEXT_ALL, 0, uiDepth );
@@ -3221,6 +3332,7 @@ Void TDecEntropy::decodeCoeff( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth
       m_pcEntropyDecoderIf->parseCbf( pcCU, uiAbsPartIdx, TEXT_CHROMA_U, 0, uiDepth );
       m_pcEntropyDecoderIf->parseCbf( pcCU, uiAbsPartIdx, TEXT_CHROMA_V, 0, uiDepth );
     }
+#endif
 #else
 	m_pcEntropyDecoderIf->parseCbf(pcCU, uiAbsPartIdx, TEXT_LUMA, 0, uiDepth);
 	m_pcEntropyDecoderIf->parseCbf(pcCU, uiAbsPartIdx, TEXT_CHROMA_U, 0, uiDepth);
@@ -3238,6 +3350,14 @@ Void TDecEntropy::decodeCoeff( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth
 #else
 
 #if LCEC_PHASE2
+#if LCEC_CBP_YUV_ROOT
+    if (pcCU->getSlice()->getSymbolMode())
+    {
+      m_pcEntropyDecoderIf->parseCbf( pcCU, uiAbsPartIdx, TEXT_LUMA, 0, uiDepth );
+      m_pcEntropyDecoderIf->parseCbf( pcCU, uiAbsPartIdx, TEXT_CHROMA_U, 0, uiDepth );
+      m_pcEntropyDecoderIf->parseCbf( pcCU, uiAbsPartIdx, TEXT_CHROMA_V, 0, uiDepth );
+    }
+#else
     if (pcCU->getSlice()->getSymbolMode()==0)
     {
       m_pcEntropyDecoderIf->parseCbf( pcCU, uiAbsPartIdx, TEXT_ALL, 0, uiDepth );
@@ -3248,6 +3368,7 @@ Void TDecEntropy::decodeCoeff( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth
       m_pcEntropyDecoderIf->parseCbf( pcCU, uiAbsPartIdx, TEXT_CHROMA_U, 0, uiDepth );
       m_pcEntropyDecoderIf->parseCbf( pcCU, uiAbsPartIdx, TEXT_CHROMA_V, 0, uiDepth );
     }
+#endif
     xDecodeCoeff( pcCU, pcCU->getCoeffY()  + uiLumaOffset,   uiAbsPartIdx, uiDepth, uiWidth,    uiHeight,    0, uiLumaTrMode,   TEXT_LUMA     );
     xDecodeCoeff( pcCU, pcCU->getCoeffCb() + uiChromaOffset, uiAbsPartIdx, uiDepth, uiWidth>>1, uiHeight>>1, 0, uiChromaTrMode, TEXT_CHROMA_U );
     xDecodeCoeff( pcCU, pcCU->getCoeffCr() + uiChromaOffset, uiAbsPartIdx, uiDepth, uiWidth>>1, uiHeight>>1, 0, uiChromaTrMode, TEXT_CHROMA_V );
@@ -3267,7 +3388,11 @@ Void TDecEntropy::decodeCoeff( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth
   else
   {
 #if HHI_RQT_ROOT
+#if LCEC_CBP_YUV_ROOT
+    if( pcCU->getSlice()->getSPS()->getQuadtreeTUFlag() && pcCU->getSlice()->getSymbolMode())
+#else
     if( pcCU->getSlice()->getSPS()->getQuadtreeTUFlag() )
+#endif
     {
       UInt uiQtRootCbf;
       m_pcEntropyDecoderIf->parseQtRootCbf( pcCU, uiAbsPartIdx, uiDepth, uiQtRootCbf );
@@ -3284,6 +3409,11 @@ Void TDecEntropy::decodeCoeff( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth
     if (pcCU->getSlice()->getSymbolMode()==0)
     {
       m_pcEntropyDecoderIf->parseCbf( pcCU, uiAbsPartIdx, TEXT_ALL, 0, uiDepth );
+#if LCEC_CBP_YUV_ROOT
+      if(pcCU->getCbf(uiAbsPartIdx, TEXT_LUMA, 0)==0 && pcCU->getCbf(uiAbsPartIdx, TEXT_CHROMA_U, 0)==0
+         && pcCU->getCbf(uiAbsPartIdx, TEXT_CHROMA_V, 0)==0)
+         return;
+#endif
     }
     else
     {

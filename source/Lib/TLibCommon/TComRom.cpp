@@ -1167,6 +1167,22 @@ const UInt g_auiCbpVlcNum[2][8] =
 };
 #endif
 
+#if QC_BLK_CBP
+const UInt g_auiBlkCBPTableE[2][15] = 
+{
+  {14, 13, 10, 12, 9, 8, 4, 11, 7, 6, 3, 5, 2, 1, 0},
+  {0, 1, 4, 2, 5, 6, 10, 3, 7, 8, 11, 9, 12, 13, 14}
+};
+const UInt g_auiBlkCBPTableD[2][15] = 
+{
+  {14, 13, 12, 10, 6, 11, 9, 8, 5, 4, 2, 7, 3, 1, 0},
+  {0, 1, 3, 7, 2, 4, 5, 8, 9, 11, 6, 10 ,12, 13, 14} 
+};
+const UInt g_auiBlkCbpVlcNum[15] = 
+{
+  1,  2,  2,  2, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11
+};
+#endif
 
 #if LCEC_PHASE2
 const UInt g_auiMI1TableE[8] = {0,2,1,4,3,6,5,7};

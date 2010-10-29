@@ -126,6 +126,12 @@ protected:
   UInt          m_uiCbpVlcIdx[2];
 #endif
 
+#if QC_BLK_CBP
+  UInt          m_uiBlkCBPTableE[2][15];
+  UInt          m_uiBlkCBPTableD[2][15];
+  UInt          m_uiBlkCbpVlcIdx;
+#endif
+
 #if LCEC_PHASE2
   UInt          m_uiMI1TableE[8];
   UInt          m_uiMI1TableD[8];
@@ -272,6 +278,10 @@ public:
 
   Void codeDeltaQP       ( TComDataCU* pcCU, UInt uiAbsPartIdx );
   Void codeCbf           ( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eType, UInt uiTrDepth );
+#if LCEC_CBP_YUV_ROOT
+  Void	codeBlockCbf				  ( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eType, UInt uiTrDepth, UInt uiQPartNum, Bool bRD = false);
+#endif
+
 #if QC_MDDT
   Void codeCoeffNxN      ( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx, UInt uiWidth, UInt uiHeight, UInt uiDepth, TextType eTType, UInt uiMode, Bool bRD = false );
 #else

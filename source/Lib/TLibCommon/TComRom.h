@@ -217,6 +217,12 @@ extern const UInt    g_auiCbpVlcNum[2][8];
 
 #endif
 
+#if QC_BLK_CBP
+extern const UInt    g_auiBlkCBPTableE[2][15];
+extern const UInt    g_auiBlkCBPTableD[2][15];
+extern const UInt    g_auiBlkCbpVlcNum[15];
+#endif
+
 #if LCEC_PHASE2
 extern const UInt g_auiMI1TableE[8];
 extern const UInt g_auiMI1TableD[8];

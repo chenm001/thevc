@@ -1745,13 +1745,34 @@ UInt TComDataCU::getQuadtreeTULog2MinSizeInCU( UInt uiIdx )
   {
     uiLog2MinTUSizeInCU--;
   }
-
+#if HHI_C319_INTER_FIX
+  // BB: count inferred/forced splits as depth
+#else
   if ( uiLog2MinTUSizeInCU > m_pcSlice->getSPS()->getQuadtreeTULog2MaxSize())
   {
     uiLog2MinTUSizeInCU = m_pcSlice->getSPS()->getQuadtreeTULog2MaxSize();
   }  
+#endif
   #endif  
 
+#if HHI_C319
+  UInt uiQuadtreeTUMaxDepth = getPredictionMode( uiIdx ) == MODE_INTRA ? m_pcSlice->getSPS()->getQuadtreeTUMaxDepthIntra() : m_pcSlice->getSPS()->getQuadtreeTUMaxDepthInter();
+  if (uiLog2MinTUSizeInCU < m_pcSlice->getSPS()->getQuadtreeTULog2MinSize() + uiQuadtreeTUMaxDepth - 1)
+  {
+    uiLog2MinTUSizeInCU = m_pcSlice->getSPS()->getQuadtreeTULog2MinSize();  
+  }
+  else
+  {
+    uiLog2MinTUSizeInCU -= uiQuadtreeTUMaxDepth - 1;  
+  }
+
+#if HHI_C319_INTER_FIX
+  if ( uiLog2MinTUSizeInCU > m_pcSlice->getSPS()->getQuadtreeTULog2MaxSize())
+  {
+    uiLog2MinTUSizeInCU = m_pcSlice->getSPS()->getQuadtreeTULog2MaxSize();
+  }  
+#endif
+#else
   if (uiLog2MinTUSizeInCU < m_pcSlice->getSPS()->getQuadtreeTULog2MinSize() + m_pcSlice->getSPS()->getQuadtreeTUMaxDepth() - 1)
   {
     uiLog2MinTUSizeInCU = m_pcSlice->getSPS()->getQuadtreeTULog2MinSize();  
@@ -1760,6 +1781,7 @@ UInt TComDataCU::getQuadtreeTULog2MinSizeInCU( UInt uiIdx )
   {
     uiLog2MinTUSizeInCU -= m_pcSlice->getSPS()->getQuadtreeTUMaxDepth() - 1;  
   }
+#endif
   return uiLog2MinTUSizeInCU;
 #endif
 }
