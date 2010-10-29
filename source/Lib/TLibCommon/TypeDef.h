@@ -36,8 +36,6 @@
 #ifndef _TYPEDEF__
 #define _TYPEDEF__
 
-#define V0_7_COMPAT 0 ///< enable compatibility with 0.7.x versions
-
 ////////////////////////////
 // HHI defines section start
 ////////////////////////////
@@ -195,19 +193,11 @@ void normalizeScanStats();
 #define TRANS_PRECISION_EXT     ///< From JCTVC-B074
 
 
-#if V0_7_COMPAT
-#define BUGFIX48 0
-#define BUGFIX50 0
-#define BUGFIX50TMP 1 // for compatibility with previous versions without the crash
-#define SCAN_LUT_FIX 0
-//#define ROUNDING_CONTROL_BIPRED_FIX
-#else // V0_7_COMPAT
 #define BUGFIX48 1
 #define BUGFIX50 1
 #define BUGFIX50TMP 0 // for compatibility with previous versions without the crash
 #define SCAN_LUT_FIX 1
 #define ROUNDING_CONTROL_BIPRED_FIX
-#endif // V0_7_COMPAT
 
 #ifdef QC_SIFO
 #define SIFO_DIF_COMPATIBILITY			  1           // SIFO Extensions
@@ -225,11 +215,7 @@ void normalizeScanStats();
 ///////////////////////////////////
 
 //#define EDGE_BASED_PREDICTION   // Enable edge based prediction for intra
-#if V0_7_COMPAT
-#define BUGFIX51 0
-#else
 #define BUGFIX51 1
-#endif
 
 ///////////////////////////////////
 // Panasonic defines section start
