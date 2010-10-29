@@ -75,6 +75,10 @@
 #error "HHI_RQT_INTRA can only be equal to 1 if HHI_RQT is equal to 1"
 #endif
 
+#if ( HHI_RQT_ROOT && !HHI_RQT )
+#error "HHI_RQT_ROOT can only be equal to 1 if HHI_RQT is equal to 1"
+#endif
+
 #if ( HHI_MRG_PU && !HHI_MRG )
 #error "HHI_MRG_PU can only be equal to 1 if HHI_MRG is equal to 1"
 #endif
