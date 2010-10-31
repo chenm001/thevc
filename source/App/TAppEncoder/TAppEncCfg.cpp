@@ -414,11 +414,13 @@ Void TAppEncCfg::xCheckParameter()
   xConfirmPara( m_uiQuadtreeTUMaxDepthInter > m_uiQuadtreeTULog2MaxSize - m_uiQuadtreeTULog2MinSize + 1, "QuadtreeTUMaxDepthInter must be less than or equal to the difference between QuadtreeTULog2MaxSize and QuadtreeTULog2MinSize plus 1" );
   xConfirmPara( m_uiQuadtreeTUMaxDepthIntra < 1,                                                         "QuadtreeTUMaxDepthIntra must be greater than or equal to 1" );
   xConfirmPara( m_uiQuadtreeTUMaxDepthIntra > m_uiQuadtreeTULog2MaxSize - m_uiQuadtreeTULog2MinSize + 1, "QuadtreeTUMaxDepthIntra must be less than or equal to the difference between QuadtreeTULog2MaxSize and QuadtreeTULog2MinSize plus 1" );
-    if(m_iSymbolMode == 0)
-    {
-      xConfirmPara( m_uiQuadtreeTUMaxDepthIntra > 1,                                    "QuadtreeTUMaxDepthIntra must be equal to 1 when LCEC is used");
-      xConfirmPara( m_uiQuadtreeTUMaxDepthInter > 2,                                    "QuadtreeTUMaxDepthInter must be less than or equal to 2 when LCEC is used");
-    }
+#if LCEC_CBP_YUV_ROOT
+  if(m_iSymbolMode == 0)
+  {
+    xConfirmPara( m_uiQuadtreeTUMaxDepthIntra > 1,                                    "QuadtreeTUMaxDepthIntra must be equal to 1 when LCEC is used");
+    xConfirmPara( m_uiQuadtreeTUMaxDepthInter > 2,                                    "QuadtreeTUMaxDepthInter must be less than or equal to 2 when LCEC is used");
+  }
+#endif
 #else
   xConfirmPara( m_uiQuadtreeTUMaxDepth < 1,                                                         "QuadtreeTUMaxDepth must be greater than or equal to 1" );
   xConfirmPara( m_uiQuadtreeTUMaxDepth > m_uiQuadtreeTULog2MaxSize - m_uiQuadtreeTULog2MinSize + 1, "QuadtreeTUMaxDepth must be less than or equal to the difference between QuadtreeTULog2MaxSize and QuadtreeTULog2MinSize plus 1" );

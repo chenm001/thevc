@@ -1586,6 +1586,8 @@ TEncSearch::xGetIntraBitsQT( TComDataCU*  pcCU,
 {
   m_pcEntropyCoder->resetBits();
   xEncIntraHeader ( pcCU, uiTrDepth, uiAbsPartIdx, bLuma, bChroma );
+  xEncSubdivCbfQT ( pcCU, uiTrDepth, uiAbsPartIdx, bLuma, bChroma );
+
 #if LCEC_CBP_YUV_ROOT
   if (pcCU->getSlice()->getSymbolMode()==0 && uiTrDepth == 0)
   {
@@ -1620,7 +1622,7 @@ TEncSearch::xGetIntraBitsQT( TComDataCU*  pcCU,
     }
   }
 #endif
-  xEncSubdivCbfQT ( pcCU, uiTrDepth, uiAbsPartIdx, bLuma, bChroma );
+
   if( bLuma )
   {
     xEncCoeffQT   ( pcCU, uiTrDepth, uiAbsPartIdx, TEXT_LUMA,      bRealCoeff );

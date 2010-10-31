@@ -2271,15 +2271,6 @@ Void TEncEntropy::encodeCoeff( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth
 
   if( pcCU->isIntra(uiAbsPartIdx) )
   {
-#if LCEC_CBP_YUV_ROOT
-    if (pcCU->getSlice()->getSymbolMode()==0)
-    {
-      m_pcEntropyCoderIf->codeCbf( pcCU, uiAbsPartIdx, TEXT_ALL, 0 );
-      if(pcCU->getCbf(uiAbsPartIdx, TEXT_LUMA, 0)==0 && pcCU->getCbf(uiAbsPartIdx, TEXT_CHROMA_U, 0)==0
-         && pcCU->getCbf(uiAbsPartIdx, TEXT_CHROMA_V, 0)==0)
-         return;
-    }
-#endif
 #if HHI_RQT_INTRA
     DTRACE_CABAC_V( g_nSymbolCounter++ )
     DTRACE_CABAC_T( "\tdecodeTransformIdx()\tCUDepth=" )
@@ -2334,24 +2325,25 @@ Void TEncEntropy::encodeCoeff( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth
 
 #if LCEC_PHASE2
 #if LCEC_CBP_YUV_ROOT
-    if (pcCU->getSlice()->getSymbolMode())
+    if (pcCU->getSlice()->getSymbolMode() == 0)
     {
-      m_pcEntropyCoderIf->codeCbf( pcCU, uiAbsPartIdx, TEXT_LUMA, 0 );
-      m_pcEntropyCoderIf->codeCbf( pcCU, uiAbsPartIdx, TEXT_CHROMA_U, 0 );
-      m_pcEntropyCoderIf->codeCbf( pcCU, uiAbsPartIdx, TEXT_CHROMA_V, 0 );
+      m_pcEntropyCoderIf->codeCbf( pcCU, uiAbsPartIdx, TEXT_ALL, 0 );
+      if(pcCU->getCbf(uiAbsPartIdx, TEXT_LUMA, 0)==0 && pcCU->getCbf(uiAbsPartIdx, TEXT_CHROMA_U, 0)==0
+         && pcCU->getCbf(uiAbsPartIdx, TEXT_CHROMA_V, 0)==0)
+         return;
     }
 #else
     if (pcCU->getSlice()->getSymbolMode()==0)
     {
       m_pcEntropyCoderIf->codeCbf( pcCU, uiAbsPartIdx, TEXT_ALL, 0 );
     }
+#endif
     else
     {
       m_pcEntropyCoderIf->codeCbf( pcCU, uiAbsPartIdx, TEXT_LUMA, 0 );
       m_pcEntropyCoderIf->codeCbf( pcCU, uiAbsPartIdx, TEXT_CHROMA_U, 0 );
       m_pcEntropyCoderIf->codeCbf( pcCU, uiAbsPartIdx, TEXT_CHROMA_V, 0 );
     }
-#endif
     xEncodeCoeff( pcCU, pcCU->getCoeffY()  + uiLumaOffset,   uiAbsPartIdx, uiDepth, uiWidth,    uiHeight,    0, uiLumaTrMode,   TEXT_LUMA     );
     xEncodeCoeff( pcCU, pcCU->getCoeffCb() + uiChromaOffset, uiAbsPartIdx, uiDepth, uiWidth>>1, uiHeight>>1, 0, uiChromaTrMode, TEXT_CHROMA_U );
     xEncodeCoeff( pcCU, pcCU->getCoeffCr() + uiChromaOffset, uiAbsPartIdx, uiDepth, uiWidth>>1, uiHeight>>1, 0, uiChromaTrMode, TEXT_CHROMA_V );
