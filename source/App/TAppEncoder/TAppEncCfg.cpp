@@ -414,13 +414,6 @@ Void TAppEncCfg::xCheckParameter()
   xConfirmPara( m_uiQuadtreeTUMaxDepthInter > m_uiQuadtreeTULog2MaxSize - m_uiQuadtreeTULog2MinSize + 1, "QuadtreeTUMaxDepthInter must be less than or equal to the difference between QuadtreeTULog2MaxSize and QuadtreeTULog2MinSize plus 1" );
   xConfirmPara( m_uiQuadtreeTUMaxDepthIntra < 1,                                                         "QuadtreeTUMaxDepthIntra must be greater than or equal to 1" );
   xConfirmPara( m_uiQuadtreeTUMaxDepthIntra > m_uiQuadtreeTULog2MaxSize - m_uiQuadtreeTULog2MinSize + 1, "QuadtreeTUMaxDepthIntra must be less than or equal to the difference between QuadtreeTULog2MaxSize and QuadtreeTULog2MinSize plus 1" );
-#if LCEC_CBP_YUV_ROOT
-  if(m_iSymbolMode == 0)
-  {
-    xConfirmPara( m_uiQuadtreeTUMaxDepthIntra > 1, "QuadtreeTUMaxDepthIntra must be equal to 1 when LCEC is used [LCEC_CBP_YUV_ROOT and QC_BLK_CBP must be disabled to lift this limitation]");
-    xConfirmPara( m_uiQuadtreeTUMaxDepthInter > 2, "QuadtreeTUMaxDepthInter must be less than or equal to 2 when LCEC is used [LCEC_CBP_YUV_ROOT and QC_BLK_CBP must be disabled to lift this limitation]");
-  }
-#endif
 #else
   xConfirmPara( m_uiQuadtreeTUMaxDepth < 1,                                                         "QuadtreeTUMaxDepth must be greater than or equal to 1" );
   xConfirmPara( m_uiQuadtreeTUMaxDepth > m_uiQuadtreeTULog2MaxSize - m_uiQuadtreeTULog2MinSize + 1, "QuadtreeTUMaxDepth must be less than or equal to the difference between QuadtreeTULog2MaxSize and QuadtreeTULog2MinSize plus 1" );
@@ -441,6 +434,21 @@ Void TAppEncCfg::xCheckParameter()
   m_uiMaxPIPEDelay = ( m_uiMCWThreshold > 0 ? 0 : ( m_uiMaxPIPEDelay >> 6 ) << 6 );
   xConfirmPara( m_uiBalancedCPUs > 255,                                                     "BalancedCPUs must not be greater than 255" );
 
+#if HHI_RQT
+#if LCEC_CBP_YUV_ROOT
+  if(m_iSymbolMode == 0)
+  {
+    if (m_uiQuadtreeTUMaxDepthIntra > 1 || m_uiQuadtreeTUMaxDepthInter > 2)
+    {
+      printf("\n");
+      printf("WARNING: the combination of LCEC, LCEC_CBP_YUV_ROOT=1 and QC_BLK_CBP=1 was designed for use with QuadtreeTUMaxDepthIntra=1 and\n");
+      printf("         QuadtreeTUMaxDepthInter<=2. Disabling LCEC_CBP_YUV_ROOT and QC_BLK_CBP may yield better R-D performance for larger\n");
+      printf("         values of QuadtreeTUMaxDepthIntra and/or QuadtreeTUMaxDepthInter.\n");
+    }
+  }
+#endif
+#endif
+  
   // max CU width and height should be power of 2
   UInt ui = m_uiMaxCUWidth;
   while(ui)
