@@ -417,8 +417,8 @@ Void TAppEncCfg::xCheckParameter()
 #if LCEC_CBP_YUV_ROOT
   if(m_iSymbolMode == 0)
   {
-    xConfirmPara( m_uiQuadtreeTUMaxDepthIntra > 1,                                    "QuadtreeTUMaxDepthIntra must be equal to 1 when LCEC is used");
-    xConfirmPara( m_uiQuadtreeTUMaxDepthInter > 2,                                    "QuadtreeTUMaxDepthInter must be less than or equal to 2 when LCEC is used");
+    xConfirmPara( m_uiQuadtreeTUMaxDepthIntra > 1, "QuadtreeTUMaxDepthIntra must be equal to 1 when LCEC is used [LCEC_CBP_YUV_ROOT and QC_BLK_CBP must be disabled to lift this limitation]");
+    xConfirmPara( m_uiQuadtreeTUMaxDepthInter > 2, "QuadtreeTUMaxDepthInter must be less than or equal to 2 when LCEC is used [LCEC_CBP_YUV_ROOT and QC_BLK_CBP must be disabled to lift this limitation]");
   }
 #endif
 #else
