@@ -478,7 +478,7 @@ Void TEncCu::xCompressCU( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, UInt u
 
     // do normal intra modes
 #if HHI_RQT_INTRA
-    if ( !bEarlySkip && rpcTempCU->getSlice()->getSPS()->getQuadtreeTUFlag() )
+    if ( !bEarlySkip )
     {
 #if 1 // speedup for inter frames
       if( pcPic->getSlice()->getSliceType() == I_SLICE || 
@@ -919,40 +919,31 @@ Void TEncCu::xCheckRDCostIntra( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, 
   rpcTempCU->setPredModeSubParts( MODE_INTRA, 0, uiDepth );
 
 #if HHI_RQT_INTRA
-  if( rpcTempCU->getSlice()->getSPS()->getQuadtreeTUFlag() )
+  Bool bSeparateLumaChroma = true; // choose estimation mode
+  UInt uiPreCalcDistC      = 0;
+  if( !bSeparateLumaChroma )
   {
-    Bool bSeparateLumaChroma = true; // choose estimation mode
-    UInt uiPreCalcDistC      = 0;
-    if( !bSeparateLumaChroma )
-    {
-      m_pcPredSearch->preestChromaPredMode( rpcTempCU, m_ppcOrigYuv[uiDepth], m_ppcPredYuvTemp[uiDepth] );
-    }
-    m_pcPredSearch  ->estIntraPredQT      ( rpcTempCU, m_ppcOrigYuv[uiDepth], m_ppcPredYuvTemp[uiDepth], m_ppcResiYuvTemp[uiDepth], m_ppcRecoYuvTemp[uiDepth], uiPreCalcDistC, bSeparateLumaChroma );
-    m_pcPredSearch  ->estIntraPredChromaQT( rpcTempCU, m_ppcOrigYuv[uiDepth], m_ppcPredYuvTemp[uiDepth], m_ppcResiYuvTemp[uiDepth], m_ppcRecoYuvTemp[uiDepth], uiPreCalcDistC );
+    m_pcPredSearch->preestChromaPredMode( rpcTempCU, m_ppcOrigYuv[uiDepth], m_ppcPredYuvTemp[uiDepth] );
   }
-  else
-  {
-#endif
+  m_pcPredSearch  ->estIntraPredQT      ( rpcTempCU, m_ppcOrigYuv[uiDepth], m_ppcPredYuvTemp[uiDepth], m_ppcResiYuvTemp[uiDepth], m_ppcRecoYuvTemp[uiDepth], uiPreCalcDistC, bSeparateLumaChroma );
+  m_pcPredSearch  ->estIntraPredChromaQT( rpcTempCU, m_ppcOrigYuv[uiDepth], m_ppcPredYuvTemp[uiDepth], m_ppcResiYuvTemp[uiDepth], m_ppcRecoYuvTemp[uiDepth], uiPreCalcDistC );
+#else
+  m_pcPredSearch->predIntraLumaAdiSearch( rpcTempCU, m_ppcOrigYuv[uiDepth], m_ppcPredYuvTemp[uiDepth], m_ppcResiYuvTemp[uiDepth], m_ppcRecoYuvTemp[uiDepth] );
 
-    m_pcPredSearch->predIntraLumaAdiSearch( rpcTempCU, m_ppcOrigYuv[uiDepth], m_ppcPredYuvTemp[uiDepth], m_ppcResiYuvTemp[uiDepth], m_ppcRecoYuvTemp[uiDepth] );
+  UInt uiChromaTrMode = 0;
 
-    UInt uiChromaTrMode = 0;
+  UInt uiWidthInBit  = g_aucConvertToBit[rpcTempCU->getWidth(0)>>1]+2;
+  UInt uiTrSizeInBit = g_aucConvertToBit[rpcTempCU->getSlice()->getSPS()->getMaxTrSize()]+2;
+  uiChromaTrMode     = uiWidthInBit >= uiTrSizeInBit ? uiWidthInBit - uiTrSizeInBit : 0;
 
-    UInt uiWidthInBit  = g_aucConvertToBit[rpcTempCU->getWidth(0)>>1]+2;
-    UInt uiTrSizeInBit = g_aucConvertToBit[rpcTempCU->getSlice()->getSPS()->getMaxTrSize()]+2;
-    uiChromaTrMode     = uiWidthInBit >= uiTrSizeInBit ? uiWidthInBit - uiTrSizeInBit : 0;
+  rpcTempCU->setCuCbfLuma( 0, rpcTempCU->getTransformIdx(0) );
 
-    rpcTempCU->setCuCbfLuma( 0, rpcTempCU->getTransformIdx(0) );
+  if( m_bUseSBACRD ) m_pppcRDSbacCoder[uiDepth][CI_CHROMA_INTRA]->load( m_pppcRDSbacCoder[uiDepth][CI_TEMP_BEST] );
 
-    if( m_bUseSBACRD ) m_pppcRDSbacCoder[uiDepth][CI_CHROMA_INTRA]->load( m_pppcRDSbacCoder[uiDepth][CI_TEMP_BEST] );
+  m_pcPredSearch->predIntraChromaAdiSearch( rpcTempCU, m_ppcOrigYuv[uiDepth], m_ppcPredYuvTemp[uiDepth], m_ppcResiYuvTemp[uiDepth], m_ppcRecoYuvTemp[uiDepth], uiChromaTrMode );
+  rpcTempCU->setCuCbfChroma( 0, uiChromaTrMode );
 
-    m_pcPredSearch->predIntraChromaAdiSearch( rpcTempCU, m_ppcOrigYuv[uiDepth], m_ppcPredYuvTemp[uiDepth], m_ppcResiYuvTemp[uiDepth], m_ppcRecoYuvTemp[uiDepth], uiChromaTrMode );
-    rpcTempCU->setCuCbfChroma( 0, uiChromaTrMode );
-
-    if( m_bUseSBACRD ) m_pcRDGoOnSbacCoder->load(m_pppcRDSbacCoder[uiDepth][CI_CURR_BEST]);
-
-#if HHI_RQT_INTRA
-  }
+  if( m_bUseSBACRD ) m_pcRDGoOnSbacCoder->load(m_pppcRDSbacCoder[uiDepth][CI_CURR_BEST]);
 #endif
 
   m_pcEntropyCoder->resetBits();
@@ -1114,6 +1105,13 @@ Void TEncCu::xCheckRDCostAMVPSkip           ( TComDataCU*& rpcBestCU, TComDataCU
       xCheckRDCostSkip ( rpcBestCU, rpcTempCU, false ); rpcTempCU->initEstData();
     }
     // List1
+
+#if MS_NO_BACK_PRED_IN_B0
+    if ( rpcTempCU->getSlice()->getNoBackPredFlag() )
+    {
+      return;
+    }
+#endif
     for (iMVP1 = (cAMVPInfo1.iN > 0? 0:-1); iMVP1 < cAMVPInfo1.iN; iMVP1++)
     {
       rpcTempCU->setPredModeSubParts( MODE_SKIP,    0,  uhDepth );

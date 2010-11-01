@@ -221,49 +221,56 @@ Void TComPrediction::predIntraPlanar( Int* piSrc, Int iSampleBottomRight, Pel* p
 // Function for deriving the angular Intra predictions
 
 #if UNIFIED_DIRECTIONAL_INTRA
-// Function for deriving the angular Intra predictions
-Void TComPrediction::xPredIntraAng( Int* pSrc, Int iSrcStride, Pel*& rpDst, Int iDstStride, UInt iWidth, UInt iHeight, UInt uiDirMode, Bool bAbove, Bool bLeft )
+/** Function for deriving the simplified angular intra predictions.
+ * \param pSrc pointer to reconstructed sample array
+ * \param srcStride the stride of the reconstructed sample array
+ * \param rpDst reference to pointer for the prediction sample array
+ * \param dstStride the stride of the prediction sample array
+ * \param width the width of the block
+ * \param height the height of the block
+ * \param dirMode the intra prediction mode index
+ * \param blkAboveAvailable boolean indication if the block above is available 
+ * \param blkLeftAvailable boolean indication if the block to the left is available
+ * \returns
+ * This function derives the prediction samples for the angular mode based on the prediction direction indicated by
+ * the prediction mode index. The prediction direction is given by the displacement of the bottom row of the block and 
+ * the reference row above the block in the case of vertical prediction or displacement of the rightmost column 
+ * of the block and reference column left from the block in the case of the horizontal prediction. The displacement 
+ * is signalled at 1/32 pixel accuracy. When projection of the predicted pixel falls inbetween reference samples, 
+ * the predicted value for the pixel is linearly interpolated from the reference samples. All reference samples are taken
+ * from the extended main reference.
+ */
+Void TComPrediction::xPredIntraAng( Int* pSrc, Int srcStride, Pel*& rpDst, Int dstStride, UInt width, UInt height, UInt dirMode, Bool blkAboveAvailable, Bool blkLeftAvailable )
 {
   Int k,l;
-  Int deltaInt, deltaFract, refMainIndex;
-  Int deltaIntSide, deltaFractSide, refSideIndex;
-  Int intraPredAngle = 0;
-  Int absAng         = 0;
-  Int signAng        = 0;
-  Int blkSize        = iWidth;
-  Bool modeDC        = false;
-  Bool modeVer       = false;
-  Bool modeHor       = false;
+  Int blkSize        = width;
   Pel* pDst          = rpDst;
-  Pel  refAbove[2*MAX_CU_SIZE+1];
-  Pel  refLeft[2*MAX_CU_SIZE+1];
 
   // Map the mode index to main prediction direction and angle
-  if (uiDirMode == 0)
-    modeDC = true;
-  else if (uiDirMode < 18)
-    modeVer = true;
-  else
-    modeHor = true;
-
-  intraPredAngle = modeVer ? uiDirMode - 9 : modeHor ? uiDirMode - 25 : 0;
-  absAng         = abs(intraPredAngle);
-  signAng        = intraPredAngle < 0 ? -1 : 1;
+  Bool modeDC        = dirMode == 0;
+  Bool modeVer       = !modeDC && (dirMode < 18);
+  Bool modeHor       = !modeDC && !modeVer;
+  Int intraPredAngle = modeVer ? dirMode - 9 : modeHor ? dirMode - 25 : 0;
+  Int absAng         = abs(intraPredAngle);
+  Int signAng        = intraPredAngle < 0 ? -1 : 1;
 
   // Set bitshifts and scale the angle parameter to block size
-  Int iAngTable[9]  = { 0,2,5,9,13,17,21,26,32 };
-  absAng            = iAngTable[absAng];
-
-  intraPredAngle = signAng * absAng;
+  Int angTable[9]    = {0,    2,    5,   9,  13,  17,  21,  26,  32};
+  Int invAngTable[9] = {0, 4096, 1638, 910, 630, 482, 390, 315, 256}; // (256 * 32) / Angle
+  Int invAngle       = invAngTable[absAng];
+  absAng             = angTable[absAng];
+  intraPredAngle     = signAng * absAng;
 
   // Do the DC prediction
   if (modeDC)
   {
-    Pel dcval = predIntraGetPredValDC(pSrc, iSrcStride, iWidth, iHeight, bAbove, bLeft);
+    Pel dcval = predIntraGetPredValDC(pSrc, srcStride, width, height, blkAboveAvailable, blkLeftAvailable);
 
-    for (k=0;k<blkSize;k++){
-      for (l=0;l<blkSize;l++){
-        pDst[k*iDstStride+l] = dcval;
+    for (k=0;k<blkSize;k++)
+    {
+      for (l=0;l<blkSize;l++)
+      {
+        pDst[k*dstStride+l] = dcval;
       }
     }
   }
@@ -271,79 +278,100 @@ Void TComPrediction::xPredIntraAng( Int* pSrc, Int iSrcStride, Pel*& rpDst, Int 
   // Do angular predictions
   else
   {
-    Pel  tmp;
     Pel* refMain;
     Pel* refSide;
+    Pel  refAbove[2*MAX_CU_SIZE+1];
+    Pel  refLeft[2*MAX_CU_SIZE+1];
 
-    for (k=0;k<2*blkSize+1;k++)
-      refAbove[k] = pSrc[k-iSrcStride-1];
-    for (k=0;k<2*blkSize+1;k++)
-      refLeft[k] = pSrc[(k-1)*iSrcStride-1];
+    // Initialise the Main and Left reference array. 
+    if (intraPredAngle < 0)
+    {
+      for (k=0;k<blkSize+1;k++)
+      {
+        refAbove[k+blkSize-1] = pSrc[k-srcStride-1];
+      }
+      for (k=0;k<blkSize+1;k++)
+      {
+        refLeft[k+blkSize-1] = pSrc[(k-1)*srcStride-1];
+      }
+      refMain = (modeVer ? refAbove : refLeft) + (blkSize-1);
+      refSide = (modeVer ? refLeft : refAbove) + (blkSize-1);
 
-    refMain = modeVer ? refAbove : refLeft;
-    refSide = modeVer ? refLeft  : refAbove;
+      // Extend the Main reference to the left.
+      Int invAngleSum    = 128;       // rounding for (shift by 8)
+      for (k=-1; k>blkSize*intraPredAngle>>5; k--)
+      {
+		    invAngleSum += invAngle;
+        refMain[k] = refSide[invAngleSum>>8];
+      }
+    }
+    else 
+    {
+      for (k=0;k<2*blkSize+1;k++)
+      {
+        refAbove[k] = pSrc[k-srcStride-1];
+      }
+      for (k=0;k<2*blkSize+1;k++)
+      {
+        refLeft[k] = pSrc[(k-1)*srcStride-1];
+      }
+      refMain = modeVer ? refAbove : refLeft;
+    }
 
-    if (intraPredAngle == 0){
-      for (k=0;k<blkSize;k++){
-        for (l=0;l<blkSize;l++){
-          pDst[k*iDstStride+l] = refMain[l+1];
+    if (intraPredAngle == 0)
+    {
+      for (k=0;k<blkSize;k++)
+      {
+        for (l=0;l<blkSize;l++)
+        {
+          pDst[k*dstStride+l] = refMain[l+1];
         }
       }
     }
-    else{
+    else
+    {
+      Int deltaPos=0;
+      Int deltaInt;
+      Int deltaFract;
+      Int refMainIndex;
 
-      for (k=0;k<blkSize;k++){
+      for (k=0;k<blkSize;k++)
+      {
+        deltaPos += intraPredAngle;
+        deltaInt   = deltaPos >> 5;
+        deltaFract = deltaPos & (32 - 1);
 
-        deltaInt   = ((k+1)*intraPredAngle) >> 5;
-        deltaFract = ((k+1)*absAng) % 32;
-
-        if (intraPredAngle < 0){
-            deltaFract = (32 - deltaFract) % 32;
-        }
-
-        // If the angle is positive all samples are from the main reference
-        if (intraPredAngle > 0){
-          if (deltaFract){
-            // Do linear filtering
-            for (l=0;l<blkSize;l++){
-              refMainIndex        = l+deltaInt+1;
-              pDst[k*iDstStride+l] = (Pel) ( ((32-deltaFract)*refMain[refMainIndex]+deltaFract*refMain[refMainIndex+1]+16) >> 5 );
-            }
-          }
-          else{
-            // Just copy the integer samples
-            for (l=0;l<blkSize;l++){
-              pDst[k*iDstStride+l] = refMain[l+deltaInt+1];
-            }
+        if (deltaFract)
+        {
+          // Do linear filtering
+          for (l=0;l<blkSize;l++)
+          {
+            refMainIndex        = l+deltaInt+1;
+            pDst[k*dstStride+l] = (Pel) ( ((32-deltaFract)*refMain[refMainIndex]+deltaFract*refMain[refMainIndex+1]+16) >> 5 );
           }
         }
-        else{
-          for (l=0;l<blkSize;l++){
-            refMainIndex = l+deltaInt+1;
-            if (refMainIndex >= 0)
-              pDst[k*iDstStride+l] = (Pel) ( ((32-deltaFract)*refMain[refMainIndex]+deltaFract*refMain[refMainIndex+1]+16) >> 5 );
-            else{
-              // Interpolate from the side reference
-              deltaIntSide   = (32*32*(l+1)/absAng) >> 5;
-              deltaFractSide = (32*32*(l+1)/absAng)  % 32;
-              refSideIndex   = k+1-deltaIntSide;
-              if (deltaFractSide)
-                pDst[k*iDstStride+l] = (Pel) ( ((32-deltaFractSide)*refSide[refSideIndex]+deltaFractSide*refSide[refSideIndex-1]+16) >> 5 );
-              else
-                pDst[k*iDstStride+l] = refSide[refSideIndex];
-            }
+        else
+        {
+          // Just copy the integer samples
+          for (l=0;l<blkSize;l++)
+          {
+            pDst[k*dstStride+l] = refMain[l+deltaInt+1];
           }
         }
       }
     }
 
     // Flip the block if this is the horizontal mode
-    if (modeHor){
-      for (k=0;k<blkSize-1;k++){
-        for (l=k+1;l<blkSize;l++){
-          tmp                  = pDst[k*iDstStride+l];
-          pDst[k*iDstStride+l] = pDst[l*iDstStride+k];
-          pDst[l*iDstStride+k] = tmp;
+    if (modeHor)
+    {
+      Pel  tmp;
+      for (k=0;k<blkSize-1;k++)
+      {
+        for (l=k+1;l<blkSize;l++)
+        {
+          tmp                 = pDst[k*dstStride+l];
+          pDst[k*dstStride+l] = pDst[l*dstStride+k];
+          pDst[l*dstStride+k] = tmp;
         }
       }
     }
@@ -1072,7 +1100,11 @@ Void TComPrediction::xPredInterUni ( TComDataCU* pcCU, UInt uiPartAddr, Int iWid
 #if TEN_DIRECTIONAL_INTERP
   case IPF_TEN_DIF:
     xPredInterLumaBlk_TEN   ( pcCU, pcCU->getSlice()->getRefPic( eRefPicList, iRefIdx )->getPicYuvRec()    , uiPartAddr, &cMv, iWidth, iHeight, rpcYuvPred );
+#if TEN_DIRECTIONAL_INTERP_CHROMA
     xPredInterChromaBlk_TEN ( pcCU, pcCU->getSlice()->getRefPic( eRefPicList, iRefIdx )->getPicYuvRec()    , uiPartAddr, &cMv, iWidth, iHeight, rpcYuvPred );
+#else
+    xPredInterChromaBlk ( pcCU, pcCU->getSlice()->getRefPic( eRefPicList, iRefIdx )->getPicYuvRec()    , uiPartAddr, &cMv, iWidth, iHeight, rpcYuvPred );
+#endif
     break;
 #endif
 	  case IPF_HHI_4TAP_MOMS:
@@ -1093,7 +1125,11 @@ Void TComPrediction::xPredInterUni ( TComDataCU* pcCU, UInt uiPartAddr, Int iWid
 #if TEN_DIRECTIONAL_INTERP
   case IPF_TEN_DIF:
     xPredInterLumaBlk_TEN   ( pcCU, pcCU->getSlice()->getRefPic( eRefPicList, iRefIdx )->getPicYuvRec()    , uiPartAddr, &cMv, iWidth, iHeight, rpcYuvPred );
+#if TEN_DIRECTIONAL_INTERP_CHROMA
     xPredInterChromaBlk_TEN ( pcCU, pcCU->getSlice()->getRefPic( eRefPicList, iRefIdx )->getPicYuvRec()    , uiPartAddr, &cMv, iWidth, iHeight, rpcYuvPred );
+#else
+    xPredInterChromaBlk ( pcCU, pcCU->getSlice()->getRefPic( eRefPicList, iRefIdx )->getPicYuvRec()    , uiPartAddr, &cMv, iWidth, iHeight, rpcYuvPred );
+#endif
     break;
 #endif
 	  case IPF_HHI_4TAP_MOMS:
@@ -1639,6 +1675,7 @@ Void  TComPrediction::xPredInterLumaBlk_TEN( TComDataCU* pcCU, TComPicYuv* pcPic
   return;
 }
 
+#if TEN_DIRECTIONAL_INTERP_CHROMA
 Void TComPrediction::xPredInterChromaBlk_TEN( TComDataCU* pcCU, TComPicYuv* pcPicYuvRef, UInt uiPartAddr, TComMv* pcMv, Int iWidth, Int iHeight, TComYuv*& rpcYuv )
 {
   Int     iRefStride  = pcPicYuvRef->getCStride();
@@ -2027,6 +2064,7 @@ Void TComPrediction::xPredInterChromaBlk_TEN( TComDataCU* pcCU, TComPicYuv* pcPi
     printf("Error in chroma interpolation: iyFrac=%4d ixFrac=%4d\n",iyFrac,ixFrac);
   }
 }
+#endif // TEN_DIRECTIONAL_INTERP_CHROMA
 #endif
 
 Void TComPrediction::xWeightedAverage( TComDataCU* pcCU, TComYuv* pcYuvSrc0, TComYuv* pcYuvSrc1, Int iRefIdx0, Int iRefIdx1, UInt uiPartIdx, Int iWidth, Int iHeight, TComYuv*& rpcYuvDst )

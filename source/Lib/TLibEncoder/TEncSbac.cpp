@@ -1137,6 +1137,14 @@ Void TEncSbac::codeInterDir( TComDataCU* pcCU, UInt uiAbsPartIdx )
   uiInterDir--;
   m_pcBinIf->encodeBin( ( uiInterDir == 2 ? 1 : 0 ), m_cCUInterDirSCModel.get( 0, 0, uiCtx ) );
 
+#if MS_NO_BACK_PRED_IN_B0
+  if ( pcCU->getSlice()->getNoBackPredFlag() )
+  {
+    assert( uiInterDir != 1 );
+    return;
+  }
+#endif
+
   if ( uiInterDir < 2 )
   {
     m_pcBinIf->encodeBin( uiInterDir, m_cCUInterDirSCModel.get( 0, 0, 3 ) );
@@ -1390,17 +1398,14 @@ Void TEncSbac::codeDeltaQP( TComDataCU* pcCU, UInt uiAbsPartIdx )
 Void TEncSbac::codeCbf( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eType, UInt uiTrDepth )
 {
 #if HHI_RQT
-  if( pcCU->getSlice()->getSPS()->getQuadtreeTUFlag() )
-  {
 #if HHI_RQT_INTRA
-    return;
+  return;
 #else
-    if( !pcCU->isIntra( uiAbsPartIdx ) )
-    {
-      return;
-    }
-#endif
+  if( !pcCU->isIntra( uiAbsPartIdx ) )
+  {
+    return;
   }
+#endif
 #endif
   UInt uiCbf = pcCU->getCbf   ( uiAbsPartIdx, eType, uiTrDepth );
   UInt uiCtx = pcCU->getCtxCbf( uiAbsPartIdx, eType, uiTrDepth );
@@ -1409,6 +1414,14 @@ Void TEncSbac::codeCbf( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eType, UIn
 
   return;
 }
+
+
+#if LCEC_CBP_YUV_ROOT
+Void TEncSbac::codeBlockCbf( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eType, UInt uiTrDepth, UInt uiQPartNum, Bool bRD )
+{
+  return;
+}
+#endif
 
 #if HHI_RQT
 Void TEncSbac::codeQtCbf( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eType, UInt uiTrDepth )
@@ -1736,6 +1749,238 @@ Void TEncSbac::codeCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx
 #endif
   }
 
+#if TI_SIGN_BIN0_PCP
+  /*
+   * Sign and bin0 PCP (Section 3.2 and 3.3 of JCTVC-B088)
+   */
+  Int  c1, c2;
+  UInt uiAbs;
+  UInt uiSign;
+  UInt uiPrevAbsGreOne     = 0;
+  const UInt uiNumOfSets   = 4;
+  const UInt uiNum4x4Blk   = max<UInt>( 1, uiMaxNumCoeff / 16 );
+
+  if ( uiLog2BlockSize > 2 )
+  {
+    Bool bFirstBlock = true;
+
+    for ( UInt uiSubBlk = 0; uiSubBlk < uiNum4x4Blk; uiSubBlk++ )
+    {
+      UInt uiCtxSet    = 0;
+      UInt uiSubNumSig = 0;
+      UInt uiSubLog2   = uiLog2BlockSize - 2;
+      UInt uiSubPosX   = 0;
+      UInt uiSubPosY   = 0;
+
+      if ( uiSubLog2 > 1 )
+      {
+#if HHI_RQT
+        uiSubPosX = g_auiFrameScanX[ uiSubLog2 - 1 ][ uiSubBlk ] * 4;
+        uiSubPosY = g_auiFrameScanY[ uiSubLog2 - 1 ][ uiSubBlk ] * 4;
+#else
+        uiSubPosX = g_auiFrameScanX[ uiSubLog2 - 2 ][ uiSubBlk ] * 4;
+        uiSubPosY = g_auiFrameScanY[ uiSubLog2 - 2 ][ uiSubBlk ] * 4;
+#endif
+      }
+      else
+      {
+        uiSubPosX = ( uiSubBlk < 2      ) ? 0 : 1;
+        uiSubPosY = ( uiSubBlk % 2 == 0 ) ? 0 : 1;
+        uiSubPosX *= 4;
+        uiSubPosY *= 4;
+      }
+
+      TCoeff* piCurr = &pcCoef[ uiSubPosX + uiSubPosY * uiWidth ];
+
+      for ( UInt uiY = 0; uiY < 4; uiY++ )
+      {
+        for ( UInt uiX = 0; uiX < 4; uiX++ )
+        {
+          if( piCurr[ uiX ] )
+          {
+            uiSubNumSig++;
+          }
+        }
+        piCurr += uiWidth;
+      }
+
+      if ( uiSubNumSig > 0 )
+      {
+        c1 = 1;
+        c2 = 0;
+
+        if ( bFirstBlock )
+        {
+          bFirstBlock = false;
+          uiCtxSet = uiNumOfSets + 1;
+        }
+        else
+        {
+          uiCtxSet = uiPrevAbsGreOne / uiNumOfSets + 1;//( ( uiGreOne * uiEqRangeSize ) >> 8 ) + 1;
+          uiPrevAbsGreOne = 0;
+        }
+
+		// Code Bin0 plane for levels
+        for ( UInt uiScanPos = 0; uiScanPos < 16; uiScanPos++ )
+        {
+#if HHI_RQT
+          UInt  uiBlkPos  = g_auiFrameScanXY[ 1 ][ 15 - uiScanPos ];
+#else
+          UInt  uiBlkPos  = g_auiFrameScanXY[ 0 ][ 15 - uiScanPos ];
+#endif
+          UInt  uiPosY    = uiBlkPos >> 2;
+          UInt  uiPosX    = uiBlkPos - ( uiPosY << 2 );
+          UInt  uiIndex   = (uiSubPosY + uiPosY) * uiWidth + uiSubPosX + uiPosX;
+
+          if( pcCoef[ uiIndex ]  )
+          {
+            if( pcCoef[ uiIndex ] > 0) { uiAbs = static_cast<UInt>( pcCoef[ uiIndex ]);  uiSign = 0; }
+            else                       { uiAbs = static_cast<UInt>(-pcCoef[ uiIndex ]);  uiSign = 1; }
+
+            UInt uiCtx    = min<UInt>(c1, 4);
+            UInt uiSymbol = uiAbs > 1 ? 1 : 0;
+            m_pcBinIf->encodeBin( uiSymbol, m_cCuCtxModAbsGreOne.get( 0, eTType, (uiCtxSet * 5) + uiCtx ) );
+
+            if( uiSymbol )
+            {
+              c1     = 0;
+            }
+            else if( c1 )
+            {
+              c1++;
+            }
+          }
+        }
+
+		// Code other bins for levels
+        for ( UInt uiScanPos = 0; uiScanPos < 16; uiScanPos++ )
+        {
+#if HHI_RQT
+          UInt  uiBlkPos  = g_auiFrameScanXY[ 1 ][ 15 - uiScanPos ];
+#else
+          UInt  uiBlkPos  = g_auiFrameScanXY[ 0 ][ 15 - uiScanPos ];
+#endif
+          UInt  uiPosY    = uiBlkPos >> 2;
+          UInt  uiPosX    = uiBlkPos - ( uiPosY << 2 );
+          UInt  uiIndex   = (uiSubPosY + uiPosY) * uiWidth + uiSubPosX + uiPosX;
+
+          if( pcCoef[ uiIndex ]  )
+          {
+            if( pcCoef[ uiIndex ] > 0) { uiAbs = static_cast<UInt>( pcCoef[ uiIndex ]);  uiSign = 0; }
+            else                       { uiAbs = static_cast<UInt>(-pcCoef[ uiIndex ]);  uiSign = 1; }
+
+            UInt uiSymbol = uiAbs > 1 ? 1 : 0;
+
+            if( uiSymbol )
+            {
+              UInt uiCtx  = min<UInt>(c2, 4);
+              uiAbs -= 2;
+              c2++;
+              uiPrevAbsGreOne++;
+              xWriteExGolombLevel( uiAbs, m_cCuCtxModCoeffLevelM1.get( 0, eTType, (uiCtxSet * 5) + uiCtx ) );
+            }
+          }
+        }
+
+		// Code sign plane
+        for ( UInt uiScanPos = 0; uiScanPos < 16; uiScanPos++ )
+        {
+#if HHI_RQT
+          UInt  uiBlkPos  = g_auiFrameScanXY[ 1 ][ 15 - uiScanPos ];
+#else
+          UInt  uiBlkPos  = g_auiFrameScanXY[ 0 ][ 15 - uiScanPos ];
+#endif
+          UInt  uiPosY    = uiBlkPos >> 2;
+          UInt  uiPosX    = uiBlkPos - ( uiPosY << 2 );
+          UInt  uiIndex   = (uiSubPosY + uiPosY) * uiWidth + uiSubPosX + uiPosX;
+
+          if( pcCoef[ uiIndex ]  )
+          {
+            if( pcCoef[ uiIndex ] > 0) { uiAbs = static_cast<UInt>( pcCoef[ uiIndex ]);  uiSign = 0; }
+            else                       { uiAbs = static_cast<UInt>(-pcCoef[ uiIndex ]);  uiSign = 1; }
+            m_pcBinIf->encodeBinEP( uiSign );
+          }
+        }
+
+      }
+    }
+  }
+  else
+  {
+    c1 = 1;
+    c2 = 0;
+
+	// Code Bin0 plane for levels
+    for ( UInt uiScanPos = 0; uiScanPos < uiWidth*uiHeight; uiScanPos++ )
+    {
+#if HHI_RQT
+      UInt uiIndex = g_auiFrameScanXY[ (int)g_aucConvertToBit[ uiWidth ] + 1 ][ uiWidth*uiHeight - uiScanPos - 1 ];
+#else
+      UInt uiIndex = g_auiFrameScanXY[ (int)g_aucConvertToBit[ uiWidth ] ][ uiWidth*uiHeight - uiScanPos - 1 ];
+#endif
+      if( pcCoef[ uiIndex ]  )
+      {
+        if( pcCoef[ uiIndex ] > 0) { uiAbs = static_cast<UInt>( pcCoef[ uiIndex ]);  uiSign = 0; }
+        else                       { uiAbs = static_cast<UInt>(-pcCoef[ uiIndex ]);  uiSign = 1; }
+
+        UInt uiCtx    = min<UInt>(c1, 4);
+        UInt uiSymbol = uiAbs > 1 ? 1 : 0;
+        m_pcBinIf->encodeBin( uiSymbol, m_cCuCtxModAbsGreOne.get( 0, eTType, uiCtx ) );
+
+        if( uiSymbol )
+        {
+          c1     = 0;
+        }
+        else if( c1 )
+        {
+          c1++;
+        }
+      }
+    }
+
+	// Code other bins for levels
+    for ( UInt uiScanPos = 0; uiScanPos < uiWidth*uiHeight; uiScanPos++ )
+    {
+#if HHI_RQT
+      UInt uiIndex = g_auiFrameScanXY[ (int)g_aucConvertToBit[ uiWidth ] + 1 ][ uiWidth*uiHeight - uiScanPos - 1 ];
+#else
+      UInt uiIndex = g_auiFrameScanXY[ (int)g_aucConvertToBit[ uiWidth ] ][ uiWidth*uiHeight - uiScanPos - 1 ];
+#endif
+      if( pcCoef[ uiIndex ]  )
+      {
+        if( pcCoef[ uiIndex ] > 0) { uiAbs = static_cast<UInt>( pcCoef[ uiIndex ]);  uiSign = 0; }
+        else                       { uiAbs = static_cast<UInt>(-pcCoef[ uiIndex ]);  uiSign = 1; }
+
+        UInt uiSymbol = uiAbs > 1 ? 1 : 0;
+
+        if( uiSymbol )
+        {
+          UInt uiCtx  = min<UInt>(c2, 4);
+          uiAbs -= 2;
+          c2++;
+          xWriteExGolombLevel( uiAbs, m_cCuCtxModCoeffLevelM1.get( 0, eTType, uiCtx ) );
+        }
+      }
+    }
+
+	// Code sign plane
+    for ( UInt uiScanPos = 0; uiScanPos < uiWidth*uiHeight; uiScanPos++ )
+    {
+#if HHI_RQT
+      UInt uiIndex = g_auiFrameScanXY[ (int)g_aucConvertToBit[ uiWidth ] + 1 ][ uiWidth*uiHeight - uiScanPos - 1 ];
+#else
+      UInt uiIndex = g_auiFrameScanXY[ (int)g_aucConvertToBit[ uiWidth ] ][ uiWidth*uiHeight - uiScanPos - 1 ];
+#endif
+      if( pcCoef[ uiIndex ]  )
+      {
+        if( pcCoef[ uiIndex ] > 0) { uiAbs = static_cast<UInt>( pcCoef[ uiIndex ]);  uiSign = 0; }
+        else                       { uiAbs = static_cast<UInt>(-pcCoef[ uiIndex ]);  uiSign = 1; }
+
+        m_pcBinIf->encodeBinEP( uiSign );
+      }
+    }
+  }
+#else   
   Int  c1, c2;
   UInt uiAbs;
   UInt uiSign;
@@ -1880,6 +2125,7 @@ Void TEncSbac::codeCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx
       }
     }
   }
+#endif
   return;
 #else
   UInt uiCTXIdx = xGetCTXIdxFromWidth( uiWidth );

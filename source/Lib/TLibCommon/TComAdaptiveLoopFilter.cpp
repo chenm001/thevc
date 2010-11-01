@@ -1535,13 +1535,13 @@ Void TComAdaptiveLoopFilter::ALFProcess(TComPic* pcPic, ALFParam* pcAlfParam)
 
 Void TComAdaptiveLoopFilter::xALFLuma_qc(TComPic* pcPic, ALFParam* pcAlfParam, TComPicYuv* pcPicDec, TComPicYuv* pcPicRest)
 {
-  Int    Height = pcPicDec->getHeight();
-  Int    Width = pcPicDec->getWidth();
   Int    LumaStride = pcPicDec->getStride();
 #if ALF_MEM_PATCH
   imgpel* pDec = (imgpel*)pcPicDec->getLumaAddr();
   imgpel* pRest = (imgpel*)pcPicRest->getLumaAddr();
 #else
+  Int    Height = pcPicDec->getHeight();
+  Int    Width = pcPicDec->getWidth();
   Pel* pDec = pcPicDec->getLumaAddr();
   Pel* pRest = pcPicRest->getLumaAddr();
   for (Int i=0; i<Height; i++)

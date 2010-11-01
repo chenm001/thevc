@@ -260,6 +260,26 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
       //-------------------------------------------------------------
       pcSlice->setRefPOCList();
 
+#if MS_NO_BACK_PRED_IN_B0
+      pcSlice->setNoBackPredFlag( false );
+      if ( pcSlice->getSliceType() == B_SLICE )
+      {
+        if ( pcSlice->getNumRefIdx(RefPicList( 0 ) ) == pcSlice->getNumRefIdx(RefPicList( 1 ) ) )
+        {
+          pcSlice->setNoBackPredFlag( true );
+          int i;
+          for ( i=0; i < pcSlice->getNumRefIdx(RefPicList( 1 ) ); i++ )
+          {
+            if ( pcSlice->getRefPOC(RefPicList(1), i) != pcSlice->getRefPOC(RefPicList(0), i) ) 
+            {
+              pcSlice->setNoBackPredFlag( false );
+              break;
+            }
+          }
+        }
+      }
+#endif
+
       /////////////////////////////////////////////////////////////////////////////////////////////////// Compress a slice
       //  Slice compression
       if (m_pcCfg->getUseASR())
@@ -267,11 +287,15 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
         m_pcSliceEncoder->setSearchRange(pcSlice);
       }
 #ifdef ROUNDING_CONTROL_BIPRED
-	  Bool b;
-	  if (m_pcCfg->getGOPSize()==1)
-		  b = ((pcSlice->getPOC()&1)==0);	
-	  else
-		  b = (pcSlice->isReferenced() == 0);	 
+	  Bool b = true;
+      if (m_pcCfg->getUseRoundingControlBipred())
+      {
+        if (m_pcCfg->getGOPSize()==1)
+            b = ((pcSlice->getPOC()&1)==0);	
+        else
+            b = (pcSlice->isReferenced() == 0);	 
+      }
+
 	  pcSlice->setRounding(b);
 #endif
 #ifdef QC_SIFO

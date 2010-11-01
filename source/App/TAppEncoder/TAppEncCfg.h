@@ -94,16 +94,21 @@ protected:
 
   // transfom unit (TU) definition
 #if HHI_RQT
-  Bool      m_bQuadtreeTUFlag;
   UInt      m_uiQuadtreeTULog2MaxSize;
   UInt      m_uiQuadtreeTULog2MinSize;
 #if HHI_RQT_DEPTH
+#if HHI_C319
+  UInt      m_uiQuadtreeTUMaxDepthInter;
+  UInt      m_uiQuadtreeTUMaxDepthIntra;
+#else
   UInt      m_uiQuadtreeTUMaxDepth;
 #endif
 #endif
+#else
   UInt      m_uiMinTrDepth;                                   ///< min. TU depth
   UInt      m_uiMaxTrDepth;                                   ///< max. TU depth
   UInt      m_uiMaxTrSize;                                    ///< max. physical transform size
+#endif
 
   // coding tools (bit-depth)
   UInt      m_uiBitDepth;                                     ///< base bit-depth
@@ -186,6 +191,10 @@ protected:
   Int       m_iInterpFilterType;                              ///< interpolation filter type
 #endif
 
+#ifdef ROUNDING_CONTROL_BIPRED
+  Bool m_useRoundingControlBipred;
+#endif
+  
   // internal member functions
   Void  xSetGlobal      ();                                   ///< set global variables
   Void  xCheckParameter ();                                   ///< check validity of configuration values

@@ -1306,6 +1306,12 @@ Void TDecSbac::parseInterDir( TComDataCU* pcCU, UInt& ruiInterDir, UInt uiAbsPar
   {
     uiSymbol = 2;
   }
+#if MS_NO_BACK_PRED_IN_B0
+  else if ( pcCU->getSlice()->getNoBackPredFlag() )
+  {
+    uiSymbol = 0;
+  }
+#endif
   else
   {
     m_pcTDecBinIf->decodeBin( uiSymbol, m_cCUInterDirSCModel.get( 0, 0, 3 ) );
@@ -1794,17 +1800,14 @@ Void TDecSbac::parseDeltaQP( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
 Void TDecSbac::parseCbf( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eType, UInt uiTrDepth, UInt uiDepth )
 {
 #if HHI_RQT
-  if( pcCU->getSlice()->getSPS()->getQuadtreeTUFlag() )
-  {
 #if HHI_RQT_INTRA
-    return;
+  return;
 #else
-    if( !pcCU->isIntra( uiAbsPartIdx ) )
-    {
-      return;
-    }
-#endif
+  if( !pcCU->isIntra( uiAbsPartIdx ) )
+  {
+    return;
   }
+#endif
 #endif
   UInt uiSymbol;
   UInt uiCbf = pcCU->getCbf( uiAbsPartIdx, eType );
@@ -1841,6 +1844,13 @@ Void TDecSbac::parseQtCbf( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eType, 
   DTRACE_CABAC_T( "\n" )
 
   pcCU->setCbfSubParts( uiSymbol << uiTrDepth, eType, uiAbsPartIdx, uiDepth );
+}
+#endif
+
+#if LCEC_CBP_YUV_ROOT
+Void TDecSbac::parseBlockCbf( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eType, UInt uiTrDepth, UInt uiDepth, UInt uiQPartNum )
+{
+  return;
 }
 #endif
 
@@ -2041,6 +2051,244 @@ Void TDecSbac::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartId
     pcCoef[ uiMaxNumCoeffM1 ] = 1;
   }
 
+#if TI_SIGN_BIN0_PCP
+  /*
+   * Sign and bin0 PCP (Section 3.2 and 3.3 of JCTVC-B088)
+   */
+  Int  c1, c2;
+  UInt uiSign;
+  UInt uiLevel;
+  UInt uiPrevAbsGreOne     = 0;
+  const UInt uiNumOfSets   = 4;
+  const UInt uiNum4x4Blk   = max<UInt>( 1, uiMaxNumCoeff / 16 );
+
+  if ( uiLog2BlockSize > 2 )
+  {
+    Bool bFirstBlock = true;
+
+    for ( UInt uiSubBlk = 0; uiSubBlk < uiNum4x4Blk; uiSubBlk++ )
+    {
+      UInt uiCtxSet    = 0;
+      UInt uiSubNumSig = 0;
+      UInt uiSubLog2   = uiLog2BlockSize - 2;
+      UInt uiSubPosX   = 0;
+      UInt uiSubPosY   = 0;
+
+      if ( uiSubLog2 > 1 )
+      {
+#if HHI_RQT
+        uiSubPosX = g_auiFrameScanX[ uiSubLog2 - 1 ][ uiSubBlk ] * 4;
+        uiSubPosY = g_auiFrameScanY[ uiSubLog2 - 1 ][ uiSubBlk ] * 4;
+#else
+        uiSubPosX = g_auiFrameScanX[ uiSubLog2 - 2 ][ uiSubBlk ] * 4;
+        uiSubPosY = g_auiFrameScanY[ uiSubLog2 - 2 ][ uiSubBlk ] * 4;
+#endif
+      }
+      else
+      {
+        uiSubPosX = ( uiSubBlk < 2      ) ? 0 : 1;
+        uiSubPosY = ( uiSubBlk % 2 == 0 ) ? 0 : 1;
+        uiSubPosX *= 4;
+        uiSubPosY *= 4;
+      }
+
+      TCoeff* piCurr = &pcCoef[ uiSubPosX + uiSubPosY * uiWidth ];
+
+      for ( UInt uiY = 0; uiY < 4; uiY++ )
+      {
+        for ( UInt uiX = 0; uiX < 4; uiX++ )
+        {
+          if( piCurr[ uiX ] )
+          {
+            uiSubNumSig++;
+          }
+        }
+        piCurr += uiWidth;
+      }
+
+      if ( uiSubNumSig > 0 )
+      {
+        c1 = 1;
+        c2 = 0;
+
+        if ( bFirstBlock )
+        {
+          bFirstBlock = false;
+          uiCtxSet = uiNumOfSets + 1;
+        }
+        else
+        {
+          //uiCtxSet = ( ( uiGreOne * uiEqRangeSize ) >> 8 ) + 1;
+          uiCtxSet = uiPrevAbsGreOne / uiNumOfSets + 1;
+          uiPrevAbsGreOne = 0;
+        }
+
+		// Decode level Bin0 plane
+        for ( UInt uiScanPos = 0; uiScanPos < 16; uiScanPos++ )
+        {
+#if HHI_RQT
+          UInt  uiBlkPos  = g_auiFrameScanXY[ 1 ][ 15 - uiScanPos ];
+#else
+          UInt  uiBlkPos  = g_auiFrameScanXY[ 0 ][ 15 - uiScanPos ];
+#endif
+          UInt  uiPosY    = uiBlkPos >> 2;
+          UInt  uiPosX    = uiBlkPos - ( uiPosY << 2 );
+          UInt  uiIndex   = (uiSubPosY + uiPosY) * uiWidth + uiSubPosX + uiPosX;
+
+          uiLevel = pcCoef[ uiIndex ];
+
+          if( uiLevel )
+          {
+            UInt uiCtx = min<UInt>(c1, 4);
+            m_pcTDecBinIf->decodeBin( uiLevel, m_cCuCtxModAbsGreOne.get( 0, eTType, (uiCtxSet * 5) + uiCtx ) );
+            if( uiLevel == 1 )
+            {
+              c1    = 0;
+              uiLevel = 2;
+            }
+            else if( c1 )
+            {
+              c1++;
+              uiLevel++;
+            }
+            else
+            {
+              uiLevel++;
+            }
+            pcCoef[ uiIndex ] = uiLevel;
+          }
+        }
+
+		// Decode other bins of level 
+        for ( UInt uiScanPos = 0; uiScanPos < 16; uiScanPos++ )
+        {
+#if HHI_RQT
+          UInt  uiBlkPos  = g_auiFrameScanXY[ 1 ][ 15 - uiScanPos ];
+#else
+          UInt  uiBlkPos  = g_auiFrameScanXY[ 0 ][ 15 - uiScanPos ];
+#endif
+          UInt  uiPosY    = uiBlkPos >> 2;
+          UInt  uiPosX    = uiBlkPos - ( uiPosY << 2 );
+          UInt  uiIndex   = (uiSubPosY + uiPosY) * uiWidth + uiSubPosX + uiPosX;
+
+          uiLevel = pcCoef[ uiIndex ];
+
+          if( uiLevel )
+          {
+            if( uiLevel == 2 )
+            {
+              UInt uiCtx = min<UInt>(c2, 4);
+              c2++;
+              uiPrevAbsGreOne++;
+              xReadExGolombLevel( uiLevel, m_cCuCtxModCoeffLevelM1.get( 0, eTType, (uiCtxSet * 5) + uiCtx ) );
+              uiLevel += 2;
+            }
+            pcCoef[ uiIndex ] = uiLevel;
+          }
+        }
+
+		// Decode sign plane
+        for ( UInt uiScanPos = 0; uiScanPos < 16; uiScanPos++ )
+        {
+#if HHI_RQT
+          UInt  uiBlkPos  = g_auiFrameScanXY[ 1 ][ 15 - uiScanPos ];
+#else
+          UInt  uiBlkPos  = g_auiFrameScanXY[ 0 ][ 15 - uiScanPos ];
+#endif
+          UInt  uiPosY    = uiBlkPos >> 2;
+          UInt  uiPosX    = uiBlkPos - ( uiPosY << 2 );
+          UInt  uiIndex   = (uiSubPosY + uiPosY) * uiWidth + uiSubPosX + uiPosX;
+
+          uiLevel = pcCoef[ uiIndex ];
+
+          if( uiLevel )
+          {
+            m_pcTDecBinIf->decodeBinEP( uiSign );
+            pcCoef[ uiIndex ] = ( uiSign ? -(Int)uiLevel : (Int)uiLevel );
+          }
+        }
+      }
+    }
+  }
+  else
+  {
+    c1 = 1;
+    c2 = 0;
+
+    // Decode level Bin0 plane
+    for ( UInt uiScanPos = 0; uiScanPos < uiWidth*uiHeight; uiScanPos++ )
+    {
+#if HHI_RQT
+      UInt uiIndex = g_auiFrameScanXY[ (int)g_aucConvertToBit[ uiWidth ] + 1 ][ uiWidth*uiHeight - uiScanPos - 1 ];
+#else
+      UInt uiIndex = g_auiFrameScanXY[ (int)g_aucConvertToBit[ uiWidth ] ][ uiWidth*uiHeight - uiScanPos - 1 ];
+#endif
+      uiLevel = pcCoef[ uiIndex ];
+
+      if( uiLevel )
+      {
+        UInt uiCtx = min<UInt>(c1, 4);
+        m_pcTDecBinIf->decodeBin( uiLevel, m_cCuCtxModAbsGreOne.get( 0, eTType, uiCtx ) );
+        if( uiLevel == 1 )
+        {
+          c1    = 0;
+          uiLevel = 2;
+        }
+        else if( c1 )
+        {
+          c1++;
+          uiLevel++;
+        }
+        else
+        {
+          uiLevel++;
+        }
+        pcCoef[ uiIndex ] = uiLevel;
+      }
+    }
+
+	// Decode other bins of level 
+    for ( UInt uiScanPos = 0; uiScanPos < uiWidth*uiHeight; uiScanPos++ )
+    {
+#if HHI_RQT
+      UInt uiIndex = g_auiFrameScanXY[ (int)g_aucConvertToBit[ uiWidth ] + 1 ][ uiWidth*uiHeight - uiScanPos - 1 ];
+#else
+      UInt uiIndex = g_auiFrameScanXY[ (int)g_aucConvertToBit[ uiWidth ] ][ uiWidth*uiHeight - uiScanPos - 1 ];
+#endif
+
+      uiLevel = pcCoef[ uiIndex ];
+
+      if( uiLevel )
+      {
+        if( uiLevel == 2 )
+        {
+          UInt uiCtx = min<UInt>(c2, 4);
+          c2++;
+          xReadExGolombLevel( uiLevel, m_cCuCtxModCoeffLevelM1.get( 0, eTType, uiCtx ) );
+          uiLevel += 2;
+        }
+        pcCoef[ uiIndex ] = uiLevel;
+      }
+    }
+
+	// Decode sign plane
+    for ( UInt uiScanPos = 0; uiScanPos < uiWidth*uiHeight; uiScanPos++ )
+    {
+#if HHI_RQT
+      UInt uiIndex = g_auiFrameScanXY[ (int)g_aucConvertToBit[ uiWidth ] + 1 ][ uiWidth*uiHeight - uiScanPos - 1 ];
+#else
+      UInt uiIndex = g_auiFrameScanXY[ (int)g_aucConvertToBit[ uiWidth ] ][ uiWidth*uiHeight - uiScanPos - 1 ];
+#endif
+      uiLevel = pcCoef[ uiIndex ];
+
+      if( uiLevel )
+      {
+        m_pcTDecBinIf->decodeBinEP( uiSign );
+        pcCoef[ uiIndex ] = ( uiSign ? -(Int)uiLevel : (Int)uiLevel );
+      }
+    }
+  }
+#else 
   Int  c1, c2;
   UInt uiSign;
   UInt uiLevel;
@@ -2194,6 +2442,8 @@ Void TDecSbac::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartId
       }
     }
   }
+#endif
+
   return;
 #else
   UInt uiCTXIdx;

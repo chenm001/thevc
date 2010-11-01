@@ -1167,12 +1167,35 @@ const UInt g_auiCbpVlcNum[2][8] =
 };
 #endif
 
+#if QC_BLK_CBP
+const UInt g_auiBlkCBPTableE[2][15] = 
+{
+  {14, 13, 10, 12, 9, 8, 4, 11, 7, 6, 3, 5, 2, 1, 0},
+  {0, 1, 4, 2, 5, 6, 10, 3, 7, 8, 11, 9, 12, 13, 14}
+};
+const UInt g_auiBlkCBPTableD[2][15] = 
+{
+  {14, 13, 12, 10, 6, 11, 9, 8, 5, 4, 2, 7, 3, 1, 0},
+  {0, 1, 3, 7, 2, 4, 5, 8, 9, 11, 6, 10 ,12, 13, 14} 
+};
+const UInt g_auiBlkCbpVlcNum[15] = 
+{
+  1,  2,  2,  2, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11
+};
+#endif
 
 #if LCEC_PHASE2
 const UInt g_auiMI1TableE[8] = {0,2,1,4,3,6,5,7};
 const UInt g_auiMI1TableD[8] = {0,2,1,4,3,6,5,7};
 const UInt g_auiMI2TableE[15] = {0,1,3,2,6,5,4,7,9,8,13,12,11,14,10};
 const UInt g_auiMI2TableD[15] = {0,1,3,2,6,5,4,7,9,8,14,12,11,10,13};
+
+#if MS_NO_BACK_PRED_IN_B0
+const UInt g_auiMI1TableENoL1[8] = {0,1,6,7,2,4,3,5};
+const UInt g_auiMI1TableDNoL1[8] = {0,1,4,6,5,7,2,3};
+const UInt g_auiMI2TableENoL1[15] = {0,1,2,12,14,13,3,4,6,5,10,9,8,11,7};
+const UInt g_auiMI2TableDNoL1[15] = {0,1,2,6,7,9,8,14,12,11,10,13,3,5,4};
+#endif
 
 // Below table need to be optimized
 const UInt g_auiMITableVlcNum[15] = 
@@ -1989,6 +2012,8 @@ const UChar g_aucIntraModeBits[7] =
    3   // 128x128  33   4+1
 };
 
+#if SAMSUNG_FAST_UDI
+#if SAMSUNG_FAST_UDI_MODESET==0
 const UChar g_aucIntraModeNumFast[7] =
 {
    3,  //   2x2
@@ -1999,6 +2024,30 @@ const UChar g_aucIntraModeNumFast[7] =
    5,  //  64x64   33
    4   // 128x128  33
 };
+#else
+const UChar g_aucIntraModeNumFast[7] =
+{
+	3,  //   2x2
+	9,  //   4x4
+	9,  //   8x8
+	9,  //  16x16   33
+	9,  //  32x32   33
+	5,  //  64x64   33
+	4   // 128x128  33
+};
+#endif
+#else
+const UChar g_aucIntraModeNumFast[7] =
+{
+   3,  //   2x2
+   9,  //   4x4
+   9,  //   8x8
+   4,  //  16x16   33
+   4,  //  32x32   33
+   5,  //  64x64   33
+   4   // 128x128  33
+};
+#endif
 
 const UChar g_aucIntraAvail[40][2] =
 {
@@ -2243,12 +2292,22 @@ const UChar g_aucIntraModeBitsAng[7] =
    3   // 128x128   5   2+1
 };
 
+#if BUGFIX_106
+const UChar g_aucAngModeMapping[3][34] = // intra mode conversion for most probable
+{
+  {2,3,2,2,4, 4,4,0,0,0, 0,0,0,0,2, 2,2,2,2,2, 2,1,1,1,1, 1,1,1,1,1, 2,2,2,2},               // conversion to 5 modes
+  {2,3,3,2,4, 4,4,2,0,0, 0,2,5,5,5, 2,6,6,3,2, 7,7,7,2,1, 1,1,2,8,8, 8,2,2,2},               // conversion to 9 modes
+  {2,3,3,10,10, 4,11,11,0,0, 0,12,12,5,5, 13,13,6,14,14, 7,7,15,15,1, 1,1,16,16,8, 8,2,2,9}  // conversion to 17 modes
+};
+#else
 const UChar g_aucAngModeMapping[3][34] = // intra mode conversion for most probable
 {
   {2,3,2,2,4, 4,4,0,0,0, 0,0,0,0,2, 2,2,2,2,2, 2,1,1,1,1, 1,1,1,1,1, 2,2,2,2},               // conversion to 5 modes
   {2,3,3,2,4, 4,4,2,0,0, 0,2,5,5,5, 2,6,6,6,2, 7,7,7,2,1, 1,1,2,8,8, 8,2,2,2},               // conversion to 9 modes
   {2,3,3,10,10, 4,11,11,0,0, 0,12,12,5,5, 13,13,6,14,14, 7,7,15,15,1, 1,1,16,16,8, 8,2,2,9}  // conversion to 17 modes
 };
+#endif
+
 # endif
 #endif
 

@@ -111,7 +111,7 @@ Void TDecSlice::decompressSlice(TComBitstream* pcBitstream, TComPic*& rpcPic)
 #endif
 #endif
   // for all CUs
-  for( Int iCUAddr = 0; !uiIsLast; iCUAddr++ )
+  for( Int iCUAddr = 0; !uiIsLast && iCUAddr < rpcPic->getNumCUsInFrame(); iCUAddr++ )
   {
     pcCU = rpcPic->getCU( iCUAddr );
     pcCU->initCU( rpcPic, iCUAddr );

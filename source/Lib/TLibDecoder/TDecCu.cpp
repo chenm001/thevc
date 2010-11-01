@@ -331,14 +331,7 @@ Void TDecCu::xDecompressCU( TComDataCU* pcCU, TComDataCU* pcCUCur, UInt uiAbsPar
     break;
   case MODE_INTRA:
 #if HHI_RQT_INTRA
-    if( m_ppcCU[uiDepth]->getSlice()->getSPS()->getQuadtreeTUFlag() )
-    {
-      xReconIntraQT( m_ppcCU[uiDepth], uiAbsPartIdx, uiDepth );
-    }
-    else
-    {
-      xReconIntra( m_ppcCU[uiDepth], uiAbsPartIdx, uiDepth );
-    }
+    xReconIntraQT( m_ppcCU[uiDepth], uiAbsPartIdx, uiDepth );
 #else
     xReconIntra( m_ppcCU[uiDepth], uiAbsPartIdx, uiDepth );
 #endif

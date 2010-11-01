@@ -344,6 +344,26 @@ Void TDecTop::decode (Bool bEos, TComBitstream* pcBitstream, UInt& ruiPOC, TComL
   //---------------
   pcSlice->setRefPOCList();
 
+#if MS_NO_BACK_PRED_IN_B0
+  pcSlice->setNoBackPredFlag( false );
+  if ( pcSlice->getSliceType() == B_SLICE )
+  {
+      if ( pcSlice->getNumRefIdx(RefPicList( 0 ) ) == pcSlice->getNumRefIdx(RefPicList( 1 ) ) )
+      {
+          pcSlice->setNoBackPredFlag( true );
+          int i;
+          for ( i=0; i < pcSlice->getNumRefIdx(RefPicList( 1 ) ); i++ )
+          {
+              if ( pcSlice->getRefPOC(RefPicList(1), i) != pcSlice->getRefPOC(RefPicList(0), i) ) 
+              {
+                  pcSlice->setNoBackPredFlag( false );
+                  break;
+              }
+          }
+      }
+  }
+#endif
+
   m_cGopDecoder.setBalancedCPUs( getBalancedCPUs() );
   //  Decode a picture
   m_cGopDecoder.decompressGop ( bEos, pcBitstream, pcPic );

@@ -217,12 +217,25 @@ extern const UInt    g_auiCbpVlcNum[2][8];
 
 #endif
 
+#if QC_BLK_CBP
+extern const UInt    g_auiBlkCBPTableE[2][15];
+extern const UInt    g_auiBlkCBPTableD[2][15];
+extern const UInt    g_auiBlkCbpVlcNum[15];
+#endif
+
 #if LCEC_PHASE2
 extern const UInt g_auiMI1TableE[8];
 extern const UInt g_auiMI1TableD[8];
 extern const UInt g_auiMI2TableE[15];
 extern const UInt g_auiMI2TableD[15];
 extern const UInt    g_auiMITableVlcNum[15];
+
+#if MS_NO_BACK_PRED_IN_B0
+extern const UInt g_auiMI1TableENoL1[8];
+extern const UInt g_auiMI1TableDNoL1[8];
+extern const UInt g_auiMI2TableENoL1[15];
+extern const UInt g_auiMI2TableDNoL1[15];
+#endif
 #endif
 
 

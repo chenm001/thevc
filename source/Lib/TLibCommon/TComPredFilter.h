@@ -491,7 +491,7 @@ __inline Void TComPredFilter::xCTI_FilterDIF_TEN(Pel* piSrc, Int iSrcStride, Int
       {
         piSrcTmp = piSrc-2*iSrcStride-2;
         for ( Int x = 0; x < iWidth; x++, piSrcTmp++)
-          piDst[x*iDstStep] = Clip( (2*piSrcTmp[0*iSrcStride+5] + (-10)*piSrcTmp[1*iSrcStride+4] + 111*piSrcTmp[2*iSrcStride+3] + 37*piSrcTmp[3*iSrcStride+2] + (-10)*piSrcTmp[4*iSrcStride+1] + 2*piSrcTmp[5*iSrcStride+0] + 64)>>7);
+          piDst[x*iDstStep] = Clip( (2*piSrcTmp[0*iSrcStride+5] + (-10)*piSrcTmp[1*iSrcStride+4] + 37*piSrcTmp[2*iSrcStride+3] + 111*piSrcTmp[3*iSrcStride+2] + (-15)*piSrcTmp[4*iSrcStride+1] + 3*piSrcTmp[5*iSrcStride+0] + 64)>>7);
         piSrc += iSrcStride;
         piDst += iDstStride;
       }

@@ -133,6 +133,10 @@ public:
   Void    setLambda      ( Double dLambda );
   Void    setFrameLambda ( Double dLambda ) { m_dFrameLambda = dLambda; }
 
+#if SAMSUNG_FAST_UDI
+  Double  getLambda ()   { return m_dLambda; }
+#endif
+
   // Distortion Functions
   Void    init();
 

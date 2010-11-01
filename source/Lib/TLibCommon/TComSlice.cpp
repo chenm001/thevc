@@ -83,6 +83,9 @@ TComSlice::TComSlice()
 #ifdef DCM_PBIC
   xCreateZTrees();
 #endif
+#if MS_NO_BACK_PRED_IN_B0
+  m_bNoBackPredFlag = false;
+#endif
 }
 
 TComSlice::~TComSlice()
@@ -167,6 +170,9 @@ Void TComSlice::initSlice()
 	m_bUseSIFO_Pred    = true;
 #endif
   initEqualRef();
+#if MS_NO_BACK_PRED_IN_B0
+  m_bNoBackPredFlag = false;
+#endif
 }
 
 Void  TComSlice::sortPicList        (TComList<TComPic*>& rcListPic)
@@ -759,7 +765,7 @@ TComSPS::TComSPS()
   m_uiMaxCUDepth  = 3;
   m_uiMinTrDepth  = 0;
   m_uiMaxTrDepth  = 1;
-  m_uiMaxTrSize   = 64;
+  m_uiMaxTrSize   = 32;
 
   // Tool list
   m_bUseALF       = false;

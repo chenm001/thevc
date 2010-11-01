@@ -124,6 +124,10 @@ public:
   virtual Void parseDeltaQP       ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth ) = 0;
   virtual Void parseCbf           ( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eType, UInt uiTrDepth, UInt uiDepth ) = 0;
 
+#if LCEC_CBP_YUV_ROOT
+  virtual Void parseBlockCbf      ( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eType, UInt uiTrDepth, UInt uiDepth, UInt uiQPartNum ) = 0;
+#endif
+
   virtual Void parseROTindex( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth ) = 0;
   virtual Void parseCIPflag ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth ) = 0;
 #if PLANAR_INTRA
@@ -253,7 +257,11 @@ public:
 
 #if HHI_RQT
 private:
+#if MS_LAST_CBF
+  Void xDecodeTransformSubdiv  ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth, UInt uiInnerQuadIdx, UInt& uiYCbfFront3, UInt& uiUCbfFront3, UInt& uiVCbfFront3 );
+#else
   Void xDecodeTransformSubdiv  ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth, UInt uiInnerQuadIdx );
+#endif
 #endif
 
 #ifdef QC_AMVRES

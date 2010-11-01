@@ -65,11 +65,15 @@ private:
 
   // Tool list
 #if HHI_RQT
-  Bool        m_bQuadtreeTUFlag;
   UInt        m_uiQuadtreeTULog2MaxSize;
   UInt        m_uiQuadtreeTULog2MinSize;
 #if HHI_RQT_DEPTH
+#if HHI_C319
+  UInt        m_uiQuadtreeTUMaxDepthInter;
+  UInt        m_uiQuadtreeTUMaxDepthIntra;
+#else
   UInt        m_uiQuadtreeTUMaxDepth;
+#endif
 #endif
 #endif
   Bool        m_bUseALF;
@@ -151,15 +155,20 @@ public:
   Void setMaxTrDepth  ( UInt u ) { m_uiMaxTrDepth = u;      }
   UInt getMaxTrDepth  ()         { return  m_uiMaxTrDepth;  }
 #if HHI_RQT
-  Void setQuadtreeTUFlag( Bool b )        { m_bQuadtreeTUFlag = b;            }
-  Bool getQuadtreeTUFlag()                { return m_bQuadtreeTUFlag;         }
   Void setQuadtreeTULog2MaxSize( UInt u ) { m_uiQuadtreeTULog2MaxSize = u;    }
   UInt getQuadtreeTULog2MaxSize()         { return m_uiQuadtreeTULog2MaxSize; }
   Void setQuadtreeTULog2MinSize( UInt u ) { m_uiQuadtreeTULog2MinSize = u;    }
   UInt getQuadtreeTULog2MinSize()         { return m_uiQuadtreeTULog2MinSize; }
 #if HHI_RQT_DEPTH
+#if HHI_C319
+  Void setQuadtreeTUMaxDepthInter( UInt u ) { m_uiQuadtreeTUMaxDepthInter = u;    }
+  Void setQuadtreeTUMaxDepthIntra( UInt u ) { m_uiQuadtreeTUMaxDepthIntra = u;    }
+  UInt getQuadtreeTUMaxDepthInter()         { return m_uiQuadtreeTUMaxDepthInter; }
+  UInt getQuadtreeTUMaxDepthIntra()         { return m_uiQuadtreeTUMaxDepthIntra; }
+#else
   Void setQuadtreeTUMaxDepth( UInt u ) { m_uiQuadtreeTUMaxDepth = u;    }
   UInt getQuadtreeTUMaxDepth()         { return m_uiQuadtreeTUMaxDepth; }
+#endif
 #endif
 #endif
   Void setPad         (Int iPad[2]) { m_aiPad[0] = iPad[0]; m_aiPad[1] = iPad[1]; }
@@ -362,6 +371,10 @@ private:
   Void        xDeleteZTrees();
 #endif
 
+#if MS_NO_BACK_PRED_IN_B0
+  Bool m_bNoBackPredFlag;
+#endif
+
 public:
   TComSlice();
   virtual ~TComSlice();
@@ -490,6 +503,11 @@ public:
 
 #ifdef QC_SIFO
   Bool getUseSIFO              ()         { return ( m_iInterpFilterType == IPF_QC_SIFO); }
+#endif
+
+#if MS_NO_BACK_PRED_IN_B0
+  Bool getNoBackPredFlag() { return m_bNoBackPredFlag; }
+  Void setNoBackPredFlag( Bool b ) { m_bNoBackPredFlag = b; }
 #endif
 
 protected:
