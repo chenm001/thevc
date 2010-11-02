@@ -43,9 +43,6 @@
 TComPrediction::TComPrediction()
 {
   m_piYuvExt = NULL;
-#ifdef EDGE_BASED_PREDICTION
-  m_piYExtEdgeBased = NULL;
-#endif //EDGE_BASED_PREDICTION
 }
 
 TComPrediction::~TComPrediction()
@@ -53,9 +50,6 @@ TComPrediction::~TComPrediction()
   m_cYuvExt.destroy();
 
   delete[] m_piYuvExt;
-#ifdef EDGE_BASED_PREDICTION
-  delete[] m_piYExtEdgeBased;
-#endif //EDGE_BASED_PREDICTION
 
   m_acYuvPred[0].destroy();
   m_acYuvPred[1].destroy();
@@ -93,10 +87,6 @@ Void TComPrediction::initTempBuff()
     TComPredFilterMOMS::initTempBuff();
 #endif  
   }
-#ifdef EDGE_BASED_PREDICTION
-  if( m_piYExtEdgeBased == NULL )
-    m_piYExtEdgeBased = new Int[ ((g_uiMaxCUWidth<<1)+4) * ((g_uiMaxCUHeight<<1)+4) ];
-#endif //EDGE_BASED_PREDICTION
 
   m_iDIFHalfTap   = ( m_iDIFTap  >> 1 );
 #if SAMSUNG_CHROMA_IF_EXT
@@ -554,11 +544,6 @@ Void TComPrediction::predIntraLumaAng(TComPattern* pcTComPattern, UInt uiDirMode
 
   // Create the prediction
   xPredIntraAng( ptrSrc+sw+1, sw, pDst, uiStride, iWidth, iHeight, uiDirMode, bAbove,  bLeft );
-#ifdef EDGE_BASED_PREDICTION
-  //Edge based prediction
-  if( uiDirMode == 0 && EdgeBasedPred.get_edge_prediction_enable() )
-    EdgeBasedPred.intrapred_luma_edge(iHeight, iWidth, uiStride, sw+3, m_piYExtEdgeBased, pDst);
-#endif //EDGE_BASED_PREDICTION
 }
 
 // Angular chroma
@@ -655,11 +640,6 @@ Void TComPrediction::predIntraLumaAdi(TComPattern* pcTComPattern, UInt uiDirMode
   case 2:  // DC
     {
       xPredIntraDCAdi     ( ptrSrc+sw+1, sw, pDst, uiStride, iWidth, iHeight, bAbove,  bLeft );
-#ifdef EDGE_BASED_PREDICTION 
-      //Edge based prediction
-      if( EdgeBasedPred.get_edge_prediction_enable() )
-        EdgeBasedPred.intrapred_luma_edge(iHeight, iWidth, uiStride, sw+3, m_piYExtEdgeBased, pDst);
-#endif //EDGE_BASED_PREDICTION
       return;
     }
   case 3:  // Plane

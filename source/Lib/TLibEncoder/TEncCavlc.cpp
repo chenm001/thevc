@@ -641,12 +641,6 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
     m_uiBitHLS += 1;
   }
 #endif
-#ifdef EDGE_BASED_PREDICTION
-  xWriteFlag(pcSlice->getEdgePredictionEnable());
-  m_uiBitHLS += 1;
-  if( pcSlice->getEdgePredictionEnable() )
-    m_uiBitHLS += xWriteCode((pcSlice->getEdgeDetectionThreshold()>>8), 8);
-#endif //EDGE_BASED_PREDICTION
 }
 
 Void TEncCavlc::codeTerminatingBit      ( UInt uilsLast )
@@ -910,11 +904,6 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
     xWriteFlag( pcSlice->getColDir() );
   }
 #endif
-#ifdef EDGE_BASED_PREDICTION
-  xWriteFlag(pcSlice->getEdgePredictionEnable());
-  if( pcSlice->getEdgePredictionEnable() )
-    xWriteCode((pcSlice->getEdgeDetectionThreshold()>>8), 8);
-#endif //EDGE_BASED_PREDICTION
 }
 
 Void TEncCavlc::codeTerminatingBit      ( UInt uilsLast )

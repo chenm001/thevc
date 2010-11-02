@@ -361,15 +361,6 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice)
     rpcSlice->setColDir(uiCode);
   }
 #endif
-#ifdef EDGE_BASED_PREDICTION
-  xReadFlag(uiCode);
-  rpcSlice->setEdgePredictionEnable(uiCode);
-  if( rpcSlice->getEdgePredictionEnable() )
-  {
-    xReadCode(8, uiCode);
-    rpcSlice->setEdgeDetectionThreshold(((Int)uiCode<<8));
-  }
-#endif //EDGE_BASED_PREDICTION
   return;
 }
 

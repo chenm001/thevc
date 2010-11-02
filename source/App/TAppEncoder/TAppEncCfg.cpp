@@ -250,10 +250,6 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
 #if HHI_RMP_SWITCH
     ("RMP", m_bUseRMP ,true, "Rectangular motion partition" )
 #endif
-#ifdef EDGE_BASED_PREDICTION
-    ("EdgePredictionEnable", m_bEdgePredictionEnable, true, "Enable edge based prediction for intra")
-    ("EdgeDetectionThreshold", m_iEdgeDetectionThreshold, 10240, "Threshold for edge detection of edge based prediction")
-#endif //EDGE_BASED_PREDICTION
 #ifdef DCM_PBIC 
     ("PBIC", m_bUseIC, false,"Partition-based IC")// Partition-based IC
 #endif
@@ -483,20 +479,6 @@ Void TAppEncCfg::xCheckParameter()
     m_bUseAMVRes = false;
 #endif
 
-#ifdef EDGE_BASED_PREDICTION
-  //Edge based prediction: adapt the value of the threshold to integrate it in the bitstream
-  if(m_bEdgePredictionEnable)
-  {
-    int maxThreshold = (1<<16) - (1<<8);
-    if(m_iEdgeDetectionThreshold < 0)
-      m_iEdgeDetectionThreshold = 0;
-    if(m_iEdgeDetectionThreshold > maxThreshold)
-      m_iEdgeDetectionThreshold = maxThreshold;
-    int tmpThreshold = (m_iEdgeDetectionThreshold>>8);
-    m_iEdgeDetectionThreshold = tmpThreshold<<8;
-  }
-#endif //EDGE_BASED_PREDICTION
-
 #undef xConfirmPara
   if (check_failed) {
     exit(EXIT_FAILURE);
@@ -692,9 +674,6 @@ Void TAppEncCfg::xPrintParameter()
   printf("QBO:%d ", m_bUseQBO             );
   printf("GPB:%d ", m_bUseGPB             );
   printf("FEN:%d ", m_bUseFastEnc         );
-#ifdef EDGE_BASED_PREDICTION
-    printf("EdgePrediction:%d ", m_bEdgePredictionEnable);
-#endif //EDGE_BASED_PREDICTION
 #if HHI_RQT
   printf("RQT:%d ", 1     );
 #endif

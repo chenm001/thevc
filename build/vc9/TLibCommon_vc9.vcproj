@@ -307,10 +307,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\source\Lib\TLibCommon\TComEdgeBased.cpp"
-				>
-			</File>
-			<File
 				RelativePath="..\..\source\Lib\TLibCommon\TComIc.cpp"
 				>
 			</File>
@@ -422,10 +418,6 @@
 			</File>
 			<File
 				RelativePath="..\..\source\Lib\TLibCommon\TComDataCU.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\source\Lib\TLibCommon\TComEdgeBased.h"
 				>
 			</File>
 			<File

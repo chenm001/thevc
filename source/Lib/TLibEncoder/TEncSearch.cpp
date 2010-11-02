@@ -1160,10 +1160,6 @@ Void TEncSearch::xRecurIntraLumaSearchADI( TComDataCU* pcCU, UInt uiAbsPartIdx, 
     if (bSmallTrs){
       pcCU->getPattern()->initPattern   ( pcCU, uiCurrDepth, uiAbsPartIdx );
       pcCU->getPattern()->initAdiPattern( pcCU, uiAbsPartIdx, uiCurrDepth, m_piYuvExt, m_iYuvExtStride, m_iYuvExtHeight, bAboveAvail, bLeftAvail);
-#ifdef EDGE_BASED_PREDICTION
-      if(getEdgeBasedPred()->get_edge_prediction_enable())
-        getEdgeBasedPred()->initEdgeBasedBuffer(pcCU, uiAbsPartIdx, uiCurrDepth, m_piYExtEdgeBased);
-#endif //EDGE_BASED_PREDICTION
     }
     else {
       bAboveAvail=  bAbove;
@@ -1676,10 +1672,6 @@ TEncSearch::xIntraCodingLumaBlk( TComDataCU* pcCU,
   Bool  bLeftAvail  = false;
   pcCU->getPattern()->initPattern   ( pcCU, uiTrDepth, uiAbsPartIdx );
   pcCU->getPattern()->initAdiPattern( pcCU, uiAbsPartIdx, uiTrDepth, m_piYuvExt, m_iYuvExtStride, m_iYuvExtHeight, bAboveAvail, bLeftAvail );
-#ifdef EDGE_BASED_PREDICTION
-  if(getEdgeBasedPred()->get_edge_prediction_enable())
-    getEdgeBasedPred()->initEdgeBasedBuffer(pcCU, uiAbsPartIdx, uiTrDepth, m_piYExtEdgeBased);
-#endif //EDGE_BASED_PREDICTION
   
   //===== get prediction signal =====
 #if ANG_INTRA
@@ -2457,10 +2449,6 @@ TEncSearch::estIntraPredQT( TComDataCU* pcCU,
     Bool bLeftAvail  = false;
     pcCU->getPattern()->initPattern   ( pcCU, uiInitTrDepth, uiPartOffset );
     pcCU->getPattern()->initAdiPattern( pcCU, uiPartOffset, uiInitTrDepth, m_piYuvExt, m_iYuvExtStride, m_iYuvExtHeight, bAboveAvail, bLeftAvail );
-#ifdef EDGE_BASED_PREDICTION
-    if(getEdgeBasedPred()->get_edge_prediction_enable())
-      getEdgeBasedPred()->initEdgeBasedBuffer(pcCU, uiPartOffset, uiInitTrDepth, m_piYExtEdgeBased);
-#endif //EDGE_BASED_PREDICTION
     
     //===== determine set of modes to be tested (using prediction signal only) =====
 #if ANG_INTRA
@@ -3350,10 +3338,6 @@ Void TEncSearch::predIntraLumaAdiSearch( TComDataCU* pcCU, TComYuv* pcOrgYuv, TC
       Bool bLeftAvail  = false;
       
       pcPattern->initAdiPattern(pcCU, uiPartOffset, uiPartDepth, m_piYuvExt, m_iYuvExtStride, m_iYuvExtHeight, bAboveAvail, bLeftAvail);
-#ifdef EDGE_BASED_PREDICTION
-      if(getEdgeBasedPred()->get_edge_prediction_enable())
-        getEdgeBasedPred()->initEdgeBasedBuffer(pcCU, uiPartOffset, uiPartDepth, m_piYExtEdgeBased);
-#endif //EDGE_BASED_PREDICTION
       
 #if ANG_INTRA
 #if UNIFIED_DIRECTIONAL_INTRA
@@ -3483,10 +3467,6 @@ Void TEncSearch::predIntraLumaAdiSearch( TComDataCU* pcCU, TComYuv* pcOrgYuv, TC
       bLeftAvail  = false;
       pcPattern->initPattern( pcCU, uiPartDepth, uiPartOffset );
       pcPattern->initAdiPattern(pcCU, uiPartOffset, uiPartDepth, m_piYuvExt, m_iYuvExtStride, m_iYuvExtHeight, bAboveAvail, bLeftAvail);
-#ifdef EDGE_BASED_PREDICTION
-      if(getEdgeBasedPred()->get_edge_prediction_enable())
-        getEdgeBasedPred()->initEdgeBasedBuffer(pcCU, uiPartOffset, uiPartDepth, m_piYExtEdgeBased);
-#endif //EDGE_BASED_PREDICTION
       
       for ( uiMode = uiMinMode; uiMode < uiNewMaxMode; uiMode++ )
       {
@@ -3774,10 +3754,6 @@ Void TEncSearch::predIntraLumaAdiSearch( TComDataCU* pcCU, TComYuv* pcOrgYuv, TC
     Bool bLeftAvail  = false;
     
     pcPattern->initAdiPattern(pcCU, uiPartOffset, uiPartDepth, m_piYuvExt, m_iYuvExtStride, m_iYuvExtHeight, bAboveAvail, bLeftAvail);
-#ifdef EDGE_BASED_PREDICTION
-    if(getEdgeBasedPred()->get_edge_prediction_enable())
-      getEdgeBasedPred()->initEdgeBasedBuffer(pcCU, uiPartOffset, uiPartDepth, m_piYExtEdgeBased);
-#endif //EDGE_BASED_PREDICTION
     
     
 #if HHI_AIS

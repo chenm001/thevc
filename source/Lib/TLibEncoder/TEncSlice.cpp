@@ -413,13 +413,6 @@ Void TEncSlice::initEncSlice( TComPic* pcPic, Int iPOCLast, UInt uiPOCCurr, Int 
 
   pcPic->setPicYuvPred( m_apcPicYuvPred );
   pcPic->setPicYuvResi( m_apcPicYuvResi );
-#ifdef EDGE_BASED_PREDICTION
-  //Initialisation of edge based prediction for this slice
-  m_pcPredSearch->getEdgeBasedPred()->setEdgePredictionEnable(m_pcCfg->getEdgePredictionEnable());
-  m_pcPredSearch->getEdgeBasedPred()->setThreshold(m_pcCfg->getEdgeDetectionThreshold());
-  rpcSlice->setEdgePredictionEnable(m_pcCfg->getEdgePredictionEnable());
-  rpcSlice->setEdgeDetectionThreshold(m_pcCfg->getEdgeDetectionThreshold());
-#endif //EDGE_BASED_PREDICTION
 #if HHI_INTERP_FILTER
   rpcSlice->setInterpFilterType ( m_pcCfg->getInterpFilterType() );
 #endif

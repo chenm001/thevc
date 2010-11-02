@@ -140,10 +140,6 @@ Void TAppEncTop::xInitLibCfg()
   m_cTEncTop.setUseBQP                       ( m_bUseBQP      );
   m_cTEncTop.setDIFTap                       ( m_iDIFTap      );
   m_cTEncTop.setUseFastEnc                   ( m_bUseFastEnc  );
-#ifdef EDGE_BASED_PREDICTION
-  m_cTEncTop.setEdgePredictionEnable         ( m_bEdgePredictionEnable );
-  m_cTEncTop.setEdgeDetectionThreshold       ( m_iEdgeDetectionThreshold );
-#endif //EDGE_BASED_PREDICTION
 #if HHI_ALLOW_CIP_SWITCH
 	m_cTEncTop.setUseCIP                       ( m_bUseCIP      );
 #endif

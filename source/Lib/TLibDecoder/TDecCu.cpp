@@ -382,10 +382,6 @@ Void TDecCu::xDecodeIntraTexture( TComDataCU* pcCU, UInt uiPartIdx, Pel* piReco,
     Bool bLeftAvail  = false;
 
     pcPattern->initAdiPattern(pcCU, uiPartIdx, uiCurrDepth, m_pcPrediction->getPredicBuf(), m_pcPrediction->getPredicBufWidth(), m_pcPrediction->getPredicBufHeight(), bAboveAvail, bLeftAvail);
-#ifdef EDGE_BASED_PREDICTION
-    if( m_pcPrediction->getEdgeBasedPred()->get_edge_prediction_enable() )
-      m_pcPrediction->getEdgeBasedPred()->initEdgeBasedBuffer(pcCU, uiPartIdx, uiCurrDepth, m_pcPrediction->getEdgeBasedBuf());
-#endif //EDGE_BASED_PREDICTION
 
 #if ANG_INTRA
     if ( pcCU->angIntraEnabledPredPart( uiPartIdx ) )
@@ -645,10 +641,6 @@ TDecCu::xIntraRecLumaBlk( TComDataCU* pcCU,
                                       m_pcPrediction->getPredicBufWidth  (),
                                       m_pcPrediction->getPredicBufHeight (),
                                       bAboveAvail, bLeftAvail );
-#ifdef EDGE_BASED_PREDICTION
-  if( m_pcPrediction->getEdgeBasedPred()->get_edge_prediction_enable() )
-    m_pcPrediction->getEdgeBasedPred()->initEdgeBasedBuffer(pcCU, uiAbsPartIdx, uiTrDepth, m_pcPrediction->getEdgeBasedBuf());
-#endif //EDGE_BASED_PREDICTION
 
   //===== get prediction signal =====
 #if ANG_INTRA

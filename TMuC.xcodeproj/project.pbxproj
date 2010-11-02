@@ -144,8 +144,6 @@
 		71AD603911EBC28500F5F1FE /* libTLibCommon.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 6767959411AD61BB00421804 /* libTLibCommon.a */; };
 		71AD603A11EBC28D00F5F1FE /* libTLibEncoder.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 6767961911AD626F00421804 /* libTLibEncoder.a */; };
 		71AD603B11EBC29600F5F1FE /* libTLibVideoIO.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 6767964B11AD629200421804 /* libTLibVideoIO.a */; };
-		DB623EFC120CC66300A0C111 /* TComEdgeBased.cpp in Sources */ = {isa = PBXBuildFile; fileRef = DB623EFA120CC66300A0C111 /* TComEdgeBased.cpp */; };
-		DB623EFD120CC66300A0C111 /* TComEdgeBased.h in Headers */ = {isa = PBXBuildFile; fileRef = DB623EFB120CC66300A0C111 /* TComEdgeBased.h */; };
 		DB79E599122DFAAE003E0057 /* TComIc.cpp in Sources */ = {isa = PBXBuildFile; fileRef = DB79E591122DFAAE003E0057 /* TComIc.cpp */; };
 		DB79E59A122DFAAE003E0057 /* TComIc.h in Headers */ = {isa = PBXBuildFile; fileRef = DB79E592122DFAAE003E0057 /* TComIc.h */; };
 		DB79E59B122DFAAE003E0057 /* TComICInfo.cpp in Sources */ = {isa = PBXBuildFile; fileRef = DB79E593122DFAAE003E0057 /* TComICInfo.cpp */; };
@@ -349,8 +347,6 @@
 		710C2D4611EB75C7005CD831 /* TEncV2VTrees.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TEncV2VTrees.h; path = source/Lib/TLibEncoder/TEncV2VTrees.h; sourceTree = "<group>"; };
 		710C2D4C11EB75E9005CD831 /* TDecV2VTrees.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = TDecV2VTrees.cpp; path = source/Lib/TLibDecoder/TDecV2VTrees.cpp; sourceTree = "<group>"; };
 		710C2D4D11EB75E9005CD831 /* TDecV2VTrees.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TDecV2VTrees.h; path = source/Lib/TLibDecoder/TDecV2VTrees.h; sourceTree = "<group>"; };
-		DB623EFA120CC66300A0C111 /* TComEdgeBased.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = TComEdgeBased.cpp; path = source/Lib/TLibCommon/TComEdgeBased.cpp; sourceTree = "<group>"; };
-		DB623EFB120CC66300A0C111 /* TComEdgeBased.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TComEdgeBased.h; path = source/Lib/TLibCommon/TComEdgeBased.h; sourceTree = "<group>"; };
 		DB79E591122DFAAE003E0057 /* TComIc.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = TComIc.cpp; path = source/Lib/TLibCommon/TComIc.cpp; sourceTree = "<group>"; };
 		DB79E592122DFAAE003E0057 /* TComIc.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TComIc.h; path = source/Lib/TLibCommon/TComIc.h; sourceTree = "<group>"; };
 		DB79E593122DFAAE003E0057 /* TComICInfo.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = TComICInfo.cpp; path = source/Lib/TLibCommon/TComICInfo.cpp; sourceTree = "<group>"; };
@@ -481,8 +477,6 @@
 				676795A411AD61FC00421804 /* TComBitStream.h */,
 				676795A511AD61FC00421804 /* TComDataCU.cpp */,
 				676795A611AD61FC00421804 /* TComDataCU.h */,
-				DB623EFA120CC66300A0C111 /* TComEdgeBased.cpp */,
-				DB623EFB120CC66300A0C111 /* TComEdgeBased.h */,
 				DB79E591122DFAAE003E0057 /* TComIc.cpp */,
 				DB79E592122DFAAE003E0057 /* TComIc.h */,
 				DB79E593122DFAAE003E0057 /* TComICInfo.cpp */,
@@ -691,7 +685,6 @@
 				671E0D5111B6AD8C00F3747B /* TComCABACTables.h in Headers */,
 				671E0D5211B6AD8C00F3747B /* TComMv.h in Headers */,
 				671E0D5411B6AD8C00F3747B /* TComPredFilterMOMS.h in Headers */,
-				DB623EFD120CC66300A0C111 /* TComEdgeBased.h in Headers */,
 				DB79E59A122DFAAE003E0057 /* TComIc.h in Headers */,
 				DB79E59C122DFAAE003E0057 /* TComICInfo.h in Headers */,
 				DB79E5A0122DFAAE003E0057 /* TComZeroTree.h in Headers */,
@@ -944,7 +937,6 @@
 				671E0D4D11B6AD8C00F3747B /* TComBitBuffer.cpp in Sources */,
 				671E0D5011B6AD8C00F3747B /* TComCABACTables.cpp in Sources */,
 				671E0D5311B6AD8C00F3747B /* TComPredFilterMOMS.cpp in Sources */,
-				DB623EFC120CC66300A0C111 /* TComEdgeBased.cpp in Sources */,
 				DB79E599122DFAAE003E0057 /* TComIc.cpp in Sources */,
 				DB79E59B122DFAAE003E0057 /* TComICInfo.cpp in Sources */,
 				DB79E59F122DFAAE003E0057 /* TComZeroTree.cpp in Sources */,
