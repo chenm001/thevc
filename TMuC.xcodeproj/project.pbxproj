@@ -141,11 +141,6 @@
 		710C2D4B11EB75C7005CD831 /* TEncV2VTrees.h in Headers */ = {isa = PBXBuildFile; fileRef = 710C2D4611EB75C7005CD831 /* TEncV2VTrees.h */; };
 		710C2D4E11EB75E9005CD831 /* TDecV2VTrees.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 710C2D4C11EB75E9005CD831 /* TDecV2VTrees.cpp */; };
 		710C2D4F11EB75E9005CD831 /* TDecV2VTrees.h in Headers */ = {isa = PBXBuildFile; fileRef = 710C2D4D11EB75E9005CD831 /* TDecV2VTrees.h */; };
-		710C2D5511EB7615005CD831 /* SbacContextModel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 710C2D5011EB7615005CD831 /* SbacContextModel.cpp */; };
-		710C2D5611EB7615005CD831 /* SbacContextModel.h in Headers */ = {isa = PBXBuildFile; fileRef = 710C2D5111EB7615005CD831 /* SbacContextModel.h */; };
-		710C2D5711EB7615005CD831 /* SbacContextModel3DBuffer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 710C2D5211EB7615005CD831 /* SbacContextModel3DBuffer.cpp */; };
-		710C2D5811EB7615005CD831 /* SbacContextModel3DBuffer.h in Headers */ = {isa = PBXBuildFile; fileRef = 710C2D5311EB7615005CD831 /* SbacContextModel3DBuffer.h */; };
-		710C2D5911EB7615005CD831 /* SbacTables.h in Headers */ = {isa = PBXBuildFile; fileRef = 710C2D5411EB7615005CD831 /* SbacTables.h */; };
 		71AD603911EBC28500F5F1FE /* libTLibCommon.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 6767959411AD61BB00421804 /* libTLibCommon.a */; };
 		71AD603A11EBC28D00F5F1FE /* libTLibEncoder.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 6767961911AD626F00421804 /* libTLibEncoder.a */; };
 		71AD603B11EBC29600F5F1FE /* libTLibVideoIO.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 6767964B11AD629200421804 /* libTLibVideoIO.a */; };
@@ -354,11 +349,6 @@
 		710C2D4611EB75C7005CD831 /* TEncV2VTrees.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TEncV2VTrees.h; path = source/Lib/TLibEncoder/TEncV2VTrees.h; sourceTree = "<group>"; };
 		710C2D4C11EB75E9005CD831 /* TDecV2VTrees.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = TDecV2VTrees.cpp; path = source/Lib/TLibDecoder/TDecV2VTrees.cpp; sourceTree = "<group>"; };
 		710C2D4D11EB75E9005CD831 /* TDecV2VTrees.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TDecV2VTrees.h; path = source/Lib/TLibDecoder/TDecV2VTrees.h; sourceTree = "<group>"; };
-		710C2D5011EB7615005CD831 /* SbacContextModel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = SbacContextModel.cpp; path = source/Lib/TLibCommon/SbacContextModel.cpp; sourceTree = "<group>"; };
-		710C2D5111EB7615005CD831 /* SbacContextModel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = SbacContextModel.h; path = source/Lib/TLibCommon/SbacContextModel.h; sourceTree = "<group>"; };
-		710C2D5211EB7615005CD831 /* SbacContextModel3DBuffer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = SbacContextModel3DBuffer.cpp; path = source/Lib/TLibCommon/SbacContextModel3DBuffer.cpp; sourceTree = "<group>"; };
-		710C2D5311EB7615005CD831 /* SbacContextModel3DBuffer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = SbacContextModel3DBuffer.h; path = source/Lib/TLibCommon/SbacContextModel3DBuffer.h; sourceTree = "<group>"; };
-		710C2D5411EB7615005CD831 /* SbacTables.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = SbacTables.h; path = source/Lib/TLibCommon/SbacTables.h; sourceTree = "<group>"; };
 		DB623EFA120CC66300A0C111 /* TComEdgeBased.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = TComEdgeBased.cpp; path = source/Lib/TLibCommon/TComEdgeBased.cpp; sourceTree = "<group>"; };
 		DB623EFB120CC66300A0C111 /* TComEdgeBased.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TComEdgeBased.h; path = source/Lib/TLibCommon/TComEdgeBased.h; sourceTree = "<group>"; };
 		DB79E591122DFAAE003E0057 /* TComIc.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = TComIc.cpp; path = source/Lib/TLibCommon/TComIc.cpp; sourceTree = "<group>"; };
@@ -470,11 +460,6 @@
 		6767959711AD61D700421804 /* TLibCommon */ = {
 			isa = PBXGroup;
 			children = (
-				710C2D5011EB7615005CD831 /* SbacContextModel.cpp */,
-				710C2D5111EB7615005CD831 /* SbacContextModel.h */,
-				710C2D5211EB7615005CD831 /* SbacContextModel3DBuffer.cpp */,
-				710C2D5311EB7615005CD831 /* SbacContextModel3DBuffer.h */,
-				710C2D5411EB7615005CD831 /* SbacTables.h */,
 				6767959911AD61FC00421804 /* CommonDef.h */,
 				6767959A11AD61FC00421804 /* ContextTables.h */,
 				671E0D3811B6AD8C00F3747B /* ContextModel.cpp */,
@@ -706,9 +691,6 @@
 				671E0D5111B6AD8C00F3747B /* TComCABACTables.h in Headers */,
 				671E0D5211B6AD8C00F3747B /* TComMv.h in Headers */,
 				671E0D5411B6AD8C00F3747B /* TComPredFilterMOMS.h in Headers */,
-				710C2D5611EB7615005CD831 /* SbacContextModel.h in Headers */,
-				710C2D5811EB7615005CD831 /* SbacContextModel3DBuffer.h in Headers */,
-				710C2D5911EB7615005CD831 /* SbacTables.h in Headers */,
 				DB623EFD120CC66300A0C111 /* TComEdgeBased.h in Headers */,
 				DB79E59A122DFAAE003E0057 /* TComIc.h in Headers */,
 				DB79E59C122DFAAE003E0057 /* TComICInfo.h in Headers */,
@@ -962,8 +944,6 @@
 				671E0D4D11B6AD8C00F3747B /* TComBitBuffer.cpp in Sources */,
 				671E0D5011B6AD8C00F3747B /* TComCABACTables.cpp in Sources */,
 				671E0D5311B6AD8C00F3747B /* TComPredFilterMOMS.cpp in Sources */,
-				710C2D5511EB7615005CD831 /* SbacContextModel.cpp in Sources */,
-				710C2D5711EB7615005CD831 /* SbacContextModel3DBuffer.cpp in Sources */,
 				DB623EFC120CC66300A0C111 /* TComEdgeBased.cpp in Sources */,
 				DB79E599122DFAAE003E0057 /* TComIc.cpp in Sources */,
 				DB79E59B122DFAAE003E0057 /* TComICInfo.cpp in Sources */,
@@ -1113,7 +1093,7 @@
 		1DEB923708733DC60010E9CD /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ARCHS = "$(ARCHS_STANDARD_32_64_BIT)";
+				ARCHS = "$(NATIVE_ARCH_ACTUAL)";
 				GCC_C_LANGUAGE_STANDARD = gnu99;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
