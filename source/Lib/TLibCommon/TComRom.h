@@ -207,7 +207,6 @@ extern const UChar  g_aucIntraModeConvInvC[7][9];
 extern const UChar  g_aucIntraModeNumC[7];
 extern const UChar  g_aucIntraModeBitsC[7];
 
-#if ANG_INTRA
 // ====================================================================================================================
 // Angular Intra table
 // ====================================================================================================================
@@ -216,7 +215,6 @@ extern const UChar g_aucIntraModeBitsAng[7];
 extern const UChar g_aucAngModeMapping[3][34];
 
 extern const UChar g_aucAngIntraModeOrder[34];
-#endif
 
 // ====================================================================================================================
 // ROT table

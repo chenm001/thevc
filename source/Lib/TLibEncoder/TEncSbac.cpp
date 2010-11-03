@@ -1021,7 +1021,6 @@ Void TEncSbac::codePlanarInfo( TComDataCU* pcCU, UInt uiAbsPartIdx )
 }
 #endif
 
-#if ANG_INTRA
 Void TEncSbac::codeIntraDirLumaAng( TComDataCU* pcCU, UInt uiAbsPartIdx )
 {
   UInt uiDir         = pcCU->getLumaIntraDir( uiAbsPartIdx );
@@ -1060,7 +1059,6 @@ Void TEncSbac::codeIntraDirLumaAng( TComDataCU* pcCU, UInt uiAbsPartIdx )
 
   return;
 }
-#endif
 
 Void TEncSbac::codeIntraDirLumaAdi( TComDataCU* pcCU, UInt uiAbsPartIdx )
 {
@@ -1099,11 +1097,7 @@ Void TEncSbac::codeIntraDirLumaAdi( TComDataCU* pcCU, UInt uiAbsPartIdx )
 Void TEncSbac::codeIntraFiltFlagLumaAdi( TComDataCU* pcCU, UInt uiAbsPartIdx )
 {
   UInt uiSymbol = pcCU->getLumaIntraFiltFlag( uiAbsPartIdx );
-#if ANG_INTRA
-  UInt uiCtx    = pcCU->angIntraEnabledPredPart( uiAbsPartIdx ) ?  pcCU->getCtxIntraFiltFlagLumaAng( uiAbsPartIdx ) : pcCU->getCtxIntraFiltFlagLuma( uiAbsPartIdx );
-#else
-  UInt uiCtx    = pcCU->getCtxIntraFiltFlagLuma( uiAbsPartIdx );
-#endif
+  UInt uiCtx    = pcCU->getCtxIntraFiltFlagLumaAng( uiAbsPartIdx );
   m_pcBinIf->encodeBin( uiSymbol, m_cCUIntraFiltFlagSCModel.get( 0, 0, uiCtx ) );
 
   return;

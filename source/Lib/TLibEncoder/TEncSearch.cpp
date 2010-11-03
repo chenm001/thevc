@@ -1034,14 +1034,7 @@ Void TEncSearch::xRecurIntraChromaSearchADI( TComDataCU* pcCU, UInt uiAbsPartIdx
     else // (eText==TEXT_CHROMA_V)
       pPatChr=  pcCU->getPattern()->getAdiCrBuf( uiWidth, uiHeight, m_piYuvExt );
     
-#if ANG_INTRA
-    if ( pcCU->angIntraEnabledPredPart( uiAbsPartIdx ) )
-      predIntraChromaAng( pcCU->getPattern(),pPatChr,uiMode, pPred, uiStride, uiWidth, uiHeight, pcCU, bAboveAvail, bLeftAvail );
-    else
-      predIntraChromaAdi( pcCU->getPattern(),pPatChr,uiMode, pPred, uiStride, uiWidth, uiHeight, pcCU, bAboveAvail, bLeftAvail );
-#else
-    predIntraChromaAdi( pcCU->getPattern(),pPatChr,uiMode, pPred, uiStride, uiWidth, uiHeight, pcCU, bAboveAvail, bLeftAvail );
-#endif
+    predIntraChromaAng( pcCU->getPattern(),pPatChr,uiMode, pPred, uiStride, uiWidth, uiHeight, pcCU, bAboveAvail, bLeftAvail );
     
     // Make residual from prediction. (MUST BE FIXED FOR EACH TRANSFORM UNIT PREDICTION)
     UChar indexROT = pcCU->getROTindex(0);
@@ -1162,28 +1155,11 @@ Void TEncSearch::xRecurIntraLumaSearchADI( TComDataCU* pcCU, UInt uiAbsPartIdx, 
       bLeftAvail=bLeft;
     }
     
-#if ANG_INTRA
-    if ( pcCU->angIntraEnabledPredPart( uiAbsPartIdx ) )
 #if HHI_AIS
-      predIntraLumaAng( pcCU->getPattern(), uiMode, bSmoothing, piPred, uiStride, uiWidth, uiHeight, pcCU, bAboveAvail, bLeftAvail );
+    predIntraLumaAng( pcCU->getPattern(), uiMode, bSmoothing, piPred, uiStride, uiWidth, uiHeight, pcCU, bAboveAvail, bLeftAvail );
 #else
     predIntraLumaAng( pcCU->getPattern(), uiMode, piPred, uiStride, uiWidth, uiHeight, pcCU, bAboveAvail, bLeftAvail );
 #endif
-    else
-#if HHI_AIS
-      predIntraLumaAdi( pcCU->getPattern(), uiMode, bSmoothing, piPred, uiStride, uiWidth, uiHeight, pcCU, bAboveAvail, bLeftAvail );
-#else
-    predIntraLumaAdi( pcCU->getPattern(), uiMode, piPred, uiStride, uiWidth, uiHeight, pcCU, bAboveAvail, bLeftAvail );
-#endif
-    
-#else // ANG_INTRA
-    
-#if HHI_AIS
-    predIntraLumaAdi( pcCU->getPattern(), uiMode, bSmoothing, piPred, uiStride, uiWidth, uiHeight, pcCU, bAboveAvail, bLeftAvail );
-#else
-    predIntraLumaAdi( pcCU->getPattern(), uiMode, piPred, uiStride, uiWidth, uiHeight, pcCU, bAboveAvail, bLeftAvail );
-#endif
-#endif // ANG_INTRA
     
     // CIP
     if ( pcCU->getCIPflag( uiAbsPartIdx ) )
@@ -1658,29 +1634,12 @@ TEncSearch::xIntraCodingLumaBlk( TComDataCU* pcCU,
   pcCU->getPattern()->initAdiPattern( pcCU, uiAbsPartIdx, uiTrDepth, m_piYuvExt, m_iYuvExtStride, m_iYuvExtHeight, bAboveAvail, bLeftAvail );
   
   //===== get prediction signal =====
-#if ANG_INTRA
-  if ( pcCU->angIntraEnabledPredPart( uiAbsPartIdx ) )
 #if HHI_AIS
-    predIntraLumaAng( pcCU->getPattern(), uiLumaPredMode, bIntraSmoothing, piPred, uiStride, uiWidth, uiHeight, pcCU, bAboveAvail, bLeftAvail );
+  predIntraLumaAng( pcCU->getPattern(), uiLumaPredMode, bIntraSmoothing, piPred, uiStride, uiWidth, uiHeight, pcCU, bAboveAvail, bLeftAvail );
 #else
   predIntraLumaAng( pcCU->getPattern(), uiLumaPredMode, piPred, uiStride, uiWidth, uiHeight, pcCU, bAboveAvail, bLeftAvail );
 #endif
-  else
-#if HHI_AIS
-    predIntraLumaAdi( pcCU->getPattern(), uiLumaPredMode, bIntraSmoothing, piPred, uiStride, uiWidth, uiHeight, pcCU, bAboveAvail, bLeftAvail );
-#else
-  predIntraLumaAdi( pcCU->getPattern(), uiLumaPredMode, piPred, uiStride, uiWidth, uiHeight, pcCU, bAboveAvail, bLeftAvail );
-#endif
-  
-#else // ANG_INTRA
-  
-#if HHI_AIS
-  predIntraLumaAdi( pcCU->getPattern(), uiLumaPredMode, bIntraSmoothing, piPred, uiStride, uiWidth, uiHeight, pcCU, bAboveAvail, bLeftAvail );
-#else
-  predIntraLumaAdi( pcCU->getPattern(), uiLumaPredMode, piPred, uiStride, uiWidth, uiHeight, pcCU, bAboveAvail, bLeftAvail );
-#endif
-#endif // ANG_INTRA
-  
+    
   //===== get residual signal =====
   if( pcCU->getCIPflag( uiAbsPartIdx ) )
   {
@@ -1855,17 +1814,10 @@ TEncSearch::xIntraCodingChromaBlk( TComDataCU* pcCU,
   
   //===== update chroma mode =====
   if( uiChromaPredMode == 4 )
-#if ANG_INTRA
   {
     UInt    uiIntraIdx        = pcCU->getIntraSizeIdx( 0 );
-    uiChromaPredMode          = pcCU->angIntraEnabledPredPart( 0 ) ? pcCU->getLumaIntraDir( 0 ) : g_aucIntraModeOrder[ uiIntraIdx ][ pcCU->getLumaIntraDir( 0 ) ];
+    uiChromaPredMode          = pcCU->getLumaIntraDir( 0 );
   }
-#else
-  {
-    UInt    uiIntraIdx        = pcCU->getIntraSizeIdx( 0 );
-    uiChromaPredMode          = g_aucIntraModeOrder[ uiIntraIdx ][ pcCU->getLumaIntraDir( 0 ) ];
-  }
-#endif
   
   //===== init availability pattern =====
   Bool  bAboveAvail = false;
@@ -1875,14 +1827,7 @@ TEncSearch::xIntraCodingChromaBlk( TComDataCU* pcCU,
   Int*  pPatChroma  = ( uiChromaId > 0 ? pcCU->getPattern()->getAdiCrBuf( uiWidth, uiHeight, m_piYuvExt ) : pcCU->getPattern()->getAdiCbBuf( uiWidth, uiHeight, m_piYuvExt ) );
   
   //===== get prediction signal =====
-#if ANG_INTRA
-  if ( pcCU->angIntraEnabledPredPart( 0 ) )
-    predIntraChromaAng( pcCU->getPattern(), pPatChroma, uiChromaPredMode, piPred, uiStride, uiWidth, uiHeight, pcCU, bAboveAvail, bLeftAvail );
-  else
-    predIntraChromaAdi( pcCU->getPattern(), pPatChroma, uiChromaPredMode, piPred, uiStride, uiWidth, uiHeight, pcCU, bAboveAvail, bLeftAvail );
-#else
-  predIntraChromaAdi( pcCU->getPattern(), pPatChroma, uiChromaPredMode, piPred, uiStride, uiWidth, uiHeight, pcCU, bAboveAvail, bLeftAvail );
-#endif
+  predIntraChromaAng( pcCU->getPattern(), pPatChroma, uiChromaPredMode, piPred, uiStride, uiWidth, uiHeight, pcCU, bAboveAvail, bLeftAvail );
   
   //===== get residual signal =====
   {
@@ -2350,19 +2295,8 @@ TEncSearch::preestChromaPredMode( TComDataCU* pcCU,
   for( UInt uiMode  = uiMinMode; uiMode < uiMaxMode; uiMode++ )
   {
     //--- get prediction ---
-#if ANG_INTRA
-    if( pcCU->angIntraEnabledPredPart( 0 ) ){
-      predIntraChromaAng( pcCU->getPattern(), pPatChromaU, uiMode, piPredU, uiStride, uiWidth, uiHeight, pcCU, bAboveAvail, bLeftAvail );
-      predIntraChromaAng( pcCU->getPattern(), pPatChromaV, uiMode, piPredV, uiStride, uiWidth, uiHeight, pcCU, bAboveAvail, bLeftAvail );
-    }
-    else{
-      predIntraChromaAdi( pcCU->getPattern(), pPatChromaU, uiMode, piPredU, uiStride, uiWidth, uiHeight, pcCU, bAboveAvail, bLeftAvail );
-      predIntraChromaAdi( pcCU->getPattern(), pPatChromaV, uiMode, piPredV, uiStride, uiWidth, uiHeight, pcCU, bAboveAvail, bLeftAvail );
-    }
-#else
-    predIntraChromaAdi( pcCU->getPattern(), pPatChromaU, uiMode, piPredU, uiStride, uiWidth, uiHeight, pcCU, bAboveAvail, bLeftAvail );
-    predIntraChromaAdi( pcCU->getPattern(), pPatChromaV, uiMode, piPredV, uiStride, uiWidth, uiHeight, pcCU, bAboveAvail, bLeftAvail );
-#endif
+    predIntraChromaAng( pcCU->getPattern(), pPatChromaU, uiMode, piPredU, uiStride, uiWidth, uiHeight, pcCU, bAboveAvail, bLeftAvail );
+    predIntraChromaAng( pcCU->getPattern(), pPatChromaV, uiMode, piPredV, uiStride, uiWidth, uiHeight, pcCU, bAboveAvail, bLeftAvail );
     
     //--- get SAD ---
     UInt  uiSAD  = m_pcRdCost->calcHAD( piOrgU, uiStride, piPredU, uiStride, uiWidth, uiHeight );
@@ -2401,9 +2335,6 @@ TEncSearch::estIntraPredQT( TComDataCU* pcCU,
   Bool    bAISEnabled    = pcCU->getSlice()->getSPS()->getUseAIS();
   Bool    bDefaultIS     = ( bAISEnabled ? true : DEFAULT_IS );
 #endif
-#if ANG_INTRA
-  Bool    angIntraEnabled= pcCU->angIntraEnabledPredPart( 0 );
-#endif
 #if SAMSUNG_FAST_UDI
   UInt    CandNum;
   UInt    CandModeList[ FAST_UDI_MAX_RDMODE_NUM ];
@@ -2425,11 +2356,7 @@ TEncSearch::estIntraPredQT( TComDataCU* pcCU,
     pcCU->getPattern()->initAdiPattern( pcCU, uiPartOffset, uiInitTrDepth, m_piYuvExt, m_iYuvExtStride, m_iYuvExtHeight, bAboveAvail, bLeftAvail );
     
     //===== determine set of modes to be tested (using prediction signal only) =====
-#if ANG_INTRA
-    UInt uiMaxMode     = angIntraEnabled ? g_aucIntraModeNumAng[uiWidthBit] : g_aucIntraModeNum[uiWidthBit];
-#else
-    UInt uiMaxMode     = g_aucIntraModeNum    [ uiWidthBit ];
-#endif
+    UInt uiMaxMode     = g_aucIntraModeNumAng[uiWidthBit];
     UInt uiMaxModeFast = g_aucIntraModeNumFast[ uiWidthBit ];
     Pel* piOrg         = pcOrgYuv ->getLumaAddr( uiPU, uiWidth );
     Pel* piPred        = pcPredYuv->getLumaAddr( uiPU, uiWidth );
@@ -2449,38 +2376,14 @@ TEncSearch::estIntraPredQT( TComDataCU* pcCU,
 
     for( UInt uiMode = uiMaxModeFast; uiMode < uiMaxMode; uiMode++ )
     {
-#if ANG_INTRA
-      if ( !predIntraLumaDirAvailable( uiMode, uiWidthBit, angIntraEnabled, bAboveAvail, bLeftAvail ) )
+      if ( !predIntraLumaDirAvailable( uiMode, uiWidthBit, bAboveAvail, bLeftAvail ) )
         continue;
       
-      if ( angIntraEnabled ){
 #if HHI_AIS
-        predIntraLumaAng( pcCU->getPattern(), uiMode, bDefaultIS, piPred, uiStride, uiWidth, uiHeight, pcCU, bAboveAvail, bLeftAvail );
+      predIntraLumaAng( pcCU->getPattern(), uiMode, bDefaultIS, piPred, uiStride, uiWidth, uiHeight, pcCU, bAboveAvail, bLeftAvail );
 #else
-        predIntraLumaAng( pcCU->getPattern(), uiMode, piPred, uiStride, uiWidth, uiHeight, pcCU, bAboveAvail, bLeftAvail );
+      predIntraLumaAng( pcCU->getPattern(), uiMode, piPred, uiStride, uiWidth, uiHeight, pcCU, bAboveAvail, bLeftAvail );
 #endif
-      }
-      else{
-#if HHI_AIS
-        predIntraLumaAdi( pcCU->getPattern(), uiMode, bDefaultIS, piPred, uiStride, uiWidth, uiHeight, pcCU, bAboveAvail, bLeftAvail );
-#else
-        predIntraLumaAdi( pcCU->getPattern(), uiMode, piPred, uiStride, uiWidth, uiHeight, pcCU, bAboveAvail, bLeftAvail );
-#endif
-      }
-      
-#else // ANG_INTRA
-      
-      UInt uiNewMode = g_aucIntraModeOrder[uiWidthBit][uiMode];
-      if ( ( g_aucIntraAvail[uiNewMode][0] && (!bAboveAvail) ) || ( g_aucIntraAvail[uiNewMode][1] && (!bLeftAvail) ) )
-      {
-        continue;
-      }
-#if HHI_AIS
-      predIntraLumaAdi( pcCU->getPattern(), uiMode, bDefaultIS, piPred, uiStride, uiWidth, uiHeight, pcCU, bAboveAvail, bLeftAvail );
-#else
-      predIntraLumaAdi( pcCU->getPattern(), uiMode, piPred, uiStride, uiWidth, uiHeight, pcCU, bAboveAvail, bLeftAvail );
-#endif
-#endif // ANG_INTRA
       
       // use hadamard transform here
       UInt uiSad = m_pcRdCost->calcHAD( piOrg, uiStride, piPred, uiStride, uiWidth, uiHeight );
@@ -2548,16 +2451,8 @@ TEncSearch::estIntraPredQT( TComDataCU* pcCU,
       // set luma prediction mode
       UInt uiOrgMode = uiRdModeList[uiMode];
       
-#if ANG_INTRA
-      if ( !predIntraLumaDirAvailable( uiOrgMode, uiWidthBit, angIntraEnabled, bAboveAvail, bLeftAvail ) )
+      if ( !predIntraLumaDirAvailable( uiOrgMode, uiWidthBit, bAboveAvail, bLeftAvail ) )
         continue;
-#else
-      UInt uiNewMode = g_aucIntraModeOrder[uiWidthBit][uiOrgMode];
-      if ( ( g_aucIntraAvail[uiNewMode][0] && (!bAboveAvail) ) || ( g_aucIntraAvail[uiNewMode][1] && (!bLeftAvail) ) )
-      {
-        continue;
-      }
-#endif
       
       pcCU->setLumaIntraDirSubParts ( uiOrgMode, uiPartOffset, uiDepth + uiInitTrDepth );
       
@@ -2639,16 +2534,8 @@ TEncSearch::estIntraPredQT( TComDataCU* pcCU,
         // set luma prediction mode
         UInt uiOrgMode = uiRdModeList[uiMode];
         
-#if ANG_INTRA
-        if ( !predIntraLumaDirAvailable( uiOrgMode, uiWidthBit, angIntraEnabled, bAboveAvail, bLeftAvail ) )
+        if ( !predIntraLumaDirAvailable( uiOrgMode, uiWidthBit, bAboveAvail, bLeftAvail ) )
           continue;
-#else
-        UInt uiNewMode = g_aucIntraModeOrder[uiWidthBit][uiOrgMode];
-        if ( ( g_aucIntraAvail[uiNewMode][0] && (!bAboveAvail) ) || ( g_aucIntraAvail[uiNewMode][1] && (!bLeftAvail) ) )
-        {
-          continue;
-        }
-#endif
         
         pcCU->setLumaIntraDirSubParts ( uiOrgMode, uiPartOffset, uiDepth + uiInitTrDepth );
         
@@ -2731,16 +2618,8 @@ TEncSearch::estIntraPredQT( TComDataCU* pcCU,
       UInt uiOrgMode = uiBestPUMode;
 #endif
 
-#if ANG_INTRA
-      if ( !predIntraLumaDirAvailable( uiOrgMode, uiWidthBit, angIntraEnabled, bAboveAvail, bLeftAvail ) )
+      if ( !predIntraLumaDirAvailable( uiOrgMode, uiWidthBit, bAboveAvail, bLeftAvail ) )
         continue;
-#else
-      UInt uiNewMode = g_aucIntraModeOrder[uiWidthBit][uiOrgMode];
-      if ( ( g_aucIntraAvail[uiNewMode][0] && (!bAboveAvail) ) || ( g_aucIntraAvail[uiNewMode][1] && (!bLeftAvail) ) )
-      {
-        continue;
-      }
-#endif
       
       pcCU->setLumaIntraDirSubParts ( uiOrgMode, uiPartOffset, uiDepth + uiInitTrDepth );
       
@@ -2920,11 +2799,7 @@ TEncSearch::estIntraPredChromaQT( TComDataCU* pcCU,
     uiModeList[i] = i;
   }
   
-#if ANG_INTRA
-  uiModeList[4]   = pcCU->angIntraEnabledPredPart( 0 ) ? pcCU->getLumaIntraDir(0) : g_aucIntraModeOrder[iIntraIdx][pcCU->getLumaIntraDir(0)];
-#else
-  uiModeList[4]   = g_aucIntraModeOrder[iIntraIdx][pcCU->getLumaIntraDir(0)];
-#endif
+  uiModeList[4]   = pcCU->getLumaIntraDir(0);
   
   UInt  uiMinMode = 0;
   UInt  uiMaxMode = ( uiModeList[4] >= 4 ? 5 : 4 );
@@ -2975,24 +2850,16 @@ TEncSearch::estIntraPredChromaQT( TComDataCU* pcCU,
 
 #endif
 
-#if ANG_INTRA
-Bool TEncSearch::predIntraLumaDirAvailable( UInt uiMode, UInt uiWidthBit, Bool angIntraEnabled, Bool bAboveAvail, Bool bLeftAvail)
+Bool TEncSearch::predIntraLumaDirAvailable( UInt uiMode, UInt uiWidthBit, Bool bAboveAvail, Bool bLeftAvail)
 {
   Bool bDirAvailable = true;
-  UInt uiNewMode     = angIntraEnabled ? g_aucAngIntraModeOrder[uiMode] : g_aucIntraModeOrder[uiWidthBit][uiMode];
+  UInt uiNewMode     = g_aucAngIntraModeOrder[uiMode];
   
-  if ( angIntraEnabled ){
-    if ( uiNewMode > 0 && ( (!bAboveAvail) && uiNewMode < 18 ) || ( (!bLeftAvail) && uiNewMode > 17 ) )
-      bDirAvailable = false;
-  }
-  else{
-    if ( ( g_aucIntraAvail[uiNewMode][0] && (!bAboveAvail) ) || ( g_aucIntraAvail[uiNewMode][1] && (!bLeftAvail) ) )
-      bDirAvailable = false;
-  }
+  if ( uiNewMode > 0 && ( (!bAboveAvail) && uiNewMode < 18 ) || ( (!bLeftAvail) && uiNewMode > 17 ) )
+    bDirAvailable = false;
   
   return bDirAvailable;
 }
-#endif
 
 #if PLANAR_INTRA
 Void TEncSearch::xIntraPlanarRecon( TComDataCU* pcCU, UInt uiAbsPartIdx, Pel* piOrg, Pel* piPred, Pel* piResi, Pel* piReco, UInt uiStride, TCoeff* piCoeff, UInt uiWidth, UInt uiHeight, UInt uiCurrDepth, TextType eText )
@@ -3272,10 +3139,6 @@ Void TEncSearch::predIntraLumaAdiSearch( TComDataCU* pcCU, TComYuv* pcOrgYuv, TC
   
   TComPattern* pcPattern  = pcCU->getPattern();
   
-#if ANG_INTRA
-  Bool angIntraEnabled    = pcCU->angIntraEnabledPredPart( 0 );
-#endif
-  
 #if SAMSUNG_FAST_UDI
   UInt    CandNum;
   UInt    CandModeList[ FAST_UDI_MAX_RDMODE_NUM ];
@@ -3309,11 +3172,7 @@ Void TEncSearch::predIntraLumaAdiSearch( TComDataCU* pcCU, TComYuv* pcOrgYuv, TC
       
       pcPattern->initAdiPattern(pcCU, uiPartOffset, uiPartDepth, m_piYuvExt, m_iYuvExtStride, m_iYuvExtHeight, bAboveAvail, bLeftAvail);
       
-#if ANG_INTRA
-      uiMaxMode          = angIntraEnabled ? g_aucIntraModeNumAng[uiWidthBit] : g_aucIntraModeNum[uiWidthBit];
-#else
-      uiMaxMode          = g_aucIntraModeNum    [uiWidthBit];
-#endif
+      uiMaxMode          = g_aucIntraModeNumAng[uiWidthBit];
       UInt uiMaxModeFast = g_aucIntraModeNumFast[uiWidthBit];
       
       pOrg     = pcOrgYuv->getLumaAddr  (uiPU, uiWidth);
@@ -3342,38 +3201,15 @@ Void TEncSearch::predIntraLumaAdiSearch( TComDataCU* pcCU, TComYuv* pcOrgYuv, TC
       
       for ( uiMode = uiMaxModeFast; uiMode < uiMaxMode; uiMode++ )
       {
-#if ANG_INTRA
-        if ( !predIntraLumaDirAvailable( uiMode, uiWidthBit, angIntraEnabled, bAboveAvail, bLeftAvail ) )
-          continue;
-        
-        if ( angIntraEnabled ){
-#if HHI_AIS
-          predIntraLumaAng( pcPattern, uiMode, bPUCurrFilt, pPred, uiStride, uiWidth, uiHeight, pcCU, bAboveAvail, bLeftAvail );
-#else
-          predIntraLumaAng( pcPattern, uiMode, pPred, uiStride, uiWidth, uiHeight, pcCU, bAboveAvail, bLeftAvail );
-#endif
-        }
-        else{
-#if HHI_AIS
-          predIntraLumaAdi( pcPattern, uiMode, bPUCurrFilt, pPred, uiStride, uiWidth, uiHeight, pcCU, bAboveAvail, bLeftAvail );
-#else
-          predIntraLumaAdi( pcPattern, uiMode, pPred, uiStride, uiWidth, uiHeight, pcCU, bAboveAvail, bLeftAvail );
-#endif
-        }
-        
-#else // ANG_INTRA
-        UInt uiNewMode = g_aucIntraModeOrder[uiWidthBit][uiMode];
-        
-        if ( ( g_aucIntraAvail[uiNewMode][0] && (!bAboveAvail) ) || ( g_aucIntraAvail[uiNewMode][1] && (!bLeftAvail) ) )
+        if ( !predIntraLumaDirAvailable( uiMode, uiWidthBit, bAboveAvail, bLeftAvail ) )
           continue;
         
 #if HHI_AIS
-        predIntraLumaAdi( pcPattern, uiMode, bPUCurrFilt, pPred, uiStride, uiWidth, uiHeight, pcCU, bAboveAvail, bLeftAvail );
+        predIntraLumaAng( pcPattern, uiMode, bPUCurrFilt, pPred, uiStride, uiWidth, uiHeight, pcCU, bAboveAvail, bLeftAvail );
 #else
-        predIntraLumaAdi( pcPattern, uiMode, pPred, uiStride, uiWidth, uiHeight, pcCU, bAboveAvail, bLeftAvail );
+        predIntraLumaAng( pcPattern, uiMode, pPred, uiStride, uiWidth, uiHeight, pcCU, bAboveAvail, bLeftAvail );
 #endif
-#endif // ANG_INTRA
-        
+                
         Pel* piOrgY  = pcOrgYuv  ->getLumaAddr(uiPU, uiWidth);
         Pel* piPreY  = rpcPredYuv->getLumaAddr(uiPU, uiWidth);
         UInt iStride = pcOrgYuv  ->getStride  ();
@@ -3438,15 +3274,8 @@ Void TEncSearch::predIntraLumaAdiSearch( TComDataCU* pcCU, TComYuv* pcOrgYuv, TC
       {
         UInt uiOrgMode = uiRdModeList[uiMode];
         
-#if ANG_INTRA
-        if ( !predIntraLumaDirAvailable( uiOrgMode, uiWidthBit, angIntraEnabled, bAboveAvail, bLeftAvail ) )
+        if ( !predIntraLumaDirAvailable( uiOrgMode, uiWidthBit, bAboveAvail, bLeftAvail ) )
           continue;
-#else
-        UInt uiNewMode = g_aucIntraModeOrder[uiWidthBit][uiOrgMode];
-        
-        if ( ( g_aucIntraAvail[uiNewMode][0] && (!bAboveAvail) ) || ( g_aucIntraAvail[uiNewMode][1] && (!bLeftAvail) ) )
-          continue;
-#endif
         
         uiBits = 0;
         pcCU->setLumaIntraDirSubParts     ( uiOrgMode,   uiPartOffset, uiPartDepth+uiDepth );
@@ -3788,11 +3617,7 @@ Void TEncSearch::predIntraChromaAdiSearch( TComDataCU* pcCU, TComYuv* pcOrgYuv, 
   for (Int i=0;i<4;i++)
     uiModeList[i]=i;
   
-#if ANG_INTRA
-  uiModeList[4] = pcCU->angIntraEnabledPredPart( 0 ) ? pcCU->getLumaIntraDir( 0 ) : g_aucIntraModeOrder[iIntraIdx][pcCU->getLumaIntraDir( 0 )];
-#else
-  uiModeList[4] = g_aucIntraModeOrder[iIntraIdx][pcCU->getLumaIntraDir(0)];
-#endif
+  uiModeList[4] = pcCU->getLumaIntraDir( 0 );
   
   if (uiModeList[4]>=4) uiMaxMode=5;
   

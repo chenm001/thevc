@@ -867,14 +867,7 @@ Void TDecEntropy::decodePlanarInfo( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt ui
 
 Void TDecEntropy::decodeIntraDirModeLuma  ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
 {
-#if ANG_INTRA
-  if ( pcCU->angIntraEnabledPredPart( uiAbsPartIdx ) )
-    m_pcEntropyDecoderIf->parseIntraDirLumaAng( pcCU, uiAbsPartIdx, uiDepth );
-  else
-    m_pcEntropyDecoderIf->parseIntraDirLumaAdi( pcCU, uiAbsPartIdx, uiDepth );
-#else
-  m_pcEntropyDecoderIf->parseIntraDirLumaAdi( pcCU, uiAbsPartIdx, uiDepth );
-#endif
+  m_pcEntropyDecoderIf->parseIntraDirLumaAng( pcCU, uiAbsPartIdx, uiDepth );
 }
 
 #if HHI_AIS

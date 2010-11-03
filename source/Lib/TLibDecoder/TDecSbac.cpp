@@ -1175,7 +1175,6 @@ Void TDecSbac::parseIntraDirLuma  ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt ui
   return;
 }
 
-#if ANG_INTRA
 Void TDecSbac::parseIntraDirLumaAng  ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
 {
   UInt uiSymbol;
@@ -1215,7 +1214,6 @@ Void TDecSbac::parseIntraDirLumaAng  ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt
 
   pcCU->setLumaIntraDirSubParts( (UChar)uiIPredMode, uiAbsPartIdx, uiDepth );
 }
-#endif
 
 Void TDecSbac::parseIntraDirLumaAdi  ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
 {
@@ -1262,11 +1260,7 @@ Void TDecSbac::parseIntraFiltFlagLumaAdi  ( TComDataCU* pcCU, UInt uiAbsPartIdx,
 {
   UInt uiSymbol;
 
-#if ANG_INTRA
-  UInt uiCtx = pcCU->angIntraEnabledPredPart( uiAbsPartIdx ) ?  pcCU->getCtxIntraFiltFlagLumaAng( uiAbsPartIdx ) : pcCU->getCtxIntraFiltFlagLuma( uiAbsPartIdx );
-#else
-  UInt uiCtx = pcCU->getCtxIntraFiltFlagLuma( uiAbsPartIdx );
-#endif
+  UInt uiCtx = pcCU->getCtxIntraFiltFlagLumaAng( uiAbsPartIdx );
   m_pcTDecBinIf->decodeBin( uiSymbol, m_cCUIntraFiltFlagSCModel.get( 0, 0, uiCtx ) );
 
   pcCU->setLumaIntraFiltFlagSubParts( uiSymbol != 0, uiAbsPartIdx, uiDepth );

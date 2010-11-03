@@ -381,28 +381,11 @@ Void TDecCu::xDecodeIntraTexture( TComDataCU* pcCU, UInt uiPartIdx, Pel* piReco,
 
     pcPattern->initAdiPattern(pcCU, uiPartIdx, uiCurrDepth, m_pcPrediction->getPredicBuf(), m_pcPrediction->getPredicBufWidth(), m_pcPrediction->getPredicBufHeight(), bAboveAvail, bLeftAvail);
 
-#if ANG_INTRA
-    if ( pcCU->angIntraEnabledPredPart( uiPartIdx ) )
 #if HHI_AIS
-      m_pcPrediction->predIntraLumaAng( pcPattern, pcCU->getLumaIntraDir(uiPartIdx), pcCU->getLumaIntraFiltFlag(uiPartIdx), pPred, uiStride, uiWidth, uiHeight, pcCU, bAboveAvail, bLeftAvail );
+    m_pcPrediction->predIntraLumaAng( pcPattern, pcCU->getLumaIntraDir(uiPartIdx), pcCU->getLumaIntraFiltFlag(uiPartIdx), pPred, uiStride, uiWidth, uiHeight, pcCU, bAboveAvail, bLeftAvail );
 #else
-      m_pcPrediction->predIntraLumaAng( pcPattern, pcCU->getLumaIntraDir(uiPartIdx), pPred, uiStride, uiWidth, uiHeight, pcCU, bAboveAvail, bLeftAvail );
+    m_pcPrediction->predIntraLumaAng( pcPattern, pcCU->getLumaIntraDir(uiPartIdx), pPred, uiStride, uiWidth, uiHeight, pcCU, bAboveAvail, bLeftAvail );
 #endif
-    else
-#if HHI_AIS
-      m_pcPrediction->predIntraLumaAdi( pcPattern, pcCU->getLumaIntraDir(uiPartIdx), pcCU->getLumaIntraFiltFlag(uiPartIdx), pPred, uiStride, uiWidth, uiHeight, pcCU, bAboveAvail, bLeftAvail );
-#else
-      m_pcPrediction->predIntraLumaAdi( pcPattern, pcCU->getLumaIntraDir(uiPartIdx), pPred, uiStride, uiWidth, uiHeight, pcCU, bAboveAvail, bLeftAvail );
-#endif
-
-#else // ANG_INTRA
-
-#if HHI_AIS
-    m_pcPrediction->predIntraLumaAdi( pcPattern, pcCU->getLumaIntraDir(uiPartIdx), pcCU->getLumaIntraFiltFlag(uiPartIdx), pPred, uiStride, uiWidth, uiHeight, pcCU, bAboveAvail, bLeftAvail );
-#else
-    m_pcPrediction->predIntraLumaAdi( pcPattern, pcCU->getLumaIntraDir(uiPartIdx), pPred, uiStride, uiWidth, uiHeight, pcCU, bAboveAvail, bLeftAvail );
-#endif
-#endif // ANG_INTRA
 
     m_pcTrQuant->setQPforQuant( pcCU->getQP(uiPartIdx), !pcCU->getSlice()->getDepth(), pcCU->getSlice()->getSliceType(), TEXT_LUMA );
 #if DISABLE_ROT_LUMA_4x4_8x8
@@ -512,12 +495,7 @@ Void TDecCu::xRecurIntraInvTransChroma(TComDataCU* pcCU, UInt uiAbsPartIdx, Pel*
 #endif
 
     Int  iIntraIdx      = pcCU->getIntraSizeIdx(0);
-#if ANG_INTRA
-    Bool angIntraEnabled= pcCU->angIntraEnabledPredPart(0);
-    UInt uiModeL        = angIntraEnabled ? pcCU->getLumaIntraDir(0) : g_aucIntraModeOrder[iIntraIdx][pcCU->getLumaIntraDir(0)];
-#else
-    UInt uiModeL        = g_aucIntraModeOrder[iIntraIdx][pcCU->getLumaIntraDir(0)];
-#endif
+    UInt uiModeL        = pcCU->getLumaIntraDir(0);
     UInt uiMode         = pcCU->getChromaIntraDir(0);
 
     if (uiMode==4) uiMode = uiModeL;
@@ -533,14 +511,7 @@ Void TDecCu::xRecurIntraInvTransChroma(TComDataCU* pcCU, UInt uiAbsPartIdx, Pel*
       pPatChr=  pcCU->getPattern()->getAdiCrBuf( uiWidth, uiHeight, m_pcPrediction->getPredicBuf() );
     }
 
-#if ANG_INTRA
-    if ( angIntraEnabled )
-      m_pcPrediction-> predIntraChromaAng( pcCU->getPattern(), pPatChr, uiMode, pPred, uiStride, uiWidth, uiHeight, pcCU, bAboveAvail, bLeftAvail );
-    else
-      m_pcPrediction-> predIntraChromaAdi( pcCU->getPattern(), pPatChr, uiMode, pPred, uiStride, uiWidth, uiHeight, pcCU, bAboveAvail, bLeftAvail );
-#else
-    m_pcPrediction-> predIntraChromaAdi( pcCU->getPattern(), pPatChr, uiMode, pPred, uiStride, uiWidth, uiHeight, pcCU, bAboveAvail, bLeftAvail );
-#endif
+    m_pcPrediction-> predIntraChromaAng( pcCU->getPattern(), pPatChr, uiMode, pPred, uiStride, uiWidth, uiHeight, pcCU, bAboveAvail, bLeftAvail );
 
     // Inverse Transform
     if( pcCU->getCbf(0, eText, uiCurrTrMode) )
@@ -631,28 +602,11 @@ TDecCu::xIntraRecLumaBlk( TComDataCU* pcCU,
                                       bAboveAvail, bLeftAvail );
 
   //===== get prediction signal =====
-#if ANG_INTRA
-    if ( pcCU->angIntraEnabledPredPart( uiAbsPartIdx ) )
 #if HHI_AIS
-      m_pcPrediction->predIntraLumaAng( pcCU->getPattern(), uiLumaPredMode, bIntraSmoothing, piPred, uiStride, uiWidth, uiHeight, pcCU, bAboveAvail, bLeftAvail );
+    m_pcPrediction->predIntraLumaAng( pcCU->getPattern(), uiLumaPredMode, bIntraSmoothing, piPred, uiStride, uiWidth, uiHeight, pcCU, bAboveAvail, bLeftAvail );
 #else
-      m_pcPrediction->predIntraLumaAng( pcCU->getPattern(), uiLumaPredMode, piPred, uiStride, uiWidth, uiHeight, pcCU, bAboveAvail, bLeftAvail );
+    m_pcPrediction->predIntraLumaAng( pcCU->getPattern(), uiLumaPredMode, piPred, uiStride, uiWidth, uiHeight, pcCU, bAboveAvail, bLeftAvail );
 #endif
-    else
-#if HHI_AIS
-      m_pcPrediction->predIntraLumaAdi( pcCU->getPattern(), uiLumaPredMode, bIntraSmoothing, piPred, uiStride, uiWidth, uiHeight, pcCU, bAboveAvail, bLeftAvail );
-#else
-      m_pcPrediction->predIntraLumaAdi( pcCU->getPattern(), uiLumaPredMode, piPred, uiStride, uiWidth, uiHeight, pcCU, bAboveAvail, bLeftAvail );
-#endif
-
-#else // ANG_INTRA
-
-#if HHI_AIS
-  m_pcPrediction->predIntraLumaAdi( pcCU->getPattern(), uiLumaPredMode, bIntraSmoothing, piPred, uiStride, uiWidth, uiHeight, pcCU, bAboveAvail, bLeftAvail );
-#else
-  m_pcPrediction->predIntraLumaAdi( pcCU->getPattern(), uiLumaPredMode, piPred, uiStride, uiWidth, uiHeight, pcCU, bAboveAvail, bLeftAvail );
-#endif
-#endif // ANG_INTRA
 
   //===== inverse transform =====
   m_pcTrQuant->setQPforQuant  ( pcCU->getQP(0), !pcCU->getSlice()->getDepth(), pcCU->getSlice()->getSliceType(), TEXT_LUMA );
@@ -736,17 +690,10 @@ TDecCu::xIntraRecChromaBlk( TComDataCU* pcCU,
   UInt      uiChromaPredMode  = pcCU->getChromaIntraDir( 0 );
 
   if( uiChromaPredMode == 4 )
-#if ANG_INTRA
   {
     UInt    uiIntraIdx        = pcCU->getIntraSizeIdx( 0 );
-    uiChromaPredMode          = pcCU->angIntraEnabledPredPart( 0 ) ? pcCU->getLumaIntraDir( 0 ) : g_aucIntraModeOrder[ uiIntraIdx ][ pcCU->getLumaIntraDir( 0 ) ];
+    uiChromaPredMode          = pcCU->getLumaIntraDir( 0 );
   }
-#else
-  {
-    UInt    uiIntraIdx        = pcCU->getIntraSizeIdx( 0 );
-    uiChromaPredMode          = g_aucIntraModeOrder[ uiIntraIdx ][ pcCU->getLumaIntraDir( 0 ) ];
-  }
-#endif
   
   UInt      uiZOrder          = pcCU->getZorderIdxInCU() + uiAbsPartIdx;
   Pel*      piRecIPred        = ( uiChromaId > 0 ? pcCU->getPic()->getPicYuvRec()->getCrAddr( pcCU->getAddr(), uiZOrder ) : pcCU->getPic()->getPicYuvRec()->getCbAddr( pcCU->getAddr(), uiZOrder ) );
@@ -764,14 +711,7 @@ TDecCu::xIntraRecChromaBlk( TComDataCU* pcCU,
   Int* pPatChroma   = ( uiChromaId > 0 ? pcCU->getPattern()->getAdiCrBuf( uiWidth, uiHeight, m_pcPrediction->getPredicBuf() ) : pcCU->getPattern()->getAdiCbBuf( uiWidth, uiHeight, m_pcPrediction->getPredicBuf() ) );
 
   //===== get prediction signal =====
-#if ANG_INTRA
-  if ( pcCU->angIntraEnabledPredPart( 0 ) )
-    m_pcPrediction->predIntraChromaAng( pcCU->getPattern(), pPatChroma, uiChromaPredMode, piPred, uiStride, uiWidth, uiHeight, pcCU, bAboveAvail, bLeftAvail );
-  else
-    m_pcPrediction->predIntraChromaAdi( pcCU->getPattern(), pPatChroma, uiChromaPredMode, piPred, uiStride, uiWidth, uiHeight, pcCU, bAboveAvail, bLeftAvail );
-#else
-  m_pcPrediction->predIntraChromaAdi( pcCU->getPattern(), pPatChroma, uiChromaPredMode, piPred, uiStride, uiWidth, uiHeight, pcCU, bAboveAvail, bLeftAvail );
-#endif
+  m_pcPrediction->predIntraChromaAng( pcCU->getPattern(), pPatChroma, uiChromaPredMode, piPred, uiStride, uiWidth, uiHeight, pcCU, bAboveAvail, bLeftAvail );
 
   //===== inverse transform =====
   m_pcTrQuant->setQPforQuant  ( pcCU->getQP(0), !pcCU->getSlice()->getDepth(), pcCU->getSlice()->getSliceType(), eText );

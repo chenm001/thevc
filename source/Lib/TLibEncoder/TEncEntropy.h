@@ -113,9 +113,7 @@ public:
 #endif
   virtual Void codeTransformIdx  ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth ) = 0;
   virtual Void codeIntraDirLumaAdi( TComDataCU* pcCU, UInt uiAbsPartIdx ) = 0;
-#if ANG_INTRA
   virtual Void codeIntraDirLumaAng( TComDataCU* pcCU, UInt uiAbsPartIdx ) = 0;
-#endif
 
 #if HHI_AIS
   virtual Void codeIntraFiltFlagLumaAdi( TComDataCU* pcCU, UInt uiAbsPartIdx ) = 0;

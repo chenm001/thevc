@@ -2041,7 +2041,6 @@ UInt TComDataCU::getCtxTransIdx( UInt uiAbsPartIdx )
 
 #if HHI_AIS
 
-#if ANG_INTRA
 UInt TComDataCU::getCtxIntraFiltFlagLumaAng( UInt uiAbsPartIdx )
 {
   UInt uiIntraDir    = (UInt)getLumaIntraDir( uiAbsPartIdx );
@@ -2056,7 +2055,6 @@ UInt TComDataCU::getCtxIntraFiltFlagLumaAng( UInt uiAbsPartIdx )
 
   return uiCtx;
 }
-#endif
 
 UInt TComDataCU::getCtxIntraFiltFlagLuma( UInt uiAbsPartIdx )
 {
@@ -2373,21 +2371,6 @@ Void TComDataCU::setMergeIndexSubParts ( UInt uiMergeIndex, UInt uiAbsPartIdx, U
   memset( m_puhMergeIndex + uiAbsPartIdx, uiMergeIndex, sizeof(UChar)*uiCurrPartNumb );
 }
 #endif
-#endif
-
-#if ANG_INTRA
-Bool TComDataCU::angIntraEnabledPredPart( UInt uiAbsPartIdx )
-{
-#if (ANG_INTRA == 2)
-  return true;
-#else
-  // Return true for 8x8 blocks
-  if (getIntraSizeIdx(uiAbsPartIdx) == 2 )
-    return true;
-  else
-    return false;
-#endif
-}
 #endif
 
 Void TComDataCU::setChromIntraDirSubParts( UInt uiDir, UInt uiAbsPartIdx, UInt uiDepth )

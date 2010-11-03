@@ -149,9 +149,7 @@ protected:
 #endif
   UInt xPatternRefinementHAM_DIF    ( TComPattern* pcPatternKey, Pel* piRef, Int iRefStride, Int iIntStep, TComMv& rcMvFrac ,UInt  uiDistBest_onefourth,TComMv* predMV);
 #endif
-#if ANG_INTRA
-  Bool predIntraLumaDirAvailable( UInt uiMode, UInt uiWidthBit, Bool angIntraEnabled, Bool bAboveAvail, Bool bLeftAvail);
-#endif
+  Bool predIntraLumaDirAvailable( UInt uiMode, UInt uiWidthBit, Bool bAboveAvail, Bool bLeftAvail);
 
 #if PLANAR_INTRA
   Void xIntraPlanarRecon( TComDataCU* pcCU, UInt uiAbsPartIdx, Pel* piOrg, Pel* piPred, Pel* piResi, Pel* piReco, UInt uiStride, TCoeff* piCoeff, UInt uiWidth, UInt uiHeight, UInt uiCurrDepth, TextType eText );

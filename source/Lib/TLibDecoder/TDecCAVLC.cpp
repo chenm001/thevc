@@ -866,7 +866,6 @@ Void TDecCavlc::parsePlanarInfo( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDep
 }
 #endif
 
-#if ANG_INTRA
 Void TDecCavlc::parseIntraDirLumaAng  ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
 {
   UInt uiSymbol;
@@ -906,7 +905,6 @@ Void TDecCavlc::parseIntraDirLumaAng  ( TComDataCU* pcCU, UInt uiAbsPartIdx, UIn
 
   pcCU->setLumaIntraDirSubParts( (UChar)uiIPredMode, uiAbsPartIdx, uiDepth );
 }
-#endif
 
 Void TDecCavlc::parseIntraDirLumaAdi  ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
 {

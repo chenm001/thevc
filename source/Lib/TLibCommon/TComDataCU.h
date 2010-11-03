@@ -394,10 +394,6 @@ public:
   Void          setCIPflag            ( UInt uiIdx, UChar  uh ) { m_pCIPflag[uiIdx] = uh;             }
   Void          setCIPflagSubParts    ( UChar CIPflag, UInt uiAbsPartIdx, UInt uiDepth );
 
-#if ANG_INTRA
-  Bool          angIntraEnabledPredPart( UInt uiAbsPartIdx );
-#endif
-
 #if PLANAR_INTRA
   Int           getPlanarInfo   ( UInt uiIdx, PlanarType pType )            { return m_piPlanarInfo[pType][uiIdx];  }
   Int*          getPlanarInfo   ( PlanarType pType )                        { return m_piPlanarInfo[pType];         }
@@ -574,9 +570,7 @@ public:
   UInt          getCtxIntraDirChroma            ( UInt   uiAbsPartIdx                                 );
   UInt          getCtxCIPFlag                   ( UInt   uiAbsPartIdx                                 );
 #if HHI_AIS
-#if ANG_INTRA
   UInt          getCtxIntraFiltFlagLumaAng      ( UInt   uiAbsPartIdx                                 );
-#endif
   UInt          getCtxIntraFiltFlagLuma         ( UInt   uiAbsPartIdx                                 );
 #endif
 

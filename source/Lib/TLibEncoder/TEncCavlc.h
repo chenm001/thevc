@@ -254,9 +254,7 @@ public:
 
   Void codeTransformIdx  ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
   Void codeIntraDirLumaAdi( TComDataCU* pcCU, UInt uiAbsPartIdx );
-#if ANG_INTRA
   Void codeIntraDirLumaAng( TComDataCU* pcCU, UInt uiAbsPartIdx );
-#endif
 
 #if HHI_AIS
   Void codeIntraFiltFlagLumaAdi( TComDataCU* pcCU, UInt uiAbsPartIdx );

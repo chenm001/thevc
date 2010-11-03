@@ -93,9 +93,7 @@ public:
   virtual Void parsePredMode      ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth ) = 0;
 
   virtual Void parseIntraDirLumaAdi( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth ) = 0;
-#if ANG_INTRA
   virtual Void parseIntraDirLumaAng( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth ) = 0;
-#endif
 
 #if HHI_AIS
   virtual Void parseIntraFiltFlagLumaAdi( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth ) = 0;

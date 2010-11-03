@@ -148,9 +148,7 @@ public:
   Void parseIntraDirLuma  ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
 
   Void parseIntraDirLumaAdi( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
-#if ANG_INTRA
   Void parseIntraDirLumaAng( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
-#endif
 
 #if HHI_AIS
   Void parseIntraFiltFlagLumaAdi( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );

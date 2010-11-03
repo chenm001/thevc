@@ -1111,14 +1111,7 @@ Void TEncEntropy::encodeCIPflag( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDep
 // Intra direction for Luma
 Void TEncEntropy::encodeIntraDirModeLuma  ( TComDataCU* pcCU, UInt uiAbsPartIdx )
 {
-#if ANG_INTRA
-  if ( pcCU->angIntraEnabledPredPart(uiAbsPartIdx) )
-    m_pcEntropyCoderIf->codeIntraDirLumaAng( pcCU, uiAbsPartIdx );
-  else
-    m_pcEntropyCoderIf->codeIntraDirLumaAdi( pcCU, uiAbsPartIdx );
-#else
-  m_pcEntropyCoderIf->codeIntraDirLumaAdi( pcCU, uiAbsPartIdx );
-#endif
+  m_pcEntropyCoderIf->codeIntraDirLumaAng( pcCU, uiAbsPartIdx );
 }
 
 #if PLANAR_INTRA

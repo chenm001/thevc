@@ -98,7 +98,6 @@ Void TComPrediction::initTempBuff()
 // Public member functions
 // ====================================================================================================================
 
-#if (ANG_INTRA || PLANAR_INTRA)
 // Function for calculating DC value of the reference samples used in Intra prediction
 Pel TComPrediction::predIntraGetPredValDC( Int* pSrc, Int iSrcStride, UInt iWidth, UInt iHeight, Bool bAbove, Bool bLeft )
 {
@@ -125,7 +124,6 @@ Pel TComPrediction::predIntraGetPredValDC( Int* pSrc, Int iSrcStride, UInt iWidt
 
   return pDcVal;
 }
-#endif
 
 #if PLANAR_INTRA
 // Function for deriving the planar Intra predictions
@@ -207,7 +205,6 @@ Void TComPrediction::predIntraPlanar( Int* piSrc, Int iSampleBottomRight, Pel* p
 }
 #endif
 
-#if ANG_INTRA
 // Function for deriving the angular Intra predictions
 
 /** Function for deriving the simplified angular intra predictions.
@@ -418,9 +415,6 @@ Void TComPrediction::predIntraChromaAng( TComPattern* pcTComPattern, Int* piSrc,
   // Create the prediction
   xPredIntraAng( ptrSrc+sw+1, sw, pDst, uiStride, iWidth, iHeight, uiDirMode, bAbove,  bLeft );
 }
-
-#endif
-
 
 // ADI luma
 #if HHI_AIS

@@ -1646,7 +1646,6 @@ Void TEncCavlc::codePlanarInfo( TComDataCU* pcCU, UInt uiAbsPartIdx )
 }
 #endif
 
-#if ANG_INTRA
 Void TEncCavlc::codeIntraDirLumaAng( TComDataCU* pcCU, UInt uiAbsPartIdx )
 {
   UInt uiDir         = pcCU->getLumaIntraDir( uiAbsPartIdx );
@@ -1714,7 +1713,6 @@ Void TEncCavlc::codeIntraDirLumaAng( TComDataCU* pcCU, UInt uiAbsPartIdx )
     }
   }
 }
-#endif
 
 Void TEncCavlc::codeIntraDirLumaAdi( TComDataCU* pcCU, UInt uiAbsPartIdx )
 {

@@ -108,7 +108,6 @@
 ////////////////////////////
 // TEN defines section start
 ////////////////////////////
-#define ANG_INTRA                         2           // Enable angular Intra coding (0: All ADI, 1: Ang for 8x8 PUs, 2: Ang for all PU sizes)
 
 #define PLANAR_INTRA                      0           // Enable planar Intra coding
 #define TENTM_DEBLOCKING_FILTER           1           // Enable TENTM deblocking

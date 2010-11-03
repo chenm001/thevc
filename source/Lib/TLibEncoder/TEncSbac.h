@@ -190,9 +190,7 @@ public:
   Void codeIntraDirLuma  ( TComDataCU* pcCU, UInt uiAbsPartIdx );
 
   Void codeIntraDirLumaAdi( TComDataCU* pcCU, UInt uiAbsPartIdx );
-#if ANG_INTRA
   Void codeIntraDirLumaAng( TComDataCU* pcCU, UInt uiAbsPartIdx );
-#endif
 
 #if HHI_AIS
   Void codeIntraFiltFlagLumaAdi( TComDataCU* pcCU, UInt uiAbsPartIdx );
