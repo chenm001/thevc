@@ -59,7 +59,6 @@
 #include "TDecBinCoderMultiCABAC.h"
 #include "TDecBinCoderPIPE.h"
 #include "TDecBinCoderMultiPIPE.h"
-#include "TDecBinCoderV2VwLB.h"
 
 // ====================================================================================================================
 // Class definition
@@ -72,8 +71,6 @@ private:
   Int                   m_iGopSize;
   TComList<TComPic*>    m_cListPic;         //  Dynamic buffer
 
-  UInt                  m_uiBalancedCPUs;
-
   //  Access channel
   TDecEntropy*          m_pcEntropyDecoder;
   TDecSbac*             m_pcSbacDecoder;
@@ -81,7 +78,6 @@ private:
   TDecBinMultiCABAC*    m_pcBinMultiCABAC;
   TDecBinPIPE*          m_pcBinPIPE;
   TDecBinMultiPIPE*     m_pcBinMultiPIPE;
-  TDecV2V*              m_pcBinV2VwLB;
   TDecCavlc*            m_pcCavlcDecoder;
   TDecSlice*            m_pcSliceDecoder;
   TComLoopFilter*       m_pcLoopFilter;
@@ -99,7 +95,6 @@ public:
                   TDecBinMultiCABAC*      pcBinMultiCABAC,
                   TDecBinPIPE*            pcBinPIPE,
                   TDecBinMultiPIPE*       pcBinMultiPIPE,
-                  TDecV2V*                pcBinV2VwLB,
                   TDecCavlc*              pcCavlcDecoder, 
                   TDecSlice*              pcSliceDecoder, 
                   TComLoopFilter*         pcLoopFilter, 
@@ -109,9 +104,6 @@ public:
 
   Void  decompressGop ( Bool bEos, TComBitstream* pcBitstream, TComPic*& rpcPic );
   Void  setGopSize( Int i) { m_iGopSize = i; }
-
-  UInt  getBalancedCPUs()  { return m_uiBalancedCPUs; }
-  Void  setBalancedCPUs( UInt ui ) { m_uiBalancedCPUs = ui; }
 };
 
 #endif // !defined(AFX_TDECGOP_H__29440B7A_7CC0_48C7_8DD5_1A531D3CED45__INCLUDED_)

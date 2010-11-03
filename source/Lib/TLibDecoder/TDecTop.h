@@ -58,7 +58,6 @@ private:
   Int                     m_iGopSize;
   Bool                    m_bGopSizeSet;
   int                     m_iMaxRefPicNum;
-  UInt                    m_uiBalancedCPUs;
 
   UInt                    m_uiValidPS;
   TComList<TComPic*>      m_cListPic;         //  Dynamic buffer
@@ -79,7 +78,6 @@ private:
   TDecBinMultiCABAC       m_cBinMultiCABAC;
   TDecBinPIPE             m_cBinPIPE;
   TDecBinMultiPIPE        m_cBinMultiPIPE;
-  TDecV2V                 m_cBinV2VwLB;
   TComLoopFilter          m_cLoopFilter;
   TComAdaptiveLoopFilter  m_cAdaptiveLoopFilter;
 
@@ -94,9 +92,6 @@ public:
   Void  decode ( Bool bEos, TComBitstream* pcBitstream, UInt& ruiPOC, TComList<TComPic*>*& rpcListPic );
 
   Void  deletePicBuffer();
-
-  Void  setBalancedCPUs( UInt ui ) { m_uiBalancedCPUs = ui; }
-  UInt  getBalancedCPUs() { return m_cSPS.getBalancedCPUs(); }
 
 protected:
   Void  xGetNewPicBuffer  (TComSlice* pcSlice, TComPic*& rpcPic);

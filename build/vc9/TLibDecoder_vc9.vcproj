@@ -294,10 +294,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\source\Lib\TLibDecoder\TDecBinCoderV2VwLB.cpp"
-				>
-			</File>
-			<File
 				RelativePath="..\..\source\Lib\TLibDecoder\TDecCAVLC.cpp"
 				>
 			</File>
@@ -329,10 +325,6 @@
 				RelativePath="..\..\source\Lib\TLibDecoder\TDecTop.cpp"
 				>
 			</File>
-			<File
-				RelativePath="..\..\source\Lib\TLibDecoder\TDecV2VTrees.cpp"
-				>
-			</File>
 		</Filter>
 		<Filter
 			Name="Header Files"
@@ -356,10 +348,6 @@
 			</File>
 			<File
 				RelativePath="..\..\source\Lib\TLibDecoder\TDecBinCoderPIPE.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\source\Lib\TLibDecoder\TDecBinCoderV2VwLB.h"
 				>
 			</File>
 			<File
@@ -392,10 +380,6 @@
 			</File>
 			<File
 				RelativePath="..\..\source\Lib\TLibDecoder\TDecTop.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\source\Lib\TLibDecoder\TDecV2VTrees.h"
 				>
 			</File>
 		</Filter>

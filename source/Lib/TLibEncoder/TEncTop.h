@@ -54,8 +54,6 @@
 #include "TEncSearch.h"
 #include "TEncAdaptiveLoopFilter.h"
 
-#include "TEncBinCoderCABAC4V2V.h"
-
 // ====================================================================================================================
 // Class definition
 // ====================================================================================================================
@@ -87,8 +85,6 @@ private:
   TEncBinMultiCABAC       m_cBinCoderMultiCABAC;          ///< bin coder CABAC with multiple partitions
   TEncBinPIPE             m_cBinCoderPIPE;                ///< bin coder PIPE
   TEncBinMultiPIPE        m_cBinCoderMultiPIPE;           ///< bin coder PIPE with multiple partitions
-  TEncV2V                 m_cBinV2VwLB;                   ///< bin coder V2V with load balancing
-  TEncBinCABAC4V2V        m_cBinCoderCABAC4V2V;           ///< bin coder CABAC for V2V
 
   // processing unit
   TEncGOP                 m_cGOPEncoder;                  ///< GOP encoder
@@ -143,11 +139,9 @@ public:
   TEncCavlc*              getCavlcCoder         () { return  &m_cCavlcCoder;          }
   TEncSbac*               getSbacCoder          () { return  &m_cSbacCoder;           }
   TEncBinCABAC*           getBinCABAC           () { return  &m_cBinCoderCABAC;       }
-  TEncBinCABAC4V2V*       getBinCABAC4V2V       () { return  &m_cBinCoderCABAC4V2V;   }
   TEncBinMultiCABAC*      getBinMultiCABAC      () { return  &m_cBinCoderMultiCABAC;  }
   TEncBinPIPE*            getBinPIPE            () { return  &m_cBinCoderPIPE;        }
   TEncBinMultiPIPE*       getBinMultiPIPE       () { return  &m_cBinCoderMultiPIPE;   }
-  TEncV2V*                getBinV2VwLB          () { return  &m_cBinV2VwLB;           }
 
   TComBitCounter*         getBitCounter         () { return  &m_cBitCounter;          }
   TComRdCost*             getRdCost             () { return  &m_cRdCost;              }

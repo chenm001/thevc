@@ -53,7 +53,6 @@
 #include "TEncBinCoderMultiCABAC.h"
 #include "TEncBinCoderPIPE.h"
 #include "TEncBinCoderMultiPIPE.h"
-#include "TEncBinCoderV2VwLB.h"
 
 class TEncTop;
 

@@ -28,8 +28,6 @@
 		671E0D6A11B6ADD300F3747B /* TDecBinCoderMultiPIPE.h in Headers */ = {isa = PBXBuildFile; fileRef = 671E0D5C11B6ADD300F3747B /* TDecBinCoderMultiPIPE.h */; };
 		671E0D6B11B6ADD300F3747B /* TDecBinCoderPIPE.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 671E0D5D11B6ADD300F3747B /* TDecBinCoderPIPE.cpp */; };
 		671E0D6C11B6ADD300F3747B /* TDecBinCoderPIPE.h in Headers */ = {isa = PBXBuildFile; fileRef = 671E0D5E11B6ADD300F3747B /* TDecBinCoderPIPE.h */; };
-		671E0D6D11B6ADD300F3747B /* TDecBinCoderV2VwLB.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 671E0D5F11B6ADD300F3747B /* TDecBinCoderV2VwLB.cpp */; };
-		671E0D6E11B6ADD300F3747B /* TDecBinCoderV2VwLB.h in Headers */ = {isa = PBXBuildFile; fileRef = 671E0D6011B6ADD300F3747B /* TDecBinCoderV2VwLB.h */; };
 		671E0D6F11B6ADD300F3747B /* TDecPIPETables.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 671E0D6111B6ADD300F3747B /* TDecPIPETables.cpp */; };
 		671E0D7011B6ADD300F3747B /* TDecPIPETables.h in Headers */ = {isa = PBXBuildFile; fileRef = 671E0D6211B6ADD300F3747B /* TDecPIPETables.h */; };
 		671E0D8011B6ADE900F3747B /* TEncBinCoder.h in Headers */ = {isa = PBXBuildFile; fileRef = 671E0D7211B6ADE900F3747B /* TEncBinCoder.h */; };
@@ -41,8 +39,6 @@
 		671E0D8611B6ADE900F3747B /* TEncBinCoderMultiPIPE.h in Headers */ = {isa = PBXBuildFile; fileRef = 671E0D7811B6ADE900F3747B /* TEncBinCoderMultiPIPE.h */; };
 		671E0D8711B6ADE900F3747B /* TEncBinCoderPIPE.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 671E0D7911B6ADE900F3747B /* TEncBinCoderPIPE.cpp */; };
 		671E0D8811B6ADE900F3747B /* TEncBinCoderPIPE.h in Headers */ = {isa = PBXBuildFile; fileRef = 671E0D7A11B6ADE900F3747B /* TEncBinCoderPIPE.h */; };
-		671E0D8911B6ADE900F3747B /* TEncBinCoderV2VwLB.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 671E0D7B11B6ADE900F3747B /* TEncBinCoderV2VwLB.cpp */; };
-		671E0D8A11B6ADE900F3747B /* TEncBinCoderV2VwLB.h in Headers */ = {isa = PBXBuildFile; fileRef = 671E0D7C11B6ADE900F3747B /* TEncBinCoderV2VwLB.h */; };
 		671E0D8B11B6ADE900F3747B /* TEncPIPETables.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 671E0D7D11B6ADE900F3747B /* TEncPIPETables.cpp */; };
 		671E0D8C11B6ADE900F3747B /* TEncPIPETables.h in Headers */ = {isa = PBXBuildFile; fileRef = 671E0D7E11B6ADE900F3747B /* TEncPIPETables.h */; };
 		676795C411AD61FC00421804 /* CommonDef.h in Headers */ = {isa = PBXBuildFile; fileRef = 6767959911AD61FC00421804 /* CommonDef.h */; };
@@ -134,13 +130,8 @@
 		7104E1DF12005B0E00F42AA8 /* program_options_lite.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7104E1DD12005B0E00F42AA8 /* program_options_lite.cpp */; };
 		7104E1E012005B0E00F42AA8 /* program_options_lite.h in Headers */ = {isa = PBXBuildFile; fileRef = 7104E1DE12005B0E00F42AA8 /* program_options_lite.h */; };
 		7104E1E312005B5600F42AA8 /* libTAppCommon.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 7104E1CD12005ABA00F42AA8 /* libTAppCommon.a */; };
-		710C2D4711EB75C7005CD831 /* TEncBinCoderCABAC4V2V.h in Headers */ = {isa = PBXBuildFile; fileRef = 710C2D4211EB75C7005CD831 /* TEncBinCoderCABAC4V2V.h */; };
 		710C2D4811EB75C7005CD831 /* TEncSIFO.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 710C2D4311EB75C7005CD831 /* TEncSIFO.cpp */; };
 		710C2D4911EB75C7005CD831 /* TEncSIFO.h in Headers */ = {isa = PBXBuildFile; fileRef = 710C2D4411EB75C7005CD831 /* TEncSIFO.h */; };
-		710C2D4A11EB75C7005CD831 /* TEncV2VTrees.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 710C2D4511EB75C7005CD831 /* TEncV2VTrees.cpp */; };
-		710C2D4B11EB75C7005CD831 /* TEncV2VTrees.h in Headers */ = {isa = PBXBuildFile; fileRef = 710C2D4611EB75C7005CD831 /* TEncV2VTrees.h */; };
-		710C2D4E11EB75E9005CD831 /* TDecV2VTrees.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 710C2D4C11EB75E9005CD831 /* TDecV2VTrees.cpp */; };
-		710C2D4F11EB75E9005CD831 /* TDecV2VTrees.h in Headers */ = {isa = PBXBuildFile; fileRef = 710C2D4D11EB75E9005CD831 /* TDecV2VTrees.h */; };
 		71AD603911EBC28500F5F1FE /* libTLibCommon.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 6767959411AD61BB00421804 /* libTLibCommon.a */; };
 		71AD603A11EBC28D00F5F1FE /* libTLibEncoder.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 6767961911AD626F00421804 /* libTLibEncoder.a */; };
 		71AD603B11EBC29600F5F1FE /* libTLibVideoIO.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 6767964B11AD629200421804 /* libTLibVideoIO.a */; };
@@ -226,8 +217,6 @@
 		671E0D5C11B6ADD300F3747B /* TDecBinCoderMultiPIPE.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TDecBinCoderMultiPIPE.h; path = source/Lib/TLibDecoder/TDecBinCoderMultiPIPE.h; sourceTree = "<group>"; };
 		671E0D5D11B6ADD300F3747B /* TDecBinCoderPIPE.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = TDecBinCoderPIPE.cpp; path = source/Lib/TLibDecoder/TDecBinCoderPIPE.cpp; sourceTree = "<group>"; };
 		671E0D5E11B6ADD300F3747B /* TDecBinCoderPIPE.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TDecBinCoderPIPE.h; path = source/Lib/TLibDecoder/TDecBinCoderPIPE.h; sourceTree = "<group>"; };
-		671E0D5F11B6ADD300F3747B /* TDecBinCoderV2VwLB.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = TDecBinCoderV2VwLB.cpp; path = source/Lib/TLibDecoder/TDecBinCoderV2VwLB.cpp; sourceTree = "<group>"; };
-		671E0D6011B6ADD300F3747B /* TDecBinCoderV2VwLB.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TDecBinCoderV2VwLB.h; path = source/Lib/TLibDecoder/TDecBinCoderV2VwLB.h; sourceTree = "<group>"; };
 		671E0D6111B6ADD300F3747B /* TDecPIPETables.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = TDecPIPETables.cpp; path = source/Lib/TLibDecoder/TDecPIPETables.cpp; sourceTree = "<group>"; };
 		671E0D6211B6ADD300F3747B /* TDecPIPETables.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TDecPIPETables.h; path = source/Lib/TLibDecoder/TDecPIPETables.h; sourceTree = "<group>"; };
 		671E0D7211B6ADE900F3747B /* TEncBinCoder.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TEncBinCoder.h; path = source/Lib/TLibEncoder/TEncBinCoder.h; sourceTree = "<group>"; };
@@ -239,8 +228,6 @@
 		671E0D7811B6ADE900F3747B /* TEncBinCoderMultiPIPE.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TEncBinCoderMultiPIPE.h; path = source/Lib/TLibEncoder/TEncBinCoderMultiPIPE.h; sourceTree = "<group>"; };
 		671E0D7911B6ADE900F3747B /* TEncBinCoderPIPE.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = TEncBinCoderPIPE.cpp; path = source/Lib/TLibEncoder/TEncBinCoderPIPE.cpp; sourceTree = "<group>"; };
 		671E0D7A11B6ADE900F3747B /* TEncBinCoderPIPE.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TEncBinCoderPIPE.h; path = source/Lib/TLibEncoder/TEncBinCoderPIPE.h; sourceTree = "<group>"; };
-		671E0D7B11B6ADE900F3747B /* TEncBinCoderV2VwLB.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = TEncBinCoderV2VwLB.cpp; path = source/Lib/TLibEncoder/TEncBinCoderV2VwLB.cpp; sourceTree = "<group>"; };
-		671E0D7C11B6ADE900F3747B /* TEncBinCoderV2VwLB.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TEncBinCoderV2VwLB.h; path = source/Lib/TLibEncoder/TEncBinCoderV2VwLB.h; sourceTree = "<group>"; };
 		671E0D7D11B6ADE900F3747B /* TEncPIPETables.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = TEncPIPETables.cpp; path = source/Lib/TLibEncoder/TEncPIPETables.cpp; sourceTree = "<group>"; };
 		671E0D7E11B6ADE900F3747B /* TEncPIPETables.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TEncPIPETables.h; path = source/Lib/TLibEncoder/TEncPIPETables.h; sourceTree = "<group>"; };
 		6767959411AD61BB00421804 /* libTLibCommon.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libTLibCommon.a; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -340,13 +327,8 @@
 		7104E1CD12005ABA00F42AA8 /* libTAppCommon.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libTAppCommon.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		7104E1DD12005B0E00F42AA8 /* program_options_lite.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = program_options_lite.cpp; path = source/App/TAppCommon/program_options_lite.cpp; sourceTree = "<group>"; };
 		7104E1DE12005B0E00F42AA8 /* program_options_lite.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = program_options_lite.h; path = source/App/TAppCommon/program_options_lite.h; sourceTree = "<group>"; };
-		710C2D4211EB75C7005CD831 /* TEncBinCoderCABAC4V2V.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TEncBinCoderCABAC4V2V.h; path = source/Lib/TLibEncoder/TEncBinCoderCABAC4V2V.h; sourceTree = "<group>"; };
 		710C2D4311EB75C7005CD831 /* TEncSIFO.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = TEncSIFO.cpp; path = source/Lib/TLibEncoder/TEncSIFO.cpp; sourceTree = "<group>"; };
 		710C2D4411EB75C7005CD831 /* TEncSIFO.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TEncSIFO.h; path = source/Lib/TLibEncoder/TEncSIFO.h; sourceTree = "<group>"; };
-		710C2D4511EB75C7005CD831 /* TEncV2VTrees.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = TEncV2VTrees.cpp; path = source/Lib/TLibEncoder/TEncV2VTrees.cpp; sourceTree = "<group>"; };
-		710C2D4611EB75C7005CD831 /* TEncV2VTrees.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TEncV2VTrees.h; path = source/Lib/TLibEncoder/TEncV2VTrees.h; sourceTree = "<group>"; };
-		710C2D4C11EB75E9005CD831 /* TDecV2VTrees.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = TDecV2VTrees.cpp; path = source/Lib/TLibDecoder/TDecV2VTrees.cpp; sourceTree = "<group>"; };
-		710C2D4D11EB75E9005CD831 /* TDecV2VTrees.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TDecV2VTrees.h; path = source/Lib/TLibDecoder/TDecV2VTrees.h; sourceTree = "<group>"; };
 		DB79E591122DFAAE003E0057 /* TComIc.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = TComIc.cpp; path = source/Lib/TLibCommon/TComIc.cpp; sourceTree = "<group>"; };
 		DB79E592122DFAAE003E0057 /* TComIc.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TComIc.h; path = source/Lib/TLibCommon/TComIc.h; sourceTree = "<group>"; };
 		DB79E593122DFAAE003E0057 /* TComICInfo.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = TComICInfo.cpp; path = source/Lib/TLibCommon/TComICInfo.cpp; sourceTree = "<group>"; };
@@ -518,8 +500,6 @@
 		676795EF11AD620B00421804 /* TLibDecoder */ = {
 			isa = PBXGroup;
 			children = (
-				710C2D4C11EB75E9005CD831 /* TDecV2VTrees.cpp */,
-				710C2D4D11EB75E9005CD831 /* TDecV2VTrees.h */,
 				671E0D5611B6ADD300F3747B /* TDecBinCoder.h */,
 				671E0D5711B6ADD300F3747B /* TDecBinCoderCABAC.cpp */,
 				671E0D5811B6ADD300F3747B /* TDecBinCoderCABAC.h */,
@@ -529,8 +509,6 @@
 				671E0D5C11B6ADD300F3747B /* TDecBinCoderMultiPIPE.h */,
 				671E0D5D11B6ADD300F3747B /* TDecBinCoderPIPE.cpp */,
 				671E0D5E11B6ADD300F3747B /* TDecBinCoderPIPE.h */,
-				671E0D5F11B6ADD300F3747B /* TDecBinCoderV2VwLB.cpp */,
-				671E0D6011B6ADD300F3747B /* TDecBinCoderV2VwLB.h */,
 				671E0D6111B6ADD300F3747B /* TDecPIPETables.cpp */,
 				671E0D6211B6ADD300F3747B /* TDecPIPETables.h */,
 				676795F811AD623900421804 /* TDecCAVLC.cpp */,
@@ -554,11 +532,8 @@
 		6767961411AD624B00421804 /* TLibEncoder */ = {
 			isa = PBXGroup;
 			children = (
-				710C2D4211EB75C7005CD831 /* TEncBinCoderCABAC4V2V.h */,
 				710C2D4311EB75C7005CD831 /* TEncSIFO.cpp */,
 				710C2D4411EB75C7005CD831 /* TEncSIFO.h */,
-				710C2D4511EB75C7005CD831 /* TEncV2VTrees.cpp */,
-				710C2D4611EB75C7005CD831 /* TEncV2VTrees.h */,
 				671E0D7211B6ADE900F3747B /* TEncBinCoder.h */,
 				671E0D7311B6ADE900F3747B /* TEncBinCoderCABAC.cpp */,
 				671E0D7411B6ADE900F3747B /* TEncBinCoderCABAC.h */,
@@ -568,8 +543,6 @@
 				671E0D7811B6ADE900F3747B /* TEncBinCoderMultiPIPE.h */,
 				671E0D7911B6ADE900F3747B /* TEncBinCoderPIPE.cpp */,
 				671E0D7A11B6ADE900F3747B /* TEncBinCoderPIPE.h */,
-				671E0D7B11B6ADE900F3747B /* TEncBinCoderV2VwLB.cpp */,
-				671E0D7C11B6ADE900F3747B /* TEncBinCoderV2VwLB.h */,
 				671E0D7D11B6ADE900F3747B /* TEncPIPETables.cpp */,
 				671E0D7E11B6ADE900F3747B /* TEncPIPETables.h */,
 				6767961C11AD628100421804 /* TEncAdaptiveLoopFilter.cpp */,
@@ -707,9 +680,7 @@
 				671E0D6811B6ADD300F3747B /* TDecBinCoderMultiCABAC.h in Headers */,
 				671E0D6A11B6ADD300F3747B /* TDecBinCoderMultiPIPE.h in Headers */,
 				671E0D6C11B6ADD300F3747B /* TDecBinCoderPIPE.h in Headers */,
-				671E0D6E11B6ADD300F3747B /* TDecBinCoderV2VwLB.h in Headers */,
 				671E0D7011B6ADD300F3747B /* TDecPIPETables.h in Headers */,
-				710C2D4F11EB75E9005CD831 /* TDecV2VTrees.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -733,11 +704,8 @@
 				671E0D8411B6ADE900F3747B /* TEncBinCoderMultiCABAC.h in Headers */,
 				671E0D8611B6ADE900F3747B /* TEncBinCoderMultiPIPE.h in Headers */,
 				671E0D8811B6ADE900F3747B /* TEncBinCoderPIPE.h in Headers */,
-				671E0D8A11B6ADE900F3747B /* TEncBinCoderV2VwLB.h in Headers */,
 				671E0D8C11B6ADE900F3747B /* TEncPIPETables.h in Headers */,
-				710C2D4711EB75C7005CD831 /* TEncBinCoderCABAC4V2V.h in Headers */,
 				710C2D4911EB75C7005CD831 /* TEncSIFO.h in Headers */,
-				710C2D4B11EB75C7005CD831 /* TEncV2VTrees.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -958,9 +926,7 @@
 				671E0D6711B6ADD300F3747B /* TDecBinCoderMultiCABAC.cpp in Sources */,
 				671E0D6911B6ADD300F3747B /* TDecBinCoderMultiPIPE.cpp in Sources */,
 				671E0D6B11B6ADD300F3747B /* TDecBinCoderPIPE.cpp in Sources */,
-				671E0D6D11B6ADD300F3747B /* TDecBinCoderV2VwLB.cpp in Sources */,
 				671E0D6F11B6ADD300F3747B /* TDecPIPETables.cpp in Sources */,
-				710C2D4E11EB75E9005CD831 /* TDecV2VTrees.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -982,10 +948,8 @@
 				671E0D8311B6ADE900F3747B /* TEncBinCoderMultiCABAC.cpp in Sources */,
 				671E0D8511B6ADE900F3747B /* TEncBinCoderMultiPIPE.cpp in Sources */,
 				671E0D8711B6ADE900F3747B /* TEncBinCoderPIPE.cpp in Sources */,
-				671E0D8911B6ADE900F3747B /* TEncBinCoderV2VwLB.cpp in Sources */,
 				671E0D8B11B6ADE900F3747B /* TEncPIPETables.cpp in Sources */,
 				710C2D4811EB75C7005CD831 /* TEncSIFO.cpp in Sources */,
-				710C2D4A11EB75C7005CD831 /* TEncV2VTrees.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

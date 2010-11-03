@@ -51,7 +51,6 @@ class TEncTop;
 class TEncSbac;
 class TEncCavlc;
 class TEncSlice;
-class TEncBinCABAC4V2V;
 
 // ====================================================================================================================
 // Class definition
@@ -92,8 +91,6 @@ private:
   TEncBinMultiCABAC*      m_pcBinMultiCABAC;
   TEncBinPIPE*            m_pcBinPIPE;
   TEncBinMultiPIPE*       m_pcBinMultiPIPE;
-  TEncV2V*                m_pcBinV2VwLB;
-  TEncBinCABAC4V2V*       m_pcBinCABAC4V2V;
 
   // SBAC RD
   TEncSbac***             m_pppcRDSbacCoder;
@@ -120,7 +117,6 @@ public:
   Void  setQpLast           ( Int iQp ) { m_iQp = iQp; }
 
   TEncBinCABAC* getCABAC()  { return m_pcBinCABAC; }
-  TEncBinCABAC4V2V* getCABAC4V2V() { return m_pcBinCABAC4V2V; }
 
 protected:
   Void  xCompressCU         ( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, UInt uiDepth        );

@@ -41,7 +41,6 @@
 #include "TDecBinCoderMultiCABAC.h"
 #include "TDecBinCoderPIPE.h"
 #include "TDecBinCoderMultiPIPE.h"
-#include "TDecBinCoderV2VwLB.h"
 
 #include <time.h>
 
@@ -75,7 +74,6 @@ Void TDecGop::init( TDecEntropy*            pcEntropyDecoder,
                     TDecBinMultiCABAC*      pcBinMultiCABAC,
                     TDecBinPIPE*            pcBinPIPE,
                     TDecBinMultiPIPE*       pcBinMultiPIPE,
-                    TDecV2V*                pcBinV2VwLB,
                     TDecCavlc*              pcCavlcDecoder, 
                     TDecSlice*              pcSliceDecoder, 
                     TComLoopFilter*         pcLoopFilter, 
@@ -87,7 +85,6 @@ Void TDecGop::init( TDecEntropy*            pcEntropyDecoder,
   m_pcBinMultiCABAC       = pcBinMultiCABAC;
   m_pcBinPIPE             = pcBinPIPE;
   m_pcBinMultiPIPE        = pcBinMultiPIPE;
-  m_pcBinV2VwLB           = pcBinV2VwLB;
   m_pcCavlcDecoder        = pcCavlcDecoder;
   m_pcSliceDecoder        = pcSliceDecoder;
   m_pcLoopFilter          = pcLoopFilter;
@@ -108,12 +105,7 @@ Void TDecGop::decompressGop (Bool bEos, TComBitstream* pcBitstream, TComPic*& rp
   UInt iSymbolMode = pcSlice->getSymbolMode();
   if (iSymbolMode)
   {
-    if( iSymbolMode == 3 )
-    {
-      m_pcSbacDecoder->init( m_pcBinV2VwLB );
-      m_pcBinV2VwLB->setBalancedCPUs( getBalancedCPUs() );
-    }
-    else if( iSymbolMode == 1 )
+    if( iSymbolMode == 1 )
     {
       m_pcSbacDecoder->init( pcSlice->getMultiCodeword() ? (TDecBinIf*)m_pcBinMultiCABAC : (TDecBinIf*)m_pcBinCABAC );
     }

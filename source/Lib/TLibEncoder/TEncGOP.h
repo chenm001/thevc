@@ -70,7 +70,6 @@ private:
   Int                     m_iRateGopSize;
   Int                     m_iNumPicCoded;
   Bool                    m_bFirst;
-  UInt                    m_uiBalancedCPUs;
 
   //  Access channel
   TEncTop*                m_pcEncTop;
@@ -88,9 +87,7 @@ private:
   TEncBinMultiCABAC*      m_pcBinMultiCABAC;
   TEncBinPIPE*            m_pcBinPIPE;
   TEncBinMultiPIPE*       m_pcBinMultiPIPE;
-  TEncV2V*                m_pcBinV2VwLB;
   TComLoopFilter*         m_pcLoopFilter;
-  TEncBinCABAC4V2V*       m_pcBinCABAC4V2V;
 
   // Adaptive Loop filter
   TEncAdaptiveLoopFilter* m_pcAdaptiveLoopFilter;
@@ -108,9 +105,6 @@ public:
   Void  create      ();
   Void  destroy     ();
 
-  Void setBalancedCPUs( UInt u ) { m_uiBalancedCPUs = u; }
-  UInt getBalancedCPUs()         { return m_uiBalancedCPUs; }
-
   Void  init        ( TEncTop* pcTEncTop );
   Void  compressGOP ( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rcListPic, TComList<TComPicYuv*>& rcListPicYuvRec, TComList<TComBitstream*> rcListBitstream );
 
@@ -125,8 +119,6 @@ public:
   Void  preLoopFilterPicAll  ( TComPic* pcPic, UInt64& ruiDist, UInt64& ruiBits );
 
   TEncSlice*  getSliceEncoder()   { return m_pcSliceEncoder; }
-
-  Void setCABAC4V2V (TEncBinCABAC4V2V* p) { m_pcBinCABAC4V2V = p; }
 
 protected:
   Void  xInitGOP          ( Int iPOC, Int iNumPicRcvd, TComList<TComPic*>& rcListPic, TComList<TComPicYuv*>& rcListPicYuvRecOut );

@@ -514,7 +514,7 @@ Void TEncCavlc::codeSPS( TComSPS* pcSPS )
   m_uiBitHLS += xWriteUvlc( pcSPS->getBitDepth() - 8 );
   m_uiBitHLS += xWriteUvlc( pcSPS->getBitIncrement() );
 
-  m_uiBitHLS += xWriteCode( pcSPS->getBalancedCPUs(), 8);
+  m_uiBitHLS += xWriteCode( 0, 8); // TODO: remove? was balanced CPUs
 
 }
 
@@ -532,9 +532,9 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
   m_uiBitHLS += xWriteUvlc  (pcSlice->getSliceType() );
   m_uiBitHLS += xWriteSvlc  (pcSlice->getSliceQp() );
   
-  xWriteFlag  (pcSlice->getSymbolMode() > 0 && pcSlice->getSymbolMode() < 3 ? 1 : 0);
+  xWriteFlag  (pcSlice->getSymbolMode() > 0 ? 1 : 0);
   m_uiBitHLS += 1;
-  if( pcSlice->getSymbolMode() > 0 && pcSlice->getSymbolMode() < 3 )
+  if( pcSlice->getSymbolMode() > 0 )
   {
     xWriteFlag( pcSlice->getSymbolMode() > 1 ? 1 : 0 );
     m_uiBitHLS += 1;
@@ -550,7 +550,7 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
   }
   else
   {
-    xWriteFlag( pcSlice->getSymbolMode() > 0 ? 1 : 0 );
+    xWriteFlag( 0 ); // TODO: remove? v2v related
     m_uiBitHLS += 1;
   }
 
@@ -788,7 +788,7 @@ Void TEncCavlc::codeSPS( TComSPS* pcSPS )
   xWriteUvlc( pcSPS->getBitDepth() - 8 );
   xWriteUvlc( pcSPS->getBitIncrement() );
 
-  xWriteCode( pcSPS->getBalancedCPUs(), 8);
+  xWriteCode( 0, 8); // TODO: remove? was balanced CPUs
 
 }
 
@@ -804,8 +804,8 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
   xWriteUvlc  (pcSlice->getSliceType() );
   xWriteSvlc  (pcSlice->getSliceQp() );
   
-  xWriteFlag  (pcSlice->getSymbolMode() > 0 && pcSlice->getSymbolMode() < 3 ? 1 : 0);
-  if( pcSlice->getSymbolMode() > 0 && pcSlice->getSymbolMode() < 3 )
+  xWriteFlag  (pcSlice->getSymbolMode() > 0 ? 1 : 0);
+  if( pcSlice->getSymbolMode() > 0 )
   {
     xWriteFlag( pcSlice->getSymbolMode() > 1 ? 1 : 0 );
     if( pcSlice->getSymbolMode() )
@@ -819,7 +819,7 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
   }
   else
   {
-    xWriteFlag( pcSlice->getSymbolMode() > 0 ? 1 : 0 );
+    xWriteFlag( 0 ); // TODO: remove? v2v related
   }
 
   if (!pcSlice->isIntra())

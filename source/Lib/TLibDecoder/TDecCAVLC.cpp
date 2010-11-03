@@ -197,7 +197,7 @@ Void TDecCavlc::parseSPS(TComSPS* pcSPS)
   xReadUvlc( uiCode ); pcSPS->setBitDepth     ( uiCode+8 ); g_uiBitDepth     = uiCode + 8;
   xReadUvlc( uiCode ); pcSPS->setBitIncrement ( uiCode   ); g_uiBitIncrement = uiCode;
 
-  xReadCode( 8, uiCode ); pcSPS->setBalancedCPUs( uiCode );
+  xReadCode( 8, uiCode ); // TODO: remove? was balanced CPUs
 
   g_uiBASE_MAX  = ((1<<(g_uiBitDepth))-1);
 
@@ -249,8 +249,9 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice)
   }
   else
   {
-    xReadFlag ( uiCode );
-    rpcSlice->setSymbolMode( uiCode ? 3 : 0 );
+    xReadFlag ( uiCode ); // TODO: remove? V2V-related
+    assert(uiCode == 0); 
+    rpcSlice->setSymbolMode( 0 );
   }
 
   if (!rpcSlice->isIntra())

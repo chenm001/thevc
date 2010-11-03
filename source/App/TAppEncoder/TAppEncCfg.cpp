@@ -218,7 +218,6 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
     ("SBACRD", m_bUseSBACRD, true, "SBAC based RD estimation")
     ("MultiCodewordThreshold", m_uiMCWThreshold, 0u)
     ("MaxPIPEBufferDelay", m_uiMaxPIPEDelay, 0u)
-    ("BalancedCPUs", m_uiBalancedCPUs, 8u)
 
     /* Deblocking filter parameters */
     ("LoopFilterDisable", m_bLoopFilterDisable, false)
@@ -425,10 +424,9 @@ Void TAppEncCfg::xCheckParameter()
 #endif
   xConfirmPara( m_iInterpFilterType >= IPF_LAST,                "Invalid InterpFilterType" );
 
-  xConfirmPara( m_iSymbolMode < 0 || m_iSymbolMode > 3,                                     "SymbolMode must be equal to 0, 1, 2, or 3" );
+  xConfirmPara( m_iSymbolMode < 0 || m_iSymbolMode > 2,                                     "SymbolMode must be equal to 0, 1, or 2" );
   xConfirmPara( m_uiMaxPIPEDelay != 0 && m_uiMaxPIPEDelay < 64,                             "MaxPIPEBufferDelay must be greater than or equal to 64" );
   m_uiMaxPIPEDelay = ( m_uiMCWThreshold > 0 ? 0 : ( m_uiMaxPIPEDelay >> 6 ) << 6 );
-  xConfirmPara( m_uiBalancedCPUs > 255,                                                     "BalancedCPUs must not be greater than 255" );
 
 #if HHI_RQT
 #if LCEC_CBP_YUV_ROOT
@@ -654,7 +652,7 @@ Void TAppEncCfg::xPrintParameter()
   }
   else
   {
-    printf("Entropy coder                : V2V with load balancing on %d bin decoders\n", m_uiBalancedCPUs);
+    assert(0);
   }
 
   printf("\n");
