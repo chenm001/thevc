@@ -253,7 +253,6 @@ public:
 #endif
 
   Void codeTransformIdx  ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
-  Void codeIntraDirLumaAdi( TComDataCU* pcCU, UInt uiAbsPartIdx );
   Void codeIntraDirLumaAng( TComDataCU* pcCU, UInt uiAbsPartIdx );
 
 #if HHI_AIS

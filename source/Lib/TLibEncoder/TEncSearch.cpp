@@ -1815,7 +1815,6 @@ TEncSearch::xIntraCodingChromaBlk( TComDataCU* pcCU,
   //===== update chroma mode =====
   if( uiChromaPredMode == 4 )
   {
-    UInt    uiIntraIdx        = pcCU->getIntraSizeIdx( 0 );
     uiChromaPredMode          = pcCU->getLumaIntraDir( 0 );
   }
   
@@ -2792,7 +2791,6 @@ TEncSearch::estIntraPredChromaQT( TComDataCU* pcCU,
   Double  dBestCost   = MAX_DOUBLE;
   
   //----- init mode list -----
-  Int   iIntraIdx = pcCU->getIntraSizeIdx(0);
   UInt  uiModeList[5];
   for( Int i = 0; i < 4; i++ )
   {
@@ -3610,8 +3608,6 @@ Void TEncSearch::predIntraChromaAdiSearch( TComDataCU* pcCU, TComYuv* pcOrgYuv, 
   }
   
   pcPattern->initPattern( pcCU, 0, 0 );
-  
-  Int  iIntraIdx      = pcCU->getIntraSizeIdx(0);
   
   UInt    uiModeList[5];
   for (Int i=0;i<4;i++)

@@ -150,7 +150,6 @@ public:
 
   Void parseIntraDirLuma    ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
 
-  Void parseIntraDirLumaAdi ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
   Void parseIntraDirLumaAng ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
 
 #if HHI_AIS

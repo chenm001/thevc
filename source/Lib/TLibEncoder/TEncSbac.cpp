@@ -1060,39 +1060,6 @@ Void TEncSbac::codeIntraDirLumaAng( TComDataCU* pcCU, UInt uiAbsPartIdx )
   return;
 }
 
-Void TEncSbac::codeIntraDirLumaAdi( TComDataCU* pcCU, UInt uiAbsPartIdx )
-{
-  Int iIntraDirLuma = pcCU->convertIntraDirLumaAdi( pcCU, uiAbsPartIdx );
-  Int iIntraIdx= pcCU->getIntraSizeIdx(uiAbsPartIdx);
-
-  m_pcBinIf->encodeBin( iIntraDirLuma >= 0 ? 0 : 1, m_cCUIntraPredSCModel.get( 0, 0, 0 ) );
-
-  if (iIntraDirLuma >= 0)
-  {
-    m_pcBinIf->encodeBin((iIntraDirLuma & 0x01), m_cCUIntraPredSCModel.get(0, 0, 1));
-
-    m_pcBinIf->encodeBin((iIntraDirLuma & 0x02) >> 1, m_cCUIntraPredSCModel.get(0, 0, 1));
-
-    if (g_aucIntraModeBits[iIntraIdx] >= 4)
-    {
-      m_pcBinIf->encodeBin((iIntraDirLuma & 0x04) >> 2, m_cCUIntraPredSCModel.get(0, 0, 1));
-
-      if (g_aucIntraModeBits[iIntraIdx] >= 5)
-      {
-        m_pcBinIf->encodeBin((iIntraDirLuma & 0x08) >> 3,
-          m_cCUIntraPredSCModel.get(0, 0, 1));
-
-        if (g_aucIntraModeBits[iIntraIdx] >= 6)
-        {
-          m_pcBinIf->encodeBin((iIntraDirLuma & 0x10) >> 4,
-            m_cCUIntraPredSCModel.get(0, 0, 1));
-        }
-      }
-    }
-  }
-  return;
-}
-
 #if HHI_AIS
 Void TEncSbac::codeIntraFiltFlagLumaAdi( TComDataCU* pcCU, UInt uiAbsPartIdx )
 {

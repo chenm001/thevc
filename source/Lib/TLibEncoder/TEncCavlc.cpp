@@ -1714,53 +1714,6 @@ Void TEncCavlc::codeIntraDirLumaAng( TComDataCU* pcCU, UInt uiAbsPartIdx )
   }
 }
 
-Void TEncCavlc::codeIntraDirLumaAdi( TComDataCU* pcCU, UInt uiAbsPartIdx )
-{
-  Int iIntraDirLuma = pcCU->convertIntraDirLumaAdi( pcCU, uiAbsPartIdx );
-  Int iIntraIdx= pcCU->getIntraSizeIdx(uiAbsPartIdx);
-
-  xWriteFlag( iIntraDirLuma >= 0 ? 0 : 1 );
-#if LCEC_STAT
-  if (m_bAdaptFlag)
-    m_uiBitIntraDir += 1;
-#endif
-  if (iIntraDirLuma >= 0)
-  {
-    xWriteFlag((iIntraDirLuma & 0x01));
-
-    xWriteFlag((iIntraDirLuma & 0x02) >> 1);
-#if LCEC_STAT
-    if (m_bAdaptFlag)
-      m_uiBitIntraDir += 2;
-#endif
-    if (g_aucIntraModeBits[iIntraIdx] >= 4)
-    {
-      xWriteFlag((iIntraDirLuma & 0x04) >> 2);
-#if LCEC_STAT
-      if (m_bAdaptFlag)
-        m_uiBitIntraDir += 1;
-#endif
-      if (g_aucIntraModeBits[iIntraIdx] >= 5)
-      {
-        xWriteFlag((iIntraDirLuma & 0x08) >> 3);
-#if LCEC_STAT
-        if (m_bAdaptFlag)
-          m_uiBitIntraDir += 1;
-#endif
-        if (g_aucIntraModeBits[iIntraIdx] >= 6)
-        {
-          xWriteFlag((iIntraDirLuma & 0x10) >> 4);
-#if LCEC_STAT
-          if (m_bAdaptFlag)
-            m_uiBitIntraDir += 1;
-#endif
-        }
-      }
-    }
-  }
-  return;
-}
-
 Void TEncCavlc::codeIntraDirChroma( TComDataCU* pcCU, UInt uiAbsPartIdx )
 {
   UInt uiIntraDirChroma = pcCU->getChromaIntraDir   ( uiAbsPartIdx );

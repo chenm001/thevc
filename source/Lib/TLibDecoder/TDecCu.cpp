@@ -494,7 +494,6 @@ Void TDecCu::xRecurIntraInvTransChroma(TComDataCU* pcCU, UInt uiAbsPartIdx, Pel*
     pcCU->getPattern()->initAdiPatternChroma(pcCU,uiAbsPartIdx, m_pcPrediction->getPredicBuf(),m_pcPrediction->getPredicBufWidth(),m_pcPrediction->getPredicBufHeight(),bAboveAvail,bLeftAvail);
 #endif
 
-    Int  iIntraIdx      = pcCU->getIntraSizeIdx(0);
     UInt uiModeL        = pcCU->getLumaIntraDir(0);
     UInt uiMode         = pcCU->getChromaIntraDir(0);
 
@@ -691,7 +690,6 @@ TDecCu::xIntraRecChromaBlk( TComDataCU* pcCU,
 
   if( uiChromaPredMode == 4 )
   {
-    UInt    uiIntraIdx        = pcCU->getIntraSizeIdx( 0 );
     uiChromaPredMode          = pcCU->getLumaIntraDir( 0 );
   }
   

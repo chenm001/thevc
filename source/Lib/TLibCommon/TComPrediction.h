@@ -74,15 +74,6 @@ protected:
   TComYuv   m_acYuvTempIC[2];
 #endif
 
-  // ADI functions
-  Void xPredIntraAngleAdi       ( Int* pSrc, Int iSrcStride, Pel*& tpDst, Int iDstStride, UInt iWidth, UInt iHeight, UInt uiDirMode );
-  Void xPredIntraVertAdi        ( Int* pSrc, Int iSrcStride, Pel*& tpDst, Int iDstStride, UInt iWidth, UInt iHeight );
-  Void xPredIntraHorAdi         ( Int* pSrc, Int iSrcStride, Pel*& tpDst, Int iDstStride, UInt iWidth, UInt iHeight );
-  Void xPredIntraDCAdi          ( Int* pSrc, Int iSrcStride, Pel*& tpDst, Int iDstStride, UInt iWidth, UInt iHeight, Bool bAboveAvail, Bool bLeftAvail );
-  Void xPredIntraPlaneAdi       ( Int* pSrc, Int iSrcStride, Pel*& tpDst, Int iDstStride, UInt iWidth, UInt iHeight );
-  Void xPredIntraBiAdi          ( Int* pSrc, Int iSrcStride, Pel*& rpDst, Int iDstStride, UInt iWidth, UInt iHeight );
-  __inline Int xGetContextPixel ( UInt uiDirMode, UInt uiXYflag, Int iTempD, Bool& bCenter );
-
 #if PLANAR_INTRA
   Void xPredIntraPlanar         ( Int* pSrc, Int iSrcStride, Pel*& rpDst, Int iDstStride, UInt iWidth, UInt iHeight, Int iSampleBottomRight, Bool bAbove, Bool bLeft );
 #endif
@@ -143,14 +134,6 @@ public:
 #ifdef DCM_PBIC
   Void getIcPredAICP              ( TComDataCU* pcCU, UInt uiPartIdx, UInt uiPartAddr, TComIc& rcIcPred );
 #endif
-
-  // ADI
-#if HHI_AIS
-  Void predIntraLumaAdi           ( TComPattern* pcTComPattern,             UInt uiDirMode, Bool bSmoothing, Pel* piPred, UInt uiStride, Int iWidth, Int iHeight,  TComDataCU* pcCU, Bool bAbove, Bool bLeft );
-#else
-  Void predIntraLumaAdi           ( TComPattern* pcTComPattern,             UInt uiDirMode, Pel* piPred, UInt uiStride, Int iWidth, Int iHeight,  TComDataCU* pcCU, Bool bAbove, Bool bLeft );
-#endif
-  Void predIntraChromaAdi         ( TComPattern* pcTComPattern, Int* piSrc, UInt uiDirMode,                  Pel* piPred, UInt uiStride, Int iWidth, Int iHeight,  TComDataCU* pcCU, Bool bAbove, Bool bLeft );
 
   // CIP
   Void recIntraLumaCIP            ( TComPattern* pcTComPattern, Pel* pPred, Pel* pResi, Pel* pReco, UInt uiStride, Int iWidth, Int iHeight, TComDataCU* pcCU, Bool bAboveAvail, Bool bLeftAvail );

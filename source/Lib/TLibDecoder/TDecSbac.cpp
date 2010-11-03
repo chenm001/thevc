@@ -1215,46 +1215,6 @@ Void TDecSbac::parseIntraDirLumaAng  ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt
   pcCU->setLumaIntraDirSubParts( (UChar)uiIPredMode, uiAbsPartIdx, uiDepth );
 }
 
-Void TDecSbac::parseIntraDirLumaAdi  ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
-{
-  UInt uiSymbol;
-  Int  uiIPredMode;
-  Int iIntraIdx= pcCU->getIntraSizeIdx(uiAbsPartIdx);
-
-  m_pcTDecBinIf->decodeBin( uiSymbol, m_cCUIntraPredSCModel.get( 0, 0, 0) );
-
-  if ( !uiSymbol )
-  {
-    m_pcTDecBinIf->decodeBin( uiSymbol, m_cCUIntraPredSCModel.get( 0, 0, 1 ) );
-    uiIPredMode  = uiSymbol;
-    m_pcTDecBinIf->decodeBin( uiSymbol, m_cCUIntraPredSCModel.get( 0, 0, 1 ) );
-    uiIPredMode |= uiSymbol << 1;
-    if (g_aucIntraModeBits[iIntraIdx]>=4)
-    {
-      m_pcTDecBinIf->decodeBin( uiSymbol, m_cCUIntraPredSCModel.get( 0, 0, 1 ) );
-      uiIPredMode |= uiSymbol << 2;
-      if (g_aucIntraModeBits[iIntraIdx]>=5)
-      {
-        m_pcTDecBinIf->decodeBin( uiSymbol, m_cCUIntraPredSCModel.get( 0, 0, 1 ) );
-        uiIPredMode |= uiSymbol << 3;
-        if (g_aucIntraModeBits[iIntraIdx]>=6)
-        {
-           m_pcTDecBinIf->decodeBin( uiSymbol, m_cCUIntraPredSCModel.get( 0, 0, 1 ) );
-           uiIPredMode |= uiSymbol << 4;
-        }
-      }
-    }
-    uiIPredMode = pcCU->revertIntraDirLumaAdi( pcCU,uiAbsPartIdx, (Int)( uiIPredMode  ) );
-  }
-  else
-  {
-    uiIPredMode  = pcCU->revertIntraDirLumaAdi( pcCU,uiAbsPartIdx, -1 );
-  }
-  pcCU->setLumaIntraDirSubParts( (UChar)uiIPredMode, uiAbsPartIdx, uiDepth );
-
-  return;
-}
-
 #if HHI_AIS
 Void TDecSbac::parseIntraFiltFlagLumaAdi  ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
 {

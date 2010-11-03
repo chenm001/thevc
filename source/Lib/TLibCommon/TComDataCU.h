@@ -532,10 +532,6 @@ public:
   Int           convertIntraDirLuma             ( UInt uiAbsPartIdx                                       );
   UInt          revertIntraDirLuma              ( UInt uiAbsPartIdx, Int  iIntraDirLuma                   );
 
-  Int           getMostProbableIntraDirLumaAdi  ( UInt uiAbsPartIdx                                       );
-  Int           convertIntraDirLumaAdi          ( TComDataCU* pcCU, UInt uiAbsPartIdx                     );
-  UInt          revertIntraDirLumaAdi           ( TComDataCU* pcCU, UInt uiAbsPartIdx, Int iIntraDirLuma  );
-
   PartSize      getMostProbablePartSize         ( UInt uiAbsPartIdx                                       );
 
   Int           getMostProbablePredMode         ( UInt uiAbsPartIdx                                       );

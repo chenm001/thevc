@@ -906,47 +906,6 @@ Void TDecCavlc::parseIntraDirLumaAng  ( TComDataCU* pcCU, UInt uiAbsPartIdx, UIn
   pcCU->setLumaIntraDirSubParts( (UChar)uiIPredMode, uiAbsPartIdx, uiDepth );
 }
 
-Void TDecCavlc::parseIntraDirLumaAdi  ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
-{
-  UInt uiSymbol;
-  Int  uiIPredMode;
-  Int iIntraIdx= pcCU->getIntraSizeIdx(uiAbsPartIdx);
-
-  xReadFlag( uiSymbol );
-
-  if ( !uiSymbol )
-  {
-    xReadFlag( uiSymbol );
-    uiIPredMode  = uiSymbol;
-    xReadFlag( uiSymbol );
-    uiIPredMode |= uiSymbol << 1;
-    if (g_aucIntraModeBits[iIntraIdx]>=4)
-    {
-      xReadFlag( uiSymbol );
-      uiIPredMode |= uiSymbol << 2;
-      if (g_aucIntraModeBits[iIntraIdx]>=5)
-      {
-        xReadFlag( uiSymbol );
-        uiIPredMode |= uiSymbol << 3;
-        if (g_aucIntraModeBits[iIntraIdx]>=6)
-        {
-          xReadFlag( uiSymbol );
-          uiIPredMode |= uiSymbol << 4;
-        }
-      }
-    }
-    uiIPredMode = pcCU->revertIntraDirLumaAdi( pcCU,uiAbsPartIdx, (Int)( uiIPredMode  ) );
-  }
-  else
-  {
-    uiIPredMode  = pcCU->revertIntraDirLumaAdi( pcCU,uiAbsPartIdx, -1 );
-  }
-  pcCU->setLumaIntraDirSubParts( (UChar)uiIPredMode, uiAbsPartIdx, uiDepth );
-
-  return;
-}
-
-
 Void TDecCavlc::parseIntraDirChroma( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
 {
   UInt uiSymbol;

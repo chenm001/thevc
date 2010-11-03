@@ -1408,27 +1408,6 @@ Int TComDataCU::convertIntraDirLuma( UInt uiAbsPartIdx )
   return ( iIntraDirLuma < iMostProbable ) ? iIntraDirLuma : iIntraDirLuma - 1;
 }
 
-Int TComDataCU::convertIntraDirLumaAdi(TComDataCU* pcCU, UInt uiAbsPartIdx )
-{
-  Int  iMostProbableN;
-  Int  iMostProbable  = getMostProbableIntraDirLumaAdi( uiAbsPartIdx );
-  Int  iIntraDirLuma  = getLumaIntraDir( uiAbsPartIdx );
-  Int  iIntraIdx      = pcCU->getIntraSizeIdx(uiAbsPartIdx);
-
-  if( iMostProbable >= 0 ) iMostProbableN = g_aucIntraModeConvInv[iIntraIdx][iMostProbable];
-  else iMostProbableN = iMostProbable;
-
-  if( iMostProbableN >= g_aucIntraModeNum[iIntraIdx]-1 )
-    iMostProbableN = 2;
-
-  if ( iMostProbableN == iIntraDirLuma )
-  {
-    return -1;
-  }
-
-  return ( iIntraDirLuma < iMostProbableN ) ? iIntraDirLuma : iIntraDirLuma - 1;
-}
-
 Int TComDataCU::getMostProbablePredMode ( UInt   uiAbsPartIdx )
 {
   TComDataCU* pcTempCU;
@@ -1497,28 +1476,6 @@ UInt TComDataCU::revertIntraDirLuma( UInt uiAbsPartIdx, Int iIntraDirLuma )
   return ( iIntraDirLuma < iMostProbable ) ? iIntraDirLuma : iIntraDirLuma + 1;
 }
 
-UInt TComDataCU::revertIntraDirLumaAdi(TComDataCU* pcCU, UInt uiAbsPartIdx, Int iIntraDirLuma )
-{
-  Int  iMostProbableN;
-  Int  iMostProbable  = getMostProbableIntraDirLumaAdi( uiAbsPartIdx );
-  Int  iIntraIdx      = pcCU->getIntraSizeIdx(uiAbsPartIdx);
-
-  if (iMostProbable>=0)
-    iMostProbableN = g_aucIntraModeConvInv[iIntraIdx][iMostProbable];
-  else
-    iMostProbableN = iMostProbable;
-
-  if( iMostProbableN >= g_aucIntraModeNum[iIntraIdx]-1 )
-    iMostProbableN = 2;
-
-  if ( -1 == iIntraDirLuma )
-  {
-    return iMostProbableN;
-  }
-
-  return ( iIntraDirLuma < iMostProbableN ) ? iIntraDirLuma : iIntraDirLuma + 1;
-}
-
 Int TComDataCU::getMostProbableIntraDirLuma( UInt uiAbsPartIdx )
 {
   TComDataCU* pcTempCU;
@@ -1544,37 +1501,6 @@ Int TComDataCU::getMostProbableIntraDirLuma( UInt uiAbsPartIdx )
     else
       iMostProbable = g_aucAngModeMapping[1][g_aucAngIntraModeOrder[iMostProbable]]; 
   } 
-
-  return ( NOT_VALID == iMostProbable ) ? 2 : iMostProbable;
-}
-
-Int TComDataCU::getMostProbableIntraDirLumaAdi( UInt uiAbsPartIdx )
-{
-  TComDataCU* pcTempCU;
-  UInt        uiTempPartIdx;
-  Int         iLeftIntraDir, iAboveIntraDir, iMostProbable;
-  Int         iIntraIdx;
-
-  // Get intra direction of left PU
-  pcTempCU = getPULeft( uiTempPartIdx, m_uiAbsIdxInLCU + uiAbsPartIdx );
-  iLeftIntraDir  = pcTempCU ? ( pcTempCU->isIntra( uiTempPartIdx ) ? pcTempCU->getLumaIntraDir( uiTempPartIdx ) : 2 ) : NOT_VALID;
-
-  if (iLeftIntraDir>=0)
-  {
-    iIntraIdx= pcTempCU->getIntraSizeIdx(uiTempPartIdx);
-    iLeftIntraDir=g_aucIntraModeConv[iIntraIdx][iLeftIntraDir];
-  }
-
-  // Get intra direction of above PU
-  pcTempCU = getPUAbove( uiTempPartIdx, m_uiAbsIdxInLCU + uiAbsPartIdx );
-  iAboveIntraDir = pcTempCU ? ( pcTempCU->isIntra( uiTempPartIdx ) ? pcTempCU->getLumaIntraDir( uiTempPartIdx ) : 2 ) : NOT_VALID;
-  if( iAboveIntraDir >= 0 )
-  {
-    iIntraIdx= pcTempCU->getIntraSizeIdx(uiTempPartIdx);
-    iAboveIntraDir = g_aucIntraModeConv[iIntraIdx][iAboveIntraDir];
-  }
-
-  iMostProbable  = Min( iLeftIntraDir, iAboveIntraDir );
 
   return ( NOT_VALID == iMostProbable ) ? 2 : iMostProbable;
 }
