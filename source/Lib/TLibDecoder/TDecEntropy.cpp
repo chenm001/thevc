@@ -874,7 +874,6 @@ Void TDecEntropy::decodeIntraDirModeLuma  ( TComDataCU* pcCU, UInt uiAbsPartIdx,
 Void TDecEntropy::decodeIntraFiltFlagLuma  ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
 {
   // DC (mode 2) always uses DEFAULT_IS so no parsing needed
-  // (no g_aucIntraModeOrder[][] mapping needed because mode 2 always mapped to 2)
   if( (pcCU->getSlice()->getSPS()->getUseAIS()) && (pcCU->getLumaIntraDir( uiAbsPartIdx ) != 2) )
       m_pcEntropyDecoderIf->parseIntraFiltFlagLumaAdi( pcCU, uiAbsPartIdx, uiDepth );
   else

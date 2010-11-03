@@ -1981,36 +1981,6 @@ UInt TComDataCU::getCtxIntraFiltFlagLumaAng( UInt uiAbsPartIdx )
 
   return uiCtx;
 }
-
-UInt TComDataCU::getCtxIntraFiltFlagLuma( UInt uiAbsPartIdx )
-{
-  UInt uiIntraDir    = (UInt)getLumaIntraDir( uiAbsPartIdx );
-  Int  iIntraSizeIdx =       getIntraSizeIdx( uiAbsPartIdx );
-  UInt uiCtx         = 0;
-  // mode mapping
-  uiIntraDir = g_aucIntraModeOrder[ iIntraSizeIdx ][ uiIntraDir ];
-  if( uiIntraDir < 2 )        // vert., hor.
-  {
-    uiCtx = uiIntraDir;
-  }
-  else if( uiIntraDir == 2 )  // DC
-  {
-    assert(0);
-  }              
-  else if( uiIntraDir == 3 )  // planar
-  {
-    uiCtx = 2;
-  }
-  else if( uiIntraDir < 32 )  // angular
-  {
-    uiCtx = 3;
-  }
-  else                        // bi-linear
-  {
-    uiCtx = 4;
-  }
-  return uiCtx;
-}
 #endif
 
 Void TComDataCU::setCbfSubParts( UInt uiCbfY, UInt uiCbfU, UInt uiCbfV, UInt uiAbsPartIdx, UInt uiDepth )

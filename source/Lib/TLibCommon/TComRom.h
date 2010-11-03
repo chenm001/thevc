@@ -191,21 +191,7 @@ extern const UInt g_auiMI2TableDNoL1[15];
 // ADI table
 // ====================================================================================================================
 
-extern const UChar  g_aucIntraFilter[7][40];
-extern const UChar  g_aucIntraModeOrder[7][40];
-extern const UChar  g_aucIntraModeConv[7][40];
-extern const UChar  g_aucIntraModeConvInv[7][9];
-extern const UChar  g_aucIntraModeNum[7];
-extern const UChar  g_aucIntraModeBits[7];
 extern const UChar  g_aucIntraModeNumFast[7];
-extern const UChar  g_aucIntraAvail[40][2];
-extern const UChar  g_aucXYflg[40];
-extern const Char   g_aucDirDx[32];
-extern const Char   g_aucDirDy[32];
-extern const UChar  g_aucIntraModeConvC[7][40];
-extern const UChar  g_aucIntraModeConvInvC[7][9];
-extern const UChar  g_aucIntraModeNumC[7];
-extern const UChar  g_aucIntraModeBitsC[7];
 
 // ====================================================================================================================
 // Angular Intra table

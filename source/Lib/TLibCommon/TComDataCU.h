@@ -567,7 +567,6 @@ public:
   UInt          getCtxCIPFlag                   ( UInt   uiAbsPartIdx                                 );
 #if HHI_AIS
   UInt          getCtxIntraFiltFlagLumaAng      ( UInt   uiAbsPartIdx                                 );
-  UInt          getCtxIntraFiltFlagLuma         ( UInt   uiAbsPartIdx                                 );
 #endif
 
   // -------------------------------------------------------------------------------------------------------------------

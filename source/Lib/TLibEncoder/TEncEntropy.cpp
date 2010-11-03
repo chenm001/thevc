@@ -1132,7 +1132,6 @@ Void TEncEntropy::encodePlanarInfo( TComDataCU* pcCU, UInt uiAbsPartIdx, Bool bR
 Void TEncEntropy::encodeIntraFiltFlagLuma ( TComDataCU* pcCU, UInt uiAbsPartIdx )
 {
   // DC (mode 2) always uses DEFAULT_IS so no signaling needed
-  // (no g_aucIntraModeOrder[][] mapping needed because mode 2 always mapped to 2)
   if( (pcCU->getSlice()->getSPS()->getUseAIS()) && (pcCU->getLumaIntraDir( uiAbsPartIdx ) != 2) )
     m_pcEntropyCoderIf->codeIntraFiltFlagLumaAdi( pcCU, uiAbsPartIdx );
 }
