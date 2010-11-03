@@ -172,19 +172,6 @@
 #endif
 
 #define DISABLE_ROT_LUMA_4x4_8x8           0
-#define QC_MDDT                            0
-#if QC_MDDT
-#define ROT_CHECK                          0
-#define absm(A) ((A)<(0) ? (-(A)):(A))
-#define REG_DCT 65535
-#define COMBINED_MAP
-void InitScanOrderForSlice();
-#define NUM_SCANS_16x16 9
-#define NUM_SCANS_32x32 9
-#define NUM_SCANS_64x64 9
-void updateScanOrder(int first);
-void normalizeScanStats();
-#endif
 
 /* Rounding control */
 #define ROUNDING_CONTROL_BIPRED ///< From JCTVC-B074
@@ -233,10 +220,6 @@ void normalizeScanStats();
 #endif
 
 #define SAMSUNG_CHROMA_IF_EXT                 0           ///< DCT-based Interpolation filter for chroma signal
-
-#if QC_MDDT
-#define QC_MDDT_ROT_UNIFIED                   0           ///< better unification of MDDT and ROT
-#endif
 
 #if HHI_TRANSFORM_CODING
 #define HHI_DISABLE_SCAN                      0           ///< disable adaptive scan

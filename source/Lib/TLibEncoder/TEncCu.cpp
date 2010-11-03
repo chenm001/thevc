@@ -525,9 +525,6 @@ Void TEncCu::xCompressCU( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, UInt u
       }
 
       // try ROT
-#if (QC_MDDT || DISABLE_ROT_LUMA_4x4_8x8) && !QC_MDDT_ROT_UNIFIED
-      if ((rpcBestCU->getWidth(0) > 16) || ((rpcBestCU->getWidth(0) == 16) && (eSize == SIZE_2Nx2N)))
-#endif
       {
         // try ROT without CIP
         if ( rpcTempCU->getSlice()->getSPS()->getUseROT() )
@@ -718,10 +715,6 @@ Void TEncCu::xEncodeCU( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
   m_pcEntropyCoder->encodePredInfo( pcCU, uiAbsPartIdx );
 
   // Encode Coefficients
-#if QC_MDDT//ADAPTIVE_SCAN
-  g_bUpdateStats = true;
-  m_pcEntropyCoder->encodeCoeff( pcCU, uiAbsPartIdx, uiDepth, pcCU->getWidth (uiAbsPartIdx), pcCU->getHeight(uiAbsPartIdx) );
-#else
   m_pcEntropyCoder->encodeCoeff( pcCU, uiAbsPartIdx, uiDepth, pcCU->getWidth (uiAbsPartIdx), pcCU->getHeight(uiAbsPartIdx) );
   // ROT index
   if ( pcCU->getSlice()->getSPS()->getUseROT() )
@@ -731,7 +724,6 @@ Void TEncCu::xEncodeCU( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
 #endif
     m_pcEntropyCoder->encodeROTindex( pcCU, uiAbsPartIdx, uiDepth );
   }
-#endif
 
 
   // CIP index
@@ -957,10 +949,6 @@ Void TEncCu::xCheckRDCostIntra( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, 
   m_pcEntropyCoder->encodePredInfo( rpcTempCU, 0,          true );
 
   // Encode Coefficients
-#if QC_MDDT//ADAPTIVE_SCAN
-  g_bUpdateStats = false;
-  m_pcEntropyCoder->encodeCoeff( rpcTempCU, 0, uiDepth, rpcTempCU->getWidth (0), rpcTempCU->getHeight(0) );
-#else
   m_pcEntropyCoder->encodeCoeff( rpcTempCU, 0, uiDepth, rpcTempCU->getWidth (0), rpcTempCU->getHeight(0) );
 
   // ROT index
@@ -971,7 +959,6 @@ Void TEncCu::xCheckRDCostIntra( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, 
 #endif
     m_pcEntropyCoder->encodeROTindex( rpcTempCU, 0, uiDepth );
   }
-#endif
 
   // CIP index
 #if HHI_ALLOW_CIP_SWITCH

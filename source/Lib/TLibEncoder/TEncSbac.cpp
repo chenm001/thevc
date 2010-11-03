@@ -1534,11 +1534,7 @@ Void TEncSbac::xCheckCoeff( TCoeff* pcCoef, UInt uiSize, UInt uiDepth, UInt& uiN
 UInt xCheckCoeffPlainCNoRecur( const TCoeff* pcCoef, UInt uiSize, UInt uiDepth );
 #endif
 
-#if QC_MDDT
-Void TEncSbac::codeCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx, UInt uiWidth, UInt uiHeight, UInt uiDepth, TextType eTType, UInt uiMode, Bool bRD )
-#else
 Void TEncSbac::codeCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx, UInt uiWidth, UInt uiHeight, UInt uiDepth, TextType eTType, Bool bRD )
-#endif
 {
 #if HHI_RQT
   DTRACE_CABAC_V( g_nSymbolCounter++ )
@@ -1600,96 +1596,10 @@ Void TEncSbac::codeCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx
   UInt         uiNumSigTopRight  = 0;
   UInt         uiNumSigBotLeft   = 0;
 
-#if QC_MDDT//ADAPTIVE_SCAN
-  const UInt*  pucScan;
-  const UInt*  pucScanX;
-  const UInt*  pucScanY;
-  UInt *scanStats;
-  int indexROT ;
-  if(pcCU->isIntra( uiAbsPartIdx ) && eTType == TEXT_LUMA && (uiWidth == 4 || uiWidth == 8 /*|| uiWidth == 16 || uiWidth == 32 || uiWidth == 64*/))//!bRD &&  eTType == TEXT_LUMA)
-  {
-	indexROT = pcCU->getROTindex(uiAbsPartIdx);
-	//int scan_index;
-#if ROT_CHECK
-    if(uiWidth == 4 && indexROT == 0)
-#else
-    if(uiWidth == 4)
-#endif
-    {
-       UInt uiPredMode = g_aucIntra9Mode[uiMode];
-       pucScan = scanOrder4x4[uiPredMode]; pucScanX = scanOrder4x4X[uiPredMode]; pucScanY = scanOrder4x4Y[uiPredMode];
-
-	   if(g_bUpdateStats)
-       {
-         scanStats = scanStats4x4[uiPredMode]; update4x4Count[uiPredMode]++;
-       }
-    }
-#if ROT_CHECK
-    else if(uiWidth == 8 && indexROT == 0)
-#else
-    else if(uiWidth == 8)
-#endif
-    {
-      UInt uiPredMode = ((1 << (pcCU->getIntraSizeIdx( uiAbsPartIdx ) + 1)) != uiWidth) ?  g_aucIntra9Mode[uiMode]: g_aucAngIntra9Mode[uiMode];
-      pucScan = scanOrder8x8[uiPredMode]; pucScanX = scanOrder8x8X[uiPredMode]; pucScanY = scanOrder8x8Y[uiPredMode];
-
-	   if(g_bUpdateStats)
-      {
-        scanStats = scanStats8x8[uiPredMode]; update8x8Count[uiPredMode]++;
-      }
-    }
-	/*else if(uiWidth == 16)
-	{
-		scan_index = LUT16x16[indexROT][uiMode];
-		pucScan = scanOrder16x16[scan_index]; pucScanX = scanOrder16x16X[scan_index]; pucScanY = scanOrder16x16Y[scan_index];
-
-	   if(g_bUpdateStats)
-		{
-			scanStats = scanStats16x16[scan_index];
-		}
-    }
-    else if(uiWidth == 32)
-    {
-		scan_index = LUT32x32[indexROT][uiMode];
-		pucScan = scanOrder32x32[scan_index]; pucScanX = scanOrder32x32X[scan_index]; pucScanY = scanOrder32x32Y[scan_index];
-
-	   if(g_bUpdateStats)
-		{
-			scanStats = scanStats32x32[scan_index];
-		}
-    }
-    else if(uiWidth == 64)
-    {
-		scan_index = LUT64x64[indexROT][uiMode];
-		pucScan = scanOrder64x64[scan_index]; pucScanX = scanOrder64x64X[scan_index]; pucScanY = scanOrder64x64Y[scan_index];
-
-	   if(g_bUpdateStats)
-		{
-			scanStats = scanStats64x64[scan_index];
-		}
-    }*/
-    else
-    {
-      //printf("uiWidth = %d is not supported!\n", uiWidth);
-      //exit(1);
-    }
-  }
-#endif
 
   for( UInt uiScanPos = 0; uiScanPos < uiMaxNumCoeffM1; uiScanPos++ )
   {
     UInt  uiBlkPos  = g_auiSigLastScan[ uiLog2BlockSize ][ uiDownLeft ][ uiScanPos ];
-#if QC_MDDT
-    if(pcCU->isIntra( uiAbsPartIdx ) && eTType == TEXT_LUMA && (uiWidth == 4 || uiWidth == 8 /*|| uiWidth == 16 || uiWidth == 32 || uiWidth == 64*/))//!bRD &&  eTType == TEXT_LUMA)
-    {
-#if ROT_CHECK
-      if(/* uiMode<=8  && */ indexROT == 0) 
-        uiBlkPos = pucScan[uiScanPos];
-#else
-        uiBlkPos = pucScan[uiScanPos];
-#endif
-    }
-#endif
     UInt  uiPosY    = uiBlkPos >> uiLog2BlockSize;
     UInt  uiPosX    = uiBlkPos - ( uiPosY << uiLog2BlockSize );
 
@@ -1700,16 +1610,6 @@ Void TEncSbac::codeCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx
 
     if( uiSig )
     {
-#if QC_MDDT//ADAPTIVE_SCAN
-#if ROT_CHECK
-      if(g_bUpdateStats && pcCU->isIntra( uiAbsPartIdx ) && eTType == TEXT_LUMA && ((uiWidth == 4 && /* uiMode<=8 && */ indexROT == 0)|| (uiWidth == 8 && /* uiMode<=8 &&*/ indexROT == 0) /*|| uiWidth == 16 || uiWidth == 32 || uiWidth == 64*/))
-#else
-     if(g_bUpdateStats && pcCU->isIntra( uiAbsPartIdx ) && eTType == TEXT_LUMA && (uiWidth == 4 || uiWidth == 8))
-#endif
-      {
-        scanStats[uiScanPos]++;
-      }
-#endif
       uiNumSig--;
 
       if( uiPosX > uiPosY )
@@ -2175,7 +2075,6 @@ Void TEncSbac::codeCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx
 
   UInt uiSig, uiCtx, uiLast;
   uiLast = 0;
-#if QC_MDDT == 0//ADAPTIVE_SCAN == 0
   uiSig = piCoeff[0] ? 1 : 0;
 
   m_pcBinIf->encodeBin( uiSig, m_cCUMapSCModel.get( uiCTXIdx, eTType, pos2ctx_map[ 0 ] ) );
@@ -2185,7 +2084,6 @@ Void TEncSbac::codeCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx
     uiLast = (++uiCodedSig == uiNumSig ? 1 : 0);
     m_pcBinIf->encodeBin( uiLast, m_cCULastSCModel.get( uiCTXIdx, eTType, pos2ctx_last[ 0 ] ) );
   }
-#endif
   // initialize scan
   const UInt*  pucScan;
   const UInt*  pucScanX;
@@ -2217,88 +2115,9 @@ Void TEncSbac::codeCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx
   default: pucScan = g_auiFrameScanXY[ uiConvBit ]; pucScanX = g_auiFrameScanX[uiConvBit]; pucScanY = g_auiFrameScanY[uiConvBit]; break;
   }
 #endif
-#if QC_MDDT//ADAPTIVE_SCAN
-  UInt *scanStats;
-  int indexROT ;
-  if(pcCU->isIntra( uiAbsPartIdx ) && eTType == TEXT_LUMA)//!bRD &&  eTType == TEXT_LUMA)
-  {
-    UInt uiPredMode = g_aucIntra9Mode[uiMode];
-	indexROT = pcCU->getROTindex(uiAbsPartIdx);
-	int scan_index;
-#if ROT_CHECK
-    if(uiWidth == 4 && indexROT == 0)
-#else
-    if(uiWidth == 4)
-#endif
-    {
-       UInt uiPredMode = g_aucIntra9Mode[uiMode];
-
-       pucScan = scanOrder4x4[uiPredMode]; pucScanX = scanOrder4x4X[uiPredMode]; pucScanY = scanOrder4x4Y[uiPredMode];
-
-
-	   if(g_bUpdateStats)
-       {
-         scanStats = scanStats4x4[uiPredMode]; update4x4Count[uiPredMode]++;
-       }
-    }
-#if ROT_CHECK
-    else if(uiWidth == 8 && indexROT == 0)
-#else
-    else if(uiWidth == 8)
-#endif
-    {
-      UInt uiPredMode = ((1 << (pcCU->getIntraSizeIdx( uiAbsPartIdx ) + 1)) != uiWidth) ? g_aucIntra9Mode[uiMode] : g_aucAngIntra9Mode[uiMode];
-      pucScan = scanOrder8x8[uiPredMode]; pucScanX = scanOrder8x8X[uiPredMode]; pucScanY = scanOrder8x8Y[uiPredMode];
-
-	   if(g_bUpdateStats)
-      {
-        scanStats = scanStats8x8[uiPredMode]; update8x8Count[uiPredMode]++;
-      }
-    }
-	else if(uiWidth == 16)
-	{
-		scan_index = LUT16x16[indexROT][uiMode];
-		pucScan = scanOrder16x16[scan_index]; pucScanX = scanOrder16x16X[scan_index]; pucScanY = scanOrder16x16Y[scan_index];
-
-	   if(g_bUpdateStats)
-		{
-			scanStats = scanStats16x16[scan_index];
-		}
-    }
-    else if(uiWidth == 32)
-    {
-		scan_index = LUT32x32[indexROT][uiMode];
-		pucScan = scanOrder32x32[scan_index]; pucScanX = scanOrder32x32X[scan_index]; pucScanY = scanOrder32x32Y[scan_index];
-
-	   if(g_bUpdateStats)
-		{
-			scanStats = scanStats32x32[scan_index];
-		}
-    }
-    else if(uiWidth == 64)
-    {
-		scan_index = LUT64x64[indexROT][uiMode];
-		pucScan = scanOrder64x64[scan_index]; pucScanX = scanOrder64x64X[scan_index]; pucScanY = scanOrder64x64Y[scan_index];
-
-	   if(g_bUpdateStats)
-		{
-			scanStats = scanStats64x64[scan_index];
-		}
-    }
-    else
-    {
-      //printf("uiWidth = %d is not supported!\n", uiWidth);
-      //exit(1);
-    }
-  }
-#endif
 	//----- encode significance map -----
   // DC is coded in the beginning
-#if QC_MDDT//ADAPTIVE_SCAN
-  for( ui = 0; ui < ( uiSize - 1 ) && !uiLast; ui++ ) // if last coeff is reached, it has to be significant
-#else
   for( ui = 1; ui < ( uiSize - 1 ) && !uiLast; ui++ ) // if last coeff is reached, it has to be significant
-#endif
 	{
 		uiSig = piCoeff[ pucScan[ ui ] ] ? 1 : 0;
 
@@ -2317,36 +2136,10 @@ Void TEncSbac::codeCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx
     else
       uiCtx = ui * uiCtxSize / uiSize;
 
-#if QC_MDDT//ADAPTIVE_SCAN
-#if ROT_CHECK
-     if(pcCU->isIntra( uiAbsPartIdx ) && eTType == TEXT_LUMA && uiWidth == 8 /* && uiMode<=8*/ && indexROT == 0)//!bRD &&  eTType == TEXT_LUMA)
-#else
-     if(pcCU->isIntra( uiAbsPartIdx ) && eTType == TEXT_LUMA && uiWidth == 8)
-#endif
-     {
-       assert(uiCtxSize == uiSize);
-#ifdef QC_CTX
-	   m_pcBinIf->encodeBin( uiSig, m_cCUMapSCModel.get( uiCTXIdx, eTType, pos2ctx_map[ uiCtx ] ) );
-#else
-       m_pcBinIf->encodeBin( uiSig, m_cCUMapSCModel.get( uiCTXIdx, eTType, pos2ctx_map[ g_auiAntiScan8[pucScan[ui]] ] ) );
-#endif
-     }
-     else
-#endif
 		m_pcBinIf->encodeBin( uiSig, m_cCUMapSCModel.get( uiCTXIdx, eTType, pos2ctx_map[ uiCtx ] ) );
 
 		if( uiSig )
 		{
-#if QC_MDDT//ADAPTIVE_SCAN
-#if ROT_CHECK
-      if(g_bUpdateStats && pcCU->isIntra( uiAbsPartIdx ) && eTType == TEXT_LUMA && ((uiWidth == 4 && /*uiMode<=8 &&*/ indexROT == 0)|| (uiWidth == 8 &&/*uiMode<=8 &&*/ indexROT == 0) || uiWidth == 16 || uiWidth == 32 || uiWidth == 64)) 
-#else
-      if(g_bUpdateStats && pcCU->isIntra( uiAbsPartIdx ) && eTType == TEXT_LUMA )
-#endif
-      {
-			  scanStats[ui]++;
-      }
-#endif
       uiCtx = ui * uiCtxSize / uiSize;
 			uiLast = (++uiCodedSig == uiNumSig ? 1 : 0);
 			m_pcBinIf->encodeBin( uiLast, m_cCULastSCModel.get( uiCTXIdx, eTType, pos2ctx_last[ uiCtx ] ) );

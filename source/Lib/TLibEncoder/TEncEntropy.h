@@ -134,11 +134,7 @@ public:
 #if LCEC_CBP_YUV_ROOT
   virtual Void	codeBlockCbf				( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eType, UInt uiTrDepth, UInt uiQPartNum, Bool bRD = false) = 0;
 #endif
-#if QC_MDDT
-  virtual Void codeCoeffNxN      ( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx, UInt uiWidth, UInt uiHeight, UInt uiDepth, TextType eTType, UInt uiMode, Bool bRD = false ) = 0;
-#else
   virtual Void codeCoeffNxN      ( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx, UInt uiWidth, UInt uiHeight, UInt uiDepth, TextType eTType, Bool bRD = false ) = 0;
-#endif
   virtual Void codeROTindex( TComDataCU* pcCU, UInt uiAbsPartIdx, Bool bRD ) = 0;
   virtual Void codeCIPflag ( TComDataCU* pcCU, UInt uiAbsPartIdx, Bool bRD ) = 0;
 

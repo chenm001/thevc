@@ -91,9 +91,6 @@ Void TDecSlice::decompressSlice(TComBitstream* pcBitstream, TComPic*& rpcPic)
 {
   TComDataCU* pcCU;
   UInt        uiIsLast = 0;
-#if QC_MDDT//ADAPTIVE_SCAN
-    InitScanOrderForSlice(); 
-#endif
   // decoder don't need prediction & residual frame buffer
   rpcPic->setPicYuvPred( 0 );
   rpcPic->setPicYuvResi( 0 );
@@ -124,10 +121,6 @@ Void TDecSlice::decompressSlice(TComBitstream* pcBitstream, TComPic*& rpcPic)
     m_pcCuDecoder->decodeCU     ( pcCU, uiIsLast );
     m_pcCuDecoder->decompressCU ( pcCU );
 
-#if QC_MDDT//ADAPTIVE_SCAN
-    updateScanOrder(0);
-    normalizeScanStats();
-#endif
 #if HHI_RQT
 #if ENC_DEC_TRACE
     g_bJustDoIt = g_bEncDecTraceDisable;

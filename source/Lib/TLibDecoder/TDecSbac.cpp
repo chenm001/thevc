@@ -1913,79 +1913,9 @@ Void TDecSbac::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartId
   UInt        uiNumSigTopRight  = 0;
   UInt        uiNumSigBotLeft   = 0;
   bool        bLastReceived     = false;
-#if QC_MDDT//ADAPTIVE_SCAN
-  const UInt*  pucScan;
-  const UInt*  pucScanX;
-  const UInt*  pucScanY;
-  UInt *scanStats;
-  UInt uiMode;
-	int indexROT;
-  if(pcCU->isIntra( uiAbsPartIdx ) && eTType == TEXT_LUMA && (uiWidth == 4 || uiWidth == 8 /*|| uiWidth==16 || uiWidth==32 || uiWidth==64*/))
-  {
-    uiMode = pcCU->getLumaIntraDir(uiAbsPartIdx);
-	  indexROT = pcCU->getROTindex(uiAbsPartIdx);
-	//int scan_index;
-#if ROT_CHECK
-    if(uiWidth == 4 && indexROT == 0)
-#else
-    if(uiWidth == 4)
-#endif
-    {
-       UInt uiPredMode = g_aucIntra9Mode[uiMode];
-       pucScan = scanOrder4x4[uiPredMode]; pucScanX = scanOrder4x4X[uiPredMode]; pucScanY = scanOrder4x4Y[uiPredMode];
-
-       scanStats = scanStats4x4[uiPredMode]; update4x4Count[uiPredMode]++;
-    }
-#if ROT_CHECK
-    else if(uiWidth == 8 && indexROT == 0)
-#else
-    else if(uiWidth == 8)
-#endif
-    {
-      UInt uiPredMode = ((1 << (pcCU->getIntraSizeIdx( uiAbsPartIdx ) + 1)) != uiWidth) ?  g_aucIntra9Mode[uiMode]: g_aucAngIntra9Mode[uiMode];
-      pucScan = scanOrder8x8[uiPredMode]; pucScanX = scanOrder8x8X[uiPredMode]; pucScanY = scanOrder8x8Y[uiPredMode];
- 
-      scanStats = scanStats8x8[uiPredMode]; update8x8Count[uiPredMode]++;
-    }
-	/*else if(uiWidth == 16)
-    {
-	  scan_index = LUT16x16[indexROT][uiMode];
-      pucScan = scanOrder16x16[scan_index]; pucScanX = scanOrder16x16X[scan_index]; pucScanY = scanOrder16x16Y[scan_index];
-      scanStats = scanStats16x16[scan_index];
-    }
-    else if(uiWidth == 32)
-    {
-	  scan_index = LUT32x32[indexROT][uiMode];
-      pucScan = scanOrder32x32[scan_index]; pucScanX = scanOrder32x32X[scan_index]; pucScanY = scanOrder32x32Y[scan_index];
-      scanStats = scanStats32x32[scan_index];
-    }
-    else if(uiWidth == 64)
-    {
-	  scan_index = LUT64x64[indexROT][uiMode];
-      pucScan = scanOrder64x64[scan_index]; pucScanX = scanOrder64x64X[scan_index]; pucScanY = scanOrder64x64Y[scan_index];
-      scanStats = scanStats64x64[scan_index];
-    }*/
-    else
-    {
-      //printf("uiWidth = %d is not supported!\n", uiWidth);
-      //exit(1);
-    }
-  }
-#endif
   for( UInt uiScanPos = 0; uiScanPos < uiMaxNumCoeffM1; uiScanPos++ )
   {
     UInt  uiBlkPos  = g_auiSigLastScan[ uiLog2BlockSize ][ uiDownLeft ][ uiScanPos ];
-#if QC_MDDT
-    if(pcCU->isIntra( uiAbsPartIdx ) && eTType == TEXT_LUMA && (uiWidth == 4 || uiWidth == 8 /*|| uiWidth==16 || uiWidth==32 || uiWidth==64*/))
-    {
-#if ROT_CHECK
-      if(/*ipredmode<=8 && */indexROT == 0)
-        uiBlkPos = pucScan[uiScanPos];
-#else
-        uiBlkPos = pucScan[uiScanPos];
-#endif
-    }
-#endif
     UInt  uiPosY    = uiBlkPos >> uiLog2BlockSize;
     UInt  uiPosX    = uiBlkPos - ( uiPosY << uiLog2BlockSize );
 
@@ -1996,17 +1926,6 @@ Void TDecSbac::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartId
 
     if( uiSig )
     {
-#if QC_MDDT//ADAPTIVE_SCAN
-#if ROT_CHECK
-      if(pcCU->isIntra( uiAbsPartIdx ) && eTType == TEXT_LUMA  && ((uiWidth == 4 && /*ipredmode<=8&&*/indexROT == 0)|| (uiWidth == 8 && /* ipredmode<=8 && */ indexROT == 0) /*|| uiWidth==16 || uiWidth==32 || uiWidth==64*/)) 
-#else
-     if(pcCU->isIntra( uiAbsPartIdx ) && eTType == TEXT_LUMA  && (uiWidth == 4 || uiWidth == 8))
-#endif
-      {
-        //scanStats[pucScan[ui]]++;
-        scanStats[uiScanPos]++;
-      }
-#endif
       pcCoef[ uiBlkPos ] = 1;
 
       if( uiPosX > uiPosY )
@@ -2488,14 +2407,12 @@ Void TDecSbac::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartId
   UInt uiSig, uiLast, uiCtx, uiCtxOffst;
   uiLast = 0;
 
-#if QC_MDDT == 0//ADAPTIVE_SCAN == 0
   m_pcTDecBinIf->decodeBin( uiSig, m_cCUMapSCModel.get( uiCTXIdx, eTType, pos2ctx_map[ 0 ] ) );
 
   piCoeff[0] = uiSig;
 
   if( uiSig )
     m_pcTDecBinIf->decodeBin( uiLast, m_cCULastSCModel.get( uiCTXIdx, eTType, pos2ctx_last[ 0 ] ) );
-#endif
   // initialize scan
 	const UInt*  pucScan;
   const UInt*  pucScanX;
@@ -2528,64 +2445,6 @@ Void TDecSbac::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartId
   }
 #endif
 
-#if QC_MDDT//ADAPTIVE_SCAN
-  UInt *scanStats;
-  UInt uiPredMode;
-	int indexROT;
-
-  UInt uiMode;
-  if(pcCU->isIntra( uiAbsPartIdx ) && eTType == TEXT_LUMA )
-  {
-    uiMode = pcCU->getLumaIntraDir(uiAbsPartIdx);
-	indexROT = pcCU->getROTindex(uiAbsPartIdx);
-	int scan_index;
-#if ROT_CHECK
-    if(uiWidth == 4 && indexROT == 0)
-#else
-    if(uiWidth == 4)
-#endif
-    {
-       uiPredMode = g_aucIntra9Mode[uiMode];
-       pucScan = scanOrder4x4[uiPredMode]; pucScanX = scanOrder4x4X[uiPredMode]; pucScanY = scanOrder4x4Y[uiPredMode];
-
-       scanStats = scanStats4x4[uiPredMode]; update4x4Count[uiPredMode]++;
-    }
-#if ROT_CHECK
-    else if(uiWidth == 8 && indexROT == 0)
-#else
-    else if(uiWidth == 8)
-#endif
-    {
-      uiPredMode = ((1 << (pcCU->getIntraSizeIdx( uiAbsPartIdx ) + 1)) != uiWidth) ?  g_aucIntra9Mode[uiMode]: g_aucAngIntra9Mode[uiMode];
-      pucScan = scanOrder8x8[uiPredMode]; pucScanX = scanOrder8x8X[uiPredMode]; pucScanY = scanOrder8x8Y[uiPredMode];
- 
-      scanStats = scanStats8x8[uiPredMode]; update8x8Count[uiPredMode]++;
-    }
-	else if(uiWidth == 16)
-    {
-	  scan_index = LUT16x16[indexROT][uiMode];
-      pucScan = scanOrder16x16[scan_index]; pucScanX = scanOrder16x16X[scan_index]; pucScanY = scanOrder16x16Y[scan_index];
-      scanStats = scanStats16x16[scan_index];
-    }
-    else if(uiWidth == 32)
-    {
-	  scan_index = LUT32x32[indexROT][uiMode];
-      pucScan = scanOrder32x32[scan_index]; pucScanX = scanOrder32x32X[scan_index]; pucScanY = scanOrder32x32Y[scan_index];
-      scanStats = scanStats32x32[scan_index];
-    }
-    else if(uiWidth == 64)
-    {
-	  scan_index = LUT64x64[indexROT][uiMode];
-      pucScan = scanOrder64x64[scan_index]; pucScanX = scanOrder64x64X[scan_index]; pucScanY = scanOrder64x64Y[scan_index];
-      scanStats = scanStats64x64[scan_index];
-    }
-    else
-    {
-      //printf("uiWidth = %d is not supported!\n", uiWidth);
-      //exit(1);
-    }
-  }
-#endif
 	//----- parse significance map -----
   // DC is decoded in the beginning
 	Int		uiScanXShift = g_aucConvertToBit[ uiWidth  >> 3 ] + 2;
@@ -2595,11 +2454,7 @@ Void TDecSbac::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartId
 	ContextModel* pMapCCModel  = m_cCUMapSCModel.get ( uiCTXIdx, eTType );
 	ContextModel* pLastCCModel = m_cCULastSCModel.get( uiCTXIdx, eTType );
 
-#if QC_MDDT//ADAPTIVE_SCAN
-	for ( ui=0, uiCtxOffst=0 ; ui<(uiSize-1) && !uiLast ; ui++, uiCtxOffst+=uiCtxSize ) // if last coeff is reached, it has to be significant
-#else
     for ( ui=1, uiCtxOffst=uiCtxSize ; ui<(uiSize-1) && !uiLast ; ui++, uiCtxOffst+=uiCtxSize ) // if last coeff is reached, it has to be significant
-#endif
 	{
 #if HHI_RQT
     if (uiCtxSize < uiSize)
@@ -2617,41 +2472,12 @@ Void TDecSbac::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartId
 		}
 
     // SBAC_SEP
-#if QC_MDDT//ADAPTIVE_SCAN
-#if ROT_CHECK
-     if(pcCU->isIntra( uiAbsPartIdx ) && eTType == TEXT_LUMA && uiWidth == 8 && indexROT == 0)//!bRD &&  eTType == TEXT_LUMA)
-#else
-     if(pcCU->isIntra( uiAbsPartIdx ) && eTType == TEXT_LUMA && uiWidth == 8 )
-#endif
-     {
-       assert(uiCtx == ui);
-
-#ifdef QC_CTX
-	   m_pcTDecBinIf->decodeBin( uiSig, pMapCCModel[ pos2ctx_map[ uiCtx ] ] );
-#else
-	   m_pcTDecBinIf->decodeBin( uiSig, pMapCCModel[ pos2ctx_map[ g_auiAntiScan8[pucScan[uiCtx] ]] ] );
-#endif
-
-     }
-     else
-#endif
 		m_pcTDecBinIf->decodeBin( uiSig, pMapCCModel[ pos2ctx_map[ uiCtx ] ] );
 
 		piCoeff[ pucScan[ui] ] = uiSig;
 
 		if( uiSig )
 		{
-#if QC_MDDT//ADAPTIVE_SCAN
-#if ROT_CHECK
-         if(pcCU->isIntra( uiAbsPartIdx ) && eTType == TEXT_LUMA  && ((uiWidth == 4 && indexROT == 0)|| (uiWidth == 8 && indexROT == 0) || uiWidth==16 || uiWidth==32 || uiWidth==64))
-#else
-          if(pcCU->isIntra( uiAbsPartIdx ) && eTType == TEXT_LUMA )
-#endif
-          {
-            //scanStats[pucScan[ui]]++;
-            scanStats[ui]++;
-          }
-#endif
       uiCtx       = uiCtxOffst >> uiShift;
 
       // SBAC_SEP

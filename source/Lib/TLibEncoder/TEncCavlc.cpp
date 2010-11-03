@@ -2416,12 +2416,7 @@ Void TEncCavlc::codeBlockCbf( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eTyp
 }
 #endif
 
-
-#if QC_MDDT
-Void TEncCavlc::codeCoeffNxN    ( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx, UInt uiWidth, UInt uiHeight, UInt uiDepth, TextType eTType, UInt uiMode, Bool bRD )
-#else
 Void TEncCavlc::codeCoeffNxN    ( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx, UInt uiWidth, UInt uiHeight, UInt uiDepth, TextType eTType, Bool bRD )
-#endif
 {
   if ( uiWidth > m_pcSlice->getSPS()->getMaxTrSize() ) {
     uiWidth  = m_pcSlice->getSPS()->getMaxTrSize();
@@ -2433,7 +2428,7 @@ Void TEncCavlc::codeCoeffNxN    ( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPa
   TCoeff* piCoeff = pcCoef;
   UInt uiNumSig = 0;
   UInt uiScanning;
-#if !QC_MDDT && !LCEC_PHASE1_ADAPT_ENABLE
+#if !LCEC_PHASE1_ADAPT_ENABLE
   UInt uiInterleaving;
 #endif
 
@@ -2465,74 +2460,9 @@ Void TEncCavlc::codeCoeffNxN    ( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPa
   pucScan         = g_auiFrameScanXY  [ uiConvBit ];
 #endif
 
-#if QC_MDDT// VLC_MDDT ADAPTIVE_SCAN
-  UInt *scanStats;
-  int indexROT ;
-  if(pcCU->isIntra( uiAbsPartIdx ) && eTType == TEXT_LUMA && (uiWidth == 4 || uiWidth == 8 || uiWidth == 16 || uiWidth == 32 || uiWidth == 64))//!bRD &&  eTType == TEXT_LUMA)
-  {
-	indexROT = pcCU->getROTindex(uiAbsPartIdx);
-	int scan_index;
-    if(uiWidth == 4)// && uiMode<=8&&indexROT == 0)
-    {
-      UInt uiPredMode = g_aucIntra9Mode[uiMode];
-       pucScan = scanOrder4x4[uiPredMode]; //pucScanX = scanOrder4x4X[ipredmode]; pucScanY = scanOrder4x4Y[ipredmode];
-
-	   if(g_bUpdateStats)
-       {
-         scanStats = scanStats4x4[uiPredMode]; update4x4Count[uiPredMode]++;
-       }
-    }
-    else if(uiWidth == 8)// && uiMode<=8 && indexROT == 0)
-    {
-      UInt uiPredMode = ((1 << (pcCU->getIntraSizeIdx( uiAbsPartIdx ) + 1)) != uiWidth) ? g_aucIntra9Mode[uiMode] : g_aucAngIntra9Mode[uiMode];
-      pucScan = scanOrder8x8[uiPredMode]; //pucScanX = scanOrder8x8X[ipredmode]; pucScanY = scanOrder8x8Y[ipredmode];
-
-	   if(g_bUpdateStats)
-      {
-        scanStats = scanStats8x8[uiPredMode]; update8x8Count[uiPredMode]++;
-      }
-    }
-	else if(uiWidth == 16)
-	{
-		scan_index = LUT16x16[indexROT][uiMode];
-		pucScan = scanOrder16x16[scan_index]; //pucScanX = scanOrder16x16X[scan_index]; pucScanY = scanOrder16x16Y[scan_index];
-
-	   if(g_bUpdateStats)
-		{
-			scanStats = scanStats16x16[scan_index];
-		}
-    }
-    else if(uiWidth == 32)
-    {
-		scan_index = LUT32x32[indexROT][uiMode];
-		pucScan = scanOrder32x32[scan_index]; //pucScanX = scanOrder32x32X[scan_index]; pucScanY = scanOrder32x32Y[scan_index];
-
-	   if(g_bUpdateStats)
-		{
-			scanStats = scanStats32x32[scan_index];
-		}
-    }
-    else if(uiWidth == 64)
-    {
-		scan_index = LUT64x64[indexROT][uiMode];
-		pucScan = scanOrder64x64[scan_index]; //pucScanX = scanOrder64x64X[scan_index]; pucScanY = scanOrder64x64Y[scan_index];
-
-	   if(g_bUpdateStats)
-		{
-			scanStats = scanStats64x64[scan_index];
-		}
-    }
-    else
-    {
-      //printf("uiWidth = %d is not supported!\n", uiWidth);
-      //exit(1);
-    }
-  }
-#endif
-
   TCoeff scoeff[64];
   Int iBlockType;
-#if !QC_MDDT && !LCEC_PHASE1_ADAPT_ENABLE
+#if !LCEC_PHASE1_ADAPT_ENABLE
   UInt uiNumSigInterleaved;
 #endif
 #if LCEC_PHASE1
@@ -2583,16 +2513,6 @@ Void TEncCavlc::codeCoeffNxN    ( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPa
     for (uiScanning=0; uiScanning<16; uiScanning++)
     {
       scoeff[15-uiScanning] = piCoeff[ pucScan[ uiScanning ] ];
-
-#if QC_MDDT// VLC_MDDT ADAPTIVE_SCAN
-      if(scoeff[15-uiScanning])
-      {
-        if(g_bUpdateStats && pcCU->isIntra( uiAbsPartIdx ) && eTType == TEXT_LUMA)// && (uiWidth == 4 && uiMode<=8&&indexROT == 0))
-        {
-          scanStats[uiScanning]++;
-        }
-      }
-#endif
     }
     iBlockType = pcCU->isIntra(uiAbsPartIdx) ? 0 : pcCU->getSlice()->getSliceType();
 
@@ -2603,16 +2523,6 @@ Void TEncCavlc::codeCoeffNxN    ( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPa
     for (uiScanning=0; uiScanning<64; uiScanning++)
     {
       scoeff[63-uiScanning] = piCoeff[ pucScan[ uiScanning ] ];
-
-#if QC_MDDT// VLC_MDDT ADAPTIVE_SCAN
-      if(scoeff[63-uiScanning])
-      {
-        if(g_bUpdateStats && pcCU->isIntra( uiAbsPartIdx ) && eTType == TEXT_LUMA)// && (uiWidth == 8 && uiMode<=8 && indexROT == 0))
-        {
-          scanStats[uiScanning]++;
-        }
-      }
-#endif
     }
 #if LCEC_PHASE1
     if (eTType==TEXT_CHROMA_U || eTType==TEXT_CHROMA_V)
@@ -2641,26 +2551,6 @@ Void TEncCavlc::codeCoeffNxN    ( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPa
     }    
 #endif
 
-
-#if QC_MDDT
-    if(pcCU->isIntra( uiAbsPartIdx ))
-    {
-      for (uiScanning=0; uiScanning<64; uiScanning++)
-      {
-        if(scoeff[63-uiScanning] = piCoeff[ pucScan[ uiScanning ] ])
-        {
-          if(g_bUpdateStats && eTType == TEXT_LUMA )
-            scanStats[ uiScanning ]++;
-        }
-      }
-
-      if (eTType==TEXT_CHROMA_U || eTType==TEXT_CHROMA_V) 
-        iBlockType = eTType-2;
-      else
-        iBlockType = 5 + ( pcCU->isIntra(uiAbsPartIdx) ? 0 : pcCU->getSlice()->getSliceType() );
-      xCodeCoeff8x8( scoeff, iBlockType );
-    }
-#else
 #if LCEC_PHASE1_ADAPT_ENABLE
     if(pcCU->isIntra( uiAbsPartIdx ))
     {
@@ -2700,7 +2590,6 @@ Void TEncCavlc::codeCoeffNxN    ( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPa
       }
     }
 #endif
-#endif // QC_MDDT
 //#endif
   }
 
