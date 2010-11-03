@@ -108,15 +108,7 @@
 ////////////////////////////
 // TEN defines section start
 ////////////////////////////
-#define UNIFIED_DIRECTIONAL_INTRA         1           // Unified directional intra prediction as described in JCTVC-B100. ANG_INTRA needs to
-                                                      // be set to 2 when this is enabled. Unified intra renders number of old intra prediction
-                                                      // functions obsolete, but these functions have not disabled or removed from the code yet.
-
-#if UNIFIED_DIRECTIONAL_INTRA
 #define ANG_INTRA                         2           // Enable angular Intra coding (0: All ADI, 1: Ang for 8x8 PUs, 2: Ang for all PU sizes)
-#else
-#define ANG_INTRA                         1           // Enable angular Intra coding (0: All ADI, 1: Ang for 8x8 PUs, 2: Ang for all PU sizes)
-#endif
 
 #define PLANAR_INTRA                      0           // Enable planar Intra coding
 #define TENTM_DEBLOCKING_FILTER           1           // Enable TENTM deblocking

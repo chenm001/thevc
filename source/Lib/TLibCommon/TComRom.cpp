@@ -2184,7 +2184,6 @@ const UChar g_aucAngIntraModeOrder[34] =
   32, // 33 HOR+7   HOR+8
 };
 
-# if UNIFIED_DIRECTIONAL_INTRA
 const UChar g_aucIntraModeNumAng[7] =
 {
     3,  //   2x2
@@ -2223,7 +2222,6 @@ const UChar g_aucAngModeMapping[3][34] = // intra mode conversion for most proba
 };
 #endif
 
-# endif
 #endif
 
 // ====================================================================================================================

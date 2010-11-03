@@ -1669,7 +1669,6 @@ Void TEncCavlc::codeIntraDirLumaAng( TComDataCU* pcCU, UInt uiAbsPartIdx )
       m_uiBitIntraDir += 1;
 #endif
     uiDir = uiDir > iMostProbable ? uiDir - 1 : uiDir;
-#if UNIFIED_DIRECTIONAL_INTRA
     Int iIntraIdx = pcCU->getIntraSizeIdx(uiAbsPartIdx);
     if ( g_aucIntraModeBitsAng[iIntraIdx] < 6 )
     {
@@ -1690,7 +1689,6 @@ Void TEncCavlc::codeIntraDirLumaAng( TComDataCU* pcCU, UInt uiAbsPartIdx )
 
     }
     else
-#endif
     if (uiDir < 31){ // uiDir is here 0...32, 5 bits for uiDir 0...30, 31 is an escape code for coding one more bit for 31 and 32
       xWriteFlag( uiDir & 0x01 ? 1 : 0 );
       xWriteFlag( uiDir & 0x02 ? 1 : 0 );

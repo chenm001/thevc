@@ -211,11 +211,9 @@ extern const UChar  g_aucIntraModeBitsC[7];
 // ====================================================================================================================
 // Angular Intra table
 // ====================================================================================================================
-# if UNIFIED_DIRECTIONAL_INTRA
 extern const UChar g_aucIntraModeNumAng[7];
 extern const UChar g_aucIntraModeBitsAng[7];
 extern const UChar g_aucAngModeMapping[3][34];
-# endif
 
 extern const UChar g_aucAngIntraModeOrder[34];
 #endif

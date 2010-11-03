@@ -2426,11 +2426,7 @@ TEncSearch::estIntraPredQT( TComDataCU* pcCU,
     
     //===== determine set of modes to be tested (using prediction signal only) =====
 #if ANG_INTRA
-#if UNIFIED_DIRECTIONAL_INTRA
     UInt uiMaxMode     = angIntraEnabled ? g_aucIntraModeNumAng[uiWidthBit] : g_aucIntraModeNum[uiWidthBit];
-#else
-    UInt uiMaxMode     = angIntraEnabled ? 34 : g_aucIntraModeNum[uiWidthBit];
-#endif
 #else
     UInt uiMaxMode     = g_aucIntraModeNum    [ uiWidthBit ];
 #endif
@@ -3314,11 +3310,7 @@ Void TEncSearch::predIntraLumaAdiSearch( TComDataCU* pcCU, TComYuv* pcOrgYuv, TC
       pcPattern->initAdiPattern(pcCU, uiPartOffset, uiPartDepth, m_piYuvExt, m_iYuvExtStride, m_iYuvExtHeight, bAboveAvail, bLeftAvail);
       
 #if ANG_INTRA
-#if UNIFIED_DIRECTIONAL_INTRA
       uiMaxMode          = angIntraEnabled ? g_aucIntraModeNumAng[uiWidthBit] : g_aucIntraModeNum[uiWidthBit];
-#else
-      uiMaxMode          = angIntraEnabled ? 34 : g_aucIntraModeNum[uiWidthBit];
-#endif
 #else
       uiMaxMode          = g_aucIntraModeNum    [uiWidthBit];
 #endif
