@@ -61,9 +61,6 @@ TEncSbac::TEncSbac()
   , m_cCUYPosiSCModel         ( 1,             1,               NUM_CU_Y_POS_CTX              )
   , m_cCUPredModeSCModel      ( 1,             1,               NUM_PRED_MODE_CTX             )
   , m_cCUIntraPredSCModel     ( 1,             1,               NUM_ADI_CTX                   )
-#if HHI_AIS
-  , m_cCUIntraFiltFlagSCModel ( 1,             1,               NUM_ADI_FILT_CTX              )
-#endif
   , m_cCUChromaPredSCModel    ( 1,             1,               NUM_CHROMA_PRED_CTX           )
   , m_cCUInterDirSCModel      ( 1,             1,               NUM_INTER_DIR_CTX             )
   , m_cCUMvdSCModel           ( 1,             2,               NUM_MV_RES_CTX                )
@@ -151,9 +148,6 @@ Void TEncSbac::resetEntropy           ()
   m_cCUYPosiSCModel.initBuffer        ( eSliceType, iQp, (Short*)INIT_CU_Y_POS );
   m_cCUPredModeSCModel.initBuffer     ( eSliceType, iQp, (Short*)INIT_PRED_MODE );
   m_cCUIntraPredSCModel.initBuffer    ( eSliceType, iQp, (Short*)INIT_INTRA_PRED_MODE );
-#if HHI_AIS
-  m_cCUIntraFiltFlagSCModel.initBuffer( eSliceType, iQp, (Short*)INIT_INTRA_PRED_FILT );
-#endif
   m_cCUChromaPredSCModel.initBuffer   ( eSliceType, iQp, (Short*)INIT_CHROMA_PRED_MODE );
   m_cCUInterDirSCModel.initBuffer     ( eSliceType, iQp, (Short*)INIT_INTER_DIR );
   m_cCUMvdSCModel.initBuffer          ( eSliceType, iQp, (Short*)INIT_MVD );
@@ -378,9 +372,6 @@ Void TEncSbac::xCopyFrom( TEncSbac* pSrc )
   this->m_cCUPartSizeSCModel      .copyFrom( &pSrc->m_cCUPartSizeSCModel      );
   this->m_cCUPredModeSCModel      .copyFrom( &pSrc->m_cCUPredModeSCModel      );
   this->m_cCUIntraPredSCModel     .copyFrom( &pSrc->m_cCUIntraPredSCModel     );
-#if HHI_AIS
-  this->m_cCUIntraFiltFlagSCModel .copyFrom( &pSrc->m_cCUIntraFiltFlagSCModel );
-#endif
   this->m_cCUChromaPredSCModel.copyFrom( &pSrc->m_cCUChromaPredSCModel  );
   this->m_cCUDeltaQpSCModel   .copyFrom( &pSrc->m_cCUDeltaQpSCModel     );
   this->m_cCUInterDirSCModel  .copyFrom( &pSrc->m_cCUInterDirSCModel    );
@@ -893,17 +884,6 @@ Void TEncSbac::codeIntraDirLumaAng( TComDataCU* pcCU, UInt uiAbsPartIdx )
 
   return;
 }
-
-#if HHI_AIS
-Void TEncSbac::codeIntraFiltFlagLumaAdi( TComDataCU* pcCU, UInt uiAbsPartIdx )
-{
-  UInt uiSymbol = pcCU->getLumaIntraFiltFlag( uiAbsPartIdx );
-  UInt uiCtx    = pcCU->getCtxIntraFiltFlagLumaAng( uiAbsPartIdx );
-  m_pcBinIf->encodeBin( uiSymbol, m_cCUIntraFiltFlagSCModel.get( 0, 0, uiCtx ) );
-
-  return;
-}
-#endif
 
 Void TEncSbac::codeIntraDirChroma( TComDataCU* pcCU, UInt uiAbsPartIdx )
 {

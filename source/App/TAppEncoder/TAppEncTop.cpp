@@ -136,9 +136,6 @@ Void TAppEncTop::xInitLibCfg()
 	m_cTEncTop.setUseCIP                       ( m_bUseCIP      );
 #endif
 	m_cTEncTop.setUseROT                       ( m_bUseROT			);
-#if HHI_AIS
-  m_cTEncTop.setUseAIS                       ( m_bUseAIS      ); // BB:
-#endif
 #if HHI_MRG
   m_cTEncTop.setUseMRG                       ( m_bUseMRG      ); // SOPH:
 #endif

@@ -228,9 +228,6 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
 #if HHI_ALLOW_CIP_SWITCH
     ("CIP", m_bUseCIP, true, "combined intra prediction")
 #endif
-#if HHI_AIS
-    ("AIS", m_bUseAIS, true, "adaptive intra smoothing")
-#endif
 #if HHI_MRG
     ("MRG", m_bUseMRG, true, "merging of motion partitions")
 #endif
@@ -673,9 +670,6 @@ Void TAppEncCfg::xPrintParameter()
   printf("CIP:%d ", m_bUseCIP             );
 #endif
   printf("ROT:%d ", m_bUseROT             );
-#if HHI_AIS
-  printf("AIS:%d ", m_bUseAIS             ); // BB: adaptive intra smoothing
-#endif
 #if HHI_MRG
   printf("MRG:%d ", m_bUseMRG             ); // SOPH: Merge Mode
 #endif
@@ -715,9 +709,6 @@ Void TAppEncCfg::xPrintUsage()
   printf( "                   QBO - skip refers highest quality picture\n");
   printf( "                   ASR - adaptive motion search range\n");
   printf( "                   FEN - fast encoder setting\n");  
-#if HHI_AIS
-  printf( "                   AIS - adaptive intra smoothing\n"); // BB: adaptive intra smoothing
-#endif
 #if HHI_MRG
   printf( "                   MRG - merging of motion partitions\n"); // SOPH: Merge Mode
 #endif

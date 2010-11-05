@@ -353,9 +353,6 @@ Void TEncTop::xInitSPS()
   m_cSPS.setUseCIP        ( m_bUseCIP           ); // BB:
 #endif
   m_cSPS.setUseROT        ( m_bUseROT           ); // BB:
-#if HHI_AIS
-  m_cSPS.setUseAIS        ( m_bUseAIS           ); // BB:
-#endif
 #if HHI_MRG
   m_cSPS.setUseMRG        ( m_bUseMRG           ); // SOPH:
 #endif

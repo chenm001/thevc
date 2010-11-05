@@ -127,9 +127,6 @@ protected:
   Bool      m_bUseCIP; // BB:
 #endif
   Bool      m_bUseROT; // BB:
-#if HHI_AIS
-  Bool      m_bUseAIS; // BB:
-#endif
 #if HHI_MRG
   Bool      m_bUseMRG; // SOPH:
 #endif
@@ -303,9 +300,6 @@ public:
   Void      setUseCIP                       ( Bool  b )     { m_bUseCIP     = b; } // BB:
 #endif
   Void      setUseROT                       ( Bool  b )     { m_bUseROT	    = b; } // BB:
-#if HHI_AIS
-  Void      setUseAIS                       ( Bool  b )     { m_bUseAIS     = b; } // BB:
-#endif
 #if HHI_MRG
   Void      setUseMRG                       ( Bool  b )     { m_bUseMRG     = b; } // SOPH:
 #endif
@@ -347,9 +341,6 @@ public:
 	Bool      getUseCIP                       ()      { return m_bUseCIP;     }	// BB:
 #endif
 	Bool      getUseROT                       ()      { return m_bUseROT;     } // BB:
-#if HHI_AIS
-  Bool      getUseAIS                       ()      { return m_bUseAIS;     } // BB:
-#endif
 #if HHI_MRG
   Bool      getUseMRG                       ()      { return m_bUseMRG;     } // SOPH:
 #endif

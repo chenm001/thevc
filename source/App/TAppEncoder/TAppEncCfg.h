@@ -139,9 +139,6 @@ protected:
 #if HHI_ALLOW_CIP_SWITCH
 	Bool			m_bUseCIP;																				///< flag for using combined intra prediction
 #endif  
-#if HHI_AIS
-  Bool      m_bUseAIS;                                        ///< BB: flag for using adaptive intra smoothing
-#endif  
 	// coding tools (transform)
 	Bool			m_bUseROT;																				///< flag for using rotational transform
 

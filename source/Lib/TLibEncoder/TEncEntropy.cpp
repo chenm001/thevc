@@ -1010,16 +1010,6 @@ Void TEncEntropy::encodePlanarInfo( TComDataCU* pcCU, UInt uiAbsPartIdx, Bool bR
 }
 #endif
 
-#if HHI_AIS
-// BB: Intra ref. samples filtering for Luma
-Void TEncEntropy::encodeIntraFiltFlagLuma ( TComDataCU* pcCU, UInt uiAbsPartIdx )
-{
-  // DC (mode 2) always uses DEFAULT_IS so no signaling needed
-  if( (pcCU->getSlice()->getSPS()->getUseAIS()) && (pcCU->getLumaIntraDir( uiAbsPartIdx ) != 2) )
-    m_pcEntropyCoderIf->codeIntraFiltFlagLumaAdi( pcCU, uiAbsPartIdx );
-}
-#endif
-
 // Intra direction for Chroma
 Void TEncEntropy::encodeIntraDirModeChroma( TComDataCU* pcCU, UInt uiAbsPartIdx, Bool bRD )
 {
@@ -1076,24 +1066,11 @@ Void TEncEntropy::encodePredInfo( TComDataCU* pcCU, UInt uiAbsPartIdx, Bool bRD 
       encodeIntraDirModeLuma( pcCU, uiAbsPartIdx + uiPartOffset   );
       encodeIntraDirModeLuma( pcCU, uiAbsPartIdx + uiPartOffset*2 );
       encodeIntraDirModeLuma( pcCU, uiAbsPartIdx + uiPartOffset*3 );
-#if HHI_AIS
-      //BB: intra ref. samples filtering flag
-      encodeIntraFiltFlagLuma( pcCU, uiAbsPartIdx                  );
-      encodeIntraFiltFlagLuma( pcCU, uiAbsPartIdx + uiPartOffset   );
-      encodeIntraFiltFlagLuma( pcCU, uiAbsPartIdx + uiPartOffset*2 );
-      encodeIntraFiltFlagLuma( pcCU, uiAbsPartIdx + uiPartOffset*3 );
-      //
-#endif
       encodeIntraDirModeChroma( pcCU, uiAbsPartIdx, bRD );
     }
     else                                                              // if it is not NxN size, encode 1 intra directions
     {
       encodeIntraDirModeLuma  ( pcCU, uiAbsPartIdx );
-#if HHI_AIS
-      //BB: intra ref. samples filtering flag
-      encodeIntraFiltFlagLuma ( pcCU, uiAbsPartIdx );
-      //
-#endif
       encodeIntraDirModeChroma( pcCU, uiAbsPartIdx, bRD );
     }
   }

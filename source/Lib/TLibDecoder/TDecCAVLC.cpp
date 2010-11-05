@@ -163,9 +163,6 @@ Void TDecCavlc::parseSPS(TComSPS* pcSPS)
   xReadFlag( uiCode ); pcSPS->setUseCIP ( uiCode ? true : false ); // BB:
 #endif
   xReadFlag( uiCode ); pcSPS->setUseROT ( uiCode ? true : false ); // BB:
-#if HHI_AIS
-  xReadFlag( uiCode ); pcSPS->setUseAIS ( uiCode ? true : false ); // BB:
-#endif
 #if HHI_MRG
   xReadFlag( uiCode ); pcSPS->setUseMRG ( uiCode ? true : false ); // SOPH:
 #endif
@@ -1908,17 +1905,6 @@ Void TDecCavlc::parseMergeIndex ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDe
   pcCU->setMergeIndexSubParts( uiSymbol, uiAbsPartIdx, uiDepth );
 }
 #endif
-#endif
-
-#if HHI_AIS
-Void TDecCavlc::parseIntraFiltFlagLumaAdi ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
-{
-  UInt  uiSymbol;
-  xReadFlag( uiSymbol );
-
-  //pcCU->setLumaIntraFiltFlag( uiAbsPartIdx, uiSymbol ? true : false );
-  pcCU->setLumaIntraFiltFlagSubParts( uiSymbol != 0, uiAbsPartIdx, uiDepth ); // fix HS
-}
 #endif
 
 // ====================================================================================================================

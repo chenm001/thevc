@@ -56,10 +56,6 @@
 #define NUM_PRED_MODE_CTX             2       ///< number of context models for prediction mode
 #define NUM_ADI_CTX                   2       ///< number of context models for intra prediction
 
-#if HHI_AIS
-#define NUM_ADI_FILT_CTX              5       ///< BB: number of context models for AIS flag (one for every row in Table 2‑5 in JCTVC-A125r1 except DC)
-#endif
-
 #define NUM_CHROMA_PRED_CTX           4       ///< number of context models for intra prediction (chroma)
 #define NUM_INTER_DIR_CTX             4       ///< number of context models for inter prediction direction
 #define NUM_MV_RES_CTX                7       ///< number of context models for motion vector difference
@@ -286,26 +282,6 @@ INIT_PLANAR_INTRA[3][NUM_PLANAR_INTRA_CTX][2] =
   },
   {
     {    0,   64 }, {    0,   64 }
-  }
-};
-#endif
-
-#if HHI_AIS
-// BB: initial probability for intra reference pixel filtering
-static const Short
-INIT_INTRA_PRED_FILT[3][NUM_ADI_FILT_CTX][2] =
-{
-  {
-    {   -2,   62 }, {    0,   59 }, {    8,   44 }, {    4,   76 }, 
-    {   56,  -54 }
-  },
-  {
-    {  -14,   83 }, {  -14,   83 }, {  -21,   96 }, {  -11,   96 }, 
-    {  -27,   61 }
-  },
-  {
-    {  -19,   94 }, {   -3,   62 }, {  -24,   97 }, {   -7,   82 }, 
-    {    0,   64 }
   }
 };
 #endif

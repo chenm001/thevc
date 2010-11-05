@@ -364,11 +364,7 @@ Void TComPrediction::xPredIntraAng( Int* pSrc, Int srcStride, Pel*& rpDst, Int d
   }
 }
 
-#if HHI_AIS
-Void TComPrediction::predIntraLumaAng(TComPattern* pcTComPattern, UInt uiDirMode, Bool bSmoothing, Pel* piPred, UInt uiStride, Int iWidth, Int iHeight,  TComDataCU* pcCU, Bool bAbove, Bool bLeft )
-#else
 Void TComPrediction::predIntraLumaAng(TComPattern* pcTComPattern, UInt uiDirMode, Pel* piPred, UInt uiStride, Int iWidth, Int iHeight,  TComDataCU* pcCU, Bool bAbove, Bool bLeft )
-#endif
 {
   Pel *pDst = piPred;
   Int *ptrSrc;
@@ -380,15 +376,7 @@ Void TComPrediction::predIntraLumaAng(TComPattern* pcTComPattern, UInt uiDirMode
   assert( iIntraSizeIdx <= 6 ); // 128x128
   assert( iWidth == iHeight  );
 
-  // Unfiltered buffer for DC prediction, once filtered for the rest of the modes (if not disabled by AIS)
-  if( uiDirMode == 2 )
-    ptrSrc = pcTComPattern->getAdiOrgBuf( iWidth, iHeight, m_piYuvExt );
-#if HHI_AIS
-  else if ( !bSmoothing )
-    ptrSrc = pcTComPattern->getAdiOrgBuf( iWidth, iHeight, m_piYuvExt );
-#endif
-  else
-    ptrSrc = pcTComPattern->getAdiFilteredBuf1( iWidth, iHeight, m_piYuvExt );
+  ptrSrc = pcTComPattern->getAdiOrgBuf( iWidth, iHeight, m_piYuvExt );
 
   // get starting pixel in block
   Int sw = ( iWidth<<1 ) + 1;

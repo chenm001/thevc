@@ -142,10 +142,6 @@ public:
 
   Void parseIntraDirLumaAng( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
 
-#if HHI_AIS
-  Void parseIntraFiltFlagLumaAdi( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
-#endif
-
   Void parseIntraDirChroma( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
 
   Void parseInterDir      ( TComDataCU* pcCU, UInt& ruiInterDir, UInt uiAbsPartIdx, UInt uiDepth );
@@ -195,9 +191,6 @@ private:
   ContextModel3DBuffer m_cCUPredModeSCModel;
 
   ContextModel3DBuffer m_cCUIntraPredSCModel;
-#if HHI_AIS
-  ContextModel3DBuffer m_cCUIntraFiltFlagSCModel;
-#endif
   ContextModel3DBuffer m_cCUChromaPredSCModel;
   ContextModel3DBuffer m_cCUInterDirSCModel;
   ContextModel3DBuffer m_cCURefPicSCModel;

@@ -348,9 +348,6 @@ protected:
                                     UInt        uiStride,
                                     TCoeff*     piCoeff,
                                     UInt        uiMode,
-#if HHI_AIS
-                                    Bool        bSmoothing,
-#endif
                                     UInt        uiWidth,
                                     UInt        uiHeight,
                                     UInt        uiMaxDepth,

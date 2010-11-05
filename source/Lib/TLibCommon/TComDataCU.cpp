@@ -59,9 +59,6 @@ TComDataCU::TComDataCU()
   m_puhMergeIndex      = NULL;
 #endif
   m_puhLumaIntraDir    = NULL;
-#if HHI_AIS
-  m_pbLumaIntraFiltFlag= NULL;
-#endif
   m_puhChromaIntraDir  = NULL;
   m_puhInterDir        = NULL;
   m_puhTrIdx           = NULL;
@@ -134,9 +131,6 @@ Void TComDataCU::create(UInt uiNumPartition, UInt uiWidth, UInt uiHeight, Bool b
 #endif
 
     m_puhLumaIntraDir    = (UChar* )xMalloc(UChar,  uiNumPartition);
-#if HHI_AIS
-    m_pbLumaIntraFiltFlag= (Bool*  )xMalloc(Bool,   uiNumPartition);
-#endif
     m_puhChromaIntraDir  = (UChar* )xMalloc(UChar,  uiNumPartition);
     m_puhInterDir        = (UChar* )xMalloc(UChar,  uiNumPartition);
 
@@ -235,9 +229,6 @@ Void TComDataCU::destroy()
     if ( m_puhMergeIndex      ) { xFree(m_puhMergeIndex);       m_puhMergeIndex     = NULL; }
 #endif
     if ( m_puhLumaIntraDir    ) { xFree(m_puhLumaIntraDir);     m_puhLumaIntraDir   = NULL; }
-#if HHI_AIS
-    if ( m_pbLumaIntraFiltFlag) { xFree(m_pbLumaIntraFiltFlag); m_pbLumaIntraFiltFlag = NULL; }
-#endif
     if ( m_puhChromaIntraDir  ) { xFree(m_puhChromaIntraDir);   m_puhChromaIntraDir = NULL; }
     if ( m_puhTrIdx           ) { xFree(m_puhTrIdx);            m_puhTrIdx          = NULL; }
     if ( m_pcTrCoeffY         ) { xFree(m_pcTrCoeffY);          m_pcTrCoeffY        = NULL; }
@@ -305,7 +296,7 @@ Void TComDataCU::initCU( TComPic* pcPic, UInt iCUAddr )
 
   Int iSizeInUchar = sizeof( UChar ) * m_uiNumPartition;
   Int iSizeInUInt  = sizeof( UInt  ) * m_uiNumPartition;
-#if HHI_AIS || HHI_MRG
+#if HHI_MRG
   Int iSizeInBool  = sizeof( Bool  ) * m_uiNumPartition;
 #endif
 #if PLANAR_INTRA
@@ -320,9 +311,6 @@ Void TComDataCU::initCU( TComPic* pcPic, UInt iCUAddr )
   memset( m_puhMergeIndex,      0, iSizeInUchar );
 #endif
   memset( m_puhLumaIntraDir,    2, iSizeInUchar );
-#if HHI_AIS
-  memset( m_pbLumaIntraFiltFlag,1, iSizeInBool  );
-#endif
   memset( m_puhChromaIntraDir,  0, iSizeInUchar );
   memset( m_puhInterDir,        0, iSizeInUchar );
   memset( m_puhTrIdx,           0, iSizeInUchar );
@@ -425,7 +413,7 @@ Void TComDataCU::initEstData()
 
   Int iSizeInUchar = sizeof( UChar  ) * m_uiNumPartition;
   Int iSizeInUInt  = sizeof( UInt   ) * m_uiNumPartition;
-#if HHI_AIS || HHI_MRG
+#if HHI_MRG
   Int iSizeInBool  = sizeof( Bool   ) * m_uiNumPartition;
 #endif
 #if PLANAR_INTRA
@@ -440,9 +428,6 @@ Void TComDataCU::initEstData()
   memset( m_puhMergeIndex,      0, iSizeInUchar );
 #endif
   memset( m_puhLumaIntraDir,    2, iSizeInUchar );
-#if HHI_AIS
-  memset( m_pbLumaIntraFiltFlag,1, iSizeInBool  );
-#endif
   memset( m_puhChromaIntraDir,  0, iSizeInUchar );
   memset( m_puhInterDir,        0, iSizeInUchar );
   memset( m_puhTrIdx,           0, iSizeInUchar );
@@ -513,7 +498,7 @@ Void TComDataCU::initSubCU( TComDataCU* pcCU, UInt uiPartUnitIdx, UInt uiDepth )
 
   Int iSizeInUchar = sizeof( UChar  ) * m_uiNumPartition;
   Int iSizeInUInt  = sizeof( UInt   ) * m_uiNumPartition;
-#if HHI_AIS || HHI_MRG
+#if HHI_MRG
   Int iSizeInBool  = sizeof( Bool   ) * m_uiNumPartition;
 #endif
 #if PLANAR_INTRA
@@ -528,9 +513,6 @@ Void TComDataCU::initSubCU( TComDataCU* pcCU, UInt uiPartUnitIdx, UInt uiDepth )
   memset( m_puhMergeIndex,      0, iSizeInUchar );
 #endif
   memset( m_puhLumaIntraDir,    2, iSizeInUchar );
-#if HHI_AIS
-  memset( m_pbLumaIntraFiltFlag,1, iSizeInBool  );
-#endif
   memset( m_puhChromaIntraDir,  0, iSizeInUchar );
   memset( m_puhInterDir,        0, iSizeInUchar );
   memset( m_puhTrIdx,           0, iSizeInUchar );
@@ -622,9 +604,6 @@ Void TComDataCU::copySubCU( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
   m_puhMergeIndex       = pcCU->getMergeIndex()       + uiPart;
 #endif
   m_puhLumaIntraDir     = pcCU->getLumaIntraDir()     + uiPart;
-#if HHI_AIS
-  m_pbLumaIntraFiltFlag = pcCU->getLumaIntraFiltFlag()+ uiPart;
-#endif
   m_puhChromaIntraDir   = pcCU->getChromaIntraDir()   + uiPart;
   m_puhInterDir         = pcCU->getInterDir()         + uiPart;
   m_puhTrIdx            = pcCU->getTransformIdx()     + uiPart;
@@ -830,7 +809,7 @@ Void TComDataCU::copyPartFrom( TComDataCU* pcCU, UInt uiPartUnitIdx, UInt uiDept
   Int iSizeInUchar  = sizeof( UChar ) * uiNumPartition;
   Int iSizeInUInt   = sizeof( UInt  ) * uiNumPartition;
   Int iSizeInInt    = sizeof( Int   ) * uiNumPartition;
-#if HHI_AIS || HHI_MRG
+#if HHI_MRG
   Int iSizeInBool   = sizeof( Bool  ) * uiNumPartition;
 #endif
 
@@ -844,9 +823,6 @@ Void TComDataCU::copyPartFrom( TComDataCU* pcCU, UInt uiPartUnitIdx, UInt uiDept
   memcpy( m_puhMergeIndex       + uiOffset, pcCU->getMergeIndex(),        iSizeInUchar );
 #endif
   memcpy( m_puhLumaIntraDir     + uiOffset, pcCU->getLumaIntraDir(),      iSizeInUchar );
-#if HHI_AIS
-  memcpy( m_pbLumaIntraFiltFlag + uiOffset, pcCU->getLumaIntraFiltFlag(), iSizeInBool  );
-#endif
   memcpy( m_puhChromaIntraDir   + uiOffset, pcCU->getChromaIntraDir(),    iSizeInUchar );
   memcpy( m_puhInterDir         + uiOffset, pcCU->getInterDir(),          iSizeInUchar );
   memcpy( m_puhTrIdx            + uiOffset, pcCU->getTransformIdx(),      iSizeInUchar );
@@ -916,7 +892,7 @@ Void TComDataCU::copyToPic( UChar uhDepth )
   Int iSizeInUchar  = sizeof( UChar ) * m_uiNumPartition;
   Int iSizeInUInt   = sizeof( UInt  ) * m_uiNumPartition;
   Int iSizeInInt    = sizeof( Int   ) * m_uiNumPartition;
-#if HHI_AIS || HHI_MRG
+#if HHI_MRG
   Int iSizeInBool   = sizeof( Bool  ) * m_uiNumPartition;
 #endif
 
@@ -932,9 +908,6 @@ Void TComDataCU::copyToPic( UChar uhDepth )
   memcpy( rpcCU->getMergeIndex()        + m_uiAbsIdxInLCU, m_puhMergeIndex,       iSizeInUchar );
 #endif
   memcpy( rpcCU->getLumaIntraDir()      + m_uiAbsIdxInLCU, m_puhLumaIntraDir,     iSizeInUchar );
-#if HHI_AIS
-  memcpy( rpcCU->getLumaIntraFiltFlag() + m_uiAbsIdxInLCU, m_pbLumaIntraFiltFlag, iSizeInBool  );
-#endif
   memcpy( rpcCU->getChromaIntraDir()    + m_uiAbsIdxInLCU, m_puhChromaIntraDir,   iSizeInUchar );
   memcpy( rpcCU->getInterDir()          + m_uiAbsIdxInLCU, m_puhInterDir,         iSizeInUchar );
   memcpy( rpcCU->getTransformIdx()      + m_uiAbsIdxInLCU, m_puhTrIdx,            iSizeInUchar );
@@ -998,7 +971,7 @@ Void TComDataCU::copyToPic( UChar uhDepth, UInt uiPartIdx, UInt uiPartDepth )
   Int iSizeInUchar  = sizeof( UChar  ) * uiQNumPart;
   Int iSizeInUInt   = sizeof( UInt   ) * uiQNumPart;
   Int iSizeInInt    = sizeof( Int    ) * uiQNumPart;
-#if HHI_AIS || HHI_MRG
+#if HHI_MRG
   Int iSizeInBool   = sizeof( Bool   ) * uiQNumPart;
 #endif
 
@@ -1013,9 +986,6 @@ Void TComDataCU::copyToPic( UChar uhDepth, UInt uiPartIdx, UInt uiPartDepth )
   memcpy( rpcCU->getMergeIndex()        + uiPartOffset, m_puhMergeIndex,       iSizeInUchar );
 #endif
   memcpy( rpcCU->getLumaIntraDir()      + uiPartOffset, m_puhLumaIntraDir,     iSizeInUchar );
-#if HHI_AIS
-  memcpy( rpcCU->getLumaIntraFiltFlag() + uiPartOffset, m_pbLumaIntraFiltFlag, iSizeInBool  );
-#endif
   memcpy( rpcCU->getChromaIntraDir()    + uiPartOffset, m_puhChromaIntraDir,   iSizeInUchar );
   memcpy( rpcCU->getInterDir()          + uiPartOffset, m_puhInterDir,         iSizeInUchar );
   memcpy( rpcCU->getTransformIdx()      + uiPartOffset, m_puhTrIdx,            iSizeInUchar );
@@ -1963,26 +1933,6 @@ UInt TComDataCU::getCtxTransIdx( UInt uiAbsPartIdx )
   return uiCtx;
 }
 
-
-
-#if HHI_AIS
-
-UInt TComDataCU::getCtxIntraFiltFlagLumaAng( UInt uiAbsPartIdx )
-{
-  UInt uiIntraDir    = (UInt)getLumaIntraDir( uiAbsPartIdx );
-  UInt uiCtx         = 0;
-
-  if( uiIntraDir < 2 )        // vert., hor.
-    uiCtx = uiIntraDir;
-  else if( uiIntraDir == 2 )  // DC
-    assert(0);
-  else                        // angular
-    uiCtx = 3;
-
-  return uiCtx;
-}
-#endif
-
 Void TComDataCU::setCbfSubParts( UInt uiCbfY, UInt uiCbfU, UInt uiCbfV, UInt uiAbsPartIdx, UInt uiDepth )
 {
   UInt uiCurrPartNumb = m_pcPic->getNumPartInCU() >> (uiDepth << 1);
@@ -2075,15 +2025,6 @@ Void TComDataCU::setLumaIntraDirSubParts( UInt uiDir, UInt uiAbsPartIdx, UInt ui
 
   memset( m_puhLumaIntraDir + uiAbsPartIdx, uiDir, sizeof(UChar)*uiCurrPartNumb );
 }
-
-#if HHI_AIS
-Void TComDataCU::setLumaIntraFiltFlagSubParts( Bool bFlag, UInt uiAbsPartIdx, UInt uiDepth )
-{
-  UInt uiCurrPartNumb = m_pcPic->getNumPartInCU() >> (uiDepth << 1);
-
-  memset( m_pbLumaIntraFiltFlag + uiAbsPartIdx, bFlag, sizeof(Bool)*uiCurrPartNumb );
-}
-#endif
 
 #if HHI_MRG_PU
 Void TComDataCU::setSubPartUChar( UInt uiParameter, UChar* puhBaseLCU, UInt uiCUAddr, UInt uiCUDepth, UInt uiPUIdx )

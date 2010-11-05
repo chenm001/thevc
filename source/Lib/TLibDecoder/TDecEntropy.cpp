@@ -541,24 +541,11 @@ Void TDecEntropy::decodePredInfo    ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt 
       decodeIntraDirModeLuma( pcCU, uiAbsPartIdx + uiPartOffset,   uiDepth+1 );
       decodeIntraDirModeLuma( pcCU, uiAbsPartIdx + uiPartOffset*2, uiDepth+1 );
       decodeIntraDirModeLuma( pcCU, uiAbsPartIdx + uiPartOffset*3, uiDepth+1 );
-#if HHI_AIS
-      //BB: intra ref. samples filtering flag
-      decodeIntraFiltFlagLuma( pcCU, uiAbsPartIdx,                  uiDepth+1 );
-      decodeIntraFiltFlagLuma( pcCU, uiAbsPartIdx + uiPartOffset,   uiDepth+1 );
-      decodeIntraFiltFlagLuma( pcCU, uiAbsPartIdx + uiPartOffset*2, uiDepth+1 );
-      decodeIntraFiltFlagLuma( pcCU, uiAbsPartIdx + uiPartOffset*3, uiDepth+1 );
-      //
-#endif
       decodeIntraDirModeChroma( pcCU, uiAbsPartIdx, uiDepth );
     }
     else                                                                // if it is not NxN size, encode 1 intra directions
     {
       decodeIntraDirModeLuma  ( pcCU, uiAbsPartIdx, uiDepth );
-#if HHI_AIS
-      //BB: intra ref. samples filtering flag
-      decodeIntraFiltFlagLuma ( pcCU, uiAbsPartIdx, uiDepth );
-      //
-#endif
       decodeIntraDirModeChroma( pcCU, uiAbsPartIdx, uiDepth );
     }
   }
@@ -643,17 +630,6 @@ Void TDecEntropy::decodeIntraDirModeLuma  ( TComDataCU* pcCU, UInt uiAbsPartIdx,
 {
   m_pcEntropyDecoderIf->parseIntraDirLumaAng( pcCU, uiAbsPartIdx, uiDepth );
 }
-
-#if HHI_AIS
-Void TDecEntropy::decodeIntraFiltFlagLuma  ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
-{
-  // DC (mode 2) always uses DEFAULT_IS so no parsing needed
-  if( (pcCU->getSlice()->getSPS()->getUseAIS()) && (pcCU->getLumaIntraDir( uiAbsPartIdx ) != 2) )
-      m_pcEntropyDecoderIf->parseIntraFiltFlagLumaAdi( pcCU, uiAbsPartIdx, uiDepth );
-  else
-    pcCU->setLumaIntraFiltFlagSubParts( DEFAULT_IS, uiAbsPartIdx, uiDepth );
-}
-#endif
 
 Void TDecEntropy::decodeIntraDirModeChroma( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
 {

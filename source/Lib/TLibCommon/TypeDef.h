@@ -48,7 +48,6 @@
 #define HHI_RQT                           1           ///< MWHK: residual quadtree
 #define HHI_RQT_CHROMA_CBF_MOD            1           ///< HK: alternative syntax for coded block flag coding for chroma
 #define HHI_RQT_INTRA                     1           ///< HS: residual quadtree for intra blocks
-#define HHI_AIS                           1           ///< BB: adaptive intra smoothing
 #define HHI_INTERP_FILTER                 1           ///< HL: interpolation filter
 #define HHI_TRANSFORM_CODING              1           ///< TN: modified transform coefficient coding with RDOQ
 #define HHI_IMVP                          1           ///< SOPH: Interleaved Motion Vector Predictor 
@@ -88,13 +87,6 @@
 
 #if ( HHI_RQT_FORCE_SPLIT_ACC2_PU &&  !HHI_RQT  )
 #error "HHI_RQT_FORCE_SPLIT_ACC2_PU can only be equal to 1 if HHI_RQT is equal to 1"
-#endif
-
-#if HHI_AIS
-// AIS
-#define DEFAULT_IS                        0           ///< BB: set intra filtering always 0:off 1:on if AIS is disabled
-#define AIS_TEST_BEST                     0           ///< BB: 0: compare every intra mode with filter on and off (encoder only)
-                                                      ///<     1: compare best intra mode with filter on and off (encoder only)
 #endif
 
 #define HHI_INTERP_FILTER_KERNEL_FIX      1           ///< BB: interpolation filter fixed spline kernel

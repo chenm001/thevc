@@ -474,10 +474,6 @@ Void TEncCavlc::codeSPS( TComSPS* pcSPS )
 #endif
   xWriteFlag	( (pcSPS->getUseROT ()) ? 1 : 0 ); // BB:
   m_uiBitHLS += 1;
-#if HHI_AIS
-  xWriteFlag  ( (pcSPS->getUseAIS ()) ? 1 : 0 ); // BB:
-  m_uiBitHLS += 1;
-#endif
 #if HHI_MRG
   xWriteFlag  ( (pcSPS->getUseMRG ()) ? 1 : 0 ); // SOPH:
   m_uiBitHLS += 1;
@@ -754,9 +750,6 @@ Void TEncCavlc::codeSPS( TComSPS* pcSPS )
   xWriteFlag  ( (pcSPS->getUseCIP ()) ? 1 : 0 ); // BB:
 #endif
 	xWriteFlag	( (pcSPS->getUseROT ()) ? 1 : 0 ); // BB:
-#if HHI_AIS
-  xWriteFlag  ( (pcSPS->getUseAIS ()) ? 1 : 0 ); // BB:
-#endif
 #if HHI_MRG
   xWriteFlag  ( (pcSPS->getUseMRG ()) ? 1 : 0 ); // SOPH:
 #endif
@@ -1269,18 +1262,6 @@ Void TEncCavlc::codeMergeIndex    ( TComDataCU* pcCU, UInt uiAbsPartIdx )
 #if LCEC_STAT
   if (m_bAdaptFlag)
     m_uiBitMergeIndex += 1;
-#endif
-}
-#endif
-
-#if HHI_AIS
-Void TEncCavlc::codeIntraFiltFlagLumaAdi( TComDataCU* pcCU, UInt uiAbsPartIdx )
-{
-  Bool bFlag = pcCU->getLumaIntraFiltFlag( uiAbsPartIdx );
-  xWriteFlag( (UInt)bFlag );
-#if LCEC_STAT
-  if (m_bAdaptFlag)
-    m_uiBitIntraFiltFlag += 1;
 #endif
 }
 #endif

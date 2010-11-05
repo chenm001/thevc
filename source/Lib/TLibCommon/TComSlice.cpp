@@ -771,9 +771,6 @@ TComSPS::TComSPS()
   m_bUseWPO      = false;
 
   m_bUseROT				= false; // BB:
-#if HHI_AIS
-  m_bUseAIS      = false; // BB:
-#endif
 #if HHI_MRG
   m_bUseMRG      = false; // SOPH:
 #endif

@@ -1121,11 +1121,7 @@ Void TEncSearch::xRecurIntraChromaSearchADI( TComDataCU* pcCU, UInt uiAbsPartIdx
 // temp buffer for CIP
 static Pel iPredOL[ MAX_CU_SIZE*MAX_CU_SIZE ];
 
-#if HHI_AIS
-Void TEncSearch::xRecurIntraLumaSearchADI( TComDataCU* pcCU, UInt uiAbsPartIdx, Pel* piOrg, Pel* piPred, Pel* piResi, Pel* piReco, UInt uiStride, TCoeff* piCoeff, UInt uiMode, Bool bSmoothing, UInt uiWidth, UInt uiHeight, UInt uiMaxDepth, UInt uiCurrDepth, Bool bAbove, Bool bLeft, Bool bSmallTrs)
-#else
 Void TEncSearch::xRecurIntraLumaSearchADI( TComDataCU* pcCU, UInt uiAbsPartIdx, Pel* piOrg, Pel* piPred, Pel* piResi, Pel* piReco, UInt uiStride, TCoeff* piCoeff, UInt uiMode, UInt uiWidth, UInt uiHeight, UInt uiMaxDepth, UInt uiCurrDepth, Bool bAbove, Bool bLeft, Bool bSmallTrs)
-#endif
 {
   UInt uiCoeffOffset = uiWidth*uiHeight;
   if( uiMaxDepth == uiCurrDepth )
@@ -1155,11 +1151,7 @@ Void TEncSearch::xRecurIntraLumaSearchADI( TComDataCU* pcCU, UInt uiAbsPartIdx, 
       bLeftAvail=bLeft;
     }
     
-#if HHI_AIS
-    predIntraLumaAng( pcCU->getPattern(), uiMode, bSmoothing, piPred, uiStride, uiWidth, uiHeight, pcCU, bAboveAvail, bLeftAvail );
-#else
     predIntraLumaAng( pcCU->getPattern(), uiMode, piPred, uiStride, uiWidth, uiHeight, pcCU, bAboveAvail, bLeftAvail );
-#endif
     
     // CIP
     if ( pcCU->getCIPflag( uiAbsPartIdx ) )
@@ -1268,35 +1260,19 @@ Void TEncSearch::xRecurIntraLumaSearchADI( TComDataCU* pcCU, UInt uiAbsPartIdx, 
     Pel* pResi = piResi;
     Pel* pReco = piReco;
     Pel* pPred = piPred;
-#if HHI_AIS
-    xRecurIntraLumaSearchADI( pcCU, uiAbsPartIdx, pOrg, pPred, pResi, pReco, uiStride, piCoeff, uiMode, bSmoothing, uiWidth, uiHeight, uiMaxDepth, uiCurrDepth, false, false,true);
-#else
     xRecurIntraLumaSearchADI( pcCU, uiAbsPartIdx, pOrg, pPred, pResi, pReco, uiStride, piCoeff, uiMode, uiWidth, uiHeight, uiMaxDepth, uiCurrDepth, false, false,true);
-#endif
     uiAbsPartIdx += uiPartOffset;
     pOrg = piOrg+uiWidth; pPred = piPred+uiWidth; pResi = piResi+uiWidth; pReco = piReco+uiWidth;
     piCoeff += uiCoeffOffset;
-#if HHI_AIS
-    xRecurIntraLumaSearchADI( pcCU, uiAbsPartIdx, pOrg, pPred, pResi, pReco, uiStride, piCoeff, uiMode, bSmoothing, uiWidth, uiHeight, uiMaxDepth, uiCurrDepth, false, false, true);
-#else
     xRecurIntraLumaSearchADI( pcCU, uiAbsPartIdx, pOrg, pPred, pResi, pReco, uiStride, piCoeff, uiMode, uiWidth, uiHeight, uiMaxDepth, uiCurrDepth, false, false,true);
-#endif
     uiAbsPartIdx += uiPartOffset;
     pOrg = piOrg+uiPelOffset; pPred = piPred+uiPelOffset; pResi = piResi+uiPelOffset; pReco = piReco+uiPelOffset;
     piCoeff += uiCoeffOffset;
-#if HHI_AIS
-    xRecurIntraLumaSearchADI( pcCU, uiAbsPartIdx, pOrg, pPred, pResi, pReco, uiStride, piCoeff, uiMode, bSmoothing, uiWidth, uiHeight, uiMaxDepth, uiCurrDepth, false, false,true);
-#else
     xRecurIntraLumaSearchADI( pcCU, uiAbsPartIdx, pOrg, pPred, pResi, pReco, uiStride, piCoeff, uiMode, uiWidth, uiHeight, uiMaxDepth, uiCurrDepth, false, false,true);
-#endif
     uiAbsPartIdx += uiPartOffset;
     pOrg = piOrg+uiPelOffset+uiWidth; pPred = piPred+uiPelOffset+uiWidth; pResi = piResi+uiPelOffset+uiWidth; pReco = piReco+uiPelOffset+uiWidth;
     piCoeff += uiCoeffOffset;
-#if HHI_AIS
-    xRecurIntraLumaSearchADI( pcCU, uiAbsPartIdx, pOrg, pPred, pResi, pReco, uiStride, piCoeff, uiMode, bSmoothing, uiWidth, uiHeight, uiMaxDepth, uiCurrDepth, false, false, true);
-#else
     xRecurIntraLumaSearchADI( pcCU, uiAbsPartIdx, pOrg, pPred, pResi, pReco, uiStride, piCoeff, uiMode, uiWidth, uiHeight, uiMaxDepth, uiCurrDepth, false, false,true);
-#endif
   }
 }
 
@@ -1490,9 +1466,6 @@ TEncSearch::xEncIntraHeader( TComDataCU*  pcCU,
       if( uiAbsPartIdx == 0 )
       {
         m_pcEntropyCoder->encodeIntraDirModeLuma ( pcCU, 0 );
-#if HHI_AIS
-        m_pcEntropyCoder->encodeIntraFiltFlagLuma( pcCU, 0 );
-#endif
       }
     }
     else
@@ -1505,19 +1478,10 @@ TEncSearch::xEncIntraHeader( TComDataCU*  pcCU,
         {
           m_pcEntropyCoder->encodeIntraDirModeLuma ( pcCU, uiPart * uiQNumParts );
         }
-#if HHI_AIS
-        for( UInt uiPart = 0; uiPart < 4; uiPart++ )
-        {
-          m_pcEntropyCoder->encodeIntraFiltFlagLuma( pcCU, uiPart * uiQNumParts );
-        }
-#endif
       }
       else if( ( uiAbsPartIdx % uiQNumParts ) == 0 )
       {
         m_pcEntropyCoder->encodeIntraDirModeLuma ( pcCU, uiAbsPartIdx );
-#if HHI_AIS
-        m_pcEntropyCoder->encodeIntraFiltFlagLuma( pcCU, uiAbsPartIdx );
-#endif
       }
     }
   }
@@ -1603,9 +1567,6 @@ TEncSearch::xIntraCodingLumaBlk( TComDataCU* pcCU,
                                 TComYuv*    pcResiYuv, 
                                 UInt&       ruiDist )
 {
-#if HHI_AIS
-  Bool    bIntraSmoothing   = pcCU     ->getLumaIntraFiltFlag( uiAbsPartIdx );
-#endif
   UInt    uiLumaPredMode    = pcCU     ->getLumaIntraDir     ( uiAbsPartIdx );
   UInt    uiFullDepth       = pcCU     ->getDepth   ( 0 )  + uiTrDepth;
   UInt    uiWidth           = pcCU     ->getWidth   ( 0 ) >> uiTrDepth;
@@ -1634,11 +1595,7 @@ TEncSearch::xIntraCodingLumaBlk( TComDataCU* pcCU,
   pcCU->getPattern()->initAdiPattern( pcCU, uiAbsPartIdx, uiTrDepth, m_piYuvExt, m_iYuvExtStride, m_iYuvExtHeight, bAboveAvail, bLeftAvail );
   
   //===== get prediction signal =====
-#if HHI_AIS
-  predIntraLumaAng( pcCU->getPattern(), uiLumaPredMode, bIntraSmoothing, piPred, uiStride, uiWidth, uiHeight, pcCU, bAboveAvail, bLeftAvail );
-#else
   predIntraLumaAng( pcCU->getPattern(), uiLumaPredMode, piPred, uiStride, uiWidth, uiHeight, pcCU, bAboveAvail, bLeftAvail );
-#endif
     
   //===== get residual signal =====
   if( pcCU->getCIPflag( uiAbsPartIdx ) )
@@ -2330,10 +2287,6 @@ TEncSearch::estIntraPredQT( TComDataCU* pcCU,
   UInt    uiWidthBit     = pcCU->getIntraSizeIdx(0);
   UInt    uiOverallDistY = 0;
   UInt    uiOverallDistC = 0;
-#if HHI_AIS
-  Bool    bAISEnabled    = pcCU->getSlice()->getSPS()->getUseAIS();
-  Bool    bDefaultIS     = ( bAISEnabled ? true : DEFAULT_IS );
-#endif
 #if SAMSUNG_FAST_UDI
   UInt    CandNum;
   UInt    CandModeList[ FAST_UDI_MAX_RDMODE_NUM ];
@@ -2378,11 +2331,7 @@ TEncSearch::estIntraPredQT( TComDataCU* pcCU,
       if ( !predIntraLumaDirAvailable( uiMode, uiWidthBit, bAboveAvail, bLeftAvail ) )
         continue;
       
-#if HHI_AIS
-      predIntraLumaAng( pcCU->getPattern(), uiMode, bDefaultIS, piPred, uiStride, uiWidth, uiHeight, pcCU, bAboveAvail, bLeftAvail );
-#else
       predIntraLumaAng( pcCU->getPattern(), uiMode, piPred, uiStride, uiWidth, uiHeight, pcCU, bAboveAvail, bLeftAvail );
-#endif
       
       // use hadamard transform here
       UInt uiSad = m_pcRdCost->calcHAD( piOrg, uiStride, piPred, uiStride, uiWidth, uiHeight );
@@ -2432,15 +2381,9 @@ TEncSearch::estIntraPredQT( TComDataCU* pcCU,
     //===== check modes (using r-d costs) =====
 #if HHI_RQT_INTRA_SPEEDUP_MOD
     UInt   uiSecondBestMode  = MAX_UINT;
-#if HHI_AIS
-    Bool   bSecondBestISMode = bDefaultIS;
-#endif
     Double dSecondBestPUCost = MAX_DOUBLE;
 #endif
 
-#if HHI_AIS
-    Bool    bBestISMode   = bDefaultIS;
-#endif
     UInt    uiBestPUMode  = 0;
     UInt    uiBestPUDistY = 0;
     UInt    uiBestPUDistC = 0;
@@ -2454,12 +2397,7 @@ TEncSearch::estIntraPredQT( TComDataCU* pcCU,
         continue;
       
       pcCU->setLumaIntraDirSubParts ( uiOrgMode, uiPartOffset, uiDepth + uiInitTrDepth );
-      
-#if HHI_AIS
-      // set intra smoothing mode
-      pcCU->setLumaIntraFiltFlagSubParts( bBestISMode, uiPartOffset, uiDepth + uiInitTrDepth );
-#endif
-      
+     
       // set context models
       if( m_bUseSBACRD )
       {
@@ -2511,109 +2449,18 @@ TEncSearch::estIntraPredQT( TComDataCU* pcCU,
 #endif
     } // Mode loop
     
-    
-#if HHI_AIS
-    //===== test all or selected modes with modified intra smoothing (execpt intra DC) =====
-    if( bAISEnabled )
-    {
-      Bool bTestISMode = !bBestISMode;
-      for( UInt uiMode = uiMinMode; uiMode < uiNewMaxMode; uiMode++ )
-      {
-        if( uiRdModeList[uiMode] == 2 )
-        {
-          continue;
-        }
-#if AIS_TEST_BEST
-        if( uiRdModeList[uiMode] != uiBestPUMode )
-        {
-          continue;
-        }
-#endif
-        
-        // set luma prediction mode
-        UInt uiOrgMode = uiRdModeList[uiMode];
-        
-        if ( !predIntraLumaDirAvailable( uiOrgMode, uiWidthBit, bAboveAvail, bLeftAvail ) )
-          continue;
-        
-        pcCU->setLumaIntraDirSubParts ( uiOrgMode, uiPartOffset, uiDepth + uiInitTrDepth );
-        
-        // set intra smoothing mode
-        pcCU->setLumaIntraFiltFlagSubParts( bTestISMode, uiPartOffset, uiDepth + uiInitTrDepth );
-        
-        // set context models
-        if( m_bUseSBACRD )
-        {
-          if( uiPU )  m_pcRDGoOnSbacCoder->load( m_pppcRDSbacCoder[uiDepth+1][CI_NEXT_BEST] );
-          else        m_pcRDGoOnSbacCoder->load( m_pppcRDSbacCoder[uiDepth  ][CI_CURR_BEST] );
-        }
-        
-        // determine residual for partition
-        UInt   uiPUDistY = 0;
-        UInt   uiPUDistC = 0;
-        Double dPUCost   = 0.0;
-#if HHI_RQT_INTRA_SPEEDUP
-        xRecurIntraCodingQT( pcCU, uiInitTrDepth, uiPartOffset, bLumaOnly, pcOrgYuv, pcPredYuv, pcResiYuv, uiPUDistY, uiPUDistC, true, dPUCost );
-#else
-        xRecurIntraCodingQT( pcCU, uiInitTrDepth, uiPartOffset, bLumaOnly, pcOrgYuv, pcPredYuv, pcResiYuv, uiPUDistY, uiPUDistC, dPUCost );
-#endif
-        // check r-d cost
-        if( dPUCost < dBestPUCost )
-        {
-#if HHI_RQT_INTRA_SPEEDUP_MOD
-          uiSecondBestMode  = uiBestPUMode;
-          bSecondBestISMode = bBestISMode;
-          dSecondBestPUCost = dBestPUCost;
-#endif
-          bBestISMode   = bTestISMode;
-          uiBestPUMode  = uiOrgMode;
-          uiBestPUDistY = uiPUDistY;
-          uiBestPUDistC = uiPUDistC;
-          dBestPUCost   = dPUCost;
-          
-          xSetIntraResultQT( pcCU, uiInitTrDepth, uiPartOffset, bLumaOnly, pcRecoYuv );
-          
-          UInt uiQPartNum = pcCU->getPic()->getNumPartInCU() >> ( ( pcCU->getDepth(0) + uiInitTrDepth ) << 1 );
-          ::memcpy( m_puhQTTempTrIdx,  pcCU->getTransformIdx()       + uiPartOffset, uiQPartNum * sizeof( UChar ) );
-          ::memcpy( m_puhQTTempCbf[0], pcCU->getCbf( TEXT_LUMA     ) + uiPartOffset, uiQPartNum * sizeof( UChar ) );
-          ::memcpy( m_puhQTTempCbf[1], pcCU->getCbf( TEXT_CHROMA_U ) + uiPartOffset, uiQPartNum * sizeof( UChar ) );
-          ::memcpy( m_puhQTTempCbf[2], pcCU->getCbf( TEXT_CHROMA_V ) + uiPartOffset, uiQPartNum * sizeof( UChar ) );
-          
-          if( m_bUseSBACRD )
-          {
-            m_pcRDGoOnSbacCoder->store( m_pppcRDSbacCoder[uiDepth+1][CI_NEXT_BEST] );
-          }
-        }
-#if HHI_RQT_INTRA_SPEEDUP_MOD
-        else if( dPUCost < dSecondBestPUCost )
-        {
-          uiSecondBestMode  = uiOrgMode;
-          bSecondBestISMode = bTestISMode;
-          dSecondBestPUCost = dPUCost;
-        }
-#endif
-      } // Mode loop
-    } // AIS enabled
-#endif
-    
 #if HHI_RQT_INTRA_SPEEDUP
 #if HHI_RQT_INTRA_SPEEDUP_MOD
     for( UInt ui =0; ui < 2; ++ui )
 #endif
     {
 #if HHI_RQT_INTRA_SPEEDUP_MOD
-#if HHI_AIS
-      Bool bTestISMode = ui ? bSecondBestISMode : bBestISMode;
-#endif
       UInt uiOrgMode   = ui ? uiSecondBestMode  : uiBestPUMode;
       if( uiOrgMode == MAX_UINT )
       {
         break;
       }
 #else
-#if HHI_AIS
-      Bool bTestISMode = bBestISMode;
-#endif
       UInt uiOrgMode = uiBestPUMode;
 #endif
 
@@ -2621,11 +2468,6 @@ TEncSearch::estIntraPredQT( TComDataCU* pcCU,
         continue;
       
       pcCU->setLumaIntraDirSubParts ( uiOrgMode, uiPartOffset, uiDepth + uiInitTrDepth );
-      
-#if HHI_AIS
-      // set intra smoothing mode
-      pcCU->setLumaIntraFiltFlagSubParts( bTestISMode, uiPartOffset, uiDepth + uiInitTrDepth );
-#endif
       
       // set context models
       if( m_bUseSBACRD )
@@ -2643,9 +2485,6 @@ TEncSearch::estIntraPredQT( TComDataCU* pcCU,
       // check r-d cost
       if( dPUCost < dBestPUCost )
       {
-#if HHI_AIS
-        bBestISMode   = bTestISMode;
-#endif
         uiBestPUMode  = uiOrgMode;
         uiBestPUDistY = uiPUDistY;
         uiBestPUDistC = uiPUDistC;
@@ -2736,9 +2575,6 @@ TEncSearch::estIntraPredQT( TComDataCU* pcCU,
     }
     
     //=== update PU data ====
-#if HHI_AIS
-    pcCU->setLumaIntraFiltFlagSubParts( bBestISMode,  uiPartOffset, uiDepth + uiInitTrDepth );
-#endif
     pcCU->setLumaIntraDirSubParts     ( uiBestPUMode, uiPartOffset, uiDepth + uiInitTrDepth );
     pcCU->copyToPic                   ( uiDepth, uiPU, uiInitTrDepth );
   } // PU loop
@@ -3107,18 +2943,6 @@ Void TEncSearch::predIntraLumaAdiSearch( TComDataCU* pcCU, TComYuv* pcOrgYuv, TC
   UInt   uiPUMode[4];
   UInt   uiBestMode[4];
   
-#if HHI_AIS
-  // BB: AIS adaptive intra smoothing (filtering)
-  Bool   bUseAIS = pcCU->getSlice()->getSPS()->getUseAIS();
-  Bool   bPUBestFilt = bUseAIS ? true : DEFAULT_IS;
-  Bool   bPUCurrFilt = bPUBestFilt;
-  Bool   bPUFilt[4];    // BB: best per PU
-  Bool   bBestFilt[4];  // BB: best per PU in dQp loop (currently the same)
-  Double dPUNoFiltCost;
-  UInt   uiPUNoFiltBits;
-  UInt   uiPUNoFiltDistortion;
-#endif
-  
   Int    iMindQp        = 0;
   Int    iMaxdQp        = 0;
   Int    idQp;
@@ -3202,11 +3026,7 @@ Void TEncSearch::predIntraLumaAdiSearch( TComDataCU* pcCU, TComYuv* pcOrgYuv, TC
         if ( !predIntraLumaDirAvailable( uiMode, uiWidthBit, bAboveAvail, bLeftAvail ) )
           continue;
         
-#if HHI_AIS
-        predIntraLumaAng( pcPattern, uiMode, bPUCurrFilt, pPred, uiStride, uiWidth, uiHeight, pcCU, bAboveAvail, bLeftAvail );
-#else
         predIntraLumaAng( pcPattern, uiMode, pPred, uiStride, uiWidth, uiHeight, pcCU, bAboveAvail, bLeftAvail );
-#endif
                 
         Pel* piOrgY  = pcOrgYuv  ->getLumaAddr(uiPU, uiWidth);
         Pel* piPreY  = rpcPredYuv->getLumaAddr(uiPU, uiWidth);
@@ -3278,11 +3098,6 @@ Void TEncSearch::predIntraLumaAdiSearch( TComDataCU* pcCU, TComYuv* pcOrgYuv, TC
         uiBits = 0;
         pcCU->setLumaIntraDirSubParts     ( uiOrgMode,   uiPartOffset, uiPartDepth+uiDepth );
         
-#if HHI_AIS
-        bPUCurrFilt    = bUseAIS ? true : DEFAULT_IS;
-        pcCU->setLumaIntraFiltFlagSubParts( bPUCurrFilt, uiPartOffset, uiPartDepth+uiDepth );
-#endif
-        
         if(m_bUseSBACRD)
         {
           if( uiPU )
@@ -3291,11 +3106,7 @@ Void TEncSearch::predIntraLumaAdiSearch( TComDataCU* pcCU, TComYuv* pcOrgYuv, TC
             m_pcRDGoOnSbacCoder->load(m_pppcRDSbacCoder[uiDepth][CI_CURR_BEST]);
         }
         
-#if HHI_AIS
-        xRecurIntraLumaSearchADI( pcCU, uiPartOffset, pOrg, pPred, pResi, pReco, uiStride, pCoeff, uiOrgMode, bPUCurrFilt, uiWidth, uiHeight, uiMaxTrDepth, uiPartDepth, bAboveAvail,bLeftAvail, (uiMaxTrDepth>uiPartDepth)? 1:0);
-#else
         xRecurIntraLumaSearchADI( pcCU, uiPartOffset, pOrg, pPred, pResi, pReco, uiStride, pCoeff, uiOrgMode, uiWidth, uiHeight, uiMaxTrDepth, uiPartDepth, bAboveAvail,bLeftAvail, (uiMaxTrDepth>uiPartDepth)? 1:0);
-#endif
         pcCU->setCuCbfLuma( uiPartOffset, uiMaxTrDepth, uiPartDepth );
         
         
@@ -3316,9 +3127,6 @@ Void TEncSearch::predIntraLumaAdiSearch( TComDataCU* pcCU, TComYuv* pcOrgYuv, TC
         if( dCost < dPUBestCost )
         {
           uiPUBestMode       = uiOrgMode;
-#if HHI_AIS
-          bPUBestFilt        = bPUCurrFilt;
-#endif
           uiPUBestBits       = uiBits;
           uiPUBestDistortion = uiDistortion;
           dPUBestCost        = dCost;
@@ -3327,121 +3135,8 @@ Void TEncSearch::predIntraLumaAdiSearch( TComDataCU* pcCU, TComYuv* pcOrgYuv, TC
             m_pcRDGoOnSbacCoder->store( m_pppcRDSbacCoder[uiNextDepth][CI_TEMP_BEST] );
         }
         
-#if HHI_AIS
-#if !AIS_TEST_BEST
-        // BB: test every mode without filtering (execpt intra DC)
-        ////////////////////////////////////////////////////////////////////////////
-        if ( bUseAIS && (uiOrgMode != 2) )
-        {
-          dPUNoFiltCost        = MAX_DOUBLE;
-          uiPUNoFiltBits       = 0;
-          uiPUNoFiltDistortion = 0;
-          bPUCurrFilt          = false;
-          
-          pcCU->setLumaIntraDirSubParts     ( uiOrgMode,   uiPartOffset, uiPartDepth+uiDepth );
-          pcCU->setLumaIntraFiltFlagSubParts( bPUCurrFilt, uiPartOffset, uiPartDepth+uiDepth );
-          
-          if(m_bUseSBACRD)
-          {
-            if( uiPU )
-              m_pcRDGoOnSbacCoder->load(m_pppcRDSbacCoder[uiNextDepth][CI_NEXT_BEST]);
-            else
-              m_pcRDGoOnSbacCoder->load(m_pppcRDSbacCoder[uiDepth][CI_CURR_BEST]);
-          }
-          
-          xRecurIntraLumaSearchADI( pcCU, uiPartOffset, pOrg, pPred, pResi, pReco, uiStride, pCoeff, uiOrgMode, bPUCurrFilt, uiWidth, uiHeight, uiMaxTrDepth, uiPartDepth, bAboveAvail,bLeftAvail, (uiMaxTrDepth>uiPartDepth)? 1:0);
-          pcCU->setCuCbfLuma( uiPartOffset, uiMaxTrDepth, uiPartDepth );
-          
-          
-          uiPUNoFiltDistortion = m_pcRdCost->getDistPart( pReco, uiStride, pcOrgYuv->getLumaAddr(uiPU, uiWidth), uiStride, uiWidth, uiHeight );
-          
-          if(m_bUseSBACRD)
-          {
-            if( uiPU )
-              m_pcRDGoOnSbacCoder->load(m_pppcRDSbacCoder[uiNextDepth][CI_NEXT_BEST]);
-            else
-              m_pcRDGoOnSbacCoder->load(m_pppcRDSbacCoder[uiDepth][CI_CURR_BEST]);
-          }
-          
-          xAddSymbolBitsIntra( pcCU, pCoeff, uiPU, uiQNumParts, uiPartDepth, 1, uiMaxTrDepth, uiPartDepth, uiWidth, uiHeight, uiPUNoFiltBits );
-          
-          dPUNoFiltCost = m_pcRdCost->calcRdCost( uiPUNoFiltBits, uiPUNoFiltDistortion );
-          
-          if( dPUNoFiltCost < dPUBestCost )
-          {
-            uiPUBestMode       = uiOrgMode;
-            bPUBestFilt        = bPUCurrFilt;
-            uiPUBestBits       = uiPUNoFiltBits;
-            uiPUBestDistortion = uiPUNoFiltDistortion;
-            dPUBestCost        = dPUNoFiltCost;
-            
-            if( m_bUseSBACRD )
-              m_pcRDGoOnSbacCoder->store( m_pppcRDSbacCoder[uiNextDepth][CI_TEMP_BEST] );
-          }
-        }
-        ////////////////////////////////////////////////////////////////////////////
-#endif
-        
-#endif
       } // Mode loop
       
-#if HHI_AIS
-#if AIS_TEST_BEST
-      // BB: test best mode without filtering (execpt intra DC)
-      ////////////////////////////////////////////////////////////////////////////
-      if ( bUseAIS && (uiPUBestMode != 2) )
-      {
-        dPUNoFiltCost        = MAX_DOUBLE;
-        uiPUNoFiltBits       = 0;
-        uiPUNoFiltDistortion = 0;
-        bPUCurrFilt          = false;
-        
-        pcCU->setLumaIntraDirSubParts     ( uiPUBestMode,   uiPartOffset, uiPartDepth+uiDepth );
-        pcCU->setLumaIntraFiltFlagSubParts( bPUCurrFilt, uiPartOffset, uiPartDepth+uiDepth );
-        
-        if(m_bUseSBACRD)
-        {
-          if( uiPU )
-            m_pcRDGoOnSbacCoder->load(m_pppcRDSbacCoder[uiNextDepth][CI_NEXT_BEST]);
-          else
-            m_pcRDGoOnSbacCoder->load(m_pppcRDSbacCoder[uiDepth][CI_CURR_BEST]);
-        }
-        
-        xRecurIntraLumaSearchADI( pcCU, uiPartOffset, pOrg, pPred, pResi, pReco, uiStride, pCoeff, uiPUBestMode, bPUCurrFilt, uiWidth, uiHeight, uiMaxTrDepth, uiPartDepth, bAboveAvail,bLeftAvail, (uiMaxTrDepth>uiPartDepth)? 1:0);
-        pcCU->setCuCbfLuma( uiPartOffset, uiMaxTrDepth, uiPartDepth );
-        
-        
-        uiPUNoFiltDistortion = m_pcRdCost->getDistPart( pReco, uiStride, pcOrgYuv->getLumaAddr(uiPU, uiWidth), uiStride, uiWidth, uiHeight );
-        
-        if(m_bUseSBACRD)
-        {
-          if( uiPU )
-            m_pcRDGoOnSbacCoder->load(m_pppcRDSbacCoder[uiNextDepth][CI_NEXT_BEST]);
-          else
-            m_pcRDGoOnSbacCoder->load(m_pppcRDSbacCoder[uiDepth][CI_CURR_BEST]);
-        }
-        
-        xAddSymbolBitsIntra( pcCU, pCoeff, uiPU, uiQNumParts, uiPartDepth, 1, uiMaxTrDepth, uiPartDepth, uiWidth, uiHeight, uiPUNoFiltBits );
-        
-        dPUNoFiltCost = m_pcRdCost->calcRdCost( uiPUNoFiltBits, uiPUNoFiltDistortion );
-        
-        if( dPUNoFiltCost < dPUBestCost )
-        {
-          bPUBestFilt        = bPUCurrFilt;
-          uiPUBestBits       = uiPUNoFiltBits;
-          uiPUBestDistortion = uiPUNoFiltDistortion;
-          dPUBestCost        = dPUNoFiltCost;
-          
-          if( m_bUseSBACRD )
-            m_pcRDGoOnSbacCoder->store( m_pppcRDSbacCoder[uiNextDepth][CI_TEMP_BEST] );
-        }
-        pcCU->setLumaIntraFiltFlagSubParts( bPUBestFilt,     uiPartOffset, uiPartDepth+uiDepth );
-      }
-      ////////////////////////////////////////////////////////////////////////////
-#endif
-      
-      bPUFilt[uiPU]       = bPUBestFilt;
-#endif
       uiPUMode[uiPU]      = uiPUBestMode;
       uiPUBits           += uiPUBestBits;
       uiPUDistortion     += uiPUBestDistortion;
@@ -3454,9 +3149,6 @@ Void TEncSearch::predIntraLumaAdiSearch( TComDataCU* pcCU, TComYuv* pcOrgYuv, TC
       pCoeff = pcCU->getCoeffY()  + uiCoeffOffset;
       
       pcCU->setLumaIntraDirSubParts     ( uiPUBestMode,    uiPartOffset, uiPartDepth+uiDepth );
-#if HHI_AIS
-      pcCU->setLumaIntraFiltFlagSubParts( bPUBestFilt,     uiPartOffset, uiPartDepth+uiDepth );
-#endif
       
       if(m_bUseSBACRD)
       {
@@ -3466,11 +3158,7 @@ Void TEncSearch::predIntraLumaAdiSearch( TComDataCU* pcCU, TComYuv* pcOrgYuv, TC
           m_pcRDGoOnSbacCoder->load(m_pppcRDSbacCoder[uiDepth][CI_CURR_BEST]);
       }
       
-#if HHI_AIS
-      xRecurIntraLumaSearchADI( pcCU, uiPartOffset, pOrg, pPred, pResi, pReco, uiStride, pCoeff, uiPUBestMode, bPUBestFilt, uiWidth, uiHeight, uiMaxTrDepth, uiPartDepth, bAboveAvail,bLeftAvail,(uiMaxTrDepth>uiPartDepth)? 1:0  );
-#else
       xRecurIntraLumaSearchADI( pcCU, uiPartOffset, pOrg, pPred, pResi, pReco, uiStride, pCoeff, uiPUBestMode, uiWidth, uiHeight, uiMaxTrDepth, uiPartDepth, bAboveAvail,bLeftAvail,(uiMaxTrDepth>uiPartDepth)? 1:0  );
-#endif
       pcCU->setCuCbfLuma( uiPartOffset, uiMaxTrDepth, uiPartDepth );
       
       pcCU->copyToPic(uiDepth, uiPU, uiPartDepth);
@@ -3488,9 +3176,6 @@ Void TEncSearch::predIntraLumaAdiSearch( TComDataCU* pcCU, TComYuv* pcOrgYuv, TC
     if( dPUCost < dBestCost )
     {
       uiBestMode[0] = uiPUMode[0]; uiBestMode[1] = uiPUMode[1]; uiBestMode[2] = uiPUMode[2]; uiBestMode[3] = uiPUMode[3];
-#if HHI_AIS
-      bBestFilt[0]  =  bPUFilt[0];  bBestFilt[1] =  bPUFilt[1];  bBestFilt[2] =  bPUFilt[2];  bBestFilt[3] =  bPUFilt[3];
-#endif
       uiBestDistortion = uiPUDistortion;
       iBestdQp   = idQp;
       dBestCost  = dPUCost;
@@ -3529,9 +3214,6 @@ Void TEncSearch::predIntraLumaAdiSearch( TComDataCU* pcCU, TComYuv* pcOrgYuv, TC
   for( uiPU = 0; uiPU < uiNumPU; uiPU++ )
   {
     pcCU->setLumaIntraDirSubParts     ( uiBestMode[uiPU],     uiPartOffset, uiPartDepth+uiDepth );
-#if HHI_AIS
-    pcCU->setLumaIntraFiltFlagSubParts( bBestFilt[uiPU],      uiPartOffset, uiPartDepth+uiDepth );
-#endif
     
     pOrg     = pcOrgYuv->getLumaAddr(uiPU, uiWidth);
     pResi    = rpcResiYuv->getLumaAddr(uiPU, uiWidth);
@@ -3549,11 +3231,7 @@ Void TEncSearch::predIntraLumaAdiSearch( TComDataCU* pcCU, TComYuv* pcOrgYuv, TC
     pcPattern->initAdiPattern(pcCU, uiPartOffset, uiPartDepth, m_piYuvExt, m_iYuvExtStride, m_iYuvExtHeight, bAboveAvail, bLeftAvail);
     
     
-#if HHI_AIS
-    xRecurIntraLumaSearchADI( pcCU, uiPartOffset, pOrg, pPred, pResi, pReco, uiStride, pCoeff, uiBestMode[uiPU], bBestFilt[uiPU], uiWidth, uiHeight, uiMaxTrDepth, uiPartDepth, bAboveAvail,bLeftAvail,(uiMaxTrDepth>uiPartDepth)? 1:0);
-#else
     xRecurIntraLumaSearchADI( pcCU, uiPartOffset, pOrg, pPred, pResi, pReco, uiStride, pCoeff, uiBestMode[uiPU], uiWidth, uiHeight, uiMaxTrDepth, uiPartDepth, bAboveAvail,bLeftAvail,(uiMaxTrDepth>uiPartDepth)? 1:0);
-#endif
     pcCU->setCuCbfLuma( uiPartOffset, uiMaxTrDepth, uiPartDepth );
     
     pcCU->copyToPic(uiDepth, uiPU, uiPartDepth);
@@ -7848,10 +7526,6 @@ Void  TEncSearch::xAddSymbolBitsIntra( TComDataCU* pcCU, TCoeff* pCoeff, UInt ui
     for( UInt ui = 0; ui < uiNumPart; ui++ )
     {
       m_pcEntropyCoder->encodeIntraDirModeLuma ( pcCU, (uiPU+ui)*uiQNumPart );
-#if HHI_AIS
-      //BB: intra ref. samples filtering flag
-      m_pcEntropyCoder->encodeIntraFiltFlagLuma( pcCU, (uiPU+ui)*uiQNumPart );
-#endif
     }
   }
   else
@@ -7859,10 +7533,6 @@ Void  TEncSearch::xAddSymbolBitsIntra( TComDataCU* pcCU, TCoeff* pCoeff, UInt ui
     for( UInt ui = 0; ui < uiNumPart; ui++ )
     {
       m_pcEntropyCoder->encodeIntraDirModeLuma ( pcCU, (uiPU+ui)*uiQNumPart );
-#if HHI_AIS
-      //BB: intra ref. samples filtering flag
-      m_pcEntropyCoder->encodeIntraFiltFlagLuma( pcCU, (uiPU+ui)*uiQNumPart );
-#endif
     }
   }
   

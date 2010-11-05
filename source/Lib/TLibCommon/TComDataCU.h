@@ -156,9 +156,6 @@ private:
   UChar*        m_puhMergeIndex;      ///< array of merge candidate indices
 #endif
   UChar*        m_puhLumaIntraDir;    ///< array of intra directions (luma)
-#if HHI_AIS
-  Bool*         m_pbLumaIntraFiltFlag;///< BB: array of intra smoothing flags (luma)
-#endif
   UChar*        m_puhChromaIntraDir;  ///< array of intra directions (chroma)
   UChar*        m_puhInterDir;        ///< array of inter directions
   Int*          m_apiMVPIdx[2];       ///< array of motion vector predictor candidates
@@ -358,12 +355,6 @@ public:
   Void          setLumaIntraDir       ( UInt uiIdx, UChar  uh ) { m_puhLumaIntraDir[uiIdx] = uh;      }
   Void          setLumaIntraDirSubParts( UInt uiDir,  UInt uiAbsPartIdx, UInt uiDepth );
 
-#if HHI_AIS
-  Bool*         getLumaIntraFiltFlag  ()                        { return m_pbLumaIntraFiltFlag;       }
-  Bool          getLumaIntraFiltFlag  ( UInt uiIdx )            { return m_pbLumaIntraFiltFlag[uiIdx];}
-  Void          setLumaIntraFiltFlag  ( UInt uiIdx, Bool b )    { m_pbLumaIntraFiltFlag[uiIdx] = b;   }
-  Void          setLumaIntraFiltFlagSubParts( Bool bFlag, UInt uiAbsPartIdx, UInt uiDepth );
-#endif
   UChar*        getChromaIntraDir     ()                        { return m_puhChromaIntraDir;         }
   UChar         getChromaIntraDir     ( UInt uiIdx )            { return m_puhChromaIntraDir[uiIdx];  }
   Void          setChromaIntraDir     ( UInt uiIdx, UChar  uh ) { m_puhChromaIntraDir[uiIdx] = uh;    }
@@ -565,9 +556,6 @@ public:
   UInt          getCtxTransIdx                  ( UInt   uiAbsPartIdx                                 );
   UInt          getCtxIntraDirChroma            ( UInt   uiAbsPartIdx                                 );
   UInt          getCtxCIPFlag                   ( UInt   uiAbsPartIdx                                 );
-#if HHI_AIS
-  UInt          getCtxIntraFiltFlagLumaAng      ( UInt   uiAbsPartIdx                                 );
-#endif
 
   // -------------------------------------------------------------------------------------------------------------------
   // member functions for RD cost storage
