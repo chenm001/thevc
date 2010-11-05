@@ -131,8 +131,6 @@ public:
 
   // access functions of ADI buffers
   Int*  getAdiOrgBuf              ( Int iCuWidth, Int iCuHeight, Int* piAdiBuf );
-  Int*  getAdiFilteredBuf1        ( Int iCuWidth, Int iCuHeight, Int* piAdiBuf );
-  Int*  getAdiFilteredBuf2        ( Int iCuWidth, Int iCuHeight, Int* piAdiBuf );
   Int*  getAdiCbBuf               ( Int iCuWidth, Int iCuHeight, Int* piAdiBuf );
   Int*  getAdiCrBuf               ( Int iCuWidth, Int iCuHeight, Int* piAdiBuf );
 

@@ -318,52 +318,6 @@ Void TComPattern::initAdiPattern( TComDataCU* pcCU, UInt uiZorderIdxInPart, UInt
     }
   }
 
-  Int iBufSize=uiCuHeight2+uiCuWidth2+1;    // BB: left and left above border + above and above right border + top left corner = length of 3. filter buffer
-
-  UInt uiWH = uiWidth*uiHeight;             // BB: number of elements in one buffer
-
-  Int* piFilteredBuf1=piAdiBuf+uiWH;        // BB: 1. filter buffer
-  Int* piFilteredBuf2=piFilteredBuf1+uiWH;  // BB: 2. filter buffer
-  Int* piFilterBuf=piFilteredBuf2+uiWH;     // BB: buffer for 2. filtering (sequential)
-  Int* piFilterBufN=piFilterBuf+iBufSize;   // BB: buffer for 1. filtering (sequential)
-
-  Int l=0;
-  // BB: left border from bottom to top
-  for (i=0;i<uiCuHeight2;i++)
-    piFilterBuf[l++]=piAdiTemp[uiWidth*(uiCuHeight2-i)];
-  // BB: top left corner
-  piFilterBuf[l++]=piAdiTemp[0];
-  // BB: above border from left to right
-  for (i=0;i<uiCuWidth2;i++)
-    piFilterBuf[l++]=piAdiTemp[1+i];
-
-  // BB: 1. filtering with [1 2 1]
-  piFilterBufN[0]=piFilterBuf[0];
-  piFilterBufN[iBufSize-1]=piFilterBuf[iBufSize-1];
-  for (i=1;i<iBufSize-1;i++)
-    piFilterBufN[i]=(piFilterBuf[i-1]+2*piFilterBuf[i]+piFilterBuf[i+1]+2)>>2;
-
-  // BB: fill 1. filter buffer with filtered values
-  l=0;
-  for (i=0;i<uiCuHeight2;i++)
-    piFilteredBuf1[uiWidth*(uiCuHeight2-i)]=piFilterBufN[l++];
-  piFilteredBuf1[0]=piFilterBufN[l++];
-  for (i=0;i<uiCuWidth2;i++)
-    piFilteredBuf1[1+i]=piFilterBufN[l++];
-
-  // BB: 2. filtering with [1 2 1]
-  piFilterBuf[0]=piFilterBufN[0];                   //BB: needed? value not modified
-  piFilterBuf[iBufSize-1]=piFilterBufN[iBufSize-1]; //BB: needed? value not modified
-  for (i=1;i<iBufSize-1;i++)
-    piFilterBuf[i]=(piFilterBufN[i-1]+2*piFilterBufN[i]+piFilterBufN[i+1]+2)>>2;
-
-  // BB: fill 2. filter buffer with filtered values
-  l=0;
-  for (i=0;i<uiCuHeight2;i++)
-    piFilteredBuf2[uiWidth*(uiCuHeight2-i)]=piFilterBuf[l++];
-  piFilteredBuf2[0]=piFilterBuf[l++];
-  for (i=0;i<uiCuWidth2;i++)
-    piFilteredBuf2[1+i]=piFilterBuf[l++];
 }
 
 #if HHI_RQT_INTRA
@@ -533,16 +487,6 @@ Pel* TComPattern::getROIYBlk( Int iLumaBlkIdx )
 Int* TComPattern::getAdiOrgBuf( Int iCuWidth, Int iCuHeight, Int* piAdiBuf)
 {
   return piAdiBuf;
-}
-
-Int* TComPattern::getAdiFilteredBuf1(Int iCuWidth,Int iCuHeight, Int* piAdiBuf)
-{
-  return piAdiBuf+((iCuWidth<<1)+1)*((iCuHeight<<1)+1);
-}
-
-Int* TComPattern::getAdiFilteredBuf2(Int iCuWidth,Int iCuHeight, Int* piAdiBuf)
-{
-  return piAdiBuf+(((iCuWidth<<1)+1)*((iCuHeight<<1)+1)<<1);
 }
 
 Int* TComPattern::getAdiCbBuf( Int iCuWidth, Int iCuHeight, Int* piAdiBuf)
