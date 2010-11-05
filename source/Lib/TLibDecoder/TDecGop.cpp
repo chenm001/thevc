@@ -136,12 +136,7 @@ Void TDecGop::decompressGop (Bool bEos, TComBitstream* pcBitstream, TComPic*& rp
     m_pcAdaptiveLoopFilter->setNumCUsInFrame(rpcPic);
 #endif
     m_pcAdaptiveLoopFilter->allocALFParam(&cAlfParam);
-#if HHI_ALF
-    m_pcEntropyDecoder->decodeAlfParam(&cAlfParam, rpcPic );
-    rpcPic->getSlice()->getSPS()->setALfSeparateQt( cAlfParam.bSeparateQt );
-#else
     m_pcEntropyDecoder->decodeAlfParam( &cAlfParam );
-#endif
   }
 
   m_pcSliceDecoder->decompressSlice(pcBitstream, rpcPic);
@@ -154,12 +149,6 @@ Void TDecGop::decompressGop (Bool bEos, TComBitstream* pcBitstream, TComPic*& rp
   if( rpcPic->getSlice()->getSPS()->getUseALF() )
   {
     m_pcAdaptiveLoopFilter->ALFProcess(rpcPic, &cAlfParam);
-#if HHI_ALF
-    if( cAlfParam.bSeparateQt && cAlfParam.cu_control_flag )
-    {
-      m_pcAdaptiveLoopFilter->destroyQuadTree(&cAlfParam);
-    }
-#endif
     m_pcAdaptiveLoopFilter->freeALFParam(&cAlfParam);
   }
 

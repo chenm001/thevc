@@ -126,13 +126,6 @@ protected:
   // coding tools (loop filter)
   Bool      m_bUseALF;                                        ///< flag for using adaptive loop filter
 
-#if HHI_ALF
-  Bool      m_bALFUseSeparateQT;                              ///< flag for using a separate quad tree
-  Bool      m_bALFFilterSymmetry;                             ///< flag for using symmetric filter
-  Int       m_iAlfMinLength;                                  ///< minimum filter length to test
-  Int       m_iAlfMaxLength;                                  ///< maximum filter length to test
-#endif
-
   Bool      m_bLoopFilterDisable;                             ///< flag for using deblocking filter
   Int       m_iLoopFilterAlphaC0Offset;                       ///< alpha offset for deblocking filter
   Int       m_iLoopFilterBetaOffset;                          ///< beta offset for deblocking filter

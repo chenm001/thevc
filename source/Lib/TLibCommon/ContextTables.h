@@ -111,9 +111,6 @@
 #define NUM_PLANAR_INTRA_CTX          2
 #endif
 
-#if HHI_ALF
-#define NUM_ALF_SPLITFLAG_CTX         1       ///< number of context models for ALF split flag
-#endif
 #ifdef QC_AMVRES
 #define NUM_MV_RES_FALG_CTX			  3			  ///< number of context models for motion vector resolution flag
 #endif
@@ -1598,23 +1595,6 @@ INIT_ALF_FLAG[3][NUM_ALF_FLAG_CTX][2] =
     {  -12,   68 }
   }
 };
-
-#if HHI_ALF
-// initial probability for ALF flag
-static const Short
-INIT_ALF_SPLITFLAG[3][NUM_ALF_SPLITFLAG_CTX][2] =
-{
-  {
-    {  -13,   77 }
-  },
-  {
-    {  -23,   87 }
-  },
-  {
-    {  -34,   98 }
-  }
-};
-#endif
 
 // initial probability for ALF side information (unsigned)
 static const Short

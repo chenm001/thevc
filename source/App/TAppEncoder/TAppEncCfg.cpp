@@ -239,12 +239,6 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
 #endif
     ("ROT", m_bUseROT, true)
     ("ALF", m_bUseALF, true, "Adaptive Loop Filter")
-#if HHI_ALF
-    ("ALFSeparateTree", m_bALFUseSeparateQT, true)
-    ("ALFSymmetry", m_bALFFilterSymmetry, false)
-    ("ALFMinLength", m_iAlfMinLength, 5)
-    ("ALFMaxLength", m_iAlfMaxLength, 9)
-#endif
     ("AMP", m_bUseAMP, true, "Asymmetric motion partition")
 #if HHI_RMP_SWITCH
     ("RMP", m_bUseRMP ,true, "Rectangular motion partition" )

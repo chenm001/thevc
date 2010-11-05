@@ -187,12 +187,6 @@ public:
   Void parseAlfCtrlFlag     ( UInt &ruiAlfCtrlFlag );
 #endif
 
-#if HHI_ALF
-  Void parseAlfCoeff        ( Int& riCoeff, Int iLength, Int iPos );
-  Void parseAlfDc           ( Int& riDc    );
-  Void parseAlfQTCtrlFlag   ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
-  Void parseAlfQTSplitFlag  ( TComDataCU* pcCU ,UInt uiAbsPartIdx, UInt uiDepth, UInt uiMaxDepth );
-#endif
 #ifdef QC_SIFO
   Void  parseSwitched_Filters      (TComSlice*& rpcSlice, TComPrediction* m_cPrediction);
 #endif

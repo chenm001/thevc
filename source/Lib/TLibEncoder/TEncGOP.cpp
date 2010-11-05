@@ -414,18 +414,7 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
         m_pcEntropyCoder->resetEntropy    ();
         m_pcEntropyCoder->setBitstream    ( m_pcBitCounter );
 
-#if HHI_ALF
-        if ( pcSlice->getSymbolMode() )
-        {
-          m_pcAdaptiveLoopFilter->startALFEnc(pcPic, m_pcEntropyCoder, m_pcEncTop->getRDSbacCoder(), m_pcCfg->getUseSBACRD() ?  m_pcEncTop->getRDGoOnSbacCoder() : NULL );
-        }
-        else
-        {
-          m_pcAdaptiveLoopFilter->startALFEnc(pcPic, m_pcEntropyCoder, NULL , NULL );
-        }
-#else
         m_pcAdaptiveLoopFilter->startALFEnc(pcPic, m_pcEntropyCoder );
-#endif
 
         UInt uiMaxAlfCtrlDepth;
 
@@ -486,14 +475,6 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
         {
           m_pcEntropyCoder->encodeAlfCtrlParam(&cAlfParam);
         }
-#else
-#if HHI_ALF
-        if( pcSlice->getSPS()->getALFSeparateQt() && cAlfParam.cu_control_flag )
-        {
-          m_pcAdaptiveLoopFilter->encodeQuadTree ( &cAlfParam, m_pcEntropyCoder, uiMaxAlfCtrlDepth );
-          m_pcAdaptiveLoopFilter->destroyQuadTree( &cAlfParam );
-        }
-#endif
 #endif
 
         m_pcAdaptiveLoopFilter->freeALFParam(&cAlfParam);
@@ -623,11 +604,7 @@ Void TEncGOP::preLoopFilterPicAll( TComPic* pcPic, UInt64& ruiDist, UInt64& ruiB
 #endif
     m_pcAdaptiveLoopFilter->allocALFParam(&cAlfParam);
 
-#if HHI_ALF
-    m_pcAdaptiveLoopFilter->startALFEnc(pcPic, m_pcEntropyCoder, m_pcEncTop->getRDSbacCoder(), m_pcEncTop->getRDGoOnSbacCoder() );
-#else
     m_pcAdaptiveLoopFilter->startALFEnc(pcPic, m_pcEntropyCoder);
-#endif
 
     UInt uiMaxAlfCtrlDepth;
     m_pcAdaptiveLoopFilter->ALFProcess(&cAlfParam, pcPic->getSlice()->getLambda(), ruiDist, ruiBits, uiMaxAlfCtrlDepth );

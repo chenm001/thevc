@@ -259,14 +259,7 @@ enum NalUnitType
   NAL_UNIT_INVALID,
 };
 
-
-#if HHI_ALF
-typedef _AlfParamHHI ALFParam;
-#define ALF_MIN_LENGTH                    3           ///< MS: mimimum allowed filter length
-#define ALF_DC_CONSIDERED                 0           ///< MS: consider dc offset in estimation of coefficients
-#else
 typedef _AlfParam    ALFParam;
-#endif
 
 #ifdef DCM_PBIC
 

@@ -143,12 +143,6 @@ public:
   virtual Void parseAlfCtrlFlag   ( UInt &ruiAlfCtrlFlag ) = 0;
 #endif
 
-#if HHI_ALF
-  virtual Void parseAlfCoeff      ( Int&  riCoeff, Int iLength, Int iPos                               ) = 0;
-  virtual Void parseAlfDc         ( Int&  riDc                                                         ) = 0;
-  virtual Void parseAlfQTCtrlFlag ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth ) = 0;
-  virtual Void parseAlfQTSplitFlag( TComDataCU* pcCU ,UInt uiAbsPartIdx, UInt uiDepth, UInt uiMaxDepth ) = 0;
-#endif
 };
 
 /// entropy decoder class
@@ -193,11 +187,7 @@ public:
 #endif
 
   // Adaptive Loop filter
-#if HHI_ALF
-  Void decodeAlfParam(ALFParam* pAlfParam , TComPic* pcPic );
-#else
   Void decodeAlfParam(ALFParam* pAlfParam);
-#endif
   //--Adaptive Loop filter
 
   TDecEntropyIf* getEntropyDecoder() { return m_pcEntropyDecoderIf; }
@@ -217,11 +207,6 @@ public:
   Void decodeAlfCtrlFlag       ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
 #if TSB_ALF_HEADER
   Void decodeAlfCtrlParam      ( ALFParam *pAlfParam );
-#endif
-
-#if HHI_ALF
-  Void decodeAlfQuadTree       ( TComPicSym* pcQuadTree, UInt uiMaxDepth );
-  Void decodeAlfQuadTreeNode   ( TComPicSym* pcQuadTree, TComDataCU* pcCU, UInt uiabsPartIdx, UInt uiDepth, UInt uiMaxDepth);
 #endif
 
   Void decodePredMode          ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );

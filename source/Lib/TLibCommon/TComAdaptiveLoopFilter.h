@@ -42,14 +42,6 @@
 // Constants
 // ====================================================================================================================
 
-#if HHI_ALF
-#define ALF_MAX_NUM_TAP       12                                         ///< maximum number of filter taps (9x9)
-#define ALF_MAX_VERT_LENGTH   9
-#define ALF_MAX_HORIZ_LENGTH  9
-#define ALF_FILT_FOR_CHROMA   2                                         ///< number of filter used for chroma planes
-#define ALF_MAX_NUM_COEF      12                                         ///< maximum number of filter coefficients
-#define ALF_NUM_BIT_SHIFT     8                                         ///< bit shift parameter for quantization of ALF param.
-#else
 #define ALF_MAX_NUM_TAP       9                                       ///< maximum number of filter taps (9x9)
 #define ALF_MIN_NUM_TAP       5                                       ///< minimum number of filter taps (5x5)
 #define ALF_MAX_NUM_TAP_C     5                                       ///< number of filter taps for chroma (5x5)
@@ -93,78 +85,11 @@ extern Int *pDepthIntTab[NO_TEST_FILT];
 void destroyMatrix_int(int **m2D);
 void initMatrix_int(int ***m2D, int d1, int d2);
 #endif
-#endif
 
 // ====================================================================================================================
 // Class definition
 // ====================================================================================================================
 
-#if HHI_ALF
-/// adaptive loop filter class
-class TComAdaptiveLoopFilter
-{
-protected:
-
-  // temporary picture buffer
-  TComPicYuv*   m_pcTempPicYuv;                                         ///< temporary picture buffer for ALF processing
-
-
-  // ------------------------------------------------------------------------------------------------------------------
-  // For luma component
-  // ------------------------------------------------------------------------------------------------------------------
-
-  /// ALF for luma component
-  Void  xALFLuma          ( TComPic* pcPic, ALFParam* pcAlfParam, TComPicYuv* pcPicRest );
-  Void  xALFFilter        ( TComPic* pcPic, ALFParam* pcAlfParam, TComPicYuv* pcPicRest, Int iPlane);
-
-  /// sub function: CU-adaptive ALF process for luma
-  Void  xCUAdaptive       ( TComPicSym*  pcPicSym, AlfFilter& rcFilter, TComPicYuv* pcPicDec, TComPicYuv* pcPicRest );
-  Void  xSubCUAdaptive    ( TComPicSym* pcQuadTree, TComDataCU*  pcCU    , AlfFilter& rcFilter, TComPicYuv* pcPicDec, TComPicYuv* pcPicRest, UInt uiAbsPartIdx, UInt uiDepth);
-  Void  xCopyDecToRestCUs ( TComPicSym*  pcQuadTree, TComPicYuv* pcPicDec, TComPicYuv* pcPicRest);
-  Void  xCopyDecToRestCU  ( TComPicSym* pcQuadTree, TComDataCU*  pcCU, UInt uiAbsPartIdx, UInt uiDepth, TComPicYuv* pcPicDec, TComPicYuv* pcPicRest);
-  /// sub function: non-adaptive ALF process for luma
-  Void  xApplyFrame       ( TComPicYuv* pcPicDec, TComPicYuv* pcPicRest, AlfFilter& rcFilter );
-  Void  xApplyFrame       ( TComPicYuv* pcPicDec, TComPicYuv* pcPicRest, AlfFilter& rcFilter, Int iPlane );
-
-  Void  xApplyFilter      ( Pel* pDec, Pel* pRest, Int iWidth, Int iHeight, Int iDecStride, Int iRestStride, AlfFilter& rcFilter );
-  Void  xApplyFilter      ( Pel* pDec, Pel* pRest, Int iWidth, Int iHeight, Int iDecStride, Int iRestStride, AlfFilter& rcFilter,Int iOffsetX, Int iOffsetY, Int iMaxX, Int iMaxY );
-  // ------------------------------------------------------------------------------------------------------------------
-  // For chroma component
-  // ------------------------------------------------------------------------------------------------------------------
-
-  /// ALF for chroma component
-  Void  xALFChroma      ( ALFParam* pcAlfParam, TComPicYuv* pcPicDec, TComPicYuv* pcPicRest );
-
-  /// sub function: non-adaptive ALF process for chroma
-  Void  xFrameChroma    ( TComPicYuv* pcPicDec, TComPicYuv* pcPicRest, ALFParam* pcAlfParam , Int iColor );
-
-  Void xFillAlfFilterInitParam ( AlfFilter& rcFilter , Int iLength , Int iSymmetry );
-
-public:
-  TComAdaptiveLoopFilter();
-  virtual ~TComAdaptiveLoopFilter() {}
-
-
-  // initialize & destory temporary buffer
-  Void  create                  ( Int iPicWidth, Int iPicHeight, UInt uiMaxCUWidth, UInt uiMaxCUHeight, UInt uiMaxCUDepth );
-  Void  destroy                 ();
-
-  // alloc & free & set functions
-  Void  allocALFParam           ( ALFParam* pAlfParam );
-  Void  freeALFParam            ( ALFParam* pAlfParam );
-  Void  copyALFParam            ( ALFParam* pDesAlfParam, ALFParam* pSrcAlfParam );
-  Void  destroyQuadTree         ( ALFParam* pcAlfParam );
-  Void  copyALFFilter           ( AlfFilter& rDesAlfFilter, AlfFilter& rSrcAlfFilter) ;
-
-  // predict filter coefficients
-  Void  xPredictALFCoeff        ( ALFParam* pAlfParam) ;
-  Void  predictALFCoeff         ( ALFParam* pAlfParam );                  ///< prediction of luma ALF coefficients
-  Void  predictALFCoeffChroma   ( ALFParam* pAlfParam );                  ///< prediction of chroma ALF coefficients
-
-  // interface function
-  Void  ALFProcess              ( TComPic* pcPic, ALFParam* pcAlfParam ); ///< interface function for ALF process
-};
-#else
 /// adaptive loop filter class
 class TComAdaptiveLoopFilter
 {
@@ -307,5 +232,4 @@ public:
 	// interface function
   Void	ALFProcess							( TComPic* pcPic, ALFParam* pcAlfParam );	///< interface function for ALF process
 };
-#endif
 #endif

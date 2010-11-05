@@ -112,9 +112,6 @@ TEncSbac::TEncSbac()
   , m_cALFFlagSCModel         ( 1,             1,               NUM_ALF_FLAG_CTX              )
   , m_cALFUvlcSCModel         ( 1,             1,               NUM_ALF_UVLC_CTX              )
   , m_cALFSvlcSCModel         ( 1,             1,               NUM_ALF_SVLC_CTX              )
-#if HHI_ALF
-  , m_cALFSplitFlagSCModel    ( 1,             1,               NUM_ALF_SPLITFLAG_CTX         )
-#endif
 #if PLANAR_INTRA
   , m_cPlanarIntraSCModel     ( 1,             1,               NUM_PLANAR_INTRA_CTX          )
 #endif
@@ -198,10 +195,6 @@ Void TEncSbac::resetEntropy           ()
   m_cCUROTindexSCModel.initBuffer     ( eSliceType, iQp, (Short*)INIT_ROT_IDX );
   m_cCUCIPflagCCModel.initBuffer      ( eSliceType, iQp, (Short*)INIT_CIP_IDX );
 
-#if HHI_ALF
-  m_cALFSplitFlagSCModel.initBuffer   ( eSliceType, iQp, (Short*)INIT_ALF_SPLITFLAG );	
-#endif
-  
   m_cALFFlagSCModel.initBuffer        ( eSliceType, iQp, (Short*)INIT_ALF_FLAG );
   m_cALFUvlcSCModel.initBuffer        ( eSliceType, iQp, (Short*)INIT_ALF_UVLC );
   m_cALFSvlcSCModel.initBuffer        ( eSliceType, iQp, (Short*)INIT_ALF_SVLC );
@@ -433,12 +426,6 @@ Void TEncSbac::xCopyFrom( TEncSbac* pSrc )
   this->m_cCUCIPflagCCModel   .copyFrom( &pSrc->m_cCUCIPflagCCModel     );
   this->m_cCUXPosiSCModel     .copyFrom( &pSrc->m_cCUXPosiSCModel       );
   this->m_cCUYPosiSCModel     .copyFrom( &pSrc->m_cCUXPosiSCModel       );
-
-#if HHI_ALF
-  this->m_cCUAlfCtrlFlagSCModel .copyFrom( &pSrc->m_cCUAlfCtrlFlagSCModel );
-  this->m_cALFFlagSCModel       .copyFrom( &pSrc->m_cALFFlagSCModel       );
-  this->m_cALFSplitFlagSCModel  .copyFrom( &pSrc->m_cALFSplitFlagSCModel  );
-#endif    
 }
 
 // CIP
@@ -679,158 +666,6 @@ Void TEncSbac::codePredMode( TComDataCU* pcCU, UInt uiAbsPartIdx )
   }
 }
 
-#if HHI_ALF
-Void TEncSbac::codeAlfCoeff( Int iCoeff, Int iLength, Int iPos)
-{
-  if ( iCoeff == 0 )
-  {
-    m_pcBinIf->encodeBin( 0, m_cALFSvlcSCModel.get( 0, 0, 0 ) );
-  }
-  else
-  {
-    m_pcBinIf->encodeBin( 1, m_cALFSvlcSCModel.get( 0, 0, 0 ) );
-
-    // write sign
-    if ( iCoeff > 0 )
-    {
-      m_pcBinIf->encodeBin( 0, m_cALFSvlcSCModel.get( 0, 0, 1 ) );
-    }
-    else
-    {
-      m_pcBinIf->encodeBin( 1, m_cALFSvlcSCModel.get( 0, 0, 1 ) );
-      iCoeff = -iCoeff;
-    }
-
-    Int iM =4;
-    if(iLength==3)
-    {
-      if(iPos == 0)
-        iM = 4 ;
-      else if(iPos == 1)
-        iM = 1 ;
-      else if(iPos == 2)
-        iM = 2 ;
-    }
-    else if(iLength==5)
-    {
-      if(iPos == 0)
-        iM = 3 ;
-      else if(iPos == 1)
-        iM = 5 ;
-      else if(iPos == 2)
-        iM = 1 ;
-      else if(iPos == 3)
-        iM = 3 ;
-      else if(iPos == 4)
-        iM = 2 ;
-    }
-    else if(iLength==7)
-    {
-      if(iPos == 0)
-        iM = 3 ;
-      else if(iPos == 1)
-        iM = 4 ;
-      else if(iPos == 2)
-        iM = 5;
-      else if(iPos == 3)
-        iM = 1 ;
-      else if(iPos == 4)
-        iM = 3 ;
-      else if(iPos == 5)
-       iM = 3 ;
-      else if(iPos == 6)
-       iM = 2 ;
-    }
-    else if(iLength==9)
-    {
-      if(iPos == 0)
-        iM = 2 ;
-      else if(iPos == 1)
-        iM = 4 ;
-      else if(iPos == 2)
-        iM = 4 ;
-      else if(iPos == 3)
-        iM = 5 ;
-      else if(iPos == 4)
-        iM = 1 ;
-      else if(iPos == 5)
-       iM = 3 ;
-      else if(iPos == 6)
-       iM = 3 ;
-      else if(iPos == 7)
-      iM = 3 ;
-     else if(iPos == 8)
-      iM = 2 ;
-    }
-
-    xWriteEpExGolomb( iCoeff , iM );
- }
-}
-
-Void TEncSbac::codeAlfDc( Int iDc )
-{
-  if ( iDc == 0 )
-    {
-      m_pcBinIf->encodeBin( 0, m_cALFSvlcSCModel.get( 0, 0, 0 ) );
-    }
-    else
-    {
-      m_pcBinIf->encodeBin( 1, m_cALFSvlcSCModel.get( 0, 0, 0 ) );
-
-      // write sign
-      if ( iDc > 0 )
-      {
-        m_pcBinIf->encodeBin( 0, m_cALFSvlcSCModel.get( 0, 0, 1 ) );
-      }
-      else
-      {
-        m_pcBinIf->encodeBin( 1, m_cALFSvlcSCModel.get( 0, 0, 1 ) );
-        iDc = -iDc;
-      }
-
-      xWriteEpExGolomb( iDc , 9 );
-    }
-}
-
-
-Void TEncSbac::codeAlfCtrlFlag( TComDataCU* pcCU, UInt uiAbsPartIdx )
-{
-  if (!m_bAlfCtrl)
-    return;
-
-  if( pcCU->getDepth(uiAbsPartIdx) > m_uiMaxAlfCtrlDepth && !pcCU->isFirstAbsZorderIdxInDepth(uiAbsPartIdx, m_uiMaxAlfCtrlDepth))
-  {
-    return;
-  }
-
-  // get context function is here
-  UInt uiSymbol = pcCU->getAlfCtrlFlag( uiAbsPartIdx ) ? 1 : 0;
-  m_pcBinIf->encodeBin( uiSymbol, m_cCUAlfCtrlFlagSCModel.get( 0, 0, pcCU->getCtxAlfCtrlFlag( uiAbsPartIdx) ) );
-}
-
-Void TEncSbac::codeAlfQTCtrlFlag( TComDataCU* pcCU, UInt uiAbsPartIdx )
-{
-  if( pcCU->getDepth(uiAbsPartIdx) > m_uiMaxAlfCtrlDepth && !pcCU->isFirstAbsZorderIdxInDepth(uiAbsPartIdx, m_uiMaxAlfCtrlDepth))
-  {
-    return;
-  }
-
-  // get context function is here
-  UInt uiSymbol = pcCU->getAlfCtrlFlag( uiAbsPartIdx ) ? 1 : 0;
-  m_pcBinIf->encodeBin( uiSymbol, m_cCUAlfCtrlFlagSCModel.get( 0, 0, 0 ) );
-}
-
-Void TEncSbac::codeAlfQTSplitFlag( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth, UInt uiMaxDepth )
-{
-  //if( uiDepth >= uiMaxDepth )
-  if( uiDepth >= g_uiMaxCUDepth - g_uiAddCUDepth ) // fix HS
-    return;
-
-  UInt uiSplitFlag =  ( uiDepth < pcCU->getDepth( uiAbsPartIdx ) ) ? 1 : 0 ;
-  //UInt uiCtx           = pcCU->getCtxSplitFlag( uiAbsPartIdx, uiDepth );
-  m_pcBinIf->encodeBin( uiSplitFlag, m_cALFSplitFlagSCModel.get( 0, 0, 0 ) );
-}
-#else
 Void TEncSbac::codeAlfCtrlFlag( TComDataCU* pcCU, UInt uiAbsPartIdx )
 {
   if (!m_bAlfCtrl)
@@ -846,7 +681,6 @@ Void TEncSbac::codeAlfCtrlFlag( TComDataCU* pcCU, UInt uiAbsPartIdx )
 
   m_pcBinIf->encodeBin( uiSymbol, m_cCUAlfCtrlFlagSCModel.get( 0, 0, pcCU->getCtxAlfCtrlFlag( uiAbsPartIdx) ) );
 }
-#endif
 
 Void TEncSbac::codeAlfCtrlDepth()
 {

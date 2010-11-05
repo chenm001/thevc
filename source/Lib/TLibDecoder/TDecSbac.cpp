@@ -102,9 +102,6 @@ TDecSbac::TDecSbac()
   , m_cALFFlagSCModel         ( 1,             1,               NUM_ALF_FLAG_CTX              )
   , m_cALFUvlcSCModel         ( 1,             1,               NUM_ALF_UVLC_CTX              )
   , m_cALFSvlcSCModel         ( 1,             1,               NUM_ALF_SVLC_CTX              )
-#if HHI_ALF
-  , m_cALFSplitFlagSCModel    ( 1,             1,               NUM_ALF_SPLITFLAG_CTX         )
-#endif
 #if PLANAR_INTRA
   , m_cPlanarIntraSCModel     ( 1,             1,               NUM_PLANAR_INTRA_CTX          )
 #endif
@@ -187,9 +184,6 @@ Void TDecSbac::resetEntropy          (TComSlice* pcSlice)
   m_cCUROTindexSCModel.initBuffer     ( eSliceType, iQp, (Short*)INIT_ROT_IDX );
   m_cCUCIPflagCCModel.initBuffer      ( eSliceType, iQp, (Short*)INIT_CIP_IDX );
 
-#if HHI_ALF
-  m_cALFSplitFlagSCModel.initBuffer   ( eSliceType, iQp, (Short*)INIT_ALF_SPLITFLAG );
-#endif
   m_cALFFlagSCModel.initBuffer        ( eSliceType, iQp, (Short*)INIT_ALF_FLAG );
   m_cALFUvlcSCModel.initBuffer        ( eSliceType, iQp, (Short*)INIT_ALF_UVLC );
   m_cALFSvlcSCModel.initBuffer        ( eSliceType, iQp, (Short*)INIT_ALF_SVLC );
@@ -637,122 +631,6 @@ Void TDecSbac::parseAlfCtrlDepth              ( UInt& ruiAlfCtrlDepth )
   ruiAlfCtrlDepth = uiSymbol;
 }
 
-#if HHI_ALF
-Void TDecSbac::parseAlfCoeff( Int& riCoeff, Int iLength, Int iPos )
-{
-  UInt uiCode;
-  Int  iSign;
-
-
-  m_pcTDecBinIf->decodeBin( uiCode, m_cALFSvlcSCModel.get( 0, 0, 0 ) );
-
-  if ( uiCode == 0 )
-  {
-    riCoeff = 0;
-    return;
-  }
-
-  // read sign
-  m_pcTDecBinIf->decodeBin( uiCode, m_cALFSvlcSCModel.get( 0, 0, 1 ) );
-
-  if ( uiCode == 0 ) iSign =  1;
-  else               iSign = -1;
-
-  Int iM =4;
-  if(iLength==3)
-  {
-    if(iPos == 0)
-      iM = 4 ;
-    else if(iPos == 1)
-      iM = 1 ;
-    else if(iPos == 2)
-      iM = 2 ;
-  }
-  else if(iLength==5)
-  {
-    if(iPos == 0)
-      iM = 3 ;
-    else if(iPos == 1)
-      iM = 5 ;
-    else if(iPos == 2)
-      iM = 1 ;
-    else if(iPos == 3)
-      iM = 3 ;
-    else if(iPos == 4)
-      iM = 2 ;
-  }
-  else if(iLength==7)
-  {
-    if(iPos == 0)
-      iM = 3 ;
-    else if(iPos == 1)
-      iM = 4 ;
-    else if(iPos == 2)
-      iM = 5;
-    else if(iPos == 3)
-      iM = 1 ;
-    else if(iPos == 4)
-      iM = 3 ;
-    else if(iPos == 5)
-     iM = 3 ;
-    else if(iPos == 6)
-     iM = 2 ;
-  }
-  else if(iLength==9)
-  {
-    if(iPos == 0)
-      iM = 2 ;
-    else if(iPos == 1)
-      iM = 4 ;
-    else if(iPos == 2)
-      iM = 4 ;
-    else if(iPos == 3)
-      iM = 5 ;
-    else if(iPos == 4)
-      iM = 1 ;
-    else if(iPos == 5)
-     iM = 3 ;
-    else if(iPos == 6)
-     iM = 3 ;
-    else if(iPos == 7)
-    iM = 3 ;
-   else if(iPos == 8)
-    iM = 2 ;
-  }
-
-  xReadEpExGolomb( uiCode, iM );
-
-  riCoeff = uiCode*iSign;
-
-}
-
-Void TDecSbac::parseAlfDc( Int& riDc    )
-{
-  UInt uiCode;
-  Int  iSign;
-
-
-  m_pcTDecBinIf->decodeBin( uiCode, m_cALFSvlcSCModel.get( 0, 0, 0 ) );
-
-  if ( uiCode == 0 )
-  {
-    riDc = 0;
-    return;
-  }
-
-  // read sign
-  m_pcTDecBinIf->decodeBin( uiCode, m_cALFSvlcSCModel.get( 0, 0, 1 ) );
-
-  if ( uiCode == 0 ) iSign =  1;
-  else               iSign = -1;
-
-
-  xReadEpExGolomb( uiCode, 9 );
-
-  riDc = uiCode*iSign;
-
-}
-
 Void TDecSbac::parseAlfCtrlFlag( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
 {
   if (!m_bAlfCtrl)
@@ -775,60 +653,6 @@ Void TDecSbac::parseAlfCtrlFlag( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDep
     pcCU->setAlfCtrlFlagSubParts( uiSymbol, uiAbsPartIdx, uiDepth );
   }
 }
-
-Void TDecSbac::parseAlfQTCtrlFlag( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
-{
-  if (!m_bAlfCtrl)
-    return;
-
-  if( uiDepth > m_uiMaxAlfCtrlDepth && !pcCU->isFirstAbsZorderIdxInDepth(uiAbsPartIdx, m_uiMaxAlfCtrlDepth))
-  {
-    return;
-  }
-
-  UInt uiSymbol;
-   m_pcTDecBinIf->decodeBin( uiSymbol, m_cCUAlfCtrlFlagSCModel.get( 0, 0, 0 ) );
-    pcCU->setAlfCtrlFlagSubParts( uiSymbol, uiAbsPartIdx, uiDepth );
-  }
-
-Void TDecSbac::parseAlfQTSplitFlag( TComDataCU* pcCU ,UInt uiAbsPartIdx, UInt uiDepth, UInt uiMaxDepth )
-{
-  //if( uiDepth >= uiMaxDepth )
-  if( uiDepth >= g_uiMaxCUDepth-g_uiAddCUDepth ) // fix HS
-   {
-     pcCU->setDepthSubParts( uiDepth, uiAbsPartIdx );
-     return;
-   }
-
-   UInt uiSymbol;
-   m_pcTDecBinIf->decodeBin( uiSymbol, m_cALFSplitFlagSCModel.get( 0, 0, 0 ) );
-   pcCU->setDepthSubParts( uiDepth + uiSymbol, uiAbsPartIdx );
-   return;
-}
-#else
-Void TDecSbac::parseAlfCtrlFlag( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
-{
-  if (!m_bAlfCtrl)
-    return;
-
-  if( uiDepth > m_uiMaxAlfCtrlDepth && !pcCU->isFirstAbsZorderIdxInDepth(uiAbsPartIdx, m_uiMaxAlfCtrlDepth))
-  {
-    return;
-  }
-
-  UInt uiSymbol;
-  m_pcTDecBinIf->decodeBin( uiSymbol, m_cCUAlfCtrlFlagSCModel.get( 0, 0, pcCU->getCtxAlfCtrlFlag( uiAbsPartIdx ) ) );
-
-  if (uiDepth > m_uiMaxAlfCtrlDepth)
-  {
-    pcCU->setAlfCtrlFlagSubParts( uiSymbol, uiAbsPartIdx, m_uiMaxAlfCtrlDepth);
-  }
-  else
-  {
-    pcCU->setAlfCtrlFlagSubParts( uiSymbol, uiAbsPartIdx, uiDepth );
-  }
-}
-#endif
 
 Void TDecSbac::parseSkipFlag( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
 {

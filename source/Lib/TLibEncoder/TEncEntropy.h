@@ -84,13 +84,6 @@ public:
 public:
   virtual Void codeAlfCtrlFlag   ( TComDataCU* pcCU, UInt uiAbsPartIdx ) = 0;
 
-#if HHI_ALF
-  virtual Void codeAlfCoeff      ( Int iCoeff, Int iLength, Int iPos ) = 0;
-  virtual Void codeAlfDc         ( Int iDc    ) = 0;
-  virtual Void codeAlfQTCtrlFlag ( TComDataCU* pcCU, UInt uiAbsPartIdx ) = 0;
-  virtual Void codeAlfQTSplitFlag ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth, UInt uiMaxDepth ) = 0;
-#endif
-
   virtual Void codeSkipFlag      ( TComDataCU* pcCU, UInt uiAbsPartIdx ) = 0;
 #if HHI_MRG
   virtual Void codeMergeFlag     ( TComDataCU* pcCU, UInt uiAbsPartIdx ) = 0;
@@ -203,12 +196,7 @@ public:
   Void encodeMergeIndex        ( TComDataCU* pcCU, UInt uiAbsPartIdx, Bool bRD = false );
 #endif
 #endif
-#if HHI_ALF
-  Void encodeAlfCtrlFlag       ( TComDataCU* pcCU, UInt uiAbsPartIdx, Bool bRD , Bool bSeparateQt );
-  Void encodeAlfQTSplitFlag    ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth, UInt uiMaxDepth, Bool bRD = false );
-#else
   Void encodeAlfCtrlFlag       ( TComDataCU* pcCU, UInt uiAbsPartIdx, Bool bRD = false );
-#endif
 #if TSB_ALF_HEADER
   Void encodeAlfCtrlParam      ( ALFParam *pAlfParam );
 #endif

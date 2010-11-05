@@ -48,7 +48,6 @@
 #define HHI_RQT                           1           ///< MWHK: residual quadtree
 #define HHI_RQT_CHROMA_CBF_MOD            1           ///< HK: alternative syntax for coded block flag coding for chroma
 #define HHI_RQT_INTRA                     1           ///< HS: residual quadtree for intra blocks
-#define HHI_ALF                           0           ///< MS: separable adaptive loop filter 
 #define HHI_AIS                           1           ///< BB: adaptive intra smoothing
 #define HHI_INTERP_FILTER                 1           ///< HL: interpolation filter
 #define HHI_TRANSFORM_CODING              1           ///< TN: modified transform coefficient coding with RDOQ
@@ -158,9 +157,6 @@
 #define ENABLE_FORCECOEFF0  0
 #define ALF_MEM_PATCH       1
 #endif
-#if (QC_ALF && HHI_ALF)
-#error "Only one of QC_ALF and HHI_ALF can be defined"
-#endif
 
 #define DISABLE_ROT_LUMA_4x4_8x8           0
 
@@ -243,9 +239,6 @@
 // TOSHIBA defines section start
 ////////////////////////////////
 #define TSB_ALF_HEADER                 1           // Send ALF ON/OFF flag in slice header
-#if (TSB_ALF_HEADER && HHI_ALF)
-#error "Only one of TSB_ALF_HEADER and HHI_ALF can be defined"
-#endif
 ////////////////////////////////
 // TOSHIBA defines section end
 ////////////////////////////////

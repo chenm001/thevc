@@ -154,13 +154,6 @@ protected:
 public:
   Void codeAlfCtrlFlag   ( TComDataCU* pcCU, UInt uiAbsPartIdx );
 
-#if HHI_ALF
-  Void codeAlfCoeff      ( Int iCoeff, Int iLength, Int iPos );
-  Void codeAlfDc         ( Int iDc    );
-  Void codeAlfQTCtrlFlag ( TComDataCU* pcCU, UInt uiAbsPartIdx );
-  Void codeAlfQTSplitFlag ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth, UInt uiMaxDepth );
-#endif
-
   Void codeSkipFlag      ( TComDataCU* pcCU, UInt uiAbsPartIdx );
 #if HHI_MRG
   Void codeMergeFlag     ( TComDataCU* pcCU, UInt uiAbsPartIdx );
@@ -288,9 +281,6 @@ private:
 
   ContextModel3DBuffer m_cCUROTindexSCModel;
   ContextModel3DBuffer m_cCUCIPflagCCModel;
-#if HHI_ALF
-  ContextModel3DBuffer m_cALFSplitFlagSCModel;
-#endif
   ContextModel3DBuffer m_cALFFlagSCModel;
   ContextModel3DBuffer m_cALFUvlcSCModel;
   ContextModel3DBuffer m_cALFSvlcSCModel;

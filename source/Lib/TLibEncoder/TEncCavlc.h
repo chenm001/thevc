@@ -228,13 +228,6 @@ public:
   Void codeAlfCtrlFlag   ( UInt uiSymbol );
 #endif
 
-#if HHI_ALF
-  Void codeAlfCoeff           ( Int iCoeff, Int iLength, Int iPos );
-  Void codeAlfDc              ( Int iDc    );
-  Void codeAlfQTCtrlFlag ( TComDataCU* pcCU, UInt uiAbsPartIdx );
-  Void codeAlfQTSplitFlag( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth, UInt uiMaxDepth );
-#endif
-
   Void codeSplitFlag     ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
 
   Void codePartSize      ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );

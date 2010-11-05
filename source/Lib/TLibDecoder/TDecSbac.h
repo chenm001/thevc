@@ -124,13 +124,6 @@ public:
   Void parseAlfCtrlFlag   ( UInt &ruiAlfCtrlFlag );
 #endif
 
-#if HHI_ALF
-  Void parseAlfCoeff      ( Int& riCoeff, Int iLength, Int iPos                                );
-  Void parseAlfDc         ( Int& riDc                                                          );
-  Void parseAlfQTCtrlFlag ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
-  Void parseAlfQTSplitFlag( TComDataCU* pcCU ,UInt uiAbsPartIdx, UInt uiDepth, UInt uiMaxDepth );
-#endif
-
   Void parseSkipFlag      ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
   Void parseSplitFlag     ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
 #if HHI_MRG
@@ -253,9 +246,6 @@ private:
   ContextModel3DBuffer m_cCUROTindexSCModel;
   ContextModel3DBuffer m_cCUCIPflagCCModel;
 
-#if HHI_ALF
-  ContextModel3DBuffer m_cALFSplitFlagSCModel;
-#endif
   ContextModel3DBuffer m_cALFFlagSCModel;
   ContextModel3DBuffer m_cALFUvlcSCModel;
   ContextModel3DBuffer m_cALFSvlcSCModel;

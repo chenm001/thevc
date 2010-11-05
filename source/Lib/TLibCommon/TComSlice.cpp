@@ -781,13 +781,6 @@ TComSPS::TComSPS()
   m_bUseIMP      = false; // SOPH:
 #endif
 
-#if HHI_ALF
-  m_bALFSeparateQt = true; //MS
-  m_bALFSymmetry   = false;//MS
-  m_iALFMinLength  = 3;    //MS
-  m_iALFMaxLength  = 9;    //MS
-#endif
-
 #ifdef DCM_PBIC
   m_bUseIC       = false;
 #endif

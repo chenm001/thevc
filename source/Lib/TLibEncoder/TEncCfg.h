@@ -101,13 +101,6 @@ protected:
   Int       m_iLoopFilterAlphaC0Offset;
   Int       m_iLoopFilterBetaOffset;
 
-#if HHI_ALF
-  Bool      m_bALFSeparateQt;
-  Bool      m_bALFSymmetry;
-  Int       m_iALFMinLength;
-  Int       m_iALFMaxLength;
-#endif
-
   //====== Motion search ========
   Int       m_iFastSearch;                      //  0:Full search  1:Diamond  2:PMVFAST
   Int       m_iSearchRange;                     //  0:Full frame
@@ -227,13 +220,6 @@ public:
   Void      setLoopFilterAlphaC0Offset      ( Int   i )      { m_iLoopFilterAlphaC0Offset = i; }
   Void      setLoopFilterBetaOffset         ( Int   i )      { m_iLoopFilterBetaOffset    = i; }
 
-#if HHI_ALF
-  Void      setALFSeparateQt                ( Bool  b )      { m_bALFSeparateQt           = b; }  //MS:
-  Void      setALFSymmetry                  ( Bool  b )      { m_bALFSymmetry             = b; }  //MS:
-  Void      setALFMinLength                 ( Int   i )      { m_iALFMinLength            = i; }  //MS:
-  Void      setALFMaxLength                 ( Int   i )      { m_iALFMaxLength            = i; }  //MS:
-#endif
-
   //====== Motion search ========
   Void      setFastSearch                   ( Int   i )      { m_iFastSearch = i; }
   Void      setSearchRange                  ( Int   i )      { m_iSearchRange = i; }
@@ -291,13 +277,6 @@ public:
   Bool      getLoopFilterDisable            ()      { return  m_bLoopFilterDisable;       }
   Int       getLoopFilterAlphaC0Offget      ()      { return  m_iLoopFilterAlphaC0Offset; }
   Int       getLoopFilterBetaOffget         ()      { return  m_iLoopFilterBetaOffset;    }
-
-#if HHI_ALF
-  Bool      getALFSeparateQt                ()      { return  m_bALFSeparateQt;           } //MS:
-  Bool      getALFSymmetry                  ()      { return  m_bALFSymmetry;             } //MS:
-  Int       getALFMinLength                 ()      { return  m_iALFMinLength;            } //MS:
-  Int       getALFMaxLength                 ()      { return  m_iALFMaxLength;            } //MS:
-#endif
 
   //==== Motion search ========
   Int       getFastSearch                   ()      { return  m_iFastSearch; }

@@ -183,14 +183,7 @@ Void TDecCu::xDecodeCU( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
 
 #if TSB_ALF_HEADER
 #else
-#if HHI_ALF
-  if( !pcCU->getSlice()->getSPS()->getALFSeparateQt() )
-  {
-    m_pcEntropyDecoder->decodeAlfCtrlFlag( pcCU, uiAbsPartIdx, uiDepth );
-  }
-#else
   m_pcEntropyDecoder->decodeAlfCtrlFlag( pcCU, uiAbsPartIdx, uiDepth );
-#endif
 #endif
 
   // decode CU mode and the partition size

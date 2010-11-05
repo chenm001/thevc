@@ -121,13 +121,6 @@ private:
   UInt        m_uiBitDepth;
   UInt        m_uiBitIncrement;
 
-#if HHI_ALF
-  Bool        m_bALFSeparateQt;
-  Bool        m_bALFSymmetry;
-  Int         m_iALFMinLength;
-  Int         m_iALFMaxLength;
-#endif
-
   // Max physical transform size
   UInt        m_uiMaxTrSize;
 
@@ -239,17 +232,6 @@ public:
 
 #ifdef QC_AMVRES
 	Void setUseAMVRes      ( Bool b ) { m_bUseAMVRes    =b;        }
-#endif
-#if HHI_ALF
-  // ALF Parameters
-  Bool getALFSeparateQt ()         { return m_bALFSeparateQt; }
-  Bool getALFSymmetry   ()         { return m_bALFSymmetry;   }
-  Int  getALFMinLength  ()         { return m_iALFMinLength;  }
-  Int  getALFMaxLength  ()         { return m_iALFMaxLength;  }
-  Void setALfSeparateQt ( Bool b ) { m_bALFSeparateQt = b;    }
-  Void setALFSymmetry   ( Bool b ) { m_bALFSymmetry   = b;    }
-  Void setALFMinLength  ( Int  i ) { m_iALFMinLength  = i;    }
-  Void setALFMaxLength  ( Int  i ) { m_iALFMaxLength  = i;    }
 #endif
 
 #ifdef QC_SIFO_PRED

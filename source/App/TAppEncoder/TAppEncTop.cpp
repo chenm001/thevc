@@ -93,13 +93,6 @@ Void TAppEncTop::xInitLibCfg()
   m_cTEncTop.setLoopFilterAlphaC0Offset      ( m_iLoopFilterAlphaC0Offset );
   m_cTEncTop.setLoopFilterBetaOffset         ( m_iLoopFilterBetaOffset    );
 
-#if HHI_ALF
-  m_cTEncTop.setALFSeparateQt                ( m_bALFUseSeparateQT        ); //MS
-  m_cTEncTop.setALFSymmetry                  ( m_bALFFilterSymmetry       ); //MS
-  m_cTEncTop.setALFMinLength                 ( m_iAlfMinLength            ); //MS
-  m_cTEncTop.setALFMaxLength                 ( m_iAlfMaxLength            ); //MS
-#endif
-
   //====== Motion search ========
   m_cTEncTop.setFastSearch                   ( m_iFastSearch  );
   m_cTEncTop.setSearchRange                  ( m_iSearchRange );

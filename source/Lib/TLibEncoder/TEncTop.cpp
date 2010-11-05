@@ -344,13 +344,6 @@ Void TEncTop::xInitSPS()
 #endif
 #endif
 
-#if HHI_ALF
-  m_cSPS.setALfSeparateQt ( m_bALFSeparateQt    );
-  m_cSPS.setALFSymmetry   ( m_bALFSymmetry      );
-  m_cSPS.setALFMinLength  ( m_iALFMinLength     );
-  m_cSPS.setALFMaxLength  ( m_iALFMaxLength     );
-#endif
-
   m_cSPS.setUseDQP        ( m_iMaxDeltaQP != 0  );
   m_cSPS.setUseLDC        ( m_bUseLDC           );
   m_cSPS.setUsePAD        ( m_bUsePAD           );

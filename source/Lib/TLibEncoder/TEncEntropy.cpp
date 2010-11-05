@@ -445,97 +445,6 @@ Void TEncEntropy::encodeMergeIndex( TComDataCU* pcCU, UInt uiAbsPartIdx, Bool bR
 
 Void TEncEntropy::encodeAlfParam(ALFParam* pAlfParam)
 {
-#if HHI_ALF
-  m_pcEntropyCoderIf->codeAlfFlag(pAlfParam->alf_flag);
-  if (!pAlfParam->alf_flag)
-    return;
-  Int pos;
-  Int iCenterPos ;
-
-  // filter parameters for luma
-  // horizontal filter
-  AlfFilter *pHorizontalFilter = &(pAlfParam->acHorizontalAlfFilter[0]) ;
-  iCenterPos = ( pHorizontalFilter->iFilterSymmetry == 0 ) ? (pHorizontalFilter->iFilterLength + 1) >> 1 : pHorizontalFilter->iNumOfCoeffs - 1 ;
-
-  m_pcEntropyCoderIf->codeAlfUvlc( (pHorizontalFilter->iFilterLength-ALF_MIN_LENGTH)/2 );
-  m_pcEntropyCoderIf->codeAlfUvlc( pHorizontalFilter->iFilterSymmetry );
-
-  Int iCoeff;
-  for(pos=0; pos < pHorizontalFilter->iNumOfCoeffs; pos++)
-  {
-    iCoeff = pHorizontalFilter->aiQuantFilterCoeffs[pos] ;
-    m_pcEntropyCoderIf->codeAlfCoeff(iCoeff,pHorizontalFilter->iFilterLength, pos );
-  }
-#if ALF_DC_CONSIDERED
-  m_pcEntropyCoderIf->codeAlfDc( pHorizontalFilter->aiQuantFilterCoeffs[ pHorizontalFilter->iNumOfCoeffs ] );
-#endif
-  // vertical filter
-  AlfFilter *pVerticalFilter = &(pAlfParam->acVerticalAlfFilter[0]) ;
-
-  m_pcEntropyCoderIf->codeAlfUvlc( (pVerticalFilter->iFilterLength-ALF_MIN_LENGTH)/2 );
-  m_pcEntropyCoderIf->codeAlfUvlc( pVerticalFilter->iFilterSymmetry );
-
-  iCenterPos = ( pVerticalFilter->iFilterSymmetry == 0 ) ? (pVerticalFilter->iFilterLength + 1) >> 1 : pVerticalFilter->iNumOfCoeffs - 1 ;
-  for(pos=0; pos < pVerticalFilter->iNumOfCoeffs ; pos++ )
-  {
-    iCoeff = pVerticalFilter->aiQuantFilterCoeffs[pos] ;
-    m_pcEntropyCoderIf->codeAlfCoeff(iCoeff,pVerticalFilter->iFilterLength, pos );
-  }
-#if ALF_DC_CONSIDERED
-  m_pcEntropyCoderIf->codeAlfDc( pVerticalFilter->aiQuantFilterCoeffs[ pVerticalFilter->iNumOfCoeffs ] );
-#endif
-  // filter parameters for chroma
-  m_pcEntropyCoderIf->codeAlfUvlc(pAlfParam->chroma_idc);
-  for(Int iPlane = 1; iPlane <3; iPlane++)
-  {
-    if(pAlfParam->chroma_idc&iPlane)
-    {
-      m_pcEntropyCoderIf->codeAlfUvlc( pAlfParam->aiPlaneFilterMapping[iPlane] ) ;
-      if( pAlfParam->aiPlaneFilterMapping[iPlane] == iPlane )
-      {
-        // horizontal filter
-        pHorizontalFilter = &(pAlfParam->acHorizontalAlfFilter[iPlane]) ;
-        iCenterPos = ( pHorizontalFilter->iFilterSymmetry == 0 ) ? (pHorizontalFilter->iFilterLength + 1) >> 1 : pHorizontalFilter->iNumOfCoeffs - 1 ;
-
-        m_pcEntropyCoderIf->codeAlfUvlc( (pHorizontalFilter->iFilterLength-ALF_MIN_LENGTH)/2 );
-        m_pcEntropyCoderIf->codeAlfUvlc( pHorizontalFilter->iFilterSymmetry );
-
-        for(pos=0; pos < pHorizontalFilter->iNumOfCoeffs; pos++)
-        {
-          iCoeff = pHorizontalFilter->aiQuantFilterCoeffs[pos] ;
-          m_pcEntropyCoderIf->codeAlfCoeff(iCoeff,pHorizontalFilter->iFilterLength, pos );
-        }
-#if ALF_DC_CONSIDERED
-        m_pcEntropyCoderIf->codeAlfDc( pHorizontalFilter->aiQuantFilterCoeffs[ pHorizontalFilter->iNumOfCoeffs ] );
-#endif
-        // vertical filter
-        pVerticalFilter = &(pAlfParam->acVerticalAlfFilter[iPlane]) ;
-
-        m_pcEntropyCoderIf->codeAlfUvlc( (pVerticalFilter->iFilterLength-ALF_MIN_LENGTH)/2 );
-        m_pcEntropyCoderIf->codeAlfUvlc( pVerticalFilter->iFilterSymmetry );
-
-        iCenterPos = ( pVerticalFilter->iFilterSymmetry == 0 ) ? (pVerticalFilter->iFilterLength + 1) >> 1 : pVerticalFilter->iNumOfCoeffs - 1 ;
-        for(pos=0; pos < pVerticalFilter->iNumOfCoeffs ; pos++ )
-        {
-          iCoeff = pVerticalFilter->aiQuantFilterCoeffs[pos] ;
-    			m_pcEntropyCoderIf->codeAlfCoeff(iCoeff,pVerticalFilter->iFilterLength, pos );
-        }
-#if ALF_DC_CONSIDERED
-        m_pcEntropyCoderIf->codeAlfDc( pVerticalFilter->aiQuantFilterCoeffs[ pVerticalFilter->iNumOfCoeffs ] );
-#endif
-      }
-    }
-  }
-
-  // region control parameters for luma
-  m_pcEntropyCoderIf->codeAlfFlag(pAlfParam->cu_control_flag);
-  if (pAlfParam->cu_control_flag)
-  {
-    assert( (pAlfParam->cu_control_flag && m_pcEntropyCoderIf->getAlfCtrl()) || (!pAlfParam->cu_control_flag && !m_pcEntropyCoderIf->getAlfCtrl()));
-    m_pcEntropyCoderIf->codeAlfFlag( pAlfParam->bSeparateQt );
-    m_pcEntropyCoderIf->codeAlfCtrlDepth();
-  }
-#else
   m_pcEntropyCoderIf->codeAlfFlag(pAlfParam->alf_flag);
   if (!pAlfParam->alf_flag)
     return;
@@ -572,33 +481,8 @@ Void TEncEntropy::encodeAlfParam(ALFParam* pAlfParam)
     assert( (pAlfParam->cu_control_flag && m_pcEntropyCoderIf->getAlfCtrl()) || (!pAlfParam->cu_control_flag && !m_pcEntropyCoderIf->getAlfCtrl()));
     m_pcEntropyCoderIf->codeAlfCtrlDepth();
   }
-#endif
 }
 
-#if HHI_ALF
-Void TEncEntropy::encodeAlfCtrlFlag( TComDataCU* pcCU, UInt uiAbsPartIdx, Bool bRD, Bool bSeparateQt )
-{
-  if( bRD )
-    uiAbsPartIdx = 0;
-
-  if( bSeparateQt )
-  {
-    m_pcEntropyCoderIf->codeAlfQTCtrlFlag( pcCU, uiAbsPartIdx );
-  }
-  else
-  {
-    m_pcEntropyCoderIf->codeAlfCtrlFlag( pcCU, uiAbsPartIdx );
-  }
-}
-
-Void TEncEntropy::encodeAlfQTSplitFlag( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth, UInt uiMaxDepth, Bool bRD )
-{
-  if( bRD )
-      uiAbsPartIdx = 0;
-
-  m_pcEntropyCoderIf->codeAlfQTSplitFlag( pcCU, uiAbsPartIdx, uiDepth, uiMaxDepth );
-}
-#else
 Void TEncEntropy::encodeAlfCtrlFlag( TComDataCU* pcCU, UInt uiAbsPartIdx, Bool bRD )
 {
   if( bRD )
@@ -606,7 +490,6 @@ Void TEncEntropy::encodeAlfCtrlFlag( TComDataCU* pcCU, UInt uiAbsPartIdx, Bool b
 
   m_pcEntropyCoderIf->codeAlfCtrlFlag( pcCU, uiAbsPartIdx );
 }
-#endif
 
 #if TSB_ALF_HEADER
 Void TEncEntropy::encodeAlfCtrlParam( ALFParam* pAlfParam )
