@@ -2400,12 +2400,3 @@ Bool TEncSbac::xCodeMvResFlag( TComDataCU* pcCU, UInt uiAbsPartIdx, RefPicList e
 }
 #endif
 #endif
-
-
-#ifdef QC_SIFO
-Void TEncSbac::encodeSwitched_Filters(TComSlice* pcSlice,TComPrediction *m_cPrediction)
-{
-	assert(0);
-  return;
-}
-#endif

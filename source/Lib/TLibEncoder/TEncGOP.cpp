@@ -52,9 +52,6 @@ TEncGOP::TEncGOP()
 
   m_pcCfg               = NULL;
   m_pcSliceEncoder      = NULL;
-#ifdef QC_SIFO
-  m_pcSIFOEncoder       = NULL;
-#endif
   m_pcListPic           = NULL;
 
   m_pcEntropyCoder      = NULL;
@@ -87,9 +84,6 @@ Void TEncGOP::init ( TEncTop* pcTEncTop )
   m_pcEncTop     = pcTEncTop;
   m_pcCfg                = pcTEncTop;
   m_pcSliceEncoder       = pcTEncTop->getSliceEncoder();
-#ifdef QC_SIFO
-  m_pcSIFOEncoder        = pcTEncTop->getSIFOEncoder();
-#endif
   m_pcListPic            = pcTEncTop->getListPic();
 
   m_pcEntropyCoder       = pcTEncTop->getEntropyCoder();
@@ -294,18 +288,6 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
 
 	  pcSlice->setRounding(b);
 #endif
-#ifdef QC_SIFO
-      if( pcSlice->getUseSIFO() )
-      {
-        m_pcSIFOEncoder->initEncSIFO(pcSlice);  //use prev frame filters while compressing current frame
-        if(pcSlice->getSliceType() != I_SLICE)
-        {
-          m_pcSIFOEncoder->setFirstPassSubpelOffset(REF_PIC_LIST_0, pcSlice);
-          if(pcSlice->getSliceType() == B_SLICE)
-            m_pcSIFOEncoder->setFirstPassSubpelOffset(REF_PIC_LIST_1, pcSlice);
-        }
-      }
-#endif
       m_pcSliceEncoder->precompressSlice( pcPic );
       m_pcSliceEncoder->compressSlice   ( pcPic );
 
@@ -363,10 +345,6 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
         pcSlice->setMultiCodeword( m_pcCfg->getMCWThreshold() > 0 && m_pcSliceEncoder->getTotalBits() >= (UInt64)m_pcCfg->getMCWThreshold() );
       }
       m_pcEntropyCoder->encodeSliceHeader ( pcSlice                 );
-#ifdef QC_SIFO
-      if( pcSlice->getUseSIFO() )
-        m_pcEntropyCoder->encodeSwitched_Filters(pcSlice,m_pcEncTop->getPredSearch());
-#endif
 
       // is it needed?
       if ( pcSlice->getSymbolMode() )
@@ -491,10 +469,6 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
 
       // File writing
       m_pcSliceEncoder->encodeSlice( pcPic, pcBitstreamOut );
-#ifdef QC_SIFO
-      if( pcSlice->getUseSIFO() )
-        m_pcSIFOEncoder->ComputeFiltersAndOffsets(pcPic);
-#endif
 
       //  End of bitstream & byte align
 #if ! HHI_NAL_UNIT_SYNTAX

@@ -72,9 +72,6 @@ public:
   Void  parsePPS                  (TComPPS* pcPPS) {}
   Void  parseSliceHeader          (TComSlice*& rpcSlice)    {}
   Void  parseTerminatingBit       ( UInt& ruiBit );
-#ifdef QC_SIFO
-  Void  parseSwitched_Filters      (TComSlice*& rpcSlice, TComPrediction* m_cPrediction)   {}
-#endif
   Void parseMVPIdx        ( TComDataCU* pcCU, Int& riMVPIdx, Int iMVPNum, UInt uiAbsPartIdx, UInt uiDepth, RefPicList eRefList );
 #ifdef DCM_PBIC
   Void parseICPIdx        ( TComDataCU* pcCU, Int& riICPIdx, Int iICPNum, UInt uiAbsPartIdx, UInt uiDepth );

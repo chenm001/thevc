@@ -102,9 +102,6 @@ private:
 #ifdef QC_AMVRES
 	Bool					m_bUseAMVRes;
 #endif
-#ifdef QC_SIFO_PRED
-  Bool          m_bUseSIFO_Pred;
-#endif
 #ifdef DCM_PBIC 
   Bool          m_bUseIC;
 #endif
@@ -225,11 +222,6 @@ public:
 	Void setUseAMVRes      ( Bool b ) { m_bUseAMVRes    =b;        }
 #endif
 
-#ifdef QC_SIFO_PRED
-	Void setUseSIFO_Pred      ( Bool b ) { m_bUseSIFO_Pred    =b;        }
-	Bool getUseSIFO_Pred      ()         { return m_bUseSIFO_Pred;        }
-#endif
-
 #ifdef DCM_PBIC 
 	Void setUseIC       ( Bool b ) { m_bUseIC   = b;          }
   Bool getUseIC       ()         { return m_bUseIC;         }
@@ -325,9 +317,6 @@ private:
 #if HHI_INTERP_FILTER
   Int         m_iInterpFilterType;
 #endif
-#ifdef QC_SIFO_PRED
-	Bool        m_bUseSIFO_Pred;
-#endif
 #ifdef DCM_PBIC
   TComZeroTree* m_apcZTree  [MAX_NUM_ZTREE];
   Void        xCreateZTrees();
@@ -360,10 +349,6 @@ public:
   Bool      getMultiCodeword    ()                      { return  m_bMultiCodeword;     }
   UInt      getMaxPIPEDelay     ()                      { return  m_uiMaxPIPEDelay;     }
   Bool      getLoopFilterDisable()                      { return  m_bLoopFilterDisable; }
-#ifdef QC_SIFO_PRED
-	Void setUseSIFO_Pred      ( Bool b ) { m_bUseSIFO_Pred    =b;        }
-	Bool getUseSIFO_Pred      ()         { return m_bUseSIFO_Pred;        }
-#endif
   Int       getNumRefIdx        ( RefPicList e )                { return  m_aiNumRefIdx[e];             }
   TComPic*  getPic              ()                              { return  m_pcPic;                      }
   TComPic*  getRefPic           ( RefPicList e, Int iRefIdx)    { return  m_apcRefPicList[e][iRefIdx];  }
@@ -454,10 +439,6 @@ public:
   Int  getInterpFilterType     ()         { return m_iInterpFilterType;       }
   Void setInterpFilterType     ( Int  i ) { m_iInterpFilterType  = i;         }
   Bool getUseMOMS              ()         { return ( ( m_iInterpFilterType == IPF_HHI_4TAP_MOMS || m_iInterpFilterType == IPF_HHI_6TAP_MOMS ) ); }
-#endif
-
-#ifdef QC_SIFO
-  Bool getUseSIFO              ()         { return ( m_iInterpFilterType == IPF_QC_SIFO); }
 #endif
 
 #if MS_NO_BACK_PRED_IN_B0

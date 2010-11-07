@@ -176,20 +176,13 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
                                                                                  "  1: 4-tap MOMS\n"
                                                                                  "  2: 6-tap MOMS\n"
 # if TEN_DIRECTIONAL_INTERP
-                                                                                 "  3: DIF\n"
-# endif
-# ifdef QC_SIFO
-                                                                                 "  4: SIFO"
+                                                                                 "  3: DIF"
 # endif
                                                                                  )
 #endif
     ("DIFTap,tap", m_iDIFTap, 12, "number of interpolation filter taps (luma)")
 #if SAMSUNG_CHROMA_IF_EXT
     ("DIFTapC,tapC", m_iDIFTapC, 6, "number of interpolation filter taps (Chroma)")
-#endif
-
-#ifdef QC_SIFO_PRED
-    ("SPF",m_bUseSIFO_Pred, true)
 #endif
 
     /* motion options */
@@ -410,8 +403,8 @@ Void TAppEncCfg::xCheckParameter()
 #if HHI_INTERP_FILTER && !TEN_DIRECTIONAL_INTERP
   xConfirmPara( m_iInterpFilterType == IPF_TEN_DIF_PLACEHOLDER, "IPF_TEN_DIF is not configurable.  Please recompile using TEN_DIRECTIONAL_INTERP." );
 #endif
-#if HHI_INTERP_FILTER && !defined(QC_SIFO)
-  xConfirmPara( m_iInterpFilterType == IPF_QC_SIFO_PLACEHOLDER, "IPF_QC_SIFO is not configurable.  Please recompile using QC_SIFO." );
+#if HHI_INTERP_FILTER
+  xConfirmPara( m_iInterpFilterType == IPF_QC_SIFO_PLACEHOLDER, "IPF_QC_SIFO is not configurable." );
 #endif
   xConfirmPara( m_iInterpFilterType >= IPF_LAST,                "Invalid InterpFilterType" );
 
@@ -575,19 +568,6 @@ Void TAppEncCfg::xPrintParameter()
       printf("Luma interpolation           : %s\n", "HHI 6-tap MOMS filter"  );
       printf("Chroma interpolation         : %s\n", "HHI 6-tap MOMS filter"  );
       break;
-#ifdef QC_SIFO   
-    case IPF_QC_SIFO:
-      printf("Luma   interpolation         : Qualcomm %d-tap SIFO\n", m_iDIFTap  );
-#if SAMSUNG_CHROMA_IF_EXT
-	  if(m_iDIFTapC >=4)
-        printf("Chroma interpolation         : Samsung %d-tap filter\n", m_iDIFTapC );
-	  else
-      printf("Chroma interpolation         : %s\n", "Bi-linear filter"       );
-#else
-      printf("Chroma interpolation         : %s\n", "Bi-linear filter"       );
-#endif
-      break;
-#endif
     default:
 #ifdef QC_CONFIG
       printf("Luma   interpolation         : Samsung %d-tap filter\n", m_iDIFTap  );
@@ -678,9 +658,6 @@ Void TAppEncCfg::xPrintParameter()
 #endif
 #ifdef QC_AMVRES
 	printf("AMVRES:%d ", m_bUseAMVRes							);
-#endif
-#ifdef QC_SIFO_PRED
-	printf("SPF:%d ", m_bUseSIFO_Pred			);
 #endif
 #ifdef DCM_PBIC
 	printf("PBIC :%d ", m_bUseIC			);

@@ -46,7 +46,6 @@ OBJS          	= \
 			$(OBJ_DIR)/TEncSbac.o \
 			$(OBJ_DIR)/TEncSearch.o \
 			$(OBJ_DIR)/TEncSlice.o \
-			$(OBJ_DIR)/TEncSIFO.o \
 			$(OBJ_DIR)/TEncTop.o \
 
 LIBS				= -lpthread

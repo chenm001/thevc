@@ -75,9 +75,6 @@ protected:
 #ifdef QC_AMVRES
 	Bool      m_bUseAMVRes;
 #endif
-#ifdef QC_SIFO_PRED
-  Bool      m_bUseSIFO_Pred;
-#endif
   // coding quality
   Double    m_fQP;                                            ///< QP value of key-picture (floating point)
   Int       m_iQP;                                            ///< QP value of key-picture (integer)

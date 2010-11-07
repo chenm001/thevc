@@ -148,9 +148,6 @@ Void TAppEncTop::xInitLibCfg()
 #ifdef QC_AMVRES
     m_cTEncTop.setUseAMVRes                      ( m_bUseAMVRes      );
 #endif
-#ifdef QC_SIFO_PRED
-    m_cTEncTop.setUseSIFO_Pred                ( m_bUseSIFO_Pred );
-#endif
 #ifdef DCM_PBIC 
   m_cTEncTop.setUseIC                        ( m_bUseIC       );
 #endif
@@ -244,9 +241,6 @@ Void TAppEncTop::encode()
       xWriteOutput( iNumEncoded );
     }
   }
-#if FIX_TICKET67==1  
-  m_cTEncTop.getSIFOEncoder()->destroy();
-#endif
   // delete original YUV buffer
   pcPicYuvOrg->destroy();
   delete pcPicYuvOrg;

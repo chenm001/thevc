@@ -276,10 +276,6 @@ public:
 
   Bool  getAdaptFlag          ()          { return m_bAdaptFlag; }
   Void  setAdaptFlag          ( Bool b )  { m_bAdaptFlag = b;     }
-#ifdef QC_SIFO
-	Void encodeSwitched_Filters(TComSlice* pcSlice,TComPrediction *m_cPrediction);
-#endif
-
 };
 
 #endif // !defined(AFX_TENCCAVLC_H__EE8A0B30_945B_4169_B290_24D3AD52296F__INCLUDED_)

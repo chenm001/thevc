@@ -184,10 +184,6 @@ public:
   Void parseAlfCtrlFlag     ( UInt &ruiAlfCtrlFlag );
 #endif
 
-#ifdef QC_SIFO
-  Void  parseSwitched_Filters      (TComSlice*& rpcSlice, TComPrediction* m_cPrediction);
-#endif
-
 };
 #endif // !defined(AFX_TDECCAVLC_H__9732DD64_59B0_4A41_B29E_1A5B18821EAD__INCLUDED_)
 

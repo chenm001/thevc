@@ -136,9 +136,6 @@ protected:
 #ifdef QC_AMVRES
   Bool      m_bUseAMVRes;
 #endif
-#ifdef QC_SIFO_PRED
-  Bool      m_bUseSIFO_Pred;
-#endif
 #ifdef DCM_PBIC 
   Bool      m_bUseIC;
 #endif
@@ -308,10 +305,6 @@ public:
 #endif
 #ifdef QC_AMVRES
  Void      setUseAMVRes                       ( Bool  b )     { m_bUseAMVRes     = b; }
-#endif
-#ifdef QC_SIFO_PRED
- Void      setUseSIFO_Pred                       ( Bool  b )     { m_bUseSIFO_Pred     = b; }
- Bool      getUseSIFO_Pred                     ()     {return  m_bUseSIFO_Pred; }
 #endif
 #ifdef DCM_PBIC 
   Void      setUseIC                        ( Bool  b )     { m_bUseIC      = b; }

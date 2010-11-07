@@ -90,9 +90,6 @@ private:
   TEncGOP                 m_cGOPEncoder;                  ///< GOP encoder
   TEncSlice               m_cSliceEncoder;                ///< slice encoder
   TEncCu                  m_cCuEncoder;                   ///< CU encoder
-#ifdef QC_SIFO
-  TEncSIFO                m_cSIFOEncoder;                 // SIFO encoder
-#endif
   // SPS
   TComSPS                 m_cSPS;                         ///< SPS
   TComPPS                 m_cPPS;                         ///< PPS
@@ -131,9 +128,6 @@ public:
 
   TEncGOP*                getGOPEncoder         () { return  &m_cGOPEncoder;          }
   TEncSlice*              getSliceEncoder       () { return  &m_cSliceEncoder;        }
-#ifdef QC_SIFO
-  TEncSIFO*							  getSIFOEncoder				() { return  &m_cSIFOEncoder;	  			}
-#endif
   TEncCu*                 getCuEncoder          () { return  &m_cCuEncoder;           }
   TEncEntropy*            getEntropyCoder       () { return  &m_cEntropyCoder;        }
   TEncCavlc*              getCavlcCoder         () { return  &m_cCavlcCoder;          }

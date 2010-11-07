@@ -327,10 +327,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\source\Lib\TLibEncoder\TEncSIFO.cpp"
-				>
-			</File>
-			<File
 				RelativePath="..\..\source\Lib\TLibEncoder\TEncSlice.cpp"
 				>
 			</File>
@@ -401,10 +397,6 @@
 			</File>
 			<File
 				RelativePath="..\..\source\Lib\TLibEncoder\TEncSearch.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\source\Lib\TLibEncoder\TEncSIFO.h"
 				>
 			</File>
 			<File

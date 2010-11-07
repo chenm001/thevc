@@ -2244,10 +2244,3 @@ Void TEncEntropy::estimateBit (estBitsSbacStruct* pcEstBitsSbac, UInt uiWidth, T
 
   m_pcEntropyCoderIf->estBit ( pcEstBitsSbac, uiCTXIdx, eTType );
 }
-
-#ifdef QC_SIFO
-Void TEncEntropy::encodeSwitched_Filters(TComSlice* pcSlice,TComPrediction *m_cPrediction)
-{
-	m_pcEntropyCoderIf->encodeSwitched_Filters(pcSlice,m_cPrediction);
-}
-#endif

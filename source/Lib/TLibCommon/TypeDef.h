@@ -136,14 +136,6 @@
 #endif
 #define QC_CONFIG
 
-#if HHI_INTERP_FILTER
-//#define QC_SIFO
-#define QC_SIFO_PRED
-#if (defined QC_SIFO && TEN_DIRECTIONAL_INTERP==1)
-#define USE_DIAGONAL_FILT                1
-#endif
-#endif
-
 #define QC_ALF              1
 #if QC_ALF
 #define ENABLE_FORCECOEFF0  0
@@ -164,12 +156,6 @@
 #define BUGFIX50TMP 0 // for compatibility with previous versions without the crash
 #define SCAN_LUT_FIX 1
 #define ROUNDING_CONTROL_BIPRED_FIX
-
-#ifdef QC_SIFO
-#define SIFO_DIF_COMPATIBILITY			  1           // SIFO Extensions
-#define FIX_TICKET67  1     // solves memory leak problem in SIFO
-#endif
-#define FIX_TICKET92  0     // faster SIFO encoder (encoder only change)
 
 ///////////////////////////////
 // QUALCOMM defines section end
@@ -558,11 +544,7 @@ enum InterpFilterType
 # else
   IPF_TEN_DIF_PLACEHOLDER               ///< Place holder to keep ordering if IPF_TEN_DIF not compiled-in
 # endif
-# ifdef QC_SIFO
-  ,IPF_QC_SIFO                          ///< Qualcomm Switched Interpolation Filters with Offsets
-# else
   ,IPF_QC_SIFO_PLACEHOLDER              ///< Place holder to keep ordering if IPF_QC_SIFO not compiled-in
-# endif
   ,IPF_LAST
 };
 #endif

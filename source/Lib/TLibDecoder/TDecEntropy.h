@@ -68,9 +68,6 @@ public:
   virtual Void  parsePPS                  ( TComPPS* pcPPS )                                      = 0;
   virtual Void  parseSliceHeader          ( TComSlice*& rpcSlice )                                = 0;
   virtual Void  parseTerminatingBit       ( UInt& ruilsLast )                                     = 0;
-#ifdef QC_SIFO
-  virtual Void  parseSwitched_Filters      (TComSlice*& rpcSlice, TComPrediction* m_cPrediction)                                 = 0;
-#endif
 
   virtual Void parseMVPIdx      ( TComDataCU* pcCU, Int& riMVPIdx, Int iMVPNum, UInt uiAbsPartIdx, UInt uiDepth, RefPicList eRefList ) = 0;
 #ifdef DCM_PBIC
@@ -178,9 +175,6 @@ public:
   Void    decodePPS                   ( TComPPS* pcPPS     )    { m_pcEntropyDecoderIf->parsePPS(pcPPS);                    }
   Void    decodeSliceHeader           ( TComSlice*& rpcSlice )  { m_pcEntropyDecoderIf->parseSliceHeader(rpcSlice);         }
   Void    decodeTerminatingBit        ( UInt& ruiIsLast )       { m_pcEntropyDecoderIf->parseTerminatingBit(ruiIsLast);     }
-#ifdef QC_SIFO
-  Void    decodeSwitched_Filters      ( TComSlice*& rpcSlice, TComPrediction* m_cPrediction )  { m_pcEntropyDecoderIf->parseSwitched_Filters(rpcSlice,m_cPrediction);		}
-#endif
 
   // Adaptive Loop filter
   Void decodeAlfParam(ALFParam* pAlfParam);

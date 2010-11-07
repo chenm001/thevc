@@ -215,9 +215,7 @@ public:
 
   __inline Int  biari_no_bits        ( Short symbol, ContextModel& rcSCModel );
   Int  biari_state                   ( Short symbol, ContextModel& rcSCModel );
-#ifdef QC_SIFO
-	Void encodeSwitched_Filters(TComSlice* pcSlice,TComPrediction *m_cPrediction);
-#endif
+
 private:
   UInt m_uiLastQp;
   ContextModel3DBuffer m_cCUSplitFlagSCModel;

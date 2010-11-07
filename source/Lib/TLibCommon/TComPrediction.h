@@ -97,11 +97,6 @@ protected:
   Void  xPredInterLumaBlkHMVME ( Pel* piSrcY, Int iSrcStride, Pel* piDstY, Int iDstStride, TComMv* pcMv,Int iWidth, Int iHeight, Int dMVx, Int dMVy);
   Void  xHAM_Filter (Pel*  piRefY, Int iRefStride,Pel*  piDstY,Int iDstStride, Int iWidth, Int iHeight,Int iMVyFrac,Int iMVxFrac);
 #endif
-#ifdef QC_SIFO
-  Void xSIFOFilter              (Pel*  piRefY, Int iRefStride,Pel*  piDstY,Int iDstStride, Int iWidth, Int iHeight,Int iyFrac,Int ixFrac);
-  Void xPredInterLumaBlk_SIFOApplyME ( Pel* piSrcY, Int iSrcStride, Pel* piDstY, Int iDstStride, TComMv* pcMv, 
-                                                   Int iWidth, Int iHeight, Pel* piOrg,Int iStrideOrg, Int dMVx, Int dMVy);
-#endif
 
 #ifdef DCM_PBIC
   Void xPredICompLumaBlk        (TComIc* pcIc, Int iWidth, Int iHeight, Int iDstStride, Int iDstStep, Pel* piDst, Int iSrcStride, Int iSrcStep, Pel* piSrc, RefPicList eRefPicList);

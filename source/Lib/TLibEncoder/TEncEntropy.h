@@ -42,9 +42,6 @@
 #include "../TLibCommon/ContextModel.h"
 #include "../TLibCommon/TComPic.h"
 #include "../TLibCommon/TComTrQuant.h"
-#ifdef QC_SIFO
-#include "../TLibCommon/TComPrediction.h"
-#endif
 class TEncSbac;
 class TEncCavlc;
 
@@ -133,9 +130,6 @@ public:
 #endif
 
   virtual Void estBit               (estBitsSbacStruct* pcEstBitsSbac, UInt uiCTXIdx, TextType eTType) = 0;
-#ifdef QC_SIFO
-  virtual Void encodeSwitched_Filters(TComSlice* pcSlice,TComPrediction *m_cPrediction) = 0;
-#endif
 };
 
 /// entropy encoder class
@@ -249,9 +243,6 @@ public:
   Void encodeCoeffNxN         ( TComDataCU* pcCU, TCoeff* pcCoeff, UInt uiAbsPartIdx, UInt uiTrWidth, UInt uiTrHeight, UInt uiDepth, TextType eType, Bool bRD = false );
 
   Void estimateBit             ( estBitsSbacStruct* pcEstBitsSbac, UInt uiWidth, TextType eTType);
-#ifdef QC_SIFO
-  Void encodeSwitched_Filters(TComSlice* pcSlice,TComPrediction *m_cPrediction);
-#endif
 #if QC_ALF
   Void codeAuxCountBit(ALFParam* pAlfParam, Int64* ruiRate);
   Void codeFiltCountBit(ALFParam* pAlfParam, Int64* ruiRate);

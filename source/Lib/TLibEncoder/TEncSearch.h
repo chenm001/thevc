@@ -542,23 +542,6 @@ Void xMergeEstimation             ( TComDataCU*     pcCU,
 									Bool		  bRound);
 
 
-#ifdef QC_SIFO
-  Void xPatternSearchFracDIF_QC_Bi   ( TComDataCU*   pcCU,
-                                    TComPattern*  pcPatternKey,
-                                    Pel*          piRefY,
-                                    Int           iRefStride,
-                                    TComMv*       pcMvInt,
-                                    TComMv&       rcMvHalf,
-                                    TComMv&       rcMvQter,
-									UInt&					ruiCost, 
-#ifdef QC_AMVRES																		
-									TComMv *PredMv, 
-									Int iRefIdxPred, 
-#endif
-									Pel*		  pcRefY2,
-									Bool		  bRound	
-									);
-#endif
   UInt xPatternRefinementMC_Bi    ( TComPattern* pcPatternKey, Pel* piRef, Int iRefStride, Int iIntStep, Int iFrac, TComMv& rcMvFrac,Pel* pcRefY2,	Bool bRound);
 #if TEN_DIRECTIONAL_INTERP
   Void xPatternSearchFracDIF_TEN_Bi   ( TComDataCU*   pcCU,
@@ -614,25 +597,6 @@ Void xMergeEstimation             ( TComDataCU*     pcCU,
 																		, Int iRefIdxPred 
 #endif
 																		);
-#ifdef QC_SIFO
-  Void xPatternSearchFracDIF_QC   ( TComDataCU*   pcCU,
-                                    TComPattern*  pcPatternKey,
-                                    Pel*          piRefY,
-                                    Int           iRefStride,
-                                    TComMv*       pcMvInt,
-                                    TComMv&       rcMvHalf,
-                                    TComMv&       rcMvQter,
-																		UInt&					ruiCost 
-#ifdef QC_AMVRES																		
-																		,TComMv *PredMv 
-																		, Int iRefIdxPred 
-#endif
-																		);
-  
-  Void xAddSubFullPelOffset    ( TComPattern* pcPatternKey, Int iOffset, Bool Add);
-  UInt xPatternRefinementMC    ( TComPattern* pcPatternKey, Pel* piRef, Int iRefStride, Int iIntStep, Int iFrac, TComMv& rcMvFrac);
-  Void xExtDIFUpSamplingH_QC   ( TComPattern*  pcPattern, TComYuv* pcYuvExt);
-#endif
 
   Void xExtDIFUpSamplingH         ( TComPattern*  pcPattern, TComYuv* pcYuvExt  );
 

@@ -452,10 +452,6 @@ Void TComPrediction::xPredInterUni ( TComDataCU* pcCU, UInt uiPartAddr, Int iWid
   InterpFilterType ePFilt = (InterpFilterType)pcCU->getSlice()->getInterpFilterType();
 
   pcCU->clipMv(cMv);
-#ifdef QC_SIFO
-  (eRefPicList == REF_PIC_LIST_0)?setCurrList(0):setCurrList(1);
-  setCurrRefFrame(iRefIdx);
-#endif
 
 #ifdef QC_AMVRES
   if (pcCU->getSlice()->getSPS()->getUseAMVRes())
@@ -529,10 +525,6 @@ Void TComPrediction::xPredInterUni ( TComDataCU* pcCU, UInt uiPartAddr, Int iWid
 #endif
 
   pcCU->clipMv(cMv);
-#ifdef QC_SIFO
-  (eRefPicList == REF_PIC_LIST_0)?setCurrList(0):setCurrList(1);
-  setCurrRefFrame(iRefIdx);
-#endif
 #ifdef QC_AMVRES
   if (pcCU->getSlice()->getSPS()->getUseAMVRes())
   {
@@ -591,15 +583,6 @@ Void  TComPrediction::xPredInterLumaBlk( TComDataCU* pcCU, TComPicYuv* pcPicYuvR
   Int     iyFrac  = pcMv->getVer() & 0x3;
 
   Pel* piDstY = rpcYuv->getLumaAddr( uiPartAddr );
-
-#ifdef QC_SIFO
-  if(pcCU->getSlice()->getUseSIFO())
-  {
-    xSIFOFilter  (piRefY, iRefStride, piDstY, iDstStride, iWidth, iHeight, iyFrac, ixFrac);
-  }
-  else
-  {
-#endif
 
   //  Integer point
   if ( ixFrac == 0 && iyFrac == 0 )
@@ -730,9 +713,6 @@ Void  TComPrediction::xPredInterLumaBlk( TComDataCU* pcCU, TComPicYuv* pcPicYuvR
       return;
     }
   }
-#ifdef QC_SIFO
-}
-#endif
 }
 //--
 #ifdef QC_AMVRES
@@ -1661,170 +1641,6 @@ Void TComPrediction::recIntraLumaCIP( TComPattern* pcTComPattern, Pel* pPred, Pe
     }
   }
 }
-
-#ifdef QC_SIFO
-
-Void  TComPrediction::xPredInterLumaBlk_SIFOApplyME ( Pel* piSrcY, Int iSrcStride, Pel* piDstY, Int iDstStride, TComMv* pcMv, 
-                                                   Int iWidth, Int iHeight, Pel* piOrg,Int iStrideOrg, Int dMVx, Int dMVy)
-{
-  Int 		iOffset = ( pcMv->getHor() >> 2 ) + ( pcMv->getVer() >> 2 ) * iSrcStride;
-  Pel*		piRefY		 = piSrcY + iOffset;
-  Int iRefStride = iSrcStride;
-		
-  Int 		ixFrac	= pcMv->getHor() & 0x3;
-  Int 		iyFrac	= pcMv->getVer() & 0x3;
-  xSIFOFilter  (piRefY, iRefStride,piDstY,iDstStride,iWidth,iHeight, iyFrac, ixFrac);
-
-}
-
-
-Void  TComPrediction::xSIFOFilter(Pel*  piRefY, Int iRefStride,Pel*  piDstY,Int iDstStride, Int iWidth, Int iHeight,Int iyFrac,Int ixFrac)
-{
-	UInt     uiSubPos = ixFrac+ 4*iyFrac;	
-  Int      SIFOFilter = getSIFOFilter(uiSubPos);
-  Int filter0 = getTabFilters(uiSubPos,SIFOFilter,0);   
- 	Int filter1 = getTabFilters(uiSubPos,SIFOFilter,1);
-	
-  Int iSubpelOffset = 0;
-  iSubpelOffset = getSIFOOffset(getCurrList(),uiSubPos,getCurrRefFrame());
-  Pel*  piDstY_Orig     = piDstY;
-
-  Int   iExtStride = m_iYuvExtStride;
-	Int*  piExtY     = m_piYuvExt;
-
-#if SIFO_DIF_COMPATIBILITY==1
-  UInt DIF_filter_position = getNum_SIFOFilters() - getNum_AvailableFilters();
-	if(SIFOFilter >= DIF_filter_position && m_iDIFTap==6)
-	{
-		// Directional filter is used
-		// Kemal TO-DO : Modify this so that different coefficients can be used for directional.
-    // Rahul...make sure that only 2D subpels are using DIF...
-    assert(uiSubPos>4 && uiSubPos!=8 && uiSubPos!=12);  
-		xCTI_FilterDIF_TEN ( piRefY, iRefStride, 1, iWidth, iHeight, iDstStride, 1, piDstY, iyFrac, ixFrac,SIFOFilter-DIF_filter_position);
-    if(iSubpelOffset)
-    {
-      piDstY = piDstY_Orig;
-      for (Int y=0; y<iHeight; y++)
-      {
-        for ( Int x = 0; x < iWidth; x++)
-          piDstY[x] = Clip( piDstY[x] + iSubpelOffset);
-        piDstY += iDstStride;
-      }
-    }
-		return;
-	}
-#else
-#if USE_DIAGONAL_FILT==1 
-  Bool condition1=0,condition2=0,condition3=0;
-  condition1 = (SIFOFilter==8 ) && (uiSubPos == 5 || uiSubPos ==  7 || uiSubPos == 13 || uiSubPos == 15);
-  condition2 = (SIFOFilter==5 ) && (uiSubPos == 6 || uiSubPos == 10 || uiSubPos == 14);
-  condition3 = (SIFOFilter==10) && (uiSubPos == 9 || uiSubPos == 11);
-  if((condition1 || condition2 || condition3) && m_iDIFTap==6)
-  {
-      xCTI_FilterDIF_TEN ( piRefY, iRefStride, 1, iWidth, iHeight, iDstStride, 1, piDstY, iyFrac, ixFrac);
-      piDstY = piDstY_Orig;
-      for (Int y=0; y<iHeight; y++)
-      {
-        for ( Int x = 0; x < iWidth; x++)
-          piDstY[x] = Clip( piDstY[x] + iSubpelOffset);
-        piDstY += iDstStride;
-      }
-      return;
-  }
-#endif
-#endif
-  switch(uiSubPos)
-  {
-  case 0:
-    for ( Int y = 0; y < iHeight; y++ )
-    {
-      ::memcpy(piDstY, piRefY, sizeof(Pel)*iWidth);
-      piDstY += iDstStride;
-      piRefY += iRefStride;
-    }
-    break;
-  case 1:
-    xCTI_FilterQuarter0Hor( piRefY, iRefStride, 1, iWidth, iHeight, iDstStride, 1, piDstY , filter0, 0);
-    break;
-  case 2://  Half-pel horizontal
-    xCTI_FilterHalfHor    ( piRefY, iRefStride, 1, iWidth, iHeight, iDstStride, 1, piDstY , filter0, 0);
-    break;
-  case 3:
-    xCTI_FilterQuarter1Hor( piRefY, iRefStride, 1, iWidth, iHeight, iDstStride, 1, piDstY , filter0, 0);
-    break;
-  case 4:
-    xCTI_FilterQuarter0Ver( piRefY, iRefStride, 1, iWidth, iHeight, iDstStride, 1, piDstY , filter0, 0);
-    break;
-  case 5:
-    xCTI_FilterQuarter0Ver (piRefY - m_iDIFHalfTap + 1,  iRefStride, 1, iWidth + m_iDIFTap - 1, iHeight, iExtStride, 1, piExtY , filter0, 0);
-    xCTI_FilterQuarter0Hor (piExtY + m_iDIFHalfTap - 1,  iExtStride, 1, iWidth                , iHeight, iDstStride, 1, piDstY , filter1, 0);
-    break;
-  case 6:
-    xCTI_FilterQuarter0Ver (piRefY - m_iDIFHalfTap + 1,  iRefStride, 1, iWidth + m_iDIFTap - 1, iHeight, iExtStride, 1, piExtY , filter0, 0);
-    xCTI_FilterHalfHor     (piExtY + m_iDIFHalfTap - 1,  iExtStride, 1, iWidth                , iHeight, iDstStride, 1, piDstY , filter1, 0);
-    break;
-  case 7:
-    xCTI_FilterQuarter0Ver (piRefY - m_iDIFHalfTap + 1,  iRefStride, 1, iWidth + m_iDIFTap - 1, iHeight, iExtStride, 1, piExtY , filter0, 0);
-    xCTI_FilterQuarter1Hor (piExtY + m_iDIFHalfTap - 1,  iExtStride, 1, iWidth                , iHeight, iDstStride, 1, piDstY , filter1, 0);
-    break;
-  case 8://  Half-pel vertical
-    xCTI_FilterHalfVer     (piRefY,                      iRefStride, 1, iWidth,                 iHeight, iDstStride, 1, piDstY, filter0, 0);
-    break;
-  case 9:
-    xCTI_FilterHalfVer     (piRefY - m_iDIFHalfTap + 1,  iRefStride, 1, iWidth + m_iDIFTap - 1, iHeight, iExtStride, 1, piExtY , filter0, 0);
-    xCTI_FilterQuarter0Hor (piExtY + m_iDIFHalfTap - 1,  iExtStride, 1, iWidth                , iHeight, iDstStride, 1, piDstY , filter1, 0);
-    break;
-  case 10://  Half-pel center
-    xCTI_FilterHalfVer     (piRefY - 6,                  iRefStride, 1, iWidth + 12,            iHeight, iExtStride, 1, piExtY, filter0 , 0);
-    xCTI_FilterHalfHor     (piExtY + 6,                  iExtStride, 1, iWidth     ,            iHeight, iDstStride, 1, piDstY, filter1 , 0);
-    break;
-  case 11:
-    xCTI_FilterHalfVer     (piRefY - m_iDIFHalfTap + 1,  iRefStride, 1, iWidth + m_iDIFTap - 1, iHeight, iExtStride, 1, piExtY , filter0, 0);
-    xCTI_FilterQuarter1Hor (piExtY + m_iDIFHalfTap - 1,  iExtStride, 1, iWidth                , iHeight, iDstStride, 1, piDstY , filter1, 0);
-    break;
-  case 12:
-    xCTI_FilterQuarter1Ver (piRefY,                      iRefStride, 1, iWidth,                 iHeight, iDstStride, 1, piDstY , filter0, 0);
-    break;
-  case 13:
-    xCTI_FilterQuarter1Ver (piRefY - m_iDIFHalfTap + 1,  iRefStride, 1, iWidth + m_iDIFTap - 1, iHeight, iExtStride, 1, piExtY , filter0, 0);
-    xCTI_FilterQuarter0Hor (piExtY + m_iDIFHalfTap - 1,  iExtStride, 1, iWidth                , iHeight, iDstStride, 1, piDstY , filter1, 0);
-    break;
-  case 14:
-    xCTI_FilterQuarter1Ver (piRefY - m_iDIFHalfTap + 1,  iRefStride, 1, iWidth + m_iDIFTap - 1, iHeight, iExtStride, 1, piExtY , filter0, 0);
-    xCTI_FilterHalfHor     (piExtY + m_iDIFHalfTap - 1,  iExtStride, 1, iWidth                , iHeight, iDstStride, 1, piDstY , filter1, 0);
-    break;
-  case 15:
-    xCTI_FilterQuarter1Ver (piRefY - m_iDIFHalfTap + 1,  iRefStride, 1, iWidth + m_iDIFTap - 1, iHeight, iExtStride, 1, piExtY , filter0, 0);
-    xCTI_FilterQuarter1Hor (piExtY + m_iDIFHalfTap - 1,  iExtStride, 1, iWidth                , iHeight, iDstStride, 1, piDstY , filter1, 0);
-    break;
-  default:
-    assert(0);
-    break;
-  }
-
-#if SIFO_DIF_COMPATIBILITY==1
-  if(iSubpelOffset)
-  {
-  piDstY = piDstY_Orig;
-  for (Int y=0; y<iHeight; y++)
-  {
-    for ( Int x = 0; x < iWidth; x++)
-      piDstY[x] = Clip( piDstY[x] + iSubpelOffset);
-    piDstY += iDstStride;
-  }
-}
-#else
-  piDstY = piDstY_Orig;
-  for (Int y=0; y<iHeight; y++)
-  {
-    for ( Int x = 0; x < iWidth; x++)
-      piDstY[x] = Clip( piDstY[x] + iSubpelOffset);
-    piDstY += iDstStride;
-  }
-#endif
-}
-
-#endif
 
 #ifdef DCM_PBIC
 Void TComPrediction::xPredICompLumaBlk( TComIc* pcIc, Int iWidth, Int iHeight, Int iDstStride, Int iDstStep, Pel* piDst, Int iSrcStride, Int iSrcStep, Pel* piSrc, RefPicList eRefPicList )

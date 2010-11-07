@@ -188,11 +188,6 @@ Void TEncTop::init()
 
   // initialize encoder search class
   m_cSearch.init( this, &m_cTrQuant, m_iSearchRange, m_iFastSearch, 0, &m_cEntropyCoder, &m_cRdCost, getRDSbacCoder(), getRDGoOnSbacCoder() );
-#ifdef QC_SIFO
-  if(this->getInterpFilterType() == IPF_QC_SIFO)
-    m_cSIFOEncoder. init( this, m_cSPS.getDIFTap ());
-#endif
-
 }
 
 // ====================================================================================================================
@@ -361,9 +356,6 @@ Void TEncTop::xInitSPS()
 #endif
 #ifdef QC_AMVRES
 	m_cSPS.setUseAMVRes      ( m_bUseAMVRes           );
-#endif
-#ifdef QC_SIFO_PRED
- m_cSPS.setUseSIFO_Pred ( m_bUseSIFO_Pred    );
 #endif
 #ifdef DCM_PBIC
   m_cSPS.setUseIC         ( m_bUseIC            );
