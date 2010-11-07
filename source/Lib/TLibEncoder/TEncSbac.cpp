@@ -68,9 +68,6 @@ TEncSbac::TEncSbac()
   , m_cCUIcdSCModel           ( 1,             3,               NUM_IC_RES_CTX                )
 #endif
   , m_cCURefPicSCModel        ( 1,             1,               NUM_REF_NO_CTX                )
-#ifdef QC_AMVRES
-  , m_cCUMvResCModel       ( 1,             1,                 NUM_MV_RES_FALG_CTX )
-#endif
 #if HHI_RQT
   , m_cCUTransSubdivFlagSCModel( 1,          1,               NUM_TRANS_SUBDIV_FLAG_CTX )
 #if HHI_RQT_ROOT
@@ -155,9 +152,6 @@ Void TEncSbac::resetEntropy           ()
   m_cCUIcdSCModel.initBuffer          ( eSliceType, iQp, (Short*)INIT_ICD );
 #endif
   m_cCURefPicSCModel.initBuffer       ( eSliceType, iQp, (Short*)INIT_REF_PIC );
-#ifdef QC_AMVRES
-  m_cCUMvResCModel.initBuffer         (eSliceType,  iQp, (Short*)INIT_MVRES_FLAG );
-#endif
   m_cCUDeltaQpSCModel.initBuffer      ( eSliceType, iQp, (Short*)INIT_DQP );
   m_cCUCbfSCModel.initBuffer          ( eSliceType, iQp, (Short*)INIT_CBF );
 #if HHI_RQT
@@ -377,9 +371,6 @@ Void TEncSbac::xCopyFrom( TEncSbac* pSrc )
   this->m_cCUInterDirSCModel  .copyFrom( &pSrc->m_cCUInterDirSCModel    );
   this->m_cCURefPicSCModel    .copyFrom( &pSrc->m_cCURefPicSCModel      );
   this->m_cCUMvdSCModel       .copyFrom( &pSrc->m_cCUMvdSCModel         );
-#ifdef QC_AMVRES
-  this->m_cCUMvResCModel       .copyFrom( &pSrc->m_cCUMvResCModel         );
-#endif
 #ifdef DCM_PBIC
   this->m_cCUIcdSCModel       .copyFrom( &pSrc->m_cCUIcdSCModel         );
 #endif
@@ -956,29 +947,6 @@ Void TEncSbac::codeMvd( TComDataCU* pcCU, UInt uiAbsPartIdx, RefPicList eRefList
   TComCUMvField* pcCUMvFieldL = ( pcCUL == NULL || pcCUL->isIntra( uiAbsPartIdxL ) ) ? NULL : pcCUL->getCUMvField( eRefList );
   TComCUMvField* pcCUMvFieldA = ( pcCUA == NULL || pcCUA->isIntra( uiAbsPartIdxA ) ) ? NULL : pcCUA->getCUMvField( eRefList );
 
-#ifdef QC_AMVRES
-  if(pcCU->getSlice()->getSPS()->getUseAMVRes())
-  {
-	  TComMv rcMv  = pcCUMvField->getMv ( uiAbsPartIdx );
-	  Int iHor = pcCUMvField->getMvd( uiAbsPartIdx ).getHor();
-	  Int iVer = pcCUMvField->getMvd( uiAbsPartIdx ).getVer();
-	  Int iL =   ( (pcCUMvFieldL == NULL) ? 1 : (Int)(pcCUMvFieldL->getMVRes(uiAbsPartIdxL)));
-	  Int iV =   ( (pcCUMvFieldA == NULL) ? 1 : (Int)(pcCUMvFieldA->getMVRes(uiAbsPartIdxA)));
-
-	  xWriteMvResFlag(!rcMv.isHAM(),iL+iV);
-	  if (!rcMv.isHAM()) 
-	  {
-		  iHorPred = ( (pcCUMvFieldL == NULL) ? 0 : (pcCUMvFieldL->getMvd( uiAbsPartIdxL ).getAbsHor()>>1) ) +
-					 ( (pcCUMvFieldA == NULL) ? 0 : (pcCUMvFieldA->getMvd( uiAbsPartIdxA ).getAbsHor()>>1) );
-		  iVerPred = ( (pcCUMvFieldL == NULL) ? 0 : (pcCUMvFieldL->getMvd( uiAbsPartIdxL ).getAbsVer()>>1) ) +
-					 ( (pcCUMvFieldA == NULL) ? 0 : (pcCUMvFieldA->getMvd( uiAbsPartIdxA ).getAbsVer()>>1) );
-	      xWriteMvd( iHor/2, iHorPred, 0 );
-	      xWriteMvd( iVer/2, iVerPred, 1 );
-		  return;
-	  }
-  }
-#endif
- 
   iHorPred = ( (pcCUMvFieldL == NULL) ? 0 : pcCUMvFieldL->getMvd( uiAbsPartIdxL ).getAbsHor() ) +
        ( (pcCUMvFieldA == NULL) ? 0 : pcCUMvFieldA->getMvd( uiAbsPartIdxA ).getAbsHor() );
   iVerPred = ( (pcCUMvFieldL == NULL) ? 0 : pcCUMvFieldL->getMvd( uiAbsPartIdxL ).getAbsVer() ) +
@@ -999,28 +967,11 @@ Void TEncSbac::codeMvdIcd( TComDataCU* pcCU, UInt uiAbsPartIdx, RefPicList eRefL
   ContextModel *pcCtxModel;
   TComZeroTree* pcZTree;
 
-#ifdef QC_AMVRES
-  // Determine and Code MV resolution flag (if necessary)
-  Bool bMvResFlag[2] = {false, false};
-  if ( (eRefList == REF_PIC_LIST_0) || (eRefList == REF_PIC_LIST_X) )
-    bMvResFlag[REF_PIC_LIST_0] = xCodeMvResFlag( pcCU, uiAbsPartIdx, REF_PIC_LIST_0 );
-  if ( (eRefList == REF_PIC_LIST_1) || (eRefList == REF_PIC_LIST_X) )
-    bMvResFlag[REF_PIC_LIST_1] = xCodeMvResFlag( pcCU, uiAbsPartIdx, REF_PIC_LIST_1 );
-#endif
-
   // Identify the non-zero components
   if (eRefList == REF_PIC_LIST_X)
   {
     acMvd[ REF_PIC_LIST_0 ] = pcCU->getCUMvField( REF_PIC_LIST_0 )->getMvd( uiAbsPartIdx );
-#ifdef QC_AMVRES
-    if (bMvResFlag[REF_PIC_LIST_0] == true)
-      acMvd[REF_PIC_LIST_0].scale_down();
-#endif
     acMvd[ REF_PIC_LIST_1 ] = pcCU->getCUMvField( REF_PIC_LIST_1 )->getMvd( uiAbsPartIdx );
-#ifdef QC_AMVRES
-    if (bMvResFlag[REF_PIC_LIST_1] == true)
-      acMvd[REF_PIC_LIST_1].scale_down();
-#endif
     iZeroPatt |= ( acMvd[REF_PIC_LIST_0].getHor() == 0 ) ? 0 : 1;
     iZeroPatt |= ( acMvd[REF_PIC_LIST_0].getVer() == 0 ) ? 0 : 2;
     iZeroPatt |= ( acMvd[REF_PIC_LIST_1].getHor() == 0 ) ? 0 : 4;
@@ -1045,10 +996,6 @@ Void TEncSbac::codeMvdIcd( TComDataCU* pcCU, UInt uiAbsPartIdx, RefPicList eRefL
   else
   {
     acMvd[ eRefList ] = pcCU->getCUMvField( eRefList )->getMvd( uiAbsPartIdx );
-#ifdef QC_AMVRES
-    if (bMvResFlag[eRefList] == true)
-      acMvd[eRefList].scale_down();
-#endif
     iZeroPatt |= ( acMvd[eRefList].getHor() == 0 ) ? 0 : 1;
     iZeroPatt |= ( acMvd[eRefList].getVer() == 0 ) ? 0 : 2;
 
@@ -2368,35 +2315,3 @@ Int TEncSbac::biari_state (Short symbol, ContextModel& rcSCModel)
 
   return ctx_state;
 }
-
-#ifdef QC_AMVRES
-Void TEncSbac::xWriteMvResFlag( Int iVal,Int Ctx_idx)
-{
-  // send flag
-  m_pcBinIf->encodeBin( iVal, m_cCUMvResCModel.get( 0, 0, Ctx_idx ) );
-}
-
-#ifdef DCM_PBIC
-Bool TEncSbac::xCodeMvResFlag( TComDataCU* pcCU, UInt uiAbsPartIdx, RefPicList eRefList )
-{
-  Bool bMvResFlag = false;
-
-  if(pcCU->getSlice()->getSPS()->getUseAMVRes())
-  {
-    bMvResFlag = !(pcCU->getCUMvField( eRefList )->getMv ( uiAbsPartIdx ).isHAM());
-
-    UInt uiAbsPartIdxL, uiAbsPartIdxA;
-    TComDataCU* pcCUL   = pcCU->getPULeft ( uiAbsPartIdxL, pcCU->getZorderIdxInCU() + uiAbsPartIdx );
-    TComDataCU* pcCUA   = pcCU->getPUAbove( uiAbsPartIdxA, pcCU->getZorderIdxInCU() + uiAbsPartIdx );
-    TComCUMvField* pcCUMvFieldL = ( pcCUL == NULL || pcCUL->isIntra( uiAbsPartIdxL ) ) ? NULL : pcCUL->getCUMvField( eRefList );
-    TComCUMvField* pcCUMvFieldA = ( pcCUA == NULL || pcCUA->isIntra( uiAbsPartIdxA ) ) ? NULL : pcCUA->getCUMvField( eRefList );
-    Int iL =   ( (pcCUMvFieldL == NULL) ? 1 : (Int)(pcCUMvFieldL->getMVRes(uiAbsPartIdxL)));
-    Int iV =   ( (pcCUMvFieldA == NULL) ? 1 : (Int)(pcCUMvFieldA->getMVRes(uiAbsPartIdxA)));
-
-    xWriteMvResFlag(bMvResFlag,iL+iV);
-  }
-
-  return bMvResFlag;
-}
-#endif
-#endif

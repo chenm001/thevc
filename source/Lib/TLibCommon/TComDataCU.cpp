@@ -660,15 +660,9 @@ Void TComDataCU::copySubCU( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
   m_acCUMvField[0].setMvPtr(pcCU->getCUMvField(REF_PIC_LIST_0)->getMv()     + uiPart);
   m_acCUMvField[0].setMvdPtr(pcCU->getCUMvField(REF_PIC_LIST_0)->getMvd()    + uiPart);
   m_acCUMvField[0].setRefIdxPtr(pcCU->getCUMvField(REF_PIC_LIST_0)->getRefIdx() + uiPart);
-#ifdef QC_AMVRES
-  m_acCUMvField[0].setMVResPtr(pcCU->getCUMvField(REF_PIC_LIST_0)->getMVRes() + uiPart);
-#endif
   m_acCUMvField[1].setMvPtr(pcCU->getCUMvField(REF_PIC_LIST_1)->getMv()     + uiPart);
   m_acCUMvField[1].setMvdPtr(pcCU->getCUMvField(REF_PIC_LIST_1)->getMvd()    + uiPart);
   m_acCUMvField[1].setRefIdxPtr(pcCU->getCUMvField(REF_PIC_LIST_1)->getRefIdx() + uiPart);
-#ifdef QC_AMVRES
-  m_acCUMvField[1].setMVResPtr(pcCU->getCUMvField(REF_PIC_LIST_1)->getMVRes() + uiPart);
-#endif
 
 #ifdef DCM_PBIC
   m_acCUIcField.setIcPtr(pcCU->getCUIcField()->getIc()     + uiPart);
@@ -722,16 +716,10 @@ Void TComDataCU::copyInterPredInfoFrom    ( TComDataCU* pcCU, UInt uiAbsPartIdx,
     m_acCUMvField[REF_PIC_LIST_0].setMvPtr(pcCU->getCUMvField(REF_PIC_LIST_0)->getMv()     + uiAbsPartIdx);
     m_acCUMvField[REF_PIC_LIST_0].setMvdPtr(pcCU->getCUMvField(REF_PIC_LIST_0)->getMvd()    + uiAbsPartIdx);
     m_acCUMvField[REF_PIC_LIST_0].setRefIdxPtr(pcCU->getCUMvField(REF_PIC_LIST_0)->getRefIdx() + uiAbsPartIdx);
-#ifdef QC_AMVRES
-    m_acCUMvField[REF_PIC_LIST_0].setMVResPtr(pcCU->getCUMvField(REF_PIC_LIST_0)->getMVRes() + uiAbsPartIdx);
-#endif
 
     m_acCUMvField[REF_PIC_LIST_1].setMvPtr(pcCU->getCUMvField(REF_PIC_LIST_1)->getMv()     + uiAbsPartIdx);
     m_acCUMvField[REF_PIC_LIST_1].setMvdPtr(pcCU->getCUMvField(REF_PIC_LIST_1)->getMvd()    + uiAbsPartIdx);
     m_acCUMvField[REF_PIC_LIST_1].setRefIdxPtr(pcCU->getCUMvField(REF_PIC_LIST_1)->getRefIdx() + uiAbsPartIdx);
-#ifdef QC_AMVRES
-    m_acCUMvField[REF_PIC_LIST_1].setMVResPtr(pcCU->getCUMvField(REF_PIC_LIST_1)->getMVRes() + uiAbsPartIdx);
-#endif
   }
   else
   {
@@ -741,9 +729,6 @@ Void TComDataCU::copyInterPredInfoFrom    ( TComDataCU* pcCU, UInt uiAbsPartIdx,
     m_acCUMvField[eRefPicList].setMvPtr(pcCU->getCUMvField(eRefPicList)->getMv()     + uiAbsPartIdx);
     m_acCUMvField[eRefPicList].setMvdPtr(pcCU->getCUMvField(eRefPicList)->getMvd()    + uiAbsPartIdx);
     m_acCUMvField[eRefPicList].setRefIdxPtr(pcCU->getCUMvField(eRefPicList)->getRefIdx() + uiAbsPartIdx);
-#ifdef QC_AMVRES
-    m_acCUMvField[eRefPicList].setMVResPtr(pcCU->getCUMvField(eRefPicList)->getMVRes() + uiAbsPartIdx);
-#endif
   }
 #else
   m_apiMVPIdx[eRefPicList] = pcCU->getMVPIdx(eRefPicList) + uiAbsPartIdx;
@@ -753,9 +738,6 @@ Void TComDataCU::copyInterPredInfoFrom    ( TComDataCU* pcCU, UInt uiAbsPartIdx,
   m_acCUMvField[eRefPicList].setMvdPtr(pcCU->getCUMvField(eRefPicList)->getMvd()    + uiAbsPartIdx);
   m_acCUMvField[eRefPicList].setRefIdxPtr(pcCU->getCUMvField(eRefPicList)->getRefIdx() + uiAbsPartIdx);
 
-#ifdef QC_AMVRES
-  m_acCUMvField[eRefPicList].setMVResPtr(pcCU->getCUMvField(eRefPicList)->getMVRes() + uiAbsPartIdx);
-#endif
 #endif
 
 #ifdef DCM_PBIC
@@ -781,9 +763,6 @@ Void TComDataCU::copyInterPredInfoTo    ( TComDataCU* pcCU, UInt uiAbsPartIdx, R
   memcpy( pcCU->getMVPIdx(eRefPicList) + uiAbsPartIdx, m_apiMVPIdx[eRefPicList], iSizeInInt );
   memcpy( pcCU->getMVPNum(eRefPicList) + uiAbsPartIdx, m_apiMVPNum[eRefPicList], iSizeInInt );
   memcpy( pcCU->getCUMvField(eRefPicList)->getMv() + uiAbsPartIdx, m_acCUMvField[eRefPicList].getMv(), iSizeInTComMv );
-#ifdef QC_AMVRES
-  memcpy( pcCU->getCUMvField(eRefPicList)->getMVRes() + uiAbsPartIdx, m_acCUMvField[eRefPicList].getMVRes(), m_uiNumPartition );
-#endif
 
 #ifdef DCM_PBIC
   memcpy( pcCU->getICPIdx() + uiAbsPartIdx, m_piICPIdx, iSizeInInt );
@@ -3794,203 +3773,6 @@ Void TComDataCU::fillMvpCand ( UInt uiPartIdx, UInt uiPartAddr, RefPicList eRefP
   return ;
 }
 
-#ifdef QC_AMVRES
-#if HHI_IMVP
-Void TComDataCU::xUniqueMVPCand_one_fourth(AMVPInfo* pInfo, Int uiPartIdx)
-#else
-Void TComDataCU::xUniqueMVPCand_one_fourth(AMVPInfo* pInfo)
-#endif
-{
-    if ( pInfo->iN == 0 )
-	{
-		pInfo->m_acMvCand[ pInfo->iN++ ].setZero();
-		return;
-	}
-
-	TComMv	acMv[ AMVP_MAX_NUM_CANDS ];
-	TComMv	acMv_round[ AMVP_MAX_NUM_CANDS ];
-	Int	iNTmp, i, j;
-
-	// make it be unique
-	iNTmp = 0;
-	acMv      [iNTmp] = pInfo->m_acMvCand[0];
-    acMv_round[iNTmp] = pInfo->m_acMvCand[0];
-	acMv_round[iNTmp ++].scale_down();
-
-	for ( i=1; i<pInfo->iN; i++ )
-	{
-    // BugFix for 1603
-		for ( j=iNTmp - 1; j>=0; j-- )
-		{
-			TComMv predMV = pInfo->m_acMvCand[i];
-			predMV.scale_down();
-#if HHI_IMVP
-			if ( getSlice()->getSPS()->getUseIMP() && !isSkip(uiPartIdx) )
-			{
-				if ( predMV.getVer() == acMv_round[j].getVer() ) break;
-			}
-	        else
-			{
-				if ( predMV == acMv_round[j] ) break;
-	        }
-#else
-			if ( predMV == acMv_round[j] ) break;
-#endif
-		}
-		if ( j<0 )
-		{
-			acMv[ iNTmp] = pInfo->m_acMvCand[i];
-			acMv_round[ iNTmp] = pInfo->m_acMvCand[i];
-			acMv_round[iNTmp ++].scale_down();
-		}
-	}
-	for ( i=0; i<iNTmp; i++ ) 
-		pInfo->m_acMvCand[i] = acMv[i];
-	pInfo->iN = iNTmp;
-
-  return ;
-}
-#if HHI_IMVP
-Bool TComDataCU::clearMVPCand_one_fourth( TComMv cMvd, AMVPInfo* pInfo, RefPicList eRefPicList, UInt uiPartIdx, Int iRefIdx )
-#else
-Bool TComDataCU::clearMVPCand_one_fourth( TComMv cMvd, AMVPInfo* pInfo)
-#endif 
-{
-  UInt uiPredMV_num = pInfo->iN;
-#if HHI_IMVP
-  xUniqueMVPCand_one_fourth(pInfo,uiPartIdx);
-#else
-  xUniqueMVPCand_one_fourth(pInfo);
-#endif
-
-	// only works for multiple candidates
-  if (pInfo->iN <= 1)
-  {
-    return (uiPredMV_num != pInfo->iN);
-  }
-
-	// only works for non-zero mvd case
-  if (cMvd.getHor() == 0 && cMvd.getVer() == 0)
-  {
-    return (uiPredMV_num != pInfo->iN);
-  }
-
-	TComMv	acMv[ AMVP_MAX_NUM_CANDS ];
-	Int aiValid [ AMVP_MAX_NUM_CANDS ];
-
-	Int	iNTmp, i, j;
-
-  for ( i=0; i<pInfo->iN; i++ )
-  {
-    aiValid[i] = 1;
-  }
-	for ( i=0; i<pInfo->iN; i++ )
-	{
-		TComMv cMvPred_round,cMvd_round;
-		TComMv cMvCand;
-		cMvPred_round=pInfo->m_acMvCand[i];
-		cMvd_round=cMvd; 
-		cMvPred_round.round();
-		cMvd_round.round();
-		// recreate the MV 
-		cMvCand = cMvPred_round + cMvd_round;
-
-      cMvPred_round.scale_down();
-      cMvd_round.scale_down();
-      cMvCand = cMvPred_round + cMvd_round;
-      
-#if HHI_IMVP
-      UInt uiBestYBits = xGetComponentBits(cMvd_round.getVer());
-#endif
-      UInt uiBestBits = xGetMvdBits(cMvd_round);
-      for ( j=0; j<pInfo->iN; j++ )
-      {
-        TComMv cMvPred_round_j;
-        
-        cMvPred_round_j=pInfo->m_acMvCand[j];
-        cMvPred_round_j.scale_down();
-#if HHI_IMVP
-        if ( getSlice()->getSPS()->getUseIMP() )
-        {
-          if (aiValid[j] && i!=j && xGetComponentBits(cMvCand.getVer()-cMvPred_round_j.getVer()) < uiBestYBits)
-          {
-            aiValid[i] = 0;
-          }
-        }
-        else
-#endif
-        {
-          if (aiValid[j] && i!=j && xGetMvdBits(cMvCand-cMvPred_round_j) < uiBestBits)
-          {
-            aiValid[i] = 0;
-          }
-        }
-      }
-	}
-  iNTmp = 0;
-  for ( i=0; i<pInfo->iN; i++ )
-  {
-    if (aiValid[i])
-      iNTmp++;
-  }
-
-  if (iNTmp == pInfo->iN)
-  {
-		return (uiPredMV_num != pInfo->iN);
-  }
-
-  assert(iNTmp > 0);
-
-	iNTmp = 0;
-	for ( i=0; i<pInfo->iN; i++ )
-	{
-	  if (aiValid[i])
-    {
-      acMv[iNTmp++] = pInfo->m_acMvCand[i];
-    }
-  }
-
-	for ( i=0; i<iNTmp; i++ ) 
-		pInfo->m_acMvCand[i] = acMv[i];
-	pInfo->iN = iNTmp;
-
-	return true;
-}
-
-Int TComDataCU::searchMVPIdx_one_fourth(TComMv cMv, AMVPInfo* pInfo)
-{
-#if HHI_IMVP
-  if ( getSlice()->getSPS()->getUseIMP() )
-  {
-    for ( Int i=0; i<pInfo->iN; i++ )
-    {
-		TComMv cCurMv=cMv;
-		TComMv cCurPredMv=pInfo->m_acMvCand[i];
-		cCurMv.scale_down();
-		cCurPredMv.scale_down();
-        if (cCurMv.getVer() == cCurPredMv.getVer() )
-            return i;
-    }
-  }
-  else
-#endif
-  {
-	for ( Int i=0; i<pInfo->iN; i++ )
-	{
-		TComMv cCurMv=cMv;
-		TComMv cCurPredMv=pInfo->m_acMvCand[i];
-		cCurMv.scale_down();
-		cCurPredMv.scale_down();
-		if (cCurMv == cCurPredMv)
-			return i;
-    }
-  }
-	assert(0);
-	return -1;
-}
-
-#endif
-
 #if HHI_IMVP
 Bool TComDataCU::clearMVPCand( TComMv cMvd, AMVPInfo* pInfo, RefPicList eRefPicList, UInt uiPartIdx, Int iRefIdx )
 #else
@@ -4171,11 +3953,7 @@ Int TComDataCU::searchMVPIdx(TComMv cMv, AMVPInfo* pInfo)
 
 Void TComDataCU::clipMv    (TComMv&  rcMv)
 {
-#ifdef QC_AMVRES
-  Int  iMvShift = (m_pcSlice->getSPS()->getUseAMVRes())?3:2;
-#else
   Int  iMvShift = 2;
-#endif
   Int iHorMax = (m_pcSlice->getSPS()->getWidth() - m_uiCUPelX - 1 )<<iMvShift;
   Int iHorMin = (      -(Int)g_uiMaxCUWidth - (Int)m_uiCUPelX + 1 )<<iMvShift;
 

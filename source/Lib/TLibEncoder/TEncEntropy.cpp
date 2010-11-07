@@ -1359,18 +1359,10 @@ Void TEncEntropy::encodeRefFrmIdxPU( TComDataCU* pcCU, UInt uiAbsPartIdx, RefPic
   assert( !pcCU->isIntra( uiAbsPartIdx ) );
   assert( !pcCU->isSkip( uiAbsPartIdx ) );
 
-#ifdef QC_AMVRES
-  if ( ( pcCU->getSlice()->getNumRefIdx( eRefList ) == 1 ))
-  {
-    if ((pcCU->getSlice()->getSymbolMode() != 0) || (!pcCU->getSlice()->getSPS()->getUseAMVRes()))
-      return;
-  }
-#else
   if ( ( pcCU->getSlice()->getNumRefIdx( eRefList ) == 1 ) )
   {
     return;
   }
-#endif
 
   if ( pcCU->getInterDir( uiAbsPartIdx ) & ( 1 << eRefList ) )
   {
@@ -1618,22 +1610,11 @@ Void TEncEntropy::encodeRefFrmIdx( TComDataCU* pcCU, UInt uiAbsPartIdx, RefPicLi
   if( bRD )
     uiAbsPartIdx = 0;
 
-#ifdef QC_AMVRES
-  if (pcCU->isSkip( uiAbsPartIdx ))
-  {
-	  return;
-  }
-  else if ( ( pcCU->getSlice()->getNumRefIdx( eRefList ) == 1 ))
-  {
-	  if ((pcCU->getSlice()->getSymbolMode() != 0) || (!pcCU->getSlice()->getSPS()->getUseAMVRes()))
-		  return;
-  }
-#else
   if ( ( pcCU->getSlice()->getNumRefIdx( eRefList ) == 1 ) || pcCU->isSkip( uiAbsPartIdx ) )
   {
     return;
   }
-#endif
+  
   UInt uiPartOffset = ( pcCU->getPic()->getNumPartInCU() >> ( pcCU->getDepth(uiAbsPartIdx) << 1 ) ) >> 2;
 
   switch ( pcCU->getPartitionSize( uiAbsPartIdx ) )

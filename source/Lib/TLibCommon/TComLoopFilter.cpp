@@ -666,9 +666,6 @@ Void TComLoopFilter::xGetBoundaryStrengthSingle ( TComDataCU* pcCU, UInt uiAbsZo
 
   UInt uiPartP;
   TComDataCU* pcCUP;
-#ifdef QC_AMVRES
-  UInt mvlimit= 4<<(Int)(pcCU->getSlice()->getSPS()->getUseAMVRes());
-#endif
   UInt uiBs;
 
   //-- Calculate Block Index
@@ -722,61 +719,6 @@ Void TComLoopFilter::xGetBoundaryStrengthSingle ( TComDataCU* pcCU, UInt uiAbsZo
         if ( ((piRefP0==piRefQ0)&&(piRefP1==piRefQ1)) || ((piRefP0==piRefQ1)&&(piRefP1==piRefQ0)) )
         {
           uiBs = 0;
-#ifdef QC_AMVRES
-          if ( piRefP0 != piRefP1 )   // Different L0 & L1
-          {
-            if ( piRefP0 == piRefQ0 )
-            {
-              pcMvP0 -= pcMvQ0;   pcMvP1 -= pcMvQ1;
-#ifdef DCM_PBIC
-              uiBs = (pcMvP0.getAbsHor() >= mvlimit) | (pcMvP0.getAbsVer() >= mvlimit) |
-                     (pcMvP1.getAbsHor() >= mvlimit) | (pcMvP1.getAbsVer() >= mvlimit) |
-                     !(pcIcP.isequalIcParam(pcIcQ));
-#else
-              uiBs = (pcMvP0.getAbsHor() >= mvlimit) | (pcMvP0.getAbsVer() >= mvlimit) |
-                     (pcMvP1.getAbsHor() >= mvlimit) | (pcMvP1.getAbsVer() >= mvlimit);
-#endif
-            }
-            else
-            {
-              pcMvP0 -= pcMvQ1;   pcMvP1 -= pcMvQ0;
-#ifdef DCM_PBIC
-              Int iParam0, iParam1, iParam2;
-              pcIcP.getIcParam( iParam0, iParam1, iParam2 );
-              pcIcP.setIcParam( iParam0,-iParam1, iParam2 );
-              uiBs = (pcMvP0.getAbsHor() >= mvlimit) | (pcMvP0.getAbsVer() >= mvlimit) |
-                     (pcMvP1.getAbsHor() >= mvlimit) | (pcMvP1.getAbsVer() >= mvlimit) |
-                     !(pcIcP.isequalIcParam(pcIcQ));
-#else
-              uiBs = (pcMvP0.getAbsHor() >= mvlimit) | (pcMvP0.getAbsVer() >= mvlimit) |
-                     (pcMvP1.getAbsHor() >= mvlimit) | (pcMvP1.getAbsVer() >= mvlimit);
-#endif
-            }
-          }
-          else    // Same L0 & L1
-          {
-            TComMv pcMvSub0 = pcMvP0 - pcMvQ0;
-            TComMv pcMvSub1 = pcMvP1 - pcMvQ1;
-            pcMvP0 -= pcMvQ1;   pcMvP1 -= pcMvQ0;
-#ifdef DCM_PBIC
-            uiBs = (pcMvSub0.getAbsHor() >= mvlimit) | (pcMvSub0.getAbsVer() >= mvlimit) |
-                   (pcMvSub1.getAbsHor() >= mvlimit) | (pcMvSub1.getAbsVer() >= mvlimit) |
-                   !(pcIcP.isequalIcParam(pcIcQ));
-            Int iParam0, iParam1, iParam2;
-            pcIcP.getIcParam( iParam0, iParam1, iParam2 );
-            pcIcP.setIcParam( iParam0,-iParam1, iParam2 );
-            uiBs = uiBs && 
-                   ( (pcMvP0.getAbsHor() >= mvlimit) | (pcMvP0.getAbsVer() >= mvlimit) |
-                     (pcMvP1.getAbsHor() >= mvlimit) | (pcMvP1.getAbsVer() >= mvlimit) |
-                     !(pcIcP.isequalIcParam(pcIcQ)) );
-#else
-            uiBs = ( (pcMvP0.getAbsHor() >= mvlimit) | (pcMvP0.getAbsVer() >= mvlimit) |
-                     (pcMvP1.getAbsHor() >= mvlimit) | (pcMvP1.getAbsVer() >= mvlimit) ) &&
-                   ( (pcMvSub0.getAbsHor() >= mvlimit) | (pcMvSub0.getAbsVer() >= mvlimit) |
-                     (pcMvSub1.getAbsHor() >= mvlimit) | (pcMvSub1.getAbsVer() >= mvlimit) );
-#endif
-          }
-#else
           if ( piRefP0 != piRefP1 )   // Different L0 & L1
           {
             if ( piRefP0 == piRefQ0 )
@@ -830,7 +772,6 @@ Void TComLoopFilter::xGetBoundaryStrengthSingle ( TComDataCU* pcCU, UInt uiAbsZo
                      (pcMvSub1.getAbsHor() >= 4) | (pcMvSub1.getAbsVer() >= 4) );
 #endif
           }
-#endif
         }
         else // for all different Ref_Idx
         {
@@ -853,18 +794,10 @@ Void TComLoopFilter::xGetBoundaryStrengthSingle ( TComDataCU* pcCU, UInt uiAbsZo
 #endif
 
         pcMvP0 -= pcMvQ0;
-#ifdef QC_AMVRES
-#ifdef DCM_PBIC
-        uiBs = (piRefP0 != piRefQ0) | (pcMvP0.getAbsHor() >= mvlimit) | (pcMvP0.getAbsVer() >= mvlimit) | !(pcIcP.isequalIcParam(pcIcQ));
-#else
-        uiBs = (piRefP0 != piRefQ0) | (pcMvP0.getAbsHor() >= mvlimit) | (pcMvP0.getAbsVer() >= mvlimit);
-#endif
-#else
 #ifdef DCM_PBIC
         uiBs = (piRefP0 != piRefQ0) | (pcMvP0.getAbsHor() >= 4) | (pcMvP0.getAbsVer() >= 4) | !(pcIcP.isequalIcParam(pcIcQ));
 #else
         uiBs = (piRefP0 != piRefQ0) | (pcMvP0.getAbsHor() >= 4) | (pcMvP0.getAbsVer() >= 4);
-#endif
 #endif
       }
     }   // enf of "if( one of BCBP == 0 )"
@@ -1190,9 +1123,6 @@ Void TComLoopFilter::xGetBoundaryStrength( TComDataCU* pcCU, UInt uiAbsZorderIdx
   TComSlice* pcSlice = pcCU->getSlice();
   TComDataCU* pcCUQ = pcCU;
   TComDataCU* pcCUP;
-#ifdef QC_AMVRES
-  UInt mvlimit= 4<<(Int)(pcCU->getSlice()->getSPS()->getUseAMVRes());
-#endif
   m_stLFCUParam.iBsEdgeSum[iDir][iEdge] = 0;
 
   for ( Int iIdx = 0; iIdx < 4; iIdx++ )
@@ -1286,16 +1216,6 @@ Void TComLoopFilter::xGetBoundaryStrength( TComDataCU* pcCU, UInt uiAbsZorderIdx
               if ( piRefP0 == piRefQ0 )
               {
                 pcMvP0 -= pcMvQ0;   pcMvP1 -= pcMvQ1;
-#ifdef QC_AMVRES
-#ifdef DCM_PBIC
-                m_aaucBS[iDir][uiBsIdx] = (pcMvP0.getAbsHor() >= mvlimit) | (pcMvP0.getAbsVer() >= mvlimit) |
-                                          (pcMvP1.getAbsHor() >= mvlimit) | (pcMvP1.getAbsVer() >= mvlimit) |
-                                          !(pcIcP.isequalIcParam(pcIcQ));
-#else
-                m_aaucBS[iDir][uiBsIdx] = (pcMvP0.getAbsHor() >= mvlimit) | (pcMvP0.getAbsVer() >= mvlimit) |
-                                          (pcMvP1.getAbsHor() >= mvlimit) | (pcMvP1.getAbsVer() >= mvlimit);
-#endif
-#else
 #ifdef DCM_PBIC
                 m_aaucBS[iDir][uiBsIdx] = (pcMvP0.getAbsHor() >= 4) | (pcMvP0.getAbsVer() >= 4) |
                                           (pcMvP1.getAbsHor() >= 4) | (pcMvP1.getAbsVer() >= 4) |
@@ -1303,25 +1223,11 @@ Void TComLoopFilter::xGetBoundaryStrength( TComDataCU* pcCU, UInt uiAbsZorderIdx
 #else
                 m_aaucBS[iDir][uiBsIdx] = (pcMvP0.getAbsHor() >= 4) | (pcMvP0.getAbsVer() >= 4) |
                                         (pcMvP1.getAbsHor() >= 4) | (pcMvP1.getAbsVer() >= 4);
-#endif
 #endif              
               }
               else
               {
                 pcMvP0 -= pcMvQ1;   pcMvP1 -= pcMvQ0;
-#ifdef QC_AMVRES
-#ifdef DCM_PBIC
-                Int iParam0, iParam1, iParam2;
-                pcIcP.getIcParam( iParam0, iParam1, iParam2 );
-                pcIcP.setIcParam( iParam0,-iParam1, iParam2 );
-                m_aaucBS[iDir][uiBsIdx] = (pcMvP0.getAbsHor() >= mvlimit) | (pcMvP0.getAbsVer() >= mvlimit) |
-                                          (pcMvP1.getAbsHor() >= mvlimit) | (pcMvP1.getAbsVer() >= mvlimit) |
-                                          !(pcIcP.isequalIcParam(pcIcQ));
-#else
-                m_aaucBS[iDir][uiBsIdx] = (pcMvP0.getAbsHor() >= mvlimit) | (pcMvP0.getAbsVer() >= mvlimit) |
-                                        (pcMvP1.getAbsHor() >= mvlimit) | (pcMvP1.getAbsVer() >= mvlimit);
-#endif
-#else
 #ifdef DCM_PBIC
                 Int iParam0, iParam1, iParam2;
                 pcIcP.getIcParam( iParam0, iParam1, iParam2 );
@@ -1332,7 +1238,6 @@ Void TComLoopFilter::xGetBoundaryStrength( TComDataCU* pcCU, UInt uiAbsZorderIdx
 #else
                 m_aaucBS[iDir][uiBsIdx] = (pcMvP0.getAbsHor() >= 4) | (pcMvP0.getAbsVer() >= 4) |
                                         (pcMvP1.getAbsHor() >= 4) | (pcMvP1.getAbsVer() >= 4);
-#endif
 #endif
               }
             }
@@ -1341,25 +1246,6 @@ Void TComLoopFilter::xGetBoundaryStrength( TComDataCU* pcCU, UInt uiAbsZorderIdx
               TComMv pcMvSub0 = pcMvP0 - pcMvQ0;
               TComMv pcMvSub1 = pcMvP1 - pcMvQ1;
               pcMvP0 -= pcMvQ1;   pcMvP1 -= pcMvQ0;
-#ifdef QC_AMVRES
-#ifdef DCM_PBIC
-              m_aaucBS[iDir][uiBsIdx] = (pcMvSub0.getAbsHor() >= mvlimit) | (pcMvSub0.getAbsVer() >= mvlimit) |
-                                        (pcMvSub1.getAbsHor() >= mvlimit) | (pcMvSub1.getAbsVer() >= mvlimit) |
-                                        !(pcIcP.isequalIcParam(pcIcQ));
-              Int iParam0, iParam1, iParam2;
-              pcIcP.getIcParam( iParam0, iParam1, iParam2 );
-              pcIcP.setIcParam( iParam0,-iParam1, iParam2 );
-              m_aaucBS[iDir][uiBsIdx] = m_aaucBS[iDir][uiBsIdx] && 
-                                        ( (pcMvP0.getAbsHor() >= mvlimit) | (pcMvP0.getAbsVer() >= mvlimit) |
-                                          (pcMvP1.getAbsHor() >= mvlimit) | (pcMvP1.getAbsVer() >= mvlimit) |
-                                          !(pcIcP.isequalIcParam(pcIcQ)) );
-#else
-              m_aaucBS[iDir][uiBsIdx] = ( (pcMvP0.getAbsHor() >= mvlimit) | (pcMvP0.getAbsVer() >= mvlimit) |
-                                        (pcMvP1.getAbsHor() >= mvlimit) | (pcMvP1.getAbsVer() >= mvlimit) ) &&
-                                      ( (pcMvSub0.getAbsHor() >= mvlimit) | (pcMvSub0.getAbsVer() >= mvlimit) |
-                                        (pcMvSub1.getAbsHor() >= mvlimit) | (pcMvSub1.getAbsVer() >= mvlimit) );
-#endif
-#else
 #ifdef DCM_PBIC
               m_aaucBS[iDir][uiBsIdx] = (pcMvSub0.getAbsHor() >= 4) | (pcMvSub0.getAbsVer() >= 4) |
                                         (pcMvSub1.getAbsHor() >= 4) | (pcMvSub1.getAbsVer() >= 4) |
@@ -1376,7 +1262,6 @@ Void TComLoopFilter::xGetBoundaryStrength( TComDataCU* pcCU, UInt uiAbsZorderIdx
                                         (pcMvP1.getAbsHor() >= 4) | (pcMvP1.getAbsVer() >= 4) ) &&
                                       ( (pcMvSub0.getAbsHor() >= 4) | (pcMvSub0.getAbsVer() >= 4) |
                                         (pcMvSub1.getAbsHor() >= 4) | (pcMvSub1.getAbsVer() >= 4) );
-#endif
 #endif
             }
           }
@@ -1401,18 +1286,10 @@ Void TComLoopFilter::xGetBoundaryStrength( TComDataCU* pcCU, UInt uiAbsZorderIdx
 #endif
 
           pcMvP0 -= pcMvQ0;
-#ifdef QC_AMVRES
-#ifdef DCM_PBIC
-          m_aaucBS[iDir][uiBsIdx] = (piRefP0 != piRefQ0) | (pcMvP0.getAbsHor() >= mvlimit) | (pcMvP0.getAbsVer() >= mvlimit) | !(pcIcP.isequalIcParam(pcIcQ));
-#else
-          m_aaucBS[iDir][uiBsIdx] = (piRefP0 != piRefQ0) | (pcMvP0.getAbsHor() >= mvlimit) | (pcMvP0.getAbsVer() >= mvlimit);
-#endif
-#else
 #ifdef DCM_PBIC
           m_aaucBS[iDir][uiBsIdx] = (piRefP0 != piRefQ0) | (pcMvP0.getAbsHor() >= 4) | (pcMvP0.getAbsVer() >= 4) | !(pcIcP.isequalIcParam(pcIcQ));
 #else
           m_aaucBS[iDir][uiBsIdx] = (piRefP0 != piRefQ0) | (pcMvP0.getAbsHor() >= 4) | (pcMvP0.getAbsVer() >= 4);
-#endif
 #endif
         }
       }   // enf of "if( one of BCBP == 0 )"

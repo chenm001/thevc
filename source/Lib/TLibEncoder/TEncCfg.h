@@ -133,9 +133,6 @@ protected:
 #if HHI_IMVP
   Bool      m_bUseIMP; // SOPH:
 #endif
-#ifdef QC_AMVRES
-  Bool      m_bUseAMVRes;
-#endif
 #ifdef DCM_PBIC 
   Bool      m_bUseIC;
 #endif
@@ -303,9 +300,6 @@ public:
 #if HHI_IMVP
   Void      setUseIMP                       ( Bool  b )     { m_bUseIMP     = b; } // SOPH:
 #endif
-#ifdef QC_AMVRES
- Void      setUseAMVRes                       ( Bool  b )     { m_bUseAMVRes     = b; }
-#endif
 #ifdef DCM_PBIC 
   Void      setUseIC                        ( Bool  b )     { m_bUseIC      = b; }
 #endif
@@ -339,9 +333,6 @@ public:
 #endif
 #if HHI_IMVP
   Bool      getUseIMP                       ()      { return m_bUseIMP;     } // SOPH:
-#endif
-#ifdef QC_AMVRES
- Bool      getUseAMVRes                     ()     {return  m_bUseAMVRes; }
 #endif
 #ifdef DCM_PBIC 
   Bool      getUseIC                        ()      { return m_bUseIC;      }

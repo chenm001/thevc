@@ -60,9 +60,6 @@ TDecSbac::TDecSbac()
   , m_cCUIcdSCModel           ( 1,             3,               NUM_IC_RES_CTX                )
 #endif
   , m_cCURefPicSCModel        ( 1,             1,               NUM_REF_NO_CTX                )
-#ifdef QC_AMVRES
-  , m_cCUMvResCModel       ( 1,             1,               NUM_MV_RES_FALG_CTX  )
-#endif
 #if HHI_RQT
   , m_cCUTransSubdivFlagSCModel( 1,            1,               NUM_TRANS_SUBDIV_FLAG_CTX     )
 #if HHI_RQT_ROOT
@@ -139,9 +136,6 @@ Void TDecSbac::resetEntropy          (TComSlice* pcSlice)
   m_cCUChromaPredSCModel.initBuffer   ( eSliceType, iQp, (Short*)INIT_CHROMA_PRED_MODE );
   m_cCUInterDirSCModel.initBuffer     ( eSliceType, iQp, (Short*)INIT_INTER_DIR );
   m_cCUMvdSCModel.initBuffer          ( eSliceType, iQp, (Short*)INIT_MVD );
-#ifdef QC_AMVRES
-  m_cCUMvResCModel.initBuffer         (eSliceType,  iQp, (Short*)INIT_MVRES_FLAG );
-#endif
 #ifdef DCM_PBIC
   m_cCUIcdSCModel.initBuffer          ( eSliceType, iQp, (Short*)INIT_ICD );
 #endif
@@ -414,34 +408,6 @@ Void TDecSbac::xReadMvd( Int& riMvdComp, UInt uiAbsSum, UInt uiCtx )
 
   return;
 }
-#ifdef QC_AMVRES
-Void TDecSbac::xReadMvResFlag ( Int& riVal, UInt uiCtx )
-{
-  UInt uiSymbol = 0;
-  m_pcTDecBinIf->decodeBin( uiSymbol, m_cCUMvResCModel.get( 0, 0, uiCtx ) );
-  riVal = (Int)uiSymbol;
-}
-#ifdef DCM_PBIC
-Bool TDecSbac::xParseMvResFlag ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiPartIdx, UInt uiDepth, RefPicList eRefList )
-{
-  Int MVres=0;
-  if( pcCU->getSlice()->getSPS()->getUseAMVRes() )
-  {
-    UInt uiAbsPartIdxL, uiAbsPartIdxA;
-    TComDataCU* pcCUL   = pcCU->getPULeft ( uiAbsPartIdxL, pcCU->getZorderIdxInCU() + uiAbsPartIdx );
-    TComDataCU* pcCUA   = pcCU->getPUAbove( uiAbsPartIdxA, pcCU->getZorderIdxInCU() + uiAbsPartIdx );
-    TComCUMvField* pcCUMvFieldL = ( pcCUL == NULL || pcCUL->isIntra( uiAbsPartIdxL ) ) ? NULL : pcCUL->getCUMvField( eRefList );
-    TComCUMvField* pcCUMvFieldA = ( pcCUA == NULL || pcCUA->isIntra( uiAbsPartIdxA ) ) ? NULL : pcCUA->getCUMvField( eRefList );
-    Int iL =   ( (pcCUMvFieldL == NULL) ? 1 : (Int)(pcCUMvFieldL->getMVRes(uiAbsPartIdxL)));
-    Int iV =   ( (pcCUMvFieldA == NULL) ? 1 : (Int)(pcCUMvFieldA->getMVRes(uiAbsPartIdxA)));
-    xReadMvResFlag(MVres,iL+iV);
-  }
-  pcCU->getCUMvField( eRefList )->setAllMVRes( MVres>0, pcCU->getPartitionSize( uiAbsPartIdx ), uiAbsPartIdx, uiPartIdx, uiDepth );
-  return (MVres>0);
-}
-#endif
-#endif
-
 
 #ifdef DCM_PBIC
 Void TDecSbac::xReadMvdNZ( Int& riMvdComp, UInt uiCtx )
@@ -1091,67 +1057,7 @@ Void TDecSbac::parseRefFrmIdx( TComDataCU* pcCU, Int& riRefFrmIdx, UInt uiAbsPar
   riRefFrmIdx = uiSymbol;
   return;
 }
-#ifdef QC_AMVRES
-Void TDecSbac::parseMvd( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiPartIdx, UInt uiDepth, RefPicList eRefList )
-{  
-  Int iHor, iVer;  
-  UInt uiAbsPartIdxL, uiAbsPartIdxA; 
-  Int iHorPred, iVerPred;
-  Int MVres=0;
-  TComDataCU* pcCUL   = pcCU->getPULeft ( uiAbsPartIdxL, pcCU->getZorderIdxInCU() + uiAbsPartIdx );
-  TComDataCU* pcCUA   = pcCU->getPUAbove( uiAbsPartIdxA, pcCU->getZorderIdxInCU() + uiAbsPartIdx );
 
-  TComCUMvField* pcCUMvFieldL = ( pcCUL == NULL || pcCUL->isIntra( uiAbsPartIdxL ) ) ? NULL : pcCUL->getCUMvField( eRefList );
-  TComCUMvField* pcCUMvFieldA = ( pcCUA == NULL || pcCUA->isIntra( uiAbsPartIdxA ) ) ? NULL : pcCUA->getCUMvField( eRefList );
-
-  if( pcCU->getSlice()->getSPS()->getUseAMVRes() )
-  {
-	  Int iL =   ( (pcCUMvFieldL == NULL) ? 1 : (Int)(pcCUMvFieldL->getMVRes(uiAbsPartIdxL)));
-	  Int iV =   ( (pcCUMvFieldA == NULL) ? 1 : (Int)(pcCUMvFieldA->getMVRes(uiAbsPartIdxA)));  
-	  xReadMvResFlag(MVres,iL+iV);
-	  if (MVres)
-	  {
-		  iHorPred = ( (pcCUMvFieldL == NULL) ? 0 : pcCUMvFieldL->getMvd( uiAbsPartIdxL ).getAbsHor()>>1 ) + 
-					 ( (pcCUMvFieldA == NULL) ? 0 : pcCUMvFieldA->getMvd( uiAbsPartIdxA ).getAbsHor()>>1 );
-		  iVerPred = ( (pcCUMvFieldL == NULL) ? 0 : pcCUMvFieldL->getMvd( uiAbsPartIdxL ).getAbsVer()>>1 ) + 
-					 ( (pcCUMvFieldA == NULL) ? 0 : pcCUMvFieldA->getMvd( uiAbsPartIdxA ).getAbsVer()>>1 );
-
-		  xReadMvd( iHor, iHorPred, 0 );
-		  xReadMvd( iVer, iVerPred, 1 );
-		  iHor *=2;
-		  iVer *=2;
-	  } 
-	  else
-	  {
-		  iHorPred = ( (pcCUMvFieldL == NULL) ? 0 : pcCUMvFieldL->getMvd( uiAbsPartIdxL ).getAbsHor() ) + 
-					 ( (pcCUMvFieldA == NULL) ? 0 : pcCUMvFieldA->getMvd( uiAbsPartIdxA ).getAbsHor() );
-		  iVerPred = ( (pcCUMvFieldL == NULL) ? 0 : pcCUMvFieldL->getMvd( uiAbsPartIdxL ).getAbsVer() ) + 
-					 ( (pcCUMvFieldA == NULL) ? 0 : pcCUMvFieldA->getMvd( uiAbsPartIdxA ).getAbsVer() );
-	  
-		  xReadMvd( iHor, iHorPred, 0 );
-		  xReadMvd( iVer, iVerPred, 1 );
-	  }
-	  pcCU->getCUMvField( eRefList )->setAllMVRes( MVres>0, pcCU->getPartitionSize( uiAbsPartIdx ), uiAbsPartIdx, uiPartIdx, uiDepth );
-  }
-  else
-  {
-	  iHorPred = ( (pcCUMvFieldL == NULL) ? 0 : pcCUMvFieldL->getMvd( uiAbsPartIdxL ).getAbsHor() ) + 
-				 ( (pcCUMvFieldA == NULL) ? 0 : pcCUMvFieldA->getMvd( uiAbsPartIdxA ).getAbsHor() );
-	  iVerPred = ( (pcCUMvFieldL == NULL) ? 0 : pcCUMvFieldL->getMvd( uiAbsPartIdxL ).getAbsVer() ) + 
-				 ( (pcCUMvFieldA == NULL) ? 0 : pcCUMvFieldA->getMvd( uiAbsPartIdxA ).getAbsVer() );
-	  xReadMvd( iHor, iHorPred, 0 );
-      xReadMvd( iVer, iVerPred, 1 );
-	  pcCU->getCUMvField( eRefList )->setAllMVRes( 0, pcCU->getPartitionSize( uiAbsPartIdx ), uiAbsPartIdx, uiPartIdx, uiDepth );
-  }
-  TComMv cTmpMv( 0, 0 );
-  pcCU->getCUMvField( eRefList )->setAllMv( cTmpMv, pcCU->getPartitionSize( uiAbsPartIdx ), uiAbsPartIdx, uiPartIdx, uiDepth );
-
-  TComMv cMv( iHor, iVer );
-  pcCU->getCUMvField( eRefList )->setAllMvd( cMv, pcCU->getPartitionSize( uiAbsPartIdx ), uiAbsPartIdx, uiPartIdx, uiDepth );
-
-  return;
-}
-#else
 Void TDecSbac::parseMvd( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiPartIdx, UInt uiDepth, RefPicList eRefList )
 {
   Int iHor, iVer;
@@ -1181,7 +1087,6 @@ Void TDecSbac::parseMvd( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiPartIdx, UI
 
   return;
 }
-#endif
 
 #ifdef DCM_PBIC
 Void TDecSbac::parseMvdIcd( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiPartIdx, UInt uiDepth, RefPicList eRefList )
@@ -1191,15 +1096,6 @@ Void TDecSbac::parseMvdIcd( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiPartIdx,
   Int aiNZIc[3];
   UInt uiZeroFlag;
   TComZeroTree* pcZTree;
-
-#ifdef QC_AMVRES
-  // Decode MV resolution flag (if necessary)
-  Bool bMvResFlag[2] = {false, false};
-  if ( (eRefList == REF_PIC_LIST_0) || (eRefList == REF_PIC_LIST_X) )
-    bMvResFlag[REF_PIC_LIST_0] = xParseMvResFlag( pcCU, uiAbsPartIdx, uiPartIdx, uiDepth, REF_PIC_LIST_0 );
-  if ( (eRefList == REF_PIC_LIST_1) || (eRefList == REF_PIC_LIST_X) )
-    bMvResFlag[REF_PIC_LIST_1] = xParseMvResFlag( pcCU, uiAbsPartIdx, uiPartIdx, uiDepth, REF_PIC_LIST_1 );
-#endif
 
   // Is any component non-zero?
   m_pcTDecBinIf->decodeBin( uiZeroFlag, *getZTreeCtx(IDX_ZEROFLAG) );
@@ -1271,25 +1167,11 @@ Void TDecSbac::parseMvdIcd( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiPartIdx,
   iHor = iVer = 0;
   if (aaiNZMv[REF_PIC_LIST_0][0]) xReadMvdNZ(iHor, 0);
   if (aaiNZMv[REF_PIC_LIST_0][1]) xReadMvdNZ(iVer, 1);
-#ifdef QC_AMVRES
-  if (bMvResFlag[REF_PIC_LIST_0] == true)
-  {
-    iHor *= 2;
-    iVer *= 2;
-  }
-#endif
   cMvd0.set( iHor, iVer );
 
   iHor = iVer = 0;
   if (aaiNZMv[REF_PIC_LIST_1][0]) xReadMvdNZ(iHor, 0);
   if (aaiNZMv[REF_PIC_LIST_1][1]) xReadMvdNZ(iVer, 1);
-#ifdef QC_AMVRES
-  if (bMvResFlag[REF_PIC_LIST_1] == true)
-  {
-    iHor *= 2;
-    iVer *= 2;
-  }
-#endif
   cMvd1.set( iHor, iVer );
 
   if (eRefList == REF_PIC_LIST_X)

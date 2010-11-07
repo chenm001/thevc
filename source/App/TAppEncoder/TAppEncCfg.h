@@ -72,9 +72,6 @@ protected:
   Bool      m_bUseNRF;                                        ///< flag for using non-referenced frame in hierarchical structure
   Bool      m_bUseGPB;                                        ///< flag for using generalized P & B structure
   Bool      m_bUseQBO;                                        ///< flag for using quality-based reference ordering for skip mode
-#ifdef QC_AMVRES
-	Bool      m_bUseAMVRes;
-#endif
   // coding quality
   Double    m_fQP;                                            ///< QP value of key-picture (floating point)
   Int       m_iQP;                                            ///< QP value of key-picture (integer)

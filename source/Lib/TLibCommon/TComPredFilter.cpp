@@ -99,76 +99,6 @@ Int CTI_Filter12_C [5][7][12] =
 #endif
 
 // DIF filter set for half & quarter
-#ifdef QC_AMVRES
-Int CTI_Filter12 [5][7][12] =
-{
-  //  4-tap filter
-  {
-    {   -14,  244,   34,   -8,},	// 1/8
-    {   -24,  224,   72,  -16,},	// Quarter0
-    {   -28,  192,  114,  -22,},	// 3/8
-    {   -32,  160,  160,  -32,},	// Half
-    {   -22,  114,  192,  -28,},	// 5/8
-    {   -16,   72,  224,  -24,},	// Quarter1
-    {    -8,   34,  244,  -14,}	  // 7/8
-
-  },
-    //  6-tap filter
-  {
-    {     5,  -22,  247,   35,  -13,    4 },	// 1/8
-    {     8,  -32,  224,   72,  -24,    8 },	// Quarter0
-    {    11,  -43,  196,  118,  -36,    10 },	// 3/8
-    {     8,  -40,  160,  160,  -40,    8 },	// Half
-    {    10,  -36,  118,  196,  -43,    11 },	// 5/8
-    {     8,  -24,   72,  224,  -32,    8,},	// Quarter1
-    {     4,  -13,   35,  247,  -22,    5 }	  // 7/8
-  },
-    //  8-tap filter
-  {
-    {    -3,   10,  -25,  248,   36,  -15,    7,   -2 },	// 1/8
-    {    -4,   16,  -40,  228,   76,  -28,   12,   -4 },    // Quarter0
-    {    -6,   21,  -48,  198,  119,  -41,   19,   -6 },	// 3/8
-    {    -4,   20,  -48,  160,  160,  -48,   20,   -4 },    // Half
-    {    -6,   19,  -41,  119,  198,  -48,   21,   -6 },	// 5/8
-    {    -4,   12,  -28,   76,  228,  -40,   16,   -4 },    // Quarter1
-    {    -2,    7,  -15,   36,  248,  -25,   10,   -3 }	  // 7/8
-
-  },
-    // 10-tap filter
-  {
-    {     2,   -6,   12,  -26,  248,   36,  -15,    9,   -5,    1 },	// 1/8
-    {     4,   -8,   20,  -44,  228,   76,  -32,   16,   -8,    4 },	// Quarter0
-    {     4,  -13,   25,  -51,  199,  120,  -43,   23,  -12,    4 },	// 3/8
-    {     4,  -16,   28,  -48,  160,  160,  -48,   28,  -16,    4 },	// Half
-    {     4,  -12,   23,  -43,  120,  199,  -51,   25,  -13,    4 },	// 5/8
-    {     4,   -8,   16,  -32,   76,  228,  -44,   20,   -8,    4,},	// Quarter1
-    {     1,   -5,    9,  -15,   36,  248,  -26,   12,   -6,    2 }	  // 7/8
-
-  },
-    // 12-tap filter
-#ifdef QC_AMVRES_LOW_COMPLEXTY
-  {
-    {     0,    0,   -3,   10,  -25,  248,   36,  -15,    7,   -2,    0,    0 },  // 1/8
-    {    -1,    5,  -12,   20,  -40,  229,   76,  -32,   16,   -8,    4,   -1 },	// Quarter0
-    {     0,    0,   -6,   21,  -48,  198,  119,  -41,   19,   -6,    0,    0 },	// 3/8
-    {    -1,    8,  -16,   24,  -48,  161,  161,  -48,   24,  -16,    8,   -1 },	// Half
-    {     0,    0,   -6,   19,  -41,  119,  198,  -48,   21,   -6,    0,    0 },	// 5/8
-    {    -1,    4,   -8,   16,  -32,   76,  229,  -40,   20,  -12,    5,   -1 },	// Quarter1
-    {     0,    0,   -2,    7,  -15,   36,  248,  -25,   10,   -3,    0,    0 }   // 7/8
-  }
-#else
-  {
-    {    -1,    4,   -7,   13,  -27,  249,   36,  -16,    9,   -6,    3,   -1 },  // 1/8
-    {    -1,    5,  -12,   20,  -40,  229,   76,  -32,   16,   -8,    4,   -1 },	// Quarter0
-    {    -3,    9,  -15,   27,  -51,  200,  119,  -44,   24,  -14,    7,   -3 },	// 3/8
-    {    -1,    8,  -16,   24,  -48,  161,  161,  -48,   24,  -16,    8,   -1 },	// Half
-    {    -3,    7,  -14,   24,  -44,  119,  200,  -51,   27,  -15,    9,   -3 },	// 5/8
-    {    -1,    4,   -8,   16,  -32,   76,  229,  -40,   20,  -12,    5,   -1 },	// Quarter1
-    {    -1,    3,   -6,    9,  -16,   36,  249,  -27,   13,   -7,    4,   -1 }   // 7/8
-  }
-#endif
-};
-#else
 Int CTI_Filter12 [5][3][12] =
 {
   //  4-tap filter
@@ -202,7 +132,6 @@ Int CTI_Filter12 [5][3][12] =
     {    -1,    4,   -8,   16,  -32,   76,  229,  -40,   20,  -12,    5,   -1 },  // Quarter1
   },
 };
-#endif
 
 // ====================================================================================================================
 // Constructor
@@ -232,11 +161,7 @@ Void TComPredFilter::setDIFTap( Int i )
   // initialize function pointers
   if ( m_iDIFTap == 4 )
   {
-#ifdef QC_AMVRES
-		for ( Int k=0; k<7; k++ )
-#else
     for ( Int k=0; k<3; k++ )
-#endif
     {
       xCTI_Filter_VP [k] = TComPredFilter::xCTI_Filter_VP04;
       xCTI_Filter_VPS[k] = TComPredFilter::xCTI_Filter_VPS04;
@@ -246,11 +171,7 @@ Void TComPredFilter::setDIFTap( Int i )
   }
   else if ( m_iDIFTap == 6 )
   {
-#ifdef QC_AMVRES
-		for ( Int k=0; k<7; k++ )
-#else
     for ( Int k=0; k<3; k++ )
-#endif
     {
       xCTI_Filter_VP [k] = TComPredFilter::xCTI_Filter_VP06;
       xCTI_Filter_VPS[k] = TComPredFilter::xCTI_Filter_VPS06;
@@ -260,11 +181,7 @@ Void TComPredFilter::setDIFTap( Int i )
   }
   else if ( m_iDIFTap == 8 )
   {
-#ifdef QC_AMVRES
-		for ( Int k=0; k<7; k++ )
-#else
     for ( Int k=0; k<3; k++ )
-#endif
     {
       xCTI_Filter_VP [k] = TComPredFilter::xCTI_Filter_VP08;
       xCTI_Filter_VPS[k] = TComPredFilter::xCTI_Filter_VPS08;
@@ -274,11 +191,7 @@ Void TComPredFilter::setDIFTap( Int i )
   }
   else if ( m_iDIFTap == 10 )
   {
-#ifdef QC_AMVRES
-		for ( Int k=0; k<7; k++ )
-#else
     for ( Int k=0; k<3; k++ )
-#endif
     {
       xCTI_Filter_VP [k] = TComPredFilter::xCTI_Filter_VP10;
       xCTI_Filter_VPS[k] = TComPredFilter::xCTI_Filter_VPS10;
@@ -288,11 +201,7 @@ Void TComPredFilter::setDIFTap( Int i )
   }
   else if ( m_iDIFTap == 12 )
   {
-#ifdef QC_AMVRES
-		for ( Int k=0; k<7; k++ )
-#else
     for ( Int k=0; k<3; k++ )
-#endif
     {
       xCTI_Filter_VP [k] = TComPredFilter::xCTI_Filter_VP12;
       xCTI_Filter_VPS[k] = TComPredFilter::xCTI_Filter_VPS12;
@@ -302,11 +211,7 @@ Void TComPredFilter::setDIFTap( Int i )
   }
   else
   {
-#ifdef QC_AMVRES
-		for ( Int k=0; k<7; k++ )
-#else
     for ( Int k=0; k<3; k++ )
-#endif
     {
       xCTI_Filter_VP [k] = TComPredFilter::xCTI_Filter_VP12;
       xCTI_Filter_VPS[k] = TComPredFilter::xCTI_Filter_VPS12;

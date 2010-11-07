@@ -124,12 +124,6 @@ private:
   Void  xWriteExGolombIcd    ( UInt uiSymbol, ContextModel* pcSCModel, UInt uiMaxBin );
 #endif
   Void  xWriteExGolombMvd    ( UInt uiSymbol, ContextModel* pcSCModel, UInt uiMaxBin );
-#ifdef QC_AMVRES
-  Void xWriteMvResFlag( Int iVal ,Int Ctx_idx);
-#ifdef DCM_PBIC
-  Bool xCodeMvResFlag( TComDataCU* pcCU, UInt uiAbsPartIdx, RefPicList eRefList );
-#endif
-#endif
   Void  xCopyFrom            ( TEncSbac* pSrc );
   UInt  xGetCTXIdxFromWidth  ( Int iWidth );
 
@@ -234,9 +228,6 @@ private:
   ContextModel3DBuffer m_cCUInterDirSCModel;
   ContextModel3DBuffer m_cCURefPicSCModel;
   ContextModel3DBuffer m_cCUMvdSCModel;
-#ifdef QC_AMVRES
-  ContextModel3DBuffer m_cCUMvResCModel;
-#endif
 #ifdef DCM_PBIC
   ContextModel3DBuffer m_cCUIcdSCModel;
 #endif

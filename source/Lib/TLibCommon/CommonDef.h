@@ -141,13 +141,6 @@
 // Coding tool configuration
 // ====================================================================================================================
 
-
-#ifdef QC_AMVRES
-#define AMVRES_ACC										8 					    ///< MV accuracy for AMVRES
-#define AMVRES_ACC_IDX_OFFSET				            (-1)
-#endif
-
-
 // GRF: generated reference frame
 #define GRF_MAX_NUM_EFF             2           ///< maximum number of effects
 #define GRF_MAX_NUM_WEFF            2           ///< maximum number of wp effects

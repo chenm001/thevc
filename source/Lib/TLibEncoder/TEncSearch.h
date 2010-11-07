@@ -133,22 +133,10 @@ protected:
   /// sub-function for motion vector refinement used in fractional-pel accuracy
 #ifdef ROUNDING_CONTROL_BIPRED
   UInt  xPatternRefinement_Bi( TComPattern* pcPatternKey, Pel* piRef, Int iRefStride, Int iIntStep, Int iFrac, TComMv& rcMvFrac, Pel* pRefY2, Bool bRound );
-#ifdef QC_AMVRES
-#if HHI_INTERP_FILTER
-  UInt xPatternRefinementHAM_MOMS_Bi    ( TComPattern* pcPatternKey, Pel* piRef, Int iRefStride, Int iIntStep, TComMv& rcMvFrac ,UInt  uiDistBest_onefourth, InterpFilterType ePFilt,TComMv* PredMv, Pel* pRefY2, Bool bRound );
-#endif
-  UInt xPatternRefinementHAM_DIF_Bi    ( TComPattern* pcPatternKey, Pel* piRef, Int iRefStride, Int iIntStep, TComMv& rcMvFrac ,UInt  uiDistBest_onefourth,TComMv* predMV, Pel* pRefY2, Bool bRound );
-#endif
 #endif
 
   UInt  xPatternRefinement( TComPattern* pcPatternKey, Pel* piRef, Int iRefStride, Int iIntStep, Int iFrac, TComMv& rcMvFrac );
 
-#ifdef QC_AMVRES
-#if HHI_INTERP_FILTER
-  UInt xPatternRefinementHAM_MOMS    ( TComPattern* pcPatternKey, Pel* piRef, Int iRefStride, Int iIntStep, TComMv& rcMvFrac ,UInt  uiDistBest_onefourth, InterpFilterType ePFilt,TComMv* PredMv);
-#endif
-  UInt xPatternRefinementHAM_DIF    ( TComPattern* pcPatternKey, Pel* piRef, Int iRefStride, Int iIntStep, TComMv& rcMvFrac ,UInt  uiDistBest_onefourth,TComMv* predMV);
-#endif
   Bool predIntraLumaDirAvailable( UInt uiMode, UInt uiWidthBit, Bool bAboveAvail, Bool bLeftAvail);
 
 #if PLANAR_INTRA
@@ -403,16 +391,6 @@ protected:
                                     UInt&       ruiBits,
                                     UInt&       ruiCost );
 
-#ifdef QC_AMVRES
-  Void xCheckBestMVP_onefourth							( TComDataCU* pcCU,
-																		RefPicList	eRefPicList,
-																		TComMv			cMv,
-																		TComMv&			rcMvPred,
-																		Int&				riMVPIdx,
-																		UInt&				ruiBits,
-																		UInt&				ruiCost );
-#endif
-
   UInt xGetTemplateCost           ( TComDataCU* pcCU,
                                     UInt        uiPartIdx,
                                     UInt        uiPartAddr,
@@ -534,10 +512,6 @@ Void xMergeEstimation             ( TComDataCU*     pcCU,
                                     TComMv&       rcMvHalf,
                                     TComMv&       rcMvQter,
   									UInt&    	  ruiCost,
-#ifdef QC_AMVRES																		
-									TComMv         *PredMv, 
-									Int            iRefIdxPred, 
-#endif
 									Pel*		  pcRefY2,
 									Bool		  bRound);
 
@@ -566,10 +540,6 @@ Void xMergeEstimation             ( TComDataCU*     pcCU,
                                     TComMv&       rcMvQter,
                                     UInt&         ruiCost,
                                     InterpFilterType ePFilt, 
-#ifdef QC_AMVRES
-									TComMv *PredMv,
-   				                    Int iRefIdxPred, 
-#endif			
 									Pel*		  pcRefY2,
 									Bool		  bRound	
   				    );
@@ -592,10 +562,6 @@ Void xMergeEstimation             ( TComDataCU*     pcCU,
                                     TComMv&       rcMvHalf,
                                     TComMv&       rcMvQter,
 																		UInt&					ruiCost 
-#ifdef QC_AMVRES																		
-																		,TComMv *PredMv 
-																		, Int iRefIdxPred 
-#endif
 																		);
 
   Void xExtDIFUpSamplingH         ( TComPattern*  pcPattern, TComYuv* pcYuvExt  );
@@ -640,10 +606,6 @@ Void xMergeEstimation             ( TComDataCU*     pcCU,
                                     TComMv&       rcMvQter,
                                     UInt&         ruiCost,
                                     InterpFilterType ePFilt 
-#ifdef QC_AMVRES
-									,TComMv *PredMv
-									, Int iRefIdxPred 
-#endif
 									);
 #endif
 

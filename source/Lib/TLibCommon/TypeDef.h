@@ -130,10 +130,6 @@
 #error
 #endif
 
-//#define QC_AMVRES    
-#ifdef QC_AMVRES  
-#define QC_AMVRES_LOW_COMPLEXTY
-#endif
 #define QC_CONFIG
 
 #define QC_ALF              1

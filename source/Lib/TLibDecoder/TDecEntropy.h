@@ -233,9 +233,6 @@ private:
 #endif
 #endif
 
-#ifdef QC_AMVRES
-Void xDecodeMvRes(TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth, RefPicList eRefList, Int &iRefFrmIdx, Int iParseRefFrmIdx, PartSize ePartSize,UInt PartIdx);
-#endif
   Void xDecodeCoeff            ( TComDataCU* pcCU, TCoeff* pcCoeff, UInt uiAbsPartIdx, UInt uiDepth, UInt uiWidth, UInt uiHeight, UInt uiTrIdx, UInt uiCurrTrIdx, TextType eType );
 #if HHI_RQT
 public:

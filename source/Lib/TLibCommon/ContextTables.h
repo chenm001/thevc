@@ -107,9 +107,6 @@
 #define NUM_PLANAR_INTRA_CTX          2
 #endif
 
-#ifdef QC_AMVRES
-#define NUM_MV_RES_FALG_CTX			  3			  ///< number of context models for motion vector resolution flag
-#endif
 // ====================================================================================================================
 // Tables
 // ====================================================================================================================
@@ -375,23 +372,6 @@ INIT_REF_PIC[3][NUM_REF_NO_CTX][2] =
     {  -18,   55 }, {    0,   64 }
   }
 };
-
-#ifdef QC_AMVRES
-// initial probability for MV resolution flag
-static const Short
-INIT_MVRES_FLAG[3][3][2] =
-{
-  {
-    {    0,   64 }, {    0,   64 }, {    0,   64 }
-  },
-  {
-    {    0,   64 }, {    0,   64 }, {    0,   64 }
-  },
-  {
-    {    0,   64 }, {    0,   64 }, {    0,   64 }
-  }
-};
-#endif
 
 // initial probability for dQP
 static const Short

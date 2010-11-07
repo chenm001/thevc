@@ -190,9 +190,6 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
     ("SearchRange,-sr",m_iSearchRange, 96, "motion search range")
     ("HadamardME", m_bUseHADME, true, "hadamard ME for fractional-pel")
     ("ASR", m_bUseASR, false, "adaptive motion search range")
-#ifdef QC_AMVRES
-    ("AMVRES", m_bUseAMVRes, true, "Adaptive motion resolution")
-#endif
     ("GRefMode,v", cfg_GRefMode, string(""), "additional reference for weighted prediction (w: scale+offset, o: offset)")
 
     /* Quantization parameters */
@@ -456,10 +453,6 @@ Void TAppEncCfg::xCheckParameter()
     m_bUseRDOQ = false;
   }
 #endif
-#if defined(QC_AMVRES) && TEN_DIRECTIONAL_INTERP
-  if(m_iInterpFilterType == IPF_TEN_DIF)
-    m_bUseAMVRes = false;
-#endif
 
 #undef xConfirmPara
   if (check_failed) {
@@ -656,9 +649,6 @@ Void TAppEncCfg::xPrintParameter()
 #if HHI_IMVP
   printf("IMP:%d ", m_bUseIMP             ); // SOPH: Interleaved MV Predictor
 #endif
-#ifdef QC_AMVRES
-	printf("AMVRES:%d ", m_bUseAMVRes							);
-#endif
 #ifdef DCM_PBIC
 	printf("PBIC :%d ", m_bUseIC			);
 #endif
@@ -691,9 +681,6 @@ Void TAppEncCfg::xPrintUsage()
 #endif
 #if HHI_IMVP
   printf( "                   IMP - interleaved motion vector predictor\n"); /// SOPH: Interleaved MV Predictor
-#endif
-#ifdef QC_AMVRES
-  printf( "                   AMVRES - Adaptive motion resolution\n");
 #endif
 #ifdef DCM_PBIC 
   printf( "                   PBIC - Partition-based Illumination Compensation \n");

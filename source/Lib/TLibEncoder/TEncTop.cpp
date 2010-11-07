@@ -354,9 +354,6 @@ Void TEncTop::xInitSPS()
 #if HHI_IMVP
   m_cSPS.setUseIMP        ( m_bUseIMP           ); // SOPH:
 #endif
-#ifdef QC_AMVRES
-	m_cSPS.setUseAMVRes      ( m_bUseAMVRes           );
-#endif
 #ifdef DCM_PBIC
   m_cSPS.setUseIC         ( m_bUseIC            );
 #endif

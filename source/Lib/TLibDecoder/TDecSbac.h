@@ -96,12 +96,6 @@ private:
 #endif
 
   Void  xReadExGolombMvd    ( UInt& ruiSymbol, ContextModel* pcSCModel, UInt uiMaxBin );
-#ifdef QC_AMVRES
-  Void xReadMvResFlag ( Int& riVal, UInt uiCtx );
-#ifdef DCM_PBIC
-  Bool xParseMvResFlag ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiPartIdx, UInt uiDepth, RefPicList eRefList );
-#endif
-#endif
 #if PLANAR_INTRA
   UInt xParsePlanarBins( );
   Int  xParsePlanarDelta( TextType ttText );
@@ -192,9 +186,6 @@ private:
   ContextModel3DBuffer m_cCUInterDirSCModel;
   ContextModel3DBuffer m_cCURefPicSCModel;
   ContextModel3DBuffer m_cCUMvdSCModel;
-#ifdef QC_AMVRES 
-  ContextModel3DBuffer m_cCUMvResCModel;
-#endif
 #ifdef DCM_PBIC
   ContextModel3DBuffer m_cCUIcdSCModel;
 #endif

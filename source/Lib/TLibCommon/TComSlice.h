@@ -99,9 +99,6 @@ private:
   Bool        m_bUseIMP; // SOPH:
 #endif
 
-#ifdef QC_AMVRES
-	Bool					m_bUseAMVRes;
-#endif
 #ifdef DCM_PBIC 
   Bool          m_bUseIC;
 #endif
@@ -191,9 +188,6 @@ public:
   Int  getDIFTapC     ()         { return m_iDIFTapC;       };
 #endif
 
-#ifdef QC_AMVRES
-	Bool getUseAMVRes      ()         { return m_bUseAMVRes;        }
-#endif
   Void setUseALF      ( Bool b ) { m_bUseALF  = b;          }
   Void setUseDQP      ( Bool b ) { m_bUseDQP   = b;         }
 
@@ -216,10 +210,6 @@ public:
   Void setDIFTap      ( Int  i ) { m_iDIFTap   = i;         }
  #if SAMSUNG_CHROMA_IF_EXT
   Void setDIFTapC     ( Int  i ) { m_iDIFTapC = i;          };
-#endif
-
-#ifdef QC_AMVRES
-	Void setUseAMVRes      ( Bool b ) { m_bUseAMVRes    =b;        }
 #endif
 
 #ifdef DCM_PBIC 
