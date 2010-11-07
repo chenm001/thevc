@@ -104,21 +104,15 @@ protected:
   UInt m_uiBitMVPIdx;
   UInt m_uiBitPlanarInfo;
   UInt m_uiBitInterDir;
-#if LCEC_PHASE2
   UInt m_uiBitMI;
-#endif
   UInt m_uiBitSF;
   UInt m_uiBitCoeff;
-#if LCEC_PHASE2
   UInt m_uiBitCbp;
 #endif
-#endif
 
-#if LCEC_PHASE2
   UInt          m_uiCBPTableE[2][8];
   UInt          m_uiCBPTableD[2][8];
   UInt          m_uiCbpVlcIdx[2];
-#endif
 
 #if QC_BLK_CBP
   UInt          m_uiBlkCBPTableE[2][15];
@@ -126,15 +120,12 @@ protected:
   UInt          m_uiBlkCbpVlcIdx;
 #endif
 
-#if LCEC_PHASE2
   UInt          m_uiMI1TableE[8];
   UInt          m_uiMI1TableD[8];
   UInt          m_uiMI2TableE[15];
   UInt          m_uiMI2TableD[15];
 
   UInt          m_uiMITableVlcIdx;
-
-#endif
 
   Void  xCheckCoeff( TCoeff* pcCoef, UInt uiSize, UInt uiDepth, UInt& uiNumofCoeff, UInt& uiPart );
 
@@ -175,10 +166,8 @@ public:
 #if LCEC_STAT
   Void  statistics            ( Bool bResetFlag, UInt uiPrintVar );
 #endif
-#if LCEC_PHASE2
   UInt* GetLP8Table();
   UInt* GetLP4Table();
-#endif
   Void  setBitstream          ( TComBitIf* p )  { m_pcBitIf = p;  }
   Void  setSlice              ( TComSlice* p )  { m_pcSlice = p;  }
   Bool getAlfCtrl() {return m_bAlfCtrl;}

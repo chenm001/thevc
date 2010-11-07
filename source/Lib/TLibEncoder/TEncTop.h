@@ -70,10 +70,8 @@ private:
 
   // encoder search
   TEncSearch              m_cSearch;                      ///< encoder search class
-#if LCEC_PHASE2
   TEncEntropy*            m_pcEntropyCoder;                     ///< entropy encoder 
   TEncCavlc*              m_pcCavlcCoder;                       ///< CAVLC encoder  
-#endif
   // coding tool
   TComTrQuant             m_cTrQuant;                     ///< transform & quantization class
   TComLoopFilter          m_cLoopFilter;                  ///< deblocking filter class

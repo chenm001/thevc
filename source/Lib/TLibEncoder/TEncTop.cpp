@@ -143,9 +143,7 @@ Void TEncTop::destroy ()
 
 Void TEncTop::init()
 {
-#if LCEC_PHASE2
   UInt *aTable4=NULL, *aTable8=NULL;
-#endif
   // initialize SPS
   xInitSPS();
 
@@ -161,8 +159,6 @@ Void TEncTop::init()
 #endif
 
   // initialize transform & quantization class
-#if LCEC_PHASE1
-#if LCEC_PHASE2 
   m_pcCavlcCoder = getCavlcCoder();
   aTable8 = m_pcCavlcCoder->GetLP8Table();
   aTable4 = m_pcCavlcCoder->GetLP4Table();
@@ -171,20 +167,6 @@ Void TEncTop::init()
 #else
   m_cTrQuant.init( g_uiMaxCUWidth, g_uiMaxCUHeight, m_uiMaxTrSize, m_bUseROT, m_iSymbolMode, aTable4, aTable8, m_bUseRDOQ, true );
 #endif
-#else //LCEC_PHASE2
-#if HHI_RQT
-  m_cTrQuant.init( g_uiMaxCUWidth, g_uiMaxCUHeight, 1 << m_uiQuadtreeTULog2MaxSize, m_bUseROT, m_iSymbolMode, m_bUseRDOQ, true );
-#else
-  m_cTrQuant.init( g_uiMaxCUWidth, g_uiMaxCUHeight, m_uiMaxTrSize, m_bUseROT, m_iSymbolMode, m_bUseRDOQ, true );
-#endif
-#endif //LCEC_PHASE2
-#else
-#if HHI_RQT
-  m_cTrQuant.init( g_uiMaxCUWidth, g_uiMaxCUHeight, 1 << m_uiQuadtreeTULog2MaxSize, m_bUseROT, m_bUseRDOQ, true );
-#else
-  m_cTrQuant.init( g_uiMaxCUWidth, g_uiMaxCUHeight, m_uiMaxTrSize, m_bUseROT, m_bUseRDOQ, true );
-#endif
-#endif //LCEC_PHASE1
 
   // initialize encoder search class
   m_cSearch.init( this, &m_cTrQuant, m_iSearchRange, m_iFastSearch, 0, &m_cEntropyCoder, &m_cRdCost, getRDSbacCoder(), getRDGoOnSbacCoder() );

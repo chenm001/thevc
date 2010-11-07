@@ -438,14 +438,6 @@ Void TAppEncCfg::xCheckParameter()
     m_bUseSBACRD = false;
   }
 
-#if !LCEC_PHASE1
-  // RDOQ is supported only for SBAC
-  if ( !m_bUseSBACRD )
-  {
-    m_bUseRDOQ = false;
-  }
-#endif
-
 #undef xConfirmPara
   if (check_failed) {
     exit(EXIT_FAILURE);

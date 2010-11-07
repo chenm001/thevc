@@ -142,13 +142,8 @@ extern const UChar  g_aucLenTableTO4 [4][5];
 extern const UChar  g_aucACTab[6];
 extern const UChar  g_aucFrameBits[32];
 
-#if LCEC_PHASE2
 extern const UInt    g_auiLPTableE8[8][128];
 extern const UInt    g_auiLPTableD8[8][128];
-#else
-extern const UInt    g_auiLPTableE8[10][128];
-extern const UInt    g_auiLPTableD8[10][128];
-#endif
 extern const UInt    g_auiLPTableE4[3][32];
 extern const UInt    g_auiLPTableD4[3][32];
 extern const UInt    g_auiLastPosVlcIndex[10];
@@ -157,12 +152,9 @@ extern const UInt    g_auiLumaRun8x8[29][2][64];
 extern const UInt    g_auiVlcTable8x8[28];
 extern const LastCoeffStruct g_acstructLumaRun8x8[29][127];
 
-#if LCEC_PHASE2
 extern const UInt    g_auiCBPTableE[2][8];
 extern const UInt    g_auiCBPTableD[2][8];
 extern const UInt    g_auiCbpVlcNum[2][8];
-
-#endif
 
 #if QC_BLK_CBP
 extern const UInt    g_auiBlkCBPTableE[2][15];
@@ -170,7 +162,6 @@ extern const UInt    g_auiBlkCBPTableD[2][15];
 extern const UInt    g_auiBlkCbpVlcNum[15];
 #endif
 
-#if LCEC_PHASE2
 extern const UInt g_auiMI1TableE[8];
 extern const UInt g_auiMI1TableD[8];
 extern const UInt g_auiMI2TableE[15];
@@ -182,7 +173,6 @@ extern const UInt g_auiMI1TableENoL1[8];
 extern const UInt g_auiMI1TableDNoL1[8];
 extern const UInt g_auiMI2TableENoL1[15];
 extern const UInt g_auiMI2TableDNoL1[15];
-#endif
 #endif
 
 

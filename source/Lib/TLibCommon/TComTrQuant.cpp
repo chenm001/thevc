@@ -1001,7 +1001,6 @@ Void TComTrQuant::xT16( Pel* pSrc, UInt uiStride, Long* pDes )
 }
 
 
-#if LCEC_PHASE1
 Int TComTrQuant::bitCount_LCEC(Int k,Int pos,Int n,Int lpflag,Int levelMode,Int run,Int maxrun,Int vlc_adaptive,Int N)
 {
     UInt cn;
@@ -1033,19 +1032,11 @@ Int TComTrQuant::bitCount_LCEC(Int k,Int pos,Int n,Int lpflag,Int levelMode,Int 
         if (lpflag==1){                       
             x = pos + (k==1 ? 0 : N*N);
             if (N==8){
-#if LCEC_PHASE2
                 cx = m_uiLPTableE8[n*128+x];
-#else
-                cx = g_auiLPTableE8[n][x];
-#endif
                 vlcNum = vlcTable8[n];
             }
             else if(N==4){
-#if LCEC_PHASE2
                 cx = m_uiLPTableE4[n*32+x];
-#else
-                cx = g_auiLPTableE4[n][x];
-#endif
                 vlcNum = vlcTable4[n];
             }
             bits = VLClength[vlcNum][cx];
@@ -1296,184 +1287,6 @@ Void TComTrQuant::xRateDistOptQuant_LCEC             ( TComDataCU*              
   } // for uiScanning
 } 
 
-#if 0
-// Following function has been integrated into the above function QC
-Void TComTrQuant::xRateDistOptQuant_LCEC             ( TComDataCU*                     pcCU,
-                                                      Long*                           plSrcCoeff,
-                                                      TCoeff*&                        piDstCoeff,
-                                                      UInt                            uiWidth,
-                                                      UInt                            uiHeight,
-                                                      UInt&                           uiAbsSum,
-                                                      TextType                        eTType,
-                                                      UInt                            uiAbsPartIdx,
-                                                      UChar                           ucIndexROT    )
-{
-  Int iLpFlag,iLevelMode,iRun,iMaxrun,iVlc_adaptive,iSum_big_coef,iSign;
-  Int atable[5] = {4,6,14,28,0xfffffff};
-  Int switch_thr[8] = {49,49,0,49,49,0,49,49};
-  
-  const UInt* pucScan;
-  UInt* piQuantCoef = NULL;
-  UInt uiBlkPos,uiPosY,uiPosX,uiLog2BlkSize,uiConvBit,uiLevel,uiMaxLevel,uiMinLevel,uiAbsLevel,uiBestAbsLevel,uiBitShift;
-  Int iScanning,iQpRem,iQBits,iBlockType,iRate;
-  Long lLevelDouble;
-  Double dErr,dTemp,dNormFactor,rd64UncodedCost,rd64CodedCost,dCurrCost;
-   
-  uiBitShift = 15;
-  iQpRem = m_cQP.m_iRem;
-
-  if (uiWidth == 4){
-    iBlockType = 0 + ( pcCU->isIntra(uiAbsPartIdx) ? 0 : pcCU->getSlice()->getSliceType() ); 
-    iQBits = m_cQP.m_iBits;                 
-    uiLog2BlkSize = g_aucConvertToBit[ 4 ] + 2; 
-    uiConvBit = g_aucConvertToBit[ 4 ];
-    dNormFactor = pow(2., (2*DQ_BITS+19));
-    if ( g_uiBitIncrement ) dNormFactor *= 1<<(2*g_uiBitIncrement);
-  }
-  else if (uiWidth == 8){
-    if (eTType==TEXT_CHROMA_U || eTType==TEXT_CHROMA_V) 
-      iBlockType = eTType-2;
-    else
-      iBlockType = 2 + ( pcCU->isIntra(uiAbsPartIdx) ? 0 : pcCU->getSlice()->getSliceType() ); 
-    iQBits = m_cQP.m_iBits + 1;                 
-    uiLog2BlkSize = g_aucConvertToBit[ 8 ] + 2; 
-    uiConvBit = g_aucConvertToBit[ 8 ];
-    dNormFactor = pow(2., (2*Q_BITS_8+9)); 
-    if ( g_uiBitIncrement ) dNormFactor *= 1<<(2*g_uiBitIncrement);
-  }
-  else{
-    if (eTType==TEXT_CHROMA_U || eTType==TEXT_CHROMA_V) 
-      iBlockType = eTType-2;
-    else
-      iBlockType = 5 + ( pcCU->isIntra(uiAbsPartIdx) ? 0 : pcCU->getSlice()->getSliceType() ); 
-                     
-    uiLog2BlkSize = g_aucConvertToBit[ 8 ] + 2; 
-    uiConvBit = g_aucConvertToBit[ 8 ];
-    dNormFactor = pow(2., 21);
-    if ( g_uiBitIncrement ) dNormFactor *= 1<<(2*g_uiBitIncrement);
-
-    if ( uiWidth == 16)
-    {
-      piQuantCoef = ( g_aiQuantCoef256[m_cQP.rem()] );
-      iQBits = ECore16Shift + m_cQP.per();     
-      dTemp = estErr16x16[iQpRem]/dNormFactor;
-    }
-    else if ( uiWidth == 32)
-    {
-      piQuantCoef = ( g_aiQuantCoef1024[m_cQP.rem()] );
-      iQBits = ECore32Shift + m_cQP.per();
-      dTemp = estErr32x32[iQpRem]/dNormFactor;
-    }
-    else
-    {
-      assert(0);
-    }
-    memset(&piDstCoeff[0],0,uiWidth*uiHeight*sizeof(TCoeff)); 
-  }
-
-  
-
-#if HHI_RQT
-  pucScan = g_auiFrameScanXY [ uiConvBit + 1 ];
-#else
-  pucScan = g_auiFrameScanXY  [ uiConvBit ];
-#endif
-  
-  
-
-  iLpFlag = 1;
-  iLevelMode = 0;
-  iRun = 0;
-  iVlc_adaptive = 0;
-  iMaxrun = 0;
-  iSum_big_coef = 0;
-    
- 
-  for (iScanning=(uiWidth<8 ? 15 : 63); iScanning>=0; iScanning--) 
-  {            
-    uiBlkPos = pucScan[iScanning];
-    uiPosY   = uiBlkPos >> uiLog2BlkSize;
-    uiPosX   = uiBlkPos - ( uiPosY << uiLog2BlkSize );
-    if (uiWidth==4)
-      dTemp = estErr4x4[ iQpRem ][ uiPosX ][ uiPosY ] / dNormFactor; 
-    else if(uiWidth==8)
-      dTemp = estErr8x8[ iQpRem ][ uiPosX ][ uiPosY ] / dNormFactor;
-    else
-      uiBlkPos = uiWidth*uiPosY+uiPosX;
-        
-    lLevelDouble = abs(plSrcCoeff[uiBlkPos]);
-    
-    if (ucIndexROT == 0 && uiWidth > 8 ){        
-      if ( uiWidth == 64 ) lLevelDouble = lLevelDouble * piQuantCoef[m_cQP.rem()];
-      else                 lLevelDouble = lLevelDouble * piQuantCoef[uiBlkPos];
-    }
-    
-    iSign = plSrcCoeff[uiBlkPos]<0 ? -1 : 1;
-
-
-    uiLevel = lLevelDouble  >> iQBits;      
-    uiMaxLevel = uiLevel + 1;
-    uiMinLevel = Max(1,(Int)uiLevel - 2);
-
-
-    uiBestAbsLevel = 0;
-    if (uiWidth==4)
-      iRate = bitCount_LCEC(0,iScanning,iBlockType,iLpFlag,iLevelMode,iRun,iMaxrun,iVlc_adaptive,4)<<uiBitShift; 
-    else 
-      iRate = bitCount_LCEC(0,iScanning,iBlockType,iLpFlag,iLevelMode,iRun,iMaxrun,iVlc_adaptive,8)<<uiBitShift; 
-
-    dErr = Double( lLevelDouble );
-    rd64UncodedCost = dErr * dErr * dTemp;     
-#if HHI_TRANSFORM_CODING
-    rd64CodedCost = rd64UncodedCost + xGetICost( iRate ); 
-#else
-    rd64CodedCost = rd64UncodedCost + m_dLambda * iRate; 
-#endif
-    for(uiAbsLevel = uiMinLevel; uiAbsLevel <= uiMaxLevel ; uiAbsLevel++ )
-    {
-      if (uiWidth==4)
-        iRate = bitCount_LCEC(iSign*uiAbsLevel,iScanning,iBlockType,iLpFlag,iLevelMode,iRun,iMaxrun,iVlc_adaptive,4)<<uiBitShift; 
-      else 
-        iRate = bitCount_LCEC(iSign*uiAbsLevel,iScanning,iBlockType,iLpFlag,iLevelMode,iRun,iMaxrun,iVlc_adaptive,8)<<uiBitShift; 
-      dErr = Double( lLevelDouble  - Long( uiAbsLevel << iQBits ) );
-      rd64UncodedCost = dErr * dErr * dTemp;
-#if HHI_TRANSFORM_CODING
-      dCurrCost = rd64UncodedCost + xGetICost( iRate ); 
-#else
-      dCurrCost = rd64UncodedCost + m_dLambda * iRate; 
-#endif
-      if( dCurrCost < rd64CodedCost )
-      {         
-        uiBestAbsLevel  = uiAbsLevel;
-        rd64CodedCost   = dCurrCost;
-      }
-    }
-                         
-    if (uiBestAbsLevel){                  
-        if (uiWidth>4){ 
-            if (!iLpFlag && uiBestAbsLevel > 1){
-                iSum_big_coef += uiBestAbsLevel;
-                if ((63-iScanning) > switch_thr[iBlockType] || iSum_big_coef > 2) iLevelMode = 1;
-            }
-        }
-        else{
-            if (uiBestAbsLevel>1) iLevelMode = 1;
-        }
-        iMaxrun = iScanning-1;
-        iLpFlag = 0;
-        iRun = 0;
-        if (iLevelMode && (uiBestAbsLevel > atable[iVlc_adaptive])) iVlc_adaptive++;                    
-    }
-    else{
-        iRun += 1;         
-    }
-
-    uiAbsSum += uiBestAbsLevel;
-    piDstCoeff[uiBlkPos] = iSign*uiBestAbsLevel;
-  } // for uiScanning
-} 
-#endif
-#endif
 
 Void TComTrQuant::xQuantLTR  (TComDataCU* pcCU, Long* pSrc, TCoeff*& pDes, Int iWidth, Int iHeight, UInt& uiAcSum, TextType eTType, UInt uiAbsPartIdx, UChar indexROT )
 {
@@ -1546,18 +1359,14 @@ Void TComTrQuant::xQuantLTR  (TComDataCU* pcCU, Long* pSrc, TCoeff*& pDes, Int i
 
   if ( m_bUseRDOQ && (eTType == TEXT_LUMA || RDOQ_CHROMA) && (!RDOQ_ROT_IDX0_ONLY || indexROT == 0) )
   {
-#if LCEC_PHASE1
     if ( m_iSymbolMode == 0)
       xRateDistOptQuant_LCEC(pcCU, piCoef, pDes, iWidth, iHeight, uiAcSum, eTType, uiAbsPartIdx, indexROT );
     else
-#endif
     xRateDistOptQuant( pcCU, piCoef, pDes, iWidth, iHeight, uiAcSum, eTType, uiAbsPartIdx, indexROT );
   }
   else
   {
-#if LCEC_PHASE1_ADAPT_ENABLE
     UInt uiAcSum_init = uiAcSum;
-#endif
     for( Int n = 0; n < iWidth*iHeight; n++ )
     {
       Long iLevel;
@@ -1585,11 +1394,9 @@ Void TComTrQuant::xQuantLTR  (TComDataCU* pcCU, Long* pSrc, TCoeff*& pDes, Int i
         else                iLevel = abs( iLevel ) * piQuantCoef[n];
       }
 
-#if LCEC_PHASE1
 	    if (!pcCU->isIntra( uiAbsPartIdx ) && (m_iSymbolMode == 0) && ((n%iWidth)>=8 || (n/iWidth)>=8))
 		    iLevel = 0;
       else
-#endif
       iLevel = ( iLevel + iAdd ) >> iNewBits;
 
       if( 0 != iLevel )
@@ -1603,7 +1410,7 @@ Void TComTrQuant::xQuantLTR  (TComDataCU* pcCU, Long* pSrc, TCoeff*& pDes, Int i
         piQCoef[n] = 0;
       }
     }
-#if LCEC_PHASE1_ADAPT_ENABLE
+
   const UInt*  pucScan;
   if(pcCU->isIntra( uiAbsPartIdx ) && m_iSymbolMode == 0 && iWidth >= 16)
   {
@@ -1625,8 +1432,6 @@ Void TComTrQuant::xQuantLTR  (TComDataCU* pcCU, Long* pSrc, TCoeff*& pDes, Int i
       uiAcSum += abs(piQCoef[ pucScan[ n ] ]);
     }
   }
-#endif
-
   }
 }
 
@@ -2543,27 +2348,15 @@ Void TComTrQuant::xIT32( Long* pSrc, Pel* pDes, UInt uiStride )
   }
 }
 
-#if LCEC_PHASE1
-#if LCEC_PHASE2
 Void TComTrQuant::init( UInt uiMaxWidth, UInt uiMaxHeight, UInt uiMaxTrSize, Bool bUseROT, Int iSymbolMode, UInt *aTableLP4, UInt *aTableLP8, Bool bUseRDOQ,  Bool bEnc )
-#else
-Void TComTrQuant::init( UInt uiMaxWidth, UInt uiMaxHeight, UInt uiMaxTrSize, Bool bUseROT, Int iSymbolMode, Bool bUseRDOQ,  Bool bEnc )
-#endif
-#else
-Void TComTrQuant::init( UInt uiMaxWidth, UInt uiMaxHeight, UInt uiMaxTrSize, Bool bUseROT, Bool bUseRDOQ, Bool bEnc )
-#endif
 {
   m_uiMaxTrSize  = uiMaxTrSize;
   m_bEnc         = bEnc;
   m_bUseRDOQ     = bUseRDOQ;
   m_bUseROT			 = bUseROT;
-#if LCEC_PHASE1
-#if LCEC_PHASE2
   m_uiLPTableE8 = aTableLP8;
   m_uiLPTableE4 = aTableLP4;
-#endif
   m_iSymbolMode = iSymbolMode;
-#endif
 
   if ( m_bEnc )
   {
@@ -2840,11 +2633,9 @@ Void TComTrQuant::xQuant4x4( TComDataCU* pcCU, Long* plSrcCoef, TCoeff*& pDstCoe
 
   if ( m_bUseRDOQ && (eTType == TEXT_LUMA || RDOQ_CHROMA) && (!RDOQ_ROT_IDX0_ONLY || indexROT == 0 ) )
   {
-#if LCEC_PHASE1
     if ( m_iSymbolMode == 0)
       xRateDistOptQuant_LCEC(pcCU, plSrcCoef, pDstCoef, 4, 4, uiAbsSum, eTType, uiAbsPartIdx, indexROT);
     else
-#endif
     xRateDistOptQuant(pcCU, plSrcCoef, pDstCoef, 4, 4, uiAbsSum, eTType, uiAbsPartIdx, indexROT);
   }
   else
@@ -2900,11 +2691,9 @@ Void TComTrQuant::xQuant8x8( TComDataCU* pcCU, Long* plSrcCoef, TCoeff*& pDstCoe
 
   if ( m_bUseRDOQ && (eTType == TEXT_LUMA || RDOQ_CHROMA) && (!RDOQ_ROT_IDX0_ONLY || indexROT == 0 ) )
   {
-#if LCEC_PHASE1
     if ( m_iSymbolMode == 0)
       xRateDistOptQuant_LCEC(pcCU, plSrcCoef, pDstCoef, 8, 8, uiAbsSum, eTType, uiAbsPartIdx, indexROT);
     else
-#endif
     xRateDistOptQuant(pcCU, plSrcCoef, pDstCoef, 8, 8, uiAbsSum, eTType, uiAbsPartIdx, indexROT);
   }
   else

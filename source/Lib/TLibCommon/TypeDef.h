@@ -111,8 +111,6 @@
 #error "Only one of TENTM_DEBLOCKING_FILTER and HHI_DEBLOCKING_FILTER can be defined"
 #endif
 
-#define LCEC_PHASE1                       1           // LCEC - integration phase 1
-#define LCEC_PHASE2                       1           // LCEC - integration phase 2
 #define LCEC_STAT                         0           // LCEC - support for LCEC bitusage statistics
 //////////////////////////
 // TEN defines section end
@@ -123,7 +121,6 @@
 // QUALCOMM defines section start
 /////////////////////////////////
 
-#define LCEC_PHASE1_ADAPT_ENABLE          1           // Enable CU level VLC adaptation 
 #define LCEC_CBP_YUV_ROOT                 1           // enable VLC phase-2 CBP root coding under RQT
 #define QC_BLK_CBP                        1           // block level CBP coding, to be enabled only when LCEC_CBP_YUV_ROOT is enabled
 #if LCEC_CBP_YUV_ROOT==0 && QC_BLK_CBP
@@ -416,9 +413,7 @@ enum TextType
   TEXT_CHROMA,          ///< chroma (U+V)
   TEXT_CHROMA_U,        ///< chroma U
   TEXT_CHROMA_V,        ///< chroma V
-#if LCEC_PHASE2
   TEXT_ALL,             ///< Y+U+V
-#endif
   TEXT_NONE = 15
 };
 
