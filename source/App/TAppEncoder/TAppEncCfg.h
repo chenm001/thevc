@@ -108,9 +108,6 @@ protected:
   UInt      m_uiBitDepth;                                     ///< base bit-depth
   UInt      m_uiBitIncrement;                                 ///< bit-depth increment
 
-  // coding tools (inter - motion)
-  char*     m_pchGRefMode;                                    ///< array of generated reference modes
-
   // coding tools (inter - interpolation filter)
   Int       m_iDIFTap;                                        ///< number of taps in DIF (luma)
 #if SAMSUNG_CHROMA_IF_EXT

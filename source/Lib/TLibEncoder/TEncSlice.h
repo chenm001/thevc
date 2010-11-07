@@ -61,7 +61,6 @@ private:
   TComList<TComPic*>*     m_pcListPic;                          ///< list of pictures
   TComPicYuv*             m_apcPicYuvPred;                      ///< prediction picture buffer
   TComPicYuv*             m_apcPicYuvResi;                      ///< residual picture buffer
-  TComPic*                m_apcVirtPic[2][GRF_MAX_NUM_EFF];     ///< virtual picture buffer for GRF
 
   // processing units
   TEncGOP*                m_pcGOPEncoder;                       ///< GOP encoder
@@ -93,8 +92,6 @@ private:
   Int*                    m_piRdPicQp;                          ///< array of picture QP candidates (int-type)
 
 protected:
-  Bool    xEstimateWPSlice    ( TComSlice* rpcSlice, RefPicList eRefPicList, EFF_MODE eEffMode  );  ///< generate effect virtual ref.
-
   Double  xComputeImgSum      ( Pel* img,                   Int width, Int height, Int stride   );  ///< compute sum of pixel values
   Double  xComputeNormMean    ( Pel* img, Double meanValue, Int width, Int height, Int stride   );  ///< compute sum of abs pixel values
 
@@ -117,7 +114,6 @@ public:
 
   // misc. functions
   Void    setSearchRange      ( TComSlice* pcSlice  );                                  ///< set ME range adaptively
-  Void    generateRefPicNew   ( TComSlice* rpcSlice );                                  ///< generate virtual reference frames
   UInt64  getTotalBits        ()  { return m_uiPicTotalBits; }
 
   TEncCu*        getCUEncoder() { return m_pcCuEncoder; }                        ///< CU encoder

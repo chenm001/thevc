@@ -106,10 +106,6 @@ protected:
   Int       m_iSearchRange;                     //  0:Full frame
   Int       m_iMaxDeltaQP;                      //  Max. absolute delta QP (1:default)
 
-  //====== Generated Reference Frame Mode ========
-  char*     m_pchGRefMode;
-
-
   //====== Tool list ========
   Bool      m_bUseSBACRD;
   Bool      m_bUseALF;
@@ -212,9 +208,6 @@ public:
   Void      setSearchRange                  ( Int   i )      { m_iSearchRange = i; }
   Void      setMaxDeltaQP                   ( Int   i )      { m_iMaxDeltaQP = i; }
 
-   //====== Generated Reference Frame Mode ========
-  Void      setGRefMode       (char*  c)       {m_pchGRefMode=c; }
-
   //====== Sequence ========
   Int       getFrameRate                    ()      { return  m_iFrameRate; }
   Int       getFrameSkip                    ()      { return  m_iFrameSkip; }
@@ -269,9 +262,6 @@ public:
   Int       getFastSearch                   ()      { return  m_iFastSearch; }
   Int       getSearchRange                  ()      { return  m_iSearchRange; }
   Int       getMaxDeltaQP                   ()      { return  m_iMaxDeltaQP; }
-
-   //====== Generated Reference Frame Mode ========
-  char*      getGRefMode       ()       { return m_pchGRefMode; }
 
   //==== Tool list ========
   Void      setUseSBACRD                    ( Bool  b )     { m_bUseSBACRD  = b; }

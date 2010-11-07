@@ -430,7 +430,7 @@ Void TEncCavlc::codeSPS( TComSPS* pcSPS )
   // Tools
   xWriteFlag  ( (pcSPS->getUseALF ()) ? 1 : 0 );
   xWriteFlag  ( (pcSPS->getUseDQP ()) ? 1 : 0 );
-  xWriteFlag  ( (pcSPS->getUseWPG () || pcSPS->getUseWPO ()) ? 1 : 0 );
+  xWriteFlag  ( 0 ); // TODO: was WPG
   xWriteFlag  ( (pcSPS->getUseLDC ()) ? 1 : 0 );
   xWriteFlag  ( (pcSPS->getUseQBO ()) ? 1 : 0 );
   m_uiBitHLS += 5;
@@ -549,45 +549,6 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
     m_uiBitHLS += xWriteCode  (pcSlice->getERBIndex(), 2);
   }
 
-  if (!pcSlice->isIntra())   // weighted prediction information
-  {
-    Int  iNumPredDir = pcSlice->isInterP() ? 1 : 2;
-
-    if (pcSlice->getSPS()->getUseWPG() || pcSlice->getSPS()->getUseWPO())
-    {
-      for (Int n=0; n<iNumPredDir; n++)
-      {
-        RefPicList eRefPicList = (RefPicList)n;
-
-        UInt uiWpMode =  pcSlice->getWPmode(eRefPicList);
-        m_uiBitHLS += xWriteCode  (uiWpMode, 1 );
-
-        if (uiWpMode)
-        {
-          EFF_MODE eEffMode = (pcSlice->getSPS()->getUseWPG()? EFF_WP_SO : EFF_WP_O);
-          UInt uiWeight,uiOffset;
-
-          uiWeight = xConvertToUInt( pcSlice->getWPWeight(eRefPicList, eEffMode, 0)-32);
-          m_uiBitHLS += xWriteUvlc( uiWeight );
-          uiOffset = xConvertToUInt( pcSlice->getWPOffset(eRefPicList, eEffMode, 0));
-          m_uiBitHLS += xWriteUvlc( uiOffset );
-
-#if GRF_WP_CHROMA
-          uiWeight = xConvertToUInt( pcSlice->getWPWeight(eRefPicList, eEffMode, 1)-32);
-          m_uiBitHLS += xWriteUvlc( uiWeight );
-          uiOffset = xConvertToUInt( pcSlice->getWPOffset(eRefPicList, eEffMode, 1));
-          m_uiBitHLS += xWriteUvlc( uiOffset );
-
-          uiWeight = xConvertToUInt( pcSlice->getWPWeight(eRefPicList, eEffMode, 2)-32);
-          m_uiBitHLS += xWriteUvlc( uiWeight );
-          uiOffset = xConvertToUInt( pcSlice->getWPOffset(eRefPicList, eEffMode, 2));
-          m_uiBitHLS += xWriteUvlc( uiOffset );
-#endif
-        }
-      }
-    }
-  }
-
 #if HHI_INTERP_FILTER
   m_uiBitHLS += xWriteUvlc  ( pcSlice->getInterpFilterType() );
 #endif
@@ -702,7 +663,7 @@ Void TEncCavlc::codeSPS( TComSPS* pcSPS )
   // Tools
   xWriteFlag  ( (pcSPS->getUseALF ()) ? 1 : 0 );
   xWriteFlag  ( (pcSPS->getUseDQP ()) ? 1 : 0 );
-  xWriteFlag  ( (pcSPS->getUseWPG () || pcSPS->getUseWPO ()) ? 1 : 0 );
+  xWriteFlag  ( 0 ); // TODO: was WPG
   xWriteFlag  ( (pcSPS->getUseLDC ()) ? 1 : 0 );
   xWriteFlag  ( (pcSPS->getUseQBO ()) ? 1 : 0 );
 #if HHI_ALLOW_CIP_SWITCH
@@ -783,7 +744,7 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
 
   if (!pcSlice->isIntra())
   {
-    xWriteCode  ((pcSlice->getNumRefIdx( REF_PIC_LIST_0 )) -pcSlice->getAddRefCnt(REF_PIC_LIST_0), 3 );
+    xWriteCode  ((pcSlice->getNumRefIdx( REF_PIC_LIST_0 )), 3 );
   }
   else
   {
@@ -791,7 +752,7 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
   }
   if (pcSlice->isInterB())
   {
-    xWriteCode  ((pcSlice->getNumRefIdx( REF_PIC_LIST_1 )) -pcSlice->getAddRefCnt(REF_PIC_LIST_1), 3 );
+    xWriteCode  ((pcSlice->getNumRefIdx( REF_PIC_LIST_1 )), 3 );
   }
   else
   {
@@ -802,45 +763,6 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
   if ( !pcSlice->getDRBFlag() )
   {
     xWriteCode  (pcSlice->getERBIndex(), 2);
-  }
-
-  if (!pcSlice->isIntra())   // weighted prediction information
-  {
-    Int  iNumPredDir = pcSlice->isInterP() ? 1 : 2;
-
-    if (pcSlice->getSPS()->getUseWPG() || pcSlice->getSPS()->getUseWPO())
-    {
-      for (Int n=0; n<iNumPredDir; n++)
-      {
-        RefPicList eRefPicList = (RefPicList)n;
-
-        UInt uiWpMode =  pcSlice->getWPmode(eRefPicList);
-        xWriteCode  (uiWpMode, 1 );
-
-        if (uiWpMode)
-        {
-          EFF_MODE eEffMode = (pcSlice->getSPS()->getUseWPG()? EFF_WP_SO : EFF_WP_O);
-          UInt uiWeight,uiOffset;
-
-          uiWeight = xConvertToUInt( pcSlice->getWPWeight(eRefPicList, eEffMode, 0)-32);
-          xWriteUvlc( uiWeight );
-          uiOffset = xConvertToUInt( pcSlice->getWPOffset(eRefPicList, eEffMode, 0));
-          xWriteUvlc( uiOffset );
-
-#if GRF_WP_CHROMA
-          uiWeight = xConvertToUInt( pcSlice->getWPWeight(eRefPicList, eEffMode, 1)-32);
-          xWriteUvlc( uiWeight );
-          uiOffset = xConvertToUInt( pcSlice->getWPOffset(eRefPicList, eEffMode, 1));
-          xWriteUvlc( uiOffset );
-
-          uiWeight = xConvertToUInt( pcSlice->getWPWeight(eRefPicList, eEffMode, 2)-32);
-          xWriteUvlc( uiWeight );
-          uiOffset = xConvertToUInt( pcSlice->getWPOffset(eRefPicList, eEffMode, 2));
-          xWriteUvlc( uiOffset );
-#endif
-        }
-      }
-    }
   }
 
 #if HHI_INTERP_FILTER

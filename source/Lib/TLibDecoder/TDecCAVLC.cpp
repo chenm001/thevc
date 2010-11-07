@@ -153,7 +153,7 @@ Void TDecCavlc::parseSPS(TComSPS* pcSPS)
   // Tool on/off
   xReadFlag( uiCode ); pcSPS->setUseALF ( uiCode ? true : false );
   xReadFlag( uiCode ); pcSPS->setUseDQP ( uiCode ? true : false );
-  xReadFlag( uiCode ); pcSPS->setUseWPG ( uiCode ? true : false );
+  xReadFlag( uiCode ); assert(uiCode==0); // TODO: was WPG
   xReadFlag( uiCode ); pcSPS->setUseLDC ( uiCode ? true : false );
   xReadFlag( uiCode ); pcSPS->setUseQBO ( uiCode ? true : false );
 #if HHI_ALLOW_CIP_SWITCH
@@ -286,62 +286,6 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice)
   if ( !rpcSlice->getDRBFlag() )
   {
     xReadCode(2, uiCode); rpcSlice->setERBIndex( (ERBIndex)uiCode );    assert (uiCode == ERB_NONE || uiCode == ERB_LTR);
-  }
-
-  if (!rpcSlice->isIntra())
-  {
-    Int  iNumPredDir = rpcSlice->isInterP() ? 1 : 2;
-
-    if (rpcSlice->getSPS()->getUseWPG())
-    {
-      for (Int n=0; n<iNumPredDir; n++)
-      {
-        RefPicList eRefPicList = (RefPicList)n;
-
-        xReadCode (1, uiCode);
-        rpcSlice->setWPmode(eRefPicList, uiCode);
-
-        if (rpcSlice->getWPmode(eRefPicList))
-        {
-          rpcSlice->addEffectMode(eRefPicList, EFF_WP_SO);
-#if !GRF_WP_CHROMA
-          rpcSlice->initWPParam(eRefPicList, EFF_WP_SO, 1);
-          rpcSlice->initWPParam(eRefPicList, EFF_WP_SO, 2);
-#endif
-          UInt uiTemp;
-          Int iWeight, iOffset;
-
-          xReadUvlc(uiTemp);
-          iWeight = ( uiTemp & 1) ? (Int)((uiTemp+1)>>1) : -(Int)(uiTemp>>1);
-          iWeight=iWeight+32;
-          rpcSlice->setWPWeight(eRefPicList, EFF_WP_SO,0,iWeight);
-
-          xReadUvlc(uiTemp);
-          iOffset = ( uiTemp & 1) ? (Int)((uiTemp+1)>>1) : -(Int)(uiTemp>>1);
-          rpcSlice->setWPOffset(eRefPicList, EFF_WP_SO,0,iOffset);
-
-#if GRF_WP_CHROMA
-          xReadUvlc(uiTemp);
-          iWeight = ( uiTemp & 1) ? (Int)((uiTemp+1)>>1) : -(Int)(uiTemp>>1);
-          iWeight=iWeight+32;
-          rpcSlice->setWPWeight(eRefPicList, EFF_WP_SO,1,iWeight);
-
-          xReadUvlc(uiTemp);
-          iOffset = ( uiTemp & 1) ? (Int)((uiTemp+1)>>1) : -(Int)(uiTemp>>1);
-          rpcSlice->setWPOffset(eRefPicList, EFF_WP_SO,1,iOffset);
-
-          xReadUvlc(uiTemp);
-          iWeight = ( uiTemp & 1) ? (Int)((uiTemp+1)>>1) : -(Int)(uiTemp>>1);
-          iWeight=iWeight+32;
-          rpcSlice->setWPWeight(eRefPicList, EFF_WP_SO,2,iWeight);
-
-          xReadUvlc(uiTemp);
-          iOffset = ( uiTemp & 1) ? (Int)((uiTemp+1)>>1) : -(Int)(uiTemp>>1);
-          rpcSlice->setWPOffset(eRefPicList, EFF_WP_SO,2,iOffset);
-#endif
-        }
-      }
-    }
   }
 
 #if HHI_INTERP_FILTER

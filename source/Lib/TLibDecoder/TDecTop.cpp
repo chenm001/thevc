@@ -315,9 +315,6 @@ Void TDecTop::decode (Bool bEos, TComBitstream* pcBitstream, UInt& ruiPOC, TComL
     }
   }
 
-  // Weighted prediction ----------------------------------------
-  m_cSliceDecoder.generateRefPicNew(pcSlice);
-
   //---------------
   pcSlice->setRefPOCList();
 

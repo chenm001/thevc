@@ -75,8 +75,6 @@ private:
 #endif
   Bool        m_bUseALF;
   Bool        m_bUseDQP;
-  Bool        m_bUseWPG;
-  Bool        m_bUseWPO;
   Bool        m_bUseLDC;
   Bool        m_bUsePAD;
   Bool        m_bUseQBO;
@@ -159,8 +157,6 @@ public:
   Bool getUseALF      ()         { return m_bUseALF;        }
   Bool getUseDQP      ()         { return m_bUseDQP;        }
 
-  Bool getUseWPG      ()         { return m_bUseWPG;        }
-  Bool getUseWPO      ()         { return m_bUseWPO;        }
   Bool getUseLDC      ()         { return m_bUseLDC;        }
   Bool getUsePAD      ()         { return m_bUsePAD;        }
   Bool getUseQBO      ()         { return m_bUseQBO;        }
@@ -183,8 +179,6 @@ public:
   Void setUseALF      ( Bool b ) { m_bUseALF  = b;          }
   Void setUseDQP      ( Bool b ) { m_bUseDQP   = b;         }
 
-  Void setUseWPG      ( Bool b ) { m_bUseWPG   = b; if (m_bUseWPG && m_bUseWPO) m_bUseWPO =  false;}
-  Void setUseWPO      ( Bool b ) { m_bUseWPO   = b; if (m_bUseWPG && m_bUseWPO) m_bUseWPG =  false;}
   Void setUseLDC      ( Bool b ) { m_bUseLDC   = b;         }
   Void setUsePAD      ( Bool b ) { m_bUsePAD   = b;         }
   Void setUseQBO      ( Bool b ) { m_bUseQBO   = b;         }
@@ -251,8 +245,8 @@ private:
 
   //  Data
   Int         m_iSliceQpDelta;
-  TComPic*    m_apcRefPicList [2][MAX_NUM_REF+GRF_MAX_NUM_EFF];
-  Int m_aiRefPOCList[2][MAX_NUM_REF+GRF_MAX_NUM_EFF];
+  TComPic*    m_apcRefPicList [2][MAX_NUM_REF];
+  Int m_aiRefPOCList[2][MAX_NUM_REF];
   Int         m_iDepth;
 
   // referenced slice?
@@ -270,20 +264,8 @@ private:
 
   Double      m_dLambda;
 
-  // generated reference frame for weighted prediction
-  EFF_MODE    m_aeEffectMode[2][GRF_MAX_NUM_EFF];
-  UInt        m_auiAddRefCnt[2];
-  TComPic*    m_apcVirtPic  [2][GRF_MAX_NUM_EFF];
-  Bool        m_abEqualRef  [2][MAX_NUM_REF+GRF_MAX_NUM_EFF][MAX_NUM_REF+GRF_MAX_NUM_EFF];
+  Bool        m_abEqualRef  [2][MAX_NUM_REF][MAX_NUM_REF];
 
-  Int         m_iWPWeight   [2][GRF_MAX_NUM_WEFF][3];
-  Int         m_iWPOffset   [2][GRF_MAX_NUM_WEFF][3];
-  Int         m_aiWPmode[2];
-  Int         m_iRFmode;
-  Int         m_iLumaLogWeightDenom;
-  Int         m_iChromaLogWeightDenom;
-  Int         m_iWPLumaRound;
-  Int         m_iWPChromaRound;
 #if HHI_INTERP_FILTER
   Int         m_iInterpFilterType;
 #endif
@@ -354,46 +336,19 @@ public:
 
   Void      setLambda( Double d ) { m_dLambda = d; }
   Double    getLambda() { return m_dLambda;        }
-  Void generateWPSlice( RefPicList e, EFF_MODE eEffMode, UInt uiInsertIdx);
-
-  Void initWPParam( RefPicList e, EFF_MODE eEffMode, Int colorChannel);
-  Void initWPAllParam( RefPicList e, EFF_MODE eEffMode);
-
-  Bool isEqualWPParam( RefPicList e, EFF_MODE eEffMode1, EFF_MODE eEffMode2, Int colorChannel);
-  Bool isEqualWPAllParam( RefPicList e, EFF_MODE eEffMode1, EFF_MODE eEffMode2);
-
-  Void  setWPWeight ( RefPicList e, EFF_MODE eEffMode, Int colorChannel, Int weight)    { m_iWPWeight[e][eEffMode-EFF_WP_SO][colorChannel]=weight; }
-  Void  setWPOffset ( RefPicList e, EFF_MODE eEffMode, Int colorChannel, Int offset)    { m_iWPOffset[e][eEffMode-EFF_WP_SO][colorChannel]=offset; }
-  Int   getWPWeight ( RefPicList e, EFF_MODE eEffMode, Int colorChannel ) { return m_iWPWeight[e][eEffMode-EFF_WP_SO][colorChannel]; }
-  Int   getWPOffset ( RefPicList e, EFF_MODE eEffMode, Int colorChannel ) { return m_iWPOffset[e][eEffMode-EFF_WP_SO][colorChannel]; }
-
-  Void  setWPmode(RefPicList e, Int iWpMode) { m_aiWPmode[e]=iWpMode; }
-  Int   getWPmode(RefPicList e) { return m_aiWPmode[e]; }
-  Void  setRFmode(Int iRfMode) { m_iRFmode=iRfMode; }
-  Int   getRFmode() { return m_iRFmode; }
-
-  EFF_MODE getEffectMode(RefPicList e, Int i) {return m_aeEffectMode[e][i]; }
-  Void addEffectMode(RefPicList e, EFF_MODE eEffMode) {m_aeEffectMode[e][m_auiAddRefCnt[e]]=eEffMode; m_auiAddRefCnt[e] ++;}
-  Void removeEffectMode(RefPicList e, EFF_MODE eEffMode);
-
-  UInt getAddRefCnt(RefPicList e) { return m_auiAddRefCnt[e];  }
-  Void clearAddRefCnt(RefPicList e) { m_auiAddRefCnt[e] = 0;     }
-
-  Void setVirtRefBuffer(TComPic* pSrc[2][GRF_MAX_NUM_EFF]);
-  Void linkVirtRefPic();
 
   Void initEqualRef();
   Bool      isEqualRef  ( RefPicList e, Int iRefIdx1, Int iRefIdx2 )
   {
     if (iRefIdx1 < 0 || iRefIdx2 < 0) return false;
-      return m_abEqualRef[e][iRefIdx1][iRefIdx2];
+    return m_abEqualRef[e][iRefIdx1][iRefIdx2];
   }
-
+  
   Void setEqualRef( RefPicList e, Int iRefIdx1, Int iRefIdx2, Bool b)
   {
     m_abEqualRef[e][iRefIdx1][iRefIdx2] = m_abEqualRef[e][iRefIdx2][iRefIdx1] = b;
   }
-
+  
   static Void      sortPicList         ( TComList<TComPic*>& rcListPic );
 
 #if HHI_INTERP_FILTER

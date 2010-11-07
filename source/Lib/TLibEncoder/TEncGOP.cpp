@@ -244,9 +244,6 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
 
       uiColDir = 1-uiColDir;
 
-      // Weighted prediction ----------------------------------------
-      m_pcSliceEncoder->generateRefPicNew(pcSlice);
-
       //-------------------------------------------------------------
       pcSlice->setRefPOCList();
 
@@ -944,22 +941,7 @@ Void TEncGOP::xCalculateAddPSNR( TComPic* pcPic, TComPicYuv* pcPicD, UInt uibits
     printf ("[L%d ", iRefList);
     for (Int iRefIndex = 0; iRefIndex < pcSlice->getNumRefIdx(RefPicList(iRefList)); iRefIndex++)
     {
-      UInt uiOrgNumRefIdx;
-      uiOrgNumRefIdx = pcSlice->getNumRefIdx(RefPicList(iRefList))-pcSlice->getAddRefCnt(RefPicList(iRefList));
-      UInt uiNewRefIdx= iRefIndex-uiOrgNumRefIdx;
-
-      if (iRefIndex >= uiOrgNumRefIdx)
-      {
-        if ( pcSlice->getEffectMode(RefPicList(iRefList), uiNewRefIdx)==EFF_WP_SO ||
-             pcSlice->getEffectMode(RefPicList(iRefList), uiNewRefIdx)==EFF_WP_O )
-        {
-          printf ("%dw ", pcSlice->getRefPOC(RefPicList(iRefList), iRefIndex));
-        }
-      }
-      else
-      {
-        printf ("%d ", pcSlice->getRefPOC(RefPicList(iRefList), iRefIndex));
-      }
+      printf ("%d ", pcSlice->getRefPOC(RefPicList(iRefList), iRefIndex));
     }
     printf ("] ");
   }

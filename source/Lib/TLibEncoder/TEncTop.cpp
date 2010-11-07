@@ -385,11 +385,5 @@ Void TEncTop::xInitSPS()
 
   m_cSPS.setBitDepth    ( g_uiBitDepth        );
   m_cSPS.setBitIncrement( g_uiBitIncrement    );
-
-  if (getGRefMode())
-  {
-    if (strchr(getGRefMode() ,'w')) m_cSPS.setUseWPG(true);
-    if (strchr(getGRefMode() ,'o')) m_cSPS.setUseWPO(true);
-  }
 }
 

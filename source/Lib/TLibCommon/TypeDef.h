@@ -507,14 +507,6 @@ enum AMVP_MODE
   AM_EXPL,              ///< explicit signalling of motion vector index
 };
 
-/// effect mode used in GRF
-enum EFF_MODE
-{
-  EFF_WP_SO = 0,        ///< weighted prediction (scale+offset)
-  EFF_WP_O,             ///< weighted prediction (offset)
-  EFF_NONE
-};
-
 /// interpolation filter type
 #if HHI_INTERP_FILTER
 enum InterpFilterType

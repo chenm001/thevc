@@ -68,7 +68,6 @@ void doOldStyleCmdlineOff(po::Options& opts, const std::string& arg);
 TAppEncCfg::TAppEncCfg()
 {
   m_aidQP = NULL;
-  m_pchGRefMode = NULL;
 }
 
 TAppEncCfg::~TAppEncCfg()
@@ -103,7 +102,6 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
   string cfg_BitstreamFile;
   string cfg_ReconFile;
   string cfg_dQPFile;
-  string cfg_GRefMode;
   po::Options opts;
   opts.addOptions()
     ("help", do_help, false, "this help text")
@@ -190,7 +188,6 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
     ("SearchRange,-sr",m_iSearchRange, 96, "motion search range")
     ("HadamardME", m_bUseHADME, true, "hadamard ME for fractional-pel")
     ("ASR", m_bUseASR, false, "adaptive motion search range")
-    ("GRefMode,v", cfg_GRefMode, string(""), "additional reference for weighted prediction (w: scale+offset, o: offset)")
 
     /* Quantization parameters */
     ("QP,q",          m_fQP,             30.0, "Qp value, if value is float, QP is switched once during encoding")
@@ -258,7 +255,6 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
   m_pchBitstreamFile = cfg_BitstreamFile.empty() ? NULL : strdup(cfg_BitstreamFile.c_str());
   m_pchReconFile = cfg_ReconFile.empty() ? NULL : strdup(cfg_ReconFile.c_str());
   m_pchdQPFile = cfg_dQPFile.empty() ? NULL : strdup(cfg_dQPFile.c_str());
-  m_pchGRefMode = cfg_GRefMode.empty() ? NULL : strdup(cfg_GRefMode.c_str());
 
   if (m_iRateGOPSize == -1) {
     /* if rateGOPSize has not been specified, the default value is GOPSize */
@@ -592,11 +588,6 @@ Void TAppEncCfg::xPrintParameter()
   printf("Number of int. taps (chroma) : %d\n", 2          );
 #endif
 #endif
-
-  if ( m_pchGRefMode != NULL )
-  {
-    printf("Additional reference frame   : weighted prediction\n");
-  }
 
   if ( m_iSymbolMode == 0 )
   {

@@ -41,11 +41,6 @@
 
 TDecSlice::TDecSlice()
 {
-  for (Int i=0; i<GRF_MAX_NUM_EFF; i++)
-  for (Int j=0; j<2; j++)
-  {
-    m_apcVirtPic[j][i] = NULL;
-  }
 }
 
 TDecSlice::~TDecSlice()
@@ -54,31 +49,10 @@ TDecSlice::~TDecSlice()
 
 Void TDecSlice::create( TComSlice* pcSlice, Int iWidth, Int iHeight, UInt uiMaxWidth, UInt uiMaxHeight, UInt uiMaxDepth )
 {
-  // allocate required memory for generated reference frame
-  for (Int j=0; j<2; j++)
-  for (Int i=0; i<pcSlice->getAddRefCnt( (RefPicList)j ) ; i++ )
-  {
-    if(m_apcVirtPic[j][i] == NULL)
-    {
-      m_apcVirtPic[j][i] = new TComPic;
-      m_apcVirtPic[j][i]->create( iWidth, iHeight, uiMaxWidth, uiMaxHeight, uiMaxDepth, true );
-    }
-  }
 }
 
 Void TDecSlice::destroy()
 {
-  // free buffers for generated reference frame
-  for (Int i=0; i<GRF_MAX_NUM_EFF; i++)
-  for (Int j=0; j<2; j++)
-  {
-    if(m_apcVirtPic[j][i])
-    {
-      m_apcVirtPic[j][i]->destroy();
-      delete m_apcVirtPic[j][i];
-      m_apcVirtPic[j][i]=NULL;
-    }
-  }
 }
 
 Void TDecSlice::init(TDecEntropy* pcEntropyDecoder, TDecCu* pcCuDecoder)
@@ -127,30 +101,4 @@ Void TDecSlice::decompressSlice(TComBitstream* pcBitstream, TComPic*& rpcPic)
 #endif
 #endif
   }
-}
-
-Void TDecSlice::generateRefPicNew ( TComSlice* rpcSlice )
-{
-  if (rpcSlice->getSliceType() == I_SLICE)
-  {
-    return;
-  }
-
-  if (rpcSlice->getAddRefCnt(REF_PIC_LIST_0) == 0 && rpcSlice->getAddRefCnt(REF_PIC_LIST_1) == 0) return;
-
-  rpcSlice->setVirtRefBuffer(m_apcVirtPic);
-
-  for (Int iDir = 0; iDir < (rpcSlice->getSliceType() == P_SLICE ? 1 :2); iDir++)
-  {
-    RefPicList eRefPicList = (RefPicList) iDir;
-    for (Int i = 0; i < rpcSlice->getAddRefCnt(eRefPicList); i++)
-    {
-      EFF_MODE eEffMode = rpcSlice->getEffectMode(eRefPicList, i);
-      if (eEffMode >= EFF_WP_SO && eEffMode <= EFF_WP_O)
-      {
-        rpcSlice->generateWPSlice(eRefPicList, eEffMode, i);
-      }
-    }
-  }
-  rpcSlice->linkVirtRefPic();
 }

@@ -63,18 +63,6 @@ TComSlice::TComSlice()
 #endif
   m_uiColDir = 0;
 
-  m_aiWPmode[0]    = 0;
-  m_aiWPmode[1]    = 0;
-  m_iRFmode    = 0;
-
-  m_iLumaLogWeightDenom     = 5;
-  m_iChromaLogWeightDenom   = 5;
-  m_iWPLumaRound            = 1 << (m_iLumaLogWeightDenom-1);
-  m_iWPChromaRound          = 1 << (m_iChromaLogWeightDenom-1);
-
-  m_auiAddRefCnt[0]  = 0;
-  m_auiAddRefCnt[1]  = 0;
-
   initEqualRef();
 #if MS_NO_BACK_PRED_IN_B0
   m_bNoBackPredFlag = false;
@@ -100,17 +88,6 @@ Void TComSlice::initSlice()
 
   m_uiColDir = 0;
 
-  m_aiWPmode[0]    = 0;
-  m_aiWPmode[1]    = 0;
-  m_iRFmode    = 0;
-
-  m_iLumaLogWeightDenom     = 5;
-  m_iChromaLogWeightDenom   = 5;
-  m_iWPLumaRound            = 1 << (m_iLumaLogWeightDenom-1);
-  m_iWPChromaRound          = 1 << (m_iChromaLogWeightDenom-1);
-
-  m_auiAddRefCnt[0]  = 0;
-  m_auiAddRefCnt[1]  = 0;
   initEqualRef();
 #if MS_NO_BACK_PRED_IN_B0
   m_bNoBackPredFlag = false;
@@ -480,216 +457,10 @@ Void TComSlice::setRefPicList       ( TComList<TComPic*>& rcListPic )
 Void TComSlice::initEqualRef()
 {
   for (Int iDir = 0; iDir < 2; iDir++)
-  for (Int iRefIdx1 = 0; iRefIdx1 < MAX_NUM_REF+GRF_MAX_NUM_EFF; iRefIdx1++)
-  for (Int iRefIdx2 = iRefIdx1; iRefIdx2 < MAX_NUM_REF+GRF_MAX_NUM_EFF; iRefIdx2++)
+  for (Int iRefIdx1 = 0; iRefIdx1 < MAX_NUM_REF; iRefIdx1++)
+  for (Int iRefIdx2 = iRefIdx1; iRefIdx2 < MAX_NUM_REF; iRefIdx2++)
   {
     m_abEqualRef[iDir][iRefIdx1][iRefIdx2] = m_abEqualRef[iDir][iRefIdx2][iRefIdx1] = (iRefIdx1 == iRefIdx2? true : false);
-  }
-}
-
-Void TComSlice::setVirtRefBuffer(TComPic* pSrc[2][GRF_MAX_NUM_EFF])
-{
-  for (Int i=0; i<GRF_MAX_NUM_EFF; i++)
-  for (Int j=0; j<2; j++)
-  {
-    m_apcVirtPic[j][i] = pSrc[j][i];
-  }
-}
-
-Void TComSlice::linkVirtRefPic()
-{
-  Int numRefIdxN,numRefIdx, n, i;
-  Int numDir = ((getSliceType()) == P_SLICE) ? 1 : 2;
-  RefPicList eRefPicList;
-
-  for ( n=0; n<numDir; n++ )
-  {
-    eRefPicList = (RefPicList)n;
-    numRefIdxN  = getAddRefCnt(eRefPicList);
-    numRefIdx   = getNumRefIdx(eRefPicList);
-
-    for ( i=0; i<numRefIdxN; i++ )
-    {
-      setRefPic(m_apcVirtPic[n][i], eRefPicList, numRefIdx+i);
-
-#if HHI_INTERP_FILTER
-      m_apcVirtPic[n][i]->getPicYuvRec()    ->extendPicBorder( getInterpFilterType() );
-      m_apcVirtPic[n][i]->getPicYuvRecFilt()->extendPicBorder( getInterpFilterType() );
-#else
-      m_apcVirtPic[n][i]->getPicYuvRec()->extendPicBorder();
-#endif
-
-      setEqualRef(eRefPicList, 0, numRefIdx+i, true);
-    }
-    setNumRefIdx(eRefPicList, numRefIdx+numRefIdxN);
-  }
-}
-
-Void TComSlice::removeEffectMode(RefPicList e, EFF_MODE eEffMode)
-{
-  Int iPosIdx = 0, iTmpIdx;
-
-  for (iTmpIdx = 0; iTmpIdx < m_auiAddRefCnt[e]; iTmpIdx++)
-  {
-    if(m_aeEffectMode[e][iTmpIdx] == eEffMode)
-    {
-      iPosIdx = iTmpIdx;
-      break;
-    }
-  }
-
-  if (iTmpIdx >= m_auiAddRefCnt[e]) return;
-
-  m_auiAddRefCnt[e]--;
-
-  for (iTmpIdx = iPosIdx; iTmpIdx < m_auiAddRefCnt[e]; iTmpIdx++)
-  {
-    m_aeEffectMode[e][iTmpIdx] = m_aeEffectMode[e][iTmpIdx+1];
-    m_apcVirtPic[e][iTmpIdx] = m_apcVirtPic[e][iTmpIdx+1];
-  }
-}
-
-Void TComSlice::initWPParam( RefPicList eRefPicList, EFF_MODE eEffMode, Int colorChannel)
-{
-  Int iDefaultWeight;
-
-  if (colorChannel == 0)  // y
-  {
-    iDefaultWeight = 1 << m_iLumaLogWeightDenom;
-  }
-  else if (colorChannel == 1) // u
-  {
-    iDefaultWeight = 1 << m_iChromaLogWeightDenom;
-  }
-  else  // v
-  {
-    iDefaultWeight = 1 << m_iChromaLogWeightDenom;
-  }
-
-  Int iDefaultOffset = 0;
-
-  setWPWeight(eRefPicList, eEffMode, colorChannel, iDefaultWeight);
-  setWPOffset(eRefPicList, eEffMode, colorChannel, iDefaultOffset);
-}
-
-Void TComSlice::initWPAllParam( RefPicList eRefPicList, EFF_MODE eEffMode)
-{
-  for (Int colorChannel = 0; colorChannel < 3; colorChannel++)
-  {
-    initWPParam(eRefPicList, eEffMode, colorChannel);
-  }
-}
-
-Bool TComSlice::isEqualWPParam( RefPicList e, EFF_MODE eEffMode1, EFF_MODE eEffMode2, Int colorChannel)
-{
-  if (eEffMode1 == eEffMode2) return true;
-
-  Int iWeight1, iOffset1, iWeight2, iOffset2;
-
-  if (colorChannel == 0)  // y
-  {
-    iWeight1 = iWeight2 = 1 << m_iLumaLogWeightDenom;
-  }
-  else if (colorChannel == 1) // u
-  {
-    iWeight1 = iWeight2 = 1 << m_iChromaLogWeightDenom;
-  }
-  else  // v
-  {
-    iWeight1 = iWeight2 = 1 << m_iChromaLogWeightDenom;
-  }
-  iOffset1 = iOffset2 = 0;
-
-  if (eEffMode1 != EFF_NONE)
-  {
-    iWeight1 = getWPWeight(e, eEffMode1, colorChannel);
-    iOffset1 = getWPOffset(e, eEffMode1, colorChannel);
-  }
-
-  if (eEffMode2 != EFF_NONE)
-  {
-    iWeight2 = getWPWeight(e, eEffMode2, colorChannel);
-    iOffset2 = getWPOffset(e, eEffMode2, colorChannel);
-  }
-
-  return ( (iWeight1 == iWeight2) && (iOffset1 == iOffset2) );
-}
-
-Bool TComSlice::isEqualWPAllParam( RefPicList e, EFF_MODE eEffMode1, EFF_MODE eEffMode2)
-{
-  if (eEffMode1 == eEffMode2) return true;
-
-  for (Int colorChannel = 0; colorChannel < 3; colorChannel++)
-  {
-    if (!isEqualWPParam(e, eEffMode1, eEffMode2, colorChannel)) return false;
-  }
-
-  return true;
-}
-
-Void TComSlice::generateWPSlice( RefPicList e, EFF_MODE eEffMode, UInt uiInsertIdx)
-{
-  assert( eEffMode >= EFF_WP_SO && eEffMode <= EFF_WP_O );
-
-  Int x, y, iWidth, iHeight, iStride, iWeight, iOffset;
-  TComPicYuv* pcPicYuvRef;
-  Pel *pDst, *pSrc;
-
-  pcPicYuvRef = getRefPic(e, 0)->getPicYuvRec();
-
-  m_apcVirtPic[e][uiInsertIdx]->getSlice()->setPOC( getRefPic(e, 0)->getPOC() );
-
-  // Luma
-  iWidth  = pcPicYuvRef->getWidth();
-  iHeight = pcPicYuvRef->getHeight();
-  iStride = pcPicYuvRef->getStride();
-  pSrc    = pcPicYuvRef->getLumaAddr();
-  pDst    = m_apcVirtPic[e][uiInsertIdx]->getPicYuvRec()->getLumaAddr();
-
-  iWeight = getWPWeight(e, eEffMode, 0);
-  iOffset = getWPOffset(e, eEffMode, 0);
-
-
-  for (y=0; y<iHeight; y++) {
-    for (x=0; x<iWidth; x++) {
-      pDst[x] = Clip( ((iWeight*pSrc[x] + m_iWPLumaRound) >> m_iLumaLogWeightDenom) + iOffset );
-    }
-    pDst += iStride;
-    pSrc += iStride;
-  }
-
-  // Chroma
-  iWidth  >>= 1;
-  iHeight >>= 1;
-  iStride >>= 1;
-
-  iWeight = getWPWeight(e, eEffMode, 1);
-  iOffset = getWPOffset(e, eEffMode, 1);
-
-  pSrc    = pcPicYuvRef->getCbAddr();
-  pDst    = m_apcVirtPic[e][uiInsertIdx]->getPicYuvRec()->getCbAddr();
-
-  for (y=0; y<iHeight; y++) {
-    for (x=0; x<iWidth; x++) {
-      pDst[x] = Clip( ((iWeight*pSrc[x] + m_iWPChromaRound) >> m_iChromaLogWeightDenom) + iOffset );
-
-    }
-    pDst += iStride;
-    pSrc += iStride;
-  }
-
-  iWeight = getWPWeight(e, eEffMode, 2);
-  iOffset = getWPOffset(e, eEffMode, 2);
-
-  pSrc    = pcPicYuvRef->getCrAddr();
-  pDst    = m_apcVirtPic[e][uiInsertIdx]->getPicYuvRec()->getCrAddr();
-
-  for (y=0; y<iHeight; y++) {
-    for (x=0; x<iWidth; x++) {
-      pDst[x] = Clip( ((iWeight*pSrc[x] + m_iWPChromaRound) >> m_iChromaLogWeightDenom) + iOffset );
-    }
-    pDst += iStride;
-    pSrc += iStride;
   }
 }
 
@@ -712,9 +483,6 @@ TComSPS::TComSPS()
   // Tool list
   m_bUseALF       = false;
   m_bUseDQP       = false;
-
-  m_bUseWPG      = false;
-  m_bUseWPO      = false;
 
   m_bUseROT				= false; // BB:
 #if HHI_MRG

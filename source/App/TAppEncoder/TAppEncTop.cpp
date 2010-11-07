@@ -102,7 +102,6 @@ Void TAppEncTop::xInitLibCfg()
 #endif
 
   //====== Tool list ========
-  m_cTEncTop.setGRefMode                     ( m_pchGRefMode  );
   m_cTEncTop.setUseSBACRD                    ( m_bUseSBACRD   );
   m_cTEncTop.setDeltaQpRD                    ( m_uiDeltaQpRD  );
   m_cTEncTop.setUseASR                       ( m_bUseASR      );

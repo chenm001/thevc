@@ -141,11 +141,6 @@
 // Coding tool configuration
 // ====================================================================================================================
 
-// GRF: generated reference frame
-#define GRF_MAX_NUM_EFF             2           ///< maximum number of effects
-#define GRF_MAX_NUM_WEFF            2           ///< maximum number of wp effects
-#define GRF_WP_CHROMA               1           ///< weighted prediction of chroma
-
 // ROT: rotational transform
 #define ROT_DICT                    5           ///< intra ROT dictionary size (1, 2, 4, 5, 9)
 #define ROT_DICT_INTER              1           ///< inter ROT dictionary size (1, 2, 4, 5, 9)

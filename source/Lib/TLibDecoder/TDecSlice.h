@@ -58,9 +58,6 @@ private:
   TDecEntropy*    m_pcEntropyDecoder;
   TDecCu*         m_pcCuDecoder;
 
-  // additional buffers for generated reference frames
-  TComPic*        m_apcVirtPic[2][GRF_MAX_NUM_EFF];
-
 public:
   TDecSlice();
   virtual ~TDecSlice();
@@ -70,7 +67,6 @@ public:
   Void  destroy           ();
 
   Void  decompressSlice   ( TComBitstream* pcBitstream, TComPic*& rpcPic );
-  Void  generateRefPicNew ( TComSlice* rpcSlice );
 };
 
 #endif

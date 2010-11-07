@@ -175,20 +175,7 @@ Void TDecGop::decompressGop (Bool bEos, TComBitstream* pcBitstream, TComPic*& rp
     printf ("[L%d ", iRefList);
     for (Int iRefIndex = 0; iRefIndex < pcSlice->getNumRefIdx(RefPicList(iRefList)); iRefIndex++)
     {
-      UInt uiOrgNumRefIdx;
-      uiOrgNumRefIdx = pcSlice->getNumRefIdx(RefPicList(iRefList))-pcSlice->getAddRefCnt(RefPicList(iRefList));
-      UInt uiNewRefIdx= iRefIndex-uiOrgNumRefIdx;
-      if (iRefIndex >= (int)uiOrgNumRefIdx)
-      {
-        if ( pcSlice->getEffectMode(RefPicList(iRefList), uiNewRefIdx) == EFF_WP_SO ||
-             pcSlice->getEffectMode(RefPicList(iRefList), uiNewRefIdx) == EFF_WP_O )
-        {
-          printf ("%dw ", pcSlice->getRefPOC(RefPicList(iRefList), iRefIndex));
-        }
-      }
-      else {
-        printf ("%d ", pcSlice->getRefPOC(RefPicList(iRefList), iRefIndex));
-      }
+      printf ("%d ", pcSlice->getRefPOC(RefPicList(iRefList), iRefIndex));
     }
     printf ("] ");
   }
