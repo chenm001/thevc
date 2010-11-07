@@ -517,11 +517,7 @@ Void TAppEncCfg::xPrintParameter()
 #if TEN_DIRECTIONAL_INTERP
     case IPF_TEN_DIF:
       printf("Luma interpolation           : %s\n", "TEN directional interpolation filter"  );
-#if TEN_DIRECTIONAL_INTERP_CHROMA
-      printf("Chroma interpolation         : %s\n", "TEN two-stage bi-linear filter"  );
-#else // TEN_DIRECTIONAL_INTERP_CHROMA
       printf("Chroma interpolation         : %s\n", "Bi-linear filter"       );
-#endif // TEN_DIRECTIONAL_INTERP_CHROMA
       break;
 #endif
     case IPF_HHI_4TAP_MOMS:
