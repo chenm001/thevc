@@ -3865,7 +3865,7 @@ Void TEncSearch::xGetBlkBits( PartSize eCUMode, Bool bPSlice, Int iPartIdx, UInt
     uiBlkBit[1] = 3;
     uiBlkBit[2] = 5;
   }
-  else if ( (eCUMode == SIZE_2NxN || eCUMode == SIZE_2NxnU) || eCUMode == SIZE_2NxnD )
+  else if ( eCUMode == SIZE_2NxN )
   {
     UInt aauiMbBits[2][3][3] = { { {0,0,3}, {0,0,0}, {0,0,0} } , { {5,7,7}, {7,5,7}, {9-3,9-3,9-3} } };
     if ( bPSlice )
@@ -3879,7 +3879,7 @@ Void TEncSearch::xGetBlkBits( PartSize eCUMode, Bool bPSlice, Int iPartIdx, UInt
       ::memcpy( uiBlkBit, aauiMbBits[iPartIdx][uiLastMode], 3*sizeof(UInt) );
     }
   }
-  else if ( (eCUMode == SIZE_Nx2N || eCUMode == SIZE_nLx2N) || eCUMode == SIZE_nRx2N )
+  else if ( eCUMode == SIZE_Nx2N )
   {
     UInt aauiMbBits[2][3][3] = { { {0,2,3}, {0,0,0}, {0,0,0} } , { {5,7,7}, {7-2,7-2,9-2}, {9-3,9-3,9-3} } };
     if ( bPSlice )
@@ -4958,14 +4958,6 @@ Void TEncSearch::encodeResAndCalcRdInterCU( TComDataCU* pcCU, TComYuv* pcYuvOrg,
   }
   UInt uiMinTrMode = pcCU->getSlice()->getSPS()->getMinTrDepth() + uiTrLevel;
   UInt uiMaxTrMode = pcCU->getSlice()->getSPS()->getMaxTrDepth() + uiTrLevel;
-  
-  Bool bSpecial = false;
-  
-  if (pcCU->getPartitionSize(0) >= SIZE_2NxnU && pcCU->getPartitionSize(0) <= SIZE_nRx2N && uiMinTrMode == 0 && uiMaxTrMode == 1)
-  {
-    uiMaxTrMode++;
-    bSpecial = true;
-  }
   
   while((uiWidth>>uiMaxTrMode) < (g_uiMaxCUWidth>>g_uiMaxCUDepth)) uiMaxTrMode--;
   

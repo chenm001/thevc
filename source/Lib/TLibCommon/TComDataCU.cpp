@@ -2078,63 +2078,6 @@ Void TComDataCU::setInterDirSubParts( UInt uiDir, UInt uiAbsPartIdx, UInt uiPart
     memset( m_puhInterDir + uiAbsPartIdx + ( uiCurrPartNumQ << 1 ), uiDir, sizeof(UChar)*uiCurrPartNumQ ); break;
   case SIZE_NxN:
     memset( m_puhInterDir + uiAbsPartIdx, uiDir, sizeof(UChar)*uiCurrPartNumQ );                           break;
-  case SIZE_2NxnU:
-    {
-      memset( m_puhInterDir + uiAbsPartIdx, uiDir, sizeof(UChar)*(uiCurrPartNumQ>>1) );
-      if( uiPartIdx == 0 )
-        memset( m_puhInterDir + uiAbsPartIdx + uiCurrPartNumQ, uiDir, sizeof(UChar)*(uiCurrPartNumQ>>1) );
-      else
-        memset( m_puhInterDir + uiAbsPartIdx + uiCurrPartNumQ, uiDir, sizeof(UChar)*( (uiCurrPartNumQ>>1) + (uiCurrPartNumQ<<1) ) );
-      break;
-    }
-  case SIZE_2NxnD:
-    {
-      if( uiPartIdx == 0 )
-      {
-        memset( m_puhInterDir + uiAbsPartIdx, uiDir, sizeof(UChar)*( (uiCurrPartNumQ>>1) + (uiCurrPartNumQ<<1) ) );
-        memset( m_puhInterDir + uiAbsPartIdx + ( uiCurrPartNumQ + (uiCurrPartNumQ<<1) ), uiDir, sizeof(UChar)*(uiCurrPartNumQ>>1) );
-      }
-      else
-      {
-        memset( m_puhInterDir + uiAbsPartIdx, uiDir, sizeof(UChar)*(uiCurrPartNumQ>>1) );
-        memset( m_puhInterDir + uiAbsPartIdx + uiCurrPartNumQ, uiDir, sizeof(UChar)*(uiCurrPartNumQ>>1) );
-      }
-      break;
-    }
-  case SIZE_nLx2N:
-    {
-      memset( m_puhInterDir + uiAbsPartIdx, uiDir, sizeof(UChar)*(uiCurrPartNumQ>>2) );
-      memset( m_puhInterDir + uiAbsPartIdx + (uiCurrPartNumQ<<1), uiDir, sizeof(UChar)*(uiCurrPartNumQ>>2) );
-      if( uiPartIdx == 0 )
-      {
-        memset( m_puhInterDir + uiAbsPartIdx + (uiCurrPartNumQ>>1), uiDir, sizeof(UChar)*(uiCurrPartNumQ>>2) );
-        memset( m_puhInterDir + uiAbsPartIdx + (uiCurrPartNumQ<<1) + (uiCurrPartNumQ>>1), uiDir, sizeof(UChar)*(uiCurrPartNumQ>>2) );
-      }
-      else
-      {
-        memset( m_puhInterDir + uiAbsPartIdx + (uiCurrPartNumQ>>1), uiDir, sizeof(UChar)*( (uiCurrPartNumQ>>2) + uiCurrPartNumQ ) );
-        memset( m_puhInterDir + uiAbsPartIdx + (uiCurrPartNumQ<<1) + (uiCurrPartNumQ>>1), uiDir, sizeof(UChar)*( (uiCurrPartNumQ>>2) + uiCurrPartNumQ ) );
-      }
-      break;
-    }
-  case SIZE_nRx2N:
-    {
-      if( uiPartIdx == 0 )
-      {
-        memset( m_puhInterDir + uiAbsPartIdx, uiDir, sizeof(UChar)*( (uiCurrPartNumQ>>2) + uiCurrPartNumQ ) );
-        memset( m_puhInterDir + uiAbsPartIdx + uiCurrPartNumQ + (uiCurrPartNumQ>>1), uiDir, sizeof(UChar)*(uiCurrPartNumQ>>2) );
-        memset( m_puhInterDir + uiAbsPartIdx + (uiCurrPartNumQ<<1), uiDir, sizeof(UChar)*( (uiCurrPartNumQ>>2) + uiCurrPartNumQ ) );
-        memset( m_puhInterDir + uiAbsPartIdx + (uiCurrPartNumQ<<1) + uiCurrPartNumQ + (uiCurrPartNumQ>>1), uiDir, sizeof(UChar)*(uiCurrPartNumQ>>2) );
-      }
-      else
-      {
-        memset( m_puhInterDir + uiAbsPartIdx, uiDir, sizeof(UChar)*(uiCurrPartNumQ>>2) );
-        memset( m_puhInterDir + uiAbsPartIdx + (uiCurrPartNumQ>>1), uiDir, sizeof(UChar)*(uiCurrPartNumQ>>2) );
-        memset( m_puhInterDir + uiAbsPartIdx + (uiCurrPartNumQ<<1), uiDir, sizeof(UChar)*(uiCurrPartNumQ>>2) );
-        memset( m_puhInterDir + uiAbsPartIdx + (uiCurrPartNumQ<<1) + (uiCurrPartNumQ>>1), uiDir, sizeof(UChar)*(uiCurrPartNumQ>>2) );
-      }
-      break;
-    }
   default:
     assert( 0 );
   }
@@ -2183,134 +2126,6 @@ Void TComDataCU::setMVPIdxSubParts( Int iMVPIdx, RefPicList eRefPicList, UInt ui
       for (i = 0; i < uiCurrPartNumQ; i++)
       {
         pi[i] = iMVPIdx;
-      }
-      break;
-    }
-  case SIZE_2NxnU:
-    {
-      if( uiPartIdx == 0 )
-      {
-             pi  = m_apiMVPIdx[eRefPicList] + uiAbsPartIdx;
-        Int* pi2 = m_apiMVPIdx[eRefPicList] + uiAbsPartIdx + uiCurrPartNumQ;
-        for (i = 0; i < (uiCurrPartNumQ>>1); i++)
-        {
-          pi [i] = iMVPIdx;
-          pi2[i] = iMVPIdx;
-        }
-      }
-      else
-      {
-        pi = m_apiMVPIdx[eRefPicList] + uiAbsPartIdx;
-        for (i = 0; i < (uiCurrPartNumQ>>1); i++)
-        {
-          pi[i] = iMVPIdx;
-        }
-
-        pi = m_apiMVPIdx[eRefPicList] + uiAbsPartIdx + uiCurrPartNumQ;
-        for (i = 0; i < ( (uiCurrPartNumQ>>1) + (uiCurrPartNumQ<<1) ); i++)
-        {
-          pi[i] = iMVPIdx;
-        }
-      }
-      break;
-    }
-  case SIZE_2NxnD:
-    {
-      if( uiPartIdx == 0 )
-      {
-        pi = m_apiMVPIdx[eRefPicList] + uiAbsPartIdx;
-        for (i = 0; i < ( (uiCurrPartNumQ>>1) + (uiCurrPartNumQ<<1) ); i++)
-        {
-          pi[i] = iMVPIdx;
-        }
-        pi = m_apiMVPIdx[eRefPicList] + uiAbsPartIdx + ( uiCurrPartNumQ + (uiCurrPartNumQ<<1) );
-        for (i = 0; i < (uiCurrPartNumQ>>1); i++)
-        {
-          pi[i] = iMVPIdx;
-        }
-      }
-      else
-      {
-             pi  = m_apiMVPIdx[eRefPicList] + uiAbsPartIdx;
-        Int* pi2 = m_apiMVPIdx[eRefPicList] + uiAbsPartIdx + uiCurrPartNumQ;
-        for (i = 0; i < (uiCurrPartNumQ>>1); i++)
-        {
-          pi [i] = iMVPIdx;
-          pi2[i] = iMVPIdx;
-        }
-      }
-      break;
-    }
-  case SIZE_nLx2N:
-    {
-      if( uiPartIdx == 0 )
-      {
-             pi  = m_apiMVPIdx[eRefPicList] + uiAbsPartIdx;
-        Int* pi2 = m_apiMVPIdx[eRefPicList] + uiAbsPartIdx + (uiCurrPartNumQ<<1);
-        Int* pi3 = m_apiMVPIdx[eRefPicList] + uiAbsPartIdx + (uiCurrPartNumQ>>1);
-        Int* pi4 = m_apiMVPIdx[eRefPicList] + uiAbsPartIdx + (uiCurrPartNumQ<<1) + (uiCurrPartNumQ>>1);
-
-        for (i = 0; i < (uiCurrPartNumQ>>2); i++)
-        {
-          pi [i] = iMVPIdx;
-          pi2[i] = iMVPIdx;
-          pi3[i] = iMVPIdx;
-          pi4[i] = iMVPIdx;
-        }
-      }
-      else
-      {
-             pi  = m_apiMVPIdx[eRefPicList] + uiAbsPartIdx;
-        Int* pi2 = m_apiMVPIdx[eRefPicList] + uiAbsPartIdx + (uiCurrPartNumQ<<1);
-        for (i = 0; i < (uiCurrPartNumQ>>2); i++)
-        {
-          pi [i] = iMVPIdx;
-          pi2[i] = iMVPIdx;
-        }
-
-        pi  = m_apiMVPIdx[eRefPicList] + uiAbsPartIdx + (uiCurrPartNumQ>>1);
-        pi2 = m_apiMVPIdx[eRefPicList] + uiAbsPartIdx + (uiCurrPartNumQ<<1) + (uiCurrPartNumQ>>1);
-        for (i = 0; i < ( (uiCurrPartNumQ>>2) + uiCurrPartNumQ ); i++)
-        {
-          pi [i] = iMVPIdx;
-          pi2[i] = iMVPIdx;
-        }
-      }
-      break;
-    }
-  case SIZE_nRx2N:
-    {
-      if( uiPartIdx == 0 )
-      {
-             pi  = m_apiMVPIdx[eRefPicList] + uiAbsPartIdx;
-        Int* pi2 = m_apiMVPIdx[eRefPicList] + uiAbsPartIdx + (uiCurrPartNumQ<<1);
-        for (i = 0; i < ( (uiCurrPartNumQ>>2) + uiCurrPartNumQ ); i++)
-        {
-          pi [i] = iMVPIdx;
-          pi2[i] = iMVPIdx;
-        }
-
-        pi  = m_apiMVPIdx[eRefPicList] + uiAbsPartIdx + uiCurrPartNumQ + (uiCurrPartNumQ>>1);
-        pi2 = m_apiMVPIdx[eRefPicList] + uiAbsPartIdx + (uiCurrPartNumQ<<1) + uiCurrPartNumQ + (uiCurrPartNumQ>>1);
-        for (i = 0; i < (uiCurrPartNumQ>>2); i++)
-        {
-          pi [i] = iMVPIdx;
-          pi2[i] = iMVPIdx;
-        }
-      }
-      else
-      {
-             pi  = m_apiMVPIdx[eRefPicList] + uiAbsPartIdx;
-        Int* pi2 = m_apiMVPIdx[eRefPicList] + uiAbsPartIdx + (uiCurrPartNumQ>>1);
-        Int* pi3 = m_apiMVPIdx[eRefPicList] + uiAbsPartIdx + (uiCurrPartNumQ<<1);
-        Int* pi4 = m_apiMVPIdx[eRefPicList] + uiAbsPartIdx + (uiCurrPartNumQ<<1) + (uiCurrPartNumQ>>1);
-        for (i = 0; i < (uiCurrPartNumQ>>2); i++)
-        {
-          pi [i] = iMVPIdx;
-          pi2[i] = iMVPIdx;
-          pi3[i] = iMVPIdx;
-          pi4[i] = iMVPIdx;
-        }
       }
       break;
     }
@@ -2367,134 +2182,6 @@ Void TComDataCU::setMVPNumSubParts( Int iMVPNum, RefPicList eRefPicList, UInt ui
       }
    }
   break;
-  case SIZE_2NxnU:
-    {
-      if( uiPartIdx == 0 )
-      {
-             pi  = m_apiMVPNum[eRefPicList] + uiAbsPartIdx;
-        Int* pi2 = m_apiMVPNum[eRefPicList] + uiAbsPartIdx + uiCurrPartNumQ;
-        for (i = 0; i < (uiCurrPartNumQ>>1); i++)
-        {
-          pi [i] = iMVPNum;
-          pi2[i] = iMVPNum;
-        }
-      }
-      else
-      {
-        pi = m_apiMVPNum[eRefPicList] + uiAbsPartIdx;
-        for (i = 0; i < (uiCurrPartNumQ>>1); i++)
-        {
-          pi[i] = iMVPNum;
-        }
-
-        pi = m_apiMVPNum[eRefPicList] + uiAbsPartIdx + uiCurrPartNumQ;
-        for (i = 0; i < ( (uiCurrPartNumQ>>1) + (uiCurrPartNumQ<<1) ); i++)
-        {
-          pi[i] = iMVPNum;
-        }
-      }
-      break;
-    }
-  case SIZE_2NxnD:
-    {
-      if( uiPartIdx == 0 )
-      {
-        pi = m_apiMVPNum[eRefPicList] + uiAbsPartIdx;
-        for (i = 0; i < ( (uiCurrPartNumQ>>1) + (uiCurrPartNumQ<<1) ); i++)
-        {
-          pi[i] = iMVPNum;
-        }
-        pi = m_apiMVPNum[eRefPicList] + uiAbsPartIdx + ( uiCurrPartNumQ + (uiCurrPartNumQ<<1) );
-        for (i = 0; i < (uiCurrPartNumQ>>1); i++)
-        {
-          pi[i] = iMVPNum;
-        }
-      }
-      else
-      {
-             pi  = m_apiMVPNum[eRefPicList] + uiAbsPartIdx;
-        Int* pi2 = m_apiMVPNum[eRefPicList] + uiAbsPartIdx + uiCurrPartNumQ;
-        for (i = 0; i < (uiCurrPartNumQ>>1); i++)
-        {
-          pi [i] = iMVPNum;
-          pi2[i] = iMVPNum;
-        }
-      }
-      break;
-    }
-  case SIZE_nLx2N:
-    {
-      if( uiPartIdx == 0 )
-      {
-             pi  = m_apiMVPNum[eRefPicList] + uiAbsPartIdx;
-        Int* pi2 = m_apiMVPNum[eRefPicList] + uiAbsPartIdx + (uiCurrPartNumQ<<1);
-        Int* pi3 = m_apiMVPNum[eRefPicList] + uiAbsPartIdx + (uiCurrPartNumQ>>1);
-        Int* pi4 = m_apiMVPNum[eRefPicList] + uiAbsPartIdx + (uiCurrPartNumQ<<1) + (uiCurrPartNumQ>>1);
-
-        for (i = 0; i < (uiCurrPartNumQ>>2); i++)
-        {
-          pi [i] = iMVPNum;
-          pi2[i] = iMVPNum;
-          pi3[i] = iMVPNum;
-          pi4[i] = iMVPNum;
-        }
-      }
-      else
-      {
-             pi  = m_apiMVPNum[eRefPicList] + uiAbsPartIdx;
-        Int* pi2 = m_apiMVPNum[eRefPicList] + uiAbsPartIdx + (uiCurrPartNumQ<<1);
-        for (i = 0; i < (uiCurrPartNumQ>>2); i++)
-        {
-          pi [i] = iMVPNum;
-          pi2[i] = iMVPNum;
-        }
-
-        pi  = m_apiMVPNum[eRefPicList] + uiAbsPartIdx + (uiCurrPartNumQ>>1);
-        pi2 = m_apiMVPNum[eRefPicList] + uiAbsPartIdx + (uiCurrPartNumQ<<1) + (uiCurrPartNumQ>>1);
-        for (i = 0; i < ( (uiCurrPartNumQ>>2) + uiCurrPartNumQ ); i++)
-        {
-          pi [i] = iMVPNum;
-          pi2[i] = iMVPNum;
-        }
-      }
-      break;
-    }
-  case SIZE_nRx2N:
-    {
-      if( uiPartIdx == 0 )
-      {
-             pi  = m_apiMVPNum[eRefPicList] + uiAbsPartIdx;
-        Int* pi2 = m_apiMVPNum[eRefPicList] + uiAbsPartIdx + (uiCurrPartNumQ<<1);
-        for (i = 0; i < ( (uiCurrPartNumQ>>2) + uiCurrPartNumQ ); i++)
-        {
-          pi [i] = iMVPNum;
-          pi2[i] = iMVPNum;
-        }
-
-        pi  = m_apiMVPNum[eRefPicList] + uiAbsPartIdx + uiCurrPartNumQ + (uiCurrPartNumQ>>1);
-        pi2 = m_apiMVPNum[eRefPicList] + uiAbsPartIdx + uiCurrPartNumQ + (uiCurrPartNumQ>>1) + (uiCurrPartNumQ<<1);
-        for (i = 0; i < (uiCurrPartNumQ>>2); i++)
-        {
-          pi [i] = iMVPNum;
-          pi2[i] = iMVPNum;
-        }
-      }
-      else
-      {
-             pi  = m_apiMVPNum[eRefPicList] + uiAbsPartIdx;
-        Int* pi2 = m_apiMVPNum[eRefPicList] + uiAbsPartIdx + (uiCurrPartNumQ>>1);
-        Int* pi3 = m_apiMVPNum[eRefPicList] + uiAbsPartIdx + (uiCurrPartNumQ<<1);
-        Int* pi4 = m_apiMVPNum[eRefPicList] + uiAbsPartIdx + (uiCurrPartNumQ<<1) + (uiCurrPartNumQ>>1);
-        for (i = 0; i < (uiCurrPartNumQ>>2); i++)
-        {
-          pi [i] = iMVPNum;
-          pi2[i] = iMVPNum;
-          pi3[i] = iMVPNum;
-          pi4[i] = iMVPNum;
-        }
-      }
-      break;
-    }
   default:
     assert( 0 );
   }
@@ -2526,10 +2213,6 @@ UChar TComDataCU::getNumPartInter()
   case SIZE_2NxN:     iNumPart = 2; break;
   case SIZE_Nx2N:     iNumPart = 2; break;
   case SIZE_NxN:      iNumPart = 4; break;
-  case SIZE_2NxnU:    iNumPart = 2; break;
-  case SIZE_2NxnD:    iNumPart = 2; break;
-  case SIZE_nLx2N:    iNumPart = 2; break;
-  case SIZE_nRx2N:    iNumPart = 2; break;
   default:            assert (0);   break;
   }
 
@@ -2544,26 +2227,6 @@ Void TComDataCU::getPartIndexAndSize( UInt uiPartIdx, UInt& ruiPartAddr, Int& ri
     case SIZE_2NxN:  riWidth = getWidth(0);      riHeight = getHeight(0) >> 1; ruiPartAddr = ( uiPartIdx == 0 )? 0 : m_uiNumPartition >> 1; break;
     case SIZE_Nx2N:  riWidth = getWidth(0) >> 1; riHeight = getHeight(0);      ruiPartAddr = ( uiPartIdx == 0 )? 0 : m_uiNumPartition >> 2; break;
     case SIZE_NxN:   riWidth = getWidth(0) >> 1; riHeight = getHeight(0) >> 1; ruiPartAddr = ( m_uiNumPartition >> 2 ) * uiPartIdx;         break;
-    case SIZE_2NxnU:
-      riWidth     = getWidth(0);
-      riHeight    = ( uiPartIdx == 0 ) ?  getHeight(0) >> 2 : ( getHeight(0) >> 2 ) + ( getHeight(0) >> 1 );
-      ruiPartAddr = ( uiPartIdx == 0 ) ? 0 : m_uiNumPartition >> 3;
-      break;
-    case SIZE_2NxnD:
-      riWidth     = getWidth(0);
-      riHeight    = ( uiPartIdx == 0 ) ?  ( getHeight(0) >> 2 ) + ( getHeight(0) >> 1 ) : getHeight(0) >> 2;
-      ruiPartAddr = ( uiPartIdx == 0 ) ? 0 : (m_uiNumPartition >> 1) + (m_uiNumPartition >> 3);
-      break;
-    case SIZE_nLx2N:
-      riWidth     = ( uiPartIdx == 0 ) ? getWidth(0) >> 2 : ( getWidth(0) >> 2 ) + ( getWidth(0) >> 1 );
-      riHeight    = getHeight(0);
-      ruiPartAddr = ( uiPartIdx == 0 ) ? 0 : m_uiNumPartition >> 4;
-      break;
-    case SIZE_nRx2N:
-      riWidth     = ( uiPartIdx == 0 ) ? ( getWidth(0) >> 2 ) + ( getWidth(0) >> 1 ) : getWidth(0) >> 2;
-      riHeight    = getHeight(0);
-      ruiPartAddr = ( uiPartIdx == 0 ) ? 0 : (m_uiNumPartition >> 2) + (m_uiNumPartition >> 4);
-      break;
     default: assert (0); break;
   }
 }
@@ -2593,23 +2256,6 @@ Void TComDataCU::deriveLeftRightTopIdx ( PartSize eCUMode, UInt uiPartIdx, UInt&
     case SIZE_2NxN:  ruiPartIdxLT += ( uiPartIdx == 0 )? 0 : m_uiNumPartition >> 1; ruiPartIdxRT += ( uiPartIdx == 0 )? 0 : m_uiNumPartition >> 1;  break;
     case SIZE_Nx2N:  ruiPartIdxLT += ( uiPartIdx == 0 )? 0 : m_uiNumPartition >> 2; ruiPartIdxRT -= ( uiPartIdx == 1 )? 0 : m_uiNumPartition >> 2;  break;
     case SIZE_NxN:   ruiPartIdxLT += ( m_uiNumPartition >> 2 ) * uiPartIdx;         ruiPartIdxRT +=  ( m_uiNumPartition >> 2 ) * ( uiPartIdx - 1 ); break;
-
-    case SIZE_2NxnU:
-      ruiPartIdxLT += ( uiPartIdx == 0 )? 0 : m_uiNumPartition >> 3;
-      ruiPartIdxRT += ( uiPartIdx == 0 )? 0 : m_uiNumPartition >> 3;
-      break;
-    case SIZE_2NxnD:
-      ruiPartIdxLT += ( uiPartIdx == 0 )? 0 : ( m_uiNumPartition >> 1 ) + ( m_uiNumPartition >> 3 );
-      ruiPartIdxRT += ( uiPartIdx == 0 )? 0 : ( m_uiNumPartition >> 1 ) + ( m_uiNumPartition >> 3 );
-      break;
-    case SIZE_nLx2N:
-      ruiPartIdxLT += ( uiPartIdx == 0 )? 0 : m_uiNumPartition >> 4;
-      ruiPartIdxRT -= ( uiPartIdx == 1 )? 0 : ( m_uiNumPartition >> 2 ) + ( m_uiNumPartition >> 4 );
-      break;
-    case SIZE_nRx2N:
-      ruiPartIdxLT += ( uiPartIdx == 0 )? 0 : ( m_uiNumPartition >> 2 ) + ( m_uiNumPartition >> 4 );
-      ruiPartIdxRT -= ( uiPartIdx == 1 )? 0 : m_uiNumPartition >> 4;
-      break;
     default:
       assert (0);
     break;
@@ -2627,19 +2273,6 @@ Void TComDataCU::deriveLeftBottomIdx( PartSize      eCUMode,   UInt  uiPartIdx, 
     case SIZE_2NxN:  ruiPartIdxLB += ( uiPartIdx == 0 )? 0 : m_uiNumPartition >> 1;   break;
     case SIZE_Nx2N:  ruiPartIdxLB += ( uiPartIdx == 0 )? m_uiNumPartition >> 1 : (m_uiNumPartition >> 2)*3;   break;
     case SIZE_NxN:   ruiPartIdxLB += ( m_uiNumPartition >> 2 ) * uiPartIdx;   break;
-
-    case SIZE_2NxnU:
-      ruiPartIdxLB += ( uiPartIdx == 0 ) ? -((Int)m_uiNumPartition >> 3) : m_uiNumPartition >> 1;
-      break;
-    case SIZE_2NxnD:
-      ruiPartIdxLB += ( uiPartIdx == 0 ) ? (m_uiNumPartition >> 2) + (m_uiNumPartition >> 3): m_uiNumPartition >> 1;
-      break;
-    case SIZE_nLx2N:
-      ruiPartIdxLB += ( uiPartIdx == 0 ) ? m_uiNumPartition >> 1 : (m_uiNumPartition >> 1) + (m_uiNumPartition >> 4);
-      break;
-    case SIZE_nRx2N:
-      ruiPartIdxLB += ( uiPartIdx == 0 ) ? m_uiNumPartition >> 1 : (m_uiNumPartition >> 1) + (m_uiNumPartition >> 2) + (m_uiNumPartition >> 4);
-      break;
     default:
       assert (0);
       break;
@@ -3170,22 +2803,22 @@ Void TComDataCU::fillMvpCand ( UInt uiPartIdx, UInt uiPartAddr, RefPicList eRefP
   clipMv(pInfo->m_acMvCand[0]);
 
   TComMv cTempMv;
-  if ( ( ( ((eCUMode == SIZE_2NxN) || (eCUMode == SIZE_2NxnU) || (eCUMode == SIZE_2NxnD)) && uiPartIdx == 1 ) ||
-    ( ((eCUMode == SIZE_Nx2N) || (eCUMode == SIZE_nLx2N) || (eCUMode == SIZE_nRx2N)) && uiPartIdx == 0 ) )
+  if ( ( ( ((eCUMode == SIZE_2NxN)) && uiPartIdx == 1 ) ||
+    ( ((eCUMode == SIZE_Nx2N)) && uiPartIdx == 0 ) )
     && iLeftMvIdx > 0 )
   {
     cTempMv = pInfo->m_acMvCand[0];
     pInfo->m_acMvCand[0] = pInfo->m_acMvCand[iLeftMvIdx];
     pInfo->m_acMvCand[iLeftMvIdx] = cTempMv;
   }
-  else if ( ( ((eCUMode == SIZE_2NxN) || (eCUMode == SIZE_2NxnU) || (eCUMode == SIZE_2NxnD)) && uiPartIdx == 0 && m_pcSlice->isEqualRef(eRefPicList, m_cMvFieldB.getRefIdx(), iRefIdx) )
+  else if ( ( ((eCUMode == SIZE_2NxN)) && uiPartIdx == 0 && m_pcSlice->isEqualRef(eRefPicList, m_cMvFieldB.getRefIdx(), iRefIdx) )
     && iAboveMvIdx > 0 )
   {
     cTempMv = pInfo->m_acMvCand[0];
     pInfo->m_acMvCand[0] = pInfo->m_acMvCand[iAboveMvIdx];
     pInfo->m_acMvCand[iAboveMvIdx] = cTempMv;
   }
-  else if ( ( ((eCUMode == SIZE_Nx2N) || (eCUMode == SIZE_nLx2N) || (eCUMode == SIZE_nRx2N)) && uiPartIdx == 1 && m_pcSlice->isEqualRef(eRefPicList, m_cMvFieldC.getRefIdx(), iRefIdx))
+  else if ( ( ((eCUMode == SIZE_Nx2N)) && uiPartIdx == 1 && m_pcSlice->isEqualRef(eRefPicList, m_cMvFieldC.getRefIdx(), iRefIdx))
     && iCornerMvIdx > 0 )
   {
     cTempMv = pInfo->m_acMvCand[0];

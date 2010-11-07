@@ -345,7 +345,6 @@ Void TEncCu::xCompressCU( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, UInt u
   TComDataCU* pcTempCU;
   Bool    bEarlySkip  = false;
   Bool    bTrySplit    = true;
-  Bool    bTryAsym    = true;
   Double  fRD_Skip    = MAX_DOUBLE;
 
   static  Double  afCost[ MAX_CU_DEPTH ];
@@ -402,7 +401,6 @@ Void TEncCu::xCompressCU( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, UInt u
           {
             bEarlySkip = true;
             bTrySplit  = false;
-            bTryAsym   = false;
           }
         }
       }
@@ -415,7 +413,6 @@ Void TEncCu::xCompressCU( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, UInt u
         {
           bEarlySkip = true;
           bTrySplit  = false;
-          bTryAsym   = false;
         }
       }
 #endif
@@ -452,14 +449,6 @@ Void TEncCu::xCompressCU( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, UInt u
 #endif
       }
 
-      // SIZE_2NxnU, SIZE_2NxnD, SIZE_nLx2N, SIZE_nRx2N
-      if( bTryAsym && pcPic->getSlice()->getSPS()->getAMPAcc(uiDepth) )
-      {
-        xCheckRDCostInter( rpcBestCU, rpcTempCU, SIZE_2NxnU );   rpcTempCU->initEstData();
-        xCheckRDCostInter( rpcBestCU, rpcTempCU, SIZE_2NxnD );   rpcTempCU->initEstData();
-        xCheckRDCostInter( rpcBestCU, rpcTempCU, SIZE_nLx2N );   rpcTempCU->initEstData();
-        xCheckRDCostInter( rpcBestCU, rpcTempCU, SIZE_nRx2N );   rpcTempCU->initEstData();
-      }
     }
 
     // initialize special intra tools

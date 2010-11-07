@@ -196,17 +196,6 @@ Void TDecTop::decode (Bool bEos, TComBitstream* pcBitstream, UInt& ruiPOC, TComL
   {
     m_cEntropyDecoder.decodeSPS( &m_cSPS );
 
-    Int i;
-    for (i = 0; i < m_cSPS.getMaxCUDepth() - 1; i++)
-    {
-      m_cSPS.setAMPAcc( i, m_cSPS.getUseAMP() );
-    }
-
-    for (i = m_cSPS.getMaxCUDepth() - 1; i < m_cSPS.getMaxCUDepth(); i++)
-    {
-      m_cSPS.setAMPAcc( i, 0 );
-    }
-
     // initialize DIF
     m_cPrediction.setDIFTap ( m_cSPS.getDIFTap () );
 #if SAMSUNG_CHROMA_IF_EXT

@@ -716,7 +716,7 @@ Void TEncCavlc::codeSPS( TComSPS* pcSPS )
    xWriteFlag ( (pcSPS->getUseIMP ()) ? 1 : 0 ); // SOPH:
 #endif
 
-  xWriteFlag  ( (pcSPS->getUseAMP ()) ? 1 : 0 );
+  xWriteFlag  ( 0 ); // TODO: remove? was AMP
 #if HHI_RMP_SWITCH
   xWriteFlag  ( (pcSPS->getUseRMP()) ? 1 : 0 );
 #endif
@@ -982,7 +982,7 @@ Void TEncCavlc::codePartSize( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth 
   {
     xWriteFlag( 0 );
 #if HHI_RMP_SWITCH
-    if( pcCU->getSlice()->getSPS()->getUseRMP() ||  pcCU->getSlice()->getSPS()->getAMPAcc( uiDepth ) )
+    if( pcCU->getSlice()->getSPS()->getUseRMP() )
 #endif
     {
       xWriteFlag( 0 );
@@ -1026,8 +1026,6 @@ Void TEncCavlc::codePartSize( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth 
       break;
     }
   case SIZE_2NxN:
-  case SIZE_2NxnU:
-  case SIZE_2NxnD:
     {
       xWriteFlag( 0 );
       xWriteFlag( 1 );
@@ -1035,41 +1033,9 @@ Void TEncCavlc::codePartSize( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth 
       if (m_bAdaptFlag)
         m_uiBitPartSize += 2;
 #endif
-#if HHI_RMP_SWITCH
-      if (pcCU->getSlice()->getSPS()->getAMPAcc( uiDepth ) && pcCU->getSlice()->getSPS()->getUseRMP() )
-#else
-      if ( pcCU->getSlice()->getSPS()->getAMPAcc( uiDepth ) )
-#endif
-      {
-        if (eSize == SIZE_2NxN)
-        {
-          xWriteFlag( 1 );
-#if LCEC_STAT
-          if (m_bAdaptFlag)
-          m_uiBitPartSize += 1;
-#endif
-        }
-        else
-        {
-          xWriteFlag( 0 );
-          xWriteFlag( (eSize == SIZE_2NxnU? 0: 1) );
-#if LCEC_STAT
-          if (m_bAdaptFlag)
-            m_uiBitPartSize += 2;
-#endif
-        }
-      }
-#if HHI_RMP_SWITCH
-      else if ( pcCU->getSlice()->getSPS()->getAMPAcc( uiDepth ) && !pcCU->getSlice()->getSPS()->getUseRMP() )
-      {
-        xWriteFlag( (eSize == SIZE_2NxnU? 0: 1) );
-      }
-#endif
       break;
     }
   case SIZE_Nx2N:
-  case SIZE_nLx2N:
-  case SIZE_nRx2N:
     {
       xWriteFlag( 0 );
       xWriteFlag( 0 );
@@ -1077,36 +1043,6 @@ Void TEncCavlc::codePartSize( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth 
 #if LCEC_STAT
       if (m_bAdaptFlag)
         m_uiBitPartSize += 3;
-#endif
-#if HHI_RMP_SWITCH
-      if (pcCU->getSlice()->getSPS()->getAMPAcc( uiDepth ) && pcCU->getSlice()->getSPS()->getUseRMP() )
-#else
-      if ( pcCU->getSlice()->getSPS()->getAMPAcc( uiDepth ) )
-#endif
-      {
-        if (eSize == SIZE_Nx2N)
-        {
-          xWriteFlag( 1 );
-#if LCEC_STAT
-          if (m_bAdaptFlag)
-            m_uiBitPartSize += 1;
-#endif
-        }
-        else
-        {
-          xWriteFlag( 0 );
-          xWriteFlag( (eSize == SIZE_nLx2N? 0: 1) );
-#if LCEC_STAT
-          if (m_bAdaptFlag)
-            m_uiBitPartSize += 2;
-#endif
-        }
-      }
-#if HHI_RMP_SWITCH
-      else if ( pcCU->getSlice()->getSPS()->getAMPAcc( uiDepth ) && !pcCU->getSlice()->getSPS()->getUseRMP() )
-      {
-        xWriteFlag( (eSize == SIZE_nLx2N? 0: 1) );
-      }
 #endif
       break;
     }
@@ -1118,7 +1054,7 @@ Void TEncCavlc::codePartSize( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth 
       {
         xWriteFlag( 0 );
 #if HHI_RMP_SWITCH
-        if( pcCU->getSlice()->getSPS()->getUseRMP() ||  pcCU->getSlice()->getSPS()->getAMPAcc( uiDepth ) )
+        if( pcCU->getSlice()->getSPS()->getUseRMP())
 #endif
         {
           xWriteFlag( 0 );
@@ -1320,11 +1256,6 @@ Void TEncCavlc::codeTransformIdx( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDe
 #endif
 
   if ( !uiSymbol )
-  {
-    return;
-  }
-
-  if (pcCU->getPartitionSize(uiAbsPartIdx) >= SIZE_2NxnU && pcCU->getPartitionSize(uiAbsPartIdx) <= SIZE_nRx2N && uiMinTrDepth == 0 && uiMaxTrDepth == 1 && uiSymbol)
   {
     return;
   }

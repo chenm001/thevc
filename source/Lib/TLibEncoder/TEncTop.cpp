@@ -379,21 +379,6 @@ Void TEncTop::xInitSPS()
 #endif
   
 
-  for (i = 0; i < g_uiMaxCUDepth; i++ )
-  {
-    m_cSPS.setAMPAcc( i, m_bUseAMP );
-  }
-
-  m_cSPS.setUseAMP ( m_bUseAMP );
-
-  for (i = 0; i < g_uiMaxCUDepth; i++ )
-  {
-    if (m_cSPS.getAMPAcc(i) > g_uiMaxCUDepth - 1 - i)
-    {
-      m_cSPS.setAMPAcc(i, g_uiMaxCUDepth - 1 - i);
-    }
-  }
-
 #if HHI_RMP_SWITCH
   m_cSPS.setUseRMP( m_bUseRMP );
 #endif

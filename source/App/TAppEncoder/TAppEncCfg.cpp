@@ -226,7 +226,6 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
 #endif
     ("ROT", m_bUseROT, true)
     ("ALF", m_bUseALF, true, "Adaptive Loop Filter")
-    ("AMP", m_bUseAMP, true, "Asymmetric motion partition")
 #if HHI_RMP_SWITCH
     ("RMP", m_bUseRMP ,true, "Rectangular motion partition" )
 #endif
@@ -646,7 +645,6 @@ Void TAppEncCfg::xPrintParameter()
 #if HHI_IMVP
   printf("IMP:%d ", m_bUseIMP             ); // SOPH: Interleaved MV Predictor
 #endif
-    printf("AMP:%d ", m_bUseAMP);
 #if HHI_RMP_SWITCH
     printf("RMP:%d ", m_bUseRMP);
 #endif

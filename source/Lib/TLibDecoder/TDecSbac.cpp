@@ -663,7 +663,7 @@ Void TDecSbac::parsePartSize( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth 
   else
   {
 #if HHI_RMP_SWITCH
-    if ( !pcCU->getSlice()->getSPS()->getUseRMP() && !pcCU->getSlice()->getSPS()->getAMPAcc( uiDepth ) )
+    if ( !pcCU->getSlice()->getSPS()->getUseRMP())
     {
       m_pcTDecBinIf->decodeBin( uiSymbol, m_cCUPartSizeSCModel.get( 0, 0, 0) );
       if( uiSymbol )
@@ -703,46 +703,6 @@ Void TDecSbac::parsePartSize( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth 
       }
     }
 
-#if HHI_RMP_SWITCH
-    if ( pcCU->getSlice()->getSPS()->getAMPAcc( uiDepth ) && pcCU->getSlice()->getSPS()->getUseRMP() )
-#else
-    if ( pcCU->getSlice()->getSPS()->getAMPAcc( uiDepth ) )
-#endif
-    {
-      if (eMode == SIZE_2NxN)
-      {
-        m_pcTDecBinIf->decodeBin(uiSymbol, m_cCUYPosiSCModel.get( 0, 0, 0 ));
-        if (uiSymbol == 0)
-        {
-          m_pcTDecBinIf->decodeBin(uiSymbol, m_cCUYPosiSCModel.get( 0, 0, 1 ));
-          eMode = (uiSymbol == 0? SIZE_2NxnU : SIZE_2NxnD);
-        }
-      }
-      else if (eMode == SIZE_Nx2N)
-      {
-        m_pcTDecBinIf->decodeBin(uiSymbol, m_cCUXPosiSCModel.get( 0, 0, 0 ));
-        if (uiSymbol == 0)
-        {
-          m_pcTDecBinIf->decodeBin(uiSymbol, m_cCUXPosiSCModel.get( 0, 0, 1 ));
-          eMode = (uiSymbol == 0? SIZE_nLx2N : SIZE_nRx2N);
-        }
-      }
-    }
-#if HHI_RMP_SWITCH
-    if ( pcCU->getSlice()->getSPS()->getAMPAcc( uiDepth ) && !pcCU->getSlice()->getSPS()->getUseRMP() )
-    {
-      if ( eMode == SIZE_2NxN )
-      {
-        m_pcTDecBinIf->decodeBin(uiSymbol, m_cCUYPosiSCModel.get( 0, 0, 1 ));
-        eMode = (uiSymbol == 0? SIZE_2NxnU : SIZE_2NxnD);
-      }
-      else if ( eMode == SIZE_Nx2N )
-      {
-        m_pcTDecBinIf->decodeBin(uiSymbol, m_cCUXPosiSCModel.get( 0, 0, 1 ));
-        eMode = (uiSymbol == 0? SIZE_nLx2N : SIZE_nRx2N);
-      }
-    }
-#endif
 
   }
 
@@ -1039,20 +999,6 @@ Void TDecSbac::parseTransformIdx( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDe
 
   if ( !uiTrIdx )
   {
-    uiTrIdx = uiTrIdx + uiMinTrDepth;
-    pcCU->setTrIdxSubParts( uiTrIdx, uiAbsPartIdx, uiDepth );
-    return;
-  }
-
-  if (pcCU->getPartitionSize(uiAbsPartIdx) >= SIZE_2NxnU && pcCU->getPartitionSize(uiAbsPartIdx) <= SIZE_nRx2N && uiMinTrDepth == 0 && uiMaxTrDepth == 1)
-  {
-    uiTrIdx++;
-
-    ///Maybe unnecessary///
-    UInt      uiWidth      = pcCU->getWidth ( uiAbsPartIdx );
-    while((uiWidth>>uiTrIdx) < (g_uiMaxCUWidth>>g_uiMaxCUDepth)) uiTrIdx--;
-    ////////////////////////
-
     uiTrIdx = uiTrIdx + uiMinTrDepth;
     pcCU->setTrIdxSubParts( uiTrIdx, uiAbsPartIdx, uiDepth );
     return;

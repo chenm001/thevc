@@ -167,7 +167,9 @@ Void TDecCavlc::parseSPS(TComSPS* pcSPS)
   xReadFlag( uiCode ); pcSPS->setUseIMP ( uiCode ? true : false ); // SOPH:
 #endif
 
-  xReadFlag( uiCode ); pcSPS->setUseAMP ( uiCode ? true : false );
+  xReadFlag( uiCode ); // TODO: remove? was AMP
+  assert(uiCode == 0);
+  
 #if HHI_RMP_SWITCH
   xReadFlag( uiCode ); pcSPS->setUseRMP( uiCode ? true : false );
 #endif
@@ -602,7 +604,7 @@ Void TDecCavlc::parsePartSize( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth
   else
   {
 #if HHI_RMP_SWITCH
-    if ( !pcCU->getSlice()->getSPS()->getUseRMP() && !pcCU->getSlice()->getSPS()->getAMPAcc( uiDepth ) )
+    if ( !pcCU->getSlice()->getSPS()->getUseRMP())
     {
       xReadFlag( uiSymbol );
       if( uiSymbol )
@@ -642,46 +644,6 @@ Void TDecCavlc::parsePartSize( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth
       }
     }
 
-#if HHI_RMP_SWITCH
-    if ( pcCU->getSlice()->getSPS()->getAMPAcc( uiDepth ) && pcCU->getSlice()->getSPS()->getUseRMP() )
-#else
-    if ( pcCU->getSlice()->getSPS()->getAMPAcc( uiDepth ) )
-#endif
-    {
-      if (eMode == SIZE_2NxN)
-      {
-        xReadFlag(uiSymbol);
-        if (uiSymbol == 0)
-        {
-          xReadFlag(uiSymbol);
-          eMode = (uiSymbol == 0? SIZE_2NxnU : SIZE_2NxnD);
-        }
-      }
-      else if (eMode == SIZE_Nx2N)
-      {
-        xReadFlag(uiSymbol);
-        if (uiSymbol == 0)
-        {
-          xReadFlag(uiSymbol);
-          eMode = (uiSymbol == 0? SIZE_nLx2N : SIZE_nRx2N);
-        }
-      }
-    }
-#if HHI_RMP_SWITCH
-    if ( pcCU->getSlice()->getSPS()->getAMPAcc( uiDepth ) && !pcCU->getSlice()->getSPS()->getUseRMP() )
-    {
-      if ( eMode == SIZE_2NxN )
-      {
-        xReadFlag(uiSymbol);
-        eMode = (uiSymbol == 0? SIZE_2NxnU : SIZE_2NxnD);
-      }
-      else if ( eMode == SIZE_Nx2N )
-      {
-        xReadFlag(uiSymbol);
-        eMode = (uiSymbol == 0? SIZE_nLx2N : SIZE_nRx2N);
-      }
-    }
-#endif
   }
 
   pcCU->setPartSizeSubParts( eMode, uiAbsPartIdx, uiDepth );
@@ -1042,20 +1004,6 @@ Void TDecCavlc::parseTransformIdx( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiD
 
   if ( !uiTrIdx )
   {
-    uiTrIdx = uiTrIdx + uiMinTrDepth;
-    pcCU->setTrIdxSubParts( uiTrIdx, uiAbsPartIdx, uiDepth );
-    return;
-  }
-
-  if (pcCU->getPartitionSize(uiAbsPartIdx) >= SIZE_2NxnU && pcCU->getPartitionSize(uiAbsPartIdx) <= SIZE_nRx2N && uiMinTrDepth == 0 && uiMaxTrDepth == 1)
-  {
-    uiTrIdx++;
-
-    ///Maybe unnecessary///
-    UInt      uiWidth      = pcCU->getWidth ( uiAbsPartIdx );
-    while((uiWidth>>uiTrIdx) < (g_uiMaxCUWidth>>g_uiMaxCUDepth)) uiTrIdx--;
-    ////////////////////////
-
     uiTrIdx = uiTrIdx + uiMinTrDepth;
     pcCU->setTrIdxSubParts( uiTrIdx, uiAbsPartIdx, uiDepth );
     return;

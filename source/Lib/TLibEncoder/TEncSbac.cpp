@@ -463,7 +463,7 @@ Void TEncSbac::codePartSize( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
   {
     m_pcBinIf->encodeBin( 0, m_cCUPartSizeSCModel.get( 0, 0, 0) );
 #if HHI_RMP_SWITCH
-    if( pcCU->getSlice()->getSPS()->getUseRMP() ||  pcCU->getSlice()->getSPS()->getAMPAcc( uiDepth ) )
+    if( pcCU->getSlice()->getSPS()->getUseRMP() )
 #endif
     {
       m_pcBinIf->encodeBin( 0, m_cCUPartSizeSCModel.get( 0, 0, 1) );
@@ -495,66 +495,18 @@ Void TEncSbac::codePartSize( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
       break;
     }
   case SIZE_2NxN:
-  case SIZE_2NxnU:
-  case SIZE_2NxnD:
     {
       m_pcBinIf->encodeBin( 0, m_cCUPartSizeSCModel.get( 0, 0, 0) );
       m_pcBinIf->encodeBin( 1, m_cCUPartSizeSCModel.get( 0, 0, 1) );
 
-#if HHI_RMP_SWITCH
-      if (pcCU->getSlice()->getSPS()->getAMPAcc( uiDepth ) && pcCU->getSlice()->getSPS()->getUseRMP() )
-#else
-      if ( pcCU->getSlice()->getSPS()->getAMPAcc( uiDepth ) )
-#endif
-      {
-        if (eSize == SIZE_2NxN)
-        {
-          m_pcBinIf->encodeBin(1, m_cCUYPosiSCModel.get( 0, 0, 0 ));
-        }
-        else
-        {
-          m_pcBinIf->encodeBin(0, m_cCUYPosiSCModel.get( 0, 0, 0 ));
-          m_pcBinIf->encodeBin((eSize == SIZE_2NxnU? 0: 1), m_cCUYPosiSCModel.get( 0, 0, 1 ));
-        }
-      }
-#if HHI_RMP_SWITCH
-      else if ( pcCU->getSlice()->getSPS()->getAMPAcc( uiDepth ) && !pcCU->getSlice()->getSPS()->getUseRMP() )
-      {
-        m_pcBinIf->encodeBin((eSize == SIZE_2NxnU? 0: 1), m_cCUYPosiSCModel.get( 0, 0, 1 ));
-      }
-#endif
       break;
     }
   case SIZE_Nx2N:
-  case SIZE_nLx2N:
-  case SIZE_nRx2N:
     {
       m_pcBinIf->encodeBin( 0, m_cCUPartSizeSCModel.get( 0, 0, 0) );
       m_pcBinIf->encodeBin( 0, m_cCUPartSizeSCModel.get( 0, 0, 1) );
       m_pcBinIf->encodeBin( 1, m_cCUPartSizeSCModel.get( 0, 0, 2) );
 
-#if HHI_RMP_SWITCH
-      if (pcCU->getSlice()->getSPS()->getAMPAcc( uiDepth ) && pcCU->getSlice()->getSPS()->getUseRMP() )
-#else
-      if ( pcCU->getSlice()->getSPS()->getAMPAcc( uiDepth ) )
-#endif
-      {
-        if (eSize == SIZE_Nx2N)
-        {
-          m_pcBinIf->encodeBin(1, m_cCUXPosiSCModel.get( 0, 0, 0 ));
-        }
-        else
-        {
-          m_pcBinIf->encodeBin(0, m_cCUXPosiSCModel.get( 0, 0, 0 ));
-          m_pcBinIf->encodeBin((eSize == SIZE_nLx2N? 0: 1), m_cCUXPosiSCModel.get( 0, 0, 1 ));
-        }
-      }
-#if HHI_RMP_SWITCH
-      else if ( pcCU->getSlice()->getSPS()->getAMPAcc( uiDepth ) && !pcCU->getSlice()->getSPS()->getUseRMP() )
-      {
-        m_pcBinIf->encodeBin((eSize == SIZE_nLx2N? 0: 1), m_cCUXPosiSCModel.get( 0, 0, 1 ));
-      }
-#endif
       break;
     }
   case SIZE_NxN:
@@ -565,7 +517,7 @@ Void TEncSbac::codePartSize( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
       {
         m_pcBinIf->encodeBin( 0, m_cCUPartSizeSCModel.get( 0, 0, 0) );
 #if HHI_RMP_SWITCH
-        if( pcCU->getSlice()->getSPS()->getUseRMP() ||  pcCU->getSlice()->getSPS()->getAMPAcc( uiDepth ) )
+        if( pcCU->getSlice()->getSPS()->getUseRMP() )
 #endif
         {
           m_pcBinIf->encodeBin( 0, m_cCUPartSizeSCModel.get( 0, 0, 1) );
@@ -709,11 +661,6 @@ Void TEncSbac::codeTransformIdx( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDep
   m_pcBinIf->encodeBin( uiSymbol ? 1 : 0, m_cCUTransIdxSCModel.get( 0, 0, pcCU->getCtxTransIdx( uiAbsPartIdx ) ) );
 
   if ( !uiSymbol )
-  {
-    return;
-  }
-
-  if (pcCU->getPartitionSize(uiAbsPartIdx) >= SIZE_2NxnU && pcCU->getPartitionSize(uiAbsPartIdx) <= SIZE_nRx2N && uiMinTrDepth == 0 && uiMaxTrDepth == 1 && uiSymbol)
   {
     return;
   }

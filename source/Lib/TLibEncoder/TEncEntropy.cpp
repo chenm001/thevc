@@ -1190,30 +1190,6 @@ Void TEncEntropy::encodeInterDir( TComDataCU* pcCU, UInt uiAbsPartIdx, Bool bRD 
       }
       break;
     }
-  case SIZE_2NxnU:
-    {
-      m_pcEntropyCoderIf->codeInterDir( pcCU, uiAbsPartIdx );
-      m_pcEntropyCoderIf->codeInterDir( pcCU, uiAbsPartIdx + (uiPartOffset>>1) );
-      break;
-    }
-  case SIZE_2NxnD:
-    {
-      m_pcEntropyCoderIf->codeInterDir( pcCU, uiAbsPartIdx );
-      m_pcEntropyCoderIf->codeInterDir( pcCU, uiAbsPartIdx + (uiPartOffset<<1) + (uiPartOffset>>1) );
-      break;
-    }
-  case SIZE_nLx2N:
-    {
-      m_pcEntropyCoderIf->codeInterDir( pcCU, uiAbsPartIdx );
-      m_pcEntropyCoderIf->codeInterDir( pcCU, uiAbsPartIdx + (uiPartOffset>>2) );
-      break;
-    }
-  case SIZE_nRx2N:
-    {
-      m_pcEntropyCoderIf->codeInterDir( pcCU, uiAbsPartIdx );
-      m_pcEntropyCoderIf->codeInterDir( pcCU, uiAbsPartIdx + uiPartOffset + (uiPartOffset>>2) );
-      break;
-    }
   default:
     break;
   }
@@ -1372,50 +1348,6 @@ Void TEncEntropy::encodeMVPIdx( TComDataCU* pcCU, UInt uiAbsPartIdx, RefPicList 
       }
       break;
     }
-  case SIZE_2NxnU:
-    {
-      if ( (pcCU->getInterDir( uiAbsPartIdx ) & ( 1 << eRefList )) && (pcCU->getMVPNum(eRefList, uiAbsPartIdx)> 1) && (pcCU->getAMVPMode(uiAbsPartIdx) == AM_EXPL) )
-        m_pcEntropyCoderIf->codeMVPIdx( pcCU, uiAbsPartIdx, eRefList );
-
-      uiAbsPartIdx += (uiPartOffset>>1);
-      if ( (pcCU->getInterDir( uiAbsPartIdx ) & ( 1 << eRefList )) && (pcCU->getMVPNum(eRefList, uiAbsPartIdx)> 1) && (pcCU->getAMVPMode(uiAbsPartIdx) == AM_EXPL) )
-        m_pcEntropyCoderIf->codeMVPIdx( pcCU, uiAbsPartIdx, eRefList );
-
-      break;
-    }
-  case SIZE_2NxnD:
-    {
-      if ( (pcCU->getInterDir( uiAbsPartIdx ) & ( 1 << eRefList )) && (pcCU->getMVPNum(eRefList, uiAbsPartIdx)> 1) && (pcCU->getAMVPMode(uiAbsPartIdx) == AM_EXPL) )
-        m_pcEntropyCoderIf->codeMVPIdx( pcCU, uiAbsPartIdx, eRefList );
-
-      uiAbsPartIdx += (uiPartOffset<<1) + (uiPartOffset>>1);
-      if ( (pcCU->getInterDir( uiAbsPartIdx ) & ( 1 << eRefList )) && (pcCU->getMVPNum(eRefList, uiAbsPartIdx)> 1) && (pcCU->getAMVPMode(uiAbsPartIdx) == AM_EXPL) )
-        m_pcEntropyCoderIf->codeMVPIdx( pcCU, uiAbsPartIdx, eRefList );
-
-      break;
-    }
-  case SIZE_nLx2N:
-    {
-      if ( (pcCU->getInterDir( uiAbsPartIdx ) & ( 1 << eRefList )) && (pcCU->getMVPNum(eRefList, uiAbsPartIdx)> 1) && (pcCU->getAMVPMode(uiAbsPartIdx) == AM_EXPL) )
-        m_pcEntropyCoderIf->codeMVPIdx( pcCU, uiAbsPartIdx, eRefList );
-
-      uiAbsPartIdx += (uiPartOffset>>2);
-      if ( (pcCU->getInterDir( uiAbsPartIdx ) & ( 1 << eRefList )) && (pcCU->getMVPNum(eRefList, uiAbsPartIdx)> 1) && (pcCU->getAMVPMode(uiAbsPartIdx) == AM_EXPL) )
-        m_pcEntropyCoderIf->codeMVPIdx( pcCU, uiAbsPartIdx, eRefList );
-
-      break;
-    }
-  case SIZE_nRx2N:
-    {
-      if ( (pcCU->getInterDir( uiAbsPartIdx ) & ( 1 << eRefList )) && (pcCU->getMVPNum(eRefList, uiAbsPartIdx)> 1) && (pcCU->getAMVPMode(uiAbsPartIdx) == AM_EXPL) )
-        m_pcEntropyCoderIf->codeMVPIdx( pcCU, uiAbsPartIdx, eRefList );
-
-      uiAbsPartIdx += uiPartOffset + (uiPartOffset>>2);
-      if ( (pcCU->getInterDir( uiAbsPartIdx ) & ( 1 << eRefList )) && (pcCU->getMVPNum(eRefList, uiAbsPartIdx)> 1) && (pcCU->getAMVPMode(uiAbsPartIdx) == AM_EXPL) )
-        m_pcEntropyCoderIf->codeMVPIdx( pcCU, uiAbsPartIdx, eRefList );
-
-      break;
-    }
   default:
     break;
   }
@@ -1492,54 +1424,6 @@ Void TEncEntropy::encodeRefFrmIdx( TComDataCU* pcCU, UInt uiAbsPartIdx, RefPicLi
       }
       break;
     }
-  case SIZE_2NxnU:
-    {
-      if ( pcCU->getInterDir( uiAbsPartIdx ) & ( 1 << eRefList ) )
-        m_pcEntropyCoderIf->codeRefFrmIdx( pcCU, uiAbsPartIdx, eRefList );
-
-      uiAbsPartIdx += (uiPartOffset>>1);
-
-      if ( pcCU->getInterDir( uiAbsPartIdx ) & ( 1 << eRefList ) )
-        m_pcEntropyCoderIf->codeRefFrmIdx( pcCU, uiAbsPartIdx, eRefList );
-
-      break;
-    }
-  case SIZE_2NxnD:
-    {
-      if ( pcCU->getInterDir( uiAbsPartIdx ) & ( 1 << eRefList ) )
-        m_pcEntropyCoderIf->codeRefFrmIdx( pcCU, uiAbsPartIdx, eRefList );
-
-      uiAbsPartIdx += (uiPartOffset<<1) + (uiPartOffset>>1);
-
-      if ( pcCU->getInterDir( uiAbsPartIdx ) & ( 1 << eRefList ) )
-        m_pcEntropyCoderIf->codeRefFrmIdx( pcCU, uiAbsPartIdx, eRefList );
-
-      break;
-    }
-  case SIZE_nLx2N:
-    {
-      if ( pcCU->getInterDir( uiAbsPartIdx ) & ( 1 << eRefList ) )
-        m_pcEntropyCoderIf->codeRefFrmIdx( pcCU, uiAbsPartIdx, eRefList );
-
-      uiAbsPartIdx += (uiPartOffset>>2);
-
-      if ( pcCU->getInterDir( uiAbsPartIdx ) & ( 1 << eRefList ) )
-        m_pcEntropyCoderIf->codeRefFrmIdx( pcCU, uiAbsPartIdx, eRefList );
-
-      break;
-    }
-  case SIZE_nRx2N:
-    {
-      if ( pcCU->getInterDir( uiAbsPartIdx ) & ( 1 << eRefList ) )
-        m_pcEntropyCoderIf->codeRefFrmIdx( pcCU, uiAbsPartIdx, eRefList );
-
-      uiAbsPartIdx += uiPartOffset + (uiPartOffset>>2);
-
-      if ( pcCU->getInterDir( uiAbsPartIdx ) & ( 1 << eRefList ) )
-        m_pcEntropyCoderIf->codeRefFrmIdx( pcCU, uiAbsPartIdx, eRefList );
-
-      break;
-    }
   default:
     break;
   }
@@ -1612,54 +1496,6 @@ Void TEncEntropy::encodeMvd( TComDataCU* pcCU, UInt uiAbsPartIdx, RefPicList eRe
         }
         uiAbsPartIdx += uiPartOffset;
       }
-      break;
-    }
-  case SIZE_2NxnU:
-    {
-      if ( pcCU->getInterDir( uiAbsPartIdx ) & ( 1 << eRefList ) )
-        m_pcEntropyCoderIf->codeMvd( pcCU, uiAbsPartIdx, eRefList );
-
-      uiAbsPartIdx += (uiPartOffset>>1);
-
-      if ( pcCU->getInterDir( uiAbsPartIdx ) & ( 1 << eRefList ) )
-        m_pcEntropyCoderIf->codeMvd( pcCU, uiAbsPartIdx, eRefList );
-
-      break;
-    }
-  case SIZE_2NxnD:
-    {
-      if ( pcCU->getInterDir( uiAbsPartIdx ) & ( 1 << eRefList ) )
-        m_pcEntropyCoderIf->codeMvd( pcCU, uiAbsPartIdx, eRefList );
-
-      uiAbsPartIdx += (uiPartOffset<<1) + (uiPartOffset>>1);
-
-      if ( pcCU->getInterDir( uiAbsPartIdx ) & ( 1 << eRefList ) )
-        m_pcEntropyCoderIf->codeMvd( pcCU, uiAbsPartIdx, eRefList );
-
-      break;
-    }
-  case SIZE_nLx2N:
-    {
-      if ( pcCU->getInterDir( uiAbsPartIdx ) & ( 1 << eRefList ) )
-        m_pcEntropyCoderIf->codeMvd( pcCU, uiAbsPartIdx, eRefList );
-
-      uiAbsPartIdx += (uiPartOffset>>2);
-
-      if ( pcCU->getInterDir( uiAbsPartIdx ) & ( 1 << eRefList ) )
-        m_pcEntropyCoderIf->codeMvd( pcCU, uiAbsPartIdx, eRefList );
-
-      break;
-    }
-  case SIZE_nRx2N:
-    {
-      if ( pcCU->getInterDir( uiAbsPartIdx ) & ( 1 << eRefList ) )
-        m_pcEntropyCoderIf->codeMvd( pcCU, uiAbsPartIdx, eRefList );
-
-      uiAbsPartIdx += uiPartOffset + (uiPartOffset>>2);
-
-      if ( pcCU->getInterDir( uiAbsPartIdx ) & ( 1 << eRefList ) )
-        m_pcEntropyCoderIf->codeMvd( pcCU, uiAbsPartIdx, eRefList );
-
       break;
     }
   default:

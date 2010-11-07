@@ -148,7 +148,6 @@ protected:
   Int       m_iInterpFilterType;
 #endif
 
-  Bool      m_bUseAMP; // ilkoo.kim@samsung.com
 #if HHI_RMP_SWITCH
   Bool      m_bUseRMP;
 #endif
@@ -340,8 +339,6 @@ public:
   UInt      getMaxTrSize                    ()      { return m_uiMaxTrSize; }
 #endif
   UInt      getDeltaQpRD                    ()      { return m_uiDeltaQpRD; }
-  Void      setUseAMP                       ( Bool  b )     { m_bUseAMP     = b; }
-  Bool      getUseAMP                       ()      { return m_bUseAMP; }
 #if HHI_RMP_SWITCH
   Void      setUseRMP                      ( Bool b ) { m_bUseRMP = b; }
   Bool      getUseRMP                      ()      {return m_bUseRMP; }

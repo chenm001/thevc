@@ -145,7 +145,6 @@ protected:
   Bool      m_bUseIMP;                                        // SOPH : coding tools (interleaved MV Predictor)
 #endif
 
-  Bool      m_bUseAMP;                                        ///< flag for using asymmetric partition
 #if HHI_RMP_SWITCH
   Bool      m_bUseRMP;
 #endif

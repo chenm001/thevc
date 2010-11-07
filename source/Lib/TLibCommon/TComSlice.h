@@ -96,7 +96,6 @@ private:
   Bool        m_bUseIMP; // SOPH:
 #endif
 
-  Bool        m_bUseAMP;
 #if HHI_RMP_SWITCH
   Bool        m_bUseRMP;
 #endif
@@ -205,9 +204,6 @@ public:
   Void setDIFTapC     ( Int  i ) { m_iDIFTapC = i;          };
 #endif
 
-  Bool getUseAMP      ()         { return m_bUseAMP; }
-  Void setUseAMP      ( Bool b ) { m_bUseAMP  = b; }
-
 #if HHI_RMP_SWITCH
   Bool getUseRMP     ()         { return m_bUseRMP; }
   Void setUseRMP     ( Bool b ) { m_bUseRMP = b;    }
@@ -216,10 +212,6 @@ public:
   // AMVP mode (for each depth)
   AMVP_MODE getAMVPMode ( UInt uiDepth ) { assert(uiDepth < g_uiMaxCUDepth);  return m_aeAMVPMode[uiDepth]; }
   Void      setAMVPMode ( UInt uiDepth, AMVP_MODE eMode) { assert(uiDepth < g_uiMaxCUDepth);  m_aeAMVPMode[uiDepth] = eMode; }
-
-  // AMP accuracy
-  Int       getAMPAcc   ( UInt uiDepth ) { return m_iAMPAcc[uiDepth]; }
-  Void      setAMPAcc   ( UInt uiDepth, Int iAccu ) { assert( uiDepth < g_uiMaxCUDepth);  m_iAMPAcc[uiDepth] = iAccu; }
 
   // Bit-depth
   UInt      getBitDepth     ()         { return m_uiBitDepth;     }
