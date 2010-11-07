@@ -37,12 +37,6 @@
 #include "../TLibCommon/TComMotionInfo.h"
 #include "TEncSearch.h"
 
-#ifdef ROUNDING_CONTROL_BIPRED
-#ifndef ROUNDING_CONTROL_BIPRED_FIX
-__inline Pel  xClip  (Pel x )      { return ( (x < 0) ? 0 : (x > (Pel)g_uiIBDI_MAX) ? (Pel)g_uiIBDI_MAX : x ); }
-#endif
-#endif
-
 #ifdef DCM_PBIC
 extern Int entropyBits[128];
 #endif

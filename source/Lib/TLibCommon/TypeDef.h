@@ -150,13 +150,6 @@
 
 #define TRANS_PRECISION_EXT     ///< From JCTVC-B074
 
-
-#define BUGFIX48 1
-#define BUGFIX50 1
-#define BUGFIX50TMP 0 // for compatibility with previous versions without the crash
-#define SCAN_LUT_FIX 1
-#define ROUNDING_CONTROL_BIPRED_FIX
-
 ///////////////////////////////
 // QUALCOMM defines section end
 ///////////////////////////////
