@@ -56,12 +56,9 @@
 #define DCore16Shift            10
 #define ECore32Shift            10
 #define DCore32Shift            10
-#define ECore64Shift            9
-#define DCore64Shift            9
 
 #define DenShift16              6
 #define DenShift32              8
-#define DenShift64              10
 
 // ====================================================================================================================
 // Type definition
@@ -126,16 +123,12 @@ public:
   Int m_iAdd8x8;
   Int m_iAdd16x16;
   Int m_iAdd32x32;
-  Int m_iAdd64x64;
-  Int m_iAddNxN;
 private:
   Int m_aiAdd2x2[MAX_QP+1][3];
   Int m_aiAdd4x4[MAX_QP+1][3];
   Int m_aiAdd8x8[MAX_QP+1][3];
   Int m_aiAdd16x16[MAX_QP+1][3];
   Int m_aiAdd32x32[MAX_QP+1][3];
-  Int m_aiAdd64x64[MAX_QP+1][3];
-  Int m_aiAddNxN[MAX_QP+1][3];
 public:
   Int m_iBits;
 
@@ -147,8 +140,6 @@ public:
     m_iAdd8x8 = m_aiAdd8x8[iQP][eSliceType];
     m_iAdd16x16 = m_aiAdd16x16[iQP][eSliceType];
     m_iAdd32x32 = m_aiAdd32x32[iQP][eSliceType];
-    m_iAdd64x64 = m_aiAdd64x64[iQP][eSliceType];
-    m_iAddNxN = m_aiAddNxN[iQP][eSliceType];
   }
 
   Void setQpParam( Int iQP, Bool bLowpass, SliceType eSliceType, Bool bEnc )
@@ -264,7 +255,6 @@ private:
   Void xT8  ( Pel* pResidual, UInt uiStride, Long* plCoeff );
   Void xT16 ( Pel* pResidual, UInt uiStride, Long* plCoeff );
   Void xT32 ( Pel* pResidual, UInt uiStride, Long* plCoeff );
-  Void xT64 ( Pel* pResidual, UInt uiStride, Long* plCoeff );
 
   // quantization
   Void xQuant     ( TComDataCU* pcCU, Long* pSrc, TCoeff*& pDes, Int iWidth, Int iHeight, UInt& uiAcSum, TextType eTType, UInt uiAbsPartIdx, UChar indexROT );
@@ -344,7 +334,6 @@ private:
   Void xIT8   ( Long* plCoef, Pel* pResidual, UInt uiStride );
   Void xIT16  ( Long* plCoef, Pel* pResidual, UInt uiStride );
   Void xIT32  ( Long* plCoef, Pel* pResidual, UInt uiStride );
-  Void xIT64  ( Long* plCoef, Pel* pResidual, UInt uiStride );
 
 };// END CLASS DEFINITION TComTrQuant
 
