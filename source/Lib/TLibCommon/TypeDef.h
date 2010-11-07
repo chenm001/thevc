@@ -49,7 +49,6 @@
 #define HHI_RQT_CHROMA_CBF_MOD            1           ///< HK: alternative syntax for coded block flag coding for chroma
 #define HHI_RQT_INTRA                     1           ///< HS: residual quadtree for intra blocks
 #define HHI_INTERP_FILTER                 1           ///< HL: interpolation filter
-#define HHI_TRANSFORM_CODING              1           ///< TN: modified transform coefficient coding with RDOQ
 #define HHI_IMVP                          1           ///< SOPH: Interleaved Motion Vector Predictor 
 #define HHI_MRG                           1           ///< SOPH: inter partition merging
 #define HHI_MRG_PU                        0           ///< SOPH: inter partition merging on pu basis
@@ -172,9 +171,7 @@
 
 #define SAMSUNG_CHROMA_IF_EXT                 0           ///< DCT-based Interpolation filter for chroma signal
 
-#if HHI_TRANSFORM_CODING
 #define HHI_DISABLE_SCAN                      0           ///< disable adaptive scan
-#endif
 
 #define FAST_UDI_MAX_RDMODE_NUM               10          ///< maximum number of RD comparison in fast-UDI estimation loop 
 

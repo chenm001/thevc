@@ -79,17 +79,10 @@ TEncSbac::TEncSbac()
   , m_cCUQtCbfSCModel       ( 1,             3,               NUM_QT_CBF_CTX        )
 #endif
 
-#if HHI_TRANSFORM_CODING
   , m_cCuCtxModSig            ( MAX_CU_DEPTH,  2,               NUM_SIG_FLAG_CTX              )
   , m_cCuCtxModLast           ( MAX_CU_DEPTH,  2,               NUM_LAST_FLAG_CTX             )
   , m_cCuCtxModAbsGreOne      ( 1,             2,               NUM_ABS_GREATER_ONE_CTX       )
   , m_cCuCtxModCoeffLevelM1   ( 1,             2,               NUM_COEFF_LEVEL_MINUS_ONE_CTX )
-#else
-  , m_cCUMapSCModel           ( MAX_CU_DEPTH,  2,               NUM_MAP_CTX                   )
-  , m_cCULastSCModel          ( MAX_CU_DEPTH,  2,               NUM_LAST_CTX                  )
-  , m_cCUOneSCModel           ( MAX_CU_DEPTH,  2,               NUM_ONE_CTX                   )
-  , m_cCUAbsSCModel           ( MAX_CU_DEPTH,  2,               NUM_ABS_CTX                   )
-#endif
 
   , m_cMVPIdxSCModel          ( 1,             1,               NUM_MVP_IDX_CTX               )
   , m_cCUROTindexSCModel      ( 1,             1,               NUM_ROT_IDX_CTX               )
@@ -149,17 +142,10 @@ Void TEncSbac::resetEntropy           ()
 #endif
 #endif
 
-#if HHI_TRANSFORM_CODING
   m_cCuCtxModSig.initBuffer           ( eSliceType, iQp, (Short*)INIT_SIG_FLAG );
   m_cCuCtxModLast.initBuffer          ( eSliceType, iQp, (Short*)INIT_LAST_FLAG );
   m_cCuCtxModAbsGreOne.initBuffer     ( eSliceType, iQp, (Short*)INIT_ABS_GREATER_ONE_FLAG );
   m_cCuCtxModCoeffLevelM1.initBuffer  ( eSliceType, iQp, (Short*)INIT_COEFF_LEVEL_MINUS_ONE_FLAG );
-#else
-  m_cCUMapSCModel.initBuffer          ( eSliceType, iQp, (Short*)INIT_SIGMAP );
-  m_cCULastSCModel.initBuffer         ( eSliceType, iQp, (Short*)INIT_LAST_FLAG );
-  m_cCUOneSCModel.initBuffer          ( eSliceType, iQp, (Short*)INIT_ONE_FLAG );
-  m_cCUAbsSCModel.initBuffer          ( eSliceType, iQp, (Short*)INIT_TCOEFF_LEVEL );
-#endif
 
   m_cMVPIdxSCModel.initBuffer         ( eSliceType, iQp, (Short*)INIT_MVP_IDX );
   m_cCUROTindexSCModel.initBuffer     ( eSliceType, iQp, (Short*)INIT_ROT_IDX );
@@ -363,17 +349,10 @@ Void TEncSbac::xCopyFrom( TEncSbac* pSrc )
 #endif
   this->m_cCUTransIdxSCModel  .copyFrom( &pSrc->m_cCUTransIdxSCModel    );
 
-#if HHI_TRANSFORM_CODING
   this->m_cCuCtxModSig         .copyFrom( &pSrc->m_cCuCtxModSig          );
   this->m_cCuCtxModLast        .copyFrom( &pSrc->m_cCuCtxModLast         );
   this->m_cCuCtxModAbsGreOne   .copyFrom( &pSrc->m_cCuCtxModAbsGreOne    );
   this->m_cCuCtxModCoeffLevelM1.copyFrom( &pSrc->m_cCuCtxModCoeffLevelM1 );
-#else
-  this->m_cCUMapSCModel        .copyFrom( &pSrc->m_cCUMapSCModel         );
-  this->m_cCULastSCModel       .copyFrom( &pSrc->m_cCULastSCModel        );
-  this->m_cCUOneSCModel        .copyFrom( &pSrc->m_cCUOneSCModel         );
-  this->m_cCUAbsSCModel        .copyFrom( &pSrc->m_cCUAbsSCModel         );
-#endif
 
   this->m_cMVPIdxSCModel      .copyFrom( &pSrc->m_cMVPIdxSCModel        );
 
@@ -1054,7 +1033,6 @@ Void TEncSbac::codeCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx
   DTRACE_CABAC_V(  pcCU->getPredictionMode( uiAbsPartIdx ) )
   DTRACE_CABAC_T( "\n" )
 #endif
-#if HHI_TRANSFORM_CODING
   if( uiWidth > m_pcSlice->getSPS()->getMaxTrSize() )
   {
     uiWidth  = m_pcSlice->getSPS()->getMaxTrSize();
@@ -1519,165 +1497,6 @@ Void TEncSbac::codeCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx
   }
 #endif
   return;
-#else
-  UInt uiCTXIdx = xGetCTXIdxFromWidth( uiWidth );
-
-  if( uiWidth > m_pcSlice->getSPS()->getMaxTrSize() )
-  {
-    uiWidth  = m_pcSlice->getSPS()->getMaxTrSize();
-    uiHeight = m_pcSlice->getSPS()->getMaxTrSize();
-  }
-  UInt uiSize   = uiWidth*uiHeight;
-
-	// point to coefficient
-  TCoeff* piCoeff = pcCoef;
-  UInt uiNumSig = 0;
-  UInt ui;
-
-	// compute number of significant coefficients
-  UInt  uiPart = 0;
-  xCheckCoeff(piCoeff, uiWidth, 0, uiNumSig, uiPart );
-#if HHI_RQT
-  assert( uiNumSig == xCheckCoeffPlainCNoRecur( piCoeff, uiWidth, 0 ) );
-#endif
-
-  if ( bRD )
-  {
-    UInt uiTempDepth = uiDepth - pcCU->getDepth( uiAbsPartIdx );
-    pcCU->setCbfSubParts( ( uiNumSig ? 1 : 0 ) << uiTempDepth, eTType, uiAbsPartIdx, uiDepth );
-    codeCbf( pcCU, uiAbsPartIdx, eTType, uiTempDepth );
-  }
-
-  if ( uiNumSig == 0 )
-    return;
-
-  UInt uiCodedSig = 0;
-  UInt uiCtxSize  = 64;
-
-  const Int* pos2ctx_map  = pos2ctx_map8x8;
-  const Int* pos2ctx_last = pos2ctx_last8x8;
-  if ( uiWidth < 8 )
-  {
-    pos2ctx_map  = pos2ctx_nomap;
-    pos2ctx_last = pos2ctx_nomap;
-    uiCtxSize    = 16;
-  }
-
-  eTType = eTType == TEXT_LUMA ? TEXT_LUMA : ( eTType == TEXT_NONE ? TEXT_NONE : TEXT_CHROMA );
-
-  UInt uiSig, uiCtx, uiLast;
-  uiLast = 0;
-  uiSig = piCoeff[0] ? 1 : 0;
-
-  m_pcBinIf->encodeBin( uiSig, m_cCUMapSCModel.get( uiCTXIdx, eTType, pos2ctx_map[ 0 ] ) );
-
-  if( uiSig )
-  {
-    uiLast = (++uiCodedSig == uiNumSig ? 1 : 0);
-    m_pcBinIf->encodeBin( uiLast, m_cCULastSCModel.get( uiCTXIdx, eTType, pos2ctx_last[ 0 ] ) );
-  }
-  // initialize scan
-  const UInt*  pucScan;
-  const UInt*  pucScanX;
-  const UInt*  pucScanY;
-
-  UInt uiConvBit = g_aucConvertToBit[ uiWidth ];
-#if HHI_RQT
-  pucScan  = g_auiFrameScanXY[ uiConvBit + 1 ]; 
-  pucScanX = g_auiFrameScanX [ uiConvBit + 1 ];
-  pucScanY = g_auiFrameScanY [ uiConvBit + 1 ];
-#else
-  switch(uiWidth)
-  {
-  case  2:
-    {
-      static UInt uiScanOrder [4] = {0, 1, 2, 3};
-      static UInt uiScanOrderX[4] = {0, 1, 0, 1};
-      static UInt uiScanOrderY[4] = {0, 0, 1, 1};
-      pucScan  = &uiScanOrder [0];
-      pucScanX = &uiScanOrderX[0];
-      pucScanY = &uiScanOrderY[0];
-      break;
-    }
-  case  4:
-  case  8: pucScan = g_auiFrameScanXY[ uiConvBit ]; pucScanX = g_auiFrameScanX[uiConvBit]; pucScanY = g_auiFrameScanY[uiConvBit]; break;
-  case 16:
-  case 32:
-  case 64:
-  default: pucScan = g_auiFrameScanXY[ uiConvBit ]; pucScanX = g_auiFrameScanX[uiConvBit]; pucScanY = g_auiFrameScanY[uiConvBit]; break;
-  }
-#endif
-	//----- encode significance map -----
-  // DC is coded in the beginning
-  for( ui = 1; ui < ( uiSize - 1 ) && !uiLast; ui++ ) // if last coeff is reached, it has to be significant
-	{
-		uiSig = piCoeff[ pucScan[ ui ] ] ? 1 : 0;
-
-#if HHI_RQT
-    if (uiCtxSize < uiSize)
-#else
-    if (uiCtxSize != uiSize)
-#endif
-    {
-      UInt uiXX, uiYY;
-      uiXX = pucScanX[ui]/(uiWidth / 8);
-      uiYY = pucScanY[ui]/(uiHeight / 8);
-
-      uiCtx = g_auiAntiScan8[uiYY*8+uiXX];
-    }
-    else
-      uiCtx = ui * uiCtxSize / uiSize;
-
-		m_pcBinIf->encodeBin( uiSig, m_cCUMapSCModel.get( uiCTXIdx, eTType, pos2ctx_map[ uiCtx ] ) );
-
-		if( uiSig )
-		{
-      uiCtx = ui * uiCtxSize / uiSize;
-			uiLast = (++uiCodedSig == uiNumSig ? 1 : 0);
-			m_pcBinIf->encodeBin( uiLast, m_cCULastSCModel.get( uiCTXIdx, eTType, pos2ctx_last[ uiCtx ] ) );
-
-			if( uiLast )
-			{
-				break;
-			}
-		}
-	}
-
-  Int   c1 = 1;
-  Int   c2 = 0;
-  //----- encode significant coefficients -----
-  ui++;
-  while( (ui--) != 0 )
-  {
-    UInt  uiAbs, uiSign;
-    Int   iCoeff = piCoeff[ pucScan[ ui ] ];
-
-    if( iCoeff )
-    {
-      if( iCoeff > 0) { uiAbs = static_cast<UInt>( iCoeff);  uiSign = 0; }
-      else            { uiAbs = static_cast<UInt>(-iCoeff);  uiSign = 1; }
-
-      uiCtx    = Min (c1, 4);
-      UInt uiSymbol = uiAbs > 1 ? 1 : 0;
-      m_pcBinIf->encodeBin( uiSymbol, m_cCUOneSCModel.get( uiCTXIdx, eTType, uiCtx ) );
-
-      if( uiSymbol )
-      {
-        uiCtx  = Min (c2,4);
-        uiAbs -= 2;
-        c1     = 0;
-        c2++;
-				xWriteExGolombLevel( uiAbs, m_cCUAbsSCModel.get( uiCTXIdx, eTType, uiCtx ) );
-      }
-      else if( c1 )
-      {
-        c1++;
-      }
-      m_pcBinIf->encodeBinEP( uiSign );
-    }
-  }
-  return;
-#endif
 }
 
 Void TEncSbac::xWriteMvd( Int iMvd, UInt uiAbsSum, UInt uiCtx )
@@ -1888,7 +1707,6 @@ Void TEncSbac::estCBFBit (estBitsSbacStruct* pcEstBitsSbac, UInt uiCTXIdx, TextT
  */
 Void TEncSbac::estSignificantMapBit (estBitsSbacStruct* pcEstBitsSbac, UInt uiCTXIdx, TextType eTType)
 {
-#if HHI_TRANSFORM_CODING
   Int    k;
   UShort sig, last;
   Int    k1 = 16;
@@ -1907,36 +1725,6 @@ Void TEncSbac::estSignificantMapBit (estBitsSbacStruct* pcEstBitsSbac, UInt uiCT
     last = 1;
     pcEstBitsSbac->lastBits[k][last] = biari_no_bits (last, m_cCuCtxModLast.get( uiCTXIdx, eTType, k ));
   }
-#else
-  Int    k;
-  UShort sig, last;
-  Int    k1 = 15;
-
-  const Int* pos2ctx_map  = pos2ctx_nomap;
-  const Int* pos2ctx_last = pos2ctx_nomap;
-
-
-  for ( k = 0; k < k1; k++ ) // if last coeff is reached, it has to be significant
-  {
-    sig = 0;
-    pcEstBitsSbac->significantBits[pos2ctx_map[k]][sig] = biari_no_bits (sig, m_cCUMapSCModel.get( uiCTXIdx, eTType, pos2ctx_map[ k ] ));
-
-    sig = 1;
-    pcEstBitsSbac->significantBits[pos2ctx_map[k]][sig] = biari_no_bits (sig, m_cCUMapSCModel.get( uiCTXIdx, eTType, pos2ctx_map[ k ] ));
-
-    last = 0;
-    pcEstBitsSbac->lastBits[pos2ctx_last[k]][last] = biari_no_bits (last, m_cCULastSCModel.get( uiCTXIdx, eTType, pos2ctx_last[ k ] ));
-
-    last = 1;
-    pcEstBitsSbac->lastBits[pos2ctx_last[k]][last] = biari_no_bits (last, m_cCULastSCModel.get( uiCTXIdx, eTType, pos2ctx_last[ k ] ));
-  }
-
-  // if last coeff is reached, it has to be significant
-  pcEstBitsSbac->significantBits[pos2ctx_map[k1]][0] = 0;
-  pcEstBitsSbac->significantBits[pos2ctx_map[k1]][1] = 0;
-  pcEstBitsSbac->lastBits[pos2ctx_last[k1]][0] = 0;
-  pcEstBitsSbac->lastBits[pos2ctx_last[k1]][1] = 0;
-#endif
 }
 
 /*!
@@ -1947,7 +1735,6 @@ Void TEncSbac::estSignificantMapBit (estBitsSbacStruct* pcEstBitsSbac, UInt uiCT
  */
 Void TEncSbac::estSignificantCoefficientsBit (estBitsSbacStruct* pcEstBitsSbac, UInt uiCTXIdx, TextType eTType)
 {
-#if HHI_TRANSFORM_CODING
   Int   ctx;
   uiCTXIdx = 0;
 
@@ -1965,28 +1752,6 @@ Void TEncSbac::estSignificantCoefficientsBit (estBitsSbacStruct* pcEstBitsSbac, 
       pcEstBitsSbac->greaterOneBits[ui][1][ctx][1] = biari_no_bits( 1, m_cCuCtxModCoeffLevelM1.get( uiCTXIdx, eTType, (ui * 5) + ctx ) );
     }
   }
-#else
-  Int   ctx;
-  Short greater_one;
-
-  for ( ctx = 0; ctx <= 4; ctx++ )
-  {
-    greater_one = 0;
-    pcEstBitsSbac->greaterOneBits[0][ctx][greater_one] = biari_no_bits (greater_one, m_cCUOneSCModel.get( uiCTXIdx, eTType, ctx ));
-
-    greater_one = 1;
-    pcEstBitsSbac->greaterOneBits[0][ctx][greater_one] = biari_no_bits (greater_one, m_cCUOneSCModel.get( uiCTXIdx, eTType, ctx ));
-  }
-
-  for ( ctx = 0; ctx <= 4; ctx++ )
-  {
-    pcEstBitsSbac->greaterOneBits[1][ctx][0] = biari_no_bits(0, m_cCUAbsSCModel.get( uiCTXIdx, eTType, ctx ));
-
-    pcEstBitsSbac->greaterOneState[ctx] = biari_state(0, m_cCUAbsSCModel.get( uiCTXIdx, eTType, ctx ));
-
-    pcEstBitsSbac->greaterOneBits[1][ctx][1] = biari_no_bits(1, m_cCUAbsSCModel.get( uiCTXIdx, eTType, ctx ));
-  }
-#endif
 }
 
 Int TEncSbac::biari_no_bits (Short symbol, ContextModel& rcSCModel)

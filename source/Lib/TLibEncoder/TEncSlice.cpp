@@ -497,10 +497,6 @@ Void TEncSlice::compressSlice( TComPic*& rpcPic )
   m_pcEntropyCoder->setAlfCtrl(false);
   m_pcEntropyCoder->setMaxAlfCtrlDepth(0); //unnecessary
 
-#if !HHI_TRANSFORM_CODING
-  m_pcTrQuant->precalculateUnaryExpGolombLevel();
-#endif
-
   // for every CU
   for( uiCUAddr = 0; uiCUAddr < rpcPic->getPicSym()->getNumberOfCUsInFrame() ; uiCUAddr++ )
   {

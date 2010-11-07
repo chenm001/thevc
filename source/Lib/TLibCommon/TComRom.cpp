@@ -71,7 +71,6 @@ Void initROM()
     c <<= 1;
   }
 
-#if HHI_TRANSFORM_CODING
   // init adaptive scan for sig/last SE coding
   for ( i = 0; i < MAX_CU_DEPTH+1; i++ )
   {
@@ -82,8 +81,6 @@ Void initROM()
     initSigLastScanPattern( g_auiSigLastScan[ i ][ 1 ], i, true  );
     initSigLastScanPattern( g_auiSigLastScan[ i ][ 0 ], i, false );
   }
-#endif
-
 }
 
 Void destroyROM()
@@ -97,14 +94,11 @@ Void destroyROM()
     delete[] g_auiFrameScanY [i];
   }
   
-#if HHI_TRANSFORM_CODING
   for ( i=0; i<MAX_CU_DEPTH+1; i++ )
   {
     delete[] g_auiSigLastScan[i][0];
     delete[] g_auiSigLastScan[i][1];
   }
-#endif
-
 }
 
 // ====================================================================================================================
@@ -1927,9 +1921,7 @@ UInt* g_auiFrameScanXY[ MAX_CU_DEPTH  ];
 UInt* g_auiFrameScanX [ MAX_CU_DEPTH  ];
 UInt* g_auiFrameScanY [ MAX_CU_DEPTH  ];
 
-#if HHI_TRANSFORM_CODING
 UInt* g_auiSigLastScan[ MAX_CU_DEPTH+1  ][ 2 ];
-#endif
 
 // scanning order to 8x8 context model mapping table
 UInt  g_auiAntiScan8  [64];
@@ -1988,7 +1980,6 @@ Void initFrameScanXY( UInt* pBuff, UInt* pBuffX, UInt* pBuffY, Int iWidth, Int i
   }
 }
 
-#if HHI_TRANSFORM_CODING
 Void initSigLastScanPattern( UInt* puiScanPattern, const UInt uiLog2BlockSize, const bool bDownLeft )
 {
   const int   iBlockSize    = 1 << uiLog2BlockSize;
@@ -2013,4 +2004,3 @@ Void initSigLastScanPattern( UInt* puiScanPattern, const UInt uiLog2BlockSize, c
   }
   return;
 }
-#endif

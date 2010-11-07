@@ -222,17 +222,10 @@ private:
 #endif
   ContextModel3DBuffer m_cCUTransIdxSCModel;
 
-#if HHI_TRANSFORM_CODING
   ContextModel3DBuffer m_cCuCtxModSig;
   ContextModel3DBuffer m_cCuCtxModLast;
   ContextModel3DBuffer m_cCuCtxModAbsGreOne;
   ContextModel3DBuffer m_cCuCtxModCoeffLevelM1;
-#else
-  ContextModel3DBuffer m_cCUMapSCModel;
-  ContextModel3DBuffer m_cCULastSCModel;
-  ContextModel3DBuffer m_cCUOneSCModel;
-  ContextModel3DBuffer m_cCUAbsSCModel;
-#endif
 
   ContextModel3DBuffer m_cMVPIdxSCModel;
 

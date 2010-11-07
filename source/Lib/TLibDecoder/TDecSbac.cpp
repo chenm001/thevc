@@ -69,17 +69,10 @@ TDecSbac::TDecSbac()
 #if HHI_RQT
   , m_cCUQtCbfSCModel         ( 1,             3,               NUM_QT_CBF_CTX                )
 #endif
-#if HHI_TRANSFORM_CODING
   , m_cCuCtxModSig            ( MAX_CU_DEPTH,  2,               NUM_SIG_FLAG_CTX              )
   , m_cCuCtxModLast           ( MAX_CU_DEPTH,  2,               NUM_LAST_FLAG_CTX             )
   , m_cCuCtxModAbsGreOne      ( 1,             2,               NUM_ABS_GREATER_ONE_CTX       )
   , m_cCuCtxModCoeffLevelM1   ( 1,             2,               NUM_COEFF_LEVEL_MINUS_ONE_CTX )
-#else
-  , m_cCUMapSCModel           ( MAX_CU_DEPTH,  2,               NUM_MAP_CTX                   )
-  , m_cCULastSCModel          ( MAX_CU_DEPTH,  2,               NUM_LAST_CTX                  )
-  , m_cCUOneSCModel           ( MAX_CU_DEPTH,  2,               NUM_ONE_CTX                   )
-  , m_cCUAbsSCModel           ( MAX_CU_DEPTH,  2,               NUM_ABS_CTX                   )
-#endif
 
   , m_cMVPIdxSCModel          ( 1,             1,               NUM_MVP_IDX_CTX               )
   , m_cCUROTindexSCModel      ( 1,             1,               NUM_ROT_IDX_CTX               )
@@ -138,17 +131,10 @@ Void TDecSbac::resetEntropy          (TComSlice* pcSlice)
 #endif
 #endif
 
-#if HHI_TRANSFORM_CODING
   m_cCuCtxModSig.initBuffer           ( eSliceType, iQp, (Short*)INIT_SIG_FLAG );
   m_cCuCtxModLast.initBuffer          ( eSliceType, iQp, (Short*)INIT_LAST_FLAG );
   m_cCuCtxModAbsGreOne.initBuffer     ( eSliceType, iQp, (Short*)INIT_ABS_GREATER_ONE_FLAG );
   m_cCuCtxModCoeffLevelM1.initBuffer  ( eSliceType, iQp, (Short*)INIT_COEFF_LEVEL_MINUS_ONE_FLAG );
-#else
-  m_cCUMapSCModel.initBuffer          ( eSliceType, iQp, (Short*)INIT_SIGMAP );
-  m_cCULastSCModel.initBuffer         ( eSliceType, iQp, (Short*)INIT_LAST_FLAG );
-  m_cCUOneSCModel.initBuffer          ( eSliceType, iQp, (Short*)INIT_ONE_FLAG );
-  m_cCUAbsSCModel.initBuffer          ( eSliceType, iQp, (Short*)INIT_TCOEFF_LEVEL );
-#endif
 
   m_cMVPIdxSCModel.initBuffer         ( eSliceType, iQp, (Short*)INIT_MVP_IDX );
   m_cCUROTindexSCModel.initBuffer     ( eSliceType, iQp, (Short*)INIT_ROT_IDX );
@@ -1137,7 +1123,6 @@ Void TDecSbac::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartId
   DTRACE_CABAC_T( "\n" )
 #endif
 
-#if HHI_TRANSFORM_CODING
   if( uiWidth > pcCU->getSlice()->getSPS()->getMaxTrSize() )
   {
     uiWidth  = pcCU->getSlice()->getSPS()->getMaxTrSize();
@@ -1461,161 +1446,6 @@ Void TDecSbac::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartId
       }
     }
   }
-#else 
-  Int  c1, c2;
-  UInt uiSign;
-  UInt uiLevel;
-  UInt uiPrevAbsGreOne     = 0;
-  const UInt uiNumOfSets   = 4;
-  const UInt uiNum4x4Blk   = max<UInt>( 1, uiMaxNumCoeff / 16 );
-
-  if ( uiLog2BlockSize > 2 )
-  {
-    Bool bFirstBlock = true;
-
-    for ( UInt uiSubBlk = 0; uiSubBlk < uiNum4x4Blk; uiSubBlk++ )
-    {
-      UInt uiCtxSet    = 0;
-      UInt uiSubNumSig = 0;
-      UInt uiSubLog2   = uiLog2BlockSize - 2;
-      UInt uiSubPosX   = 0;
-      UInt uiSubPosY   = 0;
-
-      if ( uiSubLog2 > 1 )
-      {
-#if HHI_RQT
-        uiSubPosX = g_auiFrameScanX[ uiSubLog2 - 1 ][ uiSubBlk ] * 4;
-        uiSubPosY = g_auiFrameScanY[ uiSubLog2 - 1 ][ uiSubBlk ] * 4;
-#else
-        uiSubPosX = g_auiFrameScanX[ uiSubLog2 - 2 ][ uiSubBlk ] * 4;
-        uiSubPosY = g_auiFrameScanY[ uiSubLog2 - 2 ][ uiSubBlk ] * 4;
-#endif
-      }
-      else
-      {
-        uiSubPosX = ( uiSubBlk < 2      ) ? 0 : 1;
-        uiSubPosY = ( uiSubBlk % 2 == 0 ) ? 0 : 1;
-        uiSubPosX *= 4;
-        uiSubPosY *= 4;
-      }
-
-      TCoeff* piCurr = &pcCoef[ uiSubPosX + uiSubPosY * uiWidth ];
-
-      for ( UInt uiY = 0; uiY < 4; uiY++ )
-      {
-        for ( UInt uiX = 0; uiX < 4; uiX++ )
-        {
-          if( piCurr[ uiX ] )
-          {
-            uiSubNumSig++;
-          }
-        }
-        piCurr += uiWidth;
-      }
-
-      if ( uiSubNumSig > 0 )
-      {
-        c1 = 1;
-        c2 = 0;
-
-        if ( bFirstBlock )
-        {
-          bFirstBlock = false;
-          uiCtxSet = uiNumOfSets + 1;
-        }
-        else
-        {
-          //uiCtxSet = ( ( uiGreOne * uiEqRangeSize ) >> 8 ) + 1;
-          uiCtxSet = uiPrevAbsGreOne / uiNumOfSets + 1;
-          uiPrevAbsGreOne = 0;
-        }
-
-        for ( UInt uiScanPos = 0; uiScanPos < 16; uiScanPos++ )
-        {
-#if HHI_RQT
-          UInt  uiBlkPos  = g_auiFrameScanXY[ 1 ][ 15 - uiScanPos ];
-#else
-          UInt  uiBlkPos  = g_auiFrameScanXY[ 0 ][ 15 - uiScanPos ];
-#endif
-          UInt  uiPosY    = uiBlkPos >> 2;
-          UInt  uiPosX    = uiBlkPos - ( uiPosY << 2 );
-          UInt  uiIndex   = (uiSubPosY + uiPosY) * uiWidth + uiSubPosX + uiPosX;
-
-          uiLevel = pcCoef[ uiIndex ];
-
-          if( uiLevel )
-          {
-            UInt uiCtx = min<UInt>(c1, 4);
-            m_pcTDecBinIf->decodeBin( uiLevel, m_cCuCtxModAbsGreOne.get( 0, eTType, (uiCtxSet * 5) + uiCtx ) );
-
-            if( uiLevel == 1 )
-            {
-              uiCtx = min<UInt>(c2, 4);
-              c1    = 0;
-              c2++;
-              uiPrevAbsGreOne++;
-              xReadExGolombLevel( uiLevel, m_cCuCtxModCoeffLevelM1.get( 0, eTType, (uiCtxSet * 5) + uiCtx ) );
-              uiLevel += 2;
-            }
-            else if( c1 )
-            {
-              c1++;
-              uiLevel++;
-            }
-            else
-            {
-              uiLevel++;
-            }
-            m_pcTDecBinIf->decodeBinEP( uiSign );
-            pcCoef[ uiIndex ] = ( uiSign ? -(Int)uiLevel : (Int)uiLevel );
-          }
-        }
-      }
-    }
-  }
-  else
-  {
-    c1 = 1;
-    c2 = 0;
-
-    for ( UInt uiScanPos = 0; uiScanPos < uiWidth*uiHeight; uiScanPos++ )
-    {
-#if HHI_RQT
-      UInt uiIndex = g_auiFrameScanXY[ (int)g_aucConvertToBit[ uiWidth ] + 1 ][ uiWidth*uiHeight - uiScanPos - 1 ];
-#else
-      UInt uiIndex = g_auiFrameScanXY[ (int)g_aucConvertToBit[ uiWidth ] ][ uiWidth*uiHeight - uiScanPos - 1 ];
-#endif
-
-      uiLevel = pcCoef[ uiIndex ];
-
-      if( uiLevel )
-      {
-        UInt uiCtx = min<UInt>(c1, 4);
-        m_pcTDecBinIf->decodeBin( uiLevel, m_cCuCtxModAbsGreOne.get( 0, eTType, uiCtx ) );
-
-        if( uiLevel == 1 )
-        {
-          uiCtx = min<UInt>(c2, 4);
-          c1    = 0;
-          c2++;
-          xReadExGolombLevel( uiLevel, m_cCuCtxModCoeffLevelM1.get( 0, eTType, uiCtx ) );
-          uiLevel += 2;
-        }
-        else if( c1 )
-        {
-          c1++;
-          uiLevel++;
-        }
-        else
-        {
-          uiLevel++;
-        }
-        m_pcTDecBinIf->decodeBinEP( uiSign );
-        pcCoef[ uiIndex ] = ( uiSign ? -(Int)uiLevel : (Int)uiLevel );
-      }
-    }
-  }
-#endif
 
   return;
 #else

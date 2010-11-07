@@ -64,7 +64,6 @@
 // Type definition
 // ====================================================================================================================
 
-#if HHI_TRANSFORM_CODING
 typedef struct
 {
   Int significantBits[16][2];
@@ -75,18 +74,6 @@ typedef struct
   Int scanZigzag[2];            ///< flag for zigzag scan
   Int scanNonZigzag[2];         ///< flag for non zigzag scan
 } estBitsSbacStruct;
-#else
-typedef struct
-{
-  Int significantBits[16][2];
-  Int lastBits[16][2];
-  Int greaterOneBits[2][5][2];
-  Int greaterOneState[5];
-  Int blockCbpBits[4][2];
-  Int scanZigzag[2];            ///< flag for zigzag scan
-  Int scanNonZigzag[2];         ///< flag for non zigzag scan
-} estBitsSbacStruct;
-#endif
 
 typedef struct
 {
@@ -202,7 +189,6 @@ public:
 
   estBitsSbacStruct* m_pcEstBitsSbac;
 
-#if HHI_TRANSFORM_CODING
   static UInt     getSigCtxInc     ( TCoeff*                         pcCoeff,
                                      const UInt                      uiPosX,
                                      const UInt                      uiPosY,
@@ -212,10 +198,6 @@ public:
   static UInt     getLastCtxInc    ( const UInt                      uiPosX,
                                      const UInt                      uiPosY,
                                      const UInt                      uiLog2BlkSize );
-#else
-  Void precalculateUnaryExpGolombLevel();
-  Int m_aiPrecalcUnaryLevelTab[128][RDOQ_MAX_PREC_COEFF];
-#endif
 
 protected:
   Long*    m_plTempCoeff;
@@ -260,7 +242,7 @@ private:
                                         TextType                        eTType,
                                         UInt                            uiAbsPartIdx,
                                         UChar                           ucIndexROT    );
-#if HHI_TRANSFORM_CODING
+
   Void           xRateDistOptQuant ( TComDataCU*                     pcCU,
                                     Long*                           plSrcCoeff,
                                     TCoeff*&                        piDstCoeff,
@@ -291,14 +273,6 @@ private:
                                      UShort                          ui16CtxBase   ) const;
   __inline Double xGetICost        ( Double                          dRate         ) const; 
   __inline Double xGetIEPRate      (                                               ) const;
-#else
-  Void xRateDistOptQuant ( TComDataCU* pcCU, Long* pSrcCoef, TCoeff*& pDstCoeff, UInt uiWidth, UInt uiHeight, UInt& uiAbsSum, TextType eTType, UInt uiAbsPartIdx, UChar indexROT );
-  Double xEst_writeRunLevel_SBAC ( levelDataStruct* levelData, Int* levelTabMin, TextType eTType, Double lambda, Int& kInit, Int kStop, Int noCoeff, Int estCBP, UInt uiWidth, UInt uiHeight, UInt uiDepth );
-  Int  xEst_write_and_store_CBP_block_bit ( TComDataCU* pcCU, TextType eTType );
-  Int  est_unary_exp_golomb_level_encode (UInt symbol, Int ctx, TextType eTType, UInt uiDepth);
-  Int  est_exp_golomb_encode_eq_prob (UInt symbol);
-  Int  est_unary_exp_golomb_level_bits( UInt symbol, Int bits0, Int bits1);
-#endif
 
 
   __inline Int          xRound   ( Int i )   { return ((i)+(1<<5))>>6; }
