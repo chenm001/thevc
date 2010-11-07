@@ -37,10 +37,6 @@
 #include "../TLibCommon/TComMotionInfo.h"
 #include "TEncSearch.h"
 
-#ifdef DCM_PBIC
-extern Int entropyBits[128];
-#endif
-
 static TComMv s_acMvRefineH[9] =
 {
   TComMv(  0,  0 ), // 0
@@ -166,17 +162,6 @@ void TEncSearch::init(  TEncCfg*      pcEncCfg,
         m_auiMVPIdxCost[iIdx][iNum] = MAX_INT;
     }
   
-#ifdef DCM_PBIC
-    for( Int iNum = 0; iNum < AICP_MAX_NUM_CANDS+1; iNum++)
-      for( Int iIdx = 0; iIdx < AICP_MAX_NUM_CANDS; iIdx++)
-      {
-        if (iIdx < iNum)
-          m_auiICPIdxCost[iIdx][iNum] = xGetIcpIdxBits(iIdx, iNum);
-        else
-          m_auiICPIdxCost[iIdx][iNum] = MAX_INT;
-      }
-#endif
-
   initTempBuff();
   
   m_pTempPel = new Pel[g_uiMaxCUWidth*g_uiMaxCUHeight];
@@ -3089,17 +3074,10 @@ Void TEncSearch::predIntraChromaAdiSearch( TComDataCU* pcCU, TComYuv* pcOrgYuv, 
 }
 
 #if HHI_MRG_PU
-#ifdef DCM_PBIC
-Void TEncSearch::xMergeEstimation( TComDataCU* pcCU, TComYuv* pcYuvOrg, Int iPartIdx, Int* piRefIdxPred, TComMv* pcMvTemp, TComIc& rcIcTemp, UInt& uiInterDir, UInt& uiMergeIndex, UInt& ruiCost )
-#else
 Void TEncSearch::xMergeEstimation( TComDataCU* pcCU, TComYuv* pcYuvOrg, Int iPartIdx, Int* piRefIdxPred, TComMv* pcMvTemp, UInt& uiInterDir, UInt& uiMergeIndex, UInt& ruiCost )
-#endif
 {
   UInt        uiNeighbourInfos = 0;
   TComMvField  cMFieldNeighbours[4]; // 0: above ref_list 0, above ref list 1, left ref list 0, left ref list 1
-#ifdef DCM_PBIC
-  TComIc cIcNeighbours[2]; //above, left
-#endif
   UChar uhInterDirNeighbours[2];
   uhInterDirNeighbours[0] = 0;
   uhInterDirNeighbours[1] = 0;
@@ -3114,11 +3092,7 @@ Void TEncSearch::xMergeEstimation( TComDataCU* pcCU, TComYuv* pcYuvOrg, Int iPar
   Int iWidth = 0;
   Int iHeight = 0;
   pcCU->getPartIndexAndSize( iPartIdx, uiAbsPartIdx, iWidth, iHeight );
-#ifdef DCM_PBIC
-  pcCU->getInterMergeCandidates( uiAbsPartIdx, cMFieldNeighbours, cIcNeighbours, uhInterDirNeighbours, uiNeighbourInfos );
-#else
   pcCU->getInterMergeCandidates( uiAbsPartIdx, cMFieldNeighbours, uhInterDirNeighbours, uiNeighbourInfos );
-#endif
 
   UInt uiNeighbourIdx = 0; // 0: top, 1: left
   if ( uiNeighbourInfos == 2 )
@@ -3139,15 +3113,6 @@ Void TEncSearch::xMergeEstimation( TComDataCU* pcCU, TComYuv* pcYuvOrg, Int iPar
 
     pcCU->getCUMvField(REF_PIC_LIST_0)->setAllMvField( cMFieldNeighbours[0 + 2*uiNeighbourIdx].getMv(), cMFieldNeighbours[0 + 2*uiNeighbourIdx].getRefIdx(), ePartSize, uiAbsPartIdx, iPartIdx, 0 );
     pcCU->getCUMvField(REF_PIC_LIST_1)->setAllMvField( cMFieldNeighbours[1 + 2*uiNeighbourIdx].getMv(), cMFieldNeighbours[1 + 2*uiNeighbourIdx].getRefIdx(), ePartSize, uiAbsPartIdx, iPartIdx, 0 );
-
-#ifdef DCM_PBIC
-    if (pcCU->getSlice()->getSPS()->getUseIC())
-    {
-      RefPicList eRefList = (uhInterDirNeighbours[uiNeighbourIdx] == 3) ? REF_PIC_LIST_X : ( (uhInterDirNeighbours[uiNeighbourIdx] == 2) ? REF_PIC_LIST_1 : REF_PIC_LIST_0);
-      cIcNeighbours[uiNeighbourIdx].computeScaleOffset( eRefList );
-      pcCU->getCUIcField()->setAllIcField( cIcNeighbours[uiNeighbourIdx], ePartSize, uiAbsPartIdx, iPartIdx, 0 );
-    }
-#endif
 
     motionCompensation( pcCU, &cYuvPred, REF_PIC_LIST_X, iPartIdx );
 
@@ -3188,9 +3153,6 @@ Void TEncSearch::xMergeEstimation( TComDataCU* pcCU, TComYuv* pcYuvOrg, Int iPar
       {
         ruiCost = uiCostTemp;
         pcMvTemp[0]    = cMFieldNeighbours[0 + 2*uiNeighbourIdx].getMv();
-#ifdef DCM_PBIC
-        rcIcTemp       = cIcNeighbours[uiNeighbourIdx];
-#endif
         piRefIdxPred[0] = cMFieldNeighbours[0 + 2*uiNeighbourIdx].getRefIdx();
         uiInterDir = 1;
         uiMergeIndex = uiNeighbourIdx;
@@ -3205,9 +3167,6 @@ Void TEncSearch::xMergeEstimation( TComDataCU* pcCU, TComYuv* pcYuvOrg, Int iPar
         {
           ruiCost = uiCostTemp;
           pcMvTemp[0]    = cMFieldNeighbours[0 + 2*uiNeighbourIdx].getMv();
-#ifdef DCM_PBIC
-          rcIcTemp       = cIcNeighbours[uiNeighbourIdx];
-#endif
           piRefIdxPred[0] = cMFieldNeighbours[0 + 2*uiNeighbourIdx].getRefIdx();
           uiInterDir = 1;
           uiMergeIndex = uiNeighbourIdx;
@@ -3220,9 +3179,6 @@ Void TEncSearch::xMergeEstimation( TComDataCU* pcCU, TComYuv* pcYuvOrg, Int iPar
         {
           ruiCost = uiCostTemp;
           pcMvTemp[1]    = cMFieldNeighbours[1 + 2*uiNeighbourIdx].getMv();
-#ifdef DCM_PBIC
-          rcIcTemp       = cIcNeighbours[uiNeighbourIdx];
-#endif
           piRefIdxPred[1] = cMFieldNeighbours[1 + 2*uiNeighbourIdx].getRefIdx();
           uiInterDir = 2;
           uiMergeIndex = uiNeighbourIdx;
@@ -3236,9 +3192,6 @@ Void TEncSearch::xMergeEstimation( TComDataCU* pcCU, TComYuv* pcYuvOrg, Int iPar
           ruiCost = uiCostTemp;
           pcMvTemp[0]    = cMFieldNeighbours[0 + 2*uiNeighbourIdx].getMv();
           pcMvTemp[1]    = cMFieldNeighbours[1 + 2*uiNeighbourIdx].getMv();
-#ifdef DCM_PBIC
-          rcIcTemp       = cIcNeighbours[uiNeighbourIdx];
-#endif
           piRefIdxPred[0] = cMFieldNeighbours[0 + 2*uiNeighbourIdx].getRefIdx();
           piRefIdxPred[1] = cMFieldNeighbours[1 + 2*uiNeighbourIdx].getRefIdx();
           uiInterDir = 3;
@@ -3321,9 +3274,6 @@ Void TEncSearch::predInterSearch( TComDataCU* pcCU, TComYuv* pcOrgYuv, TComYuv*&
   UInt uiMergeInterDir = 0;
   Int iMergeRefIdx[2];
   TComMv cMergeMv[2];
-#ifdef DCM_PBIC
-  TComIc cMergeIc;
-#endif
   Int iRefBestList= 0;
   UInt uiMergeCost = MAX_UINT;
   UInt uiMergeIndex = 0;
@@ -3610,11 +3560,7 @@ Void TEncSearch::predInterSearch( TComDataCU* pcCU, TComYuv* pcOrgYuv, TComYuv*&
     UInt uiMergeCost = MAX_INT;
     if ( pcCU->getSlice()->getSPS()->getUseMRG() )
     {
-#ifdef DCM_PBIC
-      xMergeEstimation( pcCU, pcOrgYuv, iPartIdx, iMergeRefIdx, cMergeMv , cMergeIc, uiMergeInterDir, uiMergeIndex, uiMergeCost );
-#else
       xMergeEstimation( pcCU, pcOrgYuv, iPartIdx, iMergeRefIdx, cMergeMv , uiMergeInterDir, uiMergeIndex, uiMergeCost );
-#endif
 
       if( pcCU->getSlice()->isInterP() )
       {
@@ -3795,28 +3741,8 @@ Void TEncSearch::predInterSearch( TComDataCU* pcCU, TComYuv* pcOrgYuv, TComYuv*&
       pcCU->setMVPNumSubParts( aaiMvpNum[1][iRefIdx[1]], REF_PIC_LIST_1, uiPartAddr, iPartIdx, pcCU->getDepth(uiPartAddr));
     }
     
-#if HHI_MRG_PU && defined(DCM_PBIC)
-    if (pcCU->getSlice()->getSPS()->getUseIC())
-    {
-      if (pcCU->getMergeFlag(uiPartAddr) == false)
-        cMergeIc.reset();
-      pcCU->getCUIcField()->setAllIc( cMergeIc, ePartSize, uiPartAddr, iPartIdx, 0 );
-    }
-#endif
-
     //  MC
     motionCompensation ( pcCU, rpcPredYuv, REF_PIC_LIST_X, iPartIdx );
-
-#ifdef DCM_PBIC
-#if HHI_MRG_PU
-    if (pcCU->getSlice()->getSPS()->getUseIC() && (pcCU->getMergeFlag(uiPartAddr) == false))
-#else
-    if (pcCU->getSlice()->getSPS()->getUseIC())
-#endif
-    {
-      predICompSearch(pcCU, pcOrgYuv, rpcPredYuv, iPartIdx, uiLastMode);
-    }
-#endif
 
   } //  end of for ( Int iPartIdx = 0; iPartIdx < iNumPart; iPartIdx++ )
   
@@ -4099,58 +4025,6 @@ UInt TEncSearch::xGetTemplateCost( TComDataCU* pcCU,
   uiCost = (UInt) m_pcRdCost->calcRdCost( m_auiMVPIdxCost[iMVPIdx][iMVPNum], uiCost, false, DF_SAD );
   return uiCost;
 }
-
-#ifdef DCM_PBIC
-UInt TEncSearch::xGetTemplateCostIC   ( TComDataCU* pcCU,
-                                        UInt        uiPartIdx,
-                                        UInt        uiPartAddr,
-                                        TComYuv*    pcOrgYuv,
-                                        TComIc      cIcCand,
-                                        Int         iICPIdx,
-                                        Int         iICPNum,
-                                        RefPicList  eRefPicList,
-                                        Int         iSizeX,
-                                        Int         iSizeY)
-{
-  UInt uiCost  = MAX_INT;
-
-  //Apply IC
-  if (eRefPicList == REF_PIC_LIST_X )
-  {
-    Int iRefIdx[2];
-    iRefIdx[0] = pcCU->getCUMvField( REF_PIC_LIST_0 )->getRefIdx( uiPartAddr );
-    iRefIdx[1] = pcCU->getCUMvField( REF_PIC_LIST_1 )->getRefIdx( uiPartAddr );
-
-    xPredICompLumaBlk  ( &cIcCand, iSizeX   , iSizeY   , m_acYuvTempIC[0].getStride() , 1, m_acYuvTempIC[0].getLumaAddr(uiPartAddr), m_acYuvPred[0].getStride() , 1, m_acYuvPred[0].getLumaAddr(uiPartAddr), REF_PIC_LIST_0 );
-    xPredICompChromaBlk( &cIcCand, iSizeX>>1, iSizeY>>1, m_acYuvTempIC[0].getCStride(), 1, m_acYuvTempIC[0].getCbAddr(uiPartAddr)  , m_acYuvPred[0].getCStride(), 1, m_acYuvPred[0].getCbAddr(uiPartAddr)  , REF_PIC_LIST_0 );
-    xPredICompChromaBlk( &cIcCand, iSizeX>>1, iSizeY>>1, m_acYuvTempIC[0].getCStride(), 1, m_acYuvTempIC[0].getCrAddr(uiPartAddr)  , m_acYuvPred[0].getCStride(), 1, m_acYuvPred[0].getCrAddr(uiPartAddr)  , REF_PIC_LIST_0 );
-
-    xPredICompLumaBlk  ( &cIcCand, iSizeX   , iSizeY   , m_acYuvTempIC[1].getStride() , 1, m_acYuvTempIC[1].getLumaAddr(uiPartAddr), m_acYuvPred[1].getStride() , 1, m_acYuvPred[1].getLumaAddr(uiPartAddr), REF_PIC_LIST_1 );
-    xPredICompChromaBlk( &cIcCand, iSizeX>>1, iSizeY>>1, m_acYuvTempIC[1].getCStride(), 1, m_acYuvTempIC[1].getCbAddr(uiPartAddr)  , m_acYuvPred[1].getCStride(), 1, m_acYuvPred[1].getCbAddr(uiPartAddr)  , REF_PIC_LIST_1 );
-    xPredICompChromaBlk( &cIcCand, iSizeX>>1, iSizeY>>1, m_acYuvTempIC[1].getCStride(), 1, m_acYuvTempIC[1].getCrAddr(uiPartAddr)  , m_acYuvPred[1].getCStride(), 1, m_acYuvPred[1].getCrAddr(uiPartAddr)  , REF_PIC_LIST_1 );
-
-    TComYuv* pcYuvPred = m_acYuvTempIC;
-    xWeightedAverage( pcCU, m_acYuvTempIC, m_acYuvTempIC+1, iRefIdx[0], iRefIdx[1], uiPartAddr, iSizeX, iSizeY, pcYuvPred);
-  }
-  else
-  {
-    xPredICompLumaBlk  ( &cIcCand, iSizeX   , iSizeY   , m_acYuvTempIC->getStride() , 1, m_acYuvTempIC->getLumaAddr(uiPartAddr), m_acYuvPred[eRefPicList].getStride() , 1, m_acYuvPred[eRefPicList].getLumaAddr(uiPartAddr), eRefPicList );
-    xPredICompChromaBlk( &cIcCand, iSizeX>>1, iSizeY>>1, m_acYuvTempIC->getCStride(), 1, m_acYuvTempIC->getCbAddr(uiPartAddr)  , m_acYuvPred[eRefPicList].getCStride(), 1, m_acYuvPred[eRefPicList].getCbAddr(uiPartAddr)  , eRefPicList );
-    xPredICompChromaBlk( &cIcCand, iSizeX>>1, iSizeY>>1, m_acYuvTempIC->getCStride(), 1, m_acYuvTempIC->getCrAddr(uiPartAddr)  , m_acYuvPred[eRefPicList].getCStride(), 1, m_acYuvPred[eRefPicList].getCrAddr(uiPartAddr)  , eRefPicList );
-  }
-
-  // calc distortion
-  DFunc eDFunc = (m_pcEncCfg->getUseHADME() == true) ? DF_HADS : DF_SADS;
-  uiCost = m_pcRdCost->getDistPart( m_acYuvTempIC->getLumaAddr(uiPartAddr), m_acYuvTempIC->getStride(), pcOrgYuv->getLumaAddr(uiPartAddr), pcOrgYuv->getStride(), iSizeX, iSizeY, eDFunc );
-  uiCost += UInt( m_pcRdCost->getDistPart( m_acYuvTempIC->getCbAddr(uiPartAddr), m_acYuvTempIC->getCStride(),pcOrgYuv->getCbAddr(uiPartAddr),pcOrgYuv->getCStride(), iSizeX>>1, iSizeY>>1, eDFunc)
-                + m_pcRdCost->getDistPart( m_acYuvTempIC->getCrAddr(uiPartAddr), m_acYuvTempIC->getCStride(),pcOrgYuv->getCrAddr(uiPartAddr),pcOrgYuv->getCStride(), iSizeX>>1, iSizeY>>1, eDFunc));
-  uiCost =  (UInt) ( uiCost / 1.5 );
-
-  uiCost = (UInt) m_pcRdCost->calcRdCost( m_auiICPIdxCost[iICPIdx][iICPNum], uiCost, false, DF_SAD );
-
-	return uiCost;
-}
-#endif
 
 #if MS_NO_BACK_PRED_IN_B0
 Void TEncSearch::xMotionEstimationForL1( TComDataCU* pcCU, TComYuv* pcYuvOrg, Int iPartIdx, RefPicList eRefPicList, TComMv* pcMvPred, Int iRefIdxPred, TComMv& rcMv, UInt& ruiBits, UInt& ruiCost, Bool bBi  )
@@ -4959,25 +4833,8 @@ Void TEncSearch::predInterSkipSearch( TComDataCU* pcCU, TComYuv* pcOrgYuv, TComY
     pcCU->setMVPNumSubParts( -1, REF_PIC_LIST_1, 0, 0, pcCU->getDepth(0));
     
     //  Motion compensation
-#ifdef DCM_PBIC
-    motionCompensation ( pcCU, rpcPredYuv );
-#else
     motionCompensation ( pcCU, rpcPredYuv, REF_PIC_LIST_0 );
-#endif
 
-#ifdef DCM_PBIC 
-    if (pcCU->getSlice()->getSPS()->getUseIC())
-    {
-      TComIc cIc;
-
-      xEstimateIcPredAICP( pcCU, pcOrgYuv, 0, REF_PIC_LIST_0, cIc, false );
-
-      cIc.computeScaleOffset( REF_PIC_LIST_0 );
-      pcCU->getCUIcField()->setAllIcField( cIc, SIZE_2Nx2N, 0, 0, 0 );
-
-      motionCompensation ( pcCU, rpcPredYuv );
-    }
-#endif 
   }
   else if ( eSliceType == B_SLICE &&
            pcCU->getSlice()->getNumRefIdx( REF_PIC_LIST_0 ) > 0 &&
@@ -5002,21 +4859,6 @@ Void TEncSearch::predInterSkipSearch( TComDataCU* pcCU, TComYuv* pcOrgYuv, TComY
     
     motionCompensation ( pcCU, rpcPredYuv );
 
-#ifdef DCM_PBIC 
-    if (pcCU->getSlice()->getSPS()->getUseIC())
-    {
-      TComIc cIc;
-      UChar uhInterDir = pcCU->getInterDir(0);
-      RefPicList eRefList = (uhInterDir == 3) ? REF_PIC_LIST_X : ( (uhInterDir == 2) ? REF_PIC_LIST_1 : REF_PIC_LIST_0);;
-
-      xEstimateIcPredAICP( pcCU, pcOrgYuv, 0, eRefList, cIc, false );
-
-      cIc.computeScaleOffset( eRefList );
-      pcCU->getCUIcField()->setAllIcField( cIc,SIZE_2Nx2N, 0, 0, 0 );
-      
-      motionCompensation ( pcCU, rpcPredYuv );
-    }
-#endif
   }
   else
   {
@@ -5027,11 +4869,7 @@ Void TEncSearch::predInterSkipSearch( TComDataCU* pcCU, TComYuv* pcOrgYuv, TComY
 }
 
 #if HHI_MRG
-#ifdef DCM_PBIC
-Void TEncSearch::predInterMergeSearch( TComDataCU* pcCU, TComYuv* pcOrgYuv, TComYuv*& rpcPredYuv, TComYuv*& rpcResiYuv, TComYuv*& rpcRecoYuv,  TComMvField cMvFieldNeighbourToTest[2], TComIc cIcNeighbourToTest, UChar uhInterDirNeighbourToTest )
-#else
 Void TEncSearch::predInterMergeSearch( TComDataCU* pcCU, TComYuv* pcOrgYuv, TComYuv*& rpcPredYuv, TComYuv*& rpcResiYuv, TComYuv*& rpcRecoYuv,  TComMvField cMvFieldNeighbourToTest[2], UChar uhInterDirNeighbourToTest )
-#endif
 {
   SliceType eSliceType = pcCU->getSlice()->getSliceType();
   if ( eSliceType == I_SLICE )
@@ -5041,15 +4879,6 @@ Void TEncSearch::predInterMergeSearch( TComDataCU* pcCU, TComYuv* pcOrgYuv, TCom
   pcCU->setInterDirSubParts( uhInterDirNeighbourToTest, 0, 0, uhDepth );
   pcCU->getCUMvField( REF_PIC_LIST_0 )->setAllMvField( cMvFieldNeighbourToTest[ 0 ].getMv(), cMvFieldNeighbourToTest[ 0 ].getRefIdx(), SIZE_2Nx2N, 0, 0, 0 );
   pcCU->getCUMvField( REF_PIC_LIST_1 )->setAllMvField( cMvFieldNeighbourToTest[ 1 ].getMv(), cMvFieldNeighbourToTest[ 1 ].getRefIdx(), SIZE_2Nx2N, 0, 0, 0 );
-
-#ifdef DCM_PBIC
-  if (pcCU->getSlice()->getSPS()->getUseIC())
-  {
-    RefPicList eRefList = (uhInterDirNeighbourToTest == 3) ? REF_PIC_LIST_X : ( (uhInterDirNeighbourToTest == 2) ? REF_PIC_LIST_1 : REF_PIC_LIST_0);;
-    cIcNeighbourToTest.computeScaleOffset( eRefList ); 
-    pcCU->getCUIcField()->setAllIcField( cIcNeighbourToTest, SIZE_2Nx2N, 0, 0, 0 );
-  }
-#endif
 
   motionCompensation ( pcCU, rpcPredYuv );
   
@@ -5102,13 +4931,6 @@ Void TEncSearch::encodeResAndCalcRdInterCU( TComDataCU* pcCU, TComYuv* pcYuvOrg,
       m_pcEntropyCoder->encodeMVPIdx( pcCU, 0, REF_PIC_LIST_1);
     }
     
-#ifdef DCM_PBIC
-    if (pcCU->getSlice()->getSPS()->getUseIC())
-    {
-      m_pcEntropyCoder->encodeICPIdx( pcCU, 0 );
-    }
-#endif
-
     uiBits = m_pcEntropyCoder->getNumberOfWrittenBits();
     pcCU->getTotalBits()       = uiBits;
     pcCU->getTotalDistortion() = uiDistortion;
@@ -6268,12 +6090,6 @@ Void  TEncSearch::xAddSymbolBitsInter( TComDataCU* pcCU, UInt uiQp, UInt uiTrMod
     {
       m_pcEntropyCoder->encodeMVPIdx( pcCU, 0, REF_PIC_LIST_1);
     }
-#ifdef DCM_PBIC
-    if (pcCU->getSlice()->getSPS()->getUseIC())
-    {
-      m_pcEntropyCoder->encodeICPIdx( pcCU, 0 );
-    }
-#endif
     ruiBits += m_pcEntropyCoder->getNumberOfWrittenBits();
   }
   else
@@ -6299,129 +6115,6 @@ Void  TEncSearch::xAddSymbolBitsInter( TComDataCU* pcCU, UInt uiQp, UInt uiTrMod
   }
 }
 
-
-#ifdef DCM_PBIC
-Int TEncSearch::xEstMvdIcdBits( TComDataCU *pcCU, TComMv* pcMvd, TComIc* pcIcd, RefPicList eRefList )
-{
-  Int iZeroPatt = 0;
-  Int iIcParam[3];
-  Int iCost;
-  ContextModel* pcCtxModel = NULL;
-  TComZeroTree* pcZTree;
-
-  if( m_bUseSBACRD )
-    m_pcRDGoOnSbacCoder->load(m_pppcRDSbacCoder[pcCU->getDepth(0)][CI_CURR_BEST]);
-
-  // Identify the non-zero components
-  if (eRefList == REF_PIC_LIST_X)
-  {
-    iZeroPatt |= ( pcMvd[REF_PIC_LIST_0].getHor() == 0 ) ? 0 : 1;
-    iZeroPatt |= ( pcMvd[REF_PIC_LIST_0].getVer() == 0 ) ? 0 : 2;
-    iZeroPatt |= ( pcMvd[REF_PIC_LIST_1].getHor() == 0 ) ? 0 : 4;
-    iZeroPatt |= ( pcMvd[REF_PIC_LIST_1].getVer() == 0 ) ? 0 : 8;
-
-    if (pcCU->getSlice()->getSPS()->getUseIC())
-    {
-      pcIcd->getIcParam( iIcParam[0], iIcParam[1], iIcParam[2] );
-      iZeroPatt |= ( iIcParam[0] == 0 ) ? 0 : 16;
-      iZeroPatt |= ( iIcParam[1] == 0 ) ? 0 : 32;
-      iZeroPatt |= ( iIcParam[2] == 0 ) ? 0 : 64;
-
-      pcZTree    = pcCU->getSlice()->getZTree(IDX_ZTREE_MVDICDBI);
-      pcCtxModel = m_pcEntropyCoder->m_pcEntropyCoderIf->getZTreeCtx(IDX_ZTREE_MVDICDBI);
-    }
-    else
-    {
-      pcZTree    = pcCU->getSlice()->getZTree(IDX_ZTREE_MVDBI);
-      pcCtxModel = m_pcEntropyCoder->m_pcEntropyCoderIf->getZTreeCtx(IDX_ZTREE_MVDBI);
-    }
-  } 
-  else
-  {
-    iZeroPatt |= ( pcMvd[eRefList].getHor() == 0 ) ? 0 : 1;
-    iZeroPatt |= ( pcMvd[eRefList].getVer() == 0 ) ? 0 : 2;
-
-    if (pcCU->getSlice()->getSPS()->getUseIC())
-    {
-      pcIcd->getIcParam( iIcParam[0], iIcParam[1], iIcParam[2] );
-      iZeroPatt |= ( iIcParam[0] == 0 ) ? 0 : 4;
-      assert ( iIcParam[1] == 0 );
-      iZeroPatt |= ( iIcParam[2] == 0 ) ? 0 : 8;
-
-      pcZTree    = pcCU->getSlice()->getZTree(IDX_ZTREE_MVDICDUNI);
-      pcCtxModel = m_pcEntropyCoder->m_pcEntropyCoderIf->getZTreeCtx(IDX_ZTREE_MVDICDUNI);
-    }
-    else
-    {
-      pcZTree    = pcCU->getSlice()->getZTree(IDX_ZTREE_MVDUNI);
-      pcCtxModel = m_pcEntropyCoder->m_pcEntropyCoderIf->getZTreeCtx(IDX_ZTREE_MVDUNI);
-    }
-  }
-
-  // Cost to encode zeroflag and zerotree (if necessary)
-  iCost = xcostBin( (iZeroPatt==0), m_pcEntropyCoder->m_pcEntropyCoderIf->getZTreeCtx(IDX_ZEROFLAG) );
-
-  if (iZeroPatt != 0)
-  {
-    pcZTree->updateVal(iZeroPatt);
-    iCost += xcostZTree( pcZTree, pcZTree->m_pcRoot, pcCtxModel );
-  }
-  iCost = ((iCost + (1<<14)) >> 15);
-
-  //Cost to encode the non-zero components
-  if ( (eRefList == REF_PIC_LIST_X) || (eRefList == REF_PIC_LIST_0) )
-  {
-    iCost += ( xGetMvdBits( pcMvd[REF_PIC_LIST_0] ) - 2 );
-  }
-  if ( (eRefList == REF_PIC_LIST_X) || (eRefList == REF_PIC_LIST_1) )
-  {
-    iCost += ( xGetMvdBits( pcMvd[REF_PIC_LIST_1] ) - 2 );
-  }
-
-  if (pcCU->getSlice()->getSPS()->getUseIC())
-  {
-    iCost += ( xGetIcdBits( *pcIcd ) - 3 );
-  }
-
-  return iCost;
-}
-
-Int TEncSearch::xcostZTree( TComZeroTree* pcZTree, TComZTNode* pcZTNode, ContextModel *pcCtxModel )
-{
-  Int iVal, iLval, iRval;
-  Int iCost;
-
-  iCost = 0;
-  if (pcZTNode->IsLeaf() == false)
-  {
-    iLval = pcZTNode->m_pcLeft->m_iVal;
-    iRval = pcZTNode->m_pcRight->m_iVal;
-
-    iVal = iLval & iRval;
-    iCost += xcostBin( iVal, (pcCtxModel == NULL) ? NULL : (pcCtxModel + 2*pcZTNode->m_id) );
-
-    if (iVal == 0)
-      iCost += xcostBin( iLval, (pcCtxModel == NULL) ? NULL : (pcCtxModel + 2*pcZTNode->m_id + 1) );
-
-    if (iLval != 0)
-      iCost += xcostZTree( pcZTree,  pcZTNode->m_pcLeft, pcCtxModel);
-    if (iRval != 0)
-      iCost += xcostZTree( pcZTree, pcZTNode->m_pcRight, pcCtxModel);
-  }
-  return iCost;
-}
-
-Int TEncSearch::xcostBin( UInt uiBin, ContextModel *pcCtxModel )
-{
-  if (pcCtxModel == NULL)
-    return 32768;
-
-  uiBin = (uiBin != 0);
-  Int iState = (uiBin == pcCtxModel->getMps() ) ? 64 + pcCtxModel->getState() : 63 - pcCtxModel->getState();
-
-  return entropyBits[127-iState];
-}
-#endif
 
 Void TEncSearch::xExtDIFUpSamplingH ( TComPattern* pcPattern, TComYuv* pcYuvExt  )
 {
@@ -6913,696 +6606,3 @@ Void TEncSearch::xPredIntraLumaNxNCIPEnc( TComPattern* pcTComPattern, Pel* pOrig
     }
   }
 }
-
-#ifdef DCM_PBIC
-Void TEncSearch::xEstimateIcPredAICP( TComDataCU* pcCU, TComYuv* pcOrgYuv, UInt uiPartIdx, RefPicList  eRefPicList, TComIc& rcIcPred, Bool bFilled )
-{
-  AICPInfo* pcAICPInfo = pcCU->getCUIcField()->getAICPInfo();
-
-  TComIc  cBestIc;
-  Int     iBestIdx = 0;
-  TComIc  cZeroIc;
-  TComIc  cIcTemp;
-  UInt    uiBestCost = MAX_INT;
-  UInt    uiPartAddr = 0;
-  Int     iRoiWidth, iRoiHeight;
-  Int     i;
-  
-  pcCU->getPartIndexAndSize( uiPartIdx, uiPartAddr, iRoiWidth, iRoiHeight );
-
-  // Fill the IC Candidates
-  if (!bFilled)
-  {
-    pcCU->fillICPCand( uiPartIdx, uiPartAddr, pcAICPInfo );
-  }
-
-  // initialize Icp index & Icp
-  iBestIdx = 0;
-	cBestIc=pcAICPInfo->m_acIcCand[0];
-
-	if( pcAICPInfo->iN <= 1 )
-  {
-    rcIcPred = cBestIc;
-
-	  pcCU->setICPIdxSubParts( iBestIdx, uiPartAddr, uiPartIdx, pcCU->getDepth(uiPartAddr) );
-    pcCU->setICPNumSubParts( pcAICPInfo->iN, uiPartAddr, uiPartIdx, pcCU->getDepth(uiPartAddr));
-    return;
-  }
-
-  if ( bFilled )
-  {
-    assert(pcCU->getICPIdx(uiPartAddr) >= 0);
-    rcIcPred = pcAICPInfo->m_acIcCand[pcCU->getICPIdx(uiPartAddr)];
-    return;
-  }
-
-  //-- Check Minimum Cost.
-  for ( i = 0 ; i < pcAICPInfo->iN; i++)
-  {
-    UInt uiTmpCost;
-    cIcTemp = pcAICPInfo->m_acIcCand[i];
-		cIcTemp.computeScaleOffset( eRefPicList);
-
-    uiTmpCost = xGetTemplateCostIC( pcCU, uiPartIdx, uiPartAddr, pcOrgYuv, cIcTemp, i, pcAICPInfo->iN, eRefPicList, iRoiWidth, iRoiHeight);
-    if ( uiBestCost > uiTmpCost )
-    {
-      uiBestCost = uiTmpCost;
-      cBestIc    = pcAICPInfo->m_acIcCand[i];
-      iBestIdx   = i;
-    }
-  }
-
-  // Setting Best ICP
-	rcIcPred=cBestIc;
-
-  pcCU->setICPIdxSubParts( iBestIdx, uiPartAddr, uiPartIdx, pcCU->getDepth(uiPartAddr) );
-  pcCU->setICPNumSubParts( pcAICPInfo->iN, uiPartAddr, uiPartIdx, pcCU->getDepth(uiPartAddr));
- 
-  return;
-	
-}
-
-UInt TEncSearch::xGetIcpIdxBits(Int iIdx, Int iNum)
-{
-  assert(iIdx >= 0 && iNum >= 0 && iIdx < iNum);
-
-  if (iNum == 1)
-    return 0;
-
-  UInt uiLength = 1;
-  Int iTemp = iIdx;
-  if ( iTemp == 0 )
-  {
-    return uiLength;
-  }
-
-  Bool bCodeLast = ( iNum-1 > iTemp );
-
-  uiLength += (iTemp-1);
-
-  if( bCodeLast )
-  {
-    uiLength++;
-  }
-
-  return uiLength;
-}
-
-Void  TEncSearch::predICompSearch( TComDataCU* pcCU, TComYuv* pcYuvOrg, TComYuv* pcYuvPred, Int iPartIdx, Int uiLastMode )
-{
-  Int   iRoiWidth;
-  Int   iRoiHeight;
-  Int   iIcpIdxCur;
-  Int   iIcpIdxBest;
-
-  UInt  uiPartAddr;
-  UInt  uiCost;
-  UInt  uiCostBest = MAX_UINT;
-  
-  TComIc cIc; 
-  TComIc cIcd;
-  TComIc cIcLMSlist[2];
-  TComIc cIcPred;
-  TComIc ZeroIc;
-  TComIc cIc_test;
-
-  RefPicList eRefPicList;
-
-  PartSize ePartSize = pcCU->getPartitionSize( 0 );
-  pcCU->getPartIndexAndSize( iPartIdx, uiPartAddr, iRoiWidth, iRoiHeight );
-
-  m_acYuvTempIC[0].clear();
-  m_acYuvTempIC[1].clear();
-
-  if( uiLastMode==0 || uiLastMode==1 )
-  {
-    eRefPicList = (uiLastMode ? REF_PIC_LIST_1 : REF_PIC_LIST_0);
-    Calc_ICParam_LMS_Uni( pcYuvOrg, &m_acYuvPred[eRefPicList], uiPartAddr, iRoiHeight, iRoiWidth, cIcLMSlist, eRefPicList);
-  }
-  else
-  {
-    eRefPicList = REF_PIC_LIST_X;
-    Calc_ICParam_LMS_Bi( pcYuvOrg, &m_acYuvPred[0], &m_acYuvPred[1], uiPartAddr, iRoiHeight, iRoiWidth, cIcLMSlist );
-  }
-
-  AICPInfo* pcAICPInfo = pcCU->getCUIcField()->getAICPInfo();
-  pcCU->fillICPCand( iPartIdx, uiPartAddr, pcAICPInfo );
-
-  // Test LMS candidates
-  for(Int iLMSIdx = 0; iLMSIdx < 2; iLMSIdx++)
-  {
-    cIc_test = cIcLMSlist[iLMSIdx];
-    uiCost = MAX_UINT;
-    xSearchBestICParam(&cIc_test, iIcpIdxCur,  0,  0,  0, iPartIdx, pcCU, pcYuvOrg, eRefPicList, uiCost); //Just test the candidate - no search
-    if ( uiCost < uiCostBest )
-    {
-      uiCostBest  = uiCost;
-      cIc         = cIc_test;
-      iIcpIdxBest = iIcpIdxCur;
-    }
-  }
-
-  // Test every predictor as a candidate
-  for(Int iIcpIdxTemp = 0; iIcpIdxTemp < pcAICPInfo->iN; iIcpIdxTemp++)
-  {
-    cIc_test = pcAICPInfo->m_acIcCand[iIcpIdxTemp];
-    uiCost = MAX_UINT;
-    xSearchBestICParam(&cIc_test, iIcpIdxCur,  0,  0,  0, iPartIdx, pcCU, pcYuvOrg, eRefPicList, uiCost); //Just test the candidate - no search
-    if ( uiCost < uiCostBest )
-    {
-      uiCostBest  = uiCost;
-      cIc         = cIc_test;
-      iIcpIdxBest = iIcpIdxCur;
-    }
-  }
-
-  if (uiCostBest == MAX_UINT)
-  {
-    cIc.reset();
-    iIcpIdxBest = 0;
-  }
-
-  cIc.computeScaleOffset( eRefPicList );
-  pcCU->getCUIcField()->setAllIcField( cIc, ePartSize, uiPartAddr, iPartIdx, 0);
-
-  cIcPred = pcAICPInfo->m_acIcCand[iIcpIdxBest];
-
-  cIcd.copyIcParam(cIc);
-  cIcd.subIcParamPred(cIcPred);
-  pcCU->getCUIcField()->setAllIcd    ( cIcd, ePartSize, uiPartAddr, iPartIdx, 0);
-
-  pcCU->setICPIdxSubParts( iIcpIdxBest, uiPartAddr, iPartIdx, pcCU->getDepth(uiPartAddr));
-  pcCU->setICPNumSubParts( pcAICPInfo->iN, uiPartAddr, iPartIdx, pcCU->getDepth(uiPartAddr));
-
-  //Apply the best IC
-  if (eRefPicList != REF_PIC_LIST_X)
-  {
-    xPredICompLumaBlk  ( &cIc, iRoiWidth   , iRoiHeight   , pcYuvPred->getStride() , 1, pcYuvPred->getLumaAddr(uiPartAddr), m_acYuvPred[eRefPicList].getStride() , 1, m_acYuvPred[eRefPicList].getLumaAddr(uiPartAddr), eRefPicList );
-    xPredICompChromaBlk( &cIc, iRoiWidth>>1, iRoiHeight>>1, pcYuvPred->getCStride(), 1, pcYuvPred->getCbAddr(uiPartAddr)  , m_acYuvPred[eRefPicList].getCStride(), 1, m_acYuvPred[eRefPicList].getCbAddr(uiPartAddr)  , eRefPicList );
-    xPredICompChromaBlk( &cIc, iRoiWidth>>1, iRoiHeight>>1, pcYuvPred->getCStride(), 1, pcYuvPred->getCrAddr(uiPartAddr)  , m_acYuvPred[eRefPicList].getCStride(), 1, m_acYuvPred[eRefPicList].getCrAddr(uiPartAddr)  , eRefPicList );
-  }
-  else
-  {
-    Int iRefIdx[2];
-    iRefIdx[0] = pcCU->getCUMvField( REF_PIC_LIST_0 )->getRefIdx( uiPartAddr );
-    iRefIdx[1] = pcCU->getCUMvField( REF_PIC_LIST_1 )->getRefIdx( uiPartAddr );
-
-    xPredICompLumaBlk  ( &cIc, iRoiWidth   , iRoiHeight   , m_acYuvTempIC[0].getStride() , 1, m_acYuvTempIC[0].getLumaAddr(uiPartAddr), m_acYuvPred[0].getStride() , 1, m_acYuvPred[0].getLumaAddr(uiPartAddr), REF_PIC_LIST_0 );
-    xPredICompChromaBlk( &cIc, iRoiWidth>>1, iRoiHeight>>1, m_acYuvTempIC[0].getCStride(), 1, m_acYuvTempIC[0].getCbAddr(uiPartAddr)  , m_acYuvPred[0].getCStride(), 1, m_acYuvPred[0].getCbAddr(uiPartAddr)  , REF_PIC_LIST_0 );
-    xPredICompChromaBlk( &cIc, iRoiWidth>>1, iRoiHeight>>1, m_acYuvTempIC[0].getCStride(), 1, m_acYuvTempIC[0].getCrAddr(uiPartAddr)  , m_acYuvPred[0].getCStride(), 1, m_acYuvPred[0].getCrAddr(uiPartAddr)  , REF_PIC_LIST_0 );
-
-    xPredICompLumaBlk  ( &cIc, iRoiWidth   , iRoiHeight   , m_acYuvTempIC[1].getStride() , 1, m_acYuvTempIC[1].getLumaAddr(uiPartAddr), m_acYuvPred[1].getStride() , 1, m_acYuvPred[1].getLumaAddr(uiPartAddr), REF_PIC_LIST_1 );
-    xPredICompChromaBlk( &cIc, iRoiWidth>>1, iRoiHeight>>1, m_acYuvTempIC[1].getCStride(), 1, m_acYuvTempIC[1].getCbAddr(uiPartAddr)  , m_acYuvPred[1].getCStride(), 1, m_acYuvPred[1].getCbAddr(uiPartAddr)  , REF_PIC_LIST_1 );
-    xPredICompChromaBlk( &cIc, iRoiWidth>>1, iRoiHeight>>1, m_acYuvTempIC[1].getCStride(), 1, m_acYuvTempIC[1].getCrAddr(uiPartAddr)  , m_acYuvPred[1].getCStride(), 1, m_acYuvPred[1].getCrAddr(uiPartAddr)  , REF_PIC_LIST_1 );
-
-    xWeightedAverage ( pcCU, m_acYuvTempIC, m_acYuvTempIC+1, iRefIdx[0], iRefIdx[1], uiPartAddr, iRoiWidth, iRoiHeight, pcYuvPred);
-  }
-
-}
-
-Bool TEncSearch::xSearchBestICParam( TComIc* cIcSearchCenter, Int& riIcpIdx, Int SearchRng0, Int SearchRng1, Int SearchRng2, UInt uiPartIdx, TComDataCU* pcCU, TComYuv* pcYuvOrg, RefPicList eRefPicList, UInt& ruiCostBest, Bool bFlagReset)
-{ 
-  Int i,j,k;
-  UInt  uiCost;
-
-  TComIc cIcRefine;
-  TComIc cIcTest;
-  Int iPram0RefineBest  = 0; 
-  Int iPram1RefineBest  = 0;
-  Int iPram2RefineBest  = 0;
-  Int iIcpIdx           = 0;
-  Int iIcpIdxBest       = 0;
-  Bool bNewBest = false;
-
-  ruiCostBest = MAX_UINT;
-  Int aiCurParam[3], aiCenParam[3];
-
-  assert (IC_SCALE_PREC >= 1);
-
-  if (bFlagReset == true)
-  {
-    return false;
-  }
-
-  cIcSearchCenter->getIcParam(aiCenParam[0], aiCenParam[1], aiCenParam[2]);
-
-  if (eRefPicList != REF_PIC_LIST_X) { SearchRng1 = 0; }
-
-  for( i = -SearchRng0; i <= SearchRng0; i++)
-  {
-    for( j = -SearchRng1; j <= SearchRng1; j++)
-    {
-      for( k = -SearchRng2; k <= SearchRng2; k++)
-      {
-        aiCurParam[0] = aiCenParam[0] + i;
-        aiCurParam[1] = aiCenParam[1] + j;
-        aiCurParam[2] = aiCenParam[2] + k;
-
-        cIcTest.setIcParam(aiCurParam[0], aiCurParam[1], aiCurParam[2]);
-        cIcTest.computeScaleOffset( eRefPicList );
-        uiCost = xCalculateCostAfterICPred(cIcTest, iIcpIdx, pcCU, pcYuvOrg, uiPartIdx, eRefPicList);
-
-        if ( uiCost < ruiCostBest )
-        {
-          ruiCostBest      = uiCost;
-          iPram0RefineBest = i;
-          iPram1RefineBest = j;
-          iPram2RefineBest = k;
-          iIcpIdxBest      = iIcpIdx;
-          bNewBest         = true;
-        }
-      }
-    }
-  }
-  //Update cIcSearchCenter
-  if (bNewBest == true)
-  {
-    cIcRefine.setIcParam(iPram0RefineBest,iPram1RefineBest,iPram2RefineBest);
-    cIcSearchCenter->addIcParamDiff(cIcRefine);
-    cIcSearchCenter->computeScaleOffset(eRefPicList);
-    riIcpIdx = iIcpIdxBest;
-  }
-
-  return bNewBest;
-}
-
-UInt TEncSearch::xCalculateCostAfterICPred( TComIc cIcCand, Int& riIcpIdx, TComDataCU* pcCU, TComYuv* pcYuvOrg, UInt uiPartIdx, RefPicList eRefPicList )
-{
-  Int    iRoiWidth;
-  Int    iRoiHeight;
-  UInt   uiPartAddr;
-  TComIc cIcPred;
-  TComIc cIcd;
-
-  UInt   uiCost;
-  UInt   IcpBits;
-  UInt   IcBits;
-
-  TComMv acMvd[2];
-
-  pcCU->getPartIndexAndSize( uiPartIdx, uiPartAddr, iRoiWidth, iRoiHeight );
-
-  AICPInfo* pcAICPInfo = pcCU->getCUIcField()->getAICPInfo();
-  Int iIcpIdx;
-  Int iIcpNum = pcAICPInfo->iN;
-  UInt IcBitsBest = MAX_UINT;
-  for (iIcpIdx = 0; iIcpIdx < pcAICPInfo->iN; iIcpIdx++)
-  {
-
-    cIcPred = pcAICPInfo->m_acIcCand[iIcpIdx];
-
-    IcpBits = m_auiICPIdxCost[iIcpIdx][iIcpNum];
-
-    // compute ICD
-    cIcd.copyIcParam(cIcCand);
-    cIcd.subIcParamPred(cIcPred);
-
-    // add the estimated cost of coding MVD & ICD
-    if (eRefPicList != REF_PIC_LIST_X)
-    {
-      acMvd[eRefPicList] = pcCU->getCUMvField( eRefPicList )->getMvd   ( uiPartAddr );
-    }
-    else
-    {
-      acMvd[0]   = pcCU->getCUMvField( REF_PIC_LIST_0 )->getMvd   ( uiPartAddr );
-      acMvd[1]   = pcCU->getCUMvField( REF_PIC_LIST_1 )->getMvd   ( uiPartAddr );
-    }
-    IcBits = IcpBits + (UInt)xEstMvdIcdBits( pcCU, acMvd, &cIcd, eRefPicList );
-
-    if (cIcCand.isequalIcParam(cIcPred))
-    {
-      riIcpIdx = iIcpIdx;
-      IcBitsBest = IcBits;
-      break;
-    }
-    if (IcBits < IcBitsBest)
-    {
-      riIcpIdx = iIcpIdx;
-      IcBitsBest = IcBits;
-    }
-  }
-  iIcpIdx = riIcpIdx;
-  IcBits = IcBitsBest;
-
-  if (eRefPicList != REF_PIC_LIST_X)
-  {
-    xPredICompLumaBlk  ( &cIcCand, iRoiWidth   , iRoiHeight   , m_acYuvTempIC->getStride() , 1, m_acYuvTempIC->getLumaAddr(uiPartAddr), m_acYuvPred[eRefPicList].getStride() , 1, m_acYuvPred[eRefPicList].getLumaAddr(uiPartAddr), eRefPicList );
-    xPredICompChromaBlk( &cIcCand, iRoiWidth>>1, iRoiHeight>>1, m_acYuvTempIC->getCStride(), 1, m_acYuvTempIC->getCbAddr(uiPartAddr)  , m_acYuvPred[eRefPicList].getCStride(), 1, m_acYuvPred[eRefPicList].getCbAddr(uiPartAddr)  , eRefPicList );
-    xPredICompChromaBlk( &cIcCand, iRoiWidth>>1, iRoiHeight>>1, m_acYuvTempIC->getCStride(), 1, m_acYuvTempIC->getCrAddr(uiPartAddr)  , m_acYuvPred[eRefPicList].getCStride(), 1, m_acYuvPred[eRefPicList].getCrAddr(uiPartAddr)  , eRefPicList );
-  }
-  else
-  {
-    Int iRefIdx[2];
-    iRefIdx[0] = pcCU->getCUMvField( REF_PIC_LIST_0 )->getRefIdx( uiPartAddr );
-    iRefIdx[1] = pcCU->getCUMvField( REF_PIC_LIST_1 )->getRefIdx( uiPartAddr );
-
-    xPredICompLumaBlk  ( &cIcCand, iRoiWidth   , iRoiHeight   , m_acYuvTempIC[0].getStride() , 1, m_acYuvTempIC[0].getLumaAddr(uiPartAddr), m_acYuvPred[0].getStride() , 1, m_acYuvPred[0].getLumaAddr(uiPartAddr), REF_PIC_LIST_0 );
-    xPredICompChromaBlk( &cIcCand, iRoiWidth>>1, iRoiHeight>>1, m_acYuvTempIC[0].getCStride(), 1, m_acYuvTempIC[0].getCbAddr(uiPartAddr)  , m_acYuvPred[0].getCStride(), 1, m_acYuvPred[0].getCbAddr(uiPartAddr)  , REF_PIC_LIST_0 );
-    xPredICompChromaBlk( &cIcCand, iRoiWidth>>1, iRoiHeight>>1, m_acYuvTempIC[0].getCStride(), 1, m_acYuvTempIC[0].getCrAddr(uiPartAddr)  , m_acYuvPred[0].getCStride(), 1, m_acYuvPred[0].getCrAddr(uiPartAddr)  , REF_PIC_LIST_0 );
-
-    xPredICompLumaBlk  ( &cIcCand, iRoiWidth   , iRoiHeight   , m_acYuvTempIC[1].getStride() , 1, m_acYuvTempIC[1].getLumaAddr(uiPartAddr), m_acYuvPred[1].getStride() , 1, m_acYuvPred[1].getLumaAddr(uiPartAddr), REF_PIC_LIST_1 );
-    xPredICompChromaBlk( &cIcCand, iRoiWidth>>1, iRoiHeight>>1, m_acYuvTempIC[1].getCStride(), 1, m_acYuvTempIC[1].getCbAddr(uiPartAddr)  , m_acYuvPred[1].getCStride(), 1, m_acYuvPred[1].getCbAddr(uiPartAddr)  , REF_PIC_LIST_1 );
-    xPredICompChromaBlk( &cIcCand, iRoiWidth>>1, iRoiHeight>>1, m_acYuvTempIC[1].getCStride(), 1, m_acYuvTempIC[1].getCrAddr(uiPartAddr)  , m_acYuvPred[1].getCStride(), 1, m_acYuvPred[1].getCrAddr(uiPartAddr)  , REF_PIC_LIST_1 );
-
-    TComYuv* pcYuvPred = m_acYuvTempIC;
-    xWeightedAverage( pcCU, m_acYuvTempIC, m_acYuvTempIC+1, iRefIdx[0], iRefIdx[1], uiPartAddr, iRoiWidth, iRoiHeight, pcYuvPred);
-  }
-
-  // calc distortion ( HADSAD + bitcost )
-  DFunc eDFunc = (m_pcEncCfg->getUseHADME() == true) ? DF_HADS : DF_SADS;
-  uiCost = m_pcRdCost->getDistPart(  m_acYuvTempIC->getLumaAddr(uiPartAddr),  m_acYuvTempIC->getStride(), pcYuvOrg->getLumaAddr(uiPartAddr), pcYuvOrg->getStride(), iRoiWidth, iRoiHeight, eDFunc );
-  uiCost += UInt(m_pcRdCost->getDistPart( m_acYuvTempIC->getCbAddr(uiPartAddr), m_acYuvTempIC->getCStride(),pcYuvOrg->getCbAddr(uiPartAddr),pcYuvOrg->getCStride(), iRoiWidth>>1, iRoiHeight>>1, eDFunc)
-              +  m_pcRdCost->getDistPart( m_acYuvTempIC->getCrAddr(uiPartAddr), m_acYuvTempIC->getCStride(),pcYuvOrg->getCrAddr(uiPartAddr),pcYuvOrg->getCStride(), iRoiWidth>>1, iRoiHeight>>1, eDFunc));
-  uiCost = (UInt) ( uiCost / 1.5 );
-
-  UInt uiCostTmp = uiCost;
-  uiCost = (UInt) m_pcRdCost->calcRdCost( IcBits, uiCost, false, DF_SAD );
-  assert(uiCost >= uiCostTmp);
-
-  return uiCost;
-}
-
-Double TEncSearch::xComputeSum( TComYuv* pcYuvSrc, UInt uiPartAddr, Int iWidth, Int iHeight, Int YCbCr )
-{
-  Int x, y;
-  Double dbSum=0.0;
-  Pel* pSrc; 
-  Int iStride;
-
-  if(YCbCr==0){
-	  pSrc   = pcYuvSrc->getLumaAddr(uiPartAddr);
-	  iStride = pcYuvSrc->getStride();
- }
-  if(YCbCr==1){
-		pSrc   = pcYuvSrc->getCbAddr(uiPartAddr);
-		iStride = pcYuvSrc->getCStride();
-	}
-	if(YCbCr==2){
-		pSrc   = pcYuvSrc->getCrAddr(uiPartAddr);
-		iStride = pcYuvSrc->getCStride();
-	}
-
-  for (y=0; y<iHeight; y++)
-  {
-    for (x=0; x<iWidth; x++)
-    {
-      dbSum += (Double)(pSrc[x]);
-    }
-    pSrc += iStride;  
-	}
-
-  return dbSum;
-}
-
-Double TEncSearch::xComputeSquareSum( TComYuv* pcYuvSrc, UInt uiPartAddr, Int iWidth, Int iHeight, Int YCbCr )
-{
-  Int x, y;
-  Double dbSquareSum=0.0;
-  Pel* pSrc; 
-  Int iStride;
-
-  if(YCbCr==0){
-	  pSrc    = pcYuvSrc->getLumaAddr(uiPartAddr);
-	  iStride = pcYuvSrc->getStride();
- }
-  if(YCbCr==1){
-		pSrc    = pcYuvSrc->getCbAddr(uiPartAddr);
-		iStride = pcYuvSrc->getCStride();
-	}
-	if(YCbCr==2){
-		pSrc    = pcYuvSrc->getCrAddr(uiPartAddr);
-		iStride = pcYuvSrc->getCStride();
-	}
-
-  for (y=0; y<iHeight; y++)
-  {
-    for (x=0; x<iWidth; x++)
-    {
-			dbSquareSum += (((Double)pSrc[x])*pSrc[x]);
-
-    }
-		pSrc += iStride;
-  }
-  return dbSquareSum;
-}
-
-Double TEncSearch::xComputeSumMult( TComYuv* pcYuvSrc0, TComYuv* pcYuvSrc1, UInt uiPartAddr, Int iWidth, Int iHeight, Int YCbCr )
-{
-  Int x, y;
-  Double dbSumMult=0.0;
-	Pel* pSrc0;
-	Pel* pSrc1;
-	Int iStride0,iStride1;
-
- if(YCbCr==0){
-    pSrc0    = pcYuvSrc0->getLumaAddr(uiPartAddr);
-    iStride0 = pcYuvSrc0->getStride();
- 
-	  pSrc1    = pcYuvSrc1->getLumaAddr(uiPartAddr);
-	  iStride1 = pcYuvSrc1->getStride();
- }
- if(YCbCr==1){
-    pSrc0   = pcYuvSrc0->getCbAddr(uiPartAddr);
-    iStride0 = pcYuvSrc0->getCStride();
-
-    pSrc1   = pcYuvSrc1->getCbAddr(uiPartAddr);
-    iStride1 = pcYuvSrc1->getCStride();
- }
- if(YCbCr==2){
-		pSrc0   = pcYuvSrc0->getCrAddr(uiPartAddr);
-		iStride0 = pcYuvSrc0->getCStride();
-
-		pSrc1   = pcYuvSrc1->getCrAddr(uiPartAddr);
-		iStride1 = pcYuvSrc1->getCStride();
-	}
-
-  for (y=0; y<iHeight; y++)
-  {
-    for (x=0; x<iWidth; x++)
-    {
-			dbSumMult += (((Double)pSrc0[x])*pSrc1[x]);
-    }
-    pSrc0 += iStride0;
-	  pSrc1 += iStride1;
-		
-  }
-  return dbSumMult;
-}
-
-Void TEncSearch::Calc_ICParam_LMS_Uni( TComYuv* pcYuvOrg, TComYuv* pcYuvPred, UInt uiPartAddr, Int iHeight, Int iWidth, TComIc* rcIc, RefPicList eRefPicList )
-{
-  Double dbScale0;
-  Double dbOffset;
-
-  Int iParam0;
-  Int iParam2;
-  Int iDCoffset = (128 << g_uiBitIncrement);
-  Int iRound = (g_uiBitIncrement>0) ? (1<<(g_uiBitIncrement-1)) : 0;
-
-  Double dbOrgSum          = xComputeSum(pcYuvOrg ,uiPartAddr,iWidth,iHeight,0);          // sum(OrgY)
-  Double dbPred0Sum        = xComputeSum(pcYuvPred,uiPartAddr,iWidth,iHeight,0);          // sum(PredY)
-  Double dbPred0SquareSum  = xComputeSquareSum(pcYuvPred ,uiPartAddr,iWidth,iHeight,0); 
-  Double dbPred0OrgSum     = xComputeSumMult(pcYuvPred ,pcYuvOrg ,uiPartAddr,iWidth,iHeight,0);
-                         
-  Double dbN                 = iWidth * iHeight; //N : d
-
-  Double dbNchroma     = (iWidth>>1) * (iHeight>>1);
-  Double dbOrgCbSum    = xComputeSum(pcYuvOrg ,uiPartAddr,iWidth>>1,iHeight>>1,1);
-  Double dbOrgCrSum    = xComputeSum(pcYuvOrg ,uiPartAddr,iWidth>>1,iHeight>>1,2);
-  Double dbPred0CbSum  = xComputeSum(pcYuvPred,uiPartAddr,iWidth>>1,iHeight>>1,1);    
-  Double dbPred0CrSum  = xComputeSum(pcYuvPred,uiPartAddr,iWidth>>1,iHeight>>1,2); 
-
-  Double dbPred0CbSquareSum = xComputeSquareSum(pcYuvPred ,uiPartAddr,iWidth>>1,iHeight>>1,1); 
-  Double dbPred0CrSquareSum = xComputeSquareSum(pcYuvPred ,uiPartAddr,iWidth>>1,iHeight>>1,2); 
-
-  Double dbPred0CbOrgCbSum  = xComputeSumMult(pcYuvPred ,pcYuvOrg ,uiPartAddr,iWidth>>1,iHeight>>1,1);
-  Double dbPred0CrOrgCrSum  = xComputeSumMult(pcYuvPred ,pcYuvOrg ,uiPartAddr,iWidth>>1,iHeight>>1,2);
-
-  dbPred0CbSquareSum -= iDCoffset * ( dbPred0CbSum + dbPred0CbSum - (dbNchroma * iDCoffset) );
-  dbPred0CrSquareSum -= iDCoffset * ( dbPred0CrSum + dbPred0CrSum - (dbNchroma * iDCoffset) );
-  dbPred0CbOrgCbSum  -= iDCoffset * ( dbPred0CbSum + dbOrgCbSum   - (dbNchroma * iDCoffset) );
-  dbPred0CrOrgCrSum  -= iDCoffset * ( dbPred0CrSum + dbOrgCrSum   - (dbNchroma * iDCoffset) );
-
-  dbPred0SquareSum += ( dbPred0CbSquareSum + dbPred0CrSquareSum);  // update to sum(predY^2)+ sum( predCb^2) + sum ( predCr^2) :a
-  dbPred0OrgSum    += ( dbPred0CbOrgCbSum  + dbPred0CrOrgCrSum);  // update to sum(predY * OrgY) + sum(predCb * OrgCb) + sum(predCr * OrgCr)
-
-  Double dbDet =  (dbPred0SquareSum * dbN) - (dbPred0Sum * dbPred0Sum) ;
-
-  if( dbDet > 0 )
-  {
-    dbScale0 =((dbN * dbPred0OrgSum) - (dbPred0Sum  * dbOrgSum)) / dbDet;
-    iParam0 = ICROUND( (dbScale0 - 1.0) * (1 << IC_SCALE_PREC) );
-
-    dbScale0 = 1 + Double(iParam0) / (1 << IC_SCALE_PREC);
-    dbOffset = ( dbOrgSum - dbPred0Sum*dbScale0 ) / dbN;
-    iParam2 = ( ICROUND(dbOffset) + iRound ) >> g_uiBitIncrement;
-  }
-  else
-  {
-	  iParam0=0;
-	  iParam2=0;
-  }
-
-  rcIc->setIcParam(iParam0,0,iParam2); 
-  rcIc->computeScaleOffset( eRefPicList );
-
-  // Scale only
-  rcIc++;
-  if (dbPred0SquareSum > 0)
-  {
-    dbScale0 = dbPred0OrgSum / dbPred0SquareSum;
-    iParam0 = ICROUND( (dbScale0 - 1.0) * (1 << IC_SCALE_PREC) );
-  }
-  else
-  {
-    iParam0 = 0;
-  }
-  rcIc->setIcParam(iParam0, 0, 0);
-  rcIc->computeScaleOffset( eRefPicList );
-
-  return;
-}
-
-Void TEncSearch::Calc_ICParam_LMS_Bi( TComYuv* pcYuvOrg, TComYuv* pcYuvPred0, TComYuv* pcYuvPred1, UInt uiPartAddr, Int iHeight, Int iWidth, TComIc* rcIc )
-{
-  Double dbScale0;
-  Double dbScale1;
-  Double dbOffset;
-
-  Int iParam0;
-  Int iParam1;
-  Int iParam2;
-  Int iDCoffset = (128 << g_uiBitIncrement);
-  Int iRound = (g_uiBitIncrement>0) ? (1<<(g_uiBitIncrement-1)) : 0;
-
-  Double dbOrgSum   = xComputeSum(pcYuvOrg   ,uiPartAddr,iWidth,iHeight,0); // sum(OrgY)
-  Double dbPred0Sum = xComputeSum(pcYuvPred0 ,uiPartAddr,iWidth,iHeight,0); //sum(pred0Y)
-  Double dbPred1Sum = xComputeSum(pcYuvPred1 ,uiPartAddr,iWidth,iHeight,0); //sum(pred1Y)
-
-  Double dbPred0SquareSum = xComputeSquareSum(pcYuvPred0,uiPartAddr,iWidth,iHeight,0);
-  Double dbPred1SquareSum = xComputeSquareSum(pcYuvPred1,uiPartAddr,iWidth,iHeight,0);
-  Double dbN             = iWidth * iHeight; //N
-
-  Double dbPred0Pred1Sum  = xComputeSumMult(pcYuvPred0,pcYuvPred1,uiPartAddr,iWidth,iHeight,0);
-  Double dbPred0OrgSum    = xComputeSumMult(pcYuvPred0,pcYuvOrg  ,uiPartAddr,iWidth,iHeight,0);
-  Double dbPred1OrgSum    = xComputeSumMult(pcYuvPred1,pcYuvOrg  ,uiPartAddr,iWidth,iHeight,0);
-
-  Double dbNchroma     = (iWidth>>1) * (iHeight>>1);
-  Double dbOrgCbSum    = xComputeSum(pcYuvOrg  ,uiPartAddr,iWidth>>1,iHeight>>1,1);
-  Double dbOrgCrSum    = xComputeSum(pcYuvOrg  ,uiPartAddr,iWidth>>1,iHeight>>1,2);
-  Double dbPred0CbSum  = xComputeSum(pcYuvPred0,uiPartAddr,iWidth>>1,iHeight>>1,1);    
-  Double dbPred0CrSum  = xComputeSum(pcYuvPred0,uiPartAddr,iWidth>>1,iHeight>>1,2); 
-  Double dbPred1CbSum  = xComputeSum(pcYuvPred1,uiPartAddr,iWidth>>1,iHeight>>1,1);    
-  Double dbPred1CrSum  = xComputeSum(pcYuvPred1,uiPartAddr,iWidth>>1,iHeight>>1,2); 
-
-  Double dbPred0CbSquareSum = xComputeSquareSum(pcYuvPred0,uiPartAddr,iWidth>>1,iHeight>>1,1); 
-  Double dbPred0CrSquareSum = xComputeSquareSum(pcYuvPred0,uiPartAddr,iWidth>>1,iHeight>>1,2); 
-  Double dbPred1CbSquareSum = xComputeSquareSum(pcYuvPred1,uiPartAddr,iWidth>>1,iHeight>>1,1); 
-  Double dbPred1CrSquareSum = xComputeSquareSum(pcYuvPred1,uiPartAddr,iWidth>>1,iHeight>>1,2); 
-
-  Double dbPred0CbOrgCbSum  = xComputeSumMult(pcYuvPred0 ,pcYuvOrg ,uiPartAddr,iWidth>>1,iHeight>>1,1);
-  Double dbPred0CrOrgCrSum  = xComputeSumMult(pcYuvPred0 ,pcYuvOrg ,uiPartAddr,iWidth>>1,iHeight>>1,2);
-  Double dbPred1CbOrgCbSum  = xComputeSumMult(pcYuvPred1 ,pcYuvOrg ,uiPartAddr,iWidth>>1,iHeight>>1,1);
-  Double dbPred1CrOrgCrSum  = xComputeSumMult(pcYuvPred1 ,pcYuvOrg ,uiPartAddr,iWidth>>1,iHeight>>1,2);
-
-  Double dbPred0CbPred1CbSum  = xComputeSumMult(pcYuvPred0 ,pcYuvPred1 ,uiPartAddr,iWidth>>1,iHeight>>1,1);
-  Double dbPred0CrPred1CrSum  = xComputeSumMult(pcYuvPred0 ,pcYuvPred1 ,uiPartAddr,iWidth>>1,iHeight>>1,2);
-
-  dbPred0CbSquareSum -= iDCoffset * ( dbPred0CbSum + dbPred0CbSum - (dbNchroma * iDCoffset) );
-  dbPred0CrSquareSum -= iDCoffset * ( dbPred0CrSum + dbPred0CrSum - (dbNchroma * iDCoffset) );
-  dbPred1CbSquareSum -= iDCoffset * ( dbPred1CbSum + dbPred1CbSum - (dbNchroma * iDCoffset) );
-  dbPred1CrSquareSum -= iDCoffset * ( dbPred1CrSum + dbPred1CrSum - (dbNchroma * iDCoffset) );
-
-  dbPred0CbOrgCbSum  -= iDCoffset * ( dbPred0CbSum + dbOrgCbSum   - (dbNchroma * iDCoffset) );
-  dbPred0CrOrgCrSum  -= iDCoffset * ( dbPred0CrSum + dbOrgCrSum   - (dbNchroma * iDCoffset) );
-  dbPred1CbOrgCbSum  -= iDCoffset * ( dbPred1CbSum + dbOrgCbSum   - (dbNchroma * iDCoffset) );
-  dbPred1CrOrgCrSum  -= iDCoffset * ( dbPred1CrSum + dbOrgCrSum   - (dbNchroma * iDCoffset) );
-  dbPred0CbPred1CbSum -= iDCoffset * ( dbPred0CbSum + dbPred1CbSum   - (dbNchroma * iDCoffset) );
-  dbPred0CrPred1CrSum -= iDCoffset * ( dbPred0CrSum + dbPred1CrSum   - (dbNchroma * iDCoffset) );
-
-  dbPred0SquareSum += ( dbPred0CbSquareSum + dbPred0CrSquareSum);  // sum(pred0Y^2) + sum (pred0Cb^2) + sum ( pred0Cr^2)
-  dbPred1SquareSum += ( dbPred1CbSquareSum + dbPred1CrSquareSum);  // sum(pred0Y^2) + sum (pred0Cb^2) + sum ( pred0Cr^2)
-  dbPred0Pred1Sum  += ( dbPred0CbPred1CbSum + dbPred0CrPred1CrSum);// sum(pred0Y*pred1Y) + sum(pred0Cb*pred1Cb) + sum(pred0Cr*pred1Cr)
-  dbPred0OrgSum    += ( dbPred0CbOrgCbSum + dbPred0CrOrgCrSum);    // sum(pred0Y* OrgY) + sum(pred0Cb * OrgCb) + sum(pred0Cr* OrgCr)
-  dbPred1OrgSum    += ( dbPred1CbOrgCbSum + dbPred1CrOrgCrSum);    // sum(pred1Y* OrgY) + sum(pred1Cb * OrgCb) + sum(pred1Cr* OrgCr)
-
-  Double dbA = (dbN * dbPred1SquareSum)  - (dbPred1Sum * dbPred1Sum);
-  Double dbB = (dbPred0Sum * dbPred1Sum) - (dbN * dbPred0Pred1Sum);
-  Double dbC = (dbPred1Sum * dbPred0Pred1Sum) -  (dbPred1SquareSum * dbPred0Sum);
-
-  Double dbD = (dbN * dbPred0SquareSum) - (dbPred0Sum * dbPred0Sum);
-  Double dbE = (dbPred0Pred1Sum * dbPred0Sum) - (dbPred1Sum * dbPred0SquareSum);
-  Double dbF = (dbPred0SquareSum * dbPred1SquareSum) - (dbPred0Pred1Sum * dbPred0Pred1Sum);
-
-  Double dbDet = (dbPred0SquareSum * dbA) + (dbPred0Pred1Sum * dbB) + (dbPred0Sum * dbC);
-
-  if( dbDet > 0 )
-  {
-    dbScale0 = ((dbPred0OrgSum * dbA) + (dbPred1OrgSum * dbB) + (dbOrgSum * dbC))/dbDet;
-    dbScale1 = ((dbPred0OrgSum * dbB) + (dbPred1OrgSum * dbD) + (dbOrgSum * dbE))/dbDet;
-    iParam0 = ICROUND( (dbScale0 + dbScale1 - 1.0) * (1 <<  IC_SCALE_PREC   ) );
-    iParam1 = ICROUND( (dbScale0 - dbScale1      ) * (1 << (IC_SCALE_PREC-1)) );
-
-    dbScale0 = 0.5 * (1 + Double(iParam0 + (iParam1<<1)) / (1 << IC_SCALE_PREC));
-    dbScale1 = 0.5 * (1 + Double(iParam0 - (iParam1<<1)) / (1 << IC_SCALE_PREC));
-    dbOffset = ( dbOrgSum - (dbPred0Sum*dbScale0 + dbPred1Sum*dbScale1) ) / dbN;
-    iParam2 = ( ICROUND(dbOffset) + iRound ) >> g_uiBitIncrement;
-  }
-  else
-  {
-	  iParam0=0;
-	  iParam1=0;
-	  iParam2=0;
-  }
-
-  rcIc->setIcParam(iParam0,iParam1,iParam2);
-  rcIc->computeScaleOffset( REF_PIC_LIST_X  );
-
-  // Scale only
-  rcIc++;
-  if (dbF > 0)
-  {
-    dbScale0 = ( (dbPred0OrgSum*dbPred1SquareSum) - (dbPred1OrgSum*dbPred0Pred1Sum) ) / dbF;
-    dbScale1 = ( (dbPred1OrgSum*dbPred0SquareSum) - (dbPred0OrgSum*dbPred0Pred1Sum) ) / dbF;
-    iParam0 = ICROUND( (dbScale0 + dbScale1 - 1.0) * (1 <<  IC_SCALE_PREC   ) );
-    iParam1 = ICROUND( (dbScale0 - dbScale1      ) * (1 << (IC_SCALE_PREC-1)) );
-  }
-  else
-  {
-	  iParam0 = 0;
-	  iParam1 = 0;
-  }
-  rcIc->setIcParam(iParam0, iParam1, 0);
-  rcIc->computeScaleOffset( REF_PIC_LIST_X  );
-
-  return;
-}
-
-UInt TEncSearch::xGetComponentBits(Int iVal)
-{
-  UInt uiLength = 1;
-  UInt uiTemp   = ( iVal <= 0) ? (-iVal<<1)+1: (iVal<<1);
-
-  assert ( uiTemp );
-
-  while ( 1 != uiTemp )
-  {
-    uiTemp >>= 1;
-    uiLength += 2;
-  }
-
-  return uiLength;
-}
-
-UInt TEncSearch::xGetMvdBits(TComMv cMvd)
-{
-  return ( xGetComponentBits(cMvd.getHor()) + xGetComponentBits(cMvd.getVer()) );
-}
-
-UInt TEncSearch::xGetIcdBits(TComIc cIcd)
-{
-  Int aiParam[3];
-  cIcd.getIcParam( aiParam[0], aiParam[1], aiParam[2] );
-  return ( xGetComponentBits(aiParam[0]) + xGetComponentBits(aiParam[1]) + xGetComponentBits(aiParam[2]) );
-}
-#endif //#ifdef DCM_PBIC

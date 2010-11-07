@@ -304,14 +304,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\source\Lib\TLibCommon\TComIc.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\..\source\Lib\TLibCommon\TComICInfo.cpp"
-				>
-			</File>
-			<File
 				RelativePath="..\..\source\Lib\TLibCommon\TComLoopFilter.cpp"
 				>
 			</File>
@@ -367,10 +359,6 @@
 				RelativePath="..\..\source\Lib\TLibCommon\TComYuv.cpp"
 				>
 			</File>
-			<File
-				RelativePath="..\..\source\Lib\TLibCommon\TComZeroTree.cpp"
-				>
-			</File>
 		</Filter>
 		<Filter
 			Name="Header Files"
@@ -415,14 +403,6 @@
 			</File>
 			<File
 				RelativePath="..\..\source\Lib\TLibCommon\TComDataCU.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\source\Lib\TLibCommon\TComIc.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\source\Lib\TLibCommon\TComICInfo.h"
 				>
 			</File>
 			<File
@@ -487,10 +467,6 @@
 			</File>
 			<File
 				RelativePath="..\..\source\Lib\TLibCommon\TComYuv.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\source\Lib\TLibCommon\TComZeroTree.h"
 				>
 			</File>
 			<File

@@ -39,9 +39,6 @@
 
 #include "CommonDef.h"
 #include "TComList.h"
-#ifdef DCM_PBIC
-#include "TComZeroTree.h"
-#endif
 
 class TComPic;
 
@@ -97,10 +94,6 @@ private:
 #endif
 #if HHI_IMVP
   Bool        m_bUseIMP; // SOPH:
-#endif
-
-#ifdef DCM_PBIC 
-  Bool          m_bUseIC;
 #endif
 
   Bool        m_bUseAMP;
@@ -212,11 +205,6 @@ public:
   Void setDIFTapC     ( Int  i ) { m_iDIFTapC = i;          };
 #endif
 
-#ifdef DCM_PBIC 
-	Void setUseIC       ( Bool b ) { m_bUseIC   = b;          }
-  Bool getUseIC       ()         { return m_bUseIC;         }
-#endif
-
   Bool getUseAMP      ()         { return m_bUseAMP; }
   Void setUseAMP      ( Bool b ) { m_bUseAMP  = b; }
 
@@ -307,12 +295,6 @@ private:
 #if HHI_INTERP_FILTER
   Int         m_iInterpFilterType;
 #endif
-#ifdef DCM_PBIC
-  TComZeroTree* m_apcZTree  [MAX_NUM_ZTREE];
-  Void        xCreateZTrees();
-  Void        xDeleteZTrees();
-#endif
-
 #if MS_NO_BACK_PRED_IN_B0
   Bool m_bNoBackPredFlag;
 #endif
@@ -345,9 +327,6 @@ public:
   Int       getRefPOC           ( RefPicList e, Int iRefIdx)    { return  m_aiRefPOCList[e][iRefIdx];   }
   Int       getDepth            ()                              { return  m_iDepth;                     }
   UInt      getColDir           ()                              { return  m_uiColDir;                   }
-#ifdef DCM_PBIC
-  TComZeroTree* getZTree        ( UInt uiZTreeIdx )             { return  m_apcZTree[uiZTreeIdx];       }
-#endif
 
   Void      setReferenced(Bool b)                               { m_bRefenced = b; }
   Bool      isReferenced()                                      { return m_bRefenced; }

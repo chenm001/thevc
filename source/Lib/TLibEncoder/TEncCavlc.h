@@ -96,18 +96,12 @@ protected:
   UInt m_uiBitIntraDir;
   UInt m_uiBitIRefFrmIdx;
   UInt m_uiBitMVD;
-#ifdef DCM_PBIC
-  UInt m_uiBitMVDICD;
-#endif
   UInt m_uiBitDeltaQP;
   UInt m_uiBitCbf;
   UInt m_uiBitAlfFlag;
   UInt m_uiBitAlfUvlc;
   UInt m_uiBitAlfSvlc;
   UInt m_uiBitMVPIdx;
-#ifdef DCM_PBIC
-  UInt m_uiBitICPIdx;
-#endif
   UInt m_uiBitPlanarInfo;
   UInt m_uiBitInterDir;
 #if LCEC_PHASE2
@@ -148,9 +142,6 @@ protected:
   UInt  xWriteCode            ( UInt uiCode, UInt uiLength );
   UInt  xWriteUvlc            ( UInt uiCode );
   UInt  xWriteSvlc            ( Int iCode   );
-#ifdef DCM_PBIC
-  UInt  xWriteSvlcNZ          ( Int iCode   );
-#endif
   Void  xWriteFlag            ( UInt uiCode );
   UInt  xWriteEpExGolomb      ( UInt uiSymbol, UInt uiCount );
   UInt  xWriteExGolombLevel   ( UInt uiSymbol );
@@ -161,9 +152,6 @@ protected:
   Void  xWriteCode            ( UInt uiCode, UInt uiLength );
   Void  xWriteUvlc            ( UInt uiCode );
   Void  xWriteSvlc            ( Int iCode   );
-#ifdef DCM_PBIC
-  Void  xWriteSvlcNZ          ( Int iCode   );
-#endif
   Void  xWriteFlag            ( UInt uiCode );
   Void  xWriteEpExGolomb      ( UInt uiSymbol, UInt uiCount );
   Void  xWriteExGolombLevel    ( UInt uiSymbol );
@@ -209,9 +197,6 @@ public:
   Void  codeSliceFinish         ();
 
   Void codeMVPIdx ( TComDataCU* pcCU, UInt uiAbsPartIdx, RefPicList eRefList );
-#ifdef DCM_PBIC
-  Void codeICPIdx ( TComDataCU* pcCU, UInt uiAbsPartIdx );
-#endif
   Void codeAlfFlag       ( UInt uiCode );
   Void codeAlfUvlc       ( UInt uiCode );
   Void codeAlfSvlc       ( Int   iCode );
@@ -252,15 +237,6 @@ public:
   Void codeInterDir      ( TComDataCU* pcCU, UInt uiAbsPartIdx );
   Void codeRefFrmIdx     ( TComDataCU* pcCU, UInt uiAbsPartIdx, RefPicList eRefList );
   Void codeMvd           ( TComDataCU* pcCU, UInt uiAbsPartIdx, RefPicList eRefList );
-#ifdef DCM_PBIC
-  Void codeMvdIcd        ( TComDataCU* pcCU, UInt uiAbsPartIdx, RefPicList eRefList );
-#if LCEC_STAT
-  UInt codeZTree         ( TComZeroTree* pcZTree, TComZTNode* pcZTNode );
-#else
-  Void codeZTree         ( TComZeroTree* pcZTree, TComZTNode* pcZTNode );
-#endif
-  ContextModel* getZTreeCtx ( Int iIdx );
-#endif
 
   Void codeDeltaQP       ( TComDataCU* pcCU, UInt uiAbsPartIdx );
   Void codeCbf           ( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eType, UInt uiTrDepth );

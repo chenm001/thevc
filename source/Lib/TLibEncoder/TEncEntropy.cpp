@@ -382,12 +382,7 @@ Void TEncEntropy::encodeMergeFlag( TComDataCU* pcCU, UInt uiAbsPartIdx )
   TComMvField cMvFieldNeighbours[4]; // above ref_list_0, above ref_list_1, left ref_list_0, left ref_list_1
   UInt uiNeighbourInfo;
   UChar uhInterDirNeighbours[2];
-#ifdef DCM_PBIC
-  TComIc cIcNeighbours[2]; //above, left
-  pcCU->getInterMergeCandidates( uiAbsPartIdx, cMvFieldNeighbours, cIcNeighbours, uhInterDirNeighbours, uiNeighbourInfo );
-#else
   pcCU->getInterMergeCandidates( uiAbsPartIdx, cMvFieldNeighbours, uhInterDirNeighbours, uiNeighbourInfo );
-#endif
 
   if ( uiNeighbourInfo )
   {
@@ -405,12 +400,7 @@ Void TEncEntropy::encodeMergeIndex( TComDataCU* pcCU, UInt uiAbsPartIdx )
   TComMvField cMvFieldNeighbours[4]; // above ref_list_0, above ref_list_1, left ref_list_0, left ref_list_1
   UInt uiNeighbourInfo;
   UChar uhInterDirNeighbours[2];
-#ifdef DCM_PBIC
-  TComIc cIcNeighbours[2]; //above, left
-  pcCU->getInterMergeCandidates( uiAbsPartIdx, cMvFieldNeighbours, cIcNeighbours, uhInterDirNeighbours, uiNeighbourInfo );
-#else
   pcCU->getInterMergeCandidates( uiAbsPartIdx, cMvFieldNeighbours, uhInterDirNeighbours, uiNeighbourInfo );
-#endif
 
   UInt uiMergeIndex = 0;
   if ( uiNeighbourInfo == 3 ) 
@@ -1045,12 +1035,6 @@ Void TEncEntropy::encodePredInfo( TComDataCU* pcCU, UInt uiAbsPartIdx, Bool bRD 
     {
       encodeMVPIdx( pcCU, uiAbsPartIdx, REF_PIC_LIST_1);
     }
-#ifdef DCM_PBIC
-    if (pcCU->getSlice()->getSPS()->getUseIC())
-    {
-      encodeICPIdx( pcCU, uiAbsPartIdx );
-    }
-#endif
     return;
   }
 
@@ -1086,39 +1070,6 @@ Void TEncEntropy::encodePredInfo( TComDataCU* pcCU, UInt uiAbsPartIdx, Bool bRD 
     {
       encodeInterDir( pcCU, uiAbsPartIdx, bRD );
 
-#ifdef DCM_PBIC
-      if (pcCU->getSlice()->getSPS()->getUseIC())
-      {
-        if ( ( pcCU->getSlice()->getNumRefIdx( REF_PIC_LIST_0 ) > 0 ) && ( pcCU->getSlice()->getNumRefIdx( REF_PIC_LIST_1 ) > 0 ) )
-        {
-          // Both ref. frame list0 & ref. frame list1 have at least 1 entry each
-          encodeRefFrmIdx ( pcCU, uiAbsPartIdx, REF_PIC_LIST_0, bRD );
-          encodeRefFrmIdx ( pcCU, uiAbsPartIdx, REF_PIC_LIST_1, bRD );
-          encodeMvdIcd    ( pcCU, uiAbsPartIdx, REF_PIC_LIST_X, bRD );
-          encodeMVPIdx    ( pcCU, uiAbsPartIdx, REF_PIC_LIST_0      );
-          encodeMVPIdx    ( pcCU, uiAbsPartIdx, REF_PIC_LIST_1      );
-        }
-        else if ( pcCU->getSlice()->getNumRefIdx( REF_PIC_LIST_0 ) > 0 )
-        {
-          // Only ref. frame list0 has at least 1 entry
-          encodeRefFrmIdx ( pcCU, uiAbsPartIdx, REF_PIC_LIST_0, bRD );
-          encodeMvdIcd    ( pcCU, uiAbsPartIdx, REF_PIC_LIST_0, bRD );
-          encodeMVPIdx    ( pcCU, uiAbsPartIdx, REF_PIC_LIST_0      );
-        }
-        else if ( pcCU->getSlice()->getNumRefIdx( REF_PIC_LIST_1 ) > 0 )
-        {
-          // Only ref. frame list1 has at least 1 entry
-          encodeRefFrmIdx ( pcCU, uiAbsPartIdx, REF_PIC_LIST_1, bRD );
-          encodeMvdIcd    ( pcCU, uiAbsPartIdx, REF_PIC_LIST_1, bRD );
-          encodeMVPIdx    ( pcCU, uiAbsPartIdx, REF_PIC_LIST_1      );
-        }
-        if ( ( pcCU->getSlice()->getNumRefIdx( REF_PIC_LIST_0 ) > 0 ) || ( pcCU->getSlice()->getNumRefIdx( REF_PIC_LIST_1 ) > 0 ) )
-        {
-          encodeICPIdx  ( pcCU, uiAbsPartIdx                      );
-        }
-      }
-      else
-#endif
       {
         if ( pcCU->getSlice()->getNumRefIdx( REF_PIC_LIST_0 ) > 0 )       // if ( ref. frame list0 has at least 1 entry )
         {
@@ -1165,12 +1116,7 @@ Void TEncEntropy::encodeMergeInfo( TComDataCU* pcCU, UInt uiAbsPartIdx, Bool bRD
   TComMvField cMvFieldNeighbours[4]; // above ref_list_0, above ref_list_1, left ref_list_0, left ref_list_1
   UInt uiNeighbourInfo;
   UChar uhInterDirNeighbours[2];
-#ifdef DCM_PBIC
-  TComIc cIcNeighbour[2]; //above 0, left 1
-  pcCU->getInterMergeCandidates( uiAbsPartIdx, cMvFieldNeighbours,cIcNeighbour,uhInterDirNeighbours, uiNeighbourInfo );
-#else
   pcCU->getInterMergeCandidates( uiAbsPartIdx, cMvFieldNeighbours, uhInterDirNeighbours, uiNeighbourInfo );
-#endif
   if ( uiNeighbourInfo )
   {
     // at least one merge candidate exists
@@ -1296,36 +1242,6 @@ Void TEncEntropy::encodePUWise( TComDataCU* pcCU, UInt uiAbsPartIdx, Bool bRD )
     else
     {
       encodeInterDirPU( pcCU, uiSubPartIdx );
-#ifdef DCM_PBIC
-      if (pcCU->getSlice()->getSPS()->getUseIC())
-      {
-        if ( ( pcCU->getSlice()->getNumRefIdx( REF_PIC_LIST_0 ) > 0 ) && ( pcCU->getSlice()->getNumRefIdx( REF_PIC_LIST_1 ) > 0 ) )
-        {
-          encodeRefFrmIdxPU ( pcCU, uiSubPartIdx, REF_PIC_LIST_0 );
-          encodeRefFrmIdxPU ( pcCU, uiSubPartIdx, REF_PIC_LIST_1 );
-          encodeMvdIcdPU    ( pcCU, uiSubPartIdx                 );
-          encodeMVPIdxPU    ( pcCU, uiSubPartIdx, REF_PIC_LIST_0 );
-          encodeMVPIdxPU    ( pcCU, uiSubPartIdx, REF_PIC_LIST_1 );
-        }
-        else if ( pcCU->getSlice()->getNumRefIdx( REF_PIC_LIST_0 ) > 0 )
-        {
-          encodeRefFrmIdxPU ( pcCU, uiSubPartIdx, REF_PIC_LIST_0 );
-          encodeMvdIcdPU    ( pcCU, uiSubPartIdx                 );
-          encodeMVPIdxPU    ( pcCU, uiSubPartIdx, REF_PIC_LIST_0 );
-        }
-        else if ( pcCU->getSlice()->getNumRefIdx( REF_PIC_LIST_1 ) > 0 )
-        {
-          encodeRefFrmIdxPU ( pcCU, uiSubPartIdx, REF_PIC_LIST_1 );
-          encodeMvdIcdPU    ( pcCU, uiSubPartIdx                 );
-          encodeMVPIdxPU    ( pcCU, uiSubPartIdx, REF_PIC_LIST_1 );
-        }
-        if ( ( pcCU->getSlice()->getNumRefIdx( REF_PIC_LIST_0 ) > 0 ) || ( pcCU->getSlice()->getNumRefIdx( REF_PIC_LIST_1 ) > 0 ) )
-        {
-          encodeICPIdxPU    ( pcCU, uiSubPartIdx                 );
-        }
-      }
-      else
-#endif
       {
         for ( UInt uiRefListIdx = 0; uiRefListIdx < 2; uiRefListIdx++ )
         {
@@ -1393,26 +1309,6 @@ Void TEncEntropy::encodeMVPIdxPU( TComDataCU* pcCU, UInt uiAbsPartIdx, RefPicLis
 
   return;
 }
-
-#ifdef DCM_PBIC
-Void TEncEntropy::encodeMvdIcdPU( TComDataCU* pcCU, UInt uiAbsPartIdx )
-{
-  assert( !pcCU->isIntra( uiAbsPartIdx ) );
-  assert( !pcCU->isSkip( uiAbsPartIdx ) );
-
-  UChar uhInterDir = pcCU->getInterDir( uiAbsPartIdx );
-  assert( (uhInterDir == 1) || (uhInterDir == 2) || (uhInterDir == 3) );
-  RefPicList eRefList = (uhInterDir == 3) ? REF_PIC_LIST_X : ( (uhInterDir == 2) ? REF_PIC_LIST_1 : REF_PIC_LIST_0);
-
-  m_pcEntropyCoderIf->codeMvdIcd( pcCU, uiAbsPartIdx, eRefList );
-}
-
-Void TEncEntropy::encodeICPIdxPU( TComDataCU* pcCU, UInt uiAbsPartIdx )
-{
-  if (pcCU->getICPNum(uiAbsPartIdx) > 1)
-    m_pcEntropyCoderIf->codeICPIdx( pcCU, uiAbsPartIdx );
-}
-#endif
 
 #endif
 
@@ -1528,80 +1424,6 @@ Void TEncEntropy::encodeMVPIdx( TComDataCU* pcCU, UInt uiAbsPartIdx, RefPicList 
 
 }
 
-#ifdef DCM_PBIC
-Void TEncEntropy::encodeICPIdx( TComDataCU* pcCU, UInt uiAbsPartIdx, Bool bRD )
-{
-  if( bRD )
-    uiAbsPartIdx = 0;
-
-  UInt uiPartIdxTotal, uiPartAddrInc;
-  UInt uiPartOffset = ( pcCU->getPic()->getNumPartInCU() >> ( pcCU->getDepth(uiAbsPartIdx) << 1 ) ) >> 2;
-
-  switch ( pcCU->getPartitionSize( uiAbsPartIdx ) )
-  {
-  case SIZE_2Nx2N:
-    {
-      uiPartIdxTotal = 1;
-      uiPartAddrInc  = 0;
-      break;
-    }
-  case SIZE_2NxN:
-    {
-      uiPartIdxTotal = 2;
-      uiPartAddrInc  = (uiPartOffset << 1);
-      break;
-    }
-  case SIZE_Nx2N:
-    {
-      uiPartIdxTotal = 2;
-      uiPartAddrInc  = uiPartOffset;
-      break;
-    }
-  case SIZE_NxN:
-    {
-      uiPartIdxTotal = 4;
-      uiPartAddrInc  = uiPartOffset;
-      break;
-    }
-  case SIZE_2NxnU:
-    {
-      uiPartIdxTotal = 2;
-      uiPartAddrInc  = (uiPartOffset>>1);
-      break;
-    }
-  case SIZE_2NxnD:
-    {
-      uiPartIdxTotal = 2;
-      uiPartAddrInc  = (uiPartOffset<<1) + (uiPartOffset>>1);
-      break;
-    }
-  case SIZE_nLx2N:
-    {
-      uiPartIdxTotal = 2;
-      uiPartAddrInc  = (uiPartOffset>>2);
-      break;
-    }
-  case SIZE_nRx2N:
-    {
-      uiPartIdxTotal = 2;
-      uiPartAddrInc  = uiPartOffset + (uiPartOffset>>2);
-      break;
-    }
-  default:
-    {
-      uiPartIdxTotal = 0;
-      uiPartAddrInc  = 0;
-      break;
-    }
-  }
-
-  for (UInt uiPartIdx = 0, uiPartAddr = uiAbsPartIdx; uiPartIdx < uiPartIdxTotal; uiPartIdx++, uiPartAddr += uiPartAddrInc)
-  {
-    if (pcCU->getICPNum(uiPartAddr) > 1)
-      m_pcEntropyCoderIf->codeICPIdx( pcCU, uiPartAddr );
-  }
-}
-#endif
 
 Void TEncEntropy::encodeRefFrmIdx( TComDataCU* pcCU, UInt uiAbsPartIdx, RefPicList eRefList, Bool bRD )
 {
@@ -1847,91 +1669,6 @@ Void TEncEntropy::encodeMvd( TComDataCU* pcCU, UInt uiAbsPartIdx, RefPicList eRe
   return;
 }
 
-#ifdef DCM_PBIC
-Void TEncEntropy::encodeMvdIcd( TComDataCU* pcCU, UInt uiAbsPartIdx, RefPicList eRefList, Bool bRD )
-{
-  assert( !pcCU->isIntra( uiAbsPartIdx ) );
-
-  if( bRD )
-    uiAbsPartIdx = 0;
-
-  if ( pcCU->isSkip( uiAbsPartIdx ) )
-  {
-    return;
-  }
-
-  UInt uiPartIdxTotal, uiPartAddrInc;
-  UInt uiPartOffset = ( pcCU->getPic()->getNumPartInCU() >> ( pcCU->getDepth(uiAbsPartIdx) << 1 ) ) >> 2;
-
-  switch ( pcCU->getPartitionSize( uiAbsPartIdx ) )
-  {
-  case SIZE_2Nx2N:
-    {
-      uiPartIdxTotal = 1;
-      uiPartAddrInc  = 0;
-      break;
-    }
-  case SIZE_2NxN:
-    {
-      uiPartIdxTotal = 2;
-      uiPartAddrInc  = (uiPartOffset << 1);
-      break;
-    }
-  case SIZE_Nx2N:
-    {
-      uiPartIdxTotal = 2;
-      uiPartAddrInc  = uiPartOffset;
-      break;
-    }
-  case SIZE_NxN:
-    {
-      uiPartIdxTotal = 4;
-      uiPartAddrInc  = uiPartOffset;
-      break;
-    }
-  case SIZE_2NxnU:
-    {
-      uiPartIdxTotal = 2;
-      uiPartAddrInc  = (uiPartOffset>>1);
-      break;
-    }
-  case SIZE_2NxnD:
-    {
-      uiPartIdxTotal = 2;
-      uiPartAddrInc  = (uiPartOffset<<1) + (uiPartOffset>>1);
-      break;
-    }
-  case SIZE_nLx2N:
-    {
-      uiPartIdxTotal = 2;
-      uiPartAddrInc  = (uiPartOffset>>2);
-      break;
-    }
-  case SIZE_nRx2N:
-    {
-      uiPartIdxTotal = 2;
-      uiPartAddrInc  = uiPartOffset + (uiPartOffset>>2);
-      break;
-    }
-  default:
-    {
-      uiPartIdxTotal = 0;
-      uiPartAddrInc  = 0;
-      break;
-    }
-  }
-
-  UChar uhInterDir;
-  for (UInt uiPartIdx = 0, uiPartAddr = uiAbsPartIdx; uiPartIdx < uiPartIdxTotal; uiPartIdx++, uiPartAddr += uiPartAddrInc)
-  {
-    uhInterDir = pcCU->getInterDir( uiPartAddr );
-    assert ( (uhInterDir == 1) || (uhInterDir == 2) || (uhInterDir == 3) );
-    eRefList = (uhInterDir == 3) ? REF_PIC_LIST_X : ( (uhInterDir == 2) ? REF_PIC_LIST_1 : REF_PIC_LIST_0);
-
-		m_pcEntropyCoderIf->codeMvdIcd( pcCU, uiPartAddr, eRefList );
-  }
-}
-#endif
 
 #if HHI_RQT
 Void TEncEntropy::encodeQtCbf( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eType, UInt uiTrDepth )

@@ -230,9 +230,6 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
 #if HHI_RMP_SWITCH
     ("RMP", m_bUseRMP ,true, "Rectangular motion partition" )
 #endif
-#ifdef DCM_PBIC 
-    ("PBIC", m_bUseIC, false,"Partition-based IC")// Partition-based IC
-#endif
 #ifdef ROUNDING_CONTROL_BIPRED
     ("RoundingControlBipred", m_useRoundingControlBipred, false, "Rounding control for bi-prediction")
 #endif
@@ -649,9 +646,6 @@ Void TAppEncCfg::xPrintParameter()
 #if HHI_IMVP
   printf("IMP:%d ", m_bUseIMP             ); // SOPH: Interleaved MV Predictor
 #endif
-#ifdef DCM_PBIC
-	printf("PBIC :%d ", m_bUseIC			);
-#endif
     printf("AMP:%d ", m_bUseAMP);
 #if HHI_RMP_SWITCH
     printf("RMP:%d ", m_bUseRMP);
@@ -681,9 +675,6 @@ Void TAppEncCfg::xPrintUsage()
 #endif
 #if HHI_IMVP
   printf( "                   IMP - interleaved motion vector predictor\n"); /// SOPH: Interleaved MV Predictor
-#endif
-#ifdef DCM_PBIC 
-  printf( "                   PBIC - Partition-based Illumination Compensation \n");
 #endif
   printf( "\n" );
   printf( "  Example 1) TAppEncoder.exe -c test.cfg -q 32 -g 8 -f 9 -s 64 -h 4\n");

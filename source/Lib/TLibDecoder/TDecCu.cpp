@@ -209,12 +209,6 @@ Void TDecCu::xDecodeCU( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
     {
       m_pcEntropyDecoder->decodeMVPIdx( pcCU, uiAbsPartIdx, uiDepth, REF_PIC_LIST_1, m_ppcCU[uiDepth]);
     }
-#ifdef DCM_PBIC
-    if (pcCU->getSlice()->getSPS()->getUseIC())
-    {
-      m_pcEntropyDecoder->decodeICPIdx( pcCU, uiAbsPartIdx, uiDepth, m_ppcCU[uiDepth]);
-    }
-#endif
     return;
   }
 

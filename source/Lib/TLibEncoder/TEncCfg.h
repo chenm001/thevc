@@ -133,9 +133,6 @@ protected:
 #if HHI_IMVP
   Bool      m_bUseIMP; // SOPH:
 #endif
-#ifdef DCM_PBIC 
-  Bool      m_bUseIC;
-#endif
   Int       m_iDIFTap;  // Number of interpolation filter taps
 #if SAMSUNG_CHROMA_IF_EXT
   Int       m_iDIFTapC;  // Number of chroma interpolation filter taps
@@ -300,9 +297,6 @@ public:
 #if HHI_IMVP
   Void      setUseIMP                       ( Bool  b )     { m_bUseIMP     = b; } // SOPH:
 #endif
-#ifdef DCM_PBIC 
-  Void      setUseIC                        ( Bool  b )     { m_bUseIC      = b; }
-#endif
 
   Void      setDIFTap                       ( Int   i )     { m_iDIFTap     = i; }
 
@@ -333,9 +327,6 @@ public:
 #endif
 #if HHI_IMVP
   Bool      getUseIMP                       ()      { return m_bUseIMP;     } // SOPH:
-#endif
-#ifdef DCM_PBIC 
-  Bool      getUseIC                        ()      { return m_bUseIC;      }
 #endif
   Int       getDIFTap                       ()      { return m_iDIFTap;  }
 #if SAMSUNG_CHROMA_IF_EXT

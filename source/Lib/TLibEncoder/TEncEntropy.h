@@ -74,9 +74,6 @@ public:
 
   virtual Void codeAlfCtrlDepth() = 0;
   virtual Void codeMVPIdx ( TComDataCU* pcCU, UInt uiAbsPartIdx, RefPicList eRefList ) = 0;
-#ifdef DCM_PBIC
-  virtual Void codeICPIdx ( TComDataCU* pcCU, UInt uiAbsPartIdx ) = 0;
-#endif
 
 public:
   virtual Void codeAlfCtrlFlag   ( TComDataCU* pcCU, UInt uiAbsPartIdx ) = 0;
@@ -108,10 +105,6 @@ public:
   virtual Void codeInterDir      ( TComDataCU* pcCU, UInt uiAbsPartIdx ) = 0;
   virtual Void codeRefFrmIdx     ( TComDataCU* pcCU, UInt uiAbsPartIdx, RefPicList eRefList )      = 0;
   virtual Void codeMvd           ( TComDataCU* pcCU, UInt uiAbsPartIdx, RefPicList eRefList )      = 0;
-#ifdef DCM_PBIC
-  virtual Void codeMvdIcd        ( TComDataCU* pcCU, UInt uiAbsPartIdx, RefPicList eRefList )      = 0;
-  virtual ContextModel* getZTreeCtx ( Int iIdx ) = 0;
-#endif
   virtual Void codeDeltaQP       ( TComDataCU* pcCU, UInt uiAbsPartIdx ) = 0;
   virtual Void codeCbf           ( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eType, UInt uiTrDepth ) = 0;
 #if LCEC_CBP_YUV_ROOT
@@ -150,9 +143,6 @@ public:
 
   Void encodeAlfParam(ALFParam* pAlfParam);
   Void encodeMVPIdx( TComDataCU* pcCU, UInt uiAbsPartIdx, RefPicList eRefList, Bool bRD = false );
-#ifdef DCM_PBIC
-  Void encodeICPIdx( TComDataCU* pcCU, UInt uiAbsPartIdx, Bool bRD = false );
-#endif
 
   TEncEntropyIf*      m_pcEntropyCoderIf;
 
@@ -177,10 +167,6 @@ public:
   Void encodeRefFrmIdxPU  ( TComDataCU* pcSubCU, UInt uiAbsPartIdx, RefPicList eRefList );
   Void encodeMvdPU        ( TComDataCU* pcSubCU, UInt uiAbsPartIdx, RefPicList eRefList );
   Void encodeMVPIdxPU     ( TComDataCU* pcSubCU, UInt uiAbsPartIdx, RefPicList eRefList );
-#ifdef DCM_PBIC
-  Void encodeMvdIcdPU     ( TComDataCU* pcSubCU, UInt uiAbsPartIdx );
-  Void encodeICPIdxPU     ( TComDataCU* pcSubCU, UInt uiAbsPartIdx );
-#endif
 #else
   Void encodeMergeFlag         ( TComDataCU* pcCU, UInt uiAbsPartIdx, Bool bRD = false );
   Void encodeMergeIndex        ( TComDataCU* pcCU, UInt uiAbsPartIdx, Bool bRD = false );
@@ -210,9 +196,6 @@ public:
   Void encodeInterDir          ( TComDataCU* pcCU, UInt uiAbsPartIdx, Bool bRD = false );
   Void encodeRefFrmIdx         ( TComDataCU* pcCU, UInt uiAbsPartIdx, RefPicList eRefList, Bool bRD = false );
   Void encodeMvd               ( TComDataCU* pcCU, UInt uiAbsPartIdx, RefPicList eRefList, Bool bRD = false );
-#ifdef DCM_PBIC
-  Void encodeMvdIcd            ( TComDataCU* pcCU, UInt uiAbsPartIdx, RefPicList eRefList, Bool bRD = false );
-#endif
 
   Void encodeTransformIdx      ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth, Bool bRD = false );
 #if HHI_RQT

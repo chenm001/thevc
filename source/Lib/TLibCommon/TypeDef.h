@@ -195,7 +195,6 @@
 ///////////////////////////////
 // DOCOMO defines section start
 ///////////////////////////////
-//#define DCM_PBIC //Partition-Based Illumination Compensation
 #define DCM_RDCOST_TEMP_FIX //Enables temporary bug fixes to RD cost computation (does not affect TMuC0.7 performance under current encoder settings, but is needed for proper RD cost computation when DCM_PBIC is enabled)
 
 ///////////////////////////////

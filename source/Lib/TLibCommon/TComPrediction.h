@@ -70,9 +70,6 @@ protected:
   TComYuv   m_acYuvPred[2];
   TComYuv   m_cYuvPredTemp;
   TComYuv   m_cYuvExt;
-#ifdef DCM_PBIC
-  TComYuv   m_acYuvTempIC[2];
-#endif
 
 #if PLANAR_INTRA
   Void xPredIntraPlanar         ( Int* pSrc, Int iSrcStride, Pel*& rpDst, Int iDstStride, UInt iWidth, UInt iHeight, Int iSampleBottomRight, Bool bAbove, Bool bLeft );
@@ -93,11 +90,6 @@ protected:
 #endif
   Void xWeightedAverage         ( TComDataCU* pcCU, TComYuv* pcYuvSrc0, TComYuv* pcYuvSrc1, Int iRefIdx0, Int iRefIdx1, UInt uiPartAddr, Int iWidth, Int iHeight, TComYuv*& rpcYuvDst );
 
-#ifdef DCM_PBIC
-  Void xPredICompLumaBlk        (TComIc* pcIc, Int iWidth, Int iHeight, Int iDstStride, Int iDstStep, Pel* piDst, Int iSrcStride, Int iSrcStep, Pel* piSrc, RefPicList eRefPicList);
-  Void xPredICompChromaBlk      (TComIc* pcIc, Int iWidth, Int iHeight, Int iDstStride, Int iDstStep, Pel* piDst, Int iSrcStride, Int iSrcStep, Pel* piSrc, RefPicList eRefPicList);
-#endif
-
 #if SAMSUNG_CHROMA_IF_EXT
   Void  xDCTIF_FilterC ( Pel*  piRefC, Int iRefStride,Pel*  piDstC,Int iDstStride, Int iWidth, Int iHeight,Int iMVyFrac,Int iMVxFrac);
 #endif
@@ -116,10 +108,6 @@ public:
 
 #ifdef HHI_IMVP
   Void getMvPredIMVP( TComDataCU* pcSubCU, UInt uiPartIdx, UInt uiPartAddr, RefPicList eRefList, Int iRefIdx, TComCUMvField* pcSubCUMvField, TComMv& rcMvPred );
-#endif
-
-#ifdef DCM_PBIC
-  Void getIcPredAICP              ( TComDataCU* pcCU, UInt uiPartIdx, UInt uiPartAddr, TComIc& rcIcPred );
 #endif
 
   // CIP

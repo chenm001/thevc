@@ -254,24 +254,6 @@ enum NalUnitType
 
 typedef _AlfParam    ALFParam;
 
-#ifdef DCM_PBIC
-
-#define AICP_MAX_NUM_CANDS          5           ///< max number of final candidates
-#define IC_SCALE_PREC               6           ///< Scale precision in bits
-
-enum
-{
-  IDX_ZEROFLAG = -1,
-  IDX_ZTREE_MVDICDUNI,
-  IDX_ZTREE_MVDICDBI,
-  IDX_ZTREE_MVDUNI,
-  IDX_ZTREE_MVDBI,
-  MAX_NUM_ZTREE
-};
-
-#define ICROUND( Val )                ( ((Val) < 0) ? Int((Val)-0.5) : Int((Val)+0.5) )
-
-#endif //DCM_PBIC
 
 #endif // end of #ifndef  __COMMONDEF__
 

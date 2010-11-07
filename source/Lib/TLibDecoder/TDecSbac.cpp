@@ -56,9 +56,6 @@ TDecSbac::TDecSbac()
   , m_cCUChromaPredSCModel    ( 1,             1,               NUM_CHROMA_PRED_CTX           )
   , m_cCUInterDirSCModel      ( 1,             1,               NUM_INTER_DIR_CTX             )
   , m_cCUMvdSCModel           ( 1,             2,               NUM_MV_RES_CTX                )
-#ifdef DCM_PBIC
-  , m_cCUIcdSCModel           ( 1,             3,               NUM_IC_RES_CTX                )
-#endif
   , m_cCURefPicSCModel        ( 1,             1,               NUM_REF_NO_CTX                )
 #if HHI_RQT
   , m_cCUTransSubdivFlagSCModel( 1,            1,               NUM_TRANS_SUBDIV_FLAG_CTX     )
@@ -85,12 +82,6 @@ TDecSbac::TDecSbac()
 #endif
 
   , m_cMVPIdxSCModel          ( 1,             1,               NUM_MVP_IDX_CTX               )
-#ifdef DCM_PBIC
-  , m_cICPIdxSCModel          ( 1,             1,               NUM_ICP_IDX_CTX               )
-  , m_cZTreeMV0SCModel        ( 1,             1,               NUM_ZTREE_MV0_CTX             )
-  , m_cZTreeMV1SCModel        ( 1,             1,               NUM_ZTREE_MV1_CTX             )
-  , m_cZTreeMV2SCModel        ( 1,             1,               NUM_ZTREE_MV2_CTX             )
-#endif
   , m_cCUROTindexSCModel      ( 1,             1,               NUM_ROT_IDX_CTX               )
   , m_cCUCIPflagCCModel       ( 1,             1,               NUM_CIP_FLAG_CTX              )
   , m_cALFFlagSCModel         ( 1,             1,               NUM_ALF_FLAG_CTX              )
@@ -136,9 +127,6 @@ Void TDecSbac::resetEntropy          (TComSlice* pcSlice)
   m_cCUChromaPredSCModel.initBuffer   ( eSliceType, iQp, (Short*)INIT_CHROMA_PRED_MODE );
   m_cCUInterDirSCModel.initBuffer     ( eSliceType, iQp, (Short*)INIT_INTER_DIR );
   m_cCUMvdSCModel.initBuffer          ( eSliceType, iQp, (Short*)INIT_MVD );
-#ifdef DCM_PBIC
-  m_cCUIcdSCModel.initBuffer          ( eSliceType, iQp, (Short*)INIT_ICD );
-#endif
   m_cCURefPicSCModel.initBuffer       ( eSliceType, iQp, (Short*)INIT_REF_PIC );
 
   m_cCUDeltaQpSCModel.initBuffer      ( eSliceType, iQp, (Short*)INIT_DQP );
@@ -163,12 +151,6 @@ Void TDecSbac::resetEntropy          (TComSlice* pcSlice)
 #endif
 
   m_cMVPIdxSCModel.initBuffer         ( eSliceType, iQp, (Short*)INIT_MVP_IDX );
-#ifdef DCM_PBIC
-  m_cICPIdxSCModel.initBuffer         ( eSliceType, iQp, (Short*)INIT_ICP_IDX );
-  m_cZTreeMV0SCModel.initBuffer       ( eSliceType, iQp, (Short*)INIT_ZTree_MV0 );
-  m_cZTreeMV1SCModel.initBuffer       ( eSliceType, iQp, (Short*)INIT_ZTree_MV1 );
-  m_cZTreeMV2SCModel.initBuffer       ( eSliceType, iQp, (Short*)INIT_ZTree_MV2 );
-#endif
   m_cCUROTindexSCModel.initBuffer     ( eSliceType, iQp, (Short*)INIT_ROT_IDX );
   m_cCUCIPflagCCModel.initBuffer      ( eSliceType, iQp, (Short*)INIT_CIP_IDX );
 
@@ -409,77 +391,6 @@ Void TDecSbac::xReadMvd( Int& riMvdComp, UInt uiAbsSum, UInt uiCtx )
   return;
 }
 
-#ifdef DCM_PBIC
-Void TDecSbac::xReadMvdNZ( Int& riMvdComp, UInt uiCtx )
-{
-  UInt uiSymbol;
-
-  xReadExGolombMvd( uiSymbol, &m_cCUMvdSCModel.get( 0, uiCtx, 3 ), 3 );
-  uiSymbol++;
-
-  UInt uiSign;
-  m_pcTDecBinIf->decodeBinEP( uiSign );
-
-  riMvdComp = ( 0 != uiSign ) ? -(Int)uiSymbol : (Int)uiSymbol;
-
-  return;
-}
-
-Void TDecSbac::xReadIcdNZ( Int& riIcdComp, UInt uiCtx )
-{
-  UInt uiSymbol;
-
-  xReadExGolombIcd( uiSymbol, &m_cCUIcdSCModel.get( 0, uiCtx, 3 ), 3 );
-  uiSymbol++;
-
-  UInt uiSign;
-  m_pcTDecBinIf->decodeBinEP( uiSign );
-
-  riIcdComp = ( 0 != uiSign ) ? -(Int)uiSymbol : (Int)uiSymbol;
-
-  return;
-}
-
-Void TDecSbac::xReadExGolombIcd( UInt& ruiSymbol, ContextModel* pcSCModel, UInt uiMaxBin )
-{
-  UInt uiSymbol;
-
-  m_pcTDecBinIf->decodeBin( ruiSymbol, pcSCModel[0] );
-
-  if (!ruiSymbol) { return; }
-
-  m_pcTDecBinIf->decodeBin( uiSymbol, pcSCModel[1] );
-
-  ruiSymbol = 1;
-
-  if (!uiSymbol)  { return; }
-
-  pcSCModel += 2;
-  UInt uiCount = 2;
-
-  do
-  {
-    if( uiMaxBin == uiCount )
-    {
-      pcSCModel++;
-    }
-    m_pcTDecBinIf->decodeBin( uiSymbol, *pcSCModel );
-    uiCount++;
-  }
-  while( uiSymbol && (uiCount != 8));
-
-  ruiSymbol = uiCount-1;
-
-  if( uiSymbol )
-  {
-    xReadEpExGolomb( uiSymbol, 3 );
-    ruiSymbol += uiSymbol+1;
-  }
-
-  return;
-}
-#endif
-
 Void TDecSbac::xReadExGolombMvd( UInt& ruiSymbol, ContextModel* pcSCModel, UInt uiMaxBin )
 {
   UInt uiSymbol;
@@ -641,14 +552,6 @@ Void TDecSbac::parseSkipFlag( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth 
     pcCU->getCUMvField( REF_PIC_LIST_0 )->setAllMvd    ( cZeroMv, SIZE_2Nx2N, uiAbsPartIdx, 0, uiDepth );
     pcCU->getCUMvField( REF_PIC_LIST_1 )->setAllMvd    ( cZeroMv, SIZE_2Nx2N, uiAbsPartIdx, 0, uiDepth );
 
-#ifdef DCM_PBIC
-    if (pcCU->getSlice()->getSPS()->getUseIC())
-    {
-      TComIc cDefaultIc;
-      pcCU->getCUIcField()->setAllIcd ( cDefaultIc, SIZE_2Nx2N, uiAbsPartIdx, 0, uiDepth );
-    }
-#endif
-
     pcCU->setTrIdxSubParts( 0, uiAbsPartIdx, uiDepth );
     pcCU->setCbfSubParts  ( 0, 0, 0, uiAbsPartIdx, uiDepth );
 
@@ -713,15 +616,6 @@ Void TDecSbac::parseMVPIdx      ( TComDataCU* pcCU, Int& riMVPIdx, Int iMVPNum, 
   xReadUnaryMaxSymbol(uiSymbol, m_cMVPIdxSCModel.get(0), 1, iMVPNum-1);
   riMVPIdx = uiSymbol;
  }
-
-#ifdef DCM_PBIC
-Void TDecSbac::parseICPIdx      ( TComDataCU* pcCU, Int& riICPIdx, Int iICPNum, UInt uiAbsPartIdx, UInt uiDepth )
-{
-  UInt uiSymbol;
-  xReadUnaryMaxSymbol(uiSymbol, m_cICPIdxSCModel.get(0), 1, iICPNum-1);
-  riICPIdx = uiSymbol;
-}
-#endif
 
 Void TDecSbac::parseSplitFlag     ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
 {
@@ -1088,229 +982,6 @@ Void TDecSbac::parseMvd( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiPartIdx, UI
   return;
 }
 
-#ifdef DCM_PBIC
-Void TDecSbac::parseMvdIcd( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiPartIdx, UInt uiDepth, RefPicList eRefList )
-{
-  Int iZeroPatt;
-  Int aaiNZMv[2][2];
-  Int aiNZIc[3];
-  UInt uiZeroFlag;
-  TComZeroTree* pcZTree;
-
-  // Is any component non-zero?
-  m_pcTDecBinIf->decodeBin( uiZeroFlag, *getZTreeCtx(IDX_ZEROFLAG) );
-  if (uiZeroFlag)
-  {
-    TComMv cZeroMv;
-    if (eRefList == REF_PIC_LIST_X)
-    {
-      pcCU->getCUMvField( REF_PIC_LIST_0 )->setAllMvd( cZeroMv, pcCU->getPartitionSize( uiAbsPartIdx ), uiAbsPartIdx, uiPartIdx, uiDepth );
-      pcCU->getCUMvField( REF_PIC_LIST_1 )->setAllMvd( cZeroMv, pcCU->getPartitionSize( uiAbsPartIdx ), uiAbsPartIdx, uiPartIdx, uiDepth );
-    }
-    else
-      pcCU->getCUMvField(       eRefList )->setAllMvd( cZeroMv, pcCU->getPartitionSize( uiAbsPartIdx ), uiAbsPartIdx, uiPartIdx, uiDepth );
-
-    if (pcCU->getSlice()->getSPS()->getUseIC())
-    {
-      TComIc cDefaultIc;
-      pcCU->getCUIcField()->setAllIcd( cDefaultIc, pcCU->getPartitionSize( uiAbsPartIdx ), uiAbsPartIdx, uiPartIdx, uiDepth );
-    }
-    return;
-  }
-
-  // Identify the non-zero components
-  if (eRefList == REF_PIC_LIST_X)
-  {
-    if (pcCU->getSlice()->getSPS()->getUseIC())
-    {
-      pcZTree   = pcCU->getSlice()->getZTree(IDX_ZTREE_MVDICDBI);
-      iZeroPatt = parseZTree( pcZTree, getZTreeCtx(IDX_ZTREE_MVDICDBI) );
-    }
-    else
-    {
-      pcZTree   = pcCU->getSlice()->getZTree(IDX_ZTREE_MVDBI);
-      iZeroPatt = parseZTree( pcZTree, getZTreeCtx(IDX_ZTREE_MVDBI) );
-    }
-    aaiNZMv[REF_PIC_LIST_0][0] = iZeroPatt & 1;
-    aaiNZMv[REF_PIC_LIST_0][1] = iZeroPatt & 2;
-    aaiNZMv[REF_PIC_LIST_1][0] = iZeroPatt & 4;
-    aaiNZMv[REF_PIC_LIST_1][1] = iZeroPatt & 8;
-    aiNZIc[0] = iZeroPatt & 16;
-    aiNZIc[1] = iZeroPatt & 32;
-    aiNZIc[2] = iZeroPatt & 64;
-  }
-  else
-  {
-    if (pcCU->getSlice()->getSPS()->getUseIC())
-    {
-      pcZTree   = pcCU->getSlice()->getZTree(IDX_ZTREE_MVDICDUNI);
-      iZeroPatt = parseZTree( pcZTree, getZTreeCtx(IDX_ZTREE_MVDICDUNI) );
-    }
-    else
-    {
-      pcZTree   = pcCU->getSlice()->getZTree(IDX_ZTREE_MVDUNI);
-      iZeroPatt = parseZTree( pcZTree, getZTreeCtx(IDX_ZTREE_MVDUNI) );
-    }
-    aaiNZMv[eRefList  ][0] = iZeroPatt & 1;
-    aaiNZMv[eRefList  ][1] = iZeroPatt & 2;
-    aaiNZMv[eRefList^1][0] = 0;
-    aaiNZMv[eRefList^1][1] = 0;
-    aiNZIc[0] = iZeroPatt & 4;
-    aiNZIc[1] = 0;
-    aiNZIc[2] = iZeroPatt & 8;
-  }
-
-  //Decode the non-zero components
-  TComMv cMvd0, cMvd1;
-  Int iHor, iVer;
-
-  iHor = iVer = 0;
-  if (aaiNZMv[REF_PIC_LIST_0][0]) xReadMvdNZ(iHor, 0);
-  if (aaiNZMv[REF_PIC_LIST_0][1]) xReadMvdNZ(iVer, 1);
-  cMvd0.set( iHor, iVer );
-
-  iHor = iVer = 0;
-  if (aaiNZMv[REF_PIC_LIST_1][0]) xReadMvdNZ(iHor, 0);
-  if (aaiNZMv[REF_PIC_LIST_1][1]) xReadMvdNZ(iVer, 1);
-  cMvd1.set( iHor, iVer );
-
-  if (eRefList == REF_PIC_LIST_X)
-  {
-    pcCU->getCUMvField( REF_PIC_LIST_0 )->setAllMvd( cMvd0, pcCU->getPartitionSize( uiAbsPartIdx ), uiAbsPartIdx, uiPartIdx, uiDepth );
-    pcCU->getCUMvField( REF_PIC_LIST_1 )->setAllMvd( cMvd1, pcCU->getPartitionSize( uiAbsPartIdx ), uiAbsPartIdx, uiPartIdx, uiDepth );
-  }
-  else if (eRefList == REF_PIC_LIST_1)
-    pcCU->getCUMvField( REF_PIC_LIST_1 )->setAllMvd( cMvd1, pcCU->getPartitionSize( uiAbsPartIdx ), uiAbsPartIdx, uiPartIdx, uiDepth );
-  else
-    pcCU->getCUMvField( REF_PIC_LIST_0 )->setAllMvd( cMvd0, pcCU->getPartitionSize( uiAbsPartIdx ), uiAbsPartIdx, uiPartIdx, uiDepth );
-
-  if (pcCU->getSlice()->getSPS()->getUseIC())
-  {
-    TComIc cIcd;
-    Int iParam0, iParam1, iParam2;
-    iParam0 = iParam1 = iParam2 = 0;
-    if (aiNZIc[0]) xReadIcdNZ(iParam0, 0);
-    if (aiNZIc[1]) xReadIcdNZ(iParam1, 1);
-    if (aiNZIc[2]) xReadIcdNZ(iParam2, 2);
-    cIcd.setIcParam( iParam0, iParam1, iParam2 );
-    pcCU->getCUIcField()->setAllIcd( cIcd, pcCU->getPartitionSize( uiAbsPartIdx ), uiAbsPartIdx, uiPartIdx, uiDepth );
-  }
-}
-
-Int TDecSbac::parseZTree(TComZeroTree* pcZTree, ContextModel *pcCtxModel)
-{
-  Int iVal;
-  Int iStack;
-  Int iResult;
-  Int iIsNotLeaf;
-  UInt uiNodeBoth;
-  UInt uiNodeLeft;
-  UInt uiCtx;
-  Int* piZTreeStructure = pcZTree->m_piStructure;
-  Int* piLeafIdx        = pcZTree->m_piLeafIdx;
-
-  iVal    = 1;
-  iStack  = 0;
-  iResult = 0;
-  uiCtx   = 0;
-
-  while (true)
-  {
-    STATE_1:
-    iIsNotLeaf = *piZTreeStructure++;
-
-    if (iIsNotLeaf == 0)
-    {
-      iResult += (1 << (*piLeafIdx));
-
-      if (iStack == 0)
-        break;
-
-      piLeafIdx++;
-      iVal = iStack & 1;
-      iStack >>= 1;
-
-      if (iVal == 0)
-        goto STATE_0;
-    }
-    else
-    {
-      iStack <<= 1;
-
-      m_pcTDecBinIf->decodeBin( uiNodeBoth, *(pcCtxModel+uiCtx) );
-      if (uiNodeBoth)
-        iStack++;
-      else
-      {
-        m_pcTDecBinIf->decodeBin( uiNodeLeft, *(pcCtxModel+uiCtx+1) );
-        if (uiNodeLeft == 0)
-        {
-          iStack++;
-          uiCtx += 2;
-          goto STATE_0;
-        }
-      }
-
-      uiCtx += 2;
-    }
-
-    goto STATE_1;
-
-
-    STATE_0:
-    iIsNotLeaf = *piZTreeStructure++;
-
-    if (iIsNotLeaf == 0)
-    {
-      if (iStack == 0)
-        break;
-
-      piLeafIdx++;
-      iVal = iStack & 1;
-      iStack >>= 1;
-
-      if (iVal != 0)
-        goto STATE_1;
-
-    }
-    else
-    {
-      iStack <<= 1;
-      uiCtx += 2;
-    }
-
-    goto STATE_0;
-  }
-
-  return iResult;
-}
-
-ContextModel* TDecSbac::getZTreeCtx( Int iIdx )
-{
-  switch (iIdx)
-  {
-  case IDX_ZEROFLAG:
-    return &m_cZTreeMV0SCModel.get(0, 0, 0);
-    break;
-  case IDX_ZTREE_MVDICDUNI:
-    return &m_cZTreeMV1SCModel.get(0, 0, 0);
-    break;
-  case IDX_ZTREE_MVDICDBI:
-    return &m_cZTreeMV2SCModel.get(0, 0, 0);
-    break;
-  case IDX_ZTREE_MVDUNI:
-    return &m_cZTreeMV1SCModel.get(0, 0, 2);
-    break;
-  case IDX_ZTREE_MVDBI:
-    return &m_cZTreeMV2SCModel.get(0, 0, 2);
-    break;
-  default:
-    printf("Wrong index to TDecSbac::getZTreeCtx()\n");
-    exit(0);
-    break;
-  }
-}
-#endif
 
 #if HHI_RQT
 Void TDecSbac::parseTransformSubdivFlag( UInt& ruiSubdivFlag, UInt uiLog2TransformBlockSize )

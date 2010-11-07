@@ -70,18 +70,12 @@ TEncCavlc::TEncCavlc()
   m_uiBitIntraDir            = 0;
   m_uiBitIRefFrmIdx          = 0;  
   m_uiBitMVD                 = 0;
-#ifdef DCM_PBIC
-  m_uiBitMVDICD              = 0;
-#endif
   m_uiBitDeltaQP             = 0;
   m_uiBitCbf                 = 0;
   m_uiBitAlfFlag             = 0;
   m_uiBitAlfUvlc             = 0;
   m_uiBitAlfSvlc             = 0;
   m_uiBitMVPIdx              = 0;
-#ifdef DCM_PBIC
-  m_uiBitICPIdx              = 0;
-#endif
   m_uiBitPlanarInfo          = 0;
   m_uiBitInterDir            = 0;
 #if LCEC_PHASE2
@@ -129,9 +123,6 @@ Void TEncCavlc::statistics(Bool bResetFlag, UInt uiPrintVar)
     m_uiBitIntraDir            = 0;
     m_uiBitIRefFrmIdx          = 0;
     m_uiBitMVD                 = 0;
-#ifdef DCM_PBIC
-    m_uiBitMVDICD              = 0;
-#endif
     m_uiBitDeltaQP             = 0;
     
     m_uiBitCbf                 = 0; 
@@ -142,9 +133,6 @@ Void TEncCavlc::statistics(Bool bResetFlag, UInt uiPrintVar)
     m_uiBitAlfUvlc             = 0;
     m_uiBitAlfSvlc             = 0;
     m_uiBitMVPIdx              = 0;
-#ifdef DCM_PBIC
-    m_uiBitICPIdx              = 0;
-#endif
     
     m_uiBitPlanarInfo          = 0;
     m_uiBitInterDir            = 0;
@@ -181,18 +169,12 @@ Void TEncCavlc::statistics(Bool bResetFlag, UInt uiPrintVar)
     m_uiBitIntraDir = m_uiBitIntraDir/NUM_PASSES;
     m_uiBitIRefFrmIdx = m_uiBitIRefFrmIdx/NUM_PASSES;
     m_uiBitMVD = m_uiBitMVD/NUM_PASSES;
-#ifdef DCM_PBIC
-    m_uiBitMVDICD = m_uiBitMVDICD/NUM_PASSES;
-#endif
     m_uiBitDeltaQP = m_uiBitDeltaQP/NUM_PASSES;
     m_uiBitCbf = m_uiBitCbf/NUM_PASSES;
 #if LCEC_PHASE2
     m_uiBitCbp = m_uiBitCbp/NUM_PASSES;
 #endif
     m_uiBitMVPIdx = m_uiBitMVPIdx/NUM_PASSES;
-#ifdef DCM_PBIC
-    m_uiBitICPIdx = m_uiBitICPIdx/NUM_PASSES;
-#endif
     m_uiBitPlanarInfo = m_uiBitPlanarInfo/NUM_PASSES;
     m_uiBitInterDir = m_uiBitInterDir/NUM_PASSES;
 #if LCEC_PHASE2
@@ -225,9 +207,6 @@ Void TEncCavlc::statistics(Bool bResetFlag, UInt uiPrintVar)
     uiTotalBits += m_uiBitIntraDir;
     uiTotalBits += m_uiBitIRefFrmIdx;
     uiTotalBits += m_uiBitMVD;
-#ifdef DCM_PBIC
-    uiTotalBits += m_uiBitMVDICD;
-#endif
     uiTotalBits += m_uiBitDeltaQP;
 
     uiTotalBits += m_uiBitCbf;
@@ -238,9 +217,6 @@ Void TEncCavlc::statistics(Bool bResetFlag, UInt uiPrintVar)
     uiTotalBits += m_uiBitAlfUvlc;  
     uiTotalBits += m_uiBitAlfSvlc;
     uiTotalBits += m_uiBitMVPIdx;
-#ifdef DCM_PBIC
-    uiTotalBits += m_uiBitICPIdx;
-#endif
 
     uiTotalBits += m_uiBitPlanarInfo;
     uiTotalBits += m_uiBitInterDir;
@@ -275,9 +251,6 @@ Void TEncCavlc::statistics(Bool bResetFlag, UInt uiPrintVar)
     printf("m_uiBitIntraDir =            %12d %6.1f\n",m_uiBitIntraDir,100.0*(float)m_uiBitIntraDir/(float)uiTotalBits);
     printf("m_uiBitIRefFrmIdx =          %12d %6.1f\n",m_uiBitIRefFrmIdx,100.0*(float)m_uiBitIRefFrmIdx/(float)uiTotalBits);
     printf("m_uiBitMVD =                 %12d %6.1f\n",m_uiBitMVD,100.0*(float)m_uiBitMVD/(float)uiTotalBits);
-#ifdef DCM_PBIC
-    printf("m_uiBitMVDICD =              %12d %6.1f\n",m_uiBitMVDICD,100.0*(float)m_uiBitMVDICD/(float)uiTotalBits);
-#endif
     printf("m_uiBitDeltaQP =             %12d %6.1f\n",m_uiBitDeltaQP,100.0*(float)m_uiBitDeltaQP/(float)uiTotalBits);
     
     printf("m_uiBitCbf =                 %12d %6.1f\n",m_uiBitCbf,100.0*(float)m_uiBitCbf/(float)uiTotalBits);
@@ -288,9 +261,6 @@ Void TEncCavlc::statistics(Bool bResetFlag, UInt uiPrintVar)
     printf("m_uiBitAlfUvlc =             %12d %6.1f\n",m_uiBitAlfUvlc,100.0*(float)m_uiBitAlfUvlc/(float)uiTotalBits);
     printf("m_uiBitAlfSvlc =             %12d %6.1f\n",m_uiBitAlfSvlc,100.0*(float)m_uiBitAlfSvlc/(float)uiTotalBits);
     printf("m_uiBitMVPIdx =              %12d %6.1f\n",m_uiBitMVPIdx,100.0*(float)m_uiBitMVPIdx/(float)uiTotalBits);
-#ifdef DCM_PBIC
-    printf("m_uiBitICPIdx =              %12d %6.1f\n",m_uiBitICPIdx,100.0*(float)m_uiBitICPIdx/(float)uiTotalBits);
-#endif
     
     printf("m_uiBitPlanarInfo =          %12d %6.1f\n",m_uiBitPlanarInfo,100.0*(float)m_uiBitPlanarInfo/(float)uiTotalBits);
     printf("m_uiBitInterDir =            %12d %6.1f\n",m_uiBitInterDir,100.0*(float)m_uiBitInterDir/(float)uiTotalBits);
@@ -477,10 +447,6 @@ Void TEncCavlc::codeSPS( TComSPS* pcSPS )
 #if HHI_IMVP
    xWriteFlag ( (pcSPS->getUseIMP ()) ? 1 : 0 ); // SOPH:
    m_uiBitHLS += 1;
-#endif
-#ifdef DCM_PBIC
-  xWriteFlag ( (pcSPS->getUseIC ()) ? 1 : 0 );
-  m_uiBitHLS += 1;
 #endif
   xWriteFlag  ( (pcSPS->getUseAMP ()) ? 1 : 0 );
   m_uiBitHLS += 1;
@@ -749,9 +715,6 @@ Void TEncCavlc::codeSPS( TComSPS* pcSPS )
 #if HHI_IMVP
    xWriteFlag ( (pcSPS->getUseIMP ()) ? 1 : 0 ); // SOPH:
 #endif
-#ifdef DCM_PBIC
-   xWriteFlag ( (pcSPS->getUseIC  ()) ? 1 : 0 );
-#endif
 
   xWriteFlag  ( (pcSPS->getUseAMP ()) ? 1 : 0 );
 #if HHI_RMP_SWITCH
@@ -1010,23 +973,6 @@ Void TEncCavlc::codeMVPIdx ( TComDataCU* pcCU, UInt uiAbsPartIdx, RefPicList eRe
 #endif
   xWriteUnaryMaxSymbol(iSymbol, iNum-1);
 }
-
-#ifdef DCM_PBIC
-Void TEncCavlc::codeICPIdx ( TComDataCU* pcCU, UInt uiAbsPartIdx )
-{
-  Int iSymbol = pcCU->getICPIdx(uiAbsPartIdx);
-  Int iNum    = pcCU->getICPNum(uiAbsPartIdx);
-
-#if LCEC_STAT
-  if (m_bAdaptFlag)
-    m_uiBitICPIdx += xWriteUnaryMaxSymbol(iSymbol, iNum-1);
-  else
-    xWriteUnaryMaxSymbol(iSymbol, iNum-1);
-#else
-  xWriteUnaryMaxSymbol(iSymbol, iNum-1);
-#endif
-}
-#endif
 
 Void TEncCavlc::codePartSize( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
 {
@@ -1733,194 +1679,6 @@ Void TEncCavlc::codeMvd( TComDataCU* pcCU, UInt uiAbsPartIdx, RefPicList eRefLis
   return;
 }
 
-#ifdef DCM_PBIC
-Void TEncCavlc::codeMvdIcd( TComDataCU* pcCU, UInt uiAbsPartIdx, RefPicList eRefList )
-{
-  Int iZeroPatt = 0;
-  TComMv acMvd[2];
-  Int iIcParam[3];
-  TComZeroTree* pcZTree;
-
-  // Identify the non-zero components
-  if (eRefList == REF_PIC_LIST_X)
-  {
-    acMvd[ REF_PIC_LIST_0 ] = pcCU->getCUMvField( REF_PIC_LIST_0 )->getMvd( uiAbsPartIdx );
-    acMvd[ REF_PIC_LIST_1 ] = pcCU->getCUMvField( REF_PIC_LIST_1 )->getMvd( uiAbsPartIdx );
-    iZeroPatt |= ( acMvd[REF_PIC_LIST_0].getHor() == 0 ) ? 0 : 1;
-    iZeroPatt |= ( acMvd[REF_PIC_LIST_0].getVer() == 0 ) ? 0 : 2;
-    iZeroPatt |= ( acMvd[REF_PIC_LIST_1].getHor() == 0 ) ? 0 : 4;
-    iZeroPatt |= ( acMvd[REF_PIC_LIST_1].getVer() == 0 ) ? 0 : 8;
-
-    if (pcCU->getSlice()->getSPS()->getUseIC())
-    {
-      pcCU->getCUIcField()->getIcd( uiAbsPartIdx ).getIcParam( iIcParam[0], iIcParam[1], iIcParam[2] );
-      iZeroPatt |= ( iIcParam[0] == 0 ) ? 0 : 16;
-      iZeroPatt |= ( iIcParam[1] == 0 ) ? 0 : 32;
-      iZeroPatt |= ( iIcParam[2] == 0 ) ? 0 : 64;
-
-      pcZTree    = pcCU->getSlice()->getZTree(IDX_ZTREE_MVDICDBI);
-    }
-    else
-    {
-      pcZTree    = pcCU->getSlice()->getZTree(IDX_ZTREE_MVDBI);
-    }
-  }
-  else
-  {
-    acMvd[ eRefList ] = pcCU->getCUMvField( eRefList )->getMvd( uiAbsPartIdx );
-    iZeroPatt |= ( acMvd[eRefList].getHor() == 0 ) ? 0 : 1;
-    iZeroPatt |= ( acMvd[eRefList].getVer() == 0 ) ? 0 : 2;
-
-    if (pcCU->getSlice()->getSPS()->getUseIC())
-    {
-      pcCU->getCUIcField()->getIcd( uiAbsPartIdx ).getIcParam( iIcParam[0], iIcParam[1], iIcParam[2] );
-      iZeroPatt |= ( iIcParam[0] == 0 ) ? 0 : 4;
-      assert ( iIcParam[1] == 0 );
-      iZeroPatt |= ( iIcParam[2] == 0 ) ? 0 : 8;
-
-      pcZTree    = pcCU->getSlice()->getZTree(IDX_ZTREE_MVDICDUNI);
-    }
-    else
-    {
-      pcZTree    = pcCU->getSlice()->getZTree(IDX_ZTREE_MVDUNI);
-    }
-  }
-
-  // Encode zeroflag and zerotree (if necessary)
-  if (iZeroPatt == 0)
-  {
-    xWriteFlag( 1 );
-#if LCEC_STAT
-    if (m_bAdaptFlag)
-      m_uiBitMVDICD += 1;
-#endif
-  }
-  else
-  {
-    xWriteFlag( 0 );
-#if LCEC_STAT
-    if (m_bAdaptFlag)
-      m_uiBitMVDICD += 1;
-#endif
-    pcZTree->updateVal(iZeroPatt);
-#if LCEC_STAT
-    if (m_bAdaptFlag)
-      m_uiBitMVDICD += codeZTree( pcZTree, pcZTree->m_pcRoot );
-    else
-      codeZTree( pcZTree, pcZTree->m_pcRoot );
-#else
-    codeZTree( pcZTree, pcZTree->m_pcRoot );
-#endif
-  }
-
-  //Encode the non-zero components
-  if ( (eRefList == REF_PIC_LIST_X) || (eRefList == REF_PIC_LIST_0) )
-  {
-#if LCEC_STAT
-    if (m_bAdaptFlag)
-    {
-      m_uiBitMVDICD += xWriteSvlcNZ( acMvd[REF_PIC_LIST_0].getHor() );
-      m_uiBitMVDICD += xWriteSvlcNZ( acMvd[REF_PIC_LIST_0].getVer() );
-    }
-    else
-#endif
-    {
-      xWriteSvlcNZ( acMvd[REF_PIC_LIST_0].getHor() );
-      xWriteSvlcNZ( acMvd[REF_PIC_LIST_0].getVer() );
-    }
-  }
-  if ( (eRefList == REF_PIC_LIST_X) || (eRefList == REF_PIC_LIST_1) )
-  {
-#if LCEC_STAT
-    if (m_bAdaptFlag)
-    {
-      m_uiBitMVDICD += xWriteSvlcNZ( acMvd[REF_PIC_LIST_1].getHor() );
-      m_uiBitMVDICD += xWriteSvlcNZ( acMvd[REF_PIC_LIST_1].getVer() );
-    }
-    else
-#endif
-    {
-      xWriteSvlcNZ( acMvd[REF_PIC_LIST_1].getHor() );
-      xWriteSvlcNZ( acMvd[REF_PIC_LIST_1].getVer() );
-    }
-  }
-  if (pcCU->getSlice()->getSPS()->getUseIC())
-  {
-#if LCEC_STAT
-    if (m_bAdaptFlag)
-    {
-      m_uiBitMVDICD += xWriteSvlcNZ( iIcParam[0] );
-      m_uiBitMVDICD += xWriteSvlcNZ( iIcParam[1] );
-      m_uiBitMVDICD += xWriteSvlcNZ( iIcParam[2] );
-    }
-    else
-#endif
-    {
-      xWriteSvlcNZ( iIcParam[0] );
-      xWriteSvlcNZ( iIcParam[1] );
-      xWriteSvlcNZ( iIcParam[2] );
-    }
-  }
-}
-
-#if LCEC_STAT
-UInt TEncCavlc::codeZTree( TComZeroTree* pcZTree, TComZTNode* pcZTNode )
-{
-  Int iVal, iLval, iRval;
-  UInt uiNumBits = 0;
-
-  if (pcZTNode->IsLeaf() == false)
-  {
-    iLval = pcZTNode->m_pcLeft->m_iVal;
-    iRval = pcZTNode->m_pcRight->m_iVal;
-
-    iVal = iLval & iRval;
-    xWriteFlag( iVal );
-    uiNumBits++;
-
-    if (iVal == 0)
-    {
-      xWriteFlag( iLval );
-      uiNumBits++;
-    }
-
-    if (iLval != 0)
-      uiNumBits += codeZTree( pcZTree,  pcZTNode->m_pcLeft );
-    if (iRval != 0)
-      uiNumBits += codeZTree( pcZTree, pcZTNode->m_pcRight );
-  }
-  return uiNumBits;
-}
-#else
-Void TEncCavlc::codeZTree( TComZeroTree* pcZTree, TComZTNode* pcZTNode )
-{
-  Int iVal, iLval, iRval;
-
-  if (pcZTNode->IsLeaf() == false)
-  {
-    iLval = pcZTNode->m_pcLeft->m_iVal;
-    iRval = pcZTNode->m_pcRight->m_iVal;
-
-    iVal = iLval & iRval;
-    xWriteFlag( iVal );
-
-    if (iVal == 0)
-      xWriteFlag( iLval );
-
-    if (iLval != 0)
-      codeZTree( pcZTree,  pcZTNode->m_pcLeft );
-    if (iRval != 0)
-      codeZTree( pcZTree, pcZTNode->m_pcRight );
-  }
-}
-#endif
-
-ContextModel* TEncCavlc::getZTreeCtx ( Int iIdx )
-{
-  return NULL;
-}
-#endif
-
 Void TEncCavlc::codeDeltaQP( TComDataCU* pcCU, UInt uiAbsPartIdx )
 {
   Int iDQp  = pcCU->getQP( uiAbsPartIdx ) - pcCU->getSlice()->getSliceQp();
@@ -2378,44 +2136,6 @@ Void TEncCavlc::xWriteSvlc     ( Int iCode )
   xWriteUvlc( uiCode );
 }
 #endif
-#ifdef DCM_PBIC
-#if LCEC_STAT
-UInt TEncCavlc::xWriteSvlcNZ   ( Int iCode )
-{
-  UInt uiNumBits;
-  
-  if (iCode == 0)
-    return 0;
-  
-  UInt uiSign = 0;
-  if (iCode < 0)
-  {
-    uiSign = 1;
-    iCode = -iCode;
-  }
-  
-  uiNumBits = xWriteUvlc( iCode-1 );
-  xWriteFlag( uiSign );
-  return uiNumBits+1;
-}
-#else // LCEC_STAT
-Void TEncCavlc::xWriteSvlcNZ   ( Int iCode )
-{
-  if (iCode == 0)
-    return;
-
-  UInt uiSign = 0;
-  if (iCode < 0)
-  {
-    uiSign = 1;
-    iCode = -iCode;
-  }
-
-  xWriteUvlc( iCode-1 );
-  xWriteFlag( uiSign );
-}
-#endif // LCEC_STAT
-#endif // DCM_PBIC
 
 Void TEncCavlc::xWriteFlag( UInt uiCode )
 {

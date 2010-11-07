@@ -145,9 +145,6 @@ Void TAppEncTop::xInitLibCfg()
 #if HHI_INTERP_FILTER
   m_cTEncTop.setInterpFilterType             ( m_iInterpFilterType );
 #endif
-#ifdef DCM_PBIC 
-  m_cTEncTop.setUseIC                        ( m_bUseIC       );
-#endif
     m_cTEncTop.setUseAMP                      ( m_bUseAMP );
 #if HHI_RMP_SWITCH
     m_cTEncTop.setUseRMP                     ( m_bUseRMP );

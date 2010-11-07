@@ -679,12 +679,6 @@ Void TEncCu::xEncodeCU( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
     {
       m_pcEntropyCoder->encodeMVPIdx( pcCU, uiAbsPartIdx, REF_PIC_LIST_1);
     }
-#ifdef DCM_PBIC
-    if (pcCU->getSlice()->getSPS()->getUseIC())
-    {
-      m_pcEntropyCoder->encodeICPIdx( pcCU, uiAbsPartIdx );
-    }
-#endif
     return;
   }
 
@@ -769,12 +763,7 @@ Void TEncCu::xCheckRDCostMerge( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU )
   TComMvField  cMFieldNeighbours[4]; // 0: above ref_list 0, above ref list 1, left ref list 0, left ref list 1
   UChar uhInterDirNeighbours[2];
 
-#ifdef DCM_PBIC
-  TComIc cIcNeighbours[2]; // 0: above 1: left
-  rpcTempCU->getInterMergeCandidates( 0, cMFieldNeighbours, cIcNeighbours,uhInterDirNeighbours, uiNeighbourInfos );
-#else
   rpcTempCU->getInterMergeCandidates( 0, cMFieldNeighbours, uhInterDirNeighbours, uiNeighbourInfos );
-#endif
 
   // uiNeighbourInfos (binary):
   // 000: no merge candidate
@@ -811,9 +800,6 @@ Void TEncCu::xCheckRDCostMerge( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU )
                                           m_ppcResiYuvTemp[uhDepth],
                                           m_ppcRecoYuvTemp[uhDepth],
                                           cMvFieldNeighbourToTest,
-#ifdef DCM_PBIC
-                                          cIcNeighbours[uiNeighbourIdx],
-#endif
                                           uhInterDirNeighbourToTest);
 
     m_pcPredSearch->encodeResAndCalcRdInterCU( rpcTempCU,

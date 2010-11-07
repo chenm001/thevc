@@ -44,9 +44,6 @@
 #include "../TLibCommon/ContextTables.h"
 #include "../TLibCommon/ContextModel.h"
 #include "../TLibCommon/ContextModel3DBuffer.h"
-#ifdef DCM_PBIC
-#include "../TLibCommon/TComZeroTree.h"
-#endif
 #include "TEncEntropy.h"
 #include "TEncBinCoder.h"
 #include "TEncBinCoderCABAC.h"
@@ -118,11 +115,6 @@ private:
   __inline Void xCarryPropagate( UInt& ruiCode );
 
   Void  xWriteMvd            ( Int iMvd, UInt uiAbsSum, UInt uiCtx );
-#ifdef DCM_PBIC
-  Void  xWriteMvdNZ          ( Int iMvd, UInt uiCtx );
-  Void  xWriteIcdNZ          ( Int iIcd, UInt uiCtx );
-  Void  xWriteExGolombIcd    ( UInt uiSymbol, ContextModel* pcSCModel, UInt uiMaxBin );
-#endif
   Void  xWriteExGolombMvd    ( UInt uiSymbol, ContextModel* pcSCModel, UInt uiMaxBin );
   Void  xCopyFrom            ( TEncSbac* pSrc );
   UInt  xGetCTXIdxFromWidth  ( Int iWidth );
@@ -156,9 +148,6 @@ public:
   Void codeSplitFlag     ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
 
   Void codeMVPIdx ( TComDataCU* pcCU, UInt uiAbsPartIdx, RefPicList eRefList );
-#ifdef DCM_PBIC
-  Void codeICPIdx ( TComDataCU* pcCU, UInt uiAbsPartIdx );
-#endif
 
   Void codePartSize      ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
   Void codePredMode      ( TComDataCU* pcCU, UInt uiAbsPartIdx );
@@ -182,11 +171,6 @@ public:
   Void codeInterDir      ( TComDataCU* pcCU, UInt uiAbsPartIdx );
   Void codeRefFrmIdx     ( TComDataCU* pcCU, UInt uiAbsPartIdx, RefPicList eRefList );
   Void codeMvd           ( TComDataCU* pcCU, UInt uiAbsPartIdx, RefPicList eRefList );
-#ifdef DCM_PBIC
-  Void codeMvdIcd        ( TComDataCU* pcCU, UInt uiAbsPartIdx, RefPicList eRefList );
-  Void codeZTree         ( TComZeroTree* pcZTree, TComZTNode* pcZTNode, ContextModel *pcCtxModel );
-  ContextModel* getZTreeCtx ( Int iIdx );
-#endif
 
   Void codeDeltaQP       ( TComDataCU* pcCU, UInt uiAbsPartIdx );
   Void codeCbf           ( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eType, UInt uiTrDepth );
@@ -228,9 +212,6 @@ private:
   ContextModel3DBuffer m_cCUInterDirSCModel;
   ContextModel3DBuffer m_cCURefPicSCModel;
   ContextModel3DBuffer m_cCUMvdSCModel;
-#ifdef DCM_PBIC
-  ContextModel3DBuffer m_cCUIcdSCModel;
-#endif
   ContextModel3DBuffer m_cCUCbfSCModel;
 #if HHI_RQT
   ContextModel3DBuffer m_cCUQtCbfSCModel;
@@ -254,12 +235,6 @@ private:
 #endif
 
   ContextModel3DBuffer m_cMVPIdxSCModel;
-#ifdef DCM_PBIC
-  ContextModel3DBuffer m_cICPIdxSCModel;
-  ContextModel3DBuffer m_cZTreeMV0SCModel;
-  ContextModel3DBuffer m_cZTreeMV1SCModel;
-  ContextModel3DBuffer m_cZTreeMV2SCModel;
-#endif
 
   ContextModel3DBuffer m_cCUROTindexSCModel;
   ContextModel3DBuffer m_cCUCIPflagCCModel;

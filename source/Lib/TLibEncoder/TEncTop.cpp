@@ -354,9 +354,6 @@ Void TEncTop::xInitSPS()
 #if HHI_IMVP
   m_cSPS.setUseIMP        ( m_bUseIMP           ); // SOPH:
 #endif
-#ifdef DCM_PBIC
-  m_cSPS.setUseIC         ( m_bUseIC            );
-#endif
   m_cSPS.setDIFTap        ( m_iDIFTap           );
 #if SAMSUNG_CHROMA_IF_EXT
   m_cSPS.setDIFTapC       ( m_iDIFTapC          );

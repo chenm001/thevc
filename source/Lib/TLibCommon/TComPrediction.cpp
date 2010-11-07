@@ -55,11 +55,6 @@ TComPrediction::~TComPrediction()
   m_acYuvPred[1].destroy();
 
   m_cYuvPredTemp.destroy();
-#ifdef DCM_PBIC
-  m_acYuvTempIC[0].destroy();
-  m_acYuvTempIC[1].destroy();
-#endif
-
 }
 
 Void TComPrediction::initTempBuff()
@@ -77,11 +72,6 @@ Void TComPrediction::initTempBuff()
     m_acYuvPred[1] .create( g_uiMaxCUWidth, g_uiMaxCUHeight );
 
     m_cYuvPredTemp.create( g_uiMaxCUWidth, g_uiMaxCUHeight );
-
-#ifdef DCM_PBIC
-    m_acYuvTempIC[0].create( g_uiMaxCUWidth, g_uiMaxCUHeight );
-    m_acYuvTempIC[1].create( g_uiMaxCUWidth, g_uiMaxCUHeight );
-#endif
 
 #if HHI_INTERP_FILTER
     TComPredFilterMOMS::initTempBuff();
@@ -445,10 +435,6 @@ Void TComPrediction::xPredInterUni ( TComDataCU* pcCU, UInt uiPartAddr, Int iWid
 {
   Int         iRefIdx     = pcCU->getCUMvField( eRefPicList )->getRefIdx( uiPartAddr );           assert (iRefIdx >= 0);
   TComMv      cMv         = pcCU->getCUMvField( eRefPicList )->getMv( uiPartAddr );
-#ifdef DCM_PBIC
-  TComIc      cIc         = pcCU->getCUIcField()->getIc( uiPartAddr );
-#endif
-
   InterpFilterType ePFilt = (InterpFilterType)pcCU->getSlice()->getInterpFilterType();
 
   pcCU->clipMv(cMv);
@@ -476,14 +462,6 @@ Void TComPrediction::xPredInterUni ( TComDataCU* pcCU, UInt uiPartAddr, Int iWid
       xPredInterChromaBlk     ( pcCU, pcCU->getSlice()->getRefPic( eRefPicList, iRefIdx )->getPicYuvRec(), uiPartAddr, &cMv, iWidth, iHeight, rpcYuvPred );
 	  }
   }
-#ifdef DCM_PBIC
-  if (pcCU->getSlice()->getSPS()->getUseIC())
-  {
-    xPredICompLumaBlk  ( &cIc, iWidth   , iHeight   , rpcYuvPred->getStride() , 1, rpcYuvPred->getLumaAddr(uiPartAddr), rpcYuvPred->getStride() , 1, rpcYuvPred->getLumaAddr(uiPartAddr), eRefPicList );
-    xPredICompChromaBlk( &cIc, iWidth>>1, iHeight>>1, rpcYuvPred->getCStride(), 1, rpcYuvPred->getCbAddr(uiPartAddr)  , rpcYuvPred->getCStride(), 1, rpcYuvPred->getCbAddr(uiPartAddr)  , eRefPicList );
-    xPredICompChromaBlk( &cIc, iWidth>>1, iHeight>>1, rpcYuvPred->getCStride(), 1, rpcYuvPred->getCrAddr(uiPartAddr)  , rpcYuvPred->getCStride(), 1, rpcYuvPred->getCrAddr(uiPartAddr)  , eRefPicList );
-  }
-#endif
 }
 #else
 Void TComPrediction::xPredInterUni ( TComDataCU* pcCU, UInt uiPartAddr, Int iWidth, Int iHeight, RefPicList eRefPicList, TComYuv*& rpcYuvPred, Int iPartIdx )
@@ -491,23 +469,12 @@ Void TComPrediction::xPredInterUni ( TComDataCU* pcCU, UInt uiPartAddr, Int iWid
   Int         iRefIdx     = pcCU->getCUMvField( eRefPicList )->getRefIdx( uiPartAddr );           assert (iRefIdx >= 0);
   TComMv      cMv         = pcCU->getCUMvField( eRefPicList )->getMv( uiPartAddr );
   TComPicYuv* pcPicYuvRef = pcCU->getSlice()->getRefPic( eRefPicList, iRefIdx )->getPicYuvRec();
-#ifdef DCM_PBIC
-  TComIc      cIc         = pcCU->getCUIcField()->getIc( uiPartAddr );
-#endif
 
   pcCU->clipMv(cMv);
   {
     xPredInterLumaBlk   ( pcCU, pcPicYuvRef, uiPartAddr, &cMv, iWidth, iHeight, rpcYuvPred );
     xPredInterChromaBlk ( pcCU, pcPicYuvRef, uiPartAddr, &cMv, iWidth, iHeight, rpcYuvPred );
   }
-#ifdef DCM_PBIC
-  if (pcCU->getSlice()->getSPS()->getUseIC())
-  {
-    xPredICompLumaBlk  ( &cIc, iWidth   , iHeight   , rpcYuvPred->getStride() , 1, rpcYuvPred->getLumaAddr(uiPartAddr), rpcYuvPred->getStride() , 1, rpcYuvPred->getLumaAddr(uiPartAddr), eRefPicList );
-    xPredICompChromaBlk( &cIc, iWidth>>1, iHeight>>1, rpcYuvPred->getCStride(), 1, rpcYuvPred->getCbAddr(uiPartAddr)  , rpcYuvPred->getCStride(), 1, rpcYuvPred->getCbAddr(uiPartAddr)  , eRefPicList );
-    xPredICompChromaBlk( &cIc, iWidth>>1, iHeight>>1, rpcYuvPred->getCStride(), 1, rpcYuvPred->getCrAddr(uiPartAddr)  , rpcYuvPred->getCStride(), 1, rpcYuvPred->getCrAddr(uiPartAddr)  , eRefPicList );
-  }
-#endif
 }
 #endif
 
@@ -1353,26 +1320,6 @@ Void TComPrediction::getMvPredIMVP( TComDataCU* pcSubCU, UInt uiPartIdx, UInt ui
 }
 #endif
 
-#ifdef DCM_PBIC
-Void TComPrediction::getIcPredAICP( TComDataCU* pcCU, UInt uiPartIdx, UInt uiPartAddr, TComIc& rcIcPred )
-{
-  AICPInfo* pcAICPInfo = pcCU->getCUIcField()->getAICPInfo();
-
-  if( pcAICPInfo->iN <= 1 )
-  {
-    rcIcPred = pcAICPInfo->m_acIcCand[0];
-
-    pcCU->setICPIdxSubParts(              0, uiPartAddr, uiPartIdx, pcCU->getDepth(uiPartAddr));
-    pcCU->setICPNumSubParts( pcAICPInfo->iN, uiPartAddr, uiPartIdx, pcCU->getDepth(uiPartAddr));
-    return;
-  }
-
-  assert(pcCU->getICPIdx(uiPartAddr) >= 0);
-  rcIcPred = pcAICPInfo->m_acIcCand[pcCU->getICPIdx(uiPartAddr)];
-  return;
-}
-#endif
-
 // CIP
 Void TComPrediction::recIntraLumaCIP( TComPattern* pcTComPattern, Pel* pPred, Pel* pResi, Pel* pReco, UInt uiStride, Int iWidth, Int iHeight, TComDataCU* pcCU, Bool bAboveAvail, Bool bLeftAvail )
 {
@@ -1503,49 +1450,6 @@ Void TComPrediction::recIntraLumaCIP( TComPattern* pcTComPattern, Pel* pPred, Pe
   }
 }
 
-#ifdef DCM_PBIC
-Void TComPrediction::xPredICompLumaBlk( TComIc* pcIc, Int iWidth, Int iHeight, Int iDstStride, Int iDstStep, Pel* piDst, Int iSrcStride, Int iSrcStep, Pel* piSrc, RefPicList eRefPicList )
-{
-  Int IcScale  = pcIc->getIcScale(eRefPicList);
-  Int IcOffset = pcIc->getIcOffset(eRefPicList); 
-  Int iTemp;
-
-  for ( Int y = 0; y < iHeight; y++ )
-  {
-    for ( Int x = 0; x < iWidth; x++ )
-    {
-      iTemp =  (IcScale * piSrc[x * iSrcStep] + (1<<(IC_SCALE_PREC-1)) ) >> IC_SCALE_PREC;
-      iTemp += (IcOffset << g_uiBitIncrement);
-      piDst[x * iDstStep] = Clip( iTemp );
-    }
-    piSrc += iSrcStride;
-    piDst += iDstStride;
-  }
-  return;
-
-}
-
-Void TComPrediction::xPredICompChromaBlk( TComIc* pcIc, Int iWidth, Int iHeight, Int iDstStride, Int iDstStep, Pel* piDst, Int iSrcStride, Int iSrcStep, Pel* piSrc, RefPicList eRefPicList )
-{
-  Int IcScale  = pcIc->getIcScale(eRefPicList);
-  Int iTemp;
-  
-  for ( Int y = 0; y < iHeight; y++ )
-  {
-    for ( Int x = 0; x < iWidth; x++ )
-    {
-      iTemp =  piSrc[x * iSrcStep] - (128 << g_uiBitIncrement);
-      iTemp =  (IcScale * iTemp + (1<<(IC_SCALE_PREC-1)) ) >> IC_SCALE_PREC; //Only scale is used for chroma
-      iTemp += (128 << g_uiBitIncrement);
-      piDst[x * iDstStep] = Clip( iTemp );
-    }
-    piSrc += iSrcStride;
-    piDst += iDstStride;
-  }
-  return;
-
-}
-#endif
 
 #if SAMSUNG_CHROMA_IF_EXT
 Void  TComPrediction::xDCTIF_FilterC ( Pel*  piRefC, Int iRefStride,Pel*  piDstC,Int iDstStride,
