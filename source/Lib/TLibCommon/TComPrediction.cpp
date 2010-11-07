@@ -79,9 +79,6 @@ Void TComPrediction::initTempBuff()
   }
 
   m_iDIFHalfTap   = ( m_iDIFTap  >> 1 );
-#if SAMSUNG_CHROMA_IF_EXT
-  m_iDIFHalfTapC  = ( m_iDIFTapC >> 1 );
-#endif
 }
 
 // ====================================================================================================================
@@ -663,15 +660,6 @@ Void TComPrediction::xPredInterChromaBlk( TComDataCU* pcCU, TComPicYuv* pcPicYuv
   UInt    uiCWidth  = iWidth  >> 1;
   UInt    uiCHeight = iHeight >> 1;
 
-
-#if SAMSUNG_CHROMA_IF_EXT
-  if ( pcCU->getSlice()->getSPS()->getDIFTapC() > 2 )
-  {
-	xDCTIF_FilterC(piRefCb, iRefStride,piDstCb,iDstStride,uiCWidth,uiCHeight, iyFrac, ixFrac);
-	xDCTIF_FilterC(piRefCr, iRefStride,piDstCr,iDstStride,uiCWidth,uiCHeight, iyFrac, ixFrac);
-	return;
-  }
-#endif
 
   // Integer point
   if ( ixFrac == 0 && iyFrac == 0 )
@@ -1449,39 +1437,3 @@ Void TComPrediction::recIntraLumaCIP( TComPattern* pcTComPattern, Pel* pPred, Pe
     }
   }
 }
-
-
-#if SAMSUNG_CHROMA_IF_EXT
-Void  TComPrediction::xDCTIF_FilterC ( Pel*  piRefC, Int iRefStride,Pel*  piDstC,Int iDstStride,
-                                       Int iWidth, Int iHeight,Int iMVyFrac,Int iMVxFrac)
-{
-  if ( iMVxFrac == 0 && iMVyFrac == 0 )
-  {
-    for ( Int y = 0; y < iHeight; y++ )
-    {
-      ::memcpy(piDstC, piRefC, sizeof(Pel)*iWidth);
-      piDstC += iDstStride;
-      piRefC+= iRefStride;
-    }
-    return;
-  }
-
-  if ( iMVyFrac == 0 )
-  {
-    xCTI_Filter1DHorC (piRefC, iRefStride,  iWidth, iHeight, iDstStride,  piDstC, iMVxFrac );
-    return;
-  }
-
-  if ( iMVxFrac == 0 )
-  {
-    xCTI_Filter1DVerC (piRefC, iRefStride,  iWidth, iHeight, iDstStride,  piDstC, iMVyFrac );
-    return;
-  }
-  
-  Int   iExtStride = m_iYuvExtStride;
-  Int*  piExtC     = m_piYuvExt;
-
-  xCTI_Filter2DVerC (piRefC - m_iDIFHalfTapC,  iRefStride,  iWidth + m_iDIFTapC, iHeight, iExtStride,  piExtC, iMVyFrac );
-  xCTI_Filter2DHorC (piExtC + m_iDIFHalfTapC,  iExtStride,  iWidth             , iHeight, iDstStride,  piDstC, iMVxFrac );
-}
-#endif

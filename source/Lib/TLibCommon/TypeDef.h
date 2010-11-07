@@ -169,8 +169,6 @@
 #define SAMSUNG_MRG_SKIP_DIRECT               1           ///< enabling of skip and direct when mrg is on
 #endif
 
-#define SAMSUNG_CHROMA_IF_EXT                 0           ///< DCT-based Interpolation filter for chroma signal
-
 #define HHI_DISABLE_SCAN                      0           ///< disable adaptive scan
 
 #define FAST_UDI_MAX_RDMODE_NUM               10          ///< maximum number of RD comparison in fast-UDI estimation loop 

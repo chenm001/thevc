@@ -130,9 +130,6 @@ protected:
   Bool      m_bUseIMP; // SOPH:
 #endif
   Int       m_iDIFTap;  // Number of interpolation filter taps
-#if SAMSUNG_CHROMA_IF_EXT
-  Int       m_iDIFTapC;  // Number of chroma interpolation filter taps
-#endif
 
   Int*      m_aidQP;
 #if HHI_RQT
@@ -318,10 +315,6 @@ public:
   Bool      getUseIMP                       ()      { return m_bUseIMP;     } // SOPH:
 #endif
   Int       getDIFTap                       ()      { return m_iDIFTap;  }
-#if SAMSUNG_CHROMA_IF_EXT
- Int       getDIFTapC                       ()      { return m_iDIFTapC;  }
- Void      setDIFTapC              ( Int   i )      { m_iDIFTapC     = i; }
-#endif
 
   Int*      getdQPs                         ()      { return m_aidQP;       }
 #if HHI_RQT

@@ -97,9 +97,6 @@ Void TAppEncTop::xInitLibCfg()
   m_cTEncTop.setFastSearch                   ( m_iFastSearch  );
   m_cTEncTop.setSearchRange                  ( m_iSearchRange );
   m_cTEncTop.setMaxDeltaQP                   ( m_iMaxDeltaQP  );
-#if SAMSUNG_CHROMA_IF_EXT
-  m_cTEncTop.setDIFTapC                      ( m_iDIFTapC     );
-#endif
 
   //====== Tool list ========
   m_cTEncTop.setUseSBACRD                    ( m_bUseSBACRD   );

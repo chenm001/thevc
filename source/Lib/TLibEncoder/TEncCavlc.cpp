@@ -428,9 +428,7 @@ Void TEncCavlc::codeSPS( TComSPS* pcSPS )
   
   // write number of taps for DIF
   m_uiBitHLS += xWriteUvlc  ( (pcSPS->getDIFTap ()>>1)-2 ); // 4, 6, 8, 10, 12
-#if SAMSUNG_CHROMA_IF_EXT
-  m_uiBitHLS += xWriteUvlc  ( (pcSPS->getDIFTapC()>>1)-1 ); // 4, 6, 8, 10, 12
-#endif
+  m_uiBitHLS += xWriteUvlc  ( 0 ); // TODO: remove? was chroma IF length
 
   // AMVP mode for each depth
   for (Int i = 0; i < pcSPS->getMaxCUDepth(); i++)
@@ -655,9 +653,7 @@ Void TEncCavlc::codeSPS( TComSPS* pcSPS )
 
   // write number of taps for DIF
   xWriteUvlc  ( (pcSPS->getDIFTap ()>>1)-2 ); // 4, 6, 8, 10, 12
-#if SAMSUNG_CHROMA_IF_EXT
-  xWriteUvlc  ( (pcSPS->getDIFTapC()>>1)-1 ); // 2, 4, 6, 8, 10, 12
-#endif
+  xWriteUvlc  ( 0 ); // TODO: remove? was chroma IF length
 
   // AMVP mode for each depth
   for (Int i = 0; i < pcSPS->getMaxCUDepth(); i++)

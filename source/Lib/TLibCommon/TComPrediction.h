@@ -63,9 +63,6 @@ protected:
   Int       m_iYuvExtStride;
   Int       m_iYuvExtHeight;
   Int       m_iDIFHalfTap;
-#if SAMSUNG_CHROMA_IF_EXT
-  Int		m_iDIFHalfTapC;
-#endif
 
   TComYuv   m_acYuvPred[2];
   TComYuv   m_cYuvPredTemp;
@@ -89,10 +86,6 @@ protected:
 #endif
 #endif
   Void xWeightedAverage         ( TComDataCU* pcCU, TComYuv* pcYuvSrc0, TComYuv* pcYuvSrc1, Int iRefIdx0, Int iRefIdx1, UInt uiPartAddr, Int iWidth, Int iHeight, TComYuv*& rpcYuvDst );
-
-#if SAMSUNG_CHROMA_IF_EXT
-  Void  xDCTIF_FilterC ( Pel*  piRefC, Int iRefStride,Pel*  piDstC,Int iDstStride, Int iWidth, Int iHeight,Int iMVyFrac,Int iMVxFrac);
-#endif
 
 public:
   TComPrediction();

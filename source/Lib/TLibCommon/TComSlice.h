@@ -79,10 +79,6 @@ private:
   Bool        m_bUsePAD;
   Bool        m_bUseQBO;
   Int         m_iDIFTap;
-#if SAMSUNG_CHROMA_IF_EXT
-  Int         m_iDIFTapC;
-#endif
-
 #if HHI_ALLOW_CIP_SWITCH
 	Bool        m_bUseCIP; // BB:
 #endif
@@ -172,9 +168,6 @@ public:
 #endif
 
   Int  getDIFTap      ()         { return m_iDIFTap;        }
-#if SAMSUNG_CHROMA_IF_EXT
-  Int  getDIFTapC     ()         { return m_iDIFTapC;       };
-#endif
 
   Void setUseALF      ( Bool b ) { m_bUseALF  = b;          }
   Void setUseDQP      ( Bool b ) { m_bUseDQP   = b;         }
@@ -194,9 +187,6 @@ public:
 #endif
 
   Void setDIFTap      ( Int  i ) { m_iDIFTap   = i;         }
- #if SAMSUNG_CHROMA_IF_EXT
-  Void setDIFTapC     ( Int  i ) { m_iDIFTapC = i;          };
-#endif
 
 #if HHI_RMP_SWITCH
   Bool getUseRMP     ()         { return m_bUseRMP; }

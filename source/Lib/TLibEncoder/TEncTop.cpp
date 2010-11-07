@@ -154,9 +154,6 @@ Void TEncTop::init()
 
   // initialize DIF
   m_cSearch.setDIFTap ( m_cSPS.getDIFTap () );
-#if SAMSUNG_CHROMA_IF_EXT
-  m_cSearch.setDIFTapC( m_cSPS.getDIFTapC() );
-#endif
 
   // initialize transform & quantization class
   m_pcCavlcCoder = getCavlcCoder();
@@ -337,9 +334,6 @@ Void TEncTop::xInitSPS()
   m_cSPS.setUseIMP        ( m_bUseIMP           ); // SOPH:
 #endif
   m_cSPS.setDIFTap        ( m_iDIFTap           );
-#if SAMSUNG_CHROMA_IF_EXT
-  m_cSPS.setDIFTapC       ( m_iDIFTapC          );
-#endif
 
 #if HHI_RQT
   m_cSPS.setMaxTrSize   ( 1 << m_uiQuadtreeTULog2MaxSize );

@@ -59,10 +59,6 @@ typedef Int (*FpCTIFilter_VI) ( Int* pSrc, Int* piCoeff, Int iStride );
 // filter coefficient array
 extern Int CTI_Filter12 [5][3][12];
 
-#if SAMSUNG_CHROMA_IF_EXT
-extern Int CTI_Filter12_C [5][7][12];
-#endif
-
 // ====================================================================================================================
 // Class definition
 // ====================================================================================================================
@@ -73,10 +69,6 @@ class TComPredFilter
 protected:
   // filter description (luma & chroma)
   Int   m_iDIFTap;
-
-#if SAMSUNG_CHROMA_IF_EXT
-  Int	m_iDIFTapC;
-#endif
 
 private:
 
@@ -106,9 +98,6 @@ public:
   TComPredFilter();
 
   Void  setDIFTap ( Int i );
-#if SAMSUNG_CHROMA_IF_EXT
-  Void  setDIFTapC( Int i );
-#endif
 
   // DIF filter interface (for half & quarter)
 #if TEN_DIRECTIONAL_INTERP
@@ -132,13 +121,6 @@ public:
 
   __inline Void xCTI_FilterQuarter1Ver (Pel* piSrc, Int iSrcStride, Int iSrcStep, Int iWidth, Int iHeight, Int iDstStride, Int iDstStep, Int*& rpiDst );
   __inline Void xCTI_FilterQuarter1Ver (Pel* piSrc, Int iSrcStride, Int iSrcStep, Int iWidth, Int iHeight, Int iDstStride, Int iDstStep, Pel*& rpiDst );
-
-#if SAMSUNG_CHROMA_IF_EXT
-  __inline Void xCTI_Filter2DVerC (Pel* piSrc, Int iSrcStride,  Int iWidth, Int iHeight, Int iDstStride,  Int*& rpiDst, Int iMv);
-  __inline Void xCTI_Filter2DHorC (Int* piSrc, Int iSrcStride,  Int iWidth, Int iHeight, Int iDstStride,  Pel*& rpiDst, Int iMV);
-  __inline Void xCTI_Filter1DHorC (Pel* piSrc, Int iSrcStride,  Int iWidth, Int iHeight, Int iDstStride,  Pel*& rpiDst, Int iMV);
-  __inline Void xCTI_Filter1DVerC (Pel* piSrc, Int iSrcStride,  Int iWidth, Int iHeight, Int iDstStride,  Pel*& rpiDst, Int iMV);
-#endif
 
 private:
 
@@ -1363,146 +1345,5 @@ __inline Int TComPredFilter::xCTI_Filter_VI12_QU1( Int* pSrc, Int* piCoeff, Int 
   iSum += (pSrc[6*iStride]) << 8;
   return iSum;
 }
-
-// ------------------------------------------------------------------------------------------------
-// DCTIF filters for Chroma
-// ------------------------------------------------------------------------------------------------
-#if SAMSUNG_CHROMA_IF_EXT
-__inline Void TComPredFilter::xCTI_Filter2DVerC (Pel* piSrc, Int iSrcStride,  Int iWidth, Int iHeight, Int iDstStride,  Int*& rpiDst, Int iMV)
-{
-  Int*  piDst = rpiDst;
-  Int   iSum;
-  Pel*  piSrcTmp;
-  Pel*  piSrcTmp2;
-
-  Int*  piFilter = CTI_Filter12_C[m_iTapIdxC][iMV+AMVRES_ACC_IDX_OFFSET];
-
-  for ( Int y = iHeight; y != 0; y-- )
-  {
-	piSrcTmp = &piSrc[ 0-m_iLeftMarginC*iSrcStride ];
-	piSrcTmp2 = piSrc;
-    for ( Int x = 0; x < iWidth; x++ )
-    {
-      iSum      = xCTI_Filter_VPC[iMV+AMVRES_ACC_IDX_OFFSET]( piSrcTmp, piFilter, iSrcStride );
-
-	  if(piSrcTmp2[0] <= piSrcTmp2[iSrcStride])
-	  {
-		  iSum = Clip3(piSrcTmp2[0]<<8, piSrcTmp2[iSrcStride]<<8, iSum);
-	  }
-	  else
-	  {
-		  iSum = Clip3(piSrcTmp2[iSrcStride]<<8, piSrcTmp2[0]<<8, iSum);
-	  }
-
-	  piDst[x ] = iSum;
-	  piSrcTmp++;
-	  piSrcTmp2++;
-    }
-    piSrc += iSrcStride;
-    piDst += iDstStride;
-  }
-
-  return;
-}
-
-__inline Void TComPredFilter::xCTI_Filter2DHorC(Int* piSrc, Int iSrcStride,  Int iWidth, Int iHeight, Int iDstStride,  Pel*& rpiDst, Int iMV)
-{
-  Pel*  piDst    = rpiDst;
-  Int   iSum;
-	Int*  piSrcTmp;
-	Int*  piFilter = CTI_Filter12_C[m_iTapIdxC][iMV+AMVRES_ACC_IDX_OFFSET];
-	
-  for ( Int y = iHeight; y != 0; y-- )
-  {
-		piSrcTmp = &piSrc[ 0-m_iLeftMarginC ];
-    for ( Int x = 0; x < iWidth; x++ )
-    {
-			iSum         = xCTI_Filter_VIC[iMV+AMVRES_ACC_IDX_OFFSET]( piSrcTmp, piFilter, 1 );
-
-      if(piSrc[x] <= piSrc[x+1])
-	  {
-		  iSum = Clip3(piSrc[x]<<8, piSrc[x+1]<<8, iSum);
-	  }
-	  else
-	  {
-		  iSum = Clip3(piSrc[x+1]<<8, piSrc[x]<<8, iSum);
-	  }
-
-	      piDst   [x ] = (iSum +  32768) >>  16 ;
-			piSrcTmp++;
-    }
-    piSrc += iSrcStride;
-    piDst += iDstStride;
-  }
-  return;
-}
-
-__inline Void TComPredFilter::xCTI_Filter1DVerC (Pel* piSrc, Int iSrcStride, Int iWidth, Int iHeight, Int iDstStride,  Pel*& rpiDst, Int iMV)
-{
-  Pel*  piDst = rpiDst;
-  Int   iSum;
-	Pel*  piSrcTmp;	
-	Pel*  piSrcTmp2;
-	Int*  piFilter = CTI_Filter12_C[m_iTapIdxC][iMV+AMVRES_ACC_IDX_OFFSET];
-	
-  for ( Int y = iHeight; y != 0; y-- )
-  {
-		piSrcTmp = &piSrc[ 0-m_iLeftMarginC*iSrcStride ];
-		piSrcTmp2 = piSrc;
-    for ( Int x = 0; x < iWidth; x++ )
-    {
-			iSum      = xCTI_Filter_VPC[iMV+AMVRES_ACC_IDX_OFFSET]( piSrcTmp, piFilter, iSrcStride );
-	  
-      if(piSrcTmp2[0] <= piSrcTmp2[iSrcStride])
-	  {
-		  iSum = Clip3(piSrcTmp2[0]<<8, piSrcTmp2[iSrcStride]<<8, iSum);
-	  }
-	  else
-	  {
-		  iSum = Clip3(piSrcTmp2[iSrcStride]<<8, piSrcTmp2[0]<<8, iSum);
-	  }
-
-	  piDst[x ] = (iSum +  128) >>  8 ;
-      piSrcTmp++;
-	  piSrcTmp2++;
-    }
-    piSrc += iSrcStride;
-    piDst += iDstStride;
-  }
-  return;
-}
-
-__inline Void TComPredFilter::xCTI_Filter1DHorC(Pel* piSrc, Int iSrcStride, Int iWidth, Int iHeight, Int iDstStride, Pel*& rpiDst, Int iMV)
-{
-  Pel*  piDst    = rpiDst;
-  Int   iSum;
-	Pel*  piSrcTmp;
-	Int*  piFilter = CTI_Filter12_C[m_iTapIdxC][iMV+AMVRES_ACC_IDX_OFFSET];
-
-  for ( Int y = iHeight; y != 0; y-- )
-  {
-		piSrcTmp = &piSrc[ 0-m_iLeftMarginC ];
-    for ( Int x = 0; x < iWidth; x++ )
-    {
-			iSum         = xCTI_Filter_VPC[iMV+AMVRES_ACC_IDX_OFFSET]( piSrcTmp, piFilter, 1 );
-
-      if(piSrc[x] <= piSrc[x+1])
-	  {
-		  iSum = Clip3(piSrc[x]<<8, piSrc[x+1]<<8, iSum);
-	  }
-	  else
-	  {
-		  iSum = Clip3(piSrc[x+1]<<8, piSrc[x]<<8, iSum);
-	  }
-
-	  piDst[x ] = (iSum +  128) >>  8 ;
-			piSrcTmp++;
-    }
-    piSrc += iSrcStride;
-    piDst += iDstStride;
-  }
-  return;
-}
-#endif
 
 #endif // __TCOMPREDFILTER__

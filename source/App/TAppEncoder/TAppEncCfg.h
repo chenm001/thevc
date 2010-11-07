@@ -110,9 +110,6 @@ protected:
 
   // coding tools (inter - interpolation filter)
   Int       m_iDIFTap;                                        ///< number of taps in DIF (luma)
-#if SAMSUNG_CHROMA_IF_EXT
-  Int   	m_iDIFTapC;                                       ///< number of taps in DIF (chroma)
-#endif
 
   // coding tools (loop filter)
   Bool      m_bUseALF;                                        ///< flag for using adaptive loop filter
