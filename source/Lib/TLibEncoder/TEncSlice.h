@@ -91,10 +91,6 @@ private:
   Double*                 m_pdRdPicQp;                          ///< array of picture QP candidates (double-type for lambda)
   Int*                    m_piRdPicQp;                          ///< array of picture QP candidates (int-type)
 
-protected:
-  Double  xComputeImgSum      ( Pel* img,                   Int width, Int height, Int stride   );  ///< compute sum of pixel values
-  Double  xComputeNormMean    ( Pel* img, Double meanValue, Int width, Int height, Int stride   );  ///< compute sum of abs pixel values
-
 public:
   TEncSlice();
   virtual ~TEncSlice();

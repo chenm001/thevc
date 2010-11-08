@@ -607,36 +607,3 @@ Void TEncSlice::encodeSlice   ( TComPic*& rpcPic, TComBitstream*& rpcBitstream )
 
   }
 }
-
-Double TEncSlice::xComputeImgSum( Pel* img, Int width, Int height, Int stride )
-{
-  Int x, y;
-  Double sum=0.;
-
-  for (y=0; y<height; y++)
-  {
-    for (x=0; x<width; x++)
-    {
-      sum += (Double)(img[x]);
-    }
-    img += stride;
-  }
-  return sum;
-}
-
-Double TEncSlice::xComputeNormMean( Pel* img, Double meanValue, Int width, Int height, Int stride )
-{
-  Int x, y;
-  Double sum=0.;
-
-  for (y=0; y<height; y++)
-  {
-    for (x=0; x<width; x++)
-    {
-      sum += fabs((Double)(img[x]) - meanValue);
-    }
-    img += stride;
-  }
-  return sum;
-}
-
