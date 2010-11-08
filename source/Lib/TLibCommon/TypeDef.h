@@ -57,7 +57,6 @@
 #define HHI_RQT_ROOT                      1           ///< PHHK: signaling of residual quadtree root flag
 #define HHI_RQT_FORCE_SPLIT_NxN           0           ///< MSHK: force split flags of residual quadtree for NxN PUs such that transform blocks are guaranteed to not span NxN PUs
 #define HHI_RQT_FORCE_SPLIT_RECT          0           ///< MSHK: force split flags of residual quadtree for rectangular PUs such that transform blocks are guaranteed to not span rectangular PUs
-#define HHI_RQT_FORCE_SPLIT_ASYM          0           ///< MSHK: force split flags of residual quadtree for asymmetric such that transform blocks are guaranteed to not span PUs asymmetric PUs
 #define HHI_RQT_INTRA_SPEEDUP             1 // tests one best mode with full rqt
 #define HHI_RQT_INTRA_SPEEDUP_MOD         0 // tests two best modes with full rqt
 #define HHI_C319_SPS                      1           ///< BB: SPS from JCTVC-C319
@@ -78,7 +77,7 @@
 #error "HHI_MRG_PU can only be equal to 1 if HHI_MRG is equal to 1"
 #endif
 
-#if ( HHI_RQT_FORCE_SPLIT_NxN || HHI_RQT_FORCE_SPLIT_RECT || HHI_RQT_FORCE_SPLIT_ASYM )
+#if ( HHI_RQT_FORCE_SPLIT_NxN || HHI_RQT_FORCE_SPLIT_RECT)
 #define HHI_RQT_FORCE_SPLIT_ACC2_PU       1
 #else
 #define HHI_RQT_FORCE_SPLIT_ACC2_PU       0

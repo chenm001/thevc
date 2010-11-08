@@ -1551,56 +1551,6 @@ UInt TComDataCU::getQuadtreeTULog2RootSizeInCU( UInt uiIdx )
     return (uiLog2RootTUSizeInCU > m_pcSlice->getSPS()->getQuadtreeTULog2MaxSize() ? m_pcSlice->getSPS()->getQuadtreeTULog2MaxSize() : uiLog2RootTUSizeInCU);
   }	
 
-#if HHI_RQT_FORCE_SPLIT_ASYM || HHI_RQT_DISABLE_SUB
-  UInt uiCurrPartNum = m_pcPic->getNumPartInCU() >> (m_puhDepth[uiIdx] << 1);
-  UInt uiCurrPartNumQ = uiCurrPartNum >> 2;
-  UInt uiAbsPartIdxOfCu = uiIdx - (uiIdx % uiCurrPartNum);
-
-  Bool bQuad0 = (                                 uiIdx < uiAbsPartIdxOfCu + uiCurrPartNumQ);
-  Bool bQuad1 = (!bQuad0 &&                       uiIdx < uiAbsPartIdxOfCu + (uiCurrPartNumQ<<1));
-  Bool bQuad2 = (!bQuad0 && !bQuad1 &&            uiIdx < uiAbsPartIdxOfCu + (uiCurrPartNumQ*3));
-  Bool bQuad3 = (!bQuad0 && !bQuad1 && !bQuad2 && uiIdx < uiAbsPartIdxOfCu + uiCurrPartNum);  
-
-  assert(bQuad0 || bQuad1 || bQuad2 || bQuad3);
-
-  switch ( m_pePartSize[ uiIdx ] )
-  {
-  case SIZE_2NxnU:
-    {
-      if ( bQuad0 || bQuad1 )		
-        uiLog2RootTUSizeInCU -= 2;
-	  else
-        uiLog2RootTUSizeInCU--;
-      break;
-    }
-  case SIZE_2NxnD:
-    {
-      if ( bQuad2 || bQuad3 ) 	  
-        uiLog2RootTUSizeInCU -= 2;
-      else
-        uiLog2RootTUSizeInCU--;
-      break;
-    }
-  case SIZE_nLx2N:
-    {
-      if ( bQuad0 || bQuad2 ) 	  
-        uiLog2RootTUSizeInCU -= 2;
-      else
-        uiLog2RootTUSizeInCU--;
-      break;
-    }
-  case SIZE_nRx2N:
-    {
-      if ( bQuad1 || bQuad3 ) 	  
-        uiLog2RootTUSizeInCU -= 2;
-      else
-        uiLog2RootTUSizeInCU--;
-      break;
-    }
-  default:
-    assert( 0 );
-  }    
-#endif
   return (uiLog2RootTUSizeInCU > m_pcSlice->getSPS()->getQuadtreeTULog2MaxSize() ? m_pcSlice->getSPS()->getQuadtreeTULog2MaxSize() : uiLog2RootTUSizeInCU);
 }
 #endif
@@ -1879,63 +1829,6 @@ Void TComDataCU::setSubPartUChar( UInt uiParameter, UChar* puhBaseLCU, UInt uiCU
     memset( puhBaseLCU + uiCUAddr + ( uiCurrPartNumQ << 1 ), uiParameter, sizeof(UChar)*uiCurrPartNumQ ); break;
   case SIZE_NxN:
     memset( puhBaseLCU + uiCUAddr, uiParameter, sizeof(UChar)*uiCurrPartNumQ );                           break;
-  case SIZE_2NxnU:
-    {
-      memset( puhBaseLCU + uiCUAddr, uiParameter, sizeof(UChar)*(uiCurrPartNumQ>>1) );
-      if( uiPUIdx == 0 )
-        memset( puhBaseLCU + uiCUAddr + uiCurrPartNumQ, uiParameter, sizeof(UChar)*(uiCurrPartNumQ>>1) );
-      else
-        memset( puhBaseLCU + uiCUAddr + uiCurrPartNumQ, uiParameter, sizeof(UChar)*( (uiCurrPartNumQ>>1) + (uiCurrPartNumQ<<1) ) );
-      break;
-    }
-  case SIZE_2NxnD:
-    {
-      if( uiPUIdx == 0 )
-      {
-        memset( puhBaseLCU + uiCUAddr, uiParameter, sizeof(UChar)*( (uiCurrPartNumQ>>1) + (uiCurrPartNumQ<<1) ) );
-        memset( puhBaseLCU + uiCUAddr + ( uiCurrPartNumQ + (uiCurrPartNumQ<<1) ), uiParameter, sizeof(UChar)*(uiCurrPartNumQ>>1) );
-      }
-      else
-      {
-        memset( puhBaseLCU + uiCUAddr, uiParameter, sizeof(UChar)*(uiCurrPartNumQ>>1) );
-        memset( puhBaseLCU + uiCUAddr + uiCurrPartNumQ, uiParameter, sizeof(UChar)*(uiCurrPartNumQ>>1) );
-      }
-      break;
-    }
-  case SIZE_nLx2N:
-    {
-      memset( puhBaseLCU + uiCUAddr, uiParameter, sizeof(UChar)*(uiCurrPartNumQ>>2) );
-      memset( puhBaseLCU + uiCUAddr + (uiCurrPartNumQ<<1), uiParameter, sizeof(UChar)*(uiCurrPartNumQ>>2) );
-      if( uiPUIdx == 0 )
-      {
-        memset( puhBaseLCU + uiCUAddr + (uiCurrPartNumQ>>1), uiParameter, sizeof(UChar)*(uiCurrPartNumQ>>2) );
-        memset( puhBaseLCU + uiCUAddr + (uiCurrPartNumQ<<1) + (uiCurrPartNumQ>>1), uiParameter, sizeof(UChar)*(uiCurrPartNumQ>>2) );
-      }
-      else
-      {
-        memset( puhBaseLCU + uiCUAddr + (uiCurrPartNumQ>>1), uiParameter, sizeof(UChar)*( (uiCurrPartNumQ>>2) + uiCurrPartNumQ ) );
-        memset( puhBaseLCU + uiCUAddr + (uiCurrPartNumQ<<1) + (uiCurrPartNumQ>>1), uiParameter, sizeof(UChar)*( (uiCurrPartNumQ>>2) + uiCurrPartNumQ ) );
-      }
-      break;
-    }
-  case SIZE_nRx2N:
-    {
-      if( uiPUIdx == 0 )
-      {
-        memset( puhBaseLCU + uiCUAddr, uiParameter, sizeof(UChar)*( (uiCurrPartNumQ>>2) + uiCurrPartNumQ ) );
-        memset( puhBaseLCU + uiCUAddr + uiCurrPartNumQ + (uiCurrPartNumQ>>1), uiParameter, sizeof(UChar)*(uiCurrPartNumQ>>2) );
-        memset( puhBaseLCU + uiCUAddr + (uiCurrPartNumQ<<1), uiParameter, sizeof(UChar)*( (uiCurrPartNumQ>>2) + uiCurrPartNumQ ) );
-        memset( puhBaseLCU + uiCUAddr + (uiCurrPartNumQ<<1) + uiCurrPartNumQ + (uiCurrPartNumQ>>1), uiParameter, sizeof(UChar)*(uiCurrPartNumQ>>2) );
-      }
-      else
-      {
-        memset( puhBaseLCU + uiCUAddr, uiParameter, sizeof(UChar)*(uiCurrPartNumQ>>2) );
-        memset( puhBaseLCU + uiCUAddr + (uiCurrPartNumQ>>1), uiParameter, sizeof(UChar)*(uiCurrPartNumQ>>2) );
-        memset( puhBaseLCU + uiCUAddr + (uiCurrPartNumQ<<1), uiParameter, sizeof(UChar)*(uiCurrPartNumQ>>2) );
-        memset( puhBaseLCU + uiCUAddr + (uiCurrPartNumQ<<1) + (uiCurrPartNumQ>>1), uiParameter, sizeof(UChar)*(uiCurrPartNumQ>>2) );
-      }
-      break;
-    }
   default:
     assert( 0 );
   }
@@ -1955,63 +1848,6 @@ Void TComDataCU::setSubPartBool( Bool bParameter, Bool* pbBaseLCU, UInt uiCUAddr
     memset( pbBaseLCU + uiCUAddr + ( uiQuaterCUPartNum << 1 ), bParameter, sizeof(Bool)*uiQuaterCUPartNum ); break;
   case SIZE_NxN:
     memset( pbBaseLCU + uiCUAddr, bParameter, sizeof(Bool)*uiQuaterCUPartNum );                           break;
-  case SIZE_2NxnU:
-    {
-      memset( pbBaseLCU + uiCUAddr, bParameter, sizeof(Bool)*(uiQuaterCUPartNum>>1) );
-      if( uiPUIdx == 0 )
-        memset( pbBaseLCU + uiCUAddr + uiQuaterCUPartNum, bParameter, sizeof(Bool)*(uiQuaterCUPartNum>>1) );
-      else
-        memset( pbBaseLCU + uiCUAddr + uiQuaterCUPartNum, bParameter, sizeof(Bool)*( (uiQuaterCUPartNum>>1) + (uiQuaterCUPartNum<<1) ) );
-      break;
-    }
-  case SIZE_2NxnD:
-    {
-      if( uiPUIdx == 0 )
-      {
-        memset( pbBaseLCU + uiCUAddr, bParameter, sizeof(Bool)*( (uiQuaterCUPartNum>>1) + (uiQuaterCUPartNum<<1) ) );
-        memset( pbBaseLCU + uiCUAddr + ( uiQuaterCUPartNum + (uiQuaterCUPartNum<<1) ), bParameter, sizeof(Bool)*(uiQuaterCUPartNum>>1) );
-      }
-      else
-      {
-        memset( pbBaseLCU + uiCUAddr, bParameter, sizeof(Bool)*(uiQuaterCUPartNum>>1) );
-        memset( pbBaseLCU + uiCUAddr + uiQuaterCUPartNum, bParameter, sizeof(Bool)*(uiQuaterCUPartNum>>1) );
-      }
-      break;
-    }
-  case SIZE_nLx2N:
-    {
-      memset( pbBaseLCU + uiCUAddr, bParameter, sizeof(Bool)*(uiQuaterCUPartNum>>2) );
-      memset( pbBaseLCU + uiCUAddr + (uiQuaterCUPartNum<<1), bParameter, sizeof(Bool)*(uiQuaterCUPartNum>>2) );
-      if( uiPUIdx == 0 )
-      {
-        memset( pbBaseLCU + uiCUAddr + (uiQuaterCUPartNum>>1), bParameter, sizeof(Bool)*(uiQuaterCUPartNum>>2) );
-        memset( pbBaseLCU + uiCUAddr + (uiQuaterCUPartNum<<1) + (uiQuaterCUPartNum>>1), bParameter, sizeof(Bool)*(uiQuaterCUPartNum>>2) );
-      }
-      else
-      {
-        memset( pbBaseLCU + uiCUAddr + (uiQuaterCUPartNum>>1), bParameter, sizeof(Bool)*( (uiQuaterCUPartNum>>2) + uiQuaterCUPartNum ) );
-        memset( pbBaseLCU + uiCUAddr + (uiQuaterCUPartNum<<1) + (uiQuaterCUPartNum>>1), bParameter, sizeof(Bool)*( (uiQuaterCUPartNum>>2) + uiQuaterCUPartNum ) );
-      }
-      break;
-    }
-  case SIZE_nRx2N:
-    {
-      if( uiPUIdx == 0 )
-      {
-        memset( pbBaseLCU + uiCUAddr, bParameter, sizeof(Bool)*( (uiQuaterCUPartNum>>2) + uiQuaterCUPartNum ) );
-        memset( pbBaseLCU + uiCUAddr + uiQuaterCUPartNum + (uiQuaterCUPartNum>>1), bParameter, sizeof(Bool)*(uiQuaterCUPartNum>>2) );
-        memset( pbBaseLCU + uiCUAddr + (uiQuaterCUPartNum<<1), bParameter, sizeof(Bool)*( (uiQuaterCUPartNum>>2) + uiQuaterCUPartNum ) );
-        memset( pbBaseLCU + uiCUAddr + (uiQuaterCUPartNum<<1) + uiQuaterCUPartNum + (uiQuaterCUPartNum>>1), bParameter, sizeof(Bool)*(uiQuaterCUPartNum>>2) );
-      }
-      else
-      {
-        memset( pbBaseLCU + uiCUAddr, bParameter, sizeof(Bool)*(uiQuaterCUPartNum>>2) );
-        memset( pbBaseLCU + uiCUAddr + (uiQuaterCUPartNum>>1), bParameter, sizeof(Bool)*(uiQuaterCUPartNum>>2) );
-        memset( pbBaseLCU + uiCUAddr + (uiQuaterCUPartNum<<1), bParameter, sizeof(Bool)*(uiQuaterCUPartNum>>2) );
-        memset( pbBaseLCU + uiCUAddr + (uiQuaterCUPartNum<<1) + (uiQuaterCUPartNum>>1), bParameter, sizeof(Bool)*(uiQuaterCUPartNum>>2) );
-      }
-      break;
-    }
   default:
     assert( 0 );
   }

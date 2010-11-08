@@ -5241,18 +5241,7 @@ Void TEncSearch::encodeResAndCalcRdInterCU( TComDataCU* pcCU, TComYuv* pcYuvOrg,
 #else
   const Bool bSymmetricOK  = pcCU->getPartitionSize( 0 ) >= SIZE_2NxN  && pcCU->getPartitionSize( 0 ) < SIZE_NxN;
 #endif
-#if HHI_RQT_FORCE_SPLIT_ASYM
-  const Bool bAsymmetricOK = pcCU->getPartitionSize( 0 ) >= SIZE_2NxnU && pcCU->getPartitionSize( 0 ) <= SIZE_nRx2N && uiTrMode > 1;
-  const Bool b2NxnUOK      = pcCU->getPartitionSize( 0 ) == SIZE_2NxnU && uiQuadrant > 1      && uiTrMode == 1;
-  const Bool b2NxnDOK      = pcCU->getPartitionSize( 0 ) == SIZE_2NxnD && uiQuadrant < 2      && uiTrMode == 1;
-  const Bool bnLx2NOK      = pcCU->getPartitionSize( 0 ) == SIZE_nLx2N &&  ( uiQuadrant & 1 ) && uiTrMode == 1;
-  const Bool bnRx2NOK      = pcCU->getPartitionSize( 0 ) == SIZE_nRx2N && !( uiQuadrant & 1 ) && uiTrMode == 1;
-  const Bool bNoForceSplit = pcCU->getPartitionSize( 0 ) == SIZE_2Nx2N || bSymmetricOK || bAsymmetricOK ||
-                                                            b2NxnUOK || b2NxnDOK || bnLx2NOK || bnRx2NOK || bNxNOK;
-#else
-  const Bool bAsymmetricOK = pcCU->getPartitionSize( 0 ) >= SIZE_2NxnU && pcCU->getPartitionSize( 0 ) <= SIZE_nRx2N;
-  const Bool bNoForceSplit = pcCU->getPartitionSize( 0 ) == SIZE_2Nx2N || bNxNOK || bSymmetricOK || bAsymmetricOK;
-#endif
+  const Bool bNoForceSplit = pcCU->getPartitionSize( 0 ) == SIZE_2Nx2N || bNxNOK || bSymmetricOK;
   const Bool bCheckFull    = bNoForceSplit && ( uiLog2TrSize <= pcCU->getSlice()->getSPS()->getQuadtreeTULog2MaxSize() );
 #else
   const Bool bCheckFull    = ( uiLog2TrSize <= pcCU->getSlice()->getSPS()->getQuadtreeTULog2MaxSize() );

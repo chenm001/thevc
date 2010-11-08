@@ -514,58 +514,6 @@ Void TComLoopFilter::xSetEdgefilter( TComDataCU* pcCU, UInt uiAbsZorderIdx )
       m_stLFCUParam.bLumaEdgeFilter[EDGE_HOR][3] = false;
       break;
     }
-  case SIZE_2NxnU:
-    {
-      m_stLFCUParam.bLumaEdgeFilter[EDGE_VER][0] = m_stLFCUParam.bLeftEdge;
-      m_stLFCUParam.bLumaEdgeFilter[EDGE_VER][1] = false;
-      m_stLFCUParam.bLumaEdgeFilter[EDGE_VER][2] = false;
-      m_stLFCUParam.bLumaEdgeFilter[EDGE_VER][3] = false;
-
-      m_stLFCUParam.bLumaEdgeFilter[EDGE_HOR][0] = m_stLFCUParam.bTopEdge;
-      m_stLFCUParam.bLumaEdgeFilter[EDGE_HOR][1] = m_stLFCUParam.bInternalEdge;
-      m_stLFCUParam.bLumaEdgeFilter[EDGE_HOR][2] = false;
-      m_stLFCUParam.bLumaEdgeFilter[EDGE_HOR][3] = false;
-      break;
-    }
-  case SIZE_2NxnD:
-    {
-      m_stLFCUParam.bLumaEdgeFilter[EDGE_VER][0] = m_stLFCUParam.bLeftEdge;
-      m_stLFCUParam.bLumaEdgeFilter[EDGE_VER][1] = false;
-      m_stLFCUParam.bLumaEdgeFilter[EDGE_VER][2] = false;
-      m_stLFCUParam.bLumaEdgeFilter[EDGE_VER][3] = false;
-
-      m_stLFCUParam.bLumaEdgeFilter[EDGE_HOR][0] = m_stLFCUParam.bTopEdge;
-      m_stLFCUParam.bLumaEdgeFilter[EDGE_HOR][1] = false;
-      m_stLFCUParam.bLumaEdgeFilter[EDGE_HOR][2] = false;
-      m_stLFCUParam.bLumaEdgeFilter[EDGE_HOR][3] = m_stLFCUParam.bInternalEdge;
-      break;
-    }
-  case SIZE_nLx2N:
-    {
-      m_stLFCUParam.bLumaEdgeFilter[EDGE_VER][0] = m_stLFCUParam.bLeftEdge;
-      m_stLFCUParam.bLumaEdgeFilter[EDGE_VER][1] = m_stLFCUParam.bInternalEdge;
-      m_stLFCUParam.bLumaEdgeFilter[EDGE_VER][2] = false;
-      m_stLFCUParam.bLumaEdgeFilter[EDGE_VER][3] = false;
-
-      m_stLFCUParam.bLumaEdgeFilter[EDGE_HOR][0] = m_stLFCUParam.bTopEdge;
-      m_stLFCUParam.bLumaEdgeFilter[EDGE_HOR][1] = false;
-      m_stLFCUParam.bLumaEdgeFilter[EDGE_HOR][2] = false;
-      m_stLFCUParam.bLumaEdgeFilter[EDGE_HOR][3] = false;
-      break;
-    }
-  case SIZE_nRx2N:
-    {
-      m_stLFCUParam.bLumaEdgeFilter[EDGE_VER][0] = m_stLFCUParam.bLeftEdge;
-      m_stLFCUParam.bLumaEdgeFilter[EDGE_VER][1] = false;
-      m_stLFCUParam.bLumaEdgeFilter[EDGE_VER][2] = false;
-      m_stLFCUParam.bLumaEdgeFilter[EDGE_VER][3] = m_stLFCUParam.bInternalEdge;
-
-      m_stLFCUParam.bLumaEdgeFilter[EDGE_HOR][0] = m_stLFCUParam.bTopEdge;
-      m_stLFCUParam.bLumaEdgeFilter[EDGE_HOR][1] = false;
-      m_stLFCUParam.bLumaEdgeFilter[EDGE_HOR][2] = false;
-      m_stLFCUParam.bLumaEdgeFilter[EDGE_HOR][3] = false;
-      break;
-    }
   default:
     {
       assert(0);
