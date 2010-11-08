@@ -440,15 +440,6 @@ Void TEncCu::xCompressCU( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, UInt u
         xCheckRDCostInter      ( rpcBestCU, rpcTempCU, SIZE_2NxN  );  rpcTempCU->initEstData();
       }
 
-      // fast encoder decision for asymmetric motion partition: try asymmetric motion partition only when best != 2Nx2N
-      if ( m_pcEncCfg->getUseFastEnc() )
-      {
-        // Best is skip or 2Nx2N
-#if !SAMSUNG_REMOVE_AMP_FEN_PENALTY
-        if ( rpcBestCU->getPartitionSize(0) == SIZE_2Nx2N ) bTryAsym = false;
-#endif
-      }
-
     }
 
     // initialize special intra tools

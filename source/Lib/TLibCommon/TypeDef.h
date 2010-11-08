@@ -148,8 +148,6 @@
 ///////////////////////////////
 // SAMSUNG defines section start
 ///////////////////////////////
-#define SAMSUNG_REMOVE_AMP_FEN_PENALTY        1           ///< removal of FEN penality of AMP
-
 #if HHI_RQT
 #define HHI_RQT_DEPTH                         1           ///< controlling max quadtree depth
 #if HHI_RQT_DEPTH
