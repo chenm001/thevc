@@ -130,7 +130,6 @@
 #define QC_ALF              1
 #if QC_ALF
 #define ENABLE_FORCECOEFF0  0
-#define ALF_MEM_PATCH       1
 #endif
 
 #define DISABLE_ROT_LUMA_4x4_8x8           0

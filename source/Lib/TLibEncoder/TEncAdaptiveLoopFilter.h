@@ -80,13 +80,6 @@ private:
   UInt							m_uiSCUWidth;
   UInt							m_uiSCUHeight;
 #if QC_ALF
-#if !ALF_MEM_PATCH
-  imgpel		**imgY_rest;
-  imgpel		**imgY_org;          
-  imgpel		**imgY_rec;
-  imgpel		**imgY_ext;
-  imgpel		**imgY_temp;
-#endif
   
   Int						varIndTab[NO_VAR_BINS];
   double					***yGlobalSym;
@@ -95,17 +88,12 @@ private:
   Int						**g_filterCoeffSymQuant;
   imgpel                    **varImg;
   imgpel					**maskImg;
-#if !ALF_MEM_PATCH
-  Int						**g_filterCoeffSym;
-  Int						**g_filterCoeffPrevSelected;
-#endif
   Int						im_width;
   Int						im_height;
   ALFParam					*ALFp;
   ALFParam					*tempALFp;
   TEncEntropy*				m_pcDummyEntropyCoder;
 
-#if ALF_MEM_PATCH
   double **y_merged;
   double ***E_merged;
   double *pixAcc_merged;
@@ -117,7 +105,6 @@ private:
   Int *filterCoeffQuant;
   Int **diffFilterCoeffQuant;
   Int **FilterCoeffQuantTemp;
-#endif
 
 #endif
 
@@ -212,12 +199,10 @@ public:
   Void xFilterTapDecision_qc            (TComPicYuv* pcPicOrg, TComPicYuv* pcPicDec, TComPicYuv* pcPicRest, UInt64& ruiMinRate, 
 	UInt64& ruiMinDist, Double& rdMinCost);
   Void xFirstFilteringFrameLuma         (imgpel** ImgOrg, imgpel** ImgDec, imgpel** ImgRest, ALFParam* ALFp, Int tap);
-#if ALF_MEM_PATCH
   Void xFirstFilteringFrameLuma         (imgpel* ImgOrg, imgpel* ImgDec, imgpel* ImgRest, ALFParam* ALFp, Int tap,  Int Stride);
   Void xstoreInBlockMatrix(imgpel* ImgOrg, imgpel* ImgDec, Int tap, Int Stride);
   Void xFilteringFrameLuma_qc(imgpel* ImgOrg, imgpel* imgY_pad, imgpel* ImgFilt, ALFParam* ALFp, Int tap, Int Stride);
   Void xfilterFrame_en(imgpel* ImgDec, imgpel* ImgRest,int filtNo, int Stride);
-#endif
   Void xstoreInBlockMatrix              (imgpel** ImgOrg, imgpel** ImgDec, Int tap);
   Void xFilteringFrameLuma_qc            (imgpel** ImgOrg, imgpel** imgY_pad, imgpel** ImgFilt, ALFParam* ALFp, Int tap);
   Void xfilterFrame_en(imgpel** ImgDec, imgpel** ImgRest, Int filtNo);

@@ -478,11 +478,6 @@ Void TComAdaptiveLoopFilter::create( Int iPicWidth, Int iPicHeight, UInt uiMaxCU
 	img_height = iPicHeight;
 	img_width = iPicWidth;
 	initMatrix_imgpel(&imgY_var, img_height, img_width); 
-#if !ALF_MEM_PATCH
-	initMatrix_imgpel(&ImgDec, img_height, img_width); 
-	initMatrix_imgpel(&ImgRest, img_height, img_width); 
-    initMatrix_imgpel(&imgY_pad, img_height+2*(FILTER_LENGTH/2), img_width+2*(FILTER_LENGTH/2));
-#endif
     initMatrix_int(&imgY_temp, img_height+2*VAR_SIZE+3, img_width+2*VAR_SIZE+3);
 
     initMatrix_int(&filterCoeffSym, NO_VAR_BINS, MAX_SQR_FILT_LENGTH);
@@ -501,12 +496,6 @@ Void TComAdaptiveLoopFilter::destroy()
 	}
 #if QC_ALF
 	destroyMatrix_imgpel(imgY_var); 
-#if !ALF_MEM_PATCH
-	destroyMatrix_imgpel(imgY_pad);
-	destroyMatrix_imgpel(ImgDec); 
-	destroyMatrix_imgpel(ImgRest);
-	destroyMatrix_int(imgY_temp);
-#endif
 
 	destroyMatrix_int(filterCoeffSym);
 	destroyMatrix_int(filterCoeffPrevSelected);
@@ -746,57 +735,24 @@ Void TComAdaptiveLoopFilter::ALFProcess(TComPic* pcPic, ALFParam* pcAlfParam)
 Void TComAdaptiveLoopFilter::xALFLuma_qc(TComPic* pcPic, ALFParam* pcAlfParam, TComPicYuv* pcPicDec, TComPicYuv* pcPicRest)
 {
   Int    LumaStride = pcPicDec->getStride();
-#if ALF_MEM_PATCH
   imgpel* pDec = (imgpel*)pcPicDec->getLumaAddr();
   imgpel* pRest = (imgpel*)pcPicRest->getLumaAddr();
-#else
-  Int    Height = pcPicDec->getHeight();
-  Int    Width = pcPicDec->getWidth();
-  Pel* pDec = pcPicDec->getLumaAddr();
-  Pel* pRest = pcPicRest->getLumaAddr();
-  for (Int i=0; i<Height; i++)
-	for (Int j=0; j<Width; j++)
-	{
-	  ImgDec[i][j] = ImgRest[i][j] = pDec[j + i*LumaStride];
-	}
-#endif
 
   //Decode and reconst filter coefficients
-#if ALF_MEM_PATCH
   DecFilter_qc(pDec,pcAlfParam,LumaStride);
-#else
-  DecFilter_qc(ImgDec,pcAlfParam);
-#endif
   //set maskImg using cu adaptive one.
   if(pcAlfParam->cu_control_flag)
   {
-#if ALF_MEM_PATCH
 	xCUAdaptive_qc(pcPic, pcAlfParam, pRest, pDec, LumaStride);
-#else
-	xCUAdaptive_qc(pcPic, pcAlfParam, ImgRest, ImgDec);
-#endif
   }  
   else
   {
 	//then do whole frame filtering
-#if ALF_MEM_PATCH
 	filterFrame(pRest, pDec, pcAlfParam->realfiltNo, LumaStride);
-#else
-	filterFrame(ImgRest, ImgDec, pcAlfParam->realfiltNo);
-#endif
   }
-
-#if !ALF_MEM_PATCH
-  for (Int i=0; i<Height; i++)
-	for (Int j=0; j<Width; j++)
-	{
-	  pRest[j + i*LumaStride] = ImgRest[i][j];
-	}
-#endif
 }
 
 
-#if ALF_MEM_PATCH
 Void TComAdaptiveLoopFilter::DecFilter_qc(imgpel* imgY_rec,ALFParam* pcAlfParam, int Stride)
 {
 	int i;
@@ -824,7 +780,6 @@ Void TComAdaptiveLoopFilter::DecFilter_qc(imgpel* imgY_rec,ALFParam* pcAlfParam,
 
     calcVar(imgY_var, imgY_rec, fl, VAR_SIZE, img_height, img_width, Stride);
 }
-#endif
 
 Void TComAdaptiveLoopFilter::DecFilter_qc(imgpel** imgY_rec,ALFParam* pcAlfParam)
 {
@@ -1099,7 +1054,6 @@ Void TComAdaptiveLoopFilter::calcVar(imgpel **imgY_var, imgpel **imgY_pad,int pa
   }
 }
 
-#if ALF_MEM_PATCH
 Void TComAdaptiveLoopFilter::calcVar(imgpel **imgY_var, imgpel *imgY_pad, int pad_size, int fl, int img_height, int img_width, int img_stride)
 {
   int i, j, ii, jj;
@@ -1364,7 +1318,6 @@ Void TComAdaptiveLoopFilter::xSubCUAdaptive_qc(TComDataCU* pcCU, ALFParam* pcAlf
   }
 }
 
-#endif
 Void TComAdaptiveLoopFilter::filterFrame(imgpel **imgY_rec_post, imgpel **imgY_rec, int filtNo)
 {
   int i, j, ii, jj, pixelInt,m=0;
