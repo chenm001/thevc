@@ -80,7 +80,6 @@ Void TDecCavlc::parseSPS(TComSPS* pcSPS)
   xReadUvlc ( uiCode ); pcSPS->setPadX        ( uiCode    );
   xReadUvlc ( uiCode ); pcSPS->setPadY        ( uiCode    );
 
-#if HHI_C319_SPS
   xReadUvlc ( uiCode ); 
   pcSPS->setMaxCUWidth  ( uiCode    ); g_uiMaxCUWidth  = uiCode;
   pcSPS->setMaxCUHeight ( uiCode    ); g_uiMaxCUHeight = uiCode;
@@ -89,66 +88,17 @@ Void TDecCavlc::parseSPS(TComSPS* pcSPS)
   pcSPS->setMaxCUDepth  ( uiCode+1  ); g_uiMaxCUDepth  = uiCode + 1;
   UInt uiMaxCUDepthCorrect = uiCode;
   
-#if HHI_RQT
   xReadUvlc( uiCode ); pcSPS->setQuadtreeTULog2MinSize( uiCode + 2 );
   xReadUvlc( uiCode ); pcSPS->setQuadtreeTULog2MaxSize( uiCode + pcSPS->getQuadtreeTULog2MinSize() );
   pcSPS->setMaxTrSize( 1<<(uiCode + pcSPS->getQuadtreeTULog2MinSize()) );  
-#if HHI_RQT_DEPTH
-#if HHI_C319
   xReadUvlc ( uiCode ); pcSPS->setQuadtreeTUMaxDepthInter( uiCode+1 );
   xReadUvlc ( uiCode ); pcSPS->setQuadtreeTUMaxDepthIntra( uiCode+1 );
-#else
-  xReadUvlc ( uiCode ); pcSPS->setQuadtreeTUMaxDepth( uiCode+1 );
-#endif
-#endif
   g_uiAddCUDepth = 0;
   while( ( pcSPS->getMaxCUWidth() >> uiMaxCUDepthCorrect ) > ( 1 << ( pcSPS->getQuadtreeTULog2MinSize() + g_uiAddCUDepth )  ) ) g_uiAddCUDepth++;    
   pcSPS->setMaxCUDepth( uiMaxCUDepthCorrect+g_uiAddCUDepth  ); g_uiMaxCUDepth  = uiMaxCUDepthCorrect+g_uiAddCUDepth;
   // BB: these parameters may be removed completly and replaced by the fixed values
   pcSPS->setMinTrDepth( 0 );
   pcSPS->setMaxTrDepth( 1 );
-#else
-  // Transform
-  xReadUvlc ( uiCode ); pcSPS->setMinTrDepth  ( uiCode    );
-  xReadUvlc ( uiCode ); pcSPS->setMaxTrDepth  ( uiCode    );
-  xReadUvlc ( uiCode ); pcSPS->setMaxTrSize   ( (uiCode == 0) ? 2 : (1<<(uiCode+1)) );  
-#endif 
-  
-#else // HHI_C319_SPS
-  xReadUvlc ( uiCode ); pcSPS->setMaxCUWidth  ( uiCode    ); g_uiMaxCUWidth  = uiCode;
-  xReadUvlc ( uiCode ); pcSPS->setMaxCUHeight ( uiCode    ); g_uiMaxCUHeight = uiCode;
-#if HHI_RQT
-  UInt uiMaxCUDepthCorrect = 0;
-  xReadUvlc ( uiMaxCUDepthCorrect );
-#else
-  xReadUvlc ( uiCode ); pcSPS->setMaxCUDepth  ( uiCode+1  ); g_uiMaxCUDepth  = uiCode + 1;
-#endif
-  
-  // Transform
-  xReadUvlc ( uiCode ); pcSPS->setMinTrDepth  ( uiCode    );
-  xReadUvlc ( uiCode ); pcSPS->setMaxTrDepth  ( uiCode    );
-
-#if HHI_RQT
-  xReadUvlc( uiCode ); pcSPS->setQuadtreeTULog2MinSize( uiCode + 2 );
-  if( pcSPS->getQuadtreeTULog2MinSize() < 6 )
-  {
-    xReadUvlc( uiCode ); pcSPS->setQuadtreeTULog2MaxSize( uiCode + pcSPS->getQuadtreeTULog2MinSize() );
-  }
-#if HHI_RQT_DEPTH
-#if HHI_C319
-  xReadUvlc ( uiCode ); pcSPS->setQuadtreeTUMaxDepthInter( uiCode+1 );
-  xReadUvlc ( uiCode ); pcSPS->setQuadtreeTUMaxDepthIntra( uiCode+1 );
-#else
-  xReadUvlc ( uiCode ); pcSPS->setQuadtreeTUMaxDepth( uiCode+1 );
-#endif
-#endif	  
-  g_uiAddCUDepth = 0;
-  while( ( pcSPS->getMaxCUWidth() >> uiMaxCUDepthCorrect ) > ( 1 << ( pcSPS->getQuadtreeTULog2MinSize() + g_uiAddCUDepth )  ) ) g_uiAddCUDepth++;    
-  pcSPS->setMaxCUDepth( uiMaxCUDepthCorrect+g_uiAddCUDepth  ); g_uiMaxCUDepth  = uiMaxCUDepthCorrect+g_uiAddCUDepth;
-#endif  // Max transform size
-  xReadUvlc ( uiCode ); pcSPS->setMaxTrSize   ( (uiCode == 0) ? 2 : (1<<(uiCode+1)) );
-  
-#endif // HHI_C319_SPS
   
   // Tool on/off
   xReadFlag( uiCode ); pcSPS->setUseALF ( uiCode ? true : false );
@@ -198,16 +148,6 @@ Void TDecCavlc::parseSPS(TComSPS* pcSPS)
   g_uiIBDI_MAX  = ((1<<(g_uiBitDepth+g_uiBitIncrement))-1);
 #endif
 
-#if HHI_RQT
-#else
-  g_uiAddCUDepth = 0;
-  if( ((g_uiMaxCUWidth>>(g_uiMaxCUDepth-1)) > pcSPS->getMaxTrSize()) )
-  {
-    while( (g_uiMaxCUWidth>>(g_uiMaxCUDepth-1)) > (pcSPS->getMaxTrSize()<<g_uiAddCUDepth) ) g_uiAddCUDepth++;
-  }
-  g_uiMaxCUDepth += g_uiAddCUDepth;
-  g_uiAddCUDepth++;
-#endif    
   return;
 }
 
@@ -983,23 +923,14 @@ Void TDecCavlc::parseDeltaQP( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth 
 
 Void TDecCavlc::parseCbf( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eType, UInt uiTrDepth, UInt uiDepth )
 {
-#if HHI_RQT
 #if LCEC_CBP_YUV_ROOT
   if( eType != TEXT_ALL)
 #else
   if( 1 )
 #endif
   {
-#if HHI_RQT_INTRA
     return;
-#else
-    if( !pcCU->isIntra( uiAbsPartIdx ) )
-    {
-      return;
-    }
-#endif
   }
-#endif
 
   if (eType == TEXT_ALL)
   {
@@ -1108,11 +1039,7 @@ Void TDecCavlc::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartI
 
   //UInt uiConvBit = g_aucConvertToBit[ Min(8,uiWidth) ];
   UInt uiConvBit = g_aucConvertToBit[ pcCU->isIntra( uiAbsPartIdx ) ? uiWidth : Min(8,uiWidth)    ];
-#if HHI_RQT
   pucScan        = g_auiFrameScanXY  [ uiConvBit + 1 ];
-#else
-  pucScan        = g_auiFrameScanXY  [ uiConvBit ];
-#endif
 
   UInt uiDecodeDCCoeff = 0;
   Int dcCoeff = 0;
@@ -1146,7 +1073,6 @@ Void TDecCavlc::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartI
 
   TCoeff scoeff[64];
   Int iBlockType;
-#if HHI_RQT
   if( uiSize == 2*2 )
   {
     // hack: re-use 4x4 coding
@@ -1159,9 +1085,6 @@ Void TDecCavlc::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartI
     }
   }
   else if ( uiSize == 4*4 )
-#else
-  if ( uiSize == 4*4 )
-#endif
   {
     iBlockType = pcCU->isIntra(uiAbsPartIdx) ? 0 : pcCU->getSlice()->getSliceType();
     xParseCoeff4x4( scoeff, iBlockType );
@@ -1229,7 +1152,6 @@ Void TDecCavlc::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartI
   return ;
 }
 
-#if HHI_RQT
 Void TDecCavlc::parseTransformSubdivFlag( UInt& ruiSubdivFlag, UInt uiLog2TransformBlockSize )
 {
   xReadFlag( ruiSubdivFlag );
@@ -1242,15 +1164,12 @@ Void TDecCavlc::parseQtCbf( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eType,
   pcCU->setCbfSubParts( uiSymbol << uiTrDepth, eType, uiAbsPartIdx, uiDepth );
 }
 
-#if HHI_RQT_ROOT
 Void TDecCavlc::parseQtRootCbf( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth, UInt& uiQtRootCbf )
 {
   UInt uiSymbol;
   xReadFlag( uiSymbol );
   uiQtRootCbf = uiSymbol;
 }
-#endif
-#endif
 
 Void TDecCavlc::parseAlfFlag (UInt& ruiVal)
 {

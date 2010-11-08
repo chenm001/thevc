@@ -455,7 +455,6 @@ Void TEncCu::xCompressCU( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, UInt u
 #endif
 
     // do normal intra modes
-#if HHI_RQT_INTRA
     if ( !bEarlySkip )
     {
 #if 1 // speedup for inter frames
@@ -473,7 +472,6 @@ Void TEncCu::xCompressCU( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, UInt u
       }
     }
     else
-#endif
     if ( !bEarlySkip )
     {
       xCheckRDCostIntra( rpcBestCU, rpcTempCU, SIZE_2Nx2N ); rpcTempCU->initEstData();
@@ -721,9 +719,7 @@ Void TEncCu::xCheckRDCostSkip( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, B
                                               m_ppcOrigYuv    [uhDepth],
                                               m_ppcPredYuvTemp[uhDepth],
                                               m_ppcResiYuvTemp[uhDepth],
-#if HHI_RQT
                                               m_ppcResiYuvBest[uhDepth],
-#endif
                                               m_ppcRecoYuvTemp[uhDepth],
                                               bSkipRes );
 
@@ -786,9 +782,7 @@ Void TEncCu::xCheckRDCostMerge( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU )
                                                m_ppcOrigYuv    [uhDepth],
                                                m_ppcPredYuvTemp[uhDepth],
                                                m_ppcResiYuvTemp[uhDepth],
-#if HHI_RQT
                                                m_ppcResiYuvBest[uhDepth],
-#endif
                                                m_ppcRecoYuvTemp[uhDepth],
                                                false );
     xCheckBestMode(rpcBestCU, rpcTempCU);
@@ -819,11 +813,7 @@ Void TEncCu::xCheckRDCostInter( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, 
   rpcTempCU->setPredModeSubParts  ( MODE_INTER, 0, uhDepth );
 
   m_pcPredSearch->predInterSearch ( rpcTempCU, m_ppcOrigYuv[uhDepth], m_ppcPredYuvTemp[uhDepth], m_ppcResiYuvTemp[uhDepth], m_ppcRecoYuvTemp[uhDepth] );
-#if HHI_RQT
   m_pcPredSearch->encodeResAndCalcRdInterCU( rpcTempCU, m_ppcOrigYuv[uhDepth], m_ppcPredYuvTemp[uhDepth], m_ppcResiYuvTemp[uhDepth], m_ppcResiYuvBest[uhDepth], m_ppcRecoYuvTemp[uhDepth], false );
-#else
-  m_pcPredSearch->encodeResAndCalcRdInterCU( rpcTempCU, m_ppcOrigYuv[uhDepth], m_ppcPredYuvTemp[uhDepth], m_ppcResiYuvTemp[uhDepth], m_ppcRecoYuvTemp[uhDepth], false );
-#endif
 
   rpcTempCU->getTotalCost()  = m_pcRdCost->calcRdCost( rpcTempCU->getTotalBits(), rpcTempCU->getTotalDistortion() );
 
@@ -867,7 +857,6 @@ Void TEncCu::xCheckRDCostIntra( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, 
   rpcTempCU->setPartSizeSubParts( eSize, 0, uiDepth );
   rpcTempCU->setPredModeSubParts( MODE_INTRA, 0, uiDepth );
 
-#if HHI_RQT_INTRA
   Bool bSeparateLumaChroma = true; // choose estimation mode
   UInt uiPreCalcDistC      = 0;
   if( !bSeparateLumaChroma )
@@ -876,24 +865,6 @@ Void TEncCu::xCheckRDCostIntra( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, 
   }
   m_pcPredSearch  ->estIntraPredQT      ( rpcTempCU, m_ppcOrigYuv[uiDepth], m_ppcPredYuvTemp[uiDepth], m_ppcResiYuvTemp[uiDepth], m_ppcRecoYuvTemp[uiDepth], uiPreCalcDistC, bSeparateLumaChroma );
   m_pcPredSearch  ->estIntraPredChromaQT( rpcTempCU, m_ppcOrigYuv[uiDepth], m_ppcPredYuvTemp[uiDepth], m_ppcResiYuvTemp[uiDepth], m_ppcRecoYuvTemp[uiDepth], uiPreCalcDistC );
-#else
-  m_pcPredSearch->predIntraLumaAdiSearch( rpcTempCU, m_ppcOrigYuv[uiDepth], m_ppcPredYuvTemp[uiDepth], m_ppcResiYuvTemp[uiDepth], m_ppcRecoYuvTemp[uiDepth] );
-
-  UInt uiChromaTrMode = 0;
-
-  UInt uiWidthInBit  = g_aucConvertToBit[rpcTempCU->getWidth(0)>>1]+2;
-  UInt uiTrSizeInBit = g_aucConvertToBit[rpcTempCU->getSlice()->getSPS()->getMaxTrSize()]+2;
-  uiChromaTrMode     = uiWidthInBit >= uiTrSizeInBit ? uiWidthInBit - uiTrSizeInBit : 0;
-
-  rpcTempCU->setCuCbfLuma( 0, rpcTempCU->getTransformIdx(0) );
-
-  if( m_bUseSBACRD ) m_pppcRDSbacCoder[uiDepth][CI_CHROMA_INTRA]->load( m_pppcRDSbacCoder[uiDepth][CI_TEMP_BEST] );
-
-  m_pcPredSearch->predIntraChromaAdiSearch( rpcTempCU, m_ppcOrigYuv[uiDepth], m_ppcPredYuvTemp[uiDepth], m_ppcResiYuvTemp[uiDepth], m_ppcRecoYuvTemp[uiDepth], uiChromaTrMode );
-  rpcTempCU->setCuCbfChroma( 0, uiChromaTrMode );
-
-  if( m_bUseSBACRD ) m_pcRDGoOnSbacCoder->load(m_pppcRDSbacCoder[uiDepth][CI_CURR_BEST]);
-#endif
 
   m_pcEntropyCoder->resetBits();
   m_pcEntropyCoder->encodeSkipFlag ( rpcTempCU, 0,          true );
@@ -954,14 +925,6 @@ Void TEncCu::xCheckBestMode( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU )
     pcYuv = m_ppcPredYuvBest[uhDepth];
     m_ppcPredYuvBest[uhDepth] = m_ppcPredYuvTemp[uhDepth];
     m_ppcPredYuvTemp[uhDepth] = pcYuv;
-
-#if HHI_RQT
-#else
-    // Change Residual data
-    pcYuv = m_ppcResiYuvBest[uhDepth];
-    m_ppcResiYuvBest[uhDepth] = m_ppcResiYuvTemp[uhDepth];
-    m_ppcResiYuvTemp[uhDepth] = pcYuv;
-#endif
 
     // Change Reconstruction data
     pcYuv = m_ppcRecoYuvBest[uhDepth];

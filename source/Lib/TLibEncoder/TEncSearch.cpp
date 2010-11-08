@@ -72,7 +72,6 @@ static UInt s_auiDFilter[9] =
 
 TEncSearch::TEncSearch()
 {
-#if HHI_RQT
   m_ppcQTTempCoeffY  = NULL;
   m_ppcQTTempCoeffCb = NULL;
   m_ppcQTTempCoeffCr = NULL;
@@ -82,7 +81,6 @@ TEncSearch::TEncSearch()
   m_puhQTTempTrIdx   = NULL;
   m_puhQTTempCbf[0] = m_puhQTTempCbf[1] = m_puhQTTempCbf[2] = NULL;
   m_pcQTTempTComYuv  = NULL;
-#endif
   m_pcEncCfg = NULL;
   m_pcEntropyCoder = NULL;
   m_pTempPel = NULL;
@@ -95,7 +93,6 @@ TEncSearch::~TEncSearch()
     delete [] m_pTempPel;
     m_pTempPel = NULL;
   }
-#if HHI_RQT
   const UInt uiNumLayersAllocated = m_pcEncCfg->getQuadtreeTULog2MaxSize()-m_pcEncCfg->getQuadtreeTULog2MinSize()+1;
   for( UInt ui = 0; ui < uiNumLayersAllocated; ++ui )
   {
@@ -115,7 +112,6 @@ TEncSearch::~TEncSearch()
   delete[] m_puhQTTempCbf[1];
   delete[] m_puhQTTempCbf[2];
   delete[] m_pcQTTempTComYuv;
-#endif
 }
 
 void TEncSearch::init(  TEncCfg*      pcEncCfg,
@@ -168,7 +164,6 @@ void TEncSearch::init(  TEncCfg*      pcEncCfg,
   
   m_iDIFTap2 = (m_iDIFTap << 1);
   
-#if HHI_RQT
   const UInt uiNumLayersToAllocate = pcEncCfg->getQuadtreeTULog2MaxSize()-pcEncCfg->getQuadtreeTULog2MinSize()+1;
   m_ppcQTTempCoeffY  = new TCoeff*[uiNumLayersToAllocate];
   m_ppcQTTempCoeffCb = new TCoeff*[uiNumLayersToAllocate];
@@ -190,7 +185,6 @@ void TEncSearch::init(  TEncCfg*      pcEncCfg,
     m_ppcQTTempCoeffCr[ui] = new TCoeff[g_uiMaxCUWidth*g_uiMaxCUHeight>>2];
     m_pcQTTempTComYuv[ui].create( g_uiMaxCUWidth, g_uiMaxCUHeight );
   }
-#endif
 }
 
 #if FASTME_SMOOTHER_MV
@@ -733,11 +727,7 @@ Void TEncSearch::xRecurIntraChromaSearchADI( TComDataCU* pcCU, UInt uiAbsPartIdx
     Bool bAboveAvail = false;
     Bool bLeftAvail  = false;
     
-#if HHI_RQT_INTRA
     pcCU->getPattern()->initAdiPatternChroma(pcCU,uiAbsPartIdx, uiCurrDepth, m_piYuvExt,m_iYuvExtStride,m_iYuvExtHeight,bAboveAvail,bLeftAvail);
-#else
-    pcCU->getPattern()->initAdiPatternChroma(pcCU,uiAbsPartIdx, m_piYuvExt,m_iYuvExtStride,m_iYuvExtHeight,bAboveAvail,bLeftAvail);
-#endif
     
     Int*   pPatChr;
     
@@ -989,8 +979,6 @@ Void TEncSearch::xRecurIntraLumaSearchADI( TComDataCU* pcCU, UInt uiAbsPartIdx, 
 }
 
 
-#if HHI_RQT_INTRA
-
 Void
 TEncSearch::xEncSubdivCbfQT( TComDataCU*  pcCU,
                             UInt         uiTrDepth,
@@ -1015,19 +1003,13 @@ TEncSearch::xEncSubdivCbfQT( TComDataCU*  pcCU,
   {
     assert( !uiSubdiv );
   }
-#if HHI_RQT_DEPTH || HHI_RQT_DISABLE_SUB
   else if( uiLog2TrafoSize == pcCU->getQuadtreeTULog2MinSizeInCU(uiAbsPartIdx) )
   {
     assert( !uiSubdiv );
   }
-#endif  
   else
   {
-#if HHI_RQT_DEPTH || HHI_RQT_DISABLE_SUB
     assert( uiLog2TrafoSize > pcCU->getQuadtreeTULog2MinSizeInCU(uiAbsPartIdx) );
-#else 
-    assert( uiLog2TrafoSize > pcCU->getSlice()->getSPS()->getQuadtreeTULog2MinSize() );
-#endif
     if( bLuma )
     {
       m_pcEntropyCoder->encodeTransformSubdivFlag( uiSubdiv, uiFullDepth );
@@ -1592,11 +1574,7 @@ TEncSearch::xRecurIntraCodingQT( TComDataCU*  pcCU,
   UInt    uiFullDepth   = pcCU->getDepth( 0 ) +  uiTrDepth;
   UInt    uiLog2TrSize  = g_aucConvertToBit[ pcCU->getSlice()->getSPS()->getMaxCUWidth() >> uiFullDepth ] + 2;
   Bool    bCheckFull    = ( uiLog2TrSize  <= pcCU->getSlice()->getSPS()->getQuadtreeTULog2MaxSize() );
-#if HHI_RQT_DEPTH || HHI_RQT_DISABLE_SUB
   Bool    bCheckSplit   = ( uiLog2TrSize  >  pcCU->getQuadtreeTULog2MinSizeInCU(uiAbsPartIdx) );
-#else
-  Bool    bCheckSplit   = ( uiLog2TrSize  >  pcCU->getSlice()->getSPS()->getQuadtreeTULog2MinSize() );
-#endif
 
 #if HHI_RQT_INTRA_SPEEDUP
   if( bCheckFirst && bCheckFull )
@@ -2394,8 +2372,6 @@ TEncSearch::estIntraPredChromaQT( TComDataCU* pcCU,
 }
 
 
-#endif
-
 Bool TEncSearch::predIntraLumaDirAvailable( UInt uiMode, UInt uiWidthBit, Bool bAboveAvail, Bool bLeftAvail)
 {
   Bool bDirAvailable = true;
@@ -2437,11 +2413,7 @@ Void TEncSearch::xIntraPlanarRecon( TComDataCU* pcCU, UInt uiAbsPartIdx, Pel* pi
   else
   {
     
-#if HHI_RQT_INTRA
     pcCU->getPattern()->initAdiPatternChroma(pcCU,uiAbsPartIdx, 0, m_piYuvExt,m_iYuvExtStride,m_iYuvExtHeight,bAboveAvail,bLeftAvail);
-#else
-    pcCU->getPattern()->initAdiPatternChroma(pcCU, uiAbsPartIdx, m_piYuvExt, m_iYuvExtStride, m_iYuvExtHeight, bAboveAvail, bLeftAvail);
-#endif
     
     uiReconStride = pcCU->getPic()->getPicYuvRec()->getCStride();
     
@@ -4886,11 +4858,7 @@ Void TEncSearch::predInterMergeSearch( TComDataCU* pcCU, TComYuv* pcOrgYuv, TCom
 }
 #endif
 
-#if HHI_RQT
 Void TEncSearch::encodeResAndCalcRdInterCU( TComDataCU* pcCU, TComYuv* pcYuvOrg, TComYuv* pcYuvPred, TComYuv*& rpcYuvResi, TComYuv*& rpcYuvResiBest, TComYuv*& rpcYuvRec, Bool bSkipRes )
-#else
-Void TEncSearch::encodeResAndCalcRdInterCU( TComDataCU* pcCU, TComYuv* pcYuvOrg, TComYuv* pcYuvPred, TComYuv*& rpcYuvResi, TComYuv*& rpcYuvRec, Bool bSkipRes )
-#endif
 {
   if ( pcCU->isIntra(0) )
   {
@@ -4964,12 +4932,9 @@ Void TEncSearch::encodeResAndCalcRdInterCU( TComDataCU* pcCU, TComYuv* pcYuvOrg,
   uiQpMin      = bHighPass ? Min( MAX_QP, Max( MIN_QP, pcCU->getQP(0) - m_iMaxDeltaQP ) ) : pcCU->getQP( 0 );
   uiQpMax      = bHighPass ? Min( MAX_QP, Max( MIN_QP, pcCU->getQP(0) + m_iMaxDeltaQP ) ) : pcCU->getQP( 0 );
   
-#if HHI_RQT
     rpcYuvResi->subtract( pcYuvOrg, pcYuvPred, 0, uiWidth );
-#endif
   for ( uiQp = uiQpMin; uiQp <= uiQpMax; uiQp++ )
   {
-#if HHI_RQT
     pcCU->setQPSubParts( uiQp, 0, pcCU->getDepth(0) );
     dCost = 0.;
     uiBits = 0;
@@ -4979,7 +4944,6 @@ Void TEncSearch::encodeResAndCalcRdInterCU( TComDataCU* pcCU, TComYuv* pcYuvOrg,
       m_pcRDGoOnSbacCoder->load( m_pppcRDSbacCoder[ pcCU->getDepth( 0 ) ][ CI_CURR_BEST ] );
     }
     
-#if HHI_RQT_ROOT
     UInt uiZeroDistortion = 0;
     xEstimateResidualQT( pcCU, 0, 0, rpcYuvResi,  pcCU->getDepth(0), dCost, uiBits, uiDistortion, &uiZeroDistortion );
 
@@ -5003,14 +4967,6 @@ Void TEncSearch::encodeResAndCalcRdInterCU( TComDataCU* pcCU, TComYuv* pcYuvOrg,
     {
       xSetResidualQTData( pcCU, 0, NULL, pcCU->getDepth(0), false );
     }
-#else
-#if HHI_RQT_FORCE_SPLIT_ACC2_PU
-    xEstimateResidualQT( pcCU, 0, 0, rpcYuvResi,  pcCU->getDepth(0), dCost, uiBits, uiDistortion );
-#else
-    xEstimateResidualQT( pcCU, 0, rpcYuvResi,  pcCU->getDepth(0), dCost, uiBits, uiDistortion );
-#endif
-    xSetResidualQTData( pcCU, 0, NULL, pcCU->getDepth(0), false );
-#endif
 
     if( m_bUseSBACRD )
     {
@@ -5041,7 +4997,6 @@ Void TEncSearch::encodeResAndCalcRdInterCU( TComDataCU* pcCU, TComYuv* pcYuvOrg,
     
     if ( dCost < dCostBest )
     {
-#if HHI_RQT_ROOT
       if ( !pcCU->getQtRootCbf( 0 ) )
       {
         rpcYuvResiBest->clear();
@@ -5050,9 +5005,6 @@ Void TEncSearch::encodeResAndCalcRdInterCU( TComDataCU* pcCU, TComYuv* pcYuvOrg,
       {
         xSetResidualQTData( pcCU, 0, rpcYuvResiBest, pcCU->getDepth(0), true );
       }
-#else
-      xSetResidualQTData( pcCU, 0, rpcYuvResiBest, pcCU->getDepth(0), true );
-#endif
       
       if( uiQpMin != uiQpMax && uiQp != uiQpMax )
       {
@@ -5075,100 +5027,10 @@ Void TEncSearch::encodeResAndCalcRdInterCU( TComDataCU* pcCU, TComYuv* pcYuvOrg,
         m_pcRDGoOnSbacCoder->store( m_pppcRDSbacCoder[ pcCU->getDepth( 0 ) ][ CI_TEMP_BEST ] );
       }
     }
-#else
-    for ( uiTrMode = uiMinTrMode; uiTrMode <= uiMaxTrMode; uiTrMode++ )
-    {
-      if (bSpecial && uiMaxTrMode == 2 && uiTrMode == 1)
-        continue;
-      
-      pcCU->setTrIdxSubParts( uiTrMode, 0, pcCU->getDepth(0) );
-      
-      // coefficient clearing is needed in the loop
-      ::memset( pcCU->getCoeffY(), 0, sizeof(TCoeff) * uiWidth * uiHeight );
-      
-      rpcYuvResi->subtract      ( pcYuvOrg, pcYuvPred, 0, uiWidth );
-      
-      if( m_bUseSBACRD )
-        m_pcRDGoOnSbacCoder->load( m_pppcRDSbacCoder[pcCU->getDepth(0)][CI_CURR_BEST] );
-      
-      xEncodeInterTexture( pcCU, uiQp, bHighPass,  rpcYuvResi, uiTrMode );
-      rpcYuvRec->addClip ( pcYuvPred,              rpcYuvResi, 0,      uiWidth  );
-      
-      uiDistortion = m_pcRdCost->getDistPart( rpcYuvRec->getLumaAddr(), rpcYuvRec->getStride(),  pcYuvOrg->getLumaAddr(), pcYuvOrg->getStride(),  uiWidth,      uiHeight      )
-      + m_pcRdCost->getDistPart( rpcYuvRec->getCbAddr(),   rpcYuvRec->getCStride(), pcYuvOrg->getCbAddr(),   pcYuvOrg->getCStride(), uiWidth >> 1, uiHeight >> 1 )
-      + m_pcRdCost->getDistPart( rpcYuvRec->getCrAddr(),   rpcYuvRec->getCStride(), pcYuvOrg->getCrAddr(),   pcYuvOrg->getCStride(), uiWidth >> 1, uiHeight >> 1 );
-      
-      // here is code for subtract bcbp if cbp == 0
-      
-      uiBits = 0;
-      
-      if( m_bUseSBACRD )
-      {
-        m_pcRDGoOnSbacCoder->load( m_pppcRDSbacCoder[pcCU->getDepth(0)][CI_CURR_BEST] );
-      }
-      
-      xAddSymbolBitsInter( pcCU, uiQp, uiTrMode, uiBits, rpcYuvRec, pcYuvPred, rpcYuvResi );
-      dCost = m_pcRdCost->calcRdCost( uiBits, uiDistortion );
-      
-      if ( dCost < dCostBest )
-      {
-        uiBitsBest       = uiBits;
-        uiDistortionBest = uiDistortion;
-        dCostBest        = dCost;
-        uiQpBest         = uiQp;
-        uiBestTrMode     = uiTrMode;
-        
-        if( m_bUseSBACRD )
-          m_pcRDGoOnSbacCoder->store(m_pppcRDSbacCoder[pcCU->getDepth(0)][CI_TEMP_BEST]);
-      }
-    }
-//#if HHI_RQT
-//    }
-#endif
   }
   
   assert ( dCostBest != MAX_DOUBLE );
   
-#if HHI_RQT
-//  if( ! pcCU->getSlice()->getSPS()->getQuadtreeTUFlag() )
-//  {
-//#endif
-#else
-  rpcYuvResi->subtract      ( pcYuvOrg, pcYuvPred, 0, uiWidth );
-  
-  if( m_bUseSBACRD )
-  {
-    m_pcRDGoOnSbacCoder->load( m_pppcRDSbacCoder[pcCU->getDepth(0)][CI_CURR_BEST] );
-  }
-    
-//#if HHI_RQT
-//    pcCU->setTrIdxSubParts( uiBestTrMode, 0, pcCU->getDepth(0) );
-//#endif
-  xEncodeInterTexture( pcCU, uiQpBest, bHighPass, rpcYuvResi, uiBestTrMode );
-  
-  if( (pcCU->getCbf(0, TEXT_LUMA, 0) == 0) &&
-     (pcCU->getCbf(0, TEXT_CHROMA_U, 0) == 0) &&
-     (pcCU->getCbf(0, TEXT_CHROMA_V, 0) == 0) )
-//#if HHI_RQT
-//    {
-//      if( pcCU->getSlice()->getSPS()->getQuadtreeTUFlag() )
-//      {
-//        assert( 0 ); // obsolete
-//        const UInt uiLog2CUSize = g_aucConvertToBit[pcCU->getSlice()->getSPS()->getMaxCUWidth()]+2 - pcCU->getDepth(0);
-//        const UInt uiLog2MaxTUSize = pcCU->getSlice()->getSPS()->getQuadtreeTULog2MaxSize();
-//        uiBestTrMode = uiLog2MaxTUSize >= uiLog2CUSize ? 0 : uiLog2CUSize - uiLog2MaxTUSize;
-//      }
-//      else
-//      {
-//#endif
-    uiBestTrMode = 0;
-//#if HHI_RQT
-//      }
-//    }
-//  }
-// else
-#endif
-#if HHI_RQT
   if( uiQpMin != uiQpMax && uiQpBest != uiQpMax )
   {
     if( m_bUseSBACRD )
@@ -5187,17 +5049,12 @@ Void TEncSearch::encodeResAndCalcRdInterCU( TComDataCU* pcCU, TComYuv* pcYuvOrg,
     ::memcpy( pcCU->getCoeffCr(), m_pcQTTempCoeffCr, uiWidth * uiHeight * sizeof( TCoeff ) >> 2 );
   }
   rpcYuvRec->addClip ( pcYuvPred, rpcYuvResiBest, 0, uiWidth );
-#else
-  rpcYuvRec->addClip ( pcYuvPred,     rpcYuvResi, 0, uiWidth  );
-#endif
   
-#if HHI_RQT
   // update with clipped distortion and cost (qp estimation loop uses unclipped values)
   uiDistortionBest = m_pcRdCost->getDistPart( rpcYuvRec->getLumaAddr(), rpcYuvRec->getStride(),  pcYuvOrg->getLumaAddr(), pcYuvOrg->getStride(),  uiWidth,      uiHeight      )
   + m_pcRdCost->getDistPart( rpcYuvRec->getCbAddr(),   rpcYuvRec->getCStride(), pcYuvOrg->getCbAddr(),   pcYuvOrg->getCStride(), uiWidth >> 1, uiHeight >> 1 )
   + m_pcRdCost->getDistPart( rpcYuvRec->getCrAddr(),   rpcYuvRec->getCStride(), pcYuvOrg->getCrAddr(),   pcYuvOrg->getCStride(), uiWidth >> 1, uiHeight >> 1 );
   dCostBest = m_pcRdCost->calcRdCost( uiBitsBest, uiDistortionBest );
-#endif
   
   pcCU->getTotalBits()       = uiBitsBest;
   pcCU->getTotalDistortion() = uiDistortionBest;
@@ -5209,21 +5066,10 @@ Void TEncSearch::encodeResAndCalcRdInterCU( TComDataCU* pcCU, TComYuv* pcYuvOrg,
     pcCU->setCbfSubParts( 0, 0, 0, 0, pcCU->getDepth( 0 ) );
   }
   
-#if HHI_RQT
-#else
-    pcCU->setTrIdxSubParts( uiBestTrMode, 0, pcCU->getDepth(0) );
-#endif
   pcCU->setQPSubParts( uiQpBest, 0, pcCU->getDepth(0) );
 }
 
-#if HHI_RQT
-#if HHI_RQT_ROOT
-      Void TEncSearch::xEstimateResidualQT( TComDataCU* pcCU, UInt uiQuadrant, UInt uiAbsPartIdx, TComYuv* pcResi, const UInt uiDepth, Double &rdCost, UInt &ruiBits, UInt &ruiDist, UInt *puiZeroDist )
-#elif HHI_RQT_FORCE_SPLIT_ACC2_PU
-      Void TEncSearch::xEstimateResidualQT( TComDataCU* pcCU, UInt uiQuadrant, UInt uiAbsPartIdx, TComYuv* pcResi, const UInt uiDepth, Double &rdCost, UInt &ruiBits, UInt &ruiDist )
-#else
-      Void TEncSearch::xEstimateResidualQT( TComDataCU* pcCU, UInt uiAbsPartIdx, TComYuv* pcResi, const UInt uiDepth, Double &rdCost, UInt &ruiBits, UInt &ruiDist )
-#endif
+Void TEncSearch::xEstimateResidualQT( TComDataCU* pcCU, UInt uiQuadrant, UInt uiAbsPartIdx, TComYuv* pcResi, const UInt uiDepth, Double &rdCost, UInt &ruiBits, UInt &ruiDist, UInt *puiZeroDist )
 {
   const UInt uiTrMode = uiDepth - pcCU->getDepth( 0 );
   
@@ -5247,11 +5093,7 @@ Void TEncSearch::encodeResAndCalcRdInterCU( TComDataCU* pcCU, TComYuv* pcYuvOrg,
   const Bool bCheckFull    = ( uiLog2TrSize <= pcCU->getSlice()->getSPS()->getQuadtreeTULog2MaxSize() );
 #endif
 
-#if HHI_RQT_DEPTH || HHI_RQT_DISABLE_SUB
   const Bool bCheckSplit  = ( uiLog2TrSize >  pcCU->getQuadtreeTULog2MinSizeInCU(uiAbsPartIdx) );
-#else
-  const Bool bCheckSplit   = ( uiLog2TrSize >  pcCU->getSlice()->getSPS()->getQuadtreeTULog2MinSize() );
-#endif
   
   assert( bCheckFull || bCheckSplit );
   
@@ -5353,12 +5195,10 @@ Void TEncSearch::encodeResAndCalcRdInterCU( TComDataCU* pcCU, TComYuv* pcYuvOrg,
     ::memset( m_pTempPel, 0, sizeof( Pel ) * uiNumSamplesLuma ); // not necessary needed for inside of recursion (only at the beginning)
     
     UInt uiDistY = m_pcRdCost->getDistPart( m_pTempPel, 1<< uiLog2TrSize, pcResi->getLumaAddr( uiAbsPartIdx ), pcResi->getStride(), 1<< uiLog2TrSize, 1<< uiLog2TrSize ); // initialized with zero residual destortion
-#if HHI_RQT_ROOT
     if ( puiZeroDist )
     {
       *puiZeroDist += uiDistY;
     }
-#endif
     if( uiAbsSumY )
     {
       Pel *pcResiCurrY = m_pcQTTempTComYuv[uiQTTempAccessLayer].getLumaAddr( uiAbsPartIdx );
@@ -5399,12 +5239,10 @@ Void TEncSearch::encodeResAndCalcRdInterCU( TComDataCU* pcCU, TComYuv* pcYuvOrg,
     if( bCodeChroma )
     {
       uiDistU = m_pcRdCost->getDistPart( m_pTempPel, 1<<uiLog2TrSizeC, pcResi->getCbAddr( uiAbsPartIdx ), pcResi->getCStride(), 1<<uiLog2TrSizeC, 1<<uiLog2TrSizeC ); // initialized with zero residual destortion
-#if HHI_RQT_ROOT
       if ( puiZeroDist )
       {
         *puiZeroDist += uiDistU;
       }
-#endif
       if( uiAbsSumU )
       {
         Pel *pcResiCurrU = m_pcQTTempTComYuv[uiQTTempAccessLayer].getCbAddr( uiAbsPartIdx );
@@ -5436,12 +5274,10 @@ Void TEncSearch::encodeResAndCalcRdInterCU( TComDataCU* pcCU, TComYuv* pcYuvOrg,
       }
       
       uiDistV = m_pcRdCost->getDistPart( m_pTempPel, 1<<uiLog2TrSizeC, pcResi->getCrAddr( uiAbsPartIdx ), pcResi->getCStride(), 1<<uiLog2TrSizeC, 1<<uiLog2TrSizeC ); // initialized with zero residual destortion
-#if HHI_RQT_ROOT
       if ( puiZeroDist )
       {
         *puiZeroDist += uiDistV;
       }
-#endif
       if( uiAbsSumV )
       {
         Pel *pcResiCurrV = m_pcQTTempTComYuv[uiQTTempAccessLayer].getCrAddr  ( uiAbsPartIdx );
@@ -5488,11 +5324,7 @@ Void TEncSearch::encodeResAndCalcRdInterCU( TComDataCU* pcCU, TComYuv* pcYuvOrg,
     }
     
     m_pcEntropyCoder->resetBits();
-#if HHI_RQT_DEPTH || HHI_RQT_DISABLE_SUB
     if( uiLog2TrSize > pcCU->getQuadtreeTULog2MinSizeInCU(uiAbsPartIdx) )
-#else	
-    if( uiLog2TrSize > pcCU->getSlice()->getSPS()->getQuadtreeTULog2MinSize() )
-#endif
     {
       m_pcEntropyCoder->encodeTransformSubdivFlag( 0, uiDepth );
     }
@@ -5501,19 +5333,15 @@ Void TEncSearch::encodeResAndCalcRdInterCU( TComDataCU* pcCU, TComYuv* pcYuvOrg,
     if (pcCU->getSlice()->getSymbolMode())
     {
 #endif
-#if HHI_RQT_CHROMA_CBF_MOD
     if( bCodeChroma )
     {
       m_pcEntropyCoder->encodeQtCbf( pcCU, uiAbsPartIdx, TEXT_CHROMA_U, uiTrMode );
       m_pcEntropyCoder->encodeQtCbf( pcCU, uiAbsPartIdx, TEXT_CHROMA_V, uiTrMode );
     }
-#endif
     
     m_pcEntropyCoder->encodeQtCbf( pcCU, uiAbsPartIdx, TEXT_LUMA,     uiTrMode );
     
-#if HHI_RQT_CHROMA_CBF_MOD
     if( 0 )
-#endif
       if( bCodeChroma )
       {
         m_pcEntropyCoder->encodeQtCbf( pcCU, uiAbsPartIdx, TEXT_CHROMA_U, uiTrMode );
@@ -5557,13 +5385,7 @@ Void TEncSearch::encodeResAndCalcRdInterCU( TComDataCU* pcCU, TComYuv* pcYuvOrg,
     const UInt uiQPartNumSubdiv = pcCU->getPic()->getNumPartInCU() >> ((uiDepth + 1 ) << 1);
     for( UInt ui = 0; ui < 4; ++ui )
     {
-#if HHI_RQT_ROOT
       xEstimateResidualQT( pcCU, ui, uiAbsPartIdx + ui * uiQPartNumSubdiv, pcResi, uiDepth + 1, dSubdivCost, uiSubdivBits, uiSubdivDist, bCheckFull ? NULL : puiZeroDist );
-#elif HHI_RQT_FORCE_SPLIT_ACC2_PU
-      xEstimateResidualQT( pcCU, ui, uiAbsPartIdx + ui * uiQPartNumSubdiv, pcResi, uiDepth + 1, dSubdivCost, uiSubdivBits, uiSubdivDist );
-#else
-      xEstimateResidualQT( pcCU, uiAbsPartIdx + ui * uiQPartNumSubdiv, pcResi, uiDepth + 1, dSubdivCost, uiSubdivBits, uiSubdivDist );
-#endif
     }
 
     UInt uiYCbf = 0;
@@ -5657,11 +5479,7 @@ Void TEncSearch::xEncodeResidualQT( TComDataCU* pcCU, UInt uiAbsPartIdx, const U
   const Bool bSubdiv = uiCurrTrMode != uiTrMode;
   
   const UInt uiLog2TrSize = g_aucConvertToBit[pcCU->getSlice()->getSPS()->getMaxCUWidth() >> uiDepth]+2;
-#if HHI_RQT_DEPTH || HHI_RQT_DISABLE_SUB
   if( bSubdivAndCbf && uiLog2TrSize <= pcCU->getSlice()->getSPS()->getQuadtreeTULog2MaxSize() && uiLog2TrSize > pcCU->getQuadtreeTULog2MinSizeInCU(uiAbsPartIdx) )
-#else
-  if( bSubdivAndCbf && uiLog2TrSize <= pcCU->getSlice()->getSPS()->getQuadtreeTULog2MaxSize() && uiLog2TrSize > pcCU->getSlice()->getSPS()->getQuadtreeTULog2MinSize() )
-#endif
   {
     m_pcEntropyCoder->encodeTransformSubdivFlag( bSubdiv, uiDepth );
   }
@@ -5670,7 +5488,6 @@ Void TEncSearch::xEncodeResidualQT( TComDataCU* pcCU, UInt uiAbsPartIdx, const U
   if (pcCU->getSlice()->getSymbolMode())
   {
 #endif
-#if HHI_RQT_CHROMA_CBF_MOD
   assert( pcCU->getPredictionMode(uiAbsPartIdx) != MODE_INTRA );
   if( bSubdivAndCbf && uiLog2TrSize <= pcCU->getSlice()->getSPS()->getQuadtreeTULog2MaxSize() )
   {
@@ -5692,7 +5509,6 @@ Void TEncSearch::xEncodeResidualQT( TComDataCU* pcCU, UInt uiAbsPartIdx, const U
       assert( pcCU->getCbf( uiAbsPartIdx, TEXT_CHROMA_V, uiCurrTrMode ) == pcCU->getCbf( uiAbsPartIdx, TEXT_CHROMA_V, uiCurrTrMode - 1 ) );
     }
   }
-#endif
 #if LCEC_CBP_YUV_ROOT
   }
 #endif
@@ -5725,9 +5541,7 @@ Void TEncSearch::xEncodeResidualQT( TComDataCU* pcCU, UInt uiAbsPartIdx, const U
 #endif
       m_pcEntropyCoder->encodeQtCbf( pcCU, uiAbsPartIdx, TEXT_LUMA,     uiTrMode );
       
-#if HHI_RQT_CHROMA_CBF_MOD
       if( 0 ) // do only if intra -> never
-#endif
         if( bCodeChroma )
         {
           m_pcEntropyCoder->encodeQtCbf( pcCU, uiAbsPartIdx, TEXT_CHROMA_U, uiTrMode );
@@ -5834,7 +5648,6 @@ Void TEncSearch::xSetResidualQTData( TComDataCU* pcCU, UInt uiAbsPartIdx, TComYu
     }
   }
 }
-#endif
 
 Void TEncSearch::xEncodeInterTexture ( TComDataCU*& rpcCU, UInt uiQp, Bool bHighPass, TComYuv*& rpcYuv, UInt uiTrMode )
 {

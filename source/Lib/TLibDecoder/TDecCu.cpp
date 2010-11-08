@@ -315,11 +315,7 @@ Void TDecCu::xDecompressCU( TComDataCU* pcCU, TComDataCU* pcCUCur, UInt uiAbsPar
     xReconInter( m_ppcCU[uiDepth], uiAbsPartIdx, uiDepth );
     break;
   case MODE_INTRA:
-#if HHI_RQT_INTRA
     xReconIntraQT( m_ppcCU[uiDepth], uiAbsPartIdx, uiDepth );
-#else
-    xReconIntra( m_ppcCU[uiDepth], uiAbsPartIdx, uiDepth );
-#endif
     break;
   default:
     assert(0);
@@ -471,11 +467,7 @@ Void TDecCu::xRecurIntraInvTransChroma(TComDataCU* pcCU, UInt uiAbsPartIdx, Pel*
     Bool bAboveAvail = false;
     Bool bLeftAvail  = false;
 
-#if HHI_RQT_INTRA
     pcCU->getPattern()->initAdiPatternChroma(pcCU,uiAbsPartIdx, uiCurrTrMode, m_pcPrediction->getPredicBuf(),m_pcPrediction->getPredicBufWidth(),m_pcPrediction->getPredicBufHeight(),bAboveAvail,bLeftAvail);
-#else
-    pcCU->getPattern()->initAdiPatternChroma(pcCU,uiAbsPartIdx, m_pcPrediction->getPredicBuf(),m_pcPrediction->getPredicBufWidth(),m_pcPrediction->getPredicBufHeight(),bAboveAvail,bLeftAvail);
-#endif
 
     UInt uiModeL        = pcCU->getLumaIntraDir(0);
     UInt uiMode         = pcCU->getChromaIntraDir(0);
@@ -543,8 +535,6 @@ Void TDecCu::xRecurIntraInvTransChroma(TComDataCU* pcCU, UInt uiAbsPartIdx, Pel*
     xRecurIntraInvTransChroma( pcCU, uiAbsPartIdx, pResi, pPred, pReco, uiStride, piCoeff, uiWidth, uiHeight, uiTrMode, uiCurrTrMode, eText );
   }
 }
-
-#if HHI_RQT_INTRA
 
 Void
 TDecCu::xIntraRecLumaBlk( TComDataCU* pcCU,
@@ -758,7 +748,6 @@ TDecCu::xReconIntraQT( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
   }
 }
 
-#endif
 
 #if PLANAR_INTRA
 Void TDecCu::xDecodePlanarTexture( TComDataCU* pcCU, UInt uiPartIdx, Pel* piReco, Pel* piPred, Pel* piResi, UInt uiStride, UInt uiWidth, UInt uiHeight, UInt uiCurrDepth, TextType ttText )
@@ -786,11 +775,7 @@ Void TDecCu::xDecodePlanarTexture( TComDataCU* pcCU, UInt uiPartIdx, Pel* piReco
   }
   else
   {
-#if HHI_RQT_INTRA
     pcCU->getPattern()->initAdiPatternChroma(pcCU,uiPartIdx, 0, m_pcPrediction->getPredicBuf(),m_pcPrediction->getPredicBufWidth(),m_pcPrediction->getPredicBufHeight(),bAboveAvail,bLeftAvail);
-#else
-    pcCU->getPattern()->initAdiPatternChroma(pcCU, uiPartIdx, m_pcPrediction->getPredicBuf(), m_pcPrediction->getPredicBufWidth(), m_pcPrediction->getPredicBufHeight(), bAboveAvail, bLeftAvail);
-#endif
     uiPicStride = pcCU->getPic()->getPicYuvRec()->getCStride();
 
     if( ttText == TEXT_CHROMA_U )

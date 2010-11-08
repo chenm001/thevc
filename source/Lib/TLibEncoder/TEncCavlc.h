@@ -211,13 +211,9 @@ public:
   Void codePlanarInfo    ( TComDataCU* pcCU, UInt uiAbsPartIdx );
 #endif
 
-#if HHI_RQT
   Void codeTransformSubdivFlag( UInt uiSymbol, UInt uiCtx );
   Void codeQtCbf         ( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eType, UInt uiTrDepth );
-#if HHI_RQT_ROOT
   Void codeQtRootCbf     ( TComDataCU* pcCU, UInt uiAbsPartIdx );
-#endif
-#endif
 
   Void codeTransformIdx  ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
   Void codeIntraDirLumaAng( TComDataCU* pcCU, UInt uiAbsPartIdx );

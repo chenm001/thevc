@@ -317,7 +317,6 @@ TEncBinPIPE::getNumWrittenBits()
 Void
 TEncBinPIPE::encodeBin( UInt uiBin, ContextModel &rcCtxModel )
 {
-#if HHI_RQT
   {
     DTRACE_CABAC_V( g_nSymbolCounter++ )
     DTRACE_CABAC_T( "\tstate=" )
@@ -326,7 +325,6 @@ TEncBinPIPE::encodeBin( UInt uiBin, ContextModel &rcCtxModel )
     DTRACE_CABAC_V( uiBin )
     DTRACE_CABAC_T( "\n" )
   }
-#endif
   UInt uiPIPEId = m_pacStat2Idx[ rcCtxModel.getState() ];
   if( uiBin != rcCtxModel.getMps() )
   {

@@ -155,13 +155,9 @@ public:
   Void codePlanarInfo    ( TComDataCU* pcCU, UInt uiAbsPartIdx );
 #endif
 
-#if HHI_RQT
   Void codeTransformSubdivFlag( UInt uiSymbol, UInt uiCtx );
   Void codeQtCbf         ( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eType, UInt uiTrDepth );
-#if HHI_RQT_ROOT
   Void codeQtRootCbf     ( TComDataCU* pcCU, UInt uiAbsPartIdx );
-#endif
-#endif
   Void codeTransformIdx  ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
   Void codeIntraDirLuma  ( TComDataCU* pcCU, UInt uiAbsPartIdx );
 
@@ -213,13 +209,9 @@ private:
   ContextModel3DBuffer m_cCURefPicSCModel;
   ContextModel3DBuffer m_cCUMvdSCModel;
   ContextModel3DBuffer m_cCUCbfSCModel;
-#if HHI_RQT
   ContextModel3DBuffer m_cCUQtCbfSCModel;
   ContextModel3DBuffer m_cCUTransSubdivFlagSCModel;
-#if HHI_RQT_ROOT
   ContextModel3DBuffer m_cCUQtRootCbfSCModel;
-#endif
-#endif
   ContextModel3DBuffer m_cCUTransIdxSCModel;
 
   ContextModel3DBuffer m_cCuCtxModSig;

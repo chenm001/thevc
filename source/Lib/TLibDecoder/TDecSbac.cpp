@@ -57,18 +57,12 @@ TDecSbac::TDecSbac()
   , m_cCUInterDirSCModel      ( 1,             1,               NUM_INTER_DIR_CTX             )
   , m_cCUMvdSCModel           ( 1,             2,               NUM_MV_RES_CTX                )
   , m_cCURefPicSCModel        ( 1,             1,               NUM_REF_NO_CTX                )
-#if HHI_RQT
   , m_cCUTransSubdivFlagSCModel( 1,            1,               NUM_TRANS_SUBDIV_FLAG_CTX     )
-#if HHI_RQT_ROOT
   , m_cCUQtRootCbfSCModel     ( 1,             1,               NUM_QT_ROOT_CBF_CTX           )
-#endif
-#endif
   , m_cCUTransIdxSCModel      ( 1,             1,               NUM_TRANS_IDX_CTX             )
   , m_cCUDeltaQpSCModel       ( 1,             1,               NUM_DELTA_QP_CTX              )
   , m_cCUCbfSCModel           ( 1,             2,               NUM_CBF_CTX                   )
-#if HHI_RQT
   , m_cCUQtCbfSCModel         ( 1,             3,               NUM_QT_CBF_CTX                )
-#endif
   , m_cCuCtxModSig            ( MAX_CU_DEPTH,  2,               NUM_SIG_FLAG_CTX              )
   , m_cCuCtxModLast           ( MAX_CU_DEPTH,  2,               NUM_LAST_FLAG_CTX             )
   , m_cCuCtxModAbsGreOne      ( 1,             2,               NUM_ABS_GREATER_ONE_CTX       )
@@ -124,12 +118,8 @@ Void TDecSbac::resetEntropy          (TComSlice* pcSlice)
 
   m_cCUDeltaQpSCModel.initBuffer      ( eSliceType, iQp, (Short*)INIT_DQP );
   m_cCUCbfSCModel.initBuffer          ( eSliceType, iQp, (Short*)INIT_CBF );
-#if HHI_RQT
   m_cCUQtCbfSCModel.initBuffer        ( eSliceType, iQp, (Short*)INIT_QT_CBF );
-#if HHI_RQT_ROOT
   m_cCUQtRootCbfSCModel.initBuffer    ( eSliceType, iQp, (Short*)INIT_QT_ROOT_CBF );
-#endif
-#endif
 
   m_cCuCtxModSig.initBuffer           ( eSliceType, iQp, (Short*)INIT_SIG_FLAG );
   m_cCuCtxModLast.initBuffer          ( eSliceType, iQp, (Short*)INIT_LAST_FLAG );
@@ -143,9 +133,7 @@ Void TDecSbac::resetEntropy          (TComSlice* pcSlice)
   m_cALFFlagSCModel.initBuffer        ( eSliceType, iQp, (Short*)INIT_ALF_FLAG );
   m_cALFUvlcSCModel.initBuffer        ( eSliceType, iQp, (Short*)INIT_ALF_UVLC );
   m_cALFSvlcSCModel.initBuffer        ( eSliceType, iQp, (Short*)INIT_ALF_SVLC );
-#if HHI_RQT
   m_cCUTransSubdivFlagSCModel.initBuffer( eSliceType, iQp, (Short*)INIT_TRANS_SUBDIV_FLAG );
-#endif
   m_cCUTransIdxSCModel.initBuffer     ( eSliceType, iQp, (Short*)INIT_TRANS_IDX );
 
 #if PLANAR_INTRA
@@ -613,10 +601,8 @@ Void TDecSbac::parseSplitFlag     ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt ui
 
   UInt uiSymbol;
   m_pcTDecBinIf->decodeBin( uiSymbol, m_cCUSplitFlagSCModel.get( 0, 0, pcCU->getCtxSplitFlag( uiAbsPartIdx, uiDepth ) ) );
-#if HHI_RQT
   DTRACE_CABAC_V( g_nSymbolCounter++ )
   DTRACE_CABAC_T( "\tSplitFlag\n" )
-#endif
   pcCU->setDepthSubParts( uiDepth + uiSymbol, uiAbsPartIdx );
 
   return;
@@ -929,7 +915,6 @@ Void TDecSbac::parseMvd( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiPartIdx, UI
 }
 
 
-#if HHI_RQT
 Void TDecSbac::parseTransformSubdivFlag( UInt& ruiSubdivFlag, UInt uiLog2TransformBlockSize )
 {
   m_pcTDecBinIf->decodeBin( ruiSubdivFlag, m_cCUTransSubdivFlagSCModel.get( 0, 0, uiLog2TransformBlockSize ) );
@@ -942,7 +927,6 @@ Void TDecSbac::parseTransformSubdivFlag( UInt& ruiSubdivFlag, UInt uiLog2Transfo
   DTRACE_CABAC_T( "\n" )
 }
 
-#if HHI_RQT_ROOT
 Void TDecSbac::parseQtRootCbf( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth, UInt& uiQtRootCbf )
 {
   UInt uiSymbol;
@@ -960,8 +944,6 @@ Void TDecSbac::parseQtRootCbf( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth
 
   uiQtRootCbf = uiSymbol;
 }
-#endif
-#endif
 
 Void TDecSbac::parseTransformIdx( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
 {
@@ -1039,32 +1021,9 @@ Void TDecSbac::parseDeltaQP( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
 
 Void TDecSbac::parseCbf( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eType, UInt uiTrDepth, UInt uiDepth )
 {
-#if HHI_RQT
-#if HHI_RQT_INTRA
-  return;
-#else
-  if( !pcCU->isIntra( uiAbsPartIdx ) )
-  {
-    return;
-  }
-#endif
-#endif
-  UInt uiSymbol;
-  UInt uiCbf = pcCU->getCbf( uiAbsPartIdx, eType );
-  UInt uiCtx = pcCU->getCtxCbf( uiAbsPartIdx, eType, uiTrDepth );
-
-  m_pcTDecBinIf->decodeBin( uiSymbol , m_cCUCbfSCModel.get( 0, eType == TEXT_LUMA ? 0 : 1, 3 - uiCtx ) );
-  pcCU->setCbfSubParts( uiCbf | ( uiSymbol << uiTrDepth ), eType, uiAbsPartIdx, uiDepth );
-
-  if( !uiSymbol )
-  {
-    m_uiLastDQpNonZero = 0;
-  }
-
   return;
 }
 
-#if HHI_RQT
 Void TDecSbac::parseQtCbf( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eType, UInt uiTrDepth, UInt uiDepth )
 {
   UInt uiSymbol;
@@ -1085,7 +1044,6 @@ Void TDecSbac::parseQtCbf( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eType, 
 
   pcCU->setCbfSubParts( uiSymbol << uiTrDepth, eType, uiAbsPartIdx, uiDepth );
 }
-#endif
 
 #if LCEC_CBP_YUV_ROOT
 Void TDecSbac::parseBlockCbf( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eType, UInt uiTrDepth, UInt uiDepth, UInt uiQPartNum )
@@ -1096,7 +1054,6 @@ Void TDecSbac::parseBlockCbf( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eTyp
 
 Void TDecSbac::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx, UInt uiWidth, UInt uiHeight, UInt uiDepth, TextType eTType )
 {
-#if HHI_RQT
   DTRACE_CABAC_V( g_nSymbolCounter++ )
   DTRACE_CABAC_T( "\tparseCoeffNxN()\teType=" )
   DTRACE_CABAC_V( eTType )
@@ -1121,7 +1078,6 @@ Void TDecSbac::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartId
   DTRACE_CABAC_T( "\tpredmode=" )
   DTRACE_CABAC_V(  pcCU->getPredictionMode( uiAbsPartIdx ) )
   DTRACE_CABAC_T( "\n" )
-#endif
 
   if( uiWidth > pcCU->getSlice()->getSPS()->getMaxTrSize() )
   {
@@ -1234,13 +1190,8 @@ Void TDecSbac::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartId
 
       if ( uiSubLog2 > 1 )
       {
-#if HHI_RQT
         uiSubPosX = g_auiFrameScanX[ uiSubLog2 - 1 ][ uiSubBlk ] * 4;
         uiSubPosY = g_auiFrameScanY[ uiSubLog2 - 1 ][ uiSubBlk ] * 4;
-#else
-        uiSubPosX = g_auiFrameScanX[ uiSubLog2 - 2 ][ uiSubBlk ] * 4;
-        uiSubPosY = g_auiFrameScanY[ uiSubLog2 - 2 ][ uiSubBlk ] * 4;
-#endif
       }
       else
       {
@@ -1284,11 +1235,7 @@ Void TDecSbac::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartId
 		// Decode level Bin0 plane
         for ( UInt uiScanPos = 0; uiScanPos < 16; uiScanPos++ )
         {
-#if HHI_RQT
           UInt  uiBlkPos  = g_auiFrameScanXY[ 1 ][ 15 - uiScanPos ];
-#else
-          UInt  uiBlkPos  = g_auiFrameScanXY[ 0 ][ 15 - uiScanPos ];
-#endif
           UInt  uiPosY    = uiBlkPos >> 2;
           UInt  uiPosX    = uiBlkPos - ( uiPosY << 2 );
           UInt  uiIndex   = (uiSubPosY + uiPosY) * uiWidth + uiSubPosX + uiPosX;
@@ -1320,11 +1267,7 @@ Void TDecSbac::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartId
 		// Decode other bins of level 
         for ( UInt uiScanPos = 0; uiScanPos < 16; uiScanPos++ )
         {
-#if HHI_RQT
           UInt  uiBlkPos  = g_auiFrameScanXY[ 1 ][ 15 - uiScanPos ];
-#else
-          UInt  uiBlkPos  = g_auiFrameScanXY[ 0 ][ 15 - uiScanPos ];
-#endif
           UInt  uiPosY    = uiBlkPos >> 2;
           UInt  uiPosX    = uiBlkPos - ( uiPosY << 2 );
           UInt  uiIndex   = (uiSubPosY + uiPosY) * uiWidth + uiSubPosX + uiPosX;
@@ -1348,11 +1291,7 @@ Void TDecSbac::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartId
 		// Decode sign plane
         for ( UInt uiScanPos = 0; uiScanPos < 16; uiScanPos++ )
         {
-#if HHI_RQT
           UInt  uiBlkPos  = g_auiFrameScanXY[ 1 ][ 15 - uiScanPos ];
-#else
-          UInt  uiBlkPos  = g_auiFrameScanXY[ 0 ][ 15 - uiScanPos ];
-#endif
           UInt  uiPosY    = uiBlkPos >> 2;
           UInt  uiPosX    = uiBlkPos - ( uiPosY << 2 );
           UInt  uiIndex   = (uiSubPosY + uiPosY) * uiWidth + uiSubPosX + uiPosX;
@@ -1376,11 +1315,7 @@ Void TDecSbac::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartId
     // Decode level Bin0 plane
     for ( UInt uiScanPos = 0; uiScanPos < uiWidth*uiHeight; uiScanPos++ )
     {
-#if HHI_RQT
       UInt uiIndex = g_auiFrameScanXY[ (int)g_aucConvertToBit[ uiWidth ] + 1 ][ uiWidth*uiHeight - uiScanPos - 1 ];
-#else
-      UInt uiIndex = g_auiFrameScanXY[ (int)g_aucConvertToBit[ uiWidth ] ][ uiWidth*uiHeight - uiScanPos - 1 ];
-#endif
       uiLevel = pcCoef[ uiIndex ];
 
       if( uiLevel )
@@ -1408,11 +1343,7 @@ Void TDecSbac::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartId
 	// Decode other bins of level 
     for ( UInt uiScanPos = 0; uiScanPos < uiWidth*uiHeight; uiScanPos++ )
     {
-#if HHI_RQT
       UInt uiIndex = g_auiFrameScanXY[ (int)g_aucConvertToBit[ uiWidth ] + 1 ][ uiWidth*uiHeight - uiScanPos - 1 ];
-#else
-      UInt uiIndex = g_auiFrameScanXY[ (int)g_aucConvertToBit[ uiWidth ] ][ uiWidth*uiHeight - uiScanPos - 1 ];
-#endif
 
       uiLevel = pcCoef[ uiIndex ];
 
@@ -1432,11 +1363,7 @@ Void TDecSbac::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartId
 	// Decode sign plane
     for ( UInt uiScanPos = 0; uiScanPos < uiWidth*uiHeight; uiScanPos++ )
     {
-#if HHI_RQT
       UInt uiIndex = g_auiFrameScanXY[ (int)g_aucConvertToBit[ uiWidth ] + 1 ][ uiWidth*uiHeight - uiScanPos - 1 ];
-#else
-      UInt uiIndex = g_auiFrameScanXY[ (int)g_aucConvertToBit[ uiWidth ] ][ uiWidth*uiHeight - uiScanPos - 1 ];
-#endif
       uiLevel = pcCoef[ uiIndex ];
 
       if( uiLevel )
@@ -1503,31 +1430,9 @@ Void TDecSbac::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartId
   const UInt*  pucScanY;
 
   UInt uiConvBit = g_aucConvertToBit[ uiWidth ];
-#if HHI_RQT
   pucScan  = g_auiFrameScanXY[ uiConvBit + 1 ]; 
   pucScanX = g_auiFrameScanX [ uiConvBit + 1 ];
   pucScanY = g_auiFrameScanY [ uiConvBit + 1 ];
-#else
-  switch(uiWidth)
-  {
-  case  2:
-    {
-      static UInt uiScanOrder [4] = {0, 1, 2, 3};
-      static UInt uiScanOrderX[4] = {0, 1, 0, 1};
-      static UInt uiScanOrderY[4] = {0, 0, 1, 1};
-      pucScan  = &uiScanOrder [0];
-      pucScanX = &uiScanOrderX[0];
-      pucScanY = &uiScanOrderY[0];
-      break;
-    }
-  case  4:
-  case  8: pucScan = g_auiFrameScanXY[ uiConvBit ]; pucScanX = g_auiFrameScanX[uiConvBit]; pucScanY = g_auiFrameScanY[uiConvBit]; break;
-  case 16:
-  case 32:
-  case 64: pucScan = g_auiFrameScanXY[ uiConvBit ]; pucScanX = g_auiFrameScanX[uiConvBit]; pucScanY = g_auiFrameScanY[uiConvBit]; break;
-  default: pucScan = g_auiFrameScanXY[ uiConvBit ]; pucScanX = g_auiFrameScanX[uiConvBit]; pucScanY = g_auiFrameScanY[uiConvBit]; break;
-  }
-#endif
 
 	//----- parse significance map -----
   // DC is decoded in the beginning
@@ -1540,11 +1445,7 @@ Void TDecSbac::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartId
 
     for ( ui=1, uiCtxOffst=uiCtxSize ; ui<(uiSize-1) && !uiLast ; ui++, uiCtxOffst+=uiCtxSize ) // if last coeff is reached, it has to be significant
 	{
-#if HHI_RQT
     if (uiCtxSize < uiSize)
-#else
-    if (uiCtxSize != uiSize)
-#endif
     {
       uiXX  = pucScanX[ui] >> uiScanXShift;
       uiYY  = pucScanY[ui] >> uiScanYShift;

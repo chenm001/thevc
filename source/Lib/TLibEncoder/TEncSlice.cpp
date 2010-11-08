@@ -576,7 +576,6 @@ Void TEncSlice::encodeSlice   ( TComPic*& rpcPic, TComBitstream*& rpcBitstream )
   // set bitstream
   m_pcEntropyCoder->setBitstream( rpcBitstream );
   // for every CU
-#if HHI_RQT
 #if ENC_DEC_TRACE
   g_bJustDoIt = g_bEncDecTraceEnable;
 #endif
@@ -587,22 +586,17 @@ Void TEncSlice::encodeSlice   ( TComPic*& rpcPic, TComBitstream*& rpcBitstream )
 #if ENC_DEC_TRACE
   g_bJustDoIt = g_bEncDecTraceDisable;
 #endif
-#endif
   for( uiCUAddr = 0; uiCUAddr < rpcPic->getPicSym()->getNumberOfCUsInFrame() ; uiCUAddr++ )
   {
     m_pcCuEncoder->setQpLast( rpcPic->getSlice()->getSliceQp() );
 
     TComDataCU*& pcCU = rpcPic->getCU( uiCUAddr );
-#if HHI_RQT
 #if ENC_DEC_TRACE
     g_bJustDoIt = g_bEncDecTraceEnable;
 #endif
-#endif
     m_pcCuEncoder->encodeCU( pcCU );
-#if HHI_RQT
 #if ENC_DEC_TRACE
     g_bJustDoIt = g_bEncDecTraceDisable;
-#endif
 #endif
 
   }

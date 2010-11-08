@@ -185,7 +185,6 @@ TDecBinPIPE::decodeBin( UInt& ruiBin, ContextModel &rcCtxModel )
   UInt uiPIPEId = m_pacState2Idx  [ rcCtxModel.getState() ];
   UInt uiBin    = m_apcV2VDecoders[ uiPIPEId ]->getNextBin();
   ruiBin        = ( uiBin ^ rcCtxModel.getMps() );
-#if HHI_RQT
   {
     DTRACE_CABAC_V( g_nSymbolCounter++ )
     DTRACE_CABAC_T( "\tstate=" )
@@ -194,7 +193,6 @@ TDecBinPIPE::decodeBin( UInt& ruiBin, ContextModel &rcCtxModel )
     DTRACE_CABAC_V( ruiBin )
     DTRACE_CABAC_T( "\n" )
   }
-#endif
   if(  uiBin )
   {
     rcCtxModel.updateLPS();

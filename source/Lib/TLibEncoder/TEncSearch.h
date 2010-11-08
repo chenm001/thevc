@@ -61,7 +61,6 @@ class TEncCu;
 /// encoder search class
 class TEncSearch : public TComPrediction
 {
-#if HHI_RQT
 private:
   TCoeff**        m_ppcQTTempCoeffY;
   TCoeff**        m_ppcQTTempCoeffCb;
@@ -73,7 +72,6 @@ private:
   UChar*          m_puhQTTempCbf[3];
 
   TComYuv*        m_pcQTTempTComYuv;
-#endif
 protected:
   // interface to option
   TEncCfg*        m_pcEncCfg;
@@ -184,7 +182,6 @@ public:
                                   TComYuv*&   rpcRecoYuv,
                                   UInt        uiChromaTrMode );
 
-#if HHI_RQT_INTRA
   Void  preestChromaPredMode    ( TComDataCU* pcCU, 
                                   TComYuv*    pcOrgYuv, 
                                   TComYuv*    pcPredYuv );
@@ -201,7 +198,6 @@ public:
                                   TComYuv*    pcResiYuv, 
                                   TComYuv*    pcRecoYuv,
                                   UInt        uiPreCalcDistC );
-#endif
 
 
   /// encoder estimation - inter prediction (non-skip)
@@ -235,9 +231,7 @@ public:
                                   TComYuv*    pcYuvOrg,
                                   TComYuv*    pcYuvPred,
                                   TComYuv*&   rpcYuvResi,
-#if HHI_RQT
                                   TComYuv*&   rpcYuvResiBest,
-#endif
                                   TComYuv*&   rpcYuvRec,
                                   Bool        bSkipRes );
 
@@ -250,7 +244,6 @@ protected:
   // Intra search (ADI & CIP)
   // -------------------------------------------------------------------------------------------------------------------
 
-#if HHI_RQT_INTRA
   Void  xEncSubdivCbfQT           ( TComDataCU*  pcCU,
                                     UInt         uiTrDepth,
                                     UInt         uiAbsPartIdx,
@@ -319,7 +312,6 @@ protected:
                                     UInt         uiTrDepth,
                                     UInt         uiAbsPartIdx,
                                     TComYuv*     pcRecoYuv );
-#endif
 
   Void xRecurIntraLumaSearchADI   ( TComDataCU* pcCU,
                                     UInt        uiAbsPartIdx,
@@ -593,17 +585,9 @@ Void xMergeEstimation             ( TComDataCU*     pcCU,
   // T & Q & Q-1 & T-1
   // -------------------------------------------------------------------------------------------------------------------
 
-#if HHI_RQT
   Void xEncodeResidualQT( TComDataCU* pcCU, UInt uiAbsPartIdx, const UInt uiDepth, Bool bSubdivAndCbf, TextType eType );
-#if HHI_RQT_ROOT
   Void xEstimateResidualQT( TComDataCU* pcCU, UInt uiQuadrant, UInt uiAbsPartIdx, TComYuv* pcResi, const UInt uiDepth, Double &rdCost, UInt &ruiBits, UInt &ruiDist, UInt *puiZeroDist );
-#elif HHI_RQT_FORCE_SPLIT_ACC2_PU
-  Void xEstimateResidualQT( TComDataCU* pcCU, UInt uiQuadrant, UInt uiAbsPartIdx, TComYuv* pcResi, const UInt uiDepth, Double &rdCost, UInt &ruiBits, UInt &ruiDist );
-#else
-  Void xEstimateResidualQT( TComDataCU* pcCU, UInt uiAbsPartIdx, TComYuv* pcResi, const UInt uiDepth, Double &rdCost, UInt &ruiBits, UInt &ruiDist );
-#endif
   Void xSetResidualQTData( TComDataCU* pcCU, UInt uiAbsPartIdx, TComYuv* pcResi, UInt uiDepth, Bool bSpatial );
-#endif
   Void xEncodeInterTexture        ( TComDataCU*&  rpcCU, UInt uiQp, Bool bHighPass, TComYuv*& rpcYuv, UInt uiTrMode );
   Void xRecurTransformNxN         ( TComDataCU*   rpcCU,
                                     UInt          uiAbsPartIdx,

@@ -320,22 +320,13 @@ Void TComPattern::initAdiPattern( TComDataCU* pcCU, UInt uiZorderIdxInPart, UInt
 
 }
 
-#if HHI_RQT_INTRA
 Void TComPattern::initAdiPatternChroma( TComDataCU* pcCU, UInt uiZorderIdxInPart, UInt uiPartDepth, Int* piAdiBuf, Int iOrgBufStride, Int iOrgBufHeight, Bool& bAbove, Bool& bLeft )
-#else
-Void TComPattern::initAdiPatternChroma( TComDataCU* pcCU, UInt uiZorderIdxInPart, Int* piAdiBuf, Int iOrgBufStride, Int iOrgBufHeight, Bool& bAbove, Bool& bLeft )
-#endif
 {
   Pel*  piRoiOrigin;
   Pel*  piRoiTemp;
   Int*  piAdiTemp;
-#if HHI_RQT_INTRA
   UInt  uiCuWidth  = pcCU->getWidth (0) >> uiPartDepth;
   UInt  uiCuHeight = pcCU->getHeight(0) >> uiPartDepth;
-#else
-  UInt  uiCuWidth  = pcCU->getWidth(0);
-  UInt  uiCuHeight = pcCU->getHeight(0);
-#endif
   UInt  uiWidth;
   UInt  uiHeight;
   Int   iPicStride = pcCU->getPic()->getCStride();
@@ -350,13 +341,8 @@ Void TComPattern::initAdiPatternChroma( TComDataCU* pcCU, UInt uiZorderIdxInPart
 
   UInt uiPartIdxLT, uiPartIdxRT, uiPartIdxLB,uiPartDum;
 
-#if HHI_RQT_INTRA
   pcCU->deriveLeftRightTopIdxAdi( uiPartIdxLT, uiPartIdxRT, uiZorderIdxInPart, uiPartDepth );
   pcCU->deriveLeftBottomIdxAdi  ( uiPartIdxLB,              uiZorderIdxInPart, uiPartDepth );
-#else
-  pcCU->deriveLeftRightTopIdxAdi( uiPartIdxLT, uiPartIdxRT,uiZorderIdxInPart,0 );
-  pcCU->deriveLeftBottomIdxAdi  ( uiPartIdxLB ,uiZorderIdxInPart,0);
-#endif
 
   if( pcCU->getPUAbove     ( uiPartDum, uiPartIdxLT ) ) bAboveFlag      = true;
   if( pcCU->getPUAboveRightAdi( uiPartDum,uiCuWidth, uiPartIdxRT ) ) bAboveRightFlag = true;

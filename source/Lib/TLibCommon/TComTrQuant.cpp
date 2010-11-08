@@ -37,9 +37,7 @@
 #include <math.h>
 #include <memory.h>
 #include "TComTrQuant.h"
-#if HHI_RQT
 #include "TComPic.h"
-#endif
 #include "ContextTables.h"
 
 // ====================================================================================================================
@@ -1183,11 +1181,7 @@ Void TComTrQuant::xRateDistOptQuant_LCEC             ( TComDataCU*              
     memset(&piDstCoeff[0],0,uiWidth*uiHeight*sizeof(TCoeff)); 
   }
 
-#if HHI_RQT
   pucScan = g_auiFrameScanXY [ uiConvBit + 1 ];
-#else
-  pucScan = g_auiFrameScanXY  [ uiConvBit ];
-#endif
   
   iLpFlag = 1;  // shawn note: last position flag
   iLevelMode = 0;
@@ -1407,11 +1401,7 @@ Void TComTrQuant::xQuantLTR  (TComDataCU* pcCU, Long* pSrc, TCoeff*& pDes, Int i
   if(pcCU->isIntra( uiAbsPartIdx ) && m_iSymbolMode == 0 && iWidth >= 16)
   {
     UInt uiConvBit = g_aucConvertToBit[ iWidth ];
-#if HHI_RQT
     pucScan        = g_auiFrameScanXY [ uiConvBit + 1 ];
-#else
-    pucScan        = g_auiFrameScanXY  [ uiConvBit ];
-#endif
     for( Int n = 64; n < iWidth*iHeight; n++ )
     {
       piQCoef[ pucScan[ n ] ] = 0;
@@ -3058,7 +3048,6 @@ Void TComTrQuant::invRecurTransformNxN( TComDataCU* pcCU, UInt uiAbsPartIdx, Tex
   if( !pcCU->getCbf(uiAbsPartIdx, eTxt, uiTrMode) )
       return;
 
-#if HHI_RQT
   UInt uiLumaTrMode, uiChromaTrMode;
   pcCU->convertTransIdx( uiAbsPartIdx, pcCU->getTransformIdx( uiAbsPartIdx ), uiLumaTrMode, uiChromaTrMode );
   const UInt uiStopTrMode = eTxt == TEXT_LUMA ? uiLumaTrMode : uiChromaTrMode;
@@ -3066,11 +3055,7 @@ Void TComTrQuant::invRecurTransformNxN( TComDataCU* pcCU, UInt uiAbsPartIdx, Tex
   assert(1); // as long as quadtrees are not used for residual transform
 
   if( uiTrMode == uiStopTrMode )
-#else
-  if ( uiTrMode == uiMaxTrMode )
-#endif
   {
-#if HHI_RQT
     UInt uiDepth      = pcCU->getDepth( uiAbsPartIdx ) + uiTrMode;
     UInt uiLog2TrSize = g_aucConvertToBit[ pcCU->getSlice()->getSPS()->getMaxCUWidth() >> uiDepth ] + 2;
     if( eTxt != TEXT_LUMA && uiLog2TrSize == pcCU->getSlice()->getSPS()->getQuadtreeTULog2MinSize() )
@@ -3083,7 +3068,6 @@ Void TComTrQuant::invRecurTransformNxN( TComDataCU* pcCU, UInt uiAbsPartIdx, Tex
       uiWidth  <<= 1;
       uiHeight <<= 1;
     }
-#endif
     Pel* pResi = rpcResidual + uiAddr;
     invtransformNxN( pResi, uiStride, rpcCoeff, uiWidth, uiHeight, indexROT );
   }
@@ -3586,13 +3570,8 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
 
       if ( uiSubLog2M2 > 1 )
       {
-#if HHI_RQT
         uiSubPosX = g_auiFrameScanX[ uiSubLog2M2 - 1 ][ uiSubBlk ] * 4;
         uiSubPosY = g_auiFrameScanY[ uiSubLog2M2 - 1 ][ uiSubBlk ] * 4;
-#else
-        uiSubPosX = g_auiFrameScanX[ uiSubLog2M2 - 2 ][ uiSubBlk ] * 4;
-        uiSubPosY = g_auiFrameScanY[ uiSubLog2M2 - 2 ][ uiSubBlk ] * 4;
-#endif
       }
       else
       {
@@ -3638,11 +3617,7 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
 
         for ( UInt uiScanPos = 0; uiScanPos < 16; uiScanPos++ )
         {
-#if HHI_RQT
           UInt  uiBlkPos  = g_auiFrameScanXY[ 1 ][ 15 - uiScanPos ];
-#else
-          UInt  uiBlkPos  = g_auiFrameScanXY[ 0 ][ 15 - uiScanPos ];
-#endif
           UInt  uiPosY    = uiBlkPos >> 2;
           UInt  uiPosX    = uiBlkPos - ( uiPosY << 2 );
           UInt  uiIndex   = (uiSubPosY + uiPosY) * uiWidth + uiSubPosX + uiPosX;
@@ -3684,11 +3659,7 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
 
     for ( UInt uiScanPos = 0; uiScanPos < uiWidth*uiHeight; uiScanPos++ )
     {
-#if HHI_RQT
       UInt uiIndex = g_auiFrameScanXY[ (int)g_aucConvertToBit[ uiWidth ] + 1 ][ uiWidth*uiHeight - uiScanPos - 1 ];
-#else
-      UInt uiIndex = g_auiFrameScanXY[ (int)g_aucConvertToBit[ uiWidth ] ][ uiWidth*uiHeight - uiScanPos - 1 ];
-#endif
 
       puiCtxAbsGreOne   [ uiIndex ] = min<UInt>(c1, 4);
       puiCtxCoeffLevelM1[ uiIndex ] = min<UInt>(c2, 4);

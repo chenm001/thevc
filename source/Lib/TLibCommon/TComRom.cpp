@@ -57,11 +57,7 @@ Void initROM()
   g_aucConvertToBit[ i ] = c;
 
   // g_auiFrameScanXY[ g_aucConvertToBit[ transformSize ] ]: zigzag scan array for transformSize
-#if HHI_RQT
   c=2;
-#else
-  c=4;
-#endif
   for ( i=0; i<MAX_CU_DEPTH; i++ )
   {
     g_auiFrameScanXY[ i ] = new UInt[ c*c ];
@@ -1903,14 +1899,12 @@ UInt g_uiBASE_MAX     = 255;  // max. value before IBDI
 
 Char  g_aucConvertToBit  [ MAX_CU_SIZE+1 ];
 
-#if HHI_RQT
 #if ENC_DEC_TRACE
 FILE*  g_hTrace = NULL;
 const Bool g_bEncDecTraceEnable  = true;
 const Bool g_bEncDecTraceDisable = false;
 Bool   g_bJustDoIt = false;
 UInt64 g_nSymbolCounter = 0;
-#endif
 #endif
 // ====================================================================================================================
 // Scanning order & context model mapping

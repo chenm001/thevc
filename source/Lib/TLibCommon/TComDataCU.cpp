@@ -1399,15 +1399,12 @@ UInt TComDataCU::getCtxCbf( UInt uiAbsPartIdx, TextType eType, UInt uiTrDepth )
   return uiCtx;
 }
 
-#if HHI_RQT
 UInt TComDataCU::getCtxQtCbf( UInt uiAbsPartIdx, TextType eType, UInt uiTrDepth )
 {
-#if HHI_RQT_CHROMA_CBF_MOD
   if( getPredictionMode( uiAbsPartIdx ) != MODE_INTRA && eType != TEXT_LUMA )
   {
     return uiTrDepth;
   }
-#endif
   UInt uiCtx = 0;
   const UInt uiDepth = getDepth( uiAbsPartIdx );
   const UInt uiLog2TrafoSize = g_aucConvertToBit[getSlice()->getSPS()->getMaxCUWidth()]+2 - uiDepth - uiTrDepth;
@@ -1437,7 +1434,6 @@ UInt TComDataCU::getCtxQtCbf( UInt uiAbsPartIdx, TextType eType, UInt uiTrDepth 
   return uiCtx;
 }
 
-#if HHI_RQT_ROOT
 UInt TComDataCU::getCtxQtRootCbf( UInt uiAbsPartIdx )
 {
   UInt uiCtx = 0;
@@ -1460,9 +1456,7 @@ UInt TComDataCU::getCtxQtRootCbf( UInt uiAbsPartIdx )
 
   return uiCtx;
 }
-#endif
 
-#if HHI_RQT_DEPTH || HHI_RQT_DISABLE_SUB
 UInt TComDataCU::getQuadtreeTULog2MinSizeInCU( UInt uiIdx )
 {
 #if HHI_RQT_DISABLE_SUB
@@ -1477,17 +1471,8 @@ UInt TComDataCU::getQuadtreeTULog2MinSizeInCU( UInt uiIdx )
   {
     uiLog2MinTUSizeInCU--;
   }
-#if HHI_C319_INTER_FIX
-  // BB: count inferred/forced splits as depth
-#else
-  if ( uiLog2MinTUSizeInCU > m_pcSlice->getSPS()->getQuadtreeTULog2MaxSize())
-  {
-    uiLog2MinTUSizeInCU = m_pcSlice->getSPS()->getQuadtreeTULog2MaxSize();
-  }  
-#endif
   #endif  
 
-#if HHI_C319
   UInt uiQuadtreeTUMaxDepth = getPredictionMode( uiIdx ) == MODE_INTRA ? m_pcSlice->getSPS()->getQuadtreeTUMaxDepthIntra() : m_pcSlice->getSPS()->getQuadtreeTUMaxDepthInter();
   if (uiLog2MinTUSizeInCU < m_pcSlice->getSPS()->getQuadtreeTULog2MinSize() + uiQuadtreeTUMaxDepth - 1)
   {
@@ -1498,26 +1483,13 @@ UInt TComDataCU::getQuadtreeTULog2MinSizeInCU( UInt uiIdx )
     uiLog2MinTUSizeInCU -= uiQuadtreeTUMaxDepth - 1;  
   }
 
-#if HHI_C319_INTER_FIX
   if ( uiLog2MinTUSizeInCU > m_pcSlice->getSPS()->getQuadtreeTULog2MaxSize())
   {
     uiLog2MinTUSizeInCU = m_pcSlice->getSPS()->getQuadtreeTULog2MaxSize();
   }  
-#endif
-#else
-  if (uiLog2MinTUSizeInCU < m_pcSlice->getSPS()->getQuadtreeTULog2MinSize() + m_pcSlice->getSPS()->getQuadtreeTUMaxDepth() - 1)
-  {
-    uiLog2MinTUSizeInCU = m_pcSlice->getSPS()->getQuadtreeTULog2MinSize();  
-  }
-  else
-  {
-    uiLog2MinTUSizeInCU -= m_pcSlice->getSPS()->getQuadtreeTUMaxDepth() - 1;  
-  }
-#endif
   return uiLog2MinTUSizeInCU;
 #endif
 }
-#endif
 
 #if HHI_RQT_FORCE_SPLIT_ACC2_PU || HHI_RQT_DISABLE_SUB
 UInt TComDataCU::getQuadtreeTULog2RootSizeInCU( UInt uiIdx )
@@ -1553,7 +1525,6 @@ UInt TComDataCU::getQuadtreeTULog2RootSizeInCU( UInt uiIdx )
 
   return (uiLog2RootTUSizeInCU > m_pcSlice->getSPS()->getQuadtreeTULog2MaxSize() ? m_pcSlice->getSPS()->getQuadtreeTULog2MaxSize() : uiLog2RootTUSizeInCU);
 }
-#endif
 #endif
 
 UInt TComDataCU::getCtxAlfCtrlFlag( UInt uiAbsPartIdx )
@@ -2905,51 +2876,15 @@ Void TComDataCU::clipMv    (TComMv&  rcMv)
 
 Void TComDataCU::convertTransIdx( UInt uiAbsPartIdx, UInt uiTrIdx, UInt& ruiLumaTrMode, UInt& ruiChromaTrMode )
 {
-#if HHI_RQT_INTRA
-#else
-  if( getPredictionMode( uiAbsPartIdx ) == MODE_INTRA )
-  {
-    ruiLumaTrMode      = uiTrIdx;
-
-    UInt uiWidthInBit  = g_aucConvertToBit[m_puhWidth[uiAbsPartIdx]>>1]+2;
-    UInt uiTrSizeInBit = g_aucConvertToBit[getSlice()->getSPS()->getMaxTrSize()]+2;
-    ruiChromaTrMode    = uiWidthInBit >= uiTrSizeInBit ? uiWidthInBit - uiTrSizeInBit : 0;
-
-    return;
-  }
-#endif
-
   ruiLumaTrMode   = uiTrIdx;
   ruiChromaTrMode = uiTrIdx;
-
-#if HHI_RQT
-#else
-  UInt uiSizeBit        = g_aucConvertToBit[ Min( m_puhWidth [ uiAbsPartIdx ], m_puhHeight[ uiAbsPartIdx ] ) ] + 2;
-  UInt uiMinCUSizeBit   = g_aucConvertToBit[ Min( m_pcPic->getMinCUWidth(),    m_pcPic->getMinCUHeight()   ) ] + 2;
-  UInt uiLowerBnd       = uiMinCUSizeBit;//Max( uiMinCUSizeBit, 2 );
-
-  if ( (Int)uiSizeBit - (Int)uiTrIdx <= (Int)uiLowerBnd  )
-  {
-    ruiLumaTrMode   = uiSizeBit - uiLowerBnd;
-    ruiChromaTrMode = ruiLumaTrMode;
-#if HHI_RQT
-    assert( uiLowerBnd == uiMinCUSizeBit); // the if statement below can be removed
-#endif
-    if ( uiLowerBnd == uiMinCUSizeBit)//2 )
-    {
-      ruiChromaTrMode--;
-    }
-  }
-#endif
   return;
 }
 
 UInt TComDataCU::getIntraSizeIdx(UInt uiAbsPartIdx)
 {
   UInt uiShift = ( (m_puhTrIdx[uiAbsPartIdx]==0) && (m_pePartSize[uiAbsPartIdx]==SIZE_NxN) ) ? m_puhTrIdx[uiAbsPartIdx]+1 : m_puhTrIdx[uiAbsPartIdx];
-#if HHI_RQT_INTRA
   uiShift = ( m_pePartSize[uiAbsPartIdx]==SIZE_NxN ? 1 : 0 );
-#endif
 
   UChar uiWidth = m_puhWidth[uiAbsPartIdx]>>uiShift;
   UInt  uiCnt = 0;

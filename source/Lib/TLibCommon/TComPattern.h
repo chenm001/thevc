@@ -168,9 +168,7 @@ public:
   /// set chroma parameters from CU data for accessing ADI data
   Void  initAdiPatternChroma  ( TComDataCU* pcCU,
                                 UInt        uiZorderIdxInPart,
-#if HHI_RQT_INTRA
                                 UInt        uiPartDepth,
-#endif
                                 Int*        piAdiBuf,
                                 Int         iOrgBufStride,
                                 Int         iOrgBufHeight,

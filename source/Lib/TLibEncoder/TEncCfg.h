@@ -72,21 +72,10 @@ protected:
   Int       m_aiPad[2];
 
   //======= Transform =============
-#if HHI_RQT
   UInt      m_uiQuadtreeTULog2MaxSize;
   UInt      m_uiQuadtreeTULog2MinSize;
-#if HHI_RQT_DEPTH
-#if HHI_C319
   UInt      m_uiQuadtreeTUMaxDepthInter;
   UInt      m_uiQuadtreeTUMaxDepthIntra;
-#else  
-  UInt      m_uiQuadtreeTUMaxDepth;
-#endif
-#endif
-#else
-  UInt      m_uiMinTrDepth;
-  UInt      m_uiMaxTrDepth;
-#endif
   
   //====== B Slice ========
   Bool      m_bHierarchicalCoding;              //  hierarchical-B coding
@@ -132,10 +121,6 @@ protected:
   Int       m_iDIFTap;  // Number of interpolation filter taps
 
   Int*      m_aidQP;
-#if HHI_RQT
-#else
-  UInt      m_uiMaxTrSize;
-#endif
   UInt      m_uiDeltaQpRD;
 #if HHI_INTERP_FILTER
   Int       m_iInterpFilterType;
@@ -171,21 +156,10 @@ public:
   Void      setPad                          ( Int*  iPad                   )      { for ( Int i = 0; i < 2; i++ ) m_aiPad[i] = iPad[i]; }
 
   //======== Transform =============
-#if HHI_RQT
   Void      setQuadtreeTULog2MaxSize        ( UInt  u )      { m_uiQuadtreeTULog2MaxSize = u; }
   Void      setQuadtreeTULog2MinSize        ( UInt  u )      { m_uiQuadtreeTULog2MinSize = u; }
-#if HHI_RQT_DEPTH
-#if HHI_C319
   Void      setQuadtreeTUMaxDepthInter      ( UInt  u )      { m_uiQuadtreeTUMaxDepthInter = u; }
   Void      setQuadtreeTUMaxDepthIntra      ( UInt  u )      { m_uiQuadtreeTUMaxDepthIntra = u; }
-#else
-  Void      setQuadtreeTUMaxDepth              ( UInt  u )      { m_uiQuadtreeTUMaxDepth = u; }
-#endif
-#endif
-#else  
-  Void      setMinTrDepth                   ( UInt  u )      { m_uiMinTrDepth = u; }
-  Void      setMaxTrDepth                   ( UInt  u )      { m_uiMaxTrDepth = u; }
-#endif
   
   //====== b; Slice ========
   Void      setHierarchicalCoding           ( Bool  b )      { m_bHierarchicalCoding = b; }
@@ -226,21 +200,10 @@ public:
   Int       getPad                          ( Int i )      { assert (i < 2 );                      return  m_aiPad[i]; }
 
   //======== Transform =============
-#if HHI_RQT
   UInt      getQuadtreeTULog2MaxSize        ()      const { return m_uiQuadtreeTULog2MaxSize; }
   UInt      getQuadtreeTULog2MinSize        ()      const { return m_uiQuadtreeTULog2MinSize; }
-#if HHI_RQT_DEPTH
-#if HHI_C319
   UInt      getQuadtreeTUMaxDepthInter      ()      const { return m_uiQuadtreeTUMaxDepthInter; }
   UInt      getQuadtreeTUMaxDepthIntra      ()      const { return m_uiQuadtreeTUMaxDepthIntra; }
-#else
-  UInt      getQuadtreeTUMaxDepth              ()      const { return m_uiQuadtreeTUMaxDepth; }
-#endif
-#endif
-#else
-  UInt      getMinTrDepth                   ()      { return  m_uiMinTrDepth; }
-  UInt      getMaxTrDepth                   ()      { return  m_uiMaxTrDepth; }
-#endif
   
   //==== b; Slice ========
   Bool      getHierarchicalCoding           ()      { return  m_bHierarchicalCoding; }
@@ -287,10 +250,6 @@ public:
   Void      setDIFTap                       ( Int   i )     { m_iDIFTap     = i; }
 
   Void      setdQPs                         ( Int*  p )     { m_aidQP       = p; }
-#if HHI_RQT
-#else
-  Void      setMaxTrSize                    ( UInt  u )     { m_uiMaxTrSize = u; }
-#endif
   Void      setDeltaQpRD                    ( UInt  u )     {m_uiDeltaQpRD  = u; }
   Bool      getUseSBACRD                    ()      { return m_bUseSBACRD;  }
   Bool      getUseASR                       ()      { return m_bUseASR;     }
@@ -317,10 +276,6 @@ public:
   Int       getDIFTap                       ()      { return m_iDIFTap;  }
 
   Int*      getdQPs                         ()      { return m_aidQP;       }
-#if HHI_RQT
-#else
-  UInt      getMaxTrSize                    ()      { return m_uiMaxTrSize; }
-#endif
   UInt      getDeltaQpRD                    ()      { return m_uiDeltaQpRD; }
 #if HHI_RMP_SWITCH
   Void      setUseRMP                      ( Bool b ) { m_bUseRMP = b; }

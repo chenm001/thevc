@@ -45,32 +45,19 @@
 #define HHI_RMP_SWITCH                    0
 
 // HHI tools
-#define HHI_RQT                           1           ///< MWHK: residual quadtree
-#define HHI_RQT_CHROMA_CBF_MOD            1           ///< HK: alternative syntax for coded block flag coding for chroma
-#define HHI_RQT_INTRA                     1           ///< HS: residual quadtree for intra blocks
 #define HHI_INTERP_FILTER                 1           ///< HL: interpolation filter
 #define HHI_IMVP                          1           ///< SOPH: Interleaved Motion Vector Predictor 
 #define HHI_MRG                           1           ///< SOPH: inter partition merging
 #define HHI_MRG_PU                        0           ///< SOPH: inter partition merging on pu basis
 #define HHI_AMVP_OFF                      0           ///< SOPH: Advanced Motion Vector Predictor deactivated [not in TMuC]
 #define HHI_DEBLOCKING_FILTER             0           ///< MW: deblocking filter supporting residual quadtrees
-#define HHI_RQT_ROOT                      1           ///< PHHK: signaling of residual quadtree root flag
 #define HHI_RQT_FORCE_SPLIT_NxN           0           ///< MSHK: force split flags of residual quadtree for NxN PUs such that transform blocks are guaranteed to not span NxN PUs
 #define HHI_RQT_FORCE_SPLIT_RECT          0           ///< MSHK: force split flags of residual quadtree for rectangular PUs such that transform blocks are guaranteed to not span rectangular PUs
 #define HHI_RQT_INTRA_SPEEDUP             1 // tests one best mode with full rqt
 #define HHI_RQT_INTRA_SPEEDUP_MOD         0 // tests two best modes with full rqt
-#define HHI_C319_SPS                      1           ///< BB: SPS from JCTVC-C319
 
 #if HHI_RQT_INTRA_SPEEDUP_MOD && !HHI_RQT_INTRA_SPEEDUP
 #error
-#endif
-
-#if ( HHI_RQT_INTRA && !HHI_RQT )
-#error "HHI_RQT_INTRA can only be equal to 1 if HHI_RQT is equal to 1"
-#endif
-
-#if ( HHI_RQT_ROOT && !HHI_RQT )
-#error "HHI_RQT_ROOT can only be equal to 1 if HHI_RQT is equal to 1"
 #endif
 
 #if ( HHI_MRG_PU && !HHI_MRG )
@@ -81,10 +68,6 @@
 #define HHI_RQT_FORCE_SPLIT_ACC2_PU       1
 #else
 #define HHI_RQT_FORCE_SPLIT_ACC2_PU       0
-#endif
-
-#if ( HHI_RQT_FORCE_SPLIT_ACC2_PU &&  !HHI_RQT  )
-#error "HHI_RQT_FORCE_SPLIT_ACC2_PU can only be equal to 1 if HHI_RQT is equal to 1"
 #endif
 
 #define HHI_INTERP_FILTER_KERNEL_FIX      1           ///< BB: interpolation filter fixed spline kernel
@@ -146,19 +129,7 @@
 ///////////////////////////////
 // SAMSUNG defines section start
 ///////////////////////////////
-#if HHI_RQT
-#define HHI_RQT_DEPTH                         1           ///< controlling max quadtree depth
-#if HHI_RQT_DEPTH
-#define HHI_C319                              1           ///< BB: two separate depths for inter and intra from JCTVC-C319
-#if HHI_C319
-#define HHI_C319_INTER_FIX                    1           ///< BB: forced/inferred splits are counted as depth (exeption: inferred from intra_split)
-#endif // HHI_C319
-#endif // HHI_RQT_DEPTH
 #define HHI_RQT_DISABLE_SUB                   0           ///< disabling subtree whose node size is smaller than partition size
-#if     HHI_RQT_DEPTH && HHI_RQT_DISABLE_SUB
-#error "Only one of HHI_RQT_DEPTH and HHI_RQT_DISABLE_SUB can be defined"
-#endif
-#endif
 
 #if HHI_MRG
 #define SAMSUNG_MRG_SKIP_DIRECT               1           ///< enabling of skip and direct when mrg is on
@@ -468,10 +439,8 @@ enum CI_IDX
   CI_NEXT_BEST,         ///< next best index
   CI_TEMP_BEST,         ///< temporal index
   CI_CHROMA_INTRA,      ///< chroma intra index
-#if HHI_RQT
   CI_QT_TRAFO_TEST,
   CI_QT_TRAFO_ROOT,
-#endif
   CI_NUM,               ///< total number
 };
 

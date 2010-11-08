@@ -48,21 +48,17 @@ TEncTop::TEncTop()
   m_pppcRDSbacCoder   =  NULL;
   m_pppcBinCoderCABAC =  NULL;
   m_cRDGoOnSbacCoder.init( &m_cRDGoOnBinCoderCABAC );
-#if HHI_RQT
 #if ENC_DEC_TRACE
   g_hTrace = fopen( "TraceEnc.txt", "wb" );
   g_bJustDoIt = g_bEncDecTraceDisable;
   g_nSymbolCounter = 0;
 #endif
-#endif
 }
 
 TEncTop::~TEncTop()
 {
-#if HHI_RQT
 #if ENC_DEC_TRACE
   fclose( g_hTrace );
-#endif
 #endif
 }
 
@@ -159,11 +155,7 @@ Void TEncTop::init()
   m_pcCavlcCoder = getCavlcCoder();
   aTable8 = m_pcCavlcCoder->GetLP8Table();
   aTable4 = m_pcCavlcCoder->GetLP4Table();
-#if HHI_RQT
   m_cTrQuant.init( g_uiMaxCUWidth, g_uiMaxCUHeight, 1 << m_uiQuadtreeTULog2MaxSize, m_bUseROT, m_iSymbolMode, aTable4, aTable8, m_bUseRDOQ, true );
-#else
-  m_cTrQuant.init( g_uiMaxCUWidth, g_uiMaxCUHeight, m_uiMaxTrSize, m_bUseROT, m_iSymbolMode, aTable4, aTable8, m_bUseRDOQ, true );
-#endif
 
   // initialize encoder search class
   m_cSearch.init( this, &m_cTrQuant, m_iSearchRange, m_iFastSearch, 0, &m_cEntropyCoder, &m_cRdCost, getRDSbacCoder(), getRDGoOnSbacCoder() );
@@ -295,28 +287,15 @@ Void TEncTop::xInitSPS()
   m_cSPS.setMaxCUWidth    ( g_uiMaxCUWidth      );
   m_cSPS.setMaxCUHeight   ( g_uiMaxCUHeight     );
   m_cSPS.setMaxCUDepth    ( g_uiMaxCUDepth      );
-#if HHI_RQT
   m_cSPS.setMinTrDepth    ( 0                   );
   m_cSPS.setMaxTrDepth    ( 1                   );
-#else
-  m_cSPS.setMinTrDepth    ( m_uiMinTrDepth      );
-  m_cSPS.setMaxTrDepth    ( m_uiMaxTrDepth      );
-#endif
   
   m_cSPS.setUseALF        ( m_bUseALF           );
 
-#if HHI_RQT
   m_cSPS.setQuadtreeTULog2MaxSize( m_uiQuadtreeTULog2MaxSize );
   m_cSPS.setQuadtreeTULog2MinSize( m_uiQuadtreeTULog2MinSize );
-#if HHI_RQT_DEPTH
-#if HHI_C319
   m_cSPS.setQuadtreeTUMaxDepthInter( m_uiQuadtreeTUMaxDepthInter    );
   m_cSPS.setQuadtreeTUMaxDepthIntra( m_uiQuadtreeTUMaxDepthIntra    );
-#else
-  m_cSPS.setQuadtreeTUMaxDepth   ( m_uiQuadtreeTUMaxDepth    );
-#endif
-#endif
-#endif
 
   m_cSPS.setUseDQP        ( m_iMaxDeltaQP != 0  );
   m_cSPS.setUseLDC        ( m_bUseLDC           );
@@ -335,11 +314,7 @@ Void TEncTop::xInitSPS()
 #endif
   m_cSPS.setDIFTap        ( m_iDIFTap           );
 
-#if HHI_RQT
   m_cSPS.setMaxTrSize   ( 1 << m_uiQuadtreeTULog2MaxSize );
-#else
-  m_cSPS.setMaxTrSize     ( m_uiMaxTrSize       );
-#endif
 
   Int i;
 #if HHI_AMVP_OFF

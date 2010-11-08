@@ -38,10 +38,8 @@
 
 #include "CommonDef.h"
 
-#if HHI_RQT
 #include<stdio.h>
 #include<iostream>
-#endif
 
 // ====================================================================================================================
 // Macros
@@ -219,8 +217,6 @@ extern const UChar g_aucConvertTxtTypeToIdx[4];
 
 extern       Char   g_aucConvertToBit  [ MAX_CU_SIZE+1 ];   // from width to log2(width)-2
 
-#if HHI_RQT
-
 __inline UInt gCeilLog2( const UInt uiVal )
 {
   if( uiVal <= MAX_CU_SIZE )
@@ -270,7 +266,6 @@ extern UInt64 g_nSymbolCounter;
 
 #endif
 
-#endif
 
 #endif  //__TCOMROM__
 

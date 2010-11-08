@@ -41,21 +41,17 @@ TDecTop::TDecTop()
   m_bGopSizeSet   = false;
   m_iMaxRefPicNum = 0;
   m_uiValidPS = 0;
-#if HHI_RQT
 #if ENC_DEC_TRACE
   g_hTrace = fopen( "TraceDec.txt", "wb" );
   g_bJustDoIt = g_bEncDecTraceDisable;
   g_nSymbolCounter = 0;
 #endif
-#endif
 }
 
 TDecTop::~TDecTop()
 {
-#if HHI_RQT
 #if ENC_DEC_TRACE
   fclose( g_hTrace );
-#endif
 #endif
 }
 

@@ -61,13 +61,9 @@
 #define NUM_MV_RES_CTX                7       ///< number of context models for motion vector difference
 
 #define NUM_REF_NO_CTX                6       ///< number of context models for reference index
-#if HHI_RQT
 #define NUM_TRANS_SUBDIV_FLAG_CTX     10      ///< number of context models for transform subdivision flags
 #define NUM_QT_CBF_CTX                15      ///< number of context models for QT CBF
-#if HHI_RQT_ROOT
 #define NUM_QT_ROOT_CBF_CTX           4       ///< number of context models for QT ROOT CBF
-#endif
-#endif
 #define NUM_TRANS_IDX_CTX             4       ///< number of context models for transform index
 #define NUM_DELTA_QP_CTX              4       ///< number of context models for dQP
 #define NUM_CBF_CTX                   4       ///< number of context models for CBF
@@ -369,7 +365,6 @@ INIT_CBF[3][8][2] =
   }
 };
 
-#if HHI_RQT
 static const Short
 INIT_QT_CBF[3][3*NUM_QT_CBF_CTX][2] =
 {
@@ -417,7 +412,6 @@ INIT_QT_CBF[3][3*NUM_QT_CBF_CTX][2] =
   }
 };
 
-#if HHI_RQT_ROOT
 static const Short
 INIT_QT_ROOT_CBF[3][NUM_QT_ROOT_CBF_CTX][2] =
 {
@@ -431,8 +425,6 @@ INIT_QT_ROOT_CBF[3][NUM_QT_ROOT_CBF_CTX][2] =
     {  -36,  103 }, {  -21,   95 }, {  -21,   97 }, {  -24,  114 },
   }
 };
-#endif
-#endif
 
 static const Short
 INIT_SIG_FLAG[3][224][2] =
@@ -1024,7 +1016,6 @@ INIT_ALF_SVLC[3][NUM_ALF_SVLC_CTX][2] =
   }
 };
 
-#if HHI_RQT
 static const Short
 INIT_TRANS_SUBDIV_FLAG[3][NUM_TRANS_SUBDIV_FLAG_CTX][2] =
 {
@@ -1044,7 +1035,6 @@ INIT_TRANS_SUBDIV_FLAG[3][NUM_TRANS_SUBDIV_FLAG_CTX][2] =
     {    0,   64 }, {    0,   64 }
   }
 };
-#endif
 
 // initial probability for transform index
 static const Short

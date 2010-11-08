@@ -69,7 +69,6 @@ Void TDecSlice::decompressSlice(TComBitstream* pcBitstream, TComPic*& rpcPic)
   rpcPic->setPicYuvPred( 0 );
   rpcPic->setPicYuvResi( 0 );
 
-#if HHI_RQT
 #if ENC_DEC_TRACE
   g_bJustDoIt = g_bEncDecTraceEnable;
 #endif
@@ -80,25 +79,20 @@ Void TDecSlice::decompressSlice(TComBitstream* pcBitstream, TComPic*& rpcPic)
 #if ENC_DEC_TRACE
   g_bJustDoIt = g_bEncDecTraceDisable;
 #endif
-#endif
   // for all CUs
   for( Int iCUAddr = 0; !uiIsLast && iCUAddr < rpcPic->getNumCUsInFrame(); iCUAddr++ )
   {
     pcCU = rpcPic->getCU( iCUAddr );
     pcCU->initCU( rpcPic, iCUAddr );
 
-#if HHI_RQT
 #if ENC_DEC_TRACE
     g_bJustDoIt = g_bEncDecTraceEnable;
-#endif
 #endif
     m_pcCuDecoder->decodeCU     ( pcCU, uiIsLast );
     m_pcCuDecoder->decompressCU ( pcCU );
 
-#if HHI_RQT
 #if ENC_DEC_TRACE
     g_bJustDoIt = g_bEncDecTraceDisable;
-#endif
 #endif
   }
 }

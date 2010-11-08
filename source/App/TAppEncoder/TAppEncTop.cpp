@@ -74,12 +74,6 @@ Void TAppEncTop::xInitLibCfg()
   m_cTEncTop.setTemporalLayerQPOffset        ( m_aiTLayerQPOffset );
   m_cTEncTop.setPad                          ( m_aiPad );
 
-#if HHI_RQT
-#else
-  m_cTEncTop.setMinTrDepth                   ( m_uiMinTrDepth );
-  m_cTEncTop.setMaxTrDepth                   ( m_uiMaxTrDepth );
-#endif
-
   //===== Slice ========
   m_cTEncTop.setHierarchicalCoding           ( m_bHierarchicalCoding );
 
@@ -109,20 +103,10 @@ Void TAppEncTop::xInitLibCfg()
   m_cTEncTop.setUseRDOQ                      ( m_bUseRDOQ     );
   m_cTEncTop.setUseLDC                       ( m_bUseLDC      );
   m_cTEncTop.setUsePAD                       ( m_bUsePAD      );
-#if HHI_RQT
   m_cTEncTop.setQuadtreeTULog2MaxSize        ( m_uiQuadtreeTULog2MaxSize );
   m_cTEncTop.setQuadtreeTULog2MinSize        ( m_uiQuadtreeTULog2MinSize );
-#if HHI_RQT_DEPTH
-#if HHI_C319
   m_cTEncTop.setQuadtreeTUMaxDepthInter      ( m_uiQuadtreeTUMaxDepthInter );
   m_cTEncTop.setQuadtreeTUMaxDepthIntra      ( m_uiQuadtreeTUMaxDepthIntra );
-#else
-  m_cTEncTop.setQuadtreeTUMaxDepth           ( m_uiQuadtreeTUMaxDepth );
-#endif
-#endif
-#else
-  m_cTEncTop.setMaxTrSize                    ( m_uiMaxTrSize  );
-#endif
   m_cTEncTop.setUseQBO                       ( m_bUseQBO      );
   m_cTEncTop.setUseNRF                       ( m_bUseNRF      );
   m_cTEncTop.setUseBQP                       ( m_bUseBQP      );

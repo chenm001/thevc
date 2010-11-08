@@ -116,7 +116,6 @@ TEncBinCABAC::getNumWrittenBits()
 Void
 TEncBinCABAC::encodeBin( UInt uiBin, ContextModel &rcCtxModel )
 {
-#if HHI_RQT
   {
     DTRACE_CABAC_V( g_nSymbolCounter++ )
     DTRACE_CABAC_T( "\tstate=" )
@@ -125,7 +124,6 @@ TEncBinCABAC::encodeBin( UInt uiBin, ContextModel &rcCtxModel )
     DTRACE_CABAC_V( uiBin )
     DTRACE_CABAC_T( "\n" )
   }
-#endif
   UInt  uiLPS   = TComCABACTables::sm_aucLPSTable[ rcCtxModel.getState() ][ ( m_uiRange >> 6 ) & 3 ];
   m_uiRange    -= uiLPS;
   if( uiBin != rcCtxModel.getMps() )
@@ -163,14 +161,12 @@ TEncBinCABAC::encodeBin( UInt uiBin, ContextModel &rcCtxModel )
 Void
 TEncBinCABAC::encodeBinEP( UInt uiBin )
 {
-#if HHI_RQT
   {
     DTRACE_CABAC_V( g_nSymbolCounter++ )
     DTRACE_CABAC_T( "\tEPsymbol=" )
     DTRACE_CABAC_V( uiBin )
     DTRACE_CABAC_T( "\n" )
   }
-#endif
   m_uiLow <<= 1;
   if( uiBin )
   {

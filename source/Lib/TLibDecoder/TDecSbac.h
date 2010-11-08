@@ -131,13 +131,9 @@ public:
   Void parseRefFrmIdx     ( TComDataCU* pcCU, Int& riRefFrmIdx, UInt uiAbsPartIdx, UInt uiDepth, RefPicList eRefList );
   Void parseMvd           ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiPartIdx, UInt uiDepth, RefPicList eRefList );
 
-#if HHI_RQT
   Void parseTransformSubdivFlag( UInt& ruiSubdivFlag, UInt uiLog2TransformBlockSize );
   Void parseQtCbf         ( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eType, UInt uiTrDepth, UInt uiDepth );
-#if HHI_RQT_ROOT
   Void parseQtRootCbf     ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth, UInt& uiQtRootCbf );
-#endif
-#endif
 
   Void parseTransformIdx  ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
   Void parseDeltaQP       ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
@@ -174,19 +170,13 @@ private:
   ContextModel3DBuffer m_cCURefPicSCModel;
   ContextModel3DBuffer m_cCUMvdSCModel;
 
-#if HHI_RQT
   ContextModel3DBuffer m_cCUTransSubdivFlagSCModel;
-#if HHI_RQT_ROOT
   ContextModel3DBuffer m_cCUQtRootCbfSCModel;
-#endif
-#endif
   ContextModel3DBuffer m_cCUTransIdxSCModel;
   ContextModel3DBuffer m_cCUDeltaQpSCModel;
   ContextModel3DBuffer m_cCUCbfSCModel;
 
-#if HHI_RQT
   ContextModel3DBuffer m_cCUQtCbfSCModel;
-#endif
 
   ContextModel3DBuffer m_cCuCtxModSig;
   ContextModel3DBuffer m_cCuCtxModLast;

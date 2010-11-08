@@ -61,18 +61,10 @@ private:
   UInt        m_uiMaxTrDepth;
 
   // Tool list
-#if HHI_RQT
   UInt        m_uiQuadtreeTULog2MaxSize;
   UInt        m_uiQuadtreeTULog2MinSize;
-#if HHI_RQT_DEPTH
-#if HHI_C319
   UInt        m_uiQuadtreeTUMaxDepthInter;
   UInt        m_uiQuadtreeTUMaxDepthIntra;
-#else
-  UInt        m_uiQuadtreeTUMaxDepth;
-#endif
-#endif
-#endif
   Bool        m_bUseALF;
   Bool        m_bUseDQP;
   Bool        m_bUseLDC;
@@ -122,23 +114,14 @@ public:
   UInt getMinTrDepth  ()         { return  m_uiMinTrDepth;  }
   Void setMaxTrDepth  ( UInt u ) { m_uiMaxTrDepth = u;      }
   UInt getMaxTrDepth  ()         { return  m_uiMaxTrDepth;  }
-#if HHI_RQT
   Void setQuadtreeTULog2MaxSize( UInt u ) { m_uiQuadtreeTULog2MaxSize = u;    }
   UInt getQuadtreeTULog2MaxSize()         { return m_uiQuadtreeTULog2MaxSize; }
   Void setQuadtreeTULog2MinSize( UInt u ) { m_uiQuadtreeTULog2MinSize = u;    }
   UInt getQuadtreeTULog2MinSize()         { return m_uiQuadtreeTULog2MinSize; }
-#if HHI_RQT_DEPTH
-#if HHI_C319
   Void setQuadtreeTUMaxDepthInter( UInt u ) { m_uiQuadtreeTUMaxDepthInter = u;    }
   Void setQuadtreeTUMaxDepthIntra( UInt u ) { m_uiQuadtreeTUMaxDepthIntra = u;    }
   UInt getQuadtreeTUMaxDepthInter()         { return m_uiQuadtreeTUMaxDepthInter; }
   UInt getQuadtreeTUMaxDepthIntra()         { return m_uiQuadtreeTUMaxDepthIntra; }
-#else
-  Void setQuadtreeTUMaxDepth( UInt u ) { m_uiQuadtreeTUMaxDepth = u;    }
-  UInt getQuadtreeTUMaxDepth()         { return m_uiQuadtreeTUMaxDepth; }
-#endif
-#endif
-#endif
   Void setPad         (Int iPad[2]) { m_aiPad[0] = iPad[0]; m_aiPad[1] = iPad[1]; }
   Void setPadX        ( Int  u ) { m_aiPad[0] = u; }
   Void setPadY        ( Int  u ) { m_aiPad[1] = u; }
