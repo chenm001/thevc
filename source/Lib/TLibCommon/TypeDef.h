@@ -50,7 +50,6 @@
 #define HHI_MRG                           1           ///< SOPH: inter partition merging
 #define HHI_MRG_PU                        0           ///< SOPH: inter partition merging on pu basis
 #define HHI_AMVP_OFF                      0           ///< SOPH: Advanced Motion Vector Predictor deactivated [not in TMuC]
-#define HHI_DEBLOCKING_FILTER             0           ///< MW: deblocking filter supporting residual quadtrees
 #define HHI_RQT_FORCE_SPLIT_NxN           0           ///< MSHK: force split flags of residual quadtree for NxN PUs such that transform blocks are guaranteed to not span NxN PUs
 #define HHI_RQT_FORCE_SPLIT_RECT          0           ///< MSHK: force split flags of residual quadtree for rectangular PUs such that transform blocks are guaranteed to not span rectangular PUs
 #define HHI_RQT_INTRA_SPEEDUP             1 // tests one best mode with full rqt
@@ -85,10 +84,6 @@
 #define TENTM_DEBLOCKING_FILTER           1           // Enable TENTM deblocking
 #if HHI_INTERP_FILTER
 #define TEN_DIRECTIONAL_INTERP            1           ///< AF: interpolation filter
-#endif
-
-#if (HHI_DEBLOCKING_FILTER && TENTM_DEBLOCKING_FILTER)
-#error "Only one of TENTM_DEBLOCKING_FILTER and HHI_DEBLOCKING_FILTER can be defined"
 #endif
 
 #define LCEC_STAT                         0           // LCEC - support for LCEC bitusage statistics
@@ -307,7 +302,7 @@ typedef struct _LFCUParam
   Bool bInternalEdge;                     ///< indicates internal edge
   Bool bLeftEdge;                         ///< indicates left edge
   Bool bTopEdge;                          ///< indicates top edge
-#if !HHI_DEBLOCKING_FILTER && !TENTM_DEBLOCKING_FILTER
+#if !TENTM_DEBLOCKING_FILTER
   Bool bLumaEdgeFilter[2][4];             ///< array of luma edge decisions
   Int  iBsEdgeSum[2][4];                  ///< array of Bs edge sum values
 #endif

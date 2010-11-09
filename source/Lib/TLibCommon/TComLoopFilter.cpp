@@ -81,7 +81,7 @@ const UChar CLIP_TAB[52][5]  =
 // ====================================================================================================================
 
 TComLoopFilter::TComLoopFilter()
-#if HHI_DEBLOCKING_FILTER || TENTM_DEBLOCKING_FILTER
+#if TENTM_DEBLOCKING_FILTER
 : m_uiNumPartitions( 0 )
 #endif
 {
@@ -105,7 +105,7 @@ Void TComLoopFilter::setCfg( UInt uiDisableDblkIdc, Int iAlphaOffset, Int iBetaO
 #endif
 }
 
-#if HHI_DEBLOCKING_FILTER || TENTM_DEBLOCKING_FILTER
+#if TENTM_DEBLOCKING_FILTER
 Void TComLoopFilter::create( UInt uiMaxCUDepth )
 {
   m_uiNumPartitions = 1 << ( uiMaxCUDepth<<1 );
@@ -143,7 +143,7 @@ Void TComLoopFilter::loopFilterPic( TComPic* pcPic )
   {
     TComDataCU* pcCU = pcPic->getCU( uiCUAddr );
 
-#if HHI_DEBLOCKING_FILTER || TENTM_DEBLOCKING_FILTER
+#if TENTM_DEBLOCKING_FILTER
     for( Int iDir = EDGE_VER; iDir <= EDGE_HOR; iDir++ )
       for( Int iPlane = 0; iPlane < 3; iPlane++ )
       {
@@ -218,7 +218,7 @@ Void TComLoopFilter::xDeblockCU( TComDataCU* pcCU, UInt uiAbsZorderIdx, UInt uiD
     return;
 #endif
 
-#if HHI_DEBLOCKING_FILTER || TENTM_DEBLOCKING_FILTER
+#if TENTM_DEBLOCKING_FILTER
   xSetEdgefilterTU   ( pcCU, uiAbsZorderIdx, uiDepth );
   xSetEdgefilterPU   ( pcCU, uiAbsZorderIdx );
 
@@ -234,18 +234,7 @@ Void TComLoopFilter::xDeblockCU( TComDataCU* pcCU, UInt uiAbsZorderIdx, UInt uiD
   }
 #endif
 
-#if HHI_DEBLOCKING_FILTER
-  for( Int iDir = EDGE_VER; iDir <= EDGE_HOR; iDir++ )
-  for( UInt uiPartIdx = uiAbsZorderIdx; uiPartIdx < uiAbsZorderIdx + uiCurNumParts; uiPartIdx++ )
-  {
-#if PLANAR_INTRA
-    if ( ( iDir == EDGE_VER && bVerDone ) || ( iDir == EDGE_HOR && bHorDone ) )
-      continue;
-#endif
-    xEdgeFilterLumaSingle  ( pcCU, uiPartIdx, iDir );
-    xEdgeFilterChromaSingle( pcCU, uiPartIdx, iDir );
-  }
-#elif TENTM_DEBLOCKING_FILTER
+#if TENTM_DEBLOCKING_FILTER
   UInt uiPelsInPart = g_uiMaxCUWidth >> g_uiMaxCUDepth;
   UInt PartIdxIncr = DEBLOCK_SMALLEST_BLOCK / uiPelsInPart ? DEBLOCK_SMALLEST_BLOCK / uiPelsInPart : 1 ;
 
@@ -289,7 +278,7 @@ Void TComLoopFilter::xDeblockCU( TComDataCU* pcCU, UInt uiAbsZorderIdx, UInt uiD
 #endif
 }
 
-#if HHI_DEBLOCKING_FILTER || TENTM_DEBLOCKING_FILTER
+#if TENTM_DEBLOCKING_FILTER
 Void TComLoopFilter::xSetEdgefilterMultiple( TComDataCU* pcCU, UInt uiAbsZorderIdx, UInt uiDepth, Int iDir, Int iEdgeIdx, Bool bValue )
 {
   const UInt uiWidthInBaseUnits  = pcCU->getPic()->getNumPartInWidth () >> uiDepth;
@@ -457,7 +446,7 @@ Void TComLoopFilter::xEdgeFilterPlanarIntra( TComDataCU* pcCU, UInt uiAbsZorderI
 }
 #endif
 
-#if !HHI_DEBLOCKING_FILTER && !TENTM_DEBLOCKING_FILTER
+#if !TENTM_DEBLOCKING_FILTER
 Void TComLoopFilter::xSetEdgefilter( TComDataCU* pcCU, UInt uiAbsZorderIdx )
 {
   switch ( pcCU->getPartitionSize( uiAbsZorderIdx ) )
@@ -578,7 +567,7 @@ Void TComLoopFilter::xSetLoopfilterParam( TComDataCU* pcCU, UInt uiAbsZorderIdx 
     m_stLFCUParam.bTopEdge = true;
 }
 
-#if HHI_DEBLOCKING_FILTER || TENTM_DEBLOCKING_FILTER
+#if TENTM_DEBLOCKING_FILTER
 Void TComLoopFilter::xGetBoundaryStrengthSingle ( TComDataCU* pcCU, UInt uiAbsZorderIdx, Int iDir, UInt uiAbsPartIdx )
 {
   const UInt uiHWidth  = pcCU->getWidth( uiAbsZorderIdx ) >> 1;
@@ -700,87 +689,7 @@ Void TComLoopFilter::xGetBoundaryStrengthSingle ( TComDataCU* pcCU, UInt uiAbsZo
 }
 #endif
 
-#if HHI_DEBLOCKING_FILTER
-Void TComLoopFilter::xEdgeFilterLumaSingle( TComDataCU* pcCU, UInt uiAbsZorderIdx, Int iDir )
-{
-  TComPicYuv* pcPicYuvRec = pcCU->getPic()->getPicYuvRec();
-  Pel*        piSrc       = pcPicYuvRec->getLumaAddr( pcCU->getAddr(), uiAbsZorderIdx );
-
-  Int   iStride   = pcPicYuvRec->getStride();
-  Int   iQP = pcCU->getQP( uiAbsZorderIdx );
-  Int   iOffset, iSrcStep;
-  UInt  uiNumStep;
-
-  if (iDir == EDGE_VER)
-  {
-    iOffset = 1;
-    iSrcStep = iStride;
-    uiNumStep = g_uiMaxCUHeight >> g_uiMaxCUDepth;
-  }
-  else  // (iDir == EDGE_HOR)
-  {
-    iOffset = iStride;
-    iSrcStep = 1;
-    uiNumStep = g_uiMaxCUWidth >> g_uiMaxCUDepth;
-  }
-
-  const UChar ucBs = m_aapucBS[iDir][0][uiAbsZorderIdx];
-
-  if ( ucBs )
-  {
-    for ( UInt uiStep = 0; uiStep < uiNumStep; uiStep++ )
-    {
-      xPelFilterLuma( piSrc+iSrcStep*uiStep, iOffset, ucBs, iQP );
-    }
-  }
-}
-
-Void TComLoopFilter::xEdgeFilterChromaSingle( TComDataCU* pcCU, UInt uiAbsZorderIdx, Int iDir )
-{
-  TComPicYuv* pcPicYuvRec = pcCU->getPic()->getPicYuvRec();
-  Int         iStride     = pcPicYuvRec->getCStride();
-  Pel*        piSrcCb     = pcPicYuvRec->getCbAddr( pcCU->getAddr(), uiAbsZorderIdx );
-  Pel*        piSrcCr     = pcPicYuvRec->getCrAddr( pcCU->getAddr(), uiAbsZorderIdx );
-
-  Int   iQP       = QpUV((Int) pcCU->getQP( uiAbsZorderIdx ));
-
-  UInt  uiNumStep;
-  Int   iOffset, iSrcStep;
-
-  if (iDir == EDGE_VER)
-  {
-    iOffset   = 1;
-    iSrcStep  = iStride;
-    uiNumStep = g_uiMaxCUHeight >> ( 1 + g_uiMaxCUDepth );
-  }
-  else  // (iDir == EDGE_HOR)
-  {
-    iOffset   = iStride;
-    iSrcStep  = 1;
-    uiNumStep = g_uiMaxCUWidth >> ( 1 + g_uiMaxCUDepth );
-  }
-
-  const UChar ucBsCb = m_aapucBS[iDir][1][uiAbsZorderIdx];
-  const UChar ucBsCr = m_aapucBS[iDir][2][uiAbsZorderIdx];
-
-  if ( ucBsCb )
-  {
-    for ( UInt uiStep = 0; uiStep < uiNumStep; uiStep++ )
-    {
-      xPelFilterChroma( piSrcCb + iSrcStep*uiStep, iOffset, ucBsCb, iQP );
-    }
-  }
-
-  if ( ucBsCr )
-  {
-    for ( UInt uiStep = 0; uiStep < uiNumStep; uiStep++ )
-    {
-      xPelFilterChroma( piSrcCr + iSrcStep*uiStep, iOffset, ucBsCr, iQP );
-    }
-  }
-}
-
-#elif TENTM_DEBLOCKING_FILTER
+#if TENTM_DEBLOCKING_FILTER
 Void TComLoopFilter::xEdgeFilterLuma( TComDataCU* pcCU, UInt uiAbsZorderIdx, UInt uiDepth, Int iDir, Int iEdge  )
 {
   TComPicYuv* pcPicYuvRec = pcCU->getPic()->getPicYuvRec();

@@ -39,7 +39,7 @@
 #include "CommonDef.h"
 #include "TComPic.h"
 
-#if HHI_DEBLOCKING_FILTER || TENTM_DEBLOCKING_FILTER
+#if TENTM_DEBLOCKING_FILTER
 #define DEBLOCK_SMALLEST_BLOCK  8
 #endif
 
@@ -54,7 +54,7 @@ private:
   UInt      m_uiDisableDeblockingFilterIdc; ///< deblocking filter idc
   Int       m_iAlphaOffset;                 ///< alpha offset
   Int       m_iBetaOffset;                  ///< beta offset
-#if HHI_DEBLOCKING_FILTER || TENTM_DEBLOCKING_FILTER
+#if TENTM_DEBLOCKING_FILTER
   UInt      m_uiNumPartitions;
   UChar*    m_aapucBS[2][3];              ///< Bs for [Ver/Hor][Y/U/V][Blk_Idx]
   Bool*     m_aapbEdgeFilter[2][3];
@@ -69,7 +69,7 @@ protected:
 
   // set / get functions
   Void xSetLoopfilterParam        ( TComDataCU* pcCU, UInt uiAbsZorderIdx );
-#if HHI_DEBLOCKING_FILTER || TENTM_DEBLOCKING_FILTER
+#if TENTM_DEBLOCKING_FILTER
   // filtering functions
   Void xSetEdgefilterTU           ( TComDataCU* pcCU, UInt uiAbsZorderIdx, UInt uiDepth );
   Void xSetEdgefilterPU           ( TComDataCU* pcCU, UInt uiAbsZorderIdx );
@@ -98,11 +98,6 @@ protected:
   Void xEdgeFilterPlanarIntra     ( TComDataCU* pcCU, UInt uiAbsZorderIdx, Int iDir );
 #endif
 
-#if HHI_DEBLOCKING_FILTER
-  Void xEdgeFilterLumaSingle      ( TComDataCU* pcCU, UInt uiAbsZorderIdx, Int iDir );
-  Void xEdgeFilterChromaSingle    ( TComDataCU* pcCU, UInt uiAbsZorderIdx, Int iDir );
-#endif
-
 #if TENTM_DEBLOCKING_FILTER
   Void xEdgeFilterLuma            ( TComDataCU* pcCU, UInt uiAbsZorderIdx, UInt uiDepth, Int iDir, Int iEdge );
   Void xEdgeFilterChroma          ( TComDataCU* pcCU, UInt uiAbsZorderIdx, UInt uiDepth, Int iDir, Int iEdge );
@@ -119,7 +114,7 @@ public:
   TComLoopFilter();
   virtual ~TComLoopFilter();
 
-#if HHI_DEBLOCKING_FILTER || TENTM_DEBLOCKING_FILTER
+#if TENTM_DEBLOCKING_FILTER
   Void  create                    ( UInt uiMaxCUDepth );
   Void  destroy                   ();
 #endif
