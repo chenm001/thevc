@@ -108,9 +108,7 @@ protected:
   Int       m_iLoopFilterBetaOffset;                          ///< beta offset for deblocking filter
 
   // coding tools (entropy coder)
-  Int       m_iSymbolMode;                                    ///< entropy coder mode, 0 = VLC, 1 = CABAC, 2 = PIPE
-  UInt      m_uiMCWThreshold;                                 ///< threshold in bits for multi-codeword coding (CABAC & PIPE)
-  UInt      m_uiMaxPIPEDelay;                                 ///< maximum buffer delay for single-codeword PIPE
+  Int       m_iSymbolMode;                                    ///< entropy coder mode, 0 = VLC, 1 = CABAC
 
 	// coding tools (intra)
 #if HHI_ALLOW_CIP_SWITCH

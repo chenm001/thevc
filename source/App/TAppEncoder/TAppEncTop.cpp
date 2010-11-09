@@ -79,8 +79,6 @@ Void TAppEncTop::xInitLibCfg()
 
   //====== Entropy Coding ========
   m_cTEncTop.setSymbolMode                   ( m_iSymbolMode );
-  m_cTEncTop.setMCWThreshold                 ( m_uiMCWThreshold );
-  m_cTEncTop.setMaxPIPEDelay                 ( m_uiMaxPIPEDelay );
 
   //====== Loop/Deblock Filter ========
   m_cTEncTop.setLoopFilterDisable            ( m_bLoopFilterDisable       );

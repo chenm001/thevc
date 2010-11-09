@@ -47,9 +47,6 @@
 #include "TEncEntropy.h"
 #include "TEncBinCoder.h"
 #include "TEncBinCoderCABAC.h"
-#include "TEncBinCoderMultiCABAC.h"
-#include "TEncBinCoderPIPE.h"
-#include "TEncBinCoderMultiPIPE.h"
 
 class TEncTop;
 

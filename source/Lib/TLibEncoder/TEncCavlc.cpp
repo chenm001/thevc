@@ -588,22 +588,6 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
   xWriteSvlc  (pcSlice->getSliceQp() );
   
   xWriteFlag  (pcSlice->getSymbolMode() > 0 ? 1 : 0);
-  if( pcSlice->getSymbolMode() > 0 )
-  {
-    xWriteFlag( pcSlice->getSymbolMode() > 1 ? 1 : 0 );
-    if( pcSlice->getSymbolMode() )
-    {
-      xWriteFlag( pcSlice->getMultiCodeword() ? 1 : 0 );
-    }
-    if( pcSlice->getSymbolMode() == 2 && ! pcSlice->getMultiCodeword() )
-    {
-      xWriteUvlc( pcSlice->getMaxPIPEDelay() >> 6 );
-    }
-  }
-  else
-  {
-    xWriteFlag( 0 ); // TODO: remove? v2v related
-  }
 
   if (!pcSlice->isIntra())
   {

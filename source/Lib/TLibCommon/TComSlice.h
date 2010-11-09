@@ -208,8 +208,6 @@ private:
   SliceType   m_eSliceType;
   Int         m_iSliceQp;
   Int         m_iSymbolMode ;
-  Bool        m_bMultiCodeword;
-  UInt        m_uiMaxPIPEDelay;
   Bool        m_bLoopFilterDisable;
 
   Bool        m_bDRBFlag;             //  flag for future usage as reference buffer
@@ -263,8 +261,6 @@ public:
   Bool      getDRBFlag          ()                      { return  m_bDRBFlag;           }
   ERBIndex  getERBIndex         ()                      { return  m_eERBIndex;          }
   Int       getSymbolMode ()                            { return  m_iSymbolMode;        }
-  Bool      getMultiCodeword    ()                      { return  m_bMultiCodeword;     }
-  UInt      getMaxPIPEDelay     ()                      { return  m_uiMaxPIPEDelay;     }
   Bool      getLoopFilterDisable()                      { return  m_bLoopFilterDisable; }
   Int       getNumRefIdx        ( RefPicList e )                { return  m_aiNumRefIdx[e];             }
   TComPic*  getPic              ()                              { return  m_pcPic;                      }
@@ -287,8 +283,6 @@ public:
   Void      setDRBFlag          ( Bool b )                      { m_bDRBFlag = b;               }
   Void      setERBIndex         ( ERBIndex e )                  { m_eERBIndex = e;              }
   Void      setSymbolMode       ( Int b  )                      { m_iSymbolMode       = b;      }
-  Void      setMultiCodeword    ( Bool b )                      { m_bMultiCodeword    = b;      }
-  Void      setMaxPIPEDelay     ( UInt ui )                     { m_uiMaxPIPEDelay    = ui;     }
   Void      setLoopFilterDisable( Bool b )                      { m_bLoopFilterDisable= b;      }
 
   Void      setRefPic           ( TComPic* p, RefPicList e, Int iRefIdx ) { m_apcRefPicList[e][iRefIdx] = p; }

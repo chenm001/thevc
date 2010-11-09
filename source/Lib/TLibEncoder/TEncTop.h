@@ -80,9 +80,6 @@ private:
   TEncCavlc               m_cCavlcCoder;                  ///< CAVLC encoder
   TEncSbac                m_cSbacCoder;                   ///< SBAC encoder
   TEncBinCABAC            m_cBinCoderCABAC;               ///< bin coder CABAC
-  TEncBinMultiCABAC       m_cBinCoderMultiCABAC;          ///< bin coder CABAC with multiple partitions
-  TEncBinPIPE             m_cBinCoderPIPE;                ///< bin coder PIPE
-  TEncBinMultiPIPE        m_cBinCoderMultiPIPE;           ///< bin coder PIPE with multiple partitions
 
   // processing unit
   TEncGOP                 m_cGOPEncoder;                  ///< GOP encoder
@@ -131,9 +128,6 @@ public:
   TEncCavlc*              getCavlcCoder         () { return  &m_cCavlcCoder;          }
   TEncSbac*               getSbacCoder          () { return  &m_cSbacCoder;           }
   TEncBinCABAC*           getBinCABAC           () { return  &m_cBinCoderCABAC;       }
-  TEncBinMultiCABAC*      getBinMultiCABAC      () { return  &m_cBinCoderMultiCABAC;  }
-  TEncBinPIPE*            getBinPIPE            () { return  &m_cBinCoderPIPE;        }
-  TEncBinMultiPIPE*       getBinMultiPIPE       () { return  &m_cBinCoderMultiPIPE;   }
 
   TComBitCounter*         getBitCounter         () { return  &m_cBitCounter;          }
   TComRdCost*             getRdCost             () { return  &m_cRdCost;              }

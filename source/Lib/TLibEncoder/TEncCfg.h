@@ -81,9 +81,7 @@ protected:
   Bool      m_bHierarchicalCoding;              //  hierarchical-B coding
 
   //====== Entropy Coding ========
-  Int       m_iSymbolMode;                      //  (CAVLC, CABAC, PIPE)
-  UInt      m_uiMCWThreshold;                   //  threshold in bits for multi-codeword coding (CABAC & PIPE)
-  UInt      m_uiMaxPIPEDelay;                   //  maximum buffer delay for single-codeword PIPE
+  Int       m_iSymbolMode;                      //  (CAVLC, CABAC)
 
   //====== Loop/Deblock Filter ========
   Bool      m_bLoopFilterDisable;
@@ -164,8 +162,6 @@ public:
 
   //====== Entropy Coding ========
   Void      setSymbolMode                   ( Int   i )      { m_iSymbolMode = i; }
-  Void      setMCWThreshold                 ( UInt ui )      { m_uiMCWThreshold = ui; }
-  Void      setMaxPIPEDelay                 ( UInt ui )      { m_uiMaxPIPEDelay = ui; }
 
   //====== Loop/Deblock Filter ========
   Void      setLoopFilterDisable            ( Bool  b )      { m_bLoopFilterDisable       = b; }
@@ -208,8 +204,6 @@ public:
 
   //==== Entropy Coding ========
   Int       getSymbolMode                   ()      { return  m_iSymbolMode; }
-  UInt      getMCWThreshold                 ()      { return  m_uiMCWThreshold; }
-  UInt      getMaxPIPEDelay                 ()      { return  m_uiMaxPIPEDelay; }
 
   //==== Loop/Deblock Filter ========
   Bool      getLoopFilterDisable            ()      { return  m_bLoopFilterDisable;       }

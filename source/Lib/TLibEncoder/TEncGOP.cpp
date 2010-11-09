@@ -58,9 +58,6 @@ TEncGOP::TEncGOP()
   m_pcCavlcCoder        = NULL;
   m_pcSbacCoder         = NULL;
   m_pcBinCABAC          = NULL;
-  m_pcBinMultiCABAC     = NULL;
-  m_pcBinPIPE           = NULL;
-  m_pcBinMultiPIPE      = NULL;
 
   m_bSeqFirst           = true;
 
@@ -90,9 +87,6 @@ Void TEncGOP::init ( TEncTop* pcTEncTop )
   m_pcCavlcCoder         = pcTEncTop->getCavlcCoder();
   m_pcSbacCoder          = pcTEncTop->getSbacCoder();
   m_pcBinCABAC           = pcTEncTop->getBinCABAC();
-  m_pcBinMultiCABAC      = pcTEncTop->getBinMultiCABAC();
-  m_pcBinPIPE            = pcTEncTop->getBinPIPE();
-  m_pcBinMultiPIPE       = pcTEncTop->getBinMultiPIPE();
   m_pcLoopFilter         = pcTEncTop->getLoopFilter();
   m_pcBitCounter         = pcTEncTop->getBitCounter();
 
@@ -337,28 +331,12 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
 #endif
 
       // write SliceHeader
-      if( pcSlice->getSymbolMode() )
-      { 
-        pcSlice->setMultiCodeword( m_pcCfg->getMCWThreshold() > 0 && m_pcSliceEncoder->getTotalBits() >= (UInt64)m_pcCfg->getMCWThreshold() );
-      }
       m_pcEntropyCoder->encodeSliceHeader ( pcSlice                 );
 
       // is it needed?
       if ( pcSlice->getSymbolMode() )
       {
-        if( pcSlice->getSymbolMode() == 1 )
-        {
-          m_pcSbacCoder->init( pcSlice->getMultiCodeword() ? (TEncBinIf*)m_pcBinMultiCABAC : (TEncBinIf*)m_pcBinCABAC );
-        }
-        else if( pcSlice->getMultiCodeword() )
-        {
-          m_pcSbacCoder->init( (TEncBinIf*)m_pcBinMultiPIPE );
-        }
-        else
-        {
-          m_pcSbacCoder->init( (TEncBinIf*)m_pcBinPIPE );
-          m_pcBinPIPE ->initDelay( pcSlice->getMaxPIPEDelay() );
-        }
+        m_pcSbacCoder->init( (TEncBinIf*)m_pcBinCABAC );
         m_pcEntropyCoder->setEntropyCoder ( m_pcSbacCoder, pcPic->getSlice() );
         m_pcEntropyCoder->resetEntropy    ();
       }
@@ -398,19 +376,7 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
         m_pcAdaptiveLoopFilter->endALFEnc();
 
         // set entropy coder for writing
-        if( pcSlice->getSymbolMode() == 1 )
-        {
-          m_pcSbacCoder->init( pcSlice->getMultiCodeword() ? (TEncBinIf*)m_pcBinMultiCABAC : (TEncBinIf*)m_pcBinCABAC );
-        }
-        else if( pcSlice->getMultiCodeword() )
-        {
-          m_pcSbacCoder->init( (TEncBinIf*)m_pcBinMultiPIPE );
-        }
-        else
-        {
-          m_pcSbacCoder->init( (TEncBinIf*)m_pcBinPIPE );
-          m_pcBinPIPE ->initDelay( pcSlice->getMaxPIPEDelay() );
-        }
+        m_pcSbacCoder->init( (TEncBinIf*)m_pcBinCABAC );
 
         if ( pcSlice->getSymbolMode() )
         {

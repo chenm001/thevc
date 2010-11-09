@@ -88,9 +88,6 @@ private:
   TEncCavlc*              m_pcCavlcCoder;
   TEncSbac*               m_pcSbacCoder;
   TEncBinCABAC*           m_pcBinCABAC;
-  TEncBinMultiCABAC*      m_pcBinMultiCABAC;
-  TEncBinPIPE*            m_pcBinPIPE;
-  TEncBinMultiPIPE*       m_pcBinMultiPIPE;
 
   // SBAC RD
   TEncSbac***             m_pppcRDSbacCoder;

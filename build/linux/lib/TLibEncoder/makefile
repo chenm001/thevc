@@ -33,10 +33,6 @@ DEFS			= -DMSYS_LINUX
 # set objects
 OBJS          	= \
 			$(OBJ_DIR)/TEncBinCoderCABAC.o \
-			$(OBJ_DIR)/TEncBinCoderMultiCABAC.o \
-			$(OBJ_DIR)/TEncPIPETables.o \
-			$(OBJ_DIR)/TEncBinCoderPIPE.o \
-			$(OBJ_DIR)/TEncBinCoderMultiPIPE.o \
 			$(OBJ_DIR)/TEncAdaptiveLoopFilter.o \
 			$(OBJ_DIR)/TEncAnalyze.o \
 			$(OBJ_DIR)/TEncCavlc.o \

@@ -33,10 +33,6 @@ DEFS			= -DMSYS_LINUX
 # set objects
 OBJS          	= \
 				$(OBJ_DIR)/TDecBinCoderCABAC.o \
-				$(OBJ_DIR)/TDecBinCoderMultiCABAC.o \
-				$(OBJ_DIR)/TDecBinCoderPIPE.o \
-				$(OBJ_DIR)/TDecBinCoderMultiPIPE.o \
-				$(OBJ_DIR)/TDecPIPETables.o \
 				$(OBJ_DIR)/TDecCAVLC.o \
 				$(OBJ_DIR)/TDecCu.o \
 				$(OBJ_DIR)/TDecEntropy.o \

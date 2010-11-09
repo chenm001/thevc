@@ -165,25 +165,7 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice)
   xReadSvlc (    iCode);  rpcSlice->setSliceQp          (iCode);
 
   xReadFlag ( uiCode );
-  if( uiCode )
-  {
-    xReadFlag ( uiCode );
-    uiCode++;
-    rpcSlice->setSymbolMode( uiCode );
-    xReadFlag( uiCode );
-    rpcSlice->setMultiCodeword( uiCode == 1 );
-    if( rpcSlice->getSymbolMode() == 2 && ! rpcSlice->getMultiCodeword() )
-    {
-      xReadUvlc( uiCode );
-      rpcSlice->setMaxPIPEDelay( uiCode << 6 );
-    }
-  }
-  else
-  {
-    xReadFlag ( uiCode ); // TODO: remove? V2V-related
-    assert(uiCode == 0); 
-    rpcSlice->setSymbolMode( 0 );
-  }
+  rpcSlice->setSymbolMode( uiCode );
 
   if (!rpcSlice->isIntra())
     xReadFlag (   uiCode);

@@ -38,9 +38,6 @@
 #include "TDecSbac.h"
 #include "TDecBinCoder.h"
 #include "TDecBinCoderCABAC.h"
-#include "TDecBinCoderMultiCABAC.h"
-#include "TDecBinCoderPIPE.h"
-#include "TDecBinCoderMultiPIPE.h"
 
 #include <time.h>
 
@@ -71,9 +68,6 @@ Void TDecGop::destroy()
 Void TDecGop::init( TDecEntropy*            pcEntropyDecoder, 
                     TDecSbac*               pcSbacDecoder, 
                     TDecBinCABAC*           pcBinCABAC,
-                    TDecBinMultiCABAC*      pcBinMultiCABAC,
-                    TDecBinPIPE*            pcBinPIPE,
-                    TDecBinMultiPIPE*       pcBinMultiPIPE,
                     TDecCavlc*              pcCavlcDecoder, 
                     TDecSlice*              pcSliceDecoder, 
                     TComLoopFilter*         pcLoopFilter, 
@@ -82,9 +76,6 @@ Void TDecGop::init( TDecEntropy*            pcEntropyDecoder,
   m_pcEntropyDecoder      = pcEntropyDecoder;
   m_pcSbacDecoder         = pcSbacDecoder;
   m_pcBinCABAC            = pcBinCABAC;
-  m_pcBinMultiCABAC       = pcBinMultiCABAC;
-  m_pcBinPIPE             = pcBinPIPE;
-  m_pcBinMultiPIPE        = pcBinMultiPIPE;
   m_pcCavlcDecoder        = pcCavlcDecoder;
   m_pcSliceDecoder        = pcSliceDecoder;
   m_pcLoopFilter          = pcLoopFilter;
@@ -105,19 +96,7 @@ Void TDecGop::decompressGop (Bool bEos, TComBitstream* pcBitstream, TComPic*& rp
   UInt iSymbolMode = pcSlice->getSymbolMode();
   if (iSymbolMode)
   {
-    if( iSymbolMode == 1 )
-    {
-      m_pcSbacDecoder->init( pcSlice->getMultiCodeword() ? (TDecBinIf*)m_pcBinMultiCABAC : (TDecBinIf*)m_pcBinCABAC );
-    }
-    else if( pcSlice->getMultiCodeword() )
-    {
-      m_pcSbacDecoder->init( (TDecBinIf*)m_pcBinMultiPIPE );
-    }
-    else
-    {
-      m_pcSbacDecoder->init( (TDecBinIf*)m_pcBinPIPE );
-      m_pcBinPIPE->initDelay( pcSlice->getMaxPIPEDelay() );
-    }
+    m_pcSbacDecoder->init( (TDecBinIf*)m_pcBinCABAC );
     m_pcEntropyDecoder->setEntropyDecoder (m_pcSbacDecoder);
   }
   else

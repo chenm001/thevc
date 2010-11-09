@@ -107,9 +107,6 @@ Void TEncSlice::init( TEncTop* pcEncTop )
   m_pcCavlcCoder      = pcEncTop->getCavlcCoder();
   m_pcSbacCoder       = pcEncTop->getSbacCoder();
   m_pcBinCABAC        = pcEncTop->getBinCABAC();
-  m_pcBinMultiCABAC   = pcEncTop->getBinMultiCABAC();
-  m_pcBinPIPE         = pcEncTop->getBinPIPE();
-  m_pcBinMultiPIPE    = pcEncTop->getBinMultiPIPE();
   m_pcTrQuant         = pcEncTop->getTrQuant();
 
   m_pcBitCounter      = pcEncTop->getBitCounter();
@@ -345,8 +342,6 @@ Void TEncSlice::initEncSlice( TComPic* pcPic, Int iPOCLast, UInt uiPOCCurr, Int 
   rpcSlice->setNumRefIdx        ( REF_PIC_LIST_1, eSliceType == B_SLICE ? (m_pcCfg->getNumOfReferenceB_L1()) : 0 );
 
   rpcSlice->setSymbolMode       ( m_pcCfg->getSymbolMode());
-  rpcSlice->setMultiCodeword    ( false );
-  rpcSlice->setMaxPIPEDelay     ( m_pcCfg->getMaxPIPEDelay() );
   rpcSlice->setLoopFilterDisable( m_pcCfg->getLoopFilterDisable() );
 
   rpcSlice->setDepth            ( iDepth );
@@ -549,19 +544,7 @@ Void TEncSlice::encodeSlice   ( TComPic*& rpcPic, TComBitstream*& rpcBitstream )
   Int iSymbolMode = pcSlice->getSymbolMode();
   if (iSymbolMode)
   {
-    if( pcSlice->getSymbolMode() == 1 )
-    {
-      m_pcSbacCoder->init( pcSlice->getMultiCodeword() ? (TEncBinIf*)m_pcBinMultiCABAC : (TEncBinIf*)m_pcBinCABAC );
-    }
-    else if( pcSlice->getMultiCodeword() )
-    {
-      m_pcSbacCoder->init( (TEncBinIf*)m_pcBinMultiPIPE );
-    }
-    else
-    {
-      m_pcSbacCoder->init( (TEncBinIf*)m_pcBinPIPE );
-      m_pcBinPIPE ->initDelay( pcSlice->getMaxPIPEDelay() );
-    }
+    m_pcSbacCoder->init( (TEncBinIf*)m_pcBinCABAC );
     m_pcEntropyCoder->setEntropyCoder ( m_pcSbacCoder, pcSlice );
   }
   else

@@ -75,9 +75,6 @@ private:
   TDecCavlc               m_cCavlcDecoder;
   TDecSbac                m_cSbacDecoder;
   TDecBinCABAC            m_cBinCABAC;
-  TDecBinMultiCABAC       m_cBinMultiCABAC;
-  TDecBinPIPE             m_cBinPIPE;
-  TDecBinMultiPIPE        m_cBinMultiPIPE;
   TComLoopFilter          m_cLoopFilter;
   TComAdaptiveLoopFilter  m_cAdaptiveLoopFilter;
 

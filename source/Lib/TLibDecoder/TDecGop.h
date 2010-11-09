@@ -52,9 +52,6 @@
 #include "TDecSlice.h"
 #include "TDecBinCoder.h"
 #include "TDecBinCoderCABAC.h"
-#include "TDecBinCoderMultiCABAC.h"
-#include "TDecBinCoderPIPE.h"
-#include "TDecBinCoderMultiPIPE.h"
 
 // ====================================================================================================================
 // Class definition
@@ -71,9 +68,6 @@ private:
   TDecEntropy*          m_pcEntropyDecoder;
   TDecSbac*             m_pcSbacDecoder;
   TDecBinCABAC*         m_pcBinCABAC;
-  TDecBinMultiCABAC*    m_pcBinMultiCABAC;
-  TDecBinPIPE*          m_pcBinPIPE;
-  TDecBinMultiPIPE*     m_pcBinMultiPIPE;
   TDecCavlc*            m_pcCavlcDecoder;
   TDecSlice*            m_pcSliceDecoder;
   TComLoopFilter*       m_pcLoopFilter;
@@ -88,9 +82,6 @@ public:
   Void  init    ( TDecEntropy*            pcEntropyDecoder, 
                   TDecSbac*               pcSbacDecoder, 
                   TDecBinCABAC*           pcBinCABAC,
-                  TDecBinMultiCABAC*      pcBinMultiCABAC,
-                  TDecBinPIPE*            pcBinPIPE,
-                  TDecBinMultiPIPE*       pcBinMultiPIPE,
                   TDecCavlc*              pcCavlcDecoder, 
                   TDecSlice*              pcSliceDecoder, 
                   TComLoopFilter*         pcLoopFilter, 

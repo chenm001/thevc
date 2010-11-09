@@ -182,8 +182,6 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
     /* Entropy coding parameters */
     ("SymbolMode,-sym", m_iSymbolMode, 1, "symbol mode (0=VLC, 1=SBAC)")
     ("SBACRD", m_bUseSBACRD, true, "SBAC based RD estimation")
-    ("MultiCodewordThreshold", m_uiMCWThreshold, 0u)
-    ("MaxPIPEBufferDelay", m_uiMaxPIPEDelay, 0u)
 
     /* Deblocking filter parameters */
     ("LoopFilterDisable", m_bLoopFilterDisable, false)
@@ -357,9 +355,7 @@ Void TAppEncCfg::xCheckParameter()
   xConfirmPara( m_iInterpFilterType == IPF_HHI_4TAP_MOMS,       "Invalid InterpFilterType" );
   xConfirmPara( m_iInterpFilterType == IPF_HHI_6TAP_MOMS,       "Invalid InterpFilterType" );
 
-  xConfirmPara( m_iSymbolMode < 0 || m_iSymbolMode > 2,                                     "SymbolMode must be equal to 0, 1, or 2" );
-  xConfirmPara( m_uiMaxPIPEDelay != 0 && m_uiMaxPIPEDelay < 64,                             "MaxPIPEBufferDelay must be greater than or equal to 64" );
-  m_uiMaxPIPEDelay = ( m_uiMCWThreshold > 0 ? 0 : ( m_uiMaxPIPEDelay >> 6 ) << 6 );
+  xConfirmPara( m_iSymbolMode < 0 || m_iSymbolMode > 1,                                     "SymbolMode must be equal to 0 or 1" );
 
 #if LCEC_CBP_YUV_ROOT
   if(m_iSymbolMode == 0)

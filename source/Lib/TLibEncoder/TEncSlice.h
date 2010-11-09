@@ -74,9 +74,6 @@ private:
   TEncCavlc*              m_pcCavlcCoder;                       ///< CAVLC encoder
   TEncSbac*               m_pcSbacCoder;                        ///< SBAC encoder
   TEncBinCABAC*           m_pcBinCABAC;                         ///< Bin encoder CABAC
-  TEncBinMultiCABAC*      m_pcBinMultiCABAC;                    ///< Bin encoder CABAC with multiple partitions
-  TEncBinPIPE*            m_pcBinPIPE;                          ///< Bin encoder PIPE
-  TEncBinMultiPIPE*       m_pcBinMultiPIPE;                     ///< Bin encoder PIPE with multiple partitions
   TComTrQuant*            m_pcTrQuant;                          ///< transform & quantization
 
   // RD optimization

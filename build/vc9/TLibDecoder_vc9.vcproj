@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="9.00"
+	Version="9,00"
 	Name="TLibDecoder"
 	ProjectGUID="{F8B77A48-AF6C-4746-A89F-B706ABA6AD94}"
 	RootNamespace="TLibDecoder"
@@ -282,18 +282,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\source\Lib\TLibDecoder\TDecBinCoderMultiCABAC.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\..\source\Lib\TLibDecoder\TDecBinCoderMultiPIPE.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\..\source\Lib\TLibDecoder\TDecBinCoderPIPE.cpp"
-				>
-			</File>
-			<File
 				RelativePath="..\..\source\Lib\TLibDecoder\TDecCAVLC.cpp"
 				>
 			</File>
@@ -307,10 +295,6 @@
 			</File>
 			<File
 				RelativePath="..\..\source\Lib\TLibDecoder\TDecGop.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\..\source\Lib\TLibDecoder\TDecPIPETables.cpp"
 				>
 			</File>
 			<File
@@ -339,18 +323,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\source\Lib\TLibDecoder\TDecBinCoderMultiCABAC.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\source\Lib\TLibDecoder\TDecBinCoderMultiPIPE.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\source\Lib\TLibDecoder\TDecBinCoderPIPE.h"
-				>
-			</File>
-			<File
 				RelativePath="..\..\source\Lib\TLibDecoder\TDecCAVLC.h"
 				>
 			</File>
@@ -364,10 +336,6 @@
 			</File>
 			<File
 				RelativePath="..\..\source\Lib\TLibDecoder\TDecGop.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\source\Lib\TLibDecoder\TDecPIPETables.h"
 				>
 			</File>
 			<File
