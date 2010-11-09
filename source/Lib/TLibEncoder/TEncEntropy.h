@@ -214,7 +214,8 @@ public:
   Void encodeCoeffNxN         ( TComDataCU* pcCU, TCoeff* pcCoeff, UInt uiAbsPartIdx, UInt uiTrWidth, UInt uiTrHeight, UInt uiDepth, TextType eType, Bool bRD = false );
 
   Void estimateBit             ( estBitsSbacStruct* pcEstBitsSbac, UInt uiWidth, TextType eTType);
-#if QC_ALF
+
+  // ALF-related
   Void codeAuxCountBit(ALFParam* pAlfParam, Int64* ruiRate);
   Void codeFiltCountBit(ALFParam* pAlfParam, Int64* ruiRate);
   Void codeAux (ALFParam* pAlfParam);
@@ -225,8 +226,6 @@ public:
                       int **FilterCoeff, int kMinTab[]);
   Int golombEncode(int coeff, int k);
   Int lengthGolomb(int coeffVal, int k);
-
-#endif
 };// END CLASS DEFINITION TEncEntropy
 
 

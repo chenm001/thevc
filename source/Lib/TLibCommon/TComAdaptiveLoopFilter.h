@@ -51,7 +51,6 @@
 #define ALF_NUM_BIT_SHIFT     8                                       ///< bit shift parameter for quantization of ALF param.
 #define ALF_ROUND_OFFSET      ( 1 << ( ALF_NUM_BIT_SHIFT - 1 ) )      ///< rounding offset for ALF quantization
 
-#if QC_ALF
 #include "../TLibCommon/CommonDef.h"
 
 #define FATAL_ERROR_0(MESSAGE, EXITCODE)                                \
@@ -84,7 +83,6 @@ extern Int depthInt5x5Sym[8];
 extern Int *pDepthIntTab[NO_TEST_FILT];
 void destroyMatrix_int(int **m2D);
 void initMatrix_int(int ***m2D, int d1, int d2);
-#endif
 
 // ====================================================================================================================
 // Class definition
@@ -105,7 +103,6 @@ protected:
 	// ------------------------------------------------------------------------------------------------------------------
 	// For luma component
 	// ------------------------------------------------------------------------------------------------------------------
-#if QC_ALF
   static Int pattern9x9Sym[41];
   static Int weights9x9Sym[22];
   static Int pattern9x9Sym_Quart[42];
@@ -139,18 +136,9 @@ protected:
 
 	/// ALF for luma component
   Void	xALFLuma_qc				( TComPic* pcPic, ALFParam* pcAlfParam, TComPicYuv* pcPicDec, TComPicYuv* pcPicRest );
-  Void	xCUAdaptive_qc			( TComPic*	  pcPic, ALFParam* pcAlfParam, imgpel **imgY_rec_post, imgpel **imgY_rec );
-  Void	xSubCUAdaptive_qc	( TComDataCU* pcCU,  ALFParam* pcAlfParam, imgpel **imgY_rec_post, imgpel **imgY_rec,
-													UInt uiAbsPartIdx, UInt uiDepth );
 
-  Void calcVar(imgpel **imgY_var, imgpel **imgY_pad,int pad_size, int fl, int img_height, int img_width);
-  Void filterFrame(imgpel **imgY_rec_post, imgpel **imgY_rec,int filtNo);
-  Void subfilterFrame(imgpel **imgY_rec_post, imgpel **imgY_rec, int filtNo, int start_height, int end_height, int start_width, int end_width);
-
-  Void DecFilter_qc(imgpel** imgY_rec,ALFParam* pcAlfParam);
   Void reconstructFilterCoeffs(ALFParam* pcAlfParam,int **pfilterCoeffSym, int bit_depth);
   Void getCurrentFilter(int **filterCoeffSym,ALFParam* pcAlfParam);
-  Void padImage(imgpel **imgY,  imgpel **imgY_pad, int fl, int img_height, int img_width);
   // memory allocation
   Void destroyMatrix_imgpel(imgpel **m2D);
   Void destroyMatrix_int(int **m2D);
@@ -158,14 +146,10 @@ protected:
   Void initMatrix_imgpel(imgpel ***m2D, int d1, int d2);
   Void destroyMatrix4D_double(double ****m4D, int d1, int d2);
   Void destroyMatrix3D_double(double ***m3D, int d1);
-  Void destroyMatrix_ushort(unsigned short **m2D);
   Void destroyMatrix_double(double **m2D);
   Void initMatrix4D_double(double *****m4D, int d1, int d2, int d3, int d4);
   Void initMatrix3D_double(double ****m3D, int d1, int d2, int d3);
-  Void initMatrix_ushort(unsigned short ***m2D, int d1, int d2);
   Void initMatrix_double(double ***m2D, int d1, int d2);
-  Void free_mem1Dint(int *array1D);
-  Void get_mem1Dint(int **array1D, int rows);
   Void free_mem2Dpel(imgpel **array2D);
   Void get_mem2Dpel(imgpel ***array2D, int rows, int columns);
   Void no_mem_exit(const char *where);
@@ -180,18 +164,6 @@ protected:
   UInt  m_uiNumCUsInFrame;
   Void  setAlfCtrlFlags (ALFParam *pAlfParam, TComDataCU *pcCU, UInt uiAbsPartIdx, UInt uiDepth, UInt &idx);
 #endif
-#endif
-	/// ALF for luma component
-  Void	xALFLuma				( TComPic* pcPic, ALFParam* pcAlfParam, TComPicYuv* pcPicDec, TComPicYuv* pcPicRest );
-
-	/// sub function: CU-adaptive ALF process for luma
-  Void	xCUAdaptive			( TComPic*	  pcPic, ALFParam* pcAlfParam, TComPicYuv* pcPicDec, TComPicYuv* pcPicRest );
-  Void	xSubCUAdaptive	( TComDataCU* pcCU,  ALFParam* pcAlfParam, TComPicYuv* pcPicDec, TComPicYuv* pcPicRest,
-													UInt uiAbsPartIdx, UInt uiDepth );
-  Void	xSubCUFilter		( Pel* pDec, Pel* pRest, Int *qh, Int iTap, Int iWidth, Int iHeight, Int iDecStride, Int iRestStride );
-
-	/// sub function: non-adaptive ALF process for luma
-  Void	xFrame					( TComPicYuv* pcPicDec, TComPicYuv* pcPicRest, Int *qh, Int iTap );
 
 	// ------------------------------------------------------------------------------------------------------------------
 	// For chroma component

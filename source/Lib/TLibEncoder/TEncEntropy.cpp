@@ -90,7 +90,7 @@ Void TEncEntropy::encodeSkipFlag( TComDataCU* pcCU, UInt uiAbsPartIdx, Bool bRD 
 
   m_pcEntropyCoderIf->codeSkipFlag( pcCU, uiAbsPartIdx );
 }
-#if QC_ALF
+
 #include "../TLibCommon/TypeDef.h"
 #include "../TLibCommon/TComAdaptiveLoopFilter.h"
 Void TEncEntropy::codeFiltCountBit(ALFParam* pAlfParam, Int64* ruiRate)
@@ -372,8 +372,6 @@ Void  print(ALFParam* pAlfParam)
   }
   printf("\n");
 }
-#endif
-
 
 #if HHI_MRG
 #if HHI_MRG_PU
@@ -439,17 +437,8 @@ Void TEncEntropy::encodeAlfParam(ALFParam* pAlfParam)
   if (!pAlfParam->alf_flag)
     return;
   Int pos;
-#if QC_ALF  
   codeAux(pAlfParam);
   codeFilt(pAlfParam);
-#else
-  // filter parameters for luma
-  m_pcEntropyCoderIf->codeAlfUvlc((pAlfParam->tap-5)/2);
-  for(pos=0; pos<pAlfParam->num_coeff; pos++)
-  {
-    m_pcEntropyCoderIf->codeAlfSvlc(pAlfParam->coeff[pos]);
-  }
-#endif
 
   // filter parameters for chroma
   m_pcEntropyCoderIf->codeAlfUvlc(pAlfParam->chroma_idc);

@@ -40,7 +40,6 @@ Void TDecEntropy::setEntropyDecoder         ( TDecEntropyIf* p )
   m_pcEntropyDecoderIf = p;
 }
 
-#if QC_ALF  
 #include "../TLibCommon/TComAdaptiveLoopFilter.h"
 
 Void TDecEntropy::decodeAux(ALFParam* pAlfParam)
@@ -256,9 +255,6 @@ Void TDecEntropy::decodeFilt(ALFParam* pAlfParam)
   }
 }
 
-
-#endif
-
 Void TDecEntropy::decodeAlfParam(ALFParam* pAlfParam)
 {
   UInt uiSymbol;
@@ -274,21 +270,8 @@ Void TDecEntropy::decodeAlfParam(ALFParam* pAlfParam)
   }
 
   Int pos;
-#if QC_ALF  //codeAuxInfo related
   decodeAux(pAlfParam);
   decodeFilt(pAlfParam);
-#else
-  // filter parameters for luma
-  m_pcEntropyDecoderIf->parseAlfUvlc(uiSymbol);
-  pAlfParam->tap = (uiSymbol<<1) + 5;
-  pAlfParam->num_coeff = ((pAlfParam->tap*pAlfParam->tap+1)>>1) + 1;
-
-  for(pos = 0; pos < pAlfParam->num_coeff; pos++)
-  {
-    m_pcEntropyDecoderIf->parseAlfSvlc(iSymbol);
-    pAlfParam->coeff[pos] = iSymbol;
-  }
-#endif
   // filter parameters for chroma
   m_pcEntropyDecoderIf->parseAlfUvlc(uiSymbol);
   pAlfParam->chroma_idc = uiSymbol;

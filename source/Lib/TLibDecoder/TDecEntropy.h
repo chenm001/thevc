@@ -209,14 +209,14 @@ private:
   Void xDecodeCoeff            ( TComDataCU* pcCU, TCoeff* pcCoeff, UInt uiAbsPartIdx, UInt uiDepth, UInt uiWidth, UInt uiHeight, UInt uiTrIdx, UInt uiCurrTrIdx, TextType eType );
 public:
   Void decodeCoeff             ( TComDataCU* pcCU                 , UInt uiAbsPartIdx, UInt uiDepth, UInt uiWidth, UInt uiHeight );
-#if QC_ALF
+  
+  // ALF-related
   Void decodeAux(ALFParam* pAlfParam);
   Void decodeFilt(ALFParam* pAlfParam);
   Void readFilterCodingParams(ALFParam* pAlfParam);
   Void readFilterCoeffs(ALFParam* pAlfParam);
   Void decodeFilterCoeff (ALFParam* pAlfParam);
   Int golombDecode(Int k);
-#endif
 };// END CLASS DEFINITION TDecEntropy
 
 

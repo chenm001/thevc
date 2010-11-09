@@ -79,7 +79,6 @@ private:
   UInt							m_uiNumSCUInCU;
   UInt							m_uiSCUWidth;
   UInt							m_uiSCUHeight;
-#if QC_ALF
   
   Int						varIndTab[NO_VAR_BINS];
   double					***yGlobalSym;
@@ -106,8 +105,6 @@ private:
   Int **diffFilterCoeffQuant;
   Int **FilterCoeffQuantTemp;
 
-#endif
-
 private:
 	// init / uninit internal variables
   Void xInitParam 	   ();
@@ -131,20 +128,14 @@ private:
   Void xEncodeCUAlfCtrlFlag		( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth);
 
 	// functions related to correlation computation
-	Void xReadOrCalcCorrFromCUs						( TComPicYuv* pcPicOrg, TComPicYuv* pcPicDec, Bool bReadCorr );
-  Void xCalcALFCoeff										( ALFParam* pAlfParam );
   Void xCalcCorrelationFunc							( Pel* pOrg, Pel* pCmp, Int iTap, Int iWidth, Int iHeight, Int iOrgStride, Int iCmpStride);
-  Void xCalcCorrelationFuncBlock				( Pel* pOrg, Pel* pCmp, Int iTap, Int iWidth, Int iHeight, Int iOrgStride, Int iCmpStride);
-  Void xCalcStoredCorrelationFuncBlock	( Pel* pOrg, Pel* pCmp, CorrBlk& ppuiCorr, Int iTap, Int iWidth, Int iHeight, Int iOrgStride, Int iCmpStride);
   
 	// functions related to filtering
 	Void xFilterCoefQuickSort		( Double *coef_data, Int *coef_num, Int upper, Int lower );
   Void xQuantFilterCoef				( Double* h, Int* qh, Int tap, int bit_depth );
   Void xClearFilterCoefInt		( Int* qh, Int N );
-  Void xReDesignFilterCoeff		( TComPicYuv* pcPicOrg, TComPicYuv* pcPicDec, Bool bReadCorr );
   Void xCopyDecToRestCUs			( TComPicYuv* pcPicDec, TComPicYuv* pcPicRest );
   Void xCopyDecToRestCU				( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth, TComPicYuv* pcPicDec, TComPicYuv* pcPicRest );
-  Void xFilteringFrameLuma		( TComPicYuv* pcPicOrg, TComPicYuv* pcPicDec, TComPicYuv* pcPicRest, Bool bStoreCorr );
   Void xFilteringFrameChroma	( TComPicYuv* pcPicOrg, TComPicYuv* pcPicDec, TComPicYuv* pcPicRest );
 
 	// distortion / misc functions
@@ -155,15 +146,6 @@ private:
   Int		 xGauss								( Double **a, Int N );
 
 protected:
-	/// test ALF for luma
-  Void xEncALFLuma						( TComPicYuv* pcPicOrg, TComPicYuv* pcPicDec, TComPicYuv* pcPicRest, UInt64& ruiMinRate, UInt64& ruiMinDist, Double& rdMinCost );
-
-	/// test CU-based partition
-  Void xCUAdaptiveControl			( TComPicYuv* pcPicOrg, TComPicYuv* pcPicDec, TComPicYuv* pcPicRest, UInt64& ruiMinRate, UInt64& ruiMinDist, Double& rdMinCost );
-
-	/// test various filter taps
-  Void xFilterTapDecision			( TComPicYuv* pcPicOrg, TComPicYuv* pcPicDec, TComPicYuv* pcPicRest, UInt64& ruiMinRate, UInt64& ruiMinDist, Double& rdMinCost);
-
 	/// do ALF for chroma
 	Void xEncALFChroma					( UInt64 uiLumaRate, TComPicYuv* pcPicOrg, TComPicYuv* pcPicDec, TComPicYuv* pcPicRest, UInt64& ruiDist, UInt64& ruiBits );
 public:
@@ -178,7 +160,6 @@ public:
 
 	/// estimate ALF parameters
   Void ALFProcess(ALFParam* pcAlfParam, Double dLambda, UInt64& ruiDist, UInt64& ruiBits, UInt& ruiMaxAlfCtrlDepth );
-#if QC_ALF
 	/// test ALF for luma
   Void xEncALFLuma_qc					( TComPicYuv* pcPicOrg, TComPicYuv* pcPicDec, TComPicYuv* pcPicRest, UInt64& ruiMinRate, 
 	UInt64& ruiMinDist, Double& rdMinCost );
@@ -249,6 +230,5 @@ public:
   Void gnsTransposeBacksubstitution(double U[MAX_SQR_FILT_LENGTH][MAX_SQR_FILT_LENGTH], double rhs[], double x[],
 	int order);
   Int gnsCholeskyDec(double **inpMatr, double outMatr[MAX_SQR_FILT_LENGTH][MAX_SQR_FILT_LENGTH], int noEq);
-#endif
 };
 #endif

@@ -109,10 +109,7 @@
 
 #define QC_CONFIG
 
-#define QC_ALF              1
-#if QC_ALF
 #define ENABLE_FORCECOEFF0  0
-#endif
 
 #define DISABLE_ROT_LUMA_4x4_8x8           0
 
@@ -265,7 +262,6 @@ struct _AlfParam
   Int tap_chroma;                         ///< number of filter taps (chroma)
   Int num_coeff_chroma;                   ///< number of filter coefficients (chroma)
   Int *coeff_chroma;                      ///< filter coefficient array (chroma)
-#if QC_ALF
   //CodeAux related
   Int realfiltNo;
   Int filtNo;
@@ -284,7 +280,6 @@ struct _AlfParam
   Int minKStart;
   Int maxScanVal;
   Int kMinTab[42];
-#endif
 #if TSB_ALF_HEADER
   UInt num_alf_cu_flag;
   UInt num_cus_in_frame;

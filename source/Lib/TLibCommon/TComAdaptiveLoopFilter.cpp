@@ -42,7 +42,6 @@
 // ====================================================================================================================
 // Tables
 // ====================================================================================================================
-#if QC_ALF
 
 Int TComAdaptiveLoopFilter::pattern9x9Sym[41] = 
 {
@@ -196,7 +195,6 @@ Int depthInt5x5Sym[8] =
 
 Int* pDepthIntTab[NO_TEST_FILT]={ depthInt5x5Sym, depthInt7x7Sym, depthInt9x9Sym };
 
-#endif
 // scaling factor for quantization of filter coefficients (9x9)
 const Int TComAdaptiveLoopFilter::m_aiSymmetricMag9x9[41] =
 {
@@ -232,7 +230,7 @@ TComAdaptiveLoopFilter::TComAdaptiveLoopFilter()
 {
 	m_pcTempPicYuv = NULL;
 }
-#if QC_ALF
+
 Void TComAdaptiveLoopFilter:: error(const char *text, int code)
 {
   fprintf(stderr, "%s\n", text);
@@ -331,25 +329,6 @@ Void TComAdaptiveLoopFilter::free_mem2Dpel(imgpel **array2D)
   }
 }
 
-Void TComAdaptiveLoopFilter::get_mem1Dint(int **array1D, int rows)
-{
-  int i;
-
-  if((*array1D      = (int*)calloc(rows, sizeof(int))) == NULL)
-    FATAL_ERROR_0("get_mem1Dint: array1D", -1);
-  for(i=0; i<rows; i++)
-    (*array1D)[i] = 0;
-}
-
-Void TComAdaptiveLoopFilter::free_mem1Dint(int *array1D)
-{
-  if (array1D)
-    free (array1D);
-  else
-    FATAL_ERROR_0("free_mem1Dint: array1D", -1);
-}
-
-
 Void TComAdaptiveLoopFilter::initMatrix_double(double ***m2D, int d1, int d2)
 {
   int i;
@@ -358,19 +337,6 @@ Void TComAdaptiveLoopFilter::initMatrix_double(double ***m2D, int d1, int d2)
     FATAL_ERROR_0("initMatrix_double: memory allocation problem\n", -1);
   if(!((*m2D)[0] = (double *) calloc(d1 * d2, sizeof(double))))
     FATAL_ERROR_0("initMatrix_double: memory allocation problem\n", -1);
-
-  for(i = 1; i < d1; i++)
-    (*m2D)[i] = (*m2D)[i-1] + d2;
-}
-
-Void TComAdaptiveLoopFilter::initMatrix_ushort(unsigned short ***m2D, int d1, int d2)
-{
-  int i;
-      
-  if(!(*m2D = (unsigned short **) calloc(d1, sizeof(unsigned short *))))
-    FATAL_ERROR_0("initMatrix_ushort: memory allocation problem\n", -1);
-  if(!((*m2D)[0] = (unsigned short *) calloc(d1 * d2, sizeof(unsigned short))))
-    FATAL_ERROR_0("initMatrix_ushort: memory allocation problem\n", -1);
 
   for(i = 1; i < d1; i++)
     (*m2D)[i] = (*m2D)[i-1] + d2;
@@ -416,22 +382,6 @@ Void TComAdaptiveLoopFilter::destroyMatrix_double(double **m2D)
   }
 }
 
-Void TComAdaptiveLoopFilter::destroyMatrix_ushort(unsigned short **m2D)
-{
-  if(m2D)
-  {
-    if(m2D[0])
-      free(m2D[0]);
-    else
-      FATAL_ERROR_0("destroyMatrix_ushort: memory free problem\n", -1);
-    free(m2D);
-  } 
-  else
-  {
-    FATAL_ERROR_0("destroyMatrix_ushort: memory free problem\n", -1);
-  }
-}
-
 Void TComAdaptiveLoopFilter::destroyMatrix3D_double(double ***m3D, int d1)
 {
   int i;
@@ -465,8 +415,6 @@ Void TComAdaptiveLoopFilter::destroyMatrix4D_double(double ****m4D, int d1, int 
   }
 }
 
-#endif
-
 Void TComAdaptiveLoopFilter::create( Int iPicWidth, Int iPicHeight, UInt uiMaxCUWidth, UInt uiMaxCUHeight, UInt uiMaxCUDepth )
 {
 	if ( !m_pcTempPicYuv )
@@ -474,7 +422,6 @@ Void TComAdaptiveLoopFilter::create( Int iPicWidth, Int iPicHeight, UInt uiMaxCU
 		m_pcTempPicYuv = new TComPicYuv;
 		m_pcTempPicYuv->create( iPicWidth, iPicHeight, uiMaxCUWidth, uiMaxCUHeight, uiMaxCUDepth );
 	}
-#if QC_ALF
 	img_height = iPicHeight;
 	img_width = iPicWidth;
 	initMatrix_imgpel(&imgY_var, img_height, img_width); 
@@ -484,7 +431,6 @@ Void TComAdaptiveLoopFilter::create( Int iPicWidth, Int iPicHeight, UInt uiMaxCU
     initMatrix_int(&filterCoeffPrevSelected, NO_VAR_BINS, MAX_SQR_FILT_LENGTH); 
 	initMatrix_int(&filterCoeffTmp, NO_VAR_BINS, MAX_SQR_FILT_LENGTH);      
 	initMatrix_int(&filterCoeffSymTmp, NO_VAR_BINS, MAX_SQR_FILT_LENGTH);   
-#endif
 }
 
 Void TComAdaptiveLoopFilter::destroy()
@@ -494,15 +440,12 @@ Void TComAdaptiveLoopFilter::destroy()
 		m_pcTempPicYuv->destroy();
 		delete m_pcTempPicYuv;
 	}
-#if QC_ALF
 	destroyMatrix_imgpel(imgY_var); 
 
 	destroyMatrix_int(filterCoeffSym);
 	destroyMatrix_int(filterCoeffPrevSelected);
 	destroyMatrix_int(filterCoeffTmp);
 	destroyMatrix_int(filterCoeffSymTmp);
-
-#endif
 }
 
 // ====================================================================================================================
@@ -522,14 +465,12 @@ Void TComAdaptiveLoopFilter::allocALFParam(ALFParam* pAlfParam)
 
   ::memset(pAlfParam->coeff,				0, sizeof(Int)*ALF_MAX_NUM_COEF		);
   ::memset(pAlfParam->coeff_chroma, 0, sizeof(Int)*ALF_MAX_NUM_COEF_C	);
-#if QC_ALF
   pAlfParam->coeffmulti = new Int*[NO_VAR_BINS];
   for (int i=0; i<NO_VAR_BINS; i++)
   {
     pAlfParam->coeffmulti[i] = new Int[ALF_MAX_NUM_COEF];
     ::memset(pAlfParam->coeffmulti[i],				0, sizeof(Int)*ALF_MAX_NUM_COEF		);
   }
-#endif
 #if TSB_ALF_HEADER
   pAlfParam->num_cus_in_frame = m_uiNumCUsInFrame;
   pAlfParam->num_alf_cu_flag  = 0;
@@ -552,7 +493,6 @@ Void TComAdaptiveLoopFilter::freeALFParam(ALFParam* pAlfParam)
     delete[] pAlfParam->coeff_chroma;
     pAlfParam->coeff_chroma = NULL;
   }
-#if QC_ALF
   for (int i=0; i<NO_VAR_BINS; i++)
   {
     delete[] pAlfParam->coeffmulti[i];
@@ -560,7 +500,6 @@ Void TComAdaptiveLoopFilter::freeALFParam(ALFParam* pAlfParam)
   }
   delete[] pAlfParam->coeffmulti;
   pAlfParam->coeffmulti = NULL;
-#endif
 #if TSB_ALF_HEADER
   if(pAlfParam->alf_cu_flag != NULL)
   {
@@ -582,7 +521,6 @@ Void TComAdaptiveLoopFilter::copyALFParam(ALFParam* pDesAlfParam, ALFParam* pSrc
 
   ::memcpy(pDesAlfParam->coeff, pSrcAlfParam->coeff, sizeof(Int)*ALF_MAX_NUM_COEF);
   ::memcpy(pDesAlfParam->coeff_chroma, pSrcAlfParam->coeff_chroma, sizeof(Int)*ALF_MAX_NUM_COEF_C);
-#if QC_ALF
   pDesAlfParam->realfiltNo = pSrcAlfParam->realfiltNo;
   pDesAlfParam->filtNo = pSrcAlfParam->filtNo;
   ::memcpy(pDesAlfParam->filterPattern, pSrcAlfParam->filterPattern, sizeof(Int)*NO_VAR_BINS);
@@ -600,7 +538,6 @@ Void TComAdaptiveLoopFilter::copyALFParam(ALFParam* pDesAlfParam, ALFParam* pSrc
     ::memcpy(pDesAlfParam->coeffmulti[i], pSrcAlfParam->coeffmulti[i], sizeof(Int)*ALF_MAX_NUM_COEF);
   }
 
-#endif
 #if TSB_ALF_HEADER
   pDesAlfParam->num_alf_cu_flag = pSrcAlfParam->num_alf_cu_flag;
   ::memcpy(pDesAlfParam->alf_cu_flag, pSrcAlfParam->alf_cu_flag, sizeof(UInt)*pSrcAlfParam->num_alf_cu_flag);
@@ -708,12 +645,7 @@ Void TComAdaptiveLoopFilter::ALFProcess(TComPic* pcPic, ALFParam* pcAlfParam)
     }
   }
 #endif
-#if QC_ALF
   xALFLuma_qc(pcPic, pcAlfParam, pcPicYuvExtRec, pcPicYuvRec);
-#else
-	predictALFCoeff(pcAlfParam);
-  xALFLuma(pcPic, pcAlfParam, pcPicYuvExtRec, pcPicYuvRec);
-#endif
 
   if(pcAlfParam->chroma_idc)
   {
@@ -729,9 +661,6 @@ Void TComAdaptiveLoopFilter::ALFProcess(TComPic* pcPic, ALFParam* pcAlfParam)
 // --------------------------------------------------------------------------------------------------------------------
 // ALF for luma
 // --------------------------------------------------------------------------------------------------------------------
-#if QC_ALF
-
-
 Void TComAdaptiveLoopFilter::xALFLuma_qc(TComPic* pcPic, ALFParam* pcAlfParam, TComPicYuv* pcPicDec, TComPicYuv* pcPicRest)
 {
   Int    LumaStride = pcPicDec->getStride();
@@ -779,71 +708,6 @@ Void TComAdaptiveLoopFilter::DecFilter_qc(imgpel* imgY_rec,ALFParam* pcAlfParam,
 	memset(imgY_temp[0],0,sizeof(int)*(img_height+2*VAR_SIZE)*(img_width+2*VAR_SIZE));
 
     calcVar(imgY_var, imgY_rec, fl, VAR_SIZE, img_height, img_width, Stride);
-}
-
-Void TComAdaptiveLoopFilter::DecFilter_qc(imgpel** imgY_rec,ALFParam* pcAlfParam)
-{
-	int i;
-	int numBits = NUM_BITS; 
-    int fl=FILTER_LENGTH/2;
-	int **pfilterCoeffSym;
-	pfilterCoeffSym= filterCoeffSym;
-
-	if(pcAlfParam->filtNo>=0)
-	{
-	 //// Reconstruct filter coefficients
-	  reconstructFilterCoeffs( pcAlfParam, pfilterCoeffSym, numBits);
-	}
-	else
-	{
-	  for(i = 0; i < NO_VAR_BINS; i++)
-	  {
-		pcAlfParam->varIndTab[i]=0;
-		memset(pfilterCoeffSym[i],0,sizeof(int)*MAX_SQR_FILT_LENGTH);
-	  }
-	}
-	getCurrentFilter(pfilterCoeffSym,pcAlfParam);
-	
-	padImage(imgY_rec, imgY_pad, fl, img_height, img_width);
-	memset(imgY_temp[0],0,sizeof(int)*(img_height+2*VAR_SIZE)*(img_width+2*VAR_SIZE));
-
-    calcVar(imgY_var, imgY_pad, fl, VAR_SIZE, img_height, img_width);
-}
-
-Void TComAdaptiveLoopFilter::padImage(imgpel **imgY,  imgpel **imgY_pad, int fl, int img_height, int img_width)
-{
-  int x, y;
-  int x_size = img_width + fl;
-  int x_size2= img_width + 2 * fl;
-  int y_size = img_height + fl;
-  int y_size2= img_height + 2 * fl;
-  for(y = 0; y < img_height; ++y)
-  {
-    memcpy(imgY_pad[y+fl]+fl,imgY[y],sizeof(imgpel)* img_width);
-  }
-  for(x = fl; x < img_width + fl; ++x) 
-  {
-    imgpel temp=imgY_pad[fl][x];
-    for(y = 0; y < fl; ++y)
-	{
-  	  imgY_pad[y][x] = temp;
-	}
-    temp=imgY_pad[y_size - 1][x];
-    for(y = y_size; y < y_size2; ++y)
-		imgY_pad[y][x] = temp;
-  }
-  
-  for(y = 0; y < img_height + 2 * fl; ++y)
-  {
-    imgpel temp=imgY_pad[y][fl];
-	imgpel *p_img= imgY_pad[y];
-    for(x = 0; x < fl; ++x)
-      *(p_img++) = temp;
-    temp=imgY_pad[y][x_size - 1];
-    p_img= &(imgY_pad[y][x_size]);
-    for(x = x_size; x < x_size2; ++x)
-      *(p_img++)  = temp;
-  }
 }
 
 Void TComAdaptiveLoopFilter::getCurrentFilter(int **filterCoeffSym,ALFParam* pcAlfParam)
@@ -933,125 +797,6 @@ Void TComAdaptiveLoopFilter::reconstructFilterCoeffs(ALFParam* pcAlfParam,int **
 static imgpel Clip_post(int high, int val)
 {
   return (imgpel)(((val > high)? high: val));
-}
-
-Void TComAdaptiveLoopFilter::calcVar(imgpel **imgY_var, imgpel **imgY_pad,int pad_size, int fl, int img_height, int img_width)
-{
-  int i, j, ii, jj;
-  int sum;
-  int *p_imgY_temp;
-  int shift= (11+ g_uiBitIncrement);
-  int fl2plusOne= (VAR_SIZE<<1)+1;
-  int pad_offset = pad_size-fl-1;
-  int var_max= NO_VAR_BINS-1;
-  int mult_fact_int_tab[4]= {1,114,41,21};
-  int mult_fact_int = mult_fact_int_tab[VAR_SIZE];
-
-
-  if (VAR_SIZE ==0)
-  {
-	  imgpel *p_imgY_var;
-	  shift = g_uiBitIncrement;
-  //current
-  for(i = 1; i < img_height + fl2plusOne; i++)
-  {
-		imgpel *p_imgY_pad = &imgY_pad[pad_offset+i][pad_offset];
-        imgpel *p_imgY_pad_up   = &imgY_pad[pad_offset+i+1][pad_offset];
-		imgpel *p_imgY_pad_down = &imgY_pad[pad_offset+i-1][pad_offset];
-        p_imgY_temp = (int*)&imgY_temp[i-1][0];
-		p_imgY_var  = &imgY_var [i-1][0];
-    for(j = 1; j < img_width +fl2plusOne; j++)	
-	{
-			  *(p_imgY_temp) = abs((p_imgY_pad[j]<<1) - p_imgY_pad[j+1] - p_imgY_pad[j-1])+
-							   abs((p_imgY_pad[j]<<1) - p_imgY_pad_down[j] - p_imgY_pad_up[j]);
-			  *(p_imgY_var++) =(imgpel) Clip_post(var_max, (int) ((*(p_imgY_temp++))>>shift));
-		}
-	  }
-	  return;
-  }
-
-  //current
-  for(i = 1; i < img_height + fl2plusOne; i++)
-  {
-	imgpel *p_imgY_pad = &imgY_pad[pad_offset+i][pad_offset];
-    imgpel *p_imgY_pad_up   = &imgY_pad[pad_offset+i+1][pad_offset];
-	imgpel *p_imgY_pad_down = &imgY_pad[pad_offset+i-1][pad_offset];
-    p_imgY_temp = (int*)&imgY_temp[i-1][0];
-    for(j = 1; j < img_width +fl2plusOne; j++)	
-	{
-		  *(p_imgY_temp++) = abs((p_imgY_pad[j]<<1) - p_imgY_pad[j+1] - p_imgY_pad[j-1])+
-							 abs((p_imgY_pad[j]<<1) - p_imgY_pad_down[j] - p_imgY_pad_up[j]);
-	}
-  }
-  {
-	//int temp;
-	int sum_0=0;
-	int y=img_height+((VAR_SIZE+1)<<1);
-	
-	int *p_imgY_temp_sum;
-	i = fl;
-	j = fl;
-
-	memset(imgY_temp[y],0,sizeof(int)*(img_width+((VAR_SIZE+1)<<1)));
-	//--------------------------------------------------------------------------------------------
-
-    for(ii = i - fl; ii <= i + fl; ii++)
-	{
-		p_imgY_temp= (int*)&imgY_temp[ii][j - fl];
-		p_imgY_temp_sum=(int*)&imgY_temp[y][j - fl];
-		for(jj = j - fl; jj <= j + fl; jj++)
-		{
-		  *(p_imgY_temp_sum++) += *(p_imgY_temp++);
-		}
-	}
-	p_imgY_temp_sum=(int*)&imgY_temp[y][j - fl];
-	for(jj = j - fl; jj <= j + fl; jj++)
-		sum_0+=*(p_imgY_temp_sum++);
-	imgY_var[i - fl][j - fl] = (imgpel) Clip_post(var_max, (int) ((sum_0 * mult_fact_int)>>shift));
-	//--------------------------------------------------------------------------------------------
-    sum = sum_0;
-	for(j = fl+1; j < img_width + fl; ++j)
-	{	
-      int k=j+fl;
-	  for(ii = i - fl; ii <= i + fl; ii++)
-		imgY_temp[y][k] += (imgY_temp[ii][k]);
-	
-	  sum += (imgY_temp[y][k]-imgY_temp[y][j - fl-1]);
-	  imgY_var[i - fl][j - fl] = (imgpel) Clip_post(var_max, (int) ((sum * mult_fact_int)>>shift));
-
-	}
-	//--------------------------------------------------------------------------------------------
-
-    for(i = fl+1; i < img_height + fl; ++i)
-	{
-		imgpel  *pimgY_var= &imgY_var[i-fl][0];
-		int *p_imgY_temp1;
-		int *p_imgY_temp2;
-		sum = sum_0;	
-		j= fl;
-		p_imgY_temp1= (int*)&imgY_temp[i+fl  ][j - fl];
-		p_imgY_temp2= (int*)&imgY_temp[i-fl-1][j - fl];
-		p_imgY_temp_sum=(int*)&imgY_temp[y][j - fl];
-		for(jj = j - fl; jj <= j + fl; jj++)
-		{
-			int diff = *(p_imgY_temp1++)-*(p_imgY_temp2++);
-			*(p_imgY_temp_sum++) += diff;
-			sum += diff;
-		}
-	    sum_0=sum;
-
-    	*(pimgY_var++) = (imgpel) Clip_post(var_max, (int) ((sum * mult_fact_int)>>shift));
-		//--------------------------------------------------------------------------------------------
-		p_imgY_temp_sum=(int*)imgY_temp[y];
-		for(j = fl+1; j < img_width + fl; ++j)
-		{	
-			int k = j+fl;
-			p_imgY_temp_sum[k] += (imgY_temp[i + fl][k]-imgY_temp[i-fl-1][k]);
-			sum += (p_imgY_temp_sum[k]-p_imgY_temp_sum[j-fl-1]);
-		    *(pimgY_var++) = (imgpel) Clip_post(var_max, (int) ((sum * mult_fact_int)>>shift));
-		}
-	}
-  }
 }
 
 Void TComAdaptiveLoopFilter::calcVar(imgpel **imgY_var, imgpel *imgY_pad, int pad_size, int fl, int img_height, int img_width, int img_stride)
@@ -1315,799 +1060,6 @@ Void TComAdaptiveLoopFilter::xSubCUAdaptive_qc(TComDataCU* pcCU, ALFParam* pcAlf
   {
 	 subfilterFrame(imgY_rec_post, imgY_rec, pcAlfParam->realfiltNo, uiTPelY, min(uiBPelY+1,(unsigned int)(img_height)), uiLPelX, min(uiRPelX+1,(unsigned int)(img_width)), Stride);
 
-  }
-}
-
-Void TComAdaptiveLoopFilter::filterFrame(imgpel **imgY_rec_post, imgpel **imgY_rec, int filtNo)
-{
-  int i, j, ii, jj, pixelInt,m=0;
-  imgpel *p_imgY_var,*p_imgY_pad;
-  int max_val=g_uiIBDI_MAX;
-  int fl=FILTER_LENGTH/2;
-  int *pattern=pattern9x9Sym;
-  int fl_temp;
-  int last_coef= MAX_SQR_FILT_LENGTH-1;
-  imgpel *im1,*im2;
-  int *coef;
-  int num_bits_minus_1= NUM_BITS-1;
-  int offset = (1<<(NUM_BITS-2));
-  int *pattern_fix=patternTab_filt[filtNo];
-  fl_temp=flTab[filtNo];
-
-  // Filter
-  for (i = fl; i < img_height+fl; i++)
-  {
-    p_imgY_var = imgY_var[i-fl];
-	p_imgY_pad = imgY_pad[i];
-    for (j = fl; j < img_width+fl; j++)
-	{
-	  coef = filterCoeffPrevSelected[*(p_imgY_var++)];
-	  pixelInt=coef[last_coef];
-	  pattern=pattern_fix;
-  	  
-	  for (ii=-fl_temp, m = 0; ii<0; ii++,m++)
-	  {
-		im1= &(imgY_pad[i+ii][j-m]);
-		im2= &(imgY_pad[i-ii][j+m]);
-		for (jj=-m; jj<=m; jj++)
-			pixelInt+=((*(im1++)+ *(im2--))*coef[*(pattern++)]);
-	  }
-
-	  im1= &(p_imgY_pad[j-fl_temp]);
-	  im2= &(p_imgY_pad[j+fl_temp]);	
-	  for (jj=0; jj<fl_temp; jj++)
-		  pixelInt+=((*(im1++)+ *(im2--))*coef[*(pattern++)]);
-
-	  pixelInt+=(p_imgY_pad[j]*coef[*(pattern++)]);
-	  pixelInt=(int)((pixelInt+offset) >> (num_bits_minus_1));
-	  imgY_rec_post[i-fl][j-fl]=max(0, min(pixelInt,max_val));
-    }
-  }
-}
-
-Void TComAdaptiveLoopFilter::subfilterFrame(imgpel **imgY_rec_post, imgpel **imgY_rec, int filtNo, int start_height, int end_height, int start_width, int end_width)
-{
-  int i, j, ii, jj, pixelInt,m=0;
-  imgpel *p_imgY_var,*p_imgY_pad;
-  int max_val=g_uiIBDI_MAX;
-  int fl=FILTER_LENGTH/2;
-  int *pattern=pattern9x9Sym;
-  int fl_temp;
-  int last_coef= MAX_SQR_FILT_LENGTH-1;
-  imgpel *im1,*im2;
-  int *coef;
-  int num_bits_minus_1= NUM_BITS-1;
-  int offset = (1<<(NUM_BITS-2));
-  int *pattern_fix=patternTab_filt[filtNo];
-  fl_temp=flTab[filtNo];
-
-  // Filter
-  for (i = fl + start_height; i < end_height+fl; i++)
-  {
-    p_imgY_var = imgY_var[i-fl] + start_width;
-	p_imgY_pad = imgY_pad[i];
-    for (j = fl + start_width; j < end_width+fl; j++)
-	{
-	  coef = filterCoeffPrevSelected[*(p_imgY_var++)];
-	  pixelInt=coef[last_coef];
-	  pattern=pattern_fix;
-    	  
-	  for (ii=-fl_temp, m = 0; ii<0; ii++,m++)
-	  {
-		im1= &(imgY_pad[i+ii][j-m]);
-		im2= &(imgY_pad[i-ii][j+m]);
-		for (jj=-m; jj<=m; jj++)
-			pixelInt+=((*(im1++)+ *(im2--))*coef[*(pattern++)]);
-	  }
-
-	  im1= &(p_imgY_pad[j-fl_temp]);
-	  im2= &(p_imgY_pad[j+fl_temp]);	
-	  for (jj=0; jj<fl_temp; jj++)
-		  pixelInt+=((*(im1++)+ *(im2--))*coef[*(pattern++)]);
-
-	  pixelInt+=(p_imgY_pad[j]*coef[*(pattern++)]);
-	  pixelInt=(int)((pixelInt+offset) >> (num_bits_minus_1));
-	  imgY_rec_post[i-fl][j-fl]=max(0, min(pixelInt,max_val));
-    }
-  }
-}
-
-
-
-Void TComAdaptiveLoopFilter::xCUAdaptive_qc(TComPic* pcPic, ALFParam* pcAlfParam, imgpel **imgY_rec_post, imgpel **imgY_rec)
-{
-	// for every CU, call CU-adaptive ALF process
-  for( UInt uiCUAddr = 0; uiCUAddr < pcPic->getNumCUsInFrame() ; uiCUAddr++ )
-  {
-    TComDataCU* pcCU = pcPic->getCU( uiCUAddr );
-    xSubCUAdaptive_qc(pcCU, pcAlfParam, imgY_rec_post, imgY_rec, 0, 0);
-  }
-}
-
-Void TComAdaptiveLoopFilter::xSubCUAdaptive_qc(TComDataCU* pcCU, ALFParam* pcAlfParam, imgpel **imgY_rec_post, imgpel **imgY_rec, UInt uiAbsPartIdx, UInt uiDepth)
-{
-  TComPic* pcPic = pcCU->getPic();
-
-  Bool bBoundary = false;
-  UInt uiLPelX   = pcCU->getCUPelX() + g_auiRasterToPelX[ g_auiZscanToRaster[uiAbsPartIdx] ];
-  UInt uiRPelX   = uiLPelX + (g_uiMaxCUWidth>>uiDepth)  - 1;
-  UInt uiTPelY   = pcCU->getCUPelY() + g_auiRasterToPelY[ g_auiZscanToRaster[uiAbsPartIdx] ];
-  UInt uiBPelY   = uiTPelY + (g_uiMaxCUHeight>>uiDepth) - 1;
-
-	// check picture boundary
-  if ( ( uiRPelX >= pcCU->getSlice()->getSPS()->getWidth() ) || ( uiBPelY >= pcCU->getSlice()->getSPS()->getHeight() ) )
-  {
-    bBoundary = true;
-  }
-
-	// go to sub-CU?
-  if ( ( ( uiDepth < pcCU->getDepth( uiAbsPartIdx ) ) && ( uiDepth < (g_uiMaxCUDepth-g_uiAddCUDepth) ) ) || bBoundary )
-  {
-    UInt uiQNumParts = ( pcPic->getNumPartInCU() >> (uiDepth<<1) )>>2;
-    for ( UInt uiPartUnitIdx = 0; uiPartUnitIdx < 4; uiPartUnitIdx++, uiAbsPartIdx+=uiQNumParts )
-    {
-      uiLPelX   = pcCU->getCUPelX() + g_auiRasterToPelX[ g_auiZscanToRaster[uiAbsPartIdx] ];
-      uiTPelY   = pcCU->getCUPelY() + g_auiRasterToPelY[ g_auiZscanToRaster[uiAbsPartIdx] ];
-
-      if( ( uiLPelX < pcCU->getSlice()->getSPS()->getWidth() ) && ( uiTPelY < pcCU->getSlice()->getSPS()->getHeight() ) )
-        xSubCUAdaptive_qc(pcCU, pcAlfParam, imgY_rec_post, imgY_rec, uiAbsPartIdx, uiDepth+1);
-    }
-    return;
-  }
-
-	// check maskImagedec
-  if ( pcCU->getAlfCtrlFlag(uiAbsPartIdx) )
-  {
-	 subfilterFrame(imgY_rec_post, imgY_rec, pcAlfParam->realfiltNo, uiTPelY, min(uiBPelY+1,(unsigned int)(img_height)), uiLPelX, min(uiRPelX+1,(unsigned int)(img_width)));
-
-  }
-}
-
-#endif
-
-Void TComAdaptiveLoopFilter::xALFLuma(TComPic* pcPic, ALFParam* pcAlfParam, TComPicYuv* pcPicDec, TComPicYuv* pcPicRest)
-{
-  if(pcAlfParam->cu_control_flag)
-  {
-		// block-adaptive ALF process
-    xCUAdaptive(pcPic, pcAlfParam, pcPicDec, pcPicRest);
-  }
-  else
-  {
-		// non-adaptive ALF process
-    xFrame(pcPicDec, pcPicRest, pcAlfParam->coeff, pcAlfParam->tap);
-  }
-}
-
-Void TComAdaptiveLoopFilter::xCUAdaptive(TComPic* pcPic, ALFParam* pcAlfParam, TComPicYuv* pcPicDec, TComPicYuv* pcPicRest)
-{
-	// for every CU, call CU-adaptive ALF process
-  for( UInt uiCUAddr = 0; uiCUAddr < pcPic->getNumCUsInFrame() ; uiCUAddr++ )
-  {
-    TComDataCU* pcCU = pcPic->getCU( uiCUAddr );
-    xSubCUAdaptive(pcCU, pcAlfParam, pcPicDec, pcPicRest, 0, 0);
-  }
-}
-
-/**
-		- For every sub-CU's, it is called recursively
-		.
-		\param	pcCU					CU data structure
-		\param	pcAlfParam		ALF parameter
-		\param  pcPicDec			picture before ALF
-		\retval	pcPicRest			picture after  ALF
-		\param  uiAbsPartIdx	current sub-CU position
-		\param	uiDepth				current sub-CU depth
- */
-Void TComAdaptiveLoopFilter::xSubCUAdaptive(TComDataCU* pcCU, ALFParam* pcAlfParam, TComPicYuv* pcPicDec, TComPicYuv* pcPicRest, UInt uiAbsPartIdx, UInt uiDepth)
-{
-  TComPic* pcPic = pcCU->getPic();
-
-  Bool bBoundary = false;
-  UInt uiLPelX   = pcCU->getCUPelX() + g_auiRasterToPelX[ g_auiZscanToRaster[uiAbsPartIdx] ];
-  UInt uiRPelX   = uiLPelX + (g_uiMaxCUWidth>>uiDepth)  - 1;
-  UInt uiTPelY   = pcCU->getCUPelY() + g_auiRasterToPelY[ g_auiZscanToRaster[uiAbsPartIdx] ];
-  UInt uiBPelY   = uiTPelY + (g_uiMaxCUHeight>>uiDepth) - 1;
-
-	// check picture boundary
-  if ( ( uiRPelX >= pcCU->getSlice()->getSPS()->getWidth() ) || ( uiBPelY >= pcCU->getSlice()->getSPS()->getHeight() ) )
-  {
-    bBoundary = true;
-  }
-
-	// go to sub-CU?
-  if ( ( ( uiDepth < pcCU->getDepth( uiAbsPartIdx ) ) && ( uiDepth < (g_uiMaxCUDepth-g_uiAddCUDepth) ) ) || bBoundary )
-  {
-    UInt uiQNumParts = ( pcPic->getNumPartInCU() >> (uiDepth<<1) )>>2;
-    for ( UInt uiPartUnitIdx = 0; uiPartUnitIdx < 4; uiPartUnitIdx++, uiAbsPartIdx+=uiQNumParts )
-    {
-      uiLPelX   = pcCU->getCUPelX() + g_auiRasterToPelX[ g_auiZscanToRaster[uiAbsPartIdx] ];
-      uiTPelY   = pcCU->getCUPelY() + g_auiRasterToPelY[ g_auiZscanToRaster[uiAbsPartIdx] ];
-
-      if( ( uiLPelX < pcCU->getSlice()->getSPS()->getWidth() ) && ( uiTPelY < pcCU->getSlice()->getSPS()->getHeight() ) )
-        xSubCUAdaptive(pcCU, pcAlfParam, pcPicDec, pcPicRest, uiAbsPartIdx, uiDepth+1);
-    }
-    return;
-  }
-
-	// check CU-based flag
-  if ( pcCU->getAlfCtrlFlag(uiAbsPartIdx) )
-  {
-    xSubCUFilter( pcPicDec->getLumaAddr(pcCU->getAddr(), uiAbsPartIdx), pcPicRest->getLumaAddr(pcCU->getAddr(), uiAbsPartIdx),
-                       pcAlfParam->coeff, pcAlfParam->tap,
-                       pcCU->getWidth(uiAbsPartIdx), pcCU->getHeight(uiAbsPartIdx),
-                       pcPicDec->getStride(), pcPicRest->getStride() );
-  }
-}
-
-/** \todo		filtering operation is not optimized as frame-based functions
- */
-Void TComAdaptiveLoopFilter::xSubCUFilter( Pel* pDec, Pel* pRest, Int *qh, Int iTap, Int iWidth, Int iHeight, Int iDecStride, Int iRestStride )
-{
-  Int i, x, y, value, N, offset;
-  Pel PixSum[ALF_MAX_NUM_COEF];
-
-  N      = (iTap*iTap+1)>>1;
-  offset = iTap>>1;
-
-  Pel* pTmpDec;
-
-  Int iShift = g_uiBitDepth + g_uiBitIncrement - 8;
-
-  switch(iTap)
-  {
-  case 5:
-    {
-    pDec -= iDecStride*2;
-    for (y = 0; y < iHeight; y++)
-    {
-      for (x = 0; x < iWidth; x++)
-      {
-        pTmpDec = pDec + x - 2;
-        PixSum[0] = pTmpDec[0];
-        PixSum[1] = pTmpDec[1];
-        PixSum[2] = pTmpDec[2];
-        PixSum[3] = pTmpDec[3];
-        PixSum[4] = pTmpDec[4];
-
-        pTmpDec += iDecStride;
-        PixSum[5] = pTmpDec[0];
-        PixSum[6] = pTmpDec[1];
-        PixSum[7] = pTmpDec[2];
-        PixSum[8] = pTmpDec[3];
-        PixSum[9] = pTmpDec[4];
-
-        pTmpDec += iDecStride;
-        PixSum[10] = pTmpDec[0];
-        PixSum[11] = pTmpDec[1];
-        PixSum[12] = pTmpDec[2];
-        PixSum[11]+= pTmpDec[3];
-        PixSum[10]+= pTmpDec[4];
-
-        pTmpDec += iDecStride;
-        PixSum[9]+= pTmpDec[0];
-        PixSum[8]+= pTmpDec[1];
-        PixSum[7]+= pTmpDec[2];
-        PixSum[6]+= pTmpDec[3];
-        PixSum[5]+= pTmpDec[4];
-
-        pTmpDec += iDecStride;
-        PixSum[4]+= pTmpDec[0];
-        PixSum[3]+= pTmpDec[1];
-        PixSum[2]+= pTmpDec[2];
-        PixSum[1]+= pTmpDec[3];
-        PixSum[0]+= pTmpDec[4];
-
-        value = 0;
-        for(i=0; i<N; i++)
-        {
-          value += qh[i]*PixSum[i];
-        }
-        // DC offset
-        value += qh[N] << iShift;
-        value = ( value + ALF_ROUND_OFFSET ) >> ALF_NUM_BIT_SHIFT;
-
-        pRest[x] = (Pel) Clip(value);
-      }
-      pRest += iRestStride;
-      pDec += iDecStride;
-    }
-    }
-    break;
-  case 7:
-    {
-    pDec -= iDecStride*3;
-    for (y = 0; y < iHeight; y++)
-    {
-      for (x = 0; x < iWidth; x++)
-      {
-        pTmpDec = pDec + x - 3;
-        PixSum[0] = pTmpDec[0];
-        PixSum[1] = pTmpDec[1];
-        PixSum[2] = pTmpDec[2];
-        PixSum[3] = pTmpDec[3];
-        PixSum[4] = pTmpDec[4];
-        PixSum[5] = pTmpDec[5];
-        PixSum[6] = pTmpDec[6];
-
-        pTmpDec += iDecStride;
-        PixSum[7] = pTmpDec[0];
-        PixSum[8] = pTmpDec[1];
-        PixSum[9] = pTmpDec[2];
-        PixSum[10] = pTmpDec[3];
-        PixSum[11] = pTmpDec[4];
-        PixSum[12] = pTmpDec[5];
-        PixSum[13] = pTmpDec[6];
-
-        pTmpDec += iDecStride;
-        PixSum[14] = pTmpDec[0];
-        PixSum[15] = pTmpDec[1];
-        PixSum[16] = pTmpDec[2];
-        PixSum[17] = pTmpDec[3];
-        PixSum[18] = pTmpDec[4];
-        PixSum[19] = pTmpDec[5];
-        PixSum[20] = pTmpDec[6];
-
-        pTmpDec += iDecStride;
-        PixSum[21] = pTmpDec[0];
-        PixSum[22] = pTmpDec[1];
-        PixSum[23] = pTmpDec[2];
-        PixSum[24] = pTmpDec[3];
-        PixSum[23]+= pTmpDec[4];
-        PixSum[22]+= pTmpDec[5];
-        PixSum[21]+= pTmpDec[6];
-
-        pTmpDec += iDecStride;
-        PixSum[20]+= pTmpDec[0];
-        PixSum[19]+= pTmpDec[1];
-        PixSum[18]+= pTmpDec[2];
-        PixSum[17]+= pTmpDec[3];
-        PixSum[16]+= pTmpDec[4];
-        PixSum[15]+= pTmpDec[5];
-        PixSum[14]+= pTmpDec[6];
-
-        pTmpDec += iDecStride;
-        PixSum[13]+= pTmpDec[0];
-        PixSum[12]+= pTmpDec[1];
-        PixSum[11]+= pTmpDec[2];
-        PixSum[10]+= pTmpDec[3];
-        PixSum[9]+= pTmpDec[4];
-        PixSum[8]+= pTmpDec[5];
-        PixSum[7]+= pTmpDec[6];
-
-        pTmpDec += iDecStride;
-        PixSum[6]+= pTmpDec[0];
-        PixSum[5]+= pTmpDec[1];
-        PixSum[4]+= pTmpDec[2];
-        PixSum[3]+= pTmpDec[3];
-        PixSum[2]+= pTmpDec[4];
-        PixSum[1]+= pTmpDec[5];
-        PixSum[0]+= pTmpDec[6];
-
-        value = 0;
-        for(i=0; i<N; i++)
-        {
-          value += qh[i]*PixSum[i];
-        }
-        // DC offset
-        value += qh[N] << iShift;
-        value = (value + ALF_ROUND_OFFSET)>>ALF_NUM_BIT_SHIFT;
-
-        pRest[x] = (Pel) Clip(value);
-      }
-      pRest += iRestStride;
-      pDec += iDecStride;
-    }
-    }
-    break;
-  case 9:
-    {
-    pDec -= iDecStride*4;
-    for (y = 0; y < iHeight; y++)
-    {
-      for (x = 0; x < iWidth; x++)
-      {
-        pTmpDec = pDec + x - 4;
-        PixSum[0] = pTmpDec[0];
-        PixSum[1] = pTmpDec[1];
-        PixSum[2] = pTmpDec[2];
-        PixSum[3] = pTmpDec[3];
-        PixSum[4] = pTmpDec[4];
-        PixSum[5] = pTmpDec[5];
-        PixSum[6] = pTmpDec[6];
-        PixSum[7] = pTmpDec[7];
-        PixSum[8] = pTmpDec[8];
-
-        pTmpDec += iDecStride;
-        PixSum[9] = pTmpDec[0];
-        PixSum[10] = pTmpDec[1];
-        PixSum[11] = pTmpDec[2];
-        PixSum[12] = pTmpDec[3];
-        PixSum[13] = pTmpDec[4];
-        PixSum[14] = pTmpDec[5];
-        PixSum[15] = pTmpDec[6];
-        PixSum[16] = pTmpDec[7];
-        PixSum[17] = pTmpDec[8];
-
-        pTmpDec += iDecStride;
-        PixSum[18] = pTmpDec[0];
-        PixSum[19] = pTmpDec[1];
-        PixSum[20] = pTmpDec[2];
-        PixSum[21] = pTmpDec[3];
-        PixSum[22] = pTmpDec[4];
-        PixSum[23] = pTmpDec[5];
-        PixSum[24] = pTmpDec[6];
-        PixSum[25] = pTmpDec[7];
-        PixSum[26] = pTmpDec[8];
-
-        pTmpDec += iDecStride;
-        PixSum[27] = pTmpDec[0];
-        PixSum[28] = pTmpDec[1];
-        PixSum[29] = pTmpDec[2];
-        PixSum[30] = pTmpDec[3];
-        PixSum[31] = pTmpDec[4];
-        PixSum[32] = pTmpDec[5];
-        PixSum[33] = pTmpDec[6];
-        PixSum[34] = pTmpDec[7];
-        PixSum[35] = pTmpDec[8];
-
-        pTmpDec += iDecStride;
-        PixSum[36] = pTmpDec[0];
-        PixSum[37] = pTmpDec[1];
-        PixSum[38] = pTmpDec[2];
-        PixSum[39] = pTmpDec[3];
-        PixSum[40] = pTmpDec[4];
-        PixSum[39]+= pTmpDec[5];
-        PixSum[38]+= pTmpDec[6];
-        PixSum[37]+= pTmpDec[7];
-        PixSum[36]+= pTmpDec[8];
-
-        pTmpDec += iDecStride;
-        PixSum[35]+= pTmpDec[0];
-        PixSum[34]+= pTmpDec[1];
-        PixSum[33]+= pTmpDec[2];
-        PixSum[32]+= pTmpDec[3];
-        PixSum[31]+= pTmpDec[4];
-        PixSum[30]+= pTmpDec[5];
-        PixSum[29]+= pTmpDec[6];
-        PixSum[28]+= pTmpDec[7];
-        PixSum[27]+= pTmpDec[8];
-
-        pTmpDec += iDecStride;
-        PixSum[26]+= pTmpDec[0];
-        PixSum[25]+= pTmpDec[1];
-        PixSum[24]+= pTmpDec[2];
-        PixSum[23]+= pTmpDec[3];
-        PixSum[22]+= pTmpDec[4];
-        PixSum[21]+= pTmpDec[5];
-        PixSum[20]+= pTmpDec[6];
-        PixSum[19]+= pTmpDec[7];
-        PixSum[18]+= pTmpDec[8];
-
-        pTmpDec += iDecStride;
-        PixSum[17]+= pTmpDec[0];
-        PixSum[16]+= pTmpDec[1];
-        PixSum[15]+= pTmpDec[2];
-        PixSum[14]+= pTmpDec[3];
-        PixSum[13]+= pTmpDec[4];
-        PixSum[12]+= pTmpDec[5];
-        PixSum[11]+= pTmpDec[6];
-        PixSum[10]+= pTmpDec[7];
-        PixSum[9]+=  pTmpDec[8];
-
-        pTmpDec += iDecStride;
-        PixSum[8]+= pTmpDec[0];
-        PixSum[7]+= pTmpDec[1];
-        PixSum[6]+= pTmpDec[2];
-        PixSum[5]+= pTmpDec[3];
-        PixSum[4]+= pTmpDec[4];
-        PixSum[3]+= pTmpDec[5];
-        PixSum[2]+= pTmpDec[6];
-        PixSum[1]+= pTmpDec[7];
-        PixSum[0]+= pTmpDec[8];
-
-        value = 0;
-        for(i=0; i<N; i++)
-        {
-          value += qh[i]*PixSum[i];
-        }
-        // DC offset
-        value += qh[N] << iShift;
-        value = (value + ALF_ROUND_OFFSET)>>ALF_NUM_BIT_SHIFT;
-
-        pRest[x] = (Pel) Clip(value);
-      }
-      pRest += iRestStride;
-      pDec += iDecStride;
-    }
-    }
-    break;
-  default:
-    assert(0);
-    break;
-  }
-}
-
-Void TComAdaptiveLoopFilter::xFrame(TComPicYuv* pcPicDec, TComPicYuv* pcPicRest, Int *qh, Int iTap)
-{
-  Int i, x, y, value, N, offset;
-  Pel PixSum[ALF_MAX_NUM_COEF];
-
-  N      = (iTap*iTap+1)>>1;
-  offset = iTap>>1;
-
-  Int iHeight = pcPicRest->getHeight();
-  Int iWidth = pcPicRest->getWidth();
-
-  Pel* pDec = pcPicDec->getLumaAddr();
-  Int iDecStride = pcPicDec->getStride();
-
-  Pel* pRest = pcPicRest->getLumaAddr();
-  Int iRestStride = pcPicRest->getStride();
-
-  Pel* pTmpDec1, *pTmpDec2;
-  Pel* pTmpPixSum;
-
-  Int iShift = g_uiBitDepth + g_uiBitIncrement - 8;
-
-  switch(iTap)
-  {
-  case 5:
-    {
-      Int iJump = iDecStride - 4;
-      pDec -= iDecStride*2;
-      for (y = 0; y < iHeight; y++)
-      {
-        for (x = 0; x < iWidth; x++)
-        {
-          pTmpDec1 = pDec+x-2;
-          pTmpDec2 = pTmpDec1+4+(4*iDecStride);
-          pTmpPixSum = PixSum;
-
-          *pTmpPixSum = ((*pTmpDec1) + (*pTmpDec2));
-          pTmpPixSum++; pTmpDec1++; pTmpDec2--;
-          *pTmpPixSum = ((*pTmpDec1) + (*pTmpDec2));
-          pTmpPixSum++; pTmpDec1++; pTmpDec2--;
-          *pTmpPixSum = ((*pTmpDec1) + (*pTmpDec2));
-          pTmpPixSum++; pTmpDec1++; pTmpDec2--;
-          *pTmpPixSum = ((*pTmpDec1) + (*pTmpDec2));
-          pTmpPixSum++; pTmpDec1++; pTmpDec2--;
-          *pTmpPixSum = ((*pTmpDec1) + (*pTmpDec2));
-          pTmpPixSum++; pTmpDec1 += iJump; pTmpDec2 -= iJump;
-
-          *pTmpPixSum = ((*pTmpDec1) + (*pTmpDec2));
-          pTmpPixSum++; pTmpDec1++; pTmpDec2--;
-          *pTmpPixSum = ((*pTmpDec1) + (*pTmpDec2));
-          pTmpPixSum++; pTmpDec1++; pTmpDec2--;
-          *pTmpPixSum = ((*pTmpDec1) + (*pTmpDec2));
-          pTmpPixSum++; pTmpDec1++; pTmpDec2--;
-          *pTmpPixSum = ((*pTmpDec1) + (*pTmpDec2));
-          pTmpPixSum++; pTmpDec1++; pTmpDec2--;
-          *pTmpPixSum = ((*pTmpDec1) + (*pTmpDec2));
-          pTmpPixSum++; pTmpDec1 += iJump; pTmpDec2 -= iJump;
-
-
-          *pTmpPixSum = ((*pTmpDec1) + (*pTmpDec2));
-          pTmpPixSum++; pTmpDec1++; pTmpDec2--;
-          *pTmpPixSum = ((*pTmpDec1) + (*pTmpDec2));
-          pTmpPixSum++; pTmpDec1++;
-          *pTmpPixSum = (*pTmpDec1);
-
-          value = 0;
-          for(i=0; i<13; i++)
-          {
-            value += qh[i]*PixSum[i];
-          }
-          // DC offset
-          value += qh[13] << iShift;
-          value = (value + ALF_ROUND_OFFSET)>>ALF_NUM_BIT_SHIFT;
-
-          pRest[x] = (Pel) Clip(value);
-        }
-        pRest += iRestStride;
-        pDec += iDecStride;
-      }
-    }
-    break;
-  case 7:
-    {
-      Int iJump = iDecStride - 6;
-      pDec -= iDecStride*3;
-      for (y = 0; y < iHeight; y++)
-      {
-        for (x = 0; x < iWidth; x++)
-        {
-          pTmpDec1 = pDec+x-3;
-          pTmpDec2 = pTmpDec1+6+(6*iDecStride);
-          pTmpPixSum = PixSum;
-
-          *pTmpPixSum = ((*pTmpDec1) + (*pTmpDec2));
-          pTmpPixSum++; pTmpDec1++; pTmpDec2--;
-          *pTmpPixSum = ((*pTmpDec1) + (*pTmpDec2));
-          pTmpPixSum++; pTmpDec1++; pTmpDec2--;
-          *pTmpPixSum = ((*pTmpDec1) + (*pTmpDec2));
-          pTmpPixSum++; pTmpDec1++; pTmpDec2--;
-          *pTmpPixSum = ((*pTmpDec1) + (*pTmpDec2));
-          pTmpPixSum++; pTmpDec1++; pTmpDec2--;
-          *pTmpPixSum = ((*pTmpDec1) + (*pTmpDec2));
-          pTmpPixSum++; pTmpDec1++; pTmpDec2--;
-          *pTmpPixSum = ((*pTmpDec1) + (*pTmpDec2));
-          pTmpPixSum++; pTmpDec1++; pTmpDec2--;
-          *pTmpPixSum = ((*pTmpDec1) + (*pTmpDec2));
-          pTmpPixSum++; pTmpDec1 += iJump; pTmpDec2 -= iJump;
-
-          *pTmpPixSum = ((*pTmpDec1) + (*pTmpDec2));
-          pTmpPixSum++; pTmpDec1++; pTmpDec2--;
-          *pTmpPixSum = ((*pTmpDec1) + (*pTmpDec2));
-          pTmpPixSum++; pTmpDec1++; pTmpDec2--;
-          *pTmpPixSum = ((*pTmpDec1) + (*pTmpDec2));
-          pTmpPixSum++; pTmpDec1++; pTmpDec2--;
-          *pTmpPixSum = ((*pTmpDec1) + (*pTmpDec2));
-          pTmpPixSum++; pTmpDec1++; pTmpDec2--;
-          *pTmpPixSum = ((*pTmpDec1) + (*pTmpDec2));
-          pTmpPixSum++; pTmpDec1++; pTmpDec2--;
-          *pTmpPixSum = ((*pTmpDec1) + (*pTmpDec2));
-          pTmpPixSum++; pTmpDec1++; pTmpDec2--;
-          *pTmpPixSum = ((*pTmpDec1) + (*pTmpDec2));
-          pTmpPixSum++; pTmpDec1 += iJump; pTmpDec2 -= iJump;
-
-          *pTmpPixSum = ((*pTmpDec1) + (*pTmpDec2));
-          pTmpPixSum++; pTmpDec1++; pTmpDec2--;
-          *pTmpPixSum = ((*pTmpDec1) + (*pTmpDec2));
-          pTmpPixSum++; pTmpDec1++; pTmpDec2--;
-          *pTmpPixSum = ((*pTmpDec1) + (*pTmpDec2));
-          pTmpPixSum++; pTmpDec1++; pTmpDec2--;
-          *pTmpPixSum = ((*pTmpDec1) + (*pTmpDec2));
-          pTmpPixSum++; pTmpDec1++; pTmpDec2--;
-          *pTmpPixSum = ((*pTmpDec1) + (*pTmpDec2));
-          pTmpPixSum++; pTmpDec1++; pTmpDec2--;
-          *pTmpPixSum = ((*pTmpDec1) + (*pTmpDec2));
-          pTmpPixSum++; pTmpDec1++; pTmpDec2--;
-          *pTmpPixSum = ((*pTmpDec1) + (*pTmpDec2));
-          pTmpPixSum++; pTmpDec1 += iJump; pTmpDec2 -= iJump;
-
-          *pTmpPixSum = ((*pTmpDec1) + (*pTmpDec2));
-          pTmpPixSum++; pTmpDec1++; pTmpDec2--;
-          *pTmpPixSum = ((*pTmpDec1) + (*pTmpDec2));
-          pTmpPixSum++; pTmpDec1++; pTmpDec2--;
-          *pTmpPixSum = ((*pTmpDec1) + (*pTmpDec2));
-          pTmpPixSum++; pTmpDec1++;
-          *pTmpPixSum = (*pTmpDec1);
-
-          value = 0;
-          for(i=0; i<25; i++)
-          {
-            value += qh[i]*PixSum[i];
-          }
-          // DC offset
-          value += qh[25] << iShift;
-          value = (value + ALF_ROUND_OFFSET)>>ALF_NUM_BIT_SHIFT;
-
-          pRest[x] = (Pel) Clip(value);
-        }
-        pRest += iRestStride;
-        pDec += iDecStride;
-      }
-    }
-    break;
-  case 9:
-    {
-      Int iJump = iDecStride - 8;
-      pDec -= iDecStride*4;
-      for (y = 0; y < iHeight; y++)
-      {
-        for (x = 0; x < iWidth; x++)
-        {
-
-          pTmpDec1 = pDec+x-4;
-          pTmpDec2 = pTmpDec1+8+(8*iDecStride);
-          pTmpPixSum = PixSum;
-
-          *pTmpPixSum = ((*pTmpDec1) + (*pTmpDec2));
-          pTmpPixSum++; pTmpDec1++; pTmpDec2--;
-          *pTmpPixSum = ((*pTmpDec1) + (*pTmpDec2));
-          pTmpPixSum++; pTmpDec1++; pTmpDec2--;
-          *pTmpPixSum = ((*pTmpDec1) + (*pTmpDec2));
-          pTmpPixSum++; pTmpDec1++; pTmpDec2--;
-          *pTmpPixSum = ((*pTmpDec1) + (*pTmpDec2));
-          pTmpPixSum++; pTmpDec1++; pTmpDec2--;
-          *pTmpPixSum = ((*pTmpDec1) + (*pTmpDec2));
-          pTmpPixSum++; pTmpDec1++; pTmpDec2--;
-          *pTmpPixSum = ((*pTmpDec1) + (*pTmpDec2));
-          pTmpPixSum++; pTmpDec1++; pTmpDec2--;
-          *pTmpPixSum = ((*pTmpDec1) + (*pTmpDec2));
-          pTmpPixSum++; pTmpDec1++; pTmpDec2--;
-          *pTmpPixSum = ((*pTmpDec1) + (*pTmpDec2));
-          pTmpPixSum++; pTmpDec1++; pTmpDec2--;
-          *pTmpPixSum = ((*pTmpDec1) + (*pTmpDec2));
-          pTmpPixSum++; pTmpDec1 += iJump; pTmpDec2 -= iJump;
-
-          *pTmpPixSum = ((*pTmpDec1) + (*pTmpDec2));
-          pTmpPixSum++; pTmpDec1++; pTmpDec2--;
-          *pTmpPixSum = ((*pTmpDec1) + (*pTmpDec2));
-          pTmpPixSum++; pTmpDec1++; pTmpDec2--;
-          *pTmpPixSum = ((*pTmpDec1) + (*pTmpDec2));
-          pTmpPixSum++; pTmpDec1++; pTmpDec2--;
-          *pTmpPixSum = ((*pTmpDec1) + (*pTmpDec2));
-          pTmpPixSum++; pTmpDec1++; pTmpDec2--;
-          *pTmpPixSum = ((*pTmpDec1) + (*pTmpDec2));
-          pTmpPixSum++; pTmpDec1++; pTmpDec2--;
-          *pTmpPixSum = ((*pTmpDec1) + (*pTmpDec2));
-          pTmpPixSum++; pTmpDec1++; pTmpDec2--;
-          *pTmpPixSum = ((*pTmpDec1) + (*pTmpDec2));
-          pTmpPixSum++; pTmpDec1++; pTmpDec2--;
-          *pTmpPixSum = ((*pTmpDec1) + (*pTmpDec2));
-          pTmpPixSum++; pTmpDec1++; pTmpDec2--;
-          *pTmpPixSum = ((*pTmpDec1) + (*pTmpDec2));
-          pTmpPixSum++; pTmpDec1 += iJump; pTmpDec2 -= iJump;
-
-          *pTmpPixSum = ((*pTmpDec1) + (*pTmpDec2));
-          pTmpPixSum++; pTmpDec1++; pTmpDec2--;
-          *pTmpPixSum = ((*pTmpDec1) + (*pTmpDec2));
-          pTmpPixSum++; pTmpDec1++; pTmpDec2--;
-          *pTmpPixSum = ((*pTmpDec1) + (*pTmpDec2));
-          pTmpPixSum++; pTmpDec1++; pTmpDec2--;
-          *pTmpPixSum = ((*pTmpDec1) + (*pTmpDec2));
-          pTmpPixSum++; pTmpDec1++; pTmpDec2--;
-          *pTmpPixSum = ((*pTmpDec1) + (*pTmpDec2));
-          pTmpPixSum++; pTmpDec1++; pTmpDec2--;
-          *pTmpPixSum = ((*pTmpDec1) + (*pTmpDec2));
-          pTmpPixSum++; pTmpDec1++; pTmpDec2--;
-          *pTmpPixSum = ((*pTmpDec1) + (*pTmpDec2));
-          pTmpPixSum++; pTmpDec1++; pTmpDec2--;
-          *pTmpPixSum = ((*pTmpDec1) + (*pTmpDec2));
-          pTmpPixSum++; pTmpDec1++; pTmpDec2--;
-          *pTmpPixSum = ((*pTmpDec1) + (*pTmpDec2));
-          pTmpPixSum++; pTmpDec1 += iJump; pTmpDec2 -= iJump;
-
-          *pTmpPixSum = ((*pTmpDec1) + (*pTmpDec2));
-          pTmpPixSum++; pTmpDec1++; pTmpDec2--;
-          *pTmpPixSum = ((*pTmpDec1) + (*pTmpDec2));
-          pTmpPixSum++; pTmpDec1++; pTmpDec2--;
-          *pTmpPixSum = ((*pTmpDec1) + (*pTmpDec2));
-          pTmpPixSum++; pTmpDec1++; pTmpDec2--;
-          *pTmpPixSum = ((*pTmpDec1) + (*pTmpDec2));
-          pTmpPixSum++; pTmpDec1++; pTmpDec2--;
-          *pTmpPixSum = ((*pTmpDec1) + (*pTmpDec2));
-          pTmpPixSum++; pTmpDec1++; pTmpDec2--;
-          *pTmpPixSum = ((*pTmpDec1) + (*pTmpDec2));
-          pTmpPixSum++; pTmpDec1++; pTmpDec2--;
-          *pTmpPixSum = ((*pTmpDec1) + (*pTmpDec2));
-          pTmpPixSum++; pTmpDec1++; pTmpDec2--;
-          *pTmpPixSum = ((*pTmpDec1) + (*pTmpDec2));
-          pTmpPixSum++; pTmpDec1++; pTmpDec2--;
-          *pTmpPixSum = ((*pTmpDec1) + (*pTmpDec2));
-          pTmpPixSum++; pTmpDec1 += iJump; pTmpDec2 -= iJump;
-
-          *pTmpPixSum = ((*pTmpDec1) + (*pTmpDec2));
-          pTmpPixSum++; pTmpDec1++; pTmpDec2--;
-          *pTmpPixSum = ((*pTmpDec1) + (*pTmpDec2));
-          pTmpPixSum++; pTmpDec1++; pTmpDec2--;
-          *pTmpPixSum = ((*pTmpDec1) + (*pTmpDec2));
-          pTmpPixSum++; pTmpDec1++; pTmpDec2--;
-          *pTmpPixSum = ((*pTmpDec1) + (*pTmpDec2));
-          pTmpPixSum++; pTmpDec1++;
-          *pTmpPixSum = (*pTmpDec1);
-
-          value = 0;
-          for(i=0; i<41; i++)
-          {
-            value += qh[i]*PixSum[i];
-          }
-          // DC offset
-          value += qh[41] << iShift;
-          value = (value + ALF_ROUND_OFFSET)>>ALF_NUM_BIT_SHIFT;
-
-          pRest[x] = (Pel) Clip(value);
-        }
-        pRest += iRestStride;
-        pDec += iDecStride;
-      }
-    }
-    break;
-  default:
-    assert(0);
-    break;
   }
 }
 
