@@ -4141,7 +4141,6 @@ Void TEncSearch::xMotionEstimation( TComDataCU* pcCU, TComYuv* pcYuvOrg, Int iPa
   if( bBi ) 
   {
 	Bool bRound =  pcCU->getSlice()->isRounding() ;
-#if HHI_INTERP_FILTER
     InterpFilterType ePFilt = (InterpFilterType)pcCU->getSlice()->getInterpFilterType();
     switch ( ePFilt )
     {
@@ -4150,22 +4149,13 @@ Void TEncSearch::xMotionEstimation( TComDataCU* pcCU, TComYuv* pcYuvOrg, Int iPa
         xPatternSearchFracDIF_TEN_Bi( pcCU, pcPatternKey, piRefY, iRefStride, &rcMv, cMvHalf, cMvQter, ruiCost , pRefBufY, bRound);
         break;
 #endif
-      case IPF_HHI_4TAP_MOMS:
-      case IPF_HHI_6TAP_MOMS:
-        piRefY = pcCU->getSlice()->getRefPic( eRefPicList, iRefIdxPred )->getPicYuvRecFilt()->getLumaAddr( pcCU->getAddr(), pcCU->getZorderIdxInCU() + uiPartAddr );
-        xPatternSearchFracMOMS_Bi( pcCU, pcPatternKey, piRefY, iRefStride, &rcMv, cMvHalf, cMvQter, ruiCost, ePFilt , pRefBufY, bRound);
-        break;
       default:
         xPatternSearchFracDIF_Bi( pcCU, pcPatternKey, piRefY, iRefStride, &rcMv, cMvHalf, cMvQter, ruiCost, pRefBufY, bRound );
     }
-#else
-    xPatternSearchFracDIF_Bi( pcCU, pcPatternKey, piRefY, iRefStride, &rcMv, cMvHalf, cMvQter, ruiCost, pRefBufY, bRound );
-#endif
   }
   else
 #endif
   {
-#if HHI_INTERP_FILTER
     InterpFilterType ePFilt = (InterpFilterType)pcCU->getSlice()->getInterpFilterType();
     switch ( ePFilt )
     {
@@ -4174,17 +4164,9 @@ Void TEncSearch::xMotionEstimation( TComDataCU* pcCU, TComYuv* pcYuvOrg, Int iPa
         xPatternSearchFracDIF_TEN( pcCU, pcPatternKey, piRefY, iRefStride, &rcMv, cMvHalf, cMvQter, ruiCost );
         break;
 #endif
-      case IPF_HHI_4TAP_MOMS:
-      case IPF_HHI_6TAP_MOMS:
-        piRefY = pcCU->getSlice()->getRefPic( eRefPicList, iRefIdxPred )->getPicYuvRecFilt()->getLumaAddr( pcCU->getAddr(), pcCU->getZorderIdxInCU() + uiPartAddr );
-        xPatternSearchFracMOMS( pcCU, pcPatternKey, piRefY, iRefStride, &rcMv, cMvHalf, cMvQter, ruiCost, ePFilt );
-        break;
       default:
         xPatternSearchFracDIF( pcCU, pcPatternKey, piRefY, iRefStride, &rcMv, cMvHalf, cMvQter, ruiCost );
     }
-#else
-    xPatternSearchFracDIF( pcCU, pcPatternKey, piRefY, iRefStride, &rcMv, cMvHalf, cMvQter, ruiCost );
-#endif
   }
   
   
@@ -4635,42 +4617,6 @@ Void TEncSearch::xPatternSearchFracDIF_TEN_Bi( TComDataCU* pcCU, TComPattern* pc
 }
 #endif
 
-#if HHI_INTERP_FILTER
-Void TEncSearch::xPatternSearchFracMOMS_Bi( TComDataCU* pcCU, TComPattern* pcPatternKey, Pel* piRefY, Int iRefStride, TComMv* pcMvInt, TComMv& rcMvHalf, TComMv& rcMvQter, UInt& ruiCost, InterpFilterType ePFilt , Pel* piRefY2, Bool bRound)
-{
-  //  Reference pattern initialization (integer scale)
-  TComPattern cPatternRoi;
-  Int         iOffset    = pcMvInt->getHor() + pcMvInt->getVer() * iRefStride;
-  cPatternRoi.initPattern( piRefY +  iOffset,
-                          NULL,
-                          NULL,
-                          pcPatternKey->getROIYWidth(),
-                          pcPatternKey->getROIYHeight(),
-                          iRefStride,
-                          0, 0, 0, 0 );
-  
-  Int   iBufStride  = TComPredFilterMOMS::getTmpStride();
-  Pel*  piBuf       = TComPredFilterMOMS::getTmpLumaAddr() + ((iBufStride + 1) << 2);
-  
-  //  Half-pel refinement
-  m_pcRdCost->setCostScale( 1 );
-  TComPredFilterMOMS::setFiltType( ePFilt );
-  TComPredFilterMOMS::extMOMSUpSamplingH ( &cPatternRoi );
-  
-  rcMvHalf = *pcMvInt;   rcMvHalf <<= 1;    // for mv-cost
-  ruiCost = xPatternRefinement_Bi( pcPatternKey, piBuf, iBufStride, 4, 2, rcMvHalf  , piRefY2, bRound );
-  
-  //  Quarter-pel refinement
-  m_pcRdCost->setCostScale( 0 );
-  TComPredFilterMOMS::extMOMSUpSamplingQ ( &cPatternRoi, rcMvHalf, piBuf, iBufStride );
-  
-  rcMvQter = *pcMvInt;   rcMvQter <<= 1;    // for mv-cost
-  rcMvQter += rcMvHalf;  rcMvQter <<= 1;
-  piBuf += (rcMvHalf.getHor() << 1) + iBufStride * (rcMvHalf.getVer() << 1);
-  ruiCost = xPatternRefinement_Bi( pcPatternKey, piBuf, iBufStride, 4, 1, rcMvQter , piRefY2, bRound);
-  
-}
-#endif
 #endif
 
 Void TEncSearch::xPatternSearchFracDIF( TComDataCU* pcCU, TComPattern* pcPatternKey, Pel* piRefY, Int iRefStride, TComMv* pcMvInt, TComMv& rcMvHalf, TComMv& rcMvQter, UInt& ruiCost )
@@ -4743,43 +4689,6 @@ Void TEncSearch::xPatternSearchFracDIF_TEN( TComDataCU* pcCU, TComPattern* pcPat
   rcMvQter = *pcMvInt;   rcMvQter <<= 1;    // for mv-cost
   rcMvQter += rcMvHalf;  rcMvQter <<= 1;
   ruiCost = xPatternRefinement( pcPatternKey, piRef, iRefStride, 4, 1, rcMvQter );
-}
-#endif
-
-#if HHI_INTERP_FILTER
-Void TEncSearch::xPatternSearchFracMOMS( TComDataCU* pcCU, TComPattern* pcPatternKey, Pel* piRefY, Int iRefStride, TComMv* pcMvInt, TComMv& rcMvHalf, TComMv& rcMvQter, UInt& ruiCost, InterpFilterType ePFilt )
-{
-  //  Reference pattern initialization (integer scale)
-  TComPattern cPatternRoi;
-  Int         iOffset    = pcMvInt->getHor() + pcMvInt->getVer() * iRefStride;
-  cPatternRoi.initPattern( piRefY +  iOffset,
-                          NULL,
-                          NULL,
-                          pcPatternKey->getROIYWidth(),
-                          pcPatternKey->getROIYHeight(),
-                          iRefStride,
-                          0, 0, 0, 0 );
-  
-  Int   iBufStride  = TComPredFilterMOMS::getTmpStride();
-  Pel*  piBuf       = TComPredFilterMOMS::getTmpLumaAddr() + ((iBufStride + 1) << 2);
-  
-  //  Half-pel refinement
-  m_pcRdCost->setCostScale( 1 );
-  TComPredFilterMOMS::setFiltType( ePFilt );
-  TComPredFilterMOMS::extMOMSUpSamplingH ( &cPatternRoi );
-  
-  rcMvHalf = *pcMvInt;   rcMvHalf <<= 1;    // for mv-cost
-  ruiCost = xPatternRefinement( pcPatternKey, piBuf, iBufStride, 4, 2, rcMvHalf   );
-  
-  //  Quarter-pel refinement
-  m_pcRdCost->setCostScale( 0 );
-  TComPredFilterMOMS::extMOMSUpSamplingQ ( &cPatternRoi, rcMvHalf, piBuf, iBufStride );
-  
-  rcMvQter = *pcMvInt;   rcMvQter <<= 1;    // for mv-cost
-  rcMvQter += rcMvHalf;  rcMvQter <<= 1;
-  piBuf += (rcMvHalf.getHor() << 1) + iBufStride * (rcMvHalf.getVer() << 1);
-  ruiCost = xPatternRefinement( pcPatternKey, piBuf, iBufStride, 4, 1, rcMvQter );
-  
 }
 #endif
 

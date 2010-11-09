@@ -44,19 +44,12 @@
 #include "TComTrQuant.h"
 #include "TComPredFilter.h"
 
-#if HHI_INTERP_FILTER
-#include "TComPredFilterMOMS.h"
-#endif
-
 // ====================================================================================================================
 // Class definition
 // ====================================================================================================================
 
 /// prediction class
 class TComPrediction : public TComPredFilter
-#if HHI_INTERP_FILTER
-                      ,public TComPredFilterMOMS
-#endif
 {
 protected:
   Int*      m_piYuvExt;

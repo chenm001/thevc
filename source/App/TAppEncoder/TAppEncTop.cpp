@@ -122,9 +122,7 @@ Void TAppEncTop::xInitLibCfg()
 #if HHI_IMVP
   m_cTEncTop.setUseIMP                       ( m_bUseIMP      ); // SOPH:
 #endif
-#if HHI_INTERP_FILTER
   m_cTEncTop.setInterpFilterType             ( m_iInterpFilterType );
-#endif
 #if HHI_RMP_SWITCH
     m_cTEncTop.setUseRMP                     ( m_bUseRMP );
 #endif

@@ -307,56 +307,6 @@ Void TComPicYuv::xExtendPicCompBorder  (Pel* piTxt, Int iStride, Int iWidth, Int
   }
 }
 
-#if HHI_INTERP_FILTER
-Void TComPicYuv::extendPicBorder ( Int iInterpFilterType )
-{
-  if ( m_bIsBorderExtended ) return;
-
-  if ( iInterpFilterType == IPF_HHI_4TAP_MOMS || iInterpFilterType == IPF_HHI_6TAP_MOMS ) 
-  {
-    xMirrorPicCompBorder( getLumaAddr(), getStride(),  getWidth(),      getHeight(),      m_iLumaMarginX,   m_iLumaMarginY   );
-    xMirrorPicCompBorder( getCbAddr()  , getCStride(), getWidth() >> 1, getHeight() >> 1, m_iChromaMarginX, m_iChromaMarginY );
-    xMirrorPicCompBorder( getCrAddr()  , getCStride(), getWidth() >> 1, getHeight() >> 1, m_iChromaMarginX, m_iChromaMarginY );
-  }
-  else
-  {
-    xExtendPicCompBorder( getLumaAddr(), getStride(),  getWidth(),      getHeight(),      m_iLumaMarginX,   m_iLumaMarginY   );
-    xExtendPicCompBorder( getCbAddr()  , getCStride(), getWidth() >> 1, getHeight() >> 1, m_iChromaMarginX, m_iChromaMarginY );
-    xExtendPicCompBorder( getCrAddr()  , getCStride(), getWidth() >> 1, getHeight() >> 1, m_iChromaMarginX, m_iChromaMarginY );
-  }
-
-  m_bIsBorderExtended = true;
-}
-
-Void TComPicYuv::xMirrorPicCompBorder  (Pel* piTxt, Int iStride, Int iWidth, Int iHeight, Int iMarginX, Int iMarginY)
-{
-  Int   x, y;
-  Pel*  pi;
-
-  pi = piTxt;
-  for ( y = 0; y < iHeight; y++)
-  {
-    for ( x = 0; x < iMarginX; x++ )
-    {
-      pi[ -iMarginX + x ] = pi[iMarginX - x];
-      pi[    iWidth + x ] = pi[iWidth   - x - 2];
-    }
-    pi += iStride;
-  }
-
-  pi -= (iStride + iMarginX);
-  for ( y = 0; y < iMarginY; y++ )
-  {
-    ::memcpy( pi + (y+1)*iStride, pi - (y+1)*iStride, sizeof(Pel)*(iWidth + (iMarginX<<1)) );
-  }
-
-  pi -= ((iHeight-1) * iStride);
-  for ( y = 0; y < iMarginY; y++ )
-  {
-    ::memcpy( pi - (y+1)*iStride, pi + (y+1)*iStride, sizeof(Pel)*(iWidth + (iMarginX<<1)) );
-  }
-}
-#endif
 
 Void TComPicYuv::dump (char* pFileName, Bool bAdd)
 {

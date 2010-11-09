@@ -69,8 +69,6 @@
 #define HHI_RQT_FORCE_SPLIT_ACC2_PU       0
 #endif
 
-#define HHI_INTERP_FILTER_KERNEL_FIX      1           ///< BB: interpolation filter fixed spline kernel
-
 //////////////////////////
 // HHI defines section end
 //////////////////////////
@@ -82,9 +80,7 @@
 
 #define PLANAR_INTRA                      0           // Enable planar Intra coding
 #define TENTM_DEBLOCKING_FILTER           1           // Enable TENTM deblocking
-#if HHI_INTERP_FILTER
 #define TEN_DIRECTIONAL_INTERP            1           ///< AF: interpolation filter
-#endif
 
 #define LCEC_STAT                         0           // LCEC - support for LCEC bitusage statistics
 //////////////////////////
@@ -452,7 +448,6 @@ enum AMVP_MODE
 };
 
 /// interpolation filter type
-#if HHI_INTERP_FILTER
 enum InterpFilterType
 {
   IPF_SAMSUNG_DIF_DEFAULT = 0,          ///< Samsung DCT-based filter
@@ -463,10 +458,8 @@ enum InterpFilterType
 # else
   IPF_TEN_DIF_PLACEHOLDER               ///< Place holder to keep ordering if IPF_TEN_DIF not compiled-in
 # endif
-  ,IPF_QC_SIFO_PLACEHOLDER              ///< Place holder to keep ordering if IPF_QC_SIFO not compiled-in
   ,IPF_LAST
 };
-#endif
 
 #endif
 

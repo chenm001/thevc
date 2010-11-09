@@ -52,11 +52,7 @@ class TComPic
 private:
   TComPicSym*           m_apcPicSym;              //  Symbol
 
-#if HHI_INTERP_FILTER
-  TComPicYuv*           m_apcPicYuv[3];           //  Texture,  0:org / 1:rec / 2:rec-filtered
-#else
   TComPicYuv*           m_apcPicYuv[2];           //  Texture,  0:org / 1:rec
-#endif
 
   TComPicYuv*           m_pcPicYuvPred;           //  Prediction
   TComPicYuv*           m_pcPicYuvResi;           //  Residual
@@ -78,10 +74,6 @@ public:
 
   TComPicYuv*   getPicYuvOrg()        { return  m_apcPicYuv[0]; }
   TComPicYuv*   getPicYuvRec()        { return  m_apcPicYuv[1]; }
-
-#if HHI_INTERP_FILTER
-  TComPicYuv*   getPicYuvRecFilt()    { return  m_apcPicYuv[2]; }
-#endif
 
   TComPicYuv*   getPicYuvPred()       { return  m_pcPicYuvPred; }
   TComPicYuv*   getPicYuvResi()       { return  m_pcPicYuvResi; }

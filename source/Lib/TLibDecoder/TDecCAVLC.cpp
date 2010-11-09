@@ -226,9 +226,7 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice)
     xReadCode(2, uiCode); rpcSlice->setERBIndex( (ERBIndex)uiCode );    assert (uiCode == ERB_NONE || uiCode == ERB_LTR);
   }
 
-#if HHI_INTERP_FILTER
   xReadUvlc( uiCode ); rpcSlice->setInterpFilterType( uiCode );
-#endif
 
 #if AMVP_NEIGH_COL
   if ( rpcSlice->getSliceType() == B_SLICE )

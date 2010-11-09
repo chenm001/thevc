@@ -154,10 +154,6 @@ Void TDecTop::xGetNewPicBuffer ( TComSlice* pcSlice, TComPic*& rpcPic )
 
     // mark it should be extended
     rpcPic->getPicYuvRec()->setBorderExtension(false);
-
-#if HHI_INTERP_FILTER
-    rpcPic->getPicYuvRecFilt()->setBorderExtension(false);
-#endif
   }
 }
 

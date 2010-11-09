@@ -154,16 +154,12 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
     ("-ldm", doOldStyleCmdlineLDM, "recommended low-delay setting (with LDC), (0=slow sequence, 1=fast sequence)")
 
     /* Interpolation filter options */
-#if HHI_INTERP_FILTER
     ("InterpFilterType,-int", m_iInterpFilterType, (Int)IPF_SAMSUNG_DIF_DEFAULT, "Interpolation Filter:\n"
                                                                                  "  0: DCT-IF\n"
-                                                                                 "  1: 4-tap MOMS\n"
-                                                                                 "  2: 6-tap MOMS\n"
 # if TEN_DIRECTIONAL_INTERP
                                                                                  "  3: DIF"
 # endif
                                                                                  )
-#endif
     ("DIFTap,tap", m_iDIFTap, 12, "number of interpolation filter taps (luma)")
 
     /* motion options */
@@ -354,13 +350,12 @@ Void TAppEncCfg::xCheckParameter()
   xConfirmPara( m_uiQuadtreeTUMaxDepthIntra < 1,                                                         "QuadtreeTUMaxDepthIntra must be greater than or equal to 1" );
   xConfirmPara( m_uiQuadtreeTUMaxDepthIntra > m_uiQuadtreeTULog2MaxSize - m_uiQuadtreeTULog2MinSize + 1, "QuadtreeTUMaxDepthIntra must be less than or equal to the difference between QuadtreeTULog2MaxSize and QuadtreeTULog2MinSize plus 1" );
 
-#if HHI_INTERP_FILTER && !TEN_DIRECTIONAL_INTERP
+#if !TEN_DIRECTIONAL_INTERP
   xConfirmPara( m_iInterpFilterType == IPF_TEN_DIF_PLACEHOLDER, "IPF_TEN_DIF is not configurable.  Please recompile using TEN_DIRECTIONAL_INTERP." );
 #endif
-#if HHI_INTERP_FILTER
-  xConfirmPara( m_iInterpFilterType == IPF_QC_SIFO_PLACEHOLDER, "IPF_QC_SIFO is not configurable." );
-#endif
   xConfirmPara( m_iInterpFilterType >= IPF_LAST,                "Invalid InterpFilterType" );
+  xConfirmPara( m_iInterpFilterType == IPF_HHI_4TAP_MOMS,       "Invalid InterpFilterType" );
+  xConfirmPara( m_iInterpFilterType == IPF_HHI_6TAP_MOMS,       "Invalid InterpFilterType" );
 
   xConfirmPara( m_iSymbolMode < 0 || m_iSymbolMode > 2,                                     "SymbolMode must be equal to 0, 1, or 2" );
   xConfirmPara( m_uiMaxPIPEDelay != 0 && m_uiMaxPIPEDelay < 64,                             "MaxPIPEBufferDelay must be greater than or equal to 64" );
@@ -459,7 +454,6 @@ Void TAppEncCfg::xPrintParameter()
   printf("Rate GOP size                : %d\n", m_iRateGOPSize );
   printf("Bit increment                : %d\n", m_uiBitIncrement );
 
-#if HHI_INTERP_FILTER
   switch ( m_iInterpFilterType )
   {
 #if TEN_DIRECTIONAL_INTERP
@@ -468,28 +462,10 @@ Void TAppEncCfg::xPrintParameter()
       printf("Chroma interpolation         : %s\n", "Bi-linear filter"       );
       break;
 #endif
-    case IPF_HHI_4TAP_MOMS:
-      printf("Luma interpolation           : %s\n", "HHI 4-tap MOMS filter"  );
-      printf("Chroma interpolation         : %s\n", "HHI 4-tap MOMS filter"  );
-      break;
-    case IPF_HHI_6TAP_MOMS:
-      printf("Luma interpolation           : %s\n", "HHI 6-tap MOMS filter"  );
-      printf("Chroma interpolation         : %s\n", "HHI 6-tap MOMS filter"  );
-      break;
     default:
-#ifdef QC_CONFIG
-      printf("Luma   interpolation         : Samsung %d-tap filter\n", m_iDIFTap  );
-      printf("Chroma interpolation         : %s\n", "Bi-linear filter"       );
-#else
       printf("Luma interpolation           : %s\n", "Samsung 12-tap filter"  );
       printf("Chroma interpolation         : %s\n", "Bi-linear filter"       );
-
-#endif
   }
-#else
-  printf("Number of int. taps (luma)   : %d\n", m_iDIFTap  );
-  printf("Number of int. taps (chroma) : %d\n", 2          );
-#endif
 
   if ( m_iSymbolMode == 0 )
   {

@@ -455,15 +455,6 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
         m_pcAdaptiveLoopFilter->freeALFParam(&cAlfParam);
       }
 
-#if HHI_INTERP_FILTER      
-      // MOMS prefilter reconstructed pic
-      if ( pcPic->getSlice()->isReferenced() && pcSlice->getUseMOMS() )
-      {
-        TComCoeffCalcMOMS cCoeffCalc;
-        cCoeffCalc.calcCoeffs( pcPic->getPicYuvRec(), pcPic->getPicYuvRecFilt(), pcPic->getSlice()->getInterpFilterType() );
-      }
-#endif
-
       // File writing
       m_pcSliceEncoder->encodeSlice( pcPic, pcBitstreamOut );
 

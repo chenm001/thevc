@@ -48,10 +48,6 @@
 #include "../TLibCommon/TComLoopFilter.h"
 #include "../TLibCommon/TComAdaptiveLoopFilter.h"
 
-#if HHI_INTERP_FILTER
-#include "../TLibCommon/TComPredFilterMOMS.h"
-#endif
-
 #include "TDecEntropy.h"
 #include "TDecSlice.h"
 #include "TDecBinCoder.h"

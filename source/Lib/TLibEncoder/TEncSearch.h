@@ -48,10 +48,6 @@
 #include "TEncSbac.h"
 #include "TEncCfg.h"
 
-#if HHI_INTERP_FILTER
-#include "../TLibCommon/TComPredFilterMOMS.h"
-#endif
-
 class TEncCu;
 
 // ====================================================================================================================
@@ -501,20 +497,6 @@ Void xMergeEstimation             ( TComDataCU*     pcCU,
 									Bool		  bRound	
 									);
 #endif
-#if HHI_INTERP_FILTER
-  Void xPatternSearchFracMOMS_Bi     ( TComDataCU*   pcCU,
-                                    TComPattern*  pcPatternKey,
-                                    Pel*          piRefY,
-                                    Int           iRefStride,
-                                    TComMv*       pcMvInt,
-                                    TComMv&       rcMvHalf,
-                                    TComMv&       rcMvQter,
-                                    UInt&         ruiCost,
-                                    InterpFilterType ePFilt, 
-									Pel*		  pcRefY2,
-									Bool		  bRound	
-  				    );
-#endif
 #endif
 
   Void xPatternSearch             ( TComPattern*  pcPatternKey,
@@ -566,20 +548,6 @@ Void xMergeEstimation             ( TComDataCU*     pcCU,
                                     Int           iSrcStride,
                                     UInt          uiFilter  );
 #endif
-
-#if HHI_INTERP_FILTER
-  Void xPatternSearchFracMOMS     ( TComDataCU*   pcCU,
-                                    TComPattern*  pcPatternKey,
-                                    Pel*          piRefY,
-                                    Int           iRefStride,
-                                    TComMv*       pcMvInt,
-                                    TComMv&       rcMvHalf,
-                                    TComMv&       rcMvQter,
-                                    UInt&         ruiCost,
-                                    InterpFilterType ePFilt 
-									);
-#endif
-
 
   // -------------------------------------------------------------------------------------------------------------------
   // T & Q & Q-1 & T-1

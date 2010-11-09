@@ -367,9 +367,7 @@ Void TEncSlice::initEncSlice( TComPic* pcPic, Int iPOCLast, UInt uiPOCCurr, Int 
 
   pcPic->setPicYuvPred( m_apcPicYuvPred );
   pcPic->setPicYuvResi( m_apcPicYuvResi );
-#if HHI_INTERP_FILTER
   rpcSlice->setInterpFilterType ( m_pcCfg->getInterpFilterType() );
-#endif
 }
 
 // ====================================================================================================================

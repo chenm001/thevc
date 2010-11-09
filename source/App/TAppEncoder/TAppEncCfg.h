@@ -142,10 +142,8 @@ protected:
   Int       m_iSearchRange;                                   ///< ME search range
   Bool      m_bUseFastEnc;                                    ///< flag for using fast encoder setting
 
-#if HHI_INTERP_FILTER
   // coding tool (interpolation filter)
   Int       m_iInterpFilterType;                              ///< interpolation filter type
-#endif
 
 #ifdef ROUNDING_CONTROL_BIPRED
   Bool m_useRoundingControlBipred;

@@ -236,9 +236,6 @@ Void TAppDecTop::xWriteOutput( TComList<TComPic*>* pcListPic, Bool& rbAlloc )
 
         // mark it should be extended later
         pcPic->getPicYuvRec()->setBorderExtension( false );
-#if HHI_INTERP_FILTER
-        pcPic->getPicYuvRecFilt()->setBorderExtension( false );
-#endif
 
 #else
         pcPic->destroy();

@@ -83,10 +83,6 @@ private:
 protected:
   Void  xExtendPicCompBorder (Pel* piTxt, Int iStride, Int iWidth, Int iHeight, Int iMarginX, Int iMarginY);
 
-#if HHI_INTERP_FILTER
-  Void  xMirrorPicCompBorder (Pel* piTxt, Int iStride, Int iWidth, Int iHeight, Int iMarginX, Int iMarginY);
-#endif
-
 public:
   TComPicYuv         ();
   virtual ~TComPicYuv();
@@ -150,10 +146,6 @@ public:
 
   //  Extend function of picture buffer
   Void  extendPicBorder      ();
-
-#if HHI_INTERP_FILTER
-  Void  extendPicBorder      ( Int iInterpFilterType );
-#endif
 
   //  Dump picture
   Void  dump (char* pFileName, Bool bAdd = false);

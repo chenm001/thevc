@@ -17,8 +17,6 @@
 		671E0D5011B6AD8C00F3747B /* TComCABACTables.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 671E0D3F11B6AD8C00F3747B /* TComCABACTables.cpp */; };
 		671E0D5111B6AD8C00F3747B /* TComCABACTables.h in Headers */ = {isa = PBXBuildFile; fileRef = 671E0D4011B6AD8C00F3747B /* TComCABACTables.h */; };
 		671E0D5211B6AD8C00F3747B /* TComMv.h in Headers */ = {isa = PBXBuildFile; fileRef = 671E0D4111B6AD8C00F3747B /* TComMv.h */; };
-		671E0D5311B6AD8C00F3747B /* TComPredFilterMOMS.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 671E0D4211B6AD8C00F3747B /* TComPredFilterMOMS.cpp */; };
-		671E0D5411B6AD8C00F3747B /* TComPredFilterMOMS.h in Headers */ = {isa = PBXBuildFile; fileRef = 671E0D4311B6AD8C00F3747B /* TComPredFilterMOMS.h */; };
 		671E0D6411B6ADD300F3747B /* TDecBinCoder.h in Headers */ = {isa = PBXBuildFile; fileRef = 671E0D5611B6ADD300F3747B /* TDecBinCoder.h */; };
 		671E0D6511B6ADD300F3747B /* TDecBinCoderCABAC.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 671E0D5711B6ADD300F3747B /* TDecBinCoderCABAC.cpp */; };
 		671E0D6611B6ADD300F3747B /* TDecBinCoderCABAC.h in Headers */ = {isa = PBXBuildFile; fileRef = 671E0D5811B6ADD300F3747B /* TDecBinCoderCABAC.h */; };
@@ -198,8 +196,6 @@
 		671E0D3F11B6AD8C00F3747B /* TComCABACTables.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = TComCABACTables.cpp; path = source/Lib/TLibCommon/TComCABACTables.cpp; sourceTree = "<group>"; };
 		671E0D4011B6AD8C00F3747B /* TComCABACTables.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TComCABACTables.h; path = source/Lib/TLibCommon/TComCABACTables.h; sourceTree = "<group>"; };
 		671E0D4111B6AD8C00F3747B /* TComMv.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TComMv.h; path = source/Lib/TLibCommon/TComMv.h; sourceTree = "<group>"; };
-		671E0D4211B6AD8C00F3747B /* TComPredFilterMOMS.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = TComPredFilterMOMS.cpp; path = source/Lib/TLibCommon/TComPredFilterMOMS.cpp; sourceTree = "<group>"; };
-		671E0D4311B6AD8C00F3747B /* TComPredFilterMOMS.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TComPredFilterMOMS.h; path = source/Lib/TLibCommon/TComPredFilterMOMS.h; sourceTree = "<group>"; };
 		671E0D5611B6ADD300F3747B /* TDecBinCoder.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TDecBinCoder.h; path = source/Lib/TLibDecoder/TDecBinCoder.h; sourceTree = "<group>"; };
 		671E0D5711B6ADD300F3747B /* TDecBinCoderCABAC.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = TDecBinCoderCABAC.cpp; path = source/Lib/TLibDecoder/TDecBinCoderCABAC.cpp; sourceTree = "<group>"; };
 		671E0D5811B6ADD300F3747B /* TDecBinCoderCABAC.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TDecBinCoderCABAC.h; path = source/Lib/TLibDecoder/TDecBinCoderCABAC.h; sourceTree = "<group>"; };
@@ -434,8 +430,6 @@
 				671E0D3F11B6AD8C00F3747B /* TComCABACTables.cpp */,
 				671E0D4011B6AD8C00F3747B /* TComCABACTables.h */,
 				671E0D4111B6AD8C00F3747B /* TComMv.h */,
-				671E0D4211B6AD8C00F3747B /* TComPredFilterMOMS.cpp */,
-				671E0D4311B6AD8C00F3747B /* TComPredFilterMOMS.h */,
 				676795A011AD61FC00421804 /* TComAdaptiveLoopFilter.cpp */,
 				676795A111AD61FC00421804 /* TComAdaptiveLoopFilter.h */,
 				676795A211AD61FC00421804 /* TComBitcounter.h */,
@@ -633,7 +627,6 @@
 				671E0D4F11B6AD8C00F3747B /* TComBitCounter.h in Headers */,
 				671E0D5111B6AD8C00F3747B /* TComCABACTables.h in Headers */,
 				671E0D5211B6AD8C00F3747B /* TComMv.h in Headers */,
-				671E0D5411B6AD8C00F3747B /* TComPredFilterMOMS.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -835,7 +828,14 @@
 			};
 			buildConfigurationList = 1DEB923508733DC60010E9CD /* Build configuration list for PBXProject "TMuC" */;
 			compatibilityVersion = "Xcode 3.1";
+			developmentRegion = English;
 			hasScannedForEncodings = 1;
+			knownRegions = (
+				English,
+				Japanese,
+				French,
+				German,
+			);
 			mainGroup = 08FB7794FE84155DC02AAC07 /* Trinity */;
 			projectDirPath = "";
 			projectRoot = "";
@@ -876,7 +876,6 @@
 				671E0D4B11B6AD8C00F3747B /* ContextModel3DBuffer.cpp in Sources */,
 				671E0D4D11B6AD8C00F3747B /* TComBitBuffer.cpp in Sources */,
 				671E0D5011B6AD8C00F3747B /* TComCABACTables.cpp in Sources */,
-				671E0D5311B6AD8C00F3747B /* TComPredFilterMOMS.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

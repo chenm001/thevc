@@ -152,15 +152,6 @@ Void TDecGop::decompressGop (Bool bEos, TComBitstream* pcBitstream, TComPic*& rp
     m_pcAdaptiveLoopFilter->freeALFParam(&cAlfParam);
   }
 
-#if HHI_INTERP_FILTER
-  // MOMS prefilter reconstructed pic
-  if( rpcPic->getSlice()->isReferenced() && rpcPic->getSlice()->getUseMOMS() )
-  {
-    TComCoeffCalcMOMS cCoeffCalc;
-    cCoeffCalc.calcCoeffs( rpcPic->getPicYuvRec(), rpcPic->getPicYuvRecFilt(), rpcPic->getSlice()->getInterpFilterType() );
-  }
-#endif
-
   //-- For time output for each slice
   printf("\nPOC %4d ( %c-SLICE, QP%3d ) ",
                         pcSlice->getPOC(),

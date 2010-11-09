@@ -82,9 +82,7 @@ Void TComSlice::initSlice()
   m_bDRBFlag            = true;
   m_eERBIndex           = ERB_NONE;
 
-#if HHI_INTERP_FILTER
   m_iInterpFilterType   = IPF_SAMSUNG_DIF_DEFAULT;
-#endif
 
   m_uiColDir = 0;
 
@@ -320,12 +318,7 @@ Void TComSlice::setRefPicList       ( TComList<TComPic*>& rcListPic )
     {
       m_apcRefPicList[eRefPicList][iRefIdx] = pcRefPic;
 
-#if HHI_INTERP_FILTER
-      pcRefPic->getPicYuvRec()    ->extendPicBorder( getInterpFilterType() );
-      pcRefPic->getPicYuvRecFilt()->extendPicBorder( getInterpFilterType() );
-#else
       pcRefPic->getPicYuvRec()->extendPicBorder();
-#endif
 
       iRefIdx++;
       uiOrderDRB++;
@@ -365,12 +358,7 @@ Void TComSlice::setRefPicList       ( TComList<TComPic*>& rcListPic )
         m_apcRefPicList[eRefPicList][iRefIdx] = pcRefPic;
       }
 
-#if HHI_INTERP_FILTER
-      pcRefPic->getPicYuvRec()    ->extendPicBorder( getInterpFilterType() );
-      pcRefPic->getPicYuvRecFilt()->extendPicBorder( getInterpFilterType() );
-#else
       pcRefPic->getPicYuvRec()->extendPicBorder();
-#endif
 
       iRefIdx++;
       uiOrderERB++;
@@ -439,12 +427,8 @@ Void TComSlice::setRefPicList       ( TComList<TComPic*>& rcListPic )
       {
         m_apcRefPicList[eRefPicList][iRefIdx] = pcRefPic;
 
-#if HHI_INTERP_FILTER
-        pcRefPic->getPicYuvRec()    ->extendPicBorder( getInterpFilterType() );
-        pcRefPic->getPicYuvRecFilt()->extendPicBorder( getInterpFilterType() );
-#else
         pcRefPic->getPicYuvRec()->extendPicBorder();
-#endif
+
         iRefIdx++;
         uiActualListSize++;
       }

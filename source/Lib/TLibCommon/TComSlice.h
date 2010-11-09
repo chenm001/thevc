@@ -239,9 +239,7 @@ private:
 
   Bool        m_abEqualRef  [2][MAX_NUM_REF][MAX_NUM_REF];
 
-#if HHI_INTERP_FILTER
   Int         m_iInterpFilterType;
-#endif
 #if MS_NO_BACK_PRED_IN_B0
   Bool m_bNoBackPredFlag;
 #endif
@@ -324,11 +322,8 @@ public:
   
   static Void      sortPicList         ( TComList<TComPic*>& rcListPic );
 
-#if HHI_INTERP_FILTER
   Int  getInterpFilterType     ()         { return m_iInterpFilterType;       }
   Void setInterpFilterType     ( Int  i ) { m_iInterpFilterType  = i;         }
-  Bool getUseMOMS              ()         { return ( ( m_iInterpFilterType == IPF_HHI_4TAP_MOMS || m_iInterpFilterType == IPF_HHI_6TAP_MOMS ) ); }
-#endif
 
 #if MS_NO_BACK_PRED_IN_B0
   Bool getNoBackPredFlag() { return m_bNoBackPredFlag; }
