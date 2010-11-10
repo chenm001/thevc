@@ -46,7 +46,6 @@
 
 // HHI tools
 #define HHI_INTERP_FILTER                 1           ///< HL: interpolation filter
-#define HHI_IMVP                          1           ///< SOPH: Interleaved Motion Vector Predictor 
 #define HHI_MRG                           1           ///< SOPH: inter partition merging
 #define HHI_MRG_PU                        0           ///< SOPH: inter partition merging on pu basis
 #define HHI_AMVP_OFF                      0           ///< SOPH: Advanced Motion Vector Predictor deactivated [not in TMuC]

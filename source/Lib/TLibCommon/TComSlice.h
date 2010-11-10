@@ -78,9 +78,6 @@ private:
 #if HHI_MRG
   Bool        m_bUseMRG; // SOPH:
 #endif
-#if HHI_IMVP
-  Bool        m_bUseIMP; // SOPH:
-#endif
 
 #if HHI_RMP_SWITCH
   Bool        m_bUseRMP;
@@ -146,10 +143,6 @@ public:
 #if HHI_MRG
   Bool getUseMRG      ()         { return m_bUseMRG;        } // SOPH:
 #endif
-#if HHI_IMVP
-  Bool getUseIMP      ()         { return m_bUseIMP;        } // SOPH:
-#endif
-
   Int  getDIFTap      ()         { return m_iDIFTap;        }
 
   Void setUseALF      ( Bool b ) { m_bUseALF  = b;          }
@@ -165,10 +158,6 @@ public:
 #if HHI_MRG
   Void setUseMRG      ( Bool b ) { m_bUseMRG  = b;          } // SOPH:
 #endif
-#if HHI_IMVP
-  Void setUseIMP      ( Bool b ) { m_bUseIMP  = b;          } // SOPH:
-#endif
-
   Void setDIFTap      ( Int  i ) { m_iDIFTap   = i;         }
 
 #if HHI_RMP_SWITCH

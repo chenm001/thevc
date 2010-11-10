@@ -872,24 +872,6 @@ Void TComPrediction::getMvPredAMVP( TComDataCU* pcCU, UInt uiPartIdx, UInt uiPar
   return;
 }
 
-#if HHI_IMVP
-Void TComPrediction::getMvPredIMVP( TComDataCU* pcSubCU, UInt uiPartIdx, UInt uiPartAddr, RefPicList eRefList, Int iRefIdx, TComCUMvField* pcSubCUMvField, TComMv& rcMvPred )
-{
-  TComMv cZeroMv( 0, 0 );
-  TComMv cMvd     = cZeroMv;
-
-  int iMvPredY = 0;
-  int iMvPredX = 0;
-
-  cMvd = pcSubCUMvField->getMvd( uiPartAddr );
-  iMvPredY = rcMvPred.getVer() + cMvd.getVer();
-
-  pcSubCU->getMvPredXDep( eRefList, uiPartIdx, iRefIdx, iMvPredY, iMvPredX );
-
-  rcMvPred.setHor( iMvPredX );
-}
-#endif
-
 // CIP
 Void TComPrediction::recIntraLumaCIP( TComPattern* pcTComPattern, Pel* pPred, Pel* pResi, Pel* pReco, UInt uiStride, Int iWidth, Int iHeight, TComDataCU* pcCU, Bool bAboveAvail, Bool bLeftAvail )
 {

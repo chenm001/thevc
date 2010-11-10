@@ -301,9 +301,6 @@ Void TEncTop::xInitSPS()
 #if HHI_MRG
   m_cSPS.setUseMRG        ( m_bUseMRG           ); // SOPH:
 #endif
-#if HHI_IMVP
-  m_cSPS.setUseIMP        ( m_bUseIMP           ); // SOPH:
-#endif
   m_cSPS.setDIFTap        ( m_iDIFTap           );
 
   m_cSPS.setMaxTrSize   ( 1 << m_uiQuadtreeTULog2MaxSize );

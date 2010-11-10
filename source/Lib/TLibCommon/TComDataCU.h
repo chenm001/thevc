@@ -53,35 +53,6 @@
 // Class definition
 // ====================================================================================================================
 
-#if HHI_IMVP
-class MvPredMeasure
-{
-public:
-  TComMv getMVPred( const Int iMvCompX, const Int iMvCompY )  const
-  {
-    const Int iSize     = Int( m_aiYThreshold.size() )-1;
-    Int       iXOrigin  = m_aiXOrigin [ iSize ];
-    for(  int iLstIdx   = 0;  iLstIdx < iSize; iLstIdx++ )
-    {
-      if( iMvCompY <= m_aiYThreshold[ iLstIdx ] )
-      {
-        iXOrigin = m_aiXOrigin   [ iLstIdx ];
-        break;
-      }
-    }
-    TComMv MVPred;
-    MVPred.setVer(m_iYOrigin);
-    MVPred.setHor(iXOrigin);
-    return MVPred;
-  } 
-
-  Int                       m_iYOrigin;
-  std::vector<Int>          m_aiYThreshold;
-  std::vector<Int>          m_aiXOrigin;
-};
-
-#endif
-
 /// CU data structure class
 class TComDataCU
 {
@@ -365,26 +336,9 @@ public:
 
   Void          getMvField            ( TComDataCU* pcCU, UInt uiAbsPartIdx, RefPicList eRefPicList, TComMvField& rcMvField );
   
-#if HHI_IMVP
-  Void          getYThresXPredLists   ( UInt uiPartIdx, RefPicList  eRefPicList, Int iRefIdx, Int& riYPred, std::vector<Int>& racYThresList, std::vector<Int>& racXPredList );
-  Void          getMvPredCandLstStd   ( RefPicList eRefPicList, UInt uiPartIdx, Int iRefIdx, std::vector<TComMv>& rcMvPredCandLst );
-  Void          getMvPredCandLstExt   ( RefPicList eRefPicList,  UInt uiPartIdx, Int iRefIdx, std::vector<TComMv>& rcMvPredCandLst );
-  Void          setYThresXPredLists   ( std::vector<TComMv>& rcMvPredCandLst, std::vector<Int>& rcYThresList, std::vector<Int>& rcXPredList );
-  Int           getMvPredYCompInd     ( std::vector<TComMv>& rcMvPredCandLst );
-  Bool          insertNeighbourMvs    ( RefPicList eRefPicList, Int iRefIdx, TComDataCU* pcCUNeighbour, UInt uiIdxNeighbour, std::vector <TComMv>& racNeighbourMvs, Bool bAvoidMultipleInsertion );
-  Void          getMvPredYInd         (  RefPicList eRefPicList, UInt uiPartIdx, Int iRefIdx, Int& riMvPredY );
-  Void          getMvPredXDep         ( RefPicList eRefPicList, UInt uiPartIdx, Int iRefIdx, const Int iMvY, Int& riMvPredX );
-  Int           getMvPredXCompDep     ( const std::vector<Int>& rcYThresLst, const std::vector<Int>& rcXPredLst, const Int iYComponent );
-  Void          insertCollocated      ( RefPicList eRefPicList, Int uiPartIdx, Int iRefIdx, std::vector <TComMv>& racNeighbourMvs);
-#endif
-
   AMVP_MODE     getAMVPMode           ( UInt uiIdx );
   Void          fillMvpCand           ( UInt uiPartIdx, UInt uiPartAddr, RefPicList eRefPicList, Int iRefIdx, AMVPInfo* pInfo );
-#if HHI_IMVP
-  Bool          clearMVPCand          ( TComMv cMvd, AMVPInfo* pInfo, RefPicList eRefPicList, UInt uiPartIdx, Int iRefIdx );
-#else
   Bool          clearMVPCand          ( TComMv cMvd, AMVPInfo* pInfo );
-#endif
   Int           searchMVPIdx          ( TComMv cMv,  AMVPInfo* pInfo );
 
   Void          setMVPIdx             ( RefPicList eRefPicList, UInt uiIdx, Int iMVPIdx)  { m_apiMVPIdx[eRefPicList][uiIdx] = iMVPIdx;  }

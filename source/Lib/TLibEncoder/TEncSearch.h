@@ -101,10 +101,6 @@ protected:
   // UInt            m_auiMVPIdxCost[AMVP_MAX_NUM_CANDS+1][AMVP_MAX_NUM_CANDS];
   UInt            m_auiMVPIdxCost[AMVP_MAX_NUM_CANDS+1][AMVP_MAX_NUM_CANDS+1]; //th array bounds
 
-#if HHI_IMVP
-  MvPredMeasure   m_cMvPredMeasure;
-#endif
-
 public:
   TEncSearch();
   virtual ~TEncSearch();
@@ -391,14 +387,6 @@ protected:
   UInt xGetMvpIdxBits             ( Int iIdx, Int iNum );
   Void xGetBlkBits                ( PartSize  eCUMode, Bool bPSlice, Int iPartIdx,  UInt uiLastMode, UInt uiBlkBit[3]);
 
-#if HHI_IMVP
-  Void xEstimateMvPredIMVP        ( TComDataCU*     pcCU,
-                                    UInt            uiPartIdx,
-                                    RefPicList      eRefPicList,
-                                    Int             iRefIdx,
-                                    TComMv&         rcMvPred,
-                                    MvPredMeasure&  rcMvPredMeasure );
-#endif
 #if HHI_MRG_PU
 Void xMergeEstimation             ( TComDataCU*     pcCU,
                                     TComYuv*        pcYuvOrg,

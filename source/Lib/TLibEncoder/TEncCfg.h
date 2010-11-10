@@ -113,9 +113,6 @@ protected:
 #if HHI_MRG
   Bool      m_bUseMRG; // SOPH:
 #endif
-#if HHI_IMVP
-  Bool      m_bUseIMP; // SOPH:
-#endif
   Int       m_iDIFTap;  // Number of interpolation filter taps
 
   Int*      m_aidQP;
@@ -235,9 +232,6 @@ public:
 #if HHI_MRG
   Void      setUseMRG                       ( Bool  b )     { m_bUseMRG     = b; } // SOPH:
 #endif
-#if HHI_IMVP
-  Void      setUseIMP                       ( Bool  b )     { m_bUseIMP     = b; } // SOPH:
-#endif
 
   Void      setDIFTap                       ( Int   i )     { m_iDIFTap     = i; }
 
@@ -261,9 +255,6 @@ public:
 	Bool      getUseROT                       ()      { return m_bUseROT;     } // BB:
 #if HHI_MRG
   Bool      getUseMRG                       ()      { return m_bUseMRG;     } // SOPH:
-#endif
-#if HHI_IMVP
-  Bool      getUseIMP                       ()      { return m_bUseIMP;     } // SOPH:
 #endif
   Int       getDIFTap                       ()      { return m_iDIFTap;  }
 

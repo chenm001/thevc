@@ -122,10 +122,6 @@ protected:
   Bool      m_bUseMRG;                                        ///< SOPH: flag for using motion partition Merge Mode
 #endif
 
-#if HHI_IMVP
-  Bool      m_bUseIMP;                                        // SOPH : coding tools (interleaved MV Predictor)
-#endif
-
 #if HHI_RMP_SWITCH
   Bool      m_bUseRMP;
 #endif

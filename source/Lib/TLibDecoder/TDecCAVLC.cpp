@@ -113,9 +113,6 @@ Void TDecCavlc::parseSPS(TComSPS* pcSPS)
 #if HHI_MRG
   xReadFlag( uiCode ); pcSPS->setUseMRG ( uiCode ? true : false ); // SOPH:
 #endif
-#if HHI_IMVP
-  xReadFlag( uiCode ); pcSPS->setUseIMP ( uiCode ? true : false ); // SOPH:
-#endif
 
   xReadFlag( uiCode ); // TODO: remove? was AMP
   assert(uiCode == 0);

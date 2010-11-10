@@ -368,10 +368,6 @@ Void TEncCavlc::codeSPS( TComSPS* pcSPS )
   xWriteFlag  ( (pcSPS->getUseMRG ()) ? 1 : 0 ); // SOPH:
   m_uiBitHLS += 1;
 #endif
-#if HHI_IMVP
-   xWriteFlag ( (pcSPS->getUseIMP ()) ? 1 : 0 ); // SOPH:
-   m_uiBitHLS += 1;
-#endif
   xWriteFlag  ( (pcSPS->getUseAMP ()) ? 1 : 0 );
   m_uiBitHLS += 1;
 #if HHI_RMP_SWITCH
@@ -547,9 +543,6 @@ Void TEncCavlc::codeSPS( TComSPS* pcSPS )
 	xWriteFlag	( (pcSPS->getUseROT ()) ? 1 : 0 ); // BB:
 #if HHI_MRG
   xWriteFlag  ( (pcSPS->getUseMRG ()) ? 1 : 0 ); // SOPH:
-#endif
-#if HHI_IMVP
-   xWriteFlag ( (pcSPS->getUseIMP ()) ? 1 : 0 ); // SOPH:
 #endif
 
   xWriteFlag  ( 0 ); // TODO: remove? was AMP

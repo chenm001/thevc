@@ -2197,297 +2197,6 @@ AMVP_MODE TComDataCU::getAMVPMode(UInt uiIdx)
   return m_pcSlice->getSPS()->getAMVPMode(m_puhDepth[uiIdx]);
 }
 
-#if HHI_IMVP
-Void TComDataCU::getYThresXPredLists( UInt uiPartIdx, RefPicList eRefPicList, Int iRefIdx, Int& riYPred, std::vector<Int>& racYThresList, std::vector<Int>& racXPredList )
-{
-  racYThresList.clear();
-  racXPredList .clear();
-  std::vector <TComMv> acMvPredCandYList;
-  std::vector <TComMv> acMvPredCandXList;
-  getMvPredCandLstStd( eRefPicList, uiPartIdx, iRefIdx, acMvPredCandYList );
-  getMvPredCandLstExt( eRefPicList, uiPartIdx, iRefIdx, acMvPredCandXList );
-  setYThresXPredLists(  acMvPredCandXList, racYThresList, racXPredList );
-  riYPred = getMvPredYCompInd  ( acMvPredCandYList );
-}
-
-bool TComDataCU::insertNeighbourMvs( RefPicList eRefPicList, Int iRefIdx, TComDataCU* pcCUNeighbour, UInt uiIdxNeighbour, std::vector <TComMv>& racNeighbourMvs, Bool  bAvoidMultipleInsertion )
-{
-  if ( pcCUNeighbour!= NULL && !pcCUNeighbour->isIntra( uiIdxNeighbour ) &&  m_pcSlice->isEqualRef( eRefPicList, pcCUNeighbour->getCUMvField(eRefPicList)->getRefIdx(uiIdxNeighbour), iRefIdx ) )
-  {
-     TComMv cMv = pcCUNeighbour->getCUMvField(eRefPicList)->getMv(uiIdxNeighbour);
-     clipMv(cMv);
-     bool bInsert = true;
-     // avoid multiple insertion
-     if( bAvoidMultipleInsertion )
-     {
-       for( UInt uiIdx = 0; uiIdx < UInt( racNeighbourMvs.size() ); uiIdx++ )
-       {
-         if( racNeighbourMvs[ uiIdx ] == cMv )
-         {
-           bInsert = false;
-           break;
-         }
-       }
-     }
-     if( bInsert )
-     {
-       racNeighbourMvs.push_back( cMv );
-     }
-     return true; 
-  }
-  return false;
-}
-
-Void TComDataCU::getMvPredCandLstStd( RefPicList eRefPicList, UInt uiPartIdx, Int iRefIdx, std::vector <TComMv>& rcMvPredCandLst )
-{
-  PartSize eCUMode = m_pePartSize[0];
-  rcMvPredCandLst.clear();
-  UInt uiNeighbourIdx = 0;
-  TComDataCU* pcCUNeighbour = 0;
- 
-  UInt uiPartIdxLT, uiPartIdxRT, uiPartIdxLB;
-
-  deriveLeftRightTopIdx( eCUMode, uiPartIdx, uiPartIdxLT, uiPartIdxRT );
-  deriveLeftBottomIdx( eCUMode, uiPartIdx, uiPartIdxLB );
- 
-  // left
-  pcCUNeighbour =       getPULeft( uiNeighbourIdx, uiPartIdxLT );
-  insertNeighbourMvs( eRefPicList, iRefIdx, pcCUNeighbour, uiNeighbourIdx, rcMvPredCandLst, false );
-
-  // above
-  pcCUNeighbour =       getPUAbove( uiNeighbourIdx, uiPartIdxLT );
-  insertNeighbourMvs( eRefPicList, iRefIdx, pcCUNeighbour, uiNeighbourIdx, rcMvPredCandLst, false );
-
-  // above right
-  pcCUNeighbour =       getPUAboveRight( uiNeighbourIdx, uiPartIdxRT );
-  if ( !insertNeighbourMvs( eRefPicList, iRefIdx, pcCUNeighbour, uiNeighbourIdx, rcMvPredCandLst, false ) )
-  {
-    // above left
-    pcCUNeighbour =       getPUAboveLeft( uiNeighbourIdx, uiPartIdxLT );
-    insertNeighbourMvs( eRefPicList, iRefIdx, pcCUNeighbour, uiNeighbourIdx, rcMvPredCandLst, false );
-  }
-  //----- check for empty list -----
-  if( rcMvPredCandLst.empty() )
-  {
-    rcMvPredCandLst.push_back( TComMv( 0, 0 ) );
-  }
-}
-
-Void TComDataCU::insertCollocated( RefPicList eRefPicList, Int uiPartIdx, Int iRefIdx, std::vector <TComMv>& racNeighbourMvs)
-{
-  Int iRoiWidth = 0; 
-  Int iRoiHeight = 0;
-  UInt uiPartAddr = 0;
-  getPartIndexAndSize( uiPartIdx, uiPartAddr, iRoiWidth, iRoiHeight );
-  UInt uiAbsPartAddr = m_uiAbsIdxInLCU + uiPartAddr;
-
-  UInt uiColDir = (m_pcSlice->isInterB()? m_pcSlice->getColDir() : 0);
-
-  TComDataCU* pcCUColocated = getCUColocated(RefPicList(uiColDir));
-
-  RefPicList eColRefPicList = (m_pcSlice->isInterB()? RefPicList(1-uiColDir) : REF_PIC_LIST_0);
-
-  if ( pcCUColocated && !pcCUColocated->isIntra(uiAbsPartAddr) &&
-    pcCUColocated->getCUMvField(eColRefPicList)->getRefIdx(uiAbsPartAddr) >= 0 )
-  {
-    Int iColPOC = pcCUColocated->getSlice()->getPOC();
-    Int iColRefPOC = pcCUColocated->getSlice()->getRefPOC(eColRefPicList, pcCUColocated->getCUMvField(eColRefPicList)->getRefIdx(uiAbsPartAddr));
-    TComMv cColMv = pcCUColocated->getCUMvField(eColRefPicList)->getMv(uiAbsPartAddr);
-
-    Int iCurrPOC = m_pcSlice->getPOC();
-    Int iCurrRefPOC = m_pcSlice->getRefPic(eRefPicList, iRefIdx)->getPOC();
-
-    TComMv cMv;
-    Int iScale = xGetDistScaleFactor(iCurrPOC, iCurrRefPOC, iColPOC, iColRefPOC);
-
-    if (iScale == 1024)
-    {
-      cMv = cColMv;
-    }
-    else
-    {
-      cMv = cColMv.scaleMv( iScale );
-    }
-
-    clipMv(cMv);
-
-    for( UInt uiIdx = 0; uiIdx < UInt( racNeighbourMvs.size() ); uiIdx++ )
-    {
-      if( racNeighbourMvs[ uiIdx ] == cMv )
-      {
-        return;
-      }
-    }
-    racNeighbourMvs.push_back( cMv );
-  }
-}
-
-Void TComDataCU::getMvPredCandLstExt( RefPicList eRefPicList,  UInt uiPartIdx,  Int iRefIdx, std::vector <TComMv>& rcMvPredCandLst )
-{
-  rcMvPredCandLst.clear();
-  UInt uiNeighbourIdx;
-  TComDataCU* pcCUNeighbour = 0;
-
-  PartSize eCUMode = m_pePartSize[0];
-
-
-  UInt uiPartIdxLT, uiPartIdxRT, uiPartIdxLB;
-  UInt uiNumPartInCUWidth = m_pcPic->getNumPartInWidth();
- 
-  deriveLeftRightTopIdx( eCUMode, uiPartIdx, uiPartIdxLT, uiPartIdxRT );
-  deriveLeftBottomIdx( eCUMode, uiPartIdx, uiPartIdxLB );
-  
-  //Left 
-  for ( UInt uiIdx = g_auiZscanToRaster[uiPartIdxLT]; uiIdx <= g_auiZscanToRaster[uiPartIdxLB]; uiIdx+= uiNumPartInCUWidth )
-  {
-    pcCUNeighbour =       getPULeft( uiNeighbourIdx,g_auiRasterToZscan[uiIdx] );
-    insertNeighbourMvs( eRefPicList, iRefIdx, pcCUNeighbour, uiNeighbourIdx, rcMvPredCandLst, true );
-  }
-  // Top Left
-  pcCUNeighbour =       getPUAboveLeft( uiNeighbourIdx,uiPartIdxLT );
-  insertNeighbourMvs( eRefPicList, iRefIdx, pcCUNeighbour, uiNeighbourIdx, rcMvPredCandLst, true );
-  // Top 
-  for ( UInt uiIdx = g_auiZscanToRaster[uiPartIdxLT]; uiIdx <= g_auiZscanToRaster[uiPartIdxRT]; uiIdx++ )
-  {
-    pcCUNeighbour =       getPUAbove( uiNeighbourIdx,g_auiRasterToZscan[uiIdx] );
-    insertNeighbourMvs( eRefPicList, iRefIdx, pcCUNeighbour, uiNeighbourIdx, rcMvPredCandLst, true );
-  }
-  // Top Right
-  pcCUNeighbour =       getPUAboveRight( uiNeighbourIdx,uiPartIdxRT );
-  insertNeighbourMvs( eRefPicList, iRefIdx, pcCUNeighbour, uiNeighbourIdx, rcMvPredCandLst, true );
-
-#if 1
-  // Collocated
-  insertCollocated( eRefPicList, uiPartIdx, iRefIdx, rcMvPredCandLst);
-#endif
-
-  //----- check for empty list -----
-  if( rcMvPredCandLst.empty() )
-  {
-    rcMvPredCandLst.push_back( TComMv( 0, 0 ) );
-  }
-}
-
-Void TComDataCU::setYThresXPredLists(  std::vector <TComMv>& rcMvPredCandLst, std::vector<Int>& rcYThresLst, std::vector<Int>& rcXPredLst )
-{
-  //===== get sorted list of y-components (without multiple occurrences) =====
-  std::vector<Int>  aiSortedYValues;
-  for( UInt uiCandIdx   = 0; uiCandIdx < UInt( rcMvPredCandLst.size() ); uiCandIdx++ )
-  {
-    const Int iYComp  = rcMvPredCandLst[ uiCandIdx ].getVer();
-    bool      bInsert = true;
-    for( UInt uiIdx   = 0; uiIdx < UInt( aiSortedYValues.size() ); uiIdx++ )
-    {
-      if( aiSortedYValues[ uiIdx ] == iYComp )
-      {
-        bInsert = false;
-        break;
-      }
-    }
-    if( bInsert )
-    {
-      aiSortedYValues.push_back( iYComp );
-    }
-  }
-  sort( aiSortedYValues.begin(), aiSortedYValues.end() );
-
-  //===== set x-prediction for sorted values =====
-  for( UInt uiIdx = 0; uiIdx < UInt( aiSortedYValues.size() ); uiIdx++ )
-  {
-    std::vector<int>  aiX;
-    const int         iYComp  = aiSortedYValues[ uiIdx ];
-    //--- create list of x-components for given y-component ---
-    for( UInt uiCandIdx = 0; uiCandIdx < UInt( rcMvPredCandLst.size() ); uiCandIdx++ )
-    {
-      TComMv& rcCandMv = rcMvPredCandLst[ uiCandIdx ];
-      if( iYComp == rcCandMv.getVer() )
-      {
-        aiX.push_back( rcCandMv.getHor() );
-      }
-    }
-    //--- derive predictor for x ---
-    int iMvPredX = 0;
-    if ( aiX.size() == 1 )
-    {
-      iMvPredX  = aiX[0];
-    }
-    else if( aiX.size() == 2 )
-    {
-      iMvPredX  = ( aiX[0] + aiX[1] + 1 ) >> 1;
-    }
-    else
-    {
-      sort( aiX.begin(), aiX.end() );
-      UInt uiId = UInt( aiX.size() ) >> 1;
-      iMvPredX  = aiX[ uiId ];
-    }
-    //--- insert x-component predictor ---
-    rcXPredLst.push_back( iMvPredX );
-  }
-  //===== determine decisions thresholds for y-component ----
-  UInt uiSizeMin1 = UInt( aiSortedYValues.size() ) - 1;
-  for( UInt uiIdx = 0; uiIdx < uiSizeMin1; uiIdx++ )
-  {
-    int iYThreshold = ( aiSortedYValues[ uiIdx ] + aiSortedYValues[ uiIdx + 1 ] ) >> 1;
-    rcYThresLst.push_back( iYThreshold );
-  }
-  rcYThresLst.push_back( MAX_INT );
-}
-
-
-Int TComDataCU::getMvPredYCompInd( std::vector <TComMv>& rcMvPredCandLst )
-{
-
-  if(  rcMvPredCandLst.size() == 1 )
-  {
-    return rcMvPredCandLst[0].getVer();
-  }
-  if ( rcMvPredCandLst.size() == 2 )
-  {
-    return ( rcMvPredCandLst[0].getVer() + rcMvPredCandLst[1].getVer() + 1 ) >> 1;
-  }
-  const UInt uiNumEntries = UInt( rcMvPredCandLst.size() );
-  std::vector<int>          aiY ( rcMvPredCandLst.size() );
-  for( UInt ui = 0; ui < uiNumEntries; ui++ )
-  {
-    aiY[ui] = rcMvPredCandLst[ui].getVer();
-  }
-  sort ( aiY.begin(), aiY.end() );
-  return aiY[ uiNumEntries >> 1 ];
-}
-
-
-Void TComDataCU::getMvPredYInd(  RefPicList eRefPicList, UInt uiPartIdx, Int iRefIdx, Int& riMvPredY )
-{
-  std::vector<TComMv> acMvPredCandList;
-  getMvPredCandLstStd( eRefPicList, uiPartIdx, iRefIdx, acMvPredCandList );
-  riMvPredY = getMvPredYCompInd( acMvPredCandList );
-}
-
-Void TComDataCU::getMvPredXDep( RefPicList eRefPicList, UInt uiPartIdx, Int iRefIdx, const Int iMvY, Int& riMvPredX )
-{
-  std::vector<TComMv> acMvPredCandList;
-  std::vector<Int>          acYThresList;
-  std::vector<Int>          acXPredList;
-  getMvPredCandLstExt( eRefPicList, uiPartIdx, iRefIdx, acMvPredCandList );
-  setYThresXPredLists(  acMvPredCandList, acYThresList, acXPredList );
-  riMvPredX = getMvPredXCompDep( acYThresList, acXPredList, iMvY );
-}
-
-Int TComDataCU::getMvPredXCompDep( const std::vector<Int>& rcYThresLst, const std::vector<Int>& rcXPredLst, const Int iYComponent )
-{
-  const UInt uiSM1 = UInt( rcYThresLst.size() ) - 1;
-  for(  UInt uiIdx = 0; uiIdx < uiSM1; uiIdx++ )
-  {
-    if( iYComponent <= rcYThresLst[ uiIdx ] )
-    {
-      return rcXPredLst[ uiIdx ];
-    }
-  }
-  return rcXPredLst[ uiSM1 ];
-}
-#endif
-
 Void TComDataCU::fillMvpCand ( UInt uiPartIdx, UInt uiPartAddr, RefPicList eRefPicList, Int iRefIdx, AMVPInfo* pInfo )
 {
   PartSize eCUMode = m_pePartSize[0];
@@ -2682,11 +2391,7 @@ Void TComDataCU::fillMvpCand ( UInt uiPartIdx, UInt uiPartAddr, RefPicList eRefP
   return ;
 }
 
-#if HHI_IMVP
-Bool TComDataCU::clearMVPCand( TComMv cMvd, AMVPInfo* pInfo, RefPicList eRefPicList, UInt uiPartIdx, Int iRefIdx )
-#else
 Bool TComDataCU::clearMVPCand( TComMv cMvd, AMVPInfo* pInfo )
-#endif
 {
   // only works for multiple candidates
   if (pInfo->iN <= 1)
@@ -2694,45 +2399,10 @@ Bool TComDataCU::clearMVPCand( TComMv cMvd, AMVPInfo* pInfo )
     return false;
   }
 
-#if HHI_IMVP
-  Int iMvCandY[ AMVP_MAX_NUM_CANDS ];
-  Int iNOri = pInfo->iN;
-  if ( getSlice()->getSPS()->getUseIMP() && !isSkip(uiPartIdx) )
-  {
-    Int iNTmp, i, j;
-    // make it be unique
-    iNTmp = 0;
-    iMvCandY[ iNTmp++ ] = pInfo->m_acMvCand[0].getVer();
-    for ( i=1; i<pInfo->iN; i++ )
-    {
-      for ( j=iNTmp - 1; j>=0; j-- )
-      {
-        if ( pInfo->m_acMvCand[i].getVer() == iMvCandY[j] ) break;
-      }
-      if ( j<0 )
-      {
-        iMvCandY[ iNTmp++ ] = pInfo->m_acMvCand[i].getVer();
-      }
-    }
-    for ( i=0; i<iNTmp; i++ ) pInfo->m_acMvCand[i].setVer(iMvCandY[i]) ;
-    pInfo->iN = iNTmp;
-
-    if (pInfo->iN <= 1)
-    {
-      return true;
-    }
-  }  
-#endif
-  
+ 
   // only works for non-zero mvd case
   if (cMvd.getHor() == 0 && cMvd.getVer() == 0)
   {
-#if HHI_IMVP
-    if ( getSlice()->getSPS()->getUseIMP() )
-    {
-      return (iNOri != pInfo->iN);
-    }
-#endif
     return false;
   }
 
@@ -2748,49 +2418,15 @@ Bool TComDataCU::clearMVPCand( TComMv cMvd, AMVPInfo* pInfo )
 
   for ( i=0; i<pInfo->iN; i++ )
   {
-#if HHI_IMVP
-    TComMv cMvCand;
-    UInt uiBestYBits = 0;
-    if ( getSlice()->getSPS()->getUseIMP() )
-    {
-      // recreate the MV 
-      // MVy from the AMVP y component
-      cMvCand.setVer(  pInfo->m_acMvCand[i].getVer() + cMvd.getVer() );
-      uiBestYBits = xGetComponentBits(cMvd.getVer());
-    }
-    else
-    {
-      cMvCand = pInfo->m_acMvCand[i] + cMvd;
-    }
-#else
     TComMv cMvCand = pInfo->m_acMvCand[i] + cMvd;
-#endif
 
     UInt uiBestBits = xGetMvdBits(cMvd);
     for ( j=0; j<pInfo->iN; j++ )
     {
-#if HHI_IMVP
-      if ( getSlice()->getSPS()->getUseIMP() )
-      {
-        int iYPred = pInfo->m_acMvCand[j].getVer();
-        if (aiValid[j] && i!=j && xGetComponentBits(cMvCand.getVer()-iYPred) < uiBestYBits)
-        {
-          aiValid[i] = 0;
-        }
-      }
-      else
-      {
-        if (aiValid[j] && i!=j && xGetMvdBits(cMvCand-pInfo->m_acMvCand[j]) < uiBestBits)
-        {
-          aiValid[i] = 0;
-        }
-      }
-#else
      if (aiValid[j] && i!=j && xGetMvdBits(cMvCand-pInfo->m_acMvCand[j]) < uiBestBits)
      {
        aiValid[i] = 0;
      }
-#endif
     }
   }
 
@@ -2803,12 +2439,6 @@ Bool TComDataCU::clearMVPCand( TComMv cMvd, AMVPInfo* pInfo )
 
   if (iNTmp == pInfo->iN)
   {
-#if HHI_IMVP
-    if ( getSlice()->getSPS()->getUseIMP() )
-    {
-      return (iNOri != pInfo->iN);
-    }
-#endif
     return false;
   }
 
@@ -2831,30 +2461,11 @@ Bool TComDataCU::clearMVPCand( TComMv cMvd, AMVPInfo* pInfo )
 
 Int TComDataCU::searchMVPIdx(TComMv cMv, AMVPInfo* pInfo)
 {
-#if HHI_IMVP
-  if ( getSlice()->getSPS()->getUseIMP() )
-  {
-    for ( Int i=0; i<pInfo->iN; i++ )
-    {
-      if (cMv.getVer() == pInfo->m_acMvCand[i].getVer() )
-        return i;
-    }
-  }
-  else
-  {
-    for ( Int i=0; i<pInfo->iN; i++ )
-    {
-      if (cMv == pInfo->m_acMvCand[i])
-        return i;
-    }
-  }
-#else
   for ( Int i=0; i<pInfo->iN; i++ )
   {
     if (cMv == pInfo->m_acMvCand[i])
       return i;
   }
-#endif
   
   assert(0);
   return -1;

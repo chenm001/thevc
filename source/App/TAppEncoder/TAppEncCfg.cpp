@@ -195,9 +195,6 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
 #if HHI_MRG
     ("MRG", m_bUseMRG, true, "merging of motion partitions")
 #endif
-#if HHI_IMVP
-    ("IMP", m_bUseIMP, true, "interleaved motion vector predictor")
-#endif
     ("ROT", m_bUseROT, true)
     ("ALF", m_bUseALF, true, "Adaptive Loop Filter")
 #if HHI_RMP_SWITCH
@@ -505,9 +502,6 @@ Void TAppEncCfg::xPrintParameter()
 #if HHI_MRG
   printf("MRG:%d ", m_bUseMRG             ); // SOPH: Merge Mode
 #endif
-#if HHI_IMVP
-  printf("IMP:%d ", m_bUseIMP             ); // SOPH: Interleaved MV Predictor
-#endif
 #if HHI_RMP_SWITCH
     printf("RMP:%d ", m_bUseRMP);
 #endif
@@ -533,9 +527,6 @@ Void TAppEncCfg::xPrintUsage()
   printf( "                   FEN - fast encoder setting\n");  
 #if HHI_MRG
   printf( "                   MRG - merging of motion partitions\n"); // SOPH: Merge Mode
-#endif
-#if HHI_IMVP
-  printf( "                   IMP - interleaved motion vector predictor\n"); /// SOPH: Interleaved MV Predictor
 #endif
   printf( "\n" );
   printf( "  Example 1) TAppEncoder.exe -c test.cfg -q 32 -g 8 -f 9 -s 64 -h 4\n");
