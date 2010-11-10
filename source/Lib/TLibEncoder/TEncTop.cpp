@@ -72,9 +72,7 @@ Void TEncTop::create ()
   m_cSliceEncoder.      create( getSourceWidth(), getSourceHeight(), g_uiMaxCUWidth, g_uiMaxCUHeight, g_uiMaxCUDepth );
   m_cCuEncoder.         create( g_uiMaxCUDepth, g_uiMaxCUWidth, g_uiMaxCUHeight );
   m_cAdaptiveLoopFilter.create( getSourceWidth(), getSourceHeight(), g_uiMaxCUWidth, g_uiMaxCUHeight, g_uiMaxCUDepth );
-#if TENTM_DEBLOCKING_FILTER
   m_cLoopFilter.        create( g_uiMaxCUDepth );
-#endif
 
   // if SBAC-based RD optimization is used
   if( m_bUseSBACRD )
@@ -104,9 +102,7 @@ Void TEncTop::destroy ()
   m_cSliceEncoder.      destroy();
   m_cCuEncoder.         destroy();
   m_cAdaptiveLoopFilter.destroy();
-#if TENTM_DEBLOCKING_FILTER
   m_cLoopFilter.        destroy();
-#endif
 
   // SBAC RD
   if( m_bUseSBACRD )

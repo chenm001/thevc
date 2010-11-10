@@ -79,7 +79,6 @@
 ////////////////////////////
 
 #define PLANAR_INTRA                      0           // Enable planar Intra coding
-#define TENTM_DEBLOCKING_FILTER           1           // Enable TENTM deblocking
 #define TEN_DIRECTIONAL_INTERP            1           ///< AF: interpolation filter
 
 #define LCEC_STAT                         0           // LCEC - support for LCEC bitusage statistics
@@ -298,10 +297,6 @@ typedef struct _LFCUParam
   Bool bInternalEdge;                     ///< indicates internal edge
   Bool bLeftEdge;                         ///< indicates left edge
   Bool bTopEdge;                          ///< indicates top edge
-#if !TENTM_DEBLOCKING_FILTER
-  Bool bLumaEdgeFilter[2][4];             ///< array of luma edge decisions
-  Int  iBsEdgeSum[2][4];                  ///< array of Bs edge sum values
-#endif
 } LFCUParam;
 
 /// parapeters for TENTM coefficient VLC
