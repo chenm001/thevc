@@ -387,16 +387,6 @@ protected:
   UInt xGetMvpIdxBits             ( Int iIdx, Int iNum );
   Void xGetBlkBits                ( PartSize  eCUMode, Bool bPSlice, Int iPartIdx,  UInt uiLastMode, UInt uiBlkBit[3]);
 
-#if HHI_MRG_PU
-Void xMergeEstimation             ( TComDataCU*     pcCU,
-                                    TComYuv*        pcYuvOrg,
-                                    Int             iPartIdx,
-                                    Int*            piRefIdxPred,
-                                    TComMv*         pcMvTemp,
-                                    UInt&           uiInterDir,
-                                    UInt&           uiMergeIndex,
-                                    UInt&           ruiCost);
-#endif
   // -------------------------------------------------------------------------------------------------------------------
   // motion estimation
   // -------------------------------------------------------------------------------------------------------------------

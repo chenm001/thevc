@@ -47,7 +47,6 @@
 // HHI tools
 #define HHI_INTERP_FILTER                 1           ///< HL: interpolation filter
 #define HHI_MRG                           1           ///< SOPH: inter partition merging
-#define HHI_MRG_PU                        0           ///< SOPH: inter partition merging on pu basis
 #define HHI_AMVP_OFF                      0           ///< SOPH: Advanced Motion Vector Predictor deactivated [not in TMuC]
 #define HHI_RQT_FORCE_SPLIT_NxN           0           ///< MSHK: force split flags of residual quadtree for NxN PUs such that transform blocks are guaranteed to not span NxN PUs
 #define HHI_RQT_FORCE_SPLIT_RECT          0           ///< MSHK: force split flags of residual quadtree for rectangular PUs such that transform blocks are guaranteed to not span rectangular PUs
@@ -56,10 +55,6 @@
 
 #if HHI_RQT_INTRA_SPEEDUP_MOD && !HHI_RQT_INTRA_SPEEDUP
 #error
-#endif
-
-#if ( HHI_MRG_PU && !HHI_MRG )
-#error "HHI_MRG_PU can only be equal to 1 if HHI_MRG is equal to 1"
 #endif
 
 #if ( HHI_RQT_FORCE_SPLIT_NxN || HHI_RQT_FORCE_SPLIT_RECT)

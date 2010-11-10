@@ -212,7 +212,7 @@ Void TDecCu::xDecodeCU( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
     return;
   }
 
-#if HHI_MRG && !HHI_MRG_PU
+#if HHI_MRG
   m_pcEntropyDecoder->decodeMergeInfo( pcCU, uiAbsPartIdx, uiDepth, m_ppcCU[uiDepth] );
 #endif
   m_pcEntropyDecoder->decodePredMode( pcCU, uiAbsPartIdx, uiDepth );

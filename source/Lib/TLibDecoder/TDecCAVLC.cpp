@@ -431,7 +431,7 @@ Void TDecCavlc::parseSplitFlag     ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt u
 
 Void TDecCavlc::parsePartSize( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
 {
-#if HHI_MRG && !HHI_MRG_PU
+#if HHI_MRG
   if ( pcCU->getMergeFlag( uiAbsPartIdx ) )
   {
     return;
@@ -522,7 +522,7 @@ Void TDecCavlc::parsePartSize( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth
 
 Void TDecCavlc::parsePredMode( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
 {
-#if HHI_MRG && !HHI_MRG_PU
+#if HHI_MRG
   if ( pcCU->getMergeFlag( uiAbsPartIdx ) )
   {
     pcCU->setPredModeSubParts( MODE_INTER, uiAbsPartIdx, uiDepth );
@@ -1198,23 +1198,6 @@ Void TDecCavlc::parseAlfSvlc (Int&  riVal)
 
 
 #if HHI_MRG
-#if HHI_MRG_PU
-Void TDecCavlc::parseMergeFlag ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth, UInt uiPUIdx )
-{
-  UInt uiSymbol;
-  UInt uiCtxIdx = pcCU->getCtxMergeFlag( uiAbsPartIdx );
-  xReadFlag( uiSymbol );
-  pcCU->setMergeFlagSubParts( uiSymbol ? true : false, uiAbsPartIdx, uiPUIdx, uiDepth );
-}
-
-Void TDecCavlc::parseMergeIndex ( TComDataCU* pcCU, UInt& ruiMergeIndex, UInt uiAbsPartIdx, UInt uiDepth )
-{
-  UInt uiSymbol;
-  UInt uiCtxIdx = pcCU->getCtxMergeIndex( uiAbsPartIdx );
-  xReadFlag( uiSymbol );
-  ruiMergeIndex = uiSymbol;
-}
-#else
 Void TDecCavlc::parseMergeFlag ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
 {
   UInt uiSymbol;
@@ -1228,7 +1211,6 @@ Void TDecCavlc::parseMergeIndex ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDe
   xReadFlag( uiSymbol );
   pcCU->setMergeIndexSubParts( uiSymbol, uiAbsPartIdx, uiDepth );
 }
-#endif
 #endif
 
 // ====================================================================================================================

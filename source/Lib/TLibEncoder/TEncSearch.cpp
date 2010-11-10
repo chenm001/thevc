@@ -1118,7 +1118,7 @@ TEncSearch::xEncIntraHeader( TComDataCU*  pcCU,
       if( !pcCU->getSlice()->isIntra() )
       {
         m_pcEntropyCoder->encodeSkipFlag( pcCU, 0, true );
-#if HHI_MRG && !HHI_MRG_PU
+#if HHI_MRG
         m_pcEntropyCoder->encodeMergeInfo( pcCU, 0, true );
 #endif
         m_pcEntropyCoder->encodePredMode( pcCU, 0, true );
@@ -3024,148 +3024,6 @@ Void TEncSearch::predIntraChromaAdiSearch( TComDataCU* pcCU, TComYuv* pcOrgYuv, 
   pcCU->setCuCbfChroma( 0, uiChromaTrMode );
 }
 
-#if HHI_MRG_PU
-Void TEncSearch::xMergeEstimation( TComDataCU* pcCU, TComYuv* pcYuvOrg, Int iPartIdx, Int* piRefIdxPred, TComMv* pcMvTemp, UInt& uiInterDir, UInt& uiMergeIndex, UInt& ruiCost )
-{
-  UInt        uiNeighbourInfos = 0;
-  TComMvField  cMFieldNeighbours[4]; // 0: above ref_list 0, above ref list 1, left ref list 0, left ref list 1
-  UChar uhInterDirNeighbours[2];
-  uhInterDirNeighbours[0] = 0;
-  uhInterDirNeighbours[1] = 0;
-  
-  UInt uiCostTemp = MAX_UINT;
-  UInt uiBitsTemp = 0;
-  ruiCost = MAX_UINT;
-
-  Int iNumPredDir = pcCU->getSlice()->isInterP() ? 1 : 2;
-
-  UInt uiAbsPartIdx = 0;
-  Int iWidth = 0;
-  Int iHeight = 0;
-  pcCU->getPartIndexAndSize( iPartIdx, uiAbsPartIdx, iWidth, iHeight );
-  pcCU->getInterMergeCandidates( uiAbsPartIdx, cMFieldNeighbours, uhInterDirNeighbours, uiNeighbourInfos );
-
-  UInt uiNeighbourIdx = 0; // 0: top, 1: left
-  if ( uiNeighbourInfos == 2 )
-  {
-    // test left parameters first
-    uiNeighbourIdx = 1;
-  }
-
-  TComYuv cYuvPred;
-  cYuvPred.create( pcYuvOrg->getWidth(), pcYuvOrg->getHeight() );
-
-  while ( uiNeighbourInfos > 0 && uiNeighbourIdx < 2 )
-  {
-    uiCostTemp = MAX_UINT;    
-    uiBitsTemp = 0;
-
-    PartSize ePartSize = pcCU->getPartitionSize( 0 );
-
-    pcCU->getCUMvField(REF_PIC_LIST_0)->setAllMvField( cMFieldNeighbours[0 + 2*uiNeighbourIdx].getMv(), cMFieldNeighbours[0 + 2*uiNeighbourIdx].getRefIdx(), ePartSize, uiAbsPartIdx, iPartIdx, 0 );
-    pcCU->getCUMvField(REF_PIC_LIST_1)->setAllMvField( cMFieldNeighbours[1 + 2*uiNeighbourIdx].getMv(), cMFieldNeighbours[1 + 2*uiNeighbourIdx].getRefIdx(), ePartSize, uiAbsPartIdx, iPartIdx, 0 );
-
-    motionCompensation( pcCU, &cYuvPred, REF_PIC_LIST_X, iPartIdx );
-
-    // both blocks have the size of the CU but we only cycle over the current PU.
-    Pel* pOrgY = pcYuvOrg->getLumaAddr( uiAbsPartIdx );
-    Pel* pPredY = cYuvPred.getLumaAddr( uiAbsPartIdx );
-    UInt uiSAD = 0;
-    for ( UInt uiY = 0; uiY < iHeight; uiY++ )
-    {
-      for ( UInt uiX = 0; uiX < iWidth; uiX++ )
-      {
-        uiSAD += abs( pOrgY[uiX] - pPredY[uiX] );
-      }
-      pOrgY += pcYuvOrg->getStride();
-      pPredY += cYuvPred.getStride();
-    }
-
-    uiSAD >>= g_uiBitIncrement;
-
-    // Merge signalization
-    if ( uiNeighbourInfos == 3 )
-    {
-      uiBitsTemp = 2;
-    }
-    else
-    {
-      uiBitsTemp = 1;
-    }
-
-    m_pcRdCost->getMotionCost( 0, 0 ); // choose lambda;
-
-    uiCostTemp = (UInt)( floor(  (Double)uiSAD + (Double)m_pcRdCost->getCost( uiBitsTemp ) ) );
-
-
-    if ( iNumPredDir == 1 ) // P slice
-    {
-      if ( uiCostTemp < ruiCost )
-      {
-        ruiCost = uiCostTemp;
-        pcMvTemp[0]    = cMFieldNeighbours[0 + 2*uiNeighbourIdx].getMv();
-        piRefIdxPred[0] = cMFieldNeighbours[0 + 2*uiNeighbourIdx].getRefIdx();
-        uiInterDir = 1;
-        uiMergeIndex = uiNeighbourIdx;
-      }
-    }
-    else // B slice
-    {
-      // Ref List 0
-      if ( uhInterDirNeighbours[uiNeighbourIdx] == 1 )
-      {
-        if ( uiCostTemp < ruiCost )
-        {
-          ruiCost = uiCostTemp;
-          pcMvTemp[0]    = cMFieldNeighbours[0 + 2*uiNeighbourIdx].getMv();
-          piRefIdxPred[0] = cMFieldNeighbours[0 + 2*uiNeighbourIdx].getRefIdx();
-          uiInterDir = 1;
-          uiMergeIndex = uiNeighbourIdx;
-        }
-      }
-      // Ref List 1
-      else if ( uhInterDirNeighbours[uiNeighbourIdx] == 2 )
-      {
-        if ( uiCostTemp < ruiCost )
-        {
-          ruiCost = uiCostTemp;
-          pcMvTemp[1]    = cMFieldNeighbours[1 + 2*uiNeighbourIdx].getMv();
-          piRefIdxPred[1] = cMFieldNeighbours[1 + 2*uiNeighbourIdx].getRefIdx();
-          uiInterDir = 2;
-          uiMergeIndex = uiNeighbourIdx;
-        }
-      } 
-      // Both of the List 0&1
-      else 
-      {
-        if ( uiCostTemp < ruiCost )
-        {
-          ruiCost = uiCostTemp;
-          pcMvTemp[0]    = cMFieldNeighbours[0 + 2*uiNeighbourIdx].getMv();
-          pcMvTemp[1]    = cMFieldNeighbours[1 + 2*uiNeighbourIdx].getMv();
-          piRefIdxPred[0] = cMFieldNeighbours[0 + 2*uiNeighbourIdx].getRefIdx();
-          piRefIdxPred[1] = cMFieldNeighbours[1 + 2*uiNeighbourIdx].getRefIdx();
-          uiInterDir = 3;
-          uiMergeIndex = uiNeighbourIdx;
-        }
-      }
-    }
-    if ( uiNeighbourInfos != 3 )
-    {
-      // there is only one merge candidate
-      // only one candidate has to be tested.
-      break;
-    }
-    else
-    {
-      uiNeighbourIdx++;
-    }
-  }
-
-  cYuvPred.destroy();
-}
-#endif
-
 Void TEncSearch::predInterSearch( TComDataCU* pcCU, TComYuv* pcOrgYuv, TComYuv*& rpcPredYuv, TComYuv*& rpcResiYuv, TComYuv*& rpcRecoYuv, Bool bUseRes )
 {
   m_acYuvPred[0].clear();
@@ -3216,16 +3074,6 @@ Void TEncSearch::predInterSearch( TComDataCU* pcCU, TComYuv* pcOrgYuv, TComYuv*&
   
   PartSize      ePartSize = pcCU->getPartitionSize( 0 );
   
-#if HHI_MRG_PU
-  // Merge tools
-  UInt uiMergeInterDir = 0;
-  Int iMergeRefIdx[2];
-  TComMv cMergeMv[2];
-  Int iRefBestList= 0;
-  UInt uiMergeCost = MAX_UINT;
-  UInt uiMergeIndex = 0;
-#endif
-
   for ( Int iPartIdx = 0; iPartIdx < iNumPart; iPartIdx++ )
   {
     UInt          uiCost[2] = { MAX_UINT, MAX_UINT };
@@ -3437,87 +3285,6 @@ Void TEncSearch::predInterSearch( TComDataCU* pcCU, TComYuv* pcOrgYuv, TComYuv*&
       } // for loop-iter
     } // if (B_SLICE)
     
-#if HHI_MRG_PU
-    pcCU->setMergeFlagSubParts( false, uiPartAddr, iPartIdx, pcCU->getDepth(uiPartAddr));  
-    pcCU->setMergeIndexSubParts( 0, uiPartAddr, iPartIdx, pcCU->getDepth(uiPartAddr));
-
-    UInt uiBestCost = MAX_INT;
-    UInt uiMergeCost = MAX_INT;
-    if ( pcCU->getSlice()->getSPS()->getUseMRG() )
-    {
-      xMergeEstimation( pcCU, pcOrgYuv, iPartIdx, iMergeRefIdx, cMergeMv , uiMergeInterDir, uiMergeIndex, uiMergeCost );
-
-      if( pcCU->getSlice()->isInterP() )
-      {
-        if ( uiMergeCost < uiCost[0] )
-        {
-          uiCost[ 0 ] = uiMergeCost;
-          // set motion
-          cMv[0] = cMergeMv[0];
-          cMvPred[0][iMergeRefIdx[0]] = cMergeMv[0];
-          iRefIdx[0] = iMergeRefIdx[0];
-          
-          aaiMvpIdx[0][iRefIdx[0]] = 0;
-          aaiMvpNum[0][iRefIdx[0]] = 0;
-          
-          pcCU->setMergeFlagSubParts( true, uiPartAddr, iPartIdx, pcCU->getDepth(uiPartAddr));
-          pcCU->setMergeIndexSubParts( uiMergeIndex, uiPartAddr, iPartIdx, pcCU->getDepth(uiPartAddr));   
-        }
-      }
-      else // Slice B
-      {
-        if ( uiCostBi <= uiCost[0] && uiCostBi <= uiCost[1] )
-        {
-          uiBestCost = uiCostBi;
-        }
-        else if ( uiCost[0] <= uiCost[1] )
-        {
-          uiBestCost = uiCost[0];
-        }
-        else
-        {
-          uiBestCost = uiCost[1];
-        }
-        if ( uiMergeCost < uiBestCost )
-        {
-          if ( uiMergeInterDir == 3 )
-          {
-            uiCostBi = uiMergeCost;
-            // set motion
-            cMvBi[0]      = cMergeMv[0];
-            cMvPredBi[0][iMergeRefIdx[0]] = cMergeMv[0];
-            cMvBi[1]      = cMergeMv[1];
-            cMvPredBi[1][iMergeRefIdx[1]]  = cMergeMv[1];
-            iRefIdxBi[0] = iMergeRefIdx[0];
-            iRefIdxBi[1] = iMergeRefIdx[1];
-
-            aaiMvpIdxBi[0][iRefIdxBi[0]] = 0;
-            aaiMvpNum[0][iRefIdxBi[0]] = 0; 
-            aaiMvpIdxBi[1][iRefIdxBi[1]] = 0;
-            aaiMvpNum[1][iRefIdxBi[1]] = 0; 
-
-            pcCU->setMergeFlagSubParts( true, uiPartAddr, iPartIdx, pcCU->getDepth(uiPartAddr));
-            pcCU->setMergeIndexSubParts( uiMergeIndex, uiPartAddr, iPartIdx, pcCU->getDepth(uiPartAddr));   
-          } 
-          else
-          {
-            uiCost[ uiMergeInterDir-1 ] = uiMergeCost;
-            // set motion
-            cMv[uiMergeInterDir-1] = cMergeMv[uiMergeInterDir-1];
-            cMvPred[uiMergeInterDir-1][iMergeRefIdx[uiMergeInterDir-1]] = cMergeMv[uiMergeInterDir-1];
-            iRefIdx[uiMergeInterDir-1] = iMergeRefIdx[ uiMergeInterDir-1 ];
-            
-            aaiMvpIdx[uiMergeInterDir-1][iRefIdx[uiMergeInterDir-1]] = 0;
-            aaiMvpNum[uiMergeInterDir-1][iRefIdx[uiMergeInterDir-1]] = 0;
-
-            pcCU->setMergeFlagSubParts( true, uiPartAddr, iPartIdx, pcCU->getDepth(uiPartAddr));
-            pcCU->setMergeIndexSubParts( uiMergeIndex, uiPartAddr, iPartIdx, pcCU->getDepth(uiPartAddr));   
-          }
-        }
-      }
-    }
-#endif
-
     //  Clear Motion Field
     {
       pcCU->getCUMvField(REF_PIC_LIST_0)->setAllMvField( cMvZero, NOT_VALID, ePartSize, uiPartAddr, iPartIdx, 0 );
@@ -5537,7 +5304,7 @@ Void  TEncSearch::xAddSymbolBitsIntra( TComDataCU* pcCU, TCoeff* pCoeff, UInt ui
     if( !pcCU->getSlice()->isIntra() )
     {
       m_pcEntropyCoder->encodeSkipFlag( pcCU, 0, true );
-#if HHI_MRG && !HHI_MRG_PU
+#if HHI_MRG
       m_pcEntropyCoder->encodeMergeInfo( pcCU, 0, true );      
 #endif
       m_pcEntropyCoder->encodePredMode( pcCU, 0, true );
@@ -5600,7 +5367,7 @@ Void  TEncSearch::xAddSymbolBitsInter( TComDataCU* pcCU, UInt uiQp, UInt uiTrMod
   {
     m_pcEntropyCoder->resetBits();
     m_pcEntropyCoder->encodeSkipFlag ( pcCU, 0, true );
-#if HHI_MRG && !HHI_MRG_PU
+#if HHI_MRG
     m_pcEntropyCoder->encodeMergeInfo( pcCU, 0, true );
 #endif
     m_pcEntropyCoder->encodePredMode( pcCU, 0, true );

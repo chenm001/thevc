@@ -551,23 +551,6 @@ Void TDecSbac::parseSkipFlag( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth 
 }
 
 #if HHI_MRG
-#if HHI_MRG_PU
-Void TDecSbac::parseMergeFlag ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth, UInt uiPUIdx )
-{
-  UInt uiSymbol;
-  UInt uiCtxIdx = pcCU->getCtxMergeFlag( uiAbsPartIdx );
-  m_pcTDecBinIf->decodeBin( uiSymbol, m_cCUMergeFlagSCModel.get( 0, 0, uiCtxIdx ) );
-  pcCU->setMergeFlagSubParts( uiSymbol ? true : false, uiAbsPartIdx, uiPUIdx, uiDepth );
-}
-
-Void TDecSbac::parseMergeIndex ( TComDataCU* pcCU, UInt& ruiMergeIndex, UInt uiAbsPartIdx, UInt uiDepth )
-{
-  UInt uiSymbol;
-  UInt uiCtxIdx = pcCU->getCtxMergeIndex( uiAbsPartIdx );
-  m_pcTDecBinIf->decodeBin( uiSymbol, m_cCUMergeIndexSCModel.get( 0, 0, uiCtxIdx ) );
-  ruiMergeIndex = uiSymbol;
-}
-#else
 Void TDecSbac::parseMergeFlag ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
 {
   UInt uiSymbol;
@@ -581,7 +564,6 @@ Void TDecSbac::parseMergeIndex ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDep
   m_pcTDecBinIf->decodeBin( uiSymbol, m_cCUMergeIndexSCModel.get( 0, 0, pcCU->getCtxMergeIndex( uiAbsPartIdx ) ) );
   pcCU->setMergeIndexSubParts( uiSymbol, uiAbsPartIdx, uiDepth );
 }
-#endif
 #endif
 
 Void TDecSbac::parseMVPIdx      ( TComDataCU* pcCU, Int& riMVPIdx, Int iMVPNum, UInt uiAbsPartIdx, UInt uiDepth, RefPicList eRefList )
@@ -610,7 +592,7 @@ Void TDecSbac::parseSplitFlag     ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt ui
 
 Void TDecSbac::parsePartSize( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
 {
-#if HHI_MRG && !HHI_MRG_PU
+#if HHI_MRG
   if ( pcCU->getMergeFlag( uiAbsPartIdx ) )
   {
     return;
@@ -702,7 +684,7 @@ Void TDecSbac::parsePartSize( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth 
 
 Void TDecSbac::parsePredMode( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
 {
-#if HHI_MRG && !HHI_MRG_PU
+#if HHI_MRG
   if ( pcCU->getMergeFlag( uiAbsPartIdx ) )
   {
     pcCU->setPredModeSubParts( MODE_INTER, uiAbsPartIdx, uiDepth );
