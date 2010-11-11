@@ -37,7 +37,6 @@ OBJS          	= \
 			$(OBJ_DIR)/TComCABACTables.o \
 			$(OBJ_DIR)/TComAdaptiveLoopFilter.o \
 			$(OBJ_DIR)/TComBitStream.o \
-			$(OBJ_DIR)/TComBitBuffer.o \
 			$(OBJ_DIR)/TComDataCU.o \
 			$(OBJ_DIR)/TComLoopFilter.o \
 			$(OBJ_DIR)/TComMotionInfo.o \

@@ -11,8 +11,6 @@
 		671E0D4A11B6AD8C00F3747B /* ContextModel.h in Headers */ = {isa = PBXBuildFile; fileRef = 671E0D3911B6AD8C00F3747B /* ContextModel.h */; };
 		671E0D4B11B6AD8C00F3747B /* ContextModel3DBuffer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 671E0D3A11B6AD8C00F3747B /* ContextModel3DBuffer.cpp */; };
 		671E0D4C11B6AD8C00F3747B /* ContextModel3DBuffer.h in Headers */ = {isa = PBXBuildFile; fileRef = 671E0D3B11B6AD8C00F3747B /* ContextModel3DBuffer.h */; };
-		671E0D4D11B6AD8C00F3747B /* TComBitBuffer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 671E0D3C11B6AD8C00F3747B /* TComBitBuffer.cpp */; };
-		671E0D4E11B6AD8C00F3747B /* TComBitBuffer.h in Headers */ = {isa = PBXBuildFile; fileRef = 671E0D3D11B6AD8C00F3747B /* TComBitBuffer.h */; };
 		671E0D4F11B6AD8C00F3747B /* TComBitCounter.h in Headers */ = {isa = PBXBuildFile; fileRef = 671E0D3E11B6AD8C00F3747B /* TComBitCounter.h */; };
 		671E0D5011B6AD8C00F3747B /* TComCABACTables.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 671E0D3F11B6AD8C00F3747B /* TComCABACTables.cpp */; };
 		671E0D5111B6AD8C00F3747B /* TComCABACTables.h in Headers */ = {isa = PBXBuildFile; fileRef = 671E0D4011B6AD8C00F3747B /* TComCABACTables.h */; };
@@ -174,8 +172,6 @@
 		671E0D3911B6AD8C00F3747B /* ContextModel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ContextModel.h; path = source/Lib/TLibCommon/ContextModel.h; sourceTree = "<group>"; };
 		671E0D3A11B6AD8C00F3747B /* ContextModel3DBuffer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ContextModel3DBuffer.cpp; path = source/Lib/TLibCommon/ContextModel3DBuffer.cpp; sourceTree = "<group>"; };
 		671E0D3B11B6AD8C00F3747B /* ContextModel3DBuffer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ContextModel3DBuffer.h; path = source/Lib/TLibCommon/ContextModel3DBuffer.h; sourceTree = "<group>"; };
-		671E0D3C11B6AD8C00F3747B /* TComBitBuffer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = TComBitBuffer.cpp; path = source/Lib/TLibCommon/TComBitBuffer.cpp; sourceTree = "<group>"; };
-		671E0D3D11B6AD8C00F3747B /* TComBitBuffer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TComBitBuffer.h; path = source/Lib/TLibCommon/TComBitBuffer.h; sourceTree = "<group>"; };
 		671E0D3E11B6AD8C00F3747B /* TComBitCounter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TComBitCounter.h; path = source/Lib/TLibCommon/TComBitCounter.h; sourceTree = "<group>"; };
 		671E0D3F11B6AD8C00F3747B /* TComCABACTables.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = TComCABACTables.cpp; path = source/Lib/TLibCommon/TComCABACTables.cpp; sourceTree = "<group>"; };
 		671E0D4011B6AD8C00F3747B /* TComCABACTables.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TComCABACTables.h; path = source/Lib/TLibCommon/TComCABACTables.h; sourceTree = "<group>"; };
@@ -392,8 +388,6 @@
 				671E0D3911B6AD8C00F3747B /* ContextModel.h */,
 				671E0D3A11B6AD8C00F3747B /* ContextModel3DBuffer.cpp */,
 				671E0D3B11B6AD8C00F3747B /* ContextModel3DBuffer.h */,
-				671E0D3C11B6AD8C00F3747B /* TComBitBuffer.cpp */,
-				671E0D3D11B6AD8C00F3747B /* TComBitBuffer.h */,
 				671E0D3E11B6AD8C00F3747B /* TComBitCounter.h */,
 				671E0D3F11B6AD8C00F3747B /* TComCABACTables.cpp */,
 				671E0D4011B6AD8C00F3747B /* TComCABACTables.h */,
@@ -575,7 +569,6 @@
 				676795EE11AD61FC00421804 /* TypeDef.h in Headers */,
 				671E0D4A11B6AD8C00F3747B /* ContextModel.h in Headers */,
 				671E0D4C11B6AD8C00F3747B /* ContextModel3DBuffer.h in Headers */,
-				671E0D4E11B6AD8C00F3747B /* TComBitBuffer.h in Headers */,
 				671E0D4F11B6AD8C00F3747B /* TComBitCounter.h in Headers */,
 				671E0D5111B6AD8C00F3747B /* TComCABACTables.h in Headers */,
 				671E0D5211B6AD8C00F3747B /* TComMv.h in Headers */,
@@ -817,7 +810,6 @@
 				676795EC11AD61FC00421804 /* TComYuv.cpp in Sources */,
 				671E0D4911B6AD8C00F3747B /* ContextModel.cpp in Sources */,
 				671E0D4B11B6AD8C00F3747B /* ContextModel3DBuffer.cpp in Sources */,
-				671E0D4D11B6AD8C00F3747B /* TComBitBuffer.cpp in Sources */,
 				671E0D5011B6AD8C00F3747B /* TComCABACTables.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

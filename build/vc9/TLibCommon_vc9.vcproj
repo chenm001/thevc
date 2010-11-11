@@ -291,10 +291,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\source\Lib\TLibCommon\TComBitBuffer.cpp"
-				>
-			</File>
-			<File
 				RelativePath="..\..\source\Lib\TLibCommon\TComBitStream.cpp"
 				>
 			</File>
@@ -382,10 +378,6 @@
 			</File>
 			<File
 				RelativePath="..\..\source\Lib\TLibCommon\TComAdaptiveLoopFilter.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\source\Lib\TLibCommon\TComBitBuffer.h"
 				>
 			</File>
 			<File

@@ -692,13 +692,11 @@ Int TEncAdaptiveLoopFilter::xGauss(Double **a, Int N)
   Int i, j, k;
   Double t;
 
-#if ALF_FIX
   for(k=0; k<N; k++)
   {
     if (a[k][k] <0.000001)
         return 1;
   }
-#endif
 
   for(k=0; k<N-1; k++)
   {

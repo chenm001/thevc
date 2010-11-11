@@ -132,12 +132,6 @@
 #endif
 
 // ====================================================================================================================
-// Bug fixes
-// ====================================================================================================================
-
-#define ALF_FIX                     1           ///< very rarely ALF estimation makes divide-by-zero error
-
-// ====================================================================================================================
 // Coding tool configuration
 // ====================================================================================================================
 
@@ -166,16 +160,6 @@
 
 // IBDI range restriction for skipping clip
 #define IBDI_NOCLIP_RANGE           1           ///< restrict max. value after IBDI to skip clip
-
-// entropy coding
-#define PIPE_LOW_DELAY_OPTION       1           ///< enable/disable low-delay buffer control for PIPE
-#define NUM_V2V_CODERS              12          ///< number of V2V coders for PIPE
-
-// ALF: Adaptive Loop Filter
-#define ALF_MIN_LENGTH              3
-
-// VLC texture coding
-#define VLC_SIG_RUN                  1            ///< run-coding of sigmap
 
 // Early-skip threshold (encoder)
 #define EARLY_SKIP_THRES            1.50        ///< if RD < thres*avg[BestSkipRD]
