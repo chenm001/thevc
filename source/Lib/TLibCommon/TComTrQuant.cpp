@@ -1020,7 +1020,9 @@ Int TComTrQuant::bitCount_LCEC(Int k,Int pos,Int n,Int lpflag,Int levelMode,Int 
 
     k = abs(k);
     if (N != 4 && N!= 8)
-        printf("unsupported block size in bitCount_LCEC()");
+    {
+      FATAL_ERROR_0("unsupported block size in bitCount_LCEC()" , -1 );
+    }
     if (k){
         if (lpflag==1){                       
             x = pos + (k==1 ? 0 : N*N);
@@ -1028,7 +1030,8 @@ Int TComTrQuant::bitCount_LCEC(Int k,Int pos,Int n,Int lpflag,Int levelMode,Int 
                 cx = m_uiLPTableE8[n*128+x];
                 vlcNum = vlcTable8[n];
             }
-            else if(N==4){
+            else // (N==4)
+            {
                 cx = m_uiLPTableE4[n*32+x];
                 vlcNum = vlcTable4[n];
             }
@@ -1114,7 +1117,7 @@ Void TComTrQuant::xRateDistOptQuant_LCEC             ( TComDataCU*              
   Int iScanning,iQpRem,iBlockType,iRate;
   Int  iQBits      = m_cQP.m_iBits;
   Int64 lLevelDouble;
-  Double dErr,dTemp,dNormFactor,rd64UncodedCost,rd64CodedCost,dCurrCost;
+  Double dErr,dTemp=0,dNormFactor,rd64UncodedCost,rd64CodedCost,dCurrCost;
    
   uiBitShift = 15;
   iQpRem = m_cQP.m_iRem;

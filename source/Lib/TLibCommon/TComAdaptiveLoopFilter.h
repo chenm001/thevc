@@ -53,12 +53,6 @@
 
 #include "../TLibCommon/CommonDef.h"
 
-#define FATAL_ERROR_0(MESSAGE, EXITCODE)                                \
-          {                                                             \
-            printf(MESSAGE);                                            \
-            exit(EXITCODE);                                             \
-          }
-
 #define NUM_BITS               9
 #define NO_TEST_FILT           3       // Filter supports (5/7/9)
 #define NO_VAR_BINS           16 
