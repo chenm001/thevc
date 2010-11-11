@@ -272,12 +272,15 @@ Void TComPrediction::predIntraLumaAng(TComPattern* pcTComPattern, UInt uiDirMode
   Pel *pDst = piPred;
   Int *ptrSrc;
 
+// only assign variable in debug mode
+#ifndef NDEBUG
   // get intra direction
   Int iIntraSizeIdx = g_aucConvertToBit[ iWidth ] + 1;
 
   assert( iIntraSizeIdx >= 1 ); //   4x  4
   assert( iIntraSizeIdx <= 6 ); // 128x128
   assert( iWidth == iHeight  );
+#endif //NDEBUG
 
   ptrSrc = pcTComPattern->getAdiOrgBuf( iWidth, iHeight, m_piYuvExt );
 
