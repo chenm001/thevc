@@ -76,7 +76,6 @@
 #define NUM_MVP_IDX_CTX               2       ///< number of context models for MVP index
 
 #define NUM_ROT_IDX_CTX               3       ///< number of context models for ROT index
-#define NUM_CIP_FLAG_CTX              3       ///< number of context models for CIP flag
 #define NUM_ALF_FLAG_CTX              1       ///< number of context models for ALF flag
 #define NUM_ALF_UVLC_CTX              2       ///< number of context models for ALF UVLC (filter length)
 #define NUM_ALF_SVLC_CTX              3       ///< number of context models for ALF SVLC (filter coeff.)
@@ -934,21 +933,6 @@ static const Short
     {
       {  -16,   94 }, {   -5,   68 }, {  -17,   92 }
     }
-};
-
-// initial probability for CIP index
-static const Short
-INIT_CIP_IDX[3][NUM_CIP_FLAG_CTX][2] =
-{
-  {
-    {  -12,   46 }, {  -13,   60 }, {  -21,   80 }
-  },
-  {
-    {  -14,   67 }, {  -25,   93 }, {  -32,  106 }
-  },
-  {
-    {   -9,   68 }, {   -8,   71 }, {  -17,   79 }
-  }
 };
 
 // initial probability for ALF flag

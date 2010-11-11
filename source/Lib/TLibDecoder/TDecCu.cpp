@@ -245,15 +245,6 @@ Void TDecCu::xDecodeCU( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
 #endif
   }
 
-  // CIP flag
-#if HHI_ALLOW_CIP_SWITCH
-  if ( pcCU->isIntra( uiAbsPartIdx ) && pcCU->getSlice()->getSPS()->getUseCIP() )
-#else
-  if ( pcCU->isIntra( uiAbsPartIdx ) )
-#endif
-  {
-    m_pcEntropyDecoder->decodeCIPflag( pcCU, uiAbsPartIdx, uiDepth );
-  }
 }
 
 Void TDecCu::xDecompressCU( TComDataCU* pcCU, TComDataCU* pcCUCur, UInt uiAbsPartIdx,  UInt uiDepth )
@@ -359,26 +350,6 @@ Void TDecCu::xDecodeIntraTexture( TComDataCU* pcCU, UInt uiPartIdx, Pel* piReco,
     m_pcTrQuant->invtransformNxN( pResi, uiStride, pCoeff, uiWidth, uiHeight, indexROT );
 #endif
     // Reconstruction
-#if HHI_ALLOW_CIP_SWITCH
-    if ( pcCU->getSlice()->getSPS()->getUseCIP() && pcCU->getCIPflag( uiPartIdx ) )
-#else
-    if ( pcCU->getCIPflag( uiPartIdx ) )
-#endif
-    {
-      m_pcPrediction->recIntraLumaCIP( pcCU->getPattern(), piPred, piResi, piReco, uiStride, uiWidth, uiHeight, pcCU, bAboveAvail, bLeftAvail );
-
-      // update to picture
-      for( uiY = 0; uiY < uiHeight; uiY++ )
-      {
-        for( uiX = 0; uiX < uiWidth; uiX++ )
-        {
-          piPicReco[uiX] = piReco[uiX];
-        }
-        piReco += uiStride;
-        piPicReco += uiPicStride;
-      }
-    }
-    else
     {
       pResi = piResi;
       pPred = piPred;
@@ -567,22 +538,6 @@ TDecCu::xIntraRecLumaBlk( TComDataCU* pcCU,
   m_pcTrQuant->invtransformNxN( piResi, uiStride, pcCoeff, uiWidth, uiHeight, pcCU->getROTindex(0) );
 #endif
   //===== reconstruction =====
-  if( pcCU->getCIPflag( uiAbsPartIdx ) )
-  {
-    m_pcPrediction->recIntraLumaCIP( pcCU->getPattern(), piPred, piResi, piReco, uiStride, uiWidth, uiHeight, pcCU, bAboveAvail, bLeftAvail );
-    Pel* pReco      = piReco;
-    Pel* pRecIPred  = piRecIPred;
-    for( UInt uiY = 0; uiY < uiHeight; uiY++ )
-    {
-      for( UInt uiX = 0; uiX < uiWidth; uiX++ )
-      {
-        pRecIPred[ uiX ] = pReco[ uiX ];
-      }
-      pReco     += uiStride;
-      pRecIPred += uiRecIPredStride;
-    }
-  }
-  else
   {
     Pel* pPred      = piPred;
     Pel* pResi      = piResi;

@@ -78,7 +78,6 @@ TEncSbac::TEncSbac()
 
   , m_cMVPIdxSCModel          ( 1,             1,               NUM_MVP_IDX_CTX               )
   , m_cCUROTindexSCModel      ( 1,             1,               NUM_ROT_IDX_CTX               )
-  , m_cCUCIPflagCCModel       ( 1,             1,               NUM_CIP_FLAG_CTX              )
   , m_cALFFlagSCModel         ( 1,             1,               NUM_ALF_FLAG_CTX              )
   , m_cALFUvlcSCModel         ( 1,             1,               NUM_ALF_UVLC_CTX              )
   , m_cALFSvlcSCModel         ( 1,             1,               NUM_ALF_SVLC_CTX              )
@@ -134,7 +133,6 @@ Void TEncSbac::resetEntropy           ()
 
   m_cMVPIdxSCModel.initBuffer         ( eSliceType, iQp, (Short*)INIT_MVP_IDX );
   m_cCUROTindexSCModel.initBuffer     ( eSliceType, iQp, (Short*)INIT_ROT_IDX );
-  m_cCUCIPflagCCModel.initBuffer      ( eSliceType, iQp, (Short*)INIT_CIP_IDX );
 
   m_cALFFlagSCModel.initBuffer        ( eSliceType, iQp, (Short*)INIT_ALF_FLAG );
   m_cALFUvlcSCModel.initBuffer        ( eSliceType, iQp, (Short*)INIT_ALF_UVLC );
@@ -332,21 +330,8 @@ Void TEncSbac::xCopyFrom( TEncSbac* pSrc )
   this->m_cMVPIdxSCModel      .copyFrom( &pSrc->m_cMVPIdxSCModel        );
 
   this->m_cCUROTindexSCModel  .copyFrom( &pSrc->m_cCUROTindexSCModel    );
-  this->m_cCUCIPflagCCModel   .copyFrom( &pSrc->m_cCUCIPflagCCModel     );
   this->m_cCUXPosiSCModel     .copyFrom( &pSrc->m_cCUXPosiSCModel       );
   this->m_cCUYPosiSCModel     .copyFrom( &pSrc->m_cCUXPosiSCModel       );
-}
-
-// CIP
-Void TEncSbac::codeCIPflag( TComDataCU* pcCU, UInt uiAbsPartIdx, Bool bRD )
-{
-  if( bRD )
-    uiAbsPartIdx = 0;
-
-  Int CIPflag = pcCU->getCIPflag   ( uiAbsPartIdx );
-  Int iCtx    = pcCU->getCtxCIPFlag( uiAbsPartIdx );
-
-  m_pcBinIf->encodeBin( (CIPflag) ? 1 : 0, m_cCUCIPflagCCModel.get( 0, 0, iCtx ) );
 }
 
 Void TEncSbac::codeROTindex( TComDataCU* pcCU, UInt uiAbsPartIdx, Bool bRD )

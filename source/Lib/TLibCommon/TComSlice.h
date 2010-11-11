@@ -71,9 +71,6 @@ private:
   Bool        m_bUsePAD;
   Bool        m_bUseQBO;
   Int         m_iDIFTap;
-#if HHI_ALLOW_CIP_SWITCH
-	Bool        m_bUseCIP; // BB:
-#endif
   Bool				m_bUseROT; // BB:
 #if HHI_MRG
   Bool        m_bUseMRG; // SOPH:
@@ -136,9 +133,6 @@ public:
   Bool getUseLDC      ()         { return m_bUseLDC;        }
   Bool getUsePAD      ()         { return m_bUsePAD;        }
   Bool getUseQBO      ()         { return m_bUseQBO;        }
-#if HHI_ALLOW_CIP_SWITCH
-  Bool getUseCIP      ()         { return m_bUseCIP;        }	// BB:
-#endif
   Bool getUseROT			()				 { return m_bUseROT;				} // BB:
 #if HHI_MRG
   Bool getUseMRG      ()         { return m_bUseMRG;        } // SOPH:
@@ -151,9 +145,6 @@ public:
   Void setUseLDC      ( Bool b ) { m_bUseLDC   = b;         }
   Void setUsePAD      ( Bool b ) { m_bUsePAD   = b;         }
   Void setUseQBO      ( Bool b ) { m_bUseQBO   = b;         }
-#if HHI_ALLOW_CIP_SWITCH
-	Void setUseCIP      ( Bool b ) { m_bUseCIP   = b;         }	// BB:
-#endif
   Void setUseROT			( Bool b ) { m_bUseROT	 = b;					} // BB:
 #if HHI_MRG
   Void setUseMRG      ( Bool b ) { m_bUseMRG  = b;          } // SOPH:

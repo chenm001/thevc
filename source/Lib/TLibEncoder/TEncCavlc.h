@@ -77,7 +77,6 @@ protected:
 
 #if LCEC_STAT 
   UInt m_uiBitHLS;
-  UInt m_uiBitCIP;
   UInt m_uiBitindexROT;
   UInt m_uiBitMVPId;
   UInt m_uiBitPartSize;
@@ -222,7 +221,6 @@ public:
 
   Void codeCoeffNxN      ( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx, UInt uiWidth, UInt uiHeight, UInt uiDepth, TextType eTType, Bool bRD = false );
   Void codeROTindex( TComDataCU* pcCU, UInt uiAbsPartIdx, Bool bRD );
-  Void codeCIPflag ( TComDataCU* pcCU, UInt uiAbsPartIdx, Bool bRD );
 
   Void estBit             (estBitsSbacStruct* pcEstBitsSbac, UInt uiCTXIdx, TextType eTType);
 

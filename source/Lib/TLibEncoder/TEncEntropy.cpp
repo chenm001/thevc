@@ -864,18 +864,6 @@ Void TEncEntropy::encodeROTindex  ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt ui
   }
 }
 
-// CIP index
-Void TEncEntropy::encodeCIPflag( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth, Bool bRD )
-{
-  if( bRD )
-  uiAbsPartIdx = 0;
-
-  if ( pcCU->isIntra( uiAbsPartIdx ) )
-  {
-    m_pcEntropyCoderIf->codeCIPflag( pcCU, uiAbsPartIdx, bRD );
-  }
-}
-
 // Intra direction for Luma
 Void TEncEntropy::encodeIntraDirModeLuma  ( TComDataCU* pcCU, UInt uiAbsPartIdx )
 {

@@ -150,15 +150,6 @@
 #define AMVP_NEIGH_COL              1           ///< use of colocated MB in AMVP
 #define AMVP_MAX_NUM_CANDS          5           ///< max number of final candidates
 
-// CIP: combined intra prediction
-#define CIP_ADAPTIVE                1                                                       ///< adaptive use of CIP
-#define CIP_BITS                    5                                                       ///< CIP accuracy
-#define CIP_WEIGHT                  16                                                      ///< weighting factor of CIP
-#define CIP_MAX                     ( 1<<(CIP_BITS  ) )                                     ///< max value of CIP
-#define CIP_OFFSET                  ( 1<<(CIP_BITS-1) )                                     ///< rounding offset of CIP
-#define CIP_PRED(A, B, C)           (((A)*3 + (B)*3 + (C)*2 + 4)/8)                         ///< CIP weighting function
-#define CIP_WSUM(A, B, W)           (((A)*(W) + (CIP_MAX-(W))*(B) + CIP_OFFSET)>>CIP_BITS)  ///< weighted average of CIP
-
 // Reference memory management
 #define DYN_REF_FREE                0           ///< dynamic free of reference memories
 

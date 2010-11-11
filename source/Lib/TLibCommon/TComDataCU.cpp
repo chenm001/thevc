@@ -85,7 +85,6 @@ TComDataCU::TComDataCU()
   m_apiMVPNum[1]       = NULL;
 
   m_pROTindex          = NULL;
-  m_pCIPflag           = NULL;
 
   m_bDecSubCu          = false;
 }
@@ -129,7 +128,6 @@ Void TComDataCU::create(UInt uiNumPartition, UInt uiWidth, UInt uiHeight, Bool b
     m_puhCbf[2]          = (UChar* )xMalloc(UChar,  uiNumPartition);
 
     m_pROTindex          = (UChar* )xMalloc(UChar,  uiNumPartition);
-    m_pCIPflag           = (UChar* )xMalloc(UChar,  uiNumPartition);
 
     m_apiMVPIdx[0]       = (Int*   )xMalloc(Int,  uiNumPartition);
     m_apiMVPIdx[1]       = (Int*   )xMalloc(Int,  uiNumPartition);
@@ -196,7 +194,6 @@ Void TComDataCU::destroy()
     if ( m_pcTrCoeffCb        ) { xFree(m_pcTrCoeffCb);         m_pcTrCoeffCb       = NULL; }
     if ( m_pcTrCoeffCr        ) { xFree(m_pcTrCoeffCr);         m_pcTrCoeffCr       = NULL; }
     if ( m_pROTindex          ) { xFree(m_pROTindex);           m_pROTindex         = NULL; }
-    if ( m_pCIPflag           ) { xFree(m_pCIPflag);            m_pCIPflag          = NULL; }
     if ( m_apiMVPIdx[0]       ) { xFree(m_apiMVPIdx[0]);        m_apiMVPIdx[0]      = NULL; }
     if ( m_apiMVPIdx[1]       ) { xFree(m_apiMVPIdx[1]);        m_apiMVPIdx[1]      = NULL; }
     if ( m_apiMVPNum[0]       ) { xFree(m_apiMVPNum[0]);        m_apiMVPNum[0]      = NULL; }
@@ -274,7 +271,6 @@ Void TComDataCU::initCU( TComPic* pcPic, UInt iCUAddr )
   memset( m_puhHeight,         uhHeight, iSizeInUchar );
 
   memset( m_pROTindex,         0, iSizeInUchar );
-  memset( m_pCIPflag,          0, iSizeInUchar );
 
   for (UInt ui = 0; ui < m_uiNumPartition; ui++)
   {
@@ -366,7 +362,6 @@ Void TComDataCU::initEstData()
   memset( m_puhCbf[2],          0, iSizeInUchar );
 
   memset( m_pROTindex,         0, iSizeInUchar );
-  memset( m_pCIPflag,          0, iSizeInUchar );
 
   for (UInt ui = 0; ui < m_uiNumPartition; ui++)
   {
@@ -438,7 +433,6 @@ Void TComDataCU::initSubCU( TComDataCU* pcCU, UInt uiPartUnitIdx, UInt uiDepth )
   memset( m_puhHeight,         uhHeight, iSizeInUchar );
 
   memset( m_pROTindex,         0, iSizeInUchar );
-  memset( m_pCIPflag,          0, iSizeInUchar );
 
   for (UInt ui = 0; ui < m_uiNumPartition; ui++)
   {
@@ -516,7 +510,6 @@ Void TComDataCU::copySubCU( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
   m_apiMVPNum[1]=pcCU->getMVPNum(REF_PIC_LIST_1)  + uiPart;
 
   m_pROTindex= pcCU->getROTindex()                + uiPart;
-  m_pCIPflag=  pcCU->getCIPflag()                 + uiPart;
 
   m_pcCUAboveLeft      = pcCU->getCUAboveLeft();
   m_pcCUAboveRight     = pcCU->getCUAboveRight();
@@ -638,7 +631,6 @@ Void TComDataCU::copyPartFrom( TComDataCU* pcCU, UInt uiPartUnitIdx, UInt uiDept
   memcpy( m_puhHeight + uiOffset, pcCU->getHeight(), iSizeInUchar );
 
   memcpy( m_pROTindex  + uiOffset, pcCU->getROTindex(),  iSizeInUchar );
-  memcpy( m_pCIPflag   + uiOffset, pcCU->getCIPflag(),   iSizeInUchar );
 
   memcpy( m_apiMVPIdx[0] + uiOffset, pcCU->getMVPIdx(REF_PIC_LIST_0), iSizeInInt );
   memcpy( m_apiMVPIdx[1] + uiOffset, pcCU->getMVPIdx(REF_PIC_LIST_1), iSizeInInt );
@@ -707,7 +699,6 @@ Void TComDataCU::copyToPic( UChar uhDepth )
   memcpy( rpcCU->getHeight() + m_uiAbsIdxInLCU, m_puhHeight, iSizeInUchar );
 
   memcpy( rpcCU->getROTindex()  + m_uiAbsIdxInLCU, m_pROTindex,  iSizeInUchar );
-  memcpy( rpcCU->getCIPflag()   + m_uiAbsIdxInLCU, m_pCIPflag,   iSizeInUchar );
 
   memcpy( rpcCU->getMVPIdx(REF_PIC_LIST_0) + m_uiAbsIdxInLCU, m_apiMVPIdx[0], iSizeInInt );
   memcpy( rpcCU->getMVPIdx(REF_PIC_LIST_1) + m_uiAbsIdxInLCU, m_apiMVPIdx[1], iSizeInInt );
@@ -769,7 +760,6 @@ Void TComDataCU::copyToPic( UChar uhDepth, UInt uiPartIdx, UInt uiPartDepth )
   memcpy( rpcCU->getHeight() + uiPartOffset, m_puhHeight, iSizeInUchar );
 
   memcpy( rpcCU->getROTindex()  + uiPartOffset, m_pROTindex,  iSizeInUchar );
-  memcpy( rpcCU->getCIPflag()   + uiPartOffset, m_pCIPflag,   iSizeInUchar );
 
   memcpy( rpcCU->getMVPIdx(REF_PIC_LIST_0) + uiPartOffset, m_apiMVPIdx[0], iSizeInInt );
   memcpy( rpcCU->getMVPIdx(REF_PIC_LIST_1) + uiPartOffset, m_apiMVPIdx[1], iSizeInInt );
@@ -790,13 +780,6 @@ Void TComDataCU::copyToPic( UChar uhDepth, UInt uiPartIdx, UInt uiPartDepth )
 // --------------------------------------------------------------------------------------------------------------------
 // Other public functions
 // --------------------------------------------------------------------------------------------------------------------
-
-Void TComDataCU::setCIPflagSubParts( UChar CIPflag, UInt uiAbsPartIdx, UInt uiDepth )
-{
-  UInt uiCurrPartNumb = m_pcPic->getNumPartInCU() >> (uiDepth << 1);
-
-  memset( m_pCIPflag + uiAbsPartIdx, CIPflag, sizeof(UChar)*uiCurrPartNumb );
-}
 
 Void TComDataCU::setROTindexSubParts( UInt ROTindex, UInt uiAbsPartIdx, UInt uiDepth )
 {
@@ -1509,23 +1492,6 @@ UInt TComDataCU::getCtxMergeIndex( UInt uiAbsPartIdx )
   return uiCtx;
 }
 #endif
-
-UInt TComDataCU::getCtxCIPFlag( UInt uiAbsPartIdx )
-{
-  TComDataCU* pcTempCU;
-  UInt        uiTempPartIdx;
-  UInt        uiCtx;
-
-  // Get intra direction of left PU
-  pcTempCU = getPULeft( uiTempPartIdx, m_uiAbsIdxInLCU + uiAbsPartIdx );
-  uiCtx  = ( pcTempCU ) ? ( ( pcTempCU->isIntra( uiTempPartIdx ) && pcTempCU->getCIPflag( uiTempPartIdx ) > 0 ) ? 1 : 0 ) : 0;
-
-  // Get intra direction of above PU
-  pcTempCU = getPUAbove( uiTempPartIdx, m_uiAbsIdxInLCU + uiAbsPartIdx );
-  uiCtx += ( pcTempCU ) ? ( ( pcTempCU->isIntra( uiTempPartIdx ) && pcTempCU->getCIPflag( uiTempPartIdx ) > 0 ) ? 1 : 0 ) : 0;
-
-  return uiCtx;
-}
 
 UInt TComDataCU::getCtxPredMode( UInt uiAbsPartIdx )
 {

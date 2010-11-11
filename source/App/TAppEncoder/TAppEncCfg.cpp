@@ -189,9 +189,6 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
     ("LoopFilterBetaOffset", m_iLoopFilterBetaOffset, 0 )
 
     /* Coding tools */
-#if HHI_ALLOW_CIP_SWITCH
-    ("CIP", m_bUseCIP, true, "combined intra prediction")
-#endif
 #if HHI_MRG
     ("MRG", m_bUseMRG, true, "merging of motion partitions")
 #endif
@@ -495,9 +492,6 @@ Void TAppEncCfg::xPrintParameter()
   printf("GPB:%d ", m_bUseGPB             );
   printf("FEN:%d ", m_bUseFastEnc         );
   printf("RQT:%d ", 1     );
-#if HHI_ALLOW_CIP_SWITCH
-  printf("CIP:%d ", m_bUseCIP             );
-#endif
   printf("ROT:%d ", m_bUseROT             );
 #if HHI_MRG
   printf("MRG:%d ", m_bUseMRG             ); // SOPH: Merge Mode

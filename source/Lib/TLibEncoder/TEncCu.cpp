@@ -439,9 +439,6 @@ Void TEncCu::xCompressCU( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, UInt u
     rpcTempCU->setROTindex( 0, 0 );
     rpcTempCU->setROTindexSubParts( 0, 0, rpcTempCU->getDepth(0) );
 
-    rpcTempCU->setCIPflag ( 0, 0 );
-    rpcTempCU->setCIPflagSubParts ( 0, 0, rpcTempCU->getDepth(0) );
-
     // do normal intra modes
     if ( !bEarlySkip )
     {
@@ -470,28 +467,14 @@ Void TEncCu::xCompressCU( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, UInt u
     if ( rpcBestCU->getPredictionMode(0) == MODE_INTRA )
     {
       PartSize eSize = rpcBestCU->getPartitionSize(0);
-#if HHI_ALLOW_CIP_SWITCH
-      if ( rpcTempCU->getSlice()->getSPS()->getUseCIP() )
-#else
-      if (1)
-#endif
-      {
-        rpcTempCU->setCIPflag( 0, 1 );
-        rpcTempCU->setCIPflagSubParts( 1, 0, rpcTempCU->getDepth(0) );
-        xCheckRDCostIntra(rpcBestCU, rpcTempCU, eSize);  rpcTempCU->initEstData();
-      }
-
       // try ROT
       {
-        // try ROT without CIP
         if ( rpcTempCU->getSlice()->getSPS()->getUseROT() )
         {
           for (UChar indexROT = 1; indexROT<ROT_DICT; indexROT++)
           {
             rpcTempCU->setROTindex(0,indexROT);
             rpcTempCU->setROTindexSubParts( indexROT, 0, rpcTempCU->getDepth(0) );
-            rpcTempCU->setCIPflag( 0, 0 );
-            rpcTempCU->setCIPflagSubParts( 0, 0, rpcTempCU->getDepth(0) );
             xCheckRDCostIntra(rpcBestCU, rpcTempCU, eSize);  rpcTempCU->initEstData();
           }
         }
@@ -659,17 +642,6 @@ Void TEncCu::xEncodeCU( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
 #endif
     m_pcEntropyCoder->encodeROTindex( pcCU, uiAbsPartIdx, uiDepth );
   }
-
-
-  // CIP index
-#if HHI_ALLOW_CIP_SWITCH
-  if ( pcCU->isIntra( uiAbsPartIdx ) && pcCU->getSlice()->getSPS()->getUseCIP() )
-#else
-  if ( pcCU->isIntra( uiAbsPartIdx ) )
-#endif
-  {
-    m_pcEntropyCoder->encodeCIPflag( pcCU, uiAbsPartIdx, uiDepth );
-  }
 }
 
 Void TEncCu::xCheckRDCostSkip( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, Bool bSkipRes )
@@ -825,16 +797,6 @@ Void TEncCu::xCheckRDCostIntra( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, 
     if (rpcTempCU->getWidth (0) > 8)
 #endif
     m_pcEntropyCoder->encodeROTindex( rpcTempCU, 0, uiDepth );
-  }
-
-  // CIP index
-#if HHI_ALLOW_CIP_SWITCH
-  if ( rpcTempCU->isIntra( 0 ) && rpcTempCU->getSlice()->getSPS()->getUseCIP() )
-#else
-  if ( rpcTempCU->isIntra( 0 ) )
-#endif
-  {
-    m_pcEntropyCoder->encodeCIPflag( rpcTempCU, 0, uiDepth );
   }
 
   if( m_bUseSBACRD ) m_pcRDGoOnSbacCoder->store(m_pppcRDSbacCoder[uiDepth][CI_TEMP_BEST]);

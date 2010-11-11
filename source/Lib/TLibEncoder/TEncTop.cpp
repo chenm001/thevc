@@ -294,9 +294,6 @@ Void TEncTop::xInitSPS()
   m_cSPS.setUsePAD        ( m_bUsePAD           );
   m_cSPS.setUseQBO        ( m_bUseQBO           );
 
-#if HHI_ALLOW_CIP_SWITCH
-  m_cSPS.setUseCIP        ( m_bUseCIP           ); // BB:
-#endif
   m_cSPS.setUseROT        ( m_bUseROT           ); // BB:
 #if HHI_MRG
   m_cSPS.setUseMRG        ( m_bUseMRG           ); // SOPH:

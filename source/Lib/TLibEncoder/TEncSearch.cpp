@@ -799,9 +799,6 @@ Void TEncSearch::xRecurIntraChromaSearchADI( TComDataCU* pcCU, UInt uiAbsPartIdx
   }
 }
 
-// temp buffer for CIP
-static Pel iPredOL[ MAX_CU_SIZE*MAX_CU_SIZE ];
-
 Void TEncSearch::xRecurIntraLumaSearchADI( TComDataCU* pcCU, UInt uiAbsPartIdx, Pel* piOrg, Pel* piPred, Pel* piResi, Pel* piReco, UInt uiStride, TCoeff* piCoeff, UInt uiMode, UInt uiWidth, UInt uiHeight, UInt uiMaxDepth, UInt uiCurrDepth, Bool bAbove, Bool bLeft, Bool bSmallTrs)
 {
   UInt uiCoeffOffset = uiWidth*uiHeight;
@@ -834,25 +831,6 @@ Void TEncSearch::xRecurIntraLumaSearchADI( TComDataCU* pcCU, UInt uiAbsPartIdx, 
     
     predIntraLumaAng( pcCU->getPattern(), uiMode, piPred, uiStride, uiWidth, uiHeight, pcCU, bAboveAvail, bLeftAvail );
     
-    // CIP
-    if ( pcCU->getCIPflag( uiAbsPartIdx ) )
-    {
-      // Prediction
-      xPredIntraLumaNxNCIPEnc( pcCU->getPattern(), piOrg, piPred, uiStride, iPredOL, uiWidth, uiWidth, uiHeight, pcCU, bAboveAvail, bLeftAvail );
-      
-      // Get Residual
-      for( uiY = 0; uiY < uiHeight; uiY++ )
-      {
-        for( uiX = 0; uiX < uiWidth; uiX++ )
-        {
-          pResi[uiX] = pOrg[uiX] - CIP_WSUM( pPred[uiX], iPredOL[ uiX+uiY*uiWidth ], CIP_WEIGHT );
-        }
-        pOrg  += uiStride;
-        pResi += uiStride;
-        pPred += uiStride;
-      }
-    }
-    else
     {
       // Get Residual
       for( uiY = 0; uiY < uiHeight; uiY++ )
@@ -898,22 +876,6 @@ Void TEncSearch::xRecurIntraLumaSearchADI( TComDataCU* pcCU, UInt uiAbsPartIdx, 
     pResi = piResi;
     
     // Reconstruction
-    if ( pcCU->getCIPflag( uiAbsPartIdx ) )
-    {
-      recIntraLumaCIP( pcCU->getPattern(), piPred, piResi, piReco, uiStride, uiWidth, uiHeight, pcCU, bAboveAvail, bLeftAvail );
-      
-      // update to picture
-      for( uiY = 0; uiY < uiHeight; uiY++ )
-      {
-        for( uiX = 0; uiX < uiWidth; uiX++ )
-        {
-          pRecoPic[uiX] = pReco[uiX];
-        }
-        pReco += uiStride;
-        pRecoPic += uiReconStride;
-      }
-    }
-    else
     {
       for( uiY = 0; uiY < uiHeight; uiY++ )
       {
@@ -1264,30 +1226,6 @@ TEncSearch::xIntraCodingLumaBlk( TComDataCU* pcCU,
   predIntraLumaAng( pcCU->getPattern(), uiLumaPredMode, piPred, uiStride, uiWidth, uiHeight, pcCU, bAboveAvail, bLeftAvail );
     
   //===== get residual signal =====
-  if( pcCU->getCIPflag( uiAbsPartIdx ) )
-  {
-    // CIP
-    Pel aiPredOL[ MAX_CU_SIZE*MAX_CU_SIZE ];
-    xPredIntraLumaNxNCIPEnc( pcCU->getPattern(), piOrg, piPred, uiStride, aiPredOL, uiWidth, uiWidth, uiHeight, pcCU, bAboveAvail, bLeftAvail );
-    
-    // get residual
-    Pel*  pOrg    = piOrg;
-    Pel*  pPred   = piPred;
-    Pel*  pResi   = piResi;
-    Pel*  pPredOL = aiPredOL;
-    for( UInt uiY = 0; uiY < uiHeight; uiY++ )
-    {
-      for( UInt uiX = 0; uiX < uiWidth; uiX++ )
-      {
-        pResi[ uiX ] = pOrg[ uiX ] - CIP_WSUM( pPred[ uiX ], pPredOL[ uiX ], CIP_WEIGHT );
-      }
-      pOrg    += uiStride;
-      pPred   += uiStride;
-      pResi   += uiStride;
-      pPredOL += uiWidth;
-    }
-  }
-  else
   {
     // get residual
     Pel*  pOrg    = piOrg;
@@ -1343,26 +1281,6 @@ TEncSearch::xIntraCodingLumaBlk( TComDataCU* pcCU,
   }
   
   //===== reconstruction =====
-  if( pcCU->getCIPflag( uiAbsPartIdx ) )
-  {
-    recIntraLumaCIP( pcCU->getPattern(), piPred, piResi, piReco, uiStride, uiWidth, uiHeight, pcCU, bAboveAvail, bLeftAvail );
-    
-    Pel* pReco      = piReco;
-    Pel* pRecQt     = piRecQt;
-    Pel* pRecIPred  = piRecIPred;
-    for( UInt uiY = 0; uiY < uiHeight; uiY++ )
-    {
-      for( UInt uiX = 0; uiX < uiWidth; uiX++ )
-      {
-        pRecQt   [ uiX ] = pReco[ uiX ];
-        pRecIPred[ uiX ] = pReco[ uiX ];
-      }
-      pReco     += uiStride;
-      pRecQt    += uiRecQtStride;
-      pRecIPred += uiRecIPredStride;
-    }
-  }
-  else
   {
     Pel* pPred      = piPred;
     Pel* pResi      = piResi;
@@ -5539,122 +5457,3 @@ Void TEncSearch::xExtDIFUpSamplingQ_TEN   ( TComPattern* pcPatternKey, Pel* piDs
   }
 }
 #endif
-
-Void TEncSearch::xPredIntraLumaNxNCIPEnc( TComPattern* pcTComPattern, Pel* pOrig, Pel* pPredCL, UInt uiStride, Pel* pPred, UInt uiPredStride, Int iWidth, Int iHeight, TComDataCU* pcCU, Bool bAboveAvail, Bool bLeftAvail )
-{
-  Int*  ptrSrc;
-  Int   sw, iWidth2;
-  Int   x, y;
-  
-  // obtain source
-  ptrSrc  = pcTComPattern->getAdiOrgBuf( iWidth, iHeight, m_piYuvExt );
-  
-  // obtain source stride
-  iWidth2 = iWidth<<1;
-  sw = iWidth2+1;
-  ptrSrc += sw+1;
-  
-  // compute DC value for non-availability
-  Int  iDC  = 0;
-  Int  iCnt = 0;
-  
-  if ( !bAboveAvail && !bLeftAvail )
-  {
-    iDC = 128 << g_uiBitIncrement;
-  }
-  else
-    if ( !bAboveAvail )
-    {
-      for ( y=0; y<iHeight; y++ )
-      {
-        iDC  += ptrSrc[-1+y*sw];
-        iCnt ++;
-      }
-      iDC = ( iDC + iCnt/2 ) / iCnt;
-    }
-    else
-      if ( !bLeftAvail )
-      {
-        for ( x=0; x<iWidth; x++ )
-        {
-          iDC  += ptrSrc[x+(-1)*sw];
-          iCnt ++;
-        }
-        iDC = ( iDC + iCnt/2 ) / iCnt;
-      }
-      else
-      {
-        for ( y=0; y<iHeight; y++ )
-        {
-          iDC  += ptrSrc[-1+y*sw];
-          iCnt ++;
-        }
-        for ( x=0; x<iWidth; x++ )
-        {
-          iDC  += ptrSrc[x+(-1)*sw];
-          iCnt ++;
-        }
-        iDC = ( iDC + iCnt/2 ) / iCnt;
-      }
-  
-  // update prediction for left-top corner
-  if ( bAboveAvail && bLeftAvail )
-  {
-    pPred[ 0 ] = CIP_PRED( ptrSrc[-1], ptrSrc[-sw], ptrSrc[-1-sw] );
-  }
-  else
-    if ( bAboveAvail )
-    {
-      pPred[ 0 ] = CIP_PRED( iDC, ptrSrc[-sw], iDC );
-    }
-    else
-      if ( bLeftAvail )
-      {
-        pPred[ 0 ] = CIP_PRED( ptrSrc[-1], iDC, iDC );
-      }
-      else
-      {
-        pPred[ 0 ] = iDC;
-      }
-  
-  // update prediction for top side
-  if ( bAboveAvail )
-  {
-    for ( x=1; x<iWidth; x++ )
-    {
-      pPred[ x ] = CIP_PRED( pOrig[x-1], ptrSrc[x-sw], ptrSrc[x-1-sw] );
-    }
-  }
-  else
-  {
-    for ( x=1; x<iWidth; x++ )
-    {
-      pPred[ x ] = CIP_PRED( pOrig[x-1], iDC, iDC );
-    }
-  }
-  
-  // update prediction for left side
-  if ( bLeftAvail )
-  {
-    for ( y=1; y<iHeight; y++ )
-    {
-      pPred[ y*uiPredStride ] = CIP_PRED( ptrSrc[-1+y*sw], pOrig[(y-1)*uiStride], ptrSrc[-1+(y-1)*sw] );
-    }
-  }
-  else
-  {
-    for ( y=1; y<iHeight; y++ )
-    {
-      pPred[ y*uiPredStride ] = CIP_PRED( iDC, pOrig[(y-1)*uiStride], iDC );
-    }
-  }
-  
-  // update prediction for inner region
-  for ( y=1; y<iHeight; y++ )
-  {
-    for ( x=1; x<iWidth; x++ )
-    {
-      pPred[ x+y*uiPredStride ] = CIP_PRED( pOrig[ (x-1)+y*uiStride], pOrig[ x+(y-1)*uiStride ], pOrig[ (x-1)+(y-1)*uiStride ] );
-    }
-  }
-}

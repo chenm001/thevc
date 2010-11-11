@@ -220,7 +220,7 @@ public:
 protected:
 
   // -------------------------------------------------------------------------------------------------------------------
-  // Intra search (ADI & CIP)
+  // Intra search
   // -------------------------------------------------------------------------------------------------------------------
 
   Void  xEncSubdivCbfQT           ( TComDataCU*  pcCU,
@@ -323,18 +323,6 @@ protected:
                                     UInt        uiMaxDepth,
                                     UInt        uiCurrDepth,
                                     TextType    eText );
-
-  Void xPredIntraLumaNxNCIPEnc    ( TComPattern*  pcTComPattern,
-                                    Pel*          pOrig,
-                                    Pel*          pPredCL,
-                                    UInt          uiStride,
-                                    Pel*          pPred,
-                                    UInt          uiPredStride,
-                                    Int           iWidth,
-                                    Int           iHeight,
-                                    TComDataCU*   pcCU,
-                                    Bool          bAboveAvail,
-                                    Bool          bLeftAvail );
 
   // -------------------------------------------------------------------------------------------------------------------
   // Inter search (AMP)

@@ -106,9 +106,6 @@ Void TDecCavlc::parseSPS(TComSPS* pcSPS)
   xReadFlag( uiCode ); assert(uiCode==0); // TODO: was WPG
   xReadFlag( uiCode ); pcSPS->setUseLDC ( uiCode ? true : false );
   xReadFlag( uiCode ); pcSPS->setUseQBO ( uiCode ? true : false );
-#if HHI_ALLOW_CIP_SWITCH
-  xReadFlag( uiCode ); pcSPS->setUseCIP ( uiCode ? true : false ); // BB:
-#endif
   xReadFlag( uiCode ); pcSPS->setUseROT ( uiCode ? true : false ); // BB:
 #if HHI_MRG
   xReadFlag( uiCode ); pcSPS->setUseMRG ( uiCode ? true : false ); // SOPH:
@@ -256,14 +253,6 @@ Void TDecCavlc::parseTerminatingBit( UInt& ruiBit )
 #else
   xReadFlag( ruiBit );
 #endif
-}
-
-Void TDecCavlc::parseCIPflag( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
-{
-  UInt uiSymbol;
-
-  xReadFlag( uiSymbol );
-  pcCU->setCIPflagSubParts( (UChar)uiSymbol, uiAbsPartIdx, uiDepth );
 }
 
 Void TDecCavlc::parseROTindex  ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )

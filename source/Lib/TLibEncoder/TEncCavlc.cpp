@@ -51,7 +51,6 @@ TEncCavlc::TEncCavlc()
 
 #if LCEC_STAT
   m_uiBitHLS                 = 0;
-  m_uiBitCIP                 = 0;
   m_uiBitindexROT            = 0;
   m_uiBitMVPId               = 0;
   m_uiBitPartSize            = 0;
@@ -97,7 +96,6 @@ Void TEncCavlc::statistics(Bool bResetFlag, UInt uiPrintVar)
   if (bResetFlag)
   {
     m_uiBitHLS                 = 0;
-    m_uiBitCIP                 = 0;
     m_uiBitindexROT            = 0;
     m_uiBitMVPId               = 0;
     m_uiBitPartSize            = 0;
@@ -144,7 +142,6 @@ Void TEncCavlc::statistics(Bool bResetFlag, UInt uiPrintVar)
     UInt uiTotalBits = 0;
               
     /* Divide some of the variables by by number of passes */
-    m_uiBitCIP = m_uiBitCIP/NUM_PASSES;
     m_uiBitindexROT = m_uiBitindexROT/NUM_PASSES;
     m_uiBitMVPId = m_uiBitMVPId/NUM_PASSES;
     m_uiBitPartSize = m_uiBitPartSize/NUM_PASSES;
@@ -173,7 +170,6 @@ Void TEncCavlc::statistics(Bool bResetFlag, UInt uiPrintVar)
 
     /* Calculate total bit usage */
     uiTotalBits += m_uiBitHLS;           
-    uiTotalBits += m_uiBitCIP;
     uiTotalBits += m_uiBitindexROT;
     uiTotalBits += m_uiBitMVPId;
     uiTotalBits += m_uiBitPartSize;
@@ -213,7 +209,6 @@ Void TEncCavlc::statistics(Bool bResetFlag, UInt uiPrintVar)
     /* Printout statistics */
     printf("\n");
     printf("m_uiBitHLS =                 %12d %6.1f\n",m_uiBitHLS,100.0*(float)m_uiBitHLS/(float)uiTotalBits);
-    printf("m_uiBitCIP =                 %12d %6.1f\n",m_uiBitCIP,100.0*(float)m_uiBitCIP/(float)uiTotalBits);
     printf("m_uiBitindexROT =            %12d %6.1f\n",m_uiBitindexROT,100.0*(float)m_uiBitindexROT/(float)uiTotalBits);
     printf("m_uiBitMVPId =               %12d %6.1f\n",m_uiBitMVPId,100.0*(float)m_uiBitMVPId/(float)uiTotalBits);
     printf("m_uiBitPartSize =            %12d %6.1f\n",m_uiBitPartSize,100.0*(float)m_uiBitPartSize/(float)uiTotalBits);
@@ -358,10 +353,6 @@ Void TEncCavlc::codeSPS( TComSPS* pcSPS )
   xWriteFlag  ( (pcSPS->getUseLDC ()) ? 1 : 0 );
   xWriteFlag  ( (pcSPS->getUseQBO ()) ? 1 : 0 );
   m_uiBitHLS += 5;
-#if HHI_ALLOW_CIP_SWITCH
-  xWriteFlag  ( (pcSPS->getUseCIP ()) ? 1 : 0 ); // BB:
-  m_uiBitHLS += 1;
-#endif
   xWriteFlag	( (pcSPS->getUseROT ()) ? 1 : 0 ); // BB:
   m_uiBitHLS += 1;
 #if HHI_MRG
@@ -537,9 +528,6 @@ Void TEncCavlc::codeSPS( TComSPS* pcSPS )
   xWriteFlag  ( 0 ); // TODO: was WPG
   xWriteFlag  ( (pcSPS->getUseLDC ()) ? 1 : 0 );
   xWriteFlag  ( (pcSPS->getUseQBO ()) ? 1 : 0 );
-#if HHI_ALLOW_CIP_SWITCH
-  xWriteFlag  ( (pcSPS->getUseCIP ()) ? 1 : 0 ); // BB:
-#endif
 	xWriteFlag	( (pcSPS->getUseROT ()) ? 1 : 0 ); // BB:
 #if HHI_MRG
   xWriteFlag  ( (pcSPS->getUseMRG ()) ? 1 : 0 ); // SOPH:
@@ -640,20 +628,6 @@ Void TEncCavlc::codeSliceFinish ()
   }
 }
 #endif //LCEC_STAT
-// CIP
-Void TEncCavlc::codeCIPflag( TComDataCU* pcCU, UInt uiAbsPartIdx, Bool bRD )
-{
-  if( bRD )
-    uiAbsPartIdx = 0;
-
-  Int CIPflag = pcCU->getCIPflag   ( uiAbsPartIdx );
-
-  xWriteFlag( CIPflag );
-#if LCEC_STAT
-  if (m_bAdaptFlag)
-    m_uiBitCIP += 1;
-#endif
-}
 
 Void TEncCavlc::codeROTindex( TComDataCU* pcCU, UInt uiAbsPartIdx, Bool bRD )
 {

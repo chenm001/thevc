@@ -110,10 +110,6 @@ protected:
   // coding tools (entropy coder)
   Int       m_iSymbolMode;                                    ///< entropy coder mode, 0 = VLC, 1 = CABAC
 
-	// coding tools (intra)
-#if HHI_ALLOW_CIP_SWITCH
-	Bool			m_bUseCIP;																				///< flag for using combined intra prediction
-#endif  
 	// coding tools (transform)
 	Bool			m_bUseROT;																				///< flag for using rotational transform
 

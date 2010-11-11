@@ -70,7 +70,6 @@ TDecSbac::TDecSbac()
 
   , m_cMVPIdxSCModel          ( 1,             1,               NUM_MVP_IDX_CTX               )
   , m_cCUROTindexSCModel      ( 1,             1,               NUM_ROT_IDX_CTX               )
-  , m_cCUCIPflagCCModel       ( 1,             1,               NUM_CIP_FLAG_CTX              )
   , m_cALFFlagSCModel         ( 1,             1,               NUM_ALF_FLAG_CTX              )
   , m_cALFUvlcSCModel         ( 1,             1,               NUM_ALF_UVLC_CTX              )
   , m_cALFSvlcSCModel         ( 1,             1,               NUM_ALF_SVLC_CTX              )
@@ -125,7 +124,6 @@ Void TDecSbac::resetEntropy          (TComSlice* pcSlice)
 
   m_cMVPIdxSCModel.initBuffer         ( eSliceType, iQp, (Short*)INIT_MVP_IDX );
   m_cCUROTindexSCModel.initBuffer     ( eSliceType, iQp, (Short*)INIT_ROT_IDX );
-  m_cCUCIPflagCCModel.initBuffer      ( eSliceType, iQp, (Short*)INIT_CIP_IDX );
 
   m_cALFFlagSCModel.initBuffer        ( eSliceType, iQp, (Short*)INIT_ALF_FLAG );
   m_cALFUvlcSCModel.initBuffer        ( eSliceType, iQp, (Short*)INIT_ALF_UVLC );
@@ -139,15 +137,6 @@ Void TDecSbac::resetEntropy          (TComSlice* pcSlice)
   m_uiLastQp          = iQp;
 
   m_pcTDecBinIf->start();
-}
-
-Void TDecSbac::parseCIPflag( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
-{
-  UInt uiSymbol;
-  Int  iCtx = pcCU->getCtxCIPFlag( uiAbsPartIdx );
-
-  m_pcTDecBinIf->decodeBin( uiSymbol, m_cCUCIPflagCCModel.get( 0, 0, iCtx ) );
-  pcCU->setCIPflagSubParts( (UChar)uiSymbol, uiAbsPartIdx, uiDepth );
 }
 
 Void TDecSbac::parseROTindex  ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )

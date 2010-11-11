@@ -165,7 +165,6 @@ public:
 
   Void codeCoeffNxN      ( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx, UInt uiWidth, UInt uiHeight, UInt uiDepth, TextType eTType, Bool bRD = false );
   Void codeROTindex( TComDataCU* pcCU, UInt uiAbsPartIdx, Bool bRD );
-  Void codeCIPflag ( TComDataCU* pcCU, UInt uiAbsPartIdx, Bool bRD );
 
   // -------------------------------------------------------------------------------------------------------------------
   // for RD-optimizatioon
@@ -211,7 +210,6 @@ private:
   ContextModel3DBuffer m_cMVPIdxSCModel;
 
   ContextModel3DBuffer m_cCUROTindexSCModel;
-  ContextModel3DBuffer m_cCUCIPflagCCModel;
   ContextModel3DBuffer m_cALFFlagSCModel;
   ContextModel3DBuffer m_cALFUvlcSCModel;
   ContextModel3DBuffer m_cALFSvlcSCModel;

@@ -121,7 +121,6 @@ private:
   Int*          m_apiMVPIdx[2];       ///< array of motion vector predictor candidates
   Int*          m_apiMVPNum[2];       ///< array of number of possible motion vectors predictors
   UChar*        m_pROTindex;          ///< array of ROT indices
-  UChar*        m_pCIPflag;           ///< array of CIP flags
   UInt*         m_puiAlfCtrlFlag;     ///< array of ALF flags
   UInt*         m_puiTmpAlfCtrlFlag;  ///< temporal array of ALF flags
 
@@ -297,11 +296,6 @@ public:
   Void          copyAlfCtrlFlagToTmp  ();
   Void          copyAlfCtrlFlagFromTmp();
 
-  UChar*        getCIPflag            ()                        { return m_pCIPflag;                  }
-  UChar         getCIPflag            ( UInt uiIdx )            { return m_pCIPflag[uiIdx];           }
-  Void          setCIPflag            ( UInt uiIdx, UChar  uh ) { m_pCIPflag[uiIdx] = uh;             }
-  Void          setCIPflagSubParts    ( UChar CIPflag, UInt uiAbsPartIdx, UInt uiDepth );
-
   // -------------------------------------------------------------------------------------------------------------------
   // member functions for accessing partition information
   // -------------------------------------------------------------------------------------------------------------------
@@ -411,7 +405,6 @@ public:
   UInt          getCtxInterDir                  ( UInt   uiAbsPartIdx                                 );
   UInt          getCtxTransIdx                  ( UInt   uiAbsPartIdx                                 );
   UInt          getCtxIntraDirChroma            ( UInt   uiAbsPartIdx                                 );
-  UInt          getCtxCIPFlag                   ( UInt   uiAbsPartIdx                                 );
 
   // -------------------------------------------------------------------------------------------------------------------
   // member functions for RD cost storage

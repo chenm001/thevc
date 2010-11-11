@@ -377,14 +377,6 @@ Void TDecEntropy::decodeROTIdx( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDept
   pcCU->setROTindexSubParts( 0, uiAbsPartIdx, uiDepth );
 }
 
-Void TDecEntropy::decodeCIPflag( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
-{
-  if ( pcCU->isIntra( uiAbsPartIdx ) )
-  {
-    m_pcEntropyDecoderIf->parseCIPflag( pcCU, uiAbsPartIdx, uiDepth );
-  }
-}
-
 Void TDecEntropy::decodePredInfo    ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth, TComDataCU* pcSubCU )
 {
 #if HHI_MRG
