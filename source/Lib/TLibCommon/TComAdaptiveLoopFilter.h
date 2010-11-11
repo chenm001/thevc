@@ -103,36 +103,36 @@ protected:
 	// ------------------------------------------------------------------------------------------------------------------
 	// For luma component
 	// ------------------------------------------------------------------------------------------------------------------
-  static Int pattern9x9Sym[41];
-  static Int weights9x9Sym[22];
-  static Int pattern9x9Sym_Quart[42];
-  static Int pattern7x7Sym[25];
-  static Int weights7x7Sym[14];
-  static Int pattern7x7Sym_Quart[42];
-  static Int pattern5x5Sym[13];
-  static Int weights5x5Sym[8];
-  static Int pattern5x5Sym_Quart[45];
-  static Int pattern9x9Sym_9[41];
-  static Int pattern9x9Sym_7[25];
-  static Int pattern9x9Sym_5[13];
+  static Int m_pattern9x9Sym[41];
+  static Int m_weights9x9Sym[22];
+  static Int m_pattern9x9Sym_Quart[42];
+  static Int m_pattern7x7Sym[25];
+  static Int m_weights7x7Sym[14];
+  static Int m_pattern7x7Sym_Quart[42];
+  static Int m_pattern5x5Sym[13];
+  static Int m_weights5x5Sym[8];
+  static Int m_pattern5x5Sym_Quart[45];
+  static Int m_pattern9x9Sym_9[41];
+  static Int m_pattern9x9Sym_7[25];
+  static Int m_pattern9x9Sym_5[13];
 
-  static Int *patternTab_filt[NO_TEST_FILT];
-  static Int flTab[NO_TEST_FILT];
-  static Int *patternTab[NO_TEST_FILT]; 
-  static Int *patternMapTab[NO_TEST_FILT];
-  static Int *weightsTab[NO_TEST_FILT];
-  static Int sqrFiltLengthTab[NO_TEST_FILT];
+  static Int *m_patternTab_filt[NO_TEST_FILT];
+  static Int m_flTab[NO_TEST_FILT];
+  static Int *m_patternTab[NO_TEST_FILT]; 
+  static Int *m_patternMapTab[NO_TEST_FILT];
+  static Int *m_weightsTab[NO_TEST_FILT];
+  static Int m_sqrFiltLengthTab[NO_TEST_FILT];
 
-  Int img_height,img_width;
+  Int m_img_height,m_img_width;
 
-  imgpel **imgY_pad;
-  imgpel **imgY_var;
-  Int    **imgY_temp;
+  imgpel **m_imgY_pad;
+  imgpel **m_imgY_var;
+  Int    **m_imgY_temp;
 
-  Int **filterCoeffSym;
-  Int **filterCoeffPrevSelected;
-  Int **filterCoeffTmp;
-  Int **filterCoeffSymTmp;
+  Int **m_filterCoeffSym;
+  Int **m_filterCoeffPrevSelected;
+  Int **m_filterCoeffTmp;
+  Int **m_filterCoeffSymTmp;
 
 	/// ALF for luma component
   Void	xALFLuma_qc				( TComPic* pcPic, ALFParam* pcAlfParam, TComPicYuv* pcPicDec, TComPicYuv* pcPicRest );
@@ -153,7 +153,7 @@ protected:
   Void free_mem2Dpel(imgpel **array2D);
   Void get_mem2Dpel(imgpel ***array2D, int rows, int columns);
   Void no_mem_exit(const char *where);
-  Void error(const char *text, int code);
+  Void xError(const char *text, int code);
   Void calcVar(imgpel **imgY_var, imgpel *imgY_pad, int pad_size, int fl, int img_height, int img_width, int img_stride);
   Void DecFilter_qc(imgpel* imgY_rec,ALFParam* pcAlfParam, int Stride);
   Void xSubCUAdaptive_qc(TComDataCU* pcCU, ALFParam* pcAlfParam, imgpel *imgY_rec_post, imgpel *imgY_rec, UInt uiAbsPartIdx, UInt uiDepth, Int Stride);

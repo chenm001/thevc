@@ -80,30 +80,30 @@ private:
   UInt							m_uiSCUWidth;
   UInt							m_uiSCUHeight;
   
-  Int						varIndTab[NO_VAR_BINS];
-  double					***yGlobalSym;
-  double					****EGlobalSym;
-  double				    *pixAcc;
-  Int						**g_filterCoeffSymQuant;
-  imgpel                    **varImg;
-  imgpel					**maskImg;
-  Int						im_width;
-  Int						im_height;
-  ALFParam					*ALFp;
-  ALFParam					*tempALFp;
+  Int						m_varIndTab[NO_VAR_BINS];
+  double					***m_yGlobalSym;
+  double					****m_EGlobalSym;
+  double				    *m_pixAcc;
+  Int						**m_filterCoeffSymQuant;
+  imgpel                    **m_varImg;
+  imgpel					**m_maskImg;
+  Int						m_im_width;
+  Int						m_im_height;
+  ALFParam					*m_ALFp;
+  ALFParam					*m_tempALFp;
   TEncEntropy*				m_pcDummyEntropyCoder;
 
-  double **y_merged;
-  double ***E_merged;
-  double *pixAcc_merged;
-  double *y_temp;
-  double **E_temp;
+  double **m_y_merged;
+  double ***m_E_merged;
+  double *m_pixAcc_merged;
+  double *m_y_temp;
+  double **m_E_temp;
   
-  Int    *filterCoeffQuantMod;
-  double *filterCoeff;
-  Int *filterCoeffQuant;
-  Int **diffFilterCoeffQuant;
-  Int **FilterCoeffQuantTemp;
+  Int    *m_filterCoeffQuantMod;
+  double *m_filterCoeff;
+  Int *m_filterCoeffQuant;
+  Int **m_diffFilterCoeffQuant;
+  Int **m_FilterCoeffQuantTemp;
 
 private:
 	// init / uninit internal variables
