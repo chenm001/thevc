@@ -130,28 +130,24 @@ private:
   static Int xCTI_Filter_VP08     ( Pel* pSrc, Int* piCoeff, Int iStride );
   static Int xCTI_Filter_VP10     ( Pel* pSrc, Int* piCoeff, Int iStride );
   static Int xCTI_Filter_VP12     ( Pel* pSrc, Int* piCoeff, Int iStride );
-  static Int xCTI_Filter_VP14     ( Pel* pSrc, Int* piCoeff, Int iStride );
 
   static Int xCTI_Filter_VPS04    ( Pel* pSrc, Int* piCoeff, Int iStride );
   static Int xCTI_Filter_VPS06    ( Pel* pSrc, Int* piCoeff, Int iStride );
   static Int xCTI_Filter_VPS08    ( Pel* pSrc, Int* piCoeff, Int iStride );
   static Int xCTI_Filter_VPS10    ( Pel* pSrc, Int* piCoeff, Int iStride );
   static Int xCTI_Filter_VPS12    ( Pel* pSrc, Int* piCoeff, Int iStride );
-  static Int xCTI_Filter_VPS14    ( Pel* pSrc, Int* piCoeff, Int iStride );
 
   static Int xCTI_Filter_VI04     ( Int* pSrc, Int* piCoeff, Int iStride );
   static Int xCTI_Filter_VI06     ( Int* pSrc, Int* piCoeff, Int iStride );
   static Int xCTI_Filter_VI08     ( Int* pSrc, Int* piCoeff, Int iStride );
   static Int xCTI_Filter_VI10     ( Int* pSrc, Int* piCoeff, Int iStride );
   static Int xCTI_Filter_VI12     ( Int* pSrc, Int* piCoeff, Int iStride );
-  static Int xCTI_Filter_VI14     ( Int* pSrc, Int* piCoeff, Int iStride );
 
   static Int xCTI_Filter_VIS04    ( Int* pSrc, Int* piCoeff, Int iStride );
   static Int xCTI_Filter_VIS06    ( Int* pSrc, Int* piCoeff, Int iStride );
   static Int xCTI_Filter_VIS08    ( Int* pSrc, Int* piCoeff, Int iStride );
   static Int xCTI_Filter_VIS10    ( Int* pSrc, Int* piCoeff, Int iStride );
   static Int xCTI_Filter_VIS12    ( Int* pSrc, Int* piCoeff, Int iStride );
-  static Int xCTI_Filter_VIS14    ( Int* pSrc, Int* piCoeff, Int iStride );
 
   // multiplication-free implementation
   __inline Int xCTI_Filter_VPS06_HAL( Pel* pSrc, Int* piCoeff, Int iStride );

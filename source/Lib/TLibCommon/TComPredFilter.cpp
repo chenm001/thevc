@@ -227,25 +227,6 @@ Int TComPredFilter::xCTI_Filter_VP12( Pel* pSrc, Int* piCoeff, Int iStride )
   iSum += pSrc[iIdx]*piCoeff[11];
   return iSum;
 }
-Int TComPredFilter::xCTI_Filter_VP14( Pel* pSrc, Int* piCoeff, Int iStride )
-{
-  Int iSum, iIdx = 0;
-  iSum  = pSrc[0]*piCoeff[0];     iIdx+= iStride;
-  iSum += pSrc[iIdx]*piCoeff[1];  iIdx+= iStride;
-  iSum += pSrc[iIdx]*piCoeff[2];  iIdx+= iStride;
-  iSum += pSrc[iIdx]*piCoeff[3];  iIdx+= iStride;
-  iSum += pSrc[iIdx]*piCoeff[4];  iIdx+= iStride;
-  iSum += pSrc[iIdx]*piCoeff[5];  iIdx+= iStride;
-  iSum += pSrc[iIdx]*piCoeff[6];  iIdx+= iStride;
-  iSum += pSrc[iIdx]*piCoeff[7];  iIdx+= iStride;
-  iSum += pSrc[iIdx]*piCoeff[8];  iIdx+= iStride;
-  iSum += pSrc[iIdx]*piCoeff[9];  iIdx+= iStride;
-  iSum += pSrc[iIdx]*piCoeff[10]; iIdx+= iStride;
-  iSum += pSrc[iIdx]*piCoeff[11]; iIdx+= iStride;
-  iSum += pSrc[iIdx]*piCoeff[12]; iIdx+= iStride;
-  iSum += pSrc[iIdx]*piCoeff[13];
-  return iSum;
-}
 Int TComPredFilter::xCTI_Filter_VPS04( Pel* pSrc, Int* piCoeff, Int iStride )
 {
   Int iSum;
@@ -289,18 +270,6 @@ Int TComPredFilter::xCTI_Filter_VPS12( Pel* pSrc, Int* piCoeff, Int iStride )
   iSum += (pSrc[iStride*3]+pSrc[iStride* 8])*piCoeff[3];
   iSum += (pSrc[iStride*4]+pSrc[iStride* 7])*piCoeff[4];
   iSum += (pSrc[iStride*5]+pSrc[iStride* 6])*piCoeff[5];
-  return iSum;
-}
-Int TComPredFilter::xCTI_Filter_VPS14( Pel* pSrc, Int* piCoeff, Int iStride )
-{
-  Int iSum;
-  iSum  = (pSrc[        0]+pSrc[iStride*13])*piCoeff[0];
-  iSum += (pSrc[iStride*1]+pSrc[iStride*12])*piCoeff[1];
-  iSum += (pSrc[iStride*2]+pSrc[iStride*11])*piCoeff[2];
-  iSum += (pSrc[iStride*3]+pSrc[iStride*10])*piCoeff[3];
-  iSum += (pSrc[iStride*4]+pSrc[iStride* 9])*piCoeff[4];
-  iSum += (pSrc[iStride*5]+pSrc[iStride* 8])*piCoeff[5];
-  iSum += (pSrc[iStride*6]+pSrc[iStride* 7])*piCoeff[6];
   return iSum;
 }
 
@@ -370,25 +339,6 @@ Int TComPredFilter::xCTI_Filter_VI12( Int* pSrc, Int* piCoeff, Int iStride )
   iSum += pSrc[iIdx]*piCoeff[11];
   return iSum;
 }
-Int TComPredFilter::xCTI_Filter_VI14( Int* pSrc, Int* piCoeff, Int iStride )
-{
-  Int iSum, iIdx = 0;
-  iSum  = pSrc[0]*piCoeff[0];     iIdx+= iStride;
-  iSum += pSrc[iIdx]*piCoeff[1];  iIdx+= iStride;
-  iSum += pSrc[iIdx]*piCoeff[2];  iIdx+= iStride;
-  iSum += pSrc[iIdx]*piCoeff[3];  iIdx+= iStride;
-  iSum += pSrc[iIdx]*piCoeff[4];  iIdx+= iStride;
-  iSum += pSrc[iIdx]*piCoeff[5];  iIdx+= iStride;
-  iSum += pSrc[iIdx]*piCoeff[6];  iIdx+= iStride;
-  iSum += pSrc[iIdx]*piCoeff[7];  iIdx+= iStride;
-  iSum += pSrc[iIdx]*piCoeff[8];  iIdx+= iStride;
-  iSum += pSrc[iIdx]*piCoeff[9];  iIdx+= iStride;
-  iSum += pSrc[iIdx]*piCoeff[10]; iIdx+= iStride;
-  iSum += pSrc[iIdx]*piCoeff[11]; iIdx+= iStride;
-  iSum += pSrc[iIdx]*piCoeff[12]; iIdx+= iStride;
-  iSum += pSrc[iIdx]*piCoeff[13];
-  return iSum;
-}
 Int TComPredFilter::xCTI_Filter_VIS04( Int* pSrc, Int* piCoeff, Int iStride )
 {
   Int iSum;
@@ -432,18 +382,6 @@ Int TComPredFilter::xCTI_Filter_VIS12( Int* pSrc, Int* piCoeff, Int iStride )
   iSum += (pSrc[iStride*3]+pSrc[iStride* 8])*piCoeff[3];
   iSum += (pSrc[iStride*4]+pSrc[iStride* 7])*piCoeff[4];
   iSum += (pSrc[iStride*5]+pSrc[iStride* 6])*piCoeff[5];
-  return iSum;
-}
-Int TComPredFilter::xCTI_Filter_VIS14( Int* pSrc, Int* piCoeff, Int iStride )
-{
-  Int iSum;
-  iSum  = (pSrc[        0]+pSrc[iStride*13])*piCoeff[0];
-  iSum += (pSrc[iStride*1]+pSrc[iStride*12])*piCoeff[1];
-  iSum += (pSrc[iStride*2]+pSrc[iStride*11])*piCoeff[2];
-  iSum += (pSrc[iStride*3]+pSrc[iStride*10])*piCoeff[3];
-  iSum += (pSrc[iStride*4]+pSrc[iStride* 9])*piCoeff[4];
-  iSum += (pSrc[iStride*5]+pSrc[iStride* 8])*piCoeff[5];
-  iSum += (pSrc[iStride*6]+pSrc[iStride* 7])*piCoeff[6];
   return iSum;
 }
 
