@@ -520,8 +520,7 @@ protected:
                                     UInt          uiMaxTrMode,
                                     UInt          uiTrMode,
                                     TCoeff*&      rpcCoeff,
-                                    TextType      eType,
-                                    Int           indexROT = 0 );
+                                    TextType      eType );
 
 #if SAMSUNG_FAST_UDI
   UInt  xModeBitsIntra ( TComDataCU* pcCU, UInt uiMode, UInt uiPU, UInt uiPartOffset, UInt uiDepth, UInt uiInitTrDepth );

@@ -466,7 +466,6 @@ TComSPS::TComSPS()
   m_bUseALF       = false;
   m_bUseDQP       = false;
 
-  m_bUseROT				= false; // BB:
 #if HHI_MRG
   m_bUseMRG      = false; // SOPH:
 #endif

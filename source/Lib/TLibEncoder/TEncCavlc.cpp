@@ -51,7 +51,6 @@ TEncCavlc::TEncCavlc()
 
 #if LCEC_STAT
   m_uiBitHLS                 = 0;
-  m_uiBitindexROT            = 0;
   m_uiBitMVPId               = 0;
   m_uiBitPartSize            = 0;
   m_uiBitPredMode            = 0;
@@ -96,7 +95,6 @@ Void TEncCavlc::statistics(Bool bResetFlag, UInt uiPrintVar)
   if (bResetFlag)
   {
     m_uiBitHLS                 = 0;
-    m_uiBitindexROT            = 0;
     m_uiBitMVPId               = 0;
     m_uiBitPartSize            = 0;
     m_uiBitPredMode            = 0;
@@ -142,7 +140,6 @@ Void TEncCavlc::statistics(Bool bResetFlag, UInt uiPrintVar)
     UInt uiTotalBits = 0;
               
     /* Divide some of the variables by by number of passes */
-    m_uiBitindexROT = m_uiBitindexROT/NUM_PASSES;
     m_uiBitMVPId = m_uiBitMVPId/NUM_PASSES;
     m_uiBitPartSize = m_uiBitPartSize/NUM_PASSES;
     m_uiBitPredMode = m_uiBitPredMode/NUM_PASSES;    
@@ -170,7 +167,6 @@ Void TEncCavlc::statistics(Bool bResetFlag, UInt uiPrintVar)
 
     /* Calculate total bit usage */
     uiTotalBits += m_uiBitHLS;           
-    uiTotalBits += m_uiBitindexROT;
     uiTotalBits += m_uiBitMVPId;
     uiTotalBits += m_uiBitPartSize;
     uiTotalBits += m_uiBitPredMode;
@@ -209,7 +205,6 @@ Void TEncCavlc::statistics(Bool bResetFlag, UInt uiPrintVar)
     /* Printout statistics */
     printf("\n");
     printf("m_uiBitHLS =                 %12d %6.1f\n",m_uiBitHLS,100.0*(float)m_uiBitHLS/(float)uiTotalBits);
-    printf("m_uiBitindexROT =            %12d %6.1f\n",m_uiBitindexROT,100.0*(float)m_uiBitindexROT/(float)uiTotalBits);
     printf("m_uiBitMVPId =               %12d %6.1f\n",m_uiBitMVPId,100.0*(float)m_uiBitMVPId/(float)uiTotalBits);
     printf("m_uiBitPartSize =            %12d %6.1f\n",m_uiBitPartSize,100.0*(float)m_uiBitPartSize/(float)uiTotalBits);
     printf("m_uiBitPredMode =            %12d %6.1f\n",m_uiBitPredMode,100.0*(float)m_uiBitPredMode/(float)uiTotalBits);
@@ -353,8 +348,6 @@ Void TEncCavlc::codeSPS( TComSPS* pcSPS )
   xWriteFlag  ( (pcSPS->getUseLDC ()) ? 1 : 0 );
   xWriteFlag  ( (pcSPS->getUseQBO ()) ? 1 : 0 );
   m_uiBitHLS += 5;
-  xWriteFlag	( (pcSPS->getUseROT ()) ? 1 : 0 ); // BB:
-  m_uiBitHLS += 1;
 #if HHI_MRG
   xWriteFlag  ( (pcSPS->getUseMRG ()) ? 1 : 0 ); // SOPH:
   m_uiBitHLS += 1;
@@ -528,7 +521,6 @@ Void TEncCavlc::codeSPS( TComSPS* pcSPS )
   xWriteFlag  ( 0 ); // TODO: was WPG
   xWriteFlag  ( (pcSPS->getUseLDC ()) ? 1 : 0 );
   xWriteFlag  ( (pcSPS->getUseQBO ()) ? 1 : 0 );
-	xWriteFlag	( (pcSPS->getUseROT ()) ? 1 : 0 ); // BB:
 #if HHI_MRG
   xWriteFlag  ( (pcSPS->getUseMRG ()) ? 1 : 0 ); // SOPH:
 #endif
@@ -628,82 +620,6 @@ Void TEncCavlc::codeSliceFinish ()
   }
 }
 #endif //LCEC_STAT
-
-Void TEncCavlc::codeROTindex( TComDataCU* pcCU, UInt uiAbsPartIdx, Bool bRD )
-{
-  if( bRD )
-    uiAbsPartIdx = 0;
-
-  Int indexROT = pcCU->getROTindex( uiAbsPartIdx );
-  Int dictSize = ROT_DICT;
-
-  switch (dictSize)
-  {
-   case 9:
-    {
-      xWriteFlag( indexROT> 0 ? 0 : 1 );
-#if LCEC_STAT
-      if (m_bAdaptFlag)
-        m_uiBitindexROT += 1;
-#endif
-      if ( indexROT > 0 )
-      {
-        indexROT = indexROT-1;
-        xWriteFlag( ( indexROT & 0x01 )        );
-        xWriteFlag( ( indexROT & 0x02 )        );
-        xWriteFlag( ( indexROT & 0x04 ) >> 2  );
-#if LCEC_STAT
-        if (m_bAdaptFlag)
-          m_uiBitindexROT += 3;
-#endif
-      }
-    }
-    break;
-  case 4:
-    {
-      xWriteFlag( ( indexROT & 0x01 )        );
-      xWriteFlag( ( indexROT & 0x02 ) >> 1  );
-#if LCEC_STAT
-      if (m_bAdaptFlag)
-        m_uiBitindexROT += 2;
-#endif
-    }
-    break;
-  case 2:
-    {
-      xWriteFlag( ( indexROT> 0 ? 0 : 1 ) );
-#if LCEC_STAT
-      if (m_bAdaptFlag)
-        m_uiBitindexROT += 1;
-#endif
-    }
-    break;
-  case 5:
-    {
-      xWriteFlag( ( indexROT> 0 ? 0 : 1 ) );
-#if LCEC_STAT
-      if (m_bAdaptFlag)
-        m_uiBitindexROT += 1;
-#endif
-      if ( indexROT > 0 )
-      {
-        indexROT = indexROT-1;
-        xWriteFlag( ( indexROT & 0x01 )        );
-        xWriteFlag( ( indexROT & 0x02 ) >> 1  );
-#if LCEC_STAT
-      if (m_bAdaptFlag)
-        m_uiBitindexROT += 2;
-#endif
-      }
-    }
-    break;
-  case 1:
-    {
-    }
-    break;
-  }
-  return;
-}
 
 Void TEncCavlc::codeMVPIdx ( TComDataCU* pcCU, UInt uiAbsPartIdx, RefPicList eRefList )
 {

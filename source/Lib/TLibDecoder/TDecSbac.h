@@ -135,8 +135,6 @@ public:
 
   Void parseCoeffNxN      ( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx, UInt uiWidth, UInt uiHeight, UInt uiDepth, TextType eTType );
 
-  Void parseROTindex      ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
-
 private:
   UInt m_uiLastDQpNonZero;
   UInt m_uiLastQp;
@@ -171,8 +169,6 @@ private:
   ContextModel3DBuffer m_cCuCtxModCoeffLevelM1;
 
   ContextModel3DBuffer m_cMVPIdxSCModel;
-
-  ContextModel3DBuffer m_cCUROTindexSCModel;
 
   ContextModel3DBuffer m_cALFFlagSCModel;
   ContextModel3DBuffer m_cALFUvlcSCModel;

@@ -69,7 +69,6 @@ TDecSbac::TDecSbac()
   , m_cCuCtxModCoeffLevelM1   ( 1,             2,               NUM_COEFF_LEVEL_MINUS_ONE_CTX )
 
   , m_cMVPIdxSCModel          ( 1,             1,               NUM_MVP_IDX_CTX               )
-  , m_cCUROTindexSCModel      ( 1,             1,               NUM_ROT_IDX_CTX               )
   , m_cALFFlagSCModel         ( 1,             1,               NUM_ALF_FLAG_CTX              )
   , m_cALFUvlcSCModel         ( 1,             1,               NUM_ALF_UVLC_CTX              )
   , m_cALFSvlcSCModel         ( 1,             1,               NUM_ALF_SVLC_CTX              )
@@ -123,7 +122,6 @@ Void TDecSbac::resetEntropy          (TComSlice* pcSlice)
   m_cCuCtxModCoeffLevelM1.initBuffer  ( eSliceType, iQp, (Short*)INIT_COEFF_LEVEL_MINUS_ONE_FLAG );
 
   m_cMVPIdxSCModel.initBuffer         ( eSliceType, iQp, (Short*)INIT_MVP_IDX );
-  m_cCUROTindexSCModel.initBuffer     ( eSliceType, iQp, (Short*)INIT_ROT_IDX );
 
   m_cALFFlagSCModel.initBuffer        ( eSliceType, iQp, (Short*)INIT_ALF_FLAG );
   m_cALFUvlcSCModel.initBuffer        ( eSliceType, iQp, (Short*)INIT_ALF_UVLC );
@@ -138,67 +136,6 @@ Void TDecSbac::resetEntropy          (TComSlice* pcSlice)
 
   m_pcTDecBinIf->start();
 }
-
-Void TDecSbac::parseROTindex  ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
-{
-  UInt uiSymbol;
-  UInt indexROT = 0;
-  Int   dictSize  = ROT_DICT;
-
-  switch (dictSize)
-  {
-  case 9:
-    {
-      m_pcTDecBinIf->decodeBin( uiSymbol, m_cCUROTindexSCModel.get( 0, 0, 0) );
-      if ( !uiSymbol )
-      {
-        m_pcTDecBinIf->decodeBin( uiSymbol, m_cCUROTindexSCModel.get( 0, 0, 1 ) );
-        indexROT  = uiSymbol;
-        m_pcTDecBinIf->decodeBin( uiSymbol, m_cCUROTindexSCModel.get( 0, 0, 2 ) );
-        indexROT |= uiSymbol << 1;
-        m_pcTDecBinIf->decodeBin( uiSymbol, m_cCUROTindexSCModel.get( 0, 0, 2 ) );
-        indexROT |= uiSymbol << 2;
-        indexROT++;
-      }
-    }
-    break;
-  case 4:
-    {
-      m_pcTDecBinIf->decodeBin( uiSymbol, m_cCUROTindexSCModel.get( 0, 0, 0 ) );
-      indexROT  = uiSymbol;
-      m_pcTDecBinIf->decodeBin( uiSymbol, m_cCUROTindexSCModel.get( 0, 0, 1 ) );
-      indexROT |= uiSymbol << 1;
-    }
-    break;
-  case 2:
-    {
-      m_pcTDecBinIf->decodeBin( uiSymbol, m_cCUROTindexSCModel.get( 0, 0, 0) );
-      if ( !uiSymbol ) indexROT =1;
-    }
-    break;
-  case 5:
-    {
-      m_pcTDecBinIf->decodeBin( uiSymbol, m_cCUROTindexSCModel.get( 0, 0, 0) );
-      if ( !uiSymbol )
-      {
-        m_pcTDecBinIf->decodeBin( uiSymbol, m_cCUROTindexSCModel.get( 0, 0, 1 ) );
-        indexROT  = uiSymbol;
-        m_pcTDecBinIf->decodeBin( uiSymbol, m_cCUROTindexSCModel.get( 0, 0, 2 ) );
-        indexROT |= uiSymbol << 1;
-        indexROT++;
-      }
-    }
-    break;
-  case 1:
-    {
-    }
-    break;
-  }
-  pcCU->setROTindexSubParts( indexROT, uiAbsPartIdx, uiDepth );
-
-  return;
-}
-
 
 Void TDecSbac::parseTerminatingBit( UInt& ruiBit )
 {

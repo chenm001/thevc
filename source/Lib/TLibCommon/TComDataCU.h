@@ -120,7 +120,6 @@ private:
   UChar*        m_puhInterDir;        ///< array of inter directions
   Int*          m_apiMVPIdx[2];       ///< array of motion vector predictor candidates
   Int*          m_apiMVPNum[2];       ///< array of number of possible motion vectors predictors
-  UChar*        m_pROTindex;          ///< array of ROT indices
   UInt*         m_puiAlfCtrlFlag;     ///< array of ALF flags
   UInt*         m_puiTmpAlfCtrlFlag;  ///< temporal array of ALF flags
 
@@ -280,11 +279,6 @@ public:
   UChar         getInterDir           ( UInt uiIdx )            { return m_puhInterDir[uiIdx];        }
   Void          setInterDir           ( UInt uiIdx, UChar  uh ) { m_puhInterDir[uiIdx] = uh;          }
   Void          setInterDirSubParts   ( UInt uiDir,  UInt uiAbsPartIdx, UInt uiPartIdx, UInt uiDepth );
-
-  UChar*        getROTindex           ()                        { return m_pROTindex;                 }
-  UChar         getROTindex           ( UInt uiIdx )            { return m_pROTindex[uiIdx];          }
-  Void          setROTindex           ( UInt uiIdx, UChar  uh ) { m_pROTindex[uiIdx] = uh;            }
-  Void          setROTindexSubParts   ( UInt ROTindex, UInt uiAbsPartIdx, UInt uiDepth );
 
   UInt*         getAlfCtrlFlag        ()                        { return m_puiAlfCtrlFlag;            }
   UInt          getAlfCtrlFlag        ( UInt uiIdx )            { return m_puiAlfCtrlFlag[uiIdx];     }

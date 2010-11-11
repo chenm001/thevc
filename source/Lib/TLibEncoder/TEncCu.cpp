@@ -435,10 +435,6 @@ Void TEncCu::xCompressCU( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, UInt u
 
     }
 
-    // initialize special intra tools
-    rpcTempCU->setROTindex( 0, 0 );
-    rpcTempCU->setROTindexSubParts( 0, 0, rpcTempCU->getDepth(0) );
-
     // do normal intra modes
     if ( !bEarlySkip )
     {
@@ -461,24 +457,6 @@ Void TEncCu::xCompressCU( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, UInt u
     {
       xCheckRDCostIntra( rpcBestCU, rpcTempCU, SIZE_2Nx2N ); rpcTempCU->initEstData();
       xCheckRDCostIntra( rpcBestCU, rpcTempCU, SIZE_NxN   ); rpcTempCU->initEstData();
-    }
-
-    // try special intra tool only when best = intra
-    if ( rpcBestCU->getPredictionMode(0) == MODE_INTRA )
-    {
-      PartSize eSize = rpcBestCU->getPartitionSize(0);
-      // try ROT
-      {
-        if ( rpcTempCU->getSlice()->getSPS()->getUseROT() )
-        {
-          for (UChar indexROT = 1; indexROT<ROT_DICT; indexROT++)
-          {
-            rpcTempCU->setROTindex(0,indexROT);
-            rpcTempCU->setROTindexSubParts( indexROT, 0, rpcTempCU->getDepth(0) );
-            xCheckRDCostIntra(rpcBestCU, rpcTempCU, eSize);  rpcTempCU->initEstData();
-          }
-        }
-      }
     }
 
     m_pcEntropyCoder->resetBits();
@@ -634,14 +612,6 @@ Void TEncCu::xEncodeCU( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
 
   // Encode Coefficients
   m_pcEntropyCoder->encodeCoeff( pcCU, uiAbsPartIdx, uiDepth, pcCU->getWidth (uiAbsPartIdx), pcCU->getHeight(uiAbsPartIdx) );
-  // ROT index
-  if ( pcCU->getSlice()->getSPS()->getUseROT() )
-  {
-#if DISABLE_ROT_LUMA_4x4_8x8
-    if (pcCU->getWidth (uiAbsPartIdx) > 8)
-#endif
-    m_pcEntropyCoder->encodeROTindex( pcCU, uiAbsPartIdx, uiDepth );
-  }
 }
 
 Void TEncCu::xCheckRDCostSkip( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, Bool bSkipRes )
@@ -789,15 +759,6 @@ Void TEncCu::xCheckRDCostIntra( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, 
 
   // Encode Coefficients
   m_pcEntropyCoder->encodeCoeff( rpcTempCU, 0, uiDepth, rpcTempCU->getWidth (0), rpcTempCU->getHeight(0) );
-
-  // ROT index
-  if ( rpcTempCU->getSlice()->getSPS()->getUseROT() )
-  {
-#if DISABLE_ROT_LUMA_4x4_8x8
-    if (rpcTempCU->getWidth (0) > 8)
-#endif
-    m_pcEntropyCoder->encodeROTindex( rpcTempCU, 0, uiDepth );
-  }
 
   if( m_bUseSBACRD ) m_pcRDGoOnSbacCoder->store(m_pppcRDSbacCoder[uiDepth][CI_TEMP_BEST]);
 

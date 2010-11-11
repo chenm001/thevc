@@ -71,7 +71,6 @@ private:
   Bool        m_bUsePAD;
   Bool        m_bUseQBO;
   Int         m_iDIFTap;
-  Bool				m_bUseROT; // BB:
 #if HHI_MRG
   Bool        m_bUseMRG; // SOPH:
 #endif
@@ -133,7 +132,6 @@ public:
   Bool getUseLDC      ()         { return m_bUseLDC;        }
   Bool getUsePAD      ()         { return m_bUsePAD;        }
   Bool getUseQBO      ()         { return m_bUseQBO;        }
-  Bool getUseROT			()				 { return m_bUseROT;				} // BB:
 #if HHI_MRG
   Bool getUseMRG      ()         { return m_bUseMRG;        } // SOPH:
 #endif
@@ -145,7 +143,6 @@ public:
   Void setUseLDC      ( Bool b ) { m_bUseLDC   = b;         }
   Void setUsePAD      ( Bool b ) { m_bUsePAD   = b;         }
   Void setUseQBO      ( Bool b ) { m_bUseQBO   = b;         }
-  Void setUseROT			( Bool b ) { m_bUseROT	 = b;					} // BB:
 #if HHI_MRG
   Void setUseMRG      ( Bool b ) { m_bUseMRG  = b;          } // SOPH:
 #endif

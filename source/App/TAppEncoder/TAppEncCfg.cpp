@@ -192,7 +192,6 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
 #if HHI_MRG
     ("MRG", m_bUseMRG, true, "merging of motion partitions")
 #endif
-    ("ROT", m_bUseROT, true)
     ("ALF", m_bUseALF, true, "Adaptive Loop Filter")
 #if HHI_RMP_SWITCH
     ("RMP", m_bUseRMP ,true, "Rectangular motion partition" )
@@ -492,7 +491,6 @@ Void TAppEncCfg::xPrintParameter()
   printf("GPB:%d ", m_bUseGPB             );
   printf("FEN:%d ", m_bUseFastEnc         );
   printf("RQT:%d ", 1     );
-  printf("ROT:%d ", m_bUseROT             );
 #if HHI_MRG
   printf("MRG:%d ", m_bUseMRG             ); // SOPH: Merge Mode
 #endif

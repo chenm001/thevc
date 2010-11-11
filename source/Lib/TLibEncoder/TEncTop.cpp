@@ -151,7 +151,7 @@ Void TEncTop::init()
   m_pcCavlcCoder = getCavlcCoder();
   aTable8 = m_pcCavlcCoder->GetLP8Table();
   aTable4 = m_pcCavlcCoder->GetLP4Table();
-  m_cTrQuant.init( g_uiMaxCUWidth, g_uiMaxCUHeight, 1 << m_uiQuadtreeTULog2MaxSize, m_bUseROT, m_iSymbolMode, aTable4, aTable8, m_bUseRDOQ, true );
+  m_cTrQuant.init( g_uiMaxCUWidth, g_uiMaxCUHeight, 1 << m_uiQuadtreeTULog2MaxSize, m_iSymbolMode, aTable4, aTable8, m_bUseRDOQ, true );
 
   // initialize encoder search class
   m_cSearch.init( this, &m_cTrQuant, m_iSearchRange, m_iFastSearch, 0, &m_cEntropyCoder, &m_cRdCost, getRDSbacCoder(), getRDGoOnSbacCoder() );
@@ -294,7 +294,6 @@ Void TEncTop::xInitSPS()
   m_cSPS.setUsePAD        ( m_bUsePAD           );
   m_cSPS.setUseQBO        ( m_bUseQBO           );
 
-  m_cSPS.setUseROT        ( m_bUseROT           ); // BB:
 #if HHI_MRG
   m_cSPS.setUseMRG        ( m_bUseMRG           ); // SOPH:
 #endif

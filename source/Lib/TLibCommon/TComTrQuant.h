@@ -167,21 +167,14 @@ public:
   ~TComTrQuant();
 
   // initialize class
-  Void init                 ( UInt uiMaxWidth, UInt uiMaxHeight, UInt uiMaxTrSize, Bool bUseROT, Int iSymbolMode = 0, UInt *aTable4 = NULL, UInt *aTable8 = NULL, Bool bUseRDOQ = false,  Bool bEnc = false );
+  Void init                 ( UInt uiMaxWidth, UInt uiMaxHeight, UInt uiMaxTrSize, Int iSymbolMode = 0, UInt *aTable4 = NULL, UInt *aTable8 = NULL, Bool bUseRDOQ = false,  Bool bEnc = false );
 
   // transform & inverse transform functions
   Void transformNxN         ( TComDataCU* pcCU, Pel*   pcResidual, UInt uiStride, TCoeff*& rpcCoeff, UInt uiWidth, UInt uiHeight,
-                              UInt& uiAbsSum, TextType eTType, UInt uiAbsPartIdx, UChar indexROT = 0 );
-  Void invtransformNxN      ( Pel*& rpcResidual, UInt uiStride, TCoeff*   pcCoeff, UInt uiWidth, UInt uiHeight,
-                              UChar indexROT = 0 );
+                              UInt& uiAbsSum, TextType eTType, UInt uiAbsPartIdx );
+  Void invtransformNxN      ( Pel*& rpcResidual, UInt uiStride, TCoeff*   pcCoeff, UInt uiWidth, UInt uiHeight );
   Void invRecurTransformNxN ( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eTxt, Pel*& rpcResidual, UInt uiAddr,   UInt uiStride, UInt uiWidth, UInt uiHeight,
-                              UInt uiMaxTrMode,  UInt uiTrMode, TCoeff* rpcCoeff, Int indexROT = 0);
-
-  // ROT functions
-  Void RotTransform4I     ( Long* matrix, UChar index   );
-  Void InvRotTransform4I  ( Long* matrix, UChar index   );
-  Void RotTransformLI2      ( Long* matrix, UChar index, UInt uiWidth );
-  Void InvRotTransformLI2 ( Long* matrix, UChar index   );
+                              UInt uiMaxTrMode,  UInt uiTrMode, TCoeff* rpcCoeff );
 
   // Misc functions
   Void setQPforQuant( Int iQP, Bool bLowpass, SliceType eSliceType, TextType eTxtType);
@@ -207,7 +200,6 @@ protected:
   Double   m_dLambda;
 
   UInt     m_uiMaxTrSize;
-  Bool	   m_bUseROT;
   Bool     m_bEnc;
   Bool     m_bUseRDOQ;
 
@@ -225,11 +217,11 @@ private:
   Void xT32 ( Pel* pResidual, UInt uiStride, Long* plCoeff );
 
   // quantization
-  Void xQuant     ( TComDataCU* pcCU, Long* pSrc, TCoeff*& pDes, Int iWidth, Int iHeight, UInt& uiAcSum, TextType eTType, UInt uiAbsPartIdx, UChar indexROT );
-  Void xQuantLTR  ( TComDataCU* pcCU, Long* pSrc, TCoeff*& pDes, Int iWidth, Int iHeight, UInt& uiAcSum, TextType eTType, UInt uiAbsPartIdx, UChar indexROT );
-  Void xQuant2x2  ( Long* plSrcCoef, TCoeff*& pDstCoef, UInt& uiAbsSum, UChar indexROT );
-  Void xQuant4x4  ( TComDataCU* pcCU, Long* plSrcCoef, TCoeff*& pDstCoef, UInt& uiAbsSum, TextType eTType, UInt uiAbsPartIdx, UChar indexROT );
-  Void xQuant8x8  ( TComDataCU* pcCU, Long* plSrcCoef, TCoeff*& pDstCoef, UInt& uiAbsSum, TextType eTType, UInt uiAbsPartIdx, UChar indexROT );
+  Void xQuant     ( TComDataCU* pcCU, Long* pSrc, TCoeff*& pDes, Int iWidth, Int iHeight, UInt& uiAcSum, TextType eTType, UInt uiAbsPartIdx );
+  Void xQuantLTR  ( TComDataCU* pcCU, Long* pSrc, TCoeff*& pDes, Int iWidth, Int iHeight, UInt& uiAcSum, TextType eTType, UInt uiAbsPartIdx );
+  Void xQuant2x2  ( Long* plSrcCoef, TCoeff*& pDstCoef, UInt& uiAbsSum );
+  Void xQuant4x4  ( TComDataCU* pcCU, Long* plSrcCoef, TCoeff*& pDstCoef, UInt& uiAbsSum, TextType eTType, UInt uiAbsPartIdx );
+  Void xQuant8x8  ( TComDataCU* pcCU, Long* plSrcCoef, TCoeff*& pDstCoef, UInt& uiAbsSum, TextType eTType, UInt uiAbsPartIdx );
 
   // RDOQ functions
   Int            bitCount_LCEC(Int k,Int pos,Int n,Int lpflag,Int levelMode,Int run,Int maxrun,Int vlc_adaptive,Int N);
@@ -240,8 +232,7 @@ private:
                                         UInt                            uiHeight,
                                         UInt&                           uiAbsSum,
                                         TextType                        eTType,
-                                        UInt                            uiAbsPartIdx,
-                                        UChar                           ucIndexROT    );
+                                        UInt                            uiAbsPartIdx );
 
   Void           xRateDistOptQuant ( TComDataCU*                     pcCU,
                                     Long*                           plSrcCoeff,
@@ -250,8 +241,7 @@ private:
                                     UInt                            uiHeight,
                                     UInt&                           uiAbsSum,
                                     TextType                        eTType,
-                                    UInt                            uiAbsPartIdx,
-                                    UChar                           ucIndexROT    );
+                                    UInt                            uiAbsPartIdx );
   
   __inline UInt  xGetCodedLevel    ( Double&                         rd64UncodedCost,
                                      Double&                         rd64CodedCost,
@@ -263,7 +253,6 @@ private:
                                      UShort                          ui16CtxNumAbs,
                                      Int                             iQBits,
                                      Double                          dTemp,
-                                     UChar                           ucIndexROT,
                                      UShort                          ui16CtxBase   ) const;
   __inline Double xGetICRateCost   ( UInt                            uiAbsLevel,
                                      bool                            bLastScanPos,
@@ -279,11 +268,11 @@ private:
   __inline static Long  xTrRound ( Long i, UInt uiShift ) { return ((i)>>uiShift); }
 
   // dequantization
-  Void xDeQuant         ( TCoeff* pSrc,     Long*& pDes,       Int iWidth, Int iHeight, UChar indexROT );
-  Void xDeQuantLTR      ( TCoeff* pSrc,     Long*&  pDes,      Int iWidth, Int iHeight, UChar indexROT );
-  Void xDeQuant2x2      ( TCoeff* pSrcCoef, Long*& rplDstCoef, UChar indexROT );
-  Void xDeQuant4x4      ( TCoeff* pSrcCoef, Long*& rplDstCoef, UChar indexROT );
-  Void xDeQuant8x8      ( TCoeff* pSrcCoef, Long*& rplDstCoef, UChar indexROT );
+  Void xDeQuant         ( TCoeff* pSrc,     Long*& pDes,       Int iWidth, Int iHeight );
+  Void xDeQuantLTR      ( TCoeff* pSrc,     Long*&  pDes,      Int iWidth, Int iHeight );
+  Void xDeQuant2x2      ( TCoeff* pSrcCoef, Long*& rplDstCoef );
+  Void xDeQuant4x4      ( TCoeff* pSrcCoef, Long*& rplDstCoef );
+  Void xDeQuant8x8      ( TCoeff* pSrcCoef, Long*& rplDstCoef );
 
   // inverse transform
   Void xIT    ( Long* plCoef, Pel* pResidual, UInt uiStride, Int iSize );

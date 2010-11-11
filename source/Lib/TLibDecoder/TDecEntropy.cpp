@@ -361,22 +361,6 @@ Void TDecEntropy::decodePartSize( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDe
   m_pcEntropyDecoderIf->parsePartSize( pcCU, uiAbsPartIdx, uiDepth );
 }
 
-Void TDecEntropy::decodeROTIdx( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
-{
-  if (pcCU->getPredictionMode( uiAbsPartIdx )==MODE_INTRA)
-  {
-    if( ( pcCU->getCbf(uiAbsPartIdx, TEXT_LUMA) + pcCU->getCbf(uiAbsPartIdx, TEXT_CHROMA_U) + pcCU->getCbf(uiAbsPartIdx, TEXT_CHROMA_V) ) == 0 )
-    {
-      pcCU->setROTindexSubParts( 0, uiAbsPartIdx, uiDepth );
-      return;
-    }
-
-    m_pcEntropyDecoderIf->parseROTindex( pcCU, uiAbsPartIdx, uiDepth );
-    return;
-  }
-  pcCU->setROTindexSubParts( 0, uiAbsPartIdx, uiDepth );
-}
-
 Void TDecEntropy::decodePredInfo    ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth, TComDataCU* pcSubCU )
 {
 #if HHI_MRG

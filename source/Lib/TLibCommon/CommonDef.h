@@ -141,11 +141,6 @@
 // Coding tool configuration
 // ====================================================================================================================
 
-// ROT: rotational transform
-#define ROT_DICT                    5           ///< intra ROT dictionary size (1, 2, 4, 5, 9)
-#define ROT_DICT_INTER              1           ///< inter ROT dictionary size (1, 2, 4, 5, 9)
-#define ROT_TRY_NONZERO_CBP         1           ///< try ROT (in encoder) for non-zero cbp case only
-
 // AMVP: advanced motion vector prediction
 #define AMVP_NEIGH_COL              1           ///< use of colocated MB in AMVP
 #define AMVP_MAX_NUM_CANDS          5           ///< max number of final candidates

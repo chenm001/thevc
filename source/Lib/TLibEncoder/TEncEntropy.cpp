@@ -848,22 +848,6 @@ Void TEncEntropy::encodeTransformIdx( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt 
 #endif
 }
 
-// ROT index
-Void TEncEntropy::encodeROTindex  ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth, Bool bRD )
-{
-  if( bRD )
-    uiAbsPartIdx = 0;
-
-    if (pcCU->getPredictionMode( uiAbsPartIdx )==MODE_INTRA)
-    {
-      if( ( pcCU->getCbf(uiAbsPartIdx, TEXT_LUMA) + pcCU->getCbf(uiAbsPartIdx, TEXT_CHROMA_U) + pcCU->getCbf(uiAbsPartIdx, TEXT_CHROMA_V) ) == 0 )
-      {
-        return;
-      }
-      m_pcEntropyCoderIf->codeROTindex( pcCU, uiAbsPartIdx, bRD );
-  }
-}
-
 // Intra direction for Luma
 Void TEncEntropy::encodeIntraDirModeLuma  ( TComDataCU* pcCU, UInt uiAbsPartIdx )
 {

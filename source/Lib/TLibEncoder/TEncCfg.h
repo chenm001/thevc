@@ -106,7 +106,6 @@ protected:
   Bool      m_bUseNRF;
   Bool      m_bUseBQP;
   Bool      m_bUseFastEnc;
-  Bool      m_bUseROT; // BB:
 #if HHI_MRG
   Bool      m_bUseMRG; // SOPH:
 #endif
@@ -222,7 +221,6 @@ public:
   Void      setUseNRF                       ( Bool  b )     { m_bUseNRF     = b; }
   Void      setUseBQP                       ( Bool  b )     { m_bUseBQP     = b; }
   Void      setUseFastEnc                   ( Bool  b )     { m_bUseFastEnc = b; }
-  Void      setUseROT                       ( Bool  b )     { m_bUseROT	    = b; } // BB:
 #if HHI_MRG
   Void      setUseMRG                       ( Bool  b )     { m_bUseMRG     = b; } // SOPH:
 #endif
@@ -243,7 +241,6 @@ public:
   Bool      getUseNRF                       ()      { return m_bUseNRF;     }
   Bool      getUseBQP                       ()      { return m_bUseBQP;     }
   Bool      getUseFastEnc                   ()      { return m_bUseFastEnc; }
-	Bool      getUseROT                       ()      { return m_bUseROT;     } // BB:
 #if HHI_MRG
   Bool      getUseMRG                       ()      { return m_bUseMRG;     } // SOPH:
 #endif

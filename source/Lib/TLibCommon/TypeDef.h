@@ -91,8 +91,6 @@
 
 #define ENABLE_FORCECOEFF0  0
 
-#define DISABLE_ROT_LUMA_4x4_8x8           0
-
 /* Rounding control */
 #define ROUNDING_CONTROL_BIPRED ///< From JCTVC-B074
 #define TRANS_PRECISION_EXT     ///< From JCTVC-B074

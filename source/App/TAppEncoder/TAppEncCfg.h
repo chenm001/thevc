@@ -110,9 +110,6 @@ protected:
   // coding tools (entropy coder)
   Int       m_iSymbolMode;                                    ///< entropy coder mode, 0 = VLC, 1 = CABAC
 
-	// coding tools (transform)
-	Bool			m_bUseROT;																				///< flag for using rotational transform
-
 #if HHI_MRG
   // coding tools (inter - merge motion partitions)
   Bool      m_bUseMRG;                                        ///< SOPH: flag for using motion partition Merge Mode

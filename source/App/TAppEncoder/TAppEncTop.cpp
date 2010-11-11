@@ -110,7 +110,6 @@ Void TAppEncTop::xInitLibCfg()
   m_cTEncTop.setUseBQP                       ( m_bUseBQP      );
   m_cTEncTop.setDIFTap                       ( m_iDIFTap      );
   m_cTEncTop.setUseFastEnc                   ( m_bUseFastEnc  );
-	m_cTEncTop.setUseROT                       ( m_bUseROT			);
 #if HHI_MRG
   m_cTEncTop.setUseMRG                       ( m_bUseMRG      ); // SOPH:
 #endif

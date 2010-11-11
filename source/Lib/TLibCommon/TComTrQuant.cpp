@@ -45,15 +45,10 @@
 // ====================================================================================================================
 
 #define RDOQ_CHROMA                 1           ///< use of RDOQ in chroma
-#define RDOQ_ROT_IDX0_ONLY          0           ///< use of RDOQ with ROT
 
 #define DQ_BITS                     6
 #define Q_BITS_8                    16
 #define SIGN_BITS                   1
-
-#define INV_ROT_BITS                8                        ///< accuracy for inverse ROT process
-#define FWD_ROT_BITS                12                      ///< accuracy for forward ROT process
-#define ROT_OFF_SET_FWD              (1<<(FWD_ROT_BITS-1))    ///< pre-computed forward ROT offset
 
 // ====================================================================================================================
 // Tables
@@ -1107,8 +1102,7 @@ Void TComTrQuant::xRateDistOptQuant_LCEC             ( TComDataCU*              
                                                       UInt                            uiHeight,
                                                       UInt&                           uiAbsSum,
                                                       TextType                        eTType,
-                                                      UInt                            uiAbsPartIdx,
-                                                      UChar                           ucIndexROT    )
+                                                      UInt                            uiAbsPartIdx )
 {
   Int iLpFlag,iLevelMode,iRun,iMaxrun,iVlc_adaptive,iSum_big_coef,iSign;
   Int atable[5] = {4,6,14,28,0xfffffff};
@@ -1207,14 +1201,7 @@ Void TComTrQuant::xRateDistOptQuant_LCEC             ( TComDataCU*              
 
     lLevelDouble = abs(plSrcCoeff[uiBlkPos]);
     
-    if(m_bUseROT)
-    {
-      if(bExt8x8Flag)
-        if (ucIndexROT == 0 || uiPosX >=8 || uiPosY >= 8)
-          lLevelDouble = lLevelDouble * (Int64) ( uiWidth == 64? piQuantCoef[m_cQP.rem()]: piQuantCoef[uiBlkPos] );
-    }
-    else
-      lLevelDouble = lLevelDouble * (Int64) ( uiWidth == 64? piQuantCoef[m_cQP.rem()]: piQuantCoef[uiBlkPos] );
+    lLevelDouble = lLevelDouble * (Int64) ( uiWidth == 64? piQuantCoef[m_cQP.rem()]: piQuantCoef[uiBlkPos] );
 
     iSign = plSrcCoeff[uiBlkPos]<0 ? -1 : 1;
 
@@ -1274,7 +1261,7 @@ Void TComTrQuant::xRateDistOptQuant_LCEC             ( TComDataCU*              
 } 
 
 
-Void TComTrQuant::xQuantLTR  (TComDataCU* pcCU, Long* pSrc, TCoeff*& pDes, Int iWidth, Int iHeight, UInt& uiAcSum, TextType eTType, UInt uiAbsPartIdx, UChar indexROT )
+Void TComTrQuant::xQuantLTR  (TComDataCU* pcCU, Long* pSrc, TCoeff*& pDes, Int iWidth, Int iHeight, UInt& uiAcSum, TextType eTType, UInt uiAbsPartIdx )
 {
   Long*   piCoef    = pSrc;
   TCoeff* piQCoef   = pDes;
@@ -1287,19 +1274,19 @@ Void TComTrQuant::xQuantLTR  (TComDataCU* pcCU, Long* pSrc, TCoeff*& pDes, Int i
   case 2:
     {
       m_puiQuantMtx = &g_aiQuantCoef4[m_cQP.m_iRem];
-      xQuant2x2(piCoef, piQCoef, uiAcSum, indexROT );
+      xQuant2x2(piCoef, piQCoef, uiAcSum );
       return;
     }
   case 4:
     {
       m_puiQuantMtx = &g_aiQuantCoef[m_cQP.m_iRem][0];
-      xQuant4x4(pcCU, piCoef, piQCoef, uiAcSum, eTType, uiAbsPartIdx, indexROT );
+      xQuant4x4(pcCU, piCoef, piQCoef, uiAcSum, eTType, uiAbsPartIdx );
       return;
     }
   case 8:
     {
       m_puiQuantMtx = &g_aiQuantCoef64[m_cQP.m_iRem][0];
-      xQuant8x8(pcCU, piCoef, piQCoef, uiAcSum, eTType, uiAbsPartIdx, indexROT );
+      xQuant8x8(pcCU, piCoef, piQCoef, uiAcSum, eTType, uiAbsPartIdx );
       return;
     }
   case 16:
@@ -1321,34 +1308,12 @@ Void TComTrQuant::xQuantLTR  (TComDataCU* pcCU, Long* pSrc, TCoeff*& pDes, Int i
       break;
   }
 
-  if ( m_bUseROT && indexROT )
-  {
-    Int x, x2, y, y2, y3;
-    static Long ROT_DOMAIN[64];
-
-    for( y = 0, y2 = 0, y3 = 0; y < 8; y++, y2+=8, y3+=iWidth )
-    {
-      for(  x = 0, x2=y3; x < 8; x++, x2++ )
-      {
-        if ( iWidth == 64) ROT_DOMAIN[x+y2] = piCoef [x2] * piQuantCoef[m_cQP.rem()];
-        else               ROT_DOMAIN[x+y2] = piCoef [x2] * piQuantCoef[x2];
-      }
-    }
-
-    RotTransformLI2( ROT_DOMAIN, indexROT-1, iWidth );
-
-    for( y = 0, y2 = 0, y3 = 0; y < 8; y++, y2+=8, y3+=iWidth )
-    {
-      ::memcpy( piCoef+y3, ROT_DOMAIN+y2 , sizeof(Long)*8 );
-    }
-  }
-
-  if ( m_bUseRDOQ && (eTType == TEXT_LUMA || RDOQ_CHROMA) && (!RDOQ_ROT_IDX0_ONLY || indexROT == 0) )
+  if ( m_bUseRDOQ && (eTType == TEXT_LUMA || RDOQ_CHROMA) )
   {
     if ( m_iSymbolMode == 0)
-      xRateDistOptQuant_LCEC(pcCU, piCoef, pDes, iWidth, iHeight, uiAcSum, eTType, uiAbsPartIdx, indexROT );
+      xRateDistOptQuant_LCEC(pcCU, piCoef, pDes, iWidth, iHeight, uiAcSum, eTType, uiAbsPartIdx );
     else
-    xRateDistOptQuant( pcCU, piCoef, pDes, iWidth, iHeight, uiAcSum, eTType, uiAbsPartIdx, indexROT );
+      xRateDistOptQuant( pcCU, piCoef, pDes, iWidth, iHeight, uiAcSum, eTType, uiAbsPartIdx );
   }
   else
   {
@@ -1357,28 +1322,10 @@ Void TComTrQuant::xQuantLTR  (TComDataCU* pcCU, Long* pSrc, TCoeff*& pDes, Int i
     {
       Long iLevel;
       Int  iSign;
-      if ( m_bUseROT && indexROT )
-      {
-        iLevel  = (Long) piCoef[n];
-        iSign   = (iLevel < 0 ? -1: 1);
-
-        if ( ( n/iWidth ) < 8 && ( n%iWidth ) < 8 )
-        {
-          iLevel = abs( iLevel );
-        }
-        else
-        {
-          if ( iWidth == 64 ) iLevel = abs( iLevel ) * piQuantCoef[m_cQP.rem()];
-          else                iLevel = abs( iLevel ) * piQuantCoef[n];
-        }
-      }
-      else
-      {
-        iLevel  = (Long) piCoef[n];
-        iSign   = (iLevel < 0 ? -1: 1);
-        if ( iWidth == 64 ) iLevel = abs( iLevel ) * piQuantCoef[m_cQP.rem()];
-        else                iLevel = abs( iLevel ) * piQuantCoef[n];
-      }
+      iLevel  = (Long) piCoef[n];
+      iSign   = (iLevel < 0 ? -1: 1);
+      if ( iWidth == 64 ) iLevel = abs( iLevel ) * piQuantCoef[m_cQP.rem()];
+      else                iLevel = abs( iLevel ) * piQuantCoef[n];
 
 	    if (!pcCU->isIntra( uiAbsPartIdx ) && (m_iSymbolMode == 0) && ((n%iWidth)>=8 || (n/iWidth)>=8))
 		    iLevel = 0;
@@ -1417,7 +1364,7 @@ Void TComTrQuant::xQuantLTR  (TComDataCU* pcCU, Long* pSrc, TCoeff*& pDes, Int i
   }
 }
 
-Void TComTrQuant::xDeQuantLTR( TCoeff* pSrc, Long*& pDes, Int iWidth, Int iHeight, UChar indexROT )
+Void TComTrQuant::xDeQuantLTR( TCoeff* pSrc, Long*& pDes, Int iWidth, Int iHeight )
 {
   UInt* piDeQuantCoef = NULL;
 
@@ -1434,17 +1381,17 @@ Void TComTrQuant::xDeQuantLTR( TCoeff* pSrc, Long*& pDes, Int iWidth, Int iHeigh
   {
   case 2:
     {
-      xDeQuant2x2( piQCoef, piCoef, indexROT );
+      xDeQuant2x2( piQCoef, piCoef );
       return;
     }
   case 4:
     {
-      xDeQuant4x4( piQCoef, piCoef, indexROT );
+      xDeQuant4x4( piQCoef, piCoef );
       return;
     }
   case 8:
     {
-      xDeQuant8x8( piQCoef, piCoef, indexROT );
+      xDeQuant8x8( piQCoef, piCoef );
       return;
     }
   case 16:
@@ -1480,24 +1427,6 @@ Void TComTrQuant::xDeQuantLTR( TCoeff* pSrc, Long*& pDes, Int iWidth, Int iHeigh
     else
     {
       piCoef [n] = 0;
-    }
-  }
-
-  if ( m_bUseROT && indexROT )
-  {
-    Int y,y2, y3;
-    static Long ROT_DOMAIN[64];
-
-    for( y = 0, y2 = 0, y3 = 0; y < 8; y++, y2+=8, y3+=iWidth )
-    {
-      ::memcpy( ROT_DOMAIN+y2, piCoef+y3, sizeof(Long)*8 );
-    }
-
-    InvRotTransformLI2(ROT_DOMAIN, indexROT-1 );
-
-    for( y = 0, y2 = 0, y3 = 0; y < 8; y++, y2+=8, y3+=iWidth )
-    {
-      ::memcpy( piCoef+y3, ROT_DOMAIN+y2 , sizeof(Long)*8 );
     }
   }
 }
@@ -2330,12 +2259,11 @@ Void TComTrQuant::xIT32( Long* pSrc, Pel* pDes, UInt uiStride )
   }
 }
 
-Void TComTrQuant::init( UInt uiMaxWidth, UInt uiMaxHeight, UInt uiMaxTrSize, Bool bUseROT, Int iSymbolMode, UInt *aTableLP4, UInt *aTableLP8, Bool bUseRDOQ,  Bool bEnc )
+Void TComTrQuant::init( UInt uiMaxWidth, UInt uiMaxHeight, UInt uiMaxTrSize, Int iSymbolMode, UInt *aTableLP4, UInt *aTableLP8, Bool bUseRDOQ,  Bool bEnc )
 {
   m_uiMaxTrSize  = uiMaxTrSize;
   m_bEnc         = bEnc;
   m_bUseRDOQ     = bUseRDOQ;
-  m_bUseROT			 = bUseROT;
   m_uiLPTableE8 = aTableLP8;
   m_uiLPTableE4 = aTableLP4;
   m_iSymbolMode = iSymbolMode;
@@ -2346,29 +2274,29 @@ Void TComTrQuant::init( UInt uiMaxWidth, UInt uiMaxHeight, UInt uiMaxTrSize, Boo
   }
 }
 
-Void TComTrQuant::xQuant( TComDataCU* pcCU, Long* pSrc, TCoeff*& pDes, Int iWidth, Int iHeight, UInt& uiAcSum, TextType eTType, UInt uiAbsPartIdx, UChar indexROT )
+Void TComTrQuant::xQuant( TComDataCU* pcCU, Long* pSrc, TCoeff*& pDes, Int iWidth, Int iHeight, UInt& uiAcSum, TextType eTType, UInt uiAbsPartIdx )
 {
-  xQuantLTR(pcCU, pSrc, pDes, iWidth, iHeight, uiAcSum, eTType, uiAbsPartIdx, indexROT );
+  xQuantLTR(pcCU, pSrc, pDes, iWidth, iHeight, uiAcSum, eTType, uiAbsPartIdx );
 }
 
-Void TComTrQuant::xDeQuant( TCoeff* pSrc, Long*& pDes, Int iWidth, Int iHeight, UChar indexROT )
+Void TComTrQuant::xDeQuant( TCoeff* pSrc, Long*& pDes, Int iWidth, Int iHeight )
 {
-  xDeQuantLTR( pSrc, pDes, iWidth, iHeight, indexROT );
+  xDeQuantLTR( pSrc, pDes, iWidth, iHeight );
 }
 
-Void TComTrQuant::transformNxN( TComDataCU* pcCU, Pel* pcResidual, UInt uiStride, TCoeff*& rpcCoeff, UInt uiWidth, UInt uiHeight, UInt& uiAbsSum, TextType eTType, UInt uiAbsPartIdx, UChar indexROT )
+Void TComTrQuant::transformNxN( TComDataCU* pcCU, Pel* pcResidual, UInt uiStride, TCoeff*& rpcCoeff, UInt uiWidth, UInt uiHeight, UInt& uiAbsSum, TextType eTType, UInt uiAbsPartIdx )
 {
   uiAbsSum = 0;
 
   assert( (pcCU->getSlice()->getSPS()->getMaxTrSize() >= uiWidth) );
 
   xT( pcResidual, uiStride, m_plTempCoeff, uiWidth );
-  xQuant( pcCU, m_plTempCoeff, rpcCoeff, uiWidth, uiHeight, uiAbsSum, eTType, uiAbsPartIdx, indexROT );
+  xQuant( pcCU, m_plTempCoeff, rpcCoeff, uiWidth, uiHeight, uiAbsSum, eTType, uiAbsPartIdx );
 }
 
-Void TComTrQuant::invtransformNxN( Pel*& rpcResidual, UInt uiStride, TCoeff* pcCoeff, UInt uiWidth, UInt uiHeight, UChar indexROT )
+Void TComTrQuant::invtransformNxN( Pel*& rpcResidual, UInt uiStride, TCoeff* pcCoeff, UInt uiWidth, UInt uiHeight )
 {
-  xDeQuant( pcCoeff, m_plTempCoeff, uiWidth, uiHeight, indexROT );
+  xDeQuant( pcCoeff, m_plTempCoeff, uiWidth, uiHeight );
   xIT( m_plTempCoeff, rpcResidual, uiStride, uiWidth );
 }
 
@@ -2525,7 +2453,7 @@ Void TComTrQuant::xT8( Pel* piBlkResi, UInt uiStride, Long* psCoeff )
   }
 }
 
-Void TComTrQuant::xQuant2x2( Long* plSrcCoef, TCoeff*& pDstCoef, UInt& uiAbsSum, UChar indexROT )
+Void TComTrQuant::xQuant2x2( Long* plSrcCoef, TCoeff*& pDstCoef, UInt& uiAbsSum )
 {
   Int iLevel;
   Int iSign;
@@ -2600,43 +2528,24 @@ Void TComTrQuant::xQuant2x2( Long* plSrcCoef, TCoeff*& pDstCoef, UInt& uiAbsSum,
     pDstCoef[3] = 0;
   }
 }
-Void TComTrQuant::xQuant4x4( TComDataCU* pcCU, Long* plSrcCoef, TCoeff*& pDstCoef, UInt& uiAbsSum, TextType eTType, UInt uiAbsPartIdx, UChar indexROT )
+
+Void TComTrQuant::xQuant4x4( TComDataCU* pcCU, Long* plSrcCoef, TCoeff*& pDstCoef, UInt& uiAbsSum, TextType eTType, UInt uiAbsPartIdx )
 {
-  if ( m_bUseROT )
-  {
-    for( Int i=0; i<16; i++ )
-      plSrcCoef[i] *= m_puiQuantMtx[i];
-
-    if ( indexROT ) // BB: always > 0 ???
-    {
-      RotTransform4I( plSrcCoef, indexROT-1 );
-    }
-  }
-
-  if ( m_bUseRDOQ && (eTType == TEXT_LUMA || RDOQ_CHROMA) && (!RDOQ_ROT_IDX0_ONLY || indexROT == 0 ) )
+  if ( m_bUseRDOQ && (eTType == TEXT_LUMA || RDOQ_CHROMA) )
   {
     if ( m_iSymbolMode == 0)
-      xRateDistOptQuant_LCEC(pcCU, plSrcCoef, pDstCoef, 4, 4, uiAbsSum, eTType, uiAbsPartIdx, indexROT);
+      xRateDistOptQuant_LCEC(pcCU, plSrcCoef, pDstCoef, 4, 4, uiAbsSum, eTType, uiAbsPartIdx );
     else
-    xRateDistOptQuant(pcCU, plSrcCoef, pDstCoef, 4, 4, uiAbsSum, eTType, uiAbsPartIdx, indexROT);
+      xRateDistOptQuant(pcCU, plSrcCoef, pDstCoef, 4, 4, uiAbsSum, eTType, uiAbsPartIdx );
   }
   else
   {
     for( Int n = 0; n < 16; n++ )
     {
       Int iLevel, iSign;
-      if ( m_bUseROT )
-      {
-        iLevel  = plSrcCoef[n];
-        iSign   = iLevel;
-        iLevel  = abs( iLevel ) ;
-      }
-      else
-      {
-        iLevel  = plSrcCoef[n];
-        iSign   = iLevel;
-        iLevel  = abs( iLevel ) * m_puiQuantMtx[n];
-      }
+      iLevel  = plSrcCoef[n];
+      iSign   = iLevel;
+      iLevel  = abs( iLevel ) * m_puiQuantMtx[n];
 
       iLevel      = ( iLevel + m_cQP.m_iAdd4x4 ) >> m_cQP.m_iBits;
 
@@ -2656,27 +2565,16 @@ Void TComTrQuant::xQuant4x4( TComDataCU* pcCU, Long* plSrcCoef, TCoeff*& pDstCoe
   }
 }
 
-Void TComTrQuant::xQuant8x8( TComDataCU* pcCU, Long* plSrcCoef, TCoeff*& pDstCoef, UInt& uiAbsSum, TextType eTType, UInt uiAbsPartIdx, UChar indexROT )
+Void TComTrQuant::xQuant8x8( TComDataCU* pcCU, Long* plSrcCoef, TCoeff*& pDstCoef, UInt& uiAbsSum, TextType eTType, UInt uiAbsPartIdx )
 {
-  if ( m_bUseROT )
-  {
-    for( Int i=0; i<64; i++ )
-      plSrcCoef[i] *= m_puiQuantMtx[i];
-
-    if ( indexROT ) // BB: always > 0 ???
-    {
-      RotTransformLI2( plSrcCoef, indexROT-1, 8 );
-    }
-  }
-
   Int iBit = m_cQP.m_iBits + 1;
 
-  if ( m_bUseRDOQ && (eTType == TEXT_LUMA || RDOQ_CHROMA) && (!RDOQ_ROT_IDX0_ONLY || indexROT == 0 ) )
+  if ( m_bUseRDOQ && (eTType == TEXT_LUMA || RDOQ_CHROMA) )
   {
     if ( m_iSymbolMode == 0)
-      xRateDistOptQuant_LCEC(pcCU, plSrcCoef, pDstCoef, 8, 8, uiAbsSum, eTType, uiAbsPartIdx, indexROT);
+      xRateDistOptQuant_LCEC(pcCU, plSrcCoef, pDstCoef, 8, 8, uiAbsSum, eTType, uiAbsPartIdx );
     else
-    xRateDistOptQuant(pcCU, plSrcCoef, pDstCoef, 8, 8, uiAbsSum, eTType, uiAbsPartIdx, indexROT);
+      xRateDistOptQuant(pcCU, plSrcCoef, pDstCoef, 8, 8, uiAbsSum, eTType, uiAbsPartIdx );
   }
   else
   {
@@ -2684,18 +2582,9 @@ Void TComTrQuant::xQuant8x8( TComDataCU* pcCU, Long* plSrcCoef, TCoeff*& pDstCoe
     {
       Int iLevel, iSign;
 
-      if ( m_bUseROT )
-      {
       iLevel  = plSrcCoef[n];
-      iSign   = iLevel;
-      iLevel  = abs( iLevel ) ;
-      }
-      else
-      {
-        iLevel  = plSrcCoef[n];
-        iSign   = iLevel;	
-        iLevel  = abs( iLevel ) * m_puiQuantMtx[n];
-      }
+      iSign   = iLevel;	
+      iLevel  = abs( iLevel ) * m_puiQuantMtx[n];
 
       iLevel      = ( iLevel + m_cQP.m_iAdd8x8 ) >> iBit;
 
@@ -2914,7 +2803,7 @@ Void TComTrQuant::xIT8( Long* plCoef, Pel* pResidual, UInt uiStride )
   }
 }
 
-Void TComTrQuant::xDeQuant2x2( TCoeff* pSrcCoef, Long*& rplDstCoef, UChar indexROT )
+Void TComTrQuant::xDeQuant2x2( TCoeff* pSrcCoef, Long*& rplDstCoef )
 {
   Int iDeScale = g_aiDequantCoef4[m_cQP.m_iRem];
 
@@ -2955,95 +2844,52 @@ Void TComTrQuant::xDeQuant2x2( TCoeff* pSrcCoef, Long*& rplDstCoef, UChar indexR
   }
 }
 
-Void TComTrQuant::xDeQuant4x4( TCoeff* pSrcCoef, Long*& rplDstCoef, UChar indexROT )
+Void TComTrQuant::xDeQuant4x4( TCoeff* pSrcCoef, Long*& rplDstCoef )
 {
   Int iLevel;
   Int iDeScale;
 
-  if ( !m_bUseROT || !indexROT )
+  for( Int n = 0; n < 16; n++ )
   {
-    for( Int n = 0; n < 16; n++ )
-    {
-      iLevel  = pSrcCoef[n];
+    iLevel  = pSrcCoef[n];
 
-      if( 0 != iLevel )
-      {
-        iDeScale = g_aiDequantCoef[m_cQP.m_iRem][n];
-
-        rplDstCoef[n] = iLevel*iDeScale << m_cQP.m_iPer;
-      }
-      else
-      {
-        rplDstCoef[n] = 0;
-      }
-    }
-  }
-  else
-  {
-    for( Int n=0; n<16; n++)
+    if( 0 != iLevel )
     {
-      if( 0 != pSrcCoef[n] )
-        rplDstCoef[n] = pSrcCoef[n] * ( 1 << m_cQP.m_iPer );
-      else
-        rplDstCoef[n] = 0;
+      iDeScale = g_aiDequantCoef[m_cQP.m_iRem][n];
+
+      rplDstCoef[n] = iLevel*iDeScale << m_cQP.m_iPer;
     }
-    InvRotTransform4I( rplDstCoef, indexROT-1 );
+    else
+    {
+      rplDstCoef[n] = 0;
+    }
   }
 }
-Void TComTrQuant::xDeQuant8x8( TCoeff* pSrcCoef, Long*& rplDstCoef, UChar indexROT )
+
+Void TComTrQuant::xDeQuant8x8( TCoeff* pSrcCoef, Long*& rplDstCoef )
 {
   Int iLevel;
   Int iDeScale;
 
   Int iAdd = ( 1 << 5 ) >> m_cQP.m_iPer;
 
-  // without ROT case
-  if ( !m_bUseROT || !indexROT )
+  for( Int n = 0; n < 64; n++ )
   {
-    for( Int n = 0; n < 64; n++ )
-    {
-      iLevel  = pSrcCoef[n];
+    iLevel  = pSrcCoef[n];
 
-      if( 0 != iLevel )
-      {
-        iDeScale = g_aiDequantCoef64[m_cQP.m_iRem][n];
-        rplDstCoef[n]   = ( (iLevel*iDeScale*16 + iAdd) << m_cQP.m_iPer ) >> 6;
-      }
-      else
-      {
-        rplDstCoef[n] = 0;
-      }
+    if( 0 != iLevel )
+    {
+      iDeScale = g_aiDequantCoef64[m_cQP.m_iRem][n];
+      rplDstCoef[n]   = ( (iLevel*iDeScale*16 + iAdd) << m_cQP.m_iPer ) >> 6;
     }
-  }
-  // with ROT case
-  else
-  {
-    for( Int n = 0; n < 64; n++ )
+    else
     {
-      iLevel  = pSrcCoef[n];
-
-      if( 0 != iLevel )
-      {
-        iDeScale = 1;
-        rplDstCoef[n]   = ( (iLevel*iDeScale*16 + iAdd) << m_cQP.m_iPer ) >> 6;
-      }
-      else
-      {
-        rplDstCoef[n] = 0;
-      }
-    }
-
-    InvRotTransformLI2( rplDstCoef, indexROT-1 );
-
-    for( Int i=0; i<64; i++ )
-    {
-      if( rplDstCoef[i] != 0 )
-        rplDstCoef[i] *= g_aiDequantCoef64[m_cQP.m_iRem][i];
+      rplDstCoef[n] = 0;
     }
   }
 }
 
-Void TComTrQuant::invRecurTransformNxN( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eTxt, Pel*& rpcResidual, UInt uiAddr, UInt uiStride, UInt uiWidth, UInt uiHeight, UInt uiMaxTrMode, UInt uiTrMode, TCoeff* rpcCoeff, Int indexROT )
+Void TComTrQuant::invRecurTransformNxN( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eTxt, Pel*& rpcResidual, UInt uiAddr, UInt uiStride, UInt uiWidth, UInt uiHeight, UInt uiMaxTrMode, UInt uiTrMode, TCoeff* rpcCoeff )
 {
   if( !pcCU->getCbf(uiAbsPartIdx, eTxt, uiTrMode) )
       return;
@@ -3069,7 +2915,7 @@ Void TComTrQuant::invRecurTransformNxN( TComDataCU* pcCU, UInt uiAbsPartIdx, Tex
       uiHeight <<= 1;
     }
     Pel* pResi = rpcResidual + uiAddr;
-    invtransformNxN( pResi, uiStride, rpcCoeff, uiWidth, uiHeight, indexROT );
+    invtransformNxN( pResi, uiStride, rpcCoeff, uiWidth, uiHeight );
   }
   else
   {
@@ -3079,265 +2925,10 @@ Void TComTrQuant::invRecurTransformNxN( TComDataCU* pcCU, UInt uiAbsPartIdx, Tex
     UInt uiAddrOffset = uiHeight * uiStride;
     UInt uiCoefOffset = uiWidth * uiHeight;
     UInt uiPartOffset = pcCU->getTotalNumPart() >> (uiTrMode<<1);
-    invRecurTransformNxN( pcCU, uiAbsPartIdx, eTxt, rpcResidual, uiAddr                         , uiStride, uiWidth, uiHeight, uiMaxTrMode, uiTrMode, rpcCoeff, indexROT ); rpcCoeff += uiCoefOffset; uiAbsPartIdx += uiPartOffset;
-    invRecurTransformNxN( pcCU, uiAbsPartIdx, eTxt, rpcResidual, uiAddr + uiWidth               , uiStride, uiWidth, uiHeight, uiMaxTrMode, uiTrMode, rpcCoeff, indexROT ); rpcCoeff += uiCoefOffset; uiAbsPartIdx += uiPartOffset;
-    invRecurTransformNxN( pcCU, uiAbsPartIdx, eTxt, rpcResidual, uiAddr + uiAddrOffset          , uiStride, uiWidth, uiHeight, uiMaxTrMode, uiTrMode, rpcCoeff, indexROT ); rpcCoeff += uiCoefOffset; uiAbsPartIdx += uiPartOffset;
-    invRecurTransformNxN( pcCU, uiAbsPartIdx, eTxt, rpcResidual, uiAddr + uiAddrOffset + uiWidth, uiStride, uiWidth, uiHeight, uiMaxTrMode, uiTrMode, rpcCoeff, indexROT );
-  }
-}
-// ====================================================================================================================
-// ROT
-// ====================================================================================================================
-
-Void TComTrQuant::InvRotTransform4I(  Long* matrix, UChar index )
-{
-  int temp[16];
-  Int n = 0;
-  Int iAddShift = Min(Max(0, 4-(Int)g_uiBitIncrement),INV_ROT_BITS);
-  Int iAddOffSet = 0;
-  if (iAddShift) iAddOffSet = 1<<(iAddShift-1);
-
-  Int iShift1 = INV_ROT_BITS-iAddShift;
-  Int iShift2 = INV_ROT_BITS+iAddShift;
-  Int iOffSet2 = (iAddOffSet<<INV_ROT_BITS);
-
-  // rot process
-  for (n=0; n<13; n+=4)
-  {
-    temp[n]  =g_INV_ROT_MATRIX_4[index][9] *matrix[n]+g_INV_ROT_MATRIX_4[index][12]*matrix[n+1]+g_INV_ROT_MATRIX_4[index][15]*matrix[n+2];
-    temp[n+1]=g_INV_ROT_MATRIX_4[index][10]*matrix[n]+g_INV_ROT_MATRIX_4[index][13]*matrix[n+1]+g_INV_ROT_MATRIX_4[index][16]*matrix[n+2];
-    temp[n+2]=g_INV_ROT_MATRIX_4[index][11]*matrix[n]+g_INV_ROT_MATRIX_4[index][14]*matrix[n+1]+g_INV_ROT_MATRIX_4[index][17]*matrix[n+2];
-
-    if (temp[n  ]>=0) temp[n  ]=(temp[n  ])>>iShift1; else temp[n  ] = -((-temp[n  ])>>iShift1);
-    if (temp[n+1]>=0) temp[n+1]=(temp[n+1])>>iShift1; else temp[n+1] = -((-temp[n+1])>>iShift1);
-    if (temp[n+2]>=0) temp[n+2]=(temp[n+2])>>iShift1; else temp[n+2] = -((-temp[n+2])>>iShift1);
-
-    temp[n+3]=matrix[n+3]<<iAddShift;
-  }
-  for (n=0; n<4; n++)
-  {
-    matrix[n]   =(g_INV_ROT_MATRIX_4[index][0]*temp[n]+g_INV_ROT_MATRIX_4[index][3]*temp[n+4]+g_INV_ROT_MATRIX_4[index][6]*temp[n+8])*g_aiDequantCoef[m_cQP.m_iRem][n]  ;
-    matrix[n+4] =(g_INV_ROT_MATRIX_4[index][1]*temp[n]+g_INV_ROT_MATRIX_4[index][4]*temp[n+4]+g_INV_ROT_MATRIX_4[index][7]*temp[n+8])*g_aiDequantCoef[m_cQP.m_iRem][n+4];
-    matrix[n+8] =(g_INV_ROT_MATRIX_4[index][2]*temp[n]+g_INV_ROT_MATRIX_4[index][5]*temp[n+4]+g_INV_ROT_MATRIX_4[index][8]*temp[n+8])*g_aiDequantCoef[m_cQP.m_iRem][n+8];
-    matrix[n+12]=temp[n+12]*g_aiDequantCoef[m_cQP.m_iRem][n+12];
-
-    if (matrix[n  ]>=0) matrix[n  ]=((matrix[n  ]+iOffSet2)>>iShift2); else matrix[n  ] = -((-matrix[n  ]+iOffSet2)>>iShift2);
-    if (matrix[n+4]>=0) matrix[n+4]=((matrix[n+4]+iOffSet2)>>iShift2); else matrix[n+4] = -((-matrix[n+4]+iOffSet2)>>iShift2);
-    if (matrix[n+8]>=0) matrix[n+8]=((matrix[n+8]+iOffSet2)>>iShift2); else matrix[n+8] = -((-matrix[n+8]+iOffSet2)>>iShift2);
-
-    if (matrix[n+12]>=0) matrix[n+12]=((matrix[n+12]+iAddOffSet)>>iAddShift); else matrix[n+12] = -((-matrix[n+12]+iAddOffSet)>>iAddShift);
-  }
-}
-
-Void TComTrQuant::InvRotTransformLI2( Long* matrix , UChar index )
-{
-  Int temp[64];
-  Int n=0;
-  Int iAddShift = Min(Max(0, 4-(Int)g_uiBitIncrement),INV_ROT_BITS);
-  Int iAddOffSet = 0;
-  if (iAddShift) iAddOffSet = 1<<(iAddShift-1);
-
-  Int iShift1 = INV_ROT_BITS-iAddShift;
-  Int iShift2 = INV_ROT_BITS+iAddShift;
-  Int iOffSet2 = (iAddOffSet<<INV_ROT_BITS);
-
-  // Rot process
-  for (n=0; n<64; n+=8)
-  {
-    temp[n]  =g_INV_ROT_MATRIX_8[index][9 ]*matrix[n]+g_INV_ROT_MATRIX_8[index][12]*matrix[n+1]+g_INV_ROT_MATRIX_8[index][15]*matrix[n+2];
-    temp[n+1]=g_INV_ROT_MATRIX_8[index][10]*matrix[n]+g_INV_ROT_MATRIX_8[index][13]*matrix[n+1]+g_INV_ROT_MATRIX_8[index][16]*matrix[n+2];
-    temp[n+2]=g_INV_ROT_MATRIX_8[index][11]*matrix[n]+g_INV_ROT_MATRIX_8[index][14]*matrix[n+1]+g_INV_ROT_MATRIX_8[index][17]*matrix[n+2];
-
-    temp[n+3]=g_INV_ROT_MATRIX_8[index][27]*matrix[n+3]+g_INV_ROT_MATRIX_8[index][30]*matrix[n+4]+g_INV_ROT_MATRIX_8[index][33]*matrix[n+5];
-    temp[n+4]=g_INV_ROT_MATRIX_8[index][28]*matrix[n+3]+g_INV_ROT_MATRIX_8[index][31]*matrix[n+4]+g_INV_ROT_MATRIX_8[index][34]*matrix[n+5];
-    temp[n+5]=g_INV_ROT_MATRIX_8[index][29]*matrix[n+3]+g_INV_ROT_MATRIX_8[index][32]*matrix[n+4]+g_INV_ROT_MATRIX_8[index][35]*matrix[n+5];
-
-    if (temp[n  ]>=0) temp[n  ]=(temp[n  ])>>iShift1; else temp[n  ] = -((-temp[n  ])>>iShift1);
-    if (temp[n+1]>=0) temp[n+1]=(temp[n+1])>>iShift1; else temp[n+1] = -((-temp[n+1])>>iShift1);
-    if (temp[n+2]>=0) temp[n+2]=(temp[n+2])>>iShift1; else temp[n+2] = -((-temp[n+2])>>iShift1);
-
-    if (temp[n+3]>=0) temp[n+3]=(temp[n+3])>>iShift1; else temp[n+3] = -((-temp[n+3])>>iShift1);
-    if (temp[n+4]>=0) temp[n+4]=(temp[n+4])>>iShift1; else temp[n+4] = -((-temp[n+4])>>iShift1);
-    if (temp[n+5]>=0) temp[n+5]=(temp[n+5])>>iShift1; else temp[n+5] = -((-temp[n+5])>>iShift1);
-
-
-    temp[n+6]=matrix[n+6]<<iAddShift;
-    temp[n+7]=matrix[n+7]<<iAddShift;
-
-  }
-  for (n=0; n<8; n++)
-  {
-    matrix[n]    =g_INV_ROT_MATRIX_8[index][0]*temp[n]+g_INV_ROT_MATRIX_8[index][3]*temp[n+8]+g_INV_ROT_MATRIX_8[index][6]*temp[n+16];
-    matrix[n+8]  =g_INV_ROT_MATRIX_8[index][1]*temp[n]+g_INV_ROT_MATRIX_8[index][4]*temp[n+8]+g_INV_ROT_MATRIX_8[index][7]*temp[n+16];
-    matrix[n+16] =g_INV_ROT_MATRIX_8[index][2]*temp[n]+g_INV_ROT_MATRIX_8[index][5]*temp[n+8]+g_INV_ROT_MATRIX_8[index][8]*temp[n+16];
-
-    matrix[n+24] =g_INV_ROT_MATRIX_8[index][18]*temp[n+24]+g_INV_ROT_MATRIX_8[index][21]*temp[n+32]+g_INV_ROT_MATRIX_8[index][24]*temp[n+40];
-    matrix[n+32] =g_INV_ROT_MATRIX_8[index][19]*temp[n+24]+g_INV_ROT_MATRIX_8[index][22]*temp[n+32]+g_INV_ROT_MATRIX_8[index][25]*temp[n+40];
-    matrix[n+40] =g_INV_ROT_MATRIX_8[index][20]*temp[n+24]+g_INV_ROT_MATRIX_8[index][23]*temp[n+32]+g_INV_ROT_MATRIX_8[index][26]*temp[n+40];
-
-    matrix[n+48]=temp[n+48];
-    matrix[n+56]=temp[n+56];
-
-    if (matrix[n   ]>=0) matrix[n   ]=(matrix[n   ]+iOffSet2)>>iShift2; else matrix[n   ] = -((-matrix[n   ]+iOffSet2)>>iShift2);
-    if (matrix[n+ 8]>=0) matrix[n+ 8]=(matrix[n+ 8]+iOffSet2)>>iShift2; else matrix[n+ 8] = -((-matrix[n+ 8]+iOffSet2)>>iShift2);
-    if (matrix[n+16]>=0) matrix[n+16]=(matrix[n+16]+iOffSet2)>>iShift2; else matrix[n+16] = -((-matrix[n+16]+iOffSet2)>>iShift2);
-
-    if (matrix[n+24]>=0) matrix[n+24]=(matrix[n+24]+iOffSet2)>>iShift2; else matrix[n+24] = -((-matrix[n+24]+iOffSet2)>>iShift2);
-    if (matrix[n+32]>=0) matrix[n+32]=(matrix[n+32]+iOffSet2)>>iShift2; else matrix[n+32] = -((-matrix[n+32]+iOffSet2)>>iShift2);
-    if (matrix[n+40]>=0) matrix[n+40]=(matrix[n+40]+iOffSet2)>>iShift2; else matrix[n+40] = -((-matrix[n+40]+iOffSet2)>>iShift2);
-
-    if (matrix[n+48]>=0) matrix[n+48]=(matrix[n+48]+iAddOffSet)>>iAddShift; else matrix[n+48] = -((-matrix[n+48]+iAddOffSet)>>iAddShift);
-    if (matrix[n+56]>=0) matrix[n+56]=(matrix[n+56]+iAddOffSet)>>iAddShift; else matrix[n+56] = -((-matrix[n+56]+iAddOffSet)>>iAddShift);
-  }
-}
-
-Void TComTrQuant::RotTransform4I( Long* matrix, UChar index )
-{
-  int temp[16];
-  Int n = 0;
-  Int iLocalShift    = g_auiROTFwdShift[0] - g_uiBitIncrement;  // index 0 means 4x4
-  Int iLocalOffSet  = 0;
-
-  // scale data
-  if ( iLocalShift )
-  {
-    iLocalOffSet = 1 << ( abs(iLocalShift) - 1 );
-
-    if ( iLocalShift > 0 )
-    {
-      for (n=0; n<16; n++)  matrix[n] <<= iLocalShift;
-    }
-    else
-    if ( iLocalShift < 0 )
-    {
-      for (n=0; n<16; n++)
-        if (matrix[n] >= 0) matrix[n]=(matrix[n]+iLocalOffSet)>>(-iLocalShift);
-        else matrix[n] =- ((-matrix[n]+iLocalOffSet)>>(-iLocalShift));
-    }
-  }
-
-  // rot process
-  for (n=0; n<13; n+=4)
-  {
-    temp[n]  =g_FWD_ROT_MATRIX_4[index][9] *matrix[n]+g_FWD_ROT_MATRIX_4[index][10]*matrix[n+1]+g_FWD_ROT_MATRIX_4[index][11]*matrix[n+2];
-    temp[n+1]=g_FWD_ROT_MATRIX_4[index][12]*matrix[n]+g_FWD_ROT_MATRIX_4[index][13]*matrix[n+1]+g_FWD_ROT_MATRIX_4[index][14]*matrix[n+2];
-    temp[n+2]=g_FWD_ROT_MATRIX_4[index][15]*matrix[n]+g_FWD_ROT_MATRIX_4[index][16]*matrix[n+1]+g_FWD_ROT_MATRIX_4[index][17]*matrix[n+2];
-
-    if (temp[n  ]>=0) temp[n  ]=(temp[n  ]+ROT_OFF_SET_FWD)>>FWD_ROT_BITS; else temp[n  ] = -((-temp[n  ]+ROT_OFF_SET_FWD)>>FWD_ROT_BITS);
-    if (temp[n+1]>=0) temp[n+1]=(temp[n+1]+ROT_OFF_SET_FWD)>>FWD_ROT_BITS; else temp[n+1] = -((-temp[n+1]+ROT_OFF_SET_FWD)>>FWD_ROT_BITS);
-    if (temp[n+2]>=0) temp[n+2]=(temp[n+2]+ROT_OFF_SET_FWD)>>FWD_ROT_BITS; else temp[n+2] = -((-temp[n+2]+ROT_OFF_SET_FWD)>>FWD_ROT_BITS);
-
-    temp[n+3]=matrix[n+3];
-  }
-  for (n=0; n<4; n++)
-  {
-    matrix[n]   =(g_FWD_ROT_MATRIX_4[index][0]*temp[n]+g_FWD_ROT_MATRIX_4[index][1]*temp[n+4]+g_FWD_ROT_MATRIX_4[index][2]*temp[n+8]);
-    matrix[n+4] =(g_FWD_ROT_MATRIX_4[index][3]*temp[n]+g_FWD_ROT_MATRIX_4[index][4]*temp[n+4]+g_FWD_ROT_MATRIX_4[index][5]*temp[n+8]);
-    matrix[n+8] =(g_FWD_ROT_MATRIX_4[index][6]*temp[n]+g_FWD_ROT_MATRIX_4[index][7]*temp[n+4]+g_FWD_ROT_MATRIX_4[index][8]*temp[n+8]);
-
-    if (matrix[n  ]>=0) matrix[n  ]=((matrix[n  ]+ROT_OFF_SET_FWD)>>FWD_ROT_BITS); else matrix[n  ] = -((-matrix[n  ]+ROT_OFF_SET_FWD)>>FWD_ROT_BITS);
-    if (matrix[n+4]>=0) matrix[n+4]=((matrix[n+4]+ROT_OFF_SET_FWD)>>FWD_ROT_BITS); else matrix[n+4] = -((-matrix[n+4]+ROT_OFF_SET_FWD)>>FWD_ROT_BITS);
-    if (matrix[n+8]>=0) matrix[n+8]=((matrix[n+8]+ROT_OFF_SET_FWD)>>FWD_ROT_BITS); else matrix[n+8] = -((-matrix[n+8]+ROT_OFF_SET_FWD)>>FWD_ROT_BITS);
-
-    matrix[n+12]=temp[n+12];
-  }
-
-  // de-scale the data
-  if (iLocalShift>0)
-  {
-    for (n=0; n<16; n++)
-      if (matrix[n]>=0) matrix[n]=(matrix[n]+iLocalOffSet)>>iLocalShift;
-      else matrix[n]=- ((-matrix[n]+iLocalOffSet)>>iLocalShift);
-}
-  if (iLocalShift<0)
-{
-    for (n=0; n<16; n++)  matrix[n]<<=(-iLocalShift);
-  }
-}
-
-Void TComTrQuant::RotTransformLI2( Long* matrix, UChar index, UInt uiWidth )
-{
-  Int temp[64];
-  Int n = 0;
-  Int iLocalShift    = g_auiROTFwdShift[ (int)g_aucConvertToBit[uiWidth] ] - g_uiBitIncrement;
-  Int iLocalOffset  = 0;
-
-  // scaling
-  if ( iLocalShift )
-  {
-    iLocalOffset = 1<<(abs(iLocalShift)-1);
-
-    if (iLocalShift>0)
-    {
-      for (n=0; n<64; n++)  matrix[n]<<=iLocalShift;
-  }
-    else
-    if (iLocalShift<0)
-  {
-      for (n=0; n<64; n++)
-        if (matrix[n]>=0) matrix[n]=(matrix[n]+iLocalOffset)>>(-iLocalShift);
-        else matrix[n]=- ((-matrix[n]+iLocalOffset)>>(-iLocalShift));
-  }
-}
-
-  // Rot process
-  for (n=0; n<64; n+=8)
-  {
-    temp[n]  =g_FWD_ROT_MATRIX_8[index][9 ]*matrix[n]+g_FWD_ROT_MATRIX_8[index][10]*matrix[n+1]+g_FWD_ROT_MATRIX_8[index][11]*matrix[n+2];
-    temp[n+1]=g_FWD_ROT_MATRIX_8[index][12]*matrix[n]+g_FWD_ROT_MATRIX_8[index][13]*matrix[n+1]+g_FWD_ROT_MATRIX_8[index][14]*matrix[n+2];
-    temp[n+2]=g_FWD_ROT_MATRIX_8[index][15]*matrix[n]+g_FWD_ROT_MATRIX_8[index][16]*matrix[n+1]+g_FWD_ROT_MATRIX_8[index][17]*matrix[n+2];
-
-    temp[n+3]=g_FWD_ROT_MATRIX_8[index][27]*matrix[n+3]+g_FWD_ROT_MATRIX_8[index][28]*matrix[n+4]+g_FWD_ROT_MATRIX_8[index][29]*matrix[n+5];
-    temp[n+4]=g_FWD_ROT_MATRIX_8[index][30]*matrix[n+3]+g_FWD_ROT_MATRIX_8[index][31]*matrix[n+4]+g_FWD_ROT_MATRIX_8[index][32]*matrix[n+5];
-    temp[n+5]=g_FWD_ROT_MATRIX_8[index][33]*matrix[n+3]+g_FWD_ROT_MATRIX_8[index][34]*matrix[n+4]+g_FWD_ROT_MATRIX_8[index][35]*matrix[n+5];
-
-    if (temp[n  ]>=0) temp[n  ]=(temp[n  ]+ROT_OFF_SET_FWD)>>FWD_ROT_BITS; else temp[n  ] = -((-temp[n  ]+ROT_OFF_SET_FWD)>>FWD_ROT_BITS);
-    if (temp[n+1]>=0) temp[n+1]=(temp[n+1]+ROT_OFF_SET_FWD)>>FWD_ROT_BITS; else temp[n+1] = -((-temp[n+1]+ROT_OFF_SET_FWD)>>FWD_ROT_BITS);
-    if (temp[n+2]>=0) temp[n+2]=(temp[n+2]+ROT_OFF_SET_FWD)>>FWD_ROT_BITS; else temp[n+2] = -((-temp[n+2]+ROT_OFF_SET_FWD)>>FWD_ROT_BITS);
-
-    if (temp[n+3]>=0) temp[n+3]=(temp[n+3]+ROT_OFF_SET_FWD)>>FWD_ROT_BITS; else temp[n+3] = -((-temp[n+3]+ROT_OFF_SET_FWD)>>FWD_ROT_BITS);
-    if (temp[n+4]>=0) temp[n+4]=(temp[n+4]+ROT_OFF_SET_FWD)>>FWD_ROT_BITS; else temp[n+4] = -((-temp[n+4]+ROT_OFF_SET_FWD)>>FWD_ROT_BITS);
-    if (temp[n+5]>=0) temp[n+5]=(temp[n+5]+ROT_OFF_SET_FWD)>>FWD_ROT_BITS; else temp[n+5] = -((-temp[n+5]+ROT_OFF_SET_FWD)>>FWD_ROT_BITS);
-
-
-    temp[n+6]=matrix[n+6];
-    temp[n+7]=matrix[n+7];
-
-  }
-  for (n=0; n<8; n++)
-  {
-    matrix[n]    =g_FWD_ROT_MATRIX_8[index][0]*temp[n]+g_FWD_ROT_MATRIX_8[index][1]*temp[n+8]+g_FWD_ROT_MATRIX_8[index][2]*temp[n+16];
-    matrix[n+8]  =g_FWD_ROT_MATRIX_8[index][3]*temp[n]+g_FWD_ROT_MATRIX_8[index][4]*temp[n+8]+g_FWD_ROT_MATRIX_8[index][5]*temp[n+16];
-    matrix[n+16] =g_FWD_ROT_MATRIX_8[index][6]*temp[n]+g_FWD_ROT_MATRIX_8[index][7]*temp[n+8]+g_FWD_ROT_MATRIX_8[index][8]*temp[n+16];
-
-    matrix[n+24] =g_FWD_ROT_MATRIX_8[index][18]*temp[n+24]+g_FWD_ROT_MATRIX_8[index][19]*temp[n+32]+g_FWD_ROT_MATRIX_8[index][20]*temp[n+40];
-    matrix[n+32] =g_FWD_ROT_MATRIX_8[index][21]*temp[n+24]+g_FWD_ROT_MATRIX_8[index][22]*temp[n+32]+g_FWD_ROT_MATRIX_8[index][23]*temp[n+40];
-    matrix[n+40] =g_FWD_ROT_MATRIX_8[index][24]*temp[n+24]+g_FWD_ROT_MATRIX_8[index][25]*temp[n+32]+g_FWD_ROT_MATRIX_8[index][26]*temp[n+40];
-
-    if (matrix[n   ]>=0) matrix[n   ]=(matrix[n   ]+ROT_OFF_SET_FWD)>>FWD_ROT_BITS; else matrix[n   ] = -((-matrix[n   ]+ROT_OFF_SET_FWD)>>FWD_ROT_BITS);
-    if (matrix[n+ 8]>=0) matrix[n+ 8]=(matrix[n+ 8]+ROT_OFF_SET_FWD)>>FWD_ROT_BITS; else matrix[n+ 8] = -((-matrix[n+ 8]+ROT_OFF_SET_FWD)>>FWD_ROT_BITS);
-    if (matrix[n+16]>=0) matrix[n+16]=(matrix[n+16]+ROT_OFF_SET_FWD)>>FWD_ROT_BITS; else matrix[n+16] = -((-matrix[n+16]+ROT_OFF_SET_FWD)>>FWD_ROT_BITS);
-
-    if (matrix[n+24]>=0) matrix[n+24]=(matrix[n+24]+ROT_OFF_SET_FWD)>>FWD_ROT_BITS; else matrix[n+24] = -((-matrix[n+24]+ROT_OFF_SET_FWD)>>FWD_ROT_BITS);
-    if (matrix[n+32]>=0) matrix[n+32]=(matrix[n+32]+ROT_OFF_SET_FWD)>>FWD_ROT_BITS; else matrix[n+32] = -((-matrix[n+32]+ROT_OFF_SET_FWD)>>FWD_ROT_BITS);
-    if (matrix[n+40]>=0) matrix[n+40]=(matrix[n+40]+ROT_OFF_SET_FWD)>>FWD_ROT_BITS; else matrix[n+40] = -((-matrix[n+40]+ROT_OFF_SET_FWD)>>FWD_ROT_BITS);
-
-
-    matrix[n+48]=temp[n+48];
-    matrix[n+56]=temp[n+56];
-  }
-
-  // de-scale the data
-  if ( iLocalShift > 0 )
-  {
-    for (n=0; n<64; n++)
-      if (matrix[n]>=0) matrix[n]=(matrix[n]+iLocalOffset)>>iLocalShift;
-      else matrix[n]=- ((-matrix[n]+iLocalOffset)>>iLocalShift);
-  }
-  else
-  if ( iLocalShift < 0 )
-  {
-    for (n=0; n<64; n++)  matrix[n]<<=(-iLocalShift);
+    invRecurTransformNxN( pcCU, uiAbsPartIdx, eTxt, rpcResidual, uiAddr                         , uiStride, uiWidth, uiHeight, uiMaxTrMode, uiTrMode, rpcCoeff ); rpcCoeff += uiCoefOffset; uiAbsPartIdx += uiPartOffset;
+    invRecurTransformNxN( pcCU, uiAbsPartIdx, eTxt, rpcResidual, uiAddr + uiWidth               , uiStride, uiWidth, uiHeight, uiMaxTrMode, uiTrMode, rpcCoeff ); rpcCoeff += uiCoefOffset; uiAbsPartIdx += uiPartOffset;
+    invRecurTransformNxN( pcCU, uiAbsPartIdx, eTxt, rpcResidual, uiAddr + uiAddrOffset          , uiStride, uiWidth, uiHeight, uiMaxTrMode, uiTrMode, rpcCoeff ); rpcCoeff += uiCoefOffset; uiAbsPartIdx += uiPartOffset;
+    invRecurTransformNxN( pcCU, uiAbsPartIdx, eTxt, rpcResidual, uiAddr + uiAddrOffset + uiWidth, uiStride, uiWidth, uiHeight, uiMaxTrMode, uiTrMode, rpcCoeff );
   }
 }
 
@@ -3379,8 +2970,7 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
                                                       UInt                            uiHeight,
                                                       UInt&                           uiAbsSum,
                                                       TextType                        eTType,
-                                                      UInt                            uiAbsPartIdx,
-                                                      UChar                           ucIndexROT    )
+                                                      UInt                            uiAbsPartIdx )
 {
   UInt uiCTXIdx;
 
@@ -3487,22 +3077,7 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
     if      ( uiWidth == 4 ) dTemp = estErr4x4[ iQpRem ][ uiPosX ][ uiPosY ] / dNormFactor;
     else if ( uiWidth == 8 ) dTemp = estErr8x8[ iQpRem ][ uiPosX ][ uiPosY ] / dNormFactor;
 
-    if ( m_bUseROT )
-    {
-      if ( bExt8x8Flag )
-      {
-        if ( ( uiPosX < 8 ) && ( uiPosY < 8 ) && ucIndexROT )
-          lLevelDouble = abs( lLevelDouble );
-        else
-          lLevelDouble = abs( lLevelDouble * (Long)( b64Flag ? iQuantCoeff : m_puiQuantMtx[ uiBlkPos ] ) );
-      }
-      else
-      {
-        lLevelDouble = abs( lLevelDouble );
-      }
-    }
-    else
-      lLevelDouble = abs( lLevelDouble * (Long)( b64Flag ? iQuantCoeff : m_puiQuantMtx[ uiBlkPos ] ) );
+    lLevelDouble = abs( lLevelDouble * (Long)( b64Flag ? iQuantCoeff : m_puiQuantMtx[ uiBlkPos ] ) );
 
     plLevelDouble[ uiBlkPos ] = lLevelDouble;
     UInt uiMaxAbsLevel = lLevelDouble >> iQBits;
@@ -3718,7 +3293,7 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
 
     UShort  uiCtxSig                = getSigCtxInc( piDstCoeff, uiPosX, uiPosY, uiLog2BlkSize, uiWidth, ( uiDownLeft > 0 ) );
     Bool    bLastScanPos            = ( uiScanPos == uiMaxNumCoeff - 1 );
-    UInt    uiLevel                 = xGetCodedLevel( d64UncodedCost, d64CodedCost, plLevelDouble[ uiBlkPos ], abs( piCoeff[ uiBlkPos ] ), bLastScanPos, uiCtxSig, puiCtxAbsGreOne[ uiBlkPos ], puiCtxCoeffLevelM1[ uiBlkPos ], iQBits, dTemp, ucIndexROT, uiCtxBase );
+    UInt    uiLevel                 = xGetCodedLevel( d64UncodedCost, d64CodedCost, plLevelDouble[ uiBlkPos ], abs( piCoeff[ uiBlkPos ] ), bLastScanPos, uiCtxSig, puiCtxAbsGreOne[ uiBlkPos ], puiCtxCoeffLevelM1[ uiBlkPos ], iQBits, dTemp, uiCtxBase );
     piDstCoeff[ uiBlkPos ]          = plSrcCoeff[ uiBlkPos ] < 0 ? -Int( uiLevel ) : uiLevel;
     d64BaseCost                    -= d64UncodedCost;
     d64BaseCost                    += d64CodedCost;
@@ -3938,7 +3513,6 @@ __inline UInt TComTrQuant::xGetCodedLevel  ( Double&                         rd6
                                              UShort                          ui16CtxNumAbs,
                                              Int                             iQBits,
                                              Double                          dTemp,
-                                             UChar                           ucIndexROT,
                                              UShort                          ui16CtxBase   ) const
 {
   UInt    uiBestAbsLevel  = 0;

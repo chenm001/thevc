@@ -106,7 +106,6 @@ Void TDecCavlc::parseSPS(TComSPS* pcSPS)
   xReadFlag( uiCode ); assert(uiCode==0); // TODO: was WPG
   xReadFlag( uiCode ); pcSPS->setUseLDC ( uiCode ? true : false );
   xReadFlag( uiCode ); pcSPS->setUseQBO ( uiCode ? true : false );
-  xReadFlag( uiCode ); pcSPS->setUseROT ( uiCode ? true : false ); // BB:
 #if HHI_MRG
   xReadFlag( uiCode ); pcSPS->setUseMRG ( uiCode ? true : false ); // SOPH:
 #endif
@@ -253,66 +252,6 @@ Void TDecCavlc::parseTerminatingBit( UInt& ruiBit )
 #else
   xReadFlag( ruiBit );
 #endif
-}
-
-Void TDecCavlc::parseROTindex  ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
-{
-  UInt  uiSymbol;
-  UInt  indexROT = 0;
-  Int    dictSize = ROT_DICT;
-
-  switch (dictSize)
-  {
-  case 9:
-    {
-      xReadFlag( uiSymbol );
-      if ( !uiSymbol )
-      {
-        xReadFlag( uiSymbol );
-        indexROT  = uiSymbol;
-        xReadFlag( uiSymbol );
-        indexROT |= uiSymbol << 1;
-        xReadFlag( uiSymbol );
-        indexROT |= uiSymbol << 2;
-        indexROT++;
-      }
-    }
-    break;
-  case 4:
-    {
-      xReadFlag( uiSymbol );
-      indexROT  = uiSymbol;
-      xReadFlag( uiSymbol );
-      indexROT |= uiSymbol << 1;
-    }
-    break;
-  case 2:
-    {
-      xReadFlag( uiSymbol );
-      if ( !uiSymbol ) indexROT =1;
-    }
-    break;
-  case 5:
-    {
-      xReadFlag( uiSymbol );
-      if ( !uiSymbol )
-      {
-        xReadFlag( uiSymbol );
-        indexROT  = uiSymbol;
-        xReadFlag( uiSymbol );
-        indexROT |= uiSymbol << 1;
-        indexROT++;
-      }
-    }
-    break;
-  case 1:
-    {
-    }
-    break;
-  }
-  pcCU->setROTindexSubParts( indexROT, uiAbsPartIdx, uiDepth );
-
-  return;
 }
 
 Void TDecCavlc::parseAlfCtrlDepth              ( UInt& ruiAlfCtrlDepth )
