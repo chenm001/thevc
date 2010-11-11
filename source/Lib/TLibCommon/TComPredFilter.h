@@ -154,13 +154,6 @@ private:
   static Int xCTI_Filter_VIS14    ( Int* pSrc, Int* piCoeff, Int iStride );
 
   // multiplication-free implementation
-  __inline Int xCTI_Filter_VPS04_HAL( Pel* pSrc, Int* piCoeff, Int iStride );
-  __inline Int xCTI_Filter_VIS04_HAL( Int* pSrc, Int* piCoeff, Int iStride );
-  __inline Int xCTI_Filter_VP04_QU0 ( Pel* pSrc, Int* piCoeff, Int iStride );
-  __inline Int xCTI_Filter_VI04_QU0 ( Int* pSrc, Int* piCoeff, Int iStride );
-  __inline Int xCTI_Filter_VP04_QU1 ( Pel* pSrc, Int* piCoeff, Int iStride );
-  __inline Int xCTI_Filter_VI04_QU1 ( Int* pSrc, Int* piCoeff, Int iStride );
-
   __inline Int xCTI_Filter_VPS06_HAL( Pel* pSrc, Int* piCoeff, Int iStride );
   __inline Int xCTI_Filter_VIS06_HAL( Int* pSrc, Int* piCoeff, Int iStride );
   __inline Int xCTI_Filter_VP06_QU0 ( Pel* pSrc, Int* piCoeff, Int iStride );
@@ -1101,70 +1094,6 @@ __inline Void TComPredFilter::xCTI_FilterQuarter1Ver (Pel* piSrc, Int iSrcStride
 // ------------------------------------------------------------------------------------------------
 // Optimized DIF filters
 // ------------------------------------------------------------------------------------------------
-
-// 4-tap
-__inline Int TComPredFilter::xCTI_Filter_VPS04_HAL( Pel* pSrc, Int* piCoeff, Int iStride )
-{
-  // {   -32,  160,  160,  -32,}
-  Int iSum, iTemp;
-  iTemp = pSrc[iStride*1]+pSrc[iStride*2];
-  iSum  = (iTemp-pSrc[0]-pSrc[iStride*3]) << 5;
-  iSum += (iTemp) << 7;
-  return iSum;
-}
-__inline Int TComPredFilter::xCTI_Filter_VIS04_HAL( Int* pSrc, Int* piCoeff, Int iStride )
-{
-  // {   -32,  160,  160,  -32,}
-  Int iSum, iTemp;
-  iTemp = pSrc[iStride*1]+pSrc[iStride*2];
-  iSum  = (iTemp-pSrc[0]-pSrc[iStride*3]) << 5;
-  iSum += (iTemp) << 7;
-  return iSum;
-}
-__inline Int TComPredFilter::xCTI_Filter_VP04_QU0( Pel* pSrc, Int* piCoeff, Int iStride )
-{
-  // {   -24,  224,   72,  -16,},
-  Int iSum;
-  iSum  = (-pSrc[0] + pSrc[2*iStride]) << 3;
-  iSum += (-pSrc[0] - pSrc[3*iStride]) << 4;
-  iSum -= pSrc[iStride] << 5;
-  iSum += pSrc[2*iStride] << 6;
-  iSum += pSrc[iStride] << 8;
-  return iSum;
-}
-__inline Int TComPredFilter::xCTI_Filter_VI04_QU0( Int* pSrc, Int* piCoeff, Int iStride )
-{
-  // {   -24,  224,   72,  -16,},
-  Int iSum;
-  iSum  = (-pSrc[0] + pSrc[2*iStride]) << 3;
-  iSum += (-pSrc[0] - pSrc[3*iStride]) << 4;
-  iSum -= pSrc[iStride] << 5;
-  iSum += pSrc[2*iStride] << 6;
-  iSum += pSrc[iStride] << 8;
-  return iSum;
-}
-__inline Int TComPredFilter::xCTI_Filter_VP04_QU1( Pel* pSrc, Int* piCoeff, Int iStride )
-{
-  // {   -16,   72,  224,  -24,},
-  Int iSum;
-  iSum  = (-pSrc[3*iStride] + pSrc[iStride]) << 3;
-  iSum += (-pSrc[3*iStride] - pSrc[0]) << 4;
-  iSum -= pSrc[2*iStride] << 5;
-  iSum += pSrc[iStride] << 6;
-  iSum += pSrc[2*iStride] << 8;
-  return iSum;
-}
-__inline Int TComPredFilter::xCTI_Filter_VI04_QU1( Int* pSrc, Int* piCoeff, Int iStride )
-{
-  // {   -16,   72,  224,  -24,},
-  Int iSum;
-  iSum  = (-pSrc[3*iStride] + pSrc[iStride]) << 3;
-  iSum += (-pSrc[3*iStride] - pSrc[0]) << 4;
-  iSum -= pSrc[2*iStride] << 5;
-  iSum += pSrc[iStride] << 6;
-  iSum += pSrc[2*iStride] << 8;
-  return iSum;
-}
 
 // 6-tap
 __inline Int TComPredFilter::xCTI_Filter_VPS06_HAL( Pel* pSrc, Int* piCoeff, Int iStride )

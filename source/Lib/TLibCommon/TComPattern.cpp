@@ -461,15 +461,6 @@ Void TComPattern::initAdiPatternChroma( TComDataCU* pcCU, UInt uiZorderIdxInPart
   }
 }
 
-Pel* TComPattern::getROIYBlk( Int iLumaBlkIdx )
-{
-  // iLumaBlkIdx : raster scan order
-  Int iBlkX = (iLumaBlkIdx % 4) << 2;
-  Int iBlkY = (iLumaBlkIdx / 4) << 2;
-
-  return ( m_cPatternY.getROIOrigin() + m_cPatternY.m_iPatternStride * iBlkY + iBlkX );
-}
-
 Int* TComPattern::getAdiOrgBuf( Int iCuWidth, Int iCuHeight, Int* piAdiBuf)
 {
   return piAdiBuf;

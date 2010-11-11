@@ -70,13 +70,6 @@ public:
     return  m_piPatternOrigin + m_iPatternStride * m_iOffsetAbove + m_iOffsetLeft;
   }
 
-  // availability check of neighbouring pixels
-  Bool  isLeftAvailable()         { return (m_iOffsetLeft  > 0) ? true : false; }
-  Bool  isAboveAvailable()        { return (m_iOffsetAbove > 0) ? true : false; }
-  Bool  isAboveRightAvailable()   { return (m_iOffsetAbove > 0 && m_iOffsetRight > 0) ? true : false; }
-  Bool  isAboveLeftAvailable()    { return (m_iOffsetLeft  > 0 && m_iOffsetAbove > 0) ? true : false; }
-  Bool  isAllAboveLeftAvailable() { return (m_iOffsetLeft  > 0 && m_iOffsetAbove > 0) ? true : false; }
-
   /// set parameters from Pel buffer for accessing neighbouring pixels
   Void setPatternParamPel ( Pel*        piTexture,
                             Int         iRoiWidth,
@@ -112,22 +105,9 @@ public:
 
   // ROI & pattern information, (ROI = &pattern[AboveOffset][LeftOffset])
   Pel*  getROIY()                 { return m_cPatternY.getROIOrigin();    }
-  Pel*  getROICb()                { return m_cPatternCb.getROIOrigin();   }
-  Pel*  getROICr()                { return m_cPatternCr.getROIOrigin();   }
   Int   getROIYWidth()            { return m_cPatternY.m_iROIWidth;       }
   Int   getROIYHeight()           { return m_cPatternY.m_iROIHeight;      }
   Int   getPatternLStride()       { return m_cPatternY.m_iPatternStride;  }
-  Int   getPatternCStride()       { return m_cPatternCb.m_iPatternStride; }
-
-  // get pixel pointer from specified luma block index (remained for AVC intra prediction)
-  Pel*  getROIYBlk                ( Int iLumaBlkIdx );
-
-  // availability check of neighbouring pixels
-  Bool  isLeftAvailable()         { return m_cPatternY.isLeftAvailable();         }
-  Bool  isAboveAvailable()        { return m_cPatternY.isAboveAvailable();        }
-  Bool  isAboveRightAvailable()   { return m_cPatternY.isAboveRightAvailable();   }
-  Bool  isAboveLeftAvailable()    { return m_cPatternY.isAboveLeftAvailable();    }
-  Bool  isAllAboveLeftAvailable() { return m_cPatternY.isAllAboveLeftAvailable(); }
 
   // access functions of ADI buffers
   Int*  getAdiOrgBuf              ( Int iCuWidth, Int iCuHeight, Int* piAdiBuf );
