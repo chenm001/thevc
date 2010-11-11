@@ -76,11 +76,6 @@ protected:
   }
   Void xSetEdgefilterMultiple( TComDataCU* pcCU, UInt uiAbsZorderIdx, UInt uiDepth, Int iDir, Int iEdgeIdx, Bool bValue );
 
-#if PLANAR_INTRA
-  Void xPelFilterPlanarIntra      ( Pel* piSrc, Int iOffset, Int iBlkSize );
-  Void xEdgeFilterPlanarIntra     ( TComDataCU* pcCU, UInt uiAbsZorderIdx, Int iDir );
-#endif
-
   Void xEdgeFilterLuma            ( TComDataCU* pcCU, UInt uiAbsZorderIdx, UInt uiDepth, Int iDir, Int iEdge );
   Void xEdgeFilterChroma          ( TComDataCU* pcCU, UInt uiAbsZorderIdx, UInt uiDepth, Int iDir, Int iEdge );
 

@@ -72,7 +72,6 @@
 // TEN defines section start
 ////////////////////////////
 
-#define PLANAR_INTRA                      0           // Enable planar Intra coding
 #define TEN_DIRECTIONAL_INTERP            1           ///< AF: interpolation filter
 
 #define LCEC_STAT                         0           // LCEC - support for LCEC bitusage statistics
@@ -296,16 +295,6 @@ enum PredMode
   MODE_INTRA,           ///< intra-prediction mode
   MODE_NONE = 15
 };
-
-#if PLANAR_INTRA
-enum PlanarType
-{
-  PLANAR_FLAG   = 0,
-  PLANAR_DELTAY = 1,
-  PLANAR_DELTAU = 2,
-  PLANAR_DELTAV = 3,
-};
-#endif
 
 /// texture component type
 enum TextType

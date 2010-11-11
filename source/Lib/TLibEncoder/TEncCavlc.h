@@ -155,11 +155,6 @@ protected:
 
   UInt  xConvertToUInt        ( Int iValue ) {  return ( iValue <= 0) ? -iValue<<1 : (iValue<<1)-1; }
 
-#if PLANAR_INTRA
-  Void xPutPlanarVlc          ( Int n, Int cn );
-  Void xCodePlanarDelta       ( TComDataCU* pcCU, UInt uiAbsPartIdx , Int iDelta );
-#endif
-
 public:
 
   Void  resetEntropy          ();
@@ -206,10 +201,6 @@ public:
 
   Void codePartSize      ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
   Void codePredMode      ( TComDataCU* pcCU, UInt uiAbsPartIdx );
-
-#if PLANAR_INTRA
-  Void codePlanarInfo    ( TComDataCU* pcCU, UInt uiAbsPartIdx );
-#endif
 
   Void codeTransformSubdivFlag( UInt uiSymbol, UInt uiCtx );
   Void codeQtCbf         ( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eType, UInt uiTrDepth );

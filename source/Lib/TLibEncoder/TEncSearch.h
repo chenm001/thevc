@@ -126,10 +126,6 @@ protected:
 
   Bool predIntraLumaDirAvailable( UInt uiMode, UInt uiWidthBit, Bool bAboveAvail, Bool bLeftAvail);
 
-#if PLANAR_INTRA
-  Void xIntraPlanarRecon( TComDataCU* pcCU, UInt uiAbsPartIdx, Pel* piOrg, Pel* piPred, Pel* piResi, Pel* piReco, UInt uiStride, TCoeff* piCoeff, UInt uiWidth, UInt uiHeight, UInt uiCurrDepth, TextType eText );
-#endif
-
   typedef struct
   {
     Pel*  piRefY;
@@ -156,15 +152,6 @@ public:
                                   TComYuv*&   rpcPredYuv,
                                   TComYuv*&   rpcResiYuv,
                                   TComYuv*&   rpcRecoYuv );
-
-#if PLANAR_INTRA
-  /// encoder estimation - planar intra prediction (luma & chroma)
-  Void predIntraPlanarSearch    ( TComDataCU* pcCU,
-                                  TComYuv*    pcOrgYuv,
-                                  TComYuv*&   rpcPredYuv,
-                                  TComYuv*&   rpcResiYuv,
-                                  TComYuv*&   rpcRecoYuv );
-#endif
 
   /// encoder estimation - intra prediction (chroma)
   Void predIntraChromaAdiSearch ( TComDataCU* pcCU,

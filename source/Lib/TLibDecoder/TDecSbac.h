@@ -88,10 +88,6 @@ private:
   Void  xReadMvd            ( Int& riMvdComp, UInt uiAbsSum, UInt uiCtx );
 
   Void  xReadExGolombMvd    ( UInt& ruiSymbol, ContextModel* pcSCModel, UInt uiMaxBin );
-#if PLANAR_INTRA
-  UInt xParsePlanarBins( );
-  Int  xParsePlanarDelta( TextType ttText );
-#endif
 
 private:
   TComBitstream*    m_pcBitstream;
@@ -141,9 +137,6 @@ public:
 
   Void parseROTindex      ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
   Void parseCIPflag       ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
-#if PLANAR_INTRA
-  Void parsePlanarInfo    ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
-#endif
 
 private:
   UInt m_uiLastDQpNonZero;
@@ -188,9 +181,6 @@ private:
   ContextModel3DBuffer m_cALFSvlcSCModel;
   ContextModel3DBuffer m_cCUXPosiSCModel;
   ContextModel3DBuffer m_cCUYPosiSCModel;
-#if PLANAR_INTRA
-  ContextModel3DBuffer m_cPlanarIntraSCModel;
-#endif
 };
 
 #endif // !defined(AFX_TDECSBAC_H__CFCAAA19_8110_47F4_9A16_810C4B5499D5__INCLUDED_)

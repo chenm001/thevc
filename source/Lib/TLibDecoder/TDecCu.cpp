@@ -217,20 +217,6 @@ Void TDecCu::xDecodeCU( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
 #endif
   m_pcEntropyDecoder->decodePredMode( pcCU, uiAbsPartIdx, uiDepth );
 
-#if PLANAR_INTRA
-  pcCU->setPlanarInfoSubParts( 0,0,0,0, uiAbsPartIdx, uiDepth );
-
-  if ( pcCU->isIntra( uiAbsPartIdx ) )
-  {
-
-    m_pcEntropyDecoder->decodePlanarInfo( pcCU, uiAbsPartIdx, uiDepth );
-
-    // No more data needed for planar reconstruction
-    if ( pcCU->getPlanarInfo( uiAbsPartIdx, PLANAR_FLAG) )
-      return;
-  }
-#endif
-
   m_pcEntropyDecoder->decodePartSize( pcCU, uiAbsPartIdx, uiDepth );
 
   UInt uiCurrWidth      = pcCU->getWidth ( uiAbsPartIdx );
@@ -734,125 +720,11 @@ TDecCu::xReconIntraQT( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
   UInt  uiNumPart     = pcCU->getNumPartInter();
   UInt  uiNumQParts   = pcCU->getTotalNumPart() >> 2;
 
-#if PLANAR_INTRA
-  if ( pcCU->getPlanarInfo( 0, PLANAR_FLAG) )
-  {
-    xReconIntraPlanar( pcCU, 0, uiDepth );
-    return;
-  }
-#endif
-
   for( UInt uiPU = 0; uiPU < uiNumPart; uiPU++ )
   {
     xIntraRecQT( pcCU, uiInitTrDepth, uiPU * uiNumQParts, m_ppcYuvReco[uiDepth], m_ppcYuvReco[uiDepth], m_ppcYuvResi[uiDepth] );
   }
 }
-
-
-#if PLANAR_INTRA
-Void TDecCu::xDecodePlanarTexture( TComDataCU* pcCU, UInt uiPartIdx, Pel* piReco, Pel* piPred, Pel* piResi, UInt uiStride, UInt uiWidth, UInt uiHeight, UInt uiCurrDepth, TextType ttText )
-{
-  UInt uiX, uiY;
-  TComPattern* pcPattern = pcCU->getPattern();
-  Pel* pPred             = piPred;
-  Pel* pResi             = piResi;
-  Pel* piPicReco;
-  UInt uiPicStride;
-  Int* pPat;
-
-  pcPattern->initPattern( pcCU, uiCurrDepth, uiPartIdx );
-
-  Bool bAboveAvail = false;
-  Bool bLeftAvail  = false;
-
-  if( ttText == TEXT_LUMA)
-  {
-    pcCU->getPattern()->initAdiPattern( pcCU, uiPartIdx, uiCurrDepth, m_pcPrediction->getPredicBuf(), m_pcPrediction->getPredicBufWidth(), m_pcPrediction->getPredicBufHeight(), bAboveAvail, bLeftAvail );
-
-    pPat          = pcCU->getPattern()->getAdiOrgBuf( uiWidth, uiHeight, m_pcPrediction->getPredicBuf() );
-    uiPicStride   = pcCU->getPic()->getPicYuvRec()->getStride();
-    piPicReco     = pcCU->getPic()->getPicYuvRec()->getLumaAddr(pcCU->getAddr(), pcCU->getZorderIdxInCU()+uiPartIdx);
-  }
-  else
-  {
-    pcCU->getPattern()->initAdiPatternChroma(pcCU,uiPartIdx, 0, m_pcPrediction->getPredicBuf(),m_pcPrediction->getPredicBufWidth(),m_pcPrediction->getPredicBufHeight(),bAboveAvail,bLeftAvail);
-    uiPicStride = pcCU->getPic()->getPicYuvRec()->getCStride();
-
-    if( ttText == TEXT_CHROMA_U )
-    {
-      piPicReco = pcCU->getPic()->getPicYuvRec()->getCbAddr(pcCU->getAddr(), pcCU->getZorderIdxInCU()+uiPartIdx);
-      pPat      = pcCU->getPattern()->getAdiCbBuf( uiWidth, uiHeight, m_pcPrediction->getPredicBuf() );
-    }
-    else
-    {
-      piPicReco = pcCU->getPic()->getPicYuvRec()->getCrAddr(pcCU->getAddr(), pcCU->getZorderIdxInCU()+uiPartIdx);
-      pPat      = pcCU->getPattern()->getAdiCrBuf( uiWidth, uiHeight, m_pcPrediction->getPredicBuf() );
-    }
-  }
-
-  Int iPredBufStride = ( uiWidth << 1 ) + 1;
-  Int iSamplePred    = m_pcPrediction->predIntraGetPredValDC(pPat+iPredBufStride+1, iPredBufStride, uiWidth, uiHeight, bAboveAvail, bLeftAvail );
-  Int iDelta         = ttText == TEXT_LUMA     ? pcCU->getPlanarInfo( uiPartIdx, PLANAR_DELTAY) :
-                       ttText == TEXT_CHROMA_U ? pcCU->getPlanarInfo( uiPartIdx, PLANAR_DELTAU) :
-                                                 pcCU->getPlanarInfo( uiPartIdx, PLANAR_DELTAV);
-  Int iSample;
-
-  // Reconstructed sample value
-  iDelta  = iDelta << g_uiBitIncrement;
-  iSample = iDelta + iSamplePred;
-
-  m_pcPrediction->predIntraPlanar( pPat, iSample, pPred, uiStride, uiWidth, uiHeight, bAboveAvail, bLeftAvail );
-
-  pResi = piResi;
-  pPred = piPred;
-  for( uiY = 0; uiY < uiHeight; uiY++ )
-  {
-    for( uiX = 0; uiX < uiWidth; uiX++ )
-    {
-      pResi    [uiX] = 0;
-      piReco   [uiX] = Clip(pPred[uiX]);
-      piPicReco[uiX] = piReco[uiX];
-    }
-    piReco    += uiStride;
-    pPred     += uiStride;
-    pResi     += uiStride;
-    piPicReco += uiPicStride;
-  }
-}
-
-Void TDecCu::xReconIntraPlanar( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
-{
-  UInt uiWidth  = pcCU->getWidth (0);
-  UInt uiHeight = pcCU->getHeight(0);
-
-  Pel* piResi;
-  Pel* piPred;
-  Pel* piReco;
-  UInt uiStride = m_ppcYuvResi[uiDepth]->getStride();
-
-  // Luma
-  piResi    = m_ppcYuvResi[uiDepth]->getLumaAddr(0, uiWidth);
-  piPred    = m_ppcYuvReco[uiDepth]->getLumaAddr(0, uiWidth);
-  piReco    = m_ppcYuvReco[uiDepth]->getLumaAddr(0, uiWidth);
-
-  xDecodePlanarTexture( pcCU, 0, piReco, piPred, piResi, uiStride, uiWidth, uiHeight, 0, TEXT_LUMA );
-
-  // Cb and Cr
-  Pel* pResiCb   = m_ppcYuvResi[uiDepth]->getCbAddr();
-  Pel* pResiCr   = m_ppcYuvResi[uiDepth]->getCrAddr();
-  Pel* pPredCb   = m_ppcYuvReco[uiDepth]->getCbAddr();
-  Pel* pPredCr   = m_ppcYuvReco[uiDepth]->getCrAddr();
-  Pel* pRecoCb   = m_ppcYuvReco[uiDepth]->getCbAddr();
-  Pel* pRecoCr   = m_ppcYuvReco[uiDepth]->getCrAddr();
-  UInt uiCStride = m_ppcYuvReco[uiDepth]->getCStride();
-  UInt uiCWidth  = pcCU->getWidth (0)>>1;
-  UInt uiCHeight = pcCU->getHeight(0)>>1;
-
-  xDecodePlanarTexture( pcCU, 0, pRecoCb, pPredCb, pResiCb, uiCStride, uiCWidth, uiCHeight, 0, TEXT_CHROMA_U );
-  xDecodePlanarTexture( pcCU, 0, pRecoCr, pPredCr, pResiCr, uiCStride, uiCWidth, uiCHeight, 0, TEXT_CHROMA_V );
-}
-#endif
-
 
 Void TDecCu::xReconIntra( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
 {
@@ -878,14 +750,6 @@ Void TDecCu::xReconIntra( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
 
   uiPartIdx     = 0;
   uiCoeffOffset = 0;
-
-#if PLANAR_INTRA
-  if ( pcCU->getPlanarInfo( uiPartIdx, PLANAR_FLAG) )
-  {
-    xReconIntraPlanar( pcCU, uiPartIdx, uiDepth );
-    return;
-  }
-#endif
 
   // Luma
   for( uiPU = 0 ; uiPU < uiNumPart; uiPU++ )

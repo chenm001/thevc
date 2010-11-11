@@ -442,11 +442,6 @@ Void TEncCu::xCompressCU( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, UInt u
     rpcTempCU->setCIPflag ( 0, 0 );
     rpcTempCU->setCIPflagSubParts ( 0, 0, rpcTempCU->getDepth(0) );
 
-#if PLANAR_INTRA
-    rpcTempCU->setPlanarInfo( 0, PLANAR_FLAG, 0 );
-    rpcTempCU->setPlanarInfoSubParts ( 0, 0, 0, 0, 0, rpcTempCU->getDepth(0) );
-#endif
-
     // do normal intra modes
     if ( !bEarlySkip )
     {
@@ -475,15 +470,6 @@ Void TEncCu::xCompressCU( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, UInt u
     if ( rpcBestCU->getPredictionMode(0) == MODE_INTRA )
     {
       PartSize eSize = rpcBestCU->getPartitionSize(0);
-#if PLANAR_INTRA
-      // Try planar mode
-      if ( !rpcTempCU->getSlice()->isInterB() )
-      {
-        rpcTempCU->setPlanarInfo( 0, PLANAR_FLAG, 1 );
-        rpcTempCU->setPlanarInfoSubParts ( 1, 0, 0, 0, 0, rpcTempCU->getDepth(0) );
-        xCheckPlanarIntra(rpcBestCU, rpcTempCU);  rpcTempCU->initEstData();
-      }
-#endif
 #if HHI_ALLOW_CIP_SWITCH
       if ( rpcTempCU->getSlice()->getSPS()->getUseCIP() )
 #else
@@ -658,15 +644,6 @@ Void TEncCu::xEncodeCU( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
 #endif
   m_pcEntropyCoder->encodePredMode( pcCU, uiAbsPartIdx );
 
-#if PLANAR_INTRA
-  if ( pcCU->isIntra( uiAbsPartIdx ) )
-  {
-    m_pcEntropyCoder->encodePlanarInfo( pcCU, uiAbsPartIdx );
-    if ( pcCU->getPlanarInfo   ( uiAbsPartIdx, PLANAR_FLAG ) )
-      return;
-  }
-#endif
-
   m_pcEntropyCoder->encodePartSize( pcCU, uiAbsPartIdx, uiDepth );
 
   // prediction Info ( Intra : direction mode, Inter : Mv, reference idx )
@@ -813,36 +790,6 @@ Void TEncCu::xCheckRDCostInter( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, 
   xCheckBestMode( rpcBestCU, rpcTempCU );
 }
 
-#if PLANAR_INTRA
-Void TEncCu::xCheckPlanarIntra( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU )
-{
-  UInt uiDepth = rpcTempCU->getDepth( 0 );
-
-  rpcTempCU->setPartSizeSubParts( SIZE_2Nx2N, 0, uiDepth );
-  rpcTempCU->setPredModeSubParts( MODE_INTRA, 0, uiDepth );
-  rpcTempCU->setPlanarInfoSubParts ( 1, 0, 0, 0, 0, uiDepth );
-
-  m_pcPredSearch->predIntraPlanarSearch( rpcTempCU, m_ppcOrigYuv[uiDepth], m_ppcPredYuvTemp[uiDepth], m_ppcResiYuvTemp[uiDepth], m_ppcRecoYuvTemp[uiDepth] );
-
-  if( m_bUseSBACRD ) m_pcRDGoOnSbacCoder->load(m_pppcRDSbacCoder[uiDepth][CI_CURR_BEST]);
-
-  m_pcEntropyCoder->resetBits();
-  m_pcEntropyCoder->encodeSkipFlag ( rpcTempCU, 0,          true );
-#if HHI_MRG
-  m_pcEntropyCoder->encodeMergeInfo( rpcTempCU, 0,          true );
-#endif
-  m_pcEntropyCoder->encodePredMode( rpcTempCU, 0,          true );
-  m_pcEntropyCoder->encodePlanarInfo( rpcTempCU, 0,        true );
-
-  if( m_bUseSBACRD ) m_pcRDGoOnSbacCoder->store(m_pppcRDSbacCoder[uiDepth][CI_TEMP_BEST]);
-
-  rpcTempCU->getTotalBits() = m_pcEntropyCoder->getNumberOfWrittenBits();
-  rpcTempCU->getTotalCost() = m_pcRdCost->calcRdCost( rpcTempCU->getTotalBits(), rpcTempCU->getTotalDistortion() );
-
-  xCheckBestMode( rpcBestCU, rpcTempCU );
-}
-#endif
-
 Void TEncCu::xCheckRDCostIntra( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, PartSize eSize )
 {
   UInt uiDepth = rpcTempCU->getDepth( 0 );
@@ -865,9 +812,6 @@ Void TEncCu::xCheckRDCostIntra( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, 
   m_pcEntropyCoder->encodeMergeInfo( rpcTempCU, 0,          true );
 #endif
   m_pcEntropyCoder->encodePredMode( rpcTempCU, 0,          true );
-#if PLANAR_INTRA
-  m_pcEntropyCoder->encodePlanarInfo( rpcTempCU, 0,        true );
-#endif
   m_pcEntropyCoder->encodePartSize( rpcTempCU, 0, uiDepth, true );
   m_pcEntropyCoder->encodePredInfo( rpcTempCU, 0,          true );
 

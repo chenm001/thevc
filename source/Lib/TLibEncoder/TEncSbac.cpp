@@ -82,9 +82,6 @@ TEncSbac::TEncSbac()
   , m_cALFFlagSCModel         ( 1,             1,               NUM_ALF_FLAG_CTX              )
   , m_cALFUvlcSCModel         ( 1,             1,               NUM_ALF_UVLC_CTX              )
   , m_cALFSvlcSCModel         ( 1,             1,               NUM_ALF_SVLC_CTX              )
-#if PLANAR_INTRA
-  , m_cPlanarIntraSCModel     ( 1,             1,               NUM_PLANAR_INTRA_CTX          )
-#endif
 {
   m_pcBitIf = 0;
   m_pcSlice = 0;
@@ -144,10 +141,6 @@ Void TEncSbac::resetEntropy           ()
   m_cALFSvlcSCModel.initBuffer        ( eSliceType, iQp, (Short*)INIT_ALF_SVLC );
   m_cCUTransSubdivFlagSCModel.initBuffer( eSliceType, iQp, (Short*)INIT_TRANS_SUBDIV_FLAG );
   m_cCUTransIdxSCModel.initBuffer     ( eSliceType, iQp, (Short*)INIT_TRANS_IDX );
-
-#if PLANAR_INTRA
-  m_cPlanarIntraSCModel.initBuffer    ( eSliceType, iQp, (Short*)INIT_PLANAR_INTRA );
-#endif
 
   // new structure
   m_uiLastQp          = iQp;
@@ -636,73 +629,6 @@ Void TEncSbac::codeTransformIdx( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDep
 
   return;
 }
-
-#if PLANAR_INTRA
-Void TEncSbac::xPutPlanarBins( Int n, Int cn )
-{
-  UInt tmp  = 1<<(n-4);
-  UInt code = tmp+cn%tmp;
-  UInt len  = 1+(n-4)+(cn>>(n-4));
-  Int  ctr;
-
-  for( ctr = len-1; ctr >= 0; ctr-- )
-    m_pcBinIf->encodeBinEP( (code & (1 << ctr)) >> ctr );
-}
-
-Void TEncSbac::xCodePlanarDelta( TComDataCU* pcCU, UInt uiAbsPartIdx , Int iDelta )
-{
-  /* Planar quantization
-  Y        qY              cW
-  0-3   :  0,1,2,3         0-3
-  4-15  :  4,6,8..14       4-9
-  16-63 : 18,22,26..62    10-21
-  64-.. : 68,76...        22-
-  */
-  Bool bDeltaNegative = iDelta < 0 ? true : false;
-  UInt uiDeltaAbs     = abs(iDelta);
-
-  if( uiDeltaAbs < 4 )
-    xPutPlanarBins( 5, uiDeltaAbs );
-  else if( uiDeltaAbs < 16 )
-    xPutPlanarBins( 5, (uiDeltaAbs>>1)+2 );
-  else if( uiDeltaAbs < 64)
-    xPutPlanarBins( 5, (uiDeltaAbs>>2)+6 );
-  else
-    xPutPlanarBins( 5, (uiDeltaAbs>>3)+14 );
-
-  if(uiDeltaAbs > 0)
-    m_pcBinIf->encodeBinEP( bDeltaNegative ? 1 : 0 );
-
-}
-
-Void TEncSbac::codePlanarInfo( TComDataCU* pcCU, UInt uiAbsPartIdx )
-{
-  if (pcCU->isIntra( uiAbsPartIdx ))
-  {
-    UInt uiPlanar = pcCU->getPlanarInfo(uiAbsPartIdx, PLANAR_FLAG);
-
-    m_pcBinIf->encodeBin( uiPlanar, m_cPlanarIntraSCModel.get( 0, 0, 0 ) );
-
-    if ( uiPlanar )
-    {
-      // Planar delta for Y
-      xCodePlanarDelta( pcCU, uiAbsPartIdx, pcCU->getPlanarInfo(uiAbsPartIdx, PLANAR_DELTAY) );
-
-      // Planar delta for U and V
-      Int  iPlanarDeltaU = pcCU->getPlanarInfo(uiAbsPartIdx, PLANAR_DELTAU);
-      Int  iPlanarDeltaV = pcCU->getPlanarInfo(uiAbsPartIdx, PLANAR_DELTAV);
-
-      m_pcBinIf->encodeBin( ( iPlanarDeltaU == 0 && iPlanarDeltaV == 0 ) ? 1 : 0, m_cPlanarIntraSCModel.get( 0, 0, 1 ) );
-
-      if ( iPlanarDeltaU != 0 || iPlanarDeltaV != 0 )
-      {
-        xCodePlanarDelta( pcCU, uiAbsPartIdx, iPlanarDeltaU );
-        xCodePlanarDelta( pcCU, uiAbsPartIdx, iPlanarDeltaV );
-      }
-    }
-  }
-}
-#endif
 
 Void TEncSbac::codeIntraDirLumaAng( TComDataCU* pcCU, UInt uiAbsPartIdx )
 {

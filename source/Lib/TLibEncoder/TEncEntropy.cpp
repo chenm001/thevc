@@ -882,19 +882,6 @@ Void TEncEntropy::encodeIntraDirModeLuma  ( TComDataCU* pcCU, UInt uiAbsPartIdx 
   m_pcEntropyCoderIf->codeIntraDirLumaAng( pcCU, uiAbsPartIdx );
 }
 
-#if PLANAR_INTRA
-Void TEncEntropy::encodePlanarInfo( TComDataCU* pcCU, UInt uiAbsPartIdx, Bool bRD )
-{
-  if ( pcCU->getSlice()->isInterB() )
-    return;
-
-  if( bRD )
-    uiAbsPartIdx = 0;
-
-  m_pcEntropyCoderIf->codePlanarInfo( pcCU, uiAbsPartIdx );
-}
-#endif
-
 // Intra direction for Chroma
 Void TEncEntropy::encodeIntraDirModeChroma( TComDataCU* pcCU, UInt uiAbsPartIdx, Bool bRD )
 {

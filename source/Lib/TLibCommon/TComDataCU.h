@@ -124,9 +124,6 @@ private:
   UChar*        m_pCIPflag;           ///< array of CIP flags
   UInt*         m_puiAlfCtrlFlag;     ///< array of ALF flags
   UInt*         m_puiTmpAlfCtrlFlag;  ///< temporal array of ALF flags
-#if PLANAR_INTRA
-  Int*          m_piPlanarInfo[4];
-#endif
 
   // -------------------------------------------------------------------------------------------------------------------
   // misc. variables
@@ -304,13 +301,6 @@ public:
   UChar         getCIPflag            ( UInt uiIdx )            { return m_pCIPflag[uiIdx];           }
   Void          setCIPflag            ( UInt uiIdx, UChar  uh ) { m_pCIPflag[uiIdx] = uh;             }
   Void          setCIPflagSubParts    ( UChar CIPflag, UInt uiAbsPartIdx, UInt uiDepth );
-
-#if PLANAR_INTRA
-  Int           getPlanarInfo   ( UInt uiIdx, PlanarType pType )            { return m_piPlanarInfo[pType][uiIdx];  }
-  Int*          getPlanarInfo   ( PlanarType pType )                        { return m_piPlanarInfo[pType];         }
-  Void          setPlanarInfo   ( UInt uiIdx, PlanarType pType, Int i )     { m_piPlanarInfo[pType][uiIdx] = i;     }
-  Void          setPlanarInfoSubParts( Int iPlanarFlag, Int iPlanarDeltaY, Int iPlanarDeltaU, Int iPlanarDeltaV, UInt uiAbsPartIdx, UInt uiDepth );
-#endif
 
   // -------------------------------------------------------------------------------------------------------------------
   // member functions for accessing partition information

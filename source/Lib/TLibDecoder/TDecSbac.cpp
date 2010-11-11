@@ -74,9 +74,6 @@ TDecSbac::TDecSbac()
   , m_cALFFlagSCModel         ( 1,             1,               NUM_ALF_FLAG_CTX              )
   , m_cALFUvlcSCModel         ( 1,             1,               NUM_ALF_UVLC_CTX              )
   , m_cALFSvlcSCModel         ( 1,             1,               NUM_ALF_SVLC_CTX              )
-#if PLANAR_INTRA
-  , m_cPlanarIntraSCModel     ( 1,             1,               NUM_PLANAR_INTRA_CTX          )
-#endif
 {
   m_pcBitstream = 0;
   m_pcTDecBinIf = 0;
@@ -136,10 +133,6 @@ Void TDecSbac::resetEntropy          (TComSlice* pcSlice)
   m_cCUTransSubdivFlagSCModel.initBuffer( eSliceType, iQp, (Short*)INIT_TRANS_SUBDIV_FLAG );
   m_cCUTransIdxSCModel.initBuffer     ( eSliceType, iQp, (Short*)INIT_TRANS_IDX );
 
-#if PLANAR_INTRA
-  m_cPlanarIntraSCModel.initBuffer    ( eSliceType, iQp, (Short*)INIT_PLANAR_INTRA );
-#endif
-
   m_uiLastDQpNonZero  = 0;
 
   // new structure
@@ -147,90 +140,6 @@ Void TDecSbac::resetEntropy          (TComSlice* pcSlice)
 
   m_pcTDecBinIf->start();
 }
-
-#if PLANAR_INTRA
-// Temporary VLC function
-UInt TDecSbac::xParsePlanarBins( )
-{
-  Bool bDone    = false;
-  UInt uiZeroes = 0;
-  UInt uiBit;
-  UInt uiCodeword;
-
-  while (!bDone)
-  {
-    m_pcTDecBinIf->decodeBinEP( uiBit );
-
-    if ( uiBit )
-    {
-      m_pcTDecBinIf->decodeBinEP( uiCodeword );
-      bDone = true;
-    }
-    else
-      uiZeroes++;
-  }
-
-  return ( ( uiZeroes << 1 ) + uiCodeword );
-}
-
-Int TDecSbac::xParsePlanarDelta( TextType ttText )
-{
-  /* Planar quantization
-  Y        qY              cW
-  0-3   :  0,1,2,3         0-3
-  4-15  :  4,6,8..14       4-9
-  16-63 : 18,22,26..62    10-21
-  64-.. : 68,76...        22-
-  */
-  UInt uiDeltaNegative = 0;
-  Int  iDelta          = xParsePlanarBins();
-
-  if( iDelta > 21 )
-    iDelta = ( ( iDelta - 14 ) << 3 ) + 4;
-  else if( iDelta > 9 )
-    iDelta = ( ( iDelta - 6 ) << 2 ) + 2;
-  else if( iDelta > 3 )
-    iDelta = ( iDelta - 2 ) << 1;
-
-  if( iDelta > 0 )
-  {
-    m_pcTDecBinIf->decodeBinEP( uiDeltaNegative );
-
-    if( uiDeltaNegative )
-      iDelta = -iDelta;
-  }
-
-  return iDelta;
-}
-
-Void TDecSbac::parsePlanarInfo( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
-{
-  UInt uiSymbol;
-
-  m_pcTDecBinIf->decodeBin( uiSymbol, m_cPlanarIntraSCModel.get( 0, 0, 0 ) );
-
-  if ( uiSymbol )
-  {
-    Int iPlanarFlag   = 1;
-    Int iPlanarDeltaY = xParsePlanarDelta( TEXT_LUMA );
-    Int iPlanarDeltaU = 0;
-    Int iPlanarDeltaV = 0;
-
-    // Planar delta for U and V
-     m_pcTDecBinIf->decodeBin( uiSymbol, m_cPlanarIntraSCModel.get( 0, 0, 1 ) );
-
-    if ( !uiSymbol )
-    {
-      iPlanarDeltaU = xParsePlanarDelta( TEXT_CHROMA_U );
-      iPlanarDeltaV = xParsePlanarDelta( TEXT_CHROMA_V );
-    }
-
-    pcCU->setPartSizeSubParts  ( SIZE_2Nx2N, uiAbsPartIdx, uiDepth );
-    pcCU->setSizeSubParts      ( g_uiMaxCUWidth>>uiDepth, g_uiMaxCUHeight>>uiDepth, uiAbsPartIdx, uiDepth );
-    pcCU->setPlanarInfoSubParts( iPlanarFlag, iPlanarDeltaY, iPlanarDeltaU, iPlanarDeltaV, uiAbsPartIdx, uiDepth );
-  }
-}
-#endif
 
 Void TDecSbac::parseCIPflag( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
 {

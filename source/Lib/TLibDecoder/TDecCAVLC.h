@@ -67,11 +67,6 @@ protected:
   Void  xParseCoeff4x4      ( TCoeff* scoeff, Int iTableNumber );
   Void  xParseCoeff8x8      ( TCoeff* scoeff, Int iTableNumber );
 
-#if PLANAR_INTRA
-  UInt xParsePlanarVlc      ();
-  Int  xParsePlanarDelta    ( TextType ttText );
-#endif
-
 private:
   TComBitstream*        m_pcBitstream;
   UInt                  m_uiCoeffCost;
@@ -148,9 +143,6 @@ public:
 
   Void parseROTindex        ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
   Void parseCIPflag         ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth);
-#if PLANAR_INTRA
-  Void parsePlanarInfo      ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth);
-#endif
 
   Void parseAlfCtrlDepth    ( UInt& ruiAlfCtrlDepth );
   Void parseAlfCtrlFlag     ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );

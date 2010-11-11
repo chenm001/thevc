@@ -154,43 +154,6 @@ Void TComLoopFilter::xDeblockCU( TComDataCU* pcCU, UInt uiAbsZorderIdx, UInt uiD
 
   xSetLoopfilterParam( pcCU, uiAbsZorderIdx );
 
-#if PLANAR_INTRA
-  Bool bVerDone = false;
-  Bool bHorDone = false;
-
-  if ( pcCU->getPlanarInfo( uiAbsZorderIdx, PLANAR_FLAG) )
-  {
-    // Check the vertical (left) border
-    if (m_stLFCUParam.bLeftEdge )
-    {
-      UInt        uiPartP;
-      TComDataCU* pcCUP = pcCU->getPULeft(uiPartP, uiAbsZorderIdx);
-
-      if ( pcCUP->getPlanarInfo( uiPartP, PLANAR_FLAG) && (pcCU->getHeight(uiAbsZorderIdx) == pcCUP->getHeight(uiPartP) ) )
-      {
-        xEdgeFilterPlanarIntra( pcCU, uiAbsZorderIdx, EDGE_VER );
-        bVerDone = true;
-      }
-    }
-
-    // Check the horizontal (top) border
-    if (m_stLFCUParam.bTopEdge )
-    {
-      UInt        uiPartP;
-      TComDataCU* pcCUP = pcCU->getPUAbove(uiPartP, uiAbsZorderIdx);
-
-      if ( pcCUP->getPlanarInfo( uiPartP, PLANAR_FLAG)  && (pcCU->getWidth(uiAbsZorderIdx) == pcCUP->getWidth(uiPartP) ))
-      {
-        xEdgeFilterPlanarIntra( pcCU, uiAbsZorderIdx, EDGE_HOR );
-        bHorDone = true;
-      }
-    }
-  }
-
-  if ( bVerDone && bHorDone )
-    return;
-#endif
-
   xSetEdgefilterTU   ( pcCU, uiAbsZorderIdx, uiDepth );
   xSetEdgefilterPU   ( pcCU, uiAbsZorderIdx );
 
@@ -212,10 +175,6 @@ Void TComLoopFilter::xDeblockCU( TComDataCU* pcCU, UInt uiAbsZorderIdx, UInt uiD
 
   for ( Int iDir = EDGE_VER; iDir <= EDGE_HOR; iDir++ )
   {
-#if PLANAR_INTRA
-    if ( ( iDir == EDGE_VER && bVerDone ) || ( iDir == EDGE_HOR && bHorDone ) )
-      continue;
-#endif
     for ( Int iEdge = 0; iEdge < uiSizeInPU ; iEdge+=PartIdxIncr)
     {
       xEdgeFilterLuma     ( pcCU, uiAbsZorderIdx, uiDepth, iDir, iEdge );
@@ -296,98 +255,6 @@ Void TComLoopFilter::xSetEdgefilterPU( TComDataCU* pcCU, UInt uiAbsZorderIdx )
     }
 }
 }
-
-#if PLANAR_INTRA
-Void TComLoopFilter::xPelFilterPlanarIntra( Pel* piSrc, Int iOffset, Int iBlkSize )
-{
-  Int a1,a2,bitShift;
-  Int blkSizeHalf    = iBlkSize >> 1;
-  Int blkSizeQuarter = iBlkSize >> 2;
-  Int k;
-
-  switch (iBlkSize)
-  {
-  case 2:   return;
-  case 4:   bitShift = 1; break;
-  case 8:   bitShift = 2; break;
-  case 16:  bitShift = 3; break;
-  case 32:  bitShift = 4; break;
-  case 64:  bitShift = 5; break;
-  case 128: bitShift = 6; break;
-  default: assert( iBlkSize ); break;
-  }
-
-  a1 = piSrc[-blkSizeQuarter*iOffset];
-  a2 = piSrc[ blkSizeQuarter*iOffset];
-
-  for(k=1;k<blkSizeHalf;k++)
-  {
-      piSrc[(-blkSizeQuarter+k)*iOffset] = (a1*(blkSizeHalf-k) + a2*k + blkSizeQuarter) >> bitShift;
-  }
-}
-
-Void TComLoopFilter::xEdgeFilterPlanarIntra( TComDataCU* pcCU, UInt uiAbsZorderIdx, Int iDir )
-{
-  TComPicYuv* pcPicYuvRec = pcCU->getPic()->getPicYuvRec();
-  Pel*        piSrc       = pcPicYuvRec->getLumaAddr( pcCU->getAddr(), uiAbsZorderIdx );
-
-  Int   iStride   = pcPicYuvRec->getStride();
-  Int   iOffset, iSrcStep;
-  Int   iNumStep;
-
-  // Luminance parameters
-  if (iDir == EDGE_VER)
-  {
-    iOffset  = 1;
-    iSrcStep = iStride;
-    iNumStep = pcCU->getHeight(uiAbsZorderIdx);
-  }
-  else
-  {
-    iOffset  = iStride;
-    iSrcStep = 1;
-    iNumStep = pcCU->getWidth(uiAbsZorderIdx);
-  }
-
-  // Filter Y component
-  for ( UInt uiStep = 0; uiStep < iNumStep; uiStep++ )
-  {
-    xPelFilterPlanarIntra( piSrc+iSrcStep*uiStep, iOffset, iNumStep );
-  }
-
-  // Chrominance parameters
-  iStride = pcPicYuvRec->getCStride();
-
-  if (iDir == EDGE_VER)
-  {
-    iOffset  = 1;
-    iSrcStep = iStride;
-    iNumStep = pcCU->getHeight(uiAbsZorderIdx) >> 1;
-  }
-  else
-  {
-    iOffset  = iStride;
-    iSrcStep = 1;
-    iNumStep = pcCU->getWidth(uiAbsZorderIdx) >> 1;
-  }
-
-  // Filter U component
-  piSrc = pcPicYuvRec->getCbAddr( pcCU->getAddr(), uiAbsZorderIdx );
-
-  for ( UInt uiStep = 0; uiStep < iNumStep; uiStep++ )
-  {
-    xPelFilterPlanarIntra( piSrc + iSrcStep*uiStep, iOffset, iNumStep );
-  }
-
-  // Filter V component
-  piSrc = pcPicYuvRec->getCrAddr( pcCU->getAddr(), uiAbsZorderIdx );
-
-  for ( UInt uiStep = 0; uiStep < iNumStep; uiStep++ )
-  {
-    xPelFilterPlanarIntra( piSrc + iSrcStep*uiStep, iOffset, iNumStep );
-  }
-}
-#endif
 
 
 Void TComLoopFilter::xSetLoopfilterParam( TComDataCU* pcCU, UInt uiAbsZorderIdx )

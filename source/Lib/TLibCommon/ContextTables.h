@@ -81,10 +81,6 @@
 #define NUM_ALF_UVLC_CTX              2       ///< number of context models for ALF UVLC (filter length)
 #define NUM_ALF_SVLC_CTX              3       ///< number of context models for ALF SVLC (filter coeff.)
 
-#if PLANAR_INTRA
-#define NUM_PLANAR_INTRA_CTX          2
-#endif
-
 // ====================================================================================================================
 // Tables
 // ====================================================================================================================
@@ -244,22 +240,6 @@ INIT_INTRA_PRED_MODE[3][NUM_ADI_CTX][2] =
     {    0,   51 }, {    1,   55 }
   }
 };
-
-#if PLANAR_INTRA
-static const Short
-INIT_PLANAR_INTRA[3][NUM_PLANAR_INTRA_CTX][2] =
-{
-  {
-    {    0,   64 }, {    0,   64 }
-  },
-  {
-    {    0,   64 }, {    0,   64 }
-  },
-  {
-    {    0,   64 }, {    0,   64 }
-  }
-};
-#endif
 
 // initial probability for intra direction of chroma
 static const Short
