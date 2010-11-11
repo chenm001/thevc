@@ -509,18 +509,6 @@ protected:
   Void xEncodeResidualQT( TComDataCU* pcCU, UInt uiAbsPartIdx, const UInt uiDepth, Bool bSubdivAndCbf, TextType eType );
   Void xEstimateResidualQT( TComDataCU* pcCU, UInt uiQuadrant, UInt uiAbsPartIdx, TComYuv* pcResi, const UInt uiDepth, Double &rdCost, UInt &ruiBits, UInt &ruiDist, UInt *puiZeroDist );
   Void xSetResidualQTData( TComDataCU* pcCU, UInt uiAbsPartIdx, TComYuv* pcResi, UInt uiDepth, Bool bSpatial );
-  Void xEncodeInterTexture        ( TComDataCU*&  rpcCU, UInt uiQp, Bool bHighPass, TComYuv*& rpcYuv, UInt uiTrMode );
-  Void xRecurTransformNxN         ( TComDataCU*   rpcCU,
-                                    UInt          uiAbsPartIdx,
-                                    Pel*          pcResidual,
-                                    UInt          uiAddr,
-                                    UInt          uiStride,
-                                    UInt          uiWidth,
-                                    UInt          uiHeight,
-                                    UInt          uiMaxTrMode,
-                                    UInt          uiTrMode,
-                                    TCoeff*&      rpcCoeff,
-                                    TextType      eType );
 
 #if SAMSUNG_FAST_UDI
   UInt  xModeBitsIntra ( TComDataCU* pcCU, UInt uiMode, UInt uiPU, UInt uiPartOffset, UInt uiDepth, UInt uiInitTrDepth );

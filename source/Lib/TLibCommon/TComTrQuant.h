@@ -44,7 +44,6 @@
 // Constants
 // ====================================================================================================================
 
-#define RDOQ_MAX_PREC_COEFF     25          ///< max. precision of coefficient in RDOQ
 #define QP_BITS                 15
 
 // AQO Parameter
@@ -74,18 +73,6 @@ typedef struct
   Int scanZigzag[2];            ///< flag for zigzag scan
   Int scanNonZigzag[2];         ///< flag for non zigzag scan
 } estBitsSbacStruct;
-
-typedef struct
-{
-  Int level[3];
-  Int pre_level;
-  Int coeff_ctr;
-  Long levelDouble;
-  Double errLevel[3];
-  Int noLevels;
-  Long levelQ;
-  Bool lowerInt;
-} levelDataStruct;
 
 class TEncCavlc;
 
