@@ -2252,7 +2252,7 @@ Bool TEncSearch::predIntraLumaDirAvailable( UInt uiMode, UInt uiWidthBit, Bool b
   Bool bDirAvailable = true;
   UInt uiNewMode     = g_aucAngIntraModeOrder[uiMode];
   
-  if ( uiNewMode > 0 && ( (!bAboveAvail) && uiNewMode < 18 ) || ( (!bLeftAvail) && uiNewMode > 17 ) )
+  if ( uiNewMode > 0 && ( ( (!bAboveAvail) && uiNewMode < 18 ) || ( (!bLeftAvail) && uiNewMode > 17 ) ) )
     bDirAvailable = false;
   
   return bDirAvailable;

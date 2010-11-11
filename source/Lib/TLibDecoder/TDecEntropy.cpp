@@ -963,7 +963,6 @@ Void TDecEntropy::xDecodeTransformSubdiv( TComDataCU* pcCU, UInt uiAbsPartIdx, U
     {
       ++uiDepth;
       const UInt uiQPartNum = pcCU->getPic()->getNumPartInCU() >> (uiDepth << 1);
-      const UInt uiStartAbsPartIdx = uiAbsPartIdx;
   
       for( Int i = 0; i < 4; i++ )
       {
