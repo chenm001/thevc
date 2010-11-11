@@ -91,8 +91,6 @@
 #error
 #endif
 
-#define QC_CONFIG
-
 #define ENABLE_FORCECOEFF0  0
 
 #define DISABLE_ROT_LUMA_4x4_8x8           0
@@ -213,24 +211,6 @@ typedef       Short           Pel;        ///< 16-bit pixel type
 typedef       Int             TCoeff;     ///< transform coefficient
 
 /// parameters for adaptive loop filter
-typedef struct _AlfFilter
-{
-  Int   iFilterLength         ; // != number of Coeffs !!! number of tabs
-  Int   iFilterSymmetry       ;
-  Int   iNumOfCoeffs          ;
-  Int   iOverlap              ;
-  Bool  bIsHorizontal         ;
-  Bool  bIsVertical           ;
-  Int*  aiQuantFilterCoeffs   ;
-  Int*  aiTapCoeffMapping     ;
-  Int*  aiCoeffWeights        ;
-  Bool  bIsValid              ;
-  Int   iHorizontalOverlap    ;
-  Int   iVerticalOverlap      ;
-} AlfFilter;
-
-
-/// parameters for adaptive loop filter
 class TComPicSym;
 
 struct _AlfParam
@@ -268,19 +248,6 @@ struct _AlfParam
   UInt alf_max_depth;
   UInt *alf_cu_flag;
 #endif
-};
-
-struct _AlfParamHHI
-{
-  Int alf_flag;                           ///< indicates use of ALF
-  Int cu_control_flag;                    ///< coding unit based control flag
-  Int chroma_idc;
-
-  AlfFilter*  acHorizontalAlfFilter ;
-  AlfFilter*  acVerticalAlfFilter ;
-  Bool        bSeparateQt;
-  TComPicSym* pcQuadTree;
-  Int         aiPlaneFilterMapping[3] ;
 };
 
 /// parameters for deblocking filter
