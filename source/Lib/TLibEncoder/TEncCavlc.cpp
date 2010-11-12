@@ -85,7 +85,6 @@ TEncCavlc::~TEncCavlc()
 #define NUM_PASSES 2
 Void TEncCavlc::statistics(Bool bResetFlag, UInt uiPrintVar)
 {
-  Int i,j;
   if (bResetFlag)
   {
     m_uiBitHLS                 = 0;
@@ -122,9 +121,6 @@ Void TEncCavlc::statistics(Bool bResetFlag, UInt uiPrintVar)
 
   if (uiPrintVar)
   {
-    Int i;
-    FILE *fp;
-   
     UInt uiTotalBits = 0;
               
     /* Divide some of the variables by by number of passes */
@@ -315,7 +311,6 @@ Void TEncCavlc::codeSPS( TComSPS* pcSPS )
   // Tools
   xWriteFlag  ( (pcSPS->getUseALF ()) ? 1 : 0 );
   xWriteFlag  ( (pcSPS->getUseDQP ()) ? 1 : 0 );
-  xWriteFlag  ( 0 ); // TODO: was WPG
   xWriteFlag  ( (pcSPS->getUseLDC ()) ? 1 : 0 );
   xWriteFlag  ( (pcSPS->getUseQBO ()) ? 1 : 0 );
   m_uiBitHLS += 5;
@@ -323,8 +318,6 @@ Void TEncCavlc::codeSPS( TComSPS* pcSPS )
   xWriteFlag  ( (pcSPS->getUseMRG ()) ? 1 : 0 ); // SOPH:
   m_uiBitHLS += 1;
 #endif
-  xWriteFlag  ( (pcSPS->getUseAMP ()) ? 1 : 0 );
-  m_uiBitHLS += 1;
 #if HHI_RMP_SWITCH
   xWriteFlag  ( (pcSPS->getUseRMP ()) ? 1 : 0 );
   m_uiBitHLS += 1;
@@ -332,7 +325,6 @@ Void TEncCavlc::codeSPS( TComSPS* pcSPS )
   
   // write number of taps for DIF
   m_uiBitHLS += xWriteUvlc  ( (pcSPS->getDIFTap ()>>1)-2 ); // 4, 6, 8, 10, 12
-  m_uiBitHLS += xWriteUvlc  ( 0 ); // TODO: remove? was chroma IF length
 
   // AMVP mode for each depth
   for (Int i = 0; i < pcSPS->getMaxCUDepth(); i++)
@@ -344,9 +336,6 @@ Void TEncCavlc::codeSPS( TComSPS* pcSPS )
   // Bit-depth information
   m_uiBitHLS += xWriteUvlc( pcSPS->getBitDepth() - 8 );
   m_uiBitHLS += xWriteUvlc( pcSPS->getBitIncrement() );
-
-  m_uiBitHLS += xWriteCode( 0, 8); // TODO: remove? was balanced CPUs
-
 }
 
 Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
@@ -365,25 +354,6 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
   
   xWriteFlag  (pcSlice->getSymbolMode() > 0 ? 1 : 0);
   m_uiBitHLS += 1;
-  if( pcSlice->getSymbolMode() > 0 )
-  {
-    xWriteFlag( pcSlice->getSymbolMode() > 1 ? 1 : 0 );
-    m_uiBitHLS += 1;
-    if( pcSlice->getSymbolMode() )
-    {
-      xWriteFlag( pcSlice->getMultiCodeword() ? 1 : 0 );
-      m_uiBitHLS += 1;
-    }
-    if( pcSlice->getSymbolMode() == 2 && ! pcSlice->getMultiCodeword() )
-    {
-      m_uiBitHLS += xWriteUvlc( pcSlice->getMaxPIPEDelay() >> 6 );
-    }
-  }
-  else
-  {
-    xWriteFlag( 0 ); // TODO: remove? v2v related
-    m_uiBitHLS += 1;
-  }
 
   if (!pcSlice->isIntra())
   {
@@ -400,7 +370,7 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
 
   if (!pcSlice->isIntra())
   {
-    m_uiBitHLS += xWriteCode  ((pcSlice->getNumRefIdx( REF_PIC_LIST_0 )) -pcSlice->getAddRefCnt(REF_PIC_LIST_0), 3 );
+    m_uiBitHLS += xWriteCode  ((pcSlice->getNumRefIdx( REF_PIC_LIST_0 )), 3 );
   }
   else
   {
@@ -408,7 +378,7 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
   }
   if (pcSlice->isInterB())
   {
-    m_uiBitHLS += xWriteCode  ((pcSlice->getNumRefIdx( REF_PIC_LIST_1 )) -pcSlice->getAddRefCnt(REF_PIC_LIST_1), 3 );
+    m_uiBitHLS += xWriteCode  ((pcSlice->getNumRefIdx( REF_PIC_LIST_1 )), 3 );
   }
   else
   {
@@ -489,21 +459,18 @@ Void TEncCavlc::codeSPS( TComSPS* pcSPS )
   // Tools
   xWriteFlag  ( (pcSPS->getUseALF ()) ? 1 : 0 );
   xWriteFlag  ( (pcSPS->getUseDQP ()) ? 1 : 0 );
-  xWriteFlag  ( 0 ); // TODO: was WPG
   xWriteFlag  ( (pcSPS->getUseLDC ()) ? 1 : 0 );
   xWriteFlag  ( (pcSPS->getUseQBO ()) ? 1 : 0 );
 #if HHI_MRG
   xWriteFlag  ( (pcSPS->getUseMRG ()) ? 1 : 0 ); // SOPH:
 #endif
 
-  xWriteFlag  ( 0 ); // TODO: remove? was AMP
 #if HHI_RMP_SWITCH
   xWriteFlag  ( (pcSPS->getUseRMP()) ? 1 : 0 );
 #endif
 
   // write number of taps for DIF
   xWriteUvlc  ( (pcSPS->getDIFTap ()>>1)-2 ); // 4, 6, 8, 10, 12
-  xWriteUvlc  ( 0 ); // TODO: remove? was chroma IF length
 
   // AMVP mode for each depth
   for (Int i = 0; i < pcSPS->getMaxCUDepth(); i++)
@@ -514,9 +481,6 @@ Void TEncCavlc::codeSPS( TComSPS* pcSPS )
   // Bit-depth information
   xWriteUvlc( pcSPS->getBitDepth() - 8 );
   xWriteUvlc( pcSPS->getBitIncrement() );
-
-  xWriteCode( 0, 8); // TODO: remove? was balanced CPUs
-
 }
 
 Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
@@ -1674,7 +1638,6 @@ UInt TEncCavlc::xLeadingZeros(UInt uiCode)
 #if LCEC_STAT
 UInt TEncCavlc::xWriteVlc(UInt uiTableNumber, UInt uiCodeNumber)
 {
-  UInt uiNumBits = 0;
 #else
 Void TEncCavlc::xWriteVlc(UInt uiTableNumber, UInt uiCodeNumber)
 {

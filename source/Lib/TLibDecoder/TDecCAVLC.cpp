@@ -103,22 +103,17 @@ Void TDecCavlc::parseSPS(TComSPS* pcSPS)
   // Tool on/off
   xReadFlag( uiCode ); pcSPS->setUseALF ( uiCode ? true : false );
   xReadFlag( uiCode ); pcSPS->setUseDQP ( uiCode ? true : false );
-  xReadFlag( uiCode ); assert(uiCode==0); // TODO: was WPG
   xReadFlag( uiCode ); pcSPS->setUseLDC ( uiCode ? true : false );
   xReadFlag( uiCode ); pcSPS->setUseQBO ( uiCode ? true : false );
 #if HHI_MRG
   xReadFlag( uiCode ); pcSPS->setUseMRG ( uiCode ? true : false ); // SOPH:
 #endif
 
-  xReadFlag( uiCode ); // TODO: remove? was AMP
-  assert(uiCode == 0);
-  
 #if HHI_RMP_SWITCH
   xReadFlag( uiCode ); pcSPS->setUseRMP( uiCode ? true : false );
 #endif
   // number of taps for DIF
   xReadUvlc( uiCode ); pcSPS->setDIFTap ( (uiCode+2)<<1 );  // 4, 6, 8, 10, 12
-  xReadUvlc( uiCode ); assert(uiCode == 0); // TODO: remove? was chroma IF length
 
   // AMVP mode for each depth (AM_NONE or AM_EXPL)
   for (Int i = 0; i < pcSPS->getMaxCUDepth(); i++)
@@ -130,8 +125,6 @@ Void TDecCavlc::parseSPS(TComSPS* pcSPS)
   // Bit-depth information
   xReadUvlc( uiCode ); pcSPS->setBitDepth     ( uiCode+8 ); g_uiBitDepth     = uiCode + 8;
   xReadUvlc( uiCode ); pcSPS->setBitIncrement ( uiCode   ); g_uiBitIncrement = uiCode;
-
-  xReadCode( 8, uiCode ); // TODO: remove? was balanced CPUs
 
   g_uiBASE_MAX  = ((1<<(g_uiBitDepth))-1);
 
