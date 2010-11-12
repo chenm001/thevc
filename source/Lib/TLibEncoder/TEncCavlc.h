@@ -89,7 +89,6 @@ protected:
   UInt m_uiBitCurrSplitFlag;
   UInt m_uiBitTransformSubdivFlag;
   UInt m_uiBitQtCbf;
-  UInt m_uiBitTransformIdx;
   UInt m_uiBitPlanarVlc;
   UInt m_uiBitIntraDir;
   UInt m_uiBitIRefFrmIdx;
@@ -204,7 +203,6 @@ public:
   Void codeQtCbf         ( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eType, UInt uiTrDepth );
   Void codeQtRootCbf     ( TComDataCU* pcCU, UInt uiAbsPartIdx );
 
-  Void codeTransformIdx  ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
   Void codeIntraDirLumaAng( TComDataCU* pcCU, UInt uiAbsPartIdx );
 
   Void codeIntraDirChroma( TComDataCU* pcCU, UInt uiAbsPartIdx );

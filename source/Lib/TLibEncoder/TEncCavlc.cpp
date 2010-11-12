@@ -63,7 +63,6 @@ TEncCavlc::TEncCavlc()
   m_uiBitCurrSplitFlag       = 0;
   m_uiBitTransformSubdivFlag = 0;
   m_uiBitQtCbf               = 0;
-  m_uiBitTransformIdx        = 0;
   m_uiBitPlanarVlc           = 0;
   m_uiBitIntraDir            = 0;
   m_uiBitIRefFrmIdx          = 0;  
@@ -109,7 +108,6 @@ Void TEncCavlc::statistics(Bool bResetFlag, UInt uiPrintVar)
     m_uiBitCurrSplitFlag       = 0; 
     m_uiBitTransformSubdivFlag = 0;
     m_uiBitQtCbf               = 0; 
-    m_uiBitTransformIdx        = 0; 
     
     m_uiBitPlanarVlc           = 0;
     m_uiBitIntraDir            = 0;
@@ -150,7 +148,6 @@ Void TEncCavlc::statistics(Bool bResetFlag, UInt uiPrintVar)
     m_uiBitCurrSplitFlag = m_uiBitCurrSplitFlag/NUM_PASSES;
     m_uiBitTransformSubdivFlag = m_uiBitTransformSubdivFlag/NUM_PASSES;
     m_uiBitQtCbf = m_uiBitQtCbf/NUM_PASSES;   
-    m_uiBitTransformIdx = m_uiBitTransformIdx/NUM_PASSES;
     m_uiBitPlanarVlc = m_uiBitPlanarVlc/NUM_PASSES;
     m_uiBitIntraDir = m_uiBitIntraDir/NUM_PASSES;
     m_uiBitIRefFrmIdx = m_uiBitIRefFrmIdx/NUM_PASSES;
@@ -181,7 +178,6 @@ Void TEncCavlc::statistics(Bool bResetFlag, UInt uiPrintVar)
     uiTotalBits += m_uiBitCurrSplitFlag;
     uiTotalBits += m_uiBitTransformSubdivFlag;
     uiTotalBits += m_uiBitQtCbf;   
-    uiTotalBits += m_uiBitTransformIdx;
    
     uiTotalBits += m_uiBitPlanarVlc;
     uiTotalBits += m_uiBitIntraDir;
@@ -219,7 +215,6 @@ Void TEncCavlc::statistics(Bool bResetFlag, UInt uiPrintVar)
     printf("m_uiBitCurrSplitFlag  =      %12d %6.1f\n",m_uiBitCurrSplitFlag,100.0*(float)m_uiBitCurrSplitFlag/(float)uiTotalBits);
     printf("m_uiBitTransformSubdivFlag = %12d %6.1f\n",m_uiBitTransformSubdivFlag,100.0*(float)m_uiBitTransformSubdivFlag/(float)uiTotalBits);
     printf("m_uiBitQtCbf =               %12d %6.1f\n",m_uiBitQtCbf,100.0*(float)m_uiBitQtCbf/(float)uiTotalBits);
-    printf("m_uiBitTransformIdx =        %12d %6.1f\n",m_uiBitTransformIdx,100.0*(float)m_uiBitTransformIdx/(float)uiTotalBits);
     
     printf("m_uiBitPlanarVlc =           %12d %6.1f\n",m_uiBitPlanarVlc,100.0*(float)m_uiBitPlanarVlc/(float)uiTotalBits);
     printf("m_uiBitIntraDir =            %12d %6.1f\n",m_uiBitIntraDir,100.0*(float)m_uiBitIntraDir/(float)uiTotalBits);
@@ -885,54 +880,6 @@ Void TEncCavlc::codeQtRootCbf( TComDataCU* pcCU, UInt uiAbsPartIdx )
 {
   UInt uiCbf = pcCU->getQtRootCbf( uiAbsPartIdx );
   xWriteFlag( uiCbf ? 1 : 0 );
-}
-
-Void TEncCavlc::codeTransformIdx( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
-{
-  UInt uiTrLevel = 0;
-
-  UInt uiWidthInBit  = g_aucConvertToBit[pcCU->getWidth(uiAbsPartIdx)]+2;
-  UInt uiTrSizeInBit = g_aucConvertToBit[pcCU->getSlice()->getSPS()->getMaxTrSize()]+2;
-  uiTrLevel          = uiWidthInBit >= uiTrSizeInBit ? uiWidthInBit - uiTrSizeInBit : 0;
-
-  UInt uiMinTrDepth = pcCU->getSlice()->getSPS()->getMinTrDepth() + uiTrLevel;
-  UInt uiMaxTrDepth = pcCU->getSlice()->getSPS()->getMaxTrDepth() + uiTrLevel;
-
-  if ( uiMinTrDepth == uiMaxTrDepth )
-  {
-    return;
-  }
-
-  UInt uiSymbol = pcCU->getTransformIdx(uiAbsPartIdx) - uiMinTrDepth;
-
-  xWriteFlag( uiSymbol ? 1 : 0 );
-#if LCEC_STAT
-  if (m_bAdaptFlag)
-    m_uiBitTransformIdx += 1;
-#endif
-
-  if ( !uiSymbol )
-  {
-    return;
-  }
-
-  Int  iCount = 1;
-  uiSymbol--;
-  while( ++iCount <= (Int)( uiMaxTrDepth - uiMinTrDepth ) )
-  {
-    xWriteFlag( uiSymbol ? 1 : 0 );
-#if LCEC_STAT
-    if (m_bAdaptFlag)
-      m_uiBitTransformIdx += 1;
-#endif
-    if ( uiSymbol == 0 )
-    {
-      return;
-    }
-    uiSymbol--;
-  }
-
-  return;
 }
 
 Void TEncCavlc::codeIntraDirLumaAng( TComDataCU* pcCU, UInt uiAbsPartIdx )

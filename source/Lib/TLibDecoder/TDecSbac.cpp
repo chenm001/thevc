@@ -726,54 +726,6 @@ Void TDecSbac::parseQtRootCbf( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth
   uiQtRootCbf = uiSymbol;
 }
 
-Void TDecSbac::parseTransformIdx( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
-{
-  UInt uiTrLevel = 0;
-
-  UInt uiWidthInBit  = g_aucConvertToBit[pcCU->getWidth(uiAbsPartIdx)]+2;
-  UInt uiTrSizeInBit = g_aucConvertToBit[pcCU->getSlice()->getSPS()->getMaxTrSize()]+2;
-  uiTrLevel          = uiWidthInBit >= uiTrSizeInBit ? uiWidthInBit - uiTrSizeInBit : 0;
-
-  UInt uiMinTrDepth = pcCU->getSlice()->getSPS()->getMinTrDepth() + uiTrLevel;
-  UInt uiMaxTrDepth = pcCU->getSlice()->getSPS()->getMaxTrDepth() + uiTrLevel;
-
-  if ( uiMinTrDepth == uiMaxTrDepth )
-  {
-    pcCU->setTrIdxSubParts( uiMinTrDepth, uiAbsPartIdx, uiDepth );
-    return;
-  }
-
-  UInt uiTrIdx;
-  m_pcTDecBinIf->decodeBin( uiTrIdx, m_cCUTransIdxSCModel.get( 0, 0, pcCU->getCtxTransIdx( uiAbsPartIdx ) ) );
-
-  if ( !uiTrIdx )
-  {
-    uiTrIdx = uiTrIdx + uiMinTrDepth;
-    pcCU->setTrIdxSubParts( uiTrIdx, uiAbsPartIdx, uiDepth );
-    return;
-  }
-
-  UInt uiSymbol;
-  Int  iCount = 1;
-  while( ++iCount <= (Int)( uiMaxTrDepth - uiMinTrDepth ) )
-  {
-    m_pcTDecBinIf->decodeBin( uiSymbol, m_cCUTransIdxSCModel.get( 0, 0, 3 ) );
-    if ( uiSymbol == 0 )
-    {
-      uiTrIdx = uiTrIdx + uiMinTrDepth;
-      pcCU->setTrIdxSubParts( uiTrIdx, uiAbsPartIdx, uiDepth );
-      return;
-    }
-    uiTrIdx += uiSymbol;
-  }
-
-  uiTrIdx = uiTrIdx + uiMinTrDepth;
-
-  pcCU->setTrIdxSubParts( uiTrIdx, uiAbsPartIdx, uiDepth );
-
-  return;
-}
-
 Void TDecSbac::parseDeltaQP( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
 {
   UInt uiDQp;

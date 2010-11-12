@@ -675,54 +675,6 @@ Void TDecCavlc::parseMvd( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiPartIdx, U
   return;
 }
 
-Void TDecCavlc::parseTransformIdx( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
-{
-  UInt uiTrLevel = 0;
-
-  UInt uiWidthInBit  = g_aucConvertToBit[pcCU->getWidth(uiAbsPartIdx)]+2;
-  UInt uiTrSizeInBit = g_aucConvertToBit[pcCU->getSlice()->getSPS()->getMaxTrSize()]+2;
-  uiTrLevel          = uiWidthInBit >= uiTrSizeInBit ? uiWidthInBit - uiTrSizeInBit : 0;
-
-  UInt uiMinTrDepth = pcCU->getSlice()->getSPS()->getMinTrDepth() + uiTrLevel;
-  UInt uiMaxTrDepth = pcCU->getSlice()->getSPS()->getMaxTrDepth() + uiTrLevel;
-
-  if ( uiMinTrDepth == uiMaxTrDepth )
-  {
-    pcCU->setTrIdxSubParts( uiMinTrDepth, uiAbsPartIdx, uiDepth );
-    return;
-  }
-
-  UInt uiTrIdx;
-  xReadFlag( uiTrIdx );
-
-  if ( !uiTrIdx )
-  {
-    uiTrIdx = uiTrIdx + uiMinTrDepth;
-    pcCU->setTrIdxSubParts( uiTrIdx, uiAbsPartIdx, uiDepth );
-    return;
-  }
-
-  UInt uiSymbol;
-  Int  iCount = 1;
-  while( ++iCount <= (Int)( uiMaxTrDepth - uiMinTrDepth ) )
-  {
-    xReadFlag( uiSymbol );
-    if ( uiSymbol == 0 )
-    {
-      uiTrIdx = uiTrIdx + uiMinTrDepth;
-      pcCU->setTrIdxSubParts( uiTrIdx, uiAbsPartIdx, uiDepth );
-      return;
-    }
-    uiTrIdx += uiSymbol;
-  }
-
-  uiTrIdx = uiTrIdx + uiMinTrDepth;
-
-  pcCU->setTrIdxSubParts( uiTrIdx, uiAbsPartIdx, uiDepth );
-
-  return ;
-}
-
 Void TDecCavlc::parseDeltaQP( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
 {
   UInt uiDQp;

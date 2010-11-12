@@ -222,7 +222,6 @@ public:
 
   UChar*        getTransformIdx       ()                        { return m_puhTrIdx;          }
   UChar         getTransformIdx       ( UInt uiIdx )            { return m_puhTrIdx[uiIdx];   }
-  Void          setTransformIdx       ( UInt uiIdx, UChar  uh ) { m_puhTrIdx[uiIdx] = uh;     }
   Void          setTrIdxSubParts      ( UInt uiTrIdx, UInt uiAbsPartIdx, UInt uiDepth );
 
   UInt          getQuadtreeTULog2MinSizeInCU( UInt uiIdx );
