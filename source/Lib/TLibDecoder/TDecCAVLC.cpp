@@ -805,7 +805,6 @@ Void TDecCavlc::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartI
     TComDataCU* pcCUA   = pcCU->getPUAbove(uiAbsPartIdxA, pcCU->getZorderIdxInCU() + uiAbsPartIdx);
 	if (pcCUL == NULL && pcCUA == NULL)
 	{
-#if 1
 	  uiDecodeDCCoeff = 1;
       dcCoeff = xReadVlc(eTType == TEXT_LUMA ? 3 : 1);
       if (dcCoeff)
@@ -817,10 +816,6 @@ Void TDecCavlc::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartI
           dcCoeff = -dcCoeff;
         }
 	  }
-#else
-      UInt sign;
-        xReadFlag(sign);
-#endif
 	}
   }
 

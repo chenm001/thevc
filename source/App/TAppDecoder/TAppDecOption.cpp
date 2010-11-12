@@ -836,23 +836,22 @@ TAppOption::setValue( const char *option , char *value )
 {
   if( !valueStoreOK() )
     return false;
-
-        for( int i = 0 ; i < option_counter ; i++ ){
-                if( strcmp( options[i], option ) == 0 ){
-#if 1      // as suggested by Xiang Li [li@ient.rwth-aachen.de] 
+  
+  for( int i = 0 ; i < option_counter ; i++ ){
+    if( strcmp( options[i], option ) == 0 ){
+      // as suggested by Xiang Li [li@ient.rwth-aachen.de] 
       // lines for bug fixing
       char * pComment = strchr( value , comment );
       if( pComment != NULL )
         *pComment = 0;
       value = chomp( value );
       // lines for bug fixing
-#endif
-                        values[ optionindex[i] ] = (char*) malloc((strlen(value)+1)*sizeof(char));
-                        strcpy( values[ optionindex[i] ], value );
+      values[ optionindex[i] ] = (char*) malloc((strlen(value)+1)*sizeof(char));
+      strcpy( values[ optionindex[i] ], value );
       return true;
     }
-        }
-        return false;
+  }
+  return false;
 }
 
 bool

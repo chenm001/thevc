@@ -438,12 +438,11 @@ Void TEncCu::xCompressCU( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, UInt u
     // do normal intra modes
     if ( !bEarlySkip )
     {
-#if 1 // speedup for inter frames
+      // speedup for inter frames
       if( pcPic->getSlice()->getSliceType() == I_SLICE || 
           rpcBestCU->getCbf( 0, TEXT_LUMA     ) != 0   ||
           rpcBestCU->getCbf( 0, TEXT_CHROMA_U ) != 0   ||
           rpcBestCU->getCbf( 0, TEXT_CHROMA_V ) != 0     ) // avoid very complex intra if it is unlikely
-#endif
       {
         xCheckRDCostIntra( rpcBestCU, rpcTempCU, SIZE_2Nx2N ); rpcTempCU->initEstData();
         if( rpcTempCU->getWidth(0) > ( 1 << rpcTempCU->getSlice()->getSPS()->getQuadtreeTULog2MinSize() ) )
@@ -451,12 +450,6 @@ Void TEncCu::xCompressCU( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, UInt u
           xCheckRDCostIntra( rpcBestCU, rpcTempCU, SIZE_NxN   ); rpcTempCU->initEstData();
         }
       }
-    }
-    else
-    if ( !bEarlySkip )
-    {
-      xCheckRDCostIntra( rpcBestCU, rpcTempCU, SIZE_2Nx2N ); rpcTempCU->initEstData();
-      xCheckRDCostIntra( rpcBestCU, rpcTempCU, SIZE_NxN   ); rpcTempCU->initEstData();
     }
 
     m_pcEntropyCoder->resetBits();

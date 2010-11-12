@@ -1259,7 +1259,6 @@ Void TEncCavlc::codeCoeffNxN    ( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPa
     TComDataCU* pcCUA   = pcCU->getPUAbove(uiAbsPartIdxA, pcCU->getZorderIdxInCU() + uiAbsPartIdx);
     if (pcCUL == NULL && pcCUA == NULL)
     {
-#if 1
       uiCodeDCCoef = 1;
       xWriteVlc((eTType == TEXT_LUMA ? 3 : 1) , abs(piCoeff[0]));
       if (piCoeff[0] != 0)
@@ -1269,9 +1268,6 @@ Void TEncCavlc::codeCoeffNxN    ( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPa
       }
       dcCoeff = piCoeff[0];
       piCoeff[0] = 1;
-#else
-        xWriteFlag(1);
-#endif
     }
   }
 
