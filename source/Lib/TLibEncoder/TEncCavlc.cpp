@@ -56,7 +56,6 @@ TEncCavlc::TEncCavlc()
   m_uiBitPredMode            = 0;
   m_uiBitMergeFlag           = 0;
   m_uiBitMergeIndex          = 0;
-  m_uiBitIntraFiltFlag       = 0;
   m_uiBitAlfCtrlFlag         = 0;
   m_uiBitAlfCtrlDepth        = 0;
   m_uiBitSkipFlag            = 0;
@@ -67,14 +66,12 @@ TEncCavlc::TEncCavlc()
   m_uiBitIRefFrmIdx          = 0;  
   m_uiBitMVD                 = 0;
   m_uiBitDeltaQP             = 0;
-  m_uiBitCbf                 = 0;
   m_uiBitAlfFlag             = 0;
   m_uiBitAlfUvlc             = 0;
   m_uiBitAlfSvlc             = 0;
   m_uiBitMVPIdx              = 0;
   m_uiBitInterDir            = 0;
   m_uiBitMI                  = 0;
-  m_uiBitSF                  = 0;
   m_uiBitCoeff               = 0;
   m_uiBitCbp                 = 0;
 #endif
@@ -98,7 +95,6 @@ Void TEncCavlc::statistics(Bool bResetFlag, UInt uiPrintVar)
     
     m_uiBitMergeFlag           = 0; 
     m_uiBitMergeIndex          = 0; 
-    m_uiBitIntraFiltFlag       = 0;
     m_uiBitAlfCtrlFlag         = 0;
     m_uiBitAlfCtrlDepth        = 0;
     
@@ -112,7 +108,6 @@ Void TEncCavlc::statistics(Bool bResetFlag, UInt uiPrintVar)
     m_uiBitMVD                 = 0;
     m_uiBitDeltaQP             = 0;
     
-    m_uiBitCbf                 = 0; 
     m_uiBitCbp                 = 0;
     m_uiBitAlfFlag             = 0;
     m_uiBitAlfUvlc             = 0;
@@ -121,7 +116,6 @@ Void TEncCavlc::statistics(Bool bResetFlag, UInt uiPrintVar)
     
     m_uiBitInterDir            = 0;
     m_uiBitMI                  = 0;
-    m_uiBitSF                  = 0;
     m_uiBitCoeff               = 0;
   }
 
@@ -139,7 +133,6 @@ Void TEncCavlc::statistics(Bool bResetFlag, UInt uiPrintVar)
     m_uiBitPredMode = m_uiBitPredMode/NUM_PASSES;    
     m_uiBitMergeFlag = m_uiBitMergeFlag/NUM_PASSES;
     m_uiBitMergeIndex = m_uiBitMergeIndex/NUM_PASSES;
-    m_uiBitIntraFiltFlag = m_uiBitIntraFiltFlag/NUM_PASSES;    
     m_uiBitSkipFlag = m_uiBitSkipFlag/NUM_PASSES;
     m_uiBitCurrSplitFlag = m_uiBitCurrSplitFlag/NUM_PASSES;
     m_uiBitTransformSubdivFlag = m_uiBitTransformSubdivFlag/NUM_PASSES;
@@ -148,7 +141,6 @@ Void TEncCavlc::statistics(Bool bResetFlag, UInt uiPrintVar)
     m_uiBitIRefFrmIdx = m_uiBitIRefFrmIdx/NUM_PASSES;
     m_uiBitMVD = m_uiBitMVD/NUM_PASSES;
     m_uiBitDeltaQP = m_uiBitDeltaQP/NUM_PASSES;
-    m_uiBitCbf = m_uiBitCbf/NUM_PASSES;
     m_uiBitCbp = m_uiBitCbp/NUM_PASSES;
     m_uiBitMVPIdx = m_uiBitMVPIdx/NUM_PASSES;
     m_uiBitInterDir = m_uiBitInterDir/NUM_PASSES;
@@ -164,7 +156,6 @@ Void TEncCavlc::statistics(Bool bResetFlag, UInt uiPrintVar)
     
     uiTotalBits += m_uiBitMergeFlag;
     uiTotalBits += m_uiBitMergeIndex;
-    uiTotalBits += m_uiBitIntraFiltFlag;
     uiTotalBits += m_uiBitAlfCtrlFlag;
     uiTotalBits += m_uiBitAlfCtrlDepth;
     
@@ -178,7 +169,6 @@ Void TEncCavlc::statistics(Bool bResetFlag, UInt uiPrintVar)
     uiTotalBits += m_uiBitMVD;
     uiTotalBits += m_uiBitDeltaQP;
 
-    uiTotalBits += m_uiBitCbf;
     uiTotalBits += m_uiBitCbp;
     uiTotalBits += m_uiBitAlfFlag;
     uiTotalBits += m_uiBitAlfUvlc;  
@@ -187,7 +177,6 @@ Void TEncCavlc::statistics(Bool bResetFlag, UInt uiPrintVar)
 
     uiTotalBits += m_uiBitInterDir;
     uiTotalBits += m_uiBitMI;
-    uiTotalBits += m_uiBitSF;
     uiTotalBits += m_uiBitCoeff;
 
     /* Printout statistics */
@@ -199,7 +188,6 @@ Void TEncCavlc::statistics(Bool bResetFlag, UInt uiPrintVar)
     
     printf("m_uiBitMergeFlag =           %12d %6.1f\n",m_uiBitMergeFlag,100.0*(float)m_uiBitMergeFlag/(float)uiTotalBits);
     printf("m_uiBitMergeIndex =          %12d %6.1f\n",m_uiBitMergeIndex,100.0*(float)m_uiBitMergeIndex/(float)uiTotalBits);
-    printf("m_uiBitIntraFiltFlag =       %12d %6.1f\n",m_uiBitIntraFiltFlag,100.0*(float)m_uiBitIntraFiltFlag/(float)uiTotalBits);
     printf("m_uiBitAlfCtrlFlag =         %12d %6.1f\n",m_uiBitAlfCtrlFlag,100.0*(float)m_uiBitAlfCtrlFlag/(float)uiTotalBits);
     printf("m_uiBitAlfCtrlDepth =        %12d %6.1f\n",m_uiBitAlfCtrlDepth,100.0*(float)m_uiBitAlfCtrlDepth/(float)uiTotalBits);
     
@@ -213,7 +201,6 @@ Void TEncCavlc::statistics(Bool bResetFlag, UInt uiPrintVar)
     printf("m_uiBitMVD =                 %12d %6.1f\n",m_uiBitMVD,100.0*(float)m_uiBitMVD/(float)uiTotalBits);
     printf("m_uiBitDeltaQP =             %12d %6.1f\n",m_uiBitDeltaQP,100.0*(float)m_uiBitDeltaQP/(float)uiTotalBits);
     
-    printf("m_uiBitCbf =                 %12d %6.1f\n",m_uiBitCbf,100.0*(float)m_uiBitCbf/(float)uiTotalBits);
     printf("m_uiBitCbp =                 %12d %6.1f\n",m_uiBitCbp,100.0*(float)m_uiBitCbp/(float)uiTotalBits);
     printf("m_uiBitAlfFlag =             %12d %6.1f\n",m_uiBitAlfFlag,100.0*(float)m_uiBitAlfFlag/(float)uiTotalBits);
     printf("m_uiBitAlfUvlc =             %12d %6.1f\n",m_uiBitAlfUvlc,100.0*(float)m_uiBitAlfUvlc/(float)uiTotalBits);
@@ -222,7 +209,6 @@ Void TEncCavlc::statistics(Bool bResetFlag, UInt uiPrintVar)
     
     printf("m_uiBitInterDir =            %12d %6.1f\n",m_uiBitInterDir,100.0*(float)m_uiBitInterDir/(float)uiTotalBits);
     printf("m_uiBitMI =                  %12d %6.1f\n",m_uiBitMI,100.0*(float)m_uiBitMI/(float)uiTotalBits);
-    printf("m_uiBitSF =                  %12d %6.1f\n",m_uiBitSF,100.0*(float)m_uiBitSF/(float)uiTotalBits);
     printf("m_uiBitCoeff =               %12d %6.1f\n",m_uiBitCoeff,100.0*(float)m_uiBitCoeff/(float)uiTotalBits);
 
     printf("uiTotalBits =                %12d\n",uiTotalBits);

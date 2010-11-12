@@ -82,7 +82,6 @@ protected:
   UInt m_uiBitPredMode;
   UInt m_uiBitMergeFlag;
   UInt m_uiBitMergeIndex;
-  UInt m_uiBitIntraFiltFlag;
   UInt m_uiBitAlfCtrlFlag;
   UInt m_uiBitAlfCtrlDepth;
   UInt m_uiBitSkipFlag;
@@ -93,14 +92,12 @@ protected:
   UInt m_uiBitIRefFrmIdx;
   UInt m_uiBitMVD;
   UInt m_uiBitDeltaQP;
-  UInt m_uiBitCbf;
   UInt m_uiBitAlfFlag;
   UInt m_uiBitAlfUvlc;
   UInt m_uiBitAlfSvlc;
   UInt m_uiBitMVPIdx;
   UInt m_uiBitInterDir;
   UInt m_uiBitMI;
-  UInt m_uiBitSF;
   UInt m_uiBitCoeff;
   UInt m_uiBitCbp;
 #endif
