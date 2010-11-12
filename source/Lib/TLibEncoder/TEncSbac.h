@@ -108,9 +108,6 @@ private:
 
   Void  xCheckCoeff( TCoeff* pcCoef, UInt uiSize, UInt uiDepth, UInt& uiNumofCoeff, UInt& uiPart );
 
-  __inline Void xPutByte( UChar ucByte);
-  __inline Void xCarryPropagate( UInt& ruiCode );
-
   Void  xWriteMvd            ( Int iMvd, UInt uiAbsSum, UInt uiCtx );
   Void  xWriteExGolombMvd    ( UInt uiSymbol, ContextModel* pcSCModel, UInt uiMaxBin );
   Void  xCopyFrom            ( TEncSbac* pSrc );
@@ -148,7 +145,6 @@ public:
   Void codeQtCbf         ( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eType, UInt uiTrDepth );
   Void codeQtRootCbf     ( TComDataCU* pcCU, UInt uiAbsPartIdx );
   Void codeTransformIdx  ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
-  Void codeIntraDirLuma  ( TComDataCU* pcCU, UInt uiAbsPartIdx );
 
   Void codeIntraDirLumaAng( TComDataCU* pcCU, UInt uiAbsPartIdx );
 
@@ -195,7 +191,6 @@ private:
   ContextModel3DBuffer m_cCUInterDirSCModel;
   ContextModel3DBuffer m_cCURefPicSCModel;
   ContextModel3DBuffer m_cCUMvdSCModel;
-  ContextModel3DBuffer m_cCUCbfSCModel;
   ContextModel3DBuffer m_cCUQtCbfSCModel;
   ContextModel3DBuffer m_cCUTransSubdivFlagSCModel;
   ContextModel3DBuffer m_cCUQtRootCbfSCModel;

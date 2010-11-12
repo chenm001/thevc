@@ -148,7 +148,6 @@
 // TI defines section end
 ////////////////////////////////
 
-#define BUGFIX85TMP 1 // Ignore cost of CBF (affects RQT off setting)
 #define BUGFIX102 1 // Do not code terminating bit when using LCEC
 
 

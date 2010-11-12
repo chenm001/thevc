@@ -148,9 +148,6 @@ public:
   Void    setDistParam_Bi( TComPattern* pcPatternKey, Pel* piRefY, Int iRefStride,            DistParam& rcDistParam );
   Void    setDistParam_Bi( TComPattern* pcPatternKey, Pel* piRefY, Int iRefStride, Int iStep, DistParam& rcDistParam, Bool bHADME=false );
 #endif
-  UInt    getDistLumBlk  ( Pel *piCur, UInt uiBlkWidth, UInt uiBlkHeight, Int iBlkIdx, Int iStride, DFunc eDFunc = DF_SSE );
-  UInt    getDistCbBlk   ( Pel *piCur, Int iStride, DFunc eDFunc = DF_SSE );  // 8x8 block only
-  UInt    getDistCrBlk   ( Pel *piCur, Int iStride, DFunc eDFunc = DF_SSE );  // 8x8 block only
 
   UInt    calcHAD         ( Pel* pi0, Int iStride0, Pel* pi1, Int iStride1, Int iWidth, Int iHeight );
 

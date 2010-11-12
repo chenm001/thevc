@@ -67,7 +67,6 @@ TEncSbac::TEncSbac()
   , m_cCUQtRootCbfSCModel     ( 1,             1,               NUM_QT_ROOT_CBF_CTX   )
   , m_cCUTransIdxSCModel      ( 1,             1,               NUM_TRANS_IDX_CTX             )
   , m_cCUDeltaQpSCModel       ( 1,             1,               NUM_DELTA_QP_CTX              )
-  , m_cCUCbfSCModel           ( 1,             2,               NUM_CBF_CTX                   )
 
   , m_cCUQtCbfSCModel       ( 1,             3,               NUM_QT_CBF_CTX        )
 
@@ -121,7 +120,6 @@ Void TEncSbac::resetEntropy           ()
   m_cCUMvdSCModel.initBuffer          ( eSliceType, iQp, (Short*)INIT_MVD );
   m_cCURefPicSCModel.initBuffer       ( eSliceType, iQp, (Short*)INIT_REF_PIC );
   m_cCUDeltaQpSCModel.initBuffer      ( eSliceType, iQp, (Short*)INIT_DQP );
-  m_cCUCbfSCModel.initBuffer          ( eSliceType, iQp, (Short*)INIT_CBF );
   m_cCUQtCbfSCModel.initBuffer        ( eSliceType, iQp, (Short*)INIT_QT_CBF );
   m_cCUQtRootCbfSCModel.initBuffer    ( eSliceType, iQp, (Short*)INIT_QT_ROOT_CBF );
 
@@ -314,7 +312,6 @@ Void TEncSbac::xCopyFrom( TEncSbac* pSrc )
   this->m_cCUInterDirSCModel  .copyFrom( &pSrc->m_cCUInterDirSCModel    );
   this->m_cCURefPicSCModel    .copyFrom( &pSrc->m_cCURefPicSCModel      );
   this->m_cCUMvdSCModel       .copyFrom( &pSrc->m_cCUMvdSCModel         );
-  this->m_cCUCbfSCModel       .copyFrom( &pSrc->m_cCUCbfSCModel         );
   this->m_cCUQtCbfSCModel     .copyFrom( &pSrc->m_cCUQtCbfSCModel       );
   this->m_cCUTransSubdivFlagSCModel.copyFrom( &pSrc->m_cCUTransSubdivFlagSCModel );
   this->m_cCUQtRootCbfSCModel .copyFrom( &pSrc->m_cCUQtRootCbfSCModel   );
@@ -1448,22 +1445,10 @@ Void TEncSbac::estBit (estBitsSbacStruct* pcEstBitsSbac, UInt uiCTXIdx, TextType
 Void TEncSbac::estCBFBit (estBitsSbacStruct* pcEstBitsSbac, UInt uiCTXIdx, TextType eTType)
 {
   Int ctx;
-#if !BUGFIX85TMP
-  Short cbp_bit;
-#endif
-  
   for ( ctx = 0; ctx <= 3; ctx++ )
   {
-#if BUGFIX85TMP
     pcEstBitsSbac->blockCbpBits[ctx][0] = entropyBits[64];
     pcEstBitsSbac->blockCbpBits[ctx][1] = entropyBits[64];
-#else
-    cbp_bit = 0;
-    pcEstBitsSbac->blockCbpBits[ctx][cbp_bit] = biari_no_bits (cbp_bit, m_cCUCbfSCModel.get( uiCTXIdx, eTType, ctx ));
-
-    cbp_bit = 1;
-    pcEstBitsSbac->blockCbpBits[ctx][cbp_bit] = biari_no_bits (cbp_bit, m_cCUCbfSCModel.get( uiCTXIdx, eTType, ctx ));
-#endif
   }
 }
 

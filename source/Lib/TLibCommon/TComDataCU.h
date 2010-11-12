@@ -368,14 +368,6 @@ public:
   // -------------------------------------------------------------------------------------------------------------------
 
   Int           getMostProbableIntraDirLuma     ( UInt uiAbsPartIdx                                       );
-  Int           convertIntraDirLuma             ( UInt uiAbsPartIdx                                       );
-  UInt          revertIntraDirLuma              ( UInt uiAbsPartIdx, Int  iIntraDirLuma                   );
-
-  PartSize      getMostProbablePartSize         ( UInt uiAbsPartIdx                                       );
-
-  Int           getMostProbablePredMode         ( UInt uiAbsPartIdx                                       );
-  Int           convertPredMode                 ( UInt uiAbsPartIdx                                       );
-  Int           revertPredMode                  ( UInt uiAbsPartIdx, Int   iPredMode                      );
 
   UInt          getIntraSizeIdx                 ( UInt uiAbsPartIdx                                       );
   Void          convertTransIdx                 ( UInt uiAbsPartIdx, UInt uiTrIdx, UInt& ruiLumaTrMode, UInt& ruiChromaTrMode );

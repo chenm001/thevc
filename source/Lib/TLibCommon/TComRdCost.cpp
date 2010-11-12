@@ -324,7 +324,7 @@ Void TComRdCost::setDistParam_Bi( TComPattern* pcPatternKey, Pel* piRefY, Int iR
   rcDistParam.iSubShift  = 0;
 }
 #endif
-// Setting the Distortion Parameter for getDistLumBlk / getDistCbBlk / getDistCrBlk
+
 Void TComRdCost::setDistParam( UInt uiBlkWidth, UInt uiBlkHeight, DFunc eDFunc, DistParam& rcDistParam )
 {
   // set Block Width / Height
