@@ -63,7 +63,6 @@ TEncCavlc::TEncCavlc()
   m_uiBitCurrSplitFlag       = 0;
   m_uiBitTransformSubdivFlag = 0;
   m_uiBitQtCbf               = 0;
-  m_uiBitPlanarVlc           = 0;
   m_uiBitIntraDir            = 0;
   m_uiBitIRefFrmIdx          = 0;  
   m_uiBitMVD                 = 0;
@@ -73,7 +72,6 @@ TEncCavlc::TEncCavlc()
   m_uiBitAlfUvlc             = 0;
   m_uiBitAlfSvlc             = 0;
   m_uiBitMVPIdx              = 0;
-  m_uiBitPlanarInfo          = 0;
   m_uiBitInterDir            = 0;
   m_uiBitMI                  = 0;
   m_uiBitSF                  = 0;
@@ -109,7 +107,6 @@ Void TEncCavlc::statistics(Bool bResetFlag, UInt uiPrintVar)
     m_uiBitTransformSubdivFlag = 0;
     m_uiBitQtCbf               = 0; 
     
-    m_uiBitPlanarVlc           = 0;
     m_uiBitIntraDir            = 0;
     m_uiBitIRefFrmIdx          = 0;
     m_uiBitMVD                 = 0;
@@ -122,7 +119,6 @@ Void TEncCavlc::statistics(Bool bResetFlag, UInt uiPrintVar)
     m_uiBitAlfSvlc             = 0;
     m_uiBitMVPIdx              = 0;
     
-    m_uiBitPlanarInfo          = 0;
     m_uiBitInterDir            = 0;
     m_uiBitMI                  = 0;
     m_uiBitSF                  = 0;
@@ -148,7 +144,6 @@ Void TEncCavlc::statistics(Bool bResetFlag, UInt uiPrintVar)
     m_uiBitCurrSplitFlag = m_uiBitCurrSplitFlag/NUM_PASSES;
     m_uiBitTransformSubdivFlag = m_uiBitTransformSubdivFlag/NUM_PASSES;
     m_uiBitQtCbf = m_uiBitQtCbf/NUM_PASSES;   
-    m_uiBitPlanarVlc = m_uiBitPlanarVlc/NUM_PASSES;
     m_uiBitIntraDir = m_uiBitIntraDir/NUM_PASSES;
     m_uiBitIRefFrmIdx = m_uiBitIRefFrmIdx/NUM_PASSES;
     m_uiBitMVD = m_uiBitMVD/NUM_PASSES;
@@ -156,7 +151,6 @@ Void TEncCavlc::statistics(Bool bResetFlag, UInt uiPrintVar)
     m_uiBitCbf = m_uiBitCbf/NUM_PASSES;
     m_uiBitCbp = m_uiBitCbp/NUM_PASSES;
     m_uiBitMVPIdx = m_uiBitMVPIdx/NUM_PASSES;
-    m_uiBitPlanarInfo = m_uiBitPlanarInfo/NUM_PASSES;
     m_uiBitInterDir = m_uiBitInterDir/NUM_PASSES;
     m_uiBitMI = m_uiBitMI/NUM_PASSES;
     m_uiBitCoeff = m_uiBitCoeff/NUM_PASSES;
@@ -179,7 +173,6 @@ Void TEncCavlc::statistics(Bool bResetFlag, UInt uiPrintVar)
     uiTotalBits += m_uiBitTransformSubdivFlag;
     uiTotalBits += m_uiBitQtCbf;   
    
-    uiTotalBits += m_uiBitPlanarVlc;
     uiTotalBits += m_uiBitIntraDir;
     uiTotalBits += m_uiBitIRefFrmIdx;
     uiTotalBits += m_uiBitMVD;
@@ -192,7 +185,6 @@ Void TEncCavlc::statistics(Bool bResetFlag, UInt uiPrintVar)
     uiTotalBits += m_uiBitAlfSvlc;
     uiTotalBits += m_uiBitMVPIdx;
 
-    uiTotalBits += m_uiBitPlanarInfo;
     uiTotalBits += m_uiBitInterDir;
     uiTotalBits += m_uiBitMI;
     uiTotalBits += m_uiBitSF;
@@ -216,7 +208,6 @@ Void TEncCavlc::statistics(Bool bResetFlag, UInt uiPrintVar)
     printf("m_uiBitTransformSubdivFlag = %12d %6.1f\n",m_uiBitTransformSubdivFlag,100.0*(float)m_uiBitTransformSubdivFlag/(float)uiTotalBits);
     printf("m_uiBitQtCbf =               %12d %6.1f\n",m_uiBitQtCbf,100.0*(float)m_uiBitQtCbf/(float)uiTotalBits);
     
-    printf("m_uiBitPlanarVlc =           %12d %6.1f\n",m_uiBitPlanarVlc,100.0*(float)m_uiBitPlanarVlc/(float)uiTotalBits);
     printf("m_uiBitIntraDir =            %12d %6.1f\n",m_uiBitIntraDir,100.0*(float)m_uiBitIntraDir/(float)uiTotalBits);
     printf("m_uiBitIRefFrmIdx =          %12d %6.1f\n",m_uiBitIRefFrmIdx,100.0*(float)m_uiBitIRefFrmIdx/(float)uiTotalBits);
     printf("m_uiBitMVD =                 %12d %6.1f\n",m_uiBitMVD,100.0*(float)m_uiBitMVD/(float)uiTotalBits);
@@ -229,7 +220,6 @@ Void TEncCavlc::statistics(Bool bResetFlag, UInt uiPrintVar)
     printf("m_uiBitAlfSvlc =             %12d %6.1f\n",m_uiBitAlfSvlc,100.0*(float)m_uiBitAlfSvlc/(float)uiTotalBits);
     printf("m_uiBitMVPIdx =              %12d %6.1f\n",m_uiBitMVPIdx,100.0*(float)m_uiBitMVPIdx/(float)uiTotalBits);
     
-    printf("m_uiBitPlanarInfo =          %12d %6.1f\n",m_uiBitPlanarInfo,100.0*(float)m_uiBitPlanarInfo/(float)uiTotalBits);
     printf("m_uiBitInterDir =            %12d %6.1f\n",m_uiBitInterDir,100.0*(float)m_uiBitInterDir/(float)uiTotalBits);
     printf("m_uiBitMI =                  %12d %6.1f\n",m_uiBitMI,100.0*(float)m_uiBitMI/(float)uiTotalBits);
     printf("m_uiBitSF =                  %12d %6.1f\n",m_uiBitSF,100.0*(float)m_uiBitSF/(float)uiTotalBits);

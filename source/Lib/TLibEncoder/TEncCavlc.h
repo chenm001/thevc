@@ -89,7 +89,6 @@ protected:
   UInt m_uiBitCurrSplitFlag;
   UInt m_uiBitTransformSubdivFlag;
   UInt m_uiBitQtCbf;
-  UInt m_uiBitPlanarVlc;
   UInt m_uiBitIntraDir;
   UInt m_uiBitIRefFrmIdx;
   UInt m_uiBitMVD;
@@ -99,7 +98,6 @@ protected:
   UInt m_uiBitAlfUvlc;
   UInt m_uiBitAlfSvlc;
   UInt m_uiBitMVPIdx;
-  UInt m_uiBitPlanarInfo;
   UInt m_uiBitInterDir;
   UInt m_uiBitMI;
   UInt m_uiBitSF;
