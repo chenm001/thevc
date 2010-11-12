@@ -697,19 +697,6 @@ Void TEncSbac::codeDeltaQP( TComDataCU* pcCU, UInt uiAbsPartIdx )
   return;
 }
 
-Void TEncSbac::codeCbf( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eType, UInt uiTrDepth )
-{
-  return;
-}
-
-
-#if LCEC_CBP_YUV_ROOT
-Void TEncSbac::codeBlockCbf( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eType, UInt uiTrDepth, UInt uiQPartNum, Bool bRD )
-{
-  return;
-}
-#endif
-
 Void TEncSbac::codeQtCbf( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eType, UInt uiTrDepth )
 {
   UInt uiCbf = pcCU->getCbf     ( uiAbsPartIdx, eType, uiTrDepth );
@@ -858,7 +845,6 @@ Void TEncSbac::codeCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx
   {
     UInt uiTempDepth = uiDepth - pcCU->getDepth( uiAbsPartIdx );
     pcCU->setCbfSubParts( ( uiNumSig ? 1 : 0 ) << uiTempDepth, eTType, uiAbsPartIdx, uiDepth );
-    codeCbf( pcCU, uiAbsPartIdx, eTType, uiTempDepth );
   }
 
   if ( uiNumSig == 0 )

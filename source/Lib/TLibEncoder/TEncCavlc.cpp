@@ -1205,18 +1205,11 @@ Void TEncCavlc::codeDeltaQP( TComDataCU* pcCU, UInt uiAbsPartIdx )
   return;
 }
 
+#if LCEC_CBP_YUV_ROOT
 Void TEncCavlc::codeCbf( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eType, UInt uiTrDepth )
 {
-#if LCEC_CBP_YUV_ROOT
-  if( eType != TEXT_ALL)
-#else
-  if( 1 )
-#endif
+  if (eType == TEXT_ALL)
   {
-    return;
-  }
-
-  if (eType == TEXT_ALL){
     Int n,x,cx,y,cy;
     UInt uiCBFY = pcCU->getCbf(uiAbsPartIdx, TEXT_LUMA, 0);
     UInt uiCBFU = pcCU->getCbf(uiAbsPartIdx, TEXT_CHROMA_U, 0);
@@ -1247,23 +1240,9 @@ Void TEncCavlc::codeCbf( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eType, UI
     else
 #endif
     xWriteVlc( vlcn, cx );
-
-    return;
   }
-
-  UInt uiCbf = pcCU->getCbf   ( uiAbsPartIdx, eType, uiTrDepth );
-
-  xWriteFlag( uiCbf );
-#if LCEC_STAT
-  if (m_bAdaptFlag)
-    m_uiBitCbf += 1;
-#endif
-
-  return;
 }
 
-
-#if LCEC_CBP_YUV_ROOT
 Void TEncCavlc::codeBlockCbf( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eType, UInt uiTrDepth, UInt uiQPartNum, Bool bRD )
 {
   UInt uiCbf0 = pcCU->getCbf   ( uiAbsPartIdx, eType, uiTrDepth );

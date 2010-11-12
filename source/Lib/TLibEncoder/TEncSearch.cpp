@@ -2680,10 +2680,8 @@ Void TEncSearch::predIntraChromaAdiSearch( TComDataCU* pcCU, TComYuv* pcOrgYuv, 
     m_pcEntropyCoder->resetBits();
     m_pcEntropyCoder->encodeIntraDirModeChroma( pcCU, 0, true );
     
-    m_pcEntropyCoder->encodeCbf( pcCU, 0, TEXT_CHROMA_U, 0 );
     m_pcEntropyCoder->encodeCoeff(pcCU, pCoefCb, 0, pcCU->getDepth(0), uiWidth, uiHeight, uiChromaTrMode, 0, TEXT_CHROMA_U);
     
-    m_pcEntropyCoder->encodeCbf( pcCU, 0, TEXT_CHROMA_V, 0 );
     m_pcEntropyCoder->encodeCoeff(pcCU, pCoefCr, 0, pcCU->getDepth(0), uiWidth, uiHeight, uiChromaTrMode, 0, TEXT_CHROMA_V);
     UInt uiBits = m_pcEntropyCoder->getNumberOfWrittenBits();
     
@@ -4588,18 +4586,13 @@ Void TEncSearch::xEstimateResidualQT( TComDataCU* pcCU, UInt uiQuadrant, UInt ui
       }
     }
     else
+#endif
     {
       xEncodeResidualQT( pcCU, uiAbsPartIdx, uiDepth, true,  TEXT_LUMA );
       xEncodeResidualQT( pcCU, uiAbsPartIdx, uiDepth, false, TEXT_LUMA );
       xEncodeResidualQT( pcCU, uiAbsPartIdx, uiDepth, false, TEXT_CHROMA_U );
       xEncodeResidualQT( pcCU, uiAbsPartIdx, uiDepth, false, TEXT_CHROMA_V );
     }
-#else
-    xEncodeResidualQT( pcCU, uiAbsPartIdx, uiDepth, true,  TEXT_LUMA );
-    xEncodeResidualQT( pcCU, uiAbsPartIdx, uiDepth, false, TEXT_LUMA );
-    xEncodeResidualQT( pcCU, uiAbsPartIdx, uiDepth, false, TEXT_CHROMA_U );
-    xEncodeResidualQT( pcCU, uiAbsPartIdx, uiDepth, false, TEXT_CHROMA_V );
-#endif
     
     uiSubdivBits = m_pcEntropyCoder->getNumberOfWrittenBits();
     dSubdivCost  = m_pcRdCost->calcRdCost( uiSubdivBits, uiSubdivDist );
@@ -4884,7 +4877,6 @@ Void  TEncSearch::xAddSymbolBitsIntra( TComDataCU* pcCU, TCoeff* pCoeff, UInt ui
     }
   }
   
-  m_pcEntropyCoder->encodeCbf( pcCU, uiPartOffset, TEXT_LUMA, uiTrDepth );
   m_pcEntropyCoder->encodeCoeff( pcCU, pCoeff, uiPartOffset, pcCU->getDepth(0)+uiPartDepth, uiWidth, uiHeight, uiMaxTrDepth, uiTrDepth, TEXT_LUMA );
   ruiBits = m_pcEntropyCoder->getNumberOfWrittenBits();
 }

@@ -743,17 +743,9 @@ Void TDecCavlc::parseDeltaQP( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth 
   pcCU->setQPSubParts( uiDQp, uiAbsPartIdx, uiDepth );
 }
 
+#if LCEC_CBP_YUV_ROOT
 Void TDecCavlc::parseCbf( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eType, UInt uiTrDepth, UInt uiDepth )
 {
-#if LCEC_CBP_YUV_ROOT
-  if( eType != TEXT_ALL)
-#else
-  if( 1 )
-#endif
-  {
-    return;
-  }
-
   if (eType == TEXT_ALL)
   {
     UInt uiCbf,tmp;
@@ -787,20 +779,9 @@ Void TDecCavlc::parseCbf( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eType, U
         
     uiCbf = pcCU->getCbf( uiAbsPartIdx, TEXT_CHROMA_V );
     pcCU->setCbfSubParts( uiCbf | ( uiCbfV << uiTrDepth ), TEXT_CHROMA_V, uiAbsPartIdx, uiDepth );
-    return;
   }
-
-  UInt uiSymbol;
-  UInt uiCbf = pcCU->getCbf( uiAbsPartIdx, eType );
-
-  xReadFlag( uiSymbol );
-  pcCU->setCbfSubParts( uiCbf | ( uiSymbol << uiTrDepth ), eType, uiAbsPartIdx, uiDepth );
-
-  return;
 }
 
-
-#if LCEC_CBP_YUV_ROOT
 Void TDecCavlc::parseBlockCbf( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eType, UInt uiTrDepth, UInt uiDepth, UInt uiQPartNum )
 {
   assert(uiTrDepth > 0);
