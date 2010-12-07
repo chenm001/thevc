@@ -56,6 +56,7 @@ public:
   virtual Void        write                 ( UInt uiBits, UInt uiNumberOfBits )  = 0;
   virtual Void        resetBits             ()                                    = 0;
   virtual UInt        getNumberOfWrittenBits()                                    = 0;
+  virtual ~TComBitIf() {}
 };
 
 /// class for handling bitstream

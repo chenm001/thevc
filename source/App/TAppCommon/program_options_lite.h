@@ -26,6 +26,8 @@ struct OptionBase {
 	OptionBase(const std::string& name, const std::string& desc)
 		: opt_string(name), opt_desc(desc)
 	{};
+  
+  virtual ~OptionBase() {}
 
 	/* parse argument @arg, to obtain a value for the option */
 	virtual void parse(const std::string& arg) = 0;

@@ -44,7 +44,7 @@ class TEncBinCABAC : public TEncBinIf
 {
 public:
   TEncBinCABAC ();
-  ~TEncBinCABAC();
+  virtual ~TEncBinCABAC();
 
   Void  init              ( TComBitIf* pcTComBitIf );
   Void  uninit            ();

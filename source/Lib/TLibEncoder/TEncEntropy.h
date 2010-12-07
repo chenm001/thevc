@@ -113,6 +113,8 @@ public:
 #endif
 
   virtual Void estBit               (estBitsSbacStruct* pcEstBitsSbac, UInt uiCTXIdx, TextType eTType) = 0;
+  
+  virtual ~TEncEntropyIf() {}
 };
 
 /// entropy encoder class

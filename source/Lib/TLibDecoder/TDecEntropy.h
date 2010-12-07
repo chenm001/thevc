@@ -109,6 +109,7 @@ public:
   virtual Void parseAlfCtrlFlag   ( UInt &ruiAlfCtrlFlag ) = 0;
 #endif
 
+  virtual ~TDecEntropyIf() {}
 };
 
 /// entropy decoder class
