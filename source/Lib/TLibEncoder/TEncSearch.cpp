@@ -5082,29 +5082,6 @@ Void TEncSearch::xExtDIFUpSamplingQ   ( TComPattern* pcPatternKey, Pel* piDst, I
       piDstYPel = piDst+1 + iDstStride;
       xCTI_FilterQuarter0Hor(piSrcY, iSrcStride4, 4, iWidth, iHeight, iDstStride4, 4, piDstYPel);
       
-      
-      // Right three pixels
-      piSrcY    = piSrc   - iSrcStride;
-      piDstYPel = piDst+1 - iDstStride;
-      xCTI_FilterQuarter0Hor(piSrcY, iSrcStride4, 4, iWidth, iHeight, iDstStride4, 4, piDstYPel);
-      
-      piSrcY    = piSrc;
-      piDstYPel = piDst+1;
-      xCTI_FilterQuarter0Hor(piSrcY, iSrcStride4, 4, iWidth, iHeight, iDstStride4, 4, piDstYPel);
-      
-      piSrcY    = piSrc   + iSrcStride;
-      piDstYPel = piDst+1 + iDstStride;
-      xCTI_FilterQuarter0Hor(piSrcY, iSrcStride4, 4, iWidth, iHeight, iDstStride4, 4, piDstYPel);
-      
-      // Middle two pixels
-      piSrcYPel = piSrcPel;
-      piDstYPel = piDst - iDstStride;
-      xCTI_FilterQuarter0Ver(piSrcYPel, iSrcPelStride, 1, iWidth, iHeight, iDstStride4, 4, piDstYPel);
-      
-      piSrcYPel = piSrcPel;
-      piDstYPel = piDst + iDstStride;
-      xCTI_FilterQuarter1Ver(piSrcYPel, iSrcPelStride, 1, iWidth, iHeight, iDstStride4, 4, piDstYPel);
-      
       break;
     }
     case 2:
