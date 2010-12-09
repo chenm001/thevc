@@ -193,7 +193,6 @@ private:
   ContextModel3DBuffer m_cCUQtCbfSCModel;
   ContextModel3DBuffer m_cCUTransSubdivFlagSCModel;
   ContextModel3DBuffer m_cCUQtRootCbfSCModel;
-  ContextModel3DBuffer m_cCUTransIdxSCModel;
 
   ContextModel3DBuffer m_cCuCtxModSig;
   ContextModel3DBuffer m_cCuCtxModLast;
@@ -205,8 +204,6 @@ private:
   ContextModel3DBuffer m_cALFFlagSCModel;
   ContextModel3DBuffer m_cALFUvlcSCModel;
   ContextModel3DBuffer m_cALFSvlcSCModel;
-  ContextModel3DBuffer m_cCUXPosiSCModel;
-  ContextModel3DBuffer m_cCUYPosiSCModel;
 };
 
 #endif // !defined(AFX_TENCSBAC_H__DDA7CDC4_EDE3_4015_9D32_2156249C82AA__INCLUDED_)

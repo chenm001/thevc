@@ -378,7 +378,7 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\source\Lib\TLibCommon\TComBitcounter.h"
+				RelativePath="..\..\source\Lib\TLibCommon\TComBitCounter.h"
 				>
 			</File>
 			<File

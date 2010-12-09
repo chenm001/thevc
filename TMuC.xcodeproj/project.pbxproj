@@ -25,7 +25,6 @@
 		676795C511AD61FC00421804 /* ContextTables.h in Headers */ = {isa = PBXBuildFile; fileRef = 6767959A11AD61FC00421804 /* ContextTables.h */; };
 		676795CB11AD61FC00421804 /* TComAdaptiveLoopFilter.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 676795A011AD61FC00421804 /* TComAdaptiveLoopFilter.cpp */; };
 		676795CC11AD61FC00421804 /* TComAdaptiveLoopFilter.h in Headers */ = {isa = PBXBuildFile; fileRef = 676795A111AD61FC00421804 /* TComAdaptiveLoopFilter.h */; };
-		676795CD11AD61FC00421804 /* TComBitcounter.h in Headers */ = {isa = PBXBuildFile; fileRef = 676795A211AD61FC00421804 /* TComBitcounter.h */; };
 		676795CE11AD61FC00421804 /* TComBitStream.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 676795A311AD61FC00421804 /* TComBitStream.cpp */; };
 		676795CF11AD61FC00421804 /* TComBitStream.h in Headers */ = {isa = PBXBuildFile; fileRef = 676795A411AD61FC00421804 /* TComBitStream.h */; };
 		676795D011AD61FC00421804 /* TComDataCU.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 676795A511AD61FC00421804 /* TComDataCU.cpp */; };
@@ -187,7 +186,6 @@
 		6767959A11AD61FC00421804 /* ContextTables.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ContextTables.h; path = source/Lib/TLibCommon/ContextTables.h; sourceTree = "<group>"; };
 		676795A011AD61FC00421804 /* TComAdaptiveLoopFilter.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = TComAdaptiveLoopFilter.cpp; path = source/Lib/TLibCommon/TComAdaptiveLoopFilter.cpp; sourceTree = "<group>"; };
 		676795A111AD61FC00421804 /* TComAdaptiveLoopFilter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TComAdaptiveLoopFilter.h; path = source/Lib/TLibCommon/TComAdaptiveLoopFilter.h; sourceTree = "<group>"; };
-		676795A211AD61FC00421804 /* TComBitcounter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TComBitcounter.h; path = source/Lib/TLibCommon/TComBitcounter.h; sourceTree = "<group>"; };
 		676795A311AD61FC00421804 /* TComBitStream.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = TComBitStream.cpp; path = source/Lib/TLibCommon/TComBitStream.cpp; sourceTree = "<group>"; };
 		676795A411AD61FC00421804 /* TComBitStream.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TComBitStream.h; path = source/Lib/TLibCommon/TComBitStream.h; sourceTree = "<group>"; };
 		676795A511AD61FC00421804 /* TComDataCU.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = TComDataCU.cpp; path = source/Lib/TLibCommon/TComDataCU.cpp; sourceTree = "<group>"; };
@@ -394,7 +392,6 @@
 				671E0D4111B6AD8C00F3747B /* TComMv.h */,
 				676795A011AD61FC00421804 /* TComAdaptiveLoopFilter.cpp */,
 				676795A111AD61FC00421804 /* TComAdaptiveLoopFilter.h */,
-				676795A211AD61FC00421804 /* TComBitcounter.h */,
 				676795A311AD61FC00421804 /* TComBitStream.cpp */,
 				676795A411AD61FC00421804 /* TComBitStream.h */,
 				676795A511AD61FC00421804 /* TComDataCU.cpp */,
@@ -549,7 +546,6 @@
 				676795C411AD61FC00421804 /* CommonDef.h in Headers */,
 				676795C511AD61FC00421804 /* ContextTables.h in Headers */,
 				676795CC11AD61FC00421804 /* TComAdaptiveLoopFilter.h in Headers */,
-				676795CD11AD61FC00421804 /* TComBitcounter.h in Headers */,
 				676795CF11AD61FC00421804 /* TComBitStream.h in Headers */,
 				676795D111AD61FC00421804 /* TComDataCU.h in Headers */,
 				676795D211AD61FC00421804 /* TComList.h in Headers */,
@@ -947,6 +943,7 @@
 				GCC_C_LANGUAGE_STANDARD = gnu99;
 				GCC_OPTIMIZATION_LEVEL = 3;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_NON_VIRTUAL_DESTRUCTOR = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				PREBINDING = NO;
 				SDKROOT = macosx10.6;

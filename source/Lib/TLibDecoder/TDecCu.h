@@ -87,7 +87,6 @@ protected:
   Void xDecompressCU            ( TComDataCU* pcCU, TComDataCU* pcCUCur,  UInt uiAbsPartIdx, UInt uiDepth );
 
   Void xReconInter              ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
-  Void xReconIntra              ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
 
   Void  xReconIntraQT           ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
   Void  xIntraRecLumaBlk        ( TComDataCU* pcCU, UInt uiTrDepth, UInt uiAbsPartIdx, TComYuv* pcRecoYuv, TComYuv* pcPredYuv, TComYuv* pcResiYuv );
@@ -99,8 +98,6 @@ protected:
   Void xRecurIntraInvTransChroma( TComDataCU* pcCU, UInt uiAbsPartIdx, Pel* piResi, Pel* piPred, Pel* piReco, UInt uiStride, TCoeff* piCoeff, UInt uiWidth, UInt uiHeight, UInt uiTrMode, UInt uiCurrTrMode, TextType eText );
 
   Void xCopyToPic               ( TComDataCU* pcCU, TComPic* pcPic, UInt uiZorderIdx, UInt uiDepth );
-  Void xCopyToPicLuma           ( TComPic* pcPic, UInt uiCUAddr, UInt uiZorderIdx, UInt uiDepth );
-  Void xCopyToPicChroma         ( TComPic* pcPic, UInt uiCUAddr, UInt uiZorderIdx, UInt uiDepth );
 };
 
 #endif

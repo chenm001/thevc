@@ -145,22 +145,6 @@ protected:
   __inline Void xTZ8PointDiamondSearch( TComPattern* pcPatternKey, IntTZSearchStruct& rcStrukt, TComMv* pcMvSrchRngLT, TComMv* pcMvSrchRngRB, const Int iStartX, const Int iStartY, const Int iDist );
 
 public:
-
-  /// encoder estimation - intra prediction (luma)
-  Void predIntraLumaAdiSearch   ( TComDataCU* pcCU,
-                                  TComYuv*    pcOrgYuv,
-                                  TComYuv*&   rpcPredYuv,
-                                  TComYuv*&   rpcResiYuv,
-                                  TComYuv*&   rpcRecoYuv );
-
-  /// encoder estimation - intra prediction (chroma)
-  Void predIntraChromaAdiSearch ( TComDataCU* pcCU,
-                                  TComYuv*    pcOrgYuv,
-                                  TComYuv*&   rpcPredYuv,
-                                  TComYuv*&   rpcResiYuv,
-                                  TComYuv*&   rpcRecoYuv,
-                                  UInt        uiChromaTrMode );
-
   Void  preestChromaPredMode    ( TComDataCU* pcCU, 
                                   TComYuv*    pcOrgYuv, 
                                   TComYuv*    pcPredYuv );
@@ -376,18 +360,6 @@ protected:
                                     UInt&         ruiBits,
                                     UInt&         ruiCost,
                                     Bool          bBi = false  );
-#if MS_NO_BACK_PRED_IN_B0
-  Void xMotionEstimationForL1     ( TComDataCU*   pcCU,
-                                    TComYuv*      pcYuvOrg,
-                                    Int           iPartIdx,
-                                    RefPicList    eRefPicList,
-                                    TComMv*       pcMvPred,
-                                    Int           iRefIdxPred,
-                                    TComMv&       rcMv,
-                                    UInt&         ruiBits,
-                                    UInt&         ruiCost,
-                                    Bool          bBi = false  );
-#endif
 
   Void xTZSearch                  ( TComDataCU*   pcCU,
                                     TComPattern*  pcPatternKey,
@@ -436,7 +408,6 @@ protected:
 									Bool		  bRound);
 
 
-  UInt xPatternRefinementMC_Bi    ( TComPattern* pcPatternKey, Pel* piRef, Int iRefStride, Int iIntStep, Int iFrac, TComMv& rcMvFrac,Pel* pcRefY2,	Bool bRound);
 #if TEN_DIRECTIONAL_INTERP
   Void xPatternSearchFracDIF_TEN_Bi   ( TComDataCU*   pcCU,
                                     TComPattern*  pcPatternKey,
@@ -526,18 +497,6 @@ protected:
                                     TComYuv*&     rpcYuvRec,
                                     TComYuv*      pcYuvPred,
                                     TComYuv*&     rpcYuvResi );
-
-  Void xAddSymbolBitsIntra        ( TComDataCU*   pcCU,
-                                    TCoeff*       pCoeff,
-                                    UInt          uiPU,
-                                    UInt          uiQNumPart,
-                                    UInt          uiPartDepth,
-                                    UInt          uiNumPart,
-                                    UInt          uiMaxTrDepth,
-                                    UInt          uiTrDepth,
-                                    UInt          uiWidth,
-                                    UInt          uiHeight,
-                                    UInt&         ruiBits );
 
 };// END CLASS DEFINITION TEncSearch
 

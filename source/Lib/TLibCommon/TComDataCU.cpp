@@ -564,17 +564,6 @@ Void TComDataCU::copyInterPredInfoFrom    ( TComDataCU* pcCU, UInt uiAbsPartIdx,
 
 }
 
-// Copy inter prediction info to the biggest CU
-Void TComDataCU::copyInterPredInfoTo    ( TComDataCU* pcCU, UInt uiAbsPartIdx, RefPicList eRefPicList )
-{
-  Int iSizeInInt    = sizeof( Int    ) * m_uiNumPartition;
-  Int iSizeInTComMv = sizeof( TComMv ) * m_uiNumPartition;
-
-  memcpy( pcCU->getMVPIdx(eRefPicList) + uiAbsPartIdx, m_apiMVPIdx[eRefPicList], iSizeInInt );
-  memcpy( pcCU->getMVPNum(eRefPicList) + uiAbsPartIdx, m_apiMVPNum[eRefPicList], iSizeInInt );
-  memcpy( pcCU->getCUMvField(eRefPicList)->getMv() + uiAbsPartIdx, m_acCUMvField[eRefPicList].getMv(), iSizeInTComMv );
-}
-
 // Copy small CU to bigger CU.
 // One of quarter parts overwritten by predicted sub part.
 Void TComDataCU::copyPartFrom( TComDataCU* pcCU, UInt uiPartUnitIdx, UInt uiDepth )
@@ -1051,25 +1040,6 @@ Int TComDataCU::getMostProbableIntraDirLuma( UInt uiAbsPartIdx )
   return ( NOT_VALID == iMostProbable ) ? 2 : iMostProbable;
 }
 
-Void TComDataCU::setCuCbfLuma( UInt uiAbsPartIdx, UInt uiLumaTrMode, UInt uiPartDepth )
-{
-  UInt uiDepth = m_puhDepth[ uiAbsPartIdx ] + uiPartDepth;
-  xCalcCuCbf( m_puhCbf[g_aucConvertTxtTypeToIdx[TEXT_LUMA]]     + uiAbsPartIdx, uiLumaTrMode,   0, uiDepth );
-}
-
-Void TComDataCU::setCuCbfChromaUV( UInt uiAbsPartIdx, UInt uiChromaTrMode, TextType eTxt,  UInt uiPartDepth )
-{
-  UInt uiDepth = m_puhDepth[ uiAbsPartIdx ] + uiPartDepth;
-  xCalcCuCbf( m_puhCbf[g_aucConvertTxtTypeToIdx[eTxt]] + uiAbsPartIdx, uiChromaTrMode, 0, uiDepth );
-}
-
-Void TComDataCU::setCuCbfChroma( UInt uiAbsPartIdx, UInt uiChromaTrMode, UInt uiPartDepth )
-{
-  UInt uiDepth = m_puhDepth[ uiAbsPartIdx ] + uiPartDepth;
-  xCalcCuCbf( m_puhCbf[g_aucConvertTxtTypeToIdx[TEXT_CHROMA_U]] + uiAbsPartIdx, uiChromaTrMode, 0, uiDepth );
-  xCalcCuCbf( m_puhCbf[g_aucConvertTxtTypeToIdx[TEXT_CHROMA_V]] + uiAbsPartIdx, uiChromaTrMode, 0, uiDepth );
-}
-
 UInt TComDataCU::getCtxSplitFlag( UInt uiAbsPartIdx, UInt uiDepth )
 {
   TComDataCU* pcTempCU;
@@ -1382,33 +1352,6 @@ UInt TComDataCU::getCtxRefIdx( UInt uiAbsPartIdx, RefPicList eRefPicList )
   pcTempCU = getPUAbove( uiTempPartIdx, m_uiAbsIdxInLCU + uiAbsPartIdx );
   getMvField( pcTempCU, uiTempPartIdx, eRefPicList, cMvFieldTemp );
   uiCtx += cMvFieldTemp.getRefIdx() > 0 ? 2 : 0;
-
-  return uiCtx;
-}
-
-UInt TComDataCU::getCtxTransIdx( UInt uiAbsPartIdx )
-{
-  TComDataCU* pcTempCU;
-  UInt        uiTempPartIdx;
-  Int         iTempTrMode;
-  UInt        uiCtx = 0;
-  UInt        uiMinTrDepth = m_pcSlice->getSPS()->getMinTrDepth();
-
-  // Get intra direction of left PU
-  pcTempCU = getPULeft( uiTempPartIdx, m_uiAbsIdxInLCU + uiAbsPartIdx );
-  if ( pcTempCU )
-  {
-  iTempTrMode = pcTempCU->getDepth( uiTempPartIdx ) + pcTempCU->getTransformIdx( uiTempPartIdx ) - getDepth( uiAbsPartIdx ) - uiMinTrDepth;
-  uiCtx  = ( 0 <= iTempTrMode && iTempTrMode < 2 ) ? 1 : 0;    // 2 is max trmode
-  }
-
-  // Get intra direction of above PU
-  pcTempCU = getPUAbove( uiTempPartIdx, m_uiAbsIdxInLCU + uiAbsPartIdx );
-  if ( pcTempCU )
-  {
-  iTempTrMode = pcTempCU->getDepth( uiTempPartIdx ) + pcTempCU->getTransformIdx( uiTempPartIdx ) - getDepth( uiAbsPartIdx ) - uiMinTrDepth;
-  uiCtx += ( 0 <= iTempTrMode && iTempTrMode < 2 ) ? 1 : 0;    // 2 is max trmode
-  }
 
   return uiCtx;
 }

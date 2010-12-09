@@ -113,8 +113,6 @@ public:
   /// set QP value
   Void  setQpLast           ( Int iQp ) { m_iQp = iQp; }
 
-  TEncBinCABAC* getCABAC()  { return m_pcBinCABAC; }
-
 protected:
   Void  xCompressCU         ( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, UInt uiDepth        );
   Void  xEncodeCU           ( TComDataCU*  pcCU, UInt uiAbsPartIdx,           UInt uiDepth        );

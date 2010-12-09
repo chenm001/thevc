@@ -55,8 +55,6 @@ TEncSbac::TEncSbac()
 #endif
   , m_cCUAlfCtrlFlagSCModel   ( 1,             1,               NUM_ALF_CTRL_FLAG_CTX         )
   , m_cCUPartSizeSCModel      ( 1,             1,               NUM_PART_SIZE_CTX             )
-  , m_cCUXPosiSCModel         ( 1,             1,               NUM_CU_X_POS_CTX              )
-  , m_cCUYPosiSCModel         ( 1,             1,               NUM_CU_Y_POS_CTX              )
   , m_cCUPredModeSCModel      ( 1,             1,               NUM_PRED_MODE_CTX             )
   , m_cCUIntraPredSCModel     ( 1,             1,               NUM_ADI_CTX                   )
   , m_cCUChromaPredSCModel    ( 1,             1,               NUM_CHROMA_PRED_CTX           )
@@ -65,7 +63,6 @@ TEncSbac::TEncSbac()
   , m_cCURefPicSCModel        ( 1,             1,               NUM_REF_NO_CTX                )
   , m_cCUTransSubdivFlagSCModel( 1,          1,               NUM_TRANS_SUBDIV_FLAG_CTX )
   , m_cCUQtRootCbfSCModel     ( 1,             1,               NUM_QT_ROOT_CBF_CTX   )
-  , m_cCUTransIdxSCModel      ( 1,             1,               NUM_TRANS_IDX_CTX             )
   , m_cCUDeltaQpSCModel       ( 1,             1,               NUM_DELTA_QP_CTX              )
 
   , m_cCUQtCbfSCModel       ( 1,             3,               NUM_QT_CBF_CTX        )
@@ -111,8 +108,6 @@ Void TEncSbac::resetEntropy           ()
   m_cCUMergeIndexSCModel.initBuffer   ( eSliceType, iQp, (Short*)INIT_MERGE_INDEX );
 #endif
   m_cCUPartSizeSCModel.initBuffer     ( eSliceType, iQp, (Short*)INIT_PART_SIZE );
-  m_cCUXPosiSCModel.initBuffer        ( eSliceType, iQp, (Short*)INIT_CU_X_POS );
-  m_cCUYPosiSCModel.initBuffer        ( eSliceType, iQp, (Short*)INIT_CU_Y_POS );
   m_cCUPredModeSCModel.initBuffer     ( eSliceType, iQp, (Short*)INIT_PRED_MODE );
   m_cCUIntraPredSCModel.initBuffer    ( eSliceType, iQp, (Short*)INIT_INTRA_PRED_MODE );
   m_cCUChromaPredSCModel.initBuffer   ( eSliceType, iQp, (Short*)INIT_CHROMA_PRED_MODE );
@@ -134,7 +129,6 @@ Void TEncSbac::resetEntropy           ()
   m_cALFUvlcSCModel.initBuffer        ( eSliceType, iQp, (Short*)INIT_ALF_UVLC );
   m_cALFSvlcSCModel.initBuffer        ( eSliceType, iQp, (Short*)INIT_ALF_SVLC );
   m_cCUTransSubdivFlagSCModel.initBuffer( eSliceType, iQp, (Short*)INIT_TRANS_SUBDIV_FLAG );
-  m_cCUTransIdxSCModel.initBuffer     ( eSliceType, iQp, (Short*)INIT_TRANS_IDX );
 
   // new structure
   m_uiLastQp          = iQp;
@@ -315,7 +309,6 @@ Void TEncSbac::xCopyFrom( TEncSbac* pSrc )
   this->m_cCUQtCbfSCModel     .copyFrom( &pSrc->m_cCUQtCbfSCModel       );
   this->m_cCUTransSubdivFlagSCModel.copyFrom( &pSrc->m_cCUTransSubdivFlagSCModel );
   this->m_cCUQtRootCbfSCModel .copyFrom( &pSrc->m_cCUQtRootCbfSCModel   );
-  this->m_cCUTransIdxSCModel  .copyFrom( &pSrc->m_cCUTransIdxSCModel    );
 
   this->m_cCuCtxModSig         .copyFrom( &pSrc->m_cCuCtxModSig          );
   this->m_cCuCtxModLast        .copyFrom( &pSrc->m_cCuCtxModLast         );
@@ -323,9 +316,6 @@ Void TEncSbac::xCopyFrom( TEncSbac* pSrc )
   this->m_cCuCtxModCoeffLevelM1.copyFrom( &pSrc->m_cCuCtxModCoeffLevelM1 );
 
   this->m_cMVPIdxSCModel      .copyFrom( &pSrc->m_cMVPIdxSCModel        );
-
-  this->m_cCUXPosiSCModel     .copyFrom( &pSrc->m_cCUXPosiSCModel       );
-  this->m_cCUYPosiSCModel     .copyFrom( &pSrc->m_cCUXPosiSCModel       );
 }
 
 Void TEncSbac::codeMVPIdx ( TComDataCU* pcCU, UInt uiAbsPartIdx, RefPicList eRefList )

@@ -166,7 +166,6 @@ public:
 
   Void          copySubCU             ( TComDataCU* pcCU, UInt uiPartUnitIdx, UInt uiDepth );
   Void          copyInterPredInfoFrom ( TComDataCU* pcCU, UInt uiAbsPartIdx, RefPicList eRefPicList );
-  Void          copyInterPredInfoTo   ( TComDataCU* pcCU, UInt uiAbsPartIdx, RefPicList eRefPicList );
   Void          copyPartFrom          ( TComDataCU* pcCU, UInt uiPartUnitIdx, UInt uiDepth );
 
   Void          copyToPic             ( UChar uiDepth );
@@ -189,7 +188,6 @@ public:
   Void          setDepth              ( UInt uiIdx, UChar  uh ) { m_puhDepth[uiIdx] = uh;   }
 
   Void          setDepthSubParts      ( UInt uiDepth, UInt uiAbsPartIdx );
-  Void          setIsDecoderCU        ( Bool bIsDecoder )       { m_bDecSubCu = bIsDecoder; }
 
   // -------------------------------------------------------------------------------------------------------------------
   // member functions for CU data
@@ -243,9 +241,6 @@ public:
   Void          clearCbf  ( UInt uiIdx, TextType eType, UInt uiNumParts );
   UChar         getQtRootCbf          ( UInt uiIdx )                      { return getCbf( uiIdx, TEXT_LUMA, 0 ) || getCbf( uiIdx, TEXT_CHROMA_U, 0 ) || getCbf( uiIdx, TEXT_CHROMA_V, 0 ); }
 
-  Void          setCuCbfLuma          ( UInt uiAbsPartIdx, UInt uiLumaTrMode, UInt uiPartDepth = 0                      );
-  Void          setCuCbfChroma        ( UInt uiAbsPartIdx, UInt uiChromaTrMode, UInt uiPartDepth = 0                    );
-  Void          setCuCbfChromaUV      ( UInt uiAbsPartIdx, UInt uiChromaTrMode, TextType eTxt,  UInt uiPartDepth = 0    );
   Void          setCbfSubParts        ( UInt uiCbfY, UInt uiCbfU, UInt uiCbfV, UInt uiAbsPartIdx, UInt uiDepth          );
   Void          setCbfSubParts        ( UInt uiCbf, TextType eTType, UInt uiAbsPartIdx, UInt uiDepth                    );
 
@@ -388,7 +383,6 @@ public:
   UInt          getCtxAlfCtrlFlag               ( UInt   uiAbsPartIdx                                 );
   UInt          getCtxPredMode                  ( UInt   uiAbsPartIdx                                 );
   UInt          getCtxInterDir                  ( UInt   uiAbsPartIdx                                 );
-  UInt          getCtxTransIdx                  ( UInt   uiAbsPartIdx                                 );
   UInt          getCtxIntraDirChroma            ( UInt   uiAbsPartIdx                                 );
 
   // -------------------------------------------------------------------------------------------------------------------

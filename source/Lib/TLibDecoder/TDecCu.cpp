@@ -655,71 +655,6 @@ TDecCu::xReconIntraQT( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
   }
 }
 
-Void TDecCu::xReconIntra( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
-{
-  UInt uiPU;
-  UInt uiPartDepth = pcCU->getPartitionSize(0) == SIZE_2Nx2N ? 0 : 1;
-  UInt uiNumPart   = pcCU->getNumPartInter();
-
-  UInt uiPartIdx;
-  UInt uiQNumParts = pcCU->getTotalNumPart() >> 2;
-  UInt uiCoeffOffset;
-
-  Pel* pY;
-  UInt uiWidth  = pcCU->getWidth (0) >> uiPartDepth;
-  UInt uiHeight = pcCU->getHeight(0) >> uiPartDepth;
-
-  UInt uiPartOffset = uiWidth*uiHeight;
-
-  TCoeff* pCoeff;
-  Pel* piResi;
-  Pel* piPred;
-  Pel* piReco;
-  UInt uiStride = m_ppcYuvResi[uiDepth]->getStride();
-
-  uiPartIdx     = 0;
-  uiCoeffOffset = 0;
-
-  // Luma
-  for( uiPU = 0 ; uiPU < uiNumPart; uiPU++ )
-  {
-    pCoeff    = pcCU->getCoeffY() + uiCoeffOffset;
-    pY        = m_ppcYuvResi[uiDepth]->getLumaAddr(uiPU, uiWidth);
-    piPred    = m_ppcYuvReco[uiDepth]->getLumaAddr(uiPU, uiWidth);
-    piReco    = m_ppcYuvReco[uiDepth]->getLumaAddr(uiPU, uiWidth);
-    piResi    = pY;
-
-    xDecodeIntraTexture( pcCU, uiPartIdx, piReco, piPred, piResi, uiStride, pCoeff, uiWidth, uiHeight, uiPartDepth );
-
-    uiPartIdx     += uiQNumParts;
-    uiCoeffOffset += uiPartOffset;
-  } // PU loop
-
-  // Cb and Cr
-  Pel* pResiCb = m_ppcYuvResi[uiDepth]->getCbAddr();
-  Pel* pResiCr = m_ppcYuvResi[uiDepth]->getCrAddr();
-  Pel* pPredCb = m_ppcYuvReco[uiDepth]->getCbAddr();
-  Pel* pPredCr = m_ppcYuvReco[uiDepth]->getCrAddr();
-  Pel* pRecoCb = m_ppcYuvReco[uiDepth]->getCbAddr();
-  Pel* pRecoCr = m_ppcYuvReco[uiDepth]->getCrAddr();
-  UInt uiCStride = m_ppcYuvReco[uiDepth]->getCStride();
-  TCoeff* pCoefCb = pcCU->getCoeffCb();
-  TCoeff* pCoefCr = pcCU->getCoeffCr();
-  UInt uiCWidth  = pcCU->getWidth (0)>>1;
-  UInt uiCHeight = pcCU->getHeight(0)>>1;
-
-  UInt uiChromaTrMode = 0;
-  if( (uiCWidth > pcCU->getSlice()->getSPS()->getMaxTrSize()) )
-  {
-    while( uiCWidth > (pcCU->getSlice()->getSPS()->getMaxTrSize()<<uiChromaTrMode) ) uiChromaTrMode++;
-  }
-
-  m_pcTrQuant->setQPforQuant( pcCU->getQP(0), !pcCU->getSlice()->getDepth(), pcCU->getSlice()->getSliceType(), TEXT_CHROMA );
-
-  xRecurIntraInvTransChroma( pcCU, 0, pResiCb, pPredCb, pRecoCb, uiCStride, pCoefCb, uiCWidth, uiCHeight, uiChromaTrMode, 0, TEXT_CHROMA_U );
-  xRecurIntraInvTransChroma( pcCU, 0, pResiCr, pPredCr, pRecoCr, uiCStride, pCoefCr, uiCWidth, uiCHeight, uiChromaTrMode, 0, TEXT_CHROMA_V );
-}
-
 Void TDecCu::xCopyToPic( TComDataCU* pcCU, TComPic* pcPic, UInt uiZorderIdx, UInt uiDepth )
 {
   UInt uiCUAddr = pcCU->getAddr();
@@ -727,16 +662,6 @@ Void TDecCu::xCopyToPic( TComDataCU* pcCU, TComPic* pcPic, UInt uiZorderIdx, UIn
   m_ppcYuvReco[uiDepth]->copyToPicYuv  ( pcPic->getPicYuvRec (), uiCUAddr, uiZorderIdx );
 
   return;
-}
-
-Void TDecCu::xCopyToPicLuma( TComPic* pcPic, UInt uiCUAddr, UInt uiZorderIdx, UInt uiDepth )
-{
-  m_ppcYuvReco[uiDepth]->copyToPicLuma( pcPic->getPicYuvRec (), uiCUAddr, uiZorderIdx );
-}
-
-Void TDecCu::xCopyToPicChroma( TComPic* pcPic, UInt uiCUAddr, UInt uiZorderIdx, UInt uiDepth )
-{
-  m_ppcYuvReco[uiDepth]->copyToPicChroma( pcPic->getPicYuvRec (), uiCUAddr, uiZorderIdx );
 }
 
 Void TDecCu::xDecodeInterTexture ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
