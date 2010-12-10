@@ -156,7 +156,7 @@ extern const UInt g_auiMI1TableE[8];
 extern const UInt g_auiMI1TableD[8];
 extern const UInt g_auiMI2TableE[15];
 extern const UInt g_auiMI2TableD[15];
-extern const UInt    g_auiMITableVlcNum[15];
+extern const UInt g_auiMITableVlcNum[15];
 
 #if MS_NO_BACK_PRED_IN_B0
 extern const UInt g_auiMI1TableENoL1[8];
@@ -164,8 +164,6 @@ extern const UInt g_auiMI1TableDNoL1[8];
 extern const UInt g_auiMI2TableENoL1[15];
 extern const UInt g_auiMI2TableDNoL1[15];
 #endif
-
-
 
 // ====================================================================================================================
 // ADI table
@@ -176,10 +174,10 @@ extern const UChar  g_aucIntraModeNumFast[7];
 // ====================================================================================================================
 // Angular Intra table
 // ====================================================================================================================
+
 extern const UChar g_aucIntraModeNumAng[7];
 extern const UChar g_aucIntraModeBitsAng[7];
 extern const UChar g_aucAngModeMapping[3][34];
-
 extern const UChar g_aucAngIntraModeOrder[34];
 
 // ====================================================================================================================
@@ -202,24 +200,6 @@ extern const UChar g_aucConvertTxtTypeToIdx[4];
 // ====================================================================================================================
 
 extern       Char   g_aucConvertToBit  [ MAX_CU_SIZE+1 ];   // from width to log2(width)-2
-
-__inline UInt gCeilLog2( const UInt uiVal )
-{
-  if( uiVal <= MAX_CU_SIZE )
-  {
-    return g_aucConvertToBit[uiVal]+2;
-  }
-  UInt uiTmp = uiVal-1;
-  UInt uiRet = 0;
-
-  while( uiTmp != 0 )
-  {
-    uiTmp >>= 1;
-    uiRet++;
-  }
-  return uiRet;
-}
-
 
 #define ENC_DEC_TRACE 0
 
