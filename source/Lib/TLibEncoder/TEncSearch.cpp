@@ -93,13 +93,17 @@ TEncSearch::~TEncSearch()
     delete [] m_pTempPel;
     m_pTempPel = NULL;
   }
-  const UInt uiNumLayersAllocated = m_pcEncCfg->getQuadtreeTULog2MaxSize()-m_pcEncCfg->getQuadtreeTULog2MinSize()+1;
-  for( UInt ui = 0; ui < uiNumLayersAllocated; ++ui )
+  
+  if ( m_pcEncCfg )
   {
-    delete[] m_ppcQTTempCoeffY[ui];
-    delete[] m_ppcQTTempCoeffCb[ui];
-    delete[] m_ppcQTTempCoeffCr[ui];
-    m_pcQTTempTComYuv[ui].destroy();
+    const UInt uiNumLayersAllocated = m_pcEncCfg->getQuadtreeTULog2MaxSize()-m_pcEncCfg->getQuadtreeTULog2MinSize()+1;
+    for( UInt ui = 0; ui < uiNumLayersAllocated; ++ui )
+    {
+      delete[] m_ppcQTTempCoeffY[ui];
+      delete[] m_ppcQTTempCoeffCb[ui];
+      delete[] m_ppcQTTempCoeffCr[ui];
+      m_pcQTTempTComYuv[ui].destroy();
+    }
   }
   delete[] m_ppcQTTempCoeffY;
   delete[] m_ppcQTTempCoeffCb;
