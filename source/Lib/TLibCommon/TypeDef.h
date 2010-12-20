@@ -141,7 +141,7 @@
 ////////////////////////////////
 
 #define BUGFIX102 1 // Do not code terminating bit when using LCEC
-
+#define BUGFIX110 1 // Fix an issue related to interpolation filters and cost calculation
 
 ////////////////////////////////
 // MICROSOFT&USTC defines section start

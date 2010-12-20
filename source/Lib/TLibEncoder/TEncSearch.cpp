@@ -2850,7 +2850,21 @@ UInt TEncSearch::xGetTemplateCost( TComDataCU* pcCU,
   TComPicYuv* pcPicYuvRef = pcCU->getSlice()->getRefPic( eRefPicList, iRefIdx )->getPicYuvRec();
   
   // prediction pattern
-    xPredInterLumaBlk ( pcCU, pcPicYuvRef, uiPartAddr, &cMvCand, iSizeX, iSizeY, pcTemplateCand );
+#if BUGFIX110
+  InterpFilterType filterType = (InterpFilterType)pcCU->getSlice()->getInterpFilterType();
+  switch (filterType)
+  {
+    case IPF_TEN_DIF:
+      xPredInterLumaBlk_TEN( pcCU, pcPicYuvRef, uiPartAddr, &cMvCand, iSizeX, iSizeY, pcTemplateCand );
+      break;
+      
+    default:
+      xPredInterLumaBlk( pcCU, pcPicYuvRef, uiPartAddr, &cMvCand, iSizeX, iSizeY, pcTemplateCand );
+      break;      
+  }
+#else
+  xPredInterLumaBlk ( pcCU, pcPicYuvRef, uiPartAddr, &cMvCand, iSizeX, iSizeY, pcTemplateCand );
+#endif
   
   // calc distortion
   uiCost = m_pcRdCost->getDistPart( pcTemplateCand->getLumaAddr(uiPartAddr), pcTemplateCand->getStride(), pcOrgYuv->getLumaAddr(uiPartAddr), pcOrgYuv->getStride(), iSizeX, iSizeY, DF_SAD );
