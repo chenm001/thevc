@@ -616,23 +616,25 @@ Void TDecCavlc::parseInterDir( TComDataCU* pcCU, UInt& ruiInterDir, UInt uiAbsPa
 Void TDecCavlc::parseRefFrmIdx( TComDataCU* pcCU, Int& riRefFrmIdx, UInt uiAbsPartIdx, UInt uiDepth, RefPicList eRefList )
 {
   UInt uiSymbol;
-    if (pcCU->getSlice()->getNumRefIdx( REF_PIC_LIST_0 ) <= 2 && pcCU->getSlice()->getNumRefIdx( REF_PIC_LIST_1 ) <= 2)
+  
+  if (pcCU->getSlice()->getNumRefIdx( REF_PIC_LIST_0 ) <= 2 && pcCU->getSlice()->getNumRefIdx( REF_PIC_LIST_1 ) <= 2 && pcCU->getSlice()->isInterB())
+  {
+    if (eRefList==REF_PIC_LIST_0)
     {
-      if (eRefList==REF_PIC_LIST_0)
-      {
-        riRefFrmIdx = m_iRefFrame0[uiAbsPartIdx];      
-      }
-      if (eRefList==REF_PIC_LIST_1)
-      {
-         riRefFrmIdx = m_iRefFrame1[uiAbsPartIdx];
-      }
-      return;
-    }    
+      riRefFrmIdx = m_iRefFrame0[uiAbsPartIdx];      
+    }
+    if (eRefList==REF_PIC_LIST_1)
+    {
+      riRefFrmIdx = m_iRefFrame1[uiAbsPartIdx];
+    }
+    return;
+  }    
+  
   xReadFlag ( uiSymbol );
   if ( uiSymbol )
   {
     xReadUnaryMaxSymbol( uiSymbol, pcCU->getSlice()->getNumRefIdx( eRefList )-2 );
-
+    
     uiSymbol++;
   }
   riRefFrmIdx = uiSymbol;
