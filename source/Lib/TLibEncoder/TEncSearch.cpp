@@ -199,7 +199,7 @@ void TEncSearch::init(  TEncCfg*      pcEncCfg,
 
 #define TZ_SEARCH_CONFIGURATION                                                                                 \
 const Int  iRaster                  = 3;  /* TZ soll von aussen ?ergeben werden */                            \
-const Bool bTestOtherPredictedMV    = 1;                                                                      \
+const Bool bTestOtherPredictedMV    = 0;                                                                      \
 const Bool bTestZeroVector          = 1;                                                                      \
 const Bool bTestZeroVectorStart     = 0;                                                                      \
 const Bool bTestZeroVectorStop      = 0;                                                                      \
