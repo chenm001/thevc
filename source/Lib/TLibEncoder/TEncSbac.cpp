@@ -205,6 +205,13 @@ Void TEncSbac::xWriteUnarySymbol( UInt uiSymbol, ContextModel* pcSCModel, Int iO
 
 Void TEncSbac::xWriteUnaryMaxSymbol( UInt uiSymbol, ContextModel* pcSCModel, Int iOffset, UInt uiMaxSymbol )
 {
+#if FIX108
+  if (uiMaxSymbol == 0)
+  {
+    return;
+  }
+#endif
+  
   m_pcBinIf->encodeBin( uiSymbol ? 1 : 0, pcSCModel[ 0 ] );
 
   if ( uiSymbol == 0 )

@@ -1049,6 +1049,14 @@ Void TDecCavlc::xReadFlag (UInt& ruiCode)
 
 Void TDecCavlc::xReadUnaryMaxSymbol( UInt& ruiSymbol, UInt uiMaxSymbol )
 {
+#if FIX108
+  if (uiMaxSymbol == 0)
+  {
+    ruiSymbol = 0;
+    return;
+  }
+#endif
+
   xReadFlag( ruiSymbol );
 
   if (ruiSymbol == 0 || uiMaxSymbol == 1)
