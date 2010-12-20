@@ -213,7 +213,7 @@ Void TDecCavlc::resetEntropy          (TComSlice* pcSlice)
 
   ::memcpy(m_uiLPTableD8,        g_auiLPTableD8,        10*128*sizeof(UInt));
   ::memcpy(m_uiLPTableD4,        g_auiLPTableD4,        3*32*sizeof(UInt));
-  ::memcpy(m_uiLastPosVlcIndex, g_auiLastPosVlcIndex, 10*sizeof(UInt));
+  ::memcpy(m_uiLastPosVlcIndex,  g_auiLastPosVlcIndex,  10*sizeof(UInt));
 
   ::memcpy(m_uiCBPTableD,        g_auiCBPTableD,        2*8*sizeof(UInt));
   m_uiCbpVlcIdx[0] = 0;
@@ -328,14 +328,14 @@ Void TDecCavlc::parseSkipFlag( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth
   }
 }
 
-Void TDecCavlc::parseMVPIdx      ( TComDataCU* pcCU, Int& riMVPIdx, Int iMVPNum, UInt uiAbsPartIdx, UInt uiDepth, RefPicList eRefList )
+Void TDecCavlc::parseMVPIdx( TComDataCU* pcCU, Int& riMVPIdx, Int iMVPNum, UInt uiAbsPartIdx, UInt uiDepth, RefPicList eRefList )
 {
   UInt uiSymbol;
   xReadUnaryMaxSymbol(uiSymbol, iMVPNum-1);
   riMVPIdx = uiSymbol;
 }
 
-Void TDecCavlc::parseSplitFlag     ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
+Void TDecCavlc::parseSplitFlag( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
 {
   if( uiDepth == g_uiMaxCUDepth - g_uiAddCUDepth )
   {
@@ -502,7 +502,8 @@ Void TDecCavlc::parseIntraDirLumaAng  ( TComDataCU* pcCU, UInt uiAbsPartIdx, UIn
 
   if ( uiSymbol )
     uiIPredMode = iMostProbable;
-  else{
+  else
+  {
     Int iIntraIdx = pcCU->getIntraSizeIdx(uiAbsPartIdx);
     if ( g_aucIntraModeBitsAng[iIntraIdx] < 6 )
     {
@@ -513,16 +514,17 @@ Void TDecCavlc::parseIntraDirLumaAng  ( TComDataCU* pcCU, UInt uiAbsPartIdx, UIn
     }
     else
     {
-    xReadFlag( uiSymbol ); uiIPredMode  = uiSymbol;
-    xReadFlag( uiSymbol ); uiIPredMode |= uiSymbol << 1;
-    xReadFlag( uiSymbol ); uiIPredMode |= uiSymbol << 2;
-    xReadFlag( uiSymbol ); uiIPredMode |= uiSymbol << 3;
-    xReadFlag( uiSymbol ); uiIPredMode |= uiSymbol << 4;
+      xReadFlag( uiSymbol ); uiIPredMode  = uiSymbol;
+      xReadFlag( uiSymbol ); uiIPredMode |= uiSymbol << 1;
+      xReadFlag( uiSymbol ); uiIPredMode |= uiSymbol << 2;
+      xReadFlag( uiSymbol ); uiIPredMode |= uiSymbol << 3;
+      xReadFlag( uiSymbol ); uiIPredMode |= uiSymbol << 4;
 
-    if (uiIPredMode == 31){ // Escape coding for the last two modes
-      xReadFlag( uiSymbol );
-      uiIPredMode = uiSymbol ? 32 : 31;
-    }
+      if (uiIPredMode == 31)
+      { // Escape coding for the last two modes
+        xReadFlag( uiSymbol );
+        uiIPredMode = uiSymbol ? 32 : 31;
+      }
     }
 
     if (uiIPredMode >= iMostProbable)
@@ -884,7 +886,6 @@ Void TDecCavlc::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartI
         piCoeff[ pucScan[ uiScanning ] ] = scoeff[63-uiScanning];
       }
     }
-//#endif
   }
 
   if (uiDecodeDCCoeff == 1)

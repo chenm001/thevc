@@ -184,7 +184,7 @@ private:
   Int         m_iPOC;
   SliceType   m_eSliceType;
   Int         m_iSliceQp;
-  Int         m_iSymbolMode ;
+  Int         m_iSymbolMode;
   Bool        m_bLoopFilterDisable;
 
   Bool        m_bDRBFlag;             //  flag for future usage as reference buffer
@@ -194,7 +194,7 @@ private:
   //  Data
   Int         m_iSliceQpDelta;
   TComPic*    m_apcRefPicList [2][MAX_NUM_REF];
-  Int m_aiRefPOCList[2][MAX_NUM_REF];
+  Int         m_aiRefPOCList  [2][MAX_NUM_REF];
   Int         m_iDepth;
 
   // referenced slice?
@@ -216,7 +216,7 @@ private:
 
   Int         m_iInterpFilterType;
 #if MS_NO_BACK_PRED_IN_B0
-  Bool m_bNoBackPredFlag;
+  Bool        m_bNoBackPredFlag;
 #endif
 
 public:
@@ -235,9 +235,9 @@ public:
   Int       getPOC          ()                          { return  m_iPOC;           }
   Int       getSliceQp      ()                          { return  m_iSliceQp;           }
   Int       getSliceQpDelta ()                          { return  m_iSliceQpDelta;      }
-  Bool      getDRBFlag          ()                      { return  m_bDRBFlag;           }
-  ERBIndex  getERBIndex         ()                      { return  m_eERBIndex;          }
-  Int       getSymbolMode ()                            { return  m_iSymbolMode;        }
+  Bool      getDRBFlag      ()                          { return  m_bDRBFlag;           }
+  ERBIndex  getERBIndex     ()                          { return  m_eERBIndex;          }
+  Int       getSymbolMode   ()                          { return  m_iSymbolMode;        }
   Bool      getLoopFilterDisable()                      { return  m_bLoopFilterDisable; }
   Int       getNumRefIdx        ( RefPicList e )                { return  m_aiNumRefIdx[e];             }
   TComPic*  getPic              ()                              { return  m_pcPic;                      }
@@ -270,7 +270,7 @@ public:
 
   Void      setRefPicList       ( TComList<TComPic*>& rcListPic );
   Void      setRefPOCList       ();
-  Void setColDir (UInt uiDir) { m_uiColDir = uiDir; }
+  Void      setColDir           ( UInt uiDir ) { m_uiColDir = uiDir; }
 
   Bool      isIntra         ()                          { return  m_eSliceType == I_SLICE;  }
   Bool      isInterB        ()                          { return  m_eSliceType == B_SLICE;  }
@@ -279,7 +279,7 @@ public:
   Void      setLambda( Double d ) { m_dLambda = d; }
   Double    getLambda() { return m_dLambda;        }
 
-  Void initEqualRef();
+  Void      initEqualRef();
   Bool      isEqualRef  ( RefPicList e, Int iRefIdx1, Int iRefIdx2 )
   {
     if (iRefIdx1 < 0 || iRefIdx2 < 0) return false;

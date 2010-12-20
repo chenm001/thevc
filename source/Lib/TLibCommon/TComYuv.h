@@ -79,9 +79,6 @@ public:
   Void    create            ( UInt iWidth, UInt iHeight );  ///< Create  YUV buffer
   Void    destroy           ();                             ///< Destroy YUV buffer
   Void    clear             ();                             ///< clear   YUV buffer
-  Void    clearLuma         ();                             ///< clear   Y buffer
-  Void    clearChroma       ();                             ///< clear   UV buffer
-  Void    clearChromaUV     (UInt UV);                      ///< clear   U or V buffer
 
   // ------------------------------------------------------------------------------------------------------------------
   //  Copy, load, store YUV buffer
@@ -111,11 +108,6 @@ public:
   Void    copyPartToPartYuv     ( TComYuv*    pcYuvDst, UInt uiPartIdx, UInt uiWidth, UInt uiHeight );
   Void    copyPartToPartLuma    ( TComYuv*    pcYuvDst, UInt uiPartIdx, UInt uiWidth, UInt uiHeight );
   Void    copyPartToPartChroma  ( TComYuv*    pcYuvDst, UInt uiPartIdx, UInt uiWidth, UInt uiHeight );
-
-  //  Copy same size YUV buffers
-  Void    copyToLuma        ( TComYuv*    pcYuvDst );
-  Void    copyToChroma      ( TComYuv*    pcYuvDst );
-  Void    copyToYuv         ( TComYuv*    pcYuvDst );
 
   // ------------------------------------------------------------------------------------------------------------------
   //  Algebraic operation for YUV buffer

@@ -102,25 +102,6 @@ Void TComYuv::clear()
   ::memset( m_apiBufV, 0, ( m_iCWidth * m_iCHeight )*sizeof(Pel) );
 }
 
-Void TComYuv::clearLuma()
-{
-  ::memset( m_apiBufY, 0, ( m_iWidth  * m_iHeight  )*sizeof(Pel) );
-}
-
-Void TComYuv::clearChromaUV(UInt UV)
-{
-  if( UV )
-    ::memset( m_apiBufV, 0, ( m_iCWidth * m_iCHeight )*sizeof(Pel) );
-  else
-    ::memset( m_apiBufU, 0, ( m_iCWidth * m_iCHeight )*sizeof(Pel) );
-}
-
-Void TComYuv::clearChroma()
-{
-  ::memset( m_apiBufU, 0, ( m_iCWidth * m_iCHeight )*sizeof(Pel) );
-  ::memset( m_apiBufV, 0, ( m_iCWidth * m_iCHeight )*sizeof(Pel) );
-}
-
 Void TComYuv::copyToPicYuv   ( TComPicYuv* pcPicYuvDst, UInt iCuAddr, UInt uiAbsZorderIdx, UInt uiPartDepth, UInt uiPartIdx )
 {
   copyToPicLuma  ( pcPicYuvDst, iCuAddr, uiAbsZorderIdx, uiPartDepth, uiPartIdx );
@@ -366,21 +347,6 @@ Void TComYuv::copyPartToPartChroma( TComYuv* pcYuvDst, UInt uiPartIdx, UInt iWid
     pDstU += iDstStride;
     pDstV += iDstStride;
   }
-}
-
-Void TComYuv::copyToLuma( TComYuv*    pcYuvDst )
-{
-  memcpy(pcYuvDst->getLumaAddr(), m_apiBufY, sizeof(Pel)*m_iWidth*m_iHeight);
-}
-Void TComYuv::copyToChroma( TComYuv*    pcYuvDst )
-{
-  memcpy(pcYuvDst->getCbAddr(), m_apiBufU, sizeof(Pel)*m_iCWidth*m_iCHeight);
-  memcpy(pcYuvDst->getCrAddr(), m_apiBufV, sizeof(Pel)*m_iCWidth*m_iCHeight);
-}
-Void TComYuv::copyToYuv( TComYuv*    pcYuvDst )
-{
-  copyToLuma(pcYuvDst);
-  copyToChroma(pcYuvDst);
 }
 
 Void TComYuv::addClip( TComYuv* pcYuvSrc0, TComYuv* pcYuvSrc1, UInt uiTrUnitIdx, UInt uiPartSize )
