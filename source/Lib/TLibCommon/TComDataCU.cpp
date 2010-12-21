@@ -1929,21 +1929,21 @@ Void TComDataCU::fillMvpCand ( UInt uiPartIdx, UInt uiPartAddr, RefPicList eRefP
     pInfo->m_acMvCand[0] = pInfo->m_acMvCand[iLeftMvIdx];
     pInfo->m_acMvCand[iLeftMvIdx] = cTempMv;
   }
-  else if ( ( ((eCUMode == SIZE_2NxN)) && uiPartIdx == 0 && m_pcSlice->isEqualRef(eRefPicList, m_cMvFieldB.getRefIdx(), iRefIdx) )
-    && iAboveMvIdx > 0 )
+#if FIX117
+  else if ( ( ((eCUMode == SIZE_2NxN)) && uiPartIdx == 0 ) && iAboveMvIdx > 0 )
   {
     cTempMv = pInfo->m_acMvCand[0];
     pInfo->m_acMvCand[0] = pInfo->m_acMvCand[iAboveMvIdx];
     pInfo->m_acMvCand[iAboveMvIdx] = cTempMv;
   }
-  else if ( ( ((eCUMode == SIZE_Nx2N)) && uiPartIdx == 1 && m_pcSlice->isEqualRef(eRefPicList, m_cMvFieldC.getRefIdx(), iRefIdx))
-    && iCornerMvIdx > 0 )
+  else if ( ( ((eCUMode == SIZE_Nx2N)) && uiPartIdx == 1 )&& iCornerMvIdx > 0 )
   {
     cTempMv = pInfo->m_acMvCand[0];
     pInfo->m_acMvCand[0] = pInfo->m_acMvCand[iCornerMvIdx];
     pInfo->m_acMvCand[iCornerMvIdx] = cTempMv;
   }
-
+#endif
+  
   if (getAMVPMode(uiPartAddr) == AM_NONE)  //Should be optimized later for special cases
   {
     assert(pInfo->iN > 0);

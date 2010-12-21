@@ -153,6 +153,7 @@
 ////////////////////////////////
 
 #define FIX108 0 // fixes issue where unary symbol is uncessesarily coded
+#define FIX117 0 // fixes issue where MVP derivation is inconsistent with original intent
 
 // ====================================================================================================================
 // Basic type redefinition
