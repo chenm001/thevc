@@ -2363,22 +2363,22 @@ Void TEncSearch::predInterSearch( TComDataCU* pcCU, TComYuv* pcOrgYuv, TComYuv*&
           }
           else
           {
-#if MS_NO_BACK_PRED_IN_B0
-            if (iRefList && pcCU->getSlice()->getNoBackPredFlag())
-            {
-              uiCostTemp = MAX_UINT;
-              cMvTemp[1][iRefIdxTemp] = cMvTemp[0][iRefIdxTemp];
-            }
-            else
-#endif
-            {
-              xMotionEstimation ( pcCU, pcOrgYuv, iPartIdx, eRefPicList, &cMvPred[iRefList][iRefIdxTemp], iRefIdxTemp, cMvTemp[iRefList][iRefIdxTemp], uiBitsTemp, uiCostTemp );
-            }
+            xMotionEstimation ( pcCU, pcOrgYuv, iPartIdx, eRefPicList, &cMvPred[iRefList][iRefIdxTemp], iRefIdxTemp, cMvTemp[iRefList][iRefIdxTemp], uiBitsTemp, uiCostTemp );
           }
         }
         else
         {
-          xMotionEstimation ( pcCU, pcOrgYuv, iPartIdx, eRefPicList, &cMvPred[iRefList][iRefIdxTemp], iRefIdxTemp, cMvTemp[iRefList][iRefIdxTemp], uiBitsTemp, uiCostTemp );
+#if MS_NO_BACK_PRED_IN_B0
+          if (iRefList && pcCU->getSlice()->getNoBackPredFlag())
+          {
+            uiCostTemp = MAX_UINT;
+            cMvTemp[1][iRefIdxTemp] = cMvTemp[0][iRefIdxTemp];
+          }
+          else
+#endif
+          { 
+            xMotionEstimation ( pcCU, pcOrgYuv, iPartIdx, eRefPicList, &cMvPred[iRefList][iRefIdxTemp], iRefIdxTemp, cMvTemp[iRefList][iRefIdxTemp], uiBitsTemp, uiCostTemp );
+          }        
         }
 #else
         xMotionEstimation ( pcCU, pcOrgYuv, iPartIdx, eRefPicList, &cMvPred[iRefList][iRefIdxTemp], iRefIdxTemp, cMvTemp[iRefList][iRefIdxTemp], uiBitsTemp, uiCostTemp );
