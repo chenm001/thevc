@@ -60,24 +60,24 @@ public:
   virtual ~TDecSbac();
 
   Void  init                      ( TDecBinIf* p )    { m_pcTDecBinIf = p; }
-  Void  uninit                    ()                  { m_pcTDecBinIf = 0; }
+  Void  uninit                    (              )    { m_pcTDecBinIf = 0; }
 
-  Void  resetEntropy              (TComSlice* pcSlice);
-  Void  setBitstream              (TComBitstream* p)        { m_pcBitstream = p; m_pcTDecBinIf->init( p ); }
+  Void  resetEntropy              ( TComSlice* pcSlice     );
+  Void  setBitstream              ( TComBitstream* p       ) { m_pcBitstream = p; m_pcTDecBinIf->init( p ); }
 
-  Void setAlfCtrl(Bool bAlfCtrl) {m_bAlfCtrl = bAlfCtrl;}
-  Void setMaxAlfCtrlDepth(UInt uiMaxAlfCtrlDepth) {m_uiMaxAlfCtrlDepth = uiMaxAlfCtrlDepth;}
+  Void  setAlfCtrl                ( Bool bAlfCtrl          ) { m_bAlfCtrl = bAlfCtrl;                   }
+  Void  setMaxAlfCtrlDepth        ( UInt uiMaxAlfCtrlDepth ) { m_uiMaxAlfCtrlDepth = uiMaxAlfCtrlDepth; }
 
-  Void  parseSPS                  (TComSPS* pcSPS) {}
-  Void  parsePPS                  (TComPPS* pcPPS) {}
-  Void  parseSliceHeader          (TComSlice*& rpcSlice)    {}
+  Void  parseSPS                  ( TComSPS* pcSPS         ) {}
+  Void  parsePPS                  ( TComPPS* pcPPS         ) {}
+  Void  parseSliceHeader          ( TComSlice*& rpcSlice   ) {}
   Void  parseTerminatingBit       ( UInt& ruiBit );
-  Void parseMVPIdx        ( TComDataCU* pcCU, Int& riMVPIdx, Int iMVPNum, UInt uiAbsPartIdx, UInt uiDepth, RefPicList eRefList );
+  Void  parseMVPIdx               ( TComDataCU* pcCU, Int& riMVPIdx, Int iMVPNum, UInt uiAbsPartIdx, UInt uiDepth, RefPicList eRefList );
 
-  Void parseAlfFlag       ( UInt& ruiVal            );
-  Void parseAlfUvlc       ( UInt& ruiVal            );
-  Void parseAlfSvlc       ( Int&  riVal             );
-  Void parseAlfCtrlDepth  ( UInt& ruiAlfCtrlDepth   );
+  Void  parseAlfFlag              ( UInt& ruiVal           );
+  Void  parseAlfUvlc              ( UInt& ruiVal           );
+  Void  parseAlfSvlc              ( Int&  riVal            );
+  Void  parseAlfCtrlDepth         ( UInt& ruiAlfCtrlDepth  );
 
 private:
   Void  xReadUnarySymbol    ( UInt& ruiSymbol, ContextModel* pcSCModel, Int iOffset );
@@ -159,10 +159,10 @@ private:
 
   ContextModel3DBuffer m_cCUQtCbfSCModel;
 
-  ContextModel3DBuffer m_cCuCtxModSig;
-  ContextModel3DBuffer m_cCuCtxModLast;
-  ContextModel3DBuffer m_cCuCtxModAbsGreOne;
-  ContextModel3DBuffer m_cCuCtxModCoeffLevelM1;
+  ContextModel3DBuffer m_cCUSigSCModel;
+  ContextModel3DBuffer m_cCULastSCModel;
+  ContextModel3DBuffer m_cCUOneSCModel;
+  ContextModel3DBuffer m_cCUAbsSCModel;
 
   ContextModel3DBuffer m_cMVPIdxSCModel;
 

@@ -41,33 +41,32 @@
 
 TDecSbac::TDecSbac() 
     // new structure here
-  : m_cCUSplitFlagSCModel     ( 1,             1,               NUM_SPLIT_FLAG_CTX            )
-  , m_cCUSkipFlagSCModel      ( 1,             1,               NUM_SKIP_FLAG_CTX             )
-  , m_cCUAlfCtrlFlagSCModel   ( 1,             1,               NUM_ALF_CTRL_FLAG_CTX         )
+  : m_cCUSplitFlagSCModel       ( 1,             1,               NUM_SPLIT_FLAG_CTX            )
+  , m_cCUSkipFlagSCModel        ( 1,             1,               NUM_SKIP_FLAG_CTX             )
+  , m_cCUAlfCtrlFlagSCModel     ( 1,             1,               NUM_ALF_CTRL_FLAG_CTX         )
 #if HHI_MRG
-  , m_cCUMergeFlagSCModel     ( 1,             1,               NUM_MERGE_FLAG_CTX            )
-  , m_cCUMergeIndexSCModel    ( 1,             1,               NUM_MERGE_INDEX_CTX           )
+  , m_cCUMergeFlagSCModel       ( 1,             1,               NUM_MERGE_FLAG_CTX            )
+  , m_cCUMergeIndexSCModel      ( 1,             1,               NUM_MERGE_INDEX_CTX           )
 #endif
-  , m_cCUPartSizeSCModel      ( 1,             1,               NUM_PART_SIZE_CTX             )
-  , m_cCUPredModeSCModel      ( 1,             1,               NUM_PRED_MODE_CTX             )
-  , m_cCUIntraPredSCModel     ( 1,             1,               NUM_ADI_CTX                   )
-  , m_cCUChromaPredSCModel    ( 1,             1,               NUM_CHROMA_PRED_CTX           )
-  , m_cCUInterDirSCModel      ( 1,             1,               NUM_INTER_DIR_CTX             )
-  , m_cCUMvdSCModel           ( 1,             2,               NUM_MV_RES_CTX                )
-  , m_cCURefPicSCModel        ( 1,             1,               NUM_REF_NO_CTX                )
-  , m_cCUTransSubdivFlagSCModel( 1,            1,               NUM_TRANS_SUBDIV_FLAG_CTX     )
-  , m_cCUQtRootCbfSCModel     ( 1,             1,               NUM_QT_ROOT_CBF_CTX           )
-  , m_cCUDeltaQpSCModel       ( 1,             1,               NUM_DELTA_QP_CTX              )
-  , m_cCUQtCbfSCModel         ( 1,             3,               NUM_QT_CBF_CTX                )
-  , m_cCuCtxModSig            ( MAX_CU_DEPTH,  2,               NUM_SIG_FLAG_CTX              )
-  , m_cCuCtxModLast           ( MAX_CU_DEPTH,  2,               NUM_LAST_FLAG_CTX             )
-  , m_cCuCtxModAbsGreOne      ( 1,             2,               NUM_ABS_GREATER_ONE_CTX       )
-  , m_cCuCtxModCoeffLevelM1   ( 1,             2,               NUM_COEFF_LEVEL_MINUS_ONE_CTX )
-
-  , m_cMVPIdxSCModel          ( 1,             1,               NUM_MVP_IDX_CTX               )
-  , m_cALFFlagSCModel         ( 1,             1,               NUM_ALF_FLAG_CTX              )
-  , m_cALFUvlcSCModel         ( 1,             1,               NUM_ALF_UVLC_CTX              )
-  , m_cALFSvlcSCModel         ( 1,             1,               NUM_ALF_SVLC_CTX              )
+  , m_cCUPartSizeSCModel        ( 1,             1,               NUM_PART_SIZE_CTX             )
+  , m_cCUPredModeSCModel        ( 1,             1,               NUM_PRED_MODE_CTX             )
+  , m_cCUIntraPredSCModel       ( 1,             1,               NUM_ADI_CTX                   )
+  , m_cCUChromaPredSCModel      ( 1,             1,               NUM_CHROMA_PRED_CTX           )
+  , m_cCUInterDirSCModel        ( 1,             1,               NUM_INTER_DIR_CTX             )
+  , m_cCUMvdSCModel             ( 1,             2,               NUM_MV_RES_CTX                )
+  , m_cCURefPicSCModel          ( 1,             1,               NUM_REF_NO_CTX                )
+  , m_cCUTransSubdivFlagSCModel ( 1,             1,               NUM_TRANS_SUBDIV_FLAG_CTX     )
+  , m_cCUQtRootCbfSCModel       ( 1,             1,               NUM_QT_ROOT_CBF_CTX           )
+  , m_cCUDeltaQpSCModel         ( 1,             1,               NUM_DELTA_QP_CTX              )
+  , m_cCUQtCbfSCModel           ( 1,             3,               NUM_QT_CBF_CTX                )
+  , m_cCUSigSCModel             ( MAX_CU_DEPTH,  2,               NUM_SIG_FLAG_CTX              )
+  , m_cCULastSCModel            ( MAX_CU_DEPTH,  2,               NUM_LAST_FLAG_CTX             )
+  , m_cCUOneSCModel             ( 1,             2,               NUM_ONE_FLAG_CTX              )
+  , m_cCUAbsSCModel             ( 1,             2,               NUM_ABS_FLAG_CTX              )
+  , m_cMVPIdxSCModel            ( 1,             1,               NUM_MVP_IDX_CTX               )
+  , m_cALFFlagSCModel           ( 1,             1,               NUM_ALF_FLAG_CTX              )
+  , m_cALFUvlcSCModel           ( 1,             1,               NUM_ALF_UVLC_CTX              )
+  , m_cALFSvlcSCModel           ( 1,             1,               NUM_ALF_SVLC_CTX              )
 {
   m_pcBitstream = 0;
   m_pcTDecBinIf = 0;
@@ -89,37 +88,32 @@ Void TDecSbac::resetEntropy          (TComSlice* pcSlice)
   Int  iQp              = pcSlice->getSliceQp();
   SliceType eSliceType  = pcSlice->getSliceType();
 
-  m_cCUSplitFlagSCModel.initBuffer    ( eSliceType, iQp, (Short*)INIT_SPLIT_FLAG );
-
-  m_cCUSkipFlagSCModel.initBuffer     ( eSliceType, iQp, (Short*)INIT_SKIP_FLAG );
-#if HHI_MRG
-  m_cCUMergeFlagSCModel.initBuffer    ( eSliceType, iQp, (Short*)INIT_MERGE_FLAG );
-  m_cCUMergeIndexSCModel.initBuffer   ( eSliceType, iQp, (Short*)INIT_MERGE_INDEX );
-#endif
-  m_cCUAlfCtrlFlagSCModel.initBuffer  ( eSliceType, iQp, (Short*)INIT_SKIP_FLAG );
-  m_cCUPartSizeSCModel.initBuffer     ( eSliceType, iQp, (Short*)INIT_PART_SIZE );
-  m_cCUPredModeSCModel.initBuffer     ( eSliceType, iQp, (Short*)INIT_PRED_MODE );
-  m_cCUIntraPredSCModel.initBuffer    ( eSliceType, iQp, (Short*)INIT_INTRA_PRED_MODE );
-  m_cCUChromaPredSCModel.initBuffer   ( eSliceType, iQp, (Short*)INIT_CHROMA_PRED_MODE );
-  m_cCUInterDirSCModel.initBuffer     ( eSliceType, iQp, (Short*)INIT_INTER_DIR );
-  m_cCUMvdSCModel.initBuffer          ( eSliceType, iQp, (Short*)INIT_MVD );
-  m_cCURefPicSCModel.initBuffer       ( eSliceType, iQp, (Short*)INIT_REF_PIC );
-
-  m_cCUDeltaQpSCModel.initBuffer      ( eSliceType, iQp, (Short*)INIT_DQP );
-  m_cCUQtCbfSCModel.initBuffer        ( eSliceType, iQp, (Short*)INIT_QT_CBF );
-  m_cCUQtRootCbfSCModel.initBuffer    ( eSliceType, iQp, (Short*)INIT_QT_ROOT_CBF );
-
-  m_cCuCtxModSig.initBuffer           ( eSliceType, iQp, (Short*)INIT_SIG_FLAG );
-  m_cCuCtxModLast.initBuffer          ( eSliceType, iQp, (Short*)INIT_LAST_FLAG );
-  m_cCuCtxModAbsGreOne.initBuffer     ( eSliceType, iQp, (Short*)INIT_ABS_GREATER_ONE_FLAG );
-  m_cCuCtxModCoeffLevelM1.initBuffer  ( eSliceType, iQp, (Short*)INIT_COEFF_LEVEL_MINUS_ONE_FLAG );
-
-  m_cMVPIdxSCModel.initBuffer         ( eSliceType, iQp, (Short*)INIT_MVP_IDX );
-
-  m_cALFFlagSCModel.initBuffer        ( eSliceType, iQp, (Short*)INIT_ALF_FLAG );
-  m_cALFUvlcSCModel.initBuffer        ( eSliceType, iQp, (Short*)INIT_ALF_UVLC );
-  m_cALFSvlcSCModel.initBuffer        ( eSliceType, iQp, (Short*)INIT_ALF_SVLC );
-  m_cCUTransSubdivFlagSCModel.initBuffer( eSliceType, iQp, (Short*)INIT_TRANS_SUBDIV_FLAG );
+  m_cCUSplitFlagSCModel.initBuffer       ( eSliceType, iQp, (Short*)INIT_SPLIT_FLAG );
+  m_cCUSkipFlagSCModel.initBuffer        ( eSliceType, iQp, (Short*)INIT_SKIP_FLAG );
+#if HHI_MRG                              
+  m_cCUMergeFlagSCModel.initBuffer       ( eSliceType, iQp, (Short*)INIT_MERGE_FLAG );
+  m_cCUMergeIndexSCModel.initBuffer      ( eSliceType, iQp, (Short*)INIT_MERGE_INDEX );
+#endif                                   
+  m_cCUAlfCtrlFlagSCModel.initBuffer     ( eSliceType, iQp, (Short*)INIT_SKIP_FLAG );
+  m_cCUPartSizeSCModel.initBuffer        ( eSliceType, iQp, (Short*)INIT_PART_SIZE );
+  m_cCUPredModeSCModel.initBuffer        ( eSliceType, iQp, (Short*)INIT_PRED_MODE );
+  m_cCUIntraPredSCModel.initBuffer       ( eSliceType, iQp, (Short*)INIT_INTRA_PRED_MODE );
+  m_cCUChromaPredSCModel.initBuffer      ( eSliceType, iQp, (Short*)INIT_CHROMA_PRED_MODE );
+  m_cCUInterDirSCModel.initBuffer        ( eSliceType, iQp, (Short*)INIT_INTER_DIR );
+  m_cCUMvdSCModel.initBuffer             ( eSliceType, iQp, (Short*)INIT_MVD );
+  m_cCURefPicSCModel.initBuffer          ( eSliceType, iQp, (Short*)INIT_REF_PIC );
+  m_cCUDeltaQpSCModel.initBuffer         ( eSliceType, iQp, (Short*)INIT_DQP );
+  m_cCUQtCbfSCModel.initBuffer           ( eSliceType, iQp, (Short*)INIT_QT_CBF );
+  m_cCUQtRootCbfSCModel.initBuffer       ( eSliceType, iQp, (Short*)INIT_QT_ROOT_CBF );
+  m_cCUSigSCModel.initBuffer             ( eSliceType, iQp, (Short*)INIT_SIG_FLAG );
+  m_cCULastSCModel.initBuffer            ( eSliceType, iQp, (Short*)INIT_LAST_FLAG );
+  m_cCUOneSCModel.initBuffer             ( eSliceType, iQp, (Short*)INIT_ONE_FLAG );
+  m_cCUAbsSCModel.initBuffer             ( eSliceType, iQp, (Short*)INIT_ABS_FLAG );
+  m_cMVPIdxSCModel.initBuffer            ( eSliceType, iQp, (Short*)INIT_MVP_IDX );
+  m_cALFFlagSCModel.initBuffer           ( eSliceType, iQp, (Short*)INIT_ALF_FLAG );
+  m_cALFUvlcSCModel.initBuffer           ( eSliceType, iQp, (Short*)INIT_ALF_UVLC );
+  m_cALFSvlcSCModel.initBuffer           ( eSliceType, iQp, (Short*)INIT_ALF_SVLC );
+  m_cCUTransSubdivFlagSCModel.initBuffer ( eSliceType, iQp, (Short*)INIT_TRANS_SUBDIV_FLAG );
 
   m_uiLastDQpNonZero  = 0;
 
@@ -147,7 +141,7 @@ Void TDecSbac::xReadUnaryMaxSymbol( UInt& ruiSymbol, ContextModel* pcSCModel, In
 
   m_pcTDecBinIf->decodeBin( ruiSymbol, pcSCModel[0] );
 
-  if (ruiSymbol == 0 || uiMaxSymbol == 1)
+  if( ruiSymbol == 0 || uiMaxSymbol == 1 )
   {
     return;
   }
@@ -160,9 +154,9 @@ Void TDecSbac::xReadUnaryMaxSymbol( UInt& ruiSymbol, ContextModel* pcSCModel, In
     m_pcTDecBinIf->decodeBin( uiCont, pcSCModel[ iOffset ] );
     uiSymbol++;
   }
-  while( uiCont && (uiSymbol < uiMaxSymbol-1) );
+  while( uiCont && ( uiSymbol < uiMaxSymbol - 1 ) );
 
-  if( uiCont && (uiSymbol == uiMaxSymbol-1) )
+  if( uiCont && ( uiSymbol == uiMaxSymbol - 1 ) )
   {
     uiSymbol++;
   }
@@ -174,7 +168,7 @@ Void TDecSbac::xReadMvd( Int& riMvdComp, UInt uiAbsSum, UInt uiCtx )
 {
   UInt uiLocalCtx = 0;
 
-  if( uiAbsSum >= 3)
+  if( uiAbsSum >= 3 )
   {
     uiLocalCtx += ( uiAbsSum > 32) ? 2 : 1;
   }
@@ -206,13 +200,19 @@ Void TDecSbac::xReadExGolombMvd( UInt& ruiSymbol, ContextModel* pcSCModel, UInt 
 
   m_pcTDecBinIf->decodeBin( ruiSymbol, pcSCModel[0] );
 
-  if (!ruiSymbol) { return; }
+  if( !ruiSymbol )
+  {
+    return;
+  }
 
   m_pcTDecBinIf->decodeBin( uiSymbol, pcSCModel[1] );
 
   ruiSymbol = 1;
 
-  if (!uiSymbol)  { return; }
+  if( !uiSymbol )
+  {
+    return;
+  }
 
   pcSCModel += 2;
   UInt uiCount = 2;
@@ -226,14 +226,14 @@ Void TDecSbac::xReadExGolombMvd( UInt& ruiSymbol, ContextModel* pcSCModel, UInt 
     m_pcTDecBinIf->decodeBin( uiSymbol, *pcSCModel );
     uiCount++;
   }
-  while( uiSymbol && (uiCount != 8));
+  while( uiSymbol && ( uiCount != 8 ) );
 
-  ruiSymbol = uiCount-1;
+  ruiSymbol = uiCount - 1;
 
   if( uiSymbol )
   {
     xReadEpExGolomb( uiSymbol, 3 );
-    ruiSymbol += uiSymbol+1;
+    ruiSymbol += uiSymbol + 1;
   }
 
   return;
@@ -243,7 +243,6 @@ Void TDecSbac::xReadEpExGolomb( UInt& ruiSymbol, UInt uiCount )
 {
   UInt uiSymbol = 0;
   UInt uiBit = 1;
-
 
   while( uiBit )
   {
@@ -267,7 +266,10 @@ Void TDecSbac::xReadUnarySymbol( UInt& ruiSymbol, ContextModel* pcSCModel, Int i
 {
   m_pcTDecBinIf->decodeBin( ruiSymbol, pcSCModel[0] );
 
-  if (!ruiSymbol) { return; }
+  if( !ruiSymbol )
+  {
+    return;
+  }
 
   UInt uiSymbol = 0;
   UInt uiCont;
@@ -291,32 +293,34 @@ Void TDecSbac::xReadExGolombLevel( UInt& ruiSymbol, ContextModel& rcSCModel  )
     m_pcTDecBinIf->decodeBin( uiSymbol, rcSCModel );
     uiCount++;
   }
-  while( uiSymbol && (uiCount != 13));
+  while( uiSymbol && ( uiCount != 13 ) );
 
-  ruiSymbol = uiCount-1;
+  ruiSymbol = uiCount - 1;
 
   if( uiSymbol )
   {
     xReadEpExGolomb( uiSymbol, 0 );
-    ruiSymbol += uiSymbol+1;
+    ruiSymbol += uiSymbol + 1;
   }
 
   return;
 }
 
-Void TDecSbac::parseAlfCtrlDepth              ( UInt& ruiAlfCtrlDepth )
+Void TDecSbac::parseAlfCtrlDepth( UInt& ruiAlfCtrlDepth )
 {
   UInt uiSymbol;
-  xReadUnaryMaxSymbol(uiSymbol, m_cALFUvlcSCModel.get(0), 1, g_uiMaxCUDepth-1);
+  xReadUnaryMaxSymbol( uiSymbol, m_cALFUvlcSCModel.get( 0 ), 1, g_uiMaxCUDepth - 1 );
   ruiAlfCtrlDepth = uiSymbol;
 }
 
 Void TDecSbac::parseAlfCtrlFlag( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
 {
-  if (!m_bAlfCtrl)
+  if( !m_bAlfCtrl )
+  {
     return;
+  }
 
-  if( uiDepth > m_uiMaxAlfCtrlDepth && !pcCU->isFirstAbsZorderIdxInDepth(uiAbsPartIdx, m_uiMaxAlfCtrlDepth))
+  if( uiDepth > m_uiMaxAlfCtrlDepth && !pcCU->isFirstAbsZorderIdxInDepth( uiAbsPartIdx, m_uiMaxAlfCtrlDepth ) )
   {
     return;
   }
@@ -324,9 +328,9 @@ Void TDecSbac::parseAlfCtrlFlag( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDep
   UInt uiSymbol;
   m_pcTDecBinIf->decodeBin( uiSymbol, m_cCUAlfCtrlFlagSCModel.get( 0, 0, pcCU->getCtxAlfCtrlFlag( uiAbsPartIdx ) ) );
 
-  if (uiDepth > m_uiMaxAlfCtrlDepth)
+  if( uiDepth > m_uiMaxAlfCtrlDepth )
   {
-    pcCU->setAlfCtrlFlagSubParts( uiSymbol, uiAbsPartIdx, m_uiMaxAlfCtrlDepth);
+    pcCU->setAlfCtrlFlagSubParts( uiSymbol, uiAbsPartIdx, m_uiMaxAlfCtrlDepth );
   }
   else
   {
@@ -337,7 +341,7 @@ Void TDecSbac::parseAlfCtrlFlag( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDep
 Void TDecSbac::parseSkipFlag( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
 {
 #if HHI_MRG && !SAMSUNG_MRG_SKIP_DIRECT
-  if ( pcCU->getSlice()->getSPS()->getUseMRG() )
+  if( pcCU->getSlice()->getSPS()->getUseMRG() )
   {
     return;
   }
@@ -824,13 +828,15 @@ Void TDecSbac::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartId
   eTType = eTType == TEXT_LUMA ? TEXT_LUMA : ( eTType == TEXT_NONE ? TEXT_NONE : TEXT_CHROMA );
 
   //----- parse significance map -----
-  const UInt  uiMaxNumCoeff     = uiWidth*uiHeight;
-  const UInt  uiMaxNumCoeffM1   = uiMaxNumCoeff - 1;
   const UInt  uiLog2BlockSize   = g_aucConvertToBit[ uiWidth ] + 2;
+  const UInt  uiMaxNumCoeff     = 1 << ( uiLog2BlockSize << 1 );
+  const UInt  uiMaxNumCoeffM1   = uiMaxNumCoeff - 1;
+  const UInt  uiNum4x4Blk       = max<UInt>( 1, uiMaxNumCoeff >> 4 );
   UInt        uiDownLeft        = 1;
   UInt        uiNumSigTopRight  = 0;
   UInt        uiNumSigBotLeft   = 0;
   bool        bLastReceived     = false;
+
   for( UInt uiScanPos = 0; uiScanPos < uiMaxNumCoeffM1; uiScanPos++ )
   {
     UInt  uiBlkPos  = g_auiSigLastScan[ uiLog2BlockSize ][ uiDownLeft ][ uiScanPos ];
@@ -840,7 +846,7 @@ Void TDecSbac::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartId
     //===== code significance flag =====
     UInt  uiSig     = 0;
     UInt  uiCtxSig  = TComTrQuant::getSigCtxInc( pcCoef, uiPosX, uiPosY, uiLog2BlockSize, uiWidth, ( uiDownLeft > 0 ) );
-    m_pcTDecBinIf->decodeBin( uiSig, m_cCuCtxModSig.get( uiCTXIdx, eTType, uiCtxSig ) );
+    m_pcTDecBinIf->decodeBin( uiSig, m_cCUSigSCModel.get( uiCTXIdx, eTType, uiCtxSig ) );
 
     if( uiSig )
     {
@@ -858,7 +864,7 @@ Void TDecSbac::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartId
       //===== code last flag =====
       UInt  uiLast     = 0;
       UInt  uiCtxLast  = TComTrQuant::getLastCtxInc( uiPosX, uiPosY, uiLog2BlockSize );
-      m_pcTDecBinIf->decodeBin( uiLast, m_cCuCtxModLast.get( uiCTXIdx, eTType, uiCtxLast ) );
+      m_pcTDecBinIf->decodeBin( uiLast, m_cCULastSCModel.get( uiCTXIdx, eTType, uiCtxLast ) );
 
       if( uiLast )
       {
@@ -894,40 +900,37 @@ Void TDecSbac::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartId
   Int  c1, c2;
   UInt uiSign;
   UInt uiLevel;
-  UInt uiPrevAbsGreOne     = 0;
-  const UInt uiNumOfSets   = 4;
-  const UInt uiNum4x4Blk   = max<UInt>( 1, uiMaxNumCoeff / 16 );
 
-  if ( uiLog2BlockSize > 2 )
+  if( uiNum4x4Blk > 1 )
   {
-    Bool bFirstBlock = true;
+    Bool b1stBlk  = true;
+    UInt uiNumOne = 0;
 
-    for ( UInt uiSubBlk = 0; uiSubBlk < uiNum4x4Blk; uiSubBlk++ )
+    for( UInt uiSubBlk = 0; uiSubBlk < uiNum4x4Blk; uiSubBlk++ )
     {
       UInt uiCtxSet    = 0;
       UInt uiSubNumSig = 0;
-      UInt uiSubLog2   = uiLog2BlockSize - 2;
       UInt uiSubPosX   = 0;
       UInt uiSubPosY   = 0;
 
-      if ( uiSubLog2 > 1 )
+      if( g_aucConvertToBit[ uiWidth ] > 1 )
       {
-        uiSubPosX = g_auiFrameScanX[ uiSubLog2 - 1 ][ uiSubBlk ] * 4;
-        uiSubPosY = g_auiFrameScanY[ uiSubLog2 - 1 ][ uiSubBlk ] * 4;
+        uiSubPosX = g_auiFrameScanX[ g_aucConvertToBit[ uiWidth ] - 1 ][ uiSubBlk ] << 2;
+        uiSubPosY = g_auiFrameScanY[ g_aucConvertToBit[ uiWidth ] - 1 ][ uiSubBlk ] << 2;
       }
       else
       {
         uiSubPosX = ( uiSubBlk < 2      ) ? 0 : 1;
         uiSubPosY = ( uiSubBlk % 2 == 0 ) ? 0 : 1;
-        uiSubPosX *= 4;
-        uiSubPosY *= 4;
+        uiSubPosX = uiSubPosX << 2;
+        uiSubPosY = uiSubPosY << 2;
       }
 
       TCoeff* piCurr = &pcCoef[ uiSubPosX + uiSubPosY * uiWidth ];
 
-      for ( UInt uiY = 0; uiY < 4; uiY++ )
+      for( UInt uiY = 0; uiY < 4; uiY++ )
       {
-        for ( UInt uiX = 0; uiX < 4; uiX++ )
+        for( UInt uiX = 0; uiX < 4; uiX++ )
         {
           if( piCurr[ uiX ] )
           {
@@ -937,40 +940,38 @@ Void TDecSbac::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartId
         piCurr += uiWidth;
       }
 
-      if ( uiSubNumSig > 0 )
+      if( uiSubNumSig > 0 )
       {
         c1 = 1;
         c2 = 0;
 
-        if ( bFirstBlock )
+        if( b1stBlk )
         {
-          bFirstBlock = false;
-          uiCtxSet = uiNumOfSets + 1;
+          b1stBlk  = false;
+          uiCtxSet = 5;
         }
         else
         {
-          //uiCtxSet = ( ( uiGreOne * uiEqRangeSize ) >> 8 ) + 1;
-          uiCtxSet = uiPrevAbsGreOne / uiNumOfSets + 1;
-          uiPrevAbsGreOne = 0;
+          uiCtxSet = ( uiNumOne >> 2 ) + 1;
+          uiNumOne = 0;
         }
 
-		// Decode level Bin0 plane
-        for ( UInt uiScanPos = 0; uiScanPos < 16; uiScanPos++ )
+        for( UInt uiScanPos = 0; uiScanPos < 16; uiScanPos++ )
         {
           UInt  uiBlkPos  = g_auiFrameScanXY[ 1 ][ 15 - uiScanPos ];
           UInt  uiPosY    = uiBlkPos >> 2;
           UInt  uiPosX    = uiBlkPos - ( uiPosY << 2 );
-          UInt  uiIndex   = (uiSubPosY + uiPosY) * uiWidth + uiSubPosX + uiPosX;
+          UInt  uiIndex   = ( ( uiSubPosY + uiPosY ) << uiLog2BlockSize ) + uiSubPosX + uiPosX;
 
           uiLevel = pcCoef[ uiIndex ];
 
           if( uiLevel )
           {
             UInt uiCtx = min<UInt>(c1, 4);
-            m_pcTDecBinIf->decodeBin( uiLevel, m_cCuCtxModAbsGreOne.get( 0, eTType, (uiCtxSet * 5) + uiCtx ) );
+            m_pcTDecBinIf->decodeBin( uiLevel, m_cCUOneSCModel.get( 0, eTType, ( uiCtxSet << 2 ) + uiCtxSet + uiCtx ) );
             if( uiLevel == 1 )
             {
-              c1    = 0;
+              c1      = 0;
               uiLevel = 2;
             }
             else if( c1 )
@@ -986,13 +987,12 @@ Void TDecSbac::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartId
           }
         }
 
-		// Decode other bins of level 
-        for ( UInt uiScanPos = 0; uiScanPos < 16; uiScanPos++ )
+        for( UInt uiScanPos = 0; uiScanPos < 16; uiScanPos++ )
         {
           UInt  uiBlkPos  = g_auiFrameScanXY[ 1 ][ 15 - uiScanPos ];
           UInt  uiPosY    = uiBlkPos >> 2;
           UInt  uiPosX    = uiBlkPos - ( uiPosY << 2 );
-          UInt  uiIndex   = (uiSubPosY + uiPosY) * uiWidth + uiSubPosX + uiPosX;
+          UInt  uiIndex   = ( ( uiSubPosY + uiPosY ) << uiLog2BlockSize ) + uiSubPosX + uiPosX;
 
           uiLevel = pcCoef[ uiIndex ];
 
@@ -1002,16 +1002,15 @@ Void TDecSbac::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartId
             {
               UInt uiCtx = min<UInt>(c2, 4);
               c2++;
-              uiPrevAbsGreOne++;
-              xReadExGolombLevel( uiLevel, m_cCuCtxModCoeffLevelM1.get( 0, eTType, (uiCtxSet * 5) + uiCtx ) );
+              uiNumOne++;
+              xReadExGolombLevel( uiLevel, m_cCUAbsSCModel.get( 0, eTType, ( uiCtxSet << 2 ) + uiCtxSet + uiCtx ) );
               uiLevel += 2;
             }
             pcCoef[ uiIndex ] = uiLevel;
           }
         }
 
-		// Decode sign plane
-        for ( UInt uiScanPos = 0; uiScanPos < 16; uiScanPos++ )
+        for( UInt uiScanPos = 0; uiScanPos < 16; uiScanPos++ )
         {
           UInt  uiBlkPos  = g_auiFrameScanXY[ 1 ][ 15 - uiScanPos ];
           UInt  uiPosY    = uiBlkPos >> 2;
@@ -1034,19 +1033,18 @@ Void TDecSbac::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartId
     c1 = 1;
     c2 = 0;
 
-    // Decode level Bin0 plane
-    for ( UInt uiScanPos = 0; uiScanPos < uiWidth*uiHeight; uiScanPos++ )
+    for( UInt uiScanPos = 0; uiScanPos < 16; uiScanPos++ )
     {
-      UInt uiIndex = g_auiFrameScanXY[ (int)g_aucConvertToBit[ uiWidth ] + 1 ][ uiWidth*uiHeight - uiScanPos - 1 ];
+      UInt uiIndex = g_auiFrameScanXY[ 1 ][ 15 - uiScanPos ];
       uiLevel = pcCoef[ uiIndex ];
 
       if( uiLevel )
       {
         UInt uiCtx = min<UInt>(c1, 4);
-        m_pcTDecBinIf->decodeBin( uiLevel, m_cCuCtxModAbsGreOne.get( 0, eTType, uiCtx ) );
+        m_pcTDecBinIf->decodeBin( uiLevel, m_cCUOneSCModel.get( 0, eTType, uiCtx ) );
         if( uiLevel == 1 )
         {
-          c1    = 0;
+          c1      = 0;
           uiLevel = 2;
         }
         else if( c1 )
@@ -1062,11 +1060,9 @@ Void TDecSbac::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartId
       }
     }
 
-	// Decode other bins of level 
-    for ( UInt uiScanPos = 0; uiScanPos < uiWidth*uiHeight; uiScanPos++ )
+    for( UInt uiScanPos = 0; uiScanPos < 16; uiScanPos++ )
     {
-      UInt uiIndex = g_auiFrameScanXY[ (int)g_aucConvertToBit[ uiWidth ] + 1 ][ uiWidth*uiHeight - uiScanPos - 1 ];
-
+      UInt uiIndex = g_auiFrameScanXY[ 1 ][ 15 - uiScanPos ];
       uiLevel = pcCoef[ uiIndex ];
 
       if( uiLevel )
@@ -1075,17 +1071,16 @@ Void TDecSbac::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartId
         {
           UInt uiCtx = min<UInt>(c2, 4);
           c2++;
-          xReadExGolombLevel( uiLevel, m_cCuCtxModCoeffLevelM1.get( 0, eTType, uiCtx ) );
+          xReadExGolombLevel( uiLevel, m_cCUAbsSCModel.get( 0, eTType, uiCtx ) );
           uiLevel += 2;
         }
         pcCoef[ uiIndex ] = uiLevel;
       }
     }
 
-	// Decode sign plane
-    for ( UInt uiScanPos = 0; uiScanPos < uiWidth*uiHeight; uiScanPos++ )
+    for( UInt uiScanPos = 0; uiScanPos < 16; uiScanPos++ )
     {
-      UInt uiIndex = g_auiFrameScanXY[ (int)g_aucConvertToBit[ uiWidth ] + 1 ][ uiWidth*uiHeight - uiScanPos - 1 ];
+      UInt uiIndex = g_auiFrameScanXY[ 1 ][ 15 - uiScanPos ];
       uiLevel = pcCoef[ uiIndex ];
 
       if( uiLevel )
@@ -1200,4 +1195,3 @@ Void TDecSbac::parseAlfSvlc (Int&  riVal)
 
   riVal = i*iSign;
 }
-

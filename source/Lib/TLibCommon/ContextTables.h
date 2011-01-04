@@ -67,8 +67,8 @@
 
 #define NUM_SIG_FLAG_CTX              16      ///< number of context models for sig flag
 #define NUM_LAST_FLAG_CTX             16      ///< number of context models for last flag
-#define NUM_ABS_GREATER_ONE_CTX       40      ///< number of context models for greater than one
-#define NUM_COEFF_LEVEL_MINUS_ONE_CTX 40      ///< number of context models for magnitude
+#define NUM_ONE_FLAG_CTX              40      ///< number of context models for greater than one
+#define NUM_ABS_FLAG_CTX              40      ///< number of context models for magnitude
 
 #define NUM_MVP_IDX_CTX               2       ///< number of context models for MVP index
 
@@ -712,7 +712,7 @@ INIT_LAST_FLAG[3][224][2] =
 };
 
 static const Short
-INIT_ABS_GREATER_ONE_FLAG[3][80][2] =
+INIT_ONE_FLAG[3][80][2] =
 {
   {
     {  -11,   87 }, {  -20,   64 }, {  -16,   68 }, {  -13,   71 }, 
@@ -783,7 +783,7 @@ INIT_ABS_GREATER_ONE_FLAG[3][80][2] =
 };
 
 static const Short
-INIT_COEFF_LEVEL_MINUS_ONE_FLAG[3][80][2] =
+INIT_ABS_FLAG[3][80][2] =
 {
   {
     {  -12,   72 }, {  -10,   79 }, {  -11,   87 }, {  -14,   94 }, 

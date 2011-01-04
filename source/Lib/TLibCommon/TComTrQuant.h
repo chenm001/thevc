@@ -68,7 +68,6 @@ typedef struct
   Int significantBits[16][2];
   Int lastBits[16][2];
   Int greaterOneBits[6][2][5][2];
-  Int greaterOneState[5];
   Int blockCbpBits[4][2];
   Int scanZigzag[2];            ///< flag for zigzag scan
   Int scanNonZigzag[2];         ///< flag for non zigzag scan
@@ -222,13 +221,13 @@ private:
                                         UInt                            uiAbsPartIdx );
 
   Void           xRateDistOptQuant ( TComDataCU*                     pcCU,
-                                    Long*                           plSrcCoeff,
-                                    TCoeff*&                        piDstCoeff,
-                                    UInt                            uiWidth,
-                                    UInt                            uiHeight,
-                                    UInt&                           uiAbsSum,
-                                    TextType                        eTType,
-                                    UInt                            uiAbsPartIdx );
+                                     Long*                           plSrcCoeff,
+                                     TCoeff*&                        piDstCoeff,
+                                     UInt                            uiWidth,
+                                     UInt                            uiHeight,
+                                     UInt&                           uiAbsSum,
+                                     TextType                        eTType,
+                                     UInt                            uiAbsPartIdx );
   
   __inline UInt  xGetCodedLevel    ( Double&                         rd64UncodedCost,
                                      Double&                         rd64CodedCost,

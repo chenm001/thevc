@@ -2975,99 +2975,85 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
                                                       TextType                        eTType,
                                                       UInt                            uiAbsPartIdx )
 {
-  UInt uiCTXIdx;
+  Bool   bExt8x8Flag = false;
+  Bool   b64Flag     = false;
+  Int    iQuantCoeff = 0;
+  Int    iQpRem      = m_cQP.m_iRem;
+  Int    iQBits      = m_cQP.m_iBits;
+  Double dNormFactor = 0;
+  Double dTemp       = 0;
 
-  switch(uiWidth)
+  if( uiWidth == 4 && uiHeight == 4 )
   {
-    case  2: uiCTXIdx = 6; break;
-    case  4: uiCTXIdx = 5; break;
-    case  8: uiCTXIdx = 4; break;
-    case 16: uiCTXIdx = 3; break;
-    case 32: uiCTXIdx = 2; break;
-    case 64: uiCTXIdx = 1; break;
-    default: uiCTXIdx = 0; break;
+    dNormFactor = pow( 2., ( 2 * DQ_BITS + 19 ) );
+    if( g_uiBitIncrement )
+    {
+      dNormFactor *=  1 << ( 2 * g_uiBitIncrement );
+    }
+    m_puiQuantMtx = &g_aiQuantCoef[ m_cQP.m_iRem ][ 0 ];
   }
-
-  Int    iQuantCoeff;
-  Double dTemp;
-  Double dNormFactor = 0.0;
-
-  dTemp = 0;
-  iQuantCoeff = 0;
-  Bool bExt8x8Flag = false;
-  Bool b64Flag     = false;
-  Int  iQpRem      = m_cQP.m_iRem;
-  Int  iQBits      = m_cQP.m_iBits;
-
-  if ( uiWidth == 4 && uiHeight == 4 )
-  {
-    dNormFactor = pow(2., (2*DQ_BITS+19));
-    if ( g_uiBitIncrement ) dNormFactor *= 1<<(2*g_uiBitIncrement);
-    m_puiQuantMtx = &g_aiQuantCoef  [m_cQP.m_iRem][0];
-  }
-  else if ( uiWidth == 8 && uiHeight == 8 )
+  else if( uiWidth == 8 && uiHeight == 8 )
   {
     iQBits++;
-    dNormFactor = pow(2., (2*Q_BITS_8+9));
-    if ( g_uiBitIncrement ) dNormFactor *= 1<<(2*g_uiBitIncrement);
-    m_puiQuantMtx = &g_aiQuantCoef64[m_cQP.m_iRem][0];
+    dNormFactor = pow( 2., ( 2 * Q_BITS_8 + 9 ) );
+    if( g_uiBitIncrement )
+    {
+      dNormFactor *= 1 << ( 2 * g_uiBitIncrement );
+    }
+    m_puiQuantMtx = &g_aiQuantCoef64[ m_cQP.m_iRem ][ 0 ];
   }
-  else if ( uiWidth == 16 && uiHeight == 16 )
+  else if( uiWidth == 16 && uiHeight == 16 )
   {
     iQBits = ECore16Shift + m_cQP.per();
-    dNormFactor = pow(2., 21);
-    if ( g_uiBitIncrement ) dNormFactor *= 1<<(2*g_uiBitIncrement);
-    dTemp = estErr16x16[iQpRem]/dNormFactor;
-
-    m_puiQuantMtx = ( &g_aiQuantCoef256[m_cQP.m_iRem][0] );
+    dNormFactor = pow( 2., 21 );
+    if( g_uiBitIncrement )
+    {
+      dNormFactor *=  1 << ( 2 * g_uiBitIncrement );
+    }
+    dTemp = estErr16x16[ iQpRem ] / dNormFactor;
+    m_puiQuantMtx = ( &g_aiQuantCoef256[ m_cQP.m_iRem ][ 0 ] );
     bExt8x8Flag = true;
   }
   else if ( uiWidth == 32 && uiHeight == 32 )
   {
     iQBits = ECore32Shift + m_cQP.per();
-    dNormFactor = pow(2., 21);
-    if ( g_uiBitIncrement ) dNormFactor *= 1<<(2*g_uiBitIncrement);
-    dTemp = estErr32x32[iQpRem]/dNormFactor;
-
-    m_puiQuantMtx = ( &g_aiQuantCoef1024[m_cQP.m_iRem][0] );
+    dNormFactor = pow( 2., 21 );
+    if( g_uiBitIncrement )
+    {
+      dNormFactor *= 1 << ( 2 * g_uiBitIncrement );
+    }
+    dTemp = estErr32x32[ iQpRem ] / dNormFactor;
+    m_puiQuantMtx = ( &g_aiQuantCoef1024[ m_cQP.m_iRem ][ 0 ] );
     bExt8x8Flag = true;
   }
   else
   {
-    assert(0);
+    assert( 0 );
   }
 
-  UInt    uiLog2BlkSize       = g_aucConvertToBit[ uiWidth ] + 2;
-  UInt    uiBlkSizeM1         = ( 1 << uiLog2BlkSize ) - 1;
-  UInt    uiMaxNumCoeff       = 1 << ( uiLog2BlkSize << 1 );
-  UInt    uiDownLeft          = 1;
-  UInt    uiNumSigTopRight    = 0;
-  UInt    uiNumSigBotLeft     = 0;
-  UInt    uiMaxLineNum        = 0;
-  Bool    bSubBlockCoding     = ( uiLog2BlkSize > 2 );
-  Double  d64BlockUncodedCost = 0;
+  UInt       uiDownLeft          = 1;
+  UInt       uiNumSigTopRight    = 0;
+  UInt       uiNumSigBotLeft     = 0;
+  UInt       uiMaxLineNum        = 0;
+  Double     d64BlockUncodedCost = 0;
+  const UInt uiLog2BlkSize       = g_aucConvertToBit[ uiWidth ] + 2;
+  const UInt uiBlkSizeM1         = ( 1 << uiLog2BlkSize ) - 1;
+  const UInt uiMaxNumCoeff       = 1 << ( uiLog2BlkSize << 1 );
+  const UInt uiNum4x4Blk         = max<UInt>( 1, uiMaxNumCoeff >> 4 );
 
-  // Allocation on stack to avoid recurring memory allocation/deallocation on heap
-  Int piCoeff[MAX_CU_SIZE * MAX_CU_SIZE];
-  Long plLevelDouble[MAX_CU_SIZE * MAX_CU_SIZE];
-  UInt puiCtxAbsGreOne[MAX_CU_SIZE * MAX_CU_SIZE];
-  UInt puiCtxCoeffLevelM1[MAX_CU_SIZE * MAX_CU_SIZE];
-  UInt puiBaseCtx[MAX_CU_SIZE * MAX_CU_SIZE / 16];
+  Int  piCoeff      [ MAX_CU_SIZE * MAX_CU_SIZE ];
+  Long plLevelDouble[ MAX_CU_SIZE * MAX_CU_SIZE ];
+  UInt puiOneCtx    [ MAX_CU_SIZE * MAX_CU_SIZE ];
+  UInt puiAbsCtx    [ MAX_CU_SIZE * MAX_CU_SIZE ];
+  UInt puiBaseCtx   [ ( MAX_CU_SIZE * MAX_CU_SIZE ) >> 4 ];
   
-//  Int*  piCoeff            = new Int [ uiMaxNumCoeff      ];
-//  Long* plLevelDouble      = new Long[ uiMaxNumCoeff      ];
-//  UInt* puiCtxAbsGreOne    = new UInt[ uiMaxNumCoeff      ];
-//  UInt* puiCtxCoeffLevelM1 = new UInt[ uiMaxNumCoeff      ];
-//  UInt* puiBaseCtx         = new UInt[ uiMaxNumCoeff / 16 ];
-  const UInt uiNumOfSets   = 4;
-  const UInt uiNum4x4Blk   = max<UInt>( 1, uiMaxNumCoeff / 16 );
 
-  ::memset( piDstCoeff,         0, sizeof(TCoeff) * uiMaxNumCoeff      );
-  ::memset( piCoeff,            0, sizeof(Int)    * uiMaxNumCoeff      );
-  ::memset( plLevelDouble,      0, sizeof(Long)   * uiMaxNumCoeff      );
-  ::memset( puiCtxAbsGreOne,    0, sizeof(UInt)   * uiMaxNumCoeff      );
-  ::memset( puiCtxCoeffLevelM1, 0, sizeof(UInt)   * uiMaxNumCoeff      );
-  ::memset( puiBaseCtx,         0, sizeof(UInt)   * uiMaxNumCoeff / 16 );
+  ::memset( piDstCoeff,    0, sizeof(TCoeff) *   uiMaxNumCoeff        );
+  ::memset( piCoeff,       0, sizeof(Int)    *   uiMaxNumCoeff        );
+  ::memset( plLevelDouble, 0, sizeof(Long)   *   uiMaxNumCoeff        );
+  ::memset( puiOneCtx,     0, sizeof(UInt)   *   uiMaxNumCoeff        );
+  ::memset( puiAbsCtx,     0, sizeof(UInt)   *   uiMaxNumCoeff        );
+  ::memset( puiBaseCtx,    0, sizeof(UInt)   * ( uiMaxNumCoeff >> 4 ) );
 
   //===== quantization =====
   for( UInt uiScanPos = 0; uiScanPos < uiMaxNumCoeff; uiScanPos++ )
@@ -3080,13 +3066,13 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
     if      ( uiWidth == 4 ) dTemp = estErr4x4[ iQpRem ][ uiPosX ][ uiPosY ] / dNormFactor;
     else if ( uiWidth == 8 ) dTemp = estErr8x8[ iQpRem ][ uiPosX ][ uiPosY ] / dNormFactor;
 
-    lLevelDouble = abs( lLevelDouble * (Long)( b64Flag ? iQuantCoeff : m_puiQuantMtx[ uiBlkPos ] ) );
+    lLevelDouble = abs( lLevelDouble * ( Long )( b64Flag ? iQuantCoeff : m_puiQuantMtx[ uiBlkPos ] ) );
 
     plLevelDouble[ uiBlkPos ] = lLevelDouble;
     UInt uiMaxAbsLevel = lLevelDouble >> iQBits;
-    Bool bLowerInt = ( ( lLevelDouble - Long( uiMaxAbsLevel << iQBits ) ) < Long( 1 <<( iQBits - 1 ) ) ) ? true : false;
+    Bool bLowerInt     = ( ( lLevelDouble - Long( uiMaxAbsLevel << iQBits ) ) < Long( 1 << ( iQBits - 1 ) ) ) ? true : false;
 
-    if ( !bLowerInt )
+    if( !bLowerInt )
     {
       uiMaxAbsLevel++;
     }
@@ -3094,12 +3080,13 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
     Double dErr          = Double( lLevelDouble );
     d64BlockUncodedCost += dErr * dErr * dTemp;
 
-    piCoeff[ uiBlkPos ] = plSrcCoeff[ uiBlkPos ] > 0 ? uiMaxAbsLevel : -Int(uiMaxAbsLevel);
+    piCoeff[ uiBlkPos ] = plSrcCoeff[ uiBlkPos ] > 0 ? uiMaxAbsLevel : -Int( uiMaxAbsLevel );
 
     if ( uiMaxAbsLevel > 0 )
     {
-      UInt  uiLineNum = uiPosY + uiPosX;
-      if(   uiLineNum > uiMaxLineNum )
+      UInt uiLineNum = uiPosY + uiPosX;
+
+      if( uiLineNum > uiMaxLineNum )
       {
         uiMaxLineNum = uiLineNum;
       }
@@ -3133,37 +3120,36 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
   }
 
   //===== estimate context models =====
-  if ( bSubBlockCoding )
+  if ( uiNum4x4Blk > 1 )
   {
-    Bool bFirstBlock = true;
-    UInt uiPrevAbsGreOne = 0;
+    Bool bFirstBlock  = true;
+    UInt uiNumOne = 0;
 
-    for ( UInt uiSubBlk = 0; uiSubBlk < uiNum4x4Blk; uiSubBlk++ )
+    for( UInt uiSubBlk = 0; uiSubBlk < uiNum4x4Blk; uiSubBlk++ )
     {
       UInt uiCtxSet    = 0;
       UInt uiSubNumSig = 0;
-      UInt uiSubLog2M2 = uiLog2BlkSize - 2;
       UInt uiSubPosX   = 0;
       UInt uiSubPosY   = 0;
 
-      if ( uiSubLog2M2 > 1 )
+      if( g_aucConvertToBit[ uiWidth ] > 1 )
       {
-        uiSubPosX = g_auiFrameScanX[ uiSubLog2M2 - 1 ][ uiSubBlk ] * 4;
-        uiSubPosY = g_auiFrameScanY[ uiSubLog2M2 - 1 ][ uiSubBlk ] * 4;
+        uiSubPosX = g_auiFrameScanX[ g_aucConvertToBit[ uiWidth ] - 1 ][ uiSubBlk ] << 2;
+        uiSubPosY = g_auiFrameScanY[ g_aucConvertToBit[ uiWidth ] - 1 ][ uiSubBlk ] << 2;
       }
       else
       {
         uiSubPosX = ( uiSubBlk < 2      ) ? 0 : 1;
         uiSubPosY = ( uiSubBlk % 2 == 0 ) ? 0 : 1;
-        uiSubPosX *= 4;
-        uiSubPosY *= 4;
+        uiSubPosX = uiSubPosX << 2;
+        uiSubPosY = uiSubPosY << 2;
       }
 
       Int* piCurr = &piCoeff[ uiSubPosX + uiSubPosY * uiWidth ];
 
-      for ( UInt uiY = 0; uiY < 4; uiY++ )
+      for( UInt uiY = 0; uiY < 4; uiY++ )
       {
-        for ( UInt uiX = 0; uiX < 4; uiX++ )
+        for( UInt uiX = 0; uiX < 4; uiX++ )
         {
           if( piCurr[ uiX ] )
           {
@@ -3173,51 +3159,47 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
         piCurr += uiWidth;
       }
 
-      if ( uiSubNumSig > 0 )
+      if( uiSubNumSig > 0 )
       {
         Int c1 = 1;
         Int c2 = 0;
         UInt uiAbs  = 0;
         UInt uiSign = 0;
 
-        if ( bFirstBlock )
+        if( bFirstBlock )
         {
           bFirstBlock = false;
-          uiCtxSet = uiNumOfSets + 1;
+          uiCtxSet = 5;
         }
         else
         {
-          uiCtxSet = uiPrevAbsGreOne / uiNumOfSets + 1;
-          uiPrevAbsGreOne = 0;
+          uiCtxSet = ( uiNumOne >> 2 ) + 1;
+          uiNumOne = 0;
         }
 
-        puiBaseCtx[ uiSubPosX / 4 + uiSubPosY / 4 * uiWidth / 4 ] = uiCtxSet;
+        puiBaseCtx[ ( uiSubPosX >> 2 ) + ( uiSubPosY >> 2 ) * ( uiWidth >> 2 ) ] = uiCtxSet;
 
-        for ( UInt uiScanPos = 0; uiScanPos < 16; uiScanPos++ )
+        for( UInt uiScanPos = 0; uiScanPos < 16; uiScanPos++ )
         {
           UInt  uiBlkPos  = g_auiFrameScanXY[ 1 ][ 15 - uiScanPos ];
           UInt  uiPosY    = uiBlkPos >> 2;
           UInt  uiPosX    = uiBlkPos - ( uiPosY << 2 );
           UInt  uiIndex   = (uiSubPosY + uiPosY) * uiWidth + uiSubPosX + uiPosX;
 
-          puiCtxAbsGreOne   [ uiIndex ] = min<UInt>(c1, 4);
-          puiCtxCoeffLevelM1[ uiIndex ] = min<UInt>(c2, 4);
+          puiOneCtx[ uiIndex ] = min<UInt>( c1, 4 );
+          puiAbsCtx[ uiIndex ] = min<UInt>( c2, 4 );
 
           if( piCoeff[ uiIndex ]  )
           {
-            if( piCoeff[ uiIndex ] > 0) { uiAbs = static_cast<UInt>( piCoeff[ uiIndex ]);  uiSign = 0; }
-            else                        { uiAbs = static_cast<UInt>(-piCoeff[ uiIndex ]);  uiSign = 1; }
+            if( piCoeff[ uiIndex ] > 0) { uiAbs = static_cast<UInt>(  piCoeff[ uiIndex ] );  uiSign = 0; }
+            else                        { uiAbs = static_cast<UInt>( -piCoeff[ uiIndex ] );  uiSign = 1; }
 
-            UInt uiCtx    = min<UInt>(c1, 4);
             UInt uiSymbol = uiAbs > 1 ? 1 : 0;
 
             if( uiSymbol )
             {
-              uiCtx  = min<UInt>(c2, 4);
-              uiAbs -= 2;
-              c1     = 0;
-              c2++;
-              uiPrevAbsGreOne++;
+              c1 = 0; c2++;
+              uiNumOne++;
             }
             else if( c1 )
             {
@@ -3237,25 +3219,21 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
 
     for ( UInt uiScanPos = 0; uiScanPos < uiWidth*uiHeight; uiScanPos++ )
     {
-      UInt uiIndex = g_auiFrameScanXY[ (int)g_aucConvertToBit[ uiWidth ] + 1 ][ uiWidth*uiHeight - uiScanPos - 1 ];
+      UInt uiIndex = g_auiFrameScanXY[ (int)g_aucConvertToBit[ uiWidth ] + 1 ][ uiWidth * uiHeight - uiScanPos - 1 ];
 
-      puiCtxAbsGreOne   [ uiIndex ] = min<UInt>(c1, 4);
-      puiCtxCoeffLevelM1[ uiIndex ] = min<UInt>(c2, 4);
+      puiOneCtx[ uiIndex ] = min<UInt>( c1, 4 );
+      puiAbsCtx[ uiIndex ] = min<UInt>( c2, 4 );
 
       if( piCoeff[ uiIndex ]  )
       {
-        if( piCoeff[ uiIndex ] > 0) { uiAbs = static_cast<UInt>( piCoeff[ uiIndex ]);  uiSign = 0; }
-        else                        { uiAbs = static_cast<UInt>(-piCoeff[ uiIndex ]);  uiSign = 1; }
+        if( piCoeff[ uiIndex ] > 0) { uiAbs = static_cast<UInt>(  piCoeff[ uiIndex ] );  uiSign = 0; }
+        else                        { uiAbs = static_cast<UInt>( -piCoeff[ uiIndex ] );  uiSign = 1; }
 
-        UInt uiCtx    = min<UInt>(c1, 4);
         UInt uiSymbol = uiAbs > 1 ? 1 : 0;
 
         if( uiSymbol )
         {
-          uiCtx  = min<UInt>(c2, 4);
-          uiAbs -= 2;
-          c1     = 0;
-          c2++;
+          c1 = 0; c2++;
         }
         else if( c1 )
         {
@@ -3269,7 +3247,7 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
   uiNumSigTopRight  = 0;
   uiNumSigBotLeft   = 0;
 
-  Int     ui16CtxCbf        = pcCU->getCtxCbf( uiAbsPartIdx, eTType, pcCU->getTransformIdx(0) );
+  Int     ui16CtxCbf        = pcCU->getCtxCbf( uiAbsPartIdx, eTType, pcCU->getTransformIdx( 0 ) );
   Double  dCBPCost          = xGetICost( m_pcEstBitsSbac->blockCbpBits[ 3 - ui16CtxCbf ][ 0 ] ) + xGetICost( m_pcEstBitsSbac->blockCbpBits[ 3 - ui16CtxCbf ][ 1 ] );
   UInt    uiBestLastIdxP1   = 0;
   Double  d64BestCost       = d64BlockUncodedCost + xGetICost( dCBPCost );
@@ -3282,21 +3260,19 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
     UInt   uiBlkPos     = g_auiSigLastScan[ uiLog2BlkSize ][ uiDownLeft ][ uiScanPos ];
     UInt   uiPosY       = uiBlkPos >> uiLog2BlkSize;
     UInt   uiPosX       = uiBlkPos - ( uiPosY << uiLog2BlkSize );
-    UInt   uiCtxBase    = bSubBlockCoding ? puiBaseCtx[ ( uiPosX / 4 ) + ( uiPosY / 4 ) * ( uiWidth / 4 ) ] : 0;
+    UInt   uiCtxBase    = uiNum4x4Blk > 0 ? puiBaseCtx[ ( uiPosX >> 2 ) + ( uiPosY >> 2 ) * ( uiWidth >> 2 ) ] : 0;
 
-
-      if( uiPosY + uiPosX > uiMaxLineNum )
+    if( uiPosY + uiPosX > uiMaxLineNum )
     {
       break;
     }
-    {
+
     if      ( uiWidth == 4 ) dTemp = estErr4x4[ iQpRem ][ uiPosX ][ uiPosY ] / dNormFactor;
     else if ( uiWidth == 8 ) dTemp = estErr8x8[ iQpRem ][ uiPosX ][ uiPosY ] / dNormFactor;
-    }
 
     UShort  uiCtxSig                = getSigCtxInc( piDstCoeff, uiPosX, uiPosY, uiLog2BlkSize, uiWidth, ( uiDownLeft > 0 ) );
     Bool    bLastScanPos            = ( uiScanPos == uiMaxNumCoeff - 1 );
-    UInt    uiLevel                 = xGetCodedLevel( d64UncodedCost, d64CodedCost, plLevelDouble[ uiBlkPos ], abs( piCoeff[ uiBlkPos ] ), bLastScanPos, uiCtxSig, puiCtxAbsGreOne[ uiBlkPos ], puiCtxCoeffLevelM1[ uiBlkPos ], iQBits, dTemp, uiCtxBase );
+    UInt    uiLevel                 = xGetCodedLevel( d64UncodedCost, d64CodedCost, plLevelDouble[ uiBlkPos ], abs( piCoeff[ uiBlkPos ] ), bLastScanPos, uiCtxSig, puiOneCtx[ uiBlkPos ], puiAbsCtx[ uiBlkPos ], iQBits, dTemp, uiCtxBase );
     piDstCoeff[ uiBlkPos ]          = plSrcCoeff[ uiBlkPos ] < 0 ? -Int( uiLevel ) : uiLevel;
     d64BaseCost                    -= d64UncodedCost;
     d64BaseCost                    += d64CodedCost;
@@ -3391,12 +3367,6 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
 #endif
     }
   }
-
-//  delete[] piCoeff;
-//  delete[] plLevelDouble;
-//  delete[] puiCtxAbsGreOne;
-//  delete[] puiCtxCoeffLevelM1;
-//  delete[] puiBaseCtx;
 }
 
 UInt TComTrQuant::getSigCtxInc    ( TCoeff*                         pcCoeff,
@@ -3410,7 +3380,7 @@ UInt TComTrQuant::getSigCtxInc    ( TCoeff*                         pcCoeff,
   UInt  uiSizeM1  = ( 1 << uiLog2BlkSize ) - 1;
   if( uiLog2BlkSize <= 3 )
   {
-    UInt  uiShift = max<UInt>( 0, uiLog2BlkSize - 2 );
+    UInt  uiShift = uiLog2BlkSize > 2 ? uiLog2BlkSize - 2 : 0;
     uiCtxInc      = ( ( uiPosY >> uiShift ) << 2 ) + ( uiPosX >> uiShift );
   }
   else if( uiPosX <= 1 && uiPosY <= 1 )
@@ -3493,17 +3463,14 @@ UInt TComTrQuant::getLastCtxInc   ( const UInt                      uiPosX,
                                     const UInt                      uiPosY,
                                     const UInt                      uiLog2BlkSize )
 {
-  UInt uiCtxInc = 0;
   if( uiLog2BlkSize <= 2 )
   {
-    UInt  uiShift = max<UInt>( 0, uiLog2BlkSize - 2 );
-    uiCtxInc      = ( ( uiPosY >> uiShift ) << 2 ) + ( uiPosX >> uiShift );
+    return ( uiPosY << 2 ) + uiPosX;
   }
   else
   {
-    uiCtxInc      = ( uiPosX + uiPosY ) >> ( uiLog2BlkSize - 3 );
+    return ( uiPosX + uiPosY ) >> ( uiLog2BlkSize - 3 );
   }
-  return uiCtxInc;
 }
 
 __inline UInt TComTrQuant::xGetCodedLevel  ( Double&                         rd64UncodedCost,
@@ -3518,9 +3485,9 @@ __inline UInt TComTrQuant::xGetCodedLevel  ( Double&                         rd6
                                              Double                          dTemp,
                                              UShort                          ui16CtxBase   ) const
 {
-  UInt    uiBestAbsLevel  = 0;
+  UInt   uiBestAbsLevel = 0;
+  Double dErr1          = Double( lLevelDouble );
 
-  Double dErr1     = Double( lLevelDouble );
   rd64UncodedCost = dErr1 * dErr1 * dTemp;
   rd64CodedCost   = rd64UncodedCost + xGetICRateCost( 0, bLastScanPos, ui16CtxNumSig, ui16CtxNumOne, ui16CtxNumAbs, ui16CtxBase );
 
@@ -3550,14 +3517,14 @@ __inline Double TComTrQuant::xGetICRateCost  ( UInt                            u
   if( uiAbsLevel == 0 )
   {
     Double iRate = 0;
-    if( ! bLastScanPos )
+    if( !bLastScanPos )
     {
       iRate += m_pcEstBitsSbac->significantBits[ ui16CtxNumSig ][ 0 ];
     }
     return xGetICost( iRate );
   }
   Double iRate = xGetIEPRate();
-  if( ! bLastScanPos )
+  if( !bLastScanPos )
   {
     iRate += m_pcEstBitsSbac->significantBits[ ui16CtxNumSig ][ 1 ];
   }
