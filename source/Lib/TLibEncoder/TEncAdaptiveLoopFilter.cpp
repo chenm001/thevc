@@ -1865,6 +1865,9 @@ Void TEncAdaptiveLoopFilter::xcodeFiltCoeff(int **filterCoeffSymQuant, int filtN
   
   for(varInd=0; varInd<filters_per_fr_best; varInd++)
   {
+#if BUGFIX118
+    codedVarBins[varInd] = 1;
+#else
     codedVarBins[varInd]=0;
     for(i = 0; i < MAX_SQR_FILT_LENGTH; i++)
 	{
@@ -1874,6 +1877,7 @@ Void TEncAdaptiveLoopFilter::xcodeFiltCoeff(int **filterCoeffSymQuant, int filtN
         break;
       }
     }
+#endif
   }
   memcpy (ALFp->codedVarBins, codedVarBins, sizeof(int)*NO_VAR_BINS);
   forceCoeff0=0;
