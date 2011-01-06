@@ -1857,7 +1857,7 @@ Void TEncAdaptiveLoopFilter::xcalcPredFilterCoeff(int filtNo)
 
 Void TEncAdaptiveLoopFilter::xcodeFiltCoeff(int **filterCoeffSymQuant, int filtNo, int varIndTab[], int filters_per_fr_best, int frNo, ALFParam* ALFp)
 {
-  int varInd, i, forceCoeff0, codedVarBins[NO_VAR_BINS], coeffBits, createBistream,   sqrFiltLength=m_sqrFiltLengthTab[filtNo], 
+  int varInd, forceCoeff0, codedVarBins[NO_VAR_BINS], coeffBits, createBistream,   sqrFiltLength=m_sqrFiltLengthTab[filtNo], 
   fl=m_flTab[filtNo], coded;
   
   ALFp->filters_per_group_diff = filters_per_fr_best;
@@ -1869,6 +1869,7 @@ Void TEncAdaptiveLoopFilter::xcodeFiltCoeff(int **filterCoeffSymQuant, int filtN
     codedVarBins[varInd] = 1;
 #else
     codedVarBins[varInd]=0;
+    int i;
     for(i = 0; i < MAX_SQR_FILT_LENGTH; i++)
 	{
       if (filterCoeffSymQuant[varInd][i] != 0)
