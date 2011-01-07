@@ -48,7 +48,6 @@ using namespace std;
 namespace po = df::program_options_lite;
 
 /* configuration helper funcs */
-void doOldStyleCmdlineLDM(po::Options& opts, const std::string& arg);
 void doOldStyleCmdlineOn(po::Options& opts, const std::string& arg);
 void doOldStyleCmdlineOff(po::Options& opts, const std::string& arg);
 
@@ -150,7 +149,6 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
     ("GPB", m_bUseGPB, false, "generalized B instead of P in low-delay mode")
     ("NRF", m_bUseNRF,  true, "non-reference frame marking in last layer")
     ("BQP", m_bUseBQP, false, "hier-P style QP assignment in low-delay mode")
-    ("-ldm", doOldStyleCmdlineLDM, "recommended low-delay setting (with LDC), (0=slow sequence, 1=fast sequence)")
 
     /* Interpolation filter options */
     ("InterpFilterType,-int", m_iInterpFilterType, (Int)IPF_SAMSUNG_DIF_DEFAULT, "Interpolation Filter:\n"
@@ -522,10 +520,6 @@ Void TAppEncCfg::xPrintUsage()
   printf("              -> QP 32, hierarchical-B GOP 8, 9 frames, 64x64-8x8 CU (~4x4 PU)\n\n");
   printf( "  Example 2) TAppEncoder.exe -c test.cfg -q 32 -g 4 -f 9 -s 64 -h 4 -1 LDC\n");
   printf("              -> QP 32, hierarchical-P GOP 4, 9 frames, 64x64-8x8 CU (~4x4 PU)\n\n");
-  printf( "  Example 3) TAppEncoder.exe -c test.cfg -q 32 -g 1 -f 9 -s 64 -h 4 -1 LDC -ldm 0 -rg 4\n");
-  printf("              -> QP 32, IPPP with hierarchical-P of GOP 4 style QP, 9 frames, 64x64-8x8 CU (~4x4 PU)\n\n");
-  printf( "  Example 4) TAppEncoder.exe -c test.cfg -q 32 -g 1 -f 9 -s 64 -h 4 -1 LDC -ldm 1 -rg 4\n");
-  printf("              -> QP 32, IPPP with hierarchical-B of GOP 4 style QP, 9 frames, 64x64-8x8 CU (~4x4 PU)\n\n");
 }
 
 Bool confirmPara(Bool bflag, const char* message)
@@ -535,24 +529,6 @@ Bool confirmPara(Bool bflag, const char* message)
 
   printf("Error: %s\n",message);
   return true;
-}
-
-/* helper for -ldm */
-void doOldStyleCmdlineLDM(po::Options& opts, const std::string& arg)
-{
-    /* xxx: warn this option is depricated */
-    if (arg == "1") {
-        po::storePair(opts, "BQP", "0");
-        po::storePair(opts, "NRF", "1");
-        return;
-    }
-    if (arg == "0") {
-        po::storePair(opts, "BQP", "1");
-        po::storePair(opts, "NRF", "0");
-        return;
-    }
-    /* invalid parse */
-    cerr << "Invalid argument to -ldm: `" << arg << "'" << endl;
 }
 
 /* helper function */
