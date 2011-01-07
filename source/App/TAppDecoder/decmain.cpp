@@ -47,7 +47,7 @@ int main(int argc, char* argv[])
 
   // print information
   fprintf( stdout, "\n" );
-  fprintf( stdout, "TMuC SW candidate: Decoder Version [%s]", NV_VERSION );
+  fprintf( stdout, "HM software: Decoder Version [%s]", NV_VERSION );
   fprintf( stdout, NVM_ONOS );
   fprintf( stdout, NVM_COMPILEDBY );
   fprintf( stdout, NVM_BITS );
