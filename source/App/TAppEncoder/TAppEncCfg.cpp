@@ -148,7 +148,6 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
     ("HierarchicalCoding",     m_bHierarchicalCoding, true)
     ("LowDelayCoding",         m_bUseLDC,             false, "low-delay mode")
     ("GPB", m_bUseGPB, false, "generalized B instead of P in low-delay mode")
-    ("QBO", m_bUseQBO, false, "skip refers highest quality picture")
     ("NRF", m_bUseNRF,  true, "non-reference frame marking in last layer")
     ("BQP", m_bUseBQP, false, "hier-P style QP assignment in low-delay mode")
     ("-ldm", doOldStyleCmdlineLDM, "recommended low-delay setting (with LDC), (0=slow sequence, 1=fast sequence)")
@@ -487,7 +486,6 @@ Void TAppEncCfg::xPrintParameter()
   printf("LDC:%d ", m_bUseLDC             );
   printf("NRF:%d ", m_bUseNRF             );
   printf("BQP:%d ", m_bUseBQP             );
-  printf("QBO:%d ", m_bUseQBO             );
   printf("GPB:%d ", m_bUseGPB             );
   printf("FEN:%d ", m_bUseFastEnc         );
   printf("RQT:%d ", 1     );
@@ -514,7 +512,6 @@ Void TAppEncCfg::xPrintUsage()
   printf( "                   NRF - non-reference frame marking in last layer\n");
   printf( "                   BQP - hier-P style QP assignment in low-delay mode\n");
   printf( "                   PAD - automatic source padding of multiple of 16\n");
-  printf( "                   QBO - skip refers highest quality picture\n");
   printf( "                   ASR - adaptive motion search range\n");
   printf( "                   FEN - fast encoder setting\n");  
 #if HHI_MRG
@@ -545,13 +542,11 @@ void doOldStyleCmdlineLDM(po::Options& opts, const std::string& arg)
 {
     /* xxx: warn this option is depricated */
     if (arg == "1") {
-        po::storePair(opts, "QBO", "1");
         po::storePair(opts, "BQP", "0");
         po::storePair(opts, "NRF", "1");
         return;
     }
     if (arg == "0") {
-        po::storePair(opts, "QBO", "0");
         po::storePair(opts, "BQP", "1");
         po::storePair(opts, "NRF", "0");
         return;

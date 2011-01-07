@@ -105,7 +105,6 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
   TComPicYuv*     pcPicYuvRecOut;
   TComBitstream*  pcBitstreamOut;
   TComPicYuv      cPicOrg;
-  TComPic*        pcOrgRefList[2][MAX_REF_PIC_NUM];
 //stats
   TComBitstream*  pcOut = new TComBitstream;
   pcOut->create( 500000 );
@@ -192,45 +191,6 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
         }
       }
 
-      // quality-based reference reordering (QBO)
-      if ( !pcSlice->isIntra() && pcSlice->getSPS()->getUseQBO() )
-      {
-        Int iMinIdx = 0, iMinQP, iRefIdx, iCnt;
-        TComPic* pRef;
-
-        // save original reference list & generate new reference list
-        for ( Int iList = 0; iList < 2; iList++ )
-        {
-          iMinQP = pcSlice->getSliceQp();
-
-          Int iNumRefIdx = pcSlice->getNumRefIdx( (RefPicList)iList );
-          for ( iRefIdx = 0; iRefIdx < iNumRefIdx; iRefIdx++ )
-          {
-            pRef = pcSlice->getRefPic( (RefPicList)iList, iRefIdx );
-            pcOrgRefList[ (RefPicList)iList ][ iRefIdx ] = pRef;
-          }
-          for ( iRefIdx = 0; iRefIdx < iNumRefIdx; iRefIdx++ )
-          {
-            pRef = pcSlice->getRefPic( (RefPicList)iList, iRefIdx );
-            if ( pRef->getSlice()->getSliceQp() <= iMinQP )
-            {
-              iMinIdx = iRefIdx;
-              break;
-            }
-          }
-
-          // set highest quality reference to zero index
-          pcSlice->setRefPic( pcOrgRefList[ (RefPicList)iList ][ iMinIdx ], (RefPicList)iList, 0 );
-
-          iCnt = 1;
-          for ( iRefIdx = 0; iRefIdx < iNumRefIdx; iRefIdx++ )
-          {
-            if ( iRefIdx == iMinIdx ) continue;
-            pcSlice->setRefPic( pcOrgRefList[ (RefPicList)iList ][ iRefIdx ], (RefPicList)iList, iCnt++ );
-          }
-        }
-      }
-
       if (pcSlice->getSliceType() == B_SLICE)
       {
         pcSlice->setColDir(uiColDir);
@@ -281,20 +241,6 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
 #endif
       m_pcSliceEncoder->precompressSlice( pcPic );
       m_pcSliceEncoder->compressSlice   ( pcPic );
-
-      // quality-based reference reordering (QBO)
-      if ( !pcSlice->isIntra() && pcSlice->getSPS()->getUseQBO() )
-      {
-        // restore original reference list
-        for ( Int iList = 0; iList < 2; iList++ )
-        {
-          Int iNumRefIdx = pcSlice->getNumRefIdx( (RefPicList)iList );
-          for ( Int iRefIdx = 0; iRefIdx < iNumRefIdx; iRefIdx++ )
-          {
-            pcSlice->setRefPic( pcOrgRefList[ (RefPicList)iList ][ iRefIdx ], (RefPicList)iList, iRefIdx );
-          }
-        }
-      }
 
       //-- Loop filter
       m_pcLoopFilter->setCfg(pcSlice->getLoopFilterDisable(), m_pcCfg->getLoopFilterAlphaC0Offget(), m_pcCfg->getLoopFilterBetaOffget());

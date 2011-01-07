@@ -292,7 +292,6 @@ Void TEncTop::xInitSPS()
   m_cSPS.setUseDQP        ( m_iMaxDeltaQP != 0  );
   m_cSPS.setUseLDC        ( m_bUseLDC           );
   m_cSPS.setUsePAD        ( m_bUsePAD           );
-  m_cSPS.setUseQBO        ( m_bUseQBO           );
 
 #if HHI_MRG
   m_cSPS.setUseMRG        ( m_bUseMRG           ); // SOPH:

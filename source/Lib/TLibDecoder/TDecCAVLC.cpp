@@ -104,7 +104,6 @@ Void TDecCavlc::parseSPS(TComSPS* pcSPS)
   xReadFlag( uiCode ); pcSPS->setUseALF ( uiCode ? true : false );
   xReadFlag( uiCode ); pcSPS->setUseDQP ( uiCode ? true : false );
   xReadFlag( uiCode ); pcSPS->setUseLDC ( uiCode ? true : false );
-  xReadFlag( uiCode ); pcSPS->setUseQBO ( uiCode ? true : false );
 #if HHI_MRG
   xReadFlag( uiCode ); pcSPS->setUseMRG ( uiCode ? true : false ); // SOPH:
 #endif

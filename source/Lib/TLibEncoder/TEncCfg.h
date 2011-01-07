@@ -102,7 +102,6 @@ protected:
   Bool      m_bUseRDOQ;
   Bool      m_bUseLDC;
   Bool      m_bUsePAD;
-  Bool      m_bUseQBO;
   Bool      m_bUseNRF;
   Bool      m_bUseBQP;
   Bool      m_bUseFastEnc;
@@ -217,7 +216,6 @@ public:
   Void      setUseRDOQ                      ( Bool  b )     { m_bUseRDOQ    = b; }
   Void      setUseLDC                       ( Bool  b )     { m_bUseLDC     = b; }
   Void      setUsePAD                       ( Bool  b )     { m_bUsePAD     = b; }
-  Void      setUseQBO                       ( Bool  b )     { m_bUseQBO     = b; }
   Void      setUseNRF                       ( Bool  b )     { m_bUseNRF     = b; }
   Void      setUseBQP                       ( Bool  b )     { m_bUseBQP     = b; }
   Void      setUseFastEnc                   ( Bool  b )     { m_bUseFastEnc = b; }
@@ -237,7 +235,6 @@ public:
   Bool      getUseRDOQ                      ()      { return m_bUseRDOQ;    }
   Bool      getUseLDC                       ()      { return m_bUseLDC;     }
   Bool      getUsePAD                       ()      { return m_bUsePAD;     }
-  Bool      getUseQBO                       ()      { return m_bUseQBO;     }
   Bool      getUseNRF                       ()      { return m_bUseNRF;     }
   Bool      getUseBQP                       ()      { return m_bUseBQP;     }
   Bool      getUseFastEnc                   ()      { return m_bUseFastEnc; }

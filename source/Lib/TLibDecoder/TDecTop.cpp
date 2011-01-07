@@ -159,7 +159,6 @@ Void TDecTop::decode (Bool bEos, TComBitstream* pcBitstream, UInt& ruiPOC, TComL
 {
   rpcListPic = NULL;
   TComPic*    pcPic = NULL;
-  TComPic*    pcOrgRefList[2][MAX_REF_PIC_NUM];
 
   // Initialize entropy decoder
   m_cEntropyDecoder.setEntropyDecoder (&m_cCavlcDecoder);
@@ -261,45 +260,6 @@ Void TDecTop::decode (Bool bEos, TComBitstream* pcBitstream, UInt& ruiPOC, TComL
     }
   }
 
-  // quality-based reference reordering (QBO)
-  if ( !pcSlice->isIntra() && pcSlice->getSPS()->getUseQBO() )
-  {
-    Int iMinIdx = 0, iMinQP, iRefIdx, iCnt;
-    TComPic* pRef;
-
-    // save original reference list & generate new reference list
-    for ( Int iList = 0; iList < 2; iList++ )
-    {
-      iMinQP = pcSlice->getSliceQp();
-
-      Int iNumRefIdx = pcSlice->getNumRefIdx( (RefPicList)iList );
-      for ( iRefIdx = 0; iRefIdx < iNumRefIdx; iRefIdx++ )
-      {
-        pRef = pcSlice->getRefPic( (RefPicList)iList, iRefIdx );
-        pcOrgRefList[ (RefPicList)iList ][ iRefIdx ] = pRef;
-      }
-      for ( iRefIdx = 0; iRefIdx < iNumRefIdx; iRefIdx++ )
-      {
-        pRef = pcSlice->getRefPic( (RefPicList)iList, iRefIdx );
-        if ( pRef->getSlice()->getSliceQp() <= iMinQP )
-        {
-          iMinIdx = iRefIdx;
-          break;
-        }
-      }
-
-      // set highest quality reference to zero index
-      pcSlice->setRefPic( pcOrgRefList[ (RefPicList)iList ][ iMinIdx ], (RefPicList)iList, 0 );
-
-      iCnt = 1;
-      for ( iRefIdx = 0; iRefIdx < iNumRefIdx; iRefIdx++ )
-      {
-        if ( iRefIdx == iMinIdx ) continue;
-        pcSlice->setRefPic( pcOrgRefList[ (RefPicList)iList ][ iRefIdx ], (RefPicList)iList, iCnt++ );
-      }
-    }
-  }
-
   //---------------
   pcSlice->setRefPOCList();
 
@@ -325,20 +285,6 @@ Void TDecTop::decode (Bool bEos, TComBitstream* pcBitstream, UInt& ruiPOC, TComL
 
   //  Decode a picture
   m_cGopDecoder.decompressGop ( bEos, pcBitstream, pcPic );
-
-  // quality-based reference reordering (QBO)
-  if ( !pcSlice->isIntra() && pcSlice->getSPS()->getUseQBO() )
-  {
-    // restore original reference list
-    for ( Int iList = 0; iList < 2; iList++ )
-    {
-      Int iNumRefIdx = pcSlice->getNumRefIdx( (RefPicList)iList );
-      for ( Int iRefIdx = 0; iRefIdx < iNumRefIdx; iRefIdx++ )
-      {
-        pcSlice->setRefPic( pcOrgRefList[ (RefPicList)iList ][ iRefIdx ], (RefPicList)iList, iRefIdx );
-      }
-    }
-  }
 
   pcSlice->sortPicList(m_cListPic);       //  sorting for application output
 
