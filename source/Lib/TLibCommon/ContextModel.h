@@ -54,13 +54,13 @@ class ContextModel
 public:
   ContextModel  ()                        { m_ucState = 0;             }
   ~ContextModel ()                        {}
-
+  
   const UChar getState  ()                { return ( m_ucState >> 1 ); }                    ///< get current state
   const UChar getMps    ()                { return ( m_ucState  & 1 ); }                    ///< get curret MPS
-
+  
   Void        init      ( Int   iQp, 
-                          Short asCtxInit[] );                                              ///< initialize state with initial prob.
- 
+                         Short asCtxInit[] );                                              ///< initialize state with initial prob.
+  
   Void        updateLPS ()
   {
     UChar ucMPS = ( m_ucState > 1    ? m_ucState  & 1 :    1   - ( m_ucState & 1 ) );
@@ -71,7 +71,7 @@ public:
   {
     m_ucState   = ( m_aucNextStateMPS[ m_ucState >> 1 ] << 1 ) + ( m_ucState & 1 );
   }
-
+  
 private:
   UChar         m_ucState;                                                                  ///< internal state variable
   static const  UChar m_aucNextStateMPS[ 64 ];

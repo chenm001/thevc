@@ -54,11 +54,11 @@ private:
   UChar*    m_aapucBS[2][3];              ///< Bs for [Ver/Hor][Y/U/V][Blk_Idx]
   Bool*     m_aapbEdgeFilter[2][3];
   LFCUParam m_stLFCUParam;                  ///< status structure
-
+  
 protected:
   /// CU-level deblocking function
   Void xDeblockCU                 ( TComDataCU* pcCU, UInt uiAbsZorderIdx, UInt uiDepth );
-
+  
   // set / get functions
   Void xSetLoopfilterParam        ( TComDataCU* pcCU, UInt uiAbsZorderIdx );
   // filtering functions
@@ -75,24 +75,24 @@ protected:
       return g_auiRasterToZscan[g_auiZscanToRaster[uiAbsZorderIdx] + iEdgeIdx * uiLCUWidthInBaseUnits + iBaseUnitIdx ];
   }
   Void xSetEdgefilterMultiple( TComDataCU* pcCU, UInt uiAbsZorderIdx, UInt uiDepth, Int iDir, Int iEdgeIdx, Bool bValue );
-
+  
   Void xEdgeFilterLuma            ( TComDataCU* pcCU, UInt uiAbsZorderIdx, UInt uiDepth, Int iDir, Int iEdge );
   Void xEdgeFilterChroma          ( TComDataCU* pcCU, UInt uiAbsZorderIdx, UInt uiDepth, Int iDir, Int iEdge );
-
+  
   __inline Void xPelFilterLuma( Pel* piSrc, Int iOffset, Int d, Int beta, Int tc );
   __inline Void xPelFilterChroma( Pel* piSrc, Int iOffset, Int tc );
   __inline Int xCalcD( Pel* piSrc, Int iOffset);
-
+  
 public:
   TComLoopFilter();
   virtual ~TComLoopFilter();
-
+  
   Void  create                    ( UInt uiMaxCUDepth );
   Void  destroy                   ();
-
+  
   /// set configuration
   Void setCfg( UInt uiDisableDblkIdc, Int iAlphaOffset, Int iBetaOffset );
-
+  
   /// picture-level deblocking filter
   Void loopFilterPic( TComPic* pcPic );
 };

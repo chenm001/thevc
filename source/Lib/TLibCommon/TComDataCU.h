@@ -57,19 +57,19 @@
 class TComDataCU
 {
 private:
-
+  
   // -------------------------------------------------------------------------------------------------------------------
   // class pointers
   // -------------------------------------------------------------------------------------------------------------------
-
+  
   TComPic*      m_pcPic;              ///< picture class pointer
   TComSlice*    m_pcSlice;            ///< slice header pointer
   TComPattern*  m_pcPattern;          ///< neighbour access class pointer
-
+  
   // -------------------------------------------------------------------------------------------------------------------
   // CU description
   // -------------------------------------------------------------------------------------------------------------------
-
+  
   UInt          m_uiCUAddr;           ///< CU address in a slice
   UInt          m_uiAbsIdxInLCU;      ///< absolute address in a CU. It's Z scan order
   UInt          m_uiCUPelX;           ///< CU position in a pixel (X)
@@ -78,11 +78,11 @@ private:
   UChar*        m_puhWidth;           ///< array of widths
   UChar*        m_puhHeight;          ///< array of heights
   UChar*        m_puhDepth;           ///< array of depths
-
+  
   // -------------------------------------------------------------------------------------------------------------------
   // CU data
   // -------------------------------------------------------------------------------------------------------------------
-
+  
   PartSize*     m_pePartSize;         ///< array of partition sizes
   PredMode*     m_pePredMode;         ///< array of prediction modes
   UChar*        m_phQP;               ///< array of QP values
@@ -92,11 +92,11 @@ private:
   TCoeff*       m_pcTrCoeffY;         ///< transformed coefficient buffer (Y)
   TCoeff*       m_pcTrCoeffCb;        ///< transformed coefficient buffer (Cb)
   TCoeff*       m_pcTrCoeffCr;        ///< transformed coefficient buffer (Cr)
-
+  
   // -------------------------------------------------------------------------------------------------------------------
   // neighbour access variables
   // -------------------------------------------------------------------------------------------------------------------
-
+  
   TComDataCU*   m_pcCUAboveLeft;      ///< pointer of above-left CU
   TComDataCU*   m_pcCUAboveRight;     ///< pointer of above-right CU
   TComDataCU*   m_pcCUAbove;          ///< pointer of above CU
@@ -106,11 +106,11 @@ private:
   TComMvField   m_cMvFieldB;          ///< motion vector of position B
   TComMvField   m_cMvFieldC;          ///< motion vector of position C
   TComMv        m_cMvPred;            ///< motion vector predictor
-
+  
   // -------------------------------------------------------------------------------------------------------------------
   // coding tool information
   // -------------------------------------------------------------------------------------------------------------------
-
+  
 #if HHI_MRG
   Bool*         m_pbMergeFlag;        ///< array of merge flags
   UChar*        m_puhMergeIndex;      ///< array of merge candidate indices
@@ -122,59 +122,59 @@ private:
   Int*          m_apiMVPNum[2];       ///< array of number of possible motion vectors predictors
   UInt*         m_puiAlfCtrlFlag;     ///< array of ALF flags
   UInt*         m_puiTmpAlfCtrlFlag;  ///< temporal array of ALF flags
-
+  
   // -------------------------------------------------------------------------------------------------------------------
   // misc. variables
   // -------------------------------------------------------------------------------------------------------------------
-
+  
   Bool          m_bDecSubCu;          ///< indicates decoder-mode
   Double        m_dTotalCost;         ///< sum of partition RD costs
   UInt          m_uiTotalDistortion;  ///< sum of partition distortion
   UInt          m_uiTotalBits;        ///< sum of partition bits
-
+  
 protected:
-
+  
   /// add possible motion vector predictor candidates
   Bool          xAddMVPCand           ( AMVPInfo* pInfo, RefPicList eRefPicList, Int iRefIdx, UInt uiPartUnitIdx, MVP_DIR eDir );
-
+  
   /// remove redundant candidates
   Void          xUniqueMVPCand        ( AMVPInfo* pInfo );
   /// compute required bits to encode MVD (used in AMVP)
   UInt          xGetMvdBits           ( TComMv cMvd );
   UInt          xGetComponentBits     ( Int iVal );
-
+  
   /// compute scaling factor from POC difference
   Int           xGetDistScaleFactor   ( Int iCurrPOC, Int iCurrRefPOC, Int iColPOC, Int iColRefPOC );
-
+  
   /// calculate all CBF's from coefficients
   Void          xCalcCuCbf            ( UChar* puhCbf, UInt uiTrDepth, UInt uiCbfDepth, UInt uiCuDepth );
-
+  
 public:
   TComDataCU();
   virtual ~TComDataCU();
-
+  
   // -------------------------------------------------------------------------------------------------------------------
   // create / destroy / initialize / copy
   // -------------------------------------------------------------------------------------------------------------------
-
+  
   Void          create                ( UInt uiNumPartition, UInt uiWidth, UInt uiHeight, Bool bDecSubCu );
   Void          destroy               ();
-
+  
   Void          initCU                ( TComPic* pcPic, UInt uiCUAddr );
   Void          initEstData           ();
   Void          initSubCU             ( TComDataCU* pcCU, UInt uiPartUnitIdx, UInt uiDepth );
-
+  
   Void          copySubCU             ( TComDataCU* pcCU, UInt uiPartUnitIdx, UInt uiDepth );
   Void          copyInterPredInfoFrom ( TComDataCU* pcCU, UInt uiAbsPartIdx, RefPicList eRefPicList );
   Void          copyPartFrom          ( TComDataCU* pcCU, UInt uiPartUnitIdx, UInt uiDepth );
-
+  
   Void          copyToPic             ( UChar uiDepth );
   Void          copyToPic             ( UChar uiDepth, UInt uiPartIdx, UInt uiPartDepth );
-
+  
   // -------------------------------------------------------------------------------------------------------------------
   // member functions for CU description
   // -------------------------------------------------------------------------------------------------------------------
-
+  
   TComPic*      getPic                ()                        { return m_pcPic;           }
   TComSlice*    getSlice              ()                        { return m_pcSlice;         }
   UInt&         getAddr               ()                        { return m_uiCUAddr;        }
@@ -182,72 +182,72 @@ public:
   UInt          getCUPelX             ()                        { return m_uiCUPelX;        }
   UInt          getCUPelY             ()                        { return m_uiCUPelY;        }
   TComPattern*  getPattern            ()                        { return m_pcPattern;       }
-
+  
   UChar*        getDepth              ()                        { return m_puhDepth;        }
   UChar         getDepth              ( UInt uiIdx )            { return m_puhDepth[uiIdx]; }
   Void          setDepth              ( UInt uiIdx, UChar  uh ) { m_puhDepth[uiIdx] = uh;   }
-
+  
   Void          setDepthSubParts      ( UInt uiDepth, UInt uiAbsPartIdx );
-
+  
   // -------------------------------------------------------------------------------------------------------------------
   // member functions for CU data
   // -------------------------------------------------------------------------------------------------------------------
-
+  
   PartSize*     getPartitionSize      ()                        { return m_pePartSize;        }
   PartSize      getPartitionSize      ( UInt uiIdx )            { return m_pePartSize[uiIdx]; }
   Void          setPartitionSize      ( UInt uiIdx, PartSize uh){ m_pePartSize[uiIdx] = uh;   }
   Void          setPartSizeSubParts   ( PartSize eMode, UInt uiAbsPartIdx, UInt uiDepth );
-
+  
   PredMode*     getPredictionMode     ()                        { return m_pePredMode;        }
   PredMode      getPredictionMode     ( UInt uiIdx )            { return m_pePredMode[uiIdx]; }
   Void          setPredictionMode     ( UInt uiIdx, PredMode uh){ m_pePredMode[uiIdx] = uh;   }
   Void          setPredModeSubParts   ( PredMode eMode, UInt uiAbsPartIdx, UInt uiDepth );
-
+  
   UChar*        getWidth              ()                        { return m_puhWidth;          }
   UChar         getWidth              ( UInt uiIdx )            { return m_puhWidth[uiIdx];   }
   Void          setWidth              ( UInt uiIdx, UChar  uh ) { m_puhWidth[uiIdx] = uh;     }
-
+  
   UChar*        getHeight             ()                        { return m_puhHeight;         }
   UChar         getHeight             ( UInt uiIdx )            { return m_puhHeight[uiIdx];  }
   Void          setHeight             ( UInt uiIdx, UChar  uh ) { m_puhHeight[uiIdx] = uh;    }
-
+  
   Void          setSizeSubParts       ( UInt uiWidth, UInt uiHeight, UInt uiAbsPartIdx, UInt uiDepth );
-
+  
   UChar*        getQP                 ()                        { return m_phQP;              }
   UChar         getQP                 ( UInt uiIdx )            { return m_phQP[uiIdx];       }
   Void          setQP                 ( UInt uiIdx, UChar  uh ) { m_phQP[uiIdx] = uh;         }
   Void          setQPSubParts         ( UInt uiQP,   UInt uiAbsPartIdx, UInt uiDepth );
-
+  
   UChar*        getTransformIdx       ()                        { return m_puhTrIdx;          }
   UChar         getTransformIdx       ( UInt uiIdx )            { return m_puhTrIdx[uiIdx];   }
   Void          setTrIdxSubParts      ( UInt uiTrIdx, UInt uiAbsPartIdx, UInt uiDepth );
-
+  
   UInt          getQuadtreeTULog2MinSizeInCU( UInt uiIdx );
-
+  
 #if HHI_RQT_FORCE_SPLIT_ACC2_PU || HHI_RQT_DISABLE_SUB
   UInt          getQuadtreeTULog2RootSizeInCU( UInt uiIdx );	
 #endif
-
+  
   TComCUMvField* getCUMvField         ( RefPicList e )          { return  &m_acCUMvField[e];  }
-
+  
   TCoeff*&      getCoeffY             ()                        { return m_pcTrCoeffY;        }
   TCoeff*&      getCoeffCb            ()                        { return m_pcTrCoeffCb;       }
   TCoeff*&      getCoeffCr            ()                        { return m_pcTrCoeffCr;       }
-
+  
   UChar         getCbf    ( UInt uiIdx, TextType eType )                  { return m_puhCbf[g_aucConvertTxtTypeToIdx[eType]][uiIdx];  }
   UChar*        getCbf    ( TextType eType )                              { return m_puhCbf[g_aucConvertTxtTypeToIdx[eType]];         }
   UChar         getCbf    ( UInt uiIdx, TextType eType, UInt uiTrDepth )  { return ( ( getCbf( uiIdx, eType ) >> uiTrDepth ) & 0x1 ); }
   Void          setCbf    ( UInt uiIdx, TextType eType, UChar uh )        { m_puhCbf[g_aucConvertTxtTypeToIdx[eType]][uiIdx] = uh;    }
   Void          clearCbf  ( UInt uiIdx, TextType eType, UInt uiNumParts );
   UChar         getQtRootCbf          ( UInt uiIdx )                      { return getCbf( uiIdx, TEXT_LUMA, 0 ) || getCbf( uiIdx, TEXT_CHROMA_U, 0 ) || getCbf( uiIdx, TEXT_CHROMA_V, 0 ); }
-
+  
   Void          setCbfSubParts        ( UInt uiCbfY, UInt uiCbfU, UInt uiCbfV, UInt uiAbsPartIdx, UInt uiDepth          );
   Void          setCbfSubParts        ( UInt uiCbf, TextType eTType, UInt uiAbsPartIdx, UInt uiDepth                    );
-
+  
   // -------------------------------------------------------------------------------------------------------------------
   // member functions for coding tool information
   // -------------------------------------------------------------------------------------------------------------------
-
+  
 #if HHI_MRG
   Bool*         getMergeFlag          ()                        { return m_pbMergeFlag;               }
   Bool          getMergeFlag          ( UInt uiIdx )            { return m_pbMergeFlag[uiIdx];        }
@@ -258,118 +258,118 @@ public:
   Void          setMergeIndex         ( UInt uiIdx, UInt uiMergeIndex ) { m_puhMergeIndex[uiIdx] = uiMergeIndex;  }
   Void          setMergeIndexSubParts ( UInt uiMergeIndex, UInt uiAbsPartIdx, UInt uiDepth );
 #endif
-
+  
   UChar*        getLumaIntraDir       ()                        { return m_puhLumaIntraDir;           }
   UChar         getLumaIntraDir       ( UInt uiIdx )            { return m_puhLumaIntraDir[uiIdx];    }
   Void          setLumaIntraDir       ( UInt uiIdx, UChar  uh ) { m_puhLumaIntraDir[uiIdx] = uh;      }
   Void          setLumaIntraDirSubParts( UInt uiDir,  UInt uiAbsPartIdx, UInt uiDepth );
-
+  
   UChar*        getChromaIntraDir     ()                        { return m_puhChromaIntraDir;         }
   UChar         getChromaIntraDir     ( UInt uiIdx )            { return m_puhChromaIntraDir[uiIdx];  }
   Void          setChromaIntraDir     ( UInt uiIdx, UChar  uh ) { m_puhChromaIntraDir[uiIdx] = uh;    }
   Void          setChromIntraDirSubParts( UInt uiDir,  UInt uiAbsPartIdx, UInt uiDepth );
-
+  
   UChar*        getInterDir           ()                        { return m_puhInterDir;               }
   UChar         getInterDir           ( UInt uiIdx )            { return m_puhInterDir[uiIdx];        }
   Void          setInterDir           ( UInt uiIdx, UChar  uh ) { m_puhInterDir[uiIdx] = uh;          }
   Void          setInterDirSubParts   ( UInt uiDir,  UInt uiAbsPartIdx, UInt uiPartIdx, UInt uiDepth );
-
+  
   UInt*         getAlfCtrlFlag        ()                        { return m_puiAlfCtrlFlag;            }
   UInt          getAlfCtrlFlag        ( UInt uiIdx )            { return m_puiAlfCtrlFlag[uiIdx];     }
   Void          setAlfCtrlFlag        ( UInt uiIdx, UInt uiFlag){ m_puiAlfCtrlFlag[uiIdx] = uiFlag;   }
   Void          setAlfCtrlFlagSubParts( UInt uiFlag, UInt uiAbsPartIdx, UInt uiDepth );
-
+  
   Void          createTmpAlfCtrlFlag  ();
   Void          destroyTmpAlfCtrlFlag ();
   Void          copyAlfCtrlFlagToTmp  ();
   Void          copyAlfCtrlFlagFromTmp();
-
+  
   // -------------------------------------------------------------------------------------------------------------------
   // member functions for accessing partition information
   // -------------------------------------------------------------------------------------------------------------------
-
+  
   Void          getPartIndexAndSize   ( UInt uiPartIdx, UInt& ruiPartAddr, Int& riWidth, Int& riHeight );
   UChar         getNumPartInter       ();
   Bool          isFirstAbsZorderIdxInDepth (UInt uiAbsPartIdx, UInt uiDepth);
-
+  
   // -------------------------------------------------------------------------------------------------------------------
   // member functions for motion vector
   // -------------------------------------------------------------------------------------------------------------------
-
+  
   Void          getMvField            ( TComDataCU* pcCU, UInt uiAbsPartIdx, RefPicList eRefPicList, TComMvField& rcMvField );
   
   AMVP_MODE     getAMVPMode           ( UInt uiIdx );
   Void          fillMvpCand           ( UInt uiPartIdx, UInt uiPartAddr, RefPicList eRefPicList, Int iRefIdx, AMVPInfo* pInfo );
   Bool          clearMVPCand          ( TComMv cMvd, AMVPInfo* pInfo );
   Int           searchMVPIdx          ( TComMv cMv,  AMVPInfo* pInfo );
-
+  
   Void          setMVPIdx             ( RefPicList eRefPicList, UInt uiIdx, Int iMVPIdx)  { m_apiMVPIdx[eRefPicList][uiIdx] = iMVPIdx;  }
   Int           getMVPIdx             ( RefPicList eRefPicList, UInt uiIdx)               { return m_apiMVPIdx[eRefPicList][uiIdx];     }
   Int*          getMVPIdx             ( RefPicList eRefPicList )                          { return m_apiMVPIdx[eRefPicList];            }
-
+  
   Void          setMVPNum             ( RefPicList eRefPicList, UInt uiIdx, Int iMVPNum ) { m_apiMVPNum[eRefPicList][uiIdx] = iMVPNum;  }
   Int           getMVPNum             ( RefPicList eRefPicList, UInt uiIdx )              { return m_apiMVPNum[eRefPicList][uiIdx];     }
   Int*          getMVPNum             ( RefPicList eRefPicList )                          { return m_apiMVPNum[eRefPicList];            }
-
+  
   Void          setMVPIdxSubParts     ( Int iMVPIdx, RefPicList eRefPicList, UInt uiAbsPartIdx, UInt uiPartIdx, UInt uiDepth );
   Void          setMVPNumSubParts     ( Int iMVPNum, RefPicList eRefPicList, UInt uiAbsPartIdx, UInt uiPartIdx, UInt uiDepth );
-
+  
   Void          clipMv                ( TComMv&     rcMv     );
   Void          getMvPredLeft         ( TComMv&     rcMvPred )   { rcMvPred = m_cMvFieldA.getMv(); }
   Void          getMvPredAbove        ( TComMv&     rcMvPred )   { rcMvPred = m_cMvFieldB.getMv(); }
   Void          getMvPredAboveRight   ( TComMv&     rcMvPred )   { rcMvPred = m_cMvFieldC.getMv(); }
-
+  
   // -------------------------------------------------------------------------------------------------------------------
   // utility functions for neighbouring information
   // -------------------------------------------------------------------------------------------------------------------
-
+  
   TComDataCU*   getCULeft                   () { return m_pcCULeft;       }
   TComDataCU*   getCUAbove                  () { return m_pcCUAbove;      }
   TComDataCU*   getCUAboveLeft              () { return m_pcCUAboveLeft;  }
   TComDataCU*   getCUAboveRight             () { return m_pcCUAboveRight; }
   TComDataCU*   getCUColocated              ( RefPicList eRefPicList ) { return m_apcCUColocated[eRefPicList]; }
-
+  
   TComDataCU*   getPULeft                   ( UInt&  uiLPartUnitIdx , UInt uiCurrPartUnitIdx );
   TComDataCU*   getPUAbove                  ( UInt&  uiAPartUnitIdx , UInt uiCurrPartUnitIdx );
   TComDataCU*   getPUAboveLeft              ( UInt&  uiALPartUnitIdx, UInt uiCurrPartUnitIdx );
   TComDataCU*   getPUAboveRight             ( UInt&  uiARPartUnitIdx, UInt uiCurrPartUnitIdx );
-
+  
   TComDataCU*   getPUBelowLeft              ( UInt& uiBLPartUnitIdx, UInt uiCurrPartUnitIdx );
   TComDataCU*   getPUAboveRightAdi          ( UInt&  uiARPartUnitIdx, UInt uiPuWidth, UInt uiCurrPartUnitIdx );
   TComDataCU*   getPUBelowLeftAdi           ( UInt& uiBLPartUnitIdx, UInt uiPuHeight, UInt uiCurrPartUnitIdx );
-
+  
   Void          deriveLeftRightTopIdx       ( PartSize eCUMode, UInt uiPartIdx, UInt& ruiPartIdxLT, UInt& ruiPartIdxRT );
   Void          deriveLeftBottomIdx         ( PartSize eCUMode, UInt uiPartIdx, UInt& ruiPartIdxLB );
-
+  
   Void          deriveLeftRightTopIdxAdi    ( UInt& ruiPartIdxLT, UInt& ruiPartIdxRT, UInt uiPartOffset, UInt uiPartDepth );
   Void          deriveLeftBottomIdxAdi      ( UInt& ruiPartIdxLB, UInt  uiPartOffset, UInt uiPartDepth );
-
+  
 #if HHI_MRG
   Void          getInterMergeCandidates     ( UInt uiAbsPartIdx, TComMvField cMFieldNeighbours[4], UChar uhInterDirNeighbours[2], UInt& uiNeighbourInfos );
 #endif
-
-
+  
+  
   // -------------------------------------------------------------------------------------------------------------------
   // member functions for modes
   // -------------------------------------------------------------------------------------------------------------------
-
+  
   Bool          isIntra   ( UInt uiPartIdx )  { return m_pePredMode[ uiPartIdx ] == MODE_INTRA; }
   Bool          isSkip    ( UInt uiPartIdx )  { return m_pePredMode[ uiPartIdx ] == MODE_SKIP;  } ///< SKIP+DIRECT
   Bool          isSkipped ( UInt uiPartIdx );                                                     ///< SKIP (no residual)
-
+  
   // -------------------------------------------------------------------------------------------------------------------
   // member functions for symbol prediction (most probable / mode conversion)
   // -------------------------------------------------------------------------------------------------------------------
-
+  
   Int           getMostProbableIntraDirLuma     ( UInt uiAbsPartIdx                                       );
-
+  
   UInt          getIntraSizeIdx                 ( UInt uiAbsPartIdx                                       );
   Void          convertTransIdx                 ( UInt uiAbsPartIdx, UInt uiTrIdx, UInt& ruiLumaTrMode, UInt& ruiChromaTrMode );
-
+  
   // -------------------------------------------------------------------------------------------------------------------
   // member functions for SBAC context
   // -------------------------------------------------------------------------------------------------------------------
-
+  
   UInt          getCtxSplitFlag                 ( UInt   uiAbsPartIdx, UInt uiDepth                   );
   UInt          getCtxCbf                       ( UInt   uiAbsPartIdx, TextType eType, UInt uiTrDepth );
   UInt          getCtxQtCbf                     ( UInt   uiAbsPartIdx, TextType eType, UInt uiTrDepth );
@@ -384,11 +384,11 @@ public:
   UInt          getCtxPredMode                  ( UInt   uiAbsPartIdx                                 );
   UInt          getCtxInterDir                  ( UInt   uiAbsPartIdx                                 );
   UInt          getCtxIntraDirChroma            ( UInt   uiAbsPartIdx                                 );
-
+  
   // -------------------------------------------------------------------------------------------------------------------
   // member functions for RD cost storage
   // -------------------------------------------------------------------------------------------------------------------
-
+  
   Double&       getTotalCost()                  { return m_dTotalCost;        }
   UInt&         getTotalDistortion()            { return m_uiTotalDistortion; }
   UInt&         getTotalBits()                  { return m_uiTotalBits;       }

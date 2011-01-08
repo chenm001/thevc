@@ -69,86 +69,86 @@ class TComPredFilter
 protected:
   // filter description (luma & chroma)
   Int   m_iDIFTap;
-
+  
 private:
-
+  
   // filter description (luma)
   Int   m_iTapIdx;
   Int   m_iLeftMargin;
   Int   m_iRightMargin;
-
+  
   // filter functions
   FpCTIFilter_VP xCTI_Filter_VP  [14];  // Pel-type
   FpCTIFilter_VP xCTI_Filter_VPS [14];  // Pel-type, symmetric
   FpCTIFilter_VI xCTI_Filter_VI  [14];  // Int-type
   FpCTIFilter_VI xCTI_Filter_VIS [14];  // Int-type, symmetric
-
+  
   // filter description (chroma)
   Int   m_iTapIdxC;
   Int   m_iLeftMarginC;
   Int   m_iRightMarginC;
-
+  
   // filter functions
   FpCTIFilter_VP xCTI_Filter_VPC  [14]; // Pel-type
   FpCTIFilter_VP xCTI_Filter_VPSC [14]; // Pel-type, symmetric
   FpCTIFilter_VI xCTI_Filter_VIC  [14]; // Int-type
   FpCTIFilter_VI xCTI_Filter_VISC [14]; // Int-type, symmetric
-
+  
 public:
   TComPredFilter();
-
+  
   Void  setDIFTap ( Int i );
-
+  
   // DIF filter interface (for half & quarter)
 #if TEN_DIRECTIONAL_INTERP
   __inline Void xCTI_FilterDIF_TEN(Pel* piSrc, Int iSrcStride, Int iSrcStep, Int iWidth, Int iHeight, Int iDstStride, Int iDstStep, Pel*& rpiDst, Int yFrac, Int xFrac);
 #endif
   __inline Void xCTI_FilterHalfHor(Pel* piSrc, Int iSrcStride, Int iSrcStep, Int iWidth, Int iHeight, Int iDstStride, Int iDstStep, Pel*& rpiDst);
   __inline Void xCTI_FilterHalfHor(Int* piSrc, Int iSrcStride, Int iSrcStep, Int iWidth, Int iHeight, Int iDstStride, Int iDstStep, Pel*& rpiDst);
-
+  
   __inline Void xCTI_FilterQuarter0Hor(Pel* piSrc, Int iSrcStride, Int iSrcStep, Int iWidth, Int iHeight, Int iDstStride, Int iDstStep, Pel*& rpiDst);
   __inline Void xCTI_FilterQuarter0Hor(Int* piSrc, Int iSrcStride, Int iSrcStep, Int iWidth, Int iHeight, Int iDstStride, Int iDstStep, Pel*& rpiDst);
-
+  
   __inline Void xCTI_FilterQuarter1Hor(Pel* piSrc, Int iSrcStride, Int iSrcStep, Int iWidth, Int iHeight, Int iDstStride, Int iDstStep, Pel*& rpiDst);
   __inline Void xCTI_FilterQuarter1Hor(Int* piSrc, Int iSrcStride, Int iSrcStep, Int iWidth, Int iHeight, Int iDstStride, Int iDstStep, Pel*& rpiDst);
-
+  
   __inline Void xCTI_FilterHalfVer (Pel* piSrc, Int iSrcStride, Int iSrcStep, Int iWidth, Int iHeight, Int iDstStride, Int iDstStep, Int*& rpiDst, Int iDstStridePel, Pel*& rpiDstPel );
   __inline Void xCTI_FilterHalfVer (Pel* piSrc, Int iSrcStride, Int iSrcStep, Int iWidth, Int iHeight, Int iDstStride, Int iDstStep, Int*& rpiDst );
   __inline Void xCTI_FilterHalfVer (Pel* piSrc, Int iSrcStride, Int iSrcStep, Int iWidth, Int iHeight, Int iDstStride, Int iDstStep, Pel*& rpiDst );
-
+  
   __inline Void xCTI_FilterQuarter0Ver (Pel* piSrc, Int iSrcStride, Int iSrcStep, Int iWidth, Int iHeight, Int iDstStride, Int iDstStep, Int*& rpiDst );
   __inline Void xCTI_FilterQuarter0Ver (Pel* piSrc, Int iSrcStride, Int iSrcStep, Int iWidth, Int iHeight, Int iDstStride, Int iDstStep, Pel*& rpiDst );
-
+  
   __inline Void xCTI_FilterQuarter1Ver (Pel* piSrc, Int iSrcStride, Int iSrcStep, Int iWidth, Int iHeight, Int iDstStride, Int iDstStep, Int*& rpiDst );
   __inline Void xCTI_FilterQuarter1Ver (Pel* piSrc, Int iSrcStride, Int iSrcStep, Int iWidth, Int iHeight, Int iDstStride, Int iDstStep, Pel*& rpiDst );
-
+  
 private:
-
+  
   // set of DIF filters
   static Int xCTI_Filter_VP04     ( Pel* pSrc, Int* piCoeff, Int iStride );
   static Int xCTI_Filter_VP06     ( Pel* pSrc, Int* piCoeff, Int iStride );
   static Int xCTI_Filter_VP08     ( Pel* pSrc, Int* piCoeff, Int iStride );
   static Int xCTI_Filter_VP10     ( Pel* pSrc, Int* piCoeff, Int iStride );
   static Int xCTI_Filter_VP12     ( Pel* pSrc, Int* piCoeff, Int iStride );
-
+  
   static Int xCTI_Filter_VPS04    ( Pel* pSrc, Int* piCoeff, Int iStride );
   static Int xCTI_Filter_VPS06    ( Pel* pSrc, Int* piCoeff, Int iStride );
   static Int xCTI_Filter_VPS08    ( Pel* pSrc, Int* piCoeff, Int iStride );
   static Int xCTI_Filter_VPS10    ( Pel* pSrc, Int* piCoeff, Int iStride );
   static Int xCTI_Filter_VPS12    ( Pel* pSrc, Int* piCoeff, Int iStride );
-
+  
   static Int xCTI_Filter_VI04     ( Int* pSrc, Int* piCoeff, Int iStride );
   static Int xCTI_Filter_VI06     ( Int* pSrc, Int* piCoeff, Int iStride );
   static Int xCTI_Filter_VI08     ( Int* pSrc, Int* piCoeff, Int iStride );
   static Int xCTI_Filter_VI10     ( Int* pSrc, Int* piCoeff, Int iStride );
   static Int xCTI_Filter_VI12     ( Int* pSrc, Int* piCoeff, Int iStride );
-
+  
   static Int xCTI_Filter_VIS04    ( Int* pSrc, Int* piCoeff, Int iStride );
   static Int xCTI_Filter_VIS06    ( Int* pSrc, Int* piCoeff, Int iStride );
   static Int xCTI_Filter_VIS08    ( Int* pSrc, Int* piCoeff, Int iStride );
   static Int xCTI_Filter_VIS10    ( Int* pSrc, Int* piCoeff, Int iStride );
   static Int xCTI_Filter_VIS12    ( Int* pSrc, Int* piCoeff, Int iStride );
-
+  
   // multiplication-free implementation
   __inline Int xCTI_Filter_VPS06_HAL( Pel* pSrc, Int* piCoeff, Int iStride );
   __inline Int xCTI_Filter_VIS06_HAL( Int* pSrc, Int* piCoeff, Int iStride );
@@ -156,14 +156,14 @@ private:
   __inline Int xCTI_Filter_VI06_QU0 ( Int* pSrc, Int* piCoeff, Int iStride );
   __inline Int xCTI_Filter_VP06_QU1 ( Pel* pSrc, Int* piCoeff, Int iStride );
   __inline Int xCTI_Filter_VI06_QU1 ( Int* pSrc, Int* piCoeff, Int iStride );
-
+  
   __inline Int xCTI_Filter_VPS12_HAL( Pel* pSrc, Int* piCoeff, Int iStride );
   __inline Int xCTI_Filter_VIS12_HAL( Int* pSrc, Int* piCoeff, Int iStride );
   __inline Int xCTI_Filter_VP12_QU0 ( Pel* pSrc, Int* piCoeff, Int iStride );
   __inline Int xCTI_Filter_VI12_QU0 ( Int* pSrc, Int* piCoeff, Int iStride );
   __inline Int xCTI_Filter_VP12_QU1 ( Pel* pSrc, Int* piCoeff, Int iStride );
   __inline Int xCTI_Filter_VI12_QU1 ( Int* pSrc, Int* piCoeff, Int iStride );
-
+  
 };
 
 #if TEN_DIRECTIONAL_INTERP
@@ -172,7 +172,7 @@ __inline Void TComPredFilter::xCTI_FilterDIF_TEN(Pel* piSrc, Int iSrcStride, Int
   Pel*  piDst    = rpiDst;
   Pel*  piSrcTmp;
   Int pos = 4*yFrac+xFrac;
-
+  
   switch ( pos )
   {
     case 0:
@@ -264,7 +264,7 @@ __inline Void TComPredFilter::xCTI_FilterDIF_TEN(Pel* piSrc, Int iSrcStride, Int
         piDst += iDstStride;
       }
       break;
-   case 9:
+    case 9:
       for (Int y=0; y<iHeight; y++)
       {
         piSrcTmp = piSrc-2*iSrcStride-2;
@@ -279,11 +279,11 @@ __inline Void TComPredFilter::xCTI_FilterDIF_TEN(Pel* piSrc, Int iSrcStride, Int
       for (Int y=0; y<iHeight; y++)
       {
         piSrcTmp = piSrc-1*iSrcStride-1;
-          for ( Int x = 0; x < iWidth; x++, piSrcTmp++)
-            piDst[x*iDstStep] = Clip( (0*piSrcTmp[0*iSrcStride+0] +  5*piSrcTmp[0*iSrcStride+1] +  5*piSrcTmp[0*iSrcStride+2] + 0*piSrcTmp[0*iSrcStride+3] +
-                                       5*piSrcTmp[1*iSrcStride+0] + 22*piSrcTmp[1*iSrcStride+1] + 22*piSrcTmp[1*iSrcStride+2] + 5*piSrcTmp[1*iSrcStride+3] +
-                                       5*piSrcTmp[2*iSrcStride+0] + 22*piSrcTmp[2*iSrcStride+1] + 22*piSrcTmp[2*iSrcStride+2] + 5*piSrcTmp[2*iSrcStride+3] +
-                                       0*piSrcTmp[3*iSrcStride+0] +  5*piSrcTmp[3*iSrcStride+1] +  5*piSrcTmp[3*iSrcStride+2] + 0*piSrcTmp[3*iSrcStride+3] + 64)>>7);
+        for ( Int x = 0; x < iWidth; x++, piSrcTmp++)
+          piDst[x*iDstStep] = Clip( (0*piSrcTmp[0*iSrcStride+0] +  5*piSrcTmp[0*iSrcStride+1] +  5*piSrcTmp[0*iSrcStride+2] + 0*piSrcTmp[0*iSrcStride+3] +
+                                     5*piSrcTmp[1*iSrcStride+0] + 22*piSrcTmp[1*iSrcStride+1] + 22*piSrcTmp[1*iSrcStride+2] + 5*piSrcTmp[1*iSrcStride+3] +
+                                     5*piSrcTmp[2*iSrcStride+0] + 22*piSrcTmp[2*iSrcStride+1] + 22*piSrcTmp[2*iSrcStride+2] + 5*piSrcTmp[2*iSrcStride+3] +
+                                     0*piSrcTmp[3*iSrcStride+0] +  5*piSrcTmp[3*iSrcStride+1] +  5*piSrcTmp[3*iSrcStride+2] + 0*piSrcTmp[3*iSrcStride+3] + 64)>>7);
         piSrc += iSrcStride;
         piDst += iDstStride;
       }
@@ -309,7 +309,7 @@ __inline Void TComPredFilter::xCTI_FilterDIF_TEN(Pel* piSrc, Int iSrcStride, Int
         piDst += iDstStride;
       }
       break;
-   case 13:
+    case 13:
       for (Int y=0; y<iHeight; y++)
       {
         piSrcTmp = piSrc-2*iSrcStride-2;
@@ -319,7 +319,7 @@ __inline Void TComPredFilter::xCTI_FilterDIF_TEN(Pel* piSrc, Int iSrcStride, Int
         piDst += iDstStride;
       }
       break;
-   case 14:
+    case 14:
       for (Int y=0; y<iHeight; y++)
       {
         piSrcTmp = piSrc-2*iSrcStride-2;
@@ -358,7 +358,7 @@ __inline Void TComPredFilter::xCTI_FilterHalfHor(Pel* piSrc, Int iSrcStride, Int
   Int   iSum;
   Pel*  piSrcTmp;
   Int*  piFilter = CTI_Filter12[m_iTapIdx][HAL_IDX];
-
+  
   if ( m_iDIFTap == 6 )
   {
     for ( Int y = iHeight; y != 0; y-- )
@@ -375,36 +375,36 @@ __inline Void TComPredFilter::xCTI_FilterHalfHor(Pel* piSrc, Int iSrcStride, Int
     }
   }
   else
-  if ( m_iDIFTap == 12 )
-  {
-    for ( Int y = iHeight; y != 0; y-- )
+    if ( m_iDIFTap == 12 )
     {
-      piSrcTmp = &piSrc[ (0-m_iLeftMargin)*iSrcStep ];
-      for ( Int x = 0; x < iWidth; x++ )
+      for ( Int y = iHeight; y != 0; y-- )
       {
-        iSum                   = xCTI_Filter_VPS12_HAL( piSrcTmp, piFilter, iSrcStep );
-        piDst   [x * iDstStep] = Clip( (iSum +  128) >>  8 );
-        piSrcTmp += iSrcStep;
+        piSrcTmp = &piSrc[ (0-m_iLeftMargin)*iSrcStep ];
+        for ( Int x = 0; x < iWidth; x++ )
+        {
+          iSum                   = xCTI_Filter_VPS12_HAL( piSrcTmp, piFilter, iSrcStep );
+          piDst   [x * iDstStep] = Clip( (iSum +  128) >>  8 );
+          piSrcTmp += iSrcStep;
+        }
+        piSrc += iSrcStride;
+        piDst += iDstStride;
       }
-      piSrc += iSrcStride;
-      piDst += iDstStride;
     }
-  }
-  else
-  {
-    for ( Int y = iHeight; y != 0; y-- )
+    else
     {
-      piSrcTmp = &piSrc[ (0-m_iLeftMargin)*iSrcStep ];
-      for ( Int x = 0; x < iWidth; x++ )
+      for ( Int y = iHeight; y != 0; y-- )
       {
-        iSum                   = xCTI_Filter_VPS[HAL_IDX]( piSrcTmp, piFilter, iSrcStep );
-        piDst   [x * iDstStep] = Clip( (iSum +  128) >>  8 );
-        piSrcTmp += iSrcStep;
+        piSrcTmp = &piSrc[ (0-m_iLeftMargin)*iSrcStep ];
+        for ( Int x = 0; x < iWidth; x++ )
+        {
+          iSum                   = xCTI_Filter_VPS[HAL_IDX]( piSrcTmp, piFilter, iSrcStep );
+          piDst   [x * iDstStep] = Clip( (iSum +  128) >>  8 );
+          piSrcTmp += iSrcStep;
+        }
+        piSrc += iSrcStride;
+        piDst += iDstStride;
       }
-      piSrc += iSrcStride;
-      piDst += iDstStride;
     }
-  }
   return;
 }
 
@@ -414,7 +414,7 @@ __inline Void TComPredFilter::xCTI_FilterHalfHor(Int* piSrc, Int iSrcStride, Int
   Int   iSum;
   Int*  piSrcTmp;
   Int*  piFilter = CTI_Filter12[m_iTapIdx][HAL_IDX];
-
+  
   if ( m_iDIFTap == 6 )
   {
     for ( Int y = iHeight; y != 0; y-- )
@@ -431,36 +431,36 @@ __inline Void TComPredFilter::xCTI_FilterHalfHor(Int* piSrc, Int iSrcStride, Int
     }
   }
   else
-  if ( m_iDIFTap == 12 )
-  {
-    for ( Int y = iHeight; y != 0; y-- )
+    if ( m_iDIFTap == 12 )
     {
-      piSrcTmp = &piSrc[ (0-m_iLeftMargin)*iSrcStep ];
-      for ( Int x = 0; x < iWidth; x++ )
+      for ( Int y = iHeight; y != 0; y-- )
       {
-        iSum                   = xCTI_Filter_VIS12_HAL( piSrcTmp, piFilter, iSrcStep );
-        piDst   [x * iDstStep] = Clip( (iSum +  (1<<15)) >>  16 );
-        piSrcTmp += iSrcStep;
+        piSrcTmp = &piSrc[ (0-m_iLeftMargin)*iSrcStep ];
+        for ( Int x = 0; x < iWidth; x++ )
+        {
+          iSum                   = xCTI_Filter_VIS12_HAL( piSrcTmp, piFilter, iSrcStep );
+          piDst   [x * iDstStep] = Clip( (iSum +  (1<<15)) >>  16 );
+          piSrcTmp += iSrcStep;
+        }
+        piSrc += iSrcStride;
+        piDst += iDstStride;
       }
-      piSrc += iSrcStride;
-      piDst += iDstStride;
     }
-  }
-  else
-  {
-    for ( Int y = iHeight; y != 0; y-- )
+    else
     {
-      piSrcTmp = &piSrc[ (0-m_iLeftMargin)*iSrcStep ];
-      for ( Int x = 0; x < iWidth; x++ )
+      for ( Int y = iHeight; y != 0; y-- )
       {
-        iSum                   = xCTI_Filter_VIS[HAL_IDX]( piSrcTmp, piFilter, iSrcStep );
-        piDst   [x * iDstStep] = Clip( (iSum +  (1<<15)) >>  16 );
-        piSrcTmp += iSrcStep;
+        piSrcTmp = &piSrc[ (0-m_iLeftMargin)*iSrcStep ];
+        for ( Int x = 0; x < iWidth; x++ )
+        {
+          iSum                   = xCTI_Filter_VIS[HAL_IDX]( piSrcTmp, piFilter, iSrcStep );
+          piDst   [x * iDstStep] = Clip( (iSum +  (1<<15)) >>  16 );
+          piSrcTmp += iSrcStep;
+        }
+        piSrc += iSrcStride;
+        piDst += iDstStride;
       }
-      piSrc += iSrcStride;
-      piDst += iDstStride;
     }
-  }
   return;
 }
 
@@ -470,7 +470,7 @@ __inline Void TComPredFilter::xCTI_FilterQuarter0Hor(Pel* piSrc, Int iSrcStride,
   Int   iSum;
   Pel*  piSrcTmp;
   Int*  piFilter = CTI_Filter12[m_iTapIdx][QU0_IDX];
-
+  
   if ( m_iDIFTap == 6 )
   {
     for ( Int y = iHeight; y != 0; y-- )
@@ -487,36 +487,36 @@ __inline Void TComPredFilter::xCTI_FilterQuarter0Hor(Pel* piSrc, Int iSrcStride,
     }
   }
   else
-  if ( m_iDIFTap == 12 )
-  {
-    for ( Int y = iHeight; y != 0; y-- )
+    if ( m_iDIFTap == 12 )
     {
-      piSrcTmp = &piSrc[ (0-m_iLeftMargin)*iSrcStep ];
-      for ( Int x = 0; x < iWidth; x++ )
+      for ( Int y = iHeight; y != 0; y-- )
       {
-        iSum                   = xCTI_Filter_VP12_QU0( piSrcTmp, piFilter, iSrcStep );
-        piDst   [x * iDstStep] = Clip( (iSum +  128) >>  8 );
-        piSrcTmp += iSrcStep;
+        piSrcTmp = &piSrc[ (0-m_iLeftMargin)*iSrcStep ];
+        for ( Int x = 0; x < iWidth; x++ )
+        {
+          iSum                   = xCTI_Filter_VP12_QU0( piSrcTmp, piFilter, iSrcStep );
+          piDst   [x * iDstStep] = Clip( (iSum +  128) >>  8 );
+          piSrcTmp += iSrcStep;
+        }
+        piSrc += iSrcStride;
+        piDst += iDstStride;
       }
-      piSrc += iSrcStride;
-      piDst += iDstStride;
     }
-  }
-  else
-  {
-    for ( Int y = iHeight; y != 0; y-- )
+    else
     {
-      piSrcTmp = &piSrc[ (0-m_iLeftMargin)*iSrcStep ];
-      for ( Int x = 0; x < iWidth; x++ )
+      for ( Int y = iHeight; y != 0; y-- )
       {
-        iSum                   = xCTI_Filter_VP[QU0_IDX]( piSrcTmp, piFilter, iSrcStep );
-        piDst   [x * iDstStep] = Clip( (iSum +  128) >>  8 );
-        piSrcTmp += iSrcStep;
+        piSrcTmp = &piSrc[ (0-m_iLeftMargin)*iSrcStep ];
+        for ( Int x = 0; x < iWidth; x++ )
+        {
+          iSum                   = xCTI_Filter_VP[QU0_IDX]( piSrcTmp, piFilter, iSrcStep );
+          piDst   [x * iDstStep] = Clip( (iSum +  128) >>  8 );
+          piSrcTmp += iSrcStep;
+        }
+        piSrc += iSrcStride;
+        piDst += iDstStride;
       }
-      piSrc += iSrcStride;
-      piDst += iDstStride;
     }
-  }
   return;
 }
 
@@ -526,7 +526,7 @@ __inline Void TComPredFilter::xCTI_FilterQuarter0Hor(Int* piSrc, Int iSrcStride,
   Int   iSum;
   Int*  piSrcTmp;
   Int*  piFilter = CTI_Filter12[m_iTapIdx][QU0_IDX];
-
+  
   if ( m_iDIFTap == 6 )
   {
     for ( Int y = iHeight; y != 0; y-- )
@@ -543,34 +543,36 @@ __inline Void TComPredFilter::xCTI_FilterQuarter0Hor(Int* piSrc, Int iSrcStride,
     }
   }
   else
-  if ( m_iDIFTap == 12 )
   {
-    for ( Int y = iHeight; y != 0; y-- )
+    if ( m_iDIFTap == 12 )
     {
-      piSrcTmp = &piSrc[ (0-m_iLeftMargin)*iSrcStep ];
-      for ( Int x = 0; x < iWidth; x++ )
+      for ( Int y = iHeight; y != 0; y-- )
       {
-        iSum                   = xCTI_Filter_VI12_QU0( piSrcTmp, piFilter, iSrcStep );
-        piDst   [x * iDstStep] = Clip( (iSum +  (1<<15)) >>  16 );
-        piSrcTmp += iSrcStep;
+        piSrcTmp = &piSrc[ (0-m_iLeftMargin)*iSrcStep ];
+        for ( Int x = 0; x < iWidth; x++ )
+        {
+          iSum                   = xCTI_Filter_VI12_QU0( piSrcTmp, piFilter, iSrcStep );
+          piDst   [x * iDstStep] = Clip( (iSum +  (1<<15)) >>  16 );
+          piSrcTmp += iSrcStep;
+        }
+        piSrc += iSrcStride;
+        piDst += iDstStride;
       }
-      piSrc += iSrcStride;
-      piDst += iDstStride;
     }
-  }
-  else
-  {
-    for ( Int y = iHeight; y != 0; y-- )
+    else
     {
-      piSrcTmp = &piSrc[ (0-m_iLeftMargin)*iSrcStep ];
-      for ( Int x = 0; x < iWidth; x++ )
+      for ( Int y = iHeight; y != 0; y-- )
       {
-        iSum                   = xCTI_Filter_VI[QU0_IDX]( piSrcTmp, piFilter, iSrcStep );
-        piDst   [x * iDstStep] = Clip( (iSum +  (1<<15)) >>  16 );
-        piSrcTmp += iSrcStep;
+        piSrcTmp = &piSrc[ (0-m_iLeftMargin)*iSrcStep ];
+        for ( Int x = 0; x < iWidth; x++ )
+        {
+          iSum                   = xCTI_Filter_VI[QU0_IDX]( piSrcTmp, piFilter, iSrcStep );
+          piDst   [x * iDstStep] = Clip( (iSum +  (1<<15)) >>  16 );
+          piSrcTmp += iSrcStep;
+        }
+        piSrc += iSrcStride;
+        piDst += iDstStride;
       }
-      piSrc += iSrcStride;
-      piDst += iDstStride;
     }
   }
   return;
@@ -582,7 +584,7 @@ __inline Void TComPredFilter::xCTI_FilterQuarter1Hor(Pel* piSrc, Int iSrcStride,
   Int   iSum;
   Pel*  piSrcTmp;
   Int*  piFilter = CTI_Filter12[m_iTapIdx][QU1_IDX];
-
+  
   if ( m_iDIFTap == 6 )
   {
     for ( Int y = iHeight; y != 0; y-- )
@@ -599,34 +601,36 @@ __inline Void TComPredFilter::xCTI_FilterQuarter1Hor(Pel* piSrc, Int iSrcStride,
     }
   }
   else
-  if ( m_iDIFTap == 12 )
   {
-    for ( Int y = iHeight; y != 0; y-- )
+    if ( m_iDIFTap == 12 )
     {
-      piSrcTmp = &piSrc[ (0-m_iLeftMargin)*iSrcStep ];
-      for ( Int x = 0; x < iWidth; x++ )
+      for ( Int y = iHeight; y != 0; y-- )
       {
-        iSum                   = xCTI_Filter_VP12_QU1( piSrcTmp, piFilter, iSrcStep );
-        piDst   [x * iDstStep] = Clip( (iSum +  128) >>  8 );
-        piSrcTmp += iSrcStep;
+        piSrcTmp = &piSrc[ (0-m_iLeftMargin)*iSrcStep ];
+        for ( Int x = 0; x < iWidth; x++ )
+        {
+          iSum                   = xCTI_Filter_VP12_QU1( piSrcTmp, piFilter, iSrcStep );
+          piDst   [x * iDstStep] = Clip( (iSum +  128) >>  8 );
+          piSrcTmp += iSrcStep;
+        }
+        piSrc += iSrcStride;
+        piDst += iDstStride;
       }
-      piSrc += iSrcStride;
-      piDst += iDstStride;
     }
-  }
-  else
-  {
-    for ( Int y = iHeight; y != 0; y-- )
+    else
     {
-      piSrcTmp = &piSrc[ (0-m_iLeftMargin)*iSrcStep ];
-      for ( Int x = 0; x < iWidth; x++ )
+      for ( Int y = iHeight; y != 0; y-- )
       {
-        iSum                   = xCTI_Filter_VP[QU1_IDX]( piSrcTmp, piFilter, iSrcStep );
-        piDst   [x * iDstStep] = Clip( (iSum +  128) >>  8 );
-        piSrcTmp += iSrcStep;
+        piSrcTmp = &piSrc[ (0-m_iLeftMargin)*iSrcStep ];
+        for ( Int x = 0; x < iWidth; x++ )
+        {
+          iSum                   = xCTI_Filter_VP[QU1_IDX]( piSrcTmp, piFilter, iSrcStep );
+          piDst   [x * iDstStep] = Clip( (iSum +  128) >>  8 );
+          piSrcTmp += iSrcStep;
+        }
+        piSrc += iSrcStride;
+        piDst += iDstStride;
       }
-      piSrc += iSrcStride;
-      piDst += iDstStride;
     }
   }
   return;
@@ -638,7 +642,7 @@ __inline Void TComPredFilter::xCTI_FilterQuarter1Hor(Int* piSrc, Int iSrcStride,
   Int   iSum;
   Int*  piSrcTmp;
   Int*  piFilter = CTI_Filter12[m_iTapIdx][QU1_IDX];
-
+  
   if ( m_iDIFTap == 6 )
   {
     for ( Int y = iHeight; y != 0; y-- )
@@ -655,34 +659,36 @@ __inline Void TComPredFilter::xCTI_FilterQuarter1Hor(Int* piSrc, Int iSrcStride,
     }
   }
   else
-  if ( m_iDIFTap == 12 )
   {
-    for ( Int y = iHeight; y != 0; y-- )
+    if ( m_iDIFTap == 12 )
     {
-      piSrcTmp = &piSrc[ (0-m_iLeftMargin)*iSrcStep ];
-      for ( Int x = 0; x < iWidth; x++ )
+      for ( Int y = iHeight; y != 0; y-- )
       {
-        iSum                   = xCTI_Filter_VI12_QU1( piSrcTmp, piFilter, iSrcStep );
-        piDst   [x * iDstStep] = Clip( (iSum +  (1<<15)) >>  16 );
-        piSrcTmp += iSrcStep;
+        piSrcTmp = &piSrc[ (0-m_iLeftMargin)*iSrcStep ];
+        for ( Int x = 0; x < iWidth; x++ )
+        {
+          iSum                   = xCTI_Filter_VI12_QU1( piSrcTmp, piFilter, iSrcStep );
+          piDst   [x * iDstStep] = Clip( (iSum +  (1<<15)) >>  16 );
+          piSrcTmp += iSrcStep;
+        }
+        piSrc += iSrcStride;
+        piDst += iDstStride;
       }
-      piSrc += iSrcStride;
-      piDst += iDstStride;
     }
-  }
-  else
-  {
-    for ( Int y = iHeight; y != 0; y-- )
+    else
     {
-      piSrcTmp = &piSrc[ (0-m_iLeftMargin)*iSrcStep ];
-      for ( Int x = 0; x < iWidth; x++ )
+      for ( Int y = iHeight; y != 0; y-- )
       {
-        iSum                   = xCTI_Filter_VI[QU1_IDX]( piSrcTmp, piFilter, iSrcStep );
-        piDst   [x * iDstStep] = Clip( (iSum +  (1<<15)) >>  16 );
-        piSrcTmp += iSrcStep;
+        piSrcTmp = &piSrc[ (0-m_iLeftMargin)*iSrcStep ];
+        for ( Int x = 0; x < iWidth; x++ )
+        {
+          iSum                   = xCTI_Filter_VI[QU1_IDX]( piSrcTmp, piFilter, iSrcStep );
+          piDst   [x * iDstStep] = Clip( (iSum +  (1<<15)) >>  16 );
+          piSrcTmp += iSrcStep;
+        }
+        piSrc += iSrcStride;
+        piDst += iDstStride;
       }
-      piSrc += iSrcStride;
-      piDst += iDstStride;
     }
   }
   return;
@@ -695,7 +701,7 @@ __inline Void TComPredFilter::xCTI_FilterHalfVer (Pel* piSrc, Int iSrcStride, In
   Int   iSum;
   Pel*  piSrcTmp;
   Int*  piFilter = CTI_Filter12[m_iTapIdx][HAL_IDX];
-
+  
   if ( m_iDIFTap == 6 )
   {
     for ( Int y = iHeight; y != 0; y-- )
@@ -714,38 +720,40 @@ __inline Void TComPredFilter::xCTI_FilterHalfVer (Pel* piSrc, Int iSrcStride, In
     }
   }
   else
-  if ( m_iDIFTap == 12 )
   {
-    for ( Int y = iHeight; y != 0; y-- )
+    if ( m_iDIFTap == 12 )
     {
-      piSrcTmp = &piSrc[ -m_iLeftMargin*iSrcStride ];
-      for ( Int x = 0; x < iWidth; x++ )
+      for ( Int y = iHeight; y != 0; y-- )
       {
-        iSum                   = xCTI_Filter_VPS12_HAL( piSrcTmp, piFilter, iSrcStride );
-        piDst[x * iDstStep]    = iSum;
-        piDstPel[x * iDstStep] = Clip( (iSum +  128) >>  8 );
-        piSrcTmp += iSrcStep;
+        piSrcTmp = &piSrc[ -m_iLeftMargin*iSrcStride ];
+        for ( Int x = 0; x < iWidth; x++ )
+        {
+          iSum                   = xCTI_Filter_VPS12_HAL( piSrcTmp, piFilter, iSrcStride );
+          piDst[x * iDstStep]    = iSum;
+          piDstPel[x * iDstStep] = Clip( (iSum +  128) >>  8 );
+          piSrcTmp += iSrcStep;
+        }
+        piSrc += iSrcStride;
+        piDst += iDstStride;
+        piDstPel += iDstStridePel;
       }
-      piSrc += iSrcStride;
-      piDst += iDstStride;
-      piDstPel += iDstStridePel;
     }
-  }
-  else
-  {
-    for ( Int y = iHeight; y != 0; y-- )
+    else
     {
-      piSrcTmp = &piSrc[ -m_iLeftMargin*iSrcStride ];
-      for ( Int x = 0; x < iWidth; x++ )
+      for ( Int y = iHeight; y != 0; y-- )
       {
-        iSum                   = xCTI_Filter_VPS[HAL_IDX]( piSrcTmp, piFilter, iSrcStride );
-        piDst[x * iDstStep]    = iSum;
-        piDstPel[x * iDstStep] = Clip( (iSum +  128) >>  8 );
-        piSrcTmp += iSrcStep;
+        piSrcTmp = &piSrc[ -m_iLeftMargin*iSrcStride ];
+        for ( Int x = 0; x < iWidth; x++ )
+        {
+          iSum                   = xCTI_Filter_VPS[HAL_IDX]( piSrcTmp, piFilter, iSrcStride );
+          piDst[x * iDstStep]    = iSum;
+          piDstPel[x * iDstStep] = Clip( (iSum +  128) >>  8 );
+          piSrcTmp += iSrcStep;
+        }
+        piSrc += iSrcStride;
+        piDst += iDstStride;
+        piDstPel += iDstStridePel;
       }
-      piSrc += iSrcStride;
-      piDst += iDstStride;
-      piDstPel += iDstStridePel;
     }
   }
   return;
@@ -757,7 +765,7 @@ __inline Void TComPredFilter::xCTI_FilterHalfVer (Pel* piSrc, Int iSrcStride, In
   Int   iSum;
   Pel*  piSrcTmp;
   Int*  piFilter = CTI_Filter12[m_iTapIdx][HAL_IDX];
-
+  
   if ( m_iDIFTap == 6 )
   {
     for ( Int y = iHeight; y != 0; y-- )
@@ -774,34 +782,36 @@ __inline Void TComPredFilter::xCTI_FilterHalfVer (Pel* piSrc, Int iSrcStride, In
     }
   }
   else
-  if ( m_iDIFTap == 12 )
   {
-    for ( Int y = iHeight; y != 0; y-- )
+    if ( m_iDIFTap == 12 )
     {
-      piSrcTmp = &piSrc[ -m_iLeftMargin*iSrcStride ];
-      for ( Int x = 0; x < iWidth; x++ )
+      for ( Int y = iHeight; y != 0; y-- )
       {
-        iSum                = xCTI_Filter_VPS12_HAL( piSrcTmp, piFilter, iSrcStride );
-        piDst[x * iDstStep] = iSum;
-        piSrcTmp += iSrcStep;
+        piSrcTmp = &piSrc[ -m_iLeftMargin*iSrcStride ];
+        for ( Int x = 0; x < iWidth; x++ )
+        {
+          iSum                = xCTI_Filter_VPS12_HAL( piSrcTmp, piFilter, iSrcStride );
+          piDst[x * iDstStep] = iSum;
+          piSrcTmp += iSrcStep;
+        }
+        piSrc += iSrcStride;
+        piDst += iDstStride;
       }
-      piSrc += iSrcStride;
-      piDst += iDstStride;
     }
-  }
-  else
-  {
-    for ( Int y = iHeight; y != 0; y-- )
+    else
     {
-      piSrcTmp = &piSrc[ -m_iLeftMargin*iSrcStride ];
-      for ( Int x = 0; x < iWidth; x++ )
+      for ( Int y = iHeight; y != 0; y-- )
       {
-        iSum                = xCTI_Filter_VPS[HAL_IDX]( piSrcTmp, piFilter, iSrcStride );
-        piDst[x * iDstStep] = iSum;
-        piSrcTmp += iSrcStep;
+        piSrcTmp = &piSrc[ -m_iLeftMargin*iSrcStride ];
+        for ( Int x = 0; x < iWidth; x++ )
+        {
+          iSum                = xCTI_Filter_VPS[HAL_IDX]( piSrcTmp, piFilter, iSrcStride );
+          piDst[x * iDstStep] = iSum;
+          piSrcTmp += iSrcStep;
+        }
+        piSrc += iSrcStride;
+        piDst += iDstStride;
       }
-      piSrc += iSrcStride;
-      piDst += iDstStride;
     }
   }
   return;
@@ -813,7 +823,7 @@ __inline Void TComPredFilter::xCTI_FilterHalfVer (Pel* piSrc, Int iSrcStride, In
   Int   iSum;
   Pel*  piSrcTmp;
   Int*  piFilter = CTI_Filter12[m_iTapIdx][HAL_IDX];
-
+  
   if ( m_iDIFTap == 6 )
   {
     for ( Int y = iHeight; y != 0; y-- )
@@ -830,34 +840,36 @@ __inline Void TComPredFilter::xCTI_FilterHalfVer (Pel* piSrc, Int iSrcStride, In
     }
   }
   else
-  if ( m_iDIFTap == 12 )
   {
-    for ( Int y = iHeight; y != 0; y-- )
+    if ( m_iDIFTap == 12 )
     {
-      piSrcTmp = &piSrc[ -m_iLeftMargin*iSrcStride ];
-      for ( Int x = 0; x < iWidth; x++ )
+      for ( Int y = iHeight; y != 0; y-- )
       {
-        iSum                = xCTI_Filter_VPS12_HAL( piSrcTmp, piFilter, iSrcStride );
-        piDst[x * iDstStep] = Clip( (iSum +  128) >>  8 );
-        piSrcTmp += iSrcStep;
+        piSrcTmp = &piSrc[ -m_iLeftMargin*iSrcStride ];
+        for ( Int x = 0; x < iWidth; x++ )
+        {
+          iSum                = xCTI_Filter_VPS12_HAL( piSrcTmp, piFilter, iSrcStride );
+          piDst[x * iDstStep] = Clip( (iSum +  128) >>  8 );
+          piSrcTmp += iSrcStep;
+        }
+        piSrc += iSrcStride;
+        piDst += iDstStride;
       }
-      piSrc += iSrcStride;
-      piDst += iDstStride;
     }
-  }
-  else
-  {
-    for ( Int y = iHeight; y != 0; y-- )
+    else
     {
-      piSrcTmp = &piSrc[ -m_iLeftMargin*iSrcStride ];
-      for ( Int x = 0; x < iWidth; x++ )
+      for ( Int y = iHeight; y != 0; y-- )
       {
-        iSum                = xCTI_Filter_VPS[HAL_IDX]( piSrcTmp, piFilter, iSrcStride );
-        piDst[x * iDstStep] = Clip( (iSum +  128) >>  8 );
-        piSrcTmp += iSrcStep;
+        piSrcTmp = &piSrc[ -m_iLeftMargin*iSrcStride ];
+        for ( Int x = 0; x < iWidth; x++ )
+        {
+          iSum                = xCTI_Filter_VPS[HAL_IDX]( piSrcTmp, piFilter, iSrcStride );
+          piDst[x * iDstStep] = Clip( (iSum +  128) >>  8 );
+          piSrcTmp += iSrcStep;
+        }
+        piSrc += iSrcStride;
+        piDst += iDstStride;
       }
-      piSrc += iSrcStride;
-      piDst += iDstStride;
     }
   }
   return;
@@ -869,7 +881,7 @@ __inline Void TComPredFilter::xCTI_FilterQuarter0Ver (Pel* piSrc, Int iSrcStride
   Int   iSum;
   Pel*  piSrcTmp;
   Int*  piFilter = CTI_Filter12[m_iTapIdx][QU0_IDX];
-
+  
   if ( m_iDIFTap == 6 )
   {
     for ( Int y = iHeight; y != 0; y-- )
@@ -886,34 +898,36 @@ __inline Void TComPredFilter::xCTI_FilterQuarter0Ver (Pel* piSrc, Int iSrcStride
     }
   }
   else
-  if ( m_iDIFTap == 12 )
   {
-    for ( Int y = iHeight; y != 0; y-- )
+    if ( m_iDIFTap == 12 )
     {
-      piSrcTmp = &piSrc[ -m_iLeftMargin*iSrcStride ];
-      for ( Int x = 0; x < iWidth; x++ )
+      for ( Int y = iHeight; y != 0; y-- )
       {
-        iSum                = xCTI_Filter_VP12_QU0( piSrcTmp, piFilter, iSrcStride );
-        piDst[x * iDstStep] = iSum;
-        piSrcTmp += iSrcStep;
+        piSrcTmp = &piSrc[ -m_iLeftMargin*iSrcStride ];
+        for ( Int x = 0; x < iWidth; x++ )
+        {
+          iSum                = xCTI_Filter_VP12_QU0( piSrcTmp, piFilter, iSrcStride );
+          piDst[x * iDstStep] = iSum;
+          piSrcTmp += iSrcStep;
+        }
+        piSrc += iSrcStride;
+        piDst += iDstStride;
       }
-      piSrc += iSrcStride;
-      piDst += iDstStride;
     }
-  }
-  else
-  {
-    for ( Int y = iHeight; y != 0; y-- )
+    else
     {
-      piSrcTmp = &piSrc[ -m_iLeftMargin*iSrcStride ];
-      for ( Int x = 0; x < iWidth; x++ )
+      for ( Int y = iHeight; y != 0; y-- )
       {
-        iSum                = xCTI_Filter_VP[QU0_IDX]( piSrcTmp, piFilter, iSrcStride );
-        piDst[x * iDstStep] = iSum;
-        piSrcTmp += iSrcStep;
+        piSrcTmp = &piSrc[ -m_iLeftMargin*iSrcStride ];
+        for ( Int x = 0; x < iWidth; x++ )
+        {
+          iSum                = xCTI_Filter_VP[QU0_IDX]( piSrcTmp, piFilter, iSrcStride );
+          piDst[x * iDstStep] = iSum;
+          piSrcTmp += iSrcStep;
+        }
+        piSrc += iSrcStride;
+        piDst += iDstStride;
       }
-      piSrc += iSrcStride;
-      piDst += iDstStride;
     }
   }
   return;
@@ -925,7 +939,7 @@ __inline Void TComPredFilter::xCTI_FilterQuarter0Ver (Pel* piSrc, Int iSrcStride
   Int   iSum;
   Pel*  piSrcTmp;
   Int*  piFilter = CTI_Filter12[m_iTapIdx][QU0_IDX];
-
+  
   if ( m_iDIFTap == 6 )
   {
     for ( Int y = iHeight; y != 0; y-- )
@@ -942,34 +956,36 @@ __inline Void TComPredFilter::xCTI_FilterQuarter0Ver (Pel* piSrc, Int iSrcStride
     }
   }
   else
-  if ( m_iDIFTap == 12 )
   {
-    for ( Int y = iHeight; y != 0; y-- )
+    if ( m_iDIFTap == 12 )
     {
-      piSrcTmp = &piSrc[ -m_iLeftMargin*iSrcStride ];
-      for ( Int x = 0; x < iWidth; x++ )
+      for ( Int y = iHeight; y != 0; y-- )
       {
-        iSum                = xCTI_Filter_VP12_QU0( piSrcTmp, piFilter, iSrcStride );
-        piDst[x * iDstStep] = Clip( (iSum +  128) >>  8 );
-        piSrcTmp += iSrcStep;
+        piSrcTmp = &piSrc[ -m_iLeftMargin*iSrcStride ];
+        for ( Int x = 0; x < iWidth; x++ )
+        {
+          iSum                = xCTI_Filter_VP12_QU0( piSrcTmp, piFilter, iSrcStride );
+          piDst[x * iDstStep] = Clip( (iSum +  128) >>  8 );
+          piSrcTmp += iSrcStep;
+        }
+        piSrc += iSrcStride;
+        piDst += iDstStride;
       }
-      piSrc += iSrcStride;
-      piDst += iDstStride;
     }
-  }
-  else
-  {
-    for ( Int y = iHeight; y != 0; y-- )
+    else
     {
-      piSrcTmp = &piSrc[ -m_iLeftMargin*iSrcStride ];
-      for ( Int x = 0; x < iWidth; x++ )
+      for ( Int y = iHeight; y != 0; y-- )
       {
-        iSum                = xCTI_Filter_VP[QU0_IDX]( piSrcTmp, piFilter, iSrcStride );
-        piDst[x * iDstStep] = Clip( (iSum +  128) >>  8 );
-        piSrcTmp += iSrcStep;
+        piSrcTmp = &piSrc[ -m_iLeftMargin*iSrcStride ];
+        for ( Int x = 0; x < iWidth; x++ )
+        {
+          iSum                = xCTI_Filter_VP[QU0_IDX]( piSrcTmp, piFilter, iSrcStride );
+          piDst[x * iDstStep] = Clip( (iSum +  128) >>  8 );
+          piSrcTmp += iSrcStep;
+        }
+        piSrc += iSrcStride;
+        piDst += iDstStride;
       }
-      piSrc += iSrcStride;
-      piDst += iDstStride;
     }
   }
   return;
@@ -981,7 +997,7 @@ __inline Void TComPredFilter::xCTI_FilterQuarter1Ver (Pel* piSrc, Int iSrcStride
   Int   iSum;
   Pel*  piSrcTmp;
   Int*  piFilter = CTI_Filter12[m_iTapIdx][QU1_IDX];
-
+  
   if ( m_iDIFTap == 6 )
   {
     for ( Int y = iHeight; y != 0; y-- )
@@ -998,34 +1014,36 @@ __inline Void TComPredFilter::xCTI_FilterQuarter1Ver (Pel* piSrc, Int iSrcStride
     }
   }
   else
-  if ( m_iDIFTap == 12 )
   {
-    for ( Int y = iHeight; y != 0; y-- )
+    if ( m_iDIFTap == 12 )
     {
-      piSrcTmp = &piSrc[ -m_iLeftMargin*iSrcStride ];
-      for ( Int x = 0; x < iWidth; x++ )
+      for ( Int y = iHeight; y != 0; y-- )
       {
-        iSum                = xCTI_Filter_VP12_QU1( piSrcTmp, piFilter, iSrcStride );
-        piDst[x * iDstStep] = iSum;
-        piSrcTmp += iSrcStep;
+        piSrcTmp = &piSrc[ -m_iLeftMargin*iSrcStride ];
+        for ( Int x = 0; x < iWidth; x++ )
+        {
+          iSum                = xCTI_Filter_VP12_QU1( piSrcTmp, piFilter, iSrcStride );
+          piDst[x * iDstStep] = iSum;
+          piSrcTmp += iSrcStep;
+        }
+        piSrc += iSrcStride;
+        piDst += iDstStride;
       }
-      piSrc += iSrcStride;
-      piDst += iDstStride;
     }
-  }
-  else
-  {
-    for ( Int y = iHeight; y != 0; y-- )
+    else
     {
-      piSrcTmp = &piSrc[ -m_iLeftMargin*iSrcStride ];
-      for ( Int x = 0; x < iWidth; x++ )
+      for ( Int y = iHeight; y != 0; y-- )
       {
-        iSum                = xCTI_Filter_VP[QU1_IDX]( piSrcTmp, piFilter, iSrcStride );
-        piDst[x * iDstStep] = iSum;
-        piSrcTmp += iSrcStep;
+        piSrcTmp = &piSrc[ -m_iLeftMargin*iSrcStride ];
+        for ( Int x = 0; x < iWidth; x++ )
+        {
+          iSum                = xCTI_Filter_VP[QU1_IDX]( piSrcTmp, piFilter, iSrcStride );
+          piDst[x * iDstStep] = iSum;
+          piSrcTmp += iSrcStep;
+        }
+        piSrc += iSrcStride;
+        piDst += iDstStride;
       }
-      piSrc += iSrcStride;
-      piDst += iDstStride;
     }
   }
   return;
@@ -1037,7 +1055,7 @@ __inline Void TComPredFilter::xCTI_FilterQuarter1Ver (Pel* piSrc, Int iSrcStride
   Int   iSum;
   Pel*  piSrcTmp;
   Int*  piFilter = CTI_Filter12[m_iTapIdx][QU1_IDX];
-
+  
   if ( m_iDIFTap == 6 )
   {
     for ( Int y = iHeight; y != 0; y-- )
@@ -1054,34 +1072,36 @@ __inline Void TComPredFilter::xCTI_FilterQuarter1Ver (Pel* piSrc, Int iSrcStride
     }
   }
   else
-  if ( m_iDIFTap == 12 )
   {
-    for ( Int y = iHeight; y != 0; y-- )
+    if ( m_iDIFTap == 12 )
     {
-      piSrcTmp = &piSrc[ -m_iLeftMargin*iSrcStride ];
-      for ( Int x = 0; x < iWidth; x++ )
+      for ( Int y = iHeight; y != 0; y-- )
       {
-        iSum                = xCTI_Filter_VP12_QU1( piSrcTmp, piFilter, iSrcStride );
-        piDst[x * iDstStep] = Clip( (iSum +  128) >>  8 );
-        piSrcTmp += iSrcStep;
+        piSrcTmp = &piSrc[ -m_iLeftMargin*iSrcStride ];
+        for ( Int x = 0; x < iWidth; x++ )
+        {
+          iSum                = xCTI_Filter_VP12_QU1( piSrcTmp, piFilter, iSrcStride );
+          piDst[x * iDstStep] = Clip( (iSum +  128) >>  8 );
+          piSrcTmp += iSrcStep;
+        }
+        piSrc += iSrcStride;
+        piDst += iDstStride;
       }
-      piSrc += iSrcStride;
-      piDst += iDstStride;
     }
-  }
-  else
-  {
-    for ( Int y = iHeight; y != 0; y-- )
+    else
     {
-      piSrcTmp = &piSrc[ -m_iLeftMargin*iSrcStride ];
-      for ( Int x = 0; x < iWidth; x++ )
+      for ( Int y = iHeight; y != 0; y-- )
       {
-        iSum                = xCTI_Filter_VP[QU1_IDX]( piSrcTmp, piFilter, iSrcStride );
-        piDst[x * iDstStep] = Clip( (iSum +  128) >>  8 );
-        piSrcTmp += iSrcStep;
+        piSrcTmp = &piSrc[ -m_iLeftMargin*iSrcStride ];
+        for ( Int x = 0; x < iWidth; x++ )
+        {
+          iSum                = xCTI_Filter_VP[QU1_IDX]( piSrcTmp, piFilter, iSrcStride );
+          piDst[x * iDstStep] = Clip( (iSum +  128) >>  8 );
+          piSrcTmp += iSrcStep;
+        }
+        piSrc += iSrcStride;
+        piDst += iDstStride;
       }
-      piSrc += iSrcStride;
-      piDst += iDstStride;
     }
   }
   return;
@@ -1099,13 +1119,14 @@ __inline Int TComPredFilter::xCTI_Filter_VPS06_HAL( Pel* pSrc, Int* piCoeff, Int
   a0 = pSrc[        0]+pSrc[iStride*5];
   a1 = pSrc[iStride*1]+pSrc[iStride*4];
   a2 = pSrc[iStride*2]+pSrc[iStride*3];
-
+  
   iSum  = (a2 << 2) - a1;
   iSum += (iSum << 2);
   iSum += a0;
   iSum = (iSum << 3);
   return iSum;
 }
+
 __inline Int TComPredFilter::xCTI_Filter_VIS06_HAL( Int* pSrc, Int* piCoeff, Int iStride )
 {
   // {     8,  -40,  160,  160,  -40,    8 }
@@ -1113,13 +1134,14 @@ __inline Int TComPredFilter::xCTI_Filter_VIS06_HAL( Int* pSrc, Int* piCoeff, Int
   a0 = pSrc[        0]+pSrc[iStride*5];
   a1 = pSrc[iStride*1]+pSrc[iStride*4];
   a2 = pSrc[iStride*2]+pSrc[iStride*3];
-
+  
   iSum  = (a2 << 2) - a1;
   iSum += (iSum << 2);
   iSum += a0;
   iSum = (iSum << 3);
   return iSum;
 }
+
 __inline Int TComPredFilter::xCTI_Filter_VP06_QU0( Pel* pSrc, Int* piCoeff, Int iStride )
 {
   // {     8,  -32,  224,   72,  -24,    8 },
@@ -1130,6 +1152,7 @@ __inline Int TComPredFilter::xCTI_Filter_VP06_QU0( Pel* pSrc, Int* piCoeff, Int 
   iSum += (pSrc[2*iStride]) << 8;
   return iSum;
 }
+
 __inline Int TComPredFilter::xCTI_Filter_VI06_QU0( Int* pSrc, Int* piCoeff, Int iStride )
 {
   // {     8,  -32,  224,   72,  -24,    8 },
@@ -1140,6 +1163,7 @@ __inline Int TComPredFilter::xCTI_Filter_VI06_QU0( Int* pSrc, Int* piCoeff, Int 
   iSum += (pSrc[2*iStride]) << 8;
   return iSum;
 }
+
 __inline Int TComPredFilter::xCTI_Filter_VP06_QU1( Pel* pSrc, Int* piCoeff, Int iStride )
 {
   // {     8,  -24,   72,  224,  -32,    8,},
@@ -1150,6 +1174,7 @@ __inline Int TComPredFilter::xCTI_Filter_VP06_QU1( Pel* pSrc, Int* piCoeff, Int 
   iSum += (pSrc[3*iStride]) << 8;
   return iSum;
 }
+
 __inline Int TComPredFilter::xCTI_Filter_VI06_QU1( Int* pSrc, Int* piCoeff, Int iStride )
 {
   // {     8,  -24,   72,  224,  -32,    8,},
@@ -1172,7 +1197,7 @@ __inline Int TComPredFilter::xCTI_Filter_VPS12_HAL( Pel* pSrc, Int* piCoeff, Int
   a3 = pSrc[iStride*3]+pSrc[iStride* 8];
   a4 = pSrc[iStride*4]+pSrc[iStride* 7];
   a5 = pSrc[iStride*5]+pSrc[iStride* 6];
-
+  
   iSum  = (-a0 + a5);
   iSum += (a1 + a3) << 3;
   iSum += (-a2 + a3 - a4) << 4;
@@ -1180,6 +1205,7 @@ __inline Int TComPredFilter::xCTI_Filter_VPS12_HAL( Pel* pSrc, Int* piCoeff, Int
   iSum += a5 << 7;
   return iSum;
 }
+
 __inline Int TComPredFilter::xCTI_Filter_VIS12_HAL( Int* pSrc, Int* piCoeff, Int iStride )
 {
   // {    -1,    8,  -16,   24,  -48,  161,  161,  -48,   24,  -16,    8,   -1 }
@@ -1190,7 +1216,7 @@ __inline Int TComPredFilter::xCTI_Filter_VIS12_HAL( Int* pSrc, Int* piCoeff, Int
   a3 = pSrc[iStride*3]+pSrc[iStride* 8];
   a4 = pSrc[iStride*4]+pSrc[iStride* 7];
   a5 = pSrc[iStride*5]+pSrc[iStride* 6];
-
+  
   iSum  = (-a0 + a5);
   iSum += (a1 + a3) << 3;
   iSum += (-a2 + a3 - a4) << 4;
@@ -1198,12 +1224,13 @@ __inline Int TComPredFilter::xCTI_Filter_VIS12_HAL( Int* pSrc, Int* piCoeff, Int
   iSum += a5 << 7;
   return iSum;
 }
+
 __inline Int TComPredFilter::xCTI_Filter_VP12_QU0( Pel* pSrc, Int* piCoeff, Int iStride )
 {
-
+  
   //v.1.1
   // { -1, 5, -12, 20, -40, 229, 76, -32, 16, -8, 4, -1 }
-
+  
   Int iSum, iTemp1, iTemp2;
   iTemp1 = pSrc[iStride] + pSrc[5*iStride];
   iTemp2 = -pSrc[2*iStride] + pSrc[6*iStride];
@@ -1216,12 +1243,13 @@ __inline Int TComPredFilter::xCTI_Filter_VP12_QU0( Pel* pSrc, Int* piCoeff, Int 
   iSum += (pSrc[5*iStride]) << 8;
   return iSum;
 }
+
 __inline Int TComPredFilter::xCTI_Filter_VI12_QU0( Int* pSrc, Int* piCoeff, Int iStride )
 {
-
+  
   //v.1.1
   // { -1, 5, -12, 20, -40, 229, 76, -32, 16, -8, 4, -1 }
-
+  
   Int iSum, iTemp1, iTemp2;
   iTemp1 = pSrc[iStride] + pSrc[5*iStride];
   iTemp2 = -pSrc[2*iStride] + pSrc[6*iStride];
@@ -1234,12 +1262,13 @@ __inline Int TComPredFilter::xCTI_Filter_VI12_QU0( Int* pSrc, Int* piCoeff, Int 
   iSum += (pSrc[5*iStride]) << 8;
   return iSum;
 }
+
 __inline Int TComPredFilter::xCTI_Filter_VP12_QU1( Pel* pSrc, Int* piCoeff, Int iStride )
 {
-
+  
   //v.1.1
   // {-1,  4,  -8,  16, -32,  76, 229, -40, 20, -12,  5, -1 },
-
+  
   Int iSum, iTemp1, iTemp2;
   iTemp1 = pSrc[10*iStride] + pSrc[6*iStride];
   iTemp2 = -pSrc[9*iStride] + pSrc[5*iStride];
@@ -1252,12 +1281,13 @@ __inline Int TComPredFilter::xCTI_Filter_VP12_QU1( Pel* pSrc, Int* piCoeff, Int 
   iSum += (pSrc[6*iStride]) << 8;
   return iSum;
 }
+
 __inline Int TComPredFilter::xCTI_Filter_VI12_QU1( Int* pSrc, Int* piCoeff, Int iStride )
 {
-
+  
   //v.1.1
   // {-1,  4,  -8,  16, -32,  76, 229, -40, 20, -12,  5, -1 },
-
+  
   Int iSum, iTemp1, iTemp2;
   iTemp1 = pSrc[10*iStride] + pSrc[6*iStride];
   iTemp2 = -pSrc[9*iStride] + pSrc[5*iStride];

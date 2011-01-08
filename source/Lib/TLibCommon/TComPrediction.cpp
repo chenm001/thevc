@@ -48,12 +48,12 @@ TComPrediction::TComPrediction()
 TComPrediction::~TComPrediction()
 {
   m_cYuvExt.destroy();
-
+  
   delete[] m_piYuvExt;
-
+  
   m_acYuvPred[0].destroy();
   m_acYuvPred[1].destroy();
-
+  
   m_cYuvPredTemp.destroy();
 }
 
@@ -63,17 +63,17 @@ Void TComPrediction::initTempBuff()
   {
     m_iYuvExtHeight  = ((g_uiMaxCUHeight + 2) << 4);
     m_iYuvExtStride = ((g_uiMaxCUWidth  + 12) << 4);
-
+    
     m_cYuvExt.create( m_iYuvExtStride, m_iYuvExtHeight );
     m_piYuvExt = new Int[ m_iYuvExtStride * m_iYuvExtHeight ];
-
+    
     // new structure
     m_acYuvPred[0] .create( g_uiMaxCUWidth, g_uiMaxCUHeight );
     m_acYuvPred[1] .create( g_uiMaxCUWidth, g_uiMaxCUHeight );
-
+    
     m_cYuvPredTemp.create( g_uiMaxCUWidth, g_uiMaxCUHeight );
   }
-
+  
   m_iDIFHalfTap   = ( m_iDIFTap  >> 1 );
 }
 
@@ -86,16 +86,18 @@ Pel TComPrediction::predIntraGetPredValDC( Int* pSrc, Int iSrcStride, UInt iWidt
 {
   Int iInd, iSum = 0;
   Pel pDcVal;
-
-  if (bAbove) {
+  
+  if (bAbove)
+  {
     for (iInd = 0;iInd < iWidth;iInd++)
       iSum += pSrc[iInd-iSrcStride];
   }
-  if (bLeft) {
+  if (bLeft)
+  {
     for (iInd = 0;iInd < iHeight;iInd++)
       iSum += pSrc[iInd*iSrcStride-1];
   }
-
+  
   if (bAbove && bLeft)
     pDcVal = (iSum + iWidth) / (iWidth + iHeight);
   else if (bAbove)
@@ -104,7 +106,7 @@ Pel TComPrediction::predIntraGetPredValDC( Int* pSrc, Int iSrcStride, UInt iWidt
     pDcVal = (iSum + iHeight/2) / iHeight;
   else
     pDcVal = pSrc[-1]; // Default DC value already calculated and placed in the prediction array if no neighbors are available
-
+  
   return pDcVal;
 }
 
@@ -134,7 +136,7 @@ Void TComPrediction::xPredIntraAng( Int* pSrc, Int srcStride, Pel*& rpDst, Int d
   Int k,l;
   Int blkSize        = width;
   Pel* pDst          = rpDst;
-
+  
   // Map the mode index to main prediction direction and angle
   Bool modeDC        = dirMode == 0;
   Bool modeVer       = !modeDC && (dirMode < 18);
@@ -142,19 +144,19 @@ Void TComPrediction::xPredIntraAng( Int* pSrc, Int srcStride, Pel*& rpDst, Int d
   Int intraPredAngle = modeVer ? dirMode - 9 : modeHor ? dirMode - 25 : 0;
   Int absAng         = abs(intraPredAngle);
   Int signAng        = intraPredAngle < 0 ? -1 : 1;
-
+  
   // Set bitshifts and scale the angle parameter to block size
   Int angTable[9]    = {0,    2,    5,   9,  13,  17,  21,  26,  32};
   Int invAngTable[9] = {0, 4096, 1638, 910, 630, 482, 390, 315, 256}; // (256 * 32) / Angle
   Int invAngle       = invAngTable[absAng];
   absAng             = angTable[absAng];
   intraPredAngle     = signAng * absAng;
-
+  
   // Do the DC prediction
   if (modeDC)
   {
     Pel dcval = predIntraGetPredValDC(pSrc, srcStride, width, height, blkAboveAvailable, blkLeftAvailable);
-
+    
     for (k=0;k<blkSize;k++)
     {
       for (l=0;l<blkSize;l++)
@@ -163,7 +165,7 @@ Void TComPrediction::xPredIntraAng( Int* pSrc, Int srcStride, Pel*& rpDst, Int d
       }
     }
   }
-
+  
   // Do angular predictions
   else
   {
@@ -171,7 +173,7 @@ Void TComPrediction::xPredIntraAng( Int* pSrc, Int srcStride, Pel*& rpDst, Int d
     Pel* refSide;
     Pel  refAbove[2*MAX_CU_SIZE+1];
     Pel  refLeft[2*MAX_CU_SIZE+1];
-
+    
     // Initialise the Main and Left reference array. 
     if (intraPredAngle < 0)
     {
@@ -185,12 +187,12 @@ Void TComPrediction::xPredIntraAng( Int* pSrc, Int srcStride, Pel*& rpDst, Int d
       }
       refMain = (modeVer ? refAbove : refLeft) + (blkSize-1);
       refSide = (modeVer ? refLeft : refAbove) + (blkSize-1);
-
+      
       // Extend the Main reference to the left.
       Int invAngleSum    = 128;       // rounding for (shift by 8)
       for (k=-1; k>blkSize*intraPredAngle>>5; k--)
       {
-		    invAngleSum += invAngle;
+        invAngleSum += invAngle;
         refMain[k] = refSide[invAngleSum>>8];
       }
     }
@@ -206,7 +208,7 @@ Void TComPrediction::xPredIntraAng( Int* pSrc, Int srcStride, Pel*& rpDst, Int d
       }
       refMain = modeVer ? refAbove : refLeft;
     }
-
+    
     if (intraPredAngle == 0)
     {
       for (k=0;k<blkSize;k++)
@@ -223,13 +225,13 @@ Void TComPrediction::xPredIntraAng( Int* pSrc, Int srcStride, Pel*& rpDst, Int d
       Int deltaInt;
       Int deltaFract;
       Int refMainIndex;
-
+      
       for (k=0;k<blkSize;k++)
       {
         deltaPos += intraPredAngle;
         deltaInt   = deltaPos >> 5;
         deltaFract = deltaPos & (32 - 1);
-
+        
         if (deltaFract)
         {
           // Do linear filtering
@@ -249,7 +251,7 @@ Void TComPrediction::xPredIntraAng( Int* pSrc, Int srcStride, Pel*& rpDst, Int d
         }
       }
     }
-
+    
     // Flip the block if this is the horizontal mode
     if (modeHor)
     {
@@ -271,25 +273,25 @@ Void TComPrediction::predIntraLumaAng(TComPattern* pcTComPattern, UInt uiDirMode
 {
   Pel *pDst = piPred;
   Int *ptrSrc;
-
-// only assign variable in debug mode
+  
+  // only assign variable in debug mode
 #ifndef NDEBUG
   // get intra direction
   Int iIntraSizeIdx = g_aucConvertToBit[ iWidth ] + 1;
-
+  
   assert( iIntraSizeIdx >= 1 ); //   4x  4
   assert( iIntraSizeIdx <= 6 ); // 128x128
   assert( iWidth == iHeight  );
 #endif //NDEBUG
-
+  
   ptrSrc = pcTComPattern->getAdiOrgBuf( iWidth, iHeight, m_piYuvExt );
-
+  
   // get starting pixel in block
   Int sw = ( iWidth<<1 ) + 1;
-
+  
   // get converted direction
   uiDirMode = g_aucAngIntraModeOrder[ uiDirMode ];
-
+  
   // Create the prediction
   xPredIntraAng( ptrSrc+sw+1, sw, pDst, uiStride, iWidth, iHeight, uiDirMode, bAbove,  bLeft );
 }
@@ -299,13 +301,13 @@ Void TComPrediction::predIntraChromaAng( TComPattern* pcTComPattern, Int* piSrc,
 {
   Pel *pDst = piPred;
   Int *ptrSrc = piSrc;
-
+  
   // get starting pixel in block
   Int sw = ( iWidth<<1 ) + 1;
-
+  
   // get converted direction
   uiDirMode = g_aucAngIntraModeOrder[ uiDirMode ];
-
+  
   // Create the prediction
   xPredIntraAng( ptrSrc+sw+1, sw, pDst, uiStride, iWidth, iHeight, uiDirMode, bAbove,  bLeft );
 }
@@ -315,7 +317,7 @@ Void TComPrediction::motionCompensation ( TComDataCU* pcCU, TComYuv* pcYuvPred, 
   Int         iWidth;
   Int         iHeight;
   UInt        uiPartAddr;
-
+  
   if ( iPartIdx >= 0 )
   {
     pcCU->getPartIndexAndSize( iPartIdx, uiPartAddr, iWidth, iHeight );
@@ -329,11 +331,11 @@ Void TComPrediction::motionCompensation ( TComDataCU* pcCU, TComYuv* pcYuvPred, 
     }
     return;
   }
-
+  
   for ( iPartIdx = 0; iPartIdx < pcCU->getNumPartInter(); iPartIdx++ )
   {
     pcCU->getPartIndexAndSize( iPartIdx, uiPartAddr, iWidth, iHeight );
-
+    
     if ( eRefPicList != REF_PIC_LIST_X )
     {
       xPredInterUni (pcCU, uiPartAddr, iWidth, iHeight, eRefPicList, pcYuvPred, iPartIdx );
@@ -351,22 +353,20 @@ Void TComPrediction::xPredInterUni ( TComDataCU* pcCU, UInt uiPartAddr, Int iWid
   Int         iRefIdx     = pcCU->getCUMvField( eRefPicList )->getRefIdx( uiPartAddr );           assert (iRefIdx >= 0);
   TComMv      cMv         = pcCU->getCUMvField( eRefPicList )->getMv( uiPartAddr );
   InterpFilterType ePFilt = (InterpFilterType)pcCU->getSlice()->getInterpFilterType();
-
+  
   pcCU->clipMv(cMv);
-
+  
+  switch ( ePFilt )
   {
-	  switch ( ePFilt )
-	  {
 #if TEN_DIRECTIONAL_INTERP
-  case IPF_TEN_DIF:
-    xPredInterLumaBlk_TEN   ( pcCU, pcCU->getSlice()->getRefPic( eRefPicList, iRefIdx )->getPicYuvRec()    , uiPartAddr, &cMv, iWidth, iHeight, rpcYuvPred );
-    xPredInterChromaBlk ( pcCU, pcCU->getSlice()->getRefPic( eRefPicList, iRefIdx )->getPicYuvRec()    , uiPartAddr, &cMv, iWidth, iHeight, rpcYuvPred );
-    break;
+    case IPF_TEN_DIF:
+      xPredInterLumaBlk_TEN   ( pcCU, pcCU->getSlice()->getRefPic( eRefPicList, iRefIdx )->getPicYuvRec()    , uiPartAddr, &cMv, iWidth, iHeight, rpcYuvPred );
+      xPredInterChromaBlk ( pcCU, pcCU->getSlice()->getRefPic( eRefPicList, iRefIdx )->getPicYuvRec()    , uiPartAddr, &cMv, iWidth, iHeight, rpcYuvPred );
+      break;
 #endif
-	  default:
-	    xPredInterLumaBlk       ( pcCU, pcCU->getSlice()->getRefPic( eRefPicList, iRefIdx )->getPicYuvRec(), uiPartAddr, &cMv, iWidth, iHeight, rpcYuvPred );
+    default:
+      xPredInterLumaBlk       ( pcCU, pcCU->getSlice()->getRefPic( eRefPicList, iRefIdx )->getPicYuvRec(), uiPartAddr, &cMv, iWidth, iHeight, rpcYuvPred );
       xPredInterChromaBlk     ( pcCU, pcCU->getSlice()->getRefPic( eRefPicList, iRefIdx )->getPicYuvRec(), uiPartAddr, &cMv, iWidth, iHeight, rpcYuvPred );
-	  }
   }
 }
 
@@ -374,20 +374,20 @@ Void TComPrediction::xPredInterBi ( TComDataCU* pcCU, UInt uiPartAddr, Int iWidt
 {
   TComYuv* pcMbYuv;
   Int      iRefIdx[2] = {-1, -1};
-
+  
   for ( Int iRefList = 0; iRefList < 2; iRefList++ )
   {
     RefPicList eRefPicList = (iRefList ? REF_PIC_LIST_1 : REF_PIC_LIST_0);
     iRefIdx[iRefList] = pcCU->getCUMvField( eRefPicList )->getRefIdx( uiPartAddr );
-
+    
     if ( iRefIdx[iRefList] < 0 )  { continue; }
-
+    
     assert( iRefIdx[iRefList] < pcCU->getSlice()->getNumRefIdx(eRefPicList) );
-
+    
     pcMbYuv = &m_acYuvPred[iRefList];
     xPredInterUni ( pcCU, uiPartAddr, iWidth, iHeight, eRefPicList, pcMbYuv, iPartIdx );
   }
-
+  
   xWeightedAverage( pcCU, &m_acYuvPred[0], &m_acYuvPred[1], iRefIdx[0], iRefIdx[1], uiPartAddr, iWidth, iHeight, rpcYuvPred );
 }
 
@@ -395,15 +395,15 @@ Void  TComPrediction::xPredInterLumaBlk( TComDataCU* pcCU, TComPicYuv* pcPicYuvR
 {
   Int     iRefStride = pcPicYuvRef->getStride();
   Int     iDstStride = rpcYuv->getStride();
-
+  
   Int     iRefOffset = ( pcMv->getHor() >> 2 ) + ( pcMv->getVer() >> 2 ) * iRefStride;
   Pel*    piRefY     = pcPicYuvRef->getLumaAddr( pcCU->getAddr(), pcCU->getZorderIdxInCU() + uiPartAddr ) + iRefOffset;
-
+  
   Int     ixFrac  = pcMv->getHor() & 0x3;
   Int     iyFrac  = pcMv->getVer() & 0x3;
-
+  
   Pel* piDstY = rpcYuv->getLumaAddr( uiPartAddr );
-
+  
   //  Integer point
   if ( ixFrac == 0 && iyFrac == 0 )
   {
@@ -415,24 +415,24 @@ Void  TComPrediction::xPredInterLumaBlk( TComDataCU* pcCU, TComPicYuv* pcPicYuvR
     }
     return;
   }
-
+  
   //  Half-pel horizontal
   if ( ixFrac == 2 && iyFrac == 0 )
   {
     xCTI_FilterHalfHor ( piRefY, iRefStride, 1, iWidth, iHeight, iDstStride, 1, piDstY );
     return;
   }
-
+  
   //  Half-pel vertical
   if ( ixFrac == 0 && iyFrac == 2 )
   {
     xCTI_FilterHalfVer ( piRefY, iRefStride, 1, iWidth, iHeight, iDstStride, 1, piDstY );
     return;
   }
-
+  
   Int   iExtStride = m_iYuvExtStride;//m_cYuvExt.getStride();
   Int*  piExtY     = m_piYuvExt;//m_cYuvExt.getLumaAddr();
-
+  
   //  Half-pel center
   if ( ixFrac == 2 && iyFrac == 2 )
   {
@@ -440,7 +440,7 @@ Void  TComPrediction::xPredInterLumaBlk( TComDataCU* pcCU, TComPicYuv* pcPicYuvR
     xCTI_FilterHalfHor (piExtY + 6,  iExtStride, 1, iWidth    , iHeight, iDstStride, 1, piDstY );
     return;
   }
-
+  
   //  Quater-pel horizontal
   if ( iyFrac == 0)
   {
@@ -470,7 +470,7 @@ Void  TComPrediction::xPredInterLumaBlk( TComDataCU* pcCU, TComPicYuv* pcPicYuvR
       return;
     }
   }
-
+  
   //  Quater-pel vertical
   if( ixFrac == 0 )
   {
@@ -485,7 +485,7 @@ Void  TComPrediction::xPredInterLumaBlk( TComDataCU* pcCU, TComPicYuv* pcPicYuvR
       return;
     }
   }
-
+  
   if( ixFrac == 2 )
   {
     if( iyFrac == 1 )
@@ -501,7 +501,7 @@ Void  TComPrediction::xPredInterLumaBlk( TComDataCU* pcCU, TComPicYuv* pcPicYuvR
       return;
     }
   }
-
+  
   /// Quarter-pel center
   if ( iyFrac == 1)
   {
@@ -539,23 +539,23 @@ Void TComPrediction::xPredInterChromaBlk( TComDataCU* pcCU, TComPicYuv* pcPicYuv
 {
   Int     iRefStride  = pcPicYuvRef->getCStride();
   Int     iDstStride  = rpcYuv->getCStride();
-
+  
   Int     iRefOffset  = (pcMv->getHor() >> 3) + (pcMv->getVer() >> 3) * iRefStride;
-
+  
   Pel*    piRefCb     = pcPicYuvRef->getCbAddr( pcCU->getAddr(), pcCU->getZorderIdxInCU() + uiPartAddr ) + iRefOffset;
   Pel*    piRefCr     = pcPicYuvRef->getCrAddr( pcCU->getAddr(), pcCU->getZorderIdxInCU() + uiPartAddr ) + iRefOffset;
-
+  
   Pel* piDstCb = rpcYuv->getCbAddr( uiPartAddr );
   Pel* piDstCr = rpcYuv->getCrAddr( uiPartAddr );
-
+  
   Int     ixFrac  = pcMv->getHor() & 0x7;
   Int     iyFrac  = pcMv->getVer() & 0x7;
-
+  
   Int     x, y;
   UInt    uiCWidth  = iWidth  >> 1;
   UInt    uiCHeight = iHeight >> 1;
-
-
+  
+  
   // Integer point
   if ( ixFrac == 0 && iyFrac == 0 )
   {
@@ -570,20 +570,20 @@ Void TComPrediction::xPredInterChromaBlk( TComDataCU* pcCU, TComPicYuv* pcPicYuv
     }
     return;
   }
-
+  
   // Horizontal point
   if ( iyFrac == 0 )
   {
     Pel* piRefCbP1;
     Pel* piRefCrP1;
-
+    
     if ( ixFrac == 4 )
     {
       for ( y = 0; y < uiCHeight; y++ )
       {
         piRefCbP1= piRefCb + 1;
         piRefCrP1= piRefCr + 1;
-
+        
         for ( x = 0; x < uiCWidth; x++ )
         {
           piDstCb[x] = (piRefCb[x] + piRefCbP1[x] + 1) >> 1;
@@ -601,7 +601,7 @@ Void TComPrediction::xPredInterChromaBlk( TComDataCU* pcCU, TComPicYuv* pcPicYuv
       {
         piRefCbP1= piRefCb + 1;
         piRefCrP1= piRefCr + 1;
-
+        
         for ( x = 0; x < uiCWidth; x++ )
         {
           piDstCb[x] = ( ( piRefCb[x] << 3 ) + ixFrac * ( piRefCbP1[x] - piRefCb[x] ) + 4 ) >> 3;
@@ -615,13 +615,13 @@ Void TComPrediction::xPredInterChromaBlk( TComDataCU* pcCU, TComPicYuv* pcPicYuv
     }
     return;
   }
-
+  
   // Vertical point
   if ( ixFrac == 0 )
   {
     Pel* piNextRefCb;
     Pel* piNextRefCr;
-
+    
     if (iyFrac == 4)
     {
       for ( y = 0; y < uiCHeight; y++ )
@@ -658,29 +658,29 @@ Void TComPrediction::xPredInterChromaBlk( TComDataCU* pcCU, TComPicYuv* pcPicYuv
     }
     return;
   }
-
+  
   // Center point
   {
     Pel* piNextRefCb;
     Pel* piNextRefCr;
-
+    
     Pel* piRefCbP1;
     Pel* piNextRefCbP1;
     Pel* piRefCrP1;
     Pel* piNextRefCrP1;
-
+    
     if (ixFrac == 4 && iyFrac == 4)
     {
       for ( y = 0; y < uiCHeight; y++ )
       {
         piNextRefCb = piRefCb + iRefStride;
         piNextRefCr = piRefCr + iRefStride;
-
+        
         piRefCbP1= piRefCb + 1;
         piNextRefCbP1 = piNextRefCb + 1;
         piRefCrP1= piRefCr + 1;
         piNextRefCrP1 = piNextRefCr + 1;
-
+        
         for ( x = 0; x < uiCWidth; x++ )
         {
           piDstCb[x] = (piRefCb[x] + piRefCbP1[x] + piNextRefCb[x] + piNextRefCbP1[x] + 2) >> 2;
@@ -693,34 +693,34 @@ Void TComPrediction::xPredInterChromaBlk( TComDataCU* pcCU, TComPicYuv* pcPicYuv
       }
       return;
     }
-
+    
     Int aCb, bCb, cCb;
     Int aCr, bCr, cCr;
-
+    
     for ( y = 0; y < uiCHeight; y++ )
     {
       piNextRefCb = piRefCb + iRefStride;
       piNextRefCr = piRefCr + iRefStride;
-
+      
       aCb = ( piRefCb[0] << 3 ) + iyFrac * ( piNextRefCb[0] - piRefCb[0] ); aCb *= ( 8 - ixFrac );
       aCr = ( piRefCr[0] << 3 ) + iyFrac * ( piNextRefCr[0] - piRefCr[0] ); aCr *= ( 8 - ixFrac );
-
+      
       piRefCbP1     = piRefCb     + 1;
       piNextRefCbP1 = piNextRefCb + 1;
       piRefCrP1     = piRefCr     + 1;
       piNextRefCrP1 = piNextRefCr + 1;
-
+      
       for ( x = 0; x < uiCWidth; x++ )
       {
         bCb = ( piRefCbP1[x] << 3 ) + iyFrac * ( piNextRefCbP1[x] - piRefCbP1[x] );
         bCr = ( piRefCrP1[x] << 3 ) + iyFrac * ( piNextRefCrP1[x] - piRefCrP1[x] );
-
+        
         cCb = ixFrac     * bCb;
         cCr = ixFrac     * bCr;
-
+        
         piDstCb[x] = ( aCb + cCb + 32 ) >> 6;
         piDstCr[x] = ( aCr + cCr + 32 ) >> 6;
-
+        
         aCb = (bCb<<3) - cCb;
         aCr = (bCr<<3) - cCr;
       }
@@ -737,15 +737,15 @@ Void  TComPrediction::xPredInterLumaBlk_TEN( TComDataCU* pcCU, TComPicYuv* pcPic
 {
   Int     iRefStride = pcPicYuvRef->getStride();
   Int     iDstStride = rpcYuv->getStride();
-
+  
   Int     iRefOffset = ( pcMv->getHor() >> 2 ) + ( pcMv->getVer() >> 2 ) * iRefStride;
   Pel*    piRefY     = pcPicYuvRef->getLumaAddr( pcCU->getAddr(), pcCU->getZorderIdxInCU() + uiPartAddr ) + iRefOffset;
-
+  
   Int     ixFrac  = pcMv->getHor() & 0x3;
   Int     iyFrac  = pcMv->getVer() & 0x3;
-
+  
   Pel* piDstY = rpcYuv->getLumaAddr( uiPartAddr );
-
+  
   xCTI_FilterDIF_TEN ( piRefY, iRefStride, 1, iWidth, iHeight, iDstStride, 1, piDstY, iyFrac, ixFrac);
   return;
 }
@@ -780,16 +780,16 @@ Void TComPrediction::xWeightedAverage( TComDataCU* pcCU, TComYuv* pcYuvSrc0, TCo
 Void TComPrediction::getMvPredAMVP( TComDataCU* pcCU, UInt uiPartIdx, UInt uiPartAddr, RefPicList eRefPicList, Int iRefIdx, TComMv& rcMvPred )
 {
   AMVPInfo* pcAMVPInfo = pcCU->getCUMvField(eRefPicList)->getAMVPInfo();
-
+  
   if( pcCU->getAMVPMode(uiPartAddr) == AM_NONE || (pcAMVPInfo->iN <= 1 && pcCU->getAMVPMode(uiPartAddr) == AM_EXPL) )
   {
     rcMvPred = pcAMVPInfo->m_acMvCand[0];
-
+    
     pcCU->setMVPIdxSubParts( 0, eRefPicList, uiPartAddr, uiPartIdx, pcCU->getDepth(uiPartAddr));
     pcCU->setMVPNumSubParts( pcAMVPInfo->iN, eRefPicList, uiPartAddr, uiPartIdx, pcCU->getDepth(uiPartAddr));
     return;
   }
-
+  
   assert(pcCU->getMVPIdx(eRefPicList,uiPartAddr) >= 0);
   rcMvPred = pcAMVPInfo->m_acMvCand[pcCU->getMVPIdx(eRefPicList,uiPartAddr)];
   return;

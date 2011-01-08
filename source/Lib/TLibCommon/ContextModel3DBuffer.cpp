@@ -40,10 +40,10 @@
 // ====================================================================================================================
 
 ContextModel3DBuffer::ContextModel3DBuffer( UInt uiSizeZ, UInt uiSizeY, UInt uiSizeX ) :
-  m_pcContextModel( NULL ),
-  m_uiSizeX( uiSizeX ),
-  m_uiSizeY( uiSizeY ),
-  m_uiSizeZ( uiSizeZ )
+m_pcContextModel( NULL ),
+m_uiSizeX( uiSizeX ),
+m_uiSizeY( uiSizeY ),
+m_uiSizeZ( uiSizeZ )
 
 {
   // allocate 3D buffer
@@ -62,16 +62,16 @@ ContextModel3DBuffer::~ContextModel3DBuffer()
 // ====================================================================================================================
 
 /**
-    - initialize 3D buffer with respect to slicetype, QP and given initial probability table
-    .
-    \param  eSliceType      slice type
-    \param  iQP             input QP value
-    \param  psCtxModel      given probability table
+ - initialize 3D buffer with respect to slicetype, QP and given initial probability table
+ .
+ \param  eSliceType      slice type
+ \param  iQP             input QP value
+ \param  psCtxModel      given probability table
  */
 Void ContextModel3DBuffer::initBuffer( SliceType eSliceType, Int iQp, Short* psCtxModel )
 {
   UInt n, z, offset = 0;
-
+  
   for ( z = 0; z < m_uiSizeZ; z++ )
   {
     for ( n = 0; n < m_uiSizeY * m_uiSizeX; n++ )
@@ -84,9 +84,9 @@ Void ContextModel3DBuffer::initBuffer( SliceType eSliceType, Int iQp, Short* psC
 }
 
 /**
-    - copy from given 3D buffer
-    .
-    \param  pSrc          given 3D buffer
+ - copy from given 3D buffer
+ .
+ \param  pSrc          given 3D buffer
  */
 Void ContextModel3DBuffer::copyFrom( ContextModel3DBuffer* pSrc )
 {

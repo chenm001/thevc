@@ -84,11 +84,11 @@ class QpParam
 {
 public:
   QpParam();
-
+  
   Int m_iQP;
   Int m_iPer;
   Int m_iRem;
-
+  
   Int m_iAdd2x2;
   Int m_iAdd4x4;
   Int m_iAdd8x8;
@@ -102,7 +102,7 @@ private:
   Int m_aiAdd32x32[MAX_QP+1][3];
 public:
   Int m_iBits;
-
+  
   Void initOffsetParam(Int iStartQP = MIN_QP, Int iEndQP = MAX_QP );
   Void setQOffset( Int iQP, SliceType eSliceType )
   {
@@ -112,23 +112,23 @@ public:
     m_iAdd16x16 = m_aiAdd16x16[iQP][eSliceType];
     m_iAdd32x32 = m_aiAdd32x32[iQP][eSliceType];
   }
-
+  
   Void setQpParam( Int iQP, Bool bLowpass, SliceType eSliceType, Bool bEnc )
   {
     assert ( iQP >= MIN_QP && iQP <= MAX_QP );
     m_iQP   = iQP;
-
+    
     m_iPer  = (iQP + 6*g_uiBitIncrement)/6;
     m_iRem  = (iQP + 6*g_uiBitIncrement)%6;
-
+    
     m_iBits = QP_BITS + m_iPer;
-
+    
     if ( bEnc )
     {
       setQOffset(iQP, eSliceType);
     }
   }
-
+  
   Void clear()
   {
     m_iQP   = 0;
@@ -136,12 +136,12 @@ public:
     m_iRem  = 0;
     m_iBits = 0;
   }
-
-
+  
+  
   const Int per()   const { return m_iPer; }
   const Int rem()   const { return m_iRem; }
   const Int bits()  const { return m_iBits; }
-
+  
   Int qp() {return m_iQP;}
 }; // END CLASS DEFINITION QpParam
 
@@ -151,48 +151,48 @@ class TComTrQuant
 public:
   TComTrQuant();
   ~TComTrQuant();
-
+  
   // initialize class
   Void init                 ( UInt uiMaxWidth, UInt uiMaxHeight, UInt uiMaxTrSize, Int iSymbolMode = 0, UInt *aTable4 = NULL, UInt *aTable8 = NULL, Bool bUseRDOQ = false,  Bool bEnc = false );
-
+  
   // transform & inverse transform functions
   Void transformNxN         ( TComDataCU* pcCU, Pel*   pcResidual, UInt uiStride, TCoeff*& rpcCoeff, UInt uiWidth, UInt uiHeight,
-                              UInt& uiAbsSum, TextType eTType, UInt uiAbsPartIdx );
+                             UInt& uiAbsSum, TextType eTType, UInt uiAbsPartIdx );
   Void invtransformNxN      ( Pel*& rpcResidual, UInt uiStride, TCoeff*   pcCoeff, UInt uiWidth, UInt uiHeight );
   Void invRecurTransformNxN ( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eTxt, Pel*& rpcResidual, UInt uiAddr,   UInt uiStride, UInt uiWidth, UInt uiHeight,
-                              UInt uiMaxTrMode,  UInt uiTrMode, TCoeff* rpcCoeff );
-
+                             UInt uiMaxTrMode,  UInt uiTrMode, TCoeff* rpcCoeff );
+  
   // Misc functions
   Void setQPforQuant( Int iQP, Bool bLowpass, SliceType eSliceType, TextType eTxtType);
   Void setLambda(Double dLambda) { m_dLambda = dLambda;}
-
+  
   estBitsSbacStruct* m_pcEstBitsSbac;
-
+  
   static UInt     getSigCtxInc     ( TCoeff*                         pcCoeff,
-                                     const UInt                      uiPosX,
-                                     const UInt                      uiPosY,
-                                     const UInt                      uiLog2BlkSize,
-                                     const UInt                      uiStride,
-                                     const bool                      bDownLeft );
+                                    const UInt                      uiPosX,
+                                    const UInt                      uiPosY,
+                                    const UInt                      uiLog2BlkSize,
+                                    const UInt                      uiStride,
+                                    const bool                      bDownLeft );
   static UInt     getLastCtxInc    ( const UInt                      uiPosX,
-                                     const UInt                      uiPosY,
-                                     const UInt                      uiLog2BlkSize );
-
+                                    const UInt                      uiPosY,
+                                    const UInt                      uiLog2BlkSize );
+  
 protected:
   Long*    m_plTempCoeff;
   UInt*    m_puiQuantMtx;
-
+  
   QpParam  m_cQP;
   Double   m_dLambda;
-
+  
   UInt     m_uiMaxTrSize;
   Bool     m_bEnc;
   Bool     m_bUseRDOQ;
-
+  
   UInt     *m_uiLPTableE8;
   UInt     *m_uiLPTableE4;
   Int      m_iSymbolMode;
-
+  
 private:
   // forward Transform
   Void xT   ( Pel* pResidual, UInt uiStride, Long* plCoeff, Int iSize );
@@ -201,65 +201,65 @@ private:
   Void xT8  ( Pel* pResidual, UInt uiStride, Long* plCoeff );
   Void xT16 ( Pel* pResidual, UInt uiStride, Long* plCoeff );
   Void xT32 ( Pel* pResidual, UInt uiStride, Long* plCoeff );
-
+  
   // quantization
   Void xQuant     ( TComDataCU* pcCU, Long* pSrc, TCoeff*& pDes, Int iWidth, Int iHeight, UInt& uiAcSum, TextType eTType, UInt uiAbsPartIdx );
   Void xQuantLTR  ( TComDataCU* pcCU, Long* pSrc, TCoeff*& pDes, Int iWidth, Int iHeight, UInt& uiAcSum, TextType eTType, UInt uiAbsPartIdx );
   Void xQuant2x2  ( Long* plSrcCoef, TCoeff*& pDstCoef, UInt& uiAbsSum );
   Void xQuant4x4  ( TComDataCU* pcCU, Long* plSrcCoef, TCoeff*& pDstCoef, UInt& uiAbsSum, TextType eTType, UInt uiAbsPartIdx );
   Void xQuant8x8  ( TComDataCU* pcCU, Long* plSrcCoef, TCoeff*& pDstCoef, UInt& uiAbsSum, TextType eTType, UInt uiAbsPartIdx );
-
+  
   // RDOQ functions
   Int            bitCount_LCEC(Int k,Int pos,Int n,Int lpflag,Int levelMode,Int run,Int maxrun,Int vlc_adaptive,Int N);
   Void           xRateDistOptQuant_LCEC ( TComDataCU*                     pcCU,
-                                        Long*                           plSrcCoeff,
-                                        TCoeff*&                        piDstCoeff,
-                                        UInt                            uiWidth,
-                                        UInt                            uiHeight,
-                                        UInt&                           uiAbsSum,
-                                        TextType                        eTType,
-                                        UInt                            uiAbsPartIdx );
-
+                                         Long*                           plSrcCoeff,
+                                         TCoeff*&                        piDstCoeff,
+                                         UInt                            uiWidth,
+                                         UInt                            uiHeight,
+                                         UInt&                           uiAbsSum,
+                                         TextType                        eTType,
+                                         UInt                            uiAbsPartIdx );
+  
   Void           xRateDistOptQuant ( TComDataCU*                     pcCU,
-                                     Long*                           plSrcCoeff,
-                                     TCoeff*&                        piDstCoeff,
-                                     UInt                            uiWidth,
-                                     UInt                            uiHeight,
-                                     UInt&                           uiAbsSum,
-                                     TextType                        eTType,
-                                     UInt                            uiAbsPartIdx );
+                                    Long*                           plSrcCoeff,
+                                    TCoeff*&                        piDstCoeff,
+                                    UInt                            uiWidth,
+                                    UInt                            uiHeight,
+                                    UInt&                           uiAbsSum,
+                                    TextType                        eTType,
+                                    UInt                            uiAbsPartIdx );
   
   __inline UInt  xGetCodedLevel    ( Double&                         rd64UncodedCost,
-                                     Double&                         rd64CodedCost,
-                                     Long                            lLevelDouble,
-                                     UInt                            uiMaxAbsLevel,
-                                     bool                            bLastScanPos,
-                                     UShort                          ui16CtxNumSig,
-                                     UShort                          ui16CtxNumOne,
-                                     UShort                          ui16CtxNumAbs,
-                                     Int                             iQBits,
-                                     Double                          dTemp,
-                                     UShort                          ui16CtxBase   ) const;
+                                    Double&                         rd64CodedCost,
+                                    Long                            lLevelDouble,
+                                    UInt                            uiMaxAbsLevel,
+                                    bool                            bLastScanPos,
+                                    UShort                          ui16CtxNumSig,
+                                    UShort                          ui16CtxNumOne,
+                                    UShort                          ui16CtxNumAbs,
+                                    Int                             iQBits,
+                                    Double                          dTemp,
+                                    UShort                          ui16CtxBase   ) const;
   __inline Double xGetICRateCost   ( UInt                            uiAbsLevel,
-                                     bool                            bLastScanPos,
-                                     UShort                          ui16CtxNumSig,
-                                     UShort                          ui16CtxNumOne,
-                                     UShort                          ui16CtxNumAbs,
-                                     UShort                          ui16CtxBase   ) const;
+                                    bool                            bLastScanPos,
+                                    UShort                          ui16CtxNumSig,
+                                    UShort                          ui16CtxNumOne,
+                                    UShort                          ui16CtxNumAbs,
+                                    UShort                          ui16CtxBase   ) const;
   __inline Double xGetICost        ( Double                          dRate         ) const; 
   __inline Double xGetIEPRate      (                                               ) const;
-
-
+  
+  
   __inline Int          xRound   ( Int i )   { return ((i)+(1<<5))>>6; }
   __inline static Long  xTrRound ( Long i, UInt uiShift ) { return ((i)>>uiShift); }
-
+  
   // dequantization
   Void xDeQuant         ( TCoeff* pSrc,     Long*& pDes,       Int iWidth, Int iHeight );
   Void xDeQuantLTR      ( TCoeff* pSrc,     Long*&  pDes,      Int iWidth, Int iHeight );
   Void xDeQuant2x2      ( TCoeff* pSrcCoef, Long*& rplDstCoef );
   Void xDeQuant4x4      ( TCoeff* pSrcCoef, Long*& rplDstCoef );
   Void xDeQuant8x8      ( TCoeff* pSrcCoef, Long*& rplDstCoef );
-
+  
   // inverse transform
   Void xIT    ( Long* plCoef, Pel* pResidual, UInt uiStride, Int iSize );
   Void xIT2   ( Long* plCoef, Pel* pResidual, UInt uiStride );
@@ -267,7 +267,7 @@ private:
   Void xIT8   ( Long* plCoef, Pel* pResidual, UInt uiStride );
   Void xIT16  ( Long* plCoef, Pel* pResidual, UInt uiStride );
   Void xIT32  ( Long* plCoef, Pel* pResidual, UInt uiStride );
-
+  
 };// END CLASS DEFINITION TComTrQuant
 
 

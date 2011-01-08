@@ -48,10 +48,10 @@ Void TComBitstream::create( UInt uiSizeInBytes )
   m_uiBufSize       = uiSize;
   m_uiBitSize       = 0;
   m_iValidBits      = 32;
-
+  
   m_ulCurrentBits   = 0;
   m_uiBitsWritten   = 0;
-
+  
   m_pulStreamPacket = m_apulStreamPacketBegin;
 }
 
@@ -69,31 +69,31 @@ Void TComBitstream::write   ( UInt uiBits, UInt uiNumberOfBits )
   assert( m_uiBufSize > 0 );
   assert( uiNumberOfBits <= 32 );
   assert( ! ( (uiBits >> 1) >> (uiNumberOfBits - 1)) ); // because shift with 32 has no effect
-
+  
   m_uiBitsWritten += uiNumberOfBits;
-
+  
   if( (Int)uiNumberOfBits < m_iValidBits)  // one word
   {
     m_iValidBits -= uiNumberOfBits;
-
+    
     m_ulCurrentBits |= uiBits << m_iValidBits;
-
+    
     return;
   }
-
+  
   UInt uiShift = uiNumberOfBits - m_iValidBits;
-
+  
   // add the last bits
   m_ulCurrentBits |= uiBits >> uiShift;
-
+  
   *m_pulStreamPacket++ = xSwap( m_ulCurrentBits );
-
-
+  
+  
   // note: there is a problem with left shift with 32
   m_iValidBits = 32 - uiShift;
-
+  
   m_ulCurrentBits = uiBits << m_iValidBits;
-
+  
   if( 0 == uiShift )
   {
     m_ulCurrentBits = 0;
@@ -116,11 +116,11 @@ Void  TComBitstream::flushBuffer()
 {
   if (m_iValidBits == 0)
     return;
-
+  
   *m_pulStreamPacket = xSwap( m_ulCurrentBits );
-
+  
   m_uiBitsWritten = (m_uiBitsWritten+7)/8;
-
+  
   m_uiBitsWritten *= 8;
 }
 
@@ -131,12 +131,12 @@ Void TComBitstream::initParsing ( UInt uiNumBytes )
   m_uiBitsLeft        = 0;
   m_iValidBits        = 0;
   m_uiDWordsLeft      = 0;
-
+  
   m_uiBitsLeft        = uiNumBytes << 3;
-
+  
   m_uiDWordsLeft      = m_uiBitsLeft >> 5;
   m_iValidBits        = -32;
-
+  
   xReadNextWord();
   xReadNextWord();
 }
@@ -144,26 +144,26 @@ Void TComBitstream::initParsing ( UInt uiNumBytes )
 Void TComBitstream::read (UInt uiNumberOfBits, UInt& ruiBits)
 {
   UInt ui_right_shift;
-
+  
   // check the number_of_bits parameter matches the range
   assert( uiNumberOfBits <= 32 );
-
+  
   if( uiNumberOfBits > m_uiBitsLeft )
   {
     assert (0);
   }
-
+  
   m_uiBitsLeft -= uiNumberOfBits;
   m_iValidBits -= uiNumberOfBits;
-
+  
   if( 0 <= m_iValidBits )
   {
     // calculate the number of bits to extract the desired number of bits
     ui_right_shift = 32 - uiNumberOfBits ;
-
+    
     // mask out the value
     ruiBits  = m_ulCurrentBits >> ui_right_shift;
-
+    
     //prepare for next access
     m_ulCurrentBits = m_ulCurrentBits << uiNumberOfBits;
   }
@@ -171,18 +171,18 @@ Void TComBitstream::read (UInt uiNumberOfBits, UInt& ruiBits)
   {
     // mask out the value in the current word
     ruiBits = m_ulCurrentBits;
-
+    
     // calculate the number of bits to extract the desired number of bits
     ui_right_shift = m_iValidBits + uiNumberOfBits ;
-
+    
     // mask out the value in the next word
     ruiBits |= m_uiNextBits >> ui_right_shift;
-
+    
     ruiBits >>= 32 - uiNumberOfBits;
-
+    
     m_uiNextBits <<=  -m_iValidBits;
   }
-
+  
   // check the current word for being empty
   //-- baekeun.lee@samsung.com
   if ( 0 < m_iValidBits)
@@ -195,30 +195,30 @@ Void TComBitstream::read (UInt uiNumberOfBits, UInt& ruiBits)
 Void TComBitstream::readAlignOne()
 {
   UInt uiNumberOfBits = getBitsUntilByteAligned();
-
+  
   // check the number_of_bits parameter matches the range
   assert (uiNumberOfBits <= 32);
   assert (uiNumberOfBits <= m_uiBitsLeft);
-
+  
   // sub the desired number of bits
   m_uiBitsLeft -= uiNumberOfBits;
   m_iValidBits -= uiNumberOfBits;
-
+  
   assert (m_uiBitsLeft%8 == 0);
   assert (m_iValidBits%8 == 0);
-
+  
   // check the current word for beeing still valid
   if( 0 < m_iValidBits )
   {
     m_ulCurrentBits <<= uiNumberOfBits;
     return;
   }
-
+  
   xReadNextWord();
-
+  
   // shift to the right position
   m_ulCurrentBits <<= 32 - m_iValidBits;
-
+  
   return;
 }
 
@@ -230,7 +230,7 @@ __inline Void TComBitstream::xReadNextWord()
 {
   m_ulCurrentBits = m_uiNextBits;
   m_iValidBits += 32;
-
+  
   // chech if there are bytes left in the packet
   if( m_uiDWordsLeft )
   {
@@ -243,7 +243,7 @@ __inline Void TComBitstream::xReadNextWord()
     Int iBytesLeft  = ((Int)m_uiBitsLeft - m_iValidBits+7) >> 3;
     UChar* puc      = (UChar*) m_pulStreamPacket;
     m_uiNextBits  = 0;
-
+    
     if( iBytesLeft > 0)
     {
       for( Int iByte = 0; iByte < iBytesLeft; iByte++ )
@@ -265,7 +265,7 @@ Void TComBitstream::initParsingConvertPayloadToRBSP( const UInt uiBytesRead )
   UInt uiWriteOffset  = 0;
   const UChar* pucRead = reinterpret_cast<UChar*> (getBuffer());
   UChar* pucWrite      = reinterpret_cast<UChar*> (getBuffer());
-
+  
   for( ; uiReadOffset < uiBytesRead; uiReadOffset++ )
   {
     if( 2 == uiZeroCount && 0x03 == pucRead[uiReadOffset] )
@@ -277,9 +277,9 @@ Void TComBitstream::initParsingConvertPayloadToRBSP( const UInt uiBytesRead )
         break;
       }
     }
-
+    
     pucWrite[uiWriteOffset++] = pucRead[uiReadOffset];
-
+    
     if( 0x00 == pucRead[uiReadOffset] )
     {
       uiZeroCount++;
@@ -289,36 +289,36 @@ Void TComBitstream::initParsingConvertPayloadToRBSP( const UInt uiBytesRead )
       uiZeroCount = 0;
     }
   }
-
+  
   // th just clear the remaining bits in the buffer
   for( UInt ui = uiWriteOffset; ui < uiBytesRead; ui++)
   {
     pucWrite[ui] = 0;
   }
-
+  
   initParsing( uiWriteOffset );
 }
 
 Void TComBitstream::convertRBSPToPayload( UInt uiStartPos )
 {
   UInt uiZeroCount    = 0;
-
+  
   //make sure the buffer is flushed
   assert( 0 == getBitsUntilByteAligned() );
-
+  
   const UInt uiBytesInBuffer = getNumberOfWrittenBits()>>3;
   //make sure there's something in the buffer
   assert( 0 != uiBytesInBuffer );
-
+  
   //make sure start pos is inside the buffer
-//  assert( uiStartPos > uiBytesInBuffer );
+  //  assert( uiStartPos > uiBytesInBuffer );
   
   UChar* pucRead = new UChar[ uiBytesInBuffer ];
   //th this is not nice but ...
   memcpy( pucRead, getStartStream(), uiBytesInBuffer );
-
+  
   UChar* pucWrite      =  reinterpret_cast<UChar*> (getStartStream());
-
+  
   UInt uiWriteOffset  = uiStartPos;
   for( UInt uiReadOffset = uiStartPos; uiReadOffset < uiBytesInBuffer ; uiReadOffset++ )
   {
@@ -327,9 +327,9 @@ Void TComBitstream::convertRBSPToPayload( UInt uiStartPos )
       pucWrite[uiWriteOffset++] = 0x03;
       uiZeroCount = 0;
     }
-
+    
     pucWrite[uiWriteOffset++] = pucRead[uiReadOffset];
-
+    
     if( 0 == pucRead[uiReadOffset] )
     {
       uiZeroCount++;
@@ -339,7 +339,7 @@ Void TComBitstream::convertRBSPToPayload( UInt uiStartPos )
       uiZeroCount = 0;
     }
   }
-
+  
   delete [] pucRead;
   m_uiBitsWritten = uiWriteOffset << 3;
 }

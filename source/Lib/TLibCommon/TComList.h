@@ -57,13 +57,48 @@ class TComList : public std::list< C >
 {
 public:
   typedef typename std::list<C>::iterator TComIterator;
-
-  TComList& operator += ( const TComList& rcTComList) { if( ! rcTComList.empty() ) { insert( this->end(), rcTComList.begin(), rcTComList.end());} return *this; } // leszek
-  C popBack()                           { C cT = this->back(); this->pop_back(); return cT;  }
-  C popFront()                          { C cT = this->front(); this->pop_front(); return cT; }
-  Void pushBack( const C& rcT )         { /*assert( sizeof(C) == 4);*/ { if( rcT != NULL ){ push_back( rcT);} } }
-  Void pushFront( const C& rcT )        { /*assert( sizeof(C) == 4);*/ { if( rcT != NULL ){ push_front( rcT);} } }
-
+  
+  TComList& operator += ( const TComList& rcTComList)
+  {
+    if( ! rcTComList.empty() )
+    {
+      insert( this->end(), rcTComList.begin(), rcTComList.end());
+    }
+    return *this;
+  } // leszek
+  
+  C popBack()
+  {
+    C cT = this->back();
+    this->pop_back();
+    return cT;
+  }
+  
+  C popFront()
+  {
+    C cT = this->front();
+    this->pop_front();
+    return cT;
+  }
+  
+  Void pushBack( const C& rcT )
+  {
+    /*assert( sizeof(C) == 4);*/
+    if( rcT != NULL )
+    {
+      push_back( rcT);
+    }
+  }
+  
+  Void pushFront( const C& rcT )
+  {
+    /*assert( sizeof(C) == 4);*/
+    if( rcT != NULL )
+    {
+      push_front( rcT);
+    }
+  }
+  
   TComIterator find( const C& rcT ) // leszek
   {
     return find( this->begin(), this->end(), rcT );

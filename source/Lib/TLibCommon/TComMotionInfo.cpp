@@ -51,7 +51,7 @@ Void TComCUMvField::create( UInt uiNumPartition )
   m_pcMv     = ( TComMv* )xMalloc( TComMv, uiNumPartition );
   m_pcMvd    = ( TComMv* )xMalloc( TComMv, uiNumPartition );
   m_piRefIdx = (    Int* )xMalloc( Int,    uiNumPartition );
-
+  
   m_uiNumPartition = uiNumPartition;
 }
 
@@ -78,7 +78,7 @@ Void TComCUMvField::destroy()
 Void TComCUMvField::clearMv( Int iPartAddr, UInt uiDepth )
 {
   Int iNumPartition = m_uiNumPartition >> (uiDepth<<1);
-
+  
   for ( Int i = iNumPartition - 1; i >= 0; i-- )
   {
     m_pcMv[ i ].setZero();
@@ -88,7 +88,7 @@ Void TComCUMvField::clearMv( Int iPartAddr, UInt uiDepth )
 Void TComCUMvField::clearMvd( Int iPartAddr, UInt uiDepth )
 {
   Int iNumPartition = m_uiNumPartition >> (uiDepth<<1);
-
+  
   for ( Int i = iNumPartition - 1; i >= 0; i-- )
   {
     m_pcMvd[ i ].setZero();
@@ -108,7 +108,7 @@ Void TComCUMvField::clearMvField()
 Void TComCUMvField::copyFrom( TComCUMvField* pcCUMvFieldSrc, Int iNumPartSrc, Int iPartAddrDst )
 {
   Int iSizeInTComMv = sizeof( TComMv ) * iNumPartSrc;
-
+  
   memcpy( m_pcMv     + iPartAddrDst, pcCUMvFieldSrc->getMv(),     iSizeInTComMv );
   memcpy( m_pcMvd    + iPartAddrDst, pcCUMvFieldSrc->getMvd(),    iSizeInTComMv );
   memcpy( m_piRefIdx + iPartAddrDst, pcCUMvFieldSrc->getRefIdx(), sizeof( Int ) * iNumPartSrc );
@@ -117,7 +117,7 @@ Void TComCUMvField::copyFrom( TComCUMvField* pcCUMvFieldSrc, Int iNumPartSrc, In
 Void TComCUMvField::copyTo( TComCUMvField* pcCUMvFieldDst, Int iPartAddrDst )
 {
   Int iSizeInTComMv = sizeof( TComMv ) * m_uiNumPartition;
-
+  
   memcpy( pcCUMvFieldDst->getMv()     + iPartAddrDst, m_pcMv,     iSizeInTComMv );
   memcpy( pcCUMvFieldDst->getMvd()    + iPartAddrDst, m_pcMvd,    iSizeInTComMv );
   memcpy( pcCUMvFieldDst->getRefIdx() + iPartAddrDst, m_piRefIdx, sizeof( Int ) * m_uiNumPartition );
@@ -127,7 +127,7 @@ Void TComCUMvField::copyTo( TComCUMvField* pcCUMvFieldDst, Int iPartAddrDst, UIn
 {
   Int iSizeInTComMv = sizeof( TComMv ) * uiNumPart;
   Int iOffset = uiOffset + iPartAddrDst;
-
+  
   memcpy( pcCUMvFieldDst->getMv()     + iOffset, m_pcMv     + uiOffset, iSizeInTComMv );
   memcpy( pcCUMvFieldDst->getMvd()    + iOffset, m_pcMvd    + uiOffset, iSizeInTComMv );
   memcpy( pcCUMvFieldDst->getRefIdx() + iOffset, m_piRefIdx + uiOffset, sizeof( Int ) * uiNumPart );
@@ -148,22 +148,22 @@ Void TComCUMvField::setAllMv( TComMv& rcMv, PartSize eCUMode, Int iPartAddr, Int
   TComMv* pcMv = m_pcMv + iPartAddr;
   register TComMv cMv = rcMv;
   Int iNumPartition = m_uiNumPartition >> (uiDepth<<1);
-
+  
   switch( eCUMode )
   {
-  case SIZE_2Nx2N:
-    for ( i = iNumPartition - 1; i >= 0; i-- )
-    {
-      pcMv[ i ] = cMv;
-    }
-    break;
-  case SIZE_2NxN:
-    for ( i = ( iNumPartition >> 1 ) - 1; i >= 0; i-- )
-    {
-      pcMv[ i ] = cMv;
-    }
-    break;
-  case SIZE_Nx2N:
+    case SIZE_2Nx2N:
+      for ( i = iNumPartition - 1; i >= 0; i-- )
+      {
+        pcMv[ i ] = cMv;
+      }
+      break;
+    case SIZE_2NxN:
+      for ( i = ( iNumPartition >> 1 ) - 1; i >= 0; i-- )
+      {
+        pcMv[ i ] = cMv;
+      }
+      break;
+    case SIZE_Nx2N:
     {
       UInt uiOffset = iNumPartition >> 1;
       for ( i = ( iNumPartition >> 2 ) - 1; i >= 0; i-- )
@@ -173,15 +173,15 @@ Void TComCUMvField::setAllMv( TComMv& rcMv, PartSize eCUMode, Int iPartAddr, Int
       }
       break;
     }
-  case SIZE_NxN:
-    for ( i = ( iNumPartition >> 2 ) - 1; i >= 0; i-- )
-    {
-      pcMv[ i ] = cMv;
-    }
-    break;
-  default:
-    assert(0);
-    break;
+    case SIZE_NxN:
+      for ( i = ( iNumPartition >> 2 ) - 1; i >= 0; i-- )
+      {
+        pcMv[ i ] = cMv;
+      }
+      break;
+    default:
+      assert(0);
+      break;
   }
 }
 
@@ -191,22 +191,22 @@ Void TComCUMvField::setAllMvd( TComMv& rcMvd, PartSize eCUMode, Int iPartAddr, I
   TComMv* pcMvd = m_pcMvd + iPartAddr;
   register TComMv cMvd = rcMvd;
   Int iNumPartition = m_uiNumPartition >> (uiDepth<<1);
-
+  
   switch( eCUMode )
   {
-  case SIZE_2Nx2N:
-    for ( i = iNumPartition - 1; i >= 0; i-- )
-    {
-      pcMvd[ i ] = cMvd;
-    }
-    break;
-  case SIZE_2NxN:
-    for ( i = ( iNumPartition >> 1 ) - 1; i >= 0; i-- )
-    {
-      pcMvd[ i ] = cMvd;
-    }
-    break;
-  case SIZE_Nx2N:
+    case SIZE_2Nx2N:
+      for ( i = iNumPartition - 1; i >= 0; i-- )
+      {
+        pcMvd[ i ] = cMvd;
+      }
+      break;
+    case SIZE_2NxN:
+      for ( i = ( iNumPartition >> 1 ) - 1; i >= 0; i-- )
+      {
+        pcMvd[ i ] = cMvd;
+      }
+      break;
+    case SIZE_Nx2N:
     {
       UInt uiOffset = iNumPartition >> 1;
       for ( i = ( iNumPartition >> 2 ) - 1; i >= 0; i-- )
@@ -216,15 +216,15 @@ Void TComCUMvField::setAllMvd( TComMv& rcMvd, PartSize eCUMode, Int iPartAddr, I
       }
       break;
     }
-  case SIZE_NxN:
-    for ( i = ( iNumPartition >> 2 ) - 1; i >= 0; i-- )
-    {
-      pcMvd[ i ] = cMvd;
-    }
-    break;
-  default:
-    assert(0);
-    break;
+    case SIZE_NxN:
+      for ( i = ( iNumPartition >> 2 ) - 1; i >= 0; i-- )
+      {
+        pcMvd[ i ] = cMvd;
+      }
+      break;
+    default:
+      assert(0);
+      break;
   }
 }
 
@@ -233,22 +233,22 @@ Void TComCUMvField::setAllRefIdx ( Int iRefIdx, PartSize eCUMode, Int iPartAddr,
   Int i;
   Int* piRefIdx = m_piRefIdx + iPartAddr;
   Int iNumPartition = m_uiNumPartition >> (uiDepth<<1);
-
+  
   switch( eCUMode )
   {
-  case SIZE_2Nx2N:
-    for ( i = iNumPartition - 1; i >= 0; i-- )
-    {
-      piRefIdx[ i ] = iRefIdx;
-    }
-    break;
-  case SIZE_2NxN:
-    for ( i = ( iNumPartition >> 1 ) - 1; i >= 0; i-- )
-    {
-      piRefIdx[ i ] = iRefIdx;
-    }
-    break;
-  case SIZE_Nx2N:
+    case SIZE_2Nx2N:
+      for ( i = iNumPartition - 1; i >= 0; i-- )
+      {
+        piRefIdx[ i ] = iRefIdx;
+      }
+      break;
+    case SIZE_2NxN:
+      for ( i = ( iNumPartition >> 1 ) - 1; i >= 0; i-- )
+      {
+        piRefIdx[ i ] = iRefIdx;
+      }
+      break;
+    case SIZE_Nx2N:
     {
       UInt uiOffset = iNumPartition >> 1;
       for ( i = ( iNumPartition >> 2 ) - 1; i >= 0; i-- )
@@ -258,15 +258,15 @@ Void TComCUMvField::setAllRefIdx ( Int iRefIdx, PartSize eCUMode, Int iPartAddr,
       }
       break;
     }
-  case SIZE_NxN:
-    for ( i = ( iNumPartition >> 2 ) - 1; i >= 0; i-- )
-    {
-      piRefIdx[ i ] = iRefIdx;
-    }
-    break;
-  default:
-    assert(0);
-    break;
+    case SIZE_NxN:
+      for ( i = ( iNumPartition >> 2 ) - 1; i >= 0; i-- )
+      {
+        piRefIdx[ i ] = iRefIdx;
+      }
+      break;
+    default:
+      assert(0);
+      break;
   }
 }
 

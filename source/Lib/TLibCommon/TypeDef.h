@@ -222,7 +222,7 @@ struct _AlfParam
   Int startSecondFilter;
   Int noFilters;
   Int varIndTab[16];
-
+  
   //Coeff send related
   Int filters_per_group_diff; //this can be updated using codedVarBins
   Int filters_per_group;
@@ -252,8 +252,8 @@ typedef struct _LFCUParam
 /// parapeters for TENTM coefficient VLC
 typedef struct _LastCoeffStruct
 {
-    int level;
-    int last_pos;
+  int level;
+  int last_pos;
 } LastCoeffStruct;
 
 // ====================================================================================================================
@@ -275,7 +275,7 @@ enum PartSize
   SIZE_2NxN,            ///< symmetric motion partition,  2Nx N
   SIZE_Nx2N,            ///< symmetric motion partition,   Nx2N
   SIZE_NxN,             ///< symmetric motion partition,   Nx N
-
+  
   SIZE_NONE = 15
 };
 
@@ -318,7 +318,7 @@ enum DFunc
   DF_SSE32    = 5,      ///<  32xM SSE
   DF_SSE64    = 6,      ///<  64xM SSE
   DF_SSE16N   = 7,      ///< 16NxM SSE
-
+  
   DF_SAD      = 8,      ///< general size SAD
   DF_SAD4     = 9,      ///<   4xM SAD
   DF_SAD8     = 10,     ///<   8xM SAD
@@ -326,7 +326,7 @@ enum DFunc
   DF_SAD32    = 12,     ///<  32xM SAD
   DF_SAD64    = 13,     ///<  64xM SAD
   DF_SAD16N   = 14,     ///< 16NxM SAD
-
+  
   DF_SADS     = 15,     ///< general size SAD with step
   DF_SADS4    = 16,     ///<   4xM SAD with step
   DF_SADS8    = 17,     ///<   8xM SAD with step
@@ -334,7 +334,7 @@ enum DFunc
   DF_SADS32   = 19,     ///<  32xM SAD with step
   DF_SADS64   = 20,     ///<  64xM SAD with step
   DF_SADS16N  = 21,     ///< 16NxM SAD with step
-
+  
   DF_HADS     = 22,     ///< general size Hadamard with step
   DF_HADS4    = 23,     ///<   4xM HAD with step
   DF_HADS8    = 24,     ///<   8xM HAD with step
@@ -342,7 +342,7 @@ enum DFunc
   DF_HADS32   = 26,     ///<  32xM HAD with step
   DF_HADS64   = 27,     ///<  64xM HAD with step
   DF_HADS16N  = 28,     ///< 16NxM HAD with step
-
+  
   DF_SSE_FRAME = 33     ///< Frame-based SSE
 };
 
