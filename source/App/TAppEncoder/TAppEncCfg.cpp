@@ -96,124 +96,125 @@ Void TAppEncCfg::destroy()
 Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
 {
   bool do_help = false;
-
+  
   string cfg_InputFile;
   string cfg_BitstreamFile;
   string cfg_ReconFile;
   string cfg_dQPFile;
   po::Options opts;
   opts.addOptions()
-    ("help", do_help, false, "this help text")
-    ("c", po::parseConfigFile, "configuration file name")
-
-    /* File, I/O and source parameters */
-    ("InputFile,i",     cfg_InputFile,     string(""), "original YUV input file name")
-    ("BitstreamFile,b", cfg_BitstreamFile, string(""), "bitstream output file name")
-    ("ReconFile,o",     cfg_ReconFile,     string(""), "reconstructed YUV output file name")
-
-    ("SourceWidth,-wdt",      m_iSourceWidth,  0, "Source picture width")
-    ("SourceHeight,-hgt",     m_iSourceHeight, 0, "Source picture height")
-    ("BitDepth",              m_uiBitDepth,    8u)
-    ("BitIncrement",          m_uiBitIncrement,4u, "bit-depth increasement")
-    ("HorizontalPadding,-pdx",m_aiPad[0],      0, "horizontal source padding size")
-    ("VerticalPadding,-pdy",  m_aiPad[1],      0, "vertical source padding size")
-    ("PAD",                   m_bUsePAD,   false, "automatic source padding of multiple of 16" )
-    ("FrameRate,-fr",         m_iFrameRate,        0, "Frame rate")
-    ("FrameSkip,-fs",         m_iFrameSkip,        0, "Number of frames to skip at start of input YUV")
-    ("FramesToBeEncoded,f",   m_iFrameToBeEncoded, 0, "number of frames to be encoded (default=all)")
-    ("FrameToBeEncoded",      m_iFrameToBeEncoded, 0, "depricated alias of FramesToBeEncoded")
-
-    /* Unit definition parameters */
-    ("MaxCUWidth",          m_uiMaxCUWidth,  64u)
-    ("MaxCUHeight",         m_uiMaxCUHeight, 64u)
-    /* todo: remove defaults from MaxCUSize */
-    ("MaxCUSize,s",         m_uiMaxCUWidth,  64u, "max CU size")
-    ("MaxCUSize,s",         m_uiMaxCUHeight, 64u, "max CU size")
-    ("MaxPartitionDepth,h", m_uiMaxCUDepth,   4u, "CU depth")
+  ("help", do_help, false, "this help text")
+  ("c", po::parseConfigFile, "configuration file name")
   
-    ("QuadtreeTULog2MaxSize", m_uiQuadtreeTULog2MaxSize, 6u)
-    ("QuadtreeTULog2MinSize", m_uiQuadtreeTULog2MinSize, 2u)
-
-    ("QuadtreeTUMaxDepthIntra", m_uiQuadtreeTUMaxDepthIntra, 1u)
-    ("QuadtreeTUMaxDepthInter", m_uiQuadtreeTUMaxDepthInter, 2u)
-
-    /* Coding structure paramters */
-    ("IntraPeriod,-ip",m_iIntraPeriod, -1, "intra period in frames, (-1: only first frame)")
-    ("GOPSize,g",      m_iGOPSize,      1, "GOP size of temporal structure")
-    ("RateGOPSize,-rg",m_iRateGOPSize, -1, "GOP size of hierarchical QP assignment (-1: implies inherit GOPSize value)")
-    ("NumOfReference,r",       m_iNumOfReference,     1, "Number of reference (P)")
-    ("NumOfReferenceB_L0,-rb0",m_iNumOfReferenceB_L0, 1, "Number of reference (B_L0)")
-    ("NumOfReferenceB_L1,-rb1",m_iNumOfReferenceB_L1, 1, "Number of reference (B_L1)")
-    ("HierarchicalCoding",     m_bHierarchicalCoding, true)
-    ("LowDelayCoding",         m_bUseLDC,             false, "low-delay mode")
-    ("GPB", m_bUseGPB, false, "generalized B instead of P in low-delay mode")
-    ("NRF", m_bUseNRF,  true, "non-reference frame marking in last layer")
-    ("BQP", m_bUseBQP, false, "hier-P style QP assignment in low-delay mode")
-
-    /* Interpolation filter options */
-    ("InterpFilterType,-int", m_iInterpFilterType, (Int)IPF_SAMSUNG_DIF_DEFAULT, "Interpolation Filter:\n"
-                                                                                 "  0: DCT-IF\n"
+  /* File, I/O and source parameters */
+  ("InputFile,i",     cfg_InputFile,     string(""), "original YUV input file name")
+  ("BitstreamFile,b", cfg_BitstreamFile, string(""), "bitstream output file name")
+  ("ReconFile,o",     cfg_ReconFile,     string(""), "reconstructed YUV output file name")
+  
+  ("SourceWidth,-wdt",      m_iSourceWidth,  0, "Source picture width")
+  ("SourceHeight,-hgt",     m_iSourceHeight, 0, "Source picture height")
+  ("BitDepth",              m_uiBitDepth,    8u)
+  ("BitIncrement",          m_uiBitIncrement,4u, "bit-depth increasement")
+  ("HorizontalPadding,-pdx",m_aiPad[0],      0, "horizontal source padding size")
+  ("VerticalPadding,-pdy",  m_aiPad[1],      0, "vertical source padding size")
+  ("PAD",                   m_bUsePAD,   false, "automatic source padding of multiple of 16" )
+  ("FrameRate,-fr",         m_iFrameRate,        0, "Frame rate")
+  ("FrameSkip,-fs",         m_iFrameSkip,        0, "Number of frames to skip at start of input YUV")
+  ("FramesToBeEncoded,f",   m_iFrameToBeEncoded, 0, "number of frames to be encoded (default=all)")
+  ("FrameToBeEncoded",      m_iFrameToBeEncoded, 0, "depricated alias of FramesToBeEncoded")
+  
+  /* Unit definition parameters */
+  ("MaxCUWidth",          m_uiMaxCUWidth,  64u)
+  ("MaxCUHeight",         m_uiMaxCUHeight, 64u)
+  /* todo: remove defaults from MaxCUSize */
+  ("MaxCUSize,s",         m_uiMaxCUWidth,  64u, "max CU size")
+  ("MaxCUSize,s",         m_uiMaxCUHeight, 64u, "max CU size")
+  ("MaxPartitionDepth,h", m_uiMaxCUDepth,   4u, "CU depth")
+  
+  ("QuadtreeTULog2MaxSize", m_uiQuadtreeTULog2MaxSize, 6u)
+  ("QuadtreeTULog2MinSize", m_uiQuadtreeTULog2MinSize, 2u)
+  
+  ("QuadtreeTUMaxDepthIntra", m_uiQuadtreeTUMaxDepthIntra, 1u)
+  ("QuadtreeTUMaxDepthInter", m_uiQuadtreeTUMaxDepthInter, 2u)
+  
+  /* Coding structure paramters */
+  ("IntraPeriod,-ip",m_iIntraPeriod, -1, "intra period in frames, (-1: only first frame)")
+  ("GOPSize,g",      m_iGOPSize,      1, "GOP size of temporal structure")
+  ("RateGOPSize,-rg",m_iRateGOPSize, -1, "GOP size of hierarchical QP assignment (-1: implies inherit GOPSize value)")
+  ("NumOfReference,r",       m_iNumOfReference,     1, "Number of reference (P)")
+  ("NumOfReferenceB_L0,-rb0",m_iNumOfReferenceB_L0, 1, "Number of reference (B_L0)")
+  ("NumOfReferenceB_L1,-rb1",m_iNumOfReferenceB_L1, 1, "Number of reference (B_L1)")
+  ("HierarchicalCoding",     m_bHierarchicalCoding, true)
+  ("LowDelayCoding",         m_bUseLDC,             false, "low-delay mode")
+  ("GPB", m_bUseGPB, false, "generalized B instead of P in low-delay mode")
+  ("NRF", m_bUseNRF,  true, "non-reference frame marking in last layer")
+  ("BQP", m_bUseBQP, false, "hier-P style QP assignment in low-delay mode")
+  
+  /* Interpolation filter options */
+  ("InterpFilterType,-int", m_iInterpFilterType, (Int)IPF_SAMSUNG_DIF_DEFAULT, "Interpolation Filter:\n"
+   "  0: DCT-IF\n"
 # if TEN_DIRECTIONAL_INTERP
-                                                                                 "  3: DIF"
+   "  3: DIF"
 # endif
-                                                                                 )
-    ("DIFTap,tap", m_iDIFTap, 12, "number of interpolation filter taps (luma)")
-
-    /* motion options */
-    ("FastSearch", m_iFastSearch, 1, "0:Full search  1:Diamond  2:PMVFAST")
-    ("SearchRange,-sr",m_iSearchRange, 96, "motion search range")
-    ("HadamardME", m_bUseHADME, true, "hadamard ME for fractional-pel")
-    ("ASR", m_bUseASR, false, "adaptive motion search range")
-
-    /* Quantization parameters */
-    ("QP,q",          m_fQP,             30.0, "Qp value, if value is float, QP is switched once during encoding")
-    ("DeltaQpRD,-dqr",m_uiDeltaQpRD,       0u, "max dQp offset for slice")
-    ("MaxDeltaQP,d",  m_iMaxDeltaQP,        0, "max dQp offset for block")
-    ("dQPFile,m",     cfg_dQPFile, string(""), "dQP file name")
-    ("RDOQ",          m_bUseRDOQ, true)
-    ("TemporalLayerQPOffset_L0,-tq0", m_aiTLayerQPOffset[0], MAX_QP + 1, "QP offset of temporal layer 0")
-    ("TemporalLayerQPOffset_L1,-tq1", m_aiTLayerQPOffset[1], MAX_QP + 1, "QP offset of temporal layer 1")
-    ("TemporalLayerQPOffset_L2,-tq2", m_aiTLayerQPOffset[2], MAX_QP + 1, "QP offset of temporal layer 2")
-    ("TemporalLayerQPOffset_L3,-tq3", m_aiTLayerQPOffset[3], MAX_QP + 1, "QP offset of temporal layer 3")
-
-    /* Entropy coding parameters */
-    ("SymbolMode,-sym", m_iSymbolMode, 1, "symbol mode (0=VLC, 1=SBAC)")
-    ("SBACRD", m_bUseSBACRD, true, "SBAC based RD estimation")
-
-    /* Deblocking filter parameters */
-    ("LoopFilterDisable", m_bLoopFilterDisable, false)
-    ("LoopFilterAlphaC0Offset", m_iLoopFilterAlphaC0Offset, 0)
-    ("LoopFilterBetaOffset", m_iLoopFilterBetaOffset, 0 )
-
-    /* Coding tools */
+   )
+  ("DIFTap,tap", m_iDIFTap, 12, "number of interpolation filter taps (luma)")
+  
+  /* motion options */
+  ("FastSearch", m_iFastSearch, 1, "0:Full search  1:Diamond  2:PMVFAST")
+  ("SearchRange,-sr",m_iSearchRange, 96, "motion search range")
+  ("HadamardME", m_bUseHADME, true, "hadamard ME for fractional-pel")
+  ("ASR", m_bUseASR, false, "adaptive motion search range")
+  
+  /* Quantization parameters */
+  ("QP,q",          m_fQP,             30.0, "Qp value, if value is float, QP is switched once during encoding")
+  ("DeltaQpRD,-dqr",m_uiDeltaQpRD,       0u, "max dQp offset for slice")
+  ("MaxDeltaQP,d",  m_iMaxDeltaQP,        0, "max dQp offset for block")
+  ("dQPFile,m",     cfg_dQPFile, string(""), "dQP file name")
+  ("RDOQ",          m_bUseRDOQ, true)
+  ("TemporalLayerQPOffset_L0,-tq0", m_aiTLayerQPOffset[0], MAX_QP + 1, "QP offset of temporal layer 0")
+  ("TemporalLayerQPOffset_L1,-tq1", m_aiTLayerQPOffset[1], MAX_QP + 1, "QP offset of temporal layer 1")
+  ("TemporalLayerQPOffset_L2,-tq2", m_aiTLayerQPOffset[2], MAX_QP + 1, "QP offset of temporal layer 2")
+  ("TemporalLayerQPOffset_L3,-tq3", m_aiTLayerQPOffset[3], MAX_QP + 1, "QP offset of temporal layer 3")
+  
+  /* Entropy coding parameters */
+  ("SymbolMode,-sym", m_iSymbolMode, 1, "symbol mode (0=VLC, 1=SBAC)")
+  ("SBACRD", m_bUseSBACRD, true, "SBAC based RD estimation")
+  
+  /* Deblocking filter parameters */
+  ("LoopFilterDisable", m_bLoopFilterDisable, false)
+  ("LoopFilterAlphaC0Offset", m_iLoopFilterAlphaC0Offset, 0)
+  ("LoopFilterBetaOffset", m_iLoopFilterBetaOffset, 0 )
+  
+  /* Coding tools */
 #if HHI_MRG
-    ("MRG", m_bUseMRG, true, "merging of motion partitions")
+  ("MRG", m_bUseMRG, true, "merging of motion partitions")
 #endif
-    ("ALF", m_bUseALF, true, "Adaptive Loop Filter")
+  ("ALF", m_bUseALF, true, "Adaptive Loop Filter")
 #if HHI_RMP_SWITCH
-    ("RMP", m_bUseRMP ,true, "Rectangular motion partition" )
+  ("RMP", m_bUseRMP ,true, "Rectangular motion partition" )
 #endif
 #ifdef ROUNDING_CONTROL_BIPRED
-    ("RoundingControlBipred", m_useRoundingControlBipred, false, "Rounding control for bi-prediction")
+  ("RoundingControlBipred", m_useRoundingControlBipred, false, "Rounding control for bi-prediction")
 #endif
-    /* Misc. */
-    ("FEN", m_bUseFastEnc, false, "fast encoder setting")
-
-    /* Compatability with old style -1 FOO or -0 FOO options. */
-    ("1", doOldStyleCmdlineOn, "turn option <name> on")
-    ("0", doOldStyleCmdlineOff, "turn option <name> off")
-    ;
-
+  /* Misc. */
+  ("FEN", m_bUseFastEnc, false, "fast encoder setting")
+  
+  /* Compatability with old style -1 FOO or -0 FOO options. */
+  ("1", doOldStyleCmdlineOn, "turn option <name> on")
+  ("0", doOldStyleCmdlineOff, "turn option <name> off")
+  ;
+  
   po::setDefaults(opts);
   po::scanArgv(opts, argc, (const char**) argv);
-
-  if (argc == 1 || do_help) {
+  
+  if (argc == 1 || do_help)
+  {
     /* argc == 1: no options have been specified */
     po::doHelp(cout, opts);
     xPrintUsage();
     return false;
   }
-
+  
   /*
    * Set any derived parameters
    */
@@ -222,12 +223,13 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
   m_pchBitstreamFile = cfg_BitstreamFile.empty() ? NULL : strdup(cfg_BitstreamFile.c_str());
   m_pchReconFile = cfg_ReconFile.empty() ? NULL : strdup(cfg_ReconFile.c_str());
   m_pchdQPFile = cfg_dQPFile.empty() ? NULL : strdup(cfg_dQPFile.c_str());
-
-  if (m_iRateGOPSize == -1) {
+  
+  if (m_iRateGOPSize == -1)
+  {
     /* if rateGOPSize has not been specified, the default value is GOPSize */
     m_iRateGOPSize = m_iGOPSize;
   }
-
+  
   // compute source padding size
   if ( m_bUsePAD )
   {
@@ -235,7 +237,7 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
     {
       m_aiPad[0] = (m_iSourceWidth/MAX_PAD_SIZE+1)*MAX_PAD_SIZE - m_iSourceWidth;
     }
-
+    
     if ( m_iSourceHeight%MAX_PAD_SIZE )
     {
       m_aiPad[1] = (m_iSourceHeight/MAX_PAD_SIZE+1)*MAX_PAD_SIZE - m_iSourceHeight;
@@ -243,25 +245,25 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
   }
   m_iSourceWidth  += m_aiPad[0];
   m_iSourceHeight += m_aiPad[1];
-
+  
   // allocate slice-based dQP values
   m_aidQP = new Int[ m_iFrameToBeEncoded + m_iRateGOPSize + 1 ];
   ::memset( m_aidQP, 0, sizeof(Int)*( m_iFrameToBeEncoded + m_iRateGOPSize + 1 ) );
-
+  
   // handling of floating-point QP values
   // if QP is not integer, sequence is split into two sections having QP and QP+1
   m_iQP = (Int)( m_fQP );
   if ( m_iQP < m_fQP )
   {
     Int iSwitchPOC = (Int)( m_iFrameToBeEncoded - (m_fQP - m_iQP)*m_iFrameToBeEncoded + 0.5 );
-
+    
     iSwitchPOC = (Int)( (Double)iSwitchPOC / m_iRateGOPSize + 0.5 )*m_iRateGOPSize;
     for ( Int i=iSwitchPOC; i<m_iFrameToBeEncoded + m_iRateGOPSize + 1; i++ )
     {
       m_aidQP[i] = 1;
     }
   }
-
+  
   // reading external dQP description from file
   if ( m_pchdQPFile )
   {
@@ -279,16 +281,16 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
       fclose(fpt);
     }
   }
-
+  
   // check validity of input parameters
   xCheckParameter();
-
+  
   // set global varibles
   xSetGlobal();
-
+  
   // print-out parameters
   xPrintParameter();
-
+  
   return true;
 }
 
@@ -323,7 +325,7 @@ Void TAppEncCfg::xCheckParameter()
   xConfirmPara( (m_iSourceWidth  % (m_uiMaxCUWidth  >> (m_uiMaxCUDepth-1)))!=0,             "Frame width should be multiple of minimum CU size");
   xConfirmPara( (m_iSourceHeight % (m_uiMaxCUHeight >> (m_uiMaxCUDepth-1)))!=0,             "Frame height should be multiple of minimum CU size");
   xConfirmPara( m_iDIFTap  != 4 && m_iDIFTap  != 6 && m_iDIFTap  != 8 && m_iDIFTap  != 10 && m_iDIFTap  != 12, "DIF taps 4, 6, 8, 10 and 12 are supported");
-
+  
   xConfirmPara( m_uiQuadtreeTULog2MinSize < 2,                                        "QuadtreeTULog2MinSize must be 2 or greater.");
   xConfirmPara( m_uiQuadtreeTULog2MinSize > 5,                                        "QuadtreeTULog2MinSize must be 5 or smaller.");
   xConfirmPara( m_uiQuadtreeTULog2MaxSize < 2,                                        "QuadtreeTULog2MaxSize must be 2 or greater.");
@@ -337,16 +339,16 @@ Void TAppEncCfg::xCheckParameter()
   xConfirmPara( m_uiQuadtreeTUMaxDepthInter > m_uiQuadtreeTULog2MaxSize - m_uiQuadtreeTULog2MinSize + 1, "QuadtreeTUMaxDepthInter must be less than or equal to the difference between QuadtreeTULog2MaxSize and QuadtreeTULog2MinSize plus 1" );
   xConfirmPara( m_uiQuadtreeTUMaxDepthIntra < 1,                                                         "QuadtreeTUMaxDepthIntra must be greater than or equal to 1" );
   xConfirmPara( m_uiQuadtreeTUMaxDepthIntra > m_uiQuadtreeTULog2MaxSize - m_uiQuadtreeTULog2MinSize + 1, "QuadtreeTUMaxDepthIntra must be less than or equal to the difference between QuadtreeTULog2MaxSize and QuadtreeTULog2MinSize plus 1" );
-
+  
 #if !TEN_DIRECTIONAL_INTERP
   xConfirmPara( m_iInterpFilterType == IPF_TEN_DIF_PLACEHOLDER, "IPF_TEN_DIF is not configurable.  Please recompile using TEN_DIRECTIONAL_INTERP." );
 #endif
   xConfirmPara( m_iInterpFilterType >= IPF_LAST,                "Invalid InterpFilterType" );
   xConfirmPara( m_iInterpFilterType == IPF_HHI_4TAP_MOMS,       "Invalid InterpFilterType" );
   xConfirmPara( m_iInterpFilterType == IPF_HHI_6TAP_MOMS,       "Invalid InterpFilterType" );
-
+  
   xConfirmPara( m_iSymbolMode < 0 || m_iSymbolMode > 1,                                     "SymbolMode must be equal to 0 or 1" );
-
+  
 #if LCEC_CBP_YUV_ROOT
   if(m_iSymbolMode == 0)
   {
@@ -375,15 +377,16 @@ Void TAppEncCfg::xCheckParameter()
     if( (ui & 1) == 1)
       xConfirmPara( ui != 1 , "Height should be 2^n");
   }
-
+  
   // SBACRD is supported only for SBAC
   if ( m_iSymbolMode == 0 )
   {
     m_bUseSBACRD = false;
   }
-
+  
 #undef xConfirmPara
-  if (check_failed) {
+  if (check_failed)
+  {
     exit(EXIT_FAILURE);
   }
 }
@@ -395,7 +398,7 @@ Void TAppEncCfg::xSetGlobal()
   // set max CU width & height
   g_uiMaxCUWidth  = m_uiMaxCUWidth;
   g_uiMaxCUHeight = m_uiMaxCUHeight;
-
+  
   // compute actual CU depth with respect to config depth and max transform size
   g_uiAddCUDepth  = 0;
   while( (m_uiMaxCUWidth>>m_uiMaxCUDepth) > ( 1 << ( m_uiQuadtreeTULog2MinSize + g_uiAddCUDepth )  ) ) g_uiAddCUDepth++;
@@ -403,12 +406,12 @@ Void TAppEncCfg::xSetGlobal()
   m_uiMaxCUDepth += g_uiAddCUDepth;
   g_uiAddCUDepth++;
   g_uiMaxCUDepth = m_uiMaxCUDepth;
-
+  
   // set internal bit-depth and constants
   g_uiBitDepth     = m_uiBitDepth;                      // base bit-depth
   g_uiBitIncrement = m_uiBitIncrement;                  // increments
   g_uiBASE_MAX     = ((1<<(g_uiBitDepth))-1);
-
+  
 #if IBDI_NOCLIP_RANGE
   g_uiIBDI_MAX     = g_uiBASE_MAX << g_uiBitIncrement;
 #else
@@ -439,7 +442,7 @@ Void TAppEncCfg::xPrintParameter()
   printf("GOP size                     : %d\n", m_iGOPSize );
   printf("Rate GOP size                : %d\n", m_iRateGOPSize );
   printf("Bit increment                : %d\n", m_uiBitIncrement );
-
+  
   switch ( m_iInterpFilterType )
   {
 #if TEN_DIRECTIONAL_INTERP
@@ -452,7 +455,7 @@ Void TAppEncCfg::xPrintParameter()
       printf("Luma interpolation           : %s\n", "Samsung 12-tap filter"  );
       printf("Chroma interpolation         : %s\n", "Bi-linear filter"       );
   }
-
+  
   if ( m_iSymbolMode == 0 )
   {
     printf("Entropy coder                : VLC\n");
@@ -469,9 +472,9 @@ Void TAppEncCfg::xPrintParameter()
   {
     assert(0);
   }
-
+  
   printf("\n");
-
+  
   printf("TOOL CFG: ");
   printf("ALF:%d ", m_bUseALF             );
   printf("IBD:%d ", m_uiBitIncrement!=0   );
@@ -491,10 +494,10 @@ Void TAppEncCfg::xPrintParameter()
   printf("MRG:%d ", m_bUseMRG             ); // SOPH: Merge Mode
 #endif
 #if HHI_RMP_SWITCH
-    printf("RMP:%d ", m_bUseRMP);
+  printf("RMP:%d ", m_bUseRMP);
 #endif
   printf("\n");
-
+  
   fflush(stdout);
 }
 
@@ -526,7 +529,7 @@ Bool confirmPara(Bool bflag, const char* message)
 {
   if (!bflag)
     return false;
-
+  
   printf("Error: %s\n",message);
   return true;
 }
@@ -535,39 +538,47 @@ Bool confirmPara(Bool bflag, const char* message)
 /* for handling "-1/-0 FOO" */
 void translateOldStyleCmdline(const char* value, po::Options& opts, const std::string& arg)
 {
-	const char* argv[] = {arg.c_str(), value};
-	/* replace some short names with their long name varients */
-	if (arg == "LDC") {
-		argv[0] = "LowDelayCoding";
-	}
-	else if (arg == "RDQ") {
-		argv[0] = "RDOQ";
-	}
-	else if (arg == "HAD") {
-		argv[0] = "HadamardME";
-	}
-	else if (arg == "SRD") {
-		argv[0] = "SBACRD";
-	}
-	else if (arg == "IBD") {
-		argv[0] = "BitIncrement";
-	}
-	/* issue a warning for change in FEN behaviour */
-	if (arg == "FEN") {
-		/* xxx todo */
-	}
-	po::storePair(opts, argv[0], argv[1]);
+  const char* argv[] = {arg.c_str(), value};
+  /* replace some short names with their long name varients */
+  if (arg == "LDC")
+  {
+    argv[0] = "LowDelayCoding";
+  }
+  else if (arg == "RDQ")
+  {
+    argv[0] = "RDOQ";
+  }
+  else if (arg == "HAD")
+  {
+    argv[0] = "HadamardME";
+  }
+  else if (arg == "SRD")
+  {
+    argv[0] = "SBACRD";
+  }
+  else if (arg == "IBD")
+  {
+    argv[0] = "BitIncrement";
+  }
+  /* issue a warning for change in FEN behaviour */
+  if (arg == "FEN")
+  {
+    /* xxx todo */
+  }
+  po::storePair(opts, argv[0], argv[1]);
 }
 
 void doOldStyleCmdlineOn(po::Options& opts, const std::string& arg)
 {
-	if (arg == "IBD") {
-		translateOldStyleCmdline("4", opts, arg);
-		return;
-	}
-	translateOldStyleCmdline("1", opts, arg);
+  if (arg == "IBD")
+  {
+    translateOldStyleCmdline("4", opts, arg);
+    return;
+  }
+  translateOldStyleCmdline("1", opts, arg);
 }
+
 void doOldStyleCmdlineOff(po::Options& opts, const std::string& arg)
 {
-	translateOldStyleCmdline("0", opts, arg);
+  translateOldStyleCmdline("0", opts, arg);
 }

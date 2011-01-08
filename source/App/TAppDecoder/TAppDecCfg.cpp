@@ -47,16 +47,16 @@ Bool TAppDecCfg::parseCfg( Int argc, Char* argv[] )
   // set preferences
   m_apcOpt->setVerbose();
   m_apcOpt->autoUsagePrint(true);
-
+  
   // set usage
   m_apcOpt->addUsage( "options: (if only -b is specified, YUV writing is skipped)" );
   m_apcOpt->addUsage( "  -b  bitstream file name" );
   m_apcOpt->addUsage( "  -o  decoded YUV output file name" );
-
+  
   // set command line option strings/characters
   m_apcOpt->setCommandOption( 'b' );
   m_apcOpt->setCommandOption( 'o' );
-
+  
   // command line parsing
   m_apcOpt->processCommandArgs( argc, argv );
   if( ! m_apcOpt->hasOptions() || !m_apcOpt->getValue( 'b' ) )
@@ -66,10 +66,10 @@ Bool TAppDecCfg::parseCfg( Int argc, Char* argv[] )
     m_apcOpt = NULL;
     return false;
   }
-
+  
   // set configuration
   xSetCfgCommand( m_apcOpt );
-
+  
   return true;
 }
 
@@ -82,7 +82,7 @@ Bool TAppDecCfg::parseCfg( Int argc, Char* argv[] )
 Void TAppDecCfg::xSetCfgCommand   ( TAppOption* pcOpt )
 {
   m_pchBitstreamFile = m_pchReconFile = NULL;
-
+  
   if ( pcOpt->getValue( 'b' ) ) m_pchBitstreamFile = pcOpt->getValue( 'b' );
   if ( pcOpt->getValue( 'o' ) ) m_pchReconFile     = pcOpt->getValue( 'o' );
 }

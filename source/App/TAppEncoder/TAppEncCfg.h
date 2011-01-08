@@ -50,7 +50,7 @@ protected:
   char*     m_pchInputFile;                                   ///< source file name
   char*     m_pchBitstreamFile;                               ///< output bitstream file
   char*     m_pchReconFile;                                   ///< output reconstruction file
-
+  
   // source specification
   Int       m_iFrameRate;                                     ///< source frame-rates (Hz)
   Int       m_iFrameSkip;                                     ///< number of skipped frames from the beginning
@@ -59,7 +59,7 @@ protected:
   Int       m_iFrameToBeEncoded;                              ///< number of encoded frames
   Bool      m_bUsePAD;                                        ///< flag for using source padding
   Int       m_aiPad[2];                                       ///< number of padded pixels for width and height
-
+  
   // coding structure
   Int       m_iIntraPeriod;                                   ///< period of I-slice (random access period)
   Int       m_iGOPSize;                                       ///< GOP size of hierarchical structure
@@ -79,45 +79,45 @@ protected:
   Int*      m_aidQP;                                          ///< array of slice QP values
   Int       m_iMaxDeltaQP;                                    ///< max. |delta QP|
   UInt      m_uiDeltaQpRD;                                    ///< dQP range for multi-pass slice QP optimization
-
+  
   // coding unit (CU) definition
   UInt      m_uiMaxCUWidth;                                   ///< max. CU width in pixel
   UInt      m_uiMaxCUHeight;                                  ///< max. CU height in pixel
   UInt      m_uiMaxCUDepth;                                   ///< max. CU depth
-
+  
   // transfom unit (TU) definition
   UInt      m_uiQuadtreeTULog2MaxSize;
   UInt      m_uiQuadtreeTULog2MinSize;
-
+  
   UInt      m_uiQuadtreeTUMaxDepthInter;
   UInt      m_uiQuadtreeTUMaxDepthIntra;
-
+  
   // coding tools (bit-depth)
   UInt      m_uiBitDepth;                                     ///< base bit-depth
   UInt      m_uiBitIncrement;                                 ///< bit-depth increment
-
+  
   // coding tools (inter - interpolation filter)
   Int       m_iDIFTap;                                        ///< number of taps in DIF (luma)
-
+  
   // coding tools (loop filter)
   Bool      m_bUseALF;                                        ///< flag for using adaptive loop filter
-
+  
   Bool      m_bLoopFilterDisable;                             ///< flag for using deblocking filter
   Int       m_iLoopFilterAlphaC0Offset;                       ///< alpha offset for deblocking filter
   Int       m_iLoopFilterBetaOffset;                          ///< beta offset for deblocking filter
-
+  
   // coding tools (entropy coder)
   Int       m_iSymbolMode;                                    ///< entropy coder mode, 0 = VLC, 1 = CABAC
-
+  
 #if HHI_MRG
   // coding tools (inter - merge motion partitions)
   Bool      m_bUseMRG;                                        ///< SOPH: flag for using motion partition Merge Mode
 #endif
-
+  
 #if HHI_RMP_SWITCH
   Bool      m_bUseRMP;
 #endif
-
+  
   // coding tools (encoder-only parameters)
   Bool      m_bUseSBACRD;                                     ///< flag for using RD optimization based on SBAC
   Bool      m_bUseASR;                                        ///< flag for using adaptive motion search range
@@ -127,10 +127,10 @@ protected:
   Int       m_iFastSearch;                                    ///< ME mode, 0 = full, 1 = diamond, 2 = PMVFAST
   Int       m_iSearchRange;                                   ///< ME search range
   Bool      m_bUseFastEnc;                                    ///< flag for using fast encoder setting
-
+  
   // coding tool (interpolation filter)
   Int       m_iInterpFilterType;                              ///< interpolation filter type
-
+  
 #ifdef ROUNDING_CONTROL_BIPRED
   Bool m_useRoundingControlBipred;
 #endif
@@ -140,16 +140,16 @@ protected:
   Void  xCheckParameter ();                                   ///< check validity of configuration values
   Void  xPrintParameter ();                                   ///< print configuration values
   Void  xPrintUsage     ();                                   ///< print usage
-
+  
 public:
   TAppEncCfg();
   virtual ~TAppEncCfg();
-
+  
 public:
   Void  create    ();                                         ///< create option handling class
   Void  destroy   ();                                         ///< destroy option handling class
   Bool  parseCfg  ( Int argc, Char* argv[] );                 ///< parse configuration file to fill member variables
-
+  
 };// END CLASS DEFINITION TAppEncCfg
 
 #endif // __TAPPENCCFG__

@@ -65,27 +65,27 @@ private:
   TVideoIOBits                    m_cTVideoIOBitstreamFile;       ///< file I/O class
 #endif
   TVideoIOYuv                     m_cTVideoIOYuvReconFile;        ///< reconstruction YUV class
-
+  
   // for output control
   Bool                            m_abDecFlag[ MAX_GOP ];         ///< decoded flag in one GOP
   Int                             m_iPOCLastDisplay;              ///< last POC in display order
-
+  
   // temporary buffer for IBDI
   TComPicYuv                      m_cTempPicYuv;                  ///< temporary buffer for IBDI
-
+  
 public:
   TAppDecTop();
   virtual ~TAppDecTop() {}
-
+  
   Void  create            (); ///< create internal members
   Void  destroy           (); ///< destroy internal members
   Void  decode            (); ///< main decoding function
-
+  
 protected:
   Void  xCreateDecLib     (); ///< create internal classes
   Void  xDestroyDecLib    (); ///< destroy internal classes
   Void  xInitDecLib       (); ///< initialize decoder class
-
+  
   Void  xWriteOutput      ( TComList<TComPic*>* pcListPic, Bool& rbAlloc ); ///< write YUV to file
   Void  xDeScalePic       ( TComPic* pcPic, TComPicYuv* pcPicD );           ///< descaling of picture
 };
