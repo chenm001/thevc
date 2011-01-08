@@ -66,25 +66,25 @@ Void TEncTop::create ()
 {
   // initialize global variables
   initROM();
-
+  
   // create processing unit classes
   m_cGOPEncoder.        create();
   m_cSliceEncoder.      create( getSourceWidth(), getSourceHeight(), g_uiMaxCUWidth, g_uiMaxCUHeight, g_uiMaxCUDepth );
   m_cCuEncoder.         create( g_uiMaxCUDepth, g_uiMaxCUWidth, g_uiMaxCUHeight );
   m_cAdaptiveLoopFilter.create( getSourceWidth(), getSourceHeight(), g_uiMaxCUWidth, g_uiMaxCUHeight, g_uiMaxCUDepth );
   m_cLoopFilter.        create( g_uiMaxCUDepth );
-
+  
   // if SBAC-based RD optimization is used
   if( m_bUseSBACRD )
   {
     m_pppcRDSbacCoder = new TEncSbac** [g_uiMaxCUDepth+1];
     m_pppcBinCoderCABAC = new TEncBinCABAC** [g_uiMaxCUDepth+1];
-
+    
     for ( Int iDepth = 0; iDepth < g_uiMaxCUDepth+1; iDepth++ )
     {
       m_pppcRDSbacCoder[iDepth] = new TEncSbac* [CI_NUM];
       m_pppcBinCoderCABAC[iDepth] = new TEncBinCABAC* [CI_NUM];
-
+      
       for (Int iCIIdx = 0; iCIIdx < CI_NUM; iCIIdx ++ )
       {
         m_pppcRDSbacCoder[iDepth][iCIIdx] = new TEncSbac;
@@ -103,7 +103,7 @@ Void TEncTop::destroy ()
   m_cCuEncoder.         destroy();
   m_cAdaptiveLoopFilter.destroy();
   m_cLoopFilter.        destroy();
-
+  
   // SBAC RD
   if( m_bUseSBACRD )
   {
@@ -116,20 +116,20 @@ Void TEncTop::destroy ()
         delete m_pppcBinCoderCABAC[iDepth][iCIIdx];
       }
     }
-
+    
     for ( iDepth = 0; iDepth < g_uiMaxCUDepth+1; iDepth++ )
     {
       delete [] m_pppcRDSbacCoder[iDepth];
       delete [] m_pppcBinCoderCABAC[iDepth];
     }
-
+    
     delete [] m_pppcRDSbacCoder;
     delete [] m_pppcBinCoderCABAC;
   }
-
+  
   // destroy ROM
   destroyROM();
-
+  
   return;
 }
 
@@ -138,21 +138,21 @@ Void TEncTop::init()
   UInt *aTable4=NULL, *aTable8=NULL;
   // initialize SPS
   xInitSPS();
-
+  
   // initialize processing unit classes
   m_cGOPEncoder.  init( this );
   m_cSliceEncoder.init( this );
   m_cCuEncoder.   init( this );
-
+  
   // initialize DIF
   m_cSearch.setDIFTap ( m_cSPS.getDIFTap () );
-
+  
   // initialize transform & quantization class
   m_pcCavlcCoder = getCavlcCoder();
   aTable8 = m_pcCavlcCoder->GetLP8Table();
   aTable4 = m_pcCavlcCoder->GetLP4Table();
   m_cTrQuant.init( g_uiMaxCUWidth, g_uiMaxCUHeight, 1 << m_uiQuadtreeTULog2MaxSize, m_iSymbolMode, aTable4, aTable8, m_bUseRDOQ, true );
-
+  
   // initialize encoder search class
   m_cSearch.init( this, &m_cTrQuant, m_iSearchRange, m_iFastSearch, 0, &m_cEntropyCoder, &m_cRdCost, getRDSbacCoder(), getRDGoOnSbacCoder() );
 }
@@ -165,11 +165,11 @@ Void TEncTop::deletePicBuffer()
 {
   TComList<TComPic*>::iterator iterPic = m_cListPic.begin();
   Int iSize = Int( m_cListPic.size() );
-
+  
   for ( Int i = 0; i < iSize; i++ )
   {
     TComPic* pcPic = *(iterPic++);
-
+    
     pcPic->destroy();
     delete pcPic;
     pcPic = NULL;
@@ -177,37 +177,37 @@ Void TEncTop::deletePicBuffer()
 }
 
 /**
-   - Application has picture buffer list with size of GOP + 1
-   - Picture buffer list acts like as ring buffer
-   - End of the list has the latest picture
-   .
-   \param   bEos                true if end-of-sequence is reached
-   \param   pcPicYuvOrg         original YUV picture
-   \retval  rcListPicYuvRecOut  list of reconstruction YUV pictures
-   \retval  rcListBitstreamOut  list of output bitstreams
-   \retval  iNumEncoded         number of encoded pictures
+ - Application has picture buffer list with size of GOP + 1
+ - Picture buffer list acts like as ring buffer
+ - End of the list has the latest picture
+ .
+ \param   bEos                true if end-of-sequence is reached
+ \param   pcPicYuvOrg         original YUV picture
+ \retval  rcListPicYuvRecOut  list of reconstruction YUV pictures
+ \retval  rcListBitstreamOut  list of output bitstreams
+ \retval  iNumEncoded         number of encoded pictures
  */
 Void TEncTop::encode( bool bEos, TComPicYuv* pcPicYuvOrg, TComList<TComPicYuv*>& rcListPicYuvRecOut, TComList<TComBitstream*>& rcListBitstreamOut, Int& iNumEncoded )
 {
   TComPic* pcPicCurr = NULL;
-
+  
   // get original YUV
   xGetNewPicBuffer( pcPicCurr );
   pcPicYuvOrg->copyToPic( pcPicCurr->getPicYuvOrg() );
-
+  
   if ( m_iPOCLast != 0 && ( m_iNumPicRcvd != m_iGOPSize && m_iGOPSize ) && !bEos )
   {
     iNumEncoded = 0;
     return;
   }
-
+  
   // compress GOP
   m_cGOPEncoder.compressGOP( m_iPOCLast, m_iNumPicRcvd, m_cListPic, rcListPicYuvRecOut, rcListBitstreamOut );
-
+  
   iNumEncoded         = m_iNumPicRcvd;
   m_iNumPicRcvd       = 0;
   m_uiNumAllPicCoded += iNumEncoded;
-
+  
   if (bEos)
   {
     m_cGOPEncoder.printOutSummary (m_uiNumAllPicCoded);
@@ -219,26 +219,26 @@ Void TEncTop::encode( bool bEos, TComPicYuv* pcPicYuvOrg, TComList<TComPicYuv*>&
 // ====================================================================================================================
 
 /**
-   - Application has picture buffer list with size of GOP + 1
-   - Picture buffer list acts like as ring buffer
-   - End of the list has the latest picture
-   .
-   \retval rpcPic obtained picture buffer
+ - Application has picture buffer list with size of GOP + 1
+ - Picture buffer list acts like as ring buffer
+ - End of the list has the latest picture
+ .
+ \retval rpcPic obtained picture buffer
  */
 Void TEncTop::xGetNewPicBuffer ( TComPic*& rpcPic )
 {
   TComSlice::sortPicList(m_cListPic);
-
+  
   // bug-fix - erase frame memory (previous GOP) which is not used for reference any more
   if (m_cListPic.size() >= (UInt)(m_iGOPSize + 2 * getNumOfReference() + 1) )  // 2)   //  K. Lee bug fix - for multiple reference > 2
   {
     rpcPic = m_cListPic.popFront();
-
+    
     // is it necessary without long-term reference?
     if ( rpcPic->getERBIndex() > 0 && abs(rpcPic->getPOC() - m_iPOCLast) <= 0 )
     {
       m_cListPic.pushFront(rpcPic);
-
+      
       TComList<TComPic*>::iterator iterPic  = m_cListPic.begin();
       rpcPic = *(++iterPic);
       if ( abs(rpcPic->getPOC() - m_iPOCLast) <= m_iGOPSize )
@@ -258,15 +258,15 @@ Void TEncTop::xGetNewPicBuffer ( TComPic*& rpcPic )
     rpcPic = new TComPic;
     rpcPic->create( m_iSourceWidth, m_iSourceHeight, g_uiMaxCUWidth, g_uiMaxCUHeight, g_uiMaxCUDepth );
   }
-
+  
   m_cListPic.pushBack( rpcPic );
   rpcPic->setReconMark (false);
-
+  
   m_iPOCLast++;
   m_iNumPicRcvd++;
-
+  
   rpcPic->getSlice()->setPOC( m_iPOCLast );
-
+  
   // mark it should be extended
   rpcPic->getPicYuvRec()->setBorderExtension(false);
 }
@@ -283,23 +283,23 @@ Void TEncTop::xInitSPS()
   m_cSPS.setMaxTrDepth    ( 1                   );
   
   m_cSPS.setUseALF        ( m_bUseALF           );
-
+  
   m_cSPS.setQuadtreeTULog2MaxSize( m_uiQuadtreeTULog2MaxSize );
   m_cSPS.setQuadtreeTULog2MinSize( m_uiQuadtreeTULog2MinSize );
   m_cSPS.setQuadtreeTUMaxDepthInter( m_uiQuadtreeTUMaxDepthInter    );
   m_cSPS.setQuadtreeTUMaxDepthIntra( m_uiQuadtreeTUMaxDepthIntra    );
-
+  
   m_cSPS.setUseDQP        ( m_iMaxDeltaQP != 0  );
   m_cSPS.setUseLDC        ( m_bUseLDC           );
   m_cSPS.setUsePAD        ( m_bUsePAD           );
-
+  
 #if HHI_MRG
   m_cSPS.setUseMRG        ( m_bUseMRG           ); // SOPH:
 #endif
   m_cSPS.setDIFTap        ( m_iDIFTap           );
-
+  
   m_cSPS.setMaxTrSize   ( 1 << m_uiQuadtreeTULog2MaxSize );
-
+  
   Int i;
 #if HHI_AMVP_OFF
   for ( i = 0; i < g_uiMaxCUDepth; i++ )
@@ -313,11 +313,11 @@ Void TEncTop::xInitSPS()
   }
 #endif
   
-
+  
 #if HHI_RMP_SWITCH
   m_cSPS.setUseRMP( m_bUseRMP );
 #endif
-
+  
   m_cSPS.setBitDepth    ( g_uiBitDepth        );
   m_cSPS.setBitIncrement( g_uiBitIncrement    );
 }

@@ -55,37 +55,37 @@ private:
   static const Int	m_aiSymmetricArray7x7[49];					///< scan index for 7x7 filter
   static const Int	m_aiSymmetricArray5x5[25];					///< scan index for 5x5 filter
   
-  Double**					m_ppdAlfCorr;
-  Double*						m_pdDoubleAlfCoeff;
+  Double** m_ppdAlfCorr;
+  Double* m_pdDoubleAlfCoeff;
   
-  SliceType					m_eSliceType;
-  Int								m_iPicNalReferenceIdc;
+  SliceType m_eSliceType;
+  Int m_iPicNalReferenceIdc;
   
-  Double						m_dLambdaLuma;
-  Double						m_dLambdaChroma;
+  Double m_dLambdaLuma;
+  Double m_dLambdaChroma;
   
-  TEncEntropy*			m_pcEntropyCoder;
+  TEncEntropy* m_pcEntropyCoder;
   
-  TComPic*					m_pcPic;
-  ALFParam*					m_pcBestAlfParam;
-  ALFParam*					m_pcTempAlfParam;
+  TComPic* m_pcPic;
+  ALFParam* m_pcBestAlfParam;
+  ALFParam* m_pcTempAlfParam;
   
-  TComPicYuv*				m_pcPicYuvBest;
-  TComPicYuv*				m_pcPicYuvTmp;
+  TComPicYuv* m_pcPicYuvBest;
+  TComPicYuv* m_pcPicYuvTmp;
   
-  UInt							m_uiNumSCUInCU;
+  UInt m_uiNumSCUInCU;
   
-  Int						m_varIndTab[NO_VAR_BINS];
-  double					***m_yGlobalSym;
-  double					****m_EGlobalSym;
-  double				    *m_pixAcc;
-  Int						**m_filterCoeffSymQuant;
-  imgpel                    **m_varImg;
-  imgpel					**m_maskImg;
-  Int						m_im_width;
-  Int						m_im_height;
-  ALFParam					*m_tempALFp;
-  TEncEntropy*				m_pcDummyEntropyCoder;
+  Int m_varIndTab[NO_VAR_BINS];
+  double ***m_yGlobalSym;
+  double ****m_EGlobalSym;
+  double *m_pixAcc;
+  Int **m_filterCoeffSymQuant;
+  imgpel **m_varImg;
+  imgpel **m_maskImg;
+  Int m_im_width;
+  Int m_im_height;
+  ALFParam *m_tempALFp;
+  TEncEntropy* m_pcDummyEntropyCoder;
   
   double **m_y_merged;
   double ***m_E_merged;
@@ -93,7 +93,7 @@ private:
   double *m_y_temp;
   double **m_E_temp;
   
-  Int    *m_filterCoeffQuantMod;
+  Int *m_filterCoeffQuantMod;
   double *m_filterCoeff;
   Int *m_filterCoeffQuant;
   Int **m_diffFilterCoeffQuant;

@@ -49,18 +49,18 @@ TEncGOP::TEncGOP()
   m_iGopSize            = 0;
   m_iNumPicCoded        = 0; //Niko
   m_bFirst              = true;
-
+  
   m_pcCfg               = NULL;
   m_pcSliceEncoder      = NULL;
   m_pcListPic           = NULL;
-
+  
   m_pcEntropyCoder      = NULL;
   m_pcCavlcCoder        = NULL;
   m_pcSbacCoder         = NULL;
   m_pcBinCABAC          = NULL;
-
+  
   m_bSeqFirst           = true;
-
+  
   return;
 }
 
@@ -82,14 +82,14 @@ Void TEncGOP::init ( TEncTop* pcTEncTop )
   m_pcCfg                = pcTEncTop;
   m_pcSliceEncoder       = pcTEncTop->getSliceEncoder();
   m_pcListPic            = pcTEncTop->getListPic();
-
+  
   m_pcEntropyCoder       = pcTEncTop->getEntropyCoder();
   m_pcCavlcCoder         = pcTEncTop->getCavlcCoder();
   m_pcSbacCoder          = pcTEncTop->getSbacCoder();
   m_pcBinCABAC           = pcTEncTop->getBinCABAC();
   m_pcLoopFilter         = pcTEncTop->getLoopFilter();
   m_pcBitCounter         = pcTEncTop->getBitCounter();
-
+  
   // Adaptive Loop filter
   m_pcAdaptiveLoopFilter = pcTEncTop->getAdaptiveLoopFilter();
   //--Adaptive Loop filter
@@ -105,102 +105,102 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
   TComPicYuv*     pcPicYuvRecOut;
   TComBitstream*  pcBitstreamOut;
   TComPicYuv      cPicOrg;
-//stats
+  //stats
   TComBitstream*  pcOut = new TComBitstream;
   pcOut->create( 500000 );
-
+  
   xInitGOP( iPOCLast, iNumPicRcvd, rcListPic, rcListPicYuvRecOut );
-
+  
   m_iNumPicCoded = 0;
   for ( Int iDepth = 0; iDepth < m_iHrchDepth; iDepth++ )
   {
     Int iTimeOffset = ( 1 << (m_iHrchDepth - 1 - iDepth) );
     Int iStep       = iTimeOffset << 1;
-
+    
     // generalized B info.
     if ( (m_pcCfg->getHierarchicalCoding() == false) && (iDepth != 0) )
     {
       iTimeOffset   = 1;
       iStep         = 1;
     }
-
+    
     UInt uiColDir = 1;
-
+    
     for ( ; iTimeOffset <= iNumPicRcvd; iTimeOffset += iStep )
     {
       //-- For time output for each slice
       long iBeforeTime = clock();
-
+      
       // generalized B info.
       if ( (m_pcCfg->getHierarchicalCoding() == false) && (iDepth != 0) && (iTimeOffset == m_iGopSize) && (iPOCLast != 0) )
       {
         continue;
       }
-
+      
       /////////////////////////////////////////////////////////////////////////////////////////////////// Initial to start encoding
       UInt  uiPOCCurr = iPOCLast - (iNumPicRcvd - iTimeOffset);
-
+      
       xGetBuffer( rcListPic, rcListPicYuvRecOut, rcListBitstreamOut, iNumPicRcvd, iTimeOffset,  pcPic, pcPicYuvRecOut, pcBitstreamOut, uiPOCCurr );
-
+      
       // save original picture
       cPicOrg.create( pcPic->getPicYuvOrg()->getWidth(), pcPic->getPicYuvOrg()->getHeight(), g_uiMaxCUWidth, g_uiMaxCUHeight, g_uiMaxCUDepth );
       pcPic->getPicYuvOrg()->copyToPic( &cPicOrg );
-
+      
       // scaling of picture
       if ( g_uiBitIncrement )
       {
         xScalePic( pcPic );
       }
-
+      
       //  Bitstream reset
       pcBitstreamOut->resetBits();
       pcBitstreamOut->rewindStreamPacket();
-
+      
       //  Slice data initialization
       TComSlice*      pcSlice;
       m_pcSliceEncoder->initEncSlice ( pcPic, iPOCLast, uiPOCCurr, iNumPicRcvd, iTimeOffset, iDepth, pcSlice );
-
+      
       //  Set SPS
       pcSlice->setSPS( m_pcEncTop->getSPS() );
       pcSlice->setPPS( m_pcEncTop->getPPS() );
-
+      
       //  Set reference list
       pcSlice->setRefPicList ( rcListPic );
-
+      
       //  Slice info. refinement
       if ( (pcSlice->getSliceType() == B_SLICE) && (pcSlice->getNumRefIdx(REF_PIC_LIST_1) == 0) )
       {
         pcSlice->setSliceType ( P_SLICE );
         pcSlice->setDRBFlag   ( true );
       }
-
+      
       // Generalized B
       if ( m_pcCfg->getUseGPB() )
       {
         if (pcSlice->getSliceType() == P_SLICE)
         {
           pcSlice->setSliceType( B_SLICE ); // Change slice type by force
-
+          
           Int iNumRefIdx = pcSlice->getNumRefIdx(REF_PIC_LIST_0);
           pcSlice->setNumRefIdx( REF_PIC_LIST_1, iNumRefIdx );
-
+          
           for (Int iRefIdx = 0; iRefIdx < iNumRefIdx; iRefIdx++)
           {
             pcSlice->setRefPic(pcSlice->getRefPic(REF_PIC_LIST_0, iRefIdx), REF_PIC_LIST_1, iRefIdx);
           }
         }
       }
-
+      
       if (pcSlice->getSliceType() == B_SLICE)
       {
         pcSlice->setColDir(uiColDir);
       }
-
+      
       uiColDir = 1-uiColDir;
-
+      
       //-------------------------------------------------------------
       pcSlice->setRefPOCList();
-
+      
 #if MS_NO_BACK_PRED_IN_B0
       pcSlice->setNoBackPredFlag( false );
       if ( pcSlice->getSliceType() == B_SLICE )
@@ -220,7 +220,7 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
         }
       }
 #endif
-
+      
       /////////////////////////////////////////////////////////////////////////////////////////////////// Compress a slice
       //  Slice compression
       if (m_pcCfg->getUseASR())
@@ -232,25 +232,25 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
       if (m_pcCfg->getUseRoundingControlBipred())
       {
         if (m_pcCfg->getGOPSize()==1)
-            b = ((pcSlice->getPOC()&1)==0);	
+          b = ((pcSlice->getPOC()&1)==0);	
         else
-            b = (pcSlice->isReferenced() == 0);	 
+          b = (pcSlice->isReferenced() == 0);	 
       }
-
+      
 	  pcSlice->setRounding(b);
 #endif
       m_pcSliceEncoder->precompressSlice( pcPic );
       m_pcSliceEncoder->compressSlice   ( pcPic );
-
+      
       //-- Loop filter
       m_pcLoopFilter->setCfg(pcSlice->getLoopFilterDisable(), m_pcCfg->getLoopFilterAlphaC0Offget(), m_pcCfg->getLoopFilterBetaOffget());
       m_pcLoopFilter->loopFilterPic( pcPic );
-
+      
       /////////////////////////////////////////////////////////////////////////////////////////////////// File writing
       // Set entropy coder
       m_pcEntropyCoder->setEntropyCoder   ( m_pcCavlcCoder, pcSlice );
       m_pcEntropyCoder->setBitstream      ( pcBitstreamOut          );
-
+      
       // write SPS
       if ( m_bSeqFirst )
       {
@@ -261,7 +261,7 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
         // generate start code
         pcBitstreamOut->write( 1, 32);
 #endif
-
+        
         m_pcEntropyCoder->encodePPS( pcSlice->getPPS() );
 #if HHI_NAL_UNIT_SYNTAX
         pcBitstreamOut->write( 1, 1 );
@@ -271,14 +271,14 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
 #endif
         m_bSeqFirst = false;
       }
-
+      
 #if HHI_NAL_UNIT_SYNTAX
       UInt uiPosBefore = pcBitstreamOut->getNumberOfWrittenBits()>>3;
 #endif
-
+      
       // write SliceHeader
       m_pcEntropyCoder->encodeSliceHeader ( pcSlice                 );
-
+      
       // is it needed?
       if ( pcSlice->getSymbolMode() )
       {
@@ -286,11 +286,11 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
         m_pcEntropyCoder->setEntropyCoder ( m_pcSbacCoder, pcPic->getSlice() );
         m_pcEntropyCoder->resetEntropy    ();
       }
-
+      
       /////////////////////////////////////////////////////////////////////////////////////////////////// Reconstructed image output
       TComPicYuv pcPicD;
       pcPicD.create( pcPic->getPicYuvOrg()->getWidth(), pcPic->getPicYuvOrg()->getHeight(), g_uiMaxCUWidth, g_uiMaxCUHeight, g_uiMaxCUDepth );
-
+      
       // adaptive loop filter
       if ( pcSlice->getSPS()->getUseALF() )
       {
@@ -299,31 +299,31 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
         m_pcAdaptiveLoopFilter->setNumCUsInFrame(pcPic);
 #endif
         m_pcAdaptiveLoopFilter->allocALFParam(&cAlfParam);
-
+        
         // set entropy coder for RD
         if ( pcSlice->getSymbolMode() )
         {
-        m_pcEntropyCoder->setEntropyCoder ( m_pcEncTop->getRDGoOnSbacCoder(), pcPic->getSlice() );
+          m_pcEntropyCoder->setEntropyCoder ( m_pcEncTop->getRDGoOnSbacCoder(), pcPic->getSlice() );
         }
         else
         {
           m_pcEntropyCoder->setEntropyCoder ( m_pcCavlcCoder, pcPic->getSlice() );
         }
-
+        
         m_pcEntropyCoder->resetEntropy    ();
         m_pcEntropyCoder->setBitstream    ( m_pcBitCounter );
-
+        
         m_pcAdaptiveLoopFilter->startALFEnc(pcPic, m_pcEntropyCoder );
-
+        
         UInt uiMaxAlfCtrlDepth;
-
+        
         UInt64 uiDist, uiBits;
         m_pcAdaptiveLoopFilter->ALFProcess( &cAlfParam, pcPic->getSlice()->getLambda(), uiDist, uiBits, uiMaxAlfCtrlDepth );
         m_pcAdaptiveLoopFilter->endALFEnc();
-
+        
         // set entropy coder for writing
         m_pcSbacCoder->init( (TEncBinIf*)m_pcBinCABAC );
-
+        
         if ( pcSlice->getSymbolMode() )
         {
           m_pcEntropyCoder->setEntropyCoder ( m_pcSbacCoder, pcPic->getSlice() );
@@ -332,7 +332,7 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
         {
           m_pcEntropyCoder->setEntropyCoder ( m_pcCavlcCoder, pcPic->getSlice() );
         }
-
+        
         m_pcEntropyCoder->resetEntropy    ();
         m_pcEntropyCoder->setBitstream    ( pcBitstreamOut );
         if (cAlfParam.cu_control_flag)
@@ -341,8 +341,8 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
           m_pcEntropyCoder->setMaxAlfCtrlDepth(uiMaxAlfCtrlDepth);
           if (pcSlice->getSymbolMode() == 0)
           {
-          m_pcCavlcCoder->setAlfCtrl(true);
-          m_pcCavlcCoder->setMaxAlfCtrlDepth(uiMaxAlfCtrlDepth); //D0201
+            m_pcCavlcCoder->setAlfCtrl(true);
+            m_pcCavlcCoder->setMaxAlfCtrlDepth(uiMaxAlfCtrlDepth); //D0201
           }
         }
         else
@@ -356,20 +356,20 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
         }
 #endif
         m_pcEntropyCoder->encodeAlfParam(&cAlfParam);
-
+        
 #if TSB_ALF_HEADER
         if(cAlfParam.cu_control_flag)
         {
           m_pcEntropyCoder->encodeAlfCtrlParam(&cAlfParam);
         }
 #endif
-
+        
         m_pcAdaptiveLoopFilter->freeALFParam(&cAlfParam);
       }
-
+      
       // File writing
       m_pcSliceEncoder->encodeSlice( pcPic, pcBitstreamOut );
-
+      
       //  End of bitstream & byte align
 #if ! HHI_NAL_UNIT_SYNTAX
       if( pcSlice->getSymbolMode() )
@@ -378,75 +378,75 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
         pcBitstreamOut->write( 1, 1 );
         pcBitstreamOut->writeAlignZero();
       }
-
+      
       pcBitstreamOut->flushBuffer();
 #if HHI_NAL_UNIT_SYNTAX
       pcBitstreamOut->convertRBSPToPayload( uiPosBefore );
 #endif
       // de-scaling of picture
       xDeScalePic( pcPic, &pcPicD );
-
+      
       // save original picture
       cPicOrg.copyToPic( pcPic->getPicYuvOrg() );
-
+      
       //-- For time output for each slice
       Double dEncTime = (double)(clock()-iBeforeTime) / CLOCKS_PER_SEC;
-
+      
       xCalculateAddPSNR( pcPic, &pcPicD, pcBitstreamOut->getNumberOfWrittenBits(), dEncTime );
-
+      
       // free original picture
       cPicOrg.destroy();
-
+      
       //  Reconstruction buffer update
       pcPicD.copyToPic(pcPicYuvRecOut);
-
+      
       pcPicD.destroy();
-
+      
       pcPic->setReconMark   ( true );
-
+      
       m_bFirst = false;
       m_iNumPicCoded++;
     }
-
+    
     // generalized B info.
     if ( m_pcCfg->getHierarchicalCoding() == false && iDepth != 0 )
       break;
   }
-
+  
   pcOut->destroy();
   delete pcOut;
-
+  
   assert ( m_iNumPicCoded == iNumPicRcvd );
 }
 
 Void TEncGOP::printOutSummary(UInt uiNumAllPicCoded)
 {
   assert (uiNumAllPicCoded == m_gcAnalyzeAll.getNumPic());
-
-
+  
+  
 #if LCEC_STAT
   //m_pcCavlcCoder->statistics (0,2);
 #endif
-
+  
   //--CFG_KDY
   m_gcAnalyzeAll.setFrmRate( m_pcCfg->getFrameRate() );
   m_gcAnalyzeI.setFrmRate( m_pcCfg->getFrameRate() );
   m_gcAnalyzeP.setFrmRate( m_pcCfg->getFrameRate() );
   m_gcAnalyzeB.setFrmRate( m_pcCfg->getFrameRate() );
-
+  
   //-- all
   printf( "\n\nSUMMARY --------------------------------------------------------\n" );
   m_gcAnalyzeAll.printOut('a');
-
+  
   printf( "\n\nI Slices--------------------------------------------------------\n" );
   m_gcAnalyzeI.printOut('i');
-
+  
   printf( "\n\nP Slices--------------------------------------------------------\n" );
   m_gcAnalyzeP.printOut('p');
-
+  
   printf( "\n\nB Slices--------------------------------------------------------\n" );
   m_gcAnalyzeB.printOut('b');
-
+  
 #if _SUMMARY_OUT_
   m_gcAnalyzeAll.printSummaryOut();
 #endif
@@ -461,14 +461,14 @@ Void TEncGOP::preLoopFilterPicAll( TComPic* pcPic, UInt64& ruiDist, UInt64& ruiB
 {
   TComSlice* pcSlice = pcPic->getSlice();
   Bool bCalcDist = false;
-
+  
   m_pcLoopFilter->setCfg(pcSlice->getLoopFilterDisable(), m_pcCfg->getLoopFilterAlphaC0Offget(), m_pcCfg->getLoopFilterBetaOffget());
   m_pcLoopFilter->loopFilterPic( pcPic );
-
+  
   m_pcEntropyCoder->setEntropyCoder ( m_pcEncTop->getRDGoOnSbacCoder(), pcSlice );
   m_pcEntropyCoder->resetEntropy    ();
   m_pcEntropyCoder->setBitstream    ( m_pcBitCounter );
-
+  
   // Adaptive Loop filter
   if( pcSlice->getSPS()->getUseALF() )
   {
@@ -477,20 +477,20 @@ Void TEncGOP::preLoopFilterPicAll( TComPic* pcPic, UInt64& ruiDist, UInt64& ruiB
     m_pcAdaptiveLoopFilter->setNumCUsInFrame(pcPic);
 #endif
     m_pcAdaptiveLoopFilter->allocALFParam(&cAlfParam);
-
+    
     m_pcAdaptiveLoopFilter->startALFEnc(pcPic, m_pcEntropyCoder);
-
+    
     UInt uiMaxAlfCtrlDepth;
     m_pcAdaptiveLoopFilter->ALFProcess(&cAlfParam, pcPic->getSlice()->getLambda(), ruiDist, ruiBits, uiMaxAlfCtrlDepth );
     m_pcAdaptiveLoopFilter->endALFEnc();
     m_pcAdaptiveLoopFilter->freeALFParam(&cAlfParam);
   }
-
+  
   m_pcEntropyCoder->resetEntropy    ();
   ruiBits += m_pcEntropyCoder->getNumberOfWrittenBits();
-
+  
   if (!bCalcDist)
-  ruiDist = xFindDistortionFrame(pcPic->getPicYuvOrg(), pcPic->getPicYuvRec());
+    ruiDist = xFindDistortionFrame(pcPic->getPicYuvOrg(), pcPic->getPicYuvRec());
 }
 
 // ====================================================================================================================
@@ -501,7 +501,7 @@ Void TEncGOP::xInitGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rcLis
 {
   assert( iNumPicRcvd > 0 );
   Int i;
-
+  
   //  Set hierarchical B info.
   m_iGopSize    = m_pcCfg->getGOPSize();
   for( i=1 ; ; i++)
@@ -512,31 +512,31 @@ Void TEncGOP::xInitGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rcLis
       break;
     }
   }
-
+  
   //  Exception for the first frame
   if ( iPOCLast == 0 )
   {
     m_iGopSize    = 1;
     m_iHrchDepth  = 1;
   }
-
+  
   if (m_iGopSize == 0)
   {
     m_iHrchDepth = 1;
   }
-
+  
   return;
 }
 
 Void TEncGOP::xGetBuffer( TComList<TComPic*>&       rcListPic,
-                          TComList<TComPicYuv*>&    rcListPicYuvRecOut,
-                          TComList<TComBitstream*>& rcListBitstreamOut,
-                          Int                       iNumPicRcvd,
-                          Int                       iTimeOffset,
-                          TComPic*&                 rpcPic,
-                          TComPicYuv*&              rpcPicYuvRecOut,
-                          TComBitstream*&           rpcBitstreamOut,
-                          UInt                      uiPOCCurr )
+                         TComList<TComPicYuv*>&    rcListPicYuvRecOut,
+                         TComList<TComBitstream*>& rcListBitstreamOut,
+                         Int                       iNumPicRcvd,
+                         Int                       iTimeOffset,
+                         TComPic*&                 rpcPic,
+                         TComPicYuv*&              rpcPicYuvRecOut,
+                         TComBitstream*&           rpcBitstreamOut,
+                         UInt                      uiPOCCurr )
 {
   Int i;
   //  Rec. output
@@ -545,9 +545,9 @@ Void TEncGOP::xGetBuffer( TComList<TComPic*>&       rcListPic,
   {
     iterPicYuvRec--;
   }
-
+  
   rpcPicYuvRecOut = *(iterPicYuvRec);
-
+  
   //  Bitstream output
   TComList<TComBitstream*>::iterator  iterBitstream = rcListBitstreamOut.begin();
   for ( i = 0; i < m_iNumPicCoded; i++ )
@@ -555,7 +555,7 @@ Void TEncGOP::xGetBuffer( TComList<TComPic*>&       rcListPic,
     iterBitstream++;
   }
   rpcBitstreamOut = *(iterBitstream);
-
+  
   //  Current pic.
   TComList<TComPic*>::iterator        iterPic       = rcListPic.begin();
   while (iterPic != rcListPic.end())
@@ -567,22 +567,22 @@ Void TEncGOP::xGetBuffer( TComList<TComPic*>&       rcListPic,
     }
     iterPic++;
   }
-
+  
   assert (rpcPic->getPOC() == (Int)uiPOCCurr);
-
+  
   return;
 }
 
 Void TEncGOP::xScalePic( TComPic* pcPic )
 {
   Int     x, y;
-
+  
   //===== calculate PSNR =====
   Pel*  pRec    = pcPic->getPicYuvOrg()->getLumaAddr();
   Int   iStride = pcPic->getStride();
   Int   iWidth  = pcPic->getPicYuvOrg()->getWidth();
   Int   iHeight = pcPic->getPicYuvOrg()->getHeight();
-
+  
   for( y = 0; y < iHeight; y++ )
   {
     for( x = 0; x < iWidth; x++ )
@@ -591,12 +591,12 @@ Void TEncGOP::xScalePic( TComPic* pcPic )
     }
     pRec += iStride;
   }
-
+  
   iHeight >>= 1;
   iWidth  >>= 1;
   iStride >>= 1;
   pRec  = pcPic->getPicYuvOrg()->getCbAddr();
-
+  
   for( y = 0; y < iHeight; y++ )
   {
     for( x = 0; x < iWidth; x++ )
@@ -605,9 +605,9 @@ Void TEncGOP::xScalePic( TComPic* pcPic )
     }
     pRec += iStride;
   }
-
+  
   pRec  = pcPic->getPicYuvOrg()->getCrAddr();
-
+  
   for( y = 0; y < iHeight; y++ )
   {
     for( x = 0; x < iWidth; x++ )
@@ -622,14 +622,14 @@ Void TEncGOP::xDeScalePic( TComPic* pcPic, TComPicYuv* pcPicD )
 {
   Int     x, y;
   Int     offset = (g_uiBitIncrement>0)?(1<<(g_uiBitIncrement-1)):0;
-
+  
   //===== calculate PSNR =====
   Pel*  pRecD   = pcPicD->getLumaAddr();
   Pel*  pRec    = pcPic->getPicYuvRec()->getLumaAddr();
   Int   iStride = pcPic->getStride();
   Int   iWidth  = pcPic->getPicYuvOrg()->getWidth();
   Int   iHeight = pcPic->getPicYuvOrg()->getHeight();
-
+  
   for( y = 0; y < iHeight; y++ )
   {
     for( x = 0; x < iWidth; x++ )
@@ -643,13 +643,13 @@ Void TEncGOP::xDeScalePic( TComPic* pcPic, TComPicYuv* pcPicD )
     pRecD += iStride;
     pRec += iStride;
   }
-
+  
   iHeight >>= 1;
   iWidth  >>= 1;
   iStride >>= 1;
   pRecD = pcPicD->getCbAddr();
   pRec  = pcPic->getPicYuvRec()->getCbAddr();
-
+  
   for( y = 0; y < iHeight; y++ )
   {
     for( x = 0; x < iWidth; x++ )
@@ -663,10 +663,10 @@ Void TEncGOP::xDeScalePic( TComPic* pcPic, TComPicYuv* pcPicD )
     pRecD += iStride;
     pRec += iStride;
   }
-
+  
   pRecD = pcPicD->getCrAddr();
   pRec  = pcPic->getPicYuvRec()->getCrAddr();
-
+  
   for( y = 0; y < iHeight; y++ )
   {
     for( x = 0; x < iWidth; x++ )
@@ -689,13 +689,13 @@ UInt64 TEncGOP::xFindDistortionFrame (TComPicYuv* pcPic0, TComPicYuv* pcPic1)
   Pel*  pSrc1   = pcPic1 ->getLumaAddr();
   UInt  uiShift = g_uiBitIncrement<<1;
   Int   iTemp;
-
+  
   Int   iStride = pcPic0->getStride();
   Int   iWidth  = pcPic0->getWidth();
   Int   iHeight = pcPic0->getHeight();
-
+  
   UInt64  uiTotalDiff = 0;
-
+  
   for( y = 0; y < iHeight; y++ )
   {
     for( x = 0; x < iWidth; x++ )
@@ -705,14 +705,14 @@ UInt64 TEncGOP::xFindDistortionFrame (TComPicYuv* pcPic0, TComPicYuv* pcPic1)
     pSrc0 += iStride;
     pSrc1 += iStride;
   }
-
+  
   iHeight >>= 1;
   iWidth  >>= 1;
   iStride >>= 1;
-
+  
   pSrc0  = pcPic0->getCbAddr();
   pSrc1  = pcPic1->getCbAddr();
-
+  
   for( y = 0; y < iHeight; y++ )
   {
     for( x = 0; x < iWidth; x++ )
@@ -722,10 +722,10 @@ UInt64 TEncGOP::xFindDistortionFrame (TComPicYuv* pcPic0, TComPicYuv* pcPic1)
     pSrc0 += iStride;
     pSrc1 += iStride;
   }
-
+  
   pSrc0  = pcPic0->getCrAddr();
   pSrc1  = pcPic1->getCrAddr();
-
+  
   for( y = 0; y < iHeight; y++ )
   {
     for( x = 0; x < iWidth; x++ )
@@ -735,7 +735,7 @@ UInt64 TEncGOP::xFindDistortionFrame (TComPicYuv* pcPic0, TComPicYuv* pcPic1)
     pSrc0 += iStride;
     pSrc1 += iStride;
   }
-
+  
   return uiTotalDiff;
 }
 
@@ -745,24 +745,24 @@ Void TEncGOP::xCalculateAddPSNR( TComPic* pcPic, TComPicYuv* pcPicD, UInt uibits
   UInt    uiSSDY  = 0;
   UInt    uiSSDU  = 0;
   UInt    uiSSDV  = 0;
-
+  
   Double  dYPSNR  = 0.0;
   Double  dUPSNR  = 0.0;
   Double  dVPSNR  = 0.0;
-
+  
   //===== calculate PSNR =====
   Pel*  pOrg    = pcPic ->getPicYuvOrg()->getLumaAddr();
   Pel*  pRec    = pcPicD->getLumaAddr();
   Int   iStride = pcPicD->getStride();
-
+  
   Int   iWidth;
   Int   iHeight;
-
+  
   iWidth  = pcPicD->getWidth () - m_pcEncTop->getPad(0);
   iHeight = pcPicD->getHeight() - m_pcEncTop->getPad(1);
-
+  
   Int   iSize   = iWidth*iHeight;
-
+  
   for( y = 0; y < iHeight; y++ )
   {
     for( x = 0; x < iWidth; x++ )
@@ -773,13 +773,13 @@ Void TEncGOP::xCalculateAddPSNR( TComPic* pcPic, TComPicYuv* pcPicD, UInt uibits
     pOrg += iStride;
     pRec += iStride;
   }
-
+  
   iHeight >>= 1;
   iWidth  >>= 1;
   iStride >>= 1;
   pOrg  = pcPic ->getPicYuvOrg()->getCbAddr();
   pRec  = pcPicD->getCbAddr();
-
+  
   for( y = 0; y < iHeight; y++ )
   {
     for( x = 0; x < iWidth; x++ )
@@ -790,10 +790,10 @@ Void TEncGOP::xCalculateAddPSNR( TComPic* pcPic, TComPicYuv* pcPicD, UInt uibits
     pOrg += iStride;
     pRec += iStride;
   }
-
+  
   pOrg  = pcPic ->getPicYuvOrg()->getCrAddr();
   pRec  = pcPicD->getCrAddr();
-
+  
   for( y = 0; y < iHeight; y++ )
   {
     for( x = 0; x < iWidth; x++ )
@@ -804,16 +804,16 @@ Void TEncGOP::xCalculateAddPSNR( TComPic* pcPic, TComPicYuv* pcPicD, UInt uibits
     pOrg += iStride;
     pRec += iStride;
   }
-
+  
   Double fRefValueY = 255.0 * 255.0 * (Double)iSize;
   Double fRefValueC = fRefValueY / 4.0;
   dYPSNR            = ( uiSSDY ? 10.0 * log10( fRefValueY / (Double)uiSSDY ) : 99.99 );
   dUPSNR            = ( uiSSDU ? 10.0 * log10( fRefValueC / (Double)uiSSDU ) : 99.99 );
   dVPSNR            = ( uiSSDV ? 10.0 * log10( fRefValueC / (Double)uiSSDV ) : 99.99 );
-
+  
   // fix: total bits should consider slice size bits (32bit)
   uibits += 32;
-
+  
   //===== add PSNR =====
   m_gcAnalyzeAll.addResult (dYPSNR, dUPSNR, dVPSNR, (Double)uibits);
   if (pcPic->getSlice()->isIntra())
@@ -828,17 +828,17 @@ Void TEncGOP::xCalculateAddPSNR( TComPic* pcPic, TComPicYuv* pcPicD, UInt uibits
   {
     m_gcAnalyzeB.addResult (dYPSNR, dUPSNR, dVPSNR, (Double)uibits);
   }
-
+  
   //===== output =====
   TComSlice*  pcSlice = pcPic->getSlice();
   printf("\nPOC %4d ( %c-SLICE, QP %d ) %10d bits ",
-    pcSlice->getPOC(),
-    pcSlice->isIntra() ? 'I' : pcSlice->isInterP() ? 'P' : 'B',
-    pcSlice->getSliceQp(),
-    uibits );
+         pcSlice->getPOC(),
+         pcSlice->isIntra() ? 'I' : pcSlice->isInterP() ? 'P' : 'B',
+         pcSlice->getSliceQp(),
+         uibits );
   printf( "[Y %6.4lf dB    U %6.4lf dB    V %6.4lf dB]  ", dYPSNR, dUPSNR, dVPSNR );
   printf ("[ET %5.0f ] ", dEncTime );
-
+  
   for (Int iRefList = 0; iRefList < 2; iRefList++)
   {
     printf ("[L%d ", iRefList);
@@ -848,7 +848,7 @@ Void TEncGOP::xCalculateAddPSNR( TComPic* pcPic, TComPicYuv* pcPicD, UInt uibits
     }
     printf ("] ");
   }
-
+  
   fflush(stdout);
 }
 

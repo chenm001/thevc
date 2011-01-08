@@ -55,12 +55,12 @@ class TEncCavlc : public TEncEntropyIf
 {
 private:
   Bool m_bAdaptFlag;
-
-
+  
+  
 public:
   TEncCavlc();
   virtual ~TEncCavlc();
-
+  
 protected:
   TComBitIf*    m_pcBitIf;
   TComSlice*    m_pcSlice;
@@ -74,7 +74,7 @@ protected:
   UInt          m_uiLPTableE8[10][128];
   UInt          m_uiLPTableD8[10][128];
   UInt          m_uiLastPosVlcIndex[10];
-
+  
 #if LCEC_STAT 
   UInt m_uiBitHLS;
   UInt m_uiBitMVPId;
@@ -101,26 +101,26 @@ protected:
   UInt m_uiBitCoeff;
   UInt m_uiBitCbp;
 #endif
-
+  
   UInt          m_uiCBPTableE[2][8];
   UInt          m_uiCBPTableD[2][8];
   UInt          m_uiCbpVlcIdx[2];
-
+  
 #if QC_BLK_CBP
   UInt          m_uiBlkCBPTableE[2][15];
   UInt          m_uiBlkCBPTableD[2][15];
   UInt          m_uiBlkCbpVlcIdx;
 #endif
-
+  
   UInt          m_uiMI1TableE[8];
   UInt          m_uiMI1TableD[8];
   UInt          m_uiMI2TableE[15];
   UInt          m_uiMI2TableD[15];
-
+  
   UInt          m_uiMITableVlcIdx;
-
+  
   Void  xCheckCoeff( TCoeff* pcCoef, UInt uiSize, UInt uiDepth, UInt& uiNumofCoeff, UInt& uiPart );
-
+  
 #if LCEC_STAT
   UInt  xWriteCode            ( UInt uiCode, UInt uiLength );
   UInt  xWriteUvlc            ( UInt uiCode );
@@ -144,11 +144,11 @@ protected:
 #endif
   Void  xCodeCoeff4x4          ( TCoeff* scoeff, Int iTableNumber );
   Void  xCodeCoeff8x8          ( TCoeff* scoeff, Int iTableNumber );
-
+  
   UInt  xConvertToUInt        ( Int iValue ) {  return ( iValue <= 0) ? -iValue<<1 : (iValue<<1)-1; }
-
+  
 public:
-
+  
   Void  resetEntropy          ();
 #if LCEC_STAT
   Void  statistics            ( Bool bResetFlag, UInt uiPrintVar );
@@ -165,19 +165,19 @@ public:
   Void  resetCoeffCost        ()                { m_uiCoeffCost = 0;  }
   UInt  getNumberOfWrittenBits()                { return  m_pcBitIf->getNumberOfWrittenBits();  }
   UInt  getCoeffCost          ()                { return  m_uiCoeffCost;  }
-
+  
   Void  codeSPS                 ( TComSPS* pcSPS );
   Void  codePPS                 ( TComPPS* pcPPS );
   Void  codeSliceHeader         ( TComSlice* pcSlice );
   Void  codeTerminatingBit      ( UInt uilsLast );
   Void  codeSliceFinish         ();
-
+  
   Void codeMVPIdx ( TComDataCU* pcCU, UInt uiAbsPartIdx, RefPicList eRefList );
   Void codeAlfFlag       ( UInt uiCode );
   Void codeAlfUvlc       ( UInt uiCode );
   Void codeAlfSvlc       ( Int   iCode );
   Void codeAlfCtrlDepth();
-
+  
   Void codeSkipFlag      ( TComDataCU* pcCU, UInt uiAbsPartIdx );
 #if HHI_MRG
   Void codeMergeFlag     ( TComDataCU* pcCU, UInt uiAbsPartIdx );
@@ -188,33 +188,33 @@ public:
   Void codeAlfFlagNum    ( UInt uiCode, UInt minValue );
   Void codeAlfCtrlFlag   ( UInt uiSymbol );
 #endif
-
+  
   Void codeSplitFlag     ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
-
+  
   Void codePartSize      ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
   Void codePredMode      ( TComDataCU* pcCU, UInt uiAbsPartIdx );
-
+  
   Void codeTransformSubdivFlag( UInt uiSymbol, UInt uiCtx );
   Void codeQtCbf         ( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eType, UInt uiTrDepth );
   Void codeQtRootCbf     ( TComDataCU* pcCU, UInt uiAbsPartIdx );
-
+  
   Void codeIntraDirLumaAng( TComDataCU* pcCU, UInt uiAbsPartIdx );
-
+  
   Void codeIntraDirChroma( TComDataCU* pcCU, UInt uiAbsPartIdx );
   Void codeInterDir      ( TComDataCU* pcCU, UInt uiAbsPartIdx );
   Void codeRefFrmIdx     ( TComDataCU* pcCU, UInt uiAbsPartIdx, RefPicList eRefList );
   Void codeMvd           ( TComDataCU* pcCU, UInt uiAbsPartIdx, RefPicList eRefList );
-
+  
   Void codeDeltaQP       ( TComDataCU* pcCU, UInt uiAbsPartIdx );
 #if LCEC_CBP_YUV_ROOT
   Void codeCbf           ( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eType, UInt uiTrDepth );
   Void	codeBlockCbf				  ( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eType, UInt uiTrDepth, UInt uiQPartNum, Bool bRD = false);
 #endif
-
+  
   Void codeCoeffNxN      ( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx, UInt uiWidth, UInt uiHeight, UInt uiDepth, TextType eTType, Bool bRD = false );
-
+  
   Void estBit             (estBitsSbacStruct* pcEstBitsSbac, UInt uiCTXIdx, TextType eTType);
-
+  
   Bool  getAdaptFlag          ()          { return m_bAdaptFlag; }
   Void  setAdaptFlag          ( Bool b )  { m_bAdaptFlag = b;     }
 };

@@ -67,62 +67,62 @@ private:
   Int                     m_iRateGopSize;
   Int                     m_iNumPicCoded;
   Bool                    m_bFirst;
-
+  
   //  Access channel
   TEncTop*                m_pcEncTop;
   TEncCfg*                m_pcCfg;
   TEncSlice*              m_pcSliceEncoder;
   TComList<TComPic*>*     m_pcListPic;
-
+  
   TEncEntropy*            m_pcEntropyCoder;
   TEncCavlc*              m_pcCavlcCoder;
   TEncSbac*               m_pcSbacCoder;
   TEncBinCABAC*           m_pcBinCABAC;
   TComLoopFilter*         m_pcLoopFilter;
-
+  
   // Adaptive Loop filter
   TEncAdaptiveLoopFilter* m_pcAdaptiveLoopFilter;
   //--Adaptive Loop filter
-
+  
   TComBitCounter*         m_pcBitCounter;
-
+  
   // indicate sequence first
   Bool                    m_bSeqFirst;
-
+  
 public:
   TEncGOP();
   virtual ~TEncGOP();
-
+  
   Void  create      ();
   Void  destroy     ();
-
+  
   Void  init        ( TEncTop* pcTEncTop );
   Void  compressGOP ( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rcListPic, TComList<TComPicYuv*>& rcListPicYuvRec, TComList<TComBitstream*> rcListBitstream );
-
+  
   Int   getGOPSize()          { return  m_iGopSize;  }
   Int   getRateGOPSize()      { return  m_iRateGopSize;  }
   Int   isHierarchicalB()     { return  m_pcCfg->getHierarchicalCoding();  }
   Int   getHrchDepth()        { return  m_iHrchDepth; }
-
+  
   TComList<TComPic*>*   getListPic()      { return m_pcListPic; }
-
+  
   Void  printOutSummary      ( UInt uiNumAllPicCoded );
   Void  preLoopFilterPicAll  ( TComPic* pcPic, UInt64& ruiDist, UInt64& ruiBits );
-
+  
   TEncSlice*  getSliceEncoder()   { return m_pcSliceEncoder; }
-
+  
 protected:
   Void  xInitGOP          ( Int iPOC, Int iNumPicRcvd, TComList<TComPic*>& rcListPic, TComList<TComPicYuv*>& rcListPicYuvRecOut );
   Void  xGetBuffer        ( TComList<TComPic*>& rcListPic, TComList<TComPicYuv*>& rcListPicYuvRecOut, TComList<TComBitstream*>& rcListBitstream, Int iNumPicRcvd, Int iTimeOffset, TComPic*& rpcPic, TComPicYuv*& rpcPicYuvRecOut, TComBitstream*& rpcBitstreamOut, UInt uiPOCCurr );
-
+  
   // for scaling & descaing of picture
   // note: IBDI is handled here
   Void  xScalePic         ( TComPic* pcPic );
   Void  xDeScalePic       ( TComPic* pcPic, TComPicYuv* pcPicD );
-
+  
   Void  xCalculateAddPSNR ( TComPic* pcPic, TComPicYuv* pcPicD, UInt uiBits );
   Void  xCalculateAddPSNR ( TComPic* pcPic, TComPicYuv* pcPicD, UInt uiBits, Double dEncTime );
-
+  
   UInt64 xFindDistortionFrame (TComPicYuv* pcPic0, TComPicYuv* pcPic1);
 };// END CLASS DEFINITION TEncGOP
 

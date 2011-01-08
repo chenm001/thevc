@@ -60,36 +60,36 @@ class TEncSbac : public TEncEntropyIf
 public:
   TEncSbac();
   virtual ~TEncSbac();
-
+  
   Void  init                   ( TEncBinIf* p )  { m_pcBinIf = p; }
   Void  uninit                 ()                { m_pcBinIf = 0; }
-
+  
   //  Virtual list
   Void  resetEntropy           ();
   Void  setBitstream           ( TComBitIf* p )  { m_pcBitIf = p; m_pcBinIf->init( p ); }
   Void  setSlice               ( TComSlice* p )  { m_pcSlice = p;                       }
-
+  
   Bool  getAlfCtrl             ()                         { return m_bAlfCtrl;          }
   UInt  getMaxAlfCtrlDepth     ()                         { return m_uiMaxAlfCtrlDepth; }
   Void  setAlfCtrl             ( Bool bAlfCtrl          ) { m_bAlfCtrl          = bAlfCtrl;          }
   Void  setMaxAlfCtrlDepth     ( UInt uiMaxAlfCtrlDepth ) { m_uiMaxAlfCtrlDepth = uiMaxAlfCtrlDepth; }
-
+  
   // SBAC RD
   Void  resetCoeffCost         ()                { m_uiCoeffCost = 0;  }
   UInt  getCoeffCost           ()                { return  m_uiCoeffCost;  }
-
+  
   Void  load                   ( TEncSbac* pScr  );
   Void  store                  ( TEncSbac* pDest );
   Void  resetBits              ()                { m_pcBinIf->resetBits(); m_pcBitIf->resetBits(); }
   UInt  getNumberOfWrittenBits ()                { return m_pcBinIf->getNumWrittenBits(); }
   //--SBAC RD
-
+  
   Void  codeSPS                 ( TComSPS* pcSPS     );
   Void  codePPS                 ( TComPPS* pcPPS     );
   Void  codeSliceHeader         ( TComSlice* pcSlice );
   Void  codeTerminatingBit      ( UInt uilsLast      );
   Void  codeSliceFinish         ();
-
+  
   Void  codeAlfFlag       ( UInt uiCode );
   Void  codeAlfUvlc       ( UInt uiCode );
   Void  codeAlfSvlc       ( Int  uiCode );
@@ -104,26 +104,26 @@ private:
   Void  xWriteEpExGolomb     ( UInt uiSymbol, UInt uiCount );
   Void  xWriteExGolombLevel  ( UInt uiSymbol, ContextModel& rcSCModel  );
   Void  xWriteTerminatingBit ( UInt uiBit );
-
+  
   Void  xCheckCoeff( TCoeff* pcCoef, UInt uiSize, UInt uiDepth, UInt& uiNumofCoeff, UInt& uiPart );
-
+  
   Void  xWriteMvd            ( Int iMvd, UInt uiAbsSum, UInt uiCtx );
   Void  xWriteExGolombMvd    ( UInt uiSymbol, ContextModel* pcSCModel, UInt uiMaxBin );
   Void  xCopyFrom            ( TEncSbac* pSrc );
-
+  
 protected:
   TComBitIf*    m_pcBitIf;
   TComSlice*    m_pcSlice;
   TEncBinIf*    m_pcBinIf;
   Bool          m_bAlfCtrl;
-
+  
   //SBAC RD
   UInt          m_uiCoeffCost;
-
+  
   // Adaptive loop filter
   UInt          m_uiMaxAlfCtrlDepth;
   //--Adaptive loop filter
-
+  
 public:
   Void codeAlfCtrlFlag   ( TComDataCU* pcCU, UInt uiAbsPartIdx );
   Void codeSkipFlag      ( TComDataCU* pcCU, UInt uiAbsPartIdx );
@@ -133,44 +133,44 @@ public:
 #endif
   Void codeSplitFlag     ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
   Void codeMVPIdx        ( TComDataCU* pcCU, UInt uiAbsPartIdx, RefPicList eRefList );
-
+  
   Void codePartSize      ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
   Void codePredMode      ( TComDataCU* pcCU, UInt uiAbsPartIdx );
-
+  
   Void codeTransformSubdivFlag ( UInt uiSymbol, UInt uiCtx );
   Void codeQtCbf               ( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eType, UInt uiTrDepth );
   Void codeQtRootCbf           ( TComDataCU* pcCU, UInt uiAbsPartIdx );
-
+  
   Void codeIntraDirLumaAng     ( TComDataCU* pcCU, UInt uiAbsPartIdx );
-
+  
   Void codeIntraDirChroma      ( TComDataCU* pcCU, UInt uiAbsPartIdx );
   Void codeInterDir            ( TComDataCU* pcCU, UInt uiAbsPartIdx );
   Void codeRefFrmIdx           ( TComDataCU* pcCU, UInt uiAbsPartIdx, RefPicList eRefList );
   Void codeMvd                 ( TComDataCU* pcCU, UInt uiAbsPartIdx, RefPicList eRefList );
-
+  
   Void codeDeltaQP             ( TComDataCU* pcCU, UInt uiAbsPartIdx );
 #if LCEC_CBP_YUV_ROOT
   Void codeCbf                 ( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eType, UInt uiTrDepth ) {}
   Void codeBlockCbf            ( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eType, UInt uiTrDepth, UInt uiQPartNum, Bool bRD = false ) {}
 #endif
-
+  
   Void codeCoeffNxN            ( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx, UInt uiWidth, UInt uiHeight, UInt uiDepth, TextType eTType, Bool bRD = false );
-
+  
   // -------------------------------------------------------------------------------------------------------------------
   // for RD-optimizatioon
   // -------------------------------------------------------------------------------------------------------------------
-
+  
   Void estBit                        ( estBitsSbacStruct* pcEstBitsSbac, UInt uiCTXIdx, TextType eTType );
   Void estCBFBit                     ( estBitsSbacStruct* pcEstBitsSbac, UInt uiCTXIdx, TextType eTType );
   Void estSignificantMapBit          ( estBitsSbacStruct* pcEstBitsSbac, UInt uiCTXIdx, TextType eTType );
   Void estSignificantCoefficientsBit ( estBitsSbacStruct* pcEstBitsSbac, UInt uiCTXIdx, TextType eTType );
-
+  
   __inline Int  biari_no_bits        ( Short symbol, ContextModel& rcSCModel );
-
+  
 private:
   UInt                 m_uiLastQp;
   ContextModel3DBuffer m_cCUSplitFlagSCModel;
-
+  
   ContextModel3DBuffer m_cCUSkipFlagSCModel;
 #if HHI_MRG
   ContextModel3DBuffer m_cCUMergeFlagSCModel;
@@ -188,14 +188,14 @@ private:
   ContextModel3DBuffer m_cCUQtCbfSCModel;
   ContextModel3DBuffer m_cCUTransSubdivFlagSCModel;
   ContextModel3DBuffer m_cCUQtRootCbfSCModel;
-
+  
   ContextModel3DBuffer m_cCUSigSCModel;
   ContextModel3DBuffer m_cCULastSCModel;
   ContextModel3DBuffer m_cCUOneSCModel;
   ContextModel3DBuffer m_cCUAbsSCModel;
-
+  
   ContextModel3DBuffer m_cMVPIdxSCModel;
-
+  
   ContextModel3DBuffer m_cALFFlagSCModel;
   ContextModel3DBuffer m_cALFUvlcSCModel;
   ContextModel3DBuffer m_cALFSvlcSCModel;

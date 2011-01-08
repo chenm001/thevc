@@ -44,11 +44,12 @@ TEncSlice::TEncSlice()
 {
   m_apcPicYuvPred = NULL;
   m_apcPicYuvResi = NULL;
-
+  
   m_pdRdPicLambda = NULL;
   m_pdRdPicQp     = NULL;
   m_piRdPicQp     = NULL;
 }
+
 TEncSlice::~TEncSlice()
 {
 }
@@ -61,7 +62,7 @@ Void TEncSlice::create( Int iWidth, Int iHeight, UInt iMaxCUWidth, UInt iMaxCUHe
     m_apcPicYuvPred  = new TComPicYuv;
     m_apcPicYuvPred->create( iWidth, iHeight, iMaxCUWidth, iMaxCUHeight, uhTotalDepth );
   }
-
+  
   // create residual picture
   if( m_apcPicYuvResi == NULL )
   {
@@ -79,7 +80,7 @@ Void TEncSlice::destroy()
     delete m_apcPicYuvPred;
     m_apcPicYuvPred  = NULL;
   }
-
+  
   // destroy residual picture
   if ( m_apcPicYuvResi )
   {
@@ -87,7 +88,7 @@ Void TEncSlice::destroy()
     delete m_apcPicYuvResi;
     m_apcPicYuvResi  = NULL;
   }
-
+  
   // free lambda and QP arrays
   if ( m_pdRdPicLambda ) { xFree( m_pdRdPicLambda ); m_pdRdPicLambda = NULL; }
   if ( m_pdRdPicQp     ) { xFree( m_pdRdPicQp     ); m_pdRdPicQp     = NULL; }
@@ -98,22 +99,22 @@ Void TEncSlice::init( TEncTop* pcEncTop )
 {
   m_pcCfg             = pcEncTop;
   m_pcListPic         = pcEncTop->getListPic();
-
+  
   m_pcGOPEncoder      = pcEncTop->getGOPEncoder();
   m_pcCuEncoder       = pcEncTop->getCuEncoder();
   m_pcPredSearch      = pcEncTop->getPredSearch();
-
+  
   m_pcEntropyCoder    = pcEncTop->getEntropyCoder();
   m_pcCavlcCoder      = pcEncTop->getCavlcCoder();
   m_pcSbacCoder       = pcEncTop->getSbacCoder();
   m_pcBinCABAC        = pcEncTop->getBinCABAC();
   m_pcTrQuant         = pcEncTop->getTrQuant();
-
+  
   m_pcBitCounter      = pcEncTop->getBitCounter();
   m_pcRdCost          = pcEncTop->getRdCost();
   m_pppcRDSbacCoder   = pcEncTop->getRDSbacCoder();
   m_pcRDGoOnSbacCoder = pcEncTop->getRDGoOnSbacCoder();
-
+  
   // create lambda and QP arrays
   m_pdRdPicLambda     = (Double*)xMalloc( Double, m_pcCfg->getDeltaQpRD() * 2 + 1 );
   m_pdRdPicQp         = (Double*)xMalloc( Double, m_pcCfg->getDeltaQpRD() * 2 + 1 );
@@ -121,27 +122,27 @@ Void TEncSlice::init( TEncTop* pcEncTop )
 }
 
 /**
-   - non-referenced frame marking
-   - QP computation based on temporal structure
-   - lambda computation based on QP
-   .
-   \param pcPic         picture class
-   \param iPOCLast      POC of last picture
-   \param uiPOCCurr     current POC
-   \param iNumPicRcvd   number of received pictures
-   \param iTimeOffset   POC offset for hierarchical structure
-   \param iDepth        temporal layer depth
-   \param rpcSlice      slice header class
+ - non-referenced frame marking
+ - QP computation based on temporal structure
+ - lambda computation based on QP
+ .
+ \param pcPic         picture class
+ \param iPOCLast      POC of last picture
+ \param uiPOCCurr     current POC
+ \param iNumPicRcvd   number of received pictures
+ \param iTimeOffset   POC offset for hierarchical structure
+ \param iDepth        temporal layer depth
+ \param rpcSlice      slice header class
  */
 Void TEncSlice::initEncSlice( TComPic* pcPic, Int iPOCLast, UInt uiPOCCurr, Int iNumPicRcvd, Int iTimeOffset, Int iDepth, TComSlice*& rpcSlice )
 {
   Double dQP;
   Double dLambda;
-
+  
   rpcSlice = pcPic->getSlice();
   rpcSlice->setPic( pcPic );
   rpcSlice->initSlice();
-
+  
   // depth re-computation based on rate GOP size
   if ( m_pcCfg->getGOPSize() != m_pcCfg->getRateGOPSize() )
   {
@@ -167,10 +168,10 @@ Void TEncSlice::initEncSlice( TComPic* pcPic, Int iPOCLast, UInt uiPOCCurr, Int 
       }
     }
   }
-
+  
   // slice type
   SliceType eSliceType;
-
+  
 #if !HB_LAMBDA_FOR_LDC
   if ( m_pcCfg->getUseLDC() )
   {
@@ -182,14 +183,14 @@ Void TEncSlice::initEncSlice( TComPic* pcPic, Int iPOCLast, UInt uiPOCCurr, Int 
     eSliceType = iDepth > 0 ? B_SLICE : P_SLICE;
   }
   eSliceType = (iPOCLast == 0 || uiPOCCurr % m_pcCfg->getIntraPeriod() == 0 || m_pcGOPEncoder->getGOPSize() == 0) ? I_SLICE : eSliceType;
-
+  
   rpcSlice->setSliceType    ( eSliceType );
   rpcSlice->setPOC          ( iPOCLast - iNumPicRcvd + iTimeOffset );
-
+  
   // ------------------------------------------------------------------------------------------------------------------
   // Non-referenced frame marking
   // ------------------------------------------------------------------------------------------------------------------
-
+  
   if ( m_pcCfg->getUseNRF() )
   {
     if ( ( m_pcCfg->getRateGOPSize() != 1) && (m_pcCfg->getRateGOPSize() >> (iDepth+1)) == 0 )
@@ -205,11 +206,11 @@ Void TEncSlice::initEncSlice( TComPic* pcPic, Int iPOCLast, UInt uiPOCCurr, Int 
   {
     rpcSlice->setReferenced(true);
   }
-
+  
   // ------------------------------------------------------------------------------------------------------------------
   // QP setting
   // ------------------------------------------------------------------------------------------------------------------
-
+  
   dQP = m_pcCfg->getQP();
   if ( iDepth < MAX_TLAYER && m_pcCfg->getTemporalLayerQPOffset(iDepth) != ( MAX_QP + 1 ) )
   {
@@ -229,38 +230,38 @@ Void TEncSlice::initEncSlice( TComPic* pcPic, Int iPOCLast, UInt uiPOCCurr, Int 
       }
       else
       {
-         dQP += iDepth+1;
+        dQP += iDepth+1;
       }
     }
   }
-
+  
   // modify QP
   Int* pdQPs = m_pcCfg->getdQPs();
   if ( pdQPs )
   {
     dQP += pdQPs[ pcPic->getSlice()->getPOC() ];
   }
-
+  
   // ------------------------------------------------------------------------------------------------------------------
   // Lambda computation
   // ------------------------------------------------------------------------------------------------------------------
-
+  
   Int iQP;
   Double dOrigQP = dQP;
-
+  
   // pre-compute lambda and QP values for all possible QP candidates
   for ( Int iDQpIdx = 0; iDQpIdx < 2 * m_pcCfg->getDeltaQpRD() + 1; iDQpIdx++ )
   {
     // compute QP value
     dQP = dOrigQP + ((iDQpIdx+1)>>1)*(iDQpIdx%2 ? -1 : 1);
-
+    
     // compute lambda value
     Int    NumberBFrames = ( m_pcCfg->getRateGOPSize() - 1 );
     Int    SHIFT_QP = 12;
     Double dLambda_scale = 1.0 - Clip3( 0.0, 0.5, 0.05*(Double)NumberBFrames );
     Int    bitdepth_luma_qp_scale = 0;
     Double qp_temp = (double) dQP + bitdepth_luma_qp_scale - SHIFT_QP;
-
+    
     // Case #1: I or P-slices (key-frame)
     if ( iDepth == 0 )
     {
@@ -292,10 +293,10 @@ Void TEncSlice::initEncSlice( TComPic* pcPic, Int iPOCLast, UInt uiPOCCurr, Int 
           Int    iMaxDepth = 0;
           Int    iCnt = 1;
           Int    hierarchy_layer;
-
+          
           while ( iCnt < m_pcCfg->getRateGOPSize() ) { iCnt <<= 1; iMaxDepth++; }
           hierarchy_layer = iMaxDepth - iDepth;
-
+          
           dLambda *= 0.80;
           dLambda *= dLambda_scale;
         }
@@ -307,24 +308,24 @@ Void TEncSlice::initEncSlice( TComPic* pcPic, Int iPOCLast, UInt uiPOCCurr, Int 
     }
     // if hadamard is used in ME process
     if ( !m_pcCfg->getUseHADME() ) dLambda *= 0.95;
-
+    
     iQP = Max( MIN_QP, Min( MAX_QP, (Int)floor( dQP + 0.5 ) ) );
-
+    
     m_pdRdPicLambda[iDQpIdx] = dLambda;
     m_pdRdPicQp    [iDQpIdx] = dQP;
     m_piRdPicQp    [iDQpIdx] = iQP;
   }
-
+  
   // obtain dQP = 0 case
   dLambda = m_pdRdPicLambda[0];
   dQP     = m_pdRdPicQp    [0];
   iQP     = m_piRdPicQp    [0];
-
+  
   // store lambda
   m_pcRdCost ->setLambda( dLambda );
   m_pcTrQuant->setLambda( dLambda );
   rpcSlice   ->setLambda( dLambda );
-
+  
 #if HB_LAMBDA_FOR_LDC
   // restore original slice type
   if ( m_pcCfg->getUseLDC() )
@@ -332,34 +333,34 @@ Void TEncSlice::initEncSlice( TComPic* pcPic, Int iPOCLast, UInt uiPOCCurr, Int 
     eSliceType = P_SLICE;
   }
   eSliceType = (iPOCLast == 0 || uiPOCCurr % m_pcCfg->getIntraPeriod() == 0 || m_pcGOPEncoder->getGOPSize() == 0) ? I_SLICE : eSliceType;
-
+  
   rpcSlice->setSliceType        ( eSliceType );
 #endif
-
+  
   rpcSlice->setSliceQp          ( iQP );
   rpcSlice->setSliceQpDelta     ( 0 );
   rpcSlice->setNumRefIdx        ( REF_PIC_LIST_0, eSliceType == P_SLICE ? m_pcCfg->getNumOfReference() : (eSliceType == B_SLICE ? (m_pcCfg->getNumOfReferenceB_L0()) : 0 ) );
   rpcSlice->setNumRefIdx        ( REF_PIC_LIST_1, eSliceType == B_SLICE ? (m_pcCfg->getNumOfReferenceB_L1()) : 0 );
-
+  
   rpcSlice->setSymbolMode       ( m_pcCfg->getSymbolMode());
   rpcSlice->setLoopFilterDisable( m_pcCfg->getLoopFilterDisable() );
-
+  
   rpcSlice->setDepth            ( iDepth );
-
+  
   // reference picture usage indicator for next frames
   rpcSlice->setDRBFlag          ( true );
   rpcSlice->setERBIndex         ( ERB_NONE );
-
+  
   // generalized B info. (for non-reference B)
   if ( m_pcCfg->getHierarchicalCoding() == false && iDepth != 0 )
   {
     rpcSlice->setDRBFlag        ( false );
     rpcSlice->setERBIndex       ( ERB_NONE );
   }
-
+  
   assert( m_apcPicYuvPred );
   assert( m_apcPicYuvResi );
-
+  
   pcPic->setPicYuvPred( m_apcPicYuvPred );
   pcPic->setPicYuvResi( m_apcPicYuvResi );
   rpcSlice->setInterpFilterType ( m_pcCfg->getInterpFilterType() );
@@ -377,7 +378,7 @@ Void TEncSlice::setSearchRange( TComSlice* pcSlice )
   Int iOffset = (iRateGOPSize >> 1);
   Int iMaxSR = m_pcCfg->getSearchRange();
   Int iNumPredDir = pcSlice->isInterP() ? 1 : 2;
-
+  
   for (Int iDir = 0; iDir <= iNumPredDir; iDir++)
   {
     RefPicList e = (RefPicList)iDir;
@@ -391,25 +392,25 @@ Void TEncSlice::setSearchRange( TComSlice* pcSlice )
 }
 
 /**
-   - multi-loop slice encoding for different slice QP
-   .
-   \param rpcPic    picture class
+ - multi-loop slice encoding for different slice QP
+ .
+ \param rpcPic    picture class
  */
 Void TEncSlice::precompressSlice( TComPic*& rpcPic )
 {
   // if deltaQP RD is not used, simply return
   if ( m_pcCfg->getDeltaQpRD() == 0 ) return;
-
+  
   TComSlice* pcSlice        = rpcPic->getSlice();
   Double     dPicRdCostBest = MAX_DOUBLE;
   Double dSumCURdCostBest;
   UInt64     uiPicDistBest;
   UInt64     uiPicBitsBest;
   UInt       uiQpIdxBest = 0;
-
+  
   Double dFrameLambda;
   Int    SHIFT_QP = 12;
-
+  
   // set frame lambda
   if (m_pcCfg->getGOPSize() > 1)
   {
@@ -420,7 +421,7 @@ Void TEncSlice::precompressSlice( TComPic*& rpcPic )
     dFrameLambda = 0.68 * pow (2, (m_piRdPicQp[0] - SHIFT_QP) / 3.0);
   }
   m_pcRdCost      ->setFrameLambda(dFrameLambda);
-
+  
   // for each QP candidate
   for ( UInt uiQpIdx = 0; uiQpIdx < 2 * m_pcCfg->getDeltaQpRD() + 1; uiQpIdx++ )
   {
@@ -428,30 +429,30 @@ Void TEncSlice::precompressSlice( TComPic*& rpcPic )
     m_pcRdCost    ->setLambda              ( m_pdRdPicLambda[uiQpIdx] );
     m_pcTrQuant   ->setLambda              ( m_pdRdPicLambda[uiQpIdx] );
     pcSlice       ->setLambda              ( m_pdRdPicLambda[uiQpIdx] );
-
+    
     // try compress
     compressSlice   ( rpcPic );
-
+    
     Double dPicRdCost;
-      UInt64 uiPicDist        = m_uiPicDist;
+    UInt64 uiPicDist        = m_uiPicDist;
     UInt64 uiALFBits        = 0;
-
+    
     m_pcGOPEncoder->preLoopFilterPicAll( rpcPic, uiPicDist, uiALFBits );
-
+    
     // compute RD cost and choose the best
     dPicRdCost = m_pcRdCost->calcRdCost64( m_uiPicTotalBits + uiALFBits, uiPicDist, true, DF_SSE_FRAME);
-
+    
     if ( dPicRdCost < dPicRdCostBest )
     {
       uiQpIdxBest    = uiQpIdx;
       dPicRdCostBest = dPicRdCost;
       dSumCURdCostBest = m_dPicRdCost;
-
+      
       uiPicBitsBest = m_uiPicTotalBits + uiALFBits;
       uiPicDistBest = uiPicDist;
     }
   }
-
+  
   // set best values
   pcSlice       ->setSliceQp             ( m_piRdPicQp    [uiQpIdxBest] );
   m_pcRdCost    ->setLambda              ( m_pdRdPicLambda[uiQpIdxBest] );
@@ -464,12 +465,12 @@ Void TEncSlice::precompressSlice( TComPic*& rpcPic )
 Void TEncSlice::compressSlice( TComPic*& rpcPic )
 {
   UInt  uiCUAddr;
-
+  
   // initialize cost values
   m_uiPicTotalBits  = 0;
   m_dPicRdCost      = 0;
   m_uiPicDist       = 0;
-
+  
   // set entropy coder
   if( m_pcCfg->getUseSBACRD() )
   {
@@ -485,35 +486,35 @@ Void TEncSlice::compressSlice( TComPic*& rpcPic )
     m_pcEntropyCoder->resetEntropy      ();
     m_pcEntropyCoder->setBitstream    ( m_pcBitCounter );
   }
-
+  
   // initialize ALF parameters
   m_pcEntropyCoder->setAlfCtrl(false);
   m_pcEntropyCoder->setMaxAlfCtrlDepth(0); //unnecessary
-
+  
   // for every CU
   for( uiCUAddr = 0; uiCUAddr < rpcPic->getPicSym()->getNumberOfCUsInFrame() ; uiCUAddr++ )
   {
     // set QP
     m_pcCuEncoder->setQpLast( rpcPic->getSlice()->getSliceQp() );
-
+    
     // initialize CU encoder
     TComDataCU*& pcCU = rpcPic->getCU( uiCUAddr );
     pcCU->initCU( rpcPic, uiCUAddr );
-
+    
     // if RD based on SBAC is used
     if( m_pcCfg->getUseSBACRD() )
     {
       // set go-on entropy coder
       m_pcEntropyCoder->setEntropyCoder ( m_pcRDGoOnSbacCoder, rpcPic->getSlice() );
       m_pcEntropyCoder->setBitstream    ( m_pcBitCounter );
-
+      
       // run CU encoder
       m_pcCuEncoder->compressCU( pcCU );
-
+      
       // restore entropy coder to an initial stage
       m_pcEntropyCoder->setEntropyCoder ( m_pppcRDSbacCoder[0][CI_CURR_BEST], rpcPic->getSlice() );
       m_pcEntropyCoder->setBitstream    ( m_pcBitCounter );
-
+      
       m_pcCuEncoder->encodeCU( pcCU );
     }
     // other case: encodeCU is not called
@@ -522,24 +523,25 @@ Void TEncSlice::compressSlice( TComPic*& rpcPic )
       m_pcCuEncoder->compressCU( pcCU );
       m_pcCavlcCoder ->setAdaptFlag(true);
       m_pcCuEncoder->encodeCU( pcCU );
-
+      
       m_pcCavlcCoder ->setAdaptFlag(false);
     }
-
+    
     m_uiPicTotalBits += pcCU->getTotalBits();
     m_dPicRdCost     += pcCU->getTotalCost();
     m_uiPicDist      += pcCU->getTotalDistortion();
   }
 }
 
-/** \param  rpcPic        picture class
-    \retval rpcBitstream  bitstream class
+/**
+ \param  rpcPic        picture class
+ \retval rpcBitstream  bitstream class
  */
 Void TEncSlice::encodeSlice   ( TComPic*& rpcPic, TComBitstream*& rpcBitstream )
 {
   UInt       uiCUAddr;
   TComSlice* pcSlice = rpcPic->getSlice();
-
+  
   // choose entropy coder
   Int iSymbolMode = pcSlice->getSymbolMode();
   if (iSymbolMode)
@@ -553,7 +555,7 @@ Void TEncSlice::encodeSlice   ( TComPic*& rpcPic, TComBitstream*& rpcBitstream )
     m_pcEntropyCoder->setEntropyCoder ( m_pcCavlcCoder, pcSlice );
     m_pcEntropyCoder->resetEntropy();
   }
-
+  
   // set bitstream
   m_pcEntropyCoder->setBitstream( rpcBitstream );
   // for every CU
@@ -570,7 +572,7 @@ Void TEncSlice::encodeSlice   ( TComPic*& rpcPic, TComBitstream*& rpcBitstream )
   for( uiCUAddr = 0; uiCUAddr < rpcPic->getPicSym()->getNumberOfCUsInFrame() ; uiCUAddr++ )
   {
     m_pcCuEncoder->setQpLast( rpcPic->getSlice()->getSliceQp() );
-
+    
     TComDataCU*& pcCU = rpcPic->getCU( uiCUAddr );
 #if ENC_DEC_TRACE
     g_bJustDoIt = g_bEncDecTraceEnable;
@@ -579,6 +581,6 @@ Void TEncSlice::encodeSlice   ( TComPic*& rpcPic, TComBitstream*& rpcBitstream )
 #if ENC_DEC_TRACE
     g_bJustDoIt = g_bEncDecTraceDisable;
 #endif
-
+    
   }
 }

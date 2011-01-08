@@ -67,7 +67,7 @@ private:
   Int                     m_iNumPicRcvd;                  ///< number of received pictures
   UInt                    m_uiNumAllPicCoded;             ///< number of coded pictures
   TComList<TComPic*>      m_cListPic;                     ///< dynamic list of pictures
-
+  
   // encoder search
   TEncSearch              m_cSearch;                      ///< encoder search class
   TEncEntropy*            m_pcEntropyCoder;                     ///< entropy encoder 
@@ -80,7 +80,7 @@ private:
   TEncCavlc               m_cCavlcCoder;                  ///< CAVLC encoder
   TEncSbac                m_cSbacCoder;                   ///< SBAC encoder
   TEncBinCABAC            m_cBinCoderCABAC;               ///< bin coder CABAC
-
+  
   // processing unit
   TEncGOP                 m_cGOPEncoder;                  ///< GOP encoder
   TEncSlice               m_cSliceEncoder;                ///< slice encoder
@@ -88,7 +88,7 @@ private:
   // SPS
   TComSPS                 m_cSPS;                         ///< SPS
   TComPPS                 m_cPPS;                         ///< PPS
-
+  
   // RD cost computation
   TComBitCounter          m_cBitCounter;                  ///< bit counter for RD optimization
   TComRdCost              m_cRdCost;                      ///< RD cost computation class
@@ -96,31 +96,31 @@ private:
   TEncSbac                m_cRDGoOnSbacCoder;             ///< going on SBAC model for RD stage
   TEncBinCABAC***         m_pppcBinCoderCABAC;            ///< temporal CABAC state storage for RD computation
   TEncBinCABAC            m_cRDGoOnBinCoderCABAC;         ///< going on bin coder CABAC for RD stage
-
+  
 protected:
   Void  xGetNewPicBuffer  ( TComPic*& rpcPic );           ///< get picture buffer which will be processed
   Void  xInitSPS          ();                             ///< initialize SPS from encoder options
-
+  
 public:
   TEncTop();
   virtual ~TEncTop();
-
+  
   Void      create          ();
   Void      destroy         ();
   Void      init            ();
   Void      deletePicBuffer ();
-
+  
   // -------------------------------------------------------------------------------------------------------------------
   // member access functions
   // -------------------------------------------------------------------------------------------------------------------
-
+  
   TComList<TComPic*>*     getListPic            () { return  &m_cListPic;             }
   TEncSearch*             getPredSearch         () { return  &m_cSearch;              }
-
+  
   TComTrQuant*            getTrQuant            () { return  &m_cTrQuant;             }
   TComLoopFilter*         getLoopFilter         () { return  &m_cLoopFilter;          }
   TEncAdaptiveLoopFilter* getAdaptiveLoopFilter () { return  &m_cAdaptiveLoopFilter;  }
-
+  
   TEncGOP*                getGOPEncoder         () { return  &m_cGOPEncoder;          }
   TEncSlice*              getSliceEncoder       () { return  &m_cSliceEncoder;        }
   TEncCu*                 getCuEncoder          () { return  &m_cCuEncoder;           }
@@ -128,23 +128,23 @@ public:
   TEncCavlc*              getCavlcCoder         () { return  &m_cCavlcCoder;          }
   TEncSbac*               getSbacCoder          () { return  &m_cSbacCoder;           }
   TEncBinCABAC*           getBinCABAC           () { return  &m_cBinCoderCABAC;       }
-
+  
   TComBitCounter*         getBitCounter         () { return  &m_cBitCounter;          }
   TComRdCost*             getRdCost             () { return  &m_cRdCost;              }
   TEncSbac***             getRDSbacCoder        () { return  m_pppcRDSbacCoder;       }
   TEncSbac*               getRDGoOnSbacCoder    () { return  &m_cRDGoOnSbacCoder;     }
-
+  
   TComSPS*                getSPS                () { return  &m_cSPS;                 }
   TComPPS*                getPPS                () { return  &m_cPPS;                 }
-
+  
   // -------------------------------------------------------------------------------------------------------------------
   // encoder function
   // -------------------------------------------------------------------------------------------------------------------
-
+  
   /// encode several number of pictures until end-of-sequence
   Void encode( bool bEos, TComPicYuv* pcPicYuvOrg, TComList<TComPicYuv*>& rcListPicYuvRecOut,
-               TComList<TComBitstream*>& rcListBitstreamOut, Int& iNumEncoded );
-
+              TComList<TComBitstream*>& rcListBitstreamOut, Int& iNumEncoded );
+  
 };
 
 
