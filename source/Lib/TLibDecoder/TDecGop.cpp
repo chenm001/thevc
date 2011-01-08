@@ -52,26 +52,26 @@ TDecGop::TDecGop()
 
 TDecGop::~TDecGop()
 {
-
+  
 }
 
 Void TDecGop::create()
 {
-
+  
 }
 
 Void TDecGop::destroy()
 {
-
+  
 }
 
 Void TDecGop::init( TDecEntropy*            pcEntropyDecoder, 
-                    TDecSbac*               pcSbacDecoder, 
-                    TDecBinCABAC*           pcBinCABAC,
-                    TDecCavlc*              pcCavlcDecoder, 
-                    TDecSlice*              pcSliceDecoder, 
-                    TComLoopFilter*         pcLoopFilter, 
-                    TComAdaptiveLoopFilter* pcAdaptiveLoopFilter )
+                   TDecSbac*               pcSbacDecoder, 
+                   TDecBinCABAC*           pcBinCABAC,
+                   TDecCavlc*              pcCavlcDecoder, 
+                   TDecSlice*              pcSliceDecoder, 
+                   TComLoopFilter*         pcLoopFilter, 
+                   TComAdaptiveLoopFilter* pcAdaptiveLoopFilter )
 {
   m_pcEntropyDecoder      = pcEntropyDecoder;
   m_pcSbacDecoder         = pcSbacDecoder;
@@ -89,10 +89,10 @@ Void TDecGop::init( TDecEntropy*            pcEntropyDecoder,
 Void TDecGop::decompressGop (Bool bEos, TComBitstream* pcBitstream, TComPic*& rpcPic)
 {
   TComSlice*  pcSlice = rpcPic->getSlice();
-
+  
   //-- For time output for each slice
   long iBeforeTime = clock();
-
+  
   UInt iSymbolMode = pcSlice->getSymbolMode();
   if (iSymbolMode)
   {
@@ -103,12 +103,12 @@ Void TDecGop::decompressGop (Bool bEos, TComBitstream* pcBitstream, TComPic*& rp
   {
     m_pcEntropyDecoder->setEntropyDecoder (m_pcCavlcDecoder);
   }
-
+  
   m_pcEntropyDecoder->setBitstream      (pcBitstream);
   m_pcEntropyDecoder->resetEntropy      (pcSlice);
-
+  
   ALFParam cAlfParam;
-
+  
   if ( rpcPic->getSlice()->getSPS()->getUseALF() )
   {
 #if TSB_ALF_HEADER
@@ -117,29 +117,29 @@ Void TDecGop::decompressGop (Bool bEos, TComBitstream* pcBitstream, TComPic*& rp
     m_pcAdaptiveLoopFilter->allocALFParam(&cAlfParam);
     m_pcEntropyDecoder->decodeAlfParam( &cAlfParam );
   }
-
+  
   m_pcSliceDecoder->decompressSlice(pcBitstream, rpcPic);
-
+  
   // deblocking filter
   m_pcLoopFilter->setCfg(pcSlice->getLoopFilterDisable(), 0, 0);
   m_pcLoopFilter->loopFilterPic( rpcPic );
-
+  
   // adaptive loop filter
   if( rpcPic->getSlice()->getSPS()->getUseALF() )
   {
     m_pcAdaptiveLoopFilter->ALFProcess(rpcPic, &cAlfParam);
     m_pcAdaptiveLoopFilter->freeALFParam(&cAlfParam);
   }
-
+  
   //-- For time output for each slice
   printf("\nPOC %4d ( %c-SLICE, QP%3d ) ",
-                        pcSlice->getPOC(),
-                        pcSlice->isIntra() ? 'I' : pcSlice->isInterP() ? 'P' : 'B',
-                        pcSlice->getSliceQp() );
-
+         pcSlice->getPOC(),
+         pcSlice->isIntra() ? 'I' : pcSlice->isInterP() ? 'P' : 'B',
+         pcSlice->getSliceQp() );
+  
   Double dDecTime = (double)(clock()-iBeforeTime) / CLOCKS_PER_SEC;
   printf ("[DT %6.3f] ", dDecTime );
-
+  
   for (Int iRefList = 0; iRefList < 2; iRefList++)
   {
     printf ("[L%d ", iRefList);
@@ -149,7 +149,7 @@ Void TDecGop::decompressGop (Bool bEos, TComBitstream* pcBitstream, TComPic*& rp
     }
     printf ("] ");
   }
-
+  
   rpcPic->setReconMark(true);
 }
 

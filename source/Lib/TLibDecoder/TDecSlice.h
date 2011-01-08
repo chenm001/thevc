@@ -57,15 +57,15 @@ private:
   // access channel
   TDecEntropy*    m_pcEntropyDecoder;
   TDecCu*         m_pcCuDecoder;
-
+  
 public:
   TDecSlice();
   virtual ~TDecSlice();
-
+  
   Void  init              ( TDecEntropy* pcEntropyDecoder, TDecCu* pcMbDecoder );
   Void  create            ( TComSlice* pcSlice, Int iWidth, Int iHeight, UInt uiMaxWidth, UInt uiMaxHeight, UInt uiMaxDepth );
   Void  destroy           ();
-
+  
   Void  decompressSlice   ( TComBitstream* pcBitstream, TComPic*& rpcPic );
 };
 

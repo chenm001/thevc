@@ -68,7 +68,7 @@ Void TDecSlice::decompressSlice(TComBitstream* pcBitstream, TComPic*& rpcPic)
   // decoder don't need prediction & residual frame buffer
   rpcPic->setPicYuvPred( 0 );
   rpcPic->setPicYuvResi( 0 );
-
+  
 #if ENC_DEC_TRACE
   g_bJustDoIt = g_bEncDecTraceEnable;
 #endif
@@ -84,13 +84,13 @@ Void TDecSlice::decompressSlice(TComBitstream* pcBitstream, TComPic*& rpcPic)
   {
     pcCU = rpcPic->getCU( iCUAddr );
     pcCU->initCU( rpcPic, iCUAddr );
-
+    
 #if ENC_DEC_TRACE
     g_bJustDoIt = g_bEncDecTraceEnable;
 #endif
     m_pcCuDecoder->decodeCU     ( pcCU, uiIsLast );
     m_pcCuDecoder->decompressCU ( pcCU );
-
+    
 #if ENC_DEC_TRACE
     g_bJustDoIt = g_bEncDecTraceDisable;
 #endif

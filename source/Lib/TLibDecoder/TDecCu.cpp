@@ -57,35 +57,36 @@ Void TDecCu::init( TDecEntropy* pcEntropyDecoder, TComTrQuant* pcTrQuant, TComPr
   m_pcPrediction      = pcPrediction;
 }
 
-/** \param    uiMaxDepth    total number of allowable depth
-    \param    uiMaxWidth    largest CU width
-    \param    uiMaxHeight   largest CU height
+/**
+ \param    uiMaxDepth    total number of allowable depth
+ \param    uiMaxWidth    largest CU width
+ \param    uiMaxHeight   largest CU height
  */
 Void TDecCu::create( UInt uiMaxDepth, UInt uiMaxWidth, UInt uiMaxHeight )
 {
   m_uiMaxDepth = uiMaxDepth+1;
-
+  
   m_ppcYuvResi = new TComYuv*[m_uiMaxDepth-1];
   m_ppcYuvReco = new TComYuv*[m_uiMaxDepth-1];
   m_ppcCU      = new TComDataCU*[m_uiMaxDepth-1];
-
+  
   UInt uiNumPartitions;
   for ( UInt ui = 0; ui < m_uiMaxDepth-1; ui++ )
   {
     uiNumPartitions = 1<<( ( m_uiMaxDepth - ui - 1 )<<1 );
     UInt uiWidth  = uiMaxWidth  >> ui;
     UInt uiHeight = uiMaxHeight >> ui;
-
+    
     m_ppcYuvResi[ui] = new TComYuv;    m_ppcYuvResi[ui]->create( uiWidth, uiHeight );
     m_ppcYuvReco[ui] = new TComYuv;    m_ppcYuvReco[ui]->create( uiWidth, uiHeight );
     m_ppcCU     [ui] = new TComDataCU; m_ppcCU     [ui]->create( uiNumPartitions, uiWidth, uiHeight, true );
   }
-
+  
   // initialize partition order.
   UInt* piTmp = &g_auiZscanToRaster[0];
   initZscanToRaster(m_uiMaxDepth, 1, 0, piTmp);
   initRasterToZscan( uiMaxWidth, uiMaxHeight, m_uiMaxDepth );
-
+  
   // initialize conversion matrix from partition index to pel
   initRasterToPelXY( uiMaxWidth, uiMaxHeight, m_uiMaxDepth );
 }
@@ -98,7 +99,7 @@ Void TDecCu::destroy()
     m_ppcYuvReco[ui]->destroy(); delete m_ppcYuvReco[ui]; m_ppcYuvReco[ui] = NULL;
     m_ppcCU     [ui]->destroy(); delete m_ppcCU     [ui]; m_ppcCU     [ui] = NULL;
   }
-
+  
   delete [] m_ppcYuvResi; m_ppcYuvResi = NULL;
   delete [] m_ppcYuvReco; m_ppcYuvReco = NULL;
   delete [] m_ppcCU     ; m_ppcCU      = NULL;
@@ -109,13 +110,13 @@ Void TDecCu::destroy()
 // ====================================================================================================================
 
 /** \param    pcCU        pointer of CU data
-    \param    ruiIsLast   last data?
+ \param    ruiIsLast   last data?
  */
 Void TDecCu::decodeCU( TComDataCU* pcCU, UInt& ruiIsLast )
 {
   // start from the top level CU
   xDecodeCU( pcCU, 0, 0 );
-
+  
   // dQP: only for LCU
   if ( pcCU->getSlice()->getSPS()->getUseDQP() )
   {
@@ -127,7 +128,7 @@ Void TDecCu::decodeCU( TComDataCU* pcCU, UInt& ruiIsLast )
       m_pcEntropyDecoder->decodeQP( pcCU, 0, 0 );
     }
   }
-
+  
   //--- Read terminating bit ---
   m_pcEntropyDecoder->decodeTerminatingBit( ruiIsLast );
 }
@@ -148,13 +149,13 @@ Void TDecCu::xDecodeCU( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
   TComPic* pcPic = pcCU->getPic();
   UInt uiCurNumParts    = pcPic->getNumPartInCU() >> (uiDepth<<1);
   UInt uiQNumParts      = uiCurNumParts>>2;
-
+  
   Bool bBoundary = false;
   UInt uiLPelX   = pcCU->getCUPelX() + g_auiRasterToPelX[ g_auiZscanToRaster[uiAbsPartIdx] ];
   UInt uiRPelX   = uiLPelX + (g_uiMaxCUWidth>>uiDepth)  - 1;
   UInt uiTPelY   = pcCU->getCUPelY() + g_auiRasterToPelY[ g_auiZscanToRaster[uiAbsPartIdx] ];
   UInt uiBPelY   = uiTPelY + (g_uiMaxCUHeight>>uiDepth) - 1;
-
+  
   if( ( uiRPelX < pcCU->getSlice()->getSPS()->getWidth() ) && ( uiBPelY < pcCU->getSlice()->getSPS()->getHeight() ) )
   {
     m_pcEntropyDecoder->decodeSplitFlag( pcCU, uiAbsPartIdx, uiDepth );
@@ -163,7 +164,7 @@ Void TDecCu::xDecodeCU( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
   {
     bBoundary = true;
   }
-
+  
   if( ( ( uiDepth < pcCU->getDepth( uiAbsPartIdx ) ) && ( uiDepth < g_uiMaxCUDepth - g_uiAddCUDepth ) ) || bBoundary )
   {
     UInt uiIdx = uiAbsPartIdx;
@@ -171,80 +172,80 @@ Void TDecCu::xDecodeCU( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
     {
       uiLPelX   = pcCU->getCUPelX() + g_auiRasterToPelX[ g_auiZscanToRaster[uiIdx] ];
       uiTPelY   = pcCU->getCUPelY() + g_auiRasterToPelY[ g_auiZscanToRaster[uiIdx] ];
-
+      
       if( ( uiLPelX < pcCU->getSlice()->getSPS()->getWidth() ) && ( uiTPelY < pcCU->getSlice()->getSPS()->getHeight() ) )
         xDecodeCU( pcCU, uiIdx, uiDepth+1 );
-
+      
       uiIdx += uiQNumParts;
     }
-
+    
     return;
   }
-
+  
 #if TSB_ALF_HEADER
 #else
   m_pcEntropyDecoder->decodeAlfCtrlFlag( pcCU, uiAbsPartIdx, uiDepth );
 #endif
-
+  
   // decode CU mode and the partition size
   if( !pcCU->getSlice()->isIntra() )
   {
     m_pcEntropyDecoder->decodeSkipFlag( pcCU, uiAbsPartIdx, uiDepth );
   }
-
+  
   if( pcCU->isSkip( uiAbsPartIdx ) )
   {
     pcCU->setMVPIdxSubParts( -1, REF_PIC_LIST_0, uiAbsPartIdx, 0, uiDepth);
     pcCU->setMVPNumSubParts( -1, REF_PIC_LIST_0, uiAbsPartIdx, 0, uiDepth);
-
+    
     pcCU->setMVPIdxSubParts( -1, REF_PIC_LIST_1, uiAbsPartIdx, 0, uiDepth);
     pcCU->setMVPNumSubParts( -1, REF_PIC_LIST_1, uiAbsPartIdx, 0, uiDepth);
-
+    
     if ( pcCU->getSlice()->getNumRefIdx( REF_PIC_LIST_0 ) > 0 ) //if ( ref. frame list0 has at least 1 entry )
     {
       m_pcEntropyDecoder->decodeMVPIdx( pcCU, uiAbsPartIdx, uiDepth, REF_PIC_LIST_0, m_ppcCU[uiDepth]);
     }
-
+    
     if ( pcCU->getSlice()->getNumRefIdx( REF_PIC_LIST_1 ) > 0 ) //if ( ref. frame list1 has at least 1 entry )
     {
       m_pcEntropyDecoder->decodeMVPIdx( pcCU, uiAbsPartIdx, uiDepth, REF_PIC_LIST_1, m_ppcCU[uiDepth]);
     }
     return;
   }
-
+  
 #if HHI_MRG
   m_pcEntropyDecoder->decodeMergeInfo( pcCU, uiAbsPartIdx, uiDepth, m_ppcCU[uiDepth] );
 #endif
   m_pcEntropyDecoder->decodePredMode( pcCU, uiAbsPartIdx, uiDepth );
-
+  
   m_pcEntropyDecoder->decodePartSize( pcCU, uiAbsPartIdx, uiDepth );
-
+  
   UInt uiCurrWidth      = pcCU->getWidth ( uiAbsPartIdx );
   UInt uiCurrHeight     = pcCU->getHeight( uiAbsPartIdx );
-
+  
   // prediction mode ( Intra : direction mode, Inter : Mv, reference idx )
   m_pcEntropyDecoder->decodePredInfo( pcCU, uiAbsPartIdx, uiDepth, m_ppcCU[uiDepth]);
-
+  
   // Coefficient decoding
   m_pcEntropyDecoder->decodeCoeff( pcCU, uiAbsPartIdx, uiDepth, uiCurrWidth, uiCurrHeight );
-
+  
 }
 
 Void TDecCu::xDecompressCU( TComDataCU* pcCU, TComDataCU* pcCUCur, UInt uiAbsPartIdx,  UInt uiDepth )
 {
   TComPic* pcPic = pcCU->getPic();
-
+  
   Bool bBoundary = false;
   UInt uiLPelX   = pcCU->getCUPelX() + g_auiRasterToPelX[ g_auiZscanToRaster[uiAbsPartIdx] ];
   UInt uiRPelX   = uiLPelX + (g_uiMaxCUWidth>>uiDepth)  - 1;
   UInt uiTPelY   = pcCU->getCUPelY() + g_auiRasterToPelY[ g_auiZscanToRaster[uiAbsPartIdx] ];
   UInt uiBPelY   = uiTPelY + (g_uiMaxCUHeight>>uiDepth) - 1;
-
+  
   if( ( uiRPelX >= pcCU->getSlice()->getSPS()->getWidth() ) || ( uiBPelY >= pcCU->getSlice()->getSPS()->getHeight() ) )
   {
     bBoundary = true;
   }
-
+  
   if( ( ( uiDepth < pcCU->getDepth( uiAbsPartIdx ) ) && ( uiDepth < g_uiMaxCUDepth - g_uiAddCUDepth ) ) || bBoundary )
   {
     UInt uiNextDepth = uiDepth + 1;
@@ -254,46 +255,46 @@ Void TDecCu::xDecompressCU( TComDataCU* pcCU, TComDataCU* pcCUCur, UInt uiAbsPar
     {
       uiLPelX = pcCU->getCUPelX() + g_auiRasterToPelX[ g_auiZscanToRaster[uiIdx] ];
       uiTPelY = pcCU->getCUPelY() + g_auiRasterToPelY[ g_auiZscanToRaster[uiIdx] ];
-
+      
       if( ( uiLPelX < pcCU->getSlice()->getSPS()->getWidth() ) && ( uiTPelY < pcCU->getSlice()->getSPS()->getHeight() ) )
         xDecompressCU(pcCU, m_ppcCU[uiNextDepth], uiIdx, uiNextDepth );
-
+      
       uiIdx += uiQNumParts;
     }
     return;
   }
-
+  
   // Residual reconstruction
   m_ppcYuvResi[uiDepth]->clear();
-
+  
   m_ppcCU[uiDepth]->copySubCU( pcCU, uiAbsPartIdx, uiDepth );
-
+  
   switch( m_ppcCU[uiDepth]->getPredictionMode(0) )
   {
-  case MODE_SKIP:
-  case MODE_INTER:
-    xReconInter( m_ppcCU[uiDepth], uiAbsPartIdx, uiDepth );
-    break;
-  case MODE_INTRA:
-    xReconIntraQT( m_ppcCU[uiDepth], uiAbsPartIdx, uiDepth );
-    break;
-  default:
-    assert(0);
-    break;
+    case MODE_SKIP:
+    case MODE_INTER:
+      xReconInter( m_ppcCU[uiDepth], uiAbsPartIdx, uiDepth );
+      break;
+    case MODE_INTRA:
+      xReconIntraQT( m_ppcCU[uiDepth], uiAbsPartIdx, uiDepth );
+      break;
+    default:
+      assert(0);
+      break;
   }
-
+  
   xCopyToPic( m_ppcCU[uiDepth], pcPic, uiAbsPartIdx, uiDepth );
 }
 
 Void TDecCu::xReconInter( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
 {
-
+  
   // inter prediction
   m_pcPrediction->motionCompensation( pcCU, m_ppcYuvReco[uiDepth] );
-
+  
   // inter recon
   xDecodeInterTexture( pcCU, 0, uiDepth );
-
+  
   // clip for only non-zero cbp case
   if  ( ( pcCU->getCbf( 0, TEXT_LUMA ) ) || ( pcCU->getCbf( 0, TEXT_CHROMA_U ) ) || ( pcCU->getCbf(0, TEXT_CHROMA_V ) ) )
   {
@@ -316,16 +317,16 @@ Void TDecCu::xDecodeIntraTexture( TComDataCU* pcCU, UInt uiPartIdx, Pel* piReco,
     Pel* pResi             = piResi;
     Pel* piPicReco         = pcCU->getPic()->getPicYuvRec()->getLumaAddr(pcCU->getAddr(), uiZorder);
     UInt uiPicStride       = pcCU->getPic()->getPicYuvRec()->getStride();
-
+    
     pcPattern->initPattern( pcCU, uiCurrDepth, uiPartIdx );
-
+    
     Bool bAboveAvail = false;
     Bool bLeftAvail  = false;
-
+    
     pcPattern->initAdiPattern(pcCU, uiPartIdx, uiCurrDepth, m_pcPrediction->getPredicBuf(), m_pcPrediction->getPredicBufWidth(), m_pcPrediction->getPredicBufHeight(), bAboveAvail, bLeftAvail);
-
+    
     m_pcPrediction->predIntraLumaAng( pcPattern, pcCU->getLumaIntraDir(uiPartIdx), pPred, uiStride, uiWidth, uiHeight, pcCU, bAboveAvail, bLeftAvail );
-
+    
     m_pcTrQuant->setQPforQuant( pcCU->getQP(uiPartIdx), !pcCU->getSlice()->getDepth(), pcCU->getSlice()->getSliceType(), TEXT_LUMA );
     m_pcTrQuant->invtransformNxN( pResi, uiStride, pCoeff, uiWidth, uiHeight );
     // Reconstruction
@@ -393,23 +394,23 @@ Void TDecCu::xRecurIntraInvTransChroma(TComDataCU* pcCU, UInt uiAbsPartIdx, Pel*
       piPicReco= pcCU->getPic()->getPicYuvRec()->getCbAddr(pcCU->getAddr(), uiZorder);
     else
       piPicReco= pcCU->getPic()->getPicYuvRec()->getCrAddr(pcCU->getAddr(), uiZorder);
-
+    
     UInt uiPicStride = pcCU->getPic()->getPicYuvRec()->getCStride();
-
+    
     pcCU->getPattern()->initPattern( pcCU, uiCurrTrMode, uiAbsPartIdx );
-
+    
     Bool bAboveAvail = false;
     Bool bLeftAvail  = false;
-
+    
     pcCU->getPattern()->initAdiPatternChroma(pcCU,uiAbsPartIdx, uiCurrTrMode, m_pcPrediction->getPredicBuf(),m_pcPrediction->getPredicBufWidth(),m_pcPrediction->getPredicBufHeight(),bAboveAvail,bLeftAvail);
-
+    
     UInt uiModeL        = pcCU->getLumaIntraDir(0);
     UInt uiMode         = pcCU->getChromaIntraDir(0);
-
+    
     if (uiMode==4) uiMode = uiModeL;
-
+    
     Int*   pPatChr;
-
+    
     if (eText==TEXT_CHROMA_U)
     {
       pPatChr=  pcCU->getPattern()->getAdiCbBuf( uiWidth, uiHeight, m_pcPrediction->getPredicBuf() );
@@ -418,17 +419,17 @@ Void TDecCu::xRecurIntraInvTransChroma(TComDataCU* pcCU, UInt uiAbsPartIdx, Pel*
     {
       pPatChr=  pcCU->getPattern()->getAdiCrBuf( uiWidth, uiHeight, m_pcPrediction->getPredicBuf() );
     }
-
+    
     m_pcPrediction-> predIntraChromaAng( pcCU->getPattern(), pPatChr, uiMode, pPred, uiStride, uiWidth, uiHeight, pcCU, bAboveAvail, bLeftAvail );
-
+    
     // Inverse Transform
     if( pcCU->getCbf(0, eText, uiCurrTrMode) )
     {
       m_pcTrQuant->invtransformNxN( pResi, uiStride, piCoeff, uiWidth, uiHeight );
     }
-
+    
     pResi = piResi;
-
+    
     for( uiY = 0; uiY < uiHeight; uiY++ )
     {
       for( uiX = 0; uiX < uiWidth; uiX++ )
@@ -436,7 +437,7 @@ Void TDecCu::xRecurIntraInvTransChroma(TComDataCU* pcCU, UInt uiAbsPartIdx, Pel*
         piReco   [uiX] = Clip( pPred[uiX] + pResi[uiX] );
         piPicReco[uiX] = piReco[uiX];
       }
-
+      
       pPred     += uiStride;
       pResi     += uiStride;
       piReco    += uiStride;
@@ -472,11 +473,11 @@ Void TDecCu::xRecurIntraInvTransChroma(TComDataCU* pcCU, UInt uiAbsPartIdx, Pel*
 
 Void
 TDecCu::xIntraRecLumaBlk( TComDataCU* pcCU,
-                          UInt        uiTrDepth,
-                          UInt        uiAbsPartIdx,
-                          TComYuv*    pcRecoYuv,
-                          TComYuv*    pcPredYuv, 
-                          TComYuv*    pcResiYuv )
+                         UInt        uiTrDepth,
+                         UInt        uiAbsPartIdx,
+                         TComYuv*    pcRecoYuv,
+                         TComYuv*    pcPredYuv, 
+                         TComYuv*    pcResiYuv )
 {
   UInt    uiWidth           = pcCU     ->getWidth   ( 0 ) >> uiTrDepth;
   UInt    uiHeight          = pcCU     ->getHeight  ( 0 ) >> uiTrDepth;
@@ -484,7 +485,7 @@ TDecCu::xIntraRecLumaBlk( TComDataCU* pcCU,
   Pel*    piReco            = pcRecoYuv->getLumaAddr( uiAbsPartIdx );
   Pel*    piPred            = pcPredYuv->getLumaAddr( uiAbsPartIdx );
   Pel*    piResi            = pcResiYuv->getLumaAddr( uiAbsPartIdx );
-
+  
   UInt    uiNumCoeffInc     = ( pcCU->getSlice()->getSPS()->getMaxCUWidth() * pcCU->getSlice()->getSPS()->getMaxCUHeight() ) >> ( pcCU->getSlice()->getSPS()->getMaxCUDepth() << 1 );
   TCoeff* pcCoeff           = pcCU->getCoeffY() + ( uiNumCoeffInc * uiAbsPartIdx );
   
@@ -493,20 +494,20 @@ TDecCu::xIntraRecLumaBlk( TComDataCU* pcCU,
   UInt    uiZOrder          = pcCU->getZorderIdxInCU() + uiAbsPartIdx;
   Pel*    piRecIPred        = pcCU->getPic()->getPicYuvRec()->getLumaAddr( pcCU->getAddr(), uiZOrder );
   UInt    uiRecIPredStride  = pcCU->getPic()->getPicYuvRec()->getStride  ();
-
+  
   //===== init availability pattern =====
   Bool  bAboveAvail = false;
   Bool  bLeftAvail  = false;
   pcCU->getPattern()->initPattern   ( pcCU, uiTrDepth, uiAbsPartIdx );
   pcCU->getPattern()->initAdiPattern( pcCU, uiAbsPartIdx, uiTrDepth, 
-                                      m_pcPrediction->getPredicBuf       (),
-                                      m_pcPrediction->getPredicBufWidth  (),
-                                      m_pcPrediction->getPredicBufHeight (),
-                                      bAboveAvail, bLeftAvail );
-
+                                     m_pcPrediction->getPredicBuf       (),
+                                     m_pcPrediction->getPredicBufWidth  (),
+                                     m_pcPrediction->getPredicBufHeight (),
+                                     bAboveAvail, bLeftAvail );
+  
   //===== get prediction signal =====
-    m_pcPrediction->predIntraLumaAng( pcCU->getPattern(), uiLumaPredMode, piPred, uiStride, uiWidth, uiHeight, pcCU, bAboveAvail, bLeftAvail );
-
+  m_pcPrediction->predIntraLumaAng( pcCU->getPattern(), uiLumaPredMode, piPred, uiStride, uiWidth, uiHeight, pcCU, bAboveAvail, bLeftAvail );
+  
   //===== inverse transform =====
   m_pcTrQuant->setQPforQuant  ( pcCU->getQP(0), !pcCU->getSlice()->getDepth(), pcCU->getSlice()->getSliceType(), TEXT_LUMA );
   m_pcTrQuant->invtransformNxN( piResi, uiStride, pcCoeff, uiWidth, uiHeight );
@@ -535,12 +536,12 @@ TDecCu::xIntraRecLumaBlk( TComDataCU* pcCU,
 
 Void
 TDecCu::xIntraRecChromaBlk( TComDataCU* pcCU,
-                            UInt        uiTrDepth,
-                            UInt        uiAbsPartIdx,
-                            TComYuv*    pcRecoYuv,
-                            TComYuv*    pcPredYuv, 
-                            TComYuv*    pcResiYuv,
-                            UInt        uiChromaId )
+                           UInt        uiTrDepth,
+                           UInt        uiAbsPartIdx,
+                           TComYuv*    pcRecoYuv,
+                           TComYuv*    pcPredYuv, 
+                           TComYuv*    pcResiYuv,
+                           UInt        uiChromaId )
 {
   UInt uiFullDepth  = pcCU->getDepth( 0 ) + uiTrDepth;
   UInt uiLog2TrSize = g_aucConvertToBit[ pcCU->getSlice()->getSPS()->getMaxCUWidth() >> uiFullDepth ] + 2;
@@ -555,7 +556,7 @@ TDecCu::xIntraRecChromaBlk( TComDataCU* pcCU,
       return;
     }
   }
-
+  
   TextType  eText             = ( uiChromaId > 0 ? TEXT_CHROMA_V : TEXT_CHROMA_U );
   UInt      uiWidth           = pcCU     ->getWidth   ( 0 ) >> ( uiTrDepth + 1 );
   UInt      uiHeight          = pcCU     ->getHeight  ( 0 ) >> ( uiTrDepth + 1 );
@@ -563,12 +564,12 @@ TDecCu::xIntraRecChromaBlk( TComDataCU* pcCU,
   Pel*      piReco            = ( uiChromaId > 0 ? pcRecoYuv->getCrAddr( uiAbsPartIdx ) : pcRecoYuv->getCbAddr( uiAbsPartIdx ) );
   Pel*      piPred            = ( uiChromaId > 0 ? pcPredYuv->getCrAddr( uiAbsPartIdx ) : pcPredYuv->getCbAddr( uiAbsPartIdx ) );
   Pel*      piResi            = ( uiChromaId > 0 ? pcResiYuv->getCrAddr( uiAbsPartIdx ) : pcResiYuv->getCbAddr( uiAbsPartIdx ) );
-
+  
   UInt      uiNumCoeffInc     = ( ( pcCU->getSlice()->getSPS()->getMaxCUWidth() * pcCU->getSlice()->getSPS()->getMaxCUHeight() ) >> ( pcCU->getSlice()->getSPS()->getMaxCUDepth() << 1 ) ) >> 2;
   TCoeff*   pcCoeff           = ( uiChromaId > 0 ? pcCU->getCoeffCr() : pcCU->getCoeffCb() ) + ( uiNumCoeffInc * uiAbsPartIdx );
   
   UInt      uiChromaPredMode  = pcCU->getChromaIntraDir( 0 );
-
+  
   if( uiChromaPredMode == 4 )
   {
     uiChromaPredMode          = pcCU->getLumaIntraDir( 0 );
@@ -577,21 +578,21 @@ TDecCu::xIntraRecChromaBlk( TComDataCU* pcCU,
   UInt      uiZOrder          = pcCU->getZorderIdxInCU() + uiAbsPartIdx;
   Pel*      piRecIPred        = ( uiChromaId > 0 ? pcCU->getPic()->getPicYuvRec()->getCrAddr( pcCU->getAddr(), uiZOrder ) : pcCU->getPic()->getPicYuvRec()->getCbAddr( pcCU->getAddr(), uiZOrder ) );
   UInt      uiRecIPredStride  = pcCU->getPic()->getPicYuvRec()->getCStride();
-
+  
   //===== init availability pattern =====
   Bool  bAboveAvail = false;
   Bool  bLeftAvail  = false;
   pcCU->getPattern()->initPattern         ( pcCU, uiTrDepth, uiAbsPartIdx );
   pcCU->getPattern()->initAdiPatternChroma( pcCU, uiAbsPartIdx, uiTrDepth, 
-                                            m_pcPrediction->getPredicBuf       (),
-                                            m_pcPrediction->getPredicBufWidth  (),
-                                            m_pcPrediction->getPredicBufHeight (),
-                                            bAboveAvail, bLeftAvail );
+                                           m_pcPrediction->getPredicBuf       (),
+                                           m_pcPrediction->getPredicBufWidth  (),
+                                           m_pcPrediction->getPredicBufHeight (),
+                                           bAboveAvail, bLeftAvail );
   Int* pPatChroma   = ( uiChromaId > 0 ? pcCU->getPattern()->getAdiCrBuf( uiWidth, uiHeight, m_pcPrediction->getPredicBuf() ) : pcCU->getPattern()->getAdiCbBuf( uiWidth, uiHeight, m_pcPrediction->getPredicBuf() ) );
-
+  
   //===== get prediction signal =====
   m_pcPrediction->predIntraChromaAng( pcCU->getPattern(), pPatChroma, uiChromaPredMode, piPred, uiStride, uiWidth, uiHeight, pcCU, bAboveAvail, bLeftAvail );
-
+  
   //===== inverse transform =====
   m_pcTrQuant->setQPforQuant  ( pcCU->getQP(0), !pcCU->getSlice()->getDepth(), pcCU->getSlice()->getSliceType(), eText );
   m_pcTrQuant->invtransformNxN( piResi, uiStride, pcCoeff, uiWidth, uiHeight );
@@ -618,11 +619,11 @@ TDecCu::xIntraRecChromaBlk( TComDataCU* pcCU,
 
 Void
 TDecCu::xIntraRecQT( TComDataCU* pcCU,
-                     UInt        uiTrDepth,
-                     UInt        uiAbsPartIdx,
-                     TComYuv*    pcRecoYuv,
-                     TComYuv*    pcPredYuv, 
-                     TComYuv*    pcResiYuv )
+                    UInt        uiTrDepth,
+                    UInt        uiAbsPartIdx,
+                    TComYuv*    pcRecoYuv,
+                    TComYuv*    pcPredYuv, 
+                    TComYuv*    pcResiYuv )
 {
   UInt uiFullDepth  = pcCU->getDepth(0) + uiTrDepth;
   UInt uiTrMode     = pcCU->getTransformIdx( uiAbsPartIdx );
@@ -648,7 +649,7 @@ TDecCu::xReconIntraQT( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
   UInt  uiInitTrDepth = ( pcCU->getPartitionSize(0) == SIZE_2Nx2N ? 0 : 1 );
   UInt  uiNumPart     = pcCU->getNumPartInter();
   UInt  uiNumQParts   = pcCU->getTotalNumPart() >> 2;
-
+  
   for( UInt uiPU = 0; uiPU < uiNumPart; uiPU++ )
   {
     xIntraRecQT( pcCU, uiInitTrDepth, uiPU * uiNumQParts, m_ppcYuvReco[uiDepth], m_ppcYuvReco[uiDepth], m_ppcYuvResi[uiDepth] );
@@ -658,9 +659,9 @@ TDecCu::xReconIntraQT( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
 Void TDecCu::xCopyToPic( TComDataCU* pcCU, TComPic* pcPic, UInt uiZorderIdx, UInt uiDepth )
 {
   UInt uiCUAddr = pcCU->getAddr();
-
+  
   m_ppcYuvReco[uiDepth]->copyToPicYuv  ( pcPic->getPicYuvRec (), uiCUAddr, uiZorderIdx );
-
+  
   return;
 }
 
@@ -669,21 +670,21 @@ Void TDecCu::xDecodeInterTexture ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiD
   UInt    uiWidth    = pcCU->getWidth ( uiAbsPartIdx );
   UInt    uiHeight   = pcCU->getHeight( uiAbsPartIdx );
   TCoeff* piCoeff;
-
+  
   Pel*    pResi;
   UInt    uiLumaTrMode, uiChromaTrMode;
-
+  
   pcCU->convertTransIdx( uiAbsPartIdx, pcCU->getTransformIdx( uiAbsPartIdx ), uiLumaTrMode, uiChromaTrMode );
-
+  
   // Y
   piCoeff = pcCU->getCoeffY();
   pResi = m_ppcYuvResi[uiDepth]->getLumaAddr();
   m_pcTrQuant->setQPforQuant( pcCU->getQP( uiAbsPartIdx ), !pcCU->getSlice()->getDepth(), pcCU->getSlice()->getSliceType(), TEXT_LUMA );
   m_pcTrQuant->invRecurTransformNxN ( pcCU, 0, TEXT_LUMA, pResi, 0, m_ppcYuvResi[uiDepth]->getStride(), uiWidth, uiHeight, uiLumaTrMode, 0, piCoeff );
-
+  
   // Cb and Cr
   m_pcTrQuant->setQPforQuant( pcCU->getQP( uiAbsPartIdx ), !pcCU->getSlice()->getDepth(), pcCU->getSlice()->getSliceType(), TEXT_CHROMA );
-
+  
   uiWidth  >>= 1;
   uiHeight >>= 1;
   piCoeff = pcCU->getCoeffCb(); pResi = m_ppcYuvResi[uiDepth]->getCbAddr();

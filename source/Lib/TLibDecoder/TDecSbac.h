@@ -58,51 +58,51 @@ class TDecSbac : public TDecEntropyIf
 public:
   TDecSbac();
   virtual ~TDecSbac();
-
+  
   Void  init                      ( TDecBinIf* p )    { m_pcTDecBinIf = p; }
   Void  uninit                    (              )    { m_pcTDecBinIf = 0; }
-
+  
   Void  resetEntropy              ( TComSlice* pcSlice     );
   Void  setBitstream              ( TComBitstream* p       ) { m_pcBitstream = p; m_pcTDecBinIf->init( p ); }
-
+  
   Void  setAlfCtrl                ( Bool bAlfCtrl          ) { m_bAlfCtrl = bAlfCtrl;                   }
   Void  setMaxAlfCtrlDepth        ( UInt uiMaxAlfCtrlDepth ) { m_uiMaxAlfCtrlDepth = uiMaxAlfCtrlDepth; }
-
+  
   Void  parseSPS                  ( TComSPS* pcSPS         ) {}
   Void  parsePPS                  ( TComPPS* pcPPS         ) {}
   Void  parseSliceHeader          ( TComSlice*& rpcSlice   ) {}
   Void  parseTerminatingBit       ( UInt& ruiBit );
   Void  parseMVPIdx               ( TComDataCU* pcCU, Int& riMVPIdx, Int iMVPNum, UInt uiAbsPartIdx, UInt uiDepth, RefPicList eRefList );
-
+  
   Void  parseAlfFlag              ( UInt& ruiVal           );
   Void  parseAlfUvlc              ( UInt& ruiVal           );
   Void  parseAlfSvlc              ( Int&  riVal            );
   Void  parseAlfCtrlDepth         ( UInt& ruiAlfCtrlDepth  );
-
+  
 private:
   Void  xReadUnarySymbol    ( UInt& ruiSymbol, ContextModel* pcSCModel, Int iOffset );
   Void  xReadUnaryMaxSymbol ( UInt& ruiSymbol, ContextModel* pcSCModel, Int iOffset, UInt uiMaxSymbol );
   Void  xReadEpExGolomb     ( UInt& ruiSymbol, UInt uiCount );
   Void  xReadExGolombLevel  ( UInt& ruiSymbol, ContextModel& rcSCModel  );
-
+  
   Void  xReadMvd            ( Int& riMvdComp, UInt uiAbsSum, UInt uiCtx );
-
+  
   Void  xReadExGolombMvd    ( UInt& ruiSymbol, ContextModel* pcSCModel, UInt uiMaxBin );
-
+  
 private:
   TComBitstream*    m_pcBitstream;
   TDecBinIf*        m_pcTDecBinIf;
-
+  
   Bool m_bAlfCtrl;
   UInt m_uiMaxAlfCtrlDepth;
-
+  
 public:
   Void parseAlfCtrlFlag   ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
 #if TSB_ALF_HEADER
   Void parseAlfFlagNum    ( UInt& ruiVal, UInt minValue, UInt depth );
   Void parseAlfCtrlFlag   ( UInt &ruiAlfCtrlFlag );
 #endif
-
+  
   Void parseSkipFlag      ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
   Void parseSplitFlag     ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
 #if HHI_MRG
@@ -111,32 +111,32 @@ public:
 #endif
   Void parsePartSize      ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
   Void parsePredMode      ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
-
+  
   Void parseIntraDirLumaAng( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
-
+  
   Void parseIntraDirChroma( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
-
+  
   Void parseInterDir      ( TComDataCU* pcCU, UInt& ruiInterDir, UInt uiAbsPartIdx, UInt uiDepth );
   Void parseRefFrmIdx     ( TComDataCU* pcCU, Int& riRefFrmIdx, UInt uiAbsPartIdx, UInt uiDepth, RefPicList eRefList );
   Void parseMvd           ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiPartIdx, UInt uiDepth, RefPicList eRefList );
-
+  
   Void parseTransformSubdivFlag( UInt& ruiSubdivFlag, UInt uiLog2TransformBlockSize );
   Void parseQtCbf         ( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eType, UInt uiTrDepth, UInt uiDepth );
   Void parseQtRootCbf     ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth, UInt& uiQtRootCbf );
-
+  
   Void parseDeltaQP       ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
   
 #if LCEC_CBP_YUV_ROOT
   Void parseCbf           ( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eType, UInt uiTrDepth, UInt uiDepth ) {}
   Void parseBlockCbf      ( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eType, UInt uiTrDepth, UInt uiDepth, UInt uiQPartNum ) {}
 #endif
-
+  
   Void parseCoeffNxN      ( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx, UInt uiWidth, UInt uiHeight, UInt uiDepth, TextType eTType );
-
+  
 private:
   UInt m_uiLastDQpNonZero;
   UInt m_uiLastQp;
-
+  
   ContextModel3DBuffer m_cCUSkipFlagSCModel;
   ContextModel3DBuffer m_cCUSplitFlagSCModel;
 #if HHI_MRG
@@ -146,26 +146,26 @@ private:
   ContextModel3DBuffer m_cCUAlfCtrlFlagSCModel;
   ContextModel3DBuffer m_cCUPartSizeSCModel;
   ContextModel3DBuffer m_cCUPredModeSCModel;
-
+  
   ContextModel3DBuffer m_cCUIntraPredSCModel;
   ContextModel3DBuffer m_cCUChromaPredSCModel;
   ContextModel3DBuffer m_cCUInterDirSCModel;
   ContextModel3DBuffer m_cCURefPicSCModel;
   ContextModel3DBuffer m_cCUMvdSCModel;
-
+  
   ContextModel3DBuffer m_cCUTransSubdivFlagSCModel;
   ContextModel3DBuffer m_cCUQtRootCbfSCModel;
   ContextModel3DBuffer m_cCUDeltaQpSCModel;
-
+  
   ContextModel3DBuffer m_cCUQtCbfSCModel;
-
+  
   ContextModel3DBuffer m_cCUSigSCModel;
   ContextModel3DBuffer m_cCULastSCModel;
   ContextModel3DBuffer m_cCUOneSCModel;
   ContextModel3DBuffer m_cCUAbsSCModel;
-
+  
   ContextModel3DBuffer m_cMVPIdxSCModel;
-
+  
   ContextModel3DBuffer m_cALFFlagSCModel;
   ContextModel3DBuffer m_cALFUvlcSCModel;
   ContextModel3DBuffer m_cALFSvlcSCModel;

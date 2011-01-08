@@ -63,7 +63,7 @@ class TDecGop
 private:
   Int                   m_iGopSize;
   TComList<TComPic*>    m_cListPic;         //  Dynamic buffer
-
+  
   //  Access channel
   TDecEntropy*          m_pcEntropyDecoder;
   TDecSbac*             m_pcSbacDecoder;
@@ -71,24 +71,24 @@ private:
   TDecCavlc*            m_pcCavlcDecoder;
   TDecSlice*            m_pcSliceDecoder;
   TComLoopFilter*       m_pcLoopFilter;
-
+  
   // Adaptive Loop filter
   TComAdaptiveLoopFilter*       m_pcAdaptiveLoopFilter;
-
+  
 public:
   TDecGop();
   virtual ~TDecGop();
-
+  
   Void  init    ( TDecEntropy*            pcEntropyDecoder, 
-                  TDecSbac*               pcSbacDecoder, 
-                  TDecBinCABAC*           pcBinCABAC,
-                  TDecCavlc*              pcCavlcDecoder, 
-                  TDecSlice*              pcSliceDecoder, 
-                  TComLoopFilter*         pcLoopFilter, 
-                  TComAdaptiveLoopFilter* pcAdaptiveLoopFilter );
+                 TDecSbac*               pcSbacDecoder, 
+                 TDecBinCABAC*           pcBinCABAC,
+                 TDecCavlc*              pcCavlcDecoder, 
+                 TDecSlice*              pcSliceDecoder, 
+                 TComLoopFilter*         pcLoopFilter, 
+                 TComAdaptiveLoopFilter* pcAdaptiveLoopFilter );
   Void  create  ();
   Void  destroy ();
-
+  
   Void  decompressGop ( Bool bEos, TComBitstream* pcBitstream, TComPic*& rpcPic );
   Void  setGopSize( Int i) { m_iGopSize = i; }
 };

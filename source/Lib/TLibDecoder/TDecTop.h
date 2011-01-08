@@ -58,13 +58,13 @@ private:
   Int                     m_iGopSize;
   Bool                    m_bGopSizeSet;
   int                     m_iMaxRefPicNum;
-
+  
   UInt                    m_uiValidPS;
   TComList<TComPic*>      m_cListPic;         //  Dynamic buffer
   TComSPS                 m_cSPS;
   TComPPS                 m_cPPS;
   TComSlice*              m_apcSlicePilot;
-
+  
   // functional classes
   TComPrediction          m_cPrediction;
   TComTrQuant             m_cTrQuant;
@@ -77,23 +77,23 @@ private:
   TDecBinCABAC            m_cBinCABAC;
   TComLoopFilter          m_cLoopFilter;
   TComAdaptiveLoopFilter  m_cAdaptiveLoopFilter;
-
+  
 public:
   TDecTop();
   virtual ~TDecTop();
-
+  
   Void  create  ();
   Void  destroy ();
-
+  
   Void  init();
   Void  decode ( Bool bEos, TComBitstream* pcBitstream, UInt& ruiPOC, TComList<TComPic*>*& rpcListPic );
-
+  
   Void  deletePicBuffer();
-
+  
 protected:
   Void  xGetNewPicBuffer  (TComSlice* pcSlice, TComPic*& rpcPic);
   Void  xUpdateGopSize    (TComSlice* pcSlice);
-
+  
 };// END CLASS DEFINITION TDecTop
 
 
