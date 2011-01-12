@@ -197,7 +197,7 @@ private:
   // referenced slice?
   Bool        m_bRefenced;
 #ifdef ROUNDING_CONTROL_BIPRED
-  Bool		  m_bRounding;
+  Bool        m_bRounding;
 #endif
   
   // access channel

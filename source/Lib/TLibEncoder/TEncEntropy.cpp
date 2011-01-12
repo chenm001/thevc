@@ -126,20 +126,20 @@ Void TEncEntropy::codeAux(ALFParam* pAlfParam)
   
   if (pAlfParam->filtNo>=0)
   {
-	if(pAlfParam->realfiltNo >= 0)
-	{
-	  // filters_per_fr
-	  m_pcEntropyCoderIf->codeAlfUvlc(pAlfParam->noFilters);
-      
-	  if(pAlfParam->noFilters == 1)
-	  {
-		m_pcEntropyCoderIf->codeAlfUvlc(pAlfParam->startSecondFilter);
-	  }
-	  else if (pAlfParam->noFilters == 2)
-	  {
-		for (int i=1; i<NO_VAR_BINS; i++) m_pcEntropyCoderIf->codeAlfFlag (pAlfParam->filterPattern[i]);
-	  }
-	}
+    if(pAlfParam->realfiltNo >= 0)
+    {
+      // filters_per_fr
+      m_pcEntropyCoderIf->codeAlfUvlc(pAlfParam->noFilters);
+
+      if(pAlfParam->noFilters == 1)
+      {
+        m_pcEntropyCoderIf->codeAlfUvlc(pAlfParam->startSecondFilter);
+      }
+      else if (pAlfParam->noFilters == 2)
+      {
+        for (int i=1; i<NO_VAR_BINS; i++) m_pcEntropyCoderIf->codeAlfFlag (pAlfParam->filterPattern[i]);
+      }
+    }
   }
 }
 
@@ -173,11 +173,11 @@ Int TEncEntropy::codeFilterCoeff(ALFParam* ALFp)
   // vlc for all
   memset(bitsCoeffScan, 0, MAX_SCAN_VAL * MAX_EXP_GOLOMB * sizeof(int));
   for(ind=0; ind<filters_per_group; ++ind)
-  {	
+  {
     for(i = 0; i < sqrFiltLength; i++)
-    {	     
+    {
       scanPos=pDepthInt[i]-1;
-	  coeffVal=abs(ALFp->coeffmulti[ind][i]);
+      coeffVal=abs(ALFp->coeffmulti[ind][i]);
       for (k=1; k<15; k++)
       {
         bitsCoeffScan[scanPos][k]+=lengthGolomb(coeffVal, k);
@@ -273,7 +273,7 @@ Int TEncEntropy::writeFilterCoeffs(int sqrFiltLength, int filters_per_group, int
   for(ind = 0; ind < filters_per_group; ++ind)
   {
     for(i = 0; i < sqrFiltLength; i++)
-    {	
+    {
       scanPos = pDepthInt[i] - 1;
       golombEncode(FilterCoeff[ind][i], kMinTab[scanPos]);
     }
@@ -313,13 +313,13 @@ Void TEncEntropy::codeFilt(ALFParam* pAlfParam)
   if(pAlfParam->filters_per_group > 1)
   {
 #if ENABLE_FORCECOEFF0
-	m_pcEntropyCoderIf->codeAlfFlag (pAlfParam->forceCoeff0);
-	if (pAlfParam->forceCoeff0)
-	{
-	  for (int i=0; i<pAlfParam->filters_per_group; i++) m_pcEntropyCoderIf->codeAlfFlag (pAlfParam->codedVarBins[i]);
-	}
+    m_pcEntropyCoderIf->codeAlfFlag (pAlfParam->forceCoeff0);
+    if (pAlfParam->forceCoeff0)
+    {
+      for (int i=0; i<pAlfParam->filters_per_group; i++) m_pcEntropyCoderIf->codeAlfFlag (pAlfParam->codedVarBins[i]);
+    }
 #endif 
-	m_pcEntropyCoderIf->codeAlfFlag (pAlfParam->predMethod);
+    m_pcEntropyCoderIf->codeAlfFlag (pAlfParam->predMethod);
   }
   codeFilterCoeff (pAlfParam);
 }
@@ -354,8 +354,8 @@ Void  print(ALFParam* pAlfParam)
   for (ind=0; ind<pAlfParam->filters_per_group_diff; ind++)
   {
     printf("coeffmulti(%d):", ind);
-	for (i=0; i<FiltLength; i++) printf("%d ", pAlfParam->coeffmulti[ind][i]);
-	printf("\n");
+    for (i=0; i<FiltLength; i++) printf("%d ", pAlfParam->coeffmulti[ind][i]);
+    printf("\n");
   }
   
   printf("minKStart:%d\n", pAlfParam->minKStart);  

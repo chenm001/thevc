@@ -46,14 +46,14 @@
 Int TComAdaptiveLoopFilter::m_pattern9x9Sym[41] = 
 {
                    0,
-	           1,  2,  3,
-		   4,  5,  6,  7,  8,
+             1,  2,  3,
+       4,  5,  6,  7,  8,
        9, 10, 11, 12, 13, 14, 15,
   16, 17, 18, 19, 20, 19, 18, 17, 16,
       15, 14, 13, 12, 11, 10,  9, 
            8,  7,  6,  5,  4,
-		       3,  2,  1,
-			       0
+           3,  2,  1,
+             0
 };
  
 Int TComAdaptiveLoopFilter::m_weights9x9Sym[22] = 
@@ -61,7 +61,7 @@ Int TComAdaptiveLoopFilter::m_weights9x9Sym[22] =
                   2,
               2,  2,  2,   
           2,  2,  2,  2,  2, 
-	   2, 2,  2,  2,  2,  2,  2,  
+     2, 2,  2,  2,  2,  2,  2,  
    2,  2, 2,  2,  1,  1
 };
 
@@ -77,19 +77,19 @@ Int TComAdaptiveLoopFilter::m_pattern9x9Sym_Quart[42] =
 Int TComAdaptiveLoopFilter::m_pattern7x7Sym[25] = 
 {
                    0,
-	           1,  2,  3,
-		   4,  5,  6,  7,  8,
+             1,  2,  3,
+       4,  5,  6,  7,  8,
        9, 10, 11, 12, 11, 10, 9,
            8,  7,  6,  5,  4,
-		       3,  2,  1,
-			       0
+           3,  2,  1,
+             0
 };
 
 Int TComAdaptiveLoopFilter::m_weights7x7Sym[14] = 
 {
                   2,  
               2,  2,  2,   
-	      2,  2,  2,  2,  2,    
+        2,  2,  2,  2,  2,    
       2,  2,  2,  1,  1
 };
 
@@ -105,10 +105,10 @@ Int TComAdaptiveLoopFilter::m_pattern7x7Sym_Quart[42] =
 Int TComAdaptiveLoopFilter::m_pattern5x5Sym[13] = 
 {
                    0,
-	           1,  2,  3,
-		   4,  5,  6,  5,  4,
+             1,  2,  3,
+       4,  5,  6,  5,  4,
                3,  2,  1,
-			       0
+             0
 };
 
 Int TComAdaptiveLoopFilter::m_weights5x5Sym[8] = 
@@ -488,16 +488,16 @@ Void TComAdaptiveLoopFilter::allocALFParam(ALFParam* pAlfParam)
 {
   pAlfParam->alf_flag = 0;
   
-  pAlfParam->coeff				= new Int[ALF_MAX_NUM_COEF];
+  pAlfParam->coeff        = new Int[ALF_MAX_NUM_COEF];
   pAlfParam->coeff_chroma = new Int[ALF_MAX_NUM_COEF_C];
   
-  ::memset(pAlfParam->coeff,				0, sizeof(Int)*ALF_MAX_NUM_COEF		);
-  ::memset(pAlfParam->coeff_chroma, 0, sizeof(Int)*ALF_MAX_NUM_COEF_C	);
+  ::memset(pAlfParam->coeff,        0, sizeof(Int)*ALF_MAX_NUM_COEF   );
+  ::memset(pAlfParam->coeff_chroma, 0, sizeof(Int)*ALF_MAX_NUM_COEF_C );
   pAlfParam->coeffmulti = new Int*[NO_VAR_BINS];
   for (int i=0; i<NO_VAR_BINS; i++)
   {
     pAlfParam->coeffmulti[i] = new Int[ALF_MAX_NUM_COEF];
-    ::memset(pAlfParam->coeffmulti[i],				0, sizeof(Int)*ALF_MAX_NUM_COEF		);
+    ::memset(pAlfParam->coeffmulti[i],        0, sizeof(Int)*ALF_MAX_NUM_COEF );
   }
 #if TSB_ALF_HEADER
   pAlfParam->num_cus_in_frame = m_uiNumCUsInFrame;
@@ -644,8 +644,8 @@ Void TComAdaptiveLoopFilter::predictALFCoeffChroma( ALFParam* pAlfParam )
 // --------------------------------------------------------------------------------------------------------------------
 
 /**
- \param	pcPic					picture (TComPic) class (input/output)
- \param	pcAlfParam		ALF parameter
+ \param pcPic         picture (TComPic) class (input/output)
+ \param pcAlfParam    ALF parameter
  \todo   for temporal buffer, it uses residual picture buffer, which may not be safe. Make it be safer.
  */
 Void TComAdaptiveLoopFilter::ALFProcess(TComPic* pcPic, ALFParam* pcAlfParam)
@@ -658,9 +658,9 @@ Void TComAdaptiveLoopFilter::ALFProcess(TComPic* pcPic, ALFParam* pcAlfParam)
   TComPicYuv* pcPicYuvRec    = pcPic->getPicYuvRec();
   TComPicYuv* pcPicYuvExtRec = m_pcTempPicYuv;
   
-  pcPicYuvRec		->copyToPic						( pcPicYuvExtRec );
-  pcPicYuvExtRec->setBorderExtension	( false );
-  pcPicYuvExtRec->extendPicBorder			();
+  pcPicYuvRec   ->copyToPic          ( pcPicYuvExtRec );
+  pcPicYuvExtRec->setBorderExtension ( false );
+  pcPicYuvExtRec->extendPicBorder    ();
   
 #if TSB_ALF_HEADER
   if(pcAlfParam->cu_control_flag)
@@ -700,12 +700,12 @@ Void TComAdaptiveLoopFilter::xALFLuma_qc(TComPic* pcPic, ALFParam* pcAlfParam, T
   //set maskImg using cu adaptive one.
   if(pcAlfParam->cu_control_flag)
   {
-	xCUAdaptive_qc(pcPic, pcAlfParam, pRest, pDec, LumaStride);
+    xCUAdaptive_qc(pcPic, pcAlfParam, pRest, pDec, LumaStride);
   }  
   else
   {
-	//then do whole frame filtering
-	filterFrame(pRest, pDec, pcAlfParam->realfiltNo, LumaStride);
+    //then do whole frame filtering
+    filterFrame(pRest, pDec, pcAlfParam->realfiltNo, LumaStride);
   }
 }
 
@@ -745,24 +745,24 @@ Void TComAdaptiveLoopFilter::getCurrentFilter(int **filterCoeffSym,ALFParam* pcA
   int *patternMapTab[3]={m_pattern9x9Sym_Quart, m_pattern7x7Sym_Quart, m_pattern5x5Sym_Quart};
   {
     for(varInd=0; varInd<NO_VAR_BINS; ++varInd)
-	{		
+    {
       memset(m_filterCoeffPrevSelected[varInd],0,sizeof(int)*MAX_SQR_FILT_LENGTH);
     }
-	patternMap=patternMapTab[pcAlfParam->realfiltNo];
+    patternMap=patternMapTab[pcAlfParam->realfiltNo];
     for(varInd=0; varInd<NO_VAR_BINS; ++varInd)
-	{		
+    {
       k=0;
       for(i = 0; i < MAX_SQR_FILT_LENGTH; i++)
-	  {
+      {
         if (patternMap[i]>0)
-		{
+        {
           m_filterCoeffPrevSelected[varInd][i]=filterCoeffSym[pcAlfParam->varIndTab[varInd]][k];
           k++;
         }
-		else
-		{
-		  m_filterCoeffPrevSelected[varInd][i]=0;
-		}
+        else
+        {
+          m_filterCoeffPrevSelected[varInd][i]=0;
+        }
       }
     }
   }
@@ -775,21 +775,21 @@ Void TComAdaptiveLoopFilter::reconstructFilterCoeffs(ALFParam* pcAlfParam,int **
   // Copy non zero filters in filterCoeffTmp
   for(ind = 0; ind < pcAlfParam->filters_per_group_diff; ++ind)
   {
-	for(i = 0; i < pcAlfParam->num_coeff; i++)
-	  m_filterCoeffTmp[ind][i] = pcAlfParam->coeffmulti[ind][i];
+    for(i = 0; i < pcAlfParam->num_coeff; i++)
+      m_filterCoeffTmp[ind][i] = pcAlfParam->coeffmulti[ind][i];
   }
   // Undo prediction
   for(ind = 0; ind < pcAlfParam->filters_per_group_diff; ++ind)
   {
-	if((!pcAlfParam->predMethod) || (ind == 0)) 
+    if((!pcAlfParam->predMethod) || (ind == 0)) 
     {
-	  memcpy(m_filterCoeffSymTmp[ind],m_filterCoeffTmp[ind],sizeof(int)*pcAlfParam->num_coeff);
+      memcpy(m_filterCoeffSymTmp[ind],m_filterCoeffTmp[ind],sizeof(int)*pcAlfParam->num_coeff);
     }
     else
     {
       // Prediction
       for(i = 0; i < pcAlfParam->num_coeff; ++i)
-		m_filterCoeffSymTmp[ind][i] = (int)(m_filterCoeffTmp[ind][i] + m_filterCoeffSymTmp[ind - 1][i]);
+        m_filterCoeffSymTmp[ind][i] = (int)(m_filterCoeffTmp[ind][i] + m_filterCoeffSymTmp[ind - 1][i]);
     }
   }
   
@@ -803,12 +803,12 @@ Void TComAdaptiveLoopFilter::reconstructFilterCoeffs(ALFParam* pcAlfParam,int **
     {
       if(pcAlfParam->codedVarBins[ind])
       {
-	    memcpy(pfilterCoeffSym[ind],m_filterCoeffSymTmp[src],sizeof(int)*pcAlfParam->num_coeff);
+        memcpy(pfilterCoeffSym[ind],m_filterCoeffSymTmp[src],sizeof(int)*pcAlfParam->num_coeff);
         ++src;
       }
       else
       {
-  	    memset(pfilterCoeffSym[ind],0,sizeof(int)*pcAlfParam->num_coeff);
+        memset(pfilterCoeffSym[ind],0,sizeof(int)*pcAlfParam->num_coeff);
       }
     }
     assert(src == pcAlfParam->filters_per_group_diff);
@@ -851,7 +851,7 @@ Void TComAdaptiveLoopFilter::calcVar(imgpel **imgY_var, imgpel *imgY_pad, int pa
       imgpel *p_imgY_pad_down = &imgY_pad[(pad_offset+i-1-pad_size) * img_stride + pad_offset-pad_size];
       p_imgY_temp = (int*)&m_imgY_temp[i-1][0];
       p_imgY_var  = &imgY_var [i-1][0];
-      for(j = 1; j < img_width +fl2plusOne; j++)	
+      for(j = 1; j < img_width +fl2plusOne; j++)
       {
         *(p_imgY_temp) = abs((p_imgY_pad[j]<<1) - p_imgY_pad[j+1] - p_imgY_pad[j-1])+
         abs((p_imgY_pad[j]<<1) - p_imgY_pad_down[j] - p_imgY_pad_up[j]);
@@ -868,57 +868,57 @@ Void TComAdaptiveLoopFilter::calcVar(imgpel **imgY_var, imgpel *imgY_pad, int pa
     imgpel *p_imgY_pad_up   = &imgY_pad[(pad_offset+i+1-pad_size) * img_stride + pad_offset-pad_size];
     imgpel *p_imgY_pad_down = &imgY_pad[(pad_offset+i-1-pad_size) * img_stride + pad_offset-pad_size];
     p_imgY_temp = (int*)&m_imgY_temp[i-1][0];
-    for(j = 1; j < img_width +fl2plusOne; j++)	
-	{
+    for(j = 1; j < img_width +fl2plusOne; j++)
+    {
       *(p_imgY_temp++) = abs((p_imgY_pad[j]<<1) - p_imgY_pad[j+1] - p_imgY_pad[j-1])+
-      abs((p_imgY_pad[j]<<1) - p_imgY_pad_down[j] - p_imgY_pad_up[j]);
-	}
+        abs((p_imgY_pad[j]<<1) - p_imgY_pad_down[j] - p_imgY_pad_up[j]);
+    }
   }
   {
-	//int temp;
-	int sum_0=0;
-	int y=img_height+((VAR_SIZE+1)<<1);
-	
-	int *p_imgY_temp_sum;
-	i = fl;
-	j = fl;
-    
-	memset(m_imgY_temp[y],0,sizeof(int)*(img_width+((VAR_SIZE+1)<<1)));
-	//--------------------------------------------------------------------------------------------
-    
+    //int temp;
+    int sum_0=0;
+    int y=img_height+((VAR_SIZE+1)<<1);
+
+    int *p_imgY_temp_sum;
+    i = fl;
+    j = fl;
+
+    memset(m_imgY_temp[y],0,sizeof(int)*(img_width+((VAR_SIZE+1)<<1)));
+    //--------------------------------------------------------------------------------------------
+
     for(ii = i - fl; ii <= i + fl; ii++)
-	{
+    {
       p_imgY_temp= (int*)&m_imgY_temp[ii][j - fl];
       p_imgY_temp_sum=(int*)&m_imgY_temp[y][j - fl];
       for(jj = j - fl; jj <= j + fl; jj++)
       {
         *(p_imgY_temp_sum++) += *(p_imgY_temp++);
       }
-	}
-	p_imgY_temp_sum=(int*)&m_imgY_temp[y][j - fl];
-	for(jj = j - fl; jj <= j + fl; jj++)
+    }
+    p_imgY_temp_sum=(int*)&m_imgY_temp[y][j - fl];
+    for(jj = j - fl; jj <= j + fl; jj++)
       sum_0+=*(p_imgY_temp_sum++);
-	imgY_var[i - fl][j - fl] = (imgpel) Clip_post(var_max, (int) ((sum_0 * mult_fact_int)>>shift));
-	//--------------------------------------------------------------------------------------------
+    imgY_var[i - fl][j - fl] = (imgpel) Clip_post(var_max, (int) ((sum_0 * mult_fact_int)>>shift));
+    //--------------------------------------------------------------------------------------------
     sum = sum_0;
-	for(j = fl+1; j < img_width + fl; ++j)
-	{	
+    for(j = fl+1; j < img_width + fl; ++j)
+    {
       int k=j+fl;
-	  for(ii = i - fl; ii <= i + fl; ii++)
-		m_imgY_temp[y][k] += (m_imgY_temp[ii][k]);
-      
-	  sum += (m_imgY_temp[y][k]-m_imgY_temp[y][j - fl-1]);
-	  imgY_var[i - fl][j - fl] = (imgpel) Clip_post(var_max, (int) ((sum * mult_fact_int)>>shift));
-      
-	}
-	//--------------------------------------------------------------------------------------------
-    
+      for(ii = i - fl; ii <= i + fl; ii++)
+        m_imgY_temp[y][k] += (m_imgY_temp[ii][k]);
+
+      sum += (m_imgY_temp[y][k]-m_imgY_temp[y][j - fl-1]);
+      imgY_var[i - fl][j - fl] = (imgpel) Clip_post(var_max, (int) ((sum * mult_fact_int)>>shift));
+
+    }
+    //--------------------------------------------------------------------------------------------
+
     for(i = fl+1; i < img_height + fl; ++i)
-	{
+    {
       imgpel  *pimgY_var= &imgY_var[i-fl][0];
       int *p_imgY_temp1;
       int *p_imgY_temp2;
-      sum = sum_0;	
+      sum = sum_0;
       j= fl;
       p_imgY_temp1= (int*)&m_imgY_temp[i+fl  ][j - fl];
       p_imgY_temp2= (int*)&m_imgY_temp[i-fl-1][j - fl];
@@ -930,18 +930,18 @@ Void TComAdaptiveLoopFilter::calcVar(imgpel **imgY_var, imgpel *imgY_pad, int pa
         sum += diff;
       }
       sum_0=sum;
-      
+
       *(pimgY_var++) = (imgpel) Clip_post(var_max, (int) ((sum * mult_fact_int)>>shift));
       //--------------------------------------------------------------------------------------------
       p_imgY_temp_sum=(int*)m_imgY_temp[y];
       for(j = fl+1; j < img_width + fl; ++j)
-      {	
+      {
         int k = j+fl;
         p_imgY_temp_sum[k] += (m_imgY_temp[i + fl][k]-m_imgY_temp[i-fl-1][k]);
         sum += (p_imgY_temp_sum[k]-p_imgY_temp_sum[j-fl-1]);
         *(pimgY_var++) = (imgpel) Clip_post(var_max, (int) ((sum * mult_fact_int)>>shift));
       }
-	}
+    }
   }
 }
 
@@ -965,29 +965,29 @@ Void TComAdaptiveLoopFilter::filterFrame(imgpel *imgY_rec_post, imgpel *imgY_rec
   for (i = fl; i < m_img_height+fl; i++)
   {
     p_imgY_var = m_imgY_var[i-fl];
-	p_imgY_pad = imgY_rec + (i-fl)*Stride;
+    p_imgY_pad = imgY_rec + (i-fl)*Stride;
     for (j = fl; j < m_img_width+fl; j++)
-	{
-	  coef = m_filterCoeffPrevSelected[*(p_imgY_var++)];
-	  pixelInt=coef[last_coef];
-	  pattern=pattern_fix;
-  	  
-	  for (ii=-fl_temp, m = 0; ii<0; ii++,m++)
-	  {
-		im1= &(imgY_rec[(i-fl+ii)*Stride + j-fl-m]);
-		im2= &(imgY_rec[(i-fl-ii)*Stride + j-fl+m]);
-		for (jj=-m; jj<=m; jj++)
+    {
+      coef = m_filterCoeffPrevSelected[*(p_imgY_var++)];
+      pixelInt=coef[last_coef];
+      pattern=pattern_fix;
+
+      for (ii=-fl_temp, m = 0; ii<0; ii++,m++)
+      {
+        im1= &(imgY_rec[(i-fl+ii)*Stride + j-fl-m]);
+        im2= &(imgY_rec[(i-fl-ii)*Stride + j-fl+m]);
+        for (jj=-m; jj<=m; jj++)
           pixelInt+=((*(im1++)+ *(im2--))*coef[*(pattern++)]);
-	  }
-      
-	  im1= &(p_imgY_pad[(j-fl)-fl_temp]);
-	  im2= &(p_imgY_pad[(j-fl)+fl_temp]);	
-	  for (jj=0; jj<fl_temp; jj++)
+      }
+
+      im1= &(p_imgY_pad[(j-fl)-fl_temp]);
+      im2= &(p_imgY_pad[(j-fl)+fl_temp]);
+      for (jj=0; jj<fl_temp; jj++)
         pixelInt+=((*(im1++)+ *(im2--))*coef[*(pattern++)]);
-      
-	  pixelInt+=(p_imgY_pad[j-fl]*coef[*(pattern++)]);
-	  pixelInt=(int)((pixelInt+offset) >> (num_bits_minus_1));
-	  imgY_rec_post[(i-fl)*Stride + j-fl]=max(0, min(pixelInt,max_val));
+
+      pixelInt+=(p_imgY_pad[j-fl]*coef[*(pattern++)]);
+      pixelInt=(int)((pixelInt+offset) >> (num_bits_minus_1));
+      imgY_rec_post[(i-fl)*Stride + j-fl]=max(0, min(pixelInt,max_val));
     }
   }
 }
@@ -1012,29 +1012,29 @@ Void TComAdaptiveLoopFilter::subfilterFrame(imgpel *imgY_rec_post, imgpel *imgY_
   for (i = fl + start_height; i < end_height+fl; i++)
   {
     p_imgY_var = m_imgY_var[i-fl] + start_width;
-	p_imgY_pad = imgY_rec + (i-fl)*Stride;
+    p_imgY_pad = imgY_rec + (i-fl)*Stride;
     for (j = fl + start_width; j < end_width+fl; j++)
-	{
-	  coef = m_filterCoeffPrevSelected[*(p_imgY_var++)];
-	  pixelInt=coef[last_coef];
-	  pattern=pattern_fix;
-  	  
-	  for (ii=-fl_temp, m = 0; ii<0; ii++,m++)
-	  {
-		im1= &(imgY_rec[(i-fl+ii)*Stride + j-fl-m]);
-		im2= &(imgY_rec[(i-fl-ii)*Stride + j-fl+m]);
-		for (jj=-m; jj<=m; jj++)
+    {
+      coef = m_filterCoeffPrevSelected[*(p_imgY_var++)];
+      pixelInt=coef[last_coef];
+      pattern=pattern_fix;
+
+      for (ii=-fl_temp, m = 0; ii<0; ii++,m++)
+      {
+        im1= &(imgY_rec[(i-fl+ii)*Stride + j-fl-m]);
+        im2= &(imgY_rec[(i-fl-ii)*Stride + j-fl+m]);
+        for (jj=-m; jj<=m; jj++)
           pixelInt+=((*(im1++)+ *(im2--))*coef[*(pattern++)]);
-	  }
-      
-	  im1= &(p_imgY_pad[(j-fl)-fl_temp]);
-	  im2= &(p_imgY_pad[(j-fl)+fl_temp]);	
-	  for (jj=0; jj<fl_temp; jj++)
+      }
+
+      im1= &(p_imgY_pad[(j-fl)-fl_temp]);
+      im2= &(p_imgY_pad[(j-fl)+fl_temp]);
+      for (jj=0; jj<fl_temp; jj++)
         pixelInt+=((*(im1++)+ *(im2--))*coef[*(pattern++)]);
-      
-	  pixelInt+=(p_imgY_pad[j-fl]*coef[*(pattern++)]);
-	  pixelInt=(int)((pixelInt+offset) >> (num_bits_minus_1));
-	  imgY_rec_post[(i-fl)*Stride + j-fl]=max(0, min(pixelInt,max_val));
+
+      pixelInt+=(p_imgY_pad[j-fl]*coef[*(pattern++)]);
+      pixelInt=(int)((pixelInt+offset) >> (num_bits_minus_1));
+      imgY_rec_post[(i-fl)*Stride + j-fl]=max(0, min(pixelInt,max_val));
     }
   }
 }
@@ -1106,11 +1106,12 @@ Void TComAdaptiveLoopFilter::xALFChroma(ALFParam* pcAlfParam, TComPicYuv* pcPicD
   }
 }
 
-/** \param	pcPicDec			picture before ALF
- \param	pcPicRest			picture after  ALF
- \param	qh						filter coefficient
- \param	iTap					filter tap
- \param	iColor				0 for Cb and 1 for Cr
+/** 
+ \param pcPicDec    picture before ALF
+ \param pcPicRest   picture after  ALF
+ \param qh          filter coefficient
+ \param iTap        filter tap
+ \param iColor      0 for Cb and 1 for Cr
  */
 Void TComAdaptiveLoopFilter::xFrameChroma( TComPicYuv* pcPicDec, TComPicYuv* pcPicRest, Int *qh, Int iTap, Int iColor )
 {

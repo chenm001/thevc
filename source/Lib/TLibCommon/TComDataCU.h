@@ -225,7 +225,7 @@ public:
   UInt          getQuadtreeTULog2MinSizeInCU( UInt uiIdx );
   
 #if HHI_RQT_FORCE_SPLIT_ACC2_PU || HHI_RQT_DISABLE_SUB
-  UInt          getQuadtreeTULog2RootSizeInCU( UInt uiIdx );	
+  UInt          getQuadtreeTULog2RootSizeInCU( UInt uiIdx );
 #endif
   
   TComCUMvField* getCUMvField         ( RefPicList e )          { return  &m_acCUMvField[e];  }

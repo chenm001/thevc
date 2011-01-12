@@ -359,7 +359,7 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
     xWriteFlag  (pcSlice->isReferenced() ? 1 : 0);
     m_uiBitHLS += 1;
 #ifdef ROUNDING_CONTROL_BIPRED
-	xWriteFlag  (pcSlice->isRounding() ? 1 : 0);
+    xWriteFlag  (pcSlice->isRounding() ? 1 : 0);
     m_uiBitHLS += 1;
 #endif
   }
@@ -497,7 +497,7 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
   {
     xWriteFlag  (pcSlice->isReferenced() ? 1 : 0);
 #ifdef ROUNDING_CONTROL_BIPRED
-	xWriteFlag  (pcSlice->isRounding() ? 1 : 0);
+    xWriteFlag  (pcSlice->isRounding() ? 1 : 0);
 #endif
   }
   
@@ -974,7 +974,7 @@ Void TEncCavlc::codeInterDir( TComDataCU* pcCU, UInt uiAbsPartIdx )
       m_uiBitMI += xWriteVlc( vlcn, cx );
     else
 #endif
-	  xWriteVlc( vlcn, cx );
+      xWriteVlc( vlcn, cx );
     
     return;
   }

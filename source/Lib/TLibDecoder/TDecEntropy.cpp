@@ -66,34 +66,34 @@ Void TDecEntropy::decodeAux(ALFParam* pAlfParam)
   
   if (pAlfParam->filtNo>=0)
   {
-	if(pAlfParam->realfiltNo >= 0)
-	{
-	  // filters_per_fr
-	  m_pcEntropyDecoderIf->parseAlfUvlc(uiSymbol);
-	  pAlfParam->noFilters = uiSymbol + 1;
-	  pAlfParam->filters_per_group = pAlfParam->noFilters; 
-      
-	  if(pAlfParam->noFilters == 2)
-	  {
-		m_pcEntropyDecoderIf->parseAlfUvlc(uiSymbol);
-		pAlfParam->startSecondFilter = uiSymbol;
-		pAlfParam->filterPattern [uiSymbol] = 1;
-	  }
-	  else if (pAlfParam->noFilters > 2)
-	  {
-		pAlfParam->filters_per_group = 1;
-		for (int i=1; i<NO_VAR_BINS; i++) 
-		{
-		  m_pcEntropyDecoderIf->parseAlfFlag (uiSymbol);
-		  pAlfParam->filterPattern[i] = uiSymbol;
-		  pAlfParam->filters_per_group += uiSymbol;
-		}
-	  }
-	}
+    if(pAlfParam->realfiltNo >= 0)
+    {
+      // filters_per_fr
+      m_pcEntropyDecoderIf->parseAlfUvlc(uiSymbol);
+      pAlfParam->noFilters = uiSymbol + 1;
+      pAlfParam->filters_per_group = pAlfParam->noFilters; 
+
+      if(pAlfParam->noFilters == 2)
+      {
+        m_pcEntropyDecoderIf->parseAlfUvlc(uiSymbol);
+        pAlfParam->startSecondFilter = uiSymbol;
+        pAlfParam->filterPattern [uiSymbol] = 1;
+      }
+      else if (pAlfParam->noFilters > 2)
+      {
+        pAlfParam->filters_per_group = 1;
+        for (int i=1; i<NO_VAR_BINS; i++) 
+        {
+          m_pcEntropyDecoderIf->parseAlfFlag (uiSymbol);
+          pAlfParam->filterPattern[i] = uiSymbol;
+          pAlfParam->filters_per_group += uiSymbol;
+        }
+      }
+    }
   }
   else
   {
-	memset (pAlfParam->filterPattern, 0, NO_VAR_BINS*sizeof(Int));
+    memset (pAlfParam->filterPattern, 0, NO_VAR_BINS*sizeof(Int));
   }
   // Reconstruct varIndTab[]
   memset(pAlfParam->varIndTab, 0, NO_VAR_BINS * sizeof(int));
@@ -141,7 +141,7 @@ Void TDecEntropy::readFilterCodingParams(ALFParam* pAlfParam)
   for(scanPos = 0; scanPos < maxScanVal; scanPos++)
   {
     m_pcEntropyDecoderIf->parseAlfFlag(uiSymbol);
-	golombIndexBit = uiSymbol;
+    golombIndexBit = uiSymbol;
     if(golombIndexBit)
       pAlfParam->kMinTab[scanPos] = kMin + 1;
     else
@@ -161,19 +161,20 @@ Int TDecEntropy::golombDecode(Int k)
   uiSymbol = 1;
   while (uiSymbol)
   {
-	m_pcEntropyDecoderIf->parseAlfFlag(uiSymbol);
-	q++;
+    m_pcEntropyDecoderIf->parseAlfFlag(uiSymbol);
+    q++;
   }
   for(a = 0; a < k; ++a)          // read out the sequential log2(M) bits
   {
-	m_pcEntropyDecoderIf->parseAlfFlag(uiSymbol);
+    m_pcEntropyDecoderIf->parseAlfFlag(uiSymbol);
     if(uiSymbol)
       nr += 1 << a;
   }
   nr += q * m;                    // add the bits and the multiple of M
-  if(nr != 0){
+  if(nr != 0)
+  {
     m_pcEntropyDecoderIf->parseAlfFlag(uiSymbol);
-	nr = (uiSymbol)? nr: -nr;
+    nr = (uiSymbol)? nr: -nr;
   }
   return nr;
 }
@@ -198,9 +199,9 @@ Void TDecEntropy::readFilterCoeffs(ALFParam* pAlfParam)
   for(ind = 0; ind < pAlfParam->filters_per_group_diff; ++ind)
   {
     for(i = 0; i < pAlfParam->num_coeff; i++)
-    {	
+    {
       scanPos = pDepthInt[i] - 1;
-	  pAlfParam->coeffmulti[ind][i] = golombDecode(pAlfParam->kMinTab[scanPos]);
+      pAlfParam->coeffmulti[ind][i] = golombDecode(pAlfParam->kMinTab[scanPos]);
     }
   }
   
@@ -219,41 +220,41 @@ Void TDecEntropy::decodeFilt(ALFParam* pAlfParam)
   
   if (pAlfParam->filtNo >= 0)
   {
-	pAlfParam->filters_per_group_diff = pAlfParam->filters_per_group;
-	if (pAlfParam->filters_per_group > 1)
-	{
+    pAlfParam->filters_per_group_diff = pAlfParam->filters_per_group;
+    if (pAlfParam->filters_per_group > 1)
+    {
 #if ENABLE_FORCECOEFF0
-	  m_pcEntropyDecoderIf->parseAlfFlag (uiSymbol);
-	  pAlfParam->forceCoeff0 = uiSymbol;
-      
-	  if (pAlfParam->forceCoeff0)
-	  {
-		pAlfParam->filters_per_group_diff = 0;
-		for (int i=0; i<pAlfParam->filters_per_group; i++){
-		  m_pcEntropyDecoderIf->parseAlfFlag (uiSymbol);
-		  pAlfParam->codedVarBins[i] = uiSymbol;
-		  pAlfParam->filters_per_group_diff += uiSymbol;
-		}
-	  }
-	  else
+      m_pcEntropyDecoderIf->parseAlfFlag (uiSymbol);
+      pAlfParam->forceCoeff0 = uiSymbol;
+
+      if (pAlfParam->forceCoeff0)
+      {
+        pAlfParam->filters_per_group_diff = 0;
+        for (int i=0; i<pAlfParam->filters_per_group; i++){
+          m_pcEntropyDecoderIf->parseAlfFlag (uiSymbol);
+          pAlfParam->codedVarBins[i] = uiSymbol;
+          pAlfParam->filters_per_group_diff += uiSymbol;
+        }
+      }
+      else
 #else
       pAlfParam->forceCoeff0 = 0;
 #endif
-	  {
-		for (int i=0; i<NO_VAR_BINS; i++)
-		  pAlfParam->codedVarBins[i] = 1;
-        
-	  }
-	  m_pcEntropyDecoderIf->parseAlfFlag (uiSymbol);
-	  pAlfParam->predMethod = uiSymbol;
-	}
-	else
-	{
-	  pAlfParam->forceCoeff0 = 0;
-	  pAlfParam->predMethod = 0;
-	}
-    
-	decodeFilterCoeff (pAlfParam);
+      {
+        for (int i=0; i<NO_VAR_BINS; i++)
+          pAlfParam->codedVarBins[i] = 1;
+
+      }
+      m_pcEntropyDecoderIf->parseAlfFlag (uiSymbol);
+      pAlfParam->predMethod = uiSymbol;
+    }
+    else
+    {
+      pAlfParam->forceCoeff0 = 0;
+      pAlfParam->predMethod = 0;
+    }
+
+    decodeFilterCoeff (pAlfParam);
   }
 }
 
@@ -438,7 +439,7 @@ Void TDecEntropy::decodeMergeInfo ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt ui
 #if SAMSUNG_MRG_SKIP_DIRECT
   if ( pcCU->getPredictionMode(uiAbsPartIdx) == MODE_SKIP )
   {
-  	return;
+    return;
   }
 #endif
   
@@ -498,7 +499,7 @@ Void TDecEntropy::decodeMergeInfo ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt ui
   if ( pcCU->getSlice()->getNumRefIdx( REF_PIC_LIST_1 ) > 0 ) //if ( ref. frame list1 has at least 1 entry )
   {
     pcSubCU->copyInterPredInfoFrom( pcCU, uiAbsPartIdx, REF_PIC_LIST_1 );
-	pcSubCU->getCUMvField( REF_PIC_LIST_1 )->setAllMvField( cMvFieldNeighbours[ 2*uiMergeIndex + 1 ].getMv(), cMvFieldNeighbours[ 2*uiMergeIndex + 1 ].getRefIdx(), SIZE_2Nx2N, 0, 0, 0 );
+    pcSubCU->getCUMvField( REF_PIC_LIST_1 )->setAllMvField( cMvFieldNeighbours[ 2*uiMergeIndex + 1 ].getMv(), cMvFieldNeighbours[ 2*uiMergeIndex + 1 ].getRefIdx(), SIZE_2Nx2N, 0, 0, 0 );
   }
   
 }

@@ -1216,21 +1216,21 @@ UInt TComDataCU::getQuadtreeTULog2RootSizeInCU( UInt uiIdx )
   if (m_pePartSize[ uiIdx ] == SIZE_2Nx2N)
   {
     return (uiLog2RootTUSizeInCU > m_pcSlice->getSPS()->getQuadtreeTULog2MaxSize() ? m_pcSlice->getSPS()->getQuadtreeTULog2MaxSize() : uiLog2RootTUSizeInCU);
-  }	
+  }
   else if (m_pePartSize[ uiIdx ] >= SIZE_2NxN && m_pePartSize[ uiIdx ] <= SIZE_Nx2N)  
   {
 #if HHI_RQT_FORCE_SPLIT_RECT || HHI_RQT_DISABLE_SUB
     uiLog2RootTUSizeInCU--;
 #endif
     return (uiLog2RootTUSizeInCU > m_pcSlice->getSPS()->getQuadtreeTULog2MaxSize() ? m_pcSlice->getSPS()->getQuadtreeTULog2MaxSize() : uiLog2RootTUSizeInCU);
-  }	
+  }
   else if (m_pePartSize[ uiIdx ] == SIZE_NxN)  
   {
 #if HHI_RQT_FORCE_SPLIT_NxN || HHI_RQT_DISABLE_SUB
     uiLog2RootTUSizeInCU--;
 #endif
     return (uiLog2RootTUSizeInCU > m_pcSlice->getSPS()->getQuadtreeTULog2MaxSize() ? m_pcSlice->getSPS()->getQuadtreeTULog2MaxSize() : uiLog2RootTUSizeInCU);
-  }	
+  }
   
   return (uiLog2RootTUSizeInCU > m_pcSlice->getSPS()->getQuadtreeTULog2MaxSize() ? m_pcSlice->getSPS()->getQuadtreeTULog2MaxSize() : uiLog2RootTUSizeInCU);
 }

@@ -1940,8 +1940,8 @@ TEncSearch::estIntraPredQT( TComDataCU* pcCU,
     }
 #else
     
-	for( Int i = 0; i < FAST_UDI_MAX_RDMODE_NUM; i++ ) uiRdModeList[ i ] = i;
-	if( uiMaxModeFast >= uiMaxMode )
+    for( Int i = 0; i < FAST_UDI_MAX_RDMODE_NUM; i++ ) uiRdModeList[ i ] = i;
+    if( uiMaxModeFast >= uiMaxMode )
       uiNewMaxMode = uiMaxMode;
     else
     {
@@ -2886,9 +2886,9 @@ Void TEncSearch::xMotionEstimation( TComDataCU* pcCU, TComYuv* pcYuvOrg, Int iPa
   TComMv        cMvSrchRngLT;
   TComMv        cMvSrchRngRB;
   
-  TComYuv*  pcYuv = pcYuvOrg;
+  TComYuv*      pcYuv = pcYuvOrg;
 #ifdef ROUNDING_CONTROL_BIPRED
-  Pel			pRefBufY[16384];  // 128x128
+  Pel           pRefBufY[16384];  // 128x128
 #endif
   m_iSearchRange = m_aaiAdaptSR[eRefPicList][iRefIdxPred];
   
@@ -2907,17 +2907,17 @@ Void TEncSearch::xMotionEstimation( TComDataCU* pcCU, TComYuv* pcYuvOrg, Int iPa
     pcYuvOrg->copyPartToPartYuv( pcYuv, uiPartAddr, iRoiWidth, iRoiHeight );
     
 #ifdef ROUNDING_CONTROL_BIPRED
-	Int y;
-	//Int x;
-	Pel *pRefY = pcYuvOther->getLumaAddr(uiPartAddr);
-	Int iRefStride = pcYuvOther->getStride();
-    
-	// copy the MC block into pRefBufY
-	for( y = 0; y < iRoiHeight; y++)
-	{
+    Int y;
+    //Int x;
+    Pel *pRefY = pcYuvOther->getLumaAddr(uiPartAddr);
+    Int iRefStride = pcYuvOther->getStride();
+
+    // copy the MC block into pRefBufY
+    for( y = 0; y < iRoiHeight; y++)
+    {
       memcpy(pRefBufY+y*iRoiWidth,pRefY,sizeof(Pel)*iRoiWidth);
       pRefY += iRefStride;
-	}
+    }
 #else
     pcYuv->removeHighFreq( pcYuvOther, uiPartAddr, iRoiWidth, iRoiHeight );
 #endif
@@ -2951,7 +2951,7 @@ Void TEncSearch::xMotionEstimation( TComDataCU* pcCU, TComYuv* pcYuvOrg, Int iPa
 #ifdef ROUNDING_CONTROL_BIPRED
   if( bBi ) 
   {
-	xPatternSearch_Bi      ( pcPatternKey, piRefY, iRefStride, &cMvSrchRngLT, &cMvSrchRngRB, rcMv, ruiCost, pRefBufY, pcCU->getSlice()->isRounding() );
+    xPatternSearch_Bi      ( pcPatternKey, piRefY, iRefStride, &cMvSrchRngLT, &cMvSrchRngRB, rcMv, ruiCost, pRefBufY, pcCU->getSlice()->isRounding() );
   } 
   else
   {
@@ -2984,7 +2984,7 @@ Void TEncSearch::xMotionEstimation( TComDataCU* pcCU, TComYuv* pcYuvOrg, Int iPa
 #ifdef ROUNDING_CONTROL_BIPRED
   if( bBi ) 
   {
-	Bool bRound =  pcCU->getSlice()->isRounding() ;
+    Bool bRound =  pcCU->getSlice()->isRounding() ;
     InterpFilterType ePFilt = (InterpFilterType)pcCU->getSlice()->getInterpFilterType();
     switch ( ePFilt )
     {

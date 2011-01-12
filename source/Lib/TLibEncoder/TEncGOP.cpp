@@ -228,16 +228,16 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
         m_pcSliceEncoder->setSearchRange(pcSlice);
       }
 #ifdef ROUNDING_CONTROL_BIPRED
-	  Bool b = true;
+      Bool b = true;
       if (m_pcCfg->getUseRoundingControlBipred())
       {
         if (m_pcCfg->getGOPSize()==1)
-          b = ((pcSlice->getPOC()&1)==0);	
+          b = ((pcSlice->getPOC()&1)==0);
         else
-          b = (pcSlice->isReferenced() == 0);	 
+          b = (pcSlice->isReferenced() == 0);
       }
-      
-	  pcSlice->setRounding(b);
+
+      pcSlice->setRounding(b);
 #endif
       m_pcSliceEncoder->precompressSlice( pcPic );
       m_pcSliceEncoder->compressSlice   ( pcPic );

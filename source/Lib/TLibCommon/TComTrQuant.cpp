@@ -1490,21 +1490,21 @@ Void TComTrQuant::xIT16( Long* pSrc, Pel* pDes, UInt uiStride )
 #ifdef TRANS_PRECISION_EXT
     Long     ai0[16];
     ai0[0] =  pSrc[0]<<uiBitDepthIncrease;
-	ai0[1] =  pSrc[1]<<uiBitDepthIncrease;
-	ai0[2] =  pSrc[2]<<uiBitDepthIncrease;
-	ai0[3] =  pSrc[3]<<uiBitDepthIncrease;
-	ai0[4] =  pSrc[4]<<uiBitDepthIncrease;
-	ai0[5] =  pSrc[5]<<uiBitDepthIncrease;
-	ai0[6] =  pSrc[6]<<uiBitDepthIncrease;
-	ai0[7] =  pSrc[7]<<uiBitDepthIncrease;
+    ai0[1] =  pSrc[1]<<uiBitDepthIncrease;
+    ai0[2] =  pSrc[2]<<uiBitDepthIncrease;
+    ai0[3] =  pSrc[3]<<uiBitDepthIncrease;
+    ai0[4] =  pSrc[4]<<uiBitDepthIncrease;
+    ai0[5] =  pSrc[5]<<uiBitDepthIncrease;
+    ai0[6] =  pSrc[6]<<uiBitDepthIncrease;
+    ai0[7] =  pSrc[7]<<uiBitDepthIncrease;
     ai0[8 ] =  pSrc[8 ]<<uiBitDepthIncrease;
-	ai0[9 ] =  pSrc[9 ]<<uiBitDepthIncrease;
-	ai0[10] =  pSrc[10]<<uiBitDepthIncrease;
-	ai0[11] =  pSrc[11]<<uiBitDepthIncrease;
-	ai0[12] =  pSrc[12]<<uiBitDepthIncrease;
-	ai0[13] =  pSrc[13]<<uiBitDepthIncrease;
-	ai0[14] =  pSrc[14]<<uiBitDepthIncrease;
-	ai0[15] =  pSrc[15]<<uiBitDepthIncrease;
+    ai0[9 ] =  pSrc[9 ]<<uiBitDepthIncrease;
+    ai0[10] =  pSrc[10]<<uiBitDepthIncrease;
+    ai0[11] =  pSrc[11]<<uiBitDepthIncrease;
+    ai0[12] =  pSrc[12]<<uiBitDepthIncrease;
+    ai0[13] =  pSrc[13]<<uiBitDepthIncrease;
+    ai0[14] =  pSrc[14]<<uiBitDepthIncrease;
+    ai0[15] =  pSrc[15]<<uiBitDepthIncrease;
     F8 = xTrRound( 6 * ai0[1] - 63 * ai0[15] , DenShift16);
     F9 = xTrRound( 49 * ai0[9] - 40 * ai0[7] , DenShift16);
     F10 = xTrRound( 30 * ai0[5] - 56 * ai0[11] , DenShift16);
@@ -1692,21 +1692,21 @@ Void TComTrQuant::xIT16( Long* pSrc, Pel* pDes, UInt uiStride )
     pDes[uiStride8 ] = (Pel)xTrRound(B7 - C8, DCore16Shift);
 #ifdef TRANS_PRECISION_EXT
     pDes[        0 ] =  (pDes[        0 ]+offset)>>uiBitDepthIncrease;
-	pDes[uiStride  ] =  (pDes[uiStride  ]+offset)>>uiBitDepthIncrease;
-	pDes[uiStride2 ] =  (pDes[uiStride2 ]+offset)>>uiBitDepthIncrease;
-	pDes[uiStride3 ] =  (pDes[uiStride3 ]+offset)>>uiBitDepthIncrease;
-	pDes[uiStride4 ] =  (pDes[uiStride4 ]+offset)>>uiBitDepthIncrease;
-	pDes[uiStride5 ] =  (pDes[uiStride5 ]+offset)>>uiBitDepthIncrease;
-	pDes[uiStride6 ] =  (pDes[uiStride6 ]+offset)>>uiBitDepthIncrease;
-	pDes[uiStride7 ] =  (pDes[uiStride7 ]+offset)>>uiBitDepthIncrease;
+    pDes[uiStride  ] =  (pDes[uiStride  ]+offset)>>uiBitDepthIncrease;
+    pDes[uiStride2 ] =  (pDes[uiStride2 ]+offset)>>uiBitDepthIncrease;
+    pDes[uiStride3 ] =  (pDes[uiStride3 ]+offset)>>uiBitDepthIncrease;
+    pDes[uiStride4 ] =  (pDes[uiStride4 ]+offset)>>uiBitDepthIncrease;
+    pDes[uiStride5 ] =  (pDes[uiStride5 ]+offset)>>uiBitDepthIncrease;
+    pDes[uiStride6 ] =  (pDes[uiStride6 ]+offset)>>uiBitDepthIncrease;
+    pDes[uiStride7 ] =  (pDes[uiStride7 ]+offset)>>uiBitDepthIncrease;
     pDes[uiStride8 ] =  (pDes[uiStride8 ]+offset)>>uiBitDepthIncrease;
-	pDes[uiStride9 ] =  (pDes[uiStride9 ]+offset)>>uiBitDepthIncrease;
-	pDes[uiStride10] =  (pDes[uiStride10]+offset)>>uiBitDepthIncrease;
-	pDes[uiStride11] =  (pDes[uiStride11]+offset)>>uiBitDepthIncrease;
-	pDes[uiStride12] =  (pDes[uiStride12]+offset)>>uiBitDepthIncrease;
-	pDes[uiStride13] =  (pDes[uiStride13]+offset)>>uiBitDepthIncrease;
-	pDes[uiStride14] =  (pDes[uiStride14]+offset)>>uiBitDepthIncrease;
-	pDes[uiStride15] =  (pDes[uiStride15]+offset)>>uiBitDepthIncrease;
+    pDes[uiStride9 ] =  (pDes[uiStride9 ]+offset)>>uiBitDepthIncrease;
+    pDes[uiStride10] =  (pDes[uiStride10]+offset)>>uiBitDepthIncrease;
+    pDes[uiStride11] =  (pDes[uiStride11]+offset)>>uiBitDepthIncrease;
+    pDes[uiStride12] =  (pDes[uiStride12]+offset)>>uiBitDepthIncrease;
+    pDes[uiStride13] =  (pDes[uiStride13]+offset)>>uiBitDepthIncrease;
+    pDes[uiStride14] =  (pDes[uiStride14]+offset)>>uiBitDepthIncrease;
+    pDes[uiStride15] =  (pDes[uiStride15]+offset)>>uiBitDepthIncrease;
 #endif
     
   }
@@ -1765,37 +1765,37 @@ Void TComTrQuant::xIT32( Long* pSrc, Pel* pDes, UInt uiStride )
 #ifdef TRANS_PRECISION_EXT
     Long     ai0[32];
     ai0[0] =  pSrc[0]<<uiBitDepthIncrease;
-	ai0[1] =  pSrc[1]<<uiBitDepthIncrease;
-	ai0[2] =  pSrc[2]<<uiBitDepthIncrease;
-	ai0[3] =  pSrc[3]<<uiBitDepthIncrease;
-	ai0[4] =  pSrc[4]<<uiBitDepthIncrease;
-	ai0[5] =  pSrc[5]<<uiBitDepthIncrease;
-	ai0[6] =  pSrc[6]<<uiBitDepthIncrease;
-	ai0[7] =  pSrc[7]<<uiBitDepthIncrease;
+    ai0[1] =  pSrc[1]<<uiBitDepthIncrease;
+    ai0[2] =  pSrc[2]<<uiBitDepthIncrease;
+    ai0[3] =  pSrc[3]<<uiBitDepthIncrease;
+    ai0[4] =  pSrc[4]<<uiBitDepthIncrease;
+    ai0[5] =  pSrc[5]<<uiBitDepthIncrease;
+    ai0[6] =  pSrc[6]<<uiBitDepthIncrease;
+    ai0[7] =  pSrc[7]<<uiBitDepthIncrease;
     ai0[8 ] =  pSrc[8 ]<<uiBitDepthIncrease;
-	ai0[9 ] =  pSrc[9 ]<<uiBitDepthIncrease;
-	ai0[10] =  pSrc[10]<<uiBitDepthIncrease;
-	ai0[11] =  pSrc[11]<<uiBitDepthIncrease;
-	ai0[12] =  pSrc[12]<<uiBitDepthIncrease;
-	ai0[13] =  pSrc[13]<<uiBitDepthIncrease;
-	ai0[14] =  pSrc[14]<<uiBitDepthIncrease;
-	ai0[15] =  pSrc[15]<<uiBitDepthIncrease;
+    ai0[9 ] =  pSrc[9 ]<<uiBitDepthIncrease;
+    ai0[10] =  pSrc[10]<<uiBitDepthIncrease;
+    ai0[11] =  pSrc[11]<<uiBitDepthIncrease;
+    ai0[12] =  pSrc[12]<<uiBitDepthIncrease;
+    ai0[13] =  pSrc[13]<<uiBitDepthIncrease;
+    ai0[14] =  pSrc[14]<<uiBitDepthIncrease;
+    ai0[15] =  pSrc[15]<<uiBitDepthIncrease;
     ai0[16] =  pSrc[16]<<uiBitDepthIncrease;
-	ai0[17] =  pSrc[17]<<uiBitDepthIncrease;
-	ai0[18] =  pSrc[18]<<uiBitDepthIncrease;
-	ai0[19] =  pSrc[19]<<uiBitDepthIncrease;
-	ai0[20] =  pSrc[20]<<uiBitDepthIncrease;
-	ai0[21] =  pSrc[21]<<uiBitDepthIncrease;
-	ai0[22] =  pSrc[22]<<uiBitDepthIncrease;
-	ai0[23] =  pSrc[23]<<uiBitDepthIncrease;
+    ai0[17] =  pSrc[17]<<uiBitDepthIncrease;
+    ai0[18] =  pSrc[18]<<uiBitDepthIncrease;
+    ai0[19] =  pSrc[19]<<uiBitDepthIncrease;
+    ai0[20] =  pSrc[20]<<uiBitDepthIncrease;
+    ai0[21] =  pSrc[21]<<uiBitDepthIncrease;
+    ai0[22] =  pSrc[22]<<uiBitDepthIncrease;
+    ai0[23] =  pSrc[23]<<uiBitDepthIncrease;
     ai0[24] =  pSrc[24]<<uiBitDepthIncrease;
-	ai0[25] =  pSrc[25]<<uiBitDepthIncrease;
-	ai0[26] =  pSrc[26]<<uiBitDepthIncrease;
-	ai0[27] =  pSrc[27]<<uiBitDepthIncrease;
-	ai0[28] =  pSrc[28]<<uiBitDepthIncrease;
-	ai0[29] =  pSrc[29]<<uiBitDepthIncrease;
-	ai0[30] =  pSrc[30]<<uiBitDepthIncrease;
-	ai0[31] =  pSrc[31]<<uiBitDepthIncrease;
+    ai0[25] =  pSrc[25]<<uiBitDepthIncrease;
+    ai0[26] =  pSrc[26]<<uiBitDepthIncrease;
+    ai0[27] =  pSrc[27]<<uiBitDepthIncrease;
+    ai0[28] =  pSrc[28]<<uiBitDepthIncrease;
+    ai0[29] =  pSrc[29]<<uiBitDepthIncrease;
+    ai0[30] =  pSrc[30]<<uiBitDepthIncrease;
+    ai0[31] =  pSrc[31]<<uiBitDepthIncrease;
     G16 = xTrRound(  12 * ai0[1]  - 255 * ai0[31], DenShift32);
     G17 = xTrRound( 189 * ai0[17] - 171 * ai0[15], DenShift32);
     G18 = xTrRound( 109 * ai0[9]  - 231 * ai0[23], DenShift32);
@@ -2246,40 +2246,38 @@ Void TComTrQuant::xIT32( Long* pSrc, Pel* pDes, UInt uiStride )
     
 #ifdef TRANS_PRECISION_EXT
     pDes[        0 ] =  (pDes[        0 ]+offset)>>uiBitDepthIncrease;
-	pDes[uiStride  ] =  (pDes[uiStride  ]+offset)>>uiBitDepthIncrease;
-	pDes[uiStride2 ] =  (pDes[uiStride2 ]+offset)>>uiBitDepthIncrease;
-	pDes[uiStride3 ] =  (pDes[uiStride3 ]+offset)>>uiBitDepthIncrease;
-	pDes[uiStride4 ] =  (pDes[uiStride4 ]+offset)>>uiBitDepthIncrease;
-	pDes[uiStride5 ] =  (pDes[uiStride5 ]+offset)>>uiBitDepthIncrease;
-	pDes[uiStride6 ] =  (pDes[uiStride6 ]+offset)>>uiBitDepthIncrease;
-	pDes[uiStride7 ] =  (pDes[uiStride7 ]+offset)>>uiBitDepthIncrease;
+    pDes[uiStride  ] =  (pDes[uiStride  ]+offset)>>uiBitDepthIncrease;
+    pDes[uiStride2 ] =  (pDes[uiStride2 ]+offset)>>uiBitDepthIncrease;
+    pDes[uiStride3 ] =  (pDes[uiStride3 ]+offset)>>uiBitDepthIncrease;
+    pDes[uiStride4 ] =  (pDes[uiStride4 ]+offset)>>uiBitDepthIncrease;
+    pDes[uiStride5 ] =  (pDes[uiStride5 ]+offset)>>uiBitDepthIncrease;
+    pDes[uiStride6 ] =  (pDes[uiStride6 ]+offset)>>uiBitDepthIncrease;
+    pDes[uiStride7 ] =  (pDes[uiStride7 ]+offset)>>uiBitDepthIncrease;
     pDes[uiStride8 ] =  (pDes[uiStride8 ]+offset)>>uiBitDepthIncrease;
-	pDes[uiStride9 ] =  (pDes[uiStride9 ]+offset)>>uiBitDepthIncrease;
-	pDes[uiStride10] =  (pDes[uiStride10]+offset)>>uiBitDepthIncrease;
-	pDes[uiStride11] =  (pDes[uiStride11]+offset)>>uiBitDepthIncrease;
-	pDes[uiStride12] =  (pDes[uiStride12]+offset)>>uiBitDepthIncrease;
-	pDes[uiStride13] =  (pDes[uiStride13]+offset)>>uiBitDepthIncrease;
-	pDes[uiStride14] =  (pDes[uiStride14]+offset)>>uiBitDepthIncrease;
-	pDes[uiStride15] =  (pDes[uiStride15]+offset)>>uiBitDepthIncrease;
+    pDes[uiStride9 ] =  (pDes[uiStride9 ]+offset)>>uiBitDepthIncrease;
+    pDes[uiStride10] =  (pDes[uiStride10]+offset)>>uiBitDepthIncrease;
+    pDes[uiStride11] =  (pDes[uiStride11]+offset)>>uiBitDepthIncrease;
+    pDes[uiStride12] =  (pDes[uiStride12]+offset)>>uiBitDepthIncrease;
+    pDes[uiStride13] =  (pDes[uiStride13]+offset)>>uiBitDepthIncrease;
+    pDes[uiStride14] =  (pDes[uiStride14]+offset)>>uiBitDepthIncrease;
+    pDes[uiStride15] =  (pDes[uiStride15]+offset)>>uiBitDepthIncrease;
     pDes[uiStride16] =  (pDes[uiStride16]+offset)>>uiBitDepthIncrease;
-	pDes[uiStride17] =  (pDes[uiStride17]+offset)>>uiBitDepthIncrease;
-	pDes[uiStride18] =  (pDes[uiStride18]+offset)>>uiBitDepthIncrease;
-	pDes[uiStride19] =  (pDes[uiStride19]+offset)>>uiBitDepthIncrease;
-	pDes[uiStride20] =  (pDes[uiStride20]+offset)>>uiBitDepthIncrease;
-	pDes[uiStride21] =  (pDes[uiStride21]+offset)>>uiBitDepthIncrease;
-	pDes[uiStride22] =  (pDes[uiStride22]+offset)>>uiBitDepthIncrease;
-	pDes[uiStride23] =  (pDes[uiStride23]+offset)>>uiBitDepthIncrease;
+    pDes[uiStride17] =  (pDes[uiStride17]+offset)>>uiBitDepthIncrease;
+    pDes[uiStride18] =  (pDes[uiStride18]+offset)>>uiBitDepthIncrease;
+    pDes[uiStride19] =  (pDes[uiStride19]+offset)>>uiBitDepthIncrease;
+    pDes[uiStride20] =  (pDes[uiStride20]+offset)>>uiBitDepthIncrease;
+    pDes[uiStride21] =  (pDes[uiStride21]+offset)>>uiBitDepthIncrease;
+    pDes[uiStride22] =  (pDes[uiStride22]+offset)>>uiBitDepthIncrease;
+    pDes[uiStride23] =  (pDes[uiStride23]+offset)>>uiBitDepthIncrease;
     pDes[uiStride24] =  (pDes[uiStride24]+offset)>>uiBitDepthIncrease;
-	pDes[uiStride25] =  (pDes[uiStride25]+offset)>>uiBitDepthIncrease;
-	pDes[uiStride26] =  (pDes[uiStride26]+offset)>>uiBitDepthIncrease;
-	pDes[uiStride27] =  (pDes[uiStride27]+offset)>>uiBitDepthIncrease;
-	pDes[uiStride28] =  (pDes[uiStride28]+offset)>>uiBitDepthIncrease;
-	pDes[uiStride29] =  (pDes[uiStride29]+offset)>>uiBitDepthIncrease;
-	pDes[uiStride30] =  (pDes[uiStride30]+offset)>>uiBitDepthIncrease;
-	pDes[uiStride31] =  (pDes[uiStride31]+offset)>>uiBitDepthIncrease;
+    pDes[uiStride25] =  (pDes[uiStride25]+offset)>>uiBitDepthIncrease;
+    pDes[uiStride26] =  (pDes[uiStride26]+offset)>>uiBitDepthIncrease;
+    pDes[uiStride27] =  (pDes[uiStride27]+offset)>>uiBitDepthIncrease;
+    pDes[uiStride28] =  (pDes[uiStride28]+offset)>>uiBitDepthIncrease;
+    pDes[uiStride29] =  (pDes[uiStride29]+offset)>>uiBitDepthIncrease;
+    pDes[uiStride30] =  (pDes[uiStride30]+offset)>>uiBitDepthIncrease;
+    pDes[uiStride31] =  (pDes[uiStride31]+offset)>>uiBitDepthIncrease;
 #endif
-    
-    
   }
 }
 
@@ -2471,7 +2469,7 @@ Void TComTrQuant::xT8( Pel* piBlkResi, UInt uiStride, Long* psCoeff )
     
     psCoeff[ 8] =  (psCoeff[ 8]+offset)>>uiBitDepthIncrease;
     psCoeff[24] =  (psCoeff[24]+offset)>>uiBitDepthIncrease;
-    psCoeff[40] =  (psCoeff[40]+offset)>>uiBitDepthIncrease;	
+    psCoeff[40] =  (psCoeff[40]+offset)>>uiBitDepthIncrease;
     psCoeff[56] =  (psCoeff[56]+offset)>>uiBitDepthIncrease;
 #endif
   }
@@ -2607,7 +2605,7 @@ Void TComTrQuant::xQuant8x8( TComDataCU* pcCU, Long* plSrcCoef, TCoeff*& pDstCoe
       Int iLevel, iSign;
       
       iLevel  = plSrcCoef[n];
-      iSign   = iLevel;	
+      iSign   = iLevel;
       iLevel  = abs( iLevel ) * m_puiQuantMtx[n];
       
       iLevel      = ( iLevel + m_cQP.m_iAdd8x8 ) >> iBit;
@@ -2728,13 +2726,13 @@ Void TComTrQuant::xIT8( Long* plCoef, Pel* pResidual, UInt uiStride )
 #ifdef TRANS_PRECISION_EXT
     Long     ai0[8];
     ai0[0] =  pi[0]<<uiBitDepthIncrease;
-	ai0[1] =  pi[1]<<uiBitDepthIncrease;
-	ai0[2] =  pi[2]<<uiBitDepthIncrease;
-	ai0[3] =  pi[3]<<uiBitDepthIncrease;
-	ai0[4] =  pi[4]<<uiBitDepthIncrease;
-	ai0[5] =  pi[5]<<uiBitDepthIncrease;
-	ai0[6] =  pi[6]<<uiBitDepthIncrease;
-	ai0[7] =  pi[7]<<uiBitDepthIncrease;
+    ai0[1] =  pi[1]<<uiBitDepthIncrease;
+    ai0[2] =  pi[2]<<uiBitDepthIncrease;
+    ai0[3] =  pi[3]<<uiBitDepthIncrease;
+    ai0[4] =  pi[4]<<uiBitDepthIncrease;
+    ai0[5] =  pi[5]<<uiBitDepthIncrease;
+    ai0[6] =  pi[6]<<uiBitDepthIncrease;
+    ai0[7] =  pi[7]<<uiBitDepthIncrease;
     ai1[0] = ai0[0] + ai0[4];
     ai1[2] = ai0[0] - ai0[4];
     
@@ -2816,13 +2814,13 @@ Void TComTrQuant::xIT8( Long* plCoef, Pel* pResidual, UInt uiStride )
     
 #ifdef TRANS_PRECISION_EXT
     pResidual[        0] =  (pResidual[        0]+offset)>>uiBitDepthIncrease;
-	pResidual[uiStride ] =  (pResidual[uiStride ]+offset)>>uiBitDepthIncrease;
-	pResidual[uiStride2] =  (pResidual[uiStride2]+offset)>>uiBitDepthIncrease;
-	pResidual[uiStride3] =  (pResidual[uiStride3]+offset)>>uiBitDepthIncrease;
-	pResidual[uiStride4] =  (pResidual[uiStride4]+offset)>>uiBitDepthIncrease;
-	pResidual[uiStride5] =  (pResidual[uiStride5]+offset)>>uiBitDepthIncrease;
-	pResidual[uiStride6] =  (pResidual[uiStride6]+offset)>>uiBitDepthIncrease;
-	pResidual[uiStride7] =  (pResidual[uiStride7]+offset)>>uiBitDepthIncrease;
+    pResidual[uiStride ] =  (pResidual[uiStride ]+offset)>>uiBitDepthIncrease;
+    pResidual[uiStride2] =  (pResidual[uiStride2]+offset)>>uiBitDepthIncrease;
+    pResidual[uiStride3] =  (pResidual[uiStride3]+offset)>>uiBitDepthIncrease;
+    pResidual[uiStride4] =  (pResidual[uiStride4]+offset)>>uiBitDepthIncrease;
+    pResidual[uiStride5] =  (pResidual[uiStride5]+offset)>>uiBitDepthIncrease;
+    pResidual[uiStride6] =  (pResidual[uiStride6]+offset)>>uiBitDepthIncrease;
+    pResidual[uiStride7] =  (pResidual[uiStride7]+offset)>>uiBitDepthIncrease;
 #endif
   }
 }

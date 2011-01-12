@@ -8,7 +8,6 @@ namespace df
 {
   namespace program_options_lite
   {
-    
     struct Options;
     
     void doHelp(std::ostream& out, Options& opts, unsigned columns = 80);
@@ -53,7 +52,7 @@ namespace df
       
       void setDefault()
       {
-		opt_storage = opt_default_val;
+        opt_storage = opt_default_val;
       }
       
       T& opt_storage;
@@ -89,12 +88,12 @@ namespace df
       
       void parse(const std::string& arg)
       {
-		func(parent, arg);
+        func(parent, arg);
       }
       
       void setDefault()
       {
-		return;
+        return;
       }
       
     private:
@@ -111,17 +110,17 @@ namespace df
       
       struct Names
       {
-		Names() : opt(0) {};
-		~Names()
+        Names() : opt(0) {};
+        ~Names()
         {
           if (opt)
             delete opt;
-		}
-		std::list<std::string> opt_long;
-		std::list<std::string> opt_short;
-		OptionBase* opt;
+        }
+        std::list<std::string> opt_long;
+        std::list<std::string> opt_short;
+        OptionBase* opt;
       };
-      
+
       void addOption(OptionBase *opt);
       
       typedef std::list<Names*> NamesPtrList;
@@ -148,8 +147,8 @@ namespace df
       OptionSpecific&
       operator()(const std::string& name, T& storage, T default_val, const std::string& desc = "")
       {
-		parent.addOption(new Option<T>(name, storage, default_val, desc));
-		return *this;
+        parent.addOption(new Option<T>(name, storage, default_val, desc));
+        return *this;
       }
       
       /**
@@ -162,8 +161,8 @@ namespace df
       OptionSpecific&
       operator()(const std::string& name, OptionFunc::Func *func, const std::string& desc = "")
       {
-		parent.addOption(new OptionFunc(name, parent, func, desc));
-		return *this;
+        parent.addOption(new OptionFunc(name, parent, func, desc));
+        return *this;
       }
     private:
       Options& parent;

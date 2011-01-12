@@ -162,9 +162,9 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice)
 #ifdef ROUNDING_CONTROL_BIPRED
   if(!rpcSlice->isIntra())
   {
-	xReadFlag( uiCode );
-	Bool b = (uiCode != 0);
-	rpcSlice->setRounding(b);
+    xReadFlag( uiCode );
+    Bool b = (uiCode != 0);
+    rpcSlice->setRounding(b);
   }
 #endif
   
@@ -799,20 +799,20 @@ Void TDecCavlc::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartI
     UInt uiAbsPartIdxL, uiAbsPartIdxA;
     TComDataCU* pcCUL   = pcCU->getPULeft (uiAbsPartIdxL, pcCU->getZorderIdxInCU() + uiAbsPartIdx);
     TComDataCU* pcCUA   = pcCU->getPUAbove(uiAbsPartIdxA, pcCU->getZorderIdxInCU() + uiAbsPartIdx);
-	if (pcCUL == NULL && pcCUA == NULL)
-	{
-	  uiDecodeDCCoeff = 1;
+    if (pcCUL == NULL && pcCUA == NULL)
+    {
+      uiDecodeDCCoeff = 1;
       dcCoeff = xReadVlc(eTType == TEXT_LUMA ? 3 : 1);
       if (dcCoeff)
       {
-	    UInt sign;
+        UInt sign;
         xReadFlag(sign);
         if (sign)
         {
           dcCoeff = -dcCoeff;
         }
-	  }
-	}
+      }
+    }
   }
   
   UInt uiScanning;
@@ -866,7 +866,7 @@ Void TDecCavlc::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartI
       xParseCoeff8x8( scoeff, iBlockType );
       
       for (uiScanning=0; uiScanning<64; uiScanning++)
-      {	  
+      {  
         piCoeff[(pucScan[uiScanning]/8)*uiWidth + (pucScan[uiScanning]%8)] = scoeff[63-uiScanning];
       }
       return;

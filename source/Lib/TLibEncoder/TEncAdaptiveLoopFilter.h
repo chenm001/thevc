@@ -51,9 +51,9 @@
 class TEncAdaptiveLoopFilter : public TComAdaptiveLoopFilter
 {
 private:
-  static const Int	m_aiSymmetricArray9x9[81];					///< scan index for 9x9 filter
-  static const Int	m_aiSymmetricArray7x7[49];					///< scan index for 7x7 filter
-  static const Int	m_aiSymmetricArray5x5[25];					///< scan index for 5x5 filter
+  static const Int m_aiSymmetricArray9x9[81];     ///< scan index for 9x9 filter
+  static const Int m_aiSymmetricArray7x7[49];     ///< scan index for 7x7 filter
+  static const Int m_aiSymmetricArray5x5[25];     ///< scan index for 5x5 filter
   
   Double** m_ppdAlfCorr;
   Double* m_pdDoubleAlfCoeff;
@@ -101,43 +101,43 @@ private:
   
 private:
   // init / uninit internal variables
-  Void xInitParam 	   ();
-  Void xUninitParam	   ();
+  Void xInitParam      ();
+  Void xUninitParam    ();
   
   // create/destroy/copy/set functions of ALF control flags
-  Void xCreateTmpAlfCtrlFlags		();
-  Void xDestroyTmpAlfCtrlFlags	();
-  Void xCopyTmpAlfCtrlFlagsTo		();
-  Void xCopyTmpAlfCtrlFlagsFrom	();
+  Void xCreateTmpAlfCtrlFlags   ();
+  Void xDestroyTmpAlfCtrlFlags  ();
+  Void xCopyTmpAlfCtrlFlagsTo   ();
+  Void xCopyTmpAlfCtrlFlagsFrom ();
   
   // encoder ALF control flags
-  Void xEncodeCUAlfCtrlFlags	();
-  Void xEncodeCUAlfCtrlFlag		( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth);
+  Void xEncodeCUAlfCtrlFlags  ();
+  Void xEncodeCUAlfCtrlFlag   ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth);
   
   // functions related to correlation computation
-  Void xCalcCorrelationFunc							( Pel* pOrg, Pel* pCmp, Int iTap, Int iWidth, Int iHeight, Int iOrgStride, Int iCmpStride);
+  Void xCalcCorrelationFunc   ( Pel* pOrg, Pel* pCmp, Int iTap, Int iWidth, Int iHeight, Int iOrgStride, Int iCmpStride);
   
   // functions related to filtering
-  Void xFilterCoefQuickSort		( Double *coef_data, Int *coef_num, Int upper, Int lower );
-  Void xQuantFilterCoef				( Double* h, Int* qh, Int tap, int bit_depth );
-  Void xClearFilterCoefInt		( Int* qh, Int N );
-  Void xCopyDecToRestCUs			( TComPicYuv* pcPicDec, TComPicYuv* pcPicRest );
-  Void xCopyDecToRestCU				( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth, TComPicYuv* pcPicDec, TComPicYuv* pcPicRest );
-  Void xFilteringFrameChroma	( TComPicYuv* pcPicOrg, TComPicYuv* pcPicDec, TComPicYuv* pcPicRest );
+  Void xFilterCoefQuickSort   ( Double *coef_data, Int *coef_num, Int upper, Int lower );
+  Void xQuantFilterCoef       ( Double* h, Int* qh, Int tap, int bit_depth );
+  Void xClearFilterCoefInt    ( Int* qh, Int N );
+  Void xCopyDecToRestCUs      ( TComPicYuv* pcPicDec, TComPicYuv* pcPicRest );
+  Void xCopyDecToRestCU       ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth, TComPicYuv* pcPicDec, TComPicYuv* pcPicRest );
+  Void xFilteringFrameChroma  ( TComPicYuv* pcPicOrg, TComPicYuv* pcPicDec, TComPicYuv* pcPicRest );
   
   // distortion / misc functions
-  UInt64 xCalcSSD							( Pel* pOrg, Pel* pCmp, Int iWidth, Int iHeight, Int iStride );
-  Void	 xCalcRDCost					( TComPicYuv* pcPicOrg, TComPicYuv* pcPicCmp, ALFParam* pAlfParam, UInt64& ruiRate, UInt64& ruiDist, Double& rdCost );
-  Void   xCalcRDCostChroma		( TComPicYuv* pcPicOrg, TComPicYuv* pcPicCmp, ALFParam* pAlfParam, UInt64& ruiRate, UInt64& ruiDist, Double& rdCost );
-  Void   xCalcRDCost					( ALFParam* pAlfParam, UInt64& ruiRate, UInt64 uiDist, Double& rdCost );
-  Int		 xGauss								( Double **a, Int N );
+  UInt64 xCalcSSD             ( Pel* pOrg, Pel* pCmp, Int iWidth, Int iHeight, Int iStride );
+  Void   xCalcRDCost          ( TComPicYuv* pcPicOrg, TComPicYuv* pcPicCmp, ALFParam* pAlfParam, UInt64& ruiRate, UInt64& ruiDist, Double& rdCost );
+  Void   xCalcRDCostChroma    ( TComPicYuv* pcPicOrg, TComPicYuv* pcPicCmp, ALFParam* pAlfParam, UInt64& ruiRate, UInt64& ruiDist, Double& rdCost );
+  Void   xCalcRDCost          ( ALFParam* pAlfParam, UInt64& ruiRate, UInt64 uiDist, Double& rdCost );
+  Int    xGauss               ( Double **a, Int N );
   
 protected:
   /// do ALF for chroma
-  Void xEncALFChroma					( UInt64 uiLumaRate, TComPicYuv* pcPicOrg, TComPicYuv* pcPicDec, TComPicYuv* pcPicRest, UInt64& ruiDist, UInt64& ruiBits );
+  Void xEncALFChroma          ( UInt64 uiLumaRate, TComPicYuv* pcPicOrg, TComPicYuv* pcPicDec, TComPicYuv* pcPicRest, UInt64& ruiDist, UInt64& ruiBits );
 public:
-  TEncAdaptiveLoopFilter					();
-  virtual ~TEncAdaptiveLoopFilter	() {}
+  TEncAdaptiveLoopFilter          ();
+  virtual ~TEncAdaptiveLoopFilter () {}
   
   /// allocate temporal memory
   Void startALFEnc(TComPic* pcPic, TEncEntropy* pcEntropyCoder);
@@ -148,9 +148,9 @@ public:
   /// estimate ALF parameters
   Void ALFProcess(ALFParam* pcAlfParam, Double dLambda, UInt64& ruiDist, UInt64& ruiBits, UInt& ruiMaxAlfCtrlDepth );
   /// test ALF for luma
-  Void xEncALFLuma_qc					( TComPicYuv* pcPicOrg, TComPicYuv* pcPicDec, TComPicYuv* pcPicRest, UInt64& ruiMinRate, 
+  Void xEncALFLuma_qc                  ( TComPicYuv* pcPicOrg, TComPicYuv* pcPicDec, TComPicYuv* pcPicRest, UInt64& ruiMinRate, 
                                          UInt64& ruiMinDist, Double& rdMinCost );
-  Void xCUAdaptiveControl_qc			( TComPicYuv* pcPicOrg, TComPicYuv* pcPicDec, TComPicYuv* pcPicRest, UInt64& ruiMinRate, 
+  Void xCUAdaptiveControl_qc           ( TComPicYuv* pcPicOrg, TComPicYuv* pcPicDec, TComPicYuv* pcPicRest, UInt64& ruiMinRate, 
                                          UInt64& ruiMinDist, Double& rdMinCost );
 #if TSB_ALF_HEADER
   Void xSetCUAlfCtrlFlags_qc            (UInt uiAlfCtrlDepth, TComPicYuv* pcPicOrg, TComPicYuv* pcPicDec, TComPicYuv* pcPicRest, 
