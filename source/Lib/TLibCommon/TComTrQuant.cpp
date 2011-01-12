@@ -1089,7 +1089,8 @@ Int TComTrQuant::bitCount_LCEC(Int k,Int pos,Int n,Int lpflag,Int levelMode,Int 
   {
     if (levelMode)
       bits = VLClength[vlc_adaptive][k];
-    else{                        
+    else
+    {                        
       if (pos==0 && lpflag==0)
       {  
         if (maxrun > 27)

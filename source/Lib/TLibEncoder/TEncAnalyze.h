@@ -114,7 +114,8 @@ public:
   {
     FILE* pFile = NULL;
     
-    switch( ch ) {
+    switch( ch ) 
+    {
       case 'I':
         pFile = fopen ("summary_I.txt", "at");
         break;

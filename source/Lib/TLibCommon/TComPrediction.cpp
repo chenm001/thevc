@@ -380,7 +380,10 @@ Void TComPrediction::xPredInterBi ( TComDataCU* pcCU, UInt uiPartAddr, Int iWidt
     RefPicList eRefPicList = (iRefList ? REF_PIC_LIST_1 : REF_PIC_LIST_0);
     iRefIdx[iRefList] = pcCU->getCUMvField( eRefPicList )->getRefIdx( uiPartAddr );
     
-    if ( iRefIdx[iRefList] < 0 )  { continue; }
+    if ( iRefIdx[iRefList] < 0 )  
+    { 
+      continue; 
+    }
     
     assert( iRefIdx[iRefList] < pcCU->getSlice()->getNumRefIdx(eRefPicList) );
     

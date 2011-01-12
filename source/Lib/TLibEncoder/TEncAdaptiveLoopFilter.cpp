@@ -1092,7 +1092,8 @@ Void TEncAdaptiveLoopFilter::xcollectStatCodeFilterCoeffForce0(int **pDiffQFilte
     {     
       scanPos=pDepthInt[i]-1;
       coeffVal=abs(pDiffQFilterCoeffIntPP[ind][i]);
-      for (k=1; k<15; k++){
+      for (k=1; k<15; k++)
+      {
         bitsCoeffScan[scanPos][k] += lengthGolomb(coeffVal, k);
       }
     }
@@ -1107,7 +1108,8 @@ Void TEncAdaptiveLoopFilter::xcollectStatCodeFilterCoeffForce0(int **pDiffQFilte
     {
       kMin=kStart; minBits=bitsCoeffScan[scanPos][kMin];
       
-      if (bitsCoeffScan[scanPos][kStart+1]<minBits){
+      if (bitsCoeffScan[scanPos][kStart+1]<minBits)
+      {
         kMin=kStart+1; minBits=bitsCoeffScan[scanPos][kMin];
       }
       kStart=kMin;

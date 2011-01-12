@@ -230,7 +230,8 @@ Void TDecEntropy::decodeFilt(ALFParam* pAlfParam)
       if (pAlfParam->forceCoeff0)
       {
         pAlfParam->filters_per_group_diff = 0;
-        for (int i=0; i<pAlfParam->filters_per_group; i++){
+        for (int i=0; i<pAlfParam->filters_per_group; i++)
+        {
           m_pcEntropyDecoderIf->parseAlfFlag (uiSymbol);
           pAlfParam->codedVarBins[i] = uiSymbol;
           pAlfParam->filters_per_group_diff += uiSymbol;

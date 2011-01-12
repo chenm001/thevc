@@ -135,7 +135,8 @@ TAppOption::init(int maxopt, int maxcharopt )
   
   strcpy( long_opt_prefix , "--" );
   
-  if( alloc() == false ){
+  if( alloc() == false )
+  {
     cout << endl << "OPTIONS ERROR : Failed allocating memory" ;
     cout << endl ;
     cout << "Exiting." << endl ;
@@ -160,7 +161,8 @@ TAppOption::alloc()
     return false;
   else
     mem_allocated  = true;
-  for( i = 0 ; i < max_options ; i++ ){
+  for( i = 0 ; i < max_options ; i++ )
+  {
     options[i] = NULL;
     optiontype[i] = 0 ;
     optionindex[i] = -1 ;
@@ -175,7 +177,8 @@ TAppOption::alloc()
     mem_allocated = false;
     return false;
   }
-  for( i = 0 ; i < max_char_options ; i++ ){
+  for( i = 0 ; i < max_char_options ; i++ )
+  {
     optionchars[i] = '0';
     optchartype[i] = 0 ;
     optcharindex[i] = -1 ;
@@ -184,7 +187,8 @@ TAppOption::alloc()
   size = (max_usage_lines+1) * sizeof(const char*) ;
   usage = (const char**) malloc( size );
   
-  if( usage == NULL  ){
+  if( usage == NULL  )
+  {
     mem_allocated = false;
     return false;
   }
@@ -206,7 +210,8 @@ TAppOption::doubleOptStorage()
   if( options == NULL || optiontype == NULL || optionindex == NULL )
     return false;
   /* init new storage */
-  for( int i = max_options ; i < 2*max_options ; i++ ){
+  for( int i = max_options ; i < 2*max_options ; i++ )
+  {
     options[i] = NULL;
     optiontype[i] = 0 ;
     optionindex[i] = -1 ;
@@ -229,7 +234,8 @@ TAppOption::doubleCharStorage()
      optcharindex == NULL )
     return false;
   /* init new storage */
-  for( int i = max_char_options ; i < 2*max_char_options ; i++ ){
+  for( int i = max_char_options ; i < 2*max_char_options ; i++ )
+  {
     optionchars[i] = '0';
     optchartype[i] = 0 ;
     optcharindex[i] = -1 ;
@@ -285,7 +291,8 @@ TAppOption::setCommandPrefixChar( char _prefix )
 void
 TAppOption::setCommandLongPrefix( char *_prefix )
 {
-  if( strlen( _prefix ) > MAX_LONG_PREFIX_LENGTH ){
+  if( strlen( _prefix ) > MAX_LONG_PREFIX_LENGTH )
+  {
     *( _prefix + MAX_LONG_PREFIX_LENGTH ) = '\0';
   }
   
@@ -531,8 +538,10 @@ TAppOption::setFlag( const char *opt , char optchar )
 void
 TAppOption::addOption( const char *opt, int type )
 {
-  if( option_counter >= max_options ){
-    if( doubleOptStorage() == false ){
+  if( option_counter >= max_options )
+  {
+    if( doubleOptStorage() == false )
+    {
       addOptionError( opt );
       return;
     }
@@ -546,7 +555,8 @@ TAppOption::addOption( const char *opt, int type )
 void
 TAppOption::addOption( char opt, int type )
 {
-  if( !POSIX() ){
+  if( !POSIX() )
+  {
     printVerbose("Ignoring the option character \"");
     printVerbose(  opt );
     printVerbose( "\" ( POSIX options are turned off )" );
@@ -555,8 +565,10 @@ TAppOption::addOption( char opt, int type )
   }
   
   
-  if( optchar_counter >= max_char_options ){
-    if( doubleCharStorage() == false ){
+  if( optchar_counter >= max_char_options )
+  {
+    if( doubleCharStorage() == false )
+    {
       addOptionError( opt );
       return;
     }
@@ -626,27 +638,35 @@ TAppOption::processCommandArgs()
   if( max_legal_args == 0 )
     max_legal_args = argc;
   new_argv = (int*) malloc( (max_legal_args+1) * sizeof(int) );
-  for( int i = 1 ; i < argc ; i++ ){/* ignore first argv */
+  for( int i = 1 ; i < argc ; i++ )
+  {/* ignore first argv */
     if(  argv[i][0] == long_opt_prefix[0] &&
-       argv[i][1] == long_opt_prefix[1] ) { /* long GNU option */
+       argv[i][1] == long_opt_prefix[1] )
+    { /* long GNU option */
       int match_at = parseGNU( argv[i]+2 ); /* skip -- */
       if( match_at >= 0 && i < argc-1 ) /* found match */
         setValue( options[match_at] , argv[++i] );
-    }else if(  argv[i][0] ==  opt_prefix_char ) { /* POSIX char */
-      if( POSIX() ){
+    }else if(  argv[i][0] ==  opt_prefix_char ) 
+    { /* POSIX char */
+      if( POSIX() )
+      {
         char ch =  parsePOSIX( argv[i]+1 );/* skip - */
         if( ch != '0' && i < argc-1 ) /* matching char */
           setValue( ch ,  argv[++i] );
-      } else { /* treat it as GNU option with a - */
+      } else 
+      { /* treat it as GNU option with a - */
         int match_at = parseGNU( argv[i]+1 ); /* skip - */
         if( match_at >= 0 && i < argc-1 ) /* found match */
           setValue( options[match_at] , argv[++i] );
       }
-    }else { /* not option but an argument keep index */
-      if( new_argc < max_legal_args ){
+    }else 
+    { /* not option but an argument keep index */
+      if( new_argc < max_legal_args )
+      {
         new_argv[ new_argc ] = i ;
         new_argc++;
-      }else{ /* ignore extra arguments */
+      }else
+      { /* ignore extra arguments */
         printVerbose( "Ignoring extra argument: " );
         printVerbose( argv[i] );
         printVerbose( );
@@ -660,13 +680,17 @@ char
 TAppOption::parsePOSIX( char* arg )
 {
   
-  for( unsigned int i = 0 ; i < strlen(arg) ; i++ ){
+  for( unsigned int i = 0 ; i < strlen(arg) ; i++ )
+  {
     char ch = arg[i] ;
-    if( matchChar(ch) ) { /* keep matching flags till an option */
+    if( matchChar(ch) ) 
+    { /* keep matching flags till an option */
       /*if last char argv[++i] is the value */
-      if( i == strlen(arg)-1 ){
+      if( i == strlen(arg)-1 )
+      {
         return ch;
-      }else{/* else the rest of arg is the value */
+      }else
+      {/* else the rest of arg is the value */
         i++; /* skip any '=' and ' ' */
         while( arg[i] == whitespace
               || arg[i] == equalsign )
@@ -684,26 +708,32 @@ TAppOption::parseGNU( char *arg )
 {
   int split_at = 0;
   /* if has a '=' sign get value */
-  for( unsigned int i = 0 ; i < strlen(arg) ; i++ ){
-    if(arg[i] ==  equalsign ){
+  for( unsigned int i = 0 ; i < strlen(arg) ; i++ )
+  {
+    if(arg[i] ==  equalsign )
+    {
       split_at = i ; /* store index */
       i = (unsigned int)strlen(arg); /* get out of loop */
     }
   }
-  if( split_at > 0 ){ /* it is an option value pair */
+  if( split_at > 0 )
+  { /* it is an option value pair */
     char* tmp = (char*) malloc(  (split_at+1)*sizeof(char) );
     for( int i = 0 ; i < split_at ; i++ )
       tmp[i] = arg[i];
     tmp[split_at] = '\0';
     
-    if ( matchOpt( tmp ) >= 0 ){
+    if ( matchOpt( tmp ) >= 0 )
+    {
       setValue( options[matchOpt(tmp)] , arg+split_at+1 );
       free (tmp);
-    }else{
+    }else
+    {
       free (tmp);
       return -1;
     }
-  }else{ /* regular options with no '=' sign  */
+  }else
+  { /* regular options with no '=' sign  */
     return  matchOpt(arg);
   }
   return -1;
@@ -713,8 +743,10 @@ TAppOption::parseGNU( char *arg )
 int
 TAppOption::matchOpt( char *opt )
 {
-  for( int i = 0 ; i < option_counter ; i++ ){
-    if( strcmp( options[i], opt ) == 0 ){
+  for( int i = 0 ; i < option_counter ; i++ )
+  {
+    if( strcmp( options[i], opt ) == 0 )
+    {
       if( optiontype[i] ==  COMMON_OPT ||
          optiontype[i] ==  COMMAND_OPT )
       { /* found option return index */
@@ -732,14 +764,17 @@ TAppOption::matchOpt( char *opt )
 bool
 TAppOption::matchChar( char c )
 {
-  for( int i = 0 ; i < optchar_counter ; i++ ){
-    if( optionchars[i] == c ) { /* found match */
+  for( int i = 0 ; i < optchar_counter ; i++ )
+  {
+    if( optionchars[i] == c ) 
+    { /* found match */
       if(optchartype[i] == COMMON_OPT ||
          optchartype[i] == COMMAND_OPT )
       { /* an option store and stop scanning */
         return true;
       }else if( optchartype[i] == COMMON_FLAG ||
-               optchartype[i] == COMMAND_FLAG ) { /* a flag store and keep scanning */
+               optchartype[i] == COMMAND_FLAG ) 
+      { /* a flag store and keep scanning */
         setFlagOn( c );
         return false;
       }
@@ -752,8 +787,10 @@ bool
 TAppOption::valueStoreOK( )
 {
   int size= 0;
-  if( !set ){
-    if( g_value_counter > 0 ){
+  if( !set )
+  {
+    if( g_value_counter > 0 )
+    {
       size = g_value_counter * sizeof(char*);
       values = (char**)malloc( size );
       for( int i = 0 ; i < g_value_counter ; i++)
@@ -773,7 +810,8 @@ TAppOption::getValue( const char *option )
   if( !valueStoreOK() )
     return NULL;
   
-  for( int i = 0 ; i < option_counter ; i++ ){
+  for( int i = 0 ; i < option_counter ; i++ )
+  {
     if( strcmp( options[i], option ) == 0 )
       return values[ optionindex[i] ];
   }
@@ -785,7 +823,8 @@ TAppOption::getFlag( const char *option )
 {
   if( !valueStoreOK() )
     return false;
-  for( int i = 0 ; i < option_counter ; i++ ){
+  for( int i = 0 ; i < option_counter ; i++ )
+  {
     if( strcmp( options[i], option ) == 0 )
       return findFlag( values[ optionindex[i] ] );
   }
@@ -797,7 +836,8 @@ TAppOption::getValue( char option )
 {
   if( !valueStoreOK() )
     return NULL;
-  for( int i = 0 ; i < optchar_counter ; i++ ){
+  for( int i = 0 ; i < optchar_counter ; i++ )
+  {
     if( optionchars[i] == option )
       return values[ optcharindex[i] ];
   }
@@ -809,7 +849,8 @@ TAppOption::getFlag( char option )
 {
   if( !valueStoreOK() )
     return false;
-  for( int i = 0 ; i < optchar_counter ; i++ ){
+  for( int i = 0 ; i < optchar_counter ; i++ )
+  {
     if( optionchars[i] == option )
       return findFlag( values[ optcharindex[i] ] ) ;
   }
@@ -837,8 +878,10 @@ TAppOption::setValue( const char *option , char *value )
   if( !valueStoreOK() )
     return false;
   
-  for( int i = 0 ; i < option_counter ; i++ ){
-    if( strcmp( options[i], option ) == 0 ){
+  for( int i = 0 ; i < option_counter ; i++ )
+  {
+    if( strcmp( options[i], option ) == 0 )
+    {
       // as suggested by Xiang Li [li@ient.rwth-aachen.de] 
       // lines for bug fixing
       char * pComment = strchr( value , comment );
@@ -859,8 +902,10 @@ TAppOption::setFlagOn( const char *option )
 {
   if( !valueStoreOK() )
     return false;
-  for( int i = 0 ; i < option_counter ; i++ ){
-    if( strcmp( options[i], option ) == 0 ){
+  for( int i = 0 ; i < option_counter ; i++ )
+  {
+    if( strcmp( options[i], option ) == 0 )
+    {
       values[ optionindex[i] ] = (char*) malloc((strlen(TRUE_FLAG)+1)*sizeof(char));
       strcpy( values[ optionindex[i] ]  ,  TRUE_FLAG );
       return true;
@@ -874,8 +919,10 @@ TAppOption::setValue( char option , char *value )
 {
   if( !valueStoreOK() )
     return false;
-  for( int i = 0 ; i < optchar_counter ; i++ ){
-    if( optionchars[i] == option ){
+  for( int i = 0 ; i < optchar_counter ; i++ )
+  {
+    if( optionchars[i] == option )
+    {
       values[ optcharindex[i] ] = (char*) malloc((strlen(value)+1)*sizeof(char));
       strcpy( values[ optcharindex[i] ],  value );
       return true;
@@ -889,8 +936,10 @@ TAppOption::setFlagOn( char option )
 {
   if( !valueStoreOK() )
     return false;
-  for( int i = 0 ; i < optchar_counter ; i++ ){
-    if( optionchars[i] == option ){
+  for( int i = 0 ; i < optchar_counter ; i++ )
+  {
+    if( optionchars[i] == option )
+    {
       values[ optcharindex[i] ] = (char*) malloc((strlen(TRUE_FLAG)+1)*sizeof(char));
       strcpy( values[ optcharindex[i] ] , TRUE_FLAG );
       return true;
@@ -909,7 +958,8 @@ TAppOption::getArgc( )
 char*
 TAppOption::getArgv( int index )
 {
-  if( index < new_argc ){
+  if( index < new_argc )
+  {
     return ( argv[ new_argv[ index ] ] );
   }
   return NULL;
@@ -980,7 +1030,8 @@ TAppOption::consumeFile( char*& buffer )
   char *pline = NULL ;
   int linelength = 0;
   bool newline = true;
-  for( unsigned int i = 0 ; i < strlen( buffer ) ; i++ ){
+  for( unsigned int i = 0 ; i < strlen( buffer ) ; i++ )
+  {
     if( *cursor == endofline )/* end of line */
     {
       if( pline != NULL ) /* valid line */
@@ -1041,7 +1092,8 @@ TAppOption::processLine( char *theline, int length  )
   }
   else
   {
-    for( int i = 1 ; i < length-1 && !found ; i++){/* delimiter */
+    for( int i = 1 ; i < length-1 && !found ; i++)
+    {/* delimiter */
       if( *cursor == delimiter )
       {
         *(cursor-1) = nullterminate; /* two strings */
@@ -1076,9 +1128,12 @@ TAppOption::chomp( char *str )
 void
 TAppOption::valuePairs( char *type, char *value )
 {
-  if ( strlen(chomp(type)) == 1  ){ /* this is a char option */
-    for( int i = 0 ; i < optchar_counter ; i++ ){
-      if(  optionchars[i] == type[0]  ){ /* match */
+  if ( strlen(chomp(type)) == 1  )
+  { /* this is a char option */
+    for( int i = 0 ; i < optchar_counter ; i++ )
+    {
+      if(  optionchars[i] == type[0]  )
+      { /* match */
         if( optchartype[i] == COMMON_OPT ||
            optchartype[i] == FILE_OPT )
         {
@@ -1089,8 +1144,10 @@ TAppOption::valuePairs( char *type, char *value )
     }
   }
   /* if no char options matched */
-  for( int i = 0 ; i < option_counter ; i++ ){
-    if( strcmp( options[i], type ) == 0 ){ /* match */
+  for( int i = 0 ; i < option_counter ; i++ )
+  {
+    if( strcmp( options[i], type ) == 0 )
+    { /* match */
       if( optiontype[i] == COMMON_OPT ||
          optiontype[i] == FILE_OPT )
       {
@@ -1108,9 +1165,12 @@ void
 TAppOption::justValue( char *type )
 {
   
-  if ( strlen(chomp(type)) == 1  ){ /* this is a char option */
-    for( int i = 0 ; i < optchar_counter ; i++ ){
-      if(  optionchars[i] == type[0]  ){ /* match */
+  if ( strlen(chomp(type)) == 1  )
+  { /* this is a char option */
+    for( int i = 0 ; i < optchar_counter ; i++ )
+    {
+      if(  optionchars[i] == type[0]  )
+      { /* match */
         if( optchartype[i] == COMMON_FLAG ||
            optchartype[i] == FILE_FLAG )
         {
@@ -1121,8 +1181,10 @@ TAppOption::justValue( char *type )
     }
   }
   /* if no char options matched */
-  for( int i = 0 ; i < option_counter ; i++ ){
-    if( strcmp( options[i], type ) == 0 ){ /* match */
+  for( int i = 0 ; i < option_counter ; i++ )
+  {
+    if( strcmp( options[i], type ) == 0 )
+    { /* match */
       if( optiontype[i] == COMMON_FLAG ||
          optiontype[i] == FILE_FLAG )
       {
@@ -1151,7 +1213,8 @@ void
 TAppOption::printUsage()
 {
   
-  if( once ) {
+  if( once ) 
+  {
     once = false ;
     cout << endl ;
     for( int i = 0 ; i < usage_lines ; i++ )
@@ -1164,8 +1227,10 @@ TAppOption::printUsage()
 void
 TAppOption::addUsage( const char *line )
 {
-  if( usage_lines >= max_usage_lines ){
-    if( doubleUsageStorage() == false ){
+  if( usage_lines >= max_usage_lines )
+  {
+    if( doubleUsageStorage() == false )
+    {
       addUsageError( line );
       exit(1);
     }
