@@ -41,20 +41,24 @@
 
 TDecSbac::TDecSbac() 
 // new structure here
-: m_cCUSplitFlagSCModel       ( 1,             1,               NUM_SPLIT_FLAG_CTX            )
+: m_pcBitstream               ( 0 )
+, m_pcTDecBinIf               ( NULL )
+, m_bAlfCtrl                  ( false )
+, m_uiMaxAlfCtrlDepth         ( 0 )
 , m_cCUSkipFlagSCModel        ( 1,             1,               NUM_SKIP_FLAG_CTX             )
-, m_cCUAlfCtrlFlagSCModel     ( 1,             1,               NUM_ALF_CTRL_FLAG_CTX         )
+, m_cCUSplitFlagSCModel       ( 1,             1,               NUM_SPLIT_FLAG_CTX            )
 #if HHI_MRG
 , m_cCUMergeFlagSCModel       ( 1,             1,               NUM_MERGE_FLAG_CTX            )
 , m_cCUMergeIndexSCModel      ( 1,             1,               NUM_MERGE_INDEX_CTX           )
 #endif
+, m_cCUAlfCtrlFlagSCModel     ( 1,             1,               NUM_ALF_CTRL_FLAG_CTX         )
 , m_cCUPartSizeSCModel        ( 1,             1,               NUM_PART_SIZE_CTX             )
 , m_cCUPredModeSCModel        ( 1,             1,               NUM_PRED_MODE_CTX             )
 , m_cCUIntraPredSCModel       ( 1,             1,               NUM_ADI_CTX                   )
 , m_cCUChromaPredSCModel      ( 1,             1,               NUM_CHROMA_PRED_CTX           )
 , m_cCUInterDirSCModel        ( 1,             1,               NUM_INTER_DIR_CTX             )
-, m_cCUMvdSCModel             ( 1,             2,               NUM_MV_RES_CTX                )
 , m_cCURefPicSCModel          ( 1,             1,               NUM_REF_NO_CTX                )
+, m_cCUMvdSCModel             ( 1,             2,               NUM_MV_RES_CTX                )
 , m_cCUTransSubdivFlagSCModel ( 1,             1,               NUM_TRANS_SUBDIV_FLAG_CTX     )
 , m_cCUQtRootCbfSCModel       ( 1,             1,               NUM_QT_ROOT_CBF_CTX           )
 , m_cCUDeltaQpSCModel         ( 1,             1,               NUM_DELTA_QP_CTX              )
@@ -68,11 +72,6 @@ TDecSbac::TDecSbac()
 , m_cALFUvlcSCModel           ( 1,             1,               NUM_ALF_UVLC_CTX              )
 , m_cALFSvlcSCModel           ( 1,             1,               NUM_ALF_SVLC_CTX              )
 {
-  m_pcBitstream = 0;
-  m_pcTDecBinIf = 0;
-  
-  m_bAlfCtrl = false;
-  m_uiMaxAlfCtrlDepth = 0;
 }
 
 TDecSbac::~TDecSbac()

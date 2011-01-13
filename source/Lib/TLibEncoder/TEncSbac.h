@@ -170,7 +170,6 @@ public:
 private:
   UInt                 m_uiLastQp;
   ContextModel3DBuffer m_cCUSplitFlagSCModel;
-  
   ContextModel3DBuffer m_cCUSkipFlagSCModel;
 #if HHI_MRG
   ContextModel3DBuffer m_cCUMergeFlagSCModel;
