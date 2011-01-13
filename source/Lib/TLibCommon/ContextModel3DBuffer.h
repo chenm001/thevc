@@ -59,11 +59,11 @@ protected:
   const UInt    m_uiSizeX;                                                ///< X size of 3D buffer
   const UInt    m_uiSizeY;                                                ///< Y size of 3D buffer
   const UInt    m_uiSizeZ;                                                ///< Z size of 3D buffer
-
+  
 public:
   ContextModel3DBuffer  ( UInt uiSizeZ, UInt uiSizeY, UInt uiSizeX );
   ~ContextModel3DBuffer ();
-
+  
   // access functions
   ContextModel& get( UInt uiZ, UInt uiY, UInt uiX )
   {
@@ -77,7 +77,7 @@ public:
   {
     return &m_pcContextModel[ ( uiZ * m_uiSizeY       ) * m_uiSizeX       ];
   }
-
+  
   // initialization & copy functions
   Void initBuffer( SliceType eSliceType, Int iQp, Short* psCtxModel );          ///< initialize 3D buffer by slice type & QP
   Void copyFrom  ( ContextModel3DBuffer* pSrc                       );          ///< copy from given 3D buffer

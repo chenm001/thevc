@@ -44,7 +44,6 @@
 // Constants
 // ====================================================================================================================
 
-#define RDOQ_MAX_PREC_COEFF     25          ///< max. precision of coefficient in RDOQ
 #define QP_BITS                 15
 
 // AQO Parameter
@@ -56,60 +55,25 @@
 #define DCore16Shift            10
 #define ECore32Shift            10
 #define DCore32Shift            10
-#define ECore64Shift            9
-#define DCore64Shift            9
 
 #define DenShift16              6
 #define DenShift32              8
-#define DenShift64              10
 
 // ====================================================================================================================
 // Type definition
 // ====================================================================================================================
 
-#if HHI_TRANSFORM_CODING
 typedef struct
 {
   Int significantBits[16][2];
   Int lastBits[16][2];
   Int greaterOneBits[6][2][5][2];
-  Int greaterOneState[5];
   Int blockCbpBits[4][2];
   Int scanZigzag[2];            ///< flag for zigzag scan
   Int scanNonZigzag[2];         ///< flag for non zigzag scan
 } estBitsSbacStruct;
-#else
-typedef struct
-{
-  Int significantBits[16][2];
-  Int lastBits[16][2];
-  Int greaterOneBits[2][5][2];
-  Int greaterOneState[5];
-  Int blockCbpBits[4][2];
-  Int scanZigzag[2];            ///< flag for zigzag scan
-  Int scanNonZigzag[2];         ///< flag for non zigzag scan
-} estBitsSbacStruct;
-#endif
 
-typedef struct
-{
-  Int level[3];
-  Int pre_level;
-  Int coeff_ctr;
-#if QC_MDDT
-  Int64 levelDouble;
-#else
-  Long levelDouble;
-#endif
-  Double errLevel[3];
-  Int noLevels;
-  Long levelQ;
-  Bool lowerInt;
-} levelDataStruct;
-
-#if LCEC_PHASE2
 class TEncCavlc;
-#endif
 
 // ====================================================================================================================
 // Class definition
@@ -120,29 +84,25 @@ class QpParam
 {
 public:
   QpParam();
-
+  
   Int m_iQP;
   Int m_iPer;
   Int m_iRem;
-
+  
   Int m_iAdd2x2;
   Int m_iAdd4x4;
   Int m_iAdd8x8;
   Int m_iAdd16x16;
   Int m_iAdd32x32;
-  Int m_iAdd64x64;
-  Int m_iAddNxN;
 private:
   Int m_aiAdd2x2[MAX_QP+1][3];
   Int m_aiAdd4x4[MAX_QP+1][3];
   Int m_aiAdd8x8[MAX_QP+1][3];
   Int m_aiAdd16x16[MAX_QP+1][3];
   Int m_aiAdd32x32[MAX_QP+1][3];
-  Int m_aiAdd64x64[MAX_QP+1][3];
-  Int m_aiAddNxN[MAX_QP+1][3];
 public:
   Int m_iBits;
-
+  
   Void initOffsetParam(Int iStartQP = MIN_QP, Int iEndQP = MAX_QP );
   Void setQOffset( Int iQP, SliceType eSliceType )
   {
@@ -151,26 +111,24 @@ public:
     m_iAdd8x8 = m_aiAdd8x8[iQP][eSliceType];
     m_iAdd16x16 = m_aiAdd16x16[iQP][eSliceType];
     m_iAdd32x32 = m_aiAdd32x32[iQP][eSliceType];
-    m_iAdd64x64 = m_aiAdd64x64[iQP][eSliceType];
-    m_iAddNxN = m_aiAddNxN[iQP][eSliceType];
   }
-
+  
   Void setQpParam( Int iQP, Bool bLowpass, SliceType eSliceType, Bool bEnc )
   {
     assert ( iQP >= MIN_QP && iQP <= MAX_QP );
     m_iQP   = iQP;
-
+    
     m_iPer  = (iQP + 6*g_uiBitIncrement)/6;
     m_iRem  = (iQP + 6*g_uiBitIncrement)%6;
-
+    
     m_iBits = QP_BITS + m_iPer;
-
+    
     if ( bEnc )
     {
       setQOffset(iQP, eSliceType);
     }
   }
-
+  
   Void clear()
   {
     m_iQP   = 0;
@@ -178,12 +136,12 @@ public:
     m_iRem  = 0;
     m_iBits = 0;
   }
-
-
+  
+  
   const Int per()   const { return m_iPer; }
   const Int rem()   const { return m_iRem; }
   const Int bits()  const { return m_iBits; }
-
+  
   Int qp() {return m_iQP;}
 }; // END CLASS DEFINITION QpParam
 
@@ -193,130 +151,75 @@ class TComTrQuant
 public:
   TComTrQuant();
   ~TComTrQuant();
-
+  
   // initialize class
-#if LCEC_PHASE1
-#if LCEC_PHASE2
-  Void init                 ( UInt uiMaxWidth, UInt uiMaxHeight, UInt uiMaxTrSize, Bool bUseROT, Int iSymbolMode = 0, UInt *aTable4 = NULL, UInt *aTable8 = NULL, Bool bUseRDOQ = false,  Bool bEnc = false );
-#else
-  Void init                 ( UInt uiMaxWidth, UInt uiMaxHeight, UInt uiMaxTrSize, Bool bUseROT, Int iSymbolMode = 0, Bool bUseRDOQ = false,  Bool bEnc = false );
-#endif
-#else
-  Void init                 ( UInt uiMaxWidth, UInt uiMaxHeight, UInt uiMaxTrSize, Bool bUseROT, Bool bUseRDOQ = false, Bool bEnc = false );
-#endif
-
+  Void init                 ( UInt uiMaxWidth, UInt uiMaxHeight, UInt uiMaxTrSize, Int iSymbolMode = 0, UInt *aTable4 = NULL, UInt *aTable8 = NULL, Bool bUseRDOQ = false,  Bool bEnc = false );
+  
   // transform & inverse transform functions
   Void transformNxN         ( TComDataCU* pcCU, Pel*   pcResidual, UInt uiStride, TCoeff*& rpcCoeff, UInt uiWidth, UInt uiHeight,
-                              UInt& uiAbsSum, TextType eTType, UInt uiAbsPartIdx, UChar indexROT = 0 );
-#if QC_MDDT
-  Void invtransformNxN      ( TextType eText, UInt uiMode, Pel*& rpcResidual, UInt uiStride, TCoeff*   pcCoeff, UInt uiWidth, UInt uiHeight,
-															UChar indexROT = 0 );
-#else
-  Void invtransformNxN      ( Pel*& rpcResidual, UInt uiStride, TCoeff*   pcCoeff, UInt uiWidth, UInt uiHeight,
-                              UChar indexROT = 0 );
-#endif
+                             UInt& uiAbsSum, TextType eTType, UInt uiAbsPartIdx );
+  Void invtransformNxN      ( Pel*& rpcResidual, UInt uiStride, TCoeff*   pcCoeff, UInt uiWidth, UInt uiHeight );
   Void invRecurTransformNxN ( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eTxt, Pel*& rpcResidual, UInt uiAddr,   UInt uiStride, UInt uiWidth, UInt uiHeight,
-                              UInt uiMaxTrMode,  UInt uiTrMode, TCoeff* rpcCoeff, Int indexROT = 0);
-
-  // ROT functions
-  Void RotTransform4I     ( Long* matrix, UChar index   );
-  Void InvRotTransform4I  ( Long* matrix, UChar index   );
-  Void RotTransformLI2      ( Long* matrix, UChar index, UInt uiWidth );
-  Void InvRotTransformLI2 ( Long* matrix, UChar index   );
-
+                             UInt uiMaxTrMode,  UInt uiTrMode, TCoeff* rpcCoeff );
+  
   // Misc functions
   Void setQPforQuant( Int iQP, Bool bLowpass, SliceType eSliceType, TextType eTxtType);
   Void setLambda(Double dLambda) { m_dLambda = dLambda;}
-
+  
   estBitsSbacStruct* m_pcEstBitsSbac;
-
-#if HHI_TRANSFORM_CODING
+  
   static UInt     getSigCtxInc     ( TCoeff*                         pcCoeff,
-                                     const UInt                      uiPosX,
-                                     const UInt                      uiPosY,
-                                     const UInt                      uiLog2BlkSize,
-                                     const UInt                      uiStride,
-                                     const bool                      bDownLeft );
+                                    const UInt                      uiPosX,
+                                    const UInt                      uiPosY,
+                                    const UInt                      uiLog2BlkSize,
+                                    const UInt                      uiStride,
+                                    const bool                      bDownLeft );
   static UInt     getLastCtxInc    ( const UInt                      uiPosX,
-                                     const UInt                      uiPosY,
-                                     const UInt                      uiLog2BlkSize );
-#else
-  Void precalculateUnaryExpGolombLevel();
-  Int m_aiPrecalcUnaryLevelTab[128][RDOQ_MAX_PREC_COEFF];
-#endif
-
-
-#if QC_MDDT
-  Bool     m_bQT;
-#endif
+                                    const UInt                      uiPosY,
+                                    const UInt                      uiLog2BlkSize );
+  
 protected:
   Long*    m_plTempCoeff;
   UInt*    m_puiQuantMtx;
-
+  
   QpParam  m_cQP;
   Double   m_dLambda;
-
+  
   UInt     m_uiMaxTrSize;
-  Bool	   m_bUseROT;
   Bool     m_bEnc;
   Bool     m_bUseRDOQ;
-
-#if LCEC_PHASE1
-#if LCEC_PHASE2
+  
   UInt     *m_uiLPTableE8;
   UInt     *m_uiLPTableE4;
-#endif
   Int      m_iSymbolMode;
-#endif
-
+  
 private:
   // forward Transform
-#if QC_MDDT
-#if ROT_CHECK 
-  Bool getUseMDDT (UInt uiMode, UChar indexROT)         { return ( (uiMode != REG_DCT && uiMode != 2 && indexROT == 0) ); }
-#else
-	#if QC_MDDT_ROT_UNIFIED
-	  Bool getUseMDDT (UInt uiMode, UChar indexROT)         { return ( uiMode != REG_DCT && uiMode != 2 && indexROT == 0 ); }
-	#else
-  Bool getUseMDDT (UInt uiMode, UChar indexROT)         { return ( uiMode != REG_DCT && uiMode != 2 ); }
-	#endif
-#endif
-
-  Void xQuantKLT( Long* pSrcCoeff, TCoeff*& pDstCoeff, UInt& uiAbsSum, UInt uiWidth, UInt uiHeight);
-  Void xT4_klt	( UInt uiMode, Pel* pResidual, UInt uiStride, Long* plCoeff );
-  Void xT8_klt	( UInt uiMode, Pel* pResidual, UInt uiStride, Long* plCoeff );
-  Void xT		( TextType eText, UInt uiMode, Pel* pResidual, UInt uiStride, Long* plCoeff, Int iSize, Int indexROT );
-#else
   Void xT   ( Pel* pResidual, UInt uiStride, Long* plCoeff, Int iSize );
-#endif
   Void xT2  ( Pel* pResidual, UInt uiStride, Long* plCoeff );
   Void xT4  ( Pel* pResidual, UInt uiStride, Long* plCoeff );
   Void xT8  ( Pel* pResidual, UInt uiStride, Long* plCoeff );
   Void xT16 ( Pel* pResidual, UInt uiStride, Long* plCoeff );
   Void xT32 ( Pel* pResidual, UInt uiStride, Long* plCoeff );
-  Void xT64 ( Pel* pResidual, UInt uiStride, Long* plCoeff );
-
+  
   // quantization
-  Void xQuant     ( TComDataCU* pcCU, Long* pSrc, TCoeff*& pDes, Int iWidth, Int iHeight, UInt& uiAcSum, TextType eTType, UInt uiAbsPartIdx, UChar indexROT );
-  Void xQuantLTR  ( TComDataCU* pcCU, Long* pSrc, TCoeff*& pDes, Int iWidth, Int iHeight, UInt& uiAcSum, TextType eTType, UInt uiAbsPartIdx, UChar indexROT );
-  Void xQuant2x2  ( Long* plSrcCoef, TCoeff*& pDstCoef, UInt& uiAbsSum, UChar indexROT );
-  Void xQuant4x4  ( TComDataCU* pcCU, Long* plSrcCoef, TCoeff*& pDstCoef, UInt& uiAbsSum, TextType eTType, UInt uiAbsPartIdx, UChar indexROT );
-  Void xQuant8x8  ( TComDataCU* pcCU, Long* plSrcCoef, TCoeff*& pDstCoef, UInt& uiAbsSum, TextType eTType, UInt uiAbsPartIdx, UChar indexROT );
-
+  Void xQuant     ( TComDataCU* pcCU, Long* pSrc, TCoeff*& pDes, Int iWidth, Int iHeight, UInt& uiAcSum, TextType eTType, UInt uiAbsPartIdx );
+  Void xQuantLTR  ( TComDataCU* pcCU, Long* pSrc, TCoeff*& pDes, Int iWidth, Int iHeight, UInt& uiAcSum, TextType eTType, UInt uiAbsPartIdx );
+  Void xQuant2x2  ( Long* plSrcCoef, TCoeff*& pDstCoef, UInt& uiAbsSum );
+  Void xQuant4x4  ( TComDataCU* pcCU, Long* plSrcCoef, TCoeff*& pDstCoef, UInt& uiAbsSum, TextType eTType, UInt uiAbsPartIdx );
+  Void xQuant8x8  ( TComDataCU* pcCU, Long* plSrcCoef, TCoeff*& pDstCoef, UInt& uiAbsSum, TextType eTType, UInt uiAbsPartIdx );
+  
   // RDOQ functions
-#if LCEC_PHASE1
   Int            bitCount_LCEC(Int k,Int pos,Int n,Int lpflag,Int levelMode,Int run,Int maxrun,Int vlc_adaptive,Int N);
   Void           xRateDistOptQuant_LCEC ( TComDataCU*                     pcCU,
-                                        Long*                           plSrcCoeff,
-                                        TCoeff*&                        piDstCoeff,
-                                        UInt                            uiWidth,
-                                        UInt                            uiHeight,
-                                        UInt&                           uiAbsSum,
-                                        TextType                        eTType,
-                                        UInt                            uiAbsPartIdx,
-                                        UChar                           ucIndexROT    );
-#endif
-#if HHI_TRANSFORM_CODING
+                                         Long*                           plSrcCoeff,
+                                         TCoeff*&                        piDstCoeff,
+                                         UInt                            uiWidth,
+                                         UInt                            uiHeight,
+                                         UInt&                           uiAbsSum,
+                                         TextType                        eTType,
+                                         UInt                            uiAbsPartIdx );
+  
   Void           xRateDistOptQuant ( TComDataCU*                     pcCU,
                                     Long*                           plSrcCoeff,
                                     TCoeff*&                        piDstCoeff,
@@ -324,79 +227,47 @@ private:
                                     UInt                            uiHeight,
                                     UInt&                           uiAbsSum,
                                     TextType                        eTType,
-                                    UInt                            uiAbsPartIdx,
-                                    UChar                           ucIndexROT    );
+                                    UInt                            uiAbsPartIdx );
   
   __inline UInt  xGetCodedLevel    ( Double&                         rd64UncodedCost,
-                                     Double&                         rd64CodedCost,
-#if QC_MDDT
-                                     Int64                           lLevelDouble,
-#else
-                                     Long                            lLevelDouble,
-#endif
-                                     UInt                            uiMaxAbsLevel,
-                                     bool                            bLastScanPos,
-                                     UShort                          ui16CtxNumSig,
-                                     UShort                          ui16CtxNumOne,
-                                     UShort                          ui16CtxNumAbs,
-                                     Int                             iQBits,
-                                     Double                          dTemp,
-                                     UChar                           ucIndexROT,
-                                     UShort                          ui16CtxBase   ) const;
+                                    Double&                         rd64CodedCost,
+                                    Long                            lLevelDouble,
+                                    UInt                            uiMaxAbsLevel,
+                                    bool                            bLastScanPos,
+                                    UShort                          ui16CtxNumSig,
+                                    UShort                          ui16CtxNumOne,
+                                    UShort                          ui16CtxNumAbs,
+                                    Int                             iQBits,
+                                    Double                          dTemp,
+                                    UShort                          ui16CtxBase   ) const;
   __inline Double xGetICRateCost   ( UInt                            uiAbsLevel,
-                                     bool                            bLastScanPos,
-                                     UShort                          ui16CtxNumSig,
-                                     UShort                          ui16CtxNumOne,
-                                     UShort                          ui16CtxNumAbs,
-                                     UShort                          ui16CtxBase   ) const;
+                                    bool                            bLastScanPos,
+                                    UShort                          ui16CtxNumSig,
+                                    UShort                          ui16CtxNumOne,
+                                    UShort                          ui16CtxNumAbs,
+                                    UShort                          ui16CtxBase   ) const;
   __inline Double xGetICost        ( Double                          dRate         ) const; 
   __inline Double xGetIEPRate      (                                               ) const;
-#else
-  Void xRateDistOptQuant ( TComDataCU* pcCU, Long* pSrcCoef, TCoeff*& pDstCoeff, UInt uiWidth, UInt uiHeight, UInt& uiAbsSum, TextType eTType, UInt uiAbsPartIdx, UChar indexROT );
-#if QC_MDDT//ADAPTIVE_SCAN
-  Double xEst_writeRunLevel_SBAC ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiMode, levelDataStruct* levelData, Int* levelTabMin, TextType eTType, Double lambda, Int& kInit, Int kStop, Int noCoeff, Int estCBP, UInt uiWidth, UInt uiHeight, UInt uiDepth, UChar indexROT );
-#else  
-  Double xEst_writeRunLevel_SBAC ( levelDataStruct* levelData, Int* levelTabMin, TextType eTType, Double lambda, Int& kInit, Int kStop, Int noCoeff, Int estCBP, UInt uiWidth, UInt uiHeight, UInt uiDepth );
-#endif
-  Int  xEst_write_and_store_CBP_block_bit ( TComDataCU* pcCU, TextType eTType );
-  Int  est_unary_exp_golomb_level_encode (UInt symbol, Int ctx, TextType eTType, UInt uiDepth);
-  Int  est_exp_golomb_encode_eq_prob (UInt symbol);
-  Int  est_unary_exp_golomb_level_bits( UInt symbol, Int bits0, Int bits1);
-#endif
-
-
+  
+  
   __inline Int          xRound   ( Int i )   { return ((i)+(1<<5))>>6; }
   __inline static Long  xTrRound ( Long i, UInt uiShift ) { return ((i)>>uiShift); }
-
+  
   // dequantization
-#if QC_MDDT
-  Void xDeQuant			( TextType eText, UInt uiMode, TCoeff* pSrc,			Long*& pDes,			 Int iWidth, Int iHeight, UChar indexROT );
-  Void xDeQuantLTR		( TextType eText, UInt uiMode, TCoeff* pSrc,			Long*&  pDes,			 Int iWidth, Int iHeight, UChar indexROT );
-#else
-  Void xDeQuant         ( TCoeff* pSrc,     Long*& pDes,       Int iWidth, Int iHeight, UChar indexROT );
-  Void xDeQuantLTR      ( TCoeff* pSrc,     Long*&  pDes,      Int iWidth, Int iHeight, UChar indexROT );
-#endif
-  Void xDeQuant2x2      ( TCoeff* pSrcCoef, Long*& rplDstCoef, UChar indexROT );
-  Void xDeQuant4x4      ( TCoeff* pSrcCoef, Long*& rplDstCoef, UChar indexROT );
-  Void xDeQuant8x8      ( TCoeff* pSrcCoef, Long*& rplDstCoef, UChar indexROT );
-
+  Void xDeQuant         ( TCoeff* pSrc,     Long*& pDes,       Int iWidth, Int iHeight );
+  Void xDeQuantLTR      ( TCoeff* pSrc,     Long*&  pDes,      Int iWidth, Int iHeight );
+  Void xDeQuant2x2      ( TCoeff* pSrcCoef, Long*& rplDstCoef );
+  Void xDeQuant4x4      ( TCoeff* pSrcCoef, Long*& rplDstCoef );
+  Void xDeQuant8x8      ( TCoeff* pSrcCoef, Long*& rplDstCoef );
+  
   // inverse transform
-#if QC_MDDT
-  __inline Int		xRound_klt	 ( Int64 i )   { return (Int)(((i)+(1<<19))>>20); }//KLTprec+6=14+6=20 //precision increase
-  Void xDeQuant_klt ( Int size, TCoeff* pSrcCoef, Long*& rplDstCoef, UChar indexROT );
-  Void xIT4_klt		( UInt ipmode, Long* plCoef, Pel* pResidual, UInt uiStride );
-  Void xIT8_klt		( UInt ipmode, Long* plCoef, Pel* pResidual, UInt uiStride );
-  Void xIT	        ( TextType eText, UInt uiMode, Long* plCoef, Pel* pResidual, UInt uiStride, Int iSize, UChar indexROT );
-#else
   Void xIT    ( Long* plCoef, Pel* pResidual, UInt uiStride, Int iSize );
-#endif
   Void xIT2   ( Long* plCoef, Pel* pResidual, UInt uiStride );
   Void xIT4   ( Long* plCoef, Pel* pResidual, UInt uiStride );
   Void xIT8   ( Long* plCoef, Pel* pResidual, UInt uiStride );
   Void xIT16  ( Long* plCoef, Pel* pResidual, UInt uiStride );
   Void xIT32  ( Long* plCoef, Pel* pResidual, UInt uiStride );
-  Void xIT64  ( Long* plCoef, Pel* pResidual, UInt uiStride );
-
+  
 };// END CLASS DEFINITION TComTrQuant
 
 

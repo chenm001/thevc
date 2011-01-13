@@ -54,13 +54,13 @@ protected:
   TAppOption*   m_apcOpt;                             ///< option handling class
   char*         m_pchBitstreamFile;                   ///< input bitstream file name
   char*         m_pchReconFile;                       ///< output reconstruction file name
-
+  
   Void  xSetCfgCommand  ( TAppOption* pcOpt );        ///< initialize member variables from option class
-
+  
 public:
   TAppDecCfg()          {}
   virtual ~TAppDecCfg() {}
-
+  
   Bool  parseCfg        ( Int argc, Char* argv[] );   ///< initialize option class from configuration
 };
 

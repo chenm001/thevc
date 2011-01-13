@@ -74,7 +74,7 @@ public:
 #ifdef ROUNDING_CONTROL_BIPRED
   FpDistFuncRnd DistFuncRnd;
 #endif
-
+  
   // (vertical) subsampling shift (for reducing complexity)
   // - 0 = no subsampling, 1 = even rows, 2 = every 4th, etc.
   Int   iSubShift;
@@ -103,17 +103,17 @@ private:
   // for distortion
   Int                     m_iBlkWidth;
   Int                     m_iBlkHeight;
-
+  
   FpDistFunc              m_afpDistortFunc[33]; // [eDFunc]
 #ifdef ROUNDING_CONTROL_BIPRED
   FpDistFuncRnd           m_afpDistortFuncRnd[33];
 #endif
-
+  
   Double                  m_dLambda;
   UInt                    m_uiLambdaMotionSAD;
   UInt                    m_uiLambdaMotionSSE;
   Double                  m_dFrameLambda;
-
+  
   // for motion cost
   UInt*                   m_puiComponentCostOriginP;
   UInt*                   m_puiComponentCost;
@@ -122,38 +122,35 @@ private:
   UInt                    m_uiCost;
   Int                     m_iCostScale;
   Int                     m_iSearchLimit;
-
+  
 public:
   TComRdCost();
   virtual ~TComRdCost();
-
+  
   Double  calcRdCost  ( UInt   uiBits, UInt   uiDistortion, Bool bFlag = false, DFunc eDFunc = DF_DEFAULT );
   Double  calcRdCost64( UInt64 uiBits, UInt64 uiDistortion, Bool bFlag = false, DFunc eDFunc = DF_DEFAULT );
-
+  
   Void    setLambda      ( Double dLambda );
   Void    setFrameLambda ( Double dLambda ) { m_dFrameLambda = dLambda; }
-
+  
 #if SAMSUNG_FAST_UDI
   Double  getLambda ()   { return m_dLambda; }
 #endif
-
+  
   // Distortion Functions
   Void    init();
-
+  
   Void    setDistParam( UInt uiBlkWidth, UInt uiBlkHeight, DFunc eDFunc, DistParam& rcDistParam );
   Void    setDistParam( TComPattern* pcPatternKey, Pel* piRefY, Int iRefStride,            DistParam& rcDistParam );
   Void    setDistParam( TComPattern* pcPatternKey, Pel* piRefY, Int iRefStride, Int iStep, DistParam& rcDistParam, Bool bHADME=false );
-
+  
 #ifdef ROUNDING_CONTROL_BIPRED
   Void    setDistParam_Bi( TComPattern* pcPatternKey, Pel* piRefY, Int iRefStride,            DistParam& rcDistParam );
   Void    setDistParam_Bi( TComPattern* pcPatternKey, Pel* piRefY, Int iRefStride, Int iStep, DistParam& rcDistParam, Bool bHADME=false );
 #endif
-  UInt    getDistLumBlk  ( Pel *piCur, UInt uiBlkWidth, UInt uiBlkHeight, Int iBlkIdx, Int iStride, DFunc eDFunc = DF_SSE );
-  UInt    getDistCbBlk   ( Pel *piCur, Int iStride, DFunc eDFunc = DF_SSE );  // 8x8 block only
-  UInt    getDistCrBlk   ( Pel *piCur, Int iStride, DFunc eDFunc = DF_SSE );  // 8x8 block only
-
+  
   UInt    calcHAD         ( Pel* pi0, Int iStride0, Pel* pi1, Int iStride1, Int iWidth, Int iHeight );
-
+  
   // for motion cost
   Void    initRateDistortionModel( Int iSubPelSearchLimit );
   Void    xUninit();
@@ -169,17 +166,11 @@ public:
   {
     return (( m_uiCost * (m_puiHorCost[ x * (1<<m_iCostScale) ] + m_puiVerCost[ y * (1<<m_iCostScale) ]) ) >> 16);
   }
-#ifdef QC_AMVRES
-  __inline UInt getCost( Int x, Int y ,Int extrabits)
-  {
-    return (( m_uiCost * (m_puiHorCost[ x * (1<<m_iCostScale) ] + m_puiVerCost[ y * (1<<m_iCostScale) ]+extrabits) ) >> 16);
-  }
-#endif
   UInt    getCost( UInt b )                 { return ( m_uiCost * b ) >> 16; }
   UInt    getBits( Int x, Int y )           { return m_puiHorCost[ x * (1<<m_iCostScale)] + m_puiVerCost[ y * (1<<m_iCostScale) ]; }
-
+  
 private:
-
+  
   static UInt xGetSSE           ( DistParam* pcDtParam );
   static UInt xGetSSE4          ( DistParam* pcDtParam );
   static UInt xGetSSE8          ( DistParam* pcDtParam );
@@ -187,7 +178,7 @@ private:
   static UInt xGetSSE32         ( DistParam* pcDtParam );
   static UInt xGetSSE64         ( DistParam* pcDtParam );
   static UInt xGetSSE16N        ( DistParam* pcDtParam );
-
+  
   static UInt xGetSAD           ( DistParam* pcDtParam );
   static UInt xGetSAD4          ( DistParam* pcDtParam );
   static UInt xGetSAD8          ( DistParam* pcDtParam );
@@ -195,7 +186,7 @@ private:
   static UInt xGetSAD32         ( DistParam* pcDtParam );
   static UInt xGetSAD64         ( DistParam* pcDtParam );
   static UInt xGetSAD16N        ( DistParam* pcDtParam );
-
+  
   static UInt xGetSADs          ( DistParam* pcDtParam );
   static UInt xGetSADs4         ( DistParam* pcDtParam );
   static UInt xGetSADs8         ( DistParam* pcDtParam );
@@ -203,16 +194,16 @@ private:
   static UInt xGetSADs32        ( DistParam* pcDtParam );
   static UInt xGetSADs64        ( DistParam* pcDtParam );
   static UInt xGetSADs16N       ( DistParam* pcDtParam );
-
+  
   static UInt xGetHADs4         ( DistParam* pcDtParam );
   static UInt xGetHADs8         ( DistParam* pcDtParam );
   static UInt xGetHADs          ( DistParam* pcDtParam );
   static UInt xCalcHADs2x2      ( Pel *piOrg, Pel *piCurr, Int iStrideOrg, Int iStrideCur, Int iStep );
   static UInt xCalcHADs4x4      ( Pel *piOrg, Pel *piCurr, Int iStrideOrg, Int iStrideCur, Int iStep );
   static UInt xCalcHADs8x8      ( Pel *piOrg, Pel *piCurr, Int iStrideOrg, Int iStrideCur, Int iStep );
-
+  
 #ifdef ROUNDING_CONTROL_BIPRED
-
+  
   static UInt xGetSSE           ( DistParam* pcDtParam, Pel* pRefY, Bool bRound );
   static UInt xGetSSE4          ( DistParam* pcDtParam, Pel* pRefY, Bool bRound );
   static UInt xGetSSE8          ( DistParam* pcDtParam, Pel* pRefY, Bool bRound );
@@ -220,7 +211,7 @@ private:
   static UInt xGetSSE32         ( DistParam* pcDtParam, Pel* pRefY, Bool bRound );
   static UInt xGetSSE64         ( DistParam* pcDtParam, Pel* pRefY, Bool bRound );
   static UInt xGetSSE16N        ( DistParam* pcDtParam, Pel* pRefY, Bool bRound );
-
+  
   static UInt xGetSAD           ( DistParam* pcDtParam, Pel* pRefY, Bool bRound );
   static UInt xGetSAD4          ( DistParam* pcDtParam, Pel* pRefY, Bool bRound );
   static UInt xGetSAD8          ( DistParam* pcDtParam, Pel* pRefY, Bool bRound );
@@ -228,7 +219,7 @@ private:
   static UInt xGetSAD32         ( DistParam* pcDtParam, Pel* pRefY, Bool bRound );
   static UInt xGetSAD64         ( DistParam* pcDtParam, Pel* pRefY, Bool bRound );
   static UInt xGetSAD16N        ( DistParam* pcDtParam, Pel* pRefY, Bool bRound );
-
+  
   static UInt xGetSADs          ( DistParam* pcDtParam, Pel* pRefY, Bool bRound );
   static UInt xGetSADs4         ( DistParam* pcDtParam, Pel* pRefY, Bool bRound );
   static UInt xGetSADs8         ( DistParam* pcDtParam, Pel* pRefY, Bool bRound );
@@ -236,19 +227,19 @@ private:
   static UInt xGetSADs32        ( DistParam* pcDtParam, Pel* pRefY, Bool bRound );
   static UInt xGetSADs64        ( DistParam* pcDtParam, Pel* pRefY, Bool bRound );
   static UInt xGetSADs16N       ( DistParam* pcDtParam, Pel* pRefY, Bool bRound );
-
+  
   static UInt xGetHADs4         ( DistParam* pcDtParam, Pel* pRefY, Bool bRound );
   static UInt xGetHADs8         ( DistParam* pcDtParam, Pel* pRefY, Bool bRound );
   static UInt xGetHADs          ( DistParam* pcDtParam, Pel* pRefY, Bool bRound );
   static UInt xCalcHADs2x2      ( Pel *piOrg, Pel *piCurr, Int iStrideOrg, Int iStrideCur, Int iStep, Pel* pRefY, Int refYStride, Bool bRound );
   static UInt xCalcHADs4x4      ( Pel *piOrg, Pel *piCurr, Int iStrideOrg, Int iStrideCur, Int iStep, Pel* pRefY, Int refYStride, Bool bRound );
   static UInt xCalcHADs8x8      ( Pel *piOrg, Pel *piCurr, Int iStrideOrg, Int iStrideCur, Int iStep, Pel* pRefY, Int refYStride, Bool bRound );
-
+  
 #endif
-
+  
 public:
   UInt   getDistPart( Pel* piCur, Int iCurStride,  Pel* piOrg, Int iOrgStride, UInt uiBlkWidth, UInt uiBlkHeight, DFunc eDFunc = DF_SSE );
-
+  
 };// END CLASS DEFINITION TComRdCost
 
 

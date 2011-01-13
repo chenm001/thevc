@@ -40,10 +40,10 @@
 // ====================================================================================================================
 
 /**
-    - initialize context model with respect to QP and initial probability
-    .
-    \param  iQp         input QP value
-    \param  asCtxInit   initial probability table
+ - initialize context model with respect to QP and initial probability
+ .
+ \param  iQp         input QP value
+ \param  asCtxInit   initial probability table
  */
 Void 
 ContextModel::init( Int iQp, Short asCtxInit[] )

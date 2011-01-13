@@ -40,65 +40,27 @@
 // HHI defines section start
 ////////////////////////////
 #define HHI_NAL_UNIT_SYNTAX               1           ///< enable/disable NalUnit syntax 
-#define HHI_ALLOW_CIP_SWITCH              1           ///< BB: allow to switch off CIP, via CIP : 0 in cfg file or -0 CIP in command line
 #define HHI_DISABLE_INTER_NxN_SPLIT       0           ///< TN: disable redundant use of pu-mode NxN for CTBs larger 8x8 (inter only)
 #define HHI_RMP_SWITCH                    0
 
 // HHI tools
-#define HHI_RQT                           1           ///< MWHK: residual quadtree
-#define HHI_RQT_CHROMA_CBF_MOD            1           ///< HK: alternative syntax for coded block flag coding for chroma
-#define HHI_RQT_INTRA                     1           ///< HS: residual quadtree for intra blocks
-#define HHI_ALF                           0           ///< MS: separable adaptive loop filter 
-#define HHI_AIS                           1           ///< BB: adaptive intra smoothing
 #define HHI_INTERP_FILTER                 1           ///< HL: interpolation filter
-#define HHI_TRANSFORM_CODING              1           ///< TN: modified transform coefficient coding with RDOQ
-#define HHI_IMVP                          1           ///< SOPH: Interleaved Motion Vector Predictor 
 #define HHI_MRG                           1           ///< SOPH: inter partition merging
-#define HHI_MRG_PU                        0           ///< SOPH: inter partition merging on pu basis
-#define HHI_AMVP_OFF                      0           ///< SOPH: Advanced Motion Vector Predictor deactivated [not in TMuC]
-#define HHI_DEBLOCKING_FILTER             0           ///< MW: deblocking filter supporting residual quadtrees
-#define HHI_RQT_ROOT                      1           ///< PHHK: signaling of residual quadtree root flag
+#define HHI_AMVP_OFF                      0           ///< SOPH: Advanced Motion Vector Predictor deactivated
 #define HHI_RQT_FORCE_SPLIT_NxN           0           ///< MSHK: force split flags of residual quadtree for NxN PUs such that transform blocks are guaranteed to not span NxN PUs
 #define HHI_RQT_FORCE_SPLIT_RECT          0           ///< MSHK: force split flags of residual quadtree for rectangular PUs such that transform blocks are guaranteed to not span rectangular PUs
-#define HHI_RQT_FORCE_SPLIT_ASYM          0           ///< MSHK: force split flags of residual quadtree for asymmetric such that transform blocks are guaranteed to not span PUs asymmetric PUs
 #define HHI_RQT_INTRA_SPEEDUP             1 // tests one best mode with full rqt
 #define HHI_RQT_INTRA_SPEEDUP_MOD         0 // tests two best modes with full rqt
-#define HHI_C319_SPS                      1           ///< BB: SPS from JCTVC-C319
 
 #if HHI_RQT_INTRA_SPEEDUP_MOD && !HHI_RQT_INTRA_SPEEDUP
 #error
 #endif
 
-#if ( HHI_RQT_INTRA && !HHI_RQT )
-#error "HHI_RQT_INTRA can only be equal to 1 if HHI_RQT is equal to 1"
-#endif
-
-#if ( HHI_RQT_ROOT && !HHI_RQT )
-#error "HHI_RQT_ROOT can only be equal to 1 if HHI_RQT is equal to 1"
-#endif
-
-#if ( HHI_MRG_PU && !HHI_MRG )
-#error "HHI_MRG_PU can only be equal to 1 if HHI_MRG is equal to 1"
-#endif
-
-#if ( HHI_RQT_FORCE_SPLIT_NxN || HHI_RQT_FORCE_SPLIT_RECT || HHI_RQT_FORCE_SPLIT_ASYM )
+#if ( HHI_RQT_FORCE_SPLIT_NxN || HHI_RQT_FORCE_SPLIT_RECT)
 #define HHI_RQT_FORCE_SPLIT_ACC2_PU       1
 #else
 #define HHI_RQT_FORCE_SPLIT_ACC2_PU       0
 #endif
-
-#if ( HHI_RQT_FORCE_SPLIT_ACC2_PU &&  !HHI_RQT  )
-#error "HHI_RQT_FORCE_SPLIT_ACC2_PU can only be equal to 1 if HHI_RQT is equal to 1"
-#endif
-
-#if HHI_AIS
-// AIS
-#define DEFAULT_IS                        0           ///< BB: set intra filtering always 0:off 1:on if AIS is disabled
-#define AIS_TEST_BEST                     0           ///< BB: 0: compare every intra mode with filter on and off (encoder only)
-                                                      ///<     1: compare best intra mode with filter on and off (encoder only)
-#endif
-
-#define HHI_INTERP_FILTER_KERNEL_FIX      1           ///< BB: interpolation filter fixed spline kernel
 
 //////////////////////////
 // HHI defines section end
@@ -108,29 +70,9 @@
 ////////////////////////////
 // TEN defines section start
 ////////////////////////////
-#define UNIFIED_DIRECTIONAL_INTRA         1           // Unified directional intra prediction as described in JCTVC-B100. ANG_INTRA needs to
-                                                      // be set to 2 when this is enabled. Unified intra renders number of old intra prediction
-                                                      // functions obsolete, but these functions have not disabled or removed from the code yet.
 
-#if UNIFIED_DIRECTIONAL_INTRA
-#define ANG_INTRA                         2           // Enable angular Intra coding (0: All ADI, 1: Ang for 8x8 PUs, 2: Ang for all PU sizes)
-#else
-#define ANG_INTRA                         1           // Enable angular Intra coding (0: All ADI, 1: Ang for 8x8 PUs, 2: Ang for all PU sizes)
-#endif
-
-#define PLANAR_INTRA                      0           // Enable planar Intra coding
-#define TENTM_DEBLOCKING_FILTER           1           // Enable TENTM deblocking
-#if HHI_INTERP_FILTER
 #define TEN_DIRECTIONAL_INTERP            1           ///< AF: interpolation filter
-#define TEN_DIRECTIONAL_INTERP_CHROMA     0           ///< DIF interpolation filter for chroma
-#endif
 
-#if (HHI_DEBLOCKING_FILTER && TENTM_DEBLOCKING_FILTER)
-#error "Only one of TENTM_DEBLOCKING_FILTER and HHI_DEBLOCKING_FILTER can be defined"
-#endif
-
-#define LCEC_PHASE1                       1           // LCEC - integration phase 1
-#define LCEC_PHASE2                       1           // LCEC - integration phase 2
 #define LCEC_STAT                         0           // LCEC - support for LCEC bitusage statistics
 //////////////////////////
 // TEN defines section end
@@ -141,118 +83,32 @@
 // QUALCOMM defines section start
 /////////////////////////////////
 
-#define LCEC_PHASE1_ADAPT_ENABLE          1           // Enable CU level VLC adaptation 
 #define LCEC_CBP_YUV_ROOT                 1           // enable VLC phase-2 CBP root coding under RQT
 #define QC_BLK_CBP                        1           // block level CBP coding, to be enabled only when LCEC_CBP_YUV_ROOT is enabled
 #if LCEC_CBP_YUV_ROOT==0 && QC_BLK_CBP
 #error
 #endif
 
-//#define QC_AMVRES    
-#ifdef QC_AMVRES  
-#define QC_AMVRES_LOW_COMPLEXTY
-#endif
-#define QC_CONFIG
-
-#if HHI_INTERP_FILTER
-//#define QC_SIFO
-#define QC_SIFO_PRED
-#if (defined QC_SIFO && TEN_DIRECTIONAL_INTERP==1)
-#define USE_DIAGONAL_FILT                1
-#endif
-#endif
-
-#define QC_ALF              1
-#if QC_ALF
 #define ENABLE_FORCECOEFF0  0
-#define ALF_MEM_PATCH       1
-#endif
-#if (QC_ALF && HHI_ALF)
-#error "Only one of QC_ALF and HHI_ALF can be defined"
-#endif
-
-#define DISABLE_ROT_LUMA_4x4_8x8           0
-#define QC_MDDT                            0
-#if QC_MDDT
-#define ROT_CHECK                          0
-#define absm(A) ((A)<(0) ? (-(A)):(A))
-#define REG_DCT 65535
-#define COMBINED_MAP
-void InitScanOrderForSlice();
-#define NUM_SCANS_16x16 9
-#define NUM_SCANS_32x32 9
-#define NUM_SCANS_64x64 9
-void updateScanOrder(int first);
-void normalizeScanStats();
-#endif
 
 /* Rounding control */
 #define ROUNDING_CONTROL_BIPRED ///< From JCTVC-B074
-#define ROUNDING_CONTROL_BIPRED_SPEEDUP_BITEXACT
-
 #define TRANS_PRECISION_EXT     ///< From JCTVC-B074
-
-
-#define BUGFIX48 1
-#define BUGFIX50 1
-#define BUGFIX50TMP 0 // for compatibility with previous versions without the crash
-#define SCAN_LUT_FIX 1
-#define ROUNDING_CONTROL_BIPRED_FIX
-
-#ifdef QC_SIFO
-#define SIFO_DIF_COMPATIBILITY			  1           // SIFO Extensions
-#define FIX_TICKET67  1     // solves memory leak problem in SIFO
-#endif
-#define FIX_TICKET92  0     // faster SIFO encoder (encoder only change)
 
 ///////////////////////////////
 // QUALCOMM defines section end
 ///////////////////////////////
 
-
-///////////////////////////////////
-// Panasonic defines section start
-///////////////////////////////////
-
-//#define EDGE_BASED_PREDICTION   // Enable edge based prediction for intra
-#define BUGFIX51 1
-
-///////////////////////////////////
-// Panasonic defines section start
-///////////////////////////////////
-
 ///////////////////////////////
 // SAMSUNG defines section start
 ///////////////////////////////
-#define SAMSUNG_REMOVE_AMP_FEN_PENALTY        1           ///< removal of FEN penality of AMP
-
-#if HHI_RQT
-#define HHI_RQT_DEPTH                         1           ///< controlling max quadtree depth
-#if HHI_RQT_DEPTH
-#define HHI_C319                              1           ///< BB: two separate depths for inter and intra from JCTVC-C319
-#if HHI_C319
-#define HHI_C319_INTER_FIX                    1           ///< BB: forced/inferred splits are counted as depth (exeption: inferred from intra_split)
-#endif // HHI_C319
-#endif // HHI_RQT_DEPTH
 #define HHI_RQT_DISABLE_SUB                   0           ///< disabling subtree whose node size is smaller than partition size
-#if     HHI_RQT_DEPTH && HHI_RQT_DISABLE_SUB
-#error "Only one of HHI_RQT_DEPTH and HHI_RQT_DISABLE_SUB can be defined"
-#endif
-#endif
 
 #if HHI_MRG
 #define SAMSUNG_MRG_SKIP_DIRECT               1           ///< enabling of skip and direct when mrg is on
 #endif
 
-#define SAMSUNG_CHROMA_IF_EXT                 0           ///< DCT-based Interpolation filter for chroma signal
-
-#if QC_MDDT
-#define QC_MDDT_ROT_UNIFIED                   0           ///< better unification of MDDT and ROT
-#endif
-
-#if HHI_TRANSFORM_CODING
 #define HHI_DISABLE_SCAN                      0           ///< disable adaptive scan
-#endif
 
 #define FAST_UDI_MAX_RDMODE_NUM               10          ///< maximum number of RD comparison in fast-UDI estimation loop 
 
@@ -270,9 +126,7 @@ void normalizeScanStats();
 ///////////////////////////////
 // DOCOMO defines section start
 ///////////////////////////////
-//#define DCM_PBIC //Partition-Based Illumination Compensation
-#define DCM_RDCOST_TEMP_FIX //Enables temporary bug fixes to RD cost computation (does not affect TMuC0.7 performance under current encoder settings, but is needed for proper RD cost computation when DCM_PBIC is enabled)
-
+#define DCM_RDCOST_TEMP_FIX //Enables temporary bug fixes to RD cost computation
 ///////////////////////////////
 // DOCOMO defines section end
 ///////////////////////////////
@@ -281,24 +135,14 @@ void normalizeScanStats();
 // TOSHIBA defines section start
 ////////////////////////////////
 #define TSB_ALF_HEADER                 1           // Send ALF ON/OFF flag in slice header
-#if (TSB_ALF_HEADER && HHI_ALF)
-#error "Only one of TSB_ALF_HEADER and HHI_ALF can be defined"
-#endif
 ////////////////////////////////
 // TOSHIBA defines section end
 ////////////////////////////////
 
-////////////////////////////////
-// TI defines section start
-////////////////////////////////
-#define TI_SIGN_BIN0_PCP  1 // Enable sign and bin0 plane coding
-////////////////////////////////
-// TI defines section end
-////////////////////////////////
-
-#define BUGFIX85TMP 1 // Ignore cost of CBF (affects RQT off setting)
 #define BUGFIX102 1 // Do not code terminating bit when using LCEC
-
+#define BUGFIX110 1 // Fix an issue related to interpolation filters and cost calculation
+#define BUGFIX118 1 // Fixes an issue related to ALF and all-0 filters
+#define BUGFIX119 0 // Fixes an issue with the deblocking filter for chroma
 
 ////////////////////////////////
 // MICROSOFT&USTC defines section start
@@ -308,6 +152,9 @@ void normalizeScanStats();
 ////////////////////////////////
 // MICROSOFT&USTC defines section end
 ////////////////////////////////
+
+#define FIX108 0 // fixes issue where unary symbol is uncessesarily coded
+#define FIX117 0 // fixes issue where MVP derivation is inconsistent with original intent
 
 // ====================================================================================================================
 // Basic type redefinition
@@ -355,24 +202,6 @@ typedef       Short           Pel;        ///< 16-bit pixel type
 typedef       Int             TCoeff;     ///< transform coefficient
 
 /// parameters for adaptive loop filter
-typedef struct _AlfFilter
-{
-  Int   iFilterLength         ; // != number of Coeffs !!! number of tabs
-  Int   iFilterSymmetry       ;
-  Int   iNumOfCoeffs          ;
-  Int   iOverlap              ;
-  Bool  bIsHorizontal         ;
-  Bool  bIsVertical           ;
-  Int*  aiQuantFilterCoeffs   ;
-  Int*  aiTapCoeffMapping     ;
-  Int*  aiCoeffWeights        ;
-  Bool  bIsValid              ;
-  Int   iHorizontalOverlap    ;
-  Int   iVerticalOverlap      ;
-} AlfFilter;
-
-
-/// parameters for adaptive loop filter
 class TComPicSym;
 
 struct _AlfParam
@@ -386,7 +215,6 @@ struct _AlfParam
   Int tap_chroma;                         ///< number of filter taps (chroma)
   Int num_coeff_chroma;                   ///< number of filter coefficients (chroma)
   Int *coeff_chroma;                      ///< filter coefficient array (chroma)
-#if QC_ALF
   //CodeAux related
   Int realfiltNo;
   Int filtNo;
@@ -394,7 +222,7 @@ struct _AlfParam
   Int startSecondFilter;
   Int noFilters;
   Int varIndTab[16];
-
+  
   //Coeff send related
   Int filters_per_group_diff; //this can be updated using codedVarBins
   Int filters_per_group;
@@ -405,7 +233,6 @@ struct _AlfParam
   Int minKStart;
   Int maxScanVal;
   Int kMinTab[42];
-#endif
 #if TSB_ALF_HEADER
   UInt num_alf_cu_flag;
   UInt num_cus_in_frame;
@@ -414,36 +241,19 @@ struct _AlfParam
 #endif
 };
 
-struct _AlfParamHHI
-{
-  Int alf_flag;                           ///< indicates use of ALF
-  Int cu_control_flag;                    ///< coding unit based control flag
-  Int chroma_idc;
-
-  AlfFilter*  acHorizontalAlfFilter ;
-  AlfFilter*  acVerticalAlfFilter ;
-  Bool        bSeparateQt;
-  TComPicSym* pcQuadTree;
-  Int         aiPlaneFilterMapping[3] ;
-};
-
 /// parameters for deblocking filter
 typedef struct _LFCUParam
 {
   Bool bInternalEdge;                     ///< indicates internal edge
   Bool bLeftEdge;                         ///< indicates left edge
   Bool bTopEdge;                          ///< indicates top edge
-#if !HHI_DEBLOCKING_FILTER && !TENTM_DEBLOCKING_FILTER
-  Bool bLumaEdgeFilter[2][4];             ///< array of luma edge decisions
-  Int  iBsEdgeSum[2][4];                  ///< array of Bs edge sum values
-#endif
 } LFCUParam;
 
 /// parapeters for TENTM coefficient VLC
 typedef struct _LastCoeffStruct
 {
-    int level;
-    int last_pos;
+  int level;
+  int last_pos;
 } LastCoeffStruct;
 
 // ====================================================================================================================
@@ -465,12 +275,7 @@ enum PartSize
   SIZE_2NxN,            ///< symmetric motion partition,  2Nx N
   SIZE_Nx2N,            ///< symmetric motion partition,   Nx2N
   SIZE_NxN,             ///< symmetric motion partition,   Nx N
-
-  SIZE_2NxnU,           ///< asymmetric motion partition, 2Nx( N/2) + 2Nx(3N/2)
-  SIZE_2NxnD,           ///< asymmetric motion partition, 2Nx(3N/2) + 2Nx( N/2)
-  SIZE_nLx2N,           ///< asymmetric motion partition, ( N/2)x2N + (3N/2)x2N
-  SIZE_nRx2N,           ///< asymmetric motion partition, (3N/2)x2N + ( N/2)x2N
-
+  
   SIZE_NONE = 15
 };
 
@@ -483,16 +288,6 @@ enum PredMode
   MODE_NONE = 15
 };
 
-#if PLANAR_INTRA
-enum PlanarType
-{
-  PLANAR_FLAG   = 0,
-  PLANAR_DELTAY = 1,
-  PLANAR_DELTAU = 2,
-  PLANAR_DELTAV = 3,
-};
-#endif
-
 /// texture component type
 enum TextType
 {
@@ -500,9 +295,7 @@ enum TextType
   TEXT_CHROMA,          ///< chroma (U+V)
   TEXT_CHROMA_U,        ///< chroma U
   TEXT_CHROMA_V,        ///< chroma V
-#if LCEC_PHASE2
   TEXT_ALL,             ///< Y+U+V
-#endif
   TEXT_NONE = 15
 };
 
@@ -525,7 +318,7 @@ enum DFunc
   DF_SSE32    = 5,      ///<  32xM SSE
   DF_SSE64    = 6,      ///<  64xM SSE
   DF_SSE16N   = 7,      ///< 16NxM SSE
-
+  
   DF_SAD      = 8,      ///< general size SAD
   DF_SAD4     = 9,      ///<   4xM SAD
   DF_SAD8     = 10,     ///<   8xM SAD
@@ -533,7 +326,7 @@ enum DFunc
   DF_SAD32    = 12,     ///<  32xM SAD
   DF_SAD64    = 13,     ///<  64xM SAD
   DF_SAD16N   = 14,     ///< 16NxM SAD
-
+  
   DF_SADS     = 15,     ///< general size SAD with step
   DF_SADS4    = 16,     ///<   4xM SAD with step
   DF_SADS8    = 17,     ///<   8xM SAD with step
@@ -541,7 +334,7 @@ enum DFunc
   DF_SADS32   = 19,     ///<  32xM SAD with step
   DF_SADS64   = 20,     ///<  64xM SAD with step
   DF_SADS16N  = 21,     ///< 16NxM SAD with step
-
+  
   DF_HADS     = 22,     ///< general size Hadamard with step
   DF_HADS4    = 23,     ///<   4xM HAD with step
   DF_HADS8    = 24,     ///<   8xM HAD with step
@@ -549,7 +342,7 @@ enum DFunc
   DF_HADS32   = 26,     ///<  32xM HAD with step
   DF_HADS64   = 27,     ///<  64xM HAD with step
   DF_HADS16N  = 28,     ///< 16NxM HAD with step
-
+  
   DF_SSE_FRAME = 33     ///< Frame-based SSE
 };
 
@@ -567,10 +360,8 @@ enum CI_IDX
   CI_NEXT_BEST,         ///< next best index
   CI_TEMP_BEST,         ///< temporal index
   CI_CHROMA_INTRA,      ///< chroma intra index
-#if HHI_RQT
   CI_QT_TRAFO_TEST,
   CI_QT_TRAFO_ROOT,
-#endif
   CI_NUM,               ///< total number
 };
 
@@ -591,16 +382,7 @@ enum AMVP_MODE
   AM_EXPL,              ///< explicit signalling of motion vector index
 };
 
-/// effect mode used in GRF
-enum EFF_MODE
-{
-  EFF_WP_SO = 0,        ///< weighted prediction (scale+offset)
-  EFF_WP_O,             ///< weighted prediction (offset)
-  EFF_NONE
-};
-
 /// interpolation filter type
-#if HHI_INTERP_FILTER
 enum InterpFilterType
 {
   IPF_SAMSUNG_DIF_DEFAULT = 0,          ///< Samsung DCT-based filter
@@ -611,14 +393,8 @@ enum InterpFilterType
 # else
   IPF_TEN_DIF_PLACEHOLDER               ///< Place holder to keep ordering if IPF_TEN_DIF not compiled-in
 # endif
-# ifdef QC_SIFO
-  ,IPF_QC_SIFO                          ///< Qualcomm Switched Interpolation Filters with Offsets
-# else
-  ,IPF_QC_SIFO_PLACEHOLDER              ///< Place holder to keep ordering if IPF_QC_SIFO not compiled-in
-# endif
   ,IPF_LAST
 };
-#endif
 
 #endif
 

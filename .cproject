@@ -15,7 +15,7 @@
 </extensions>
 </storageModule>
 <storageModule moduleId="cdtBuildSystem" version="4.0.0">
-<configuration artifactName="SamsungCodec" buildProperties="" description="" id="cdt.managedbuild.toolchain.gnu.base.521400627" name="Default" parent="org.eclipse.cdt.build.core.emptycfg">
+<configuration artifactName="HM" buildProperties="" description="" id="cdt.managedbuild.toolchain.gnu.base.521400627" name="Default" parent="org.eclipse.cdt.build.core.emptycfg">
 <folderInfo id="cdt.managedbuild.toolchain.gnu.base.521400627.1589457155" name="/" resourcePath="">
 <toolChain id="cdt.managedbuild.toolchain.gnu.base.1526218680" name="cdt.managedbuild.toolchain.gnu.base" superClass="cdt.managedbuild.toolchain.gnu.base">
 <targetPlatform archList="all" binaryParser="org.eclipse.cdt.core.ELF" id="cdt.managedbuild.target.gnu.platform.base.1070174461" name="Debug Platform" osList="linux,hpux,aix,qnx" superClass="cdt.managedbuild.target.gnu.platform.base"/>
@@ -306,7 +306,7 @@
 </extensions>
 </storageModule>
 <storageModule moduleId="cdtBuildSystem" version="4.0.0">
-<configuration artifactName="SamsungCodec" buildProperties="" description="" id="cdt.managedbuild.toolchain.gnu.base.521400627.1122785760" name="Release" parent="org.eclipse.cdt.build.core.emptycfg">
+<configuration artifactName="HM" buildProperties="" description="" id="cdt.managedbuild.toolchain.gnu.base.521400627.1122785760" name="Release" parent="org.eclipse.cdt.build.core.emptycfg">
 <folderInfo id="cdt.managedbuild.toolchain.gnu.base.521400627.1122785760." name="/" resourcePath="">
 <toolChain id="cdt.managedbuild.toolchain.gnu.base.941850140" name="cdt.managedbuild.toolchain.gnu.base" superClass="cdt.managedbuild.toolchain.gnu.base">
 <targetPlatform archList="all" binaryParser="org.eclipse.cdt.core.ELF" id="cdt.managedbuild.target.gnu.platform.base.570056820" name="Debug Platform" osList="linux,hpux,aix,qnx" superClass="cdt.managedbuild.target.gnu.platform.base"/>
@@ -597,7 +597,7 @@
 </extensions>
 </storageModule>
 <storageModule moduleId="cdtBuildSystem" version="4.0.0">
-<configuration artifactName="SamsungCodec" buildProperties="" description="" id="cdt.managedbuild.toolchain.gnu.base.521400627.1841936818" name="Debug" parent="org.eclipse.cdt.build.core.emptycfg">
+<configuration artifactName="HM" buildProperties="" description="" id="cdt.managedbuild.toolchain.gnu.base.521400627.1841936818" name="Debug" parent="org.eclipse.cdt.build.core.emptycfg">
 <folderInfo id="cdt.managedbuild.toolchain.gnu.base.521400627.1841936818." name="/" resourcePath="">
 <toolChain id="cdt.managedbuild.toolchain.gnu.base.92180794" name="cdt.managedbuild.toolchain.gnu.base" superClass="cdt.managedbuild.toolchain.gnu.base">
 <targetPlatform archList="all" binaryParser="org.eclipse.cdt.core.ELF" id="cdt.managedbuild.target.gnu.platform.base.1739497298" name="Debug Platform" osList="linux,hpux,aix,qnx" superClass="cdt.managedbuild.target.gnu.platform.base"/>
@@ -878,6 +878,6 @@
 </cconfiguration>
 </storageModule>
 <storageModule moduleId="cdtBuildSystem" version="4.0.0">
-<project id="SamsungCodec.null.1881189133" name="SamsungCodec"/>
+<project id="HM.null.1881189133" name="HM"/>
 </storageModule>
 </cproject>

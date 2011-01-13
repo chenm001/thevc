@@ -61,6 +61,8 @@ public:
   virtual Void  encodeBinTrm      ( UInt  uiBin                            )  = 0;
 
   virtual TEncBinCABAC*   getTEncBinCABAC   ()  { return 0; }
+  
+  virtual ~TEncBinIf() {}
 };
 
 

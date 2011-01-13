@@ -59,36 +59,36 @@ private:
 #else
   TVideoIOBits               m_cTVideoIOBitsFile;           ///< output bitstream file
 #endif
-
+  
   TComList<TComPicYuv*>      m_cListPicYuvRec;              ///< list of reconstruction YUV files
   TComList<TComBitstream*>   m_cListBitstream;              ///< list of bitstreams
-
+  
   Int                        m_iFrameRcvd;                  ///< number of received frames
-
+  
 protected:
   // initialization
   Void  xCreateLib        ();                               ///< create files & encoder class
   Void  xInitLibCfg       ();                               ///< initialize internal variables
   Void  xInitLib          ();                               ///< initialize encoder class
   Void  xDestroyLib       ();                               ///< destroy encoder class
-
+  
   /// obtain required buffers
   Void  xGetBuffer        ( TComPicYuv*& rpcPicYuvRec,
-                            TComBitstream*& rpcBitStream );
-
+                           TComBitstream*& rpcBitStream );
+  
   /// delete allocated buffers
   Void  xDeleteBuffer     ();
-
+  
   // file I/O
   Void  xWriteOutput      ( Int iNumEncoded );              ///< write bitstream to file
-
+  
 public:
   TAppEncTop();
   virtual ~TAppEncTop();
-
+  
   Void        encode      ();                               ///< main encoding function
   TEncTop&    getTEncTop  ()   { return  m_cTEncTop; }      ///< return encoder class pointer reference
-
+  
 };// END CLASS DEFINITION TAppEncTop
 
 #endif // __TAPPENCTOP__

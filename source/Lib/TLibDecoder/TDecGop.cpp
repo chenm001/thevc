@@ -38,10 +38,6 @@
 #include "TDecSbac.h"
 #include "TDecBinCoder.h"
 #include "TDecBinCoderCABAC.h"
-#include "TDecBinCoderMultiCABAC.h"
-#include "TDecBinCoderPIPE.h"
-#include "TDecBinCoderMultiPIPE.h"
-#include "TDecBinCoderV2VwLB.h"
 
 #include <time.h>
 
@@ -56,38 +52,30 @@ TDecGop::TDecGop()
 
 TDecGop::~TDecGop()
 {
-
+  
 }
 
 Void TDecGop::create()
 {
-
+  
 }
 
 Void TDecGop::destroy()
 {
-
+  
 }
 
 Void TDecGop::init( TDecEntropy*            pcEntropyDecoder, 
-                    TDecSbac*               pcSbacDecoder, 
-                    TDecBinCABAC*           pcBinCABAC,
-                    TDecBinMultiCABAC*      pcBinMultiCABAC,
-                    TDecBinPIPE*            pcBinPIPE,
-                    TDecBinMultiPIPE*       pcBinMultiPIPE,
-                    TDecV2V*                pcBinV2VwLB,
-                    TDecCavlc*              pcCavlcDecoder, 
-                    TDecSlice*              pcSliceDecoder, 
-                    TComLoopFilter*         pcLoopFilter, 
-                    TComAdaptiveLoopFilter* pcAdaptiveLoopFilter )
+                   TDecSbac*               pcSbacDecoder, 
+                   TDecBinCABAC*           pcBinCABAC,
+                   TDecCavlc*              pcCavlcDecoder, 
+                   TDecSlice*              pcSliceDecoder, 
+                   TComLoopFilter*         pcLoopFilter, 
+                   TComAdaptiveLoopFilter* pcAdaptiveLoopFilter )
 {
   m_pcEntropyDecoder      = pcEntropyDecoder;
   m_pcSbacDecoder         = pcSbacDecoder;
   m_pcBinCABAC            = pcBinCABAC;
-  m_pcBinMultiCABAC       = pcBinMultiCABAC;
-  m_pcBinPIPE             = pcBinPIPE;
-  m_pcBinMultiPIPE        = pcBinMultiPIPE;
-  m_pcBinV2VwLB           = pcBinV2VwLB;
   m_pcCavlcDecoder        = pcCavlcDecoder;
   m_pcSliceDecoder        = pcSliceDecoder;
   m_pcLoopFilter          = pcLoopFilter;
@@ -101,117 +89,67 @@ Void TDecGop::init( TDecEntropy*            pcEntropyDecoder,
 Void TDecGop::decompressGop (Bool bEos, TComBitstream* pcBitstream, TComPic*& rpcPic)
 {
   TComSlice*  pcSlice = rpcPic->getSlice();
-
+  
   //-- For time output for each slice
   long iBeforeTime = clock();
-
+  
   UInt iSymbolMode = pcSlice->getSymbolMode();
   if (iSymbolMode)
   {
-    if( iSymbolMode == 3 )
-    {
-      m_pcSbacDecoder->init( m_pcBinV2VwLB );
-      m_pcBinV2VwLB->setBalancedCPUs( getBalancedCPUs() );
-    }
-    else if( iSymbolMode == 1 )
-    {
-      m_pcSbacDecoder->init( pcSlice->getMultiCodeword() ? (TDecBinIf*)m_pcBinMultiCABAC : (TDecBinIf*)m_pcBinCABAC );
-    }
-    else if( pcSlice->getMultiCodeword() )
-    {
-      m_pcSbacDecoder->init( (TDecBinIf*)m_pcBinMultiPIPE );
-    }
-    else
-    {
-      m_pcSbacDecoder->init( (TDecBinIf*)m_pcBinPIPE );
-      m_pcBinPIPE->initDelay( pcSlice->getMaxPIPEDelay() );
-    }
+    m_pcSbacDecoder->init( (TDecBinIf*)m_pcBinCABAC );
     m_pcEntropyDecoder->setEntropyDecoder (m_pcSbacDecoder);
   }
   else
   {
     m_pcEntropyDecoder->setEntropyDecoder (m_pcCavlcDecoder);
   }
-
+  
   m_pcEntropyDecoder->setBitstream      (pcBitstream);
   m_pcEntropyDecoder->resetEntropy      (pcSlice);
-
+  
   ALFParam cAlfParam;
-
+  
   if ( rpcPic->getSlice()->getSPS()->getUseALF() )
   {
 #if TSB_ALF_HEADER
     m_pcAdaptiveLoopFilter->setNumCUsInFrame(rpcPic);
 #endif
     m_pcAdaptiveLoopFilter->allocALFParam(&cAlfParam);
-#if HHI_ALF
-    m_pcEntropyDecoder->decodeAlfParam(&cAlfParam, rpcPic );
-    rpcPic->getSlice()->getSPS()->setALfSeparateQt( cAlfParam.bSeparateQt );
-#else
     m_pcEntropyDecoder->decodeAlfParam( &cAlfParam );
-#endif
   }
-
+  
   m_pcSliceDecoder->decompressSlice(pcBitstream, rpcPic);
-
+  
   // deblocking filter
   m_pcLoopFilter->setCfg(pcSlice->getLoopFilterDisable(), 0, 0);
   m_pcLoopFilter->loopFilterPic( rpcPic );
-
+  
   // adaptive loop filter
   if( rpcPic->getSlice()->getSPS()->getUseALF() )
   {
     m_pcAdaptiveLoopFilter->ALFProcess(rpcPic, &cAlfParam);
-#if HHI_ALF
-    if( cAlfParam.bSeparateQt && cAlfParam.cu_control_flag )
-    {
-      m_pcAdaptiveLoopFilter->destroyQuadTree(&cAlfParam);
-    }
-#endif
     m_pcAdaptiveLoopFilter->freeALFParam(&cAlfParam);
   }
-
-#if HHI_INTERP_FILTER
-  // MOMS prefilter reconstructed pic
-  if( rpcPic->getSlice()->isReferenced() && rpcPic->getSlice()->getUseMOMS() )
-  {
-    TComCoeffCalcMOMS cCoeffCalc;
-    cCoeffCalc.calcCoeffs( rpcPic->getPicYuvRec(), rpcPic->getPicYuvRecFilt(), rpcPic->getSlice()->getInterpFilterType() );
-  }
-#endif
-
+  
   //-- For time output for each slice
   printf("\nPOC %4d ( %c-SLICE, QP%3d ) ",
-                        pcSlice->getPOC(),
-                        pcSlice->isIntra() ? 'I' : pcSlice->isInterP() ? 'P' : 'B',
-                        pcSlice->getSliceQp() );
-
+         pcSlice->getPOC(),
+         pcSlice->isIntra() ? 'I' : pcSlice->isInterP() ? 'P' : 'B',
+         pcSlice->getSliceQp() );
+  
   Double dDecTime = (double)(clock()-iBeforeTime) / CLOCKS_PER_SEC;
   printf ("[DT %6.3f] ", dDecTime );
-
+  
   for (Int iRefList = 0; iRefList < 2; iRefList++)
   {
     printf ("[L%d ", iRefList);
     for (Int iRefIndex = 0; iRefIndex < pcSlice->getNumRefIdx(RefPicList(iRefList)); iRefIndex++)
     {
-      UInt uiOrgNumRefIdx;
-      uiOrgNumRefIdx = pcSlice->getNumRefIdx(RefPicList(iRefList))-pcSlice->getAddRefCnt(RefPicList(iRefList));
-      UInt uiNewRefIdx= iRefIndex-uiOrgNumRefIdx;
-      if (iRefIndex >= (int)uiOrgNumRefIdx)
-      {
-        if ( pcSlice->getEffectMode(RefPicList(iRefList), uiNewRefIdx) == EFF_WP_SO ||
-             pcSlice->getEffectMode(RefPicList(iRefList), uiNewRefIdx) == EFF_WP_O )
-        {
-          printf ("%dw ", pcSlice->getRefPOC(RefPicList(iRefList), iRefIndex));
-        }
-      }
-      else {
-        printf ("%d ", pcSlice->getRefPOC(RefPicList(iRefList), iRefIndex));
-      }
+      printf ("%d ", pcSlice->getRefPOC(RefPicList(iRefList), iRefIndex));
     }
     printf ("] ");
   }
-
+  
   rpcPic->setReconMark(true);
 }
 

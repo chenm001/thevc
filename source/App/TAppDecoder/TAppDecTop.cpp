@@ -63,7 +63,7 @@ Void TAppDecTop::create()
 {
   m_apcOpt        = new TAppOption();
   m_apcBitstream  = new TComBitstream;
-
+  
   m_apcBitstream->create( BITS_BUF_SIZE );
 }
 
@@ -87,12 +87,12 @@ Void TAppDecTop::destroy()
 // ====================================================================================================================
 
 /**
-    - create internal class
-    - initialize internal class
-    - until the end of the bitstream, call decoding function in TDecTop class
-    - delete allocated buffers
-    - destroy internal class
-    .
+ - create internal class
+ - initialize internal class
+ - until the end of the bitstream, call decoding function in TDecTop class
+ - delete allocated buffers
+ - destroy internal class
+ .
  */
 Void TAppDecTop::decode()
 {
@@ -100,11 +100,11 @@ Void TAppDecTop::decode()
   UInt                uiPOC;
   TComList<TComPic*>* pcListPic;
   Bool                bAlloc = false;
-
+  
   // create & initialize internal classes
   xCreateDecLib();
   xInitDecLib  ();
-
+  
   // main decoder loop
   Bool  bEos        = false;
   while ( !bEos )
@@ -114,26 +114,26 @@ Void TAppDecTop::decode()
     {
       break;
     }
-
+    
     // call actual decoding function
     m_cTDecTop.decode( bEos, pcBitstream, uiPOC, pcListPic );
-
+    
     if( pcListPic )
     {
       // write reconstuction to file
       xWriteOutput( pcListPic, bAlloc );
     }
   }
-
+  
   // delete temporary buffer
   if ( bAlloc )
   {
     m_cTempPicYuv.destroy();
   }
-
+  
   // delete buffers
   m_cTDecTop.deletePicBuffer();
-
+  
   // destroy internal classes
   xDestroyDecLib();
 }
@@ -146,12 +146,12 @@ Void TAppDecTop::xCreateDecLib()
 {
   // open bitstream file
   m_cTVideoIOBitstreamFile.openBits( m_pchBitstreamFile, false);  // read mode
-
+  
   if ( m_pchReconFile )
   {
     m_cTVideoIOYuvReconFile.open( m_pchReconFile, true );         // write mode
   }
-
+  
   // create decoder class
   m_cTDecTop.create();
 }
@@ -160,12 +160,12 @@ Void TAppDecTop::xDestroyDecLib()
 {
   // close bitstream file
   m_cTVideoIOBitstreamFile.closeBits();
-
+  
   if ( m_pchReconFile )
   {
     m_cTVideoIOYuvReconFile. close();
   }
-
+  
   // destroy decoder class
   m_cTDecTop.destroy();
 }
@@ -177,38 +177,38 @@ Void TAppDecTop::xInitDecLib()
 }
 
 /** \param pcListPic list of pictures to be written to file
-    \aram  bFirst    first picture?
+    \param bFirst    first picture?
     \todo            DYN_REF_FREE should be revised
  */
 Void TAppDecTop::xWriteOutput( TComList<TComPic*>* pcListPic, Bool& rbAlloc )
 {
   TComList<TComPic*>::iterator iterPic   = pcListPic->begin();
-
+  
   while (iterPic != pcListPic->end())
   {
     TComPic* pcPic = *(iterPic);
-
+    
     if ( pcPic->getReconMark() && pcPic->getPOC() == (m_iPOCLastDisplay + 1) )
     {
       // descaling case: IBDI
       if ( g_uiBitIncrement )
       {
         TComPicYuv* pcPicD = &m_cTempPicYuv;
-
+        
         // allocate temporary buffer if first time
         if ( !rbAlloc )
         {
           m_cTempPicYuv.create( pcPic->getPicYuvRec()->getWidth (),
-                                pcPic->getPicYuvRec()->getHeight(),
-                                g_uiMaxCUWidth,
-                                g_uiMaxCUHeight,
-                                g_uiMaxCUDepth );
+                               pcPic->getPicYuvRec()->getHeight(),
+                               g_uiMaxCUWidth,
+                               g_uiMaxCUHeight,
+                               g_uiMaxCUDepth );
           rbAlloc = true;
         }
-
+        
         // descaling of frame
         xDeScalePic( pcPic, pcPicD );
-
+        
         // write to file
         if ( m_pchReconFile )
         {
@@ -224,22 +224,19 @@ Void TAppDecTop::xWriteOutput( TComList<TComPic*>* pcListPic, Bool& rbAlloc )
           m_cTVideoIOYuvReconFile.write( pcPic->getPicYuvRec(), pcPic->getSlice()->getSPS()->getPad() );
         }
       }
-
+      
       // update POC of display order
       m_iPOCLastDisplay = pcPic->getPOC();
-
+      
       // erase non-referenced picture in the reference picture list after display
       if ( !pcPic->getSlice()->isReferenced() && pcPic->getReconMark() == true )
       {
 #if !DYN_REF_FREE
         pcPic->setReconMark(false);
-
+        
         // mark it should be extended later
         pcPic->getPicYuvRec()->setBorderExtension( false );
-#if HHI_INTERP_FILTER
-        pcPic->getPicYuvRecFilt()->setBorderExtension( false );
-#endif
-
+        
 #else
         pcPic->destroy();
         pcListPic->erase( iterPic );
@@ -248,7 +245,7 @@ Void TAppDecTop::xWriteOutput( TComList<TComPic*>* pcListPic, Bool& rbAlloc )
 #endif
       }
     }
-
+    
     iterPic++;
   }
 }
@@ -265,17 +262,17 @@ Void TAppDecTop::xDeScalePic( TComPic* pcPic, TComPicYuv* pcPicD )
   Pel*  pRecCb  = pcPic->getPicYuvRec()->getCbAddr();
   Pel*  pRecCr  = pcPic->getPicYuvRec()->getCrAddr();
   Int   iStride = pcPic->getStride();
-
+  
   Int   iWidth  = pcPic->getPicYuvRec()->getWidth();
   Int   iHeight = pcPic->getPicYuvRec()->getHeight();
   Int   offset  = (g_uiBitIncrement>0)?(1<<(g_uiBitIncrement-1)):0;
-
+  
   Int   x, y;
-
+  
   // ------------------------------------------------------------------------------------------------------------------
   // Luma descaling
   // ------------------------------------------------------------------------------------------------------------------
-
+  
   for( y = iHeight-1; y >= 0; y-- )
   {
     for( x = iWidth-1; x >= 0; x-- )
@@ -289,15 +286,15 @@ Void TAppDecTop::xDeScalePic( TComPic* pcPic, TComPicYuv* pcPicD )
     pRecD += iStride;
     pRec  += iStride;
   }
-
+  
   // ------------------------------------------------------------------------------------------------------------------
   // Chroma descaling
   // ------------------------------------------------------------------------------------------------------------------
-
+  
   iHeight >>= 1;
   iWidth  >>= 1;
   iStride >>= 1;
-
+  
   for( y = iHeight-1; y >= 0; y-- )
   {
     for( x = iWidth-1; x >= 0; x-- )

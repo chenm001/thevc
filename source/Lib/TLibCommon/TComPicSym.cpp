@@ -42,27 +42,27 @@
 Void TComPicSym::create  ( Int iPicWidth, Int iPicHeight, UInt uiMaxWidth, UInt uiMaxHeight, UInt uiMaxDepth )
 {
   UInt i;
-
+  
   m_apcTComSlice      = new TComSlice;
-
+  
   m_uhTotalDepth      = uiMaxDepth;
   m_uiNumPartitions   = 1<<(m_uhTotalDepth<<1);
-
+  
   m_uiMaxCUWidth      = uiMaxWidth;
   m_uiMaxCUHeight     = uiMaxHeight;
-
+  
   m_uiMinCUWidth      = uiMaxWidth  >> m_uhTotalDepth;
   m_uiMinCUHeight     = uiMaxHeight >> m_uhTotalDepth;
-
+  
   m_uiNumPartInWidth  = m_uiMaxCUWidth  / m_uiMinCUWidth;
   m_uiNumPartInHeight = m_uiMaxCUHeight / m_uiMinCUHeight;
-
+  
   m_uiWidthInCU       = ( iPicWidth %m_uiMaxCUWidth  ) ? iPicWidth /m_uiMaxCUWidth  + 1 : iPicWidth /m_uiMaxCUWidth;
   m_uiHeightInCU      = ( iPicHeight%m_uiMaxCUHeight ) ? iPicHeight/m_uiMaxCUHeight + 1 : iPicHeight/m_uiMaxCUHeight;
-
+  
   m_uiNumCUsInFrame   = m_uiWidthInCU * m_uiHeightInCU;
   m_apcTComDataCU     = new TComDataCU*[m_uiNumCUsInFrame];
-
+  
   for ( i=0; i<m_uiNumCUsInFrame ; i++ )
   {
     m_apcTComDataCU[i] = new TComDataCU;
@@ -73,12 +73,10 @@ Void TComPicSym::create  ( Int iPicWidth, Int iPicHeight, UInt uiMaxWidth, UInt 
 Void TComPicSym::destroy()
 {
   Int i;
-
+  
   delete m_apcTComSlice;
   m_apcTComSlice = NULL;
-
-
-
+  
   for (i = 0; i < m_uiNumCUsInFrame; i++)
   {
     m_apcTComDataCU[i]->destroy();

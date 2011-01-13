@@ -44,16 +44,9 @@
 #include "../TLibCommon/ContextTables.h"
 #include "../TLibCommon/ContextModel.h"
 #include "../TLibCommon/ContextModel3DBuffer.h"
-#ifdef DCM_PBIC
-#include "../TLibCommon/TComZeroTree.h"
-#endif
 #include "TEncEntropy.h"
 #include "TEncBinCoder.h"
 #include "TEncBinCoderCABAC.h"
-#include "TEncBinCoderMultiCABAC.h"
-#include "TEncBinCoderPIPE.h"
-#include "TEncBinCoderMultiPIPE.h"
-#include "TEncBinCoderV2VwLB.h"
 
 class TEncTop;
 
@@ -67,37 +60,36 @@ class TEncSbac : public TEncEntropyIf
 public:
   TEncSbac();
   virtual ~TEncSbac();
-
-  Void  init                  ( TEncBinIf* p )  { m_pcBinIf = p; }
-  Void  uninit                ()                { m_pcBinIf = 0; }
-
+  
+  Void  init                   ( TEncBinIf* p )  { m_pcBinIf = p; }
+  Void  uninit                 ()                { m_pcBinIf = 0; }
+  
   //  Virtual list
-  Void  resetEntropy          ();
-  Void  setBitstream          ( TComBitIf* p )  { m_pcBitIf = p; m_pcBinIf->init( p ); }
-  Void  setSlice              ( TComSlice* p )  { m_pcSlice = p;                       }
-  Bool getAlfCtrl() {return m_bAlfCtrl;}
-  UInt getMaxAlfCtrlDepth() {return m_uiMaxAlfCtrlDepth;}
-  Void setAlfCtrl(Bool bAlfCtrl) {m_bAlfCtrl = bAlfCtrl;}
-  Void setMaxAlfCtrlDepth(UInt uiMaxAlfCtrlDepth) {m_uiMaxAlfCtrlDepth = uiMaxAlfCtrlDepth;}
-
-
+  Void  resetEntropy           ();
+  Void  setBitstream           ( TComBitIf* p )  { m_pcBitIf = p; m_pcBinIf->init( p ); }
+  Void  setSlice               ( TComSlice* p )  { m_pcSlice = p;                       }
+  
+  Bool  getAlfCtrl             ()                         { return m_bAlfCtrl;          }
+  UInt  getMaxAlfCtrlDepth     ()                         { return m_uiMaxAlfCtrlDepth; }
+  Void  setAlfCtrl             ( Bool bAlfCtrl          ) { m_bAlfCtrl          = bAlfCtrl;          }
+  Void  setMaxAlfCtrlDepth     ( UInt uiMaxAlfCtrlDepth ) { m_uiMaxAlfCtrlDepth = uiMaxAlfCtrlDepth; }
+  
   // SBAC RD
-  Void  resetCoeffCost        ()                { m_uiCoeffCost = 0;  }
-  UInt  getCoeffCost          ()                { return  m_uiCoeffCost;  }
-
-  Void  load                          ( TEncSbac* pScr);
-  Void  store                          ( TEncSbac* pDest);
-  Void  resetBits             ()                { m_pcBinIf->resetBits(); m_pcBitIf->resetBits(); }
-  UInt  getNumberOfWrittenBits()                { return m_pcBinIf->getNumWrittenBits(); }
+  Void  resetCoeffCost         ()                { m_uiCoeffCost = 0;  }
+  UInt  getCoeffCost           ()                { return  m_uiCoeffCost;  }
+  
+  Void  load                   ( TEncSbac* pScr  );
+  Void  store                  ( TEncSbac* pDest );
+  Void  resetBits              ()                { m_pcBinIf->resetBits(); m_pcBitIf->resetBits(); }
+  UInt  getNumberOfWrittenBits ()                { return m_pcBinIf->getNumWrittenBits(); }
   //--SBAC RD
-
-
-  Void  codeSPS                 ( TComSPS* pcSPS );
-  Void  codePPS                 ( TComPPS* pcPPS );
+  
+  Void  codeSPS                 ( TComSPS* pcSPS     );
+  Void  codePPS                 ( TComPPS* pcPPS     );
   Void  codeSliceHeader         ( TComSlice* pcSlice );
-  Void  codeTerminatingBit      ( UInt uilsLast );
+  Void  codeTerminatingBit      ( UInt uilsLast      );
   Void  codeSliceFinish         ();
-
+  
   Void  codeAlfFlag       ( UInt uiCode );
   Void  codeAlfUvlc       ( UInt uiCode );
   Void  codeAlfSvlc       ( Int  uiCode );
@@ -112,135 +104,72 @@ private:
   Void  xWriteEpExGolomb     ( UInt uiSymbol, UInt uiCount );
   Void  xWriteExGolombLevel  ( UInt uiSymbol, ContextModel& rcSCModel  );
   Void  xWriteTerminatingBit ( UInt uiBit );
-
+  
   Void  xCheckCoeff( TCoeff* pcCoef, UInt uiSize, UInt uiDepth, UInt& uiNumofCoeff, UInt& uiPart );
-
-  __inline Void xPutByte( UChar ucByte);
-  __inline Void xCarryPropagate( UInt& ruiCode );
-
+  
   Void  xWriteMvd            ( Int iMvd, UInt uiAbsSum, UInt uiCtx );
-#ifdef DCM_PBIC
-  Void  xWriteMvdNZ          ( Int iMvd, UInt uiCtx );
-  Void  xWriteIcdNZ          ( Int iIcd, UInt uiCtx );
-  Void  xWriteExGolombIcd    ( UInt uiSymbol, ContextModel* pcSCModel, UInt uiMaxBin );
-#endif
   Void  xWriteExGolombMvd    ( UInt uiSymbol, ContextModel* pcSCModel, UInt uiMaxBin );
-#ifdef QC_AMVRES
-  Void xWriteMvResFlag( Int iVal ,Int Ctx_idx);
-#ifdef DCM_PBIC
-  Bool xCodeMvResFlag( TComDataCU* pcCU, UInt uiAbsPartIdx, RefPicList eRefList );
-#endif
-#endif
   Void  xCopyFrom            ( TEncSbac* pSrc );
-  UInt  xGetCTXIdxFromWidth  ( Int iWidth );
-
-#if PLANAR_INTRA
-  Void xPutPlanarBins( Int n, Int cn );
-  Void xCodePlanarDelta( TComDataCU* pcCU, UInt uiAbsPartIdx , Int iDelta );
-#endif
-
+  
 protected:
   TComBitIf*    m_pcBitIf;
   TComSlice*    m_pcSlice;
   TEncBinIf*    m_pcBinIf;
-  Bool m_bAlfCtrl;
-
+  Bool          m_bAlfCtrl;
+  
   //SBAC RD
-  UInt                  m_uiCoeffCost;
-
+  UInt          m_uiCoeffCost;
+  
   // Adaptive loop filter
-  UInt m_uiMaxAlfCtrlDepth;
+  UInt          m_uiMaxAlfCtrlDepth;
   //--Adaptive loop filter
-
+  
 public:
   Void codeAlfCtrlFlag   ( TComDataCU* pcCU, UInt uiAbsPartIdx );
-
-#if HHI_ALF
-  Void codeAlfCoeff      ( Int iCoeff, Int iLength, Int iPos );
-  Void codeAlfDc         ( Int iDc    );
-  Void codeAlfQTCtrlFlag ( TComDataCU* pcCU, UInt uiAbsPartIdx );
-  Void codeAlfQTSplitFlag ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth, UInt uiMaxDepth );
-#endif
-
   Void codeSkipFlag      ( TComDataCU* pcCU, UInt uiAbsPartIdx );
 #if HHI_MRG
   Void codeMergeFlag     ( TComDataCU* pcCU, UInt uiAbsPartIdx );
   Void codeMergeIndex    ( TComDataCU* pcCU, UInt uiAbsPartIdx );
 #endif
   Void codeSplitFlag     ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
-
-  Void codeMVPIdx ( TComDataCU* pcCU, UInt uiAbsPartIdx, RefPicList eRefList );
-#ifdef DCM_PBIC
-  Void codeICPIdx ( TComDataCU* pcCU, UInt uiAbsPartIdx );
-#endif
-
+  Void codeMVPIdx        ( TComDataCU* pcCU, UInt uiAbsPartIdx, RefPicList eRefList );
+  
   Void codePartSize      ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
   Void codePredMode      ( TComDataCU* pcCU, UInt uiAbsPartIdx );
-#if PLANAR_INTRA
-  Void codePlanarInfo    ( TComDataCU* pcCU, UInt uiAbsPartIdx );
-#endif
-
-#if HHI_RQT
-  Void codeTransformSubdivFlag( UInt uiSymbol, UInt uiCtx );
-  Void codeQtCbf         ( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eType, UInt uiTrDepth );
-#if HHI_RQT_ROOT
-  Void codeQtRootCbf     ( TComDataCU* pcCU, UInt uiAbsPartIdx );
-#endif
-#endif
-  Void codeTransformIdx  ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
-  Void codeIntraDirLuma  ( TComDataCU* pcCU, UInt uiAbsPartIdx );
-
-  Void codeIntraDirLumaAdi( TComDataCU* pcCU, UInt uiAbsPartIdx );
-#if ANG_INTRA
-  Void codeIntraDirLumaAng( TComDataCU* pcCU, UInt uiAbsPartIdx );
-#endif
-
-#if HHI_AIS
-  Void codeIntraFiltFlagLumaAdi( TComDataCU* pcCU, UInt uiAbsPartIdx );
-#endif
-
-  Void codeIntraDirChroma( TComDataCU* pcCU, UInt uiAbsPartIdx );
-  Void codeInterDir      ( TComDataCU* pcCU, UInt uiAbsPartIdx );
-  Void codeRefFrmIdx     ( TComDataCU* pcCU, UInt uiAbsPartIdx, RefPicList eRefList );
-  Void codeMvd           ( TComDataCU* pcCU, UInt uiAbsPartIdx, RefPicList eRefList );
-#ifdef DCM_PBIC
-  Void codeMvdIcd        ( TComDataCU* pcCU, UInt uiAbsPartIdx, RefPicList eRefList );
-  Void codeZTree         ( TComZeroTree* pcZTree, TComZTNode* pcZTNode, ContextModel *pcCtxModel );
-  ContextModel* getZTreeCtx ( Int iIdx );
-#endif
-
-  Void codeDeltaQP       ( TComDataCU* pcCU, UInt uiAbsPartIdx );
-  Void codeCbf           ( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eType, UInt uiTrDepth );
+  
+  Void codeTransformSubdivFlag ( UInt uiSymbol, UInt uiCtx );
+  Void codeQtCbf               ( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eType, UInt uiTrDepth );
+  Void codeQtRootCbf           ( TComDataCU* pcCU, UInt uiAbsPartIdx );
+  
+  Void codeIntraDirLumaAng     ( TComDataCU* pcCU, UInt uiAbsPartIdx );
+  
+  Void codeIntraDirChroma      ( TComDataCU* pcCU, UInt uiAbsPartIdx );
+  Void codeInterDir            ( TComDataCU* pcCU, UInt uiAbsPartIdx );
+  Void codeRefFrmIdx           ( TComDataCU* pcCU, UInt uiAbsPartIdx, RefPicList eRefList );
+  Void codeMvd                 ( TComDataCU* pcCU, UInt uiAbsPartIdx, RefPicList eRefList );
+  
+  Void codeDeltaQP             ( TComDataCU* pcCU, UInt uiAbsPartIdx );
 #if LCEC_CBP_YUV_ROOT
-  Void	codeBlockCbf						( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eType, UInt uiTrDepth, UInt uiQPartNum, Bool bRD = false );
+  Void codeCbf                 ( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eType, UInt uiTrDepth ) {}
+  Void codeBlockCbf            ( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eType, UInt uiTrDepth, UInt uiQPartNum, Bool bRD = false ) {}
 #endif
-
-#if QC_MDDT
-  Void codeCoeffNxN      ( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx, UInt uiWidth, UInt uiHeight, UInt uiDepth, TextType eTType, UInt uiMode, Bool bRD = false );
-#else
-  Void codeCoeffNxN      ( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx, UInt uiWidth, UInt uiHeight, UInt uiDepth, TextType eTType, Bool bRD = false );
-#endif
-  Void codeROTindex( TComDataCU* pcCU, UInt uiAbsPartIdx, Bool bRD );
-  Void codeCIPflag ( TComDataCU* pcCU, UInt uiAbsPartIdx, Bool bRD );
-
+  
+  Void codeCoeffNxN            ( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx, UInt uiWidth, UInt uiHeight, UInt uiDepth, TextType eTType, Bool bRD = false );
+  
   // -------------------------------------------------------------------------------------------------------------------
   // for RD-optimizatioon
   // -------------------------------------------------------------------------------------------------------------------
-
+  
   Void estBit                        ( estBitsSbacStruct* pcEstBitsSbac, UInt uiCTXIdx, TextType eTType );
   Void estCBFBit                     ( estBitsSbacStruct* pcEstBitsSbac, UInt uiCTXIdx, TextType eTType );
   Void estSignificantMapBit          ( estBitsSbacStruct* pcEstBitsSbac, UInt uiCTXIdx, TextType eTType );
   Void estSignificantCoefficientsBit ( estBitsSbacStruct* pcEstBitsSbac, UInt uiCTXIdx, TextType eTType );
-
+  
   __inline Int  biari_no_bits        ( Short symbol, ContextModel& rcSCModel );
-  Int  biari_state                   ( Short symbol, ContextModel& rcSCModel );
-#ifdef QC_SIFO
-	Void encodeSwitched_Filters(TComSlice* pcSlice,TComPrediction *m_cPrediction);
-#endif
+  
 private:
-  UInt m_uiLastQp;
+  UInt                 m_uiLastQp;
   ContextModel3DBuffer m_cCUSplitFlagSCModel;
-
   ContextModel3DBuffer m_cCUSkipFlagSCModel;
 #if HHI_MRG
   ContextModel3DBuffer m_cCUMergeFlagSCModel;
@@ -250,63 +179,25 @@ private:
   ContextModel3DBuffer m_cCUPredModeSCModel;
   ContextModel3DBuffer m_cCUAlfCtrlFlagSCModel;
   ContextModel3DBuffer m_cCUIntraPredSCModel;
-#if HHI_AIS
-  ContextModel3DBuffer m_cCUIntraFiltFlagSCModel;
-#endif
   ContextModel3DBuffer m_cCUChromaPredSCModel;
   ContextModel3DBuffer m_cCUDeltaQpSCModel;
   ContextModel3DBuffer m_cCUInterDirSCModel;
   ContextModel3DBuffer m_cCURefPicSCModel;
   ContextModel3DBuffer m_cCUMvdSCModel;
-#ifdef QC_AMVRES
-  ContextModel3DBuffer m_cCUMvResCModel;
-#endif
-#ifdef DCM_PBIC
-  ContextModel3DBuffer m_cCUIcdSCModel;
-#endif
-  ContextModel3DBuffer m_cCUCbfSCModel;
-#if HHI_RQT
   ContextModel3DBuffer m_cCUQtCbfSCModel;
   ContextModel3DBuffer m_cCUTransSubdivFlagSCModel;
-#if HHI_RQT_ROOT
   ContextModel3DBuffer m_cCUQtRootCbfSCModel;
-#endif
-#endif
-  ContextModel3DBuffer m_cCUTransIdxSCModel;
-
-#if HHI_TRANSFORM_CODING
-  ContextModel3DBuffer m_cCuCtxModSig;
-  ContextModel3DBuffer m_cCuCtxModLast;
-  ContextModel3DBuffer m_cCuCtxModAbsGreOne;
-  ContextModel3DBuffer m_cCuCtxModCoeffLevelM1;
-#else
-  ContextModel3DBuffer m_cCUMapSCModel;
+  
+  ContextModel3DBuffer m_cCUSigSCModel;
   ContextModel3DBuffer m_cCULastSCModel;
   ContextModel3DBuffer m_cCUOneSCModel;
   ContextModel3DBuffer m_cCUAbsSCModel;
-#endif
-
+  
   ContextModel3DBuffer m_cMVPIdxSCModel;
-#ifdef DCM_PBIC
-  ContextModel3DBuffer m_cICPIdxSCModel;
-  ContextModel3DBuffer m_cZTreeMV0SCModel;
-  ContextModel3DBuffer m_cZTreeMV1SCModel;
-  ContextModel3DBuffer m_cZTreeMV2SCModel;
-#endif
-
-  ContextModel3DBuffer m_cCUROTindexSCModel;
-  ContextModel3DBuffer m_cCUCIPflagCCModel;
-#if HHI_ALF
-  ContextModel3DBuffer m_cALFSplitFlagSCModel;
-#endif
+  
   ContextModel3DBuffer m_cALFFlagSCModel;
   ContextModel3DBuffer m_cALFUvlcSCModel;
   ContextModel3DBuffer m_cALFSvlcSCModel;
-  ContextModel3DBuffer m_cCUXPosiSCModel;
-  ContextModel3DBuffer m_cCUYPosiSCModel;
-#if PLANAR_INTRA
-  ContextModel3DBuffer m_cPlanarIntraSCModel;
-#endif
 };
 
 #endif // !defined(AFX_TENCSBAC_H__DDA7CDC4_EDE3_4015_9D32_2156249C82AA__INCLUDED_)

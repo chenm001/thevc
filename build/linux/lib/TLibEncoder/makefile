@@ -33,11 +33,6 @@ DEFS			= -DMSYS_LINUX
 # set objects
 OBJS          	= \
 			$(OBJ_DIR)/TEncBinCoderCABAC.o \
-			$(OBJ_DIR)/TEncBinCoderMultiCABAC.o \
-			$(OBJ_DIR)/TEncPIPETables.o \
-			$(OBJ_DIR)/TEncBinCoderPIPE.o \
-			$(OBJ_DIR)/TEncBinCoderMultiPIPE.o \
-			$(OBJ_DIR)/TEncBinCoderV2VwLB.o \
 			$(OBJ_DIR)/TEncAdaptiveLoopFilter.o \
 			$(OBJ_DIR)/TEncAnalyze.o \
 			$(OBJ_DIR)/TEncCavlc.o \
@@ -47,9 +42,7 @@ OBJS          	= \
 			$(OBJ_DIR)/TEncSbac.o \
 			$(OBJ_DIR)/TEncSearch.o \
 			$(OBJ_DIR)/TEncSlice.o \
-			$(OBJ_DIR)/TEncSIFO.o \
 			$(OBJ_DIR)/TEncTop.o \
-			$(OBJ_DIR)/TEncV2VTrees.o \
 
 LIBS				= -lpthread
 

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="9.00"
+	Version="9,00"
 	Name="TLibCommon"
 	ProjectGUID="{78018D78-F890-47E3-A0B7-09D273F0B11D}"
 	RootNamespace="TLibCommon"
@@ -291,10 +291,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\source\Lib\TLibCommon\TComBitBuffer.cpp"
-				>
-			</File>
-			<File
 				RelativePath="..\..\source\Lib\TLibCommon\TComBitStream.cpp"
 				>
 			</File>
@@ -304,18 +300,6 @@
 			</File>
 			<File
 				RelativePath="..\..\source\Lib\TLibCommon\TComDataCU.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\..\source\Lib\TLibCommon\TComEdgeBased.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\..\source\Lib\TLibCommon\TComIc.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\..\source\Lib\TLibCommon\TComICInfo.cpp"
 				>
 			</File>
 			<File
@@ -347,10 +331,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\source\Lib\TLibCommon\TComPredFilterMOMS.cpp"
-				>
-			</File>
-			<File
 				RelativePath="..\..\source\Lib\TLibCommon\TComPrediction.cpp"
 				>
 			</File>
@@ -372,10 +352,6 @@
 			</File>
 			<File
 				RelativePath="..\..\source\Lib\TLibCommon\TComYuv.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\..\source\Lib\TLibCommon\TComZeroTree.cpp"
 				>
 			</File>
 		</Filter>
@@ -405,11 +381,7 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\source\Lib\TLibCommon\TComBitBuffer.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\source\Lib\TLibCommon\TComBitcounter.h"
+				RelativePath="..\..\source\Lib\TLibCommon\TComBitCounter.h"
 				>
 			</File>
 			<File
@@ -422,18 +394,6 @@
 			</File>
 			<File
 				RelativePath="..\..\source\Lib\TLibCommon\TComDataCU.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\source\Lib\TLibCommon\TComEdgeBased.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\source\Lib\TLibCommon\TComIc.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\source\Lib\TLibCommon\TComICInfo.h"
 				>
 			</File>
 			<File
@@ -473,10 +433,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\source\Lib\TLibCommon\TComPredFilterMOMS.h"
-				>
-			</File>
-			<File
 				RelativePath="..\..\source\Lib\TLibCommon\TComPrediction.h"
 				>
 			</File>
@@ -498,10 +454,6 @@
 			</File>
 			<File
 				RelativePath="..\..\source\Lib\TLibCommon\TComYuv.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\source\Lib\TLibCommon\TComZeroTree.h"
 				>
 			</File>
 			<File

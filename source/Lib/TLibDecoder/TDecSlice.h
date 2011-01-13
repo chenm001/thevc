@@ -57,24 +57,16 @@ private:
   // access channel
   TDecEntropy*    m_pcEntropyDecoder;
   TDecCu*         m_pcCuDecoder;
-
-  // additional buffers for generated reference frames
-  TComPic*        m_apcVirtPic[2][GRF_MAX_NUM_EFF];
-
+  
 public:
   TDecSlice();
   virtual ~TDecSlice();
-
+  
   Void  init              ( TDecEntropy* pcEntropyDecoder, TDecCu* pcMbDecoder );
   Void  create            ( TComSlice* pcSlice, Int iWidth, Int iHeight, UInt uiMaxWidth, UInt uiMaxHeight, UInt uiMaxDepth );
   Void  destroy           ();
-
+  
   Void  decompressSlice   ( TComBitstream* pcBitstream, TComPic*& rpcPic );
-  Void  generateRefPicNew ( TComSlice* rpcSlice );
-#ifdef QC_SIFO
-  Void initSIFOFilters     (Int Tap, TComPrediction *m_cPrediction);     
-  Void initSeparableFilter(Int Tap, TComPrediction *m_cPrediction);
-#endif
 };
 
 #endif

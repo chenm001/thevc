@@ -51,11 +51,11 @@ class TComBitCounter : public TComBitIf
 {
 protected:
   UInt  m_uiBitCounter;
-
+  
 public:
   TComBitCounter()            {}
   virtual ~TComBitCounter()   {}
-
+  
   Void        write                 ( UInt uiBits, UInt uiNumberOfBits )  { m_uiBitCounter += uiNumberOfBits; }
   Void        resetBits             ()                                    { m_uiBitCounter = 0;               }
   UInt        getNumberOfWrittenBits()                                    { return m_uiBitCounter;            }

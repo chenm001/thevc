@@ -58,14 +58,13 @@ private:
   Int                     m_iGopSize;
   Bool                    m_bGopSizeSet;
   int                     m_iMaxRefPicNum;
-  UInt                    m_uiBalancedCPUs;
-
+  
   UInt                    m_uiValidPS;
   TComList<TComPic*>      m_cListPic;         //  Dynamic buffer
   TComSPS                 m_cSPS;
   TComPPS                 m_cPPS;
   TComSlice*              m_apcSlicePilot;
-
+  
   // functional classes
   TComPrediction          m_cPrediction;
   TComTrQuant             m_cTrQuant;
@@ -76,32 +75,25 @@ private:
   TDecCavlc               m_cCavlcDecoder;
   TDecSbac                m_cSbacDecoder;
   TDecBinCABAC            m_cBinCABAC;
-  TDecBinMultiCABAC       m_cBinMultiCABAC;
-  TDecBinPIPE             m_cBinPIPE;
-  TDecBinMultiPIPE        m_cBinMultiPIPE;
-  TDecV2V                 m_cBinV2VwLB;
   TComLoopFilter          m_cLoopFilter;
   TComAdaptiveLoopFilter  m_cAdaptiveLoopFilter;
-
+  
 public:
   TDecTop();
   virtual ~TDecTop();
-
+  
   Void  create  ();
   Void  destroy ();
-
+  
   Void  init();
   Void  decode ( Bool bEos, TComBitstream* pcBitstream, UInt& ruiPOC, TComList<TComPic*>*& rpcListPic );
-
+  
   Void  deletePicBuffer();
-
-  Void  setBalancedCPUs( UInt ui ) { m_uiBalancedCPUs = ui; }
-  UInt  getBalancedCPUs() { return m_cSPS.getBalancedCPUs(); }
-
+  
 protected:
   Void  xGetNewPicBuffer  (TComSlice* pcSlice, TComPic*& rpcPic);
   Void  xUpdateGopSize    (TComSlice* pcSlice);
-
+  
 };// END CLASS DEFINITION TDecTop
 
 

@@ -53,17 +53,17 @@ class TVideoIOBits
 {
 private:
   fstream   m_cHandle;                                      ///< file handle
-
+  
 public:
   TVideoIOBits()            {}
   virtual ~TVideoIOBits()   {}
-
+  
   Void openBits   ( char* pchFile,  Bool bWriteMode );      ///< open or create file
   Void closeBits  ();                                       ///< close file
-
+  
   Bool readBits   ( TComBitstream*& rpcBitstream    );      ///< read  one packet from file
   Void writeBits  ( TComBitstream*  pcBitstream     );      ///< write one packet to   file
-
+  
 };
 
 /// bitstream file I/O class
@@ -71,20 +71,20 @@ class TVideoIOBitsStartCode
 {
 private:
   fstream   m_cHandle;                                      ///< file handle
-
+  
 public:
   TVideoIOBitsStartCode()            {}
   virtual ~TVideoIOBitsStartCode()   {}
-
+  
   Void openBits   ( char* pchFile,  Bool bWriteMode );      ///< open or create file
   Void closeBits  ();                                       ///< close file
-
+  
   Bool readBits   ( TComBitstream*& rpcBitstream    );      ///< read  one packet from file
   Void writeBits  ( TComBitstream*  pcBitstream     );      ///< write one packet to   file
-
+  
 private:
   int xFindNextStartCode(UInt& ruiPacketSize, UChar* pucBuffer); ///< get packet size and number of startcode bytes and seeks to the packet's start position
-
+  
 };
 
 #endif // __TVIDEOIOBITS__

@@ -56,6 +56,7 @@ public:
   virtual Void        write                 ( UInt uiBits, UInt uiNumberOfBits )  = 0;
   virtual Void        resetBits             ()                                    = 0;
   virtual UInt        getNumberOfWrittenBits()                                    = 0;
+  virtual ~TComBitIf() {}
 };
 
 /// class for handling bitstream
@@ -65,17 +66,17 @@ protected:
   UInt*       m_apulStreamPacketBegin;
   UInt*       m_pulStreamPacket;
   UInt        m_uiBufSize;
-
+  
   UInt        m_uiBitSize;
   Int         m_iValidBits;
-
+  
   UInt        m_ulCurrentBits;
   UInt        m_uiBitsWritten;
-
+  
   UInt        m_uiDWordsLeft;
   UInt        m_uiBitsLeft;
   UInt        m_uiNextBits;
-
+  
   UInt xSwap ( UInt ui )
   {
     // heiko.schwarz@hhi.fhg.de: support for BSD systems as proposed by Steffen Kamp [kamp@ient.rwth-aachen.de]
@@ -83,27 +84,27 @@ protected:
     return ui;
 #else
     UInt ul2;
-
+    
     ul2  = ui>>24;
     ul2 |= (ui>>8) & 0x0000ff00;
     ul2 |= (ui<<8) & 0x00ff0000;
     ul2 |= ui<<24;
-
+    
     return ul2;
 #endif
   }
-
+  
   // read one word
   __inline Void xReadNextWord ();
-
+  
 public:
   TComBitstream()             {}
   virtual ~TComBitstream()    {}
-
+  
   // create / destroy
   Void        create          ( UInt uiSizeInBytes );
   Void        destroy         ();
-
+  
   // interface for encoding
   Void        write           ( UInt uiBits, UInt uiNumberOfBits );
   Void        writeAlignOne   ();
@@ -118,7 +119,7 @@ public:
   Void        initParsing     ( UInt uiNumBytes );
   Void        read            ( UInt uiNumberOfBits, UInt& ruiBits );
   Void        readAlignOne    ();
-
+  
   // reset internal status
   Void        resetBits       ()
   {
@@ -127,7 +128,7 @@ public:
     m_ulCurrentBits = 0;
     m_uiBitsWritten = 0;
   }
-
+  
   // utility functions
   UInt*       getStartStream()          { return m_apulStreamPacketBegin;               }
   UInt*       getBuffer()               { return  m_pulStreamPacket;                    }
@@ -140,5 +141,5 @@ public:
   UInt        getBitsLeft()             { return  m_uiBitsLeft;                         }
 };
 
-#endif // !defined(AFX_TCOMBITSTREAM_H__2E4715C6_F372_47DF_B57E_16BE63521320__INCLUDED_)
+#endif
 

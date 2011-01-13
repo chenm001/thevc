@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="9.00"
+	Version="9,00"
 	Name="TLibDecoder"
 	ProjectGUID="{F8B77A48-AF6C-4746-A89F-B706ABA6AD94}"
 	RootNamespace="TLibDecoder"
@@ -282,22 +282,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\source\Lib\TLibDecoder\TDecBinCoderMultiCABAC.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\..\source\Lib\TLibDecoder\TDecBinCoderMultiPIPE.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\..\source\Lib\TLibDecoder\TDecBinCoderPIPE.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\..\source\Lib\TLibDecoder\TDecBinCoderV2VwLB.cpp"
-				>
-			</File>
-			<File
 				RelativePath="..\..\source\Lib\TLibDecoder\TDecCAVLC.cpp"
 				>
 			</File>
@@ -314,10 +298,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\source\Lib\TLibDecoder\TDecPIPETables.cpp"
-				>
-			</File>
-			<File
 				RelativePath="..\..\source\Lib\TLibDecoder\TDecSbac.cpp"
 				>
 			</File>
@@ -327,10 +307,6 @@
 			</File>
 			<File
 				RelativePath="..\..\source\Lib\TLibDecoder\TDecTop.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\..\source\Lib\TLibDecoder\TDecV2VTrees.cpp"
 				>
 			</File>
 		</Filter>
@@ -344,22 +320,6 @@
 			</File>
 			<File
 				RelativePath="..\..\source\Lib\TLibDecoder\TDecBinCoderCABAC.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\source\Lib\TLibDecoder\TDecBinCoderMultiCABAC.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\source\Lib\TLibDecoder\TDecBinCoderMultiPIPE.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\source\Lib\TLibDecoder\TDecBinCoderPIPE.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\source\Lib\TLibDecoder\TDecBinCoderV2VwLB.h"
 				>
 			</File>
 			<File
@@ -379,10 +339,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\source\Lib\TLibDecoder\TDecPIPETables.h"
-				>
-			</File>
-			<File
 				RelativePath="..\..\source\Lib\TLibDecoder\TDecSbac.h"
 				>
 			</File>
@@ -392,10 +348,6 @@
 			</File>
 			<File
 				RelativePath="..\..\source\Lib\TLibDecoder\TDecTop.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\source\Lib\TLibDecoder\TDecV2VTrees.h"
 				>
 			</File>
 		</Filter>

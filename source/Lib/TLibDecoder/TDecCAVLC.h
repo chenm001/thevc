@@ -52,29 +52,21 @@ class TDecCavlc : public TDecEntropyIf
 public:
   TDecCavlc();
   virtual ~TDecCavlc();
-
+  
 protected:
   Void  xReadCode             (UInt uiLength, UInt& ruiCode);
   Void  xReadUvlc             (UInt& ruiVal);
   Void  xReadSvlc             (Int& riVal);
-#ifdef DCM_PBIC
-  Void  xReadSvlcNZ           (Int& riVal);
-#endif
   Void  xReadFlag             (UInt& ruiCode);
   Void  xReadEpExGolomb     ( UInt& ruiSymbol, UInt uiCount );
   Void  xReadExGolombLevel  ( UInt& ruiSymbol );
   Void  xReadUnaryMaxSymbol ( UInt& ruiSymbol, UInt uiMaxSymbol );
-
+  
   UInt  xGetBit             ();
   Int   xReadVlc            ( Int n );
   Void  xParseCoeff4x4      ( TCoeff* scoeff, Int iTableNumber );
   Void  xParseCoeff8x8      ( TCoeff* scoeff, Int iTableNumber );
-
-#if PLANAR_INTRA
-  UInt xParsePlanarVlc      ();
-  Int  xParsePlanarDelta    ( TextType ttText );
-#endif
-
+  
 private:
   TComBitstream*        m_pcBitstream;
   UInt                  m_uiCoeffCost;
@@ -85,18 +77,15 @@ private:
   UInt                      m_uiLPTableD4[3][32];
   UInt                      m_uiLPTableD8[10][128];
   UInt                      m_uiLastPosVlcIndex[10];
-
-#if LCEC_PHASE2
+  
   UInt                      m_uiCBPTableD[2][8];
   UInt                      m_uiCbpVlcIdx[2];
-#endif
-
+  
 #if QC_BLK_CBP
   UInt                      m_uiBlkCBPTableD[2][15];
   UInt                      m_uiBlkCbpVlcIdx;
 #endif
-
-#if LCEC_PHASE2
+  
   Int                   m_iRefFrame0[1000];
   Int                   m_iRefFrame1[1000];
   Bool                  m_bMVres0[1000];
@@ -104,102 +93,58 @@ private:
   UInt                  m_uiMI1TableD[8];
   UInt                  m_uiMI2TableD[15]; 
   UInt                  m_uiMITableVlcIdx;
-#endif
-
+  
 public:
   Void  resetEntropy        ( TComSlice* pcSlice  );
   Void  setBitstream        ( TComBitstream* p    )      { m_pcBitstream = p; }
   Void  setAlfCtrl          ( Bool bAlfCtrl )            { m_bAlfCtrl = bAlfCtrl; }
   Void  setMaxAlfCtrlDepth  ( UInt uiMaxAlfCtrlDepth )  { m_uiMaxAlfCtrlDepth = uiMaxAlfCtrlDepth; }
-
-#if HHI_RQT
-  Void parseTransformSubdivFlag( UInt& ruiSubdivFlag, UInt uiLog2TransformBlockSize );
-  Void parseQtCbf           ( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eType, UInt uiTrDepth, UInt uiDepth );
-#if HHI_RQT_ROOT
-  Void parseQtRootCbf       ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth, UInt& uiQtRootCbf );
-#endif
-#endif
+  
+  Void  parseTransformSubdivFlag( UInt& ruiSubdivFlag, UInt uiLog2TransformBlockSize );
+  Void  parseQtCbf          ( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eType, UInt uiTrDepth, UInt uiDepth );
+  Void  parseQtRootCbf      ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth, UInt& uiQtRootCbf );
   Void  parseAlfFlag        ( UInt& ruiVal );
   Void  parseAlfUvlc        ( UInt& ruiVal );
   Void  parseAlfSvlc        ( Int&  riVal  );
-
+  
   Void  parseSPS            ( TComSPS* pcSPS );
   Void  parsePPS            ( TComPPS* pcPPS);
   Void  parseSliceHeader    ( TComSlice*& rpcSlice );
   Void  parseTerminatingBit ( UInt& ruiBit );
-
+  
   Void  parseMVPIdx         ( TComDataCU* pcCU, Int& riMVPIdx, Int iMVPNum, UInt uiAbsPartIdx, UInt uiDepth, RefPicList eRefList );
-
-#ifdef DCM_PBIC
-  Void  parseICPIdx         ( TComDataCU* pcCU, Int& riICPIdx, Int iICPNum, UInt uiAbsPartIdx, UInt uiDepth );
-#endif
-
+  
   Void  parseSkipFlag       ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
 #if HHI_MRG
-#if HHI_MRG_PU
-  Void parseMergeFlag       ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth, UInt uiPUIdx );
-  Void parseMergeIndex      ( TComDataCU* pcCU, UInt& ruiMergeIndex, UInt uiAbsPartIdx, UInt uiDepth );
-#else
   Void parseMergeFlag       ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
   Void parseMergeIndex      ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
-#endif
 #endif
   Void parseSplitFlag       ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
   Void parsePartSize        ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
   Void parsePredMode        ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
-
-  Void parseIntraDirLuma    ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
-
-  Void parseIntraDirLumaAdi ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
-#if ANG_INTRA
+  
   Void parseIntraDirLumaAng ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
-#endif
-
-#if HHI_AIS
-  Void parseIntraFiltFlagLumaAdi ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
-#endif
+  
   Void parseIntraDirChroma  ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
-
+  
   Void parseInterDir        ( TComDataCU* pcCU, UInt& ruiInterDir, UInt uiAbsPartIdx, UInt uiDepth );
   Void parseRefFrmIdx       ( TComDataCU* pcCU, Int& riRefFrmIdx,  UInt uiAbsPartIdx, UInt uiDepth, RefPicList eRefList );
   Void parseMvd             ( TComDataCU* pcCU, UInt uiAbsPartAddr,UInt uiPartIdx,    UInt uiDepth, RefPicList eRefList );
-#ifdef DCM_PBIC
-  Void parseMvdIcd          ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiPartIdx, UInt uiDepth, RefPicList eRefList );
-  Int  parseZTree           ( TComZeroTree* pcZTree );
-  ContextModel* getZTreeCtx ( Int iIdx );
-#endif
-
-  Void parseTransformIdx    ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
+  
   Void parseDeltaQP         ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
-  Void parseCbf             ( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eType, UInt uiTrDepth, UInt uiDepth );
 #if LCEC_CBP_YUV_ROOT
-  Void	parseBlockCbf			  ( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eType, UInt uiTrDepth, UInt uiDepth, UInt uiQPartNum );
+  Void parseCbf             ( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eType, UInt uiTrDepth, UInt uiDepth );
+  Void parseBlockCbf        ( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eType, UInt uiTrDepth, UInt uiDepth, UInt uiQPartNum );
 #endif
   Void parseCoeffNxN        ( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx, UInt uiWidth, UInt uiHeight, UInt uiDepth, TextType eTType );
-
-  Void parseROTindex        ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
-  Void parseCIPflag         ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth);
-#if PLANAR_INTRA
-  Void parsePlanarInfo      ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth);
-#endif
-
+  
   Void parseAlfCtrlDepth    ( UInt& ruiAlfCtrlDepth );
   Void parseAlfCtrlFlag     ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
 #if TSB_ALF_HEADER
   Void parseAlfFlagNum      ( UInt& ruiVal, UInt minValue, UInt depth );
   Void parseAlfCtrlFlag     ( UInt &ruiAlfCtrlFlag );
 #endif
-
-#if HHI_ALF
-  Void parseAlfCoeff        ( Int& riCoeff, Int iLength, Int iPos );
-  Void parseAlfDc           ( Int& riDc    );
-  Void parseAlfQTCtrlFlag   ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
-  Void parseAlfQTSplitFlag  ( TComDataCU* pcCU ,UInt uiAbsPartIdx, UInt uiDepth, UInt uiMaxDepth );
-#endif
-#ifdef QC_SIFO
-  Void  parseSwitched_Filters      (TComSlice*& rpcSlice, TComPrediction* m_cPrediction);
-#endif
-
+  
 };
 #endif // !defined(AFX_TDECCAVLC_H__9732DD64_59B0_4A41_B29E_1A5B18821EAD__INCLUDED_)
 

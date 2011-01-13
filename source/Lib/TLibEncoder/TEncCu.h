@@ -51,7 +51,6 @@ class TEncTop;
 class TEncSbac;
 class TEncCavlc;
 class TEncSlice;
-class TEncBinCABAC4V2V;
 
 // ====================================================================================================================
 // Class definition
@@ -61,11 +60,11 @@ class TEncBinCABAC4V2V;
 class TEncCu
 {
 private:
-
+  
   TComDataCU**            m_ppcBestCU;      ///< Best CUs in each depth
   TComDataCU**            m_ppcTempCU;      ///< Temporary CUs in each depth
   UChar                   m_uhTotalDepth;
-
+  
   TComYuv**               m_ppcPredYuvBest; ///< Best Prediction Yuv for each depth
   TComYuv**               m_ppcResiYuvBest; ///< Best Residual Yuv for each depth
   TComYuv**               m_ppcRecoYuvBest; ///< Best Reconstruction Yuv for each depth
@@ -73,10 +72,10 @@ private:
   TComYuv**               m_ppcResiYuvTemp; ///< Temporary Residual Yuv for each depth
   TComYuv**               m_ppcRecoYuvTemp; ///< Temporary Reconstruction Yuv for each depth
   TComYuv**               m_ppcOrigYuv;     ///< Original Yuv for each depth
-
+  
   //  Data : encoder control
   Int                     m_iQp;            ///< Last QP
-
+  
   //  Access channel
   TEncCfg*                m_pcEncCfg;
   TComPrediction*         m_pcPrediction;
@@ -84,62 +83,51 @@ private:
   TComTrQuant*            m_pcTrQuant;
   TComBitCounter*         m_pcBitCounter;
   TComRdCost*             m_pcRdCost;
-
+  
   TEncEntropy*            m_pcEntropyCoder;
   TEncCavlc*              m_pcCavlcCoder;
   TEncSbac*               m_pcSbacCoder;
   TEncBinCABAC*           m_pcBinCABAC;
-  TEncBinMultiCABAC*      m_pcBinMultiCABAC;
-  TEncBinPIPE*            m_pcBinPIPE;
-  TEncBinMultiPIPE*       m_pcBinMultiPIPE;
-  TEncV2V*                m_pcBinV2VwLB;
-  TEncBinCABAC4V2V*       m_pcBinCABAC4V2V;
-
+  
   // SBAC RD
   TEncSbac***             m_pppcRDSbacCoder;
   TEncSbac*               m_pcRDGoOnSbacCoder;
   Bool                    m_bUseSBACRD;
-
+  
 public:
   /// copy parameters from encoder class
   Void  init                ( TEncTop* pcEncTop );
-
+  
   /// create internal buffers
   Void  create              ( UChar uhTotalDepth, UInt iMaxWidth, UInt iMaxHeight );
-
+  
   /// destroy internal buffers
   Void  destroy             ();
-
+  
   /// CU analysis function
   Void  compressCU          ( TComDataCU*&  rpcCU );
-
+  
   /// CU encoding function
   Void  encodeCU            ( TComDataCU*    pcCU );
-
+  
   /// set QP value
   Void  setQpLast           ( Int iQp ) { m_iQp = iQp; }
-
-  TEncBinCABAC* getCABAC()  { return m_pcBinCABAC; }
-  TEncBinCABAC4V2V* getCABAC4V2V() { return m_pcBinCABAC4V2V; }
-
+  
 protected:
   Void  xCompressCU         ( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, UInt uiDepth        );
   Void  xEncodeCU           ( TComDataCU*  pcCU, UInt uiAbsPartIdx,           UInt uiDepth        );
-
+  
   Void  xCheckRDCostAMVPSkip( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU                      );
-
-#if HHI_MRG && !HHI_MRG_PU
+  
+#if HHI_MRG
   Void  xCheckRDCostMerge   ( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU                      );
 #endif
-
+  
   Void  xCheckRDCostSkip    ( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, Bool bBSkipRes      );
   Void  xCheckRDCostInter   ( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, PartSize ePartSize  );
   Void  xCheckRDCostIntra   ( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, PartSize ePartSize  );
   Void  xCheckBestMode      ( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU                      );
-#if PLANAR_INTRA
-  Void  xCheckPlanarIntra   ( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU                      );
-#endif
-
+  
   Void  xCopyAMVPInfo       ( AMVPInfo* pSrc, AMVPInfo* pDst );
   Void  xCopyYuv2Pic        ( TComPic* rpcPic, UInt uiCUAddr, UInt uiAbsZorderIdx, UInt uiDepth );
   Void  xCopyYuv2Tmp        ( UInt uhPartUnitIdx, UInt uiDepth );

@@ -51,43 +51,35 @@ class TComPic
 {
 private:
   TComPicSym*           m_apcPicSym;              //  Symbol
-
-#if HHI_INTERP_FILTER
-  TComPicYuv*           m_apcPicYuv[3];           //  Texture,  0:org / 1:rec / 2:rec-filtered
-#else
+  
   TComPicYuv*           m_apcPicYuv[2];           //  Texture,  0:org / 1:rec
-#endif
-
+  
   TComPicYuv*           m_pcPicYuvPred;           //  Prediction
   TComPicYuv*           m_pcPicYuvResi;           //  Residual
   Bool                  m_bReconstructed;
-
+  
 public:
   TComPic();
   virtual ~TComPic();
-
+  
   Void          create( Int iWidth, Int iHeight, UInt uiMaxWidth, UInt uiMaxHeight, UInt uiMaxDepth, Bool bIsVirtual = false );
   Void          destroy();
-
+  
   TComPicSym*   getPicSym()           { return  m_apcPicSym;    }
   TComSlice*    getSlice()            { return  m_apcPicSym->getSlice();  }
   Int           getPOC()              { return  m_apcPicSym->getSlice()->getPOC();  }
   Bool          getDRBFlag()          { return  m_apcPicSym->getSlice()->getDRBFlag();  }
   Int           getERBIndex()         { return  m_apcPicSym->getSlice()->getERBIndex();  }
   TComDataCU*&  getCU( UInt uiCUAddr )  { return  m_apcPicSym->getCU( uiCUAddr ); }
-
+  
   TComPicYuv*   getPicYuvOrg()        { return  m_apcPicYuv[0]; }
   TComPicYuv*   getPicYuvRec()        { return  m_apcPicYuv[1]; }
-
-#if HHI_INTERP_FILTER
-  TComPicYuv*   getPicYuvRecFilt()    { return  m_apcPicYuv[2]; }
-#endif
-
+  
   TComPicYuv*   getPicYuvPred()       { return  m_pcPicYuvPred; }
   TComPicYuv*   getPicYuvResi()       { return  m_pcPicYuvResi; }
   Void          setPicYuvPred( TComPicYuv* pcPicYuv )       { m_pcPicYuvPred = pcPicYuv; }
   Void          setPicYuvResi( TComPicYuv* pcPicYuv )       { m_pcPicYuvResi = pcPicYuv; }
-
+  
   UInt          getNumCUsInFrame()      { return m_apcPicSym->getNumberOfCUsInFrame(); }
   UInt          getNumPartInWidth()     { return m_apcPicSym->getNumPartInWidth();     }
   UInt          getNumPartInHeight()    { return m_apcPicSym->getNumPartInHeight();    }
@@ -96,16 +88,16 @@ public:
   UInt          getFrameHeightInCU()    { return m_apcPicSym->getFrameHeightInCU();    }
   UInt          getMinCUWidth()         { return m_apcPicSym->getMinCUWidth();         }
   UInt          getMinCUHeight()        { return m_apcPicSym->getMinCUHeight();        }
-
+  
   UInt          getParPelX(UChar uhPartIdx) { return getParPelX(uhPartIdx); }
   UInt          getParPelY(UChar uhPartIdx) { return getParPelX(uhPartIdx); }
-
+  
   Int           getStride()           { return m_apcPicYuv[1]->getStride(); }
   Int           getCStride()          { return m_apcPicYuv[1]->getCStride(); }
-
+  
   Void          setReconMark (Bool b) { m_bReconstructed = b;     }
   Bool          getReconMark ()       { return m_bReconstructed;  }
-
+  
 };// END CLASS DEFINITION TComPic
 
 

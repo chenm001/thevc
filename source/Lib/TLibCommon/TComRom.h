@@ -38,10 +38,8 @@
 
 #include "CommonDef.h"
 
-#if HHI_RQT
 #include<stdio.h>
 #include<iostream>
-#endif
 
 // ====================================================================================================================
 // Macros
@@ -60,9 +58,7 @@ Void         initROM();
 Void         destroyROM();
 Void         initFrameScanXY( UInt* pBuff, UInt* pBuffX, UInt* pBuffY, Int iWidth, Int iHeight );
 
-#if HHI_TRANSFORM_CODING
 Void         initSigLastScanPattern( UInt* puiScanPattern, const UInt uiLog2BlockSize, const bool bDownLeft );
-#endif
 
 // ====================================================================================================================
 // Data structure related table & variable
@@ -86,10 +82,6 @@ extern       UInt g_uiMaxCUWidth;
 extern       UInt g_uiMaxCUHeight;
 extern       UInt g_uiMaxCUDepth;
 extern       UInt g_uiAddCUDepth;
-
-#if HHI_MRG_PU
-extern       UInt g_auiPUOffset[8];
-#endif
 
 // ====================================================================================================================
 // Quantization & DeQuantization
@@ -123,62 +115,7 @@ extern       UInt*  g_auiFrameScanX [ MAX_CU_DEPTH  ];    // raster index (x) fr
 extern       UInt*  g_auiFrameScanY [ MAX_CU_DEPTH  ];    // raster index (y) from scanning index
 extern       UInt   g_auiAntiScan8[64];                   // 2D context mapping for coefficients
 
-#if QC_MDDT//ADAPTIVE_SCAN
-extern  UInt *scanOrder4x4[9];
-extern  UInt *scanOrder4x4X[9];
-extern  UInt *scanOrder4x4Y[9];
-extern  UInt *scanOrder8x8[9];
-extern  UInt *scanOrder8x8X[9];
-extern  UInt *scanOrder8x8Y[9];
-extern  UInt *scanStats4x4[9];
-extern  UInt *scanStats8x8[9];
-
-extern  UInt *scanOrder16x16[NUM_SCANS_16x16];
-extern  UInt *scanOrder16x16X[NUM_SCANS_16x16];
-extern  UInt *scanOrder16x16Y[NUM_SCANS_16x16];
-extern  UInt *scanStats16x16[NUM_SCANS_16x16];
-
-extern  UInt *scanOrder32x32[NUM_SCANS_32x32];
-extern  UInt *scanOrder32x32X[NUM_SCANS_32x32];
-extern  UInt *scanOrder32x32Y[NUM_SCANS_32x32];
-extern  UInt *scanStats32x32[NUM_SCANS_32x32];
-
-extern  UInt *scanOrder64x64[NUM_SCANS_64x64];
-extern  UInt *scanOrder64x64X[NUM_SCANS_64x64];
-extern  UInt *scanOrder64x64Y[NUM_SCANS_64x64];
-extern  UInt *scanStats64x64[NUM_SCANS_64x64];
-
-extern  int  update4x4Count[9];
-extern  int  update8x8Count[9];
-
-extern Int g_aiDequantCoef_klt[6][16];
-extern UInt g_aiQuantCoef_klt[6][16] ;
-extern Int g_aiDequantCoef64_klt[6][64];
-extern UInt g_aiQuantCoef64_klt[6][64];
-
-#if SCAN_LUT_FIX
-extern const char LUT16x16[5][34];
-extern const char LUT32x32[5][34];
-#else
-extern const char LUT16x16[5][33];
-extern const char LUT32x32[5][33];
-#endif
-
-extern const char LUT64x64[5][5];
-
-extern Bool g_bUpdateStats;
-
-
-extern const Short kltRow4x4[9][4][4];
-extern const Short kltCol4x4[9][4][4];
-extern const Short kltRow8x8[9][8][8];
-extern const Short kltCol8x8[9][8][8];
-
-
-#endif
-#if HHI_TRANSFORM_CODING
 extern       UInt*  g_auiSigLastScan[ MAX_CU_DEPTH+1  ][ 2 ];
-#endif
 
 // ====================================================================================================================
 // CAVLC table
@@ -195,13 +132,8 @@ extern const UChar  g_aucLenTableTO4 [4][5];
 extern const UChar  g_aucACTab[6];
 extern const UChar  g_aucFrameBits[32];
 
-#if LCEC_PHASE2
 extern const UInt    g_auiLPTableE8[8][128];
 extern const UInt    g_auiLPTableD8[8][128];
-#else
-extern const UInt    g_auiLPTableE8[10][128];
-extern const UInt    g_auiLPTableD8[10][128];
-#endif
 extern const UInt    g_auiLPTableE4[3][32];
 extern const UInt    g_auiLPTableD4[3][32];
 extern const UInt    g_auiLastPosVlcIndex[10];
@@ -210,12 +142,9 @@ extern const UInt    g_auiLumaRun8x8[29][2][64];
 extern const UInt    g_auiVlcTable8x8[28];
 extern const LastCoeffStruct g_acstructLumaRun8x8[29][127];
 
-#if LCEC_PHASE2
 extern const UInt    g_auiCBPTableE[2][8];
 extern const UInt    g_auiCBPTableD[2][8];
 extern const UInt    g_auiCbpVlcNum[2][8];
-
-#endif
 
 #if QC_BLK_CBP
 extern const UInt    g_auiBlkCBPTableE[2][15];
@@ -223,12 +152,11 @@ extern const UInt    g_auiBlkCBPTableD[2][15];
 extern const UInt    g_auiBlkCbpVlcNum[15];
 #endif
 
-#if LCEC_PHASE2
 extern const UInt g_auiMI1TableE[8];
 extern const UInt g_auiMI1TableD[8];
 extern const UInt g_auiMI2TableE[15];
 extern const UInt g_auiMI2TableD[15];
-extern const UInt    g_auiMITableVlcNum[15];
+extern const UInt g_auiMITableVlcNum[15];
 
 #if MS_NO_BACK_PRED_IN_B0
 extern const UInt g_auiMI1TableENoL1[8];
@@ -236,61 +164,21 @@ extern const UInt g_auiMI1TableDNoL1[8];
 extern const UInt g_auiMI2TableENoL1[15];
 extern const UInt g_auiMI2TableDNoL1[15];
 #endif
-#endif
-
-
 
 // ====================================================================================================================
 // ADI table
 // ====================================================================================================================
 
-extern const UChar  g_aucIntraFilter[7][40];
-extern const UChar  g_aucIntraModeOrder[7][40];
-extern const UChar  g_aucIntraModeConv[7][40];
-extern const UChar  g_aucIntraModeConvInv[7][9];
-extern const UChar  g_aucIntraModeNum[7];
-extern const UChar  g_aucIntraModeBits[7];
 extern const UChar  g_aucIntraModeNumFast[7];
-extern const UChar  g_aucIntraAvail[40][2];
-extern const UChar  g_aucXYflg[40];
-extern const Char   g_aucDirDx[32];
-extern const Char   g_aucDirDy[32];
-extern const UChar  g_aucIntraModeConvC[7][40];
-extern const UChar  g_aucIntraModeConvInvC[7][9];
-extern const UChar  g_aucIntraModeNumC[7];
-extern const UChar  g_aucIntraModeBitsC[7];
 
-#if ANG_INTRA
 // ====================================================================================================================
 // Angular Intra table
 // ====================================================================================================================
-# if UNIFIED_DIRECTIONAL_INTRA
+
 extern const UChar g_aucIntraModeNumAng[7];
 extern const UChar g_aucIntraModeBitsAng[7];
 extern const UChar g_aucAngModeMapping[3][34];
-# endif
-
 extern const UChar g_aucAngIntraModeOrder[34];
-#endif
-
-#if QC_MDDT
-extern const UChar g_aucAngIntra9Mode[34];
-# if UNIFIED_DIRECTIONAL_INTRA || ANG_INTRA==2
-extern const UChar g_aucIntra9Mode[34];
-# else
-extern const UChar g_aucIntra9Mode[33];
-# endif
-#endif
-
-// ====================================================================================================================
-// ROT table
-// ====================================================================================================================
-
-extern const Int    g_FWD_ROT_MATRIX_4[4][18];
-extern const Int    g_FWD_ROT_MATRIX_8[4][36];
-extern const Int    g_INV_ROT_MATRIX_4[4][18];
-extern const Int    g_INV_ROT_MATRIX_8[4][36];
-extern const Int    g_auiROTFwdShift[5];
 
 // ====================================================================================================================
 // Bit-depth
@@ -312,26 +200,6 @@ extern const UChar g_aucConvertTxtTypeToIdx[4];
 // ====================================================================================================================
 
 extern       Char   g_aucConvertToBit  [ MAX_CU_SIZE+1 ];   // from width to log2(width)-2
-
-#if HHI_RQT
-
-__inline UInt gCeilLog2( const UInt uiVal )
-{
-  if( uiVal <= MAX_CU_SIZE )
-  {
-    return g_aucConvertToBit[uiVal]+2;
-  }
-  UInt uiTmp = uiVal-1;
-  UInt uiRet = 0;
-
-  while( uiTmp != 0 )
-  {
-    uiTmp >>= 1;
-    uiRet++;
-  }
-  return uiRet;
-}
-
 
 #define ENC_DEC_TRACE 0
 
@@ -364,7 +232,6 @@ extern UInt64 g_nSymbolCounter;
 
 #endif
 
-#endif
 
 #endif  //__TCOMROM__
 

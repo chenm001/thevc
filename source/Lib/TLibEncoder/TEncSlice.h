@@ -56,32 +56,26 @@ class TEncSlice
 private:
   // encoder configuration
   TEncCfg*                m_pcCfg;                              ///< encoder configuration class
-
+  
   // pictures
   TComList<TComPic*>*     m_pcListPic;                          ///< list of pictures
   TComPicYuv*             m_apcPicYuvPred;                      ///< prediction picture buffer
   TComPicYuv*             m_apcPicYuvResi;                      ///< residual picture buffer
-  TComPic*                m_apcVirtPic[2][GRF_MAX_NUM_EFF];     ///< virtual picture buffer for GRF
-
+  
   // processing units
   TEncGOP*                m_pcGOPEncoder;                       ///< GOP encoder
   TEncCu*                 m_pcCuEncoder;                        ///< CU encoder
-
+  
   // encoder search
   TEncSearch*             m_pcPredSearch;                       ///< encoder search class
-
+  
   // coding tools
   TEncEntropy*            m_pcEntropyCoder;                     ///< entropy encoder
   TEncCavlc*              m_pcCavlcCoder;                       ///< CAVLC encoder
   TEncSbac*               m_pcSbacCoder;                        ///< SBAC encoder
   TEncBinCABAC*           m_pcBinCABAC;                         ///< Bin encoder CABAC
-  TEncBinMultiCABAC*      m_pcBinMultiCABAC;                    ///< Bin encoder CABAC with multiple partitions
-  TEncBinPIPE*            m_pcBinPIPE;                          ///< Bin encoder PIPE
-  TEncBinMultiPIPE*       m_pcBinMultiPIPE;                     ///< Bin encoder PIPE with multiple partitions
-  TEncV2V*                m_pcBinV2VwLB;                        ///< Bin encoder V2V with load balancing
   TComTrQuant*            m_pcTrQuant;                          ///< transform & quantization
-  TEncBinCABAC4V2V*       m_pcBinCABAC4V2V;                     ///< Bin encoder CABAC
-
+  
   // RD optimization
   TComBitCounter*         m_pcBitCounter;                       ///< bit counter
   TComRdCost*             m_pcRdCost;                           ///< RD cost computation
@@ -93,41 +87,29 @@ private:
   Double*                 m_pdRdPicLambda;                      ///< array of lambda candidates
   Double*                 m_pdRdPicQp;                          ///< array of picture QP candidates (double-type for lambda)
   Int*                    m_piRdPicQp;                          ///< array of picture QP candidates (int-type)
-
-  UInt                    m_uiV2V;
-
-protected:
-  Bool    xEstimateWPSlice    ( TComSlice* rpcSlice, RefPicList eRefPicList, EFF_MODE eEffMode  );  ///< generate effect virtual ref.
-
-  Double  xComputeImgSum      ( Pel* img,                   Int width, Int height, Int stride   );  ///< compute sum of pixel values
-  Double  xComputeNormMean    ( Pel* img, Double meanValue, Int width, Int height, Int stride   );  ///< compute sum of abs pixel values
-
+  
 public:
   TEncSlice();
   virtual ~TEncSlice();
-
+  
   Void    create              ( Int iWidth, Int iHeight, UInt iMaxCUWidth, UInt iMaxCUHeight, UChar uhTotalDepth );
   Void    destroy             ();
   Void    init                ( TEncTop* pcEncTop );
-
+  
   /// preparation of slice encoding (reference marking, QP and lambda)
   Void    initEncSlice        ( TComPic*  pcPic, Int iPOCLast, UInt uiPOCCurr, Int iNumPicRcvd,
-                                Int iTimeOffset, Int iDepth,   TComSlice*& rpcSlice );
-
+                               Int iTimeOffset, Int iDepth,   TComSlice*& rpcSlice );
+  
   // compress and encode slice
   Void    precompressSlice    ( TComPic*& rpcPic                                );      ///< precompress slice for multi-loop opt.
   Void    compressSlice       ( TComPic*& rpcPic                                );      ///< analysis stage of slice
   Void    encodeSlice         ( TComPic*& rpcPic, TComBitstream*& rpcBitstream  );      ///< entropy coding of slice
-
+  
   // misc. functions
   Void    setSearchRange      ( TComSlice* pcSlice  );                                  ///< set ME range adaptively
-  Void    generateRefPicNew   ( TComSlice* rpcSlice );                                  ///< generate virtual reference frames
   UInt64  getTotalBits        ()  { return m_uiPicTotalBits; }
-
+  
   TEncCu*        getCUEncoder() { return m_pcCuEncoder; }                        ///< CU encoder
-
-  UInt    getV2Vflag()          { return m_uiV2V; }
-  Void    setV2Vflag( UInt ui ) { m_uiV2V = ui;   }
 };
 
 

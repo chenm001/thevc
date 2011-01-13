@@ -37,11 +37,7 @@ OBJS          	= \
 			$(OBJ_DIR)/TComCABACTables.o \
 			$(OBJ_DIR)/TComAdaptiveLoopFilter.o \
 			$(OBJ_DIR)/TComBitStream.o \
-			$(OBJ_DIR)/TComBitBuffer.o \
 			$(OBJ_DIR)/TComDataCU.o \
-			$(OBJ_DIR)/TComEdgeBased.o \
-			$(OBJ_DIR)/TComIc.o \
-			$(OBJ_DIR)/TComICInfo.o \
 			$(OBJ_DIR)/TComLoopFilter.o \
 			$(OBJ_DIR)/TComMotionInfo.o \
 			$(OBJ_DIR)/TComPattern.o \
@@ -49,14 +45,12 @@ OBJS          	= \
 			$(OBJ_DIR)/TComPicSym.o \
 			$(OBJ_DIR)/TComPicYuv.o \
 			$(OBJ_DIR)/TComPredFilter.o \
-			$(OBJ_DIR)/TComPredFilterMOMS.o \
 			$(OBJ_DIR)/TComPrediction.o \
 			$(OBJ_DIR)/TComRdCost.o \
 			$(OBJ_DIR)/TComRom.o \
 			$(OBJ_DIR)/TComSlice.o \
 			$(OBJ_DIR)/TComTrQuant.o \
 			$(OBJ_DIR)/TComYuv.o \
-			$(OBJ_DIR)/TComZeroTree.o \
 
 LIBS				= -lpthread
 

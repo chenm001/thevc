@@ -48,10 +48,6 @@
 #include "TEncSbac.h"
 #include "TEncCfg.h"
 
-#if HHI_INTERP_FILTER
-#include "../TLibCommon/TComPredFilterMOMS.h"
-#endif
-
 class TEncCu;
 
 // ====================================================================================================================
@@ -61,7 +57,6 @@ class TEncCu;
 /// encoder search class
 class TEncSearch : public TComPrediction
 {
-#if HHI_RQT
 private:
   TCoeff**        m_ppcQTTempCoeffY;
   TCoeff**        m_ppcQTTempCoeffCb;
@@ -71,18 +66,17 @@ private:
   TCoeff*         m_pcQTTempCoeffCr;
   UChar*          m_puhQTTempTrIdx;
   UChar*          m_puhQTTempCbf[3];
-
+  
   TComYuv*        m_pcQTTempTComYuv;
-#endif
 protected:
   // interface to option
   TEncCfg*        m_pcEncCfg;
-
+  
   // interface to classes
   TComTrQuant*    m_pcTrQuant;
   TComRdCost*     m_pcRdCost;
   TEncEntropy*    m_pcEntropyCoder;
-
+  
   // ME parameters
   Int             m_iSearchRange;
   Int             m_iFastSearch;
@@ -90,73 +84,48 @@ protected:
   TComMv          m_cSrchRngLT;
   TComMv          m_cSrchRngRB;
   TComMv          m_acMvPredictors[3];
-
+  
   // RD computation
   TEncSbac***     m_pppcRDSbacCoder;
   TEncSbac*       m_pcRDGoOnSbacCoder;
   Bool            m_bUseSBACRD;
   DistParam       m_cDistParam;
-
+  
   // Misc.
   Pel*            m_pTempPel;
   UInt*           m_puiDFilter;
   Int             m_iDIFTap2;
   Int             m_iMaxDeltaQP;
-
+  
   // AMVP cost computation
   // UInt            m_auiMVPIdxCost[AMVP_MAX_NUM_CANDS+1][AMVP_MAX_NUM_CANDS];
   UInt            m_auiMVPIdxCost[AMVP_MAX_NUM_CANDS+1][AMVP_MAX_NUM_CANDS+1]; //th array bounds
-#ifdef DCM_PBIC
-  UInt            m_auiICPIdxCost[AICP_MAX_NUM_CANDS+1][AICP_MAX_NUM_CANDS+1];
-#endif
-
-#if HHI_IMVP
-  MvPredMeasure   m_cMvPredMeasure;
-#endif
-
+  
 public:
   TEncSearch();
   virtual ~TEncSearch();
-
+  
   Void init(  TEncCfg*      pcEncCfg,
-              TComTrQuant*  pcTrQuant,
-              Int           iSearchRange,
-              Int           iFastSearch,
-              Int           iMaxDeltaQP,
-              TEncEntropy*  pcEntropyCoder,
-              TComRdCost*   pcRdCost,
-              TEncSbac***   pppcRDSbacCoder,
-              TEncSbac*     pcRDGoOnSbacCoder );
-
+            TComTrQuant*  pcTrQuant,
+            Int           iSearchRange,
+            Int           iFastSearch,
+            Int           iMaxDeltaQP,
+            TEncEntropy*  pcEntropyCoder,
+            TComRdCost*   pcRdCost,
+            TEncSbac***   pppcRDSbacCoder,
+            TEncSbac*     pcRDGoOnSbacCoder );
+  
 protected:
-
+  
   /// sub-function for motion vector refinement used in fractional-pel accuracy
 #ifdef ROUNDING_CONTROL_BIPRED
   UInt  xPatternRefinement_Bi( TComPattern* pcPatternKey, Pel* piRef, Int iRefStride, Int iIntStep, Int iFrac, TComMv& rcMvFrac, Pel* pRefY2, Bool bRound );
-#ifdef QC_AMVRES
-#if HHI_INTERP_FILTER
-  UInt xPatternRefinementHAM_MOMS_Bi    ( TComPattern* pcPatternKey, Pel* piRef, Int iRefStride, Int iIntStep, TComMv& rcMvFrac ,UInt  uiDistBest_onefourth, InterpFilterType ePFilt,TComMv* PredMv, Pel* pRefY2, Bool bRound );
 #endif
-  UInt xPatternRefinementHAM_DIF_Bi    ( TComPattern* pcPatternKey, Pel* piRef, Int iRefStride, Int iIntStep, TComMv& rcMvFrac ,UInt  uiDistBest_onefourth,TComMv* predMV, Pel* pRefY2, Bool bRound );
-#endif
-#endif
-
+  
   UInt  xPatternRefinement( TComPattern* pcPatternKey, Pel* piRef, Int iRefStride, Int iIntStep, Int iFrac, TComMv& rcMvFrac );
-
-#ifdef QC_AMVRES
-#if HHI_INTERP_FILTER
-  UInt xPatternRefinementHAM_MOMS    ( TComPattern* pcPatternKey, Pel* piRef, Int iRefStride, Int iIntStep, TComMv& rcMvFrac ,UInt  uiDistBest_onefourth, InterpFilterType ePFilt,TComMv* PredMv);
-#endif
-  UInt xPatternRefinementHAM_DIF    ( TComPattern* pcPatternKey, Pel* piRef, Int iRefStride, Int iIntStep, TComMv& rcMvFrac ,UInt  uiDistBest_onefourth,TComMv* predMV);
-#endif
-#if ANG_INTRA
-  Bool predIntraLumaDirAvailable( UInt uiMode, UInt uiWidthBit, Bool angIntraEnabled, Bool bAboveAvail, Bool bLeftAvail);
-#endif
-
-#if PLANAR_INTRA
-  Void xIntraPlanarRecon( TComDataCU* pcCU, UInt uiAbsPartIdx, Pel* piOrg, Pel* piPred, Pel* piResi, Pel* piReco, UInt uiStride, TCoeff* piCoeff, UInt uiWidth, UInt uiHeight, UInt uiCurrDepth, TextType eText );
-#endif
-
+  
+  Bool predIntraLumaDirAvailable( UInt uiMode, UInt uiWidthBit, Bool bAboveAvail, Bool bLeftAvail);
+  
   typedef struct
   {
     Pel*  piRefY;
@@ -168,40 +137,14 @@ protected:
     UInt  uiBestSad;
     UChar ucPointNr;
   } IntTZSearchStruct;
-
+  
   // sub-functions for ME
   __inline Void xTZSearchHelp         ( TComPattern* pcPatternKey, IntTZSearchStruct& rcStruct, const Int iSearchX, const Int iSearchY, const UChar ucPointNr, const UInt uiDistance );
   __inline Void xTZ2PointSearch       ( TComPattern* pcPatternKey, IntTZSearchStruct& rcStrukt, TComMv* pcMvSrchRngLT, TComMv* pcMvSrchRngRB );
   __inline Void xTZ8PointSquareSearch ( TComPattern* pcPatternKey, IntTZSearchStruct& rcStrukt, TComMv* pcMvSrchRngLT, TComMv* pcMvSrchRngRB, const Int iStartX, const Int iStartY, const Int iDist );
   __inline Void xTZ8PointDiamondSearch( TComPattern* pcPatternKey, IntTZSearchStruct& rcStrukt, TComMv* pcMvSrchRngLT, TComMv* pcMvSrchRngRB, const Int iStartX, const Int iStartY, const Int iDist );
-
+  
 public:
-
-  /// encoder estimation - intra prediction (luma)
-  Void predIntraLumaAdiSearch   ( TComDataCU* pcCU,
-                                  TComYuv*    pcOrgYuv,
-                                  TComYuv*&   rpcPredYuv,
-                                  TComYuv*&   rpcResiYuv,
-                                  TComYuv*&   rpcRecoYuv );
-
-#if PLANAR_INTRA
-  /// encoder estimation - planar intra prediction (luma & chroma)
-  Void predIntraPlanarSearch    ( TComDataCU* pcCU,
-                                  TComYuv*    pcOrgYuv,
-                                  TComYuv*&   rpcPredYuv,
-                                  TComYuv*&   rpcResiYuv,
-                                  TComYuv*&   rpcRecoYuv );
-#endif
-
-  /// encoder estimation - intra prediction (chroma)
-  Void predIntraChromaAdiSearch ( TComDataCU* pcCU,
-                                  TComYuv*    pcOrgYuv,
-                                  TComYuv*&   rpcPredYuv,
-                                  TComYuv*&   rpcResiYuv,
-                                  TComYuv*&   rpcRecoYuv,
-                                  UInt        uiChromaTrMode );
-
-#if HHI_RQT_INTRA
   Void  preestChromaPredMode    ( TComDataCU* pcCU, 
                                   TComYuv*    pcOrgYuv, 
                                   TComYuv*    pcPredYuv );
@@ -218,9 +161,8 @@ public:
                                   TComYuv*    pcResiYuv, 
                                   TComYuv*    pcRecoYuv,
                                   UInt        uiPreCalcDistC );
-#endif
-
-
+  
+  
   /// encoder estimation - inter prediction (non-skip)
   Void predInterSearch          ( TComDataCU* pcCU,
                                   TComYuv*    pcOrgYuv,
@@ -228,14 +170,14 @@ public:
                                   TComYuv*&   rpcResiYuv,
                                   TComYuv*&   rpcRecoYuv,
                                   Bool        bUseRes = false );
-
+  
   /// encoder estimation - intra prediction (skip)
   Void predInterSkipSearch      ( TComDataCU* pcCU,
                                   TComYuv*    pcOrgYuv,
                                   TComYuv*&   rpcPredYuv,
                                   TComYuv*&   rpcResiYuv,
                                   TComYuv*&   rpcRecoYuv );
-
+  
 #if HHI_MRG
   /// encoder estimation - inter prediction (merge)
   Void predInterMergeSearch      ( TComDataCU* pcCU,
@@ -244,33 +186,27 @@ public:
                                    TComYuv*&   rpcResiYuv,
                                    TComYuv*&   rpcRecoYuv,
                                    TComMvField cMFieldNeighbourToTest[2],
-#ifdef DCM_PBIC
-                                   TComIc      cIcNeighbourToTest,
-#endif
                                    UChar uhInterDirNeighbourToTest);
 #endif
-
+  
   /// encode residual and compute rd-cost for inter mode
   Void encodeResAndCalcRdInterCU( TComDataCU* pcCU,
                                   TComYuv*    pcYuvOrg,
                                   TComYuv*    pcYuvPred,
                                   TComYuv*&   rpcYuvResi,
-#if HHI_RQT
                                   TComYuv*&   rpcYuvResiBest,
-#endif
                                   TComYuv*&   rpcYuvRec,
                                   Bool        bSkipRes );
-
+  
   /// set ME search range
   Void setAdaptiveSearchRange   ( Int iDir, Int iRefIdx, Int iSearchRange) { m_aaiAdaptSR[iDir][iRefIdx] = iSearchRange; }
-
+  
 protected:
-
+  
   // -------------------------------------------------------------------------------------------------------------------
-  // Intra search (ADI & CIP)
+  // Intra search
   // -------------------------------------------------------------------------------------------------------------------
-
-#if HHI_RQT_INTRA
+  
   Void  xEncSubdivCbfQT           ( TComDataCU*  pcCU,
                                     UInt         uiTrDepth,
                                     UInt         uiAbsPartIdx,
@@ -292,7 +228,7 @@ protected:
                                     Bool         bLuma,
                                     Bool         bChroma,
                                     Bool         bRealCoeff );
-
+  
   Void  xIntraCodingLumaBlk       ( TComDataCU*  pcCU,
                                     UInt         uiTrDepth,
                                     UInt         uiAbsPartIdx,
@@ -318,16 +254,16 @@ protected:
                                     UInt&        ruiDistY,
                                     UInt&        ruiDistC,
 #if HHI_RQT_INTRA_SPEEDUP
-                                    Bool         bCheckFirst,
+                                   Bool         bCheckFirst,
 #endif
-                                    Double&      dRDCost );
-
+                                   Double&      dRDCost );
+  
   Void  xSetIntraResultQT         ( TComDataCU*  pcCU,
                                     UInt         uiTrDepth,
                                     UInt         uiAbsPartIdx,
                                     Bool         bLumaOnly,
                                     TComYuv*     pcRecoYuv );
-
+  
   Void  xRecurIntraChromaCodingQT ( TComDataCU*  pcCU, 
                                     UInt         uiTrDepth,
                                     UInt         uiAbsPartIdx, 
@@ -339,8 +275,7 @@ protected:
                                     UInt         uiTrDepth,
                                     UInt         uiAbsPartIdx,
                                     TComYuv*     pcRecoYuv );
-#endif
-
+  
   Void xRecurIntraLumaSearchADI   ( TComDataCU* pcCU,
                                     UInt        uiAbsPartIdx,
                                     Pel*        piOrg,
@@ -350,9 +285,6 @@ protected:
                                     UInt        uiStride,
                                     TCoeff*     piCoeff,
                                     UInt        uiMode,
-#if HHI_AIS
-                                    Bool        bSmoothing,
-#endif
                                     UInt        uiWidth,
                                     UInt        uiHeight,
                                     UInt        uiMaxDepth,
@@ -360,7 +292,7 @@ protected:
                                     Bool        bAbove,
                                     Bool        bLeft,
                                     Bool        bSmallTrs );
-
+  
   Void xRecurIntraChromaSearchADI ( TComDataCU* pcCU,
                                     UInt        uiAbsPartIdx,
                                     Pel*        piOrg,
@@ -375,23 +307,11 @@ protected:
                                     UInt        uiMaxDepth,
                                     UInt        uiCurrDepth,
                                     TextType    eText );
-
-  Void xPredIntraLumaNxNCIPEnc    ( TComPattern*  pcTComPattern,
-                                    Pel*          pOrig,
-                                    Pel*          pPredCL,
-                                    UInt          uiStride,
-                                    Pel*          pPred,
-                                    UInt          uiPredStride,
-                                    Int           iWidth,
-                                    Int           iHeight,
-                                    TComDataCU*   pcCU,
-                                    Bool          bAboveAvail,
-                                    Bool          bLeftAvail );
-
+  
   // -------------------------------------------------------------------------------------------------------------------
   // Inter search (AMP)
   // -------------------------------------------------------------------------------------------------------------------
-
+  
   Void xEstimateMvPredAMVP        ( TComDataCU* pcCU,
                                     TComYuv*    pcOrgYuv,
                                     UInt        uiPartIdx,
@@ -399,7 +319,7 @@ protected:
                                     Int         iRefIdx,
                                     TComMv&     rcMvPred,
                                     Bool        bFilled = false );
-
+  
   Void xCheckBestMVP              ( TComDataCU* pcCU,
                                     RefPicList  eRefPicList,
                                     TComMv      cMv,
@@ -407,17 +327,7 @@ protected:
                                     Int&        riMVPIdx,
                                     UInt&       ruiBits,
                                     UInt&       ruiCost );
-
-#ifdef QC_AMVRES
-  Void xCheckBestMVP_onefourth							( TComDataCU* pcCU,
-																		RefPicList	eRefPicList,
-																		TComMv			cMv,
-																		TComMv&			rcMvPred,
-																		Int&				riMVPIdx,
-																		UInt&				ruiBits,
-																		UInt&				ruiCost );
-#endif
-
+  
   UInt xGetTemplateCost           ( TComDataCU* pcCU,
                                     UInt        uiPartIdx,
                                     UInt        uiPartAddr,
@@ -430,49 +340,16 @@ protected:
                                     Int         iRefIdx,
                                     Int         iSizeX,
                                     Int         iSizeY );
-
-#ifdef DCM_PBIC
-  UInt xGetTemplateCostIC         ( TComDataCU* pcCU,
-                                    UInt        uiPartIdx,
-                                    UInt        uiPartAddr,
-                                    TComYuv*    pcOrgYuv,
-                                    TComIc      cIcCand,
-                                    Int         iICPIdx,
-                                    Int         iICPNum,
-                                    RefPicList  eRefPicList,
-                                    Int         iSizeX,
-                                    Int         iSizeY );
-#endif
-
+  
+  
   Void xCopyAMVPInfo              ( AMVPInfo*   pSrc, AMVPInfo* pDst );
   UInt xGetMvpIdxBits             ( Int iIdx, Int iNum );
   Void xGetBlkBits                ( PartSize  eCUMode, Bool bPSlice, Int iPartIdx,  UInt uiLastMode, UInt uiBlkBit[3]);
-
-#if HHI_IMVP
-  Void xEstimateMvPredIMVP        ( TComDataCU*     pcCU,
-                                    UInt            uiPartIdx,
-                                    RefPicList      eRefPicList,
-                                    Int             iRefIdx,
-                                    TComMv&         rcMvPred,
-                                    MvPredMeasure&  rcMvPredMeasure );
-#endif
-#if HHI_MRG_PU
-Void xMergeEstimation             ( TComDataCU*     pcCU,
-                                    TComYuv*        pcYuvOrg,
-                                    Int             iPartIdx,
-                                    Int*            piRefIdxPred,
-                                    TComMv*         pcMvTemp,
-#ifdef DCM_PBIC
-                                    TComIc&         rcIcTemp,
-#endif
-                                    UInt&           uiInterDir,
-                                    UInt&           uiMergeIndex,
-                                    UInt&           ruiCost);
-#endif
+  
   // -------------------------------------------------------------------------------------------------------------------
   // motion estimation
   // -------------------------------------------------------------------------------------------------------------------
-
+  
   Void xMotionEstimation          ( TComDataCU*   pcCU,
                                     TComYuv*      pcYuvOrg,
                                     Int           iPartIdx,
@@ -483,19 +360,7 @@ Void xMergeEstimation             ( TComDataCU*     pcCU,
                                     UInt&         ruiBits,
                                     UInt&         ruiCost,
                                     Bool          bBi = false  );
-#if MS_NO_BACK_PRED_IN_B0
-  Void xMotionEstimationForL1     ( TComDataCU*   pcCU,
-                                    TComYuv*      pcYuvOrg,
-                                    Int           iPartIdx,
-                                    RefPicList    eRefPicList,
-                                    TComMv*       pcMvPred,
-                                    Int           iRefIdxPred,
-                                    TComMv&       rcMv,
-                                    UInt&         ruiBits,
-                                    UInt&         ruiCost,
-                                    Bool          bBi = false  );
-#endif
-
+  
   Void xTZSearch                  ( TComDataCU*   pcCU,
                                     TComPattern*  pcPatternKey,
                                     Pel*          piRefY,
@@ -504,13 +369,13 @@ Void xMergeEstimation             ( TComDataCU*     pcCU,
                                     TComMv*       pcMvSrchRngRB,
                                     TComMv&       rcMv,
                                     UInt&         ruiSAD );
-
+  
   Void xSetSearchRange            ( TComDataCU*   pcCU,
                                     TComMv&       cMvPred,
                                     Int           iSrchRng,
                                     TComMv&       rcMvSrchRngLT,
                                     TComMv&       rcMvSrchRngRB );
-
+  
   Void xPatternSearchFast         ( TComDataCU*   pcCU,
                                     TComPattern*  pcPatternKey,
                                     Pel*          piRefY,
@@ -519,85 +384,45 @@ Void xMergeEstimation             ( TComDataCU*     pcCU,
                                     TComMv*       pcMvSrchRngRB,
                                     TComMv&       rcMv,
                                     UInt&         ruiSAD );
-
+  
 #ifdef ROUNDING_CONTROL_BIPRED
   Void xPatternSearch_Bi             ( TComPattern*  pcPatternKey,
-                                    Pel*          piRefY,
-                                    Int           iRefStride,
-                                    TComMv*       pcMvSrchRngLT,
-                                    TComMv*       pcMvSrchRngRB,
-                                    TComMv&       rcMv,
-                                    UInt&         ruiSAD,
-				    Pel*		  pcRefY2,
-				    Bool		  bRound);
-
+                                       Pel*          piRefY,
+                                       Int           iRefStride,
+                                       TComMv*       pcMvSrchRngLT,
+                                       TComMv*       pcMvSrchRngRB,
+                                       TComMv&       rcMv,
+                                       UInt&         ruiSAD,
+                                       Pel*          pcRefY2,
+                                       Bool          bRound);
+  
   Void xPatternSearchFracDIF_Bi      ( TComDataCU*   pcCU,
-                                    TComPattern*  pcPatternKey,
-                                    Pel*          piRefY,
-                                    Int           iRefStride,
-                                    TComMv*       pcMvInt,
-                                    TComMv&       rcMvHalf,
-                                    TComMv&       rcMvQter,
-  									UInt&    	  ruiCost,
-#ifdef QC_AMVRES																		
-									TComMv         *PredMv, 
-									Int            iRefIdxPred, 
-#endif
-									Pel*		  pcRefY2,
-									Bool		  bRound);
-
-
-#ifdef QC_SIFO
-  Void xPatternSearchFracDIF_QC_Bi   ( TComDataCU*   pcCU,
-                                    TComPattern*  pcPatternKey,
-                                    Pel*          piRefY,
-                                    Int           iRefStride,
-                                    TComMv*       pcMvInt,
-                                    TComMv&       rcMvHalf,
-                                    TComMv&       rcMvQter,
-									UInt&					ruiCost, 
-#ifdef QC_AMVRES																		
-									TComMv *PredMv, 
-									Int iRefIdxPred, 
-#endif
-									Pel*		  pcRefY2,
-									Bool		  bRound	
-									);
-#endif
-  UInt xPatternRefinementMC_Bi    ( TComPattern* pcPatternKey, Pel* piRef, Int iRefStride, Int iIntStep, Int iFrac, TComMv& rcMvFrac,Pel* pcRefY2,	Bool bRound);
+                                       TComPattern*  pcPatternKey,
+                                       Pel*          piRefY,
+                                       Int           iRefStride,
+                                       TComMv*       pcMvInt,
+                                       TComMv&       rcMvHalf,
+                                       TComMv&       rcMvQter,
+                                       UInt&         ruiCost,
+                                       Pel*          pcRefY2,
+                                       Bool          bRound);
+  
+  
 #if TEN_DIRECTIONAL_INTERP
   Void xPatternSearchFracDIF_TEN_Bi   ( TComDataCU*   pcCU,
-                                    TComPattern*  pcPatternKey,
-                                    Pel*          piRefY,
-                                    Int           iRefStride,
-                                    TComMv*       pcMvInt,
-                                    TComMv&       rcMvHalf,
-                                    TComMv&       rcMvQter,
-                                    UInt&         ruiCost, 
-									Pel*		  pcRefY2,
-									Bool		  bRound	
-									);
-#endif
-#if HHI_INTERP_FILTER
-  Void xPatternSearchFracMOMS_Bi     ( TComDataCU*   pcCU,
-                                    TComPattern*  pcPatternKey,
-                                    Pel*          piRefY,
-                                    Int           iRefStride,
-                                    TComMv*       pcMvInt,
-                                    TComMv&       rcMvHalf,
-                                    TComMv&       rcMvQter,
-                                    UInt&         ruiCost,
-                                    InterpFilterType ePFilt, 
-#ifdef QC_AMVRES
-									TComMv *PredMv,
-   				                    Int iRefIdxPred, 
-#endif			
-									Pel*		  pcRefY2,
-									Bool		  bRound	
-  				    );
+                                        TComPattern*  pcPatternKey,
+                                        Pel*          piRefY,
+                                        Int           iRefStride,
+                                        TComMv*       pcMvInt,
+                                        TComMv&       rcMvHalf,
+                                        TComMv&       rcMvQter,
+                                        UInt&         ruiCost, 
+                                        Pel*          pcRefY2,
+                                        Bool          bRound
+                                       );
 #endif
 #endif
-
+  
   Void xPatternSearch             ( TComPattern*  pcPatternKey,
                                     Pel*          piRefY,
                                     Int           iRefStride,
@@ -605,7 +430,7 @@ Void xMergeEstimation             ( TComDataCU*     pcCU,
                                     TComMv*       pcMvSrchRngRB,
                                     TComMv&       rcMv,
                                     UInt&         ruiSAD );
-
+  
   Void xPatternSearchFracDIF      ( TComDataCU*   pcCU,
                                     TComPattern*  pcPatternKey,
                                     Pel*          piRefY,
@@ -613,35 +438,12 @@ Void xMergeEstimation             ( TComDataCU*     pcCU,
                                     TComMv*       pcMvInt,
                                     TComMv&       rcMvHalf,
                                     TComMv&       rcMvQter,
-																		UInt&					ruiCost 
-#ifdef QC_AMVRES																		
-																		,TComMv *PredMv 
-																		, Int iRefIdxPred 
-#endif
-																		);
-#ifdef QC_SIFO
-  Void xPatternSearchFracDIF_QC   ( TComDataCU*   pcCU,
-                                    TComPattern*  pcPatternKey,
-                                    Pel*          piRefY,
-                                    Int           iRefStride,
-                                    TComMv*       pcMvInt,
-                                    TComMv&       rcMvHalf,
-                                    TComMv&       rcMvQter,
-																		UInt&					ruiCost 
-#ifdef QC_AMVRES																		
-																		,TComMv *PredMv 
-																		, Int iRefIdxPred 
-#endif
-																		);
+                                    UInt&         ruiCost 
+                                   );
   
-  Void xAddSubFullPelOffset    ( TComPattern* pcPatternKey, Int iOffset, Bool Add);
-  UInt xPatternRefinementMC    ( TComPattern* pcPatternKey, Pel* piRef, Int iRefStride, Int iIntStep, Int iFrac, TComMv& rcMvFrac);
-  Void xExtDIFUpSamplingH_QC   ( TComPattern*  pcPattern, TComYuv* pcYuvExt);
-#endif
-
   Void xExtDIFUpSamplingH         ( TComPattern*  pcPattern, TComYuv* pcYuvExt  );
-
-  Void xExtDIFUpSamplingQ         ( TComPattern*  pcPatternKey,
+  
+  Void xExtDIFUpSamplingQ         ( TComPattern* pcPatternKey,
                                     Pel*          piDst,
                                     Int           iDstStride,
                                     Pel*          piSrcPel,
@@ -649,17 +451,17 @@ Void xMergeEstimation             ( TComDataCU*     pcCU,
                                     Int*          piSrc,
                                     Int           iSrcStride,
                                     UInt          uiFilter  );
-
+  
 #if TEN_DIRECTIONAL_INTERP
   Void xPatternSearchFracDIF_TEN   ( TComDataCU*   pcCU,
-                                    TComPattern*  pcPatternKey,
-                                    Pel*          piRefY,
-                                    Int           iRefStride,
-                                    TComMv*       pcMvInt,
-                                    TComMv&       rcMvHalf,
-                                    TComMv&       rcMvQter,
-                                    UInt&         ruiCost );
-
+                                     TComPattern*  pcPatternKey,
+                                     Pel*          piRefY,
+                                     Int           iRefStride,
+                                     TComMv*       pcMvInt,
+                                     TComMv&       rcMvHalf,
+                                     TComMv&       rcMvQter,
+                                     UInt&         ruiCost );
+  
   Void xExtDIFUpSamplingH_TEN     ( TComPattern*  pcPattern, TComYuv* pcYuvExt  );
   Void xExtDIFUpSamplingQ_TEN     ( TComPattern*  pcPatternKey,
                                     Pel*          piDst,
@@ -670,118 +472,32 @@ Void xMergeEstimation             ( TComDataCU*     pcCU,
                                     Int           iSrcStride,
                                     UInt          uiFilter  );
 #endif
-
-#if HHI_INTERP_FILTER
-  Void xPatternSearchFracMOMS     ( TComDataCU*   pcCU,
-                                    TComPattern*  pcPatternKey,
-                                    Pel*          piRefY,
-                                    Int           iRefStride,
-                                    TComMv*       pcMvInt,
-                                    TComMv&       rcMvHalf,
-                                    TComMv&       rcMvQter,
-                                    UInt&         ruiCost,
-                                    InterpFilterType ePFilt 
-#ifdef QC_AMVRES
-									,TComMv *PredMv
-									, Int iRefIdxPred 
-#endif
-									);
-#endif
-
-#ifdef DCM_PBIC
-  Void predICompSearch     ( TComDataCU* pcCU, 
-                             TComYuv* pcYuvOrg,
-                             TComYuv* pcYuvPred,
-                             Int iPartIdx, 
-                             Int uiLastMode
-                           ); 
-
-  Double xComputeSum       ( TComYuv* pcYuvSrc0,                     UInt uiPartAddr, Int width, Int height, Int YCbCr );
-  Double xComputeSquareSum ( TComYuv* pcYuvSrc0,                     UInt uiPartAddr, Int width, Int height, Int YCbCr );
-  Double xComputeSumMult   ( TComYuv* pcYuvSrc0, TComYuv* pcYuvSrc1, UInt uiPartAddr, Int width, Int height, Int YCbCr );
-
-  Void Calc_ICParam_LMS_Uni( TComYuv* pcYuvOrg, TComYuv* pcYuvPred,                       UInt uiPartAddr, Int iRoiHeight, Int iRoiWidth, TComIc* rcIc, RefPicList eRefPicList );
-  Void Calc_ICParam_LMS_Bi ( TComYuv* pcYuvOrg, TComYuv* pcYuvPred0, TComYuv* pcYuvPred1, UInt uiPartAddr, Int iRoiHeight, Int iRoiWidth, TComIc* rcIc                         );
   
-  Void xEstimateIcPredAICP ( TComDataCU* pcCU, TComYuv* pcOrgYuv, UInt uiPartIdx, RefPicList eRefPicList, TComIc& rcIcPred, Bool bFilled = false );
-  UInt xGetIcpIdxBits      ( Int iIdx, Int iNum );
-
-  UInt xCalculateCostAfterICPred ( TComIc cIcCand, Int& riIcpIdx, TComDataCU* pcCU, TComYuv* pcYuvOrg, UInt uiPartIdx, RefPicList eRefPicList );
-  Bool xSearchBestICParam  ( TComIc* cIcSearchCenter, Int& riIcpIdx, Int SearchRng0, Int SearchRng1, Int SearchRng2, UInt uiPartIdx, TComDataCU* pcCU, TComYuv* pcYuvOrg, RefPicList eRefPicList, UInt& ruiCostBest, Bool bFlagReset = false);
-
-  UInt xGetComponentBits   ( Int iVal );
-  UInt xGetMvdBits         ( TComMv cMvd );
-  UInt xGetIcdBits         ( TComIc cIcd );
-
-#endif //#ifdef DCM_PBIC
-
   // -------------------------------------------------------------------------------------------------------------------
   // T & Q & Q-1 & T-1
   // -------------------------------------------------------------------------------------------------------------------
-
-#if HHI_RQT
+  
   Void xEncodeResidualQT( TComDataCU* pcCU, UInt uiAbsPartIdx, const UInt uiDepth, Bool bSubdivAndCbf, TextType eType );
-#if HHI_RQT_ROOT
   Void xEstimateResidualQT( TComDataCU* pcCU, UInt uiQuadrant, UInt uiAbsPartIdx, TComYuv* pcResi, const UInt uiDepth, Double &rdCost, UInt &ruiBits, UInt &ruiDist, UInt *puiZeroDist );
-#elif HHI_RQT_FORCE_SPLIT_ACC2_PU
-  Void xEstimateResidualQT( TComDataCU* pcCU, UInt uiQuadrant, UInt uiAbsPartIdx, TComYuv* pcResi, const UInt uiDepth, Double &rdCost, UInt &ruiBits, UInt &ruiDist );
-#else
-  Void xEstimateResidualQT( TComDataCU* pcCU, UInt uiAbsPartIdx, TComYuv* pcResi, const UInt uiDepth, Double &rdCost, UInt &ruiBits, UInt &ruiDist );
-#endif
   Void xSetResidualQTData( TComDataCU* pcCU, UInt uiAbsPartIdx, TComYuv* pcResi, UInt uiDepth, Bool bSpatial );
-#endif
-  Void xEncodeInterTexture        ( TComDataCU*&  rpcCU, UInt uiQp, Bool bHighPass, TComYuv*& rpcYuv, UInt uiTrMode );
-  Void xRecurTransformNxN         ( TComDataCU*   rpcCU,
-                                    UInt          uiAbsPartIdx,
-                                    Pel*          pcResidual,
-                                    UInt          uiAddr,
-                                    UInt          uiStride,
-                                    UInt          uiWidth,
-                                    UInt          uiHeight,
-                                    UInt          uiMaxTrMode,
-                                    UInt          uiTrMode,
-                                    TCoeff*&      rpcCoeff,
-                                    TextType      eType,
-                                    Int           indexROT = 0 );
-
+  
 #if SAMSUNG_FAST_UDI
   UInt  xModeBitsIntra ( TComDataCU* pcCU, UInt uiMode, UInt uiPU, UInt uiPartOffset, UInt uiDepth, UInt uiInitTrDepth );
   UInt  xUpdateCandList( UInt uiMode, Double uiCost, UInt uiFastCandNum, UInt * CandModeList, Double * CandCostList );
 #endif
-
+  
   // -------------------------------------------------------------------------------------------------------------------
   // compute symbol bits
   // -------------------------------------------------------------------------------------------------------------------
-
+  
   Void xAddSymbolBitsInter        ( TComDataCU*   pcCU,
-                                    UInt          uiQp,
-                                    UInt          uiTrMode,
-                                    UInt&         ruiBits,
-                                    TComYuv*&     rpcYuvRec,
-                                    TComYuv*      pcYuvPred,
-                                    TComYuv*&     rpcYuvResi );
-
-  Void xAddSymbolBitsIntra        ( TComDataCU*   pcCU,
-                                    TCoeff*       pCoeff,
-                                    UInt          uiPU,
-                                    UInt          uiQNumPart,
-                                    UInt          uiPartDepth,
-                                    UInt          uiNumPart,
-                                    UInt          uiMaxTrDepth,
-                                    UInt          uiTrDepth,
-                                    UInt          uiWidth,
-                                    UInt          uiHeight,
-                                    UInt&         ruiBits );
-
-#ifdef DCM_PBIC
-  /// estimate required bits to encode MVD and ICD (used with zero-tree coding)
-  Int        xEstMvdIcdBits    ( TComDataCU* pcCU, TComMv* pcMvd, TComIc* pcIcd, RefPicList eRefList );
-
-  /// estimate required bits to encode zero-tree
-  Int        xcostZTree        ( TComZeroTree* pcZTree, TComZTNode* pcZTNode, ContextModel *pcCtxModel );
-  Int        xcostBin          ( UInt uiBin, ContextModel *pcCtxModel );
-#endif
-
+                                   UInt          uiQp,
+                                   UInt          uiTrMode,
+                                   UInt&         ruiBits,
+                                   TComYuv*&     rpcYuvRec,
+                                   TComYuv*      pcYuvPred,
+                                   TComYuv*&     rpcYuvResi );
+  
 };// END CLASS DEFINITION TEncSearch
 
 

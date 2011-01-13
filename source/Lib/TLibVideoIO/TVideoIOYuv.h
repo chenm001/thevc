@@ -53,19 +53,19 @@ class TVideoIOYuv
 {
 private:
   fstream   m_cHandle;                                      ///< file handle
-
+  
 public:
   TVideoIOYuv()           {}
   virtual ~TVideoIOYuv()  {}
-
+  
   Void  open  ( char* pchFile, Bool bWriteMode );           ///< open or create file
   Void  close ();                                           ///< close file
-
+  
   Void  read  ( TComPicYuv*& rpcPicYuv, Int aiPad[2] );     ///< read  one YUV frame with padding parameter
   Void  write ( TComPicYuv*   pcPicYuv, Int aiPad[2] );     ///< write one YUV frame with padding parameter
-
+  
   Bool  isEof ();                                           ///< check end-of-file
-
+  
 };
 
 #endif // __TVIDEOIOYUV__

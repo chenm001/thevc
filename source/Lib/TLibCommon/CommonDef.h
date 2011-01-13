@@ -54,34 +54,34 @@
 // ====================================================================================================================
 
 #ifdef __GNUC__
-  #define NVM_COMPILEDBY  "[GCC %d.%d.%d]", __GNUC__, __GNUC_MINOR__, __GNUC_PATCHLEVEL__
-  #ifdef __IA64__
-    #define NVM_ONARCH    "[on 64-bit] "
-  #else
-    #define NVM_ONARCH    "[on 32-bit] "
-  #endif
+#define NVM_COMPILEDBY  "[GCC %d.%d.%d]", __GNUC__, __GNUC_MINOR__, __GNUC_PATCHLEVEL__
+#ifdef __IA64__
+#define NVM_ONARCH    "[on 64-bit] "
+#else
+#define NVM_ONARCH    "[on 32-bit] "
+#endif
 #endif
 
 #ifdef __INTEL_COMPILER
-  #define NVM_COMPILEDBY  "[ICC %d]", __INTEL_COMPILER
+#define NVM_COMPILEDBY  "[ICC %d]", __INTEL_COMPILER
 #elif  _MSC_VER
-  #define NVM_COMPILEDBY  "[VS %d]", _MSC_VER
+#define NVM_COMPILEDBY  "[VS %d]", _MSC_VER
 #endif
 
 #ifndef NVM_COMPILEDBY
-  #define NVM_COMPILEDBY "[Unk-CXX]"
+#define NVM_COMPILEDBY "[Unk-CXX]"
 #endif
 
 #ifdef _WIN32
-  #define NVM_ONOS        "[Windows]"
+#define NVM_ONOS        "[Windows]"
 #elif  __linux
-  #define NVM_ONOS        "[Linux]"
+#define NVM_ONOS        "[Linux]"
 #elif  __CYGWIN__
-  #define NVM_ONOS        "[Cygwin]"
+#define NVM_ONOS        "[Cygwin]"
 #elif __APPLE__
-  #define NVM_ONOS        "[Mac OS X]"
+#define NVM_ONOS        "[Mac OS X]"
 #else
- #define NVM_ONOS "[Unk-OS]"
+#define NVM_ONOS "[Unk-OS]"
 #endif
 
 #define NVM_BITS          "[%d bit] ", (sizeof(void*) == 8 ? 64 : 32) ///< used for checking 64-bit O/S
@@ -131,45 +131,20 @@
 #define xFree( ptr )                free     ( ptr )
 #endif
 
-// ====================================================================================================================
-// Bug fixes
-// ====================================================================================================================
+#define FATAL_ERROR_0(MESSAGE, EXITCODE)                      \
+{                                                             \
+  printf(MESSAGE);                                            \
+  exit(EXITCODE);                                             \
+}
 
-#define ALF_FIX                     1           ///< very rarely ALF estimation makes divide-by-zero error
 
 // ====================================================================================================================
 // Coding tool configuration
 // ====================================================================================================================
 
-
-#ifdef QC_AMVRES
-#define AMVRES_ACC										8 					    ///< MV accuracy for AMVRES
-#define AMVRES_ACC_IDX_OFFSET				            (-1)
-#endif
-
-
-// GRF: generated reference frame
-#define GRF_MAX_NUM_EFF             2           ///< maximum number of effects
-#define GRF_MAX_NUM_WEFF            2           ///< maximum number of wp effects
-#define GRF_WP_CHROMA               1           ///< weighted prediction of chroma
-
-// ROT: rotational transform
-#define ROT_DICT                    5           ///< intra ROT dictionary size (1, 2, 4, 5, 9)
-#define ROT_DICT_INTER              1           ///< inter ROT dictionary size (1, 2, 4, 5, 9)
-#define ROT_TRY_NONZERO_CBP         1           ///< try ROT (in encoder) for non-zero cbp case only
-
 // AMVP: advanced motion vector prediction
 #define AMVP_NEIGH_COL              1           ///< use of colocated MB in AMVP
 #define AMVP_MAX_NUM_CANDS          5           ///< max number of final candidates
-
-// CIP: combined intra prediction
-#define CIP_ADAPTIVE                1                                                       ///< adaptive use of CIP
-#define CIP_BITS                    5                                                       ///< CIP accuracy
-#define CIP_WEIGHT                  16                                                      ///< weighting factor of CIP
-#define CIP_MAX                     ( 1<<(CIP_BITS  ) )                                     ///< max value of CIP
-#define CIP_OFFSET                  ( 1<<(CIP_BITS-1) )                                     ///< rounding offset of CIP
-#define CIP_PRED(A, B, C)           (((A)*3 + (B)*3 + (C)*2 + 4)/8)                         ///< CIP weighting function
-#define CIP_WSUM(A, B, W)           (((A)*(W) + (CIP_MAX-(W))*(B) + CIP_OFFSET)>>CIP_BITS)  ///< weighted average of CIP
 
 // Reference memory management
 #define DYN_REF_FREE                0           ///< dynamic free of reference memories
@@ -192,16 +167,6 @@
 
 // IBDI range restriction for skipping clip
 #define IBDI_NOCLIP_RANGE           1           ///< restrict max. value after IBDI to skip clip
-
-// entropy coding
-#define PIPE_LOW_DELAY_OPTION       1           ///< enable/disable low-delay buffer control for PIPE
-#define NUM_V2V_CODERS              12          ///< number of V2V coders for PIPE
-
-// ALF: Adaptive Loop Filter
-#define ALF_MIN_LENGTH              3
-
-// VLC texture coding
-#define VLC_SIG_RUN                  1            ///< run-coding of sigmap
 
 // Early-skip threshold (encoder)
 #define EARLY_SKIP_THRES            1.50        ///< if RD < thres*avg[BestSkipRD]
@@ -259,33 +224,8 @@ enum NalUnitType
   NAL_UNIT_INVALID,
 };
 
-
-#if HHI_ALF
-typedef _AlfParamHHI ALFParam;
-#define ALF_MIN_LENGTH                    3           ///< MS: mimimum allowed filter length
-#define ALF_DC_CONSIDERED                 0           ///< MS: consider dc offset in estimation of coefficients
-#else
 typedef _AlfParam    ALFParam;
-#endif
 
-#ifdef DCM_PBIC
-
-#define AICP_MAX_NUM_CANDS          5           ///< max number of final candidates
-#define IC_SCALE_PREC               6           ///< Scale precision in bits
-
-enum
-{
-  IDX_ZEROFLAG = -1,
-  IDX_ZTREE_MVDICDUNI,
-  IDX_ZTREE_MVDICDBI,
-  IDX_ZTREE_MVDUNI,
-  IDX_ZTREE_MVDBI,
-  MAX_NUM_ZTREE
-};
-
-#define ICROUND( Val )                ( ((Val) < 0) ? Int((Val)-0.5) : Int((Val)+0.5) )
-
-#endif //DCM_PBIC
 
 #endif // end of #ifndef  __COMMONDEF__
 

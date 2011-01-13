@@ -44,12 +44,9 @@ TComPic::TComPic()
   m_apcPicSym         = NULL;
   m_apcPicYuv[0]      = NULL;
   m_apcPicYuv[1]      = NULL;
-#if HHI_INTERP_FILTER
-  m_apcPicYuv[2]      = NULL;
-#endif
   m_pcPicYuvPred      = NULL;
   m_pcPicYuvResi      = NULL;
-
+  
   m_bReconstructed    = false;
 }
 
@@ -65,12 +62,7 @@ Void TComPic::create( Int iWidth, Int iHeight, UInt uiMaxWidth, UInt uiMaxHeight
     m_apcPicYuv[0]  = new TComPicYuv;  m_apcPicYuv[0]->create( iWidth, iHeight, uiMaxWidth, uiMaxHeight, uiMaxDepth );
   }
   m_apcPicYuv[1]  = new TComPicYuv;  m_apcPicYuv[1]->create( iWidth, iHeight, uiMaxWidth, uiMaxHeight, uiMaxDepth );
-
-#if HHI_INTERP_FILTER
-  // buffer for filtered reconstructed pic
-  m_apcPicYuv[2]  = new TComPicYuv;  m_apcPicYuv[2]->create( iWidth, iHeight, uiMaxWidth, uiMaxHeight, uiMaxDepth );
-#endif
-
+  
   return;
 }
 
@@ -82,29 +74,20 @@ Void TComPic::destroy()
     delete m_apcPicSym;
     m_apcPicSym = NULL;
   }
-
+  
   if (m_apcPicYuv[0])
   {
     m_apcPicYuv[0]->destroy();
     delete m_apcPicYuv[0];
     m_apcPicYuv[0]  = NULL;
   }
-
+  
   if (m_apcPicYuv[1])
   {
     m_apcPicYuv[1]->destroy();
     delete m_apcPicYuv[1];
     m_apcPicYuv[1]  = NULL;
   }
-
-#if HHI_INTERP_FILTER
-  if (m_apcPicYuv[2])
-  {
-    m_apcPicYuv[2]->destroy();
-    delete m_apcPicYuv[2];
-    m_apcPicYuv[2]  = NULL;
-  }
-#endif
-
+  
 }
 
