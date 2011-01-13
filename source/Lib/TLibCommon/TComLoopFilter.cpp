@@ -181,7 +181,7 @@ Void TComLoopFilter::xDeblockCU( TComDataCU* pcCU, UInt uiAbsZorderIdx, UInt uiD
   
   for ( Int iDir = EDGE_VER; iDir <= EDGE_HOR; iDir++ )
   {
-    for ( Int iEdge = 0; iEdge < uiSizeInPU ; iEdge+=PartIdxIncr)
+    for ( UInt iEdge = 0; iEdge < uiSizeInPU ; iEdge+=PartIdxIncr)
     {
       xEdgeFilterLuma     ( pcCU, uiAbsZorderIdx, uiDepth, iDir, iEdge );
       if ( (iEdge % ( (DEBLOCK_SMALLEST_BLOCK<<1)/uiPelsInPart ) ) == 0 )
@@ -430,11 +430,11 @@ Void TComLoopFilter::xEdgeFilterLuma( TComDataCU* pcCU, UInt uiAbsZorderIdx, UIn
     piTmpSrc += iEdge*uiPelsInPart*iStride;
   }
   
-  for ( Int iIdx = 0; iIdx < uiNumParts; iIdx+=PartIdxIncr )
+  for ( UInt iIdx = 0; iIdx < uiNumParts; iIdx+=PartIdxIncr )
   {
     
     uiBs = 0;
-    for (Int iIdxInside = 0; iIdxInside<PartIdxIncr; iIdxInside++)
+    for (UInt iIdxInside = 0; iIdxInside<PartIdxIncr; iIdxInside++)
     {
       uiBsAbsIdx = xCalcBsIdx( pcCU, uiAbsZorderIdx, iDir, iEdge, iIdx+iIdxInside);
       if (uiBs < m_aapucBS[iDir][0][uiBsAbsIdx])
@@ -453,7 +453,7 @@ Void TComLoopFilter::xEdgeFilterLuma( TComDataCU* pcCU, UInt uiAbsZorderIdx, UIn
     Int iTc =  tctable_8x8[iIndexTC]*iBitdepthScale;
     Int iBeta = betatable_8x8[iIndexB]*iBitdepthScale;
     
-    for (Int iBlkIdx = 0; iBlkIdx< uiBlocksInPart; iBlkIdx ++)
+    for (UInt iBlkIdx = 0; iBlkIdx< uiBlocksInPart; iBlkIdx ++)
     {
       if ( uiBs )
       {
@@ -530,9 +530,9 @@ Void TComLoopFilter::xEdgeFilterChroma( TComDataCU* pcCU, UInt uiAbsZorderIdx, U
   }
   
 #if BUGFIX119
-  for ( Int iIdx = 0; iIdx < uiNumParts; iIdx++ )
+  for ( UInt iIdx = 0; iIdx < uiNumParts; iIdx++ )
 #else
-  for ( Int iIdx = 0; iIdx < uiNumParts; iIdx+=PartIdxIncr )
+  for ( UInt iIdx = 0; iIdx < uiNumParts; iIdx+=PartIdxIncr )
 #endif
   {
     ucBs = 0;
@@ -541,7 +541,7 @@ Void TComLoopFilter::xEdgeFilterChroma( TComDataCU* pcCU, UInt uiAbsZorderIdx, U
     uiBsAbsIdx = xCalcBsIdx( pcCU, uiAbsZorderIdx, iDir, iEdge, iIdx);
     ucBs = m_aapucBS[iDir][0][uiBsAbsIdx];
 #else
-    for (Int iIdxInside = 0; iIdxInside<PartIdxIncr; iIdxInside++)
+    for (UInt iIdxInside = 0; iIdxInside<PartIdxIncr; iIdxInside++)
     {
       uiBsAbsIdx = xCalcBsIdx( pcCU, uiAbsZorderIdx, iDir, iEdge, iIdx+iIdxInside);
       if (ucBs < m_aapucBS[iDir][0][uiBsAbsIdx])
@@ -569,7 +569,7 @@ Void TComLoopFilter::xEdgeFilterChroma( TComDataCU* pcCU, UInt uiAbsZorderIdx, U
       }
     }
 #else
-    for (Int iBlkIdx = 0; iBlkIdx < uiBlocksInPart; iBlkIdx ++)
+    for (UInt iBlkIdx = 0; iBlkIdx < uiBlocksInPart; iBlkIdx ++)
     {
       if ( ucBs > 2)
       {

@@ -1497,7 +1497,7 @@ Void TComDataCU::setInterDirSubParts( UInt uiDir, UInt uiAbsPartIdx, UInt uiPart
 Void TComDataCU::setMVPIdxSubParts( Int iMVPIdx, RefPicList eRefPicList, UInt uiAbsPartIdx, UInt uiPartIdx, UInt uiDepth )
 {
   UInt uiCurrPartNumQ = m_pcPic->getNumPartInCU() >> (uiDepth << 1) >> 2;
-  Int i;
+  UInt i;
   Int* pi;
   switch ( m_pePartSize[ uiAbsPartIdx ] )
   {
@@ -1547,7 +1547,7 @@ Void TComDataCU::setMVPIdxSubParts( Int iMVPIdx, RefPicList eRefPicList, UInt ui
 Void TComDataCU::setMVPNumSubParts( Int iMVPNum, RefPicList eRefPicList, UInt uiAbsPartIdx, UInt uiPartIdx, UInt uiDepth )
 {
   UInt uiCurrPartNumQ = m_pcPic->getNumPartInCU() >> (uiDepth << 1) >> 2;
-  Int i;
+  UInt i;
   Int* pi;
   switch ( m_pePartSize[ uiAbsPartIdx ] )
   {
