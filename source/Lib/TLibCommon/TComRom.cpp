@@ -2009,7 +2009,7 @@ const UChar g_aucIntraModeNumAng[7] =
   34,  //   8x8
   34,  //  16x16
   34,  //  32x32
-  5,  //  64x64
+  3,  //  64x64
   5   // 128x128
 };
 
@@ -2020,25 +2020,17 @@ const UChar g_aucIntraModeBitsAng[7] =
   6,  //   8x8    34   5+esc
   6,  //  16x16   34   5+esc
   6,  //  32x32   34   5+esc
-  3,  //  64x64    5   2+1
+  2,  //  64x64    3   1+1
   3   // 128x128   5   2+1
 };
 
-#if BUGFIX_106
-const UChar g_aucAngModeMapping[3][34] = // intra mode conversion for most probable
+const UChar g_aucAngModeMapping[4][34] = // intra mode conversion for most probable
 {
   {2,3,2,2,4, 4,4,0,0,0, 0,0,0,0,2, 2,2,2,2,2, 2,1,1,1,1, 1,1,1,1,1, 2,2,2,2},               // conversion to 5 modes
   {2,3,3,2,4, 4,4,2,0,0, 0,2,5,5,5, 2,6,6,3,2, 7,7,7,2,1, 1,1,2,8,8, 8,2,2,2},               // conversion to 9 modes
-  {2,3,3,10,10, 4,11,11,0,0, 0,12,12,5,5, 13,13,6,14,14, 7,7,15,15,1, 1,1,16,16,8, 8,2,2,9}  // conversion to 17 modes
+  {2,3,3,10,10, 4,11,11,0,0, 0,12,12,5,5, 13,13,6,14,14, 7,7,15,15,1, 1,1,16,16,8, 8,2,2,9}, // conversion to 17 modes
+  {2,2,2,2,2, 2,2,0,0,0, 0,0,0,0,2, 2,2,2,2,2, 2,1,1,1,1, 1,1,1,1,1, 2,2,2,2}                // conversion to 3 modes
 };
-#else
-const UChar g_aucAngModeMapping[3][34] = // intra mode conversion for most probable
-{
-  {2,3,2,2,4, 4,4,0,0,0, 0,0,0,0,2, 2,2,2,2,2, 2,1,1,1,1, 1,1,1,1,1, 2,2,2,2},               // conversion to 5 modes
-  {2,3,3,2,4, 4,4,2,0,0, 0,2,5,5,5, 2,6,6,6,2, 7,7,7,2,1, 1,1,2,8,8, 8,2,2,2},               // conversion to 9 modes
-  {2,3,3,10,10, 4,11,11,0,0, 0,12,12,5,5, 13,13,6,14,14, 7,7,15,15,1, 1,1,16,16,8, 8,2,2,9}  // conversion to 17 modes
-};
-#endif
 
 // ====================================================================================================================
 // Bit-depth

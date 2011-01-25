@@ -177,7 +177,7 @@ extern const UChar  g_aucIntraModeNumFast[7];
 
 extern const UChar g_aucIntraModeNumAng[7];
 extern const UChar g_aucIntraModeBitsAng[7];
-extern const UChar g_aucAngModeMapping[3][34];
+extern const UChar g_aucAngModeMapping[4][34];
 extern const UChar g_aucAngIntraModeOrder[34];
 
 // ====================================================================================================================

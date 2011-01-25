@@ -117,8 +117,6 @@
 #define SAMSUNG_FAST_UDI_MODESET              0           ///< 0: {9,9,4,4,5} (default) and 1: {9,9,9,9,5} for {4x4,8x8,16x16,32x32,64x64} 
 #endif
 
-#define BUGFIX_106                            1           // bug fix on mapping intra directions from 34 to 9
-
 ///////////////////////////////
 // SAMSUNG defines section end
 ///////////////////////////////

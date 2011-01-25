@@ -1034,6 +1034,8 @@ Int TComDataCU::getMostProbableIntraDirLuma( UInt uiAbsPartIdx )
   {
     if ( g_aucIntraModeNumAng[iIdx] == 5 )
       iMostProbable = g_aucAngModeMapping[0][g_aucAngIntraModeOrder[iMostProbable]];
+    if ( g_aucIntraModeNumAng[iIdx] == 3 )
+      iMostProbable = g_aucAngModeMapping[3][g_aucAngIntraModeOrder[iMostProbable]];
     else
       iMostProbable = g_aucAngModeMapping[1][g_aucAngIntraModeOrder[iMostProbable]]; 
   } 
