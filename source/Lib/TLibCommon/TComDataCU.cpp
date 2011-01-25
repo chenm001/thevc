@@ -1954,20 +1954,6 @@ Void TComDataCU::fillMvpCand ( UInt uiPartIdx, UInt uiPartAddr, RefPicList eRefP
     pInfo->m_acMvCand[0] = pInfo->m_acMvCand[iLeftMvIdx];
     pInfo->m_acMvCand[iLeftMvIdx] = cTempMv;
   }
-#if FIX117
-  else if ( ( ((eCUMode == SIZE_2NxN)) && uiPartIdx == 0 ) && iAboveMvIdx > 0 )
-  {
-    cTempMv = pInfo->m_acMvCand[0];
-    pInfo->m_acMvCand[0] = pInfo->m_acMvCand[iAboveMvIdx];
-    pInfo->m_acMvCand[iAboveMvIdx] = cTempMv;
-  }
-  else if ( ( ((eCUMode == SIZE_Nx2N)) && uiPartIdx == 1 )&& iCornerMvIdx > 0 )
-  {
-    cTempMv = pInfo->m_acMvCand[0];
-    pInfo->m_acMvCand[0] = pInfo->m_acMvCand[iCornerMvIdx];
-    pInfo->m_acMvCand[iCornerMvIdx] = cTempMv;
-  }
-#endif
   
   if (getAMVPMode(uiPartAddr) == AM_NONE)  //Should be optimized later for special cases
   {
