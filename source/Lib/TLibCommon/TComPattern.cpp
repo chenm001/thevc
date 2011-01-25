@@ -245,9 +245,6 @@ Void TComPattern::initAdiPattern( TComDataCU* pcCU, UInt uiZorderIdxInPart, UInt
   bAbove = bAboveFlag;
   bLeft  = bLeftFlag;
   
-  if (uiCuWidth<=8)
-    bBelowLeftFlag=false;
-  
   uiWidth=uiCuWidth2+1;
   uiHeight=uiCuHeight2+1;
   
