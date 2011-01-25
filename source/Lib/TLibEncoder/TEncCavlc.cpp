@@ -1492,7 +1492,6 @@ UInt TEncCavlc::xWriteUnaryMaxSymbol( UInt uiSymbol, UInt uiMaxSymbol )
 Void TEncCavlc::xWriteUnaryMaxSymbol( UInt uiSymbol, UInt uiMaxSymbol )
 #endif
 {
-#if FIX108
   if (uiMaxSymbol == 0)
   {
 #if LCEC_STAT
@@ -1501,7 +1500,6 @@ Void TEncCavlc::xWriteUnaryMaxSymbol( UInt uiSymbol, UInt uiMaxSymbol )
     return;
 #endif
   }
-#endif
 #if LCEC_STAT
   UInt uiNumBits = 0;
 #endif

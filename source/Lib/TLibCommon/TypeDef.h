@@ -150,7 +150,6 @@
 // MICROSOFT&USTC defines section end
 ////////////////////////////////
 
-#define FIX108 1 // fixes issue where unary symbol is uncessesarily coded
 #define FIX117 0 // fixes issue where MVP derivation is inconsistent with original intent
 
 // ====================================================================================================================

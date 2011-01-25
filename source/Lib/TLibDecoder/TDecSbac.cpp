@@ -130,13 +130,11 @@ Void TDecSbac::parseTerminatingBit( UInt& ruiBit )
 
 Void TDecSbac::xReadUnaryMaxSymbol( UInt& ruiSymbol, ContextModel* pcSCModel, Int iOffset, UInt uiMaxSymbol )
 {
-#if FIX108
   if (uiMaxSymbol == 0)
   {
     ruiSymbol = 0;
     return;
   }
-#endif
   
   m_pcTDecBinIf->decodeBin( ruiSymbol, pcSCModel[0] );
   
