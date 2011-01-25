@@ -105,9 +105,6 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
   TComPicYuv*     pcPicYuvRecOut;
   TComBitstream*  pcBitstreamOut;
   TComPicYuv      cPicOrg;
-  //stats
-  TComBitstream*  pcOut = new TComBitstream;
-  pcOut->create( 500000 );
   
   xInitGOP( iPOCLast, iNumPicRcvd, rcListPic, rcListPicYuvRecOut );
   
@@ -412,9 +409,6 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
     if ( m_pcCfg->getHierarchicalCoding() == false && iDepth != 0 )
       break;
   }
-  
-  pcOut->destroy();
-  delete pcOut;
   
   assert ( m_iNumPicCoded == iNumPicRcvd );
 }
