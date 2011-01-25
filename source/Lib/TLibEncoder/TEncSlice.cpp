@@ -351,13 +351,6 @@ Void TEncSlice::initEncSlice( TComPic* pcPic, Int iPOCLast, UInt uiPOCCurr, Int 
   rpcSlice->setDRBFlag          ( true );
   rpcSlice->setERBIndex         ( ERB_NONE );
   
-  // generalized B info. (for non-reference B)
-  if ( m_pcCfg->getHierarchicalCoding() == false && iDepth != 0 )
-  {
-    rpcSlice->setDRBFlag        ( false );
-    rpcSlice->setERBIndex       ( ERB_NONE );
-  }
-  
   assert( m_apcPicYuvPred );
   assert( m_apcPicYuvResi );
   
