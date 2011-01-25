@@ -59,11 +59,7 @@ private:
   // class interface
   TDecTop                         m_cTDecTop;                     ///< decoder class
   TComBitstream*                  m_apcBitstream;                 ///< bitstream class
-#if HHI_NAL_UNIT_SYNTAX
   TVideoIOBitsStartCode           m_cTVideoIOBitstreamFile;       ///< file I/O class
-#else
-  TVideoIOBits                    m_cTVideoIOBitstreamFile;       ///< file I/O class
-#endif
   TVideoIOYuv                     m_cTVideoIOYuvReconFile;        ///< reconstruction YUV class
   
   // for output control

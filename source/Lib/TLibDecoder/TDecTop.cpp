@@ -164,22 +164,12 @@ Void TDecTop::decode (Bool bEos, TComBitstream* pcBitstream, UInt& ruiPOC, TComL
   m_cEntropyDecoder.setEntropyDecoder (&m_cCavlcDecoder);
   m_cEntropyDecoder.setBitstream      (pcBitstream);
   
-#if HHI_NAL_UNIT_SYNTAX
   // don't feel like adding the whole chain of interface crap just to access the first byte in the buffer
   const UChar* pucBuffer = reinterpret_cast<const UChar*>(pcBitstream->getStartStream());
   const NalUnitType eNalUnitType = NalUnitType(pucBuffer[0]&31); 
   const bool bDecodeSPS   = ( NAL_UNIT_SPS == eNalUnitType );
   const bool bDecodePPS   = ( NAL_UNIT_PPS == eNalUnitType );
   const bool bDecodeSlice = ( NAL_UNIT_CODED_SLICE == eNalUnitType );
-#else
-  const bool bDecodeSlice = true;
-  bool bDecodeSPS   = false;
-  bool bDecodePPS   = false;
-  if( 0 == m_uiValidPS )
-  {
-    bDecodeSPS = bDecodePPS = true;
-  }
-#endif
   
   if( bDecodeSPS )
   {

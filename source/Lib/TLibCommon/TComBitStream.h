@@ -109,13 +109,9 @@ public:
   Void        write           ( UInt uiBits, UInt uiNumberOfBits );
   Void        writeAlignOne   ();
   Void        writeAlignZero  ();
-#if HHI_NAL_UNIT_SYNTAX
   Void        convertRBSPToPayload( UInt uiStartPos = 0);
-#endif
   // interface for decoding
-#if HHI_NAL_UNIT_SYNTAX
   Void        initParsingConvertPayloadToRBSP( const UInt uiBytesRead );
-#endif
   Void        initParsing     ( UInt uiNumBytes );
   Void        read            ( UInt uiNumberOfBits, UInt& ruiBits );
   Void        readAlignOne    ();

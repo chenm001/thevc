@@ -56,24 +56,21 @@ TDecCavlc::~TDecCavlc()
 
 Void TDecCavlc::parsePPS(TComPPS* pcPPS)
 {
-#if HHI_NAL_UNIT_SYNTAX
   UInt  uiCode;
   
   xReadCode ( 2, uiCode ); //NalRefIdc
   xReadCode ( 1, uiCode ); assert( 0 == uiCode); // zero bit
   xReadCode ( 5, uiCode ); assert( NAL_UNIT_PPS == uiCode);//NalUnitType
-#endif
   return;
 }
 
 Void TDecCavlc::parseSPS(TComSPS* pcSPS)
 {
   UInt  uiCode;
-#if HHI_NAL_UNIT_SYNTAX
   xReadCode ( 2, uiCode ); //NalRefIdc
   xReadCode ( 1, uiCode ); assert( 0 == uiCode); // zero bit
   xReadCode ( 5, uiCode ); assert( NAL_UNIT_SPS == uiCode);//NalUnitType
-#endif
+  
   // Structure
   xReadUvlc ( uiCode ); pcSPS->setWidth       ( uiCode    );
   xReadUvlc ( uiCode ); pcSPS->setHeight      ( uiCode    );
@@ -140,11 +137,10 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice)
 {
   UInt  uiCode;
   Int   iCode;
-#if HHI_NAL_UNIT_SYNTAX
   xReadCode ( 2, uiCode ); //NalRefIdc
   xReadCode ( 1, uiCode ); assert( 0 == uiCode); // zero bit
   xReadCode ( 5, uiCode ); assert( NAL_UNIT_CODED_SLICE == uiCode);//NalUnitType
-#endif
+  
   xReadCode (10, uiCode);  rpcSlice->setPOC              (uiCode);             // 9 == SPS->Log2MaxFrameNum()
   xReadUvlc (   uiCode);  rpcSlice->setSliceType        ((SliceType)uiCode);
   xReadSvlc (    iCode);  rpcSlice->setSliceQp          (iCode);

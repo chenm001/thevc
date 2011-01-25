@@ -269,14 +269,11 @@ UInt* TEncCavlc::GetLP4Table()
 #if LCEC_STAT
 Void TEncCavlc::codePPS( TComPPS* pcPPS )
 {
-  
-#if HHI_NAL_UNIT_SYNTAX
   // uiFirstByte
   xWriteCode( NAL_REF_IDC_PRIORITY_HIGHEST, 2);
   xWriteCode( 0, 1);
   xWriteCode( NAL_UNIT_PPS, 5);
   m_uiBitHLS += 8;
-#endif
   return;
 }
 
@@ -284,14 +281,12 @@ Void TEncCavlc::codePPS( TComPPS* pcPPS )
 
 Void TEncCavlc::codeSPS( TComSPS* pcSPS )
 {
-  
-#if HHI_NAL_UNIT_SYNTAX
   // uiFirstByte
   xWriteCode( NAL_REF_IDC_PRIORITY_HIGHEST, 2);
   xWriteCode( 0, 1);
   xWriteCode( NAL_UNIT_SPS, 5);
   m_uiBitHLS += 8;
-#endif
+  
   // Structure
   m_uiBitHLS += xWriteUvlc  ( pcSPS->getWidth () );
   m_uiBitHLS += xWriteUvlc  ( pcSPS->getHeight() );
@@ -339,14 +334,12 @@ Void TEncCavlc::codeSPS( TComSPS* pcSPS )
 
 Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
 {
-  
-#if HHI_NAL_UNIT_SYNTAX
   // here someone can add an appropriated NalRefIdc type 
   xWriteCode( NAL_REF_IDC_PRIORITY_HIGHEST, 2);
   xWriteCode( 0, 1);
   xWriteCode( NAL_UNIT_CODED_SLICE, 5);
   m_uiBitHLS += 8;
-#endif
+  
   m_uiBitHLS += xWriteCode  (pcSlice->getPOC(), 10 );   //  9 == SPS->Log2MaxFrameNum
   m_uiBitHLS += xWriteUvlc  (pcSlice->getSliceType() );
   m_uiBitHLS += xWriteSvlc  (pcSlice->getSliceQp() );
@@ -419,23 +412,20 @@ Void TEncCavlc::codeSliceFinish ()
 
 Void TEncCavlc::codePPS( TComPPS* pcPPS )
 {
-#if HHI_NAL_UNIT_SYNTAX
   // uiFirstByte
   xWriteCode( NAL_REF_IDC_PRIORITY_HIGHEST, 2);
   xWriteCode( 0, 1);
   xWriteCode( NAL_UNIT_PPS, 5);
-#endif
   return;
 }
 
 Void TEncCavlc::codeSPS( TComSPS* pcSPS )
 {
-#if HHI_NAL_UNIT_SYNTAX
   // uiFirstByte
   xWriteCode( NAL_REF_IDC_PRIORITY_HIGHEST, 2);
   xWriteCode( 0, 1);
   xWriteCode( NAL_UNIT_SPS, 5);
-#endif
+  
   // Structure
   xWriteUvlc  ( pcSPS->getWidth () );
   xWriteUvlc  ( pcSPS->getHeight() );
@@ -481,12 +471,11 @@ Void TEncCavlc::codeSPS( TComSPS* pcSPS )
 
 Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
 {
-#if HHI_NAL_UNIT_SYNTAX
   // here someone can add an appropriated NalRefIdc type 
   xWriteCode( NAL_REF_IDC_PRIORITY_HIGHEST, 2);
   xWriteCode( 0, 1);
   xWriteCode( NAL_UNIT_CODED_SLICE, 5);
-#endif
+  
   xWriteCode  (pcSlice->getPOC(), 10 );   //  9 == SPS->Log2MaxFrameNum
   xWriteUvlc  (pcSlice->getSliceType() );
   xWriteSvlc  (pcSlice->getSliceQp() );

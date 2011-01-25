@@ -178,11 +178,7 @@ Bool TVideoIOBitsStartCode::readBits( TComBitstream*& rpcBitstream )
   }
   
   // initialize parsing process
-#if HHI_NAL_UNIT_SYNTAX
   rpcBitstream->initParsingConvertPayloadToRBSP( uiPacketSize );
-#else
-  rpcBitstream->initParsing( uiPacketSize );
-#endif
   return false;
 }
 

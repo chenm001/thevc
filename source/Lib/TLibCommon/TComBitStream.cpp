@@ -256,8 +256,6 @@ __inline Void TComBitstream::xReadNextWord()
   }
 }
 
-#if HHI_NAL_UNIT_SYNTAX
-
 Void TComBitstream::initParsingConvertPayloadToRBSP( const UInt uiBytesRead )
 {
   UInt uiZeroCount    = 0;
@@ -343,4 +341,3 @@ Void TComBitstream::convertRBSPToPayload( UInt uiStartPos )
   delete [] pucRead;
   m_uiBitsWritten = uiWriteOffset << 3;
 }
-#endif

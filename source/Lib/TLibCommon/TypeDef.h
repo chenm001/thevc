@@ -39,7 +39,6 @@
 ////////////////////////////
 // HHI defines section start
 ////////////////////////////
-#define HHI_NAL_UNIT_SYNTAX               1           ///< enable/disable NalUnit syntax 
 #define HHI_DISABLE_INTER_NxN_SPLIT       1           ///< TN: disable redundant use of pu-mode NxN for CTBs larger 8x8 (inter only)
 #define HHI_RMP_SWITCH                    0
 
