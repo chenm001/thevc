@@ -202,7 +202,7 @@ void TEncSearch::init(  TEncCfg*      pcEncCfg,
 #endif
 
 #define TZ_SEARCH_CONFIGURATION                                                                                 \
-const Int  iRaster                  = 3;  /* TZ soll von aussen ?ergeben werden */                            \
+const Int  iRaster                  = 5;  /* TZ soll von aussen ?ergeben werden */                            \
 const Bool bTestOtherPredictedMV    = 0;                                                                      \
 const Bool bTestZeroVector          = 1;                                                                      \
 const Bool bTestZeroVectorStart     = 0;                                                                      \
@@ -2892,7 +2892,7 @@ Void TEncSearch::xMotionEstimation( TComDataCU* pcCU, TComYuv* pcYuvOrg, Int iPa
 #endif
   m_iSearchRange = m_aaiAdaptSR[eRefPicList][iRefIdxPred];
   
-  Int           iSrchRng      = ( bBi ? 8 : m_iSearchRange );
+  Int           iSrchRng      = ( bBi ? 4 : m_iSearchRange );
   TComPattern*  pcPatternKey  = pcCU->getPattern        ();
   
   Double        fWeight       = 1.0;
