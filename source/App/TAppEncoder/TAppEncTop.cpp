@@ -63,6 +63,9 @@ Void TAppEncTop::xInitLibCfg()
   
   //====== Coding Structure ========
   m_cTEncTop.setIntraPeriod                  ( m_iIntraPeriod );
+#if DCM_DECODING_REFRESH
+  m_cTEncTop.setDecodingRefreshType          ( m_iDecodingRefreshType );
+#endif
   m_cTEncTop.setGOPSize                      ( m_iGOPSize );
   m_cTEncTop.setRateGOPSize                  ( m_iRateGOPSize );
   m_cTEncTop.setNumOfReference               ( m_iNumOfReference );

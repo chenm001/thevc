@@ -474,7 +474,11 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
   // here someone can add an appropriated NalRefIdc type 
   xWriteCode( NAL_REF_IDC_PRIORITY_HIGHEST, 2);
   xWriteCode( 0, 1);
+#if DCM_DECODING_REFRESH
+  xWriteCode( pcSlice->getNalUnitType(), 5);
+#else
   xWriteCode( NAL_UNIT_CODED_SLICE, 5);
+#endif
   
   xWriteCode  (pcSlice->getPOC(), 10 );   //  9 == SPS->Log2MaxFrameNum
   xWriteUvlc  (pcSlice->getSliceType() );

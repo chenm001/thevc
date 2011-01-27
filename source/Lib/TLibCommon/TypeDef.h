@@ -125,6 +125,11 @@
 ///////////////////////////////
 #define DCM_RDCOST_TEMP_FIX //Enables temporary bug fixes to RD cost computation
 #define FIX_D235 1 // Fixes an issue with CABAC state management in intra mode search
+
+#define DCM_DECODING_REFRESH              1           ///< enable/disable decoding refresh (IDR and CDR)
+#if DCM_DECODING_REFRESH
+#define DCM_SKIP_DECODING_FRAMES          1           ///< enable/disable the random access by the decoder
+#endif
 ///////////////////////////////
 // DOCOMO defines section end
 ///////////////////////////////

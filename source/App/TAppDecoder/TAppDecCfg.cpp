@@ -52,10 +52,16 @@ Bool TAppDecCfg::parseCfg( Int argc, Char* argv[] )
   m_apcOpt->addUsage( "options: (if only -b is specified, YUV writing is skipped)" );
   m_apcOpt->addUsage( "  -b  bitstream file name" );
   m_apcOpt->addUsage( "  -o  decoded YUV output file name" );
+#if DCM_SKIP_DECODING_FRAMES
+  m_apcOpt->addUsage( "  -s  number of frames to skip before random access" );
+#endif
   
   // set command line option strings/characters
   m_apcOpt->setCommandOption( 'b' );
   m_apcOpt->setCommandOption( 'o' );
+#if DCM_SKIP_DECODING_FRAMES
+  m_apcOpt->setCommandOption( 's' );
+#endif
   
   // command line parsing
   m_apcOpt->processCommandArgs( argc, argv );
@@ -85,6 +91,10 @@ Void TAppDecCfg::xSetCfgCommand   ( TAppOption* pcOpt )
   
   if ( pcOpt->getValue( 'b' ) ) m_pchBitstreamFile = pcOpt->getValue( 'b' );
   if ( pcOpt->getValue( 'o' ) ) m_pchReconFile     = pcOpt->getValue( 'o' );
+#if DCM_SKIP_DECODING_FRAMES
+  m_iSkipFrame = 0;
+  if ( pcOpt->getValue( 's' ) ) m_iSkipFrame       = atoi(pcOpt->getValue( 's' ));
+#endif
 }
 
 

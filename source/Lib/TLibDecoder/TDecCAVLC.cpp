@@ -139,7 +139,12 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice)
   Int   iCode;
   xReadCode ( 2, uiCode ); //NalRefIdc
   xReadCode ( 1, uiCode ); assert( 0 == uiCode); // zero bit
+#if DCM_DECODING_REFRESH
+  xReadCode ( 5, uiCode ); 
+  rpcSlice->setNalUnitType        ((NalUnitType)uiCode);//NalUnitType
+#else
   xReadCode ( 5, uiCode ); assert( NAL_UNIT_CODED_SLICE == uiCode);//NalUnitType
+#endif
   
   xReadCode (10, uiCode);  rpcSlice->setPOC              (uiCode);             // 9 == SPS->Log2MaxFrameNum()
   xReadUvlc (   uiCode);  rpcSlice->setSliceType        ((SliceType)uiCode);

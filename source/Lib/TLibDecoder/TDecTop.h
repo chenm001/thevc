@@ -59,6 +59,14 @@ private:
   Bool                    m_bGopSizeSet;
   int                     m_iMaxRefPicNum;
   
+#if DCM_DECODING_REFRESH
+  Bool                    m_bRefreshPending;    ///< refresh pending flag
+  UInt                    m_uiPOCCDR;           ///< temporal reference of the CDR picture
+#if DCM_SKIP_DECODING_FRAMES
+  UInt                    m_uiPOCRA;            ///< temporal reference of the random access point
+#endif
+#endif
+
   UInt                    m_uiValidPS;
   TComList<TComPic*>      m_cListPic;         //  Dynamic buffer
   TComSPS                 m_cSPS;
@@ -77,7 +85,11 @@ private:
   TDecBinCABAC            m_cBinCABAC;
   TComLoopFilter          m_cLoopFilter;
   TComAdaptiveLoopFilter  m_cAdaptiveLoopFilter;
-  
+
+#if DCM_SKIP_DECODING_FRAMES
+  Bool isRandomAccessSkipPicture(Int& iSkipFrame,  Int& iPOCLastDisplay);
+#endif
+
 public:
   TDecTop();
   virtual ~TDecTop();
@@ -86,7 +98,11 @@ public:
   Void  destroy ();
   
   Void  init();
+#if DCM_SKIP_DECODING_FRAMES
+  Void  decode (Bool bEos, TComBitstream* pcBitstream, UInt& ruiPOC, TComList<TComPic*>*& rpcListPic, Int& iSkipFrame, Int& iPOCLastDisplay);
+#else
   Void  decode ( Bool bEos, TComBitstream* pcBitstream, UInt& ruiPOC, TComList<TComPic*>*& rpcListPic );
+#endif
   
   Void  deletePicBuffer();
   

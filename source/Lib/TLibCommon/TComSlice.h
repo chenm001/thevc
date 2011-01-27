@@ -179,6 +179,9 @@ class TComSlice
 private:
   //  Bitstream writing
   Int         m_iPOC;
+#if DCM_DECODING_REFRESH
+  NalUnitType m_eNalUnitType;         ///< Nal unit type for the slice
+#endif
   SliceType   m_eSliceType;
   Int         m_iSliceQp;
   Int         m_iSymbolMode;
@@ -251,6 +254,11 @@ public:
 #endif
   
   Void      setPOC              ( Int i )                       { m_iPOC              = i;      }
+#if DCM_DECODING_REFRESH
+  Void      setNalUnitType      ( NalUnitType e )               { m_eNalUnitType      = e;      }
+  NalUnitType getNalUnitType    ()                              { return m_eNalUnitType;        }
+  Void      decodingRefreshMarking(UInt& uiPOCCDR, Bool& bRefreshPending, TComList<TComPic*>& rcListPic);
+#endif
   Void      setSliceType        ( SliceType e )                 { m_eSliceType        = e;      }
   Void      setSliceQp          ( Int i )                       { m_iSliceQp          = i;      }
   Void      setSliceQpDelta     ( Int i )                       { m_iSliceQpDelta     = i;      }
