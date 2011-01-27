@@ -447,7 +447,13 @@ Void TDecSbac::parsePartSize( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth 
   
   if ( pcCU->isIntra( uiAbsPartIdx ) )
   {
-    m_pcTDecBinIf->decodeBin( uiSymbol, m_cCUPartSizeSCModel.get( 0, 0, 0) );
+#if MTK_DISABLE_INTRA_NxN_SPLIT
+    uiSymbol = 1;
+    if ((g_uiMaxCUWidth >> uiDepth) == 8)
+#endif
+    {
+      m_pcTDecBinIf->decodeBin( uiSymbol, m_cCUPartSizeSCModel.get( 0, 0, 0) );
+    }
     eMode = uiSymbol ? SIZE_2Nx2N : SIZE_NxN;
   }
   else
@@ -483,11 +489,19 @@ Void TDecSbac::parsePartSize( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth 
       uiSymbol = 0;
       if( g_uiMaxCUWidth>>uiDepth == 8 )
 #endif
+      {
         m_pcTDecBinIf->decodeBin( uiSymbol, m_cCUPartSizeSCModel.get( 0, 0, 3) );
+      }
+      
       if (uiSymbol == 0)
       {
         pcCU->setPredModeSubParts( MODE_INTRA, uiAbsPartIdx, uiDepth );
-        m_pcTDecBinIf->decodeBin( uiSymbol, m_cCUPartSizeSCModel.get( 0, 0, 4) );
+#if MTK_DISABLE_INTRA_NxN_SPLIT
+        if ((g_uiMaxCUWidth >> uiDepth) == 8)
+#endif
+        {
+          m_pcTDecBinIf->decodeBin( uiSymbol, m_cCUPartSizeSCModel.get( 0, 0, 4) );
+        }
         if (uiSymbol == 0)
           eMode = SIZE_2Nx2N;
       }

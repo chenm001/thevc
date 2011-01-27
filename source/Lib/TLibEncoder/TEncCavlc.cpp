@@ -576,21 +576,31 @@ Void TEncCavlc::codePartSize( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth 
 #else
     xWriteFlag( 0 );
 #endif
-    xWriteFlag( (eSize == SIZE_2Nx2N? 0 : 1) );
+#if MTK_DISABLE_INTRA_NxN_SPLIT
+    if( pcCU->getWidth( uiAbsPartIdx ) == 8 )
+#endif
+    {
+      xWriteFlag( (eSize == SIZE_2Nx2N? 0 : 1) );
+    }
 #if LCEC_STAT
     if (m_bAdaptFlag)
-      m_uiBitPartSize += 5;
+      m_uiBitPartSize += 5; // TODO: this needs to be fixed according to macro settings
 #endif
     return;
   }
   
   if ( pcCU->isIntra( uiAbsPartIdx ) )
   {
-    xWriteFlag( eSize == SIZE_2Nx2N? 1 : 0 );
-#if LCEC_STAT
-    if (m_bAdaptFlag)
-      m_uiBitPartSize += 1;
+#if MTK_DISABLE_INTRA_NxN_SPLIT
+    if( pcCU->getWidth( uiAbsPartIdx ) == 8 )
 #endif
+    {
+      xWriteFlag( eSize == SIZE_2Nx2N? 1 : 0 );
+#if LCEC_STAT
+      if (m_bAdaptFlag)
+        m_uiBitPartSize += 1;
+#endif
+    }
     return;
   }
   

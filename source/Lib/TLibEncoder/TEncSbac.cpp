@@ -321,19 +321,27 @@ Void TEncSbac::codePartSize( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
     }
 #if HHI_DISABLE_INTER_NxN_SPLIT
     if( pcCU->getWidth( uiAbsPartIdx ) == 8 )
+#endif
     {
       m_pcBinIf->encodeBin( 0, m_cCUPartSizeSCModel.get( 0, 0, 3) );
     }
-#else
-    m_pcBinIf->encodeBin( 0, m_cCUPartSizeSCModel.get( 0, 0, 3) );
+#if MTK_DISABLE_INTRA_NxN_SPLIT
+    if( pcCU->getWidth( uiAbsPartIdx ) == 8 )
 #endif
-    m_pcBinIf->encodeBin( (eSize == SIZE_2Nx2N? 0 : 1), m_cCUPartSizeSCModel.get( 0, 0, 4) );
+    {
+      m_pcBinIf->encodeBin( (eSize == SIZE_2Nx2N? 0 : 1), m_cCUPartSizeSCModel.get( 0, 0, 4) );
+    }
     return;
   }
   
   if ( pcCU->isIntra( uiAbsPartIdx ) )
   {
-    m_pcBinIf->encodeBin( eSize == SIZE_2Nx2N? 1 : 0, m_cCUPartSizeSCModel.get( 0, 0, 0 ) );
+#if MTK_DISABLE_INTRA_NxN_SPLIT
+    if( pcCU->getWidth( uiAbsPartIdx ) == 8 )
+#endif
+    {
+      m_pcBinIf->encodeBin( eSize == SIZE_2Nx2N? 1 : 0, m_cCUPartSizeSCModel.get( 0, 0, 0 ) );
+    }
     return;
   }
   

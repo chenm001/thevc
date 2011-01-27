@@ -366,8 +366,14 @@ Void TDecCavlc::parsePartSize( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth
   
   if ( pcCU->isIntra( uiAbsPartIdx ) )
   {
-    xReadFlag( uiSymbol );
-    eMode = uiSymbol ? SIZE_2Nx2N : SIZE_NxN;
+#if MTK_DISABLE_INTRA_NxN_SPLIT
+    eMode = SIZE_2Nx2N;
+    if ( (g_uiMaxCUWidth >> uiDepth) == 8 )
+#endif
+    {
+      xReadFlag( uiSymbol );
+      eMode = uiSymbol ? SIZE_2Nx2N : SIZE_NxN;
+    }
   }
   else
   {
@@ -402,11 +408,19 @@ Void TDecCavlc::parsePartSize( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth
       uiSymbol = 0;
       if( g_uiMaxCUWidth>>uiDepth == 8 )
 #endif
+      {
         xReadFlag( uiSymbol );
+      }
+      
       if (uiSymbol == 0)
       {
         pcCU->setPredModeSubParts( MODE_INTRA, uiAbsPartIdx, uiDepth );
-        xReadFlag( uiSymbol );
+#if MTK_DISABLE_INTRA_NxN_SPLIT
+        if ( (g_uiMaxCUWidth >> uiDepth) == 8 )
+#endif
+        {
+          xReadFlag( uiSymbol );
+        }
         if (uiSymbol == 0)
           eMode = SIZE_2Nx2N;
       }
