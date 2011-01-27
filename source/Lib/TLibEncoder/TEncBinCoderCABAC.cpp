@@ -72,7 +72,7 @@ TEncBinCABAC::finish()
 {
   xWriteBitAndBitsToFollow( ( m_uiLow >> 9 ) & 1 );
   xWriteBit               ( ( m_uiLow >> 8 ) & 1 );
-  xWriteBit               ( 1 ); // stop bit
+  // xWriteBit               ( 1 ); // stop bit, already written in TEncGOP::compressGOP
   if( 8 - m_uiBitsLeft != 0 )
   {
     m_pcTComBitIf->write  ( m_uiByte, 8 - m_uiBitsLeft );
