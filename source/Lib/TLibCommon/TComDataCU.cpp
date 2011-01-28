@@ -1983,6 +1983,9 @@ Void TComDataCU::fillMvpCand ( UInt uiPartIdx, UInt uiPartAddr, RefPicList eRefP
   TComDataCU* pcCUColocated = getCUColocated(RefPicList(uiColDir));
   
   RefPicList eColRefPicList = (m_pcSlice->isInterB()? RefPicList(1-uiColDir) : REF_PIC_LIST_0);
+#if PANASONIC_AMVPTEMPORALEXT
+  RefPicList eColRefPicList2 = (m_pcSlice->isInterB()? RefPicList(uiColDir) : REF_PIC_LIST_0);
+#endif
   
   if ( pcCUColocated && !pcCUColocated->isIntra(uiAbsPartAddr) &&
       pcCUColocated->getCUMvField(eColRefPicList)->getRefIdx(uiAbsPartAddr) >= 0 )
@@ -2010,8 +2013,36 @@ Void TComDataCU::fillMvpCand ( UInt uiPartIdx, UInt uiPartAddr, RefPicList eRefP
     
     pInfo->m_acMvCand[pInfo->iN++] = cMv ;
   }
-#endif
-#endif
+#if PANASONIC_AMVPTEMPORALEXT
+  else if ( pcCUColocated && !pcCUColocated->isIntra(uiAbsPartAddr) &&
+           pcCUColocated->getCUMvField(eColRefPicList2)->getRefIdx(uiAbsPartAddr) >= 0 )
+  {
+    Int iColPOC = pcCUColocated->getSlice()->getPOC();
+    Int iColRefPOC = pcCUColocated->getSlice()->getRefPOC(eColRefPicList2, pcCUColocated->getCUMvField(eColRefPicList2)->getRefIdx(uiAbsPartAddr));
+    TComMv cColMv = pcCUColocated->getCUMvField(eColRefPicList2)->getMv(uiAbsPartAddr);
+    
+    Int iCurrPOC = m_pcSlice->getPOC();
+    Int iCurrRefPOC = m_pcSlice->getRefPic(eRefPicList, iRefIdx)->getPOC();
+    
+    TComMv cMv;
+    Int iScale = xGetDistScaleFactor(iCurrPOC, iCurrRefPOC, iColPOC, iColRefPOC);
+    
+    if (iScale == 1024)
+    {
+      cMv = cColMv;
+    }
+    else
+    {
+      cMv = cColMv.scaleMv( iScale );
+    }
+    
+    clipMv(cMv);
+    
+    pInfo->m_acMvCand[pInfo->iN++] = cMv ;
+  }
+#endif // PANASONIC_AMVPTEMPORALEXT
+#endif // FT_TCTR
+#endif // AMVP_NEIGH_COL
   // Check No MV Candidate
   xUniqueMVPCand( pInfo );
   return ;
