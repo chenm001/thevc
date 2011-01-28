@@ -1931,7 +1931,22 @@ TEncSearch::estIntraPredQT( TComDataCU* pcCU,
     if(uiFastCandNum!=uiMaxMode)
     {
       uiNewMaxMode = Min( uiFastCandNum, CandNum );
-      for( Int i=0; i < uiNewMaxMode; i++) uiRdModeList[i] = CandModeList[i];
+      for( Int i = 0; i < uiNewMaxMode; i++)
+      {
+        uiRdModeList[i] = CandModeList[i];
+      }
+#if FAST_UDI_USE_MPM
+      Int mostProbableMode = pcCU->getMostProbableIntraDirLuma( uiPartOffset );
+      Bool mostProbableModeIncluded = false;
+      for( Int i=0; i < uiNewMaxMode; i++)
+      {
+        mostProbableModeIncluded |= (mostProbableMode == uiRdModeList[i]);
+      }
+      if (!mostProbableModeIncluded)
+      {
+        uiRdModeList[uiNewMaxMode++] = mostProbableMode;
+      }      
+#endif
     }
     else
     {
