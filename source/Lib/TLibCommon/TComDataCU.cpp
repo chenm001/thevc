@@ -1831,24 +1831,64 @@ Void TComDataCU::fillMvpCand ( UInt uiPartIdx, UInt uiPartAddr, RefPicList eRefP
   TComMv cMvPred;
   
   pInfo->iN = 0;
+#if DCM_SIMPLIFIED_MVP==0 
   UInt uiIdx;
+#endif
   
   if (iRefIdx < 0)
     return;
   
+#if DCM_SIMPLIFIED_MVP==0 
   pInfo->m_acMvCand[pInfo->iN++] = cMvPred;   //dummy mv
+#endif
   
   //-- Get Spatial MV
   UInt uiPartIdxLT, uiPartIdxRT, uiPartIdxLB;
   UInt uiNumPartInCUWidth = m_pcPic->getNumPartInWidth();
   Bool bAdded = false;
+#if DCM_SIMPLIFIED_MVP==0
   Int iLeftMvIdx = -1;
   Int iAboveMvIdx = -1;
   Int iCornerMvIdx = -1;
+#endif
   
   deriveLeftRightTopIdx( eCUMode, uiPartIdx, uiPartIdxLT, uiPartIdxRT );
   deriveLeftBottomIdx( eCUMode, uiPartIdx, uiPartIdxLB );
   
+#if DCM_SIMPLIFIED_MVP
+  // Left predictor search
+  bAdded = xAddMVPCand( pInfo, eRefPicList, iRefIdx, uiPartIdxLB, MD_BELOW_LEFT);
+  for ( Int idx = (Int)g_auiZscanToRaster[uiPartIdxLB]; !bAdded && idx >= (Int)g_auiZscanToRaster[uiPartIdxLT]; idx-= uiNumPartInCUWidth )
+  {
+    bAdded = xAddMVPCand( pInfo, eRefPicList, iRefIdx, g_auiRasterToZscan[idx], MD_LEFT );
+  }
+  
+  // Above predictor search
+  bAdded = xAddMVPCand( pInfo, eRefPicList, iRefIdx, uiPartIdxRT, MD_ABOVE_RIGHT);
+  if (bAdded && pInfo->iN==2 && pInfo->m_acMvCand[0] == pInfo->m_acMvCand[1])
+  {
+    pInfo->iN--; //remove duplicate entries
+    bAdded = false;
+  }
+  
+  for ( Int idx = (Int)g_auiZscanToRaster[uiPartIdxRT]; !bAdded && idx >= (Int)g_auiZscanToRaster[uiPartIdxLT]; idx-- )
+  {
+    bAdded = xAddMVPCand( pInfo, eRefPicList, iRefIdx, g_auiRasterToZscan[idx], MD_ABOVE);
+    if (bAdded && pInfo->iN==2 && pInfo->m_acMvCand[0] == pInfo->m_acMvCand[1])
+    {
+      pInfo->iN--; //remove duplicate entries
+      bAdded = false;
+    }
+  }
+  if(!bAdded)
+  {
+    bAdded = xAddMVPCand( pInfo, eRefPicList, iRefIdx, uiPartIdxLT, MD_ABOVE_LEFT);
+    if (bAdded && pInfo->iN==2 && pInfo->m_acMvCand[0] == pInfo->m_acMvCand[1])
+    {
+      pInfo->iN--; //remove duplicate entries
+    }
+  }
+#else  
   //Left
   for ( uiIdx = g_auiZscanToRaster[uiPartIdxLT]; uiIdx <= g_auiZscanToRaster[uiPartIdxLB]; uiIdx+= uiNumPartInCUWidth )
   {
@@ -1944,7 +1984,6 @@ Void TComDataCU::fillMvpCand ( UInt uiPartIdx, UInt uiPartAddr, RefPicList eRefP
   }
   
   clipMv(pInfo->m_acMvCand[0]);
-  
   TComMv cTempMv;
   if ( ( ( ((eCUMode == SIZE_2NxN)) && uiPartIdx == 1 ) ||
         ( ((eCUMode == SIZE_Nx2N)) && uiPartIdx == 0 ) )
@@ -1954,6 +1993,7 @@ Void TComDataCU::fillMvpCand ( UInt uiPartIdx, UInt uiPartAddr, RefPicList eRefP
     pInfo->m_acMvCand[0] = pInfo->m_acMvCand[iLeftMvIdx];
     pInfo->m_acMvCand[iLeftMvIdx] = cTempMv;
   }
+#endif
   
   if (getAMVPMode(uiPartAddr) == AM_NONE)  //Should be optimized later for special cases
   {
@@ -2048,6 +2088,7 @@ Void TComDataCU::fillMvpCand ( UInt uiPartIdx, UInt uiPartAddr, RefPicList eRefP
   return ;
 }
 
+#if DCM_SIMPLIFIED_MVP==0
 Bool TComDataCU::clearMVPCand( TComMv cMvd, AMVPInfo* pInfo )
 {
   // only works for multiple candidates
@@ -2114,6 +2155,7 @@ Bool TComDataCU::clearMVPCand( TComMv cMvd, AMVPInfo* pInfo )
   
   return true;
 }
+#endif
 
 Int TComDataCU::searchMVPIdx(TComMv cMv, AMVPInfo* pInfo)
 {

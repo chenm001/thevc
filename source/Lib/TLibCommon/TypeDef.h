@@ -130,6 +130,12 @@
 #if DCM_DECODING_REFRESH
 #define DCM_SKIP_DECODING_FRAMES          1           ///< enable/disable the random access by the decoder
 #endif
+
+#define DCM_SIMPLIFIED_MVP                1           ///< enable/disable the simplified motoin vector prediction(D231)
+
+
+
+
 ///////////////////////////////
 // DOCOMO defines section end
 ///////////////////////////////
