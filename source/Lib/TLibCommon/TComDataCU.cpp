@@ -2432,7 +2432,7 @@ Bool TComDataCU::xGetCenterCol( UInt uiPartIdx, int iRefIdx, TComMv *pcMv )
     return false;
   
   // Prefer a vector crossing us.  Prefer shortest.
-  RefPicList eColRefPicList;
+  RefPicList eColRefPicList = REF_PIC_LIST_0;
   bool bFirstCrosses = false;
   Int  iFirstColDist = -1;
   for (Int l = 0; l < 2; l++)
