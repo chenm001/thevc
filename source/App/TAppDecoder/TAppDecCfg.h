@@ -54,6 +54,9 @@ protected:
   TAppOption*   m_apcOpt;                             ///< option handling class
   char*         m_pchBitstreamFile;                   ///< input bitstream file name
   char*         m_pchReconFile;                       ///< output reconstruction file name
+#if DCM_SKIP_DECODING_FRAMES
+  Int           m_iSkipFrame;                         ///< counter for frames prior to the random access point to skip
+#endif
   
   Void  xSetCfgCommand  ( TAppOption* pcOpt );        ///< initialize member variables from option class
   

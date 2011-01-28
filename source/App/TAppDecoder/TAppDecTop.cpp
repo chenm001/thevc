@@ -104,7 +104,10 @@ Void TAppDecTop::decode()
   // create & initialize internal classes
   xCreateDecLib();
   xInitDecLib  ();
-  
+#if DCM_SKIP_DECODING_FRAMES
+  m_iPOCLastDisplay += m_iSkipFrame;      // set the last displayed POC correctly for skip forward.
+#endif
+
   // main decoder loop
   Bool  bEos        = false;
   while ( !bEos )
@@ -116,7 +119,11 @@ Void TAppDecTop::decode()
     }
     
     // call actual decoding function
+#if DCM_SKIP_DECODING_FRAMES
+    m_cTDecTop.decode( bEos, pcBitstream, uiPOC, pcListPic, m_iSkipFrame, m_iPOCLastDisplay);
+#else
     m_cTDecTop.decode( bEos, pcBitstream, uiPOC, pcListPic );
+#endif
     
     if( pcListPic )
     {
