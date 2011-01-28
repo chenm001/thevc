@@ -58,8 +58,6 @@ Void         initROM();
 Void         destroyROM();
 Void         initFrameScanXY( UInt* pBuff, UInt* pBuffX, UInt* pBuffY, Int iWidth, Int iHeight );
 
-Void         initSigLastScanPattern( UInt* puiScanPattern, const UInt uiLog2BlockSize, const bool bDownLeft );
-
 // ====================================================================================================================
 // Data structure related table & variable
 // ====================================================================================================================
@@ -114,8 +112,6 @@ extern       UInt*  g_auiFrameScanXY[ MAX_CU_DEPTH  ];    // raster index     fr
 extern       UInt*  g_auiFrameScanX [ MAX_CU_DEPTH  ];    // raster index (x) from scanning index
 extern       UInt*  g_auiFrameScanY [ MAX_CU_DEPTH  ];    // raster index (y) from scanning index
 extern       UInt   g_auiAntiScan8[64];                   // 2D context mapping for coefficients
-
-extern       UInt*  g_auiSigLastScan[ MAX_CU_DEPTH+1  ][ 2 ];
 
 // ====================================================================================================================
 // CAVLC table

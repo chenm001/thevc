@@ -65,18 +65,7 @@ Void initROM()
     g_auiFrameScanY [ i ] = new UInt[ c*c ];
     initFrameScanXY( g_auiFrameScanXY[i], g_auiFrameScanX[i], g_auiFrameScanY[i], c, c );
     c <<= 1;
-  }
-  
-  // init adaptive scan for sig/last SE coding
-  for ( i = 0; i < MAX_CU_DEPTH+1; i++ )
-  {
-    const int   iBlockSize    = 1 << i;
-    const UInt  uiNumScanPos  = UInt( iBlockSize * iBlockSize );
-    g_auiSigLastScan[ i ][ 0 ] = new UInt[ uiNumScanPos ];
-    g_auiSigLastScan[ i ][ 1 ] = new UInt[ uiNumScanPos ];
-    initSigLastScanPattern( g_auiSigLastScan[ i ][ 1 ], i, true  );
-    initSigLastScanPattern( g_auiSigLastScan[ i ][ 0 ], i, false );
-  }
+  }  
 }
 
 Void destroyROM()
@@ -88,12 +77,6 @@ Void destroyROM()
     delete[] g_auiFrameScanXY[i];
     delete[] g_auiFrameScanX [i];
     delete[] g_auiFrameScanY [i];
-  }
-  
-  for ( i=0; i<MAX_CU_DEPTH+1; i++ )
-  {
-    delete[] g_auiSigLastScan[i][0];
-    delete[] g_auiSigLastScan[i][1];
   }
 }
 
@@ -2063,8 +2046,6 @@ UInt* g_auiFrameScanXY[ MAX_CU_DEPTH  ];
 UInt* g_auiFrameScanX [ MAX_CU_DEPTH  ];
 UInt* g_auiFrameScanY [ MAX_CU_DEPTH  ];
 
-UInt* g_auiSigLastScan[ MAX_CU_DEPTH+1  ][ 2 ];
-
 // scanning order to 8x8 context model mapping table
 UInt  g_auiAntiScan8  [64];
 
@@ -2120,29 +2101,4 @@ Void initFrameScanXY( UInt* pBuff, UInt* pBuffX, UInt* pBuffY, Int iWidth, Int i
       g_auiAntiScan8[pBuff[c]] = c;
     }
   }
-}
-
-Void initSigLastScanPattern( UInt* puiScanPattern, const UInt uiLog2BlockSize, const bool bDownLeft )
-{
-  const int   iBlockSize    = 1 << uiLog2BlockSize;
-  const UInt  uiNumScanPos  = UInt( iBlockSize * iBlockSize );
-  UInt        uiNextScanPos = 0;
-  
-  for( UInt uiScanLine = 0; uiNextScanPos < uiNumScanPos; uiScanLine++ )
-  {
-    int    iPrimDim  = int( uiScanLine );
-    int    iScndDim  = 0;
-    while( iPrimDim >= iBlockSize )
-    {
-      iScndDim++;
-      iPrimDim--;
-    }
-    while( iPrimDim >= 0 && iScndDim < iBlockSize )
-    {
-      puiScanPattern[ uiNextScanPos++ ] = ( bDownLeft ? iScndDim * iBlockSize + iPrimDim : iPrimDim * iBlockSize + iScndDim );
-      iScndDim++;
-      iPrimDim--;
-    }
-  }
-  return;
 }

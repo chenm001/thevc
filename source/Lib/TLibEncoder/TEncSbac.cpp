@@ -810,33 +810,21 @@ Void TEncSbac::codeCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx
   const UInt   uiMaxNumCoeff     = 1 << ( uiLog2BlockSize << 1 );
   const UInt   uiMaxNumCoeffM1   = uiMaxNumCoeff - 1;
   const UInt   uiNum4x4Blk       = max<UInt>( 1, uiMaxNumCoeff >> 4 );
-  UInt         uiDownLeft        = 1;
-  UInt         uiNumSigTopRight  = 0;
-  UInt         uiNumSigBotLeft   = 0;
   
   for( UInt uiScanPos = 0; uiScanPos < uiMaxNumCoeffM1; uiScanPos++ )
   {
-    UInt  uiBlkPos  = g_auiSigLastScan[ uiLog2BlockSize ][ uiDownLeft ][ uiScanPos ];
+    UInt  uiBlkPos  = g_auiFrameScanXY[ uiLog2BlockSize-1 ][ uiScanPos ];
     UInt  uiPosY    = uiBlkPos >> uiLog2BlockSize;
     UInt  uiPosX    = uiBlkPos - ( uiPosY << uiLog2BlockSize );
     
     //===== code significance flag =====
     UInt  uiSig    = pcCoef[ uiBlkPos ] != 0 ? 1 : 0;
-    UInt  uiCtxSig = TComTrQuant::getSigCtxInc( pcCoef, uiPosX, uiPosY, uiLog2BlockSize, uiWidth, ( uiDownLeft > 0 ) );
+    UInt  uiCtxSig = TComTrQuant::getSigCtxInc( pcCoef, uiPosX, uiPosY, uiLog2BlockSize, uiWidth );
     m_pcBinIf->encodeBin( uiSig, m_cCUSigSCModel.get( uiCTXIdx, eTType, uiCtxSig ) );
     
     if( uiSig )
     {
       uiNumSig--;
-      
-      if( uiPosX > uiPosY )
-      {
-        uiNumSigTopRight++;
-      }
-      else if( uiPosY > uiPosX )
-      {
-        uiNumSigBotLeft ++;
-      }
       
       //===== code last flag =====
       UInt  uiLast    = ( uiNumSig == 0 ) ? 1 : 0;
@@ -848,22 +836,6 @@ Void TEncSbac::codeCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx
         break;
       }
     }
-    
-    //===== update scan direction =====
-#if !HHI_DISABLE_SCAN
-    if( ( uiDownLeft == 1 && ( uiPosX == 0 || uiPosY == uiHeight - 1 ) ) ||
-       ( uiDownLeft == 0 && ( uiPosY == 0 || uiPosX == uiWidth  - 1 ) )   )
-    {
-      uiDownLeft = ( uiNumSigTopRight >= uiNumSigBotLeft ? 1 : 0 );
-    }
-#else
-    if( uiScanPos && 
-       ( ( uiDownLeft == 1 && ( uiPosX == 0 || uiPosY == uiHeight - 1 ) ) ||
-        ( uiDownLeft == 0 && ( uiPosY == 0 || uiPosX == uiWidth  - 1 ) )   ) )
-    {
-      uiDownLeft = 1 - uiDownLeft;
-    }
-#endif
   }
   
   /*
