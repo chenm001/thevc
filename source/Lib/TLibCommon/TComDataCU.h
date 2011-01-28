@@ -149,6 +149,11 @@ protected:
   /// calculate all CBF's from coefficients
   Void          xCalcCuCbf            ( UChar* puhCbf, UInt uiTrDepth, UInt uiCbfDepth, UInt uiCuDepth );
   
+#if FT_TCTR
+  Void xDeriveCenterIdx( PartSize eCUMode, UInt uiPartIdx, UInt& ruiPartIdxCenter );
+  Bool xGetCenterCol( UInt uiPartIdx, int iRefIdx, TComMv *pcMv );
+#endif
+  
 public:
   TComDataCU();
   virtual ~TComDataCU();

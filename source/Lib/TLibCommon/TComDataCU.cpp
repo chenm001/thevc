@@ -1964,6 +1964,18 @@ Void TComDataCU::fillMvpCand ( UInt uiPartIdx, UInt uiPartAddr, RefPicList eRefP
   
   // Get Temporal Motion Predictor
 #if AMVP_NEIGH_COL
+#if FT_TCTR
+  {
+    TComMv cMvTCenter[2];
+    if (xGetCenterCol( uiPartIdx, iRefIdx, &cMvTCenter[0] ))
+    {
+      for (int i = pInfo->iN-1; i >= 0; i--)
+        pInfo->m_acMvCand[i+1] = pInfo->m_acMvCand[i];
+      pInfo->m_acMvCand[0] = cMvTCenter[(int)(eRefPicList)];
+      pInfo->iN++;
+    }
+  }
+#else
   UInt uiAbsPartAddr = m_uiAbsIdxInLCU + uiPartAddr;
   
   UInt uiColDir = (m_pcSlice->isInterB()? m_pcSlice->getColDir() : 0);
@@ -1998,6 +2010,7 @@ Void TComDataCU::fillMvpCand ( UInt uiPartIdx, UInt uiPartAddr, RefPicList eRefP
     
     pInfo->m_acMvCand[pInfo->iN++] = cMv ;
   }
+#endif
 #endif
   // Check No MV Candidate
   xUniqueMVPCand( pInfo );
@@ -2313,4 +2326,97 @@ Void TComDataCU::xCalcCuCbf( UChar* puhCbf, UInt uiTrDepth, UInt uiCbfDepth, UIn
     puhCbf[ui] |= uiNumSig;
   }
 }
+
+#if FT_TCTR
+Void TComDataCU::xDeriveCenterIdx( PartSize eCUMode, UInt uiPartIdx, UInt& ruiPartIdxCenter )
+{
+  UInt uiPartAddr;
+  Int  iPartWidth;
+  Int  iPartHeight;
+  getPartIndexAndSize( uiPartIdx, uiPartAddr, iPartWidth, iPartHeight);
+  
+  ruiPartIdxCenter = m_uiAbsIdxInLCU+uiPartAddr; // partition origin.
+  ruiPartIdxCenter = g_auiRasterToZscan[ g_auiZscanToRaster[ ruiPartIdxCenter ]
+                                        + ( iPartHeight/m_pcPic->getMinCUHeight() -1 )/2*m_pcPic->getNumPartInWidth()
+                                        + ( iPartWidth/m_pcPic->getMinCUWidth()  -1 )/2];
+}
+
+Bool TComDataCU::xGetCenterCol( UInt uiPartIdx, int iRefIdx, TComMv *pcMv )
+{
+  PartSize eCUMode = m_pePartSize[0];
+  
+  Int iCurrPOC = m_pcSlice->getPOC();
+  
+  // use coldir.
+  TComPic *pColPic = getSlice()->getRefPic( RefPicList(getSlice()->isInterB() ? getSlice()->getColDir() : 0), 0);
+  TComDataCU *pColCU = pColPic->getCU( m_uiCUAddr );
+  
+  Int iColPOC = pColCU->getSlice()->getPOC();
+  UInt uiPartIdxCenter;
+  xDeriveCenterIdx( eCUMode, uiPartIdx, uiPartIdxCenter );
+  
+  if (pColCU->isIntra(uiPartIdxCenter))
+    return false;
+  
+  // Prefer a vector crossing us.  Prefer shortest.
+  RefPicList eColRefPicList;
+  bool bFirstCrosses = false;
+  Int  iFirstColDist = -1;
+  for (Int l = 0; l < 2; l++)
+  {
+    bool bSaveIt = false;
+    int iColRefIdx = pColCU->getCUMvField(RefPicList(l))->getRefIdx(uiPartIdxCenter);
+    if (iColRefIdx < 0)
+      continue;
+    int iColRefPOC = pColCU->getSlice()->getRefPOC(RefPicList(l), iColRefIdx);
+    int iColDist = abs(iColRefPOC - iColPOC);
+    bool bCrosses = iColPOC < iCurrPOC ? iColRefPOC > iCurrPOC : iColRefPOC < iCurrPOC;
+    if (iFirstColDist < 0)
+      bSaveIt = true;
+    else if (bCrosses && !bFirstCrosses)
+      bSaveIt = true;
+    else if (bCrosses == bFirstCrosses && iColDist < iFirstColDist)
+      bSaveIt = true;
+    
+    if (bSaveIt)
+    {
+      bFirstCrosses = bCrosses;
+      iFirstColDist = iColDist;
+      eColRefPicList = RefPicList(l);
+    }
+  }
+  
+  // Scale the vector.
+  Int iColRefPOC = pColCU->getSlice()->getRefPOC(eColRefPicList, pColCU->getCUMvField(eColRefPicList)->getRefIdx(uiPartIdxCenter));
+  TComMv cColMv = pColCU->getCUMvField(eColRefPicList)->getMv(uiPartIdxCenter);
+  
+  Int iCurrRefPOC = m_pcSlice->getRefPic(REF_PIC_LIST_0, iRefIdx)->getPOC();
+  Int iScale = xGetDistScaleFactor(iCurrPOC, iCurrRefPOC, iColPOC, iColRefPOC);
+  if (iScale == 1024)
+  {
+    pcMv[0] = cColMv;
+  }
+  else
+  {
+    pcMv[0] = cColMv.scaleMv( iScale );
+  }
+  clipMv(pcMv[0]);
+  if (getSlice()->isInterB())
+  {
+    iCurrRefPOC = m_pcSlice->getRefPic(REF_PIC_LIST_1, iRefIdx)->getPOC();
+    iScale = xGetDistScaleFactor(iCurrPOC, iCurrRefPOC, iColPOC, iColRefPOC);
+    if (iScale == 1024)
+    {
+      pcMv[1] = cColMv;
+    }
+    else
+    {
+      pcMv[1] = cColMv.scaleMv( iScale );
+    }
+    clipMv(pcMv[1]);
+  }
+  
+  return true;
+}
+#endif
 

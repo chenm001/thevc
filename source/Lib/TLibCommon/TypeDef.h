@@ -150,6 +150,7 @@
 ////////////////////////////////
 
 #define MTK_DISABLE_INTRA_NxN_SPLIT       1           ///< Disable use of PUs-mode NxN for CUs larger 8x8 (intra only)
+#define FT_TCTR 1
 
 // ====================================================================================================================
 // Basic type redefinition
