@@ -164,6 +164,7 @@
 #define FT_TCTR 1
 #define PANASONIC_AMVPTEMPORALEXT 1
 #define FAST_UDI_USE_MPM 1
+#define SONY_SIG_CTX 1
 
 // ====================================================================================================================
 // Basic type redefinition

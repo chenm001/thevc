@@ -3288,6 +3288,7 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
   }
 }
 
+#if !SONY_SIG_CTX
 UInt TComTrQuant::getSigCtxInc    ( TCoeff*                         pcCoeff,
                                    const UInt                      uiPosX,
                                    const UInt                      uiPosY,
@@ -3376,6 +3377,61 @@ UInt TComTrQuant::getSigCtxInc    ( TCoeff*                         pcCoeff,
   }
   return uiCtxInc;
 }
+#else
+UInt TComTrQuant::getSigCtxInc    ( TCoeff*                         pcCoeff,
+                                   const UInt                      uiPosX,
+                                   const UInt                      uiPosY,
+                                   const UInt                      uiLog2BlkSize,
+                                   const UInt                      uiStride )
+{
+  UInt  uiCtxInc  = 0;
+  
+  if( uiLog2BlkSize <= 3 )
+  {
+    UInt  uiShift = uiLog2BlkSize > 2 ? uiLog2BlkSize - 2 : 0;
+    uiCtxInc      = ( ( uiPosY >> uiShift ) << 2 ) + ( uiPosX >> uiShift );
+  }
+  else if( uiPosX <= 1 && uiPosY <= 1 )
+  {
+    uiCtxInc            = ( uiPosY << 1 ) + uiPosX;
+  }
+  else if( uiPosY == 0 )
+  {
+    const int*  pData   = &pcCoeff[ uiPosX + uiPosY * uiStride ];
+    UInt        uiCnt   = ( pData[         -1 ] ? 1 : 0 );
+    uiCnt              += ( pData[         -2 ] ? 1 : 0 );
+    uiCtxInc            = 4 + uiCnt;
+  }
+  else if( uiPosX == 0 )
+  {
+    const int*  pData   = &pcCoeff[ uiPosX + uiPosY * uiStride ];
+    int         iStride =  uiStride;
+    int         iStride2=  iStride << 1;
+    UInt        uiCnt   = ( pData[  -iStride  ] ? 1 : 0 );
+    uiCnt              += ( pData[  -iStride2 ] ? 1 : 0 );
+    uiCtxInc            = 7 + uiCnt;
+  }
+  else
+  {
+    const int*  pData   = &pcCoeff[ uiPosX + uiPosY * uiStride ];
+    int         iStride =  uiStride;
+    int         iStride2=  iStride << 1;
+    UInt        uiCnt   = ( pData[ -1 -iStride  ] ? 1 : 0 );
+    uiCnt              += ( pData[    -iStride  ] ? 1 : 0 );
+    uiCnt              += ( pData[ -1           ] ? 1 : 0 );
+    if( uiPosX > 1 )
+    {
+      uiCnt          += ( pData[ -2           ] ? 1 : 0 );
+    }
+    if ( uiPosY > 1 )
+    {
+      uiCnt          += ( pData[    -iStride2 ] ? 1 : 0 );
+    }
+    uiCtxInc            = 10 + min<UInt>( 4, uiCnt);
+  }
+  return uiCtxInc;
+}
+#endif
 
 UInt TComTrQuant::getLastCtxInc   ( const UInt                      uiPosX,
                                    const UInt                      uiPosY,
