@@ -155,6 +155,10 @@ public:
   Void    setAllRefIdx      ( Int     iRefIdx, PartSize eMbMode, Int iPartAddr, Int iPartIdx, UInt uiDepth );
   Void    setAllMvField     ( TComMv& rcMv, Int iRefIdx, PartSize eMbMode, Int iPartAddr, Int iPartIdx, UInt uiDepth );
   
+#if AMVP_BUFFERCOMPRESS
+  Void    compress          (PredMode* pePredMode); 
+#endif 
+  
 };
 
 #endif // __TCOMMOTIONINFO__

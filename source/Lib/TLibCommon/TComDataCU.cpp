@@ -2493,3 +2493,10 @@ Bool TComDataCU::xGetCenterCol( UInt uiPartIdx, int iRefIdx, TComMv *pcMv )
 }
 #endif
 
+#if AMVP_BUFFERCOMPRESS
+Void TComDataCU::compressMV()
+{
+  m_acCUMvField[0].compress(m_pePredMode);
+  m_acCUMvField[1].compress(m_pePredMode);
+}
+#endif 

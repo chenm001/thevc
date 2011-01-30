@@ -91,3 +91,15 @@ Void TComPic::destroy()
   
 }
 
+#if AMVP_BUFFERCOMPRESS
+Void TComPic::compressMotion()
+{
+  TComPicSym* pPicSym = getPicSym(); 
+  for ( UInt uiCUAddr = 0; uiCUAddr < pPicSym->getFrameHeightInCU()*pPicSym->getFrameWidthInCU(); uiCUAddr++ )
+  {
+    TComDataCU* pcCU = pPicSym->getCU(uiCUAddr);
+    pcCU->compressMV(); 
+  } 
+}
+#endif
+

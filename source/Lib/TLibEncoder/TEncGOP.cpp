@@ -380,6 +380,10 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
       pcBitstreamOut->flushBuffer();
       pcBitstreamOut->convertRBSPToPayload( uiPosBefore );
       
+#if AMVP_BUFFERCOMPRESS
+      pcPic->compressMotion(); 
+#endif 
+      
       // de-scaling of picture
       xDeScalePic( pcPic, &pcPicD );
       

@@ -166,6 +166,9 @@
 #define FAST_UDI_USE_MPM 1
 #define SONY_SIG_CTX 1
 
+#define AMVP_BUFFERCOMPRESS                   1     // motion vector buffer compression
+#define AMVP_DECIMATION_FACTOR                4
+
 // ====================================================================================================================
 // Basic type redefinition
 // ====================================================================================================================
