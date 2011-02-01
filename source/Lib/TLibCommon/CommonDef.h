@@ -171,6 +171,8 @@
 // Early-skip threshold (encoder)
 #define EARLY_SKIP_THRES            1.50        ///< if RD < thres*avg[BestSkipRD]
 
+// MERGE
+#define HHI_NUM_MRG_CAND            5
 
 const int g_iShift8x8    = 2;
 const int g_iShift16x16  = 2;
