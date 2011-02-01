@@ -347,13 +347,6 @@ Void TDecCavlc::parseSplitFlag( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDept
 
 Void TDecCavlc::parsePartSize( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
 {
-#if HHI_MRG
-  if ( pcCU->getMergeFlag( uiAbsPartIdx ) )
-  {
-    return;
-  }
-#endif
-  
   if ( pcCU->isSkip( uiAbsPartIdx ) )
   {
     pcCU->setPartSizeSubParts( SIZE_2Nx2N, uiAbsPartIdx, uiDepth );
@@ -438,14 +431,6 @@ Void TDecCavlc::parsePartSize( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth
 
 Void TDecCavlc::parsePredMode( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
 {
-#if HHI_MRG
-  if ( pcCU->getMergeFlag( uiAbsPartIdx ) )
-  {
-    pcCU->setPredModeSubParts( MODE_INTER, uiAbsPartIdx, uiDepth );
-    return;
-  }
-#endif
-  
   if( pcCU->getSlice()->isIntra() )
   {
     pcCU->setPredModeSubParts( MODE_INTRA, uiAbsPartIdx, uiDepth );
@@ -454,24 +439,7 @@ Void TDecCavlc::parsePredMode( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth
   
   UInt uiSymbol;
   Int  iPredMode = MODE_INTER;
-  
-#if HHI_MRG && !SAMSUNG_MRG_SKIP_DIRECT
-  if ( !pcCU->getSlice()->getSPS()->getUseMRG() )
-  {
-    xReadFlag( uiSymbol );
-    if ( uiSymbol == 0 )
-    {
-      iPredMode = MODE_SKIP;
-    }
-  }
-#else
-  xReadFlag( uiSymbol );
-  if ( uiSymbol == 0 )
-  {
-    iPredMode = MODE_SKIP;
-  }
-#endif
-  
+ 
   if ( pcCU->getSlice()->isInterB() )
   {
     pcCU->setPredModeSubParts( (PredMode)iPredMode, uiAbsPartIdx, uiDepth );
@@ -962,18 +930,205 @@ Void TDecCavlc::parseAlfSvlc (Int&  riVal)
 
 
 #if HHI_MRG
-Void TDecCavlc::parseMergeFlag ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
+Void TDecCavlc::parseMergeFlag ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth, UInt uiPUIdx )
 {
   UInt uiSymbol;
   xReadFlag( uiSymbol );
-  pcCU->setMergeFlagSubParts( uiSymbol ? true : false, uiAbsPartIdx, uiDepth );
+  pcCU->setMergeFlagSubParts( uiSymbol ? true : false, uiAbsPartIdx, uiPUIdx, uiDepth );
 }
 
-Void TDecCavlc::parseMergeIndex ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
+Void TDecCavlc::parseMergeIndex ( TComDataCU* pcCU, UInt& ruiMergeIndex, UInt uiAbsPartIdx, UInt uiDepth )
 {
-  UInt uiSymbol;
+  Bool bLeftInvolved = false;
+  Bool bAboveInvolved = false;
+  Bool bCollocatedInvolved = false;
+  Bool bCornerInvolved = false;
+  Bool bCornerBLInvolved = false;
+  UInt uiNumCand = 0;
+  for( UInt uiIter = 0; uiIter < HHI_NUM_MRG_CAND; ++uiIter )
+  {
+    if( pcCU->getNeighbourCandIdx( uiIter, uiAbsPartIdx ) == uiIter + 1 )
+    {
+      uiNumCand++;
+      if( uiIter == 0 )
+      {
+        bLeftInvolved = true;
+      }
+      else if( uiIter == 1 )
+      {
+        bAboveInvolved = true;
+      }
+      else if( uiIter == 2 )
+      {
+        bCollocatedInvolved = true;
+      }
+      else if( uiIter == 3 )
+      {
+        bCornerInvolved = true;
+      }
+      else if( uiIter == 4 )
+      {
+        bCornerBLInvolved = true;
+      }
+    }
+  }
+  assert( uiNumCand > 1 );
+  UInt uiOffset = 0;
+  if( bAboveInvolved && !bCollocatedInvolved && !bCornerInvolved && !bCornerBLInvolved )
+  {
+    uiOffset = 0;
+  }
+  else if( uiNumCand < 3 )
+  {
+    uiOffset = 1;
+  }
+  else
+  {
+    uiOffset = 2;
+  }
+  UInt uiSymbol = 0;
   xReadFlag( uiSymbol );
-  pcCU->setMergeIndexSubParts( uiSymbol, uiAbsPartIdx, uiDepth );
+
+  if( uiNumCand == 2 )
+  {
+    if( !bCollocatedInvolved )
+    {
+      if( !bCornerInvolved && !bCornerBLInvolved )
+      {
+        ruiMergeIndex = uiSymbol;
+      }
+      else if( bAboveInvolved && bCornerInvolved)
+      {
+        ruiMergeIndex = ( uiSymbol == 1 ) ? 3 : 1;
+      }
+      else if( bAboveInvolved && bCornerBLInvolved)
+      {
+        ruiMergeIndex = ( uiSymbol == 1 ) ? 4 : 1;
+      }
+      else if( bCornerInvolved && bCornerBLInvolved )
+      {
+        ruiMergeIndex = ( uiSymbol == 1 ) ? 4 : 3;
+      }
+      else if( !bAboveInvolved && !bCornerBLInvolved)
+      {
+        ruiMergeIndex = ( uiSymbol == 1 ) ? 3 : 0;
+      }
+      else if( !bAboveInvolved && !bCornerInvolved )
+      {
+        ruiMergeIndex = ( uiSymbol == 1 ) ? 4 : 0;
+      }
+    }
+    else
+    {
+      if( bAboveInvolved )
+      {
+        ruiMergeIndex = ( uiSymbol == 1 ) ? 2 : 1;
+      }
+      else if( bCornerInvolved )
+      {
+        ruiMergeIndex = ( uiSymbol == 1 ) ? 3 : 2;
+      }
+      else if( bCornerBLInvolved )
+      {
+        ruiMergeIndex = ( uiSymbol == 1 ) ? 4 : 2;
+      }
+      else
+      {
+        ruiMergeIndex = ( uiSymbol == 1 ) ? 2 : 0;
+      }
+    }
+    return;
+  }
+  else if( uiNumCand == 3 )
+  {
+    if( uiSymbol == 0 )
+    {
+      if( bLeftInvolved )
+      {
+        ruiMergeIndex = 0;
+      }
+      else if( !bLeftInvolved && bAboveInvolved )
+      {
+        ruiMergeIndex = 1;
+      }
+      else if(!bLeftInvolved && !bAboveInvolved )
+      {
+        ruiMergeIndex = 2;
+      }
+    }
+    else
+    {
+      xReadFlag( uiSymbol );
+      if( uiSymbol == 1 )
+      {
+        if( bCornerBLInvolved )
+        {
+          ruiMergeIndex = 4;
+        }
+        else if( !bCornerBLInvolved && bCornerInvolved )
+        {
+          ruiMergeIndex = 3;
+        }
+        else if( !bCornerBLInvolved && !bCornerInvolved && bCollocatedInvolved )
+        {
+          ruiMergeIndex = 2;
+        }
+      }
+      else
+      {
+        if( bLeftInvolved && bAboveInvolved )
+        {
+          ruiMergeIndex = 1;
+        }
+        else if( ( ( !bLeftInvolved && bAboveInvolved) || ( bLeftInvolved && !bAboveInvolved ) )&& bCollocatedInvolved )
+        {
+          ruiMergeIndex = 2;
+        }
+        else if( bCornerBLInvolved && bCornerInvolved )
+        {
+          ruiMergeIndex = 3;
+        }
+      }
+    }
+  }
+  else //uiNumCand > 3
+  {
+    if( uiSymbol == 1 )
+    {
+      UInt uiAbove = 0;
+      xReadFlag( uiAbove );
+      if( uiAbove == 0 )
+      {
+        ruiMergeIndex = 1;
+      }
+      else
+      {
+        UInt uiCol = 0;
+        xReadFlag( uiCol );
+        if( uiCol == 0 )
+        {
+          ruiMergeIndex = 2;
+        }
+        else
+        {
+          UInt uiCorner = 0;
+          xReadFlag( uiCorner );
+          if( uiCorner == 0 )
+          {
+            ruiMergeIndex = 3;
+          }
+          else
+          {
+            ruiMergeIndex = 4;
+          }
+        }
+      }
+    }
+    else
+    {
+      ruiMergeIndex = 0;
+    }
+  }
 }
 #endif
 

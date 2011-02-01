@@ -666,24 +666,6 @@ Void TEncCavlc::codePredMode( TComDataCU* pcCU, UInt uiAbsPartIdx )
 {
   // get context function is here
   Int iPredMode = pcCU->getPredictionMode( uiAbsPartIdx );
-  
-#if HHI_MRG && !SAMSUNG_MRG_SKIP_DIRECT
-  if ( !pcCU->getSlice()->getSPS()->getUseMRG() )
-  {
-    xWriteFlag( iPredMode == MODE_SKIP ? 0 : 1 );
-#if LCEC_STAT
-    if (m_bAdaptFlag)
-      m_uiBitPredMode += 1;
-#endif
-  }
-#else
-  xWriteFlag( iPredMode == MODE_SKIP ? 0 : 1 );
-#if LCEC_STAT
-  if (m_bAdaptFlag)
-    m_uiBitPredMode += 1;
-#endif
-#endif
-  
   if ( pcCU->getSlice()->isInterB() )
   {
     return;
@@ -712,12 +694,105 @@ Void TEncCavlc::codeMergeFlag    ( TComDataCU* pcCU, UInt uiAbsPartIdx )
 
 Void TEncCavlc::codeMergeIndex    ( TComDataCU* pcCU, UInt uiAbsPartIdx )
 {
-  UInt uiSymbol = pcCU->getMergeIndex( uiAbsPartIdx ) ? 1 : 0;
-  xWriteFlag( uiSymbol );
-#if LCEC_STAT
-  if (m_bAdaptFlag)
-    m_uiBitMergeIndex += 1;
-#endif
+  Bool bLeftInvolved = false;
+  Bool bAboveInvolved = false;
+  Bool bCollocatedInvolved = false;
+  Bool bCornerInvolved = false;
+  Bool bCornerBLInvolved = false;
+  UInt uiNumCand = 0;
+  for( UInt uiIter = 0; uiIter < HHI_NUM_MRG_CAND; ++uiIter )
+  {
+    if( pcCU->getNeighbourCandIdx( uiIter, uiAbsPartIdx ) == uiIter + 1 )
+    {
+      uiNumCand++;
+      if( uiIter == 0 )
+      {
+        bLeftInvolved = true;
+      }
+      else if( uiIter == 1 )
+      {
+        bAboveInvolved = true;
+      }
+      else if( uiIter == 2 )
+      {
+        bCollocatedInvolved = true;
+      }
+      else if( uiIter == 3 )
+      {
+        bCornerInvolved = true;
+      }
+      else if( uiIter == 4 )
+      {
+        bCornerBLInvolved = true;
+      }
+    }
+  }
+  assert( uiNumCand > 1 );
+  const UInt uiMergeIdx = pcCU->getMergeIndex( uiAbsPartIdx );
+  if( uiNumCand == 2 )
+  {
+    UInt uiSymbol = 0;
+    if( ( !bCornerInvolved && !bCornerBLInvolved && uiMergeIdx == 2 ) || ( !bCollocatedInvolved && !bCornerBLInvolved && !bCornerInvolved && uiMergeIdx == 1 ) || ( !bCornerBLInvolved && uiMergeIdx == 3 ) || uiMergeIdx == 4 )
+    {
+      uiSymbol = 1;
+    }
+    xWriteFlag( uiSymbol );
+    return;
+  }
+  else if( uiNumCand == 3 )//uiMRGCands == 3
+  {
+    if( uiMergeIdx == 0 || ( uiMergeIdx == 1 && !bLeftInvolved ) || ( uiMergeIdx == 2 && !bLeftInvolved && !bAboveInvolved ) )
+    {
+      xWriteFlag( 0 );
+    }
+    else
+    {
+      xWriteFlag( 1 );
+      if( uiMergeIdx == 4 || ( !bCornerBLInvolved && uiMergeIdx == 3 ) || ( !bCornerBLInvolved && !bCornerInvolved && uiMergeIdx == 2 ) )
+      {
+        xWriteFlag( 1 );
+      }
+      else
+      {
+        xWriteFlag( 0 );
+      }
+    }
+  }
+  else //uiNumCand > 3
+  {
+    if( uiMergeIdx == 0 )
+    {
+      xWriteFlag( 0 );
+    }
+    else
+    {
+      xWriteFlag( 1 );
+      if( uiMergeIdx == 1 )
+      {
+        xWriteFlag( 0 );
+      }
+      else
+      {
+        xWriteFlag( 1 );
+        if( uiMergeIdx == 2 )
+        {
+          xWriteFlag( 0 );
+        }
+        else
+        {
+          xWriteFlag( 1 );
+          if( uiMergeIdx == 3 )
+          {
+            xWriteFlag( 0 );
+          }
+          else
+          {
+            xWriteFlag( 1 );
+          }
+        }
+      }
+    }
+  }
 }
 #endif
 

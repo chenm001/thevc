@@ -51,6 +51,10 @@
 #define HHI_RQT_INTRA_SPEEDUP             1 // tests one best mode with full rqt
 #define HHI_RQT_INTRA_SPEEDUP_MOD         0 // tests two best modes with full rqt
 
+#if HHI_MRG
+#define PART_MRG		                      1            // If the number of partitions is two and size > 8, only merging mode is enabled for the first partition & do not code merge_flag for the first partition
+#endif
+
 #if HHI_RQT_INTRA_SPEEDUP_MOD && !HHI_RQT_INTRA_SPEEDUP
 #error
 #endif
