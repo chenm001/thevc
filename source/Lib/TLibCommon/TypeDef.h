@@ -169,6 +169,8 @@
 #define AMVP_BUFFERCOMPRESS                   1     // motion vector buffer compression
 #define AMVP_DECIMATION_FACTOR                4
 
+#define TI_ALF_MAX_VSIZE_7 1
+
 // ====================================================================================================================
 // Basic type redefinition
 // ====================================================================================================================
@@ -222,7 +224,12 @@ struct _AlfParam
   Int alf_flag;                           ///< indicates use of ALF
   Int cu_control_flag;                    ///< coding unit based control flag
   Int chroma_idc;                         ///< indicates use of ALF for chroma
+#if TI_ALF_MAX_VSIZE_7
+  Int tap;                                ///< number of filter taps - horizontal
+  Int tapV;                               ///< number of filter taps - vertical
+#else
   Int tap;                                ///< number of filter taps
+#endif
   Int num_coeff;                          ///< number of filter coefficients
   Int *coeff;                             ///< filter coefficient array
   Int tap_chroma;                         ///< number of filter taps (chroma)
