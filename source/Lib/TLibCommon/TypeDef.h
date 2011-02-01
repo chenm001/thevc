@@ -70,7 +70,7 @@
 // TEN defines section start
 ////////////////////////////
 
-#define TEN_DIRECTIONAL_INTERP            1           ///< AF: interpolation filter
+#define TEN_DIRECTIONAL_INTERP            0           ///< AF: interpolation filter
 
 #define LCEC_STAT                         0           // LCEC - support for LCEC bitusage statistics
 //////////////////////////
@@ -116,6 +116,8 @@
 #define SAMSUNG_FAST_UDI_MODESET              0           ///< 0: {9,9,4,4,5} (default) and 1: {9,9,9,9,5} for {4x4,8x8,16x16,32x32,64x64} 
 #endif
 
+#define DCTIF_8_6_LUMA                        1
+#define DCTIF_4_6_CHROMA                      1
 ///////////////////////////////
 // SAMSUNG defines section end
 ///////////////////////////////

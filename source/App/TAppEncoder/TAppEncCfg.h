@@ -97,7 +97,9 @@ protected:
   UInt      m_uiBitIncrement;                                 ///< bit-depth increment
   
   // coding tools (inter - interpolation filter)
+#if !DCTIF_8_6_LUMA
   Int       m_iDIFTap;                                        ///< number of taps in DIF (luma)
+#endif
   
   // coding tools (loop filter)
   Bool      m_bUseALF;                                        ///< flag for using adaptive loop filter
