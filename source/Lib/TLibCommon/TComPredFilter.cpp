@@ -95,7 +95,7 @@ Void TComPredFilter::setDIFTap( Int i )
   m_iDIFTap      = i;
   m_iTapIdx      = (i>>1)-2;    // 4 = 0, 6 = 1, 8 = 2, ...
   m_iLeftMargin  = (m_iDIFTap-2)>>1;
-  m_iRightMargin = m_iDIFTap-m_iRightMarginm_iLeftMargin;
+  m_iRightMargin = m_iDIFTap-m_iLeftMargin;
   
 
   // initialize function pointers
