@@ -69,7 +69,9 @@ private:
   Bool        m_bUseDQP;
   Bool        m_bUseLDC;
   Bool        m_bUsePAD;
+#if !DCTIF_8_6_LUMA
   Int         m_iDIFTap;
+#endif
 #if HHI_MRG
   Bool        m_bUseMRG; // SOPH:
 #endif
@@ -133,7 +135,9 @@ public:
 #if HHI_MRG
   Bool getUseMRG      ()         { return m_bUseMRG;        } // SOPH:
 #endif
+#if !DCTIF_8_6_LUMA
   Int  getDIFTap      ()         { return m_iDIFTap;        }
+#endif
   
   Void setUseALF      ( Bool b ) { m_bUseALF  = b;          }
   Void setUseDQP      ( Bool b ) { m_bUseDQP   = b;         }
@@ -143,7 +147,9 @@ public:
 #if HHI_MRG
   Void setUseMRG      ( Bool b ) { m_bUseMRG  = b;          } // SOPH:
 #endif
+#if !DCTIF_8_6_LUMA
   Void setDIFTap      ( Int  i ) { m_iDIFTap   = i;         }
+#endif
   
 #if HHI_RMP_SWITCH
   Bool getUseRMP     ()         { return m_bUseRMP; }

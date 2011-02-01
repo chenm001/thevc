@@ -111,7 +111,9 @@ protected:
 #if HHI_MRG
   Bool      m_bUseMRG; // SOPH:
 #endif
+#if !DCTIF_8_6_LUMA
   Int       m_iDIFTap;  // Number of interpolation filter taps
+#endif
   
   Int*      m_aidQP;
   UInt      m_uiDeltaQpRD;
@@ -231,9 +233,9 @@ public:
 #if HHI_MRG
   Void      setUseMRG                       ( Bool  b )     { m_bUseMRG     = b; } // SOPH:
 #endif
-  
+#if !DCTIF_8_6_LUMA  
   Void      setDIFTap                       ( Int   i )     { m_iDIFTap     = i; }
-  
+#endif  
   Void      setdQPs                         ( Int*  p )     { m_aidQP       = p; }
   Void      setDeltaQpRD                    ( UInt  u )     {m_uiDeltaQpRD  = u; }
   Bool      getUseSBACRD                    ()      { return m_bUseSBACRD;  }
@@ -250,7 +252,9 @@ public:
 #if HHI_MRG
   Bool      getUseMRG                       ()      { return m_bUseMRG;     } // SOPH:
 #endif
+#if !DCTIF_8_6_LUMA
   Int       getDIFTap                       ()      { return m_iDIFTap;  }
+#endif
   
   Int*      getdQPs                         ()      { return m_aidQP;       }
   UInt      getDeltaQpRD                    ()      { return m_uiDeltaQpRD; }

@@ -153,6 +153,7 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
   ("NRF", m_bUseNRF,  true, "non-reference frame marking in last layer")
   ("BQP", m_bUseBQP, false, "hier-P style QP assignment in low-delay mode")
   
+#if !DCTIF_8_6_LUMA
   /* Interpolation filter options */
   ("InterpFilterType,-int", m_iInterpFilterType, (Int)IPF_SAMSUNG_DIF_DEFAULT, "Interpolation Filter:\n"
    "  0: DCT-IF\n"
@@ -161,7 +162,8 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
 # endif
    )
   ("DIFTap,tap", m_iDIFTap, 12, "number of interpolation filter taps (luma)")
-  
+#endif
+
   /* motion options */
   ("FastSearch", m_iFastSearch, 1, "0:Full search  1:Diamond  2:PMVFAST")
   ("SearchRange,-sr",m_iSearchRange, 96, "motion search range")
@@ -330,7 +332,9 @@ Void TAppEncCfg::xCheckParameter()
   xConfirmPara( m_uiMaxCUHeight < 16,                                                       "Maximum partition height size should be larger than or equal to 16");
   xConfirmPara( (m_iSourceWidth  % (m_uiMaxCUWidth  >> (m_uiMaxCUDepth-1)))!=0,             "Frame width should be multiple of minimum CU size");
   xConfirmPara( (m_iSourceHeight % (m_uiMaxCUHeight >> (m_uiMaxCUDepth-1)))!=0,             "Frame height should be multiple of minimum CU size");
+#if !DCTIF_8_6_LUMA
   xConfirmPara( m_iDIFTap  != 4 && m_iDIFTap  != 6 && m_iDIFTap  != 8 && m_iDIFTap  != 10 && m_iDIFTap  != 12, "DIF taps 4, 6, 8, 10 and 12 are supported");
+#endif
   
   xConfirmPara( m_uiQuadtreeTULog2MinSize < 2,                                        "QuadtreeTULog2MinSize must be 2 or greater.");
   xConfirmPara( m_uiQuadtreeTULog2MinSize > 5,                                        "QuadtreeTULog2MinSize must be 5 or smaller.");
@@ -346,7 +350,7 @@ Void TAppEncCfg::xCheckParameter()
   xConfirmPara( m_uiQuadtreeTUMaxDepthIntra < 1,                                                         "QuadtreeTUMaxDepthIntra must be greater than or equal to 1" );
   xConfirmPara( m_uiQuadtreeTUMaxDepthIntra > m_uiQuadtreeTULog2MaxSize - m_uiQuadtreeTULog2MinSize + 1, "QuadtreeTUMaxDepthIntra must be less than or equal to the difference between QuadtreeTULog2MaxSize and QuadtreeTULog2MinSize plus 1" );
   
-#if !TEN_DIRECTIONAL_INTERP
+#if !TEN_DIRECTIONAL_INTERP && !DCTIF_8_6_LUMA
   xConfirmPara( m_iInterpFilterType == IPF_TEN_DIF_PLACEHOLDER, "IPF_TEN_DIF is not configurable.  Please recompile using TEN_DIRECTIONAL_INTERP." );
 #endif
   xConfirmPara( m_iInterpFilterType >= IPF_LAST,                "Invalid InterpFilterType" );
@@ -451,7 +455,11 @@ Void TAppEncCfg::xPrintParameter()
   printf("GOP size                     : %d\n", m_iGOPSize );
   printf("Rate GOP size                : %d\n", m_iRateGOPSize );
   printf("Bit increment                : %d\n", m_uiBitIncrement );
-  
+ 
+#if DCTIF_8_6_LUMA && DCTIF_4_6_CHROMA
+  printf("Luma interpolation           : %s\n", "Samsung 8-tap filter"  );
+  printf("Chroma interpolation         : %s\n", "Samsung 4-tap filter"       );
+#else
   switch ( m_iInterpFilterType )
   {
 #if TEN_DIRECTIONAL_INTERP
@@ -461,10 +469,18 @@ Void TAppEncCfg::xPrintParameter()
       break;
 #endif
     default:
+#if DCTIF_8_6_LUMA
+      printf("Luma interpolation           : %s\n", "Samsung 8-tap filter"  );
+#else
       printf("Luma interpolation           : %s\n", "Samsung 12-tap filter"  );
+#endif
+#if DCTIF_4_6_CHROMA
+      printf("Chroma interpolation         : %s\n", "Samsung 4-tap filter"       );
+#else
       printf("Chroma interpolation         : %s\n", "Bi-linear filter"       );
+#endif
   }
-  
+#endif  
   if ( m_iSymbolMode == 0 )
   {
     printf("Entropy coder                : VLC\n");
