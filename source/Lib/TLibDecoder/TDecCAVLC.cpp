@@ -930,7 +930,14 @@ Void TDecCavlc::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartI
   if( uiSize == 2*2 )
   {
     // hack: re-use 4x4 coding
+#if QC_MOD_LCEC
+    if (eTType==TEXT_CHROMA_U || eTType==TEXT_CHROMA_V)
+      iBlockType = eTType-2;
+    else
+      iBlockType = 2 + ( pcCU->isIntra(uiAbsPartIdx) ? 0 : pcCU->getSlice()->getSliceType() );
+#else
     iBlockType = pcCU->isIntra(uiAbsPartIdx) ? 0 : pcCU->getSlice()->getSliceType();
+#endif
     xParseCoeff4x4( scoeff, iBlockType );
     
     for (uiScanning=0; uiScanning<4; uiScanning++)
@@ -940,7 +947,14 @@ Void TDecCavlc::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartI
   }
   else if ( uiSize == 4*4 )
   {
+#if QC_MOD_LCEC
+    if (eTType==TEXT_CHROMA_U || eTType==TEXT_CHROMA_V)
+      iBlockType = eTType-2;
+    else
+      iBlockType = 2 + ( pcCU->isIntra(uiAbsPartIdx) ? 0 : pcCU->getSlice()->getSliceType() );
+#else
     iBlockType = pcCU->isIntra(uiAbsPartIdx) ? 0 : pcCU->getSlice()->getSliceType();
+#endif
     xParseCoeff4x4( scoeff, iBlockType );
     
     for (uiScanning=0; uiScanning<16; uiScanning++)
@@ -1429,6 +1443,12 @@ Void TDecCavlc::xParseCoeff4x4( TCoeff* scoeff, Int n )
   Int done;
   LastCoeffStruct combo;
   
+#if QC_MOD_LCEC
+  Int nTab;
+  Int tr1;
+  nTab=max(0,n-2);
+#endif
+
   for (i = 0; i < 16; i++)
   {
     scoeff[i] = 0;
@@ -1440,10 +1460,16 @@ Void TDecCavlc::xParseCoeff4x4( TCoeff* scoeff, Int n )
     Int vlcTable[8] = {2,2,2};
     
     /* Decode according to current LP table */
+#if QC_MOD_LCEC
+    vlcNum = vlcTable[nTab];
+    tmp = xReadVlc( vlcNum );
+    cn = m_uiLPTableD4[nTab][tmp];
+#else
     vlcNum = vlcTable[n];
     
     tmp = xReadVlc( vlcNum );
     cn = m_uiLPTableD4[n][tmp];
+#endif
     combo.level = (cn>15);
     combo.last_pos = cn&0x0f;
     
@@ -1451,9 +1477,15 @@ Void TDecCavlc::xParseCoeff4x4( TCoeff* scoeff, Int n )
     cx = tmp;
     cy = Max( 0, cx-1 );
     x = cn;
+#if QC_MOD_LCEC
+    y = m_uiLPTableD4[nTab][cy];
+    m_uiLPTableD4[nTab][cy] = x;
+    m_uiLPTableD4[nTab][cx] = y;
+#else
     y = m_uiLPTableD4[n][cy];
     m_uiLPTableD4[n][cy] = x;
     m_uiLPTableD4[n][cx] = y;
+#endif
   }
   
   if ( combo.level == 1 )
@@ -1468,6 +1500,15 @@ Void TDecCavlc::xParseCoeff4x4( TCoeff* scoeff, Int n )
     xReadFlag( sign );
   }
   
+#if QC_MOD_LCEC
+  if (tmp>1){
+    tr1=0;
+  }
+  else{
+    tr1=1;
+  }
+#endif
+
   if ( sign )
   {
     tmp = -tmp;
@@ -1484,6 +1525,12 @@ Void TDecCavlc::xParseCoeff4x4( TCoeff* scoeff, Int n )
     while (!done && i < 16)
     {
       maxrun = 15-i;
+#if QC_MOD_LCEC
+      if(n==2)
+        vlc = g_auiVlcTable8x8Intra[maxrun];
+      else
+        vlc = g_auiVlcTable8x8Inter[maxrun];
+#else
       if (maxrun > 27)
       {
         maxrun = 28;
@@ -1493,9 +1540,15 @@ Void TDecCavlc::xParseCoeff4x4( TCoeff* scoeff, Int n )
       {
         vlc = g_auiVlcTable8x8[maxrun];
       }
+#endif
       
       /* Go into run mode */
       cn = xReadVlc( vlc );
+#if QC_MOD_LCEC
+      if(n==2)
+        xRunLevelIndInv(&combo, maxrun, g_auiLumaRunTr14x4[tr1][maxrun], cn);
+      else
+#endif
       combo = g_acstructLumaRun8x8[maxrun][cn];
       i += combo.last_pos;
       /* No sign for last zeroes */
@@ -1520,6 +1573,12 @@ Void TDecCavlc::xParseCoeff4x4( TCoeff* scoeff, Int n )
         scoeff[i] = tmp;
       }
       i++;
+#if QC_MOD_LCEC
+      if (tr1>0 && tr1<MAX_TR1)
+      {
+        tr1++;
+      }
+#endif
     }
   }
   if (i < 16)
@@ -1548,6 +1607,55 @@ Void TDecCavlc::xParseCoeff4x4( TCoeff* scoeff, Int n )
   return;
 }
 
+#if QC_MOD_LCEC
+
+Void TDecCavlc::xRunLevelIndInv(LastCoeffStruct *combo, Int maxrun, UInt lrg1Pos, UInt cn)
+{
+  int lev, run;
+  if (lrg1Pos>0)
+  {
+    if(cn < min(lrg1Pos, maxrun+2))
+	  {
+      lev = 0; 
+	    run = cn; 
+    }
+    else if(cn < (maxrun<<1) + 4 - (Int)lrg1Pos)
+	  {
+      if((cn+lrg1Pos)&1)
+	    {
+        lev = 0;
+        run = (cn + lrg1Pos - 1) >> 1;
+      }
+      else
+	    {
+        lev = 1; 
+        run = (cn - lrg1Pos)>>1;
+      }
+    }
+    else
+	  {
+      lev = 1;
+      run = cn - maxrun - 2;
+    }
+  }
+  else
+  {
+    if( cn & 1 )
+	  {
+      lev = 0; run = (cn-1)>>1;
+    }
+    else
+	  {
+      run = cn >> 1;
+      lev = (run <= maxrun)?1:0;
+    }
+  }
+  combo->level = lev;
+  combo->last_pos = run;
+}
+#endif
+
+
 Void TDecCavlc::xParseCoeff8x8(TCoeff* scoeff, int n)
 {
   Int i;
@@ -1560,6 +1668,9 @@ Void TDecCavlc::xParseCoeff8x8(TCoeff* scoeff, int n)
   Int atable[5] = {4,6,14,28,0xfffffff};
   Int vlc_adaptive=0;
   Int done;
+#if QC_MOD_LCEC
+  Int tr1;
+#endif
   
   static const Int switch_thr[10] = {49,49,0,49,49,0,49,49,49,49};
   Int sum_big_coef = 0;
@@ -1603,6 +1714,16 @@ Void TDecCavlc::xParseCoeff8x8(TCoeff* scoeff, int n)
     tmp = 1;
     xReadFlag( sign );
   }
+
+#if QC_MOD_LCEC
+  if (tmp>1){
+    tr1=0;
+  }
+  else{
+    tr1=1;
+  }
+#endif
+
   if ( sign )
   {
     tmp = -tmp;
@@ -1619,6 +1740,12 @@ Void TDecCavlc::xParseCoeff8x8(TCoeff* scoeff, int n)
     while (!done && i < 64)
     {
       maxrun = 63-i;
+#if QC_MOD_LCEC
+      if (n == 2 || n == 5)
+        vlc = g_auiVlcTable8x8Intra[Min(maxrun,28)];
+      else
+        vlc = g_auiVlcTable8x8Inter[Min(maxrun,28)];
+#else
       if (maxrun > 27)
       {
         maxrun = 28;
@@ -1628,10 +1755,18 @@ Void TDecCavlc::xParseCoeff8x8(TCoeff* scoeff, int n)
       {
         vlc = g_auiVlcTable8x8[maxrun];
       }
+#endif
       
       /* Go into run mode */
       cn = xReadVlc( vlc );
+#if QC_MOD_LCEC
+      if (n == 2 || n == 5)
+        xRunLevelIndInv(&combo, maxrun, g_auiLumaRunTr18x8[tr1][min(maxrun,28)], cn);
+      else
+        combo = g_acstructLumaRun8x8[Min(maxrun,28)][cn];
+#else
       combo = g_acstructLumaRun8x8[maxrun][cn];
+#endif
       i += combo.last_pos;
       /* No sign for last zeroes */
       if (i < 64)
@@ -1660,6 +1795,16 @@ Void TDecCavlc::xParseCoeff8x8(TCoeff* scoeff, int n)
         scoeff[i] = tmp;
       }
       i++;
+#if QC_MOD_LCEC
+      if (tr1==0 || combo.level != 0)
+      {
+        tr1=0;
+      }
+      else if( tr1 < MAX_TR1)
+      {
+        tr1++;
+      }
+#endif
     }
   }
   if (i < 64)
