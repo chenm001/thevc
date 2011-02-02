@@ -118,9 +118,10 @@ TEncSearch::~TEncSearch()
   delete[] m_pcQTTempTComYuv;
 }
 
-void TEncSearch::init(  TEncCfg*      pcEncCfg,
+void TEncSearch::init(TEncCfg*      pcEncCfg,
                       TComTrQuant*  pcTrQuant,
                       Int           iSearchRange,
+                      Int           bipredSearchRange,
                       Int           iFastSearch,
                       Int           iMaxDeltaQP,
                       TEncEntropy*  pcEntropyCoder,
@@ -132,6 +133,7 @@ void TEncSearch::init(  TEncCfg*      pcEncCfg,
   m_pcEncCfg             = pcEncCfg;
   m_pcTrQuant            = pcTrQuant;
   m_iSearchRange         = iSearchRange;
+  m_bipredSearchRange    = bipredSearchRange;
   m_iFastSearch          = iFastSearch;
   m_iMaxDeltaQP          = iMaxDeltaQP;
   m_pcEntropyCoder       = pcEntropyCoder;
@@ -3173,7 +3175,7 @@ Void TEncSearch::xMotionEstimation( TComDataCU* pcCU, TComYuv* pcYuvOrg, Int iPa
 #endif
   m_iSearchRange = m_aaiAdaptSR[eRefPicList][iRefIdxPred];
   
-  Int           iSrchRng      = ( bBi ? 4 : m_iSearchRange );
+  Int           iSrchRng      = ( bBi ? m_bipredSearchRange : m_iSearchRange );
   TComPattern*  pcPatternKey  = pcCU->getPattern        ();
   
   Double        fWeight       = 1.0;

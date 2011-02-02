@@ -91,6 +91,7 @@ Void TAppEncTop::xInitLibCfg()
   //====== Motion search ========
   m_cTEncTop.setFastSearch                   ( m_iFastSearch  );
   m_cTEncTop.setSearchRange                  ( m_iSearchRange );
+  m_cTEncTop.setBipredSearchRange            ( m_bipredSearchRange );
   m_cTEncTop.setMaxDeltaQP                   ( m_iMaxDeltaQP  );
   
   //====== Tool list ========

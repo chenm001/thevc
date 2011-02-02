@@ -94,6 +94,7 @@ protected:
   //====== Motion search ========
   Int       m_iFastSearch;                      //  0:Full search  1:Diamond  2:PMVFAST
   Int       m_iSearchRange;                     //  0:Full frame
+  Int       m_bipredSearchRange;
   Int       m_iMaxDeltaQP;                      //  Max. absolute delta QP (1:default)
   
   //====== Tool list ========
@@ -171,6 +172,7 @@ public:
   //====== Motion search ========
   Void      setFastSearch                   ( Int   i )      { m_iFastSearch = i; }
   Void      setSearchRange                  ( Int   i )      { m_iSearchRange = i; }
+  Void      setBipredSearchRange            ( Int   i )      { m_bipredSearchRange = i; }
   Void      setMaxDeltaQP                   ( Int   i )      { m_iMaxDeltaQP = i; }
   
   //====== Sequence ========

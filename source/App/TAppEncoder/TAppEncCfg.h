@@ -131,6 +131,7 @@ protected:
   Bool      m_bUseBQP;                                        ///< flag for using B-slice based QP assignment in low-delay hier. structure
   Int       m_iFastSearch;                                    ///< ME mode, 0 = full, 1 = diamond, 2 = PMVFAST
   Int       m_iSearchRange;                                   ///< ME search range
+  Int       m_bipredSearchRange;                              ///< ME search range for bipred refinement
   Bool      m_bUseFastEnc;                                    ///< flag for using fast encoder setting
   
   // coding tool (interpolation filter)

@@ -79,6 +79,7 @@ protected:
   
   // ME parameters
   Int             m_iSearchRange;
+  Int             m_bipredSearchRange; // Search range for bi-prediction
   Int             m_iFastSearch;
   Int             m_aaiAdaptSR[2][33];
   TComMv          m_cSrchRngLT;
@@ -110,6 +111,7 @@ public:
   Void init(  TEncCfg*      pcEncCfg,
             TComTrQuant*  pcTrQuant,
             Int           iSearchRange,
+            Int           bipredSearchRange,
             Int           iFastSearch,
             Int           iMaxDeltaQP,
             TEncEntropy*  pcEntropyCoder,
