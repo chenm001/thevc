@@ -972,7 +972,32 @@ Void TEncCavlc::codeIntraDirLumaAng( TComDataCU* pcCU, UInt uiAbsPartIdx )
 Void TEncCavlc::codeIntraDirChroma( TComDataCU* pcCU, UInt uiAbsPartIdx )
 {
   UInt uiIntraDirChroma = pcCU->getChromaIntraDir   ( uiAbsPartIdx );
+#if CHROMA_CODEWORD
+  UInt uiMode = pcCU->getLumaIntraDir(uiAbsPartIdx);
+  Int  iMax = uiMode < 4 ? 3 : 4; 
   
+  //switch codeword
+  if (uiIntraDirChroma == 4)
+  {
+    uiIntraDirChroma = 0;
+  }
+#if CHROMA_CODEWORD_SWITCH 
+  else
+  {
+    if (uiIntraDirChroma < uiMode)
+    {
+      uiIntraDirChroma++;
+    }
+    uiIntraDirChroma = ChromaMapping[iMax-3][uiIntraDirChroma];
+  }
+#else
+  else if (uiIntraDirChroma < uiMode)
+  {
+    uiIntraDirChroma++;
+  }
+#endif
+  xWriteUnaryMaxSymbol( uiIntraDirChroma, iMax);
+#else // CHROMA_CODEWORD
   if ( 0 == uiIntraDirChroma )
   {
     xWriteFlag( 0 );
@@ -994,7 +1019,7 @@ Void TEncCavlc::codeIntraDirChroma( TComDataCU* pcCU, UInt uiAbsPartIdx )
 #endif
       xWriteUnaryMaxSymbol( uiIntraDirChroma - 1, 3 );
   }
-  
+#endif
   return;
 }
 

@@ -201,6 +201,10 @@ extern const UChar g_aucConvertTxtTypeToIdx[4];
 
 extern       Char   g_aucConvertToBit  [ MAX_CU_SIZE+1 ];   // from width to log2(width)-2
 
+#if CHROMA_CODEWORD_SWITCH 
+extern const UChar ChromaMapping[2][5];
+#endif
+
 #define ENC_DEC_TRACE 0
 
 

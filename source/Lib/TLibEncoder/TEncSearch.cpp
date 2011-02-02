@@ -2234,11 +2234,22 @@ TEncSearch::estIntraPredChromaQT( TComDataCU* pcCU,
   uiModeList[4]   = pcCU->getLumaIntraDir(0);
   
   UInt  uiMinMode = 0;
+#if CHROMA_CODEWORD 
+  UInt  uiMaxMode = 5;
+  UInt  uiIgnore = (uiModeList[4] >= 0 && uiModeList[4] < 4) ? uiModeList[4] : 6;
+#else
   UInt  uiMaxMode = ( uiModeList[4] >= 4 ? 5 : 4 );
+#endif
   
   //----- check chroma modes -----
   for( UInt uiMode = uiMinMode; uiMode < uiMaxMode; uiMode++ )
   {
+#if CHROMA_CODEWORD
+    if (uiMode == uiIgnore)
+    {
+      continue;
+    }
+#endif
     //----- restore context models -----
     if( m_bUseSBACRD )
     {

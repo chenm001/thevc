@@ -218,6 +218,17 @@ INIT_INTRA_PRED_MODE[3][NUM_ADI_CTX][2] =
 static const Short
 INIT_CHROMA_PRED_MODE[3][4][2] =
 {
+#if CHROMA_CODEWORD
+  {
+    {  0,   64 }, {   0,   64 }, {  0,  64 }, {  0,  64 }
+  },
+  {
+    {  0,   64 }, {   0,   64 }, {  0,  64 }, {  0,  64 }
+  },
+  {
+    {  0,   64 }, {   0,   64 }, {  0,  64 }, {  0,  64 }
+  }
+#else
   {
     {  -14,   78 }, {   -5,   78 }, {  -13,  109 }, {  -13,  100 }
   },
@@ -227,6 +238,7 @@ INIT_CHROMA_PRED_MODE[3][4][2] =
   {
     {  -20,  101 }, {  -25,  111 }, {  -29,  118 }, {  -24,  121 }
   }
+#endif
 };
 
 // initial probability for temporal direction

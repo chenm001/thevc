@@ -522,7 +522,33 @@ Void TDecCavlc::parseIntraDirLumaAng  ( TComDataCU* pcCU, UInt uiAbsPartIdx, UIn
 Void TDecCavlc::parseIntraDirChroma( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
 {
   UInt uiSymbol;
+#if CHROMA_CODEWORD
+  UInt uiMode = pcCU->getLumaIntraDir(uiAbsPartIdx);
+  Int  iMax = uiMode < 4 ? 3 : 4;
+  xReadUnaryMaxSymbol( uiSymbol, iMax );
   
+  //switch codeword
+  if (uiSymbol == 0)
+  {
+    uiSymbol = 4;
+  }
+#if CHROMA_CODEWORD_SWITCH 
+  else
+  {
+    uiSymbol = ChromaMapping[iMax-3][uiSymbol];
+    if (uiSymbol <= uiMode)
+    {
+      uiSymbol --;
+    }
+  }
+#else
+  else if (uiSymbol <= uiMode)
+  {
+    uiSymbol --;
+  }
+#endif
+  //printf("uiMode %d, chroma %d, codeword %d, imax %d\n", uiMode, uiSymbol, uiRead, iMax);
+#else
   xReadFlag( uiSymbol );
   
   if ( uiSymbol )
@@ -530,7 +556,7 @@ Void TDecCavlc::parseIntraDirChroma( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt u
     xReadUnaryMaxSymbol( uiSymbol, 3 );
     uiSymbol++;
   }
-  
+#endif
   pcCU->setChromIntraDirSubParts( uiSymbol, uiAbsPartIdx, uiDepth );
   
   return ;

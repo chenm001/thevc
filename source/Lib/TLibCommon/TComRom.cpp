@@ -2119,3 +2119,11 @@ Void initFrameScanXY( UInt* pBuff, UInt* pBuffX, UInt* pBuffY, Int iWidth, Int i
     }
   }
 }
+
+#if CHROMA_CODEWORD_SWITCH 
+const UChar ChromaMapping[2][5] = 
+{
+  {0, 1, 3, 2, 4},
+  {0, 1, 2, 4, 3}
+};
+#endif

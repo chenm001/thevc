@@ -673,7 +673,38 @@ Void TEncSbac::codeIntraDirChroma( TComDataCU* pcCU, UInt uiAbsPartIdx )
 {
   UInt uiCtx            = pcCU->getCtxIntraDirChroma( uiAbsPartIdx );
   UInt uiIntraDirChroma = pcCU->getChromaIntraDir   ( uiAbsPartIdx );
+ 
+#if CHROMA_CODEWORD
+  UInt uiMode = pcCU->getLumaIntraDir(uiAbsPartIdx);
+  Int  iMax = uiMode < 4 ? 2 : 3; 
   
+  //switch codeword
+  if (uiIntraDirChroma == 4) {
+    uiIntraDirChroma = 0;
+  } 
+#if CHROMA_CODEWORD_SWITCH 
+  else {
+    if (uiIntraDirChroma < uiMode) {
+      uiIntraDirChroma++;
+    }
+    uiIntraDirChroma = ChromaMapping[iMax-2][uiIntraDirChroma];
+  }
+#else
+  else if (uiIntraDirChroma < uiMode) {
+    uiIntraDirChroma++;
+  }
+#endif
+  
+  if ( 0 == uiIntraDirChroma )
+  {
+    m_pcBinIf->encodeBin( 0, m_cCUChromaPredSCModel.get( 0, 0, uiCtx ) );
+  }
+  else
+  {
+    m_pcBinIf->encodeBin( 1, m_cCUChromaPredSCModel.get( 0, 0, uiCtx ) );
+    xWriteUnaryMaxSymbol( uiIntraDirChroma - 1, m_cCUChromaPredSCModel.get( 0, 0 ) + 3, 0, iMax );
+  }
+#else // CHROMA_CODEWORD
   if ( 0 == uiIntraDirChroma )
   {
     m_pcBinIf->encodeBin( 0, m_cCUChromaPredSCModel.get( 0, 0, uiCtx ) );
@@ -683,7 +714,7 @@ Void TEncSbac::codeIntraDirChroma( TComDataCU* pcCU, UInt uiAbsPartIdx )
     m_pcBinIf->encodeBin( 1, m_cCUChromaPredSCModel.get( 0, 0, uiCtx ) );
     xWriteUnaryMaxSymbol( uiIntraDirChroma - 1, m_cCUChromaPredSCModel.get( 0, 0 ) + 3, 0, 3 );
   }
-  
+#endif
   return;
 }
 
