@@ -75,6 +75,14 @@ protected:
   UInt          m_uiLPTableD8[10][128];
   UInt          m_uiLastPosVlcIndex[10];
   
+#if LCEC_INTRA_MODE
+  UInt          m_uiIntraModeTableD17[16];
+  UInt          m_uiIntraModeTableE17[16];
+
+  UInt          m_uiIntraModeTableD34[33];
+  UInt          m_uiIntraModeTableE34[33];
+#endif
+
 #if LCEC_STAT 
   UInt m_uiBitHLS;
   UInt m_uiBitMVPId;

@@ -230,6 +230,11 @@ Void TDecCavlc::resetEntropy          (TComSlice* pcSlice)
   }
 #endif
   
+#if LCEC_INTRA_MODE
+  ::memcpy(m_uiIntraModeTableD17, g_auiIntraModeTableD17, 16*sizeof(UInt));
+  ::memcpy(m_uiIntraModeTableD34, g_auiIntraModeTableD34, 33*sizeof(UInt));
+#endif
+  
   m_uiMITableVlcIdx = 0;
 }
 
@@ -487,6 +492,112 @@ Void TDecCavlc::parsePredMode( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth
   pcCU->setPredModeSubParts( (PredMode)iPredMode, uiAbsPartIdx, uiDepth );
 }
 
+#if LCEC_INTRA_MODE
+Void TDecCavlc::parseIntraDirLumaAng  ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
+{
+  UInt uiSymbol;
+  Int  uiIPredMode;
+  Int  iMostProbable = pcCU->getMostProbableIntraDirLuma( uiAbsPartIdx );
+  Int  iIntraIdx = pcCU->getIntraSizeIdx(uiAbsPartIdx);
+  Int  iDir, iDirLarger, iRankIntraMode, iRankIntraModeLarger;
+
+  Int  iLeft          = pcCU->getLeftIntraDirLuma( uiAbsPartIdx );
+  Int  iAbove         = pcCU->getAboveIntraDirLuma( uiAbsPartIdx );
+  UInt ind=(iLeft==iAbove)? 0 : 1;
+
+  const UInt *huff17=huff17_2[ind];
+  const UInt *lengthHuff17=lengthHuff17_2[ind];
+  const UInt *huff34=huff34_2[ind];
+  const UInt *lengthHuff34=lengthHuff34_2[ind];
+
+  if ( g_aucIntraModeBitsAng[iIntraIdx] < 5 )
+  {
+	  xReadFlag( uiSymbol );
+	  if ( uiSymbol )
+		  uiIPredMode = iMostProbable;
+	  else
+	  {
+	    xReadFlag( uiSymbol ); uiIPredMode  = uiSymbol;
+	    if ( g_aucIntraModeBitsAng[iIntraIdx] > 2 ) { xReadFlag( uiSymbol ); uiIPredMode |= uiSymbol << 1; }
+	    if ( g_aucIntraModeBitsAng[iIntraIdx] > 3 ) { xReadFlag( uiSymbol ); uiIPredMode |= uiSymbol << 2; }
+      if(uiIPredMode >= iMostProbable) 
+        uiIPredMode ++;
+	  }
+  }
+  else if ( g_aucIntraModeBitsAng[iIntraIdx] == 5 ){
+    UInt uiCode;
+	  UInt uiLength = lengthHuff17[15];
+	  m_pcBitstream->pseudoRead(uiLength,uiCode);
+	  if ((uiCode>>(uiLength- lengthHuff17[0])) == huff17[0])
+	  {
+		  m_pcBitstream->read(lengthHuff17[0],uiCode);
+		  uiIPredMode = iMostProbable;
+	  }
+    else
+    {
+      iRankIntraMode = 0;
+		  for (Int i=1;i<17;i++)
+		  {	
+			  if( (uiCode>>(uiLength- lengthHuff17[i])) == huff17[i])
+			  {
+				  m_pcBitstream->read(lengthHuff17[i], uiCode);
+				  iRankIntraMode = i;
+				  break;
+			  }
+		  }
+
+      iRankIntraMode --;
+      iDir = m_uiIntraModeTableD17[iRankIntraMode];
+
+      iRankIntraModeLarger = Max(0,iRankIntraMode-1);
+      iDirLarger = m_uiIntraModeTableD17[iRankIntraModeLarger];
+      
+      m_uiIntraModeTableD17[iRankIntraModeLarger] = iDir;
+      m_uiIntraModeTableD17[iRankIntraMode] = iDirLarger;
+      
+      uiIPredMode = (iDir>=iMostProbable? iDir+1: iDir);
+    }
+  }
+  else
+  {
+    UInt uiCode;
+	  UInt uiLength = lengthHuff34[32];
+	  m_pcBitstream->pseudoRead(uiLength,uiCode);
+	  if ((uiCode>>(uiLength- lengthHuff34[0])) == huff34[0])
+	  {
+		  m_pcBitstream->read(lengthHuff34[0],uiCode);
+		  uiIPredMode = iMostProbable;
+	  }
+    else
+    {
+      iRankIntraMode = 0;
+		  for (Int i=1;i<34;i++)
+		  {	
+			  if( (uiCode>>(uiLength- lengthHuff34[i])) == huff34[i])
+			  {
+				  m_pcBitstream->read(lengthHuff34[i], uiCode);
+				  iRankIntraMode = i;
+				  break;
+			  }
+		  }
+
+      iRankIntraMode --;
+      iDir = m_uiIntraModeTableD34[iRankIntraMode];
+
+      iRankIntraModeLarger = Max(0,iRankIntraMode-1);
+      iDirLarger = m_uiIntraModeTableD34[iRankIntraModeLarger];
+      
+      m_uiIntraModeTableD34[iRankIntraModeLarger] = iDir;
+      m_uiIntraModeTableD34[iRankIntraMode] = iDirLarger;
+      
+      uiIPredMode = (iDir>=iMostProbable? iDir+1: iDir);
+    }
+  }
+
+  pcCU->setLumaIntraDirSubParts( (UChar)uiIPredMode, uiAbsPartIdx, uiDepth );     
+}
+
+#else
 Void TDecCavlc::parseIntraDirLumaAng  ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
 {
   UInt uiSymbol;
@@ -528,6 +639,7 @@ Void TDecCavlc::parseIntraDirLumaAng  ( TComDataCU* pcCU, UInt uiAbsPartIdx, UIn
   
   pcCU->setLumaIntraDirSubParts( (UChar)uiIPredMode, uiAbsPartIdx, uiDepth );
 }
+#endif
 
 Void TDecCavlc::parseIntraDirChroma( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
 {

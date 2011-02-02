@@ -87,7 +87,7 @@
 #if LCEC_CBP_YUV_ROOT==0 && QC_BLK_CBP
 #error
 #endif
-
+#define LCEC_INTRA_MODE                   1           // modified luma intra mode coding
 #define ENABLE_FORCECOEFF0  0
 
 /* Rounding control */

@@ -366,6 +366,11 @@ public:
   UInt          getIntraSizeIdx                 ( UInt uiAbsPartIdx                                       );
   Void          convertTransIdx                 ( UInt uiAbsPartIdx, UInt uiTrIdx, UInt& ruiLumaTrMode, UInt& ruiChromaTrMode );
   
+#if LCEC_INTRA_MODE
+  Int           getLeftIntraDirLuma             ( UInt uiAbsPartIdx );
+  Int           getAboveIntraDirLuma            ( UInt uiAbsPartIdx );
+#endif
+
   // -------------------------------------------------------------------------------------------------------------------
   // member functions for SBAC context
   // -------------------------------------------------------------------------------------------------------------------

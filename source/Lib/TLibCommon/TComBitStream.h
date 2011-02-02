@@ -113,6 +113,9 @@ public:
   // interface for decoding
   Void        initParsingConvertPayloadToRBSP( const UInt uiBytesRead );
   Void        initParsing     ( UInt uiNumBytes );
+#if LCEC_INTRA_MODE
+  Void        pseudoRead      ( UInt uiNumberOfBits, UInt& ruiBits );
+#endif
   Void        read            ( UInt uiNumberOfBits, UInt& ruiBits );
   Void        readAlignOne    ();
   

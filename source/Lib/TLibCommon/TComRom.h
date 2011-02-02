@@ -140,8 +140,19 @@ extern const UInt    g_auiLastPosVlcIndex[10];
 extern const UInt    g_auiLastPosVlcNum[10][17];
 extern const UInt    g_auiLumaRun8x8[29][2][64];
 extern const UInt    g_auiVlcTable8x8[28];
+#if LCEC_INTRA_MODE
+extern const UInt    g_auiIntraModeTableD17[16];
+extern const UInt    g_auiIntraModeTableE17[16];
+extern const UInt    g_auiIntraModeTableD34[33];
+extern const UInt    g_auiIntraModeTableE34[33];
+#endif
 extern const LastCoeffStruct g_acstructLumaRun8x8[29][127];
-
+#if LCEC_INTRA_MODE
+extern const UInt huff17_2[2][17];
+extern const UInt lengthHuff17_2[2][17];
+extern const UInt huff34_2[2][34];
+extern const UInt lengthHuff34_2[2][34];
+#endif
 extern const UInt    g_auiCBPTableE[2][8];
 extern const UInt    g_auiCBPTableD[2][8];
 extern const UInt    g_auiCbpVlcNum[2][8];
