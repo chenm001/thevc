@@ -273,38 +273,6 @@ protected:
                                     UInt         uiAbsPartIdx,
                                     TComYuv*     pcRecoYuv );
   
-  Void xRecurIntraLumaSearchADI   ( TComDataCU* pcCU,
-                                    UInt        uiAbsPartIdx,
-                                    Pel*        piOrg,
-                                    Pel*        piPred,
-                                    Pel*        piResi,
-                                    Pel*        piReco,
-                                    UInt        uiStride,
-                                    TCoeff*     piCoeff,
-                                    UInt        uiMode,
-                                    UInt        uiWidth,
-                                    UInt        uiHeight,
-                                    UInt        uiMaxDepth,
-                                    UInt        uiCurrDepth,
-                                    Bool        bAbove,
-                                    Bool        bLeft,
-                                    Bool        bSmallTrs );
-  
-  Void xRecurIntraChromaSearchADI ( TComDataCU* pcCU,
-                                    UInt        uiAbsPartIdx,
-                                    Pel*        piOrg,
-                                    Pel*        piPred,
-                                    Pel*        piResi,
-                                    Pel*        piReco,
-                                    UInt        uiStride,
-                                    TCoeff*     piCoeff,
-                                    UInt        uiMode,
-                                    UInt        uiWidth,
-                                    UInt        uiHeight,
-                                    UInt        uiMaxDepth,
-                                    UInt        uiCurrDepth,
-                                    TextType    eText );
-  
   // -------------------------------------------------------------------------------------------------------------------
   // Inter search (AMP)
   // -------------------------------------------------------------------------------------------------------------------
