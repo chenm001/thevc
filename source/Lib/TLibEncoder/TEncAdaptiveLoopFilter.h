@@ -54,6 +54,9 @@ private:
   static const Int m_aiSymmetricArray9x9[81];     ///< scan index for 9x9 filter
   static const Int m_aiSymmetricArray7x7[49];     ///< scan index for 7x7 filter
   static const Int m_aiSymmetricArray5x5[25];     ///< scan index for 5x5 filter
+#if TI_ALF_MAX_VSIZE_7
+  static const Int m_aiSymmetricArray9x7[63];     ///< scan index for 9x7 filter
+#endif
   
   Double** m_ppdAlfCorr;
   Double* m_pdDoubleAlfCoeff;

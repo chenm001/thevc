@@ -63,6 +63,9 @@ Void TAppEncTop::xInitLibCfg()
   
   //====== Coding Structure ========
   m_cTEncTop.setIntraPeriod                  ( m_iIntraPeriod );
+#if DCM_DECODING_REFRESH
+  m_cTEncTop.setDecodingRefreshType          ( m_iDecodingRefreshType );
+#endif
   m_cTEncTop.setGOPSize                      ( m_iGOPSize );
   m_cTEncTop.setRateGOPSize                  ( m_iRateGOPSize );
   m_cTEncTop.setNumOfReference               ( m_iNumOfReference );
@@ -88,6 +91,7 @@ Void TAppEncTop::xInitLibCfg()
   //====== Motion search ========
   m_cTEncTop.setFastSearch                   ( m_iFastSearch  );
   m_cTEncTop.setSearchRange                  ( m_iSearchRange );
+  m_cTEncTop.setBipredSearchRange            ( m_bipredSearchRange );
   m_cTEncTop.setMaxDeltaQP                   ( m_iMaxDeltaQP  );
   
   //====== Tool list ========
@@ -107,7 +111,9 @@ Void TAppEncTop::xInitLibCfg()
   m_cTEncTop.setQuadtreeTUMaxDepthIntra      ( m_uiQuadtreeTUMaxDepthIntra );
   m_cTEncTop.setUseNRF                       ( m_bUseNRF      );
   m_cTEncTop.setUseBQP                       ( m_bUseBQP      );
+#if !DCTIF_8_6_LUMA
   m_cTEncTop.setDIFTap                       ( m_iDIFTap      );
+#endif
   m_cTEncTop.setUseFastEnc                   ( m_bUseFastEnc  );
 #if HHI_MRG
   m_cTEncTop.setUseMRG                       ( m_bUseMRG      ); // SOPH:

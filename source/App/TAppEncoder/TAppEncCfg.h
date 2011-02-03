@@ -62,6 +62,9 @@ protected:
   
   // coding structure
   Int       m_iIntraPeriod;                                   ///< period of I-slice (random access period)
+#if DCM_DECODING_REFRESH
+  Int       m_iDecodingRefreshType;                           ///< random access type
+#endif
   Int       m_iGOPSize;                                       ///< GOP size of hierarchical structure
   Int       m_iRateGOPSize;                                   ///< GOP size for QP variance
   Int       m_iNumOfReference;                                ///< total number of reference frames in P-slice
@@ -97,7 +100,9 @@ protected:
   UInt      m_uiBitIncrement;                                 ///< bit-depth increment
   
   // coding tools (inter - interpolation filter)
+#if !DCTIF_8_6_LUMA
   Int       m_iDIFTap;                                        ///< number of taps in DIF (luma)
+#endif
   
   // coding tools (loop filter)
   Bool      m_bUseALF;                                        ///< flag for using adaptive loop filter
@@ -126,6 +131,7 @@ protected:
   Bool      m_bUseBQP;                                        ///< flag for using B-slice based QP assignment in low-delay hier. structure
   Int       m_iFastSearch;                                    ///< ME mode, 0 = full, 1 = diamond, 2 = PMVFAST
   Int       m_iSearchRange;                                   ///< ME search range
+  Int       m_bipredSearchRange;                              ///< ME search range for bipred refinement
   Bool      m_bUseFastEnc;                                    ///< flag for using fast encoder setting
   
   // coding tool (interpolation filter)

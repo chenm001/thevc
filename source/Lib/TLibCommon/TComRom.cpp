@@ -65,18 +65,7 @@ Void initROM()
     g_auiFrameScanY [ i ] = new UInt[ c*c ];
     initFrameScanXY( g_auiFrameScanXY[i], g_auiFrameScanX[i], g_auiFrameScanY[i], c, c );
     c <<= 1;
-  }
-  
-  // init adaptive scan for sig/last SE coding
-  for ( i = 0; i < MAX_CU_DEPTH+1; i++ )
-  {
-    const int   iBlockSize    = 1 << i;
-    const UInt  uiNumScanPos  = UInt( iBlockSize * iBlockSize );
-    g_auiSigLastScan[ i ][ 0 ] = new UInt[ uiNumScanPos ];
-    g_auiSigLastScan[ i ][ 1 ] = new UInt[ uiNumScanPos ];
-    initSigLastScanPattern( g_auiSigLastScan[ i ][ 1 ], i, true  );
-    initSigLastScanPattern( g_auiSigLastScan[ i ][ 0 ], i, false );
-  }
+  }  
 }
 
 Void destroyROM()
@@ -88,12 +77,6 @@ Void destroyROM()
     delete[] g_auiFrameScanXY[i];
     delete[] g_auiFrameScanX [i];
     delete[] g_auiFrameScanY [i];
-  }
-  
-  for ( i=0; i<MAX_CU_DEPTH+1; i++ )
-  {
-    delete[] g_auiSigLastScan[i][0];
-    delete[] g_auiSigLastScan[i][1];
   }
 }
 
@@ -110,6 +93,10 @@ UInt g_auiZscanToRaster [ MAX_NUM_SPU_W*MAX_NUM_SPU_W ] = { 0, };
 UInt g_auiRasterToZscan [ MAX_NUM_SPU_W*MAX_NUM_SPU_W ] = { 0, };
 UInt g_auiRasterToPelX  [ MAX_NUM_SPU_W*MAX_NUM_SPU_W ] = { 0, };
 UInt g_auiRasterToPelY  [ MAX_NUM_SPU_W*MAX_NUM_SPU_W ] = { 0, };
+
+#if HHI_MRG
+UInt g_auiPUOffset[4] = { 0, 8, 4, 4 };
+#endif
 
 Void initZscanToRaster ( Int iMaxDepth, Int iDepth, UInt uiStartVal, UInt*& rpuiCurrIdx )
 {
@@ -1973,6 +1960,18 @@ const LastCoeffStruct g_acstructLumaRun8x8[29][127] =
 // ====================================================================================================================
 
 #if SAMSUNG_FAST_UDI
+#if FAST_UDI_USE_MPM
+const UChar g_aucIntraModeNumFast[7] =
+{
+  3,  //   2x2
+  8,  //   4x4
+  8,  //   8x8
+  3,  //  16x16   
+  3,  //  32x32   
+  3,  //  64x64   
+  3   // 128x128  
+};
+#else // FAST_UDI_USE_MPM
 #if SAMSUNG_FAST_UDI_MODESET==0
 const UChar g_aucIntraModeNumFast[7] =
 {
@@ -1996,6 +1995,7 @@ const UChar g_aucIntraModeNumFast[7] =
   4   // 128x128  33
 };
 #endif
+#endif // FAST_UDI_USE_MPM
 #else
 const UChar g_aucIntraModeNumFast[7] =
 {
@@ -2119,8 +2119,6 @@ UInt* g_auiFrameScanXY[ MAX_CU_DEPTH  ];
 UInt* g_auiFrameScanX [ MAX_CU_DEPTH  ];
 UInt* g_auiFrameScanY [ MAX_CU_DEPTH  ];
 
-UInt* g_auiSigLastScan[ MAX_CU_DEPTH+1  ][ 2 ];
-
 // scanning order to 8x8 context model mapping table
 UInt  g_auiAntiScan8  [64];
 
@@ -2178,27 +2176,10 @@ Void initFrameScanXY( UInt* pBuff, UInt* pBuffX, UInt* pBuffY, Int iWidth, Int i
   }
 }
 
-Void initSigLastScanPattern( UInt* puiScanPattern, const UInt uiLog2BlockSize, const bool bDownLeft )
+#if CHROMA_CODEWORD_SWITCH 
+const UChar ChromaMapping[2][5] = 
 {
-  const int   iBlockSize    = 1 << uiLog2BlockSize;
-  const UInt  uiNumScanPos  = UInt( iBlockSize * iBlockSize );
-  UInt        uiNextScanPos = 0;
-  
-  for( UInt uiScanLine = 0; uiNextScanPos < uiNumScanPos; uiScanLine++ )
-  {
-    int    iPrimDim  = int( uiScanLine );
-    int    iScndDim  = 0;
-    while( iPrimDim >= iBlockSize )
-    {
-      iScndDim++;
-      iPrimDim--;
-    }
-    while( iPrimDim >= 0 && iScndDim < iBlockSize )
-    {
-      puiScanPattern[ uiNextScanPos++ ] = ( bDownLeft ? iScndDim * iBlockSize + iPrimDim : iPrimDim * iBlockSize + iScndDim );
-      iScndDim++;
-      iPrimDim--;
-    }
-  }
-  return;
-}
+  {0, 1, 3, 2, 4},
+  {0, 1, 2, 4, 3}
+};
+#endif

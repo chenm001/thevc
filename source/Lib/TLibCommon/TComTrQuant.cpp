@@ -3178,13 +3178,9 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
     assert( 0 );
   }
   
-  UInt       uiDownLeft          = 1;
-  UInt       uiNumSigTopRight    = 0;
-  UInt       uiNumSigBotLeft     = 0;
   UInt       uiMaxLineNum        = 0;
   Double     d64BlockUncodedCost = 0;
   const UInt uiLog2BlkSize       = g_aucConvertToBit[ uiWidth ] + 2;
-  const UInt uiBlkSizeM1         = ( 1 << uiLog2BlkSize ) - 1;
   const UInt uiMaxNumCoeff       = 1 << ( uiLog2BlkSize << 1 );
   const UInt uiNum4x4Blk         = max<UInt>( 1, uiMaxNumCoeff >> 4 );
   
@@ -3205,7 +3201,7 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
   //===== quantization =====
   for( UInt uiScanPos = 0; uiScanPos < uiMaxNumCoeff; uiScanPos++ )
   {
-    UInt    uiBlkPos = g_auiSigLastScan[ uiLog2BlkSize ][ uiDownLeft ][ uiScanPos ];
+    UInt    uiBlkPos = g_auiFrameScanXY[ uiLog2BlkSize-1 ][ uiScanPos ];
     UInt    uiPosY   = uiBlkPos >> uiLog2BlkSize;
     UInt    uiPosX   = uiBlkPos - ( uiPosY << uiLog2BlkSize );
     Long lLevelDouble = plSrcCoeff[ uiBlkPos ];
@@ -3237,33 +3233,7 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
       {
         uiMaxLineNum = uiLineNum;
       }
-      
-      //----- update coeff counts -----
-      if( uiPosX > uiPosY )
-      {
-        uiNumSigTopRight++;
-      }
-      else if( uiPosY > uiPosX )
-      {
-        uiNumSigBotLeft ++;
-      }
-    }
-    
-    //===== update scan direction =====
-#if !HHI_DISABLE_SCAN
-    if( ( uiDownLeft == 1 && ( uiPosX == 0 || uiPosY == uiBlkSizeM1 ) ) ||
-       ( uiDownLeft == 0 && ( uiPosY == 0 || uiPosX == uiBlkSizeM1 ) )   )
-    {
-      uiDownLeft = ( uiNumSigTopRight >= uiNumSigBotLeft ? 1 : 0 );
-    }
-#else
-    if( uiScanPos && 
-       ( ( uiDownLeft == 1 && ( uiPosX == 0 || uiPosY == uiBlkSizeM1 ) ) ||
-        ( uiDownLeft == 0 && ( uiPosY == 0 || uiPosX == uiBlkSizeM1 ) )   ) )
-    {
-      uiDownLeft = 1 - uiDownLeft;
-    }
-#endif
+    }    
   }
   
   //===== estimate context models =====
@@ -3380,10 +3350,6 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
     }
   }
   
-  uiDownLeft        = 1;
-  uiNumSigTopRight  = 0;
-  uiNumSigBotLeft   = 0;
-  
   Int     ui16CtxCbf        = pcCU->getCtxCbf( uiAbsPartIdx, eTType, pcCU->getTransformIdx( 0 ) );
   Double  dCBPCost          = xGetICost( m_pcEstBitsSbac->blockCbpBits[ 3 - ui16CtxCbf ][ 0 ] ) + xGetICost( m_pcEstBitsSbac->blockCbpBits[ 3 - ui16CtxCbf ][ 1 ] );
   UInt    uiBestLastIdxP1   = 0;
@@ -3394,7 +3360,7 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
   
   for( UInt uiScanPos = 0; uiScanPos < uiMaxNumCoeff; uiScanPos++ )
   {
-    UInt   uiBlkPos     = g_auiSigLastScan[ uiLog2BlkSize ][ uiDownLeft ][ uiScanPos ];
+    UInt   uiBlkPos     = g_auiFrameScanXY[ uiLog2BlkSize-1 ][ uiScanPos ];
     UInt   uiPosY       = uiBlkPos >> uiLog2BlkSize;
     UInt   uiPosX       = uiBlkPos - ( uiPosY << uiLog2BlkSize );
     UInt   uiCtxBase    = uiNum4x4Blk > 0 ? puiBaseCtx[ ( uiPosX >> 2 ) + ( uiPosY >> 2 ) * ( uiWidth >> 2 ) ] : 0;
@@ -3407,7 +3373,7 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
     if      ( uiWidth == 4 ) dTemp = estErr4x4[ iQpRem ][ uiPosX ][ uiPosY ] / dNormFactor;
     else if ( uiWidth == 8 ) dTemp = estErr8x8[ iQpRem ][ uiPosX ][ uiPosY ] / dNormFactor;
     
-    UShort  uiCtxSig                = getSigCtxInc( piDstCoeff, uiPosX, uiPosY, uiLog2BlkSize, uiWidth, ( uiDownLeft > 0 ) );
+    UShort  uiCtxSig                = getSigCtxInc( piDstCoeff, uiPosX, uiPosY, uiLog2BlkSize, uiWidth );
     Bool    bLastScanPos            = ( uiScanPos == uiMaxNumCoeff - 1 );
     UInt    uiLevel                 = xGetCodedLevel( d64UncodedCost, d64CodedCost, plLevelDouble[ uiBlkPos ], abs( piCoeff[ uiBlkPos ] ), bLastScanPos, uiCtxSig, puiOneCtx[ uiBlkPos ], puiAbsCtx[ uiBlkPos ], iQBits, dTemp, uiCtxBase );
     piDstCoeff[ uiBlkPos ]          = plSrcCoeff[ uiBlkPos ] < 0 ? -Int( uiLevel ) : uiLevel;
@@ -3427,91 +3393,34 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
       {
         d64BestCost       = d64CurrIsLastCost;
         uiBestLastIdxP1   = uiScanPos + 1;
-      }
-      
-      //----- update coeff counts -----
-      if( uiPosX > uiPosY )
-      {
-        uiNumSigTopRight++;
-      }
-      else if( uiPosY > uiPosX )
-      {
-        uiNumSigBotLeft ++;
-      }
+      }      
     }
-    //===== update scan direction =====
-#if !HHI_DISABLE_SCAN
-    if( ( uiDownLeft == 1 && ( uiPosX == 0 || uiPosY == uiBlkSizeM1 ) ) ||
-       ( uiDownLeft == 0 && ( uiPosY == 0 || uiPosX == uiBlkSizeM1 ) )   )
-    {
-      uiDownLeft = ( uiNumSigTopRight >= uiNumSigBotLeft ? 1 : 0 );
-    }
-#else
-    if( uiScanPos && 
-       ( ( uiDownLeft == 1 && ( uiPosX == 0 || uiPosY == uiBlkSizeM1 ) ) ||
-        ( uiDownLeft == 0 && ( uiPosY == 0 || uiPosX == uiBlkSizeM1 ) )   ) )
-    {
-      uiDownLeft = 1 - uiDownLeft;
-    }
-#endif
   }
   
   //===== clean uncoded coefficients =====
   {
-    uiDownLeft          = 1;
-    uiNumSigTopRight    = 0;
-    uiNumSigBotLeft     = 0;
     for( UInt uiScanPos = 0; uiScanPos < uiMaxNumCoeff; uiScanPos++ )
     {
-      UInt    uiBlkPos  = g_auiSigLastScan[ uiLog2BlkSize ][ uiDownLeft ][ uiScanPos ];
-      UInt    uiPosY    = uiBlkPos >> uiLog2BlkSize;
-      UInt    uiPosX    = uiBlkPos - ( uiPosY << uiLog2BlkSize );
+      UInt    uiBlkPos  = g_auiFrameScanXY[ uiLog2BlkSize-1 ][ uiScanPos ];
       
       if( uiScanPos < uiBestLastIdxP1 )
       {
-        if( piDstCoeff[ uiBlkPos ] )
-        {
-          if( uiPosX > uiPosY )
-          {
-            uiNumSigTopRight++;
-          }
-          else if( uiPosY > uiPosX )
-          {
-            uiNumSigBotLeft ++;
-          }
-        }
+        uiAbsSum += abs( piDstCoeff[ uiBlkPos ] );
       }
       else
       {
         piDstCoeff[ uiBlkPos ] = 0;
-      }
-      
-      uiAbsSum += abs( piDstCoeff[ uiBlkPos ] );
-      
-#if !HHI_DISABLE_SCAN
-      if( ( uiDownLeft == 1 && ( uiPosX == 0 || uiPosY == uiBlkSizeM1 ) ) ||
-         ( uiDownLeft == 0 && ( uiPosY == 0 || uiPosX == uiBlkSizeM1 ) )   )
-      {
-        uiDownLeft = ( uiNumSigTopRight >= uiNumSigBotLeft ? 1 : 0 );
-      }
-#else
-      if( uiScanPos && 
-         ( ( uiDownLeft == 1 && ( uiPosX == 0 || uiPosY == uiBlkSizeM1 ) ) ||
-          ( uiDownLeft == 0 && ( uiPosY == 0 || uiPosX == uiBlkSizeM1 )   ) ) )
-      {
-        uiDownLeft = 1 - uiDownLeft;
-      }
-#endif
+      }      
     }
   }
 }
 
+#if !SONY_SIG_CTX
 UInt TComTrQuant::getSigCtxInc    ( TCoeff*                         pcCoeff,
                                    const UInt                      uiPosX,
                                    const UInt                      uiPosY,
                                    const UInt                      uiLog2BlkSize,
-                                   const UInt                      uiStride,
-                                   const bool                      bDownLeft )
+                                   const UInt                      uiStride )
 {
   UInt  uiCtxInc  = 0;
   UInt  uiSizeM1  = ( 1 << uiLog2BlkSize ) - 1;
@@ -3531,7 +3440,7 @@ UInt TComTrQuant::getSigCtxInc    ( TCoeff*                         pcCoeff,
     UInt        uiCnt   = ( pData[         -1 ] ? 1 : 0 );
     uiCnt              += ( pData[         -2 ] ? 1 : 0 );
     uiCnt              += ( pData[ iStride -2 ] ? 1 : 0 );
-    if( ! bDownLeft )
+    if( ! (uiPosX & 1) )
     {
       uiCnt            += ( pData[ iStride -1 ] ? 1 : 0 );
     }
@@ -3545,7 +3454,7 @@ UInt TComTrQuant::getSigCtxInc    ( TCoeff*                         pcCoeff,
     UInt        uiCnt   = ( pData[  -iStride  ] ? 1 : 0 );
     uiCnt              += ( pData[  -iStride2 ] ? 1 : 0 );
     uiCnt              += ( pData[ 1-iStride2 ] ? 1 : 0 );
-    if( bDownLeft )
+    if( uiPosY & 1 )
     {
       uiCnt            += ( pData[ 1-iStride  ] ? 1 : 0 );
     }
@@ -3577,7 +3486,7 @@ UInt TComTrQuant::getSigCtxInc    ( TCoeff*                         pcCoeff,
         uiCnt          += ( pData[  1 -iStride2 ] ? 1 : 0 );
       }
     }
-    if( bDownLeft )
+    if( (uiPosX + uiPosY) & 1 )
     {
       if( uiPosX < uiSizeM1 )
       {
@@ -3595,6 +3504,61 @@ UInt TComTrQuant::getSigCtxInc    ( TCoeff*                         pcCoeff,
   }
   return uiCtxInc;
 }
+#else
+UInt TComTrQuant::getSigCtxInc    ( TCoeff*                         pcCoeff,
+                                   const UInt                      uiPosX,
+                                   const UInt                      uiPosY,
+                                   const UInt                      uiLog2BlkSize,
+                                   const UInt                      uiStride )
+{
+  UInt  uiCtxInc  = 0;
+  
+  if( uiLog2BlkSize <= 3 )
+  {
+    UInt  uiShift = uiLog2BlkSize > 2 ? uiLog2BlkSize - 2 : 0;
+    uiCtxInc      = ( ( uiPosY >> uiShift ) << 2 ) + ( uiPosX >> uiShift );
+  }
+  else if( uiPosX <= 1 && uiPosY <= 1 )
+  {
+    uiCtxInc            = ( uiPosY << 1 ) + uiPosX;
+  }
+  else if( uiPosY == 0 )
+  {
+    const int*  pData   = &pcCoeff[ uiPosX + uiPosY * uiStride ];
+    UInt        uiCnt   = ( pData[         -1 ] ? 1 : 0 );
+    uiCnt              += ( pData[         -2 ] ? 1 : 0 );
+    uiCtxInc            = 4 + uiCnt;
+  }
+  else if( uiPosX == 0 )
+  {
+    const int*  pData   = &pcCoeff[ uiPosX + uiPosY * uiStride ];
+    int         iStride =  uiStride;
+    int         iStride2=  iStride << 1;
+    UInt        uiCnt   = ( pData[  -iStride  ] ? 1 : 0 );
+    uiCnt              += ( pData[  -iStride2 ] ? 1 : 0 );
+    uiCtxInc            = 7 + uiCnt;
+  }
+  else
+  {
+    const int*  pData   = &pcCoeff[ uiPosX + uiPosY * uiStride ];
+    int         iStride =  uiStride;
+    int         iStride2=  iStride << 1;
+    UInt        uiCnt   = ( pData[ -1 -iStride  ] ? 1 : 0 );
+    uiCnt              += ( pData[    -iStride  ] ? 1 : 0 );
+    uiCnt              += ( pData[ -1           ] ? 1 : 0 );
+    if( uiPosX > 1 )
+    {
+      uiCnt          += ( pData[ -2           ] ? 1 : 0 );
+    }
+    if ( uiPosY > 1 )
+    {
+      uiCnt          += ( pData[    -iStride2 ] ? 1 : 0 );
+    }
+    uiCtxInc            = 10 + min<UInt>( 4, uiCnt);
+  }
+  return uiCtxInc;
+}
+#endif
 
 UInt TComTrQuant::getLastCtxInc   ( const UInt                      uiPosX,
                                    const UInt                      uiPosY,

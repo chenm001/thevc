@@ -139,6 +139,9 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
   
   /* Coding structure paramters */
   ("IntraPeriod,-ip",m_iIntraPeriod, -1, "intra period in frames, (-1: only first frame)")
+#if DCM_DECODING_REFRESH
+  ("DecodingRefreshType,-dr",m_iDecodingRefreshType, 0, "intra refresh, (0:none 1:CDR 2:IDR)")
+#endif
   ("GOPSize,g",      m_iGOPSize,      1, "GOP size of temporal structure")
   ("RateGOPSize,-rg",m_iRateGOPSize, -1, "GOP size of hierarchical QP assignment (-1: implies inherit GOPSize value)")
   ("NumOfReference,r",       m_iNumOfReference,     1, "Number of reference (P)")
@@ -150,6 +153,7 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
   ("NRF", m_bUseNRF,  true, "non-reference frame marking in last layer")
   ("BQP", m_bUseBQP, false, "hier-P style QP assignment in low-delay mode")
   
+#if !DCTIF_8_6_LUMA
   /* Interpolation filter options */
   ("InterpFilterType,-int", m_iInterpFilterType, (Int)IPF_SAMSUNG_DIF_DEFAULT, "Interpolation Filter:\n"
    "  0: DCT-IF\n"
@@ -158,10 +162,12 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
 # endif
    )
   ("DIFTap,tap", m_iDIFTap, 12, "number of interpolation filter taps (luma)")
-  
+#endif
+
   /* motion options */
   ("FastSearch", m_iFastSearch, 1, "0:Full search  1:Diamond  2:PMVFAST")
   ("SearchRange,-sr",m_iSearchRange, 96, "motion search range")
+  ("BipredSearchRange", m_bipredSearchRange, 4, "motion search range for bipred refinement")
   ("HadamardME", m_bUseHADME, true, "hadamard ME for fractional-pel")
   ("ASR", m_bUseASR, false, "adaptive motion search range")
   
@@ -311,11 +317,15 @@ Void TAppEncCfg::xCheckParameter()
   xConfirmPara( m_iGOPSize < 1 ,                                                            "GOP Size must be more than 1" );
   xConfirmPara( m_iGOPSize > 1 &&  m_iGOPSize % 2,                                          "GOP Size must be a multiple of 2, if GOP Size is greater than 1" );
   xConfirmPara( (m_iIntraPeriod > 0 && m_iIntraPeriod < m_iGOPSize) || m_iIntraPeriod == 0, "Intra period must be more than GOP size, or -1 , not 0" );
+#if DCM_DECODING_REFRESH
+  xConfirmPara( m_iDecodingRefreshType < 0 || m_iDecodingRefreshType > 2,                   "Decoding Refresh Type must be equal to 0, 1 or 2" );
+#endif
   xConfirmPara( m_iQP < 0 || m_iQP > 51,                                                    "QP exceeds supported range (0 to 51)" );
   xConfirmPara( m_iLoopFilterAlphaC0Offset < -26 || m_iLoopFilterAlphaC0Offset > 26,        "Loop Filter Alpha Offset exceeds supported range (-26 to 26)" );
   xConfirmPara( m_iLoopFilterBetaOffset < -26 || m_iLoopFilterBetaOffset > 26,              "Loop Filter Beta Offset exceeds supported range (-26 to 26)");
   xConfirmPara( m_iFastSearch < 0 || m_iFastSearch > 2,                                     "Fast Search Mode is not supported value (0:Full search  1:Diamond  2:PMVFAST)" );
   xConfirmPara( m_iSearchRange < 0 ,                                                        "Search Range must be more than 0" );
+  xConfirmPara( m_bipredSearchRange < 0 ,                                                   "Search Range must be more than 0" );
   xConfirmPara( m_iMaxDeltaQP > 7,                                                          "Absolute Delta QP exceeds supported range (0 to 7)" );
   xConfirmPara( m_iFrameToBeEncoded != 1 && m_iFrameToBeEncoded <= m_iGOPSize,              "Total Number of Frames to be encoded must be larger than GOP size");
   xConfirmPara( (m_uiMaxCUWidth  >> m_uiMaxCUDepth) < 4,                                    "Minimum partition width size should be larger than or equal to 8");
@@ -324,7 +334,9 @@ Void TAppEncCfg::xCheckParameter()
   xConfirmPara( m_uiMaxCUHeight < 16,                                                       "Maximum partition height size should be larger than or equal to 16");
   xConfirmPara( (m_iSourceWidth  % (m_uiMaxCUWidth  >> (m_uiMaxCUDepth-1)))!=0,             "Frame width should be multiple of minimum CU size");
   xConfirmPara( (m_iSourceHeight % (m_uiMaxCUHeight >> (m_uiMaxCUDepth-1)))!=0,             "Frame height should be multiple of minimum CU size");
+#if !DCTIF_8_6_LUMA
   xConfirmPara( m_iDIFTap  != 4 && m_iDIFTap  != 6 && m_iDIFTap  != 8 && m_iDIFTap  != 10 && m_iDIFTap  != 12, "DIF taps 4, 6, 8, 10 and 12 are supported");
+#endif
   
   xConfirmPara( m_uiQuadtreeTULog2MinSize < 2,                                        "QuadtreeTULog2MinSize must be 2 or greater.");
   xConfirmPara( m_uiQuadtreeTULog2MinSize > 5,                                        "QuadtreeTULog2MinSize must be 5 or smaller.");
@@ -340,7 +352,7 @@ Void TAppEncCfg::xCheckParameter()
   xConfirmPara( m_uiQuadtreeTUMaxDepthIntra < 1,                                                         "QuadtreeTUMaxDepthIntra must be greater than or equal to 1" );
   xConfirmPara( m_uiQuadtreeTUMaxDepthIntra > m_uiQuadtreeTULog2MaxSize - m_uiQuadtreeTULog2MinSize + 1, "QuadtreeTUMaxDepthIntra must be less than or equal to the difference between QuadtreeTULog2MaxSize and QuadtreeTULog2MinSize plus 1" );
   
-#if !TEN_DIRECTIONAL_INTERP
+#if !TEN_DIRECTIONAL_INTERP && !DCTIF_8_6_LUMA
   xConfirmPara( m_iInterpFilterType == IPF_TEN_DIF_PLACEHOLDER, "IPF_TEN_DIF is not configurable.  Please recompile using TEN_DIRECTIONAL_INTERP." );
 #endif
   xConfirmPara( m_iInterpFilterType >= IPF_LAST,                "Invalid InterpFilterType" );
@@ -438,11 +450,18 @@ Void TAppEncCfg::xPrintParameter()
   printf("Max RQT depth intra          : %d\n", m_uiQuadtreeTUMaxDepthIntra);
   printf("Motion search range          : %d\n", m_iSearchRange );
   printf("Intra period                 : %d\n", m_iIntraPeriod );
+#if DCM_DECODING_REFRESH
+  printf("Decoding refresh type        : %d\n", m_iDecodingRefreshType );
+#endif
   printf("QP                           : %5.2f\n", m_fQP );
   printf("GOP size                     : %d\n", m_iGOPSize );
   printf("Rate GOP size                : %d\n", m_iRateGOPSize );
   printf("Bit increment                : %d\n", m_uiBitIncrement );
-  
+ 
+#if DCTIF_8_6_LUMA && DCTIF_4_6_CHROMA
+  printf("Luma interpolation           : %s\n", "Samsung 8-tap filter"  );
+  printf("Chroma interpolation         : %s\n", "Samsung 4-tap filter"       );
+#else
   switch ( m_iInterpFilterType )
   {
 #if TEN_DIRECTIONAL_INTERP
@@ -452,10 +471,18 @@ Void TAppEncCfg::xPrintParameter()
       break;
 #endif
     default:
+#if DCTIF_8_6_LUMA
+      printf("Luma interpolation           : %s\n", "Samsung 8-tap filter"  );
+#else
       printf("Luma interpolation           : %s\n", "Samsung 12-tap filter"  );
+#endif
+#if DCTIF_4_6_CHROMA
+      printf("Chroma interpolation         : %s\n", "Samsung 4-tap filter"       );
+#else
       printf("Chroma interpolation         : %s\n", "Bi-linear filter"       );
+#endif
   }
-  
+#endif  
   if ( m_iSymbolMode == 0 )
   {
     printf("Entropy coder                : VLC\n");

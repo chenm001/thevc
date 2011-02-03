@@ -172,8 +172,8 @@ private:
   ContextModel3DBuffer m_cCUSplitFlagSCModel;
   ContextModel3DBuffer m_cCUSkipFlagSCModel;
 #if HHI_MRG
-  ContextModel3DBuffer m_cCUMergeFlagSCModel;
-  ContextModel3DBuffer m_cCUMergeIndexSCModel;
+  ContextModel3DBuffer m_cCUMergeFlagExtSCModel;
+  ContextModel3DBuffer m_cCUMergeIdxExtSCModel;
 #endif
   ContextModel3DBuffer m_cCUPartSizeSCModel;
   ContextModel3DBuffer m_cCUPredModeSCModel;

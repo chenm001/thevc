@@ -412,6 +412,63 @@ Void TComSlice::initEqualRef()
   }
 }
 
+#if DCM_DECODING_REFRESH
+/** Function for marking the reference pictures when an IDR and CDR is encountered.
+ * \param uiPOCCDR POC of the CDR picture
+ * \param bRefreshPending flag indicating if a deferred decoding refresh is pending
+ * \param rcListPic reference to the reference picture list
+ * \returns 
+ * This function marks the reference pictures as "unused for reference" in the following conditions.
+ * If the nal_unit_type is IDR all pictures in the reference picture list  
+ * is marked as "unused for reference" 
+ * Otherwise do for the CDR case (non CDR case has no effect since both if conditions below will not be true)
+ *    If the bRefreshPending flag is true (a deferred decoding refresh is pending) and the current 
+ *    temporal reference is greater than the temporal reference of the latest CDR picture (uiPOCCDR), 
+ *    mark all reference pictures except the latest CDR picture as "unused for reference" and set 
+ *    the bRefreshPending flag to false.
+ *    If the nal_unit_type is CDR, set the bRefreshPending flag to true and iPOCCDR to the temporal 
+ *    reference of the current picture.
+ * Note that the current picture is already placed in the reference list and its marking is not changed.
+ * If the current picture has a nal_ref_idc that is not 0, it will remain marked as "used for reference".
+ */
+Void TComSlice::decodingRefreshMarking(UInt& uiPOCCDR, Bool& bRefreshPending, TComList<TComPic*>& rcListPic)
+{
+  TComPic*                 rpcPic;
+  UInt uiPOCCurr = getPOC(); 
+
+  if (getNalUnitType() == NAL_UNIT_CODED_SLICE_IDR)  // IDR
+  {
+    // mark all pictures as not used for reference
+    TComList<TComPic*>::iterator        iterPic       = rcListPic.begin();
+    while (iterPic != rcListPic.end())
+    {
+      rpcPic = *(iterPic);
+      if (rpcPic->getPOC() != uiPOCCurr) rpcPic->getSlice()->setReferenced(false);
+      iterPic++;
+    }
+  }
+  else // CDR or No DR
+  {
+    if (bRefreshPending==true && uiPOCCurr > uiPOCCDR) // CDR reference marking pending 
+    {
+      TComList<TComPic*>::iterator        iterPic       = rcListPic.begin();
+      while (iterPic != rcListPic.end())
+      {
+        rpcPic = *(iterPic);
+        if (rpcPic->getPOC() != uiPOCCurr && rpcPic->getPOC() != uiPOCCDR) rpcPic->getSlice()->setReferenced(false);
+        iterPic++;
+      }
+      bRefreshPending = false; 
+    }
+    if (getNalUnitType() == NAL_UNIT_CODED_SLICE_CDR) // CDR picture found
+    {
+      bRefreshPending = true; 
+      uiPOCCDR = uiPOCCurr;
+    }
+  }
+}
+#endif
+
 // ------------------------------------------------------------------------------------------------
 // Sequence parameter set (SPS)
 // ------------------------------------------------------------------------------------------------

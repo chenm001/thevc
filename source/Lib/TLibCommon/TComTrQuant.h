@@ -176,8 +176,7 @@ public:
                                     const UInt                      uiPosX,
                                     const UInt                      uiPosY,
                                     const UInt                      uiLog2BlkSize,
-                                    const UInt                      uiStride,
-                                    const bool                      bDownLeft );
+                                    const UInt                      uiStride );
   static UInt     getLastCtxInc    ( const UInt                      uiPosX,
                                     const UInt                      uiPosY,
                                     const UInt                      uiLog2BlkSize );

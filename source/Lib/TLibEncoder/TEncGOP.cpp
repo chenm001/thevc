@@ -61,6 +61,11 @@ TEncGOP::TEncGOP()
   
   m_bSeqFirst           = true;
   
+#if DCM_DECODING_REFRESH
+  m_bRefreshPending     = 0;
+  m_uiPOCCDR            = 0;
+#endif
+
   return;
 }
 
@@ -161,6 +166,13 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
       pcSlice->setSPS( m_pcEncTop->getSPS() );
       pcSlice->setPPS( m_pcEncTop->getPPS() );
       
+#if DCM_DECODING_REFRESH
+      // Set the nal unit type
+      pcSlice->setNalUnitType(getNalUnitType(uiPOCCurr));
+      // Do decoding refresh marking if any 
+      pcSlice->decodingRefreshMarking(m_uiPOCCDR, m_bRefreshPending, rcListPic);
+#endif
+
       //  Set reference list
       pcSlice->setRefPicList ( rcListPic );
       
@@ -367,6 +379,10 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
       
       pcBitstreamOut->flushBuffer();
       pcBitstreamOut->convertRBSPToPayload( uiPosBefore );
+      
+#if AMVP_BUFFERCOMPRESS
+      pcPic->compressMotion(); 
+#endif 
       
       // de-scaling of picture
       xDeScalePic( pcPic, &pcPicD );
@@ -833,4 +849,31 @@ Void TEncGOP::xCalculateAddPSNR( TComPic* pcPic, TComPicYuv* pcPicD, UInt uibits
   
   fflush(stdout);
 }
+
+#if DCM_DECODING_REFRESH
+/** Function for deciding the nal_unit_type.
+ * \param uiPOCCurr POC of the current picture
+ * \returns the nal_unit type of the picture
+ * This function checks the configuration and returns the appropriate nal_unit_type for the picture.
+ */
+NalUnitType TEncGOP::getNalUnitType(UInt uiPOCCurr)
+{
+  if (uiPOCCurr == 0)
+  {
+    return NAL_UNIT_CODED_SLICE_IDR;
+  }
+  if (uiPOCCurr % m_pcCfg->getIntraPeriod() == 0)
+  {
+    if (m_pcCfg->getDecodingRefreshType() == 1)
+    {
+      return NAL_UNIT_CODED_SLICE_CDR;
+    }
+    else if (m_pcCfg->getDecodingRefreshType() == 2)
+    {
+      return NAL_UNIT_CODED_SLICE_IDR;
+    }
+  }
+  return NAL_UNIT_CODED_SLICE;
+}
+#endif
 

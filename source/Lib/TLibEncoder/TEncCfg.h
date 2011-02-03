@@ -60,6 +60,9 @@ protected:
   
   //====== Coding Structure ========
   UInt      m_uiIntraPeriod;
+#if DCM_DECODING_REFRESH
+  UInt      m_uiDecodingRefreshType;            ///< the type of decoding refresh employed for the random access.
+#endif
   Int       m_iGOPSize;
   Int       m_iRateGOPSize;
   Int       m_iNumOfReference;
@@ -91,6 +94,7 @@ protected:
   //====== Motion search ========
   Int       m_iFastSearch;                      //  0:Full search  1:Diamond  2:PMVFAST
   Int       m_iSearchRange;                     //  0:Full frame
+  Int       m_bipredSearchRange;
   Int       m_iMaxDeltaQP;                      //  Max. absolute delta QP (1:default)
   
   //====== Tool list ========
@@ -108,7 +112,9 @@ protected:
 #if HHI_MRG
   Bool      m_bUseMRG; // SOPH:
 #endif
+#if !DCTIF_8_6_LUMA
   Int       m_iDIFTap;  // Number of interpolation filter taps
+#endif
   
   Int*      m_aidQP;
   UInt      m_uiDeltaQpRD;
@@ -132,6 +138,9 @@ public:
   
   //====== Coding Structure ========
   Void      setIntraPeriod                  ( Int   i )      { m_uiIntraPeriod = (UInt)i; }
+#if DCM_DECODING_REFRESH
+  Void      setDecodingRefreshType          ( Int   i )      { m_uiDecodingRefreshType = (UInt)i; }
+#endif
   Void      setGOPSize                      ( Int   i )      { m_iGOPSize = i; }
   Void      setRateGOPSize                  ( Int   i )      { m_iRateGOPSize = i; }
   Void      setNumOfReference               ( Int   i )      { m_iNumOfReference = i; }
@@ -163,6 +172,7 @@ public:
   //====== Motion search ========
   Void      setFastSearch                   ( Int   i )      { m_iFastSearch = i; }
   Void      setSearchRange                  ( Int   i )      { m_iSearchRange = i; }
+  Void      setBipredSearchRange            ( Int   i )      { m_bipredSearchRange = i; }
   Void      setMaxDeltaQP                   ( Int   i )      { m_iMaxDeltaQP = i; }
   
   //====== Sequence ========
@@ -174,6 +184,9 @@ public:
   
   //==== Coding Structure ========
   UInt      getIntraPeriod                  ()      { return  m_uiIntraPeriod; }
+#if DCM_DECODING_REFRESH
+  UInt      getDecodingRefreshType          ()      { return  m_uiDecodingRefreshType; }
+#endif
   Int       getGOPSize                      ()      { return  m_iGOPSize; }
   Int       getRateGOPSize                  ()      { return  m_iRateGOPSize; }
   Int       getNumOfReference               ()      { return  m_iNumOfReference; }
@@ -222,9 +235,9 @@ public:
 #if HHI_MRG
   Void      setUseMRG                       ( Bool  b )     { m_bUseMRG     = b; } // SOPH:
 #endif
-  
+#if !DCTIF_8_6_LUMA  
   Void      setDIFTap                       ( Int   i )     { m_iDIFTap     = i; }
-  
+#endif  
   Void      setdQPs                         ( Int*  p )     { m_aidQP       = p; }
   Void      setDeltaQpRD                    ( UInt  u )     {m_uiDeltaQpRD  = u; }
   Bool      getUseSBACRD                    ()      { return m_bUseSBACRD;  }
@@ -241,7 +254,9 @@ public:
 #if HHI_MRG
   Bool      getUseMRG                       ()      { return m_bUseMRG;     } // SOPH:
 #endif
+#if !DCTIF_8_6_LUMA
   Int       getDIFTap                       ()      { return m_iDIFTap;  }
+#endif
   
   Int*      getdQPs                         ()      { return m_aidQP;       }
   UInt      getDeltaQpRD                    ()      { return m_uiDeltaQpRD; }

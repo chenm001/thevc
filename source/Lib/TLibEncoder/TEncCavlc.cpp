@@ -470,8 +470,10 @@ Void TEncCavlc::codeSPS( TComSPS* pcSPS )
   xWriteFlag  ( (pcSPS->getUseRMP()) ? 1 : 0 );
 #endif
   
+#if !DCTIF_8_6_LUMA
   // write number of taps for DIF
   xWriteUvlc  ( (pcSPS->getDIFTap ()>>1)-2 ); // 4, 6, 8, 10, 12
+#endif
   
   // AMVP mode for each depth
   for (Int i = 0; i < pcSPS->getMaxCUDepth(); i++)
@@ -489,7 +491,11 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
   // here someone can add an appropriated NalRefIdc type 
   xWriteCode( NAL_REF_IDC_PRIORITY_HIGHEST, 2);
   xWriteCode( 0, 1);
+#if DCM_DECODING_REFRESH
+  xWriteCode( pcSlice->getNalUnitType(), 5);
+#else
   xWriteCode( NAL_UNIT_CODED_SLICE, 5);
+#endif
   
   xWriteCode  (pcSlice->getPOC(), 10 );   //  9 == SPS->Log2MaxFrameNum
   xWriteUvlc  (pcSlice->getSliceType() );
@@ -591,21 +597,31 @@ Void TEncCavlc::codePartSize( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth 
 #else
     xWriteFlag( 0 );
 #endif
-    xWriteFlag( (eSize == SIZE_2Nx2N? 0 : 1) );
+#if MTK_DISABLE_INTRA_NxN_SPLIT
+    if( pcCU->getWidth( uiAbsPartIdx ) == 8 )
+#endif
+    {
+      xWriteFlag( (eSize == SIZE_2Nx2N? 0 : 1) );
+    }
 #if LCEC_STAT
     if (m_bAdaptFlag)
-      m_uiBitPartSize += 5;
+      m_uiBitPartSize += 5; // TODO: this needs to be fixed according to macro settings
 #endif
     return;
   }
   
   if ( pcCU->isIntra( uiAbsPartIdx ) )
   {
-    xWriteFlag( eSize == SIZE_2Nx2N? 1 : 0 );
-#if LCEC_STAT
-    if (m_bAdaptFlag)
-      m_uiBitPartSize += 1;
+#if MTK_DISABLE_INTRA_NxN_SPLIT
+    if( pcCU->getWidth( uiAbsPartIdx ) == 8 )
 #endif
+    {
+      xWriteFlag( eSize == SIZE_2Nx2N? 1 : 0 );
+#if LCEC_STAT
+      if (m_bAdaptFlag)
+        m_uiBitPartSize += 1;
+#endif
+    }
     return;
   }
   
@@ -681,24 +697,6 @@ Void TEncCavlc::codePredMode( TComDataCU* pcCU, UInt uiAbsPartIdx )
 {
   // get context function is here
   Int iPredMode = pcCU->getPredictionMode( uiAbsPartIdx );
-  
-#if HHI_MRG && !SAMSUNG_MRG_SKIP_DIRECT
-  if ( !pcCU->getSlice()->getSPS()->getUseMRG() )
-  {
-    xWriteFlag( iPredMode == MODE_SKIP ? 0 : 1 );
-#if LCEC_STAT
-    if (m_bAdaptFlag)
-      m_uiBitPredMode += 1;
-#endif
-  }
-#else
-  xWriteFlag( iPredMode == MODE_SKIP ? 0 : 1 );
-#if LCEC_STAT
-  if (m_bAdaptFlag)
-    m_uiBitPredMode += 1;
-#endif
-#endif
-  
   if ( pcCU->getSlice()->isInterB() )
   {
     return;
@@ -727,12 +725,105 @@ Void TEncCavlc::codeMergeFlag    ( TComDataCU* pcCU, UInt uiAbsPartIdx )
 
 Void TEncCavlc::codeMergeIndex    ( TComDataCU* pcCU, UInt uiAbsPartIdx )
 {
-  UInt uiSymbol = pcCU->getMergeIndex( uiAbsPartIdx ) ? 1 : 0;
-  xWriteFlag( uiSymbol );
-#if LCEC_STAT
-  if (m_bAdaptFlag)
-    m_uiBitMergeIndex += 1;
-#endif
+  Bool bLeftInvolved = false;
+  Bool bAboveInvolved = false;
+  Bool bCollocatedInvolved = false;
+  Bool bCornerInvolved = false;
+  Bool bCornerBLInvolved = false;
+  UInt uiNumCand = 0;
+  for( UInt uiIter = 0; uiIter < HHI_NUM_MRG_CAND; ++uiIter )
+  {
+    if( pcCU->getNeighbourCandIdx( uiIter, uiAbsPartIdx ) == uiIter + 1 )
+    {
+      uiNumCand++;
+      if( uiIter == 0 )
+      {
+        bLeftInvolved = true;
+      }
+      else if( uiIter == 1 )
+      {
+        bAboveInvolved = true;
+      }
+      else if( uiIter == 2 )
+      {
+        bCollocatedInvolved = true;
+      }
+      else if( uiIter == 3 )
+      {
+        bCornerInvolved = true;
+      }
+      else if( uiIter == 4 )
+      {
+        bCornerBLInvolved = true;
+      }
+    }
+  }
+  assert( uiNumCand > 1 );
+  const UInt uiMergeIdx = pcCU->getMergeIndex( uiAbsPartIdx );
+  if( uiNumCand == 2 )
+  {
+    UInt uiSymbol = 0;
+    if( ( !bCornerInvolved && !bCornerBLInvolved && uiMergeIdx == 2 ) || ( !bCollocatedInvolved && !bCornerBLInvolved && !bCornerInvolved && uiMergeIdx == 1 ) || ( !bCornerBLInvolved && uiMergeIdx == 3 ) || uiMergeIdx == 4 )
+    {
+      uiSymbol = 1;
+    }
+    xWriteFlag( uiSymbol );
+    return;
+  }
+  else if( uiNumCand == 3 )//uiMRGCands == 3
+  {
+    if( uiMergeIdx == 0 || ( uiMergeIdx == 1 && !bLeftInvolved ) || ( uiMergeIdx == 2 && !bLeftInvolved && !bAboveInvolved ) )
+    {
+      xWriteFlag( 0 );
+    }
+    else
+    {
+      xWriteFlag( 1 );
+      if( uiMergeIdx == 4 || ( !bCornerBLInvolved && uiMergeIdx == 3 ) || ( !bCornerBLInvolved && !bCornerInvolved && uiMergeIdx == 2 ) )
+      {
+        xWriteFlag( 1 );
+      }
+      else
+      {
+        xWriteFlag( 0 );
+      }
+    }
+  }
+  else //uiNumCand > 3
+  {
+    if( uiMergeIdx == 0 )
+    {
+      xWriteFlag( 0 );
+    }
+    else
+    {
+      xWriteFlag( 1 );
+      if( uiMergeIdx == 1 )
+      {
+        xWriteFlag( 0 );
+      }
+      else
+      {
+        xWriteFlag( 1 );
+        if( uiMergeIdx == 2 )
+        {
+          xWriteFlag( 0 );
+        }
+        else
+        {
+          xWriteFlag( 1 );
+          if( uiMergeIdx == 3 )
+          {
+            xWriteFlag( 0 );
+          }
+          else
+          {
+            xWriteFlag( 1 );
+          }
+        }
+      }
+    }
+  }
 }
 #endif
 
@@ -986,7 +1077,32 @@ Void TEncCavlc::codeIntraDirLumaAng( TComDataCU* pcCU, UInt uiAbsPartIdx )
 Void TEncCavlc::codeIntraDirChroma( TComDataCU* pcCU, UInt uiAbsPartIdx )
 {
   UInt uiIntraDirChroma = pcCU->getChromaIntraDir   ( uiAbsPartIdx );
+#if CHROMA_CODEWORD
+  UInt uiMode = pcCU->getLumaIntraDir(uiAbsPartIdx);
+  Int  iMax = uiMode < 4 ? 3 : 4; 
   
+  //switch codeword
+  if (uiIntraDirChroma == 4)
+  {
+    uiIntraDirChroma = 0;
+  }
+#if CHROMA_CODEWORD_SWITCH 
+  else
+  {
+    if (uiIntraDirChroma < uiMode)
+    {
+      uiIntraDirChroma++;
+    }
+    uiIntraDirChroma = ChromaMapping[iMax-3][uiIntraDirChroma];
+  }
+#else
+  else if (uiIntraDirChroma < uiMode)
+  {
+    uiIntraDirChroma++;
+  }
+#endif
+  xWriteUnaryMaxSymbol( uiIntraDirChroma, iMax);
+#else // CHROMA_CODEWORD
   if ( 0 == uiIntraDirChroma )
   {
     xWriteFlag( 0 );
@@ -1008,7 +1124,7 @@ Void TEncCavlc::codeIntraDirChroma( TComDataCU* pcCU, UInt uiAbsPartIdx )
 #endif
       xWriteUnaryMaxSymbol( uiIntraDirChroma - 1, 3 );
   }
-  
+#endif
   return;
 }
 

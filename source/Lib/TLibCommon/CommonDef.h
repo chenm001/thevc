@@ -176,6 +176,8 @@
 // Early-skip threshold (encoder)
 #define EARLY_SKIP_THRES            1.50        ///< if RD < thres*avg[BestSkipRD]
 
+// MERGE
+#define HHI_NUM_MRG_CAND            5
 
 const int g_iShift8x8    = 2;
 const int g_iShift16x16  = 2;
@@ -198,7 +200,11 @@ enum NalUnitType
   NAL_UNIT_CODED_SLICE,
   NAL_UNIT_CODED_SLICE_DATAPART_A,
   NAL_UNIT_CODED_SLICE_DATAPART_B,
+#if DCM_DECODING_REFRESH
+  NAL_UNIT_CODED_SLICE_CDR,
+#else
   NAL_UNIT_CODED_SLICE_DATAPART_C,
+#endif
   NAL_UNIT_CODED_SLICE_IDR,
   NAL_UNIT_SEI,
   NAL_UNIT_SPS,

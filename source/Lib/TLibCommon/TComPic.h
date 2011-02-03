@@ -98,6 +98,10 @@ public:
   Void          setReconMark (Bool b) { m_bReconstructed = b;     }
   Bool          getReconMark ()       { return m_bReconstructed;  }
   
+#if AMVP_BUFFERCOMPRESS
+  Void          compressMotion(); 
+#endif 
+  
 };// END CLASS DEFINITION TComPic
 
 

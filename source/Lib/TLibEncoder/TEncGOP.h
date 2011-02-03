@@ -89,6 +89,12 @@ private:
   // indicate sequence first
   Bool                    m_bSeqFirst;
   
+#if DCM_DECODING_REFRESH
+  // clean decoding refresh
+  Bool                    m_bRefreshPending;
+  UInt                    m_uiPOCCDR;
+#endif
+
 public:
   TEncGOP();
   virtual ~TEncGOP();
@@ -115,6 +121,10 @@ protected:
   Void  xInitGOP          ( Int iPOC, Int iNumPicRcvd, TComList<TComPic*>& rcListPic, TComList<TComPicYuv*>& rcListPicYuvRecOut );
   Void  xGetBuffer        ( TComList<TComPic*>& rcListPic, TComList<TComPicYuv*>& rcListPicYuvRecOut, TComList<TComBitstream*>& rcListBitstream, Int iNumPicRcvd, Int iTimeOffset, TComPic*& rpcPic, TComPicYuv*& rpcPicYuvRecOut, TComBitstream*& rpcBitstreamOut, UInt uiPOCCurr );
   
+#if DCM_DECODING_REFRESH
+  NalUnitType getNalUnitType( UInt uiPOCCurr );
+#endif
+
   // for scaling & descaing of picture
   // note: IBDI is handled here
   Void  xScalePic         ( TComPic* pcPic );

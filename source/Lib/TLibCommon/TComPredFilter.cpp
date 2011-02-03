@@ -37,8 +37,9 @@
 // ====================================================================================================================
 // Tables
 // ====================================================================================================================
+#if !DCTIF_8_6_LUMA
 
-// DIF filter set for half & quarter
+// DCTIF filter set for half & quarter
 Int CTI_Filter12 [5][3][12] =
 {
   //  4-tap filter
@@ -72,7 +73,7 @@ Int CTI_Filter12 [5][3][12] =
     {    -1,    4,   -8,   16,  -32,   76,  229,  -40,   20,  -12,    5,   -1 },  // Quarter1
   },
 };
-
+#endif
 // ====================================================================================================================
 // Constructor
 // ====================================================================================================================
@@ -80,13 +81,15 @@ Int CTI_Filter12 [5][3][12] =
 TComPredFilter::TComPredFilter()
 {
   // initial number of taps for Luma
+#if !DCTIF_8_6_LUMA
   setDIFTap( 12 );
+#endif
 }
 
 // ====================================================================================================================
 // Public member functions
 // ====================================================================================================================
-
+#if !DCTIF_8_6_LUMA
 Void TComPredFilter::setDIFTap( Int i )
 {
   m_iDIFTap      = i;
@@ -94,6 +97,7 @@ Void TComPredFilter::setDIFTap( Int i )
   m_iLeftMargin  = (m_iDIFTap-2)>>1;
   m_iRightMargin = m_iDIFTap-m_iLeftMargin;
   
+
   // initialize function pointers
   if ( m_iDIFTap == 4 )
   {
@@ -155,12 +159,13 @@ Void TComPredFilter::setDIFTap( Int i )
       xCTI_Filter_VIS[k] = TComPredFilter::xCTI_Filter_VIS12;
     }
   }
-}
 
+}
+#endif
 // ------------------------------------------------------------------------------------------------
 // Set of DIF functions
 // ------------------------------------------------------------------------------------------------
-
+#if !DCTIF_8_6_LUMA
 // vertical filtering (Pel)
 Int TComPredFilter::xCTI_Filter_VP04( Pel* pSrc, Int* piCoeff, Int iStride )
 {
@@ -402,4 +407,5 @@ Int TComPredFilter::xCTI_Filter_VIS12( Int* pSrc, Int* piCoeff, Int iStride )
   iSum += (pSrc[iStride*5]+pSrc[iStride* 6])*piCoeff[5];
   return iSum;
 }
+#endif
 

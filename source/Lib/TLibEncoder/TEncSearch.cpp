@@ -118,9 +118,10 @@ TEncSearch::~TEncSearch()
   delete[] m_pcQTTempTComYuv;
 }
 
-void TEncSearch::init(  TEncCfg*      pcEncCfg,
+void TEncSearch::init(TEncCfg*      pcEncCfg,
                       TComTrQuant*  pcTrQuant,
                       Int           iSearchRange,
+                      Int           bipredSearchRange,
                       Int           iFastSearch,
                       Int           iMaxDeltaQP,
                       TEncEntropy*  pcEntropyCoder,
@@ -132,6 +133,7 @@ void TEncSearch::init(  TEncCfg*      pcEncCfg,
   m_pcEncCfg             = pcEncCfg;
   m_pcTrQuant            = pcTrQuant;
   m_iSearchRange         = iSearchRange;
+  m_bipredSearchRange    = bipredSearchRange;
   m_iFastSearch          = iFastSearch;
   m_iMaxDeltaQP          = iMaxDeltaQP;
   m_pcEntropyCoder       = pcEntropyCoder;
@@ -169,8 +171,9 @@ void TEncSearch::init(  TEncCfg*      pcEncCfg,
   initTempBuff();
   
   m_pTempPel = new Pel[g_uiMaxCUWidth*g_uiMaxCUHeight];
-  
+#if !DCTIF_8_6_LUMA  
   m_iDIFTap2 = (m_iDIFTap << 1);
+#endif
   
   const UInt uiNumLayersToAllocate = pcEncCfg->getQuadtreeTULog2MaxSize()-pcEncCfg->getQuadtreeTULog2MinSize()+1;
   m_ppcQTTempCoeffY  = new TCoeff*[uiNumLayersToAllocate];
@@ -1080,9 +1083,6 @@ TEncSearch::xEncIntraHeader( TComDataCU*  pcCU,
       if( !pcCU->getSlice()->isIntra() )
       {
         m_pcEntropyCoder->encodeSkipFlag( pcCU, 0, true );
-#if HHI_MRG
-        m_pcEntropyCoder->encodeMergeInfo( pcCU, 0, true );
-#endif
         m_pcEntropyCoder->encodePredMode( pcCU, 0, true );
       }
       
@@ -1931,7 +1931,22 @@ TEncSearch::estIntraPredQT( TComDataCU* pcCU,
     if(uiFastCandNum!=uiMaxMode)
     {
       uiNewMaxMode = Min( uiFastCandNum, CandNum );
-      for( Int i=0; i < uiNewMaxMode; i++) uiRdModeList[i] = CandModeList[i];
+      for( Int i = 0; i < uiNewMaxMode; i++)
+      {
+        uiRdModeList[i] = CandModeList[i];
+      }
+#if FAST_UDI_USE_MPM
+      Int mostProbableMode = pcCU->getMostProbableIntraDirLuma( uiPartOffset );
+      Bool mostProbableModeIncluded = false;
+      for( Int i=0; i < uiNewMaxMode; i++)
+      {
+        mostProbableModeIncluded |= (mostProbableMode == uiRdModeList[i]);
+      }
+      if (!mostProbableModeIncluded)
+      {
+        uiRdModeList[uiNewMaxMode++] = mostProbableMode;
+      }      
+#endif
     }
     else
     {
@@ -2221,11 +2236,22 @@ TEncSearch::estIntraPredChromaQT( TComDataCU* pcCU,
   uiModeList[4]   = pcCU->getLumaIntraDir(0);
   
   UInt  uiMinMode = 0;
+#if CHROMA_CODEWORD 
+  UInt  uiMaxMode = 5;
+  UInt  uiIgnore = (uiModeList[4] >= 0 && uiModeList[4] < 4) ? uiModeList[4] : 6;
+#else
   UInt  uiMaxMode = ( uiModeList[4] >= 4 ? 5 : 4 );
+#endif
   
   //----- check chroma modes -----
   for( UInt uiMode = uiMinMode; uiMode < uiMaxMode; uiMode++ )
   {
+#if CHROMA_CODEWORD
+    if (uiMode == uiIgnore)
+    {
+      continue;
+    }
+#endif
     //----- restore context models -----
     if( m_bUseSBACRD )
     {
@@ -2278,6 +2304,125 @@ Bool TEncSearch::predIntraLumaDirAvailable( UInt uiMode, UInt uiWidthBit, Bool b
   return bDirAvailable;
 }
 
+#if HHI_MRG
+Void TEncSearch::xGetInterPredictionError( TComDataCU* pcCU, TComYuv* pcYuvOrg, Int iPartIdx, UInt& ruiErr, Bool bHadamard )
+{
+  TComYuv cYuvPred;
+  cYuvPred.create( pcYuvOrg->getWidth(), pcYuvOrg->getHeight() );
+
+  motionCompensation( pcCU, &cYuvPred, REF_PIC_LIST_X, iPartIdx );
+
+  UInt uiAbsPartIdx = 0;
+  Int iWidth = 0;
+  Int iHeight = 0;
+  pcCU->getPartIndexAndSize( iPartIdx, uiAbsPartIdx, iWidth, iHeight );
+
+  DistParam cDistParam;
+  m_pcRdCost->setDistParam( cDistParam, 
+                            pcYuvOrg->getLumaAddr( uiAbsPartIdx ), pcYuvOrg->getStride(), 
+                            cYuvPred .getLumaAddr( uiAbsPartIdx ), cYuvPred .getStride(), 
+                            iWidth, iHeight, m_pcEncCfg->getUseHADME() );
+  ruiErr = cDistParam.DistFunc( &cDistParam );
+
+  cYuvPred.destroy();
+}
+
+Void TEncSearch::xMergeEstimation( TComDataCU* pcCU, TComYuv* pcYuvOrg, Int iPUIdx, UInt& uiInterDir, TComMvField* pacMvField, UInt& uiMergeIndex, UInt& ruiCost, UInt& ruiBits, UChar* puhNeighCands,Bool& bValid )
+{
+  TComMvField  cMvFieldNeighbours[HHI_NUM_MRG_CAND << 1]; // double length for mv of both lists
+  UChar uhInterDirNeighbours[HHI_NUM_MRG_CAND];
+  UInt uiNeighbourCandIdx[HHI_NUM_MRG_CAND]; //MVs with same idx => same cand
+
+  for( UInt ui = 0; ui < HHI_NUM_MRG_CAND; ++ui )
+  {
+    uhInterDirNeighbours[ui] = 0;
+    uiNeighbourCandIdx[ui] = 0;
+  }
+
+  UInt uiAbsPartIdx = 0;
+  Int iWidth = 0;
+  Int iHeight = 0; 
+
+  pcCU->getPartIndexAndSize( iPUIdx, uiAbsPartIdx, iWidth, iHeight );
+  UInt uiDepth = pcCU->getDepth( uiAbsPartIdx );
+  pcCU->getInterMergeCandidates( uiAbsPartIdx, iPUIdx, uiDepth, cMvFieldNeighbours,uhInterDirNeighbours, uiNeighbourCandIdx );
+
+  UInt uiNumCand = 0;
+  for( UInt uiMergeCand = 0; uiMergeCand < HHI_NUM_MRG_CAND; ++uiMergeCand )
+  {
+    if( uiNeighbourCandIdx[uiMergeCand] == ( uiMergeCand + 1 ) )
+    {
+      uiNumCand++;
+    }
+  }
+  
+  UInt uiBestSAD = MAX_UINT;
+  UInt uiBestBitCost = MAX_UINT;
+  UInt uiBestBits = MAX_UINT;
+
+  ruiCost = MAX_UINT;
+  ruiBits = MAX_UINT;
+
+  bValid = false;
+
+  for( UInt uiMergeCand = 0; uiMergeCand < HHI_NUM_MRG_CAND; ++uiMergeCand )
+  {
+    if( uiNeighbourCandIdx[uiMergeCand] == ( uiMergeCand + 1 ) )
+    {
+      bValid = true;
+      UInt uiCostCand = MAX_UINT;
+      UInt uiBitsCand = 0;
+      
+      PartSize ePartSize = pcCU->getPartitionSize( 0 );
+
+      pcCU->getCUMvField(REF_PIC_LIST_0)->setAllMvField( cMvFieldNeighbours[0 + 2*uiMergeCand].getMv(), cMvFieldNeighbours[0 + 2*uiMergeCand].getRefIdx(), ePartSize, uiAbsPartIdx, iPUIdx, 0 );
+      pcCU->getCUMvField(REF_PIC_LIST_1)->setAllMvField( cMvFieldNeighbours[1 + 2*uiMergeCand].getMv(), cMvFieldNeighbours[1 + 2*uiMergeCand].getRefIdx(), ePartSize, uiAbsPartIdx, iPUIdx, 0 );
+
+      xGetInterPredictionError( pcCU, pcYuvOrg, iPUIdx, uiCostCand, m_pcEncCfg->getUseHADME() );
+      
+      if( uiNumCand == 1 )
+      {
+        uiBitsCand = 1;
+      }
+      else
+      {
+        if( uiMergeCand == 0 || uiNumCand == 2 )
+        {
+          uiBitsCand = 2;
+        }
+        else if( uiMergeCand == 1 || uiNumCand == 3 )
+        {
+          uiBitsCand = 3;
+        }
+        else
+        {
+          uiBitsCand = 4;
+        }
+      }
+
+      if ( uiCostCand < ruiCost )
+      {
+        ruiCost = uiCostCand;
+        ruiBits = uiBitsCand;
+        pacMvField[0] = cMvFieldNeighbours[0 + 2*uiMergeCand];
+        pacMvField[1] = cMvFieldNeighbours[1 + 2*uiMergeCand];
+        uiInterDir = uhInterDirNeighbours[uiMergeCand];
+        uiMergeIndex = uiMergeCand;
+        for( UInt ui = 0; ui < HHI_NUM_MRG_CAND; ui++ )
+        {
+          UChar uhNeighCand = uiNeighbourCandIdx[ui]; 
+          puhNeighCands[ui] = uhNeighCand;
+        }
+
+        uiBestSAD = uiCostCand;
+        uiBestBitCost = m_pcRdCost->getCost( uiBitsCand );
+        uiBestBits = uiBitsCand;
+      }
+    }
+  }
+}
+#endif //HHI_MRG
+
 Void TEncSearch::predInterSearch( TComDataCU* pcCU, TComYuv* pcOrgYuv, TComYuv*& rpcPredYuv, TComYuv*& rpcResiYuv, TComYuv*& rpcRecoYuv, Bool bUseRes )
 {
   m_acYuvPred[0].clear();
@@ -2327,7 +2472,7 @@ Void TEncSearch::predInterSearch( TComDataCU* pcCU, TComYuv* pcOrgYuv, TComYuv*&
   Int           iRefStart, iRefEnd;
   
   PartSize      ePartSize = pcCU->getPartitionSize( 0 );
-  
+
   for ( Int iPartIdx = 0; iPartIdx < iNumPart; iPartIdx++ )
   {
     UInt          uiCost[2] = { MAX_UINT, MAX_UINT };
@@ -2341,6 +2486,14 @@ Void TEncSearch::predInterSearch( TComDataCU* pcCU, TComYuv* pcOrgYuv, TComYuv*&
     
     pcCU->getPartIndexAndSize( iPartIdx, uiPartAddr, iRoiWidth, iRoiHeight );
     
+#if PART_MRG
+    Bool bTestNormalMC = true;
+    if (pcCU->getWidth( 0 ) > 8 && iNumPart == 2 && iPartIdx == 0)
+      bTestNormalMC = false;
+    if (bTestNormalMC)
+    {
+#endif
+
     //  Uni-directional prediction
     for ( Int iRefList = 0; iRefList < iNumPredDir; iRefList++ )
     {
@@ -2547,7 +2700,9 @@ Void TEncSearch::predInterSearch( TComDataCU* pcCU, TComYuv* pcOrgYuv, TComYuv*&
         }
       } // for loop-iter
     } // if (B_SLICE)
-    
+#if PART_MRG
+    } //end if bTestNormalMC
+#endif
     //  Clear Motion Field
     {
       pcCU->getCUMvField(REF_PIC_LIST_0)->setAllMvField( cMvZero, NOT_VALID, ePartSize, uiPartAddr, iPartIdx, 0 );
@@ -2561,12 +2716,19 @@ Void TEncSearch::predInterSearch( TComDataCU* pcCU, TComYuv* pcOrgYuv, TComYuv*&
     pcCU->setMVPIdxSubParts( -1, REF_PIC_LIST_1, uiPartAddr, iPartIdx, pcCU->getDepth(uiPartAddr));
     pcCU->setMVPNumSubParts( -1, REF_PIC_LIST_1, uiPartAddr, iPartIdx, pcCU->getDepth(uiPartAddr));
     
+#if HHI_MRG
+    UInt uiMEBits = 0;
+#endif
     // Set Motion Field_
 #if MS_NO_BACK_PRED_IN_B0
     if ( pcCU->getSlice()->getNoBackPredFlag() )
     {
       uiCost[1] = MAX_UINT;
     }
+#endif
+#if PART_MRG
+    if (bTestNormalMC)
+    {
 #endif
     if ( uiCostBi <= uiCost[0] && uiCostBi <= uiCost[1])
     {
@@ -2578,20 +2740,24 @@ Void TEncSearch::predInterSearch( TComDataCU* pcCU, TComYuv* pcOrgYuv, TComYuv*&
       {
         TempMv = cMvBi[0] - cMvPredBi[0][iRefIdxBi[0]];
         pcCU->getCUMvField(REF_PIC_LIST_0)->setAllMvd    ( TempMv,                 ePartSize, uiPartAddr, iPartIdx, 0 );
+#if DCM_SIMPLIFIED_MVP==0
         if (pcCU->clearMVPCand(TempMv, &aacAMVPInfo[0][iRefIdxBi[0]]))
         {
           aaiMvpIdxBi[0][iRefIdxBi[0]] = pcCU->searchMVPIdx(cMvPredBi[0][iRefIdxBi[0]], &aacAMVPInfo[0][iRefIdxBi[0]]);
           aaiMvpNum[0][iRefIdxBi[0]] = aacAMVPInfo[0][iRefIdxBi[0]].iN;
         }
+#endif
       }
       {
         TempMv = cMvBi[1] - cMvPredBi[1][iRefIdxBi[1]];
         pcCU->getCUMvField(REF_PIC_LIST_1)->setAllMvd    ( TempMv,                 ePartSize, uiPartAddr, iPartIdx, 0 );
+#if DCM_SIMPLIFIED_MVP==0
         if (pcCU->clearMVPCand(TempMv, &aacAMVPInfo[1][iRefIdxBi[1]]))
         {
           aaiMvpIdxBi[1][iRefIdxBi[1]] = pcCU->searchMVPIdx(cMvPredBi[1][iRefIdxBi[1]], &aacAMVPInfo[1][iRefIdxBi[1]]);
           aaiMvpNum[1][iRefIdxBi[1]] = aacAMVPInfo[1][iRefIdxBi[1]].iN;
         }
+#endif
       }
       
       pcCU->setInterDirSubParts( 3, uiPartAddr, iPartIdx, pcCU->getDepth(0) );
@@ -2600,6 +2766,10 @@ Void TEncSearch::predInterSearch( TComDataCU* pcCU, TComYuv* pcOrgYuv, TComYuv*&
       pcCU->setMVPNumSubParts( aaiMvpNum[0][iRefIdxBi[0]], REF_PIC_LIST_0, uiPartAddr, iPartIdx, pcCU->getDepth(uiPartAddr));
       pcCU->setMVPIdxSubParts( aaiMvpIdxBi[1][iRefIdxBi[1]], REF_PIC_LIST_1, uiPartAddr, iPartIdx, pcCU->getDepth(uiPartAddr));
       pcCU->setMVPNumSubParts( aaiMvpNum[1][iRefIdxBi[1]], REF_PIC_LIST_1, uiPartAddr, iPartIdx, pcCU->getDepth(uiPartAddr));
+
+#if HHI_MRG
+      uiMEBits = uiBits[2];
+#endif
     }
     else if ( uiCost[0] <= uiCost[1] )
     {
@@ -2609,16 +2779,22 @@ Void TEncSearch::predInterSearch( TComDataCU* pcCU, TComYuv* pcOrgYuv, TComYuv*&
       {
         TempMv = cMv[0] - cMvPred[0][iRefIdx[0]];
         pcCU->getCUMvField(REF_PIC_LIST_0)->setAllMvd    ( TempMv,                 ePartSize, uiPartAddr, iPartIdx, 0 );
+#if DCM_SIMPLIFIED_MVP==0
         if (pcCU->clearMVPCand(TempMv, &aacAMVPInfo[0][iRefIdx[0]]))
         {
           aaiMvpIdx[0][iRefIdx[0]] = pcCU->searchMVPIdx(cMvPred[0][iRefIdx[0]], &aacAMVPInfo[0][iRefIdx[0]]);
           aaiMvpNum[0][iRefIdx[0]] = aacAMVPInfo[0][iRefIdx[0]].iN;
         }
+#endif
       }
       pcCU->setInterDirSubParts( 1, uiPartAddr, iPartIdx, pcCU->getDepth(0) );
       
       pcCU->setMVPIdxSubParts( aaiMvpIdx[0][iRefIdx[0]], REF_PIC_LIST_0, uiPartAddr, iPartIdx, pcCU->getDepth(uiPartAddr));
       pcCU->setMVPNumSubParts( aaiMvpNum[0][iRefIdx[0]], REF_PIC_LIST_0, uiPartAddr, iPartIdx, pcCU->getDepth(uiPartAddr));
+
+#if HHI_MRG
+      uiMEBits = uiBits[0];
+#endif
     }
     else
     {
@@ -2628,18 +2804,113 @@ Void TEncSearch::predInterSearch( TComDataCU* pcCU, TComYuv* pcOrgYuv, TComYuv*&
       {
         TempMv = cMv[1] - cMvPred[1][iRefIdx[1]];
         pcCU->getCUMvField(REF_PIC_LIST_1)->setAllMvd    ( TempMv,                 ePartSize, uiPartAddr, iPartIdx, 0 );
+#if DCM_SIMPLIFIED_MVP==0
         if (pcCU->clearMVPCand(TempMv, &aacAMVPInfo[1][iRefIdx[1]]))
         {
           aaiMvpIdx[1][iRefIdx[1]] = pcCU->searchMVPIdx(cMvPred[1][iRefIdx[1]], &aacAMVPInfo[1][iRefIdx[1]]);
           aaiMvpNum[1][iRefIdx[1]] = aacAMVPInfo[1][iRefIdx[1]].iN;
         }
+#endif
       }
       pcCU->setInterDirSubParts( 2, uiPartAddr, iPartIdx, pcCU->getDepth(0) );
       
       pcCU->setMVPIdxSubParts( aaiMvpIdx[1][iRefIdx[1]], REF_PIC_LIST_1, uiPartAddr, iPartIdx, pcCU->getDepth(uiPartAddr));
       pcCU->setMVPNumSubParts( aaiMvpNum[1][iRefIdx[1]], REF_PIC_LIST_1, uiPartAddr, iPartIdx, pcCU->getDepth(uiPartAddr));
+
+#if HHI_MRG
+      uiMEBits = uiBits[1];
+#endif
     }
-    
+#if PART_MRG
+    } // end if bTestNormalMC
+#endif
+
+#if HHI_MRG
+    if ( pcCU->getSlice()->getSPS()->getUseMRG() && pcCU->getPartitionSize( uiPartAddr ) != SIZE_2Nx2N )
+    {
+      UInt uiMRGInterDir = 0;     
+      TComMvField cMRGMvField[2];
+      UInt uiMRGIndex = 0;
+
+      UInt uiMEInterDir = 0;
+      TComMvField cMEMvField[2];
+
+      m_pcRdCost->getMotionCost( 1, 0 );
+#if PART_MRG
+      // calculate ME cost
+      UInt uiMEError = MAX_UINT;
+      UInt uiMECost = MAX_UINT;
+
+      if (bTestNormalMC)
+      {
+        xGetInterPredictionError( pcCU, pcOrgYuv, iPartIdx, uiMEError, m_pcEncCfg->getUseHADME() );
+        uiMECost = uiMEError + m_pcRdCost->getCost( uiMEBits );
+      }      
+#else
+      // calculate ME cost
+      UInt uiMEError = MAX_UINT;
+      xGetInterPredictionError( pcCU, pcOrgYuv, iPartIdx, uiMEError, m_pcEncCfg->getUseHADME() );
+      UInt uiMECost = uiMEError + m_pcRdCost->getCost( uiMEBits );
+#endif 
+      // save ME result.
+      uiMEInterDir = pcCU->getInterDir( uiPartAddr );
+      pcCU->getMvField( pcCU, uiPartAddr, REF_PIC_LIST_0, cMEMvField[0] );
+      pcCU->getMvField( pcCU, uiPartAddr, REF_PIC_LIST_1, cMEMvField[1] );
+
+      // find Merge result
+      UInt uiMRGError = MAX_UINT;
+      UInt uiMRGBits = MAX_UINT;
+      Bool bMergeValid = false;
+      UChar ucNeighCand[HHI_NUM_MRG_CAND];
+      for( UInt ui = 0; ui < HHI_NUM_MRG_CAND; ui++ )
+      {
+        ucNeighCand[ui] = 0;
+      }
+      xMergeEstimation( pcCU, pcOrgYuv, iPartIdx, uiMRGInterDir, cMRGMvField, uiMRGIndex, uiMRGError, uiMRGBits, ucNeighCand, bMergeValid );
+      UInt uiMRGCost = uiMRGError + m_pcRdCost->getCost( uiMRGBits );
+
+      for( UInt ui = 0; ui < HHI_NUM_MRG_CAND; ui++ )
+      {
+        pcCU->setNeighbourCandIdxSubParts( ui, ucNeighCand[ui], uiPartAddr, iPartIdx, pcCU->getDepth( uiPartAddr ) );
+      }
+      if ( bMergeValid && uiMRGCost < uiMECost )
+      {
+        // set Merge result
+        pcCU->setMergeFlagSubParts ( true,          uiPartAddr, iPartIdx, pcCU->getDepth( uiPartAddr ) );
+        pcCU->setMergeIndexSubParts( uiMRGIndex,    uiPartAddr, iPartIdx, pcCU->getDepth( uiPartAddr ) );
+        pcCU->setInterDirSubParts  ( uiMRGInterDir, uiPartAddr, iPartIdx, pcCU->getDepth( uiPartAddr ) );
+        {
+          pcCU->getCUMvField( REF_PIC_LIST_0 )->setAllMvField( cMRGMvField[0].getMv(), cMRGMvField[0].getRefIdx(), ePartSize, uiPartAddr, iPartIdx, 0 );
+          pcCU->getCUMvField( REF_PIC_LIST_1 )->setAllMvField( cMRGMvField[1].getMv(), cMRGMvField[1].getRefIdx(), ePartSize, uiPartAddr, iPartIdx, 0 );
+        }
+
+        pcCU->getCUMvField(REF_PIC_LIST_0)->setAllMvd    ( cMvZero,            ePartSize, uiPartAddr, iPartIdx, 0 );
+        pcCU->getCUMvField(REF_PIC_LIST_1)->setAllMvd    ( cMvZero,            ePartSize, uiPartAddr, iPartIdx, 0 );
+        pcCU->setMVPIdxSubParts( -1, REF_PIC_LIST_0, uiPartAddr, iPartIdx, pcCU->getDepth(uiPartAddr));
+        pcCU->setMVPNumSubParts( -1, REF_PIC_LIST_0, uiPartAddr, iPartIdx, pcCU->getDepth(uiPartAddr));
+        pcCU->setMVPIdxSubParts( -1, REF_PIC_LIST_1, uiPartAddr, iPartIdx, pcCU->getDepth(uiPartAddr));
+        pcCU->setMVPNumSubParts( -1, REF_PIC_LIST_1, uiPartAddr, iPartIdx, pcCU->getDepth(uiPartAddr));
+      }
+      else
+      {
+        // set ME result
+        pcCU->setMergeFlagSubParts( false,        uiPartAddr, iPartIdx, pcCU->getDepth( uiPartAddr ) );
+        pcCU->setInterDirSubParts ( uiMEInterDir, uiPartAddr, iPartIdx, pcCU->getDepth( uiPartAddr ) );
+        {
+          pcCU->getCUMvField( REF_PIC_LIST_0 )->setAllMvField( cMEMvField[0].getMv(), cMEMvField[0].getRefIdx(), ePartSize, uiPartAddr, iPartIdx, 0 );
+          pcCU->getCUMvField( REF_PIC_LIST_1 )->setAllMvField( cMEMvField[1].getMv(), cMEMvField[1].getRefIdx(), ePartSize, uiPartAddr, iPartIdx, 0 );
+        }
+      }
+#if PART_MRG
+      if (!bTestNormalMC && !bMergeValid)
+      {
+        assert(pcCU->getWidth( 0 ) > 8 && iNumPart == 2 && iPartIdx == 0);
+        return;
+      }
+#endif
+    }
+#endif //HH_MRG
+
     //  MC
     motionCompensation ( pcCU, rpcPredYuv, REF_PIC_LIST_X, iPartIdx );
     
@@ -2866,18 +3137,22 @@ UInt TEncSearch::xGetTemplateCost( TComDataCU* pcCU,
   TComPicYuv* pcPicYuvRef = pcCU->getSlice()->getRefPic( eRefPicList, iRefIdx )->getPicYuvRec();
   
   // prediction pattern
+#if DCTIF_8_6_LUMA && DCTIF_4_6_CHROMA
+  xPredInterLumaBlk( pcCU, pcPicYuvRef, uiPartAddr, &cMvCand, iSizeX, iSizeY, pcTemplateCand );
+#else
   InterpFilterType filterType = (InterpFilterType)pcCU->getSlice()->getInterpFilterType();
   switch (filterType)
   {
+#if TEN_DIRECTIONAL_INTERP
     case IPF_TEN_DIF:
       xPredInterLumaBlk_TEN( pcCU, pcPicYuvRef, uiPartAddr, &cMvCand, iSizeX, iSizeY, pcTemplateCand );
       break;
-      
+#endif     
     default:
       xPredInterLumaBlk( pcCU, pcPicYuvRef, uiPartAddr, &cMvCand, iSizeX, iSizeY, pcTemplateCand );
       break;      
   }
-  
+#endif  
   // calc distortion
   uiCost = m_pcRdCost->getDistPart( pcTemplateCand->getLumaAddr(uiPartAddr), pcTemplateCand->getStride(), pcOrgYuv->getLumaAddr(uiPartAddr), pcOrgYuv->getStride(), iSizeX, iSizeY, DF_SAD );
   uiCost = (UInt) m_pcRdCost->calcRdCost( m_auiMVPIdxCost[iMVPIdx][iMVPNum], uiCost, false, DF_SAD );
@@ -2900,7 +3175,7 @@ Void TEncSearch::xMotionEstimation( TComDataCU* pcCU, TComYuv* pcYuvOrg, Int iPa
 #endif
   m_iSearchRange = m_aaiAdaptSR[eRefPicList][iRefIdxPred];
   
-  Int           iSrchRng      = ( bBi ? 4 : m_iSearchRange );
+  Int           iSrchRng      = ( bBi ? m_bipredSearchRange : m_iSearchRange );
   TComPattern*  pcPatternKey  = pcCU->getPattern        ();
   
   Double        fWeight       = 1.0;
@@ -2993,6 +3268,9 @@ Void TEncSearch::xMotionEstimation( TComDataCU* pcCU, TComYuv* pcYuvOrg, Int iPa
   if( bBi ) 
   {
     Bool bRound =  pcCU->getSlice()->isRounding() ;
+#if DCTIF_8_6_LUMA && DCTIF_4_6_CHROMA
+    xPatternSearchFracDIF_Bi( pcCU, pcPatternKey, piRefY, iRefStride, &rcMv, cMvHalf, cMvQter, ruiCost, pRefBufY, bRound );
+#else
     InterpFilterType ePFilt = (InterpFilterType)pcCU->getSlice()->getInterpFilterType();
     switch ( ePFilt )
     {
@@ -3004,10 +3282,14 @@ Void TEncSearch::xMotionEstimation( TComDataCU* pcCU, TComYuv* pcYuvOrg, Int iPa
       default:
         xPatternSearchFracDIF_Bi( pcCU, pcPatternKey, piRefY, iRefStride, &rcMv, cMvHalf, cMvQter, ruiCost, pRefBufY, bRound );
     }
+#endif
   }
   else
 #endif
   {
+#if DCTIF_8_6_LUMA && DCTIF_4_6_CHROMA
+    xPatternSearchFracDIF( pcCU, pcPatternKey, piRefY, iRefStride, &rcMv, cMvHalf, cMvQter, ruiCost );
+#else
     InterpFilterType ePFilt = (InterpFilterType)pcCU->getSlice()->getInterpFilterType();
     switch ( ePFilt )
     {
@@ -3019,6 +3301,7 @@ Void TEncSearch::xMotionEstimation( TComDataCU* pcCU, TComYuv* pcYuvOrg, Int iPa
       default:
         xPatternSearchFracDIF( pcCU, pcPatternKey, piRefY, iRefStride, &rcMv, cMvHalf, cMvQter, ruiCost );
     }
+#endif
   }
   
   
@@ -3374,7 +3657,11 @@ Void TEncSearch::xPatternSearchFracDIF_Bi( TComDataCU* pcCU, TComPattern* pcPatt
   
   //  Half-pel refinement
   xExtDIFUpSamplingH ( &cPatternRoi, &m_cYuvExt );
+#if DCTIF_8_6_LUMA
+  piRef = m_cYuvExt.getLumaAddr() + ((iRefStride + 4) << 2);
+#else
   piRef = m_cYuvExt.getLumaAddr() + ((iRefStride + m_iDIFHalfTap) << 2);
+#endif
   
   rcMvHalf = *pcMvInt;   rcMvHalf <<= 1;    // for mv-cost
   ruiCost = xPatternRefinement_Bi( pcPatternKey, piRef, iRefStride, 4, 2, rcMvHalf, piRefY2, bRound );
@@ -3383,7 +3670,11 @@ Void TEncSearch::xPatternSearchFracDIF_Bi( TComDataCU* pcCU, TComPattern* pcPatt
   
   //  Quater-pel refinement
   Pel*  piSrcPel = cPatternRoi.getROIY() + (rcMvHalf.getHor() >> 1) + cPatternRoi.getPatternLStride() * (rcMvHalf.getVer() >> 1);
+#if DCTIF_8_6_LUMA
+  Int*  piSrc    = m_piYuvExt  + ((m_iYuvExtStride + 4) << 2) + (rcMvHalf.getHor() << 1) + m_iYuvExtStride * (rcMvHalf.getVer() << 1);
+#else
   Int*  piSrc    = m_piYuvExt  + ((m_iYuvExtStride + m_iDIFHalfTap) << 2) + (rcMvHalf.getHor() << 1) + m_iYuvExtStride * (rcMvHalf.getVer() << 1);
+#endif
   piRef += (rcMvHalf.getHor() << 1) + iRefStride * (rcMvHalf.getVer() << 1);
   xExtDIFUpSamplingQ ( pcPatternKey, piRef, iRefStride, piSrcPel, cPatternRoi.getPatternLStride(), piSrc, m_iYuvExtStride, m_puiDFilter[rcMvHalf.getHor()+rcMvHalf.getVer()*3] );
   
@@ -3449,7 +3740,11 @@ Void TEncSearch::xPatternSearchFracDIF( TComDataCU* pcCU, TComPattern* pcPattern
   
   //  Half-pel refinement
   xExtDIFUpSamplingH ( &cPatternRoi, &m_cYuvExt );
+#if DCTIF_8_6_LUMA
+  piRef = m_cYuvExt.getLumaAddr() + ((iRefStride + 4) << 2);
+#else
   piRef = m_cYuvExt.getLumaAddr() + ((iRefStride + m_iDIFHalfTap) << 2);
+#endif
   
   rcMvHalf = *pcMvInt;   rcMvHalf <<= 1;    // for mv-cost
   ruiCost = xPatternRefinement( pcPatternKey, piRef, iRefStride, 4, 2, rcMvHalf   );
@@ -3458,7 +3753,11 @@ Void TEncSearch::xPatternSearchFracDIF( TComDataCU* pcCU, TComPattern* pcPattern
   
   //  Quater-pel refinement
   Pel*  piSrcPel = cPatternRoi.getROIY() + (rcMvHalf.getHor() >> 1) + cPatternRoi.getPatternLStride() * (rcMvHalf.getVer() >> 1);
+#if DCTIF_8_6_LUMA
+  Int*  piSrc    = m_piYuvExt  + ((m_iYuvExtStride + 4) << 2) + (rcMvHalf.getHor() << 1) + m_iYuvExtStride * (rcMvHalf.getVer() << 1);
+#else
   Int*  piSrc    = m_piYuvExt  + ((m_iYuvExtStride + m_iDIFHalfTap) << 2) + (rcMvHalf.getHor() << 1) + m_iYuvExtStride * (rcMvHalf.getVer() << 1);
+#endif
   piRef += (rcMvHalf.getHor() << 1) + iRefStride * (rcMvHalf.getVer() << 1);
   xExtDIFUpSamplingQ ( pcPatternKey, piRef, iRefStride, piSrcPel, cPatternRoi.getPatternLStride(), piSrc, m_iYuvExtStride, m_puiDFilter[rcMvHalf.getHor()+rcMvHalf.getVer()*3] );
   
@@ -3561,24 +3860,6 @@ Void TEncSearch::predInterSkipSearch( TComDataCU* pcCU, TComYuv* pcOrgYuv, TComY
   
   return;
 }
-
-#if HHI_MRG
-Void TEncSearch::predInterMergeSearch( TComDataCU* pcCU, TComYuv* pcOrgYuv, TComYuv*& rpcPredYuv, TComYuv*& rpcResiYuv, TComYuv*& rpcRecoYuv,  TComMvField cMvFieldNeighbourToTest[2], UChar uhInterDirNeighbourToTest )
-{
-  SliceType eSliceType = pcCU->getSlice()->getSliceType();
-  if ( eSliceType == I_SLICE )
-    return;
-  
-  UChar uhDepth = pcCU->getDepth( 0 );
-  pcCU->setInterDirSubParts( uhInterDirNeighbourToTest, 0, 0, uhDepth );
-  pcCU->getCUMvField( REF_PIC_LIST_0 )->setAllMvField( cMvFieldNeighbourToTest[ 0 ].getMv(), cMvFieldNeighbourToTest[ 0 ].getRefIdx(), SIZE_2Nx2N, 0, 0, 0 );
-  pcCU->getCUMvField( REF_PIC_LIST_1 )->setAllMvField( cMvFieldNeighbourToTest[ 1 ].getMv(), cMvFieldNeighbourToTest[ 1 ].getRefIdx(), SIZE_2Nx2N, 0, 0, 0 );
-  
-  motionCompensation ( pcCU, rpcPredYuv );
-  
-  return;
-}
-#endif
 
 Void TEncSearch::encodeResAndCalcRdInterCU( TComDataCU* pcCU, TComYuv* pcYuvOrg, TComYuv* pcYuvPred, TComYuv*& rpcYuvResi, TComYuv*& rpcYuvResiBest, TComYuv*& rpcYuvRec, Bool bSkipRes )
 {
@@ -4424,9 +4705,6 @@ Void  TEncSearch::xAddSymbolBitsInter( TComDataCU* pcCU, UInt uiQp, UInt uiTrMod
   {
     m_pcEntropyCoder->resetBits();
     m_pcEntropyCoder->encodeSkipFlag ( pcCU, 0, true );
-#if HHI_MRG
-    m_pcEntropyCoder->encodeMergeInfo( pcCU, 0, true );
-#endif
     m_pcEntropyCoder->encodePredMode( pcCU, 0, true );
     m_pcEntropyCoder->encodePartSize( pcCU, 0, pcCU->getDepth(0), true );
     m_pcEntropyCoder->encodePredInfo( pcCU, 0, true );
@@ -4453,12 +4731,20 @@ Void TEncSearch::xExtDIFUpSamplingH ( TComPattern* pcPattern, TComYuv* pcYuvExt 
   Pel*  piSrcYPel;
   
   //  Copy integer-pel
+#if DCTIF_8_6_LUMA
+  piSrcYPel = pcPattern->getROIY() - 4 - iPatStride;
+#else
   piSrcYPel = pcPattern->getROIY() - m_iDIFHalfTap - iPatStride;
+#endif
   piDstY    = m_piYuvExt;//pcYuvExt->getLumaAddr();
   piDstYPel = pcYuvExt->getLumaAddr();
   for ( y = 0; y < iHeight + 2; y++ )
   {
-    for ( x = 0; x < iWidth + m_iDIFTap; x++ )
+#if DCTIF_8_6_LUMA
+	  for ( x = 0; x < iWidth + 8; x++ )
+#else
+	  for ( x = 0; x < iWidth + m_iDIFTap; x++ )
+#endif
     {
       piDstYPel[x << 2] = piSrcYPel[x];
     }
@@ -4466,23 +4752,40 @@ Void TEncSearch::xExtDIFUpSamplingH ( TComPattern* pcPattern, TComYuv* pcYuvExt 
     piDstY    += (m_iYuvExtStride << 2);
     piDstYPel += (iExtStride      << 2);
   }
-  
+
   //  Half-pel NORM. : vertical
+#if DCTIF_8_6_LUMA
+  piSrcYPel = pcPattern->getROIY()    - iPatStride - 4;
+#else
   piSrcYPel = pcPattern->getROIY()    - iPatStride - m_iDIFHalfTap;
+#endif
   piDstY    = m_piYuvExt              + (m_iYuvExtStride<<1);
   piDstYPel = pcYuvExt->getLumaAddr() + (iExtStride<<1);
+#if DCTIF_8_6_LUMA
+  xCTI_FilterHalfVer     (piSrcYPel, iPatStride,     1, iWidth + 8, iHeight + 1, m_iYuvExtStride<<2, 4, piDstY, iExtStride<<2, piDstYPel);
+#else 
   xCTI_FilterHalfVer     (piSrcYPel, iPatStride,     1, iWidth + m_iDIFTap, iHeight + 1, m_iYuvExtStride<<2, 4, piDstY, iExtStride<<2, piDstYPel);
+#endif
   
   //  Half-pel interpolation : horizontal
   piSrcYPel = pcPattern->getROIY()   -  iPatStride - 1;
+#if DCTIF_8_6_LUMA
+  piDstYPel = pcYuvExt->getLumaAddr() + 14;
+#else
   piDstYPel = pcYuvExt->getLumaAddr() + m_iDIFTap2 - 2;
+#endif
   xCTI_FilterHalfHor (piSrcYPel, iPatStride,     1,  iWidth + 1, iHeight + 1,  iExtStride<<2, 4, piDstYPel);
   
   //  Half-pel interpolation : center
+#if DCTIF_8_6_LUMA
+  piSrcY    = m_piYuvExt              + (m_iYuvExtStride<<1) + (3 << 2);
+  piDstYPel = pcYuvExt->getLumaAddr() + (iExtStride<<1)      + 14;
+#else
   piSrcY    = m_piYuvExt              + (m_iYuvExtStride<<1) + ((m_iDIFHalfTap-1) << 2);
   piDstYPel = pcYuvExt->getLumaAddr() + (iExtStride<<1)      + m_iDIFTap2 - 2;
+#endif
   xCTI_FilterHalfHor       (piSrcY, m_iYuvExtStride<<2, 4, iWidth + 1, iHeight + 1,iExtStride<<2, 4, piDstYPel);
-  
+
 }
 
 Void TEncSearch::xExtDIFUpSamplingQ   ( TComPattern* pcPatternKey, Pel* piDst, Int iDstStride, Pel* piSrcPel, Int iSrcPelStride, Int* piSrc, Int iSrcStride, UInt uiFilter )
@@ -4505,14 +4808,23 @@ Void TEncSearch::xExtDIFUpSamplingQ   ( TComPattern* pcPatternKey, Pel* piDst, I
     case 0:
     {
       //  Quater-pel interpolation : vertical
-      piSrcYPel = piSrcPel - m_iDIFHalfTap + 1;
+#if DCTIF_8_6_LUMA
+      piSrcYPel = piSrcPel - 3;
+      piDstY    = piSrc - 14 - iSrcStride;
+      xCTI_FilterQuarter0Ver(piSrcYPel, iSrcPelStride, 1, iWidth + 7, iHeight, iSrcStride4, 4, piDstY);
+      
+      piSrcYPel = piSrcPel - 3;
+      piDstY    = piSrc - 14 + iSrcStride;
+      xCTI_FilterQuarter1Ver(piSrcYPel, iSrcPelStride, 1, iWidth + 7, iHeight, iSrcStride4, 4, piDstY);
+#else
+	  piSrcYPel = piSrcPel - m_iDIFHalfTap + 1;
       piDstY    = piSrc - m_iDIFTap2 + 2 - iSrcStride;
       xCTI_FilterQuarter0Ver(piSrcYPel, iSrcPelStride, 1, iWidth + m_iDIFTap - 1, iHeight, iSrcStride4, 4, piDstY);
       
       piSrcYPel = piSrcPel - m_iDIFHalfTap + 1;
       piDstY    = piSrc - m_iDIFTap2 + 2 + iSrcStride;
       xCTI_FilterQuarter1Ver(piSrcYPel, iSrcPelStride, 1, iWidth + m_iDIFTap - 1, iHeight, iSrcStride4, 4, piDstY);
-      
+#endif      
       // Above three pixels
       piSrcY    = piSrc-2 - iSrcStride;
       piDstYPel = piDst-1 - iDstStride;
@@ -4551,7 +4863,17 @@ Void TEncSearch::xExtDIFUpSamplingQ   ( TComPattern* pcPatternKey, Pel* piDst, I
     }
     case 1:
     {
-      //  Quater-pel interpolation : vertical
+#if DCTIF_8_6_LUMA
+	//  Quater-pel interpolation : vertical
+      piSrcYPel = piSrcPel - 4;
+      piDstY    = piSrc-16 - iSrcStride;
+      xCTI_FilterQuarter0Ver(piSrcYPel, iSrcPelStride, 1, iWidth + 8, iHeight, iSrcStride4, 4, piDstY);
+      
+      piSrcYPel = piSrcPel - 4;
+      piDstY    = piSrc-16 + iSrcStride;
+      xCTI_FilterQuarter1Ver(piSrcYPel, iSrcPelStride, 1, iWidth + 8, iHeight, iSrcStride4, 4, piDstY);
+#else
+	//  Quater-pel interpolation : vertical
       piSrcYPel = piSrcPel - m_iDIFHalfTap;
       piDstY    = piSrc-m_iDIFTap2 - iSrcStride;
       xCTI_FilterQuarter0Ver(piSrcYPel, iSrcPelStride, 1, iWidth + m_iDIFTap, iHeight, iSrcStride4, 4, piDstY);
@@ -4559,7 +4881,7 @@ Void TEncSearch::xExtDIFUpSamplingQ   ( TComPattern* pcPatternKey, Pel* piDst, I
       piSrcYPel = piSrcPel - m_iDIFHalfTap;
       piDstY    = piSrc-m_iDIFTap2 + iSrcStride;
       xCTI_FilterQuarter1Ver(piSrcYPel, iSrcPelStride, 1, iWidth + m_iDIFTap, iHeight, iSrcStride4, 4, piDstY);
-      
+#endif     
       // Left three pixels
       piSrcY    = piSrc-4 - iSrcStride;
       piDstYPel = piDst-1 - iDstStride;
@@ -4583,7 +4905,11 @@ Void TEncSearch::xExtDIFUpSamplingQ   ( TComPattern* pcPatternKey, Pel* piDst, I
       {
         for (x=0; x < iWidth; x++)
         {
+#if DCTIF_8_6_LUMA
+          piDstYPel[x*4] = Clip( (piSrcY[x*4] +  32) >>  6 );
+#else
           piDstYPel[x*4] = Clip( (piSrcY[x*4] +  128) >>  8 );
+#endif
         }
         piSrcY+=iSrcStride2;
         piDstYPel+=iDstStride2;
@@ -4606,7 +4932,17 @@ Void TEncSearch::xExtDIFUpSamplingQ   ( TComPattern* pcPatternKey, Pel* piDst, I
     }
     case 2:
     {
-      //  Quater-pel interpolation : vertical
+#if DCTIF_8_6_LUMA
+		//  Quater-pel interpolation : vertical
+      piSrcYPel = piSrcPel - 3 - iSrcPelStride;;
+      piDstY    = piSrc - 14 - iSrcStride;
+      xCTI_FilterQuarter1Ver(piSrcYPel, iSrcPelStride, 1, iWidth + 7, iHeight, iSrcStride4, 4, piDstY);
+      
+      piSrcYPel = piSrcPel - 3;
+      piDstY    = piSrc - 14 + iSrcStride;
+      xCTI_FilterQuarter0Ver(piSrcYPel, iSrcPelStride, 1, iWidth + 7, iHeight, iSrcStride4, 4, piDstY);
+#else
+		//  Quater-pel interpolation : vertical
       piSrcYPel = piSrcPel - m_iDIFHalfTap + 1 - iSrcPelStride;;
       piDstY    = piSrc - m_iDIFTap2 + 2 - iSrcStride;
       xCTI_FilterQuarter1Ver(piSrcYPel, iSrcPelStride, 1, iWidth + m_iDIFTap - 1, iHeight, iSrcStride4, 4, piDstY);
@@ -4614,7 +4950,7 @@ Void TEncSearch::xExtDIFUpSamplingQ   ( TComPattern* pcPatternKey, Pel* piDst, I
       piSrcYPel = piSrcPel - m_iDIFHalfTap + 1;
       piDstY    = piSrc - m_iDIFTap2 + 2 + iSrcStride;
       xCTI_FilterQuarter0Ver(piSrcYPel, iSrcPelStride, 1, iWidth + m_iDIFTap - 1, iHeight, iSrcStride4, 4, piDstY);
-      
+#endif    
       // Above three pixels
       piSrcY    = piSrc-2 - iSrcStride;
       piDstYPel = piDst-1 - iDstStride;
@@ -4651,7 +4987,17 @@ Void TEncSearch::xExtDIFUpSamplingQ   ( TComPattern* pcPatternKey, Pel* piDst, I
     }
     case 3:
     {
-      //  Quater-pel interpolation : vertical
+#if DCTIF_8_6_LUMA
+		//  Quater-pel interpolation : vertical
+      piSrcYPel = piSrcPel-4 - iSrcPelStride;
+      piDstY    = piSrc-16 - iSrcStride;
+      xCTI_FilterQuarter1Ver(piSrcYPel, iSrcPelStride, 1, iWidth + 8, iHeight, iSrcStride4, 4, piDstY);
+      
+      piSrcYPel = piSrcPel-4;
+      piDstY    = piSrc-16 + iSrcStride;
+      xCTI_FilterQuarter0Ver(piSrcYPel, iSrcPelStride, 1, iWidth + 8, iHeight, iSrcStride4, 4, piDstY);
+#else
+		//  Quater-pel interpolation : vertical
       piSrcYPel = piSrcPel-m_iDIFHalfTap - iSrcPelStride;
       piDstY    = piSrc-m_iDIFTap2 - iSrcStride;
       xCTI_FilterQuarter1Ver(piSrcYPel, iSrcPelStride, 1, iWidth + m_iDIFTap, iHeight, iSrcStride4, 4, piDstY);
@@ -4659,7 +5005,7 @@ Void TEncSearch::xExtDIFUpSamplingQ   ( TComPattern* pcPatternKey, Pel* piDst, I
       piSrcYPel = piSrcPel-m_iDIFHalfTap;
       piDstY    = piSrc-m_iDIFTap2 + iSrcStride;
       xCTI_FilterQuarter0Ver(piSrcYPel, iSrcPelStride, 1, iWidth + m_iDIFTap, iHeight, iSrcStride4, 4, piDstY);
-      
+#endif
       // Left three pixels
       piSrcY    = piSrc-4 - iSrcStride;
       piDstYPel = piDst-1 - iDstStride;
@@ -4683,7 +5029,11 @@ Void TEncSearch::xExtDIFUpSamplingQ   ( TComPattern* pcPatternKey, Pel* piDst, I
       {
         for (x=0; x < iWidth; x++)
         {
+#if DCTIF_8_6_LUMA
+          piDstYPel[x*4] = Clip( (piSrcY[x*4] + 32) >>  6 );
+#else
           piDstYPel[x*4] = Clip( (piSrcY[x*4] + 128) >>  8 );
+#endif
         }
         piSrcY+=iSrcStride2;
         piDstYPel+=iDstStride2;

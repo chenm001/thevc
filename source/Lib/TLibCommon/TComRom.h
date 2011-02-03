@@ -58,8 +58,6 @@ Void         initROM();
 Void         destroyROM();
 Void         initFrameScanXY( UInt* pBuff, UInt* pBuffX, UInt* pBuffY, Int iWidth, Int iHeight );
 
-Void         initSigLastScanPattern( UInt* puiScanPattern, const UInt uiLog2BlockSize, const bool bDownLeft );
-
 // ====================================================================================================================
 // Data structure related table & variable
 // ====================================================================================================================
@@ -82,6 +80,10 @@ extern       UInt g_uiMaxCUWidth;
 extern       UInt g_uiMaxCUHeight;
 extern       UInt g_uiMaxCUDepth;
 extern       UInt g_uiAddCUDepth;
+
+#if HHI_MRG
+extern       UInt g_auiPUOffset[4];
+#endif
 
 // ====================================================================================================================
 // Quantization & DeQuantization
@@ -114,8 +116,6 @@ extern       UInt*  g_auiFrameScanXY[ MAX_CU_DEPTH  ];    // raster index     fr
 extern       UInt*  g_auiFrameScanX [ MAX_CU_DEPTH  ];    // raster index (x) from scanning index
 extern       UInt*  g_auiFrameScanY [ MAX_CU_DEPTH  ];    // raster index (y) from scanning index
 extern       UInt   g_auiAntiScan8[64];                   // 2D context mapping for coefficients
-
-extern       UInt*  g_auiSigLastScan[ MAX_CU_DEPTH+1  ][ 2 ];
 
 // ====================================================================================================================
 // CAVLC table
@@ -258,6 +258,10 @@ __inline UInt xRunLevelInd(Int lev, Int run, Int maxrun, UInt lrg1Pos)
 #endif
 
 extern       Char   g_aucConvertToBit  [ MAX_CU_SIZE+1 ];   // from width to log2(width)-2
+
+#if CHROMA_CODEWORD_SWITCH 
+extern const UChar ChromaMapping[2][5];
+#endif
 
 #define ENC_DEC_TRACE 0
 
