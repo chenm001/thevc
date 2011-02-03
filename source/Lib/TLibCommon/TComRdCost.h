@@ -110,6 +110,7 @@ private:
 #endif
   
   Double                  m_dLambda;
+  Double                  m_sqrtLambda;
   UInt                    m_uiLambdaMotionSAD;
   UInt                    m_uiLambdaMotionSSE;
   Double                  m_dFrameLambda;
@@ -134,7 +135,7 @@ public:
   Void    setFrameLambda ( Double dLambda ) { m_dFrameLambda = dLambda; }
   
 #if SAMSUNG_FAST_UDI
-  Double  getLambda ()   { return m_dLambda; }
+  Double  getSqrtLambda ()   { return m_sqrtLambda; }
 #endif
   
   // Distortion Functions

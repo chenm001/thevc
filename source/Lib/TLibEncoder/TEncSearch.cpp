@@ -1675,10 +1675,9 @@ TEncSearch::estIntraPredQT( TComDataCU* pcCU,
       
 #if SAMSUNG_FAST_UDI
       UInt   iModeBits = xModeBitsIntra( pcCU, uiMode, uiPU, uiPartOffset, uiDepth, uiInitTrDepth );
-      Double dModeRate = m_pcRdCost->getLambda();
-      Double uiCost    = (Double)uiSad+(Double)iModeBits*sqrt( dModeRate );
+      Double cost      = (Double)uiSad + (Double)iModeBits * m_pcRdCost->getSqrtLambda();
       
-      CandNum += xUpdateCandList( uiMode, uiCost, uiFastCandNum, CandModeList, CandCostList );
+      CandNum += xUpdateCandList( uiMode, cost, uiFastCandNum, CandModeList, CandCostList );
 #else  
       if ( uiSad < uiBestSad )
       {
