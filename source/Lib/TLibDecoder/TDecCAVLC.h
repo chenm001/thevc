@@ -78,6 +78,11 @@ private:
   UInt                      m_uiLPTableD8[10][128];
   UInt                      m_uiLastPosVlcIndex[10];
   
+#if LCEC_INTRA_MODE
+  UInt                      m_uiIntraModeTableD17[16];
+  UInt                      m_uiIntraModeTableD34[33];
+#endif
+
   UInt                      m_uiCBPTableD[2][8];
   UInt                      m_uiCbpVlcIdx[2];
   

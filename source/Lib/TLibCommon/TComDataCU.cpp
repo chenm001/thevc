@@ -1094,6 +1094,34 @@ Int TComDataCU::getMostProbableIntraDirLuma( UInt uiAbsPartIdx )
   return ( NOT_VALID == iMostProbable ) ? 2 : iMostProbable;
 }
 
+#if LCEC_INTRA_MODE
+Int TComDataCU::getLeftIntraDirLuma( UInt uiAbsPartIdx )
+{
+  TComDataCU* pcTempCU;
+  UInt        uiTempPartIdx;
+  Int         iLeftIntraDir;
+
+  // Get intra direction of left PU
+  pcTempCU = getPULeft( uiTempPartIdx, m_uiAbsIdxInLCU + uiAbsPartIdx );
+  iLeftIntraDir  = pcTempCU ? ( pcTempCU->isIntra( uiTempPartIdx ) ? pcTempCU->getLumaIntraDir( uiTempPartIdx ) : 2 ) : NOT_VALID;
+
+  return iLeftIntraDir;
+}
+
+Int TComDataCU::getAboveIntraDirLuma( UInt uiAbsPartIdx )
+{
+  TComDataCU* pcTempCU;
+  UInt        uiTempPartIdx;
+  Int         iAboveIntraDir;
+
+  // Get intra direction of above PU
+  pcTempCU = getPUAbove( uiTempPartIdx, m_uiAbsIdxInLCU + uiAbsPartIdx );
+  iAboveIntraDir = pcTempCU ? ( pcTempCU->isIntra( uiTempPartIdx ) ? pcTempCU->getLumaIntraDir( uiTempPartIdx ) : 2 ) : NOT_VALID;
+
+  return iAboveIntraDir;
+}
+#endif
+
 UInt TComDataCU::getCtxSplitFlag( UInt uiAbsPartIdx, UInt uiDepth )
 {
   TComDataCU* pcTempCU;
