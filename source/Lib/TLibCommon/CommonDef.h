@@ -142,6 +142,11 @@
 // Coding tool configuration
 // ====================================================================================================================
 
+// modified LCEC coefficient coding
+#if QC_MOD_LCEC
+#define MAX_TR1                           4
+#endif
+
 // AMVP: advanced motion vector prediction
 #define AMVP_NEIGH_COL              1           ///< use of colocated MB in AMVP
 #define AMVP_MAX_NUM_CANDS          5           ///< max number of final candidates

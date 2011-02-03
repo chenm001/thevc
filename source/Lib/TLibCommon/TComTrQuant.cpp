@@ -178,6 +178,24 @@ static const Int estErr8x8[6][8][8]={
   }
 };
 
+#if QC_MOD_LCEC
+  static const int VLClength[13][128] = {
+    { 1, 2, 3, 4, 5, 6, 7, 9, 9,11,11,11,11,13,13,13,13,13,13,13,13,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19},
+    { 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7, 8, 8,10,10,10,10,12,12,12,12,12,12,12,12,14,14,14,14,14,14,14,14,14,14,14,14,14,14,14,14,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,18,18,18,18,18,18,18,18,18,18,18,18,18,18,18,18,18,18,18,18,18,18,18,18,18,18,18,18,18,18,18,18,18,18,18,18,18,18,18,18,18,18,18,18,18,18,18,18,18,18,18,18,18,18},
+    { 3, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5, 6, 6, 6, 6, 7, 7, 7, 7, 8, 8, 8, 8, 9, 9, 9, 9,11,11,11,11,11,11,11,11,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17},
+    { 4, 4, 4, 4, 4, 4, 4, 4, 5, 5, 5, 5, 5, 5, 5, 5, 6, 6, 6, 6, 6, 6, 6, 6, 7, 7, 7, 7, 7, 7, 7, 7, 8, 8, 8, 8, 8, 8, 8, 8, 9, 9, 9, 9, 9, 9, 9, 9,10,10,10,10,10,10,10,10,12,12,12,12,12,12,12,12,12,12,12,12,12,12,12,12,14,14,14,14,14,14,14,14,14,14,14,14,14,14,14,14,14,14,14,14,14,14,14,14,14,14,14,14,14,14,14,14,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16},
+    { 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13},
+    { 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7, 8, 8, 9, 9,10,10,11,11,12,12,13,13,14,14,15,15,16,16,17,17,18,18,19,19,20,20,21,21,22,22,23,23,24,24,25,25,26,26,27,27,28,28,29,29,30,30,31,31,32,32,33,33,34,34,35,35,36,36,37,37,38,38,39,39,40,40,41,41,42,42,43,43,44,44,45,45,46,46,47,47,48,48,49,49,50,50,51,51,52,52,53,53,54,54,55,55,56,56,57,57,58,58,59,59,60,60,61,61,62,62,63,63,64,64,65,65},
+    { 3, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5, 6, 6, 6, 6, 7, 7, 7, 7, 8, 8, 8, 8, 9, 9, 9, 9,10,10,10,10,11,11,11,11,12,12,12,12,13,13,13,13,14,14,14,14,15,15,15,15,16,16,16,16,17,17,17,17,18,18,18,18,19,19,19,19,20,20,20,20,21,21,21,21,22,22,22,22,23,23,23,23,24,24,24,24,25,25,25,25,26,26,26,26,27,27,27,27,28,28,28,28,29,29,29,29,30,30,30,30,31,31,31,31,32,32,32,32,33,33,33,33,34,34,34,34},
+    { 4, 4, 4, 4, 4, 4, 4, 4, 5, 5, 5, 5, 5, 5, 5, 5, 6, 6, 6, 6, 6, 6, 6, 6, 7, 7, 7, 7, 7, 7, 7, 7, 8, 8, 8, 8, 8, 8, 8, 8, 9, 9, 9, 9, 9, 9, 9, 9,10,10,10,10,10,10,10,10,11,11,11,11,11,11,11,11,12,12,12,12,12,12,12,12,13,13,13,13,13,13,13,13,14,14,14,14,14,14,14,14,15,15,15,15,15,15,15,15,16,16,16,16,16,16,16,16,17,17,17,17,17,17,17,17,18,18,18,18,18,18,18,18,19,19,19,19,19,19,19,19},
+    { 1, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+    { 3, 4, 4, 5, 5, 5, 5, 5, 5, 5, 5, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,12,12,12,12,12,12,12,12,12,12,12,12,12,12,12,12,13,13,13,13,13},
+    { 1, 3, 3, 5, 5, 5, 5, 7, 7, 7, 7, 7, 7, 7, 7, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,15},
+    // dummy line
+    { 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8},
+    { 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8}
+  };
+#endif
 static const Int estErr16x16[6] = { 25329, 30580, 42563, 49296, 64244, 82293 };
 static const Int estErr32x32[6] = { 25351, 30674, 42843, 49687, 64898, 82136 };
 
@@ -996,13 +1014,20 @@ Void TComTrQuant::xT16( Pel* pSrc, UInt uiStride, Long* pDes )
 }
 
 
+#if QC_MOD_LCEC
+Int TComTrQuant::bitCount_LCEC(Int k,Int pos,Int nTab, Int lpflag,Int levelMode,Int run, Int maxrun, Int vlc_adaptive, Int N, UInt uiTr1)
+#else
 Int TComTrQuant::bitCount_LCEC(Int k,Int pos,Int n,Int lpflag,Int levelMode,Int run,Int maxrun,Int vlc_adaptive,Int N)
+#endif
 {
   UInt cn;
   int vlc,x,cx,vlcNum,bits,temp;
+#if QC_MOD_LCEC == 0
   static const int vlctable_8x8[28] = {8,0,0,5,5,5,5,5,5,5,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6};
   static const int vlcTable8[8] = {10,10,3,3,3,4,4,4}; // U,V,Y8x8I,Y8x8P,Y8x8B,Y16x16I,Y16x16P,Y16x16B
+#endif
   static const int vlcTable4[3] = {2,2,2};             // Y4x4I,Y4x4P,Y4x4B,
+#if QC_MOD_LCEC == 0
   static const int VLClength[11][128] =
   {
     { 1, 2, 3, 4, 5, 6, 7, 9, 9,11,11,11,11,13,13,13,13,13,13,13,13,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19},
@@ -1017,11 +1042,18 @@ Int TComTrQuant::bitCount_LCEC(Int k,Int pos,Int n,Int lpflag,Int levelMode,Int 
     { 3, 4, 4, 5, 5, 5, 5, 5, 5, 5, 5, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,12,12,12,12,12,12,12,12,12,12,12,12,12,12,12,12,13,13,13,13,13},
     { 1, 3, 3, 5, 5, 5, 5, 7, 7, 7, 7, 7, 7, 7, 7, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,15}
   };
+#endif
   int sign = k<0 ? 1 : 0;
   
-  
-  
   k = abs(k);
+#if QC_MOD_LCEC
+  Int n;
+  Int lev = (k>1 ? 1 : 0);
+  if (N==4)
+    n=max(0,nTab-2);
+  else
+    n=nTab;
+#endif
   if (N != 4 && N!= 8)
   {
     FATAL_ERROR_0("unsupported block size in bitCount_LCEC()" , -1 );
@@ -1034,7 +1066,11 @@ Int TComTrQuant::bitCount_LCEC(Int k,Int pos,Int n,Int lpflag,Int levelMode,Int 
       if (N==8)
       {
         cx = m_uiLPTableE8[n*128+x];
+#if QC_MOD_LCEC
+        vlcNum = g_auiLastPosVlcNum[n][Min(16,m_uiLastPosVlcIndex[n])];
+#else
         vlcNum = vlcTable8[n];
+#endif
       }
       else // (N==4)
       {
@@ -1056,6 +1092,25 @@ Int TComTrQuant::bitCount_LCEC(Int k,Int pos,Int n,Int lpflag,Int levelMode,Int 
     {
       if (!levelMode)
       {                                                    
+#if QC_MOD_LCEC
+        const UInt *p_auiLumaRunTr1 = g_auiLumaRunTr14x4[uiTr1];
+        UInt ui_maxrun = maxrun;
+        if (N==8)
+        { 
+          p_auiLumaRunTr1 = g_auiLumaRunTr18x8[uiTr1];
+          ui_maxrun =min(maxrun,28);
+        }
+        if(nTab == 2 || nTab == 5)
+        {
+          cn = xRunLevelInd(lev, run, maxrun, p_auiLumaRunTr1[ui_maxrun]);
+          vlc = g_auiVlcTable8x8Intra[ui_maxrun];
+        }
+        else
+        {
+          cn = g_auiLumaRun8x8[ui_maxrun][lev][run];
+          vlc = g_auiVlcTable8x8Inter[ui_maxrun];
+        }
+#else                                      
         if (maxrun > 27)
         {
           cn = g_auiLumaRun8x8[28][k>1 ? 1 : 0][run];
@@ -1065,6 +1120,7 @@ Int TComTrQuant::bitCount_LCEC(Int k,Int pos,Int n,Int lpflag,Int levelMode,Int 
           cn = g_auiLumaRun8x8[maxrun][k>1 ? 1 : 0][run];
         }
         vlc = (maxrun>27) ? 3 : vlctable_8x8[maxrun];
+#endif
         bits = VLClength[vlc][cn];
         if (k>1)
         {
@@ -1093,6 +1149,25 @@ Int TComTrQuant::bitCount_LCEC(Int k,Int pos,Int n,Int lpflag,Int levelMode,Int 
     {                        
       if (pos==0 && lpflag==0)
       {  
+#if QC_MOD_LCEC
+        const UInt *p_auiLumaRunTr1 = g_auiLumaRunTr14x4[uiTr1];
+        UInt ui_maxrun = maxrun;
+        if (N==8)
+        { 
+           p_auiLumaRunTr1 = g_auiLumaRunTr18x8[uiTr1];
+           ui_maxrun =min(maxrun,28);
+        }
+        if(nTab == 2 || nTab == 5)
+        {
+          cn = xRunLevelInd(0, run+1, maxrun, p_auiLumaRunTr1[ui_maxrun]);
+          vlc = g_auiVlcTable8x8Intra[ui_maxrun];
+        }
+        else
+        {
+          cn = g_auiLumaRun8x8[ui_maxrun][0][run+1];
+          vlc = g_auiVlcTable8x8Inter[ui_maxrun];
+        }
+#else   
         if (maxrun > 27)
         {
           cn = g_auiLumaRun8x8[28][0][run+1];
@@ -1102,6 +1177,7 @@ Int TComTrQuant::bitCount_LCEC(Int k,Int pos,Int n,Int lpflag,Int levelMode,Int 
           cn = g_auiLumaRun8x8[maxrun][0][run+1];
         }
         vlc = (maxrun>27) ? 3 : vlctable_8x8[maxrun];
+#endif
         bits = VLClength[vlc][cn];
       }
       else
@@ -1141,7 +1217,14 @@ Void TComTrQuant::xRateDistOptQuant_LCEC             ( TComDataCU*              
   
   if (uiWidth == 4)
   {
+#if QC_MOD_LCEC
+    if (eTType==TEXT_CHROMA_U || eTType==TEXT_CHROMA_V)
+      iBlockType = eTType-2;
+    else
+      iBlockType = 2 + ( pcCU->isIntra(uiAbsPartIdx) ? 0 : pcCU->getSlice()->getSliceType() );
+#else
     iBlockType = 0 + ( pcCU->isIntra(uiAbsPartIdx) ? 0 : pcCU->getSlice()->getSliceType() ); 
+#endif
     iQBits = m_cQP.m_iBits;                 
     dNormFactor = pow(2., (2*DQ_BITS+19));
     if ( g_uiBitIncrement ) dNormFactor *= 1<<(2*g_uiBitIncrement);
@@ -1202,6 +1285,9 @@ Void TComTrQuant::xRateDistOptQuant_LCEC             ( TComDataCU*              
   iVlc_adaptive = 0;
   iMaxrun = 0;
   iSum_big_coef = 0;
+#if QC_MOD_LCEC
+  UInt uiTr1=0;
+#endif
   
   for (iScanning=(uiWidth<8 ? 15 : 63); iScanning>=0; iScanning--) 
   {            
@@ -1228,20 +1314,34 @@ Void TComTrQuant::xRateDistOptQuant_LCEC             ( TComDataCU*              
     uiMinLevel = Max(1,(Int)uiLevel - 2);
     
     uiBestAbsLevel = 0;
+#if QC_MOD_LCEC
+    if (uiWidth==4)
+      iRate = bitCount_LCEC(0,iScanning,iBlockType,iLpFlag,iLevelMode,iRun,iMaxrun,iVlc_adaptive,4,uiTr1)<<uiBitShift; 
+    else 
+      iRate = bitCount_LCEC(0,iScanning,iBlockType,iLpFlag,iLevelMode,iRun,iMaxrun,iVlc_adaptive,8,uiTr1)<<uiBitShift; 
+#else
     if (uiWidth==4)
       iRate = bitCount_LCEC(0,iScanning,iBlockType,iLpFlag,iLevelMode,iRun,iMaxrun,iVlc_adaptive,4)<<uiBitShift; 
     else 
       iRate = bitCount_LCEC(0,iScanning,iBlockType,iLpFlag,iLevelMode,iRun,iMaxrun,iVlc_adaptive,8)<<uiBitShift; 
+#endif
     
     dErr = Double( lLevelDouble );
     rd64UncodedCost = dErr * dErr * dTemp;
     rd64CodedCost   = rd64UncodedCost + xGetICost( iRate ); 
     for(uiAbsLevel = uiMinLevel; uiAbsLevel <= uiMaxLevel ; uiAbsLevel++ ) 
     {
+#if QC_MOD_LCEC
+      if (uiWidth==4)
+        iRate = bitCount_LCEC(iSign*uiAbsLevel,iScanning,iBlockType,iLpFlag,iLevelMode,iRun,iMaxrun,iVlc_adaptive,4,uiTr1)<<uiBitShift; 
+      else 
+        iRate = bitCount_LCEC(iSign*uiAbsLevel,iScanning,iBlockType,iLpFlag,iLevelMode,iRun,iMaxrun,iVlc_adaptive,8,uiTr1)<<uiBitShift; 
+#else
       if (uiWidth==4)
         iRate = bitCount_LCEC(iSign*uiAbsLevel,iScanning,iBlockType,iLpFlag,iLevelMode,iRun,iMaxrun,iVlc_adaptive,4)<<uiBitShift; 
       else 
         iRate = bitCount_LCEC(iSign*uiAbsLevel,iScanning,iBlockType,iLpFlag,iLevelMode,iRun,iMaxrun,iVlc_adaptive,8)<<uiBitShift; 
+#endif
       dErr = Double( lLevelDouble  - (((Int64)uiAbsLevel) << iQBits ) );
       rd64UncodedCost = dErr * dErr * dTemp;
       dCurrCost = rd64UncodedCost + xGetICost( iRate ); 
@@ -1269,6 +1369,25 @@ Void TComTrQuant::xRateDistOptQuant_LCEC             ( TComDataCU*              
         if (uiBestAbsLevel>1)
           iLevelMode = 1;
       }
+#if QC_MOD_LCEC
+      if (iLpFlag==1){
+        if (uiBestAbsLevel>1){
+          uiTr1=0;
+        }
+        else{
+          uiTr1=1;
+        }
+      }
+      else{
+        if (uiTr1>0 && uiBestAbsLevel<2){
+          uiTr1++;
+          uiTr1=Min(MAX_TR1,uiTr1);
+        }
+        else{
+          uiTr1=0;
+        }
+      }
+#endif
       iMaxrun = iScanning-1;
       iLpFlag = 0;
       iRun = 0;
@@ -2282,13 +2401,21 @@ Void TComTrQuant::xIT32( Long* pSrc, Pel* pDes, UInt uiStride )
   }
 }
 
+#if QC_MOD_LCEC
+Void TComTrQuant::init( UInt uiMaxWidth, UInt uiMaxHeight, UInt uiMaxTrSize, Int iSymbolMode, UInt *aTableLP4, UInt *aTableLP8, UInt *aTableLastPosVlcIndex,
+                       Bool bUseRDOQ,  Bool bEnc )
+#else 
 Void TComTrQuant::init( UInt uiMaxWidth, UInt uiMaxHeight, UInt uiMaxTrSize, Int iSymbolMode, UInt *aTableLP4, UInt *aTableLP8, Bool bUseRDOQ,  Bool bEnc )
+#endif
 {
   m_uiMaxTrSize  = uiMaxTrSize;
   m_bEnc         = bEnc;
   m_bUseRDOQ     = bUseRDOQ;
   m_uiLPTableE8 = aTableLP8;
   m_uiLPTableE4 = aTableLP4;
+#if QC_MOD_LCEC
+  m_uiLastPosVlcIndex=aTableLastPosVlcIndex;
+#endif
   m_iSymbolMode = iSymbolMode;
   
   if ( m_bEnc )

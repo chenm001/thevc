@@ -139,20 +139,34 @@ extern const UInt    g_auiLPTableD4[3][32];
 extern const UInt    g_auiLastPosVlcIndex[10];
 extern const UInt    g_auiLastPosVlcNum[10][17];
 extern const UInt    g_auiLumaRun8x8[29][2][64];
-extern const UInt    g_auiVlcTable8x8[28];
+
 #if LCEC_INTRA_MODE
 extern const UInt    g_auiIntraModeTableD17[16];
 extern const UInt    g_auiIntraModeTableE17[16];
 extern const UInt    g_auiIntraModeTableD34[33];
 extern const UInt    g_auiIntraModeTableE34[33];
 #endif
+
+#if QC_MOD_LCEC
+extern const UInt    g_auiVlcTable8x8Inter[29];
+extern const UInt    g_auiVlcTable8x8Intra[29];
+#else
+extern const UInt    g_auiVlcTable8x8[28];
+#endif
 extern const LastCoeffStruct g_acstructLumaRun8x8[29][127];
+
 #if LCEC_INTRA_MODE
 extern const UInt huff17_2[2][17];
 extern const UInt lengthHuff17_2[2][17];
 extern const UInt huff34_2[2][34];
 extern const UInt lengthHuff34_2[2][34];
 #endif
+
+#if QC_MOD_LCEC
+extern const UInt    g_auiLumaRunTr14x4[5][15];
+extern const UInt    g_auiLumaRunTr18x8[5][29];
+#endif
+
 extern const UInt    g_auiCBPTableE[2][8];
 extern const UInt    g_auiCBPTableD[2][8];
 extern const UInt    g_auiCbpVlcNum[2][8];
@@ -209,6 +223,39 @@ extern const UChar g_aucConvertTxtTypeToIdx[4];
 // ====================================================================================================================
 // Misc.
 // ====================================================================================================================
+#if QC_MOD_LCEC
+__inline UInt xRunLevelInd(Int lev, Int run, Int maxrun, UInt lrg1Pos)
+{
+  UInt cn;
+
+  if ( lrg1Pos > 0 )
+  {
+    if ( lev == 0 )
+    {
+      if ( run < lrg1Pos )
+        cn = run;
+      else
+        cn = (run << 1) - lrg1Pos + 1;
+    }
+    else
+    {
+      if ( run > (maxrun - (Int)lrg1Pos + 1) )
+        cn = maxrun + run + 2 ;  
+      else
+        cn = lrg1Pos + (run << 1);
+    }
+  }
+  else
+  {
+    cn = (run << 1);
+    if ( lev == 0 && run <= maxrun )
+    { 
+      cn++;
+    }
+  }
+  return(cn);
+}
+#endif
 
 extern       Char   g_aucConvertToBit  [ MAX_CU_SIZE+1 ];   // from width to log2(width)-2
 
