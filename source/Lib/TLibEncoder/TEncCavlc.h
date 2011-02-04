@@ -140,7 +140,9 @@ protected:
   UInt  xWriteEpExGolomb      ( UInt uiSymbol, UInt uiCount );
   UInt  xWriteExGolombLevel   ( UInt uiSymbol );
   UInt  xWriteUnaryMaxSymbol  ( UInt uiSymbol, UInt uiMaxSymbol );
+#if !QC_MOD_LCEC_RDOQ
   UInt  xLeadingZeros         ( UInt uiCode );
+#endif
   UInt  xWriteVlc             ( UInt uiTableNumber, UInt uiCodeNumber );
 #else
   Void  xWriteCode            ( UInt uiCode, UInt uiLength );
@@ -150,7 +152,9 @@ protected:
   Void  xWriteEpExGolomb      ( UInt uiSymbol, UInt uiCount );
   Void  xWriteExGolombLevel    ( UInt uiSymbol );
   Void  xWriteUnaryMaxSymbol  ( UInt uiSymbol, UInt uiMaxSymbol );
+#if !QC_MOD_LCEC_RDOQ
   UInt  xLeadingZeros         ( UInt uiCode );
+#endif
   Void  xWriteVlc             ( UInt uiTableNumber, UInt uiCodeNumber );
 #endif
   Void  xCodeCoeff4x4          ( TCoeff* scoeff, Int iTableNumber );

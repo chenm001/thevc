@@ -1855,6 +1855,7 @@ Void TEncCavlc::xWriteEpExGolomb( UInt uiSymbol, UInt uiCount )
 #endif
 }
 
+#if !QC_MOD_LCEC_RDOQ
 UInt TEncCavlc::xLeadingZeros(UInt uiCode)
 {
   UInt uiCount = 0;
@@ -1871,6 +1872,7 @@ UInt TEncCavlc::xLeadingZeros(UInt uiCode)
   }
   return uiCount;
 }
+#endif
 
 #if LCEC_STAT
 UInt TEncCavlc::xWriteVlc(UInt uiTableNumber, UInt uiCodeNumber)
