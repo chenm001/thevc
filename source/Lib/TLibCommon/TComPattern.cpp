@@ -561,7 +561,7 @@ Int* TComPattern::getPredictorPtr ( UInt uiDirMode, UInt uiWidthBits, Int iCuWid
   Int* piSrc;
   UChar ucFiltIdx = g_aucIntraFilter[uiWidthBits][uiDirMode];
 
-  assert( ucFiltIdx >= 0 && ucFiltIdx <= 2 );
+  assert( ucFiltIdx <= 2 );
 
   piSrc = getAdiOrgBuf( iCuWidth, iCuHeight, piAdiBuf );
 
