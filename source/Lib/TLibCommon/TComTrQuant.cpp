@@ -191,7 +191,7 @@ static const Int estErr8x8[6][8][8]={
     { 1, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
     { 3, 4, 4, 5, 5, 5, 5, 5, 5, 5, 5, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,12,12,12,12,12,12,12,12,12,12,12,12,12,12,12,12,13,13,13,13,13},
     { 1, 3, 3, 5, 5, 5, 5, 7, 7, 7, 7, 7, 7, 7, 7, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,15},
-    // dummy line
+
     { 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8},
     { 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8}
   };
@@ -1013,7 +1013,492 @@ Void TComTrQuant::xT16( Pel* pSrc, UInt uiStride, Long* pDes )
   }
 }
 
+#if QC_MOD_LCEC_RDOQ
+UInt TComTrQuant::xCountVlcBits(UInt uiTableNumber, UInt uiCodeNumber)
+{
+  UInt uiLength = 0;
+  UInt uiCode = 0;
 
+  if ( uiCodeNumber < 128 )
+  {
+    uiLength=VLClength[uiTableNumber][uiCodeNumber];
+  }
+  else
+  {
+    if ( uiTableNumber < 10 )
+    {
+      if ( uiTableNumber < 5 )
+      {
+        uiCode = uiCodeNumber - (6 * (1 << uiTableNumber)) + (1 << uiTableNumber);
+        uiLength = ( 6 - uiTableNumber ) + 1 + 2 * xLeadingZeros(uiCode);
+      }
+      else if ( uiTableNumber < 8 )
+      {
+        uiLength = 1 + (uiTableNumber - 4) + (uiCodeNumber >> (uiTableNumber - 4));
+      }
+      else if ( uiTableNumber == 9 )
+      {
+        uiLength = 5 + ((uiCodeNumber + 5) >> 4);
+      }
+    }
+    else
+    {
+      if ( uiTableNumber == 10 )
+      {
+        uiCode = uiCodeNumber + 1;
+        uiLength = 1 + 2 * xLeadingZeros(uiCode);
+      }
+    }
+  }
+  return uiLength;
+}
+
+
+Int TComTrQuant::bitCountRDOQ(Int coeff, Int pos, Int nTab, Int lastCoeffFlag,Int levelMode,Int run, Int maxrun, Int vlc_adaptive, Int N, 
+                              UInt uiTr1, Int iSum_big_coef, Int iBlockType, TComDataCU* pcCU)
+{
+  UInt cn, n, level, lev;
+  Int vlc,x,cx,vlcNum,bits;
+  static const int vlcTable4[3] = {2,2,2};             // Y4x4I,Y4x4P,Y4x4B,
+
+  Int sign = coeff < 0 ? 1 : 0;
+
+  if ( N==4 )
+  {
+    n = Max(0, nTab - 2);
+  }
+  else
+  {
+    n = nTab;
+  }
+
+  UInt uiModZeroCoding = 0;
+  const UInt *uiVlcTableTemp;
+
+
+
+  if( nTab == 2 || nTab == 5 ){
+    uiVlcTableTemp = g_auiVlcTable8x8Intra;
+  }
+  else
+  {
+    uiVlcTableTemp = g_auiVlcTable8x8Inter;
+  }
+
+  level = abs(coeff);
+  lev = (level == 1) ? 0 : 1;
+
+  if ( level )
+  {
+    if ( lastCoeffFlag == 1 )
+    {     
+      x = pos + (level == 1 ? 0 : N * N);
+      if( N == 4 )
+      {
+        cx = m_uiLPTableE4[(n << 5) + x];
+        vlcNum = vlcTable4[n];
+      }
+      else{
+        cx = m_uiLPTableE8[(n << 7) + x];
+        vlcNum = g_auiLastPosVlcNum[n][Min(16,m_uiLastPosVlcIndex[n])];
+      }
+      bits=xCountVlcBits( vlcNum, cx );
+
+      if ( level > 1 )
+      {
+        bits += xCountVlcBits( 0, 2 * (level - 2) + sign );
+      }
+      else
+      {
+        bits++;
+      }
+
+    }
+    else{ // Level !=0  && lastCoeffFlag==0
+
+      if ( !levelMode ){   
+
+        if ( N == 4 ){
+          // 4x4
+          if ( nTab == 2 ){
+            cn = xRunLevelInd(lev, run, maxrun, g_auiLumaRunTr14x4[uiTr1][maxrun]);
+          }
+          else{
+            cn = g_auiLumaRun8x8[maxrun][lev][run];
+          }
+          vlc = uiVlcTableTemp[maxrun];
+        }
+        else {
+          // 8x8
+          if(nTab == 2 || nTab == 5)
+          {
+            cn = xRunLevelInd(lev, run, maxrun, g_auiLumaRunTr18x8[uiTr1][Min(maxrun,28)]);
+          }
+          else
+          {
+            cn = g_auiLumaRun8x8[Min(maxrun,28)][lev][run];
+          }
+          vlc = uiVlcTableTemp[Min(maxrun,28)];
+        }
+        bits = xCountVlcBits( vlc, cn );
+        if ( level > 1 ){
+          bits += xCountVlcBits( 0, 2 * (level - 2) + sign );
+        }
+        else{
+          bits++;
+        } 
+
+      }
+      else{ // Level !=0  && lastCoeffFlag==0 && levelMode
+        bits = (xCountVlcBits( vlc_adaptive, level ) + 1);
+      }
+    }
+  }
+  else{
+
+    if (levelMode){
+      bits=xCountVlcBits( vlc_adaptive, level );
+    }
+    else{                        
+      if ( pos == 0 && lastCoeffFlag == 0){  
+
+        if ( N == 4 ){
+          // 4x4
+          vlc = uiVlcTableTemp[maxrun];
+          if ( nTab == 2 ){
+            cn = xRunLevelInd(0, run + 1, maxrun, g_auiLumaRunTr14x4[uiTr1][maxrun]);
+          }
+          else{
+            cn = g_auiLumaRun8x8[maxrun][0][run + 1];
+          }
+        }
+        else{
+          // 8x8
+          vlc = uiVlcTableTemp[Min(maxrun, 28)];
+          if(nTab == 2 || nTab == 5){
+            cn = xRunLevelInd(0, run + 1, maxrun, g_auiLumaRunTr18x8[uiTr1][Min(maxrun, 28)]);
+          }
+          else{
+            cn = g_auiLumaRun8x8[Min(maxrun, 28)][0][run + 1];
+          }
+        }
+        bits=xCountVlcBits( vlc, cn );
+      }
+      else{
+        bits = 0;
+
+        if ( pos > 0 && uiModZeroCoding == 1 ){
+
+          Int iSum_big_coefTemp, levelModeTemp, maxrunTemp;
+          UInt uiTr1Temp;
+
+          if ( lastCoeffFlag == 0 ){
+
+            if ( N == 4 ){
+              // 4x4
+              vlc = uiVlcTableTemp[maxrun];
+              if ( nTab == 2 ){
+                cn = xRunLevelInd(0, run + 1, maxrun, g_auiLumaRunTr14x4[uiTr1][maxrun]);
+              }
+              else{
+                cn = g_auiLumaRun8x8[maxrun][0][run + 1];
+              }
+            }
+            else{
+              // 8x8
+              vlc = uiVlcTableTemp[Min(maxrun, 28)];
+              if(nTab == 2 || nTab == 5){
+                cn = xRunLevelInd(0, run + 1, maxrun, g_auiLumaRunTr18x8[uiTr1][Min(maxrun, 28)]);
+              }
+              else{
+                cn = g_auiLumaRun8x8[Min(maxrun,28)][0][run + 1];
+              }
+            }
+          }
+          else{
+
+            x = (pos - 1);
+            if( N == 4 )
+            {
+              cn = m_uiLPTableE4[(n << 5) + x];
+              vlc = vlcTable4[n];
+            }
+            else{
+              cn = m_uiLPTableE8[(n << 7) + x];
+              vlc = g_auiLastPosVlcNum[n][Min(16, m_uiLastPosVlcIndex[n])];
+            }
+          }
+          bits+=xCountVlcBits( vlc, cn );
+
+          // Next coeff is 1 with run=0
+
+          iSum_big_coefTemp = iSum_big_coef;
+          levelModeTemp = levelMode;
+          Int switch_thr[10] = {49,49,0,49,49,0,49,49,49,49};
+
+          if ( N > 4 ){ 
+            if ( level > 1 ){
+              iSum_big_coefTemp += level;
+              if ((N * N - pos - 1) > switch_thr[iBlockType] || iSum_big_coefTemp > 2) levelModeTemp = 1;
+            }
+          }
+          else{
+            if ( level > 1 ) levelModeTemp = 1;
+          }
+
+          if ( levelModeTemp == 1 ){
+            bits-=xCountVlcBits( vlc_adaptive, 1);
+          }
+          else{
+            maxrunTemp = pos - 1;
+            uiTr1Temp = uiTr1;
+
+            if ( uiTr1Temp > 0 && level < 2 ){
+              uiTr1Temp++;
+              uiTr1Temp = Min(MAX_TR1, uiTr1Temp);
+            }
+            else{
+              uiTr1Temp=0;
+            }
+
+            if ( N == 4 ){
+              // 4x4
+              vlc = uiVlcTableTemp[maxrunTemp];
+              if ( nTab == 2 ){
+                cn = xRunLevelInd(0, 0, maxrunTemp, g_auiLumaRunTr14x4[uiTr1Temp][maxrunTemp]);
+              }
+              else{
+                cn = g_auiLumaRun8x8[maxrunTemp][0][0];
+              }
+            }
+            else{
+              // 8x8
+              vlc = uiVlcTableTemp[Min(maxrunTemp,28)];
+              if(nTab == 2 || nTab == 5){
+                cn = xRunLevelInd(0, 0, maxrunTemp, g_auiLumaRunTr18x8[uiTr1Temp][Min(maxrunTemp,28)]);
+              }
+              else{
+                cn = g_auiLumaRun8x8[Min(maxrunTemp,28)][0][0];
+              }
+            }
+            bits -= xCountVlcBits( vlc, cn );
+          }
+        } // if ( pos > 0 && uiModZeroCoding == 1 ){
+
+      } 
+    }
+  }
+  return bits;
+}
+
+Int TComTrQuant::xCodeCoeffCountBitsLast(TCoeff* scoeff, levelDataStruct* levelData, Int nTab, UInt N)
+{
+  Int i, prevCoeffInd, lastPosMin, iRate;
+  Int done,last_pos;
+  Int run_done, maxrun,run, bitsLast[256], bitsRun[256], bitsLastPrev;
+  quantLevelStruct quantCoeffInfo[256];
+  UInt last_pos_init, bitsLevel, sign, lev, cn, vlc, uiBitShift=15, uiNoCoeff=N*N, absLevel;
+  Int n;
+  double lagrMin, lagr, lagrPrev;
+  UInt uiLumaRunNoTr14x4[15]={2, 1, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 2};
+  UInt uiLumaRunNoTr18x8[29]={2, 2, 2, 3, 3, 3, 4, 4, 4, 5, 5, 5, 5, 6, 6, 6, 6, 7, 7, 7, 8, 8, 8, 9, 9, 9, 9, 9, 13};
+
+
+  if ( N == 4 ){
+    n = Max(0, nTab - 2);
+  }
+  else
+  {
+    n = nTab;
+  }
+
+  /* Do the last coefficient first */
+  i = uiNoCoeff - 1;
+  done = 0;
+
+  while ( !done && i >= 0 )
+  {
+    if (scoeff[i])
+    {
+      done = 1;
+    }
+    else
+    {
+      i--;
+    }
+  }
+  if (i == -1)
+  {
+    return(-1);
+  }
+
+  last_pos = last_pos_init = i;
+  prevCoeffInd = i;
+
+  i--;
+
+  if ( i >= 0 ){
+
+    /* Go into run mode */
+    run_done = 0;
+    while ( !run_done )
+    {
+      maxrun = i;
+
+      run = 0;
+      done = 0;
+      while ( !done )
+      {
+        if ( !scoeff[i] )
+        {
+          run++;
+        }
+        else
+        {
+          quantCoeffInfo[prevCoeffInd].run=run;
+          quantCoeffInfo[prevCoeffInd].maxrun=maxrun;
+          quantCoeffInfo[prevCoeffInd].nextLev=(abs(scoeff[i]) == 1) ? 0 : 1;
+          quantCoeffInfo[prevCoeffInd].nexLevelVal=scoeff[i];
+
+          prevCoeffInd = i;
+
+          run = 0;
+          done = 1;
+        }
+        if (i == 0)
+        {
+          quantCoeffInfo[prevCoeffInd].run=run;
+          quantCoeffInfo[prevCoeffInd].maxrun=maxrun;
+          quantCoeffInfo[prevCoeffInd].nextLev=0;
+          quantCoeffInfo[prevCoeffInd].nexLevelVal=0;
+
+          done = 1;
+          run_done = 1;
+        }
+        i--;
+      }
+    }
+  }
+
+  for (i = last_pos_init; i >= 0; i--){
+
+    if (scoeff[i]){
+
+      bitsLast[i] = bitsRun[i] = 0; 
+
+      last_pos = i;
+      {
+        int x,cx,vlcNum;
+        int vlcTable[3] = {2,2,2};
+
+        bitsLevel=0;
+        absLevel = abs(scoeff[i]);
+        sign = (scoeff[i] < 0) ? 1 : 0;
+        lev = (absLevel == 1) ? 0 : 1;
+
+        if (absLevel > 1)
+        {
+          bitsLevel=xCountVlcBits( 0, 2*(absLevel-2)+sign );
+        }
+        else
+        {
+          bitsLevel++;
+        }
+
+        x = uiNoCoeff*lev + last_pos;
+
+        if ( uiNoCoeff == 16 ){
+          cx = m_uiLPTableE4[n * 32 + x];
+          vlcNum = vlcTable[n];
+        }
+        else {
+          cx = m_uiLPTableE8[n * 128 + x];
+          vlcNum = g_auiLastPosVlcNum[n][Min(16,m_uiLastPosVlcIndex[n])];
+        }
+        bitsLast[i]=bitsLevel + xCountVlcBits( vlcNum, cx);
+      }
+
+      bitsRun[i]=0;
+
+      if ( i > 0 )
+      {
+        bitsLevel = 0;
+        if ( quantCoeffInfo[i].nexLevelVal != 0 ){
+          absLevel = abs(quantCoeffInfo[i].nexLevelVal);
+          sign = (quantCoeffInfo[i].nexLevelVal < 0) ? 1 : 0;
+          lev = (absLevel == 1) ? 0 : 1;
+
+          if (absLevel > 1)
+          {
+            bitsLevel = xCountVlcBits( 0, 2 * (absLevel - 2) + sign );
+          }
+          else
+          {
+            bitsLevel++;
+          }
+        }
+
+        bitsRun[i] = bitsLevel;
+        run = quantCoeffInfo[i].run;
+        maxrun = quantCoeffInfo[i].maxrun;
+
+        if ( uiNoCoeff == 16 )
+        {
+          if ( nTab == 2 ){
+            vlc = g_auiVlcTable8x8Intra[maxrun];        
+            cn = xRunLevelInd(quantCoeffInfo[i].nextLev, run, maxrun, uiLumaRunNoTr14x4[maxrun]);
+          }
+          else{
+            vlc = g_auiVlcTable8x8Inter[maxrun];           
+            cn = g_auiLumaRun8x8[maxrun][quantCoeffInfo[i].nextLev][run];
+          }
+          bitsRun[i] += xCountVlcBits( vlc, cn );
+        }
+        else
+        {
+          if(nTab == 2 || nTab == 5){
+            vlc = g_auiVlcTable8x8Intra[Min(maxrun,28)];          
+            cn = xRunLevelInd(quantCoeffInfo[i].nextLev, run, maxrun, uiLumaRunNoTr18x8[min(maxrun,28)]);
+          }
+          else{
+            vlc = g_auiVlcTable8x8Inter[Min(maxrun,28)];           
+            cn = g_auiLumaRun8x8[min(maxrun,28)][quantCoeffInfo[i].nextLev][run];
+          }
+          bitsRun[i] += xCountVlcBits( vlc, cn );
+        }
+
+      }
+    }
+  }
+
+  lagrMin=0; lastPosMin=-1; 
+  for (i=0; i<uiNoCoeff; i++){
+    if ( scoeff[i] != 0 ){
+      lagrMin += levelData[i].errLevel[0];
+    }
+  }
+
+  UInt first=1; 
+
+  bitsLastPrev=0; lagrPrev=lagrMin;
+  for (i=0; i<uiNoCoeff; i++){
+    if (scoeff[i]){
+      iRate = (bitsRun[i] + bitsLast[i] - bitsLastPrev) << uiBitShift;
+      lagr = lagrPrev-levelData[i].errLevel[0] + levelData[i].errLevel[levelData[i].quantInd] + m_dLambda*iRate;
+      bitsLastPrev = bitsLast[i];
+      lagrPrev = lagr;
+
+      if ( lagr < lagrMin || abs(scoeff[i]) > 1 || first == 1){
+        lagrMin = lagr;
+        lastPosMin =i;
+        first = 0;
+      }
+    }
+  }
+
+  return(lastPosMin);
+}    
+#else
 #if QC_MOD_LCEC
 Int TComTrQuant::bitCount_LCEC(Int k,Int pos,Int nTab, Int lpflag,Int levelMode,Int run, Int maxrun, Int vlc_adaptive, Int N, UInt uiTr1)
 #else
@@ -1186,7 +1671,388 @@ Int TComTrQuant::bitCount_LCEC(Int k,Int pos,Int n,Int lpflag,Int levelMode,Int 
   }
   return bits;
 }
+#endif
+#if QC_MOD_LCEC_RDOQ
+static levelDataStruct slevelData		[ MAX_CU_SIZE*MAX_CU_SIZE ];
+Void TComTrQuant::xRateDistOptQuant_LCEC(TComDataCU* pcCU, Long* pSrcCoeff, TCoeff*& pDstCoeff, UInt uiWidth, UInt uiHeight, UInt& uiAbsSum, TextType eTType, 
+                                         UInt uiAbsPartIdx )
+{
+  Int			i, j;
+  Int			iShift = 0;
+  Int			qp_rem, q_bits;
+  Double	err, lagr, lagrMin;
+  Double	normFact = 0.0;
+  Double	OneOverNormFact = 0.0;
+  Double	fTemp = 0.0;
+  Int			iQuantCoeff;
+  //Bool		b64Flag		  = false;
+  Bool		bExt8x8Flag = false;
+  Int			iShiftQBits, iSign, iRate, lastPosMin, iBlockType;
+  UInt    uiBitShift = 15, uiScanPos, levelInd;
+  Int     levelBest, iLevel, iAdd;
 
+  levelDataStruct* levelData = &slevelData[0];
+
+  Int			iPos, iScanning;
+  //Double	dBestCost = MAX_DOUBLE, dCost = MAX_DOUBLE;
+
+  TCoeff sQuantCoeff[256];
+
+  qp_rem    = m_cQP.m_iRem;
+  q_bits    = m_cQP.m_iBits;
+
+  UInt noCoeff=(uiWidth < 8 ? 16 : 64);
+  if ( uiWidth == 4 && uiHeight == 4 )
+  {
+    normFact = pow(2., (2 * DQ_BITS + 19));
+    if ( g_uiBitIncrement ) normFact *= 1 << (2 * g_uiBitIncrement);
+    m_puiQuantMtx = &g_aiQuantCoef  [m_cQP.m_iRem][0];
+    iShift = 2;
+    iAdd = m_cQP.m_iAdd4x4;
+
+    if (eTType==TEXT_CHROMA_U || eTType==TEXT_CHROMA_V)
+      iBlockType = eTType-2;
+    else
+      iBlockType = 2 + ( pcCU->isIntra(uiAbsPartIdx) ? 0 : pcCU->getSlice()->getSliceType() );
+  }
+  else
+    if ( uiWidth == 8 && uiHeight == 8 )
+    {
+      q_bits++;
+      normFact = pow(2., (2 * Q_BITS_8 + 9));
+      if ( g_uiBitIncrement ) normFact *= 1<<(2*g_uiBitIncrement);
+      m_puiQuantMtx = &g_aiQuantCoef64[m_cQP.m_iRem][0];
+      iShift = 3;
+      iAdd = m_cQP.m_iAdd8x8;
+
+      if (eTType==TEXT_CHROMA_U || eTType==TEXT_CHROMA_V) 
+        iBlockType = eTType-2;
+      else
+        iBlockType = 2 + ( pcCU->isIntra(uiAbsPartIdx) ? 0 : pcCU->getSlice()->getSliceType() ); 
+    }
+    else
+      if ( uiWidth == 16 && uiHeight == 16 )
+      {
+        q_bits = ECore16Shift + m_cQP.per();
+        normFact = pow(2., 21);
+        if ( g_uiBitIncrement ) normFact *= 1 << (2 * g_uiBitIncrement);
+        fTemp = estErr16x16[qp_rem] / normFact;
+
+        m_puiQuantMtx = ( &g_aiQuantCoef256[m_cQP.m_iRem][0] );
+        iShift = 4;
+        iAdd = m_cQP.m_iAdd16x16;
+        bExt8x8Flag = true;
+
+        if (eTType==TEXT_CHROMA_U || eTType==TEXT_CHROMA_V) 
+          iBlockType = eTType-2;
+        else
+          iBlockType = 5 + ( pcCU->isIntra(uiAbsPartIdx) ? 0 : pcCU->getSlice()->getSliceType() ); 
+      }
+      else
+        if ( uiWidth == 32 && uiHeight == 32 )
+        {
+          q_bits = ECore32Shift + m_cQP.per();
+          normFact = pow(2., 21);
+          if ( g_uiBitIncrement ) normFact *= 1<<(2*g_uiBitIncrement);
+          fTemp = estErr32x32[qp_rem]/normFact;
+
+          m_puiQuantMtx = ( &g_aiQuantCoef1024[m_cQP.m_iRem][0] );
+          iShift = 5;
+          iAdd = m_cQP.m_iAdd32x32;
+          bExt8x8Flag = true;
+
+          if (eTType==TEXT_CHROMA_U || eTType==TEXT_CHROMA_V) 
+            iBlockType = eTType-2;
+          else
+            iBlockType = 5 + ( pcCU->isIntra(uiAbsPartIdx) ? 0 : pcCU->getSlice()->getSliceType() ); 
+        }
+        else
+        {
+          iBlockType =0;
+
+          assert(0);
+        }
+
+        memset(&pDstCoeff[0],0,uiWidth*uiHeight*sizeof(TCoeff)); 
+
+        iShiftQBits = (1 <<( q_bits - 1));
+
+        const UInt* pucScan;
+
+        if( !pcCU->isIntra(uiAbsPartIdx )){
+          pucScan = g_auiFrameScanXY[ g_aucConvertToBit[ Min(uiWidth, 8) ] + 1];
+        }
+        else{
+          pucScan = g_auiFrameScanXY[ g_aucConvertToBit[ uiWidth ] + 1];
+        }
+
+        OneOverNormFact = 1.0 / normFact;
+
+        UInt uiShift_local = iShift;
+        UInt uiRes_local = (uiWidth - 1);
+        UInt uiWidth_local = uiShift_local;
+
+        if( !pcCU->isIntra(uiAbsPartIdx) && uiWidth >= 16 )
+        {
+          uiShift_local = 3;
+          uiRes_local = 7; 
+        }
+
+        Int iAddRDOQ = 0;
+        {
+          UInt uiSliceType = 0;
+
+          Int iQP=pcCU->getSlice()->getSliceQp();
+          if( eTType != TEXT_LUMA ) //Chroma
+          {
+            iQP  = g_aucChromaScale[ iQP ];
+          }
+
+          Int iDefaultOffset;
+          Int iDefaultOffset_LTR;
+          Int iPer;
+          Int k =  (iQP + 6 * g_uiBitIncrement) / 6;
+
+          Bool bLowPass = (uiSliceType == 0);
+          iDefaultOffset = (bLowPass ? 10922 : 5462);
+
+          bLowPass = (uiSliceType == 0);
+          iDefaultOffset_LTR = (bLowPass? 170 : 86);
+
+          if ( uiWidth == 4 && uiWidth == 4 ){
+            iPer = QP_BITS + k - QOFFSET_BITS;
+            iAddRDOQ = iDefaultOffset << iPer;
+          }
+          else if ( uiWidth == 8 && uiWidth == 8){
+            iPer = QP_BITS + k + 1 - QOFFSET_BITS;
+            iAddRDOQ = iDefaultOffset << iPer;
+          }
+          else if ( uiWidth == 16 && uiHeight == 16 ){
+            iPer = ECore16Shift + k - QOFFSET_BITS_LTR;
+            iAddRDOQ = iDefaultOffset_LTR << iPer;
+          }
+          else if ( uiWidth == 32 && uiHeight == 32 ){
+            iPer = ECore32Shift + k - QOFFSET_BITS_LTR;
+            iAddRDOQ = iDefaultOffset_LTR << iPer;
+          }
+        }
+        if (m_uiRDOQOffset==1)
+          iAddRDOQ=iShiftQBits;
+
+        for (iScanning=noCoeff-1; iScanning>=0; iScanning--) 
+        {
+          iPos = pucScan[iScanning];
+          j = iPos >> uiShift_local;
+          i = iPos &  uiRes_local;
+          iPos = (j << uiWidth_local) + i;
+
+          levelDataStruct *psLevelData = &levelData[iScanning];
+          psLevelData->levelDouble = abs( pSrcCoeff[iPos] * (Long) m_puiQuantMtx[iPos]);
+          iQuantCoeff=(Int)((psLevelData->levelDouble +iAddRDOQ) >> q_bits);
+
+          psLevelData->levelQ		= ( psLevelData->levelDouble >> q_bits );
+          psLevelData->lowerInt = ( ( psLevelData->levelDouble - (psLevelData->levelQ << q_bits) ) < iShiftQBits ) ? true : false;
+
+          iSign = pSrcCoeff[iPos] < 0 ? -1 : 1;
+          sQuantCoeff[iScanning] = iQuantCoeff*iSign;
+
+          if      ( uiWidth == 4 ) fTemp = estErr4x4[qp_rem][i][j] * OneOverNormFact;
+          else if ( uiWidth == 8 ) fTemp = estErr8x8[qp_rem][i][j] * OneOverNormFact;
+
+          psLevelData->level[0] = 0;
+          err = (Double)(psLevelData->levelDouble);
+          psLevelData->errLevel[0] = err * err * fTemp;
+
+          if ( !psLevelData->levelQ )
+          {
+            if ( psLevelData->lowerInt )
+            {
+              psLevelData->noLevels = 1;
+            }
+            else
+            {
+              psLevelData->level[1] = 1;
+              psLevelData->noLevels = 2;
+            }
+            if (iQuantCoeff==0)
+              psLevelData->quantInd=0;
+            else
+              psLevelData->quantInd=1;
+
+          }
+          else if ( psLevelData->lowerInt )
+          {
+            psLevelData->level[1] = psLevelData->levelQ;
+            psLevelData->noLevels = 2;
+
+            if ( psLevelData->levelQ > 1 ){
+              psLevelData->noLevels++;
+              psLevelData->level[2] = 1;
+            }
+
+            psLevelData->quantInd = 1;
+          }
+          else
+          {
+            psLevelData->level[1] = psLevelData->levelQ;
+            psLevelData->level[2] = psLevelData->levelQ + 1;
+            psLevelData->noLevels = 3;
+
+            if ( psLevelData->levelQ > 1 ){
+              psLevelData->noLevels++;
+              psLevelData->level[3] = 1;
+            }
+            if ( iQuantCoeff == psLevelData->level[1] )
+              psLevelData->quantInd = 1;
+            else
+              psLevelData->quantInd = 2;
+          }
+
+          for ( levelInd = 1; levelInd < psLevelData->noLevels; levelInd++ ){
+            err = (Double)((psLevelData->level[levelInd] << q_bits) - psLevelData->levelDouble);
+            psLevelData->errLevel[levelInd] = err * err * fTemp;
+            psLevelData->level[levelInd] *= iSign;
+          }
+        }
+
+        UInt uiNum;
+        if ( uiWidth == 4 )
+          uiNum = 4;
+        else
+          uiNum = 8;
+
+        // Last Position
+        lastPosMin = xCodeCoeffCountBitsLast(sQuantCoeff, levelData, iBlockType, uiNum);
+        memset(&sQuantCoeff[lastPosMin+1],0,sizeof(TCoeff) * (noCoeff - (lastPosMin + 1)));
+
+
+        Int  iLpFlag = 1; 
+        Int  iLevelMode = 0;
+        Int  iRun = 0;
+        Int  iVlc_adaptive = 0;
+        Int  iMaxrun = 0;
+        Int  iSum_big_coef = 0;
+
+
+        UInt uiTr1=0;
+        UInt absBestLevel;
+
+        Int atable[5] = {4,6,14,28,0xfffffff};
+        Int switch_thr[10] = {49,49,0,49,49,0,49,49,49,49};
+
+        Int levelIndBest, iRateMin=0, levelStart;
+        Double lagrCoded=0, lagrNotCoded=0;
+
+        for (iScanning = lastPosMin; iScanning>=0; iScanning--){
+          uiScanPos = iScanning;
+          levelStart = (iScanning == lastPosMin) ? 1 : 0;
+
+          sQuantCoeff[uiScanPos] = levelBest = 0;
+          levelDataStruct *psLevelData = &levelData[uiScanPos];
+          if ( psLevelData->noLevels >1 || iScanning == 0 ){
+
+            lagrMin = 0; iRateMin = 0;
+            for (levelInd = levelStart; levelInd < psLevelData->noLevels; levelInd++){
+
+              lagr = psLevelData->errLevel[levelInd];
+              iLevel=psLevelData->level[levelInd];
+
+              if ( uiWidth == 4 ){
+                iRate = bitCountRDOQ(iLevel,uiScanPos,iBlockType,iLpFlag,iLevelMode,iRun,iMaxrun,iVlc_adaptive,4,uiTr1, 
+                  iSum_big_coef,iBlockType, pcCU)<<uiBitShift;
+              }
+              else{
+                iRate = bitCountRDOQ(iLevel,uiScanPos,iBlockType,iLpFlag,iLevelMode,iRun,iMaxrun,iVlc_adaptive,8,uiTr1, 
+                  iSum_big_coef, iBlockType, pcCU) << uiBitShift;
+              }
+              lagr += m_dLambda * iRate; 
+
+              if ( lagr < lagrMin || levelInd == levelStart){
+                lagrMin = lagr;
+                iRateMin = iRate;
+                levelBest = iLevel;
+                levelIndBest = levelInd;
+              }
+            }
+          }
+
+          if ( levelBest != 0 ){
+            lagrCoded += lagrMin;
+            lagrNotCoded += psLevelData->errLevel[0];
+          }
+          if ( uiScanPos == 0 && levelBest == 0 ){
+            lagrCoded += m_dLambda * iRateMin;
+          }
+
+          sQuantCoeff[uiScanPos] = levelBest;
+
+          absBestLevel = abs(levelBest);
+          if ( levelBest != 0 ){  
+
+            if ( uiWidth > 4 ){ 
+              if ( !iLpFlag && absBestLevel > 1 ){
+                iSum_big_coef += absBestLevel;
+                if ((noCoeff - uiScanPos - 1) > switch_thr[iBlockType] || iSum_big_coef > 2) iLevelMode = 1; 
+              }
+            }
+            else{
+              if ( absBestLevel > 1 ) iLevelMode = 1;
+            }
+
+            if ( iLpFlag == 1 )
+            {
+              uiTr1 = (absBestLevel > 1) ? 0 : 1;
+            }
+            else
+            {
+              if ( uiTr1 == 0 || absBestLevel >= 2 )
+              { 
+                uiTr1 = 0;
+              }
+              else if ( uiTr1 < MAX_TR1 )
+              {
+                uiTr1++;
+              }
+            }
+            iMaxrun = iScanning - 1;
+            iLpFlag = 0;
+            iRun = 0;
+            if ( iLevelMode && (absBestLevel > atable[iVlc_adaptive])) iVlc_adaptive++;        
+          }
+          else
+          {
+            iRun += 1;         
+          }
+        }
+
+        if (lastPosMin >= 0 && lagrCoded > lagrNotCoded){
+          for (iScanning = lastPosMin; iScanning>=0; iScanning--){
+            sQuantCoeff[iScanning] = 0;
+          }
+        }
+        if ((!pcCU->isIntra(uiAbsPartIdx) && uiWidth >= 16))
+        {
+          for (iScanning = noCoeff - 1; iScanning >= 0; iScanning--) 
+          {
+            iPos = pucScan[iScanning];
+            j = iPos >> 3;
+            i = iPos & 0x7;
+            iPos = uiWidth * j + i;
+            pDstCoeff[iPos] = sQuantCoeff[iScanning];
+            uiAbsSum += abs(sQuantCoeff[iScanning]);
+          }
+        }
+        else
+        {
+          for (iScanning = noCoeff - 1; iScanning >= 0; iScanning--) 
+          {
+            iPos = pucScan[iScanning];
+            pDstCoeff[iPos] = sQuantCoeff[iScanning];
+            uiAbsSum += abs(sQuantCoeff[iScanning]);
+          }
+        }
+}
+#else
 Void TComTrQuant::xRateDistOptQuant_LCEC             ( TComDataCU*                     pcCU,
                                                       Long*                           plSrcCoeff,
                                                       TCoeff*&                        piDstCoeff,
@@ -1403,7 +2269,7 @@ Void TComTrQuant::xRateDistOptQuant_LCEC             ( TComDataCU*              
     piDstCoeff[uiBlkPos] = iSign*uiBestAbsLevel;
   } // for uiScanning
 } 
-
+#endif
 
 Void TComTrQuant::xQuantLTR  (TComDataCU* pcCU, Long* pSrc, TCoeff*& pDes, Int iWidth, Int iHeight, UInt& uiAcSum, TextType eTType, UInt uiAbsPartIdx )
 {

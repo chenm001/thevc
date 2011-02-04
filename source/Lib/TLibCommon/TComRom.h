@@ -256,6 +256,24 @@ __inline UInt xRunLevelInd(Int lev, Int run, Int maxrun, UInt lrg1Pos)
   return(cn);
 }
 #endif
+#if QC_MOD_LCEC_RDOQ
+__inline UInt xLeadingZeros(UInt uiCode)
+{
+  UInt uiCount = 0;
+  Int iDone = 0;
+  
+  if (uiCode)
+  {
+    while (!iDone)
+    {
+      uiCode >>= 1;
+      if (!uiCode) iDone = 1;
+      else uiCount++;
+    }
+  }
+  return uiCount;
+}
+#endif
 
 extern       Char   g_aucConvertToBit  [ MAX_CU_SIZE+1 ];   // from width to log2(width)-2
 
