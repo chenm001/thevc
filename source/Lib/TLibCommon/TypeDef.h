@@ -95,6 +95,7 @@
 #define QC_MOD_LCEC                       1           // modified LCEC coeff. coding
 #define LCEC_INTRA_MODE                   1           // modified luma intra mode coding
 #define QC_MOD_LCEC_RDOQ                  1
+#define QC_MDIS                           1           // JCTVC-D282: enable mode dependent intra smoothing
 
 #define ENABLE_FORCECOEFF0  0
 

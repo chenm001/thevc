@@ -288,7 +288,11 @@ Void TComPrediction::predIntraLumaAng(TComPattern* pcTComPattern, UInt uiDirMode
   assert( iWidth == iHeight  );
 #endif //NDEBUG
   
+#if QC_MDIS
+  ptrSrc = pcTComPattern->getPredictorPtr( uiDirMode, g_aucConvertToBit[ iWidth ] + 1, iWidth, iHeight, m_piYuvExt );
+#else
   ptrSrc = pcTComPattern->getAdiOrgBuf( iWidth, iHeight, m_piYuvExt );
+#endif //QC_MDIS
   
   // get starting pixel in block
   Int sw = ( iWidth<<1 ) + 1;

@@ -114,6 +114,9 @@ public:
   Int*  getAdiCbBuf               ( Int iCuWidth, Int iCuHeight, Int* piAdiBuf );
   Int*  getAdiCrBuf               ( Int iCuWidth, Int iCuHeight, Int* piAdiBuf );
   
+#if QC_MDIS
+  Int*  getPredictorPtr           ( UInt uiDirMode, UInt uiWidthBits, Int iCuWidth, Int iCuHeight, Int* piAdiBuf );
+#endif //QC_MDIS
   // -------------------------------------------------------------------------------------------------------------------
   // initialization functions
   // -------------------------------------------------------------------------------------------------------------------
