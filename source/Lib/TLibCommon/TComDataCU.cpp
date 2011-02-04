@@ -2465,12 +2465,12 @@ Void TComDataCU::fillMvpCand ( UInt uiPartIdx, UInt uiPartAddr, RefPicList eRefP
 #if AMVP_NEIGH_COL
 #if FT_TCTR
   {
-    TComMv cMvTCenter[2];
-    if (xGetCenterCol( uiPartIdx, iRefIdx, &cMvTCenter[0] ))
+    TComMv cMvTCenter;
+    if (xGetCenterCol( uiPartIdx, eRefPicList, iRefIdx, &cMvTCenter ))
     {
       for (int i = pInfo->iN-1; i >= 0; i--)
         pInfo->m_acMvCand[i+1] = pInfo->m_acMvCand[i];
-      pInfo->m_acMvCand[0] = cMvTCenter[(int)(eRefPicList)];
+      pInfo->m_acMvCand[0] = cMvTCenter;
       pInfo->iN++;
     }
   }
@@ -2873,7 +2873,7 @@ Void TComDataCU::xDeriveCenterIdx( PartSize eCUMode, UInt uiPartIdx, UInt& ruiPa
                                         + ( iPartWidth/m_pcPic->getMinCUWidth()  -1 )/2];
 }
 
-Bool TComDataCU::xGetCenterCol( UInt uiPartIdx, int iRefIdx, TComMv *pcMv )
+Bool TComDataCU::xGetCenterCol( UInt uiPartIdx, RefPicList eRefPicList, int iRefIdx, TComMv *pcMv )
 {
   PartSize eCUMode = m_pePartSize[0];
   
@@ -2922,7 +2922,7 @@ Bool TComDataCU::xGetCenterCol( UInt uiPartIdx, int iRefIdx, TComMv *pcMv )
   Int iColRefPOC = pColCU->getSlice()->getRefPOC(eColRefPicList, pColCU->getCUMvField(eColRefPicList)->getRefIdx(uiPartIdxCenter));
   TComMv cColMv = pColCU->getCUMvField(eColRefPicList)->getMv(uiPartIdxCenter);
   
-  Int iCurrRefPOC = m_pcSlice->getRefPic(REF_PIC_LIST_0, iRefIdx)->getPOC();
+  Int iCurrRefPOC = m_pcSlice->getRefPic(eRefPicList, iRefIdx)->getPOC();
   Int iScale = xGetDistScaleFactor(iCurrPOC, iCurrRefPOC, iColPOC, iColRefPOC);
   if (iScale == 1024)
   {
@@ -2933,20 +2933,6 @@ Bool TComDataCU::xGetCenterCol( UInt uiPartIdx, int iRefIdx, TComMv *pcMv )
     pcMv[0] = cColMv.scaleMv( iScale );
   }
   clipMv(pcMv[0]);
-  if (getSlice()->isInterB())
-  {
-    iCurrRefPOC = m_pcSlice->getRefPic(REF_PIC_LIST_1, iRefIdx)->getPOC();
-    iScale = xGetDistScaleFactor(iCurrPOC, iCurrRefPOC, iColPOC, iColRefPOC);
-    if (iScale == 1024)
-    {
-      pcMv[1] = cColMv;
-    }
-    else
-    {
-      pcMv[1] = cColMv.scaleMv( iScale );
-    }
-    clipMv(pcMv[1]);
-  }
   
   return true;
 }

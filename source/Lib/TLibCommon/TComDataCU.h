@@ -156,7 +156,7 @@ protected:
   
 #if FT_TCTR
   Void xDeriveCenterIdx( PartSize eCUMode, UInt uiPartIdx, UInt& ruiPartIdxCenter );
-  Bool xGetCenterCol( UInt uiPartIdx, int iRefIdx, TComMv *pcMv );
+  Bool xGetCenterCol( UInt uiPartIdx, RefPicList eRefPicList, int iRefIdx, TComMv *pcMv );
 #endif
   
 public:
