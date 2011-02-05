@@ -787,7 +787,11 @@ TEncSearch::xEncCoeffQT( TComDataCU*  pcCU,
 #if LCEC_CBP_YUV_ROOT
       if(pcCU->getSlice()->getSymbolMode() == 0)
       {
+#if LCEC_CBP_YUV_ROOT_RDFIX
+        if( eTextType == TEXT_LUMA || uiLog2TrafoSize-1 > pcCU->getSlice()->getSPS()->getQuadtreeTULog2MinSize() )
+#else
         if( eTextType == TEXT_LUMA || uiLog2TrafoSize > pcCU->getSlice()->getSPS()->getQuadtreeTULog2MinSize() )
+#endif
           m_pcEntropyCoder->m_pcEntropyCoderIf->codeBlockCbf(pcCU, uiAbsPartIdx, eTextType, uiTrDepth + 1, uiQPartNum, true);
       }
 #endif
@@ -901,6 +905,7 @@ TEncSearch::xGetIntraBitsQT( TComDataCU*  pcCU,
   xEncSubdivCbfQT ( pcCU, uiTrDepth, uiAbsPartIdx, bLuma, bChroma );
   
 #if LCEC_CBP_YUV_ROOT
+#if LCEC_CBP_YUV_ROOT_RDFIX == 0
   if (pcCU->getSlice()->getSymbolMode()==0 && uiTrDepth == 0)
   {
     if(bLuma && bChroma)
@@ -933,6 +938,7 @@ TEncSearch::xGetIntraBitsQT( TComDataCU*  pcCU,
       }
     }
   }
+#endif
 #endif
   
   if( bLuma )
@@ -1287,6 +1293,13 @@ TEncSearch::xRecurIntraCodingQT( TComDataCU*  pcCU,
     UInt    uiSplitDistC    = 0;
     UInt    uiQPartsDiv     = pcCU->getPic()->getNumPartInCU() >> ( ( uiFullDepth + 1 ) << 1 );
     UInt    uiAbsPartIdxSub = uiAbsPartIdx;
+
+#if LCEC_CBP_YUV_ROOT_RDFIX
+    UInt    uiSplitCbfY = 0;
+    UInt    uiSplitCbfU = 0;
+    UInt    uiSplitCbfV = 0;
+#endif
+
     for( UInt uiPart = 0; uiPart < 4; uiPart++, uiAbsPartIdxSub += uiQPartsDiv )
     {
 #if HHI_RQT_INTRA_SPEEDUP
@@ -1294,7 +1307,31 @@ TEncSearch::xRecurIntraCodingQT( TComDataCU*  pcCU,
 #else
       xRecurIntraCodingQT( pcCU, uiTrDepth + 1, uiAbsPartIdxSub, bLumaOnly, pcOrgYuv, pcPredYuv, pcResiYuv, uiSplitDistY, uiSplitDistC, dSplitCost );
 #endif
+
+#if LCEC_CBP_YUV_ROOT_RDFIX
+      uiSplitCbfY |= pcCU->getCbf( uiAbsPartIdxSub, TEXT_LUMA, uiTrDepth + 1 );
+      if(!bLumaOnly)
+      {
+        uiSplitCbfU |= pcCU->getCbf( uiAbsPartIdxSub, TEXT_CHROMA_U, uiTrDepth + 1 );
+        uiSplitCbfV |= pcCU->getCbf( uiAbsPartIdxSub, TEXT_CHROMA_V, uiTrDepth + 1 );
+      }
+#endif
     }
+
+#if LCEC_CBP_YUV_ROOT_RDFIX
+    for( UInt uiOffs = 0; uiOffs < 4 * uiQPartsDiv; uiOffs++ )
+    {
+      pcCU->getCbf( TEXT_LUMA )[ uiAbsPartIdx + uiOffs ] |= ( uiSplitCbfY << uiTrDepth );
+    }
+    if( !bLumaOnly )
+    {
+      for( UInt uiOffs = 0; uiOffs < 4 * uiQPartsDiv; uiOffs++ )
+      {
+        pcCU->getCbf( TEXT_CHROMA_U )[ uiAbsPartIdx + uiOffs ] |= ( uiSplitCbfU << uiTrDepth );
+        pcCU->getCbf( TEXT_CHROMA_V )[ uiAbsPartIdx + uiOffs ] |= ( uiSplitCbfV << uiTrDepth );
+      }
+    }
+#endif
     //----- restore context states -----
     if( m_bUseSBACRD )
     {
@@ -1307,6 +1344,7 @@ TEncSearch::xRecurIntraCodingQT( TComDataCU*  pcCU,
     //===== compare and set best =====
     if( dSplitCost < dSingleCost )
     {
+#if LCEC_CBP_YUV_ROOT_RDFIX == 0
       //--- set luma Cbf values ---
       UInt  uiSplitCbfY = 0;
       uiAbsPartIdxSub   = uiAbsPartIdx;
@@ -1335,6 +1373,7 @@ TEncSearch::xRecurIntraCodingQT( TComDataCU*  pcCU,
           pcCU->getCbf( TEXT_CHROMA_V )[ uiAbsPartIdx + uiOffs ] |= ( uiSplitCbfV << uiTrDepth );
         }
       }
+#endif
       //--- update cost ---
       ruiDistY += uiSplitDistY;
       ruiDistC += uiSplitDistC;
@@ -3918,8 +3957,10 @@ Void TEncSearch::xEstimateResidualQT( TComDataCU* pcCU, UInt uiQuadrant, UInt ui
     
     m_pcEntropyCoder->resetBits();
 #if LCEC_CBP_YUV_ROOT
+#if LCEC_CBP_YUV_ROOT_RDFIX == 0
     if (pcCU->getSlice()->getSymbolMode()==0 && uiTrMode == 0)
       m_pcEntropyCoder->m_pcEntropyCoderIf->codeCbf( pcCU, uiAbsPartIdx, TEXT_ALL, 0 );
+#endif
 #endif
     
 #if LCEC_CBP_YUV_ROOT
@@ -4110,8 +4151,10 @@ Void TEncSearch::xEstimateResidualQT( TComDataCU* pcCU, UInt uiQuadrant, UInt ui
 #endif
     
 #if LCEC_CBP_YUV_ROOT
+#if LCEC_CBP_YUV_ROOT_RDFIX == 0
     if (pcCU->getSlice()->getSymbolMode()==0 && uiTrMode == 0)
       m_pcEntropyCoder->m_pcEntropyCoderIf->codeCbf( pcCU, uiAbsPartIdx, TEXT_ALL, 0 );
+#endif
 #endif
     
     m_pcEntropyCoder->encodeCoeffNxN( pcCU, pcCoeffCurrY, uiAbsPartIdx, 1<< uiLog2TrSize,    1<< uiLog2TrSize,    uiDepth, TEXT_LUMA,     false );
@@ -4169,6 +4212,7 @@ Void TEncSearch::xEstimateResidualQT( TComDataCU* pcCU, UInt uiQuadrant, UInt ui
     m_pcEntropyCoder->resetBits();
     
 #if LCEC_CBP_YUV_ROOT
+#if LCEC_CBP_YUV_ROOT_RDFIX == 0
     if (pcCU->getSlice()->getSymbolMode()==0 && uiTrMode == 0)
     {
       m_pcEntropyCoder->m_pcEntropyCoderIf->codeCbf( pcCU, uiAbsPartIdx, TEXT_ALL, 0 );
@@ -4182,6 +4226,7 @@ Void TEncSearch::xEstimateResidualQT( TComDataCU* pcCU, UInt uiQuadrant, UInt ui
       }
     }
     else
+#endif
 #endif
     {
       xEncodeResidualQT( pcCU, uiAbsPartIdx, uiDepth, true,  TEXT_LUMA );
@@ -4331,7 +4376,11 @@ Void TEncSearch::xEncodeResidualQT( TComDataCU* pcCU, UInt uiAbsPartIdx, const U
 #if LCEC_CBP_YUV_ROOT
       if(pcCU->getSlice()->getSymbolMode() == 0)
       {
+#if LCEC_CBP_YUV_ROOT_RDFIX
+        if( !bSubdivAndCbf && (eType == TEXT_LUMA || uiLog2TrSize-1 > pcCU->getSlice()->getSPS()->getQuadtreeTULog2MinSize()) )
+#else
         if( eType == TEXT_LUMA || uiLog2TrSize > pcCU->getSlice()->getSPS()->getQuadtreeTULog2MinSize() )
+#endif
           m_pcEntropyCoder->m_pcEntropyCoderIf->codeBlockCbf(pcCU, uiAbsPartIdx, eType, uiCurrTrMode + 1, uiQPartNumSubdiv, true);
       }
 #endif
