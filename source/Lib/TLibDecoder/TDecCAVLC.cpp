@@ -1126,6 +1126,12 @@ Void TDecCavlc::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartI
   UInt uiConvBit = g_aucConvertToBit[ pcCU->isIntra( uiAbsPartIdx ) ? uiWidth : Min(8,uiWidth)    ];
   pucScan        = g_auiFrameScanXY  [ uiConvBit + 1 ];
   
+#if QC_MDCS
+  UInt uiBlkPos;
+  UInt uiLog2BlkSize = g_aucConvertToBit[ pcCU->isIntra( uiAbsPartIdx ) ? uiWidth : Min(8,uiWidth)    ] + 2;
+  const UInt uiScanIdx = pcCU->getCoefScanIdx(uiAbsPartIdx, uiWidth, eTType==TEXT_LUMA, pcCU->isIntra(uiAbsPartIdx));
+#endif //QC_MDCS
+  
   UInt uiDecodeDCCoeff = 0;
   Int dcCoeff = 0;
   if (pcCU->isIntra(uiAbsPartIdx))
@@ -1168,7 +1174,12 @@ Void TDecCavlc::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartI
     
     for (uiScanning=0; uiScanning<4; uiScanning++)
     {
+#if QC_MDCS
+      uiBlkPos = g_auiSigLastScan[uiScanIdx][uiLog2BlkSize-1][uiScanning];  
+      piCoeff[ uiBlkPos ] =  scoeff[15-uiScanning];
+#else
       piCoeff[ pucScan[ uiScanning ] ] = scoeff[15-uiScanning];
+#endif //QC_MDCS
     }
   }
   else if ( uiSize == 4*4 )
@@ -1185,7 +1196,12 @@ Void TDecCavlc::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartI
     
     for (uiScanning=0; uiScanning<16; uiScanning++)
     {
+#if QC_MDCS
+      uiBlkPos = g_auiSigLastScan[uiScanIdx][uiLog2BlkSize-1][uiScanning];  
+      piCoeff[ uiBlkPos ] =  scoeff[15-uiScanning];
+#else
       piCoeff[ pucScan[ uiScanning ] ] = scoeff[15-uiScanning];
+#endif //QC_MDCS
     }
   }
   else if ( uiSize == 8*8 )
@@ -1198,7 +1214,12 @@ Void TDecCavlc::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartI
     
     for (uiScanning=0; uiScanning<64; uiScanning++)
     {
+#if QC_MDCS
+      uiBlkPos = g_auiSigLastScan[uiScanIdx][uiLog2BlkSize-1][uiScanning]; 
+      piCoeff[ uiBlkPos ] =  scoeff[63-uiScanning];
+#else
       piCoeff[ pucScan[ uiScanning ] ] = scoeff[63-uiScanning];
+#endif //QC_MDCS
     }
     
   }
@@ -1215,7 +1236,13 @@ Void TDecCavlc::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartI
       
       for (uiScanning=0; uiScanning<64; uiScanning++)
       {  
+#if QC_MDCS
+        uiBlkPos = g_auiSigLastScan[uiScanIdx][uiLog2BlkSize-1][uiScanning]; 
+        uiBlkPos = (uiBlkPos/8)* uiWidth + uiBlkPos%8;
+        piCoeff[ uiBlkPos ] =  scoeff[63-uiScanning];
+#else
         piCoeff[(pucScan[uiScanning]/8)*uiWidth + (pucScan[uiScanning]%8)] = scoeff[63-uiScanning];
+#endif //QC_MDCS
       }
       return;
     }
@@ -1232,7 +1259,12 @@ Void TDecCavlc::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartI
       
       for (uiScanning=0; uiScanning<64; uiScanning++)
       {
+#if QC_MDCS
+        uiBlkPos = g_auiSigLastScan[uiScanIdx][uiLog2BlkSize-1][uiScanning]; 
+        piCoeff[ uiBlkPos ] =  scoeff[63-uiScanning];
+#else
         piCoeff[ pucScan[ uiScanning ] ] = scoeff[63-uiScanning];
+#endif //QC_MDCS
       }
     }
   }

@@ -258,6 +258,9 @@ private:
   Int            bitCount_LCEC(Int k,Int pos,Int n,Int lpflag,Int levelMode,Int run,Int maxrun,Int vlc_adaptive,Int N);
 #endif
 #endif
+#if QC_MDCS
+UInt             getCurrLineNum(UInt uiScanIdx, UInt uiPosX, UInt uiPosY);
+#endif
   Void           xRateDistOptQuant_LCEC ( TComDataCU*                     pcCU,
                                          Long*                           plSrcCoeff,
                                          TCoeff*&                        piDstCoeff,

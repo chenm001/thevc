@@ -1777,14 +1777,21 @@ Void TComTrQuant::xRateDistOptQuant_LCEC(TComDataCU* pcCU, Long* pSrcCoeff, TCoe
 
         iShiftQBits = (1 <<( q_bits - 1));
 
-        const UInt* pucScan;
 
+#if QC_MDCS
+        UInt uiLog2BlkSize = g_aucConvertToBit[ pcCU->isIntra( uiAbsPartIdx ) ? uiWidth : Min(8,uiWidth)    ] + 2;
+        const UInt uiScanIdx = pcCU->getCoefScanIdx(uiAbsPartIdx, uiWidth, eTType==TEXT_LUMA, pcCU->isIntra(uiAbsPartIdx));
+#else
+        const UInt* pucScan;
         if( !pcCU->isIntra(uiAbsPartIdx )){
           pucScan = g_auiFrameScanXY[ g_aucConvertToBit[ Min(uiWidth, 8) ] + 1];
         }
         else{
           pucScan = g_auiFrameScanXY[ g_aucConvertToBit[ uiWidth ] + 1];
         }
+#endif //QC_MDCS
+
+
 
         OneOverNormFact = 1.0 / normFact;
 
@@ -1841,7 +1848,11 @@ Void TComTrQuant::xRateDistOptQuant_LCEC(TComDataCU* pcCU, Long* pSrcCoeff, TCoe
 
         for (iScanning=noCoeff-1; iScanning>=0; iScanning--) 
         {
+#if QC_MDCS
+          iPos = g_auiSigLastScan[uiScanIdx][uiLog2BlkSize-1][iScanning];
+#else
           iPos = pucScan[iScanning];
+#endif //QC_MDCS
           j = iPos >> uiShift_local;
           i = iPos &  uiRes_local;
           iPos = (j << uiWidth_local) + i;
@@ -2034,7 +2045,11 @@ Void TComTrQuant::xRateDistOptQuant_LCEC(TComDataCU* pcCU, Long* pSrcCoeff, TCoe
         {
           for (iScanning = noCoeff - 1; iScanning >= 0; iScanning--) 
           {
+#if QC_MDCS
+            iPos = g_auiSigLastScan[uiScanIdx][uiLog2BlkSize-1][iScanning];
+#else
             iPos = pucScan[iScanning];
+#endif //QC_MDCS
             j = iPos >> 3;
             i = iPos & 0x7;
             iPos = uiWidth * j + i;
@@ -2046,7 +2061,11 @@ Void TComTrQuant::xRateDistOptQuant_LCEC(TComDataCU* pcCU, Long* pSrcCoeff, TCoe
         {
           for (iScanning = noCoeff - 1; iScanning >= 0; iScanning--) 
           {
+#if QC_MDCS
+            iPos = g_auiSigLastScan[uiScanIdx][uiLog2BlkSize-1][iScanning];
+#else
             iPos = pucScan[iScanning];
+#endif //QC_MDCS
             pDstCoeff[iPos] = sQuantCoeff[iScanning];
             uiAbsSum += abs(sQuantCoeff[iScanning]);
           }
@@ -2080,6 +2099,10 @@ Void TComTrQuant::xRateDistOptQuant_LCEC             ( TComDataCU*              
   Bool bExt8x8Flag = false;
   uiLog2BlkSize = g_aucConvertToBit[ uiWidth ] + 2; 
   uiConvBit = g_aucConvertToBit[ uiWidth ];
+  
+#if QC_MDCS
+  const UInt uiScanIdx = pcCU->getCoefScanIdx(uiAbsPartIdx, uiWidth, eTType==TEXT_LUMA, pcCU->isIntra(uiAbsPartIdx));
+#endif //QC_MDCS
   
   if (uiWidth == 4)
   {
@@ -2157,7 +2180,11 @@ Void TComTrQuant::xRateDistOptQuant_LCEC             ( TComDataCU*              
   
   for (iScanning=(uiWidth<8 ? 15 : 63); iScanning>=0; iScanning--) 
   {            
+#if QC_MDCS
+    uiBlkPos = g_auiSigLastScan[uiScanIdx][uiLog2BlkSize-1][iScanning];
+#else
     uiBlkPos = pucScan[iScanning];
+#endif //QC_MDCS
     uiPosY   = uiBlkPos >> uiLog2BlkSize;
     uiPosX   = uiBlkPos - ( uiPosY << uiLog2BlkSize );
     
@@ -3978,6 +4005,29 @@ Void TComTrQuant::xIT( Long* plCoef, Pel* pResidual, UInt uiStride, Int iSize )
   }
 }
 
+#if QC_MDCS
+UInt TComTrQuant::getCurrLineNum(UInt uiScanIdx, UInt uiPosX, UInt uiPosY)
+{
+      UInt uiLineNum = 0;
+
+      switch (uiScanIdx)
+      {
+        case SCAN_ZIGZAG:
+          uiLineNum = uiPosY + uiPosX;
+          break;
+        case SCAN_HOR:
+          uiLineNum = uiPosY;
+          break;
+        case SCAN_VER:
+          uiLineNum = uiPosX;
+          break;
+      }
+
+      return uiLineNum;
+}
+#endif
+
+
 // RDOQ
 Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*                     pcCU,
                                                      Long*                           plSrcCoeff,
@@ -4049,6 +4099,9 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
   const UInt uiLog2BlkSize       = g_aucConvertToBit[ uiWidth ] + 2;
   const UInt uiMaxNumCoeff       = 1 << ( uiLog2BlkSize << 1 );
   const UInt uiNum4x4Blk         = max<UInt>( 1, uiMaxNumCoeff >> 4 );
+#if QC_MDCS
+  const UInt uiScanIdx = pcCU->getCoefScanIdx(uiAbsPartIdx, uiWidth, eTType==TEXT_LUMA, pcCU->isIntra(uiAbsPartIdx));
+#endif //QC_MDCS
   
   Int  piCoeff      [ MAX_CU_SIZE * MAX_CU_SIZE ];
   Long plLevelDouble[ MAX_CU_SIZE * MAX_CU_SIZE ];
@@ -4093,7 +4146,11 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
     
     if ( uiMaxAbsLevel > 0 )
     {
+#if QC_MDCS
+      UInt uiLineNum = getCurrLineNum(uiScanIdx, uiPosX, uiPosY);
+#else
       UInt uiLineNum = uiPosY + uiPosX;
+#endif //QC_MDCS
       
       if( uiLineNum > uiMaxLineNum )
       {
@@ -4226,15 +4283,27 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
   
   for( UInt uiScanPos = 0; uiScanPos < uiMaxNumCoeff; uiScanPos++ )
   {
+#if QC_MDCS
+	  UInt uiBlkPos = g_auiSigLastScan[uiScanIdx][uiLog2BlkSize-1][uiScanPos];  
+#else
     UInt   uiBlkPos     = g_auiFrameScanXY[ uiLog2BlkSize-1 ][ uiScanPos ];
+#endif //QC_MDCS
     UInt   uiPosY       = uiBlkPos >> uiLog2BlkSize;
     UInt   uiPosX       = uiBlkPos - ( uiPosY << uiLog2BlkSize );
     UInt   uiCtxBase    = uiNum4x4Blk > 0 ? puiBaseCtx[ ( uiPosX >> 2 ) + ( uiPosY >> 2 ) * ( uiWidth >> 2 ) ] : 0;
     
+#if QC_MDCS
+    UInt uiLineNum = getCurrLineNum(uiScanIdx, uiPosX, uiPosY);
+    if ( uiLineNum > uiMaxLineNum )
+    {
+      break;
+    }
+#else 
     if( uiPosY + uiPosX > uiMaxLineNum )
     {
       break;
     }
+#endif //QC_MDCS
     
     if      ( uiWidth == 4 ) dTemp = estErr4x4[ iQpRem ][ uiPosX ][ uiPosY ] / dNormFactor;
     else if ( uiWidth == 8 ) dTemp = estErr8x8[ iQpRem ][ uiPosX ][ uiPosY ] / dNormFactor;
@@ -4267,7 +4336,11 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
   {
     for( UInt uiScanPos = 0; uiScanPos < uiMaxNumCoeff; uiScanPos++ )
     {
+#if QC_MDCS
+	  UInt uiBlkPos = g_auiSigLastScan[uiScanIdx][uiLog2BlkSize-1][uiScanPos];  
+#else
       UInt    uiBlkPos  = g_auiFrameScanXY[ uiLog2BlkSize-1 ][ uiScanPos ];
+#endif //QC_MDCS
       
       if( uiScanPos < uiBestLastIdxP1 )
       {
