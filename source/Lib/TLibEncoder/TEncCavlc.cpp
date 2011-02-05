@@ -1425,6 +1425,12 @@ Void TEncCavlc::codeCoeffNxN    ( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPa
   UInt uiConvBit = g_aucConvertToBit[ pcCU->isIntra( uiAbsPartIdx ) ? uiWidth : Min(8,uiWidth)    ];
   pucScan        = g_auiFrameScanXY [ uiConvBit + 1 ];
   
+#if QC_MDCS
+  UInt uiBlkPos;
+  UInt uiLog2BlkSize = g_aucConvertToBit[ pcCU->isIntra( uiAbsPartIdx ) ? uiWidth : Min(8,uiWidth)    ] + 2;
+  const UInt uiScanIdx = pcCU->getCoefScanIdx(uiAbsPartIdx, uiWidth, eTType==TEXT_LUMA, pcCU->isIntra(uiAbsPartIdx));
+#endif //QC_MDCS
+  
   TCoeff scoeff[64];
   Int iBlockType;
   UInt uiCodeDCCoef = 0;
@@ -1454,7 +1460,12 @@ Void TEncCavlc::codeCoeffNxN    ( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPa
     ::memset( scoeff, 0, 16*sizeof(TCoeff) );
     for (uiScanning=0; uiScanning<4; uiScanning++)
     {
+#if QC_MDCS
+      uiBlkPos = g_auiSigLastScan[uiScanIdx][uiLog2BlkSize-1][uiScanning]; 
+      scoeff[15-uiScanning] = piCoeff[ uiBlkPos ];
+#else
       scoeff[15-uiScanning] = piCoeff[ pucScan[ uiScanning ] ];
+#endif //QC_MDCS
     }
 #if QC_MOD_LCEC
     if (eTType==TEXT_CHROMA_U || eTType==TEXT_CHROMA_V)
@@ -1471,7 +1482,12 @@ Void TEncCavlc::codeCoeffNxN    ( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPa
   {
     for (uiScanning=0; uiScanning<16; uiScanning++)
     {
+#if QC_MDCS
+      uiBlkPos = g_auiSigLastScan[uiScanIdx][uiLog2BlkSize-1][uiScanning]; 
+      scoeff[15-uiScanning] = piCoeff[ uiBlkPos ];
+#else
       scoeff[15-uiScanning] = piCoeff[ pucScan[ uiScanning ] ];
+#endif //QC_MDCS
     }
 #if QC_MOD_LCEC
     if (eTType==TEXT_CHROMA_U || eTType==TEXT_CHROMA_V)
@@ -1488,7 +1504,12 @@ Void TEncCavlc::codeCoeffNxN    ( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPa
   {
     for (uiScanning=0; uiScanning<64; uiScanning++)
     {
+#if QC_MDCS
+      uiBlkPos = g_auiSigLastScan[uiScanIdx][uiLog2BlkSize-1][uiScanning]; 
+      scoeff[63-uiScanning] = piCoeff[ uiBlkPos ];
+#else
       scoeff[63-uiScanning] = piCoeff[ pucScan[ uiScanning ] ];
+#endif //QC_MDCS
     }
     if (eTType==TEXT_CHROMA_U || eTType==TEXT_CHROMA_V)
       iBlockType = eTType-2;
@@ -1503,7 +1524,13 @@ Void TEncCavlc::codeCoeffNxN    ( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPa
     {
       for (uiScanning=0; uiScanning<64; uiScanning++)
       {
+#if QC_MDCS
+      uiBlkPos = g_auiSigLastScan[uiScanIdx][uiLog2BlkSize-1][uiScanning]; 
+      uiBlkPos = (uiBlkPos/8) * uiWidth + uiBlkPos%8;
+      scoeff[63-uiScanning] = piCoeff[ uiBlkPos ];
+#else
         scoeff[63-uiScanning] = piCoeff[(pucScan[uiScanning]/8)*uiWidth + (pucScan[uiScanning]%8)];      
+#endif //QC_MDCS
       }
       if (eTType==TEXT_CHROMA_U || eTType==TEXT_CHROMA_V) 
         iBlockType = eTType-2;
@@ -1517,7 +1544,12 @@ Void TEncCavlc::codeCoeffNxN    ( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPa
     {
       for (uiScanning=0; uiScanning<64; uiScanning++)
       {
+#if QC_MDCS
+      uiBlkPos = g_auiSigLastScan[uiScanIdx][uiLog2BlkSize-1][uiScanning]; 
+      scoeff[63-uiScanning] = piCoeff[ uiBlkPos ];
+#else
         scoeff[63-uiScanning] = piCoeff[ pucScan[ uiScanning ] ];
+#endif //QC_MDCS
       }
       
       if (eTType==TEXT_CHROMA_U || eTType==TEXT_CHROMA_V) 

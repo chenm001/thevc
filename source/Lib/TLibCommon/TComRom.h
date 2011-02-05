@@ -57,6 +57,9 @@
 Void         initROM();
 Void         destroyROM();
 Void         initFrameScanXY( UInt* pBuff, UInt* pBuffX, UInt* pBuffY, Int iWidth, Int iHeight );
+#if QC_MDCS
+Void         initSigLastScan(UInt* pBuffZ, UInt* pBuffH, UInt* pBuffV, Int iWidth, Int iHeight, Int iDepth);
+#endif //QC_MDCS
 
 // ====================================================================================================================
 // Data structure related table & variable
@@ -116,6 +119,9 @@ extern       UInt*  g_auiFrameScanXY[ MAX_CU_DEPTH  ];    // raster index     fr
 extern       UInt*  g_auiFrameScanX [ MAX_CU_DEPTH  ];    // raster index (x) from scanning index
 extern       UInt*  g_auiFrameScanY [ MAX_CU_DEPTH  ];    // raster index (y) from scanning index
 extern       UInt   g_auiAntiScan8[64];                   // 2D context mapping for coefficients
+#if QC_MDCS
+extern       UInt*  g_auiSigLastScan[3][ MAX_CU_DEPTH ];  // raster index from scanning index (zigzag, hor, ver)
+#endif //QC_MDCS
 
 // ====================================================================================================================
 // CAVLC table

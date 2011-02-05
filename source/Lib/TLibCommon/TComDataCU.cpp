@@ -2945,3 +2945,71 @@ Void TComDataCU::compressMV()
   m_acCUMvField[1].compress(m_pePredMode);
 }
 #endif 
+
+#if QC_MDCS
+UInt TComDataCU::getCoefScanIdx(UInt uiAbsPartIdx, UInt uiWidth, Bool bIsLuma, Bool bIsIntra)
+{
+  static const UChar aucIntraLumaDirToScanIdx[MAX_CU_DEPTH][34] =
+  {
+    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, },
+    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, },
+    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, },
+    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, },
+    {1, 2, 0, 0, 1, 1, 0, 2, 2, 0, 0, 1, 1, 0, 0, 2, 2, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 2, 2, 2, 2, 0, 0, },
+    {1, 2, 0, 0, 1, 1, 0, 2, 2, 0, 0, 1, 1, 0, 0, 2, 2, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 2, 2, 2, 2, 0, 0, },
+    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, },
+  };
+  static const UChar aucIntraChromaDirToScanIdx[MAX_CU_DEPTH][5] = 
+  {
+    {0, 0, 0, 0, 0, },
+    {0, 0, 0, 0, 0, },
+    {0, 0, 0, 0, 0, },
+    {0, 0, 0, 0, 0, },
+    {0, 0, 0, 0, 0, },
+    {1, 2, 0, 0, 0, },
+    {1, 2, 0, 0, 0, },
+  };
+
+  UInt uiCTXIdx;
+  UInt uiScanIdx;
+  UInt uiDirMode;
+
+  if ( !bIsIntra ) 
+  {
+    uiScanIdx = SCAN_ZIGZAG;
+    return uiScanIdx;
+  }
+
+  switch(uiWidth)
+  {
+    case  2: uiCTXIdx = 6; break;
+    case  4: uiCTXIdx = 5; break;
+    case  8: uiCTXIdx = 4; break;
+    case 16: uiCTXIdx = 3; break;
+    case 32: uiCTXIdx = 2; break;
+    case 64: uiCTXIdx = 1; break;
+    default: uiCTXIdx = 0; break;
+  }
+
+  if ( bIsLuma )
+  {
+    uiDirMode = getLumaIntraDir(uiAbsPartIdx);
+    uiScanIdx = aucIntraLumaDirToScanIdx[uiCTXIdx][uiDirMode];
+  }
+  else
+  {
+       uiDirMode = getChromaIntraDir(uiAbsPartIdx);
+       if (uiDirMode < 4)
+       {
+         uiScanIdx = (aucIntraChromaDirToScanIdx[uiCTXIdx][uiDirMode]);
+       }
+       else
+       {
+         uiDirMode = getLumaIntraDir(uiAbsPartIdx);
+         uiScanIdx = aucIntraLumaDirToScanIdx[max<UInt>(uiCTXIdx-1,0)][uiDirMode];
+       }
+  }
+
+  return uiScanIdx;
+}
+#endif //QC_MDCS

@@ -96,7 +96,7 @@
 #define LCEC_INTRA_MODE                   1           // modified luma intra mode coding
 #define QC_MOD_LCEC_RDOQ                  1
 #define QC_MDIS                           1           // JCTVC-D282: enable mode dependent intra smoothing
-
+#define QC_MDCS                           1           // JCTVC-D393: mode dependent coefficients coding 
 #define ENABLE_FORCECOEFF0  0
 
 /* Rounding control */
@@ -429,6 +429,16 @@ enum InterpFilterType
 # endif
   ,IPF_LAST
 };
+
+#if QC_MDCS
+/// coefficient scanning type used in ACS
+enum COEFF_SCAN_TYPE
+{
+  SCAN_ZIGZAG = 0,			///< typical zigzag scan
+  SCAN_HOR,							///< horizontal first scan
+  SCAN_VER							///< vertical first scan
+};
+#endif //QC_MDCS
 
 #endif
 

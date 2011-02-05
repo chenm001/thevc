@@ -64,6 +64,13 @@ Void initROM()
     g_auiFrameScanX [ i ] = new UInt[ c*c ];
     g_auiFrameScanY [ i ] = new UInt[ c*c ];
     initFrameScanXY( g_auiFrameScanXY[i], g_auiFrameScanX[i], g_auiFrameScanY[i], c, c );
+#if QC_MDCS
+    g_auiSigLastScan[0][i] = new UInt[ c*c ];
+    g_auiSigLastScan[1][i] = new UInt[ c*c ];
+    g_auiSigLastScan[2][i] = new UInt[ c*c ];
+    initSigLastScan( g_auiSigLastScan[0][i], g_auiSigLastScan[1][i], g_auiSigLastScan[2][i], c, c, i);
+#endif //QC_MDCS
+
     c <<= 1;
   }  
 }
@@ -77,6 +84,11 @@ Void destroyROM()
     delete[] g_auiFrameScanXY[i];
     delete[] g_auiFrameScanX [i];
     delete[] g_auiFrameScanY [i];
+#if QC_MDCS
+    delete[] g_auiSigLastScan[0][i];
+    delete[] g_auiSigLastScan[1][i];
+    delete[] g_auiSigLastScan[2][i];
+#endif //QC_MDCS
   }
 }
 
@@ -2118,6 +2130,9 @@ UInt64 g_nSymbolCounter = 0;
 UInt* g_auiFrameScanXY[ MAX_CU_DEPTH  ];
 UInt* g_auiFrameScanX [ MAX_CU_DEPTH  ];
 UInt* g_auiFrameScanY [ MAX_CU_DEPTH  ];
+#if QC_MDCS
+UInt* g_auiSigLastScan[3][ MAX_CU_DEPTH ];
+#endif //QC_MDCS
 
 // scanning order to 8x8 context model mapping table
 UInt  g_auiAntiScan8  [64];
@@ -2175,6 +2190,35 @@ Void initFrameScanXY( UInt* pBuff, UInt* pBuffX, UInt* pBuffY, Int iWidth, Int i
     }
   }
 }
+
+#if QC_MDCS
+Void initSigLastScan(UInt* pBuffZ, UInt* pBuffH, UInt* pBuffV, Int iWidth, Int iHeight, Int iDepth)
+{
+
+    memcpy(pBuffZ, g_auiFrameScanXY[iDepth], sizeof(UInt)*iWidth*iHeight);
+
+    UInt uiCnt = 0;
+    for(Int iY=0; iY < iHeight; iY++)
+    {
+      for(Int iX=0; iX < iWidth; iX++)
+      {
+        pBuffH[uiCnt] = iY*iWidth + iX;
+        uiCnt ++;
+      }
+    }
+
+    uiCnt = 0;
+    for(Int iX=0; iX < iWidth; iX++)
+    {
+      for(Int iY=0; iY < iHeight; iY++)
+      {
+        pBuffV[uiCnt] = iY*iWidth + iX;
+        uiCnt ++;
+      }
+    }
+    
+}
+#endif //QC_MDCS
 
 #if CHROMA_CODEWORD_SWITCH 
 const UChar ChromaMapping[2][5] = 
