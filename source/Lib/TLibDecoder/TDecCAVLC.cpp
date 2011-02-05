@@ -242,7 +242,9 @@ Void TDecCavlc::resetEntropy          (TComSlice* pcSlice)
   ::memcpy(m_uiIntraModeTableD17, g_auiIntraModeTableD17, 16*sizeof(UInt));
   ::memcpy(m_uiIntraModeTableD34, g_auiIntraModeTableD34, 33*sizeof(UInt));
 #endif
-  
+#if QC_LCEC_INTER_MODE 
+  ::memcpy(m_uiSplitTableD, g_auiInterModeTableD, 4*7*sizeof(UInt));
+#endif 
   m_uiMITableVlcIdx = 0;
 }
 
@@ -287,6 +289,9 @@ Void TDecCavlc::parseAlfCtrlFlag( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDe
 
 Void TDecCavlc::parseSkipFlag( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
 {
+#if QC_LCEC_INTER_MODE
+    return;
+#else
 #if HHI_MRG && !SAMSUNG_MRG_SKIP_DIRECT
   if ( pcCU->getSlice()->getSPS()->getUseMRG() )
   {
@@ -334,6 +339,7 @@ Void TDecCavlc::parseSkipFlag( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth
         pcCU->getCUMvField( REF_PIC_LIST_1 )->setAllRefIdx( 0, SIZE_2Nx2N, uiAbsPartIdx, 0, uiDepth );
     }
   }
+#endif
 }
 
 Void TDecCavlc::parseMVPIdx( TComDataCU* pcCU, Int& riMVPIdx, Int iMVPNum, UInt uiAbsPartIdx, UInt uiDepth, RefPicList eRefList )
@@ -342,7 +348,122 @@ Void TDecCavlc::parseMVPIdx( TComDataCU* pcCU, Int& riMVPIdx, Int iMVPNum, UInt 
   xReadUnaryMaxSymbol(uiSymbol, iMVPNum-1);
   riMVPIdx = uiSymbol;
 }
+#if QC_LCEC_INTER_MODE
+Void TDecCavlc::parseSplitFlag     ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
+{
+  if (pcCU->getSlice()->isIntra())
+  {
+    if( uiDepth == g_uiMaxCUDepth - g_uiAddCUDepth )
+    {
+      pcCU->setDepthSubParts( uiDepth, uiAbsPartIdx );
+      return ;
+    }
 
+    UInt uiSymbol;
+    xReadFlag( uiSymbol );
+    pcCU->setDepthSubParts( uiDepth + uiSymbol, uiAbsPartIdx );
+
+    return ;
+  }
+  UInt tmp=0;
+  UInt cx=0;
+  UInt uiMode ;
+  {
+	  UInt iMaxLen= (uiDepth == g_uiMaxCUDepth - g_uiAddCUDepth)?5:6;
+	  while (tmp==0 && cx<iMaxLen)
+	  {
+		  xReadFlag( tmp );
+		  cx++;
+	  };
+	  if(tmp!=0)
+	     cx--;
+	  UInt x = m_uiSplitTableD[uiDepth][cx];
+      /* Adapt table */
+      uiMode = x;
+      if (cx>0)
+      {    
+        UInt cy = Max(0,cx-1);
+        UInt y = m_uiSplitTableD[uiDepth][cy];
+		    m_uiSplitTableD[uiDepth][cy] = x;
+		    m_uiSplitTableD[uiDepth][cx] = y;
+  	  }
+  }
+  if (uiMode==0)
+	{
+		pcCU->setDepthSubParts( uiDepth + 1, uiAbsPartIdx );
+	}
+	else
+	{
+    pcCU->setPartSizeSubParts( SIZE_2Nx2N, uiAbsPartIdx, uiDepth );
+		pcCU->setMergeFlagSubParts(false, uiAbsPartIdx,0, uiDepth );
+		pcCU->setDepthSubParts( uiDepth    , uiAbsPartIdx );
+		if (uiMode ==1)
+		{
+			TComMv cZeroMv(0,0);
+  		pcCU->setPredModeSubParts( MODE_SKIP,  uiAbsPartIdx, uiDepth );
+			pcCU->setPartSizeSubParts( SIZE_2Nx2N, uiAbsPartIdx, uiDepth );
+			pcCU->setSizeSubParts( g_uiMaxCUWidth>>uiDepth, g_uiMaxCUHeight>>uiDepth, uiAbsPartIdx, uiDepth );
+			pcCU->getCUMvField( REF_PIC_LIST_0 )->setAllMvd    ( cZeroMv, SIZE_2Nx2N, uiAbsPartIdx, 0, uiDepth );
+			pcCU->getCUMvField( REF_PIC_LIST_1 )->setAllMvd    ( cZeroMv, SIZE_2Nx2N, uiAbsPartIdx, 0, uiDepth );
+			pcCU->setTrIdxSubParts( 0, uiAbsPartIdx, uiDepth );
+			pcCU->setCbfSubParts  ( 0, 0, 0, uiAbsPartIdx, uiDepth );
+
+			if ( pcCU->getSlice()->isInterP() )
+			{
+			  pcCU->setInterDirSubParts( 1, uiAbsPartIdx, 0, uiDepth );
+
+			  if ( pcCU->getSlice()->getNumRefIdx( REF_PIC_LIST_0 ) > 0 )
+				pcCU->getCUMvField( REF_PIC_LIST_0 )->setAllRefIdx(  0, SIZE_2Nx2N, uiAbsPartIdx, 0, uiDepth );
+			  if ( pcCU->getSlice()->getNumRefIdx( REF_PIC_LIST_1 ) > 0 )
+				pcCU->getCUMvField( REF_PIC_LIST_1 )->setAllRefIdx( NOT_VALID, SIZE_2Nx2N, uiAbsPartIdx, 0, uiDepth );
+			}
+			else
+			{
+			  pcCU->setInterDirSubParts( 3, uiAbsPartIdx, 0, uiDepth );
+
+			  if ( pcCU->getSlice()->getNumRefIdx( REF_PIC_LIST_0 ) > 0 )
+				pcCU->getCUMvField( REF_PIC_LIST_0 )->setAllRefIdx(  0, SIZE_2Nx2N, uiAbsPartIdx, 0, uiDepth );
+			  if ( pcCU->getSlice()->getNumRefIdx( REF_PIC_LIST_1 ) > 0 )
+				pcCU->getCUMvField( REF_PIC_LIST_1 )->setAllRefIdx( 0, SIZE_2Nx2N, uiAbsPartIdx, 0, uiDepth );
+			}
+		}
+		else if (uiMode==2)
+		{
+			pcCU->setPredModeSubParts( MODE_INTER, uiAbsPartIdx, uiDepth );
+      pcCU->setPartSizeSubParts( SIZE_2Nx2N, uiAbsPartIdx, uiDepth );
+		  pcCU->setMergeFlagSubParts(true, uiAbsPartIdx,0, uiDepth );
+			pcCU->setSizeSubParts( g_uiMaxCUWidth>>uiDepth, g_uiMaxCUHeight>>uiDepth, uiAbsPartIdx, uiDepth );
+		}
+    else if (uiMode==6)
+    {
+#if MTK_DISABLE_INTRA_NxN_SPLIT && HHI_DISABLE_INTER_NxN_SPLIT 
+      if (uiDepth != g_uiMaxCUDepth - g_uiAddCUDepth)
+      {
+        pcCU->setPredModeSubParts( MODE_INTRA, uiAbsPartIdx, uiDepth );
+        pcCU->setPartSizeSubParts( SIZE_2Nx2N, uiAbsPartIdx, uiDepth );
+        pcCU->setSizeSubParts( g_uiMaxCUWidth>>uiDepth, g_uiMaxCUHeight>>uiDepth, uiAbsPartIdx, uiDepth );
+        UInt uiTrLevel = 0;
+        UInt uiWidthInBit  = g_aucConvertToBit[pcCU->getWidth(uiAbsPartIdx)]+2;
+        UInt uiTrSizeInBit = g_aucConvertToBit[pcCU->getSlice()->getSPS()->getMaxTrSize()]+2;
+        uiTrLevel          = uiWidthInBit >= uiTrSizeInBit ? uiWidthInBit - uiTrSizeInBit : 0;
+	      pcCU->setTrIdxSubParts( uiTrLevel, uiAbsPartIdx, uiDepth );       
+      }
+      else
+#endif
+      {
+        pcCU->setPredModeSubParts( MODE_INTER, uiAbsPartIdx, uiDepth );
+        pcCU->setPartSizeSubParts( SIZE_NxN, uiAbsPartIdx, uiDepth );
+      }
+    }
+		else
+		{
+			pcCU->setPredModeSubParts( MODE_INTER, uiAbsPartIdx, uiDepth );
+			pcCU->setPartSizeSubParts( PartSize(uiMode-3), uiAbsPartIdx, uiDepth );
+			pcCU->setSizeSubParts( g_uiMaxCUWidth>>uiDepth, g_uiMaxCUHeight>>uiDepth, uiAbsPartIdx, uiDepth );
+		}
+	}
+}
+#else
 Void TDecCavlc::parseSplitFlag( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
 {
   if( uiDepth == g_uiMaxCUDepth - g_uiAddCUDepth )
@@ -357,7 +478,95 @@ Void TDecCavlc::parseSplitFlag( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDept
   
   return ;
 }
+#endif
+#if QC_LCEC_INTER_MODE
+Void TDecCavlc::parsePartSize( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
+{
+  if ( pcCU->isSkip( uiAbsPartIdx ))
+  {
+    return ;
+  }
+  UInt uiMode=0;
+  if ( pcCU->getSlice()->isIntra()&& pcCU->isIntra( uiAbsPartIdx ) )
+  {
+#if MTK_DISABLE_INTRA_NxN_SPLIT
+    uiMode = 1;
+    if ( uiDepth == (g_uiMaxCUDepth - g_uiAddCUDepth ))
+#endif
+    {
+      UInt uiSymbol;
+      xReadFlag( uiSymbol );
+      uiMode = uiSymbol ? 1 : 2;
+    }
+  }
+#if MTK_DISABLE_INTRA_NxN_SPLIT && HHI_DISABLE_INTER_NxN_SPLIT 
+  else if (uiDepth != (g_uiMaxCUDepth - g_uiAddCUDepth ) || pcCU->getPartitionSize(uiAbsPartIdx ) != SIZE_NxN)
+#else
+  else if (pcCU->getPartitionSize(uiAbsPartIdx ) != SIZE_NxN)
+#endif
+  { 
+     return;
+  }
+  else
+  {
+    UInt uiSymbol;
+	  xReadFlag( uiSymbol );
+    if(uiSymbol)
+    {
+      uiMode = 1;
+    }
+    else
+    {
+#if (MTK_DISABLE_INTRA_NxN_SPLIT && !HHI_DISABLE_INTER_NxN_SPLIT) || (!MTK_DISABLE_INTRA_NxN_SPLIT && HHI_DISABLE_INTER_NxN_SPLIT )
+      if ( uiDepth != (g_uiMaxCUDepth - g_uiAddCUDepth ))
+      {
+#if MTK_DISABLE_INTRA_NxN_SPLIT && !HHI_DISABLE_INTER_NxN_SPLIT 
+        uiMode = 0;
+#elif !MTK_DISABLE_INTRA_NxN_SPLIT && HHI_DISABLE_INTER_NxN_SPLIT 
+        uiMode = 2;
+#endif
+      }
+      else
+#endif
+      {
+        xReadFlag( uiSymbol );
+        uiMode = uiSymbol ? 2 : 0;
+      }
+    }
+  }
+  PartSize ePartSize;
+  PredMode eMode;
+  if (uiMode > 0)
+  {
+	  eMode = MODE_INTRA;
+	  ePartSize = (uiMode==1) ? SIZE_2Nx2N:SIZE_NxN;
+  }
+  else
+  {
+	  eMode = MODE_INTER;
+	  ePartSize = SIZE_NxN;
+  }
+  pcCU->setPredModeSubParts( eMode    , uiAbsPartIdx, uiDepth );
+  pcCU->setPartSizeSubParts( ePartSize, uiAbsPartIdx, uiDepth );
+  pcCU->setSizeSubParts( g_uiMaxCUWidth>>uiDepth, g_uiMaxCUHeight>>uiDepth, uiAbsPartIdx, uiDepth );
 
+  if( pcCU->getPredictionMode(uiAbsPartIdx) == MODE_INTRA )
+  {
+	  UInt uiTrLevel = 0;
+    UInt uiWidthInBit  = g_aucConvertToBit[pcCU->getWidth(uiAbsPartIdx)] + 2;
+    UInt uiTrSizeInBit = g_aucConvertToBit[pcCU->getSlice()->getSPS()->getMaxTrSize()] + 2;
+    uiTrLevel          = uiWidthInBit >= uiTrSizeInBit ? uiWidthInBit - uiTrSizeInBit : 0;
+	  if( pcCU->getPartitionSize( uiAbsPartIdx ) == SIZE_NxN )
+	  {
+	    pcCU->setTrIdxSubParts( 1 + uiTrLevel, uiAbsPartIdx, uiDepth );
+	  }
+	  else
+	  {
+	    pcCU->setTrIdxSubParts( uiTrLevel, uiAbsPartIdx, uiDepth );
+	  }
+  }
+}
+#else
 Void TDecCavlc::parsePartSize( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
 {
   if ( pcCU->isSkip( uiAbsPartIdx ) )
@@ -455,7 +664,7 @@ Void TDecCavlc::parsePartSize( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth
     }
   }
 }
-
+#endif
 Void TDecCavlc::parsePredMode( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
 {
   if( pcCU->getSlice()->isIntra() )
@@ -463,7 +672,7 @@ Void TDecCavlc::parsePredMode( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth
     pcCU->setPredModeSubParts( MODE_INTRA, uiAbsPartIdx, uiDepth );
     return ;
   }
-  
+#if !QC_LCEC_INTER_MODE  
   UInt uiSymbol;
   Int  iPredMode = MODE_INTER;
  
@@ -480,6 +689,7 @@ Void TDecCavlc::parsePredMode( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth
   }
   
   pcCU->setPredModeSubParts( (PredMode)iPredMode, uiAbsPartIdx, uiDepth );
+#endif
 }
 
 #if LCEC_INTRA_MODE
@@ -1106,6 +1316,10 @@ Void TDecCavlc::parseAlfSvlc (Int&  riVal)
 #if HHI_MRG
 Void TDecCavlc::parseMergeFlag ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth, UInt uiPUIdx )
 {
+#if QC_LCEC_INTER_MODE
+  if (pcCU->getPartitionSize(uiAbsPartIdx) == SIZE_2Nx2N )
+     return;
+#endif
   UInt uiSymbol;
   xReadFlag( uiSymbol );
   pcCU->setMergeFlagSubParts( uiSymbol ? true : false, uiAbsPartIdx, uiPUIdx, uiDepth );

@@ -129,7 +129,10 @@ protected:
   UInt          m_uiMI2TableD[15];
   
   UInt          m_uiMITableVlcIdx;
-  
+#if QC_LCEC_INTER_MODE
+  UInt          m_uiSplitTableE[4][7];
+  UInt          m_uiSplitTableD[4][7];
+#endif
   Void  xCheckCoeff( TCoeff* pcCoef, UInt uiSize, UInt uiDepth, UInt& uiNumofCoeff, UInt& uiPart );
   
 #if LCEC_STAT
@@ -206,7 +209,9 @@ public:
   Void codeAlfFlagNum    ( UInt uiCode, UInt minValue );
   Void codeAlfCtrlFlag   ( UInt uiSymbol );
 #endif
-  
+#if QC_LCEC_INTER_MODE
+  Void codeInterModeFlag( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth, UInt uiEncMode );
+#endif  
   Void codeSplitFlag     ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
   
   Void codePartSize      ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
