@@ -257,6 +257,17 @@ Void TDecTop::decode (Bool bEos, TComBitstream* pcBitstream, UInt& ruiPOC, TComL
   // HierP + GPB case
   if ( m_cSPS.getUseLDC() && pcSlice->isInterB() )
   {
+#if DOCOMO_COMB_LIST
+    if(pcSlice->getNumRefIdx(REF_PIC_LIST_C) > 0 && (pcSlice->getNumRefIdx(REF_PIC_LIST_0) > pcSlice->getNumRefIdx(REF_PIC_LIST_1)))
+    {
+      for (Int iRefIdx = 0; iRefIdx < pcSlice->getNumRefIdx(REF_PIC_LIST_1); iRefIdx++)
+      {
+        pcSlice->setRefPic(pcSlice->getRefPic(REF_PIC_LIST_0, iRefIdx), REF_PIC_LIST_1, iRefIdx);
+      }
+    }
+    else
+    {
+#endif
     Int iNumRefIdx = pcSlice->getNumRefIdx(REF_PIC_LIST_0);
     pcSlice->setNumRefIdx( REF_PIC_LIST_1, iNumRefIdx );
     
@@ -264,6 +275,9 @@ Void TDecTop::decode (Bool bEos, TComBitstream* pcBitstream, UInt& ruiPOC, TComL
     {
       pcSlice->setRefPic(pcSlice->getRefPic(REF_PIC_LIST_0, iRefIdx), REF_PIC_LIST_1, iRefIdx);
     }
+#if DOCOMO_COMB_LIST
+    }
+#endif
   }
   
   // For generalized B
@@ -282,6 +296,12 @@ Void TDecTop::decode (Bool bEos, TComBitstream* pcBitstream, UInt& ruiPOC, TComL
   //---------------
   pcSlice->setRefPOCList();
   
+#if DOCOMO_COMB_LIST 
+  if(!pcSlice->getRefPicListCombinationFlag())
+  {
+    pcSlice->generateCombinedList();
+  }
+#endif
 #if MS_NO_BACK_PRED_IN_B0
   pcSlice->setNoBackPredFlag( false );
   if ( pcSlice->getSliceType() == B_SLICE )

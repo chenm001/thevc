@@ -147,7 +147,7 @@
 
 #define DCM_SIMPLIFIED_MVP                1           ///< enable/disable the simplified motoin vector prediction(D231)
 
-
+#define DOCOMO_COMB_LIST                  1           ///< Use of combined list for uni-prediction in B-slices
 
 
 ///////////////////////////////
@@ -341,6 +341,9 @@ enum RefPicList
 {
   REF_PIC_LIST_0 = 0,   ///< reference list 0
   REF_PIC_LIST_1 = 1,   ///< reference list 1
+#if DOCOMO_COMB_LIST
+  REF_PIC_LIST_C = 2,   ///< combined reference list for uni-prediction in B-Slices
+#endif
   REF_PIC_LIST_X = 100  ///< special mark
 };
 

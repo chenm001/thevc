@@ -2283,7 +2283,11 @@ Void TEncSearch::predInterSearch( TComDataCU* pcCU, TComYuv* pcOrgYuv, TComYuv*&
     
     UInt          uiBits[3];
     UInt          uiBitsTemp;
-    
+#if DOCOMO_COMB_LIST
+    UInt          uiCostTempL0[MAX_NUM_REF];
+    for (Int iNumRef=0; iNumRef < MAX_NUM_REF; iNumRef++) uiCostTempL0[iNumRef] = MAX_UINT;
+#endif    
+
     xGetBlkBits( ePartSize, pcCU->getSlice()->isInterP(), iPartIdx, uiLastMode, uiMbBits);
     
     pcCU->getPartIndexAndSize( iPartIdx, uiPartAddr, iRoiWidth, iRoiHeight );
@@ -2316,20 +2320,49 @@ Void TEncSearch::predInterSearch( TComDataCU* pcCU, TComYuv* pcOrgYuv, TComYuv*&
         uiBitsTemp += m_auiMVPIdxCost[aaiMvpIdx[iRefList][iRefIdxTemp]][aaiMvpNum[iRefList][iRefIdxTemp]];
         
 #if GPB_SIMPLE_UNI
+#if DOCOMO_COMB_LIST
+        if ( pcCU->getSlice()->getSPS()->getUseLDC() || pcCU->getSlice()->getNumRefIdx(REF_PIC_LIST_C) > 0)
+#else
         if ( pcCU->getSlice()->getSPS()->getUseLDC() )
+#endif
         {
 #if MS_NO_BACK_PRED_IN_B0
+#if DOCOMO_COMB_LIST
+          if ( iRefList && ( (pcCU->getSlice()->getSPS()->getUseLDC() && (iRefIdxTemp != iRefIdx[0])) || pcCU->getSlice()->getNoBackPredFlag() || (pcCU->getSlice()->getNumRefIdx(REF_PIC_LIST_C) > 0 && !pcCU->getSlice()->getNoBackPredFlag() && pcCU->getSlice()->getRefIdxOfL0FromRefIdxOfL1(iRefIdxTemp)>=0 ) ) )
+#else
           if ( iRefList && ( iRefIdxTemp != iRefIdx[0] || pcCU->getSlice()->getNoBackPredFlag() ) )
+#endif
 #else
             if ( iRefList && iRefIdxTemp != iRefIdx[0] )
 #endif
             {
+#if DOCOMO_COMB_LIST
+              if (pcCU->getSlice()->getNumRefIdx(REF_PIC_LIST_C) > 0 && !pcCU->getSlice()->getNoBackPredFlag())
+              {
+                uiCostTemp = uiCostTempL0[pcCU->getSlice()->getRefIdxOfL0FromRefIdxOfL1(iRefIdxTemp)];
+              }
+              else
+              {
+                uiCostTemp = MAX_UINT;
+              }
+#else
               uiCostTemp = MAX_UINT;
+#endif
 #if MS_NO_BACK_PRED_IN_B0
+#if DOCOMO_COMB_LIST
+              if ( pcCU->getSlice()->getNoBackPredFlag() || pcCU->getSlice()->getSPS()->getUseLDC() )
+#else
               if ( pcCU->getSlice()->getNoBackPredFlag() )
+#endif
               {
                 cMvTemp[1][iRefIdxTemp] = cMvTemp[0][iRefIdxTemp];
               }
+#if DOCOMO_COMB_LIST
+              else
+              {
+                cMvTemp[1][iRefIdxTemp] = cMvTemp[0][pcCU->getSlice()->getRefIdxOfL0FromRefIdxOfL1(iRefIdxTemp)]; 
+              }
+#endif
 #endif
             }
             else
@@ -2359,9 +2392,34 @@ Void TEncSearch::predInterSearch( TComDataCU* pcCU, TComYuv* pcOrgYuv, TComYuv*&
         {          
           xCheckBestMVP(pcCU, eRefPicList, cMvTemp[iRefList][iRefIdxTemp], cMvPred[iRefList][iRefIdxTemp], aaiMvpIdx[iRefList][iRefIdxTemp], uiBitsTemp, uiCostTemp);
         }
+
+#if DOCOMO_COMB_LIST
+        if(pcCU->getSlice()->getNumRefIdx(REF_PIC_LIST_C) > 0 && !pcCU->getSlice()->getNoBackPredFlag())
+        {
+          if(iRefList==REF_PIC_LIST_0)
+          {
+            uiCostTempL0[iRefIdxTemp] = uiCostTemp;
+            if(pcCU->getSlice()->getRefIdxOfLC(REF_PIC_LIST_0, iRefIdxTemp)<0)
+            {
+              uiCostTemp = MAX_UINT;
+            }
+          }
+          else
+          {
+            if(pcCU->getSlice()->getRefIdxOfLC(REF_PIC_LIST_1, iRefIdxTemp)<0)
+            {
+              uiCostTemp = MAX_UINT;
+            }           
+          }
+        }
+#endif
+
 #if MS_NO_BACK_PRED_IN_B0
         if ( ( iRefList == 0 && uiCostTemp < uiCost[iRefList] ) ||
             ( iRefList == 1 &&  pcCU->getSlice()->getNoBackPredFlag() && iRefIdxTemp == iRefIdx[0] ) ||
+#if DOCOMO_COMB_LIST
+            ( iRefList == 1 && (pcCU->getSlice()->getNumRefIdx(REF_PIC_LIST_C) > 0) && iRefIdxTemp==0 && !pcCU->getSlice()->getNoBackPredFlag() && (iRefIdxTemp == pcCU->getSlice()->getRefIdxOfL0FromRefIdxOfL1(iRefIdxTemp)) && (pcCU->getSlice()->getNumRefIdx(REF_PIC_LIST_0)!=pcCU->getSlice()->getNumRefIdx(REF_PIC_LIST_1)) ) ||
+#endif
             ( iRefList == 1 && !pcCU->getSlice()->getNoBackPredFlag() && uiCostTemp < uiCost[iRefList] ) )
 #else
           if ( uiCostTemp < uiCost[iRefList] )
@@ -2391,7 +2449,6 @@ Void TEncSearch::predInterSearch( TComDataCU* pcCU, TComYuv* pcOrgYuv, TComYuv*&
           }
       }
     }
-    
     //  Bi-directional prediction
     if ( pcCU->getSlice()->isInterB() )
     {

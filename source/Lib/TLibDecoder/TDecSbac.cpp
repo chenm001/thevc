@@ -793,6 +793,12 @@ Void TDecSbac::parseInterDir( TComDataCU* pcCU, UInt& ruiInterDir, UInt uiAbsPar
   {
     uiSymbol = 2;
   }
+#if DOCOMO_COMB_LIST
+  else if(pcCU->getSlice()->getNumRefIdx(REF_PIC_LIST_C) > 0)
+  {
+    uiSymbol = 0;
+  }
+#endif
 #if MS_NO_BACK_PRED_IN_B0
   else if ( pcCU->getSlice()->getNoBackPredFlag() )
   {
@@ -811,6 +817,29 @@ Void TDecSbac::parseInterDir( TComDataCU* pcCU, UInt& ruiInterDir, UInt uiAbsPar
 Void TDecSbac::parseRefFrmIdx( TComDataCU* pcCU, Int& riRefFrmIdx, UInt uiAbsPartIdx, UInt uiDepth, RefPicList eRefList )
 {
   UInt uiSymbol;
+
+#if DOCOMO_COMB_LIST
+  if(pcCU->getSlice()->getNumRefIdx(REF_PIC_LIST_C ) > 0 && eRefList==REF_PIC_LIST_C)
+  {
+    UInt uiCtx;
+
+    uiCtx = pcCU->getCtxRefIdx( uiAbsPartIdx, RefPicList(pcCU->getSlice()->getListIdFromIdxOfLC(0)) );
+
+    m_pcTDecBinIf->decodeBin ( uiSymbol, m_cCURefPicSCModel.get( 0, 0, uiCtx ) );
+
+    if ( uiSymbol )
+    {
+      xReadUnaryMaxSymbol( uiSymbol, &m_cCURefPicSCModel.get( 0, 0, 4 ), 1, pcCU->getSlice()->getNumRefIdx( REF_PIC_LIST_C )-2 );
+
+      uiSymbol++;
+    }
+
+    riRefFrmIdx = uiSymbol;
+  }
+  else
+  {
+#endif
+
   UInt uiCtx = pcCU->getCtxRefIdx( uiAbsPartIdx, eRefList );
   
   m_pcTDecBinIf->decodeBin ( uiSymbol, m_cCURefPicSCModel.get( 0, 0, uiCtx ) );
@@ -821,6 +850,11 @@ Void TDecSbac::parseRefFrmIdx( TComDataCU* pcCU, Int& riRefFrmIdx, UInt uiAbsPar
     uiSymbol++;
   }
   riRefFrmIdx = uiSymbol;
+
+#if DOCOMO_COMB_LIST
+  }
+#endif
+
   return;
 }
 

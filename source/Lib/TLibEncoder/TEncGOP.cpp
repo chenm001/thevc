@@ -190,6 +190,19 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
         {
           pcSlice->setSliceType( B_SLICE ); // Change slice type by force
           
+#if DOCOMO_COMB_LIST
+          if(pcSlice->getSPS()->getUseLComb() && (m_pcCfg->getNumOfReferenceB_L1() < m_pcCfg->getNumOfReferenceB_L0()) && (pcSlice->getNumRefIdx(REF_PIC_LIST_0)>1))
+          {
+            pcSlice->setNumRefIdx( REF_PIC_LIST_1, m_pcCfg->getNumOfReferenceB_L1() );
+
+            for (Int iRefIdx = 0; iRefIdx < m_pcCfg->getNumOfReferenceB_L1(); iRefIdx++)
+            {
+              pcSlice->setRefPic(pcSlice->getRefPic(REF_PIC_LIST_0, iRefIdx), REF_PIC_LIST_1, iRefIdx);
+            }
+          }
+          else
+          {
+#endif
           Int iNumRefIdx = pcSlice->getNumRefIdx(REF_PIC_LIST_0);
           pcSlice->setNumRefIdx( REF_PIC_LIST_1, iNumRefIdx );
           
@@ -197,8 +210,24 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
           {
             pcSlice->setRefPic(pcSlice->getRefPic(REF_PIC_LIST_0, iRefIdx), REF_PIC_LIST_1, iRefIdx);
           }
+#if DOCOMO_COMB_LIST
+          }
+#endif
         }
       }
+
+#if DOCOMO_COMB_LIST
+      if (pcSlice->getSliceType() != B_SLICE || !pcSlice->getSPS()->getUseLComb())
+      {
+        pcSlice->setNumRefIdx(REF_PIC_LIST_C, -1);
+        pcSlice->setRefPicListCombinationFlag(false);
+      }
+      else
+      {
+        pcSlice->setRefPicListCombinationFlag(pcSlice->getSPS()->getLCMod());
+        pcSlice->setNumRefIdx(REF_PIC_LIST_C, pcSlice->getNumRefIdx(REF_PIC_LIST_0));
+      }
+#endif
       
       if (pcSlice->getSliceType() == B_SLICE)
       {
@@ -228,6 +257,14 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
           }
         }
       }
+#endif
+
+#if DOCOMO_COMB_LIST
+      if(pcSlice->getNoBackPredFlag())
+      {
+        pcSlice->setNumRefIdx(REF_PIC_LIST_C, -1);
+      }
+      pcSlice->generateCombinedList();
 #endif
       
       /////////////////////////////////////////////////////////////////////////////////////////////////// Compress a slice
@@ -846,7 +883,18 @@ Void TEncGOP::xCalculateAddPSNR( TComPic* pcPic, TComPicYuv* pcPicD, UInt uibits
     }
     printf ("] ");
   }
-  
+#if DOCOMO_COMB_LIST
+  if(pcSlice->getNumRefIdx(REF_PIC_LIST_C)>0 && !pcSlice->getNoBackPredFlag())
+  {
+    printf ("[LC ");
+    for (Int iRefIndex = 0; iRefIndex < pcSlice->getNumRefIdx(REF_PIC_LIST_C); iRefIndex++)
+    {
+      printf ("%d ", pcSlice->getRefPOC((RefPicList)pcSlice->getListIdFromIdxOfLC(iRefIndex), pcSlice->getRefIdxFromIdxOfLC(iRefIndex)));
+    }
+    printf ("] ");
+  }
+#endif
+
   fflush(stdout);
 }
 

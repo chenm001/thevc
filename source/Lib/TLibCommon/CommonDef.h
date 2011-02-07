@@ -101,6 +101,9 @@
 #define MAX_GOP                     64          ///< max. value of hierarchical GOP size
 
 #define MAX_NUM_REF                 4           ///< max. value of multiple reference frames
+#if DOCOMO_COMB_LIST
+#define MAX_NUM_REF_LC              8           ///< max. value of combined reference frames
+#endif
 
 #define MAX_UINT                    0xFFFFFFFFU ///< max. value of unsigned 32-bit integer
 #define MAX_INT                     2147483647  ///< max. value of signed 32-bit integer

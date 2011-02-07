@@ -101,6 +101,10 @@ Void TAppEncTop::xInitLibCfg()
   m_cTEncTop.setUseHADME                     ( m_bUseHADME    );
   m_cTEncTop.setUseALF                       ( m_bUseALF      );
   m_cTEncTop.setUseGPB                       ( m_bUseGPB      );
+#if DOCOMO_COMB_LIST
+  m_cTEncTop.setUseLComb                     ( m_bUseLComb    );
+  m_cTEncTop.setLCMod                        ( m_bLCMod         );
+#endif
   m_cTEncTop.setdQPs                         ( m_aidQP        );
   m_cTEncTop.setUseRDOQ                      ( m_bUseRDOQ     );
   m_cTEncTop.setUseLDC                       ( m_bUseLDC      );

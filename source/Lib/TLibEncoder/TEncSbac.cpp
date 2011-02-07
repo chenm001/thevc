@@ -733,7 +733,11 @@ Void TEncSbac::codeInterDir( TComDataCU* pcCU, UInt uiAbsPartIdx )
   }
 #endif
   
+#if DOCOMO_COMB_LIST
+  if ( uiInterDir < 2 && pcCU->getSlice()->getNumRefIdx(REF_PIC_LIST_C) <= 0)
+#else
   if ( uiInterDir < 2 )
+#endif
   {
     m_pcBinIf->encodeBin( uiInterDir, m_cCUInterDirSCModel.get( 0, 0, 3 ) );
   }
@@ -743,6 +747,24 @@ Void TEncSbac::codeInterDir( TComDataCU* pcCU, UInt uiAbsPartIdx )
 
 Void TEncSbac::codeRefFrmIdx( TComDataCU* pcCU, UInt uiAbsPartIdx, RefPicList eRefList )
 {
+#if DOCOMO_COMB_LIST
+  if ( pcCU->getSlice()->getNumRefIdx(REF_PIC_LIST_C) > 0 && pcCU->getInterDir( uiAbsPartIdx ) != 3)
+  {
+    Int iRefFrame = pcCU->getSlice()->getRefIdxOfLC(eRefList, pcCU->getCUMvField( eRefList )->getRefIdx( uiAbsPartIdx ));
+    UInt uiCtx;
+
+    uiCtx = pcCU->getCtxRefIdx( uiAbsPartIdx, RefPicList(pcCU->getSlice()->getListIdFromIdxOfLC(0)) );
+
+    m_pcBinIf->encodeBin( ( iRefFrame == 0 ? 0 : 1 ), m_cCURefPicSCModel.get( 0, 0, uiCtx ) );
+
+    if ( iRefFrame > 0 )
+    {
+      xWriteUnaryMaxSymbol( iRefFrame - 1, &m_cCURefPicSCModel.get( 0, 0, 4 ), 1, pcCU->getSlice()->getNumRefIdx( REF_PIC_LIST_C )-2 );
+    }
+  }
+  else
+  {
+#endif
   Int iRefFrame = pcCU->getCUMvField( eRefList )->getRefIdx( uiAbsPartIdx );
   
   UInt uiCtx = pcCU->getCtxRefIdx( uiAbsPartIdx, eRefList );
@@ -753,6 +775,9 @@ Void TEncSbac::codeRefFrmIdx( TComDataCU* pcCU, UInt uiAbsPartIdx, RefPicList eR
   {
     xWriteUnaryMaxSymbol( iRefFrame - 1, &m_cCURefPicSCModel.get( 0, 0, 4 ), 1, pcCU->getSlice()->getNumRefIdx( eRefList )-2 );
   }
+#if DOCOMO_COMB_LIST
+  }
+#endif
   return;
 }
 

@@ -65,6 +65,9 @@ TComSlice::TComSlice()
 #if MS_NO_BACK_PRED_IN_B0
   m_bNoBackPredFlag = false;
 #endif
+#if DOCOMO_COMB_LIST 
+  m_bRefPicListCombinationFlag = false;
+#endif
 }
 
 TComSlice::~TComSlice()
@@ -87,6 +90,9 @@ Void TComSlice::initSlice()
   initEqualRef();
 #if MS_NO_BACK_PRED_IN_B0
   m_bNoBackPredFlag = false;
+#endif
+#if DOCOMO_COMB_LIST 
+  m_bRefPicListCombinationFlag = false;
 #endif
 }
 
@@ -278,7 +284,73 @@ Void TComSlice::setRefPOCList       ()
       m_aiRefPOCList[iDir][iNumRefIdx] = m_apcRefPicList[iDir][iNumRefIdx]->getPOC();
     }
   }
+
 }
+
+#if DOCOMO_COMB_LIST 
+Void TComSlice::generateCombinedList()
+{
+  if(m_aiNumRefIdx[REF_PIC_LIST_C] > 0)
+  {
+    m_aiNumRefIdx[REF_PIC_LIST_C]=0;
+    for(Int iNumCount = 0; iNumCount < MAX_NUM_REF_LC; iNumCount++)
+    {
+      m_iRefIdxOfLC[REF_PIC_LIST_0][iNumCount]=-1;
+      m_iRefIdxOfLC[REF_PIC_LIST_1][iNumCount]=-1;
+      m_eListIdFromIdxOfLC[iNumCount]=0;
+      m_iRefIdxFromIdxOfLC[iNumCount]=0;
+      m_iRefIdxOfL0FromRefIdxOfL1[iNumCount] = -1;
+      m_iRefIdxOfL1FromRefIdxOfL0[iNumCount] = -1;
+    }
+
+    for (Int iNumRefIdx = 0; iNumRefIdx < MAX_NUM_REF; iNumRefIdx++)
+    {
+      if(iNumRefIdx < m_aiNumRefIdx[REF_PIC_LIST_0]){
+        Bool bTempRefIdxInL2 = true;
+        for ( Int iRefIdxLC = 0; iRefIdxLC < m_aiNumRefIdx[REF_PIC_LIST_C]; iRefIdxLC++ )
+        {
+          if ( m_apcRefPicList[REF_PIC_LIST_0][iNumRefIdx]->getPOC() == m_apcRefPicList[m_eListIdFromIdxOfLC[iRefIdxLC]][m_iRefIdxFromIdxOfLC[iRefIdxLC]]->getPOC() )
+          {
+            m_iRefIdxOfL1FromRefIdxOfL0[iNumRefIdx] = m_iRefIdxFromIdxOfLC[iRefIdxLC];
+            m_iRefIdxOfL0FromRefIdxOfL1[m_iRefIdxFromIdxOfLC[iRefIdxLC]] = iNumRefIdx;
+            bTempRefIdxInL2 = false;
+            assert(m_eListIdFromIdxOfLC[iRefIdxLC]==REF_PIC_LIST_1);
+            break;
+          }
+        }
+
+        if(bTempRefIdxInL2 == true)
+        { 
+          m_eListIdFromIdxOfLC[m_aiNumRefIdx[REF_PIC_LIST_C]] = REF_PIC_LIST_0;
+          m_iRefIdxFromIdxOfLC[m_aiNumRefIdx[REF_PIC_LIST_C]] = iNumRefIdx;
+          m_iRefIdxOfLC[REF_PIC_LIST_0][iNumRefIdx] = m_aiNumRefIdx[REF_PIC_LIST_C]++;
+        }
+      }
+
+      if(iNumRefIdx < m_aiNumRefIdx[REF_PIC_LIST_1]){
+        Bool bTempRefIdxInL2 = true;
+        for ( Int iRefIdxLC = 0; iRefIdxLC < m_aiNumRefIdx[REF_PIC_LIST_C]; iRefIdxLC++ )
+        {
+          if ( m_apcRefPicList[REF_PIC_LIST_1][iNumRefIdx]->getPOC() == m_apcRefPicList[m_eListIdFromIdxOfLC[iRefIdxLC]][m_iRefIdxFromIdxOfLC[iRefIdxLC]]->getPOC() )
+          {
+            m_iRefIdxOfL0FromRefIdxOfL1[iNumRefIdx] = m_iRefIdxFromIdxOfLC[iRefIdxLC];
+            m_iRefIdxOfL1FromRefIdxOfL0[m_iRefIdxFromIdxOfLC[iRefIdxLC]] = iNumRefIdx;
+            bTempRefIdxInL2 = false;
+            assert(m_eListIdFromIdxOfLC[iRefIdxLC]==REF_PIC_LIST_0);
+            break;
+          }
+        }
+        if(bTempRefIdxInL2 == true)
+        {
+          m_eListIdFromIdxOfLC[m_aiNumRefIdx[REF_PIC_LIST_C]] = REF_PIC_LIST_1;
+          m_iRefIdxFromIdxOfLC[m_aiNumRefIdx[REF_PIC_LIST_C]] = iNumRefIdx;
+          m_iRefIdxOfLC[REF_PIC_LIST_1][iNumRefIdx] = m_aiNumRefIdx[REF_PIC_LIST_C]++;
+        }
+      }
+    }
+  }
+}
+#endif
 
 Void TComSlice::setRefPicList       ( TComList<TComPic*>& rcListPic )
 {

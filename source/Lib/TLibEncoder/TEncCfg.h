@@ -103,6 +103,10 @@ protected:
   Bool      m_bUseASR;
   Bool      m_bUseHADME;
   Bool      m_bUseGPB;
+#if DOCOMO_COMB_LIST
+  Bool      m_bUseLComb;
+  Bool      m_bLCMod;
+#endif
   Bool      m_bUseRDOQ;
   Bool      m_bUseLDC;
   Bool      m_bUsePAD;
@@ -226,6 +230,10 @@ public:
   Void      setUseHADME                     ( Bool  b )     { m_bUseHADME   = b; }
   Void      setUseALF                       ( Bool  b )     { m_bUseALF   = b; }
   Void      setUseGPB                       ( Bool  b )     { m_bUseGPB     = b; }
+#if DOCOMO_COMB_LIST
+  Void      setUseLComb                     ( Bool  b )     { m_bUseLComb   = b; }
+  Void      setLCMod                        ( Bool  b )     { m_bLCMod   = b;    }
+#endif
   Void      setUseRDOQ                      ( Bool  b )     { m_bUseRDOQ    = b; }
   Void      setUseLDC                       ( Bool  b )     { m_bUseLDC     = b; }
   Void      setUsePAD                       ( Bool  b )     { m_bUsePAD     = b; }
@@ -245,6 +253,10 @@ public:
   Bool      getUseHADME                     ()      { return m_bUseHADME;   }
   Bool      getUseALF                       ()      { return m_bUseALF;     }
   Bool      getUseGPB                       ()      { return m_bUseGPB;     }
+#if DOCOMO_COMB_LIST
+  Bool      getUseLComb                     ()      { return m_bUseLComb;   }
+  Bool      getLCMod                        ()      { return m_bLCMod; }
+#endif
   Bool      getUseRDOQ                      ()      { return m_bUseRDOQ;    }
   Bool      getUseLDC                       ()      { return m_bUseLDC;     }
   Bool      getUsePAD                       ()      { return m_bUsePAD;     }

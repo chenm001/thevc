@@ -314,6 +314,11 @@ Void TEncTop::xInitSPS()
   
   m_cSPS.setMaxTrSize   ( 1 << m_uiQuadtreeTULog2MaxSize );
   
+#if DOCOMO_COMB_LIST
+  m_cSPS.setUseLComb    ( m_bUseLComb           );
+  m_cSPS.setLCMod       ( m_bLCMod   );
+#endif
+
   Int i;
 #if HHI_AMVP_OFF
   for ( i = 0; i < g_uiMaxCUDepth; i++ )

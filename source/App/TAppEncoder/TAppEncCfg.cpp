@@ -150,6 +150,10 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
   ("HierarchicalCoding",     m_bHierarchicalCoding, true)
   ("LowDelayCoding",         m_bUseLDC,             false, "low-delay mode")
   ("GPB", m_bUseGPB, false, "generalized B instead of P in low-delay mode")
+#if DOCOMO_COMB_LIST
+  ("LComb", m_bUseLComb, true, "combined reference list for uni-prediction in B-slices")
+  ("LCMod", m_bLCMod, false)
+#endif
   ("NRF", m_bUseNRF,  true, "non-reference frame marking in last layer")
   ("BQP", m_bUseBQP, false, "hier-P style QP assignment in low-delay mode")
   
@@ -515,6 +519,10 @@ Void TAppEncCfg::xPrintParameter()
   printf("NRF:%d ", m_bUseNRF             );
   printf("BQP:%d ", m_bUseBQP             );
   printf("GPB:%d ", m_bUseGPB             );
+#if DOCOMO_COMB_LIST
+  printf("LComb:%d ", m_bUseLComb         );
+  printf("LCMod:%d ", m_bLCMod         );
+#endif
   printf("FEN:%d ", m_bUseFastEnc         );
   printf("RQT:%d ", 1     );
 #if HHI_MRG
