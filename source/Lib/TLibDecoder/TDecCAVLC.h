@@ -85,7 +85,9 @@ private:
   UInt                      m_uiIntraModeTableD17[16];
   UInt                      m_uiIntraModeTableD34[33];
 #endif
-
+#if QC_LCEC_INTER_MODE
+  UInt                      m_uiSplitTableD[4][7];
+#endif
   UInt                      m_uiCBPTableD[2][8];
   UInt                      m_uiCbpVlcIdx[2];
   

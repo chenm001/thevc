@@ -141,7 +141,7 @@ Void TComBitstream::initParsing ( UInt uiNumBytes )
   xReadNextWord();
 }
 
-#if LCEC_INTRA_MODE
+#if LCEC_INTRA_MODE || QC_LCEC_INTER_MODE
 Void TComBitstream::pseudoRead ( UInt uiNumberOfBits, UInt& ruiBits )
 {
   UInt ui_right_shift;

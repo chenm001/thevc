@@ -195,7 +195,10 @@ extern const UInt g_auiMI1TableDNoL1[8];
 extern const UInt g_auiMI2TableENoL1[15];
 extern const UInt g_auiMI2TableDNoL1[15];
 #endif
-
+#if QC_LCEC_INTER_MODE
+extern const UInt g_auiInterModeTableE[4][7];
+extern const UInt g_auiInterModeTableD[4][7];
+#endif
 // ====================================================================================================================
 // ADI table
 // ====================================================================================================================
