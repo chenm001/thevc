@@ -430,7 +430,9 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
     m_uiBitHLS += xWriteCode  (pcSlice->getERBIndex(), 2);
   }
   
+#if !DCTIF_8_6_LUMA
   m_uiBitHLS += xWriteUvlc  ( pcSlice->getInterpFilterType() );
+#endif
   
 #if AMVP_NEIGH_COL
   if ( pcSlice->getSliceType() == B_SLICE )
@@ -588,7 +590,9 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
     xWriteCode  (pcSlice->getERBIndex(), 2);
   }
   
+#if !DCTIF_8_6_LUMA
   xWriteUvlc  ( pcSlice->getInterpFilterType() );
+#endif
   
 #if AMVP_NEIGH_COL
   if ( pcSlice->getSliceType() == B_SLICE )

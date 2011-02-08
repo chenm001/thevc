@@ -130,6 +130,10 @@
 
 #define DCTIF_8_6_LUMA                        1
 #define DCTIF_4_6_CHROMA                      1
+#if DCTIF_8_6_LUMA && TEN_DIRECTIONAL_INTERP
+#error TEN_DIRECTIONAL_INTERP should be disabled if DCTIF_8_6_LUMA is enabled
+#endif
+
 ///////////////////////////////
 // SAMSUNG defines section end
 ///////////////////////////////

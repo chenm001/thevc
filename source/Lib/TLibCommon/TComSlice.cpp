@@ -83,7 +83,9 @@ Void TComSlice::initSlice()
   m_bDRBFlag            = true;
   m_eERBIndex           = ERB_NONE;
   
+#if !DCTIF_8_6_LUMA
   m_iInterpFilterType   = IPF_SAMSUNG_DIF_DEFAULT;
+#endif
   
   m_uiColDir = 0;
   

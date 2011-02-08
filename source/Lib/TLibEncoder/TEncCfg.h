@@ -122,7 +122,9 @@ protected:
   
   Int*      m_aidQP;
   UInt      m_uiDeltaQpRD;
+#if !DCTIF_8_6_LUMA
   Int       m_iInterpFilterType;
+#endif
   
 #if HHI_RMP_SWITCH
   Bool      m_bUseRMP;
@@ -276,8 +278,10 @@ public:
   Void      setUseRMP                      ( Bool b ) { m_bUseRMP = b; }
   Bool      getUseRMP                      ()      {return m_bUseRMP; }
 #endif
+#if !DCTIF_8_6_LUMA
   Void      setInterpFilterType             ( Int   i )     { m_iInterpFilterType = i;    }
   Int       getInterpFilterType             ()              { return m_iInterpFilterType; }
+#endif
 #ifdef ROUNDING_CONTROL_BIPRED
   Void setUseRoundingControlBipred(Bool b) { m_useRoundingControlBipred = b; }
   Bool getUseRoundingControlBipred() { return m_useRoundingControlBipred; }

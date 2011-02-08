@@ -138,8 +138,10 @@ protected:
   Int       m_bipredSearchRange;                              ///< ME search range for bipred refinement
   Bool      m_bUseFastEnc;                                    ///< flag for using fast encoder setting
   
+#if !DCTIF_8_6_LUMA
   // coding tool (interpolation filter)
   Int       m_iInterpFilterType;                              ///< interpolation filter type
+#endif
   
 #ifdef ROUNDING_CONTROL_BIPRED
   Bool m_useRoundingControlBipred;

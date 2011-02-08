@@ -355,13 +355,15 @@ Void TAppEncCfg::xCheckParameter()
   xConfirmPara( m_uiQuadtreeTUMaxDepthInter > m_uiQuadtreeTULog2MaxSize - m_uiQuadtreeTULog2MinSize + 1, "QuadtreeTUMaxDepthInter must be less than or equal to the difference between QuadtreeTULog2MaxSize and QuadtreeTULog2MinSize plus 1" );
   xConfirmPara( m_uiQuadtreeTUMaxDepthIntra < 1,                                                         "QuadtreeTUMaxDepthIntra must be greater than or equal to 1" );
   xConfirmPara( m_uiQuadtreeTUMaxDepthIntra > m_uiQuadtreeTULog2MaxSize - m_uiQuadtreeTULog2MinSize + 1, "QuadtreeTUMaxDepthIntra must be less than or equal to the difference between QuadtreeTULog2MaxSize and QuadtreeTULog2MinSize plus 1" );
-  
-#if !TEN_DIRECTIONAL_INTERP && !DCTIF_8_6_LUMA
+
+#if !DCTIF_8_6_LUMA
+#if !TEN_DIRECTIONAL_INTERP
   xConfirmPara( m_iInterpFilterType == IPF_TEN_DIF_PLACEHOLDER, "IPF_TEN_DIF is not configurable.  Please recompile using TEN_DIRECTIONAL_INTERP." );
 #endif
   xConfirmPara( m_iInterpFilterType >= IPF_LAST,                "Invalid InterpFilterType" );
   xConfirmPara( m_iInterpFilterType == IPF_HHI_4TAP_MOMS,       "Invalid InterpFilterType" );
   xConfirmPara( m_iInterpFilterType == IPF_HHI_6TAP_MOMS,       "Invalid InterpFilterType" );
+#endif
   
   xConfirmPara( m_iSymbolMode < 0 || m_iSymbolMode > 1,                                     "SymbolMode must be equal to 0 or 1" );
   
@@ -462,31 +464,25 @@ Void TAppEncCfg::xPrintParameter()
   printf("Rate GOP size                : %d\n", m_iRateGOPSize );
   printf("Bit increment                : %d\n", m_uiBitIncrement );
  
-#if DCTIF_8_6_LUMA && DCTIF_4_6_CHROMA
+#if DCTIF_8_6_LUMA
   printf("Luma interpolation           : %s\n", "Samsung 8-tap filter"  );
-  printf("Chroma interpolation         : %s\n", "Samsung 4-tap filter"       );
-#else
+#else // DCTIF_8_6_LUMA
   switch ( m_iInterpFilterType )
   {
 #if TEN_DIRECTIONAL_INTERP
     case IPF_TEN_DIF:
       printf("Luma interpolation           : %s\n", "TEN directional interpolation filter"  );
-      printf("Chroma interpolation         : %s\n", "Bi-linear filter"       );
       break;
 #endif
     default:
-#if DCTIF_8_6_LUMA
-      printf("Luma interpolation           : %s\n", "Samsung 8-tap filter"  );
-#else
       printf("Luma interpolation           : %s\n", "Samsung 12-tap filter"  );
-#endif
-#if DCTIF_4_6_CHROMA
-      printf("Chroma interpolation         : %s\n", "Samsung 4-tap filter"       );
-#else
-      printf("Chroma interpolation         : %s\n", "Bi-linear filter"       );
-#endif
   }
-#endif  
+#endif // DCTIF_8_6_LUMA
+#if DCTIF_4_6_CHROMA
+  printf("Chroma interpolation         : %s\n", "Samsung 4-tap filter"       );
+#else
+  printf("Chroma interpolation         : %s\n", "Bi-linear filter"       );
+#endif
   if ( m_iSymbolMode == 0 )
   {
     printf("Entropy coder                : VLC\n");

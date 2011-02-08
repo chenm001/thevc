@@ -2996,7 +2996,7 @@ UInt TEncSearch::xGetTemplateCost( TComDataCU* pcCU,
   TComPicYuv* pcPicYuvRef = pcCU->getSlice()->getRefPic( eRefPicList, iRefIdx )->getPicYuvRec();
   
   // prediction pattern
-#if DCTIF_8_6_LUMA && DCTIF_4_6_CHROMA
+#if DCTIF_8_6_LUMA
   xPredInterLumaBlk( pcCU, pcPicYuvRef, uiPartAddr, &cMvCand, iSizeX, iSizeY, pcTemplateCand );
 #else
   InterpFilterType filterType = (InterpFilterType)pcCU->getSlice()->getInterpFilterType();
@@ -3127,7 +3127,7 @@ Void TEncSearch::xMotionEstimation( TComDataCU* pcCU, TComYuv* pcYuvOrg, Int iPa
   if( bBi ) 
   {
     Bool bRound =  pcCU->getSlice()->isRounding() ;
-#if DCTIF_8_6_LUMA && DCTIF_4_6_CHROMA
+#if DCTIF_8_6_LUMA
     xPatternSearchFracDIF_Bi( pcCU, pcPatternKey, piRefY, iRefStride, &rcMv, cMvHalf, cMvQter, ruiCost, pRefBufY, bRound );
 #else
     InterpFilterType ePFilt = (InterpFilterType)pcCU->getSlice()->getInterpFilterType();
@@ -3146,7 +3146,7 @@ Void TEncSearch::xMotionEstimation( TComDataCU* pcCU, TComYuv* pcYuvOrg, Int iPa
   else
 #endif
   {
-#if DCTIF_8_6_LUMA && DCTIF_4_6_CHROMA
+#if DCTIF_8_6_LUMA
     xPatternSearchFracDIF( pcCU, pcPatternKey, piRefY, iRefStride, &rcMv, cMvHalf, cMvQter, ruiCost );
 #else
     InterpFilterType ePFilt = (InterpFilterType)pcCU->getSlice()->getInterpFilterType();

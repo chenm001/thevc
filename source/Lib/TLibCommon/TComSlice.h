@@ -243,7 +243,9 @@ private:
   
   Bool        m_abEqualRef  [2][MAX_NUM_REF][MAX_NUM_REF];
   
+#if !DCTIF_8_6_LUMA
   Int         m_iInterpFilterType;
+#endif
 #if MS_NO_BACK_PRED_IN_B0
   Bool        m_bNoBackPredFlag;
 #endif
@@ -339,8 +341,10 @@ public:
   
   static Void      sortPicList         ( TComList<TComPic*>& rcListPic );
   
+#if !DCTIF_8_6_LUMA
   Int  getInterpFilterType     ()         { return m_iInterpFilterType;       }
   Void setInterpFilterType     ( Int  i ) { m_iInterpFilterType  = i;         }
+#endif
   
 #if MS_NO_BACK_PRED_IN_B0
   Bool getNoBackPredFlag() { return m_bNoBackPredFlag; }
