@@ -221,7 +221,7 @@ Void TVideoIOYuv::read ( TComPicYuv*&  rpcPicYuv, Int aiPad[2] )
   unsigned int height_full = rpcPicYuv->getHeight();
   unsigned int width  = width_full - pad_h;
   unsigned int height = height_full - pad_v;
-  bool is16bit = false;
+  bool is16bit = m_fileBitdepth > 8;
 
   readPlane(rpcPicYuv->getLumaAddr(), m_cHandle, is16bit, iStride, width, height, pad_h, pad_v);
   scalePlane(rpcPicYuv->getLumaAddr(), iStride, width_full, height_full, m_bitdepthShift);

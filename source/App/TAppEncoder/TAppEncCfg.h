@@ -100,8 +100,9 @@ protected:
   UInt      m_uiQuadtreeTUMaxDepthIntra;
   
   // coding tools (bit-depth)
-  UInt      m_uiBitDepth;                                     ///< base bit-depth
+  UInt      m_uiInputBitDepth;                                ///< bit-depth of input file
   UInt      m_uiBitIncrement;                                 ///< bit-depth increment
+  UInt      m_uiInternalBitDepth;                             ///< Internal bit-depth (BitDepth+BitIncrement)
   
   // coding tools (inter - interpolation filter)
 #if !DCTIF_8_6_LUMA

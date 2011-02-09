@@ -113,8 +113,10 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
   
   ("SourceWidth,-wdt",      m_iSourceWidth,  0, "Source picture width")
   ("SourceHeight,-hgt",     m_iSourceHeight, 0, "Source picture height")
-  ("BitDepth",              m_uiBitDepth,    8u)
-  ("BitIncrement",          m_uiBitIncrement,4u, "bit-depth increasement")
+  ("InputBitDepth",         m_uiInputBitDepth, 8u, "bit-depth of input file")
+  ("BitDepth",              m_uiInputBitDepth, 8u, "deprecated alias of InputBitDepth")
+  ("BitIncrement",          m_uiBitIncrement, 0xffffffffu, "bit-depth increasement")
+  ("InternalBitDepth",      m_uiInternalBitDepth, 0u, "Internal bit-depth (BitDepth+BitIncrement)")
   ("HorizontalPadding,-pdx",m_aiPad[0],      0, "horizontal source padding size")
   ("VerticalPadding,-pdy",  m_aiPad[1],      0, "vertical source padding size")
   ("PAD",                   m_bUsePAD,   false, "automatic source padding of multiple of 16" )
@@ -315,6 +317,7 @@ Void TAppEncCfg::xCheckParameter()
   bool check_failed = false; /* abort if there is a fatal configuration problem */
 #define xConfirmPara(a,b) check_failed |= confirmPara(a,b)
   // check range of parameters
+  xConfirmPara( m_uiInternalBitDepth > 0 && (int)m_uiBitIncrement != -1,                    "InternalBitDepth and BitIncrement may not be specified simultaneously");
   xConfirmPara( m_iFrameRate <= 0,                                                          "Frame rate must be more than 1" );
   xConfirmPara( m_iFrameSkip < 0,                                                           "Frame Skipping must be more than 0" );
   xConfirmPara( m_iFrameToBeEncoded <= 0,                                                   "Total Number Of Frames encoded must be more than 1" );
@@ -426,8 +429,20 @@ Void TAppEncCfg::xSetGlobal()
   g_uiMaxCUDepth = m_uiMaxCUDepth;
   
   // set internal bit-depth and constants
-  g_uiBitDepth     = m_uiBitDepth;                      // base bit-depth
-  g_uiBitIncrement = m_uiBitIncrement;                  // increments
+  if ((int)m_uiBitIncrement != -1) {
+    g_uiBitDepth = m_uiInputBitDepth;
+    g_uiBitIncrement = m_uiBitIncrement;
+    m_uiInternalBitDepth = g_uiBitDepth + g_uiBitIncrement;
+  }
+  else {
+    g_uiBitDepth = min(8u, m_uiInputBitDepth);
+    if (m_uiInternalBitDepth == 0) {
+      /* default increement = 2 */
+      m_uiInternalBitDepth = 2 + g_uiBitDepth;
+    }
+    g_uiBitIncrement = m_uiInternalBitDepth - g_uiBitDepth;
+  }
+
   g_uiBASE_MAX     = ((1<<(g_uiBitDepth))-1);
   
 #if IBDI_NOCLIP_RANGE
