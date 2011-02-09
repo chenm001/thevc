@@ -109,7 +109,6 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
   TComPic*        pcPic;
   TComPicYuv*     pcPicYuvRecOut;
   TComBitstream*  pcBitstreamOut;
-  TComPicYuv      cPicOrg;
   
   xInitGOP( iPOCLast, iNumPicRcvd, rcListPic, rcListPicYuvRecOut );
   
@@ -143,10 +142,6 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
       UInt  uiPOCCurr = iPOCLast - (iNumPicRcvd - iTimeOffset);
       
       xGetBuffer( rcListPic, rcListPicYuvRecOut, rcListBitstreamOut, iNumPicRcvd, iTimeOffset,  pcPic, pcPicYuvRecOut, pcBitstreamOut, uiPOCCurr );
-      
-      // save original picture
-      cPicOrg.create( pcPic->getPicYuvOrg()->getWidth(), pcPic->getPicYuvOrg()->getHeight(), g_uiMaxCUWidth, g_uiMaxCUHeight, g_uiMaxCUDepth );
-      pcPic->getPicYuvOrg()->copyToPic( &cPicOrg );
       
       // scaling of picture
       if ( g_uiBitIncrement )
@@ -421,20 +416,14 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
       pcPic->compressMotion(); 
 #endif 
       
-      // de-scaling of picture
-      xDeScalePic( pcPic, &pcPicD );
-      
-      // save original picture
-      cPicOrg.copyToPic( pcPic->getPicYuvOrg() );
-      
       //-- For time output for each slice
       Double dEncTime = (double)(clock()-iBeforeTime) / CLOCKS_PER_SEC;
       
-      xCalculateAddPSNR( pcPic, &pcPicD, pcBitstreamOut->getNumberOfWrittenBits(), dEncTime );
+      xCalculateAddPSNR( pcPic, pcPic->getPicYuvRec(), pcBitstreamOut->getNumberOfWrittenBits(), dEncTime );
       
-      // free original picture
-      cPicOrg.destroy();
-      
+      // de-scaling of picture
+      xDeScalePic( pcPic, &pcPicD );
+
       //  Reconstruction buffer update
       pcPicD.copyToPic(pcPicYuvRecOut);
       
@@ -840,7 +829,8 @@ Void TEncGOP::xCalculateAddPSNR( TComPic* pcPic, TComPicYuv* pcPicD, UInt uibits
     pRec += iStride;
   }
   
-  Double fRefValueY = 255.0 * 255.0 * (Double)iSize;
+  unsigned int maxval = 255 * (1<<(g_uiBitDepth + g_uiBitIncrement -8));
+  Double fRefValueY = (double) maxval * maxval * iSize;
   Double fRefValueC = fRefValueY / 4.0;
   dYPSNR            = ( uiSSDY ? 10.0 * log10( fRefValueY / (Double)uiSSDY ) : 99.99 );
   dUPSNR            = ( uiSSDU ? 10.0 * log10( fRefValueC / (Double)uiSSDU ) : 99.99 );
