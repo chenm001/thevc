@@ -64,27 +64,6 @@ static void scalePlane(Pel* img, unsigned int stride, unsigned int width, unsign
   }
 }
 
-/**
- * Multiply {Y', Cb, Cr} components of #pic by \f$ 2^{#shiftbits} \f$.
- */
-static void scalePic(TComPicYuv& pic, int shiftbits)
-{
-  assert(shiftbits > 0);
-
-  unsigned int width = pic.getWidth();
-  unsigned int height = pic.getHeight();
-  unsigned int stride = pic.getStride();
-
-  scalePlane(pic.getLumaAddr(), stride, width, height, shiftbits);
-
-  width >>= 1;
-  height >>= 1;
-  stride >>= 1;
-  scalePlane(pic.getCbAddr(), stride, width, height, shiftbits);
-  scalePlane(pic.getCrAddr(), stride, width, height, shiftbits);
-}
-
-
 // ====================================================================================================================
 // Public member functions
 // ====================================================================================================================
@@ -98,6 +77,7 @@ static void scalePic(TComPicYuv& pic, int shiftbits)
 Void TVideoIOYuv::open( char* pchFile, Bool bWriteMode, unsigned int fileBitDepth, unsigned int internalBitDepth )
 {
   m_bitdepthShift = internalBitDepth - fileBitDepth;
+  assert(m_bitdepthShift >= 0);
 
   if ( bWriteMode )
   {
@@ -134,6 +114,75 @@ Bool TVideoIOYuv::isEof()
 }
 
 /**
+ * Read \f$ #width * #height \f$ pixels from #fd into #dst, optionally
+ * padding the left and right edges by edge-extension.
+ *
+ * @param dst     destination image
+ * @param stride  distance between vertically adjacent pixels of #dst.
+ * @param width   width of active area in #dst.
+ * @param height  height of active area in #dst.
+ * @param pad_x   length of horizontal padding.
+ * @param pad_y   length of vertical padding.
+ */
+static void readPlane(Pel* dst, istream& fd,
+                      unsigned int stride,
+                      unsigned int width, unsigned int height,
+                      unsigned int pad_x, unsigned int pad_y)
+{
+  unsigned char *buf = new unsigned char[width];
+  for (int y = 0; y < height; y++)
+  {
+    fd.read(reinterpret_cast<char*>(buf), width);
+    for (int x = 0; x < width; x++)
+    {
+      dst[x] = buf[x];
+    }
+    for (int x = width; x < width + pad_x; x++)
+    {
+      dst[x] = dst[width - 1];
+    }
+    dst += stride;
+  }
+  for (int y = height; y < height + pad_y; y++)
+  {
+    for (int x = width; x < width + pad_x; x++)
+    {
+      dst[x] = dst[x - stride];
+    }
+    dst += stride;
+  }
+  delete[] buf;
+}
+
+/**
+ * Write \f$ #width * #height \f$ pixels info #fd from #src.
+ *
+ * @param src     source image
+ * @param stride  distance between vertically adjacent pixels of #src.
+ * @param width   width of active area in #src.
+ * @param height  height of active area in #src.
+ */
+static void writePlane(ostream& fd, Pel* src,
+                       unsigned int stride,
+                       unsigned int width, unsigned int height)
+{
+  unsigned char *buf = new unsigned char[width];
+  for (int y = 0; y < height; y++)
+  {
+    for (int x = 0; x < width; x++)
+    {
+      buf[x] = src[x];
+    }
+    fd.write(reinterpret_cast<char*>(buf), width);
+    src += stride;
+  }
+  delete[] buf;
+}
+
+/**
+ * Read one Y'CbCr frame, performing any required input scaling to change
+ * from the bitdepth of the input file to the internal bit-depth.
+ *
  \param rpcPicYuv      input picture YUV buffer class pointer
  \param aiPad[2]       source padding size, aiPad[0] = horizontal, aiPad[1] = vertical
  */
@@ -142,82 +191,32 @@ Void TVideoIOYuv::read ( TComPicYuv*&  rpcPicYuv, Int aiPad[2] )
   // check end-of-file
   if ( isEof() ) return;
   
-  Int   x, y;
-  Int   iWidth, iHeight;
   Int   iStride = rpcPicYuv->getStride();
   
   // compute actual YUV width & height excluding padding size
-  iWidth  = rpcPicYuv->getWidth () - aiPad[0];
-  iHeight = rpcPicYuv->getHeight() - aiPad[1];
-  
-  // allocate 8-bit buffer
-  Pxl*  apuchBuf = new Pxl[iWidth];
-  
-  // Y
-  Pel*  pDst = rpcPicYuv->getLumaAddr();
-  for ( y = 0; y < iHeight; y++ )
-  {
-    m_cHandle.read( reinterpret_cast<char*>(apuchBuf), sizeof (Pxl) * iWidth );
-    for ( x = 0; x < iWidth; x++ ) pDst[x] = (Pel)apuchBuf[x];
-    
-    // horizontal-right padding
-    for ( x = iWidth; x < rpcPicYuv->getWidth(); x++ ) pDst[x] = pDst[x-1];
-    pDst += iStride;
-  }
-  
-  // vertial-bottom padding
-  for ( y = iHeight; y < rpcPicYuv->getHeight(); y++ )
-  {
-    for ( x = 0; x < rpcPicYuv->getWidth(); x++ ) pDst[x] = pDst[-iStride+x];
-    pDst += iStride;
-  }
-  
-  iWidth   >>= 1;
-  iHeight  >>= 1;
-  iStride  >>= 1;
-  
-  //  U
-  pDst = rpcPicYuv->getCbAddr();
-  for ( y = 0; y < iHeight; y++ )
-  {
-    m_cHandle.read( reinterpret_cast<char*>(apuchBuf), sizeof (Pxl) * iWidth );
-    for ( x = 0; x < iWidth; x++ ) pDst[x] = (Pel)apuchBuf[x];
-    
-    // horizontal-right padding
-    for ( x = iWidth; x < (rpcPicYuv->getWidth()>>1); x++ ) pDst[x] = pDst[x-1];
-    pDst += iStride;
-  }
-  
-  // vertical-bottom padding
-  for ( y = iHeight; y < (rpcPicYuv->getHeight()>>1); y++ )
-  {
-    for ( x = 0; x < (rpcPicYuv->getWidth()>>1); x++ ) pDst[x] = pDst[-iStride+x];
-    pDst += iStride;
-  }
-  
-  //  V
-  pDst = rpcPicYuv->getCrAddr();
-  for ( y = 0; y < iHeight; y++ )
-  {
-    m_cHandle.read( reinterpret_cast<char*>(apuchBuf), sizeof (Pxl) * iWidth );
-    for ( x = 0; x < iWidth; x++ ) pDst[x] = (Pel)apuchBuf[x];
-    
-    // horizontal-right padding
-    for ( x = iWidth; x < (rpcPicYuv->getWidth()>>1); x++ ) pDst[x] = pDst[x-1];
-    pDst += iStride;
-  }
-  
-  // vertical-bottom padding
-  for ( y = iHeight; y < (rpcPicYuv->getHeight()>>1); y++ )
-  {
-    for ( x = 0; x < (rpcPicYuv->getWidth()>>1); x++ ) pDst[x] = pDst[-iStride+x];
-    pDst += iStride;
-  }
-  
-  delete [] apuchBuf;
-  
-  scalePic(*rpcPicYuv, m_bitdepthShift);
-  return;
+  unsigned int pad_h = aiPad[0];
+  unsigned int pad_v = aiPad[1];
+  unsigned int width_full = rpcPicYuv->getWidth();
+  unsigned int height_full = rpcPicYuv->getHeight();
+  unsigned int width  = width_full - pad_h;
+  unsigned int height = height_full - pad_v;
+
+  readPlane(rpcPicYuv->getLumaAddr(), m_cHandle, iStride, width, height, pad_h, pad_v);
+  scalePlane(rpcPicYuv->getLumaAddr(), iStride, width_full, height_full, m_bitdepthShift);
+
+  iStride >>= 1;
+  width_full >>= 1;
+  height_full >>= 1;
+  width >>= 1;
+  height >>= 1;
+  pad_h >>= 1;
+  pad_v >>= 1;
+
+  readPlane(rpcPicYuv->getCbAddr(), m_cHandle, iStride, width, height, pad_h, pad_v);
+  scalePlane(rpcPicYuv->getCbAddr(), iStride, width_full, height_full, m_bitdepthShift);
+
+  readPlane(rpcPicYuv->getCrAddr(), m_cHandle, iStride, width, height, pad_h, pad_v);
+  scalePlane(rpcPicYuv->getCrAddr(), iStride, width_full, height_full, m_bitdepthShift);
 }
 
 /** \param pcPicYuv     input picture YUV buffer class pointer
@@ -225,47 +224,17 @@ Void TVideoIOYuv::read ( TComPicYuv*&  rpcPicYuv, Int aiPad[2] )
  */
 Void TVideoIOYuv::write( TComPicYuv* pcPicYuv, Int aiPad[2] )
 {
-  Int   x, y;
-  
   // compute actual YUV frame size excluding padding size
-  Int   iWidth  = pcPicYuv->getWidth () - aiPad[0];
-  Int   iHeight = pcPicYuv->getHeight() - aiPad[1];
   Int   iStride = pcPicYuv->getStride();
-  
-  // allocate 8-bit buffer
-  Pxl*  apuchBuf = new Pxl[iWidth];
-  
-  //  Y
-  Pel*  pSrc = pcPicYuv->getLumaAddr();
-  for ( y = 0; y < iHeight; y++ )
-  {
-    for ( x = 0; x < iWidth; x++ ) apuchBuf[x] = (Pxl)pSrc[x];
-    m_cHandle.write(  reinterpret_cast<char*>(apuchBuf), sizeof(Pxl) * iWidth );
-    pSrc += iStride;
-  }
-  
-  iWidth   >>= 1;
-  iHeight  >>= 1;
-  iStride  >>= 1;
-  
-  //  U
-  pSrc = pcPicYuv->getCbAddr();
-  for ( y = 0; y < iHeight; y++ )
-  {
-    for ( x = 0; x < iWidth; x++ ) apuchBuf[x] = (Pxl)pSrc[x];
-    m_cHandle.write( reinterpret_cast<char*>(apuchBuf), sizeof(Pxl) * iWidth );
-    pSrc += iStride;
-  }
-  
-  //  V
-  pSrc = pcPicYuv->getCrAddr();
-  for ( y = 0; y < iHeight; y++ )
-  {
-    for ( x = 0; x < iWidth; x++ ) apuchBuf[x] = (Pxl)pSrc[x];
-    m_cHandle.write( reinterpret_cast<char*>(apuchBuf), sizeof(Pxl) * iWidth );
-    pSrc += iStride;
-  }
-  
-  delete [] apuchBuf;
+  unsigned int width  = pcPicYuv->getWidth() - aiPad[0];
+  unsigned int height = pcPicYuv->getHeight() - aiPad[1];
+
+  writePlane(m_cHandle, pcPicYuv->getLumaAddr(), iStride, width, height);
+
+  width >>= 1;
+  height >>= 1;
+  iStride >>= 1;
+  writePlane(m_cHandle, pcPicYuv->getCbAddr(), iStride, width, height);
+  writePlane(m_cHandle, pcPicYuv->getCrAddr(), iStride, width, height);
 }
 
