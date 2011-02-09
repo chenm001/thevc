@@ -156,7 +156,7 @@ Void TAppDecTop::xCreateDecLib()
   
   if ( m_pchReconFile )
   {
-    m_cTVideoIOYuvReconFile.open( m_pchReconFile, true );         // write mode
+    m_cTVideoIOYuvReconFile.open( m_pchReconFile, true, g_uiBitDepth, g_uiBitDepth ); // write mode
   }
   
   // create decoder class

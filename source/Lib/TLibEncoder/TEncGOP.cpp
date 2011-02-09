@@ -143,12 +143,6 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
       
       xGetBuffer( rcListPic, rcListPicYuvRecOut, rcListBitstreamOut, iNumPicRcvd, iTimeOffset,  pcPic, pcPicYuvRecOut, pcBitstreamOut, uiPOCCurr );
       
-      // scaling of picture
-      if ( g_uiBitIncrement )
-      {
-        xScalePic( pcPic );
-      }
-      
       //  Bitstream reset
       pcBitstreamOut->resetBits();
       pcBitstreamOut->rewindStreamPacket();
@@ -595,51 +589,6 @@ Void TEncGOP::xGetBuffer( TComList<TComPic*>&       rcListPic,
   assert (rpcPic->getPOC() == (Int)uiPOCCurr);
   
   return;
-}
-
-Void TEncGOP::xScalePic( TComPic* pcPic )
-{
-  Int     x, y;
-  
-  //===== calculate PSNR =====
-  Pel*  pRec    = pcPic->getPicYuvOrg()->getLumaAddr();
-  Int   iStride = pcPic->getStride();
-  Int   iWidth  = pcPic->getPicYuvOrg()->getWidth();
-  Int   iHeight = pcPic->getPicYuvOrg()->getHeight();
-  
-  for( y = 0; y < iHeight; y++ )
-  {
-    for( x = 0; x < iWidth; x++ )
-    {
-      pRec[x] <<= g_uiBitIncrement;
-    }
-    pRec += iStride;
-  }
-  
-  iHeight >>= 1;
-  iWidth  >>= 1;
-  iStride >>= 1;
-  pRec  = pcPic->getPicYuvOrg()->getCbAddr();
-  
-  for( y = 0; y < iHeight; y++ )
-  {
-    for( x = 0; x < iWidth; x++ )
-    {
-      pRec[x] <<= g_uiBitIncrement;
-    }
-    pRec += iStride;
-  }
-  
-  pRec  = pcPic->getPicYuvOrg()->getCrAddr();
-  
-  for( y = 0; y < iHeight; y++ )
-  {
-    for( x = 0; x < iWidth; x++ )
-    {
-      pRec[x] <<= g_uiBitIncrement;
-    }
-    pRec += iStride;
-  }
 }
 
 Void TEncGOP::xDeScalePic( TComPic* pcPic, TComPicYuv* pcPicD )

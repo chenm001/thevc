@@ -44,6 +44,47 @@
 
 using namespace std;
 
+/**
+ * Multiply all pixels in #img by \f$ 2^{#shiftbits} \f$.
+ *
+ * @param stride  distance between vertically adjacent pixels of #img.
+ * @param width   width of active area in #img.
+ * @param height  height of active area in #img.
+ */
+static void scalePlane(Pel* img, unsigned int stride, unsigned int width, unsigned int height,
+                       unsigned int shiftbits)
+{
+  for (unsigned int y = 0; y < height; y++)
+  {
+    for (unsigned int x = 0; x < width; x++)
+    {
+      img[x] <<= shiftbits;
+    }
+    img += stride;
+  }
+}
+
+/**
+ * Multiply {Y', Cb, Cr} components of #pic by \f$ 2^{#shiftbits} \f$.
+ */
+static void scalePic(TComPicYuv& pic, int shiftbits)
+{
+  assert(shiftbits > 0);
+
+  unsigned int width = pic.getWidth();
+  unsigned int height = pic.getHeight();
+  unsigned int stride = pic.getStride();
+
+  scalePlane(pic.getLumaAddr(), stride, width, height, shiftbits);
+
+  width >>= 1;
+  height >>= 1;
+  stride >>= 1;
+  scalePlane(pic.getCbAddr(), stride, width, height, shiftbits);
+  scalePlane(pic.getCrAddr(), stride, width, height, shiftbits);
+}
+
+
 // ====================================================================================================================
 // Public member functions
 // ====================================================================================================================
@@ -51,9 +92,13 @@ using namespace std;
 /**
  \param pchFile    file name string
  \param bWriteMode file open mode
+ \param fileBitDepth     bit-depth of input/output file data.
+ \param internalBitDepth bit-depth to scale image data to/from when reading/writing.
  */
-Void TVideoIOYuv::open( char* pchFile, Bool bWriteMode )
+Void TVideoIOYuv::open( char* pchFile, Bool bWriteMode, unsigned int fileBitDepth, unsigned int internalBitDepth )
 {
+  m_bitdepthShift = internalBitDepth - fileBitDepth;
+
   if ( bWriteMode )
   {
     m_cHandle.open( pchFile, ios::binary | ios::out );
@@ -171,6 +216,7 @@ Void TVideoIOYuv::read ( TComPicYuv*&  rpcPicYuv, Int aiPad[2] )
   
   delete [] apuchBuf;
   
+  scalePic(*rpcPicYuv, m_bitdepthShift);
   return;
 }
 

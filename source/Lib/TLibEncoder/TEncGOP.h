@@ -127,7 +127,6 @@ protected:
 
   // for scaling & descaing of picture
   // note: IBDI is handled here
-  Void  xScalePic         ( TComPic* pcPic );
   Void  xDeScalePic       ( TComPic* pcPic, TComPicYuv* pcPicD );
   
   Void  xCalculateAddPSNR ( TComPic* pcPic, TComPicYuv* pcPicD, UInt uiBits );
