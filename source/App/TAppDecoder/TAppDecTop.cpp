@@ -99,7 +99,6 @@ Void TAppDecTop::decode()
   TComBitstream*      pcBitstream = m_apcBitstream;
   UInt                uiPOC;
   TComList<TComPic*>* pcListPic;
-  Bool                bAlloc = false;
   
   // create & initialize internal classes
   xCreateDecLib();
@@ -110,6 +109,7 @@ Void TAppDecTop::decode()
 
   // main decoder loop
   Bool  bEos        = false;
+  bool recon_opened = false; // reconstruction file not yet opened. (must be performed after SPS is seen)
   while ( !bEos )
   {
     bEos = m_cTVideoIOBitstreamFile.readBits( pcBitstream );
@@ -127,15 +127,14 @@ Void TAppDecTop::decode()
     
     if( pcListPic )
     {
+      if ( m_pchReconFile && !recon_opened )
+      {
+        m_cTVideoIOYuvReconFile.open( m_pchReconFile, true, g_uiBitDepth + g_uiBitIncrement, g_uiBitDepth + g_uiBitIncrement ); // write mode
+        recon_opened = true;
+      }
       // write reconstuction to file
-      xWriteOutput( pcListPic, bAlloc );
+      xWriteOutput( pcListPic );
     }
-  }
-  
-  // delete temporary buffer
-  if ( bAlloc )
-  {
-    m_cTempPicYuv.destroy();
   }
   
   // delete buffers
@@ -153,11 +152,6 @@ Void TAppDecTop::xCreateDecLib()
 {
   // open bitstream file
   m_cTVideoIOBitstreamFile.openBits( m_pchBitstreamFile, false);  // read mode
-  
-  if ( m_pchReconFile )
-  {
-    m_cTVideoIOYuvReconFile.open( m_pchReconFile, true, g_uiBitDepth, g_uiBitDepth ); // write mode
-  }
   
   // create decoder class
   m_cTDecTop.create();
@@ -187,7 +181,7 @@ Void TAppDecTop::xInitDecLib()
     \param bFirst    first picture?
     \todo            DYN_REF_FREE should be revised
  */
-Void TAppDecTop::xWriteOutput( TComList<TComPic*>* pcListPic, Bool& rbAlloc )
+Void TAppDecTop::xWriteOutput( TComList<TComPic*>* pcListPic )
 {
   TComList<TComPic*>::iterator iterPic   = pcListPic->begin();
   
@@ -197,39 +191,10 @@ Void TAppDecTop::xWriteOutput( TComList<TComPic*>* pcListPic, Bool& rbAlloc )
     
     if ( pcPic->getReconMark() && pcPic->getPOC() == (m_iPOCLastDisplay + 1) )
     {
-      // descaling case: IBDI
-      if ( g_uiBitIncrement )
+      // write to file
+      if ( m_pchReconFile )
       {
-        TComPicYuv* pcPicD = &m_cTempPicYuv;
-        
-        // allocate temporary buffer if first time
-        if ( !rbAlloc )
-        {
-          m_cTempPicYuv.create( pcPic->getPicYuvRec()->getWidth (),
-                               pcPic->getPicYuvRec()->getHeight(),
-                               g_uiMaxCUWidth,
-                               g_uiMaxCUHeight,
-                               g_uiMaxCUDepth );
-          rbAlloc = true;
-        }
-        
-        // descaling of frame
-        xDeScalePic( pcPic, pcPicD );
-        
-        // write to file
-        if ( m_pchReconFile )
-        {
-          m_cTVideoIOYuvReconFile.write( pcPicD, pcPic->getSlice()->getSPS()->getPad() );
-        }
-      }
-      // normal case
-      else
-      {
-        // write to file
-        if ( m_pchReconFile )
-        {
-          m_cTVideoIOYuvReconFile.write( pcPic->getPicYuvRec(), pcPic->getSlice()->getSPS()->getPad() );
-        }
+        m_cTVideoIOYuvReconFile.write( pcPic->getPicYuvRec(), pcPic->getSlice()->getSPS()->getPad() );
       }
       
       // update POC of display order
@@ -256,68 +221,3 @@ Void TAppDecTop::xWriteOutput( TComList<TComPic*>* pcListPic, Bool& rbAlloc )
     iterPic++;
   }
 }
-
-/** \param    pcPic   input picture to be descaled
-    \retval   pcPicD  output picture which is descaled
- */
-Void TAppDecTop::xDeScalePic( TComPic* pcPic, TComPicYuv* pcPicD )
-{
-  Pel*  pRecD   = pcPicD->getLumaAddr();
-  Pel*  pRecDCb = pcPicD->getCbAddr();
-  Pel*  pRecDCr = pcPicD->getCrAddr();
-  Pel*  pRec    = pcPic->getPicYuvRec()->getLumaAddr();
-  Pel*  pRecCb  = pcPic->getPicYuvRec()->getCbAddr();
-  Pel*  pRecCr  = pcPic->getPicYuvRec()->getCrAddr();
-  Int   iStride = pcPic->getStride();
-  
-  Int   iWidth  = pcPic->getPicYuvRec()->getWidth();
-  Int   iHeight = pcPic->getPicYuvRec()->getHeight();
-  Int   offset  = (g_uiBitIncrement>0)?(1<<(g_uiBitIncrement-1)):0;
-  
-  Int   x, y;
-  
-  // ------------------------------------------------------------------------------------------------------------------
-  // Luma descaling
-  // ------------------------------------------------------------------------------------------------------------------
-  
-  for( y = iHeight-1; y >= 0; y-- )
-  {
-    for( x = iWidth-1; x >= 0; x-- )
-    {
-#if IBDI_NOCLIP_RANGE
-      pRecD[x] = ( pRec[x] + offset ) >> g_uiBitIncrement;
-#else
-      pRecD[x] = ClipMax( ( pRec[x] + offset ) >> g_uiBitIncrement );
-#endif
-    }
-    pRecD += iStride;
-    pRec  += iStride;
-  }
-  
-  // ------------------------------------------------------------------------------------------------------------------
-  // Chroma descaling
-  // ------------------------------------------------------------------------------------------------------------------
-  
-  iHeight >>= 1;
-  iWidth  >>= 1;
-  iStride >>= 1;
-  
-  for( y = iHeight-1; y >= 0; y-- )
-  {
-    for( x = iWidth-1; x >= 0; x-- )
-    {
-#if IBDI_NOCLIP_RANGE
-      pRecDCb[x] = ( pRecCb[x] + offset) >> g_uiBitIncrement;
-      pRecDCr[x] = ( pRecCr[x] + offset) >> g_uiBitIncrement;
-#else
-      pRecDCb[x] = ClipMax( ( pRecCb[x] + offset) >> g_uiBitIncrement );
-      pRecDCr[x] = ClipMax( ( pRecCr[x] + offset) >> g_uiBitIncrement );
-#endif
-    }
-    pRecDCb += iStride;
-    pRecCb  += iStride;
-    pRecDCr += iStride;
-    pRecCr  += iStride;
-  }
-}
-

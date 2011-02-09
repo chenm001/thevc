@@ -137,7 +137,7 @@ Void TAppEncTop::xCreateLib()
 {
   // Video I/O
   m_cTVideoIOYuvInputFile.open( m_pchInputFile,     false, g_uiBitDepth, g_uiBitDepth + g_uiBitIncrement);  // read  mode
-  m_cTVideoIOYuvReconFile.open( m_pchReconFile,     true, g_uiBitDepth, g_uiBitDepth);  // write mode
+  m_cTVideoIOYuvReconFile.open( m_pchReconFile,     true, g_uiBitDepth + g_uiBitIncrement, g_uiBitDepth + g_uiBitIncrement);  // write mode
   m_cTVideoIOBitsFile.openBits( m_pchBitstreamFile, true  );  // write mode
   
   // Neo Decoder

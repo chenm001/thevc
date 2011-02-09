@@ -77,6 +77,7 @@ static void scalePlane(Pel* img, unsigned int stride, unsigned int width, unsign
 Void TVideoIOYuv::open( char* pchFile, Bool bWriteMode, unsigned int fileBitDepth, unsigned int internalBitDepth )
 {
   m_bitdepthShift = internalBitDepth - fileBitDepth;
+  m_fileBitdepth = fileBitDepth;
   assert(m_bitdepthShift >= 0);
 
   if ( bWriteMode )
@@ -240,7 +241,11 @@ Void TVideoIOYuv::read ( TComPicYuv*&  rpcPicYuv, Int aiPad[2] )
   scalePlane(rpcPicYuv->getCrAddr(), iStride, width_full, height_full, m_bitdepthShift);
 }
 
-/** \param pcPicYuv     input picture YUV buffer class pointer
+/**
+ * Write one Y'CbCr frame. No bit-depth conversion is performed, #pcPicYuv is
+ * assumed to be at TVideoIO::m_fileBitdepth depth.
+ *
+ \param pcPicYuv     input picture YUV buffer class pointer
  \param aiPad[2]     source padding size, aiPad[0] = horizontal, aiPad[1] = vertical
  */
 Void TVideoIOYuv::write( TComPicYuv* pcPicYuv, Int aiPad[2] )
@@ -249,7 +254,7 @@ Void TVideoIOYuv::write( TComPicYuv* pcPicYuv, Int aiPad[2] )
   Int   iStride = pcPicYuv->getStride();
   unsigned int width  = pcPicYuv->getWidth() - aiPad[0];
   unsigned int height = pcPicYuv->getHeight() - aiPad[1];
-  bool is16bit = false;
+  bool is16bit = m_fileBitdepth > 8;
 
   writePlane(m_cHandle, pcPicYuv->getLumaAddr(), is16bit, iStride, width, height);
 

@@ -53,6 +53,7 @@ class TVideoIOYuv
 {
 private:
   fstream   m_cHandle;                                      ///< file handle
+  unsigned int m_fileBitdepth; ///< bitdepth of input/output video file
   int m_bitdepthShift;  ///< number of bits to increase or decrease image by before/after write/read
   
 public:

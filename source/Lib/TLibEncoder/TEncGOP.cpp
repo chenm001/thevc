@@ -316,10 +316,6 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
         m_pcEntropyCoder->resetEntropy    ();
       }
       
-      /////////////////////////////////////////////////////////////////////////////////////////////////// Reconstructed image output
-      TComPicYuv pcPicD;
-      pcPicD.create( pcPic->getPicYuvOrg()->getWidth(), pcPic->getPicYuvOrg()->getHeight(), g_uiMaxCUWidth, g_uiMaxCUHeight, g_uiMaxCUDepth );
-      
       // adaptive loop filter
       if ( pcSlice->getSPS()->getUseALF() )
       {
@@ -415,13 +411,7 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
       
       xCalculateAddPSNR( pcPic, pcPic->getPicYuvRec(), pcBitstreamOut->getNumberOfWrittenBits(), dEncTime );
       
-      // de-scaling of picture
-      xDeScalePic( pcPic, &pcPicD );
-
-      //  Reconstruction buffer update
-      pcPicD.copyToPic(pcPicYuvRecOut);
-      
-      pcPicD.destroy();
+      pcPic->getPicYuvRec()->copyToPic(pcPicYuvRecOut);
       
       pcPic->setReconMark   ( true );
       
@@ -589,70 +579,6 @@ Void TEncGOP::xGetBuffer( TComList<TComPic*>&       rcListPic,
   assert (rpcPic->getPOC() == (Int)uiPOCCurr);
   
   return;
-}
-
-Void TEncGOP::xDeScalePic( TComPic* pcPic, TComPicYuv* pcPicD )
-{
-  Int     x, y;
-  Int     offset = (g_uiBitIncrement>0)?(1<<(g_uiBitIncrement-1)):0;
-  
-  //===== calculate PSNR =====
-  Pel*  pRecD   = pcPicD->getLumaAddr();
-  Pel*  pRec    = pcPic->getPicYuvRec()->getLumaAddr();
-  Int   iStride = pcPic->getStride();
-  Int   iWidth  = pcPic->getPicYuvOrg()->getWidth();
-  Int   iHeight = pcPic->getPicYuvOrg()->getHeight();
-  
-  for( y = 0; y < iHeight; y++ )
-  {
-    for( x = 0; x < iWidth; x++ )
-    {
-#if IBDI_NOCLIP_RANGE
-      pRecD[x] = ( pRec[x] + offset ) >> g_uiBitIncrement;
-#else
-      pRecD[x] = ClipMax( ( pRec[x] + offset ) >> g_uiBitIncrement );
-#endif
-    }
-    pRecD += iStride;
-    pRec += iStride;
-  }
-  
-  iHeight >>= 1;
-  iWidth  >>= 1;
-  iStride >>= 1;
-  pRecD = pcPicD->getCbAddr();
-  pRec  = pcPic->getPicYuvRec()->getCbAddr();
-  
-  for( y = 0; y < iHeight; y++ )
-  {
-    for( x = 0; x < iWidth; x++ )
-    {
-#if IBDI_NOCLIP_RANGE
-      pRecD[x] = ( pRec[x] + offset ) >> g_uiBitIncrement;
-#else
-      pRecD[x] = ClipMax( ( pRec[x] + offset ) >> g_uiBitIncrement );
-#endif
-    }
-    pRecD += iStride;
-    pRec += iStride;
-  }
-  
-  pRecD = pcPicD->getCrAddr();
-  pRec  = pcPic->getPicYuvRec()->getCrAddr();
-  
-  for( y = 0; y < iHeight; y++ )
-  {
-    for( x = 0; x < iWidth; x++ )
-    {
-#if IBDI_NOCLIP_RANGE
-      pRecD[x] = ( pRec[x] + offset ) >> g_uiBitIncrement;
-#else
-      pRecD[x] = ClipMax( ( pRec[x] + offset ) >> g_uiBitIncrement );
-#endif
-    }
-    pRecD += iStride;
-    pRec += iStride;
-  }
 }
 
 UInt64 TEncGOP::xFindDistortionFrame (TComPicYuv* pcPic0, TComPicYuv* pcPic1)
