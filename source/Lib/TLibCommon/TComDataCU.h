@@ -402,6 +402,10 @@ public:
   Int           getAboveIntraDirLuma            ( UInt uiAbsPartIdx );
 #endif
 
+#if MS_LCEC_LOOKUP_TABLE_EXCEPTION
+  Bool          isSuroundingRefIdxException     ( UInt   uiAbsPartIdx );
+#endif
+  
   // -------------------------------------------------------------------------------------------------------------------
   // member functions for SBAC context
   // -------------------------------------------------------------------------------------------------------------------

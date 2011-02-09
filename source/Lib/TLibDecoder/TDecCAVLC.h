@@ -100,7 +100,11 @@ private:
   Int                   m_iRefFrame1[1000];
   Bool                  m_bMVres0[1000];
   Bool                  m_bMVres1[1000];
+#if MS_LCEC_LOOKUP_TABLE_EXCEPTION
+  UInt                  m_uiMI1TableD[9];
+#else
   UInt                  m_uiMI1TableD[8];
+#endif
   UInt                  m_uiMI2TableD[15]; 
   UInt                  m_uiMITableVlcIdx;
   

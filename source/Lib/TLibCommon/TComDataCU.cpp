@@ -3013,3 +3013,169 @@ UInt TComDataCU::getCoefScanIdx(UInt uiAbsPartIdx, UInt uiWidth, Bool bIsLuma, B
   return uiScanIdx;
 }
 #endif //QC_MDCS
+
+#if MS_LCEC_LOOKUP_TABLE_EXCEPTION
+Bool TComDataCU::isSuroundingRefIdxException     ( UInt   uiAbsPartIdx )
+{
+  if ( getSlice()->getNumRefIdx( REF_PIC_LIST_0 ) <= 2 && getSlice()->getNumRefIdx( REF_PIC_LIST_1 ) <= 2)
+  {
+    return false;
+  }
+  
+  TComDataCU* pcTempCU;
+  UInt        uiTempPartIdx;
+  TComMvField cMvFieldTemp;
+  
+  if ( getSlice()->getNumRefIdx ( REF_PIC_LIST_C ) > 0 )  // combined list case
+  {
+    // Left PU
+    pcTempCU = getPULeft( uiTempPartIdx, m_uiAbsIdxInLCU + uiAbsPartIdx );
+    if ( pcTempCU )
+    {
+      if (pcTempCU->getInterDir(uiTempPartIdx) == 1 )
+      {
+        if ( pcTempCU->getSlice()->getRefIdxOfLC(REF_PIC_LIST_0, pcTempCU->getCUMvField( REF_PIC_LIST_0 )->getRefIdx( uiTempPartIdx )) > 3 )
+          return true;
+      }
+      else if (pcTempCU->getInterDir(uiTempPartIdx) == 2 )
+      {
+        if ( pcTempCU->getSlice()->getRefIdxOfLC(REF_PIC_LIST_1, pcTempCU->getCUMvField( REF_PIC_LIST_1 )->getRefIdx( uiTempPartIdx )) > 3 )
+          return true;
+      }
+      else if ( pcTempCU->getInterDir(uiTempPartIdx) == 3 )
+      {
+        if ( pcTempCU->getCUMvField( REF_PIC_LIST_0 )->getRefIdx( uiTempPartIdx ) > 1 )
+          return true;
+        
+        if ( pcTempCU->getCUMvField( REF_PIC_LIST_1 )->getRefIdx( uiTempPartIdx ) > 1 )
+          return true;
+      }
+    }
+    
+    // Above PU
+    pcTempCU = getPUAbove( uiTempPartIdx, m_uiAbsIdxInLCU + uiAbsPartIdx );
+    if ( pcTempCU )
+    {
+      if (pcTempCU->getInterDir(uiTempPartIdx) == 1 )
+      {
+        if ( pcTempCU->getSlice()->getRefIdxOfLC(REF_PIC_LIST_0, pcTempCU->getCUMvField( REF_PIC_LIST_0 )->getRefIdx( uiTempPartIdx )) > 3 )
+          return true;
+      }
+      else if (pcTempCU->getInterDir(uiTempPartIdx) == 2 )
+      {
+        if ( pcTempCU->getSlice()->getRefIdxOfLC(REF_PIC_LIST_1, pcTempCU->getCUMvField( REF_PIC_LIST_1 )->getRefIdx( uiTempPartIdx )) > 3 )
+          return true;
+      }
+      else if ( pcTempCU->getInterDir(uiTempPartIdx) == 3 )
+      {
+        if ( pcTempCU->getCUMvField( REF_PIC_LIST_0 )->getRefIdx( uiTempPartIdx ) > 1 )
+          return true;
+        
+        if ( pcTempCU->getCUMvField( REF_PIC_LIST_1 )->getRefIdx( uiTempPartIdx ) > 1 )
+          return true;
+      }
+    }
+    
+    // Above left PU
+    pcTempCU = getPUAboveLeft( uiTempPartIdx, m_uiAbsIdxInLCU + uiAbsPartIdx );
+    if ( pcTempCU )
+    {
+      if (pcTempCU->getInterDir(uiTempPartIdx) == 1 )
+      {
+        if ( pcTempCU->getSlice()->getRefIdxOfLC(REF_PIC_LIST_0, pcTempCU->getCUMvField( REF_PIC_LIST_0 )->getRefIdx( uiTempPartIdx )) > 3 )
+          return true;
+      }
+      else if (pcTempCU->getInterDir(uiTempPartIdx) == 2 )
+      {
+        if ( pcTempCU->getSlice()->getRefIdxOfLC(REF_PIC_LIST_1, pcTempCU->getCUMvField( REF_PIC_LIST_1 )->getRefIdx( uiTempPartIdx )) > 3 )
+          return true;
+      }
+      else if ( pcTempCU->getInterDir(uiTempPartIdx) == 3 )
+      {
+        if ( pcTempCU->getCUMvField( REF_PIC_LIST_0 )->getRefIdx( uiTempPartIdx ) > 1 )
+          return true;
+        
+        if ( pcTempCU->getCUMvField( REF_PIC_LIST_1 )->getRefIdx( uiTempPartIdx ) > 1 )
+          return true;
+      }
+    }
+    
+    return false;
+  }
+  
+  // not combined list case
+  // Left PU
+  pcTempCU = getPULeft( uiTempPartIdx, m_uiAbsIdxInLCU + uiAbsPartIdx );
+  if ( pcTempCU )
+  {
+    if (pcTempCU->getInterDir(uiTempPartIdx) == 1 )
+    {
+      if ( pcTempCU->getCUMvField( REF_PIC_LIST_0 )->getRefIdx( uiTempPartIdx ) > MS_LCEC_UNI_EXCEPTION_THRES )
+        return true;
+    }
+    else if (pcTempCU->getInterDir(uiTempPartIdx) == 2 )
+    {
+      if ( pcTempCU->getCUMvField( REF_PIC_LIST_1 )->getRefIdx( uiTempPartIdx ) > MS_LCEC_UNI_EXCEPTION_THRES )
+        return true;
+    }
+    else if ( pcTempCU->getInterDir(uiTempPartIdx) == 3 )
+    {
+      if ( pcTempCU->getCUMvField( REF_PIC_LIST_0 )->getRefIdx( uiTempPartIdx ) > 1 )
+        return true;
+      
+      if ( pcTempCU->getCUMvField( REF_PIC_LIST_1 )->getRefIdx( uiTempPartIdx ) > 1 )
+        return true;
+    }
+  }
+  
+  // Above PU
+  pcTempCU = getPUAbove( uiTempPartIdx, m_uiAbsIdxInLCU + uiAbsPartIdx );
+  if ( pcTempCU )
+  {
+    if (pcTempCU->getInterDir(uiTempPartIdx) == 1 )
+    {
+      if ( pcTempCU->getCUMvField( REF_PIC_LIST_0 )->getRefIdx( uiTempPartIdx ) > MS_LCEC_UNI_EXCEPTION_THRES )
+        return true;
+    }
+    else if (pcTempCU->getInterDir(uiTempPartIdx) == 2 )
+    {
+      if ( pcTempCU->getCUMvField( REF_PIC_LIST_1 )->getRefIdx( uiTempPartIdx ) > MS_LCEC_UNI_EXCEPTION_THRES )
+        return true;
+    }
+    else if ( pcTempCU->getInterDir(uiTempPartIdx) == 3 )
+    {
+      if ( pcTempCU->getCUMvField( REF_PIC_LIST_0 )->getRefIdx( uiTempPartIdx ) > 1 )
+        return true;
+      
+      if ( pcTempCU->getCUMvField( REF_PIC_LIST_1 )->getRefIdx( uiTempPartIdx ) > 1 )
+        return true;
+    }
+  }
+  
+  // Above left PU
+  pcTempCU = getPUAboveLeft( uiTempPartIdx, m_uiAbsIdxInLCU + uiAbsPartIdx );
+  if ( pcTempCU )
+  {
+    if (pcTempCU->getInterDir(uiTempPartIdx) == 1 )
+    {
+      if ( pcTempCU->getCUMvField( REF_PIC_LIST_0 )->getRefIdx( uiTempPartIdx ) > MS_LCEC_UNI_EXCEPTION_THRES )
+        return true;
+    }
+    else if (pcTempCU->getInterDir(uiTempPartIdx) == 2 )
+    {
+      if ( pcTempCU->getCUMvField( REF_PIC_LIST_1 )->getRefIdx( uiTempPartIdx ) > MS_LCEC_UNI_EXCEPTION_THRES )
+        return true;
+    }
+    else if ( pcTempCU->getInterDir(uiTempPartIdx) == 3 )
+    {
+      if ( pcTempCU->getCUMvField( REF_PIC_LIST_0 )->getRefIdx( uiTempPartIdx ) > 1 )
+        return true;
+      
+      if ( pcTempCU->getCUMvField( REF_PIC_LIST_1 )->getRefIdx( uiTempPartIdx ) > 1 )
+        return true;
+    }
+  }
+  
+  return false;
+}
+#endif

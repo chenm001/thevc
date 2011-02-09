@@ -479,6 +479,19 @@ Void TDecEntropy::decodePredInfo    ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt 
     else
 #endif
     {
+#if MS_LCEC_LOOKUP_TABLE_EXCEPTION
+      if ( pcCU->getSlice()->getSymbolMode() == 0 )
+      {
+        if ( pcCU->isSuroundingRefIdxException( uiAbsPartIdx ) )
+        {
+          pcCU->getSlice()->setRefIdxCombineCoding( false );
+        }
+        else
+        {
+          pcCU->getSlice()->setRefIdxCombineCoding( true );
+        }
+      }
+#endif
       decodeInterDir( pcCU, uiAbsPartIdx, uiDepth );
 
       if ( pcCU->getSlice()->getNumRefIdx( REF_PIC_LIST_0 ) > 0 ) //if ( ref. frame list0 has at least 1 entry )
@@ -606,6 +619,19 @@ Void TDecEntropy::decodePUWise( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDept
     }
     else
     {
+#if MS_LCEC_LOOKUP_TABLE_EXCEPTION
+      if ( pcCU->getSlice()->getSymbolMode() == 0 )
+      {
+        if ( pcCU->isSuroundingRefIdxException( uiAbsPartIdx ) )
+        {
+          pcCU->getSlice()->setRefIdxCombineCoding( false );
+        }
+        else
+        {
+          pcCU->getSlice()->setRefIdxCombineCoding( true );
+        }
+      }
+#endif
       decodeInterDirPU( pcCU, uiSubPartIdx, uiDepth, uiPartIdx );
       for ( UInt uiRefListIdx = 0; uiRefListIdx < 2; uiRefListIdx++ )
       {        

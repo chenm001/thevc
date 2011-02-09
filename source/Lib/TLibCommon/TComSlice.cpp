@@ -65,6 +65,9 @@ TComSlice::TComSlice()
 #if MS_NO_BACK_PRED_IN_B0
   m_bNoBackPredFlag = false;
 #endif
+#if MS_LCEC_LOOKUP_TABLE_EXCEPTION
+  m_bRefIdxCombineCoding = false;
+#endif
 #if DOCOMO_COMB_LIST 
   m_bRefPicListCombinationFlag = false;
 #endif
@@ -92,6 +95,9 @@ Void TComSlice::initSlice()
   initEqualRef();
 #if MS_NO_BACK_PRED_IN_B0
   m_bNoBackPredFlag = false;
+#endif
+#if MS_LCEC_LOOKUP_TABLE_EXCEPTION
+  m_bRefIdxCombineCoding = false;
 #endif
 #if DOCOMO_COMB_LIST 
   m_bRefPicListCombinationFlag = false;

@@ -1113,6 +1113,30 @@ const UInt g_auiMI2TableENoL1[15] = {0,1,2,12,14,13,3,4,6,5,10,9,8,11,7};
 const UInt g_auiMI2TableDNoL1[15] = {0,1,2,6,7,9,8,14,12,11,10,13,3,5,4};
 #endif
 
+#if MS_LCEC_ONE_FRAME
+// as there are two lists used for bi-directional prediction, and one list for uni-directional prediction
+// for uni-directional prediction, when pcSlice->getNoBackPredFlag() is true, list 0 is used for uni-directional prediction
+// when pcSlice->getNoBackPredFlag() is false, combined list is used for uni-directional prediction
+// the meaning of the elements are as follows:
+/*
+ 0: uni-directional prediction, frame 0
+ 1: uni-directional prediction, frame 1
+ 2: uni-directional prediction, frame 2
+ 3: uni-directional prediction, frame 3
+ 4: bi-directional prediction, frame (0, 0)
+ 5: bi-directional prediction, frame (0, 1)
+ 6: bi-directional prediction, frame (1, 0)
+ 7: bi-directional prediction, frame (1, 1)
+ 8: exception, for uni-directional prediction, if combined list, reference frame index >= 4 (count from 0) is exception
+ if GPB (only list0 is used), reference frame index >= 2 (count from 0) is exception
+ for bi-directional prediction, reference frame index >= 2 (count from 0 ) is exception
+ */
+const UInt g_auiMI1TableEOnly1Ref[8] = {0,3,1,4,2,6,5,7};
+const UInt g_auiMI1TableDOnly1Ref[8] = {0,2,4,1,3,6,5,7};
+const UInt g_auiMI1TableEOnly1RefNoL1[8] = {0,2,3,4,1,6,5,7};
+const UInt g_auiMI1TableDOnly1RefNoL1[8] = {0,4,1,2,3,6,5,7};
+#endif
+
 
 #if QC_LCEC_INTER_MODE
 const UInt g_auiInterModeTableE[4][7] = {{0,1,2,3,4,5,6},{0,1,2,3,4,5,6},{0,1,2,3,4,5,6},{6,0,1,2,3,4,5}};

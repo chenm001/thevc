@@ -249,6 +249,9 @@ private:
 #if MS_NO_BACK_PRED_IN_B0
   Bool        m_bNoBackPredFlag;
 #endif
+#if MS_LCEC_LOOKUP_TABLE_EXCEPTION
+  Bool        m_bRefIdxCombineCoding;
+#endif
   
 public:
   TComSlice();
@@ -349,6 +352,10 @@ public:
 #if MS_NO_BACK_PRED_IN_B0
   Bool getNoBackPredFlag() { return m_bNoBackPredFlag; }
   Void setNoBackPredFlag( Bool b ) { m_bNoBackPredFlag = b; }
+#endif
+#if MS_LCEC_LOOKUP_TABLE_EXCEPTION
+  Bool getRefIdxCombineCoding() { return m_bRefIdxCombineCoding; }
+  Void setRefIdxCombineCoding( Bool b ) { m_bRefIdxCombineCoding = b; }
 #endif
 #if DOCOMO_COMB_LIST
   Void      generateCombinedList       ();

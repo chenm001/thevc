@@ -264,6 +264,36 @@ Void TEncCavlc::resetEntropy()
     ::memcpy(m_uiMI2TableD, g_auiMI2TableDNoL1, 15*sizeof(UInt));
   }
 #endif
+#if MS_LCEC_ONE_FRAME
+  if ( m_pcSlice->getNumRefIdx(REF_PIC_LIST_0) <= 1 && m_pcSlice->getNumRefIdx(REF_PIC_LIST_1) <= 1 )
+  {
+    if ( m_pcSlice->getNoBackPredFlag() || ( m_pcSlice->getNumRefIdx(REF_PIC_LIST_C) > 0 && m_pcSlice->getNumRefIdx(REF_PIC_LIST_C) <= 1 ) )
+    {
+      ::memcpy(m_uiMI1TableE, g_auiMI1TableEOnly1RefNoL1, 8*sizeof(UInt));
+      ::memcpy(m_uiMI1TableD, g_auiMI1TableDOnly1RefNoL1, 8*sizeof(UInt));
+    }
+    else
+    {
+      ::memcpy(m_uiMI1TableE, g_auiMI1TableEOnly1Ref, 8*sizeof(UInt));
+      ::memcpy(m_uiMI1TableD, g_auiMI1TableDOnly1Ref, 8*sizeof(UInt));
+    }
+  }
+#endif
+#if MS_LCEC_LOOKUP_TABLE_EXCEPTION
+  if (m_pcSlice->getNumRefIdx(REF_PIC_LIST_C)>0)
+  {
+    m_uiMI1TableE[8] = 8;
+    m_uiMI1TableD[8] = 8;
+  }
+  else  // GPB case
+  {
+    m_uiMI1TableD[8] = m_uiMI1TableD[6];
+    m_uiMI1TableD[6] = 8;
+    
+    m_uiMI1TableE[m_uiMI1TableD[8]] = 8;
+    m_uiMI1TableE[m_uiMI1TableD[6]] = 6;
+  }
+#endif
 #if QC_LCEC_INTER_MODE
   ::memcpy(m_uiSplitTableE, g_auiInterModeTableE, 4*7*sizeof(UInt));
   ::memcpy(m_uiSplitTableD, g_auiInterModeTableD, 4*7*sizeof(UInt));
@@ -1301,7 +1331,11 @@ Void TEncCavlc::codeInterDir( TComDataCU* pcCU, UInt uiAbsPartIdx )
   UInt uiInterDir = pcCU->getInterDir   ( uiAbsPartIdx );
   uiInterDir--;
   
+#if MS_LCEC_LOOKUP_TABLE_EXCEPTION
+  if ( pcCU->getSlice()->getRefIdxCombineCoding() )
+#else
   if(pcCU->getSlice()->getNumRefIdx( REF_PIC_LIST_0 ) <= 2 && pcCU->getSlice()->getNumRefIdx( REF_PIC_LIST_1 ) <= 2)
+#endif
   {
     Int x,cx,y,cy;
     Int iRefFrame0,iRefFrame1;
@@ -1327,6 +1361,23 @@ Void TEncCavlc::codeInterDir( TComDataCU* pcCU, UInt uiAbsPartIdx )
         iRefFrame0 = pcCU->getCUMvField( REF_PIC_LIST_0 )->getRefIdx( uiAbsPartIdx );
 #endif
         uiIndex = iRefFrame0;
+        
+#if MS_LCEC_LOOKUP_TABLE_EXCEPTION
+        if(pcCU->getSlice()->getNumRefIdx(REF_PIC_LIST_C) > 0)
+        {
+          if ( iRefFrame0 >= 4 )
+          {
+            uiIndex = 8;
+          }
+        }
+        else
+        {
+          if ( iRefFrame0 > MS_LCEC_UNI_EXCEPTION_THRES )
+          {
+            uiIndex = 8;
+          }
+        }        
+#endif        
       }
       else if (uiInterDir==1)
       {
@@ -1341,6 +1392,22 @@ Void TEncCavlc::codeInterDir( TComDataCU* pcCU, UInt uiAbsPartIdx )
           iRefFrame1 = pcCU->getCUMvField( REF_PIC_LIST_1 )->getRefIdx( uiAbsPartIdx );
           uiIndex = 2 + iRefFrame1;
         }
+#if MS_LCEC_LOOKUP_TABLE_EXCEPTION
+        if(pcCU->getSlice()->getNumRefIdx(REF_PIC_LIST_C) > 0)
+        {
+          if ( iRefFrame1 >= 4 )
+          {
+            uiIndex = 8;
+          }
+        }
+        else
+        {
+          if ( iRefFrame1 > MS_LCEC_UNI_EXCEPTION_THRES )
+          {
+            uiIndex = 8;
+          }
+        } 
+#endif
 #else
         iRefFrame1 = pcCU->getCUMvField( REF_PIC_LIST_1 )->getRefIdx( uiAbsPartIdx );
         uiIndex = 2 + iRefFrame1;
@@ -1351,6 +1418,12 @@ Void TEncCavlc::codeInterDir( TComDataCU* pcCU, UInt uiAbsPartIdx )
         iRefFrame0 = pcCU->getCUMvField( REF_PIC_LIST_0 )->getRefIdx( uiAbsPartIdx );
         iRefFrame1 = pcCU->getCUMvField( REF_PIC_LIST_1 )->getRefIdx( uiAbsPartIdx );
         uiIndex = 4 + 2*iRefFrame0 + iRefFrame1;
+#if MS_LCEC_LOOKUP_TABLE_EXCEPTION
+        if ( iRefFrame0 >= 2 || iRefFrame1 >= 2 )
+        {
+          uiIndex = 8;
+        }
+#endif
       }
     }
     
@@ -1359,7 +1432,9 @@ Void TEncCavlc::codeInterDir( TComDataCU* pcCU, UInt uiAbsPartIdx )
     cx = m_uiMITableE[x];
     
     /* Adapt table */
+#if !MS_LCEC_LOOKUP_TABLE_MAX_VALUE
     UInt vlcn = g_auiMITableVlcNum[m_uiMITableVlcIdx];    
+#endif
     if ( m_bAdaptFlag )
     {        
       cy = Max(0,cx-1);
@@ -1376,9 +1451,51 @@ Void TEncCavlc::codeInterDir( TComDataCU* pcCU, UInt uiAbsPartIdx )
       m_uiBitMI += xWriteVlc( vlcn, cx );
     else
 #endif
+    {
+#if MS_LCEC_LOOKUP_TABLE_MAX_VALUE
+      UInt uiMaxVal = 7;
+#if MS_LCEC_LOOKUP_TABLE_EXCEPTION
+      uiMaxVal = 8;
+#endif
+      if ( pcCU->getSlice()->getNumRefIdx( REF_PIC_LIST_0 ) <= 1 && pcCU->getSlice()->getNumRefIdx( REF_PIC_LIST_1 ) <= 1 )
+      {
+        if ( pcCU->getSlice()->getNoBackPredFlag() || ( pcCU->getSlice()->getNumRefIdx(REF_PIC_LIST_C) > 0 && pcCU->getSlice()->getNumRefIdx(REF_PIC_LIST_C) <= 1 ) )
+        {
+          uiMaxVal = 1;
+        }
+        else
+        {
+          uiMaxVal = 2;
+        }
+      }
+      else if ( pcCU->getSlice()->getNumRefIdx( REF_PIC_LIST_0 ) <= 2 && pcCU->getSlice()->getNumRefIdx( REF_PIC_LIST_1 ) <= 2 )
+      {
+        if ( pcCU->getSlice()->getNoBackPredFlag() || ( pcCU->getSlice()->getNumRefIdx(REF_PIC_LIST_C) > 0 && pcCU->getSlice()->getNumRefIdx(REF_PIC_LIST_C) <= 2 ) )
+        {
+          uiMaxVal = 5;
+        }
+        else
+        {
+          uiMaxVal = 7;
+        }
+      }
+      else if ( pcCU->getSlice()->getNumRefIdx(REF_PIC_LIST_C) <= 0 ) // GPB case
+      {
+        uiMaxVal = 4+1+MS_LCEC_UNI_EXCEPTION_THRES;
+      }
+      
+      xWriteUnaryMaxSymbol( cx, uiMaxVal );
+#else
       xWriteVlc( vlcn, cx );
+#endif
+    }
     
-    return;
+#if MS_LCEC_LOOKUP_TABLE_EXCEPTION
+    if ( x<8 ) 
+#endif   
+    {
+      return;
+    }
   }
   
   xWriteFlag( ( uiInterDir == 2 ? 1 : 0 ));
@@ -1442,27 +1559,102 @@ Void TEncCavlc::codeRefFrmIdx( TComDataCU* pcCU, UInt uiAbsPartIdx, RefPicList e
     return;
   }
   
+#if MS_LCEC_LOOKUP_TABLE_EXCEPTION
+  if ( pcCU->getSlice()->getRefIdxCombineCoding() && pcCU->getInterDir(uiAbsPartIdx)==3 &&
+      pcCU->getCUMvField( REF_PIC_LIST_0 )->getRefIdx( uiAbsPartIdx ) < 2 &&
+      pcCU->getCUMvField( REF_PIC_LIST_1 )->getRefIdx( uiAbsPartIdx ) < 2 )
+  {
+    return;
+  }
+  else if ( pcCU->getSlice()->getRefIdxCombineCoding() && pcCU->getInterDir(uiAbsPartIdx)==1 && 
+           ( ( pcCU->getSlice()->getNumRefIdx(REF_PIC_LIST_C)>0  && pcCU->getSlice()->getRefIdxOfLC(REF_PIC_LIST_0, pcCU->getCUMvField( REF_PIC_LIST_0 )->getRefIdx( uiAbsPartIdx )) < 4 ) || 
+            ( pcCU->getSlice()->getNumRefIdx(REF_PIC_LIST_C)<=0 && pcCU->getCUMvField( REF_PIC_LIST_0 )->getRefIdx( uiAbsPartIdx ) <= MS_LCEC_UNI_EXCEPTION_THRES ) ) )
+  {
+    return;
+  }
+  else if ( pcCU->getSlice()->getRefIdxCombineCoding() && pcCU->getInterDir(uiAbsPartIdx)==2 && pcCU->getSlice()->getRefIdxOfLC(REF_PIC_LIST_1, pcCU->getCUMvField( REF_PIC_LIST_1 )->getRefIdx( uiAbsPartIdx )) < 4 )
+  {
+    return;
+  }
+  
+  UInt uiRefFrmIdxMinus = 0;
+  if ( pcCU->getSlice()->getRefIdxCombineCoding() )
+  {
+    if ( pcCU->getInterDir( uiAbsPartIdx ) != 3 )
+    {
+      if ( pcCU->getSlice()->getNumRefIdx(REF_PIC_LIST_C) > 0 )
+      {
+        uiRefFrmIdxMinus = 4;
+        assert( iRefFrame >=4 );
+      }
+      else
+      {
+        uiRefFrmIdxMinus = MS_LCEC_UNI_EXCEPTION_THRES+1;
+        assert( iRefFrame > MS_LCEC_UNI_EXCEPTION_THRES );
+      }
+      
+    }
+    else if ( eRefList == REF_PIC_LIST_1 && pcCU->getCUMvField( REF_PIC_LIST_0 )->getRefIdx( uiAbsPartIdx ) < 2 )
+    {
+      uiRefFrmIdxMinus = 2;
+      assert( iRefFrame >= 2 );
+    }
+  }
+  
+  if ( pcCU->getSlice()->getNumRefIdx( eRefListTemp ) - uiRefFrmIdxMinus <= 1 )
+  {
+    return;
+  }
+  xWriteFlag( ( iRefFrame - uiRefFrmIdxMinus == 0 ? 0 : 1 ) );
+#else
   xWriteFlag( ( iRefFrame == 0 ? 0 : 1 ) );
+#endif
+  
 #if LCEC_STAT
   if (m_bAdaptFlag)
     m_uiBitIRefFrmIdx += 1;
 #endif
+  
+#if MS_LCEC_LOOKUP_TABLE_EXCEPTION
+  if ( iRefFrame - uiRefFrmIdxMinus > 0 )
+#else    
   if ( iRefFrame > 0 )
+#endif
   {
 #if LCEC_STAT
     if (m_bAdaptFlag)
+    {
 #if DOCOMO_COMB_LIST
+#if MS_LCEC_LOOKUP_TABLE_EXCEPTION
+      m_uiBitIRefFrmIdx += xWriteUnaryMaxSymbol( iRefFrame - 1 - uiRefFrmIdxMinus, pcCU->getSlice()->getNumRefIdx( eRefListTemp )-2 - uiRefFrmIdxMinus );      
+#else
       m_uiBitIRefFrmIdx += xWriteUnaryMaxSymbol( iRefFrame - 1, pcCU->getSlice()->getNumRefIdx( eRefListTemp )-2 );
+#endif
+#else
+#if MS_LCEC_LOOKUP_TABLE_EXCEPTION
+      m_uiBitIRefFrmIdx += xWriteUnaryMaxSymbol( iRefFrame - 1 - uiRefFrmIdxMinus, pcCU->getSlice()->getNumRefIdx( eRefList )-2 - uiRefFrmIdxMinus );      
 #else
       m_uiBitIRefFrmIdx += xWriteUnaryMaxSymbol( iRefFrame - 1, pcCU->getSlice()->getNumRefIdx( eRefList )-2 );
 #endif
+#endif
+    }
     else
 #endif
+    {
 #if DOCOMO_COMB_LIST
+#if MS_LCEC_LOOKUP_TABLE_EXCEPTION
+      xWriteUnaryMaxSymbol( iRefFrame - 1 - uiRefFrmIdxMinus, pcCU->getSlice()->getNumRefIdx( eRefListTemp )-2 - uiRefFrmIdxMinus );
+#else
       xWriteUnaryMaxSymbol( iRefFrame - 1, pcCU->getSlice()->getNumRefIdx( eRefListTemp )-2 );
+#endif
+#else
+#if MS_LCEC_LOOKUP_TABLE_EXCEPTION
+      xWriteUnaryMaxSymbol( iRefFrame - 1 - uiRefFrmIdxMinus, pcCU->getSlice()->getNumRefIdx( eRefList )-2 - uiRefFrmIdxMinus );      
 #else
       xWriteUnaryMaxSymbol( iRefFrame - 1, pcCU->getSlice()->getNumRefIdx( eRefList )-2 );
 #endif
+#endif
+    }
   }
   return;
 }
