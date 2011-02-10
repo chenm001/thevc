@@ -272,7 +272,11 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
           b = (pcSlice->isReferenced() == 0);
       }
 
-      pcSlice->setRounding(b);
+#if HIGH_ACCURACY_BI
+	  pcSlice->setRounding(false);
+#else
+	  pcSlice->setRounding(b);
+#endif
 #endif
       m_pcSliceEncoder->precompressSlice( pcPic );
       m_pcSliceEncoder->compressSlice   ( pcPic );

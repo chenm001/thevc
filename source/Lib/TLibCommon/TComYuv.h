@@ -128,7 +128,11 @@ public:
   Void    addAvg            ( TComYuv* pcYuvSrc0, TComYuv* pcYuvSrc1, UInt iPartUnitIdx, UInt iWidth, UInt iHeight, Bool bRound );
 #endif
   Void    addAvg            ( TComYuv* pcYuvSrc0, TComYuv* pcYuvSrc1, UInt iPartUnitIdx, UInt iWidth, UInt iHeight );
-  
+
+#if HIGH_ACCURACY_BI
+  Void    shiftBack(UInt iPartUnitIdx, UInt iWidth, UInt iHeight);
+#endif
+
   //   Remove High frequency
   Void    removeHighFreq    ( TComYuv* pcYuvSrc, UInt uiWidht, UInt uiHeight );
   Void    removeHighFreq    ( TComYuv* pcYuvSrc, UInt uiPartIdx, UInt uiWidht, UInt uiHeight );

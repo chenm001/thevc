@@ -162,13 +162,20 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice)
     uiCode = 1;
   
   rpcSlice->setReferenced       (uiCode ? true : false);
-  
+
+#if !HIGH_ACCURACY_BI
 #ifdef ROUNDING_CONTROL_BIPRED
   if(!rpcSlice->isIntra())
   {
     xReadFlag( uiCode );
     Bool b = (uiCode != 0);
     rpcSlice->setRounding(b);
+  }
+#endif
+#else
+if(!rpcSlice->isIntra())
+  {
+    rpcSlice->setRounding(false);
   }
 #endif
   
@@ -224,11 +231,11 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice)
   {
     xReadCode(2, uiCode); rpcSlice->setERBIndex( (ERBIndex)uiCode );    assert (uiCode == ERB_NONE || uiCode == ERB_LTR);
   }
-  
 #if !DCTIF_8_6_LUMA
   xReadUvlc( uiCode ); rpcSlice->setInterpFilterType( uiCode );
 #endif
   
+
 #if AMVP_NEIGH_COL
   if ( rpcSlice->getSliceType() == B_SLICE )
   {

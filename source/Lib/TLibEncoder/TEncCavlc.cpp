@@ -569,8 +569,10 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
   if (!pcSlice->isIntra())
   {
     xWriteFlag  (pcSlice->isReferenced() ? 1 : 0);
+#if !HIGH_ACCURACY_BI
 #ifdef ROUNDING_CONTROL_BIPRED
     xWriteFlag  (pcSlice->isRounding() ? 1 : 0);
+#endif
 #endif
   }
   
@@ -623,7 +625,7 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
 #if !DCTIF_8_6_LUMA
   xWriteUvlc  ( pcSlice->getInterpFilterType() );
 #endif
-  
+
 #if AMVP_NEIGH_COL
   if ( pcSlice->getSliceType() == B_SLICE )
   {
