@@ -1069,32 +1069,19 @@ Void TEncEntropy::encodeRefFrmIdxPU( TComDataCU* pcCU, UInt uiAbsPartIdx, RefPic
   assert( !pcCU->isSkip( uiAbsPartIdx ) );
 
 
-#if DOCOMO_COMB_LIST 
-  if(pcCU->getSlice()->getNumRefIdx(REF_PIC_LIST_C)>0)
+#if DCM_COMB_LIST 
+  if(pcCU->getSlice()->getNumRefIdx(REF_PIC_LIST_C)>0 && pcCU->getInterDir( uiAbsPartIdx ) != 3)
   {
     if ((eRefList== REF_PIC_LIST_1) || ( pcCU->getSlice()->getNumRefIdx( REF_PIC_LIST_C ) == 1 ) )
     {
       return;
     }
 
-    if ( pcCU->getInterDir( uiAbsPartIdx ) != 3)
+    if ( pcCU->getSlice()->getNumRefIdx ( REF_PIC_LIST_C ) > 1 )
     {
-      if ( pcCU->getSlice()->getNumRefIdx ( REF_PIC_LIST_C ) > 1 )
-      {
-        m_pcEntropyCoderIf->codeRefFrmIdx( pcCU, uiAbsPartIdx, RefPicList(pcCU->getInterDir( uiAbsPartIdx )-1) );
-      }
+      m_pcEntropyCoderIf->codeRefFrmIdx( pcCU, uiAbsPartIdx, RefPicList(pcCU->getInterDir( uiAbsPartIdx )-1) );
     }
-    else
-    {
-      if ( pcCU->getSlice()->getNumRefIdx ( REF_PIC_LIST_0 ) > 1 )
-      {
-        m_pcEntropyCoderIf->codeRefFrmIdx( pcCU, uiAbsPartIdx, REF_PIC_LIST_0 );
-      }
-      if ( pcCU->getSlice()->getNumRefIdx ( REF_PIC_LIST_1 ) > 1 )
-      {
-        m_pcEntropyCoderIf->codeRefFrmIdx( pcCU, uiAbsPartIdx, REF_PIC_LIST_1 );
-      }
-    }
+
   }
   else
   {
@@ -1110,7 +1097,7 @@ Void TEncEntropy::encodeRefFrmIdxPU( TComDataCU* pcCU, UInt uiAbsPartIdx, RefPic
     m_pcEntropyCoderIf->codeRefFrmIdx( pcCU, uiAbsPartIdx, eRefList );
   }
 
-#if DOCOMO_COMB_LIST 
+#if DCM_COMB_LIST 
   }
 #endif
 
@@ -1216,121 +1203,97 @@ Void TEncEntropy::encodeRefFrmIdx( TComDataCU* pcCU, UInt uiAbsPartIdx, RefPicLi
   if( bRD )
     uiAbsPartIdx = 0;
   
-#if DOCOMO_COMB_LIST 
-  if(pcCU->getSlice()->getNumRefIdx(REF_PIC_LIST_C)>0)
+#if DCM_COMB_LIST
+  if(pcCU->getSlice()->getNumRefIdx(REF_PIC_LIST_C) > 0)
   {
-    if ((eRefList== REF_PIC_LIST_1) || ( pcCU->getSlice()->getNumRefIdx( REF_PIC_LIST_C ) == 1 ) || pcCU->isSkip( uiAbsPartIdx ) )
-    {
-      return;
-    }
     UInt uiPartOffset = ( pcCU->getPic()->getNumPartInCU() >> ( pcCU->getDepth(uiAbsPartIdx) << 1 ) ) >> 2;
 
     switch ( pcCU->getPartitionSize( uiAbsPartIdx ) )
     {
       case SIZE_2Nx2N:
       {
-        if ( pcCU->getInterDir( uiAbsPartIdx ) != 3)
+        if ( pcCU->getInterDir( uiAbsPartIdx ) != 3 && eRefList== REF_PIC_LIST_0 && pcCU->getSlice()->getNumRefIdx( REF_PIC_LIST_C ) > 1)
         {
           if ( pcCU->getSlice()->getNumRefIdx ( REF_PIC_LIST_C ) > 1 )
           {
             m_pcEntropyCoderIf->codeRefFrmIdx( pcCU, uiAbsPartIdx, RefPicList(pcCU->getInterDir( uiAbsPartIdx )-1) );
           }
         }
-        else
+        else if (pcCU->getInterDir( uiAbsPartIdx ) == 3 &&  pcCU->getSlice()->getNumRefIdx( eRefList ) > 1)
         {
-          if ( pcCU->getSlice()->getNumRefIdx ( REF_PIC_LIST_0 ) > 1 )
+          if ( pcCU->getInterDir( uiAbsPartIdx ) & ( 1 << eRefList ) )
           {
-            m_pcEntropyCoderIf->codeRefFrmIdx( pcCU, uiAbsPartIdx, REF_PIC_LIST_0 );
-          }
-          if ( pcCU->getSlice()->getNumRefIdx ( REF_PIC_LIST_1 ) > 1 )
-          {
-            m_pcEntropyCoderIf->codeRefFrmIdx( pcCU, uiAbsPartIdx, REF_PIC_LIST_1 );
+            m_pcEntropyCoderIf->codeRefFrmIdx( pcCU, uiAbsPartIdx, eRefList );
           }
         }
         break;
       }
       case SIZE_2NxN:
       {
-        if ( pcCU->getInterDir( uiAbsPartIdx ) != 3)
+        if ( pcCU->getInterDir( uiAbsPartIdx ) != 3 && eRefList== REF_PIC_LIST_0 && pcCU->getSlice()->getNumRefIdx( REF_PIC_LIST_C ) > 1)
         {
           if ( pcCU->getSlice()->getNumRefIdx ( REF_PIC_LIST_C ) > 1 )
           {
             m_pcEntropyCoderIf->codeRefFrmIdx( pcCU, uiAbsPartIdx, RefPicList(pcCU->getInterDir( uiAbsPartIdx )-1) );
           }
         }
-        else
+        else if (pcCU->getInterDir( uiAbsPartIdx ) == 3 &&  pcCU->getSlice()->getNumRefIdx( eRefList ) > 1)
         {
-          if ( pcCU->getSlice()->getNumRefIdx ( REF_PIC_LIST_0 ) > 1 )
+          if ( pcCU->getInterDir( uiAbsPartIdx ) & ( 1 << eRefList ) )
           {
-            m_pcEntropyCoderIf->codeRefFrmIdx( pcCU, uiAbsPartIdx, REF_PIC_LIST_0 );
-          }
-          if ( pcCU->getSlice()->getNumRefIdx ( REF_PIC_LIST_1 ) > 1 )
-          {
-            m_pcEntropyCoderIf->codeRefFrmIdx( pcCU, uiAbsPartIdx, REF_PIC_LIST_1 );
+            m_pcEntropyCoderIf->codeRefFrmIdx( pcCU, uiAbsPartIdx, eRefList );
           }
         }
 
         uiAbsPartIdx += uiPartOffset << 1;
 
-        if ( pcCU->getInterDir( uiAbsPartIdx ) != 3)
+        if ( pcCU->getInterDir( uiAbsPartIdx ) != 3 && eRefList== REF_PIC_LIST_0 && pcCU->getSlice()->getNumRefIdx( REF_PIC_LIST_C ) > 1)
         {
           if ( pcCU->getSlice()->getNumRefIdx ( REF_PIC_LIST_C ) > 1 )
           {
             m_pcEntropyCoderIf->codeRefFrmIdx( pcCU, uiAbsPartIdx, RefPicList(pcCU->getInterDir( uiAbsPartIdx )-1) );
           }
         }
-        else
+        else if (pcCU->getInterDir( uiAbsPartIdx ) == 3 &&  pcCU->getSlice()->getNumRefIdx( eRefList ) > 1)
         {
-          if ( pcCU->getSlice()->getNumRefIdx ( REF_PIC_LIST_0 ) > 1 )
+          if ( pcCU->getInterDir( uiAbsPartIdx ) & ( 1 << eRefList ) )
           {
-            m_pcEntropyCoderIf->codeRefFrmIdx( pcCU, uiAbsPartIdx, REF_PIC_LIST_0 );
-          }
-          if ( pcCU->getSlice()->getNumRefIdx ( REF_PIC_LIST_1 ) > 1 )
-          {
-            m_pcEntropyCoderIf->codeRefFrmIdx( pcCU, uiAbsPartIdx, REF_PIC_LIST_1 );
+            m_pcEntropyCoderIf->codeRefFrmIdx( pcCU, uiAbsPartIdx, eRefList );
           }
         }
         break;
       }
       case SIZE_Nx2N:
       {
-        if ( pcCU->getInterDir( uiAbsPartIdx ) != 3)
+        if ( pcCU->getInterDir( uiAbsPartIdx ) != 3 && eRefList== REF_PIC_LIST_0 && pcCU->getSlice()->getNumRefIdx( REF_PIC_LIST_C ) > 1)
         {
           if ( pcCU->getSlice()->getNumRefIdx ( REF_PIC_LIST_C ) > 1 )
           {
             m_pcEntropyCoderIf->codeRefFrmIdx( pcCU, uiAbsPartIdx, RefPicList(pcCU->getInterDir( uiAbsPartIdx )-1) );
           }
         }
-        else
+        else if (pcCU->getInterDir( uiAbsPartIdx ) == 3 &&  pcCU->getSlice()->getNumRefIdx( eRefList ) > 1)
         {
-          if ( pcCU->getSlice()->getNumRefIdx ( REF_PIC_LIST_0 ) > 1 )
+          if ( pcCU->getInterDir( uiAbsPartIdx ) & ( 1 << eRefList ) )
           {
-            m_pcEntropyCoderIf->codeRefFrmIdx( pcCU, uiAbsPartIdx, REF_PIC_LIST_0 );
-          }
-          if ( pcCU->getSlice()->getNumRefIdx ( REF_PIC_LIST_1 ) > 1 )
-          {
-            m_pcEntropyCoderIf->codeRefFrmIdx( pcCU, uiAbsPartIdx, REF_PIC_LIST_1 );
+            m_pcEntropyCoderIf->codeRefFrmIdx( pcCU, uiAbsPartIdx, eRefList );
           }
         }
 
         uiAbsPartIdx += uiPartOffset;
 
-        if ( pcCU->getInterDir( uiAbsPartIdx ) != 3)
+        if ( pcCU->getInterDir( uiAbsPartIdx ) != 3 && eRefList== REF_PIC_LIST_0 && pcCU->getSlice()->getNumRefIdx( REF_PIC_LIST_C ) > 1)
         {
           if ( pcCU->getSlice()->getNumRefIdx ( REF_PIC_LIST_C ) > 1 )
           {
             m_pcEntropyCoderIf->codeRefFrmIdx( pcCU, uiAbsPartIdx, RefPicList(pcCU->getInterDir( uiAbsPartIdx )-1) );
           }
         }
-        else
+        else if (pcCU->getInterDir( uiAbsPartIdx ) == 3 &&  pcCU->getSlice()->getNumRefIdx( eRefList ) > 1)
         {
-          if ( pcCU->getSlice()->getNumRefIdx ( REF_PIC_LIST_0 ) > 1 )
+          if ( pcCU->getInterDir( uiAbsPartIdx ) & ( 1 << eRefList ) )
           {
-            m_pcEntropyCoderIf->codeRefFrmIdx( pcCU, uiAbsPartIdx, REF_PIC_LIST_0 );
-          }
-          if ( pcCU->getSlice()->getNumRefIdx ( REF_PIC_LIST_1 ) > 1 )
-          {
-            m_pcEntropyCoderIf->codeRefFrmIdx( pcCU, uiAbsPartIdx, REF_PIC_LIST_1 );
+            m_pcEntropyCoderIf->codeRefFrmIdx( pcCU, uiAbsPartIdx, eRefList );
           }
         }
         break;
@@ -1339,22 +1302,18 @@ Void TEncEntropy::encodeRefFrmIdx( TComDataCU* pcCU, UInt uiAbsPartIdx, RefPicLi
       {
         for ( Int iPartIdx = 0; iPartIdx < 4; iPartIdx++ )
         {
-          if ( pcCU->getInterDir( uiAbsPartIdx ) != 3)
+          if ( pcCU->getInterDir( uiAbsPartIdx ) != 3 && eRefList== REF_PIC_LIST_0 && pcCU->getSlice()->getNumRefIdx( REF_PIC_LIST_C ) > 1)
           {
             if ( pcCU->getSlice()->getNumRefIdx ( REF_PIC_LIST_C ) > 1 )
             {
               m_pcEntropyCoderIf->codeRefFrmIdx( pcCU, uiAbsPartIdx, RefPicList(pcCU->getInterDir( uiAbsPartIdx )-1) );
             }
           }
-          else
+          else if (pcCU->getInterDir( uiAbsPartIdx ) == 3 &&  pcCU->getSlice()->getNumRefIdx( eRefList ) > 1)
           {
-            if ( pcCU->getSlice()->getNumRefIdx ( REF_PIC_LIST_0 ) > 1 )
+            if ( pcCU->getInterDir( uiAbsPartIdx ) & ( 1 << eRefList ) )
             {
-              m_pcEntropyCoderIf->codeRefFrmIdx( pcCU, uiAbsPartIdx, REF_PIC_LIST_0 );
-            }
-            if ( pcCU->getSlice()->getNumRefIdx ( REF_PIC_LIST_1 ) > 1 )
-            {
-              m_pcEntropyCoderIf->codeRefFrmIdx( pcCU, uiAbsPartIdx, REF_PIC_LIST_1 );
+              m_pcEntropyCoderIf->codeRefFrmIdx( pcCU, uiAbsPartIdx, eRefList );
             }
           }
 
@@ -1434,7 +1393,7 @@ Void TEncEntropy::encodeRefFrmIdx( TComDataCU* pcCU, UInt uiAbsPartIdx, RefPicLi
       break;
   }
 
-#if DOCOMO_COMB_LIST 
+#if DCM_COMB_LIST 
   }
 #endif
   

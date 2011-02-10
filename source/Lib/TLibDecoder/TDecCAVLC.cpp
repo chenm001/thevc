@@ -198,15 +198,15 @@ if(!rpcSlice->isIntra())
     rpcSlice->setNumRefIdx(REF_PIC_LIST_1, 0);
   }
   
-#if DOCOMO_COMB_LIST
+#if DCM_COMB_LIST
   if (rpcSlice->isInterB())
   {
-    xReadFlag (uiCode);
+    xReadFlag (uiCode);      rpcSlice->setRefPicListCombinationFlag(uiCode ? 1 : 0);
     if(uiCode)
     {
       xReadUvlc(uiCode);      rpcSlice->setNumRefIdx      (REF_PIC_LIST_C, uiCode+1);
 
-      xReadFlag (uiCode);     rpcSlice->setRefPicListCombinationFlag(uiCode ? 1 : 0);
+      xReadFlag (uiCode);     rpcSlice->setRefPicListModificationFlagLC(uiCode ? 1 : 0);
       if(uiCode)
       {
         for (UInt i=0;i<rpcSlice->getNumRefIdx(REF_PIC_LIST_C);i++)
@@ -215,12 +215,14 @@ if(!rpcSlice->isIntra())
           rpcSlice->setListIdFromIdxOfLC(i, uiCode);
           xReadUvlc(uiCode);
           rpcSlice->setRefIdxFromIdxOfLC(i, uiCode);
+          rpcSlice->setRefIdxOfLC((RefPicList)rpcSlice->getListIdFromIdxOfLC(i), rpcSlice->getRefIdxFromIdxOfLC(i), i);
         }
       }
     }
     else
     {
       rpcSlice->setRefPicListCombinationFlag(false);
+      rpcSlice->setRefPicListModificationFlagLC(false);
       rpcSlice->setNumRefIdx(REF_PIC_LIST_C, -1);
     }
   }
@@ -268,7 +270,7 @@ Void TDecCavlc::resetEntropy          (TComSlice* pcSlice)
   ::memcpy(m_uiMI2TableD,        g_auiMI2TableD,        15*sizeof(UInt));
   
 #if MS_NO_BACK_PRED_IN_B0
-#if DOCOMO_COMB_LIST
+#if DCM_COMB_LIST
   if ( pcSlice->getNoBackPredFlag() || pcSlice->getNumRefIdx(REF_PIC_LIST_C)>0)
 #else
   if ( pcSlice->getNoBackPredFlag() )
@@ -1025,7 +1027,7 @@ Void TDecCavlc::parseInterDir( TComDataCU* pcCU, UInt& ruiInterDir, UInt uiAbsPa
         uiInterDir = 0;
       }
 #endif
-#if DOCOMO_COMB_LIST
+#if DCM_COMB_LIST
       if(uiInterDir!=2 && pcCU->getSlice()->getNumRefIdx(REF_PIC_LIST_C)>0)
       {
         uiInterDir = 0;
@@ -1069,7 +1071,7 @@ Void TDecCavlc::parseInterDir( TComDataCU* pcCU, UInt& ruiInterDir, UInt uiAbsPa
   {
     uiSymbol = 2;
   }
-#if DOCOMO_COMB_LIST
+#if DCM_COMB_LIST
   else if(pcCU->getSlice()->getNumRefIdx(REF_PIC_LIST_C) > 0)
   {
     uiSymbol = 0;
@@ -1096,7 +1098,7 @@ Void TDecCavlc::parseRefFrmIdx( TComDataCU* pcCU, Int& riRefFrmIdx, UInt uiAbsPa
   
   if (pcCU->getSlice()->getNumRefIdx( REF_PIC_LIST_0 ) <= 2 && pcCU->getSlice()->getNumRefIdx( REF_PIC_LIST_1 ) <= 2 && pcCU->getSlice()->isInterB())
   {
-#if DOCOMO_COMB_LIST
+#if DCM_COMB_LIST
     if(pcCU->getSlice()->getNumRefIdx(REF_PIC_LIST_C ) > 0 && eRefList==REF_PIC_LIST_C)
     {
       riRefFrmIdx = m_iRefFrame0[uiAbsPartIdx]; 

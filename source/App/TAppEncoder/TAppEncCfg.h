@@ -74,7 +74,7 @@ protected:
   Bool      m_bUseLDC;                                        ///< flag for using low-delay coding mode
   Bool      m_bUseNRF;                                        ///< flag for using non-referenced frame in hierarchical structure
   Bool      m_bUseGPB;                                        ///< flag for using generalized P & B structure
-#if DOCOMO_COMB_LIST
+#if DCM_COMB_LIST
   Bool      m_bUseLComb;                                      ///< flag for using combined reference list for uni-prediction in B-slices (JCTVC-D421)
   Bool      m_bLCMod;                                         ///< flag for specifying whether the combined reference list for uni-prediction in B-slices is uploaded explicitly
 #endif

@@ -68,8 +68,9 @@ TComSlice::TComSlice()
 #if MS_LCEC_LOOKUP_TABLE_EXCEPTION
   m_bRefIdxCombineCoding = false;
 #endif
-#if DOCOMO_COMB_LIST 
+#if DCM_COMB_LIST 
   m_bRefPicListCombinationFlag = false;
+  m_bRefPicListModificationFlagLC = false;
 #endif
 }
 
@@ -99,8 +100,9 @@ Void TComSlice::initSlice()
 #if MS_LCEC_LOOKUP_TABLE_EXCEPTION
   m_bRefIdxCombineCoding = false;
 #endif
-#if DOCOMO_COMB_LIST 
+#if DCM_COMB_LIST 
   m_bRefPicListCombinationFlag = false;
+  m_bRefPicListModificationFlagLC = false;
 #endif
 }
 
@@ -295,7 +297,7 @@ Void TComSlice::setRefPOCList       ()
 
 }
 
-#if DOCOMO_COMB_LIST 
+#if DCM_COMB_LIST 
 Void TComSlice::generateCombinedList()
 {
   if(m_aiNumRefIdx[REF_PIC_LIST_C] > 0)

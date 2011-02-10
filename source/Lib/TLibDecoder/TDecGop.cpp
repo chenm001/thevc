@@ -153,7 +153,7 @@ Void TDecGop::decompressGop (Bool bEos, TComBitstream* pcBitstream, TComPic*& rp
     }
     printf ("] ");
   }
-#if DOCOMO_COMB_LIST
+#if DCM_COMB_LIST
   if(pcSlice->getNumRefIdx(REF_PIC_LIST_C)>0 && !pcSlice->getNoBackPredFlag())
   {
     printf ("[LC ");

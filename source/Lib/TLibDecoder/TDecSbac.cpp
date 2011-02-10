@@ -793,7 +793,7 @@ Void TDecSbac::parseInterDir( TComDataCU* pcCU, UInt& ruiInterDir, UInt uiAbsPar
   {
     uiSymbol = 2;
   }
-#if DOCOMO_COMB_LIST
+#if DCM_COMB_LIST
   else if(pcCU->getSlice()->getNumRefIdx(REF_PIC_LIST_C) > 0)
   {
     uiSymbol = 0;
@@ -818,7 +818,7 @@ Void TDecSbac::parseRefFrmIdx( TComDataCU* pcCU, Int& riRefFrmIdx, UInt uiAbsPar
 {
   UInt uiSymbol;
 
-#if DOCOMO_COMB_LIST
+#if DCM_COMB_LIST
   if(pcCU->getSlice()->getNumRefIdx(REF_PIC_LIST_C ) > 0 && eRefList==REF_PIC_LIST_C)
   {
     UInt uiCtx;
@@ -851,7 +851,7 @@ Void TDecSbac::parseRefFrmIdx( TComDataCU* pcCU, Int& riRefFrmIdx, UInt uiAbsPar
   }
   riRefFrmIdx = uiSymbol;
 
-#if DOCOMO_COMB_LIST
+#if DCM_COMB_LIST
   }
 #endif
 
