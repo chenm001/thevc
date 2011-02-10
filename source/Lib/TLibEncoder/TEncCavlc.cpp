@@ -381,7 +381,9 @@ Void TEncCavlc::codeSPS( TComSPS* pcSPS )
   }
   
   // Bit-depth information
+#if ENABLE_IBDI
   m_uiBitHLS += xWriteUvlc( pcSPS->getBitDepth() - 8 );
+#endif
   m_uiBitHLS += xWriteUvlc( pcSPS->getBitIncrement() );
 }
 
@@ -545,7 +547,9 @@ Void TEncCavlc::codeSPS( TComSPS* pcSPS )
   }
   
   // Bit-depth information
+#if ENABLE_IBDI
   xWriteUvlc( pcSPS->getBitDepth() - 8 );
+#endif
   xWriteUvlc( pcSPS->getBitIncrement() );
 }
 

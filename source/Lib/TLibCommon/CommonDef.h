@@ -122,7 +122,6 @@
 #define Min(x, y)                   ((x)<(y)?(x):(y))                                                 ///< min of (x, y)
 #define Median(a,b,c)               ((a)>(b)?(a)>(c)?(b)>(c)?(b):(c):(a):(b)>(c)?(a)>(c)?(a):(c):(b)) ///< 3-point median
 #define Clip(x)                     ( Min(g_uiIBDI_MAX, Max( 0, (x)) ) )                              ///< clip with bit-depth range
-#define ClipMax(x)                  ( Min(g_uiBASE_MAX, x            ) )                              ///< clip with max. value
 #define Clip3( MinVal, MaxVal, a)   ( ((a)<(MinVal)) ? (MinVal) : (((a)>(MaxVal)) ? (MaxVal) :(a)) )  ///< general min/max clip
 
 #define DATA_ALIGN                  1                                                                 ///< use 32-bit aligned malloc/free
@@ -172,6 +171,8 @@
 
 // Adaptive search range depending on POC difference
 #define ADAPT_SR_SCALE              1           ///< division factor for adaptive search range
+
+#define ENABLE_IBDI                 0
 
 // IBDI range restriction for skipping clip
 #define IBDI_NOCLIP_RANGE           0           ///< restrict max. value after IBDI to skip clip
