@@ -337,6 +337,9 @@ Void TComPrediction::motionCompensation ( TComDataCU* pcCU, TComYuv* pcYuvPred, 
     {
       xPredInterBi  (pcCU, uiPartAddr, iWidth, iHeight, pcYuvPred, iPartIdx );
     }
+#if HIGH_ACCURACY_BI
+    pcYuvPred->shiftBack( uiPartAddr, iWidth, iHeight);
+#endif
     return;
   }
   
@@ -352,6 +355,9 @@ Void TComPrediction::motionCompensation ( TComDataCU* pcCU, TComYuv* pcYuvPred, 
     {
       xPredInterBi  (pcCU, uiPartAddr, iWidth, iHeight, pcYuvPred, iPartIdx );
     }
+#if HIGH_ACCURACY_BI
+    pcYuvPred->shiftBack( uiPartAddr, iWidth, iHeight);
+#endif
   }
   return;
 }
@@ -363,8 +369,16 @@ Void TComPrediction::xPredInterUni ( TComDataCU* pcCU, UInt uiPartAddr, Int iWid
 #if DCTIF_8_6_LUMA && DCTIF_4_6_CHROMA
   pcCU->clipMv(cMv);
 
+#if HIGH_ACCURACY_BI
+  xPredInterLumaBlk_ha  ( pcCU, pcCU->getSlice()->getRefPic( eRefPicList, iRefIdx )->getPicYuvRec()    , uiPartAddr, &cMv, iWidth, iHeight, rpcYuvPred );
+  xPredInterChromaBlk_ha ( pcCU, pcCU->getSlice()->getRefPic( eRefPicList, iRefIdx )->getPicYuvRec()    , uiPartAddr, &cMv, iWidth, iHeight, rpcYuvPred );
+  //xPredInterChromaBlk     ( pcCU, pcCU->getSlice()->getRefPic( eRefPicList, iRefIdx )->getPicYuvRec(), uiPartAddr, &cMv, iWidth, iHeight, rpcYuvPred );
+#else
   xPredInterLumaBlk       ( pcCU, pcCU->getSlice()->getRefPic( eRefPicList, iRefIdx )->getPicYuvRec(), uiPartAddr, &cMv, iWidth, iHeight, rpcYuvPred );
   xPredInterChromaBlk     ( pcCU, pcCU->getSlice()->getRefPic( eRefPicList, iRefIdx )->getPicYuvRec(), uiPartAddr, &cMv, iWidth, iHeight, rpcYuvPred );
+#endif
+
+  
 #else
   InterpFilterType ePFilt = (InterpFilterType)pcCU->getSlice()->getInterpFilterType();
   
@@ -408,6 +422,500 @@ Void TComPrediction::xPredInterBi ( TComDataCU* pcCU, UInt uiPartAddr, Int iWidt
   
   xWeightedAverage( pcCU, &m_acYuvPred[0], &m_acYuvPred[1], iRefIdx[0], iRefIdx[1], uiPartAddr, iWidth, iHeight, rpcYuvPred );
 }
+
+#if HIGH_ACCURACY_BI0
+Void  TComPrediction::xPredInterLumaBlk_ha( TComDataCU* pcCU, TComPicYuv* pcPicYuvRef, UInt uiPartAddr, TComMv* pcMv, Int iWidth, Int iHeight, TComYuv*& rpcYuv )
+{
+  Int     iRefStride = pcPicYuvRef->getStride();
+  Int     iDstStride = rpcYuv->getStride();
+  
+  Int     iRefOffset = ( pcMv->getHor() >> 2 ) + ( pcMv->getVer() >> 2 ) * iRefStride;
+  Pel*    piRefY     = pcPicYuvRef->getLumaAddr( pcCU->getAddr(), pcCU->getZorderIdxInCU() + uiPartAddr ) + iRefOffset;
+  
+  Int     ixFrac  = pcMv->getHor() & 0x3;
+  Int     iyFrac  = pcMv->getVer() & 0x3;
+  
+  Pel* piDstY = rpcYuv->getLumaAddr( uiPartAddr );
+  UInt shiftNum = 14-8-g_uiBitIncrement;
+  //  Integer point
+  if ( ixFrac == 0 && iyFrac == 0 )
+  {
+    for ( Int y = 0; y < iHeight; y++ )
+    {
+       for(Int x=0; x<iWidth; x++)
+		  piDstY[x] = piRefY[x]<<shiftNum;   
+      piDstY += iDstStride;
+      piRefY += iRefStride;
+    }
+    return;
+  }
+#if DCTIF_8_6_LUMA
+    //  Half-pel horizontal
+  if ( ixFrac == 2 && iyFrac == 0 )
+  {
+    xCTI_FilterHalfHor_ha ( piRefY, iRefStride, 1, iWidth, iHeight, iDstStride, 1, piDstY );
+
+  }
+  
+  //  Half-pel vertical
+  if ( ixFrac == 0 && iyFrac == 2 )
+  {
+    xCTI_FilterHalfVer ( piRefY, iRefStride, 1, iWidth, iHeight, iDstStride, 1, piDstY );
+	for ( Int y = 0; y < iHeight; y++ )
+    {
+       for(Int x=0; x<iWidth; x++)
+		  piDstY[x] = piDstY[x]<<shiftNum;   
+      piDstY += iDstStride;      
+    }
+    return;
+  }
+  
+  Int   iExtStride = m_iYuvExtStride;//m_cYuvExt.getStride();
+  Int*  piExtY     = m_piYuvExt;//m_cYuvExt.getLumaAddr();
+ 
+  //  Half-pel center
+  if ( ixFrac == 2 && iyFrac == 2 )
+  {
+
+	xCTI_FilterHalfVer (piRefY - 3,  iRefStride, 1, iWidth +7, iHeight, iExtStride, 1, piExtY );
+    xCTI_FilterHalfHor_ha (piExtY + 3,  iExtStride, 1, iWidth    , iHeight, iDstStride, 1, piDstY );	
+
+	return;
+  }
+  
+  //  Quater-pel horizontal
+  if ( iyFrac == 0)
+  {
+    if ( ixFrac == 1)
+    {
+      xCTI_FilterQuarter0Hor_ha( piRefY, iRefStride, 1, iWidth, iHeight, iDstStride, 1, piDstY );	  
+      return;
+    }
+    if ( ixFrac == 3)
+    {
+      xCTI_FilterQuarter1Hor( piRefY, iRefStride, 1, iWidth, iHeight, iDstStride, 1, piDstY );
+	  	for ( Int y = 0; y < iHeight; y++ )
+    {
+       for(Int x=0; x<iWidth; x++)
+		  piDstY[x] = piDstY[x]<<shiftNum;   
+      piDstY += iDstStride;      
+    }
+
+	  return;
+	}
+  }
+  if ( iyFrac == 2 )
+  {
+    if ( ixFrac == 1)
+    {
+      xCTI_FilterHalfVer (piRefY -3,  iRefStride, 1, iWidth +7, iHeight, iExtStride, 1, piExtY );
+      xCTI_FilterQuarter0Hor (piExtY + 3,  iExtStride, 1, iWidth, iHeight, iDstStride, 1, piDstY );	
+	  	  	for ( Int y = 0; y < iHeight; y++ )
+    {
+       for(Int x=0; x<iWidth; x++)
+		  piDstY[x] = piDstY[x]<<shiftNum;   
+      piDstY += iDstStride;      
+    }
+	  return;
+    }
+    if ( ixFrac == 3)
+    {
+      xCTI_FilterHalfVer (piRefY - 3,  iRefStride, 1, iWidth + 7, iHeight, iExtStride, 1, piExtY );
+      xCTI_FilterQuarter1Hor (piExtY + 3,  iExtStride, 1, iWidth, iHeight, iDstStride, 1, piDstY );
+	  	for ( Int y = 0; y < iHeight; y++ )
+    {
+       for(Int x=0; x<iWidth; x++)
+		  piDstY[x] = piDstY[x]<<shiftNum;   
+      piDstY += iDstStride;      
+    }
+	   
+      return;
+    }
+  }
+  
+  //  Quater-pel vertical
+  if( ixFrac == 0 )
+  {
+    if( iyFrac == 1 )
+    {
+      xCTI_FilterQuarter0Ver( piRefY, iRefStride, 1, iWidth, iHeight, iDstStride, 1, piDstY );
+	  	for ( Int y = 0; y < iHeight; y++ )
+    {
+       for(Int x=0; x<iWidth; x++)
+		  piDstY[x] = piDstY[x]<<shiftNum;   
+      piDstY += iDstStride;      
+    }
+  
+      return;
+    }
+    if( iyFrac == 3 )
+    {
+      xCTI_FilterQuarter1Ver( piRefY, iRefStride, 1, iWidth, iHeight, iDstStride, 1, piDstY );	
+	  	for ( Int y = 0; y < iHeight; y++ )
+    {
+       for(Int x=0; x<iWidth; x++)
+		  piDstY[x] = piDstY[x]<<shiftNum;   
+      piDstY += iDstStride;      
+    }
+	  return;
+    }
+  }
+  
+  if( ixFrac == 2 )
+  {
+    if( iyFrac == 1 )
+    {
+      xCTI_FilterQuarter0Ver (piRefY - 3,  iRefStride, 1, iWidth + 7, iHeight, iExtStride, 1, piExtY );
+      xCTI_FilterHalfHor_ha (piExtY + 3,  iExtStride, 1, iWidth    , iHeight, iDstStride, 1, piDstY );	  	  
+      return;
+    }
+    if( iyFrac == 3 )
+    {
+      xCTI_FilterQuarter1Ver (piRefY -3,  iRefStride, 1, iWidth + 7, iHeight, iExtStride, 1, piExtY );
+      xCTI_FilterHalfHor_ha (piExtY + 3,  iExtStride, 1, iWidth    , iHeight, iDstStride, 1, piDstY );
+	  	
+      return;
+    }
+  }
+  
+  /// Quarter-pel center
+  if ( iyFrac == 1)
+  {
+    if ( ixFrac == 1)
+    {
+      xCTI_FilterQuarter0Ver (piRefY - 3,  iRefStride, 1, iWidth + 7, iHeight, iExtStride, 1, piExtY );
+      xCTI_FilterQuarter0Hor (piExtY + 3,  iExtStride, 1, iWidth    , iHeight, iDstStride, 1, piDstY );
+	  	  	for ( Int y = 0; y < iHeight; y++ )
+    {
+       for(Int x=0; x<iWidth; x++)
+		  piDstY[x] = piDstY[x]<<shiftNum;   
+      piDstY += iDstStride;      
+    }
+  
+      return;
+    }
+    if ( ixFrac == 3)
+    {
+      xCTI_FilterQuarter0Ver (piRefY - 3,  iRefStride, 1, iWidth +7, iHeight, iExtStride, 1, piExtY );
+      xCTI_FilterQuarter1Hor (piExtY + 3,  iExtStride, 1, iWidth    , iHeight, iDstStride, 1, piDstY );
+	  	for ( Int y = 0; y < iHeight; y++ )
+    {
+       for(Int x=0; x<iWidth; x++)
+		  piDstY[x] = piDstY[x]<<shiftNum;   
+      piDstY += iDstStride;      
+    }
+	 
+      return;
+    }
+  }
+  if ( iyFrac == 3 )
+  {
+    if ( ixFrac == 1)
+    {
+      xCTI_FilterQuarter1Ver (piRefY - 3,  iRefStride, 1, iWidth + 7, iHeight, iExtStride, 1, piExtY );
+      xCTI_FilterQuarter0Hor (piExtY + 3,  iExtStride, 1, iWidth    , iHeight, iDstStride, 1, piDstY );
+	  	  	for ( Int y = 0; y < iHeight; y++ )
+    {
+       for(Int x=0; x<iWidth; x++)
+		  piDstY[x] = piDstY[x]<<shiftNum;   
+      piDstY += iDstStride;      
+    }
+ 
+      return;
+    }
+    if ( ixFrac == 3)
+    {
+      xCTI_FilterQuarter1Ver (piRefY - 3,  iRefStride, 1, iWidth + 7, iHeight, iExtStride, 1, piExtY );
+      xCTI_FilterQuarter1Hor (piExtY + 3,  iExtStride, 1, iWidth    , iHeight, iDstStride, 1, piDstY );
+	  	for ( Int y = 0; y < iHeight; y++ )
+    {
+       for(Int x=0; x<iWidth; x++)
+		  piDstY[x] = piDstY[x]<<shiftNum;   
+      piDstY += iDstStride;      
+    }
+	  	  
+      return;
+    }
+  }
+#else
+  //This branch is not supported
+
+  //  Half-pel horizontal
+  if ( ixFrac == 2 && iyFrac == 0 )
+  {
+    xCTI_FilterHalfHor ( piRefY, iRefStride, 1, iWidth, iHeight, iDstStride, 1, piDstY );
+    return;
+  }
+  
+  //  Half-pel vertical
+  if ( ixFrac == 0 && iyFrac == 2 )
+  {
+    xCTI_FilterHalfVer ( piRefY, iRefStride, 1, iWidth, iHeight, iDstStride, 1, piDstY );
+    return;
+  }
+  
+  Int   iExtStride = m_iYuvExtStride;//m_cYuvExt.getStride();
+  Int*  piExtY     = m_piYuvExt;//m_cYuvExt.getLumaAddr();
+  
+  //  Half-pel center
+  if ( ixFrac == 2 && iyFrac == 2 )
+  {
+    xCTI_FilterHalfVer (piRefY - 6,  iRefStride, 1, iWidth + 12, iHeight, iExtStride, 1, piExtY );
+    xCTI_FilterHalfHor (piExtY + 6,  iExtStride, 1, iWidth    , iHeight, iDstStride, 1, piDstY );
+    return;
+  }
+  
+  //  Quater-pel horizontal
+  if ( iyFrac == 0)
+  {
+    if ( ixFrac == 1)
+    {
+      xCTI_FilterQuarter0Hor( piRefY, iRefStride, 1, iWidth, iHeight, iDstStride, 1, piDstY );
+      return;
+    }
+    if ( ixFrac == 3)
+    {
+      xCTI_FilterQuarter1Hor( piRefY, iRefStride, 1, iWidth, iHeight, iDstStride, 1, piDstY );
+      return;
+    }
+  }
+  if ( iyFrac == 2 )
+  {
+    if ( ixFrac == 1)
+    {
+      xCTI_FilterHalfVer (piRefY - m_iDIFHalfTap + 1,  iRefStride, 1, iWidth + m_iDIFTap - 1, iHeight, iExtStride, 1, piExtY );
+      xCTI_FilterQuarter0Hor (piExtY + m_iDIFHalfTap - 1,  iExtStride, 1, iWidth, iHeight, iDstStride, 1, piDstY );
+      return;
+    }
+    if ( ixFrac == 3)
+    {
+      xCTI_FilterHalfVer (piRefY - m_iDIFHalfTap + 1,  iRefStride, 1, iWidth + m_iDIFTap - 1, iHeight, iExtStride, 1, piExtY );
+      xCTI_FilterQuarter1Hor (piExtY + m_iDIFHalfTap - 1,  iExtStride, 1, iWidth, iHeight, iDstStride, 1, piDstY );
+      return;
+    }
+  }
+  
+  //  Quater-pel vertical
+  if( ixFrac == 0 )
+  {
+    if( iyFrac == 1 )
+    {
+      xCTI_FilterQuarter0Ver( piRefY, iRefStride, 1, iWidth, iHeight, iDstStride, 1, piDstY );
+      return;
+    }
+    if( iyFrac == 3 )
+    {
+      xCTI_FilterQuarter1Ver( piRefY, iRefStride, 1, iWidth, iHeight, iDstStride, 1, piDstY );
+      return;
+    }
+  }
+  
+  if( ixFrac == 2 )
+  {
+    if( iyFrac == 1 )
+    {
+      xCTI_FilterQuarter0Ver (piRefY - m_iDIFHalfTap + 1,  iRefStride, 1, iWidth + m_iDIFTap - 1, iHeight, iExtStride, 1, piExtY );
+      xCTI_FilterHalfHor (piExtY + m_iDIFHalfTap - 1,  iExtStride, 1, iWidth    , iHeight, iDstStride, 1, piDstY );
+      return;
+    }
+    if( iyFrac == 3 )
+    {
+      xCTI_FilterQuarter1Ver (piRefY - m_iDIFHalfTap + 1,  iRefStride, 1, iWidth + m_iDIFTap - 1, iHeight, iExtStride, 1, piExtY );
+      xCTI_FilterHalfHor (piExtY + m_iDIFHalfTap - 1,  iExtStride, 1, iWidth    , iHeight, iDstStride, 1, piDstY );
+      return;
+    }
+  }
+  
+  /// Quarter-pel center
+  if ( iyFrac == 1)
+  {
+    if ( ixFrac == 1)
+    {
+      xCTI_FilterQuarter0Ver (piRefY - m_iDIFHalfTap + 1,  iRefStride, 1, iWidth + m_iDIFTap - 1, iHeight, iExtStride, 1, piExtY );
+      xCTI_FilterQuarter0Hor (piExtY + m_iDIFHalfTap - 1,  iExtStride, 1, iWidth    , iHeight, iDstStride, 1, piDstY );
+      return;
+    }
+    if ( ixFrac == 3)
+    {
+      xCTI_FilterQuarter0Ver (piRefY - m_iDIFHalfTap + 1,  iRefStride, 1, iWidth + m_iDIFTap - 1, iHeight, iExtStride, 1, piExtY );
+      xCTI_FilterQuarter1Hor (piExtY + m_iDIFHalfTap - 1,  iExtStride, 1, iWidth    , iHeight, iDstStride, 1, piDstY );
+      return;
+    }
+  }
+  if ( iyFrac == 3 )
+  {
+    if ( ixFrac == 1)
+    {
+      xCTI_FilterQuarter1Ver (piRefY - m_iDIFHalfTap + 1,  iRefStride, 1, iWidth + m_iDIFTap - 1, iHeight, iExtStride, 1, piExtY );
+      xCTI_FilterQuarter0Hor (piExtY + m_iDIFHalfTap - 1,  iExtStride, 1, iWidth    , iHeight, iDstStride, 1, piDstY );
+      return;
+    }
+    if ( ixFrac == 3)
+    {
+      xCTI_FilterQuarter1Ver (piRefY - m_iDIFHalfTap + 1,  iRefStride, 1, iWidth + m_iDIFTap - 1, iHeight, iExtStride, 1, piExtY );
+      xCTI_FilterQuarter1Hor (piExtY + m_iDIFHalfTap - 1,  iExtStride, 1, iWidth    , iHeight, iDstStride, 1, piDstY );
+      return;
+    }
+  }
+#endif
+}
+#endif
+
+#if HIGH_ACCURACY_BI
+
+Void  TComPrediction::xPredInterLumaBlk_ha( TComDataCU* pcCU, TComPicYuv* pcPicYuvRef, UInt uiPartAddr, TComMv* pcMv, Int iWidth, Int iHeight, TComYuv*& rpcYuv )
+{
+  Int     iRefStride = pcPicYuvRef->getStride();
+  Int     iDstStride = rpcYuv->getStride();
+  
+  Int     iRefOffset = ( pcMv->getHor() >> 2 ) + ( pcMv->getVer() >> 2 ) * iRefStride;
+  Pel*    piRefY     = pcPicYuvRef->getLumaAddr( pcCU->getAddr(), pcCU->getZorderIdxInCU() + uiPartAddr ) + iRefOffset;
+  
+  Int     ixFrac  = pcMv->getHor() & 0x3;
+  Int     iyFrac  = pcMv->getVer() & 0x3;
+  
+  Pel* piDstY = rpcYuv->getLumaAddr( uiPartAddr );
+    UInt shiftNum = 14-8-g_uiBitIncrement;
+  //  Integer point
+  if ( ixFrac == 0 && iyFrac == 0 )
+  {
+    for ( Int y = 0; y < iHeight; y++ )
+    {
+       for(Int x=0; x<iWidth; x++)
+		  piDstY[x] = piRefY[x]<<shiftNum;  
+      piDstY += iDstStride;
+      piRefY += iRefStride;
+    }
+    return;
+  }
+
+    //  Half-pel horizontal
+  if ( ixFrac == 2 && iyFrac == 0 )
+  {
+    xCTI_FilterHalfHor_ha ( piRefY, iRefStride, 1, iWidth, iHeight, iDstStride, 1, piDstY );
+    return;
+  }
+  
+  //  Half-pel vertical
+  if ( ixFrac == 0 && iyFrac == 2 )
+  {
+    xCTI_FilterHalfVer_ha ( piRefY, iRefStride, 1, iWidth, iHeight, iDstStride, 1, piDstY );
+    return;
+  }
+  
+  Int   iExtStride = m_iYuvExtStride;//m_cYuvExt.getStride();
+  Int*  piExtY     = m_piYuvExt;//m_cYuvExt.getLumaAddr();
+ 
+  //  Half-pel center
+  if ( ixFrac == 2 && iyFrac == 2 )
+  {
+
+	xCTI_FilterHalfVer (piRefY - 3,  iRefStride, 1, iWidth +7, iHeight, iExtStride, 1, piExtY );
+    xCTI_FilterHalfHor_ha (piExtY + 3,  iExtStride, 1, iWidth    , iHeight, iDstStride, 1, piDstY );
+
+    return;
+  }
+  
+  //  Quater-pel horizontal
+  if ( iyFrac == 0)
+  {
+    if ( ixFrac == 1)
+    {
+      xCTI_FilterQuarter0Hor_ha( piRefY, iRefStride, 1, iWidth, iHeight, iDstStride, 1, piDstY );
+      return;
+    }
+    if ( ixFrac == 3)
+    {
+      xCTI_FilterQuarter1Hor_ha( piRefY, iRefStride, 1, iWidth, iHeight, iDstStride, 1, piDstY );	
+      return;
+    }
+  }
+  if ( iyFrac == 2 )
+  {
+    if ( ixFrac == 1)
+    {
+      xCTI_FilterHalfVer (piRefY -3,  iRefStride, 1, iWidth +7, iHeight, iExtStride, 1, piExtY );
+      xCTI_FilterQuarter0Hor_ha (piExtY + 3,  iExtStride, 1, iWidth, iHeight, iDstStride, 1, piDstY );
+      return;
+    }
+    if ( ixFrac == 3)
+    {
+      xCTI_FilterHalfVer (piRefY - 3,  iRefStride, 1, iWidth + 7, iHeight, iExtStride, 1, piExtY );
+      xCTI_FilterQuarter1Hor_ha (piExtY + 3,  iExtStride, 1, iWidth, iHeight, iDstStride, 1, piDstY );	  	
+      return;
+    }
+  }
+  
+  //  Quater-pel vertical
+  if( ixFrac == 0 )
+  {
+    if( iyFrac == 1 )
+    {
+      xCTI_FilterQuarter0Ver_ha( piRefY, iRefStride, 1, iWidth, iHeight, iDstStride, 1, piDstY );
+      return;
+    }
+    if( iyFrac == 3 )
+    {
+      xCTI_FilterQuarter1Ver_ha( piRefY, iRefStride, 1, iWidth, iHeight, iDstStride, 1, piDstY );
+      return;
+    }
+  }
+  
+  if( ixFrac == 2 )
+  {
+    if( iyFrac == 1 )
+    {
+      xCTI_FilterQuarter0Ver (piRefY - 3,  iRefStride, 1, iWidth + 7, iHeight, iExtStride, 1, piExtY );
+      xCTI_FilterHalfHor_ha (piExtY + 3,  iExtStride, 1, iWidth    , iHeight, iDstStride, 1, piDstY );
+
+      return;
+    }
+    if( iyFrac == 3 )
+    {
+      xCTI_FilterQuarter1Ver (piRefY -3,  iRefStride, 1, iWidth + 7, iHeight, iExtStride, 1, piExtY );
+      xCTI_FilterHalfHor_ha (piExtY + 3,  iExtStride, 1, iWidth    , iHeight, iDstStride, 1, piDstY );
+      return;
+    }
+  }
+  
+  /// Quarter-pel center
+  if ( iyFrac == 1)
+  {
+    if ( ixFrac == 1)
+    {
+      xCTI_FilterQuarter0Ver (piRefY - 3,  iRefStride, 1, iWidth + 7, iHeight, iExtStride, 1, piExtY );
+      xCTI_FilterQuarter0Hor_ha (piExtY + 3,  iExtStride, 1, iWidth    , iHeight, iDstStride, 1, piDstY );
+	  
+      return;
+    }
+    if ( ixFrac == 3)
+    {
+      xCTI_FilterQuarter0Ver (piRefY - 3,  iRefStride, 1, iWidth +7, iHeight, iExtStride, 1, piExtY );
+      xCTI_FilterQuarter1Hor_ha (piExtY + 3,  iExtStride, 1, iWidth    , iHeight, iDstStride, 1, piDstY );
+
+      return;
+    }
+  }
+  if ( iyFrac == 3 )
+  {
+    if ( ixFrac == 1)
+    {
+      xCTI_FilterQuarter1Ver (piRefY - 3,  iRefStride, 1, iWidth + 7, iHeight, iExtStride, 1, piExtY );
+      xCTI_FilterQuarter0Hor_ha (piExtY + 3,  iExtStride, 1, iWidth    , iHeight, iDstStride, 1, piDstY );
+	  	
+      return;
+    }
+    if ( ixFrac == 3)
+    {
+      xCTI_FilterQuarter1Ver (piRefY - 3,  iRefStride, 1, iWidth + 7, iHeight, iExtStride, 1, piExtY );
+      xCTI_FilterQuarter1Hor_ha (piExtY + 3,  iExtStride, 1, iWidth    , iHeight, iDstStride, 1, piDstY );
+
+      return;
+    }
+  }
+  }
+
+#endif
 
 Void  TComPrediction::xPredInterLumaBlk( TComDataCU* pcCU, TComPicYuv* pcPicYuvRef, UInt uiPartAddr, TComMv* pcMv, Int iWidth, Int iHeight, TComYuv*& rpcYuv )
 {
@@ -672,6 +1180,213 @@ Void  TComPrediction::xPredInterLumaBlk( TComDataCU* pcCU, TComPicYuv* pcPicYuvR
   }
 #endif
 }
+
+#if HIGH_ACCURACY_BI
+Void TComPrediction::xPredInterChromaBlk_ha( TComDataCU* pcCU, TComPicYuv* pcPicYuvRef, UInt uiPartAddr, TComMv* pcMv, Int iWidth, Int iHeight, TComYuv*& rpcYuv )
+{
+  Int     iRefStride  = pcPicYuvRef->getCStride();
+  Int     iDstStride  = rpcYuv->getCStride();
+  
+  Int     iRefOffset  = (pcMv->getHor() >> 3) + (pcMv->getVer() >> 3) * iRefStride;
+  
+  Pel*    piRefCb     = pcPicYuvRef->getCbAddr( pcCU->getAddr(), pcCU->getZorderIdxInCU() + uiPartAddr ) + iRefOffset;
+  Pel*    piRefCr     = pcPicYuvRef->getCrAddr( pcCU->getAddr(), pcCU->getZorderIdxInCU() + uiPartAddr ) + iRefOffset;
+  
+  Pel* piDstCb = rpcYuv->getCbAddr( uiPartAddr );
+  Pel* piDstCr = rpcYuv->getCrAddr( uiPartAddr );
+  
+  Int     ixFrac  = pcMv->getHor() & 0x7;
+  Int     iyFrac  = pcMv->getVer() & 0x7;
+#if !DCTIF_4_6_CHROMA
+  Int     x, y;
+#endif
+  UInt    uiCWidth  = iWidth  >> 1;
+  UInt    uiCHeight = iHeight >> 1;
+  
+#if DCTIF_4_6_CHROMA
+  xDCTIF_FilterC_ha(piRefCb, iRefStride,piDstCb,iDstStride,uiCWidth,uiCHeight, iyFrac, ixFrac);
+  xDCTIF_FilterC_ha(piRefCr, iRefStride,piDstCr,iDstStride,uiCWidth,uiCHeight, iyFrac, ixFrac);
+  return;
+#else
+  //This branch is not supported
+  // Integer point
+  if ( ixFrac == 0 && iyFrac == 0 )
+  {
+    for ( y = 0; y < uiCHeight; y++ )
+    {
+      ::memcpy(piDstCb, piRefCb, sizeof(Pel)*uiCWidth);
+      ::memcpy(piDstCr, piRefCr, sizeof(Pel)*uiCWidth);
+      piDstCb += iDstStride;
+      piDstCr += iDstStride;
+      piRefCb += iRefStride;
+      piRefCr += iRefStride;
+    }
+    return;
+  }
+  
+  // Horizontal point
+  if ( iyFrac == 0 )
+  {
+    Pel* piRefCbP1;
+    Pel* piRefCrP1;
+    
+    if ( ixFrac == 4 )
+    {
+      for ( y = 0; y < uiCHeight; y++ )
+      {
+        piRefCbP1= piRefCb + 1;
+        piRefCrP1= piRefCr + 1;
+        
+        for ( x = 0; x < uiCWidth; x++ )
+        {
+          piDstCb[x] = (piRefCb[x] + piRefCbP1[x] + 1) >> 1;
+          piDstCr[x] = (piRefCr[x] + piRefCrP1[x] + 1) >> 1;
+        }
+        piDstCb += iDstStride;
+        piDstCr += iDstStride;
+        piRefCb += iRefStride;
+        piRefCr += iRefStride;
+      }
+    }
+    else
+    {
+      for ( y = 0; y < uiCHeight; y++ )
+      {
+        piRefCbP1= piRefCb + 1;
+        piRefCrP1= piRefCr + 1;
+        
+        for ( x = 0; x < uiCWidth; x++ )
+        {
+          piDstCb[x] = ( ( piRefCb[x] << 3 ) + ixFrac * ( piRefCbP1[x] - piRefCb[x] ) + 4 ) >> 3;
+          piDstCr[x] = ( ( piRefCr[x] << 3 ) + ixFrac * ( piRefCrP1[x] - piRefCr[x] ) + 4 ) >> 3;
+        }
+        piDstCb += iDstStride;
+        piDstCr += iDstStride;
+        piRefCb += iRefStride;
+        piRefCr += iRefStride;
+      }
+    }
+    return;
+  }
+  
+  // Vertical point
+  if ( ixFrac == 0 )
+  {
+    Pel* piNextRefCb;
+    Pel* piNextRefCr;
+    
+    if (iyFrac == 4)
+    {
+      for ( y = 0; y < uiCHeight; y++ )
+      {
+        piNextRefCb = piRefCb + iRefStride;
+        piNextRefCr = piRefCr + iRefStride;
+        for ( x = 0; x < uiCWidth; x++ )
+        {
+          piDstCb[x] = (piRefCb[x] + piNextRefCb[x] + 1) >> 1;
+          piDstCr[x] = (piRefCr[x] + piNextRefCr[x] + 1) >> 1;
+        }
+        piDstCb += iDstStride;
+        piDstCr += iDstStride;
+        piRefCb += iRefStride;
+        piRefCr += iRefStride;
+      }
+    }
+    else
+    {
+      for ( y = 0; y < uiCHeight; y++ )
+      {
+        piNextRefCb = piRefCb + iRefStride;
+        piNextRefCr = piRefCr + iRefStride;
+        for ( x = 0; x < uiCWidth; x++ )
+        {
+          piDstCb[x] = ( ( piRefCb[x] << 3 ) + iyFrac * ( piNextRefCb[x] - piRefCb[x] ) + 4) >> 3;
+          piDstCr[x] = ( ( piRefCr[x] << 3 ) + iyFrac * ( piNextRefCr[x] - piRefCr[x] ) + 4) >> 3;
+        }
+        piDstCb += iDstStride;
+        piDstCr += iDstStride;
+        piRefCb += iRefStride;
+        piRefCr += iRefStride;
+      }
+    }
+    return;
+  }
+  
+  // Center point
+  {
+    Pel* piNextRefCb;
+    Pel* piNextRefCr;
+    
+    Pel* piRefCbP1;
+    Pel* piNextRefCbP1;
+    Pel* piRefCrP1;
+    Pel* piNextRefCrP1;
+    
+    if (ixFrac == 4 && iyFrac == 4)
+    {
+      for ( y = 0; y < uiCHeight; y++ )
+      {
+        piNextRefCb = piRefCb + iRefStride;
+        piNextRefCr = piRefCr + iRefStride;
+        
+        piRefCbP1= piRefCb + 1;
+        piNextRefCbP1 = piNextRefCb + 1;
+        piRefCrP1= piRefCr + 1;
+        piNextRefCrP1 = piNextRefCr + 1;
+        
+        for ( x = 0; x < uiCWidth; x++ )
+        {
+          piDstCb[x] = (piRefCb[x] + piRefCbP1[x] + piNextRefCb[x] + piNextRefCbP1[x] + 2) >> 2;
+          piDstCr[x] = (piRefCr[x] + piRefCrP1[x] + piNextRefCr[x] + piNextRefCrP1[x] + 2) >> 2;
+        }
+        piDstCb += iDstStride;
+        piDstCr += iDstStride;
+        piRefCb += iRefStride;
+        piRefCr += iRefStride;
+      }
+      return;
+    }
+    
+    Int aCb, bCb, cCb;
+    Int aCr, bCr, cCr;
+    
+    for ( y = 0; y < uiCHeight; y++ )
+    {
+      piNextRefCb = piRefCb + iRefStride;
+      piNextRefCr = piRefCr + iRefStride;
+      
+      aCb = ( piRefCb[0] << 3 ) + iyFrac * ( piNextRefCb[0] - piRefCb[0] ); aCb *= ( 8 - ixFrac );
+      aCr = ( piRefCr[0] << 3 ) + iyFrac * ( piNextRefCr[0] - piRefCr[0] ); aCr *= ( 8 - ixFrac );
+      
+      piRefCbP1     = piRefCb     + 1;
+      piNextRefCbP1 = piNextRefCb + 1;
+      piRefCrP1     = piRefCr     + 1;
+      piNextRefCrP1 = piNextRefCr + 1;
+      
+      for ( x = 0; x < uiCWidth; x++ )
+      {
+        bCb = ( piRefCbP1[x] << 3 ) + iyFrac * ( piNextRefCbP1[x] - piRefCbP1[x] );
+        bCr = ( piRefCrP1[x] << 3 ) + iyFrac * ( piNextRefCrP1[x] - piRefCrP1[x] );
+        
+        cCb = ixFrac     * bCb;
+        cCr = ixFrac     * bCr;
+        
+        piDstCb[x] = ( aCb + cCb + 32 ) >> 6;
+        piDstCr[x] = ( aCr + cCr + 32 ) >> 6;
+        
+        aCb = (bCb<<3) - cCb;
+        aCr = (bCr<<3) - cCr;
+      }
+      piDstCb += iDstStride;
+      piDstCr += iDstStride;
+      piRefCb += iRefStride;
+      piRefCr += iRefStride;
+    }
+  }
+#endif
+}
+#endif
+
 //--
 Void TComPrediction::xPredInterChromaBlk( TComDataCU* pcCU, TComPicYuv* pcPicYuvRef, UInt uiPartAddr, TComMv* pcMv, Int iWidth, Int iHeight, TComYuv*& rpcYuv )
 {
@@ -909,6 +1624,52 @@ Void  TComPrediction::xDCTIF_FilterC ( Pel*  piRefC, Int iRefStride,Pel*  piDstC
   xCTI_Filter2DVerC (piRefC - 1,  iRefStride,  iWidth + 3, iHeight, iExtStride,  piExtC, iMVyFrac );
   xCTI_Filter2DHorC (piExtC + 1,  iExtStride,  iWidth             , iHeight, iDstStride,  piDstC, iMVxFrac );
 }
+
+#if HIGH_ACCURACY_BI
+
+Void  TComPrediction::xDCTIF_FilterC_ha ( Pel*  piRefC, Int iRefStride,Pel*  piDstC,Int iDstStride,
+                                       Int iWidth, Int iHeight,Int iMVyFrac,Int iMVxFrac)
+{
+  UInt    shiftNumOrg = 6 - g_uiBitIncrement;
+  // Integer point
+  if ( iMVxFrac == 0 && iMVyFrac == 0 )
+  {
+    for (Int y = 0; y < iHeight; y++ )
+    {
+       for(Int x=0; x<iWidth; x++)
+	   {
+		   piDstC[x] = (piRefC[x]<<shiftNumOrg); 
+	   }
+	   piDstC += iDstStride;
+	   piRefC += iRefStride;
+	}
+    return;
+  }
+
+  if ( iMVyFrac == 0 )
+  {
+    xCTI_Filter1DHorC_ha (piRefC, iRefStride,  iWidth, iHeight, iDstStride,  piDstC, iMVxFrac );
+	return;
+
+  }
+
+  if ( iMVxFrac == 0 )
+  {
+    xCTI_Filter1DVerC_ha (piRefC, iRefStride,  iWidth, iHeight, iDstStride,  piDstC, iMVyFrac );
+    return;
+  }
+
+  Int   iExtStride = m_iYuvExtStride;
+  Int*  piExtC     = m_piYuvExt;
+
+  xCTI_Filter2DVerC (piRefC - 1,  iRefStride,  iWidth + 3, iHeight, iExtStride,  piExtC, iMVyFrac );
+  xCTI_Filter2DHorC_ha (piExtC + 1,  iExtStride,  iWidth , iHeight, iDstStride,  piDstC, iMVxFrac );
+  return;
+  
+}
+
+#endif
+
 #endif
 
 #if TEN_DIRECTIONAL_INTERP
