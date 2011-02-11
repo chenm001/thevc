@@ -195,6 +195,7 @@
 
 #define MTK_DISABLE_INTRA_NxN_SPLIT       1           ///< Disable use of PUs-mode NxN for CUs larger 8x8 (intra only)
 #define FT_TCTR 1
+#define FT_TCTR_MERGE 1
 #define PANASONIC_AMVPTEMPORALEXT 1
 #define FAST_UDI_USE_MPM 1
 #define SONY_SIG_CTX 1

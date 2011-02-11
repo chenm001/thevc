@@ -821,8 +821,9 @@ Void TDecCavlc::parseIntraDirLumaAng  ( TComDataCU* pcCU, UInt uiAbsPartIdx, UIn
 				  break;
 			  }
 		  }
-
-      iRankIntraMode --;
+      
+      if ( iRankIntraMode > 0 )
+        iRankIntraMode --;
       iDir = m_uiIntraModeTableD17[iRankIntraMode];
 
       iRankIntraModeLarger = Max(0,iRankIntraMode-1);
@@ -856,8 +857,9 @@ Void TDecCavlc::parseIntraDirLumaAng  ( TComDataCU* pcCU, UInt uiAbsPartIdx, UIn
 				  break;
 			  }
 		  }
-
-      iRankIntraMode --;
+      
+      if ( iRankIntraMode > 0 )
+        iRankIntraMode --;
       iDir = m_uiIntraModeTableD34[iRankIntraMode];
 
       iRankIntraModeLarger = Max(0,iRankIntraMode-1);

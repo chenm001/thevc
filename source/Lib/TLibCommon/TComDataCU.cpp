@@ -2022,6 +2022,36 @@ Void TComDataCU::getInterMergeCandidates( UInt uiAbsPartIdx, UInt uiPUIdx, UInt 
   }
   uiIdx++;
   // col [2]
+  
+#if FT_TCTR_MERGE
+  {
+    TComMv cMvTCenter[2];
+    if (xGetCenterCol( uiPUIdx, REF_PIC_LIST_0, 0, &cMvTCenter[0] ))
+    {
+      UInt uiArrayAddr = uiIdx - 1;
+      abCandIsInter[uiArrayAddr] = true;
+      pcMvFieldNeighbours[uiArrayAddr << 1].setMvField( cMvTCenter[0], 0 );
+      puiNeighbourCandIdx[uiArrayAddr] = uiIdx;
+      if ( getSlice()->isInterB() )
+      {       
+        if ( xGetCenterCol( uiPUIdx, REF_PIC_LIST_1, 0, &cMvTCenter[1] ) )
+        {
+          pcMvFieldNeighbours[ ( uiArrayAddr << 1 ) + 1 ].setMvField( cMvTCenter[1], 0 );
+          puhInterDirNeighbours[uiArrayAddr] = 3;
+        }
+        else
+        {
+          puhInterDirNeighbours[uiArrayAddr] = 1;
+        }
+      }
+      else
+      {
+        puhInterDirNeighbours[uiArrayAddr] = 1;
+      }
+    }
+  }
+  uiIdx++;
+#else
   UInt uiColDir = ( m_pcSlice->isInterB()? m_pcSlice->getColDir() : 0 );
   TComDataCU* pcCUColocated = getCUColocated( RefPicList( uiColDir ) );
   RefPicList eColRefPicList = ( m_pcSlice->isInterB()? RefPicList( 1-uiColDir ) : REF_PIC_LIST_0 );
@@ -2074,6 +2104,7 @@ Void TComDataCU::getInterMergeCandidates( UInt uiAbsPartIdx, UInt uiPUIdx, UInt 
     }
   }
   uiIdx++;
+#endif // FT_TCTR_MERGE
   // cor [3]
   UInt uiPUIdxLT = 0;
   UInt uiPUIdxRT  = 0;
