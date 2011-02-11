@@ -1743,9 +1743,6 @@ Void TComDataCU::getPartIndexAndSize( UInt uiPartIdx, UInt& ruiPartAddr, Int& ri
 {
   switch ( m_pePartSize[0] )
   {
-    case SIZE_2Nx2N:
-      riWidth = getWidth(0);      riHeight = getHeight(0);      ruiPartAddr = 0;
-      break;
     case SIZE_2NxN:
       riWidth = getWidth(0);      riHeight = getHeight(0) >> 1; ruiPartAddr = ( uiPartIdx == 0 )? 0 : m_uiNumPartition >> 1;
       break;
@@ -1756,7 +1753,8 @@ Void TComDataCU::getPartIndexAndSize( UInt uiPartIdx, UInt& ruiPartAddr, Int& ri
       riWidth = getWidth(0) >> 1; riHeight = getHeight(0) >> 1; ruiPartAddr = ( m_uiNumPartition >> 2 ) * uiPartIdx;
       break;
     default:
-      assert (0);
+      assert ( m_pePartSize[0] == SIZE_2Nx2N );
+      riWidth = getWidth(0);      riHeight = getHeight(0);      ruiPartAddr = 0;
       break;
   }
 }
