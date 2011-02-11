@@ -57,6 +57,7 @@ protected:
 #if DCM_SKIP_DECODING_FRAMES
   Int           m_iSkipFrame;                         ///< counter for frames prior to the random access point to skip
 #endif
+  UInt          m_outputBitDepth;                     ///< bit depth used for writing output
   
   Void  xSetCfgCommand  ( TAppOption* pcOpt );        ///< initialize member variables from option class
   

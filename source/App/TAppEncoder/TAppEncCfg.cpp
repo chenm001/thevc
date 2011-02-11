@@ -115,6 +115,7 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
   ("SourceHeight,-hgt",     m_iSourceHeight, 0, "Source picture height")
   ("InputBitDepth",         m_uiInputBitDepth, 8u, "bit-depth of input file")
   ("BitDepth",              m_uiInputBitDepth, 8u, "deprecated alias of InputBitDepth")
+  ("OutputBitDepth",        m_uiOutputBitDepth, 0u, "bit-depth of output file")
 #if ENABLE_IBDI
   ("BitIncrement",          m_uiBitIncrement, 0xffffffffu, "bit-depth increasement")
 #endif
@@ -467,6 +468,11 @@ Void TAppEncCfg::xSetGlobal()
 #else
   g_uiIBDI_MAX     = ((1<<(g_uiBitDepth+g_uiBitIncrement))-1);
 #endif
+  
+  if (m_uiOutputBitDepth == 0)
+  {
+    m_uiOutputBitDepth = m_uiInternalBitDepth;
+  }
 }
 
 Void TAppEncCfg::xPrintParameter()

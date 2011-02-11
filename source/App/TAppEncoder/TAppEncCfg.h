@@ -101,6 +101,7 @@ protected:
   
   // coding tools (bit-depth)
   UInt      m_uiInputBitDepth;                                ///< bit-depth of input file
+  UInt      m_uiOutputBitDepth;                               ///< bit-depth of output file
   UInt      m_uiBitIncrement;                                 ///< bit-depth increment
   UInt      m_uiInternalBitDepth;                             ///< Internal bit-depth (BitDepth+BitIncrement)
   

@@ -129,7 +129,9 @@ Void TAppDecTop::decode()
     {
       if ( m_pchReconFile && !recon_opened )
       {
-        m_cTVideoIOYuvReconFile.open( m_pchReconFile, true, g_uiBitDepth + g_uiBitIncrement, g_uiBitDepth + g_uiBitIncrement ); // write mode
+        if ( m_outputBitDepth == 0 )
+          m_outputBitDepth = g_uiBitDepth + g_uiBitIncrement;
+        m_cTVideoIOYuvReconFile.open( m_pchReconFile, true, m_outputBitDepth, g_uiBitDepth + g_uiBitIncrement ); // write mode
         recon_opened = true;
       }
       // write reconstuction to file

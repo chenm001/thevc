@@ -174,6 +174,8 @@
 
 #define ENABLE_IBDI                 0
 
+#define CLIP_TO_709_RANGE           0
+
 // IBDI range restriction for skipping clip
 #define IBDI_NOCLIP_RANGE           0           ///< restrict max. value after IBDI to skip clip
 
