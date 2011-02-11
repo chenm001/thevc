@@ -248,13 +248,17 @@ static void writePlane(ostream& fd, Pel* src, bool is16bit,
   unsigned char *buf = new unsigned char[write_len];
   for (int y = 0; y < height; y++)
   {
-    if (!is16bit) {
-      for (int x = 0; x < width; x++) {
-        buf[x] = src[x];
+    if (!is16bit) 
+    {
+      for (int x = 0; x < width; x++) 
+      {
+        buf[x] = (unsigned char) src[x];
       }
     }
-    else {
-      for (int x = 0; x < width; x++) {
+    else 
+    {
+      for (int x = 0; x < width; x++) 
+      {
         buf[2*x] = src[x] & 0xff;
         buf[2*x+1] = (src[x] >> 8) & 0xff;
       }
