@@ -500,7 +500,7 @@ Void TAppEncCfg::xPrintParameter()
   printf("QP                           : %5.2f\n", m_fQP );
   printf("GOP size                     : %d\n", m_iGOPSize );
   printf("Rate GOP size                : %d\n", m_iRateGOPSize );
-  printf("Bit increment                : %d\n", m_uiBitIncrement );
+  printf("Internal bit depth           : %d\n", m_uiInternalBitDepth );
  
 #if DCTIF_8_6_LUMA
   printf("Luma interpolation           : %s\n", "Samsung 8-tap filter"  );
