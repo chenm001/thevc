@@ -416,7 +416,7 @@ __inline Void TComPredFilter::xCTI_FilterHalfHor_ha(Pel* piSrc, Int iSrcStride, 
   Int iSrcStep7 = iSrcStep*7;
 
   Int iTmp0, iTmp1, iTmp2, iTmp3, iTmpA;
-  Int shiftNum = g_uiBitIncrement;
+  Int shiftNum = g_uiBitIncrement + g_uiBitDepth - 8;
   Int shiftOffset = (shiftNum > 0) ? ( 1 << (shiftNum - 1)) : 0 ;
   for ( Int y = iHeight; y != 0; y-- )
   {
@@ -460,7 +460,7 @@ __inline Void TComPredFilter::xCTI_FilterHalfHor_ha(Int* piSrc, Int iSrcStride, 
   Int iSrcStep7 = iSrcStep*7;
 
   Int iTmp0, iTmp1, iTmp2, iTmp3, iTmpA;
-  Int shiftNum = 6 + g_uiBitIncrement;
+  Int shiftNum = 6 + g_uiBitIncrement + g_uiBitDepth - 8;
   Int shiftOffset = (shiftNum > 0) ? ( 1 << (shiftNum - 1)) : 0 ;
   for ( Int y = iHeight; y != 0; y-- )
   {
@@ -505,7 +505,7 @@ __inline Void TComPredFilter::xCTI_FilterQuarter0Hor_ha(Pel* piSrc, Int iSrcStri
   Int iSrcStep7 = iSrcStep*7;
 
   Int  iTmp1, iTmp2;
-  Int shiftNum = g_uiBitIncrement;
+  Int shiftNum = g_uiBitIncrement + g_uiBitDepth - 8;
   Int shiftOffset = (shiftNum > 0) ? ( 1 << (shiftNum - 1)) : 0 ;
   for ( Int y = iHeight; y != 0; y-- )
   {
@@ -547,7 +547,7 @@ __inline Void TComPredFilter::xCTI_FilterQuarter0Hor_ha(Int* piSrc, Int iSrcStri
   Int iSrcStep5 = iSrcStep*5;
   Int iSrcStep6 = iSrcStep*6;
   Int iSrcStep7 = iSrcStep*7;
-  Int shiftNum = 6 + g_uiBitIncrement;
+  Int shiftNum = 6 + g_uiBitIncrement + g_uiBitDepth - 8;
   Int shiftOffset = (shiftNum > 0) ? ( 1 << (shiftNum - 1)) : 0 ;
   Int  iTmp1, iTmp2;
 
@@ -591,7 +591,7 @@ __inline Void TComPredFilter::xCTI_FilterQuarter1Hor_ha(Pel* piSrc, Int iSrcStri
   Int iSrcStep5 = iSrcStep*5;
   Int iSrcStep6 = iSrcStep*6;
   Int iSrcStep7 = iSrcStep*7;
-  Int shiftNum = g_uiBitIncrement;
+  Int shiftNum = g_uiBitIncrement + g_uiBitDepth - 8;
   Int shiftOffset = (shiftNum > 0) ? ( 1 << (shiftNum - 1)) : 0 ;
 
   Int  iTmp1, iTmp2;
@@ -636,7 +636,7 @@ __inline Void TComPredFilter::xCTI_FilterQuarter1Hor_ha(Int* piSrc, Int iSrcStri
   Int iSrcStep5 = iSrcStep*5;
   Int iSrcStep6 = iSrcStep*6;
   Int iSrcStep7 = iSrcStep*7;
-  Int shiftNum = 6+g_uiBitIncrement;
+  Int shiftNum = 6+g_uiBitIncrement + g_uiBitDepth - 8;
   Int shiftOffset = (shiftNum > 0) ? ( 1 << (shiftNum - 1)) : 0 ;
   Int  iTmp1, iTmp2;
   for ( Int y = iHeight; y != 0; y-- )
@@ -680,7 +680,7 @@ __inline Void TComPredFilter::xCTI_FilterQuarter0Ver_ha (Pel* piSrc, Int iSrcStr
   Int iSrcStride5 = iSrcStride*5;
   Int iSrcStride6 = iSrcStride*6;
   Int iSrcStride7 = iSrcStride*7;
-  Int shiftNum = g_uiBitIncrement;
+  Int shiftNum = g_uiBitIncrement + g_uiBitDepth - 8;
   Int shiftOffset = (shiftNum > 0) ? ( 1 << (shiftNum - 1)) : 0 ;
   Int  iTmp1, iTmp2;
   for ( Int y = iHeight; y != 0; y-- )
@@ -723,7 +723,7 @@ __inline Void TComPredFilter::xCTI_FilterQuarter1Ver_ha (Pel* piSrc, Int iSrcStr
   Int iSrcStride5 = iSrcStride*5;
   Int iSrcStride6 = iSrcStride*6;
   Int iSrcStride7 = iSrcStride*7;
-  Int shiftNum = g_uiBitIncrement;
+  Int shiftNum = g_uiBitIncrement + g_uiBitDepth - 8;
   Int shiftOffset = (shiftNum > 0) ? ( 1 << (shiftNum - 1)) : 0 ;
   Int  iTmp1, iTmp2;
 
@@ -765,7 +765,7 @@ __inline Void TComPredFilter::xCTI_FilterHalfVer_ha	 (Pel* piSrc, Int iSrcStride
   Int iSrcStride5 = iSrcStride*5;
   Int iSrcStride6 = iSrcStride*6;
   Int iSrcStride7 = iSrcStride*7;
-  Int shiftNum = g_uiBitIncrement;
+  Int shiftNum = g_uiBitIncrement + g_uiBitDepth - 8;
   Int shiftOffset = (shiftNum > 0) ? ( 1 << (shiftNum - 1)) : 0 ;
   Int  iTmp0, iTmp1, iTmp2, iTmp3, iTmpA;
   for ( Int y = iHeight; y != 0; y-- )
@@ -2736,7 +2736,7 @@ __inline Void TComPredFilter::xCTI_Filter2DHorC_ha(Int* piSrc, Int iSrcStride,  
   Pel*  piDst    = rpiDst;
   Int   iSum;
   Int*  piSrcTmp;
-  Int shiftNum  = 6 + g_uiBitIncrement;
+  Int shiftNum  = 6 + g_uiBitIncrement + g_uiBitDepth - 8;
   Int shiftOffset = (shiftNum > 0) ? ( 1 << (shiftNum - 1)) : 0 ;
 
   switch (iMV)
@@ -2865,7 +2865,7 @@ __inline Void TComPredFilter::xCTI_Filter1DVerC_ha (Pel* piSrc, Int iSrcStride, 
   Pel*  piDst = rpiDst;
   Int   iSum;
   Pel*  piSrcTmp;	
-  Int shiftNum  = g_uiBitIncrement;
+  Int shiftNum  = g_uiBitIncrement + g_uiBitDepth - 8;
   Int shiftOffset = (shiftNum > 0) ? ( 1 << (shiftNum - 1)) : 0 ;
     
   switch (iMV)
@@ -2993,7 +2993,7 @@ __inline Void TComPredFilter::xCTI_Filter1DHorC_ha(Pel* piSrc, Int iSrcStride, I
   Pel*  piDst    = rpiDst;
   Int   iSum;
   Pel*  piSrcTmp;
-  Int shiftNum  = g_uiBitIncrement;
+  Int shiftNum  = g_uiBitIncrement + g_uiBitDepth - 8;
   Int shiftOffset = (shiftNum > 0) ? ( 1 << (shiftNum - 1)) : 0 ;
 
   switch (iMV)

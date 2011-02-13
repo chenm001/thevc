@@ -435,7 +435,7 @@ Void  TComPrediction::xPredInterLumaBlk_ha( TComDataCU* pcCU, TComPicYuv* pcPicY
   Int     iyFrac  = pcMv->getVer() & 0x3;
   
   Pel* piDstY = rpcYuv->getLumaAddr( uiPartAddr );
-    UInt shiftNum = 14-8-g_uiBitIncrement;
+    UInt shiftNum = 14-g_uiBitDepth-g_uiBitIncrement;
   //  Integer point
   if ( ixFrac == 0 && iyFrac == 0 )
   {
@@ -1290,7 +1290,7 @@ Void  TComPrediction::xDCTIF_FilterC ( Pel*  piRefC, Int iRefStride,Pel*  piDstC
 Void  TComPrediction::xDCTIF_FilterC_ha ( Pel*  piRefC, Int iRefStride,Pel*  piDstC,Int iDstStride,
                                        Int iWidth, Int iHeight,Int iMVyFrac,Int iMVxFrac)
 {
-  UInt    shiftNumOrg = 6 - g_uiBitIncrement;
+  UInt    shiftNumOrg = 6 - g_uiBitIncrement + 8 - g_uiBitDepth;
   // Integer point
   if ( iMVxFrac == 0 && iMVyFrac == 0 )
   {

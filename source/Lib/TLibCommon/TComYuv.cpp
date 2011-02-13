@@ -476,7 +476,7 @@ Void TComYuv::shiftBack(UInt iPartUnitIdx, UInt iWidth, UInt iHeight)
   Pel* pDstU   = getCbAddr  ( iPartUnitIdx );
   Pel* pDstV   = getCrAddr  ( iPartUnitIdx );
   UInt  iDstStride  = getStride();
-  Int shiftNum = 14 - (8 + g_uiBitIncrement);
+  Int shiftNum = 14 - (g_uiBitDepth + g_uiBitIncrement);
   Int offset = 1<<(shiftNum - 1);
 
  for ( y = iHeight-1; y >= 0; y-- )
