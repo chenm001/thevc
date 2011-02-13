@@ -381,10 +381,14 @@ Void TEncCavlc::codeSPS( TComSPS* pcSPS )
   }
   
   // Bit-depth information
+#if FULL_NBIT
+  m_uiBitHLS += xWriteUvlc( pcSPS->getBitDepth() - 8 );
+#else
 #if ENABLE_IBDI
   m_uiBitHLS += xWriteUvlc( pcSPS->getBitDepth() - 8 );
 #endif
   m_uiBitHLS += xWriteUvlc( pcSPS->getBitIncrement() );
+#endif
 }
 
 Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
@@ -547,10 +551,14 @@ Void TEncCavlc::codeSPS( TComSPS* pcSPS )
   }
   
   // Bit-depth information
+#if FULL_NBIT
+  xWriteUvlc( pcSPS->getBitDepth() - 8 );
+#else
 #if ENABLE_IBDI
   xWriteUvlc( pcSPS->getBitDepth() - 8 );
 #endif
   xWriteUvlc( pcSPS->getBitIncrement() );
+#endif
 }
 
 Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )

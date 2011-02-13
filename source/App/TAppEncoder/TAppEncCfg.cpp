@@ -457,8 +457,13 @@ Void TAppEncCfg::xSetGlobal()
     g_uiBitIncrement = m_uiInternalBitDepth - g_uiBitDepth;
   }
 #else
+#if FULL_NBIT
+  g_uiBitDepth = m_uiInternalBitDepth;
+  g_uiBitIncrement = 0;
+#else
   g_uiBitDepth = 8;
   g_uiBitIncrement = m_uiInternalBitDepth - g_uiBitDepth;
+#endif
 #endif
 
   g_uiBASE_MAX     = ((1<<(g_uiBitDepth))-1);

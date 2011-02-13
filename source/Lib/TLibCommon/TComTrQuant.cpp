@@ -219,6 +219,9 @@ Void QpParam::initOffsetParam( Int iStartQP, Int iEndQP )
     for (UInt uiSliceType = 0; uiSliceType < 3; uiSliceType++)
     {
       Int k =  (iQP + 6*g_uiBitIncrement)/6;
+#if FULL_NBIT
+      k += g_uiBitDepth - 8;
+#endif
       
       Bool bLowPass = (uiSliceType == 0);
       iDefaultOffset = (bLowPass? 10922 : 5462);
@@ -1819,7 +1822,9 @@ Void TComTrQuant::xRateDistOptQuant_LCEC(TComDataCU* pcCU, Long* pSrcCoeff, TCoe
           Int iDefaultOffset_LTR;
           Int iPer;
           Int k =  (iQP + 6 * g_uiBitIncrement) / 6;
-
+#if FULL_NBIT
+          k += g_uiBitDepth - 8;
+#endif
           Bool bLowPass = (uiSliceType == 0);
           iDefaultOffset = (bLowPass ? 10922 : 5462);
 
@@ -2494,7 +2499,11 @@ Void TComTrQuant::xIT16( Long* pSrc, Pel* pDes, UInt uiStride )
   UInt uiStride14 = uiStride13 + uiStride;
   UInt uiStride15 = uiStride14 + uiStride;
 #ifdef TRANS_PRECISION_EXT
+#if FULL_NBIT
+  Int uiBitDepthIncrease=g_iShift16x16-g_uiBitIncrement-g_uiBitDepth+8;
+#else
   Int uiBitDepthIncrease=g_iShift16x16-g_uiBitIncrement;
+#endif
   Int offset = (uiBitDepthIncrease==0)? 0:(1<<(uiBitDepthIncrease-1));
 #endif
   //--Butterfly
@@ -2769,7 +2778,11 @@ Void TComTrQuant::xIT32( Long* pSrc, Pel* pDes, UInt uiStride )
   UInt uiStride30 = uiStride29 + uiStride;
   UInt uiStride31 = uiStride30 + uiStride;
 #ifdef TRANS_PRECISION_EXT
+#if FULL_NBIT
+  Int uiBitDepthIncrease=g_iShift32x32-g_uiBitIncrement-g_uiBitDepth+8;
+#else
   Int uiBitDepthIncrease=g_iShift32x32-g_uiBitIncrement;
+#endif
   Int offset = (uiBitDepthIncrease==0)? 0:(1<<(uiBitDepthIncrease-1));
 #endif
   //--Butterfly
@@ -3729,7 +3742,11 @@ Void TComTrQuant::xIT8( Long* plCoef, Pel* pResidual, UInt uiStride )
   Long aai[8][8];
   Int n;
 #ifdef TRANS_PRECISION_EXT
+#if FULL_NBIT
+  Int uiBitDepthIncrease=g_iShift8x8-g_uiBitIncrement-g_uiBitDepth+8;
+#else
   Int uiBitDepthIncrease=g_iShift8x8-g_uiBitIncrement;
+#endif
   Int offset = (uiBitDepthIncrease==0)? 0:(1<<(uiBitDepthIncrease-1));
 #endif
   UInt uiStride2 = uiStride<<1;

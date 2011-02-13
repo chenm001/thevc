@@ -919,7 +919,11 @@ Void TComAdaptiveLoopFilter::calcVar(imgpel **imgY_var, imgpel *imgY_pad, int pa
   int i, j, ii, jj;
   int sum;
   int *p_imgY_temp;
+#if FULL_NBIT
+  int shift= (11+ g_uiBitIncrement + g_uiBitDepth - 8);
+#else
   int shift= (11+ g_uiBitIncrement);
+#endif
   int fl2plusOne= (VAR_SIZE<<1)+1;
   int pad_offset = pad_size-fl-1;
   int var_max= NO_VAR_BINS-1;
@@ -929,7 +933,11 @@ Void TComAdaptiveLoopFilter::calcVar(imgpel **imgY_var, imgpel *imgY_pad, int pa
   if (VAR_SIZE ==0)
   {
     imgpel *p_imgY_var;
+#if FULL_NBIT
+    shift = g_uiBitIncrement + g_uiBitDepth - 8;
+#else
     shift = g_uiBitIncrement;
+#endif
     //current
     for(i = 1; i < img_height + fl2plusOne; i++)
     {
