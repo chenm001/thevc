@@ -443,7 +443,7 @@ Void TComLoopFilter::xEdgeFilterLuma( TComDataCU* pcCU, UInt uiAbsZorderIdx, UIn
       }
     }
     
-    Int iBitdepthScale = (1<<g_uiBitIncrement);
+    Int iBitdepthScale = (1<<(g_uiBitIncrement+g_uiBitDepth-8));
     
     UInt uiTcOffset = (uiBs>2)?4:0;
     
@@ -525,7 +525,7 @@ Void TComLoopFilter::xEdgeFilterChroma( TComDataCU* pcCU, UInt uiAbsZorderIdx, U
     uiBsAbsIdx = xCalcBsIdx( pcCU, uiAbsZorderIdx, iDir, iEdge, iIdx);
     ucBs = m_aapucBS[iDir][0][uiBsAbsIdx];
     
-    Int iBitdepthScale = (1<<g_uiBitIncrement);
+    Int iBitdepthScale = (1<<(g_uiBitIncrement+g_uiBitDepth-8));
     
     UInt uiTcOffset = (ucBs>2)?4:0;
     
