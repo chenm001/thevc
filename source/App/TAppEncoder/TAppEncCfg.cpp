@@ -377,7 +377,7 @@ Void TAppEncCfg::xCheckParameter()
   
   xConfirmPara( m_iSymbolMode < 0 || m_iSymbolMode > 1,                                     "SymbolMode must be equal to 0 or 1" );
   
-#if LCEC_CBP_YUV_ROOT
+#if LCEC_CBP_YUV_ROOT && !LCEC_CBP_YUV_ROOT_RDFIX
   if(m_iSymbolMode == 0)
   {
     if (m_uiQuadtreeTUMaxDepthIntra > 1 || m_uiQuadtreeTUMaxDepthInter > 2)
