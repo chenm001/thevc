@@ -651,9 +651,9 @@ UInt64 TEncGOP::xFindDistortionFrame (TComPicYuv* pcPic0, TComPicYuv* pcPic1)
 Void TEncGOP::xCalculateAddPSNR( TComPic* pcPic, TComPicYuv* pcPicD, UInt uibits, Double dEncTime )
 {
   Int     x, y;
-  UInt    uiSSDY  = 0;
-  UInt    uiSSDU  = 0;
-  UInt    uiSSDV  = 0;
+  UInt64 uiSSDY  = 0;
+  UInt64 uiSSDU  = 0;
+  UInt64 uiSSDV  = 0;
   
   Double  dYPSNR  = 0.0;
   Double  dUPSNR  = 0.0;

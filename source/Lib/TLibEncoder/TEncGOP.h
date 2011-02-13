@@ -125,11 +125,6 @@ protected:
   NalUnitType getNalUnitType( UInt uiPOCCurr );
 #endif
 
-  // for scaling & descaing of picture
-  // note: IBDI is handled here
-  Void  xDeScalePic       ( TComPic* pcPic, TComPicYuv* pcPicD );
-  
-  Void  xCalculateAddPSNR ( TComPic* pcPic, TComPicYuv* pcPicD, UInt uiBits );
   Void  xCalculateAddPSNR ( TComPic* pcPic, TComPicYuv* pcPicD, UInt uiBits, Double dEncTime );
   
   UInt64 xFindDistortionFrame (TComPicYuv* pcPic0, TComPicYuv* pcPic1);
