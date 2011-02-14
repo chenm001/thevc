@@ -69,9 +69,16 @@ private:
   Bool        m_bUseDQP;
   Bool        m_bUseLDC;
   Bool        m_bUsePAD;
+#if !DCTIF_8_6_LUMA
   Int         m_iDIFTap;
+#endif
 #if HHI_MRG
   Bool        m_bUseMRG; // SOPH:
+#endif
+
+#if DCM_COMB_LIST
+  Bool        m_bUseLComb;
+  Bool        m_bLCMod;
 #endif
   
 #if HHI_RMP_SWITCH
@@ -133,7 +140,9 @@ public:
 #if HHI_MRG
   Bool getUseMRG      ()         { return m_bUseMRG;        } // SOPH:
 #endif
+#if !DCTIF_8_6_LUMA
   Int  getDIFTap      ()         { return m_iDIFTap;        }
+#endif
   
   Void setUseALF      ( Bool b ) { m_bUseALF  = b;          }
   Void setUseDQP      ( Bool b ) { m_bUseDQP   = b;         }
@@ -143,8 +152,17 @@ public:
 #if HHI_MRG
   Void setUseMRG      ( Bool b ) { m_bUseMRG  = b;          } // SOPH:
 #endif
+#if !DCTIF_8_6_LUMA
   Void setDIFTap      ( Int  i ) { m_iDIFTap   = i;         }
+#endif
   
+#if DCM_COMB_LIST
+  Void setUseLComb    (Bool b)   { m_bUseLComb = b;         }
+  Bool getUseLComb    ()         { return m_bUseLComb;      }
+  Void setLCMod       (Bool b)   { m_bLCMod = b;     }
+  Bool getLCMod       ()         { return m_bLCMod;  }
+#endif
+
 #if HHI_RMP_SWITCH
   Bool getUseRMP     ()         { return m_bUseRMP; }
   Void setUseRMP     ( Bool b ) { m_bUseRMP = b;    }
@@ -179,6 +197,9 @@ class TComSlice
 private:
   //  Bitstream writing
   Int         m_iPOC;
+#if DCM_DECODING_REFRESH
+  NalUnitType m_eNalUnitType;         ///< Nal unit type for the slice
+#endif
   SliceType   m_eSliceType;
   Int         m_iSliceQp;
   Int         m_iSymbolMode;
@@ -186,8 +207,20 @@ private:
   
   Bool        m_bDRBFlag;             //  flag for future usage as reference buffer
   ERBIndex    m_eERBIndex;            //  flag for future usage as reference buffer
+#if DCM_COMB_LIST
+  Int         m_aiNumRefIdx   [3];    //  for multiple reference of current slice
+
+  Int         m_iRefIdxOfLC[2][MAX_NUM_REF_LC];
+  Int         m_eListIdFromIdxOfLC[MAX_NUM_REF_LC];
+  Int         m_iRefIdxFromIdxOfLC[MAX_NUM_REF_LC];
+  Int         m_iRefIdxOfL1FromRefIdxOfL0[MAX_NUM_REF_LC];
+  Int         m_iRefIdxOfL0FromRefIdxOfL1[MAX_NUM_REF_LC];
+  Bool        m_bRefPicListModificationFlagLC;
+  Bool        m_bRefPicListCombinationFlag;
+#else
   Int         m_aiNumRefIdx   [2];    //  for multiple reference of current slice
-  
+#endif  
+
   //  Data
   Int         m_iSliceQpDelta;
   TComPic*    m_apcRefPicList [2][MAX_NUM_REF];
@@ -211,9 +244,14 @@ private:
   
   Bool        m_abEqualRef  [2][MAX_NUM_REF][MAX_NUM_REF];
   
+#if !DCTIF_8_6_LUMA
   Int         m_iInterpFilterType;
+#endif
 #if MS_NO_BACK_PRED_IN_B0
   Bool        m_bNoBackPredFlag;
+#endif
+#if MS_LCEC_LOOKUP_TABLE_EXCEPTION
+  Bool        m_bRefIdxCombineCoding;
 #endif
   
 public:
@@ -243,6 +281,21 @@ public:
   Int       getDepth            ()                              { return  m_iDepth;                     }
   UInt      getColDir           ()                              { return  m_uiColDir;                   }
   
+#if DCM_COMB_LIST 
+  Int       getRefIdxOfLC       (RefPicList e, Int iRefIdx)     { return m_iRefIdxOfLC[e][iRefIdx];           }
+  Int       getListIdFromIdxOfLC(Int iRefIdx)                   { return m_eListIdFromIdxOfLC[iRefIdx];       }
+  Int       getRefIdxFromIdxOfLC(Int iRefIdx)                   { return m_iRefIdxFromIdxOfLC[iRefIdx];       }
+  Int       getRefIdxOfL0FromRefIdxOfL1(Int iRefIdx)            { return m_iRefIdxOfL0FromRefIdxOfL1[iRefIdx];}
+  Int       getRefIdxOfL1FromRefIdxOfL0(Int iRefIdx)            { return m_iRefIdxOfL1FromRefIdxOfL0[iRefIdx];}
+  Bool      getRefPicListModificationFlagLC()                   {return m_bRefPicListModificationFlagLC;}
+  Void      setRefPicListModificationFlagLC(Bool bflag)         {m_bRefPicListModificationFlagLC=bflag;}     
+  Bool      getRefPicListCombinationFlag()                      {return m_bRefPicListCombinationFlag;}
+  Void      setRefPicListCombinationFlag(Bool bflag)            {m_bRefPicListCombinationFlag=bflag;}     
+  Void      setListIdFromIdxOfLC(Int  iRefIdx, UInt uiVal)      { m_eListIdFromIdxOfLC[iRefIdx]=uiVal; }
+  Void      setRefIdxFromIdxOfLC(Int  iRefIdx, UInt uiVal)      { m_iRefIdxFromIdxOfLC[iRefIdx]=uiVal; }
+  Void      setRefIdxOfLC       (RefPicList e, Int iRefIdx, Int RefIdxLC)     { m_iRefIdxOfLC[e][iRefIdx]=RefIdxLC;}
+#endif
+
   Void      setReferenced(Bool b)                               { m_bRefenced = b; }
   Bool      isReferenced()                                      { return m_bRefenced; }
 #ifdef ROUNDING_CONTROL_BIPRED
@@ -251,6 +304,11 @@ public:
 #endif
   
   Void      setPOC              ( Int i )                       { m_iPOC              = i;      }
+#if DCM_DECODING_REFRESH
+  Void      setNalUnitType      ( NalUnitType e )               { m_eNalUnitType      = e;      }
+  NalUnitType getNalUnitType    ()                              { return m_eNalUnitType;        }
+  Void      decodingRefreshMarking(UInt& uiPOCCDR, Bool& bRefreshPending, TComList<TComPic*>& rcListPic);
+#endif
   Void      setSliceType        ( SliceType e )                 { m_eSliceType        = e;      }
   Void      setSliceQp          ( Int i )                       { m_iSliceQp          = i;      }
   Void      setSliceQpDelta     ( Int i )                       { m_iSliceQpDelta     = i;      }
@@ -290,12 +348,21 @@ public:
   
   static Void      sortPicList         ( TComList<TComPic*>& rcListPic );
   
+#if !DCTIF_8_6_LUMA
   Int  getInterpFilterType     ()         { return m_iInterpFilterType;       }
   Void setInterpFilterType     ( Int  i ) { m_iInterpFilterType  = i;         }
+#endif
   
 #if MS_NO_BACK_PRED_IN_B0
   Bool getNoBackPredFlag() { return m_bNoBackPredFlag; }
   Void setNoBackPredFlag( Bool b ) { m_bNoBackPredFlag = b; }
+#endif
+#if MS_LCEC_LOOKUP_TABLE_EXCEPTION
+  Bool getRefIdxCombineCoding() { return m_bRefIdxCombineCoding; }
+  Void setRefIdxCombineCoding( Bool b ) { m_bRefIdxCombineCoding = b; }
+#endif
+#if DCM_COMB_LIST
+  Void      generateCombinedList       ();
 #endif
   
 protected:

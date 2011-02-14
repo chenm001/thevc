@@ -65,6 +65,13 @@ TComSlice::TComSlice()
 #if MS_NO_BACK_PRED_IN_B0
   m_bNoBackPredFlag = false;
 #endif
+#if MS_LCEC_LOOKUP_TABLE_EXCEPTION
+  m_bRefIdxCombineCoding = false;
+#endif
+#if DCM_COMB_LIST 
+  m_bRefPicListCombinationFlag = false;
+  m_bRefPicListModificationFlagLC = false;
+#endif
 }
 
 TComSlice::~TComSlice()
@@ -80,13 +87,22 @@ Void TComSlice::initSlice()
   m_bDRBFlag            = true;
   m_eERBIndex           = ERB_NONE;
   
+#if !DCTIF_8_6_LUMA
   m_iInterpFilterType   = IPF_SAMSUNG_DIF_DEFAULT;
+#endif
   
   m_uiColDir = 0;
   
   initEqualRef();
 #if MS_NO_BACK_PRED_IN_B0
   m_bNoBackPredFlag = false;
+#endif
+#if MS_LCEC_LOOKUP_TABLE_EXCEPTION
+  m_bRefIdxCombineCoding = false;
+#endif
+#if DCM_COMB_LIST 
+  m_bRefPicListCombinationFlag = false;
+  m_bRefPicListModificationFlagLC = false;
 #endif
 }
 
@@ -278,7 +294,73 @@ Void TComSlice::setRefPOCList       ()
       m_aiRefPOCList[iDir][iNumRefIdx] = m_apcRefPicList[iDir][iNumRefIdx]->getPOC();
     }
   }
+
 }
+
+#if DCM_COMB_LIST 
+Void TComSlice::generateCombinedList()
+{
+  if(m_aiNumRefIdx[REF_PIC_LIST_C] > 0)
+  {
+    m_aiNumRefIdx[REF_PIC_LIST_C]=0;
+    for(Int iNumCount = 0; iNumCount < MAX_NUM_REF_LC; iNumCount++)
+    {
+      m_iRefIdxOfLC[REF_PIC_LIST_0][iNumCount]=-1;
+      m_iRefIdxOfLC[REF_PIC_LIST_1][iNumCount]=-1;
+      m_eListIdFromIdxOfLC[iNumCount]=0;
+      m_iRefIdxFromIdxOfLC[iNumCount]=0;
+      m_iRefIdxOfL0FromRefIdxOfL1[iNumCount] = -1;
+      m_iRefIdxOfL1FromRefIdxOfL0[iNumCount] = -1;
+    }
+
+    for (Int iNumRefIdx = 0; iNumRefIdx < MAX_NUM_REF; iNumRefIdx++)
+    {
+      if(iNumRefIdx < m_aiNumRefIdx[REF_PIC_LIST_0]){
+        Bool bTempRefIdxInL2 = true;
+        for ( Int iRefIdxLC = 0; iRefIdxLC < m_aiNumRefIdx[REF_PIC_LIST_C]; iRefIdxLC++ )
+        {
+          if ( m_apcRefPicList[REF_PIC_LIST_0][iNumRefIdx]->getPOC() == m_apcRefPicList[m_eListIdFromIdxOfLC[iRefIdxLC]][m_iRefIdxFromIdxOfLC[iRefIdxLC]]->getPOC() )
+          {
+            m_iRefIdxOfL1FromRefIdxOfL0[iNumRefIdx] = m_iRefIdxFromIdxOfLC[iRefIdxLC];
+            m_iRefIdxOfL0FromRefIdxOfL1[m_iRefIdxFromIdxOfLC[iRefIdxLC]] = iNumRefIdx;
+            bTempRefIdxInL2 = false;
+            assert(m_eListIdFromIdxOfLC[iRefIdxLC]==REF_PIC_LIST_1);
+            break;
+          }
+        }
+
+        if(bTempRefIdxInL2 == true)
+        { 
+          m_eListIdFromIdxOfLC[m_aiNumRefIdx[REF_PIC_LIST_C]] = REF_PIC_LIST_0;
+          m_iRefIdxFromIdxOfLC[m_aiNumRefIdx[REF_PIC_LIST_C]] = iNumRefIdx;
+          m_iRefIdxOfLC[REF_PIC_LIST_0][iNumRefIdx] = m_aiNumRefIdx[REF_PIC_LIST_C]++;
+        }
+      }
+
+      if(iNumRefIdx < m_aiNumRefIdx[REF_PIC_LIST_1]){
+        Bool bTempRefIdxInL2 = true;
+        for ( Int iRefIdxLC = 0; iRefIdxLC < m_aiNumRefIdx[REF_PIC_LIST_C]; iRefIdxLC++ )
+        {
+          if ( m_apcRefPicList[REF_PIC_LIST_1][iNumRefIdx]->getPOC() == m_apcRefPicList[m_eListIdFromIdxOfLC[iRefIdxLC]][m_iRefIdxFromIdxOfLC[iRefIdxLC]]->getPOC() )
+          {
+            m_iRefIdxOfL0FromRefIdxOfL1[iNumRefIdx] = m_iRefIdxFromIdxOfLC[iRefIdxLC];
+            m_iRefIdxOfL1FromRefIdxOfL0[m_iRefIdxFromIdxOfLC[iRefIdxLC]] = iNumRefIdx;
+            bTempRefIdxInL2 = false;
+            assert(m_eListIdFromIdxOfLC[iRefIdxLC]==REF_PIC_LIST_0);
+            break;
+          }
+        }
+        if(bTempRefIdxInL2 == true)
+        {
+          m_eListIdFromIdxOfLC[m_aiNumRefIdx[REF_PIC_LIST_C]] = REF_PIC_LIST_1;
+          m_iRefIdxFromIdxOfLC[m_aiNumRefIdx[REF_PIC_LIST_C]] = iNumRefIdx;
+          m_iRefIdxOfLC[REF_PIC_LIST_1][iNumRefIdx] = m_aiNumRefIdx[REF_PIC_LIST_C]++;
+        }
+      }
+    }
+  }
+}
+#endif
 
 Void TComSlice::setRefPicList       ( TComList<TComPic*>& rcListPic )
 {
@@ -411,6 +493,63 @@ Void TComSlice::initEqualRef()
     }
   }
 }
+
+#if DCM_DECODING_REFRESH
+/** Function for marking the reference pictures when an IDR and CDR is encountered.
+ * \param uiPOCCDR POC of the CDR picture
+ * \param bRefreshPending flag indicating if a deferred decoding refresh is pending
+ * \param rcListPic reference to the reference picture list
+ * \returns 
+ * This function marks the reference pictures as "unused for reference" in the following conditions.
+ * If the nal_unit_type is IDR all pictures in the reference picture list  
+ * is marked as "unused for reference" 
+ * Otherwise do for the CDR case (non CDR case has no effect since both if conditions below will not be true)
+ *    If the bRefreshPending flag is true (a deferred decoding refresh is pending) and the current 
+ *    temporal reference is greater than the temporal reference of the latest CDR picture (uiPOCCDR), 
+ *    mark all reference pictures except the latest CDR picture as "unused for reference" and set 
+ *    the bRefreshPending flag to false.
+ *    If the nal_unit_type is CDR, set the bRefreshPending flag to true and iPOCCDR to the temporal 
+ *    reference of the current picture.
+ * Note that the current picture is already placed in the reference list and its marking is not changed.
+ * If the current picture has a nal_ref_idc that is not 0, it will remain marked as "used for reference".
+ */
+Void TComSlice::decodingRefreshMarking(UInt& uiPOCCDR, Bool& bRefreshPending, TComList<TComPic*>& rcListPic)
+{
+  TComPic*                 rpcPic;
+  UInt uiPOCCurr = getPOC(); 
+
+  if (getNalUnitType() == NAL_UNIT_CODED_SLICE_IDR)  // IDR
+  {
+    // mark all pictures as not used for reference
+    TComList<TComPic*>::iterator        iterPic       = rcListPic.begin();
+    while (iterPic != rcListPic.end())
+    {
+      rpcPic = *(iterPic);
+      if (rpcPic->getPOC() != uiPOCCurr) rpcPic->getSlice()->setReferenced(false);
+      iterPic++;
+    }
+  }
+  else // CDR or No DR
+  {
+    if (bRefreshPending==true && uiPOCCurr > uiPOCCDR) // CDR reference marking pending 
+    {
+      TComList<TComPic*>::iterator        iterPic       = rcListPic.begin();
+      while (iterPic != rcListPic.end())
+      {
+        rpcPic = *(iterPic);
+        if (rpcPic->getPOC() != uiPOCCurr && rpcPic->getPOC() != uiPOCCDR) rpcPic->getSlice()->setReferenced(false);
+        iterPic++;
+      }
+      bRefreshPending = false; 
+    }
+    if (getNalUnitType() == NAL_UNIT_CODED_SLICE_CDR) // CDR picture found
+    {
+      bRefreshPending = true; 
+      uiPOCCDR = uiPOCCurr;
+    }
+  }
+}
+#endif
 
 // ------------------------------------------------------------------------------------------------
 // Sequence parameter set (SPS)

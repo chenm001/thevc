@@ -245,9 +245,6 @@ Void TComPattern::initAdiPattern( TComDataCU* pcCU, UInt uiZorderIdxInPart, UInt
   bAbove = bAboveFlag;
   bLeft  = bLeftFlag;
   
-  if (uiCuWidth<=8)
-    bBelowLeftFlag=false;
-  
   uiWidth=uiCuWidth2+1;
   uiHeight=uiCuHeight2+1;
   
@@ -319,6 +316,57 @@ Void TComPattern::initAdiPattern( TComDataCU* pcCU, UInt uiZorderIdxInPart, UInt
         piAdiTemp[(1+uiCuHeight+i)*uiWidth]=piAdiTemp[(uiCuHeight)*uiWidth];
     }
   }
+  
+#if QC_MDIS
+  // generate filtered intra prediction samples
+  Int iBufSize = uiCuHeight2 + uiCuWidth2 + 1;  // left and left above border + above and above right border + top left corner = length of 3. filter buffer
+
+  UInt uiWH = uiWidth * uiHeight;               // number of elements in one buffer
+
+  Int* piFilteredBuf1 = piAdiBuf + uiWH;        // 1. filter buffer
+  Int* piFilteredBuf2 = piFilteredBuf1 + uiWH;  // 2. filter buffer
+  Int* piFilterBuf = piFilteredBuf2 + uiWH;     // buffer for 2. filtering (sequential)
+  Int* piFilterBufN = piFilterBuf + iBufSize;   // buffer for 1. filtering (sequential)
+
+  Int l = 0;
+  // left border from bottom to top
+  for (i = 0; i < uiCuHeight2; i++)
+    piFilterBuf[l++] = piAdiTemp[uiWidth * (uiCuHeight2 - i)];
+  // top left corner
+  piFilterBuf[l++] = piAdiTemp[0];
+  // above border from left to right
+  for (i=0; i < uiCuWidth2; i++)
+    piFilterBuf[l++] = piAdiTemp[1 + i];
+
+  // 1. filtering with [1 2 1]
+  piFilterBufN[0] = piFilterBuf[0];
+  piFilterBufN[iBufSize - 1] = piFilterBuf[iBufSize - 1];
+  for (i = 1; i < iBufSize - 1; i++)
+    piFilterBufN[i] = (piFilterBuf[i - 1] + 2 * piFilterBuf[i]+piFilterBuf[i + 1] + 2) >> 2;
+
+  // fill 1. filter buffer with filtered values
+  l=0;
+  for (i = 0; i < uiCuHeight2; i++)
+    piFilteredBuf1[uiWidth * (uiCuHeight2 - i)] = piFilterBufN[l++];
+  piFilteredBuf1[0] = piFilterBufN[l++];
+  for (i = 0; i < uiCuWidth2; i++)
+    piFilteredBuf1[1 + i] = piFilterBufN[l++];
+
+  // 2. filtering with [1 2 1]
+  piFilterBuf[0] = piFilterBufN[0];                   
+  piFilterBuf[iBufSize - 1] = piFilterBufN[iBufSize - 1];
+  for (i = 1; i < iBufSize - 1; i++)
+    piFilterBuf[i] = (piFilterBufN[i - 1] + 2 * piFilterBufN[i] + piFilterBufN[i + 1] + 2) >> 2;
+
+  // fill 2. filter buffer with filtered values
+  l=0;
+  for (i = 0; i < uiCuHeight2; i++)
+    piFilteredBuf2[uiWidth * (uiCuHeight2 - i)] = piFilterBuf[l++];
+  piFilteredBuf2[0] = piFilterBuf[l++];
+  for (i = 0; i < uiCuWidth2; i++)
+    piFilteredBuf2[1 + i] = piFilterBuf[l++];
+
+#endif //QC_MDIS
   
 }
 
@@ -496,3 +544,32 @@ Int* TComPattern::getAdiCrBuf(Int iCuWidth,Int iCuHeight, Int* piAdiBuf)
   return piAdiBuf+(iCuWidth*2+1)*(iCuHeight*2+1);
 }
 
+#if QC_MDIS
+Int* TComPattern::getPredictorPtr ( UInt uiDirMode, UInt uiWidthBits, Int iCuWidth, Int iCuHeight, Int* piAdiBuf )
+{
+  static const UChar g_aucIntraFilter[7][34] =
+  {
+      {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, //2x2
+      {0, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, //4x4
+      {0, 0, 0, 1, 1, 2, 2, 2, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, //8x8
+      {0, 0, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, //16x16
+      {0, 0, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2}, //32x32
+      {0, 0, 0, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, //64x64
+      {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}  //128x128
+  };
+
+  Int* piSrc;
+  UChar ucFiltIdx = g_aucIntraFilter[uiWidthBits][uiDirMode];
+
+  assert( ucFiltIdx <= 2 );
+
+  piSrc = getAdiOrgBuf( iCuWidth, iCuHeight, piAdiBuf );
+
+  if ( ucFiltIdx )
+  {
+    piSrc += (((iCuWidth << 1) + 1) * ((iCuHeight << 1) + 1) << (ucFiltIdx - 1));
+  }
+
+  return piSrc;
+}
+#endif //QC_MDIS

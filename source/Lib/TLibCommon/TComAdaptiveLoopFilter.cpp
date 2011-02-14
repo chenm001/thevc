@@ -43,28 +43,52 @@
 // Tables
 // ====================================================================================================================
 
+#if TI_ALF_MAX_VSIZE_7
+Int TComAdaptiveLoopFilter::m_pattern9x9Sym[39] = 
+#else
 Int TComAdaptiveLoopFilter::m_pattern9x9Sym[41] = 
+#endif
 {
                    0,
-             1,  2,  3,
-       4,  5,  6,  7,  8,
+               1,  2,  3,
+           4,  5,  6,  7,  8,
        9, 10, 11, 12, 13, 14, 15,
+#if TI_ALF_MAX_VSIZE_7
+      16, 17, 18, 19, 18, 17, 16,
+#else
   16, 17, 18, 19, 20, 19, 18, 17, 16,
+#endif
       15, 14, 13, 12, 11, 10,  9, 
            8,  7,  6,  5,  4,
-           3,  2,  1,
-             0
+               3,  2,  1,
+                   0
 };
  
+#if TI_ALF_MAX_VSIZE_7
+Int TComAdaptiveLoopFilter::m_weights9x9Sym[21] = 
+#else
 Int TComAdaptiveLoopFilter::m_weights9x9Sym[22] = 
+#endif
 {
-                  2,
-              2,  2,  2,   
-          2,  2,  2,  2,  2, 
-     2, 2,  2,  2,  2,  2,  2,  
-   2,  2, 2,  2,  1,  1
+#if !TI_ALF_MAX_VSIZE_7
+                   2,
+#endif
+               2,  2,  2,   
+           2,  2,  2,  2,  2, 
+       2,  2,  2,  2,  2,  2,  2,  
+   2,  2,  2,  2,  1,  1
 };
 
+#if TI_ALF_MAX_VSIZE_7
+Int TComAdaptiveLoopFilter::m_pattern9x9Sym_Quart[42] = 
+{
+   0,  0,  0,  0,  0,  0,  0,  0,  0,
+   0,  0,  0,  1,  2,  3,  0,  0,  0,
+   0,  0,  4,  5,  6,  7,  8,  0,  0,  
+   0,  9, 10, 11, 12, 13, 14, 15,  0,
+  16, 17, 18, 19, 20, 21
+};
+#else
 Int TComAdaptiveLoopFilter::m_pattern9x9Sym_Quart[42] = 
 {
    0,  0,  0,  0,  1,  0,  0,  0,  0,
@@ -73,6 +97,7 @@ Int TComAdaptiveLoopFilter::m_pattern9x9Sym_Quart[42] =
    0, 10, 11, 12, 13, 14, 15, 16,  0,
   17, 18, 19, 20, 21, 22
 };
+#endif
 
 Int TComAdaptiveLoopFilter::m_pattern7x7Sym[25] = 
 {
@@ -127,17 +152,25 @@ Int TComAdaptiveLoopFilter::m_pattern5x5Sym_Quart[45] =
    0,  0,  5,  6,  7,  8,  0,  0,  0,  
 };
 
+#if TI_ALF_MAX_VSIZE_7
+Int TComAdaptiveLoopFilter::m_pattern9x9Sym_9[39] = 
+#else
 Int TComAdaptiveLoopFilter::m_pattern9x9Sym_9[41] = 
+#endif
 {
-                   4,  
+#if !TI_ALF_MAX_VSIZE_7
+                   4,
+#endif
               12, 13, 14,  
           20, 21, 22, 23, 24, 
       28, 29, 30, 31, 32, 33, 34,      
   36, 37, 38, 39, 40, 39, 38, 37, 36, 
       34, 33, 32, 31, 30, 29, 28,  
           24, 23, 22, 21, 20, 
-              14, 13, 12, 
+              14, 13, 12,
+#if !TI_ALF_MAX_VSIZE_7
                    4,  
+#endif
 };
 
 Int TComAdaptiveLoopFilter::m_pattern9x9Sym_7[25] = 
@@ -191,10 +224,15 @@ Int TComAdaptiveLoopFilter::m_sqrFiltLengthTab[NO_TEST_FILT] =
   SQR_FILT_LENGTH_9SYM, SQR_FILT_LENGTH_7SYM, SQR_FILT_LENGTH_5SYM
 };
 
-
+#if TI_ALF_MAX_VSIZE_7
+Int depthInt9x9Sym[21] = 
+#else
 Int depthInt9x9Sym[22] = 
+#endif
 {
+#if !TI_ALF_MAX_VSIZE_7
               5, 
+#endif
            5, 6, 5, 
         5, 6, 7, 6, 5,
      5, 6, 7, 8, 7, 6, 5,
@@ -247,6 +285,16 @@ const Int TComAdaptiveLoopFilter::m_aiSymmetricMag5x5[13] =
   2, 2, 2, 2, 2,
   2, 2, 1
 };
+
+#if TI_ALF_MAX_VSIZE_7
+const Int TComAdaptiveLoopFilter::m_aiSymmetricMag9x7[32] =
+{
+  2, 2, 2, 2, 2, 2, 2, 2, 2,
+  2, 2, 2, 2, 2, 2, 2, 2, 2,
+  2, 2, 2, 2, 2, 2, 2, 2, 2,
+  2, 2, 2, 2, 1
+};
+#endif
 
 // ====================================================================================================================
 // Constructor / destructor / create / destroy
@@ -480,6 +528,31 @@ Void TComAdaptiveLoopFilter::destroy()
 // Public member functions
 // ====================================================================================================================
 
+#if TI_ALF_MAX_VSIZE_7
+Int TComAdaptiveLoopFilter::ALFTapHToTapV(Int tapH)
+{
+  return min<UInt>(tapH, 7);
+}
+
+Int TComAdaptiveLoopFilter::ALFFlHToFlV(Int flH)
+{
+  return min<UInt>(flH, 7/2);
+}
+
+Int TComAdaptiveLoopFilter::ALFTapHToNumCoeff(Int tapH)
+{
+  Int num_coeff;
+  
+  num_coeff = (Int)(tapH*tapH)/4 + 2;
+  if (tapH == 9)
+    num_coeff -= 1;
+  else
+    assert(tapH < 9);
+  
+  return num_coeff;
+}
+#endif
+
 // --------------------------------------------------------------------------------------------------------------------
 // allocate / free / copy functions
 // --------------------------------------------------------------------------------------------------------------------
@@ -543,6 +616,9 @@ Void TComAdaptiveLoopFilter::copyALFParam(ALFParam* pDesAlfParam, ALFParam* pSrc
   pDesAlfParam->cu_control_flag = pSrcAlfParam->cu_control_flag;
   pDesAlfParam->chroma_idc = pSrcAlfParam->chroma_idc;
   pDesAlfParam->tap = pSrcAlfParam->tap;
+#if TI_ALF_MAX_VSIZE_7
+  pDesAlfParam->tapV = pSrcAlfParam->tapV;
+#endif
   pDesAlfParam->num_coeff = pSrcAlfParam->num_coeff;
   pDesAlfParam->tap_chroma = pSrcAlfParam->tap_chroma;
   pDesAlfParam->num_coeff_chroma = pSrcAlfParam->num_coeff_chroma;
@@ -582,6 +658,9 @@ Void TComAdaptiveLoopFilter::predictALFCoeff( ALFParam* pAlfParam)
   const Int* pFiltMag = NULL;
   
   tap = pAlfParam->tap;
+#if TI_ALF_MAX_VSIZE_7
+  Int tapV = pAlfParam->tapV;
+#endif
   
   switch(tap)
   {
@@ -592,13 +671,21 @@ Void TComAdaptiveLoopFilter::predictALFCoeff( ALFParam* pAlfParam)
       pFiltMag = m_aiSymmetricMag7x7;
       break;
     case 9:
+#if TI_ALF_MAX_VSIZE_7
+      pFiltMag = m_aiSymmetricMag9x7;
+#else
       pFiltMag = m_aiSymmetricMag9x9;
+#endif
       break;
     default:
       assert(0);
       break;
   }
-  N = (tap*tap+1)>>1;
+#if TI_ALF_MAX_VSIZE_7
+  N = (tap * tapV + 1) >> 1;
+#else
+  N = (tap * tap + 1) >> 1;
+#endif
   sum=0;
   for(i=0; i<N-1;i++)
   {
@@ -832,7 +919,11 @@ Void TComAdaptiveLoopFilter::calcVar(imgpel **imgY_var, imgpel *imgY_pad, int pa
   int i, j, ii, jj;
   int sum;
   int *p_imgY_temp;
+#if FULL_NBIT
+  int shift= (11+ g_uiBitIncrement + g_uiBitDepth - 8);
+#else
   int shift= (11+ g_uiBitIncrement);
+#endif
   int fl2plusOne= (VAR_SIZE<<1)+1;
   int pad_offset = pad_size-fl-1;
   int var_max= NO_VAR_BINS-1;
@@ -842,7 +933,11 @@ Void TComAdaptiveLoopFilter::calcVar(imgpel **imgY_var, imgpel *imgY_pad, int pa
   if (VAR_SIZE ==0)
   {
     imgpel *p_imgY_var;
+#if FULL_NBIT
+    shift = g_uiBitIncrement + g_uiBitDepth - 8;
+#else
     shift = g_uiBitIncrement;
+#endif
     //current
     for(i = 1; i < img_height + fl2plusOne; i++)
     {
@@ -960,6 +1055,9 @@ Void TComAdaptiveLoopFilter::filterFrame(imgpel *imgY_rec_post, imgpel *imgY_rec
   int offset = (1<<(NUM_BITS-2));
   int *pattern_fix=m_patternTab_filt[filtNo];
   fl_temp=m_flTab[filtNo];
+#if TI_ALF_MAX_VSIZE_7
+  Int fl_tempV = ALFFlHToFlV(fl_temp);
+#endif
   
   // Filter
   for (i = fl; i < m_img_height+fl; i++)
@@ -972,7 +1070,11 @@ Void TComAdaptiveLoopFilter::filterFrame(imgpel *imgY_rec_post, imgpel *imgY_rec
       pixelInt=coef[last_coef];
       pattern=pattern_fix;
 
-      for (ii=-fl_temp, m = 0; ii<0; ii++,m++)
+#if TI_ALF_MAX_VSIZE_7
+      for (ii = -fl_tempV, m = fl_temp - fl_tempV; ii < 0; ii++, m++)
+#else
+      for (ii = -fl_temp, m = 0; ii < 0; ii++, m++)
+#endif
       {
         im1= &(imgY_rec[(i-fl+ii)*Stride + j-fl-m]);
         im2= &(imgY_rec[(i-fl-ii)*Stride + j-fl+m]);
@@ -1007,6 +1109,9 @@ Void TComAdaptiveLoopFilter::subfilterFrame(imgpel *imgY_rec_post, imgpel *imgY_
   int offset = (1<<(NUM_BITS-2));
   int *pattern_fix=m_patternTab_filt[filtNo];
   fl_temp=m_flTab[filtNo];
+#if TI_ALF_MAX_VSIZE_7
+  Int fl_tempV = ALFFlHToFlV(fl_temp);
+#endif
   
   // Filter
   for (i = fl + start_height; i < end_height+fl; i++)
@@ -1019,7 +1124,11 @@ Void TComAdaptiveLoopFilter::subfilterFrame(imgpel *imgY_rec_post, imgpel *imgY_
       pixelInt=coef[last_coef];
       pattern=pattern_fix;
 
-      for (ii=-fl_temp, m = 0; ii<0; ii++,m++)
+#if TI_ALF_MAX_VSIZE_7
+      for (ii = -fl_tempV, m = fl_temp - fl_tempV; ii < 0; ii++, m++)
+#else
+      for (ii = -fl_temp, m = 0; ii < 0; ii++, m++)
+#endif
       {
         im1= &(imgY_rec[(i-fl+ii)*Stride + j-fl-m]);
         im2= &(imgY_rec[(i-fl-ii)*Stride + j-fl+m]);

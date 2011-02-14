@@ -113,8 +113,13 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
   
   ("SourceWidth,-wdt",      m_iSourceWidth,  0, "Source picture width")
   ("SourceHeight,-hgt",     m_iSourceHeight, 0, "Source picture height")
-  ("BitDepth",              m_uiBitDepth,    8u)
-  ("BitIncrement",          m_uiBitIncrement,4u, "bit-depth increasement")
+  ("InputBitDepth",         m_uiInputBitDepth, 8u, "bit-depth of input file")
+  ("BitDepth",              m_uiInputBitDepth, 8u, "deprecated alias of InputBitDepth")
+  ("OutputBitDepth",        m_uiOutputBitDepth, 0u, "bit-depth of output file")
+#if ENABLE_IBDI
+  ("BitIncrement",          m_uiBitIncrement, 0xffffffffu, "bit-depth increasement")
+#endif
+  ("InternalBitDepth",      m_uiInternalBitDepth, 0u, "Internal bit-depth (BitDepth+BitIncrement)")
   ("HorizontalPadding,-pdx",m_aiPad[0],      0, "horizontal source padding size")
   ("VerticalPadding,-pdy",  m_aiPad[1],      0, "vertical source padding size")
   ("PAD",                   m_bUsePAD,   false, "automatic source padding of multiple of 16" )
@@ -139,6 +144,9 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
   
   /* Coding structure paramters */
   ("IntraPeriod,-ip",m_iIntraPeriod, -1, "intra period in frames, (-1: only first frame)")
+#if DCM_DECODING_REFRESH
+  ("DecodingRefreshType,-dr",m_iDecodingRefreshType, 0, "intra refresh, (0:none 1:CDR 2:IDR)")
+#endif
   ("GOPSize,g",      m_iGOPSize,      1, "GOP size of temporal structure")
   ("RateGOPSize,-rg",m_iRateGOPSize, -1, "GOP size of hierarchical QP assignment (-1: implies inherit GOPSize value)")
   ("NumOfReference,r",       m_iNumOfReference,     1, "Number of reference (P)")
@@ -147,9 +155,14 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
   ("HierarchicalCoding",     m_bHierarchicalCoding, true)
   ("LowDelayCoding",         m_bUseLDC,             false, "low-delay mode")
   ("GPB", m_bUseGPB, false, "generalized B instead of P in low-delay mode")
+#if DCM_COMB_LIST
+  ("ListCombination, -lc", m_bUseLComb, true, "combined reference list for uni-prediction in B-slices")
+  ("LCModification", m_bLCMod, false, "enables signalling of combined reference list derivation")
+#endif
   ("NRF", m_bUseNRF,  true, "non-reference frame marking in last layer")
   ("BQP", m_bUseBQP, false, "hier-P style QP assignment in low-delay mode")
   
+#if !DCTIF_8_6_LUMA
   /* Interpolation filter options */
   ("InterpFilterType,-int", m_iInterpFilterType, (Int)IPF_SAMSUNG_DIF_DEFAULT, "Interpolation Filter:\n"
    "  0: DCT-IF\n"
@@ -158,10 +171,12 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
 # endif
    )
   ("DIFTap,tap", m_iDIFTap, 12, "number of interpolation filter taps (luma)")
-  
+#endif
+
   /* motion options */
   ("FastSearch", m_iFastSearch, 1, "0:Full search  1:Diamond  2:PMVFAST")
   ("SearchRange,-sr",m_iSearchRange, 96, "motion search range")
+  ("BipredSearchRange", m_bipredSearchRange, 4, "motion search range for bipred refinement")
   ("HadamardME", m_bUseHADME, true, "hadamard ME for fractional-pel")
   ("ASR", m_bUseASR, false, "adaptive motion search range")
   
@@ -305,17 +320,26 @@ Void TAppEncCfg::xCheckParameter()
   bool check_failed = false; /* abort if there is a fatal configuration problem */
 #define xConfirmPara(a,b) check_failed |= confirmPara(a,b)
   // check range of parameters
+#if ENABLE_IBDI
+  xConfirmPara( m_uiInternalBitDepth > 0 && (int)m_uiBitIncrement != -1,                    "InternalBitDepth and BitIncrement may not be specified simultaneously");
+#else
+  xConfirmPara( m_uiInputBitDepth < 8,                                                      "InputBitDepth must be at least 8" );
+#endif
   xConfirmPara( m_iFrameRate <= 0,                                                          "Frame rate must be more than 1" );
   xConfirmPara( m_iFrameSkip < 0,                                                           "Frame Skipping must be more than 0" );
   xConfirmPara( m_iFrameToBeEncoded <= 0,                                                   "Total Number Of Frames encoded must be more than 1" );
   xConfirmPara( m_iGOPSize < 1 ,                                                            "GOP Size must be more than 1" );
   xConfirmPara( m_iGOPSize > 1 &&  m_iGOPSize % 2,                                          "GOP Size must be a multiple of 2, if GOP Size is greater than 1" );
   xConfirmPara( (m_iIntraPeriod > 0 && m_iIntraPeriod < m_iGOPSize) || m_iIntraPeriod == 0, "Intra period must be more than GOP size, or -1 , not 0" );
+#if DCM_DECODING_REFRESH
+  xConfirmPara( m_iDecodingRefreshType < 0 || m_iDecodingRefreshType > 2,                   "Decoding Refresh Type must be equal to 0, 1 or 2" );
+#endif
   xConfirmPara( m_iQP < 0 || m_iQP > 51,                                                    "QP exceeds supported range (0 to 51)" );
   xConfirmPara( m_iLoopFilterAlphaC0Offset < -26 || m_iLoopFilterAlphaC0Offset > 26,        "Loop Filter Alpha Offset exceeds supported range (-26 to 26)" );
   xConfirmPara( m_iLoopFilterBetaOffset < -26 || m_iLoopFilterBetaOffset > 26,              "Loop Filter Beta Offset exceeds supported range (-26 to 26)");
   xConfirmPara( m_iFastSearch < 0 || m_iFastSearch > 2,                                     "Fast Search Mode is not supported value (0:Full search  1:Diamond  2:PMVFAST)" );
   xConfirmPara( m_iSearchRange < 0 ,                                                        "Search Range must be more than 0" );
+  xConfirmPara( m_bipredSearchRange < 0 ,                                                   "Search Range must be more than 0" );
   xConfirmPara( m_iMaxDeltaQP > 7,                                                          "Absolute Delta QP exceeds supported range (0 to 7)" );
   xConfirmPara( m_iFrameToBeEncoded != 1 && m_iFrameToBeEncoded <= m_iGOPSize,              "Total Number of Frames to be encoded must be larger than GOP size");
   xConfirmPara( (m_uiMaxCUWidth  >> m_uiMaxCUDepth) < 4,                                    "Minimum partition width size should be larger than or equal to 8");
@@ -324,7 +348,9 @@ Void TAppEncCfg::xCheckParameter()
   xConfirmPara( m_uiMaxCUHeight < 16,                                                       "Maximum partition height size should be larger than or equal to 16");
   xConfirmPara( (m_iSourceWidth  % (m_uiMaxCUWidth  >> (m_uiMaxCUDepth-1)))!=0,             "Frame width should be multiple of minimum CU size");
   xConfirmPara( (m_iSourceHeight % (m_uiMaxCUHeight >> (m_uiMaxCUDepth-1)))!=0,             "Frame height should be multiple of minimum CU size");
+#if !DCTIF_8_6_LUMA
   xConfirmPara( m_iDIFTap  != 4 && m_iDIFTap  != 6 && m_iDIFTap  != 8 && m_iDIFTap  != 10 && m_iDIFTap  != 12, "DIF taps 4, 6, 8, 10 and 12 are supported");
+#endif
   
   xConfirmPara( m_uiQuadtreeTULog2MinSize < 2,                                        "QuadtreeTULog2MinSize must be 2 or greater.");
   xConfirmPara( m_uiQuadtreeTULog2MinSize > 5,                                        "QuadtreeTULog2MinSize must be 5 or smaller.");
@@ -339,17 +365,19 @@ Void TAppEncCfg::xCheckParameter()
   xConfirmPara( m_uiQuadtreeTUMaxDepthInter > m_uiQuadtreeTULog2MaxSize - m_uiQuadtreeTULog2MinSize + 1, "QuadtreeTUMaxDepthInter must be less than or equal to the difference between QuadtreeTULog2MaxSize and QuadtreeTULog2MinSize plus 1" );
   xConfirmPara( m_uiQuadtreeTUMaxDepthIntra < 1,                                                         "QuadtreeTUMaxDepthIntra must be greater than or equal to 1" );
   xConfirmPara( m_uiQuadtreeTUMaxDepthIntra > m_uiQuadtreeTULog2MaxSize - m_uiQuadtreeTULog2MinSize + 1, "QuadtreeTUMaxDepthIntra must be less than or equal to the difference between QuadtreeTULog2MaxSize and QuadtreeTULog2MinSize plus 1" );
-  
+
+#if !DCTIF_8_6_LUMA
 #if !TEN_DIRECTIONAL_INTERP
   xConfirmPara( m_iInterpFilterType == IPF_TEN_DIF_PLACEHOLDER, "IPF_TEN_DIF is not configurable.  Please recompile using TEN_DIRECTIONAL_INTERP." );
 #endif
   xConfirmPara( m_iInterpFilterType >= IPF_LAST,                "Invalid InterpFilterType" );
   xConfirmPara( m_iInterpFilterType == IPF_HHI_4TAP_MOMS,       "Invalid InterpFilterType" );
   xConfirmPara( m_iInterpFilterType == IPF_HHI_6TAP_MOMS,       "Invalid InterpFilterType" );
+#endif
   
   xConfirmPara( m_iSymbolMode < 0 || m_iSymbolMode > 1,                                     "SymbolMode must be equal to 0 or 1" );
   
-#if LCEC_CBP_YUV_ROOT
+#if LCEC_CBP_YUV_ROOT && !LCEC_CBP_YUV_ROOT_RDFIX
   if(m_iSymbolMode == 0)
   {
     if (m_uiQuadtreeTUMaxDepthIntra > 1 || m_uiQuadtreeTUMaxDepthInter > 2)
@@ -360,6 +388,10 @@ Void TAppEncCfg::xCheckParameter()
       printf("         values of QuadtreeTUMaxDepthIntra and/or QuadtreeTUMaxDepthInter.\n");
     }
   }
+#endif
+
+#if DCM_COMB_LIST
+  xConfirmPara( m_bUseLComb==false && m_bUseLDC==false,         "LComb can only be 0 if LowDelayCoding is 1" );
 #endif
   
   // max CU width and height should be power of 2
@@ -408,8 +440,32 @@ Void TAppEncCfg::xSetGlobal()
   g_uiMaxCUDepth = m_uiMaxCUDepth;
   
   // set internal bit-depth and constants
-  g_uiBitDepth     = m_uiBitDepth;                      // base bit-depth
-  g_uiBitIncrement = m_uiBitIncrement;                  // increments
+#if ENABLE_IBDI
+  if ((int)m_uiBitIncrement != -1)
+  {
+    g_uiBitDepth = m_uiInputBitDepth;
+    g_uiBitIncrement = m_uiBitIncrement;
+    m_uiInternalBitDepth = g_uiBitDepth + g_uiBitIncrement;
+  }
+  else
+  {
+    g_uiBitDepth = min(8u, m_uiInputBitDepth);
+    if (m_uiInternalBitDepth == 0) {
+      /* default increement = 2 */
+      m_uiInternalBitDepth = 2 + g_uiBitDepth;
+    }
+    g_uiBitIncrement = m_uiInternalBitDepth - g_uiBitDepth;
+  }
+#else
+#if FULL_NBIT
+  g_uiBitDepth = m_uiInternalBitDepth;
+  g_uiBitIncrement = 0;
+#else
+  g_uiBitDepth = 8;
+  g_uiBitIncrement = m_uiInternalBitDepth - g_uiBitDepth;
+#endif
+#endif
+
   g_uiBASE_MAX     = ((1<<(g_uiBitDepth))-1);
   
 #if IBDI_NOCLIP_RANGE
@@ -417,6 +473,11 @@ Void TAppEncCfg::xSetGlobal()
 #else
   g_uiIBDI_MAX     = ((1<<(g_uiBitDepth+g_uiBitIncrement))-1);
 #endif
+  
+  if (m_uiOutputBitDepth == 0)
+  {
+    m_uiOutputBitDepth = m_uiInternalBitDepth;
+  }
 }
 
 Void TAppEncCfg::xPrintParameter()
@@ -438,24 +499,33 @@ Void TAppEncCfg::xPrintParameter()
   printf("Max RQT depth intra          : %d\n", m_uiQuadtreeTUMaxDepthIntra);
   printf("Motion search range          : %d\n", m_iSearchRange );
   printf("Intra period                 : %d\n", m_iIntraPeriod );
+#if DCM_DECODING_REFRESH
+  printf("Decoding refresh type        : %d\n", m_iDecodingRefreshType );
+#endif
   printf("QP                           : %5.2f\n", m_fQP );
   printf("GOP size                     : %d\n", m_iGOPSize );
   printf("Rate GOP size                : %d\n", m_iRateGOPSize );
-  printf("Bit increment                : %d\n", m_uiBitIncrement );
-  
+  printf("Internal bit depth           : %d\n", m_uiInternalBitDepth );
+ 
+#if DCTIF_8_6_LUMA
+  printf("Luma interpolation           : %s\n", "Samsung 8-tap filter"  );
+#else // DCTIF_8_6_LUMA
   switch ( m_iInterpFilterType )
   {
 #if TEN_DIRECTIONAL_INTERP
     case IPF_TEN_DIF:
       printf("Luma interpolation           : %s\n", "TEN directional interpolation filter"  );
-      printf("Chroma interpolation         : %s\n", "Bi-linear filter"       );
       break;
 #endif
     default:
       printf("Luma interpolation           : %s\n", "Samsung 12-tap filter"  );
-      printf("Chroma interpolation         : %s\n", "Bi-linear filter"       );
   }
-  
+#endif // DCTIF_8_6_LUMA
+#if DCTIF_4_6_CHROMA
+  printf("Chroma interpolation         : %s\n", "Samsung 4-tap filter"       );
+#else
+  printf("Chroma interpolation         : %s\n", "Bi-linear filter"       );
+#endif
   if ( m_iSymbolMode == 0 )
   {
     printf("Entropy coder                : VLC\n");
@@ -488,6 +558,10 @@ Void TAppEncCfg::xPrintParameter()
   printf("NRF:%d ", m_bUseNRF             );
   printf("BQP:%d ", m_bUseBQP             );
   printf("GPB:%d ", m_bUseGPB             );
+#if DCM_COMB_LIST
+  printf("LComb:%d ", m_bUseLComb         );
+  printf("LCMod:%d ", m_bLCMod         );
+#endif
   printf("FEN:%d ", m_bUseFastEnc         );
   printf("RQT:%d ", 1     );
 #if HHI_MRG

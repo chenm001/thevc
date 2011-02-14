@@ -79,6 +79,7 @@ protected:
   
   // ME parameters
   Int             m_iSearchRange;
+  Int             m_bipredSearchRange; // Search range for bi-prediction
   Int             m_iFastSearch;
   Int             m_aaiAdaptSR[2][33];
   TComMv          m_cSrchRngLT;
@@ -94,7 +95,9 @@ protected:
   // Misc.
   Pel*            m_pTempPel;
   UInt*           m_puiDFilter;
+#if !DCTIF_8_6_LUMA
   Int             m_iDIFTap2;
+#endif
   Int             m_iMaxDeltaQP;
   
   // AMVP cost computation
@@ -108,6 +111,7 @@ public:
   Void init(  TEncCfg*      pcEncCfg,
             TComTrQuant*  pcTrQuant,
             Int           iSearchRange,
+            Int           bipredSearchRange,
             Int           iFastSearch,
             Int           iMaxDeltaQP,
             TEncEntropy*  pcEntropyCoder,
@@ -144,6 +148,10 @@ protected:
   __inline Void xTZ8PointSquareSearch ( TComPattern* pcPatternKey, IntTZSearchStruct& rcStrukt, TComMv* pcMvSrchRngLT, TComMv* pcMvSrchRngRB, const Int iStartX, const Int iStartY, const Int iDist );
   __inline Void xTZ8PointDiamondSearch( TComPattern* pcPatternKey, IntTZSearchStruct& rcStrukt, TComMv* pcMvSrchRngLT, TComMv* pcMvSrchRngRB, const Int iStartX, const Int iStartY, const Int iDist );
   
+#if HHI_MRG
+  Void xGetInterPredictionError( TComDataCU* pcCU, TComYuv* pcYuvOrg, Int iPartIdx, UInt& ruiSAD, Bool Hadamard );
+#endif
+
 public:
   Void  preestChromaPredMode    ( TComDataCU* pcCU, 
                                   TComYuv*    pcOrgYuv, 
@@ -177,17 +185,6 @@ public:
                                   TComYuv*&   rpcPredYuv,
                                   TComYuv*&   rpcResiYuv,
                                   TComYuv*&   rpcRecoYuv );
-  
-#if HHI_MRG
-  /// encoder estimation - inter prediction (merge)
-  Void predInterMergeSearch      ( TComDataCU* pcCU,
-                                   TComYuv*    pcOrgYuv,
-                                   TComYuv*&   rpcPredYuv,
-                                   TComYuv*&   rpcResiYuv,
-                                   TComYuv*&   rpcRecoYuv,
-                                   TComMvField cMFieldNeighbourToTest[2],
-                                   UChar uhInterDirNeighbourToTest);
-#endif
   
   /// encode residual and compute rd-cost for inter mode
   Void encodeResAndCalcRdInterCU( TComDataCU* pcCU,
@@ -276,38 +273,6 @@ protected:
                                     UInt         uiAbsPartIdx,
                                     TComYuv*     pcRecoYuv );
   
-  Void xRecurIntraLumaSearchADI   ( TComDataCU* pcCU,
-                                    UInt        uiAbsPartIdx,
-                                    Pel*        piOrg,
-                                    Pel*        piPred,
-                                    Pel*        piResi,
-                                    Pel*        piReco,
-                                    UInt        uiStride,
-                                    TCoeff*     piCoeff,
-                                    UInt        uiMode,
-                                    UInt        uiWidth,
-                                    UInt        uiHeight,
-                                    UInt        uiMaxDepth,
-                                    UInt        uiCurrDepth,
-                                    Bool        bAbove,
-                                    Bool        bLeft,
-                                    Bool        bSmallTrs );
-  
-  Void xRecurIntraChromaSearchADI ( TComDataCU* pcCU,
-                                    UInt        uiAbsPartIdx,
-                                    Pel*        piOrg,
-                                    Pel*        piPred,
-                                    Pel*        piResi,
-                                    Pel*        piReco,
-                                    UInt        uiStride,
-                                    TCoeff*     piCoeff,
-                                    UInt        uiMode,
-                                    UInt        uiWidth,
-                                    UInt        uiHeight,
-                                    UInt        uiMaxDepth,
-                                    UInt        uiCurrDepth,
-                                    TextType    eText );
-  
   // -------------------------------------------------------------------------------------------------------------------
   // Inter search (AMP)
   // -------------------------------------------------------------------------------------------------------------------
@@ -346,6 +311,18 @@ protected:
   UInt xGetMvpIdxBits             ( Int iIdx, Int iNum );
   Void xGetBlkBits                ( PartSize  eCUMode, Bool bPSlice, Int iPartIdx,  UInt uiLastMode, UInt uiBlkBit[3]);
   
+#if HHI_MRG
+  Void xMergeEstimation           ( TComDataCU*     pcCU,
+                                    TComYuv*        pcYuvOrg,
+                                    Int             iPartIdx,
+                                    UInt&           uiInterDir,
+                                    TComMvField*    pacMvField,
+                                    UInt&           uiMergeIndex,
+                                    UInt&           ruiCost,
+                                    UInt&           ruiBits,
+                                    UChar*          puhNeighCands,
+                                    Bool&           bValid );
+#endif
   // -------------------------------------------------------------------------------------------------------------------
   // motion estimation
   // -------------------------------------------------------------------------------------------------------------------

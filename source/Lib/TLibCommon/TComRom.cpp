@@ -64,19 +64,15 @@ Void initROM()
     g_auiFrameScanX [ i ] = new UInt[ c*c ];
     g_auiFrameScanY [ i ] = new UInt[ c*c ];
     initFrameScanXY( g_auiFrameScanXY[i], g_auiFrameScanX[i], g_auiFrameScanY[i], c, c );
+#if QC_MDCS
+    g_auiSigLastScan[0][i] = new UInt[ c*c ];
+    g_auiSigLastScan[1][i] = new UInt[ c*c ];
+    g_auiSigLastScan[2][i] = new UInt[ c*c ];
+    initSigLastScan( g_auiSigLastScan[0][i], g_auiSigLastScan[1][i], g_auiSigLastScan[2][i], c, c, i);
+#endif //QC_MDCS
+
     c <<= 1;
-  }
-  
-  // init adaptive scan for sig/last SE coding
-  for ( i = 0; i < MAX_CU_DEPTH+1; i++ )
-  {
-    const int   iBlockSize    = 1 << i;
-    const UInt  uiNumScanPos  = UInt( iBlockSize * iBlockSize );
-    g_auiSigLastScan[ i ][ 0 ] = new UInt[ uiNumScanPos ];
-    g_auiSigLastScan[ i ][ 1 ] = new UInt[ uiNumScanPos ];
-    initSigLastScanPattern( g_auiSigLastScan[ i ][ 1 ], i, true  );
-    initSigLastScanPattern( g_auiSigLastScan[ i ][ 0 ], i, false );
-  }
+  }  
 }
 
 Void destroyROM()
@@ -88,12 +84,11 @@ Void destroyROM()
     delete[] g_auiFrameScanXY[i];
     delete[] g_auiFrameScanX [i];
     delete[] g_auiFrameScanY [i];
-  }
-  
-  for ( i=0; i<MAX_CU_DEPTH+1; i++ )
-  {
-    delete[] g_auiSigLastScan[i][0];
-    delete[] g_auiSigLastScan[i][1];
+#if QC_MDCS
+    delete[] g_auiSigLastScan[0][i];
+    delete[] g_auiSigLastScan[1][i];
+    delete[] g_auiSigLastScan[2][i];
+#endif //QC_MDCS
   }
 }
 
@@ -110,6 +105,10 @@ UInt g_auiZscanToRaster [ MAX_NUM_SPU_W*MAX_NUM_SPU_W ] = { 0, };
 UInt g_auiRasterToZscan [ MAX_NUM_SPU_W*MAX_NUM_SPU_W ] = { 0, };
 UInt g_auiRasterToPelX  [ MAX_NUM_SPU_W*MAX_NUM_SPU_W ] = { 0, };
 UInt g_auiRasterToPelY  [ MAX_NUM_SPU_W*MAX_NUM_SPU_W ] = { 0, };
+
+#if HHI_MRG
+UInt g_auiPUOffset[4] = { 0, 8, 4, 4 };
+#endif
 
 Void initZscanToRaster ( Int iMaxDepth, Int iDepth, UInt uiStartVal, UInt*& rpuiCurrIdx )
 {
@@ -1114,6 +1113,38 @@ const UInt g_auiMI2TableENoL1[15] = {0,1,2,12,14,13,3,4,6,5,10,9,8,11,7};
 const UInt g_auiMI2TableDNoL1[15] = {0,1,2,6,7,9,8,14,12,11,10,13,3,5,4};
 #endif
 
+#if MS_LCEC_ONE_FRAME
+// as there are two lists used for bi-directional prediction, and one list for uni-directional prediction
+// for uni-directional prediction, when pcSlice->getNoBackPredFlag() is true, list 0 is used for uni-directional prediction
+// when pcSlice->getNoBackPredFlag() is false, combined list is used for uni-directional prediction
+// the meaning of the elements are as follows:
+/*
+ 0: uni-directional prediction, frame 0
+ 1: uni-directional prediction, frame 1
+ 2: uni-directional prediction, frame 2
+ 3: uni-directional prediction, frame 3
+ 4: bi-directional prediction, frame (0, 0)
+ 5: bi-directional prediction, frame (0, 1)
+ 6: bi-directional prediction, frame (1, 0)
+ 7: bi-directional prediction, frame (1, 1)
+ 8: exception, for uni-directional prediction, if combined list, reference frame index >= 4 (count from 0) is exception
+ if GPB (only list0 is used), reference frame index >= 2 (count from 0) is exception
+ for bi-directional prediction, reference frame index >= 2 (count from 0 ) is exception
+ */
+const UInt g_auiMI1TableEOnly1Ref[8] = {0,3,1,4,2,6,5,7};
+const UInt g_auiMI1TableDOnly1Ref[8] = {0,2,4,1,3,6,5,7};
+const UInt g_auiMI1TableEOnly1RefNoL1[8] = {0,2,3,4,1,6,5,7};
+const UInt g_auiMI1TableDOnly1RefNoL1[8] = {0,4,1,2,3,6,5,7};
+#endif
+
+
+#if QC_LCEC_INTER_MODE
+const UInt g_auiInterModeTableE[4][7] = {{0,1,2,3,4,5,6},{0,1,2,3,4,5,6},{0,1,2,3,4,5,6},{6,0,1,2,3,4,5}};
+const UInt g_auiInterModeTableD[4][7] = {{0,1,2,3,4,5,6},{0,1,2,3,4,5,6},{0,1,2,3,4,5,6},{1,2,3,4,5,6,0}};
+#endif
+
+
+
 // Below table need to be optimized
 const UInt g_auiMITableVlcNum[15] = 
 {
@@ -1162,6 +1193,14 @@ const UInt g_auiLPTableD8[8][128] =
   {0,2,1,5,3,4,6,7,8,14,13,9,12,11,10,15,17,16,64,27,18,25,20,19,28,26,21,24,30,31,23,22,29,40,41,33,32,35,39,45,34,42,37,43,38,44,66,36,46,47,65,53,52,69,48,57,54,51,55,49,50,56,59,60,61,58,68,62,78,63,70,72,67,71,73,91,99,77,80,76,82,75,92,79,81,100,89,83,98,74,84,112,96,87,90,88,85,105,104,93,97,118,113,111,107,106,101,94,127,126,125,124,123,122,121,120,119,117,116,115,114,110,109,108,103,102,95,86}, //16x16P
   {0,2,1,5,3,4,6,7,8,14,13,9,12,11,10,15,17,16,64,27,18,25,20,19,28,26,21,24,30,31,23,22,29,40,41,33,32,35,39,45,34,42,37,43,38,44,66,36,46,47,65,53,52,69,48,57,54,51,55,49,50,56,59,60,61,58,68,62,78,63,70,72,67,71,73,91,99,77,80,76,82,75,92,79,81,100,89,83,98,74,84,112,96,87,90,88,85,105,104,93,97,118,113,111,107,106,101,94,127,126,125,124,123,122,121,120,119,117,116,115,114,110,109,108,103,102,95,86}  //16x16B  
 };
+
+#if LCEC_INTRA_MODE
+const UInt  g_auiIntraModeTableD17[16]={15,0,11,7,14,10,13,4,9,2,3,1,8,6,12,5};
+const UInt  g_auiIntraModeTableE17[16]={1,11,9,10,7,15,13,3,12,8,5,2,14,6,4,0};
+
+const UInt  g_auiIntraModeTableD34[33]={0,29,1,2,30,20,28,15,32,21,27,11,10,7,19,14,16,23,22,8,4,18,31,26,17,9,25,6,3,12,13,24,5};
+const UInt  g_auiIntraModeTableE34[33]={0,2,3,28,20,32,27,13,19,25,12,11,29,30,15,7,16,24,21,14,5,9,18,17,31,26,23,10,6,1,4,22,8};
+#endif
 
 const UInt g_auiLastPosVlcIndex[10] = {0,0,0,0,0,0,0,0,0,0};
 
@@ -1599,7 +1638,55 @@ const UInt g_auiLumaRun8x8[29][2][64] =
   }
 };
 
+#if  QC_MOD_LCEC
+const UInt g_auiLumaRunTr14x4[5][15]=
+{
+    {0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0},
+    {2, 3, 4, 5, 6, 5, 6, 7, 7, 7, 7, 7, 6, 4, 2},
+    {2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 3, 3, 3, 2, -1},
+    {2, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1, -1, -1},
+    {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, -1, -1, -1}
+};
+const UInt g_auiLumaRunTr18x8[5][29]=
+{
+    {0, 1, 2, 2, 2, 2, 2, 4, 5, 5, 6, 6, 6, 6, 6, 6, 7, 8, 7, 8, 8, 9, 10, 10, 10, 12, 10, 9, 8},
+    {2, 4, 4, 6, 6, 8, 8, 10, 11, 13, 15, 13, 14, 15, 16, 18, 18, 21, 20, 21, 22, 23, 25, 25, 26, 27, 28, 29, 27},
+    {2, 3, 4, 5, 4, 5, 6, 6, 7, 8, 8, 9, 9, 10, 10, 11, 11, 12, 13, 14, 15, 16, 16, 17, 18, 19, 20, 19, 19},
+    {2, 1, 2, 2, 3, 3, 4, 4, 5, 5, 5, 6, 6, 7, 7, 7, 8, 9, 9, 10, 10, 11, 11, 12, 12, 13, 13, 13, 13},
+    {2, 1, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 4, 5, 5, 5, 5, 5, 6, 6, 6, 6, 6, 6, 7, 7, 8}
+};
+
+#endif
+
+#if QC_MOD_LCEC
+const UInt g_auiVlcTable8x8Inter[29] = {8,0,0,5,5,5,5,5,5,5,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,3};
+const UInt g_auiVlcTable8x8Intra[29] = {8,0,0,5,5,5,5,5,5,5,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,3};
+#else
 const UInt g_auiVlcTable8x8[28] = {8,0,0,5,5,5,5,5,5,5,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6};
+#endif
+
+#if LCEC_INTRA_MODE
+const UInt huff17_2[2][17]=
+{
+  {1, 7, 6, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 3, 2, 1, 0},
+  {3, 5, 9, 8, 7, 6, 5, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0}
+};
+const UInt lengthHuff17_2[2][17]=
+{
+  {1, 4, 4, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 6, 6, 6, 6},
+  {2, 3, 4, 4, 4, 4, 4, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5}
+};
+const UInt huff34_2[2][34]=
+{
+  {1, 7, 13, 12, 11, 10, 9, 17, 16, 15, 14, 13, 12, 11, 10, 9, 8, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 1, 0},
+  {3, 11, 10, 9, 17, 16, 15, 14, 13, 12, 11, 21, 20, 19, 18, 17, 16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 1, 0}
+};
+const UInt lengthHuff34_2[2][34]=
+{
+  {1, 4, 5, 5, 5, 5, 5, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 8, 8},
+  {2, 4, 4, 4, 5, 5, 5, 5, 5, 5, 5, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 7, 7}
+};
+#endif
 
 const LastCoeffStruct g_acstructLumaRun8x8[29][127] =
 {
@@ -1917,6 +2004,18 @@ const LastCoeffStruct g_acstructLumaRun8x8[29][127] =
 // ====================================================================================================================
 
 #if SAMSUNG_FAST_UDI
+#if FAST_UDI_USE_MPM
+const UChar g_aucIntraModeNumFast[7] =
+{
+  3,  //   2x2
+  8,  //   4x4
+  8,  //   8x8
+  3,  //  16x16   
+  3,  //  32x32   
+  3,  //  64x64   
+  3   // 128x128  
+};
+#else // FAST_UDI_USE_MPM
 #if SAMSUNG_FAST_UDI_MODESET==0
 const UChar g_aucIntraModeNumFast[7] =
 {
@@ -1940,6 +2039,7 @@ const UChar g_aucIntraModeNumFast[7] =
   4   // 128x128  33
 };
 #endif
+#endif // FAST_UDI_USE_MPM
 #else
 const UChar g_aucIntraModeNumFast[7] =
 {
@@ -2009,7 +2109,7 @@ const UChar g_aucIntraModeNumAng[7] =
   34,  //   8x8
   34,  //  16x16
   34,  //  32x32
-  5,  //  64x64
+  3,  //  64x64
   5   // 128x128
 };
 
@@ -2020,25 +2120,17 @@ const UChar g_aucIntraModeBitsAng[7] =
   6,  //   8x8    34   5+esc
   6,  //  16x16   34   5+esc
   6,  //  32x32   34   5+esc
-  3,  //  64x64    5   2+1
+  2,  //  64x64    3   1+1
   3   // 128x128   5   2+1
 };
 
-#if BUGFIX_106
-const UChar g_aucAngModeMapping[3][34] = // intra mode conversion for most probable
+const UChar g_aucAngModeMapping[4][34] = // intra mode conversion for most probable
 {
   {2,3,2,2,4, 4,4,0,0,0, 0,0,0,0,2, 2,2,2,2,2, 2,1,1,1,1, 1,1,1,1,1, 2,2,2,2},               // conversion to 5 modes
   {2,3,3,2,4, 4,4,2,0,0, 0,2,5,5,5, 2,6,6,3,2, 7,7,7,2,1, 1,1,2,8,8, 8,2,2,2},               // conversion to 9 modes
-  {2,3,3,10,10, 4,11,11,0,0, 0,12,12,5,5, 13,13,6,14,14, 7,7,15,15,1, 1,1,16,16,8, 8,2,2,9}  // conversion to 17 modes
+  {2,3,3,10,10, 4,11,11,0,0, 0,12,12,5,5, 13,13,6,14,14, 7,7,15,15,1, 1,1,16,16,8, 8,2,2,9}, // conversion to 17 modes
+  {2,2,2,2,2, 2,2,0,0,0, 0,0,0,0,2, 2,2,2,2,2, 2,1,1,1,1, 1,1,1,1,1, 2,2,2,2}                // conversion to 3 modes
 };
-#else
-const UChar g_aucAngModeMapping[3][34] = // intra mode conversion for most probable
-{
-  {2,3,2,2,4, 4,4,0,0,0, 0,0,0,0,2, 2,2,2,2,2, 2,1,1,1,1, 1,1,1,1,1, 2,2,2,2},               // conversion to 5 modes
-  {2,3,3,2,4, 4,4,2,0,0, 0,2,5,5,5, 2,6,6,6,2, 7,7,7,2,1, 1,1,2,8,8, 8,2,2,2},               // conversion to 9 modes
-  {2,3,3,10,10, 4,11,11,0,0, 0,12,12,5,5, 13,13,6,14,14, 7,7,15,15,1, 1,1,16,16,8, 8,2,2,9}  // conversion to 17 modes
-};
-#endif
 
 // ====================================================================================================================
 // Bit-depth
@@ -2070,8 +2162,9 @@ UInt64 g_nSymbolCounter = 0;
 UInt* g_auiFrameScanXY[ MAX_CU_DEPTH  ];
 UInt* g_auiFrameScanX [ MAX_CU_DEPTH  ];
 UInt* g_auiFrameScanY [ MAX_CU_DEPTH  ];
-
-UInt* g_auiSigLastScan[ MAX_CU_DEPTH+1  ][ 2 ];
+#if QC_MDCS
+UInt* g_auiSigLastScan[3][ MAX_CU_DEPTH ];
+#endif //QC_MDCS
 
 // scanning order to 8x8 context model mapping table
 UInt  g_auiAntiScan8  [64];
@@ -2130,27 +2223,39 @@ Void initFrameScanXY( UInt* pBuff, UInt* pBuffX, UInt* pBuffY, Int iWidth, Int i
   }
 }
 
-Void initSigLastScanPattern( UInt* puiScanPattern, const UInt uiLog2BlockSize, const bool bDownLeft )
+#if QC_MDCS
+Void initSigLastScan(UInt* pBuffZ, UInt* pBuffH, UInt* pBuffV, Int iWidth, Int iHeight, Int iDepth)
 {
-  const int   iBlockSize    = 1 << uiLog2BlockSize;
-  const UInt  uiNumScanPos  = UInt( iBlockSize * iBlockSize );
-  UInt        uiNextScanPos = 0;
-  
-  for( UInt uiScanLine = 0; uiNextScanPos < uiNumScanPos; uiScanLine++ )
-  {
-    int    iPrimDim  = int( uiScanLine );
-    int    iScndDim  = 0;
-    while( iPrimDim >= iBlockSize )
+
+    memcpy(pBuffZ, g_auiFrameScanXY[iDepth], sizeof(UInt)*iWidth*iHeight);
+
+    UInt uiCnt = 0;
+    for(Int iY=0; iY < iHeight; iY++)
     {
-      iScndDim++;
-      iPrimDim--;
+      for(Int iX=0; iX < iWidth; iX++)
+      {
+        pBuffH[uiCnt] = iY*iWidth + iX;
+        uiCnt ++;
+      }
     }
-    while( iPrimDim >= 0 && iScndDim < iBlockSize )
+
+    uiCnt = 0;
+    for(Int iX=0; iX < iWidth; iX++)
     {
-      puiScanPattern[ uiNextScanPos++ ] = ( bDownLeft ? iScndDim * iBlockSize + iPrimDim : iPrimDim * iBlockSize + iScndDim );
-      iScndDim++;
-      iPrimDim--;
+      for(Int iY=0; iY < iHeight; iY++)
+      {
+        pBuffV[uiCnt] = iY*iWidth + iX;
+        uiCnt ++;
+      }
     }
-  }
-  return;
+    
 }
+#endif //QC_MDCS
+
+#if CHROMA_CODEWORD_SWITCH 
+const UChar ChromaMapping[2][5] = 
+{
+  {0, 1, 3, 2, 4},
+  {0, 1, 2, 4, 3}
+};
+#endif

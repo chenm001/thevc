@@ -131,6 +131,10 @@ Void TDecGop::decompressGop (Bool bEos, TComBitstream* pcBitstream, TComPic*& rp
     m_pcAdaptiveLoopFilter->freeALFParam(&cAlfParam);
   }
   
+#if AMVP_BUFFERCOMPRESS
+  rpcPic->compressMotion(); 
+#endif 
+  
   //-- For time output for each slice
   printf("\nPOC %4d ( %c-SLICE, QP%3d ) ",
          pcSlice->getPOC(),
@@ -149,6 +153,17 @@ Void TDecGop::decompressGop (Bool bEos, TComBitstream* pcBitstream, TComPic*& rp
     }
     printf ("] ");
   }
+#if DCM_COMB_LIST
+  if(pcSlice->getNumRefIdx(REF_PIC_LIST_C)>0 && !pcSlice->getNoBackPredFlag())
+  {
+    printf ("[LC ");
+    for (Int iRefIndex = 0; iRefIndex < pcSlice->getNumRefIdx(REF_PIC_LIST_C); iRefIndex++)
+    {
+      printf ("%d ", pcSlice->getRefPOC((RefPicList)pcSlice->getListIdFromIdxOfLC(iRefIndex), pcSlice->getRefIdxFromIdxOfLC(iRefIndex)));
+    }
+    printf ("] ");
+  }
+#endif
   
   rpcPic->setReconMark(true);
 }

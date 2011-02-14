@@ -143,8 +143,9 @@ Double TComRdCost::calcRdCost64( UInt64 uiBits, UInt64 uiDistortion, Bool bFlag,
 Void TComRdCost::setLambda( Double dLambda )
 {
   m_dLambda           = dLambda;
-  m_uiLambdaMotionSAD = (UInt)floor(65536.0 * sqrt( m_dLambda ));
-  m_uiLambdaMotionSSE = (UInt)floor(65536.0 *       m_dLambda  );
+  m_sqrtLambda        = sqrt(m_dLambda);
+  m_uiLambdaMotionSAD = (UInt)floor(65536.0 * m_sqrtLambda);
+  m_uiLambdaMotionSSE = (UInt)floor(65536.0 * m_dLambda   );
 }
 
 
@@ -395,6 +396,22 @@ Void TComRdCost::setDistParam( TComPattern* pcPatternKey, Pel* piRefY, Int iRefS
   // initialize
   rcDistParam.iSubShift  = 0;
 }
+
+#if HHI_MRG
+Void
+TComRdCost::setDistParam( DistParam& rcDP, Pel* p1, Int iStride1, Pel* p2, Int iStride2, Int iWidth, Int iHeight, Bool bHadamard )
+{
+  rcDP.pOrg       = p1;
+  rcDP.pCur       = p2;
+  rcDP.iStrideOrg = iStride1;
+  rcDP.iStrideCur = iStride2;
+  rcDP.iCols      = iWidth;
+  rcDP.iRows      = iHeight;
+  rcDP.iStep      = 1;
+  rcDP.iSubShift  = 0;
+  rcDP.DistFunc   = m_afpDistortFunc[ ( bHadamard ? DF_HADS : DF_SADS ) + g_aucConvertToBit[ iWidth ] + 1 ];
+}
+#endif
 
 UInt TComRdCost::calcHAD( Pel* pi0, Int iStride0, Pel* pi1, Int iStride1, Int iWidth, Int iHeight )
 {

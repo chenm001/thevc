@@ -43,6 +43,9 @@
 #include "../TLibCommon/CommonDef.h"
 #include "../TLibCommon/TComBitStream.h"
 #include "TEncEntropy.h"
+#if QC_MOD_LCEC
+#include "../TLibCommon/TComRom.h"
+#endif
 
 class TEncTop;
 
@@ -75,6 +78,14 @@ protected:
   UInt          m_uiLPTableD8[10][128];
   UInt          m_uiLastPosVlcIndex[10];
   
+#if LCEC_INTRA_MODE
+  UInt          m_uiIntraModeTableD17[16];
+  UInt          m_uiIntraModeTableE17[16];
+
+  UInt          m_uiIntraModeTableD34[33];
+  UInt          m_uiIntraModeTableE34[33];
+#endif
+
 #if LCEC_STAT 
   UInt m_uiBitHLS;
   UInt m_uiBitMVPId;
@@ -112,13 +123,21 @@ protected:
   UInt          m_uiBlkCbpVlcIdx;
 #endif
   
+#if MS_LCEC_LOOKUP_TABLE_EXCEPTION
+  UInt          m_uiMI1TableE[9];
+  UInt          m_uiMI1TableD[9];
+#else
   UInt          m_uiMI1TableE[8];
   UInt          m_uiMI1TableD[8];
+#endif
   UInt          m_uiMI2TableE[15];
   UInt          m_uiMI2TableD[15];
   
   UInt          m_uiMITableVlcIdx;
-  
+#if QC_LCEC_INTER_MODE
+  UInt          m_uiSplitTableE[4][7];
+  UInt          m_uiSplitTableD[4][7];
+#endif
   Void  xCheckCoeff( TCoeff* pcCoef, UInt uiSize, UInt uiDepth, UInt& uiNumofCoeff, UInt& uiPart );
   
 #if LCEC_STAT
@@ -129,7 +148,9 @@ protected:
   UInt  xWriteEpExGolomb      ( UInt uiSymbol, UInt uiCount );
   UInt  xWriteExGolombLevel   ( UInt uiSymbol );
   UInt  xWriteUnaryMaxSymbol  ( UInt uiSymbol, UInt uiMaxSymbol );
+#if !QC_MOD_LCEC_RDOQ
   UInt  xLeadingZeros         ( UInt uiCode );
+#endif
   UInt  xWriteVlc             ( UInt uiTableNumber, UInt uiCodeNumber );
 #else
   Void  xWriteCode            ( UInt uiCode, UInt uiLength );
@@ -139,7 +160,9 @@ protected:
   Void  xWriteEpExGolomb      ( UInt uiSymbol, UInt uiCount );
   Void  xWriteExGolombLevel    ( UInt uiSymbol );
   Void  xWriteUnaryMaxSymbol  ( UInt uiSymbol, UInt uiMaxSymbol );
+#if !QC_MOD_LCEC_RDOQ
   UInt  xLeadingZeros         ( UInt uiCode );
+#endif
   Void  xWriteVlc             ( UInt uiTableNumber, UInt uiCodeNumber );
 #endif
   Void  xCodeCoeff4x4          ( TCoeff* scoeff, Int iTableNumber );
@@ -155,6 +178,9 @@ public:
 #endif
   UInt* GetLP8Table();
   UInt* GetLP4Table();
+#if QC_MOD_LCEC
+  UInt* GetLastPosVlcIndexTable();
+#endif
   Void  setBitstream          ( TComBitIf* p )  { m_pcBitIf = p;  }
   Void  setSlice              ( TComSlice* p )  { m_pcSlice = p;  }
   Bool getAlfCtrl() {return m_bAlfCtrl;}
@@ -188,7 +214,9 @@ public:
   Void codeAlfFlagNum    ( UInt uiCode, UInt minValue );
   Void codeAlfCtrlFlag   ( UInt uiSymbol );
 #endif
-  
+#if QC_LCEC_INTER_MODE
+  Void codeInterModeFlag( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth, UInt uiEncMode );
+#endif  
   Void codeSplitFlag     ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
   
   Void codePartSize      ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );

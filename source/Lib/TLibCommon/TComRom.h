@@ -57,8 +57,9 @@
 Void         initROM();
 Void         destroyROM();
 Void         initFrameScanXY( UInt* pBuff, UInt* pBuffX, UInt* pBuffY, Int iWidth, Int iHeight );
-
-Void         initSigLastScanPattern( UInt* puiScanPattern, const UInt uiLog2BlockSize, const bool bDownLeft );
+#if QC_MDCS
+Void         initSigLastScan(UInt* pBuffZ, UInt* pBuffH, UInt* pBuffV, Int iWidth, Int iHeight, Int iDepth);
+#endif //QC_MDCS
 
 // ====================================================================================================================
 // Data structure related table & variable
@@ -82,6 +83,10 @@ extern       UInt g_uiMaxCUWidth;
 extern       UInt g_uiMaxCUHeight;
 extern       UInt g_uiMaxCUDepth;
 extern       UInt g_uiAddCUDepth;
+
+#if HHI_MRG
+extern       UInt g_auiPUOffset[4];
+#endif
 
 // ====================================================================================================================
 // Quantization & DeQuantization
@@ -114,8 +119,9 @@ extern       UInt*  g_auiFrameScanXY[ MAX_CU_DEPTH  ];    // raster index     fr
 extern       UInt*  g_auiFrameScanX [ MAX_CU_DEPTH  ];    // raster index (x) from scanning index
 extern       UInt*  g_auiFrameScanY [ MAX_CU_DEPTH  ];    // raster index (y) from scanning index
 extern       UInt   g_auiAntiScan8[64];                   // 2D context mapping for coefficients
-
-extern       UInt*  g_auiSigLastScan[ MAX_CU_DEPTH+1  ][ 2 ];
+#if QC_MDCS
+extern       UInt*  g_auiSigLastScan[3][ MAX_CU_DEPTH ];  // raster index from scanning index (zigzag, hor, ver)
+#endif //QC_MDCS
 
 // ====================================================================================================================
 // CAVLC table
@@ -139,8 +145,33 @@ extern const UInt    g_auiLPTableD4[3][32];
 extern const UInt    g_auiLastPosVlcIndex[10];
 extern const UInt    g_auiLastPosVlcNum[10][17];
 extern const UInt    g_auiLumaRun8x8[29][2][64];
+
+#if LCEC_INTRA_MODE
+extern const UInt    g_auiIntraModeTableD17[16];
+extern const UInt    g_auiIntraModeTableE17[16];
+extern const UInt    g_auiIntraModeTableD34[33];
+extern const UInt    g_auiIntraModeTableE34[33];
+#endif
+
+#if QC_MOD_LCEC
+extern const UInt    g_auiVlcTable8x8Inter[29];
+extern const UInt    g_auiVlcTable8x8Intra[29];
+#else
 extern const UInt    g_auiVlcTable8x8[28];
+#endif
 extern const LastCoeffStruct g_acstructLumaRun8x8[29][127];
+
+#if LCEC_INTRA_MODE
+extern const UInt huff17_2[2][17];
+extern const UInt lengthHuff17_2[2][17];
+extern const UInt huff34_2[2][34];
+extern const UInt lengthHuff34_2[2][34];
+#endif
+
+#if QC_MOD_LCEC
+extern const UInt    g_auiLumaRunTr14x4[5][15];
+extern const UInt    g_auiLumaRunTr18x8[5][29];
+#endif
 
 extern const UInt    g_auiCBPTableE[2][8];
 extern const UInt    g_auiCBPTableD[2][8];
@@ -164,7 +195,16 @@ extern const UInt g_auiMI1TableDNoL1[8];
 extern const UInt g_auiMI2TableENoL1[15];
 extern const UInt g_auiMI2TableDNoL1[15];
 #endif
-
+#if MS_LCEC_ONE_FRAME
+extern const UInt g_auiMI1TableEOnly1Ref[8];
+extern const UInt g_auiMI1TableDOnly1Ref[8];
+extern const UInt g_auiMI1TableEOnly1RefNoL1[8];
+extern const UInt g_auiMI1TableDOnly1RefNoL1[8];
+#endif
+#if QC_LCEC_INTER_MODE
+extern const UInt g_auiInterModeTableE[4][7];
+extern const UInt g_auiInterModeTableD[4][7];
+#endif
 // ====================================================================================================================
 // ADI table
 // ====================================================================================================================
@@ -177,7 +217,7 @@ extern const UChar  g_aucIntraModeNumFast[7];
 
 extern const UChar g_aucIntraModeNumAng[7];
 extern const UChar g_aucIntraModeBitsAng[7];
-extern const UChar g_aucAngModeMapping[3][34];
+extern const UChar g_aucAngModeMapping[4][34];
 extern const UChar g_aucAngIntraModeOrder[34];
 
 // ====================================================================================================================
@@ -198,8 +238,63 @@ extern const UChar g_aucConvertTxtTypeToIdx[4];
 // ====================================================================================================================
 // Misc.
 // ====================================================================================================================
+#if QC_MOD_LCEC
+__inline UInt xRunLevelInd(Int lev, Int run, Int maxrun, UInt lrg1Pos)
+{
+  UInt cn;
+
+  if ( lrg1Pos > 0 )
+  {
+    if ( lev == 0 )
+    {
+      if ( run < lrg1Pos )
+        cn = run;
+      else
+        cn = (run << 1) - lrg1Pos + 1;
+    }
+    else
+    {
+      if ( run > (maxrun - (Int)lrg1Pos + 1) )
+        cn = maxrun + run + 2 ;  
+      else
+        cn = lrg1Pos + (run << 1);
+    }
+  }
+  else
+  {
+    cn = (run << 1);
+    if ( lev == 0 && run <= maxrun )
+    { 
+      cn++;
+    }
+  }
+  return(cn);
+}
+#endif
+#if QC_MOD_LCEC_RDOQ
+__inline UInt xLeadingZeros(UInt uiCode)
+{
+  UInt uiCount = 0;
+  Int iDone = 0;
+  
+  if (uiCode)
+  {
+    while (!iDone)
+    {
+      uiCode >>= 1;
+      if (!uiCode) iDone = 1;
+      else uiCount++;
+    }
+  }
+  return uiCount;
+}
+#endif
 
 extern       Char   g_aucConvertToBit  [ MAX_CU_SIZE+1 ];   // from width to log2(width)-2
+
+#if CHROMA_CODEWORD_SWITCH 
+extern const UChar ChromaMapping[2][5];
+#endif
 
 #define ENC_DEC_TRACE 0
 

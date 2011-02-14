@@ -56,24 +56,21 @@ TDecCavlc::~TDecCavlc()
 
 Void TDecCavlc::parsePPS(TComPPS* pcPPS)
 {
-#if HHI_NAL_UNIT_SYNTAX
   UInt  uiCode;
   
   xReadCode ( 2, uiCode ); //NalRefIdc
   xReadCode ( 1, uiCode ); assert( 0 == uiCode); // zero bit
   xReadCode ( 5, uiCode ); assert( NAL_UNIT_PPS == uiCode);//NalUnitType
-#endif
   return;
 }
 
 Void TDecCavlc::parseSPS(TComSPS* pcSPS)
 {
   UInt  uiCode;
-#if HHI_NAL_UNIT_SYNTAX
   xReadCode ( 2, uiCode ); //NalRefIdc
   xReadCode ( 1, uiCode ); assert( 0 == uiCode); // zero bit
   xReadCode ( 5, uiCode ); assert( NAL_UNIT_SPS == uiCode);//NalUnitType
-#endif
+  
   // Structure
   xReadUvlc ( uiCode ); pcSPS->setWidth       ( uiCode    );
   xReadUvlc ( uiCode ); pcSPS->setHeight      ( uiCode    );
@@ -111,8 +108,11 @@ Void TDecCavlc::parseSPS(TComSPS* pcSPS)
 #if HHI_RMP_SWITCH
   xReadFlag( uiCode ); pcSPS->setUseRMP( uiCode ? true : false );
 #endif
+
+#if !DCTIF_8_6_LUMA
   // number of taps for DIF
   xReadUvlc( uiCode ); pcSPS->setDIFTap ( (uiCode+2)<<1 );  // 4, 6, 8, 10, 12
+#endif
   
   // AMVP mode for each depth (AM_NONE or AM_EXPL)
   for (Int i = 0; i < pcSPS->getMaxCUDepth(); i++)
@@ -122,8 +122,24 @@ Void TDecCavlc::parseSPS(TComSPS* pcSPS)
   }
   
   // Bit-depth information
+#if FULL_NBIT
+  xReadUvlc( uiCode );
+  g_uiBitDepth = 8 + uiCode;
+  g_uiBitIncrement = 0;
+  pcSPS->setBitDepth(g_uiBitDepth);
+  pcSPS->setBitIncrement(g_uiBitIncrement);
+#else
+#if ENABLE_IBDI
   xReadUvlc( uiCode ); pcSPS->setBitDepth     ( uiCode+8 ); g_uiBitDepth     = uiCode + 8;
   xReadUvlc( uiCode ); pcSPS->setBitIncrement ( uiCode   ); g_uiBitIncrement = uiCode;
+#else
+  xReadUvlc( uiCode );
+  g_uiBitDepth = 8;
+  g_uiBitIncrement = uiCode;
+  pcSPS->setBitDepth(g_uiBitDepth);
+  pcSPS->setBitIncrement(g_uiBitIncrement);
+#endif
+#endif
   
   g_uiBASE_MAX  = ((1<<(g_uiBitDepth))-1);
   
@@ -140,11 +156,15 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice)
 {
   UInt  uiCode;
   Int   iCode;
-#if HHI_NAL_UNIT_SYNTAX
   xReadCode ( 2, uiCode ); //NalRefIdc
   xReadCode ( 1, uiCode ); assert( 0 == uiCode); // zero bit
+#if DCM_DECODING_REFRESH
+  xReadCode ( 5, uiCode ); 
+  rpcSlice->setNalUnitType        ((NalUnitType)uiCode);//NalUnitType
+#else
   xReadCode ( 5, uiCode ); assert( NAL_UNIT_CODED_SLICE == uiCode);//NalUnitType
 #endif
+  
   xReadCode (10, uiCode);  rpcSlice->setPOC              (uiCode);             // 9 == SPS->Log2MaxFrameNum()
   xReadUvlc (   uiCode);  rpcSlice->setSliceType        ((SliceType)uiCode);
   xReadSvlc (    iCode);  rpcSlice->setSliceQp          (iCode);
@@ -158,13 +178,20 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice)
     uiCode = 1;
   
   rpcSlice->setReferenced       (uiCode ? true : false);
-  
+
+#if !HIGH_ACCURACY_BI
 #ifdef ROUNDING_CONTROL_BIPRED
   if(!rpcSlice->isIntra())
   {
     xReadFlag( uiCode );
     Bool b = (uiCode != 0);
     rpcSlice->setRounding(b);
+  }
+#endif
+#else
+  if(!rpcSlice->isIntra())
+  {
+    rpcSlice->setRounding(false);
   }
 #endif
   
@@ -187,14 +214,46 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice)
     rpcSlice->setNumRefIdx(REF_PIC_LIST_1, 0);
   }
   
+#if DCM_COMB_LIST
+  if (rpcSlice->isInterB())
+  {
+    xReadFlag (uiCode);      rpcSlice->setRefPicListCombinationFlag(uiCode ? 1 : 0);
+    if(uiCode)
+    {
+      xReadUvlc(uiCode);      rpcSlice->setNumRefIdx      (REF_PIC_LIST_C, uiCode+1);
+
+      xReadFlag (uiCode);     rpcSlice->setRefPicListModificationFlagLC(uiCode ? 1 : 0);
+      if(uiCode)
+      {
+        for (UInt i=0;i<rpcSlice->getNumRefIdx(REF_PIC_LIST_C);i++)
+        {
+          xReadFlag(uiCode);
+          rpcSlice->setListIdFromIdxOfLC(i, uiCode);
+          xReadUvlc(uiCode);
+          rpcSlice->setRefIdxFromIdxOfLC(i, uiCode);
+          rpcSlice->setRefIdxOfLC((RefPicList)rpcSlice->getListIdFromIdxOfLC(i), rpcSlice->getRefIdxFromIdxOfLC(i), i);
+        }
+      }
+    }
+    else
+    {
+      rpcSlice->setRefPicListCombinationFlag(false);
+      rpcSlice->setRefPicListModificationFlagLC(false);
+      rpcSlice->setNumRefIdx(REF_PIC_LIST_C, -1);
+    }
+  }
+#endif
+
   xReadFlag (uiCode);     rpcSlice->setDRBFlag          (uiCode ? 1 : 0);
   if ( !rpcSlice->getDRBFlag() )
   {
     xReadCode(2, uiCode); rpcSlice->setERBIndex( (ERBIndex)uiCode );    assert (uiCode == ERB_NONE || uiCode == ERB_LTR);
   }
-  
+#if !DCTIF_8_6_LUMA
   xReadUvlc( uiCode ); rpcSlice->setInterpFilterType( uiCode );
+#endif
   
+
 #if AMVP_NEIGH_COL
   if ( rpcSlice->getSliceType() == B_SLICE )
   {
@@ -227,13 +286,49 @@ Void TDecCavlc::resetEntropy          (TComSlice* pcSlice)
   ::memcpy(m_uiMI2TableD,        g_auiMI2TableD,        15*sizeof(UInt));
   
 #if MS_NO_BACK_PRED_IN_B0
+#if DCM_COMB_LIST
+  if ( pcSlice->getNoBackPredFlag() || pcSlice->getNumRefIdx(REF_PIC_LIST_C)>0)
+#else
   if ( pcSlice->getNoBackPredFlag() )
+#endif
   {
     ::memcpy(m_uiMI1TableD,        g_auiMI1TableDNoL1,        8*sizeof(UInt));
     ::memcpy(m_uiMI2TableD,        g_auiMI2TableDNoL1,        15*sizeof(UInt));
   }
 #endif
   
+#if MS_LCEC_ONE_FRAME
+  if ( pcSlice->getNumRefIdx(REF_PIC_LIST_0) <= 1 && pcSlice->getNumRefIdx(REF_PIC_LIST_1) <= 1 )
+  {
+    if ( pcSlice->getNoBackPredFlag() || ( pcSlice->getNumRefIdx(REF_PIC_LIST_C) > 0 && pcSlice->getNumRefIdx(REF_PIC_LIST_C) <= 1 ) )
+    {
+      ::memcpy(m_uiMI1TableD,        g_auiMI1TableDOnly1RefNoL1,        8*sizeof(UInt));
+    }
+    else
+    {
+      ::memcpy(m_uiMI1TableD,        g_auiMI1TableDOnly1Ref,        8*sizeof(UInt));
+    }
+  }
+#endif
+#if MS_LCEC_LOOKUP_TABLE_EXCEPTION
+  if (pcSlice->getNumRefIdx(REF_PIC_LIST_C)>0)
+  {
+    m_uiMI1TableD[8] = 8;
+  }
+  else  // GPB case
+  {
+    m_uiMI1TableD[8] = m_uiMI1TableD[6];
+    m_uiMI1TableD[6] = 8;
+  }
+#endif
+  
+#if LCEC_INTRA_MODE
+  ::memcpy(m_uiIntraModeTableD17, g_auiIntraModeTableD17, 16*sizeof(UInt));
+  ::memcpy(m_uiIntraModeTableD34, g_auiIntraModeTableD34, 33*sizeof(UInt));
+#endif
+#if QC_LCEC_INTER_MODE 
+  ::memcpy(m_uiSplitTableD, g_auiInterModeTableD, 4*7*sizeof(UInt));
+#endif 
   m_uiMITableVlcIdx = 0;
 }
 
@@ -278,6 +373,9 @@ Void TDecCavlc::parseAlfCtrlFlag( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDe
 
 Void TDecCavlc::parseSkipFlag( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
 {
+#if QC_LCEC_INTER_MODE
+  return;
+#else
 #if HHI_MRG && !SAMSUNG_MRG_SKIP_DIRECT
   if ( pcCU->getSlice()->getSPS()->getUseMRG() )
   {
@@ -325,6 +423,7 @@ Void TDecCavlc::parseSkipFlag( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth
         pcCU->getCUMvField( REF_PIC_LIST_1 )->setAllRefIdx( 0, SIZE_2Nx2N, uiAbsPartIdx, 0, uiDepth );
     }
   }
+#endif
 }
 
 Void TDecCavlc::parseMVPIdx( TComDataCU* pcCU, Int& riMVPIdx, Int iMVPNum, UInt uiAbsPartIdx, UInt uiDepth, RefPicList eRefList )
@@ -333,7 +432,122 @@ Void TDecCavlc::parseMVPIdx( TComDataCU* pcCU, Int& riMVPIdx, Int iMVPNum, UInt 
   xReadUnaryMaxSymbol(uiSymbol, iMVPNum-1);
   riMVPIdx = uiSymbol;
 }
+#if QC_LCEC_INTER_MODE
+Void TDecCavlc::parseSplitFlag     ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
+{
+  if (pcCU->getSlice()->isIntra())
+  {
+    if( uiDepth == g_uiMaxCUDepth - g_uiAddCUDepth )
+    {
+      pcCU->setDepthSubParts( uiDepth, uiAbsPartIdx );
+      return ;
+    }
 
+    UInt uiSymbol;
+    xReadFlag( uiSymbol );
+    pcCU->setDepthSubParts( uiDepth + uiSymbol, uiAbsPartIdx );
+
+    return ;
+  }
+  UInt tmp=0;
+  UInt cx=0;
+  UInt uiMode ;
+  {
+    UInt iMaxLen= (uiDepth == g_uiMaxCUDepth - g_uiAddCUDepth)?5:6;
+    while (tmp==0 && cx<iMaxLen)
+    {
+      xReadFlag( tmp );
+      cx++;
+    };
+    if(tmp!=0)
+      cx--;
+    UInt x = m_uiSplitTableD[uiDepth][cx];
+    /* Adapt table */
+    uiMode = x;
+    if (cx>0)
+    {    
+      UInt cy = Max(0,cx-1);
+      UInt y = m_uiSplitTableD[uiDepth][cy];
+      m_uiSplitTableD[uiDepth][cy] = x;
+      m_uiSplitTableD[uiDepth][cx] = y;
+    }
+  }
+  if (uiMode==0)
+  {
+    pcCU->setDepthSubParts( uiDepth + 1, uiAbsPartIdx );
+  }
+  else
+  {
+    pcCU->setPartSizeSubParts( SIZE_2Nx2N, uiAbsPartIdx, uiDepth );
+    pcCU->setMergeFlagSubParts(false, uiAbsPartIdx,0, uiDepth );
+    pcCU->setDepthSubParts( uiDepth    , uiAbsPartIdx );
+    if (uiMode ==1)
+    {
+      TComMv cZeroMv(0,0);
+      pcCU->setPredModeSubParts( MODE_SKIP,  uiAbsPartIdx, uiDepth );
+      pcCU->setPartSizeSubParts( SIZE_2Nx2N, uiAbsPartIdx, uiDepth );
+      pcCU->setSizeSubParts( g_uiMaxCUWidth>>uiDepth, g_uiMaxCUHeight>>uiDepth, uiAbsPartIdx, uiDepth );
+      pcCU->getCUMvField( REF_PIC_LIST_0 )->setAllMvd    ( cZeroMv, SIZE_2Nx2N, uiAbsPartIdx, 0, uiDepth );
+      pcCU->getCUMvField( REF_PIC_LIST_1 )->setAllMvd    ( cZeroMv, SIZE_2Nx2N, uiAbsPartIdx, 0, uiDepth );
+      pcCU->setTrIdxSubParts( 0, uiAbsPartIdx, uiDepth );
+      pcCU->setCbfSubParts  ( 0, 0, 0, uiAbsPartIdx, uiDepth );
+      
+      if ( pcCU->getSlice()->isInterP() )
+      {
+        pcCU->setInterDirSubParts( 1, uiAbsPartIdx, 0, uiDepth );
+        
+        if ( pcCU->getSlice()->getNumRefIdx( REF_PIC_LIST_0 ) > 0 )
+          pcCU->getCUMvField( REF_PIC_LIST_0 )->setAllRefIdx(  0, SIZE_2Nx2N, uiAbsPartIdx, 0, uiDepth );
+        if ( pcCU->getSlice()->getNumRefIdx( REF_PIC_LIST_1 ) > 0 )
+          pcCU->getCUMvField( REF_PIC_LIST_1 )->setAllRefIdx( NOT_VALID, SIZE_2Nx2N, uiAbsPartIdx, 0, uiDepth );
+      }
+      else
+      {
+        pcCU->setInterDirSubParts( 3, uiAbsPartIdx, 0, uiDepth );
+        
+        if ( pcCU->getSlice()->getNumRefIdx( REF_PIC_LIST_0 ) > 0 )
+          pcCU->getCUMvField( REF_PIC_LIST_0 )->setAllRefIdx(  0, SIZE_2Nx2N, uiAbsPartIdx, 0, uiDepth );
+        if ( pcCU->getSlice()->getNumRefIdx( REF_PIC_LIST_1 ) > 0 )
+          pcCU->getCUMvField( REF_PIC_LIST_1 )->setAllRefIdx( 0, SIZE_2Nx2N, uiAbsPartIdx, 0, uiDepth );
+      }
+    }
+    else if (uiMode==2)
+    {
+      pcCU->setPredModeSubParts( MODE_INTER, uiAbsPartIdx, uiDepth );
+      pcCU->setPartSizeSubParts( SIZE_2Nx2N, uiAbsPartIdx, uiDepth );
+      pcCU->setMergeFlagSubParts(true, uiAbsPartIdx,0, uiDepth );
+      pcCU->setSizeSubParts( g_uiMaxCUWidth>>uiDepth, g_uiMaxCUHeight>>uiDepth, uiAbsPartIdx, uiDepth );
+    }
+    else if (uiMode==6)
+    {
+#if MTK_DISABLE_INTRA_NxN_SPLIT && HHI_DISABLE_INTER_NxN_SPLIT 
+      if (uiDepth != g_uiMaxCUDepth - g_uiAddCUDepth)
+      {
+        pcCU->setPredModeSubParts( MODE_INTRA, uiAbsPartIdx, uiDepth );
+        pcCU->setPartSizeSubParts( SIZE_2Nx2N, uiAbsPartIdx, uiDepth );
+        pcCU->setSizeSubParts( g_uiMaxCUWidth>>uiDepth, g_uiMaxCUHeight>>uiDepth, uiAbsPartIdx, uiDepth );
+        UInt uiTrLevel = 0;
+        UInt uiWidthInBit  = g_aucConvertToBit[pcCU->getWidth(uiAbsPartIdx)]+2;
+        UInt uiTrSizeInBit = g_aucConvertToBit[pcCU->getSlice()->getSPS()->getMaxTrSize()]+2;
+        uiTrLevel          = uiWidthInBit >= uiTrSizeInBit ? uiWidthInBit - uiTrSizeInBit : 0;
+	      pcCU->setTrIdxSubParts( uiTrLevel, uiAbsPartIdx, uiDepth );       
+      }
+      else
+#endif
+      {
+        pcCU->setPredModeSubParts( MODE_INTER, uiAbsPartIdx, uiDepth );
+        pcCU->setPartSizeSubParts( SIZE_NxN, uiAbsPartIdx, uiDepth );
+      }
+    }
+    else
+    {
+      pcCU->setPredModeSubParts( MODE_INTER, uiAbsPartIdx, uiDepth );
+      pcCU->setPartSizeSubParts( PartSize(uiMode-3), uiAbsPartIdx, uiDepth );
+      pcCU->setSizeSubParts( g_uiMaxCUWidth>>uiDepth, g_uiMaxCUHeight>>uiDepth, uiAbsPartIdx, uiDepth );
+    }
+  }
+}
+#else
 Void TDecCavlc::parseSplitFlag( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
 {
   if( uiDepth == g_uiMaxCUDepth - g_uiAddCUDepth )
@@ -348,16 +562,97 @@ Void TDecCavlc::parseSplitFlag( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDept
   
   return ;
 }
-
+#endif
+#if QC_LCEC_INTER_MODE
 Void TDecCavlc::parsePartSize( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
 {
-#if HHI_MRG
-  if ( pcCU->getMergeFlag( uiAbsPartIdx ) )
+  if ( pcCU->isSkip( uiAbsPartIdx ))
   {
+    return ;
+  }
+  UInt uiMode=0;
+  if ( pcCU->getSlice()->isIntra()&& pcCU->isIntra( uiAbsPartIdx ) )
+  {
+#if MTK_DISABLE_INTRA_NxN_SPLIT
+    uiMode = 1;
+    if ( uiDepth == (g_uiMaxCUDepth - g_uiAddCUDepth ))
+#endif
+    {
+      UInt uiSymbol;
+      xReadFlag( uiSymbol );
+      uiMode = uiSymbol ? 1 : 2;
+    }
+  }
+#if MTK_DISABLE_INTRA_NxN_SPLIT && HHI_DISABLE_INTER_NxN_SPLIT 
+  else if (uiDepth != (g_uiMaxCUDepth - g_uiAddCUDepth ) || pcCU->getPartitionSize(uiAbsPartIdx ) != SIZE_NxN)
+#else
+  else if (pcCU->getPartitionSize(uiAbsPartIdx ) != SIZE_NxN)
+#endif
+  { 
     return;
   }
+  else
+  {
+    UInt uiSymbol;
+    xReadFlag( uiSymbol );
+    if(uiSymbol)
+    {
+      uiMode = 1;
+    }
+    else
+    {
+#if (MTK_DISABLE_INTRA_NxN_SPLIT && !HHI_DISABLE_INTER_NxN_SPLIT) || (!MTK_DISABLE_INTRA_NxN_SPLIT && HHI_DISABLE_INTER_NxN_SPLIT )
+      if ( uiDepth != (g_uiMaxCUDepth - g_uiAddCUDepth ))
+      {
+#if MTK_DISABLE_INTRA_NxN_SPLIT && !HHI_DISABLE_INTER_NxN_SPLIT 
+        uiMode = 0;
+#elif !MTK_DISABLE_INTRA_NxN_SPLIT && HHI_DISABLE_INTER_NxN_SPLIT 
+        uiMode = 2;
 #endif
-  
+      }
+      else
+#endif
+      {
+        xReadFlag( uiSymbol );
+        uiMode = uiSymbol ? 2 : 0;
+      }
+    }
+  }
+  PartSize ePartSize;
+  PredMode eMode;
+  if (uiMode > 0)
+  {
+    eMode = MODE_INTRA;
+    ePartSize = (uiMode==1) ? SIZE_2Nx2N:SIZE_NxN;
+  }
+  else
+  {
+    eMode = MODE_INTER;
+    ePartSize = SIZE_NxN;
+  }
+  pcCU->setPredModeSubParts( eMode    , uiAbsPartIdx, uiDepth );
+  pcCU->setPartSizeSubParts( ePartSize, uiAbsPartIdx, uiDepth );
+  pcCU->setSizeSubParts( g_uiMaxCUWidth>>uiDepth, g_uiMaxCUHeight>>uiDepth, uiAbsPartIdx, uiDepth );
+
+  if( pcCU->getPredictionMode(uiAbsPartIdx) == MODE_INTRA )
+  {
+    UInt uiTrLevel = 0;
+    UInt uiWidthInBit  = g_aucConvertToBit[pcCU->getWidth(uiAbsPartIdx)] + 2;
+    UInt uiTrSizeInBit = g_aucConvertToBit[pcCU->getSlice()->getSPS()->getMaxTrSize()] + 2;
+    uiTrLevel          = uiWidthInBit >= uiTrSizeInBit ? uiWidthInBit - uiTrSizeInBit : 0;
+    if( pcCU->getPartitionSize( uiAbsPartIdx ) == SIZE_NxN )
+    {
+      pcCU->setTrIdxSubParts( 1 + uiTrLevel, uiAbsPartIdx, uiDepth );
+    }
+    else
+    {
+      pcCU->setTrIdxSubParts( uiTrLevel, uiAbsPartIdx, uiDepth );
+    }
+  }
+}
+#else
+Void TDecCavlc::parsePartSize( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
+{
   if ( pcCU->isSkip( uiAbsPartIdx ) )
   {
     pcCU->setPartSizeSubParts( SIZE_2Nx2N, uiAbsPartIdx, uiDepth );
@@ -370,8 +665,14 @@ Void TDecCavlc::parsePartSize( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth
   
   if ( pcCU->isIntra( uiAbsPartIdx ) )
   {
-    xReadFlag( uiSymbol );
-    eMode = uiSymbol ? SIZE_2Nx2N : SIZE_NxN;
+#if MTK_DISABLE_INTRA_NxN_SPLIT
+    eMode = SIZE_2Nx2N;
+    if ( (g_uiMaxCUWidth >> uiDepth) == 8 )
+#endif
+    {
+      xReadFlag( uiSymbol );
+      eMode = uiSymbol ? SIZE_2Nx2N : SIZE_NxN;
+    }
   }
   else
   {
@@ -406,11 +707,19 @@ Void TDecCavlc::parsePartSize( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth
       uiSymbol = 0;
       if( g_uiMaxCUWidth>>uiDepth == 8 )
 #endif
+      {
         xReadFlag( uiSymbol );
+      }
+      
       if (uiSymbol == 0)
       {
         pcCU->setPredModeSubParts( MODE_INTRA, uiAbsPartIdx, uiDepth );
-        xReadFlag( uiSymbol );
+#if MTK_DISABLE_INTRA_NxN_SPLIT
+        if ( (g_uiMaxCUWidth >> uiDepth) == 8 )
+#endif
+        {
+          xReadFlag( uiSymbol );
+        }
         if (uiSymbol == 0)
           eMode = SIZE_2Nx2N;
       }
@@ -439,43 +748,18 @@ Void TDecCavlc::parsePartSize( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth
     }
   }
 }
-
+#endif
 Void TDecCavlc::parsePredMode( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
 {
-#if HHI_MRG
-  if ( pcCU->getMergeFlag( uiAbsPartIdx ) )
-  {
-    pcCU->setPredModeSubParts( MODE_INTER, uiAbsPartIdx, uiDepth );
-    return;
-  }
-#endif
-  
   if( pcCU->getSlice()->isIntra() )
   {
     pcCU->setPredModeSubParts( MODE_INTRA, uiAbsPartIdx, uiDepth );
     return ;
   }
-  
+#if !QC_LCEC_INTER_MODE  
   UInt uiSymbol;
   Int  iPredMode = MODE_INTER;
-  
-#if HHI_MRG && !SAMSUNG_MRG_SKIP_DIRECT
-  if ( !pcCU->getSlice()->getSPS()->getUseMRG() )
-  {
-    xReadFlag( uiSymbol );
-    if ( uiSymbol == 0 )
-    {
-      iPredMode = MODE_SKIP;
-    }
-  }
-#else
-  xReadFlag( uiSymbol );
-  if ( uiSymbol == 0 )
-  {
-    iPredMode = MODE_SKIP;
-  }
-#endif
-  
+ 
   if ( pcCU->getSlice()->isInterB() )
   {
     pcCU->setPredModeSubParts( (PredMode)iPredMode, uiAbsPartIdx, uiDepth );
@@ -489,8 +773,118 @@ Void TDecCavlc::parsePredMode( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth
   }
   
   pcCU->setPredModeSubParts( (PredMode)iPredMode, uiAbsPartIdx, uiDepth );
+#endif
 }
 
+#if LCEC_INTRA_MODE
+Void TDecCavlc::parseIntraDirLumaAng  ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
+{
+  UInt uiSymbol;
+  Int  uiIPredMode;
+  Int  iMostProbable = pcCU->getMostProbableIntraDirLuma( uiAbsPartIdx );
+  Int  iIntraIdx = pcCU->getIntraSizeIdx(uiAbsPartIdx);
+  Int  iDir, iDirLarger, iRankIntraMode, iRankIntraModeLarger;
+
+  Int  iLeft          = pcCU->getLeftIntraDirLuma( uiAbsPartIdx );
+  Int  iAbove         = pcCU->getAboveIntraDirLuma( uiAbsPartIdx );
+  UInt ind=(iLeft==iAbove)? 0 : 1;
+
+  const UInt *huff17=huff17_2[ind];
+  const UInt *lengthHuff17=lengthHuff17_2[ind];
+  const UInt *huff34=huff34_2[ind];
+  const UInt *lengthHuff34=lengthHuff34_2[ind];
+
+  if ( g_aucIntraModeBitsAng[iIntraIdx] < 5 )
+  {
+    xReadFlag( uiSymbol );
+    if ( uiSymbol )
+      uiIPredMode = iMostProbable;
+    else
+    {
+      xReadFlag( uiSymbol ); uiIPredMode  = uiSymbol;
+      if ( g_aucIntraModeBitsAng[iIntraIdx] > 2 ) { xReadFlag( uiSymbol ); uiIPredMode |= uiSymbol << 1; }
+      if ( g_aucIntraModeBitsAng[iIntraIdx] > 3 ) { xReadFlag( uiSymbol ); uiIPredMode |= uiSymbol << 2; }
+      if(uiIPredMode >= iMostProbable) 
+        uiIPredMode ++;
+    }
+  }
+  else if ( g_aucIntraModeBitsAng[iIntraIdx] == 5 )
+  {
+    UInt uiCode;
+    UInt uiLength = lengthHuff17[15];
+    m_pcBitstream->pseudoRead(uiLength,uiCode);
+    if ((uiCode>>(uiLength- lengthHuff17[0])) == huff17[0])
+    {
+      m_pcBitstream->read(lengthHuff17[0],uiCode);
+      uiIPredMode = iMostProbable;
+    }
+    else
+    {
+      iRankIntraMode = 0;
+      for (Int i=1;i<17;i++)
+      {	
+        if( (uiCode>>(uiLength- lengthHuff17[i])) == huff17[i])
+        {
+          m_pcBitstream->read(lengthHuff17[i], uiCode);
+          iRankIntraMode = i;
+          break;
+        }
+      }
+      
+      if ( iRankIntraMode > 0 )
+        iRankIntraMode --;
+      iDir = m_uiIntraModeTableD17[iRankIntraMode];
+      
+      iRankIntraModeLarger = Max(0,iRankIntraMode-1);
+      iDirLarger = m_uiIntraModeTableD17[iRankIntraModeLarger];
+      
+      m_uiIntraModeTableD17[iRankIntraModeLarger] = iDir;
+      m_uiIntraModeTableD17[iRankIntraMode] = iDirLarger;
+      
+      uiIPredMode = (iDir>=iMostProbable? iDir+1: iDir);
+    }
+  }
+  else
+  {
+    UInt uiCode;
+    UInt uiLength = lengthHuff34[32];
+    m_pcBitstream->pseudoRead(uiLength,uiCode);
+    if ((uiCode>>(uiLength- lengthHuff34[0])) == huff34[0])
+    {
+      m_pcBitstream->read(lengthHuff34[0],uiCode);
+      uiIPredMode = iMostProbable;
+    }
+    else
+    {
+      iRankIntraMode = 0;
+      for (Int i=1;i<34;i++)
+      {	
+        if( (uiCode>>(uiLength- lengthHuff34[i])) == huff34[i])
+        {
+          m_pcBitstream->read(lengthHuff34[i], uiCode);
+          iRankIntraMode = i;
+          break;
+        }
+      }
+      
+      if ( iRankIntraMode > 0 )
+        iRankIntraMode --;
+      iDir = m_uiIntraModeTableD34[iRankIntraMode];
+      
+      iRankIntraModeLarger = Max(0,iRankIntraMode-1);
+      iDirLarger = m_uiIntraModeTableD34[iRankIntraModeLarger];
+      
+      m_uiIntraModeTableD34[iRankIntraModeLarger] = iDir;
+      m_uiIntraModeTableD34[iRankIntraMode] = iDirLarger;
+      
+      uiIPredMode = (iDir>=iMostProbable? iDir+1: iDir);
+    }
+  }
+  
+  pcCU->setLumaIntraDirSubParts( (UChar)uiIPredMode, uiAbsPartIdx, uiDepth );     
+}
+
+#else
 Void TDecCavlc::parseIntraDirLumaAng  ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
 {
   UInt uiSymbol;
@@ -532,11 +926,38 @@ Void TDecCavlc::parseIntraDirLumaAng  ( TComDataCU* pcCU, UInt uiAbsPartIdx, UIn
   
   pcCU->setLumaIntraDirSubParts( (UChar)uiIPredMode, uiAbsPartIdx, uiDepth );
 }
+#endif
 
 Void TDecCavlc::parseIntraDirChroma( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
 {
   UInt uiSymbol;
+#if CHROMA_CODEWORD
+  UInt uiMode = pcCU->getLumaIntraDir(uiAbsPartIdx);
+  Int  iMax = uiMode < 4 ? 3 : 4;
+  xReadUnaryMaxSymbol( uiSymbol, iMax );
   
+  //switch codeword
+  if (uiSymbol == 0)
+  {
+    uiSymbol = 4;
+  }
+#if CHROMA_CODEWORD_SWITCH 
+  else
+  {
+    uiSymbol = ChromaMapping[iMax-3][uiSymbol];
+    if (uiSymbol <= uiMode)
+    {
+      uiSymbol --;
+    }
+  }
+#else
+  else if (uiSymbol <= uiMode)
+  {
+    uiSymbol --;
+  }
+#endif
+  //printf("uiMode %d, chroma %d, codeword %d, imax %d\n", uiMode, uiSymbol, uiRead, iMax);
+#else
   xReadFlag( uiSymbol );
   
   if ( uiSymbol )
@@ -544,7 +965,7 @@ Void TDecCavlc::parseIntraDirChroma( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt u
     xReadUnaryMaxSymbol( uiSymbol, 3 );
     uiSymbol++;
   }
-  
+#endif
   pcCU->setChromIntraDirSubParts( uiSymbol, uiAbsPartIdx, uiDepth );
   
   return ;
@@ -554,16 +975,53 @@ Void TDecCavlc::parseInterDir( TComDataCU* pcCU, UInt& ruiInterDir, UInt uiAbsPa
 {
   UInt uiSymbol;
   
+#if MS_LCEC_LOOKUP_TABLE_EXCEPTION
+  if ( pcCU->getSlice()->getRefIdxCombineCoding() )
+#else
   if(pcCU->getSlice()->getNumRefIdx( REF_PIC_LIST_0 ) <= 2 && pcCU->getSlice()->getNumRefIdx( REF_PIC_LIST_1 ) <= 2)
+#endif
   {
     UInt uiIndex,uiInterDir,tmp;
     Int x,cx,y,cy;
     
+#if MS_LCEC_LOOKUP_TABLE_MAX_VALUE
+    UInt uiMaxVal = 7;
+#if MS_LCEC_LOOKUP_TABLE_EXCEPTION
+    uiMaxVal = 8;
+#endif
+    if ( pcCU->getSlice()->getNumRefIdx( REF_PIC_LIST_0 ) <= 1 && pcCU->getSlice()->getNumRefIdx( REF_PIC_LIST_1 ) <= 1 )
+    {
+      if ( pcCU->getSlice()->getNoBackPredFlag() || ( pcCU->getSlice()->getNumRefIdx(REF_PIC_LIST_C) > 0 && pcCU->getSlice()->getNumRefIdx(REF_PIC_LIST_C) <= 1 ) )
+      {
+        uiMaxVal = 1;
+      }
+      else
+      {
+        uiMaxVal = 2;
+      }
+    }
+    else if ( pcCU->getSlice()->getNumRefIdx( REF_PIC_LIST_0 ) <= 2 && pcCU->getSlice()->getNumRefIdx( REF_PIC_LIST_1 ) <= 2 )
+    {
+      if ( pcCU->getSlice()->getNoBackPredFlag() || ( pcCU->getSlice()->getNumRefIdx(REF_PIC_LIST_C) > 0 && pcCU->getSlice()->getNumRefIdx(REF_PIC_LIST_C) <= 2 ) )
+      {
+        uiMaxVal = 5;
+      }
+      else
+      {
+        uiMaxVal = 7;
+      }
+    }
+    else if ( pcCU->getSlice()->getNumRefIdx(REF_PIC_LIST_C) <= 0 )
+    {
+      uiMaxVal = 4+1+MS_LCEC_UNI_EXCEPTION_THRES;
+    }
+    
+    xReadUnaryMaxSymbol( tmp, uiMaxVal );
+#else    
     UInt vlcn = g_auiMITableVlcNum[m_uiMITableVlcIdx];
-    
-    UInt *m_uiMITableD = m_uiMI1TableD;
-    
     tmp = xReadVlc( vlcn );
+#endif
+    UInt *m_uiMITableD = m_uiMI1TableD;
     x = m_uiMITableD[tmp];
     uiIndex = x;
     
@@ -578,8 +1036,32 @@ Void TDecCavlc::parseInterDir( TComDataCU* pcCU, UInt& ruiInterDir, UInt uiAbsPa
     
     {
       uiInterDir = Min(2,uiIndex>>1);  
+#if MS_LCEC_LOOKUP_TABLE_EXCEPTION
+      if ( uiIndex >=4 )
+      {
+        uiInterDir = 2;
+      }
+      else
+      {
+        uiInterDir = 0;
+      }
+#endif
+#if DCM_COMB_LIST
+      if(uiInterDir!=2 && pcCU->getSlice()->getNumRefIdx(REF_PIC_LIST_C)>0)
+      {
+        uiInterDir = 0;
+        m_iRefFrame0[uiAbsPartIdx] = uiIndex;
+      }
+      else 
+#endif
       if (uiInterDir==0)
+      {
+#if MS_LCEC_LOOKUP_TABLE_EXCEPTION
+        m_iRefFrame0[uiAbsPartIdx] = uiIndex;
+#else
         m_iRefFrame0[uiAbsPartIdx] = uiIndex&1;
+#endif
+      }
       else if (uiInterDir==1)
         m_iRefFrame1[uiAbsPartIdx] = uiIndex&1;
       else
@@ -589,14 +1071,31 @@ Void TDecCavlc::parseInterDir( TComDataCU* pcCU, UInt& ruiInterDir, UInt uiAbsPa
       }
     }
     ruiInterDir = uiInterDir+1;
-    return;
+#if MS_LCEC_LOOKUP_TABLE_EXCEPTION
+    if ( x < 8 )
+#endif
+    {
+      return;
+    }
   }
+  
+#if MS_LCEC_LOOKUP_TABLE_EXCEPTION
+  m_iRefFrame0[uiAbsPartIdx] = 1000;
+  m_iRefFrame1[uiAbsPartIdx] = 1000;
+#endif
+  
   xReadFlag( uiSymbol );
   
   if ( uiSymbol )
   {
     uiSymbol = 2;
   }
+#if DCM_COMB_LIST
+  else if(pcCU->getSlice()->getNumRefIdx(REF_PIC_LIST_C) > 0)
+  {
+    uiSymbol = 0;
+  }
+#endif
 #if MS_NO_BACK_PRED_IN_B0
   else if ( pcCU->getSlice()->getNoBackPredFlag() )
   {
@@ -618,6 +1117,13 @@ Void TDecCavlc::parseRefFrmIdx( TComDataCU* pcCU, Int& riRefFrmIdx, UInt uiAbsPa
   
   if (pcCU->getSlice()->getNumRefIdx( REF_PIC_LIST_0 ) <= 2 && pcCU->getSlice()->getNumRefIdx( REF_PIC_LIST_1 ) <= 2 && pcCU->getSlice()->isInterB())
   {
+#if DCM_COMB_LIST
+    if(pcCU->getSlice()->getNumRefIdx(REF_PIC_LIST_C ) > 0 && eRefList==REF_PIC_LIST_C)
+    {
+      riRefFrmIdx = m_iRefFrame0[uiAbsPartIdx]; 
+    }
+    else 
+#endif
     if (eRefList==REF_PIC_LIST_0)
     {
       riRefFrmIdx = m_iRefFrame0[uiAbsPartIdx];      
@@ -629,14 +1135,68 @@ Void TDecCavlc::parseRefFrmIdx( TComDataCU* pcCU, Int& riRefFrmIdx, UInt uiAbsPa
     return;
   }    
   
+#if MS_LCEC_LOOKUP_TABLE_EXCEPTION
+  if ( ( m_iRefFrame0[uiAbsPartIdx] != 1000 || m_iRefFrame1[uiAbsPartIdx] != 1000 ) &&
+      pcCU->getSlice()->getRefIdxCombineCoding() )
+  {
+    if(pcCU->getSlice()->getNumRefIdx(REF_PIC_LIST_C ) > 0 && eRefList==REF_PIC_LIST_C )
+    {
+      riRefFrmIdx = m_iRefFrame0[uiAbsPartIdx]; 
+    }
+    else if (eRefList==REF_PIC_LIST_0)
+    {
+      riRefFrmIdx = m_iRefFrame0[uiAbsPartIdx];      
+    }
+    else if (eRefList==REF_PIC_LIST_1)
+    {
+      riRefFrmIdx = m_iRefFrame1[uiAbsPartIdx];
+    }
+    return;
+  }
+  
+  UInt uiRefFrmIdxMinus = 0;
+  if ( pcCU->getSlice()->getRefIdxCombineCoding() )
+  {
+    if ( pcCU->getInterDir( uiAbsPartIdx ) != 3 )
+    {
+      if ( pcCU->getSlice()->getNumRefIdx(REF_PIC_LIST_C) > 0 )
+      {
+        uiRefFrmIdxMinus = 4;
+      }
+      else
+      {
+        uiRefFrmIdxMinus = MS_LCEC_UNI_EXCEPTION_THRES+1;
+      }
+    }
+    else if ( eRefList == REF_PIC_LIST_1 && pcCU->getCUMvField( REF_PIC_LIST_0 )->getRefIdx( uiAbsPartIdx ) < 2 )
+    {
+      uiRefFrmIdxMinus = 2;
+    }
+  }
+  if ( pcCU->getSlice()->getNumRefIdx( eRefList ) - uiRefFrmIdxMinus <= 1 )
+  {
+    uiSymbol = 0;
+    riRefFrmIdx = uiSymbol;
+    riRefFrmIdx += uiRefFrmIdxMinus;
+    return;
+  }
+#endif
+  
   xReadFlag ( uiSymbol );
   if ( uiSymbol )
   {
+#if MS_LCEC_LOOKUP_TABLE_EXCEPTION
+    xReadUnaryMaxSymbol( uiSymbol, pcCU->getSlice()->getNumRefIdx( eRefList )-2 - uiRefFrmIdxMinus );
+#else
     xReadUnaryMaxSymbol( uiSymbol, pcCU->getSlice()->getNumRefIdx( eRefList )-2 );
+#endif
     
     uiSymbol++;
   }
   riRefFrmIdx = uiSymbol;
+#if MS_LCEC_LOOKUP_TABLE_EXCEPTION
+  riRefFrmIdx += uiRefFrmIdxMinus;
+#endif
   
   return;
 }
@@ -792,6 +1352,12 @@ Void TDecCavlc::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartI
   UInt uiConvBit = g_aucConvertToBit[ pcCU->isIntra( uiAbsPartIdx ) ? uiWidth : Min(8,uiWidth)    ];
   pucScan        = g_auiFrameScanXY  [ uiConvBit + 1 ];
   
+#if QC_MDCS
+  UInt uiBlkPos;
+  UInt uiLog2BlkSize = g_aucConvertToBit[ pcCU->isIntra( uiAbsPartIdx ) ? uiWidth : Min(8,uiWidth)    ] + 2;
+  const UInt uiScanIdx = pcCU->getCoefScanIdx(uiAbsPartIdx, uiWidth, eTType==TEXT_LUMA, pcCU->isIntra(uiAbsPartIdx));
+#endif //QC_MDCS
+  
   UInt uiDecodeDCCoeff = 0;
   Int dcCoeff = 0;
   if (pcCU->isIntra(uiAbsPartIdx))
@@ -822,22 +1388,46 @@ Void TDecCavlc::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartI
   if( uiSize == 2*2 )
   {
     // hack: re-use 4x4 coding
+#if QC_MOD_LCEC
+    if (eTType==TEXT_CHROMA_U || eTType==TEXT_CHROMA_V)
+      iBlockType = eTType-2;
+    else
+      iBlockType = 2 + ( pcCU->isIntra(uiAbsPartIdx) ? 0 : pcCU->getSlice()->getSliceType() );
+#else
     iBlockType = pcCU->isIntra(uiAbsPartIdx) ? 0 : pcCU->getSlice()->getSliceType();
+#endif
     xParseCoeff4x4( scoeff, iBlockType );
     
     for (uiScanning=0; uiScanning<4; uiScanning++)
     {
+#if QC_MDCS
+      uiBlkPos = g_auiSigLastScan[uiScanIdx][uiLog2BlkSize-1][uiScanning];  
+      piCoeff[ uiBlkPos ] =  scoeff[15-uiScanning];
+#else
       piCoeff[ pucScan[ uiScanning ] ] = scoeff[15-uiScanning];
+#endif //QC_MDCS
     }
   }
   else if ( uiSize == 4*4 )
   {
+#if QC_MOD_LCEC
+    if (eTType==TEXT_CHROMA_U || eTType==TEXT_CHROMA_V)
+      iBlockType = eTType-2;
+    else
+      iBlockType = 2 + ( pcCU->isIntra(uiAbsPartIdx) ? 0 : pcCU->getSlice()->getSliceType() );
+#else
     iBlockType = pcCU->isIntra(uiAbsPartIdx) ? 0 : pcCU->getSlice()->getSliceType();
+#endif
     xParseCoeff4x4( scoeff, iBlockType );
     
     for (uiScanning=0; uiScanning<16; uiScanning++)
     {
+#if QC_MDCS
+      uiBlkPos = g_auiSigLastScan[uiScanIdx][uiLog2BlkSize-1][uiScanning];  
+      piCoeff[ uiBlkPos ] =  scoeff[15-uiScanning];
+#else
       piCoeff[ pucScan[ uiScanning ] ] = scoeff[15-uiScanning];
+#endif //QC_MDCS
     }
   }
   else if ( uiSize == 8*8 )
@@ -850,7 +1440,12 @@ Void TDecCavlc::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartI
     
     for (uiScanning=0; uiScanning<64; uiScanning++)
     {
+#if QC_MDCS
+      uiBlkPos = g_auiSigLastScan[uiScanIdx][uiLog2BlkSize-1][uiScanning]; 
+      piCoeff[ uiBlkPos ] =  scoeff[63-uiScanning];
+#else
       piCoeff[ pucScan[ uiScanning ] ] = scoeff[63-uiScanning];
+#endif //QC_MDCS
     }
     
   }
@@ -867,7 +1462,13 @@ Void TDecCavlc::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartI
       
       for (uiScanning=0; uiScanning<64; uiScanning++)
       {  
+#if QC_MDCS
+        uiBlkPos = g_auiSigLastScan[uiScanIdx][uiLog2BlkSize-1][uiScanning]; 
+        uiBlkPos = (uiBlkPos/8)* uiWidth + uiBlkPos%8;
+        piCoeff[ uiBlkPos ] =  scoeff[63-uiScanning];
+#else
         piCoeff[(pucScan[uiScanning]/8)*uiWidth + (pucScan[uiScanning]%8)] = scoeff[63-uiScanning];
+#endif //QC_MDCS
       }
       return;
     }
@@ -884,7 +1485,12 @@ Void TDecCavlc::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartI
       
       for (uiScanning=0; uiScanning<64; uiScanning++)
       {
+#if QC_MDCS
+        uiBlkPos = g_auiSigLastScan[uiScanIdx][uiLog2BlkSize-1][uiScanning]; 
+        piCoeff[ uiBlkPos ] =  scoeff[63-uiScanning];
+#else
         piCoeff[ pucScan[ uiScanning ] ] = scoeff[63-uiScanning];
+#endif //QC_MDCS
       }
     }
   }
@@ -966,18 +1572,209 @@ Void TDecCavlc::parseAlfSvlc (Int&  riVal)
 
 
 #if HHI_MRG
-Void TDecCavlc::parseMergeFlag ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
+Void TDecCavlc::parseMergeFlag ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth, UInt uiPUIdx )
 {
+#if QC_LCEC_INTER_MODE
+  if (pcCU->getPartitionSize(uiAbsPartIdx) == SIZE_2Nx2N )
+    return;
+#endif
   UInt uiSymbol;
   xReadFlag( uiSymbol );
-  pcCU->setMergeFlagSubParts( uiSymbol ? true : false, uiAbsPartIdx, uiDepth );
+  pcCU->setMergeFlagSubParts( uiSymbol ? true : false, uiAbsPartIdx, uiPUIdx, uiDepth );
 }
 
-Void TDecCavlc::parseMergeIndex ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
+Void TDecCavlc::parseMergeIndex ( TComDataCU* pcCU, UInt& ruiMergeIndex, UInt uiAbsPartIdx, UInt uiDepth )
 {
-  UInt uiSymbol;
+  Bool bLeftInvolved = false;
+  Bool bAboveInvolved = false;
+  Bool bCollocatedInvolved = false;
+  Bool bCornerInvolved = false;
+  Bool bCornerBLInvolved = false;
+  UInt uiNumCand = 0;
+  for( UInt uiIter = 0; uiIter < HHI_NUM_MRG_CAND; ++uiIter )
+  {
+    if( pcCU->getNeighbourCandIdx( uiIter, uiAbsPartIdx ) == uiIter + 1 )
+    {
+      uiNumCand++;
+      if( uiIter == 0 )
+      {
+        bLeftInvolved = true;
+      }
+      else if( uiIter == 1 )
+      {
+        bAboveInvolved = true;
+      }
+      else if( uiIter == 2 )
+      {
+        bCollocatedInvolved = true;
+      }
+      else if( uiIter == 3 )
+      {
+        bCornerInvolved = true;
+      }
+      else if( uiIter == 4 )
+      {
+        bCornerBLInvolved = true;
+      }
+    }
+  }
+  assert( uiNumCand > 1 );
+  UInt uiOffset = 0;
+  if( bAboveInvolved && !bCollocatedInvolved && !bCornerInvolved && !bCornerBLInvolved )
+  {
+    uiOffset = 0;
+  }
+  else if( uiNumCand < 3 )
+  {
+    uiOffset = 1;
+  }
+  else
+  {
+    uiOffset = 2;
+  }
+  UInt uiSymbol = 0;
   xReadFlag( uiSymbol );
-  pcCU->setMergeIndexSubParts( uiSymbol, uiAbsPartIdx, uiDepth );
+
+  if( uiNumCand == 2 )
+  {
+    if( !bCollocatedInvolved )
+    {
+      if( !bCornerInvolved && !bCornerBLInvolved )
+      {
+        ruiMergeIndex = uiSymbol;
+      }
+      else if( bAboveInvolved && bCornerInvolved)
+      {
+        ruiMergeIndex = ( uiSymbol == 1 ) ? 3 : 1;
+      }
+      else if( bAboveInvolved && bCornerBLInvolved)
+      {
+        ruiMergeIndex = ( uiSymbol == 1 ) ? 4 : 1;
+      }
+      else if( bCornerInvolved && bCornerBLInvolved )
+      {
+        ruiMergeIndex = ( uiSymbol == 1 ) ? 4 : 3;
+      }
+      else if( !bAboveInvolved && !bCornerBLInvolved)
+      {
+        ruiMergeIndex = ( uiSymbol == 1 ) ? 3 : 0;
+      }
+      else if( !bAboveInvolved && !bCornerInvolved )
+      {
+        ruiMergeIndex = ( uiSymbol == 1 ) ? 4 : 0;
+      }
+    }
+    else
+    {
+      if( bAboveInvolved )
+      {
+        ruiMergeIndex = ( uiSymbol == 1 ) ? 2 : 1;
+      }
+      else if( bCornerInvolved )
+      {
+        ruiMergeIndex = ( uiSymbol == 1 ) ? 3 : 2;
+      }
+      else if( bCornerBLInvolved )
+      {
+        ruiMergeIndex = ( uiSymbol == 1 ) ? 4 : 2;
+      }
+      else
+      {
+        ruiMergeIndex = ( uiSymbol == 1 ) ? 2 : 0;
+      }
+    }
+    return;
+  }
+  else if( uiNumCand == 3 )
+  {
+    if( uiSymbol == 0 )
+    {
+      if( bLeftInvolved )
+      {
+        ruiMergeIndex = 0;
+      }
+      else if( !bLeftInvolved && bAboveInvolved )
+      {
+        ruiMergeIndex = 1;
+      }
+      else if(!bLeftInvolved && !bAboveInvolved )
+      {
+        ruiMergeIndex = 2;
+      }
+    }
+    else
+    {
+      xReadFlag( uiSymbol );
+      if( uiSymbol == 1 )
+      {
+        if( bCornerBLInvolved )
+        {
+          ruiMergeIndex = 4;
+        }
+        else if( !bCornerBLInvolved && bCornerInvolved )
+        {
+          ruiMergeIndex = 3;
+        }
+        else if( !bCornerBLInvolved && !bCornerInvolved && bCollocatedInvolved )
+        {
+          ruiMergeIndex = 2;
+        }
+      }
+      else
+      {
+        if( bLeftInvolved && bAboveInvolved )
+        {
+          ruiMergeIndex = 1;
+        }
+        else if( ( ( !bLeftInvolved && bAboveInvolved) || ( bLeftInvolved && !bAboveInvolved ) )&& bCollocatedInvolved )
+        {
+          ruiMergeIndex = 2;
+        }
+        else if( bCornerBLInvolved && bCornerInvolved )
+        {
+          ruiMergeIndex = 3;
+        }
+      }
+    }
+  }
+  else //uiNumCand > 3
+  {
+    if( uiSymbol == 1 )
+    {
+      UInt uiAbove = 0;
+      xReadFlag( uiAbove );
+      if( uiAbove == 0 )
+      {
+        ruiMergeIndex = 1;
+      }
+      else
+      {
+        UInt uiCol = 0;
+        xReadFlag( uiCol );
+        if( uiCol == 0 )
+        {
+          ruiMergeIndex = 2;
+        }
+        else
+        {
+          UInt uiCorner = 0;
+          xReadFlag( uiCorner );
+          if( uiCorner == 0 )
+          {
+            ruiMergeIndex = 3;
+          }
+          else
+          {
+            ruiMergeIndex = 4;
+          }
+        }
+      }
+    }
+    else
+    {
+      ruiMergeIndex = 0;
+    }
+  }
 }
 #endif
 
@@ -1048,13 +1845,11 @@ Void TDecCavlc::xReadFlag (UInt& ruiCode)
 
 Void TDecCavlc::xReadUnaryMaxSymbol( UInt& ruiSymbol, UInt uiMaxSymbol )
 {
-#if FIX108
   if (uiMaxSymbol == 0)
   {
     ruiSymbol = 0;
     return;
   }
-#endif
   
   xReadFlag( ruiSymbol );
   
@@ -1323,6 +2118,12 @@ Void TDecCavlc::xParseCoeff4x4( TCoeff* scoeff, Int n )
   Int done;
   LastCoeffStruct combo;
   
+#if QC_MOD_LCEC
+  Int nTab;
+  Int tr1;
+  nTab=max(0,n-2);
+#endif
+
   for (i = 0; i < 16; i++)
   {
     scoeff[i] = 0;
@@ -1334,10 +2135,16 @@ Void TDecCavlc::xParseCoeff4x4( TCoeff* scoeff, Int n )
     Int vlcTable[8] = {2,2,2};
     
     /* Decode according to current LP table */
+#if QC_MOD_LCEC
+    vlcNum = vlcTable[nTab];
+    tmp = xReadVlc( vlcNum );
+    cn = m_uiLPTableD4[nTab][tmp];
+#else
     vlcNum = vlcTable[n];
     
     tmp = xReadVlc( vlcNum );
     cn = m_uiLPTableD4[n][tmp];
+#endif
     combo.level = (cn>15);
     combo.last_pos = cn&0x0f;
     
@@ -1345,9 +2152,15 @@ Void TDecCavlc::xParseCoeff4x4( TCoeff* scoeff, Int n )
     cx = tmp;
     cy = Max( 0, cx-1 );
     x = cn;
+#if QC_MOD_LCEC
+    y = m_uiLPTableD4[nTab][cy];
+    m_uiLPTableD4[nTab][cy] = x;
+    m_uiLPTableD4[nTab][cx] = y;
+#else
     y = m_uiLPTableD4[n][cy];
     m_uiLPTableD4[n][cy] = x;
     m_uiLPTableD4[n][cx] = y;
+#endif
   }
   
   if ( combo.level == 1 )
@@ -1362,6 +2175,17 @@ Void TDecCavlc::xParseCoeff4x4( TCoeff* scoeff, Int n )
     xReadFlag( sign );
   }
   
+#if QC_MOD_LCEC
+  if (tmp>1)
+  {
+    tr1=0;
+  }
+  else
+  {
+    tr1=1;
+  }
+#endif
+
   if ( sign )
   {
     tmp = -tmp;
@@ -1378,6 +2202,12 @@ Void TDecCavlc::xParseCoeff4x4( TCoeff* scoeff, Int n )
     while (!done && i < 16)
     {
       maxrun = 15-i;
+#if QC_MOD_LCEC
+      if(n==2)
+        vlc = g_auiVlcTable8x8Intra[maxrun];
+      else
+        vlc = g_auiVlcTable8x8Inter[maxrun];
+#else
       if (maxrun > 27)
       {
         maxrun = 28;
@@ -1387,10 +2217,20 @@ Void TDecCavlc::xParseCoeff4x4( TCoeff* scoeff, Int n )
       {
         vlc = g_auiVlcTable8x8[maxrun];
       }
+#endif
       
       /* Go into run mode */
       cn = xReadVlc( vlc );
-      combo = g_acstructLumaRun8x8[maxrun][cn];
+#if QC_MOD_LCEC
+      if(n==2)
+      {
+        xRunLevelIndInv(&combo, maxrun, g_auiLumaRunTr14x4[tr1][maxrun], cn);
+      }
+      else
+#endif
+      {
+        combo = g_acstructLumaRun8x8[maxrun][cn];
+      }
       i += combo.last_pos;
       /* No sign for last zeroes */
       if (i < 16)
@@ -1414,6 +2254,12 @@ Void TDecCavlc::xParseCoeff4x4( TCoeff* scoeff, Int n )
         scoeff[i] = tmp;
       }
       i++;
+#if QC_MOD_LCEC
+      if (tr1>0 && tr1<MAX_TR1)
+      {
+        tr1++;
+      }
+#endif
     }
   }
   if (i < 16)
@@ -1442,6 +2288,55 @@ Void TDecCavlc::xParseCoeff4x4( TCoeff* scoeff, Int n )
   return;
 }
 
+#if QC_MOD_LCEC
+
+Void TDecCavlc::xRunLevelIndInv(LastCoeffStruct *combo, Int maxrun, UInt lrg1Pos, UInt cn)
+{
+  int lev, run;
+  if (lrg1Pos>0)
+  {
+    if(cn < min(lrg1Pos, maxrun+2))
+    {
+      lev = 0; 
+      run = cn; 
+    }
+    else if(cn < (maxrun<<1) + 4 - (Int)lrg1Pos)
+    {
+      if((cn+lrg1Pos)&1)
+      {
+        lev = 0;
+        run = (cn + lrg1Pos - 1) >> 1;
+      }
+      else
+      {
+        lev = 1; 
+        run = (cn - lrg1Pos)>>1;
+      }
+    }
+    else
+    {
+      lev = 1;
+      run = cn - maxrun - 2;
+    }
+  }
+  else
+  {
+    if( cn & 1 )
+    {
+      lev = 0; run = (cn-1)>>1;
+    }
+    else
+    {
+      run = cn >> 1;
+      lev = (run <= maxrun)?1:0;
+    }
+  }
+  combo->level = lev;
+  combo->last_pos = run;
+}
+#endif
+
+
 Void TDecCavlc::xParseCoeff8x8(TCoeff* scoeff, int n)
 {
   Int i;
@@ -1454,6 +2349,9 @@ Void TDecCavlc::xParseCoeff8x8(TCoeff* scoeff, int n)
   Int atable[5] = {4,6,14,28,0xfffffff};
   Int vlc_adaptive=0;
   Int done;
+#if QC_MOD_LCEC
+  Int tr1;
+#endif
   
   static const Int switch_thr[10] = {49,49,0,49,49,0,49,49,49,49};
   Int sum_big_coef = 0;
@@ -1497,6 +2395,18 @@ Void TDecCavlc::xParseCoeff8x8(TCoeff* scoeff, int n)
     tmp = 1;
     xReadFlag( sign );
   }
+
+#if QC_MOD_LCEC
+  if (tmp>1)
+  {
+    tr1=0;
+  }
+  else
+  {
+    tr1=1;
+  }
+#endif
+
   if ( sign )
   {
     tmp = -tmp;
@@ -1513,6 +2423,12 @@ Void TDecCavlc::xParseCoeff8x8(TCoeff* scoeff, int n)
     while (!done && i < 64)
     {
       maxrun = 63-i;
+#if QC_MOD_LCEC
+      if (n == 2 || n == 5)
+        vlc = g_auiVlcTable8x8Intra[Min(maxrun,28)];
+      else
+        vlc = g_auiVlcTable8x8Inter[Min(maxrun,28)];
+#else
       if (maxrun > 27)
       {
         maxrun = 28;
@@ -1522,10 +2438,18 @@ Void TDecCavlc::xParseCoeff8x8(TCoeff* scoeff, int n)
       {
         vlc = g_auiVlcTable8x8[maxrun];
       }
+#endif
       
       /* Go into run mode */
       cn = xReadVlc( vlc );
+#if QC_MOD_LCEC
+      if (n == 2 || n == 5)
+        xRunLevelIndInv(&combo, maxrun, g_auiLumaRunTr18x8[tr1][min(maxrun,28)], cn);
+      else
+        combo = g_acstructLumaRun8x8[Min(maxrun,28)][cn];
+#else
       combo = g_acstructLumaRun8x8[maxrun][cn];
+#endif
       i += combo.last_pos;
       /* No sign for last zeroes */
       if (i < 64)
@@ -1554,6 +2478,16 @@ Void TDecCavlc::xParseCoeff8x8(TCoeff* scoeff, int n)
         scoeff[i] = tmp;
       }
       i++;
+#if QC_MOD_LCEC
+      if (tr1==0 || combo.level != 0)
+      {
+        tr1=0;
+      }
+      else if( tr1 < MAX_TR1)
+      {
+        tr1++;
+      }
+#endif
     }
   }
   if (i < 64)

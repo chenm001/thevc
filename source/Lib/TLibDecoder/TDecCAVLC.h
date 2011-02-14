@@ -66,6 +66,9 @@ protected:
   Int   xReadVlc            ( Int n );
   Void  xParseCoeff4x4      ( TCoeff* scoeff, Int iTableNumber );
   Void  xParseCoeff8x8      ( TCoeff* scoeff, Int iTableNumber );
+#if QC_MOD_LCEC
+  Void  xRunLevelIndInv     (LastCoeffStruct *combo, Int maxrun, UInt lrg1Pos, UInt cn);
+#endif
   
 private:
   TComBitstream*        m_pcBitstream;
@@ -78,6 +81,13 @@ private:
   UInt                      m_uiLPTableD8[10][128];
   UInt                      m_uiLastPosVlcIndex[10];
   
+#if LCEC_INTRA_MODE
+  UInt                      m_uiIntraModeTableD17[16];
+  UInt                      m_uiIntraModeTableD34[33];
+#endif
+#if QC_LCEC_INTER_MODE
+  UInt                      m_uiSplitTableD[4][7];
+#endif
   UInt                      m_uiCBPTableD[2][8];
   UInt                      m_uiCbpVlcIdx[2];
   
@@ -90,7 +100,11 @@ private:
   Int                   m_iRefFrame1[1000];
   Bool                  m_bMVres0[1000];
   Bool                  m_bMVres1[1000];
+#if MS_LCEC_LOOKUP_TABLE_EXCEPTION
+  UInt                  m_uiMI1TableD[9];
+#else
   UInt                  m_uiMI1TableD[8];
+#endif
   UInt                  m_uiMI2TableD[15]; 
   UInt                  m_uiMITableVlcIdx;
   
@@ -116,8 +130,8 @@ public:
   
   Void  parseSkipFlag       ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
 #if HHI_MRG
-  Void parseMergeFlag       ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
-  Void parseMergeIndex      ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
+  Void parseMergeFlag       ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth, UInt uiPUIdx );
+  Void parseMergeIndex      ( TComDataCU* pcCU, UInt& ruiMergeIndex, UInt uiAbsPartIdx, UInt uiDepth );
 #endif
   Void parseSplitFlag       ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
   Void parsePartSize        ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );

@@ -276,3 +276,21 @@ Void TComCUMvField::setAllMvField ( TComMv& rcMv, Int iRefIdx, PartSize eCUMode,
   setAllRefIdx(iRefIdx, eCUMode,iPartAddr,iPartIdx,uiDepth);
   return;
 }
+
+#if AMVP_BUFFERCOMPRESS
+Void TComCUMvField::compress(PredMode* pePredMode)
+{
+  Int N = AMVP_DECIMATION_FACTOR;
+  for ( Int uiPartIdx = 0; uiPartIdx <m_uiNumPartition; uiPartIdx+=(N*N) )
+  {
+    Int  jj = uiPartIdx+N*N;
+    
+    TComMv cMv(0,0); 
+    if (pePredMode[uiPartIdx]!=MODE_INTRA) cMv = m_pcMv[ uiPartIdx ]; 
+    for ( Int i = jj-1; i >= uiPartIdx; i-- )
+    {
+      m_pcMv[ i ] = cMv;
+    }
+  }
+} 
+#endif 

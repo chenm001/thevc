@@ -110,6 +110,7 @@ private:
 #endif
   
   Double                  m_dLambda;
+  Double                  m_sqrtLambda;
   UInt                    m_uiLambdaMotionSAD;
   UInt                    m_uiLambdaMotionSSE;
   Double                  m_dFrameLambda;
@@ -134,7 +135,7 @@ public:
   Void    setFrameLambda ( Double dLambda ) { m_dFrameLambda = dLambda; }
   
 #if SAMSUNG_FAST_UDI
-  Double  getLambda ()   { return m_dLambda; }
+  Double  getSqrtLambda ()   { return m_sqrtLambda; }
 #endif
   
   // Distortion Functions
@@ -143,6 +144,9 @@ public:
   Void    setDistParam( UInt uiBlkWidth, UInt uiBlkHeight, DFunc eDFunc, DistParam& rcDistParam );
   Void    setDistParam( TComPattern* pcPatternKey, Pel* piRefY, Int iRefStride,            DistParam& rcDistParam );
   Void    setDistParam( TComPattern* pcPatternKey, Pel* piRefY, Int iRefStride, Int iStep, DistParam& rcDistParam, Bool bHADME=false );
+#if HHI_MRG
+  Void    setDistParam( DistParam& rcDP, Pel* p1, Int iStride1, Pel* p2, Int iStride2, Int iWidth, Int iHeight, Bool bHadamard = false );
+#endif
   
 #ifdef ROUNDING_CONTROL_BIPRED
   Void    setDistParam_Bi( TComPattern* pcPatternKey, Pel* piRefY, Int iRefStride,            DistParam& rcDistParam );

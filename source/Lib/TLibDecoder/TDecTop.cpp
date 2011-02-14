@@ -46,6 +46,13 @@ TDecTop::TDecTop()
   g_bJustDoIt = g_bEncDecTraceDisable;
   g_nSymbolCounter = 0;
 #endif
+#if DCM_DECODING_REFRESH
+  m_bRefreshPending = 0;
+  m_uiPOCCDR = 0;
+#if DCM_SKIP_DECODING_FRAMES
+  m_uiPOCRA = MAX_UINT;          
+#endif
+#endif
 }
 
 TDecTop::~TDecTop()
@@ -155,7 +162,11 @@ Void TDecTop::xGetNewPicBuffer ( TComSlice* pcSlice, TComPic*& rpcPic )
   }
 }
 
+#if DCM_SKIP_DECODING_FRAMES
+Void TDecTop::decode (Bool bEos, TComBitstream* pcBitstream, UInt& ruiPOC, TComList<TComPic*>*& rpcListPic, Int& iSkipFrame,  Int& iPOCLastDisplay)
+#else
 Void TDecTop::decode (Bool bEos, TComBitstream* pcBitstream, UInt& ruiPOC, TComList<TComPic*>*& rpcListPic)
+#endif
 {
   rpcListPic = NULL;
   TComPic*    pcPic = NULL;
@@ -164,21 +175,15 @@ Void TDecTop::decode (Bool bEos, TComBitstream* pcBitstream, UInt& ruiPOC, TComL
   m_cEntropyDecoder.setEntropyDecoder (&m_cCavlcDecoder);
   m_cEntropyDecoder.setBitstream      (pcBitstream);
   
-#if HHI_NAL_UNIT_SYNTAX
   // don't feel like adding the whole chain of interface crap just to access the first byte in the buffer
   const UChar* pucBuffer = reinterpret_cast<const UChar*>(pcBitstream->getStartStream());
   const NalUnitType eNalUnitType = NalUnitType(pucBuffer[0]&31); 
   const bool bDecodeSPS   = ( NAL_UNIT_SPS == eNalUnitType );
   const bool bDecodePPS   = ( NAL_UNIT_PPS == eNalUnitType );
-  const bool bDecodeSlice = ( NAL_UNIT_CODED_SLICE == eNalUnitType );
+#if DCM_DECODING_REFRESH
+  const bool bDecodeSlice = ( NAL_UNIT_CODED_SLICE == eNalUnitType || NAL_UNIT_CODED_SLICE_CDR == eNalUnitType || NAL_UNIT_CODED_SLICE_IDR == eNalUnitType);
 #else
-  const bool bDecodeSlice = true;
-  bool bDecodeSPS   = false;
-  bool bDecodePPS   = false;
-  if( 0 == m_uiValidPS )
-  {
-    bDecodeSPS = bDecodePPS = true;
-  }
+  const bool bDecodeSlice = ( NAL_UNIT_CODED_SLICE == eNalUnitType );
 #endif
   
   if( bDecodeSPS )
@@ -186,7 +191,9 @@ Void TDecTop::decode (Bool bEos, TComBitstream* pcBitstream, UInt& ruiPOC, TComL
     m_cEntropyDecoder.decodeSPS( &m_cSPS );
     
     // initialize DIF
-    m_cPrediction.setDIFTap ( m_cSPS.getDIFTap () );
+#if !DCTIF_8_6_LUMA
+	m_cPrediction.setDIFTap ( m_cSPS.getDIFTap () );
+#endif
     // create ALF temporary buffer
     m_cAdaptiveLoopFilter.create( m_cSPS.getWidth(), m_cSPS.getHeight(), g_uiMaxCUWidth, g_uiMaxCUHeight, g_uiMaxCUDepth );
     
@@ -215,6 +222,14 @@ Void TDecTop::decode (Bool bEos, TComBitstream* pcBitstream, UInt& ruiPOC, TComL
   m_apcSlicePilot->setPPS( &m_cPPS );
   m_cEntropyDecoder.decodeSliceHeader (m_apcSlicePilot);
   
+#if DCM_SKIP_DECODING_FRAMES
+  // Skip pictures due to random access
+  if (isRandomAccessSkipPicture(iSkipFrame, iPOCLastDisplay))
+  {
+    return;
+  }
+#endif
+
   // Buffer initialize for prediction.
   m_cPrediction.initTempBuff();
   //  Get a new picture buffer
@@ -232,12 +247,27 @@ Void TDecTop::decode (Bool bEos, TComBitstream* pcBitstream, UInt& ruiPOC, TComL
   m_apcSlicePilot = pcPic->getPicSym()->getSlice();
   pcPic->getPicSym()->setSlice(pcSlice);
   
+#if DCM_DECODING_REFRESH
+  // Do decoding refresh marking if any
+  pcSlice->decodingRefreshMarking(m_uiPOCCDR, m_bRefreshPending, m_cListPic);
+#endif
   // Set reference list
   pcSlice->setRefPicList( m_cListPic );
   
   // HierP + GPB case
   if ( m_cSPS.getUseLDC() && pcSlice->isInterB() )
   {
+#if DCM_COMB_LIST
+    if(pcSlice->getRefPicListCombinationFlag() && (pcSlice->getNumRefIdx(REF_PIC_LIST_0) > pcSlice->getNumRefIdx(REF_PIC_LIST_1)))
+    {
+      for (Int iRefIdx = 0; iRefIdx < pcSlice->getNumRefIdx(REF_PIC_LIST_1); iRefIdx++)
+      {
+        pcSlice->setRefPic(pcSlice->getRefPic(REF_PIC_LIST_0, iRefIdx), REF_PIC_LIST_1, iRefIdx);
+      }
+    }
+    else
+    {
+#endif
     Int iNumRefIdx = pcSlice->getNumRefIdx(REF_PIC_LIST_0);
     pcSlice->setNumRefIdx( REF_PIC_LIST_1, iNumRefIdx );
     
@@ -245,6 +275,9 @@ Void TDecTop::decode (Bool bEos, TComBitstream* pcBitstream, UInt& ruiPOC, TComL
     {
       pcSlice->setRefPic(pcSlice->getRefPic(REF_PIC_LIST_0, iRefIdx), REF_PIC_LIST_1, iRefIdx);
     }
+#if DCM_COMB_LIST
+    }
+#endif
   }
   
   // For generalized B
@@ -263,9 +296,19 @@ Void TDecTop::decode (Bool bEos, TComBitstream* pcBitstream, UInt& ruiPOC, TComL
   //---------------
   pcSlice->setRefPOCList();
   
+#if DCM_COMB_LIST 
+  if(!pcSlice->getRefPicListModificationFlagLC())
+  {
+    pcSlice->generateCombinedList();
+  }
+#endif
 #if MS_NO_BACK_PRED_IN_B0
   pcSlice->setNoBackPredFlag( false );
+#if DCM_COMB_LIST
+  if ( pcSlice->getSliceType() == B_SLICE && !pcSlice->getRefPicListCombinationFlag())
+#else
   if ( pcSlice->getSliceType() == B_SLICE )
+#endif
   {
     if ( pcSlice->getNumRefIdx(RefPicList( 0 ) ) == pcSlice->getNumRefIdx(RefPicList( 1 ) ) )
     {
@@ -296,4 +339,52 @@ Void TDecTop::decode (Bool bEos, TComBitstream* pcBitstream, UInt& ruiPOC, TComL
   
   return;
 }
+
+#if DCM_SKIP_DECODING_FRAMES
+/** Function for checking if picture should be skipped because of random access
+ * \param iSkipFrame skip frame counter
+ * \param iPOCLastDisplay POC of last picture displayed
+ * \returns true if the picture shold be skipped in the random access.
+ * This function checks the skipping of pictures in the case of -s option random access.
+ * All pictures prior to the random access point indicated by the counter iSkipFrame are skipped.
+ * It also checks the type of Nal unit type at the random access point.
+ * If the random access point is CDR, pictures with POC equal to or greater than the CDR POC are decoded.
+ * If the random access point is IDR all pictures after the random access point are decoded.
+ * If the random access point is not IDR or CDR, a warning is issues, and decoding of pictures with POC 
+ * equal to or greater than the random access point POC is attempted. For non IDR/CDR random 
+ * access point there is no guarantee that the decoder will not crash.
+ */
+Bool TDecTop::isRandomAccessSkipPicture(Int& iSkipFrame,  Int& iPOCLastDisplay)
+{
+  if (iSkipFrame) 
+  {
+    iSkipFrame--;   // decrement the counter
+    return true;
+  }
+  else if (m_uiPOCRA == MAX_UINT) // start of random access point, m_uiPOCRA has not been set yet.
+  {
+    if (m_apcSlicePilot->getNalUnitType() == NAL_UNIT_CODED_SLICE_CDR)
+    {
+      m_uiPOCRA = m_apcSlicePilot->getPOC(); // set the POC random access since we need to skip the reordered pictures in CDR.
+    }
+    else if (m_apcSlicePilot->getNalUnitType() == NAL_UNIT_CODED_SLICE_IDR)
+    {
+      m_uiPOCRA = 0; // no need to skip the reordered pictures in IDR, they are decodable.
+    }
+    else 
+    {
+      printf("\nUnsafe random access point. Decoder may crash.");
+      m_uiPOCRA = m_apcSlicePilot->getPOC(); // set the POC random access skip the reordered pictures and try to decode if possible.  This increases the chances of avoiding a decoder crash.
+      //m_uiPOCRA = 0;
+    }
+  }
+  else if (m_apcSlicePilot->getPOC() < m_uiPOCRA)  // skip the reordered pictures if necessary
+  {
+    iPOCLastDisplay++;
+    return true;
+  }
+  // if we reach here, then the picture is not skipped.
+  return false; 
+}
+#endif
 

@@ -63,6 +63,9 @@ Void TAppEncTop::xInitLibCfg()
   
   //====== Coding Structure ========
   m_cTEncTop.setIntraPeriod                  ( m_iIntraPeriod );
+#if DCM_DECODING_REFRESH
+  m_cTEncTop.setDecodingRefreshType          ( m_iDecodingRefreshType );
+#endif
   m_cTEncTop.setGOPSize                      ( m_iGOPSize );
   m_cTEncTop.setRateGOPSize                  ( m_iRateGOPSize );
   m_cTEncTop.setNumOfReference               ( m_iNumOfReference );
@@ -88,6 +91,7 @@ Void TAppEncTop::xInitLibCfg()
   //====== Motion search ========
   m_cTEncTop.setFastSearch                   ( m_iFastSearch  );
   m_cTEncTop.setSearchRange                  ( m_iSearchRange );
+  m_cTEncTop.setBipredSearchRange            ( m_bipredSearchRange );
   m_cTEncTop.setMaxDeltaQP                   ( m_iMaxDeltaQP  );
   
   //====== Tool list ========
@@ -97,6 +101,10 @@ Void TAppEncTop::xInitLibCfg()
   m_cTEncTop.setUseHADME                     ( m_bUseHADME    );
   m_cTEncTop.setUseALF                       ( m_bUseALF      );
   m_cTEncTop.setUseGPB                       ( m_bUseGPB      );
+#if DCM_COMB_LIST
+  m_cTEncTop.setUseLComb                     ( m_bUseLComb    );
+  m_cTEncTop.setLCMod                        ( m_bLCMod         );
+#endif
   m_cTEncTop.setdQPs                         ( m_aidQP        );
   m_cTEncTop.setUseRDOQ                      ( m_bUseRDOQ     );
   m_cTEncTop.setUseLDC                       ( m_bUseLDC      );
@@ -107,12 +115,16 @@ Void TAppEncTop::xInitLibCfg()
   m_cTEncTop.setQuadtreeTUMaxDepthIntra      ( m_uiQuadtreeTUMaxDepthIntra );
   m_cTEncTop.setUseNRF                       ( m_bUseNRF      );
   m_cTEncTop.setUseBQP                       ( m_bUseBQP      );
+#if !DCTIF_8_6_LUMA
   m_cTEncTop.setDIFTap                       ( m_iDIFTap      );
+#endif
   m_cTEncTop.setUseFastEnc                   ( m_bUseFastEnc  );
 #if HHI_MRG
   m_cTEncTop.setUseMRG                       ( m_bUseMRG      ); // SOPH:
 #endif
+#if !DCTIF_8_6_LUMA
   m_cTEncTop.setInterpFilterType             ( m_iInterpFilterType );
+#endif
 #if HHI_RMP_SWITCH
   m_cTEncTop.setUseRMP                     ( m_bUseRMP );
 #endif
@@ -124,8 +136,8 @@ Void TAppEncTop::xInitLibCfg()
 Void TAppEncTop::xCreateLib()
 {
   // Video I/O
-  m_cTVideoIOYuvInputFile.open( m_pchInputFile,     false );  // read  mode
-  m_cTVideoIOYuvReconFile.open( m_pchReconFile,     true  );  // write mode
+  m_cTVideoIOYuvInputFile.open( m_pchInputFile,     false, m_uiInputBitDepth, m_uiInternalBitDepth );  // read  mode
+  m_cTVideoIOYuvReconFile.open( m_pchReconFile,     true, m_uiOutputBitDepth, m_uiInternalBitDepth);  // write mode
   m_cTVideoIOBitsFile.openBits( m_pchBitstreamFile, true  );  // write mode
   
   // Neo Decoder

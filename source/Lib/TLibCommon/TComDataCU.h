@@ -114,6 +114,7 @@ private:
 #if HHI_MRG
   Bool*         m_pbMergeFlag;        ///< array of merge flags
   UChar*        m_puhMergeIndex;      ///< array of merge candidate indices
+UChar*          m_apuhNeighbourCandIdx[ HHI_NUM_MRG_CAND ];///< array of motion vector predictor candidates indices
 #endif
   UChar*        m_puhLumaIntraDir;    ///< array of intra directions (luma)
   UChar*        m_puhChromaIntraDir;  ///< array of intra directions (chroma)
@@ -139,6 +140,10 @@ protected:
   
   /// remove redundant candidates
   Void          xUniqueMVPCand        ( AMVPInfo* pInfo );
+
+#if HHI_MRG 
+  Void xCheckCornerCand( TComDataCU* pcCorner, UInt uiCornerIdx, UInt uiIter, Bool& rbValidCand );
+#endif
   /// compute required bits to encode MVD (used in AMVP)
   UInt          xGetMvdBits           ( TComMv cMvd );
   UInt          xGetComponentBits     ( Int iVal );
@@ -148,6 +153,11 @@ protected:
   
   /// calculate all CBF's from coefficients
   Void          xCalcCuCbf            ( UChar* puhCbf, UInt uiTrDepth, UInt uiCbfDepth, UInt uiCuDepth );
+  
+#if FT_TCTR
+  Void xDeriveCenterIdx( PartSize eCUMode, UInt uiPartIdx, UInt& ruiPartIdxCenter );
+  Bool xGetCenterCol( UInt uiPartIdx, RefPicList eRefPicList, int iRefIdx, TComMv *pcMv );
+#endif
   
 public:
   TComDataCU();
@@ -252,11 +262,21 @@ public:
   Bool*         getMergeFlag          ()                        { return m_pbMergeFlag;               }
   Bool          getMergeFlag          ( UInt uiIdx )            { return m_pbMergeFlag[uiIdx];        }
   Void          setMergeFlag          ( UInt uiIdx, Bool b )    { m_pbMergeFlag[uiIdx] = b;           }
-  Void          setMergeFlagSubParts  ( Bool bMergeFlag, UInt uiAbsPartIdx, UInt uiDepth );
+  Void          setMergeFlagSubParts  ( Bool bMergeFlag, UInt uiAbsPartIdx, UInt uiPartIdx, UInt uiDepth );
+
   UChar*        getMergeIndex         ()                        { return m_puhMergeIndex;                         }
   UChar         getMergeIndex         ( UInt uiIdx )            { return m_puhMergeIndex[uiIdx];                  }
   Void          setMergeIndex         ( UInt uiIdx, UInt uiMergeIndex ) { m_puhMergeIndex[uiIdx] = uiMergeIndex;  }
-  Void          setMergeIndexSubParts ( UInt uiMergeIndex, UInt uiAbsPartIdx, UInt uiDepth );
+  Void          setMergeIndexSubParts ( UInt uiMergeIndex, UInt uiAbsPartIdx, UInt uiPartIdx, UInt uiDepth );
+
+  UChar*        getNeighbourCandIdx         ( UInt uiCandIdx )            { return m_apuhNeighbourCandIdx[uiCandIdx];           }
+  UChar         getNeighbourCandIdx         ( UInt uiCandIdx, UInt uiIdx ){ return m_apuhNeighbourCandIdx[uiCandIdx][uiIdx];           }
+  Void          setNeighbourCandIdx         ( UInt uiCandIdx, UInt uiIdx, UChar uhNeighCands ) { m_apuhNeighbourCandIdx[uiCandIdx][uiIdx] = uhNeighCands;}
+  Void          setNeighbourCandIdxSubParts ( UInt uiCandIdx, UChar uhNumCands, UInt uiAbsPartIdx, UInt uiPartIdx, UInt uiDepth );
+
+  Void          setSubPartBool        ( Bool bParameter, Bool* pbBaseLCU, UInt uiCUAddr, UInt uiCUDepth, UInt uiPUIdx );
+  Void          setSubPartUChar       ( UInt bParameter, UChar* pbBaseLCU, UInt uiCUAddr, UInt uiCUDepth, UInt uiPUIdx );
+
 #endif
   
   UChar*        getLumaIntraDir       ()                        { return m_puhLumaIntraDir;           }
@@ -300,9 +320,11 @@ public:
   
   AMVP_MODE     getAMVPMode           ( UInt uiIdx );
   Void          fillMvpCand           ( UInt uiPartIdx, UInt uiPartAddr, RefPicList eRefPicList, Int iRefIdx, AMVPInfo* pInfo );
+#if DCM_SIMPLIFIED_MVP==0
   Bool          clearMVPCand          ( TComMv cMvd, AMVPInfo* pInfo );
+#endif
   Int           searchMVPIdx          ( TComMv cMv,  AMVPInfo* pInfo );
-  
+
   Void          setMVPIdx             ( RefPicList eRefPicList, UInt uiIdx, Int iMVPIdx)  { m_apiMVPIdx[eRefPicList][uiIdx] = iMVPIdx;  }
   Int           getMVPIdx             ( RefPicList eRefPicList, UInt uiIdx)               { return m_apiMVPIdx[eRefPicList][uiIdx];     }
   Int*          getMVPIdx             ( RefPicList eRefPicList )                          { return m_apiMVPIdx[eRefPicList];            }
@@ -318,6 +340,10 @@ public:
   Void          getMvPredLeft         ( TComMv&     rcMvPred )   { rcMvPred = m_cMvFieldA.getMv(); }
   Void          getMvPredAbove        ( TComMv&     rcMvPred )   { rcMvPred = m_cMvFieldB.getMv(); }
   Void          getMvPredAboveRight   ( TComMv&     rcMvPred )   { rcMvPred = m_cMvFieldC.getMv(); }
+  
+#if AMVP_BUFFERCOMPRESS
+  Void          compressMV            ();
+#endif 
   
   // -------------------------------------------------------------------------------------------------------------------
   // utility functions for neighbouring information
@@ -345,6 +371,11 @@ public:
   Void          deriveLeftBottomIdxAdi      ( UInt& ruiPartIdxLB, UInt  uiPartOffset, UInt uiPartDepth );
   
 #if HHI_MRG
+  Bool          hasEqualMotion              ( UInt uiAbsPartIdx, TComDataCU* pcCandCU, UInt uiCandAbsPartIdx );
+  Bool          avoidMergeCandidate         ( UInt uiAbsPartIdx, UInt uiPUIdx, UInt uiDepth, TComDataCU* pcCandCU, UInt uiCandAbsPartIdx );
+  Void          getInterMergeCandidates       ( UInt uiAbsPartIdx, UInt uiPUIdx, UInt uiDepth, TComMvField* pcMFieldNeighbours, UChar* puhInterDirNeighbours, UInt* puiNeighbourCandIdx );
+  Void          deriveLeftRightTopIdxGeneral  ( PartSize eCUMode, UInt uiAbsPartIdx, UInt uiPartIdx, UInt& ruiPartIdxLT, UInt& ruiPartIdxRT );
+  Void          deriveLeftBottomIdxGeneral    ( PartSize eCUMode, UInt uiAbsPartIdx, UInt uiPartIdx, UInt& ruiPartIdxLB );
   Void          getInterMergeCandidates     ( UInt uiAbsPartIdx, TComMvField cMFieldNeighbours[4], UChar uhInterDirNeighbours[2], UInt& uiNeighbourInfos );
 #endif
   
@@ -365,6 +396,15 @@ public:
   
   UInt          getIntraSizeIdx                 ( UInt uiAbsPartIdx                                       );
   Void          convertTransIdx                 ( UInt uiAbsPartIdx, UInt uiTrIdx, UInt& ruiLumaTrMode, UInt& ruiChromaTrMode );
+  
+#if LCEC_INTRA_MODE
+  Int           getLeftIntraDirLuma             ( UInt uiAbsPartIdx );
+  Int           getAboveIntraDirLuma            ( UInt uiAbsPartIdx );
+#endif
+
+#if MS_LCEC_LOOKUP_TABLE_EXCEPTION
+  Bool          isSuroundingRefIdxException     ( UInt   uiAbsPartIdx );
+#endif
   
   // -------------------------------------------------------------------------------------------------------------------
   // member functions for SBAC context
@@ -393,6 +433,11 @@ public:
   UInt&         getTotalDistortion()            { return m_uiTotalDistortion; }
   UInt&         getTotalBits()                  { return m_uiTotalBits;       }
   UInt&         getTotalNumPart()               { return m_uiNumPartition;    }
+
+#if QC_MDCS
+  UInt          getCoefScanIdx(UInt uiAbsPartIdx, UInt uiWidth, Bool bIsLuma, Bool bIsIntra);
+#endif //QC_MDCS
+
 };
 
 #endif

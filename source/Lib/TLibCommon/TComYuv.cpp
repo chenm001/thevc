@@ -468,6 +468,52 @@ Void TComYuv::subtractChroma( TComYuv* pcYuvSrc0, TComYuv* pcYuvSrc1, UInt uiTrU
   }
 }
 
+#if HIGH_ACCURACY_BI
+Void TComYuv::shiftBack(UInt iPartUnitIdx, UInt iWidth, UInt iHeight)
+{
+  Int x, y;
+  Pel* pDstY   = getLumaAddr( iPartUnitIdx );
+  Pel* pDstU   = getCbAddr  ( iPartUnitIdx );
+  Pel* pDstV   = getCrAddr  ( iPartUnitIdx );
+  UInt  iDstStride  = getStride();
+  Int shiftNum = 14 - (g_uiBitDepth + g_uiBitIncrement);
+  Int offset = 1<<(shiftNum - 1);
+
+ for ( y = iHeight-1; y >= 0; y-- )
+  {
+    for ( x = iWidth-1; x >= 0; )
+    {
+      // note: luma min width is 4
+      pDstY[x] = Clip( (pDstY[x] + offset)  >> shiftNum) ; 	  x--;
+	  pDstY[x] = Clip( (pDstY[x] + offset)  >> shiftNum) ; 	  x--;
+	  pDstY[x] = Clip( (pDstY[x] + offset)  >> shiftNum) ; 	  x--;
+	  pDstY[x] = Clip( (pDstY[x] + offset)  >> shiftNum) ; 	  x--;
+    }
+	pDstY  += iDstStride;
+ }
+ 
+  iWidth  >>=1;
+  iHeight >>=1;
+  iDstStride  = getCStride();
+  
+  for ( y = iHeight-1; y >= 0; y-- )
+  {
+    for ( x = iWidth-1; x >= 0; )
+    { 
+      pDstU[x] = Clip( (pDstU[x] + offset)  >> shiftNum) ; 	  
+	  pDstV[x] = Clip( (pDstV[x] + offset)  >> shiftNum) ; 	  x--;
+	  pDstU[x] = Clip( (pDstU[x] + offset)  >> shiftNum) ; 	  
+	  pDstV[x] = Clip( (pDstV[x] + offset)  >> shiftNum) ; 	  x--;
+    }
+	
+    pDstU  += iDstStride;
+    pDstV  += iDstStride;
+  }
+  
+  
+}
+#endif
+
 #ifdef ROUNDING_CONTROL_BIPRED
 
 Void TComYuv::addAvg( TComYuv* pcYuvSrc0, TComYuv* pcYuvSrc1, UInt iPartUnitIdx, UInt iWidth, UInt iHeight, Bool bRound )

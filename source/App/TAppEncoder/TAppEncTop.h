@@ -54,11 +54,7 @@ private:
   TEncTop                    m_cTEncTop;                    ///< encoder class
   TVideoIOYuv                m_cTVideoIOYuvInputFile;       ///< input YUV file
   TVideoIOYuv                m_cTVideoIOYuvReconFile;       ///< output reconstruction file
-#if HHI_NAL_UNIT_SYNTAX
   TVideoIOBitsStartCode      m_cTVideoIOBitsFile;           ///< output bitstream file
-#else
-  TVideoIOBits               m_cTVideoIOBitsFile;           ///< output bitstream file
-#endif
   
   TComList<TComPicYuv*>      m_cListPicYuvRec;              ///< list of reconstruction YUV files
   TComList<TComBitstream*>   m_cListBitstream;              ///< list of bitstreams

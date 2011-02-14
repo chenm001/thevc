@@ -55,7 +55,9 @@ protected:
   Int*      m_piYuvExt;
   Int       m_iYuvExtStride;
   Int       m_iYuvExtHeight;
+#if !DCTIF_8_6_LUMA
   Int       m_iDIFHalfTap;
+#endif
   
   TComYuv   m_acYuvPred[2];
   TComYuv   m_cYuvPredTemp;
@@ -72,7 +74,16 @@ protected:
   Void xPredInterLumaBlk_TEN    ( TComDataCU* pcCU, TComPicYuv* pcPicYuvRef, UInt uiPartAddr, TComMv* pcMv, Int iWidth, Int iHeight,                         TComYuv*& rpcYuv );
 #endif
   Void xWeightedAverage         ( TComDataCU* pcCU, TComYuv* pcYuvSrc0, TComYuv* pcYuvSrc1, Int iRefIdx0, Int iRefIdx1, UInt uiPartAddr, Int iWidth, Int iHeight, TComYuv*& rpcYuvDst );
-  
+#if DCTIF_4_6_CHROMA
+  Void xDCTIF_FilterC ( Pel*  piRefC, Int iRefStride,Pel*  piDstC,Int iDstStride,Int iWidth, Int iHeight,Int iMVyFrac,Int iMVxFrac);
+#endif
+
+#if HIGH_ACCURACY_BI
+  Void xPredInterLumaBlk_ha        ( TComDataCU* pcCU, TComPicYuv* pcPicYuvRef, UInt uiPartAddr, TComMv* pcMv, Int iWidth, Int iHeight,                         TComYuv*& rpcYuv );
+  Void xPredInterChromaBlk_ha      ( TComDataCU* pcCU, TComPicYuv* pcPicYuvRef, UInt uiPartAddr, TComMv* pcMv, Int iWidth, Int iHeight,                         TComYuv*& rpcYuv                            );
+  Void xDCTIF_FilterC_ha ( Pel*  piRefC, Int iRefStride,Pel*  piDstC,Int iDstStride,Int iWidth, Int iHeight,Int iMVyFrac,Int iMVxFrac);
+#endif
+
 public:
   TComPrediction();
   virtual ~TComPrediction();

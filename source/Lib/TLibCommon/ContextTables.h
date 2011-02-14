@@ -45,8 +45,8 @@
 #define NUM_SKIP_FLAG_CTX             3       ///< number of context models for skip flag
 
 #if HHI_MRG
-#define NUM_MERGE_FLAG_CTX            3       ///< number of context models for merge flag
-#define NUM_MERGE_INDEX_CTX           3       ///< number of context models for merge index
+#define NUM_MERGE_FLAG_EXT_CTX        3       ///< number of context models for merge flag of merge extended
+#define NUM_MERGE_IDX_EXT_CTX         4       ///< number of context models for merge index of merge extended
 #endif
 
 #define NUM_ALF_CTRL_FLAG_CTX         3       ///< number of context models for ALF control flag
@@ -138,31 +138,30 @@ INIT_SKIP_FLAG[3][NUM_SKIP_FLAG_CTX][2] =
 #if HHI_MRG
 // initial probability for merge flag
 static const Short
-INIT_MERGE_FLAG[3][NUM_MERGE_FLAG_CTX][2] =
+INIT_MERGE_FLAG_EXT[3][NUM_MERGE_FLAG_EXT_CTX][2] =
 {
   {
     {    0,   64 }, {    0,   64 }, {    0,   64 }
   },
   {
-    {   13,   29 }, {    9,   43 }, {   11,   53 }
+    {    0,   64 }, {    0,   64 }, {    0,   64 }
   },
   {
-    {   14,   28 }, {   10,   46 }, {   10,   58 }
+    {    0,   64 }, {    0,   64 }, {    0,   64 }
   }
 };
 
-// initial probability for merge index
 static const Short
-INIT_MERGE_INDEX[3][NUM_MERGE_INDEX_CTX][2] =
+INIT_MERGE_IDX_EXT[3][NUM_MERGE_IDX_EXT_CTX][2] =
 {
   {
-    {    0,   64 }, {    0,   64 }, {    0,   64 }
+    {    0,   64 }, {    0,   64 }, {    0,   64 }, {    0,   64 }
   },
   {
-    {   -1,   63 }, {    0,   64 }, {    0,   64 }
+    {    0,   64 }, {    0,   64 }, {    0,   64 }, {    0,   64 }
   },
   {
-    {   -3,   65 }, {    0,   64 }, {    0,   64 }
+    {    1,   65 }, {    6,   42 }, {   -7,   75 }, {   -4,   72 }
   }
 };
 #endif
@@ -219,6 +218,17 @@ INIT_INTRA_PRED_MODE[3][NUM_ADI_CTX][2] =
 static const Short
 INIT_CHROMA_PRED_MODE[3][4][2] =
 {
+#if CHROMA_CODEWORD
+  {
+    {  0,   64 }, {   0,   64 }, {  0,  64 }, {  0,  64 }
+  },
+  {
+    {  0,   64 }, {   0,   64 }, {  0,  64 }, {  0,  64 }
+  },
+  {
+    {  0,   64 }, {   0,   64 }, {  0,  64 }, {  0,  64 }
+  }
+#else
   {
     {  -14,   78 }, {   -5,   78 }, {  -13,  109 }, {  -13,  100 }
   },
@@ -228,6 +238,7 @@ INIT_CHROMA_PRED_MODE[3][4][2] =
   {
     {  -20,  101 }, {  -25,  111 }, {  -29,  118 }, {  -24,  121 }
   }
+#endif
 };
 
 // initial probability for temporal direction

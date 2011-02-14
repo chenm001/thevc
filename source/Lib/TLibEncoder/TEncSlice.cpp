@@ -250,6 +250,18 @@ Void TEncSlice::initEncSlice( TComPic* pcPic, Int iPOCLast, UInt uiPOCCurr, Int 
   Double dOrigQP = dQP;
   
   // pre-compute lambda and QP values for all possible QP candidates
+#if QC_MOD_LCEC_RDOQ
+  if (pcPic->getSlice()->isIntra()){
+    m_pcTrQuant->setRDOQOffset(1);
+  }
+  else{
+    if (m_pcCfg->getHierarchicalCoding())
+      m_pcTrQuant->setRDOQOffset(1);
+    else
+      m_pcTrQuant->setRDOQOffset(0);
+  }
+#endif
+
   for ( Int iDQpIdx = 0; iDQpIdx < 2 * m_pcCfg->getDeltaQpRD() + 1; iDQpIdx++ )
   {
     // compute QP value
@@ -259,9 +271,15 @@ Void TEncSlice::initEncSlice( TComPic* pcPic, Int iPOCLast, UInt uiPOCCurr, Int 
     Int    NumberBFrames = ( m_pcCfg->getRateGOPSize() - 1 );
     Int    SHIFT_QP = 12;
     Double dLambda_scale = 1.0 - Clip3( 0.0, 0.5, 0.05*(Double)NumberBFrames );
+#if FULL_NBIT
+    Int    bitdepth_luma_qp_scale = 6 * (g_uiBitDepth - 8);
+#else
     Int    bitdepth_luma_qp_scale = 0;
+#endif
     Double qp_temp = (double) dQP + bitdepth_luma_qp_scale - SHIFT_QP;
-    
+#if FULL_NBIT
+    Double qp_temp_orig = (double) dQP - SHIFT_QP;
+#endif
     // Case #1: I or P-slices (key-frame)
     if ( iDepth == 0 )
     {
@@ -287,7 +305,11 @@ Void TEncSlice::initEncSlice( TComPic* pcPic, Int iPOCLast, UInt uiPOCCurr, Int 
       dLambda = 0.68 * pow( 2.0, qp_temp/3.0 );
       if ( pcPic->getSlice()->isInterB () )
       {
+#if FULL_NBIT
+        dLambda *= Clip3( 2.00, 4.00, (qp_temp_orig / 6.0) ); // (j == B_SLICE && p_cur_frm->layer != 0 )
+#else
         dLambda *= Clip3( 2.00, 4.00, (qp_temp / 6.0) ); // (j == B_SLICE && p_cur_frm->layer != 0 )
+#endif
         if ( rpcSlice->isReferenced() ) // HB structure and referenced
         {
           Int    iMaxDepth = 0;
@@ -351,19 +373,14 @@ Void TEncSlice::initEncSlice( TComPic* pcPic, Int iPOCLast, UInt uiPOCCurr, Int 
   rpcSlice->setDRBFlag          ( true );
   rpcSlice->setERBIndex         ( ERB_NONE );
   
-  // generalized B info. (for non-reference B)
-  if ( m_pcCfg->getHierarchicalCoding() == false && iDepth != 0 )
-  {
-    rpcSlice->setDRBFlag        ( false );
-    rpcSlice->setERBIndex       ( ERB_NONE );
-  }
-  
   assert( m_apcPicYuvPred );
   assert( m_apcPicYuvResi );
   
   pcPic->setPicYuvPred( m_apcPicYuvPred );
   pcPic->setPicYuvResi( m_apcPicYuvResi );
+#if !DCTIF_8_6_LUMA
   rpcSlice->setInterpFilterType ( m_pcCfg->getInterpFilterType() );
+#endif
 }
 
 // ====================================================================================================================
@@ -409,7 +426,11 @@ Void TEncSlice::precompressSlice( TComPic*& rpcPic )
   UInt       uiQpIdxBest = 0;
   
   Double dFrameLambda;
+#if FULL_NBIT
+  Int    SHIFT_QP = 12 + 6 * (g_uiBitDepth - 8);
+#else
   Int    SHIFT_QP = 12;
+#endif
   
   // set frame lambda
   if (m_pcCfg->getGOPSize() > 1)

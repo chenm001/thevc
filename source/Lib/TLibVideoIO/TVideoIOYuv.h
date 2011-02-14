@@ -53,12 +53,14 @@ class TVideoIOYuv
 {
 private:
   fstream   m_cHandle;                                      ///< file handle
+  unsigned int m_fileBitdepth; ///< bitdepth of input/output video file
+  int m_bitdepthShift;  ///< number of bits to increase or decrease image by before/after write/read
   
 public:
   TVideoIOYuv()           {}
   virtual ~TVideoIOYuv()  {}
   
-  Void  open  ( char* pchFile, Bool bWriteMode );           ///< open or create file
+  Void  open  ( char* pchFile, Bool bWriteMode, unsigned int fileBitDepth, unsigned int internalBitDepth ); ///< open or create file
   Void  close ();                                           ///< close file
   
   Void  read  ( TComPicYuv*& rpcPicYuv, Int aiPad[2] );     ///< read  one YUV frame with padding parameter

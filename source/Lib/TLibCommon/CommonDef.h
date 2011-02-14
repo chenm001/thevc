@@ -101,6 +101,9 @@
 #define MAX_GOP                     64          ///< max. value of hierarchical GOP size
 
 #define MAX_NUM_REF                 4           ///< max. value of multiple reference frames
+#if DCM_COMB_LIST
+#define MAX_NUM_REF_LC              8           ///< max. value of combined reference frames
+#endif
 
 #define MAX_UINT                    0xFFFFFFFFU ///< max. value of unsigned 32-bit integer
 #define MAX_INT                     2147483647  ///< max. value of signed 32-bit integer
@@ -119,7 +122,6 @@
 #define Min(x, y)                   ((x)<(y)?(x):(y))                                                 ///< min of (x, y)
 #define Median(a,b,c)               ((a)>(b)?(a)>(c)?(b)>(c)?(b):(c):(a):(b)>(c)?(a)>(c)?(a):(c):(b)) ///< 3-point median
 #define Clip(x)                     ( Min(g_uiIBDI_MAX, Max( 0, (x)) ) )                              ///< clip with bit-depth range
-#define ClipMax(x)                  ( Min(g_uiBASE_MAX, x            ) )                              ///< clip with max. value
 #define Clip3( MinVal, MaxVal, a)   ( ((a)<(MinVal)) ? (MinVal) : (((a)>(MaxVal)) ? (MaxVal) :(a)) )  ///< general min/max clip
 
 #define DATA_ALIGN                  1                                                                 ///< use 32-bit aligned malloc/free
@@ -141,6 +143,11 @@
 // ====================================================================================================================
 // Coding tool configuration
 // ====================================================================================================================
+
+// modified LCEC coefficient coding
+#if QC_MOD_LCEC
+#define MAX_TR1                           4
+#endif
 
 // AMVP: advanced motion vector prediction
 #define AMVP_NEIGH_COL              1           ///< use of colocated MB in AMVP
@@ -165,17 +172,23 @@
 // Adaptive search range depending on POC difference
 #define ADAPT_SR_SCALE              1           ///< division factor for adaptive search range
 
+#define ENABLE_IBDI                 0
+
+#define CLIP_TO_709_RANGE           0
+
 // IBDI range restriction for skipping clip
-#define IBDI_NOCLIP_RANGE           1           ///< restrict max. value after IBDI to skip clip
+#define IBDI_NOCLIP_RANGE           0           ///< restrict max. value after IBDI to skip clip
 
 // Early-skip threshold (encoder)
 #define EARLY_SKIP_THRES            1.50        ///< if RD < thres*avg[BestSkipRD]
 
+// MERGE
+#define HHI_NUM_MRG_CAND            5
 
-const int g_iShift8x8    = 4;
-const int g_iShift16x16  = 4;
-const int g_iShift32x32  = 4;
-const int g_iShift64x64  = 4;
+const int g_iShift8x8    = 2;
+const int g_iShift16x16  = 2;
+const int g_iShift32x32  = 2;
+const int g_iShift64x64  = 2;
 
 /* End of Rounding control */
 
@@ -193,7 +206,11 @@ enum NalUnitType
   NAL_UNIT_CODED_SLICE,
   NAL_UNIT_CODED_SLICE_DATAPART_A,
   NAL_UNIT_CODED_SLICE_DATAPART_B,
+#if DCM_DECODING_REFRESH
+  NAL_UNIT_CODED_SLICE_CDR,
+#else
   NAL_UNIT_CODED_SLICE_DATAPART_C,
+#endif
   NAL_UNIT_CODED_SLICE_IDR,
   NAL_UNIT_SEI,
   NAL_UNIT_SPS,

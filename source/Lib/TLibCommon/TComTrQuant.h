@@ -73,6 +73,31 @@ typedef struct
   Int scanNonZigzag[2];         ///< flag for non zigzag scan
 } estBitsSbacStruct;
 
+#if QC_MOD_LCEC_RDOQ
+typedef struct
+{
+  Int level[4];
+  Int pre_level;
+  Int coeff_ctr;
+  Long levelDouble;
+  Double errLevel[4];
+  Int noLevels;
+  Long levelQ;
+  Bool lowerInt;
+  UInt quantInd;
+} levelDataStruct;
+
+typedef struct
+{
+  Int run;
+  Int maxrun;
+  Int nextLev;
+  Int nexLevelVal;
+} quantLevelStruct;
+#endif
+
+
+
 class TEncCavlc;
 
 // ====================================================================================================================
@@ -119,6 +144,9 @@ public:
     m_iQP   = iQP;
     
     m_iPer  = (iQP + 6*g_uiBitIncrement)/6;
+#if FULL_NBIT
+    m_iPer += g_uiBitDepth - 8;
+#endif
     m_iRem  = (iQP + 6*g_uiBitIncrement)%6;
     
     m_iBits = QP_BITS + m_iPer;
@@ -153,7 +181,11 @@ public:
   ~TComTrQuant();
   
   // initialize class
+#if QC_MOD_LCEC
+  Void init                 ( UInt uiMaxWidth, UInt uiMaxHeight, UInt uiMaxTrSize, Int iSymbolMode = 0, UInt *aTable4 = NULL, UInt *aTable8 = NULL, UInt *aTableLastPosVlcIndex=NULL, Bool bUseRDOQ = false,  Bool bEnc = false );
+#else
   Void init                 ( UInt uiMaxWidth, UInt uiMaxHeight, UInt uiMaxTrSize, Int iSymbolMode = 0, UInt *aTable4 = NULL, UInt *aTable8 = NULL, Bool bUseRDOQ = false,  Bool bEnc = false );
+#endif
   
   // transform & inverse transform functions
   Void transformNxN         ( TComDataCU* pcCU, Pel*   pcResidual, UInt uiStride, TCoeff*& rpcCoeff, UInt uiWidth, UInt uiHeight,
@@ -165,15 +197,16 @@ public:
   // Misc functions
   Void setQPforQuant( Int iQP, Bool bLowpass, SliceType eSliceType, TextType eTxtType);
   Void setLambda(Double dLambda) { m_dLambda = dLambda;}
-  
+#if QC_MOD_LCEC_RDOQ
+  Void    setRDOQOffset ( UInt uiRDOQOffset ) { m_uiRDOQOffset = uiRDOQOffset; }
+#endif
   estBitsSbacStruct* m_pcEstBitsSbac;
   
   static UInt     getSigCtxInc     ( TCoeff*                         pcCoeff,
                                     const UInt                      uiPosX,
                                     const UInt                      uiPosY,
                                     const UInt                      uiLog2BlkSize,
-                                    const UInt                      uiStride,
-                                    const bool                      bDownLeft );
+                                    const UInt                      uiStride );
   static UInt     getLastCtxInc    ( const UInt                      uiPosX,
                                     const UInt                      uiPosY,
                                     const UInt                      uiLog2BlkSize );
@@ -184,7 +217,9 @@ protected:
   
   QpParam  m_cQP;
   Double   m_dLambda;
-  
+#if QC_MOD_LCEC_RDOQ
+  UInt     m_uiRDOQOffset;
+#endif
   UInt     m_uiMaxTrSize;
   Bool     m_bEnc;
   Bool     m_bUseRDOQ;
@@ -192,6 +227,9 @@ protected:
   UInt     *m_uiLPTableE8;
   UInt     *m_uiLPTableE4;
   Int      m_iSymbolMode;
+#if QC_MOD_LCEC
+  UInt     *m_uiLastPosVlcIndex;
+#endif
   
 private:
   // forward Transform
@@ -210,7 +248,22 @@ private:
   Void xQuant8x8  ( TComDataCU* pcCU, Long* plSrcCoef, TCoeff*& pDstCoef, UInt& uiAbsSum, TextType eTType, UInt uiAbsPartIdx );
   
   // RDOQ functions
+
+#if QC_MOD_LCEC_RDOQ
+  Int            xCodeCoeffCountBitsLast(TCoeff* scoeff, levelDataStruct* levelData, Int nTab, UInt uiNoCoeff);
+  UInt           xCountVlcBits(UInt uiTableNumber, UInt uiCodeNumber);
+  Int            bitCountRDOQ(Int coeff, Int pos, Int nTab, Int lastCoeffFlag,Int levelMode,Int run, Int maxrun, Int vlc_adaptive, Int N, 
+                              UInt uiTr1, Int iSum_big_coef, Int iBlockType, TComDataCU* pcCU);
+#else
+#if QC_MOD_LCEC 
+  Int            bitCount_LCEC(Int k,Int pos,Int nTab, Int lpflag,Int levelMode,Int run, Int maxrun, Int vlc_adaptive, Int N, UInt uiTr1);
+#else
   Int            bitCount_LCEC(Int k,Int pos,Int n,Int lpflag,Int levelMode,Int run,Int maxrun,Int vlc_adaptive,Int N);
+#endif
+#endif
+#if QC_MDCS
+UInt             getCurrLineNum(UInt uiScanIdx, UInt uiPosX, UInt uiPosY);
+#endif
   Void           xRateDistOptQuant_LCEC ( TComDataCU*                     pcCU,
                                          Long*                           plSrcCoeff,
                                          TCoeff*&                        piDstCoeff,

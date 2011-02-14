@@ -141,6 +141,53 @@ Void TComBitstream::initParsing ( UInt uiNumBytes )
   xReadNextWord();
 }
 
+#if LCEC_INTRA_MODE || QC_LCEC_INTER_MODE
+Void TComBitstream::pseudoRead ( UInt uiNumberOfBits, UInt& ruiBits )
+{
+  UInt ui_right_shift;
+
+  // check the number_of_bits parameter matches the range
+  assert( uiNumberOfBits <= 32 );
+
+  if( uiNumberOfBits > m_uiBitsLeft )
+  {
+    assert (0);
+  }
+
+  Int  iValidBits = m_iValidBits - uiNumberOfBits;
+  UInt ulCurrentBits=m_ulCurrentBits;
+  UInt uiNextBits= m_uiNextBits;
+  if( 0 <= iValidBits )
+  {
+    // calculate the number of bits to extract the desired number of bits
+    ui_right_shift = 32 - uiNumberOfBits ;
+    // mask out the value
+    ruiBits  = ulCurrentBits >> ui_right_shift;
+    //prepare for next access
+    ulCurrentBits = ulCurrentBits << uiNumberOfBits;
+  }
+  else
+  {
+    // mask out the value in the current word
+    ruiBits = ulCurrentBits;
+    // calculate the number of bits to extract the desired number of bits
+    ui_right_shift = iValidBits + uiNumberOfBits ;
+    // mask out the value in the next word
+    ruiBits |= uiNextBits >> ui_right_shift;
+    ruiBits >>= 32 - uiNumberOfBits;
+    uiNextBits <<=  -iValidBits;
+  }
+
+  // check the current word for being empty
+  //-- baekeun.lee@samsung.com
+  if ( 0 < m_iValidBits)
+  {
+    return ;
+  }
+}
+#endif
+
+
 Void TComBitstream::read (UInt uiNumberOfBits, UInt& ruiBits)
 {
   UInt ui_right_shift;
@@ -256,8 +303,6 @@ __inline Void TComBitstream::xReadNextWord()
   }
 }
 
-#if HHI_NAL_UNIT_SYNTAX
-
 Void TComBitstream::initParsingConvertPayloadToRBSP( const UInt uiBytesRead )
 {
   UInt uiZeroCount    = 0;
@@ -343,4 +388,3 @@ Void TComBitstream::convertRBSPToPayload( UInt uiStartPos )
   delete [] pucRead;
   m_uiBitsWritten = uiWriteOffset << 3;
 }
-#endif
