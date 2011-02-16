@@ -44,10 +44,10 @@
 // Local constants
 // ====================================================================================================================
 
-/// maximum bitstream buffer Size per 1 picture (1920*1080*1.5)
-/** \todo fix this value according to suitable value
- */
-#define BITS_BUF_SIZE     3110400
+/// initial bitstream buffer size
+/// should be large enough for parsing SPS
+/// resized as a function of picture size after parsing SPS
+#define BITS_BUF_SIZE 65536
 
 // ====================================================================================================================
 // Constructor / destructor / initialization / destroy
@@ -110,6 +110,8 @@ Void TAppDecTop::decode()
   // main decoder loop
   Bool  bEos        = false;
   bool recon_opened = false; // reconstruction file not yet opened. (must be performed after SPS is seen)
+  Bool resizedBitstreamBuffer = false;
+  
   while ( !bEos )
   {
     bEos = m_cTVideoIOBitstreamFile.readBits( pcBitstream );
@@ -124,6 +126,17 @@ Void TAppDecTop::decode()
 #else
     m_cTDecTop.decode( bEos, pcBitstream, uiPOC, pcListPic );
 #endif
+    
+    if (!resizedBitstreamBuffer)
+    {
+      TComSPS *sps = m_cTDecTop.getSPS();
+      if (sps)
+      {
+        pcBitstream->destroy();
+        pcBitstream->create(sps->getWidth() * sps->getHeight() * 2);
+        resizedBitstreamBuffer = true;
+      }
+    }
     
     if( pcListPic )
     {

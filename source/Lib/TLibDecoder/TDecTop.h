@@ -104,6 +104,8 @@ public:
   Void  decode ( Bool bEos, TComBitstream* pcBitstream, UInt& ruiPOC, TComList<TComPic*>*& rpcListPic );
 #endif
   
+  TComSPS *getSPS() { return (m_uiValidPS & 1) ? &m_cSPS : NULL; }
+  
   Void  deletePicBuffer();
   
 protected:
