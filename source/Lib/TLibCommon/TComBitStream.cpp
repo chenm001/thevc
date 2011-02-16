@@ -151,7 +151,7 @@ Void TComBitstream::pseudoRead ( UInt uiNumberOfBits, UInt& ruiBits )
 
   if( uiNumberOfBits > m_uiBitsLeft )
   {
-    assert (0);
+    //assert (0);
   }
 
   Int  iValidBits = m_iValidBits - uiNumberOfBits;
