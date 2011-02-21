@@ -2053,6 +2053,9 @@ Void TComDataCU::getInterMergeCandidates( UInt uiAbsPartIdx, UInt uiPUIdx, UInt 
   UInt uiColDir = ( m_pcSlice->isInterB()? m_pcSlice->getColDir() : 0 );
   TComDataCU* pcCUColocated = getCUColocated( RefPicList( uiColDir ) );
   RefPicList eColRefPicList = ( m_pcSlice->isInterB()? RefPicList( 1-uiColDir ) : REF_PIC_LIST_0 );
+#if PANASONIC_MERGETEMPORALEXT
+  RefPicList eColRefPicList2 = (m_pcSlice->isInterB()? RefPicList(uiColDir) : REF_PIC_LIST_0);
+#endif
   if( pcCUColocated && !pcCUColocated->isIntra( uiAbsPartAddr ) &&
     pcCUColocated->getCUMvField( eColRefPicList )->getRefIdx( uiAbsPartAddr ) >= 0 )
   {
@@ -2101,6 +2104,56 @@ Void TComDataCU::getInterMergeCandidates( UInt uiAbsPartIdx, UInt uiPUIdx, UInt 
       puhInterDirNeighbours[uiArrayAddr] = 1;
     }
   }
+#if PANASONIC_MERGETEMPORALEXT
+  else if( pcCUColocated && !pcCUColocated->isIntra( uiAbsPartAddr ) &&
+          pcCUColocated->getCUMvField( eColRefPicList2 )->getRefIdx( uiAbsPartAddr ) >= 0 )
+  {
+    Int iColPOC = pcCUColocated->getSlice()->getPOC();
+    Int iColRefPOC = pcCUColocated->getSlice()->getRefPOC( eColRefPicList2, pcCUColocated->getCUMvField( eColRefPicList2 )->getRefIdx( uiAbsPartAddr ) );
+    TComMv cColMv = pcCUColocated->getCUMvField( eColRefPicList2 )->getMv( uiAbsPartAddr );
+    
+    Int iCurrPOC = m_pcSlice->getPOC();
+    Int iCurrRefPOC = m_pcSlice->getRefPic( REF_PIC_LIST_0, 0 )->getPOC();
+    
+    TComMv cMv;
+    Int iScale = xGetDistScaleFactor( iCurrPOC, iCurrRefPOC, iColPOC, iColRefPOC );
+    
+    if( iScale == 1024 )
+    {
+      cMv = cColMv;
+    }
+    else
+    {
+      cMv = cColMv.scaleMv( iScale );
+    }
+    clipMv( cMv );
+    UInt uiArrayAddr = uiIdx - 1;
+    abCandIsInter[uiArrayAddr] = true;
+    pcMvFieldNeighbours[uiArrayAddr << 1].setMvField( cMv, 0 );
+    puiNeighbourCandIdx[uiArrayAddr] = uiIdx;
+    if ( getSlice()->isInterB() )
+    {
+      iCurrRefPOC = m_pcSlice->getRefPic( REF_PIC_LIST_1, 0 )->getPOC();
+      TComMv cMvB;
+      iScale = xGetDistScaleFactor( iCurrPOC, iCurrRefPOC, iColPOC, iColRefPOC );
+      if( iScale == 1024 )
+      {
+        cMvB = cColMv;
+      }
+      else
+      {
+        cMvB = cColMv.scaleMv( iScale );
+      }
+      clipMv( cMvB );
+      pcMvFieldNeighbours[ ( uiArrayAddr << 1 ) + 1 ].setMvField( cMvB, 0 );
+      puhInterDirNeighbours[uiArrayAddr] = 3;
+    }
+    else
+    {
+      puhInterDirNeighbours[uiArrayAddr] = 1;
+    }
+  }
+#endif // PANASONIC_MERGETEMPORALEXT
   uiIdx++;
 #endif // FT_TCTR_MERGE
   // cor [3]
