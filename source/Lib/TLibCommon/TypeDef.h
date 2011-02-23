@@ -87,6 +87,12 @@
 //////////////////////////////
 
 #define HIGH_ACCURACY_BI                  1          // High precision bi-prediction JCTVC-D321
+#define FIX_ISSUE_125                     1
+
+#if HIGH_ACCURACY_BI && !FIX_ISSUE_125
+#error HIGH_ACCURACY_BI should be used with the bug-fix
+#endif
+
 
 //////////////////////////////
 // Nokia defines section end
