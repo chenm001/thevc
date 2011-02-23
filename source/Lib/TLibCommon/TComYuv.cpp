@@ -468,7 +468,7 @@ Void TComYuv::subtractChroma( TComYuv* pcYuvSrc0, TComYuv* pcYuvSrc1, UInt uiTrU
   }
 }
 
-#if HIGH_ACCURACY_BI
+#if HIGH_ACCURACY_BI && !FIX_ISSUE_125
 Void TComYuv::shiftBack(UInt iPartUnitIdx, UInt iWidth, UInt iHeight)
 {
   Int x, y;
@@ -535,7 +535,54 @@ Void TComYuv::addAvg( TComYuv* pcYuvSrc0, TComYuv* pcYuvSrc1, UInt iPartUnitIdx,
   UInt  iSrc0Stride = pcYuvSrc0->getStride();
   UInt  iSrc1Stride = pcYuvSrc1->getStride();
   UInt  iDstStride  = getStride();
+
+#if HIGH_ACCURACY_BI && FIX_ISSUE_125
+  Int shiftNum = 15 - (g_uiBitDepth + g_uiBitIncrement);
+  Int offset = (1<<(shiftNum - 1));
   
+  for ( y = iHeight-1; y >= 0; y-- )
+  {
+    for ( x = iWidth-1; x >= 0; )
+    {
+      // note: luma min width is 4
+      pDstY[x] = Clip((pSrcY0[x] + pSrcY1[x] + offset) >> shiftNum ); x--;
+      pDstY[x] = Clip((pSrcY0[x] + pSrcY1[x] + offset) >> shiftNum); x--;
+      pDstY[x] = Clip((pSrcY0[x] + pSrcY1[x] + offset) >> shiftNum); x--;
+      pDstY[x] = Clip((pSrcY0[x] + pSrcY1[x] + offset) >> shiftNum); x--;
+    }
+    pSrcY0 += iSrc0Stride;
+    pSrcY1 += iSrc1Stride;
+    pDstY  += iDstStride;
+  }
+  
+  iSrc0Stride = pcYuvSrc0->getCStride();
+  iSrc1Stride = pcYuvSrc1->getCStride();
+  iDstStride  = getCStride();
+  
+  iWidth  >>=1;
+  iHeight >>=1;
+  
+  for ( y = iHeight-1; y >= 0; y-- )
+  {
+    for ( x = iWidth-1; x >= 0; )
+    {
+      // note: chroma min width is 2
+      pDstU[x] = Clip((pSrcU0[x] + pSrcU1[x] + offset) >> shiftNum);
+      pDstV[x] = Clip((pSrcV0[x] + pSrcV1[x] + offset) >> shiftNum); x--;
+      pDstU[x] = Clip((pSrcU0[x] + pSrcU1[x] + offset) >> shiftNum);
+      pDstV[x] = Clip((pSrcV0[x] + pSrcV1[x] + offset) >> shiftNum); x--;
+    }
+    
+    pSrcU0 += iSrc0Stride;
+    pSrcU1 += iSrc1Stride;
+    pSrcV0 += iSrc0Stride;
+    pSrcV1 += iSrc1Stride;
+    pDstU  += iDstStride;
+    pDstV  += iDstStride;
+  }
+
+#else
+
   for ( y = iHeight-1; y >= 0; y-- )
   {
     for ( x = iWidth-1; x >= 0; )
@@ -576,6 +623,7 @@ Void TComYuv::addAvg( TComYuv* pcYuvSrc0, TComYuv* pcYuvSrc1, UInt iPartUnitIdx,
     pDstU  += iDstStride;
     pDstV  += iDstStride;
   }
+#endif
 }
 
 #endif
