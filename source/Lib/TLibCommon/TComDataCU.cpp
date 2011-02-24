@@ -3099,6 +3099,9 @@ UInt TComDataCU::getCoefScanIdx(UInt uiAbsPartIdx, UInt uiWidth, Bool bIsLuma, B
 #if MS_LCEC_LOOKUP_TABLE_EXCEPTION
 Bool TComDataCU::isSuroundingRefIdxException     ( UInt   uiAbsPartIdx )
 {
+  if ( !getSlice()->isInterB() )
+    return true;
+  
   if ( getSlice()->getNumRefIdx( REF_PIC_LIST_0 ) <= 2 && getSlice()->getNumRefIdx( REF_PIC_LIST_1 ) <= 2)
   {
     return false;
