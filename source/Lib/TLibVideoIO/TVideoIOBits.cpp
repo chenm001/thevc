@@ -238,11 +238,43 @@ Int TVideoIOBitsStartCode::findNextStartCodeFastLookup( TComBitstream*& rpcBitst
   m_iCurFileLocation += 4;
   m_iBufBytesLeft    -= 4;
 
+#if SHARP_ENTROPY_SLICE
+  m_bEntropySlice = false; 
+#endif
+
   // Peek ahead and check if the new NALU contains a slice with a POC different from one encountered previously
   UInt uiCurPOC = UInt(-1);
   Int iNalUnitType = (m_ucCurBufPtr[0] & 0x1F); 
   if ( iNalUnitType == NAL_UNIT_CODED_SLICE || iNalUnitType == NAL_UNIT_CODED_SLICE_IDR || iNalUnitType == NAL_UNIT_CODED_SLICE_CDR )
   {
+#if SHARP_ENTROPY_SLICE 
+    if ( (m_ucCurBufPtr[1] & 0x80) != 0 ) 
+    {
+      // Entropy slice detected
+      m_bEntropySlice = true;
+    }
+    else
+    {
+      uiCurPOC   = m_ucCurBufPtr[1] & 0x7F;
+      uiCurPOC <<= 3;
+      uiCurPOC |= ((m_ucCurBufPtr[2] & 0xE0) >> 5);
+      m_ucCurBufPtr      += 3;
+      m_iCurFileLocation += 3;
+      m_iBufBytesLeft    -= 3;      
+    }
+  }
+
+  if (!m_bEntropySlice && m_uiLastPOC!=uiCurPOC)
+  {
+    m_bFirstSliceEncounteredInPicture = true;
+    m_uiLastPOC = uiCurPOC;
+  }
+  else
+  {
+    m_bFirstSliceEncounteredInPicture = false;
+    uiCurPOC = m_uiLastPOC;
+  }
+#else
     uiCurPOC   = m_ucCurBufPtr[1] & 0xFF;
     uiCurPOC <<= 2;
     uiCurPOC  |= ((m_ucCurBufPtr[2] & 0xC0) >> 6);
@@ -259,6 +291,7 @@ Int TVideoIOBitsStartCode::findNextStartCodeFastLookup( TComBitstream*& rpcBitst
   {
     m_bFirstSliceEncounteredInPicture = false;
   }
+#endif
 
   Int  iNextStartCodeBytes = 0;
   UInt uiZeros             = 0;
@@ -315,6 +348,26 @@ Int TVideoIOBitsStartCode::findNextStartCodeFastLookup( TComBitstream*& rpcBitst
           m_ucCurBufPtr++; m_iBufBytesLeft--; m_iCurFileLocation++;
           if ( m_iBufBytesLeft==0 && m_ulBitstreamLength==0 ) return -1;  
           iLookaheadBytesRead++;
+#if SHARP_ENTROPY_SLICE
+          if ( (ucByte & 0x80) != 0 ) 
+          {
+            // Entropy slice detected
+            m_bLastSliceEncounteredInPicture = false;
+            m_ucCurBufPtr      -= iLookaheadBytesRead;
+            m_iCurFileLocation -= iLookaheadBytesRead;
+            m_iBufBytesLeft    += iLookaheadBytesRead; 
+            break;
+          }
+          else
+          {
+            UInt uiReadPOC   = ucByte & 0x7F;
+            uiReadPOC <<= 3;
+            ucByte = (*m_ucCurBufPtr);
+            m_ucCurBufPtr++; m_iBufBytesLeft--; m_iCurFileLocation++;
+            if ( m_iBufBytesLeft==0 && m_ulBitstreamLength==0 ) return -1;  
+            iLookaheadBytesRead++;
+            uiReadPOC |= ((ucByte & 0xE0) >> 5);
+#else
           UInt uiReadPOC   = ucByte & 0xFF;
           uiReadPOC <<= 2;
           ucByte = (*m_ucCurBufPtr);
@@ -322,6 +375,7 @@ Int TVideoIOBitsStartCode::findNextStartCodeFastLookup( TComBitstream*& rpcBitst
           if ( m_iBufBytesLeft==0 && m_ulBitstreamLength==0 ) return -1;  
           iLookaheadBytesRead++;
           uiReadPOC |= ((ucByte & 0xC0) >> 6);
+#endif
           if ( uiReadPOC == uiCurPOC )
           {
             m_bLastSliceEncounteredInPicture = false;
@@ -334,6 +388,9 @@ Int TVideoIOBitsStartCode::findNextStartCodeFastLookup( TComBitstream*& rpcBitst
           {
             m_bLastSliceEncounteredInPicture = true; // a new POC detected so signal that this is the last Slice/NALU for current picture.
           }
+#if SHARP_ENTROPY_SLICE
+          }
+#endif
         }
       }
       if (iNextStartCodeBytes!=0)
@@ -360,6 +417,7 @@ Int TVideoIOBitsStartCode::findNextStartCodeFastLookup( TComBitstream*& rpcBitst
   return m_iCurFileLocation;
 }
 #endif
+
 int TVideoIOBitsStartCode::xFindNextStartCode(UInt& ruiPacketSize, UChar* pucBuffer)
 {
   UInt uiDummy = 0;
@@ -375,6 +433,10 @@ int TVideoIOBitsStartCode::xFindNextStartCode(UInt& ruiPacketSize, UChar* pucBuf
   UInt uiCurPOC = UInt(-1);
   UChar ucDummyByte;
 
+#if SHARP_ENTROPY_SLICE
+  m_bEntropySlice = false; 
+#endif
+
   // Peek ahead and check if the new NALU contains a slice with a POC different from one encountered previously
   Int  iMovedForwardBytes = 0;
   m_cHandle.read( reinterpret_cast<char*>(&ucDummyByte), 1 );
@@ -386,6 +448,35 @@ int TVideoIOBitsStartCode::xFindNextStartCode(UInt& ruiPacketSize, UChar* pucBuf
     m_cHandle.read( reinterpret_cast<char*>(&ucDummyByte), 1 );
     if ( m_cHandle.eof() ) return -1;  
     iMovedForwardBytes++;
+#if SHARP_ENTROPY_SLICE 
+    if ( (ucDummyByte & 0x80) != 0 ) 
+    {
+      // Entropy slice detected
+      m_bEntropySlice = true;
+    }
+    else
+    {
+      uiCurPOC        = ucDummyByte & 0x7F;
+      uiCurPOC      <<= 3;
+      m_cHandle.read( reinterpret_cast<char*>(&ucDummyByte), 1 );
+      if ( m_cHandle.eof() ) return -1;  
+      iMovedForwardBytes++;
+      uiCurPOC |= ((ucDummyByte & 0xE0) >> 5);
+    }
+  }
+  m_cHandle.seekg(-iMovedForwardBytes, ios_base::cur);
+
+  if (!m_bEntropySlice && m_uiLastPOC!=uiCurPOC)
+  {
+    m_bFirstSliceEncounteredInPicture = true;
+    m_uiLastPOC = uiCurPOC;
+  }
+  else
+  {
+    m_bFirstSliceEncounteredInPicture = false;
+    uiCurPOC = m_uiLastPOC;
+  }
+#else
     uiCurPOC   = ucDummyByte & 0xFF;
     uiCurPOC <<= 2;
     m_cHandle.read( reinterpret_cast<char*>(&ucDummyByte), 1 );
@@ -404,6 +495,7 @@ int TVideoIOBitsStartCode::xFindNextStartCode(UInt& ruiPacketSize, UChar* pucBuf
     m_bFirstSliceEncounteredInPicture = false;
   }
   m_uiLastPOC = uiCurPOC;
+#endif
 #endif
   Int iNextStartCodeBytes = 0;
   Int iBytesRead = 0;
@@ -445,12 +537,30 @@ int TVideoIOBitsStartCode::xFindNextStartCode(UInt& ruiPacketSize, UChar* pucBuf
           m_cHandle.read( reinterpret_cast<char*>(&ucByte), 1 );
           if ( m_cHandle.eof() ) return -1;  
           iLookaheadBytesRead++;
+#if SHARP_ENTROPY_SLICE
+          if ( (ucByte & 0x80) != 0 ) 
+          {
+            // Entropy slice detected
+            m_bLastSliceEncounteredInPicture = false;
+            m_cHandle.seekg(-iLookaheadBytesRead, ios_base::cur);
+            break;
+          }
+          else
+          {
+            UInt uiReadPOC   = ucByte & 0x7F;
+            uiReadPOC <<= 3;
+            m_cHandle.read( reinterpret_cast<char*>(&ucByte), 1 );
+            if ( m_cHandle.eof() ) return -1;  
+            iLookaheadBytesRead++;
+            uiReadPOC |= ((ucByte & 0xE0) >> 5);
+#else
           UInt uiReadPOC   = ucByte & 0xFF;
           uiReadPOC <<= 2;
           m_cHandle.read( reinterpret_cast<char*>(&ucByte), 1 );
           if ( m_cHandle.eof() ) return -1;  
           iLookaheadBytesRead++;
           uiReadPOC |= ((ucByte & 0xC0) >> 6);
+#endif
           if ( uiReadPOC == uiCurPOC )
           {
             m_bLastSliceEncounteredInPicture = false;
@@ -461,6 +571,9 @@ int TVideoIOBitsStartCode::xFindNextStartCode(UInt& ruiPacketSize, UChar* pucBuf
           {
             m_bLastSliceEncounteredInPicture = true; // a new POC detected so signal that this is the last Slice/NALU for current picture.
           }
+#if SHARP_ENTROPY_SLICE
+          }
+#endif
         }
       }
       if (iNextStartCodeBytes!=0)

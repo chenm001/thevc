@@ -244,12 +244,20 @@ Void TComPattern::initAdiPattern( TComDataCU* pcCU, UInt uiZorderIdxInPart, UInt
   pcCU->deriveLeftRightTopIdxAdi( uiPartIdxLT, uiPartIdxRT, uiZorderIdxInPart, uiPartDepth );
   pcCU->deriveLeftBottomIdxAdi  ( uiPartIdxLB,              uiZorderIdxInPart, uiPartDepth );
   
+#if AD_HOC_SLICES && SHARP_ENTROPY_SLICE 
+  if( pcCU->getPUAbove        ( uiPartDum,             uiPartIdxLT, true, false ) ) bAboveFlag      = true;
+  if( pcCU->getPUAboveRightAdi( uiPartDum, uiCuWidth,  uiPartIdxRT, true, false ) ) bAboveRightFlag = true;
+  if( pcCU->getPULeft         ( uiPartDum,             uiPartIdxLT, true, false ) ) bLeftFlag       = true;
+  if( pcCU->getPUBelowLeftAdi ( uiPartDum, uiCuHeight, uiPartIdxLB, true, false ) ) bBelowLeftFlag  = true;
+  if( pcCU->getPUAboveLeft    ( uiPartDum,             uiPartIdxLT, true, false ) ) bAboveLeftFlag  = true;
+#else
   if( pcCU->getPUAbove        ( uiPartDum,             uiPartIdxLT ) ) bAboveFlag      = true;
   if( pcCU->getPUAboveRightAdi( uiPartDum, uiCuWidth,  uiPartIdxRT ) ) bAboveRightFlag = true;
   if( pcCU->getPULeft         ( uiPartDum,             uiPartIdxLT ) ) bLeftFlag       = true;
   if( pcCU->getPUBelowLeftAdi ( uiPartDum, uiCuHeight, uiPartIdxLB ) ) bBelowLeftFlag  = true;
 #if AD_HOC_SLICES 
   if( pcCU->getPUAboveLeft    ( uiPartDum,             uiPartIdxLT ) ) bAboveLeftFlag  = true;
+#endif
 #endif
   
   bAbove = bAboveFlag;
@@ -417,12 +425,20 @@ Void TComPattern::initAdiPatternChroma( TComDataCU* pcCU, UInt uiZorderIdxInPart
   pcCU->deriveLeftRightTopIdxAdi( uiPartIdxLT, uiPartIdxRT, uiZorderIdxInPart, uiPartDepth );
   pcCU->deriveLeftBottomIdxAdi  ( uiPartIdxLB,              uiZorderIdxInPart, uiPartDepth );
   
+#if AD_HOC_SLICES && SHARP_ENTROPY_SLICE
+  if( pcCU->getPUAbove        ( uiPartDum, uiPartIdxLT, true, false ) )             bAboveFlag      = true;
+  if( pcCU->getPUAboveRightAdi( uiPartDum,uiCuWidth, uiPartIdxRT, true, false ) )   bAboveRightFlag = true;
+  if( pcCU->getPULeft         ( uiPartDum, uiPartIdxLT, true, false ) )             bLeftFlag       = true;
+  if( pcCU->getPUBelowLeftAdi ( uiPartDum, uiCuHeight, uiPartIdxLB, true, false ) ) bBelowLeftFlag  = true;
+  if( pcCU->getPUAboveLeft    ( uiPartDum, uiPartIdxLT, true, false            ) )  bAboveLeftFlag  = true;
+#else
   if( pcCU->getPUAbove     ( uiPartDum, uiPartIdxLT ) ) bAboveFlag      = true;
   if( pcCU->getPUAboveRightAdi( uiPartDum,uiCuWidth, uiPartIdxRT ) ) bAboveRightFlag = true;
   if( pcCU->getPULeft      ( uiPartDum, uiPartIdxLT ) ) bLeftFlag       = true;
   if( pcCU->getPUBelowLeftAdi (uiPartDum, uiCuHeight, uiPartIdxLB ) ) bBelowLeftFlag  = true;
 #if AD_HOC_SLICES 
   if( pcCU->getPUAboveLeft ( uiPartDum, uiPartIdxLT            ) ) bAboveLeftFlag      = true;
+#endif
 #endif
   
   bAbove = bAboveFlag;

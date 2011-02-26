@@ -93,11 +93,16 @@ Void TDecGop::decompressGop (Bool bEos, TComBitstream* pcBitstream, TComPic*& rp
 #else
   TComSlice*  pcSlice = rpcPic->getSlice();
 #endif
+
   //-- For time output for each slice
   long iBeforeTime = clock();
   
 #if AD_HOC_SLICES
-  UInt uiRSStartCUAddr               = pcSlice->getSliceCurStartCUAddr();
+#if SHARP_ENTROPY_SLICE
+  UInt uiStartCUAddr   = pcSlice->getEntropySliceCurStartCUAddr();
+#else
+  UInt uiRSStartCUAddr = pcSlice->getSliceCurStartCUAddr();
+#endif
 #endif
   UInt iSymbolMode = pcSlice->getSymbolMode();
   if (iSymbolMode)
@@ -118,9 +123,13 @@ Void TDecGop::decompressGop (Bool bEos, TComBitstream* pcBitstream, TComPic*& rp
 #else
   ALFParam cAlfParam;
 #endif
-  
+
 #if AD_HOC_SLICES
+#if SHARP_ENTROPY_SLICE
+  if (uiStartCUAddr==0)  // decode ALF params only from first slice header
+#else
   if (uiRSStartCUAddr==0)  // decode ALF params only from first slice header
+#endif
   {
     if ( rpcPic->getSlice(0)->getSPS()->getUseALF() )
 #else

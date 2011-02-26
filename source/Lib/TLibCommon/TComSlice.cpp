@@ -74,6 +74,9 @@ TComSlice::TComSlice()
 #endif
 #if AD_HOC_SLICES
   m_uiSliceCurStartCUAddr        = 0;
+#if SHARP_ENTROPY_SLICE
+  m_uiEntropySliceCurStartCUAddr = 0;
+#endif
 #endif
 }
 
@@ -657,8 +660,8 @@ Void TComSlice::copySliceInfo(TComSlice *pSrc)
   {
     for (j = 0; j < MAX_NUM_REF; j++)
     {
-       m_apcRefPicList[i][j]  = pSrc->m_apcRefPicList[i][j];
-       m_aiRefPOCList[i][j]   = pSrc->m_aiRefPOCList[i][j];
+      m_apcRefPicList[i][j]  = pSrc->m_apcRefPicList[i][j];
+      m_aiRefPOCList[i][j]   = pSrc->m_aiRefPOCList[i][j];
     }
   }  
   m_iDepth               = pSrc->m_iDepth;
@@ -701,6 +704,14 @@ Void TComSlice::copySliceInfo(TComSlice *pSrc)
   m_uiSliceCurStartCUAddr= pSrc->m_uiSliceCurStartCUAddr;
   m_uiSliceCurEndCUAddr  = pSrc->m_uiSliceCurEndCUAddr;
   m_uiSliceIdx           = pSrc->m_uiSliceIdx;
+#if SHARP_ENTROPY_SLICE 
+  m_uiEntropySliceMode            = pSrc->m_uiEntropySliceMode;
+  m_uiEntropySliceArgument        = pSrc->m_uiEntropySliceArgument; 
+  m_uiEntropySliceCurStartCUAddr  = pSrc->m_uiEntropySliceCurStartCUAddr;
+  m_uiEntropySliceCurEndCUAddr    = pSrc->m_uiEntropySliceCurEndCUAddr;
+  m_bNextSlice                    = pSrc->m_bNextSlice;
+  m_bNextEntropySlice             = pSrc->m_bNextEntropySlice;
+#endif
 }
 #endif
 // ------------------------------------------------------------------------------------------------

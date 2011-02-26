@@ -116,6 +116,12 @@ TEncBinCABAC::encodeBin( UInt uiBin, ContextModel &rcCtxModel )
     DTRACE_CABAC_V( uiBin )
     DTRACE_CABAC_T( "\n" )
   }
+#if AD_HOC_SLICES && SHARP_ENTROPY_SLICE
+  if (m_bBinCountingEnabled) 
+  {
+    m_uiBinsCoded++;
+  }
+#endif
   UInt  uiLPS   = TComCABACTables::sm_aucLPSTable[ rcCtxModel.getState() ][ ( m_uiRange >> 6 ) & 3 ];
   m_uiRange    -= uiLPS;
   if( uiBin != rcCtxModel.getMps() )
@@ -158,6 +164,12 @@ TEncBinCABAC::encodeBinEP( UInt uiBin )
     DTRACE_CABAC_V( uiBin )
     DTRACE_CABAC_T( "\n" )
   }
+#if AD_HOC_SLICES && SHARP_ENTROPY_SLICE
+  if (m_bBinCountingEnabled)
+  {
+    m_uiBinsCoded++;
+  }
+#endif
   m_uiLow <<= 1;
   if( uiBin )
   {
@@ -182,6 +194,12 @@ TEncBinCABAC::encodeBinEP( UInt uiBin )
 Void
 TEncBinCABAC::encodeBinTrm( UInt uiBin )
 {
+#if AD_HOC_SLICES && SHARP_ENTROPY_SLICE
+  if (m_bBinCountingEnabled)
+  {
+    m_uiBinsCoded++;
+  }
+#endif
   m_uiRange -= 2;
   if( uiBin )
   {

@@ -89,7 +89,7 @@ public:
   TComDataCU*&  getCU( UInt uiCUAddr )  { return m_apcTComDataCU[uiCUAddr];     }
   
 #if AD_HOC_SLICES
-  Void        setSlice(TComSlice* p, UInt i)    { m_apcTComSlice[i] = p;        }
+  Void        setSlice(TComSlice* p, UInt i) { m_apcTComSlice[i] = p;           }
   UInt        getNumAllocatedSlice()    { return m_uiNumAllocatedSlice;         }
   Void        allocateNewSlice();
   Void        clearSliceBuffer();

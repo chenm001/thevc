@@ -229,9 +229,13 @@ Void TDecTop::decode (Bool bEos, TComBitstream* pcBitstream, UInt& ruiPOC, TComL
   m_apcSlicePilot->initSlice();
   
 #if AD_HOC_SLICES
+#if AD_HOC_SLICES_TEST_OUTOFORDER_DECOMPRESS
+  if (pcBitstream->getSliceProcessed()==0)
+#else
   if (pcBitstream->getFirstSliceEncounteredInPicture())
+#endif
   {
-    m_uiSliceIdx    = 0;
+    m_uiSliceIdx     = 0;
     m_uiLastSliceIdx = 0;
   }
   m_apcSlicePilot->setSliceIdx(m_uiSliceIdx);
@@ -239,13 +243,28 @@ Void TDecTop::decode (Bool bEos, TComBitstream* pcBitstream, UInt& ruiPOC, TComL
   //  Read slice header
   m_apcSlicePilot->setSPS( &m_cSPS );
   m_apcSlicePilot->setPPS( &m_cPPS );
+#if AD_HOC_SLICES && SHARP_ENTROPY_SLICE
+  if (!pcBitstream->getFirstSliceEncounteredInPicture())
+  {
+    m_apcSlicePilot->setSliceCurStartCUAddr       ( pcPic->getPicSym()->getSlice(m_uiSliceIdx)->getSliceCurStartCUAddr()        );
+    m_apcSlicePilot->setEntropySliceCurStartCUAddr( pcPic->getPicSym()->getSlice(m_uiSliceIdx)->getEntropySliceCurStartCUAddr() );
+  }
+#endif
+
   m_cEntropyDecoder.decodeSliceHeader (m_apcSlicePilot);
-  
+
+#if AD_HOC_SLICES && SHARP_ENTROPY_SLICE
+  if (m_apcSlicePilot->isNextSlice())
+  {
+#endif
 #if DCM_SKIP_DECODING_FRAMES
   // Skip pictures due to random access
   if (isRandomAccessSkipPicture(iSkipFrame, iPOCLastDisplay))
   {
     return;
+  }
+#endif
+#if AD_HOC_SLICES && SHARP_ENTROPY_SLICE
   }
 #endif
 
@@ -271,6 +290,7 @@ Void TDecTop::decode (Bool bEos, TComBitstream* pcBitstream, UInt& ruiPOC, TComL
   //  Set picture slice pointer
   TComSlice*  pcSlice = m_apcSlicePilot;
 #if AD_HOC_SLICES
+#if !SHARP_ENTROPY_SLICE
   if (pcBitstream->getFirstSliceEncounteredInPicture()) 
   {
     if(pcPic->getNumAllocatedSlice() != 1)
@@ -280,21 +300,47 @@ Void TDecTop::decode (Bool bEos, TComBitstream* pcBitstream, UInt& ruiPOC, TComL
   }
   else
   {
-     pcPic->allocateNewSlice();
+    pcPic->allocateNewSlice();
   }
   assert(pcPic->getNumAllocatedSlice() == (m_uiSliceIdx + 1));
-
   m_apcSlicePilot = pcPic->getPicSym()->getSlice(m_uiSliceIdx); 
   pcPic->getPicSym()->setSlice(pcSlice, m_uiSliceIdx);
+#else
+  Bool bNextSlice                   = m_apcSlicePilot->isNextSlice();
+  UInt uiSliceCurStartCUAddr        = m_apcSlicePilot->getSliceCurStartCUAddr();
+  Bool bNextEntropySlice            = m_apcSlicePilot->isNextEntropySlice();
+  UInt uiEnrtopySliceCurStartCUAddr = m_apcSlicePilot->getEntropySliceCurStartCUAddr();
+
+  if (pcBitstream->getFirstSliceEncounteredInPicture())
+  {
+    assert(pcPic->getNumAllocatedSlice() == (m_uiSliceIdx + 1));
+    m_apcSlicePilot = pcPic->getPicSym()->getSlice(m_uiSliceIdx); 
+    pcPic->getPicSym()->setSlice(pcSlice, m_uiSliceIdx);
+  }
+  else 
+  {
+    pcSlice = pcPic->getPicSym()->getSlice( m_uiSliceIdx                  );
+    pcSlice->setSliceCurStartCUAddr       ( uiSliceCurStartCUAddr         );
+    pcSlice->setEntropySliceCurStartCUAddr( uiEnrtopySliceCurStartCUAddr  );
+    pcSlice->setNextEntropySlice          ( bNextEntropySlice             );
+    pcSlice->setNextSlice                 ( bNextSlice                    );
+  }
+#endif
+
 #else
   m_apcSlicePilot = pcPic->getPicSym()->getSlice();
   pcPic->getPicSym()->setSlice(pcSlice);
 #endif
-  
+
+#if AD_HOC_SLICES  && SHARP_ENTROPY_SLICE
+  if (bNextSlice)
+  {
+#endif
 #if DCM_DECODING_REFRESH
   // Do decoding refresh marking if any
   pcSlice->decodingRefreshMarking(m_uiPOCCDR, m_bRefreshPending, m_cListPic);
 #endif
+
   // Set reference list
   pcSlice->setRefPicList( m_cListPic );
   
@@ -339,13 +385,14 @@ Void TDecTop::decode (Bool bEos, TComBitstream* pcBitstream, UInt& ruiPOC, TComL
   
   //---------------
   pcSlice->setRefPOCList();
-  
+ 
 #if DCM_COMB_LIST 
   if(!pcSlice->getRefPicListModificationFlagLC())
   {
     pcSlice->generateCombinedList();
   }
 #endif
+
 #if MS_NO_BACK_PRED_IN_B0
   pcSlice->setNoBackPredFlag( false );
 #if DCM_COMB_LIST
@@ -367,6 +414,10 @@ Void TDecTop::decode (Bool bEos, TComBitstream* pcBitstream, UInt& ruiPOC, TComL
         }
       }
     }
+  }
+#endif
+
+#if AD_HOC_SLICES && SHARP_ENTROPY_SLICE
   }
 #endif
   
@@ -393,11 +444,13 @@ Void TDecTop::decode (Bool bEos, TComBitstream* pcBitstream, UInt& ruiPOC, TComL
 
 #if AD_HOC_SLICES 
   }
+#if !SHARP_ENTROPY_SLICE
   else
   {
     m_uiLastSliceIdx = m_uiSliceIdx;
     m_uiSliceIdx ++;
   }
+#endif
 #endif
   
   return;

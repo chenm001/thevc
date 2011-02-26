@@ -83,6 +83,9 @@ Void  TEncGOP::create( Int iWidth, Int iHeight, UInt iMaxCUWidth, UInt iMaxCUHei
   UInt uiHeightInCU      = ( iHeight%iMaxCUHeight ) ? iHeight/iMaxCUHeight + 1 : iHeight/iMaxCUHeight;
   UInt uiNumCUsInFrame   = uiWidthInCU * uiHeightInCU;
   m_uiStoredStartCUAddrForEncodingSlice = new UInt [uiNumCUsInFrame+1];
+#if SHARP_ENTROPY_SLICE
+  m_uiStoredStartCUAddrForEncodingEntropySlice = new UInt [uiNumCUsInFrame+1];
+#endif
 }
 #else
 Void  TEncGOP::create()
@@ -94,6 +97,9 @@ Void  TEncGOP::destroy()
 {
 #if AD_HOC_SLICES 
   delete [] m_uiStoredStartCUAddrForEncodingSlice; m_uiStoredStartCUAddrForEncodingSlice = NULL;
+#if SHARP_ENTROPY_SLICE
+  delete [] m_uiStoredStartCUAddrForEncodingEntropySlice; m_uiStoredStartCUAddrForEncodingEntropySlice = NULL;
+#endif
 #endif
 }
 
@@ -318,6 +324,67 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
       UInt uiStartCUAddrSlice    = 0; // used to keep track of current slice's starting CU addr.
       pcSlice->setSliceCurStartCUAddr( uiStartCUAddrSlice ); // Setting "start CU addr" for current slice
       memset(m_uiStoredStartCUAddrForEncodingSlice, 0, sizeof(UInt) * (pcPic->getPicSym()->getNumberOfCUsInFrame()+1));
+#if SHARP_ENTROPY_SLICE
+      UInt uiStartCUAddrEntropySliceIdx = 0; // used to index "m_uiStoredStartCUAddrForEntropyEncodingSlice" containing locations of slice boundaries
+      UInt uiStartCUAddrEntropySlice    = 0; // used to keep track of current Entropy slice's starting CU addr.
+      pcSlice->setEntropySliceCurStartCUAddr( uiStartCUAddrEntropySlice ); // Setting "start CU addr" for current Entropy slice
+      memset(m_uiStoredStartCUAddrForEncodingEntropySlice, 0, sizeof(UInt) * (pcPic->getPicSym()->getNumberOfCUsInFrame()+1));
+
+      UInt uiNextCUAddr = 0;
+      m_uiStoredStartCUAddrForEncodingSlice[uiStartCUAddrSliceIdx++]                = uiNextCUAddr;
+      m_uiStoredStartCUAddrForEncodingEntropySlice[uiStartCUAddrEntropySliceIdx++]  = uiNextCUAddr;
+
+      while(uiNextCUAddr<pcPic->getPicSym()->getNumberOfCUsInFrame()) // determine slice boundaries
+      {
+        pcSlice->setNextSlice       ( false );
+        pcSlice->setNextEntropySlice( false );
+        assert(pcPic->getNumAllocatedSlice() == uiStartCUAddrSliceIdx);
+
+        m_pcSliceEncoder->precompressSlice( pcPic );
+        m_pcSliceEncoder->compressSlice   ( pcPic );
+
+        Bool bNoBinBitConstraintViolated = (!pcSlice->isNextSlice() && !pcSlice->isNextEntropySlice());
+        if (pcSlice->isNextSlice() || (bNoBinBitConstraintViolated && m_pcCfg->getSliceMode()==AD_HOC_SLICES_FIXED_NUMBER_OF_LCU_IN_SLICE))
+        {
+          uiStartCUAddrSlice                                              = pcSlice->getSliceCurEndCUAddr();
+          // Reconstruction slice
+          m_uiStoredStartCUAddrForEncodingSlice[uiStartCUAddrSliceIdx++]  = uiStartCUAddrSlice;
+          // Entropy slice
+          if (uiStartCUAddrEntropySliceIdx>0 && m_uiStoredStartCUAddrForEncodingEntropySlice[uiStartCUAddrEntropySliceIdx-1] != uiStartCUAddrSlice)
+          {
+            m_uiStoredStartCUAddrForEncodingEntropySlice[uiStartCUAddrEntropySliceIdx++]  = uiStartCUAddrSlice;
+          }
+          
+          if (uiStartCUAddrSlice < pcPic->getPicSym()->getNumberOfCUsInFrame())
+          {
+            pcPic->allocateNewSlice();          
+            pcPic->setCurrSliceIdx                  ( uiStartCUAddrSliceIdx-1 );
+            m_pcSliceEncoder->setSliceIdx           ( uiStartCUAddrSliceIdx-1 );
+            pcSlice = pcPic->getSlice               ( uiStartCUAddrSliceIdx-1 );
+            pcSlice->copySliceInfo                  ( pcPic->getSlice(0)      );
+            pcSlice->setSliceIdx                    ( uiStartCUAddrSliceIdx-1 );
+            pcSlice->setSliceCurStartCUAddr         ( uiStartCUAddrSlice      );
+            pcSlice->setEntropySliceCurStartCUAddr  ( uiStartCUAddrSlice      );
+            pcSlice->setSliceBits(0);
+          }
+        }
+        else if (pcSlice->isNextEntropySlice() || (bNoBinBitConstraintViolated && m_pcCfg->getEntropySliceMode()==SHARP_FIXED_NUMBER_OF_LCU_IN_ENTROPY_SLICE))
+        {
+          uiStartCUAddrEntropySlice                                                     = pcSlice->getEntropySliceCurEndCUAddr();
+          m_uiStoredStartCUAddrForEncodingEntropySlice[uiStartCUAddrEntropySliceIdx++]  = uiStartCUAddrEntropySlice;
+          pcSlice->setEntropySliceCurStartCUAddr( uiStartCUAddrEntropySlice );
+        }
+        else
+        {
+          uiStartCUAddrSlice                                                            = pcSlice->getSliceCurEndCUAddr();
+          uiStartCUAddrEntropySlice                                                     = pcSlice->getEntropySliceCurEndCUAddr();
+        }        
+
+        uiNextCUAddr = (uiStartCUAddrSlice > uiStartCUAddrEntropySlice) ? uiStartCUAddrSlice : uiStartCUAddrEntropySlice;
+      }
+      m_uiStoredStartCUAddrForEncodingSlice[uiStartCUAddrSliceIdx++]                = pcSlice->getSliceCurEndCUAddr();
+      m_uiStoredStartCUAddrForEncodingEntropySlice[uiStartCUAddrEntropySliceIdx++]  = pcSlice->getSliceCurEndCUAddr();
+#else
       while(uiStartCUAddrSlice<pcPic->getPicSym()->getNumberOfCUsInFrame()) // determine slice boundaries
       {
         if(uiStartCUAddrSliceIdx != 0)
@@ -342,6 +409,7 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
         uiStartCUAddrSlice                                              = pcSlice->getSliceCurEndCUAddr();
         m_uiStoredStartCUAddrForEncodingSlice[uiStartCUAddrSliceIdx++]  = uiStartCUAddrSlice;
       }
+#endif
 #else
       m_pcSliceEncoder->precompressSlice( pcPic );
       m_pcSliceEncoder->compressSlice   ( pcPic );
@@ -382,7 +450,52 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
       uiStartCUAddrSlice    = 0; 
       pcBitstreamOut->allocateMemoryForSliceLocations( pcPic->getPicSym()->getNumberOfCUsInFrame() ); // Assuming number of slices <= number of LCU. Needs to be changed for sub-LCU slice coding.
       pcBitstreamOut->setSliceCount( 0 );                                      // intialize number of slices to zero, used while converting RBSP to NALU
+#if SHARP_ENTROPY_SLICE
+      uiStartCUAddrEntropySliceIdx = 0;
+      uiStartCUAddrEntropySlice    = 0; 
+      uiNextCUAddr                 = 0;
+      pcSlice = pcPic->getSlice(uiStartCUAddrSliceIdx);
+      while (uiNextCUAddr < pcPic->getPicSym()->getNumberOfCUsInFrame()) // Iterate over all slices
+      {
+        pcSlice->setNextSlice       ( false );
+        pcSlice->setNextEntropySlice( false );
+        if (uiNextCUAddr == m_uiStoredStartCUAddrForEncodingSlice[uiStartCUAddrSliceIdx])
+        {
+          pcSlice = pcPic->getSlice(uiStartCUAddrSliceIdx);
+          pcPic->setCurrSliceIdx(uiStartCUAddrSliceIdx);
+          m_pcSliceEncoder->setSliceIdx(uiStartCUAddrSliceIdx);
+          assert(uiStartCUAddrSliceIdx == pcSlice->getSliceIdx());
+          // Reconstruction slice
+          pcSlice->setSliceCurStartCUAddr( uiNextCUAddr );  // to be used in encodeSlice() + context restriction
+          pcSlice->setSliceCurEndCUAddr  ( m_uiStoredStartCUAddrForEncodingSlice[uiStartCUAddrSliceIdx+1 ] );
+          // Entropy slice
+          pcSlice->setEntropySliceCurStartCUAddr( uiNextCUAddr );  // to be used in encodeSlice() + context restriction
+          pcSlice->setEntropySliceCurEndCUAddr  ( m_uiStoredStartCUAddrForEncodingEntropySlice[uiStartCUAddrEntropySliceIdx+1 ] );
 
+          pcSlice->setNextSlice       ( true );
+
+          uiStartCUAddrSliceIdx++;
+          uiStartCUAddrEntropySliceIdx++;
+        } 
+        else if (uiNextCUAddr == m_uiStoredStartCUAddrForEncodingEntropySlice[uiStartCUAddrEntropySliceIdx])
+        {
+          // Entropy slice
+          pcSlice->setEntropySliceCurStartCUAddr( uiNextCUAddr );  // to be used in encodeSlice() + context restriction
+          pcSlice->setEntropySliceCurEndCUAddr  ( m_uiStoredStartCUAddrForEncodingEntropySlice[uiStartCUAddrEntropySliceIdx+1 ] );
+
+          pcSlice->setNextEntropySlice( true );
+
+          uiStartCUAddrEntropySliceIdx++;
+        }
+
+        // Get ready for writing slice header (other than the first one in the picture)
+        if (uiNextCUAddr!=0)
+        {
+          m_pcEntropyCoder->setEntropyCoder   ( m_pcCavlcCoder, pcSlice );
+          m_pcEntropyCoder->setBitstream      ( pcBitstreamOut          );
+          m_pcEntropyCoder->resetEntropy      ();
+        }
+#else
       while (uiStartCUAddrSlice < pcPic->getPicSym()->getNumberOfCUsInFrame()) // Iterate over all slices
       {
         pcSlice = pcPic->getSlice(uiStartCUAddrSliceIdx);
@@ -399,10 +512,12 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
           m_pcEntropyCoder->setBitstream      ( pcBitstreamOut          );
           m_pcEntropyCoder->resetEntropy      ();
         }
+#endif
 #endif        
 #if !AD_HOC_SLICES
         UInt uiPosBefore = pcBitstreamOut->getNumberOfWrittenBits()>>3;
 #endif
+
       // write SliceHeader
       m_pcEntropyCoder->encodeSliceHeader ( pcSlice                 );
       
@@ -419,8 +534,13 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
       }
       
 #if AD_HOC_SLICES
+#if SHARP_ENTROPY_SLICE
+        if (uiNextCUAddr==0)  // Compute ALF params and write only for first slice header
+        {
+#else
       if (uiStartCUAddrSlice==0)  // Compute ALF params and write only for first slice header
       {
+#endif
 #endif
       // adaptive loop filter
       if ( pcSlice->getSPS()->getUseALF() )
@@ -527,11 +647,20 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
       
       // File writing
       m_pcSliceEncoder->encodeSlice( pcPic, pcBitstreamOut );
-      
+
       //  End of bitstream & byte align
       pcBitstreamOut->write( 1, 1 );
       pcBitstreamOut->writeAlignZero();
+
 #if AD_HOC_SLICES 
+#if SHARP_ENTROPY_SLICE 
+        UInt uiBoundingAddrSlice, uiBoundingAddrEntropySlice;
+        uiBoundingAddrSlice        = m_uiStoredStartCUAddrForEncodingSlice[uiStartCUAddrSliceIdx];          
+        uiBoundingAddrEntropySlice = m_uiStoredStartCUAddrForEncodingEntropySlice[uiStartCUAddrEntropySliceIdx];          
+        uiNextCUAddr               = min(uiBoundingAddrSlice, uiBoundingAddrEntropySlice);
+        if (uiNextCUAddr < pcPic->getPicSym()->getNumberOfCUsInFrame())   // if more slices to be encoded insert start code
+        {
+#else
       if (m_pcCfg->getSliceMode()==AD_HOC_SLICES_FIXED_NUMBER_OF_LCU_IN_SLICE)
       {
         uiStartCUAddrSlice += m_pcCfg->getSliceArgument();               // for next iteration
@@ -543,12 +672,15 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
 
       if (uiStartCUAddrSlice < pcPic->getPicSym()->getNumberOfCUsInFrame())   // if more slices to be encoded insert start code
       {
+#endif
         UInt uiSliceCount = pcBitstreamOut->getSliceCount();
         pcBitstreamOut->setSliceByteLocation( uiSliceCount, (pcBitstreamOut->getNumberOfWrittenBits()>>3) );
         pcBitstreamOut->setSliceCount( uiSliceCount+1 );
         pcBitstreamOut->write( 1, 32);
       }
+#if !SHARP_ENTROPY_SLICE
       uiStartCUAddrSliceIdx++;
+#endif
     } // end iteration over slices
 #endif
       

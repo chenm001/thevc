@@ -88,7 +88,11 @@ private:
   Int       m_iCurFileLocation;
   Int       m_iNextFileLocation;
 #endif
+#if SHARP_ENTROPY_SLICE
+  Bool      m_bEntropySlice;
 #endif
+#endif
+
 public:
   TVideoIOBitsStartCode()            
   {
@@ -96,6 +100,9 @@ public:
     m_uiLastPOC = UInt(-2);
     m_bFirstSliceEncounteredInPicture = false;
     m_bLastSliceEncounteredInPicture  = false;
+#if SHARP_ENTROPY_SLICE
+    m_bEntropySlice                   = false;
+#endif
 #endif
   }
   virtual ~TVideoIOBitsStartCode()   {}

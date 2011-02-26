@@ -155,11 +155,15 @@ Void TAppDecTop::decode()
     }
 
     // Set file pointer and perform out-of-order slice decoding
-    // Slice1 Slice0 Slice3 Slice2 Slice5 Slice4 ...
     for (Int iSliceProcessed = 0; iSliceProcessed < iSliceCountInPicture; iSliceProcessed++)
     {
-      
+#if SHARP_ENTROPY_SLICE
+      // Disable out-of-order decompression since crossing reconstruction slice boundaries causes problems
+      Int iSliceIndxToDecode     = iSliceProcessed;
+#else
+      // Slice1 Slice0 Slice3 Slice2 Slice5 Slice4 ...
       Int iSliceIndxToDecode     = (iSliceProcessed%2==1) ? (iSliceProcessed-1) : (iSliceProcessed+1);
+#endif
       iSliceIndxToDecode         = (iSliceIndxToDecode<0) ? 0 : ( (iSliceIndxToDecode > (iSliceCountInPicture-1)) ? (iSliceCountInPicture-1) : iSliceIndxToDecode );
 
       m_cTVideoIOBitstreamFile.setFileLocation( alFileByteLocationSlicesInPicture[ iSliceIndxToDecode ] );
@@ -170,6 +174,7 @@ Void TAppDecTop::decode()
         m_cTVideoIOBitstreamFile.rewindFile();
       }
 
+      pcBitstream->setSliceProcessed ( iSliceProcessed );
       pcBitstream->setFirstSliceEncounteredInPicture( (iSliceProcessed==0) ? true : false );
       pcBitstream->setLastSliceEncounteredInPicture( (iSliceProcessed==iSliceCountInPicture-1) ? true : false );
       // call actual decoding function
@@ -310,6 +315,14 @@ Void TAppDecTop::xWriteOutput( TComList<TComPic*>* pcListPic )
         continue;
 #endif
       }
+
+#if AD_HOC_SLICES && SHARP_ENTROPY_SLICE
+      if(pcPic->getNumAllocatedSlice() != 1)
+      {
+        pcPic->clearSliceBuffer();
+      }
+#endif
+
     }
     
     iterPic++;
