@@ -298,6 +298,17 @@ Void TComLoopFilter::xGetBoundaryStrengthSingle ( TComDataCU* pcCU, UInt uiAbsZo
   TComDataCU* pcCUP;
   UInt uiBs;
   
+#if AD_HOC_SLICES  
+  //-- Calculate Block Index
+  if (iDir == EDGE_VER)
+  {
+    pcCUP = pcCUQ->getPULeft(uiPartP, uiPartQ, false);
+  }
+  else  // (iDir == EDGE_HOR)
+  {
+    pcCUP = pcCUQ->getPUAbove(uiPartP, uiPartQ, false);
+  }
+#else
   //-- Calculate Block Index
   if (iDir == EDGE_VER)
   {
@@ -307,6 +318,7 @@ Void TComLoopFilter::xGetBoundaryStrengthSingle ( TComDataCU* pcCU, UInt uiAbsZo
   {
     pcCUP = pcCUQ->getPUAbove(uiPartP, uiPartQ);
   }
+#endif
   
   //-- Set BS for Intra MB : BS = 4 or 3
   if ( pcCUP->isIntra(uiPartP) || pcCUQ->isIntra(uiPartQ) )

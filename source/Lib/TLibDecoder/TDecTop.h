@@ -89,6 +89,11 @@ private:
 #if DCM_SKIP_DECODING_FRAMES
   Bool isRandomAccessSkipPicture(Int& iSkipFrame,  Int& iPOCLastDisplay);
 #endif
+#if AD_HOC_SLICES
+  TComPic*                m_pcPic;
+  UInt                    m_uiSliceIdx;
+  UInt                    m_uiLastSliceIdx;
+#endif
 
 public:
   TDecTop();
@@ -106,6 +111,16 @@ public:
   
   Void  deletePicBuffer();
   
+#if AD_HOC_SLICES && AD_HOC_SLICES_TEST_OUTOFORDER_DECOMPRESS
+  TComSPS* getSPS()        
+  { 
+    if (m_uiValidPS | 2)
+      return &m_cSPS;
+    else
+      return NULL;
+  }
+#endif
+
 protected:
   Void  xGetNewPicBuffer  (TComSlice* pcSlice, TComPic*& rpcPic);
   Void  xUpdateGopSize    (TComSlice* pcSlice);

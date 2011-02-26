@@ -65,6 +65,9 @@ Void TDecSlice::decompressSlice(TComBitstream* pcBitstream, TComPic*& rpcPic)
 {
   TComDataCU* pcCU;
   UInt        uiIsLast = 0;
+#if AD_HOC_SLICES
+  Int   iStartCUAddr = rpcPic->getSlice(rpcPic->getCurrSliceIdx())->getSliceCurStartCUAddr();
+#endif
   // decoder don't need prediction & residual frame buffer
   rpcPic->setPicYuvPred( 0 );
   rpcPic->setPicYuvResi( 0 );
@@ -79,8 +82,14 @@ Void TDecSlice::decompressSlice(TComBitstream* pcBitstream, TComPic*& rpcPic)
 #if ENC_DEC_TRACE
   g_bJustDoIt = g_bEncDecTraceDisable;
 #endif
+#if AD_HOC_SLICES
+  // for all CUs in slice
+  UInt  uiLastCUAddr = iStartCUAddr;
+  for( Int iCUAddr = iStartCUAddr; !uiIsLast && iCUAddr < rpcPic->getNumCUsInFrame(); iCUAddr++, uiLastCUAddr++ )
+#else
   // for all CUs
   for( Int iCUAddr = 0; !uiIsLast && iCUAddr < rpcPic->getNumCUsInFrame(); iCUAddr++ )
+#endif  
   {
     pcCU = rpcPic->getCU( iCUAddr );
     pcCU->initCU( rpcPic, iCUAddr );

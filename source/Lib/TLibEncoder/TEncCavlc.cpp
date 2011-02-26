@@ -575,6 +575,9 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
   xWriteCode  (pcSlice->getPOC(), 10 );   //  9 == SPS->Log2MaxFrameNum
   xWriteUvlc  (pcSlice->getSliceType() );
   xWriteSvlc  (pcSlice->getSliceQp() );
+#if AD_HOC_SLICES 
+  xWriteUvlc(pcSlice->getSliceCurStartCUAddr()); // start CU addr for slice
+#endif
   
   xWriteFlag  (pcSlice->getSymbolMode() > 0 ? 1 : 0);
   

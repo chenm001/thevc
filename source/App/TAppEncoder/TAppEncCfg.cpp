@@ -211,6 +211,10 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
 #ifdef ROUNDING_CONTROL_BIPRED
   ("RoundingControlBipred", m_useRoundingControlBipred, false, "Rounding control for bi-prediction")
 #endif
+#if AD_HOC_SLICES 
+    ("SliceMode",            m_iSliceMode,           0, "0: Disable all Recon slice limits, 1: Enforce max # of LCUs, 2: Enforce max # of bytes")
+    ("SliceArgument",        m_iSliceArgument,       0, "if SliceMode==1 SliceArgument represents max # of LCUs. if SliceMode==2 SliceArgument represents max # of bytes.")
+#endif
   /* Misc. */
   ("FEN", m_bUseFastEnc, false, "fast encoder setting")
   
@@ -373,6 +377,13 @@ Void TAppEncCfg::xCheckParameter()
   xConfirmPara( m_iInterpFilterType >= IPF_LAST,                "Invalid InterpFilterType" );
   xConfirmPara( m_iInterpFilterType == IPF_HHI_4TAP_MOMS,       "Invalid InterpFilterType" );
   xConfirmPara( m_iInterpFilterType == IPF_HHI_6TAP_MOMS,       "Invalid InterpFilterType" );
+#endif
+#if AD_HOC_SLICES 
+  xConfirmPara( m_iSliceMode < 0 || m_iSliceMode > 2, "SliceMode exceeds supported range (0 to 2)" );
+  if (m_iSliceMode!=0)
+  {
+    xConfirmPara( m_iSliceArgument < 1 ,         "SliceArgument should be larger than or equal to 1" );
+  }
 #endif
   
   xConfirmPara( m_iSymbolMode < 0 || m_iSymbolMode > 1,                                     "SymbolMode must be equal to 0 or 1" );
@@ -569,6 +580,13 @@ Void TAppEncCfg::xPrintParameter()
 #endif
 #if HHI_RMP_SWITCH
   printf("RMP:%d ", m_bUseRMP);
+#endif
+#if AD_HOC_SLICES 
+  printf("Slice:%d ",m_iSliceMode);
+  if (m_iSliceMode!=0)
+  {
+    printf("(%d) ", m_iSliceArgument);
+  }
 #endif
   printf("\n");
   

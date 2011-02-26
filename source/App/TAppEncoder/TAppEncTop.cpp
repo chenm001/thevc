@@ -131,6 +131,11 @@ Void TAppEncTop::xInitLibCfg()
 #ifdef ROUNDING_CONTROL_BIPRED
   m_cTEncTop.setUseRoundingControlBipred(m_useRoundingControlBipred);
 #endif
+#if AD_HOC_SLICES 
+  //====== Slice ========
+  m_cTEncTop.setSliceMode               ( m_iSliceMode                );
+  m_cTEncTop.setSliceArgument           ( m_iSliceArgument            );
+#endif
 }
 
 Void TAppEncTop::xCreateLib()

@@ -253,6 +253,13 @@ private:
 #if MS_LCEC_LOOKUP_TABLE_EXCEPTION
   Bool        m_bRefIdxCombineCoding;
 #endif
+#if AD_HOC_SLICES 
+  UInt        m_uiSliceMode;
+  UInt        m_uiSliceArgument;
+  UInt        m_uiSliceCurStartCUAddr;
+  UInt        m_uiSliceCurEndCUAddr;
+  UInt        m_uiSliceIdx;
+#endif
   
 public:
   TComSlice();
@@ -363,6 +370,19 @@ public:
 #endif
 #if DCM_COMB_LIST
   Void      generateCombinedList       ();
+#endif
+#if AD_HOC_SLICES 
+  Void setSliceMode              ( UInt uiMode )     { m_uiSliceMode = uiMode;              }
+  UInt getSliceMode              ()                  { return m_uiSliceMode;                }
+  Void setSliceArgument          ( UInt uiArgument ) { m_uiSliceArgument = uiArgument;      }
+  UInt getSliceArgument          ()                  { return m_uiSliceArgument;            }
+  Void setSliceCurStartCUAddr    ( UInt uiAddr )     { m_uiSliceCurStartCUAddr = uiAddr;    }
+  UInt getSliceCurStartCUAddr    ()                  { return m_uiSliceCurStartCUAddr;      }
+  Void setSliceCurEndCUAddr      ( UInt uiAddr )     { m_uiSliceCurEndCUAddr = uiAddr;      }
+  UInt getSliceCurEndCUAddr      ()                  { return m_uiSliceCurEndCUAddr;        }
+  Void setSliceIdx               ( UInt i)           { m_uiSliceIdx = i;                    }
+  UInt getSliceIdx               ()                  { return  m_uiSliceIdx;                }
+  Void copySliceInfo             (TComSlice *pcSliceSrc);
 #endif
   
 protected:

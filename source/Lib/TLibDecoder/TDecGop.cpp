@@ -88,11 +88,17 @@ Void TDecGop::init( TDecEntropy*            pcEntropyDecoder,
 
 Void TDecGop::decompressGop (Bool bEos, TComBitstream* pcBitstream, TComPic*& rpcPic)
 {
+#if AD_HOC_SLICES
+  TComSlice*  pcSlice = rpcPic->getSlice(rpcPic->getCurrSliceIdx());
+#else
   TComSlice*  pcSlice = rpcPic->getSlice();
-  
+#endif
   //-- For time output for each slice
   long iBeforeTime = clock();
   
+#if AD_HOC_SLICES
+  UInt uiRSStartCUAddr               = pcSlice->getSliceCurStartCUAddr();
+#endif
   UInt iSymbolMode = pcSlice->getSymbolMode();
   if (iSymbolMode)
   {
@@ -107,9 +113,19 @@ Void TDecGop::decompressGop (Bool bEos, TComBitstream* pcBitstream, TComPic*& rp
   m_pcEntropyDecoder->setBitstream      (pcBitstream);
   m_pcEntropyDecoder->resetEntropy      (pcSlice);
   
+#if AD_HOC_SLICES
+  ALFParam& cAlfParam = m_cAlfParam;
+#else
   ALFParam cAlfParam;
+#endif
   
+#if AD_HOC_SLICES
+  if (uiRSStartCUAddr==0)  // decode ALF params only from first slice header
+  {
+    if ( rpcPic->getSlice(0)->getSPS()->getUseALF() )
+#else
   if ( rpcPic->getSlice()->getSPS()->getUseALF() )
+#endif
   {
 #if TSB_ALF_HEADER
     m_pcAdaptiveLoopFilter->setNumCUsInFrame(rpcPic);
@@ -117,15 +133,26 @@ Void TDecGop::decompressGop (Bool bEos, TComBitstream* pcBitstream, TComPic*& rp
     m_pcAdaptiveLoopFilter->allocALFParam(&cAlfParam);
     m_pcEntropyDecoder->decodeAlfParam( &cAlfParam );
   }
+#if AD_HOC_SLICES
+  }
+#endif
   
   m_pcSliceDecoder->decompressSlice(pcBitstream, rpcPic);
   
+#if AD_HOC_SLICES 
+  if (pcBitstream->getLastSliceEncounteredInPicture())
+  {
+#endif
   // deblocking filter
   m_pcLoopFilter->setCfg(pcSlice->getLoopFilterDisable(), 0, 0);
   m_pcLoopFilter->loopFilterPic( rpcPic );
   
   // adaptive loop filter
+#if AD_HOC_SLICES
+    if( pcSlice->getSPS()->getUseALF() )
+#else
   if( rpcPic->getSlice()->getSPS()->getUseALF() )
+#endif
   {
     m_pcAdaptiveLoopFilter->ALFProcess(rpcPic, &cAlfParam);
     m_pcAdaptiveLoopFilter->freeALFParam(&cAlfParam);
@@ -166,5 +193,8 @@ Void TDecGop::decompressGop (Bool bEos, TComBitstream* pcBitstream, TComPic*& rp
 #endif
   
   rpcPic->setReconMark(true);
+#if AD_HOC_SLICES 
+  }
+#endif
 }
 

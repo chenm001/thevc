@@ -75,6 +75,9 @@ private:
   // Adaptive Loop filter
   TComAdaptiveLoopFilter*       m_pcAdaptiveLoopFilter;
   
+#if AD_HOC_SLICES
+  ALFParam              m_cAlfParam;
+#endif
 public:
   TDecGop();
   virtual ~TDecGop();

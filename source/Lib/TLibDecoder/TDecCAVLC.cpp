@@ -168,6 +168,10 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice)
   xReadCode (10, uiCode);  rpcSlice->setPOC              (uiCode);             // 9 == SPS->Log2MaxFrameNum()
   xReadUvlc (   uiCode);  rpcSlice->setSliceType        ((SliceType)uiCode);
   xReadSvlc (    iCode);  rpcSlice->setSliceQp          (iCode);
+#if AD_HOC_SLICES 
+  xReadUvlc(uiCode);
+  rpcSlice->setSliceCurStartCUAddr( uiCode ); // start CU addr for slice
+#endif
   
   xReadFlag ( uiCode );
   rpcSlice->setSymbolMode( uiCode );
@@ -338,6 +342,15 @@ Void TDecCavlc::parseTerminatingBit( UInt& ruiBit )
   ruiBit = false;
 #else
   xReadFlag( ruiBit );
+#endif
+#if AD_HOC_SLICES
+  Int iBitsLeft = m_pcBitstream->getBitsLeft();
+  if(iBitsLeft <= 8)
+  {
+    UInt uiPeekValue = m_pcBitstream->peekBits(iBitsLeft);
+    if (uiPeekValue == (1<<(iBitsLeft-1)))
+      ruiBit = true;
+  }
 #endif
 }
 

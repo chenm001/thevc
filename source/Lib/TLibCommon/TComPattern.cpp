@@ -189,7 +189,11 @@ Void TComPattern::initPattern( TComDataCU* pcCU, UInt uiPartDepth, UInt uiAbsPar
     UInt uiNumPartInWidth = ( uiWidth/pcPic->getMinCUWidth() );
     uiOffsetAbove = 1;
     
+#if AD_HOC_SLICES
+    if( uiCurrPicPelX + uiWidth < pcCU->getSlice()->getSPS()->getWidth() )
+#else
     if( uiCurrPicPelX + uiWidth < pcPic->getSlice()->getSPS()->getWidth() )
+#endif
     {
       if( ( g_auiZscanToRaster[uiAbsZorderIdx] + uiNumPartInWidth ) % pcPic->getNumPartInWidth() ) // Not CU boundary
       {
@@ -229,6 +233,9 @@ Void TComPattern::initAdiPattern( TComDataCU* pcCU, UInt uiZorderIdxInPart, UInt
   Bool  bAboveRightFlag = false;
   Bool  bLeftFlag       = false;
   Bool  bBelowLeftFlag  = false;
+#if AD_HOC_SLICES 
+  Bool  bAboveLeftFlag  = false;
+#endif
   
   iCuAddr = pcCU->getAddr();
   
@@ -241,6 +248,9 @@ Void TComPattern::initAdiPattern( TComDataCU* pcCU, UInt uiZorderIdxInPart, UInt
   if( pcCU->getPUAboveRightAdi( uiPartDum, uiCuWidth,  uiPartIdxRT ) ) bAboveRightFlag = true;
   if( pcCU->getPULeft         ( uiPartDum,             uiPartIdxLT ) ) bLeftFlag       = true;
   if( pcCU->getPUBelowLeftAdi ( uiPartDum, uiCuHeight, uiPartIdxLB ) ) bBelowLeftFlag  = true;
+#if AD_HOC_SLICES 
+  if( pcCU->getPUAboveLeft    ( uiPartDum,             uiPartIdxLT ) ) bAboveLeftFlag  = true;
+#endif
   
   bAbove = bAboveFlag;
   bLeft  = bLeftFlag;
@@ -283,14 +293,24 @@ Void TComPattern::initAdiPattern( TComDataCU* pcCU, UInt uiZorderIdxInPart, UInt
       for (i=0;i<uiCuWidth;i++)
         piAdiTemp[1+uiCuWidth+i]=piAdiTemp[uiCuWidth];
     }
+#if !AD_HOC_SLICES
     // BB: fill top left border corner with rec. sample
     if (bLeftFlag)//BB: why left not top left?
     {
       piRoiTemp=piRoiOrigin-iPicStride-1;
       piAdiTemp[0]=piRoiTemp[0];
     }
+#endif
   }
   
+#if AD_HOC_SLICES
+  if (bAboveLeftFlag)
+  {
+    piRoiTemp=piRoiOrigin-iPicStride-1;
+    piAdiTemp[0]=piRoiTemp[0];
+  }
+#endif
+
   if (bLeftFlag)
   {
     // BB: fill left border with rec. samples
@@ -386,6 +406,9 @@ Void TComPattern::initAdiPatternChroma( TComDataCU* pcCU, UInt uiZorderIdxInPart
   Bool  bAboveRightFlag=false;
   Bool  bLeftFlag=false;
   Bool  bBelowLeftFlag=false;
+#if AD_HOC_SLICES 
+  Bool  bAboveLeftFlag    = false;
+#endif
   
   iCuAddr = pcCU->getAddr();
   
@@ -398,6 +421,9 @@ Void TComPattern::initAdiPatternChroma( TComDataCU* pcCU, UInt uiZorderIdxInPart
   if( pcCU->getPUAboveRightAdi( uiPartDum,uiCuWidth, uiPartIdxRT ) ) bAboveRightFlag = true;
   if( pcCU->getPULeft      ( uiPartDum, uiPartIdxLT ) ) bLeftFlag       = true;
   if( pcCU->getPUBelowLeftAdi (uiPartDum, uiCuHeight, uiPartIdxLB ) ) bBelowLeftFlag  = true;
+#if AD_HOC_SLICES 
+  if( pcCU->getPUAboveLeft ( uiPartDum, uiPartIdxLT            ) ) bAboveLeftFlag      = true;
+#endif
   
   bAbove = bAboveFlag;
   bLeft  = bLeftFlag;
@@ -441,13 +467,23 @@ Void TComPattern::initAdiPatternChroma( TComDataCU* pcCU, UInt uiZorderIdxInPart
       for (i=0;i<uiCuWidth;i++)
         piAdiTemp[1+uiCuWidth+i]=piAdiTemp[uiCuWidth];
     }
+#if !AD_HOC_SLICES 
     if (bLeftFlag)
     {
       piRoiTemp=piRoiOrigin-iPicStride-1;
       piAdiTemp[0]=piRoiTemp[0];
     }
+#endif
   }
   
+#if AD_HOC_SLICES
+  if (bAboveLeftFlag)
+  {
+    piRoiTemp=piRoiOrigin-iPicStride-1;
+    piAdiTemp[0]=piRoiTemp[0];
+  }
+#endif
+
   if (bLeftFlag)
   {
     piRoiTemp=piRoiOrigin-1;
@@ -498,13 +534,23 @@ Void TComPattern::initAdiPatternChroma( TComDataCU* pcCU, UInt uiZorderIdxInPart
       for (i=0;i<uiCuWidth;i++)
         piAdiTemp[1+uiCuWidth+i]=piAdiTemp[uiCuWidth];
     }
+#if !AD_HOC_SLICES 
     if (bLeftFlag)
     {
       piRoiTemp=piRoiOrigin-iPicStride-1;
       piAdiTemp[0]=piRoiTemp[0];
     }
+#endif
   }
-  
+
+#if AD_HOC_SLICES 
+  if (bAboveLeftFlag)
+  {
+    piRoiTemp=piRoiOrigin-iPicStride-1;
+    piAdiTemp[0]=piRoiTemp[0];
+  }
+#endif  
+
   if (bLeftFlag)
   {
     piRoiTemp=piRoiOrigin-1;
