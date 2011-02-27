@@ -212,6 +212,25 @@
 
 #define FULL_NBIT 0 ///< When enabled, does not use g_uiBitIncrement anymore to support > 8 bit data
 
+/////////////////////////////////
+// AHG SLICES defines section start
+/////////////////////////////////
+#define AD_HOC_SLICES                                   1          ///< Used in enabling / disabling slice source code
+#define AD_HOC_SLICES_FIXED_NUMBER_OF_LCU_IN_SLICE      1          ///< OPTION IDENTIFIER. mode==1 -> Limit maximum number of largest coding tree blocks in a slice
+#define AD_HOC_SLICES_FIXED_NUMBER_OF_BYTES_IN_SLICE    2          ///< OPTION IDENTIFIER. mode==2 -> Limit maximum number of bins/bits in a slice
+#define AD_HOC_SLICES_TEST_OUTOFORDER_DECOMPRESS        1          ///< Enable out-of-order slice decompression. Used for testing.
+                                                                   ///< Out-of-order decompression testing is disabled when entropy slices are used to prevent crossing reconstruction slice boundary.
+#define AD_HOC_SLICES_BUF_SIZE                          500000     ///< Maximum number of bytes pre-loaded during start-code locating process
+
+#define SHARP_ENTROPY_SLICE                                   1          ///< Can be enabled only when AD_HOC_SLICES=1, when AD_HOC_SLICES=0 the macro has no impact
+// Entropy slice options
+#define SHARP_FIXED_NUMBER_OF_LCU_IN_ENTROPY_SLICE            1          ///< OPTION IDENTIFIER. Limit maximum number of largest coding tree blocks in an entropy slice
+#define SHARP_MULTIPLE_CONSTRAINT_BASED_ENTROPY_SLICE         2          ///< OPTION IDENTIFIER. Limit maximum number of bins/bits in an entropy slice
+
+/////////////////////////////////
+// AHG SLICES defines section end
+/////////////////////////////////
+
 // ====================================================================================================================
 // Basic type redefinition
 // ====================================================================================================================

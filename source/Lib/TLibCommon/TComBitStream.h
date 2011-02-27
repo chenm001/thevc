@@ -77,6 +77,12 @@ protected:
   UInt        m_uiBitsLeft;
   UInt        m_uiNextBits;
   
+#if AD_HOC_SLICES 
+  UInt        *m_auiSliceByteLocation, m_uiSliceCount;  // used to skip over slice start codes in initParsingConvertPayloadToRBSP()
+  Bool        m_bFirstSliceEncounteredInPicture;        // used to signal a new picture start at decoder which in turn is used to allocate buffer memory and initialiaztion
+  Bool        m_bLastSliceEncounteredInPicture ;        // used to signal end of picture which in turn is used to free buffer memory and cleanup
+  UInt        m_uiSliceProcessed;
+#endif
   UInt xSwap ( UInt ui )
   {
     // heiko.schwarz@hhi.fhg.de: support for BSD systems as proposed by Steffen Kamp [kamp@ient.rwth-aachen.de]
@@ -118,7 +124,27 @@ public:
 #endif
   Void        read            ( UInt uiNumberOfBits, UInt& ruiBits );
   Void        readAlignOne    ();
+#if AD_HOC_SLICES
+  Bool        getFirstSliceEncounteredInPicture()       { return m_bFirstSliceEncounteredInPicture; }
+  Bool        getLastSliceEncounteredInPicture ()       { return m_bLastSliceEncounteredInPicture;  }
+  UInt        getSliceProcessed                ()       { return m_uiSliceProcessed;                }
+  Void        setFirstSliceEncounteredInPicture(Bool b) { m_bFirstSliceEncounteredInPicture = b;    }
+  Void        setLastSliceEncounteredInPicture (Bool b) { m_bLastSliceEncounteredInPicture  = b;    }
+  Void        setSliceProcessed                (UInt u) { m_uiSliceProcessed                = u;    }
   
+  // interface for slice start-code positioning at encoder
+  UInt        getSliceCount                    ()                            { return m_uiSliceCount;                     }
+  UInt        getSliceByteLocation             ( UInt uiIdx )                { return m_auiSliceByteLocation[ uiIdx ];    }
+  Void        setSliceCount                    ( UInt uiCount )              { m_uiSliceCount = uiCount;                  }
+  Void        setSliceByteLocation             ( UInt uiIdx, UInt uiCount )  { m_auiSliceByteLocation[ uiIdx ] = uiCount; }
+
+  // memory allocation / deallocation interface for "slice location" bookkeeping
+  Void        allocateMemoryForSliceLocations       ( UInt uiMaxNumOfSlices );
+  Void        freeMemoryAllocatedForSliceLocations  ();
+
+  // Peek at bits in word-storage. Used in determining if we have completed reading of current bitstream and therefore slice in LCEC.
+  UInt        peekBits (UInt uiBits) { return( m_ulCurrentBits >> (32 - uiBits));  }
+#endif
   // reset internal status
   Void        resetBits       ()
   {

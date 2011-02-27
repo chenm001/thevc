@@ -145,6 +145,14 @@ protected:
   Int       m_iInterpFilterType;                              ///< interpolation filter type
 #endif
   
+#if AD_HOC_SLICES 
+  Int       m_iSliceMode;	          ///< 0: Disable all Recon slice limits, 1 : Maximum number of largest coding units per slice, 2: Maximum number of bytes in a slice
+  Int       m_iSliceArgument;	      ///< If m_iSliceMode==1, m_iSliceArgument=max. # of largest coding units. If m_iSliceMode==2, m_iSliceArgument=max. # of bytes.
+#if SHARP_ENTROPY_SLICE 
+  Int       m_iEntropySliceMode;	  ///< 0: Disable all entropy slice limits, 1 : Maximum number of largest coding units per slice, 2: Constraint based entropy slice
+  Int       m_iEntropySliceArgument;///< If m_iEntropySliceMode==1, m_iEntropySliceArgument=max. # of largest coding units. If m_iEntropySliceMode==2, m_iEntropySliceArgument=max. # of bins.
+#endif
+#endif
 #ifdef ROUNDING_CONTROL_BIPRED
   Bool m_useRoundingControlBipred;
 #endif

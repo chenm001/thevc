@@ -164,10 +164,43 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice)
 #else
   xReadCode ( 5, uiCode ); assert( NAL_UNIT_CODED_SLICE == uiCode);//NalUnitType
 #endif
+#if AD_HOC_SLICES && SHARP_ENTROPY_SLICE 
+  xReadFlag ( uiCode );
+  Bool bEntropySlice = uiCode ? true : false;
+  if (!bEntropySlice)
+  {
+#endif
   
   xReadCode (10, uiCode);  rpcSlice->setPOC              (uiCode);             // 9 == SPS->Log2MaxFrameNum()
   xReadUvlc (   uiCode);  rpcSlice->setSliceType        ((SliceType)uiCode);
   xReadSvlc (    iCode);  rpcSlice->setSliceQp          (iCode);
+#if AD_HOC_SLICES && SHARP_ENTROPY_SLICE
+  }
+#endif
+
+#if AD_HOC_SLICES && !SHARP_ENTROPY_SLICE
+  xReadUvlc(uiCode);
+  rpcSlice->setSliceCurStartCUAddr( uiCode ); // start CU addr for slice
+#endif
+
+#if AD_HOC_SLICES && SHARP_ENTROPY_SLICE
+  if (bEntropySlice)
+  {
+    rpcSlice->setNextSlice        ( false );
+    rpcSlice->setNextEntropySlice ( true  );
+
+    xReadUvlc(uiCode);
+    rpcSlice->setEntropySliceCurStartCUAddr( uiCode ); // start CU addr for entropy slice
+  }
+  else
+  {
+    rpcSlice->setNextSlice        ( true  );
+    rpcSlice->setNextEntropySlice ( false );
+
+    xReadUvlc(uiCode);
+    rpcSlice->setSliceCurStartCUAddr( uiCode );        // start CU addr for slice
+    rpcSlice->setEntropySliceCurStartCUAddr( uiCode ); // start CU addr for entropy slice  
+#endif
   
   xReadFlag ( uiCode );
   rpcSlice->setSymbolMode( uiCode );
@@ -261,6 +294,9 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice)
     rpcSlice->setColDir(uiCode);
   }
 #endif
+#if AD_HOC_SLICES && SHARP_ENTROPY_SLICE 
+  }
+#endif
   return;
 }
 
@@ -338,6 +374,15 @@ Void TDecCavlc::parseTerminatingBit( UInt& ruiBit )
   ruiBit = false;
 #else
   xReadFlag( ruiBit );
+#endif
+#if AD_HOC_SLICES
+  Int iBitsLeft = m_pcBitstream->getBitsLeft();
+  if(iBitsLeft <= 8)
+  {
+    UInt uiPeekValue = m_pcBitstream->peekBits(iBitsLeft);
+    if (uiPeekValue == (1<<(iBitsLeft-1)))
+      ruiBit = true;
+  }
 #endif
 }
 

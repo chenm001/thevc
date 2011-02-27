@@ -88,6 +88,9 @@ private:
   Double*                 m_pdRdPicQp;                          ///< array of picture QP candidates (double-type for lambda)
   Int*                    m_piRdPicQp;                          ///< array of picture QP candidates (int-type)
   
+#if AD_HOC_SLICES
+  UInt                    m_uiSliceIdx;
+#endif
 public:
   TEncSlice();
   virtual ~TEncSlice();
@@ -110,6 +113,11 @@ public:
   UInt64  getTotalBits        ()  { return m_uiPicTotalBits; }
   
   TEncCu*        getCUEncoder() { return m_pcCuEncoder; }                        ///< CU encoder
+#if AD_HOC_SLICES 
+  Void    xDetermineStartAndBoundingCUAddr  ( UInt& uiStartCUAddr, UInt& uiBoundingCUAddr, TComPic*& rpcPic, Bool bEncodeSlice );
+  UInt    getSliceIdx()         { return m_uiSliceIdx;                    }
+  Void    setSliceIdx(UInt i)   { m_uiSliceIdx = i;                       }
+#endif
 };
 
 

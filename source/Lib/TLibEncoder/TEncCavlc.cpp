@@ -571,10 +571,40 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
 #else
   xWriteCode( NAL_UNIT_CODED_SLICE, 5);
 #endif
-  
+#if AD_HOC_SLICES && SHARP_ENTROPY_SLICE
+  Bool bEntropySlice = false;
+  if (pcSlice->isNextSlice())
+  {
+    xWriteFlag( 0 ); // Entropy slice flag
+  }
+  else
+  {
+    bEntropySlice = true;
+    xWriteFlag( 1 ); // Entropy slice flag
+  }
+  if (!bEntropySlice)
+  {
+#endif
   xWriteCode  (pcSlice->getPOC(), 10 );   //  9 == SPS->Log2MaxFrameNum
   xWriteUvlc  (pcSlice->getSliceType() );
   xWriteSvlc  (pcSlice->getSliceQp() );
+#if AD_HOC_SLICES 
+#if SHARP_ENTROPY_SLICE
+  }
+  if (pcSlice->isNextSlice())
+  {
+    xWriteUvlc(pcSlice->getSliceCurStartCUAddr());        // start CU addr for slice
+  }
+  else
+  {
+    xWriteUvlc(pcSlice->getEntropySliceCurStartCUAddr()); // start CU addr for entropy slice
+  }
+  if (!bEntropySlice)
+  {
+#else
+  xWriteUvlc(pcSlice->getSliceCurStartCUAddr()); // start CU addr for slice
+#endif
+#endif
   
   xWriteFlag  (pcSlice->getSymbolMode() > 0 ? 1 : 0);
   
@@ -642,6 +672,9 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
   if ( pcSlice->getSliceType() == B_SLICE )
   {
     xWriteFlag( pcSlice->getColDir() );
+  }
+#endif
+#if AD_HOC_SLICES && SHARP_ENTROPY_SLICE
   }
 #endif
 }

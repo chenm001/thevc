@@ -108,7 +108,11 @@ public:
   Void  compressCU          ( TComDataCU*&  rpcCU );
   
   /// CU encoding function
+#if AD_HOC_SLICES
+  Void  encodeCU            ( TComDataCU*    pcCU, Bool bForceTerminate = false  );
+#else
   Void  encodeCU            ( TComDataCU*    pcCU );
+#endif
   
   /// set QP value
   Void  setQpLast           ( Int iQp ) { m_iQp = iQp; }
