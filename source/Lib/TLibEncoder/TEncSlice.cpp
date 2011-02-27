@@ -149,6 +149,7 @@ Void TEncSlice::initEncSlice( TComPic* pcPic, Int iPOCLast, UInt uiPOCCurr, Int 
 #endif
   rpcSlice->setPic( pcPic );
   rpcSlice->initSlice();
+  rpcSlice->setPOC( iPOCLast - iNumPicRcvd + iTimeOffset );
   
   // depth re-computation based on rate GOP size
   if ( m_pcCfg->getGOPSize() != m_pcCfg->getRateGOPSize() )
@@ -192,7 +193,6 @@ Void TEncSlice::initEncSlice( TComPic* pcPic, Int iPOCLast, UInt uiPOCCurr, Int 
   eSliceType = (iPOCLast == 0 || uiPOCCurr % m_pcCfg->getIntraPeriod() == 0 || m_pcGOPEncoder->getGOPSize() == 0) ? I_SLICE : eSliceType;
   
   rpcSlice->setSliceType    ( eSliceType );
-  rpcSlice->setPOC          ( iPOCLast - iNumPicRcvd + iTimeOffset );
   
   // ------------------------------------------------------------------------------------------------------------------
   // Non-referenced frame marking
