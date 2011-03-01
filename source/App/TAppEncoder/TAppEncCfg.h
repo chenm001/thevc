@@ -156,6 +156,9 @@ protected:
 #ifdef ROUNDING_CONTROL_BIPRED
   Bool m_useRoundingControlBipred;
 #endif
+#if CONSTRAINED_INTRA_PRED
+  Bool      m_bUseConstrainedIntraPred;                       ///< flag for using constrained intra prediction
+#endif
   
   // internal member functions
   Void  xSetGlobal      ();                                   ///< set global variables

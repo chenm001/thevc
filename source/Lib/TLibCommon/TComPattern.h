@@ -157,6 +157,15 @@ public:
                                Int         iOrgBufHeight,
                                Bool&       bAbove,
                                Bool&       bLeft );
+
+#if CONSTRAINED_INTRA_PRED
+private:
+  Bool  isLeftAvailableForCIP       ( TComDataCU* pcCU, UInt uiPartIdxLT, UInt uiPartIdxLB );
+  Bool  isAboveAvailableForCIP      ( TComDataCU* pcCU, UInt uiPartIdxLT, UInt uiPartIdxRT );
+  Bool  isAboveLeftAvailableForCIP  ( TComDataCU* pcCU, UInt uiPartIdxLT );
+  Bool  isAboveRightAvailableForCIP ( TComDataCU* pcCU, UInt uiPartIdxLT, UInt uiPartIdxRT );
+  Bool  isBelowLeftAvailableForCIP  ( TComDataCU* pcCU, UInt uiPartIdxLT, UInt uiPartIdxLB );
+#endif
 };
 
 #endif // __TCOMPATTERN__

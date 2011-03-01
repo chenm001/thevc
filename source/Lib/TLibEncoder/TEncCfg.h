@@ -132,6 +132,9 @@ protected:
 #ifdef ROUNDING_CONTROL_BIPRED
   Bool m_useRoundingControlBipred;
 #endif
+#if CONSTRAINED_INTRA_PRED
+  Bool      m_bUseConstrainedIntraPred;
+#endif
 #if AD_HOC_SLICES 
 	//====== Slice ========
 	Int		m_iSliceMode;
@@ -255,7 +258,10 @@ public:
 #if HHI_MRG
   Void      setUseMRG                       ( Bool  b )     { m_bUseMRG     = b; } // SOPH:
 #endif
-#if !DCTIF_8_6_LUMA  
+#if CONSTRAINED_INTRA_PRED
+  Void      setUseConstrainedIntraPred      ( Bool  b )     { m_bUseConstrainedIntraPred = b; }
+#endif
+#if !DCTIF_8_6_LUMA
   Void      setDIFTap                       ( Int   i )     { m_iDIFTap     = i; }
 #endif  
   Void      setdQPs                         ( Int*  p )     { m_aidQP       = p; }
@@ -277,6 +283,9 @@ public:
   Bool      getUseFastEnc                   ()      { return m_bUseFastEnc; }
 #if HHI_MRG
   Bool      getUseMRG                       ()      { return m_bUseMRG;     } // SOPH:
+#endif
+#if CONSTRAINED_INTRA_PRED
+  Bool      getUseConstrainedIntraPred      ()      { return m_bUseConstrainedIntraPred; }
 #endif
 #if !DCTIF_8_6_LUMA
   Int       getDIFTap                       ()      { return m_iDIFTap;  }

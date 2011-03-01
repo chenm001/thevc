@@ -219,6 +219,9 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
     ("EntropySliceArgument", m_iEntropySliceArgument,0, "if EntropySliceMode==1 SliceArgument represents max # of LCUs. if EntropySliceMode==2 EntropySliceArgument represents max # of bins.")
 #endif
 #endif
+#if CONSTRAINED_INTRA_PRED
+  ("ConstrainedIntraPred", m_bUseConstrainedIntraPred, false, "Constrained Intra Prediction")
+#endif
   /* Misc. */
   ("FEN", m_bUseFastEnc, false, "fast encoder setting")
   
@@ -605,6 +608,9 @@ Void TAppEncCfg::xPrintParameter()
     printf("(%d) ", m_iEntropySliceArgument);
   }
 #endif
+#endif
+#if CONSTRAINED_INTRA_PRED
+  printf("CIP:%d ", m_bUseConstrainedIntraPred);
 #endif
   printf("\n");
   

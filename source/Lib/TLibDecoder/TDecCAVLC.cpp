@@ -61,6 +61,11 @@ Void TDecCavlc::parsePPS(TComPPS* pcPPS)
   xReadCode ( 2, uiCode ); //NalRefIdc
   xReadCode ( 1, uiCode ); assert( 0 == uiCode); // zero bit
   xReadCode ( 5, uiCode ); assert( NAL_UNIT_PPS == uiCode);//NalUnitType
+
+#if CONSTRAINED_INTRA_PRED
+  xReadFlag ( uiCode ); pcPPS->setConstrainedIntraPred( uiCode ? true : false );
+#endif
+
   return;
 }
 
