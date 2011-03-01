@@ -183,11 +183,18 @@ public:
 class TComPPS
 {
 private:
+#if CONSTRAINED_INTRA_PRED
+  Bool        m_bConstrainedIntraPred;    //  constrained_intra_pred_flag
+#endif
   
 public:
   TComPPS();
   virtual ~TComPPS();
   
+#if CONSTRAINED_INTRA_PRED
+  Bool      getConstrainedIntraPred ()         { return  m_bConstrainedIntraPred; }
+  Void      setConstrainedIntraPred ( Bool b ) { m_bConstrainedIntraPred = b;     }
+#endif
 };
 
 /// slice header class

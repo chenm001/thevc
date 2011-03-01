@@ -146,6 +146,11 @@ Void TEncTop::init()
   // initialize SPS
   xInitSPS();
   
+#if CONSTRAINED_INTRA_PRED
+  // initialize PPS
+  xInitPPS();
+#endif
+
   // initialize processing unit classes
   m_cGOPEncoder.  init( this );
   m_cSliceEncoder.init( this );
@@ -348,3 +353,9 @@ Void TEncTop::xInitSPS()
   m_cSPS.setBitIncrement( g_uiBitIncrement    );
 }
 
+#if CONSTRAINED_INTRA_PRED
+Void TEncTop::xInitPPS()
+{
+  m_cPPS.setConstrainedIntraPred( m_bUseConstrainedIntraPred );
+}
+#endif

@@ -131,6 +131,9 @@ Void TAppEncTop::xInitLibCfg()
 #ifdef ROUNDING_CONTROL_BIPRED
   m_cTEncTop.setUseRoundingControlBipred(m_useRoundingControlBipred);
 #endif
+#if CONSTRAINED_INTRA_PRED
+  m_cTEncTop.setUseConstrainedIntraPred      ( m_bUseConstrainedIntraPred );
+#endif
 #if AD_HOC_SLICES 
   //====== Slice ========
   m_cTEncTop.setSliceMode               ( m_iSliceMode                );

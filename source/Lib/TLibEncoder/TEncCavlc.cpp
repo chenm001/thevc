@@ -327,6 +327,11 @@ Void TEncCavlc::codePPS( TComPPS* pcPPS )
   xWriteCode( 0, 1);
   xWriteCode( NAL_UNIT_PPS, 5);
   m_uiBitHLS += 8;
+
+#if CONSTRAINED_INTRA_PRED
+  xWriteFlag( pcPPS->getConstrainedIntraPred() ? 1 : 0 );
+  m_uiBitHLS += 1;
+#endif
   return;
 }
 
@@ -500,6 +505,10 @@ Void TEncCavlc::codePPS( TComPPS* pcPPS )
   xWriteCode( NAL_REF_IDC_PRIORITY_HIGHEST, 2);
   xWriteCode( 0, 1);
   xWriteCode( NAL_UNIT_PPS, 5);
+
+#if CONSTRAINED_INTRA_PRED
+  xWriteFlag( pcPPS->getConstrainedIntraPred() ? 1 : 0 );
+#endif
   return;
 }
 

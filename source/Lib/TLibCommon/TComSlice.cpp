@@ -748,6 +748,9 @@ TComSPS::~TComSPS()
 
 TComPPS::TComPPS()
 {
+#if CONSTRAINED_INTRA_PRED
+  m_bConstrainedIntraPred = false;
+#endif
 }
 
 TComPPS::~TComPPS()
