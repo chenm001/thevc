@@ -729,7 +729,7 @@ Void TEncCavlc::codePartSize( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth 
       xWriteFlag( 0 );
     }
 #if HHI_DISABLE_INTER_NxN_SPLIT
-    if( pcCU->getWidth( uiAbsPartIdx ) == 8 )
+    if( uiDepth == g_uiMaxCUDepth - g_uiAddCUDepth )
     {
       xWriteFlag( 0 );
     }
@@ -737,7 +737,7 @@ Void TEncCavlc::codePartSize( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth 
     xWriteFlag( 0 );
 #endif
 #if MTK_DISABLE_INTRA_NxN_SPLIT
-    if( pcCU->getWidth( uiAbsPartIdx ) == 8 )
+    if( uiDepth == g_uiMaxCUDepth - g_uiAddCUDepth )
 #endif
     {
       xWriteFlag( (eSize == SIZE_2Nx2N? 0 : 1) );
@@ -752,7 +752,7 @@ Void TEncCavlc::codePartSize( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth 
   if ( pcCU->isIntra( uiAbsPartIdx ) )
   {
 #if MTK_DISABLE_INTRA_NxN_SPLIT
-    if( pcCU->getWidth( uiAbsPartIdx ) == 8 )
+    if( uiDepth == g_uiMaxCUDepth - g_uiAddCUDepth )
 #endif
     {
       xWriteFlag( eSize == SIZE_2Nx2N? 1 : 0 );
@@ -799,7 +799,7 @@ Void TEncCavlc::codePartSize( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth 
     case SIZE_NxN:
     {
 #if HHI_DISABLE_INTER_NxN_SPLIT
-      if( pcCU->getWidth( uiAbsPartIdx ) == 8 )
+      if( uiDepth == g_uiMaxCUDepth - g_uiAddCUDepth )
 #endif
       {
         xWriteFlag( 0 );
