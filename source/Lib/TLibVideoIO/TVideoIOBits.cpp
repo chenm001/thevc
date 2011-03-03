@@ -339,6 +339,38 @@ Int TVideoIOBitsStartCode::findNextStartCodeFastLookup( TComBitstream*& rpcBitst
       Int iLookaheadBytesRead = 0;
       if ( !(m_iBufBytesLeft==0 && m_ulBitstreamLength==0) )
       {
+        if (m_iBufBytesLeft<3)
+        {
+          // include the start code read so far into the buffer in case a move backwards is required
+          m_iNextFileLocation -= 5;
+          m_ulBitstreamLength += 5;
+          
+          // put some data in the buffer
+          m_cHandle.seekg( m_iNextFileLocation, ios_base::beg );
+          if ( m_ulBitstreamLength < AD_HOC_SLICES_BUF_SIZE )
+          {
+            m_iBufBytesLeft = m_ulBitstreamLength;
+          }
+          else
+          {
+            m_iBufBytesLeft = AD_HOC_SLICES_BUF_SIZE;
+          }
+          if (m_iBufBytesLeft < 3)
+          {          
+            m_bLastSliceEncounteredInPicture = true;
+            return -1;
+          }
+          m_cHandle.read( reinterpret_cast<char*>(m_ucFastLookupBuf), m_iBufBytesLeft );
+          m_ulBitstreamLength -= m_iBufBytesLeft;
+          m_ucCurBufPtr        = m_ucFastLookupBuf;
+          m_iNextFileLocation  = m_cHandle.tellg();
+          assert(m_ucCurBufPtr[0] == 0);
+          assert(m_ucCurBufPtr[1] == 0);
+          assert(m_ucCurBufPtr[2] == 0);
+          assert(m_ucCurBufPtr[3] != 0);
+          m_ucCurBufPtr       += 4;
+          m_iBufBytesLeft     -= 4;                              
+        }       
         ucByte = (*m_ucCurBufPtr);
         m_ucCurBufPtr++; m_iBufBytesLeft--; m_iCurFileLocation++; iLookaheadBytesRead++;
         iNalUnitType = (ucByte & 0x1F); 
