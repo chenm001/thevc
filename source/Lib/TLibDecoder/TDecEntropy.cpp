@@ -1816,6 +1816,17 @@ Void TDecEntropy::xDecodeCoeff( TComDataCU* pcCU, TCoeff* pcCoeff, UInt uiAbsPar
 {
   if ( pcCU->getCbf( uiAbsPartIdx, eType, uiTrIdx ) )
   {
+#if SNY_DQP   
+    // dQP: only for LCU
+    if ( pcCU->getSlice()->getSPS()->getUseDQP() )
+    {
+      if ( pcCU->getdQPFlag())// non-skip
+      {
+        decodeQP( pcCU, 0, 0 );
+        pcCU->setdQPFlag(false);
+      }
+    }   
+#endif//SNY_DQP
     UInt uiLumaTrMode, uiChromaTrMode;
     pcCU->convertTransIdx( uiAbsPartIdx, pcCU->getTransformIdx( uiAbsPartIdx ), uiLumaTrMode, uiChromaTrMode );
     const UInt uiStopTrMode = eType == TEXT_LUMA ? uiLumaTrMode : uiChromaTrMode;

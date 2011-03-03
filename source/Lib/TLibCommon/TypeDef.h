@@ -201,6 +201,7 @@
 #define PANASONIC_MERGETEMPORALEXT 1
 #define FAST_UDI_USE_MPM 1
 #define SONY_SIG_CTX 1
+#define SNY_DQP                          1           ///< SONY's proposal on syntax change of dQP (JCT-VC D258)
 
 #define AMVP_BUFFERCOMPRESS                   1     // motion vector buffer compression
 #define AMVP_DECIMATION_FACTOR                4
