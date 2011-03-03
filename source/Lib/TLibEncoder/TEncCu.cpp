@@ -426,7 +426,7 @@ Void TEncCu::xCompressCU( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, UInt u
       {
 #if HHI_DISABLE_INTER_NxN_SPLIT
         xCheckRDCostInter( rpcBestCU, rpcTempCU, SIZE_2Nx2N );  rpcTempCU->initEstData();
-        if( rpcTempCU->getWidth( 0 ) == 8 )
+        if( uiDepth == g_uiMaxCUDepth - g_uiAddCUDepth )
         {
           xCheckRDCostInter( rpcBestCU, rpcTempCU, SIZE_NxN   );  rpcTempCU->initEstData();
         }
@@ -465,7 +465,7 @@ Void TEncCu::xCompressCU( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, UInt u
       {
         xCheckRDCostIntra( rpcBestCU, rpcTempCU, SIZE_2Nx2N ); rpcTempCU->initEstData();
 #if MTK_DISABLE_INTRA_NxN_SPLIT
-        if ( rpcTempCU->getWidth(0) == 8)
+        if( uiDepth == g_uiMaxCUDepth - g_uiAddCUDepth )
 #endif
         {
           if( rpcTempCU->getWidth(0) > ( 1 << rpcTempCU->getSlice()->getSPS()->getQuadtreeTULog2MinSize() ) )
