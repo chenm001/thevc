@@ -146,6 +146,7 @@
 #error TEN_DIRECTIONAL_INTERP should be disabled if DCTIF_8_6_LUMA is enabled
 #endif
 
+#define ZERO_MVD_EST											0           // Zero Mvd Estimation in normal mode
 ///////////////////////////////
 // SAMSUNG defines section end
 ///////////////////////////////
