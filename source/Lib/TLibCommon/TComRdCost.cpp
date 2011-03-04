@@ -397,7 +397,7 @@ Void TComRdCost::setDistParam( TComPattern* pcPatternKey, Pel* piRefY, Int iRefS
   rcDistParam.iSubShift  = 0;
 }
 
-#if HHI_MRG
+#if HHI_MRG || ZERO_MVD_EST
 Void
 TComRdCost::setDistParam( DistParam& rcDP, Pel* p1, Int iStride1, Pel* p2, Int iStride2, Int iWidth, Int iHeight, Bool bHadamard )
 {

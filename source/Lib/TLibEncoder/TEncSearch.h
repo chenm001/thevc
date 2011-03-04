@@ -148,7 +148,7 @@ protected:
   __inline Void xTZ8PointSquareSearch ( TComPattern* pcPatternKey, IntTZSearchStruct& rcStrukt, TComMv* pcMvSrchRngLT, TComMv* pcMvSrchRngRB, const Int iStartX, const Int iStartY, const Int iDist );
   __inline Void xTZ8PointDiamondSearch( TComPattern* pcPatternKey, IntTZSearchStruct& rcStrukt, TComMv* pcMvSrchRngLT, TComMv* pcMvSrchRngRB, const Int iStartX, const Int iStartY, const Int iDist );
   
-#if HHI_MRG
+#if HHI_MRG || ZERO_MVD_EST
   Void xGetInterPredictionError( TComDataCU* pcCU, TComYuv* pcYuvOrg, Int iPartIdx, UInt& ruiSAD, Bool Hadamard );
 #endif
 
@@ -283,7 +283,11 @@ protected:
                                     RefPicList  eRefPicList,
                                     Int         iRefIdx,
                                     TComMv&     rcMvPred,
-                                    Bool        bFilled = false );
+                                    Bool        bFilled = false
+                                  #if ZERO_MVD_EST
+                                  , UInt*       puiDist = NULL
+                                  #endif
+                                     );
   
   Void xCheckBestMVP              ( TComDataCU* pcCU,
                                     RefPicList  eRefPicList,
@@ -304,7 +308,11 @@ protected:
                                     RefPicList  eRefPicList,
                                     Int         iRefIdx,
                                     Int         iSizeX,
-                                    Int         iSizeY );
+                                    Int         iSizeY
+                                  #if ZERO_MVD_EST
+                                  , UInt&       ruiDist
+                                  #endif
+                                   );
   
   
   Void xCopyAMVPInfo              ( AMVPInfo*   pSrc, AMVPInfo* pDst );
