@@ -698,6 +698,10 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
       Double dEncTime = (double)(clock()-iBeforeTime) / CLOCKS_PER_SEC;
       
       xCalculateAddPSNR( pcPic, pcPic->getPicYuvRec(), pcBitstreamOut->getNumberOfWrittenBits(), dEncTime );
+
+#if FIXED_ROUNDING_FRAME_MEMORY
+      pcPic->getPicYuvRec()->xFixedRoundingPic();
+#endif
       
       pcPic->getPicYuvRec()->copyToPic(pcPicYuvRecOut);
       
@@ -885,7 +889,12 @@ UInt64 TEncGOP::xFindDistortionFrame (TComPicYuv* pcPic0, TComPicYuv* pcPic1)
   Int     x, y;
   Pel*  pSrc0   = pcPic0 ->getLumaAddr();
   Pel*  pSrc1   = pcPic1 ->getLumaAddr();
+#if IBDI_DISTORTION
+  Int  iShift = g_uiBitIncrement;
+  Int  iOffset = 1<<(g_uiBitIncrement-1);
+#else
   UInt  uiShift = g_uiBitIncrement<<1;
+#endif
   Int   iTemp;
   
   Int   iStride = pcPic0->getStride();
@@ -898,7 +907,11 @@ UInt64 TEncGOP::xFindDistortionFrame (TComPicYuv* pcPic0, TComPicYuv* pcPic1)
   {
     for( x = 0; x < iWidth; x++ )
     {
+#if IBDI_DISTORTION
+      iTemp = ((pSrc0[x]+iOffset)>>iShift) - ((pSrc1[x]+iOffset)>>iShift); uiTotalDiff += iTemp * iTemp;
+#else
       iTemp = pSrc0[x] - pSrc1[x]; uiTotalDiff += (iTemp*iTemp) >> uiShift;
+#endif
     }
     pSrc0 += iStride;
     pSrc1 += iStride;
@@ -915,7 +928,11 @@ UInt64 TEncGOP::xFindDistortionFrame (TComPicYuv* pcPic0, TComPicYuv* pcPic1)
   {
     for( x = 0; x < iWidth; x++ )
     {
+#if IBDI_DISTORTION
+      iTemp = ((pSrc0[x]+iOffset)>>iShift) - ((pSrc1[x]+iOffset)>>iShift); uiTotalDiff += iTemp * iTemp;
+#else
       iTemp = pSrc0[x] - pSrc1[x]; uiTotalDiff += (iTemp*iTemp) >> uiShift;
+#endif
     }
     pSrc0 += iStride;
     pSrc1 += iStride;
@@ -928,7 +945,11 @@ UInt64 TEncGOP::xFindDistortionFrame (TComPicYuv* pcPic0, TComPicYuv* pcPic1)
   {
     for( x = 0; x < iWidth; x++ )
     {
+#if IBDI_DISTORTION
+      iTemp = ((pSrc0[x]+iOffset)>>iShift) - ((pSrc1[x]+iOffset)>>iShift); uiTotalDiff += iTemp * iTemp;
+#else
       iTemp = pSrc0[x] - pSrc1[x]; uiTotalDiff += (iTemp*iTemp) >> uiShift;
+#endif
     }
     pSrc0 += iStride;
     pSrc1 += iStride;
