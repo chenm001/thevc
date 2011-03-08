@@ -200,7 +200,9 @@ Void TDecGop::decompressGop (Bool bEos, TComBitstream* pcBitstream, TComPic*& rp
     printf ("] ");
   }
 #endif
-  
+#if FIXED_ROUNDING_FRAME_MEMORY
+  rpcPic->getPicYuvRec()->xFixedRoundingPic();
+#endif 
   rpcPic->setReconMark(true);
 #if AD_HOC_SLICES 
   }

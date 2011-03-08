@@ -175,6 +175,8 @@
 // TOSHIBA defines section start
 ////////////////////////////////
 #define TSB_ALF_HEADER                 1           // Send ALF ON/OFF flag in slice header
+#define IBDI_DISTORTION                0           ///< enable/disable SSE modification when IBDI is used (JCTVC-D152)
+#define FIXED_ROUNDING_FRAME_MEMORY    0           ///< enable/disable fixed rounding to 8-bitdepth of frame memory when IBDI is used  
 ////////////////////////////////
 // TOSHIBA defines section end
 ////////////////////////////////

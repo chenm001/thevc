@@ -670,6 +670,29 @@ Void TEncAdaptiveLoopFilter::xCalcCorrelationFunc(Pel* pOrg, Pel* pCmp, Int iTap
   pTerm = NULL;
 }
 
+#if IBDI_DISTORTION
+UInt64 TEncAdaptiveLoopFilter::xCalcSSD(Pel* pOrg, Pel* pCmp, Int iWidth, Int iHeight, Int iStride )
+{
+  UInt64 uiSSD = 0;
+  Int x, y;
+
+  Int iShift = g_uiBitIncrement;
+  Int iOffset = (g_uiBitIncrement>0)? (1<<(g_uiBitIncrement-1)):0;
+  Int iTemp;
+
+  for( y = 0; y < iHeight; y++ )
+  {
+    for( x = 0; x < iWidth; x++ )
+    {
+      iTemp = ((pOrg[x]+iOffset)>>iShift) - ((pCmp[x]+iOffset)>>iShift); uiSSD += iTemp * iTemp;
+    }
+    pOrg += iStride;
+    pCmp += iStride;
+  }
+
+	return uiSSD;;
+}
+#else
 UInt64 TEncAdaptiveLoopFilter::xCalcSSD(Pel* pOrg, Pel* pCmp, Int iWidth, Int iHeight, Int iStride )
 {
   UInt64 uiSSD = 0;
@@ -690,6 +713,7 @@ UInt64 TEncAdaptiveLoopFilter::xCalcSSD(Pel* pOrg, Pel* pCmp, Int iWidth, Int iH
   
   return uiSSD;;
 }
+#endif
 
 Int TEncAdaptiveLoopFilter::xGauss(Double **a, Int N)
 {
