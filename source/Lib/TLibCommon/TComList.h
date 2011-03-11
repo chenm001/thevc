@@ -86,7 +86,7 @@ public:
     /*assert( sizeof(C) == 4);*/
     if( rcT != NULL )
     {
-      push_back( rcT);
+      this->push_back( rcT);
     }
   }
   
@@ -95,7 +95,7 @@ public:
     /*assert( sizeof(C) == 4);*/
     if( rcT != NULL )
     {
-      push_front( rcT);
+      this->push_front( rcT);
     }
   }
   

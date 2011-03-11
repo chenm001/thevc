@@ -2040,7 +2040,7 @@ TEncSearch::estIntraPredChromaQT( TComDataCU* pcCU,
   UInt  uiMinMode = 0;
 #if CHROMA_CODEWORD 
   UInt  uiMaxMode = 5;
-  UInt  uiIgnore = (uiModeList[4] >= 0 && uiModeList[4] < 4) ? uiModeList[4] : 6;
+  UInt  uiIgnore = (uiModeList[4] < 4) ? uiModeList[4] : 6;
 #else
   UInt  uiMaxMode = ( uiModeList[4] >= 4 ? 5 : 4 );
 #endif
