@@ -568,6 +568,11 @@ Void TEncCavlc::codeSPS( TComSPS* pcSPS )
 #endif
   xWriteUvlc( pcSPS->getBitIncrement() );
 #endif
+
+#if MTK_NONCROSS_INLOOP_FILTER
+  xWriteFlag( pcSPS->getLFCrossSliceBoundaryFlag()?1 : 0);
+#endif
+
 }
 
 Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )

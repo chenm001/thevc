@@ -153,7 +153,11 @@ Void TDecCavlc::parseSPS(TComSPS* pcSPS)
 #else
   g_uiIBDI_MAX  = ((1<<(g_uiBitDepth+g_uiBitIncrement))-1);
 #endif
-  
+#if MTK_NONCROSS_INLOOP_FILTER
+  xReadFlag( uiCode );
+  pcSPS->setLFCrossSliceBoundaryFlag( uiCode ? true : false);
+#endif
+
   return;
 }
 

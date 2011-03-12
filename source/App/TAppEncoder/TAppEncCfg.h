@@ -112,6 +112,9 @@ protected:
   
   // coding tools (loop filter)
   Bool      m_bUseALF;                                        ///< flag for using adaptive loop filter
+#ifdef MQT_ALF_NPASS
+  Int       m_iALFEncodePassReduction;                        ///< ALF encoding pass, 0 = original 16-pass, 1 = 1-pass, 2 = 2-pass
+#endif
   
   Bool      m_bLoopFilterDisable;                             ///< flag for using deblocking filter
   Int       m_iLoopFilterAlphaC0Offset;                       ///< alpha offset for deblocking filter
@@ -152,6 +155,9 @@ protected:
   Int       m_iEntropySliceMode;	  ///< 0: Disable all entropy slice limits, 1 : Maximum number of largest coding units per slice, 2: Constraint based entropy slice
   Int       m_iEntropySliceArgument;///< If m_iEntropySliceMode==1, m_iEntropySliceArgument=max. # of largest coding units. If m_iEntropySliceMode==2, m_iEntropySliceArgument=max. # of bins.
 #endif
+#endif
+#if MTK_NONCROSS_INLOOP_FILTER
+  Bool m_bLFCrossSliceBoundaryFlag;  ///< 0: Cross-slice-boundary in-loop filtering 1: non-cross-slice-boundary in-loop filtering
 #endif
 #ifdef ROUNDING_CONTROL_BIPRED
   Bool m_useRoundingControlBipred;

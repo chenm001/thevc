@@ -100,6 +100,9 @@ protected:
   //====== Tool list ========
   Bool      m_bUseSBACRD;
   Bool      m_bUseALF;
+#if MQT_ALF_NPASS
+  Int       m_iALFEncodePassReduction;
+#endif
   Bool      m_bUseASR;
   Bool      m_bUseHADME;
   Bool      m_bUseGPB;
@@ -145,6 +148,10 @@ protected:
 	Int		m_iEntropySliceArgument;
 #endif
 #endif
+#if MTK_NONCROSS_INLOOP_FILTER
+  Bool m_bLFCrossSliceBoundaryFlag;
+#endif
+
 public:
   TEncCfg()          {}
   virtual ~TEncCfg() {}
@@ -270,6 +277,10 @@ public:
   Bool      getUseASR                       ()      { return m_bUseASR;     }
   Bool      getUseHADME                     ()      { return m_bUseHADME;   }
   Bool      getUseALF                       ()      { return m_bUseALF;     }
+#if MQT_ALF_NPASS
+  Void      setALFEncodePassReduction       (Int i)  { m_iALFEncodePassReduction = i; }
+  Int       getALFEncodePassReduction       ()       { return m_iALFEncodePassReduction; }
+#endif
   Bool      getUseGPB                       ()      { return m_bUseGPB;     }
 #if DCM_COMB_LIST
   Bool      getUseLComb                     ()      { return m_bUseLComb;   }
@@ -319,6 +330,11 @@ public:
   Int   getEntropySliceArgument        ()              { return m_iEntropySliceArgument;}
 #endif
 #endif
+#if MTK_NONCROSS_INLOOP_FILTER
+  Void      setLFCrossSliceBoundaryFlag     ( Bool   bValue  )    { m_bLFCrossSliceBoundaryFlag = bValue; }
+  Bool      getLFCrossSliceBoundaryFlag     ()                    { return m_bLFCrossSliceBoundaryFlag;   }
+#endif
+
 };
 
 #endif // !defined(AFX_TENCCFG_H__6B99B797_F4DA_4E46_8E78_7656339A6C41__INCLUDED_)

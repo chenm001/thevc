@@ -101,6 +101,12 @@ private:
 #endif
 #endif
 
+// #if MTK_NONCROSS_INLOOP_FILTER
+//   UInt                    m_uiILSliceCount;
+//   UInt*                   m_puiILSliceStartLCU;
+//   UInt*                   m_puiILSliceEndLCU;
+// #endif
+
 public:
   TEncGOP();
   virtual ~TEncGOP();

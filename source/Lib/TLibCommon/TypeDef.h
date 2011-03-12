@@ -197,7 +197,15 @@
 // MICROSOFT&USTC defines section end
 ////////////////////////////////
 
+////////////////////////////////
+// MediaTek defines section start
+////////////////////////////////
 #define MTK_DISABLE_INTRA_NxN_SPLIT       1           ///< Disable use of PUs-mode NxN for CUs larger 8x8 (intra only)
+#define MTK_NONCROSS_INLOOP_FILTER        1           ///< Allow non-cross-slice-boundary in-loop filtering, including DB & ALF (JCTVC-D128)
+////////////////////////////////
+// MediaTek defines section end
+////////////////////////////////
+
 #define FT_TCTR 1
 #define FT_TCTR_MERGE 1
 #define PANASONIC_AMVPTEMPORALEXT 1
@@ -243,6 +251,18 @@
 
 /////////////////////////////////
 // NEC defines section end
+/////////////////////////////////
+
+/////////////////////////////////
+// MQT (MEDIATEK, QUALCOMM, TOSHIBA) defines section start
+/////////////////////////////////
+#define MQT_ALF_NPASS                       1
+#if MQT_ALF_NPASS
+  #define MQT_ALF_NPASS_REVISION_0          1
+  #define MQT_ALF_BUGFIX_0                  1
+#endif
+/////////////////////////////////
+// MQT (MEDIATEK, QUALCOMM, TOSHIBA) defines section start
 /////////////////////////////////
 
 // ====================================================================================================================
