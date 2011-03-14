@@ -257,10 +257,6 @@
 // MQT (MEDIATEK, QUALCOMM, TOSHIBA) defines section start
 /////////////////////////////////
 #define MQT_ALF_NPASS                       1
-#if MQT_ALF_NPASS
-  #define MQT_ALF_NPASS_REVISION_0          1
-  #define MQT_ALF_BUGFIX_0                  1
-#endif
 /////////////////////////////////
 // MQT (MEDIATEK, QUALCOMM, TOSHIBA) defines section start
 /////////////////////////////////

@@ -1869,15 +1869,6 @@ Void   TEncAdaptiveLoopFilter::xstoreInBlockMatrix(imgpel* ImgOrg, imgpel* ImgDe
   else if (tap==7)
     filtNo =1;
   
-#if MQT_ALF_NPASS && (!MQT_ALF_NPASS_REVISION_0)
-  if(m_iALFEncodePassReduction && m_bMatrixBaseReady)
-  {
-    xretriveBlockMatrix(sqrFiltLength,   m_iTapPosTabIn9x9Sym[filtNo], m_EGlobalSym[0], 
-                        m_EGlobalSym[filtNo], m_yGlobalSym[0], m_yGlobalSym[filtNo]);
-    return;
-  }
-#endif
-
   p_pattern= m_patternTab[filtNo];
   
 #if MTK_NONCROSS_INLOOP_FILTER
@@ -2576,9 +2567,6 @@ Void TEncAdaptiveLoopFilter::xCUAdaptiveControl_qc(TComPicYuv* pcPicOrg, TComPic
 #if MQT_ALF_NPASS
     if(m_iALFEncodePassReduction == 2)
     {
-#if !MQT_ALF_NPASS_REVISION_0
-      m_bMatrixBaseReady = false;
-#endif
       UInt uiDepth = uiBestDepth;
       ::memcpy(m_maskImg[0], maskImgTemp[0], sizeof(imgpel)*m_im_height* m_im_width);
       xCopyTmpAlfCtrlFlagsTo();
@@ -3265,11 +3253,6 @@ Void TEncAdaptiveLoopFilter::setALFEncodingParam(TComPic *pcPic)
   }
   m_iDesignCurrentFilter = 1;
 
-#if !MQT_ALF_NPASS_REVISION_0
-#if MQT_ALF_BUGFIX_0
-  m_bMatrixBaseReady = false;
-#endif
-#endif
 }
 
 Void TEncAdaptiveLoopFilter::xcalcPredFilterCoeffPrev(Int filtNo)
@@ -3482,11 +3465,7 @@ Void   TEncAdaptiveLoopFilter::xFirstFilteringFrameLumaAllTap(imgpel* ImgOrg, im
   Int64  iEstimatedDist;
   UInt64 uiRate;
   Double dEstimatedCost, dEstimatedMinCost = MAX_DOUBLE;;
-#if MQT_ALF_NPASS_REVISION_0
   Bool   bMatrixBaseReady  = false;
-#else
-  m_bMatrixBaseReady  = false;
-#endif
   m_iMatrixBaseFiltNo = 0; 
 
   for(Int iTap = ALF_MAX_NUM_TAP; iTap>=ALF_MIN_NUM_TAP; iTap -= 2)
@@ -3514,7 +3493,6 @@ Void   TEncAdaptiveLoopFilter::xFirstFilteringFrameLumaAllTap(imgpel* ImgOrg, im
     ESym     = m_EGlobalSym     [filtNo];
     ySym     = m_yGlobalSym     [filtNo];
 
-#if MQT_ALF_NPASS_REVISION_0
     if( bMatrixBaseReady )
     {
       xretriveBlockMatrix(m_pcTempAlfParam->num_coeff, m_iTapPosTabIn9x9Sym[filtNo], 
@@ -3523,7 +3501,6 @@ Void   TEncAdaptiveLoopFilter::xFirstFilteringFrameLumaAllTap(imgpel* ImgOrg, im
 
     }
     else
-#endif
 #if MTK_NONCROSS_INLOOP_FILTER
     {
       if(!m_bUseNonCrossALF)
@@ -3536,11 +3513,7 @@ Void   TEncAdaptiveLoopFilter::xFirstFilteringFrameLumaAllTap(imgpel* ImgOrg, im
 #endif
     if(filtNo == m_iMatrixBaseFiltNo)
     {
-#if MQT_ALF_NPASS_REVISION_0
       bMatrixBaseReady = true;
-#else
-      m_bMatrixBaseReady = true;
-#endif
     }
 
     xfindBestFilterVarPred(ySym, ESym, m_pixAcc, m_filterCoeffSym, m_filterCoeffSymQuant, filtNo, &filters_per_fr, 

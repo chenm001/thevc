@@ -112,9 +112,6 @@ private:
   Int  m_iALFEncodePassReduction;
   Int  m_iALFNumOfRedesign;
   Int  m_iMatrixBaseFiltNo;
-#if !MQT_ALF_NPASS_REVISION_0
-  Bool m_bMatrixBaseReady;
-#endif
 
 #if TI_ALF_MAX_VSIZE_7
   static Int  m_aiTapPos9x9_In9x9Sym[21];
