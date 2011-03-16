@@ -859,7 +859,9 @@ Void TComAdaptiveLoopFilter::DecFilter_qc(imgpel* imgY_rec,ALFParam* pcAlfParam,
 {
   int i;
   int numBits = NUM_BITS; 
+#if !MTK_NONCROSS_INLOOP_FILTER
   int fl=FILTER_LENGTH/2;
+#endif
   int **pfilterCoeffSym;
   pfilterCoeffSym= m_filterCoeffSym;
   

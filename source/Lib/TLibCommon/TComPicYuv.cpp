@@ -431,3 +431,4 @@ Void TComPicYuv::xFixedRoundingPic()
   }
 }
 #endif
+

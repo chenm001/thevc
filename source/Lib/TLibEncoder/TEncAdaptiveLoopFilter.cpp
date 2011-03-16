@@ -1766,8 +1766,10 @@ Void   TEncAdaptiveLoopFilter::xEncALFLuma_qc ( TComPicYuv* pcPicOrg, TComPicYuv
   UInt64  uiRate;
   UInt64  uiDist;
   Double dCost;
+#if !MQT_ALF_NPASS
   Int    Height = pcPicOrg->getHeight();
   Int    Width = pcPicOrg->getWidth();
+#endif
   Int    LumaStride = pcPicOrg->getStride();
   imgpel* pOrg = (imgpel*) pcPicOrg->getLumaAddr();
   imgpel* pRest = (imgpel*) pcPicRest->getLumaAddr();
@@ -3348,10 +3350,10 @@ Void TEncAdaptiveLoopFilter::setInitialMask(TComPicYuv* pcPicOrg, TComPicYuv* pc
   }
   else
   {
-    Int uiBestDepth;
+    Int uiBestDepth=0;
     UInt64 uiRate, uiDist, uiMinRate, uiMinDist;
     Double dCost, dMinCost = MAX_DOUBLE;
-    imgpel* pOrg = (imgpel*)pcPicOrg->getLumaAddr();
+    //imgpel* pOrg = (imgpel*)pcPicOrg->getLumaAddr();
     imgpel* pRest = (imgpel*)m_pcPicYuvTmp->getLumaAddr();
 
     Int iTap = 9;
@@ -3461,7 +3463,7 @@ Void   TEncAdaptiveLoopFilter::xFirstFilteringFrameLumaAllTap(imgpel* ImgOrg, im
   }
 
   Int    lambda_val = ((Int) m_dLambdaLuma) * (1<<(2*g_uiBitIncrement));
-  Int    filtNo, ibestfiltNo, filters_per_fr, ibestfilters_per_fr;
+  Int    filtNo, ibestfiltNo=0, filters_per_fr, ibestfilters_per_fr=0;
   Int64  iEstimatedDist;
   UInt64 uiRate;
   Double dEstimatedCost, dEstimatedMinCost = MAX_DOUBLE;;
@@ -3864,7 +3866,7 @@ Void TEncAdaptiveLoopFilter::xCalcCorrelationFuncforChromaOneSlice(CAlfSlice* pS
 Void TEncAdaptiveLoopFilter::xFrameChromaforSlices(Int ComponentID, TComPicYuv* pcPicDecYuv, TComPicYuv* pcPicRestYuv, Int *qh, Int iTap )
 {
   Pel* pPicDec   = (ComponentID == ALF_Cb)?(    pcPicDecYuv->getCbAddr()):(    pcPicDecYuv->getCrAddr());
-  Pel* pPicRest  = (ComponentID == ALF_Cb)?(   pcPicRestYuv->getCbAddr()):(   pcPicRestYuv->getCrAddr());
+//  Pel* pPicRest  = (ComponentID == ALF_Cb)?(   pcPicRestYuv->getCbAddr()):(   pcPicRestYuv->getCrAddr());
   Pel* pPicSlice = (ComponentID == ALF_Cb)?(m_pcSliceYuvTmp->getCbAddr()):(m_pcSliceYuvTmp->getCrAddr());
 
   Int iStride = pcPicDecYuv->getCStride();
@@ -3883,3 +3885,4 @@ Void TEncAdaptiveLoopFilter::xFrameChromaforSlices(Int ComponentID, TComPicYuv* 
 }
 
 #endif
+
