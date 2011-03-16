@@ -93,7 +93,11 @@ private:
   UInt        m_uiMaxTrSize;
   
   Int m_iAMPAcc[MAX_CU_DEPTH];
-  
+
+#if MTK_NONCROSS_INLOOP_FILTER
+  Bool        m_bLFCrossSliceBoundaryFlag;
+#endif
+
 public:
   TComSPS();
   virtual ~TComSPS();
@@ -177,6 +181,12 @@ public:
   Void      setBitDepth     ( UInt u ) { m_uiBitDepth = u;        }
   UInt      getBitIncrement ()         { return m_uiBitIncrement; }
   Void      setBitIncrement ( UInt u ) { m_uiBitIncrement = u;    }
+
+#if MTK_NONCROSS_INLOOP_FILTER
+  Void      setLFCrossSliceBoundaryFlag     ( Bool   bValue  )    { m_bLFCrossSliceBoundaryFlag = bValue; }
+  Bool      getLFCrossSliceBoundaryFlag     ()                    { return m_bLFCrossSliceBoundaryFlag;   } 
+#endif
+
 };
 
 /// PPS class

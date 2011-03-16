@@ -86,9 +86,106 @@ extern Int *pDepthIntTab[NO_TEST_FILT];
 void destroyMatrix_int(int **m2D);
 void initMatrix_int(int ***m2D, int d1, int d2);
 
+#if MTK_NONCROSS_INLOOP_FILTER
+#define EXTEND_NUM_PEL    (UInt)(ALF_MAX_NUM_TAP/2)
+#define EXTEND_NUM_PEL_C  (UInt)(ALF_MAX_NUM_TAP_C/2)
+enum PaddingRegionPosition
+{
+  PRP_L = 0,
+  PRP_R,
+  PRP_T,
+  PRP_B,
+  NUM_PADDING_TILE,
+  PRP_LT = NUM_PADDING_TILE,
+  PRP_RT,
+  PRP_LB,
+  PRP_RB,
+  NUM_PADDING_REGION
+};
+enum AlfChromaID
+{
+  ALF_Cb = 0,
+  ALF_Cr = 1
+};
+#endif
+
 // ====================================================================================================================
 // Class definition
 // ====================================================================================================================
+
+#if MTK_NONCROSS_INLOOP_FILTER
+
+class CAlfCU
+{
+public:
+  CAlfCU() {}
+  ~CAlfCU() {}
+public:
+  //  Void        init(TComDataCU* pcCU, UInt uiCUAddr, UInt uiStartCU, UInt uiEndCU, UInt uiNumCUWidth, UInt uiNumCUHeight);
+  Void        init(TComPic* pcPic, UInt uiCUAddr, UInt uiStartCU, UInt uiEndCU, UInt uiNumCUWidth, UInt uiNumCUHeight);
+  TComDataCU* getCU()           {return m_pcCU;}
+  UInt        getWidth()        {return m_uiWidth;}
+  UInt        getHeight()       {return m_uiHeight;}
+  Int*        getCUBorderFlag() {return m_aiCUBorderFlag;}
+  Void        extendCUBorder(Pel* pCUPel, UInt uiCUWidth, UInt uiCUHeight, Int iStride, UInt uiExtSize);
+private:
+  Void assignBorderStatus(UInt uiStartCU, UInt uiEndCU, UInt uiNumCUWidth, UInt uiNumCUHeight);
+
+private:
+  TComDataCU* m_pcCU;
+
+  UInt        m_uiCUAddr;
+  Int         m_aiCUBorderFlag[NUM_PADDING_REGION];
+  UInt        m_uiWidth;
+  UInt        m_uiHeight;
+};
+
+class CAlfSlice
+{
+public:
+  CAlfSlice()
+  {
+    m_pcAlfCU= NULL;
+  }
+  ~CAlfSlice()
+  {
+    destroy(); 
+  }
+public:  //operator to access CAlfCU
+  CAlfCU& operator[] (Int idx)
+  {
+    assert(idx < m_uiNumLCUs);
+    return m_pcAlfCU[idx];
+  }
+
+public:
+  Void init(UInt uiNumLCUsInPicWidth, UInt uiNumLCUsInPicHeight);
+  Void create(TComPic* pcPic, Int iSliceID, UInt uiStartLCU, UInt uiEndLCU);
+  Void destroy();
+
+  UInt getNumLCUs     ()         {return m_uiNumLCUs;}
+
+  Void extendSliceBorderLuma(Pel* pPelSrc, Int iStride, UInt uiExtSize);
+  Void extendSliceBorderChroma(Pel* pPelSrc, Int iStride, UInt uiExtSize);
+  Void copySliceLuma(Pel* pPicDst, Pel* pPicSrc, Int iStride);
+  Void copySliceChroma(Pel* pPicDst, Pel* pPicSrc, Int iStride );
+
+private: 
+
+  Int    m_iSliceID;
+  UInt   m_uiStartLCU;
+  UInt   m_uiEndLCU;
+  UInt   m_uiNumLCUs;
+
+  CAlfCU* m_pcAlfCU;
+
+  //----------------------------------------//
+  UInt   m_uiNumLCUsInPicWidth;
+  UInt   m_uiNumLCUsInPicHeight;
+};
+
+#endif 
+
 
 /// adaptive loop filter class
 class TComAdaptiveLoopFilter
@@ -148,6 +245,24 @@ protected:
   Int **m_filterCoeffTmp;
   Int **m_filterCoeffSymTmp;
   
+
+#if MTK_NONCROSS_INLOOP_FILTER
+  Bool        m_bUseNonCrossALF;
+  UInt        m_uiNumLCUsInWidth;
+  UInt        m_uiNumLCUsInHeight;
+  UInt        m_uiNumSlicesInPic;
+  CAlfSlice*  m_pSlice;
+  Bool        m_bIsFirstDecodedSlice;
+
+  Void xFilterOneSlice            (CAlfSlice* pSlice, imgpel* pDec, imgpel* pRest, Int iStride, ALFParam* pcAlfParam);
+  Void calcVarforOneSlice         (CAlfSlice* pSlice, imgpel **imgY_var, imgpel *imgY_pad, Int pad_size, Int fl, Int img_stride);
+  Void xFrameChromaforOneSlice    (CAlfSlice* pSlice, Int ComponentID, TComPicYuv* pcPicDec, TComPicYuv* pcPicRest, Int *qh, Int iTap);
+  //for decoder CU on/off control
+  Void setAlfCtrlFlagsforSlices   (ALFParam *pcAlfParam, UInt &idx);
+  Void setAlfCtrlFlagsforOneSlice (CAlfSlice* pSlice, ALFParam *pcAlfParam, UInt &idx);
+#endif
+
+
   /// ALF for luma component
   Void xALFLuma_qc( TComPic* pcPic, ALFParam* pcAlfParam, TComPicYuv* pcPicDec, TComPicYuv* pcPicRest );
   
@@ -168,7 +283,11 @@ protected:
   Void get_mem2Dpel(imgpel ***array2D, int rows, int columns);
   Void no_mem_exit(const char *where);
   Void xError(const char *text, int code);
+#if MTK_NONCROSS_INLOOP_FILTER
+  Void calcVar(int ypos, int xpos, imgpel **imgY_var, imgpel *imgY_pad, int pad_size, int fl, int img_height, int img_width, int img_stride);
+#else
   Void calcVar(imgpel **imgY_var, imgpel *imgY_pad, int pad_size, int fl, int img_height, int img_width, int img_stride);
+#endif
   Void DecFilter_qc(imgpel* imgY_rec,ALFParam* pcAlfParam, int Stride);
   Void xSubCUAdaptive_qc(TComDataCU* pcCU, ALFParam* pcAlfParam, imgpel *imgY_rec_post, imgpel *imgY_rec, UInt uiAbsPartIdx, UInt uiDepth, Int Stride);
   Void xCUAdaptive_qc(TComPic* pcPic, ALFParam* pcAlfParam, imgpel *imgY_rec_post, imgpel *imgY_rec, Int Stride);
@@ -187,8 +306,12 @@ protected:
   Void xALFChroma   ( ALFParam* pcAlfParam, TComPicYuv* pcPicDec, TComPicYuv* pcPicRest );
   
   /// sub function: non-adaptive ALF process for chroma
+#if MTK_NONCROSS_INLOOP_FILTER
+  Void xFrameChroma ( Int ypos, Int xpos, Int iHeight, Int iWidth, TComPicYuv* pcPicDec, TComPicYuv* pcPicRest, Int *qh, Int iTap, Int iColor );
+#else
   Void xFrameChroma ( TComPicYuv* pcPicDec, TComPicYuv* pcPicRest, Int *qh, Int iTap, Int iColor );
-  
+#endif
+
 public:
   TComAdaptiveLoopFilter();
   virtual ~TComAdaptiveLoopFilter() {}
@@ -217,5 +340,25 @@ public:
   static Int ALFTapHToNumCoeff(Int tapH);
   static Int ALFFlHToFlV(Int flH);
 #endif
+
+
+#if MTK_NONCROSS_INLOOP_FILTER
+public:
+  Void setNumSlicesInPic(UInt uiNum) {m_uiNumSlicesInPic = uiNum;}
+  UInt getNumSlicesInPic()           {return m_uiNumSlicesInPic;}
+  Void setUseNonCrossAlf(Bool bVal)  {m_bUseNonCrossALF = bVal;}
+  Bool getUseNonCrossAlf()           {return m_bUseNonCrossALF;}
+  Void createSlice      ();
+  Void destroySlice     ();
+
+public: //operator to access Alf slice
+  CAlfSlice& operator[] (UInt i)
+  {
+    assert(i < m_uiNumSlicesInPic);
+    return m_pSlice[i];
+  }
+#endif
+
+
 };
 #endif

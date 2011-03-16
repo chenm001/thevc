@@ -78,6 +78,7 @@ private:
 #if AD_HOC_SLICES
   ALFParam              m_cAlfParam;
 #endif
+
 public:
   TDecGop();
   virtual ~TDecGop();
@@ -91,7 +92,6 @@ public:
                  TComAdaptiveLoopFilter* pcAdaptiveLoopFilter );
   Void  create  ();
   Void  destroy ();
-  
   Void  decompressGop ( Bool bEos, TComBitstream* pcBitstream, TComPic*& rpcPic );
   Void  setGopSize( Int i) { m_iGopSize = i; }
 };

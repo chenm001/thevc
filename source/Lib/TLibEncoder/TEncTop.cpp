@@ -176,6 +176,13 @@ Void TEncTop::init()
   
   // initialize encoder search class
   m_cSearch.init( this, &m_cTrQuant, m_iSearchRange, m_bipredSearchRange, m_iFastSearch, 0, &m_cEntropyCoder, &m_cRdCost, getRDSbacCoder(), getRDGoOnSbacCoder() );
+
+#if MQT_ALF_NPASS
+  if(m_bUseALF)
+  {
+    m_cAdaptiveLoopFilter.setALFEncodePassReduction( m_iALFEncodePassReduction );
+  }
+#endif
 }
 
 // ====================================================================================================================
@@ -351,6 +358,11 @@ Void TEncTop::xInitSPS()
   
   m_cSPS.setBitDepth    ( g_uiBitDepth        );
   m_cSPS.setBitIncrement( g_uiBitIncrement    );
+
+#if MTK_NONCROSS_INLOOP_FILTER
+  m_cSPS.setLFCrossSliceBoundaryFlag( m_bLFCrossSliceBoundaryFlag );
+#endif
+
 }
 
 #if CONSTRAINED_INTRA_PRED
