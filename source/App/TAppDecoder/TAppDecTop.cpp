@@ -44,10 +44,10 @@
 // Local constants
 // ====================================================================================================================
 
-/// maximum bitstream buffer Size per 1 picture (1920*1080*1.5)
-/** \todo fix this value according to suitable value
- */
-#define BITS_BUF_SIZE     3110400
+/// initial bitstream buffer size
+/// should be large enough for parsing SPS
+/// resized as a function of picture size after parsing SPS
+#define BITS_BUF_SIZE 65536
 
 // ====================================================================================================================
 // Constructor / destructor / initialization / destroy
@@ -99,6 +99,9 @@ Void TAppDecTop::decode()
   TComBitstream*      pcBitstream = m_apcBitstream;
   UInt                uiPOC;
   TComList<TComPic*>* pcListPic;
+#if AD_HOC_SLICES && AD_HOC_SLICES_TEST_OUTOFORDER_DECOMPRESS
+  Int                 iLastLoopLocation = 0;
+#endif
   
   // create & initialize internal classes
   xCreateDecLib();
@@ -110,8 +113,88 @@ Void TAppDecTop::decode()
   // main decoder loop
   Bool  bEos        = false;
   bool recon_opened = false; // reconstruction file not yet opened. (must be performed after SPS is seen)
+  Bool resizedBitstreamBuffer = false;
+  
   while ( !bEos )
   {
+#if AD_HOC_SLICES && AD_HOC_SLICES_TEST_OUTOFORDER_DECOMPRESS
+    Int       iSliceCountInPicture  = 0;
+    Bool      bEosDetected          = false;
+    Bool      bEofDetected          = false;
+    TComSPS*  pcSPS                 = m_cTDecTop.getSPS();
+    Long*     alFileByteLocationSlicesInPicture;
+    if (pcSPS==NULL)
+    {
+      // SPS not read yet so it is not known how many slices can occur within a picture
+      alFileByteLocationSlicesInPicture = new Long [10]; // just has to be >= 1
+    }
+    else
+    {
+      // Determine the number of LCUs per picture and allocate memory for writing slice locations
+      UInt uiWidthInCU       = ( pcSPS->getWidth()  % pcSPS->getMaxCUWidth()  ) ? pcSPS->getWidth() /pcSPS->getMaxCUWidth()  + 1 : pcSPS->getWidth() /pcSPS->getMaxCUWidth() ;
+      UInt uiHeightInCU      = ( pcSPS->getHeight() % pcSPS->getMaxCUHeight() ) ? pcSPS->getHeight()/pcSPS->getMaxCUHeight() + 1 : pcSPS->getHeight()/pcSPS->getMaxCUHeight();
+      UInt uiNumCUsInFrame   = uiWidthInCU * uiHeightInCU;
+      alFileByteLocationSlicesInPicture = new Long [uiNumCUsInFrame];
+    }
+
+    // Determine location of slices for a picture in the file
+    do 
+    {
+      alFileByteLocationSlicesInPicture[ iSliceCountInPicture++ ] = iLastLoopLocation;
+      Int iLocation     = m_cTVideoIOBitstreamFile.findNextStartCodeFastLookup( pcBitstream );
+      iLastLoopLocation = iLocation;
+      if (iLocation<0)
+      {
+        bEofDetected = true;
+        break;
+      }
+    }
+    while (!pcBitstream->getLastSliceEncounteredInPicture());
+
+    if(bEosDetected)
+    {
+      break;
+    }
+
+    // Set file pointer and perform out-of-order slice decoding
+    for (Int iSliceProcessed = 0; iSliceProcessed < iSliceCountInPicture; iSliceProcessed++)
+    {
+#if SHARP_ENTROPY_SLICE
+      // Disable out-of-order decompression since crossing reconstruction slice boundaries causes problems
+      Int iSliceIndxToDecode     = iSliceProcessed;
+#else
+      // Slice1 Slice0 Slice3 Slice2 Slice5 Slice4 ...
+      Int iSliceIndxToDecode     = (iSliceProcessed%2==1) ? (iSliceProcessed-1) : (iSliceProcessed+1);
+#endif
+      iSliceIndxToDecode         = (iSliceIndxToDecode<0) ? 0 : ( (iSliceIndxToDecode > (iSliceCountInPicture-1)) ? (iSliceCountInPicture-1) : iSliceIndxToDecode );
+
+      m_cTVideoIOBitstreamFile.setFileLocation( alFileByteLocationSlicesInPicture[ iSliceIndxToDecode ] );
+      m_cTVideoIOBitstreamFile.readBits( pcBitstream );
+      Long lLocalLastFileLocation = m_cTVideoIOBitstreamFile.getFileLocation();
+      if (lLocalLastFileLocation < 0 )
+      {
+        m_cTVideoIOBitstreamFile.rewindFile();
+      }
+
+      pcBitstream->setSliceProcessed ( iSliceProcessed );
+      pcBitstream->setFirstSliceEncounteredInPicture( (iSliceProcessed==0) ? true : false );
+      pcBitstream->setLastSliceEncounteredInPicture( (iSliceProcessed==iSliceCountInPicture-1) ? true : false );
+      // call actual decoding function
+#if DCM_SKIP_DECODING_FRAMES
+      m_cTDecTop.decode( bEos, pcBitstream, uiPOC, pcListPic, m_iSkipFrame, m_iPOCLastDisplay);
+#else
+      m_cTDecTop.decode( bEos, pcBitstream, uiPOC, pcListPic );
+#endif
+    }
+
+    delete [] alFileByteLocationSlicesInPicture;
+
+    if (bEosDetected)
+    {
+      bEos = true;
+      break;
+    }
+#else
     bEos = m_cTVideoIOBitstreamFile.readBits( pcBitstream );
     if (bEos)
     {
@@ -124,6 +207,18 @@ Void TAppDecTop::decode()
 #else
     m_cTDecTop.decode( bEos, pcBitstream, uiPOC, pcListPic );
 #endif
+#endif
+    
+    if (!resizedBitstreamBuffer)
+    {
+      TComSPS *sps = m_cTDecTop.getSPS();
+      if (sps)
+      {
+        pcBitstream->destroy();
+        pcBitstream->create(sps->getWidth() * sps->getHeight() * 2);
+        resizedBitstreamBuffer = true;
+      }
+    }
     
     if( pcListPic )
     {
@@ -137,6 +232,12 @@ Void TAppDecTop::decode()
       // write reconstuction to file
       xWriteOutput( pcListPic );
     }
+#if AD_HOC_SLICES && AD_HOC_SLICES_TEST_OUTOFORDER_DECOMPRESS
+    if (bEofDetected)
+    {
+      break;
+    }
+#endif
   }
   
   // delete buffers
@@ -196,14 +297,22 @@ Void TAppDecTop::xWriteOutput( TComList<TComPic*>* pcListPic )
       // write to file
       if ( m_pchReconFile )
       {
+#if AD_HOC_SLICES
+        m_cTVideoIOYuvReconFile.write( pcPic->getPicYuvRec(), pcPic->getSlice(0)->getSPS()->getPad() );
+#else
         m_cTVideoIOYuvReconFile.write( pcPic->getPicYuvRec(), pcPic->getSlice()->getSPS()->getPad() );
+#endif
       }
       
       // update POC of display order
       m_iPOCLastDisplay = pcPic->getPOC();
       
       // erase non-referenced picture in the reference picture list after display
+#if AD_HOC_SLICES
+      if ( !pcPic->getSlice(0)->isReferenced() && pcPic->getReconMark() == true )
+#else
       if ( !pcPic->getSlice()->isReferenced() && pcPic->getReconMark() == true )
+#endif
       {
 #if !DYN_REF_FREE
         pcPic->setReconMark(false);
@@ -218,6 +327,14 @@ Void TAppDecTop::xWriteOutput( TComList<TComPic*>* pcListPic )
         continue;
 #endif
       }
+
+#if AD_HOC_SLICES && SHARP_ENTROPY_SLICE
+      if(pcPic->getNumAllocatedSlice() != 1)
+      {
+        pcPic->clearSliceBuffer();
+      }
+#endif
+
     }
     
     iterPic++;

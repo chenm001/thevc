@@ -72,6 +72,12 @@ TComSlice::TComSlice()
   m_bRefPicListCombinationFlag = false;
   m_bRefPicListModificationFlagLC = false;
 #endif
+#if AD_HOC_SLICES
+  m_uiSliceCurStartCUAddr        = 0;
+#if SHARP_ENTROPY_SLICE
+  m_uiEntropySliceCurStartCUAddr = 0;
+#endif
+#endif
 }
 
 TComSlice::~TComSlice()
@@ -120,11 +126,17 @@ Void  TComSlice::sortPicList        (TComList<TComPic*>& rcListPic)
     iterPicExtract = rcListPic.begin();
     for (Int j = 0; j < i; j++) iterPicExtract++;
     pcPicExtract = *(iterPicExtract);
+#if AD_HOC_SLICES
+    pcPicExtract->setCurrSliceIdx(0);
+#endif
     
     iterPicInsert = rcListPic.begin();
     while (iterPicInsert != iterPicExtract)
     {
       pcPicInsert = *(iterPicInsert);
+#if AD_HOC_SLICES
+      pcPicInsert->setCurrSliceIdx(0);
+#endif
       if (pcPicInsert->getPOC() >= pcPicExtract->getPOC())
       {
         break;
@@ -173,11 +185,20 @@ TComPic* TComSlice::xGetRefPic (TComList<TComPic*>& rcListPic,
       iterPic--;
       pcPic = *(iterPic);
       if( ( !pcPic->getReconMark()                        ) ||
+#if AD_HOC_SLICES
+          ( bDRBFlag  != pcPic->getSlice(0)->getDRBFlag()  ) ||
+          ( eERBIndex != pcPic->getSlice(0)->getERBIndex() ) )
+#else
          ( bDRBFlag  != pcPic->getSlice()->getDRBFlag()  ) ||
          ( eERBIndex != pcPic->getSlice()->getERBIndex() ) )
+#endif
         continue;
       
+#if AD_HOC_SLICES
+      if( !pcPic->getSlice(0)->isReferenced() )
+#else
       if( !pcPic->getSlice()->isReferenced() )
+#endif
         continue;
       
       uiCount++;
@@ -208,11 +229,20 @@ TComPic* TComSlice::xGetRefPic (TComList<TComPic*>& rcListPic,
         
         pcPic = *(iterPic);
         if( ( !pcPic->getReconMark()                        ) ||
+#if AD_HOC_SLICES
+          ( bDRBFlag  != pcPic->getSlice(0)->getDRBFlag()  ) ||
+          ( eERBIndex != pcPic->getSlice(0)->getERBIndex() ) )
+#else
            ( bDRBFlag  != pcPic->getSlice()->getDRBFlag()  ) ||
            ( eERBIndex != pcPic->getSlice()->getERBIndex() ) )
+#endif
           continue;
         
+#if AD_HOC_SLICES
+      if( !pcPic->getSlice(0)->isReferenced() )
+#else
         if( !pcPic->getSlice()->isReferenced() )
+#endif
           continue;
         
         uiCount++;
@@ -234,11 +264,20 @@ TComPic* TComSlice::xGetRefPic (TComList<TComPic*>& rcListPic,
       
       pcPic = *(iterPic);
       if( ( !pcPic->getReconMark()                        ) ||
+#if AD_HOC_SLICES
+          ( bDRBFlag  != pcPic->getSlice(0)->getDRBFlag()  ) ||
+          ( eERBIndex != pcPic->getSlice(0)->getERBIndex() ) )
+#else
          ( bDRBFlag  != pcPic->getSlice()->getDRBFlag()  ) ||
          ( eERBIndex != pcPic->getSlice()->getERBIndex() ) )
+#endif
         continue;
       
+#if AD_HOC_SLICES
+      if( !pcPic->getSlice(0)->isReferenced() )
+#else
       if( !pcPic->getSlice()->isReferenced() )
+#endif
         continue;
       
       uiCount++;
@@ -266,11 +305,20 @@ TComPic* TComSlice::xGetRefPic (TComList<TComPic*>& rcListPic,
       iterPic--;
       pcPic = *(iterPic);
       if( ( !pcPic->getReconMark()                        ) ||
+#if AD_HOC_SLICES
+          ( bDRBFlag  != pcPic->getSlice(0)->getDRBFlag()  ) ||
+          ( eERBIndex != pcPic->getSlice(0)->getERBIndex() ) )
+#else
          ( bDRBFlag  != pcPic->getSlice()->getDRBFlag()  ) ||
          ( eERBIndex != pcPic->getSlice()->getERBIndex() ) )
+#endif
         continue;
       
+#if AD_HOC_SLICES
+      if( !pcPic->getSlice(0)->isReferenced() )
+#else
       if( !pcPic->getSlice()->isReferenced() )
+#endif
         continue;
       
       uiCount++;
@@ -525,7 +573,12 @@ Void TComSlice::decodingRefreshMarking(UInt& uiPOCCDR, Bool& bRefreshPending, TC
     while (iterPic != rcListPic.end())
     {
       rpcPic = *(iterPic);
-      if (rpcPic->getPOC() != uiPOCCurr) rpcPic->getSlice()->setReferenced(false);
+#if AD_HOC_SLICES
+      rpcPic->setCurrSliceIdx(0);
+      if (rpcPic->getPOC() != uiPOCCurr) rpcPic->getSlice(0)->setReferenced(false);
+#else
+      if (rpcPic->getPOC() != uiPOCCurr) rpcPic->getSlice()->setReferenced(false);      
+#endif      
       iterPic++;
     }
   }
@@ -537,7 +590,11 @@ Void TComSlice::decodingRefreshMarking(UInt& uiPOCCDR, Bool& bRefreshPending, TC
       while (iterPic != rcListPic.end())
       {
         rpcPic = *(iterPic);
+#if AD_HOC_SLICES        
+        if (rpcPic->getPOC() != uiPOCCurr && rpcPic->getPOC() != uiPOCCDR) rpcPic->getSlice(0)->setReferenced(false);
+#else
         if (rpcPic->getPOC() != uiPOCCurr && rpcPic->getPOC() != uiPOCCDR) rpcPic->getSlice()->setReferenced(false);
+#endif        
         iterPic++;
       }
       bRefreshPending = false; 
@@ -551,6 +608,112 @@ Void TComSlice::decodingRefreshMarking(UInt& uiPOCCDR, Bool& bRefreshPending, TC
 }
 #endif
 
+#if AD_HOC_SLICES
+Void TComSlice::copySliceInfo(TComSlice *pSrc)
+{
+  assert( pSrc != NULL );
+
+  Int i, j, k;
+
+  m_iPOC                 = pSrc->m_iPOC;
+#if DCM_DECODING_REFRESH
+  m_eNalUnitType         = pSrc->m_eNalUnitType;
+#endif  
+  m_eSliceType           = pSrc->m_eSliceType;
+  m_iSliceQp             = pSrc->m_iSliceQp;
+  m_iSymbolMode          = pSrc->m_iSymbolMode;
+  m_bLoopFilterDisable   = pSrc->m_bLoopFilterDisable;
+  m_bDRBFlag             = pSrc->m_bDRBFlag;
+  m_eERBIndex            = pSrc->m_eERBIndex;
+  
+#if DCM_COMB_LIST  
+  for (i = 0; i < 3; i++)
+  {
+    m_aiNumRefIdx[i]     = pSrc->m_aiNumRefIdx[i];
+  }
+
+  for (i = 0; i < 2; i++)
+  {
+    for (j = 0; j < MAX_NUM_REF_LC; j++)
+    {
+       m_iRefIdxOfLC[i][j]  = pSrc->m_iRefIdxOfLC[i][j];
+    }
+  }
+  for (i = 0; i < MAX_NUM_REF_LC; i++)
+  {
+    m_eListIdFromIdxOfLC[i] = pSrc->m_eListIdFromIdxOfLC[i];
+    m_iRefIdxFromIdxOfLC[i] = pSrc->m_iRefIdxFromIdxOfLC[i];
+    m_iRefIdxOfL1FromRefIdxOfL0[i] = pSrc->m_iRefIdxOfL1FromRefIdxOfL0[i];
+    m_iRefIdxOfL0FromRefIdxOfL1[i] = pSrc->m_iRefIdxOfL0FromRefIdxOfL1[i];
+  }
+  m_bRefPicListModificationFlagLC = pSrc->m_bRefPicListModificationFlagLC;
+  m_bRefPicListCombinationFlag    = pSrc->m_bRefPicListCombinationFlag;
+#else
+  for (i = 0; i < 2; i++)
+  {
+    m_aiNumRefIdx[i]     = pSrc->m_aiNumRefIdx[i];
+  }
+#endif  
+
+  m_iSliceQpDelta        = pSrc->m_iSliceQpDelta;
+  for (i = 0; i < 2; i++)
+  {
+    for (j = 0; j < MAX_NUM_REF; j++)
+    {
+      m_apcRefPicList[i][j]  = pSrc->m_apcRefPicList[i][j];
+      m_aiRefPOCList[i][j]   = pSrc->m_aiRefPOCList[i][j];
+    }
+  }  
+  m_iDepth               = pSrc->m_iDepth;
+
+  // referenced slice
+  m_bRefenced            = pSrc->m_bRefenced;
+#ifdef ROUNDING_CONTROL_BIPRED
+  m_bRounding            = pSrc->m_bRounding;
+#endif
+
+  // access channel
+  m_pcSPS                = pSrc->m_pcSPS;
+  m_pcPPS                = pSrc->m_pcPPS;
+  m_pcPic                = pSrc->m_pcPic;
+
+  m_uiColDir             = pSrc->m_uiColDir;
+  m_dLambda              = pSrc->m_dLambda;
+  for (i = 0; i < 2; i++)
+  {
+    for (j = 0; j < MAX_NUM_REF; j++)
+    {
+      for (k =0; k < MAX_NUM_REF; k++)
+      {
+        m_abEqualRef[i][j][k] = pSrc->m_abEqualRef[i][j][k];
+      }
+    }
+  }
+
+#if !DCTIF_8_6_LUMA
+  m_iInterpFilterType    = pSrc->m_iInterpFilterType;
+#endif  
+#if MS_NO_BACK_PRED_IN_B0
+  m_bNoBackPredFlag      = pSrc->m_bNoBackPredFlag;
+#endif
+#if MS_LCEC_LOOKUP_TABLE_EXCEPTION
+  m_bRefIdxCombineCoding = pSrc->m_bRefIdxCombineCoding;
+#endif
+  m_uiSliceMode          = pSrc->m_uiSliceMode;
+  m_uiSliceArgument      = pSrc->m_uiSliceArgument;
+  m_uiSliceCurStartCUAddr= pSrc->m_uiSliceCurStartCUAddr;
+  m_uiSliceCurEndCUAddr  = pSrc->m_uiSliceCurEndCUAddr;
+  m_uiSliceIdx           = pSrc->m_uiSliceIdx;
+#if SHARP_ENTROPY_SLICE 
+  m_uiEntropySliceMode            = pSrc->m_uiEntropySliceMode;
+  m_uiEntropySliceArgument        = pSrc->m_uiEntropySliceArgument; 
+  m_uiEntropySliceCurStartCUAddr  = pSrc->m_uiEntropySliceCurStartCUAddr;
+  m_uiEntropySliceCurEndCUAddr    = pSrc->m_uiEntropySliceCurEndCUAddr;
+  m_bNextSlice                    = pSrc->m_bNextSlice;
+  m_bNextEntropySlice             = pSrc->m_bNextEntropySlice;
+#endif
+}
+#endif
 // ------------------------------------------------------------------------------------------------
 // Sequence parameter set (SPS)
 // ------------------------------------------------------------------------------------------------
@@ -585,6 +748,9 @@ TComSPS::~TComSPS()
 
 TComPPS::TComPPS()
 {
+#if CONSTRAINED_INTRA_PRED
+  m_bConstrainedIntraPred = false;
+#endif
 }
 
 TComPPS::~TComPPS()

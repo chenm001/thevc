@@ -298,13 +298,40 @@ Void TEncCu::compressCU( TComDataCU*& rpcCU )
   }
 }
 
+#if AD_HOC_SLICES
+/** \param  pcCU  pointer of CU data class, bForceTerminate when set to true terminates slice (default is false).
+ */
+Void TEncCu::encodeCU ( TComDataCU* pcCU, Bool bForceTerminate )
+#else
 /** \param  pcCU  pointer of CU data class
  */
 Void TEncCu::encodeCU ( TComDataCU* pcCU )
+#endif
 {
+#if SNY_DQP  
+  if ( pcCU->getSlice()->getSPS()->getUseDQP() )
+  {
+    pcCU->setdQPFlag(true); 
+  }
+#endif//SNY_DQP
   // encode CU data
   xEncodeCU( pcCU, 0, 0 );
   
+#if SNY_DQP
+  // dQP: only for LCU
+  if ( pcCU->getSlice()->getSPS()->getUseDQP() )
+  {
+    if ( pcCU->isSkipped( 0 ) && pcCU->getDepth( 0 ) == 0 )
+    {
+    }
+    else if ( pcCU->getdQPFlag())// non-skip
+    {
+      
+      m_pcEntropyCoder->encodeQP( pcCU, 0 );
+      pcCU->setdQPFlag(false);
+    }
+  }
+#else
   // dQP: only for LCU
   if ( pcCU->getSlice()->getSPS()->getUseDQP() )
   {
@@ -316,9 +343,22 @@ Void TEncCu::encodeCU ( TComDataCU* pcCU )
       m_pcEntropyCoder->encodeQP( pcCU, 0 );
     }
   }
+#endif//SNY_DQP
   
   //--- write terminating bit ---
+#if AD_HOC_SLICES
+  Bool bTerminateSlice = bForceTerminate;
+  UInt uiCUAddr = pcCU->getAddr();
+
+  if (uiCUAddr == (pcCU->getPic()->getNumCUsInFrame()-1) )
+    bTerminateSlice = true;
+
+  if (uiCUAddr == (pcCU->getSlice()->getSliceCurEndCUAddr()-1))
+    bTerminateSlice = true;
+
+#else
   Bool bTerminateSlice = ( pcCU->getAddr() == pcCU->getPic()->getNumCUsInFrame()-1) ? true : false;
+#endif  
   m_pcEntropyCoder->encodeTerminatingBit( bTerminateSlice ? 1 : 0 );
   
   // Encode slice finish
@@ -363,13 +403,21 @@ Void TEncCu::xCompressCU( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, UInt u
   if( ( uiRPelX < rpcBestCU->getSlice()->getSPS()->getWidth() ) && ( uiBPelY < rpcBestCU->getSlice()->getSPS()->getHeight() ) )
   {
     // do inter modes
+#if AD_HOC_SLICES
+    if( rpcBestCU->getSlice()->getSliceType() != I_SLICE )
+#else
     if( pcPic->getSlice()->getSliceType() != I_SLICE )
+#endif
     {
       // SKIP
       pcTempCU = rpcTempCU;
       
 #if HHI_MRG
+#if AD_HOC_SLICES
+      if( pcPic->getSlice(0)->getSPS()->getUseMRG() )
+#else
       if( pcPic->getSlice()->getSPS()->getUseMRG() )
+#endif
       {
 #if SAMSUNG_MRG_SKIP_DIRECT
         xCheckRDCostAMVPSkip ( rpcBestCU, rpcTempCU );        rpcTempCU->initEstData();
@@ -400,7 +448,7 @@ Void TEncCu::xCompressCU( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, UInt u
       {
 #if HHI_DISABLE_INTER_NxN_SPLIT
         xCheckRDCostInter( rpcBestCU, rpcTempCU, SIZE_2Nx2N );  rpcTempCU->initEstData();
-        if( rpcTempCU->getWidth( 0 ) == 8 )
+        if( uiDepth == g_uiMaxCUDepth - g_uiAddCUDepth )
         {
           xCheckRDCostInter( rpcBestCU, rpcTempCU, SIZE_NxN   );  rpcTempCU->initEstData();
         }
@@ -411,7 +459,11 @@ Void TEncCu::xCompressCU( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, UInt u
       }
       
 #if HHI_RMP_SWITCH
+#if AD_HOC_SLICES
+      if( pcPic->getSlice(0)->getSPS()->getUseRMP() )
+#else
       if( pcPic->getSlice()->getSPS()->getUseRMP() )
+#endif
 #endif
       { // 2NxN, Nx2N
         xCheckRDCostInter( rpcBestCU, rpcTempCU, SIZE_Nx2N  );  rpcTempCU->initEstData();
@@ -424,14 +476,18 @@ Void TEncCu::xCompressCU( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, UInt u
     if ( !bEarlySkip )
     {
       // speedup for inter frames
+#if AD_HOC_SLICES
+      if( rpcBestCU->getSlice()->getSliceType() == I_SLICE || 
+#else
       if( pcPic->getSlice()->getSliceType() == I_SLICE || 
+#endif
          rpcBestCU->getCbf( 0, TEXT_LUMA     ) != 0   ||
          rpcBestCU->getCbf( 0, TEXT_CHROMA_U ) != 0   ||
          rpcBestCU->getCbf( 0, TEXT_CHROMA_V ) != 0     ) // avoid very complex intra if it is unlikely
       {
         xCheckRDCostIntra( rpcBestCU, rpcTempCU, SIZE_2Nx2N ); rpcTempCU->initEstData();
 #if MTK_DISABLE_INTRA_NxN_SPLIT
-        if ( rpcTempCU->getWidth(0) == 8)
+        if( uiDepth == g_uiMaxCUDepth - g_uiAddCUDepth )
 #endif
         {
           if( rpcTempCU->getWidth(0) > ( 1 << rpcTempCU->getSlice()->getSPS()->getQuadtreeTULog2MinSize() ) )

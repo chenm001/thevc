@@ -100,6 +100,9 @@ private:
 protected:
   Void  xGetNewPicBuffer  ( TComPic*& rpcPic );           ///< get picture buffer which will be processed
   Void  xInitSPS          ();                             ///< initialize SPS from encoder options
+#if CONSTRAINED_INTRA_PRED
+  Void  xInitPPS          ();                             ///< initialize PPS from encoder options
+#endif
   
 public:
   TEncTop();

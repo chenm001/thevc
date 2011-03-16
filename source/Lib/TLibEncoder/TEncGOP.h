@@ -94,12 +94,28 @@ private:
   Bool                    m_bRefreshPending;
   UInt                    m_uiPOCCDR;
 #endif
+#if AD_HOC_SLICES 
+  UInt*                   m_uiStoredStartCUAddrForEncodingSlice;
+#if SHARP_ENTROPY_SLICE 
+  UInt*                   m_uiStoredStartCUAddrForEncodingEntropySlice;
+#endif
+#endif
+
+// #if MTK_NONCROSS_INLOOP_FILTER
+//   UInt                    m_uiILSliceCount;
+//   UInt*                   m_puiILSliceStartLCU;
+//   UInt*                   m_puiILSliceEndLCU;
+// #endif
 
 public:
   TEncGOP();
   virtual ~TEncGOP();
   
+#if AD_HOC_SLICES
+  Void  create      ( Int iWidth, Int iHeight, UInt iMaxCUWidth, UInt iMaxCUHeight );
+#else
   Void  create      ();
+#endif
   Void  destroy     ();
   
   Void  init        ( TEncTop* pcTEncTop );

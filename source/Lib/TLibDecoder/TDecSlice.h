@@ -58,6 +58,10 @@ private:
   TDecEntropy*    m_pcEntropyDecoder;
   TDecCu*         m_pcCuDecoder;
   
+#if AD_HOC_SLICES
+  UInt            m_uiCurrSliceIdx;
+#endif
+
 public:
   TDecSlice();
   virtual ~TDecSlice();
@@ -67,6 +71,7 @@ public:
   Void  destroy           ();
   
   Void  decompressSlice   ( TComBitstream* pcBitstream, TComPic*& rpcPic );
+
 };
 
 #endif

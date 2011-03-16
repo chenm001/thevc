@@ -140,6 +140,9 @@ Void TVideoIOBitsStartCode::openBits( char* pchFile, Bool bWriteMode )
       printf("\nfailed to write Bitstream file\n");
       exit(0);
     }
+#if AD_HOC_SLICES && AD_HOC_SLICES_TEST_OUTOFORDER_DECOMPRESS
+    m_ucFastLookupBuf = NULL;
+#endif
   }
   else
   {
@@ -150,6 +153,15 @@ Void TVideoIOBitsStartCode::openBits( char* pchFile, Bool bWriteMode )
       printf("\nfailed to read Bitstream file\n");
       exit(0);
     }
+#if AD_HOC_SLICES && AD_HOC_SLICES_TEST_OUTOFORDER_DECOMPRESS
+    m_cHandle.seekg( 0, ios_base::end );
+    m_ulBitstreamLength = m_cHandle.tellg();
+    m_ucFastLookupBuf   = new UChar [AD_HOC_SLICES_BUF_SIZE];
+    m_iCurFileLocation  = 0;
+    m_iNextFileLocation = 0;
+    m_iBufBytesLeft     = 0;
+    m_cHandle.seekg( 0, ios_base::beg );
+#endif 
   }
   
   return;
@@ -158,6 +170,9 @@ Void TVideoIOBitsStartCode::openBits( char* pchFile, Bool bWriteMode )
 Void TVideoIOBitsStartCode::closeBits()
 {
   m_cHandle.close();
+#if AD_HOC_SLICES && AD_HOC_SLICES_TEST_OUTOFORDER_DECOMPRESS
+  if (m_ucFastLookupBuf!=NULL) delete [] m_ucFastLookupBuf;
+#endif 
 }
 
 /**
@@ -166,6 +181,9 @@ Void TVideoIOBitsStartCode::closeBits()
  */
 Bool TVideoIOBitsStartCode::readBits( TComBitstream*& rpcBitstream )
 {
+#if AD_HOC_SLICES && AD_HOC_SLICES_TEST_OUTOFORDER_DECOMPRESS
+  m_bLastSliceEncounteredInPicture = true;
+#endif
   rpcBitstream->rewindStreamPacket();
   
   // check end-of-file
@@ -177,10 +195,260 @@ Bool TVideoIOBitsStartCode::readBits( TComBitstream*& rpcBitstream )
     return true;
   }
   
+#if AD_HOC_SLICES
+  rpcBitstream->setFirstSliceEncounteredInPicture( m_bFirstSliceEncounteredInPicture );
+  rpcBitstream->setLastSliceEncounteredInPicture ( m_bLastSliceEncounteredInPicture  );
+#endif
   // initialize parsing process
   rpcBitstream->initParsingConvertPayloadToRBSP( uiPacketSize );
   return false;
 }
+
+#if AD_HOC_SLICES && AD_HOC_SLICES_TEST_OUTOFORDER_DECOMPRESS
+Int TVideoIOBitsStartCode::findNextStartCodeFastLookup( TComBitstream*& rpcBitstream )
+{
+  m_bLastSliceEncounteredInPicture = true;
+  if (m_iBufBytesLeft<8)
+  {
+    // put some data in the buffer
+    m_cHandle.seekg( m_iNextFileLocation, ios_base::beg );
+    m_cHandle.seekg(-m_iBufBytesLeft, ios_base::cur);
+    if ( m_ulBitstreamLength < AD_HOC_SLICES_BUF_SIZE )
+    {
+      m_iBufBytesLeft = m_ulBitstreamLength;
+    }
+    else
+    {
+      m_iBufBytesLeft = AD_HOC_SLICES_BUF_SIZE;
+    }
+    if (m_iBufBytesLeft < 8) 
+      return -1;
+    m_cHandle.read( reinterpret_cast<char*>(m_ucFastLookupBuf), m_iBufBytesLeft );
+    m_ulBitstreamLength -= m_iBufBytesLeft;
+    m_ucCurBufPtr        = m_ucFastLookupBuf;
+    m_iNextFileLocation  = m_cHandle.tellg();
+  }
+
+  
+  assert( 0 == m_ucCurBufPtr[0] );
+  assert( 0 == m_ucCurBufPtr[1] );
+  assert( 0 == m_ucCurBufPtr[2] );
+  assert( 1 == m_ucCurBufPtr[3] );
+  m_ucCurBufPtr      += 4;
+  m_iCurFileLocation += 4;
+  m_iBufBytesLeft    -= 4;
+
+#if SHARP_ENTROPY_SLICE
+  m_bEntropySlice = false; 
+#endif
+
+  // Peek ahead and check if the new NALU contains a slice with a POC different from one encountered previously
+  UInt uiCurPOC = UInt(-1);
+  Int iNalUnitType = (m_ucCurBufPtr[0] & 0x1F); 
+  if ( iNalUnitType == NAL_UNIT_CODED_SLICE || iNalUnitType == NAL_UNIT_CODED_SLICE_IDR || iNalUnitType == NAL_UNIT_CODED_SLICE_CDR )
+  {
+#if SHARP_ENTROPY_SLICE 
+    if ( (m_ucCurBufPtr[1] & 0x80) != 0 ) 
+    {
+      // Entropy slice detected
+      m_bEntropySlice = true;
+    }
+    else
+    {
+      uiCurPOC   = m_ucCurBufPtr[1] & 0x7F;
+      uiCurPOC <<= 3;
+      uiCurPOC |= ((m_ucCurBufPtr[2] & 0xE0) >> 5);
+      m_ucCurBufPtr      += 3;
+      m_iCurFileLocation += 3;
+      m_iBufBytesLeft    -= 3;      
+    }
+  }
+
+  if (!m_bEntropySlice && m_uiLastPOC!=uiCurPOC)
+  {
+    m_bFirstSliceEncounteredInPicture = true;
+    m_uiLastPOC = uiCurPOC;
+  }
+  else
+  {
+    m_bFirstSliceEncounteredInPicture = false;
+    uiCurPOC = m_uiLastPOC;
+  }
+#else
+    uiCurPOC   = m_ucCurBufPtr[1] & 0xFF;
+    uiCurPOC <<= 2;
+    uiCurPOC  |= ((m_ucCurBufPtr[2] & 0xC0) >> 6);
+    m_ucCurBufPtr      += 3;
+    m_iCurFileLocation += 3;
+    m_iBufBytesLeft    -= 3;
+  }
+  m_uiLastPOC         = uiCurPOC;
+  if (m_uiLastPOC!=uiCurPOC)
+  {
+    m_bFirstSliceEncounteredInPicture = true;
+  }
+  else
+  {
+    m_bFirstSliceEncounteredInPicture = false;
+  }
+#endif
+
+  Int  iNextStartCodeBytes = 0;
+  UInt uiZeros             = 0;
+  while( true )
+  {
+    UChar ucByte = (*m_ucCurBufPtr);
+    m_ucCurBufPtr++; m_iBufBytesLeft--; m_iCurFileLocation++;
+    if ( m_iBufBytesLeft==0 )
+    {
+      if ( m_ulBitstreamLength==0 ) 
+      {
+        iNextStartCodeBytes = 0;
+        m_bLastSliceEncounteredInPicture = true;
+        m_iCurFileLocation = -1;
+        break;   
+      }    
+
+      // put some data in the buffer
+      m_cHandle.seekg( m_iNextFileLocation, ios_base::beg );
+      if ( m_ulBitstreamLength < AD_HOC_SLICES_BUF_SIZE )
+      {
+        m_iBufBytesLeft = m_ulBitstreamLength;
+      }
+      else
+      {
+        m_iBufBytesLeft = AD_HOC_SLICES_BUF_SIZE;
+      }
+      m_cHandle.read( reinterpret_cast<char*>(m_ucFastLookupBuf), m_iBufBytesLeft );
+      m_iNextFileLocation  = m_cHandle.tellg();
+      m_ulBitstreamLength -= m_iBufBytesLeft;
+      m_ucCurBufPtr        = m_ucFastLookupBuf;      
+    }
+    if( 1 < ucByte )
+    {
+      uiZeros = 0;
+    }
+    else if( 0 == ucByte )
+    {
+      uiZeros++;
+    }
+    else if( uiZeros > 2)
+    {
+      iNextStartCodeBytes = 3 + 1;
+      // look ahead if it is not end of stream
+      Int iLookaheadBytesRead = 0;
+      if ( !(m_iBufBytesLeft==0 && m_ulBitstreamLength==0) )
+      {
+        if (m_iBufBytesLeft<3)
+        {
+          // include the start code read so far into the buffer in case a move backwards is required
+          m_iNextFileLocation -= 5;
+          m_ulBitstreamLength += 5;
+          
+          // put some data in the buffer
+          m_cHandle.seekg( m_iNextFileLocation, ios_base::beg );
+          if ( m_ulBitstreamLength < AD_HOC_SLICES_BUF_SIZE )
+          {
+            m_iBufBytesLeft = m_ulBitstreamLength;
+          }
+          else
+          {
+            m_iBufBytesLeft = AD_HOC_SLICES_BUF_SIZE;
+          }
+          if (m_iBufBytesLeft < 3)
+          {          
+            m_bLastSliceEncounteredInPicture = true;
+            return -1;
+          }
+          m_cHandle.read( reinterpret_cast<char*>(m_ucFastLookupBuf), m_iBufBytesLeft );
+          m_ulBitstreamLength -= m_iBufBytesLeft;
+          m_ucCurBufPtr        = m_ucFastLookupBuf;
+          m_iNextFileLocation  = m_cHandle.tellg();
+          assert(m_ucCurBufPtr[0] == 0);
+          assert(m_ucCurBufPtr[1] == 0);
+          assert(m_ucCurBufPtr[2] == 0);
+          assert(m_ucCurBufPtr[3] != 0);
+          m_ucCurBufPtr       += 4;
+          m_iBufBytesLeft     -= 4;                              
+        }       
+        ucByte = (*m_ucCurBufPtr);
+        m_ucCurBufPtr++; m_iBufBytesLeft--; m_iCurFileLocation++; iLookaheadBytesRead++;
+        iNalUnitType = (ucByte & 0x1F); 
+        if ( iNalUnitType == NAL_UNIT_CODED_SLICE || iNalUnitType == NAL_UNIT_CODED_SLICE_IDR || iNalUnitType == NAL_UNIT_CODED_SLICE_CDR )
+        {
+          ucByte = (*m_ucCurBufPtr);
+          m_ucCurBufPtr++; m_iBufBytesLeft--; m_iCurFileLocation++;
+          if ( m_iBufBytesLeft==0 && m_ulBitstreamLength==0 ) return -1;  
+          iLookaheadBytesRead++;
+#if SHARP_ENTROPY_SLICE
+          if ( (ucByte & 0x80) != 0 ) 
+          {
+            // Entropy slice detected
+            m_bLastSliceEncounteredInPicture = false;
+            m_ucCurBufPtr      -= iLookaheadBytesRead;
+            m_iCurFileLocation -= iLookaheadBytesRead;
+            m_iBufBytesLeft    += iLookaheadBytesRead; 
+            break;
+          }
+          else
+          {
+            UInt uiReadPOC   = ucByte & 0x7F;
+            uiReadPOC <<= 3;
+            ucByte = (*m_ucCurBufPtr);
+            m_ucCurBufPtr++; m_iBufBytesLeft--; m_iCurFileLocation++;
+            if ( m_iBufBytesLeft==0 && m_ulBitstreamLength==0 ) return -1;  
+            iLookaheadBytesRead++;
+            uiReadPOC |= ((ucByte & 0xE0) >> 5);
+#else
+          UInt uiReadPOC   = ucByte & 0xFF;
+          uiReadPOC <<= 2;
+          ucByte = (*m_ucCurBufPtr);
+          m_ucCurBufPtr++; m_iBufBytesLeft--; m_iCurFileLocation++;
+          if ( m_iBufBytesLeft==0 && m_ulBitstreamLength==0 ) return -1;  
+          iLookaheadBytesRead++;
+          uiReadPOC |= ((ucByte & 0xC0) >> 6);
+#endif
+          if ( uiReadPOC == uiCurPOC )
+          {
+            m_bLastSliceEncounteredInPicture = false;
+            m_ucCurBufPtr      -= iLookaheadBytesRead;
+            m_iCurFileLocation -= iLookaheadBytesRead;
+            m_iBufBytesLeft    += iLookaheadBytesRead;            
+            break;
+          }
+          else
+          {
+            m_bLastSliceEncounteredInPicture = true; // a new POC detected so signal that this is the last Slice/NALU for current picture.
+          }
+#if SHARP_ENTROPY_SLICE
+          }
+#endif
+        }
+      }
+      if (iNextStartCodeBytes!=0)
+      {
+        m_ucCurBufPtr      -= iLookaheadBytesRead;
+        m_iCurFileLocation -= iLookaheadBytesRead;
+        m_iBufBytesLeft    += iLookaheadBytesRead;
+        break;
+      }
+    }
+    else
+    {
+      uiZeros = 0;
+    }
+  }
+
+  m_ucCurBufPtr       -= iNextStartCodeBytes;
+  m_iCurFileLocation  -= iNextStartCodeBytes;
+  m_iBufBytesLeft     += iNextStartCodeBytes;  
+
+  rpcBitstream->setFirstSliceEncounteredInPicture( m_bFirstSliceEncounteredInPicture );
+  rpcBitstream->setLastSliceEncounteredInPicture ( m_bLastSliceEncounteredInPicture  );
+
+  return m_iCurFileLocation;
+}
+#endif
 
 int TVideoIOBitsStartCode::xFindNextStartCode(UInt& ruiPacketSize, UChar* pucBuffer)
 {
@@ -193,6 +461,74 @@ int TVideoIOBitsStartCode::xFindNextStartCode(UInt& ruiPacketSize, UChar* pucBuf
   if ( m_cHandle.eof() ) return -1;
   assert( 1 == uiDummy );
   
+#if AD_HOC_SLICES 
+  UInt uiCurPOC = UInt(-1);
+  UChar ucDummyByte;
+
+#if SHARP_ENTROPY_SLICE
+  m_bEntropySlice = false; 
+#endif
+
+  // Peek ahead and check if the new NALU contains a slice with a POC different from one encountered previously
+  Int  iMovedForwardBytes = 0;
+  m_cHandle.read( reinterpret_cast<char*>(&ucDummyByte), 1 );
+  if ( m_cHandle.eof() ) return -1;  
+  iMovedForwardBytes++;
+  Int iNalUnitType = (ucDummyByte & 0x1F); 
+  if ( iNalUnitType == NAL_UNIT_CODED_SLICE || iNalUnitType == NAL_UNIT_CODED_SLICE_IDR || iNalUnitType == NAL_UNIT_CODED_SLICE_CDR )
+  {
+    m_cHandle.read( reinterpret_cast<char*>(&ucDummyByte), 1 );
+    if ( m_cHandle.eof() ) return -1;  
+    iMovedForwardBytes++;
+#if SHARP_ENTROPY_SLICE 
+    if ( (ucDummyByte & 0x80) != 0 ) 
+    {
+      // Entropy slice detected
+      m_bEntropySlice = true;
+    }
+    else
+    {
+      uiCurPOC        = ucDummyByte & 0x7F;
+      uiCurPOC      <<= 3;
+      m_cHandle.read( reinterpret_cast<char*>(&ucDummyByte), 1 );
+      if ( m_cHandle.eof() ) return -1;  
+      iMovedForwardBytes++;
+      uiCurPOC |= ((ucDummyByte & 0xE0) >> 5);
+    }
+  }
+  m_cHandle.seekg(-iMovedForwardBytes, ios_base::cur);
+
+  if (!m_bEntropySlice && m_uiLastPOC!=uiCurPOC)
+  {
+    m_bFirstSliceEncounteredInPicture = true;
+    m_uiLastPOC = uiCurPOC;
+  }
+  else
+  {
+    m_bFirstSliceEncounteredInPicture = false;
+    uiCurPOC = m_uiLastPOC;
+  }
+#else
+    uiCurPOC   = ucDummyByte & 0xFF;
+    uiCurPOC <<= 2;
+    m_cHandle.read( reinterpret_cast<char*>(&ucDummyByte), 1 );
+    if ( m_cHandle.eof() ) return -1;  
+    iMovedForwardBytes++;
+    uiCurPOC |= ((ucDummyByte & 0xC0) >> 6);
+  }
+  m_cHandle.seekg(-iMovedForwardBytes, ios_base::cur);
+
+  if (m_uiLastPOC!=uiCurPOC)
+  {
+    m_bFirstSliceEncounteredInPicture = true;
+  }
+  else
+  {
+    m_bFirstSliceEncounteredInPicture = false;
+  }
+  m_uiLastPOC = uiCurPOC;
+#endif
+#endif
   Int iNextStartCodeBytes = 0;
   Int iBytesRead = 0;
   UInt uiZeros = 0;
@@ -203,6 +539,9 @@ int TVideoIOBitsStartCode::xFindNextStartCode(UInt& ruiPacketSize, UChar* pucBuf
     if ( m_cHandle.eof() )
     {
       iNextStartCodeBytes = 0;
+#if AD_HOC_SLICES 
+      m_bLastSliceEncounteredInPicture = true;
+#endif
       break;
     }
     pucBuffer[iBytesRead++] = ucByte;
@@ -217,7 +556,66 @@ int TVideoIOBitsStartCode::xFindNextStartCode(UInt& ruiPacketSize, UChar* pucBuf
     else if( uiZeros > 2)
     {
       iNextStartCodeBytes = 3 + 1;
+#if AD_HOC_SLICES
+      // look ahead if it is not end of stream
+      Int iLookaheadBytesRead = 0;
+      if ( !m_cHandle.eof() )
+      {
+        m_cHandle.read( reinterpret_cast<char*>(&ucByte), 1 );
+        iLookaheadBytesRead++;
+        iNalUnitType = (ucByte & 0x1F); 
+        if ( iNalUnitType == NAL_UNIT_CODED_SLICE || iNalUnitType == NAL_UNIT_CODED_SLICE_IDR || iNalUnitType == NAL_UNIT_CODED_SLICE_CDR )
+        {
+          m_cHandle.read( reinterpret_cast<char*>(&ucByte), 1 );
+          if ( m_cHandle.eof() ) return -1;  
+          iLookaheadBytesRead++;
+#if SHARP_ENTROPY_SLICE
+          if ( (ucByte & 0x80) != 0 ) 
+          {
+            // Entropy slice detected
+            m_bLastSliceEncounteredInPicture = false;
+            m_cHandle.seekg(-iLookaheadBytesRead, ios_base::cur);
+            break;
+          }
+          else
+          {
+            UInt uiReadPOC   = ucByte & 0x7F;
+            uiReadPOC <<= 3;
+            m_cHandle.read( reinterpret_cast<char*>(&ucByte), 1 );
+            if ( m_cHandle.eof() ) return -1;  
+            iLookaheadBytesRead++;
+            uiReadPOC |= ((ucByte & 0xE0) >> 5);
+#else
+          UInt uiReadPOC   = ucByte & 0xFF;
+          uiReadPOC <<= 2;
+          m_cHandle.read( reinterpret_cast<char*>(&ucByte), 1 );
+          if ( m_cHandle.eof() ) return -1;  
+          iLookaheadBytesRead++;
+          uiReadPOC |= ((ucByte & 0xC0) >> 6);
+#endif
+          if ( uiReadPOC == uiCurPOC )
+          {
+            m_bLastSliceEncounteredInPicture = false;
+            m_cHandle.seekg(-iLookaheadBytesRead, ios_base::cur);
+            break;
+          }
+          else
+          {
+            m_bLastSliceEncounteredInPicture = true; // a new POC detected so signal that this is the last Slice/NALU for current picture.
+          }
+#if SHARP_ENTROPY_SLICE
+          }
+#endif
+        }
+      }
+      if (iNextStartCodeBytes!=0)
+      {
+        m_cHandle.seekg(-iLookaheadBytesRead, ios_base::cur);
+        break;
+      }
+#else
       break;
+#endif
     }
     else
     {

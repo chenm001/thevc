@@ -547,6 +547,7 @@ Void TDecSbac::parseMVPIdx      ( TComDataCU* pcCU, Int& riMVPIdx, Int iMVPNum, 
 {
   UInt uiSymbol;
   xReadUnaryMaxSymbol(uiSymbol, m_cMVPIdxSCModel.get(0), 1, iMVPNum-1);
+
   riMVPIdx = uiSymbol;
 }
 
@@ -583,7 +584,7 @@ Void TDecSbac::parsePartSize( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth 
   {
 #if MTK_DISABLE_INTRA_NxN_SPLIT
     uiSymbol = 1;
-    if ((g_uiMaxCUWidth >> uiDepth) == 8)
+    if( uiDepth == g_uiMaxCUDepth - g_uiAddCUDepth )
 #endif
     {
       m_pcTDecBinIf->decodeBin( uiSymbol, m_cCUPartSizeSCModel.get( 0, 0, 0) );
@@ -621,7 +622,7 @@ Void TDecSbac::parsePartSize( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth 
     {
 #if HHI_DISABLE_INTER_NxN_SPLIT
       uiSymbol = 0;
-      if( g_uiMaxCUWidth>>uiDepth == 8 )
+      if( uiDepth == g_uiMaxCUDepth - g_uiAddCUDepth )
 #endif
       {
         m_pcTDecBinIf->decodeBin( uiSymbol, m_cCUPartSizeSCModel.get( 0, 0, 3) );
@@ -631,7 +632,7 @@ Void TDecSbac::parsePartSize( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth 
       {
         pcCU->setPredModeSubParts( MODE_INTRA, uiAbsPartIdx, uiDepth );
 #if MTK_DISABLE_INTRA_NxN_SPLIT
-        if ((g_uiMaxCUWidth >> uiDepth) == 8)
+        if( uiDepth == g_uiMaxCUDepth - g_uiAddCUDepth )
 #endif
         {
           m_pcTDecBinIf->decodeBin( uiSymbol, m_cCUPartSizeSCModel.get( 0, 0, 4) );

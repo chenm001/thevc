@@ -397,7 +397,7 @@ Void TComRdCost::setDistParam( TComPattern* pcPatternKey, Pel* piRefY, Int iRefS
   rcDistParam.iSubShift  = 0;
 }
 
-#if HHI_MRG
+#if HHI_MRG || ZERO_MVD_EST
 Void
 TComRdCost::setDistParam( DistParam& rcDP, Pel* p1, Int iStride1, Pel* p2, Int iStride2, Int iWidth, Int iHeight, Bool bHadamard )
 {
@@ -2135,6 +2135,673 @@ UInt TComRdCost::xGetSADs64( DistParam* pcDtParam )
 // SSE
 // --------------------------------------------------------------------------------------------------------------------
 
+#if IBDI_DISTORTION
+#ifdef ROUNDING_CONTROL_BIPRED
+UInt TComRdCost::xGetSSE( DistParam* pcDtParam, Pel* pRefY, Bool bRound )
+{
+  Pel* piOrg   = pcDtParam->pOrg;
+  Pel* piCur   = pcDtParam->pCur;
+  Pel* piRef   = pRefY;
+  Int  iRows   = pcDtParam->iRows;
+  Int  iCols   = pcDtParam->iCols;
+  Int  iStrideOrg = pcDtParam->iStrideOrg;
+  Int  iStrideCur = pcDtParam->iStrideCur;
+  Pel  pred;
+
+  UInt uiSum = 0;
+  Int  iShift = g_uiBitIncrement; 
+  Int  iOffset = (g_uiBitIncrement>0)? (1<<(g_uiBitIncrement-1)):0; 
+
+  Int iTemp;
+
+  for( ; iRows != 0; iRows-- )
+  {
+    for (Int n = 0; n < iCols; n++ )
+    {
+      pred = (piCur[n] + piRef[n] + bRound) >> 1 ;
+      iTemp = ((piOrg[n]+iOffset)>>iShift) - ((pred+iOffset)>>iShift);
+      uiSum += iTemp * iTemp;
+    }
+    piOrg += iStrideOrg;
+    piCur += iStrideCur;
+    piRef += iCols;
+  }
+
+  return ( uiSum );
+}
+
+UInt TComRdCost::xGetSSE4( DistParam* pcDtParam, Pel* pRefY, Bool bRound )
+{
+  Pel* piOrg   = pcDtParam->pOrg;
+  Pel* piCur   = pcDtParam->pCur;
+  Pel* piRef   = pRefY;
+  Int  iRows   = pcDtParam->iRows;
+  Int  iStrideOrg = pcDtParam->iStrideOrg;
+  Int  iStrideCur = pcDtParam->iStrideCur;
+  Int  iStrideRef =  pcDtParam->iCols;
+  Pel  pred;
+
+  UInt uiSum = 0;
+  Int  iShift = g_uiBitIncrement; 
+  Int  iOffset = (g_uiBitIncrement>0)? (1<<(g_uiBitIncrement-1)):0; 
+
+  Int  iTemp;
+
+  for( ; iRows != 0; iRows-- )
+  {
+    pred = (piCur[0] + piRef[0] + bRound) >> 1;    iTemp = ((piOrg[0]+iOffset)>>iShift) - ((pred+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    pred = (piCur[1] + piRef[1] + bRound) >> 1;    iTemp = ((piOrg[1]+iOffset)>>iShift) - ((pred+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    pred = (piCur[2] + piRef[2] + bRound) >> 1;    iTemp = ((piOrg[2]+iOffset)>>iShift) - ((pred+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    pred = (piCur[3] + piRef[3] + bRound) >> 1;    iTemp = ((piOrg[3]+iOffset)>>iShift) - ((pred+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    
+    piOrg += iStrideOrg;
+    piCur += iStrideCur;
+    piRef += iStrideRef;
+  }
+
+  return ( uiSum );
+}
+
+UInt TComRdCost::xGetSSE8( DistParam* pcDtParam, Pel* pRefY, Bool bRound )
+{
+  Pel* piOrg   = pcDtParam->pOrg;
+  Pel* piCur   = pcDtParam->pCur;
+  Pel* piRef   = pRefY;
+  Int  iRows   = pcDtParam->iRows;
+  Int  iStrideOrg = pcDtParam->iStrideOrg;
+  Int  iStrideCur = pcDtParam->iStrideCur;
+  Int  iStrideRef =  pcDtParam->iCols;
+  Pel  pred;
+
+  UInt uiSum = 0;
+  Int  iShift = g_uiBitIncrement; 
+  Int  iOffset = (g_uiBitIncrement>0)? (1<<(g_uiBitIncrement-1)):0; 
+
+  Int  iTemp;
+
+  for( ; iRows != 0; iRows-- )
+  {
+    pred = (piCur[0] + piRef[0] + bRound) >> 1;    iTemp = ((piOrg[0]+iOffset)>>iShift) - ((pred+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    pred = (piCur[1] + piRef[1] + bRound) >> 1;    iTemp = ((piOrg[1]+iOffset)>>iShift) - ((pred+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    pred = (piCur[2] + piRef[2] + bRound) >> 1;    iTemp = ((piOrg[2]+iOffset)>>iShift) - ((pred+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    pred = (piCur[3] + piRef[3] + bRound) >> 1;    iTemp = ((piOrg[3]+iOffset)>>iShift) - ((pred+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    pred = (piCur[4] + piRef[4] + bRound) >> 1;    iTemp = ((piOrg[4]+iOffset)>>iShift) - ((pred+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    pred = (piCur[5] + piRef[5] + bRound) >> 1;    iTemp = ((piOrg[5]+iOffset)>>iShift) - ((pred+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    pred = (piCur[6] + piRef[6] + bRound) >> 1;    iTemp = ((piOrg[6]+iOffset)>>iShift) - ((pred+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    pred = (piCur[7] + piRef[7] + bRound) >> 1;    iTemp = ((piOrg[7]+iOffset)>>iShift) - ((pred+iOffset)>>iShift); uiSum += iTemp * iTemp;
+
+    piOrg += iStrideOrg;
+    piCur += iStrideCur;
+    piRef += iStrideRef;
+  }
+
+  return ( uiSum );
+}
+
+UInt TComRdCost::xGetSSE16( DistParam* pcDtParam, Pel* pRefY, Bool bRound )
+{
+  Pel* piOrg   = pcDtParam->pOrg;
+  Pel* piCur   = pcDtParam->pCur;
+  Pel* piRef   = pRefY;
+  Int  iRows   = pcDtParam->iRows;
+  Int  iStrideOrg = pcDtParam->iStrideOrg;
+  Int  iStrideCur = pcDtParam->iStrideCur;
+  Int  iStrideRef =  pcDtParam->iCols;
+  Pel  pred;
+
+  UInt uiSum = 0;
+  Int  iShift = g_uiBitIncrement; 
+  Int  iOffset = (g_uiBitIncrement>0)? (1<<(g_uiBitIncrement-1)):0; 
+
+  Int  iTemp;
+
+  for( ; iRows != 0; iRows-- )
+  {
+    pred = (piCur[0] + piRef[0] + bRound) >> 1;    iTemp = ((piOrg[0]+iOffset)>>iShift) - ((pred+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    pred = (piCur[1] + piRef[1] + bRound) >> 1;    iTemp = ((piOrg[1]+iOffset)>>iShift) - ((pred+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    pred = (piCur[2] + piRef[2] + bRound) >> 1;    iTemp = ((piOrg[2]+iOffset)>>iShift) - ((pred+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    pred = (piCur[3] + piRef[3] + bRound) >> 1;    iTemp = ((piOrg[3]+iOffset)>>iShift) - ((pred+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    pred = (piCur[4] + piRef[4] + bRound) >> 1;    iTemp = ((piOrg[4]+iOffset)>>iShift) - ((pred+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    pred = (piCur[5] + piRef[5] + bRound) >> 1;    iTemp = ((piOrg[5]+iOffset)>>iShift) - ((pred+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    pred = (piCur[6] + piRef[6] + bRound) >> 1;    iTemp = ((piOrg[6]+iOffset)>>iShift) - ((pred+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    pred = (piCur[7] + piRef[7] + bRound) >> 1;    iTemp = ((piOrg[7]+iOffset)>>iShift) - ((pred+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    pred = (piCur[8] + piRef[8] + bRound) >> 1;    iTemp = ((piOrg[8]+iOffset)>>iShift) - ((pred+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    pred = (piCur[9] + piRef[9] + bRound) >> 1;    iTemp = ((piOrg[9]+iOffset)>>iShift) - ((pred+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    pred = (piCur[10] + piRef[10] + bRound) >> 1;    iTemp = ((piOrg[10]+iOffset)>>iShift) - ((pred+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    pred = (piCur[11] + piRef[11] + bRound) >> 1;    iTemp = ((piOrg[11]+iOffset)>>iShift) - ((pred+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    pred = (piCur[12] + piRef[12] + bRound) >> 1;    iTemp = ((piOrg[12]+iOffset)>>iShift) - ((pred+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    pred = (piCur[13] + piRef[13] + bRound) >> 1;    iTemp = ((piOrg[13]+iOffset)>>iShift) - ((pred+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    pred = (piCur[14] + piRef[14] + bRound) >> 1;    iTemp = ((piOrg[14]+iOffset)>>iShift) - ((pred+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    pred = (piCur[15] + piRef[15] + bRound) >> 1;    iTemp = ((piOrg[15]+iOffset)>>iShift) - ((pred+iOffset)>>iShift); uiSum += iTemp * iTemp;
+
+    piOrg += iStrideOrg;
+    piCur += iStrideCur;
+    piRef += iStrideRef;
+  }
+
+  return ( uiSum );
+}
+
+UInt TComRdCost::xGetSSE16N( DistParam* pcDtParam, Pel* pRefY, Bool bRound )
+{
+  Pel* piOrg   = pcDtParam->pOrg;
+  Pel* piCur   = pcDtParam->pCur;
+  Pel* piRef   = pRefY;
+  Int  iRows   = pcDtParam->iRows;
+  Int  iCols   = pcDtParam->iCols;
+  Int  iStrideOrg = pcDtParam->iStrideOrg;
+  Int  iStrideCur = pcDtParam->iStrideCur;
+  Pel  pred;
+
+  UInt uiSum = 0;
+  Int  iShift = g_uiBitIncrement; 
+  Int  iOffset = (g_uiBitIncrement>0)? (1<<(g_uiBitIncrement-1)):0; 
+  Int  iTemp;
+
+  for( ; iRows != 0; iRows-- )
+  {
+    for (Int n = 0; n < iCols; n+=16 )
+    {
+      pred = (piCur[n+ 0] + piRef[n+ 0] + bRound) >> 1;    iTemp = ((piOrg[n+ 0]+iOffset)>>iShift) - ((pred+iOffset)>>iShift); uiSum += iTemp * iTemp;
+      pred = (piCur[n+ 1] + piRef[n+ 1] + bRound) >> 1;    iTemp = ((piOrg[n+ 1]+iOffset)>>iShift) - ((pred+iOffset)>>iShift); uiSum += iTemp * iTemp;
+      pred = (piCur[n+ 2] + piRef[n+ 2] + bRound) >> 1;    iTemp = ((piOrg[n+ 2]+iOffset)>>iShift) - ((pred+iOffset)>>iShift); uiSum += iTemp * iTemp;
+      pred = (piCur[n+ 3] + piRef[n+ 3] + bRound) >> 1;    iTemp = ((piOrg[n+ 3]+iOffset)>>iShift) - ((pred+iOffset)>>iShift); uiSum += iTemp * iTemp;
+      pred = (piCur[n+ 4] + piRef[n+ 4] + bRound) >> 1;    iTemp = ((piOrg[n+ 4]+iOffset)>>iShift) - ((pred+iOffset)>>iShift); uiSum += iTemp * iTemp;
+      pred = (piCur[n+ 5] + piRef[n+ 5] + bRound) >> 1;    iTemp = ((piOrg[n+ 5]+iOffset)>>iShift) - ((pred+iOffset)>>iShift); uiSum += iTemp * iTemp;
+      pred = (piCur[n+ 6] + piRef[n+ 6] + bRound) >> 1;    iTemp = ((piOrg[n+ 6]+iOffset)>>iShift) - ((pred+iOffset)>>iShift); uiSum += iTemp * iTemp;
+      pred = (piCur[n+ 7] + piRef[n+ 7] + bRound) >> 1;    iTemp = ((piOrg[n+ 7]+iOffset)>>iShift) - ((pred+iOffset)>>iShift); uiSum += iTemp * iTemp;
+      pred = (piCur[n+ 8] + piRef[n+ 8] + bRound) >> 1;    iTemp = ((piOrg[n+ 8]+iOffset)>>iShift) - ((pred+iOffset)>>iShift); uiSum += iTemp * iTemp;
+      pred = (piCur[n+ 9] + piRef[n+ 9] + bRound) >> 1;    iTemp = ((piOrg[n+ 9]+iOffset)>>iShift) - ((pred+iOffset)>>iShift); uiSum += iTemp * iTemp;
+      pred = (piCur[n+ 10] + piRef[n+ 10] + bRound) >> 1;    iTemp = ((piOrg[n+ 10]+iOffset)>>iShift) - ((pred+iOffset)>>iShift); uiSum += iTemp * iTemp;
+      pred = (piCur[n+ 11] + piRef[n+ 11] + bRound) >> 1;    iTemp = ((piOrg[n+ 11]+iOffset)>>iShift) - ((pred+iOffset)>>iShift); uiSum += iTemp * iTemp;
+      pred = (piCur[n+ 12] + piRef[n+ 12] + bRound) >> 1;    iTemp = ((piOrg[n+ 12]+iOffset)>>iShift) - ((pred+iOffset)>>iShift); uiSum += iTemp * iTemp;
+      pred = (piCur[n+ 13] + piRef[n+ 13] + bRound) >> 1;    iTemp = ((piOrg[n+ 13]+iOffset)>>iShift) - ((pred+iOffset)>>iShift); uiSum += iTemp * iTemp;
+      pred = (piCur[n+ 14] + piRef[n+ 14] + bRound) >> 1;    iTemp = ((piOrg[n+ 14]+iOffset)>>iShift) - ((pred+iOffset)>>iShift); uiSum += iTemp * iTemp;
+      pred = (piCur[n+ 15] + piRef[n+ 15] + bRound) >> 1;    iTemp = ((piOrg[n+ 15]+iOffset)>>iShift) - ((pred+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    }
+    piOrg += iStrideOrg;
+    piCur += iStrideCur;
+    piRef += iCols;
+  }
+
+  return ( uiSum );
+}
+
+UInt TComRdCost::xGetSSE32( DistParam* pcDtParam, Pel* pRefY, Bool bRound )
+{
+  Pel* piOrg   = pcDtParam->pOrg;
+  Pel* piCur   = pcDtParam->pCur;
+  Pel* piRef   = pRefY;
+  Int  iRows   = pcDtParam->iRows;
+  Int  iStrideOrg = pcDtParam->iStrideOrg;
+  Int  iStrideCur = pcDtParam->iStrideCur;
+  Int  iStrideRef =  pcDtParam->iCols;
+  Pel  pred;
+
+  UInt uiSum = 0;
+  Int  iShift = g_uiBitIncrement; 
+  Int  iOffset = (g_uiBitIncrement>0)? (1<<(g_uiBitIncrement-1)):0; 
+  Int  iTemp;
+
+  for( ; iRows != 0; iRows-- )
+  {
+    pred = (piCur[0] + piRef[0] + bRound) >> 1;    iTemp = ((piOrg[0]+iOffset)>>iShift) - ((pred+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    pred = (piCur[1] + piRef[1] + bRound) >> 1;    iTemp = ((piOrg[1]+iOffset)>>iShift) - ((pred+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    pred = (piCur[2] + piRef[2] + bRound) >> 1;    iTemp = ((piOrg[2]+iOffset)>>iShift) - ((pred+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    pred = (piCur[3] + piRef[3] + bRound) >> 1;    iTemp = ((piOrg[3]+iOffset)>>iShift) - ((pred+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    pred = (piCur[4] + piRef[4] + bRound) >> 1;    iTemp = ((piOrg[4]+iOffset)>>iShift) - ((pred+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    pred = (piCur[5] + piRef[5] + bRound) >> 1;    iTemp = ((piOrg[5]+iOffset)>>iShift) - ((pred+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    pred = (piCur[6] + piRef[6] + bRound) >> 1;    iTemp = ((piOrg[6]+iOffset)>>iShift) - ((pred+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    pred = (piCur[7] + piRef[7] + bRound) >> 1;    iTemp = ((piOrg[7]+iOffset)>>iShift) - ((pred+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    pred = (piCur[8] + piRef[8] + bRound) >> 1;    iTemp = ((piOrg[8]+iOffset)>>iShift) - ((pred+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    pred = (piCur[9] + piRef[9] + bRound) >> 1;    iTemp = ((piOrg[9]+iOffset)>>iShift) - ((pred+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    pred = (piCur[10] + piRef[10] + bRound) >> 1;    iTemp = ((piOrg[10]+iOffset)>>iShift) - ((pred+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    pred = (piCur[11] + piRef[11] + bRound) >> 1;    iTemp = ((piOrg[11]+iOffset)>>iShift) - ((pred+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    pred = (piCur[12] + piRef[12] + bRound) >> 1;    iTemp = ((piOrg[12]+iOffset)>>iShift) - ((pred+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    pred = (piCur[13] + piRef[13] + bRound) >> 1;    iTemp = ((piOrg[13]+iOffset)>>iShift) - ((pred+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    pred = (piCur[14] + piRef[14] + bRound) >> 1;    iTemp = ((piOrg[14]+iOffset)>>iShift) - ((pred+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    pred = (piCur[15] + piRef[15] + bRound) >> 1;    iTemp = ((piOrg[15]+iOffset)>>iShift) - ((pred+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    pred = (piCur[16] + piRef[16] + bRound) >> 1;    iTemp = ((piOrg[16]+iOffset)>>iShift) - ((pred+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    pred = (piCur[17] + piRef[17] + bRound) >> 1;    iTemp = ((piOrg[17]+iOffset)>>iShift) - ((pred+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    pred = (piCur[18] + piRef[18] + bRound) >> 1;    iTemp = ((piOrg[18]+iOffset)>>iShift) - ((pred+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    pred = (piCur[19] + piRef[19] + bRound) >> 1;    iTemp = ((piOrg[19]+iOffset)>>iShift) - ((pred+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    pred = (piCur[20] + piRef[20] + bRound) >> 1;    iTemp = ((piOrg[20]+iOffset)>>iShift) - ((pred+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    pred = (piCur[21] + piRef[21] + bRound) >> 1;    iTemp = ((piOrg[21]+iOffset)>>iShift) - ((pred+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    pred = (piCur[22] + piRef[22] + bRound) >> 1;    iTemp = ((piOrg[22]+iOffset)>>iShift) - ((pred+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    pred = (piCur[23] + piRef[23] + bRound) >> 1;    iTemp = ((piOrg[23]+iOffset)>>iShift) - ((pred+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    pred = (piCur[24] + piRef[24] + bRound) >> 1;    iTemp = ((piOrg[24]+iOffset)>>iShift) - ((pred+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    pred = (piCur[25] + piRef[25] + bRound) >> 1;    iTemp = ((piOrg[25]+iOffset)>>iShift) - ((pred+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    pred = (piCur[26] + piRef[26] + bRound) >> 1;    iTemp = ((piOrg[26]+iOffset)>>iShift) - ((pred+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    pred = (piCur[27] + piRef[27] + bRound) >> 1;    iTemp = ((piOrg[27]+iOffset)>>iShift) - ((pred+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    pred = (piCur[28] + piRef[28] + bRound) >> 1;    iTemp = ((piOrg[28]+iOffset)>>iShift) - ((pred+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    pred = (piCur[29] + piRef[29] + bRound) >> 1;    iTemp = ((piOrg[29]+iOffset)>>iShift) - ((pred+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    pred = (piCur[30] + piRef[30] + bRound) >> 1;    iTemp = ((piOrg[30]+iOffset)>>iShift) - ((pred+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    pred = (piCur[31] + piRef[31] + bRound) >> 1;    iTemp = ((piOrg[31]+iOffset)>>iShift) - ((pred+iOffset)>>iShift); uiSum += iTemp * iTemp;
+
+    piOrg += iStrideOrg;
+    piCur += iStrideCur;
+    piRef += iStrideRef;
+  }
+
+  return ( uiSum );
+}
+
+UInt TComRdCost::xGetSSE64( DistParam* pcDtParam, Pel* pRefY, Bool bRound )
+{
+  Pel* piOrg   = pcDtParam->pOrg;
+  Pel* piCur   = pcDtParam->pCur;
+  Pel* piRef   = pRefY;
+  Int  iRows   = pcDtParam->iRows;
+  Int  iStrideOrg = pcDtParam->iStrideOrg;
+  Int  iStrideCur = pcDtParam->iStrideCur;
+  Int  iStrideRef =  pcDtParam->iCols;
+  Pel  pred;
+
+  UInt uiSum = 0;
+  Int  iShift = g_uiBitIncrement; 
+  Int  iOffset = (g_uiBitIncrement>0)? (1<<(g_uiBitIncrement-1)):0; 
+  Int  iTemp;
+
+  for( ; iRows != 0; iRows-- )
+  {
+
+    pred = (piCur[0] + piRef[0] + bRound) >> 1;    iTemp = ((piOrg[0]+iOffset)>>iShift) - ((pred+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    pred = (piCur[1] + piRef[1] + bRound) >> 1;    iTemp = ((piOrg[1]+iOffset)>>iShift) - ((pred+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    pred = (piCur[2] + piRef[2] + bRound) >> 1;    iTemp = ((piOrg[2]+iOffset)>>iShift) - ((pred+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    pred = (piCur[3] + piRef[3] + bRound) >> 1;    iTemp = ((piOrg[3]+iOffset)>>iShift) - ((pred+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    pred = (piCur[4] + piRef[4] + bRound) >> 1;    iTemp = ((piOrg[4]+iOffset)>>iShift) - ((pred+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    pred = (piCur[5] + piRef[5] + bRound) >> 1;    iTemp = ((piOrg[5]+iOffset)>>iShift) - ((pred+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    pred = (piCur[6] + piRef[6] + bRound) >> 1;    iTemp = ((piOrg[6]+iOffset)>>iShift) - ((pred+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    pred = (piCur[7] + piRef[7] + bRound) >> 1;    iTemp = ((piOrg[7]+iOffset)>>iShift) - ((pred+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    pred = (piCur[8] + piRef[8] + bRound) >> 1;    iTemp = ((piOrg[8]+iOffset)>>iShift) - ((pred+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    pred = (piCur[9] + piRef[9] + bRound) >> 1;    iTemp = ((piOrg[9]+iOffset)>>iShift) - ((pred+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    pred = (piCur[10] + piRef[10] + bRound) >> 1;    iTemp = ((piOrg[10]+iOffset)>>iShift) - ((pred+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    pred = (piCur[11] + piRef[11] + bRound) >> 1;    iTemp = ((piOrg[11]+iOffset)>>iShift) - ((pred+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    pred = (piCur[12] + piRef[12] + bRound) >> 1;    iTemp = ((piOrg[12]+iOffset)>>iShift) - ((pred+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    pred = (piCur[13] + piRef[13] + bRound) >> 1;    iTemp = ((piOrg[13]+iOffset)>>iShift) - ((pred+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    pred = (piCur[14] + piRef[14] + bRound) >> 1;    iTemp = ((piOrg[14]+iOffset)>>iShift) - ((pred+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    pred = (piCur[15] + piRef[15] + bRound) >> 1;    iTemp = ((piOrg[15]+iOffset)>>iShift) - ((pred+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    pred = (piCur[16] + piRef[16] + bRound) >> 1;    iTemp = ((piOrg[16]+iOffset)>>iShift) - ((pred+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    pred = (piCur[17] + piRef[17] + bRound) >> 1;    iTemp = ((piOrg[17]+iOffset)>>iShift) - ((pred+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    pred = (piCur[18] + piRef[18] + bRound) >> 1;    iTemp = ((piOrg[18]+iOffset)>>iShift) - ((pred+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    pred = (piCur[19] + piRef[19] + bRound) >> 1;    iTemp = ((piOrg[19]+iOffset)>>iShift) - ((pred+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    pred = (piCur[20] + piRef[20] + bRound) >> 1;    iTemp = ((piOrg[20]+iOffset)>>iShift) - ((pred+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    pred = (piCur[21] + piRef[21] + bRound) >> 1;    iTemp = ((piOrg[21]+iOffset)>>iShift) - ((pred+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    pred = (piCur[22] + piRef[22] + bRound) >> 1;    iTemp = ((piOrg[22]+iOffset)>>iShift) - ((pred+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    pred = (piCur[23] + piRef[23] + bRound) >> 1;    iTemp = ((piOrg[23]+iOffset)>>iShift) - ((pred+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    pred = (piCur[24] + piRef[24] + bRound) >> 1;    iTemp = ((piOrg[24]+iOffset)>>iShift) - ((pred+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    pred = (piCur[25] + piRef[25] + bRound) >> 1;    iTemp = ((piOrg[25]+iOffset)>>iShift) - ((pred+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    pred = (piCur[26] + piRef[26] + bRound) >> 1;    iTemp = ((piOrg[26]+iOffset)>>iShift) - ((pred+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    pred = (piCur[27] + piRef[27] + bRound) >> 1;    iTemp = ((piOrg[27]+iOffset)>>iShift) - ((pred+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    pred = (piCur[28] + piRef[28] + bRound) >> 1;    iTemp = ((piOrg[28]+iOffset)>>iShift) - ((pred+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    pred = (piCur[29] + piRef[29] + bRound) >> 1;    iTemp = ((piOrg[29]+iOffset)>>iShift) - ((pred+iOffset)>>iShift); uiSum += iTemp * iTemp;
+
+    pred = (piCur[30] + piRef[30] + bRound) >> 1;    iTemp = ((piOrg[30]+iOffset)>>iShift) - ((pred+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    pred = (piCur[31] + piRef[31] + bRound) >> 1;    iTemp = ((piOrg[31]+iOffset)>>iShift) - ((pred+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    pred = (piCur[32] + piRef[32] + bRound) >> 1;    iTemp = ((piOrg[32]+iOffset)>>iShift) - ((pred+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    pred = (piCur[33] + piRef[33] + bRound) >> 1;    iTemp = ((piOrg[33]+iOffset)>>iShift) - ((pred+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    pred = (piCur[34] + piRef[34] + bRound) >> 1;    iTemp = ((piOrg[34]+iOffset)>>iShift) - ((pred+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    pred = (piCur[35] + piRef[35] + bRound) >> 1;    iTemp = ((piOrg[35]+iOffset)>>iShift) - ((pred+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    pred = (piCur[36] + piRef[36] + bRound) >> 1;    iTemp = ((piOrg[36]+iOffset)>>iShift) - ((pred+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    pred = (piCur[37] + piRef[37] + bRound) >> 1;    iTemp = ((piOrg[37]+iOffset)>>iShift) - ((pred+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    pred = (piCur[38] + piRef[38] + bRound) >> 1;    iTemp = ((piOrg[38]+iOffset)>>iShift) - ((pred+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    pred = (piCur[39] + piRef[39] + bRound) >> 1;    iTemp = ((piOrg[39]+iOffset)>>iShift) - ((pred+iOffset)>>iShift); uiSum += iTemp * iTemp;
+
+    pred = (piCur[40] + piRef[40] + bRound) >> 1;    iTemp = ((piOrg[40]+iOffset)>>iShift) - ((pred+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    pred = (piCur[41] + piRef[41] + bRound) >> 1;    iTemp = ((piOrg[41]+iOffset)>>iShift) - ((pred+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    pred = (piCur[42] + piRef[42] + bRound) >> 1;    iTemp = ((piOrg[42]+iOffset)>>iShift) - ((pred+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    pred = (piCur[43] + piRef[43] + bRound) >> 1;    iTemp = ((piOrg[43]+iOffset)>>iShift) - ((pred+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    pred = (piCur[44] + piRef[44] + bRound) >> 1;    iTemp = ((piOrg[44]+iOffset)>>iShift) - ((pred+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    pred = (piCur[45] + piRef[45] + bRound) >> 1;    iTemp = ((piOrg[45]+iOffset)>>iShift) - ((pred+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    pred = (piCur[46] + piRef[46] + bRound) >> 1;    iTemp = ((piOrg[46]+iOffset)>>iShift) - ((pred+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    pred = (piCur[47] + piRef[47] + bRound) >> 1;    iTemp = ((piOrg[47]+iOffset)>>iShift) - ((pred+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    pred = (piCur[48] + piRef[48] + bRound) >> 1;    iTemp = ((piOrg[48]+iOffset)>>iShift) - ((pred+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    pred = (piCur[49] + piRef[49] + bRound) >> 1;    iTemp = ((piOrg[49]+iOffset)>>iShift) - ((pred+iOffset)>>iShift); uiSum += iTemp * iTemp;
+
+    pred = (piCur[50] + piRef[50] + bRound) >> 1;    iTemp = ((piOrg[50]+iOffset)>>iShift) - ((pred+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    pred = (piCur[51] + piRef[51] + bRound) >> 1;    iTemp = ((piOrg[51]+iOffset)>>iShift) - ((pred+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    pred = (piCur[52] + piRef[52] + bRound) >> 1;    iTemp = ((piOrg[52]+iOffset)>>iShift) - ((pred+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    pred = (piCur[53] + piRef[53] + bRound) >> 1;    iTemp = ((piOrg[53]+iOffset)>>iShift) - ((pred+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    pred = (piCur[54] + piRef[54] + bRound) >> 1;    iTemp = ((piOrg[54]+iOffset)>>iShift) - ((pred+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    pred = (piCur[55] + piRef[55] + bRound) >> 1;    iTemp = ((piOrg[55]+iOffset)>>iShift) - ((pred+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    pred = (piCur[56] + piRef[56] + bRound) >> 1;    iTemp = ((piOrg[56]+iOffset)>>iShift) - ((pred+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    pred = (piCur[57] + piRef[57] + bRound) >> 1;    iTemp = ((piOrg[57]+iOffset)>>iShift) - ((pred+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    pred = (piCur[58] + piRef[58] + bRound) >> 1;    iTemp = ((piOrg[58]+iOffset)>>iShift) - ((pred+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    pred = (piCur[59] + piRef[59] + bRound) >> 1;    iTemp = ((piOrg[59]+iOffset)>>iShift) - ((pred+iOffset)>>iShift); uiSum += iTemp * iTemp;
+
+    pred = (piCur[60] + piRef[60] + bRound) >> 1;    iTemp = ((piOrg[60]+iOffset)>>iShift) - ((pred+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    pred = (piCur[61] + piRef[61] + bRound) >> 1;    iTemp = ((piOrg[61]+iOffset)>>iShift) - ((pred+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    pred = (piCur[62] + piRef[62] + bRound) >> 1;    iTemp = ((piOrg[62]+iOffset)>>iShift) - ((pred+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    pred = (piCur[63] + piRef[63] + bRound) >> 1;    iTemp = ((piOrg[63]+iOffset)>>iShift) - ((pred+iOffset)>>iShift); uiSum += iTemp * iTemp;
+
+    piOrg += iStrideOrg;
+    piCur += iStrideCur;
+    piRef += iStrideRef;
+  }
+
+  return ( uiSum );
+}
+#endif
+
+
+UInt TComRdCost::xGetSSE( DistParam* pcDtParam )
+{
+  Pel* piOrg   = pcDtParam->pOrg;
+  Pel* piCur   = pcDtParam->pCur;
+  Int  iRows   = pcDtParam->iRows;
+  Int  iCols   = pcDtParam->iCols;
+  Int  iStrideOrg = pcDtParam->iStrideOrg;
+  Int  iStrideCur = pcDtParam->iStrideCur;
+
+  UInt uiSum = 0;
+  Int  iShift = g_uiBitIncrement;
+  Int  iOffset = (g_uiBitIncrement>0)? (1<<(g_uiBitIncrement-1)):0;
+
+  Int iTemp;
+
+  for( ; iRows != 0; iRows-- )
+  {
+    for (Int n = 0; n < iCols; n++ )
+    {
+      iTemp = ((piOrg[n  ]+iOffset)>>iShift) - ((piCur[n  ]+iOffset)>>iShift);
+      uiSum += iTemp * iTemp;
+    }
+    piOrg += iStrideOrg;
+    piCur += iStrideCur;
+  }
+
+  return ( uiSum );
+}
+
+UInt TComRdCost::xGetSSE4( DistParam* pcDtParam )
+{
+  Pel* piOrg   = pcDtParam->pOrg;
+  Pel* piCur   = pcDtParam->pCur;
+  Int  iRows   = pcDtParam->iRows;
+  Int  iStrideOrg = pcDtParam->iStrideOrg;
+  Int  iStrideCur = pcDtParam->iStrideCur;
+
+  UInt uiSum = 0;
+  Int  iShift = g_uiBitIncrement;
+  Int  iOffset = (g_uiBitIncrement>0)? (1<<(g_uiBitIncrement-1)):0;
+
+  Int  iTemp;
+
+  for( ; iRows != 0; iRows-- )
+  {
+
+    iTemp = ((piOrg[0]+iOffset)>>iShift) - ((piCur[0]+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    iTemp = ((piOrg[1]+iOffset)>>iShift) - ((piCur[1]+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    iTemp = ((piOrg[2]+iOffset)>>iShift) - ((piCur[2]+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    iTemp = ((piOrg[3]+iOffset)>>iShift) - ((piCur[3]+iOffset)>>iShift); uiSum += iTemp * iTemp;
+
+    piOrg += iStrideOrg;
+    piCur += iStrideCur;
+  }
+
+  return ( uiSum );
+}
+
+UInt TComRdCost::xGetSSE8( DistParam* pcDtParam )
+{
+  Pel* piOrg   = pcDtParam->pOrg;
+  Pel* piCur   = pcDtParam->pCur;
+  Int  iRows   = pcDtParam->iRows;
+  Int  iStrideOrg = pcDtParam->iStrideOrg;
+  Int  iStrideCur = pcDtParam->iStrideCur;
+
+  UInt uiSum = 0;
+  Int  iShift = g_uiBitIncrement;
+  Int  iOffset = (g_uiBitIncrement>0)? (1<<(g_uiBitIncrement-1)):0;
+
+  Int  iTemp;
+
+  for( ; iRows != 0; iRows-- )
+  {
+    iTemp = ((piOrg[0]+iOffset)>>iShift) - ((piCur[0]+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    iTemp = ((piOrg[1]+iOffset)>>iShift) - ((piCur[1]+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    iTemp = ((piOrg[2]+iOffset)>>iShift) - ((piCur[2]+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    iTemp = ((piOrg[3]+iOffset)>>iShift) - ((piCur[3]+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    iTemp = ((piOrg[4]+iOffset)>>iShift) - ((piCur[4]+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    iTemp = ((piOrg[5]+iOffset)>>iShift) - ((piCur[5]+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    iTemp = ((piOrg[6]+iOffset)>>iShift) - ((piCur[6]+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    iTemp = ((piOrg[7]+iOffset)>>iShift) - ((piCur[7]+iOffset)>>iShift); uiSum += iTemp * iTemp;
+
+    piOrg += iStrideOrg;
+    piCur += iStrideCur;
+  }
+
+  return ( uiSum );
+}
+
+UInt TComRdCost::xGetSSE16( DistParam* pcDtParam )
+{
+  Pel* piOrg   = pcDtParam->pOrg;
+  Pel* piCur   = pcDtParam->pCur;
+  Int  iRows   = pcDtParam->iRows;
+  Int  iStrideOrg = pcDtParam->iStrideOrg;
+  Int  iStrideCur = pcDtParam->iStrideCur;
+
+  UInt uiSum = 0;
+  Int  iShift = g_uiBitIncrement;
+  Int  iOffset = (g_uiBitIncrement>0)? (1<<(g_uiBitIncrement-1)):0;
+
+  Int  iTemp;
+
+  for( ; iRows != 0; iRows-- )
+  {
+
+    iTemp = ((piOrg[ 0]+iOffset)>>iShift) - ((piCur[ 0]+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    iTemp = ((piOrg[ 1]+iOffset)>>iShift) - ((piCur[ 1]+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    iTemp = ((piOrg[ 2]+iOffset)>>iShift) - ((piCur[ 2]+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    iTemp = ((piOrg[ 3]+iOffset)>>iShift) - ((piCur[ 3]+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    iTemp = ((piOrg[ 4]+iOffset)>>iShift) - ((piCur[ 4]+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    iTemp = ((piOrg[ 5]+iOffset)>>iShift) - ((piCur[ 5]+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    iTemp = ((piOrg[ 6]+iOffset)>>iShift) - ((piCur[ 6]+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    iTemp = ((piOrg[ 7]+iOffset)>>iShift) - ((piCur[ 7]+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    iTemp = ((piOrg[ 8]+iOffset)>>iShift) - ((piCur[ 8]+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    iTemp = ((piOrg[ 9]+iOffset)>>iShift) - ((piCur[ 9]+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    iTemp = ((piOrg[10]+iOffset)>>iShift) - ((piCur[10]+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    iTemp = ((piOrg[11]+iOffset)>>iShift) - ((piCur[11]+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    iTemp = ((piOrg[12]+iOffset)>>iShift) - ((piCur[12]+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    iTemp = ((piOrg[13]+iOffset)>>iShift) - ((piCur[13]+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    iTemp = ((piOrg[14]+iOffset)>>iShift) - ((piCur[14]+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    iTemp = ((piOrg[15]+iOffset)>>iShift) - ((piCur[15]+iOffset)>>iShift); uiSum += iTemp * iTemp;
+
+    piOrg += iStrideOrg;
+    piCur += iStrideCur;
+  }
+
+  return ( uiSum );
+}
+
+UInt TComRdCost::xGetSSE16N( DistParam* pcDtParam )
+{
+  Pel* piOrg   = pcDtParam->pOrg;
+  Pel* piCur   = pcDtParam->pCur;
+  Int  iRows   = pcDtParam->iRows;
+  Int  iCols   = pcDtParam->iCols;
+  Int  iStrideOrg = pcDtParam->iStrideOrg;
+  Int  iStrideCur = pcDtParam->iStrideCur;
+
+  UInt uiSum = 0;
+  Int  iShift = g_uiBitIncrement;
+  Int  iOffset = (g_uiBitIncrement>0)? (1<<(g_uiBitIncrement-1)):0;
+  Int  iTemp;
+
+  for( ; iRows != 0; iRows-- )
+  {
+    for (Int n = 0; n < iCols; n+=16 )
+    {
+
+      iTemp = ((piOrg[n+ 0]+iOffset)>>iShift) - ((piCur[n+ 0]+iOffset)>>iShift); uiSum += iTemp * iTemp;
+      iTemp = ((piOrg[n+ 1]+iOffset)>>iShift) - ((piCur[n+ 1]+iOffset)>>iShift); uiSum += iTemp * iTemp;
+      iTemp = ((piOrg[n+ 2]+iOffset)>>iShift) - ((piCur[n+ 2]+iOffset)>>iShift); uiSum += iTemp * iTemp;
+      iTemp = ((piOrg[n+ 3]+iOffset)>>iShift) - ((piCur[n+ 3]+iOffset)>>iShift); uiSum += iTemp * iTemp;
+      iTemp = ((piOrg[n+ 4]+iOffset)>>iShift) - ((piCur[n+ 4]+iOffset)>>iShift); uiSum += iTemp * iTemp;
+      iTemp = ((piOrg[n+ 5]+iOffset)>>iShift) - ((piCur[n+ 5]+iOffset)>>iShift); uiSum += iTemp * iTemp;
+      iTemp = ((piOrg[n+ 6]+iOffset)>>iShift) - ((piCur[n+ 6]+iOffset)>>iShift); uiSum += iTemp * iTemp;
+      iTemp = ((piOrg[n+ 7]+iOffset)>>iShift) - ((piCur[n+ 7]+iOffset)>>iShift); uiSum += iTemp * iTemp;
+      iTemp = ((piOrg[n+ 8]+iOffset)>>iShift) - ((piCur[n+ 8]+iOffset)>>iShift); uiSum += iTemp * iTemp;
+      iTemp = ((piOrg[n+ 9]+iOffset)>>iShift) - ((piCur[n+ 9]+iOffset)>>iShift); uiSum += iTemp * iTemp;
+      iTemp = ((piOrg[n+10]+iOffset)>>iShift) - ((piCur[n+10]+iOffset)>>iShift); uiSum += iTemp * iTemp;
+      iTemp = ((piOrg[n+11]+iOffset)>>iShift) - ((piCur[n+11]+iOffset)>>iShift); uiSum += iTemp * iTemp;
+      iTemp = ((piOrg[n+12]+iOffset)>>iShift) - ((piCur[n+12]+iOffset)>>iShift); uiSum += iTemp * iTemp;
+      iTemp = ((piOrg[n+13]+iOffset)>>iShift) - ((piCur[n+13]+iOffset)>>iShift); uiSum += iTemp * iTemp;
+      iTemp = ((piOrg[n+14]+iOffset)>>iShift) - ((piCur[n+14]+iOffset)>>iShift); uiSum += iTemp * iTemp;
+      iTemp = ((piOrg[n+15]+iOffset)>>iShift) - ((piCur[n+15]+iOffset)>>iShift); uiSum += iTemp * iTemp;
+
+    }
+    piOrg += iStrideOrg;
+    piCur += iStrideCur;
+  }
+
+  return ( uiSum );
+}
+
+UInt TComRdCost::xGetSSE32( DistParam* pcDtParam )
+{
+  Pel* piOrg   = pcDtParam->pOrg;
+  Pel* piCur   = pcDtParam->pCur;
+  Int  iRows   = pcDtParam->iRows;
+  Int  iStrideOrg = pcDtParam->iStrideOrg;
+  Int  iStrideCur = pcDtParam->iStrideCur;
+
+  UInt uiSum = 0;
+  Int  iShift = g_uiBitIncrement;
+  Int  iOffset = (g_uiBitIncrement>0)? (1<<(g_uiBitIncrement-1)):0;
+  Int  iTemp;
+
+  for( ; iRows != 0; iRows-- )
+  {
+
+    iTemp = ((piOrg[ 0]+iOffset)>>iShift) - ((piCur[ 0]+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    iTemp = ((piOrg[ 1]+iOffset)>>iShift) - ((piCur[ 1]+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    iTemp = ((piOrg[ 2]+iOffset)>>iShift) - ((piCur[ 2]+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    iTemp = ((piOrg[ 3]+iOffset)>>iShift) - ((piCur[ 3]+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    iTemp = ((piOrg[ 4]+iOffset)>>iShift) - ((piCur[ 4]+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    iTemp = ((piOrg[ 5]+iOffset)>>iShift) - ((piCur[ 5]+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    iTemp = ((piOrg[ 6]+iOffset)>>iShift) - ((piCur[ 6]+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    iTemp = ((piOrg[ 7]+iOffset)>>iShift) - ((piCur[ 7]+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    iTemp = ((piOrg[ 8]+iOffset)>>iShift) - ((piCur[ 8]+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    iTemp = ((piOrg[ 9]+iOffset)>>iShift) - ((piCur[ 9]+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    iTemp = ((piOrg[10]+iOffset)>>iShift) - ((piCur[10]+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    iTemp = ((piOrg[11]+iOffset)>>iShift) - ((piCur[11]+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    iTemp = ((piOrg[12]+iOffset)>>iShift) - ((piCur[12]+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    iTemp = ((piOrg[13]+iOffset)>>iShift) - ((piCur[13]+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    iTemp = ((piOrg[14]+iOffset)>>iShift) - ((piCur[14]+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    iTemp = ((piOrg[15]+iOffset)>>iShift) - ((piCur[15]+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    iTemp = ((piOrg[16]+iOffset)>>iShift) - ((piCur[16]+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    iTemp = ((piOrg[17]+iOffset)>>iShift) - ((piCur[17]+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    iTemp = ((piOrg[18]+iOffset)>>iShift) - ((piCur[18]+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    iTemp = ((piOrg[19]+iOffset)>>iShift) - ((piCur[19]+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    iTemp = ((piOrg[20]+iOffset)>>iShift) - ((piCur[20]+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    iTemp = ((piOrg[21]+iOffset)>>iShift) - ((piCur[21]+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    iTemp = ((piOrg[22]+iOffset)>>iShift) - ((piCur[22]+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    iTemp = ((piOrg[23]+iOffset)>>iShift) - ((piCur[23]+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    iTemp = ((piOrg[24]+iOffset)>>iShift) - ((piCur[24]+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    iTemp = ((piOrg[25]+iOffset)>>iShift) - ((piCur[25]+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    iTemp = ((piOrg[26]+iOffset)>>iShift) - ((piCur[26]+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    iTemp = ((piOrg[27]+iOffset)>>iShift) - ((piCur[27]+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    iTemp = ((piOrg[28]+iOffset)>>iShift) - ((piCur[28]+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    iTemp = ((piOrg[29]+iOffset)>>iShift) - ((piCur[29]+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    iTemp = ((piOrg[30]+iOffset)>>iShift) - ((piCur[30]+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    iTemp = ((piOrg[31]+iOffset)>>iShift) - ((piCur[31]+iOffset)>>iShift); uiSum += iTemp * iTemp;
+
+    piOrg += iStrideOrg;
+    piCur += iStrideCur;
+  }
+
+  return ( uiSum );
+}
+
+UInt TComRdCost::xGetSSE64( DistParam* pcDtParam )
+{
+  Pel* piOrg   = pcDtParam->pOrg;
+  Pel* piCur   = pcDtParam->pCur;
+  Int  iRows   = pcDtParam->iRows;
+  Int  iStrideOrg = pcDtParam->iStrideOrg;
+  Int  iStrideCur = pcDtParam->iStrideCur;
+
+  UInt uiSum = 0;
+  Int  iShift = g_uiBitIncrement;
+  Int  iOffset = (g_uiBitIncrement>0)? (1<<(g_uiBitIncrement-1)):0;
+  Int  iTemp;
+
+  for( ; iRows != 0; iRows-- )
+  {
+    iTemp = ((piOrg[ 0]+iOffset)>>iShift) - ((piCur[ 0]+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    iTemp = ((piOrg[ 1]+iOffset)>>iShift) - ((piCur[ 1]+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    iTemp = ((piOrg[ 2]+iOffset)>>iShift) - ((piCur[ 2]+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    iTemp = ((piOrg[ 3]+iOffset)>>iShift) - ((piCur[ 3]+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    iTemp = ((piOrg[ 4]+iOffset)>>iShift) - ((piCur[ 4]+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    iTemp = ((piOrg[ 5]+iOffset)>>iShift) - ((piCur[ 5]+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    iTemp = ((piOrg[ 6]+iOffset)>>iShift) - ((piCur[ 6]+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    iTemp = ((piOrg[ 7]+iOffset)>>iShift) - ((piCur[ 7]+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    iTemp = ((piOrg[ 8]+iOffset)>>iShift) - ((piCur[ 8]+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    iTemp = ((piOrg[ 9]+iOffset)>>iShift) - ((piCur[ 9]+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    iTemp = ((piOrg[10]+iOffset)>>iShift) - ((piCur[10]+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    iTemp = ((piOrg[11]+iOffset)>>iShift) - ((piCur[11]+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    iTemp = ((piOrg[12]+iOffset)>>iShift) - ((piCur[12]+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    iTemp = ((piOrg[13]+iOffset)>>iShift) - ((piCur[13]+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    iTemp = ((piOrg[14]+iOffset)>>iShift) - ((piCur[14]+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    iTemp = ((piOrg[15]+iOffset)>>iShift) - ((piCur[15]+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    iTemp = ((piOrg[16]+iOffset)>>iShift) - ((piCur[16]+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    iTemp = ((piOrg[17]+iOffset)>>iShift) - ((piCur[17]+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    iTemp = ((piOrg[18]+iOffset)>>iShift) - ((piCur[18]+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    iTemp = ((piOrg[19]+iOffset)>>iShift) - ((piCur[19]+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    iTemp = ((piOrg[20]+iOffset)>>iShift) - ((piCur[20]+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    iTemp = ((piOrg[21]+iOffset)>>iShift) - ((piCur[21]+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    iTemp = ((piOrg[22]+iOffset)>>iShift) - ((piCur[22]+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    iTemp = ((piOrg[23]+iOffset)>>iShift) - ((piCur[23]+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    iTemp = ((piOrg[24]+iOffset)>>iShift) - ((piCur[24]+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    iTemp = ((piOrg[25]+iOffset)>>iShift) - ((piCur[25]+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    iTemp = ((piOrg[26]+iOffset)>>iShift) - ((piCur[26]+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    iTemp = ((piOrg[27]+iOffset)>>iShift) - ((piCur[27]+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    iTemp = ((piOrg[28]+iOffset)>>iShift) - ((piCur[28]+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    iTemp = ((piOrg[29]+iOffset)>>iShift) - ((piCur[29]+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    iTemp = ((piOrg[30]+iOffset)>>iShift) - ((piCur[30]+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    iTemp = ((piOrg[31]+iOffset)>>iShift) - ((piCur[31]+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    iTemp = ((piOrg[32]+iOffset)>>iShift) - ((piCur[32]+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    iTemp = ((piOrg[33]+iOffset)>>iShift) - ((piCur[33]+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    iTemp = ((piOrg[34]+iOffset)>>iShift) - ((piCur[34]+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    iTemp = ((piOrg[35]+iOffset)>>iShift) - ((piCur[35]+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    iTemp = ((piOrg[36]+iOffset)>>iShift) - ((piCur[36]+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    iTemp = ((piOrg[37]+iOffset)>>iShift) - ((piCur[37]+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    iTemp = ((piOrg[38]+iOffset)>>iShift) - ((piCur[38]+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    iTemp = ((piOrg[39]+iOffset)>>iShift) - ((piCur[39]+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    iTemp = ((piOrg[40]+iOffset)>>iShift) - ((piCur[40]+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    iTemp = ((piOrg[41]+iOffset)>>iShift) - ((piCur[41]+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    iTemp = ((piOrg[42]+iOffset)>>iShift) - ((piCur[42]+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    iTemp = ((piOrg[43]+iOffset)>>iShift) - ((piCur[43]+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    iTemp = ((piOrg[44]+iOffset)>>iShift) - ((piCur[44]+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    iTemp = ((piOrg[45]+iOffset)>>iShift) - ((piCur[45]+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    iTemp = ((piOrg[46]+iOffset)>>iShift) - ((piCur[46]+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    iTemp = ((piOrg[47]+iOffset)>>iShift) - ((piCur[47]+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    iTemp = ((piOrg[48]+iOffset)>>iShift) - ((piCur[48]+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    iTemp = ((piOrg[49]+iOffset)>>iShift) - ((piCur[49]+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    iTemp = ((piOrg[50]+iOffset)>>iShift) - ((piCur[50]+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    iTemp = ((piOrg[51]+iOffset)>>iShift) - ((piCur[51]+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    iTemp = ((piOrg[52]+iOffset)>>iShift) - ((piCur[52]+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    iTemp = ((piOrg[53]+iOffset)>>iShift) - ((piCur[53]+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    iTemp = ((piOrg[54]+iOffset)>>iShift) - ((piCur[54]+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    iTemp = ((piOrg[55]+iOffset)>>iShift) - ((piCur[55]+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    iTemp = ((piOrg[56]+iOffset)>>iShift) - ((piCur[56]+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    iTemp = ((piOrg[57]+iOffset)>>iShift) - ((piCur[57]+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    iTemp = ((piOrg[58]+iOffset)>>iShift) - ((piCur[58]+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    iTemp = ((piOrg[59]+iOffset)>>iShift) - ((piCur[59]+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    iTemp = ((piOrg[60]+iOffset)>>iShift) - ((piCur[60]+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    iTemp = ((piOrg[61]+iOffset)>>iShift) - ((piCur[61]+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    iTemp = ((piOrg[62]+iOffset)>>iShift) - ((piCur[62]+iOffset)>>iShift); uiSum += iTemp * iTemp;
+    iTemp = ((piOrg[63]+iOffset)>>iShift) - ((piCur[63]+iOffset)>>iShift); uiSum += iTemp * iTemp;
+
+    piOrg += iStrideOrg;
+    piCur += iStrideCur;
+  }
+
+  return ( uiSum );
+}
+#else
 #ifdef ROUNDING_CONTROL_BIPRED
 UInt TComRdCost::xGetSSE( DistParam* pcDtParam, Pel* pRefY, Bool bRound )
 {
@@ -2785,6 +3452,7 @@ UInt TComRdCost::xGetSSE64( DistParam* pcDtParam )
   
   return ( uiSum );
 }
+#endif
 
 // --------------------------------------------------------------------------------------------------------------------
 // HADAMARD with step (used in fractional search)

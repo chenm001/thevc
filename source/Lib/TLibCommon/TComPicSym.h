@@ -64,15 +64,23 @@ private:
   UInt          m_uiNumPartInHeight;
   UInt          m_uiNumCUsInFrame;
   
+#if AD_HOC_SLICES
+  TComSlice**   m_apcTComSlice;
+  UInt          m_uiNumAllocatedSlice;
+#else
   TComSlice*    m_apcTComSlice;
+#endif
   TComDataCU**  m_apcTComDataCU;        ///< array of CU data
   
 public:
   Void        create  ( Int iPicWidth, Int iPicHeight, UInt uiMaxWidth, UInt uiMaxHeight, UInt uiMaxDepth );
   Void        destroy ();
   
+#if AD_HOC_SLICES
+  TComSlice*  getSlice(UInt i)          { return  m_apcTComSlice[i];            }
+#else
   TComSlice*  getSlice()                { return  m_apcTComSlice;               }
-  
+#endif
   UInt        getFrameWidthInCU()       { return m_uiWidthInCU;                 }
   UInt        getFrameHeightInCU()      { return m_uiHeightInCU;                }
   UInt        getMinCUWidth()           { return m_uiMinCUWidth;                }
@@ -80,9 +88,14 @@ public:
   UInt        getNumberOfCUsInFrame()   { return m_uiNumCUsInFrame;  }
   TComDataCU*&  getCU( UInt uiCUAddr )  { return m_apcTComDataCU[uiCUAddr];     }
   
-  
+#if AD_HOC_SLICES
+  Void        setSlice(TComSlice* p, UInt i) { m_apcTComSlice[i] = p;           }
+  UInt        getNumAllocatedSlice()    { return m_uiNumAllocatedSlice;         }
+  Void        allocateNewSlice();
+  Void        clearSliceBuffer();
+#else
   Void        setSlice(TComSlice* p)    { m_apcTComSlice = p;                   }
-  
+#endif
   UInt       getNumPartition()          { return m_uiNumPartitions;             }
   UInt       getNumPartInWidth()        { return m_uiNumPartInWidth;            }
   UInt       getNumPartInHeight()       { return m_uiNumPartInHeight;           }

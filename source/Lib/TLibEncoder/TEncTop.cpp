@@ -68,7 +68,11 @@ Void TEncTop::create ()
   initROM();
   
   // create processing unit classes
+#if AD_HOC_SLICES
+  m_cGOPEncoder.        create( getSourceWidth(), getSourceHeight(), g_uiMaxCUWidth, g_uiMaxCUHeight );
+#else
   m_cGOPEncoder.        create();
+#endif
   m_cSliceEncoder.      create( getSourceWidth(), getSourceHeight(), g_uiMaxCUWidth, g_uiMaxCUHeight, g_uiMaxCUDepth );
   m_cCuEncoder.         create( g_uiMaxCUDepth, g_uiMaxCUWidth, g_uiMaxCUHeight );
   m_cAdaptiveLoopFilter.create( getSourceWidth(), getSourceHeight(), g_uiMaxCUWidth, g_uiMaxCUHeight, g_uiMaxCUDepth );
@@ -142,6 +146,11 @@ Void TEncTop::init()
   // initialize SPS
   xInitSPS();
   
+#if CONSTRAINED_INTRA_PRED
+  // initialize PPS
+  xInitPPS();
+#endif
+
   // initialize processing unit classes
   m_cGOPEncoder.  init( this );
   m_cSliceEncoder.init( this );
@@ -167,6 +176,13 @@ Void TEncTop::init()
   
   // initialize encoder search class
   m_cSearch.init( this, &m_cTrQuant, m_iSearchRange, m_bipredSearchRange, m_iFastSearch, 0, &m_cEntropyCoder, &m_cRdCost, getRDSbacCoder(), getRDGoOnSbacCoder() );
+
+#if MQT_ALF_NPASS
+  if(m_bUseALF)
+  {
+    m_cAdaptiveLoopFilter.setALFEncodePassReduction( m_iALFEncodePassReduction );
+  }
+#endif
 }
 
 // ====================================================================================================================
@@ -277,8 +293,11 @@ Void TEncTop::xGetNewPicBuffer ( TComPic*& rpcPic )
   m_iPOCLast++;
   m_iNumPicRcvd++;
   
+#if AD_HOC_SLICES
+  rpcPic->getSlice(0)->setPOC( m_iPOCLast );
+#else
   rpcPic->getSlice()->setPOC( m_iPOCLast );
-  
+#endif
   // mark it should be extended
   rpcPic->getPicYuvRec()->setBorderExtension(false);
 }
@@ -339,5 +358,16 @@ Void TEncTop::xInitSPS()
   
   m_cSPS.setBitDepth    ( g_uiBitDepth        );
   m_cSPS.setBitIncrement( g_uiBitIncrement    );
+
+#if MTK_NONCROSS_INLOOP_FILTER
+  m_cSPS.setLFCrossSliceBoundaryFlag( m_bLFCrossSliceBoundaryFlag );
+#endif
+
 }
 
+#if CONSTRAINED_INTRA_PRED
+Void TEncTop::xInitPPS()
+{
+  m_cPPS.setConstrainedIntraPred( m_bUseConstrainedIntraPred );
+}
+#endif

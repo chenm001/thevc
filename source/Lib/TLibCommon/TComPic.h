@@ -57,6 +57,9 @@ private:
   TComPicYuv*           m_pcPicYuvPred;           //  Prediction
   TComPicYuv*           m_pcPicYuvResi;           //  Residual
   Bool                  m_bReconstructed;
+#if AD_HOC_SLICES
+  UInt                  m_uiCurrSliceIdx;         // Index of current slice
+#endif
   
 public:
   TComPic();
@@ -66,10 +69,17 @@ public:
   Void          destroy();
   
   TComPicSym*   getPicSym()           { return  m_apcPicSym;    }
+#if AD_HOC_SLICES
+  TComSlice*    getSlice(Int i)       { return  m_apcPicSym->getSlice(i);  }
+  Int           getPOC()              { return  m_apcPicSym->getSlice(m_uiCurrSliceIdx)->getPOC();  }
+  Bool          getDRBFlag()          { return  m_apcPicSym->getSlice(m_uiCurrSliceIdx)->getDRBFlag();  }
+  Int           getERBIndex()         { return  m_apcPicSym->getSlice(m_uiCurrSliceIdx)->getERBIndex();  }
+#else
   TComSlice*    getSlice()            { return  m_apcPicSym->getSlice();  }
   Int           getPOC()              { return  m_apcPicSym->getSlice()->getPOC();  }
   Bool          getDRBFlag()          { return  m_apcPicSym->getSlice()->getDRBFlag();  }
   Int           getERBIndex()         { return  m_apcPicSym->getSlice()->getERBIndex();  }
+#endif
   TComDataCU*&  getCU( UInt uiCUAddr )  { return  m_apcPicSym->getCU( uiCUAddr ); }
   
   TComPicYuv*   getPicYuvOrg()        { return  m_apcPicYuv[0]; }
@@ -101,6 +111,13 @@ public:
 #if AMVP_BUFFERCOMPRESS
   Void          compressMotion(); 
 #endif 
+#if AD_HOC_SLICES
+  UInt          getCurrSliceIdx()            { return m_uiCurrSliceIdx;                }
+  Void          setCurrSliceIdx(UInt i)      { m_uiCurrSliceIdx = i;                   }
+  UInt          getNumAllocatedSlice()       {return m_apcPicSym->getNumAllocatedSlice();}
+  Void          allocateNewSlice()           {m_apcPicSym->allocateNewSlice();         }
+  Void          clearSliceBuffer()           {m_apcPicSym->clearSliceBuffer();         }
+#endif
   
 };// END CLASS DEFINITION TComPic
 

@@ -327,6 +327,11 @@ Void TEncCavlc::codePPS( TComPPS* pcPPS )
   xWriteCode( 0, 1);
   xWriteCode( NAL_UNIT_PPS, 5);
   m_uiBitHLS += 8;
+
+#if CONSTRAINED_INTRA_PRED
+  xWriteFlag( pcPPS->getConstrainedIntraPred() ? 1 : 0 );
+  m_uiBitHLS += 1;
+#endif
   return;
 }
 
@@ -500,6 +505,10 @@ Void TEncCavlc::codePPS( TComPPS* pcPPS )
   xWriteCode( NAL_REF_IDC_PRIORITY_HIGHEST, 2);
   xWriteCode( 0, 1);
   xWriteCode( NAL_UNIT_PPS, 5);
+
+#if CONSTRAINED_INTRA_PRED
+  xWriteFlag( pcPPS->getConstrainedIntraPred() ? 1 : 0 );
+#endif
   return;
 }
 
@@ -559,6 +568,11 @@ Void TEncCavlc::codeSPS( TComSPS* pcSPS )
 #endif
   xWriteUvlc( pcSPS->getBitIncrement() );
 #endif
+
+#if MTK_NONCROSS_INLOOP_FILTER
+  xWriteFlag( pcSPS->getLFCrossSliceBoundaryFlag()?1 : 0);
+#endif
+
 }
 
 Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
@@ -571,10 +585,40 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
 #else
   xWriteCode( NAL_UNIT_CODED_SLICE, 5);
 #endif
-  
+#if AD_HOC_SLICES && SHARP_ENTROPY_SLICE
+  Bool bEntropySlice = false;
+  if (pcSlice->isNextSlice())
+  {
+    xWriteFlag( 0 ); // Entropy slice flag
+  }
+  else
+  {
+    bEntropySlice = true;
+    xWriteFlag( 1 ); // Entropy slice flag
+  }
+  if (!bEntropySlice)
+  {
+#endif
   xWriteCode  (pcSlice->getPOC(), 10 );   //  9 == SPS->Log2MaxFrameNum
   xWriteUvlc  (pcSlice->getSliceType() );
   xWriteSvlc  (pcSlice->getSliceQp() );
+#if AD_HOC_SLICES 
+#if SHARP_ENTROPY_SLICE
+  }
+  if (pcSlice->isNextSlice())
+  {
+    xWriteUvlc(pcSlice->getSliceCurStartCUAddr());        // start CU addr for slice
+  }
+  else
+  {
+    xWriteUvlc(pcSlice->getEntropySliceCurStartCUAddr()); // start CU addr for entropy slice
+  }
+  if (!bEntropySlice)
+  {
+#else
+  xWriteUvlc(pcSlice->getSliceCurStartCUAddr()); // start CU addr for slice
+#endif
+#endif
   
   xWriteFlag  (pcSlice->getSymbolMode() > 0 ? 1 : 0);
   
@@ -642,6 +686,9 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
   if ( pcSlice->getSliceType() == B_SLICE )
   {
     xWriteFlag( pcSlice->getColDir() );
+  }
+#endif
+#if AD_HOC_SLICES && SHARP_ENTROPY_SLICE
   }
 #endif
 }
@@ -729,7 +776,7 @@ Void TEncCavlc::codePartSize( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth 
       xWriteFlag( 0 );
     }
 #if HHI_DISABLE_INTER_NxN_SPLIT
-    if( pcCU->getWidth( uiAbsPartIdx ) == 8 )
+    if( uiDepth == g_uiMaxCUDepth - g_uiAddCUDepth )
     {
       xWriteFlag( 0 );
     }
@@ -737,7 +784,7 @@ Void TEncCavlc::codePartSize( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth 
     xWriteFlag( 0 );
 #endif
 #if MTK_DISABLE_INTRA_NxN_SPLIT
-    if( pcCU->getWidth( uiAbsPartIdx ) == 8 )
+    if( uiDepth == g_uiMaxCUDepth - g_uiAddCUDepth )
 #endif
     {
       xWriteFlag( (eSize == SIZE_2Nx2N? 0 : 1) );
@@ -752,7 +799,7 @@ Void TEncCavlc::codePartSize( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth 
   if ( pcCU->isIntra( uiAbsPartIdx ) )
   {
 #if MTK_DISABLE_INTRA_NxN_SPLIT
-    if( pcCU->getWidth( uiAbsPartIdx ) == 8 )
+    if( uiDepth == g_uiMaxCUDepth - g_uiAddCUDepth )
 #endif
     {
       xWriteFlag( eSize == SIZE_2Nx2N? 1 : 0 );
@@ -799,7 +846,7 @@ Void TEncCavlc::codePartSize( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth 
     case SIZE_NxN:
     {
 #if HHI_DISABLE_INTER_NxN_SPLIT
-      if( pcCU->getWidth( uiAbsPartIdx ) == 8 )
+      if( uiDepth == g_uiMaxCUDepth - g_uiAddCUDepth )
 #endif
       {
         xWriteFlag( 0 );

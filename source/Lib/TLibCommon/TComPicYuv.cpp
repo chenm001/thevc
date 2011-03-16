@@ -366,3 +366,69 @@ Void TComPicYuv::dump (char* pFileName, Bool bAdd)
   fclose(pFile);
 }
 
+#if FIXED_ROUNDING_FRAME_MEMORY
+Void TComPicYuv::xFixedRoundingPic()
+{
+  Int   x, y;
+  Pel*  pRec    = getLumaAddr();
+  Int   iStride = getStride();
+  Int   iWidth  = getWidth();
+  Int   iHeight = getHeight();
+#if FULL_NBIT
+  Int   iOffset  = ((g_uiBitDepth-8)>0)?(1<<(g_uiBitDepth-8-1)):0;
+  Int   iMask   = (~0<<(g_uiBitDepth-8));
+  Int   iMaxBdi = g_uiBASE_MAX<<(g_uiBitDepth-8);
+#else
+  Int   iOffset  = (g_uiBitIncrement>0)?(1<<(g_uiBitIncrement-1)):0;
+  Int   iMask   = (~0<<g_uiBitIncrement);
+  Int   iMaxBdi = g_uiBASE_MAX<<g_uiBitIncrement;
+#endif
+
+  for( y = 0; y < iHeight; y++ )
+  {
+    for( x = 0; x < iWidth; x++ )
+    {
+#if IBDI_NOCLIP_RANGE
+      pRec[x] = ( pRec[x] + iOffset ) & iMask;
+#else
+      pRec[x] = ( pRec[x]+iOffset>iMaxBdi)? iMaxBdi : ((pRec[x]+iOffset) & iMask);
+#endif
+    }
+    pRec += iStride;
+  }
+
+  iHeight >>= 1;
+  iWidth  >>= 1;
+  iStride >>= 1;
+  pRec  = getCbAddr();
+
+  for( y = 0; y < iHeight; y++ )
+  {
+    for( x = 0; x < iWidth; x++ )
+    {
+#if IBDI_NOCLIP_RANGE
+      pRec[x] = ( pRec[x] + iOffset ) & iMask;
+#else
+      pRec[x] = ( pRec[x]+iOffset>iMaxBdi)? iMaxBdi : ((pRec[x]+iOffset) & iMask);
+#endif
+    }
+    pRec += iStride;
+  }
+
+  pRec  = getCrAddr();
+
+  for( y = 0; y < iHeight; y++ )
+  {
+    for( x = 0; x < iWidth; x++ )
+    {
+#if IBDI_NOCLIP_RANGE
+      pRec[x] = ( pRec[x] + iOffset ) & iMask;
+#else
+      pRec[x] = ( pRec[x]+iOffset>iMaxBdi)? iMaxBdi : ((pRec[x]+iOffset) & iMask);
+#endif
+    }
+    pRec += iStride;
+  }
+}
+#endif
+

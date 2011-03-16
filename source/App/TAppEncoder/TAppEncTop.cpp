@@ -100,6 +100,9 @@ Void TAppEncTop::xInitLibCfg()
   m_cTEncTop.setUseASR                       ( m_bUseASR      );
   m_cTEncTop.setUseHADME                     ( m_bUseHADME    );
   m_cTEncTop.setUseALF                       ( m_bUseALF      );
+#if MQT_ALF_NPASS
+  m_cTEncTop.setALFEncodePassReduction       ( m_iALFEncodePassReduction );
+#endif
   m_cTEncTop.setUseGPB                       ( m_bUseGPB      );
 #if DCM_COMB_LIST
   m_cTEncTop.setUseLComb                     ( m_bUseLComb    );
@@ -130,6 +133,26 @@ Void TAppEncTop::xInitLibCfg()
 #endif
 #ifdef ROUNDING_CONTROL_BIPRED
   m_cTEncTop.setUseRoundingControlBipred(m_useRoundingControlBipred);
+#endif
+#if CONSTRAINED_INTRA_PRED
+  m_cTEncTop.setUseConstrainedIntraPred      ( m_bUseConstrainedIntraPred );
+#endif
+#if AD_HOC_SLICES 
+  //====== Slice ========
+  m_cTEncTop.setSliceMode               ( m_iSliceMode                );
+  m_cTEncTop.setSliceArgument           ( m_iSliceArgument            );
+#if SHARP_ENTROPY_SLICE 
+  //====== Entropy Slice ========
+  m_cTEncTop.setEntropySliceMode        ( m_iEntropySliceMode         );
+  m_cTEncTop.setEntropySliceArgument    ( m_iEntropySliceArgument     );
+#endif
+#endif
+#if MTK_NONCROSS_INLOOP_FILTER
+  if(m_iSliceMode == 0 )
+  {
+    m_bLFCrossSliceBoundaryFlag = true;
+  }
+  m_cTEncTop.setLFCrossSliceBoundaryFlag( m_bLFCrossSliceBoundaryFlag );
 #endif
 }
 

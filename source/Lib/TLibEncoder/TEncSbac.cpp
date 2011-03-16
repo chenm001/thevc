@@ -302,7 +302,7 @@ Void TEncSbac::codeMVPIdx ( TComDataCU* pcCU, UInt uiAbsPartIdx, RefPicList eRef
 {
   Int iSymbol = pcCU->getMVPIdx(eRefList, uiAbsPartIdx);
   Int iNum    = pcCU->getMVPNum(eRefList, uiAbsPartIdx);
-  
+
   xWriteUnaryMaxSymbol(iSymbol, m_cMVPIdxSCModel.get(0), 1, iNum-1);
 }
 
@@ -321,13 +321,13 @@ Void TEncSbac::codePartSize( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
       m_pcBinIf->encodeBin( 0, m_cCUPartSizeSCModel.get( 0, 0, 2) );
     }
 #if HHI_DISABLE_INTER_NxN_SPLIT
-    if( pcCU->getWidth( uiAbsPartIdx ) == 8 )
+    if( uiDepth == g_uiMaxCUDepth - g_uiAddCUDepth )
 #endif
     {
       m_pcBinIf->encodeBin( 0, m_cCUPartSizeSCModel.get( 0, 0, 3) );
     }
 #if MTK_DISABLE_INTRA_NxN_SPLIT
-    if( pcCU->getWidth( uiAbsPartIdx ) == 8 )
+    if( uiDepth == g_uiMaxCUDepth - g_uiAddCUDepth )
 #endif
     {
       m_pcBinIf->encodeBin( (eSize == SIZE_2Nx2N? 0 : 1), m_cCUPartSizeSCModel.get( 0, 0, 4) );
@@ -338,7 +338,7 @@ Void TEncSbac::codePartSize( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
   if ( pcCU->isIntra( uiAbsPartIdx ) )
   {
 #if MTK_DISABLE_INTRA_NxN_SPLIT
-    if( pcCU->getWidth( uiAbsPartIdx ) == 8 )
+    if( uiDepth == g_uiMaxCUDepth - g_uiAddCUDepth )
 #endif
     {
       m_pcBinIf->encodeBin( eSize == SIZE_2Nx2N? 1 : 0, m_cCUPartSizeSCModel.get( 0, 0, 0 ) );
@@ -371,7 +371,7 @@ Void TEncSbac::codePartSize( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
     case SIZE_NxN:
     {
 #if HHI_DISABLE_INTER_NxN_SPLIT
-      if( pcCU->getWidth( uiAbsPartIdx ) == 8 )
+      if( uiDepth == g_uiMaxCUDepth - g_uiAddCUDepth )
 #endif
       {
         m_pcBinIf->encodeBin( 0, m_cCUPartSizeSCModel.get( 0, 0, 0) );

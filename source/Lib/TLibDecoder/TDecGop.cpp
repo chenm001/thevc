@@ -60,9 +60,10 @@ Void TDecGop::create()
   
 }
 
+
 Void TDecGop::destroy()
 {
-  
+
 }
 
 Void TDecGop::init( TDecEntropy*            pcEntropyDecoder, 
@@ -88,11 +89,50 @@ Void TDecGop::init( TDecEntropy*            pcEntropyDecoder,
 
 Void TDecGop::decompressGop (Bool bEos, TComBitstream* pcBitstream, TComPic*& rpcPic)
 {
+#if AD_HOC_SLICES
+  TComSlice*  pcSlice = rpcPic->getSlice(rpcPic->getCurrSliceIdx());
+#else
   TComSlice*  pcSlice = rpcPic->getSlice();
-  
+#endif
+
   //-- For time output for each slice
   long iBeforeTime = clock();
   
+#if AD_HOC_SLICES
+#if SHARP_ENTROPY_SLICE
+  UInt uiStartCUAddr   = pcSlice->getEntropySliceCurStartCUAddr();
+#else
+  UInt uiRSStartCUAddr = pcSlice->getSliceCurStartCUAddr();
+#endif
+#if MTK_NONCROSS_INLOOP_FILTER
+  static Bool  bFirst = true;
+  static UInt  uiILSliceCount;
+  static UInt* puiILSliceStartLCU;
+  if(bFirst)
+  {
+    uiILSliceCount = 0;
+    if(!pcSlice->getSPS()->getLFCrossSliceBoundaryFlag())
+    {
+      puiILSliceStartLCU = new UInt[rpcPic->getNumCUsInFrame() +1];
+    }
+    bFirst = false;
+  }
+
+  if(!pcSlice->getSPS()->getLFCrossSliceBoundaryFlag())
+  {
+    UInt uiSliceStartCuAddr = pcSlice->getSliceCurStartCUAddr();
+#if SHARP_ENTROPY_SLICE
+    if(uiSliceStartCuAddr == uiStartCUAddr)
+    {
+#endif
+    puiILSliceStartLCU[uiILSliceCount] = uiSliceStartCuAddr;
+    uiILSliceCount++;
+#if SHARP_ENTROPY_SLICE
+    }
+#endif
+  }
+#endif //MTK_NONCROSS_INLOOP_FILTER
+#endif
   UInt iSymbolMode = pcSlice->getSymbolMode();
   if (iSymbolMode)
   {
@@ -107,9 +147,23 @@ Void TDecGop::decompressGop (Bool bEos, TComBitstream* pcBitstream, TComPic*& rp
   m_pcEntropyDecoder->setBitstream      (pcBitstream);
   m_pcEntropyDecoder->resetEntropy      (pcSlice);
   
+#if AD_HOC_SLICES
+  ALFParam& cAlfParam = m_cAlfParam;
+#else
   ALFParam cAlfParam;
-  
+#endif
+
+#if AD_HOC_SLICES
+#if SHARP_ENTROPY_SLICE
+  if (uiStartCUAddr==0)  // decode ALF params only from first slice header
+#else
+  if (uiRSStartCUAddr==0)  // decode ALF params only from first slice header
+#endif
+  {
+    if ( rpcPic->getSlice(0)->getSPS()->getUseALF() )
+#else
   if ( rpcPic->getSlice()->getSPS()->getUseALF() )
+#endif
   {
 #if TSB_ALF_HEADER
     m_pcAdaptiveLoopFilter->setNumCUsInFrame(rpcPic);
@@ -117,17 +171,54 @@ Void TDecGop::decompressGop (Bool bEos, TComBitstream* pcBitstream, TComPic*& rp
     m_pcAdaptiveLoopFilter->allocALFParam(&cAlfParam);
     m_pcEntropyDecoder->decodeAlfParam( &cAlfParam );
   }
+#if AD_HOC_SLICES
+  }
+#endif
   
   m_pcSliceDecoder->decompressSlice(pcBitstream, rpcPic);
   
+#if AD_HOC_SLICES 
+  if (pcBitstream->getLastSliceEncounteredInPicture())
+  {
+#endif
   // deblocking filter
   m_pcLoopFilter->setCfg(pcSlice->getLoopFilterDisable(), 0, 0);
   m_pcLoopFilter->loopFilterPic( rpcPic );
   
   // adaptive loop filter
+#if AD_HOC_SLICES
+    if( pcSlice->getSPS()->getUseALF() )
+#else
   if( rpcPic->getSlice()->getSPS()->getUseALF() )
+#endif
   {
+#if MTK_NONCROSS_INLOOP_FILTER  
+    if(pcSlice->getSPS()->getLFCrossSliceBoundaryFlag())
+    {
+      m_pcAdaptiveLoopFilter->setUseNonCrossAlf(false);
+    }
+    else
+    {
+      puiILSliceStartLCU[uiILSliceCount] = rpcPic->getNumCUsInFrame();
+      m_pcAdaptiveLoopFilter->setUseNonCrossAlf( (uiILSliceCount > 1) );
+      if(m_pcAdaptiveLoopFilter->getUseNonCrossAlf())
+      {
+        m_pcAdaptiveLoopFilter->setNumSlicesInPic( uiILSliceCount );
+        m_pcAdaptiveLoopFilter->createSlice();
+        for(UInt i=0; i< uiILSliceCount ; i++)
+        {
+          (*m_pcAdaptiveLoopFilter)[i].create(rpcPic, i, puiILSliceStartLCU[i], puiILSliceStartLCU[i+1]-1);
+        }
+      }
+    }
+#endif
     m_pcAdaptiveLoopFilter->ALFProcess(rpcPic, &cAlfParam);
+#if MTK_NONCROSS_INLOOP_FILTER
+    if(m_pcAdaptiveLoopFilter->getUseNonCrossAlf())
+    {
+      m_pcAdaptiveLoopFilter->destroySlice();
+    }
+#endif
     m_pcAdaptiveLoopFilter->freeALFParam(&cAlfParam);
   }
   
@@ -164,7 +255,15 @@ Void TDecGop::decompressGop (Bool bEos, TComBitstream* pcBitstream, TComPic*& rp
     printf ("] ");
   }
 #endif
-  
+#if FIXED_ROUNDING_FRAME_MEMORY
+  rpcPic->getPicYuvRec()->xFixedRoundingPic();
+#endif 
   rpcPic->setReconMark(true);
+#if AD_HOC_SLICES 
+#if MTK_NONCROSS_INLOOP_FILTER
+  uiILSliceCount = 0;
+#endif
+  }
+#endif
 }
 

@@ -87,6 +87,7 @@
 //////////////////////////////
 
 #define HIGH_ACCURACY_BI                  1          // High precision bi-prediction JCTVC-D321
+#define FIX_ISSUE_125                     1
 
 //////////////////////////////
 // Nokia defines section end
@@ -145,6 +146,7 @@
 #error TEN_DIRECTIONAL_INTERP should be disabled if DCTIF_8_6_LUMA is enabled
 #endif
 
+#define ZERO_MVD_EST											0           // Zero Mvd Estimation in normal mode
 ///////////////////////////////
 // SAMSUNG defines section end
 ///////////////////////////////
@@ -173,6 +175,8 @@
 // TOSHIBA defines section start
 ////////////////////////////////
 #define TSB_ALF_HEADER                 1           // Send ALF ON/OFF flag in slice header
+#define IBDI_DISTORTION                0           ///< enable/disable SSE modification when IBDI is used (JCTVC-D152)
+#define FIXED_ROUNDING_FRAME_MEMORY    0           ///< enable/disable fixed rounding to 8-bitdepth of frame memory when IBDI is used  
 ////////////////////////////////
 // TOSHIBA defines section end
 ////////////////////////////////
@@ -193,12 +197,22 @@
 // MICROSOFT&USTC defines section end
 ////////////////////////////////
 
+////////////////////////////////
+// MediaTek defines section start
+////////////////////////////////
 #define MTK_DISABLE_INTRA_NxN_SPLIT       1           ///< Disable use of PUs-mode NxN for CUs larger 8x8 (intra only)
+#define MTK_NONCROSS_INLOOP_FILTER        1           ///< Allow non-cross-slice-boundary in-loop filtering, including DB & ALF (JCTVC-D128)
+////////////////////////////////
+// MediaTek defines section end
+////////////////////////////////
+
 #define FT_TCTR 1
 #define FT_TCTR_MERGE 1
 #define PANASONIC_AMVPTEMPORALEXT 1
+#define PANASONIC_MERGETEMPORALEXT 1
 #define FAST_UDI_USE_MPM 1
 #define SONY_SIG_CTX 1
+#define SNY_DQP                          1           ///< SONY's proposal on syntax change of dQP (JCT-VC D258)
 
 #define AMVP_BUFFERCOMPRESS                   1     // motion vector buffer compression
 #define AMVP_DECIMATION_FACTOR                4
@@ -209,6 +223,43 @@
 #define CHROMA_CODEWORD_SWITCH  1                     ///< Switch the places of the last two codewords 
 
 #define FULL_NBIT 0 ///< When enabled, does not use g_uiBitIncrement anymore to support > 8 bit data
+
+/////////////////////////////////
+// AHG SLICES defines section start
+/////////////////////////////////
+#define AD_HOC_SLICES                                   1          ///< Used in enabling / disabling slice source code
+#define AD_HOC_SLICES_FIXED_NUMBER_OF_LCU_IN_SLICE      1          ///< OPTION IDENTIFIER. mode==1 -> Limit maximum number of largest coding tree blocks in a slice
+#define AD_HOC_SLICES_FIXED_NUMBER_OF_BYTES_IN_SLICE    2          ///< OPTION IDENTIFIER. mode==2 -> Limit maximum number of bins/bits in a slice
+#define AD_HOC_SLICES_TEST_OUTOFORDER_DECOMPRESS        0          ///< Enable out-of-order slice decompression. Used for testing.
+                                                                   ///< Out-of-order decompression testing is disabled when entropy slices are used to prevent crossing reconstruction slice boundary.
+#define AD_HOC_SLICES_BUF_SIZE                          500000     ///< Maximum number of bytes pre-loaded during start-code locating process
+
+#define SHARP_ENTROPY_SLICE                                   1          ///< Can be enabled only when AD_HOC_SLICES=1, when AD_HOC_SLICES=0 the macro has no impact
+// Entropy slice options
+#define SHARP_FIXED_NUMBER_OF_LCU_IN_ENTROPY_SLICE            1          ///< OPTION IDENTIFIER. Limit maximum number of largest coding tree blocks in an entropy slice
+#define SHARP_MULTIPLE_CONSTRAINT_BASED_ENTROPY_SLICE         2          ///< OPTION IDENTIFIER. Limit maximum number of bins/bits in an entropy slice
+
+/////////////////////////////////
+// AHG SLICES defines section end
+/////////////////////////////////
+
+/////////////////////////////////
+// NEC defines section start
+/////////////////////////////////
+
+#define CONSTRAINED_INTRA_PRED            1           // JCTVC-D086: constrained intra prediction
+
+/////////////////////////////////
+// NEC defines section end
+/////////////////////////////////
+
+/////////////////////////////////
+// MQT (MEDIATEK, QUALCOMM, TOSHIBA) defines section start
+/////////////////////////////////
+#define MQT_ALF_NPASS                       1
+/////////////////////////////////
+// MQT (MEDIATEK, QUALCOMM, TOSHIBA) defines section start
+/////////////////////////////////
 
 // ====================================================================================================================
 // Basic type redefinition

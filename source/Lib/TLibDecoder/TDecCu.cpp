@@ -114,9 +114,29 @@ Void TDecCu::destroy()
  */
 Void TDecCu::decodeCU( TComDataCU* pcCU, UInt& ruiIsLast )
 {
+#if SNY_DQP   
+  if ( pcCU->getSlice()->getSPS()->getUseDQP() )
+  {
+    pcCU->setdQPFlag(true); 
+  }
+#endif//SNY_DQP
   // start from the top level CU
   xDecodeCU( pcCU, 0, 0 );
   
+#if SNY_DQP 
+  // dQP: only for LCU
+  if ( pcCU->getSlice()->getSPS()->getUseDQP() )
+  {
+    if ( pcCU->isSkipped( 0 ) && pcCU->getDepth( 0 ) == 0 )
+    {
+    }
+    else if ( pcCU->getdQPFlag())// non-skip
+    {
+      m_pcEntropyDecoder->decodeQP( pcCU, 0, 0 );
+      pcCU->setdQPFlag(false);
+    }
+  }
+#else
   // dQP: only for LCU
   if ( pcCU->getSlice()->getSPS()->getUseDQP() )
   {
@@ -128,6 +148,7 @@ Void TDecCu::decodeCU( TComDataCU* pcCU, UInt& ruiIsLast )
       m_pcEntropyDecoder->decodeQP( pcCU, 0, 0 );
     }
   }
+#endif//SNY_DQP
   
   //--- Read terminating bit ---
   m_pcEntropyDecoder->decodeTerminatingBit( ruiIsLast );

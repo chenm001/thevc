@@ -93,7 +93,11 @@ private:
   UInt        m_uiMaxTrSize;
   
   Int m_iAMPAcc[MAX_CU_DEPTH];
-  
+
+#if MTK_NONCROSS_INLOOP_FILTER
+  Bool        m_bLFCrossSliceBoundaryFlag;
+#endif
+
 public:
   TComSPS();
   virtual ~TComSPS();
@@ -177,17 +181,30 @@ public:
   Void      setBitDepth     ( UInt u ) { m_uiBitDepth = u;        }
   UInt      getBitIncrement ()         { return m_uiBitIncrement; }
   Void      setBitIncrement ( UInt u ) { m_uiBitIncrement = u;    }
+
+#if MTK_NONCROSS_INLOOP_FILTER
+  Void      setLFCrossSliceBoundaryFlag     ( Bool   bValue  )    { m_bLFCrossSliceBoundaryFlag = bValue; }
+  Bool      getLFCrossSliceBoundaryFlag     ()                    { return m_bLFCrossSliceBoundaryFlag;   } 
+#endif
+
 };
 
 /// PPS class
 class TComPPS
 {
 private:
+#if CONSTRAINED_INTRA_PRED
+  Bool        m_bConstrainedIntraPred;    //  constrained_intra_pred_flag
+#endif
   
 public:
   TComPPS();
   virtual ~TComPPS();
   
+#if CONSTRAINED_INTRA_PRED
+  Bool      getConstrainedIntraPred ()         { return  m_bConstrainedIntraPred; }
+  Void      setConstrainedIntraPred ( Bool b ) { m_bConstrainedIntraPred = b;     }
+#endif
 };
 
 /// slice header class
@@ -252,6 +269,22 @@ private:
 #endif
 #if MS_LCEC_LOOKUP_TABLE_EXCEPTION
   Bool        m_bRefIdxCombineCoding;
+#endif
+#if AD_HOC_SLICES 
+  UInt        m_uiSliceMode;
+  UInt        m_uiSliceArgument;
+  UInt        m_uiSliceCurStartCUAddr;
+  UInt        m_uiSliceCurEndCUAddr;
+  UInt        m_uiSliceIdx;
+#if SHARP_ENTROPY_SLICE 
+  UInt        m_uiEntropySliceMode;
+  UInt        m_uiEntropySliceArgument;
+  UInt        m_uiEntropySliceCurStartCUAddr;
+  UInt        m_uiEntropySliceCurEndCUAddr;
+  Bool        m_bNextSlice;
+  Bool        m_bNextEntropySlice;
+  UInt        m_uiSliceBits;
+#endif
 #endif
   
 public:
@@ -363,6 +396,35 @@ public:
 #endif
 #if DCM_COMB_LIST
   Void      generateCombinedList       ();
+#endif
+#if AD_HOC_SLICES 
+  Void setSliceMode              ( UInt uiMode )     { m_uiSliceMode = uiMode;              }
+  UInt getSliceMode              ()                  { return m_uiSliceMode;                }
+  Void setSliceArgument          ( UInt uiArgument ) { m_uiSliceArgument = uiArgument;      }
+  UInt getSliceArgument          ()                  { return m_uiSliceArgument;            }
+  Void setSliceCurStartCUAddr    ( UInt uiAddr )     { m_uiSliceCurStartCUAddr = uiAddr;    }
+  UInt getSliceCurStartCUAddr    ()                  { return m_uiSliceCurStartCUAddr;      }
+  Void setSliceCurEndCUAddr      ( UInt uiAddr )     { m_uiSliceCurEndCUAddr = uiAddr;      }
+  UInt getSliceCurEndCUAddr      ()                  { return m_uiSliceCurEndCUAddr;        }
+  Void setSliceIdx               ( UInt i)           { m_uiSliceIdx = i;                    }
+  UInt getSliceIdx               ()                  { return  m_uiSliceIdx;                }
+  Void copySliceInfo             (TComSlice *pcSliceSrc);
+#if SHARP_ENTROPY_SLICE 
+  Void setEntropySliceMode              ( UInt uiMode )     { m_uiEntropySliceMode = uiMode;              }
+  UInt getEntropySliceMode              ()                  { return m_uiEntropySliceMode;                }
+  Void setEntropySliceArgument          ( UInt uiArgument ) { m_uiEntropySliceArgument = uiArgument;      }
+  UInt getEntropySliceArgument          ()                  { return m_uiEntropySliceArgument;            }
+  Void setEntropySliceCurStartCUAddr    ( UInt uiAddr )     { m_uiEntropySliceCurStartCUAddr = uiAddr;    }
+  UInt getEntropySliceCurStartCUAddr    ()                  { return m_uiEntropySliceCurStartCUAddr;      }
+  Void setEntropySliceCurEndCUAddr      ( UInt uiAddr )     { m_uiEntropySliceCurEndCUAddr = uiAddr;      }
+  UInt getEntropySliceCurEndCUAddr      ()                  { return m_uiEntropySliceCurEndCUAddr;        }
+  Void setNextSlice                     ( Bool b )          { m_bNextSlice = b;                           }
+  Bool isNextSlice                      ()                  { return m_bNextSlice;                        }
+  Void setNextEntropySlice              ( Bool b )          { m_bNextEntropySlice = b;                    }
+  Bool isNextEntropySlice               ()                  { return m_bNextEntropySlice;                 }
+  Void setSliceBits                     ( UInt uiVal )      { m_uiSliceBits = uiVal;                      }
+  UInt getSliceBits                     ()                  { return m_uiSliceBits;                       }  
+#endif
 #endif
   
 protected:
