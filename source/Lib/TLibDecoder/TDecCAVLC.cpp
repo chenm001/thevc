@@ -54,14 +54,37 @@ TDecCavlc::~TDecCavlc()
 // Public member functions
 // ====================================================================================================================
 
+Void  TDecCavlc::parseNalUnitHeader ( NalUnitType& eNalUnitType, UInt& TemporalId, Bool& bOutputFlag )
+{
+  UInt  uiCode;
+  
+  xReadCode ( 1, uiCode ); assert( 0 == uiCode); // forbidden_zero_bit
+  xReadCode ( 2, uiCode );                       // nal_ref_idc
+  xReadCode ( 5, uiCode );                       // nal_unit_type
+  eNalUnitType = (NalUnitType) uiCode;
+
+  // to be enabled when duplicate header coding is removed
+/*
+  if ( (eNalUnitType == NAL_UNIT_CODED_SLICE) || (eNalUnitType == NAL_UNIT_CODED_SLICE_IDR) )
+  {
+    xReadCode(3, uiCode); // temporal_id
+    TemporalId = uiCode;
+    xReadFlag(uiCode);    // output_flag
+    bOutputFlag = (0!=uiCode);
+    xReadCode(4, uiCode); // reserved_zero_4bits    
+  }
+  else
+ */
+  {
+    TemporalId = 0;
+    bOutputFlag = true;
+  }
+}
+
 Void TDecCavlc::parsePPS(TComPPS* pcPPS)
 {
   UInt  uiCode;
   
-  xReadCode ( 2, uiCode ); //NalRefIdc
-  xReadCode ( 1, uiCode ); assert( 0 == uiCode); // zero bit
-  xReadCode ( 5, uiCode ); assert( NAL_UNIT_PPS == uiCode);//NalUnitType
-
 #if CONSTRAINED_INTRA_PRED
   xReadFlag ( uiCode ); pcPPS->setConstrainedIntraPred( uiCode ? true : false );
 #endif
@@ -72,9 +95,6 @@ Void TDecCavlc::parsePPS(TComPPS* pcPPS)
 Void TDecCavlc::parseSPS(TComSPS* pcSPS)
 {
   UInt  uiCode;
-  xReadCode ( 2, uiCode ); //NalRefIdc
-  xReadCode ( 1, uiCode ); assert( 0 == uiCode); // zero bit
-  xReadCode ( 5, uiCode ); assert( NAL_UNIT_SPS == uiCode);//NalUnitType
   
   // Structure
   xReadUvlc ( uiCode ); pcSPS->setWidth       ( uiCode    );
@@ -165,14 +185,6 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice)
 {
   UInt  uiCode;
   Int   iCode;
-  xReadCode ( 2, uiCode ); //NalRefIdc
-  xReadCode ( 1, uiCode ); assert( 0 == uiCode); // zero bit
-#if DCM_DECODING_REFRESH
-  xReadCode ( 5, uiCode ); 
-  rpcSlice->setNalUnitType        ((NalUnitType)uiCode);//NalUnitType
-#else
-  xReadCode ( 5, uiCode ); assert( NAL_UNIT_CODED_SLICE == uiCode);//NalUnitType
-#endif
 #if AD_HOC_SLICES && SHARP_ENTROPY_SLICE 
   xReadFlag ( uiCode );
   Bool bEntropySlice = uiCode ? true : false;

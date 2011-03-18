@@ -68,6 +68,8 @@ public:
   Void  setAlfCtrl                ( Bool bAlfCtrl          ) { m_bAlfCtrl = bAlfCtrl;                   }
   Void  setMaxAlfCtrlDepth        ( UInt uiMaxAlfCtrlDepth ) { m_uiMaxAlfCtrlDepth = uiMaxAlfCtrlDepth; }
   
+  Void  parseNalUnitHeader    ( NalUnitType& eNalUnitType, UInt& TemporalId, Bool& bOutputFlag ) {}
+  
   Void  parseSPS                  ( TComSPS* pcSPS         ) {}
   Void  parsePPS                  ( TComPPS* pcPPS         ) {}
   Void  parseSliceHeader          ( TComSlice*& rpcSlice   ) {}

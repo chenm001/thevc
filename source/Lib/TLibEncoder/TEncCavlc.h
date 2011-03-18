@@ -192,6 +192,8 @@ public:
   UInt  getNumberOfWrittenBits()                { return  m_pcBitIf->getNumberOfWrittenBits();  }
   UInt  getCoeffCost          ()                { return  m_uiCoeffCost;  }
   
+  Void  codeNALUnitHeader       ( NalUnitType eNalUnitType, NalRefIdc eNalRefIdc, UInt TemporalId = 0, Bool bOutputFlag = true );
+  
   Void  codeSPS                 ( TComSPS* pcSPS );
   Void  codePPS                 ( TComPPS* pcPPS );
   Void  codeSliceHeader         ( TComSlice* pcSlice );

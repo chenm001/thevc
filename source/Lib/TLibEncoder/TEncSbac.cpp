@@ -132,6 +132,12 @@ Void TEncSbac::resetEntropy           ()
   return;
 }
 
+Void TEncSbac::codeNALUnitHeader( NalUnitType eNalUnitType, NalRefIdc eNalRefIdc, UInt TemporalId, Bool bOutputFlag )
+{
+  assert (0);
+  return;
+}
+
 Void TEncSbac::codeSPS( TComSPS* pcSPS )
 {
   assert (0);

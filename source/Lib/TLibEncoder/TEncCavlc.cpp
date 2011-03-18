@@ -502,9 +502,7 @@ Void TEncCavlc::codeSliceFinish ()
 Void TEncCavlc::codePPS( TComPPS* pcPPS )
 {
   // uiFirstByte
-  xWriteCode( NAL_REF_IDC_PRIORITY_HIGHEST, 2);
-  xWriteCode( 0, 1);
-  xWriteCode( NAL_UNIT_PPS, 5);
+  codeNALUnitHeader( NAL_UNIT_PPS, NAL_REF_IDC_PRIORITY_HIGHEST );
 
 #if CONSTRAINED_INTRA_PRED
   xWriteFlag( pcPPS->getConstrainedIntraPred() ? 1 : 0 );
@@ -512,12 +510,28 @@ Void TEncCavlc::codePPS( TComPPS* pcPPS )
   return;
 }
 
+Void TEncCavlc::codeNALUnitHeader( NalUnitType eNalUnitType, NalRefIdc eNalRefIdc, UInt TemporalId, Bool bOutputFlag )
+{
+  // uiFirstByte
+  xWriteCode( 0, 1);            // forbidden_zero_flag
+  xWriteCode( eNalRefIdc, 2);   // nal_ref_idc
+  xWriteCode( eNalUnitType, 5); // nal_unit_type
+
+  // to be enabled when duplicate header coding is removed
+  /*
+  if ( (eNalUnitType == NAL_UNIT_CODED_SLICE) || (eNalUnitType == NAL_UNIT_CODED_SLICE_IDR) )
+  {
+    xWriteCode( TemporalId, 3);   // temporal_id
+    xWriteFlag( bOutputFlag );    // output_flag
+    xWriteCode( 0, 4);            // reseved_zero_4bits
+  }
+  */
+}
+
 Void TEncCavlc::codeSPS( TComSPS* pcSPS )
 {
   // uiFirstByte
-  xWriteCode( NAL_REF_IDC_PRIORITY_HIGHEST, 2);
-  xWriteCode( 0, 1);
-  xWriteCode( NAL_UNIT_SPS, 5);
+  codeNALUnitHeader( NAL_UNIT_SPS, NAL_REF_IDC_PRIORITY_HIGHEST );
   
   // Structure
   xWriteUvlc  ( pcSPS->getWidth () );
@@ -578,13 +592,12 @@ Void TEncCavlc::codeSPS( TComSPS* pcSPS )
 Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
 {
   // here someone can add an appropriated NalRefIdc type 
-  xWriteCode( NAL_REF_IDC_PRIORITY_HIGHEST, 2);
-  xWriteCode( 0, 1);
 #if DCM_DECODING_REFRESH
-  xWriteCode( pcSlice->getNalUnitType(), 5);
+  codeNALUnitHeader (pcSlice->getNalUnitType(), NAL_REF_IDC_PRIORITY_HIGHEST, 1, true);
 #else
-  xWriteCode( NAL_UNIT_CODED_SLICE, 5);
+  codeNALUnitHeader (NAL_UNIT_CODED_SLICE, NAL_REF_IDC_PRIORITY_HIGHEST);
 #endif
+
 #if AD_HOC_SLICES && SHARP_ENTROPY_SLICE
   Bool bEntropySlice = false;
   if (pcSlice->isNextSlice())

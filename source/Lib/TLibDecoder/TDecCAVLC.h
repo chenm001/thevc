@@ -121,6 +121,8 @@ public:
   Void  parseAlfUvlc        ( UInt& ruiVal );
   Void  parseAlfSvlc        ( Int&  riVal  );
   
+  Void  parseNalUnitHeader  ( NalUnitType& eNalUnitType, UInt& TemporalId, Bool& bOutputFlag );
+  
   Void  parseSPS            ( TComSPS* pcSPS );
   Void  parsePPS            ( TComPPS* pcPPS);
   Void  parseSliceHeader    ( TComSlice*& rpcSlice );
