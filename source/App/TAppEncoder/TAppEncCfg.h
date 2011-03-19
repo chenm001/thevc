@@ -105,11 +105,6 @@ protected:
   UInt      m_uiBitIncrement;                                 ///< bit-depth increment
   UInt      m_uiInternalBitDepth;                             ///< Internal bit-depth (BitDepth+BitIncrement)
   
-  // coding tools (inter - interpolation filter)
-#if !DCTIF_8_6_LUMA
-  Int       m_iDIFTap;                                        ///< number of taps in DIF (luma)
-#endif
-  
   // coding tools (loop filter)
   Bool      m_bUseALF;                                        ///< flag for using adaptive loop filter
 #ifdef MQT_ALF_NPASS
@@ -142,11 +137,6 @@ protected:
   Int       m_iSearchRange;                                   ///< ME search range
   Int       m_bipredSearchRange;                              ///< ME search range for bipred refinement
   Bool      m_bUseFastEnc;                                    ///< flag for using fast encoder setting
-  
-#if !DCTIF_8_6_LUMA
-  // coding tool (interpolation filter)
-  Int       m_iInterpFilterType;                              ///< interpolation filter type
-#endif
   
 #if AD_HOC_SLICES 
   Int       m_iSliceMode;	          ///< 0: Disable all Recon slice limits, 1 : Maximum number of largest coding units per slice, 2: Maximum number of bytes in a slice

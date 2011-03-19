@@ -133,11 +133,6 @@ Void TDecCavlc::parseSPS(TComSPS* pcSPS)
 #if HHI_RMP_SWITCH
   xReadFlag( uiCode ); pcSPS->setUseRMP( uiCode ? true : false );
 #endif
-
-#if !DCTIF_8_6_LUMA
-  // number of taps for DIF
-  xReadUvlc( uiCode ); pcSPS->setDIFTap ( (uiCode+2)<<1 );  // 4, 6, 8, 10, 12
-#endif
   
   // AMVP mode for each depth (AM_NONE or AM_EXPL)
   for (Int i = 0; i < pcSPS->getMaxCUDepth(); i++)
@@ -302,11 +297,7 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice)
   if ( !rpcSlice->getDRBFlag() )
   {
     xReadCode(2, uiCode); rpcSlice->setERBIndex( (ERBIndex)uiCode );    assert (uiCode == ERB_NONE || uiCode == ERB_LTR);
-  }
-#if !DCTIF_8_6_LUMA
-  xReadUvlc( uiCode ); rpcSlice->setInterpFilterType( uiCode );
-#endif
-  
+  }  
 
 #if AMVP_NEIGH_COL
   if ( rpcSlice->getSliceType() == B_SLICE )

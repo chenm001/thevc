@@ -55,9 +55,6 @@ protected:
   Int*      m_piYuvExt;
   Int       m_iYuvExtStride;
   Int       m_iYuvExtHeight;
-#if !DCTIF_8_6_LUMA
-  Int       m_iDIFHalfTap;
-#endif
   
   TComYuv   m_acYuvPred[2];
   TComYuv   m_cYuvPredTemp;

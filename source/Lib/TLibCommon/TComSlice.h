@@ -69,9 +69,6 @@ private:
   Bool        m_bUseDQP;
   Bool        m_bUseLDC;
   Bool        m_bUsePAD;
-#if !DCTIF_8_6_LUMA
-  Int         m_iDIFTap;
-#endif
 #if HHI_MRG
   Bool        m_bUseMRG; // SOPH:
 #endif
@@ -144,9 +141,6 @@ public:
 #if HHI_MRG
   Bool getUseMRG      ()         { return m_bUseMRG;        } // SOPH:
 #endif
-#if !DCTIF_8_6_LUMA
-  Int  getDIFTap      ()         { return m_iDIFTap;        }
-#endif
   
   Void setUseALF      ( Bool b ) { m_bUseALF  = b;          }
   Void setUseDQP      ( Bool b ) { m_bUseDQP   = b;         }
@@ -155,9 +149,6 @@ public:
   Void setUsePAD      ( Bool b ) { m_bUsePAD   = b;         }
 #if HHI_MRG
   Void setUseMRG      ( Bool b ) { m_bUseMRG  = b;          } // SOPH:
-#endif
-#if !DCTIF_8_6_LUMA
-  Void setDIFTap      ( Int  i ) { m_iDIFTap   = i;         }
 #endif
   
 #if DCM_COMB_LIST
@@ -261,9 +252,6 @@ private:
   
   Bool        m_abEqualRef  [2][MAX_NUM_REF][MAX_NUM_REF];
   
-#if !DCTIF_8_6_LUMA
-  Int         m_iInterpFilterType;
-#endif
 #if MS_NO_BACK_PRED_IN_B0
   Bool        m_bNoBackPredFlag;
 #endif
@@ -380,11 +368,6 @@ public:
   }
   
   static Void      sortPicList         ( TComList<TComPic*>& rcListPic );
-  
-#if !DCTIF_8_6_LUMA
-  Int  getInterpFilterType     ()         { return m_iInterpFilterType;       }
-  Void setInterpFilterType     ( Int  i ) { m_iInterpFilterType  = i;         }
-#endif
   
 #if MS_NO_BACK_PRED_IN_B0
   Bool getNoBackPredFlag() { return m_bNoBackPredFlag; }

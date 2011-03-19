@@ -119,15 +119,8 @@ protected:
 #if HHI_MRG
   Bool      m_bUseMRG; // SOPH:
 #endif
-#if !DCTIF_8_6_LUMA
-  Int       m_iDIFTap;  // Number of interpolation filter taps
-#endif
-  
   Int*      m_aidQP;
   UInt      m_uiDeltaQpRD;
-#if !DCTIF_8_6_LUMA
-  Int       m_iInterpFilterType;
-#endif
   
 #if HHI_RMP_SWITCH
   Bool      m_bUseRMP;
@@ -268,9 +261,6 @@ public:
 #if CONSTRAINED_INTRA_PRED
   Void      setUseConstrainedIntraPred      ( Bool  b )     { m_bUseConstrainedIntraPred = b; }
 #endif
-#if !DCTIF_8_6_LUMA
-  Void      setDIFTap                       ( Int   i )     { m_iDIFTap     = i; }
-#endif  
   Void      setdQPs                         ( Int*  p )     { m_aidQP       = p; }
   Void      setDeltaQpRD                    ( UInt  u )     {m_uiDeltaQpRD  = u; }
   Bool      getUseSBACRD                    ()      { return m_bUseSBACRD;  }
@@ -297,20 +287,12 @@ public:
 #endif
 #if CONSTRAINED_INTRA_PRED
   Bool      getUseConstrainedIntraPred      ()      { return m_bUseConstrainedIntraPred; }
-#endif
-#if !DCTIF_8_6_LUMA
-  Int       getDIFTap                       ()      { return m_iDIFTap;  }
-#endif
-  
+#endif  
   Int*      getdQPs                         ()      { return m_aidQP;       }
   UInt      getDeltaQpRD                    ()      { return m_uiDeltaQpRD; }
 #if HHI_RMP_SWITCH
   Void      setUseRMP                      ( Bool b ) { m_bUseRMP = b; }
   Bool      getUseRMP                      ()      {return m_bUseRMP; }
-#endif
-#if !DCTIF_8_6_LUMA
-  Void      setInterpFilterType             ( Int   i )     { m_iInterpFilterType = i;    }
-  Int       getInterpFilterType             ()              { return m_iInterpFilterType; }
 #endif
 #ifdef ROUNDING_CONTROL_BIPRED
   Void setUseRoundingControlBipred(Bool b) { m_useRoundingControlBipred = b; }

@@ -62,11 +62,7 @@ Void TComPrediction::initTempBuff()
   if( m_piYuvExt == NULL )
   {
     m_iYuvExtHeight  = ((g_uiMaxCUHeight + 2) << 4);
-#if DCTIF_8_6_LUMA
     m_iYuvExtStride = ((g_uiMaxCUWidth  + 8) << 4);
-#else
-    m_iYuvExtStride = ((g_uiMaxCUWidth  + 12) << 4);
-#endif    
     m_cYuvExt.create( m_iYuvExtStride, m_iYuvExtHeight );
     m_piYuvExt = new Int[ m_iYuvExtStride * m_iYuvExtHeight ];
     
@@ -76,9 +72,6 @@ Void TComPrediction::initTempBuff()
     
     m_cYuvPredTemp.create( g_uiMaxCUWidth, g_uiMaxCUHeight );
   }
-#if !DCTIF_8_6_LUMA  
-  m_iDIFHalfTap   = ( m_iDIFTap  >> 1 );
-#endif
 }
 
 // ====================================================================================================================
@@ -373,7 +366,6 @@ Void TComPrediction::xPredInterUni ( TComDataCU* pcCU, UInt uiPartAddr, Int iWid
   Int         iRefIdx     = pcCU->getCUMvField( eRefPicList )->getRefIdx( uiPartAddr );           assert (iRefIdx >= 0);
   TComMv      cMv         = pcCU->getCUMvField( eRefPicList )->getMv( uiPartAddr );
   pcCU->clipMv(cMv);
-#if DCTIF_8_6_LUMA
 #if HIGH_ACCURACY_BI
 #if FIX_ISSUE_125
   if(!bi)
@@ -388,18 +380,7 @@ Void TComPrediction::xPredInterUni ( TComDataCU* pcCU, UInt uiPartAddr, Int iWid
 #else
   xPredInterLumaBlk       ( pcCU, pcCU->getSlice()->getRefPic( eRefPicList, iRefIdx )->getPicYuvRec(), uiPartAddr, &cMv, iWidth, iHeight, rpcYuvPred );
 #endif
-#else // DCTIF_8_6_LUMA
-  InterpFilterType ePFilt = (InterpFilterType)pcCU->getSlice()->getInterpFilterType();
-  
-  switch ( ePFilt )
-  {
-    default:
-      xPredInterLumaBlk       ( pcCU, pcCU->getSlice()->getRefPic( eRefPicList, iRefIdx )->getPicYuvRec(), uiPartAddr, &cMv, iWidth, iHeight, rpcYuvPred );
-      break;
-  }
-#endif // DCTIF_8_6_LUMA
-  
-  
+    
 #if HIGH_ACCURACY_BI
 #if FIX_ISSUE_125
   if (!bi)
@@ -628,8 +609,8 @@ Void  TComPrediction::xPredInterLumaBlk( TComDataCU* pcCU, TComPicYuv* pcPicYuvR
     }
     return;
   }
-#if DCTIF_8_6_LUMA
-    //  Half-pel horizontal
+
+  //  Half-pel horizontal
   if ( ixFrac == 2 && iyFrac == 0 )
   {
     xCTI_FilterHalfHor ( piRefY, iRefStride, 1, iWidth, iHeight, iDstStride, 1, piDstY );
@@ -747,125 +728,6 @@ Void  TComPrediction::xPredInterLumaBlk( TComDataCU* pcCU, TComPicYuv* pcPicYuvR
       return;
     }
   }
-#else
-  //  Half-pel horizontal
-  if ( ixFrac == 2 && iyFrac == 0 )
-  {
-    xCTI_FilterHalfHor ( piRefY, iRefStride, 1, iWidth, iHeight, iDstStride, 1, piDstY );
-    return;
-  }
-  
-  //  Half-pel vertical
-  if ( ixFrac == 0 && iyFrac == 2 )
-  {
-    xCTI_FilterHalfVer ( piRefY, iRefStride, 1, iWidth, iHeight, iDstStride, 1, piDstY );
-    return;
-  }
-  
-  Int   iExtStride = m_iYuvExtStride;//m_cYuvExt.getStride();
-  Int*  piExtY     = m_piYuvExt;//m_cYuvExt.getLumaAddr();
-  
-  //  Half-pel center
-  if ( ixFrac == 2 && iyFrac == 2 )
-  {
-    xCTI_FilterHalfVer (piRefY - 6,  iRefStride, 1, iWidth + 12, iHeight, iExtStride, 1, piExtY );
-    xCTI_FilterHalfHor (piExtY + 6,  iExtStride, 1, iWidth    , iHeight, iDstStride, 1, piDstY );
-    return;
-  }
-  
-  //  Quater-pel horizontal
-  if ( iyFrac == 0)
-  {
-    if ( ixFrac == 1)
-    {
-      xCTI_FilterQuarter0Hor( piRefY, iRefStride, 1, iWidth, iHeight, iDstStride, 1, piDstY );
-      return;
-    }
-    if ( ixFrac == 3)
-    {
-      xCTI_FilterQuarter1Hor( piRefY, iRefStride, 1, iWidth, iHeight, iDstStride, 1, piDstY );
-      return;
-    }
-  }
-  if ( iyFrac == 2 )
-  {
-    if ( ixFrac == 1)
-    {
-      xCTI_FilterHalfVer (piRefY - m_iDIFHalfTap + 1,  iRefStride, 1, iWidth + m_iDIFTap - 1, iHeight, iExtStride, 1, piExtY );
-      xCTI_FilterQuarter0Hor (piExtY + m_iDIFHalfTap - 1,  iExtStride, 1, iWidth, iHeight, iDstStride, 1, piDstY );
-      return;
-    }
-    if ( ixFrac == 3)
-    {
-      xCTI_FilterHalfVer (piRefY - m_iDIFHalfTap + 1,  iRefStride, 1, iWidth + m_iDIFTap - 1, iHeight, iExtStride, 1, piExtY );
-      xCTI_FilterQuarter1Hor (piExtY + m_iDIFHalfTap - 1,  iExtStride, 1, iWidth, iHeight, iDstStride, 1, piDstY );
-      return;
-    }
-  }
-  
-  //  Quater-pel vertical
-  if( ixFrac == 0 )
-  {
-    if( iyFrac == 1 )
-    {
-      xCTI_FilterQuarter0Ver( piRefY, iRefStride, 1, iWidth, iHeight, iDstStride, 1, piDstY );
-      return;
-    }
-    if( iyFrac == 3 )
-    {
-      xCTI_FilterQuarter1Ver( piRefY, iRefStride, 1, iWidth, iHeight, iDstStride, 1, piDstY );
-      return;
-    }
-  }
-  
-  if( ixFrac == 2 )
-  {
-    if( iyFrac == 1 )
-    {
-      xCTI_FilterQuarter0Ver (piRefY - m_iDIFHalfTap + 1,  iRefStride, 1, iWidth + m_iDIFTap - 1, iHeight, iExtStride, 1, piExtY );
-      xCTI_FilterHalfHor (piExtY + m_iDIFHalfTap - 1,  iExtStride, 1, iWidth    , iHeight, iDstStride, 1, piDstY );
-      return;
-    }
-    if( iyFrac == 3 )
-    {
-      xCTI_FilterQuarter1Ver (piRefY - m_iDIFHalfTap + 1,  iRefStride, 1, iWidth + m_iDIFTap - 1, iHeight, iExtStride, 1, piExtY );
-      xCTI_FilterHalfHor (piExtY + m_iDIFHalfTap - 1,  iExtStride, 1, iWidth    , iHeight, iDstStride, 1, piDstY );
-      return;
-    }
-  }
-  
-  /// Quarter-pel center
-  if ( iyFrac == 1)
-  {
-    if ( ixFrac == 1)
-    {
-      xCTI_FilterQuarter0Ver (piRefY - m_iDIFHalfTap + 1,  iRefStride, 1, iWidth + m_iDIFTap - 1, iHeight, iExtStride, 1, piExtY );
-      xCTI_FilterQuarter0Hor (piExtY + m_iDIFHalfTap - 1,  iExtStride, 1, iWidth    , iHeight, iDstStride, 1, piDstY );
-      return;
-    }
-    if ( ixFrac == 3)
-    {
-      xCTI_FilterQuarter0Ver (piRefY - m_iDIFHalfTap + 1,  iRefStride, 1, iWidth + m_iDIFTap - 1, iHeight, iExtStride, 1, piExtY );
-      xCTI_FilterQuarter1Hor (piExtY + m_iDIFHalfTap - 1,  iExtStride, 1, iWidth    , iHeight, iDstStride, 1, piDstY );
-      return;
-    }
-  }
-  if ( iyFrac == 3 )
-  {
-    if ( ixFrac == 1)
-    {
-      xCTI_FilterQuarter1Ver (piRefY - m_iDIFHalfTap + 1,  iRefStride, 1, iWidth + m_iDIFTap - 1, iHeight, iExtStride, 1, piExtY );
-      xCTI_FilterQuarter0Hor (piExtY + m_iDIFHalfTap - 1,  iExtStride, 1, iWidth    , iHeight, iDstStride, 1, piDstY );
-      return;
-    }
-    if ( ixFrac == 3)
-    {
-      xCTI_FilterQuarter1Ver (piRefY - m_iDIFHalfTap + 1,  iRefStride, 1, iWidth + m_iDIFTap - 1, iHeight, iExtStride, 1, piExtY );
-      xCTI_FilterQuarter1Hor (piExtY + m_iDIFHalfTap - 1,  iExtStride, 1, iWidth    , iHeight, iDstStride, 1, piDstY );
-      return;
-    }
-  }
-#endif
 }
 
 #if HIGH_ACCURACY_BI

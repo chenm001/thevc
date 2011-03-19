@@ -401,9 +401,6 @@ Void TEncSlice::initEncSlice( TComPic* pcPic, Int iPOCLast, UInt uiPOCCurr, Int 
   
   pcPic->setPicYuvPred( m_apcPicYuvPred );
   pcPic->setPicYuvResi( m_apcPicYuvResi );
-#if !DCTIF_8_6_LUMA
-  rpcSlice->setInterpFilterType ( m_pcCfg->getInterpFilterType() );
-#endif
 #if AD_HOC_SLICES
   rpcSlice->setSliceMode            ( m_pcCfg->getSliceMode()            );
   rpcSlice->setSliceArgument        ( m_pcCfg->getSliceArgument()        );

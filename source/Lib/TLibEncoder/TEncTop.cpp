@@ -156,11 +156,6 @@ Void TEncTop::init()
   m_cSliceEncoder.init( this );
   m_cCuEncoder.   init( this );
   
-  // initialize DIF
-#if !DCTIF_8_6_LUMA
-  m_cSearch.setDIFTap ( m_cSPS.getDIFTap () );
-#endif
-  
   // initialize transform & quantization class
   m_pcCavlcCoder = getCavlcCoder();
   aTable8 = m_pcCavlcCoder->GetLP8Table();
@@ -326,9 +321,6 @@ Void TEncTop::xInitSPS()
   
 #if HHI_MRG
   m_cSPS.setUseMRG        ( m_bUseMRG           ); // SOPH:
-#endif
-#if !DCTIF_8_6_LUMA
-  m_cSPS.setDIFTap        ( m_iDIFTap           );
 #endif
   
   m_cSPS.setMaxTrSize   ( 1 << m_uiQuadtreeTULog2MaxSize );

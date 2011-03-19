@@ -197,10 +197,6 @@ Void TDecTop::decode (Bool bEos, TComBitstream* pcBitstream, UInt& ruiPOC, TComL
     case NAL_UNIT_SPS:
       m_cEntropyDecoder.decodeSPS( &m_cSPS );
       
-      // initialize DIF
-#if !DCTIF_8_6_LUMA
-      m_cPrediction.setDIFTap ( m_cSPS.getDIFTap () );
-#endif
       // create ALF temporary buffer
       m_cAdaptiveLoopFilter.create( m_cSPS.getWidth(), m_cSPS.getHeight(), g_uiMaxCUWidth, g_uiMaxCUHeight, g_uiMaxCUDepth );
       

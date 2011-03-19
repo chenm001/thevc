@@ -93,10 +93,6 @@ Void TComSlice::initSlice()
   m_bDRBFlag            = true;
   m_eERBIndex           = ERB_NONE;
   
-#if !DCTIF_8_6_LUMA
-  m_iInterpFilterType   = IPF_SAMSUNG_DIF_DEFAULT;
-#endif
-  
   m_uiColDir = 0;
   
   initEqualRef();
@@ -690,9 +686,6 @@ Void TComSlice::copySliceInfo(TComSlice *pSrc)
     }
   }
 
-#if !DCTIF_8_6_LUMA
-  m_iInterpFilterType    = pSrc->m_iInterpFilterType;
-#endif  
 #if MS_NO_BACK_PRED_IN_B0
   m_bNoBackPredFlag      = pSrc->m_bNoBackPredFlag;
 #endif

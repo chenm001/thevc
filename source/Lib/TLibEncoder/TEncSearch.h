@@ -95,9 +95,6 @@ protected:
   // Misc.
   Pel*            m_pTempPel;
   UInt*           m_puiDFilter;
-#if !DCTIF_8_6_LUMA
-  Int             m_iDIFTap2;
-#endif
   Int             m_iMaxDeltaQP;
   
   // AMVP cost computation
