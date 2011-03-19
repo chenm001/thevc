@@ -424,26 +424,6 @@ protected:
                                     Int           iSrcStride,
                                     UInt          uiFilter  );
   
-#if TEN_DIRECTIONAL_INTERP
-  Void xPatternSearchFracDIF_TEN   ( TComDataCU*   pcCU,
-                                     TComPattern*  pcPatternKey,
-                                     Pel*          piRefY,
-                                     Int           iRefStride,
-                                     TComMv*       pcMvInt,
-                                     TComMv&       rcMvHalf,
-                                     TComMv&       rcMvQter,
-                                     UInt&         ruiCost );
-  
-  Void xExtDIFUpSamplingH_TEN     ( TComPattern*  pcPattern, TComYuv* pcYuvExt  );
-  Void xExtDIFUpSamplingQ_TEN     ( TComPattern*  pcPatternKey,
-                                    Pel*          piDst,
-                                    Int           iDstStride,
-                                    Pel*          piSrcPel,
-                                    Int           iSrcPelStride,
-                                    Int*          piSrc,
-                                    Int           iSrcStride,
-                                    UInt          uiFilter  );
-#endif
   
   // -------------------------------------------------------------------------------------------------------------------
   // T & Q & Q-1 & T-1

@@ -487,12 +487,7 @@ enum InterpFilterType
   IPF_SAMSUNG_DIF_DEFAULT = 0,          ///< Samsung DCT-based filter
   IPF_HHI_4TAP_MOMS,                    ///< HHI 4-tap MOMS filter
   IPF_HHI_6TAP_MOMS,                    ///< HHI 6-tap MOMS filter
-# if TEN_DIRECTIONAL_INTERP
-  IPF_TEN_DIF                           ///< TEN directional filter
-# else
-  IPF_TEN_DIF_PLACEHOLDER               ///< Place holder to keep ordering if IPF_TEN_DIF not compiled-in
-# endif
-  ,IPF_LAST
+  IPF_LAST
 };
 
 #if QC_MDCS
