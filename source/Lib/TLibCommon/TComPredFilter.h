@@ -79,7 +79,6 @@ public:
   __inline Void xCTI_FilterQuarter1Ver (Pel* piSrc, Int iSrcStride, Int iSrcStep, Int iWidth, Int iHeight, Int iDstStride, Int iDstStep, Int*& rpiDst );
   __inline Void xCTI_FilterQuarter1Ver (Pel* piSrc, Int iSrcStride, Int iSrcStep, Int iWidth, Int iHeight, Int iDstStride, Int iDstStep, Pel*& rpiDst );
   
-#if DCTIF_4_6_CHROMA
   __inline Void xCTI_Filter2DVerC (Pel* piSrc, Int iSrcStride,  Int iWidth, Int iHeight, Int iDstStride,  Int*& rpiDst, Int iMv);
   __inline Void xCTI_Filter2DHorC (Int* piSrc, Int iSrcStride,  Int iWidth, Int iHeight, Int iDstStride,  Pel*& rpiDst, Int iMV);
   __inline Void xCTI_Filter1DHorC (Pel* piSrc, Int iSrcStride,  Int iWidth, Int iHeight, Int iDstStride,  Pel*& rpiDst, Int iMV);
@@ -99,8 +98,6 @@ public:
    __inline Int xCTI_Filter_VI04_C_QUA1( Int* pSrc, Int iStride );
    __inline Int xCTI_Filter_VP04_C_OCT3( Pel* pSrc, Int iStride );
    __inline Int xCTI_Filter_VI04_C_OCT3( Int* pSrc, Int iStride );
-
-#endif
 
 #if HIGH_ACCURACY_BI
   __inline Void xCTI_FilterHalfHor_ha(Pel* piSrc, Int iSrcStride, Int iSrcStep, Int iWidth, Int iHeight, Int iDstStride, Int iDstStep, Pel*& rpiDst); //
@@ -1047,7 +1044,6 @@ __inline Void TComPredFilter::xCTI_FilterQuarter1Ver (Pel* piSrc, Int iSrcStride
 // ------------------------------------------------------------------------------------------------
 // DCTIF filters for Chroma
 // ------------------------------------------------------------------------------------------------
-#if DCTIF_4_6_CHROMA
 __inline Void TComPredFilter::xCTI_Filter2DVerC (Pel* piSrc, Int iSrcStride,  Int iWidth, Int iHeight, Int iDstStride,  Int*& rpiDst, Int iMV)
 {
   Int*  piDst = rpiDst;
@@ -2113,7 +2109,5 @@ __inline Int TComPredFilter::xCTI_Filter_VI04_C_OCT3( Int* pSrc, Int iStride )
 
   return iSum;
 }
-
-#endif
 
 #endif // __TCOMPREDFILTER__

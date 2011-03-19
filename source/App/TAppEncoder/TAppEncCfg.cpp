@@ -518,13 +518,7 @@ Void TAppEncCfg::xPrintParameter()
   printf("GOP size                     : %d\n", m_iGOPSize );
   printf("Rate GOP size                : %d\n", m_iRateGOPSize );
   printf("Internal bit depth           : %d\n", m_uiInternalBitDepth );
- 
-  printf("Luma interpolation           : %s\n", "DCTIF 8-tap filter"  );
-#if DCTIF_4_6_CHROMA
-  printf("Chroma interpolation         : %s\n", "Samsung 4-tap filter"       );
-#else
-  printf("Chroma interpolation         : %s\n", "Bi-linear filter"       );
-#endif
+  
   if ( m_iSymbolMode == 0 )
   {
     printf("Entropy coder                : VLC\n");
