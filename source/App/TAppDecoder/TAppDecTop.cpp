@@ -61,7 +61,6 @@ TAppDecTop::TAppDecTop()
 
 Void TAppDecTop::create()
 {
-  m_apcOpt        = new TAppOption();
   m_apcBitstream  = new TComBitstream;
   
   m_apcBitstream->create( BITS_BUF_SIZE );
@@ -69,11 +68,6 @@ Void TAppDecTop::create()
 
 Void TAppDecTop::destroy()
 {
-  if ( m_apcOpt )
-  {
-    delete m_apcOpt;
-    m_apcOpt = NULL;
-  }
   if ( m_apcBitstream )
   {
     m_apcBitstream->destroy();
