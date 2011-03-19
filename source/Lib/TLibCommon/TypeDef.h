@@ -76,7 +76,6 @@
 
 #define TEN_DIRECTIONAL_INTERP            0           ///< AF: interpolation filter
 
-#define LCEC_STAT                         0           // LCEC - support for LCEC bitusage statistics
 //////////////////////////
 // TEN defines section end
 //////////////////////////

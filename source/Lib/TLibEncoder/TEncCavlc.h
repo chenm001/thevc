@@ -86,33 +86,6 @@ protected:
   UInt          m_uiIntraModeTableE34[33];
 #endif
 
-#if LCEC_STAT 
-  UInt m_uiBitHLS;
-  UInt m_uiBitMVPId;
-  UInt m_uiBitPartSize;
-  UInt m_uiBitPredMode;
-  UInt m_uiBitMergeFlag;
-  UInt m_uiBitMergeIndex;
-  UInt m_uiBitAlfCtrlFlag;
-  UInt m_uiBitAlfCtrlDepth;
-  UInt m_uiBitSkipFlag;
-  UInt m_uiBitCurrSplitFlag;
-  UInt m_uiBitTransformSubdivFlag;
-  UInt m_uiBitQtCbf;
-  UInt m_uiBitIntraDir;
-  UInt m_uiBitIRefFrmIdx;
-  UInt m_uiBitMVD;
-  UInt m_uiBitDeltaQP;
-  UInt m_uiBitAlfFlag;
-  UInt m_uiBitAlfUvlc;
-  UInt m_uiBitAlfSvlc;
-  UInt m_uiBitMVPIdx;
-  UInt m_uiBitInterDir;
-  UInt m_uiBitMI;
-  UInt m_uiBitCoeff;
-  UInt m_uiBitCbp;
-#endif
-  
   UInt          m_uiCBPTableE[2][8];
   UInt          m_uiCBPTableD[2][8];
   UInt          m_uiCbpVlcIdx[2];
@@ -140,19 +113,6 @@ protected:
 #endif
   Void  xCheckCoeff( TCoeff* pcCoef, UInt uiSize, UInt uiDepth, UInt& uiNumofCoeff, UInt& uiPart );
   
-#if LCEC_STAT
-  UInt  xWriteCode            ( UInt uiCode, UInt uiLength );
-  UInt  xWriteUvlc            ( UInt uiCode );
-  UInt  xWriteSvlc            ( Int iCode   );
-  Void  xWriteFlag            ( UInt uiCode );
-  UInt  xWriteEpExGolomb      ( UInt uiSymbol, UInt uiCount );
-  UInt  xWriteExGolombLevel   ( UInt uiSymbol );
-  UInt  xWriteUnaryMaxSymbol  ( UInt uiSymbol, UInt uiMaxSymbol );
-#if !QC_MOD_LCEC_RDOQ
-  UInt  xLeadingZeros         ( UInt uiCode );
-#endif
-  UInt  xWriteVlc             ( UInt uiTableNumber, UInt uiCodeNumber );
-#else
   Void  xWriteCode            ( UInt uiCode, UInt uiLength );
   Void  xWriteUvlc            ( UInt uiCode );
   Void  xWriteSvlc            ( Int iCode   );
@@ -164,7 +124,7 @@ protected:
   UInt  xLeadingZeros         ( UInt uiCode );
 #endif
   Void  xWriteVlc             ( UInt uiTableNumber, UInt uiCodeNumber );
-#endif
+
   Void  xCodeCoeff4x4          ( TCoeff* scoeff, Int iTableNumber );
   Void  xCodeCoeff8x8          ( TCoeff* scoeff, Int iTableNumber );
   
@@ -173,9 +133,7 @@ protected:
 public:
   
   Void  resetEntropy          ();
-#if LCEC_STAT
-  Void  statistics            ( Bool bResetFlag, UInt uiPrintVar );
-#endif
+
   UInt* GetLP8Table();
   UInt* GetLP4Table();
 #if QC_MOD_LCEC
