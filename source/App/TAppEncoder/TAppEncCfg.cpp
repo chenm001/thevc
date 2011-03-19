@@ -166,9 +166,6 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
   /* Interpolation filter options */
   ("InterpFilterType,-int", m_iInterpFilterType, (Int)IPF_SAMSUNG_DIF_DEFAULT, "Interpolation Filter:\n"
    "  0: DCT-IF\n"
-# if TEN_DIRECTIONAL_INTERP
-   "  3: DIF"
-# endif
    )
   ("DIFTap,tap", m_iDIFTap, 12, "number of interpolation filter taps (luma)")
 #endif
@@ -387,9 +384,6 @@ Void TAppEncCfg::xCheckParameter()
   xConfirmPara( m_uiQuadtreeTUMaxDepthIntra > m_uiQuadtreeTULog2MaxSize - m_uiQuadtreeTULog2MinSize + 1, "QuadtreeTUMaxDepthIntra must be less than or equal to the difference between QuadtreeTULog2MaxSize and QuadtreeTULog2MinSize plus 1" );
 
 #if !DCTIF_8_6_LUMA
-#if !TEN_DIRECTIONAL_INTERP
-  xConfirmPara( m_iInterpFilterType == IPF_TEN_DIF_PLACEHOLDER, "IPF_TEN_DIF is not configurable.  Please recompile using TEN_DIRECTIONAL_INTERP." );
-#endif
   xConfirmPara( m_iInterpFilterType >= IPF_LAST,                "Invalid InterpFilterType" );
   xConfirmPara( m_iInterpFilterType == IPF_HHI_4TAP_MOMS,       "Invalid InterpFilterType" );
   xConfirmPara( m_iInterpFilterType == IPF_HHI_6TAP_MOMS,       "Invalid InterpFilterType" );
@@ -546,11 +540,6 @@ Void TAppEncCfg::xPrintParameter()
 #else // DCTIF_8_6_LUMA
   switch ( m_iInterpFilterType )
   {
-#if TEN_DIRECTIONAL_INTERP
-    case IPF_TEN_DIF:
-      printf("Luma interpolation           : %s\n", "TEN directional interpolation filter"  );
-      break;
-#endif
     default:
       printf("Luma interpolation           : %s\n", "Samsung 12-tap filter"  );
   }

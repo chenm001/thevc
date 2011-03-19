@@ -393,11 +393,6 @@ Void TComPrediction::xPredInterUni ( TComDataCU* pcCU, UInt uiPartAddr, Int iWid
   
   switch ( ePFilt )
   {
-#if TEN_DIRECTIONAL_INTERP
-    case IPF_TEN_DIF:
-      xPredInterLumaBlk_TEN   ( pcCU, pcCU->getSlice()->getRefPic( eRefPicList, iRefIdx )->getPicYuvRec()    , uiPartAddr, &cMv, iWidth, iHeight, rpcYuvPred );
-      break;
-#endif // TEN_DIRECTIONAL_INTERP
     default:
       xPredInterLumaBlk       ( pcCU, pcCU->getSlice()->getRefPic( eRefPicList, iRefIdx )->getPicYuvRec(), uiPartAddr, &cMv, iWidth, iHeight, rpcYuvPred );
       break;
@@ -1364,25 +1359,6 @@ Void  TComPrediction::xDCTIF_FilterC_ha ( Pel*  piRefC, Int iRefStride,Pel*  piD
 
 #endif
 
-#if TEN_DIRECTIONAL_INTERP
-Void  TComPrediction::xPredInterLumaBlk_TEN( TComDataCU* pcCU, TComPicYuv* pcPicYuvRef, UInt uiPartAddr, TComMv* pcMv, Int iWidth, Int iHeight, TComYuv*& rpcYuv )
-{
-  Int     iRefStride = pcPicYuvRef->getStride();
-  Int     iDstStride = rpcYuv->getStride();
-  
-  Int     iRefOffset = ( pcMv->getHor() >> 2 ) + ( pcMv->getVer() >> 2 ) * iRefStride;
-  Pel*    piRefY     = pcPicYuvRef->getLumaAddr( pcCU->getAddr(), pcCU->getZorderIdxInCU() + uiPartAddr ) + iRefOffset;
-  
-  Int     ixFrac  = pcMv->getHor() & 0x3;
-  Int     iyFrac  = pcMv->getVer() & 0x3;
-  
-  Pel* piDstY = rpcYuv->getLumaAddr( uiPartAddr );
-  
-  xCTI_FilterDIF_TEN ( piRefY, iRefStride, 1, iWidth, iHeight, iDstStride, 1, piDstY, iyFrac, ixFrac);
-  return;
-}
-
-#endif
 
 Void TComPrediction::xWeightedAverage( TComDataCU* pcCU, TComYuv* pcYuvSrc0, TComYuv* pcYuvSrc1, Int iRefIdx0, Int iRefIdx1, UInt uiPartIdx, Int iWidth, Int iHeight, TComYuv*& rpcYuvDst )
 {

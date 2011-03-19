@@ -3191,11 +3191,6 @@ UInt TEncSearch::xGetTemplateCost( TComDataCU* pcCU,
   InterpFilterType filterType = (InterpFilterType)pcCU->getSlice()->getInterpFilterType();
   switch (filterType)
   {
-#if TEN_DIRECTIONAL_INTERP
-    case IPF_TEN_DIF:
-      xPredInterLumaBlk_TEN( pcCU, pcPicYuvRef, uiPartAddr, &cMvCand, iSizeX, iSizeY, pcTemplateCand );
-      break;
-#endif     
     default:
       xPredInterLumaBlk( pcCU, pcPicYuvRef, uiPartAddr, &cMvCand, iSizeX, iSizeY, pcTemplateCand );
       break;      
@@ -3333,11 +3328,6 @@ Void TEncSearch::xMotionEstimation( TComDataCU* pcCU, TComYuv* pcYuvOrg, Int iPa
     InterpFilterType ePFilt = (InterpFilterType)pcCU->getSlice()->getInterpFilterType();
     switch ( ePFilt )
     {
-#if TEN_DIRECTIONAL_INTERP
-      case IPF_TEN_DIF:
-        xPatternSearchFracDIF_TEN_Bi( pcCU, pcPatternKey, piRefY, iRefStride, &rcMv, cMvHalf, cMvQter, ruiCost , pRefBufY, bRound);
-        break;
-#endif
       default:
         xPatternSearchFracDIF_Bi( pcCU, pcPatternKey, piRefY, iRefStride, &rcMv, cMvHalf, cMvQter, ruiCost, pRefBufY, bRound );
     }
@@ -3352,11 +3342,6 @@ Void TEncSearch::xMotionEstimation( TComDataCU* pcCU, TComYuv* pcYuvOrg, Int iPa
     InterpFilterType ePFilt = (InterpFilterType)pcCU->getSlice()->getInterpFilterType();
     switch ( ePFilt )
     {
-#if TEN_DIRECTIONAL_INTERP
-      case IPF_TEN_DIF:
-        xPatternSearchFracDIF_TEN( pcCU, pcPatternKey, piRefY, iRefStride, &rcMv, cMvHalf, cMvQter, ruiCost );
-        break;
-#endif
       default:
         xPatternSearchFracDIF( pcCU, pcPatternKey, piRefY, iRefStride, &rcMv, cMvHalf, cMvQter, ruiCost );
     }
@@ -3743,43 +3728,6 @@ Void TEncSearch::xPatternSearchFracDIF_Bi( TComDataCU* pcCU, TComPattern* pcPatt
   
 }
 
-#if TEN_DIRECTIONAL_INTERP
-Void TEncSearch::xPatternSearchFracDIF_TEN_Bi( TComDataCU* pcCU, TComPattern* pcPatternKey, Pel* piRefY, Int iRefStride, TComMv* pcMvInt, TComMv& rcMvHalf, TComMv& rcMvQter, UInt& ruiCost , Pel* piRefY2, Bool bRound  )
-{
-  //  Reference pattern initialization (integer scale)
-  TComPattern cPatternRoi;
-  Int         iOffset    = pcMvInt->getHor() + pcMvInt->getVer() * iRefStride;
-  cPatternRoi.initPattern( piRefY +  iOffset,
-                          NULL,
-                          NULL,
-                          pcPatternKey->getROIYWidth(),
-                          pcPatternKey->getROIYHeight(),
-                          iRefStride,
-                          0, 0, 0, 0 );
-  Pel*  piRef;
-  iRefStride  = m_cYuvExt.getStride();
-  
-  //  Half-pel refinement
-  xExtDIFUpSamplingH_TEN ( &cPatternRoi, &m_cYuvExt );
-  piRef = m_cYuvExt.getLumaAddr() + ((iRefStride + 0) << 2);
-  
-  rcMvHalf = *pcMvInt;   rcMvHalf <<= 1;    // for mv-cost
-  ruiCost = xPatternRefinement_Bi( pcPatternKey, piRef, iRefStride, 4, 2, rcMvHalf  , piRefY2,  bRound   );
-  
-  m_pcRdCost->setCostScale( 0 );
-  
-  //  Quater-pel refinement
-  Pel*  piSrcPel = cPatternRoi.getROIY() + (rcMvHalf.getHor() >> 1) + cPatternRoi.getPatternLStride() * (rcMvHalf.getVer() >> 1);
-  Int*  piSrc    = m_piYuvExt  + ((m_iYuvExtStride + m_iDIFHalfTap) << 2) + (rcMvHalf.getHor() << 1) + m_iYuvExtStride * (rcMvHalf.getVer() << 1);
-  piRef += (rcMvHalf.getHor() << 1) + iRefStride * (rcMvHalf.getVer() << 1);
-  xExtDIFUpSamplingQ_TEN ( pcPatternKey, piRef, iRefStride, piSrcPel, cPatternRoi.getPatternLStride(), piSrc, m_iYuvExtStride, m_puiDFilter[rcMvHalf.getHor()+rcMvHalf.getVer()*3] );
-  
-  rcMvQter = *pcMvInt;   rcMvQter <<= 1;    // for mv-cost
-  rcMvQter += rcMvHalf;  rcMvQter <<= 1;
-  ruiCost = xPatternRefinement_Bi( pcPatternKey, piRef, iRefStride, 4, 1, rcMvQter , piRefY2, bRound  );
-}
-#endif
-
 #endif
 
 Void TEncSearch::xPatternSearchFracDIF( TComDataCU* pcCU, TComPattern* pcPatternKey, Pel* piRefY, Int iRefStride, TComMv* pcMvInt, TComMv& rcMvHalf, TComMv& rcMvQter, UInt& ruiCost )
@@ -3825,43 +3773,6 @@ Void TEncSearch::xPatternSearchFracDIF( TComDataCU* pcCU, TComPattern* pcPattern
   ruiCost = xPatternRefinement( pcPatternKey, piRef, iRefStride, 4, 1, rcMvQter );
   
 }
-
-#if TEN_DIRECTIONAL_INTERP
-Void TEncSearch::xPatternSearchFracDIF_TEN( TComDataCU* pcCU, TComPattern* pcPatternKey, Pel* piRefY, Int iRefStride, TComMv* pcMvInt, TComMv& rcMvHalf, TComMv& rcMvQter, UInt& ruiCost )
-{
-  //  Reference pattern initialization (integer scale)
-  TComPattern cPatternRoi;
-  Int         iOffset    = pcMvInt->getHor() + pcMvInt->getVer() * iRefStride;
-  cPatternRoi.initPattern( piRefY +  iOffset,
-                          NULL,
-                          NULL,
-                          pcPatternKey->getROIYWidth(),
-                          pcPatternKey->getROIYHeight(),
-                          iRefStride,
-                          0, 0, 0, 0 );
-  Pel*  piRef;
-  iRefStride  = m_cYuvExt.getStride();
-  
-  //  Half-pel refinement
-  xExtDIFUpSamplingH_TEN ( &cPatternRoi, &m_cYuvExt );
-  piRef = m_cYuvExt.getLumaAddr() + ((iRefStride + 0) << 2);
-  
-  rcMvHalf = *pcMvInt;   rcMvHalf <<= 1;    // for mv-cost
-  ruiCost = xPatternRefinement( pcPatternKey, piRef, iRefStride, 4, 2, rcMvHalf   );
-  
-  m_pcRdCost->setCostScale( 0 );
-  
-  //  Quater-pel refinement
-  Pel*  piSrcPel = cPatternRoi.getROIY() + (rcMvHalf.getHor() >> 1) + cPatternRoi.getPatternLStride() * (rcMvHalf.getVer() >> 1);
-  Int*  piSrc    = m_piYuvExt  + ((m_iYuvExtStride + m_iDIFHalfTap) << 2) + (rcMvHalf.getHor() << 1) + m_iYuvExtStride * (rcMvHalf.getVer() << 1);
-  piRef += (rcMvHalf.getHor() << 1) + iRefStride * (rcMvHalf.getVer() << 1);
-  xExtDIFUpSamplingQ_TEN ( pcPatternKey, piRef, iRefStride, piSrcPel, cPatternRoi.getPatternLStride(), piSrc, m_iYuvExtStride, m_puiDFilter[rcMvHalf.getHor()+rcMvHalf.getVer()*3] );
-  
-  rcMvQter = *pcMvInt;   rcMvQter <<= 1;    // for mv-cost
-  rcMvQter += rcMvHalf;  rcMvQter <<= 1;
-  ruiCost = xPatternRefinement( pcPatternKey, piRef, iRefStride, 4, 1, rcMvQter );
-}
-#endif
 
 Void TEncSearch::predInterSkipSearch( TComDataCU* pcCU, TComYuv* pcOrgYuv, TComYuv*& rpcPredYuv, TComYuv*& rpcResiYuv, TComYuv*& rpcRecoYuv )
 {
@@ -5153,80 +5064,3 @@ Void TEncSearch::xExtDIFUpSamplingQ   ( TComPattern* pcPatternKey, Pel* piDst, I
   }
 }
 
-#if TEN_DIRECTIONAL_INTERP
-Void TEncSearch::xExtDIFUpSamplingH_TEN ( TComPattern* pcPattern, TComYuv* pcYuvExt  )
-{
-  Int   x, y;
-  
-  Int   iWidth      = pcPattern->getROIYWidth();
-  Int   iHeight     = pcPattern->getROIYHeight();
-  
-  Int   iPatStride  = pcPattern->getPatternLStride();
-  Int   iExtStride  = pcYuvExt ->getStride();
-  
-  Pel*  piDstYPel;
-  Pel*  piSrcYPel;
-  
-  //  Copy integer-pel
-  piSrcYPel = pcPattern->getROIY();
-  piDstYPel = pcYuvExt->getLumaAddr() + (iExtStride<<2);
-  for ( y = 0; y < iHeight + 1; y++ )
-  {
-    for ( x = 0; x < iWidth; x++ )
-    {
-      piDstYPel[x << 2] = piSrcYPel[x];
-    }
-    piSrcYPel +=  iPatStride;
-    piDstYPel += (iExtStride      << 2);
-  }
-  
-  //  Half-pel NORM. : vertical
-  piSrcYPel = pcPattern->getROIY()    - iPatStride;
-  piDstYPel = pcYuvExt->getLumaAddr() + (iExtStride<<1);
-  xCTI_FilterDIF_TEN (piSrcYPel, iPatStride, 1, iWidth, iHeight + 1, iExtStride<<2, 4, piDstYPel, 2, 0);
-  
-  //  Half-pel interpolation : horizontal
-  piSrcYPel = pcPattern->getROIY() - 1;
-  piDstYPel = pcYuvExt->getLumaAddr() + (iExtStride<<2) - 2;
-  xCTI_FilterDIF_TEN (piSrcYPel, iPatStride, 1, iWidth + 1, iHeight, iExtStride<<2, 4, piDstYPel, 0, 2);
-  
-  
-  //  Half-pel interpolation : center
-  piSrcYPel = pcPattern->getROIY()   -  iPatStride - 1;
-  piDstYPel = pcYuvExt->getLumaAddr() + (iExtStride<<1) - 2;
-  xCTI_FilterDIF_TEN (piSrcYPel, iPatStride, 1,  iWidth + 1, iHeight + 1, iExtStride<<2, 4, piDstYPel, 2, 2);
-}
-
-Void TEncSearch::xExtDIFUpSamplingQ_TEN   ( TComPattern* pcPatternKey, Pel* piDst, Int iDstStride, Pel* piSrcPel, Int iSrcPelStride, Int* piSrc, Int iSrcStride, UInt uiFilter )
-{
-  Int   iWidth      = pcPatternKey->getROIYWidth();
-  Int   iHeight     = pcPatternKey->getROIYHeight();
-  
-  Pel*  piDstYPel;
-  Pel*  piSrcYPel;
-  
-  Int iDstStride4 = (iDstStride<<2);
-  
-  Int i,j,i0,j0;
-  
-  /* Position of quarter pixel search center relative to integer pixel grid in units of quarter pixels */
-  Int ioff = 2 - (uiFilter&2);
-  Int joff = 2 - 2*(uiFilter&1);
-  
-  /* Loop over quarter pixel search candidates,
-   (i0,j0) is relative to quarter pixel search center
-   (i,j) is relative to the closest upper left integer pixel */
-  for (i0 = -1; i0 < 2; i0++)
-  {
-    i = (i0 + ioff)&3;
-    for (j0 = -1; j0 < 2; j0++)
-    {
-      j = (j0 + joff)&3;
-      piSrcYPel = piSrcPel - ((j-j0)>>2) - ((i-i0)>>2)*iSrcPelStride;
-      piDstYPel = piDst + j0 + i0*iDstStride;
-      if (i0 || j0)
-        xCTI_FilterDIF_TEN (piSrcYPel, iSrcPelStride, 1, iWidth, iHeight, iDstStride4, 4, piDstYPel, i, j);
-    }
-  }
-}
-#endif

@@ -393,19 +393,6 @@ protected:
                                        Bool          bRound);
   
   
-#if TEN_DIRECTIONAL_INTERP
-  Void xPatternSearchFracDIF_TEN_Bi   ( TComDataCU*   pcCU,
-                                        TComPattern*  pcPatternKey,
-                                        Pel*          piRefY,
-                                        Int           iRefStride,
-                                        TComMv*       pcMvInt,
-                                        TComMv&       rcMvHalf,
-                                        TComMv&       rcMvQter,
-                                        UInt&         ruiCost, 
-                                        Pel*          pcRefY2,
-                                        Bool          bRound
-                                       );
-#endif
 #endif
   
   Void xPatternSearch             ( TComPattern*  pcPatternKey,
