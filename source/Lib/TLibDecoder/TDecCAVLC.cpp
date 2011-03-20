@@ -64,14 +64,15 @@ Void  TDecCavlc::parseNalUnitHeader ( NalUnitType& eNalUnitType, UInt& TemporalI
   eNalUnitType = (NalUnitType) uiCode;
 
   // to be enabled when duplicate header coding is removed
-/*
-  if ( (eNalUnitType == NAL_UNIT_CODED_SLICE) || (eNalUnitType == NAL_UNIT_CODED_SLICE_IDR) )
+
+  /*
+  if ( (eNalUnitType == NAL_UNIT_CODED_SLICE) || (eNalUnitType == NAL_UNIT_CODED_SLICE_IDR) || (eNalUnitType == NAL_UNIT_CODED_SLICE_CDR) )
   {
     xReadCode(3, uiCode); // temporal_id
     TemporalId = uiCode;
     xReadFlag(uiCode);    // output_flag
     bOutputFlag = (0!=uiCode);
-    xReadCode(4, uiCode); // reserved_zero_4bits    
+    xReadCode(4, uiCode); // reserved_one_4bits    
   }
   else
  */
