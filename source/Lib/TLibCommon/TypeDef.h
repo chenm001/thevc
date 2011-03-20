@@ -43,13 +43,12 @@
 #define HHI_RMP_SWITCH                    0
 
 // HHI tools
-#define HHI_INTERP_FILTER                 1           ///< HL: interpolation filter
 #define HHI_MRG                           1           ///< SOPH: inter partition merging
 #define HHI_AMVP_OFF                      0           ///< SOPH: Advanced Motion Vector Predictor deactivated
 #define HHI_RQT_FORCE_SPLIT_NxN           0           ///< MSHK: force split flags of residual quadtree for NxN PUs such that transform blocks are guaranteed to not span NxN PUs
 #define HHI_RQT_FORCE_SPLIT_RECT          0           ///< MSHK: force split flags of residual quadtree for rectangular PUs such that transform blocks are guaranteed to not span rectangular PUs
-#define HHI_RQT_INTRA_SPEEDUP             1 // tests one best mode with full rqt
-#define HHI_RQT_INTRA_SPEEDUP_MOD         0 // tests two best modes with full rqt
+#define HHI_RQT_INTRA_SPEEDUP             1           ///< tests one best mode with full rqt
+#define HHI_RQT_INTRA_SPEEDUP_MOD         0           ///< tests two best modes with full rqt
 
 #if HHI_MRG
 #define PART_MRG		                      1            // If the number of partitions is two and size > 8, only merging mode is enabled for the first partition & do not code merge_flag for the first partition

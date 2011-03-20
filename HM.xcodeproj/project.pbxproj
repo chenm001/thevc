@@ -168,7 +168,7 @@
 			isa = PBXContainerItemProxy;
 			containerPortal = 08FB7793FE84155DC02AAC07 /* Project object */;
 			proxyType = 1;
-			remoteGlobalIDString = 7104E1CC12005ABA00F42AA8 /* TAppCommon */;
+			remoteGlobalIDString = 7104E1CC12005ABA00F42AA8;
 			remoteInfo = TAppCommon;
 		};
 /* End PBXContainerItemProxy section */
