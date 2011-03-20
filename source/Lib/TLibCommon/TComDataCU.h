@@ -468,12 +468,7 @@ public:
   UInt          getCtxQtRootCbf                 ( UInt   uiAbsPartIdx                                 );
   UInt          getCtxRefIdx                    ( UInt   uiAbsPartIdx, RefPicList eRefPicList         );
   UInt          getCtxSkipFlag                  ( UInt   uiAbsPartIdx                                 );
-#if HHI_MRG
-  UInt          getCtxMergeFlag                 ( UInt   uiAbsPartIdx                                 );
-  UInt          getCtxMergeIndex                ( UInt   uiAbsPartIdx                                 );
-#endif
   UInt          getCtxAlfCtrlFlag               ( UInt   uiAbsPartIdx                                 );
-  UInt          getCtxPredMode                  ( UInt   uiAbsPartIdx                                 );
   UInt          getCtxInterDir                  ( UInt   uiAbsPartIdx                                 );
   UInt          getCtxIntraDirChroma            ( UInt   uiAbsPartIdx                                 );
   

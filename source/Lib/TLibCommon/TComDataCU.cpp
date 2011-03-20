@@ -1678,36 +1678,6 @@ UInt TComDataCU::getCtxSkipFlag( UInt uiAbsPartIdx )
   return uiCtx;
 }
 
-#if HHI_MRG
-UInt TComDataCU::getCtxMergeFlag( UInt uiAbsPartIdx )
-{
-  UInt uiCtx = 0;
-  return uiCtx;
-}
-
-UInt TComDataCU::getCtxMergeIndex( UInt uiAbsPartIdx )
-{
-  UInt uiCtx = 0;
-  return uiCtx;
-}
-#endif
-
-UInt TComDataCU::getCtxPredMode( UInt uiAbsPartIdx )
-{
-  TComDataCU* pcTempCU;
-  UInt        uiTempPartIdx;
-  UInt        uiCtx = 0;
-  
-  // Get BCBP of left PU
-  pcTempCU = getPULeft( uiTempPartIdx, m_uiAbsIdxInLCU + uiAbsPartIdx );
-  uiCtx    = ( pcTempCU ) ? ( pcTempCU->getPredictionMode( uiTempPartIdx ) > 1 ? 1 : 0 ) : 0;
-  
-  // Get BCBP of above PU
-  pcTempCU = getPUAbove( uiTempPartIdx, m_uiAbsIdxInLCU + uiAbsPartIdx );
-  uiCtx    = ( pcTempCU ) ? ( pcTempCU->getPredictionMode( uiTempPartIdx ) > 1 ? 1 : 0 ) : 0;
-  
-  return uiCtx;
-}
 
 UInt TComDataCU::getCtxInterDir( UInt uiAbsPartIdx )
 {
