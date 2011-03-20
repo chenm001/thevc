@@ -44,7 +44,6 @@
 
 // HHI tools
 #define HHI_MRG                           1           ///< SOPH: inter partition merging
-#define HHI_AMVP_OFF                      0           ///< SOPH: Advanced Motion Vector Predictor deactivated
 #define HHI_RQT_FORCE_SPLIT_NxN           0           ///< MSHK: force split flags of residual quadtree for NxN PUs such that transform blocks are guaranteed to not span NxN PUs
 #define HHI_RQT_FORCE_SPLIT_RECT          0           ///< MSHK: force split flags of residual quadtree for rectangular PUs such that transform blocks are guaranteed to not span rectangular PUs
 #define HHI_RQT_INTRA_SPEEDUP             1           ///< tests one best mode with full rqt
@@ -118,8 +117,6 @@
 #if HHI_MRG
 #define SAMSUNG_MRG_SKIP_DIRECT               1           ///< enabling of skip and direct when mrg is on
 #endif
-
-#define HHI_DISABLE_SCAN                      0           ///< disable adaptive scan
 
 #define FAST_UDI_MAX_RDMODE_NUM               10          ///< maximum number of RD comparison in fast-UDI estimation loop 
 
