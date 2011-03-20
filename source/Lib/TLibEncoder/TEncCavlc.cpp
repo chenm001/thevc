@@ -547,7 +547,6 @@ Void TEncCavlc::codeMergeIndex    ( TComDataCU* pcCU, UInt uiAbsPartIdx )
   Bool bAboveInvolved = false;
   Bool bCollocatedInvolved = false;
   Bool bCornerInvolved = false;
-  Bool bCornerBLInvolved = false;
   UInt uiNumCand = 0;
   for( UInt uiIter = 0; uiIter < HHI_NUM_MRG_CAND; ++uiIter )
   {
@@ -570,80 +569,37 @@ Void TEncCavlc::codeMergeIndex    ( TComDataCU* pcCU, UInt uiAbsPartIdx )
       {
         bCornerInvolved = true;
       }
-      else if( uiIter == 4 )
-      {
-        bCornerBLInvolved = true;
-      }
     }
   }
   assert( uiNumCand > 1 );
-  const UInt uiMergeIdx = pcCU->getMergeIndex( uiAbsPartIdx );
-  if( uiNumCand == 2 )
+  UInt uiUnaryIdx = pcCU->getMergeIndex( uiAbsPartIdx );
+  if( !bCornerInvolved && uiUnaryIdx > 3 )
   {
-    UInt uiSymbol = 0;
-    if( ( !bCornerInvolved && !bCornerBLInvolved && uiMergeIdx == 2 ) || ( !bCollocatedInvolved && !bCornerBLInvolved && !bCornerInvolved && uiMergeIdx == 1 ) || ( !bCornerBLInvolved && uiMergeIdx == 3 ) || uiMergeIdx == 4 )
-    {
-      uiSymbol = 1;
-    }
+    --uiUnaryIdx;
+  }
+  if( !bCollocatedInvolved && uiUnaryIdx > 2 )
+  {
+    --uiUnaryIdx;
+  }
+  if( !bAboveInvolved && uiUnaryIdx > 1 )
+  {
+    --uiUnaryIdx;
+  }
+  if( !bLeftInvolved && uiUnaryIdx > 0 )
+  {
+    --uiUnaryIdx;
+  }
+  for( UInt ui = 0; ui < uiNumCand - 1; ++ui )
+  {
+    const UInt uiSymbol = ui == uiUnaryIdx ? 0 : 1;
     xWriteFlag( uiSymbol );
-    return;
-  }
-  else if( uiNumCand == 3 )//uiMRGCands == 3
-  {
-    if( uiMergeIdx == 0 || ( uiMergeIdx == 1 && !bLeftInvolved ) || ( uiMergeIdx == 2 && !bLeftInvolved && !bAboveInvolved ) )
+    if( uiSymbol == 0 )
     {
-      xWriteFlag( 0 );
-    }
-    else
-    {
-      xWriteFlag( 1 );
-      if( uiMergeIdx == 4 || ( !bCornerBLInvolved && uiMergeIdx == 3 ) || ( !bCornerBLInvolved && !bCornerInvolved && uiMergeIdx == 2 ) )
-      {
-        xWriteFlag( 1 );
-      }
-      else
-      {
-        xWriteFlag( 0 );
-      }
-    }
-  }
-  else //uiNumCand > 3
-  {
-    if( uiMergeIdx == 0 )
-    {
-      xWriteFlag( 0 );
-    }
-    else
-    {
-      xWriteFlag( 1 );
-      if( uiMergeIdx == 1 )
-      {
-        xWriteFlag( 0 );
-      }
-      else
-      {
-        xWriteFlag( 1 );
-        if( uiMergeIdx == 2 )
-        {
-          xWriteFlag( 0 );
-        }
-        else
-        {
-          xWriteFlag( 1 );
-          if( uiMergeIdx == 3 )
-          {
-            xWriteFlag( 0 );
-          }
-          else
-          {
-            xWriteFlag( 1 );
-          }
-        }
-      }
+      break;
     }
   }
 }
-#endif
+#endif //HHI_MRG
 
 Void TEncCavlc::codeAlfCtrlFlag( TComDataCU* pcCU, UInt uiAbsPartIdx )
 {  

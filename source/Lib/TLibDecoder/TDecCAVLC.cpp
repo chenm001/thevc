@@ -1643,7 +1643,6 @@ Void TDecCavlc::parseMergeIndex ( TComDataCU* pcCU, UInt& ruiMergeIndex, UInt ui
   Bool bAboveInvolved = false;
   Bool bCollocatedInvolved = false;
   Bool bCornerInvolved = false;
-  Bool bCornerBLInvolved = false;
   UInt uiNumCand = 0;
   for( UInt uiIter = 0; uiIter < HHI_NUM_MRG_CAND; ++uiIter )
   {
@@ -1666,171 +1665,39 @@ Void TDecCavlc::parseMergeIndex ( TComDataCU* pcCU, UInt& ruiMergeIndex, UInt ui
       {
         bCornerInvolved = true;
       }
-      else if( uiIter == 4 )
-      {
-        bCornerBLInvolved = true;
-      }
     }
   }
   assert( uiNumCand > 1 );
-  UInt uiOffset = 0;
-  if( bAboveInvolved && !bCollocatedInvolved && !bCornerInvolved && !bCornerBLInvolved )
+  UInt uiUnaryIdx = 0;
+  for( ; uiUnaryIdx < uiNumCand - 1; ++uiUnaryIdx )
   {
-    uiOffset = 0;
-  }
-  else if( uiNumCand < 3 )
-  {
-    uiOffset = 1;
-  }
-  else
-  {
-    uiOffset = 2;
-  }
-  UInt uiSymbol = 0;
-  xReadFlag( uiSymbol );
-
-  if( uiNumCand == 2 )
-  {
-    if( !bCollocatedInvolved )
-    {
-      if( !bCornerInvolved && !bCornerBLInvolved )
-      {
-        ruiMergeIndex = uiSymbol;
-      }
-      else if( bAboveInvolved && bCornerInvolved)
-      {
-        ruiMergeIndex = ( uiSymbol == 1 ) ? 3 : 1;
-      }
-      else if( bAboveInvolved && bCornerBLInvolved)
-      {
-        ruiMergeIndex = ( uiSymbol == 1 ) ? 4 : 1;
-      }
-      else if( bCornerInvolved && bCornerBLInvolved )
-      {
-        ruiMergeIndex = ( uiSymbol == 1 ) ? 4 : 3;
-      }
-      else if( !bAboveInvolved && !bCornerBLInvolved)
-      {
-        ruiMergeIndex = ( uiSymbol == 1 ) ? 3 : 0;
-      }
-      else if( !bAboveInvolved && !bCornerInvolved )
-      {
-        ruiMergeIndex = ( uiSymbol == 1 ) ? 4 : 0;
-      }
-    }
-    else
-    {
-      if( bAboveInvolved )
-      {
-        ruiMergeIndex = ( uiSymbol == 1 ) ? 2 : 1;
-      }
-      else if( bCornerInvolved )
-      {
-        ruiMergeIndex = ( uiSymbol == 1 ) ? 3 : 2;
-      }
-      else if( bCornerBLInvolved )
-      {
-        ruiMergeIndex = ( uiSymbol == 1 ) ? 4 : 2;
-      }
-      else
-      {
-        ruiMergeIndex = ( uiSymbol == 1 ) ? 2 : 0;
-      }
-    }
-    return;
-  }
-  else if( uiNumCand == 3 )
-  {
+    UInt uiSymbol = 0;
+    xReadFlag( uiSymbol );
     if( uiSymbol == 0 )
     {
-      if( bLeftInvolved )
-      {
-        ruiMergeIndex = 0;
-      }
-      else if( !bLeftInvolved && bAboveInvolved )
-      {
-        ruiMergeIndex = 1;
-      }
-      else if(!bLeftInvolved && !bAboveInvolved )
-      {
-        ruiMergeIndex = 2;
-      }
-    }
-    else
-    {
-      xReadFlag( uiSymbol );
-      if( uiSymbol == 1 )
-      {
-        if( bCornerBLInvolved )
-        {
-          ruiMergeIndex = 4;
-        }
-        else if( !bCornerBLInvolved && bCornerInvolved )
-        {
-          ruiMergeIndex = 3;
-        }
-        else if( !bCornerBLInvolved && !bCornerInvolved && bCollocatedInvolved )
-        {
-          ruiMergeIndex = 2;
-        }
-      }
-      else
-      {
-        if( bLeftInvolved && bAboveInvolved )
-        {
-          ruiMergeIndex = 1;
-        }
-        else if( ( ( !bLeftInvolved && bAboveInvolved) || ( bLeftInvolved && !bAboveInvolved ) )&& bCollocatedInvolved )
-        {
-          ruiMergeIndex = 2;
-        }
-        else if( bCornerBLInvolved && bCornerInvolved )
-        {
-          ruiMergeIndex = 3;
-        }
-      }
+      break;
     }
   }
-  else //uiNumCand > 3
+  if( !bLeftInvolved )
   {
-    if( uiSymbol == 1 )
-    {
-      UInt uiAbove = 0;
-      xReadFlag( uiAbove );
-      if( uiAbove == 0 )
-      {
-        ruiMergeIndex = 1;
-      }
-      else
-      {
-        UInt uiCol = 0;
-        xReadFlag( uiCol );
-        if( uiCol == 0 )
-        {
-          ruiMergeIndex = 2;
-        }
-        else
-        {
-          UInt uiCorner = 0;
-          xReadFlag( uiCorner );
-          if( uiCorner == 0 )
-          {
-            ruiMergeIndex = 3;
-          }
-          else
-          {
-            ruiMergeIndex = 4;
-          }
-        }
-      }
-    }
-    else
-    {
-      ruiMergeIndex = 0;
-    }
+    ++uiUnaryIdx;
   }
+  if( !bAboveInvolved && uiUnaryIdx >= 1 )
+  {
+    ++uiUnaryIdx;
+  }
+
+  if( !bCollocatedInvolved && uiUnaryIdx >= 2 )
+  {
+    ++uiUnaryIdx;
+  }
+  if( !bCornerInvolved && uiUnaryIdx >= 3 )
+  {
+    ++uiUnaryIdx;
+  }
+  ruiMergeIndex = uiUnaryIdx;
 }
-#endif
+#endif //HHI_MRG
 
 // ====================================================================================================================
 // Protected member functions
