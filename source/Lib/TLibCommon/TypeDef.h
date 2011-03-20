@@ -160,8 +160,6 @@
 // TOSHIBA defines section end
 ////////////////////////////////
 
-#define BUGFIX118 1 // Fixes an issue related to ALF and all-0 filters
-
 ////////////////////////////////
 // MICROSOFT&USTC defines section start
 ////////////////////////////////
