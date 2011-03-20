@@ -164,7 +164,6 @@
 // TOSHIBA defines section end
 ////////////////////////////////
 
-#define BUGFIX102 1 // Do not code terminating bit when using LCEC
 #define BUGFIX118 1 // Fixes an issue related to ALF and all-0 filters
 
 ////////////////////////////////

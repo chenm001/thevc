@@ -362,9 +362,6 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
 
 Void TEncCavlc::codeTerminatingBit      ( UInt uilsLast )
 {
-#if !BUGFIX102
-  xWriteFlag( uilsLast );
-#endif
 }
 
 Void TEncCavlc::codeSliceFinish ()

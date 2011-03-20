@@ -382,11 +382,7 @@ Void TDecCavlc::resetEntropy          (TComSlice* pcSlice)
 
 Void TDecCavlc::parseTerminatingBit( UInt& ruiBit )
 {
-#if BUGFIX102
   ruiBit = false;
-#else
-  xReadFlag( ruiBit );
-#endif
 #if AD_HOC_SLICES
   Int iBitsLeft = m_pcBitstream->getBitsLeft();
   if(iBitsLeft <= 8)
