@@ -190,9 +190,7 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
   ("LoopFilterBetaOffset", m_iLoopFilterBetaOffset, 0 )
   
   /* Coding tools */
-#if HHI_MRG
   ("MRG", m_bUseMRG, true, "merging of motion partitions")
-#endif
   ("ALF", m_bUseALF, true, "Adaptive Loop Filter")
 #if MQT_ALF_NPASS
   ("ALFEncodePassReduction", m_iALFEncodePassReduction, 0, "0:Original 16-pass, 1: 1-pass, 2: 2-pass encoding")
@@ -544,9 +542,7 @@ Void TAppEncCfg::xPrintParameter()
 #endif
   printf("FEN:%d ", m_bUseFastEnc         );
   printf("RQT:%d ", 1     );
-#if HHI_MRG
   printf("MRG:%d ", m_bUseMRG             ); // SOPH: Merge Mode
-#endif
 #if HHI_RMP_SWITCH
   printf("RMP:%d ", m_bUseRMP);
 #endif
@@ -586,9 +582,7 @@ Void TAppEncCfg::xPrintUsage()
   printf( "                   PAD - automatic source padding of multiple of 16\n");
   printf( "                   ASR - adaptive motion search range\n");
   printf( "                   FEN - fast encoder setting\n");  
-#if HHI_MRG
   printf( "                   MRG - merging of motion partitions\n"); // SOPH: Merge Mode
-#endif
   printf( "\n" );
   printf( "  Example 1) TAppEncoder.exe -c test.cfg -q 32 -g 8 -f 9 -s 64 -h 4\n");
   printf("              -> QP 32, hierarchical-B GOP 8, 9 frames, 64x64-8x8 CU (~4x4 PU)\n\n");
