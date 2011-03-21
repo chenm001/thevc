@@ -73,7 +73,7 @@ Void TEncEntropy::encodeSPS( TComSPS* pcSPS )
 
 Void TEncEntropy::encodeSkipFlag( TComDataCU* pcCU, UInt uiAbsPartIdx, Bool bRD )
 {
-#if HHI_MRG && !SAMSUNG_MRG_SKIP_DIRECT
+#if !SAMSUNG_MRG_SKIP_DIRECT
   if ( pcCU->getSlice()->getSPS()->getUseMRG() )
   {
     return;
@@ -377,7 +377,6 @@ Void  print(ALFParam* pAlfParam)
   printf("\n");
 }
 
-#if HHI_MRG
 Void TEncEntropy::encodeMergeFlag( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiPUIdx )
 { 
   UInt uiNumCand = 0;
@@ -415,7 +414,6 @@ Void TEncEntropy::encodeMergeIndex( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt ui
     m_pcEntropyCoderIf->codeMergeIndex( pcCU, uiAbsPartIdx );
   }
 }
-#endif
 
 Void TEncEntropy::encodeAlfParam(ALFParam* pAlfParam)
 {
@@ -902,13 +900,11 @@ Void TEncEntropy::encodePredInfo( TComDataCU* pcCU, UInt uiAbsPartIdx, Bool bRD 
   }
   else                                                                // if it is Inter mode, encode motion vector and reference index
   {
-#if HHI_MRG
     if ( pcCU->getSlice()->getSPS()->getUseMRG() )
     {
       encodePUWise( pcCU, uiAbsPartIdx, bRD );
     }
     else
-#endif
     {
 #if MS_LCEC_LOOKUP_TABLE_EXCEPTION
       if ( pcCU->getSlice()->getSymbolMode() == 0 )
@@ -999,7 +995,6 @@ Void TEncEntropy::encodeInterDir( TComDataCU* pcCU, UInt uiAbsPartIdx, Bool bRD 
   return;
 }
 
-#if HHI_MRG
 Void TEncEntropy::encodePUWise( TComDataCU* pcCU, UInt uiAbsPartIdx, Bool bRD )
 {
   if ( bRD )
@@ -1125,7 +1120,6 @@ Void TEncEntropy::encodeMVPIdxPU( TComDataCU* pcCU, UInt uiAbsPartIdx, RefPicLis
 
   return;
 }
-#endif
 
 Void TEncEntropy::encodeMVPIdx( TComDataCU* pcCU, UInt uiAbsPartIdx, RefPicList eRefList, Bool bRD )
 {

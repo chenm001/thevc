@@ -727,9 +727,7 @@ TComSPS::TComSPS()
   m_bUseALF       = false;
   m_bUseDQP       = false;
   
-#if HHI_MRG
   m_bUseMRG      = false; // SOPH:
-#endif
   
   // AMVP parameter
   ::memset( m_aeAMVPMode, 0, sizeof( m_aeAMVPMode ) );

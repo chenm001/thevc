@@ -165,10 +165,8 @@ public:
   Void codeAlfCtrlDepth();
   
   Void codeSkipFlag      ( TComDataCU* pcCU, UInt uiAbsPartIdx );
-#if HHI_MRG
   Void codeMergeFlag     ( TComDataCU* pcCU, UInt uiAbsPartIdx );
   Void codeMergeIndex    ( TComDataCU* pcCU, UInt uiAbsPartIdx );
-#endif
   Void codeAlfCtrlFlag   ( TComDataCU* pcCU, UInt uiAbsPartIdx );
 #if TSB_ALF_HEADER
   Void codeAlfFlagNum    ( UInt uiCode, UInt minValue );

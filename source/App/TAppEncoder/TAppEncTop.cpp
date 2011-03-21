@@ -119,9 +119,7 @@ Void TAppEncTop::xInitLibCfg()
   m_cTEncTop.setUseNRF                       ( m_bUseNRF      );
   m_cTEncTop.setUseBQP                       ( m_bUseBQP      );
   m_cTEncTop.setUseFastEnc                   ( m_bUseFastEnc  );
-#if HHI_MRG
   m_cTEncTop.setUseMRG                       ( m_bUseMRG      ); // SOPH:
-#endif
 #if HHI_RMP_SWITCH
   m_cTEncTop.setUseRMP                     ( m_bUseRMP );
 #endif

@@ -127,9 +127,7 @@ Void TDecCavlc::parseSPS(TComSPS* pcSPS)
   xReadFlag( uiCode ); pcSPS->setUseALF ( uiCode ? true : false );
   xReadFlag( uiCode ); pcSPS->setUseDQP ( uiCode ? true : false );
   xReadFlag( uiCode ); pcSPS->setUseLDC ( uiCode ? true : false );
-#if HHI_MRG
   xReadFlag( uiCode ); pcSPS->setUseMRG ( uiCode ? true : false ); // SOPH:
-#endif
   
 #if HHI_RMP_SWITCH
   xReadFlag( uiCode ); pcSPS->setUseRMP( uiCode ? true : false );
@@ -430,7 +428,7 @@ Void TDecCavlc::parseSkipFlag( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth
 #if QC_LCEC_INTER_MODE
   return;
 #else
-#if HHI_MRG && !SAMSUNG_MRG_SKIP_DIRECT
+#if !SAMSUNG_MRG_SKIP_DIRECT
   if ( pcCU->getSlice()->getSPS()->getUseMRG() )
   {
     return;
@@ -1625,7 +1623,6 @@ Void TDecCavlc::parseAlfSvlc (Int&  riVal)
 }
 
 
-#if HHI_MRG
 Void TDecCavlc::parseMergeFlag ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth, UInt uiPUIdx )
 {
 #if QC_LCEC_INTER_MODE
@@ -1697,7 +1694,6 @@ Void TDecCavlc::parseMergeIndex ( TComDataCU* pcCU, UInt& ruiMergeIndex, UInt ui
   }
   ruiMergeIndex = uiUnaryIdx;
 }
-#endif //HHI_MRG
 
 // ====================================================================================================================
 // Protected member functions

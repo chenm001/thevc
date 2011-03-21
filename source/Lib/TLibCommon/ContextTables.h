@@ -44,10 +44,8 @@
 #define NUM_SPLIT_FLAG_CTX            3       ///< number of context models for split flag
 #define NUM_SKIP_FLAG_CTX             3       ///< number of context models for skip flag
 
-#if HHI_MRG
 #define NUM_MERGE_FLAG_EXT_CTX        3       ///< number of context models for merge flag of merge extended
 #define NUM_MERGE_IDX_EXT_CTX         4       ///< number of context models for merge index of merge extended
-#endif
 
 #define NUM_ALF_CTRL_FLAG_CTX         3       ///< number of context models for ALF control flag
 #define NUM_PART_SIZE_CTX             5       ///< number of context models for partition size
@@ -135,7 +133,6 @@ INIT_SKIP_FLAG[3][NUM_SKIP_FLAG_CTX][2] =
   }
 };
 
-#if HHI_MRG
 // initial probability for merge flag
 static const Short
 INIT_MERGE_FLAG_EXT[3][NUM_MERGE_FLAG_EXT_CTX][2] =
@@ -164,7 +161,6 @@ INIT_MERGE_IDX_EXT[3][NUM_MERGE_IDX_EXT_CTX][2] =
     {    1,   65 }, {    6,   42 }, {   -7,   75 }, {   -4,   72 }
   }
 };
-#endif
 
 // initial probability for PU size
 static const Short

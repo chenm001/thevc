@@ -118,10 +118,8 @@ protected:
   // coding tools (entropy coder)
   Int       m_iSymbolMode;                                    ///< entropy coder mode, 0 = VLC, 1 = CABAC
   
-#if HHI_MRG
   // coding tools (inter - merge motion partitions)
   Bool      m_bUseMRG;                                        ///< SOPH: flag for using motion partition Merge Mode
-#endif
   
 #if HHI_RMP_SWITCH
   Bool      m_bUseRMP;

@@ -69,9 +69,7 @@ private:
   Bool        m_bUseDQP;
   Bool        m_bUseLDC;
   Bool        m_bUsePAD;
-#if HHI_MRG
   Bool        m_bUseMRG; // SOPH:
-#endif
 
 #if DCM_COMB_LIST
   Bool        m_bUseLComb;
@@ -138,18 +136,14 @@ public:
   
   Bool getUseLDC      ()         { return m_bUseLDC;        }
   Bool getUsePAD      ()         { return m_bUsePAD;        }
-#if HHI_MRG
   Bool getUseMRG      ()         { return m_bUseMRG;        } // SOPH:
-#endif
   
   Void setUseALF      ( Bool b ) { m_bUseALF  = b;          }
   Void setUseDQP      ( Bool b ) { m_bUseDQP   = b;         }
   
   Void setUseLDC      ( Bool b ) { m_bUseLDC   = b;         }
   Void setUsePAD      ( Bool b ) { m_bUsePAD   = b;         }
-#if HHI_MRG
   Void setUseMRG      ( Bool b ) { m_bUseMRG  = b;          } // SOPH:
-#endif
   
 #if DCM_COMB_LIST
   Void setUseLComb    (Bool b)   { m_bUseLComb = b;         }

@@ -412,7 +412,6 @@ Void TEncCu::xCompressCU( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, UInt u
       // SKIP
       pcTempCU = rpcTempCU;
       
-#if HHI_MRG
 #if AD_HOC_SLICES
       if( pcPic->getSlice(0)->getSPS()->getUseMRG() )
 #else
@@ -428,9 +427,6 @@ Void TEncCu::xCompressCU( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, UInt u
       {
         xCheckRDCostAMVPSkip ( rpcBestCU, rpcTempCU );        rpcTempCU->initEstData();
       }
-#else
-      xCheckRDCostAMVPSkip ( rpcBestCU, rpcTempCU );        rpcTempCU->initEstData();
-#endif
       
       // fast encoder decision for early skip
       if ( m_pcEncCfg->getUseFastEnc() )
@@ -673,7 +669,6 @@ Void TEncCu::xCheckRDCostSkip( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, B
   xCheckBestMode(rpcBestCU, rpcTempCU);
 }
 
-#if HHI_MRG 
 Void TEncCu::xCheckRDCostMerge2Nx2N( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU )
 {
   assert( rpcTempCU->getSlice()->getSliceType() != I_SLICE );
@@ -734,7 +729,6 @@ Void TEncCu::xCheckRDCostMerge2Nx2N( TComDataCU*& rpcBestCU, TComDataCU*& rpcTem
     }
   }
 }
-#endif
 
 Void TEncCu::xCheckRDCostInter( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, PartSize ePartSize )
 {
@@ -799,7 +793,6 @@ Void TEncCu::xCheckBestMode( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU )
   {
     TComYuv* pcYuv;
     UChar uhDepth = rpcBestCU->getDepth(0);
-#if HHI_MRG
     if( uhDepth == rpcTempCU->getDepth( 0 ) && rpcTempCU->getSlice()->getSliceType() != I_SLICE && rpcTempCU->getPartitionSize( 0 ) == SIZE_2Nx2N && !rpcTempCU->getMergeFlag( 0 ) )
     {
       for( UInt ui = 0; ui < HHI_NUM_MRG_CAND; ui++ )
@@ -807,7 +800,6 @@ Void TEncCu::xCheckBestMode( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU )
         rpcTempCU->setNeighbourCandIdxSubParts( ui, rpcBestCU->getNeighbourCandIdx( ui, 0 ), 0, 0, uhDepth );
       }          
     }      
-#endif
     
     // Change Information data
     TComDataCU* pcCU = rpcBestCU;

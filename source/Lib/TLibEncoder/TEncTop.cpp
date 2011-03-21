@@ -319,9 +319,7 @@ Void TEncTop::xInitSPS()
   m_cSPS.setUseLDC        ( m_bUseLDC           );
   m_cSPS.setUsePAD        ( m_bUsePAD           );
   
-#if HHI_MRG
   m_cSPS.setUseMRG        ( m_bUseMRG           ); // SOPH:
-#endif
   
   m_cSPS.setMaxTrSize   ( 1 << m_uiQuadtreeTULog2MaxSize );
   

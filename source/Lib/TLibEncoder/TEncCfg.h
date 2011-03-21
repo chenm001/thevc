@@ -116,9 +116,7 @@ protected:
   Bool      m_bUseNRF;
   Bool      m_bUseBQP;
   Bool      m_bUseFastEnc;
-#if HHI_MRG
   Bool      m_bUseMRG; // SOPH:
-#endif
   Int*      m_aidQP;
   UInt      m_uiDeltaQpRD;
   
@@ -255,9 +253,7 @@ public:
   Void      setUseNRF                       ( Bool  b )     { m_bUseNRF     = b; }
   Void      setUseBQP                       ( Bool  b )     { m_bUseBQP     = b; }
   Void      setUseFastEnc                   ( Bool  b )     { m_bUseFastEnc = b; }
-#if HHI_MRG
   Void      setUseMRG                       ( Bool  b )     { m_bUseMRG     = b; } // SOPH:
-#endif
 #if CONSTRAINED_INTRA_PRED
   Void      setUseConstrainedIntraPred      ( Bool  b )     { m_bUseConstrainedIntraPred = b; }
 #endif
@@ -282,9 +278,7 @@ public:
   Bool      getUseNRF                       ()      { return m_bUseNRF;     }
   Bool      getUseBQP                       ()      { return m_bUseBQP;     }
   Bool      getUseFastEnc                   ()      { return m_bUseFastEnc; }
-#if HHI_MRG
   Bool      getUseMRG                       ()      { return m_bUseMRG;     } // SOPH:
-#endif
 #if CONSTRAINED_INTRA_PRED
   Bool      getUseConstrainedIntraPred      ()      { return m_bUseConstrainedIntraPred; }
 #endif  
