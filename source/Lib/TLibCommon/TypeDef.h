@@ -97,7 +97,6 @@
 #define QC_LCEC_INTER_MODE                1
 #define QC_MDIS                           1           // JCTVC-D282: enable mode dependent intra smoothing
 #define QC_MDCS                           1           // JCTVC-D393: mode dependent coefficients coding 
-#define LCEC_CBP_YUV_ROOT_RDFIX           1           // JCTVC-D375: RD fix associated with LCEC_CBP_YUV_ROOT
 
 #define ENABLE_FORCECOEFF0  0
 

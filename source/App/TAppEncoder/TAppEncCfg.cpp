@@ -389,19 +389,6 @@ Void TAppEncCfg::xCheckParameter()
   
   xConfirmPara( m_iSymbolMode < 0 || m_iSymbolMode > 1,                                     "SymbolMode must be equal to 0 or 1" );
   
-#if LCEC_CBP_YUV_ROOT && !LCEC_CBP_YUV_ROOT_RDFIX
-  if(m_iSymbolMode == 0)
-  {
-    if (m_uiQuadtreeTUMaxDepthIntra > 1 || m_uiQuadtreeTUMaxDepthInter > 2)
-    {
-      printf("\n");
-      printf("WARNING: the combination of LCEC, LCEC_CBP_YUV_ROOT=1 and QC_BLK_CBP=1 was designed for use with QuadtreeTUMaxDepthIntra=1 and\n");
-      printf("         QuadtreeTUMaxDepthInter<=2. Disabling LCEC_CBP_YUV_ROOT and QC_BLK_CBP may yield better R-D performance for larger\n");
-      printf("         values of QuadtreeTUMaxDepthIntra and/or QuadtreeTUMaxDepthInter.\n");
-    }
-  }
-#endif
-
 #if DCM_COMB_LIST
   xConfirmPara( m_bUseLComb==false && m_bUseLDC==false,         "LComb can only be 0 if LowDelayCoding is 1" );
 #endif
