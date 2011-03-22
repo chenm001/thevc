@@ -217,10 +217,8 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
 #if AD_HOC_SLICES 
     ("SliceMode",            m_iSliceMode,           0, "0: Disable all Recon slice limits, 1: Enforce max # of LCUs, 2: Enforce max # of bytes")
     ("SliceArgument",        m_iSliceArgument,       0, "if SliceMode==1 SliceArgument represents max # of LCUs. if SliceMode==2 SliceArgument represents max # of bytes.")
-#if SHARP_ENTROPY_SLICE 
     ("EntropySliceMode",     m_iEntropySliceMode,    0, "0: Disable all entropy slice limits, 1: Enforce max # of LCUs, 2: Enforce constraint based entropy slices")
     ("EntropySliceArgument", m_iEntropySliceArgument,0, "if EntropySliceMode==1 SliceArgument represents max # of LCUs. if EntropySliceMode==2 EntropySliceArgument represents max # of bins.")
-#endif
 #endif
 #if MTK_NONCROSS_INLOOP_FILTER
     ("LFCrossSliceBoundaryFlag", m_bLFCrossSliceBoundaryFlag, true)
@@ -400,13 +398,11 @@ Void TAppEncCfg::xCheckParameter()
   {
     xConfirmPara( m_iSliceArgument < 1 ,         "SliceArgument should be larger than or equal to 1" );
   }
-#if SHARP_ENTROPY_SLICE 
   xConfirmPara( m_iEntropySliceMode < 0 || m_iEntropySliceMode > 2, "EntropySliceMode exceeds supported range (0 to 2)" );
   if (m_iEntropySliceMode!=0)
   {
     xConfirmPara( m_iEntropySliceArgument < 1 ,         "EntropySliceArgument should be larger than or equal to 1" );
   }
-#endif
 #endif
   
   xConfirmPara( m_iSymbolMode < 0 || m_iSymbolMode > 1,                                     "SymbolMode must be equal to 0 or 1" );
@@ -610,13 +606,11 @@ Void TAppEncCfg::xPrintParameter()
   {
     printf("(%d) ", m_iSliceArgument);
   }
-#if SHARP_ENTROPY_SLICE 
   printf("EntropySlice:%d ",m_iEntropySliceMode);
   if (m_iEntropySliceMode!=0)
   {
     printf("(%d) ", m_iEntropySliceArgument);
   }
-#endif
 #endif
 #if CONSTRAINED_INTRA_PRED
   printf("CIP:%d ", m_bUseConstrainedIntraPred);

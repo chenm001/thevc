@@ -255,7 +255,7 @@ Void TComPattern::initAdiPattern( TComDataCU* pcCU, UInt uiZorderIdxInPart, UInt
   }
   else
   {
-#if AD_HOC_SLICES && SHARP_ENTROPY_SLICE 
+#if AD_HOC_SLICES  
     if( pcCU->getPUAbove        ( uiPartDum,             uiPartIdxLT,    true, false ) ) bAboveFlag      = true;
     if( pcCU->getPUAboveRightAdi( uiPartDum, uiCuWidth,  uiPartIdxRT, 1, true, false ) ) bAboveRightFlag = true;
     if( pcCU->getPULeft         ( uiPartDum,             uiPartIdxLT,    true, false ) ) bLeftFlag       = true;
@@ -270,7 +270,7 @@ Void TComPattern::initAdiPattern( TComDataCU* pcCU, UInt uiZorderIdxInPart, UInt
 #endif
   }
 #else //CONSTRAINED_INTRA_PRED
-#if AD_HOC_SLICES && SHARP_ENTROPY_SLICE 
+#if AD_HOC_SLICES 
   if( pcCU->getPUAbove        ( uiPartDum,             uiPartIdxLT, true, false ) ) bAboveFlag      = true;
   if( pcCU->getPUAboveRightAdi( uiPartDum, uiCuWidth,  uiPartIdxRT, true, false ) ) bAboveRightFlag = true;
   if( pcCU->getPULeft         ( uiPartDum,             uiPartIdxLT, true, false ) ) bLeftFlag       = true;
@@ -463,7 +463,7 @@ Void TComPattern::initAdiPatternChroma( TComDataCU* pcCU, UInt uiZorderIdxInPart
   }
   else
   {
-#if AD_HOC_SLICES && SHARP_ENTROPY_SLICE
+#if AD_HOC_SLICES
     if( pcCU->getPUAbove        ( uiPartDum,             uiPartIdxLT,    true, false ) ) bAboveFlag      = true;
     if( pcCU->getPUAboveRightAdi( uiPartDum, uiCuWidth,  uiPartIdxRT, 1, true, false ) ) bAboveRightFlag = true;
     if( pcCU->getPULeft         ( uiPartDum,             uiPartIdxLT,    true, false ) ) bLeftFlag       = true;
@@ -478,7 +478,7 @@ Void TComPattern::initAdiPatternChroma( TComDataCU* pcCU, UInt uiZorderIdxInPart
 #endif
   }
 #else //CONSTRAINED_INTRA_PRED
-#if AD_HOC_SLICES && SHARP_ENTROPY_SLICE
+#if AD_HOC_SLICES
   if( pcCU->getPUAbove        ( uiPartDum, uiPartIdxLT, true, false ) )             bAboveFlag      = true;
   if( pcCU->getPUAboveRightAdi( uiPartDum,uiCuWidth, uiPartIdxRT, true, false ) )   bAboveRightFlag = true;
   if( pcCU->getPULeft         ( uiPartDum, uiPartIdxLT, true, false ) )             bLeftFlag       = true;
@@ -700,7 +700,7 @@ Bool TComPattern::isLeftAvailableForCIP( TComDataCU* pcCU, UInt uiPartIdxLT, UIn
   for ( UInt uiRasterPart = uiRasterPartBegin; uiRasterPart < uiRasterPartEnd; uiRasterPart += uiIdxStep )
   {
     UInt uiPartLeft;
-#if AD_HOC_SLICES && SHARP_ENTROPY_SLICE
+#if AD_HOC_SLICES
     TComDataCU* pcCULeft = pcCU->getPULeft( uiPartLeft, g_auiRasterToZscan[uiRasterPart], true, false );
 #else
     TComDataCU* pcCULeft = pcCU->getPULeft( uiPartLeft, g_auiRasterToZscan[uiRasterPart] );
@@ -723,7 +723,7 @@ Bool TComPattern::isAboveAvailableForCIP( TComDataCU* pcCU, UInt uiPartIdxLT, UI
   for ( UInt uiRasterPart = uiRasterPartBegin; uiRasterPart < uiRasterPartEnd; uiRasterPart += uiIdxStep )
   {
     UInt uiPartAbove;
-#if AD_HOC_SLICES && SHARP_ENTROPY_SLICE
+#if AD_HOC_SLICES
     TComDataCU* pcCUAbove = pcCU->getPUAbove( uiPartAbove, g_auiRasterToZscan[uiRasterPart], true, false );
 #else
     TComDataCU* pcCUAbove = pcCU->getPUAbove( uiPartAbove, g_auiRasterToZscan[uiRasterPart] );
@@ -741,7 +741,7 @@ Bool TComPattern::isAboveLeftAvailableForCIP( TComDataCU* pcCU, UInt uiPartIdxLT
 {
   Bool bAboveLeftFlag;
   UInt uiPartAboveLeft;
-#if AD_HOC_SLICES && SHARP_ENTROPY_SLICE
+#if AD_HOC_SLICES
   TComDataCU* pcCUAboveLeft = pcCU->getPUAboveLeft( uiPartAboveLeft, uiPartIdxLT, true, false );
 #else
   TComDataCU* pcCUAboveLeft = pcCU->getPUAboveLeft( uiPartAboveLeft, uiPartIdxLT );
@@ -758,7 +758,7 @@ Bool TComPattern::isAboveRightAvailableForCIP( TComDataCU* pcCU, UInt uiPartIdxL
   for ( UInt uiOffset = 1; uiOffset <= uiNumUnitsInPU; uiOffset++ )
   {
     UInt uiPartAboveRight;
-#if AD_HOC_SLICES && SHARP_ENTROPY_SLICE
+#if AD_HOC_SLICES
     TComDataCU* pcCUAboveRight = pcCU->getPUAboveRightAdi( uiPartAboveRight, uiPuWidth, uiPartIdxRT, uiOffset, true, false );
 #else
     TComDataCU* pcCUAboveRight = pcCU->getPUAboveRightAdi( uiPartAboveRight, uiPuWidth, uiPartIdxRT, uiOffset );
@@ -780,7 +780,7 @@ Bool TComPattern::isBelowLeftAvailableForCIP( TComDataCU* pcCU, UInt uiPartIdxLT
   for ( UInt uiOffset = 1; uiOffset <= uiNumUnitsInPU; uiOffset++ )
   {
     UInt uiPartBelowLeft;
-#if AD_HOC_SLICES && SHARP_ENTROPY_SLICE
+#if AD_HOC_SLICES
     TComDataCU* pcCUBelowLeft = pcCU->getPUBelowLeftAdi( uiPartBelowLeft, uiPuHeight, uiPartIdxLB, uiOffset, true, false );
 #else
     TComDataCU* pcCUBelowLeft = pcCU->getPUBelowLeftAdi( uiPartBelowLeft, uiPuHeight, uiPartIdxLB, uiOffset );

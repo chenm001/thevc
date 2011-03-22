@@ -96,9 +96,7 @@ private:
 #endif
 #if AD_HOC_SLICES 
   UInt*                   m_uiStoredStartCUAddrForEncodingSlice;
-#if SHARP_ENTROPY_SLICE 
   UInt*                   m_uiStoredStartCUAddrForEncodingEntropySlice;
-#endif
 #endif
 
 // #if MTK_NONCROSS_INLOOP_FILTER

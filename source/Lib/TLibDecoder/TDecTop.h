@@ -93,6 +93,9 @@ private:
   TComPic*                m_pcPic;
   UInt                    m_uiSliceIdx;
   UInt                    m_uiLastSliceIdx;
+  UInt                    m_uiPrevPOC;
+  Bool                    m_bFirstSliceInPicture;
+  Bool                    m_bFirstSliceInSequence;
 #endif
 
 public:
@@ -104,7 +107,11 @@ public:
   
   Void  init();
 #if DCM_SKIP_DECODING_FRAMES
+#if AD_HOC_SLICES
+  Bool  decode (Bool bEos, TComBitstream* pcBitstream, UInt& ruiPOC, TComList<TComPic*>*& rpcListPic, Int& iSkipFrame, Int& iPOCLastDisplay);
+#else
   Void  decode (Bool bEos, TComBitstream* pcBitstream, UInt& ruiPOC, TComList<TComPic*>*& rpcListPic, Int& iSkipFrame, Int& iPOCLastDisplay);
+#endif
 #else
   Void  decode ( Bool bEos, TComBitstream* pcBitstream, UInt& ruiPOC, TComList<TComPic*>*& rpcListPic );
 #endif
@@ -112,7 +119,10 @@ public:
   TComSPS *getSPS() { return (m_uiValidPS & 1) ? &m_cSPS : NULL; }
   
   Void  deletePicBuffer();
-  
+
+#if AD_HOC_SLICES
+  Void executeDeblockAndAlf(Bool bEos, TComBitstream* pcBitstream, UInt& ruiPOC, TComList<TComPic*>*& rpcListPic, Int& iSkipFrame,  Int& iPOCLastDisplay);
+#endif
 
 protected:
   Void  xGetNewPicBuffer  (TComSlice* pcSlice, TComPic*& rpcPic);

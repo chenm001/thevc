@@ -77,6 +77,7 @@ public:
   Void        destroy ();
   
 #if AD_HOC_SLICES
+  TComPicSym  ()                        { m_uiNumAllocatedSlice = 0;            }
   TComSlice*  getSlice(UInt i)          { return  m_apcTComSlice[i];            }
 #else
   TComSlice*  getSlice()                { return  m_apcTComSlice;               }

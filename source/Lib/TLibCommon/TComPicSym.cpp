@@ -66,6 +66,14 @@ Void TComPicSym::create  ( Int iPicWidth, Int iPicHeight, UInt uiMaxWidth, UInt 
   m_apcTComDataCU     = new TComDataCU*[m_uiNumCUsInFrame];
   
 #if AD_HOC_SLICES
+  if (m_uiNumAllocatedSlice>0)
+  {
+    for ( i=0; i<m_uiNumAllocatedSlice ; i++ )
+    {
+      delete m_apcTComSlice[i];
+    }
+    delete [] m_apcTComSlice;
+  }
   m_apcTComSlice      = new TComSlice*[m_uiNumCUsInFrame];  
   m_apcTComSlice[0]   = new TComSlice;
   m_uiNumAllocatedSlice = 1;
@@ -82,11 +90,14 @@ Void TComPicSym::destroy()
   Int i;
   
 #if AD_HOC_SLICES
-  for (i = 0; i < m_uiNumAllocatedSlice; i ++)
+  if (m_uiNumAllocatedSlice>0)
   {
-    delete m_apcTComSlice[i];
+    for ( i=0; i<m_uiNumAllocatedSlice ; i++ )
+    {
+      delete m_apcTComSlice[i];
+    }
+    delete [] m_apcTComSlice;
   }
-  delete [] m_apcTComSlice;
 #else
   delete m_apcTComSlice;
 #endif
@@ -112,14 +123,10 @@ Void TComPicSym::allocateNewSlice()
 Void TComPicSym::clearSliceBuffer()
 {
   UInt i;
-  for (i = 0; i < m_uiNumAllocatedSlice; i++)
+  for (i = 1; i < m_uiNumAllocatedSlice; i++)
   {
     delete m_apcTComSlice[i];
-#if !SHARP_ENTROPY_SLICE
-    m_uiNumAllocatedSlice = 1;
-#endif
   }
-  m_apcTComSlice[0]   = new TComSlice;
   m_uiNumAllocatedSlice = 1;
 }
 #endif

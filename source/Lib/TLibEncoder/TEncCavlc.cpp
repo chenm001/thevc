@@ -598,7 +598,7 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
   codeNALUnitHeader (NAL_UNIT_CODED_SLICE, NAL_REF_IDC_PRIORITY_HIGHEST);
 #endif
 
-#if AD_HOC_SLICES && SHARP_ENTROPY_SLICE
+#if AD_HOC_SLICES
   Bool bEntropySlice = false;
   if (pcSlice->isNextSlice())
   {
@@ -616,7 +616,6 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
   xWriteUvlc  (pcSlice->getSliceType() );
   xWriteSvlc  (pcSlice->getSliceQp() );
 #if AD_HOC_SLICES 
-#if SHARP_ENTROPY_SLICE
   }
   if (pcSlice->isNextSlice())
   {
@@ -628,9 +627,6 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
   }
   if (!bEntropySlice)
   {
-#else
-  xWriteUvlc(pcSlice->getSliceCurStartCUAddr()); // start CU addr for slice
-#endif
 #endif
   
   xWriteFlag  (pcSlice->getSymbolMode() > 0 ? 1 : 0);
@@ -701,7 +697,7 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
     xWriteFlag( pcSlice->getColDir() );
   }
 #endif
-#if AD_HOC_SLICES && SHARP_ENTROPY_SLICE
+#if AD_HOC_SLICES
   }
 #endif
 }

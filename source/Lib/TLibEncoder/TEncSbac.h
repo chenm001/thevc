@@ -169,7 +169,7 @@ public:
   
   __inline Int  biari_no_bits        ( Short symbol, ContextModel& rcSCModel );
   
-#if AD_HOC_SLICES && SHARP_ENTROPY_SLICE
+#if AD_HOC_SLICES
     TEncBinIf* getEncBinIf()  { return m_pcBinIf; }
 #endif
 private:

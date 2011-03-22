@@ -185,7 +185,7 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice)
 {
   UInt  uiCode;
   Int   iCode;
-#if AD_HOC_SLICES && SHARP_ENTROPY_SLICE 
+#if AD_HOC_SLICES 
   xReadFlag ( uiCode );
   Bool bEntropySlice = uiCode ? true : false;
   if (!bEntropySlice)
@@ -195,16 +195,11 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice)
   xReadCode (10, uiCode);  rpcSlice->setPOC              (uiCode);             // 9 == SPS->Log2MaxFrameNum()
   xReadUvlc (   uiCode);  rpcSlice->setSliceType        ((SliceType)uiCode);
   xReadSvlc (    iCode);  rpcSlice->setSliceQp          (iCode);
-#if AD_HOC_SLICES && SHARP_ENTROPY_SLICE
+#if AD_HOC_SLICES
   }
 #endif
 
-#if AD_HOC_SLICES && !SHARP_ENTROPY_SLICE
-  xReadUvlc(uiCode);
-  rpcSlice->setSliceCurStartCUAddr( uiCode ); // start CU addr for slice
-#endif
-
-#if AD_HOC_SLICES && SHARP_ENTROPY_SLICE
+#if AD_HOC_SLICES
   if (bEntropySlice)
   {
     rpcSlice->setNextSlice        ( false );
@@ -315,7 +310,7 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice)
     rpcSlice->setColDir(uiCode);
   }
 #endif
-#if AD_HOC_SLICES && SHARP_ENTROPY_SLICE 
+#if AD_HOC_SLICES 
   }
 #endif
   return;

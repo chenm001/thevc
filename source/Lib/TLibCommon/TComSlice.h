@@ -276,7 +276,6 @@ private:
   UInt        m_uiSliceCurStartCUAddr;
   UInt        m_uiSliceCurEndCUAddr;
   UInt        m_uiSliceIdx;
-#if SHARP_ENTROPY_SLICE 
   UInt        m_uiEntropySliceMode;
   UInt        m_uiEntropySliceArgument;
   UInt        m_uiEntropySliceCurStartCUAddr;
@@ -284,7 +283,6 @@ private:
   Bool        m_bNextSlice;
   Bool        m_bNextEntropySlice;
   UInt        m_uiSliceBits;
-#endif
 #endif
   
 public:
@@ -398,18 +396,17 @@ public:
   Void      generateCombinedList       ();
 #endif
 #if AD_HOC_SLICES 
-  Void setSliceMode              ( UInt uiMode )     { m_uiSliceMode = uiMode;              }
-  UInt getSliceMode              ()                  { return m_uiSliceMode;                }
-  Void setSliceArgument          ( UInt uiArgument ) { m_uiSliceArgument = uiArgument;      }
-  UInt getSliceArgument          ()                  { return m_uiSliceArgument;            }
-  Void setSliceCurStartCUAddr    ( UInt uiAddr )     { m_uiSliceCurStartCUAddr = uiAddr;    }
-  UInt getSliceCurStartCUAddr    ()                  { return m_uiSliceCurStartCUAddr;      }
-  Void setSliceCurEndCUAddr      ( UInt uiAddr )     { m_uiSliceCurEndCUAddr = uiAddr;      }
-  UInt getSliceCurEndCUAddr      ()                  { return m_uiSliceCurEndCUAddr;        }
-  Void setSliceIdx               ( UInt i)           { m_uiSliceIdx = i;                    }
-  UInt getSliceIdx               ()                  { return  m_uiSliceIdx;                }
-  Void copySliceInfo             (TComSlice *pcSliceSrc);
-#if SHARP_ENTROPY_SLICE 
+  Void setSliceMode                     ( UInt uiMode )     { m_uiSliceMode = uiMode;                     }
+  UInt getSliceMode                     ()                  { return m_uiSliceMode;                       }
+  Void setSliceArgument                 ( UInt uiArgument ) { m_uiSliceArgument = uiArgument;             }
+  UInt getSliceArgument                 ()                  { return m_uiSliceArgument;                   }
+  Void setSliceCurStartCUAddr           ( UInt uiAddr )     { m_uiSliceCurStartCUAddr = uiAddr;           }
+  UInt getSliceCurStartCUAddr           ()                  { return m_uiSliceCurStartCUAddr;             }
+  Void setSliceCurEndCUAddr             ( UInt uiAddr )     { m_uiSliceCurEndCUAddr = uiAddr;             }
+  UInt getSliceCurEndCUAddr             ()                  { return m_uiSliceCurEndCUAddr;               }
+  Void setSliceIdx                      ( UInt i)           { m_uiSliceIdx = i;                           }
+  UInt getSliceIdx                      ()                  { return  m_uiSliceIdx;                       }
+  Void copySliceInfo                    (TComSlice *pcSliceSrc);
   Void setEntropySliceMode              ( UInt uiMode )     { m_uiEntropySliceMode = uiMode;              }
   UInt getEntropySliceMode              ()                  { return m_uiEntropySliceMode;                }
   Void setEntropySliceArgument          ( UInt uiArgument ) { m_uiEntropySliceArgument = uiArgument;      }
@@ -424,7 +421,6 @@ public:
   Bool isNextEntropySlice               ()                  { return m_bNextEntropySlice;                 }
   Void setSliceBits                     ( UInt uiVal )      { m_uiSliceBits = uiVal;                      }
   UInt getSliceBits                     ()                  { return m_uiSliceBits;                       }  
-#endif
 #endif
   
 protected:

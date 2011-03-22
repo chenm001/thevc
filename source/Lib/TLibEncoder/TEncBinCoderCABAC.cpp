@@ -116,7 +116,7 @@ TEncBinCABAC::encodeBin( UInt uiBin, ContextModel &rcCtxModel )
     DTRACE_CABAC_V( uiBin )
     DTRACE_CABAC_T( "\n" )
   }
-#if AD_HOC_SLICES && SHARP_ENTROPY_SLICE
+#if AD_HOC_SLICES
   if (m_bBinCountingEnabled) 
   {
     m_uiBinsCoded++;
@@ -164,7 +164,7 @@ TEncBinCABAC::encodeBinEP( UInt uiBin )
     DTRACE_CABAC_V( uiBin )
     DTRACE_CABAC_T( "\n" )
   }
-#if AD_HOC_SLICES && SHARP_ENTROPY_SLICE
+#if AD_HOC_SLICES
   if (m_bBinCountingEnabled)
   {
     m_uiBinsCoded++;
@@ -194,7 +194,7 @@ TEncBinCABAC::encodeBinEP( UInt uiBin )
 Void
 TEncBinCABAC::encodeBinTrm( UInt uiBin )
 {
-#if AD_HOC_SLICES && SHARP_ENTROPY_SLICE
+#if AD_HOC_SLICES
   if (m_bBinCountingEnabled)
   {
     m_uiBinsCoded++;

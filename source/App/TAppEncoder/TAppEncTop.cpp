@@ -141,11 +141,10 @@ Void TAppEncTop::xInitLibCfg()
   //====== Slice ========
   m_cTEncTop.setSliceMode               ( m_iSliceMode                );
   m_cTEncTop.setSliceArgument           ( m_iSliceArgument            );
-#if SHARP_ENTROPY_SLICE 
+
   //====== Entropy Slice ========
   m_cTEncTop.setEntropySliceMode        ( m_iEntropySliceMode         );
   m_cTEncTop.setEntropySliceArgument    ( m_iEntropySliceArgument     );
-#endif
 #endif
 #if MTK_NONCROSS_INLOOP_FILTER
   if(m_iSliceMode == 0 )

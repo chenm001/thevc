@@ -48,6 +48,9 @@
 TDecGop::TDecGop()
 {
   m_iGopSize = 0;
+#if AD_HOC_SLICES
+  m_dDecTime = 0;
+#endif
 }
 
 TDecGop::~TDecGop()
@@ -87,7 +90,11 @@ Void TDecGop::init( TDecEntropy*            pcEntropyDecoder,
 // Public member functions
 // ====================================================================================================================
 
+#if AD_HOC_SLICES
+Void TDecGop::decompressGop (Bool bEos, TComBitstream* pcBitstream, TComPic*& rpcPic, Bool bExecuteDeblockAndAlf)
+#else
 Void TDecGop::decompressGop (Bool bEos, TComBitstream* pcBitstream, TComPic*& rpcPic)
+#endif
 {
 #if AD_HOC_SLICES
   TComSlice*  pcSlice = rpcPic->getSlice(rpcPic->getCurrSliceIdx());
@@ -99,15 +106,16 @@ Void TDecGop::decompressGop (Bool bEos, TComBitstream* pcBitstream, TComPic*& rp
   long iBeforeTime = clock();
   
 #if AD_HOC_SLICES
-#if SHARP_ENTROPY_SLICE
   UInt uiStartCUAddr   = pcSlice->getEntropySliceCurStartCUAddr();
-#else
-  UInt uiRSStartCUAddr = pcSlice->getSliceCurStartCUAddr();
-#endif
 #if MTK_NONCROSS_INLOOP_FILTER
   static Bool  bFirst = true;
   static UInt  uiILSliceCount;
   static UInt* puiILSliceStartLCU;
+
+#if AD_HOC_SLICES
+  if (!bExecuteDeblockAndAlf)
+  {
+#endif
   if(bFirst)
   {
     uiILSliceCount = 0;
@@ -121,15 +129,11 @@ Void TDecGop::decompressGop (Bool bEos, TComBitstream* pcBitstream, TComPic*& rp
   if(!pcSlice->getSPS()->getLFCrossSliceBoundaryFlag())
   {
     UInt uiSliceStartCuAddr = pcSlice->getSliceCurStartCUAddr();
-#if SHARP_ENTROPY_SLICE
     if(uiSliceStartCuAddr == uiStartCUAddr)
     {
-#endif
     puiILSliceStartLCU[uiILSliceCount] = uiSliceStartCuAddr;
     uiILSliceCount++;
-#if SHARP_ENTROPY_SLICE
     }
-#endif
   }
 #endif //MTK_NONCROSS_INLOOP_FILTER
 #endif
@@ -146,19 +150,9 @@ Void TDecGop::decompressGop (Bool bEos, TComBitstream* pcBitstream, TComPic*& rp
   
   m_pcEntropyDecoder->setBitstream      (pcBitstream);
   m_pcEntropyDecoder->resetEntropy      (pcSlice);
-  
-#if AD_HOC_SLICES
-  ALFParam& cAlfParam = m_cAlfParam;
-#else
-  ALFParam cAlfParam;
-#endif
 
 #if AD_HOC_SLICES
-#if SHARP_ENTROPY_SLICE
   if (uiStartCUAddr==0)  // decode ALF params only from first slice header
-#else
-  if (uiRSStartCUAddr==0)  // decode ALF params only from first slice header
-#endif
   {
     if ( rpcPic->getSlice(0)->getSPS()->getUseALF() )
 #else
@@ -168,8 +162,8 @@ Void TDecGop::decompressGop (Bool bEos, TComBitstream* pcBitstream, TComPic*& rp
 #if TSB_ALF_HEADER
     m_pcAdaptiveLoopFilter->setNumCUsInFrame(rpcPic);
 #endif
-    m_pcAdaptiveLoopFilter->allocALFParam(&cAlfParam);
-    m_pcEntropyDecoder->decodeAlfParam( &cAlfParam );
+    m_pcAdaptiveLoopFilter->allocALFParam(&m_cAlfParam);
+    m_pcEntropyDecoder->decodeAlfParam( &m_cAlfParam );
   }
 #if AD_HOC_SLICES
   }
@@ -178,7 +172,9 @@ Void TDecGop::decompressGop (Bool bEos, TComBitstream* pcBitstream, TComPic*& rp
   m_pcSliceDecoder->decompressSlice(pcBitstream, rpcPic);
   
 #if AD_HOC_SLICES 
-  if (pcBitstream->getLastSliceEncounteredInPicture())
+  m_dDecTime += (double)(clock()-iBeforeTime) / CLOCKS_PER_SEC;
+  }
+  else
   {
 #endif
   // deblocking filter
@@ -212,14 +208,14 @@ Void TDecGop::decompressGop (Bool bEos, TComBitstream* pcBitstream, TComPic*& rp
       }
     }
 #endif
-    m_pcAdaptiveLoopFilter->ALFProcess(rpcPic, &cAlfParam);
+    m_pcAdaptiveLoopFilter->ALFProcess(rpcPic, &m_cAlfParam);
 #if MTK_NONCROSS_INLOOP_FILTER
     if(m_pcAdaptiveLoopFilter->getUseNonCrossAlf())
     {
       m_pcAdaptiveLoopFilter->destroySlice();
     }
 #endif
-    m_pcAdaptiveLoopFilter->freeALFParam(&cAlfParam);
+    m_pcAdaptiveLoopFilter->freeALFParam(&m_cAlfParam);
   }
   
 #if AMVP_BUFFERCOMPRESS
@@ -232,8 +228,14 @@ Void TDecGop::decompressGop (Bool bEos, TComBitstream* pcBitstream, TComPic*& rp
          pcSlice->isIntra() ? 'I' : pcSlice->isInterP() ? 'P' : 'B',
          pcSlice->getSliceQp() );
   
+#if AD_HOC_SLICES 
+  m_dDecTime += (double)(clock()-iBeforeTime) / CLOCKS_PER_SEC;
+  printf ("[DT %6.3f] ", m_dDecTime );
+  m_dDecTime  = 0;
+#else
   Double dDecTime = (double)(clock()-iBeforeTime) / CLOCKS_PER_SEC;
   printf ("[DT %6.3f] ", dDecTime );
+#endif
   
   for (Int iRefList = 0; iRefList < 2; iRefList++)
   {

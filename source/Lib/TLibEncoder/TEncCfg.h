@@ -141,12 +141,10 @@ protected:
 #if AD_HOC_SLICES 
 	//====== Slice ========
 	Int		m_iSliceMode;
-	Int		m_iSliceArgument;
-#if SHARP_ENTROPY_SLICE 
+	Int		m_iSliceArgument; 
 	//====== Entropy Slice ========
 	Int		m_iEntropySliceMode;
 	Int		m_iEntropySliceArgument;
-#endif
 #endif
 #if MTK_NONCROSS_INLOOP_FILTER
   Bool m_bLFCrossSliceBoundaryFlag;
@@ -322,13 +320,11 @@ public:
   Void  setSliceArgument               ( Int	i )       { m_iSliceArgument = i;          }
   Int   getSliceMode                   ()              { return m_iSliceMode;           }
   Int   getSliceArgument               ()              { return m_iSliceArgument;       }
-#if SHARP_ENTROPY_SLICE 
 	//====== Entropy Slice ========
   Void  setEntropySliceMode            ( Int	i )      { m_iEntropySliceMode = i;       }
   Void  setEntropySliceArgument        ( Int	i )      { m_iEntropySliceArgument = i;   }
   Int   getEntropySliceMode            ()              { return m_iEntropySliceMode;    }
   Int   getEntropySliceArgument        ()              { return m_iEntropySliceArgument;}
-#endif
 #endif
 #if MTK_NONCROSS_INLOOP_FILTER
   Void      setLFCrossSliceBoundaryFlag     ( Bool   bValue  )    { m_bLFCrossSliceBoundaryFlag = bValue; }

@@ -53,10 +53,6 @@ class TVideoIOBits
 {
 private:
   fstream   m_cHandle;                                      ///< file handle
-#if AD_HOC_SLICES && AD_HOC_SLICES_TEST_OUTOFORDER_DECOMPRESS 
-  ULong     m_ulBitstreamLength;
-  UChar*    m_ucFastLookupBuf;
-#endif
   
 public:
   TVideoIOBits()            {}
@@ -80,17 +76,7 @@ private:
   UInt      m_uiLastPOC;
   Bool      m_bFirstSliceEncounteredInPicture;
   Bool      m_bLastSliceEncounteredInPicture ; 
-#if AD_HOC_SLICES_TEST_OUTOFORDER_DECOMPRESS 
-  ULong     m_ulBitstreamLength;
-  UChar*    m_ucFastLookupBuf;
-  UChar*    m_ucCurBufPtr;
-  Int       m_iBufBytesLeft;
-  Int       m_iCurFileLocation;
-  Int       m_iNextFileLocation;
-#endif
-#if SHARP_ENTROPY_SLICE
   Bool      m_bEntropySlice;
-#endif
 #endif
 
 public:
@@ -100,9 +86,7 @@ public:
     m_uiLastPOC = UInt(-2);
     m_bFirstSliceEncounteredInPicture = false;
     m_bLastSliceEncounteredInPicture  = false;
-#if SHARP_ENTROPY_SLICE
     m_bEntropySlice                   = false;
-#endif
 #endif
   }
   virtual ~TVideoIOBitsStartCode()   {}
@@ -116,12 +100,10 @@ public:
 #if AD_HOC_SLICES
   Bool        getFirstSliceEncounteredInPicture()                   { return m_bFirstSliceEncounteredInPicture;           }
   Bool        getLastSliceEncounteredInPicture ()                   { return m_bLastSliceEncounteredInPicture;            }
-#if AD_HOC_SLICES_TEST_OUTOFORDER_DECOMPRESS
   Long        getFileLocation                  ()                   { return m_cHandle.tellg();                           }
   Void        setFileLocation                  (Long uiLocation)    { m_cHandle.seekg(uiLocation, ios_base::beg);         }
-  Void        rewindFile                       ()                   { m_cHandle.clear();                                  }
-  Int         findNextStartCodeFastLookup      ( TComBitstream*& rpcBitstream );
-#endif
+  Void        clear                            ()                   { m_cHandle.clear();                                  }
+  Bool        good                             ()                   { return m_cHandle.good();                            }
 #endif
 private:
   int xFindNextStartCode(UInt& ruiPacketSize, UChar* pucBuffer); ///< get packet size and number of startcode bytes and seeks to the packet's start position

@@ -324,7 +324,6 @@ Void TComLoopFilter::xGetBoundaryStrengthSingle ( TComDataCU* pcCU, UInt uiAbsZo
   UInt uiBs;
   
 #if AD_HOC_SLICES  
-#if SHARP_ENTROPY_SLICE
 #if MTK_NONCROSS_INLOOP_FILTER
   //-- Calculate Block Index
   if (iDir == EDGE_VER)
@@ -346,17 +345,6 @@ Void TComLoopFilter::xGetBoundaryStrengthSingle ( TComDataCU* pcCU, UInt uiAbsZo
     pcCUP = pcCUQ->getPUAbove(uiPartP, uiPartQ, false, false);
   }
 #endif
-#else
-  //-- Calculate Block Index
-  if (iDir == EDGE_VER)
-  {
-    pcCUP = pcCUQ->getPULeft(uiPartP, uiPartQ, false);
-  }
-  else  // (iDir == EDGE_HOR)
-  {
-    pcCUP = pcCUQ->getPUAbove(uiPartP, uiPartQ, false);
-  }
-#endif  
 #else
   //-- Calculate Block Index
   if (iDir == EDGE_VER)
