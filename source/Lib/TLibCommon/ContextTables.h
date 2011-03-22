@@ -44,6 +44,8 @@
 #define NUM_SPLIT_FLAG_CTX            3       ///< number of context models for split flag
 #define NUM_SKIP_FLAG_CTX             3       ///< number of context models for skip flag
 
+#define NUM_ALF_CRTL_FLAG_CTX         3       ///< number of context models for ALF ctrl flag
+
 #define NUM_MERGE_FLAG_EXT_CTX        3       ///< number of context models for merge flag of merge extended
 #define NUM_MERGE_IDX_EXT_CTX         4       ///< number of context models for merge index of merge extended
 
@@ -121,6 +123,21 @@ INIT_SPLIT_FLAG[3][NUM_SPLIT_FLAG_CTX][2] =
 // initial probability for skip flag
 static const Short
 INIT_SKIP_FLAG[3][NUM_SKIP_FLAG_CTX][2] =
+{
+  {
+    {    0,   64 }, {    0,   64 }, {    0,   64 }
+  },
+  {
+    {    0,   64 }, {    0,   64 }, {    0,   64 }
+  },
+  {
+    {    0,   64 }, {    0,   64 }, {    0,   64 }
+  }
+};
+
+// initial probability for skip flag
+static const Short
+INIT_ALF_CTRL_FLAG[3][NUM_ALF_CTRL_FLAG_CTX][2] =
 {
   {
     {    0,   64 }, {    0,   64 }, {    0,   64 }
