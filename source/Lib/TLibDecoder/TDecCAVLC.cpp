@@ -513,6 +513,12 @@ Void TDecCavlc::parseSplitFlag     ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt u
     };
     if(tmp!=0)
       cx--;
+
+    UInt uiDepthRemember = uiDepth;
+    if ( uiDepth == g_uiMaxCUDepth - g_uiAddCUDepth )
+    {
+      uiDepth = 3;
+    }
     UInt x = m_uiSplitTableD[uiDepth][cx];
     /* Adapt table */
     uiMode = x;
@@ -523,6 +529,7 @@ Void TDecCavlc::parseSplitFlag     ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt u
       m_uiSplitTableD[uiDepth][cy] = x;
       m_uiSplitTableD[uiDepth][cx] = y;
     }
+    uiDepth = uiDepthRemember;
   }
   if (uiMode==0)
   {

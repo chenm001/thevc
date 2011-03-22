@@ -628,6 +628,11 @@ Void TEncCavlc::codeInterModeFlag( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiD
 	Bool bHasSplit = ( uiDepth == g_uiMaxCUDepth - g_uiAddCUDepth )? 0 : 1;
 	UInt uiSplitFlag = ( pcCU->getDepth( uiAbsPartIdx ) > uiDepth ) ? 1 : 0;
 	UInt uiMode=0,uiControl=0;
+        UInt uiTableDepth = uiDepth;
+        if ( !bHasSplit )
+        {
+          uiTableDepth = 3;
+        }
 	if(!uiSplitFlag || !bHasSplit)
 	{
 		uiMode = 1;
@@ -648,6 +653,7 @@ Void TEncCavlc::codeInterModeFlag( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiD
   if (uiEncMode != uiControl )
 		return;
   UInt uiEndSym = bHasSplit ? 7 : 6;
+  uiDepth = uiTableDepth;
   UInt uiLength = m_uiSplitTableE[uiDepth][uiMode] + 1;
   if (uiLength == uiEndSym)
   {
