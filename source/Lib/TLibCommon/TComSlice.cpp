@@ -72,10 +72,8 @@ TComSlice::TComSlice()
   m_bRefPicListCombinationFlag = false;
   m_bRefPicListModificationFlagLC = false;
 #endif
-#if AD_HOC_SLICES
   m_uiSliceCurStartCUAddr        = 0;
   m_uiEntropySliceCurStartCUAddr = 0;
-#endif
 }
 
 TComSlice::~TComSlice()
@@ -124,17 +122,13 @@ Void  TComSlice::sortPicList        (TComList<TComPic*>& rcListPic)
     iterPicExtract = rcListPic.begin();
     for (Int j = 0; j < i; j++) iterPicExtract++;
     pcPicExtract = *(iterPicExtract);
-#if AD_HOC_SLICES
     pcPicExtract->setCurrSliceIdx(0);
-#endif
     
     iterPicInsert = rcListPic.begin();
     while (iterPicInsert != iterPicExtract)
     {
       pcPicInsert = *(iterPicInsert);
-#if AD_HOC_SLICES
       pcPicInsert->setCurrSliceIdx(0);
-#endif
       if (pcPicInsert->getPOC() >= pcPicExtract->getPOC())
       {
         break;
@@ -183,20 +177,11 @@ TComPic* TComSlice::xGetRefPic (TComList<TComPic*>& rcListPic,
       iterPic--;
       pcPic = *(iterPic);
       if( ( !pcPic->getReconMark()                        ) ||
-#if AD_HOC_SLICES
           ( bDRBFlag  != pcPic->getSlice(0)->getDRBFlag()  ) ||
           ( eERBIndex != pcPic->getSlice(0)->getERBIndex() ) )
-#else
-         ( bDRBFlag  != pcPic->getSlice()->getDRBFlag()  ) ||
-         ( eERBIndex != pcPic->getSlice()->getERBIndex() ) )
-#endif
         continue;
       
-#if AD_HOC_SLICES
       if( !pcPic->getSlice(0)->isReferenced() )
-#else
-      if( !pcPic->getSlice()->isReferenced() )
-#endif
         continue;
       
       uiCount++;
@@ -227,20 +212,11 @@ TComPic* TComSlice::xGetRefPic (TComList<TComPic*>& rcListPic,
         
         pcPic = *(iterPic);
         if( ( !pcPic->getReconMark()                        ) ||
-#if AD_HOC_SLICES
           ( bDRBFlag  != pcPic->getSlice(0)->getDRBFlag()  ) ||
           ( eERBIndex != pcPic->getSlice(0)->getERBIndex() ) )
-#else
-           ( bDRBFlag  != pcPic->getSlice()->getDRBFlag()  ) ||
-           ( eERBIndex != pcPic->getSlice()->getERBIndex() ) )
-#endif
           continue;
         
-#if AD_HOC_SLICES
       if( !pcPic->getSlice(0)->isReferenced() )
-#else
-        if( !pcPic->getSlice()->isReferenced() )
-#endif
           continue;
         
         uiCount++;
@@ -262,20 +238,11 @@ TComPic* TComSlice::xGetRefPic (TComList<TComPic*>& rcListPic,
       
       pcPic = *(iterPic);
       if( ( !pcPic->getReconMark()                        ) ||
-#if AD_HOC_SLICES
           ( bDRBFlag  != pcPic->getSlice(0)->getDRBFlag()  ) ||
           ( eERBIndex != pcPic->getSlice(0)->getERBIndex() ) )
-#else
-         ( bDRBFlag  != pcPic->getSlice()->getDRBFlag()  ) ||
-         ( eERBIndex != pcPic->getSlice()->getERBIndex() ) )
-#endif
         continue;
       
-#if AD_HOC_SLICES
       if( !pcPic->getSlice(0)->isReferenced() )
-#else
-      if( !pcPic->getSlice()->isReferenced() )
-#endif
         continue;
       
       uiCount++;
@@ -303,20 +270,11 @@ TComPic* TComSlice::xGetRefPic (TComList<TComPic*>& rcListPic,
       iterPic--;
       pcPic = *(iterPic);
       if( ( !pcPic->getReconMark()                        ) ||
-#if AD_HOC_SLICES
           ( bDRBFlag  != pcPic->getSlice(0)->getDRBFlag()  ) ||
           ( eERBIndex != pcPic->getSlice(0)->getERBIndex() ) )
-#else
-         ( bDRBFlag  != pcPic->getSlice()->getDRBFlag()  ) ||
-         ( eERBIndex != pcPic->getSlice()->getERBIndex() ) )
-#endif
         continue;
       
-#if AD_HOC_SLICES
       if( !pcPic->getSlice(0)->isReferenced() )
-#else
-      if( !pcPic->getSlice()->isReferenced() )
-#endif
         continue;
       
       uiCount++;
@@ -571,12 +529,8 @@ Void TComSlice::decodingRefreshMarking(UInt& uiPOCCDR, Bool& bRefreshPending, TC
     while (iterPic != rcListPic.end())
     {
       rpcPic = *(iterPic);
-#if AD_HOC_SLICES
       rpcPic->setCurrSliceIdx(0);
       if (rpcPic->getPOC() != uiPOCCurr) rpcPic->getSlice(0)->setReferenced(false);
-#else
-      if (rpcPic->getPOC() != uiPOCCurr) rpcPic->getSlice()->setReferenced(false);      
-#endif      
       iterPic++;
     }
   }
@@ -588,11 +542,7 @@ Void TComSlice::decodingRefreshMarking(UInt& uiPOCCDR, Bool& bRefreshPending, TC
       while (iterPic != rcListPic.end())
       {
         rpcPic = *(iterPic);
-#if AD_HOC_SLICES        
         if (rpcPic->getPOC() != uiPOCCurr && rpcPic->getPOC() != uiPOCCDR) rpcPic->getSlice(0)->setReferenced(false);
-#else
-        if (rpcPic->getPOC() != uiPOCCurr && rpcPic->getPOC() != uiPOCCDR) rpcPic->getSlice()->setReferenced(false);
-#endif        
         iterPic++;
       }
       bRefreshPending = false; 
@@ -606,7 +556,6 @@ Void TComSlice::decodingRefreshMarking(UInt& uiPOCCDR, Bool& bRefreshPending, TC
 }
 #endif
 
-#if AD_HOC_SLICES
 Void TComSlice::copySliceInfo(TComSlice *pSrc)
 {
   assert( pSrc != NULL );
@@ -697,11 +646,11 @@ Void TComSlice::copySliceInfo(TComSlice *pSrc)
 #if MS_LCEC_LOOKUP_TABLE_EXCEPTION
   m_bRefIdxCombineCoding = pSrc->m_bRefIdxCombineCoding;
 #endif
-  m_uiSliceMode          = pSrc->m_uiSliceMode;
-  m_uiSliceArgument      = pSrc->m_uiSliceArgument;
-  m_uiSliceCurStartCUAddr= pSrc->m_uiSliceCurStartCUAddr;
-  m_uiSliceCurEndCUAddr  = pSrc->m_uiSliceCurEndCUAddr;
-  m_uiSliceIdx           = pSrc->m_uiSliceIdx;
+  m_uiSliceMode                   = pSrc->m_uiSliceMode;
+  m_uiSliceArgument               = pSrc->m_uiSliceArgument;
+  m_uiSliceCurStartCUAddr         = pSrc->m_uiSliceCurStartCUAddr;
+  m_uiSliceCurEndCUAddr           = pSrc->m_uiSliceCurEndCUAddr;
+  m_uiSliceIdx                    = pSrc->m_uiSliceIdx;
   m_uiEntropySliceMode            = pSrc->m_uiEntropySliceMode;
   m_uiEntropySliceArgument        = pSrc->m_uiEntropySliceArgument; 
   m_uiEntropySliceCurStartCUAddr  = pSrc->m_uiEntropySliceCurStartCUAddr;
@@ -709,7 +658,7 @@ Void TComSlice::copySliceInfo(TComSlice *pSrc)
   m_bNextSlice                    = pSrc->m_bNextSlice;
   m_bNextEntropySlice             = pSrc->m_bNextEntropySlice;
 }
-#endif
+
 // ------------------------------------------------------------------------------------------------
 // Sequence parameter set (SPS)
 // ------------------------------------------------------------------------------------------------

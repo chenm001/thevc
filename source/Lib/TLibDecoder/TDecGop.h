@@ -75,10 +75,8 @@ private:
   // Adaptive Loop filter
   TComAdaptiveLoopFilter*       m_pcAdaptiveLoopFilter;
   
-#if AD_HOC_SLICES
   ALFParam              m_cAlfParam;
   Double                m_dDecTime;
-#endif
 
 public:
   TDecGop();
@@ -93,11 +91,7 @@ public:
                  TComAdaptiveLoopFilter* pcAdaptiveLoopFilter );
   Void  create  ();
   Void  destroy ();
-#if AD_HOC_SLICES  
   Void  decompressGop ( Bool bEos, TComBitstream* pcBitstream, TComPic*& rpcPic, Bool bExecuteDeblockAndAlf );
-#else
-  Void  decompressGop ( Bool bEos, TComBitstream* pcBitstream, TComPic*& rpcPic );
-#endif
   Void  setGopSize( Int i) { m_iGopSize = i; }
 };
 

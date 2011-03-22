@@ -62,12 +62,10 @@ public:
   
   TEncBinCABAC* getTEncBinCABAC()  { return this; }
   
-#if AD_HOC_SLICES
   Void  setBinsCoded              ( UInt uiVal )  { m_uiBinsCoded = uiVal;          }
   UInt  getBinsCoded              ()              { return m_uiBinsCoded;           }
   Void  setBinCountingEnableFlag  ( Bool bFlag )  { m_bBinCountingEnabled = bFlag;  }
   Bool  getBinCountingEnableFlag  ()              { return m_bBinCountingEnabled;   }
-#endif
 protected:
   Void  xWriteBit               ( UInt uiBit );
   Void  xWriteBitAndBitsToFollow( UInt uiBit );
@@ -79,10 +77,8 @@ private:
   UInt                m_uiBitsToFollow;
   UInt                m_uiByte;
   UInt                m_uiBitsLeft;
-#if AD_HOC_SLICES
   UInt                m_uiBinsCoded;
   Bool                m_bBinCountingEnabled;
-#endif
 };
 
 

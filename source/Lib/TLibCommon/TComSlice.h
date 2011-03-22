@@ -270,7 +270,7 @@ private:
 #if MS_LCEC_LOOKUP_TABLE_EXCEPTION
   Bool        m_bRefIdxCombineCoding;
 #endif
-#if AD_HOC_SLICES 
+
   UInt        m_uiSliceMode;
   UInt        m_uiSliceArgument;
   UInt        m_uiSliceCurStartCUAddr;
@@ -283,7 +283,6 @@ private:
   Bool        m_bNextSlice;
   Bool        m_bNextEntropySlice;
   UInt        m_uiSliceBits;
-#endif
   
 public:
   TComSlice();
@@ -395,7 +394,6 @@ public:
 #if DCM_COMB_LIST
   Void      generateCombinedList       ();
 #endif
-#if AD_HOC_SLICES 
   Void setSliceMode                     ( UInt uiMode )     { m_uiSliceMode = uiMode;                     }
   UInt getSliceMode                     ()                  { return m_uiSliceMode;                       }
   Void setSliceArgument                 ( UInt uiArgument ) { m_uiSliceArgument = uiArgument;             }
@@ -421,7 +419,6 @@ public:
   Bool isNextEntropySlice               ()                  { return m_bNextEntropySlice;                 }
   Void setSliceBits                     ( UInt uiVal )      { m_uiSliceBits = uiVal;                      }
   UInt getSliceBits                     ()                  { return m_uiSliceBits;                       }  
-#endif
   
 protected:
   TComPic*  xGetRefPic  (TComList<TComPic*>& rcListPic,

@@ -169,9 +169,7 @@ public:
   
   __inline Int  biari_no_bits        ( Short symbol, ContextModel& rcSCModel );
   
-#if AD_HOC_SLICES
-    TEncBinIf* getEncBinIf()  { return m_pcBinIf; }
-#endif
+  TEncBinIf* getEncBinIf()  { return m_pcBinIf; }
 private:
   UInt                 m_uiLastQp;
   ContextModel3DBuffer m_cCUSplitFlagSCModel;

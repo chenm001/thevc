@@ -138,14 +138,12 @@ protected:
 #if CONSTRAINED_INTRA_PRED
   Bool      m_bUseConstrainedIntraPred;
 #endif
-#if AD_HOC_SLICES 
 	//====== Slice ========
 	Int		m_iSliceMode;
 	Int		m_iSliceArgument; 
 	//====== Entropy Slice ========
 	Int		m_iEntropySliceMode;
 	Int		m_iEntropySliceArgument;
-#endif
 #if MTK_NONCROSS_INLOOP_FILTER
   Bool m_bLFCrossSliceBoundaryFlag;
 #endif
@@ -314,7 +312,6 @@ public:
   Void setUseRoundingControlBipred(Bool b) { m_useRoundingControlBipred = b; }
   Bool getUseRoundingControlBipred() { return m_useRoundingControlBipred; }
 #endif
-#if AD_HOC_SLICES 
 	//====== Slice ========
   Void  setSliceMode                   ( Int	i )       { m_iSliceMode = i;              }
   Void  setSliceArgument               ( Int	i )       { m_iSliceArgument = i;          }
@@ -325,7 +322,6 @@ public:
   Void  setEntropySliceArgument        ( Int	i )      { m_iEntropySliceArgument = i;   }
   Int   getEntropySliceMode            ()              { return m_iEntropySliceMode;    }
   Int   getEntropySliceArgument        ()              { return m_iEntropySliceArgument;}
-#endif
 #if MTK_NONCROSS_INLOOP_FILTER
   Void      setLFCrossSliceBoundaryFlag     ( Bool   bValue  )    { m_bLFCrossSliceBoundaryFlag = bValue; }
   Bool      getLFCrossSliceBoundaryFlag     ()                    { return m_bLFCrossSliceBoundaryFlag;   }

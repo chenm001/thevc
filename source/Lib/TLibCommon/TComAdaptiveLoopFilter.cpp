@@ -527,9 +527,7 @@ Void TComAdaptiveLoopFilter::destroy()
     delete m_pcTempPicYuv;
   }
   destroyMatrix_imgpel(m_imgY_var); 
-#if AD_HOC_SLICES
   destroyMatrix_int(m_imgY_temp);
-#endif
   
   destroyMatrix_int(m_filterCoeffSym);
   destroyMatrix_int(m_filterCoeffPrevSelected);

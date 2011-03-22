@@ -48,9 +48,7 @@
 TDecGop::TDecGop()
 {
   m_iGopSize = 0;
-#if AD_HOC_SLICES
   m_dDecTime = 0;
-#endif
 }
 
 TDecGop::~TDecGop()
@@ -90,32 +88,21 @@ Void TDecGop::init( TDecEntropy*            pcEntropyDecoder,
 // Public member functions
 // ====================================================================================================================
 
-#if AD_HOC_SLICES
 Void TDecGop::decompressGop (Bool bEos, TComBitstream* pcBitstream, TComPic*& rpcPic, Bool bExecuteDeblockAndAlf)
-#else
-Void TDecGop::decompressGop (Bool bEos, TComBitstream* pcBitstream, TComPic*& rpcPic)
-#endif
 {
-#if AD_HOC_SLICES
   TComSlice*  pcSlice = rpcPic->getSlice(rpcPic->getCurrSliceIdx());
-#else
-  TComSlice*  pcSlice = rpcPic->getSlice();
-#endif
 
   //-- For time output for each slice
   long iBeforeTime = clock();
   
-#if AD_HOC_SLICES
   UInt uiStartCUAddr   = pcSlice->getEntropySliceCurStartCUAddr();
 #if MTK_NONCROSS_INLOOP_FILTER
   static Bool  bFirst = true;
   static UInt  uiILSliceCount;
   static UInt* puiILSliceStartLCU;
 
-#if AD_HOC_SLICES
   if (!bExecuteDeblockAndAlf)
   {
-#endif
   if(bFirst)
   {
     uiILSliceCount = 0;
@@ -136,7 +123,7 @@ Void TDecGop::decompressGop (Bool bEos, TComBitstream* pcBitstream, TComPic*& rp
     }
   }
 #endif //MTK_NONCROSS_INLOOP_FILTER
-#endif
+
   UInt iSymbolMode = pcSlice->getSymbolMode();
   if (iSymbolMode)
   {
@@ -151,13 +138,9 @@ Void TDecGop::decompressGop (Bool bEos, TComBitstream* pcBitstream, TComPic*& rp
   m_pcEntropyDecoder->setBitstream      (pcBitstream);
   m_pcEntropyDecoder->resetEntropy      (pcSlice);
 
-#if AD_HOC_SLICES
   if (uiStartCUAddr==0)  // decode ALF params only from first slice header
   {
     if ( rpcPic->getSlice(0)->getSPS()->getUseALF() )
-#else
-  if ( rpcPic->getSlice()->getSPS()->getUseALF() )
-#endif
   {
 #if TSB_ALF_HEADER
     m_pcAdaptiveLoopFilter->setNumCUsInFrame(rpcPic);
@@ -165,28 +148,20 @@ Void TDecGop::decompressGop (Bool bEos, TComBitstream* pcBitstream, TComPic*& rp
     m_pcAdaptiveLoopFilter->allocALFParam(&m_cAlfParam);
     m_pcEntropyDecoder->decodeAlfParam( &m_cAlfParam );
   }
-#if AD_HOC_SLICES
   }
-#endif
   
   m_pcSliceDecoder->decompressSlice(pcBitstream, rpcPic);
   
-#if AD_HOC_SLICES 
   m_dDecTime += (double)(clock()-iBeforeTime) / CLOCKS_PER_SEC;
   }
   else
   {
-#endif
   // deblocking filter
   m_pcLoopFilter->setCfg(pcSlice->getLoopFilterDisable(), 0, 0);
   m_pcLoopFilter->loopFilterPic( rpcPic );
   
   // adaptive loop filter
-#if AD_HOC_SLICES
-    if( pcSlice->getSPS()->getUseALF() )
-#else
-  if( rpcPic->getSlice()->getSPS()->getUseALF() )
-#endif
+  if( pcSlice->getSPS()->getUseALF() )
   {
 #if MTK_NONCROSS_INLOOP_FILTER  
     if(pcSlice->getSPS()->getLFCrossSliceBoundaryFlag())
@@ -228,14 +203,9 @@ Void TDecGop::decompressGop (Bool bEos, TComBitstream* pcBitstream, TComPic*& rp
          pcSlice->isIntra() ? 'I' : pcSlice->isInterP() ? 'P' : 'B',
          pcSlice->getSliceQp() );
   
-#if AD_HOC_SLICES 
   m_dDecTime += (double)(clock()-iBeforeTime) / CLOCKS_PER_SEC;
   printf ("[DT %6.3f] ", m_dDecTime );
   m_dDecTime  = 0;
-#else
-  Double dDecTime = (double)(clock()-iBeforeTime) / CLOCKS_PER_SEC;
-  printf ("[DT %6.3f] ", dDecTime );
-#endif
   
   for (Int iRefList = 0; iRefList < 2; iRefList++)
   {
@@ -261,11 +231,9 @@ Void TDecGop::decompressGop (Bool bEos, TComBitstream* pcBitstream, TComPic*& rp
   rpcPic->getPicYuvRec()->xFixedRoundingPic();
 #endif 
   rpcPic->setReconMark(true);
-#if AD_HOC_SLICES 
 #if MTK_NONCROSS_INLOOP_FILTER
   uiILSliceCount = 0;
 #endif
   }
-#endif
 }
 

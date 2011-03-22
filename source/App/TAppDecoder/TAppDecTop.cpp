@@ -99,9 +99,7 @@ Void TAppDecTop::decode()
   TComBitstream*      pcBitstream = m_apcBitstream;
   UInt                uiPOC;
   TComList<TComPic*>* pcListPic;
-#if AD_HOC_SLICES
   Bool bFirstSliceDecoded = true;
-#endif
 
   // create & initialize internal classes
   xCreateDecLib();
@@ -117,15 +115,10 @@ Void TAppDecTop::decode()
   
   while ( !bEos )
   {
-#if AD_HOC_SLICES
     Long lLocation          = m_cTVideoIOBitstreamFile.getFileLocation();
     bEos                    = m_cTVideoIOBitstreamFile.readBits( pcBitstream );
-#else
-    bEos = m_cTVideoIOBitstreamFile.readBits( pcBitstream );
-#endif
     if (bEos)
     {
-#if AD_HOC_SLICES
       if (!bFirstSliceDecoded) m_cTDecTop.decode( bEos, pcBitstream, uiPOC, pcListPic, m_iSkipFrame, m_iPOCLastDisplay);
       m_cTDecTop.executeDeblockAndAlf( bEos, pcBitstream, uiPOC, pcListPic, m_iSkipFrame, m_iPOCLastDisplay);
       if( pcListPic )
@@ -141,13 +134,11 @@ Void TAppDecTop::decode()
         // write reconstuction to file
         xWriteOutput( pcListPic );
       }
-#endif
       break;
     }
     
     // call actual decoding function
 #if DCM_SKIP_DECODING_FRAMES
-#if AD_HOC_SLICES
     Bool bNewPicture     = m_cTDecTop.decode( bEos, pcBitstream, uiPOC, pcListPic, m_iSkipFrame, m_iPOCLastDisplay);
     bFirstSliceDecoded   = true;
     if (bNewPicture)
@@ -157,9 +148,6 @@ Void TAppDecTop::decode()
       m_cTVideoIOBitstreamFile.setFileLocation( lLocation );
       bFirstSliceDecoded = false;
     }
-#else
-    m_cTDecTop.decode( bEos, pcBitstream, uiPOC, pcListPic, m_iSkipFrame, m_iPOCLastDisplay );
-#endif
 #else
     m_cTDecTop.decode( bEos, pcBitstream, uiPOC, pcListPic );
 #endif
@@ -248,22 +236,14 @@ Void TAppDecTop::xWriteOutput( TComList<TComPic*>* pcListPic )
       // write to file
       if ( m_pchReconFile )
       {
-#if AD_HOC_SLICES
         m_cTVideoIOYuvReconFile.write( pcPic->getPicYuvRec(), pcPic->getSlice(0)->getSPS()->getPad() );
-#else
-        m_cTVideoIOYuvReconFile.write( pcPic->getPicYuvRec(), pcPic->getSlice()->getSPS()->getPad() );
-#endif
       }
       
       // update POC of display order
       m_iPOCLastDisplay = pcPic->getPOC();
       
       // erase non-referenced picture in the reference picture list after display
-#if AD_HOC_SLICES
       if ( !pcPic->getSlice(0)->isReferenced() && pcPic->getReconMark() == true )
-#else
-      if ( !pcPic->getSlice()->isReferenced() && pcPic->getReconMark() == true )
-#endif
       {
 #if !DYN_REF_FREE
         pcPic->setReconMark(false);
