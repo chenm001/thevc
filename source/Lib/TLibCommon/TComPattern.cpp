@@ -229,9 +229,7 @@ Void TComPattern::initAdiPattern( TComDataCU* pcCU, UInt uiZorderIdxInPart, UInt
   Bool  bAboveRightFlag = false;
   Bool  bLeftFlag       = false;
   Bool  bBelowLeftFlag  = false;
-#if CONSTRAINED_INTRA_PRED
   Bool  bAboveLeftFlag  = false;
-#endif
   
   iCuAddr = pcCU->getAddr();
   
@@ -306,23 +304,13 @@ Void TComPattern::initAdiPattern( TComDataCU* pcCU, UInt uiZorderIdxInPart, UInt
       for (i=0;i<uiCuWidth;i++)
         piAdiTemp[1+uiCuWidth+i]=piAdiTemp[uiCuWidth];
     }
-#if !CONSTRAINED_INTRA_PRED
-    // BB: fill top left border corner with rec. sample
-    if (bLeftFlag)//BB: why left not top left?
-    {
-      piRoiTemp=piRoiOrigin-iPicStride-1;
-      piAdiTemp[0]=piRoiTemp[0];
-    }
-#endif
   }
   
-#if CONSTRAINED_INTRA_PRED
   if (bAboveLeftFlag)
   {
     piRoiTemp=piRoiOrigin-iPicStride-1;
     piAdiTemp[0]=piRoiTemp[0];
   }
-#endif
 
   if (bLeftFlag)
   {
@@ -419,9 +407,7 @@ Void TComPattern::initAdiPatternChroma( TComDataCU* pcCU, UInt uiZorderIdxInPart
   Bool  bAboveRightFlag=false;
   Bool  bLeftFlag=false;
   Bool  bBelowLeftFlag=false;
-#if CONSTRAINED_INTRA_PRED
   Bool  bAboveLeftFlag    = false;
-#endif
   
   iCuAddr = pcCU->getAddr();
   
@@ -497,22 +483,13 @@ Void TComPattern::initAdiPatternChroma( TComDataCU* pcCU, UInt uiZorderIdxInPart
       for (i=0;i<uiCuWidth;i++)
         piAdiTemp[1+uiCuWidth+i]=piAdiTemp[uiCuWidth];
     }
-#if !CONSTRAINED_INTRA_PRED
-    if (bLeftFlag)
-    {
-      piRoiTemp=piRoiOrigin-iPicStride-1;
-      piAdiTemp[0]=piRoiTemp[0];
-    }
-#endif
   }
   
-#if CONSTRAINED_INTRA_PRED
   if (bAboveLeftFlag)
   {
     piRoiTemp=piRoiOrigin-iPicStride-1;
     piAdiTemp[0]=piRoiTemp[0];
   }
-#endif
 
   if (bLeftFlag)
   {
@@ -564,22 +541,13 @@ Void TComPattern::initAdiPatternChroma( TComDataCU* pcCU, UInt uiZorderIdxInPart
       for (i=0;i<uiCuWidth;i++)
         piAdiTemp[1+uiCuWidth+i]=piAdiTemp[uiCuWidth];
     }
-#if !CONSTRAINED_INTRA_PRED
-    if (bLeftFlag)
-    {
-      piRoiTemp=piRoiOrigin-iPicStride-1;
-      piAdiTemp[0]=piRoiTemp[0];
-    }
-#endif
   }
 
-#if CONSTRAINED_INTRA_PRED
   if (bAboveLeftFlag)
   {
     piRoiTemp=piRoiOrigin-iPicStride-1;
     piAdiTemp[0]=piRoiTemp[0];
   }
-#endif  
 
   if (bLeftFlag)
   {
