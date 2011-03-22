@@ -71,7 +71,6 @@
 //////////////////////////////
 
 #define HIGH_ACCURACY_BI                  1          // High precision bi-prediction JCTVC-D321
-#define FIX_ISSUE_125                     1
 
 //////////////////////////////
 // Nokia defines section end
