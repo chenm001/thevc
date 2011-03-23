@@ -62,9 +62,7 @@ TComSlice::TComSlice()
   m_uiColDir = 0;
   
   initEqualRef();
-#if MS_NO_BACK_PRED_IN_B0
   m_bNoBackPredFlag = false;
-#endif
 #if MS_LCEC_LOOKUP_TABLE_EXCEPTION
   m_bRefIdxCombineCoding = false;
 #endif
@@ -96,9 +94,7 @@ Void TComSlice::initSlice()
   m_uiColDir = 0;
   
   initEqualRef();
-#if MS_NO_BACK_PRED_IN_B0
   m_bNoBackPredFlag = false;
-#endif
 #if MS_LCEC_LOOKUP_TABLE_EXCEPTION
   m_bRefIdxCombineCoding = false;
 #endif
@@ -686,9 +682,7 @@ Void TComSlice::copySliceInfo(TComSlice *pSrc)
     }
   }
 
-#if MS_NO_BACK_PRED_IN_B0
   m_bNoBackPredFlag      = pSrc->m_bNoBackPredFlag;
-#endif
 #if MS_LCEC_LOOKUP_TABLE_EXCEPTION
   m_bRefIdxCombineCoding = pSrc->m_bRefIdxCombineCoding;
 #endif

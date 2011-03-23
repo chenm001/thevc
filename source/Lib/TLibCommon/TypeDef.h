@@ -155,7 +155,6 @@
 ////////////////////////////////
 // MICROSOFT&USTC defines section start
 ////////////////////////////////
-#define MS_NO_BACK_PRED_IN_B0           1           // disable backward prediction when list1 == list0, and disable list1 search, JCTVC-C278
 #define MS_LCEC_ONE_FRAME		        1           // change the initial table in LCEC when there is up to one reference frame in each list, JCTVC-D141
 #define MS_LCEC_LOOKUP_TABLE_MAX_VALUE  1           // use the information of the max position in the lookup table, JCTVC-D141
 #define MS_LCEC_LOOKUP_TABLE_EXCEPTION  1           // deal with the case when the number of reference frames is greater than 2, JCTVC-D141

@@ -269,7 +269,6 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
       //-------------------------------------------------------------
       pcSlice->setRefPOCList();
       
-#if MS_NO_BACK_PRED_IN_B0
       pcSlice->setNoBackPredFlag( false );
 #if DCM_COMB_LIST
       if ( pcSlice->getSliceType() == B_SLICE && !pcSlice->getRefPicListCombinationFlag())
@@ -291,7 +290,6 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
           }
         }
       }
-#endif
 
 #if DCM_COMB_LIST
       if(pcSlice->getNoBackPredFlag())

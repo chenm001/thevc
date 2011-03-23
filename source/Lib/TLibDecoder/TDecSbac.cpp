@@ -794,12 +794,10 @@ Void TDecSbac::parseInterDir( TComDataCU* pcCU, UInt& ruiInterDir, UInt uiAbsPar
     uiSymbol = 0;
   }
 #endif
-#if MS_NO_BACK_PRED_IN_B0
   else if ( pcCU->getSlice()->getNoBackPredFlag() )
   {
     uiSymbol = 0;
   }
-#endif
   else
   {
     m_pcTDecBinIf->decodeBin( uiSymbol, m_cCUInterDirSCModel.get( 0, 0, 3 ) );

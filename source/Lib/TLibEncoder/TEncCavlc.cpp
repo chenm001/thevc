@@ -93,7 +93,6 @@ Void TEncCavlc::resetEntropy()
   ::memcpy(m_uiMI2TableE, g_auiMI2TableE, 15*sizeof(UInt));
   ::memcpy(m_uiMI2TableD, g_auiMI2TableD, 15*sizeof(UInt));
   
-#if MS_NO_BACK_PRED_IN_B0
 #if DCM_COMB_LIST
   if ( m_pcSlice->getNoBackPredFlag() || m_pcSlice->getNumRefIdx(REF_PIC_LIST_C)>0)
 #else
@@ -105,7 +104,6 @@ Void TEncCavlc::resetEntropy()
     ::memcpy(m_uiMI2TableE, g_auiMI2TableENoL1, 15*sizeof(UInt));
     ::memcpy(m_uiMI2TableD, g_auiMI2TableDNoL1, 15*sizeof(UInt));
   }
-#endif
 #if MS_LCEC_ONE_FRAME
   if ( m_pcSlice->getNumRefIdx(REF_PIC_LIST_0) <= 1 && m_pcSlice->getNumRefIdx(REF_PIC_LIST_1) <= 1 )
   {
@@ -1071,13 +1069,11 @@ Void TEncCavlc::codeInterDir( TComDataCU* pcCU, UInt uiAbsPartIdx )
   }
   
   xWriteFlag( ( uiInterDir == 2 ? 1 : 0 ));
-#if MS_NO_BACK_PRED_IN_B0
   if ( pcCU->getSlice()->getNoBackPredFlag() )
   {
     assert( uiInterDir != 1 );
     return;
   }
-#endif
 #if DCM_COMB_LIST
   if ( uiInterDir < 2 && pcCU->getSlice()->getNumRefIdx(REF_PIC_LIST_C) <= 0)
 #else

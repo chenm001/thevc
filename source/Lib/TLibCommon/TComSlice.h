@@ -246,9 +246,7 @@ private:
   
   Bool        m_abEqualRef  [2][MAX_NUM_REF][MAX_NUM_REF];
   
-#if MS_NO_BACK_PRED_IN_B0
   Bool        m_bNoBackPredFlag;
-#endif
 #if MS_LCEC_LOOKUP_TABLE_EXCEPTION
   Bool        m_bRefIdxCombineCoding;
 #endif
@@ -363,10 +361,8 @@ public:
   
   static Void      sortPicList         ( TComList<TComPic*>& rcListPic );
   
-#if MS_NO_BACK_PRED_IN_B0
   Bool getNoBackPredFlag() { return m_bNoBackPredFlag; }
   Void setNoBackPredFlag( Bool b ) { m_bNoBackPredFlag = b; }
-#endif
 #if MS_LCEC_LOOKUP_TABLE_EXCEPTION
   Bool getRefIdxCombineCoding() { return m_bRefIdxCombineCoding; }
   Void setRefIdxCombineCoding( Bool b ) { m_bRefIdxCombineCoding = b; }

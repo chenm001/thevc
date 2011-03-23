@@ -387,7 +387,6 @@ Void TDecTop::decode (Bool bEos, TComBitstream* pcBitstream, UInt& ruiPOC, TComL
         }
 #endif
         
-#if MS_NO_BACK_PRED_IN_B0
         pcSlice->setNoBackPredFlag( false );
 #if DCM_COMB_LIST
         if ( pcSlice->getSliceType() == B_SLICE && !pcSlice->getRefPicListCombinationFlag())
@@ -409,7 +408,6 @@ Void TDecTop::decode (Bool bEos, TComBitstream* pcBitstream, UInt& ruiPOC, TComL
               }
             }
           }
-#endif
         
 #if AD_HOC_SLICES && SHARP_ENTROPY_SLICE
       }

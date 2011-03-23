@@ -1104,12 +1104,10 @@ const UInt g_auiMI1TableD[8] = {0,2,1,4,3,6,5,7};
 const UInt g_auiMI2TableE[15] = {0,1,3,2,6,5,4,7,9,8,13,12,11,14,10};
 const UInt g_auiMI2TableD[15] = {0,1,3,2,6,5,4,7,9,8,14,12,11,10,13};
 
-#if MS_NO_BACK_PRED_IN_B0
 const UInt g_auiMI1TableENoL1[8] = {0,1,6,7,2,4,3,5};
 const UInt g_auiMI1TableDNoL1[8] = {0,1,4,6,5,7,2,3};
 const UInt g_auiMI2TableENoL1[15] = {0,1,2,12,14,13,3,4,6,5,10,9,8,11,7};
 const UInt g_auiMI2TableDNoL1[15] = {0,1,2,6,7,9,8,14,12,11,10,13,3,5,4};
-#endif
 
 #if MS_LCEC_ONE_FRAME
 // as there are two lists used for bi-directional prediction, and one list for uni-directional prediction

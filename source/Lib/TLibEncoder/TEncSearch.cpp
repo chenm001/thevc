@@ -2233,14 +2233,10 @@ Void TEncSearch::predInterSearch( TComDataCU* pcCU, TComYuv* pcOrgYuv, TComYuv*&
         
         uiBitsTemp += m_auiMVPIdxCost[aaiMvpIdx[iRefList][iRefIdxTemp]][aaiMvpNum[iRefList][iRefIdxTemp]];
 #if ZERO_MVD_EST
-        #if MS_NO_BACK_PRED_IN_B0 || DCM_COMB_LIST
+#if DCM_COMB_LIST
         if ((iRefList != 1 || !pcCU->getSlice()->getNoBackPredFlag()) &&
             (pcCU->getSlice()->getNumRefIdx(REF_PIC_LIST_C) <= 0 || pcCU->getSlice()->getRefIdxOfLC(eRefPicList, iRefIdxTemp)>=0))
-        #elif MS_NO_BACK_PRED_IN_B0
-        if (iRefList != 1 || !pcCU->getSlice()->getNoBackPredFlag())
-        #elif DCM_COMB_LIST
-        if (pcCU->getSlice()->getNumRefIdx(REF_PIC_LIST_C) <= 0 || pcCU->getSlice()->getRefIdxOfLC(eRefPicList, iRefIdxTemp)>=0)
-        #endif
+#endif
         {
           uiZeroMvdBitsTemp = uiBitsTemp;
           uiZeroMvdBitsTemp += 2; //zero mvd bits
@@ -2266,14 +2262,10 @@ Void TEncSearch::predInterSearch( TComDataCU* pcCU, TComYuv* pcOrgYuv, TComYuv*&
         if ( pcCU->getSlice()->getSPS()->getUseLDC() )
 #endif
         {
-#if MS_NO_BACK_PRED_IN_B0
 #if DCM_COMB_LIST
           if ( iRefList && ( (pcCU->getSlice()->getSPS()->getUseLDC() && (iRefIdxTemp != iRefIdx[0])) || pcCU->getSlice()->getNoBackPredFlag() || (pcCU->getSlice()->getNumRefIdx(REF_PIC_LIST_C) > 0 && !pcCU->getSlice()->getNoBackPredFlag() && pcCU->getSlice()->getRefIdxOfL0FromRefIdxOfL1(iRefIdxTemp)>=0 ) ) )
 #else
           if ( iRefList && ( iRefIdxTemp != iRefIdx[0] || pcCU->getSlice()->getNoBackPredFlag() ) )
-#endif
-#else
-            if ( iRefList && iRefIdxTemp != iRefIdx[0] )
 #endif
             {
 #if DCM_COMB_LIST
@@ -2288,7 +2280,6 @@ Void TEncSearch::predInterSearch( TComDataCU* pcCU, TComYuv* pcOrgYuv, TComYuv*&
 #else
               uiCostTemp = MAX_UINT;
 #endif
-#if MS_NO_BACK_PRED_IN_B0
 #if DCM_COMB_LIST
               if ( pcCU->getSlice()->getNoBackPredFlag() || pcCU->getSlice()->getSPS()->getUseLDC() )
 #else
@@ -2303,7 +2294,6 @@ Void TEncSearch::predInterSearch( TComDataCU* pcCU, TComYuv* pcOrgYuv, TComYuv*&
                 cMvTemp[1][iRefIdxTemp] = cMvTemp[0][pcCU->getSlice()->getRefIdxOfL0FromRefIdxOfL1(iRefIdxTemp)]; 
               }
 #endif
-#endif
             }
             else
             {
@@ -2312,14 +2302,12 @@ Void TEncSearch::predInterSearch( TComDataCU* pcCU, TComYuv* pcOrgYuv, TComYuv*&
         }
         else
         {
-#if MS_NO_BACK_PRED_IN_B0
           if (iRefList && pcCU->getSlice()->getNoBackPredFlag())
           {
             uiCostTemp = MAX_UINT;
             cMvTemp[1][iRefIdxTemp] = cMvTemp[0][iRefIdxTemp];
           }
           else
-#endif
           { 
             xMotionEstimation ( pcCU, pcOrgYuv, iPartIdx, eRefPicList, &cMvPred[iRefList][iRefIdxTemp], iRefIdxTemp, cMvTemp[iRefList][iRefIdxTemp], uiBitsTemp, uiCostTemp );
           }        
@@ -2354,16 +2342,12 @@ Void TEncSearch::predInterSearch( TComDataCU* pcCU, TComYuv* pcOrgYuv, TComYuv*&
         }
 #endif
 
-#if MS_NO_BACK_PRED_IN_B0
         if ( ( iRefList == 0 && uiCostTemp < uiCost[iRefList] ) ||
             ( iRefList == 1 &&  pcCU->getSlice()->getNoBackPredFlag() && iRefIdxTemp == iRefIdx[0] ) ||
 #if DCM_COMB_LIST
             ( iRefList == 1 && (pcCU->getSlice()->getNumRefIdx(REF_PIC_LIST_C) > 0) && (iRefIdxTemp==0 || iRefIdxTemp == iRefIdx[0]) && !pcCU->getSlice()->getNoBackPredFlag() && (iRefIdxTemp == pcCU->getSlice()->getRefIdxOfL0FromRefIdxOfL1(iRefIdxTemp)) ) ||
 #endif
             ( iRefList == 1 && !pcCU->getSlice()->getNoBackPredFlag() && uiCostTemp < uiCost[iRefList] ) )
-#else
-          if ( uiCostTemp < uiCost[iRefList] )
-#endif
           {
             uiCost[iRefList] = uiCostTemp;
             uiBits[iRefList] = uiBitsTemp; // storing for bi-prediction
@@ -2379,7 +2363,6 @@ Void TEncSearch::predInterSearch( TComDataCU* pcCU, TComYuv* pcOrgYuv, TComYuv*&
               TComYuv*  pcYuvPred = &m_acYuvPred[iRefList];
               motionCompensation ( pcCU, pcYuvPred, eRefPicList, iPartIdx );
             }
-#if MS_NO_BACK_PRED_IN_B0
 #if DCM_COMB_LIST
             if ( (pcCU->getSlice()->getNoBackPredFlag() || (pcCU->getSlice()->getNumRefIdx(REF_PIC_LIST_C) > 0 && pcCU->getSlice()->getRefIdxOfL0FromRefIdxOfL1(0)==0 )) && eRefPicList == REF_PIC_LIST_0 )
 #else
@@ -2389,7 +2372,6 @@ Void TEncSearch::predInterSearch( TComDataCU* pcCU, TComYuv* pcOrgYuv, TComYuv*&
               TComYuv*  pcYuvPred = &m_acYuvPred[iRefList];
               motionCompensation ( pcCU, pcYuvPred, eRefPicList, iPartIdx );
             }
-#endif
           }
       }
     }
@@ -2419,7 +2401,6 @@ Void TEncSearch::predInterSearch( TComDataCU* pcCU, TComYuv* pcOrgYuv, TComYuv*&
       {
         
         Int         iRefList    = iIter % 2;
-#if MS_NO_BACK_PRED_IN_B0
 #if DCM_COMB_LIST
         if ( m_pcEncCfg->getUseFastEnc() && (pcCU->getSlice()->getNoBackPredFlag() || (pcCU->getSlice()->getNumRefIdx(REF_PIC_LIST_C) > 0 && pcCU->getSlice()->getRefIdxOfL0FromRefIdxOfL1(0)==0 )) )
 #else
@@ -2428,7 +2409,6 @@ Void TEncSearch::predInterSearch( TComDataCU* pcCU, TComYuv* pcOrgYuv, TComYuv*&
         {
           iRefList = 1;
         }
-#endif
         RefPicList  eRefPicList = ( iRefList ? REF_PIC_LIST_1 : REF_PIC_LIST_0 );
         
         Bool bChanged = false;
@@ -2449,7 +2429,6 @@ Void TEncSearch::predInterSearch( TComDataCU* pcCU, TComYuv* pcOrgYuv, TComYuv*&
         iRefEnd   = pcCU->getSlice()->getNumRefIdx(eRefPicList)-1;
 #endif
         
-#if MS_NO_BACK_PRED_IN_B0
 #if DCM_COMB_LIST
         if ( m_pcEncCfg->getUseFastEnc() && (pcCU->getSlice()->getNoBackPredFlag() || (pcCU->getSlice()->getNumRefIdx(REF_PIC_LIST_C) > 0 && pcCU->getSlice()->getRefIdxOfL0FromRefIdxOfL1(0)==0 )) )
 #else
@@ -2459,7 +2438,6 @@ Void TEncSearch::predInterSearch( TComDataCU* pcCU, TComYuv* pcOrgYuv, TComYuv*&
           iRefStart = 0;
           iRefEnd   = pcCU->getSlice()->getNumRefIdx(eRefPicList)-1;
         }
-#endif
         
         for ( Int iRefIdxTemp = iRefStart; iRefIdxTemp <= iRefEnd; iRefIdxTemp++ )
         {
@@ -2580,7 +2558,6 @@ Void TEncSearch::predInterSearch( TComDataCU* pcCU, TComYuv* pcOrgYuv, TComYuv*&
     
     UInt uiMEBits = 0;
     // Set Motion Field_
-#if MS_NO_BACK_PRED_IN_B0
 #if DCM_COMB_LIST
     if ( pcCU->getSlice()->getNoBackPredFlag() || (pcCU->getSlice()->getNumRefIdx(REF_PIC_LIST_C) > 0 && pcCU->getSlice()->getRefIdxOfL0FromRefIdxOfL1(0)==0 ) )
 #else
@@ -2589,7 +2566,6 @@ Void TEncSearch::predInterSearch( TComDataCU* pcCU, TComYuv* pcOrgYuv, TComYuv*&
     {
       uiCost[1] = MAX_UINT;
     }
-#endif
 #if PART_MRG
     if (bTestNormalMC)
     {
