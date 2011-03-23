@@ -1673,25 +1673,20 @@ Void TDecEntropy::xDecodeCoeff( TComDataCU* pcCU, TCoeff* pcCoeff, UInt uiAbsPar
       
       if(pcCU->getSlice()->getSymbolMode() == 0)
       {
-        if (1)
-        {
-          UInt uiLog2TrSize = g_aucConvertToBit[ pcCU->getSlice()->getSPS()->getMaxCUWidth() >> uiDepth ] + 2;
-          if( eType == TEXT_LUMA || uiLog2TrSize > pcCU->getSlice()->getSPS()->getQuadtreeTULog2MinSize() )
-            m_pcEntropyDecoderIf->parseBlockCbf(pcCU, uiIdx, eType, uiTrIdx, uiDepth, uiQPartNum);
-          else
-          {
-            UInt uiCbf = pcCU->getCbf( uiIdx, eType );
-            pcCU->setCbfSubParts( uiCbf | ( 0x01 << uiTrIdx ), eType, uiIdx, uiDepth ); 
-            uiCbf = pcCU->getCbf( uiIdx + uiQPartNum, eType );
-            pcCU->setCbfSubParts( uiCbf | ( 0x01 << uiTrIdx ), eType, uiIdx + uiQPartNum, uiDepth ); 
-            uiCbf = pcCU->getCbf( uiIdx + 2*uiQPartNum, eType );
-            pcCU->setCbfSubParts( uiCbf | ( 0x01 << uiTrIdx ), eType, uiIdx + 2*uiQPartNum, uiDepth ); 
-            uiCbf = pcCU->getCbf( uiIdx + 3*uiQPartNum, eType );
-            pcCU->setCbfSubParts( uiCbf | ( 0x01 << uiTrIdx ), eType, uiIdx + 3*uiQPartNum, uiDepth ); 
-          }
-        }
-        else
+        UInt uiLog2TrSize = g_aucConvertToBit[ pcCU->getSlice()->getSPS()->getMaxCUWidth() >> uiDepth ] + 2;
+        if( eType == TEXT_LUMA || uiLog2TrSize > pcCU->getSlice()->getSPS()->getQuadtreeTULog2MinSize() )
           m_pcEntropyDecoderIf->parseBlockCbf(pcCU, uiIdx, eType, uiTrIdx, uiDepth, uiQPartNum);
+        else
+        {
+          UInt uiCbf = pcCU->getCbf( uiIdx, eType );
+          pcCU->setCbfSubParts( uiCbf | ( 0x01 << uiTrIdx ), eType, uiIdx, uiDepth ); 
+          uiCbf = pcCU->getCbf( uiIdx + uiQPartNum, eType );
+          pcCU->setCbfSubParts( uiCbf | ( 0x01 << uiTrIdx ), eType, uiIdx + uiQPartNum, uiDepth ); 
+          uiCbf = pcCU->getCbf( uiIdx + 2*uiQPartNum, eType );
+          pcCU->setCbfSubParts( uiCbf | ( 0x01 << uiTrIdx ), eType, uiIdx + 2*uiQPartNum, uiDepth ); 
+          uiCbf = pcCU->getCbf( uiIdx + 3*uiQPartNum, eType );
+          pcCU->setCbfSubParts( uiCbf | ( 0x01 << uiTrIdx ), eType, uiIdx + 3*uiQPartNum, uiDepth ); 
+        }
         xDecodeCoeff( pcCU, pcCoeff, uiIdx, uiDepth, uiWidth, uiHeight, uiTrIdx, uiCurrTrIdx, eType ); pcCoeff += uiSize; uiIdx += uiQPartNum;
         xDecodeCoeff( pcCU, pcCoeff, uiIdx, uiDepth, uiWidth, uiHeight, uiTrIdx, uiCurrTrIdx, eType ); pcCoeff += uiSize; uiIdx += uiQPartNum;
         xDecodeCoeff( pcCU, pcCoeff, uiIdx, uiDepth, uiWidth, uiHeight, uiTrIdx, uiCurrTrIdx, eType ); pcCoeff += uiSize; uiIdx += uiQPartNum;

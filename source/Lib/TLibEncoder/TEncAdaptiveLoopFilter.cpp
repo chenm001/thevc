@@ -1901,7 +1901,6 @@ Void   TEncAdaptiveLoopFilter::xstoreInBlockMatrix(imgpel* ImgOrg, imgpel* ImgDe
   }
 #endif
 
-  if (1)
   {
 #if MTK_NONCROSS_INLOOP_FILTER
     x = y = fl2; //cytsai: shall x, y  be removed ?
