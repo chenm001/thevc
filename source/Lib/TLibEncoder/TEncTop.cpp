@@ -68,11 +68,7 @@ Void TEncTop::create ()
   initROM();
   
   // create processing unit classes
-#if AD_HOC_SLICES
   m_cGOPEncoder.        create( getSourceWidth(), getSourceHeight(), g_uiMaxCUWidth, g_uiMaxCUHeight );
-#else
-  m_cGOPEncoder.        create();
-#endif
   m_cSliceEncoder.      create( getSourceWidth(), getSourceHeight(), g_uiMaxCUWidth, g_uiMaxCUHeight, g_uiMaxCUDepth );
   m_cCuEncoder.         create( g_uiMaxCUDepth, g_uiMaxCUWidth, g_uiMaxCUHeight );
   m_cAdaptiveLoopFilter.create( getSourceWidth(), getSourceHeight(), g_uiMaxCUWidth, g_uiMaxCUHeight, g_uiMaxCUDepth );
@@ -288,11 +284,7 @@ Void TEncTop::xGetNewPicBuffer ( TComPic*& rpcPic )
   m_iPOCLast++;
   m_iNumPicRcvd++;
   
-#if AD_HOC_SLICES
   rpcPic->getSlice(0)->setPOC( m_iPOCLast );
-#else
-  rpcPic->getSlice()->setPOC( m_iPOCLast );
-#endif
   // mark it should be extended
   rpcPic->getPicYuvRec()->setBorderExtension(false);
 }

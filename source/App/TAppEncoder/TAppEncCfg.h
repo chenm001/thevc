@@ -136,14 +136,11 @@ protected:
   Int       m_bipredSearchRange;                              ///< ME search range for bipred refinement
   Bool      m_bUseFastEnc;                                    ///< flag for using fast encoder setting
   
-#if AD_HOC_SLICES 
   Int       m_iSliceMode;	          ///< 0: Disable all Recon slice limits, 1 : Maximum number of largest coding units per slice, 2: Maximum number of bytes in a slice
   Int       m_iSliceArgument;	      ///< If m_iSliceMode==1, m_iSliceArgument=max. # of largest coding units. If m_iSliceMode==2, m_iSliceArgument=max. # of bytes.
-#if SHARP_ENTROPY_SLICE 
   Int       m_iEntropySliceMode;	  ///< 0: Disable all entropy slice limits, 1 : Maximum number of largest coding units per slice, 2: Constraint based entropy slice
   Int       m_iEntropySliceArgument;///< If m_iEntropySliceMode==1, m_iEntropySliceArgument=max. # of largest coding units. If m_iEntropySliceMode==2, m_iEntropySliceArgument=max. # of bins.
-#endif
-#endif
+
 #if MTK_NONCROSS_INLOOP_FILTER
   Bool m_bLFCrossSliceBoundaryFlag;  ///< 0: Cross-slice-boundary in-loop filtering 1: non-cross-slice-boundary in-loop filtering
 #endif

@@ -42,10 +42,6 @@
 Void TComPicSym::create  ( Int iPicWidth, Int iPicHeight, UInt uiMaxWidth, UInt uiMaxHeight, UInt uiMaxDepth )
 {
   UInt i;
-#if !AD_HOC_SLICES
-  
-  m_apcTComSlice      = new TComSlice;
-#endif
 
   m_uhTotalDepth      = uiMaxDepth;
   m_uiNumPartitions   = 1<<(m_uhTotalDepth<<1);
@@ -65,11 +61,17 @@ Void TComPicSym::create  ( Int iPicWidth, Int iPicHeight, UInt uiMaxWidth, UInt 
   m_uiNumCUsInFrame   = m_uiWidthInCU * m_uiHeightInCU;
   m_apcTComDataCU     = new TComDataCU*[m_uiNumCUsInFrame];
   
-#if AD_HOC_SLICES
+  if (m_uiNumAllocatedSlice>0)
+  {
+    for ( i=0; i<m_uiNumAllocatedSlice ; i++ )
+    {
+      delete m_apcTComSlice[i];
+    }
+    delete [] m_apcTComSlice;
+  }
   m_apcTComSlice      = new TComSlice*[m_uiNumCUsInFrame];  
   m_apcTComSlice[0]   = new TComSlice;
   m_uiNumAllocatedSlice = 1;
-#endif
   for ( i=0; i<m_uiNumCUsInFrame ; i++ )
   {
     m_apcTComDataCU[i] = new TComDataCU;
@@ -81,15 +83,14 @@ Void TComPicSym::destroy()
 {
   Int i;
   
-#if AD_HOC_SLICES
-  for (i = 0; i < m_uiNumAllocatedSlice; i ++)
+  if (m_uiNumAllocatedSlice>0)
   {
-    delete m_apcTComSlice[i];
+    for ( i=0; i<m_uiNumAllocatedSlice ; i++ )
+    {
+      delete m_apcTComSlice[i];
+    }
+    delete [] m_apcTComSlice;
   }
-  delete [] m_apcTComSlice;
-#else
-  delete m_apcTComSlice;
-#endif
   m_apcTComSlice = NULL;
   
   for (i = 0; i < m_uiNumCUsInFrame; i++)
@@ -102,7 +103,6 @@ Void TComPicSym::destroy()
   m_apcTComDataCU = NULL;
 }
 
-#if AD_HOC_SLICES
 Void TComPicSym::allocateNewSlice()
 {
   assert(m_uiNumCUsInFrame >= m_uiNumAllocatedSlice);
@@ -112,14 +112,9 @@ Void TComPicSym::allocateNewSlice()
 Void TComPicSym::clearSliceBuffer()
 {
   UInt i;
-  for (i = 0; i < m_uiNumAllocatedSlice; i++)
+  for (i = 1; i < m_uiNumAllocatedSlice; i++)
   {
     delete m_apcTComSlice[i];
-#if !SHARP_ENTROPY_SLICE
-    m_uiNumAllocatedSlice = 1;
-#endif
   }
-  m_apcTComSlice[0]   = new TComSlice;
   m_uiNumAllocatedSlice = 1;
 }
-#endif

@@ -53,10 +53,8 @@ Void TComBitstream::create( UInt uiSizeInBytes )
   m_uiBitsWritten   = 0;
   
   m_pulStreamPacket = m_apulStreamPacketBegin;
-#if AD_HOC_SLICES
   m_auiSliceByteLocation = NULL;
   m_uiSliceCount         = 0;
-#endif
 }
 
 Void TComBitstream::destroy()
@@ -369,7 +367,6 @@ Void TComBitstream::convertRBSPToPayload( UInt uiStartPos )
   UChar* pucWrite      =  reinterpret_cast<UChar*> (getStartStream());
   
   UInt uiWriteOffset  = uiStartPos;
-#if AD_HOC_SLICES
   UInt uiReadOffset = uiStartPos;
   UInt uiSliceIdx   = 0;
   while ( uiReadOffset < uiBytesInBuffer )
@@ -383,10 +380,6 @@ Void TComBitstream::convertRBSPToPayload( UInt uiStartPos )
 
       uiSliceIdx++;
     }
-#else
-  for( UInt uiReadOffset = uiStartPos; uiReadOffset < uiBytesInBuffer ; uiReadOffset++ )
-  {
-#endif
     if( 2 == uiZeroCount && 0 == (pucRead[uiReadOffset] & 0xfc) )
     {
       pucWrite[uiWriteOffset++] = 0x03;
@@ -403,16 +396,13 @@ Void TComBitstream::convertRBSPToPayload( UInt uiStartPos )
     {
       uiZeroCount = 0;
     }
-#if AD_HOC_SLICES 
     uiReadOffset++;
-#endif
   }
   
   delete [] pucRead;
   m_uiBitsWritten = uiWriteOffset << 3;
 }
 
-#if AD_HOC_SLICES
 Void TComBitstream::allocateMemoryForSliceLocations ( UInt uiMaxNumOfSlices )
 {
   m_auiSliceByteLocation     = new UInt[ uiMaxNumOfSlices ];
@@ -428,4 +418,3 @@ Void TComBitstream::freeMemoryAllocatedForSliceLocations ()
   }
   m_uiSliceCount             = 0;
 }
-#endif

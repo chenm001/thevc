@@ -201,14 +201,10 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
 #ifdef ROUNDING_CONTROL_BIPRED
   ("RoundingControlBipred", m_useRoundingControlBipred, false, "Rounding control for bi-prediction")
 #endif
-#if AD_HOC_SLICES 
     ("SliceMode",            m_iSliceMode,           0, "0: Disable all Recon slice limits, 1: Enforce max # of LCUs, 2: Enforce max # of bytes")
     ("SliceArgument",        m_iSliceArgument,       0, "if SliceMode==1 SliceArgument represents max # of LCUs. if SliceMode==2 SliceArgument represents max # of bytes.")
-#if SHARP_ENTROPY_SLICE 
     ("EntropySliceMode",     m_iEntropySliceMode,    0, "0: Disable all entropy slice limits, 1: Enforce max # of LCUs, 2: Enforce constraint based entropy slices")
     ("EntropySliceArgument", m_iEntropySliceArgument,0, "if EntropySliceMode==1 SliceArgument represents max # of LCUs. if EntropySliceMode==2 EntropySliceArgument represents max # of bins.")
-#endif
-#endif
 #if MTK_NONCROSS_INLOOP_FILTER
     ("LFCrossSliceBoundaryFlag", m_bLFCrossSliceBoundaryFlag, true)
 #endif
@@ -370,20 +366,16 @@ Void TAppEncCfg::xCheckParameter()
   xConfirmPara( m_uiQuadtreeTUMaxDepthIntra < 1,                                                         "QuadtreeTUMaxDepthIntra must be greater than or equal to 1" );
   xConfirmPara( m_uiQuadtreeTUMaxDepthIntra > m_uiQuadtreeTULog2MaxSize - m_uiQuadtreeTULog2MinSize + 1, "QuadtreeTUMaxDepthIntra must be less than or equal to the difference between QuadtreeTULog2MaxSize and QuadtreeTULog2MinSize plus 1" );
 
-#if AD_HOC_SLICES 
   xConfirmPara( m_iSliceMode < 0 || m_iSliceMode > 2, "SliceMode exceeds supported range (0 to 2)" );
   if (m_iSliceMode!=0)
   {
     xConfirmPara( m_iSliceArgument < 1 ,         "SliceArgument should be larger than or equal to 1" );
   }
-#if SHARP_ENTROPY_SLICE 
   xConfirmPara( m_iEntropySliceMode < 0 || m_iEntropySliceMode > 2, "EntropySliceMode exceeds supported range (0 to 2)" );
   if (m_iEntropySliceMode!=0)
   {
     xConfirmPara( m_iEntropySliceArgument < 1 ,         "EntropySliceArgument should be larger than or equal to 1" );
   }
-#endif
-#endif
   
   xConfirmPara( m_iSymbolMode < 0 || m_iSymbolMode > 1,                                     "SymbolMode must be equal to 0 or 1" );
   
@@ -546,20 +538,16 @@ Void TAppEncCfg::xPrintParameter()
 #if HHI_RMP_SWITCH
   printf("RMP:%d ", m_bUseRMP);
 #endif
-#if AD_HOC_SLICES 
   printf("Slice:%d ",m_iSliceMode);
   if (m_iSliceMode!=0)
   {
     printf("(%d) ", m_iSliceArgument);
   }
-#if SHARP_ENTROPY_SLICE 
   printf("EntropySlice:%d ",m_iEntropySliceMode);
   if (m_iEntropySliceMode!=0)
   {
     printf("(%d) ", m_iEntropySliceArgument);
   }
-#endif
-#endif
 #if CONSTRAINED_INTRA_PRED
   printf("CIP:%d ", m_bUseConstrainedIntraPred);
 #endif

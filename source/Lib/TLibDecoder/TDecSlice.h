@@ -57,10 +57,7 @@ private:
   // access channel
   TDecEntropy*    m_pcEntropyDecoder;
   TDecCu*         m_pcCuDecoder;
-  
-#if AD_HOC_SLICES
   UInt            m_uiCurrSliceIdx;
-#endif
 
 public:
   TDecSlice();

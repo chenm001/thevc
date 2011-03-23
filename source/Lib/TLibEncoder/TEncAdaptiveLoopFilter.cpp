@@ -187,13 +187,8 @@ Void TEncAdaptiveLoopFilter::startALFEnc( TComPic* pcPic, TEncEntropy* pcEntropy
   m_pcPic = pcPic;
   m_pcEntropyCoder = pcEntropyCoder;
   
-#if AD_HOC_SLICES
   m_eSliceType = pcPic->getSlice(0)->getSliceType();
   m_iPicNalReferenceIdc = (pcPic->getSlice(0)->isReferenced() ? 1 :0);
-#else  
-  m_eSliceType = pcPic->getSlice()->getSliceType();
-  m_iPicNalReferenceIdc = (pcPic->getSlice()->isReferenced() ? 1 :0);
-#endif
   
   m_uiNumSCUInCU = m_pcPic->getNumPartInCU();
   
@@ -1251,11 +1246,7 @@ Void TEncAdaptiveLoopFilter::xCopyDecToRestCU(TComDataCU* pcCU, UInt uiAbsPartId
   UInt uiTPelY   = pcCU->getCUPelY() + g_auiRasterToPelY[ g_auiZscanToRaster[uiAbsPartIdx] ];
   UInt uiBPelY   = uiTPelY + (g_uiMaxCUHeight>>uiDepth) - 1;
   
-#if AD_HOC_SLICES  
   if( ( uiRPelX >= pcCU->getSlice()->getSPS()->getWidth() ) || ( uiBPelY >= pcCU->getSlice()->getSPS()->getHeight() ) )
-#else
-  if( ( uiRPelX >= pcCU->getSlice()->getSPS()->getWidth() ) || ( uiBPelY >= pcCU->getSlice()->getSPS()->getHeight() ) )
-#endif
   {
     bBoundary = true;
   }
@@ -1268,11 +1259,7 @@ Void TEncAdaptiveLoopFilter::xCopyDecToRestCU(TComDataCU* pcCU, UInt uiAbsPartId
       uiLPelX   = pcCU->getCUPelX() + g_auiRasterToPelX[ g_auiZscanToRaster[uiAbsPartIdx] ];
       uiTPelY   = pcCU->getCUPelY() + g_auiRasterToPelY[ g_auiZscanToRaster[uiAbsPartIdx] ];
       
-#if AD_HOC_SLICES      
-      if( ( uiLPelX < pcCU->getSlice()->getSPS()->getWidth() ) && ( uiTPelY < pcCU->getSlice()->getSPS()->getHeight() ) )
-#else
-      if( ( uiLPelX < pcCU->getSlice()->getSPS()->getWidth() ) && ( uiTPelY < pcCU->getSlice()->getSPS()->getHeight() ) )
-#endif      
+      if( ( uiLPelX < pcCU->getSlice()->getSPS()->getWidth() ) && ( uiTPelY < pcCU->getSlice()->getSPS()->getHeight() ) )      
         xCopyDecToRestCU(pcCU, uiAbsPartIdx, uiDepth+1, pcPicDec, pcPicRest);
     }
     return;
@@ -2345,11 +2332,7 @@ Void TEncAdaptiveLoopFilter::xSetCUAlfCtrlFlag_qc(TComDataCU* pcCU, UInt uiAbsPa
   UInt uiTPelY   = pcCU->getCUPelY() + g_auiRasterToPelY[ g_auiZscanToRaster[uiAbsPartIdx] ];
   UInt uiBPelY   = uiTPelY + (g_uiMaxCUHeight>>uiDepth) - 1;
   
-#if AD_HOC_SLICES  
   if( ( uiRPelX >= pcCU->getSlice()->getSPS()->getWidth() ) || ( uiBPelY >= pcCU->getSlice()->getSPS()->getHeight() ) )
-#else  
-  if( ( uiRPelX >= pcCU->getSlice()->getSPS()->getWidth() ) || ( uiBPelY >= pcCU->getSlice()->getSPS()->getHeight() ) )
-#endif  
   {
     bBoundary = true;
   }
@@ -2362,11 +2345,7 @@ Void TEncAdaptiveLoopFilter::xSetCUAlfCtrlFlag_qc(TComDataCU* pcCU, UInt uiAbsPa
       uiLPelX   = pcCU->getCUPelX() + g_auiRasterToPelX[ g_auiZscanToRaster[uiAbsPartIdx] ];
       uiTPelY   = pcCU->getCUPelY() + g_auiRasterToPelY[ g_auiZscanToRaster[uiAbsPartIdx] ];
       
-#if AD_HOC_SLICES      
       if( ( uiLPelX < pcCU->getSlice()->getSPS()->getWidth() ) && ( uiTPelY < pcCU->getSlice()->getSPS()->getHeight() ) )
-#else      
-      if( ( uiLPelX < pcCU->getSlice()->getSPS()->getWidth() ) && ( uiTPelY < pcCU->getSlice()->getSPS()->getHeight() ) )
-#endif      
 #if TSB_ALF_HEADER
         xSetCUAlfCtrlFlag_qc(pcCU, uiAbsPartIdx, uiDepth+1, uiAlfCtrlDepth, pcPicOrg, pcPicDec, pcPicRest, ruiDist, pAlfParam);
 #else
@@ -2397,7 +2376,6 @@ Void TEncAdaptiveLoopFilter::xSetCUAlfCtrlFlag_qc(TComDataCU* pcCU, UInt uiAbsPa
     uiRPelX   = uiLPelX + iWidth  - 1;
     uiBPelY   = uiTPelY + iHeight - 1;
 
-#if AD_HOC_SLICES
     if( uiRPelX >= pcCU->getSlice()->getSPS()->getWidth() )
     {
       iWidth = pcCU->getSlice()->getSPS()->getWidth() - uiLPelX;
@@ -2407,17 +2385,6 @@ Void TEncAdaptiveLoopFilter::xSetCUAlfCtrlFlag_qc(TComDataCU* pcCU, UInt uiAbsPa
     {
       iHeight = pcCU->getSlice()->getSPS()->getHeight() - uiTPelY;
     }
-#else    
-    if( uiRPelX >= pcCU->getSlice()->getSPS()->getWidth() )
-    {
-      iWidth = pcCU->getSlice()->getSPS()->getWidth() - uiLPelX;
-    }
-    
-    if( uiBPelY >= pcCU->getSlice()->getSPS()->getHeight() )
-    {
-      iHeight = pcCU->getSlice()->getSPS()->getHeight() - uiTPelY;
-    }
-#endif
     
     uiSetDepth = uiAlfCtrlDepth;
   }
