@@ -502,8 +502,6 @@ Void TEncEntropy::encodePartSize( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDe
   m_pcEntropyCoderIf->codePartSize( pcCU, uiAbsPartIdx, uiDepth );
 }
 
-#if MS_LAST_CBF
-
 Void TEncEntropy::xEncodeTransformSubdiv( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth, UInt uiInnerQuadIdx, UInt& uiYCbfFront3, UInt& uiUCbfFront3, UInt& uiVCbfFront3 )
 {
   const UInt uiSubdiv = pcCU->getTransformIdx( uiAbsPartIdx ) + pcCU->getDepth( uiAbsPartIdx ) > uiDepth;
@@ -689,153 +687,6 @@ Void TEncEntropy::xEncodeTransformSubdiv( TComDataCU* pcCU, UInt uiAbsPartIdx, U
   }
 #endif
 }
-#else
-
-Void TEncEntropy::xEncodeTransformSubdiv( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth, UInt uiInnerQuadIdx )
-{
-  const UInt uiSubdiv = pcCU->getTransformIdx( uiAbsPartIdx ) + pcCU->getDepth( uiAbsPartIdx ) > uiDepth;
-  const UInt uiLog2TrafoSize = g_aucConvertToBit[pcCU->getSlice()->getSPS()->getMaxCUWidth()]+2 - uiDepth;
-  
-  if( pcCU->getPredictionMode(uiAbsPartIdx) == MODE_INTRA && pcCU->getPartitionSize(uiAbsPartIdx) == SIZE_NxN && uiDepth == pcCU->getDepth(uiAbsPartIdx) )
-  {
-    assert( uiSubdiv );
-  }
-  else
-  {
-    if( uiLog2TrafoSize > pcCU->getSlice()->getSPS()->getQuadtreeTULog2MaxSize() )
-    {
-      assert( uiSubdiv );
-    }
-    else if( uiLog2TrafoSize == pcCU->getSlice()->getSPS()->getQuadtreeTULog2MinSize() )
-    {
-      assert( !uiSubdiv );
-    }
-    else if( uiLog2TrafoSize == pcCU->getQuadtreeTULog2MinSizeInCU(uiAbsPartIdx) )
-    {
-      assert( !uiSubdiv );
-    }
-    else
-    {
-      assert( uiLog2TrafoSize > pcCU->getQuadtreeTULog2MinSizeInCU(uiAbsPartIdx) );
-#if HHI_RQT_FORCE_SPLIT_ACC2_PU
-      UInt uiCtx = uiDepth;
-      const UInt uiTrMode = uiDepth - pcCU->getDepth( uiAbsPartIdx );
-#if HHI_RQT_FORCE_SPLIT_NxN
-      const Bool bNxNOK         = pcCU->getPartitionSize( uiAbsPartIdx ) == SIZE_NxN && uiTrMode > 0;
-#else
-      const Bool bNxNOK         = pcCU->getPartitionSize( uiAbsPartIdx ) == SIZE_NxN;
-#endif
-#if HHI_RQT_FORCE_SPLIT_RECT
-      const Bool bSymmetricOK   = pcCU->getPartitionSize( uiAbsPartIdx ) >= SIZE_2NxN  && pcCU->getPartitionSize( uiAbsPartIdx ) < SIZE_NxN   && uiTrMode > 0;
-#else
-      const Bool bSymmetricOK   = pcCU->getPartitionSize( uiAbsPartIdx ) >= SIZE_2NxN  && pcCU->getPartitionSize( uiAbsPartIdx ) < SIZE_NxN;
-#endif
-      const Bool bNeedSubdivFlag = pcCU->getPartitionSize( uiAbsPartIdx ) == SIZE_2Nx2N || pcCU->getPredictionMode( uiAbsPartIdx ) == MODE_INTRA ||
-      bNxNOK || bSymmetricOK ;
-      if( bNeedSubdivFlag )
-      {
-        m_pcEntropyCoderIf->codeTransformSubdivFlag( uiSubdiv, uiCtx );
-      }
-#else
-      m_pcEntropyCoderIf->codeTransformSubdivFlag( uiSubdiv, uiDepth );
-#endif
-    }
-  }
-  
-#if LCEC_CBP_YUV_ROOT
-  if(pcCU->getSlice()->getSymbolMode() == 0)
-  {
-    if( uiSubdiv )
-    {
-      ++uiDepth;
-      const UInt uiQPartNum = pcCU->getPic()->getNumPartInCU() >> (uiDepth << 1);
-      xEncodeTransformSubdiv( pcCU, uiAbsPartIdx, uiDepth, 0 );
-      uiAbsPartIdx += uiQPartNum;
-      xEncodeTransformSubdiv( pcCU, uiAbsPartIdx, uiDepth, 1 );
-      uiAbsPartIdx += uiQPartNum;
-      xEncodeTransformSubdiv( pcCU, uiAbsPartIdx, uiDepth, 2 );
-      uiAbsPartIdx += uiQPartNum;
-      xEncodeTransformSubdiv( pcCU, uiAbsPartIdx, uiDepth, 3 );
-    }
-  }
-  else
-  {
-#endif
-    if( pcCU->getPredictionMode(uiAbsPartIdx) != MODE_INTRA && uiLog2TrafoSize <= pcCU->getSlice()->getSPS()->getQuadtreeTULog2MaxSize() )
-    {
-      const UInt uiTrDepthCurr = uiDepth - pcCU->getDepth( uiAbsPartIdx );
-      const Bool bFirstCbfOfCU = uiLog2TrafoSize == pcCU->getSlice()->getSPS()->getQuadtreeTULog2MaxSize() || uiTrDepthCurr == 0;
-      if( bFirstCbfOfCU || uiLog2TrafoSize > pcCU->getSlice()->getSPS()->getQuadtreeTULog2MinSize() )
-      {
-        if( bFirstCbfOfCU || pcCU->getCbf( uiAbsPartIdx, TEXT_CHROMA_U, uiTrDepthCurr - 1 ) )
-        {
-          m_pcEntropyCoderIf->codeQtCbf( pcCU, uiAbsPartIdx, TEXT_CHROMA_U, uiTrDepthCurr );
-        }
-        if( bFirstCbfOfCU || pcCU->getCbf( uiAbsPartIdx, TEXT_CHROMA_V, uiTrDepthCurr - 1 ) )
-        {
-          m_pcEntropyCoderIf->codeQtCbf( pcCU, uiAbsPartIdx, TEXT_CHROMA_V, uiTrDepthCurr );
-        }
-      }
-      else if( uiLog2TrafoSize == pcCU->getSlice()->getSPS()->getQuadtreeTULog2MinSize() )
-      {
-        assert( pcCU->getCbf( uiAbsPartIdx, TEXT_CHROMA_U, uiTrDepthCurr ) == pcCU->getCbf( uiAbsPartIdx, TEXT_CHROMA_U, uiTrDepthCurr - 1 ) );
-        assert( pcCU->getCbf( uiAbsPartIdx, TEXT_CHROMA_V, uiTrDepthCurr ) == pcCU->getCbf( uiAbsPartIdx, TEXT_CHROMA_V, uiTrDepthCurr - 1 ) );
-      }
-    }
-    
-    if( uiSubdiv )
-    {
-      ++uiDepth;
-      const UInt uiQPartNum = pcCU->getPic()->getNumPartInCU() >> (uiDepth << 1);
-      xEncodeTransformSubdiv( pcCU, uiAbsPartIdx, uiDepth, 0 );
-      uiAbsPartIdx += uiQPartNum;
-      xEncodeTransformSubdiv( pcCU, uiAbsPartIdx, uiDepth, 1 );
-      uiAbsPartIdx += uiQPartNum;
-      xEncodeTransformSubdiv( pcCU, uiAbsPartIdx, uiDepth, 2 );
-      uiAbsPartIdx += uiQPartNum;
-      xEncodeTransformSubdiv( pcCU, uiAbsPartIdx, uiDepth, 3 );
-    }
-    else
-    {
-      {
-        DTRACE_CABAC_V( g_nSymbolCounter++ );
-        DTRACE_CABAC_T( "\tTrIdx: abspart=" );
-        DTRACE_CABAC_V( uiAbsPartIdx );
-        DTRACE_CABAC_T( "\tdepth=" );
-        DTRACE_CABAC_V( uiDepth );
-        DTRACE_CABAC_T( "\ttrdepth=" );
-        DTRACE_CABAC_V( pcCU->getTransformIdx( uiAbsPartIdx ) );
-        DTRACE_CABAC_T( "\n" );
-      }
-      UInt uiLumaTrMode, uiChromaTrMode;
-      pcCU->convertTransIdx( uiAbsPartIdx, pcCU->getTransformIdx( uiAbsPartIdx ), uiLumaTrMode, uiChromaTrMode );
-      if( pcCU->getPredictionMode(uiAbsPartIdx) != MODE_INTRA && uiDepth == pcCU->getDepth( uiAbsPartIdx ) && !pcCU->getCbf( uiAbsPartIdx, TEXT_CHROMA_U, 0 ) && !pcCU->getCbf( uiAbsPartIdx, TEXT_CHROMA_V, 0 ) )
-      {
-        assert( pcCU->getCbf( uiAbsPartIdx, TEXT_LUMA, 0 ) );
-        //      printf( "saved one bin! " );
-      }
-      else
-        m_pcEntropyCoderIf->codeQtCbf( pcCU, uiAbsPartIdx, TEXT_LUMA, uiLumaTrMode );
-      if( pcCU->getPredictionMode(uiAbsPartIdx) == MODE_INTRA )
-      {
-        Bool bCodeChroma = true;
-        if( uiLog2TrafoSize == pcCU->getSlice()->getSPS()->getQuadtreeTULog2MinSize() )
-        {
-          UInt uiQPDiv = pcCU->getPic()->getNumPartInCU() >> ( ( uiDepth - 1 ) << 1 );
-          bCodeChroma  = ( ( uiAbsPartIdx % uiQPDiv ) == 0 );
-        }
-        if( bCodeChroma )
-        {
-          m_pcEntropyCoderIf->codeQtCbf( pcCU, uiAbsPartIdx, TEXT_CHROMA_U, uiChromaTrMode );
-          m_pcEntropyCoderIf->codeQtCbf( pcCU, uiAbsPartIdx, TEXT_CHROMA_V, uiChromaTrMode );
-        }
-      }
-    }
-#if LCEC_CBP_YUV_ROOT
-  }
-#endif
-}
-#endif
 
 // transform index
 Void TEncEntropy::encodeTransformIdx( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth, Bool bRD )
@@ -848,14 +699,10 @@ Void TEncEntropy::encodeTransformIdx( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt 
   DTRACE_CABAC_T( "\tdecodeTransformIdx()\tCUDepth=" )
   DTRACE_CABAC_V( uiDepth )
   DTRACE_CABAC_T( "\n" )
-#if MS_LAST_CBF
   UInt temp = 0;
   UInt temp1 = 0;
   UInt temp2 = 0;
   xEncodeTransformSubdiv( pcCU, uiAbsPartIdx, uiDepth, 0, temp, temp1, temp2 );
-#else
-  xEncodeTransformSubdiv( pcCU, uiAbsPartIdx, uiDepth, 0 );
-#endif
 }
 
 // Intra direction for Luma
@@ -1613,14 +1460,10 @@ Void TEncEntropy::encodeCoeff( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth
     DTRACE_CABAC_T( "\tdecodeTransformIdx()\tCUDepth=" )
     DTRACE_CABAC_V( uiDepth )
     DTRACE_CABAC_T( "\n" )
-#if MS_LAST_CBF
     UInt temp = 0;
     UInt temp1 = 0;
     UInt temp2 = 0;
     xEncodeTransformSubdiv( pcCU, uiAbsPartIdx, uiDepth, 0, temp, temp1, temp2 );
-#else
-    xEncodeTransformSubdiv( pcCU, uiAbsPartIdx, uiDepth, 0 );
-#endif
     
 #if LCEC_CBP_YUV_ROOT
     if (pcCU->getSlice()->getSymbolMode() == 0)

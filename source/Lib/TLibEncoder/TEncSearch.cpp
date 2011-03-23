@@ -4229,9 +4229,8 @@ Void TEncSearch::xEstimateResidualQT( TComDataCU* pcCU, UInt uiQuadrant, UInt ui
     uiSubdivBits = m_pcEntropyCoder->getNumberOfWrittenBits();
     dSubdivCost  = m_pcRdCost->calcRdCost( uiSubdivBits, uiSubdivDist );
     
-#if MS_LAST_CBF
     if( uiYCbf || uiUCbf || uiVCbf || !bCheckFull )
-#endif
+    {
       if( dSubdivCost < dSingleCost )
       {
         rdCost += dSubdivCost;
@@ -4239,6 +4238,7 @@ Void TEncSearch::xEstimateResidualQT( TComDataCU* pcCU, UInt uiQuadrant, UInt ui
         ruiDist += uiSubdivDist;
         return;
       }
+    }
     assert( bCheckFull );
     if( m_bUseSBACRD )
     {
