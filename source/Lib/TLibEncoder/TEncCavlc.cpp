@@ -178,7 +178,6 @@ Void TEncCavlc::codeNALUnitHeader( NalUnitType eNalUnitType, NalRefIdc eNalRefId
   xWriteCode( eNalRefIdc, 2);   // nal_ref_idc
   xWriteCode( eNalUnitType, 5); // nal_unit_type
 
-  // to be enabled when duplicate header coding is removed
   if ( (eNalUnitType == NAL_UNIT_CODED_SLICE) || (eNalUnitType == NAL_UNIT_CODED_SLICE_IDR) || (eNalUnitType == NAL_UNIT_CODED_SLICE_CDR) )
   {
     xWriteCode( TemporalId, 3);   // temporal_id
