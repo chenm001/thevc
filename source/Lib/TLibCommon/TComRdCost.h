@@ -134,9 +134,7 @@ public:
   Void    setLambda      ( Double dLambda );
   Void    setFrameLambda ( Double dLambda ) { m_dFrameLambda = dLambda; }
   
-#if SAMSUNG_FAST_UDI
   Double  getSqrtLambda ()   { return m_sqrtLambda; }
-#endif
   
   // Distortion Functions
   Void    init();

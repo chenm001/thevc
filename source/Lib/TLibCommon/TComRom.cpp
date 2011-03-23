@@ -2001,7 +2001,6 @@ const LastCoeffStruct g_acstructLumaRun8x8[29][127] =
 // ADI
 // ====================================================================================================================
 
-#if SAMSUNG_FAST_UDI
 #if FAST_UDI_USE_MPM
 const UChar g_aucIntraModeNumFast[7] =
 {
@@ -2038,18 +2037,6 @@ const UChar g_aucIntraModeNumFast[7] =
 };
 #endif
 #endif // FAST_UDI_USE_MPM
-#else
-const UChar g_aucIntraModeNumFast[7] =
-{
-  3,  //   2x2
-  9,  //   4x4
-  9,  //   8x8
-  4,  //  16x16   33
-  4,  //  32x32   33
-  5,  //  64x64   33
-  4   // 128x128  33
-};
-#endif
 
 // chroma
 

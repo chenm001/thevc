@@ -1573,12 +1573,10 @@ TEncSearch::estIntraPredQT( TComDataCU* pcCU,
   UInt    uiWidthBit     = pcCU->getIntraSizeIdx(0);
   UInt    uiOverallDistY = 0;
   UInt    uiOverallDistC = 0;
-#if SAMSUNG_FAST_UDI
   UInt    CandNum;
   UInt    CandModeList[ FAST_UDI_MAX_RDMODE_NUM ];
   Double  CandCostList[ FAST_UDI_MAX_RDMODE_NUM ];
   UInt    uiFastCandNum=g_aucIntraModeNumFast[ uiWidthBit ];
-#endif
   
   //===== set QP and clear Cbf =====
   pcCU->setQPSubParts( pcCU->getSlice()->getSliceQp(), 0, uiDepth );
@@ -1600,17 +1598,12 @@ TEncSearch::estIntraPredQT( TComDataCU* pcCU,
     Pel* piPred        = pcPredYuv->getLumaAddr( uiPU, uiWidth );
     UInt uiStride      = pcPredYuv->getStride();
     
-#if SAMSUNG_FAST_UDI
     if ( uiFastCandNum != uiMaxMode ) uiMaxModeFast = 0;
     for( Int i=0; i < uiFastCandNum; i++ ) 
     {
       CandCostList[ i ] = MAX_DOUBLE;
     }
     CandNum = 0;
-#else
-    UInt uiBestSad     = MAX_UINT;
-    UInt iBestPreMode  = 0;
-#endif
     
     for( UInt uiMode = uiMaxModeFast; uiMode < uiMaxMode; uiMode++ )
     {
@@ -1622,24 +1615,15 @@ TEncSearch::estIntraPredQT( TComDataCU* pcCU,
       // use hadamard transform here
       UInt uiSad = m_pcRdCost->calcHAD( piOrg, uiStride, piPred, uiStride, uiWidth, uiHeight );
       
-#if SAMSUNG_FAST_UDI
       UInt   iModeBits = xModeBitsIntra( pcCU, uiMode, uiPU, uiPartOffset, uiDepth, uiInitTrDepth );
       Double cost      = (Double)uiSad + (Double)iModeBits * m_pcRdCost->getSqrtLambda();
       
       CandNum += xUpdateCandList( uiMode, cost, uiFastCandNum, CandModeList, CandCostList );
-#else  
-      if ( uiSad < uiBestSad )
-      {
-        uiBestSad    = uiSad;
-        iBestPreMode = uiMode;
-      }
-#endif
     }
     UInt uiRdModeList[FAST_UDI_MAX_RDMODE_NUM];
     UInt uiNewMaxMode;
     UInt uiMinMode = 0;
     
-#if SAMSUNG_FAST_UDI
     if(uiFastCandNum!=uiMaxMode)
     {
       uiNewMaxMode = Min( uiFastCandNum, CandNum );
@@ -1665,18 +1649,6 @@ TEncSearch::estIntraPredQT( TComDataCU* pcCU,
       uiNewMaxMode = uiMaxMode;
       for( Int i=0; i < uiNewMaxMode; i++) uiRdModeList[i] = i;
     }
-#else
-    
-    for( Int i = 0; i < FAST_UDI_MAX_RDMODE_NUM; i++ ) uiRdModeList[ i ] = i;
-    if( uiMaxModeFast >= uiMaxMode )
-      uiNewMaxMode = uiMaxMode;
-    else
-    {
-      uiNewMaxMode = uiMaxModeFast + 1;
-      uiRdModeList[uiMaxModeFast] = iBestPreMode;
-    }
-    
-#endif
     
     //===== check modes (using r-d costs) =====
 #if HHI_RQT_INTRA_SPEEDUP_MOD
@@ -4368,7 +4340,6 @@ Void TEncSearch::xSetResidualQTData( TComDataCU* pcCU, UInt uiAbsPartIdx, TComYu
   }
 }
 
-#if SAMSUNG_FAST_UDI
 UInt TEncSearch::xModeBitsIntra( TComDataCU* pcCU, UInt uiMode, UInt uiPU, UInt uiPartOffset, UInt uiDepth, UInt uiInitTrDepth )
 {
   if( m_bUseSBACRD )
@@ -4404,7 +4375,6 @@ UInt TEncSearch::xUpdateCandList( UInt uiMode, Double uiCost, UInt uiFastCandNum
   
   return 0;
 }
-#endif
 
 Void  TEncSearch::xAddSymbolBitsInter( TComDataCU* pcCU, UInt uiQp, UInt uiTrMode, UInt& ruiBits, TComYuv*& rpcYuvRec, TComYuv*pcYuvPred, TComYuv*& rpcYuvResi )
 {
