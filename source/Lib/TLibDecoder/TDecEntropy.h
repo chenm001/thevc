@@ -133,7 +133,7 @@ public:
   Void    decodeNalUnitHeader         ( NalUnitType& eNalUnitType, UInt& TemporalId, Bool& bOutputFlag )    
                                                                 { m_pcEntropyDecoderIf->parseNalUnitHeader(eNalUnitType, TemporalId, bOutputFlag ); }
 
-	
+
   Void    decodeSPS                   ( TComSPS* pcSPS     )    { m_pcEntropyDecoderIf->parseSPS(pcSPS);                    }
   Void    decodePPS                   ( TComPPS* pcPPS     )    { m_pcEntropyDecoderIf->parsePPS(pcPPS);                    }
   Void    decodeSliceHeader           ( TComSlice*& rpcSlice )  { m_pcEntropyDecoderIf->parseSliceHeader(rpcSlice);         }

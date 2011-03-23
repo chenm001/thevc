@@ -103,136 +103,136 @@ Void TDecGop::decompressGop (Bool bEos, TComBitstream* pcBitstream, TComPic*& rp
 
   if (!bExecuteDeblockAndAlf)
   {
-  if(bFirst)
-  {
-    uiILSliceCount = 0;
+    if(bFirst)
+    {
+      uiILSliceCount = 0;
+      if(!pcSlice->getSPS()->getLFCrossSliceBoundaryFlag())
+      {
+        puiILSliceStartLCU = new UInt[rpcPic->getNumCUsInFrame() +1];
+      }
+      bFirst = false;
+    }
+    
     if(!pcSlice->getSPS()->getLFCrossSliceBoundaryFlag())
     {
-      puiILSliceStartLCU = new UInt[rpcPic->getNumCUsInFrame() +1];
+      UInt uiSliceStartCuAddr = pcSlice->getSliceCurStartCUAddr();
+      if(uiSliceStartCuAddr == uiStartCUAddr)
+      {
+        puiILSliceStartLCU[uiILSliceCount] = uiSliceStartCuAddr;
+        uiILSliceCount++;
+      }
     }
-    bFirst = false;
-  }
-
-  if(!pcSlice->getSPS()->getLFCrossSliceBoundaryFlag())
-  {
-    UInt uiSliceStartCuAddr = pcSlice->getSliceCurStartCUAddr();
-    if(uiSliceStartCuAddr == uiStartCUAddr)
-    {
-    puiILSliceStartLCU[uiILSliceCount] = uiSliceStartCuAddr;
-    uiILSliceCount++;
-    }
-  }
 #endif //MTK_NONCROSS_INLOOP_FILTER
 
-  UInt iSymbolMode = pcSlice->getSymbolMode();
-  if (iSymbolMode)
-  {
-    m_pcSbacDecoder->init( (TDecBinIf*)m_pcBinCABAC );
-    m_pcEntropyDecoder->setEntropyDecoder (m_pcSbacDecoder);
-  }
-  else
-  {
-    m_pcEntropyDecoder->setEntropyDecoder (m_pcCavlcDecoder);
-  }
-  
-  m_pcEntropyDecoder->setBitstream      (pcBitstream);
-  m_pcEntropyDecoder->resetEntropy      (pcSlice);
-
-  if (uiStartCUAddr==0)  // decode ALF params only from first slice header
-  {
-    if ( rpcPic->getSlice(0)->getSPS()->getUseALF() )
-  {
-#if TSB_ALF_HEADER
-    m_pcAdaptiveLoopFilter->setNumCUsInFrame(rpcPic);
-#endif
-    m_pcAdaptiveLoopFilter->allocALFParam(&m_cAlfParam);
-    m_pcEntropyDecoder->decodeAlfParam( &m_cAlfParam );
-  }
-  }
-  
-  m_pcSliceDecoder->decompressSlice(pcBitstream, rpcPic);
-  
-  m_dDecTime += (double)(clock()-iBeforeTime) / CLOCKS_PER_SEC;
-  }
-  else
-  {
-  // deblocking filter
-  m_pcLoopFilter->setCfg(pcSlice->getLoopFilterDisable(), 0, 0);
-  m_pcLoopFilter->loopFilterPic( rpcPic );
-  
-  // adaptive loop filter
-  if( pcSlice->getSPS()->getUseALF() )
-  {
-#if MTK_NONCROSS_INLOOP_FILTER  
-    if(pcSlice->getSPS()->getLFCrossSliceBoundaryFlag())
+    UInt iSymbolMode = pcSlice->getSymbolMode();
+    if (iSymbolMode)
     {
-      m_pcAdaptiveLoopFilter->setUseNonCrossAlf(false);
+      m_pcSbacDecoder->init( (TDecBinIf*)m_pcBinCABAC );
+      m_pcEntropyDecoder->setEntropyDecoder (m_pcSbacDecoder);
     }
     else
     {
-      puiILSliceStartLCU[uiILSliceCount] = rpcPic->getNumCUsInFrame();
-      m_pcAdaptiveLoopFilter->setUseNonCrossAlf( (uiILSliceCount > 1) );
-      if(m_pcAdaptiveLoopFilter->getUseNonCrossAlf())
+      m_pcEntropyDecoder->setEntropyDecoder (m_pcCavlcDecoder);
+    }
+    
+    m_pcEntropyDecoder->setBitstream      (pcBitstream);
+    m_pcEntropyDecoder->resetEntropy      (pcSlice);
+    
+    if (uiStartCUAddr==0)  // decode ALF params only from first slice header
+    {
+      if ( rpcPic->getSlice(0)->getSPS()->getUseALF() )
       {
-        m_pcAdaptiveLoopFilter->setNumSlicesInPic( uiILSliceCount );
-        m_pcAdaptiveLoopFilter->createSlice();
-        for(UInt i=0; i< uiILSliceCount ; i++)
-        {
-          (*m_pcAdaptiveLoopFilter)[i].create(rpcPic, i, puiILSliceStartLCU[i], puiILSliceStartLCU[i+1]-1);
-        }
+#if TSB_ALF_HEADER
+        m_pcAdaptiveLoopFilter->setNumCUsInFrame(rpcPic);
+#endif
+        m_pcAdaptiveLoopFilter->allocALFParam(&m_cAlfParam);
+        m_pcEntropyDecoder->decodeAlfParam( &m_cAlfParam );
       }
     }
+    
+    m_pcSliceDecoder->decompressSlice(pcBitstream, rpcPic);
+    
+    m_dDecTime += (double)(clock()-iBeforeTime) / CLOCKS_PER_SEC;
+  }
+  else
+  {
+    // deblocking filter
+    m_pcLoopFilter->setCfg(pcSlice->getLoopFilterDisable(), 0, 0);
+    m_pcLoopFilter->loopFilterPic( rpcPic );
+    
+    // adaptive loop filter
+    if( pcSlice->getSPS()->getUseALF() )
+    {
+#if MTK_NONCROSS_INLOOP_FILTER  
+      if(pcSlice->getSPS()->getLFCrossSliceBoundaryFlag())
+      {
+        m_pcAdaptiveLoopFilter->setUseNonCrossAlf(false);
+      }
+      else
+      {
+        puiILSliceStartLCU[uiILSliceCount] = rpcPic->getNumCUsInFrame();
+        m_pcAdaptiveLoopFilter->setUseNonCrossAlf( (uiILSliceCount > 1) );
+        if(m_pcAdaptiveLoopFilter->getUseNonCrossAlf())
+        {
+          m_pcAdaptiveLoopFilter->setNumSlicesInPic( uiILSliceCount );
+          m_pcAdaptiveLoopFilter->createSlice();
+          for(UInt i=0; i< uiILSliceCount ; i++)
+          {
+            (*m_pcAdaptiveLoopFilter)[i].create(rpcPic, i, puiILSliceStartLCU[i], puiILSliceStartLCU[i+1]-1);
+          }
+        }
+      }
 #endif
-    m_pcAdaptiveLoopFilter->ALFProcess(rpcPic, &m_cAlfParam);
+      m_pcAdaptiveLoopFilter->ALFProcess(rpcPic, &m_cAlfParam);
 #if MTK_NONCROSS_INLOOP_FILTER
-    if(m_pcAdaptiveLoopFilter->getUseNonCrossAlf())
-    {
-      m_pcAdaptiveLoopFilter->destroySlice();
-    }
+      if(m_pcAdaptiveLoopFilter->getUseNonCrossAlf())
+      {
+        m_pcAdaptiveLoopFilter->destroySlice();
+      }
 #endif
-    m_pcAdaptiveLoopFilter->freeALFParam(&m_cAlfParam);
-  }
-  
+      m_pcAdaptiveLoopFilter->freeALFParam(&m_cAlfParam);
+    }
+    
 #if AMVP_BUFFERCOMPRESS
-  rpcPic->compressMotion(); 
+    rpcPic->compressMotion(); 
 #endif 
-  
-  //-- For time output for each slice
-  printf("\nPOC %4d ( %c-SLICE, QP%3d ) ",
-         pcSlice->getPOC(),
-         pcSlice->isIntra() ? 'I' : pcSlice->isInterP() ? 'P' : 'B',
-         pcSlice->getSliceQp() );
-  
-  m_dDecTime += (double)(clock()-iBeforeTime) / CLOCKS_PER_SEC;
-  printf ("[DT %6.3f] ", m_dDecTime );
-  m_dDecTime  = 0;
-  
-  for (Int iRefList = 0; iRefList < 2; iRefList++)
-  {
-    printf ("[L%d ", iRefList);
-    for (Int iRefIndex = 0; iRefIndex < pcSlice->getNumRefIdx(RefPicList(iRefList)); iRefIndex++)
+    
+    //-- For time output for each slice
+    printf("\nPOC %4d ( %c-SLICE, QP%3d ) ",
+           pcSlice->getPOC(),
+           pcSlice->isIntra() ? 'I' : pcSlice->isInterP() ? 'P' : 'B',
+           pcSlice->getSliceQp() );
+    
+    m_dDecTime += (double)(clock()-iBeforeTime) / CLOCKS_PER_SEC;
+    printf ("[DT %6.3f] ", m_dDecTime );
+    m_dDecTime  = 0;
+    
+    for (Int iRefList = 0; iRefList < 2; iRefList++)
     {
-      printf ("%d ", pcSlice->getRefPOC(RefPicList(iRefList), iRefIndex));
+      printf ("[L%d ", iRefList);
+      for (Int iRefIndex = 0; iRefIndex < pcSlice->getNumRefIdx(RefPicList(iRefList)); iRefIndex++)
+      {
+        printf ("%d ", pcSlice->getRefPOC(RefPicList(iRefList), iRefIndex));
+      }
+      printf ("] ");
     }
-    printf ("] ");
-  }
 #if DCM_COMB_LIST
-  if(pcSlice->getNumRefIdx(REF_PIC_LIST_C)>0 && !pcSlice->getNoBackPredFlag())
-  {
-    printf ("[LC ");
-    for (Int iRefIndex = 0; iRefIndex < pcSlice->getNumRefIdx(REF_PIC_LIST_C); iRefIndex++)
+    if(pcSlice->getNumRefIdx(REF_PIC_LIST_C)>0 && !pcSlice->getNoBackPredFlag())
     {
-      printf ("%d ", pcSlice->getRefPOC((RefPicList)pcSlice->getListIdFromIdxOfLC(iRefIndex), pcSlice->getRefIdxFromIdxOfLC(iRefIndex)));
+      printf ("[LC ");
+      for (Int iRefIndex = 0; iRefIndex < pcSlice->getNumRefIdx(REF_PIC_LIST_C); iRefIndex++)
+      {
+        printf ("%d ", pcSlice->getRefPOC((RefPicList)pcSlice->getListIdFromIdxOfLC(iRefIndex), pcSlice->getRefIdxFromIdxOfLC(iRefIndex)));
+      }
+      printf ("] ");
     }
-    printf ("] ");
-  }
 #endif
 #if FIXED_ROUNDING_FRAME_MEMORY
-  rpcPic->getPicYuvRec()->xFixedRoundingPic();
+    rpcPic->getPicYuvRec()->xFixedRoundingPic();
 #endif 
-  rpcPic->setReconMark(true);
+    rpcPic->setReconMark(true);
 #if MTK_NONCROSS_INLOOP_FILTER
-  uiILSliceCount = 0;
+    uiILSliceCount = 0;
 #endif
   }
 }

@@ -4430,7 +4430,7 @@ Void TEncSearch::xExtDIFUpSamplingH ( TComPattern* pcPattern, TComYuv* pcYuvExt 
   piDstYPel = pcYuvExt->getLumaAddr();
   for ( y = 0; y < iHeight + 2; y++ )
   {
-	  for ( x = 0; x < iWidth + 8; x++ )
+    for ( x = 0; x < iWidth + 8; x++ )
     {
       piDstYPel[x << 2] = piSrcYPel[x];
     }
@@ -4522,7 +4522,7 @@ Void TEncSearch::xExtDIFUpSamplingQ   ( TComPattern* pcPatternKey, Pel* piDst, I
     }
     case 1:
     {
-	//  Quater-pel interpolation : vertical
+      //  Quater-pel interpolation : vertical
       piSrcYPel = piSrcPel - 4;
       piDstY    = piSrc-16 - iSrcStride;
       xCTI_FilterQuarter0Ver(piSrcYPel, iSrcPelStride, 1, iWidth + 8, iHeight, iSrcStride4, 4, piDstY);
@@ -4576,7 +4576,7 @@ Void TEncSearch::xExtDIFUpSamplingQ   ( TComPattern* pcPatternKey, Pel* piDst, I
     }
     case 2:
     {
-		//  Quater-pel interpolation : vertical
+      //  Quater-pel interpolation : vertical
       piSrcYPel = piSrcPel - 3 - iSrcPelStride;;
       piDstY    = piSrc - 14 - iSrcStride;
       xCTI_FilterQuarter1Ver(piSrcYPel, iSrcPelStride, 1, iWidth + 7, iHeight, iSrcStride4, 4, piDstY);
@@ -4620,7 +4620,7 @@ Void TEncSearch::xExtDIFUpSamplingQ   ( TComPattern* pcPatternKey, Pel* piDst, I
     }
     case 3:
     {
-		//  Quater-pel interpolation : vertical
+      //  Quater-pel interpolation : vertical
       piSrcYPel = piSrcPel-4 - iSrcPelStride;
       piDstY    = piSrc-16 - iSrcStride;
       xCTI_FilterQuarter1Ver(piSrcYPel, iSrcPelStride, 1, iWidth + 8, iHeight, iSrcStride4, 4, piDstY);

@@ -796,7 +796,7 @@ UInt64 TEncAdaptiveLoopFilter::xCalcSSD(Pel* pOrg, Pel* pCmp, Int iWidth, Int iH
     pCmp += iStride;
   }
 
-	return uiSSD;;
+  return uiSSD;;
 }
 #else
 UInt64 TEncAdaptiveLoopFilter::xCalcSSD(Pel* pOrg, Pel* pCmp, Int iWidth, Int iHeight, Int iStride )
@@ -2224,7 +2224,7 @@ Void TEncAdaptiveLoopFilter::xcalcPredFilterCoeff(int filtNo)
         }
         else
         {
-          m_aiFilterCoeffSaved[m_iCurrentPOC%m_iGOPSize][varInd][i] = m_filterCoeffPrevSelected[varInd][i]; 	  
+          m_aiFilterCoeffSaved[m_iCurrentPOC%m_iGOPSize][varInd][i] = m_filterCoeffPrevSelected[varInd][i];
         }
       }
 #endif
@@ -3215,7 +3215,7 @@ Void TEncAdaptiveLoopFilter::xcalcPredFilterCoeffPrev(Int filtNo)
   int varInd, i;
 
   for(varInd=0; varInd<NO_VAR_BINS; ++varInd)
-  {		
+  {
     for(i = 0; i < MAX_SQR_FILT_LENGTH; i++)
     {
       m_filterCoeffPrevSelected[varInd][i]=m_aiFilterCoeffSaved[m_iFilterIdx][varInd][i];

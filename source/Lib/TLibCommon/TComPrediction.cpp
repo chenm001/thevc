@@ -406,14 +406,13 @@ Void TComPrediction::xPredInterBi ( TComDataCU* pcCU, UInt uiPartAddr, Int iWidt
     
     pcMbYuv = &m_acYuvPred[iRefList];
 #if HIGH_ACCURACY_BI
-	if( pcCU->getCUMvField( REF_PIC_LIST_0 )->getRefIdx( uiPartAddr ) >= 0 && pcCU->getCUMvField( REF_PIC_LIST_1 )->getRefIdx( uiPartAddr ) >= 0 )
-	   xPredInterUni ( pcCU, uiPartAddr, iWidth, iHeight, eRefPicList, pcMbYuv, iPartIdx, true );
-	else
-	   xPredInterUni ( pcCU, uiPartAddr, iWidth, iHeight, eRefPicList, pcMbYuv, iPartIdx );
+    if( pcCU->getCUMvField( REF_PIC_LIST_0 )->getRefIdx( uiPartAddr ) >= 0 && pcCU->getCUMvField( REF_PIC_LIST_1 )->getRefIdx( uiPartAddr ) >= 0 )
+      xPredInterUni ( pcCU, uiPartAddr, iWidth, iHeight, eRefPicList, pcMbYuv, iPartIdx, true );
+    else
+      xPredInterUni ( pcCU, uiPartAddr, iWidth, iHeight, eRefPicList, pcMbYuv, iPartIdx );
 #else
-	xPredInterUni ( pcCU, uiPartAddr, iWidth, iHeight, eRefPicList, pcMbYuv, iPartIdx );
+    xPredInterUni ( pcCU, uiPartAddr, iWidth, iHeight, eRefPicList, pcMbYuv, iPartIdx );
 #endif
-
   }
   
   xWeightedAverage( pcCU, &m_acYuvPred[0], &m_acYuvPred[1], iRefIdx[0], iRefIdx[1], uiPartAddr, iWidth, iHeight, rpcYuvPred );
@@ -439,15 +438,15 @@ Void  TComPrediction::xPredInterLumaBlk_ha( TComDataCU* pcCU, TComPicYuv* pcPicY
   {
     for ( Int y = 0; y < iHeight; y++ )
     {
-       for(Int x=0; x<iWidth; x++)
-		  piDstY[x] = piRefY[x]<<shiftNum;  
+      for(Int x=0; x<iWidth; x++)
+        piDstY[x] = piRefY[x]<<shiftNum;  
       piDstY += iDstStride;
       piRefY += iRefStride;
     }
     return;
   }
-
-    //  Half-pel horizontal
+  
+  //  Half-pel horizontal
   if ( ixFrac == 2 && iyFrac == 0 )
   {
     xCTI_FilterHalfHor_ha ( piRefY, iRefStride, 1, iWidth, iHeight, iDstStride, 1, piDstY );
@@ -463,14 +462,12 @@ Void  TComPrediction::xPredInterLumaBlk_ha( TComDataCU* pcCU, TComPicYuv* pcPicY
   
   Int   iExtStride = m_iYuvExtStride;//m_cYuvExt.getStride();
   Int*  piExtY     = m_piYuvExt;//m_cYuvExt.getLumaAddr();
- 
+  
   //  Half-pel center
   if ( ixFrac == 2 && iyFrac == 2 )
   {
-
-	xCTI_FilterHalfVer (piRefY - 3,  iRefStride, 1, iWidth +7, iHeight, iExtStride, 1, piExtY );
+    xCTI_FilterHalfVer (piRefY - 3,  iRefStride, 1, iWidth +7, iHeight, iExtStride, 1, piExtY );
     xCTI_FilterHalfHor_ha (piExtY + 3,  iExtStride, 1, iWidth    , iHeight, iDstStride, 1, piDstY );
-
     return;
   }
   
@@ -484,7 +481,7 @@ Void  TComPrediction::xPredInterLumaBlk_ha( TComDataCU* pcCU, TComPicYuv* pcPicY
     }
     if ( ixFrac == 3)
     {
-      xCTI_FilterQuarter1Hor_ha( piRefY, iRefStride, 1, iWidth, iHeight, iDstStride, 1, piDstY );	
+      xCTI_FilterQuarter1Hor_ha( piRefY, iRefStride, 1, iWidth, iHeight, iDstStride, 1, piDstY );
       return;
     }
   }
@@ -499,7 +496,7 @@ Void  TComPrediction::xPredInterLumaBlk_ha( TComDataCU* pcCU, TComPicYuv* pcPicY
     if ( ixFrac == 3)
     {
       xCTI_FilterHalfVer (piRefY - 3,  iRefStride, 1, iWidth + 7, iHeight, iExtStride, 1, piExtY );
-      xCTI_FilterQuarter1Hor_ha (piExtY + 3,  iExtStride, 1, iWidth, iHeight, iDstStride, 1, piDstY );	  	
+      xCTI_FilterQuarter1Hor_ha (piExtY + 3,  iExtStride, 1, iWidth, iHeight, iDstStride, 1, piDstY );
       return;
     }
   }
@@ -525,7 +522,7 @@ Void  TComPrediction::xPredInterLumaBlk_ha( TComDataCU* pcCU, TComPicYuv* pcPicY
     {
       xCTI_FilterQuarter0Ver (piRefY - 3,  iRefStride, 1, iWidth + 7, iHeight, iExtStride, 1, piExtY );
       xCTI_FilterHalfHor_ha (piExtY + 3,  iExtStride, 1, iWidth    , iHeight, iDstStride, 1, piDstY );
-
+      
       return;
     }
     if( iyFrac == 3 )
@@ -543,14 +540,13 @@ Void  TComPrediction::xPredInterLumaBlk_ha( TComDataCU* pcCU, TComPicYuv* pcPicY
     {
       xCTI_FilterQuarter0Ver (piRefY - 3,  iRefStride, 1, iWidth + 7, iHeight, iExtStride, 1, piExtY );
       xCTI_FilterQuarter0Hor_ha (piExtY + 3,  iExtStride, 1, iWidth    , iHeight, iDstStride, 1, piDstY );
-	  
       return;
     }
     if ( ixFrac == 3)
     {
       xCTI_FilterQuarter0Ver (piRefY - 3,  iRefStride, 1, iWidth +7, iHeight, iExtStride, 1, piExtY );
       xCTI_FilterQuarter1Hor_ha (piExtY + 3,  iExtStride, 1, iWidth    , iHeight, iDstStride, 1, piDstY );
-
+      
       return;
     }
   }
@@ -560,18 +556,16 @@ Void  TComPrediction::xPredInterLumaBlk_ha( TComDataCU* pcCU, TComPicYuv* pcPicY
     {
       xCTI_FilterQuarter1Ver (piRefY - 3,  iRefStride, 1, iWidth + 7, iHeight, iExtStride, 1, piExtY );
       xCTI_FilterQuarter0Hor_ha (piExtY + 3,  iExtStride, 1, iWidth    , iHeight, iDstStride, 1, piDstY );
-	  	
       return;
     }
     if ( ixFrac == 3)
     {
       xCTI_FilterQuarter1Ver (piRefY - 3,  iRefStride, 1, iWidth + 7, iHeight, iExtStride, 1, piExtY );
       xCTI_FilterQuarter1Hor_ha (piExtY + 3,  iExtStride, 1, iWidth    , iHeight, iDstStride, 1, piDstY );
-
       return;
     }
   }
-  }
+}
 
 #endif
 
@@ -621,7 +615,7 @@ Void  TComPrediction::xPredInterLumaBlk( TComDataCU* pcCU, TComPicYuv* pcPicYuvR
   if ( ixFrac == 2 && iyFrac == 2 )
   {
 
-	xCTI_FilterHalfVer (piRefY - 3,  iRefStride, 1, iWidth +7, iHeight, iExtStride, 1, piExtY );
+    xCTI_FilterHalfVer (piRefY - 3,  iRefStride, 1, iWidth +7, iHeight, iExtStride, 1, piExtY );
     xCTI_FilterHalfHor (piExtY + 3,  iExtStride, 1, iWidth    , iHeight, iDstStride, 1, piDstY );
     return;
   }
@@ -765,8 +759,8 @@ Void TComPrediction::xPredInterChromaBlk( TComDataCU* pcCU, TComPicYuv* pcPicYuv
   UInt    uiCHeight = iHeight >> 1;
   
   xDCTIF_FilterC(piRefCb, iRefStride,piDstCb,iDstStride,uiCWidth,uiCHeight, iyFrac, ixFrac);
-	xDCTIF_FilterC(piRefCr, iRefStride,piDstCr,iDstStride,uiCWidth,uiCHeight, iyFrac, ixFrac);
-	return;
+  xDCTIF_FilterC(piRefCr, iRefStride,piDstCr,iDstStride,uiCWidth,uiCHeight, iyFrac, ixFrac);
+  return;
 }
 
 Void  TComPrediction::xDCTIF_FilterC ( Pel*  piRefC, Int iRefStride,Pel*  piDstC,Int iDstStride,
@@ -814,29 +808,29 @@ Void  TComPrediction::xDCTIF_FilterC_ha ( Pel*  piRefC, Int iRefStride,Pel*  piD
   {
     for (Int y = 0; y < iHeight; y++ )
     {
-       for(Int x=0; x<iWidth; x++)
-	   {
-		   piDstC[x] = (piRefC[x]<<shiftNumOrg); 
-	   }
-	   piDstC += iDstStride;
-	   piRefC += iRefStride;
-	}
+      for(Int x=0; x<iWidth; x++)
+      {
+        piDstC[x] = (piRefC[x]<<shiftNumOrg); 
+      }
+      piDstC += iDstStride;
+      piRefC += iRefStride;
+    }
     return;
   }
-
+  
   if ( iMVyFrac == 0 )
   {
     xCTI_Filter1DHorC_ha (piRefC, iRefStride,  iWidth, iHeight, iDstStride,  piDstC, iMVxFrac );
-	return;
-
+    return;
+    
   }
-
+  
   if ( iMVxFrac == 0 )
   {
     xCTI_Filter1DVerC_ha (piRefC, iRefStride,  iWidth, iHeight, iDstStride,  piDstC, iMVyFrac );
     return;
   }
-
+  
   Int   iExtStride = m_iYuvExtStride;
   Int*  piExtC     = m_piYuvExt;
 

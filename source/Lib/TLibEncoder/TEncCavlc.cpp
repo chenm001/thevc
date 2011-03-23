@@ -383,7 +383,7 @@ Void TEncCavlc::codePartSize( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth 
   {    
     if ((pcCU->getPartitionSize(uiAbsPartIdx ) == SIZE_NxN) || pcCU->isIntra( uiAbsPartIdx ))
     {
-  	  UInt uiIntraFlag = ( pcCU->isIntra(uiAbsPartIdx));
+      UInt uiIntraFlag = ( pcCU->isIntra(uiAbsPartIdx));
       if (pcCU->getPartitionSize(uiAbsPartIdx ) == SIZE_2Nx2N)
       {
         xWriteFlag(1);
@@ -498,8 +498,8 @@ Void TEncCavlc::codePartSize( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth 
 Void TEncCavlc::codePredMode( TComDataCU* pcCU, UInt uiAbsPartIdx )
 {
 #if QC_LCEC_INTER_MODE
-	codeInterModeFlag(pcCU, uiAbsPartIdx,(UInt)pcCU->getDepth(uiAbsPartIdx),2);
-	return;
+  codeInterModeFlag(pcCU, uiAbsPartIdx,(UInt)pcCU->getDepth(uiAbsPartIdx),2);
+  return;
 #else
   // get context function is here
   Int iPredMode = pcCU->getPredictionMode( uiAbsPartIdx );
@@ -607,62 +607,62 @@ Void TEncCavlc::codeAlfCtrlDepth()
   
   UInt uiDepth = m_uiMaxAlfCtrlDepth;
   
-    xWriteUnaryMaxSymbol(uiDepth, g_uiMaxCUDepth-1);
+  xWriteUnaryMaxSymbol(uiDepth, g_uiMaxCUDepth-1);
 }
 #if QC_LCEC_INTER_MODE
 Void TEncCavlc::codeInterModeFlag( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth, UInt uiEncMode )
 {
-	Bool bHasSplit = ( uiDepth == g_uiMaxCUDepth - g_uiAddCUDepth )? 0 : 1;
-	UInt uiSplitFlag = ( pcCU->getDepth( uiAbsPartIdx ) > uiDepth ) ? 1 : 0;
-	UInt uiMode=0,uiControl=0;
-        UInt uiTableDepth = uiDepth;
-        if ( !bHasSplit )
-        {
-          uiTableDepth = 3;
-        }
-	if(!uiSplitFlag || !bHasSplit)
-	{
-		uiMode = 1;
+  Bool bHasSplit = ( uiDepth == g_uiMaxCUDepth - g_uiAddCUDepth )? 0 : 1;
+  UInt uiSplitFlag = ( pcCU->getDepth( uiAbsPartIdx ) > uiDepth ) ? 1 : 0;
+  UInt uiMode=0,uiControl=0;
+  UInt uiTableDepth = uiDepth;
+  if ( !bHasSplit )
+  {
+    uiTableDepth = 3;
+  }
+  if(!uiSplitFlag || !bHasSplit)
+  {
+    uiMode = 1;
     uiControl = 1;
-		if (!pcCU->isSkipped(uiAbsPartIdx ))
-		{
+    if (!pcCU->isSkipped(uiAbsPartIdx ))
+    {
       uiControl = 2;
       uiMode = 6;
       if (pcCU->getPredictionMode(uiAbsPartIdx) == MODE_INTER)
       {
         if(pcCU->getPartitionSize(uiAbsPartIdx) == SIZE_2Nx2N)
-           uiMode=pcCU->getMergeFlag(uiAbsPartIdx) ? 2 : 3;
+          uiMode=pcCU->getMergeFlag(uiAbsPartIdx) ? 2 : 3;
         else 
-           uiMode=3+(UInt)pcCU->getPartitionSize(uiAbsPartIdx);
+          uiMode=3+(UInt)pcCU->getPartitionSize(uiAbsPartIdx);
       }
-		}
-	}
+    }
+  }
   if (uiEncMode != uiControl )
-		return;
+    return;
   UInt uiEndSym = bHasSplit ? 7 : 6;
   uiDepth = uiTableDepth;
   UInt uiLength = m_uiSplitTableE[uiDepth][uiMode] + 1;
   if (uiLength == uiEndSym)
   {
-		  xWriteCode( 0, uiLength - 1);
+    xWriteCode( 0, uiLength - 1);
   }
   else
-	{
-      xWriteCode( 1, uiLength );
+  {
+    xWriteCode( 1, uiLength );
   }
- 	UInt x = uiMode;
-  UInt cx = m_uiSplitTableE[uiDepth][x];	
+  UInt x = uiMode;
+  UInt cx = m_uiSplitTableE[uiDepth][x];
   /* Adapt table */
   if ( m_bAdaptFlag)
   {   
     if(cx>0)
     {
-       UInt cy = Max(0,cx-1);
-       UInt y = m_uiSplitTableD[uiDepth][cy];
-		   m_uiSplitTableD[uiDepth][cy] = x;
-		   m_uiSplitTableD[uiDepth][cx] = y;
-		   m_uiSplitTableE[uiDepth][x] = cy;
-		   m_uiSplitTableE[uiDepth][y] = cx; 
+      UInt cy = Max(0,cx-1);
+      UInt y = m_uiSplitTableD[uiDepth][cy];
+      m_uiSplitTableD[uiDepth][cy] = x;
+      m_uiSplitTableD[uiDepth][cx] = y;
+      m_uiSplitTableE[uiDepth][x] = cy;
+      m_uiSplitTableE[uiDepth][y] = cx; 
     }
   }
   return;
@@ -671,8 +671,8 @@ Void TEncCavlc::codeInterModeFlag( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiD
 Void TEncCavlc::codeSkipFlag( TComDataCU* pcCU, UInt uiAbsPartIdx )
 {
 #if QC_LCEC_INTER_MODE
-	codeInterModeFlag(pcCU,uiAbsPartIdx,(UInt)pcCU->getDepth(uiAbsPartIdx),1);
-	return;
+  codeInterModeFlag(pcCU,uiAbsPartIdx,(UInt)pcCU->getDepth(uiAbsPartIdx),1);
+  return;
 #else
   // get context function is here
   UInt uiSymbol = pcCU->isSkipped( uiAbsPartIdx ) ? 1 : 0;
@@ -687,8 +687,8 @@ Void TEncCavlc::codeSplitFlag   ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDe
 #if QC_LCEC_INTER_MODE
   if (!pcCU->getSlice()->isIntra())
   {
-	     codeInterModeFlag(pcCU,uiAbsPartIdx,uiDepth,0);
-	     return;
+    codeInterModeFlag(pcCU,uiAbsPartIdx,uiDepth,0);
+    return;
   }
 #endif
   UInt uiCurrSplitFlag = ( pcCU->getDepth( uiAbsPartIdx ) > uiDepth ) ? 1 : 0;
@@ -743,14 +743,18 @@ Void TEncCavlc::codeIntraDirLumaAng( TComDataCU* pcCU, UInt uiAbsPartIdx )
       if ( g_aucIntraModeBitsAng[iIntraIdx] > 3 ) xWriteFlag( iDir & 0x04 ? 1 : 0 );
     }
   }
-  else if ( g_aucIntraModeBitsAng[iIntraIdx] == 5 ){
+  else if ( g_aucIntraModeBitsAng[iIntraIdx] == 5 )
+  {
 
-    if (iDir==iMostProbable){
+    if (iDir==iMostProbable)
+    {
       uiCode=huff17[0];
       uiLength=lengthHuff17[0];
     }
-    else{ 
-      if (iDir>iMostProbable){
+    else
+    { 
+      if (iDir>iMostProbable)
+      {
         iDir--;
       }
       iRankIntraMode=m_uiIntraModeTableE17[iDir];
@@ -772,12 +776,14 @@ Void TEncCavlc::codeIntraDirLumaAng( TComDataCU* pcCU, UInt uiAbsPartIdx )
     xWriteCode(uiCode, uiLength);
   }
   else{
-    if (iDir==iMostProbable){
+    if (iDir==iMostProbable)
+    {
       uiCode=huff34[0];
       uiLength=lengthHuff34[0];
     }
     else{
-      if (iDir>iMostProbable){
+      if (iDir>iMostProbable)
+      {
         iDir--;
       }
       iRankIntraMode=m_uiIntraModeTableE34[iDir];
@@ -1245,7 +1251,6 @@ Void TEncCavlc::codeCbf( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eType, UI
     
     if ( m_bAdaptFlag )
     {                
-      
       cy = Max(0,cx-1);
       y = m_uiCBPTableD[n][cy];
       m_uiCBPTableD[n][cy] = x;
@@ -1853,10 +1858,12 @@ Void TEncCavlc::xCodeCoeff4x4(TCoeff* scoeff, Int n )
   lev = (level == 1) ? 0 : 1;
   
 #if QC_MOD_LCEC
-  if (level>1){
+  if (level>1)
+  {
     tr1=0;
   }
-  else{
+  else
+  {
     tr1=1;
   }
 #endif
@@ -1875,11 +1882,10 @@ Void TEncCavlc::xCodeCoeff4x4(TCoeff* scoeff, Int n )
     vlcNum = vlcTable[n];
 #endif
     
-      xWriteVlc( vlcNum, cx );
+    xWriteVlc( vlcNum, cx );
     
     if ( m_bAdaptFlag )
     {
-      
       cy = Max( 0, cx-1 );
 #if QC_MOD_LCEC
       y = m_uiLPTableD4[nTab][cy];
@@ -2089,7 +2095,6 @@ Void TEncCavlc::xCodeCoeff8x8( TCoeff* scoeff, Int n )
     
     if ( m_bAdaptFlag )
     {
-      
       // ADAPT_VLC_NUM
       m_uiLastPosVlcIndex[n] += cx == m_uiLastPosVlcIndex[n] ? 0 : (cx < m_uiLastPosVlcIndex[n] ? -1 : 1);
       cy = Max(0,cx-1);

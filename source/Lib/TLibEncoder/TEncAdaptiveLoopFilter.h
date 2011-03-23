@@ -124,7 +124,7 @@ private:
 #endif
 
 #if MTK_NONCROSS_INLOOP_FILTER
-  TComPicYuv*	m_pcSliceYuvTmp;	
+  TComPicYuv* m_pcSliceYuvTmp;
 #endif
 
 private:

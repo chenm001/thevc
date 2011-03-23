@@ -292,9 +292,9 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
       }
 
 #if HIGH_ACCURACY_BI
-	  pcSlice->setRounding(false);
+      pcSlice->setRounding(false);
 #else
-	  pcSlice->setRounding(b);
+      pcSlice->setRounding(b);
 #endif
 #endif
 
@@ -483,106 +483,106 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
         m_pcEntropyCoder->resetEntropy    ();
       }
       
-      if (uiNextCUAddr==0)  // Compute ALF params and write only for first slice header
-      {
-      // adaptive loop filter
-      if ( pcSlice->getSPS()->getUseALF() )
-      {
-        ALFParam cAlfParam;
+        if (uiNextCUAddr==0)  // Compute ALF params and write only for first slice header
+        {
+          // adaptive loop filter
+          if ( pcSlice->getSPS()->getUseALF() )
+          {
+            ALFParam cAlfParam;
 #if TSB_ALF_HEADER
-        m_pcAdaptiveLoopFilter->setNumCUsInFrame(pcPic);
+            m_pcAdaptiveLoopFilter->setNumCUsInFrame(pcPic);
 #endif
-        m_pcAdaptiveLoopFilter->allocALFParam(&cAlfParam);
-        
-        // set entropy coder for RD
-          if ( pcSlice->getSymbolMode() )
-          {
-            m_pcEntropyCoder->setEntropyCoder ( m_pcEncTop->getRDGoOnSbacCoder(), pcSlice );
-          }
-          else
-          {
-            m_pcEntropyCoder->setEntropyCoder ( m_pcCavlcCoder, pcSlice );
-          }
-        m_pcEntropyCoder->resetEntropy    ();
-        m_pcEntropyCoder->setBitstream    ( m_pcBitCounter );
-        
-        m_pcAdaptiveLoopFilter->startALFEnc(pcPic, m_pcEntropyCoder );
-        
-        UInt uiMaxAlfCtrlDepth;
-        
-        UInt64 uiDist, uiBits;
-          m_pcAdaptiveLoopFilter->ALFProcess( &cAlfParam, pcSlice->getLambda(), uiDist, uiBits, uiMaxAlfCtrlDepth );
-        m_pcAdaptiveLoopFilter->endALFEnc();
-        
-        // set entropy coder for writing
-        m_pcSbacCoder->init( (TEncBinIf*)m_pcBinCABAC );
-        
-          if ( pcSlice->getSymbolMode() )
-          {
-            m_pcEntropyCoder->setEntropyCoder ( m_pcSbacCoder, pcSlice );
-          }
-          else
-          {
-            m_pcEntropyCoder->setEntropyCoder ( m_pcCavlcCoder, pcSlice );
-          }
-        m_pcEntropyCoder->resetEntropy    ();
-        m_pcEntropyCoder->setBitstream    ( pcBitstreamOut );
-        if (cAlfParam.cu_control_flag)
-        {
-          m_pcEntropyCoder->setAlfCtrl( true );
-          m_pcEntropyCoder->setMaxAlfCtrlDepth(uiMaxAlfCtrlDepth);
-          if (pcSlice->getSymbolMode() == 0)
-          {
-            m_pcCavlcCoder->setAlfCtrl(true);
-            m_pcCavlcCoder->setMaxAlfCtrlDepth(uiMaxAlfCtrlDepth); //D0201
-          }
-        }
-        else
-        {
-          m_pcEntropyCoder->setAlfCtrl(false);
-        }
-        m_pcEntropyCoder->encodeAlfParam(&cAlfParam);
-        
+            m_pcAdaptiveLoopFilter->allocALFParam(&cAlfParam);
+            
+            // set entropy coder for RD
+            if ( pcSlice->getSymbolMode() )
+            {
+              m_pcEntropyCoder->setEntropyCoder ( m_pcEncTop->getRDGoOnSbacCoder(), pcSlice );
+            }
+            else
+            {
+              m_pcEntropyCoder->setEntropyCoder ( m_pcCavlcCoder, pcSlice );
+            }
+            m_pcEntropyCoder->resetEntropy    ();
+            m_pcEntropyCoder->setBitstream    ( m_pcBitCounter );
+            
+            m_pcAdaptiveLoopFilter->startALFEnc(pcPic, m_pcEntropyCoder );
+            
+            UInt uiMaxAlfCtrlDepth;
+            
+            UInt64 uiDist, uiBits;
+            m_pcAdaptiveLoopFilter->ALFProcess( &cAlfParam, pcSlice->getLambda(), uiDist, uiBits, uiMaxAlfCtrlDepth );
+            m_pcAdaptiveLoopFilter->endALFEnc();
+            
+            // set entropy coder for writing
+            m_pcSbacCoder->init( (TEncBinIf*)m_pcBinCABAC );
+            
+            if ( pcSlice->getSymbolMode() )
+            {
+              m_pcEntropyCoder->setEntropyCoder ( m_pcSbacCoder, pcSlice );
+            }
+            else
+            {
+              m_pcEntropyCoder->setEntropyCoder ( m_pcCavlcCoder, pcSlice );
+            }
+            m_pcEntropyCoder->resetEntropy    ();
+            m_pcEntropyCoder->setBitstream    ( pcBitstreamOut );
+            if (cAlfParam.cu_control_flag)
+            {
+              m_pcEntropyCoder->setAlfCtrl( true );
+              m_pcEntropyCoder->setMaxAlfCtrlDepth(uiMaxAlfCtrlDepth);
+              if (pcSlice->getSymbolMode() == 0)
+              {
+                m_pcCavlcCoder->setAlfCtrl(true);
+                m_pcCavlcCoder->setMaxAlfCtrlDepth(uiMaxAlfCtrlDepth); //D0201
+              }
+            }
+            else
+            {
+              m_pcEntropyCoder->setAlfCtrl(false);
+            }
+            m_pcEntropyCoder->encodeAlfParam(&cAlfParam);
+            
 #if TSB_ALF_HEADER
-        if(cAlfParam.cu_control_flag)
-        {
-          m_pcEntropyCoder->encodeAlfCtrlParam(&cAlfParam);
-        }
+            if(cAlfParam.cu_control_flag)
+            {
+              m_pcEntropyCoder->encodeAlfCtrlParam(&cAlfParam);
+            }
 #endif
+            
+            m_pcAdaptiveLoopFilter->freeALFParam(&cAlfParam);
+          }
+        }
         
-        m_pcAdaptiveLoopFilter->freeALFParam(&cAlfParam);
-      }
-      }
-      
-      // File writing
-      m_pcSliceEncoder->encodeSlice( pcPic, pcBitstreamOut );
-
-      //  End of bitstream & byte align
-      pcBitstreamOut->write( 1, 1 );
-      pcBitstreamOut->writeAlignZero();
-
+        // File writing
+        m_pcSliceEncoder->encodeSlice( pcPic, pcBitstreamOut );
+        
+        //  End of bitstream & byte align
+        pcBitstreamOut->write( 1, 1 );
+        pcBitstreamOut->writeAlignZero();
+        
         UInt uiBoundingAddrSlice, uiBoundingAddrEntropySlice;
         uiBoundingAddrSlice        = m_uiStoredStartCUAddrForEncodingSlice[uiStartCUAddrSliceIdx];          
         uiBoundingAddrEntropySlice = m_uiStoredStartCUAddrForEncodingEntropySlice[uiStartCUAddrEntropySliceIdx];          
         uiNextCUAddr               = min(uiBoundingAddrSlice, uiBoundingAddrEntropySlice);
         if (uiNextCUAddr < pcPic->getPicSym()->getNumberOfCUsInFrame())   // if more slices to be encoded insert start code
         {
-        UInt uiSliceCount = pcBitstreamOut->getSliceCount();
-        pcBitstreamOut->setSliceByteLocation( uiSliceCount, (pcBitstreamOut->getNumberOfWrittenBits()>>3) );
-        pcBitstreamOut->setSliceCount( uiSliceCount+1 );
-        pcBitstreamOut->write( 1, 32);
-      }
-    } // end iteration over slices
-
-
+          UInt uiSliceCount = pcBitstreamOut->getSliceCount();
+          pcBitstreamOut->setSliceByteLocation( uiSliceCount, (pcBitstreamOut->getNumberOfWrittenBits()>>3) );
+          pcBitstreamOut->setSliceCount( uiSliceCount+1 );
+          pcBitstreamOut->write( 1, 32);
+        }
+      } // end iteration over slices
+      
+      
 #if MTK_NONCROSS_INLOOP_FILTER
-    if(pcSlice->getSPS()->getUseALF())
-    {
-      if(m_pcAdaptiveLoopFilter->getUseNonCrossAlf())
-        m_pcAdaptiveLoopFilter->destroySlice();
-    }
+      if(pcSlice->getSPS()->getUseALF())
+      {
+        if(m_pcAdaptiveLoopFilter->getUseNonCrossAlf())
+          m_pcAdaptiveLoopFilter->destroySlice();
+      }
 #endif 
-
+      
       
       pcBitstreamOut->flushBuffer();
       pcBitstreamOut->convertRBSPToPayload( uiPosBefore );

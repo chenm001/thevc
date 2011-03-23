@@ -239,11 +239,11 @@ __inline Void TComPredFilter::xCTI_FilterQuarter0Hor_ha(Pel* piSrc, Int iSrcStri
       iTmp2 = piSrcTmp[iSrcStep6] + piSrcTmp[iSrcStep4];
       
       iSum  =  iTmp1 + iTmp2 - piSrcTmp[0] - piSrcTmp[iSrcStep7]
-             - ( ( piSrcTmp[iSrcStep2] - iTmp2 ) << 1 )
-             + (  piSrcTmp[iSrcStep]             << 2 )
-             - ( ( piSrcTmp[iSrcStep2] + iTmp1 ) << 3 )
-             + (   piSrcTmp[iSrcStep4]           << 4 )
-			 + ( piSrcTmp[iSrcStep3]             << 6);
+            - ( ( piSrcTmp[iSrcStep2] - iTmp2 ) << 1 )
+            + (  piSrcTmp[iSrcStep]             << 2 )
+            - ( ( piSrcTmp[iSrcStep2] + iTmp1 ) << 3 )
+            + (   piSrcTmp[iSrcStep4]           << 4 )
+            + ( piSrcTmp[iSrcStep3]             << 6);
       
       piDst   [x * iDstStep] = Clip3(0,16383, (iSum + shiftOffset) >> shiftNum );
       piSrcTmp += iSrcStep;
@@ -252,8 +252,6 @@ __inline Void TComPredFilter::xCTI_FilterQuarter0Hor_ha(Pel* piSrc, Int iSrcStri
     piDst += iDstStride;
   }
   return;
-
-
 }
 
 __inline Void TComPredFilter::xCTI_FilterQuarter0Hor_ha(Int* piSrc, Int iSrcStride, Int iSrcStep, Int iWidth, Int iHeight, Int iDstStride, Int iDstStep, Pel*& rpiDst)
@@ -283,12 +281,12 @@ __inline Void TComPredFilter::xCTI_FilterQuarter0Hor_ha(Int* piSrc, Int iSrcStri
       iTmp2 = piSrcTmp[iSrcStep6] + piSrcTmp[iSrcStep4];
       
       iSum  =  iTmp1 + iTmp2 - piSrcTmp[0] - piSrcTmp[iSrcStep7]
-      	- ( ( piSrcTmp[iSrcStep2] - iTmp2 ) << 1 )
-      	+ (  piSrcTmp[iSrcStep]             << 2 )
-      	- ( ( piSrcTmp[iSrcStep2] + iTmp1 ) << 3 )
-      	+ (   piSrcTmp[iSrcStep4]           << 4 )
-      	+ (   piSrcTmp[iSrcStep3]           << 6 );
-    
+            - ( ( piSrcTmp[iSrcStep2] - iTmp2 ) << 1 )
+            + (  piSrcTmp[iSrcStep]             << 2 )
+            - ( ( piSrcTmp[iSrcStep2] + iTmp1 ) << 3 )
+            + (   piSrcTmp[iSrcStep4]           << 4 )
+            + (   piSrcTmp[iSrcStep3]           << 6 );
+      
       piDst   [x * iDstStep] = Clip3(0, 16383, (iSum +  shiftOffset) >>  shiftNum );
       piSrcTmp += iSrcStep;
     }
@@ -331,9 +329,8 @@ __inline Void TComPredFilter::xCTI_FilterQuarter1Hor_ha(Pel* piSrc, Int iSrcStri
             + (   piSrcTmp[iSrcStep6]           << 2 )
             - ( ( piSrcTmp[iSrcStep5] + iTmp1 ) << 3 )
             + (   piSrcTmp[iSrcStep3]           << 4 )
-			+ (   piSrcTmp[iSrcStep4]           << 6 );
-			;
-      
+            + (   piSrcTmp[iSrcStep4]           << 6 );
+
       piDst   [x * iDstStep] = Clip3(0,16383, (iSum + shiftOffset) >> shiftNum);
       piSrcTmp += iSrcStep;
     }
@@ -419,7 +416,7 @@ __inline Void TComPredFilter::xCTI_FilterQuarter0Ver_ha (Pel* piSrc, Int iSrcStr
             + (  piSrcTmp[iSrcStride]             << 2 )
             - ( ( piSrcTmp[iSrcStride2] + iTmp1 ) << 3 )
             + (   piSrcTmp[iSrcStride4]           << 4 )
-			+ (   piSrcTmp[iSrcStride3]           << 6);
+            + (   piSrcTmp[iSrcStride3]           << 6);
       
       piDst[x * iDstStep] = Clip3(0,16383, (iSum + shiftOffset)>>shiftNum);
       piSrcTmp += iSrcStep;
@@ -462,7 +459,7 @@ __inline Void TComPredFilter::xCTI_FilterQuarter1Ver_ha (Pel* piSrc, Int iSrcStr
             + (   piSrcTmp[iSrcStride6]           << 2 )
             - ( ( piSrcTmp[iSrcStride5] + iTmp1 ) << 3 )
             + (   piSrcTmp[iSrcStride3]           << 4 )
-			+ (   piSrcTmp[iSrcStride4]           << 6 );
+            + (   piSrcTmp[iSrcStride4]           << 6 );
             
       piDst[x * iDstStep] = Clip3(0,16383, (iSum + shiftOffset)>>shiftNum);
       piSrcTmp += iSrcStep;
@@ -474,7 +471,7 @@ __inline Void TComPredFilter::xCTI_FilterQuarter1Ver_ha (Pel* piSrc, Int iSrcStr
 
 }
 
-__inline Void TComPredFilter::xCTI_FilterHalfVer_ha	 (Pel* piSrc, Int iSrcStride, Int iSrcStep, Int iWidth, Int iHeight, Int iDstStride, Int iDstStep, Pel*& rpiDst)
+__inline Void TComPredFilter::xCTI_FilterHalfVer_ha  (Pel* piSrc, Int iSrcStride, Int iSrcStep, Int iWidth, Int iHeight, Int iDstStride, Int iDstStep, Pel*& rpiDst)
 {
   Pel*  piDst = rpiDst;
   Int   iSum;
@@ -670,12 +667,12 @@ __inline Void TComPredFilter::xCTI_FilterQuarter0Hor(Int* piSrc, Int iSrcStride,
       iTmp2 = piSrcTmp[iSrcStep6] + piSrcTmp[iSrcStep4];
       
       iSum  =  iTmp1 + iTmp2 - piSrcTmp[0] - piSrcTmp[iSrcStep7]
-      	- ( ( piSrcTmp[iSrcStep2] - iTmp2 ) << 1 )
-      	+ (  piSrcTmp[iSrcStep]             << 2 )
-      	- ( ( piSrcTmp[iSrcStep2] + iTmp1 ) << 3 )
-      	+ (   piSrcTmp[iSrcStep4]           << 4 )
-      	+ (   piSrcTmp[iSrcStep3]           << 6 );
-    
+            - ( ( piSrcTmp[iSrcStep2] - iTmp2 ) << 1 )
+            + (  piSrcTmp[iSrcStep]             << 2 )
+            - ( ( piSrcTmp[iSrcStep2] + iTmp1 ) << 3 )
+            + (   piSrcTmp[iSrcStep4]           << 4 )
+            + (   piSrcTmp[iSrcStep3]           << 6 );
+      
       piDst   [x * iDstStep] = Clip( (iSum +  2048) >>  12 );
       piSrcTmp += iSrcStep;
     }
@@ -1282,7 +1279,7 @@ __inline Void TComPredFilter::xCTI_Filter2DHorC(Int* piSrc, Int iSrcStride,  Int
         piSrcTmp = &piSrc[ -1 ];
         for ( Int x = 0; x < iWidth; x++ )
         {
-			iSum      = xCTI_Filter_VIS04_C_HAL( piSrcTmp, 1 );
+          iSum      = xCTI_Filter_VIS04_C_HAL( piSrcTmp, 1 );
           piDst   [x ] = Clip ((iSum +  2048) >>  12 );
           piSrcTmp++;
         }
@@ -1302,7 +1299,7 @@ __inline Void TComPredFilter::xCTI_Filter1DVerC (Pel* piSrc, Int iSrcStride, Int
 {
   Pel*  piDst = rpiDst;
   Int   iSum;
-  Pel*  piSrcTmp;	
+  Pel*  piSrcTmp;
 
   switch (iMV)
   {
@@ -1535,7 +1532,7 @@ __inline Void TComPredFilter::xCTI_Filter1DHorC(Pel* piSrc, Int iSrcStride, Int 
         piSrcTmp = &piSrc[ -1 ];
         for ( Int x = 0; x < iWidth; x++ )
         {
-			iSum         = xCTI_Filter_VPS04_C_HAL( piSrcTmp,  1 );
+          iSum         = xCTI_Filter_VPS04_C_HAL( piSrcTmp,  1 );
           piDst[x ] = Clip ((iSum +  32) >>  6 );
           piSrcTmp++;
         }
@@ -1664,7 +1661,7 @@ __inline Void TComPredFilter::xCTI_Filter2DHorC_ha(Int* piSrc, Int iSrcStride,  
         piSrcTmp = &piSrc[ -1 ];
         for ( Int x = 0; x < iWidth; x++ )
         {
-			iSum      = xCTI_Filter_VIS04_C_HAL( piSrcTmp, 1 );
+          iSum      = xCTI_Filter_VIS04_C_HAL( piSrcTmp, 1 );
           piDst   [x ] = Clip3(0,16383, (iSum +  shiftOffset) >>  shiftNum );
           piSrcTmp++;
         }
@@ -1684,7 +1681,7 @@ __inline Void TComPredFilter::xCTI_Filter1DVerC_ha (Pel* piSrc, Int iSrcStride, 
 {
   Pel*  piDst = rpiDst;
   Int   iSum;
-  Pel*  piSrcTmp;	
+  Pel*  piSrcTmp;
   Int shiftNum  = g_uiBitIncrement + g_uiBitDepth - 8;
   Int shiftOffset = (shiftNum > 0) ? ( 1 << (shiftNum - 1)) : 0 ;
     
@@ -1921,7 +1918,7 @@ __inline Void TComPredFilter::xCTI_Filter1DHorC_ha(Pel* piSrc, Int iSrcStride, I
         piSrcTmp = &piSrc[ -1 ];
         for ( Int x = 0; x < iWidth; x++ )
         {
-			iSum    = xCTI_Filter_VPS04_C_HAL( piSrcTmp,  1 );
+          iSum    = xCTI_Filter_VPS04_C_HAL( piSrcTmp,  1 );
           piDst[x ] =  Clip3(0,16383, (iSum +  shiftOffset) >>  shiftNum );
           piSrcTmp++;
         }
@@ -2039,7 +2036,7 @@ __inline Int TComPredFilter::xCTI_Filter_VI04_C_OCT1( Int* pSrc, Int iStride )
 }
 __inline Int TComPredFilter::xCTI_Filter_VPS04_C_HAL( Pel* pSrc, Int iStride )
 {
-	// {  -4,  36,  36,   -4,}, // 1/2
+  // {  -4,  36,  36,   -4,}, // 1/2
   Int iSum;
   Int iTemp0 = pSrc[iStride*1]+pSrc[iStride*2];
   Int iTemp1 = pSrc[        0]+pSrc[iStride*3];
@@ -2050,7 +2047,7 @@ __inline Int TComPredFilter::xCTI_Filter_VPS04_C_HAL( Pel* pSrc, Int iStride )
 }
 __inline Int TComPredFilter::xCTI_Filter_VIS04_C_HAL( Int* pSrc, Int iStride )
 {
-	// {  -4,  36,  36,   -4,}, //1/2
+  // {  -4,  36,  36,   -4,}, //1/2
   Int iSum;
   Int iTemp0 = pSrc[iStride*1]+pSrc[iStride*2];
   Int iTemp1 = pSrc[        0]+pSrc[iStride*3];

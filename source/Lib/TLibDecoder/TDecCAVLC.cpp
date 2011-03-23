@@ -184,9 +184,9 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice)
   Bool bEntropySlice = uiCode ? true : false;
   if (!bEntropySlice)
   {
-  xReadCode (10, uiCode);  rpcSlice->setPOC              (uiCode);             // 9 == SPS->Log2MaxFrameNum()
-  xReadUvlc (   uiCode);  rpcSlice->setSliceType        ((SliceType)uiCode);
-  xReadSvlc (    iCode);  rpcSlice->setSliceQp          (iCode);
+    xReadCode (10, uiCode);  rpcSlice->setPOC              (uiCode);             // 9 == SPS->Log2MaxFrameNum()
+    xReadUvlc (   uiCode);  rpcSlice->setSliceType        ((SliceType)uiCode);
+    xReadSvlc (    iCode);  rpcSlice->setSliceQp          (iCode);
   }
   if (bEntropySlice)
   {
@@ -200,98 +200,98 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice)
   {
     rpcSlice->setNextSlice        ( true  );
     rpcSlice->setNextEntropySlice ( false );
-
+    
     xReadUvlc(uiCode);
     rpcSlice->setSliceCurStartCUAddr( uiCode );        // start CU addr for slice
     rpcSlice->setEntropySliceCurStartCUAddr( uiCode ); // start CU addr for entropy slice  
-  
-  xReadFlag ( uiCode );
-  rpcSlice->setSymbolMode( uiCode );
-  
-  if (!rpcSlice->isIntra())
-    xReadFlag (   uiCode);
-  else
-    uiCode = 1;
-  
-  rpcSlice->setReferenced       (uiCode ? true : false);
-
+    
+    xReadFlag ( uiCode );
+    rpcSlice->setSymbolMode( uiCode );
+    
+    if (!rpcSlice->isIntra())
+      xReadFlag (   uiCode);
+    else
+      uiCode = 1;
+    
+    rpcSlice->setReferenced       (uiCode ? true : false);
+    
 #if !HIGH_ACCURACY_BI
 #ifdef ROUNDING_CONTROL_BIPRED
-  if(!rpcSlice->isIntra())
-  {
-    xReadFlag( uiCode );
-    Bool b = (uiCode != 0);
-    rpcSlice->setRounding(b);
-  }
+    if(!rpcSlice->isIntra())
+    {
+      xReadFlag( uiCode );
+      Bool b = (uiCode != 0);
+      rpcSlice->setRounding(b);
+    }
 #endif
 #else
-  if(!rpcSlice->isIntra())
-  {
-    rpcSlice->setRounding(false);
-  }
-#endif
-  
-  xReadFlag (   uiCode);  rpcSlice->setLoopFilterDisable(uiCode ? 1 : 0);
-  
-  if (!rpcSlice->isIntra())
-  {
-    xReadCode (3, uiCode);  rpcSlice->setNumRefIdx      (REF_PIC_LIST_0, uiCode);
-  }
-  else
-  {
-    rpcSlice->setNumRefIdx(REF_PIC_LIST_0, 0);
-  }
-  if (rpcSlice->isInterB())
-  {
-    xReadCode (3, uiCode);  rpcSlice->setNumRefIdx      (REF_PIC_LIST_1, uiCode);
-  }
-  else
-  {
-    rpcSlice->setNumRefIdx(REF_PIC_LIST_1, 0);
-  }
-  
-#if DCM_COMB_LIST
-  if (rpcSlice->isInterB())
-  {
-    xReadFlag (uiCode);      rpcSlice->setRefPicListCombinationFlag(uiCode ? 1 : 0);
-    if(uiCode)
+    if(!rpcSlice->isIntra())
     {
-      xReadUvlc(uiCode);      rpcSlice->setNumRefIdx      (REF_PIC_LIST_C, uiCode+1);
-
-      xReadFlag (uiCode);     rpcSlice->setRefPicListModificationFlagLC(uiCode ? 1 : 0);
-      if(uiCode)
-      {
-        for (UInt i=0;i<rpcSlice->getNumRefIdx(REF_PIC_LIST_C);i++)
-        {
-          xReadFlag(uiCode);
-          rpcSlice->setListIdFromIdxOfLC(i, uiCode);
-          xReadUvlc(uiCode);
-          rpcSlice->setRefIdxFromIdxOfLC(i, uiCode);
-          rpcSlice->setRefIdxOfLC((RefPicList)rpcSlice->getListIdFromIdxOfLC(i), rpcSlice->getRefIdxFromIdxOfLC(i), i);
-        }
-      }
+      rpcSlice->setRounding(false);
+    }
+#endif
+    
+    xReadFlag (   uiCode);  rpcSlice->setLoopFilterDisable(uiCode ? 1 : 0);
+    
+    if (!rpcSlice->isIntra())
+    {
+      xReadCode (3, uiCode);  rpcSlice->setNumRefIdx      (REF_PIC_LIST_0, uiCode);
     }
     else
     {
-      rpcSlice->setRefPicListCombinationFlag(false);
-      rpcSlice->setRefPicListModificationFlagLC(false);
-      rpcSlice->setNumRefIdx(REF_PIC_LIST_C, -1);
+      rpcSlice->setNumRefIdx(REF_PIC_LIST_0, 0);
     }
-  }
+    if (rpcSlice->isInterB())
+    {
+      xReadCode (3, uiCode);  rpcSlice->setNumRefIdx      (REF_PIC_LIST_1, uiCode);
+    }
+    else
+    {
+      rpcSlice->setNumRefIdx(REF_PIC_LIST_1, 0);
+    }
+    
+#if DCM_COMB_LIST
+    if (rpcSlice->isInterB())
+    {
+      xReadFlag (uiCode);      rpcSlice->setRefPicListCombinationFlag(uiCode ? 1 : 0);
+      if(uiCode)
+      {
+        xReadUvlc(uiCode);      rpcSlice->setNumRefIdx      (REF_PIC_LIST_C, uiCode+1);
+        
+        xReadFlag (uiCode);     rpcSlice->setRefPicListModificationFlagLC(uiCode ? 1 : 0);
+        if(uiCode)
+        {
+          for (UInt i=0;i<rpcSlice->getNumRefIdx(REF_PIC_LIST_C);i++)
+          {
+            xReadFlag(uiCode);
+            rpcSlice->setListIdFromIdxOfLC(i, uiCode);
+            xReadUvlc(uiCode);
+            rpcSlice->setRefIdxFromIdxOfLC(i, uiCode);
+            rpcSlice->setRefIdxOfLC((RefPicList)rpcSlice->getListIdFromIdxOfLC(i), rpcSlice->getRefIdxFromIdxOfLC(i), i);
+          }
+        }
+      }
+      else
+      {
+        rpcSlice->setRefPicListCombinationFlag(false);
+        rpcSlice->setRefPicListModificationFlagLC(false);
+        rpcSlice->setNumRefIdx(REF_PIC_LIST_C, -1);
+      }
+    }
 #endif
-
-  xReadFlag (uiCode);     rpcSlice->setDRBFlag          (uiCode ? 1 : 0);
-  if ( !rpcSlice->getDRBFlag() )
-  {
-    xReadCode(2, uiCode); rpcSlice->setERBIndex( (ERBIndex)uiCode );    assert (uiCode == ERB_NONE || uiCode == ERB_LTR);
-  }  
-
+    
+    xReadFlag (uiCode);     rpcSlice->setDRBFlag          (uiCode ? 1 : 0);
+    if ( !rpcSlice->getDRBFlag() )
+    {
+      xReadCode(2, uiCode); rpcSlice->setERBIndex( (ERBIndex)uiCode );    assert (uiCode == ERB_NONE || uiCode == ERB_LTR);
+    }  
+    
 #if AMVP_NEIGH_COL
-  if ( rpcSlice->getSliceType() == B_SLICE )
-  {
-    xReadFlag (uiCode);
-    rpcSlice->setColDir(uiCode);
-  }
+    if ( rpcSlice->getSliceType() == B_SLICE )
+    {
+      xReadFlag (uiCode);
+      rpcSlice->setColDir(uiCode);
+    }
 #endif
   }
   return;
@@ -571,7 +571,7 @@ Void TDecCavlc::parseSplitFlag     ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt u
         UInt uiWidthInBit  = g_aucConvertToBit[pcCU->getWidth(uiAbsPartIdx)]+2;
         UInt uiTrSizeInBit = g_aucConvertToBit[pcCU->getSlice()->getSPS()->getMaxTrSize()]+2;
         uiTrLevel          = uiWidthInBit >= uiTrSizeInBit ? uiWidthInBit - uiTrSizeInBit : 0;
-	      pcCU->setTrIdxSubParts( uiTrLevel, uiAbsPartIdx, uiDepth );       
+        pcCU->setTrIdxSubParts( uiTrLevel, uiAbsPartIdx, uiDepth );       
       }
       else
 #endif
@@ -863,7 +863,7 @@ Void TDecCavlc::parseIntraDirLumaAng  ( TComDataCU* pcCU, UInt uiAbsPartIdx, UIn
     {
       iRankIntraMode = 0;
       for (Int i=1;i<17;i++)
-      {	
+      {
         if( (uiCode>>(uiLength- lengthHuff17[i])) == huff17[i])
         {
           m_pcBitstream->read(lengthHuff17[i], uiCode);
@@ -899,7 +899,7 @@ Void TDecCavlc::parseIntraDirLumaAng  ( TComDataCU* pcCU, UInt uiAbsPartIdx, UIn
     {
       iRankIntraMode = 0;
       for (Int i=1;i<34;i++)
-      {	
+      {
         if( (uiCode>>(uiLength- lengthHuff34[i])) == huff34[i])
         {
           m_pcBitstream->read(lengthHuff34[i], uiCode);

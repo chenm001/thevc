@@ -288,14 +288,14 @@ public:
   Void setUseRoundingControlBipred(Bool b) { m_useRoundingControlBipred = b; }
   Bool getUseRoundingControlBipred() { return m_useRoundingControlBipred; }
 #endif
-	//====== Slice ========
-  Void  setSliceMode                   ( Int	i )       { m_iSliceMode = i;              }
-  Void  setSliceArgument               ( Int	i )       { m_iSliceArgument = i;          }
+  //====== Slice ========
+  Void  setSliceMode                   ( Int  i )       { m_iSliceMode = i;              }
+  Void  setSliceArgument               ( Int  i )       { m_iSliceArgument = i;          }
   Int   getSliceMode                   ()              { return m_iSliceMode;           }
   Int   getSliceArgument               ()              { return m_iSliceArgument;       }
-	//====== Entropy Slice ========
-  Void  setEntropySliceMode            ( Int	i )      { m_iEntropySliceMode = i;       }
-  Void  setEntropySliceArgument        ( Int	i )      { m_iEntropySliceArgument = i;   }
+  //====== Entropy Slice ========
+  Void  setEntropySliceMode            ( Int  i )      { m_iEntropySliceMode = i;       }
+  Void  setEntropySliceArgument        ( Int  i )      { m_iEntropySliceArgument = i;   }
   Int   getEntropySliceMode            ()              { return m_iEntropySliceMode;    }
   Int   getEntropySliceArgument        ()              { return m_iEntropySliceArgument;}
 #if MTK_NONCROSS_INLOOP_FILTER

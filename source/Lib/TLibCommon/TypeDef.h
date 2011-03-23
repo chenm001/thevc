@@ -48,7 +48,7 @@
 #define HHI_RQT_INTRA_SPEEDUP             1           ///< tests one best mode with full rqt
 #define HHI_RQT_INTRA_SPEEDUP_MOD         0           ///< tests two best modes with full rqt
 
-#define PART_MRG		                      1            // If the number of partitions is two and size > 8, only merging mode is enabled for the first partition & do not code merge_flag for the first partition
+#define PART_MRG                          1            // If the number of partitions is two and size > 8, only merging mode is enabled for the first partition & do not code merge_flag for the first partition
 
 #if HHI_RQT_INTRA_SPEEDUP_MOD && !HHI_RQT_INTRA_SPEEDUP
 #error
@@ -111,7 +111,7 @@
 
 #define SAMSUNG_FAST_UDI_MODESET              0           ///< 0: {9,9,4,4,5} (default) and 1: {9,9,9,9,5} for {4x4,8x8,16x16,32x32,64x64} 
 
-#define ZERO_MVD_EST											0           // Zero Mvd Estimation in normal mode
+#define ZERO_MVD_EST                          0           ///< Zero Mvd Estimation in normal mode
 ///////////////////////////////
 // SAMSUNG defines section end
 ///////////////////////////////
@@ -148,7 +148,7 @@
 ////////////////////////////////
 // MICROSOFT&USTC defines section start
 ////////////////////////////////
-#define MS_LCEC_ONE_FRAME		        1           // change the initial table in LCEC when there is up to one reference frame in each list, JCTVC-D141
+#define MS_LCEC_ONE_FRAME               1           // change the initial table in LCEC when there is up to one reference frame in each list, JCTVC-D141
 #define MS_LCEC_LOOKUP_TABLE_MAX_VALUE  1           // use the information of the max position in the lookup table, JCTVC-D141
 #define MS_LCEC_LOOKUP_TABLE_EXCEPTION  1           // deal with the case when the number of reference frames is greater than 2, JCTVC-D141
 #define MS_LCEC_UNI_EXCEPTION_THRES     1           // for GPB case, uni-prediction, > MS_LCEC_UNI_EXCEPTION_THRES is exception
@@ -461,9 +461,9 @@ enum InterpFilterType
 /// coefficient scanning type used in ACS
 enum COEFF_SCAN_TYPE
 {
-  SCAN_ZIGZAG = 0,			///< typical zigzag scan
-  SCAN_HOR,							///< horizontal first scan
-  SCAN_VER							///< vertical first scan
+  SCAN_ZIGZAG = 0,      ///< typical zigzag scan
+  SCAN_HOR,             ///< horizontal first scan
+  SCAN_VER              ///< vertical first scan
 };
 #endif //QC_MDCS
 

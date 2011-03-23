@@ -1676,28 +1676,26 @@ Int TComTrQuant::bitCount_LCEC(Int k,Int pos,Int n,Int lpflag,Int levelMode,Int 
 }
 #endif
 #if QC_MOD_LCEC_RDOQ
-static levelDataStruct slevelData		[ MAX_CU_SIZE*MAX_CU_SIZE ];
+static levelDataStruct slevelData  [ MAX_CU_SIZE*MAX_CU_SIZE ];
 Void TComTrQuant::xRateDistOptQuant_LCEC(TComDataCU* pcCU, Long* pSrcCoeff, TCoeff*& pDstCoeff, UInt uiWidth, UInt uiHeight, UInt& uiAbsSum, TextType eTType, 
                                          UInt uiAbsPartIdx )
 {
-  Int			i, j;
-  Int			iShift = 0;
-  Int			qp_rem, q_bits;
-  Double	err, lagr, lagrMin;
-  Double	normFact = 0.0;
-  Double	OneOverNormFact = 0.0;
-  Double	fTemp = 0.0;
-  Int			iQuantCoeff;
-  //Bool		b64Flag		  = false;
-  Bool		bExt8x8Flag = false;
-  Int			iShiftQBits, iSign, iRate, lastPosMin, iBlockType;
+  Int     i, j;
+  Int     iShift = 0;
+  Int     qp_rem, q_bits;
+  Double  err, lagr, lagrMin;
+  Double  normFact = 0.0;
+  Double  OneOverNormFact = 0.0;
+  Double  fTemp = 0.0;
+  Int     iQuantCoeff;
+  Bool    bExt8x8Flag = false;
+  Int     iShiftQBits, iSign, iRate, lastPosMin, iBlockType;
   UInt    uiBitShift = 15, uiScanPos, levelInd;
   Int     levelBest, iLevel, iAdd;
 
   levelDataStruct* levelData = &slevelData[0];
 
-  Int			iPos, iScanning;
-  //Double	dBestCost = MAX_DOUBLE, dCost = MAX_DOUBLE;
+  Int     iPos, iScanning;
 
   TCoeff sQuantCoeff[256];
 
@@ -1866,7 +1864,7 @@ Void TComTrQuant::xRateDistOptQuant_LCEC(TComDataCU* pcCU, Long* pSrcCoeff, TCoe
           psLevelData->levelDouble = abs( pSrcCoeff[iPos] * (Long) m_puiQuantMtx[iPos]);
           iQuantCoeff=(Int)((psLevelData->levelDouble +iAddRDOQ) >> q_bits);
 
-          psLevelData->levelQ		= ( psLevelData->levelDouble >> q_bits );
+          psLevelData->levelQ   = ( psLevelData->levelDouble >> q_bits );
           psLevelData->lowerInt = ( ( psLevelData->levelDouble - (psLevelData->levelQ << q_bits) ) < iShiftQBits ) ? true : false;
 
           iSign = pSrcCoeff[iPos] < 0 ? -1 : 1;
@@ -4301,7 +4299,7 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
   for( UInt uiScanPos = 0; uiScanPos < uiMaxNumCoeff; uiScanPos++ )
   {
 #if QC_MDCS
-	  UInt uiBlkPos = g_auiSigLastScan[uiScanIdx][uiLog2BlkSize-1][uiScanPos];  
+    UInt uiBlkPos = g_auiSigLastScan[uiScanIdx][uiLog2BlkSize-1][uiScanPos];  
 #else
     UInt   uiBlkPos     = g_auiFrameScanXY[ uiLog2BlkSize-1 ][ uiScanPos ];
 #endif //QC_MDCS
@@ -4354,7 +4352,7 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
     for( UInt uiScanPos = 0; uiScanPos < uiMaxNumCoeff; uiScanPos++ )
     {
 #if QC_MDCS
-	  UInt uiBlkPos = g_auiSigLastScan[uiScanIdx][uiLog2BlkSize-1][uiScanPos];  
+      UInt uiBlkPos = g_auiSigLastScan[uiScanIdx][uiLog2BlkSize-1][uiScanPos];  
 #else
       UInt    uiBlkPos  = g_auiFrameScanXY[ uiLog2BlkSize-1 ][ uiScanPos ];
 #endif //QC_MDCS

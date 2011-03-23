@@ -255,7 +255,8 @@ Void TDecTop::decode (Bool bEos, TComBitstream* pcBitstream, UInt& ruiPOC, TComL
         m_uiPrevPOC = m_apcSlicePilot->getPOC();
         return true;
       }
-      if (m_apcSlicePilot->isNextSlice()) m_uiPrevPOC = m_apcSlicePilot->getPOC();
+      if (m_apcSlicePilot->isNextSlice()) 
+        m_uiPrevPOC = m_apcSlicePilot->getPOC();
       m_bFirstSliceInSequence = false;
       if (m_apcSlicePilot->isNextSlice())
       {
