@@ -84,11 +84,9 @@ Void TEncCavlc::resetEntropy()
   m_uiCbpVlcIdx[0] = 0;
   m_uiCbpVlcIdx[1] = 0;
   
-#if QC_BLK_CBP
   ::memcpy(m_uiBlkCBPTableE, g_auiBlkCBPTableE, 2*15*sizeof(UInt));
   ::memcpy(m_uiBlkCBPTableD, g_auiBlkCBPTableD, 2*15*sizeof(UInt));
   m_uiBlkCbpVlcIdx = 0;
-#endif
   
   ::memcpy(m_uiMI1TableE, g_auiMI1TableE, 8*sizeof(UInt));
   ::memcpy(m_uiMI1TableD, g_auiMI1TableD, 8*sizeof(UInt));
@@ -1272,7 +1270,6 @@ Void TEncCavlc::codeBlockCbf( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eTyp
   
   assert(uiTrDepth > 0);
   
-#if QC_BLK_CBP
   if(bRD && uiCbf==0)
   {
     xWriteCode(0, 4); 
@@ -1305,9 +1302,6 @@ Void TEncCavlc::codeBlockCbf( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eTyp
   
   xWriteVlc( vlcn, cx );
   return;
-#else
-  xWriteCode(uiCbf, 4);
-#endif
 }
 
 Void TEncCavlc::codeCoeffNxN    ( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx, UInt uiWidth, UInt uiHeight, UInt uiDepth, TextType eTType, Bool bRD )
@@ -1713,11 +1707,7 @@ UInt TEncCavlc::xLeadingZeros(UInt uiCode)
 
 Void TEncCavlc::xWriteVlc(UInt uiTableNumber, UInt uiCodeNumber)
 {
-#if QC_BLK_CBP
   assert( uiTableNumber<=11 );
-#else
-  assert( uiTableNumber<=10 );
-#endif
   
   UInt uiTemp;
   UInt uiLength = 0;
@@ -1796,7 +1786,6 @@ Void TEncCavlc::xWriteVlc(UInt uiTableNumber, UInt uiCodeNumber)
     uiCode = uiCodeNumber+1;
     uiLength = 1+2*xLeadingZeros(uiCode);
   }
-#if QC_BLK_CBP
   else if (uiTableNumber == 11)
   {
     if (uiCodeNumber == 0)
@@ -1810,7 +1799,6 @@ Void TEncCavlc::xWriteVlc(UInt uiTableNumber, UInt uiCodeNumber)
       uiLength = 4;
     }
   }
-#endif
   xWriteCode(uiCode, uiLength);
 }
 

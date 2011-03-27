@@ -1082,7 +1082,6 @@ const UInt g_auiCbpVlcNum[2][8] =
   {0, 0, 0, 0, 0, 0, 0, 0}
 };
 
-#if QC_BLK_CBP
 const UInt g_auiBlkCBPTableE[2][15] = 
 {
   {14, 13, 10, 12, 9, 8, 4, 11, 7, 6, 3, 5, 2, 1, 0},
@@ -1099,7 +1098,6 @@ const UInt g_auiBlkCbpVlcNum[15] =
 {
   1,  2,  2,  2, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11
 };
-#endif
 
 const UInt g_auiMI1TableE[8] = {0,2,1,4,3,6,5,7};
 const UInt g_auiMI1TableD[8] = {0,2,1,4,3,6,5,7};

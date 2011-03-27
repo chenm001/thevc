@@ -93,10 +93,8 @@ private:
   UInt                      m_uiCBPTableD[2][8];
   UInt                      m_uiCbpVlcIdx[2];
   
-#if QC_BLK_CBP
   UInt                      m_uiBlkCBPTableD[2][15];
   UInt                      m_uiBlkCbpVlcIdx;
-#endif
   
   Int                   m_iRefFrame0[1000];
   Int                   m_iRefFrame1[1000];

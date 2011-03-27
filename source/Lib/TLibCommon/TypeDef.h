@@ -83,8 +83,6 @@
 // QUALCOMM defines section start
 /////////////////////////////////
 
-#define QC_BLK_CBP                        1           // block level CBP coding
-
 #define QC_MOD_LCEC                       1           // JCTVC-D374: modified LCEC coeff. coding
 #define LCEC_INTRA_MODE                   1           // JCTVC-D366: improved luma intra mode coding
 #define QC_MOD_LCEC_RDOQ                  1           // JCTVC-D374: improved RDOQ

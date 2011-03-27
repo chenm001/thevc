@@ -177,11 +177,9 @@ extern const UInt    g_auiCBPTableE[2][8];
 extern const UInt    g_auiCBPTableD[2][8];
 extern const UInt    g_auiCbpVlcNum[2][8];
 
-#if QC_BLK_CBP
 extern const UInt    g_auiBlkCBPTableE[2][15];
 extern const UInt    g_auiBlkCBPTableD[2][15];
 extern const UInt    g_auiBlkCbpVlcNum[15];
-#endif
 
 extern const UInt g_auiMI1TableE[8];
 extern const UInt g_auiMI1TableD[8];

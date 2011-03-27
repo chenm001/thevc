@@ -92,11 +92,9 @@ protected:
   UInt          m_uiCBPTableD[2][8];
   UInt          m_uiCbpVlcIdx[2];
   
-#if QC_BLK_CBP
   UInt          m_uiBlkCBPTableE[2][15];
   UInt          m_uiBlkCBPTableD[2][15];
   UInt          m_uiBlkCbpVlcIdx;
-#endif
   
 #if MS_LCEC_LOOKUP_TABLE_EXCEPTION
   UInt          m_uiMI1TableE[9];

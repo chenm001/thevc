@@ -308,10 +308,8 @@ Void TDecCavlc::resetEntropy          (TComSlice* pcSlice)
   m_uiCbpVlcIdx[0] = 0;
   m_uiCbpVlcIdx[1] = 0;
   
-#if QC_BLK_CBP
   ::memcpy(m_uiBlkCBPTableD,     g_auiBlkCBPTableD,     2*15*sizeof(UInt));
   m_uiBlkCbpVlcIdx = 0;
-#endif
   
   ::memcpy(m_uiMI1TableD,        g_auiMI1TableD,        8*sizeof(UInt));
   ::memcpy(m_uiMI2TableD,        g_auiMI2TableD,        15*sizeof(UInt));
@@ -1331,7 +1329,6 @@ Void TDecCavlc::parseBlockCbf( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eTy
   assert(uiTrDepth > 0);
   UInt uiCbf4, uiCbf;
   
-#if QC_BLK_CBP
   Int x,cx,y,cy;
   UInt tmp;
   
@@ -1351,9 +1348,6 @@ Void TDecCavlc::parseBlockCbf( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eTy
     m_uiBlkCbpVlcIdx += cx == m_uiBlkCbpVlcIdx ? 0 : (cx < m_uiBlkCbpVlcIdx ? -1 : 1);
   
   uiCbf4++;
-#else
-  xReadCode(4, uiCbf4);
-#endif
   
   uiCbf = pcCU->getCbf( uiAbsPartIdx, eType );
   pcCU->setCbfSubParts( uiCbf | ( ((uiCbf4>>3)&0x01) << uiTrDepth ), eType, uiAbsPartIdx, uiDepth ); uiAbsPartIdx += uiQPartNum;
@@ -1831,11 +1825,7 @@ UInt TDecCavlc::xGetBit()
 
 Int TDecCavlc::xReadVlc( Int n )
 {
-#if QC_BLK_CBP
   assert( n>=0 && n<=11 );
-#else
-  assert( n>=0 && n<=10 );
-#endif
   
   UInt zeroes=0, done=0, tmp;
   UInt cw, bit;
@@ -1988,7 +1978,6 @@ Int TDecCavlc::xReadVlc( Int n )
       }
     }
   }
-#if QC_BLK_CBP
   else if (n == 11)
   {
     UInt code;
@@ -2000,7 +1989,6 @@ Int TDecCavlc::xReadVlc( Int n )
       val--;
     }
   }
-#endif
   
   return val;
 }
