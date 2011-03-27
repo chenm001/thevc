@@ -1,33 +1,35 @@
-/* ====================================================================================================================
-
-  The copyright in this software is being made available under the License included below.
-  This software may be subject to other third party and   contributor rights, including patent rights, and no such
-  rights are granted under this license.
-
-  Copyright (c) 2010, SAMSUNG ELECTRONICS CO., LTD. and BRITISH BROADCASTING CORPORATION
-  All rights reserved.
-
-  Redistribution and use in source and binary forms, with or without modification, are permitted only for
-  the purpose of developing standards within the Joint Collaborative Team on Video Coding and for testing and
-  promoting such standards. The following conditions are required to be met:
-
-    * Redistributions of source code must retain the above copyright notice, this list of conditions and
-      the following disclaimer.
-    * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and
-      the following disclaimer in the documentation and/or other materials provided with the distribution.
-    * Neither the name of SAMSUNG ELECTRONICS CO., LTD. nor the name of the BRITISH BROADCASTING CORPORATION
-      may be used to endorse or promote products derived from this software without specific prior written permission.
-
-  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES,
-  INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-  ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
-  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
-  SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-  THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
- * ====================================================================================================================
-*/
+/* The copyright in this software is being made available under the BSD
+ * License, included below. This software may be subject to other third party
+ * and contributor rights, including patent rights, and no such rights are
+ * granted under this license.   
+ *
+ * Copyright (c) 2010-2011, ITU/ISO/IEC
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ *  * Redistributions of source code must retain the above copyright notice,
+ *    this list of conditions and the following disclaimer.
+ *  * Redistributions in binary form must reproduce the above copyright notice,
+ *    this list of conditions and the following disclaimer in the documentation
+ *    and/or other materials provided with the distribution.
+ *  * Neither the name of the ITU/ISO/IEC nor the names of its contributors may
+ *    be used to endorse or promote products derived from this software without
+ *    specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS
+ * BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
+ * THE POSSIBILITY OF SUCH DAMAGE.
+ */
 
 /** \file     TComRom.cpp
     \brief    global variables & functions
@@ -106,9 +108,7 @@ UInt g_auiRasterToZscan [ MAX_NUM_SPU_W*MAX_NUM_SPU_W ] = { 0, };
 UInt g_auiRasterToPelX  [ MAX_NUM_SPU_W*MAX_NUM_SPU_W ] = { 0, };
 UInt g_auiRasterToPelY  [ MAX_NUM_SPU_W*MAX_NUM_SPU_W ] = { 0, };
 
-#if HHI_MRG
 UInt g_auiPUOffset[4] = { 0, 8, 4, 4 };
-#endif
 
 Void initZscanToRaster ( Int iMaxDepth, Int iDepth, UInt uiStartVal, UInt*& rpuiCurrIdx )
 {
@@ -1082,7 +1082,6 @@ const UInt g_auiCbpVlcNum[2][8] =
   {0, 0, 0, 0, 0, 0, 0, 0}
 };
 
-#if QC_BLK_CBP
 const UInt g_auiBlkCBPTableE[2][15] = 
 {
   {14, 13, 10, 12, 9, 8, 4, 11, 7, 6, 3, 5, 2, 1, 0},
@@ -1099,19 +1098,16 @@ const UInt g_auiBlkCbpVlcNum[15] =
 {
   1,  2,  2,  2, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11
 };
-#endif
 
 const UInt g_auiMI1TableE[8] = {0,2,1,4,3,6,5,7};
 const UInt g_auiMI1TableD[8] = {0,2,1,4,3,6,5,7};
 const UInt g_auiMI2TableE[15] = {0,1,3,2,6,5,4,7,9,8,13,12,11,14,10};
 const UInt g_auiMI2TableD[15] = {0,1,3,2,6,5,4,7,9,8,14,12,11,10,13};
 
-#if MS_NO_BACK_PRED_IN_B0
 const UInt g_auiMI1TableENoL1[8] = {0,1,6,7,2,4,3,5};
 const UInt g_auiMI1TableDNoL1[8] = {0,1,4,6,5,7,2,3};
 const UInt g_auiMI2TableENoL1[15] = {0,1,2,12,14,13,3,4,6,5,10,9,8,11,7};
 const UInt g_auiMI2TableDNoL1[15] = {0,1,2,6,7,9,8,14,12,11,10,13,3,5,4};
-#endif
 
 #if MS_LCEC_ONE_FRAME
 // as there are two lists used for bi-directional prediction, and one list for uni-directional prediction
@@ -2005,7 +2001,6 @@ const LastCoeffStruct g_acstructLumaRun8x8[29][127] =
 // ADI
 // ====================================================================================================================
 
-#if SAMSUNG_FAST_UDI
 #if FAST_UDI_USE_MPM
 const UChar g_aucIntraModeNumFast[7] =
 {
@@ -2042,18 +2037,6 @@ const UChar g_aucIntraModeNumFast[7] =
 };
 #endif
 #endif // FAST_UDI_USE_MPM
-#else
-const UChar g_aucIntraModeNumFast[7] =
-{
-  3,  //   2x2
-  9,  //   4x4
-  9,  //   8x8
-  4,  //  16x16   33
-  4,  //  32x32   33
-  5,  //  64x64   33
-  4   // 128x128  33
-};
-#endif
 
 // chroma
 

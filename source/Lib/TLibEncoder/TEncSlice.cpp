@@ -1,33 +1,35 @@
-/* ====================================================================================================================
-
-  The copyright in this software is being made available under the License included below.
-  This software may be subject to other third party and   contributor rights, including patent rights, and no such
-  rights are granted under this license.
-
-  Copyright (c) 2010, SAMSUNG ELECTRONICS CO., LTD. and BRITISH BROADCASTING CORPORATION
-  All rights reserved.
-
-  Redistribution and use in source and binary forms, with or without modification, are permitted only for
-  the purpose of developing standards within the Joint Collaborative Team on Video Coding and for testing and
-  promoting such standards. The following conditions are required to be met:
-
-    * Redistributions of source code must retain the above copyright notice, this list of conditions and
-      the following disclaimer.
-    * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and
-      the following disclaimer in the documentation and/or other materials provided with the distribution.
-    * Neither the name of SAMSUNG ELECTRONICS CO., LTD. nor the name of the BRITISH BROADCASTING CORPORATION
-      may be used to endorse or promote products derived from this software without specific prior written permission.
-
-  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES,
-  INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-  ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
-  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
-  SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-  THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
- * ====================================================================================================================
-*/
+/* The copyright in this software is being made available under the BSD
+ * License, included below. This software may be subject to other third party
+ * and contributor rights, including patent rights, and no such rights are
+ * granted under this license.   
+ *
+ * Copyright (c) 2010-2011, ITU/ISO/IEC
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ *  * Redistributions of source code must retain the above copyright notice,
+ *    this list of conditions and the following disclaimer.
+ *  * Redistributions in binary form must reproduce the above copyright notice,
+ *    this list of conditions and the following disclaimer in the documentation
+ *    and/or other materials provided with the distribution.
+ *  * Neither the name of the ITU/ISO/IEC nor the names of its contributors may
+ *    be used to endorse or promote products derived from this software without
+ *    specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS
+ * BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
+ * THE POSSIBILITY OF SUCH DAMAGE.
+ */
 
 /** \file     TEncSlice.cpp
     \brief    slice encoder class
@@ -139,14 +141,8 @@ Void TEncSlice::initEncSlice( TComPic* pcPic, Int iPOCLast, UInt uiPOCCurr, Int 
   Double dQP;
   Double dLambda;
   
-#if AD_HOC_SLICES
   rpcSlice = pcPic->getSlice(0);
-#if SHARP_ENTROPY_SLICE
   rpcSlice->setSliceBits(0);
-#endif
-#else
-  rpcSlice = pcPic->getSlice();
-#endif
   rpcSlice->setPic( pcPic );
   rpcSlice->initSlice();
   rpcSlice->setPOC( iPOCLast - iNumPicRcvd + iTimeOffset );
@@ -246,11 +242,7 @@ Void TEncSlice::initEncSlice( TComPic* pcPic, Int iPOCLast, UInt uiPOCCurr, Int 
   Int* pdQPs = m_pcCfg->getdQPs();
   if ( pdQPs )
   {
-#if AD_HOC_SLICES
     dQP += pdQPs[ rpcSlice->getPOC() ];
-#else
-    dQP += pdQPs[ pcPic->getSlice()->getPOC() ];
-#endif
   }
   
   // ------------------------------------------------------------------------------------------------------------------
@@ -262,11 +254,7 @@ Void TEncSlice::initEncSlice( TComPic* pcPic, Int iPOCLast, UInt uiPOCCurr, Int 
 
   // pre-compute lambda and QP values for all possible QP candidates
 #if QC_MOD_LCEC_RDOQ
-#if AD_HOC_SLICES
   if (pcPic->getSlice(0)->isIntra()){
-#else
-  if (pcPic->getSlice()->isIntra()){
-#endif
     m_pcTrQuant->setRDOQOffset(1);
   }
   else{
@@ -298,11 +286,7 @@ Void TEncSlice::initEncSlice( TComPic* pcPic, Int iPOCLast, UInt uiPOCCurr, Int 
     // Case #1: I or P-slices (key-frame)
     if ( iDepth == 0 )
     {
-#if AD_HOC_SLICES
       if ( m_pcCfg->getUseRDOQ() && rpcSlice->isIntra() && dQP == dOrigQP )
-#else
-      if ( m_pcCfg->getUseRDOQ() && pcPic->getSlice()->isIntra() && dQP == dOrigQP )
-#endif
       {
         dLambda = 0.57 * pow( 2.0, qp_temp/3.0 );
       }
@@ -322,11 +306,7 @@ Void TEncSlice::initEncSlice( TComPic* pcPic, Int iPOCLast, UInt uiPOCCurr, Int 
     else // P or B slices for HB or HP structure
     {
       dLambda = 0.68 * pow( 2.0, qp_temp/3.0 );
-#if AD_HOC_SLICES
       if ( pcPic->getSlice(0)->isInterB () )
-#else
-      if ( pcPic->getSlice()->isInterB () )
-#endif
       {
 #if FULL_NBIT
         dLambda *= Clip3( 2.00, 4.00, (qp_temp_orig / 6.0) ); // (j == B_SLICE && p_cur_frm->layer != 0 )
@@ -401,17 +381,10 @@ Void TEncSlice::initEncSlice( TComPic* pcPic, Int iPOCLast, UInt uiPOCCurr, Int 
   
   pcPic->setPicYuvPred( m_apcPicYuvPred );
   pcPic->setPicYuvResi( m_apcPicYuvResi );
-#if !DCTIF_8_6_LUMA
-  rpcSlice->setInterpFilterType ( m_pcCfg->getInterpFilterType() );
-#endif
-#if AD_HOC_SLICES
   rpcSlice->setSliceMode            ( m_pcCfg->getSliceMode()            );
   rpcSlice->setSliceArgument        ( m_pcCfg->getSliceArgument()        );
-#if SHARP_ENTROPY_SLICE 
   rpcSlice->setEntropySliceMode     ( m_pcCfg->getEntropySliceMode()     );
   rpcSlice->setEntropySliceArgument ( m_pcCfg->getEntropySliceArgument() );
-#endif
-#endif
 }
 
 // ====================================================================================================================
@@ -449,11 +422,7 @@ Void TEncSlice::precompressSlice( TComPic*& rpcPic )
   // if deltaQP RD is not used, simply return
   if ( m_pcCfg->getDeltaQpRD() == 0 ) return;
   
-#if AD_HOC_SLICES
   TComSlice* pcSlice        = rpcPic->getSlice(getSliceIdx());
-#else
-  TComSlice* pcSlice        = rpcPic->getSlice();
-#endif
   Double     dPicRdCostBest = MAX_DOUBLE;
   Double dSumCURdCostBest;
   UInt64     uiPicDistBest;
@@ -521,16 +490,12 @@ Void TEncSlice::precompressSlice( TComPic*& rpcPic )
 Void TEncSlice::compressSlice( TComPic*& rpcPic )
 {
   UInt  uiCUAddr;
-#if AD_HOC_SLICES 
-  TComSlice* pcSlice        = rpcPic->getSlice(getSliceIdx());
   UInt   uiStartCUAddr;
   UInt   uiBoundingCUAddr;
-  UInt64 uiBitsCoded = 0;
-  xDetermineStartAndBoundingCUAddr ( uiStartCUAddr, uiBoundingCUAddr, rpcPic, false );
-#if SHARP_ENTROPY_SLICE 
+  UInt64 uiBitsCoded            = 0;
   TEncBinCABAC* pppcRDSbacCoder = NULL;
-#endif
-#endif
+  TComSlice* pcSlice            = rpcPic->getSlice(getSliceIdx());
+  xDetermineStartAndBoundingCUAddr ( uiStartCUAddr, uiBoundingCUAddr, rpcPic, false );
   
   // initialize cost values
   m_uiPicTotalBits  = 0;
@@ -541,27 +506,17 @@ Void TEncSlice::compressSlice( TComPic*& rpcPic )
   if( m_pcCfg->getUseSBACRD() )
   {
     m_pcSbacCoder->init( m_pcBinCABAC );
-#if AD_HOC_SLICES
     m_pcEntropyCoder->setEntropyCoder   ( m_pcSbacCoder, pcSlice );
-#else
-    m_pcEntropyCoder->setEntropyCoder   ( m_pcSbacCoder, rpcPic->getSlice() );
-#endif
     m_pcEntropyCoder->resetEntropy      ();
     m_pppcRDSbacCoder[0][CI_CURR_BEST]->load(m_pcSbacCoder);
-#if AD_HOC_SLICES && SHARP_ENTROPY_SLICE
     pppcRDSbacCoder = (TEncBinCABAC *) m_pppcRDSbacCoder[0][CI_CURR_BEST]->getEncBinIf();
     pppcRDSbacCoder->setBinCountingEnableFlag( false );
     pppcRDSbacCoder->setBinsCoded( 0 );
-#endif
   }
   else
   {
     m_pcCavlcCoder  ->setAdaptFlag    ( false );
-#if AD_HOC_SLICES
     m_pcEntropyCoder->setEntropyCoder ( m_pcCavlcCoder, pcSlice );
-#else
-    m_pcEntropyCoder->setEntropyCoder ( m_pcCavlcCoder, rpcPic->getSlice() );
-#endif
     m_pcEntropyCoder->resetEntropy      ();
     m_pcEntropyCoder->setBitstream    ( m_pcBitCounter );
   }
@@ -570,20 +525,11 @@ Void TEncSlice::compressSlice( TComPic*& rpcPic )
   m_pcEntropyCoder->setAlfCtrl(false);
   m_pcEntropyCoder->setMaxAlfCtrlDepth(0); //unnecessary
   
-#if AD_HOC_SLICES 
   // for every CU in slice
   for(  uiCUAddr = uiStartCUAddr; uiCUAddr < uiBoundingCUAddr; uiCUAddr++  )
-#else
-  // for every CU
-  for( uiCUAddr = 0; uiCUAddr < rpcPic->getPicSym()->getNumberOfCUsInFrame() ; uiCUAddr++ )
-#endif
   {
     // set QP
-#if AD_HOC_SLICES
     m_pcCuEncoder->setQpLast( pcSlice->getSliceQp() );
-#else
-    m_pcCuEncoder->setQpLast( rpcPic->getSlice()->getSliceQp() );
-#endif
     // initialize CU encoder
     TComDataCU*& pcCU = rpcPic->getCU( uiCUAddr );
     pcCU->initCU( rpcPic, uiCUAddr );
@@ -592,54 +538,33 @@ Void TEncSlice::compressSlice( TComPic*& rpcPic )
     if( m_pcCfg->getUseSBACRD() )
     {
       // set go-on entropy coder
-#if AD_HOC_SLICES
       m_pcEntropyCoder->setEntropyCoder ( m_pcRDGoOnSbacCoder, pcSlice );
-#else
-      m_pcEntropyCoder->setEntropyCoder ( m_pcRDGoOnSbacCoder, rpcPic->getSlice() );
-#endif
       m_pcEntropyCoder->setBitstream    ( m_pcBitCounter );
       
       // run CU encoder
       m_pcCuEncoder->compressCU( pcCU );
       
       // restore entropy coder to an initial stage
-#if AD_HOC_SLICES
       m_pcEntropyCoder->setEntropyCoder ( m_pppcRDSbacCoder[0][CI_CURR_BEST], pcSlice );
-#else
-      m_pcEntropyCoder->setEntropyCoder ( m_pppcRDSbacCoder[0][CI_CURR_BEST], rpcPic->getSlice() );
-#endif
       m_pcEntropyCoder->setBitstream    ( m_pcBitCounter );
-#if AD_HOC_SLICES && SHARP_ENTROPY_SLICE
       pppcRDSbacCoder->setBinCountingEnableFlag( true );
-#endif
       
       m_pcCuEncoder->encodeCU( pcCU );
-#if AD_HOC_SLICES
-#if SHARP_ENTROPY_SLICE
+
       pppcRDSbacCoder->setBinCountingEnableFlag( false );
       uiBitsCoded += m_pcBitCounter->getNumberOfWrittenBits();
       if (m_pcCfg->getSliceMode()==AD_HOC_SLICES_FIXED_NUMBER_OF_BYTES_IN_SLICE && ( ( pcSlice->getSliceBits() + uiBitsCoded ) >> 3 ) > m_pcCfg->getSliceArgument())
       {
         if (uiCUAddr==uiStartCUAddr && pcSlice->getSliceBits()==0)
         {
-#else
-      uiBitsCoded += m_pcBitCounter->getNumberOfWrittenBits();
-      if (m_pcCfg->getSliceMode()==AD_HOC_SLICES_FIXED_NUMBER_OF_BYTES_IN_SLICE && (uiBitsCoded>>3) > m_pcCfg->getSliceArgument())
-      {
-        if (uiCUAddr == uiStartCUAddr)
-        {
-#endif
           // Could not fit even a single LCU within the slice under the defined byte-constraint. Display a warning message and code 1 LCU in the slice.
           fprintf(stdout,"\nSlice overflow warning! codedBits=%6d, limitBytes=%6d", m_pcBitCounter->getNumberOfWrittenBits(), m_pcCfg->getSliceArgument() );
           uiCUAddr = uiCUAddr + 1;
         }
-#if SHARP_ENTROPY_SLICE 
         pcSlice->setNextSlice( true );
-#endif
         break;
       }
       
-#if SHARP_ENTROPY_SLICE      
       UInt uiBinsCoded = pppcRDSbacCoder->getBinsCoded();
       if (m_pcCfg->getEntropySliceMode()==SHARP_MULTIPLE_CONSTRAINT_BASED_ENTROPY_SLICE && uiBinsCoded > m_pcCfg->getEntropySliceArgument())
       {
@@ -652,8 +577,6 @@ Void TEncSlice::compressSlice( TComPic*& rpcPic )
         pcSlice->setNextEntropySlice( true );
         break;
       }
-#endif      
-#endif
     }
     // other case: encodeCU is not called
     else
@@ -662,29 +585,19 @@ Void TEncSlice::compressSlice( TComPic*& rpcPic )
       m_pcCavlcCoder ->setAdaptFlag(true);
       m_pcCuEncoder->encodeCU( pcCU );
       
-#if AD_HOC_SLICES 
       uiBitsCoded += m_pcBitCounter->getNumberOfWrittenBits();
-#if SHARP_ENTROPY_SLICE 
       if (m_pcCfg->getSliceMode()==AD_HOC_SLICES_FIXED_NUMBER_OF_BYTES_IN_SLICE && ( ( pcSlice->getSliceBits() + uiBitsCoded ) >> 3 ) > m_pcCfg->getSliceArgument())
       {
         if (uiCUAddr==uiStartCUAddr && pcSlice->getSliceBits()==0)
         {
-#else
-      if (m_pcCfg->getSliceMode()==AD_HOC_SLICES_FIXED_NUMBER_OF_BYTES_IN_SLICE && (uiBitsCoded>>3) > m_pcCfg->getSliceArgument())
-      {
-        if (uiCUAddr == uiStartCUAddr)
-        {
-#endif
           // Could not fit even a single LCU within the slice under the defined byte-constraint. Display a warning message and code 1 LCU in the slice.
           fprintf(stdout,"\nSlice overflow warning! codedBits=%6d, limitBytes=%6d", m_pcBitCounter->getNumberOfWrittenBits(), m_pcCfg->getSliceArgument() );
           uiCUAddr = uiCUAddr + 1;
         }
-#if SHARP_ENTROPY_SLICE 
         pcSlice->setNextSlice( true );
-#endif
         break;
       }
-#if SHARP_ENTROPY_SLICE 
+
       if (m_pcCfg->getEntropySliceMode()==SHARP_MULTIPLE_CONSTRAINT_BASED_ENTROPY_SLICE && uiBitsCoded > m_pcCfg->getEntropySliceArgument())
       {
         if (uiCUAddr == uiStartCUAddr)
@@ -696,8 +609,6 @@ Void TEncSlice::compressSlice( TComPic*& rpcPic )
         pcSlice->setNextEntropySlice( true );
         break;
       }
-#endif      
-#endif
       m_pcCavlcCoder ->setAdaptFlag(false);
     }
     
@@ -705,13 +616,9 @@ Void TEncSlice::compressSlice( TComPic*& rpcPic )
     m_dPicRdCost     += pcCU->getTotalCost();
     m_uiPicDist      += pcCU->getTotalDistortion();
   }
-#if AD_HOC_SLICES
   pcSlice->setSliceCurEndCUAddr( uiCUAddr );
-#if SHARP_ENTROPY_SLICE
   pcSlice->setEntropySliceCurEndCUAddr( uiCUAddr );
-  pcSlice->setSliceBits( pcSlice->getSliceBits() + uiBitsCoded );
-#endif
-#endif
+  pcSlice->setSliceBits( (UInt)(pcSlice->getSliceBits() + uiBitsCoded) );
 }
 
 /**
@@ -721,16 +628,11 @@ Void TEncSlice::compressSlice( TComPic*& rpcPic )
 Void TEncSlice::encodeSlice   ( TComPic*& rpcPic, TComBitstream*& rpcBitstream )
 {
   UInt       uiCUAddr;
-#if AD_HOC_SLICES 
   UInt       uiStartCUAddr;
   UInt       uiBoundingCUAddr;
   xDetermineStartAndBoundingCUAddr  ( uiStartCUAddr, uiBoundingCUAddr, rpcPic, true );
-#endif
-#if AD_HOC_SLICES
   TComSlice* pcSlice = rpcPic->getSlice(getSliceIdx());
-#else
-  TComSlice* pcSlice = rpcPic->getSlice();
-#endif
+
   // choose entropy coder
   Int iSymbolMode = pcSlice->getSymbolMode();
   if (iSymbolMode)
@@ -759,27 +661,14 @@ Void TEncSlice::encodeSlice   ( TComPic*& rpcPic, TComBitstream*& rpcBitstream )
   g_bJustDoIt = g_bEncDecTraceDisable;
 #endif
 
-#if AD_HOC_SLICES 
   for(  uiCUAddr = uiStartCUAddr; uiCUAddr<uiBoundingCUAddr; uiCUAddr++  )
-#else
-  for( uiCUAddr = 0; uiCUAddr < rpcPic->getPicSym()->getNumberOfCUsInFrame() ; uiCUAddr++ )
-#endif
   {
-#if AD_HOC_SLICES
     m_pcCuEncoder->setQpLast( pcSlice->getSliceQp() );
-#else
-    m_pcCuEncoder->setQpLast( rpcPic->getSlice()->getSliceQp() );
-#endif
     TComDataCU*& pcCU = rpcPic->getCU( uiCUAddr );
 #if ENC_DEC_TRACE
     g_bJustDoIt = g_bEncDecTraceEnable;
 #endif
-#if AD_HOC_SLICES 
-#if SHARP_ENTROPY_SLICE 
     if ( (m_pcCfg->getSliceMode()!=0 || m_pcCfg->getEntropySliceMode()!=0) && uiCUAddr==uiBoundingCUAddr-1 )
-#else
-    if ( m_pcCfg->getSliceMode()!=0 && uiCUAddr==uiBoundingCUAddr-1 )
-#endif
     {
       m_pcCuEncoder->encodeCU( pcCU, true );
     }
@@ -787,21 +676,12 @@ Void TEncSlice::encodeSlice   ( TComPic*& rpcPic, TComBitstream*& rpcBitstream )
     {
       m_pcCuEncoder->encodeCU( pcCU );
     }
-#else
-    m_pcCuEncoder->encodeCU( pcCU );
-#endif
 #if ENC_DEC_TRACE
     g_bJustDoIt = g_bEncDecTraceDisable;
-#endif
-    
+#endif    
   }
-#if AD_HOC_SLICES
-#if !SHARP_ENTROPY_SLICE
-  pcSlice->setSliceCurEndCUAddr( uiCUAddr );
-#endif
-#endif
 }
-#if AD_HOC_SLICES 
+
 /** Determines the starting and bounding LCU address of current slice / entropy slice
  * \param bEncodeSlice Identifies if the calling function is compressSlice() [false] or encodeSlice() [true]
  * \returns Updates uiStartCUAddr, uiBoundingCUAddr with appropriate LCU address
@@ -850,12 +730,6 @@ Void TEncSlice::xDetermineStartAndBoundingCUAddr  ( UInt& uiStartCUAddr, UInt& u
     pcSlice->setSliceCurEndCUAddr( uiBoundingCUAddrSlice );
   }
 
-#if !SHARP_ENTROPY_SLICE 
-  uiStartCUAddr     = uiStartCUAddrSlice;
-  uiBoundingCUAddr  = uiBoundingCUAddrSlice;
-#endif
-
-#if SHARP_ENTROPY_SLICE 
   // Entropy slice
   UInt uiStartCUAddrEntropySlice, uiBoundingCUAddrEntropySlice;
   uiStartCUAddrEntropySlice    = pcSlice->getEntropySliceCurStartCUAddr();
@@ -932,6 +806,4 @@ Void TEncSlice::xDetermineStartAndBoundingCUAddr  ( UInt& uiStartCUAddr, UInt& u
       pcSlice->setNextEntropySlice( false );
     }
   }
-#endif
 }
-#endif

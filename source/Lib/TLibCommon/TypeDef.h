@@ -1,33 +1,35 @@
-/* ====================================================================================================================
-
-  The copyright in this software is being made available under the License included below.
-  This software may be subject to other third party and   contributor rights, including patent rights, and no such
-  rights are granted under this license.
-
-  Copyright (c) 2010, SAMSUNG ELECTRONICS CO., LTD. and BRITISH BROADCASTING CORPORATION
-  All rights reserved.
-
-  Redistribution and use in source and binary forms, with or without modification, are permitted only for
-  the purpose of developing standards within the Joint Collaborative Team on Video Coding and for testing and
-  promoting such standards. The following conditions are required to be met:
-
-    * Redistributions of source code must retain the above copyright notice, this list of conditions and
-      the following disclaimer.
-    * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and
-      the following disclaimer in the documentation and/or other materials provided with the distribution.
-    * Neither the name of SAMSUNG ELECTRONICS CO., LTD. nor the name of the BRITISH BROADCASTING CORPORATION
-      may be used to endorse or promote products derived from this software without specific prior written permission.
-
-  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES,
-  INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-  ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
-  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
-  SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-  THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
- * ====================================================================================================================
-*/
+/* The copyright in this software is being made available under the BSD
+ * License, included below. This software may be subject to other third party
+ * and contributor rights, including patent rights, and no such rights are
+ * granted under this license.   
+ *
+ * Copyright (c) 2010-2011, ITU/ISO/IEC
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ *  * Redistributions of source code must retain the above copyright notice,
+ *    this list of conditions and the following disclaimer.
+ *  * Redistributions in binary form must reproduce the above copyright notice,
+ *    this list of conditions and the following disclaimer in the documentation
+ *    and/or other materials provided with the distribution.
+ *  * Neither the name of the ITU/ISO/IEC nor the names of its contributors may
+ *    be used to endorse or promote products derived from this software without
+ *    specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS
+ * BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
+ * THE POSSIBILITY OF SUCH DAMAGE.
+ */
 
 /** \file     TypeDef.h
     \brief    Define basic types, new types and enumerations
@@ -43,17 +45,12 @@
 #define HHI_RMP_SWITCH                    0
 
 // HHI tools
-#define HHI_INTERP_FILTER                 1           ///< HL: interpolation filter
-#define HHI_MRG                           1           ///< SOPH: inter partition merging
-#define HHI_AMVP_OFF                      0           ///< SOPH: Advanced Motion Vector Predictor deactivated
 #define HHI_RQT_FORCE_SPLIT_NxN           0           ///< MSHK: force split flags of residual quadtree for NxN PUs such that transform blocks are guaranteed to not span NxN PUs
 #define HHI_RQT_FORCE_SPLIT_RECT          0           ///< MSHK: force split flags of residual quadtree for rectangular PUs such that transform blocks are guaranteed to not span rectangular PUs
-#define HHI_RQT_INTRA_SPEEDUP             1 // tests one best mode with full rqt
-#define HHI_RQT_INTRA_SPEEDUP_MOD         0 // tests two best modes with full rqt
+#define HHI_RQT_INTRA_SPEEDUP             1           ///< tests one best mode with full rqt
+#define HHI_RQT_INTRA_SPEEDUP_MOD         0           ///< tests two best modes with full rqt
 
-#if HHI_MRG
-#define PART_MRG		                      1            // If the number of partitions is two and size > 8, only merging mode is enabled for the first partition & do not code merge_flag for the first partition
-#endif
+#define PART_MRG                          1            // If the number of partitions is two and size > 8, only merging mode is enabled for the first partition & do not code merge_flag for the first partition
 
 #if HHI_RQT_INTRA_SPEEDUP_MOD && !HHI_RQT_INTRA_SPEEDUP
 #error
@@ -70,24 +67,12 @@
 //////////////////////////
 
 
-////////////////////////////
-// TEN defines section start
-////////////////////////////
-
-#define TEN_DIRECTIONAL_INTERP            0           ///< AF: interpolation filter
-
-#define LCEC_STAT                         0           // LCEC - support for LCEC bitusage statistics
-//////////////////////////
-// TEN defines section end
-//////////////////////////
-
 
 //////////////////////////////
 // Nokia defines section start
 //////////////////////////////
 
 #define HIGH_ACCURACY_BI                  1          // High precision bi-prediction JCTVC-D321
-#define FIX_ISSUE_125                     1
 
 //////////////////////////////
 // Nokia defines section end
@@ -98,19 +83,12 @@
 // QUALCOMM defines section start
 /////////////////////////////////
 
-#define LCEC_CBP_YUV_ROOT                 1           // enable VLC phase-2 CBP root coding under RQT
-#define QC_BLK_CBP                        1           // block level CBP coding, to be enabled only when LCEC_CBP_YUV_ROOT is enabled
-#if LCEC_CBP_YUV_ROOT==0 && QC_BLK_CBP
-#error
-#endif
-
 #define QC_MOD_LCEC                       1           // JCTVC-D374: modified LCEC coeff. coding
 #define LCEC_INTRA_MODE                   1           // JCTVC-D366: improved luma intra mode coding
 #define QC_MOD_LCEC_RDOQ                  1           // JCTVC-D374: improved RDOQ
 #define QC_LCEC_INTER_MODE                1
 #define QC_MDIS                           1           // JCTVC-D282: enable mode dependent intra smoothing
 #define QC_MDCS                           1           // JCTVC-D393: mode dependent coefficients coding 
-#define LCEC_CBP_YUV_ROOT_RDFIX           1           // JCTVC-D375: RD fix associated with LCEC_CBP_YUV_ROOT
 
 #define ENABLE_FORCECOEFF0  0
 
@@ -127,26 +105,13 @@
 ///////////////////////////////
 #define HHI_RQT_DISABLE_SUB                   0           ///< disabling subtree whose node size is smaller than partition size
 
-#if HHI_MRG
 #define SAMSUNG_MRG_SKIP_DIRECT               1           ///< enabling of skip and direct when mrg is on
-#endif
 
-#define HHI_DISABLE_SCAN                      0           ///< disable adaptive scan
+#define FAST_UDI_MAX_RDMODE_NUM               35          ///< maximum number of RD comparison in fast-UDI estimation loop 
 
-#define FAST_UDI_MAX_RDMODE_NUM               10          ///< maximum number of RD comparison in fast-UDI estimation loop 
-
-#define SAMSUNG_FAST_UDI                      1           ///< improved mode decision for UDI (JCTVC-C207)
-#if     SAMSUNG_FAST_UDI                           
 #define SAMSUNG_FAST_UDI_MODESET              0           ///< 0: {9,9,4,4,5} (default) and 1: {9,9,9,9,5} for {4x4,8x8,16x16,32x32,64x64} 
-#endif
 
-#define DCTIF_8_6_LUMA                        1
-#define DCTIF_4_6_CHROMA                      1
-#if DCTIF_8_6_LUMA && TEN_DIRECTIONAL_INTERP
-#error TEN_DIRECTIONAL_INTERP should be disabled if DCTIF_8_6_LUMA is enabled
-#endif
-
-#define ZERO_MVD_EST											0           // Zero Mvd Estimation in normal mode
+#define ZERO_MVD_EST                          0           ///< Zero Mvd Estimation in normal mode
 ///////////////////////////////
 // SAMSUNG defines section end
 ///////////////////////////////
@@ -155,7 +120,6 @@
 // DOCOMO defines section start
 ///////////////////////////////
 #define DCM_RDCOST_TEMP_FIX //Enables temporary bug fixes to RD cost computation
-#define FIX_D235 1 // Fixes an issue with CABAC state management in intra mode search
 
 #define DCM_DECODING_REFRESH              1           ///< enable/disable decoding refresh (IDR and CDR)
 #if DCM_DECODING_REFRESH
@@ -181,15 +145,10 @@
 // TOSHIBA defines section end
 ////////////////////////////////
 
-#define BUGFIX102 1 // Do not code terminating bit when using LCEC
-#define BUGFIX118 1 // Fixes an issue related to ALF and all-0 filters
-
 ////////////////////////////////
 // MICROSOFT&USTC defines section start
 ////////////////////////////////
-#define MS_NO_BACK_PRED_IN_B0           1           // disable backward prediction when list1 == list0, and disable list1 search, JCTVC-C278
-#define MS_LAST_CBF                     1           // last cbf handling, JCTVC-C277
-#define MS_LCEC_ONE_FRAME		        1           // change the initial table in LCEC when there is up to one reference frame in each list, JCTVC-D141
+#define MS_LCEC_ONE_FRAME               1           // change the initial table in LCEC when there is up to one reference frame in each list, JCTVC-D141
 #define MS_LCEC_LOOKUP_TABLE_MAX_VALUE  1           // use the information of the max position in the lookup table, JCTVC-D141
 #define MS_LCEC_LOOKUP_TABLE_EXCEPTION  1           // deal with the case when the number of reference frames is greater than 2, JCTVC-D141
 #define MS_LCEC_UNI_EXCEPTION_THRES     1           // for GPB case, uni-prediction, > MS_LCEC_UNI_EXCEPTION_THRES is exception
@@ -227,18 +186,12 @@
 /////////////////////////////////
 // AHG SLICES defines section start
 /////////////////////////////////
-#define AD_HOC_SLICES                                   1          ///< Used in enabling / disabling slice source code
 #define AD_HOC_SLICES_FIXED_NUMBER_OF_LCU_IN_SLICE      1          ///< OPTION IDENTIFIER. mode==1 -> Limit maximum number of largest coding tree blocks in a slice
 #define AD_HOC_SLICES_FIXED_NUMBER_OF_BYTES_IN_SLICE    2          ///< OPTION IDENTIFIER. mode==2 -> Limit maximum number of bins/bits in a slice
-#define AD_HOC_SLICES_TEST_OUTOFORDER_DECOMPRESS        0          ///< Enable out-of-order slice decompression. Used for testing.
-                                                                   ///< Out-of-order decompression testing is disabled when entropy slices are used to prevent crossing reconstruction slice boundary.
-#define AD_HOC_SLICES_BUF_SIZE                          500000     ///< Maximum number of bytes pre-loaded during start-code locating process
 
-#define SHARP_ENTROPY_SLICE                                   1          ///< Can be enabled only when AD_HOC_SLICES=1, when AD_HOC_SLICES=0 the macro has no impact
 // Entropy slice options
 #define SHARP_FIXED_NUMBER_OF_LCU_IN_ENTROPY_SLICE            1          ///< OPTION IDENTIFIER. Limit maximum number of largest coding tree blocks in an entropy slice
 #define SHARP_MULTIPLE_CONSTRAINT_BASED_ENTROPY_SLICE         2          ///< OPTION IDENTIFIER. Limit maximum number of bins/bits in an entropy slice
-
 /////////////////////////////////
 // AHG SLICES defines section end
 /////////////////////////////////
@@ -501,21 +454,16 @@ enum InterpFilterType
   IPF_SAMSUNG_DIF_DEFAULT = 0,          ///< Samsung DCT-based filter
   IPF_HHI_4TAP_MOMS,                    ///< HHI 4-tap MOMS filter
   IPF_HHI_6TAP_MOMS,                    ///< HHI 6-tap MOMS filter
-# if TEN_DIRECTIONAL_INTERP
-  IPF_TEN_DIF                           ///< TEN directional filter
-# else
-  IPF_TEN_DIF_PLACEHOLDER               ///< Place holder to keep ordering if IPF_TEN_DIF not compiled-in
-# endif
-  ,IPF_LAST
+  IPF_LAST
 };
 
 #if QC_MDCS
 /// coefficient scanning type used in ACS
 enum COEFF_SCAN_TYPE
 {
-  SCAN_ZIGZAG = 0,			///< typical zigzag scan
-  SCAN_HOR,							///< horizontal first scan
-  SCAN_VER							///< vertical first scan
+  SCAN_ZIGZAG = 0,      ///< typical zigzag scan
+  SCAN_HOR,             ///< horizontal first scan
+  SCAN_VER              ///< vertical first scan
 };
 #endif //QC_MDCS
 

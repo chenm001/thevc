@@ -1,33 +1,35 @@
-/* ====================================================================================================================
-
-  The copyright in this software is being made available under the License included below.
-  This software may be subject to other third party and   contributor rights, including patent rights, and no such
-  rights are granted under this license.
-
-  Copyright (c) 2010, SAMSUNG ELECTRONICS CO., LTD. and BRITISH BROADCASTING CORPORATION
-  All rights reserved.
-
-  Redistribution and use in source and binary forms, with or without modification, are permitted only for
-  the purpose of developing standards within the Joint Collaborative Team on Video Coding and for testing and
-  promoting such standards. The following conditions are required to be met:
-
-    * Redistributions of source code must retain the above copyright notice, this list of conditions and
-      the following disclaimer.
-    * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and
-      the following disclaimer in the documentation and/or other materials provided with the distribution.
-    * Neither the name of SAMSUNG ELECTRONICS CO., LTD. nor the name of the BRITISH BROADCASTING CORPORATION
-      may be used to endorse or promote products derived from this software without specific prior written permission.
-
-  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES,
-  INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-  ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
-  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
-  SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-  THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
- * ====================================================================================================================
-*/
+/* The copyright in this software is being made available under the BSD
+ * License, included below. This software may be subject to other third party
+ * and contributor rights, including patent rights, and no such rights are
+ * granted under this license.   
+ *
+ * Copyright (c) 2010-2011, ITU/ISO/IEC
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ *  * Redistributions of source code must retain the above copyright notice,
+ *    this list of conditions and the following disclaimer.
+ *  * Redistributions in binary form must reproduce the above copyright notice,
+ *    this list of conditions and the following disclaimer in the documentation
+ *    and/or other materials provided with the distribution.
+ *  * Neither the name of the ITU/ISO/IEC nor the names of its contributors may
+ *    be used to endorse or promote products derived from this software without
+ *    specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS
+ * BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
+ * THE POSSIBILITY OF SUCH DAMAGE.
+ */
 
 /** \file     TComPattern.cpp
     \brief    neighbouring pixel access classes
@@ -189,11 +191,7 @@ Void TComPattern::initPattern( TComDataCU* pcCU, UInt uiPartDepth, UInt uiAbsPar
     UInt uiNumPartInWidth = ( uiWidth/pcPic->getMinCUWidth() );
     uiOffsetAbove = 1;
     
-#if AD_HOC_SLICES
     if( uiCurrPicPelX + uiWidth < pcCU->getSlice()->getSPS()->getWidth() )
-#else
-    if( uiCurrPicPelX + uiWidth < pcPic->getSlice()->getSPS()->getWidth() )
-#endif
     {
       if( ( g_auiZscanToRaster[uiAbsZorderIdx] + uiNumPartInWidth ) % pcPic->getNumPartInWidth() ) // Not CU boundary
       {
@@ -233,9 +231,7 @@ Void TComPattern::initAdiPattern( TComDataCU* pcCU, UInt uiZorderIdxInPart, UInt
   Bool  bAboveRightFlag = false;
   Bool  bLeftFlag       = false;
   Bool  bBelowLeftFlag  = false;
-#if (AD_HOC_SLICES || CONSTRAINED_INTRA_PRED)
   Bool  bAboveLeftFlag  = false;
-#endif
   
   iCuAddr = pcCU->getAddr();
   
@@ -255,36 +251,18 @@ Void TComPattern::initAdiPattern( TComDataCU* pcCU, UInt uiZorderIdxInPart, UInt
   }
   else
   {
-#if AD_HOC_SLICES && SHARP_ENTROPY_SLICE 
     if( pcCU->getPUAbove        ( uiPartDum,             uiPartIdxLT,    true, false ) ) bAboveFlag      = true;
     if( pcCU->getPUAboveRightAdi( uiPartDum, uiCuWidth,  uiPartIdxRT, 1, true, false ) ) bAboveRightFlag = true;
     if( pcCU->getPULeft         ( uiPartDum,             uiPartIdxLT,    true, false ) ) bLeftFlag       = true;
     if( pcCU->getPUBelowLeftAdi ( uiPartDum, uiCuHeight, uiPartIdxLB, 1, true, false ) ) bBelowLeftFlag  = true;
     if( pcCU->getPUAboveLeft    ( uiPartDum,             uiPartIdxLT,    true, false ) ) bAboveLeftFlag  = true;
-#else
-    if( pcCU->getPUAbove        ( uiPartDum,             uiPartIdxLT ) ) bAboveFlag      = true;
-    if( pcCU->getPUAboveRightAdi( uiPartDum, uiCuWidth,  uiPartIdxRT ) ) bAboveRightFlag = true;
-    if( pcCU->getPULeft         ( uiPartDum,             uiPartIdxLT ) ) bLeftFlag       = true;
-    if( pcCU->getPUBelowLeftAdi ( uiPartDum, uiCuHeight, uiPartIdxLB ) ) bBelowLeftFlag  = true;
-    if( pcCU->getPUAboveLeft    ( uiPartDum,             uiPartIdxLT ) ) bAboveLeftFlag  = true;
-#endif
   }
 #else //CONSTRAINED_INTRA_PRED
-#if AD_HOC_SLICES && SHARP_ENTROPY_SLICE 
   if( pcCU->getPUAbove        ( uiPartDum,             uiPartIdxLT, true, false ) ) bAboveFlag      = true;
   if( pcCU->getPUAboveRightAdi( uiPartDum, uiCuWidth,  uiPartIdxRT, true, false ) ) bAboveRightFlag = true;
   if( pcCU->getPULeft         ( uiPartDum,             uiPartIdxLT, true, false ) ) bLeftFlag       = true;
   if( pcCU->getPUBelowLeftAdi ( uiPartDum, uiCuHeight, uiPartIdxLB, true, false ) ) bBelowLeftFlag  = true;
   if( pcCU->getPUAboveLeft    ( uiPartDum,             uiPartIdxLT, true, false ) ) bAboveLeftFlag  = true;
-#else
-  if( pcCU->getPUAbove        ( uiPartDum,             uiPartIdxLT ) ) bAboveFlag      = true;
-  if( pcCU->getPUAboveRightAdi( uiPartDum, uiCuWidth,  uiPartIdxRT ) ) bAboveRightFlag = true;
-  if( pcCU->getPULeft         ( uiPartDum,             uiPartIdxLT ) ) bLeftFlag       = true;
-  if( pcCU->getPUBelowLeftAdi ( uiPartDum, uiCuHeight, uiPartIdxLB ) ) bBelowLeftFlag  = true;
-#if AD_HOC_SLICES 
-  if( pcCU->getPUAboveLeft    ( uiPartDum,             uiPartIdxLT ) ) bAboveLeftFlag  = true;
-#endif
-#endif
 #endif //CONSTRAINED_INTRA_PRED
   
   bAbove = bAboveFlag;
@@ -328,23 +306,13 @@ Void TComPattern::initAdiPattern( TComDataCU* pcCU, UInt uiZorderIdxInPart, UInt
       for (i=0;i<uiCuWidth;i++)
         piAdiTemp[1+uiCuWidth+i]=piAdiTemp[uiCuWidth];
     }
-#if !(AD_HOC_SLICES || CONSTRAINED_INTRA_PRED)
-    // BB: fill top left border corner with rec. sample
-    if (bLeftFlag)//BB: why left not top left?
-    {
-      piRoiTemp=piRoiOrigin-iPicStride-1;
-      piAdiTemp[0]=piRoiTemp[0];
-    }
-#endif
   }
   
-#if (AD_HOC_SLICES || CONSTRAINED_INTRA_PRED)
   if (bAboveLeftFlag)
   {
     piRoiTemp=piRoiOrigin-iPicStride-1;
     piAdiTemp[0]=piRoiTemp[0];
   }
-#endif
 
   if (bLeftFlag)
   {
@@ -441,9 +409,7 @@ Void TComPattern::initAdiPatternChroma( TComDataCU* pcCU, UInt uiZorderIdxInPart
   Bool  bAboveRightFlag=false;
   Bool  bLeftFlag=false;
   Bool  bBelowLeftFlag=false;
-#if (AD_HOC_SLICES || CONSTRAINED_INTRA_PRED)
   Bool  bAboveLeftFlag    = false;
-#endif
   
   iCuAddr = pcCU->getAddr();
   
@@ -463,36 +429,18 @@ Void TComPattern::initAdiPatternChroma( TComDataCU* pcCU, UInt uiZorderIdxInPart
   }
   else
   {
-#if AD_HOC_SLICES && SHARP_ENTROPY_SLICE
     if( pcCU->getPUAbove        ( uiPartDum,             uiPartIdxLT,    true, false ) ) bAboveFlag      = true;
     if( pcCU->getPUAboveRightAdi( uiPartDum, uiCuWidth,  uiPartIdxRT, 1, true, false ) ) bAboveRightFlag = true;
     if( pcCU->getPULeft         ( uiPartDum,             uiPartIdxLT,    true, false ) ) bLeftFlag       = true;
     if( pcCU->getPUBelowLeftAdi ( uiPartDum, uiCuHeight, uiPartIdxLB, 1, true, false ) ) bBelowLeftFlag  = true;
     if( pcCU->getPUAboveLeft    ( uiPartDum,             uiPartIdxLT,    true, false ) ) bAboveLeftFlag  = true;
-#else
-    if( pcCU->getPUAbove        ( uiPartDum,             uiPartIdxLT ) ) bAboveFlag      = true;
-    if( pcCU->getPUAboveRightAdi( uiPartDum, uiCuWidth,  uiPartIdxRT ) ) bAboveRightFlag = true;
-    if( pcCU->getPULeft         ( uiPartDum,             uiPartIdxLT ) ) bLeftFlag       = true;
-    if( pcCU->getPUBelowLeftAdi ( uiPartDum, uiCuHeight, uiPartIdxLB ) ) bBelowLeftFlag  = true;
-    if( pcCU->getPUAboveLeft    ( uiPartDum,             uiPartIdxLT ) ) bAboveLeftFlag  = true;
-#endif
   }
 #else //CONSTRAINED_INTRA_PRED
-#if AD_HOC_SLICES && SHARP_ENTROPY_SLICE
   if( pcCU->getPUAbove        ( uiPartDum, uiPartIdxLT, true, false ) )             bAboveFlag      = true;
   if( pcCU->getPUAboveRightAdi( uiPartDum,uiCuWidth, uiPartIdxRT, true, false ) )   bAboveRightFlag = true;
   if( pcCU->getPULeft         ( uiPartDum, uiPartIdxLT, true, false ) )             bLeftFlag       = true;
   if( pcCU->getPUBelowLeftAdi ( uiPartDum, uiCuHeight, uiPartIdxLB, true, false ) ) bBelowLeftFlag  = true;
   if( pcCU->getPUAboveLeft    ( uiPartDum, uiPartIdxLT, true, false            ) )  bAboveLeftFlag  = true;
-#else
-  if( pcCU->getPUAbove     ( uiPartDum, uiPartIdxLT ) ) bAboveFlag      = true;
-  if( pcCU->getPUAboveRightAdi( uiPartDum,uiCuWidth, uiPartIdxRT ) ) bAboveRightFlag = true;
-  if( pcCU->getPULeft      ( uiPartDum, uiPartIdxLT ) ) bLeftFlag       = true;
-  if( pcCU->getPUBelowLeftAdi (uiPartDum, uiCuHeight, uiPartIdxLB ) ) bBelowLeftFlag  = true;
-#if AD_HOC_SLICES 
-  if( pcCU->getPUAboveLeft ( uiPartDum, uiPartIdxLT            ) ) bAboveLeftFlag      = true;
-#endif
-#endif
 #endif //CONSTRAINED_INTRA_PRED
   
   bAbove = bAboveFlag;
@@ -537,22 +485,13 @@ Void TComPattern::initAdiPatternChroma( TComDataCU* pcCU, UInt uiZorderIdxInPart
       for (i=0;i<uiCuWidth;i++)
         piAdiTemp[1+uiCuWidth+i]=piAdiTemp[uiCuWidth];
     }
-#if !(AD_HOC_SLICES || CONSTRAINED_INTRA_PRED)
-    if (bLeftFlag)
-    {
-      piRoiTemp=piRoiOrigin-iPicStride-1;
-      piAdiTemp[0]=piRoiTemp[0];
-    }
-#endif
   }
   
-#if (AD_HOC_SLICES || CONSTRAINED_INTRA_PRED)
   if (bAboveLeftFlag)
   {
     piRoiTemp=piRoiOrigin-iPicStride-1;
     piAdiTemp[0]=piRoiTemp[0];
   }
-#endif
 
   if (bLeftFlag)
   {
@@ -604,22 +543,13 @@ Void TComPattern::initAdiPatternChroma( TComDataCU* pcCU, UInt uiZorderIdxInPart
       for (i=0;i<uiCuWidth;i++)
         piAdiTemp[1+uiCuWidth+i]=piAdiTemp[uiCuWidth];
     }
-#if !(AD_HOC_SLICES || CONSTRAINED_INTRA_PRED)
-    if (bLeftFlag)
-    {
-      piRoiTemp=piRoiOrigin-iPicStride-1;
-      piAdiTemp[0]=piRoiTemp[0];
-    }
-#endif
   }
 
-#if (AD_HOC_SLICES || CONSTRAINED_INTRA_PRED)
   if (bAboveLeftFlag)
   {
     piRoiTemp=piRoiOrigin-iPicStride-1;
     piAdiTemp[0]=piRoiTemp[0];
   }
-#endif  
 
   if (bLeftFlag)
   {
@@ -700,11 +630,7 @@ Bool TComPattern::isLeftAvailableForCIP( TComDataCU* pcCU, UInt uiPartIdxLT, UIn
   for ( UInt uiRasterPart = uiRasterPartBegin; uiRasterPart < uiRasterPartEnd; uiRasterPart += uiIdxStep )
   {
     UInt uiPartLeft;
-#if AD_HOC_SLICES && SHARP_ENTROPY_SLICE
     TComDataCU* pcCULeft = pcCU->getPULeft( uiPartLeft, g_auiRasterToZscan[uiRasterPart], true, false );
-#else
-    TComDataCU* pcCULeft = pcCU->getPULeft( uiPartLeft, g_auiRasterToZscan[uiRasterPart] );
-#endif
     if ( !pcCULeft || pcCULeft->getPredictionMode( uiPartLeft ) != MODE_INTRA )
     {
       bLeftFlag = false;
@@ -723,11 +649,7 @@ Bool TComPattern::isAboveAvailableForCIP( TComDataCU* pcCU, UInt uiPartIdxLT, UI
   for ( UInt uiRasterPart = uiRasterPartBegin; uiRasterPart < uiRasterPartEnd; uiRasterPart += uiIdxStep )
   {
     UInt uiPartAbove;
-#if AD_HOC_SLICES && SHARP_ENTROPY_SLICE
     TComDataCU* pcCUAbove = pcCU->getPUAbove( uiPartAbove, g_auiRasterToZscan[uiRasterPart], true, false );
-#else
-    TComDataCU* pcCUAbove = pcCU->getPUAbove( uiPartAbove, g_auiRasterToZscan[uiRasterPart] );
-#endif
     if ( !pcCUAbove || pcCUAbove->getPredictionMode( uiPartAbove ) != MODE_INTRA )
     {
       bAboveFlag = false;
@@ -741,11 +663,7 @@ Bool TComPattern::isAboveLeftAvailableForCIP( TComDataCU* pcCU, UInt uiPartIdxLT
 {
   Bool bAboveLeftFlag;
   UInt uiPartAboveLeft;
-#if AD_HOC_SLICES && SHARP_ENTROPY_SLICE
   TComDataCU* pcCUAboveLeft = pcCU->getPUAboveLeft( uiPartAboveLeft, uiPartIdxLT, true, false );
-#else
-  TComDataCU* pcCUAboveLeft = pcCU->getPUAboveLeft( uiPartAboveLeft, uiPartIdxLT );
-#endif
   bAboveLeftFlag = ( pcCUAboveLeft && pcCUAboveLeft->getPredictionMode( uiPartAboveLeft ) == MODE_INTRA );
   return bAboveLeftFlag;
 }
@@ -758,11 +676,7 @@ Bool TComPattern::isAboveRightAvailableForCIP( TComDataCU* pcCU, UInt uiPartIdxL
   for ( UInt uiOffset = 1; uiOffset <= uiNumUnitsInPU; uiOffset++ )
   {
     UInt uiPartAboveRight;
-#if AD_HOC_SLICES && SHARP_ENTROPY_SLICE
     TComDataCU* pcCUAboveRight = pcCU->getPUAboveRightAdi( uiPartAboveRight, uiPuWidth, uiPartIdxRT, uiOffset, true, false );
-#else
-    TComDataCU* pcCUAboveRight = pcCU->getPUAboveRightAdi( uiPartAboveRight, uiPuWidth, uiPartIdxRT, uiOffset );
-#endif
     if ( !pcCUAboveRight || pcCUAboveRight->getPredictionMode( uiPartAboveRight ) != MODE_INTRA )
     {
       bAboveRightFlag = false;
@@ -780,11 +694,7 @@ Bool TComPattern::isBelowLeftAvailableForCIP( TComDataCU* pcCU, UInt uiPartIdxLT
   for ( UInt uiOffset = 1; uiOffset <= uiNumUnitsInPU; uiOffset++ )
   {
     UInt uiPartBelowLeft;
-#if AD_HOC_SLICES && SHARP_ENTROPY_SLICE
     TComDataCU* pcCUBelowLeft = pcCU->getPUBelowLeftAdi( uiPartBelowLeft, uiPuHeight, uiPartIdxLB, uiOffset, true, false );
-#else
-    TComDataCU* pcCUBelowLeft = pcCU->getPUBelowLeftAdi( uiPartBelowLeft, uiPuHeight, uiPartIdxLB, uiOffset );
-#endif
     if ( !pcCUBelowLeft || pcCUBelowLeft->getPredictionMode( uiPartBelowLeft ) != MODE_INTRA )
     {
       bBelowLeftFlag = false;

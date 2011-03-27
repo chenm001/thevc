@@ -1,33 +1,35 @@
-/* ====================================================================================================================
-
-  The copyright in this software is being made available under the License included below.
-  This software may be subject to other third party and   contributor rights, including patent rights, and no such
-  rights are granted under this license.
-
-  Copyright (c) 2010, SAMSUNG ELECTRONICS CO., LTD. and BRITISH BROADCASTING CORPORATION
-  All rights reserved.
-
-  Redistribution and use in source and binary forms, with or without modification, are permitted only for
-  the purpose of developing standards within the Joint Collaborative Team on Video Coding and for testing and
-  promoting such standards. The following conditions are required to be met:
-
-    * Redistributions of source code must retain the above copyright notice, this list of conditions and
-      the following disclaimer.
-    * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and
-      the following disclaimer in the documentation and/or other materials provided with the distribution.
-    * Neither the name of SAMSUNG ELECTRONICS CO., LTD. nor the name of the BRITISH BROADCASTING CORPORATION
-      may be used to endorse or promote products derived from this software without specific prior written permission.
-
-  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES,
-  INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-  ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
-  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
-  SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-  THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
- * ====================================================================================================================
-*/
+/* The copyright in this software is being made available under the BSD
+ * License, included below. This software may be subject to other third party
+ * and contributor rights, including patent rights, and no such rights are
+ * granted under this license.   
+ *
+ * Copyright (c) 2010-2011, ITU/ISO/IEC
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ *  * Redistributions of source code must retain the above copyright notice,
+ *    this list of conditions and the following disclaimer.
+ *  * Redistributions in binary form must reproduce the above copyright notice,
+ *    this list of conditions and the following disclaimer in the documentation
+ *    and/or other materials provided with the distribution.
+ *  * Neither the name of the ITU/ISO/IEC nor the names of its contributors may
+ *    be used to endorse or promote products derived from this software without
+ *    specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS
+ * BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
+ * THE POSSIBILITY OF SUCH DAMAGE.
+ */
 
 /** \file     TComSlice.h
     \brief    slice header and SPS class (header)
@@ -69,12 +71,7 @@ private:
   Bool        m_bUseDQP;
   Bool        m_bUseLDC;
   Bool        m_bUsePAD;
-#if !DCTIF_8_6_LUMA
-  Int         m_iDIFTap;
-#endif
-#if HHI_MRG
   Bool        m_bUseMRG; // SOPH:
-#endif
 
 #if DCM_COMB_LIST
   Bool        m_bUseLComb;
@@ -141,24 +138,14 @@ public:
   
   Bool getUseLDC      ()         { return m_bUseLDC;        }
   Bool getUsePAD      ()         { return m_bUsePAD;        }
-#if HHI_MRG
   Bool getUseMRG      ()         { return m_bUseMRG;        } // SOPH:
-#endif
-#if !DCTIF_8_6_LUMA
-  Int  getDIFTap      ()         { return m_iDIFTap;        }
-#endif
   
   Void setUseALF      ( Bool b ) { m_bUseALF  = b;          }
   Void setUseDQP      ( Bool b ) { m_bUseDQP   = b;         }
   
   Void setUseLDC      ( Bool b ) { m_bUseLDC   = b;         }
   Void setUsePAD      ( Bool b ) { m_bUsePAD   = b;         }
-#if HHI_MRG
   Void setUseMRG      ( Bool b ) { m_bUseMRG  = b;          } // SOPH:
-#endif
-#if !DCTIF_8_6_LUMA
-  Void setDIFTap      ( Int  i ) { m_iDIFTap   = i;         }
-#endif
   
 #if DCM_COMB_LIST
   Void setUseLComb    (Bool b)   { m_bUseLComb = b;         }
@@ -261,22 +248,16 @@ private:
   
   Bool        m_abEqualRef  [2][MAX_NUM_REF][MAX_NUM_REF];
   
-#if !DCTIF_8_6_LUMA
-  Int         m_iInterpFilterType;
-#endif
-#if MS_NO_BACK_PRED_IN_B0
   Bool        m_bNoBackPredFlag;
-#endif
 #if MS_LCEC_LOOKUP_TABLE_EXCEPTION
   Bool        m_bRefIdxCombineCoding;
 #endif
-#if AD_HOC_SLICES 
+
   UInt        m_uiSliceMode;
   UInt        m_uiSliceArgument;
   UInt        m_uiSliceCurStartCUAddr;
   UInt        m_uiSliceCurEndCUAddr;
   UInt        m_uiSliceIdx;
-#if SHARP_ENTROPY_SLICE 
   UInt        m_uiEntropySliceMode;
   UInt        m_uiEntropySliceArgument;
   UInt        m_uiEntropySliceCurStartCUAddr;
@@ -284,8 +265,6 @@ private:
   Bool        m_bNextSlice;
   Bool        m_bNextEntropySlice;
   UInt        m_uiSliceBits;
-#endif
-#endif
   
 public:
   TComSlice();
@@ -381,15 +360,8 @@ public:
   
   static Void      sortPicList         ( TComList<TComPic*>& rcListPic );
   
-#if !DCTIF_8_6_LUMA
-  Int  getInterpFilterType     ()         { return m_iInterpFilterType;       }
-  Void setInterpFilterType     ( Int  i ) { m_iInterpFilterType  = i;         }
-#endif
-  
-#if MS_NO_BACK_PRED_IN_B0
   Bool getNoBackPredFlag() { return m_bNoBackPredFlag; }
   Void setNoBackPredFlag( Bool b ) { m_bNoBackPredFlag = b; }
-#endif
 #if MS_LCEC_LOOKUP_TABLE_EXCEPTION
   Bool getRefIdxCombineCoding() { return m_bRefIdxCombineCoding; }
   Void setRefIdxCombineCoding( Bool b ) { m_bRefIdxCombineCoding = b; }
@@ -397,19 +369,17 @@ public:
 #if DCM_COMB_LIST
   Void      generateCombinedList       ();
 #endif
-#if AD_HOC_SLICES 
-  Void setSliceMode              ( UInt uiMode )     { m_uiSliceMode = uiMode;              }
-  UInt getSliceMode              ()                  { return m_uiSliceMode;                }
-  Void setSliceArgument          ( UInt uiArgument ) { m_uiSliceArgument = uiArgument;      }
-  UInt getSliceArgument          ()                  { return m_uiSliceArgument;            }
-  Void setSliceCurStartCUAddr    ( UInt uiAddr )     { m_uiSliceCurStartCUAddr = uiAddr;    }
-  UInt getSliceCurStartCUAddr    ()                  { return m_uiSliceCurStartCUAddr;      }
-  Void setSliceCurEndCUAddr      ( UInt uiAddr )     { m_uiSliceCurEndCUAddr = uiAddr;      }
-  UInt getSliceCurEndCUAddr      ()                  { return m_uiSliceCurEndCUAddr;        }
-  Void setSliceIdx               ( UInt i)           { m_uiSliceIdx = i;                    }
-  UInt getSliceIdx               ()                  { return  m_uiSliceIdx;                }
-  Void copySliceInfo             (TComSlice *pcSliceSrc);
-#if SHARP_ENTROPY_SLICE 
+  Void setSliceMode                     ( UInt uiMode )     { m_uiSliceMode = uiMode;                     }
+  UInt getSliceMode                     ()                  { return m_uiSliceMode;                       }
+  Void setSliceArgument                 ( UInt uiArgument ) { m_uiSliceArgument = uiArgument;             }
+  UInt getSliceArgument                 ()                  { return m_uiSliceArgument;                   }
+  Void setSliceCurStartCUAddr           ( UInt uiAddr )     { m_uiSliceCurStartCUAddr = uiAddr;           }
+  UInt getSliceCurStartCUAddr           ()                  { return m_uiSliceCurStartCUAddr;             }
+  Void setSliceCurEndCUAddr             ( UInt uiAddr )     { m_uiSliceCurEndCUAddr = uiAddr;             }
+  UInt getSliceCurEndCUAddr             ()                  { return m_uiSliceCurEndCUAddr;               }
+  Void setSliceIdx                      ( UInt i)           { m_uiSliceIdx = i;                           }
+  UInt getSliceIdx                      ()                  { return  m_uiSliceIdx;                       }
+  Void copySliceInfo                    (TComSlice *pcSliceSrc);
   Void setEntropySliceMode              ( UInt uiMode )     { m_uiEntropySliceMode = uiMode;              }
   UInt getEntropySliceMode              ()                  { return m_uiEntropySliceMode;                }
   Void setEntropySliceArgument          ( UInt uiArgument ) { m_uiEntropySliceArgument = uiArgument;      }
@@ -424,8 +394,6 @@ public:
   Bool isNextEntropySlice               ()                  { return m_bNextEntropySlice;                 }
   Void setSliceBits                     ( UInt uiVal )      { m_uiSliceBits = uiVal;                      }
   UInt getSliceBits                     ()                  { return m_uiSliceBits;                       }  
-#endif
-#endif
   
 protected:
   TComPic*  xGetRefPic  (TComList<TComPic*>& rcListPic,

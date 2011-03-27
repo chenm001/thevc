@@ -104,11 +104,11 @@
 		6782E0E411AD692700E8FFB8 /* libTLibVideoIO.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 6767964B11AD629200421804 /* libTLibVideoIO.a */; };
 		6782E0EE11AD694400E8FFB8 /* decmain.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6782E0E711AD694400E8FFB8 /* decmain.cpp */; };
 		6782E0EF11AD694400E8FFB8 /* TAppDecCfg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6782E0E811AD694400E8FFB8 /* TAppDecCfg.cpp */; };
-		6782E0F011AD694400E8FFB8 /* TAppDecOption.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6782E0EA11AD694400E8FFB8 /* TAppDecOption.cpp */; };
 		6782E0F111AD694400E8FFB8 /* TAppDecTop.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6782E0EC11AD694400E8FFB8 /* TAppDecTop.cpp */; };
 		7104E1DF12005B0E00F42AA8 /* program_options_lite.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7104E1DD12005B0E00F42AA8 /* program_options_lite.cpp */; };
 		7104E1E012005B0E00F42AA8 /* program_options_lite.h in Headers */ = {isa = PBXBuildFile; fileRef = 7104E1DE12005B0E00F42AA8 /* program_options_lite.h */; };
 		7104E1E312005B5600F42AA8 /* libTAppCommon.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 7104E1CD12005ABA00F42AA8 /* libTAppCommon.a */; };
+		710DD68B1335295200BE8EDE /* libTAppCommon.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 7104E1CD12005ABA00F42AA8 /* libTAppCommon.a */; };
 		71AD603911EBC28500F5F1FE /* libTLibCommon.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 6767959411AD61BB00421804 /* libTLibCommon.a */; };
 		71AD603A11EBC28D00F5F1FE /* libTLibEncoder.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 6767961911AD626F00421804 /* libTLibEncoder.a */; };
 		71AD603B11EBC29600F5F1FE /* libTLibVideoIO.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 6767964B11AD629200421804 /* libTLibVideoIO.a */; };
@@ -158,6 +158,13 @@
 			remoteInfo = TLibVideoIO;
 		};
 		7104E1E112005B4B00F42AA8 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 08FB7793FE84155DC02AAC07 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 7104E1CC12005ABA00F42AA8;
+			remoteInfo = TAppCommon;
+		};
+		710DD69A133529A100BE8EDE /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 08FB7793FE84155DC02AAC07 /* Project object */;
 			proxyType = 1;
@@ -270,8 +277,6 @@
 		6782E0E711AD694400E8FFB8 /* decmain.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = decmain.cpp; path = source/App/TAppDecoder/decmain.cpp; sourceTree = "<group>"; };
 		6782E0E811AD694400E8FFB8 /* TAppDecCfg.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = TAppDecCfg.cpp; path = source/App/TAppDecoder/TAppDecCfg.cpp; sourceTree = "<group>"; };
 		6782E0E911AD694400E8FFB8 /* TAppDecCfg.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TAppDecCfg.h; path = source/App/TAppDecoder/TAppDecCfg.h; sourceTree = "<group>"; };
-		6782E0EA11AD694400E8FFB8 /* TAppDecOption.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = TAppDecOption.cpp; path = source/App/TAppDecoder/TAppDecOption.cpp; sourceTree = "<group>"; };
-		6782E0EB11AD694400E8FFB8 /* TAppDecOption.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TAppDecOption.h; path = source/App/TAppDecoder/TAppDecOption.h; sourceTree = "<group>"; };
 		6782E0EC11AD694400E8FFB8 /* TAppDecTop.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = TAppDecTop.cpp; path = source/App/TAppDecoder/TAppDecTop.cpp; sourceTree = "<group>"; };
 		6782E0ED11AD694400E8FFB8 /* TAppDecTop.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TAppDecTop.h; path = source/App/TAppDecoder/TAppDecTop.h; sourceTree = "<group>"; };
 		7104E1CD12005ABA00F42AA8 /* libTAppCommon.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libTAppCommon.a; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -326,6 +331,7 @@
 				6782E0E211AD692000E8FFB8 /* libTLibDecoder.a in Frameworks */,
 				6782E0E311AD692300E8FFB8 /* libTLibCommon.a in Frameworks */,
 				6782E0E411AD692700E8FFB8 /* libTLibVideoIO.a in Frameworks */,
+				710DD68B1335295200BE8EDE /* libTAppCommon.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -510,10 +516,8 @@
 			isa = PBXGroup;
 			children = (
 				6782E0ED11AD694400E8FFB8 /* TAppDecTop.h */,
-				6782E0EB11AD694400E8FFB8 /* TAppDecOption.h */,
 				6782E0E911AD694400E8FFB8 /* TAppDecCfg.h */,
 				6782E0EC11AD694400E8FFB8 /* TAppDecTop.cpp */,
-				6782E0EA11AD694400E8FFB8 /* TAppDecOption.cpp */,
 				6782E0E811AD694400E8FFB8 /* TAppDecCfg.cpp */,
 				6782E0E711AD694400E8FFB8 /* decmain.cpp */,
 			);
@@ -728,6 +732,7 @@
 				6745C42811AD7709007D801A /* PBXTargetDependency */,
 				6745C42A11AD770E007D801A /* PBXTargetDependency */,
 				6745C42C11AD7711007D801A /* PBXTargetDependency */,
+				710DD69B133529A100BE8EDE /* PBXTargetDependency */,
 			);
 			name = TAppDecoder;
 			productName = TAppDecoder;
@@ -869,7 +874,6 @@
 			files = (
 				6782E0EE11AD694400E8FFB8 /* decmain.cpp in Sources */,
 				6782E0EF11AD694400E8FFB8 /* TAppDecCfg.cpp in Sources */,
-				6782E0F011AD694400E8FFB8 /* TAppDecOption.cpp in Sources */,
 				6782E0F111AD694400E8FFB8 /* TAppDecTop.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -919,6 +923,11 @@
 			isa = PBXTargetDependency;
 			target = 7104E1CC12005ABA00F42AA8 /* TAppCommon */;
 			targetProxy = 7104E1E112005B4B00F42AA8 /* PBXContainerItemProxy */;
+		};
+		710DD69B133529A100BE8EDE /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 7104E1CC12005ABA00F42AA8 /* TAppCommon */;
+			targetProxy = 710DD69A133529A100BE8EDE /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 

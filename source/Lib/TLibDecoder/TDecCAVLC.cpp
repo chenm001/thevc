@@ -1,33 +1,35 @@
-/* ====================================================================================================================
-
-  The copyright in this software is being made available under the License included below.
-  This software may be subject to other third party and   contributor rights, including patent rights, and no such
-  rights are granted under this license.
-
-  Copyright (c) 2010, SAMSUNG ELECTRONICS CO., LTD. and BRITISH BROADCASTING CORPORATION
-  All rights reserved.
-
-  Redistribution and use in source and binary forms, with or without modification, are permitted only for
-  the purpose of developing standards within the Joint Collaborative Team on Video Coding and for testing and
-  promoting such standards. The following conditions are required to be met:
-
-    * Redistributions of source code must retain the above copyright notice, this list of conditions and
-      the following disclaimer.
-    * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and
-      the following disclaimer in the documentation and/or other materials provided with the distribution.
-    * Neither the name of SAMSUNG ELECTRONICS CO., LTD. nor the name of the BRITISH BROADCASTING CORPORATION
-      may be used to endorse or promote products derived from this software without specific prior written permission.
-
-  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES,
-  INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-  ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
-  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
-  SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-  THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
- * ====================================================================================================================
-*/
+/* The copyright in this software is being made available under the BSD
+ * License, included below. This software may be subject to other third party
+ * and contributor rights, including patent rights, and no such rights are
+ * granted under this license.   
+ *
+ * Copyright (c) 2010-2011, ITU/ISO/IEC
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ *  * Redistributions of source code must retain the above copyright notice,
+ *    this list of conditions and the following disclaimer.
+ *  * Redistributions in binary form must reproduce the above copyright notice,
+ *    this list of conditions and the following disclaimer in the documentation
+ *    and/or other materials provided with the distribution.
+ *  * Neither the name of the ITU/ISO/IEC nor the names of its contributors may
+ *    be used to endorse or promote products derived from this software without
+ *    specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS
+ * BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
+ * THE POSSIBILITY OF SUCH DAMAGE.
+ */
 
 /** \file     TDecCAVLC.cpp
     \brief    CAVLC decoder class
@@ -54,14 +56,34 @@ TDecCavlc::~TDecCavlc()
 // Public member functions
 // ====================================================================================================================
 
+Void  TDecCavlc::parseNalUnitHeader ( NalUnitType& eNalUnitType, UInt& TemporalId, Bool& bOutputFlag )
+{
+  UInt  uiCode;
+  
+  xReadCode ( 1, uiCode ); assert( 0 == uiCode); // forbidden_zero_bit
+  xReadCode ( 2, uiCode );                       // nal_ref_idc
+  xReadCode ( 5, uiCode );                       // nal_unit_type
+  eNalUnitType = (NalUnitType) uiCode;
+
+  if ( (eNalUnitType == NAL_UNIT_CODED_SLICE) || (eNalUnitType == NAL_UNIT_CODED_SLICE_IDR) || (eNalUnitType == NAL_UNIT_CODED_SLICE_CDR) )
+  {
+    xReadCode(3, uiCode); // temporal_id
+    TemporalId = uiCode;
+    xReadFlag(uiCode);    // output_flag
+    bOutputFlag = (0!=uiCode);
+    xReadCode(4, uiCode); // reserved_one_4bits    
+  }
+  else
+  {
+    TemporalId = 0;
+    bOutputFlag = true;
+  }
+}
+
 Void TDecCavlc::parsePPS(TComPPS* pcPPS)
 {
   UInt  uiCode;
   
-  xReadCode ( 2, uiCode ); //NalRefIdc
-  xReadCode ( 1, uiCode ); assert( 0 == uiCode); // zero bit
-  xReadCode ( 5, uiCode ); assert( NAL_UNIT_PPS == uiCode);//NalUnitType
-
 #if CONSTRAINED_INTRA_PRED
   xReadFlag ( uiCode ); pcPPS->setConstrainedIntraPred( uiCode ? true : false );
 #endif
@@ -72,9 +94,6 @@ Void TDecCavlc::parsePPS(TComPPS* pcPPS)
 Void TDecCavlc::parseSPS(TComSPS* pcSPS)
 {
   UInt  uiCode;
-  xReadCode ( 2, uiCode ); //NalRefIdc
-  xReadCode ( 1, uiCode ); assert( 0 == uiCode); // zero bit
-  xReadCode ( 5, uiCode ); assert( NAL_UNIT_SPS == uiCode);//NalUnitType
   
   // Structure
   xReadUvlc ( uiCode ); pcSPS->setWidth       ( uiCode    );
@@ -106,17 +125,10 @@ Void TDecCavlc::parseSPS(TComSPS* pcSPS)
   xReadFlag( uiCode ); pcSPS->setUseALF ( uiCode ? true : false );
   xReadFlag( uiCode ); pcSPS->setUseDQP ( uiCode ? true : false );
   xReadFlag( uiCode ); pcSPS->setUseLDC ( uiCode ? true : false );
-#if HHI_MRG
   xReadFlag( uiCode ); pcSPS->setUseMRG ( uiCode ? true : false ); // SOPH:
-#endif
   
 #if HHI_RMP_SWITCH
   xReadFlag( uiCode ); pcSPS->setUseRMP( uiCode ? true : false );
-#endif
-
-#if !DCTIF_8_6_LUMA
-  // number of taps for DIF
-  xReadUvlc( uiCode ); pcSPS->setDIFTap ( (uiCode+2)<<1 );  // 4, 6, 8, 10, 12
 #endif
   
   // AMVP mode for each depth (AM_NONE or AM_EXPL)
@@ -165,34 +177,15 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice)
 {
   UInt  uiCode;
   Int   iCode;
-  xReadCode ( 2, uiCode ); //NalRefIdc
-  xReadCode ( 1, uiCode ); assert( 0 == uiCode); // zero bit
-#if DCM_DECODING_REFRESH
-  xReadCode ( 5, uiCode ); 
-  rpcSlice->setNalUnitType        ((NalUnitType)uiCode);//NalUnitType
-#else
-  xReadCode ( 5, uiCode ); assert( NAL_UNIT_CODED_SLICE == uiCode);//NalUnitType
-#endif
-#if AD_HOC_SLICES && SHARP_ENTROPY_SLICE 
+
   xReadFlag ( uiCode );
   Bool bEntropySlice = uiCode ? true : false;
   if (!bEntropySlice)
   {
-#endif
-  
-  xReadCode (10, uiCode);  rpcSlice->setPOC              (uiCode);             // 9 == SPS->Log2MaxFrameNum()
-  xReadUvlc (   uiCode);  rpcSlice->setSliceType        ((SliceType)uiCode);
-  xReadSvlc (    iCode);  rpcSlice->setSliceQp          (iCode);
-#if AD_HOC_SLICES && SHARP_ENTROPY_SLICE
+    xReadCode (10, uiCode);  rpcSlice->setPOC              (uiCode);             // 9 == SPS->Log2MaxFrameNum()
+    xReadUvlc (   uiCode);  rpcSlice->setSliceType        ((SliceType)uiCode);
+    xReadSvlc (    iCode);  rpcSlice->setSliceQp          (iCode);
   }
-#endif
-
-#if AD_HOC_SLICES && !SHARP_ENTROPY_SLICE
-  xReadUvlc(uiCode);
-  rpcSlice->setSliceCurStartCUAddr( uiCode ); // start CU addr for slice
-#endif
-
-#if AD_HOC_SLICES && SHARP_ENTROPY_SLICE
   if (bEntropySlice)
   {
     rpcSlice->setNextSlice        ( false );
@@ -205,107 +198,100 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice)
   {
     rpcSlice->setNextSlice        ( true  );
     rpcSlice->setNextEntropySlice ( false );
-
+    
     xReadUvlc(uiCode);
     rpcSlice->setSliceCurStartCUAddr( uiCode );        // start CU addr for slice
     rpcSlice->setEntropySliceCurStartCUAddr( uiCode ); // start CU addr for entropy slice  
-#endif
-  
-  xReadFlag ( uiCode );
-  rpcSlice->setSymbolMode( uiCode );
-  
-  if (!rpcSlice->isIntra())
-    xReadFlag (   uiCode);
-  else
-    uiCode = 1;
-  
-  rpcSlice->setReferenced       (uiCode ? true : false);
-
+    
+    xReadFlag ( uiCode );
+    rpcSlice->setSymbolMode( uiCode );
+    
+    if (!rpcSlice->isIntra())
+      xReadFlag (   uiCode);
+    else
+      uiCode = 1;
+    
+    rpcSlice->setReferenced       (uiCode ? true : false);
+    
 #if !HIGH_ACCURACY_BI
 #ifdef ROUNDING_CONTROL_BIPRED
-  if(!rpcSlice->isIntra())
-  {
-    xReadFlag( uiCode );
-    Bool b = (uiCode != 0);
-    rpcSlice->setRounding(b);
-  }
+    if(!rpcSlice->isIntra())
+    {
+      xReadFlag( uiCode );
+      Bool b = (uiCode != 0);
+      rpcSlice->setRounding(b);
+    }
 #endif
 #else
-  if(!rpcSlice->isIntra())
-  {
-    rpcSlice->setRounding(false);
-  }
-#endif
-  
-  xReadFlag (   uiCode);  rpcSlice->setLoopFilterDisable(uiCode ? 1 : 0);
-  
-  if (!rpcSlice->isIntra())
-  {
-    xReadCode (3, uiCode);  rpcSlice->setNumRefIdx      (REF_PIC_LIST_0, uiCode);
-  }
-  else
-  {
-    rpcSlice->setNumRefIdx(REF_PIC_LIST_0, 0);
-  }
-  if (rpcSlice->isInterB())
-  {
-    xReadCode (3, uiCode);  rpcSlice->setNumRefIdx      (REF_PIC_LIST_1, uiCode);
-  }
-  else
-  {
-    rpcSlice->setNumRefIdx(REF_PIC_LIST_1, 0);
-  }
-  
-#if DCM_COMB_LIST
-  if (rpcSlice->isInterB())
-  {
-    xReadFlag (uiCode);      rpcSlice->setRefPicListCombinationFlag(uiCode ? 1 : 0);
-    if(uiCode)
+    if(!rpcSlice->isIntra())
     {
-      xReadUvlc(uiCode);      rpcSlice->setNumRefIdx      (REF_PIC_LIST_C, uiCode+1);
-
-      xReadFlag (uiCode);     rpcSlice->setRefPicListModificationFlagLC(uiCode ? 1 : 0);
-      if(uiCode)
-      {
-        for (UInt i=0;i<rpcSlice->getNumRefIdx(REF_PIC_LIST_C);i++)
-        {
-          xReadFlag(uiCode);
-          rpcSlice->setListIdFromIdxOfLC(i, uiCode);
-          xReadUvlc(uiCode);
-          rpcSlice->setRefIdxFromIdxOfLC(i, uiCode);
-          rpcSlice->setRefIdxOfLC((RefPicList)rpcSlice->getListIdFromIdxOfLC(i), rpcSlice->getRefIdxFromIdxOfLC(i), i);
-        }
-      }
+      rpcSlice->setRounding(false);
+    }
+#endif
+    
+    xReadFlag (   uiCode);  rpcSlice->setLoopFilterDisable(uiCode ? 1 : 0);
+    
+    if (!rpcSlice->isIntra())
+    {
+      xReadCode (3, uiCode);  rpcSlice->setNumRefIdx      (REF_PIC_LIST_0, uiCode);
     }
     else
     {
-      rpcSlice->setRefPicListCombinationFlag(false);
-      rpcSlice->setRefPicListModificationFlagLC(false);
-      rpcSlice->setNumRefIdx(REF_PIC_LIST_C, -1);
+      rpcSlice->setNumRefIdx(REF_PIC_LIST_0, 0);
     }
-  }
+    if (rpcSlice->isInterB())
+    {
+      xReadCode (3, uiCode);  rpcSlice->setNumRefIdx      (REF_PIC_LIST_1, uiCode);
+    }
+    else
+    {
+      rpcSlice->setNumRefIdx(REF_PIC_LIST_1, 0);
+    }
+    
+#if DCM_COMB_LIST
+    if (rpcSlice->isInterB())
+    {
+      xReadFlag (uiCode);      rpcSlice->setRefPicListCombinationFlag(uiCode ? 1 : 0);
+      if(uiCode)
+      {
+        xReadUvlc(uiCode);      rpcSlice->setNumRefIdx      (REF_PIC_LIST_C, uiCode+1);
+        
+        xReadFlag (uiCode);     rpcSlice->setRefPicListModificationFlagLC(uiCode ? 1 : 0);
+        if(uiCode)
+        {
+          for (UInt i=0;i<rpcSlice->getNumRefIdx(REF_PIC_LIST_C);i++)
+          {
+            xReadFlag(uiCode);
+            rpcSlice->setListIdFromIdxOfLC(i, uiCode);
+            xReadUvlc(uiCode);
+            rpcSlice->setRefIdxFromIdxOfLC(i, uiCode);
+            rpcSlice->setRefIdxOfLC((RefPicList)rpcSlice->getListIdFromIdxOfLC(i), rpcSlice->getRefIdxFromIdxOfLC(i), i);
+          }
+        }
+      }
+      else
+      {
+        rpcSlice->setRefPicListCombinationFlag(false);
+        rpcSlice->setRefPicListModificationFlagLC(false);
+        rpcSlice->setNumRefIdx(REF_PIC_LIST_C, -1);
+      }
+    }
 #endif
-
-  xReadFlag (uiCode);     rpcSlice->setDRBFlag          (uiCode ? 1 : 0);
-  if ( !rpcSlice->getDRBFlag() )
-  {
-    xReadCode(2, uiCode); rpcSlice->setERBIndex( (ERBIndex)uiCode );    assert (uiCode == ERB_NONE || uiCode == ERB_LTR);
-  }
-#if !DCTIF_8_6_LUMA
-  xReadUvlc( uiCode ); rpcSlice->setInterpFilterType( uiCode );
-#endif
-  
-
+    
+    xReadFlag (uiCode);     rpcSlice->setDRBFlag          (uiCode ? 1 : 0);
+    if ( !rpcSlice->getDRBFlag() )
+    {
+      xReadCode(2, uiCode); rpcSlice->setERBIndex( (ERBIndex)uiCode );    assert (uiCode == ERB_NONE || uiCode == ERB_LTR);
+    }  
+    
 #if AMVP_NEIGH_COL
-  if ( rpcSlice->getSliceType() == B_SLICE )
-  {
-    xReadFlag (uiCode);
-    rpcSlice->setColDir(uiCode);
-  }
+    if ( rpcSlice->getSliceType() == B_SLICE )
+    {
+      xReadFlag (uiCode);
+      rpcSlice->setColDir(uiCode);
+    }
 #endif
-#if AD_HOC_SLICES && SHARP_ENTROPY_SLICE 
   }
-#endif
   return;
 }
 
@@ -322,15 +308,12 @@ Void TDecCavlc::resetEntropy          (TComSlice* pcSlice)
   m_uiCbpVlcIdx[0] = 0;
   m_uiCbpVlcIdx[1] = 0;
   
-#if QC_BLK_CBP
   ::memcpy(m_uiBlkCBPTableD,     g_auiBlkCBPTableD,     2*15*sizeof(UInt));
   m_uiBlkCbpVlcIdx = 0;
-#endif
   
   ::memcpy(m_uiMI1TableD,        g_auiMI1TableD,        8*sizeof(UInt));
   ::memcpy(m_uiMI2TableD,        g_auiMI2TableD,        15*sizeof(UInt));
   
-#if MS_NO_BACK_PRED_IN_B0
 #if DCM_COMB_LIST
   if ( pcSlice->getNoBackPredFlag() || pcSlice->getNumRefIdx(REF_PIC_LIST_C)>0)
 #else
@@ -340,7 +323,6 @@ Void TDecCavlc::resetEntropy          (TComSlice* pcSlice)
     ::memcpy(m_uiMI1TableD,        g_auiMI1TableDNoL1,        8*sizeof(UInt));
     ::memcpy(m_uiMI2TableD,        g_auiMI2TableDNoL1,        15*sizeof(UInt));
   }
-#endif
   
 #if MS_LCEC_ONE_FRAME
   if ( pcSlice->getNumRefIdx(REF_PIC_LIST_0) <= 1 && pcSlice->getNumRefIdx(REF_PIC_LIST_1) <= 1 )
@@ -379,12 +361,7 @@ Void TDecCavlc::resetEntropy          (TComSlice* pcSlice)
 
 Void TDecCavlc::parseTerminatingBit( UInt& ruiBit )
 {
-#if BUGFIX102
   ruiBit = false;
-#else
-  xReadFlag( ruiBit );
-#endif
-#if AD_HOC_SLICES
   Int iBitsLeft = m_pcBitstream->getBitsLeft();
   if(iBitsLeft <= 8)
   {
@@ -392,7 +369,6 @@ Void TDecCavlc::parseTerminatingBit( UInt& ruiBit )
     if (uiPeekValue == (1<<(iBitsLeft-1)))
       ruiBit = true;
   }
-#endif
 }
 
 Void TDecCavlc::parseAlfCtrlDepth              ( UInt& ruiAlfCtrlDepth )
@@ -430,7 +406,7 @@ Void TDecCavlc::parseSkipFlag( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth
 #if QC_LCEC_INTER_MODE
   return;
 #else
-#if HHI_MRG && !SAMSUNG_MRG_SKIP_DIRECT
+#if !SAMSUNG_MRG_SKIP_DIRECT
   if ( pcCU->getSlice()->getSPS()->getUseMRG() )
   {
     return;
@@ -515,6 +491,12 @@ Void TDecCavlc::parseSplitFlag     ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt u
     };
     if(tmp!=0)
       cx--;
+
+    UInt uiDepthRemember = uiDepth;
+    if ( uiDepth == g_uiMaxCUDepth - g_uiAddCUDepth )
+    {
+      uiDepth = 3;
+    }
     UInt x = m_uiSplitTableD[uiDepth][cx];
     /* Adapt table */
     uiMode = x;
@@ -525,6 +507,7 @@ Void TDecCavlc::parseSplitFlag     ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt u
       m_uiSplitTableD[uiDepth][cy] = x;
       m_uiSplitTableD[uiDepth][cx] = y;
     }
+    uiDepth = uiDepthRemember;
   }
   if (uiMode==0)
   {
@@ -584,7 +567,7 @@ Void TDecCavlc::parseSplitFlag     ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt u
         UInt uiWidthInBit  = g_aucConvertToBit[pcCU->getWidth(uiAbsPartIdx)]+2;
         UInt uiTrSizeInBit = g_aucConvertToBit[pcCU->getSlice()->getSPS()->getMaxTrSize()]+2;
         uiTrLevel          = uiWidthInBit >= uiTrSizeInBit ? uiWidthInBit - uiTrSizeInBit : 0;
-	      pcCU->setTrIdxSubParts( uiTrLevel, uiAbsPartIdx, uiDepth );       
+        pcCU->setTrIdxSubParts( uiTrLevel, uiAbsPartIdx, uiDepth );       
       }
       else
 #endif
@@ -876,7 +859,7 @@ Void TDecCavlc::parseIntraDirLumaAng  ( TComDataCU* pcCU, UInt uiAbsPartIdx, UIn
     {
       iRankIntraMode = 0;
       for (Int i=1;i<17;i++)
-      {	
+      {
         if( (uiCode>>(uiLength- lengthHuff17[i])) == huff17[i])
         {
           m_pcBitstream->read(lengthHuff17[i], uiCode);
@@ -912,7 +895,7 @@ Void TDecCavlc::parseIntraDirLumaAng  ( TComDataCU* pcCU, UInt uiAbsPartIdx, UIn
     {
       iRankIntraMode = 0;
       for (Int i=1;i<34;i++)
-      {	
+      {
         if( (uiCode>>(uiLength- lengthHuff34[i])) == huff34[i])
         {
           m_pcBitstream->read(lengthHuff34[i], uiCode);
@@ -1150,12 +1133,10 @@ Void TDecCavlc::parseInterDir( TComDataCU* pcCU, UInt& ruiInterDir, UInt uiAbsPa
     uiSymbol = 0;
   }
 #endif
-#if MS_NO_BACK_PRED_IN_B0
   else if ( pcCU->getSlice()->getNoBackPredFlag() )
   {
     uiSymbol = 0;
   }
-#endif
   else
   {
     xReadFlag( uiSymbol );
@@ -1305,7 +1286,6 @@ Void TDecCavlc::parseDeltaQP( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth 
   pcCU->setQPSubParts( uiDQp, uiAbsPartIdx, uiDepth );
 }
 
-#if LCEC_CBP_YUV_ROOT
 Void TDecCavlc::parseCbf( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eType, UInt uiTrDepth, UInt uiDepth )
 {
   if (eType == TEXT_ALL)
@@ -1349,7 +1329,6 @@ Void TDecCavlc::parseBlockCbf( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eTy
   assert(uiTrDepth > 0);
   UInt uiCbf4, uiCbf;
   
-#if QC_BLK_CBP
   Int x,cx,y,cy;
   UInt tmp;
   
@@ -1369,9 +1348,6 @@ Void TDecCavlc::parseBlockCbf( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eTy
     m_uiBlkCbpVlcIdx += cx == m_uiBlkCbpVlcIdx ? 0 : (cx < m_uiBlkCbpVlcIdx ? -1 : 1);
   
   uiCbf4++;
-#else
-  xReadCode(4, uiCbf4);
-#endif
   
   uiCbf = pcCU->getCbf( uiAbsPartIdx, eType );
   pcCU->setCbfSubParts( uiCbf | ( ((uiCbf4>>3)&0x01) << uiTrDepth ), eType, uiAbsPartIdx, uiDepth ); uiAbsPartIdx += uiQPartNum;
@@ -1384,7 +1360,6 @@ Void TDecCavlc::parseBlockCbf( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eTy
   
   return;
 }
-#endif
 
 Void TDecCavlc::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx, UInt uiWidth, UInt uiHeight, UInt uiDepth, TextType eTType )
 {
@@ -1625,7 +1600,6 @@ Void TDecCavlc::parseAlfSvlc (Int&  riVal)
 }
 
 
-#if HHI_MRG
 Void TDecCavlc::parseMergeFlag ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth, UInt uiPUIdx )
 {
 #if QC_LCEC_INTER_MODE
@@ -1643,7 +1617,6 @@ Void TDecCavlc::parseMergeIndex ( TComDataCU* pcCU, UInt& ruiMergeIndex, UInt ui
   Bool bAboveInvolved = false;
   Bool bCollocatedInvolved = false;
   Bool bCornerInvolved = false;
-  Bool bCornerBLInvolved = false;
   UInt uiNumCand = 0;
   for( UInt uiIter = 0; uiIter < HHI_NUM_MRG_CAND; ++uiIter )
   {
@@ -1666,171 +1639,38 @@ Void TDecCavlc::parseMergeIndex ( TComDataCU* pcCU, UInt& ruiMergeIndex, UInt ui
       {
         bCornerInvolved = true;
       }
-      else if( uiIter == 4 )
-      {
-        bCornerBLInvolved = true;
-      }
     }
   }
   assert( uiNumCand > 1 );
-  UInt uiOffset = 0;
-  if( bAboveInvolved && !bCollocatedInvolved && !bCornerInvolved && !bCornerBLInvolved )
+  UInt uiUnaryIdx = 0;
+  for( ; uiUnaryIdx < uiNumCand - 1; ++uiUnaryIdx )
   {
-    uiOffset = 0;
-  }
-  else if( uiNumCand < 3 )
-  {
-    uiOffset = 1;
-  }
-  else
-  {
-    uiOffset = 2;
-  }
-  UInt uiSymbol = 0;
-  xReadFlag( uiSymbol );
-
-  if( uiNumCand == 2 )
-  {
-    if( !bCollocatedInvolved )
-    {
-      if( !bCornerInvolved && !bCornerBLInvolved )
-      {
-        ruiMergeIndex = uiSymbol;
-      }
-      else if( bAboveInvolved && bCornerInvolved)
-      {
-        ruiMergeIndex = ( uiSymbol == 1 ) ? 3 : 1;
-      }
-      else if( bAboveInvolved && bCornerBLInvolved)
-      {
-        ruiMergeIndex = ( uiSymbol == 1 ) ? 4 : 1;
-      }
-      else if( bCornerInvolved && bCornerBLInvolved )
-      {
-        ruiMergeIndex = ( uiSymbol == 1 ) ? 4 : 3;
-      }
-      else if( !bAboveInvolved && !bCornerBLInvolved)
-      {
-        ruiMergeIndex = ( uiSymbol == 1 ) ? 3 : 0;
-      }
-      else if( !bAboveInvolved && !bCornerInvolved )
-      {
-        ruiMergeIndex = ( uiSymbol == 1 ) ? 4 : 0;
-      }
-    }
-    else
-    {
-      if( bAboveInvolved )
-      {
-        ruiMergeIndex = ( uiSymbol == 1 ) ? 2 : 1;
-      }
-      else if( bCornerInvolved )
-      {
-        ruiMergeIndex = ( uiSymbol == 1 ) ? 3 : 2;
-      }
-      else if( bCornerBLInvolved )
-      {
-        ruiMergeIndex = ( uiSymbol == 1 ) ? 4 : 2;
-      }
-      else
-      {
-        ruiMergeIndex = ( uiSymbol == 1 ) ? 2 : 0;
-      }
-    }
-    return;
-  }
-  else if( uiNumCand == 3 )
-  {
+    UInt uiSymbol = 0;
+    xReadFlag( uiSymbol );
     if( uiSymbol == 0 )
     {
-      if( bLeftInvolved )
-      {
-        ruiMergeIndex = 0;
-      }
-      else if( !bLeftInvolved && bAboveInvolved )
-      {
-        ruiMergeIndex = 1;
-      }
-      else if(!bLeftInvolved && !bAboveInvolved )
-      {
-        ruiMergeIndex = 2;
-      }
-    }
-    else
-    {
-      xReadFlag( uiSymbol );
-      if( uiSymbol == 1 )
-      {
-        if( bCornerBLInvolved )
-        {
-          ruiMergeIndex = 4;
-        }
-        else if( !bCornerBLInvolved && bCornerInvolved )
-        {
-          ruiMergeIndex = 3;
-        }
-        else if( !bCornerBLInvolved && !bCornerInvolved && bCollocatedInvolved )
-        {
-          ruiMergeIndex = 2;
-        }
-      }
-      else
-      {
-        if( bLeftInvolved && bAboveInvolved )
-        {
-          ruiMergeIndex = 1;
-        }
-        else if( ( ( !bLeftInvolved && bAboveInvolved) || ( bLeftInvolved && !bAboveInvolved ) )&& bCollocatedInvolved )
-        {
-          ruiMergeIndex = 2;
-        }
-        else if( bCornerBLInvolved && bCornerInvolved )
-        {
-          ruiMergeIndex = 3;
-        }
-      }
+      break;
     }
   }
-  else //uiNumCand > 3
+  if( !bLeftInvolved )
   {
-    if( uiSymbol == 1 )
-    {
-      UInt uiAbove = 0;
-      xReadFlag( uiAbove );
-      if( uiAbove == 0 )
-      {
-        ruiMergeIndex = 1;
-      }
-      else
-      {
-        UInt uiCol = 0;
-        xReadFlag( uiCol );
-        if( uiCol == 0 )
-        {
-          ruiMergeIndex = 2;
-        }
-        else
-        {
-          UInt uiCorner = 0;
-          xReadFlag( uiCorner );
-          if( uiCorner == 0 )
-          {
-            ruiMergeIndex = 3;
-          }
-          else
-          {
-            ruiMergeIndex = 4;
-          }
-        }
-      }
-    }
-    else
-    {
-      ruiMergeIndex = 0;
-    }
+    ++uiUnaryIdx;
   }
+  if( !bAboveInvolved && uiUnaryIdx >= 1 )
+  {
+    ++uiUnaryIdx;
+  }
+
+  if( !bCollocatedInvolved && uiUnaryIdx >= 2 )
+  {
+    ++uiUnaryIdx;
+  }
+  if( !bCornerInvolved && uiUnaryIdx >= 3 )
+  {
+    ++uiUnaryIdx;
+  }
+  ruiMergeIndex = uiUnaryIdx;
 }
-#endif
 
 // ====================================================================================================================
 // Protected member functions
@@ -1985,11 +1825,7 @@ UInt TDecCavlc::xGetBit()
 
 Int TDecCavlc::xReadVlc( Int n )
 {
-#if QC_BLK_CBP
   assert( n>=0 && n<=11 );
-#else
-  assert( n>=0 && n<=10 );
-#endif
   
   UInt zeroes=0, done=0, tmp;
   UInt cw, bit;
@@ -2142,7 +1978,6 @@ Int TDecCavlc::xReadVlc( Int n )
       }
     }
   }
-#if QC_BLK_CBP
   else if (n == 11)
   {
     UInt code;
@@ -2154,7 +1989,6 @@ Int TDecCavlc::xReadVlc( Int n )
       val--;
     }
   }
-#endif
   
   return val;
 }

@@ -1,33 +1,35 @@
-/* ====================================================================================================================
-
-  The copyright in this software is being made available under the License included below.
-  This software may be subject to other third party and   contributor rights, including patent rights, and no such
-  rights are granted under this license.
-
-  Copyright (c) 2010, SAMSUNG ELECTRONICS CO., LTD. and BRITISH BROADCASTING CORPORATION
-  All rights reserved.
-
-  Redistribution and use in source and binary forms, with or without modification, are permitted only for
-  the purpose of developing standards within the Joint Collaborative Team on Video Coding and for testing and
-  promoting such standards. The following conditions are required to be met:
-
-    * Redistributions of source code must retain the above copyright notice, this list of conditions and
-      the following disclaimer.
-    * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and
-      the following disclaimer in the documentation and/or other materials provided with the distribution.
-    * Neither the name of SAMSUNG ELECTRONICS CO., LTD. nor the name of the BRITISH BROADCASTING CORPORATION
-      may be used to endorse or promote products derived from this software without specific prior written permission.
-
-  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES,
-  INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-  ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
-  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
-  SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-  THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
- * ====================================================================================================================
-*/
+/* The copyright in this software is being made available under the BSD
+ * License, included below. This software may be subject to other third party
+ * and contributor rights, including patent rights, and no such rights are
+ * granted under this license.   
+ *
+ * Copyright (c) 2010-2011, ITU/ISO/IEC
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ *  * Redistributions of source code must retain the above copyright notice,
+ *    this list of conditions and the following disclaimer.
+ *  * Redistributions in binary form must reproduce the above copyright notice,
+ *    this list of conditions and the following disclaimer in the documentation
+ *    and/or other materials provided with the distribution.
+ *  * Neither the name of the ITU/ISO/IEC nor the names of its contributors may
+ *    be used to endorse or promote products derived from this software without
+ *    specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS
+ * BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
+ * THE POSSIBILITY OF SUCH DAMAGE.
+ */
 
 /** \file     TComSlice.cpp
     \brief    slice header and SPS class
@@ -62,9 +64,7 @@ TComSlice::TComSlice()
   m_uiColDir = 0;
   
   initEqualRef();
-#if MS_NO_BACK_PRED_IN_B0
   m_bNoBackPredFlag = false;
-#endif
 #if MS_LCEC_LOOKUP_TABLE_EXCEPTION
   m_bRefIdxCombineCoding = false;
 #endif
@@ -72,12 +72,8 @@ TComSlice::TComSlice()
   m_bRefPicListCombinationFlag = false;
   m_bRefPicListModificationFlagLC = false;
 #endif
-#if AD_HOC_SLICES
   m_uiSliceCurStartCUAddr        = 0;
-#if SHARP_ENTROPY_SLICE
   m_uiEntropySliceCurStartCUAddr = 0;
-#endif
-#endif
 }
 
 TComSlice::~TComSlice()
@@ -93,16 +89,10 @@ Void TComSlice::initSlice()
   m_bDRBFlag            = true;
   m_eERBIndex           = ERB_NONE;
   
-#if !DCTIF_8_6_LUMA
-  m_iInterpFilterType   = IPF_SAMSUNG_DIF_DEFAULT;
-#endif
-  
   m_uiColDir = 0;
   
   initEqualRef();
-#if MS_NO_BACK_PRED_IN_B0
   m_bNoBackPredFlag = false;
-#endif
 #if MS_LCEC_LOOKUP_TABLE_EXCEPTION
   m_bRefIdxCombineCoding = false;
 #endif
@@ -126,17 +116,13 @@ Void  TComSlice::sortPicList        (TComList<TComPic*>& rcListPic)
     iterPicExtract = rcListPic.begin();
     for (Int j = 0; j < i; j++) iterPicExtract++;
     pcPicExtract = *(iterPicExtract);
-#if AD_HOC_SLICES
     pcPicExtract->setCurrSliceIdx(0);
-#endif
     
     iterPicInsert = rcListPic.begin();
     while (iterPicInsert != iterPicExtract)
     {
       pcPicInsert = *(iterPicInsert);
-#if AD_HOC_SLICES
       pcPicInsert->setCurrSliceIdx(0);
-#endif
       if (pcPicInsert->getPOC() >= pcPicExtract->getPOC())
       {
         break;
@@ -185,20 +171,11 @@ TComPic* TComSlice::xGetRefPic (TComList<TComPic*>& rcListPic,
       iterPic--;
       pcPic = *(iterPic);
       if( ( !pcPic->getReconMark()                        ) ||
-#if AD_HOC_SLICES
           ( bDRBFlag  != pcPic->getSlice(0)->getDRBFlag()  ) ||
           ( eERBIndex != pcPic->getSlice(0)->getERBIndex() ) )
-#else
-         ( bDRBFlag  != pcPic->getSlice()->getDRBFlag()  ) ||
-         ( eERBIndex != pcPic->getSlice()->getERBIndex() ) )
-#endif
         continue;
       
-#if AD_HOC_SLICES
       if( !pcPic->getSlice(0)->isReferenced() )
-#else
-      if( !pcPic->getSlice()->isReferenced() )
-#endif
         continue;
       
       uiCount++;
@@ -229,20 +206,11 @@ TComPic* TComSlice::xGetRefPic (TComList<TComPic*>& rcListPic,
         
         pcPic = *(iterPic);
         if( ( !pcPic->getReconMark()                        ) ||
-#if AD_HOC_SLICES
           ( bDRBFlag  != pcPic->getSlice(0)->getDRBFlag()  ) ||
           ( eERBIndex != pcPic->getSlice(0)->getERBIndex() ) )
-#else
-           ( bDRBFlag  != pcPic->getSlice()->getDRBFlag()  ) ||
-           ( eERBIndex != pcPic->getSlice()->getERBIndex() ) )
-#endif
           continue;
         
-#if AD_HOC_SLICES
       if( !pcPic->getSlice(0)->isReferenced() )
-#else
-        if( !pcPic->getSlice()->isReferenced() )
-#endif
           continue;
         
         uiCount++;
@@ -264,20 +232,11 @@ TComPic* TComSlice::xGetRefPic (TComList<TComPic*>& rcListPic,
       
       pcPic = *(iterPic);
       if( ( !pcPic->getReconMark()                        ) ||
-#if AD_HOC_SLICES
           ( bDRBFlag  != pcPic->getSlice(0)->getDRBFlag()  ) ||
           ( eERBIndex != pcPic->getSlice(0)->getERBIndex() ) )
-#else
-         ( bDRBFlag  != pcPic->getSlice()->getDRBFlag()  ) ||
-         ( eERBIndex != pcPic->getSlice()->getERBIndex() ) )
-#endif
         continue;
       
-#if AD_HOC_SLICES
       if( !pcPic->getSlice(0)->isReferenced() )
-#else
-      if( !pcPic->getSlice()->isReferenced() )
-#endif
         continue;
       
       uiCount++;
@@ -305,20 +264,11 @@ TComPic* TComSlice::xGetRefPic (TComList<TComPic*>& rcListPic,
       iterPic--;
       pcPic = *(iterPic);
       if( ( !pcPic->getReconMark()                        ) ||
-#if AD_HOC_SLICES
           ( bDRBFlag  != pcPic->getSlice(0)->getDRBFlag()  ) ||
           ( eERBIndex != pcPic->getSlice(0)->getERBIndex() ) )
-#else
-         ( bDRBFlag  != pcPic->getSlice()->getDRBFlag()  ) ||
-         ( eERBIndex != pcPic->getSlice()->getERBIndex() ) )
-#endif
         continue;
       
-#if AD_HOC_SLICES
       if( !pcPic->getSlice(0)->isReferenced() )
-#else
-      if( !pcPic->getSlice()->isReferenced() )
-#endif
         continue;
       
       uiCount++;
@@ -573,12 +523,8 @@ Void TComSlice::decodingRefreshMarking(UInt& uiPOCCDR, Bool& bRefreshPending, TC
     while (iterPic != rcListPic.end())
     {
       rpcPic = *(iterPic);
-#if AD_HOC_SLICES
       rpcPic->setCurrSliceIdx(0);
       if (rpcPic->getPOC() != uiPOCCurr) rpcPic->getSlice(0)->setReferenced(false);
-#else
-      if (rpcPic->getPOC() != uiPOCCurr) rpcPic->getSlice()->setReferenced(false);      
-#endif      
       iterPic++;
     }
   }
@@ -590,11 +536,7 @@ Void TComSlice::decodingRefreshMarking(UInt& uiPOCCDR, Bool& bRefreshPending, TC
       while (iterPic != rcListPic.end())
       {
         rpcPic = *(iterPic);
-#if AD_HOC_SLICES        
         if (rpcPic->getPOC() != uiPOCCurr && rpcPic->getPOC() != uiPOCCDR) rpcPic->getSlice(0)->setReferenced(false);
-#else
-        if (rpcPic->getPOC() != uiPOCCurr && rpcPic->getPOC() != uiPOCCDR) rpcPic->getSlice()->setReferenced(false);
-#endif        
         iterPic++;
       }
       bRefreshPending = false; 
@@ -608,7 +550,6 @@ Void TComSlice::decodingRefreshMarking(UInt& uiPOCCDR, Bool& bRefreshPending, TC
 }
 #endif
 
-#if AD_HOC_SLICES
 Void TComSlice::copySliceInfo(TComSlice *pSrc)
 {
   assert( pSrc != NULL );
@@ -690,30 +631,23 @@ Void TComSlice::copySliceInfo(TComSlice *pSrc)
     }
   }
 
-#if !DCTIF_8_6_LUMA
-  m_iInterpFilterType    = pSrc->m_iInterpFilterType;
-#endif  
-#if MS_NO_BACK_PRED_IN_B0
   m_bNoBackPredFlag      = pSrc->m_bNoBackPredFlag;
-#endif
 #if MS_LCEC_LOOKUP_TABLE_EXCEPTION
   m_bRefIdxCombineCoding = pSrc->m_bRefIdxCombineCoding;
 #endif
-  m_uiSliceMode          = pSrc->m_uiSliceMode;
-  m_uiSliceArgument      = pSrc->m_uiSliceArgument;
-  m_uiSliceCurStartCUAddr= pSrc->m_uiSliceCurStartCUAddr;
-  m_uiSliceCurEndCUAddr  = pSrc->m_uiSliceCurEndCUAddr;
-  m_uiSliceIdx           = pSrc->m_uiSliceIdx;
-#if SHARP_ENTROPY_SLICE 
+  m_uiSliceMode                   = pSrc->m_uiSliceMode;
+  m_uiSliceArgument               = pSrc->m_uiSliceArgument;
+  m_uiSliceCurStartCUAddr         = pSrc->m_uiSliceCurStartCUAddr;
+  m_uiSliceCurEndCUAddr           = pSrc->m_uiSliceCurEndCUAddr;
+  m_uiSliceIdx                    = pSrc->m_uiSliceIdx;
   m_uiEntropySliceMode            = pSrc->m_uiEntropySliceMode;
   m_uiEntropySliceArgument        = pSrc->m_uiEntropySliceArgument; 
   m_uiEntropySliceCurStartCUAddr  = pSrc->m_uiEntropySliceCurStartCUAddr;
   m_uiEntropySliceCurEndCUAddr    = pSrc->m_uiEntropySliceCurEndCUAddr;
   m_bNextSlice                    = pSrc->m_bNextSlice;
   m_bNextEntropySlice             = pSrc->m_bNextEntropySlice;
-#endif
 }
-#endif
+
 // ------------------------------------------------------------------------------------------------
 // Sequence parameter set (SPS)
 // ------------------------------------------------------------------------------------------------
@@ -734,9 +668,7 @@ TComSPS::TComSPS()
   m_bUseALF       = false;
   m_bUseDQP       = false;
   
-#if HHI_MRG
   m_bUseMRG      = false; // SOPH:
-#endif
   
   // AMVP parameter
   ::memset( m_aeAMVPMode, 0, sizeof( m_aeAMVPMode ) );
