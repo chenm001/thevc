@@ -292,6 +292,14 @@ Void TComPrediction::predIntraLumaAng(TComPattern* pcTComPattern, UInt uiDirMode
   // get starting pixel in block
   Int sw = ( iWidth<<1 ) + 1;
   
+#if ADD_PLANAR_MODE
+  if ( uiDirMode == PLANAR_IDX )
+  {
+    xPredIntraPlanar( ptrSrc+sw+1, sw, pDst, uiStride, iWidth, iHeight, bAbove, bLeft );
+    return;
+  }
+#endif
+
   // get converted direction
   uiDirMode = g_aucAngIntraModeOrder[ uiDirMode ];
   
@@ -308,6 +316,14 @@ Void TComPrediction::predIntraChromaAng( TComPattern* pcTComPattern, Int* piSrc,
   // get starting pixel in block
   Int sw = ( iWidth<<1 ) + 1;
   
+#if ADD_PLANAR_MODE
+  if ( uiDirMode == PLANAR_IDX )
+  {
+    xPredIntraPlanar( ptrSrc+sw+1, sw, pDst, uiStride, iWidth, iHeight, bAbove, bLeft );
+    return;
+  }
+#endif
+
   // get converted direction
   uiDirMode = g_aucAngIntraModeOrder[ uiDirMode ];
   
@@ -887,3 +903,83 @@ Void TComPrediction::getMvPredAMVP( TComDataCU* pcCU, UInt uiPartIdx, UInt uiPar
   rcMvPred = pcAMVPInfo->m_acMvCand[pcCU->getMVPIdx(eRefPicList,uiPartAddr)];
   return;
 }
+
+#if ADD_PLANAR_MODE
+Void TComPrediction::xPredIntraPlanar( Int* pSrc, Int srcStride, Pel*& rpDst, Int dstStride, UInt width, UInt height, Bool blkAboveAvailable, Bool blkLeftAvailable )
+{
+  assert(width == height);
+
+  Int k, l, bottomLeft, topRight;
+  Int horPred;
+  Int leftColumn[MAX_CU_SIZE], topRow[MAX_CU_SIZE], bottomRow[MAX_CU_SIZE], rightColumn[MAX_CU_SIZE];
+  UInt blkSize = width;
+  UInt offset2D = width;
+  UInt shift1D = g_aucConvertToBit[ width ] + 2;
+  UInt shift2D = shift1D + 1;
+
+  // Get left and above reference column and row
+  if (!blkAboveAvailable && !blkLeftAvailable)
+  {
+    for(k=0;k<blkSize;k++)
+    {
+      leftColumn[k] = topRow[k] = ( 1 << ( g_uiBitDepth + g_uiBitIncrement - 1 ) );
+    }
+  }
+  else
+  {
+    if(blkAboveAvailable)
+    {
+      for(k=0;k<blkSize;k++)
+      {
+        topRow[k] = pSrc[k-srcStride];
+      }
+    }
+    else
+    {
+      Int leftSample = pSrc[-1];
+      for(k=0;k<blkSize;k++)
+      {
+        topRow[k] = leftSample;
+      }
+    }
+    if(blkLeftAvailable)
+    {
+      for(k=0;k<blkSize;k++)
+      {
+        leftColumn[k] = pSrc[k*srcStride-1];
+      }
+    }
+    else
+    {
+      Int aboveSample = pSrc[-srcStride];
+      for(k=0;k<blkSize;k++)
+      {
+        leftColumn[k] = aboveSample;
+      }
+    }
+  }
+
+  // Prepare intermediate variables used in interpolation
+  bottomLeft = leftColumn[blkSize-1];
+  topRight   = topRow[blkSize-1];
+  for (k=0;k<blkSize;k++)
+  {
+    bottomRow[k]   = bottomLeft - topRow[k];
+    rightColumn[k] = topRight   - leftColumn[k];
+    topRow[k]      <<= shift1D;
+    leftColumn[k]  <<= shift1D;
+  }
+
+  // Generate prediction signal
+  for (k=0;k<blkSize;k++)
+  {
+    horPred = leftColumn[k] + offset2D;
+    for (l=0;l<blkSize;l++)
+    {
+      horPred += rightColumn[k];
+      topRow[l] += bottomRow[l];
+      rpDst[k*dstStride+l] = ( (horPred + topRow[l]) >> shift2D );
+    }
+  }
+}
+#endif
