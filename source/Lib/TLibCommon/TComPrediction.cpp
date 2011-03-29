@@ -905,6 +905,18 @@ Void TComPrediction::getMvPredAMVP( TComDataCU* pcCU, UInt uiPartIdx, UInt uiPar
 }
 
 #if ADD_PLANAR_MODE
+/** Function for deriving planar intra prediction.
+ * \param pSrc pointer to reconstructed sample array
+ * \param srcStride the stride of the reconstructed sample array
+ * \param rpDst reference to pointer for the prediction sample array
+ * \param dstStride the stride of the prediction sample array
+ * \param width the width of the block
+ * \param height the height of the block
+ * \param blkAboveAvailable boolean indication if the block above is available 
+ * \param blkLeftAvailable boolean indication if the block to the left is available
+ * \returns
+ * This function derives the prediction samples for planar mode (intra coding).
+ */
 Void TComPrediction::xPredIntraPlanar( Int* pSrc, Int srcStride, Pel*& rpDst, Int dstStride, UInt width, UInt height, Bool blkAboveAvailable, Bool blkLeftAvailable )
 {
   assert(width == height);
