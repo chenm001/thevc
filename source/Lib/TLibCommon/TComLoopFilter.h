@@ -1,7 +1,7 @@
 /* The copyright in this software is being made available under the BSD
  * License, included below. This software may be subject to other third party
  * and contributor rights, including patent rights, and no such rights are
- * granted under this license.  Â 
+ * granted under this license.   
  *
  * Copyright (c) 2010-2011, ITU/ISO/IEC
  * All rights reserved.
@@ -78,9 +78,19 @@ protected:
   }
   Void xSetEdgefilterMultiple( TComDataCU* pcCU, UInt uiAbsZorderIdx, UInt uiDepth, Int iDir, Int iEdgeIdx, Bool bValue );
   
+#if PANASONIC_PARALLEL_DEBLOCKING_DECISIONS
+  Void xEdgeFilterLuma            ( TComDataCU* pcCU, UInt uiAbsZorderIdx, UInt uiDepth, Int iDir, Int iEdge, Int iDecideExecute);
+#else
   Void xEdgeFilterLuma            ( TComDataCU* pcCU, UInt uiAbsZorderIdx, UInt uiDepth, Int iDir, Int iEdge );
+#endif
   Void xEdgeFilterChroma          ( TComDataCU* pcCU, UInt uiAbsZorderIdx, UInt uiDepth, Int iDir, Int iEdge );
   
+#if PANASONIC_PARALLEL_DEBLOCKING_DECISIONS
+  __inline Void xPelFilterLuma_Strong(Pel* piSrc, Int iOffset, Pel m0, Pel m1, Pel m2, Pel m3, Pel m4, Pel m5, Pel m6, Pel m7);
+  __inline Void xPelFilterLuma_Weak(Pel* piSrc, Int iOffset, Int tc, Pel m1, Pel m2, Pel m3, Pel m4, Pel m5, Pel m6);
+  __inline Void xPelFilterLuma_Execution( Pel* piSrc, Int iOffset, Int tc, Int decision);
+  __inline Int xPelFilterLuma_Decision( Pel* piSrc, Int iOffset, Int d, Int beta, Int tc);
+#endif  
   __inline Void xPelFilterLuma( Pel* piSrc, Int iOffset, Int d, Int beta, Int tc );
   __inline Void xPelFilterChroma( Pel* piSrc, Int iOffset, Int tc );
   __inline Int xCalcD( Pel* piSrc, Int iOffset);
