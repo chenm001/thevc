@@ -1154,10 +1154,16 @@ Int TComDataCU::getMostProbableIntraDirLuma( UInt uiAbsPartIdx )
   // Get intra direction of left PU
   pcTempCU = getPULeft( uiTempPartIdx, m_uiAbsIdxInLCU + uiAbsPartIdx, true, false );
   iLeftIntraDir  = pcTempCU ? ( pcTempCU->isIntra( uiTempPartIdx ) ? pcTempCU->getLumaIntraDir( uiTempPartIdx ) : 2 ) : NOT_VALID;
+#if ADD_PLANAR_MODE
+  mapPlanartoDC( iLeftIntraDir );
+#endif
   
   // Get intra direction of above PU
   pcTempCU = getPUAbove( uiTempPartIdx, m_uiAbsIdxInLCU + uiAbsPartIdx, true, false );
   iAboveIntraDir = pcTempCU ? ( pcTempCU->isIntra( uiTempPartIdx ) ? pcTempCU->getLumaIntraDir( uiTempPartIdx ) : 2 ) : NOT_VALID;
+#if ADD_PLANAR_MODE
+  mapPlanartoDC( iAboveIntraDir );
+#endif
   
   iMostProbable  = Min( iLeftIntraDir, iAboveIntraDir );
   
@@ -1187,6 +1193,9 @@ Int TComDataCU::getLeftIntraDirLuma( UInt uiAbsPartIdx )
   // Get intra direction of left PU
   pcTempCU = getPULeft( uiTempPartIdx, m_uiAbsIdxInLCU + uiAbsPartIdx );
   iLeftIntraDir  = pcTempCU ? ( pcTempCU->isIntra( uiTempPartIdx ) ? pcTempCU->getLumaIntraDir( uiTempPartIdx ) : 2 ) : NOT_VALID;
+#if ADD_PLANAR_MODE
+  mapPlanartoDC( iLeftIntraDir );
+#endif
 
   return iLeftIntraDir;
 }
@@ -1200,6 +1209,9 @@ Int TComDataCU::getAboveIntraDirLuma( UInt uiAbsPartIdx )
   // Get intra direction of above PU
   pcTempCU = getPUAbove( uiTempPartIdx, m_uiAbsIdxInLCU + uiAbsPartIdx );
   iAboveIntraDir = pcTempCU ? ( pcTempCU->isIntra( uiTempPartIdx ) ? pcTempCU->getLumaIntraDir( uiTempPartIdx ) : 2 ) : NOT_VALID;
+#if ADD_PLANAR_MODE
+  mapPlanartoDC( iAboveIntraDir );
+#endif
 
   return iAboveIntraDir;
 }
@@ -3101,11 +3113,17 @@ UInt TComDataCU::getCoefScanIdx(UInt uiAbsPartIdx, UInt uiWidth, Bool bIsLuma, B
   if ( bIsLuma )
   {
     uiDirMode = getLumaIntraDir(uiAbsPartIdx);
+#if ADD_PLANAR_MODE
+    mapPlanartoDC( uiDirMode );
+#endif
     uiScanIdx = aucIntraLumaDirToScanIdx[uiCTXIdx][uiDirMode];
   }
   else
   {
        uiDirMode = getChromaIntraDir(uiAbsPartIdx);
+#if ADD_PLANAR_MODE
+       mapPlanartoDC( uiDirMode );
+#endif
        if (uiDirMode < 4)
        {
          uiScanIdx = (aucIntraChromaDirToScanIdx[uiCTXIdx][uiDirMode]);
@@ -3113,6 +3131,9 @@ UInt TComDataCU::getCoefScanIdx(UInt uiAbsPartIdx, UInt uiWidth, Bool bIsLuma, B
        else
        {
          uiDirMode = getLumaIntraDir(uiAbsPartIdx);
+#if ADD_PLANAR_MODE
+         mapPlanartoDC( uiDirMode );
+#endif
          uiScanIdx = aucIntraLumaDirToScanIdx[max<UInt>(uiCTXIdx-1,0)][uiDirMode];
        }
   }

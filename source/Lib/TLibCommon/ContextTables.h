@@ -55,6 +55,9 @@
 #define NUM_PART_SIZE_CTX             5       ///< number of context models for partition size
 #define NUM_PRED_MODE_CTX             2       ///< number of context models for prediction mode
 #define NUM_ADI_CTX                   2       ///< number of context models for intra prediction
+#if ADD_PLANAR_MODE
+#define NUM_PLANARFLAG_CTX            2       ///< number of context models for planar mode flag (intra prediction)
+#endif
 
 #define NUM_CHROMA_PRED_CTX           4       ///< number of context models for intra prediction (chroma)
 #define NUM_INTER_DIR_CTX             4       ///< number of context models for inter prediction direction
@@ -228,6 +231,23 @@ INIT_INTRA_PRED_MODE[3][NUM_ADI_CTX][2] =
     {    0,   51 }, {    1,   55 }
   }
 };
+
+#if ADD_PLANAR_MODE
+// initial probability for planar mode flag
+static const Short
+INIT_PLANARFLAG[3][NUM_PLANARFLAG_CTX][2] =
+{
+  {
+    {    0,   64 }, {    0,   64 }
+  },
+  {
+    {    0,   64 }, {    0,   64 }
+  },
+  {
+    {    0,   64 }, {    0,   64 }
+  }
+};
+#endif
 
 // initial probability for intra direction of chroma
 static const Short

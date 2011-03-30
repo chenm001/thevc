@@ -918,6 +918,17 @@ Void TDecCavlc::parseIntraDirLumaAng  ( TComDataCU* pcCU, UInt uiAbsPartIdx, UIn
     }
   }
   
+#if ADD_PLANAR_MODE
+  if (uiIPredMode == 2)
+  {
+    UInt planarFlag;
+    xReadFlag( planarFlag );
+    if ( planarFlag )
+    {
+      uiIPredMode = PLANAR_IDX;
+    }
+  }
+#endif
   pcCU->setLumaIntraDirSubParts( (UChar)uiIPredMode, uiAbsPartIdx, uiDepth );     
 }
 
@@ -961,6 +972,17 @@ Void TDecCavlc::parseIntraDirLumaAng  ( TComDataCU* pcCU, UInt uiAbsPartIdx, UIn
       uiIPredMode++;
   }
   
+#if ADD_PLANAR_MODE
+  if (uiIPredMode == 2)
+  {
+    UInt planarFlag;
+    xReadFlag( planarFlag );
+    if ( planarFlag )
+    {
+      uiIPredMode = PLANAR_IDX;
+    }
+  }
+#endif
   pcCU->setLumaIntraDirSubParts( (UChar)uiIPredMode, uiAbsPartIdx, uiDepth );
 }
 #endif
@@ -970,6 +992,12 @@ Void TDecCavlc::parseIntraDirChroma( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt u
   UInt uiSymbol;
 #if CHROMA_CODEWORD
   UInt uiMode = pcCU->getLumaIntraDir(uiAbsPartIdx);
+#if ADD_PLANAR_MODE
+  if ( (uiMode == 2 ) || (uiMode == PLANAR_IDX) )
+  {
+    uiMode = 4;
+  }
+#endif
   Int  iMax = uiMode < 4 ? 3 : 4;
   xReadUnaryMaxSymbol( uiSymbol, iMax );
   
@@ -1001,6 +1029,28 @@ Void TDecCavlc::parseIntraDirChroma( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt u
   {
     xReadUnaryMaxSymbol( uiSymbol, 3 );
     uiSymbol++;
+  }
+#endif
+
+#if ADD_PLANAR_MODE
+  if (uiSymbol == 2)
+  {
+#if CHROMA_CODEWORD
+    uiMode = pcCU->getLumaIntraDir(uiAbsPartIdx);
+    if (uiMode == 2)
+    {
+      uiSymbol = PLANAR_IDX;
+    }
+    else if (uiMode != PLANAR_IDX)
+#endif
+    {
+      UInt planarFlag;
+      xReadFlag( planarFlag );
+      if ( planarFlag )
+      {
+        uiSymbol = PLANAR_IDX;
+      }
+    }
   }
 #endif
   pcCU->setChromIntraDirSubParts( uiSymbol, uiAbsPartIdx, uiDepth );

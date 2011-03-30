@@ -2049,7 +2049,11 @@ const UChar g_aucConvertTxtTypeToIdx[4] = { 0, 1, 1, 2 };
 // g_aucAngIntraModeOrder
 //   Indexing this array with the mode indicated in the bitstream
 //   gives a logical index used in the prediction functions.
+#if ADD_PLANAR_MODE
+const UChar g_aucAngIntraModeOrder[NUM_INTRA_MODE] =
+#else
 const UChar g_aucAngIntraModeOrder[34] =
+#endif
 {     //  ModeOrder LogicalOrderInPredFunctions
   9,  //  0 VER     DC
   25, //  1 HOR     VER-8 (diagonal from top-left to bottom-right = HOR-8)
@@ -2085,6 +2089,9 @@ const UChar g_aucAngIntraModeOrder[34] =
   28, // 31 HOR+3   HOR+6
   30, // 32 HOR+5   HOR+7
   32, // 33 HOR+7   HOR+8
+#if ADD_PLANAR_MODE
+  0, // PLANAR_IDX PLANAR PLANAR (add any other mode earlier; this mode is designed to be the last in the list)
+#endif
 };
 
 const UChar g_aucIntraModeNumAng[7] =

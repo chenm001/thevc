@@ -719,6 +719,14 @@ Void TEncCavlc::codeIntraDirLumaAng( TComDataCU* pcCU, UInt uiAbsPartIdx )
   Int iIntraIdx = pcCU->getIntraSizeIdx(uiAbsPartIdx);
   UInt uiCode, uiLength;
   Int iRankIntraMode, iRankIntraModeLarger, iDirLarger;
+#if ADD_PLANAR_MODE
+  UInt planarFlag    = 0;
+  if (iDir == PLANAR_IDX)
+  {
+    iDir = 2;
+    planarFlag = 1;
+  }
+#endif
 
   UInt ind=(pcCU->getLeftIntraDirLuma( uiAbsPartIdx )==pcCU->getAboveIntraDirLuma( uiAbsPartIdx ))? 0 : 1;
   
@@ -802,6 +810,15 @@ Void TEncCavlc::codeIntraDirLumaAng( TComDataCU* pcCU, UInt uiAbsPartIdx )
 
     xWriteCode(uiCode, uiLength);
   }
+
+#if ADD_PLANAR_MODE
+  iDir = pcCU->getLumaIntraDir( uiAbsPartIdx );
+  if ( (iDir == PLANAR_IDX) || (iDir == 2) )
+  {
+    xWriteFlag( planarFlag );
+  }
+#endif
+
 }
 
 #else
@@ -810,6 +827,14 @@ Void TEncCavlc::codeIntraDirLumaAng( TComDataCU* pcCU, UInt uiAbsPartIdx )
 {
   UInt uiDir         = pcCU->getLumaIntraDir( uiAbsPartIdx );
   Int  iMostProbable = pcCU->getMostProbableIntraDirLuma( uiAbsPartIdx );
+#if ADD_PLANAR_MODE
+  UInt planarFlag    = 0;
+  if (uiDir == PLANAR_IDX)
+  {
+    uiDir = 2;
+    planarFlag = 1;
+  }
+#endif
   
   if (uiDir == iMostProbable)
   {
@@ -848,14 +873,38 @@ Void TEncCavlc::codeIntraDirLumaAng( TComDataCU* pcCU, UInt uiAbsPartIdx )
       }
     }
   }
+
+#if ADD_PLANAR_MODE
+  uiDir = pcCU->getLumaIntraDir( uiAbsPartIdx );
+  if ( (uiDir == PLANAR_IDX) || (uiDir == 2) )
+  {
+    xWriteFlag( planarFlag );
+  }
+#endif
+
 }
 #endif
 
 Void TEncCavlc::codeIntraDirChroma( TComDataCU* pcCU, UInt uiAbsPartIdx )
 {
   UInt uiIntraDirChroma = pcCU->getChromaIntraDir   ( uiAbsPartIdx );
+#if ADD_PLANAR_MODE
+  UInt planarFlag       = 0;
+  if (uiIntraDirChroma == PLANAR_IDX)
+  {
+    uiIntraDirChroma = 2;
+    planarFlag = 1;
+  }
+#endif
+
 #if CHROMA_CODEWORD
   UInt uiMode = pcCU->getLumaIntraDir(uiAbsPartIdx);
+#if ADD_PLANAR_MODE
+  if ( (uiMode == 2 ) || (uiMode == PLANAR_IDX) )
+  {
+    uiMode = 4;
+  }
+#endif
   Int  iMax = uiMode < 4 ? 3 : 4; 
   
   //switch codeword
@@ -888,6 +937,21 @@ Void TEncCavlc::codeIntraDirChroma( TComDataCU* pcCU, UInt uiAbsPartIdx )
   {
     xWriteFlag( 1 );
     xWriteUnaryMaxSymbol( uiIntraDirChroma - 1, 3 );
+  }
+#endif
+
+#if ADD_PLANAR_MODE
+  uiIntraDirChroma = pcCU->getChromaIntraDir( uiAbsPartIdx );
+#if CHROMA_CODEWORD
+  uiMode = pcCU->getLumaIntraDir(uiAbsPartIdx);
+  mapPlanartoDC( uiIntraDirChroma );
+  mapPlanartoDC( uiMode );
+  if ( (uiIntraDirChroma == 2) && (uiMode != 2) )
+#else
+  if ( (uiIntraDirChroma == PLANAR_IDX) || (uiIntraDirChroma == 2) )
+#endif
+  {
+    xWriteFlag( planarFlag );
   }
 #endif
   return;

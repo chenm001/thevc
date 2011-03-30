@@ -63,6 +63,9 @@ TEncSbac::TEncSbac()
 , m_cCUPredModeSCModel        ( 1,             1,               NUM_PRED_MODE_CTX             )
 , m_cCUAlfCtrlFlagSCModel     ( 1,             1,               NUM_ALF_CTRL_FLAG_CTX         )
 , m_cCUIntraPredSCModel       ( 1,             1,               NUM_ADI_CTX                   )
+#if ADD_PLANAR_MODE
+, m_cPlanarFlagSCModel        ( 1,             1,               NUM_PLANARFLAG_CTX            )
+#endif
 , m_cCUChromaPredSCModel      ( 1,             1,               NUM_CHROMA_PRED_CTX           )
 , m_cCUDeltaQpSCModel         ( 1,             1,               NUM_DELTA_QP_CTX              )
 , m_cCUInterDirSCModel        ( 1,             1,               NUM_INTER_DIR_CTX             )
@@ -105,6 +108,9 @@ Void TEncSbac::resetEntropy           ()
   m_cCUPartSizeSCModel.initBuffer        ( eSliceType, iQp, (Short*)INIT_PART_SIZE );
   m_cCUPredModeSCModel.initBuffer        ( eSliceType, iQp, (Short*)INIT_PRED_MODE );
   m_cCUIntraPredSCModel.initBuffer       ( eSliceType, iQp, (Short*)INIT_INTRA_PRED_MODE );
+#if ADD_PLANAR_MODE
+  m_cPlanarFlagSCModel.initBuffer        ( eSliceType, iQp, (Short*)INIT_PLANARFLAG );
+#endif
   m_cCUChromaPredSCModel.initBuffer      ( eSliceType, iQp, (Short*)INIT_CHROMA_PRED_MODE );
   m_cCUInterDirSCModel.initBuffer        ( eSliceType, iQp, (Short*)INIT_INTER_DIR );
   m_cCUMvdSCModel.initBuffer             ( eSliceType, iQp, (Short*)INIT_MVD );
@@ -284,6 +290,9 @@ Void TEncSbac::xCopyFrom( TEncSbac* pSrc )
   this->m_cCUPartSizeSCModel       .copyFrom( &pSrc->m_cCUPartSizeSCModel        );
   this->m_cCUPredModeSCModel       .copyFrom( &pSrc->m_cCUPredModeSCModel        );
   this->m_cCUIntraPredSCModel      .copyFrom( &pSrc->m_cCUIntraPredSCModel       );
+#if ADD_PLANAR_MODE
+  this->m_cPlanarFlagSCModel       .copyFrom( &pSrc->m_cPlanarFlagSCModel        );
+#endif
   this->m_cCUChromaPredSCModel     .copyFrom( &pSrc->m_cCUChromaPredSCModel      );
   this->m_cCUDeltaQpSCModel        .copyFrom( &pSrc->m_cCUDeltaQpSCModel         );
   this->m_cCUInterDirSCModel       .copyFrom( &pSrc->m_cCUInterDirSCModel        );
@@ -628,6 +637,14 @@ Void TEncSbac::codeIntraDirLumaAng( TComDataCU* pcCU, UInt uiAbsPartIdx )
 {
   UInt uiDir         = pcCU->getLumaIntraDir( uiAbsPartIdx );
   Int  iMostProbable = pcCU->getMostProbableIntraDirLuma( uiAbsPartIdx );
+#if ADD_PLANAR_MODE
+  UInt planarFlag    = 0;
+  if (uiDir == PLANAR_IDX)
+  {
+    uiDir = 2;
+    planarFlag = 1;
+  }
+#endif
   
   if (uiDir == iMostProbable)
     m_pcBinIf->encodeBin( 1, m_cCUIntraPredSCModel.get( 0, 0, 0 ) );
@@ -665,6 +682,13 @@ Void TEncSbac::codeIntraDirLumaAng( TComDataCU* pcCU, UInt uiAbsPartIdx )
     }
   }
   
+#if ADD_PLANAR_MODE
+  uiDir = pcCU->getLumaIntraDir( uiAbsPartIdx );
+  if ( (uiDir == PLANAR_IDX) || (uiDir == 2) )
+  {
+    m_pcBinIf->encodeBin( planarFlag, m_cPlanarFlagSCModel.get(0,0,0) );
+  }
+#endif
   return;
 }
 
@@ -672,9 +696,23 @@ Void TEncSbac::codeIntraDirChroma( TComDataCU* pcCU, UInt uiAbsPartIdx )
 {
   UInt uiCtx            = pcCU->getCtxIntraDirChroma( uiAbsPartIdx );
   UInt uiIntraDirChroma = pcCU->getChromaIntraDir   ( uiAbsPartIdx );
+#if ADD_PLANAR_MODE
+  UInt planarFlag       = 0;
+  if (uiIntraDirChroma == PLANAR_IDX)
+  {
+    uiIntraDirChroma = 2;
+    planarFlag = 1;
+  }
+#endif
  
 #if CHROMA_CODEWORD
   UInt uiMode = pcCU->getLumaIntraDir(uiAbsPartIdx);
+#if ADD_PLANAR_MODE
+  if ( (uiMode == 2 ) || (uiMode == PLANAR_IDX) )
+  {
+    uiMode = 4;
+  }
+#endif
   Int  iMax = uiMode < 4 ? 2 : 3; 
   
   //switch codeword
@@ -712,6 +750,21 @@ Void TEncSbac::codeIntraDirChroma( TComDataCU* pcCU, UInt uiAbsPartIdx )
   {
     m_pcBinIf->encodeBin( 1, m_cCUChromaPredSCModel.get( 0, 0, uiCtx ) );
     xWriteUnaryMaxSymbol( uiIntraDirChroma - 1, m_cCUChromaPredSCModel.get( 0, 0 ) + 3, 0, 3 );
+  }
+#endif
+
+#if ADD_PLANAR_MODE
+  uiIntraDirChroma = pcCU->getChromaIntraDir( uiAbsPartIdx );
+#if CHROMA_CODEWORD
+  uiMode = pcCU->getLumaIntraDir(uiAbsPartIdx);
+  mapPlanartoDC( uiIntraDirChroma );
+  mapPlanartoDC( uiMode );
+  if ( (uiIntraDirChroma == 2) && (uiMode != 2) )
+#else
+  if ( (uiIntraDirChroma == PLANAR_IDX) || (uiIntraDirChroma == 2) )
+#endif
+  {
+    m_pcBinIf->encodeBin( planarFlag, m_cPlanarFlagSCModel.get(0,0,1) );
   }
 #endif
   return;

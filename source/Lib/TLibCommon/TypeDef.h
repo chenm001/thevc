@@ -130,6 +130,11 @@
 
 #define DCM_COMB_LIST                  1           ///< Use of combined list for uni-prediction in B-slices
 
+#define ADD_PLANAR_MODE                   1           ///< enable/disable Planar mode for intra prediction (JCTVC-E321)
+#if ADD_PLANAR_MODE
+#define NUM_INTRA_MODE                    35
+#define PLANAR_IDX                        (NUM_INTRA_MODE-1)
+#endif
 
 ///////////////////////////////
 // DOCOMO defines section end

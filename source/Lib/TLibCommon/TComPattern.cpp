@@ -605,6 +605,9 @@ Int* TComPattern::getPredictorPtr ( UInt uiDirMode, UInt uiWidthBits, Int iCuWid
   };
 
   Int* piSrc;
+#if ADD_PLANAR_MODE
+  mapPlanartoDC( uiDirMode );
+#endif
   UChar ucFiltIdx = g_aucIntraFilter[uiWidthBits][uiDirMode];
 
   assert( ucFiltIdx <= 2 );
