@@ -57,6 +57,11 @@ private:
   Bool*     m_aapbEdgeFilter[2][3];
   LFCUParam m_stLFCUParam;                  ///< status structure
   
+#if PANASONIC_PARALLEL_DEBLOCKING_DECISIONS
+  UInt m_decisions_D     [MAX_CU_SIZE/DEBLOCK_SMALLEST_BLOCK][MAX_CU_SIZE/DEBLOCK_SMALLEST_BLOCK];
+  UInt m_decisions_Sample[MAX_CU_SIZE/DEBLOCK_SMALLEST_BLOCK][MAX_CU_SIZE];
+#endif
+  
 protected:
   /// CU-level deblocking function
   Void xDeblockCU                 ( TComDataCU* pcCU, UInt uiAbsZorderIdx, UInt uiDepth );
@@ -86,11 +91,11 @@ protected:
   Void xEdgeFilterChroma          ( TComDataCU* pcCU, UInt uiAbsZorderIdx, UInt uiDepth, Int iDir, Int iEdge );
   
 #if PANASONIC_PARALLEL_DEBLOCKING_DECISIONS
-  __inline Void xPelFilterLuma_Strong(Pel* piSrc, Int iOffset, Pel m0, Pel m1, Pel m2, Pel m3, Pel m4, Pel m5, Pel m6, Pel m7);
-  __inline Void xPelFilterLuma_Weak(Pel* piSrc, Int iOffset, Int tc, Pel m1, Pel m2, Pel m3, Pel m4, Pel m5, Pel m6);
-  __inline Void xPelFilterLuma_Execution( Pel* piSrc, Int iOffset, Int tc, Int decision);
-  __inline Int xPelFilterLuma_Decision( Pel* piSrc, Int iOffset, Int d, Int beta, Int tc);
-#endif  
+  __inline Void xPelFilterLumaStrong    ( Pel* piSrc, Int iOffset, Pel m0, Pel m1, Pel m2, Pel m3, Pel m4, Pel m5, Pel m6, Pel m7);
+  __inline Void xPelFilterLumaWeak      ( Pel* piSrc, Int iOffset, Int tc, Pel m1, Pel m2, Pel m3, Pel m4, Pel m5, Pel m6);
+  __inline Void xPelFilterLumaExecution ( Pel* piSrc, Int iOffset, Int tc, Int strongFilter);
+  __inline Int  xPelFilterLumaDecision  ( Pel* piSrc, Int iOffset, Int d, Int beta, Int tc);
+#endif
   __inline Void xPelFilterLuma( Pel* piSrc, Int iOffset, Int d, Int beta, Int tc );
   __inline Void xPelFilterChroma( Pel* piSrc, Int iOffset, Int tc );
   __inline Int xCalcD( Pel* piSrc, Int iOffset);

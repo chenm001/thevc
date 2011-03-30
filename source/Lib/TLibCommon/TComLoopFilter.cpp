@@ -147,10 +147,6 @@ Void TComLoopFilter::loopFilterPic( TComPic* pcPic )
   }
 }
 
-#if PANASONIC_PARALLEL_DEBLOCKING_DECISIONS
-UInt Decisions_D     [MAX_CU_SIZE/DEBLOCK_SMALLEST_BLOCK][MAX_CU_SIZE/DEBLOCK_SMALLEST_BLOCK];
-UInt Decisions_Sample[MAX_CU_SIZE/DEBLOCK_SMALLEST_BLOCK][MAX_CU_SIZE];
-#endif
 
 // ====================================================================================================================
 // Protected member functions
@@ -204,13 +200,17 @@ Void TComLoopFilter::xDeblockCU( TComDataCU* pcCU, UInt uiAbsZorderIdx, UInt uiD
   {
     xEdgeFilterLuma     ( pcCU, uiAbsZorderIdx, uiDepth, EDGE_VER, iEdge, DECIDE_AND_EXECUTE_FILTER);//Decide vertical filter
     if ( (iEdge % ( (DEBLOCK_SMALLEST_BLOCK<<1)/uiPelsInPart ) ) == 0 )
+    {
       xEdgeFilterChroma   ( pcCU, uiAbsZorderIdx, uiDepth, EDGE_VER, iEdge );
+    }
   }  
   for ( UInt iEdge = 0; iEdge < uiSizeInPU ; iEdge+=PartIdxIncr)
   {
     xEdgeFilterLuma     ( pcCU, uiAbsZorderIdx, uiDepth, EDGE_HOR, iEdge, EXECUTE_FILTER );//Execute horizontal filter
     if ( (iEdge % ( (DEBLOCK_SMALLEST_BLOCK<<1)/uiPelsInPart ) ) == 0 )
+    {
       xEdgeFilterChroma   ( pcCU, uiAbsZorderIdx, uiDepth, EDGE_HOR, iEdge );
+    }
   }  
 #else  
   for ( Int iDir = EDGE_VER; iDir <= EDGE_HOR; iDir++ )
@@ -494,7 +494,7 @@ Void TComLoopFilter::xEdgeFilterLuma( TComDataCU* pcCU, UInt uiAbsZorderIdx, UIn
   UInt  uiBsAbsIdx, uiBs;
   Int   iOffset, iSrcStep;
 #if PANASONIC_PARALLEL_DEBLOCKING_DECISIONS
-  Pel* piTmpSrc1;
+  Pel*  piTmpSrc1;
   UInt* piDecisions_D;
   UInt* piDecisions_Sample;
 #endif  
@@ -541,6 +541,7 @@ Void TComLoopFilter::xEdgeFilterLuma( TComDataCU* pcCU, UInt uiAbsZorderIdx, UIn
       {
         Int iTmp=iIdx*uiPelsInPart+iBlkIdx*DEBLOCK_SMALLEST_BLOCK;
         Int iD = xCalcD( piTmpSrc+iSrcStep*(iTmp+2), iOffset) + xCalcD( piTmpSrc+iSrcStep*(iTmp+5), iOffset);
+        
         if (iD < iBeta)
         {
           for ( UInt i = 0; i < DEBLOCK_SMALLEST_BLOCK; i++)
@@ -554,8 +555,8 @@ Void TComLoopFilter::xEdgeFilterLuma( TComDataCU* pcCU, UInt uiAbsZorderIdx, UIn
     {
       Int iBeta = betatable_8x8[iIndexB]*iBitdepthScale;
       
-      piDecisions_D      = (iIdx*uiPelsInPart)/DEBLOCK_SMALLEST_BLOCK+Decisions_D     [(iEdge*uiPelsInPart)/DEBLOCK_SMALLEST_BLOCK];
-      piDecisions_Sample =  iIdx*uiPelsInPart                        +Decisions_Sample[(iEdge*uiPelsInPart)/DEBLOCK_SMALLEST_BLOCK];
+      piDecisions_D      = (iIdx*uiPelsInPart)/DEBLOCK_SMALLEST_BLOCK + m_decisions_D     [(iEdge*uiPelsInPart)/DEBLOCK_SMALLEST_BLOCK];
+      piDecisions_Sample =  iIdx*uiPelsInPart                         + m_decisions_Sample[(iEdge*uiPelsInPart)/DEBLOCK_SMALLEST_BLOCK];
       
       for (UInt iBlkIdx = 0; iBlkIdx< uiBlocksInPart; iBlkIdx ++)
       {
@@ -568,7 +569,7 @@ Void TComLoopFilter::xEdgeFilterLuma( TComDataCU* pcCU, UInt uiAbsZorderIdx, UIn
           *piDecisions_D++=1;
           for ( UInt i = 0; i < DEBLOCK_SMALLEST_BLOCK; i++)
           {
-            *piDecisions_Sample++ = xPelFilterLuma_Decision( piTmpSrc1++, iOffset, iD, iBeta, iTc);
+            *piDecisions_Sample++ = xPelFilterLumaDecision( piTmpSrc1++, iOffset, iD, iBeta, iTc);
           }
         }
         else
@@ -580,8 +581,8 @@ Void TComLoopFilter::xEdgeFilterLuma( TComDataCU* pcCU, UInt uiAbsZorderIdx, UIn
     }
     else if ( uiBs ) // EXECUTE_FILTER
     {
-      piDecisions_D      = (iIdx*uiPelsInPart)/DEBLOCK_SMALLEST_BLOCK+Decisions_D     [(iEdge*uiPelsInPart)/DEBLOCK_SMALLEST_BLOCK];
-      piDecisions_Sample =  iIdx*uiPelsInPart                        +Decisions_Sample[(iEdge*uiPelsInPart)/DEBLOCK_SMALLEST_BLOCK];
+      piDecisions_D      = (iIdx*uiPelsInPart)/DEBLOCK_SMALLEST_BLOCK + m_decisions_D     [(iEdge*uiPelsInPart)/DEBLOCK_SMALLEST_BLOCK];
+      piDecisions_Sample =  iIdx*uiPelsInPart                         + m_decisions_Sample[(iEdge*uiPelsInPart)/DEBLOCK_SMALLEST_BLOCK];
       piTmpSrc1          = piTmpSrc+iIdx*uiPelsInPart;
       
       for (UInt iBlkIdx = 0; iBlkIdx< uiBlocksInPart; iBlkIdx ++)
@@ -590,7 +591,7 @@ Void TComLoopFilter::xEdgeFilterLuma( TComDataCU* pcCU, UInt uiAbsZorderIdx, UIn
         {
           for ( UInt i = 0; i < DEBLOCK_SMALLEST_BLOCK; i++)
           {
-            xPelFilterLuma_Execution( piTmpSrc1++, iOffset, iTc, *piDecisions_Sample++  );
+            xPelFilterLumaExecution( piTmpSrc1++, iOffset, iTc, *piDecisions_Sample++  );
           }
         }
         else
@@ -697,7 +698,18 @@ Void TComLoopFilter::xEdgeFilterChroma( TComDataCU* pcCU, UInt uiAbsZorderIdx, U
 }
 
 #if PANASONIC_PARALLEL_DEBLOCKING_DECISIONS
-__inline Int TComLoopFilter::xPelFilterLuma_Decision( Pel* piSrc, Int iOffset, Int d, Int beta, Int tc)
+/**
+ - Decision for one line/column for the luminance component to use strong or weak deblocking
+ .
+ \param piSrc         pointer to picture data
+ \param iOffset       offset value for picture data
+ \param d             d value
+ \param beta          beta value
+ \param tc            tc value
+
+ \returns decision to use strong or weak deblocking
+ */
+__inline Int TComLoopFilter::xPelFilterLumaDecision( Pel* piSrc, Int iOffset, Int d, Int beta, Int tc)
 {
   Pel m4  = piSrc[0];
   Pel m3  = piSrc[-iOffset];
@@ -706,14 +718,28 @@ __inline Int TComLoopFilter::xPelFilterLuma_Decision( Pel* piSrc, Int iOffset, I
   {
     return 1;
   }
-  else
+  else //weak filtering
   {
     return 0;
   }
 }
 
 
-__inline Void TComLoopFilter::xPelFilterLuma_Strong(Pel* piSrc, Int iOffset, Pel m0, Pel m1, Pel m2, Pel m3, Pel m4, Pel m5, Pel m6, Pel m7)
+/**
+ - Strong deblocking of one line/column for the luminance component
+ .
+ \param piSrc         pointer to picture data
+ \param iOffset       offset value for picture data
+ \param m0            sample value
+ \param m1            sample value
+ \param m2            sample value
+ \param m3            sample value
+ \param m4            sample value
+ \param m5            sample value
+ \param m6            sample value
+ \param m7            sample value
+ */
+__inline Void TComLoopFilter::xPelFilterLumaStrong(Pel* piSrc, Int iOffset, Pel m0, Pel m1, Pel m2, Pel m3, Pel m4, Pel m5, Pel m6, Pel m7)
 {
   piSrc[-iOffset] = Clip(( m1 + 2*m2 + 2*m3 + 2*m4 + m5 + 4) >> 3 );
   piSrc[0] = Clip(( m2 + 2*m3 + 2*m4 + 2*m5 + m6 + 4) >> 3 );
@@ -725,7 +751,20 @@ __inline Void TComLoopFilter::xPelFilterLuma_Strong(Pel* piSrc, Int iOffset, Pel
   piSrc[ iOffset*2] = Clip(( m3 + m4 + m5 + 3*m6 + 2*m7 +4 )>>3);  
 }
 
-__inline Void TComLoopFilter::xPelFilterLuma_Weak(Pel* piSrc, Int iOffset, Int tc, Pel m1, Pel m2, Pel m3, Pel m4, Pel m5, Pel m6)
+/**
+ - Weak deblocking of one line/column for the luminance component
+ .
+ \param piSrc         pointer to picture data
+ \param iOffset       offset value for picture data
+ \param tc            tc value
+ \param m1            sample value
+ \param m2            sample value
+ \param m3            sample value
+ \param m4            sample value
+ \param m5            sample value
+ \param m6            sample value
+ */
+__inline Void TComLoopFilter::xPelFilterLumaWeak(Pel* piSrc, Int iOffset, Int tc, Pel m1, Pel m2, Pel m3, Pel m4, Pel m5, Pel m6)
 {
   Int delta = Clip3(-tc, tc, ((13*(m4-m3) + 4*(m5-m2) - 5*(m6-m1)+16)>>5) );
 
@@ -758,7 +797,7 @@ __inline Void TComLoopFilter::xPelFilterLuma( Pel* piSrc, Int iOffset, Int d, In
   if ( (d_strong < (beta>>3)) && (d<(beta>>2)) && ( abs(m3-m4) < ((tc*5+1)>>1)) ) //strong filtering
   {
 #if PANASONIC_PARALLEL_DEBLOCKING_DECISIONS
-    xPelFilterLuma_Strong(piSrc, iOffset, m0, m1, m2, m3, m4, m5, m6, m7);
+    xPelFilterLumaStrong(piSrc, iOffset, m0, m1, m2, m3, m4, m5, m6, m7);
 #else  
     piSrc[-iOffset] = Clip(( m1 + 2*m2 + 2*m3 + 2*m4 + m5 + 4) >> 3 );
     piSrc[0] = Clip(( m2 + 2*m3 + 2*m4 + 2*m5 + m6 + 4) >> 3 );
@@ -773,7 +812,7 @@ __inline Void TComLoopFilter::xPelFilterLuma( Pel* piSrc, Int iOffset, Int d, In
   else
   {
 #if PANASONIC_PARALLEL_DEBLOCKING_DECISIONS
-    xPelFilterLuma_Weak(piSrc, iOffset, tc, m1, m2, m3, m4, m5, m6);
+    xPelFilterLumaWeak(piSrc, iOffset, tc, m1, m2, m3, m4, m5, m6);
 #else    
     /* Weak filter */
     delta = Clip3(-tc, tc, ((13*(m4-m3) + 4*(m5-m2) - 5*(m6-m1)+16)>>5) );
@@ -787,12 +826,24 @@ __inline Void TComLoopFilter::xPelFilterLuma( Pel* piSrc, Int iOffset, Int d, In
 }
 
 #if PANASONIC_PARALLEL_DEBLOCKING_DECISIONS
-__inline Void TComLoopFilter::xPelFilterLuma_Execution( Pel* piSrc, Int iOffset, Int tc, Int decision)
+/**
+ - Deblocking of one line/column for the luminance component
+ .
+ \param piSrc         pointer to picture data
+ \param iOffset       offset value for picture data
+ \param tc            tc value
+ \param strongFilter  indicator to use either strong or weak filter      
+ */
+__inline Void TComLoopFilter::xPelFilterLumaExecution( Pel* piSrc, Int iOffset, Int tc, Int strongFilter)
 {  
-  if (decision) //strong filtering
-    xPelFilterLuma_Strong(piSrc, iOffset, piSrc[-iOffset*4], piSrc[-iOffset*3], piSrc[-iOffset*2], piSrc[-iOffset], piSrc[0], piSrc[ iOffset], piSrc[ iOffset*2], piSrc[ iOffset*3]);
+  if (strongFilter) //strong filtering
+  {
+    xPelFilterLumaStrong(piSrc, iOffset, piSrc[-iOffset*4], piSrc[-iOffset*3], piSrc[-iOffset*2], piSrc[-iOffset], piSrc[0], piSrc[ iOffset], piSrc[ iOffset*2], piSrc[ iOffset*3]);
+  }
   else //weak filtering
-    xPelFilterLuma_Weak(piSrc, iOffset, tc, piSrc[-iOffset*3], piSrc[-iOffset*2], piSrc[-iOffset], piSrc[0], piSrc[ iOffset], piSrc[ iOffset*2]);
+  {
+    xPelFilterLumaWeak(piSrc, iOffset, tc, piSrc[-iOffset*3], piSrc[-iOffset*2], piSrc[-iOffset], piSrc[0], piSrc[ iOffset], piSrc[ iOffset*2]);
+  }
 }
 #endif
 
