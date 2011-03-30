@@ -215,7 +215,11 @@ extern const UChar  g_aucIntraModeNumFast[7];
 extern const UChar g_aucIntraModeNumAng[7];
 extern const UChar g_aucIntraModeBitsAng[7];
 extern const UChar g_aucAngModeMapping[4][34];
+#if ADD_PLANAR_MODE
+extern const UChar g_aucAngIntraModeOrder[NUM_INTRA_MODE];
+#else
 extern const UChar g_aucAngIntraModeOrder[34];
+#endif
 
 // ====================================================================================================================
 // Bit-depth
@@ -291,6 +295,12 @@ extern       Char   g_aucConvertToBit  [ MAX_CU_SIZE+1 ];   // from width to log
 
 #if CHROMA_CODEWORD_SWITCH 
 extern const UChar ChromaMapping[2][5];
+#endif
+
+#if ADD_PLANAR_MODE
+__inline Void mapPlanartoDC( UChar& curDir ) { curDir = (curDir == PLANAR_IDX) ? 2 : curDir; }
+__inline Void mapPlanartoDC(  UInt& curDir ) { curDir = (curDir == PLANAR_IDX) ? 2 : curDir; }
+__inline Void mapPlanartoDC(   Int& curDir ) { curDir = (curDir == PLANAR_IDX) ? 2 : curDir; }
 #endif
 
 #define ENC_DEC_TRACE 0

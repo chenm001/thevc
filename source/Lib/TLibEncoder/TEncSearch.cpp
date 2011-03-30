@@ -1594,7 +1594,11 @@ TEncSearch::estIntraPredQT( TComDataCU* pcCU,
     pcCU->getPattern()->initAdiPattern( pcCU, uiPartOffset, uiInitTrDepth, m_piYuvExt, m_iYuvExtStride, m_iYuvExtHeight, bAboveAvail, bLeftAvail );
     
     //===== determine set of modes to be tested (using prediction signal only) =====
+#if ADD_PLANAR_MODE
+    UInt uiMaxMode     = g_aucIntraModeNumAng[uiWidthBit] + 1;
+#else
     UInt uiMaxMode     = g_aucIntraModeNumAng[uiWidthBit];
+#endif
     UInt uiMaxModeFast = g_aucIntraModeNumFast[ uiWidthBit ];
     Pel* piOrg         = pcOrgYuv ->getLumaAddr( uiPU, uiWidth );
     Pel* piPred        = pcPredYuv->getLumaAddr( uiPU, uiWidth );
@@ -1607,8 +1611,18 @@ TEncSearch::estIntraPredQT( TComDataCU* pcCU,
     }
     CandNum = 0;
     
+#if ADD_PLANAR_MODE
+    UInt uiHdModeList[NUM_INTRA_MODE];
+    uiHdModeList[0] = PLANAR_IDX;
+    for( Int i=1; i < uiMaxMode; i++) uiHdModeList[i] = i-1;
+
+    for( Int iMode = Int(uiMaxModeFast); iMode < Int(uiMaxMode); iMode++ )
+    {
+      UInt uiMode = uiHdModeList[iMode];
+#else
     for( UInt uiMode = uiMaxModeFast; uiMode < uiMaxMode; uiMode++ )
     {
+#endif
       if ( !predIntraLumaDirAvailable( uiMode, uiWidthBit, bAboveAvail, bLeftAvail ) )
         continue;
       
@@ -1635,6 +1649,12 @@ TEncSearch::estIntraPredQT( TComDataCU* pcCU,
       }
 #if FAST_UDI_USE_MPM
       Int mostProbableMode = pcCU->getMostProbableIntraDirLuma( uiPartOffset );
+#if ADD_PLANAR_MODE
+      if (mostProbableMode == 2)
+      {
+        mostProbableMode = PLANAR_IDX;
+      }
+#endif
       Bool mostProbableModeIncluded = false;
       for( Int i=0; i < uiNewMaxMode; i++)
       {
@@ -1649,7 +1669,12 @@ TEncSearch::estIntraPredQT( TComDataCU* pcCU,
     else
     {
       uiNewMaxMode = uiMaxMode;
+#if ADD_PLANAR_MODE
+      uiRdModeList[0] = PLANAR_IDX;
+      for( Int i=1; i < uiNewMaxMode; i++) uiRdModeList[i] = i-1;
+#else
       for( Int i=0; i < uiNewMaxMode; i++) uiRdModeList[i] = i;
+#endif
     }
     
     //===== check modes (using r-d costs) =====
@@ -1891,6 +1916,15 @@ TEncSearch::estIntraPredChromaQT( TComDataCU* pcCU,
   Double  dBestCost   = MAX_DOUBLE;
   
   //----- init mode list -----
+#if ADD_PLANAR_MODE
+  UInt  uiModeList[6];
+  uiModeList[0] = PLANAR_IDX;
+  for( Int i = 0; i < 5; i++ )
+  {
+    uiModeList[i+1] = i;
+  }
+  UInt uiLumaMode = pcCU->getLumaIntraDir(0);
+#else
   UInt  uiModeList[5];
   for( Int i = 0; i < 4; i++ )
   {
@@ -1898,20 +1932,34 @@ TEncSearch::estIntraPredChromaQT( TComDataCU* pcCU,
   }
   
   uiModeList[4]   = pcCU->getLumaIntraDir(0);
+#endif
   
   UInt  uiMinMode = 0;
 #if CHROMA_CODEWORD 
+#if ADD_PLANAR_MODE
+  UInt  uiMaxMode = 6;
+  UInt  uiIgnore = ( ( (uiLumaMode != PLANAR_IDX) && (uiLumaMode >= 4) ) ? uiMaxMode : uiLumaMode );
+#else
   UInt  uiMaxMode = 5;
   UInt  uiIgnore = (uiModeList[4] < 4) ? uiModeList[4] : 6;
+#endif
+#else
+#if ADD_PLANAR_MODE
+  UInt  uiMaxMode = ( ( (uiLumaMode != PLANAR_IDX) && (uiLumaMode >= 4) ) ? 6 : 5 );
 #else
   UInt  uiMaxMode = ( uiModeList[4] >= 4 ? 5 : 4 );
+#endif
 #endif
   
   //----- check chroma modes -----
   for( UInt uiMode = uiMinMode; uiMode < uiMaxMode; uiMode++ )
   {
 #if CHROMA_CODEWORD
+#if ADD_PLANAR_MODE
+    if ( uiModeList[uiMode] == uiIgnore )
+#else
     if (uiMode == uiIgnore)
+#endif
     {
       continue;
     }
@@ -1924,7 +1972,11 @@ TEncSearch::estIntraPredChromaQT( TComDataCU* pcCU,
     
     //----- chroma coding -----
     UInt    uiDist = 0;
+#if ADD_PLANAR_MODE
+    pcCU->setChromIntraDirSubParts  ( uiModeList[uiMode], 0, uiDepth );
+#else
     pcCU->setChromIntraDirSubParts  ( uiMode, 0, uiDepth );
+#endif
     xRecurIntraChromaCodingQT       ( pcCU,   0, 0, pcOrgYuv, pcPredYuv, pcResiYuv, uiDist );
     UInt    uiBits = xGetIntraBitsQT( pcCU,   0, 0, false, true, false );
     Double  dCost  = m_pcRdCost->calcRdCost( uiBits, uiDist );
@@ -1934,7 +1986,11 @@ TEncSearch::estIntraPredChromaQT( TComDataCU* pcCU,
     {
       dBestCost   = dCost;
       uiBestDist  = uiDist;
+#if ADD_PLANAR_MODE
+      uiBestMode  = uiModeList[uiMode];
+#else
       uiBestMode  = uiMode;
+#endif
       UInt  uiQPN = pcCU->getPic()->getNumPartInCU() >> ( uiDepth << 1 );
       xSetIntraResultChromaQT( pcCU, 0, 0, pcRecoYuv );
       ::memcpy( m_puhQTTempCbf[1], pcCU->getCbf( TEXT_CHROMA_U ), uiQPN * sizeof( UChar ) );
