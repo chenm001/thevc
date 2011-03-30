@@ -497,7 +497,6 @@ Void TComSlice::initEqualRef()
  * \param uiPOCCDR POC of the CDR picture
  * \param bRefreshPending flag indicating if a deferred decoding refresh is pending
  * \param rcListPic reference to the reference picture list
- * \returns 
  * This function marks the reference pictures as "unused for reference" in the following conditions.
  * If the nal_unit_type is IDR all pictures in the reference picture list  
  * is marked as "unused for reference" 
