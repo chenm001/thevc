@@ -1396,11 +1396,18 @@ Void TEncSbac::estBit( estBitsSbacStruct* pcEstBitsSbac, UInt uiCTXIdx, TextType
  */
 Void TEncSbac::estCBFBit( estBitsSbacStruct* pcEstBitsSbac, UInt uiCTXIdx, TextType eTType )
 {
-  Int ctx;
-  for( ctx = 0; ctx <= 3; ctx++ )
+  ContextModel *pCtx = m_cCUQtCbfSCModel.get( 0 );
+
+  for( UInt uiCtxInc = 0; uiCtxInc < 45; uiCtxInc++ )
   {
-    pcEstBitsSbac->blockCbpBits[ctx][0] = entropyBits[64];
-    pcEstBitsSbac->blockCbpBits[ctx][1] = entropyBits[64];
+    pcEstBitsSbac->blockCbpBits[ uiCtxInc ][ 0 ] = biari_no_bits( 0, pCtx[ uiCtxInc ] );
+    pcEstBitsSbac->blockCbpBits[ uiCtxInc ][ 1 ] = biari_no_bits( 1, pCtx[ uiCtxInc ] );
+  }
+
+  for( UInt uiCtxInc = 0; uiCtxInc < 4; uiCtxInc++ )
+  {
+    pcEstBitsSbac->blockRootCbpBits[ uiCtxInc ][ 0 ] = biari_no_bits( 0, m_cCUQtRootCbfSCModel.get( 0, 0, uiCtxInc ) );
+    pcEstBitsSbac->blockRootCbpBits[ uiCtxInc ][ 1 ] = biari_no_bits( 1, m_cCUQtRootCbfSCModel.get( 0, 0, uiCtxInc ) );
   }
 }
 
