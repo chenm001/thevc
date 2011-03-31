@@ -121,6 +121,7 @@ Pel TComPrediction::predIntraGetPredValDC( Int* pSrc, Int iSrcStride, UInt iWidt
  * \param dirMode the intra prediction mode index
  * \param blkAboveAvailable boolean indication if the block above is available 
  * \param blkLeftAvailable boolean indication if the block to the left is available
+ *
  * This function derives the prediction samples for the angular mode based on the prediction direction indicated by
  * the prediction mode index. The prediction direction is given by the displacement of the bottom row of the block and 
  * the reference row above the block in the case of vertical prediction or displacement of the rightmost column 
@@ -913,6 +914,7 @@ Void TComPrediction::getMvPredAMVP( TComDataCU* pcCU, UInt uiPartIdx, UInt uiPar
  * \param height the height of the block
  * \param blkAboveAvailable boolean indication if the block above is available 
  * \param blkLeftAvailable boolean indication if the block to the left is available
+ *
  * This function derives the prediction samples for planar mode (intra coding).
  */
 Void TComPrediction::xPredIntraPlanar( Int* pSrc, Int srcStride, Pel*& rpDst, Int dstStride, UInt width, UInt height, Bool blkAboveAvailable, Bool blkLeftAvailable )
