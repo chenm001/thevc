@@ -228,6 +228,61 @@ Void TEncSbac::xWriteEpExGolomb( UInt uiSymbol, UInt uiCount )
   return;
 }
 
+#if E253
+/** Coding of coeff_abs_level_minus3
+ * \param uiSymbol value of coeff_abs_level_minus3
+ * \param ruiGoRiceParam reference to Rice parameter
+ * \returns Void
+ */
+Void TEncSbac::xWriteGoRiceExGolomb( UInt uiSymbol, UInt &ruiGoRiceParam )
+{
+  UInt uiCount      = 0;
+  UInt uiMaxVlc     = g_auiGoRiceRange[ ruiGoRiceParam ];
+  Bool bExGolomb    = ( uiSymbol > uiMaxVlc );
+  UInt uiCodeWord   = min<UInt>( uiSymbol, ( uiMaxVlc + 1 ) );
+  UInt uiQuotient   = uiCodeWord >> ruiGoRiceParam;
+  UInt uiUnaryPart  = uiQuotient;
+  UInt uiRemainder  = 1;
+  UInt uiMaxPreLen  = g_auiGoRicePrefixLen[ ruiGoRiceParam ];
+
+  if( uiUnaryPart )
+  {
+    m_pcBinIf->encodeBinEP( 1 );
+    uiCount++;
+
+    while( --uiUnaryPart && uiCount < uiMaxPreLen )
+    {
+      m_pcBinIf->encodeBinEP( 1 );
+      uiCount++;
+    }
+
+    if( uiCount < uiMaxPreLen )
+    {
+      m_pcBinIf->encodeBinEP( uiUnaryPart ? 1 : 0 );
+    }
+  }
+  else
+  {
+    m_pcBinIf->encodeBinEP( 0 );
+  }
+
+  for( UInt ui = 0; ui < ruiGoRiceParam; ui++ )
+  {
+    m_pcBinIf->encodeBinEP( ( uiRemainder & uiCodeWord ) ? 1 : 0 );
+    uiRemainder = uiRemainder << 1;
+  }
+
+  ruiGoRiceParam = g_aauiGoRiceUpdate[ ruiGoRiceParam ][ min<UInt>( uiSymbol, 15 ) ];
+
+  if( bExGolomb )
+  {
+    uiSymbol -= uiMaxVlc + 1;
+    xWriteEpExGolomb( uiSymbol, 0 );
+  }
+
+  return;
+}
+#else
 Void TEncSbac::xWriteExGolombLevel( UInt uiSymbol, ContextModel& rcSCModel  )
 {
   if( uiSymbol )
@@ -256,7 +311,7 @@ Void TEncSbac::xWriteExGolombLevel( UInt uiSymbol, ContextModel& rcSCModel  )
   
   return;
 }
-
+#endif
 
 // SBAC RD
 Void  TEncSbac::load ( TEncSbac* pScr)
@@ -1035,7 +1090,10 @@ Void TEncSbac::codeCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx
   Int  c1, c2;
   UInt uiSign;
   UInt uiAbs;
-  
+#if E253
+  UInt uiGoRiceParam = 0;
+#endif
+
   if( uiNum4x4Blk > 1 )
   {
     Bool b1stBlk  = true;
@@ -1047,7 +1105,10 @@ Void TEncSbac::codeCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx
       UInt uiSubNumSig = 0;
       UInt uiSubPosX   = 0;
       UInt uiSubPosY   = 0;
-      
+#if E253
+      uiGoRiceParam    = 0;
+#endif
+
       uiSubPosX = g_auiFrameScanX[ g_aucConvertToBit[ uiWidth ] - 1 ][ uiSubBlk ] << 2;
       uiSubPosY = g_auiFrameScanY[ g_aucConvertToBit[ uiWidth ] - 1 ][ uiSubBlk ] << 2;
       
@@ -1128,7 +1189,19 @@ Void TEncSbac::codeCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx
               uiAbs -= 2;
               c2++;
               uiNumOne++;
+#if E253
+              uiSymbol = uiAbs > 0 ? 1 : 0;
+
+              m_pcBinIf->encodeBin( uiSymbol, m_cCUAbsSCModel.get( 0, eTType, ( uiCtxSet << 2 ) + uiCtxSet + uiCtx ) );
+
+              if( uiSymbol )
+              {
+                uiAbs -= 1;
+                xWriteGoRiceExGolomb( uiAbs, uiGoRiceParam );
+              }
+#else
               xWriteExGolombLevel( uiAbs, m_cCUAbsSCModel.get( 0, eTType, ( uiCtxSet << 2 ) + uiCtxSet + uiCtx ) );
+#endif
             }
           }
         }
@@ -1196,7 +1269,19 @@ Void TEncSbac::codeCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx
           UInt uiCtx  = min<UInt>(c2, 4);
           uiAbs -= 2;
           c2++;
+#if E253
+          uiSymbol = uiAbs > 0 ? 1 : 0;
+
+          m_pcBinIf->encodeBin( uiSymbol, m_cCUAbsSCModel.get( 0, eTType, uiCtx ) );
+
+          if( uiSymbol )
+          {
+            uiAbs -= 1;
+            xWriteGoRiceExGolomb( uiAbs, uiGoRiceParam );
+          }
+#else
           xWriteExGolombLevel( uiAbs, m_cCUAbsSCModel.get( 0, eTType, uiCtx ) );
+#endif
         }
       }
     }

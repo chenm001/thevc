@@ -123,6 +123,12 @@ extern       UInt   g_auiAntiScan8[64];                   // 2D context mapping 
 extern       UInt*  g_auiSigLastScan[3][ MAX_CU_DEPTH ];  // raster index from scanning index (zigzag, hor, ver)
 #endif //QC_MDCS
 
+#if E253
+extern const UInt   g_auiGoRiceRange[4];                  //!< maximum value coded with Rice codes
+extern const UInt   g_auiGoRicePrefixLen[4];              //!< prefix length for each maximum value
+extern const UInt   g_aauiGoRiceUpdate[4][16];            //!< parameter update rules for Rice codes
+#endif
+
 // ====================================================================================================================
 // CAVLC table
 // ====================================================================================================================

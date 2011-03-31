@@ -293,6 +293,9 @@ UInt             getCurrLineNum(UInt uiScanIdx, UInt uiPosX, UInt uiPosY);
                                      UShort                          ui16CtxNumSig,
                                      UShort                          ui16CtxNumOne,
                                      UShort                          ui16CtxNumAbs,
+#if E253
+                                     UShort                          ui16AbsGoRice,
+#endif
                                      Int                             iQBits,
                                      Double                          dTemp,
                                      UShort                          ui16CtxBase   ) const;
@@ -301,6 +304,9 @@ UInt             getCurrLineNum(UInt uiScanIdx, UInt uiPosX, UInt uiPosY);
                                      UShort                          ui16CtxNumSig,
                                      UShort                          ui16CtxNumOne,
                                      UShort                          ui16CtxNumAbs,
+#if E253
+                                     UShort                          ui16AbsGoRice,
+#endif
                                      UShort                          ui16CtxBase   ) const;
   __inline Double xGetICost        ( Double                          dRate         ) const; 
   __inline Double xGetIEPRate      (                                               ) const;
