@@ -40,11 +40,13 @@
 
 #include "../TLibCommon/CommonDef.h"
 
+/**
+ * \brief static class for CABAC tables
+ */
+
 class TComCABACTables
 {
 public:
-  const static UChar  sm_State2Idx  [64];
-  const static UChar  sm_Idx2State  [12];
   const static UChar  sm_aucLPSTable[64][4];
 };
 
