@@ -159,7 +159,7 @@ __inline Void TComPredFilter::xCTI_FilterHalfHor_ha(Pel* piSrc, Int iSrcStride, 
             + (   iTmpA          << 1 )
             -    iTmp0 -  iTmp2;
 #if REMOVE_INTERMEDIATE_CLIPPING
-..... piDst   [x * iDstStep] = (iSum +  shiftOffset) >>  shiftNum;
+      piDst   [x * iDstStep] = (iSum +  shiftOffset) >>  shiftNum;
 #else
       piDst   [x * iDstStep] = Clip3(0,16383, (iSum +  shiftOffset) >>  shiftNum );
 #endif
@@ -208,7 +208,7 @@ __inline Void TComPredFilter::xCTI_FilterHalfHor_ha(Int* piSrc, Int iSrcStride, 
             -    iTmp0 -  iTmp2;
       
 #if REMOVE_INTERMEDIATE_CLIPPING
-....  piDst   [x * iDstStep] = (iSum +  shiftOffset) >>  shiftNum;
+      piDst   [x * iDstStep] = (iSum +  shiftOffset) >>  shiftNum;
 #else
       piDst   [x * iDstStep] = Clip3(0,16383, (iSum +  shiftOffset) >>  shiftNum );
 #endif
@@ -257,7 +257,7 @@ __inline Void TComPredFilter::xCTI_FilterQuarter0Hor_ha(Pel* piSrc, Int iSrcStri
             + ( piSrcTmp[iSrcStep3]             << 6);
       
 #if REMOVE_INTERMEDIATE_CLIPPING
-....  piDst   [x * iDstStep] = (iSum + shiftOffset) >> shiftNum;
+      piDst   [x * iDstStep] = (iSum + shiftOffset) >> shiftNum;
 #else
       piDst   [x * iDstStep] = Clip3(0,16383, (iSum + shiftOffset) >> shiftNum );
 #endif
@@ -1606,7 +1606,7 @@ __inline Void TComPredFilter::xCTI_Filter2DHorC_ha(Int* piSrc, Int iSrcStride,  
         {
           iSum         = xCTI_Filter_VI04_C_OCT0( piSrcTmp, 1 );
 #if REMOVE_INTERMEDIATE_CLIPPING
-........  piDst[x ] = (iSum +  shiftOffset) >>  shiftNum;
+          piDst[x ] = (iSum +  shiftOffset) >>  shiftNum;
 #else
           piDst[x ] = Clip3(0,16383, (iSum +  shiftOffset) >>  shiftNum );
 #endif
@@ -1626,7 +1626,7 @@ __inline Void TComPredFilter::xCTI_Filter2DHorC_ha(Int* piSrc, Int iSrcStride,  
         {
           iSum         = xCTI_Filter_VI04_C_QUA0( piSrcTmp, 1 );
 #if REMOVE_INTERMEDIATE_CLIPPING
-........  piDst[x ] = (iSum +  shiftOffset) >>  shiftNum;
+          piDst[x ] = (iSum +  shiftOffset) >>  shiftNum;
 #else
           piDst[x ] = Clip3(0,16383, (iSum +  shiftOffset) >>  shiftNum );
 #endif
@@ -1646,7 +1646,7 @@ __inline Void TComPredFilter::xCTI_Filter2DHorC_ha(Int* piSrc, Int iSrcStride,  
         {
           iSum         = xCTI_Filter_VI04_C_QUA1( piSrcTmp, 1 );
 #if REMOVE_INTERMEDIATE_CLIPPING
-........  piDst[x ] = (iSum +  shiftOffset) >>  shiftNum;
+          piDst[x ] = (iSum +  shiftOffset) >>  shiftNum;
 #else
           piDst[x ] = Clip3(0,16383, (iSum +  shiftOffset) >>  shiftNum );
 #endif
@@ -1666,7 +1666,7 @@ __inline Void TComPredFilter::xCTI_Filter2DHorC_ha(Int* piSrc, Int iSrcStride,  
         {
           iSum         = xCTI_Filter_VI04_C_OCT1( piSrcTmp, 1 );
 #if REMOVE_INTERMEDIATE_CLIPPING
-........  piDst[x ] = (iSum +  shiftOffset) >>  shiftNum;
+          piDst[x ] = (iSum +  shiftOffset) >>  shiftNum;
 #else
           piDst[x ] = Clip3(0,16383, (iSum +  shiftOffset) >>  shiftNum );
 #endif
@@ -1686,7 +1686,7 @@ __inline Void TComPredFilter::xCTI_Filter2DHorC_ha(Int* piSrc, Int iSrcStride,  
         {
           iSum         = xCTI_Filter_VI04_C_OCT2( piSrcTmp, 1 );
 #if REMOVE_INTERMEDIATE_CLIPPING
-........  piDst[x ] = (iSum +  shiftOffset) >>  shiftNum;
+          piDst[x ] = (iSum +  shiftOffset) >>  shiftNum;
 #else
           piDst[x ] = Clip3(0,16383, (iSum +  shiftOffset) >>  shiftNum );
 #endif
@@ -1706,7 +1706,7 @@ __inline Void TComPredFilter::xCTI_Filter2DHorC_ha(Int* piSrc, Int iSrcStride,  
         {
           iSum         = xCTI_Filter_VI04_C_OCT3( piSrcTmp, 1 );
 #if REMOVE_INTERMEDIATE_CLIPPING
-........  piDst[x ] = (iSum +  shiftOffset) >>  shiftNum;
+          piDst[x ] = (iSum +  shiftOffset) >>  shiftNum;
 #else
           piDst[x ] = Clip3(0,16383, (iSum +  shiftOffset) >>  shiftNum );
 #endif
@@ -1726,7 +1726,7 @@ __inline Void TComPredFilter::xCTI_Filter2DHorC_ha(Int* piSrc, Int iSrcStride,  
         {
           iSum      = xCTI_Filter_VIS04_C_HAL( piSrcTmp, 1 );
 #if REMOVE_INTERMEDIATE_CLIPPING
-........  piDst[x ] = (iSum +  shiftOffset) >>  shiftNum;
+          piDst[x ] = (iSum +  shiftOffset) >>  shiftNum;
 #else
           piDst[x ] = Clip3(0,16383, (iSum +  shiftOffset) >>  shiftNum );
 #endif
@@ -1763,7 +1763,7 @@ __inline Void TComPredFilter::xCTI_Filter1DVerC_ha (Pel* piSrc, Int iSrcStride, 
         {
           iSum      = xCTI_Filter_VP04_C_OCT0( piSrcTmp,  iSrcStride );
 #if REMOVE_INTERMEDIATE_CLIPPING
-........  piDst[x ] = (iSum +  shiftOffset) >>  shiftNum;
+          piDst[x ] = (iSum +  shiftOffset) >>  shiftNum;
 #else
           piDst[x ] = Clip3(0,16383, (iSum +  shiftOffset) >>  shiftNum );
 #endif
@@ -1783,7 +1783,7 @@ __inline Void TComPredFilter::xCTI_Filter1DVerC_ha (Pel* piSrc, Int iSrcStride, 
         {
           iSum      = xCTI_Filter_VP04_C_QUA0( piSrcTmp,  iSrcStride );
 #if REMOVE_INTERMEDIATE_CLIPPING
-........  piDst[x ] = (iSum +  shiftOffset) >>  shiftNum;
+          piDst[x ] = (iSum +  shiftOffset) >>  shiftNum;
 #else
           piDst[x ] = Clip3(0,16383, (iSum +  shiftOffset) >>  shiftNum );
 #endif
@@ -1803,7 +1803,7 @@ __inline Void TComPredFilter::xCTI_Filter1DVerC_ha (Pel* piSrc, Int iSrcStride, 
         {
           iSum      = xCTI_Filter_VP04_C_QUA1( piSrcTmp,  iSrcStride );
 #if REMOVE_INTERMEDIATE_CLIPPING
-........  piDst[x ] = (iSum +  shiftOffset) >>  shiftNum;
+          piDst[x ] = (iSum +  shiftOffset) >>  shiftNum;
 #else
           piDst[x ] = Clip3(0,16383, (iSum +  shiftOffset) >>  shiftNum );
 #endif
@@ -1823,7 +1823,7 @@ __inline Void TComPredFilter::xCTI_Filter1DVerC_ha (Pel* piSrc, Int iSrcStride, 
         {
           iSum      = xCTI_Filter_VP04_C_OCT1( piSrcTmp,  iSrcStride );
 #if REMOVE_INTERMEDIATE_CLIPPING
-........  piDst[x ] = (iSum +  shiftOffset) >>  shiftNum;
+          piDst[x ] = (iSum +  shiftOffset) >>  shiftNum;
 #else
           piDst[x ] = Clip3(0,16383, (iSum +  shiftOffset) >>  shiftNum );
 #endif
@@ -1843,7 +1843,7 @@ __inline Void TComPredFilter::xCTI_Filter1DVerC_ha (Pel* piSrc, Int iSrcStride, 
         {
           iSum      = xCTI_Filter_VP04_C_OCT2( piSrcTmp,  iSrcStride );
 #if REMOVE_INTERMEDIATE_CLIPPING
-........  piDst[x ] = (iSum +  shiftOffset) >>  shiftNum;
+          piDst[x ] = (iSum +  shiftOffset) >>  shiftNum;
 #else
           piDst[x ] = Clip3(0,16383, (iSum +  shiftOffset) >>  shiftNum );
 #endif
@@ -1863,7 +1863,7 @@ __inline Void TComPredFilter::xCTI_Filter1DVerC_ha (Pel* piSrc, Int iSrcStride, 
         {
           iSum      = xCTI_Filter_VP04_C_OCT3( piSrcTmp,  iSrcStride );
 #if REMOVE_INTERMEDIATE_CLIPPING
-........  piDst[x ] = (iSum +  shiftOffset) >>  shiftNum;
+          piDst[x ] = (iSum +  shiftOffset) >>  shiftNum;
 #else
           piDst[x ] = Clip3(0,16383, (iSum +  shiftOffset) >>  shiftNum );
 #endif
@@ -1883,7 +1883,7 @@ __inline Void TComPredFilter::xCTI_Filter1DVerC_ha (Pel* piSrc, Int iSrcStride, 
         {
           iSum      = xCTI_Filter_VPS04_C_HAL( piSrcTmp, iSrcStride );
 #if REMOVE_INTERMEDIATE_CLIPPING
-........  piDst[x ] = (iSum +  shiftOffset) >>  shiftNum;
+          piDst[x ] = (iSum +  shiftOffset) >>  shiftNum;
 #else
           piDst[x ] = Clip3(0,16383, (iSum +  shiftOffset) >>  shiftNum );
 #endif
@@ -1919,7 +1919,7 @@ __inline Void TComPredFilter::xCTI_Filter1DHorC_ha(Pel* piSrc, Int iSrcStride, I
         {
           iSum      = xCTI_Filter_VP04_C_OCT0( piSrcTmp,  1 );
 #if REMOVE_INTERMEDIATE_CLIPPING
-........  piDst[x ] = (iSum +  shiftOffset) >>  shiftNum;
+          piDst[x ] = (iSum +  shiftOffset) >>  shiftNum;
 #else
           piDst[x ] = Clip3(0,16383, (iSum +  shiftOffset) >>  shiftNum );
 #endif
@@ -1939,7 +1939,7 @@ __inline Void TComPredFilter::xCTI_Filter1DHorC_ha(Pel* piSrc, Int iSrcStride, I
         {
           iSum      = xCTI_Filter_VP04_C_QUA0( piSrcTmp,  1 );
 #if REMOVE_INTERMEDIATE_CLIPPING
-........  piDst[x ] = (iSum +  shiftOffset) >>  shiftNum;
+          piDst[x ] = (iSum +  shiftOffset) >>  shiftNum;
 #else
           piDst[x ] = Clip3(0,16383, (iSum +  shiftOffset) >>  shiftNum );
 #endif
@@ -1959,7 +1959,7 @@ __inline Void TComPredFilter::xCTI_Filter1DHorC_ha(Pel* piSrc, Int iSrcStride, I
         {
           iSum         = xCTI_Filter_VP04_C_QUA1( piSrcTmp,  1 );
 #if REMOVE_INTERMEDIATE_CLIPPING
-........  piDst[x ] = (iSum +  shiftOffset) >>  shiftNum;
+          piDst[x ] = (iSum +  shiftOffset) >>  shiftNum;
 #else
           piDst[x ] = Clip3(0,16383, (iSum +  shiftOffset) >>  shiftNum );
 #endif
@@ -1979,7 +1979,7 @@ __inline Void TComPredFilter::xCTI_Filter1DHorC_ha(Pel* piSrc, Int iSrcStride, I
         {
           iSum      = xCTI_Filter_VP04_C_OCT1( piSrcTmp,  1 );
 #if REMOVE_INTERMEDIATE_CLIPPING
-........  piDst[x ] = (iSum +  shiftOffset) >>  shiftNum;
+          piDst[x ] = (iSum +  shiftOffset) >>  shiftNum;
 #else
           piDst[x ] = Clip3(0,16383, (iSum +  shiftOffset) >>  shiftNum );
 #endif
@@ -1999,7 +1999,7 @@ __inline Void TComPredFilter::xCTI_Filter1DHorC_ha(Pel* piSrc, Int iSrcStride, I
         {
           iSum         = xCTI_Filter_VP04_C_OCT2( piSrcTmp,  1 );
 #if REMOVE_INTERMEDIATE_CLIPPING
-........  piDst[x ] = (iSum +  shiftOffset) >>  shiftNum;
+          piDst[x ] = (iSum +  shiftOffset) >>  shiftNum;
 #else
           piDst[x ] = Clip3(0,16383, (iSum +  shiftOffset) >>  shiftNum );
 #endif
@@ -2019,7 +2019,7 @@ __inline Void TComPredFilter::xCTI_Filter1DHorC_ha(Pel* piSrc, Int iSrcStride, I
         {
           iSum         = xCTI_Filter_VP04_C_OCT3( piSrcTmp,  1 );
 #if REMOVE_INTERMEDIATE_CLIPPING
-........  piDst[x ] = (iSum +  shiftOffset) >>  shiftNum;
+          piDst[x ] = (iSum +  shiftOffset) >>  shiftNum;
 #else
           piDst[x ] = Clip3(0,16383, (iSum +  shiftOffset) >>  shiftNum );
 #endif
@@ -2039,7 +2039,7 @@ __inline Void TComPredFilter::xCTI_Filter1DHorC_ha(Pel* piSrc, Int iSrcStride, I
         {
           iSum    = xCTI_Filter_VPS04_C_HAL( piSrcTmp,  1 );
 #if REMOVE_INTERMEDIATE_CLIPPING
-........  piDst[x ] = (iSum +  shiftOffset) >>  shiftNum;
+          piDst[x ] = (iSum +  shiftOffset) >>  shiftNum;
 #else
           piDst[x ] = Clip3(0,16383, (iSum +  shiftOffset) >>  shiftNum );
 #endif
