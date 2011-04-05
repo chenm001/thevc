@@ -352,6 +352,7 @@ Void TDecEntropy::decodeSkipFlag( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDe
  */
 Void TDecEntropy::decodeMergeFlag( TComDataCU* pcSubCU, UInt uiAbsPartIdx, UInt uiDepth, UInt uiPUIdx )
 { 
+#if !CHANGE_GET_MERGE_CANDIDATE
   UInt uiNumCand = 0;
   for(UInt uiIter = 0; uiIter < MRG_MAX_NUM_CANDS; uiIter++ )
   {
@@ -365,13 +366,16 @@ Void TDecEntropy::decodeMergeFlag( TComDataCU* pcSubCU, UInt uiAbsPartIdx, UInt 
   }
   if( uiNumCand )
   {
+#endif
     // at least one merge candidate exists
     m_pcEntropyDecoderIf->parseMergeFlag( pcSubCU, uiAbsPartIdx, uiDepth, uiPUIdx );
+#if !CHANGE_GET_MERGE_CANDIDATE
   }
   else
   {
     assert( !pcSubCU->getMergeFlag( uiAbsPartIdx ) );
   }
+#endif
 }
 
 /** decode merge index
@@ -617,11 +621,13 @@ Void TDecEntropy::decodePUWise( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDept
       uhInterDirNeighbours[ui] = 0;
       uiNeighbourCandIdx[ui] = 0;
     }
+#if !CHANGE_GET_MERGE_CANDIDATE
     pcSubCU->getInterMergeCandidates( uiSubPartIdx-uiAbsPartIdx, uiPartIdx, uiDepth, cMvFieldNeighbours, uhInterDirNeighbours, uiNeighbourCandIdx );
     for(UInt uiIter = 0; uiIter < MRG_MAX_NUM_CANDS; uiIter++ )
     {
       pcCU->setNeighbourCandIdxSubParts( uiIter, uiNeighbourCandIdx[uiIter], uiSubPartIdx, uiPartIdx, uiDepth );
     }
+#endif
 #if PART_MRG
     if (pcCU->getWidth( uiAbsPartIdx ) > 8 && uiNumPU == 2 && uiPartIdx == 0)
     {
@@ -632,6 +638,13 @@ Void TDecEntropy::decodePUWise( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDept
     decodeMergeFlag( pcCU, uiSubPartIdx, uiDepth, uiPartIdx );
     if ( pcCU->getMergeFlag( uiSubPartIdx ) )
     {
+#if CHANGE_GET_MERGE_CANDIDATE
+      pcSubCU->getInterMergeCandidates( uiSubPartIdx-uiAbsPartIdx, uiPartIdx, uiDepth, cMvFieldNeighbours, uhInterDirNeighbours, uiNeighbourCandIdx );
+      for(UInt uiIter = 0; uiIter < MRG_MAX_NUM_CANDS; uiIter++ )
+      {
+        pcCU->setNeighbourCandIdxSubParts( uiIter, uiNeighbourCandIdx[uiIter], uiSubPartIdx, uiPartIdx, uiDepth );
+      }
+#endif
       decodeMergeIndex( pcCU, uiPartIdx, uiSubPartIdx, ePartSize, uhInterDirNeighbours, cMvFieldNeighbours, uiDepth );
     }
     else

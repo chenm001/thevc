@@ -1442,6 +1442,28 @@ UInt TComDataCU::getCtxSkipFlag( UInt uiAbsPartIdx )
   return uiCtx;
 }
 
+/** CABAC context derivation for merge flag
+ * \param uiAbsPartIdx
+ * \returns context offset
+ */
+UInt TComDataCU::getCtxMergeFlag( UInt uiAbsPartIdx )
+{
+  UInt uiCtx = 0;
+#if CHANGE_MERGE_CONTEXT
+  TComDataCU* pcTempCU;
+  UInt        uiTempPartIdx;
+
+  // Get BCBP of left PU
+  pcTempCU = getPULeft( uiTempPartIdx, m_uiAbsIdxInLCU + uiAbsPartIdx );
+  uiCtx    = ( pcTempCU ) ? pcTempCU->getMergeFlag( uiTempPartIdx ) : 0;
+
+  // Get BCBP of above PU
+  pcTempCU = getPUAbove( uiTempPartIdx, m_uiAbsIdxInLCU + uiAbsPartIdx );
+  uiCtx   += ( pcTempCU ) ? pcTempCU->getMergeFlag( uiTempPartIdx ) : 0;
+#endif
+  return uiCtx;
+}
+
 UInt TComDataCU::getCtxInterDir( UInt uiAbsPartIdx )
 {
   TComDataCU* pcTempCU;
@@ -2566,6 +2588,29 @@ Void TComDataCU::getInterMergeCandidates( UInt uiAbsPartIdx, UInt uiPUIdx, UInt 
       }
     }
   }
+#if AVOID_ZERO_MERGE_CANDIDATE
+  // if all merge candidate
+  int i;
+  for ( i=0; i<MRG_MAX_NUM_CANDS; i++ )
+  {
+    if ( abCandIsInter[i] )
+    {
+      break;
+    }
+  }
+  if ( i==MRG_MAX_NUM_CANDS ) // no merge candidate
+  {
+    abCandIsInter[0] = true;
+    puiNeighbourCandIdx[0] = 1;
+    puhInterDirNeighbours[0] = 1;
+    pcMvFieldNeighbours[0].setMvField( TComMv(0, 0), 0 );
+    if ( getSlice()->isInterB() )
+    {
+      puhInterDirNeighbours[0] = 3;
+      pcMvFieldNeighbours[1].setMvField( TComMv(0, 0), 0 );
+    }
+  }
+#endif
 }
 
 Void TComDataCU::xCheckCornerCand( TComDataCU* pcCorner, UInt uiCornerPUIdx, UInt uiIter, Bool& rbValidCand )

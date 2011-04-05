@@ -445,6 +445,7 @@ public:
   UInt          getCtxAlfCtrlFlag               ( UInt   uiAbsPartIdx                                 );
   UInt          getCtxInterDir                  ( UInt   uiAbsPartIdx                                 );
   UInt          getCtxIntraDirChroma            ( UInt   uiAbsPartIdx                                 );
+  UInt          getCtxMergeFlag                 ( UInt uiAbsPartIdx                                   );
   
   Void          setSliceStartCU  ( UInt uiStartCU )    { m_uiSliceStartCU = uiStartCU;    }  
   UInt          getSliceStartCU  ()                    { return m_uiSliceStartCU;         }
