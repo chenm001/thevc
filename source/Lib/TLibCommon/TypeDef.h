@@ -272,6 +272,7 @@
 /////////////////////////////////
 
 #define MVD_CTX            1           // JCTVC-E324: Modified context selection for MVD
+#define PANASONIC_PARALLEL_DEBLOCKING_DECISIONS 1
 
 // ====================================================================================================================
 // Basic type redefinition
