@@ -2046,13 +2046,26 @@ Void TEncSearch::xGetInterPredictionError( TComDataCU* pcCU, TComYuv* pcYuvOrg, 
   cYuvPred.destroy();
 }
 
+/** estimation of best merge coding
+ * \param pcCU
+ * \param pcYuvOrg
+ * \param iPUIdx
+ * \param uiInterDir
+ * \param pacMvField
+ * \param uiMergeIndex
+ * \param ruiCost
+ * \param ruiBits
+ * \param puhNeighCands
+ * \param bValid 
+ * \returns Void
+ */
 Void TEncSearch::xMergeEstimation( TComDataCU* pcCU, TComYuv* pcYuvOrg, Int iPUIdx, UInt& uiInterDir, TComMvField* pacMvField, UInt& uiMergeIndex, UInt& ruiCost, UInt& ruiBits, UChar* puhNeighCands,Bool& bValid )
 {
-  TComMvField  cMvFieldNeighbours[HHI_NUM_MRG_CAND << 1]; // double length for mv of both lists
-  UChar uhInterDirNeighbours[HHI_NUM_MRG_CAND];
-  UInt uiNeighbourCandIdx[HHI_NUM_MRG_CAND]; //MVs with same idx => same cand
+  TComMvField  cMvFieldNeighbours[MRG_MAX_NUM_CANDS << 1]; // double length for mv of both lists
+  UChar uhInterDirNeighbours[MRG_MAX_NUM_CANDS];
+  UInt uiNeighbourCandIdx[MRG_MAX_NUM_CANDS]; //MVs with same idx => same cand
 
-  for( UInt ui = 0; ui < HHI_NUM_MRG_CAND; ++ui )
+  for( UInt ui = 0; ui < MRG_MAX_NUM_CANDS; ++ui )
   {
     uhInterDirNeighbours[ui] = 0;
     uiNeighbourCandIdx[ui] = 0;
@@ -2067,7 +2080,7 @@ Void TEncSearch::xMergeEstimation( TComDataCU* pcCU, TComYuv* pcYuvOrg, Int iPUI
   pcCU->getInterMergeCandidates( uiAbsPartIdx, iPUIdx, uiDepth, cMvFieldNeighbours,uhInterDirNeighbours, uiNeighbourCandIdx );
 
   UInt uiNumCand = 0;
-  for( UInt uiMergeCand = 0; uiMergeCand < HHI_NUM_MRG_CAND; ++uiMergeCand )
+  for( UInt uiMergeCand = 0; uiMergeCand < MRG_MAX_NUM_CANDS; ++uiMergeCand )
   {
     if( uiNeighbourCandIdx[uiMergeCand] == ( uiMergeCand + 1 ) )
     {
@@ -2084,7 +2097,7 @@ Void TEncSearch::xMergeEstimation( TComDataCU* pcCU, TComYuv* pcYuvOrg, Int iPUI
 
   bValid = false;
 
-  for( UInt uiMergeCand = 0; uiMergeCand < HHI_NUM_MRG_CAND; ++uiMergeCand )
+  for( UInt uiMergeCand = 0; uiMergeCand < MRG_MAX_NUM_CANDS; ++uiMergeCand )
   {
     if( uiNeighbourCandIdx[uiMergeCand] == ( uiMergeCand + 1 ) )
     {
@@ -2127,7 +2140,7 @@ Void TEncSearch::xMergeEstimation( TComDataCU* pcCU, TComYuv* pcYuvOrg, Int iPUI
         pacMvField[1] = cMvFieldNeighbours[1 + 2*uiMergeCand];
         uiInterDir = uhInterDirNeighbours[uiMergeCand];
         uiMergeIndex = uiMergeCand;
-        for( UInt ui = 0; ui < HHI_NUM_MRG_CAND; ui++ )
+        for( UInt ui = 0; ui < MRG_MAX_NUM_CANDS; ui++ )
         {
           UChar uhNeighCand = uiNeighbourCandIdx[ui]; 
           puhNeighCands[ui] = uhNeighCand;
@@ -2141,6 +2154,15 @@ Void TEncSearch::xMergeEstimation( TComDataCU* pcCU, TComYuv* pcYuvOrg, Int iPUI
   }
 }
 
+/** search of the best candidate for inter prediction
+ * \param pcCU
+ * \param pcOrgYuv
+ * \param rpcPredYuv
+ * \param rpcResiYuv
+ * \param rpcRecoYuv
+ * \param bUseRes
+ * \returns Void
+ */
 Void TEncSearch::predInterSearch( TComDataCU* pcCU, TComYuv* pcOrgYuv, TComYuv*& rpcPredYuv, TComYuv*& rpcResiYuv, TComYuv*& rpcRecoYuv, Bool bUseRes )
 {
   m_acYuvPred[0].clear();
@@ -2763,15 +2785,15 @@ Void TEncSearch::predInterSearch( TComDataCU* pcCU, TComYuv* pcOrgYuv, TComYuv*&
       UInt uiMRGError = MAX_UINT;
       UInt uiMRGBits = MAX_UINT;
       Bool bMergeValid = false;
-      UChar ucNeighCand[HHI_NUM_MRG_CAND];
-      for( UInt ui = 0; ui < HHI_NUM_MRG_CAND; ui++ )
+      UChar ucNeighCand[MRG_MAX_NUM_CANDS];
+      for( UInt ui = 0; ui < MRG_MAX_NUM_CANDS; ui++ )
       {
         ucNeighCand[ui] = 0;
       }
       xMergeEstimation( pcCU, pcOrgYuv, iPartIdx, uiMRGInterDir, cMRGMvField, uiMRGIndex, uiMRGError, uiMRGBits, ucNeighCand, bMergeValid );
       UInt uiMRGCost = uiMRGError + m_pcRdCost->getCost( uiMRGBits );
 
-      for( UInt ui = 0; ui < HHI_NUM_MRG_CAND; ui++ )
+      for( UInt ui = 0; ui < MRG_MAX_NUM_CANDS; ui++ )
       {
         pcCU->setNeighbourCandIdxSubParts( ui, ucNeighCand[ui], uiPartAddr, iPartIdx, pcCU->getDepth( uiPartAddr ) );
       }
@@ -3656,6 +3678,16 @@ Void TEncSearch::predInterSkipSearch( TComDataCU* pcCU, TComYuv* pcOrgYuv, TComY
   return;
 }
 
+/** encode residual and calculate rate-distortion for a CU block
+ * \param pcCU
+ * \param pcYuvOrg
+ * \param pcYuvPred
+ * \param rpcYuvResi
+ * \param rpcYuvResiBest
+ * \param rpcYuvRec
+ * \param bSkipRes
+ * \returns Void
+ */
 Void TEncSearch::encodeResAndCalcRdInterCU( TComDataCU* pcCU, TComYuv* pcYuvOrg, TComYuv* pcYuvPred, TComYuv*& rpcYuvResi, TComYuv*& rpcYuvResiBest, TComYuv*& rpcYuvRec, Bool bSkipRes )
 {
   if ( pcCU->isIntra(0) )
@@ -3687,7 +3719,9 @@ Void TEncSearch::encodeResAndCalcRdInterCU( TComDataCU* pcCU, TComYuv* pcYuvOrg,
     
     m_pcEntropyCoder->resetBits();
     m_pcEntropyCoder->encodeSkipFlag(pcCU, 0, true);
-    
+#if HHI_MRG_SKIP
+    m_pcEntropyCoder->encodeMergeIndex( pcCU, 0, 0, true );
+#else    
     if ( pcCU->getSlice()->getNumRefIdx( REF_PIC_LIST_0 ) > 0 ) //if ( ref. frame list0 has at least 1 entry )
     {
       m_pcEntropyCoder->encodeMVPIdx( pcCU, 0, REF_PIC_LIST_0);
@@ -3696,6 +3730,7 @@ Void TEncSearch::encodeResAndCalcRdInterCU( TComDataCU* pcCU, TComYuv* pcYuvOrg,
     {
       m_pcEntropyCoder->encodeMVPIdx( pcCU, 0, REF_PIC_LIST_1);
     }
+#endif
     
     uiBits = m_pcEntropyCoder->getNumberOfWrittenBits();
     pcCU->getTotalBits()       = uiBits;
@@ -4434,6 +4469,16 @@ UInt TEncSearch::xUpdateCandList( UInt uiMode, Double uiCost, UInt uiFastCandNum
   return 0;
 }
 
+/** add inter-prediction syntax elements for a CU block
+ * \param pcCU
+ * \param uiQp
+ * \param uiTrMode
+ * \param ruiBits
+ * \param rpcYuvRec
+ * \param pcYuvPred
+ * \param rpcYuvResi
+ * \returns Void
+ */
 Void  TEncSearch::xAddSymbolBitsInter( TComDataCU* pcCU, UInt uiQp, UInt uiTrMode, UInt& ruiBits, TComYuv*& rpcYuvRec, TComYuv*pcYuvPred, TComYuv*& rpcYuvResi )
 {
   if ( pcCU->isSkipped( 0 ) )
@@ -4443,6 +4488,9 @@ Void  TEncSearch::xAddSymbolBitsInter( TComDataCU* pcCU, UInt uiQp, UInt uiTrMod
     ruiBits = m_pcEntropyCoder->getNumberOfWrittenBits();
     
     m_pcEntropyCoder->resetBits();
+#if HHI_MRG_SKIP
+    m_pcEntropyCoder->encodeMergeIndex(pcCU, 0, 0, true);
+#else
     if ( pcCU->getSlice()->getNumRefIdx( REF_PIC_LIST_0 ) > 0 ) //if ( ref. frame list0 has at least 1 entry )
     {
       m_pcEntropyCoder->encodeMVPIdx( pcCU, 0, REF_PIC_LIST_0);
@@ -4451,12 +4499,19 @@ Void  TEncSearch::xAddSymbolBitsInter( TComDataCU* pcCU, UInt uiQp, UInt uiTrMod
     {
       m_pcEntropyCoder->encodeMVPIdx( pcCU, 0, REF_PIC_LIST_1);
     }
+#endif
     ruiBits += m_pcEntropyCoder->getNumberOfWrittenBits();
   }
   else
   {
     m_pcEntropyCoder->resetBits();
     m_pcEntropyCoder->encodeSkipFlag ( pcCU, 0, true );
+#if HHI_MRG_SKIP
+    if (pcCU->getPredictionMode(0) == MODE_SKIP)
+    {
+      pcCU->setPredModeSubParts( MODE_INTER, 0, pcCU->getDepth(0) );
+    }
+#endif
     m_pcEntropyCoder->encodePredMode( pcCU, 0, true );
     m_pcEntropyCoder->encodePartSize( pcCU, 0, pcCU->getDepth(0), true );
     m_pcEntropyCoder->encodePredInfo( pcCU, 0, true );

@@ -508,6 +508,11 @@ Void TEncCavlc::codePartSize( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth 
 }
 #endif
 
+/** code prediction mode
+ * \param pcCU
+ * \param uiAbsPartIdx 
+ * \returns Void
+ */
 Void TEncCavlc::codePredMode( TComDataCU* pcCU, UInt uiAbsPartIdx )
 {
 #if QC_LCEC_INTER_MODE
@@ -520,14 +525,15 @@ Void TEncCavlc::codePredMode( TComDataCU* pcCU, UInt uiAbsPartIdx )
   {
     return;
   }
-  
-  if ( iPredMode != MODE_SKIP )
-  {
-    xWriteFlag( iPredMode == MODE_INTER ? 0 : 1 );
-  }
+  xWriteFlag( iPredMode == MODE_INTER ? 0 : 1 );
 #endif
 }
 
+/** code merge flag
+ * \param pcCU
+ * \param uiAbsPartIdx 
+ * \returns Void
+ */
 Void TEncCavlc::codeMergeFlag    ( TComDataCU* pcCU, UInt uiAbsPartIdx )
 {
 #if QC_LCEC_INTER_MODE
@@ -538,6 +544,11 @@ Void TEncCavlc::codeMergeFlag    ( TComDataCU* pcCU, UInt uiAbsPartIdx )
   xWriteFlag( uiSymbol );
 }
 
+/** code merge index
+ * \param pcCU
+ * \param uiAbsPartIdx 
+ * \returns Void
+ */
 Void TEncCavlc::codeMergeIndex    ( TComDataCU* pcCU, UInt uiAbsPartIdx )
 {
   Bool bLeftInvolved = false;
@@ -545,7 +556,7 @@ Void TEncCavlc::codeMergeIndex    ( TComDataCU* pcCU, UInt uiAbsPartIdx )
   Bool bCollocatedInvolved = false;
   Bool bCornerInvolved = false;
   UInt uiNumCand = 0;
-  for( UInt uiIter = 0; uiIter < HHI_NUM_MRG_CAND; ++uiIter )
+  for( UInt uiIter = 0; uiIter < MRG_MAX_NUM_CANDS; ++uiIter )
   {
     if( pcCU->getNeighbourCandIdx( uiIter, uiAbsPartIdx ) == uiIter + 1 )
     {
