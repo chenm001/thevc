@@ -889,7 +889,7 @@ Void TEncEntropy::encodeInterDir( TComDataCU* pcCU, UInt uiAbsPartIdx, Bool bRD 
  * \param uiAbsPartIdx
  * \param bRD
  * \returns Void
-/** This function is called only if merge is enabled.
+ * This function is called only if merge is enabled.
  */
 Void TEncEntropy::encodePUWise( TComDataCU* pcCU, UInt uiAbsPartIdx, Bool bRD )
 {
