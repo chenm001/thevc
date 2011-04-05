@@ -114,8 +114,12 @@ private:
   Void  xWriteTerminatingBit ( UInt uiBit );
   
   Void  xCheckCoeff( TCoeff* pcCoef, UInt uiSize, UInt uiDepth, UInt& uiNumofCoeff, UInt& uiPart );
-  
+
+#if MVD_CTX
+  Void  xWriteMvd            ( Int iMvd, UInt uiAbsSumL, UInt uiAbsSumA, UInt uiCtx );
+#else
   Void  xWriteMvd            ( Int iMvd, UInt uiAbsSum, UInt uiCtx );
+#endif
   Void  xWriteExGolombMvd    ( UInt uiSymbol, ContextModel* pcSCModel, UInt uiMaxBin );
   Void  xCopyFrom            ( TEncSbac* pSrc );
   
