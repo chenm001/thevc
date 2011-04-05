@@ -1623,9 +1623,11 @@ TEncSearch::estIntraPredQT( TComDataCU* pcCU,
     for( UInt uiMode = uiMaxModeFast; uiMode < uiMaxMode; uiMode++ )
     {
 #endif
+#if (!REFERENCE_SAMPLE_PADDING)
       if ( !predIntraLumaDirAvailable( uiMode, uiWidthBit, bAboveAvail, bLeftAvail ) )
         continue;
-      
+#endif
+
       predIntraLumaAng( pcCU->getPattern(), uiMode, piPred, uiStride, uiWidth, uiHeight, pcCU, bAboveAvail, bLeftAvail );
       
       // use hadamard transform here
@@ -1692,9 +1694,11 @@ TEncSearch::estIntraPredQT( TComDataCU* pcCU,
       // set luma prediction mode
       UInt uiOrgMode = uiRdModeList[uiMode];
       
+#if (!REFERENCE_SAMPLE_PADDING)
       if ( !predIntraLumaDirAvailable( uiOrgMode, uiWidthBit, bAboveAvail, bLeftAvail ) )
         continue;
-      
+#endif
+
       pcCU->setLumaIntraDirSubParts ( uiOrgMode, uiPartOffset, uiDepth + uiInitTrDepth );
       
       // set context models
@@ -1758,9 +1762,11 @@ TEncSearch::estIntraPredQT( TComDataCU* pcCU,
       UInt uiOrgMode = uiBestPUMode;
 #endif
       
+#if (!REFERENCE_SAMPLE_PADDING)
       if ( !predIntraLumaDirAvailable( uiOrgMode, uiWidthBit, bAboveAvail, bLeftAvail ) )
         continue;
-      
+#endif
+
       pcCU->setLumaIntraDirSubParts ( uiOrgMode, uiPartOffset, uiDepth + uiInitTrDepth );
       
       // set context models
@@ -2012,7 +2018,7 @@ TEncSearch::estIntraPredChromaQT( TComDataCU* pcCU,
   }
 }
 
-
+#if (!REFERENCE_SAMPLE_PADDING)
 Bool TEncSearch::predIntraLumaDirAvailable( UInt uiMode, UInt uiWidthBit, Bool bAboveAvail, Bool bLeftAvail)
 {
   Bool bDirAvailable = true;
@@ -2023,6 +2029,7 @@ Bool TEncSearch::predIntraLumaDirAvailable( UInt uiMode, UInt uiWidthBit, Bool b
   
   return bDirAvailable;
 }
+#endif
 
 Void TEncSearch::xGetInterPredictionError( TComDataCU* pcCU, TComYuv* pcYuvOrg, Int iPartIdx, UInt& ruiErr, Bool bHadamard )
 {

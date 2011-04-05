@@ -64,7 +64,11 @@ protected:
   
   Void xPredIntraAng            ( Int* pSrc, Int srcStride, Pel*& rpDst, Int dstStride, UInt width, UInt height, UInt dirMode, Bool blkAboveAvailable, Bool blkLeftAvailable );
 #if ADD_PLANAR_MODE
+#if REFERENCE_SAMPLE_PADDING
+  Void xPredIntraPlanar         ( Int* pSrc, Int srcStride, Pel*& rpDst, Int dstStride, UInt width, UInt height );
+#else
   Void xPredIntraPlanar         ( Int* pSrc, Int srcStride, Pel*& rpDst, Int dstStride, UInt width, UInt height, Bool blkAboveAvailable, Bool blkLeftAvailable );
+#endif
 #endif
   
   // motion compensation functions
