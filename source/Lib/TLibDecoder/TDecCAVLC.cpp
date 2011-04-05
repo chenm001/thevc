@@ -223,10 +223,12 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice)
     }
 #endif
 #else
+#if !HIGH_ACCURACY_BI
     if(!rpcSlice->isIntra())
     {
       rpcSlice->setRounding(false);
     }
+#endif
 #endif
     
     xReadFlag (   uiCode);  rpcSlice->setLoopFilterDisable(uiCode ? 1 : 0);
