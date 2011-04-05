@@ -156,7 +156,9 @@ Void TEncTop::init()
   
   // initialize transform & quantization class
   m_pcCavlcCoder = getCavlcCoder();
+#if !CAVLC_COEF_LRG_BLK
   aTable8 = m_pcCavlcCoder->GetLP8Table();
+#endif
   aTable4 = m_pcCavlcCoder->GetLP4Table();
 #if QC_MOD_LCEC
   aTableLastPosVlcIndex=m_pcCavlcCoder->GetLastPosVlcIndexTable();

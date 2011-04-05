@@ -109,6 +109,13 @@
 #define QC_LCEC_INTER_MODE                1
 #define QC_MDIS                           1           // JCTVC-D282: enable mode dependent intra smoothing
 #define QC_MDCS                           1           // JCTVC-D393: mode dependent coefficients coding 
+#if QC_MOD_LCEC
+#define RUNLEVEL_TABLE_CUT                1           // JCTVC-E384: Run-Level table size reduction
+#if RUNLEVEL_TABLE_CUT
+#define CAVLC_COEF_LRG_BLK                1           // JCTVC-E383: enable large block coeff. coding
+#endif
+#endif
+
 
 #define ENABLE_FORCECOEFF0  0
 
@@ -177,6 +184,9 @@
 #define MS_LCEC_LOOKUP_TABLE_MAX_VALUE  1           // use the information of the max position in the lookup table, JCTVC-D141
 #define MS_LCEC_LOOKUP_TABLE_EXCEPTION  1           // deal with the case when the number of reference frames is greater than 2, JCTVC-D141
 #define MS_LCEC_UNI_EXCEPTION_THRES     1           // for GPB case, uni-prediction, > MS_LCEC_UNI_EXCEPTION_THRES is exception
+
+#define CAVLC_COUNTER_ADAPT             1           // counter based CAVLC adaptation, JCTVC-E143
+
 ////////////////////////////////
 // MICROSOFT&USTC defines section end
 ////////////////////////////////
