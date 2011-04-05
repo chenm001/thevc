@@ -87,10 +87,18 @@ private:
   Void  xReadUnarySymbol    ( UInt& ruiSymbol, ContextModel* pcSCModel, Int iOffset );
   Void  xReadUnaryMaxSymbol ( UInt& ruiSymbol, ContextModel* pcSCModel, Int iOffset, UInt uiMaxSymbol );
   Void  xReadEpExGolomb     ( UInt& ruiSymbol, UInt uiCount );
+#if E253
+  Void  xReadGoRiceExGolomb ( UInt &ruiSymbol, UInt &ruiGoRiceParam );
+#else
   Void  xReadExGolombLevel  ( UInt& ruiSymbol, ContextModel& rcSCModel  );
+#endif
   
+#if MVD_CTX
+  Void  xReadMvd            ( Int& riMvdComp, UInt uiAbsSumL, UInt uiAbsSumA, UInt uiCtx );
+#else
   Void  xReadMvd            ( Int& riMvdComp, UInt uiAbsSum, UInt uiCtx );
-  
+#endif
+
   Void  xReadExGolombMvd    ( UInt& ruiSymbol, ContextModel* pcSCModel, UInt uiMaxBin );
   
 private:
@@ -131,6 +139,9 @@ public:
   Void parseCbf           ( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eType, UInt uiTrDepth, UInt uiDepth ) {}
   Void parseBlockCbf      ( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eType, UInt uiTrDepth, UInt uiDepth, UInt uiQPartNum ) {}
   
+#if PCP_SIGMAP_SIMPLE_LAST
+  __inline Void parseLastSignificantXY( UInt& uiPosLastX, UInt& uiPosLastY, const UInt uiWidth, const TextType eTType, const UInt uiCTXIdx, const UInt uiScanIdx );
+#endif
   Void parseCoeffNxN      ( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx, UInt uiWidth, UInt uiHeight, UInt uiDepth, TextType eTType );
   
 private:
@@ -146,6 +157,9 @@ private:
   ContextModel3DBuffer m_cCUPredModeSCModel;
   
   ContextModel3DBuffer m_cCUIntraPredSCModel;
+#if ADD_PLANAR_MODE
+  ContextModel3DBuffer m_cPlanarFlagSCModel;
+#endif
   ContextModel3DBuffer m_cCUChromaPredSCModel;
   ContextModel3DBuffer m_cCUInterDirSCModel;
   ContextModel3DBuffer m_cCURefPicSCModel;
@@ -158,7 +172,12 @@ private:
   ContextModel3DBuffer m_cCUQtCbfSCModel;
   
   ContextModel3DBuffer m_cCUSigSCModel;
+#if PCP_SIGMAP_SIMPLE_LAST
+  ContextModel3DBuffer m_cCuCtxLastX;
+  ContextModel3DBuffer m_cCuCtxLastY;
+#else  
   ContextModel3DBuffer m_cCULastSCModel;
+#endif
   ContextModel3DBuffer m_cCUOneSCModel;
   ContextModel3DBuffer m_cCUAbsSCModel;
   

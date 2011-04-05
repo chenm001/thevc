@@ -68,9 +68,15 @@
 typedef struct
 {
   Int significantBits[16][2];
+#if PCP_SIGMAP_SIMPLE_LAST
+  Int lastXBits[32];
+  Int lastYBits[32];
+#else  
   Int lastBits[16][2];
+#endif
   Int greaterOneBits[6][2][5][2];
-  Int blockCbpBits[4][2];
+  Int blockCbpBits[45][2];
+  Int blockRootCbpBits[4][2];
   Int scanZigzag[2];            ///< flag for zigzag scan
   Int scanNonZigzag[2];         ///< flag for non zigzag scan
 } estBitsSbacStruct;
@@ -205,14 +211,15 @@ public:
   estBitsSbacStruct* m_pcEstBitsSbac;
   
   static UInt     getSigCtxInc     ( TCoeff*                         pcCoeff,
-                                    const UInt                      uiPosX,
-                                    const UInt                      uiPosY,
-                                    const UInt                      uiLog2BlkSize,
-                                    const UInt                      uiStride );
+                                     const UInt                      uiPosX,
+                                     const UInt                      uiPosY,
+                                     const UInt                      uiLog2BlkSize,
+                                     const UInt                      uiStride );
+#if !PCP_SIGMAP_SIMPLE_LAST
   static UInt     getLastCtxInc    ( const UInt                      uiPosX,
-                                    const UInt                      uiPosY,
-                                    const UInt                      uiLog2BlkSize );
-  
+                                     const UInt                      uiPosY,
+                                     const UInt                      uiLog2BlkSize );
+#endif
 protected:
   Long*    m_plTempCoeff;
   UInt*    m_puiQuantMtx;
@@ -254,8 +261,13 @@ private:
 #if QC_MOD_LCEC_RDOQ
   Int            xCodeCoeffCountBitsLast(TCoeff* scoeff, levelDataStruct* levelData, Int nTab, UInt uiNoCoeff);
   UInt           xCountVlcBits(UInt uiTableNumber, UInt uiCodeNumber);
+#if CAVLC_COEF_LRG_BLK
+  Int            bitCountRDOQ(Int coeff, Int pos, Int nTab, Int lastCoeffFlag,Int levelMode,Int run, Int maxrun, Int vlc_adaptive, Int N, 
+                              UInt uiTr1, Int iSum_big_coef, Int iBlockType, TComDataCU* pcCU, const UInt **pLumaRunTr1);
+#else
   Int            bitCountRDOQ(Int coeff, Int pos, Int nTab, Int lastCoeffFlag,Int levelMode,Int run, Int maxrun, Int vlc_adaptive, Int N, 
                               UInt uiTr1, Int iSum_big_coef, Int iBlockType, TComDataCU* pcCU);
+#endif
 #else
 #if QC_MOD_LCEC 
   Int            bitCount_LCEC(Int k,Int pos,Int nTab, Int lpflag,Int levelMode,Int run, Int maxrun, Int vlc_adaptive, Int N, UInt uiTr1);
@@ -267,40 +279,60 @@ private:
 UInt             getCurrLineNum(UInt uiScanIdx, UInt uiPosX, UInt uiPosY);
 #endif
   Void           xRateDistOptQuant_LCEC ( TComDataCU*                     pcCU,
-                                         Long*                           plSrcCoeff,
-                                         TCoeff*&                        piDstCoeff,
-                                         UInt                            uiWidth,
-                                         UInt                            uiHeight,
-                                         UInt&                           uiAbsSum,
-                                         TextType                        eTType,
-                                         UInt                            uiAbsPartIdx );
+                                          Long*                           plSrcCoeff,
+                                          TCoeff*&                        piDstCoeff,
+                                          UInt                            uiWidth,
+                                          UInt                            uiHeight,
+                                          UInt&                           uiAbsSum,
+                                          TextType                        eTType,
+                                          UInt                            uiAbsPartIdx );
   
   Void           xRateDistOptQuant ( TComDataCU*                     pcCU,
-                                    Long*                           plSrcCoeff,
-                                    TCoeff*&                        piDstCoeff,
-                                    UInt                            uiWidth,
-                                    UInt                            uiHeight,
-                                    UInt&                           uiAbsSum,
-                                    TextType                        eTType,
-                                    UInt                            uiAbsPartIdx );
-  
+                                     Long*                           plSrcCoeff,
+                                     TCoeff*&                        piDstCoeff,
+                                     UInt                            uiWidth,
+                                     UInt                            uiHeight,
+                                     UInt&                           uiAbsSum,
+                                     TextType                        eTType,
+                                     UInt                            uiAbsPartIdx );
   __inline UInt  xGetCodedLevel    ( Double&                         rd64UncodedCost,
-                                    Double&                         rd64CodedCost,
-                                    Long                            lLevelDouble,
-                                    UInt                            uiMaxAbsLevel,
-                                    bool                            bLastScanPos,
-                                    UShort                          ui16CtxNumSig,
-                                    UShort                          ui16CtxNumOne,
-                                    UShort                          ui16CtxNumAbs,
-                                    Int                             iQBits,
-                                    Double                          dTemp,
-                                    UShort                          ui16CtxBase   ) const;
+                                     Double&                         rd64CodedCost,
+#if PCP_SIGMAP_SIMPLE_LAST
+                                     Double&                         rd64CodedLastCost,
+                                     UInt&                           ruiBestNonZeroLevel,
+                                     Long                            lLevelDouble,
+                                     UInt                            uiMaxAbsLevel,
+#else
+                                     Long                            lLevelDouble,
+                                     UInt                            uiMaxAbsLevel,
+                                     bool                            bLastScanPos,
+#endif
+                                     UShort                          ui16CtxNumSig,
+                                     UShort                          ui16CtxNumOne,
+                                     UShort                          ui16CtxNumAbs,
+#if E253
+                                     UShort                          ui16AbsGoRice,
+#endif
+                                     Int                             iQBits,
+                                     Double                          dTemp,
+                                     UShort                          ui16CtxBase   ) const;
   __inline Double xGetICRateCost   ( UInt                            uiAbsLevel,
-                                    bool                            bLastScanPos,
-                                    UShort                          ui16CtxNumSig,
-                                    UShort                          ui16CtxNumOne,
-                                    UShort                          ui16CtxNumAbs,
-                                    UShort                          ui16CtxBase   ) const;
+#if !PCP_SIGMAP_SIMPLE_LAST
+                                     Bool                            bLastScanPos,
+                                     UShort                          ui16CtxNumSig,
+#endif
+                                     UShort                          ui16CtxNumOne,
+                                     UShort                          ui16CtxNumAbs,
+#if E253
+                                     UShort                          ui16AbsGoRice,
+#endif
+                                     UShort                          ui16CtxBase   ) const;
+#if PCP_SIGMAP_SIMPLE_LAST
+  __inline Double xGetRateLast     ( UInt                            uiPosX,
+                                     UInt                            uiPosY        ) const;
+  __inline Double xGetRateSigCoef (  UShort                          uiSignificance,
+                                     UShort                          ui16CtxNumSig ) const;
+#endif
   __inline Double xGetICost        ( Double                          dRate         ) const; 
   __inline Double xGetIEPRate      (                                               ) const;
   

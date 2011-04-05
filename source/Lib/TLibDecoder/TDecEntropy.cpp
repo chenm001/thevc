@@ -343,30 +343,52 @@ Void TDecEntropy::decodeSkipFlag( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDe
   m_pcEntropyDecoderIf->parseSkipFlag( pcCU, uiAbsPartIdx, uiDepth );
 }
 
+/** decode merge flag
+ * \param pcSubCU
+ * \param uiAbsPartIdx 
+ * \param uiDepth
+ * \param uiPUIdx 
+ * \returns Void
+ */
 Void TDecEntropy::decodeMergeFlag( TComDataCU* pcSubCU, UInt uiAbsPartIdx, UInt uiDepth, UInt uiPUIdx )
 { 
+#if !CHANGE_GET_MERGE_CANDIDATE
   UInt uiNumCand = 0;
-  for(UInt uiIter = 0; uiIter < HHI_NUM_MRG_CAND; uiIter++ )
+  for(UInt uiIter = 0; uiIter < MRG_MAX_NUM_CANDS; uiIter++ )
   {
     if( pcSubCU->getNeighbourCandIdx( uiIter, uiAbsPartIdx ) == ( uiIter + 1 ) )
     {
       uiNumCand++;
+      break;
     }
   }
   if( uiNumCand )
   {
+#endif
     // at least one merge candidate exists
     m_pcEntropyDecoderIf->parseMergeFlag( pcSubCU, uiAbsPartIdx, uiDepth, uiPUIdx );
+#if !CHANGE_GET_MERGE_CANDIDATE
   }
   else
   {
     assert( !pcSubCU->getMergeFlag( uiAbsPartIdx ) );
   }
+#endif
 }
+
+/** decode merge index
+ * \param pcCU
+ * \param uiPartIdx 
+ * \param uiAbsPartIdx 
+ * \param puhInterDirNeighbours pointer to list of inter direction from the casual neighbours
+ * \param pcMvFieldNeighbours pointer to list of motion vector field from the casual neighbours
+ * \param uiDepth
+ * \returns Void
+ */
 Void TDecEntropy::decodeMergeIndex( TComDataCU* pcCU, UInt uiPartIdx, UInt uiAbsPartIdx, PartSize eCUMode, UChar* puhInterDirNeighbours, TComMvField* pcMvFieldNeighbours, UInt uiDepth )
 {
   UInt uiNumCand = 0;
-  for(UInt uiIter = 0; uiIter < HHI_NUM_MRG_CAND; uiIter++ )
+  for(UInt uiIter = 0; uiIter < MRG_MAX_NUM_CANDS; uiIter++ )
   {
     if( pcCU->getNeighbourCandIdx( uiIter, uiAbsPartIdx ) == ( uiIter + 1 ) )
     {
@@ -464,17 +486,10 @@ Void TDecEntropy::decodePredInfo    ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt 
   }
   else                                                                // if it is Inter mode, encode motion vector and reference index
   {
-#if SAMSUNG_MRG_SKIP_DIRECT
-    if ( pcCU->getSlice()->getSPS()->getUseMRG() && !pcCU->isSkip( uiAbsPartIdx ) )
-    {
-      decodePUWise( pcCU, uiAbsPartIdx, uiDepth, pcSubCU );
-    }
-#else
     if ( pcCU->getSlice()->getSPS()->getUseMRG() )
     {
       decodePUWise( pcCU, uiAbsPartIdx, uiDepth, pcSubCU );
     }
-#endif
     else
     {
 #if MS_LCEC_LOOKUP_TABLE_EXCEPTION
@@ -578,6 +593,14 @@ Void TDecEntropy::decodeInterDir( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDe
   return;
 }
 
+/** decode motion information for every PU block
+ * \param pcCU
+ * \param uiPartIdx 
+ * \param uiAbsPartIdx 
+ * \param uiDepth
+ * \param pcSubCU
+ * \returns Void
+ */
 Void TDecEntropy::decodePUWise( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth, TComDataCU* pcSubCU )
 {
   PartSize ePartSize = pcCU->getPartitionSize( uiAbsPartIdx );
@@ -588,19 +611,21 @@ Void TDecEntropy::decodePUWise( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDept
   pcSubCU->copyInterPredInfoFrom( pcCU, uiAbsPartIdx, REF_PIC_LIST_1 );
   for ( UInt uiPartIdx = 0, uiSubPartIdx = uiAbsPartIdx; uiPartIdx < uiNumPU; uiPartIdx++, uiSubPartIdx += uiPUOffset )
   {
-    TComMvField cMvFieldNeighbours[HHI_NUM_MRG_CAND << 1]; // double length for mv of both lists
-    UChar uhInterDirNeighbours[HHI_NUM_MRG_CAND];
-    UInt uiNeighbourCandIdx[HHI_NUM_MRG_CAND]; //MVs with same idx => same cand
-    for( UInt ui = 0; ui < HHI_NUM_MRG_CAND; ++ui )
+    TComMvField cMvFieldNeighbours[MRG_MAX_NUM_CANDS << 1]; // double length for mv of both lists
+    UChar uhInterDirNeighbours[MRG_MAX_NUM_CANDS];
+    UInt uiNeighbourCandIdx[MRG_MAX_NUM_CANDS]; //MVs with same idx => same cand
+    for( UInt ui = 0; ui < MRG_MAX_NUM_CANDS; ++ui )
     {
       uhInterDirNeighbours[ui] = 0;
       uiNeighbourCandIdx[ui] = 0;
     }
+#if !CHANGE_GET_MERGE_CANDIDATE
     pcSubCU->getInterMergeCandidates( uiSubPartIdx-uiAbsPartIdx, uiPartIdx, uiDepth, cMvFieldNeighbours, uhInterDirNeighbours, uiNeighbourCandIdx );
-    for(UInt uiIter = 0; uiIter < HHI_NUM_MRG_CAND; uiIter++ )
+    for(UInt uiIter = 0; uiIter < MRG_MAX_NUM_CANDS; uiIter++ )
     {
       pcCU->setNeighbourCandIdxSubParts( uiIter, uiNeighbourCandIdx[uiIter], uiSubPartIdx, uiPartIdx, uiDepth );
     }
+#endif
 #if PART_MRG
     if (pcCU->getWidth( uiAbsPartIdx ) > 8 && uiNumPU == 2 && uiPartIdx == 0)
     {
@@ -611,7 +636,13 @@ Void TDecEntropy::decodePUWise( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDept
     decodeMergeFlag( pcCU, uiSubPartIdx, uiDepth, uiPartIdx );
     if ( pcCU->getMergeFlag( uiSubPartIdx ) )
     {
-      //assert(ePartSize == SIZE_2Nx2N);
+#if CHANGE_GET_MERGE_CANDIDATE
+      pcSubCU->getInterMergeCandidates( uiSubPartIdx-uiAbsPartIdx, uiPartIdx, uiDepth, cMvFieldNeighbours, uhInterDirNeighbours, uiNeighbourCandIdx );
+      for(UInt uiIter = 0; uiIter < MRG_MAX_NUM_CANDS; uiIter++ )
+      {
+        pcCU->setNeighbourCandIdxSubParts( uiIter, uiNeighbourCandIdx[uiIter], uiSubPartIdx, uiPartIdx, uiDepth );
+      }
+#endif
       decodeMergeIndex( pcCU, uiPartIdx, uiSubPartIdx, ePartSize, uhInterDirNeighbours, cMvFieldNeighbours, uiDepth );
     }
     else
@@ -644,6 +675,13 @@ Void TDecEntropy::decodePUWise( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDept
   return;
 }
 
+/** decode inter direction for a PU block
+ * \param pcCU
+ * \param uiAbsPartIdx 
+ * \param uiDepth
+ * \param uiPartIdx 
+ * \returns Void
+ */
 Void TDecEntropy::decodeInterDirPU( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth, UInt uiPartIdx )
 {
   UInt uiInterDir;
@@ -662,8 +700,6 @@ Void TDecEntropy::decodeInterDirPU( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt ui
 
 Void TDecEntropy::decodeRefFrmIdxPU( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth, UInt uiPartIdx, RefPicList eRefList )
 {
-  assert( !pcCU->isSkip( uiAbsPartIdx ) );
-
 #if DCM_COMB_LIST 
   if(pcCU->getSlice()->getNumRefIdx(REF_PIC_LIST_C) > 0 && pcCU->getInterDir( uiAbsPartIdx ) != 3)
   {
@@ -721,10 +757,16 @@ Void TDecEntropy::decodeRefFrmIdxPU( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt u
 #endif  
 }
 
+/** decode motion vector difference for a PU block
+ * \param pcCU
+ * \param uiAbsPartIdx 
+ * \param uiDepth
+ * \param uiPartIdx
+ * \param eRefList 
+ * \returns Void
+ */
 Void TDecEntropy::decodeMvdPU( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth, UInt uiPartIdx, RefPicList eRefList )
 {
-  assert( !pcCU->isSkip( uiAbsPartIdx ) );
-
   if ( pcCU->getInterDir( uiAbsPartIdx ) & ( 1 << eRefList ) )
   {
     m_pcEntropyDecoderIf->parseMvd( pcCU, uiAbsPartIdx, uiPartIdx, uiDepth, eRefList );
@@ -899,7 +941,13 @@ Void TDecEntropy::decodeMVPIdx( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDept
   return;
 }
 
-
+/** decode reference frame index
+ * \param pcCU
+ * \param uiAbsPartIdx 
+ * \param uiDepth
+ * \param eRefList 
+ * \returns Void
+ */
 Void TDecEntropy::decodeRefFrmIdx( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth, RefPicList eRefList )
 {
 #if DCM_COMB_LIST
@@ -1163,23 +1211,6 @@ Void TDecEntropy::decodeRefFrmIdx( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiD
 
   Int iRefFrmIdx = 0;
   Int iParseRefFrmIdx = pcCU->getInterDir( uiAbsPartIdx ) & ( 1 << eRefList );
-  
-  if ( pcCU->isSkip( uiAbsPartIdx ) ) // direct
-  {
-    if (pcCU->getSlice()->isInterP() && eRefList == REF_PIC_LIST_1)
-    {
-      iRefFrmIdx = -1;
-    }
-    
-    if (pcCU->getSlice()->isInterB() && !iParseRefFrmIdx)
-    {
-      iRefFrmIdx = NOT_VALID;
-    }
-    
-    pcCU->getCUMvField( eRefList )->setAllRefIdx( iRefFrmIdx, SIZE_2Nx2N, uiAbsPartIdx, 0, uiDepth );
-    return;
-  }
-  
   UInt uiPartOffset = ( pcCU->getPic()->getNumPartInCU() >> ( pcCU->getDepth(uiAbsPartIdx) << 1 ) ) >> 2;
   
   switch ( pcCU->getPartitionSize( uiAbsPartIdx ) )
@@ -1306,13 +1337,6 @@ Void TDecEntropy::decodeRefFrmIdx( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiD
 
 Void TDecEntropy::decodeMvd( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth, RefPicList eRefList )
 {
-  if ( pcCU->isSkip( uiAbsPartIdx ) ) // direct
-  {
-    TComMv cZeroMv;
-    pcCU->getCUMvField( eRefList )->setAllMvd( cZeroMv, SIZE_2Nx2N, uiAbsPartIdx, 0, uiDepth );
-    return;
-  }
-  
   UInt uiPartOffset = ( pcCU->getPic()->getNumPartInCU() >> ( uiDepth << 1 ) ) >> 2;
   
   switch ( pcCU->getPartitionSize( uiAbsPartIdx ) )
@@ -1709,6 +1733,14 @@ Void TDecEntropy::xDecodeCoeff( TComDataCU* pcCU, TCoeff* pcCoeff, UInt uiAbsPar
   }
 }
 
+/** decode coefficients
+ * \param pcCU
+ * \param uiAbsPartIdx 
+ * \param uiDepth
+ * \param uiWidth
+ * \param uiHeight 
+ * \returns Void
+ */
 Void TDecEntropy::decodeCoeff( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth, UInt uiWidth, UInt uiHeight )
 {
   UInt uiMinCoeffSize = pcCU->getPic()->getMinCUWidth()*pcCU->getPic()->getMinCUHeight();
@@ -1741,8 +1773,16 @@ Void TDecEntropy::decodeCoeff( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth
     }
     else
     {
+#if HHI_MRG_SKIP
+      UInt uiQtRootCbf = 1;
+      if( !( pcCU->getPartitionSize( uiAbsPartIdx) == SIZE_2Nx2N && pcCU->getMergeFlag( uiAbsPartIdx ) ) )
+      {
+        m_pcEntropyDecoderIf->parseQtRootCbf( pcCU, uiAbsPartIdx, uiDepth, uiQtRootCbf );
+      }
+#else
       UInt uiQtRootCbf;
       m_pcEntropyDecoderIf->parseQtRootCbf( pcCU, uiAbsPartIdx, uiDepth, uiQtRootCbf );
+#endif
       if ( !uiQtRootCbf )
       {
         pcCU->setCbfSubParts( 0, 0, 0, uiAbsPartIdx, uiDepth );
