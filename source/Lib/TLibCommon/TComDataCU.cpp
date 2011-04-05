@@ -2250,14 +2250,14 @@ Void TComDataCU::getInterMergeCandidates( UInt uiAbsPartIdx, UInt uiPUIdx, UInt 
   UInt uiPartIdxCenter;
   UInt uiCurLCUIdx = getAddr();
   xDeriveCenterIdx( eCUMode, uiPUIdx, uiPartIdxCenter );
-  bExistMV = uiLCUIdx >= 0 && xGet_ColMVP( REF_PIC_LIST_0, uiLCUIdx, uiAbsPartAddr, cColMv, iRefIdx );
+  bExistMV = uiLCUIdx >= 0 && xGetColMVP( REF_PIC_LIST_0, uiLCUIdx, uiAbsPartAddr, cColMv, iRefIdx );
   if( bExistMV == false )
   {
-    bExistMV = xGet_ColMVP( REF_PIC_LIST_0, uiCurLCUIdx, uiPartIdxCenter,  cColMv, iRefIdx );
+    bExistMV = xGetColMVP( REF_PIC_LIST_0, uiCurLCUIdx, uiPartIdxCenter,  cColMv, iRefIdx );
   }
   if( bExistMV )
 #else
-  if (uiLCUIdx >= 0 && xGet_ColMVP( REF_PIC_LIST_0, uiLCUIdx, uiAbsPartAddr, cColMv, iRefIdx ) )
+  if (uiLCUIdx >= 0 && xGetColMVP( REF_PIC_LIST_0, uiLCUIdx, uiAbsPartAddr, cColMv, iRefIdx ) )
 #endif
   {
     UInt uiArrayAddr = uiIdx - 1;
@@ -2275,14 +2275,14 @@ Void TComDataCU::getInterMergeCandidates( UInt uiAbsPartIdx, UInt uiPUIdx, UInt 
       iRefIdx = iRefIdxSkip[1];
 #endif
 #if FT_TCTR_MRG
-      bExistMV = uiLCUIdx >= 0 && xGet_ColMVP( REF_PIC_LIST_1, uiLCUIdx, uiAbsPartAddr, cColMv, iRefIdx);
+      bExistMV = uiLCUIdx >= 0 && xGetColMVP( REF_PIC_LIST_1, uiLCUIdx, uiAbsPartAddr, cColMv, iRefIdx);
       if( bExistMV == false )
       {
-        bExistMV = xGet_ColMVP( REF_PIC_LIST_1, uiCurLCUIdx, uiPartIdxCenter,  cColMv, iRefIdx );
+        bExistMV = xGetColMVP( REF_PIC_LIST_1, uiCurLCUIdx, uiPartIdxCenter,  cColMv, iRefIdx );
       }
       if( bExistMV )
 #else
-      if (xGet_ColMVP( REF_PIC_LIST_1, uiLCUIdx, uiAbsPartAddr, cColMv, iRefIdx) )
+      if (xGetColMVP( REF_PIC_LIST_1, uiLCUIdx, uiAbsPartAddr, cColMv, iRefIdx) )
 #endif
   {
 #if PANASONIC_MRG_TMVP_REFIDX
@@ -2758,16 +2758,16 @@ Void TComDataCU::fillMvpCand ( UInt uiPartIdx, UInt uiPartAddr, RefPicList eRefP
 #if MTK_AMVP_SMVP_DERIVATION
   if(!bAdded)
   {
-    bAdded = xAddMVPCand_Order( pInfo, eRefPicList, iRefIdx, uiPartIdxLB, MD_BELOW_LEFT);
+    bAdded = xAddMVPCandOrder( pInfo, eRefPicList, iRefIdx, uiPartIdxLB, MD_BELOW_LEFT);
 #if TI_AMVP_SMVP_SIMPLIFIED
     if (!bAdded) 
     {
-      bAdded = xAddMVPCand_Order( pInfo, eRefPicList, iRefIdx, uiPartIdxLB, MD_LEFT );
+      bAdded = xAddMVPCandOrder( pInfo, eRefPicList, iRefIdx, uiPartIdxLB, MD_LEFT );
     }
 #else
     for ( Int idx = (Int)g_auiZscanToRaster[uiPartIdxLB]; !bAdded && idx >= (Int)g_auiZscanToRaster[uiPartIdxLT]; idx-= uiNumPartInCUWidth )
     {
-      bAdded = xAddMVPCand_Order( pInfo, eRefPicList, iRefIdx, g_auiRasterToZscan[idx], MD_LEFT );
+      bAdded = xAddMVPCandOrder( pInfo, eRefPicList, iRefIdx, g_auiRasterToZscan[idx], MD_LEFT );
     }
 #endif
   }
@@ -2811,7 +2811,7 @@ Void TComDataCU::fillMvpCand ( UInt uiPartIdx, UInt uiPartAddr, RefPicList eRefP
 #if MTK_AMVP_SMVP_DERIVATION
   if(!bAdded)
   {
-    bAdded = xAddMVPCand_Order( pInfo, eRefPicList, iRefIdx, uiPartIdxRT, MD_ABOVE_RIGHT);
+    bAdded = xAddMVPCandOrder( pInfo, eRefPicList, iRefIdx, uiPartIdxRT, MD_ABOVE_RIGHT);
     if (bAdded && pInfo->iN==2 && pInfo->m_acMvCand[0] == pInfo->m_acMvCand[1])
     {
       pInfo->iN--; //remove duplicate entries
@@ -2820,7 +2820,7 @@ Void TComDataCU::fillMvpCand ( UInt uiPartIdx, UInt uiPartAddr, RefPicList eRefP
 #if TI_AMVP_SMVP_SIMPLIFIED
     if (!bAdded) 
     {
-      bAdded = xAddMVPCand_Order( pInfo, eRefPicList, iRefIdx, uiPartIdxRT, MD_ABOVE);
+      bAdded = xAddMVPCandOrder( pInfo, eRefPicList, iRefIdx, uiPartIdxRT, MD_ABOVE);
     }
     if (bAdded && pInfo->iN==2 && pInfo->m_acMvCand[0] == pInfo->m_acMvCand[1])
     {
@@ -2830,7 +2830,7 @@ Void TComDataCU::fillMvpCand ( UInt uiPartIdx, UInt uiPartAddr, RefPicList eRefP
 #else
     for ( Int idx = (Int)g_auiZscanToRaster[uiPartIdxRT]; !bAdded && idx >= (Int)g_auiZscanToRaster[uiPartIdxLT]; idx-- )
     {
-      bAdded = xAddMVPCand_Order( pInfo, eRefPicList, iRefIdx, g_auiRasterToZscan[idx], MD_ABOVE);
+      bAdded = xAddMVPCandOrder( pInfo, eRefPicList, iRefIdx, g_auiRasterToZscan[idx], MD_ABOVE);
       if (bAdded && pInfo->iN==2 && pInfo->m_acMvCand[0] == pInfo->m_acMvCand[1])
       {
         pInfo->iN--; //remove duplicate entries
@@ -2840,7 +2840,7 @@ Void TComDataCU::fillMvpCand ( UInt uiPartIdx, UInt uiPartAddr, RefPicList eRefP
 #endif
     if(!bAdded)
     {
-      bAdded = xAddMVPCand_Order( pInfo, eRefPicList, iRefIdx, uiPartIdxLT, MD_ABOVE_LEFT);
+      bAdded = xAddMVPCandOrder( pInfo, eRefPicList, iRefIdx, uiPartIdxLT, MD_ABOVE_LEFT);
       if (bAdded && pInfo->iN==2 && pInfo->m_acMvCand[0] == pInfo->m_acMvCand[1])
       {
         pInfo->iN--; //remove duplicate entries
@@ -3012,7 +3012,7 @@ Void TComDataCU::fillMvpCand ( UInt uiPartIdx, UInt uiPartAddr, RefPicList eRefP
       uiLCUIdx = getAddr() + m_pcPic->getFrameWidthInCU() + 1;
     }
   }
-  if ( uiLCUIdx >= 0 && xGet_ColMVP( eRefPicList, uiLCUIdx, uiAbsPartAddr, cColMv, iRefIdx_Col ) )
+  if ( uiLCUIdx >= 0 && xGetColMVP( eRefPicList, uiLCUIdx, uiAbsPartAddr, cColMv, iRefIdx_Col ) )
   {
     pInfo->m_acMvCand[pInfo->iN++] = cColMv;
   }
@@ -3022,7 +3022,7 @@ Void TComDataCU::fillMvpCand ( UInt uiPartIdx, UInt uiPartAddr, RefPicList eRefP
     UInt uiPartIdxCenter;
     UInt uiCurLCUIdx = getAddr();
     xDeriveCenterIdx( eCUMode, uiPartIdx, uiPartIdxCenter );
-    if (xGet_ColMVP( eRefPicList, uiCurLCUIdx, uiPartIdxCenter,  cColMv, iRefIdx_Col ))
+    if (xGetColMVP( eRefPicList, uiCurLCUIdx, uiPartIdxCenter,  cColMv, iRefIdx_Col ))
   {
       pInfo->m_acMvCand[pInfo->iN++] = cColMv;
     }
@@ -3356,7 +3356,7 @@ Void TComDataCU::xUniqueMVPCand(AMVPInfo* pInfo)
  * \param eDir
  * \returns Bool
  */
-Bool TComDataCU::xAddMVPCand_Order( AMVPInfo* pInfo, RefPicList eRefPicList, Int iRefIdx, UInt uiPartUnitIdx, MVP_DIR eDir )
+Bool TComDataCU::xAddMVPCandOrder( AMVPInfo* pInfo, RefPicList eRefPicList, Int iRefIdx, UInt uiPartUnitIdx, MVP_DIR eDir )
 {
   TComDataCU* pcTmpCU = NULL;
   UInt uiIdx;
@@ -3478,7 +3478,7 @@ Bool TComDataCU::xAddMVPCand_Order( AMVPInfo* pInfo, RefPicList eRefPicList, Int
  * \returns Bool
  */
 #if MTK_TMVP_H_MRG || MTK_TMVP_H_AMVP
-Bool TComDataCU::xGet_ColMVP( RefPicList eRefPicList, Int uiCUAddr, Int uiPartUnitIdx, TComMv& rcMv, Int& riRefIdx )
+Bool TComDataCU::xGetColMVP( RefPicList eRefPicList, Int uiCUAddr, Int uiPartUnitIdx, TComMv& rcMv, Int& riRefIdx )
 {
   UInt uiAbsPartAddr = uiPartUnitIdx;
 
