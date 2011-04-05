@@ -106,7 +106,11 @@ private:
   Void  xWriteUnarySymbol    ( UInt uiSymbol, ContextModel* pcSCModel, Int iOffset );
   Void  xWriteUnaryMaxSymbol ( UInt uiSymbol, ContextModel* pcSCModel, Int iOffset, UInt uiMaxSymbol );
   Void  xWriteEpExGolomb     ( UInt uiSymbol, UInt uiCount );
+#if E253
+  Void  xWriteGoRiceExGolomb ( UInt uiSymbol, UInt &ruiGoRiceParam );
+#else
   Void  xWriteExGolombLevel  ( UInt uiSymbol, ContextModel& rcSCModel  );
+#endif
   Void  xWriteTerminatingBit ( UInt uiBit );
   
   Void  xCheckCoeff( TCoeff* pcCoef, UInt uiSize, UInt uiDepth, UInt& uiNumofCoeff, UInt& uiPart );
@@ -154,6 +158,9 @@ public:
   Void codeCbf                 ( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eType, UInt uiTrDepth ) {}
   Void codeBlockCbf            ( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eType, UInt uiTrDepth, UInt uiQPartNum, Bool bRD = false ) {}
   
+#if PCP_SIGMAP_SIMPLE_LAST
+  __inline Void codeLastSignificantXY ( UInt uiPosX, UInt uiPosY, const UInt uiWidth, const TextType eTType, const UInt uiCTXIdx, const UInt uiScanIdx );
+#endif
   Void codeCoeffNxN            ( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx, UInt uiWidth, UInt uiHeight, UInt uiDepth, TextType eTType, Bool bRD = false );
   
   // -------------------------------------------------------------------------------------------------------------------
@@ -191,7 +198,12 @@ private:
   ContextModel3DBuffer m_cCUQtRootCbfSCModel;
   
   ContextModel3DBuffer m_cCUSigSCModel;
+#if PCP_SIGMAP_SIMPLE_LAST
+  ContextModel3DBuffer m_cCuCtxLastX;
+  ContextModel3DBuffer m_cCuCtxLastY;
+#else
   ContextModel3DBuffer m_cCULastSCModel;
+#endif
   ContextModel3DBuffer m_cCUOneSCModel;
   ContextModel3DBuffer m_cCUAbsSCModel;
   
