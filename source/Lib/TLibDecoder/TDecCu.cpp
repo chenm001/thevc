@@ -222,11 +222,8 @@ Void TDecCu::xDecodeCU( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
     m_pcEntropyDecoder->decodeSkipFlag( pcCU, uiAbsPartIdx, uiDepth );
   }
   
-#if HHI_DIRECT_CLEANUP
+
   if( pcCU->isSkipped(uiAbsPartIdx) )
-#else
-  if( pcCU->isSkip( uiAbsPartIdx ) )
-#endif
   {
 #if HHI_MRG_SKIP
     m_ppcCU[uiDepth]->copyInterPredInfoFrom( pcCU, uiAbsPartIdx, REF_PIC_LIST_0 );

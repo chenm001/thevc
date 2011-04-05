@@ -509,14 +509,7 @@ Void TEncCavlc::codePredMode( TComDataCU* pcCU, UInt uiAbsPartIdx )
   {
     return;
   }
-#if HHI_DIRECT_CLEANUP
   xWriteFlag( iPredMode == MODE_INTER ? 0 : 1 );
-#else
-  if ( iPredMode != MODE_SKIP )
-  {
-    xWriteFlag( iPredMode == MODE_INTER ? 0 : 1 );
-  }
-#endif
 #endif
 }
 

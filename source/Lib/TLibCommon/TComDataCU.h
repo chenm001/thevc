@@ -403,9 +403,6 @@ public:
   // -------------------------------------------------------------------------------------------------------------------
   
   Bool          isIntra   ( UInt uiPartIdx )  { return m_pePredMode[ uiPartIdx ] == MODE_INTRA; }
-#if !HHI_DIRECT_CLEANUP
-  Bool          isSkip    ( UInt uiPartIdx )  { return m_pePredMode[ uiPartIdx ] == MODE_SKIP;  } ///< SKIP+DIRECT
-#endif
   Bool          isSkipped ( UInt uiPartIdx );                                                     ///< SKIP (no residual)
   
   // -------------------------------------------------------------------------------------------------------------------

@@ -359,9 +359,7 @@ Void TDecEntropy::decodeMergeFlag( TComDataCU* pcSubCU, UInt uiAbsPartIdx, UInt 
     if( pcSubCU->getNeighbourCandIdx( uiIter, uiAbsPartIdx ) == ( uiIter + 1 ) )
     {
       uiNumCand++;
-#if HHI_MRG_CLEANUP
       break;
-#endif
     }
   }
   if( uiNumCand )
@@ -702,10 +700,6 @@ Void TDecEntropy::decodeInterDirPU( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt ui
 
 Void TDecEntropy::decodeRefFrmIdxPU( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth, UInt uiPartIdx, RefPicList eRefList )
 {
-#if !HHI_DIRECT_CLEANUP
-  assert( !pcCU->isSkip( uiAbsPartIdx ) );
-#endif
-
 #if DCM_COMB_LIST 
   if(pcCU->getSlice()->getNumRefIdx(REF_PIC_LIST_C) > 0 && pcCU->getInterDir( uiAbsPartIdx ) != 3)
   {
@@ -773,10 +767,6 @@ Void TDecEntropy::decodeRefFrmIdxPU( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt u
  */
 Void TDecEntropy::decodeMvdPU( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth, UInt uiPartIdx, RefPicList eRefList )
 {
-#if !HHI_DIRECT_CLEANUP
-  assert( !pcCU->isSkip( uiAbsPartIdx ) );
-#endif
-
   if ( pcCU->getInterDir( uiAbsPartIdx ) & ( 1 << eRefList ) )
   {
     m_pcEntropyDecoderIf->parseMvd( pcCU, uiAbsPartIdx, uiPartIdx, uiDepth, eRefList );
@@ -1221,25 +1211,6 @@ Void TDecEntropy::decodeRefFrmIdx( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiD
 
   Int iRefFrmIdx = 0;
   Int iParseRefFrmIdx = pcCU->getInterDir( uiAbsPartIdx ) & ( 1 << eRefList );
-  
-#if !HHI_DIRECT_CLEANUP
-  if ( pcCU->isSkip( uiAbsPartIdx ) ) // direct
-  {
-    if (pcCU->getSlice()->isInterP() && eRefList == REF_PIC_LIST_1)
-    {
-      iRefFrmIdx = -1;
-    }
-    
-    if (pcCU->getSlice()->isInterB() && !iParseRefFrmIdx)
-    {
-      iRefFrmIdx = NOT_VALID;
-    }
-    
-    pcCU->getCUMvField( eRefList )->setAllRefIdx( iRefFrmIdx, SIZE_2Nx2N, uiAbsPartIdx, 0, uiDepth );
-    return;
-  }
-#endif
-  
   UInt uiPartOffset = ( pcCU->getPic()->getNumPartInCU() >> ( pcCU->getDepth(uiAbsPartIdx) << 1 ) ) >> 2;
   
   switch ( pcCU->getPartitionSize( uiAbsPartIdx ) )
@@ -1366,16 +1337,6 @@ Void TDecEntropy::decodeRefFrmIdx( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiD
 
 Void TDecEntropy::decodeMvd( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth, RefPicList eRefList )
 {
-#if !HHI_DIRECT_CLEANUP
-  if ( pcCU->isSkip( uiAbsPartIdx ) ) // direct
-  {
-    TComMv cZeroMv;
-    pcCU->getCUMvField( eRefList )->setAllMvd( cZeroMv, SIZE_2Nx2N, uiAbsPartIdx, 0, uiDepth );
-    return;
-  }
-#endif
-
-  
   UInt uiPartOffset = ( pcCU->getPic()->getNumPartInCU() >> ( uiDepth << 1 ) ) >> 2;
   
   switch ( pcCU->getPartitionSize( uiAbsPartIdx ) )
