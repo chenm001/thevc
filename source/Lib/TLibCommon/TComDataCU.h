@@ -144,16 +144,11 @@ protected:
   Bool          xAddMVPCand           ( AMVPInfo* pInfo, RefPicList eRefPicList, Int iRefIdx, UInt uiPartUnitIdx, MVP_DIR eDir );
 #if MTK_AMVP_SMVP_DERIVATION
   Bool          xAddMVPCand_Order     ( AMVPInfo* pInfo, RefPicList eRefPicList, Int iRefIdx, UInt uiPartUnitIdx, MVP_DIR eDir );
-  TComDataCU*   getPULeft_MTK                   ( UInt&  uiLPartUnitIdx , UInt uiCurrPartUnitIdx );
-  TComDataCU*   getPUAbove_MTK                  ( UInt&  uiAPartUnitIdx , UInt uiCurrPartUnitIdx );
-  TComDataCU*   getPUAboveLeft_MTK              ( UInt&  uiALPartUnitIdx, UInt uiCurrPartUnitIdx );
-  TComDataCU*   getPUAboveRight_MTK             ( UInt&  uiARPartUnitIdx, UInt uiCurrPartUnitIdx );
-  TComDataCU*   getPUBelowLeft_MTK              ( UInt& uiBLPartUnitIdx, UInt uiCurrPartUnitIdx );
 #endif  
 
 #if MTK_TMVP_H_MRG || MTK_TMVP_H_AMVP
   Void          deriveRightBottomIdx        ( PartSize eCUMode, UInt uiPartIdx, UInt& ruiPartIdxRB );
-  Bool          xGet_MTK_ColMVP( RefPicList eRefPicList, Int uiCUAddr, Int uiPartUnitIdx, TComMv& rcMv, Int& riRefIdx );
+  Bool          xGet_ColMVP( RefPicList eRefPicList, Int uiCUAddr, Int uiPartUnitIdx, TComMv& rcMv, Int& riRefIdx );
 #endif
   
   /// remove redundant candidates
@@ -377,11 +372,10 @@ public:
   
   TComDataCU*   getPULeft                   ( UInt&  uiLPartUnitIdx , UInt uiCurrPartUnitIdx, Bool bEnforceSliceRestriction=true, Bool bEnforceEntropySliceRestriction=true );
   TComDataCU*   getPUAbove                  ( UInt&  uiAPartUnitIdx , UInt uiCurrPartUnitIdx, Bool bEnforceSliceRestriction=true, Bool bEnforceEntropySliceRestriction=true );
-
   TComDataCU*   getPUAboveLeft              ( UInt&  uiALPartUnitIdx, UInt uiCurrPartUnitIdx, Bool bEnforceSliceRestriction=true, Bool bEnforceEntropySliceRestriction=true );
   TComDataCU*   getPUAboveRight             ( UInt&  uiARPartUnitIdx, UInt uiCurrPartUnitIdx, Bool bEnforceSliceRestriction=true, Bool bEnforceEntropySliceRestriction=true );
-
   TComDataCU*   getPUBelowLeft              ( UInt& uiBLPartUnitIdx, UInt uiCurrPartUnitIdx, Bool bEnforceSliceRestriction=true, Bool bEnforceEntropySliceRestriction=true );
+
 #if CONSTRAINED_INTRA_PRED
   TComDataCU*   getPUAboveRightAdi          ( UInt&  uiARPartUnitIdx, UInt uiPuWidth, UInt uiCurrPartUnitIdx, UInt uiPartUnitOffset = 1, Bool bEnforceSliceRestriction=true, Bool bEnforceEntropySliceRestriction=true );
   TComDataCU*   getPUBelowLeftAdi           ( UInt& uiBLPartUnitIdx, UInt uiPuHeight, UInt uiCurrPartUnitIdx, UInt uiPartUnitOffset = 1, Bool bEnforceSliceRestriction=true, Bool bEnforceEntropySliceRestriction=true );
