@@ -64,6 +64,9 @@
 #define HHI_RQT_INTRA_SPEEDUP_MOD         0           ///< tests two best modes with full rqt
 
 #define PART_MRG                          1            // If the number of partitions is two and size > 8, only merging mode is enabled for the first partition & do not code merge_flag for the first partition
+#define HHI_MRG_SKIP                      1            // (JCTVC-E481 - merge skip) replaces the AMVP based skip by merge based skip (E481 - MERGE skip)
+#define HHI_MRG_CLEANUP                   1            // cleanup related to merge mode (does not affect bitstream)
+#define HHI_DIRECT_CLEANUP                1            // cleanup related to the direct mode removal (does not affect bitstream)
 
 #if HHI_RQT_INTRA_SPEEDUP_MOD && !HHI_RQT_INTRA_SPEEDUP
 #error
@@ -79,7 +82,27 @@
 // HHI defines section end
 //////////////////////////
 
-
+// COLOCATED PREDICTOR
+// FOR MERGE
+#define MRG_NEIGH_COL                     1           ///< use of colocated MB in MERGE
+#define FT_TCTR_MRG                       1           ///< central colocated in MERGE
+#if !FT_TCTR_MRG
+#define PANASONIC_MERGETEMPORALEXT        1           ///< 
+#endif
+#define MTK_TMVP_H_MRG                    1           ///< (JCTVC-E481 - D125 2.1) right-bottom collocated for merge
+#define PANASONIC_MRG_TMVP_REFIDX         1           ///< (JCTVC-E481 - D274 (2) ) refidx derivation for merge TMVP  
+// FOR AMVP
+#define AMVP_NEIGH_COL                    1           ///< use of colocated MB in AMVP
+#define FT_TCTR_AMVP                      1           ///< central colocated in AMVP
+#if !FT_TCTR_AMVP
+#define PANASONIC_AMVPTEMPORALEXT         1           ///< 
+#endif
+#define MTK_TMVP_H_AMVP                   1           ///< (JCTVC-E481 - D125 2.1) right-bottom collocated for amvp 
+// FOR BOTH
+#define PANASONIC_AMVPTEMPORALMOD         1           ///< (JCTVC-E481 - D125 2.4' / D274 3')
+#define AMVP_BUFFERCOMPRESS               1           ///< motion vector buffer compression
+#define AMVP_DECIMATION_FACTOR            4
+#define MV_COMPRESS_MODE_REFIDX           0           ///< (JCTVC-E147) compress all inter prediction parameters according to 1)
 
 //////////////////////////////
 // Nokia defines section start
@@ -118,8 +141,6 @@
 ///////////////////////////////
 #define HHI_RQT_DISABLE_SUB                   0           ///< disabling subtree whose node size is smaller than partition size
 
-#define SAMSUNG_MRG_SKIP_DIRECT               1           ///< enabling of skip and direct when mrg is on
-
 #define FAST_UDI_MAX_RDMODE_NUM               35          ///< maximum number of RD comparison in fast-UDI estimation loop 
 
 #define SAMSUNG_FAST_UDI_MODESET              0           ///< 0: {9,9,4,4,5} (default) and 1: {9,9,9,9,5} for {4x4,8x8,16x16,32x32,64x64} 
@@ -139,7 +160,11 @@
 #define DCM_SKIP_DECODING_FRAMES          1           ///< enable/disable the random access by the decoder
 #endif
 
-#define DCM_SIMPLIFIED_MVP                1           ///< enable/disable the simplified motoin vector prediction(D231)
+#define DCM_SIMPLIFIED_MVP                1           ///< enable/disable the simplified motion vector prediction(D231)
+#if DCM_SIMPLIFIED_MVP
+#define MTK_AMVP_SMVP_DERIVATION          1              ///< (JCTVC-E481 - D125 2.1) amvp spatial candidate derivation
+#define TI_AMVP_SMVP_SIMPLIFIED           1              ///< (JCTVC-E481 - F)amvp spatial candidate simplified scanning
+#endif
 
 #define DCM_COMB_LIST                  1           ///< Use of combined list for uni-prediction in B-slices
 
@@ -165,6 +190,7 @@
 #define MS_LCEC_LOOKUP_TABLE_MAX_VALUE  1           // use the information of the max position in the lookup table, JCTVC-D141
 #define MS_LCEC_LOOKUP_TABLE_EXCEPTION  1           // deal with the case when the number of reference frames is greater than 2, JCTVC-D141
 #define MS_LCEC_UNI_EXCEPTION_THRES     1           // for GPB case, uni-prediction, > MS_LCEC_UNI_EXCEPTION_THRES is exception
+
 ////////////////////////////////
 // MICROSOFT&USTC defines section end
 ////////////////////////////////
@@ -178,16 +204,9 @@
 // MediaTek defines section end
 ////////////////////////////////
 
-#define FT_TCTR 1
-#define FT_TCTR_MERGE 1
-#define PANASONIC_AMVPTEMPORALEXT 1
-#define PANASONIC_MERGETEMPORALEXT 1
 #define FAST_UDI_USE_MPM 1
 #define SONY_SIG_CTX 1
 #define SNY_DQP                          1           ///< SONY's proposal on syntax change of dQP (JCT-VC D258)
-
-#define AMVP_BUFFERCOMPRESS                   1     // motion vector buffer compression
-#define AMVP_DECIMATION_FACTOR                4
 
 #define TI_ALF_MAX_VSIZE_7 1
 

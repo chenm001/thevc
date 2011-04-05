@@ -152,8 +152,9 @@
 #endif
 
 // AMVP: advanced motion vector prediction
-#define AMVP_NEIGH_COL              1           ///< use of colocated MB in AMVP
 #define AMVP_MAX_NUM_CANDS          5           ///< max number of final candidates
+// MERGE
+#define MRG_MAX_NUM_CANDS           5
 
 // Reference memory management
 #define DYN_REF_FREE                0           ///< dynamic free of reference memories
@@ -183,9 +184,6 @@
 
 // Early-skip threshold (encoder)
 #define EARLY_SKIP_THRES            1.50        ///< if RD < thres*avg[BestSkipRD]
-
-// MERGE
-#define HHI_NUM_MRG_CAND            5
 
 const int g_iShift8x8    = 2;
 const int g_iShift16x16  = 2;

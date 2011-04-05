@@ -167,6 +167,12 @@ Void TDecCu::decompressCU( TComDataCU* pcCU )
 // Protected member functions
 // ====================================================================================================================
 
+/** decode CU block recursively
+ * \param pcCU
+ * \param uiAbsPartIdx 
+ * \param uiDepth 
+ * \returns Void
+ */
 Void TDecCu::xDecodeCU( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
 {
   TComPic* pcPic = pcCU->getPic();
@@ -216,8 +222,30 @@ Void TDecCu::xDecodeCU( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
     m_pcEntropyDecoder->decodeSkipFlag( pcCU, uiAbsPartIdx, uiDepth );
   }
   
+#if HHI_DIRECT_CLEANUP
+  if( pcCU->isSkipped(uiAbsPartIdx) )
+#else
   if( pcCU->isSkip( uiAbsPartIdx ) )
+#endif
   {
+#if HHI_MRG_SKIP
+    m_ppcCU[uiDepth]->copyInterPredInfoFrom( pcCU, uiAbsPartIdx, REF_PIC_LIST_0 );
+    m_ppcCU[uiDepth]->copyInterPredInfoFrom( pcCU, uiAbsPartIdx, REF_PIC_LIST_1 );
+    TComMvField cMvFieldNeighbours[MRG_MAX_NUM_CANDS << 1]; // double length for mv of both lists
+    UChar uhInterDirNeighbours[MRG_MAX_NUM_CANDS];
+    UInt uiNeighbourCandIdx[MRG_MAX_NUM_CANDS]; //MVs with same idx => same cand
+    for( UInt ui = 0; ui < MRG_MAX_NUM_CANDS; ++ui )
+    {
+      uhInterDirNeighbours[ui] = 0;
+      uiNeighbourCandIdx[ui] = 0;
+    }
+    m_ppcCU[uiDepth]->getInterMergeCandidates( 0, 0, uiDepth, cMvFieldNeighbours, uhInterDirNeighbours, uiNeighbourCandIdx );
+    for(UInt uiIter = 0; uiIter < MRG_MAX_NUM_CANDS; uiIter++ )
+  {
+      pcCU->setNeighbourCandIdxSubParts( uiIter, uiNeighbourCandIdx[uiIter], uiAbsPartIdx, 0, uiDepth );
+    }
+    m_pcEntropyDecoder->decodeMergeIndex( pcCU, 0, uiAbsPartIdx, SIZE_2Nx2N, uhInterDirNeighbours, cMvFieldNeighbours, uiDepth );
+#else
     pcCU->setMVPIdxSubParts( -1, REF_PIC_LIST_0, uiAbsPartIdx, 0, uiDepth);
     pcCU->setMVPNumSubParts( -1, REF_PIC_LIST_0, uiAbsPartIdx, 0, uiDepth);
     
@@ -233,6 +261,7 @@ Void TDecCu::xDecodeCU( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
     {
       m_pcEntropyDecoder->decodeMVPIdx( pcCU, uiAbsPartIdx, uiDepth, REF_PIC_LIST_1, m_ppcCU[uiDepth]);
     }
+#endif
     return;
   }
   m_pcEntropyDecoder->decodePredMode( pcCU, uiAbsPartIdx, uiDepth );

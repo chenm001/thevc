@@ -453,6 +453,11 @@ Void TEncSbac::codePartSize( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
   }
 }
 
+/** code prediction mode
+ * \param pcCU
+ * \param uiAbsPartIdx  
+ * \returns Void
+ */
 Void TEncSbac::codePredMode( TComDataCU* pcCU, UInt uiAbsPartIdx )
 {
   // get context function is here
@@ -461,11 +466,15 @@ Void TEncSbac::codePredMode( TComDataCU* pcCU, UInt uiAbsPartIdx )
   {
     return;
   }
-  
+#if HHI_DIRECT_CLEANUP
+  m_pcBinIf->encodeBin( iPredMode == MODE_INTER ? 0 : 1, m_cCUPredModeSCModel.get( 0, 0, 1 ) );
+#else
   if ( iPredMode != MODE_SKIP )
   {
     m_pcBinIf->encodeBin( iPredMode == MODE_INTER ? 0 : 1, m_cCUPredModeSCModel.get( 0, 0, 1 ) );
   }
+#endif
+ 
 }
 
 Void TEncSbac::codeAlfCtrlFlag( TComDataCU* pcCU, UInt uiAbsPartIdx )
@@ -493,17 +502,35 @@ Void TEncSbac::codeAlfCtrlDepth()
   xWriteUnaryMaxSymbol(uiDepth, m_cALFUvlcSCModel.get(0), 1, g_uiMaxCUDepth-1);
 }
 
+/** code skip flag
+ * \param pcCU
+ * \param uiAbsPartIdx 
+ * \returns Void
+ */
 Void TEncSbac::codeSkipFlag( TComDataCU* pcCU, UInt uiAbsPartIdx )
 {
   // get context function is here
   UInt uiSymbol = pcCU->isSkipped( uiAbsPartIdx ) ? 1 : 0;
-  m_pcBinIf->encodeBin( uiSymbol, m_cCUSkipFlagSCModel.get( 0, 0, pcCU->getCtxSkipFlag( uiAbsPartIdx) ) );
+  UInt uiCtxSkip = pcCU->getCtxSkipFlag( uiAbsPartIdx ) ;
+  m_pcBinIf->encodeBin( uiSymbol, m_cCUSkipFlagSCModel.get( 0, 0, uiCtxSkip ) );
+  DTRACE_CABAC_V( g_nSymbolCounter++ );
+  DTRACE_CABAC_T( "\tSkipFlag" );
+  DTRACE_CABAC_T( "\tuiCtxSkip: ");
+  DTRACE_CABAC_V( uiCtxSkip );
+  DTRACE_CABAC_T( "\tuiSymbol: ");
+  DTRACE_CABAC_V( uiSymbol );
+  DTRACE_CABAC_T( "\n");
 }
 
+/** code merge flag
+ * \param pcCU
+ * \param uiAbsPartIdx 
+ * \returns Void
+ */
 Void TEncSbac::codeMergeFlag( TComDataCU* pcCU, UInt uiAbsPartIdx )
 {
   UInt uiCtx = 0;
-  for(UInt uiIter = 0; uiIter < HHI_NUM_MRG_CAND; uiIter++ )
+  for(UInt uiIter = 0; uiIter < MRG_MAX_NUM_CANDS; uiIter++ )
   {
     if( pcCU->getNeighbourCandIdx( uiIter, uiAbsPartIdx ) == uiIter + 1 )
     {
@@ -527,7 +554,7 @@ Void TEncSbac::codeMergeFlag( TComDataCU* pcCU, UInt uiAbsPartIdx )
   DTRACE_CABAC_V( pcCU->getAddr() );
   DTRACE_CABAC_T( "\tuiAbsPartIdx: " );
   DTRACE_CABAC_V( uiAbsPartIdx );
-  for( UInt ui = 0; ui < HHI_NUM_MRG_CAND; ui++ )
+  for( UInt ui = 0; ui < MRG_MAX_NUM_CANDS; ui++ )
   {
     DTRACE_CABAC_T( "\tNumMrgCand: " );
     DTRACE_CABAC_V( ui );
@@ -537,6 +564,11 @@ Void TEncSbac::codeMergeFlag( TComDataCU* pcCU, UInt uiAbsPartIdx )
   DTRACE_CABAC_T( "\n" );
 }
 
+/** code merge index
+ * \param pcCU
+ * \param uiAbsPartIdx 
+ * \returns Void
+ */
 Void TEncSbac::codeMergeIndex( TComDataCU* pcCU, UInt uiAbsPartIdx )
 {
   Bool bLeftInvolved = false;
@@ -545,7 +577,7 @@ Void TEncSbac::codeMergeIndex( TComDataCU* pcCU, UInt uiAbsPartIdx )
   Bool bCornerInvolved = false;
   Bool bCornerBLInvolved = false;
   UInt uiNumCand = 0;
-  for( UInt uiIter = 0; uiIter < HHI_NUM_MRG_CAND; ++uiIter )
+  for( UInt uiIter = 0; uiIter < MRG_MAX_NUM_CANDS; ++uiIter )
   {
     if( pcCU->getNeighbourCandIdx( uiIter, uiAbsPartIdx ) == uiIter + 1 )
     {
