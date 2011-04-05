@@ -219,8 +219,14 @@
 // MQT (MEDIATEK, QUALCOMM, TOSHIBA) defines section start
 /////////////////////////////////
 
-
+////////////////////////////////////
+// Panasonic defines section start
+////////////////////////////////////
 #define PANASONIC_PARALLEL_DEBLOCKING_DECISIONS 1
+#define REFERENCE_SAMPLE_PADDING                1   // JCTVC-E488 (Ericsson, HiSilicon, NEC, Panasonic): padding of unavailable reference samples for intra prediction
+////////////////////////////////////
+// Panasonic defines section end
+////////////////////////////////////
 
 // ====================================================================================================================
 // Basic type redefinition

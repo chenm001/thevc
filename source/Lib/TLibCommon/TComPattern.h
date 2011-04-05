@@ -160,13 +160,28 @@ public:
                                Bool&       bAbove,
                                Bool&       bLeft );
 
-#if CONSTRAINED_INTRA_PRED
+#if (CONSTRAINED_INTRA_PRED || REFERENCE_SAMPLE_PADDING)
 private:
-  Bool  isLeftAvailableForCIP       ( TComDataCU* pcCU, UInt uiPartIdxLT, UInt uiPartIdxLB );
-  Bool  isAboveAvailableForCIP      ( TComDataCU* pcCU, UInt uiPartIdxLT, UInt uiPartIdxRT );
+
+#if REFERENCE_SAMPLE_PADDING
+  /// padding of unavailable reference samples for intra prediction
+  Void  fillReferenceSamples        ( TComDataCU* pcCU, Pel* piRoiOrigin, Int* piAdiTemp, Bool* bNeighborFlags, Int iNumIntraNeighbor, Int iUnitSize, Int iNumUnitsInCu, Int iTotalUnits, UInt uiCuWidth, UInt uiCuHeight, UInt uiWidth, UInt uiHeight, Int iPicStride);
+#endif
+#if CONSTRAINED_INTRA_PRED
+  /// constrained intra prediction
   Bool  isAboveLeftAvailableForCIP  ( TComDataCU* pcCU, UInt uiPartIdxLT );
+#if REFERENCE_SAMPLE_PADDING
+  Int   isAboveAvailableForCIP      ( TComDataCU* pcCU, UInt uiPartIdxLT, UInt uiPartIdxRT, Bool* bValidFlags );
+  Int   isLeftAvailableForCIP       ( TComDataCU* pcCU, UInt uiPartIdxLT, UInt uiPartIdxLB, Bool* bValidFlags );
+  Int   isAboveRightAvailableForCIP ( TComDataCU* pcCU, UInt uiPartIdxLT, UInt uiPartIdxRT, Bool* bValidFlags );
+  Int   isBelowLeftAvailableForCIP  ( TComDataCU* pcCU, UInt uiPartIdxLT, UInt uiPartIdxLB, Bool* bValidFlags );
+#else
+  Bool  isAboveAvailableForCIP      ( TComDataCU* pcCU, UInt uiPartIdxLT, UInt uiPartIdxRT );
+  Bool  isLeftAvailableForCIP       ( TComDataCU* pcCU, UInt uiPartIdxLT, UInt uiPartIdxLB );
   Bool  isAboveRightAvailableForCIP ( TComDataCU* pcCU, UInt uiPartIdxLT, UInt uiPartIdxRT );
   Bool  isBelowLeftAvailableForCIP  ( TComDataCU* pcCU, UInt uiPartIdxLT, UInt uiPartIdxLB );
+#endif
+#endif // CONSTRAINED_INTRA_PRED
 #endif
 };
 
