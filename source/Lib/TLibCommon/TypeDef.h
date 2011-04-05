@@ -102,7 +102,7 @@
 #define PANASONIC_AMVPTEMPORALMOD         1           ///< (JCTVC-E481 - D125 2.4' / D274 3')
 #define AMVP_BUFFERCOMPRESS               1           ///< motion vector buffer compression
 #define AMVP_DECIMATION_FACTOR            4
-#define MV_COMPRESS_MODE_REFIDX           0           ///< (JCTVC-E147) compress all inter prediction parameters according to 1)
+#define MV_COMPRESS_MODE_REFIDX           1           ///< (JCTVC-E147) compress all inter prediction parameters according to 1)
 
 //////////////////////////////
 // Nokia defines section start
