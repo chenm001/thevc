@@ -275,6 +275,11 @@
 #define PANASONIC_PARALLEL_DEBLOCKING_DECISIONS 1
 #define REFERENCE_SAMPLE_PADDING                1   // JCTVC-E488 (Ericsson, HiSilicon, NEC, Panasonic): padding of unavailable reference samples for intra prediction
 
+#define E243_CORE_TRANSFORMS                    1
+#if E243_CORE_TRANSFORMS
+#define MATRIX_MULT                             0   // Brute force matrix multiplication instead of partial butterfly
+#endif
+
 // ====================================================================================================================
 // Basic type redefinition
 // ====================================================================================================================
