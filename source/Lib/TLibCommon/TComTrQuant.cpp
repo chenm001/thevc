@@ -448,7 +448,7 @@ void xITr(Long *coeff, Pel *block, UInt uiStride, UInt uiTrSize)
  *  \param coeff output data (transform coefficients)
  *  \param shift specifies right shift after 1D transform
  */
-void partial_butterfly4(short block[4][4],short coeff[4][4],int shift)
+void partialButterfly4(short block[4][4],short coeff[4][4],int shift)
 {
   int j;  
   int E[2],O[2];
@@ -483,8 +483,8 @@ void xTr4(short block[4][4],short coeff[4][4])
   int shift_2nd = 8;                    // log2(4) + 6
   short tmp[4][4]; 
 
-  partial_butterfly4(block,tmp,shift_1st);
-  partial_butterfly4(tmp,coeff,shift_2nd);
+  partialButterfly4(block,tmp,shift_1st);
+  partialButterfly4(tmp,coeff,shift_2nd);
 }
 
 /** 4x4 inverse transform implemented using partial butterfly structure (1D)
@@ -492,7 +492,7 @@ void xTr4(short block[4][4],short coeff[4][4])
  *  \param block output data (residual)
  *  \param shift specifies right shift after 1D transform
  */
-void partial_butterfly_inverse4(short tmp[4][4],short block[4][4],int shift)
+void partialButterflyInverse4(short tmp[4][4],short block[4][4],int shift)
 {
   int j;    
   int E[2],O[2];
@@ -528,8 +528,8 @@ void xITr4(short coeff[4][4],short block[4][4])
 #endif
   short tmp[4][4];
   
-  partial_butterfly_inverse4(coeff,tmp,shift_1st);
-  partial_butterfly_inverse4(tmp,block,shift_2nd);
+  partialButterflyInverse4(coeff,tmp,shift_1st);
+  partialButterflyInverse4(tmp,block,shift_2nd);
 }
 
 /** 8x8 forward transform implemented using partial butterfly structure (1D)
@@ -537,7 +537,7 @@ void xITr4(short coeff[4][4],short block[4][4])
  *  \param coeff output data (transform coefficients)
  *  \param shift specifies right shift after 1D transform
  */
-void partial_butterfly8(short block[8][8],short coeff[8][8],int shift)
+void partialButterfly8(short block[8][8],short coeff[8][8],int shift)
 {
   int j,k;  
   int E[4],O[4];
@@ -584,8 +584,8 @@ void xTr8(short block[8][8],short coeff[8][8])
   int shift_2nd = 9;                    // log2(8) + 6
   short tmp[8][8]; 
 
-  partial_butterfly8(block,tmp,shift_1st);
-  partial_butterfly8(tmp,coeff,shift_2nd);
+  partialButterfly8(block,tmp,shift_1st);
+  partialButterfly8(tmp,coeff,shift_2nd);
 }
 
 /** 8x8 inverse transform implemented using partial butterfly structure (1D)
@@ -593,7 +593,7 @@ void xTr8(short block[8][8],short coeff[8][8])
  *  \param block output data (residual)
  *  \param shift specifies right shift after 1D transform
  */
-void partial_butterfly_inverse8(short tmp[8][8],short block[8][8],int shift)
+void partialButterflyInverse8(short tmp[8][8],short block[8][8],int shift)
 {
   int j,k;    
   int E[4],O[4];
@@ -640,8 +640,8 @@ void xITr8(short coeff[8][8],short block[8][8])
 #endif
   short tmp[8][8];
   
-  partial_butterfly_inverse8(coeff,tmp,shift_1st);
-  partial_butterfly_inverse8(tmp,block,shift_2nd);
+  partialButterflyInverse8(coeff,tmp,shift_1st);
+  partialButterflyInverse8(tmp,block,shift_2nd);
 }
 
 /** 16x16 forward transform implemented using partial butterfly structure (1D)
@@ -649,7 +649,7 @@ void xITr8(short coeff[8][8],short block[8][8])
  *  \param coeff output data (transform coefficients)
  *  \param shift specifies right shift after 1D transform
  */
-void partial_butterfly16(short block[16][16],short coeff[16][16],int shift)
+void partialButterfly16(short block[16][16],short coeff[16][16],int shift)
 {
   int j,k;
   int E[8],O[8];
@@ -710,8 +710,8 @@ void xTr16(short block[16][16],short coeff[16][16])
   int shift_2nd = 10;                   // log2(16) + 6
   short tmp[16][16]; 
 
-  partial_butterfly16(block,tmp,shift_1st);
-  partial_butterfly16(tmp,coeff,shift_2nd);
+  partialButterfly16(block,tmp,shift_1st);
+  partialButterfly16(tmp,coeff,shift_2nd);
 }
 
 /** 16x16 inverse transform implemented using partial butterfly structure (1D)
@@ -719,7 +719,7 @@ void xTr16(short block[16][16],short coeff[16][16])
  *  \param block output data (residual)
  *  \param shift specifies right shift after 1D transform
  */
-void partial_butterfly_inverse16(short tmp[16][16],short block[16][16],int shift)
+void partialButterflyInverse16(short tmp[16][16],short block[16][16],int shift)
 {
   int j,k;  
   int E[8],O[8];
@@ -777,8 +777,8 @@ void xITr16(short coeff[16][16],short block[16][16])
 #endif
   short tmp[16][16];
   
-  partial_butterfly_inverse16(coeff,tmp,shift_1st);
-  partial_butterfly_inverse16(tmp,block,shift_2nd);
+  partialButterflyInverse16(coeff,tmp,shift_1st);
+  partialButterflyInverse16(tmp,block,shift_2nd);
 }
 
 /** 32x32 forward transform implemented using partial butterfly structure (1D)
@@ -786,7 +786,7 @@ void xITr16(short coeff[16][16],short block[16][16])
  *  \param coeff output data (transform coefficients)
  *  \param shift specifies right shift after 1D transform
  */
-void partial_butterfly32(short block[32][32],short coeff[32][32],int shift)
+void partialButterfly32(short block[32][32],short coeff[32][32],int shift)
 {
   int j,k;
   int E[16],O[16];
@@ -858,8 +858,8 @@ void xTr32(short block[32][32],short coeff[32][32])
   int shift_2nd = 11;                   // log2(32) + 6
   short tmp[32][32]; 
 
-  partial_butterfly32(block,tmp,shift_1st);
-  partial_butterfly32(tmp,coeff,shift_2nd);
+  partialButterfly32(block,tmp,shift_1st);
+  partialButterfly32(tmp,coeff,shift_2nd);
 }
 
 /** 32x32 inverse transform implemented using partial butterfly structure (1D)
@@ -867,7 +867,7 @@ void xTr32(short block[32][32],short coeff[32][32])
  *  \param block output data (residual)
  *  \param shift specifies right shift after 1D transform
  */
-void partial_butterfly_inverse32(short tmp[32][32],short block[32][32],int shift)
+void partialButterflyInverse32(short tmp[32][32],short block[32][32],int shift)
 {
   int j,k;  
   int E[16],O[16];
@@ -937,8 +937,8 @@ void xITr32(short coeff[32][32],short block[32][32])
 #endif
   short tmp[32][32];
   
-  partial_butterfly_inverse32(coeff,tmp,shift_1st);
-  partial_butterfly_inverse32(tmp,block,shift_2nd);
+  partialButterflyInverse32(coeff,tmp,shift_1st);
+  partialButterflyInverse32(tmp,block,shift_2nd);
 }
 #endif //MATRIX_MULT
 #else //E243_CORE_TRANSFORMS
@@ -2495,12 +2495,14 @@ Void TComTrQuant::xRateDistOptQuant_LCEC(TComDataCU* pcCU, Long* pSrcCoeff, TCoe
   Double  OneOverNormFact = 0.0;
   Double  fTemp = 0.0;
   Int     iQuantCoeff;
-  Bool    bExt8x8Flag = false;
-  Int     iShiftQBits, iSign, iRate, lastPosMin, iBlockType;
+  
 #if E243_CORE_TRANSFORMS
+  Int     iShiftQBits, iSign, iRate, lastPosMin, iBlockType;
   UInt    uiBitShift = SCALE_BITS, uiScanPos, levelInd;
   Int     levelBest, iLevel;
 #else
+  Bool    bExt8x8Flag = false;
+  Int     iShiftQBits, iSign, iRate, lastPosMin, iBlockType;
   UInt    uiBitShift = 15, uiScanPos, levelInd;
   Int     levelBest, iLevel, iAdd;
 #endif
@@ -3229,8 +3231,6 @@ Void TComTrQuant::xQuantLTR  (TComDataCU* pcCU, Long* pSrc, TCoeff*& pDes, Int i
 {
   Long*   piCoef    = pSrc;
   TCoeff* piQCoef   = pDes;
-  UInt* piQuantCoef = NULL;
-  Int   iNewBits    = 0;
   Int   iAdd = 0;
   
 #if E243_CORE_TRANSFORMS
@@ -3297,6 +3297,8 @@ Void TComTrQuant::xQuantLTR  (TComDataCU* pcCU, Long* pSrc, TCoeff*& pDes, Int i
 
 #else //E243_CORE_TRANSFORMS
 
+  UInt* piQuantCoef = NULL;
+  Int   iNewBits    = 0;
   switch(iWidth)
   {
     case 2:
@@ -3409,7 +3411,6 @@ Void TComTrQuant::xQuantLTR  (TComDataCU* pcCU, Long* pSrc, TCoeff*& pDes, Int i
 
 Void TComTrQuant::xDeQuantLTR( TCoeff* pSrc, Long*& pDes, Int iWidth, Int iHeight )
 {
-  UInt* piDeQuantCoef = NULL;
   
   TCoeff* piQCoef   = pSrc;
   Long*   piCoef    = pDes;
@@ -3441,7 +3442,7 @@ Void TComTrQuant::xDeQuantLTR( TCoeff* pSrc, Long*& pDes, Int iWidth, Int iHeigh
     piCoef[n] = Clip3(-32768,32767,iCoeffQ);
   } 
 #else
-
+  UInt* piDeQuantCoef = NULL;
   switch(iWidth)
   {
     case 2:
@@ -5268,12 +5269,7 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
                                                       TextType                        eTType,
                                                       UInt                            uiAbsPartIdx )
 {
-  Bool   bExt8x8Flag = false;
-  Bool   b64Flag     = false;
-  Int    iQuantCoeff = 0;
-  Int    iQpRem      = m_cQP.m_iRem;
   Int    iQBits      = m_cQP.m_iBits;
-  Double dNormFactor = 0;
   Double dTemp       = 0;
   
 #if E243_CORE_TRANSFORMS
@@ -5293,7 +5289,11 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
 
   iQBits = QUANT_SHIFT + m_cQP.m_iPer + iTransformShift;                   // Right shift of non-RDOQ quantizer;  level = (coeff*uiQ + offset)>>q_bits
 #else
-
+  Bool   b64Flag     = false;
+  Int    iQuantCoeff = 0;
+  Int    iQpRem      = m_cQP.m_iRem;
+  Bool   bExt8x8Flag = false;
+  Double dNormFactor = 0;
   if( uiWidth == 4 && uiHeight == 4 )
   {
     dNormFactor = pow( 2., ( 2 * DQ_BITS + 19 ) );
@@ -5395,15 +5395,15 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
 #else
     UInt    uiBlkPos = g_auiFrameScanXY[ uiLog2BlkSize-1 ][ uiScanPos ];
 #endif
-    UInt    uiPosY   = uiBlkPos >> uiLog2BlkSize;
-    UInt    uiPosX   = uiBlkPos - ( uiPosY << uiLog2BlkSize );
+
     Long lLevelDouble = plSrcCoeff[ uiBlkPos ];
 
 #if E243_CORE_TRANSFORMS
     dTemp = dErrScale;  
     lLevelDouble = abs(lLevelDouble * (Long)uiQ);   
 #else 
-    
+    UInt    uiPosY   = uiBlkPos >> uiLog2BlkSize;
+    UInt    uiPosX   = uiBlkPos - ( uiPosY << uiLog2BlkSize );
     if      ( uiWidth == 4 ) dTemp = estErr4x4[ iQpRem ][ uiPosX ][ uiPosY ] / dNormFactor;
     else if ( uiWidth == 8 ) dTemp = estErr8x8[ iQpRem ][ uiPosX ][ uiPosY ] / dNormFactor;
     
