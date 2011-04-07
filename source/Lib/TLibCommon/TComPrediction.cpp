@@ -309,6 +309,11 @@ Void TComPrediction::predIntraLumaAng(TComPattern* pcTComPattern, UInt uiDirMode
 
   // Create the prediction
   xPredIntraAng( ptrSrc+sw+1, sw, pDst, uiStride, iWidth, iHeight, uiDirMode, bAbove,  bLeft );
+
+#if MN_DC_PRED_FILTER
+  if ((uiDirMode == 0) && pcTComPattern->getDCPredFilterFlag())
+    xDCPredFiltering( ptrSrc+sw+1, sw, pDst, uiStride, iWidth, iHeight);
+#endif
 }
 
 // Angular chroma
@@ -1013,5 +1018,69 @@ Void TComPrediction::xPredIntraPlanar( Int* pSrc, Int srcStride, Pel*& rpDst, In
       rpDst[k*dstStride+l] = ( (horPred + topRow[l]) >> shift2D );
     }
   }
+}
+#endif
+
+#if MN_DC_PRED_FILTER
+Void TComPrediction::xDCPredFiltering( Int* pSrc, Int iSrcStride, Pel*& rpDst, Int iDstStride, Int iWidth, Int iHeight )
+{
+  Pel* pDst = rpDst;
+  Int x, y, iDstStride2, iSrcStride2;
+  Int iIntraSizeIdx = g_aucConvertToBit[ iWidth ] + 1;
+  static const UChar g_aucDCPredFilter[7] = { 0, 3, 2, 1, 0, 0, 0};
+
+  switch (g_aucDCPredFilter[iIntraSizeIdx])
+  {
+  case 0:
+    {}
+    break;
+  case 1:
+    {
+      // boundary pixels processing
+      pDst[0] = (Pel)Clip((pSrc[-iSrcStride] + pSrc[-1] + (pDst[0] << 2) + (pDst[0] << 1) + 4) >> 3);
+
+      for ( x = 1; x < iWidth; x++ )
+        pDst[x] = (Pel)Clip((pSrc[x - iSrcStride] + (pDst[x] << 2) + (pDst[x] << 1) + pDst[x] + 4) >> 3);
+
+      for ( y = 1, iDstStride2 = iDstStride, iSrcStride2 = iSrcStride-1; y < iHeight; y++, iDstStride2+=iDstStride, iSrcStride2+=iSrcStride )
+        pDst[iDstStride2] = (Pel)Clip((pSrc[iSrcStride2] + (pDst[iDstStride2] << 2) + (pDst[iDstStride2] << 1) + pDst[iDstStride2] + 4) >> 3);
+    }
+    break;
+  case 2:
+    {
+      // boundary pixels processing
+      pDst[0] = (Pel)Clip((pSrc[-iSrcStride] + pSrc[-1] + (pDst[0] << 1) + 2) >> 2);
+
+      for ( x = 1; x < iWidth; x++ )
+        pDst[x] = (Pel)Clip((pSrc[x - iSrcStride] + (pDst[x] << 1) + pDst[x] + 2) >> 2);
+
+      for ( y = 1, iDstStride2 = iDstStride, iSrcStride2 = iSrcStride-1; y < iHeight; y++, iDstStride2+=iDstStride, iSrcStride2+=iSrcStride )
+        pDst[iDstStride2] = (Pel)Clip((pSrc[iSrcStride2] + (pDst[iDstStride2] << 1) + pDst[iDstStride2] + 2) >> 2);
+    }
+    break;
+  case 3:
+    {
+      Int tmp;
+
+      // boundary pixels processing
+      tmp = pSrc[-iSrcStride] + pSrc[-1];
+      pDst[0] = (Pel)Clip((tmp + ((tmp + pDst[0]) << 1) + 4) >> 3);
+
+      for ( x = 1; x < iWidth; x++ )
+      {
+        tmp = pSrc[x - iSrcStride] + pDst[x];
+        pDst[x] = (Pel)Clip((tmp + ((tmp + pDst[x]) << 1) + 4) >> 3);
+      }
+
+      for ( y = 1, iDstStride2 = iDstStride, iSrcStride2 = iSrcStride-1; y < iHeight; y++, iDstStride2+=iDstStride, iSrcStride2+=iSrcStride )
+      {
+        tmp = pDst[iDstStride2] + pSrc[iSrcStride2];
+        pDst[iDstStride2] = (Pel)Clip((tmp + ((tmp + pDst[iDstStride2]) << 1) + 4) >> 3);
+      }
+    }
+    break;
+  }
+
+  return;
 }
 #endif

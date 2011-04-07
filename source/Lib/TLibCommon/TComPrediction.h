@@ -89,6 +89,10 @@ protected:
   Void xDCTIF_FilterC_ha ( Pel*  piRefC, Int iRefStride,Pel*  piDstC,Int iDstStride,Int iWidth, Int iHeight,Int iMVyFrac,Int iMVxFrac);
 #endif
 
+#if MN_DC_PRED_FILTER
+  Void xDCPredFiltering( Int* pSrc, Int iSrcStride, Pel*& rpDst, Int iDstStride, Int iWidth, Int iHeight );
+#endif
+
 public:
   TComPrediction();
   virtual ~TComPrediction();

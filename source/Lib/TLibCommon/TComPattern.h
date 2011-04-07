@@ -102,7 +102,12 @@ private:
   TComPatternParam  m_cPatternY;
   TComPatternParam  m_cPatternCb;
   TComPatternParam  m_cPatternCr;
-  
+#if MN_DC_PRED_FILTER
+  Bool m_bAboveFlagForDCFilt;
+  Bool m_bLeftFlagForDCFilt;
+  Bool m_bDCPredFilterFlag;
+#endif
+
 public:
   
   // ROI & pattern information, (ROI = &pattern[AboveOffset][LeftOffset])
@@ -110,7 +115,10 @@ public:
   Int   getROIYWidth()            { return m_cPatternY.m_iROIWidth;       }
   Int   getROIYHeight()           { return m_cPatternY.m_iROIHeight;      }
   Int   getPatternLStride()       { return m_cPatternY.m_iPatternStride;  }
-  
+#if MN_DC_PRED_FILTER
+  Bool  getDCPredFilterFlag()     { return m_bDCPredFilterFlag; }
+#endif
+
   // access functions of ADI buffers
   Int*  getAdiOrgBuf              ( Int iCuWidth, Int iCuHeight, Int* piAdiBuf );
   Int*  getAdiCbBuf               ( Int iCuWidth, Int iCuHeight, Int* piAdiBuf );
