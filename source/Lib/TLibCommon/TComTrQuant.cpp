@@ -3269,6 +3269,12 @@ Void TComTrQuant::xQuantLTR  (TComDataCU* pcCU, Long* pSrc, TCoeff*& pDes, Int i
       iSign   = (iLevel < 0 ? -1: 1);      
 
       iLevel = (abs(iLevel) * uiQ + iAdd ) >> iQBits;
+#if CAVLC_COEF_LRG_BLK
+      if (m_iSymbolMode == 0 && n>=64 && eTType != TEXT_LUMA)
+      {
+        iLevel = 0;
+      }
+#else
       if (m_iSymbolMode == 0 && iWidth>8)
       {
         /* Two methods of limiting number of encoded coefficients to 8x8 for intra and inter respectively */
@@ -3281,6 +3287,7 @@ Void TComTrQuant::xQuantLTR  (TComDataCU* pcCU, Long* pSrc, TCoeff*& pDes, Int i
           if ((uiBlockPos%iWidth)>=8 || (uiBlockPos/iWidth)>=8) iLevel = 0;
         }
       }
+#endif
       uiAcSum += iLevel;
       iLevel *= iSign;        
       piQCoef[uiBlockPos] = iLevel;
