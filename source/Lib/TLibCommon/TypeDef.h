@@ -275,9 +275,9 @@
 // MN(MITSUBISHI&NHK) defines section start
 /////////////////////////////////
 #if QC_MDIS
-#define MN_MDIS_SIMPLIFICATION       1       // JCTVC-E069: simplification of MDIS
+#define MN_MDIS_SIMPLIFICATION       1       ///< JCTVC-E069: simplification of MDIS
 #endif
-#define MN_DC_PRED_FILTER            1       // JCTVC-E069: DC prediction samples filtering
+#define MN_DC_PRED_FILTER            1       ///< JCTVC-E069: DC prediction samples filtering
 /////////////////////////////////
 // MN(MITSUBISHI&NHK) defines section end
 /////////////////////////////////
