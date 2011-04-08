@@ -1030,6 +1030,17 @@ Void TComPrediction::xPredIntraPlanar( Int* pSrc, Int srcStride, Pel*& rpDst, In
 #endif
 
 #if LM_CHROMA
+/** Function for deriving chroma LM intra prediction.
+ * \param pcPattern pointer to neighbouring pixel access pattern
+ * \param pSrc pointer to reconstructed chroma sample array
+ * \param pPred pointer for the prediction sample array
+ * \param uiPredStride the stride of the prediction sample array
+ * \param uiCWidth the width of the chroma block
+ * \param uiCHeight the height of the chroma block
+ * \param uiChromaId boolean indication of chroma component
+
+ \ This function derives the prediction samples for chroma LM mode (chroma intra coding)
+ */
 Void TComPrediction::predLMIntraChroma( TComPattern* pcPattern, Int* piSrc, Pel* pPred, UInt uiPredStride, UInt uiCWidth, UInt uiCHeight, UInt uiChromaId )
 {
   UInt uiWidth  = uiCWidth << 1;
@@ -1040,6 +1051,18 @@ Void TComPrediction::predLMIntraChroma( TComPattern* pcPattern, Int* piSrc, Pel*
 
   xGetLLSPrediction( pcPattern, piSrc+uiWidth+2, uiWidth+1, pPred, uiPredStride, uiCWidth, uiCHeight, 1 );  
 }
+
+/** Function for deriving downsampled luma sample of current chroma block and its above, left causal pixel
+ * \param pcPattern pointer to neighbouring pixel access pattern
+ * \param pRecSrc pointer to reconstructed luma sample array
+ * \param iRecSrcStride the stride of reconstructed luma sample array
+ * \param pDst0 pointer to downsampled luma sample array
+ * \param iDstStride the stride of downsampled luma sample array
+ * \param uiWidth0 the width of the luma block
+ * \param uiHeight0 the height of the luma block
+
+ \ This function derives downsampled luma sample of current chroma block and its above, left causal pixel
+ */
 
 Void TComPrediction::xGetRecPixels( TComPattern* pcPattern, Pel* pRecSrc, Int iRecSrcStride, Pel* pDst0, Int iDstStride, UInt uiWidth0, UInt uiHeight0 )
 {
@@ -1075,6 +1098,10 @@ Void TComPrediction::xGetRecPixels( TComPattern* pcPattern, Pel* pRecSrc, Int iR
     }  
 }
 
+/** Function for deriving the positon of first non-zero binary bit of a value
+ * \param x input value
+ \ This function derives the positon of first non-zero binary bit of a value
+ */
 Int GetMSB( UInt x )
 {
 #if 1
@@ -1107,6 +1134,18 @@ Int GetMSB( UInt x )
   return iMSB;
 }
 
+/** Function for deriving LM intra prediction.
+ * \param pcPattern pointer to neighbouring pixel access pattern
+ * \param pSrc0 pointer to reconstructed chroma sample array
+ * \param iSrcStride the stride of reconstructed chroma sample array
+ * \param pDst0 reference to pointer for the prediction sample array
+ * \param iDstStride the stride of the prediction sample array
+ * \param uiWidth the width of the chroma block
+ * \param uiHeight the height of the chroma block
+ * \param uiExt0 line number of neiggboirng pixels for calculating LM model parameter, default value is 1
+
+ \ This function derives the prediction samples for chroma LM mode (chroma intra coding)
+ */
 Void TComPrediction::xGetLLSPrediction( TComPattern* pcPattern, Int* pSrc0, Int iSrcStride, Pel* pDst0, Int iDstStride, UInt uiWidth, UInt uiHeight, UInt uiExt0 )
 {
 

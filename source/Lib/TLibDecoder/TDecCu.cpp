@@ -733,6 +733,17 @@ TDecCu::xReconIntraQT( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
 }
 
 #if LM_CHROMA
+
+/** Funtion for deriving recontructed PU/CU Luma sample with QTree structure
+ * \param pcCU pointer of current CU
+ * \param uiTrDepth current tranform split depth
+ * \param uiAbsPartIdx  part index
+ * \param pcRecoYuv pointer to reconstructed sample arrays
+ * \param pcPredYuv pointer to prediction sample arrays
+ * \param pcResiYuv pointer to residue sample arrays
+ * 
+ \ This function dervies recontructed PU/CU Luma sample with recursive QTree structure
+ */
 Void
 TDecCu::xIntraLumaRecQT( TComDataCU* pcCU,
                      UInt        uiTrDepth,
@@ -757,6 +768,16 @@ TDecCu::xIntraLumaRecQT( TComDataCU* pcCU,
   }
 }
 
+/** Funtion for deriving recontructed PU/CU chroma samples with QTree structure
+ * \param pcCU pointer of current CU
+ * \param uiTrDepth current tranform split depth
+ * \param uiAbsPartIdx  part index
+ * \param pcRecoYuv pointer to reconstructed sample arrays
+ * \param pcPredYuv pointer to prediction sample arrays
+ * \param pcResiYuv pointer to residue sample arrays
+ * 
+ \ This function dervies recontructed PU/CU chroma samples with QTree recursive structure
+ */
 Void
 TDecCu::xIntraChromaRecQT( TComDataCU* pcCU,
                      UInt        uiTrDepth,

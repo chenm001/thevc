@@ -63,9 +63,9 @@ protected:
   TComYuv   m_cYuvExt;
   
 #if LM_CHROMA
-  Pel*   m_pLumaRecBuffer;      
+  Pel*   m_pLumaRecBuffer;       // array for downsampled reconstructed luma sample 
   Int    m_iLumaRecStride;
-  UInt   m_uiaShift[ 65 ];
+  UInt   m_uiaShift[ 65 ];       // Table for multiplication to substitue of division operation
 #endif
 
   Void xPredIntraAng            ( Int* pSrc, Int srcStride, Pel*& rpDst, Int dstStride, UInt width, UInt height, UInt dirMode, Bool blkAboveAvailable, Bool blkLeftAvailable );
