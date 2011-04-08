@@ -88,6 +88,26 @@ extern       UInt g_uiAddCUDepth;
 
 extern       UInt g_auiPUOffset[4];
 
+#if E243_CORE_TRANSFORMS
+#define QUANT_IQUANT_SHIFT    20 // Q(QP%6) * IQ(QP%6) = 2^20
+#define QUANT_SHIFT           14 // Q(4) = 2^14
+#define SCALE_BITS            15 // Inherited from TMuC, pressumably for fractional bit estimates in RDOQ
+#define MAX_TR_DYNAMIC_RANGE  15 // Maximum transform dynamic range (excluding sign bit)
+
+#define SHIFT_INV_1ST          7 // Shift after first inverse transform stage
+#define SHIFT_INV_2ND         12 // Shift after second inverse transform stage
+
+extern UInt g_auiQ[6];             // Q(QP%6)  
+extern UInt g_auiIQ[6];            // IQ(QP%6)
+extern const short g_aiT4[4][4];
+extern const short g_aiT8[8][8];
+extern const short g_aiT16[16][16];
+extern const short g_aiT32[32][32];
+
+
+
+#endif
+
 // ====================================================================================================================
 // Quantization & DeQuantization
 // ====================================================================================================================
