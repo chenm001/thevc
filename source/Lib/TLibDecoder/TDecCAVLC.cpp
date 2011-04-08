@@ -127,6 +127,10 @@ Void TDecCavlc::parseSPS(TComSPS* pcSPS)
   xReadFlag( uiCode ); pcSPS->setUseLDC ( uiCode ? true : false );
   xReadFlag( uiCode ); pcSPS->setUseMRG ( uiCode ? true : false ); // SOPH:
   
+#if LM_CHROMA 
+  xReadFlag( uiCode ); pcSPS->setUseLMChroma ( uiCode ? true : false ); 
+#endif
+
 #if HHI_RMP_SWITCH
   xReadFlag( uiCode ); pcSPS->setUseRMP( uiCode ? true : false );
 #endif
@@ -314,7 +318,10 @@ Void TDecCavlc::resetEntropy          (TComSlice* pcSlice)
   
   ::memcpy(m_uiBlkCBPTableD,     g_auiBlkCBPTableD,     2*15*sizeof(UInt));
   m_uiBlkCbpVlcIdx = 0;
-  
+
+#if UNIFY_INTER_TABLE
+  ::memcpy(m_uiMI1TableD, g_auiComMI1TableD, 9*sizeof(UInt));
+#else  
   ::memcpy(m_uiMI1TableD,        g_auiMI1TableD,        8*sizeof(UInt));
   ::memcpy(m_uiMI2TableD,        g_auiMI2TableD,        15*sizeof(UInt));
   
@@ -351,6 +358,7 @@ Void TDecCavlc::resetEntropy          (TComSlice* pcSlice)
     m_uiMI1TableD[8] = m_uiMI1TableD[6];
     m_uiMI1TableD[6] = 8;
   }
+#endif
 #endif
   
 #if LCEC_INTRA_MODE
@@ -1032,6 +1040,37 @@ Void TDecCavlc::parseIntraDirChroma( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt u
     uiMode = 4;
   }
 #endif
+#if LM_CHROMA
+  Int  iMaxMode = pcCU->getSlice()->getSPS()->getUseLMChroma() ? 3 : 4;
+
+  Int  iMax = uiMode < iMaxMode ? 3 : 4; 
+
+  xReadUnaryMaxSymbol( uiSymbol, iMax );
+  
+  //switch codeword
+  if (uiSymbol == 0)
+  {
+    uiSymbol = 4;
+  }
+  else if (uiSymbol == 1 && pcCU->getSlice()->getSPS()->getUseLMChroma())
+  {
+    uiSymbol = 3;
+  }
+  else
+  {
+#if CHROMA_CODEWORD_SWITCH 
+    uiSymbol = ChromaMapping[iMax-3][uiSymbol];
+#endif
+
+    if (pcCU->getSlice()->getSPS()->getUseLMChroma())
+       uiSymbol --;
+
+    if (uiSymbol <= uiMode)
+       uiSymbol --;
+  }
+
+#else // -- LM_CHROMA
+
   Int  iMax = uiMode < 4 ? 3 : 4;
   xReadUnaryMaxSymbol( uiSymbol, iMax );
   
@@ -1055,6 +1094,8 @@ Void TDecCavlc::parseIntraDirChroma( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt u
     uiSymbol --;
   }
 #endif
+#endif // --> LM_CHROMA
+
   //printf("uiMode %d, chroma %d, codeword %d, imax %d\n", uiMode, uiSymbol, uiRead, iMax);
 #else
   xReadFlag( uiSymbol );
@@ -1095,7 +1136,127 @@ Void TDecCavlc::parseIntraDirChroma( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt u
 Void TDecCavlc::parseInterDir( TComDataCU* pcCU, UInt& ruiInterDir, UInt uiAbsPartIdx, UInt uiDepth )
 {
   UInt uiSymbol;
-  
+
+#if UNIFY_INTER_TABLE
+#if DCM_COMB_LIST
+  UInt uiNumRefIdxOfLC = pcCU->getSlice()->getNumRefIdx(REF_PIC_LIST_C);
+#endif
+  #define min(a, b) (((a) < (b)) ? (a) : (b))
+#if DCM_COMB_LIST
+  UInt uiValNumRefIdxOfLC = min(4,pcCU->getSlice()->getNumRefIdx(REF_PIC_LIST_C));
+#endif
+  UInt uiValNumRefIdxOfL0 = min(2,pcCU->getSlice()->getNumRefIdx(REF_PIC_LIST_0));
+  UInt uiValNumRefIdxOfL1 = min(2,pcCU->getSlice()->getNumRefIdx(REF_PIC_LIST_1));
+
+  if ( pcCU->getSlice()->getRefIdxCombineCoding() )
+  {
+    UInt uiIndex,tmp;
+#if CAVLC_COUNTER_ADAPT
+    Int x,cx;
+#else
+    Int x,cx,y,cy;
+#endif
+    
+    UInt *m_uiMITableD = m_uiMI1TableD;
+
+    UInt uiMaxVal;
+#if DCM_COMB_LIST
+    if (uiNumRefIdxOfLC > 0)
+    {
+      uiMaxVal = uiValNumRefIdxOfLC + uiValNumRefIdxOfL0*uiValNumRefIdxOfL1;
+    }
+    else
+#endif
+    if (pcCU->getSlice()->getNoBackPredFlag())
+    {
+      uiMaxVal = uiValNumRefIdxOfL0 + uiValNumRefIdxOfL0*uiValNumRefIdxOfL1;
+    }
+    else
+    {
+      uiMaxVal = uiValNumRefIdxOfL0 + uiValNumRefIdxOfL1 + uiValNumRefIdxOfL0*uiValNumRefIdxOfL1;
+    }
+
+    xReadUnaryMaxSymbol( tmp, uiMaxVal );
+
+    x = m_uiMITableD[tmp];
+    uiIndex = x;
+    
+    /* Adapt table */
+    
+    cx = tmp;
+#if CAVLC_COUNTER_ADAPT
+    adaptCodeword(cx, m_ucMI1TableCounter,  m_ucMI1TableCounterSum,  m_uiMITableD,  NULL, 4 );
+#else
+    cy = Max(0,cx-1);  
+    y = m_uiMITableD[cy];
+    m_uiMITableD[cy] = x;
+    m_uiMITableD[cx] = y;
+    m_uiMITableVlcIdx += cx == m_uiMITableVlcIdx ? 0 : (cx < m_uiMITableVlcIdx ? -1 : 1);
+#endif
+    
+    if (uiIndex < uiMaxVal)
+    {
+#if DCM_COMB_LIST
+      if (uiNumRefIdxOfLC > 0)
+      {
+        if (uiIndex < uiValNumRefIdxOfLC)
+        {
+          ruiInterDir = 1;
+          m_iRefFrame0[uiAbsPartIdx] = uiIndex;
+        }
+        else
+        {
+          UInt uiTmp = uiIndex-uiValNumRefIdxOfLC;
+          ruiInterDir = 3;
+
+          m_iRefFrame0[uiAbsPartIdx] = uiTmp/uiValNumRefIdxOfL1; //uiValNumRefIdxOfL1 == 1 or 2, so division can be converted to shift op
+          m_iRefFrame1[uiAbsPartIdx] = uiTmp%uiValNumRefIdxOfL1;          
+        }
+      }
+      else
+#endif
+      if (pcCU->getSlice()->getNoBackPredFlag())
+      {
+        if (uiIndex < uiValNumRefIdxOfL0)
+        {
+          ruiInterDir = 1;
+          m_iRefFrame0[uiAbsPartIdx] = uiIndex;
+        }
+        else
+        {
+          UInt uiTmp = uiIndex-uiValNumRefIdxOfL0;
+          ruiInterDir = 3;
+
+          m_iRefFrame0[uiAbsPartIdx] = uiTmp/uiValNumRefIdxOfL1; //uiValNumRefIdxOfL1 == 1 or 2, so division can be converted to shift op
+          m_iRefFrame1[uiAbsPartIdx] = uiTmp%uiValNumRefIdxOfL1;          
+        }
+      }
+      else
+      {
+        if (uiIndex < uiValNumRefIdxOfL0)
+        {
+          ruiInterDir = 1;
+          m_iRefFrame0[uiAbsPartIdx] = uiIndex;
+        }
+        else if (uiIndex < uiValNumRefIdxOfL1)
+        {
+          ruiInterDir = 2;
+          m_iRefFrame1[uiAbsPartIdx] = uiIndex-uiValNumRefIdxOfL0;
+        }
+        else
+        {
+          UInt uiTmp = uiIndex-uiValNumRefIdxOfL0-uiValNumRefIdxOfL1;
+          ruiInterDir = 3;
+
+          m_iRefFrame0[uiAbsPartIdx] = uiTmp/uiValNumRefIdxOfL1; //uiValNumRefIdxOfL1 == 1 or 2, so division can be converted to shift op
+          m_iRefFrame1[uiAbsPartIdx] = uiTmp%uiValNumRefIdxOfL1;          
+        }
+      }
+
+      return;
+    }
+  }
+#else  //UNIFY_INTER_TABLE  
 #if MS_LCEC_LOOKUP_TABLE_EXCEPTION
   if ( pcCU->getSlice()->getRefIdxCombineCoding() )
 #else
@@ -1209,6 +1370,7 @@ Void TDecCavlc::parseInterDir( TComDataCU* pcCU, UInt& ruiInterDir, UInt uiAbsPa
       return;
     }
   }
+#endif //UNIFY_INTER_TABLE
   
 #if MS_LCEC_LOOKUP_TABLE_EXCEPTION
   m_iRefFrame0[uiAbsPartIdx] = 1000;

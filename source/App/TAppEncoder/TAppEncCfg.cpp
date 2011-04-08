@@ -193,6 +193,11 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
   
   /* Coding tools */
   ("MRG", m_bUseMRG, true, "merging of motion partitions")
+
+#if LM_CHROMA 
+  ("LMChroma", m_bUseLMChroma, true, "intra chroma prediction based on recontructed luma")
+#endif
+
   ("ALF", m_bUseALF, true, "Adaptive Loop Filter")
 #if MQT_ALF_NPASS
   ("ALFEncodePassReduction", m_iALFEncodePassReduction, 0, "0:Original 16-pass, 1: 1-pass, 2: 2-pass encoding")
@@ -537,6 +542,9 @@ Void TAppEncCfg::xPrintParameter()
   printf("FEN:%d ", m_bUseFastEnc         );
   printf("RQT:%d ", 1     );
   printf("MRG:%d ", m_bUseMRG             ); // SOPH: Merge Mode
+#if LM_CHROMA 
+  printf("LMC:%d ", m_bUseLMChroma        ); 
+#endif
 #if HHI_RMP_SWITCH
   printf("RMP:%d ", m_bUseRMP);
 #endif
@@ -573,6 +581,11 @@ Void TAppEncCfg::xPrintUsage()
   printf( "                   ASR - adaptive motion search range\n");
   printf( "                   FEN - fast encoder setting\n");  
   printf( "                   MRG - merging of motion partitions\n"); // SOPH: Merge Mode
+
+#if LM_CHROMA 
+  printf( "                   LMC - intra chroma prediction based on luma\n");
+#endif
+
   printf( "\n" );
   printf( "  Example 1) TAppEncoder.exe -c test.cfg -q 32 -g 8 -f 9 -s 64 -h 4\n");
   printf("              -> QP 32, hierarchical-B GOP 8, 9 frames, 64x64-8x8 CU (~4x4 PU)\n\n");

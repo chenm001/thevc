@@ -73,6 +73,10 @@ private:
   Bool        m_bUsePAD;
   Bool        m_bUseMRG; // SOPH:
 
+#if LM_CHROMA 
+  Bool        m_bUseLMChroma; // JL:
+#endif
+
 #if DCM_COMB_LIST
   Bool        m_bUseLComb;
   Bool        m_bLCMod;
@@ -159,6 +163,11 @@ public:
   Void setUseRMP     ( Bool b ) { m_bUseRMP = b;    }
 #endif
   
+#if LM_CHROMA 
+  Bool getUseLMChroma ()         { return m_bUseLMChroma;        }
+  Void setUseLMChroma ( Bool b ) { m_bUseLMChroma  = b;          }
+#endif
+
   // AMVP mode (for each depth)
   AMVP_MODE getAMVPMode ( UInt uiDepth ) { assert(uiDepth < g_uiMaxCUDepth);  return m_aeAMVPMode[uiDepth]; }
   Void      setAMVPMode ( UInt uiDepth, AMVP_MODE eMode) { assert(uiDepth < g_uiMaxCUDepth);  m_aeAMVPMode[uiDepth] = eMode; }

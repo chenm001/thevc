@@ -816,6 +816,40 @@ Void TEncSbac::codeIntraDirChroma( TComDataCU* pcCU, UInt uiAbsPartIdx )
     uiMode = 4;
   }
 #endif
+
+#if LM_CHROMA
+
+  Bool bUseLMFlag = pcCU->getSlice()->getSPS()->getUseLMChroma();
+
+  Int  iMaxMode = bUseLMFlag ? 3 : 4;
+
+  Int  iMax = uiMode < iMaxMode ? 2 : 3; 
+  
+  //switch codeword
+  if (uiIntraDirChroma == 4) 
+  {
+    uiIntraDirChroma = 0;
+  } 
+  else if (uiIntraDirChroma == 3 && bUseLMFlag )
+  {
+    uiIntraDirChroma = 1;
+  }
+  else
+  {
+    if (uiIntraDirChroma < uiMode)
+      uiIntraDirChroma++;
+
+    if (bUseLMFlag)
+      uiIntraDirChroma++;
+
+#if CHROMA_CODEWORD_SWITCH 
+    uiIntraDirChroma = ChromaMapping[iMax-2][uiIntraDirChroma];
+#endif
+
+  }
+
+
+#else // <-- LM_CHROMA
   Int  iMax = uiMode < 4 ? 2 : 3; 
   
   //switch codeword
@@ -834,6 +868,7 @@ Void TEncSbac::codeIntraDirChroma( TComDataCU* pcCU, UInt uiAbsPartIdx )
     uiIntraDirChroma++;
   }
 #endif
+#endif // <-- LM_CHROMA
   
   if ( 0 == uiIntraDirChroma )
   {

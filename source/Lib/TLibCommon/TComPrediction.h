@@ -62,6 +62,12 @@ protected:
   TComYuv   m_cYuvPredTemp;
   TComYuv   m_cYuvExt;
   
+#if LM_CHROMA
+  Pel*   m_pLumaRecBuffer;      
+  Int    m_iLumaRecStride;
+  UInt   m_uiaShift[ 65 ];
+#endif
+
   Void xPredIntraAng            ( Int* pSrc, Int srcStride, Pel*& rpDst, Int dstStride, UInt width, UInt height, UInt dirMode, Bool blkAboveAvailable, Bool blkLeftAvailable );
 #if ADD_PLANAR_MODE
 #if REFERENCE_SAMPLE_PADDING
@@ -89,6 +95,11 @@ protected:
   Void xDCTIF_FilterC_ha ( Pel*  piRefC, Int iRefStride,Pel*  piDstC,Int iDstStride,Int iWidth, Int iHeight,Int iMVyFrac,Int iMVxFrac);
 #endif
 
+#if LM_CHROMA
+  Void xGetRecPixels     ( TComPattern* pcPattern, Pel* pRecSrc, Int iRecSrcStride, Pel* pDst0, Int iDstStride, UInt uiWidth0, UInt uiHeight0 );   
+  Void xGetLLSPrediction ( TComPattern* pcPattern, Int* pSrc0, Int iSrcStride, Pel* pDst0, Int iDstStride, UInt uiWidth, UInt uiHeight, UInt uiExt0 );
+#endif
+
 public:
   TComPrediction();
   virtual ~TComPrediction();
@@ -110,6 +121,11 @@ public:
   Int* getPredicBuf()             { return m_piYuvExt;      }
   Int  getPredicBufWidth()        { return m_iYuvExtStride; }
   Int  getPredicBufHeight()       { return m_iYuvExtHeight; }
+
+#if LM_CHROMA
+  Void predLMIntraChroma( TComPattern* pcPattern, Int* piSrc, Pel* pPred, UInt uiPredStride, UInt uiCWidth, UInt uiCHeight, UInt uiChromaId );
+#endif
+
 };
 
 

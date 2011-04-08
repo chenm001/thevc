@@ -1099,6 +1099,10 @@ const UInt g_auiBlkCbpVlcNum[15] =
   1,  2,  2,  2, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11
 };
 
+#if UNIFY_INTER_TABLE
+const UInt g_auiComMI1TableE[9] = {0,1,2,3,4,5,6,7,8};
+const UInt g_auiComMI1TableD[9] = {0,1,2,3,4,5,6,7,8};
+#else
 const UInt g_auiMI1TableE[8] = {0,2,1,4,3,6,5,7};
 const UInt g_auiMI1TableD[8] = {0,2,1,4,3,6,5,7};
 const UInt g_auiMI2TableE[15] = {0,1,3,2,6,5,4,7,9,8,13,12,11,14,10};
@@ -1132,7 +1136,7 @@ const UInt g_auiMI1TableDOnly1Ref[8] = {0,2,4,1,3,6,5,7};
 const UInt g_auiMI1TableEOnly1RefNoL1[8] = {0,2,3,4,1,6,5,7};
 const UInt g_auiMI1TableDOnly1RefNoL1[8] = {0,4,1,2,3,6,5,7};
 #endif
-
+#endif
 
 #if QC_LCEC_INTER_MODE
 const UInt g_auiInterModeTableE[4][7] = {{0,1,2,3,4,5,6},{0,1,2,3,4,5,6},{0,1,2,3,4,5,6},{6,0,1,2,3,4,5}};
