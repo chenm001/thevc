@@ -275,6 +275,17 @@
 // MQT (MEDIATEK, QUALCOMM, TOSHIBA) defines section start
 /////////////////////////////////
 
+/////////////////////////////////
+// MN(MITSUBISHI&NHK) defines section start
+/////////////////////////////////
+#if QC_MDIS
+#define MN_MDIS_SIMPLIFICATION       1       ///< JCTVC-E069: simplification of MDIS
+#endif
+#define MN_DC_PRED_FILTER            1       ///< JCTVC-E069: DC prediction samples filtering
+/////////////////////////////////
+// MN(MITSUBISHI&NHK) defines section end
+/////////////////////////////////
+
 #define MVD_CTX            1           // JCTVC-E324: Modified context selection for MVD
 #define PANASONIC_PARALLEL_DEBLOCKING_DECISIONS 1
 #define REFERENCE_SAMPLE_PADDING                1   // JCTVC-E488 (Ericsson, HiSilicon, NEC, Panasonic): padding of unavailable reference samples for intra prediction

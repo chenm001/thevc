@@ -100,6 +100,10 @@ protected:
   Void xGetLLSPrediction ( TComPattern* pcPattern, Int* pSrc0, Int iSrcStride, Pel* pDst0, Int iDstStride, UInt uiWidth, UInt uiHeight, UInt uiExt0 );
 #endif
 
+#if MN_DC_PRED_FILTER
+  Void xDCPredFiltering( Int* pSrc, Int iSrcStride, Pel*& rpDst, Int iDstStride, Int iWidth, Int iHeight );
+#endif
+
 public:
   TComPrediction();
   virtual ~TComPrediction();

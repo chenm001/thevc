@@ -290,12 +290,20 @@ Void TComPattern::initAdiPattern( TComDataCU* pcCU, UInt uiZorderIdxInPart, UInt
     if( pcCU->getPULeft         ( uiPartDum,             uiPartIdxLT,    true, false ) ) { bNeighborFlags[1] = true; iNumIntraNeighbor++; }
     if( pcCU->getPUBelowLeftAdi ( uiPartDum, uiCuHeight, uiPartIdxLB, 1, true, false ) ) { bNeighborFlags[0] = true; iNumIntraNeighbor++; }
     if( pcCU->getPUAboveLeft    ( uiPartDum,             uiPartIdxLT,    true, false ) ) { bNeighborFlags[2] = true; iNumIntraNeighbor++; }
+#if MN_DC_PRED_FILTER
+    m_bAboveFlagForDCFilt = bNeighborFlags[3];
+    m_bLeftFlagForDCFilt  = bNeighborFlags[1];
+#endif
 #else // REFERENCE_SAMPLE_PADDING
     if( pcCU->getPUAbove        ( uiPartDum,             uiPartIdxLT,    true, false ) ) bAboveFlag      = true;
     if( pcCU->getPUAboveRightAdi( uiPartDum, uiCuWidth,  uiPartIdxRT, 1, true, false ) ) bAboveRightFlag = true;
     if( pcCU->getPULeft         ( uiPartDum,             uiPartIdxLT,    true, false ) ) bLeftFlag       = true;
     if( pcCU->getPUBelowLeftAdi ( uiPartDum, uiCuHeight, uiPartIdxLB, 1, true, false ) ) bBelowLeftFlag  = true;
     if( pcCU->getPUAboveLeft    ( uiPartDum,             uiPartIdxLT,    true, false ) ) bAboveLeftFlag  = true;
+#if MN_DC_PRED_FILTER
+    m_bAboveFlagForDCFilt = bAboveFlag;
+    m_bLeftFlagForDCFilt  = bLeftFlag;
+#endif
 #endif // REFERENCE_SAMPLE_PADDING
   }
 #else //CONSTRAINED_INTRA_PRED
@@ -311,14 +319,26 @@ Void TComPattern::initAdiPattern( TComDataCU* pcCU, UInt uiZorderIdxInPart, UInt
   if( pcCU->getPULeft         ( uiPartDum,             uiPartIdxLT, true, false ) ) { bNeighborFlags[1] = true; iNumIntraNeighbor++; }
   if( pcCU->getPUBelowLeftAdi ( uiPartDum, uiCuHeight, uiPartIdxLB, true, false ) ) { bNeighborFlags[0] = true; iNumIntraNeighbor++; }
   if( pcCU->getPUAboveLeft    ( uiPartDum,             uiPartIdxLT, true, false ) ) { bNeighborFlags[2] = true; iNumIntraNeighbor++; }
+#if MN_DC_PRED_FILTER
+  m_bAboveFlagForDCFilt = bNeighborFlags[3];
+  m_bLeftFlagForDCFilt  = bNeighborFlags[1];
+#endif
 #else // REFERENCE_SAMPLE_PADDING
   if( pcCU->getPUAbove        ( uiPartDum,             uiPartIdxLT, true, false ) ) bAboveFlag      = true;
   if( pcCU->getPUAboveRightAdi( uiPartDum, uiCuWidth,  uiPartIdxRT, true, false ) ) bAboveRightFlag = true;
   if( pcCU->getPULeft         ( uiPartDum,             uiPartIdxLT, true, false ) ) bLeftFlag       = true;
   if( pcCU->getPUBelowLeftAdi ( uiPartDum, uiCuHeight, uiPartIdxLB, true, false ) ) bBelowLeftFlag  = true;
   if( pcCU->getPUAboveLeft    ( uiPartDum,             uiPartIdxLT, true, false ) ) bAboveLeftFlag  = true;
+#if MN_DC_PRED_FILTER
+  m_bAboveFlagForDCFilt = bAboveFlag;
+  m_bLeftFlagForDCFilt  = bLeftFlag;
+#endif
 #endif // REFERENCE_SAMPLE_PADDING
 #endif //CONSTRAINED_INTRA_PRED
+
+#if MN_DC_PRED_FILTER
+  m_bDCPredFilterFlag = (m_bAboveFlagForDCFilt && m_bLeftFlagForDCFilt) ? true : false;
+#endif
   
 #if REFERENCE_SAMPLE_PADDING
   bAbove = true;
@@ -441,6 +461,7 @@ Void TComPattern::initAdiPattern( TComDataCU* pcCU, UInt uiZorderIdxInPart, UInt
   for (i = 0; i < uiCuWidth2; i++)
     piFilteredBuf1[1 + i] = piFilterBufN[l++];
 
+#if !MN_MDIS_SIMPLIFICATION
   // 2. filtering with [1 2 1]
   piFilterBuf[0] = piFilterBufN[0];                   
   piFilterBuf[iBufSize - 1] = piFilterBufN[iBufSize - 1];
@@ -454,7 +475,7 @@ Void TComPattern::initAdiPattern( TComDataCU* pcCU, UInt uiZorderIdxInPart, UInt
   piFilteredBuf2[0] = piFilterBuf[l++];
   for (i = 0; i < uiCuWidth2; i++)
     piFilteredBuf2[1 + i] = piFilterBuf[l++];
-
+#endif
 #endif //QC_MDIS
   
 }
@@ -884,6 +905,18 @@ Int* TComPattern::getAdiCrBuf(Int iCuWidth,Int iCuHeight, Int* piAdiBuf)
 #if QC_MDIS
 Int* TComPattern::getPredictorPtr ( UInt uiDirMode, UInt uiWidthBits, Int iCuWidth, Int iCuHeight, Int* piAdiBuf )
 {
+#if MN_MDIS_SIMPLIFICATION
+  static const UChar g_aucIntraFilter[7][34] =
+  {
+      {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, //2x2
+      {0, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, //4x4
+      {0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, //8x8
+      {0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, //16x16
+      {0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, //32x32
+      {0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, //64x64
+      {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}  //128x128
+  };
+#else
   static const UChar g_aucIntraFilter[7][34] =
   {
       {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, //2x2
@@ -894,6 +927,7 @@ Int* TComPattern::getPredictorPtr ( UInt uiDirMode, UInt uiWidthBits, Int iCuWid
       {0, 0, 0, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, //64x64
       {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}  //128x128
   };
+#endif
 
   Int* piSrc;
 #if ADD_PLANAR_MODE
@@ -901,13 +935,21 @@ Int* TComPattern::getPredictorPtr ( UInt uiDirMode, UInt uiWidthBits, Int iCuWid
 #endif
   UChar ucFiltIdx = g_aucIntraFilter[uiWidthBits][uiDirMode];
 
+#if MN_MDIS_SIMPLIFICATION
+  assert( ucFiltIdx <= 1 );
+#else
   assert( ucFiltIdx <= 2 );
+#endif
 
   piSrc = getAdiOrgBuf( iCuWidth, iCuHeight, piAdiBuf );
 
   if ( ucFiltIdx )
   {
+#if MN_MDIS_SIMPLIFICATION
+    piSrc += ((iCuWidth << 1) + 1) * ((iCuHeight << 1) + 1);
+#else
     piSrc += (((iCuWidth << 1) + 1) * ((iCuHeight << 1) + 1) << (ucFiltIdx - 1));
+#endif
   }
 
   return piSrc;
@@ -939,6 +981,9 @@ Bool TComPattern::isAboveAvailableForCIP( TComDataCU* pcCU, UInt uiPartIdxLT, UI
 #else
   Bool bAboveFlag = true;
 #endif
+#if MN_DC_PRED_FILTER
+  m_bAboveFlagForDCFilt = true;
+#endif
 
   for ( UInt uiRasterPart = uiRasterPartBegin; uiRasterPart < uiRasterPartEnd; uiRasterPart += uiIdxStep )
   {
@@ -953,12 +998,18 @@ Bool TComPattern::isAboveAvailableForCIP( TComDataCU* pcCU, UInt uiPartIdxLT, UI
     else
     {
       *pbValidFlags = false;
+#if MN_DC_PRED_FILTER
+      m_bAboveFlagForDCFilt = false;
+#endif
     }
     pbValidFlags++;
 #else
     if ( !pcCUAbove || pcCUAbove->getPredictionMode( uiPartAbove ) != MODE_INTRA )
     {
       bAboveFlag = false;
+#if MN_DC_PRED_FILTER
+      m_bAboveFlagForDCFilt = false;
+#endif
       break;
     }
 #endif
@@ -985,6 +1036,9 @@ Bool TComPattern::isLeftAvailableForCIP( TComDataCU* pcCU, UInt uiPartIdxLT, UIn
 #else
   Bool bLeftFlag = true;
 #endif
+#if MN_DC_PRED_FILTER
+  m_bLeftFlagForDCFilt = true;
+#endif
 
   for ( UInt uiRasterPart = uiRasterPartBegin; uiRasterPart < uiRasterPartEnd; uiRasterPart += uiIdxStep )
   {
@@ -999,12 +1053,18 @@ Bool TComPattern::isLeftAvailableForCIP( TComDataCU* pcCU, UInt uiPartIdxLT, UIn
     else
     {
       *pbValidFlags = false;
+#if MN_DC_PRED_FILTER
+      m_bLeftFlagForDCFilt = false;
+#endif
     }
     pbValidFlags--; // opposite direction
 #else
     if ( !pcCULeft || pcCULeft->getPredictionMode( uiPartLeft ) != MODE_INTRA )
     {
       bLeftFlag = false;
+#if MN_DC_PRED_FILTER
+      m_bLeftFlagForDCFilt = false;
+#endif
       break;
     }
 #endif

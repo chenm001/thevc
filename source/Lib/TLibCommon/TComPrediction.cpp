@@ -322,6 +322,11 @@ Void TComPrediction::predIntraLumaAng(TComPattern* pcTComPattern, UInt uiDirMode
 
   // Create the prediction
   xPredIntraAng( ptrSrc+sw+1, sw, pDst, uiStride, iWidth, iHeight, uiDirMode, bAbove,  bLeft );
+
+#if MN_DC_PRED_FILTER
+  if ((uiDirMode == 0) && pcTComPattern->getDCPredFilterFlag())
+    xDCPredFiltering( ptrSrc+sw+1, sw, pDst, uiStride, iWidth, iHeight);
+#endif
 }
 
 // Angular chroma
@@ -1286,5 +1291,70 @@ Void TComPrediction::xGetLLSPrediction( TComPattern* pcPattern, Int* pSrc0, Int 
   }
   // <-- end of get prediction
 
+}
+#endif
+
+#if MN_DC_PRED_FILTER
+/** Function for filtering intra DC predictor.
+ * \param pSrc pointer to reconstructed sample array
+ * \param iSrcStride the stride of the reconstructed sample array
+ * \param rpDst reference to pointer for the prediction sample array
+ * \param iDstStride the stride of the prediction sample array
+ * \param iWidth the width of the block
+ * \param iHeight the height of the block
+ *
+ * This function performs filtering left and top edges of the prediction samples for DC mode (intra coding).
+ */
+Void TComPrediction::xDCPredFiltering( Int* pSrc, Int iSrcStride, Pel*& rpDst, Int iDstStride, Int iWidth, Int iHeight )
+{
+  Pel* pDst = rpDst;
+  Int x, y, iDstStride2, iSrcStride2;
+  Int iIntraSizeIdx = g_aucConvertToBit[ iWidth ] + 1;
+  static const UChar g_aucDCPredFilter[7] = { 0, 3, 2, 1, 0, 0, 0};
+
+  switch (g_aucDCPredFilter[iIntraSizeIdx])
+  {
+  case 0:
+    {}
+    break;
+  case 1:
+    {
+      // boundary pixels processing
+      pDst[0] = (Pel)((pSrc[-iSrcStride] + pSrc[-1] + 6 * pDst[0] + 4) >> 3);
+
+      for ( x = 1; x < iWidth; x++ )
+        pDst[x] = (Pel)((pSrc[x - iSrcStride] + 7 * pDst[x] + 4) >> 3);
+
+      for ( y = 1, iDstStride2 = iDstStride, iSrcStride2 = iSrcStride-1; y < iHeight; y++, iDstStride2+=iDstStride, iSrcStride2+=iSrcStride )
+        pDst[iDstStride2] = (Pel)((pSrc[iSrcStride2] + 7 * pDst[iDstStride2] + 4) >> 3);
+    }
+    break;
+  case 2:
+    {
+      // boundary pixels processing
+      pDst[0] = (Pel)((pSrc[-iSrcStride] + pSrc[-1] + 2 * pDst[0] + 2) >> 2);
+
+      for ( x = 1; x < iWidth; x++ )
+        pDst[x] = (Pel)((pSrc[x - iSrcStride] + 3 * pDst[x] + 2) >> 2);
+
+      for ( y = 1, iDstStride2 = iDstStride, iSrcStride2 = iSrcStride-1; y < iHeight; y++, iDstStride2+=iDstStride, iSrcStride2+=iSrcStride )
+        pDst[iDstStride2] = (Pel)((pSrc[iSrcStride2] + 3 * pDst[iDstStride2] + 2) >> 2);
+    }
+    break;
+  case 3:
+    {
+      // boundary pixels processing
+      pDst[0] = (Pel)((3 * (pSrc[-iSrcStride] + pSrc[-1]) + 2 * pDst[0] + 4) >> 3);
+
+      for ( x = 1; x < iWidth; x++ )
+        pDst[x] = (Pel)((3 * pSrc[x - iSrcStride] + 5 * pDst[x] + 4) >> 3);
+
+      for ( y = 1, iDstStride2 = iDstStride, iSrcStride2 = iSrcStride-1; y < iHeight; y++, iDstStride2+=iDstStride, iSrcStride2+=iSrcStride )
+        pDst[iDstStride2] = (Pel)((3 * pSrc[iSrcStride2] + 5 * pDst[iDstStride2] + 4) >> 3);
+    }
+    break;
+  }
+
+  return;
 }
 #endif
