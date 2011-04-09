@@ -124,6 +124,7 @@
 // QUALCOMM defines section start
 /////////////////////////////////
 
+
 #define QC_MOD_LCEC                       1           // JCTVC-D374: modified LCEC coeff. coding
 #define LCEC_INTRA_MODE                   1           // JCTVC-D366: improved luma intra mode coding
 #define QC_MOD_LCEC_RDOQ                  1           // JCTVC-D374: improved RDOQ
@@ -211,8 +212,11 @@
 #define MS_LCEC_LOOKUP_TABLE_MAX_VALUE  1           // use the information of the max position in the lookup table, JCTVC-D141
 #define MS_LCEC_LOOKUP_TABLE_EXCEPTION  1           // deal with the case when the number of reference frames is greater than 2, JCTVC-D141
 #define MS_LCEC_UNI_EXCEPTION_THRES     1           // for GPB case, uni-prediction, > MS_LCEC_UNI_EXCEPTION_THRES is exception
+#define CAVLC_COUNTER_ADAPT             1          // counter based CAVLC adaptation, JCTVC-E143
+#if CAVLC_COUNTER_ADAPT
+#define CAVLC_RQT_CBP                   1           //CAVLC coding of cbf and split flag, JCTVC-E404
+#endif
 
-#define CAVLC_COUNTER_ADAPT             1           // counter based CAVLC adaptation, JCTVC-E143
 
 #define AVOID_ZERO_MERGE_CANDIDATE      1           // (JCTVC-E146/E118) insert zero MV if no merge candidates are available
 #define CHANGE_MERGE_CONTEXT            1           // (JCTVC-E146/E118) change merge flag context derivation

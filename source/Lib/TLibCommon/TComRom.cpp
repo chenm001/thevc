@@ -1139,6 +1139,99 @@ const UChar g_aucChromaScale[52]=
 // TENTM VLC table
 // ====================================================================================================================
 
+#if RUNLEVEL_TABLE_CUT || CAVLC_RQT_CBP
+#define M1 MAX_UINT
+#else
+#define M1 (UInt)-1
+#endif
+
+// Below table need to be optimized
+const UInt g_auiCbpVlcNum[2][8] =
+{
+  {0, 0, 0, 0, 0, 0, 0, 0},
+  {0, 0, 0, 0, 0, 0, 0, 0}
+};
+
+#if CAVLC_RQT_CBP
+const UInt g_auiCBP_YUV_TableE[4][8] = 
+{
+  {2,5,6,7,0,3,4,1},
+  {0,4,6,7,1,2,3,5},
+  {2,5,6,7,0,3,4,1},
+  {0,4,6,7,1,2,3,5}
+};
+const UInt g_auiCBP_YUV_TableD[4][8] = 
+{
+  {4,7,0,5,6,1,2,3},
+  {0,4,5,6,1,7,2,3},
+  {4,7,0,5,6,1,2,3},
+  {0,4,5,6,1,7,2,3}
+};
+const UInt g_auiCBP_YS_TableE[2][4] = 
+{
+  {3,  2, 0, 1},
+  {2, M1, 0, 1}
+};
+
+const UInt g_auiCBP_YS_TableD[2][4] = 
+{
+  {  2,  3,  1,  0},
+  {  2,  3,  0, M1}
+};
+
+const UInt g_auiCBP_YC_TableE[2][4] =
+{ 
+  {  2,  1,  3,  0}, 
+  {  0,  2,  1,  3}
+};
+
+const UInt g_auiCBP_YC_TableD[2][4] =
+{ 
+  {3,1,0,2}, 
+  {0,2,1,3}
+};
+
+const UInt g_auiCBP_YCS_Table[2][8] = 
+{
+  {  0,  3,  9, 11,  8, 20, 42, 43},
+  {  1,  1,  1,  1,  1,  1,  0, M1}
+};
+
+const UInt g_auiCBP_YCS_TableLen[2][8] = 
+{
+  {  1,  2,  4,  4,  4,  5,  6,  6},
+  {  1,  2,  3,  4,  5,  6,  6,  0}
+};
+
+const UInt g_auiCBP_YCS_TableE[2][8] = 
+{
+  {4,  5,  6,  7,  1,  2,  0,  3},
+  {0,  7,  5,  6,  2,  1,  4,  3}
+};
+
+const UInt g_auiCBP_YCS_TableD[2][8] = 
+{
+  {6,  4,  5,  7,  0,  1,  2,  3},
+  {0,  5,  4,  7,  6,  2,  3, 1}
+};
+
+const UInt g_auiCBP_4Y_TableE[2][15] = 
+{
+  {14, 13, 10, 12,  9,  8,  4, 11,  7,  6,  3,  5,  2,  1,  0},
+  { 0,  1,  4,  2,  5,  6, 10,  3,  7,  8, 11,  9, 12, 13, 14}
+};
+
+const UInt g_auiCBP_4Y_TableD[2][15] = 
+{
+  {14, 13, 12, 10, 6, 11, 9, 8, 5, 4, 2, 7, 3, 1, 0},
+  {0, 1, 3, 7, 2, 4, 5, 8, 9, 11, 6, 10 ,12, 13, 14} 
+};
+
+const UInt g_auiCBP_4Y_VlcNum[15] = 
+{
+  1,  2,  2,  2, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11
+};
+#else
 const UInt g_auiCBPTableE[2][8] = 
 {
   {2,0,6,4,5,3,7,1},
@@ -1149,15 +1242,6 @@ const UInt g_auiCBPTableD[2][8] =
 {
   {1,7,0,5,3,4,2,6},
   {0,1,5,3,4,7,2,6}
-};
-
-
-// Below table need to be optimized
-
-const UInt g_auiCbpVlcNum[2][8] =
-{
-  {0, 0, 0, 0, 0, 0, 0, 0},
-  {0, 0, 0, 0, 0, 0, 0, 0}
 };
 
 const UInt g_auiBlkCBPTableE[2][15] = 
@@ -1176,6 +1260,7 @@ const UInt g_auiBlkCbpVlcNum[15] =
 {
   1,  2,  2,  2, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11
 };
+#endif
 
 #if UNIFY_INTER_TABLE
 const UInt g_auiComMI1TableE[9] = {0,1,2,3,4,5,6,7,8};
@@ -1307,11 +1392,7 @@ const UInt g_auiLastPosVlcNum[10][17] =
   { 2, 2, 2, 2, 7,7,7,7,7,7,7,7,7,7,7,7,4}
 };
 
-#if RUNLEVEL_TABLE_CUT
-#define M1 MAX_UINT
-#else
-#define M1 (UInt)-1
-#endif
+
 
 #if RUNLEVEL_TABLE_CUT
 const UInt g_auiLumaRun8x8[28][29] =

@@ -311,13 +311,20 @@ Void TDecCavlc::resetEntropy          (TComSlice* pcSlice)
 #endif
   ::memcpy(m_uiLPTableD4,        g_auiLPTableD4,        3*32*sizeof(UInt));
   ::memcpy(m_uiLastPosVlcIndex,  g_auiLastPosVlcIndex,  10*sizeof(UInt));
-  
-  ::memcpy(m_uiCBPTableD,        g_auiCBPTableD,        2*8*sizeof(UInt));
+
+#if CAVLC_RQT_CBP
+  ::memcpy(m_uiCBP_YUV_TableD, g_auiCBP_YUV_TableD, 4*8*sizeof(UInt));
+  ::memcpy(m_uiCBP_YS_TableD,  g_auiCBP_YS_TableD,  2*4*sizeof(UInt));
+  ::memcpy(m_uiCBP_YCS_TableD, g_auiCBP_YCS_TableD, 2*8*sizeof(UInt));
+  ::memcpy(m_uiCBP_4Y_TableD,  g_auiCBP_4Y_TableD,  2*15*sizeof(UInt));
+  m_uiCBP_4Y_VlcIdx = 0;
+#else
   m_uiCbpVlcIdx[0] = 0;
   m_uiCbpVlcIdx[1] = 0;
-  
+  ::memcpy(m_uiCBPTableD,        g_auiCBPTableD,        2*8*sizeof(UInt));
   ::memcpy(m_uiBlkCBPTableD,     g_auiBlkCBPTableD,     2*15*sizeof(UInt));
   m_uiBlkCbpVlcIdx = 0;
+#endif
 
 #if UNIFY_INTER_TABLE
   ::memcpy(m_uiMI1TableD, g_auiComMI1TableD, 9*sizeof(UInt));
@@ -371,13 +378,30 @@ Void TDecCavlc::resetEntropy          (TComSlice* pcSlice)
   m_uiMITableVlcIdx = 0;
 
 #if CAVLC_COUNTER_ADAPT
+#if CAVLC_RQT_CBP
+  ::memset(m_ucCBP_YUV_TableCounter, 0, 4*4*sizeof(UChar));
+  ::memset(m_ucCBP_4Y_TableCounter,  0, 2*2*sizeof(UChar));
+  ::memset(m_ucCBP_YCS_TableCounter, 0, 2*4*sizeof(UChar));
+  ::memset(m_ucCBP_YS_TableCounter,  0, 2*3*sizeof(UChar));
+#else
   ::memset(m_ucCBFTableCounter,        0,        2*4*sizeof(UChar));
   ::memset(m_ucBlkCBPTableCounter,     0,        2*2*sizeof(UChar));
+#endif
+
   ::memset(m_ucMI1TableCounter,        0,          4*sizeof(UChar));
   ::memset(m_ucSplitTableCounter,      0,        4*4*sizeof(UChar));
+
+#if CAVLC_RQT_CBP
+  m_ucCBP_YUV_TableCounterSum[0] = m_ucCBP_YUV_TableCounterSum[1] = m_ucCBP_YUV_TableCounterSum[2] = m_ucCBP_YUV_TableCounterSum[3] = 0;
+  m_ucCBP_4Y_TableCounterSum[0] = m_ucCBP_4Y_TableCounterSum[1] = 0;
+  m_ucCBP_YCS_TableCounterSum[0] = m_ucCBP_YCS_TableCounterSum[1] = 0;
+  m_ucCBP_YS_TableCounterSum[0] = m_ucCBP_YS_TableCounterSum[1] = 0;
+#else
   m_ucCBFTableCounterSum[0] = m_ucCBFTableCounterSum[1] = 0;
-  m_ucSplitTableCounterSum[0] = m_ucSplitTableCounterSum[1] = m_ucSplitTableCounterSum[2]= m_ucSplitTableCounterSum[3] = 0;
   m_ucBlkCBPTableCounterSum[0] = m_ucBlkCBPTableCounterSum[1] = 0;
+#endif
+
+  m_ucSplitTableCounterSum[0] = m_ucSplitTableCounterSum[1] = m_ucSplitTableCounterSum[2]= m_ucSplitTableCounterSum[3] = 0;
   m_ucMI1TableCounterSum = 0;
 #endif
 }
@@ -1269,7 +1293,7 @@ Void TDecCavlc::parseInterDir( TComDataCU* pcCU, UInt& ruiInterDir, UInt uiAbsPa
     Int x,cx;
 #else
     Int x,cx,y,cy;
-#endif//
+#endif
 
 #if MS_LCEC_LOOKUP_TABLE_MAX_VALUE
     UInt uiMaxVal = 7;
@@ -1542,6 +1566,237 @@ Void TDecCavlc::parseDeltaQP( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth 
   pcCU->setQPSubParts( uiDQp, uiAbsPartIdx, uiDepth );
 }
 
+#if CAVLC_RQT_CBP
+/** Function for parsing cbf and split 
+ * \param pcCU pointer to CU
+ * \param uiAbsPartIdx CU index
+ * \param uiTrDepth Transform depth
+ * \param uiDepth CU Depth
+ * \param uiSubdiv split flag
+ * \returns 
+ * This function performs parsing for cbf and split flag
+ */
+Void TDecCavlc::parseCbfTrdiv( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiTrDepth, UInt uiDepth, UInt& uiSubdiv )
+{
+  UInt uiCbf,tmp;
+  UInt uiCBP,uiCbfY,uiCbfU,uiCbfV;
+  UInt n,cx;
+  UInt uiLog2TrSize = g_aucConvertToBit[ pcCU->getSlice()->getSPS()->getMaxCUWidth() >> uiDepth ] + 2;
+  UInt uiQPartNumParent  = pcCU->getPic()->getNumPartInCU() >> ((uiDepth-1) << 1);
+  UInt uiQPartNumCurr    = pcCU->getPic()->getNumPartInCU() >> ((uiDepth) << 1);
+
+  UInt uiFlagPattern = xGetFlagPattern( pcCU, uiAbsPartIdx, uiDepth, uiSubdiv );
+
+  n = pcCU->isIntra( uiAbsPartIdx ) ? 0 : 1;
+  uiCbfY = uiCbfU = uiCbfV = 0;
+
+  if(uiFlagPattern < 8)
+  {
+    if( uiLog2TrSize > pcCU->getSlice()->getSPS()->getQuadtreeTULog2MinSize() )
+    {
+      if(uiFlagPattern & 0x04)
+      {
+        xReadFlag(uiCbfU);
+      }
+      if(uiFlagPattern & 0x02)
+      {
+        xReadFlag(uiCbfV);
+      }
+    }
+    else
+    {
+      uiCbfU = pcCU->getCbf(uiAbsPartIdx, TEXT_CHROMA_U, uiTrDepth - 1)?1:0;
+      uiCbfV = pcCU->getCbf(uiAbsPartIdx, TEXT_CHROMA_V, uiTrDepth - 1)?1:0;
+    }
+    if(uiFlagPattern & 0x01)
+    {
+      parseTransformSubdivFlag( uiSubdiv, 0);
+    }
+  }
+  else
+  {
+    if(uiFlagPattern == 8)
+    {
+      if (uiAbsPartIdx % uiQPartNumParent ==0)
+      {
+        parseBlockCbf(pcCU, uiAbsPartIdx, TEXT_LUMA, uiTrDepth,uiDepth, uiQPartNumCurr);
+      }
+      uiCbfY = ( pcCU->getCbf( uiAbsPartIdx, TEXT_LUMA ) >> uiTrDepth) & 0x1;
+      if( uiLog2TrSize <= pcCU->getSlice()->getSPS()->getQuadtreeTULog2MinSize() )
+      {
+        uiCbfU = pcCU->getCbf(uiAbsPartIdx, TEXT_CHROMA_U, uiTrDepth - 1)?1:0;
+        uiCbfV = pcCU->getCbf(uiAbsPartIdx, TEXT_CHROMA_V, uiTrDepth - 1)?1:0;
+      }
+    }
+    else if(uiFlagPattern == 9)
+    {
+      bool bNeedToDecode = true;
+      if ( n==1 && (uiAbsPartIdx%uiQPartNumParent) / uiQPartNumCurr == 3 )  // last one
+      {
+        UInt uiTempAbsPartIdx = uiAbsPartIdx/uiQPartNumParent*uiQPartNumParent;
+        if ( pcCU->getCbf( uiTempAbsPartIdx + uiQPartNumCurr*0, TEXT_LUMA, uiTrDepth ) ||
+          pcCU->getCbf( uiTempAbsPartIdx + uiQPartNumCurr*1, TEXT_LUMA, uiTrDepth ) ||
+          pcCU->getCbf( uiTempAbsPartIdx + uiQPartNumCurr*2, TEXT_LUMA, uiTrDepth ) )
+        {
+          bNeedToDecode = true;
+        }
+        else
+        {
+          bNeedToDecode = false;
+          xReadFlag( uiSubdiv );
+          uiCbfY = 1;
+        }
+      }
+      if ( bNeedToDecode )
+      {
+        UInt uiSymbol;
+        xReadUnaryMaxSymbol(cx, n?2:3);
+        uiSymbol = m_uiCBP_YS_TableD[n][cx];
+        uiCbfY = uiSymbol >> 1;
+        uiSubdiv = uiSymbol & 0x01; 
+        adaptCodeword(cx, m_ucCBP_YS_TableCounter[n],  m_ucCBP_YS_TableCounterSum[n],  m_uiCBP_YS_TableD[n],  NULL, 3);
+      }
+    }
+    else if (uiFlagPattern == 14)
+    {
+      UInt  uiIdx = uiTrDepth? (2 + n) : n;
+      xReadUnaryMaxSymbol(cx, 7);
+      uiCBP = m_uiCBP_YUV_TableD[uiIdx][cx];
+      adaptCodeword(cx,  m_ucCBP_YUV_TableCounter[uiIdx],  m_ucCBP_YUV_TableCounterSum[uiIdx],  m_uiCBP_YUV_TableD[uiIdx],  NULL, 4);
+      uiCbfY = (uiCBP>>2)&1;
+      uiCbfU = (uiCBP>>1)&1;
+      uiCbfV = (uiCBP>>0)&1;
+    }
+    else if ( uiFlagPattern == 11 || uiFlagPattern == 13 || uiFlagPattern == 15)
+    {
+      UInt uiSymbol, i;
+      m_pcBitstream->pseudoRead(6, uiSymbol);
+      for (i=0;i<8;i++)
+      {
+        if( (uiSymbol>>(6 - g_auiCBP_YCS_TableLen[n][i])) == g_auiCBP_YCS_Table[n][i] && g_auiCBP_YCS_TableLen[n][i])
+        {
+          m_pcBitstream->read(g_auiCBP_YCS_TableLen[n][i],uiSymbol);
+          uiSymbol =i;
+          break;
+        }
+      }
+
+      uiCBP = m_uiCBP_YCS_TableD[n][uiSymbol];
+      adaptCodeword(uiSymbol, m_ucCBP_YCS_TableCounter[n], m_ucCBP_YCS_TableCounterSum[n],  m_uiCBP_YCS_TableD[n],  NULL, 4);
+      uiCbfY = uiCBP >> 2;
+      UInt uiCbfUV = (uiCBP >> 1)& 0x01;
+      uiSubdiv = uiCBP & 0x01;
+
+      uiCbfU = 0; uiCbfV = 0;
+      if (uiFlagPattern == 15)
+      {
+        if(uiCbfUV)
+        {
+          xReadUnaryMaxSymbol( uiSymbol , 2); 
+          uiSymbol = n? (uiSymbol + 1): (3 - uiSymbol);
+          uiCbfU = uiSymbol >> 1;
+          uiCbfV = uiSymbol & 0x01;
+        }
+      }
+      else
+      {
+        uiCbfU = (uiFlagPattern & 0x04) ?  uiCbfUV: 0;
+        uiCbfV = (uiFlagPattern & 0x02) ?  uiCbfUV: 0;
+      }
+    }
+    else if (uiFlagPattern == 10 || uiFlagPattern == 12)
+    {
+      UInt uiSymbol;
+      xReadUnaryMaxSymbol(tmp, 3);
+      uiSymbol = g_auiCBP_YC_TableD[n][tmp];
+      uiCbfY = uiSymbol >> 1;
+
+      uiCbfU = uiCbfV = 0;
+      if(uiSymbol & 0x01)
+      {
+        uiCbfU = (uiFlagPattern & 0x04)? 1 : 0;
+        uiCbfV = (uiFlagPattern & 0x02)? 1 : 0;
+      }
+    }
+  }
+
+  uiCbf = pcCU->getCbf( uiAbsPartIdx, TEXT_LUMA );
+  pcCU->setCbfSubParts( uiCbf | ( uiCbfY << uiTrDepth ), TEXT_LUMA, uiAbsPartIdx, uiDepth );
+
+  uiCbf = pcCU->getCbf( uiAbsPartIdx, TEXT_CHROMA_U );
+  pcCU->setCbfSubParts( uiCbf | ( uiCbfU << uiTrDepth ), TEXT_CHROMA_U, uiAbsPartIdx, uiDepth );
+
+  uiCbf = pcCU->getCbf( uiAbsPartIdx, TEXT_CHROMA_V );
+  pcCU->setCbfSubParts( uiCbf | ( uiCbfV << uiTrDepth ), TEXT_CHROMA_V, uiAbsPartIdx, uiDepth );
+
+  if(!pcCU->isIntra(uiAbsPartIdx) && uiCbfY == 0 && uiCbfU == 0 && uiCbfV == 0)
+  {
+    uiSubdiv = 0;
+  }
+
+  return;
+}
+
+/** Function for parsing cbf and split 
+ * \param pcCU pointer to CU
+ * \param uiAbsPartIdx CU index
+ * \param uiDepth CU Depth
+ * \param uiSubdiv split flag
+ * \returns flag pattern
+ * This function gets flagpattern for cbf and split flag
+ */
+UInt TDecCavlc::xGetFlagPattern( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth, UInt& uiSubdiv )
+{
+  const UInt uiLog2TrafoSize = g_aucConvertToBit[pcCU->getSlice()->getSPS()->getMaxCUWidth()]+2 - uiDepth;
+  UInt uiTrDepth =  uiDepth - pcCU->getDepth( uiAbsPartIdx );
+  UInt patternYUV, patternDiv;
+  UInt bY, bU, bV;
+
+
+  UInt uiFullDepth = pcCU->getDepth(uiAbsPartIdx) + uiTrDepth;
+  UInt uiLog2TrSize = g_aucConvertToBit[ pcCU->getSlice()->getSPS()->getMaxCUWidth() >> uiFullDepth ] + 2;
+  if(uiTrDepth == 0)
+  {
+    patternYUV = 7;
+  }
+  else if( uiLog2TrSize > pcCU->getSlice()->getSPS()->getQuadtreeTULog2MinSize() )
+  {
+    bY = pcCU->getCbf(uiAbsPartIdx, TEXT_LUMA, uiTrDepth - 1)?1:0;
+    bU = pcCU->getCbf(uiAbsPartIdx, TEXT_CHROMA_U, uiTrDepth - 1)?1:0;
+    bV = pcCU->getCbf(uiAbsPartIdx, TEXT_CHROMA_V, uiTrDepth - 1)?1:0;
+    patternYUV = (bY<<2) + (bU<<1) + bV;
+  }
+  else
+  {
+    bY = pcCU->getCbf(uiAbsPartIdx, TEXT_LUMA, uiTrDepth - 1)?1:0;
+    patternYUV = bY<<2;
+  }
+
+
+  if( pcCU->getPredictionMode(uiAbsPartIdx) == MODE_INTRA && pcCU->getPartitionSize(uiAbsPartIdx) == SIZE_NxN && uiDepth == pcCU->getDepth(uiAbsPartIdx) )
+  {
+    patternDiv = 0; uiSubdiv = 1;
+  }
+  else if( uiLog2TrafoSize > pcCU->getSlice()->getSPS()->getQuadtreeTULog2MaxSize() )
+  {
+    patternDiv = 0; uiSubdiv = 1;
+  }
+  else if( uiLog2TrafoSize == pcCU->getSlice()->getSPS()->getQuadtreeTULog2MinSize() )
+  {
+    patternDiv = 0; uiSubdiv = 0;
+  }
+  else if( uiLog2TrafoSize == pcCU->getQuadtreeTULog2MinSizeInCU(uiAbsPartIdx) )
+  {
+    patternDiv = 0; uiSubdiv = 0;
+  } 
+  else
+  {
+    patternDiv = 1;
+  }
+
+  return ((patternYUV<<1)+patternDiv);
+}
+#endif
 Void TDecCavlc::parseCbf( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eType, UInt uiTrDepth, UInt uiDepth )
 {
   if (eType == TEXT_ALL)
@@ -1553,19 +1808,31 @@ Void TDecCavlc::parseCbf( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eType, U
     Int n, cx;
 #else
     Int n,x,cx,y,cy;
-#endif//
+#endif
 
     /* Start adaptation */
     n = pcCU->isIntra( uiAbsPartIdx ) ? 0 : 1;
+#if CAVLC_RQT_CBP
+    UInt vlcn = 0;
+#else
     UInt vlcn = g_auiCbpVlcNum[n][m_uiCbpVlcIdx[n]];
+#endif
     tmp = xReadVlc( vlcn );    
+#if CAVLC_RQT_CBP
+    uiCBP = m_uiCBP_YUV_TableD[n][tmp];
+#else
     uiCBP = m_uiCBPTableD[n][tmp];
-    
+#endif
+
     /* Adapt LP table */
     cx = tmp;
 
 #if CAVLC_COUNTER_ADAPT
+#if CAVLC_RQT_CBP
+    adaptCodeword(cx, m_ucCBP_YUV_TableCounter[n],  m_ucCBP_YUV_TableCounterSum[n],  m_uiCBP_YUV_TableD[n],  NULL, 4);
+#else
     adaptCodeword(cx, m_ucCBFTableCounter[n],  m_ucCBFTableCounterSum[n],  m_uiCBPTableD[n],  NULL, 4);
+#endif
 #else
     cy = Max(0,cx-1);
     x = uiCBP;
@@ -1573,7 +1840,7 @@ Void TDecCavlc::parseCbf( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eType, U
     m_uiCBPTableD[n][cy] = x;
     m_uiCBPTableD[n][cx] = y;
     m_uiCbpVlcIdx[n] += cx == m_uiCbpVlcIdx[n] ? 0 : (cx < m_uiCbpVlcIdx[n] ? -1 : 1);
- #endif
+#endif
 
     uiCbfY = (uiCBP>>0)&1;
     uiCbfU = (uiCBP>>1)&1;
@@ -1599,20 +1866,31 @@ Void TDecCavlc::parseBlockCbf( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eTy
   Int cx;
 #else
   Int x,cx,y,cy;
-#endif//
+#endif
 
   UInt tmp;
   
   UInt n = (pcCU->isIntra(uiAbsPartIdx) && eType == TEXT_LUMA)? 0:1;
+#if CAVLC_RQT_CBP
+  UInt vlcn = (n==0)?g_auiCBP_4Y_VlcNum[m_uiCBP_4Y_VlcIdx]:11;
+#else
   UInt vlcn = (n==0)?g_auiBlkCbpVlcNum[m_uiBlkCbpVlcIdx]:11;
-  
+#endif
   tmp = xReadVlc( vlcn );    
+#if CAVLC_RQT_CBP
+  uiCbf4 = m_uiCBP_4Y_TableD[n][tmp];
+#else
   uiCbf4 = m_uiBlkCBPTableD[n][tmp];
-  
+#endif
+
   cx = tmp;
 
 #if CAVLC_COUNTER_ADAPT
+#if CAVLC_RQT_CBP
+  adaptCodeword(cx, m_ucCBP_4Y_TableCounter[n], m_ucCBP_4Y_TableCounterSum[n], m_uiCBP_4Y_TableD[n], NULL, 2);
+#else
   adaptCodeword(cx, m_ucBlkCBPTableCounter[n],  m_ucBlkCBPTableCounterSum[n],  m_uiBlkCBPTableD[n],  NULL, 2);
+#endif
 #else
   cy = Max(0,cx-1);
   x = uiCbf4;
@@ -1620,12 +1898,16 @@ Void TDecCavlc::parseBlockCbf( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eTy
   m_uiBlkCBPTableD[n][cy] = x;
   m_uiBlkCBPTableD[n][cx] = y;
 #endif
+
+#if CAVLC_RQT_CBP
+  if(n==0)
+    m_uiCBP_4Y_VlcIdx += cx == m_uiCBP_4Y_VlcIdx ? 0 : (cx < m_uiCBP_4Y_VlcIdx ? -1 : 1);
+#else
   if(n==0)
     m_uiBlkCbpVlcIdx += cx == m_uiBlkCbpVlcIdx ? 0 : (cx < m_uiBlkCbpVlcIdx ? -1 : 1);
+#endif
 
-  
   uiCbf4++;
-  
   uiCbf = pcCU->getCbf( uiAbsPartIdx, eType );
   pcCU->setCbfSubParts( uiCbf | ( ((uiCbf4>>3)&0x01) << uiTrDepth ), eType, uiAbsPartIdx, uiDepth ); uiAbsPartIdx += uiQPartNum;
   uiCbf = pcCU->getCbf( uiAbsPartIdx, eType );

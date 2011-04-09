@@ -99,11 +99,20 @@ private:
 #if QC_LCEC_INTER_MODE
   UInt                      m_uiSplitTableD[4][7];
 #endif
+#if CAVLC_RQT_CBP
+  UInt                      m_uiCBP_YUV_TableD[4][8];
+  UInt                      m_uiCBP_YS_TableD[2][4];
+  UInt                      m_uiCBP_YCS_TableD[2][8];
+  UInt                      m_uiCBP_4Y_TableD[2][15];
+  UInt                      m_uiCBP_4Y_VlcIdx;
+#else
+  UInt                      m_uiBlkCBPTableD[2][15];
   UInt                      m_uiCBPTableD[2][8];
   UInt                      m_uiCbpVlcIdx[2];
-  
-  UInt                      m_uiBlkCBPTableD[2][15];
   UInt                      m_uiBlkCbpVlcIdx;
+#endif
+
+
   
   Int                   m_iRefFrame0[1000];
   Int                   m_iRefFrame1[1000];
@@ -118,16 +127,28 @@ private:
   UInt                  m_uiMITableVlcIdx;
 
 #if CAVLC_COUNTER_ADAPT
-  UChar         m_ucCBFTableCounter   [2][4];
-  UChar         m_ucSplitTableCounter [4][4];
-  UChar         m_ucBlkCBPTableCounter[2][2];
-  UChar         m_ucMI1TableCounter      [4];
-
+#if CAVLC_RQT_CBP
+  UChar         m_ucCBP_YUV_TableCounter[4][4];
+  UChar         m_ucCBP_4Y_TableCounter[2][2];
+  UChar         m_ucCBP_YS_TableCounter[2][3];
+  UChar         m_ucCBP_YCS_TableCounter[2][4];
+  UChar         m_ucCBP_YUV_TableCounterSum[4];
+  UChar         m_ucCBP_4Y_TableCounterSum[2];
+  UChar         m_ucCBP_YS_TableCounterSum[2];
+  UChar         m_ucCBP_YCS_TableCounterSum[2];
+#else
+  UChar         m_ucCBFTableCounter    [2][4];
+  UChar         m_ucBlkCBPTableCounter [2][2];
   UChar         m_ucCBFTableCounterSum[2];
-  UChar         m_ucSplitTableCounterSum[4];
   UChar         m_ucBlkCBPTableCounterSum[2];
+#endif
+
+  UChar         m_ucMI1TableCounter[4];
+  UChar         m_ucSplitTableCounter[4][4];
+  UChar         m_ucSplitTableCounterSum[4];
   UChar         m_ucMI1TableCounterSum;
 #endif
+
   
 public:
   Void  resetEntropy        ( TComSlice* pcSlice  );
@@ -167,6 +188,10 @@ public:
   Void parseMvd             ( TComDataCU* pcCU, UInt uiAbsPartAddr,UInt uiPartIdx,    UInt uiDepth, RefPicList eRefList );
   
   Void parseDeltaQP         ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
+#if CAVLC_RQT_CBP
+  Void parseCbfTrdiv        ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiTrDepth, UInt uiDepth, UInt& uiSubdiv );
+  UInt xGetFlagPattern      ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth,  UInt& uiSubdiv );
+#endif
   Void parseCbf             ( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eType, UInt uiTrDepth, UInt uiDepth );
   Void parseBlockCbf        ( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eType, UInt uiTrDepth, UInt uiDepth, UInt uiQPartNum );
   Void parseCoeffNxN        ( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx, UInt uiWidth, UInt uiHeight, UInt uiDepth, TextType eTType );

@@ -222,14 +222,28 @@ extern const UInt    g_auiLumaRunTr14x4[5][15];
 extern const UInt    g_auiLumaRunTr18x8[5][29];
 #endif
 #endif
-
+#if CAVLC_RQT_CBP
+extern const UInt    g_auiCBP_YUV_TableE[4][8];
+extern const UInt    g_auiCBP_YUV_TableD[4][8];
+extern const UInt    g_auiCBP_YS_TableE[2][4];
+extern const UInt    g_auiCBP_YS_TableD[2][4];
+extern const UInt    g_auiCBP_YCS_TableE[2][8];
+extern const UInt    g_auiCBP_YCS_TableD[2][8];
+extern const UInt    g_auiCBP_YCS_Table[2][8];
+extern const UInt    g_auiCBP_YCS_TableLen[2][8];
+extern const UInt    g_auiCBP_YC_TableE[2][4];
+extern const UInt    g_auiCBP_YC_TableD[2][4];
+extern const UInt    g_auiCBP_4Y_TableE[2][15];
+extern const UInt    g_auiCBP_4Y_TableD[2][15];
+extern const UInt    g_auiCBP_4Y_VlcNum[15];
+#else
 extern const UInt    g_auiCBPTableE[2][8];
 extern const UInt    g_auiCBPTableD[2][8];
-extern const UInt    g_auiCbpVlcNum[2][8];
-
 extern const UInt    g_auiBlkCBPTableE[2][15];
 extern const UInt    g_auiBlkCBPTableD[2][15];
 extern const UInt    g_auiBlkCbpVlcNum[15];
+#endif//
+extern const UInt    g_auiCbpVlcNum[2][8];
 
 #if UNIFY_INTER_TABLE
 extern const UInt g_auiComMI1TableE[9];
@@ -549,7 +563,6 @@ __inline Void adaptCodeword( UInt uiCodeIdx, UChar * pucTableCounter, UChar & ru
     }
   }
 }
-
-#endif//
+#endif
 #endif  //__TCOMROM__
 
