@@ -57,6 +57,11 @@ TComPrediction::~TComPrediction()
   m_acYuvPred[1].destroy();
 
   m_cYuvPredTemp.destroy();
+
+#if LM_CHROMA  
+  if( m_pLumaRecBuffer )
+    delete [] m_pLumaRecBuffer;  
+#endif
 }
 
 Void TComPrediction::initTempBuff()
@@ -74,6 +79,14 @@ Void TComPrediction::initTempBuff()
 
     m_cYuvPredTemp.create( g_uiMaxCUWidth, g_uiMaxCUHeight );
   }
+
+#if LM_CHROMA                      
+  m_iLumaRecStride =  (g_uiMaxCUWidth>>1) + 1;
+  m_pLumaRecBuffer = new Pel[ m_iLumaRecStride * m_iLumaRecStride ];
+
+  for( Int i = 1; i < 66; i++ )
+    m_uiaShift[i-1] = ( (1 << 15) + i/2 ) / i;
+#endif
 }
 
 // ====================================================================================================================
@@ -1013,5 +1026,265 @@ Void TComPrediction::xPredIntraPlanar( Int* pSrc, Int srcStride, Pel*& rpDst, In
       rpDst[k*dstStride+l] = ( (horPred + topRow[l]) >> shift2D );
     }
   }
+}
+#endif
+
+#if LM_CHROMA
+/** Function for deriving chroma LM intra prediction.
+ * \param pcPattern pointer to neighbouring pixel access pattern
+ * \param pSrc pointer to reconstructed chroma sample array
+ * \param pPred pointer for the prediction sample array
+ * \param uiPredStride the stride of the prediction sample array
+ * \param uiCWidth the width of the chroma block
+ * \param uiCHeight the height of the chroma block
+ * \param uiChromaId boolean indication of chroma component
+
+ \ This function derives the prediction samples for chroma LM mode (chroma intra coding)
+ */
+Void TComPrediction::predLMIntraChroma( TComPattern* pcPattern, Int* piSrc, Pel* pPred, UInt uiPredStride, UInt uiCWidth, UInt uiCHeight, UInt uiChromaId )
+{
+  UInt uiWidth  = uiCWidth << 1;
+  UInt uiHeight = uiCHeight << 1;
+
+  if (uiChromaId == 0)
+    xGetRecPixels( pcPattern, pcPattern->getROIY(), pcPattern->getPatternLStride(), m_pLumaRecBuffer + m_iLumaRecStride + 1, m_iLumaRecStride, uiWidth, uiHeight );
+
+  xGetLLSPrediction( pcPattern, piSrc+uiWidth+2, uiWidth+1, pPred, uiPredStride, uiCWidth, uiCHeight, 1 );  
+}
+
+/** Function for deriving downsampled luma sample of current chroma block and its above, left causal pixel
+ * \param pcPattern pointer to neighbouring pixel access pattern
+ * \param pRecSrc pointer to reconstructed luma sample array
+ * \param iRecSrcStride the stride of reconstructed luma sample array
+ * \param pDst0 pointer to downsampled luma sample array
+ * \param iDstStride the stride of downsampled luma sample array
+ * \param uiWidth0 the width of the luma block
+ * \param uiHeight0 the height of the luma block
+
+ \ This function derives downsampled luma sample of current chroma block and its above, left causal pixel
+ */
+
+Void TComPrediction::xGetRecPixels( TComPattern* pcPattern, Pel* pRecSrc, Int iRecSrcStride, Pel* pDst0, Int iDstStride, UInt uiWidth0, UInt uiHeight0 )
+{
+  Pel* pSrc = pRecSrc;
+  Pel* pDst = pDst0;
+
+  Int uiCWidth = uiWidth0/2;
+  Int uiCHeight = uiHeight0/2;
+
+  if( pcPattern->isLeftAvailable() )
+  {
+    pSrc = pSrc - 2;
+    pDst = pDst - 1;
+
+    uiCWidth += 1;
+  }
+
+  if( pcPattern->isAboveAvailable() )
+  {
+    pSrc = pSrc - 2*iRecSrcStride;
+    pDst = pDst - iDstStride;
+
+    uiCHeight += 1;
+  }
+
+  for( Int j = 0; j < uiCHeight; j++ )
+    {
+      for( Int i = 0, ii = i << 1; i < uiCWidth; i++, ii = i << 1 )
+        pDst[i] = (pSrc[ii] + pSrc[ii + iRecSrcStride]) >> 1;
+
+      pDst += iDstStride;
+      pSrc += iRecSrcStride*2;
+    }  
+}
+
+/** Function for deriving the positon of first non-zero binary bit of a value
+ * \param x input value
+ \ This function derives the positon of first non-zero binary bit of a value
+ */
+Int GetMSB( UInt x )
+{
+#if 1
+  Int iMSB = 0, bits = ( sizeof( Int ) << 3 ), y = 1;
+
+  while( x > 1 )
+  {
+    bits >>= 1;
+    y = x >> bits;
+
+    if( y )
+    {
+      x = y;
+      iMSB += bits;
+    }
+  }
+
+  iMSB+=y;
+
+#else
+
+  Int iMSB = 0;
+  while( x > 0 )
+  {
+    x >>= 1;
+    iMSB++;
+  }
+#endif
+
+  return iMSB;
+}
+
+/** Function for deriving LM intra prediction.
+ * \param pcPattern pointer to neighbouring pixel access pattern
+ * \param pSrc0 pointer to reconstructed chroma sample array
+ * \param iSrcStride the stride of reconstructed chroma sample array
+ * \param pDst0 reference to pointer for the prediction sample array
+ * \param iDstStride the stride of the prediction sample array
+ * \param uiWidth the width of the chroma block
+ * \param uiHeight the height of the chroma block
+ * \param uiExt0 line number of neiggboirng pixels for calculating LM model parameter, default value is 1
+
+ \ This function derives the prediction samples for chroma LM mode (chroma intra coding)
+ */
+Void TComPrediction::xGetLLSPrediction( TComPattern* pcPattern, Int* pSrc0, Int iSrcStride, Pel* pDst0, Int iDstStride, UInt uiWidth, UInt uiHeight, UInt uiExt0 )
+{
+
+  Pel  *pDst, *pLuma;
+  Int  *pSrc;
+
+  Int  iLumaStride = m_iLumaRecStride;
+  Pel* pLuma0 = m_pLumaRecBuffer + uiExt0 * iLumaStride + uiExt0;
+
+  Int i, j, iCountShift = 0;
+
+  UInt uiExt = uiExt0;
+
+  // LLS parameters estimation -->
+
+  Int x = 0, y = 0, xx = 0, xy = 0;
+
+  if( pcPattern->isAboveAvailable() )
+  {
+    pSrc  = pSrc0  - iSrcStride;
+    pLuma = pLuma0 - iLumaStride;
+
+    for( j = 0; j < uiWidth; j++ )
+    {
+      x += pLuma[j];
+      y += pSrc[j];
+      xx += pLuma[j] * pLuma[j];
+      xy += pLuma[j] * pSrc[j];
+    }
+    iCountShift += g_aucConvertToBit[ uiWidth ] + 2;
+  }
+
+  if( pcPattern->isLeftAvailable() )
+  {
+    pSrc  = pSrc0 - uiExt;
+    pLuma = pLuma0 - uiExt;
+
+    for( i = 0; i < uiHeight; i++ )
+    {
+      x += pLuma[0];
+      y += pSrc[0];
+      xx += pLuma[0] * pLuma[0];
+      xy += pLuma[0] * pSrc[0];
+
+      pSrc  += iSrcStride;
+      pLuma += iLumaStride;
+    }
+    iCountShift += iCountShift > 0 ? 1 : ( g_aucConvertToBit[ uiWidth ] + 2 );
+  }
+
+  Int iBitdepth = ( ( g_uiBitDepth + g_uiBitIncrement ) + g_aucConvertToBit[ uiWidth ] + 3 ) * 2;
+  Int iTempShift = Max( ( iBitdepth - 31 + 1) / 2, 0);
+
+  if(iTempShift > 0)
+  {
+    x  = ( x +  ( 1 << ( iTempShift - 1 ) ) ) >> iTempShift;
+    y  = ( y +  ( 1 << ( iTempShift - 1 ) ) ) >> iTempShift;
+    xx = ( xx + ( 1 << ( iTempShift - 1 ) ) ) >> iTempShift;
+    xy = ( xy + ( 1 << ( iTempShift - 1 ) ) ) >> iTempShift;
+    iCountShift -= iTempShift;
+  }
+
+  Int a, b, iShift = 13;
+
+  if( iCountShift == 0 )
+  {
+    a = 0;
+    b = 128 << g_uiBitIncrement;
+    iShift = 0;
+  }
+  else
+  {
+    Int a1 = ( xy << iCountShift ) - y * x;
+    Int a2 = ( xx << iCountShift ) - x * x;              
+
+    if( a2 == 0 || a1 == 0 )
+    {
+      a = 0;
+      b = ( y + ( 1 << ( iCountShift - 1 ) ) )>> iCountShift;
+      iShift = 0;
+    }
+    else
+    {
+      const Int iShiftA2 = 6;
+      const Int iShiftA1 = 15;
+      const Int iAccuracyShift = 15;
+
+      Int iScaleShiftA2 = 0;
+      Int iScaleShiftA1 = 0;
+      Int a1s = a1;
+      Int a2s = a2;
+
+      iScaleShiftA1 = GetMSB( abs( a1 ) ) - iShiftA1;
+      iScaleShiftA2 = GetMSB( abs( a2 ) ) - iShiftA2;  
+
+      if( iScaleShiftA1 < 0 )
+        iScaleShiftA1 = 0;
+
+      if( iScaleShiftA2 < 0 )
+        iScaleShiftA2 = 0;
+
+      Int iScaleShiftA = iScaleShiftA2 + iAccuracyShift - iShift - iScaleShiftA1;
+
+      a2s = a2 >> iScaleShiftA2;
+
+      a1s = a1 >> iScaleShiftA1;
+
+      a = a1s * m_uiaShift[ abs( a2s ) ];
+      
+      if( iScaleShiftA < 0 )
+        a = a << -iScaleShiftA;
+      else
+        a = a >> iScaleShiftA;
+
+      if( a > ( 1 << 15 ) - 1 )
+        a = ( 1 << 15 ) - 1;
+      else if( a < -( 1 << 15 ) )
+        a = -( 1 << 15 );
+
+      b = (  y - ( ( a * x ) >> iShift ) + ( 1 << ( iCountShift - 1 ) ) ) >> iCountShift;
+    }
+  }   
+
+  // <-- end of LLS parameters estimation
+
+  // get prediction -->
+  uiExt = uiExt0;
+  pLuma = pLuma0;
+  pDst = pDst0;
+
+  for( i = 0; i < uiHeight; i++ )
+  {
+    for( j = 0; j < uiWidth; j++ )
+      pDst[j] = Clip( ( ( a * pLuma[j] ) >> iShift ) + b );
+
+    pDst  += iDstStride;
+    pLuma += iLumaStride;
+  }
+  // <-- end of get prediction
+
 }
 #endif

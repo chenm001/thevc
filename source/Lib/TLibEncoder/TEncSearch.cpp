@@ -1065,10 +1065,12 @@ TEncSearch::xIntraCodingChromaBlk( TComDataCU* pcCU,
   UInt      uiRecIPredStride  = pcCU->getPic()->getPicYuvRec()->getCStride();
   
   //===== update chroma mode =====
+#if !LM_CHROMA
   if( uiChromaPredMode == 4 )
   {
     uiChromaPredMode          = pcCU->getLumaIntraDir( 0 );
   }
+#endif
   
   //===== init availability pattern =====
   Bool  bAboveAvail = false;
@@ -1078,7 +1080,22 @@ TEncSearch::xIntraCodingChromaBlk( TComDataCU* pcCU,
   Int*  pPatChroma  = ( uiChromaId > 0 ? pcCU->getPattern()->getAdiCrBuf( uiWidth, uiHeight, m_piYuvExt ) : pcCU->getPattern()->getAdiCbBuf( uiWidth, uiHeight, m_piYuvExt ) );
   
   //===== get prediction signal =====
+#if LM_CHROMA
+  if(pcCU->getSlice()->getSPS()->getUseLMChroma() && uiChromaPredMode == 3)
+  {
+    predLMIntraChroma( pcCU->getPattern(), pPatChroma, piPred, uiStride, uiWidth, uiHeight, uiChromaId );
+  }
+  else
+  {
+    if( uiChromaPredMode == 4 )
+    {
+      uiChromaPredMode          = pcCU->getLumaIntraDir( 0 );
+    }
+  predIntraChromaAng( pcCU->getPattern(), pPatChroma, uiChromaPredMode, piPred, uiStride, uiWidth, uiHeight, pcCU, bAboveAvail, bLeftAvail );  
+  }
+#else // LM_CHROMA
   predIntraChromaAng( pcCU->getPattern(), pPatChroma, uiChromaPredMode, piPred, uiStride, uiWidth, uiHeight, pcCU, bAboveAvail, bLeftAvail );
+#endif
   
   //===== get residual signal =====
   {
@@ -1944,10 +1961,38 @@ TEncSearch::estIntraPredChromaQT( TComDataCU* pcCU,
 #if CHROMA_CODEWORD 
 #if ADD_PLANAR_MODE
   UInt  uiMaxMode = 6;
+  
+#if LM_CHROMA
+  UInt  uiIgnore;
+  if(pcCU->getSlice()->getSPS()->getUseLMChroma())
+  {
+    uiIgnore = ( ( (uiLumaMode != PLANAR_IDX) && (uiLumaMode >= 3) ) ? uiMaxMode : uiLumaMode );
+  }
+  else
+  {
+    uiIgnore = ( ( (uiLumaMode != PLANAR_IDX) && (uiLumaMode >= 4) ) ? uiMaxMode : uiLumaMode );
+  }
+#else
   UInt  uiIgnore = ( ( (uiLumaMode != PLANAR_IDX) && (uiLumaMode >= 4) ) ? uiMaxMode : uiLumaMode );
+#endif
+
 #else
   UInt  uiMaxMode = 5;
+
+#if LM_CHROMA
+  UInt  uiIgnore;
+  if(pcCU->getSlice()->getSPS()->getUseLMChroma())
+  {
+    uiIgnore = (uiModeList[4] >= 0 && uiModeList[4] < 3) ? uiModeList[4] : 6;
+  }
+  else
+  {
+    uiIgnore = (uiModeList[4] >= 0 && uiModeList[4] < 4) ? uiModeList[4] : 6;
+  }
+#else
   UInt  uiIgnore = (uiModeList[4] < 4) ? uiModeList[4] : 6;
+#endif
+
 #endif
 #else
 #if ADD_PLANAR_MODE

@@ -89,7 +89,11 @@ Void TEncCavlc::resetEntropy()
   ::memcpy(m_uiBlkCBPTableE, g_auiBlkCBPTableE, 2*15*sizeof(UInt));
   ::memcpy(m_uiBlkCBPTableD, g_auiBlkCBPTableD, 2*15*sizeof(UInt));
   m_uiBlkCbpVlcIdx = 0;
-  
+
+#if UNIFY_INTER_TABLE
+  ::memcpy(m_uiMI1TableE, g_auiComMI1TableE, 9*sizeof(UInt));
+  ::memcpy(m_uiMI1TableD, g_auiComMI1TableD, 9*sizeof(UInt));
+#else  
   ::memcpy(m_uiMI1TableE, g_auiMI1TableE, 8*sizeof(UInt));
   ::memcpy(m_uiMI1TableD, g_auiMI1TableD, 8*sizeof(UInt));
   ::memcpy(m_uiMI2TableE, g_auiMI2TableE, 15*sizeof(UInt));
@@ -136,6 +140,8 @@ Void TEncCavlc::resetEntropy()
     m_uiMI1TableE[m_uiMI1TableD[6]] = 6;
   }
 #endif
+#endif
+
 #if QC_LCEC_INTER_MODE
   ::memcpy(m_uiSplitTableE, g_auiInterModeTableE, 4*7*sizeof(UInt));
   ::memcpy(m_uiSplitTableD, g_auiInterModeTableD, 4*7*sizeof(UInt));
@@ -230,6 +236,10 @@ Void TEncCavlc::codeSPS( TComSPS* pcSPS )
   xWriteFlag  ( (pcSPS->getUseLDC ()) ? 1 : 0 );
   xWriteFlag  ( (pcSPS->getUseMRG ()) ? 1 : 0 ); // SOPH:
   
+#if LM_CHROMA
+  xWriteFlag  ( (pcSPS->getUseLMChroma ()) ? 1 : 0 ); 
+#endif
+
 #if HHI_RMP_SWITCH
   xWriteFlag  ( (pcSPS->getUseRMP()) ? 1 : 0 );
 #endif
@@ -936,6 +946,37 @@ Void TEncCavlc::codeIntraDirChroma( TComDataCU* pcCU, UInt uiAbsPartIdx )
     uiMode = 4;
   }
 #endif
+#if LM_CHROMA
+  Bool bUseLMFlag = pcCU->getSlice()->getSPS()->getUseLMChroma();
+
+  Int  iMaxMode = bUseLMFlag ? 3 : 4;
+
+  Int  iMax = uiMode < iMaxMode ? 3 : 4; 
+  
+  //switch codeword
+  if (uiIntraDirChroma == 4)
+  {
+    uiIntraDirChroma = 0;
+  }
+  else if (uiIntraDirChroma == 3 && bUseLMFlag )
+  {
+    uiIntraDirChroma = 1;
+  }
+  else
+  {
+    if (uiIntraDirChroma < uiMode)
+      uiIntraDirChroma++;
+
+    if (bUseLMFlag)
+      uiIntraDirChroma++;
+#if CHROMA_CODEWORD_SWITCH 
+    uiIntraDirChroma = ChromaMapping[iMax-3][uiIntraDirChroma];
+#endif
+  }
+
+  xWriteUnaryMaxSymbol( uiIntraDirChroma, iMax);
+
+#else //<--LM_CHROMA
   Int  iMax = uiMode < 4 ? 3 : 4; 
   
   //switch codeword
@@ -959,6 +1000,8 @@ Void TEncCavlc::codeIntraDirChroma( TComDataCU* pcCU, UInt uiAbsPartIdx )
   }
 #endif
   xWriteUnaryMaxSymbol( uiIntraDirChroma, iMax);
+#endif //<-- LM_CHROMA
+
 #else // CHROMA_CODEWORD
   if ( 0 == uiIntraDirChroma )
   {
@@ -993,7 +1036,168 @@ Void TEncCavlc::codeInterDir( TComDataCU* pcCU, UInt uiAbsPartIdx )
   UInt uiInterDir = pcCU->getInterDir   ( uiAbsPartIdx );
   uiInterDir--;
 
-  
+#if UNIFY_INTER_TABLE
+#if DCM_COMB_LIST
+  UInt uiNumRefIdxOfLC = pcCU->getSlice()->getNumRefIdx(REF_PIC_LIST_C);
+#endif
+  #define min(a, b) (((a) < (b)) ? (a) : (b))
+#if DCM_COMB_LIST
+  UInt uiValNumRefIdxOfLC = min(4,pcCU->getSlice()->getNumRefIdx(REF_PIC_LIST_C));
+#endif
+  UInt uiValNumRefIdxOfL0 = min(2,pcCU->getSlice()->getNumRefIdx(REF_PIC_LIST_0));
+  UInt uiValNumRefIdxOfL1 = min(2,pcCU->getSlice()->getNumRefIdx(REF_PIC_LIST_1));
+
+  if ( pcCU->getSlice()->getRefIdxCombineCoding() )
+  {
+#if CAVLC_COUNTER_ADAPT
+    Int x,cx;
+#else
+    Int x,cx,y,cy;
+#endif
+    Int iRefFrame0,iRefFrame1;
+    UInt uiIndex = 0;
+    
+    UInt *m_uiMITableE;
+    UInt *m_uiMITableD;
+       
+    m_uiMITableE = m_uiMI1TableE;
+    m_uiMITableD = m_uiMI1TableD;
+
+    UInt uiMaxVal;
+#if DCM_COMB_LIST
+    if (uiNumRefIdxOfLC > 0)
+    {
+      uiMaxVal = uiValNumRefIdxOfLC + uiValNumRefIdxOfL0*uiValNumRefIdxOfL1;
+    }
+    else
+#endif
+    if (m_pcSlice->getNoBackPredFlag())
+    {
+      uiMaxVal = uiValNumRefIdxOfL0 + uiValNumRefIdxOfL0*uiValNumRefIdxOfL1;
+    }
+    else
+    {
+      uiMaxVal = uiValNumRefIdxOfL0 + uiValNumRefIdxOfL1 + uiValNumRefIdxOfL0*uiValNumRefIdxOfL1;
+    }
+
+    if (uiInterDir==0)
+    { 
+#if DCM_COMB_LIST
+      if(uiNumRefIdxOfLC > 0)
+      {
+        iRefFrame0 = pcCU->getSlice()->getRefIdxOfLC(REF_PIC_LIST_0, pcCU->getCUMvField( REF_PIC_LIST_0 )->getRefIdx( uiAbsPartIdx ));
+      }
+      else
+#endif
+      {
+        iRefFrame0 = pcCU->getCUMvField( REF_PIC_LIST_0 )->getRefIdx( uiAbsPartIdx );
+      }
+      uiIndex = iRefFrame0;
+#if DCM_COMB_LIST      
+      if(uiNumRefIdxOfLC > 0)
+      {
+        if ( iRefFrame0 >= 4 )
+        {
+          uiIndex = uiMaxVal;
+        }
+      }
+      else
+#endif
+      {
+        if ( iRefFrame0 > 1 )
+        {
+          uiIndex = uiMaxVal;
+        }
+      }        
+    }
+    else if (uiInterDir==1)
+    {
+#if DCM_COMB_LIST
+      if(uiNumRefIdxOfLC > 0)
+      {
+        iRefFrame1 = pcCU->getSlice()->getRefIdxOfLC(REF_PIC_LIST_1, pcCU->getCUMvField( REF_PIC_LIST_1 )->getRefIdx( uiAbsPartIdx ));
+        uiIndex = iRefFrame1;
+      }
+      else
+#endif
+      {
+        iRefFrame1 = pcCU->getCUMvField( REF_PIC_LIST_1 )->getRefIdx( uiAbsPartIdx );
+        uiIndex = uiValNumRefIdxOfL0 + iRefFrame1;
+      }
+#if DCM_COMB_LIST
+      if(uiNumRefIdxOfLC > 0)
+      {
+        if ( iRefFrame1 >= 4 )
+        {
+          uiIndex = uiMaxVal;
+        }
+      }
+      else
+#endif
+      {
+        if ( iRefFrame1 > 1 )
+        {
+          uiIndex = uiMaxVal;
+        }
+      } 
+    }
+    else
+    {
+      iRefFrame0 = pcCU->getCUMvField( REF_PIC_LIST_0 )->getRefIdx( uiAbsPartIdx );
+      iRefFrame1 = pcCU->getCUMvField( REF_PIC_LIST_1 )->getRefIdx( uiAbsPartIdx );
+      if ( iRefFrame0 >= 2 || iRefFrame1 >= 2 )
+      {
+        uiIndex = uiMaxVal;
+      }
+      else
+      {
+  #if DCM_COMB_LIST
+        if(uiNumRefIdxOfLC > 0)
+        {
+          uiIndex = uiValNumRefIdxOfLC + iRefFrame0*uiValNumRefIdxOfL1 + iRefFrame1;
+        } 
+        else
+  #endif
+        if (m_pcSlice->getNoBackPredFlag())
+        {
+          uiMaxVal = uiValNumRefIdxOfL0 + iRefFrame0*uiValNumRefIdxOfL1 + iRefFrame1;
+        }
+        else
+        {
+          uiIndex = uiValNumRefIdxOfL0 + uiValNumRefIdxOfL1 + iRefFrame0*uiValNumRefIdxOfL1 + iRefFrame1;
+        }
+      }
+    }
+      
+    x = uiIndex;
+    
+    cx = m_uiMITableE[x];
+    
+    /* Adapt table */
+    if ( m_bAdaptFlag )
+    {        
+#if CAVLC_COUNTER_ADAPT
+      adaptCodeword(cx, m_ucMI1TableCounter,  m_ucMI1TableCounterSum,   m_uiMITableD,  m_uiMITableE, 4);
+#else
+      cy = Max(0,cx-1);
+      y = m_uiMITableD[cy];
+      m_uiMITableD[cy] = x;
+      m_uiMITableD[cx] = y;
+      m_uiMITableE[x] = cy;
+      m_uiMITableE[y] = cx;   
+      m_uiMITableVlcIdx += cx == m_uiMITableVlcIdx ? 0 : (cx < m_uiMITableVlcIdx ? -1 : 1);
+#endif
+    }
+    
+    xWriteUnaryMaxSymbol( cx, uiMaxVal );
+    
+    if ( x<uiMaxVal ) 
+    {
+      return;
+    }
+  }
+
+#else //UNIFY_INTER_TABLE  
 #if MS_LCEC_LOOKUP_TABLE_EXCEPTION
   if ( pcCU->getSlice()->getRefIdxCombineCoding() )
 #else
@@ -1163,6 +1367,7 @@ Void TEncCavlc::codeInterDir( TComDataCU* pcCU, UInt uiAbsPartIdx )
       return;
     }
   }
+#endif //UNIFY_INTER_TABLE
   
   xWriteFlag( ( uiInterDir == 2 ? 1 : 0 ));
   if ( pcCU->getSlice()->getNoBackPredFlag() )

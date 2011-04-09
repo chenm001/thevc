@@ -857,6 +857,41 @@ Void TDecSbac::parseIntraDirChroma( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt ui
     uiMode = 4;
   }
 #endif
+
+#if LM_CHROMA
+  Int  iMaxMode = pcCU->getSlice()->getSPS()->getUseLMChroma() ? 3 : 4;
+  Int  iMax = uiMode < iMaxMode ? 2 : 3; 
+  
+  m_pcTDecBinIf->decodeBin( uiSymbol, m_cCUChromaPredSCModel.get( 0, 0, pcCU->getCtxIntraDirChroma( uiAbsPartIdx ) ) );
+  
+  if ( uiSymbol )
+  {
+    xReadUnaryMaxSymbol( uiSymbol, m_cCUChromaPredSCModel.get( 0, 0 ) + 3, 0, iMax );
+    uiSymbol++;
+  }
+  
+  //switch codeword
+  if (uiSymbol == 0)
+  {
+    uiSymbol = 4;
+  } 
+  else if (uiSymbol == 1 && pcCU->getSlice()->getSPS()->getUseLMChroma())
+  {
+    uiSymbol = 3;
+  }
+  else 
+  {
+#if CHROMA_CODEWORD_SWITCH 
+    uiSymbol = ChromaMapping[iMax-2][uiSymbol];
+#endif
+
+    if (pcCU->getSlice()->getSPS()->getUseLMChroma())
+       uiSymbol --;
+
+    if (uiSymbol <= uiMode)
+       uiSymbol --;
+  }
+#else // <-- LM_CHROMA
   Int  iMax = uiMode < 4 ? 2 : 3;
   
   m_pcTDecBinIf->decodeBin( uiSymbol, m_cCUChromaPredSCModel.get( 0, 0, pcCU->getCtxIntraDirChroma( uiAbsPartIdx ) ) );
@@ -887,6 +922,8 @@ Void TDecSbac::parseIntraDirChroma( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt ui
     uiSymbol --;
   }
 #endif
+#endif // <-- LM_CHROMA
+
 #else // CHROMA_CODEWORD
   m_pcTDecBinIf->decodeBin( uiSymbol, m_cCUChromaPredSCModel.get( 0, 0, pcCU->getCtxIntraDirChroma( uiAbsPartIdx ) ) );
   

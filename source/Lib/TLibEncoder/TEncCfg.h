@@ -119,6 +119,10 @@ protected:
   Bool      m_bUseBQP;
   Bool      m_bUseFastEnc;
   Bool      m_bUseMRG; // SOPH:
+#if LM_CHROMA 
+  Bool      m_bUseLMChroma; 
+#endif
+
   Int*      m_aidQP;
   UInt      m_uiDeltaQpRD;
   
@@ -280,6 +284,12 @@ public:
 #if CONSTRAINED_INTRA_PRED
   Bool      getUseConstrainedIntraPred      ()      { return m_bUseConstrainedIntraPred; }
 #endif  
+
+#if LM_CHROMA 
+  Bool getUseLMChroma                       ()      { return m_bUseLMChroma;        }
+  Void setUseLMChroma                       ( Bool b ) { m_bUseLMChroma  = b;       }
+#endif
+
   Int*      getdQPs                         ()      { return m_aidQP;       }
   UInt      getDeltaQpRD                    ()      { return m_uiDeltaQpRD; }
 #if HHI_RMP_SWITCH

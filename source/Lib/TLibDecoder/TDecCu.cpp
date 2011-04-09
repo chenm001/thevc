@@ -615,10 +615,12 @@ TDecCu::xIntraRecChromaBlk( TComDataCU* pcCU,
   
   UInt      uiChromaPredMode  = pcCU->getChromaIntraDir( 0 );
   
+#if !LM_CHROMA
   if( uiChromaPredMode == 4 )
   {
     uiChromaPredMode          = pcCU->getLumaIntraDir( 0 );
   }
+#endif
   
   UInt      uiZOrder          = pcCU->getZorderIdxInCU() + uiAbsPartIdx;
   Pel*      piRecIPred        = ( uiChromaId > 0 ? pcCU->getPic()->getPicYuvRec()->getCrAddr( pcCU->getAddr(), uiZOrder ) : pcCU->getPic()->getPicYuvRec()->getCbAddr( pcCU->getAddr(), uiZOrder ) );
@@ -636,8 +638,23 @@ TDecCu::xIntraRecChromaBlk( TComDataCU* pcCU,
   Int* pPatChroma   = ( uiChromaId > 0 ? pcCU->getPattern()->getAdiCrBuf( uiWidth, uiHeight, m_pcPrediction->getPredicBuf() ) : pcCU->getPattern()->getAdiCbBuf( uiWidth, uiHeight, m_pcPrediction->getPredicBuf() ) );
   
   //===== get prediction signal =====
+#if LM_CHROMA
+  if(pcCU->getSlice()->getSPS()->getUseLMChroma() && uiChromaPredMode == 3)
+  {
+      m_pcPrediction->predLMIntraChroma( pcCU->getPattern(), pPatChroma, piPred, uiStride, uiWidth, uiHeight, uiChromaId );
+  }
+  else
+  {
+    if( uiChromaPredMode == 4 )
+    {
+    uiChromaPredMode          = pcCU->getLumaIntraDir( 0 );
+    }
+  m_pcPrediction->predIntraChromaAng( pcCU->getPattern(), pPatChroma, uiChromaPredMode, piPred, uiStride, uiWidth, uiHeight, pcCU, bAboveAvail, bLeftAvail );  
+  }
+#else // LM_CHROMA
   m_pcPrediction->predIntraChromaAng( pcCU->getPattern(), pPatChroma, uiChromaPredMode, piPred, uiStride, uiWidth, uiHeight, pcCU, bAboveAvail, bLeftAvail );
-  
+#endif
+
   //===== inverse transform =====
   m_pcTrQuant->setQPforQuant  ( pcCU->getQP(0), !pcCU->getSlice()->getDepth(), pcCU->getSlice()->getSliceType(), eText );
   m_pcTrQuant->invtransformNxN( piResi, uiStride, pcCoeff, uiWidth, uiHeight );
@@ -695,11 +712,97 @@ TDecCu::xReconIntraQT( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
   UInt  uiNumPart     = pcCU->getNumPartInter();
   UInt  uiNumQParts   = pcCU->getTotalNumPart() >> 2;
   
+#if LM_CHROMA
+  for( UInt uiPU = 0; uiPU < uiNumPart; uiPU++ )
+  {
+    xIntraLumaRecQT( pcCU, uiInitTrDepth, uiPU * uiNumQParts, m_ppcYuvReco[uiDepth], m_ppcYuvReco[uiDepth], m_ppcYuvResi[uiDepth] );
+  }  
+
+  for( UInt uiPU = 0; uiPU < uiNumPart; uiPU++ )
+  {
+    xIntraChromaRecQT( pcCU, uiInitTrDepth, uiPU * uiNumQParts, m_ppcYuvReco[uiDepth], m_ppcYuvReco[uiDepth], m_ppcYuvResi[uiDepth] );
+  }
+#else
+
   for( UInt uiPU = 0; uiPU < uiNumPart; uiPU++ )
   {
     xIntraRecQT( pcCU, uiInitTrDepth, uiPU * uiNumQParts, m_ppcYuvReco[uiDepth], m_ppcYuvReco[uiDepth], m_ppcYuvResi[uiDepth] );
   }
+#endif
+
 }
+
+#if LM_CHROMA
+
+/** Funtion for deriving recontructed PU/CU Luma sample with QTree structure
+ * \param pcCU pointer of current CU
+ * \param uiTrDepth current tranform split depth
+ * \param uiAbsPartIdx  part index
+ * \param pcRecoYuv pointer to reconstructed sample arrays
+ * \param pcPredYuv pointer to prediction sample arrays
+ * \param pcResiYuv pointer to residue sample arrays
+ * 
+ \ This function dervies recontructed PU/CU Luma sample with recursive QTree structure
+ */
+Void
+TDecCu::xIntraLumaRecQT( TComDataCU* pcCU,
+                     UInt        uiTrDepth,
+                     UInt        uiAbsPartIdx,
+                     TComYuv*    pcRecoYuv,
+                     TComYuv*    pcPredYuv, 
+                     TComYuv*    pcResiYuv )
+{
+  UInt uiFullDepth  = pcCU->getDepth(0) + uiTrDepth;
+  UInt uiTrMode     = pcCU->getTransformIdx( uiAbsPartIdx );
+  if( uiTrMode == uiTrDepth )
+  {
+    xIntraRecLumaBlk  ( pcCU, uiTrDepth, uiAbsPartIdx, pcRecoYuv, pcPredYuv, pcResiYuv );
+  }
+  else
+  {
+    UInt uiNumQPart  = pcCU->getPic()->getNumPartInCU() >> ( ( uiFullDepth + 1 ) << 1 );
+    for( UInt uiPart = 0; uiPart < 4; uiPart++ )
+    {
+      xIntraLumaRecQT( pcCU, uiTrDepth + 1, uiAbsPartIdx + uiPart * uiNumQPart, pcRecoYuv, pcPredYuv, pcResiYuv );
+    }
+  }
+}
+
+/** Funtion for deriving recontructed PU/CU chroma samples with QTree structure
+ * \param pcCU pointer of current CU
+ * \param uiTrDepth current tranform split depth
+ * \param uiAbsPartIdx  part index
+ * \param pcRecoYuv pointer to reconstructed sample arrays
+ * \param pcPredYuv pointer to prediction sample arrays
+ * \param pcResiYuv pointer to residue sample arrays
+ * 
+ \ This function dervies recontructed PU/CU chroma samples with QTree recursive structure
+ */
+Void
+TDecCu::xIntraChromaRecQT( TComDataCU* pcCU,
+                     UInt        uiTrDepth,
+                     UInt        uiAbsPartIdx,
+                     TComYuv*    pcRecoYuv,
+                     TComYuv*    pcPredYuv, 
+                     TComYuv*    pcResiYuv )
+{
+  UInt uiFullDepth  = pcCU->getDepth(0) + uiTrDepth;
+  UInt uiTrMode     = pcCU->getTransformIdx( uiAbsPartIdx );
+  if( uiTrMode == uiTrDepth )
+  {
+    xIntraRecChromaBlk( pcCU, uiTrDepth, uiAbsPartIdx, pcRecoYuv, pcPredYuv, pcResiYuv, 0 );
+    xIntraRecChromaBlk( pcCU, uiTrDepth, uiAbsPartIdx, pcRecoYuv, pcPredYuv, pcResiYuv, 1 );
+  }
+  else
+  {
+    UInt uiNumQPart  = pcCU->getPic()->getNumPartInCU() >> ( ( uiFullDepth + 1 ) << 1 );
+    for( UInt uiPart = 0; uiPart < 4; uiPart++ )
+    {
+      xIntraChromaRecQT( pcCU, uiTrDepth + 1, uiAbsPartIdx + uiPart * uiNumQPart, pcRecoYuv, pcPredYuv, pcResiYuv );
+    }
+  }
+}
+#endif
 
 Void TDecCu::xCopyToPic( TComDataCU* pcCU, TComPic* pcPic, UInt uiZorderIdx, UInt uiDepth )
 {

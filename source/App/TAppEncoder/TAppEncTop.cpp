@@ -122,6 +122,11 @@ Void TAppEncTop::xInitLibCfg()
   m_cTEncTop.setUseBQP                       ( m_bUseBQP      );
   m_cTEncTop.setUseFastEnc                   ( m_bUseFastEnc  );
   m_cTEncTop.setUseMRG                       ( m_bUseMRG      ); // SOPH:
+
+#if LM_CHROMA 
+  m_cTEncTop.setUseLMChroma                  ( m_bUseLMChroma );
+#endif
+
 #if HHI_RMP_SWITCH
   m_cTEncTop.setUseRMP                     ( m_bUseRMP );
 #endif

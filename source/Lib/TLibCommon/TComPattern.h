@@ -103,6 +103,11 @@ private:
   TComPatternParam  m_cPatternCb;
   TComPatternParam  m_cPatternCr;
   
+#if LM_CHROMA 
+  Bool m_bLeftAvailable;
+  Bool m_bAboveAvailable;
+#endif
+
 public:
   
   // ROI & pattern information, (ROI = &pattern[AboveOffset][LeftOffset])
@@ -159,6 +164,11 @@ public:
                                Int         iOrgBufHeight,
                                Bool&       bAbove,
                                Bool&       bLeft );
+
+#if LM_CHROMA 
+  Bool  isLeftAvailable()         { return m_bLeftAvailable; }
+  Bool  isAboveAvailable()        { return m_bAboveAvailable; }
+#endif
 
 #if (CONSTRAINED_INTRA_PRED || REFERENCE_SAMPLE_PADDING)
 private:
