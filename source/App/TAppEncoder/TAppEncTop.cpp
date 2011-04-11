@@ -145,6 +145,9 @@ Void TAppEncTop::xInitLibCfg()
   }
   m_cTEncTop.setLFCrossSliceBoundaryFlag( m_bLFCrossSliceBoundaryFlag );
 #endif
+#if MTK_SAO
+  m_cTEncTop.setUseSAO               ( m_bUseSAO         );
+#endif
 }
 
 Void TAppEncTop::xCreateLib()

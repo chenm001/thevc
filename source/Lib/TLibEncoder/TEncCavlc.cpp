@@ -72,11 +72,23 @@ Void TEncCavlc::resetEntropy()
   ::memcpy(m_uiLastPosVlcIndex, g_auiLastPosVlcIndex, 10*sizeof(UInt));
   
 #if LCEC_INTRA_MODE
+#if MTK_DCM_MPM
+  ::memcpy(m_uiIntraModeTableD17[0], g_auiIntraModeTableD17[0], 16*sizeof(UInt));
+  ::memcpy(m_uiIntraModeTableE17[0], g_auiIntraModeTableE17[0], 16*sizeof(UInt));
+  ::memcpy(m_uiIntraModeTableD17[1], g_auiIntraModeTableD17[1], 16*sizeof(UInt));
+  ::memcpy(m_uiIntraModeTableE17[1], g_auiIntraModeTableE17[1], 16*sizeof(UInt));
+
+  ::memcpy(m_uiIntraModeTableD34[0], g_auiIntraModeTableD34[0], 33*sizeof(UInt));
+  ::memcpy(m_uiIntraModeTableE34[0], g_auiIntraModeTableE34[0], 33*sizeof(UInt));
+  ::memcpy(m_uiIntraModeTableD34[1], g_auiIntraModeTableD34[1], 33*sizeof(UInt));
+  ::memcpy(m_uiIntraModeTableE34[1], g_auiIntraModeTableE34[1], 33*sizeof(UInt));
+#else
   ::memcpy(m_uiIntraModeTableD17, g_auiIntraModeTableD17, 16*sizeof(UInt));
   ::memcpy(m_uiIntraModeTableE17, g_auiIntraModeTableE17, 16*sizeof(UInt));
 
   ::memcpy(m_uiIntraModeTableD34, g_auiIntraModeTableD34, 33*sizeof(UInt));
   ::memcpy(m_uiIntraModeTableE34, g_auiIntraModeTableE34, 33*sizeof(UInt));
+#endif
 #endif
 
   ::memcpy(m_uiCBPTableE, g_auiCBPTableE, 2*8*sizeof(UInt));
@@ -236,6 +248,9 @@ Void TEncCavlc::codeSPS( TComSPS* pcSPS )
 
 #if MTK_NONCROSS_INLOOP_FILTER
   xWriteFlag( pcSPS->getLFCrossSliceBoundaryFlag()?1 : 0);
+#endif
+#if MTK_SAO
+  xWriteFlag( pcSPS->getUseSAO() ? 1 : 0);
 #endif
 
 }
@@ -712,6 +727,122 @@ Void TEncCavlc::codeQtRootCbf( TComDataCU* pcCU, UInt uiAbsPartIdx )
 }
 
 #if LCEC_INTRA_MODE
+#if MTK_DCM_MPM
+Void TEncCavlc::codeIntraDirLumaAng( TComDataCU* pcCU, UInt uiAbsPartIdx )
+{
+  Int iDir         = pcCU->getLumaIntraDir( uiAbsPartIdx );
+  Int iIntraIdx = pcCU->getIntraSizeIdx(uiAbsPartIdx);
+#if ADD_PLANAR_MODE
+  UInt planarFlag    = 0;
+  if (iDir == PLANAR_IDX)
+  {
+    iDir = 2;
+    planarFlag = 1;
+  }
+#endif
+ 
+  Int uiPreds[2] = {-1, -1};
+  Int uiPredNum = pcCU->getIntraDirLumaPredictor(uiAbsPartIdx, uiPreds);  
+
+  Int uiPredIdx = -1;
+
+  for(UInt i = 0; i < uiPredNum; i++)
+  {
+    if(iDir == uiPreds[i])
+      uiPredIdx = i;
+  }
+
+  if ( g_aucIntraModeBitsAng[iIntraIdx] < 5 )
+  {
+    if(uiPredIdx != -1)
+    {
+      xWriteFlag(1);
+      if(uiPredNum == 2)
+        xWriteFlag((UInt)uiPredIdx);
+    }
+    else
+    {
+      xWriteFlag(0);
+      for(Int i = (uiPredNum - 1); i >= 0; i--)
+      {
+        iDir = iDir > uiPreds[i] ? iDir - 1 : iDir;
+      }
+
+
+      xWriteFlag( iDir & 0x01 ? 1 : 0 );
+      if ( g_aucIntraModeBitsAng[iIntraIdx] > 2 ) xWriteFlag( iDir & 0x02 ? 1 : 0 );
+      if ( g_aucIntraModeBitsAng[iIntraIdx] > 3 ) xWriteFlag( iDir & 0x04 ? 1 : 0 );
+    }
+    
+  }
+  else 
+  {
+     UInt uiCode, uiLength;
+     Int iRankIntraMode, iRankIntraModeLarger, iDirLarger;
+      
+     const UInt *huff;
+     const UInt *lengthHuff;
+     UInt  *m_uiIntraModeTableD;
+     UInt  *m_uiIntraModeTableE;
+
+     if ( g_aucIntraModeBitsAng[iIntraIdx] == 5 )
+     {
+       huff = huff17_2[uiPredNum - 1];
+       lengthHuff = lengthHuff17_2[uiPredNum - 1];
+       m_uiIntraModeTableD = m_uiIntraModeTableD17[uiPredNum - 1];
+       m_uiIntraModeTableE = m_uiIntraModeTableE17[uiPredNum - 1];
+     }
+     else
+     {
+       huff = huff34_2[uiPredNum - 1];
+       lengthHuff = lengthHuff34_2[uiPredNum - 1];
+       m_uiIntraModeTableD = m_uiIntraModeTableD34[uiPredNum - 1];
+       m_uiIntraModeTableE = m_uiIntraModeTableE34[uiPredNum - 1];
+     }
+
+     if(uiPredIdx != -1)
+     {
+       uiCode=huff[0];
+       uiLength=lengthHuff[0];
+       xWriteCode(uiCode, uiLength);
+
+       if(uiPredNum == 2)
+         xWriteFlag((UInt)uiPredIdx);
+     }
+     else
+     {
+       for(Int i = (uiPredNum - 1); i >= 0; i--)
+       {
+         iDir = iDir > uiPreds[i] ? iDir - 1 : iDir;
+       }
+       iRankIntraMode=m_uiIntraModeTableE[iDir];
+
+       uiCode=huff[iRankIntraMode+1];
+       uiLength=lengthHuff[iRankIntraMode+1];
+
+       xWriteCode(uiCode, uiLength);
+
+       if ( m_bAdaptFlag )
+       {
+         iRankIntraModeLarger = Max(0,iRankIntraMode-1);
+         iDirLarger = m_uiIntraModeTableD[iRankIntraModeLarger];
+  
+         m_uiIntraModeTableD[iRankIntraModeLarger] = iDir;
+         m_uiIntraModeTableD[iRankIntraMode] = iDirLarger;
+         m_uiIntraModeTableE[iDir] = iRankIntraModeLarger;
+         m_uiIntraModeTableE[iDirLarger] = iRankIntraMode;
+       }
+     }
+  }
+#if ADD_PLANAR_MODE
+  iDir = pcCU->getLumaIntraDir( uiAbsPartIdx );
+  if ( (iDir == PLANAR_IDX) || (iDir == 2) )
+  {
+    xWriteFlag( planarFlag );
+  }
+#endif
+}
+#else
 Void TEncCavlc::codeIntraDirLumaAng( TComDataCU* pcCU, UInt uiAbsPartIdx )
 {
   Int iDir         = pcCU->getLumaIntraDir( uiAbsPartIdx );
@@ -820,7 +951,7 @@ Void TEncCavlc::codeIntraDirLumaAng( TComDataCU* pcCU, UInt uiAbsPartIdx )
 #endif
 
 }
-
+#endif
 #else
 
 Void TEncCavlc::codeIntraDirLumaAng( TComDataCU* pcCU, UInt uiAbsPartIdx )
@@ -1588,6 +1719,38 @@ Void TEncCavlc::codeAlfSvlc( Int iCode )
 {
   xWriteSvlc( iCode );
 }
+#if MTK_SAO
+Void TEncCavlc::codeAoFlag( UInt uiCode )
+{
+
+  xWriteFlag( uiCode );
+#if LCEC_STAT
+  if (m_bAdaptFlag)
+    m_uiBitAlfFlag += 1;
+#endif
+}
+
+Void TEncCavlc::codeAoUvlc( UInt uiCode )
+{
+#if LCEC_STAT
+  if (m_bAdaptFlag)
+    m_uiBitAlfUvlc += xWriteUvlc( uiCode );
+  else
+#endif
+    xWriteUvlc( uiCode );
+}
+
+Void TEncCavlc::codeAoSvlc( Int iCode )
+{
+#if LCEC_STAT
+  if (m_bAdaptFlag)
+    m_uiBitAlfSvlc += xWriteSvlc( iCode );
+  else
+#endif
+    xWriteSvlc( iCode );
+}
+
+#endif
 
 Void TEncCavlc::estBit( estBitsSbacStruct* pcEstBitsCabac, UInt uiCTXIdx, TextType eTType )
 {

@@ -85,7 +85,9 @@ private:
   // Adaptive Loop filter
   TEncAdaptiveLoopFilter* m_pcAdaptiveLoopFilter;
   //--Adaptive Loop filter
-  
+#if MTK_SAO
+  TEncSAO*                m_pcSAO;
+#endif
   TComBitCounter*         m_pcBitCounter;
   
   // indicate sequence first

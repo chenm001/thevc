@@ -82,7 +82,11 @@ public:
   Void  parseAlfUvlc              ( UInt& ruiVal           );
   Void  parseAlfSvlc              ( Int&  riVal            );
   Void  parseAlfCtrlDepth         ( UInt& ruiAlfCtrlDepth  );
-  
+#if MTK_SAO
+  Void  parseAoFlag              ( UInt& ruiVal           );
+  Void  parseAoUvlc              ( UInt& ruiVal           );
+  Void  parseAoSvlc              ( Int&  riVal            );
+#endif
 private:
   Void  xReadUnarySymbol    ( UInt& ruiSymbol, ContextModel* pcSCModel, Int iOffset );
   Void  xReadUnaryMaxSymbol ( UInt& ruiSymbol, ContextModel* pcSCModel, Int iOffset, UInt uiMaxSymbol );
@@ -170,6 +174,12 @@ private:
   ContextModel3DBuffer m_cALFFlagSCModel;
   ContextModel3DBuffer m_cALFUvlcSCModel;
   ContextModel3DBuffer m_cALFSvlcSCModel;
+#if MTK_SAO
+  ContextModel3DBuffer m_cAOFlagSCModel;
+  ContextModel3DBuffer m_cAOUvlcSCModel;
+  ContextModel3DBuffer m_cAOSvlcSCModel;
+#endif
+
 };
 
 #endif // !defined(AFX_TDECSBAC_H__CFCAAA19_8110_47F4_9A16_810C4B5499D5__INCLUDED_)

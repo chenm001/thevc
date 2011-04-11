@@ -1182,7 +1182,66 @@ Int TComDataCU::getMostProbableIntraDirLuma( UInt uiAbsPartIdx )
   
   return ( NOT_VALID == iMostProbable ) ? 2 : iMostProbable;
 }
+#if MTK_DCM_MPM
+Int TComDataCU::getIntraDirLumaPredictor( UInt uiAbsPartIdx, Int uiIntraDirPred[] )
+{
+  TComDataCU* pcTempCU;
+  UInt        uiTempPartIdx;
+  Int         iLeftIntraDir, iAboveIntraDir;
+  Int         uiPredNum = 0;
 
+  // Get intra direction of left PU
+  pcTempCU = getPULeft( uiTempPartIdx, m_uiAbsIdxInLCU + uiAbsPartIdx );
+  iLeftIntraDir  = pcTempCU ? ( pcTempCU->isIntra( uiTempPartIdx ) ? pcTempCU->getLumaIntraDir( uiTempPartIdx ) : 2 ) : 2;
+#if ADD_PLANAR_MODE
+  mapPlanartoDC( iLeftIntraDir );
+#endif
+
+  // Get intra direction of above PU
+  pcTempCU = getPUAbove( uiTempPartIdx, m_uiAbsIdxInLCU + uiAbsPartIdx );
+  iAboveIntraDir = pcTempCU ? ( pcTempCU->isIntra( uiTempPartIdx ) ? pcTempCU->getLumaIntraDir( uiTempPartIdx ) : 2 ) : 2;
+#if ADD_PLANAR_MODE
+  mapPlanartoDC( iAboveIntraDir );
+#endif
+
+  Int iIdx  = getIntraSizeIdx(uiAbsPartIdx);
+
+   
+  if ( iLeftIntraDir >= g_aucIntraModeNumAng[iIdx] ) {
+   if ( g_aucIntraModeNumAng[iIdx] == 5 )
+      iLeftIntraDir = g_aucAngModeMapping[0][g_aucAngIntraModeOrder[iLeftIntraDir]];
+   if ( g_aucIntraModeNumAng[iIdx] == 3 )
+      iLeftIntraDir = g_aucAngModeMapping[3][g_aucAngIntraModeOrder[iLeftIntraDir]];
+    else
+      iLeftIntraDir = g_aucAngModeMapping[1][g_aucAngIntraModeOrder[iLeftIntraDir]]; 
+  }
+   
+   
+ if ( iAboveIntraDir >= g_aucIntraModeNumAng[iIdx] ) {
+   if ( g_aucIntraModeNumAng[iIdx] == 5 )
+      iAboveIntraDir = g_aucAngModeMapping[0][g_aucAngIntraModeOrder[iAboveIntraDir]];
+   if ( g_aucIntraModeNumAng[iIdx] == 3 )
+      iAboveIntraDir = g_aucAngModeMapping[3][g_aucAngIntraModeOrder[iAboveIntraDir]];
+    else
+      iAboveIntraDir = g_aucAngModeMapping[1][g_aucAngIntraModeOrder[iAboveIntraDir]]; 
+  }
+   
+   if(iLeftIntraDir == iAboveIntraDir)
+ {
+   uiPredNum = 1;
+   uiIntraDirPred[0] = iLeftIntraDir ;
+ }
+ else
+ {
+   uiPredNum = 2;
+   uiIntraDirPred[0] = Min(iLeftIntraDir, iAboveIntraDir);
+   uiIntraDirPred[1] = Max(iLeftIntraDir, iAboveIntraDir);
+ }
+
+
+  return uiPredNum;
+}
+#endif
 #if LCEC_INTRA_MODE
 Int TComDataCU::getLeftIntraDirLuma( UInt uiAbsPartIdx )
 {

@@ -93,6 +93,10 @@ protected:
   Int       m_iLoopFilterAlphaC0Offset;
   Int       m_iLoopFilterBetaOffset;
   
+#if MTK_SAO
+  Bool      m_bUseSAO;
+#endif
+
   //====== Motion search ========
   Int       m_iFastSearch;                      //  0:Full search  1:Diamond  2:PMVFAST
   Int       m_iSearchRange;                     //  0:Full frame
@@ -303,6 +307,10 @@ public:
 #if MTK_NONCROSS_INLOOP_FILTER
   Void      setLFCrossSliceBoundaryFlag     ( Bool   bValue  )    { m_bLFCrossSliceBoundaryFlag = bValue; }
   Bool      getLFCrossSliceBoundaryFlag     ()                    { return m_bLFCrossSliceBoundaryFlag;   }
+#endif
+#if MTK_SAO
+  Void      setUseSAO                  (Bool bVal)     {m_bUseSAO = bVal;}
+  Bool      getUseSAO                  ()              {return m_bUseSAO;}
 #endif
 
 };

@@ -111,7 +111,11 @@ public:
   virtual Void codeAlfFlagNum       ( UInt uiCode, UInt minValue ) = 0;
   virtual Void codeAlfCtrlFlag      ( UInt uiSymbol ) = 0;
 #endif
-  
+#if MTK_SAO
+  virtual Void codeAoFlag          ( UInt uiCode ) = 0;
+  virtual Void codeAoUvlc          ( UInt uiCode ) = 0;
+  virtual Void codeAoSvlc          ( Int   iCode ) = 0;
+#endif
   virtual Void estBit               (estBitsSbacStruct* pcEstBitsSbac, UInt uiCTXIdx, TextType eTType) = 0;
   
   virtual ~TEncEntropyIf() {}
@@ -200,6 +204,13 @@ public:
                         int **FilterCoeff, int kMinTab[]);
   Int golombEncode(int coeff, int k);
   Int lengthGolomb(int coeffVal, int k);
+#if MTK_SAO
+  Void    encodeQAOOnePart(SAOParam* pQaoParam, Int part_idx);
+  Void    encodeQuadTreeSplitFlag(SAOParam* pQaoParam, Int part_idx);
+  Void    encodeFixedLengthCode (Int iIdx, Int n);
+  Void    encodeSaoParam(SAOParam* pQaoParam) ;
+#endif
+
 };// END CLASS DEFINITION TEncEntropy
 
 

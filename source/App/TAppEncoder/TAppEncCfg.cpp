@@ -194,6 +194,10 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
   /* Coding tools */
   ("MRG", m_bUseMRG, true, "merging of motion partitions")
   ("ALF", m_bUseALF, true, "Adaptive Loop Filter")
+#if MTK_SAO
+  ("SAO", m_bUseSAO, true, "SAO")   
+#endif
+
 #if MQT_ALF_NPASS
   ("ALFEncodePassReduction", m_iALFEncodePassReduction, 0, "0:Original 16-pass, 1: 1-pass, 2: 2-pass encoding")
 #endif
@@ -553,6 +557,10 @@ Void TAppEncCfg::xPrintParameter()
 #if CONSTRAINED_INTRA_PRED
   printf("CIP:%d ", m_bUseConstrainedIntraPred);
 #endif
+#if MTK_SAO
+  printf("SAO:%d ",    (m_bUseSAO)?(1):(0));
+#endif
+
   printf("\n");
   
   fflush(stdout);

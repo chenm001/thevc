@@ -74,6 +74,11 @@ TDecSbac::TDecSbac()
 , m_cALFFlagSCModel           ( 1,             1,               NUM_ALF_FLAG_CTX              )
 , m_cALFUvlcSCModel           ( 1,             1,               NUM_ALF_UVLC_CTX              )
 , m_cALFSvlcSCModel           ( 1,             1,               NUM_ALF_SVLC_CTX              )
+#if MTK_SAO
+, m_cAOFlagSCModel            ( 1,             1,               NUM_AO_FLAG_CTX              )
+, m_cAOUvlcSCModel            ( 1,             1,               NUM_AO_UVLC_CTX              )
+, m_cAOSvlcSCModel            ( 1,             1,               NUM_AO_SVLC_CTX              )
+#endif
 {
 }
 
@@ -116,6 +121,11 @@ Void TDecSbac::resetEntropy          (TComSlice* pcSlice)
   m_cALFFlagSCModel.initBuffer           ( eSliceType, iQp, (Short*)INIT_ALF_FLAG );
   m_cALFUvlcSCModel.initBuffer           ( eSliceType, iQp, (Short*)INIT_ALF_UVLC );
   m_cALFSvlcSCModel.initBuffer           ( eSliceType, iQp, (Short*)INIT_ALF_SVLC );
+#if MTK_SAO
+  m_cAOFlagSCModel.initBuffer           ( eSliceType, iQp, (Short*)INIT_AO_FLAG );
+  m_cAOUvlcSCModel.initBuffer           ( eSliceType, iQp, (Short*)INIT_AO_UVLC );
+  m_cAOSvlcSCModel.initBuffer           ( eSliceType, iQp, (Short*)INIT_AO_SVLC );
+#endif
   m_cCUTransSubdivFlagSCModel.initBuffer ( eSliceType, iQp, (Short*)INIT_TRANS_SUBDIV_FLAG );
   
   m_uiLastDQpNonZero  = 0;
@@ -691,7 +701,75 @@ Void TDecSbac::parsePredMode( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth 
   
   pcCU->setPredModeSubParts( (PredMode)iPredMode, uiAbsPartIdx, uiDepth );
 }
+#if MTK_DCM_MPM
+Void TDecSbac::parseIntraDirLumaAng  ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
+{
+  
+  Int iIntraIdx = pcCU->getIntraSizeIdx(uiAbsPartIdx);
+ 
+  UInt uiSymbol;
+  Int  uiIPredMode;
 
+  Int uiPreds[2] = {-1, -1};
+  Int uiPredNum = pcCU->getIntraDirLumaPredictor(uiAbsPartIdx, uiPreds);  
+
+ 
+  m_pcTDecBinIf->decodeBin( uiSymbol, m_cCUIntraPredSCModel.get( 0, 0, 0) );
+ 
+  if ( uiSymbol )
+  {
+    if(uiPredNum == 1)   
+      uiIPredMode = uiPreds[0];
+      else 
+      {
+       m_pcTDecBinIf->decodeBin( uiSymbol, m_cCUIntraPredSCModel.get( 0, 0, 2) );
+      uiIPredMode = uiPreds[uiSymbol];
+    }
+  }
+  else{
+      if ( g_aucIntraModeBitsAng[iIntraIdx] < 6 )
+    {
+      m_pcTDecBinIf->decodeBin( uiSymbol, m_cCUIntraPredSCModel.get( 0, 0, 1 ) ); uiIPredMode  = uiSymbol;
+      if ( g_aucIntraModeBitsAng[iIntraIdx] > 2 ) { m_pcTDecBinIf->decodeBin( uiSymbol, m_cCUIntraPredSCModel.get( 0, 0, 1 ) ); uiIPredMode |= uiSymbol << 1; }
+      if ( g_aucIntraModeBitsAng[iIntraIdx] > 3 ) { m_pcTDecBinIf->decodeBin( uiSymbol, m_cCUIntraPredSCModel.get( 0, 0, 1 ) ); uiIPredMode |= uiSymbol << 2; }
+      if ( g_aucIntraModeBitsAng[iIntraIdx] > 4 ) { m_pcTDecBinIf->decodeBin( uiSymbol, m_cCUIntraPredSCModel.get( 0, 0, 1 ) ); uiIPredMode |= uiSymbol << 3; }
+    }
+    else
+    {
+    m_pcTDecBinIf->decodeBin( uiSymbol, m_cCUIntraPredSCModel.get( 0, 0, 1 ) ); uiIPredMode  = uiSymbol;
+    m_pcTDecBinIf->decodeBin( uiSymbol, m_cCUIntraPredSCModel.get( 0, 0, 1 ) ); uiIPredMode |= uiSymbol << 1;
+    m_pcTDecBinIf->decodeBin( uiSymbol, m_cCUIntraPredSCModel.get( 0, 0, 1 ) ); uiIPredMode |= uiSymbol << 2;
+    m_pcTDecBinIf->decodeBin( uiSymbol, m_cCUIntraPredSCModel.get( 0, 0, 1 ) ); uiIPredMode |= uiSymbol << 3;
+    m_pcTDecBinIf->decodeBin( uiSymbol, m_cCUIntraPredSCModel.get( 0, 0, 1 ) ); uiIPredMode |= uiSymbol << 4;
+
+    if (uiIPredMode == 31){ // Escape coding for the last two modes
+      m_pcTDecBinIf->decodeBin( uiSymbol, m_cCUIntraPredSCModel.get( 0, 0, 1 ) );
+      uiIPredMode = uiSymbol ? 32 : 31;
+    }
+
+  }
+
+    for(UInt i = 0; i < uiPredNum; i++)
+    {
+       if(uiIPredMode >= uiPreds[i]) uiIPredMode ++;
+
+    }
+  }
+#if ADD_PLANAR_MODE
+  if (uiIPredMode == 2)
+  {
+    UInt planarFlag;
+    m_pcTDecBinIf->decodeBin( planarFlag, m_cPlanarFlagSCModel.get(0,0,0) );
+    if ( planarFlag )
+    {
+      uiIPredMode = PLANAR_IDX;
+    }
+  }
+#endif
+
+  pcCU->setLumaIntraDirSubParts( (UChar)uiIPredMode, uiAbsPartIdx, uiDepth );
+}
+#else
 Void TDecSbac::parseIntraDirLumaAng  ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
 {
   UInt uiSymbol;
@@ -744,7 +822,7 @@ Void TDecSbac::parseIntraDirLumaAng  ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt
 #endif
   pcCU->setLumaIntraDirSubParts( (UChar)uiIPredMode, uiAbsPartIdx, uiDepth );
 }
-
+#endif
 Void TDecSbac::parseIntraDirChroma( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
 {
   UInt uiSymbol;
@@ -1390,3 +1468,68 @@ Void TDecSbac::parseAlfSvlc (Int&  riVal)
   
   riVal = i*iSign;
 }
+
+#if MTK_SAO
+Void TDecSbac::parseAoFlag (UInt& ruiVal)
+{
+  UInt uiSymbol;
+  m_pcTDecBinIf->decodeBin( uiSymbol, m_cAOFlagSCModel.get( 0, 0, 0 ) );
+
+  ruiVal = uiSymbol;
+}
+
+Void TDecSbac::parseAoUvlc (UInt& ruiVal)
+{
+  UInt uiCode;
+  Int  i;
+
+  m_pcTDecBinIf->decodeBin( uiCode, m_cAOUvlcSCModel.get( 0, 0, 0 ) );
+  if ( uiCode == 0 )
+  {
+    ruiVal = 0;
+    return;
+  }
+
+  i=1;
+  while (1)
+  {
+    m_pcTDecBinIf->decodeBin( uiCode, m_cAOUvlcSCModel.get( 0, 0, 1 ) );
+    if ( uiCode == 0 ) break;
+    i++;
+  }
+
+  ruiVal = i;
+}
+
+Void TDecSbac::parseAoSvlc (Int&  riVal)
+{
+  UInt uiCode;
+  Int  iSign;
+  Int  i;
+
+  m_pcTDecBinIf->decodeBin( uiCode, m_cAOSvlcSCModel.get( 0, 0, 0 ) );
+
+  if ( uiCode == 0 )
+  {
+    riVal = 0;
+    return;
+  }
+
+  // read sign
+  m_pcTDecBinIf->decodeBin( uiCode, m_cAOSvlcSCModel.get( 0, 0, 1 ) );
+
+  if ( uiCode == 0 ) iSign =  1;
+  else               iSign = -1;
+
+  // read magnitude
+  i=1;
+  while (1)
+  {
+    m_pcTDecBinIf->decodeBin( uiCode, m_cAOSvlcSCModel.get( 0, 0, 2 ) );
+    if ( uiCode == 0 ) break;
+    i++;
+  }
+
+  riVal = i*iSign;
+}
+#endif

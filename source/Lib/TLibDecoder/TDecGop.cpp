@@ -75,7 +75,11 @@ Void TDecGop::init( TDecEntropy*            pcEntropyDecoder,
                    TDecCavlc*              pcCavlcDecoder, 
                    TDecSlice*              pcSliceDecoder, 
                    TComLoopFilter*         pcLoopFilter, 
-                   TComAdaptiveLoopFilter* pcAdaptiveLoopFilter )
+                   TComAdaptiveLoopFilter* pcAdaptiveLoopFilter 
+#if MTK_SAO
+                   ,TComSAO*                pcSAO
+#endif                   
+                   )
 {
   m_pcEntropyDecoder      = pcEntropyDecoder;
   m_pcSbacDecoder         = pcSbacDecoder;
@@ -84,6 +88,10 @@ Void TDecGop::init( TDecEntropy*            pcEntropyDecoder,
   m_pcSliceDecoder        = pcSliceDecoder;
   m_pcLoopFilter          = pcLoopFilter;
   m_pcAdaptiveLoopFilter  = pcAdaptiveLoopFilter;
+#if MTK_SAO
+  m_pcSAO  = pcSAO;
+#endif
+
 }
 
 // ====================================================================================================================
@@ -102,7 +110,9 @@ Void TDecGop::decompressGop (Bool bEos, TComBitstream* pcBitstream, TComPic*& rp
   static Bool  bFirst = true;
   static UInt  uiILSliceCount;
   static UInt* puiILSliceStartLCU;
-
+#if MTK_SAO
+  SAOParam cSaoParam;
+#endif
   if (!bExecuteDeblockAndAlf)
   {
     if(bFirst)
@@ -142,6 +152,15 @@ Void TDecGop::decompressGop (Bool bEos, TComBitstream* pcBitstream, TComPic*& rp
     
     if (uiStartCUAddr==0)  // decode ALF params only from first slice header
     {
+#if MTK_SAO
+      if( rpcPic->getSlice(0)->getSPS()->getUseSAO() )
+      {  
+        m_pcSAO->allocSaoParam(&cSaoParam);
+        m_pcSAO->InitSao(&cSaoParam);
+        m_pcEntropyDecoder->decodeSaoParam(&cSaoParam);
+      }
+#endif
+
       if ( rpcPic->getSlice(0)->getSPS()->getUseALF() )
       {
 #if TSB_ALF_HEADER
@@ -161,7 +180,14 @@ Void TDecGop::decompressGop (Bool bEos, TComBitstream* pcBitstream, TComPic*& rp
     // deblocking filter
     m_pcLoopFilter->setCfg(pcSlice->getLoopFilterDisable(), 0, 0);
     m_pcLoopFilter->loopFilterPic( rpcPic );
-    
+#if MTK_SAO
+    {
+      if( rpcPic->getSlice(0)->getSPS()->getUseSAO())
+      {
+        m_pcSAO->SAOProcess(rpcPic, &cSaoParam);
+      }
+    }
+#endif
     // adaptive loop filter
     if( pcSlice->getSPS()->getUseALF() )
     {

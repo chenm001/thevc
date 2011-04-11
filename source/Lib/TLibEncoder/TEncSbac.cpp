@@ -82,6 +82,11 @@ TEncSbac::TEncSbac()
 , m_cALFFlagSCModel           ( 1,             1,               NUM_ALF_FLAG_CTX              )
 , m_cALFUvlcSCModel           ( 1,             1,               NUM_ALF_UVLC_CTX              )
 , m_cALFSvlcSCModel           ( 1,             1,               NUM_ALF_SVLC_CTX              )
+#if MTK_SAO
+, m_cAOFlagSCModel            ( 1,             1,               NUM_AO_FLAG_CTX              )
+, m_cAOUvlcSCModel            ( 1,             1,               NUM_AO_UVLC_CTX              )
+, m_cAOSvlcSCModel            ( 1,             1,               NUM_AO_SVLC_CTX              )
+#endif
 {
   
 }
@@ -127,7 +132,11 @@ Void TEncSbac::resetEntropy           ()
   m_cALFUvlcSCModel.initBuffer           ( eSliceType, iQp, (Short*)INIT_ALF_UVLC );
   m_cALFSvlcSCModel.initBuffer           ( eSliceType, iQp, (Short*)INIT_ALF_SVLC );
   m_cCUTransSubdivFlagSCModel.initBuffer ( eSliceType, iQp, (Short*)INIT_TRANS_SUBDIV_FLAG );
-  
+#if MTK_SAO
+  m_cAOFlagSCModel.initBuffer           ( eSliceType, iQp, (Short*)INIT_AO_FLAG );
+  m_cAOUvlcSCModel.initBuffer           ( eSliceType, iQp, (Short*)INIT_AO_UVLC );
+  m_cAOSvlcSCModel.initBuffer           ( eSliceType, iQp, (Short*)INIT_AO_SVLC );
+#endif
   // new structure
   m_uiLastQp = iQp;
   
@@ -632,7 +641,83 @@ Void TEncSbac::codeTransformSubdivFlag( UInt uiSymbol, UInt uiCtx )
   DTRACE_CABAC_V( uiCtx )
   DTRACE_CABAC_T( "\n" )
 }
+#if MTK_DCM_MPM
+Void TEncSbac::codeIntraDirLumaAng( TComDataCU* pcCU, UInt uiAbsPartIdx )
+{
+  UInt uiDir         = pcCU->getLumaIntraDir( uiAbsPartIdx );
+  Int iIntraIdx = pcCU->getIntraSizeIdx(uiAbsPartIdx);
+#if ADD_PLANAR_MODE
+  UInt planarFlag    = 0;
+  if (uiDir == PLANAR_IDX)
+  {
+    uiDir = 2;
+    planarFlag = 1;
+  }
+#endif
+  
+  Int uiPreds[2] = {-1, -1};
+  Int uiPredNum = pcCU->getIntraDirLumaPredictor(uiAbsPartIdx, uiPreds);  
 
+  Int uiPredIdx = -1;
+
+  for(UInt i = 0; i < uiPredNum; i++)
+  {
+    if(uiDir == uiPreds[i])
+      uiPredIdx = i;
+  }
+ 
+  if(uiPredIdx != -1)
+  {
+    m_pcBinIf->encodeBin( 1, m_cCUIntraPredSCModel.get( 0, 0, 0 ) );
+    if(uiPredNum == 2)
+      m_pcBinIf->encodeBin( uiPredIdx, m_cCUIntraPredSCModel.get( 0, 0, 2 ) );
+
+  }
+  else
+  {
+    m_pcBinIf->encodeBin( 0, m_cCUIntraPredSCModel.get( 0, 0, 0 ) );
+  
+  for(Int i = (uiPredNum - 1); i >= 0; i--)
+  {
+    uiDir = uiDir > uiPreds[i] ? uiDir - 1 : uiDir;
+    }
+
+   if ( g_aucIntraModeBitsAng[iIntraIdx] < 6 )
+    {
+      m_pcBinIf->encodeBin((uiDir & 0x01), m_cCUIntraPredSCModel.get(0, 0, 1));
+      if ( g_aucIntraModeBitsAng[iIntraIdx] > 2 ) m_pcBinIf->encodeBin((uiDir & 0x02) >> 1, m_cCUIntraPredSCModel.get(0, 0, 1));
+      if ( g_aucIntraModeBitsAng[iIntraIdx] > 3 ) m_pcBinIf->encodeBin((uiDir & 0x04) >> 2, m_cCUIntraPredSCModel.get(0, 0, 1));
+      if ( g_aucIntraModeBitsAng[iIntraIdx] > 4 ) m_pcBinIf->encodeBin((uiDir & 0x08) >> 3, m_cCUIntraPredSCModel.get(0, 0, 1));
+    }
+    else
+  {
+    if (uiDir < 31){ // uiDir is here 0...32, 5 bits for uiDir 0...30, 31 is an escape code for coding one more bit for 31 and 32
+      m_pcBinIf->encodeBin((uiDir & 0x01),      m_cCUIntraPredSCModel.get(0, 0, 1));
+      m_pcBinIf->encodeBin((uiDir & 0x02) >> 1, m_cCUIntraPredSCModel.get(0, 0, 1));
+      m_pcBinIf->encodeBin((uiDir & 0x04) >> 2, m_cCUIntraPredSCModel.get(0, 0, 1));
+      m_pcBinIf->encodeBin((uiDir & 0x08) >> 3, m_cCUIntraPredSCModel.get(0, 0, 1));
+      m_pcBinIf->encodeBin((uiDir & 0x10) >> 4, m_cCUIntraPredSCModel.get(0, 0, 1));
+    }
+    else{
+      m_pcBinIf->encodeBin(1, m_cCUIntraPredSCModel.get(0, 0, 1));
+      m_pcBinIf->encodeBin(1, m_cCUIntraPredSCModel.get(0, 0, 1));
+      m_pcBinIf->encodeBin(1, m_cCUIntraPredSCModel.get(0, 0, 1));
+      m_pcBinIf->encodeBin(1, m_cCUIntraPredSCModel.get(0, 0, 1));
+      m_pcBinIf->encodeBin(1, m_cCUIntraPredSCModel.get(0, 0, 1));
+      m_pcBinIf->encodeBin((uiDir == 32) ? 1 : 0, m_cCUIntraPredSCModel.get(0, 0, 1));
+    }
+  }
+   }
+#if ADD_PLANAR_MODE
+  uiDir = pcCU->getLumaIntraDir( uiAbsPartIdx );
+  if ( (uiDir == PLANAR_IDX) || (uiDir == 2) )
+  {
+    m_pcBinIf->encodeBin( planarFlag, m_cPlanarFlagSCModel.get(0,0,0) );
+  }
+#endif
+  return;
+}
+#else
 Void TEncSbac::codeIntraDirLumaAng( TComDataCU* pcCU, UInt uiAbsPartIdx )
 {
   UInt uiDir         = pcCU->getLumaIntraDir( uiAbsPartIdx );
@@ -691,7 +776,7 @@ Void TEncSbac::codeIntraDirLumaAng( TComDataCU* pcCU, UInt uiAbsPartIdx )
 #endif
   return;
 }
-
+#endif
 Void TEncSbac::codeIntraDirChroma( TComDataCU* pcCU, UInt uiAbsPartIdx )
 {
   UInt uiCtx            = pcCU->getCtxIntraDirChroma( uiAbsPartIdx );
@@ -1423,6 +1508,63 @@ Void TEncSbac::codeAlfSvlc       ( Int iCode )
     m_pcBinIf->encodeBin( 0, m_cALFSvlcSCModel.get( 0, 0, 2 ) );
   }
 }
+
+#if MTK_SAO
+Void TEncSbac::codeAoFlag       ( UInt uiCode )
+{
+  UInt uiSymbol = ( ( uiCode == 0 ) ? 0 : 1 );
+  m_pcBinIf->encodeBin( uiSymbol, m_cAOFlagSCModel.get( 0, 0, 0 ) );
+}
+Void TEncSbac::codeAoUvlc       ( UInt uiCode )
+{
+  Int i;
+
+  if ( uiCode == 0 )
+  {
+    m_pcBinIf->encodeBin( 0, m_cAOUvlcSCModel.get( 0, 0, 0 ) );
+  }
+  else
+  {
+    m_pcBinIf->encodeBin( 1, m_cAOUvlcSCModel.get( 0, 0, 0 ) );
+    for ( i=0; i<uiCode-1; i++ )
+    {
+      m_pcBinIf->encodeBin( 1, m_cAOUvlcSCModel.get( 0, 0, 1 ) );
+    }
+    m_pcBinIf->encodeBin( 0, m_cAOUvlcSCModel.get( 0, 0, 1 ) );
+  }
+}
+Void TEncSbac::codeAoSvlc       ( Int iCode )
+{
+  Int i;
+
+  if ( iCode == 0 )
+  {
+    m_pcBinIf->encodeBin( 0, m_cAOSvlcSCModel.get( 0, 0, 0 ) );
+  }
+  else
+  {
+    m_pcBinIf->encodeBin( 1, m_cAOSvlcSCModel.get( 0, 0, 0 ) );
+
+    // write sign
+    if ( iCode > 0 )
+    {
+      m_pcBinIf->encodeBin( 0, m_cAOSvlcSCModel.get( 0, 0, 1 ) );
+    }
+    else
+    {
+      m_pcBinIf->encodeBin( 1, m_cAOSvlcSCModel.get( 0, 0, 1 ) );
+      iCode = -iCode;
+    }
+
+    // write magnitude
+    for ( i=0; i<iCode-1; i++ )
+    {
+      m_pcBinIf->encodeBin( 1, m_cAOSvlcSCModel.get( 0, 0, 2 ) );
+    }
+    m_pcBinIf->encodeBin( 0, m_cAOSvlcSCModel.get( 0, 0, 2 ) );
+  }
+}
+#endif
 
 /*!
  ****************************************************************************

@@ -102,6 +102,12 @@ public:
   Void codeAlfFlagNum        ( UInt uiCode, UInt minValue );
   Void codeAlfCtrlFlag       ( UInt uiSymbol );
 #endif
+#if MTK_SAO
+  Void  codeAoFlag       ( UInt uiCode );
+  Void  codeAoUvlc       ( UInt uiCode );
+  Void  codeAoSvlc       ( Int  uiCode );
+#endif
+
 private:
   Void  xWriteUnarySymbol    ( UInt uiSymbol, ContextModel* pcSCModel, Int iOffset );
   Void  xWriteUnaryMaxSymbol ( UInt uiSymbol, ContextModel* pcSCModel, Int iOffset, UInt uiMaxSymbol );
@@ -200,6 +206,12 @@ private:
   ContextModel3DBuffer m_cALFFlagSCModel;
   ContextModel3DBuffer m_cALFUvlcSCModel;
   ContextModel3DBuffer m_cALFSvlcSCModel;
+#if MTK_SAO
+  ContextModel3DBuffer m_cAOFlagSCModel;
+  ContextModel3DBuffer m_cAOUvlcSCModel;
+  ContextModel3DBuffer m_cAOSvlcSCModel;
+#endif
+
 };
 
 #endif // !defined(AFX_TENCSBAC_H__DDA7CDC4_EDE3_4015_9D32_2156249C82AA__INCLUDED_)

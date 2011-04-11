@@ -54,7 +54,11 @@
 #define NUM_ALF_CTRL_FLAG_CTX         3       ///< number of context models for ALF control flag
 #define NUM_PART_SIZE_CTX             5       ///< number of context models for partition size
 #define NUM_PRED_MODE_CTX             2       ///< number of context models for prediction mode
-#define NUM_ADI_CTX                   2       ///< number of context models for intra prediction
+#if MTK_DCM_MPM
+#define NUM_ADI_CTX                   3       ///< number of context models for intra prediction
+#else
+#define NUM_ADI_CTX                   2
+#endif
 #if ADD_PLANAR_MODE
 #define NUM_PLANARFLAG_CTX            2       ///< number of context models for planar mode flag (intra prediction)
 #endif
@@ -80,6 +84,12 @@
 #define NUM_ALF_FLAG_CTX              1       ///< number of context models for ALF flag
 #define NUM_ALF_UVLC_CTX              2       ///< number of context models for ALF UVLC (filter length)
 #define NUM_ALF_SVLC_CTX              3       ///< number of context models for ALF SVLC (filter coeff.)
+
+#if MTK_SAO
+#define NUM_AO_FLAG_CTX              1       ///< number of context models for AO flag
+#define NUM_AO_UVLC_CTX              2       ///< number of context models for AO UVLC (filter length)
+#define NUM_AO_SVLC_CTX              3       ///< number of context models for AO SVLC (filter coeff.)
+#endif
 
 // ====================================================================================================================
 // Tables
@@ -218,6 +228,21 @@ INIT_PRED_MODE[3][NUM_PRED_MODE_CTX][2] =
 };
 
 // initial probability for intra direction of luma
+#if MTK_DCM_MPM
+static const Short
+INIT_INTRA_PRED_MODE[3][NUM_ADI_CTX][2] =
+{
+  {
+    {    2,   54 }, {  -3,   65  }, {   -3,   65 }
+  },
+  {
+    {    0,   50 }, {  -2,   61  }, {   -2,   61 }
+  },
+  {
+    {    0,   51 }, {  1,   55   }, {    1,   55 }
+  }
+};
+#else
 static const Short
 INIT_INTRA_PRED_MODE[3][NUM_ADI_CTX][2] =
 {
@@ -231,6 +256,7 @@ INIT_INTRA_PRED_MODE[3][NUM_ADI_CTX][2] =
     {    0,   51 }, {    1,   55 }
   }
 };
+#endif
 
 #if ADD_PLANAR_MODE
 // initial probability for planar mode flag
@@ -967,6 +993,52 @@ INIT_ALF_SVLC[3][NUM_ALF_SVLC_CTX][2] =
     {    1,   73 }, {    2,   61 }, {    0,   64 }
   }
 };
+#if MTK_SAO
+// initial probability for ALF flag
+static const Short
+INIT_AO_FLAG[3][NUM_AO_FLAG_CTX][2] =
+{
+  {
+    {   50,  -48 }
+  },
+  {
+    {   27,  -20 }
+  },
+  {
+    {  -12,   68 }
+  }
+};
+
+// initial probability for ALF side information (unsigned)
+static const Short
+INIT_AO_UVLC[3][NUM_AO_UVLC_CTX][2] =
+{
+  {
+    {    1,   66 }, {   -3,   77 }
+  },
+  {
+    {   -5,   75 }, {  -14,   94 }
+  },
+  {
+    {   -5,   72 }, {  -30,  122 }
+  }
+};
+
+// initial probability for ALF side information (signed)
+static const Short
+INIT_AO_SVLC[3][NUM_AO_SVLC_CTX][2] =
+{
+  {
+    {   11,   57 }, {   -1,   62 }, {    0,   64 }
+  },
+  {
+    {    6,   66 }, {   -1,   64 }, {    0,   64 }
+  },
+  {
+    {    1,   73 }, {    2,   61 }, {    0,   64 }
+  }
+};
+#endif
 
 static const Short
 INIT_TRANS_SUBDIV_FLAG[3][NUM_TRANS_SUBDIV_FLAG_CTX][2] =

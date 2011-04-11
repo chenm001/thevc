@@ -84,8 +84,13 @@ private:
   UInt                      m_uiLastPosVlcIndex[10];
   
 #if LCEC_INTRA_MODE
+#if MTK_DCM_MPM
+  UInt                      m_uiIntraModeTableD17[2][16];
+  UInt                      m_uiIntraModeTableD34[2][33];
+#else
   UInt                      m_uiIntraModeTableD17[16];
   UInt                      m_uiIntraModeTableD34[33];
+#endif
 #endif
 #if QC_LCEC_INTER_MODE
   UInt                      m_uiSplitTableD[4][7];
@@ -120,6 +125,11 @@ public:
   Void  parseAlfFlag        ( UInt& ruiVal );
   Void  parseAlfUvlc        ( UInt& ruiVal );
   Void  parseAlfSvlc        ( Int&  riVal  );
+#if MTK_SAO
+  Void  parseAoFlag        ( UInt& ruiVal );
+  Void  parseAoUvlc        ( UInt& ruiVal );
+  Void  parseAoSvlc        ( Int&  riVal  );
+#endif
   
   Void  parseNalUnitHeader  ( NalUnitType& eNalUnitType, UInt& TemporalId, Bool& bOutputFlag );
   

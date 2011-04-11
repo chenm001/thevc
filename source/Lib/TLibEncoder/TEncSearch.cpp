@@ -1648,6 +1648,34 @@ TEncSearch::estIntraPredQT( TComDataCU* pcCU,
         uiRdModeList[i] = CandModeList[i];
       }
 #if FAST_UDI_USE_MPM
+#if MTK_DCM_MPM
+    Int uiPreds[2] = {-1, -1};
+#if FAST_UDI_USE_FIRST_MPM_ONLY
+      Int numCand = 1;   // use only the first candidate
+    uiPreds[0] = pcCU->getMostProbableIntraDirLuma( uiPartOffset );
+#else
+      Int numCand = pcCU->getIntraDirLumaPredictor(uiPartOffset, uiPreds);  
+#endif
+      for( Int j=0; j < numCand; j++)
+      {
+        Bool mostProbableModeIncluded = false;
+        Int mostProbableMode = uiPreds[j];
+#if ADD_PLANAR_MODE
+      if (mostProbableMode == 2)
+      {
+        mostProbableMode = PLANAR_IDX;
+      }
+#endif
+        for( Int i=0; i < uiNewMaxMode; i++)
+        {
+          mostProbableModeIncluded |= (mostProbableMode == uiRdModeList[i]);
+        }
+        if (!mostProbableModeIncluded)
+        {
+          uiRdModeList[uiNewMaxMode++] = mostProbableMode;
+        }
+      }
+#else
       Int mostProbableMode = pcCU->getMostProbableIntraDirLuma( uiPartOffset );
 #if ADD_PLANAR_MODE
       if (mostProbableMode == 2)
@@ -1663,7 +1691,8 @@ TEncSearch::estIntraPredQT( TComDataCU* pcCU,
       if (!mostProbableModeIncluded)
       {
         uiRdModeList[uiNewMaxMode++] = mostProbableMode;
-      }      
+      } 
+#endif
 #endif
     }
     else

@@ -124,6 +124,11 @@ Void TEncEntropy::codeAux(ALFParam* pAlfParam)
   Int FiltTab[3] = {9, 7, 5};
   Int Tab = FiltTab[pAlfParam->realfiltNo];
   //  m_pcEntropyCoderIf->codeAlfUvlc(pAlfParam->realfiltNo); 
+
+#if MQT_BA_RA  
+  m_pcEntropyCoderIf->codeAlfFlag(pAlfParam->alf_pcr_region_flag);
+#endif
+
   m_pcEntropyCoderIf->codeAlfUvlc((Tab-5)/2); 
   
   if (pAlfParam->filtNo>=0)
@@ -1512,3 +1517,89 @@ Void TEncEntropy::estimateBit (estBitsSbacStruct* pcEstBitsSbac, UInt uiWidth, T
   
   m_pcEntropyCoderIf->estBit ( pcEstBitsSbac, uiCTXIdx, eTType );
 }
+
+#if MTK_SAO
+
+Void TEncEntropy::encodeQAOOnePart(SAOParam* pQaoParam, Int part_idx )
+{
+  SAOQTPart*  pAlfPart = &(pQaoParam->psSaoPart[part_idx]);
+  UInt uiSymbol;
+
+  if(!pAlfPart->bSplit)
+  {
+    if (pAlfPart->bEnableFlag)
+      uiSymbol = pAlfPart->iBestType + 1;
+    else
+      uiSymbol = 0;
+
+    m_pcEntropyCoderIf->codeAoUvlc(uiSymbol);
+    if (pAlfPart->bEnableFlag)
+    {
+      for(Int i=0; i< pAlfPart->iLength; i++)
+      {
+        m_pcEntropyCoderIf->codeAoSvlc(pAlfPart->iOffset[i]);
+      }   
+    }
+    return;
+  }
+
+  //split
+  if (pAlfPart->PartLevel < pQaoParam->iMaxSplitLevel)
+  {
+    for (Int i=0;i<NUM_DOWN_PART;i++)
+    {
+      encodeQAOOnePart(pQaoParam, pAlfPart->DownPartsIdx[i]);
+    }
+  }
+}
+
+Void TEncEntropy::encodeQuadTreeSplitFlag(SAOParam* pSaoParam, Int part_idx)
+{
+
+  SAOQTPart*  pSaoPart = &(pSaoParam->psSaoPart[part_idx]);
+
+  if(pSaoPart->PartLevel < pSaoParam->iMaxSplitLevel)
+  {
+
+    //send one flag
+    m_pcEntropyCoderIf->codeAoFlag( (pSaoPart->bSplit)?(1):(0)  );
+    if(pSaoPart->bSplit)
+    {
+      for (Int i=0;i<NUM_DOWN_PART;i++)
+      {
+        encodeQuadTreeSplitFlag(pSaoParam, pSaoPart->DownPartsIdx[i]);
+      }
+    } 
+  }
+
+}
+
+
+Void TEncEntropy::encodeSaoParam(SAOParam* pSaoParam)
+{
+
+  m_pcEntropyCoderIf->codeAoFlag(pSaoParam->bSaoFlag); 
+  if (pSaoParam->bSaoFlag)
+  {
+    encodeQuadTreeSplitFlag(pSaoParam, 0);
+    encodeQAOOnePart(pSaoParam, 0);
+  }
+
+}
+
+Void TEncEntropy::encodeFixedLengthCode(Int iIdx, Int n)
+{
+  if( !(n>0) )
+    return;
+
+  Int i;
+  UInt uiSymbol;
+  for(i=0; i< n; i++)
+  {
+    uiSymbol = ( iIdx >> i) & 0x1;
+    m_pcEntropyCoderIf->codeAoFlag(uiSymbol);
+  }
+}
+
+
+#endif

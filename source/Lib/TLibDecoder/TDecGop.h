@@ -76,7 +76,9 @@ private:
   
   // Adaptive Loop filter
   TComAdaptiveLoopFilter*       m_pcAdaptiveLoopFilter;
-  
+#if MTK_SAO
+  TComSAO*              m_pcSAO;
+#endif
   ALFParam              m_cAlfParam;
   Double                m_dDecTime;
 
@@ -90,7 +92,11 @@ public:
                  TDecCavlc*              pcCavlcDecoder, 
                  TDecSlice*              pcSliceDecoder, 
                  TComLoopFilter*         pcLoopFilter, 
-                 TComAdaptiveLoopFilter* pcAdaptiveLoopFilter );
+                 TComAdaptiveLoopFilter* pcAdaptiveLoopFilter
+#if MTK_SAO
+                 ,TComSAO*                pcSAO
+#endif
+                 );
   Void  create  ();
   Void  destroy ();
   Void  decompressGop ( Bool bEos, TComBitstream* pcBitstream, TComPic*& rpcPic, Bool bExecuteDeblockAndAlf );
