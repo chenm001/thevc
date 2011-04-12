@@ -139,14 +139,11 @@ enum ALFClassficationMethod
 #define MTK_QAO_BO_BITS                5
 #define LUMA_GROUP_NUM                 (1<<MTK_QAO_BO_BITS)
 #define MAX_NUM_QAO_CLASS              32
-#define IBDI_ROUND2(x) ((x)>0) ? (int)(((int)(x)+(1<<(g_uiBitIncrement-1)))/(1<<g_uiBitIncrement)) : ((int)(((int)(x)-(1<<(g_uiBitIncrement-1)))/(1<<g_uiBitIncrement)))
-#define IBDI_ROUND(x) (g_uiBitIncrement >0 ? IBDI_ROUND2((x)) : ((x)>=0 ? ((Int)((x)+0.5)) : ((Int)((x)-0.5)))) 
 #define SAO_RDCO 0
 
-class TComSAO
+class TComSampleAdaptiveOffset
 {
 protected:
-  TComPicYuv*        m_pcPicYuvTmp;
   TComPic*          m_pcPic;
 
 
@@ -198,6 +195,7 @@ protected:
 
 public:
   Void create( UInt uiSourceWidth, UInt uiSourceHeight, UInt uiMaxCUWidth, UInt uiMaxCUHeight, UInt uiMaxCUDepth );
+  Void destroy ();
   Void xCreateQAOParts();
   Void xDestroyQAOParts();
   Void xInitALfOnePart(Int part_level, Int part_row, Int part_col, Int parent_part_idx, Int StartCUX, Int EndCUX, Int StartCUY, Int EndCUY);
@@ -212,15 +210,9 @@ public:
   Void resetQTPart();
   Void xAoOnePart(UInt uiPartIdx, TComPicYuv* pcPicYuvRec, TComPicYuv* pcPicYuvExt);
   Void xProcessQuadTreeAo(UInt uiPartIdx, TComPicYuv* pcPicYuvRec, TComPicYuv* pcPicYuvExt);
-  Void xCcOnePart(UInt uiPartIdx, TComPicYuv* pcPicYuvRec);
   Void copyQaoData(SAOParam* pcQaoParam);
 
-  Bool m_bAlfLAOEnable;  
-  Void setAlfLAOEnable(Bool bVal) {m_bAlfLAOEnable = bVal;}
-  Bool getAlfLAOEnable() {return m_bAlfLAOEnable;}
   Void InitSao(SAOParam* pSaoParam);
-  Void allocSaoParam(SAOParam* pSaoParam);
-  Void freeSaoParam(SAOParam* pSaoParam);
   Void AoProcessCu(Int iAddr, Int iPartIdx);
 };
 #endif

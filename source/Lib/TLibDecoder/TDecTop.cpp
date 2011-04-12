@@ -113,6 +113,10 @@ Void TDecTop::deletePicBuffer ( )
   
   // destroy ALF temporary buffers
   m_cAdaptiveLoopFilter.destroy();
+
+#if MTK_SAO
+  m_cSAO.destroy();
+#endif
   
   m_cLoopFilter.        destroy();
   

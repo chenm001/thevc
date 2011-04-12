@@ -77,7 +77,8 @@ private:
   // Adaptive Loop filter
   TComAdaptiveLoopFilter*       m_pcAdaptiveLoopFilter;
 #if MTK_SAO
-  TComSAO*              m_pcSAO;
+  TComSampleAdaptiveOffset*              m_pcSAO;
+  SAOParam              m_cSaoParam;
 #endif
   ALFParam              m_cAlfParam;
   Double                m_dDecTime;
@@ -94,7 +95,7 @@ public:
                  TComLoopFilter*         pcLoopFilter, 
                  TComAdaptiveLoopFilter* pcAdaptiveLoopFilter
 #if MTK_SAO
-                 ,TComSAO*                pcSAO
+                 ,TComSampleAdaptiveOffset*                pcSAO
 #endif
                  );
   Void  create  ();

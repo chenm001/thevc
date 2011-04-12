@@ -197,7 +197,6 @@ public:
   Void decodeQAOOnePart(SAOParam* pQaoParam, Int part_idx);
   Void decodeQuadTreeSplitFlag(SAOParam* pQaoParam, Int part_idx);
   Void decodeSaoParam(SAOParam* pQaoParam) ;
-  Void decodeFixedLengthCode(Int& iTDIdx, Int n);
 #endif
 
 };// END CLASS DEFINITION TDecEntropy

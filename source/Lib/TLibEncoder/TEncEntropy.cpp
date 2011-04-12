@@ -1519,10 +1519,12 @@ Void TEncEntropy::estimateBit (estBitsSbacStruct* pcEstBitsSbac, UInt uiWidth, T
 }
 
 #if MTK_SAO
-
-Void TEncEntropy::encodeQAOOnePart(SAOParam* pQaoParam, Int part_idx )
+/** encode QAO One Part
+ * \param  pQaoParam, iPartIdx
+ */
+Void TEncEntropy::encodeQAOOnePart(SAOParam* pQaoParam, Int iPartIdx )
 {
-  SAOQTPart*  pAlfPart = &(pQaoParam->psSaoPart[part_idx]);
+  SAOQTPart*  pAlfPart = &(pQaoParam->psSaoPart[iPartIdx]);
   UInt uiSymbol;
 
   if(!pAlfPart->bSplit)
@@ -1552,11 +1554,13 @@ Void TEncEntropy::encodeQAOOnePart(SAOParam* pQaoParam, Int part_idx )
     }
   }
 }
-
-Void TEncEntropy::encodeQuadTreeSplitFlag(SAOParam* pSaoParam, Int part_idx)
+/** encode QuadTree Split Flag
+ * \param  pQaoParam, iPartIdx
+ */
+Void TEncEntropy::encodeQuadTreeSplitFlag(SAOParam* pSaoParam, Int iPartIdx)
 {
 
-  SAOQTPart*  pSaoPart = &(pSaoParam->psSaoPart[part_idx]);
+  SAOQTPart*  pSaoPart = &(pSaoParam->psSaoPart[iPartIdx]);
 
   if(pSaoPart->PartLevel < pSaoParam->iMaxSplitLevel)
   {
@@ -1574,7 +1578,9 @@ Void TEncEntropy::encodeQuadTreeSplitFlag(SAOParam* pSaoParam, Int part_idx)
 
 }
 
-
+/** encode Sao Param
+ * \param  pQaoParam
+ */
 Void TEncEntropy::encodeSaoParam(SAOParam* pSaoParam)
 {
 
@@ -1587,19 +1593,6 @@ Void TEncEntropy::encodeSaoParam(SAOParam* pSaoParam)
 
 }
 
-Void TEncEntropy::encodeFixedLengthCode(Int iIdx, Int n)
-{
-  if( !(n>0) )
-    return;
-
-  Int i;
-  UInt uiSymbol;
-  for(i=0; i< n; i++)
-  {
-    uiSymbol = ( iIdx >> i) & 0x1;
-    m_pcEntropyCoderIf->codeAoFlag(uiSymbol);
-  }
-}
 
 
 #endif

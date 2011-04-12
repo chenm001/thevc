@@ -1768,13 +1768,15 @@ Void TDecEntropy::decodeCoeff( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth
 }
 
 #if MTK_SAO
-
-Void TDecEntropy::decodeQAOOnePart(SAOParam* pQaoParam, Int part_idx)
+/** decodeQAO One Part
+ * \param  pQaoParam, iPartIdx
+ */
+Void TDecEntropy::decodeQAOOnePart(SAOParam* pQaoParam, Int iPartIdx)
 {
   UInt uiSymbol;
   Int iSymbol;  
 
-  SAOQTPart*  pAlfPart = &(pQaoParam->psSaoPart[part_idx]);
+  SAOQTPart*  pAlfPart = &(pQaoParam->psSaoPart[iPartIdx]);
   static Int iTypeLength[MAX_NUM_SAO_TYPE] = {
     SAO_EO_LEN,
     SAO_EO_LEN,
@@ -1782,7 +1784,7 @@ Void TDecEntropy::decodeQAOOnePart(SAOParam* pQaoParam, Int part_idx)
     SAO_EO_LEN,
     SAO_BO_LEN,
     SAO_BO_LEN
-  };  //賀
+  };  
   if(!pAlfPart->bSplit)
   {
 
@@ -1823,11 +1825,13 @@ Void TDecEntropy::decodeQAOOnePart(SAOParam* pQaoParam, Int part_idx)
     }
   }
 }
-
-Void TDecEntropy::decodeQuadTreeSplitFlag(SAOParam* pQaoParam, Int part_idx)
+/** decode QuadTree Split Flag
+ * \param  pQaoParam, iPartIdx
+ */
+Void TDecEntropy::decodeQuadTreeSplitFlag(SAOParam* pQaoParam, Int iPartIdx)
 {
   UInt uiSymbol;
-  SAOQTPart*  pAlfPart = &(pQaoParam->psSaoPart[part_idx]);
+  SAOQTPart*  pAlfPart = &(pQaoParam->psSaoPart[iPartIdx]);
 
   if(pAlfPart->PartLevel < pQaoParam->iMaxSplitLevel)
   {
@@ -1845,7 +1849,9 @@ Void TDecEntropy::decodeQuadTreeSplitFlag(SAOParam* pQaoParam, Int part_idx)
   }
 
 }
-
+/** decode Sao Param
+ * \param  pQaoParam
+ */
 Void TDecEntropy::decodeSaoParam(SAOParam* pQaoParam)
 {
   UInt uiSymbol;
@@ -1867,21 +1873,4 @@ Void TDecEntropy::decodeSaoParam(SAOParam* pQaoParam)
 
 }
 
-Void TDecEntropy::decodeFixedLengthCode(Int& iTDIdx, Int n)
-{
-  iTDIdx =0;
-
-  if(!(n>0))
-    return;
-
-  //more than one filter in the buffer
-  Int i;
-  UInt uiSymbol;
-
-  for(i=0; i< n; i++)
-  {
-    m_pcEntropyDecoderIf->parseAoFlag(uiSymbol);
-    iTDIdx |= (uiSymbol << i);
-  }
-}
 #endif

@@ -77,7 +77,7 @@ Void TDecGop::init( TDecEntropy*            pcEntropyDecoder,
                    TComLoopFilter*         pcLoopFilter, 
                    TComAdaptiveLoopFilter* pcAdaptiveLoopFilter 
 #if MTK_SAO
-                   ,TComSAO*                pcSAO
+                   ,TComSampleAdaptiveOffset* pcSAO
 #endif                   
                    )
 {
@@ -110,9 +110,6 @@ Void TDecGop::decompressGop (Bool bEos, TComBitstream* pcBitstream, TComPic*& rp
   static Bool  bFirst = true;
   static UInt  uiILSliceCount;
   static UInt* puiILSliceStartLCU;
-#if MTK_SAO
-  SAOParam cSaoParam;
-#endif
   if (!bExecuteDeblockAndAlf)
   {
     if(bFirst)
@@ -155,9 +152,8 @@ Void TDecGop::decompressGop (Bool bEos, TComBitstream* pcBitstream, TComPic*& rp
 #if MTK_SAO
       if( rpcPic->getSlice(0)->getSPS()->getUseSAO() )
       {  
-        m_pcSAO->allocSaoParam(&cSaoParam);
-        m_pcSAO->InitSao(&cSaoParam);
-        m_pcEntropyDecoder->decodeSaoParam(&cSaoParam);
+        m_pcSAO->InitSao(&m_cSaoParam);
+        m_pcEntropyDecoder->decodeSaoParam(&m_cSaoParam);
       }
 #endif
 
@@ -184,7 +180,7 @@ Void TDecGop::decompressGop (Bool bEos, TComBitstream* pcBitstream, TComPic*& rp
     {
       if( rpcPic->getSlice(0)->getSPS()->getUseSAO())
       {
-        m_pcSAO->SAOProcess(rpcPic, &cSaoParam);
+        m_pcSAO->SAOProcess(rpcPic, &m_cSaoParam);
       }
     }
 #endif

@@ -524,7 +524,6 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
             {
               if (pcSlice->getSPS()->getUseSAO())
               {
-                m_pcSAO->allocSaoParam(&cSaoParam);
                 m_pcSAO->startSaoEnc(pcPic, m_pcEntropyCoder, m_pcEncTop->getRDSbacCoder(), m_pcCfg->getUseSBACRD() ?  m_pcEncTop->getRDGoOnSbacCoder() : NULL);
                 m_pcSAO->SAOProcess(pcPic->getSlice(0)->getLambda());
                 m_pcSAO->copyQaoData(&cSaoParam);
@@ -576,7 +575,6 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
             if (pcSlice->getSPS()->getUseSAO())
             {
               m_pcEntropyCoder->encodeSaoParam(&cSaoParam);
-              m_pcSAO->freeSaoParam(&cSaoParam);
             }
             if (pcSlice->getSPS()->getUseALF())
 #endif

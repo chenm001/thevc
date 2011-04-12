@@ -88,7 +88,7 @@ private:
   TComLoopFilter          m_cLoopFilter;
   TComAdaptiveLoopFilter  m_cAdaptiveLoopFilter;
 #if MTK_SAO
-  TComSAO                 m_cSAO;
+  TComSampleAdaptiveOffset m_cSAO;
 #endif
 
 #if DCM_SKIP_DECODING_FRAMES

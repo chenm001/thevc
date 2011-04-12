@@ -50,7 +50,7 @@
 // ====================================================================================================================
 #if MTK_SAO
 
-class TEncSAO : public TComSAO
+class TEncSampleAdaptiveOffset : public TComSampleAdaptiveOffset
 {
 private:
   Double            m_dLambdaLuma;
@@ -81,6 +81,7 @@ public:
   Void xPartTreeDisable(Int iPartIdx);
   Void xGetQAOStats(TComPicYuv* pcPicOrg, TComPicYuv* pcPicDec, TComPicYuv* pcPicRest);
   Void calcAoStatsCu(Int iAddr, Int iPartIdx);
+  Void destory();
 };
 #endif
 

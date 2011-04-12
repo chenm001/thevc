@@ -207,7 +207,6 @@ public:
 #if MTK_SAO
   Void    encodeQAOOnePart(SAOParam* pQaoParam, Int part_idx);
   Void    encodeQuadTreeSplitFlag(SAOParam* pQaoParam, Int part_idx);
-  Void    encodeFixedLengthCode (Int iIdx, Int n);
   Void    encodeSaoParam(SAOParam* pQaoParam) ;
 #endif
 
