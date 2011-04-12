@@ -79,6 +79,10 @@ extern       UInt   g_auiRasterToPelX[ MAX_NUM_SPU_W*MAX_NUM_SPU_W ];
 extern       UInt   g_auiRasterToPelY[ MAX_NUM_SPU_W*MAX_NUM_SPU_W ];
 
 Void         initRasterToPelXY ( UInt uiMaxCUWidth, UInt uiMaxCUHeight, UInt uiMaxDepth );
+#if MTK_SAO
+Int  LevelRowCol2Idx(int level, int row, int col);
+void Idx2LevelRowCol(int idx, int *level, int *row, int *col);
+#endif
 
 // global variable (LCU width/height, max. CU depth)
 extern       UInt g_uiMaxCUWidth;
@@ -183,10 +187,17 @@ extern const UInt    g_auiLumaRun8x8[29][2][64];
 #endif
 
 #if LCEC_INTRA_MODE
+#if MTK_DCM_MPM
+extern const UInt    g_auiIntraModeTableD17[2][16];
+extern const UInt    g_auiIntraModeTableE17[2][16];
+extern const UInt    g_auiIntraModeTableD34[2][33];
+extern const UInt    g_auiIntraModeTableE34[2][33];
+#else
 extern const UInt    g_auiIntraModeTableD17[16];
 extern const UInt    g_auiIntraModeTableE17[16];
 extern const UInt    g_auiIntraModeTableD34[33];
 extern const UInt    g_auiIntraModeTableE34[33];
+#endif
 #endif
 
 #if QC_MOD_LCEC

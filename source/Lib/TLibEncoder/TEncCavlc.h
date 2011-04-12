@@ -83,12 +83,21 @@ protected:
   UInt          m_uiLastPosVlcIndex[10];
   
 #if LCEC_INTRA_MODE
+ #if MTK_DCM_MPM
+  UInt          m_uiIntraModeTableD17[2][16];
+  UInt          m_uiIntraModeTableE17[2][16];
+
+  UInt          m_uiIntraModeTableD34[2][33];
+  UInt          m_uiIntraModeTableE34[2][33];
+#else
   UInt          m_uiIntraModeTableD17[16];
   UInt          m_uiIntraModeTableE17[16];
 
   UInt          m_uiIntraModeTableD34[33];
   UInt          m_uiIntraModeTableE34[33];
 #endif
+#endif
+  
 #if CAVLC_RQT_CBP
   UInt          m_uiCBP_YUV_TableE[4][8];
   UInt          m_uiCBP_YUV_TableD[4][8];
@@ -207,7 +216,11 @@ public:
   Void codeAlfUvlc       ( UInt uiCode );
   Void codeAlfSvlc       ( Int   iCode );
   Void codeAlfCtrlDepth();
-  
+#if MTK_SAO
+  Void codeAoFlag       ( UInt uiCode );
+  Void codeAoUvlc       ( UInt uiCode );
+  Void codeAoSvlc       ( Int   iCode );
+#endif
   Void codeSkipFlag      ( TComDataCU* pcCU, UInt uiAbsPartIdx );
   Void codeMergeFlag     ( TComDataCU* pcCU, UInt uiAbsPartIdx );
   Void codeMergeIndex    ( TComDataCU* pcCU, UInt uiAbsPartIdx );

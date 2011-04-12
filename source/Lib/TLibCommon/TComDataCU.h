@@ -419,6 +419,10 @@ public:
   Int           getAboveIntraDirLuma            ( UInt uiAbsPartIdx );
 #endif
 
+#if MTK_DCM_MPM
+  Int           getIntraDirLumaPredictor        ( UInt uiAbsPartIdx, Int uiIntraDirPred[]                 );
+#endif
+
 #if MS_LCEC_LOOKUP_TABLE_EXCEPTION
   Bool          isSuroundingRefIdxException     ( UInt   uiAbsPartIdx );
 #endif

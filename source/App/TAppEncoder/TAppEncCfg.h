@@ -107,6 +107,10 @@ protected:
   UInt      m_uiBitIncrement;                                 ///< bit-depth increment
   UInt      m_uiInternalBitDepth;                             ///< Internal bit-depth (BitDepth+BitIncrement)
   
+#if MTK_SAO
+  Bool      m_bUseSAO; 
+#endif
+
   // coding tools (loop filter)
   Bool      m_bUseALF;                                        ///< flag for using adaptive loop filter
 #ifdef MQT_ALF_NPASS

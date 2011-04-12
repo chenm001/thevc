@@ -73,9 +73,19 @@ Void TEncTop::create ()
   m_cGOPEncoder.        create( getSourceWidth(), getSourceHeight(), g_uiMaxCUWidth, g_uiMaxCUHeight );
   m_cSliceEncoder.      create( getSourceWidth(), getSourceHeight(), g_uiMaxCUWidth, g_uiMaxCUHeight, g_uiMaxCUDepth );
   m_cCuEncoder.         create( g_uiMaxCUDepth, g_uiMaxCUWidth, g_uiMaxCUHeight );
+#if MTK_SAO
+  m_cEncSAO.create( getSourceWidth(), getSourceHeight(), g_uiMaxCUWidth, g_uiMaxCUHeight, g_uiMaxCUDepth );
+#endif
   m_cAdaptiveLoopFilter.create( getSourceWidth(), getSourceHeight(), g_uiMaxCUWidth, g_uiMaxCUHeight, g_uiMaxCUDepth );
   m_cLoopFilter.        create( g_uiMaxCUDepth );
-  
+
+#if MQT_BA_RA && MQT_ALF_NPASS
+  if(m_bUseALF)
+  {
+    m_cAdaptiveLoopFilter.createAlfGlobalBuffers(m_iALFEncodePassReduction);
+  }
+#endif
+
   // if SBAC-based RD optimization is used
   if( m_bUseSBACRD )
   {
@@ -99,10 +109,20 @@ Void TEncTop::create ()
 
 Void TEncTop::destroy ()
 {
+#if MQT_BA_RA && MQT_ALF_NPASS
+  if(m_bUseALF)
+  {
+    m_cAdaptiveLoopFilter.destroyAlfGlobalBuffers();
+  }
+#endif
+
   // destroy processing unit classes
   m_cGOPEncoder.        destroy();
   m_cSliceEncoder.      destroy();
   m_cCuEncoder.         destroy();
+#if MTK_SAO
+  m_cEncSAO.            destory();
+#endif
   m_cAdaptiveLoopFilter.destroy();
   m_cLoopFilter.        destroy();
   
@@ -351,6 +371,9 @@ Void TEncTop::xInitSPS()
 
 #if MTK_NONCROSS_INLOOP_FILTER
   m_cSPS.setLFCrossSliceBoundaryFlag( m_bLFCrossSliceBoundaryFlag );
+#endif
+#if MTK_SAO
+  m_cSPS.setUseSAO             ( m_bUseSAO         );
 #endif
 
 }

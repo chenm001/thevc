@@ -236,6 +236,16 @@
 ////////////////////////////////
 // MediaTek defines section end
 ////////////////////////////////
+////////////////////////////////
+//MostProbableModeSignaling defines section start(MediaTek, DOCOMO)
+////////////////////////////////
+#define MTK_DCM_MPM 1
+#if MTK_DCM_MPM
+#define FAST_UDI_USE_FIRST_MPM_ONLY       0
+#endif
+///////////////////////////////
+//MostProbableModeSignaling defines section end
+///////////////////////////////
 
 #define FAST_UDI_USE_MPM 1
 #define SONY_SIG_CTX 1
@@ -271,10 +281,27 @@
 // NEC defines section end
 /////////////////////////////////
 
+
+/////////////////////////////////
+// MEDIATEK defines section start 
+/////////////////////////////////
+#define MTK_SAO                           1           // JCTVC-E049: Sample adaptive offset
+/////////////////////////////////
+// MEDIATEK defines section end
+/////////////////////////////////
+
+
 /////////////////////////////////
 // MQT (MEDIATEK, QUALCOMM, TOSHIBA) defines section start
 /////////////////////////////////
 #define MQT_ALF_NPASS                       1
+
+#define MQT_BA_RA                        1  // JCTVC-E323+E046
+#if MQT_BA_RA
+#define VAR_SIZE_H           4
+#define VAR_SIZE_W           4
+#define NO_VAR_BIN          16
+#endif
 /////////////////////////////////
 // MQT (MEDIATEK, QUALCOMM, TOSHIBA) defines section start
 /////////////////////////////////
@@ -348,6 +375,82 @@ typedef       Int             TCoeff;     ///< transform coefficient
 /// parameters for adaptive loop filter
 class TComPicSym;
 
+#if MTK_SAO
+
+#define NUM_DOWN_PART 4
+
+enum QAOTypeLen
+{
+  SAO_EO_LEN    = 4, 
+  SAO_EO_LEN_2D = 6, 
+  SAO_BO_LEN    = 16
+};
+
+enum QAOType
+{
+  SAO_EO_0 = 0, 
+  SAO_EO_1,
+  SAO_EO_2, 
+  SAO_EO_3,
+  SAO_BO_0,
+  SAO_BO_1,
+  MAX_NUM_SAO_TYPE
+};
+
+typedef struct _SaoQTPart
+{
+  Bool        bEnableFlag;
+  Int         iBestType;
+  Int         iLength;
+  Int         iOffset[32];
+
+  Int         StartCUX;
+  Int         StartCUY;
+  Int         EndCUX;
+  Int         EndCUY;
+
+  Int         part_xs;
+  Int         part_xe;
+  Int         part_ys;
+  Int         part_ye;
+  Int         part_width;
+  Int         part_height;
+
+  Int         PartIdx;
+  Int         PartLevel;
+  Int         PartCol;
+  Int         PartRow;
+
+  Int         DownPartsIdx[NUM_DOWN_PART];
+  Int         UpPartIdx;
+
+  Int*        pSubPartList;
+  Int         iLengthSubPartList;
+
+  Bool        bBottomLevel;
+  Bool        bSplit;
+  //    Bool        bAvailable;
+
+  //---- encoder only start -----//
+  Int64***    pppiCorr; //[filt_type][corr_row][corr_col]
+  Int**       ppCoeff;  //[filt_type][coeff]
+  Bool        bProcessed;
+  Double      dMinCost;
+  Int64       iMinDist;
+  Int         iMinRate;
+  //---- encoder only end -----//
+} SAOQTPart;
+
+struct _SaoParam
+{
+  Bool       bSaoFlag;
+  SAOQTPart* psSaoPart;
+  Int        iMaxSplitLevel;
+  Int        iNumClass[MAX_NUM_SAO_TYPE];
+};
+
+#endif
+
 struct _AlfParam
 {
   Int alf_flag;                           ///< indicates use of ALF
@@ -367,15 +470,27 @@ struct _AlfParam
   //CodeAux related
   Int realfiltNo;
   Int filtNo;
+#if MQT_BA_RA 
+  Int filterPattern[NO_VAR_BIN];
+#else
   Int filterPattern[16];
+#endif
   Int startSecondFilter;
   Int noFilters;
+#if MQT_BA_RA 
+  Int varIndTab[NO_VAR_BIN];
+#else
   Int varIndTab[16];
+#endif
   
   //Coeff send related
   Int filters_per_group_diff; //this can be updated using codedVarBins
   Int filters_per_group;
+#if MQT_BA_RA  
+  Int codedVarBins[NO_VAR_BIN]; 
+#else
   Int codedVarBins[16]; 
+#endif 
   Int forceCoeff0;
   Int predMethod;
   Int **coeffmulti;
@@ -387,6 +502,10 @@ struct _AlfParam
   UInt num_cus_in_frame;
   UInt alf_max_depth;
   UInt *alf_cu_flag;
+#endif
+
+#if MQT_BA_RA
+  Int alf_pcr_region_flag; 
 #endif
 };
 

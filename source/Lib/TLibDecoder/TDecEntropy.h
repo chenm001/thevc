@@ -111,7 +111,12 @@ public:
   virtual Void parseAlfFlagNum    ( UInt& ruiVal, UInt minValue, UInt depth ) = 0;
   virtual Void parseAlfCtrlFlag   ( UInt &ruiAlfCtrlFlag ) = 0;
 #endif
-  
+
+#if MTK_SAO
+  virtual Void parseAoFlag       ( UInt& ruiVal           ) = 0;
+  virtual Void parseAoUvlc       ( UInt& ruiVal           ) = 0;
+  virtual Void parseAoSvlc       ( Int&  riVal            ) = 0;
+#endif
   virtual ~TDecEntropyIf() {}
 };
 
@@ -190,6 +195,13 @@ public:
   Void readFilterCoeffs(ALFParam* pAlfParam);
   Void decodeFilterCoeff (ALFParam* pAlfParam);
   Int golombDecode(Int k);
+
+#if MTK_SAO
+  Void decodeQAOOnePart(SAOParam* pQaoParam, Int part_idx);
+  Void decodeQuadTreeSplitFlag(SAOParam* pQaoParam, Int part_idx);
+  Void decodeSaoParam(SAOParam* pQaoParam) ;
+#endif
+
 };// END CLASS DEFINITION TDecEntropy
 
 
