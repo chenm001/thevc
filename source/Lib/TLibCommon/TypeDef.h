@@ -240,9 +240,6 @@
 //MostProbableModeSignaling defines section start(MediaTek, DOCOMO)
 ////////////////////////////////
 #define MTK_DCM_MPM 1
-#if MTK_DCM_MPM
-#define FAST_UDI_USE_FIRST_MPM_ONLY       0
-#endif
 ///////////////////////////////
 //MostProbableModeSignaling defines section end
 ///////////////////////////////

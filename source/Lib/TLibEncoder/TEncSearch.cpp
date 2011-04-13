@@ -1712,13 +1712,9 @@ TEncSearch::estIntraPredQT( TComDataCU* pcCU,
       }
 #if FAST_UDI_USE_MPM
 #if MTK_DCM_MPM
-    Int uiPreds[2] = {-1, -1};
-#if FAST_UDI_USE_FIRST_MPM_ONLY
-      Int numCand = 1;   // use only the first candidate
-    uiPreds[0] = pcCU->getMostProbableIntraDirLuma( uiPartOffset );
-#else
+      Int uiPreds[2] = {-1, -1};
       Int numCand = pcCU->getIntraDirLumaPredictor(uiPartOffset, uiPreds);  
-#endif
+
       for( Int j=0; j < numCand; j++)
       {
         Bool mostProbableModeIncluded = false;

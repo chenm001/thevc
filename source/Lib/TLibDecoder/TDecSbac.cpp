@@ -819,15 +819,18 @@ Void TDecSbac::parseIntraDirLumaAng  ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt
   if ( uiSymbol )
   {
     if(uiPredNum == 1)   
+    {
       uiIPredMode = uiPreds[0];
-      else 
-      {
-       m_pcTDecBinIf->decodeBin( uiSymbol, m_cCUIntraPredSCModel.get( 0, 0, 2) );
+    }
+    else 
+    {
+      m_pcTDecBinIf->decodeBin( uiSymbol, m_cCUIntraPredSCModel.get( 0, 0, 2) );
       uiIPredMode = uiPreds[uiSymbol];
     }
   }
-  else{
-      if ( g_aucIntraModeBitsAng[iIntraIdx] < 6 )
+  else
+  {
+    if ( g_aucIntraModeBitsAng[iIntraIdx] < 6 )
     {
       m_pcTDecBinIf->decodeBin( uiSymbol, m_cCUIntraPredSCModel.get( 0, 0, 1 ) ); uiIPredMode  = uiSymbol;
       if ( g_aucIntraModeBitsAng[iIntraIdx] > 2 ) { m_pcTDecBinIf->decodeBin( uiSymbol, m_cCUIntraPredSCModel.get( 0, 0, 1 ) ); uiIPredMode |= uiSymbol << 1; }
@@ -851,8 +854,7 @@ Void TDecSbac::parseIntraDirLumaAng  ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt
 
     for(UInt i = 0; i < uiPredNum; i++)
     {
-       if(uiIPredMode >= uiPreds[i]) uiIPredMode ++;
-
+      if(uiIPredMode >= uiPreds[i]) {  uiIPredMode ++; }
     }
   }
 #if ADD_PLANAR_MODE

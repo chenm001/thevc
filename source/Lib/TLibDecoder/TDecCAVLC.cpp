@@ -902,30 +902,29 @@ Void TDecCavlc::parseIntraDirLumaAng  ( TComDataCU* pcCU, UInt uiAbsPartIdx, UIn
   if ( g_aucIntraModeBitsAng[iIntraIdx] < 5 )
   {
      UInt uiSymbol;
-   xReadFlag( uiSymbol );
+     xReadFlag( uiSymbol );
      if ( uiSymbol )
      {
-     if(uiPredNum == 1)
+       if(uiPredNum == 1)
+       {
+        uiIPredMode = uiPreds[0];
+       }
+       else
+       {
+        xReadFlag( uiSymbol );
+        uiIPredMode = uiPreds[uiSymbol];
+       }
+     }
+     else
      {
-      uiIPredMode = uiPreds[0];
-     }
-    else
-    {
-    xReadFlag( uiSymbol );
-    uiIPredMode = uiPreds[uiSymbol];
-    }
-     }
-    else
-    {
       xReadFlag( uiSymbol ); uiIPredMode  = uiSymbol;
       if ( g_aucIntraModeBitsAng[iIntraIdx] > 2 ) { xReadFlag( uiSymbol ); uiIPredMode |= uiSymbol << 1; }
       if ( g_aucIntraModeBitsAng[iIntraIdx] > 3 ) { xReadFlag( uiSymbol ); uiIPredMode |= uiSymbol << 2; }
 
-    for(UInt i = 0; i < uiPredNum; i++)
-    {
-       if(uiIPredMode >= uiPreds[i]) uiIPredMode ++;
-
-    }
+      for(UInt i = 0; i < uiPredNum; i++)
+      {
+        if(uiIPredMode >= uiPreds[i]) { uiIPredMode ++;}
+      }
    
     }
   }
@@ -942,41 +941,43 @@ Void TDecCavlc::parseIntraDirLumaAng  ( TComDataCU* pcCU, UInt uiAbsPartIdx, UIn
   {
   totMode = (uiPredNum == 1)? 17: 16;
   huff = huff17_2[uiPredNum - 1];
-    lengthHuff = lengthHuff17_2[uiPredNum - 1];
+  lengthHuff = lengthHuff17_2[uiPredNum - 1];
   m_uiIntraModeTableD = m_uiIntraModeTableD17[uiPredNum - 1];
   }
   else
   {
   totMode = (uiPredNum == 1)? 34: 33;
   huff = huff34_2[uiPredNum - 1];
-    lengthHuff = lengthHuff34_2[uiPredNum - 1];
+  lengthHuff = lengthHuff34_2[uiPredNum - 1];
   m_uiIntraModeTableD = m_uiIntraModeTableD34[uiPredNum - 1];
   }
  
-    UInt uiCode;
+  UInt uiCode;
   UInt uiLength = lengthHuff[totMode - 1];  
 
-    m_pcBitstream->pseudoRead(uiLength,uiCode);
-    if ((uiCode>>(uiLength- lengthHuff[0])) == huff[0])
-    {
+  m_pcBitstream->pseudoRead(uiLength,uiCode);
+  if ((uiCode>>(uiLength- lengthHuff[0])) == huff[0])
+  {
       m_pcBitstream->read(lengthHuff[0],uiCode);
 
      if(uiPredNum == 1)
+     {
         uiIPredMode = uiPreds[0];
-       else if(uiPredNum == 2)
-       {           
+     }
+     else if(uiPredNum == 2)
+     {           
         UInt uiPredIdx= 0;
         xReadFlag( uiPredIdx );
         uiIPredMode = uiPreds[uiPredIdx];
      }
 
-    }
-    else
-    {
+  }
+  else
+  {
       iRankIntraMode = 0;
 
       for(Int i = 1; i < totMode; i++) 
-    {  
+     {  
         if( (uiCode>>(uiLength- lengthHuff[i])) == huff[i])
         {
           m_pcBitstream->read(lengthHuff[i], uiCode);
@@ -986,16 +987,19 @@ Void TDecCavlc::parseIntraDirLumaAng  ( TComDataCU* pcCU, UInt uiAbsPartIdx, UIn
       }
 
      iRankIntraMode --;
-       iDir = m_uiIntraModeTableD[iRankIntraMode];
-       iRankIntraModeLarger = Max(0,iRankIntraMode-1);
-       iDirLarger = m_uiIntraModeTableD[iRankIntraModeLarger];
-       m_uiIntraModeTableD[iRankIntraModeLarger] = iDir;
-       m_uiIntraModeTableD[iRankIntraMode] = iDirLarger;
+     iDir = m_uiIntraModeTableD[iRankIntraMode];
+     iRankIntraModeLarger = Max(0,iRankIntraMode-1);
+     iDirLarger = m_uiIntraModeTableD[iRankIntraModeLarger];
+     m_uiIntraModeTableD[iRankIntraModeLarger] = iDir;
+     m_uiIntraModeTableD[iRankIntraMode] = iDirLarger;
 
      for(UInt i = 0; i < uiPredNum; i++)
-    {
-       if(iDir >= uiPreds[i]) iDir ++;
-    }
+     {
+       if(iDir >= uiPreds[i]) 
+       {
+         iDir ++;
+       }
+     }
 
      uiIPredMode = iDir;
       
