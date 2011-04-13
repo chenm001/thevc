@@ -749,7 +749,9 @@ Void TEncCavlc::codeIntraDirLumaAng( TComDataCU* pcCU, UInt uiAbsPartIdx )
   for(UInt i = 0; i < uiPredNum; i++)
   {
     if(iDir == uiPreds[i])
+    {
       uiPredIdx = i;
+    }
   }
 
   if ( g_aucIntraModeBitsAng[iIntraIdx] < 5 )
@@ -758,7 +760,9 @@ Void TEncCavlc::codeIntraDirLumaAng( TComDataCU* pcCU, UInt uiAbsPartIdx )
     {
       xWriteFlag(1);
       if(uiPredNum == 2)
+      {
         xWriteFlag((UInt)uiPredIdx);
+      }
     }
     else
     {
@@ -770,8 +774,8 @@ Void TEncCavlc::codeIntraDirLumaAng( TComDataCU* pcCU, UInt uiAbsPartIdx )
 
 
       xWriteFlag( iDir & 0x01 ? 1 : 0 );
-      if ( g_aucIntraModeBitsAng[iIntraIdx] > 2 ) xWriteFlag( iDir & 0x02 ? 1 : 0 );
-      if ( g_aucIntraModeBitsAng[iIntraIdx] > 3 ) xWriteFlag( iDir & 0x04 ? 1 : 0 );
+      if ( g_aucIntraModeBitsAng[iIntraIdx] > 2 ) { xWriteFlag( iDir & 0x02 ? 1 : 0 ); }
+      if ( g_aucIntraModeBitsAng[iIntraIdx] > 3 ) { xWriteFlag( iDir & 0x04 ? 1 : 0 ); }
     }
     
   }
@@ -807,7 +811,9 @@ Void TEncCavlc::codeIntraDirLumaAng( TComDataCU* pcCU, UInt uiAbsPartIdx )
        xWriteCode(uiCode, uiLength);
 
        if(uiPredNum == 2)
+       {
          xWriteFlag((UInt)uiPredIdx);
+       }
      }
      else
      {
