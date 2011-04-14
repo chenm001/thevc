@@ -7,6 +7,15 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		65EA1B88135744C400988950 /* libmd5.h in Headers */ = {isa = PBXBuildFile; fileRef = 65EA1B85135744C400988950 /* libmd5.h */; };
+		65EA1B89135744C400988950 /* libmd5.c in Sources */ = {isa = PBXBuildFile; fileRef = 65EA1B86135744C400988950 /* libmd5.c */; };
+		65EA1B8A135744C400988950 /* MD5.h in Headers */ = {isa = PBXBuildFile; fileRef = 65EA1B87135744C400988950 /* MD5.h */; };
+		65EA1B8E135744EA00988950 /* SEIread.h in Headers */ = {isa = PBXBuildFile; fileRef = 65EA1B8C135744EA00988950 /* SEIread.h */; };
+		65EA1B8F135744EA00988950 /* SEIread.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 65EA1B8D135744EA00988950 /* SEIread.cpp */; };
+		65EA1B92135744FE00988950 /* SEIwrite.h in Headers */ = {isa = PBXBuildFile; fileRef = 65EA1B90135744FE00988950 /* SEIwrite.h */; };
+		65EA1B93135744FE00988950 /* SEIwrite.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 65EA1B91135744FE00988950 /* SEIwrite.cpp */; };
+		65EA1B951357451300988950 /* SEI.h in Headers */ = {isa = PBXBuildFile; fileRef = 65EA1B941357451300988950 /* SEI.h */; };
+		65EA1B97135745D500988950 /* TComPicYuvMD5.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 65EA1B96135745D500988950 /* TComPicYuvMD5.cpp */; };
 		671E0D4911B6AD8C00F3747B /* ContextModel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 671E0D3811B6AD8C00F3747B /* ContextModel.cpp */; };
 		671E0D4A11B6AD8C00F3747B /* ContextModel.h in Headers */ = {isa = PBXBuildFile; fileRef = 671E0D3911B6AD8C00F3747B /* ContextModel.h */; };
 		671E0D4B11B6AD8C00F3747B /* ContextModel3DBuffer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 671E0D3A11B6AD8C00F3747B /* ContextModel3DBuffer.cpp */; };
@@ -174,6 +183,15 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		65EA1B85135744C400988950 /* libmd5.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = libmd5.h; path = source/Lib/libmd5/libmd5.h; sourceTree = "<group>"; };
+		65EA1B86135744C400988950 /* libmd5.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = libmd5.c; path = source/Lib/libmd5/libmd5.c; sourceTree = "<group>"; };
+		65EA1B87135744C400988950 /* MD5.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = MD5.h; path = source/Lib/libmd5/MD5.h; sourceTree = "<group>"; };
+		65EA1B8C135744EA00988950 /* SEIread.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = SEIread.h; path = source/Lib/TLibDecoder/SEIread.h; sourceTree = "<group>"; };
+		65EA1B8D135744EA00988950 /* SEIread.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = SEIread.cpp; path = source/Lib/TLibDecoder/SEIread.cpp; sourceTree = "<group>"; };
+		65EA1B90135744FE00988950 /* SEIwrite.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = SEIwrite.h; path = source/Lib/TLibEncoder/SEIwrite.h; sourceTree = "<group>"; };
+		65EA1B91135744FE00988950 /* SEIwrite.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = SEIwrite.cpp; path = source/Lib/TLibEncoder/SEIwrite.cpp; sourceTree = "<group>"; };
+		65EA1B941357451300988950 /* SEI.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = SEI.h; path = source/Lib/TLibCommon/SEI.h; sourceTree = "<group>"; };
+		65EA1B96135745D500988950 /* TComPicYuvMD5.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = TComPicYuvMD5.cpp; path = source/Lib/TLibCommon/TComPicYuvMD5.cpp; sourceTree = "<group>"; };
 		671E0D3811B6AD8C00F3747B /* ContextModel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ContextModel.cpp; path = source/Lib/TLibCommon/ContextModel.cpp; sourceTree = "<group>"; };
 		671E0D3911B6AD8C00F3747B /* ContextModel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ContextModel.h; path = source/Lib/TLibCommon/ContextModel.h; sourceTree = "<group>"; };
 		671E0D3A11B6AD8C00F3747B /* ContextModel3DBuffer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ContextModel3DBuffer.cpp; path = source/Lib/TLibCommon/ContextModel3DBuffer.cpp; sourceTree = "<group>"; };
@@ -386,6 +404,9 @@
 		6767959711AD61D700421804 /* TLibCommon */ = {
 			isa = PBXGroup;
 			children = (
+				65EA1B85135744C400988950 /* libmd5.h */,
+				65EA1B86135744C400988950 /* libmd5.c */,
+				65EA1B87135744C400988950 /* MD5.h */,
 				6767959911AD61FC00421804 /* CommonDef.h */,
 				6767959A11AD61FC00421804 /* ContextTables.h */,
 				671E0D3811B6AD8C00F3747B /* ContextModel.cpp */,
@@ -399,6 +420,7 @@
 				676795A011AD61FC00421804 /* TComAdaptiveLoopFilter.cpp */,
 				676795A111AD61FC00421804 /* TComAdaptiveLoopFilter.h */,
 				676795A311AD61FC00421804 /* TComBitStream.cpp */,
+				65EA1B96135745D500988950 /* TComPicYuvMD5.cpp */,
 				676795A411AD61FC00421804 /* TComBitStream.h */,
 				676795A511AD61FC00421804 /* TComDataCU.cpp */,
 				676795A611AD61FC00421804 /* TComDataCU.h */,
@@ -425,6 +447,9 @@
 				676795BC11AD61FC00421804 /* TComRom.h */,
 				676795BD11AD61FC00421804 /* TComSlice.cpp */,
 				676795BE11AD61FC00421804 /* TComSlice.h */,
+				65EA1B941357451300988950 /* SEI.h */,
+				65EA1B90135744FE00988950 /* SEIwrite.h */,
+				65EA1B91135744FE00988950 /* SEIwrite.cpp */,
 				676795BF11AD61FC00421804 /* TComTrQuant.cpp */,
 				676795C011AD61FC00421804 /* TComTrQuant.h */,
 				676795C111AD61FC00421804 /* TComYuv.cpp */,
@@ -437,6 +462,8 @@
 		676795EF11AD620B00421804 /* TLibDecoder */ = {
 			isa = PBXGroup;
 			children = (
+				65EA1B8C135744EA00988950 /* SEIread.h */,
+				65EA1B8D135744EA00988950 /* SEIread.cpp */,
 				671E0D5611B6ADD300F3747B /* TDecBinCoder.h */,
 				671E0D5711B6ADD300F3747B /* TDecBinCoderCABAC.cpp */,
 				671E0D5811B6ADD300F3747B /* TDecBinCoderCABAC.h */,
@@ -572,6 +599,9 @@
 				671E0D4F11B6AD8C00F3747B /* TComBitCounter.h in Headers */,
 				671E0D5111B6AD8C00F3747B /* TComCABACTables.h in Headers */,
 				671E0D5211B6AD8C00F3747B /* TComMv.h in Headers */,
+				65EA1B88135744C400988950 /* libmd5.h in Headers */,
+				65EA1B8A135744C400988950 /* MD5.h in Headers */,
+				65EA1B951357451300988950 /* SEI.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -588,6 +618,7 @@
 				6767961311AD623900421804 /* TDecTop.h in Headers */,
 				671E0D6411B6ADD300F3747B /* TDecBinCoder.h in Headers */,
 				671E0D6611B6ADD300F3747B /* TDecBinCoderCABAC.h in Headers */,
+				65EA1B8E135744EA00988950 /* SEIread.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -608,6 +639,7 @@
 				6767964511AD628100421804 /* TEncTop.h in Headers */,
 				671E0D8011B6ADE900F3747B /* TEncBinCoder.h in Headers */,
 				671E0D8211B6ADE900F3747B /* TEncBinCoderCABAC.h in Headers */,
+				65EA1B92135744FE00988950 /* SEIwrite.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -813,6 +845,8 @@
 				671E0D4911B6AD8C00F3747B /* ContextModel.cpp in Sources */,
 				671E0D4B11B6AD8C00F3747B /* ContextModel3DBuffer.cpp in Sources */,
 				671E0D5011B6AD8C00F3747B /* TComCABACTables.cpp in Sources */,
+				65EA1B89135744C400988950 /* libmd5.c in Sources */,
+				65EA1B97135745D500988950 /* TComPicYuvMD5.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -828,6 +862,7 @@
 				6767961011AD623900421804 /* TDecSlice.cpp in Sources */,
 				6767961211AD623900421804 /* TDecTop.cpp in Sources */,
 				671E0D6511B6ADD300F3747B /* TDecBinCoderCABAC.cpp in Sources */,
+				65EA1B8F135744EA00988950 /* SEIread.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -846,6 +881,7 @@
 				6767964211AD628100421804 /* TEncSlice.cpp in Sources */,
 				6767964411AD628100421804 /* TEncTop.cpp in Sources */,
 				671E0D8111B6ADE900F3747B /* TEncBinCoderCABAC.cpp in Sources */,
+				65EA1B93135744FE00988950 /* SEIwrite.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
