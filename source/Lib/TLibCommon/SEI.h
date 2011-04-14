@@ -51,6 +51,10 @@ class SEIuserDataUnregistered : public SEI
 public:
   PayloadType payloadType() const { return USER_DATA_UNREGISTERED; }
 
+  SEIuserDataUnregistered()
+    : userData(0)
+    {}
+
   ~SEIuserDataUnregistered()
   {
     delete userData;
