@@ -121,7 +121,10 @@ Void TEncTop::destroy ()
   m_cSliceEncoder.      destroy();
   m_cCuEncoder.         destroy();
 #if MTK_SAO
-  m_cEncSAO.            destory();
+  if (m_cSPS.getUseSAO())
+  {
+    m_cEncSAO.            destory();
+  }
 #endif
   m_cAdaptiveLoopFilter.destroy();
   m_cLoopFilter.        destroy();
