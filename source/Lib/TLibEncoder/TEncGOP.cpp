@@ -38,6 +38,7 @@
 #include "TEncTop.h"
 #include "TEncGOP.h"
 #include "TEncAnalyze.h"
+#include "../libmd5/MD5.h"
 
 #include <time.h>
 
@@ -637,7 +638,12 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
 #if FIXED_ROUNDING_FRAME_MEMORY
       pcPic->getPicYuvRec()->xFixedRoundingPic();
 #endif
-      
+
+      /* calculate MD5sum for entire reconstructed picture */
+      unsigned char recon_digest[16];
+      calcMD5(*pcPic->getPicYuvRec(), recon_digest);
+      printf("[MD5:%s] ", digestToString(recon_digest));
+
       pcPic->getPicYuvRec()->copyToPic(pcPicYuvRecOut);
       
       pcPic->setReconMark   ( true );

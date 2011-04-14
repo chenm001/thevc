@@ -40,6 +40,7 @@
 #include "TDecSbac.h"
 #include "TDecBinCoder.h"
 #include "TDecBinCoderCABAC.h"
+#include "../libmd5/MD5.h"
 
 #include <time.h>
 
@@ -254,6 +255,12 @@ Void TDecGop::decompressGop (Bool bEos, TComBitstream* pcBitstream, TComPic*& rp
 #if FIXED_ROUNDING_FRAME_MEMORY
     rpcPic->getPicYuvRec()->xFixedRoundingPic();
 #endif 
+
+    /* calculate MD5sum for entire reconstructed picture */
+    unsigned char recon_digest[16];
+    calcMD5(*rpcPic->getPicYuvRec(), recon_digest);
+    printf("[MD5:%s] ", digestToString(recon_digest));
+
     rpcPic->setReconMark(true);
 #if MTK_NONCROSS_INLOOP_FILTER
     uiILSliceCount = 0;
