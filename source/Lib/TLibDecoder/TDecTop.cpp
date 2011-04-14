@@ -233,6 +233,11 @@ Void TDecTop::decode (Bool bEos, TComBitstream* pcBitstream, UInt& ruiPOC, TComL
       m_uiValidPS |= 2;
       return false;
 
+    case NAL_UNIT_SEI:
+      m_SEIs = new SEImessages;
+      m_cEntropyDecoder.decodeSEI(*m_SEIs);
+      return false;
+
     case NAL_UNIT_CODED_SLICE:
     case NAL_UNIT_CODED_SLICE_IDR:
     case NAL_UNIT_CODED_SLICE_CDR:
@@ -287,6 +292,10 @@ Void TDecTop::decode (Bool bEos, TComBitstream* pcBitstream, UInt& ruiPOC, TComL
         //  Get a new picture buffer
         xGetNewPicBuffer (m_apcSlicePilot, pcPic);
         
+        /* transfer any SEI messages that have been received to the picture */
+        pcPic->setSEIs(m_SEIs);
+        m_SEIs = NULL;
+
         // Recursive structure
         m_cCuDecoder.create ( g_uiMaxCUDepth, g_uiMaxCUWidth, g_uiMaxCUHeight );
         m_cCuDecoder.init   ( &m_cEntropyDecoder, &m_cTrQuant, &m_cPrediction );
