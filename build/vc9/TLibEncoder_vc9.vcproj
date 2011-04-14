@@ -282,6 +282,10 @@
 			Filter="cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx"
 			>
 			<File
+				RelativePath="..\..\source\Lib\TLibEncoder\SEIwrite.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\source\Lib\TLibEncoder\TEncAdaptiveLoopFilter.cpp"
 				>
 			</File>
@@ -330,6 +334,10 @@
 			Name="Header Files"
 			Filter="h;hpp;hxx;hm;inl;inc;xsd"
 			>
+			<File
+				RelativePath="..\..\source\Lib\TLibEncoder\SEIwrite.h"
+				>
+			</File>
 			<File
 				RelativePath="..\..\source\Lib\TLibEncoder\TEncAdaptiveLoopFilter.h"
 				>

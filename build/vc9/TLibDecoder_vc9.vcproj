@@ -282,6 +282,10 @@
 			Filter="cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx"
 			>
 			<File
+				RelativePath="..\..\source\Lib\TLibDecoder\SEIread.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\source\Lib\TLibDecoder\TDecBinCoderCABAC.cpp"
 				>
 			</File>
@@ -318,6 +322,10 @@
 			Name="Header Files"
 			Filter="h;hpp;hxx;hm;inl"
 			>
+			<File
+				RelativePath="..\..\source\Lib\TLibDecoder\SEIread.h"
+				>
+			</File>
 			<File
 				RelativePath="..\..\source\Lib\TLibDecoder\TDecBinCoder.h"
 				>

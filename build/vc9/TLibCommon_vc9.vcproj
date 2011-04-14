@@ -291,6 +291,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\source\Lib\libmd5\libmd5.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\source\Lib\TLibCommon\TComAdaptiveLoopFilter.cpp"
 				>
 			</File>
@@ -328,6 +332,10 @@
 			</File>
 			<File
 				RelativePath="..\..\source\Lib\TLibCommon\TComPicYuv.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\source\Lib\TLibCommon\TComPicYuvMD5.cpp"
 				>
 			</File>
 			<File
@@ -378,6 +386,18 @@
 			</File>
 			<File
 				RelativePath="..\..\source\Lib\TLibCommon\ContextTables.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\source\Lib\libmd5\libmd5.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\source\Lib\libmd5\MD5.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\source\Lib\TLibCommon\SEI.h"
 				>
 			</File>
 			<File
