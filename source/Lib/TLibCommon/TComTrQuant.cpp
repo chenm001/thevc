@@ -304,7 +304,11 @@ Void TComTrQuant::setQPforQuant( Int iQP, Bool bLowpass, SliceType eSliceType, T
  *  \param uiStride stride of input data
  *  \param uiTrSize transform size (uiTrSize x uiTrSize)
  */
+#if INTRA_DST_TYPE_7
+void xTr(Pel *block, Long *coeff, UInt uiStride, UInt uiTrSize, UInt uiMode)
+#else
 void xTr(Pel *block, Long *coeff, UInt uiStride, UInt uiTrSize)
+#endif
 {
   Int i,j,k,iSum;
   Int tmp[32*32];
@@ -342,20 +346,42 @@ void xTr(Pel *block, Long *coeff, UInt uiStride, UInt uiTrSize)
   int add_2nd = 1<<(shift_2nd-1);
 
   /* Horizontal transform */
+
+#if INTRA_DST_TYPE_7
+  if (uiTrSize==4)
+  {
+    if (uiMode != REG_DCT && g_aucDCTDSTMode_Hor[uiMode])
+    {
+      iT  =  g_as_DST_MAT_4[0];
+    }
+  }
+#endif
   for (i=0; i<uiTrSize; i++)
-  {           
+  {
     for (j=0; j<uiTrSize; j++)
     {
       iSum = 0;
       for (k=0; k<uiTrSize; k++)
       {
-        iSum += iT[i*uiTrSize+k]*block[j*uiStride+k];        
+        iSum += iT[i*uiTrSize+k]*block[j*uiStride+k];
       }
       tmp[i*uiTrSize+j] = (iSum + add_1st)>>shift_1st;
     }
   }
-
-  /* Vertical transform */
+/* Vertical transform */
+#if INTRA_DST_TYPE_7
+  if (uiTrSize==4)
+  {
+    if (uiMode != REG_DCT && g_aucDCTDSTMode_Vert[uiMode])
+    {
+      iT  =  g_as_DST_MAT_4[0];
+    }
+    else
+    {
+      iT  = g_aiT4[0];
+    }
+  }
+ #endif
   for (i=0; i<uiTrSize; i++)
   {                 
     for (j=0; j<uiTrSize; j++)
@@ -376,14 +402,16 @@ void xTr(Pel *block, Long *coeff, UInt uiStride, UInt uiTrSize)
  *  \param uiStride stride of output data
  *  \param uiTrSize transform size (uiTrSize x uiTrSize)
  */
+#if INTRA_DST_TYPE_7
+void xITr(Long *coeff, Pel *block, UInt uiStride, UInt uiTrSize, UInt uiMode)
+#else
 void xITr(Long *coeff, Pel *block, UInt uiStride, UInt uiTrSize)
+#endif
 {
-
   int i,j,k,iSum;
   Int tmp[32*32];
-  const short *iT;  
+  const short *iT;
   UInt uiLog2TrSize = g_aucConvertToBit[ uiTrSize ] + 2;
-
   if (uiTrSize==4)
   {
     iT  = g_aiT4[0];
@@ -403,7 +431,6 @@ void xITr(Long *coeff, Pel *block, UInt uiStride, UInt uiTrSize)
   else{
     assert(0);
   }
-
   int shift_1st = SHIFT_INV_1ST;
   int add_1st = 1<<(shift_1st-1);  
 #if FULL_NBIT
@@ -412,7 +439,15 @@ void xITr(Long *coeff, Pel *block, UInt uiStride, UInt uiTrSize)
   int shift_2nd = SHIFT_INV_2ND - g_uiBitIncrement;
 #endif
   int add_2nd = 1<<(shift_2nd-1);
-
+#if INTRA_DST_TYPE_7
+  if (uiTrSize==4)
+  {
+    if (uiMode != REG_DCT && g_aucDCTDSTMode_Vert[uiMode] ) // Check for DCT or DST
+    {
+      iT  =  g_as_DST_MAT_4[0];
+    }
+  }
+#endif
   /* Horizontal transform */
   for (i=0; i<uiTrSize; i++)
   {    
@@ -426,6 +461,19 @@ void xITr(Long *coeff, Pel *block, UInt uiStride, UInt uiTrSize)
       tmp[i*uiTrSize+j] = (iSum + add_1st)>>shift_1st;
     }
   }   
+#if INTRA_DST_TYPE_7
+  if (uiTrSize==4)
+  {
+    if (uiMode != REG_DCT && g_aucDCTDSTMode_Hor[uiMode] )   // Check for DCT or DST
+    {
+      iT  =  g_as_DST_MAT_4[0];
+    }
+    else  
+    {
+      iT  = g_aiT4[0];
+    }
+  }
+#endif
   /* Vertical transform */
   for (i=0; i<uiTrSize; i++)
   {   
@@ -473,7 +521,52 @@ void partialButterfly4(short block[4][4],short coeff[4][4],int shift)
  *  \param block input data (residual)
  *  \param coeff output data (transform coefficients)
  */
-void xTr4(short block[4][4],short coeff[4][4])
+#if INTRA_DST_TYPE_7
+// Fast DST Algorithm. Full matrix multiplication for DST and Fast DST algorithm 
+// give identical results
+void FAST_FORWARD_DST(short block[4][4],short coeff[4][4],int shift)  // input block, output coeff
+{
+  int i, c[4];
+  int rnd_factor = 1<<(shift-1);
+  for (i=0; i<4; i++)
+  {
+    // Intermediate Variables
+    c[0] = block[i][0] + block[i][3];
+    c[1] = block[i][1] + block[i][3];
+        c[2] = block[i][0] - block[i][1];
+    c[3] = 74* block[i][2];
+
+    coeff[0][i] =  (( 28 * (c[0] + (c[1] << 1)   )   + c[3]          )      + rnd_factor ) >> shift;
+        coeff[1][i] =  (( 74 * (block[i][0]+ block[i][1]  - block[i][3]) )      + rnd_factor ) >> shift;
+        coeff[2][i] =  (( 28 * (c[2]  +  (c[0] << 1) ))  -    c[3]              + rnd_factor ) >> shift;
+        coeff[3][i] =  (( 28 * ((c[2]<<1)   - c[1]   )   + c[3]   )             + rnd_factor ) >> shift;
+  }
+}
+void FAST_INVERSE_DST(short tmp[4][4],short block[4][4],int shift)  // input tmp, output block
+{
+  int i, c[4];
+  int rnd_factor = 1<<(shift-1);
+  for (i=0; i<4; i++)
+  {  
+    // Intermediate Variables
+    c[0] = tmp[0][i] + tmp[2][i];
+    c[1] = tmp[2][i] + tmp[3][i];
+        c[2] = tmp[0][i] - tmp[3][i];
+    c[3] = 74* tmp[1][i];
+
+    block[i][0] =  (( 28 * (c[0] + (c[1] << 1))   + c[3]   )             + rnd_factor ) >> shift;
+        block[i][1] =  (( 28 * ((c[2]<<1)  - c[1]    ) + c[3]   )            + rnd_factor ) >> shift;
+    block[i][2] =  (( 74 * (tmp[0][i] - tmp[2][i]  + tmp[3][i]) )        + rnd_factor ) >> shift;
+        block[i][3] =  (( 28 * ((c[0]<<1)   + c[2] )  - c[3]   )             + rnd_factor ) >> shift;
+  }
+}
+#endif 
+
+#if INTRA_DST_TYPE_7
+  void xTr4(short block[4][4],short coeff[4][4],UInt uiMode)
+#else
+    void xTr4(short block[4][4],short coeff[4][4])
+#endif
 {
 #if FULL_NBIT
   int shift_1st = 1 + g_uiBitDepth - 8; // log2(4) - 1 + g_uiBitDepth - 8
@@ -483,8 +576,31 @@ void xTr4(short block[4][4],short coeff[4][4])
   int shift_2nd = 8;                    // log2(4) + 6
   short tmp[4][4]; 
 
+#if INTRA_DST_TYPE_7
+  if (uiMode != REG_DCT && g_aucDCTDSTMode_Hor[uiMode])// Check for DCT or DST
+  {
+    FAST_FORWARD_DST(block,tmp,shift_1st); // Forward DST BY FAST ALGORITHM, block input, tmp output
+  }
+  else  
+  {
+    partialButterfly4(block,tmp,shift_1st);
+  }
+#else
   partialButterfly4(block,tmp,shift_1st);
+#endif
+
+#if INTRA_DST_TYPE_7
+  if (uiMode != REG_DCT && g_aucDCTDSTMode_Vert[uiMode] )   // Check for DCT or DST
+  {
+    FAST_FORWARD_DST(tmp,coeff,shift_2nd); // Forward DST BY FAST ALGORITHM, tmp input, coeff output
+  }
+  else  
+  {
+    partialButterfly4(tmp,coeff,shift_2nd);
+  }   
+#else
   partialButterfly4(tmp,coeff,shift_2nd);
+#endif
 }
 
 /** 4x4 inverse transform implemented using partial butterfly structure (1D)
@@ -518,7 +634,13 @@ void partialButterflyInverse4(short tmp[4][4],short block[4][4],int shift)
  *  \param coeff input data (transform coefficients)
  *  \param block output data (residual)
  */
+
+
+#if INTRA_DST_TYPE_7
+void xITr4(short coeff[4][4],short block[4][4], UInt uiMode)
+#else
 void xITr4(short coeff[4][4],short block[4][4])
+#endif
 {
   int shift_1st = SHIFT_INV_1ST;
 #if FULL_NBIT
@@ -528,8 +650,32 @@ void xITr4(short coeff[4][4],short block[4][4])
 #endif
   short tmp[4][4];
   
+#if INTRA_DST_TYPE_7
+  if (uiMode != REG_DCT && g_aucDCTDSTMode_Vert[uiMode] )    // Check for DCT or DST
+  {
+    FAST_INVERSE_DST(coeff,tmp,shift_1st);    // Inverse DST by FAST Algorithm, coeff input, tmp output
+  }
+  else  
+  {
+    partialButterflyInverse4(coeff,tmp,shift_1st);    
+  } 
+#else
   partialButterflyInverse4(coeff,tmp,shift_1st);
-  partialButterflyInverse4(tmp,block,shift_2nd);
+#endif
+
+
+#if INTRA_DST_TYPE_7
+  if (uiMode != REG_DCT && g_aucDCTDSTMode_Hor[uiMode] )    // Check for DCT or DST
+  {
+    FAST_INVERSE_DST(tmp,block,shift_2nd); // Inverse DST by FAST Algorithm, tmp input, coeff output
+  }
+  else
+  {
+    partialButterflyInverse4(tmp,block,shift_2nd);
+  }   
+#else
+   partialButterflyInverse4(tmp,block,shift_2nd);
+#endif
 }
 
 /** 8x8 forward transform implemented using partial butterfly structure (1D)
@@ -4365,6 +4511,23 @@ Void TComTrQuant::xDeQuant( TCoeff* pSrc, Long*& pDes, Int iWidth, Int iHeight )
   xDeQuantLTR( pSrc, pDes, iWidth, iHeight );
 }
 
+#if INTRA_DST_TYPE_7
+Void TComTrQuant::transformNxN( TComDataCU* pcCU, Pel* pcResidual, UInt uiStride, TCoeff*& rpcCoeff, UInt uiWidth, UInt uiHeight, UInt& uiAbsSum, TextType eTType, UInt uiAbsPartIdx )
+{
+  UInt uiMode;  //luma intra pred
+  if(eTType == TEXT_LUMA && pcCU->getPredictionMode(uiAbsPartIdx) == MODE_INTRA )
+    uiMode = pcCU->getLumaIntraDir( uiAbsPartIdx );
+  else
+    uiMode = REG_DCT;
+
+  uiAbsSum = 0;
+  assert( (pcCU->getSlice()->getSPS()->getMaxTrSize() >= uiWidth) );
+
+  xT( uiMode, pcResidual, uiStride, m_plTempCoeff, uiWidth );
+    xQuant( pcCU, m_plTempCoeff, rpcCoeff, uiWidth, uiHeight, uiAbsSum, eTType, uiAbsPartIdx );
+}
+
+#else
 Void TComTrQuant::transformNxN( TComDataCU* pcCU, Pel* pcResidual, UInt uiStride, TCoeff*& rpcCoeff, UInt uiWidth, UInt uiHeight, UInt& uiAbsSum, TextType eTType, UInt uiAbsPartIdx )
 {
   uiAbsSum = 0;
@@ -4374,12 +4537,23 @@ Void TComTrQuant::transformNxN( TComDataCU* pcCU, Pel* pcResidual, UInt uiStride
   xT( pcResidual, uiStride, m_plTempCoeff, uiWidth );
   xQuant( pcCU, m_plTempCoeff, rpcCoeff, uiWidth, uiHeight, uiAbsSum, eTType, uiAbsPartIdx );
 }
+#endif
 
+
+#if INTRA_DST_TYPE_7
+Void TComTrQuant::invtransformNxN( TextType eText,UInt uiMode, Pel*& rpcResidual, UInt uiStride, TCoeff* pcCoeff, UInt uiWidth, UInt uiHeight )
+{
+  xDeQuant( pcCoeff, m_plTempCoeff, uiWidth, uiHeight );
+  xIT( uiMode, m_plTempCoeff, rpcResidual, uiStride, uiWidth);
+}
+#else
 Void TComTrQuant::invtransformNxN( Pel*& rpcResidual, UInt uiStride, TCoeff* pcCoeff, UInt uiWidth, UInt uiHeight )
 {
   xDeQuant( pcCoeff, m_plTempCoeff, uiWidth, uiHeight );
   xIT( m_plTempCoeff, rpcResidual, uiStride, uiWidth );
 }
+#endif
+
 #if !E243_CORE_TRANSFORMS
 Void TComTrQuant::xT2( Pel* piBlkResi, UInt uiStride, Long* psCoeff )
 {
@@ -4974,6 +5148,7 @@ Void TComTrQuant::xDeQuant8x8( TCoeff* pSrcCoef, Long*& rplDstCoef )
   }
 }
 #endif //!E243_CORE_TRANSFORMS
+
 Void TComTrQuant::invRecurTransformNxN( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eTxt, Pel*& rpcResidual, UInt uiAddr, UInt uiStride, UInt uiWidth, UInt uiHeight, UInt uiMaxTrMode, UInt uiTrMode, TCoeff* rpcCoeff )
 {
   if( !pcCU->getCbf(uiAbsPartIdx, eTxt, uiTrMode) )
@@ -5000,7 +5175,11 @@ Void TComTrQuant::invRecurTransformNxN( TComDataCU* pcCU, UInt uiAbsPartIdx, Tex
       uiHeight <<= 1;
     }
     Pel* pResi = rpcResidual + uiAddr;
+#if INTRA_DST_TYPE_7
+  invtransformNxN( eTxt, REG_DCT, pResi, uiStride, rpcCoeff, uiWidth, uiHeight );
+#else
     invtransformNxN( pResi, uiStride, rpcCoeff, uiWidth, uiHeight );
+#endif
   }
   else
   {
@@ -5028,10 +5207,18 @@ Void TComTrQuant::invRecurTransformNxN( TComDataCU* pcCU, UInt uiAbsPartIdx, Tex
  *  \param uiStride stride of input residual data
  *  \param iSize transform size (iSize x iSize)
  */
+#if INTRA_DST_TYPE_7
+Void TComTrQuant::xT( UInt uiMode, Pel* piBlkResi, UInt uiStride, Long* psCoeff, Int iSize )
+#else
 Void TComTrQuant::xT( Pel* piBlkResi, UInt uiStride, Long* psCoeff, Int iSize )
+#endif
 {
 #if MATRIX_MULT  
-  xTr(piBlkResi,psCoeff,uiStride,(UInt)iSize);   
+#if INTRA_DST_TYPE_7
+  xTr(piBlkResi,psCoeff,uiStride,(UInt)iSize,uiMode);
+#else
+  xTr(piBlkResi,psCoeff,uiStride,(UInt)iSize);
+#endif
 #else
   Int j,k;
   if (iSize==4)
@@ -5043,7 +5230,11 @@ Void TComTrQuant::xT( Pel* piBlkResi, UInt uiStride, Long* psCoeff, Int iSize )
       memcpy(block[j],piBlkResi+j*uiStride,4*sizeof(short));      
     }
 
+#if INTRA_DST_TYPE_7
+  xTr4(block,coeff,uiMode);
+#else            
     xTr4(block,coeff);     
+#endif
     for (j=0; j<4; j++)
     {    
       for (k=0; k<4; k++)
@@ -5116,10 +5307,18 @@ Void TComTrQuant::xT( Pel* piBlkResi, UInt uiStride, Long* psCoeff, Int iSize )
  *  \param uiStride stride of input residual data
  *  \param iSize transform size (iSize x iSize)
  */
+#if INTRA_DST_TYPE_7
+Void TComTrQuant::xIT( UInt uiMode, Long* plCoef, Pel* pResidual, UInt uiStride, Int iSize )
+#else
 Void TComTrQuant::xIT( Long* plCoef, Pel* pResidual, UInt uiStride, Int iSize )
+#endif
 {
 #if MATRIX_MULT  
+#if INTRA_DST_TYPE_7
+  xITr(plCoef,pResidual,uiStride,(UInt)iSize,uiMode);
+#else
   xITr(plCoef,pResidual,uiStride,(UInt)iSize);
+#endif
 #else
   Int j,k;
   if (iSize==4)
@@ -5134,7 +5333,11 @@ Void TComTrQuant::xIT( Long* plCoef, Pel* pResidual, UInt uiStride, Int iSize )
         coeff[j][k] = (short)plCoef[j*4+k];
       }    
     }
+#if INTRA_DST_TYPE_7
+  xITr4(coeff,block,uiMode);
+#else
     xITr4(coeff,block);       
+#endif
     for (j=0; j<4; j++)
     {    
       memcpy(pResidual+j*uiStride,block[j],4*sizeof(short));

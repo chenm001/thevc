@@ -292,6 +292,15 @@ extern       UInt g_uiBASE_MAX;
 
 extern const UChar g_aucConvertTxtTypeToIdx[4];
 
+// ==========================================
+// Mode-Dependent DST Matrices
+#if INTRA_DST_TYPE_7
+extern const short g_as_DST_MAT_4 [4][4];
+extern const UChar g_aucDCTDSTMode_Vert[34];
+extern const UChar g_aucDCTDSTMode_Hor[34];
+# endif
+// ==========================================
+
 // ====================================================================================================================
 // Misc.
 // ====================================================================================================================

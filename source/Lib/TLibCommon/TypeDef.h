@@ -162,6 +162,14 @@
 #define LM_CHROMA                             1           // JCTVC-E266: Chroma intra prediction based on luma signal
 
 #define UNIFY_INTER_TABLE                     1           // JCTVC-E381 CAVLC: Inter pred coding
+
+// Discrete Sine Transform (DST) Type - 7 
+#define INTRA_DST_TYPE_7                      1                     // JCTVC-E125 4x4 DST
+#if INTRA_DST_TYPE_7
+#define REG_DCT 65535  
+#endif
+
+
 ///////////////////////////////
 // SAMSUNG defines section end
 ///////////////////////////////
