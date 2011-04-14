@@ -36,6 +36,7 @@
 */
 
 #include "TComPic.h"
+#include "SEI.h"
 
 // ====================================================================================================================
 // Constructor / destructor / create / destroy
@@ -73,6 +74,9 @@ Void TComPic::create( Int iWidth, Int iHeight, UInt uiMaxWidth, UInt uiMaxHeight
   m_pcPicYuvDeblkBuf  = new TComPicYuv;  m_pcPicYuvDeblkBuf->create( iWidth, iHeight, uiMaxWidth, uiMaxHeight, uiMaxDepth );
 #endif
 
+  /* there are no SEI messages associated with this picture initially */
+  m_SEIs = NULL;
+
   return;
 }
 
@@ -107,6 +111,8 @@ Void TComPic::destroy()
     m_pcPicYuvDeblkBuf  = NULL;
   }
 #endif
+
+  delete m_SEIs;
 }
 
 #if AMVP_BUFFERCOMPRESS

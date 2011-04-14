@@ -44,6 +44,8 @@
 #include "TComPicYuv.h"
 #include "TComBitStream.h"
 
+class SEImessages;
+
 // ====================================================================================================================
 // Class definition
 // ====================================================================================================================
@@ -64,6 +66,8 @@ private:
   Bool                  m_bReconstructed;
   UInt                  m_uiCurrSliceIdx;         // Index of current slice
   
+  SEImessages* m_SEIs; ///< Any SEI messages that have been received.  If !NULL we own the object.
+
 public:
   TComPic();
   virtual ~TComPic();
@@ -116,6 +120,19 @@ public:
 #if PARALLEL_MERGED_DEBLK
   TComPicYuv*   getPicYuvDeblkBuf()      { return  m_pcPicYuvDeblkBuf; }
 #endif
+
+  /** transfer ownership of @seis to @this picture */
+  void setSEIs(SEImessages* seis) { m_SEIs = seis; }
+
+  /**
+   * return the current list of SEI messages associated with this picture.
+   * Pointer is valid until @this->destroy() is called */
+  SEImessages* getSEIs() { return m_SEIs; }
+
+  /**
+   * return the current list of SEI messages associated with this picture.
+   * Pointer is valid until @this->destroy() is called */
+  const SEImessages* getSEIs() const { return m_SEIs; }
 
 };// END CLASS DEFINITION TComPic
 
