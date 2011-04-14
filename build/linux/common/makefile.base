@@ -248,6 +248,46 @@ $(OBJ_DIR)/%.r.o: $(SRC_DIR4)/%.cpp
 $(OBJ_DIR)/%.d.o: $(SRC_DIR4)/%.cpp
 	$(COMPILE_AND_DEPEND_DEBUG)
 
+# create release objects
+$(OBJ_DIR)/%.r.o: $(SRC_DIR)/%.c
+	$(COMPILE_AND_DEPEND_RELEASE)
+
+# create debug objects
+$(OBJ_DIR)/%.d.o: $(SRC_DIR)/%.c
+	$(COMPILE_AND_DEPEND_DEBUG)
+
+# create release objects
+$(OBJ_DIR)/%.r.o: $(SRC_DIR1)/%.c
+	$(COMPILE_AND_DEPEND_RELEASE)
+
+# create debug objects
+$(OBJ_DIR)/%.d.o: $(SRC_DIR1)/%.c
+	$(COMPILE_AND_DEPEND_DEBUG)
+
+# create release objects
+$(OBJ_DIR)/%.r.o: $(SRC_DIR2)/%.c
+	$(COMPILE_AND_DEPEND_RELEASE)
+
+# create debug objects
+$(OBJ_DIR)/%.d.o: $(SRC_DIR2)/%.c
+	$(COMPILE_AND_DEPEND_DEBUG)
+
+# create release objects
+$(OBJ_DIR)/%.r.o: $(SRC_DIR3)/%.c
+	$(COMPILE_AND_DEPEND_RELEASE)
+
+# create debug objects
+$(OBJ_DIR)/%.d.o: $(SRC_DIR3)/%.c
+	$(COMPILE_AND_DEPEND_DEBUG)
+
+# create release objects
+$(OBJ_DIR)/%.r.o: $(SRC_DIR4)/%.c
+	$(COMPILE_AND_DEPEND_RELEASE)
+
+# create debug objects
+$(OBJ_DIR)/%.d.o: $(SRC_DIR4)/%.c
+	$(COMPILE_AND_DEPEND_DEBUG)
+
 
 #########################################################
 # directory settings
