@@ -47,6 +47,7 @@
 
 class TDecSbac;
 class TDecCavlc;
+class SEImessages;
 
 // ====================================================================================================================
 // Class definition
@@ -67,6 +68,7 @@ public:
 
   virtual Void  parseSPS                  ( TComSPS* pcSPS )                                      = 0;
   virtual Void  parsePPS                  ( TComPPS* pcPPS )                                      = 0;
+  virtual void parseSEI(SEImessages&) = 0;
   virtual Void  parseSliceHeader          ( TComSlice*& rpcSlice )                                = 0;
   virtual Void  parseTerminatingBit       ( UInt& ruilsLast )                                     = 0;
   
@@ -146,6 +148,7 @@ public:
 
   Void    decodeSPS                   ( TComSPS* pcSPS     )    { m_pcEntropyDecoderIf->parseSPS(pcSPS);                    }
   Void    decodePPS                   ( TComPPS* pcPPS     )    { m_pcEntropyDecoderIf->parsePPS(pcPPS);                    }
+  void decodeSEI(SEImessages& seis) { m_pcEntropyDecoderIf->parseSEI(seis); }
   Void    decodeSliceHeader           ( TComSlice*& rpcSlice )  { m_pcEntropyDecoderIf->parseSliceHeader(rpcSlice);         }
   Void    decodeTerminatingBit        ( UInt& ruiIsLast )       { m_pcEntropyDecoderIf->parseTerminatingBit(ruiIsLast);     }
   
