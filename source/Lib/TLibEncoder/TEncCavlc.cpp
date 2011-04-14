@@ -36,6 +36,7 @@
 */
 
 #include "TEncCavlc.h"
+#include "SEIwrite.h"
 
 // ====================================================================================================================
 // Constructor / destructor / create / destroy
@@ -219,6 +220,14 @@ UInt* TEncCavlc::GetLastPosVlcIndexTable()
 }
 #endif
 
+/**
+ * marshall the SEI message @sei.
+ */
+void TEncCavlc::codeSEI(const SEI& sei)
+{
+  codeNALUnitHeader(NAL_UNIT_SEI, NAL_REF_IDC_PRIORITY_LOWEST);
+  writeSEImessage(*m_pcBitIf, sei);
+}
 
 Void TEncCavlc::codePPS( TComPPS* pcPPS )
 {

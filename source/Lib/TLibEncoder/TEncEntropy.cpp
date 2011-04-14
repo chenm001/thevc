@@ -61,6 +61,12 @@ Void TEncEntropy::encodeSliceFinish()
   m_pcEntropyCoderIf->codeSliceFinish();
 }
 
+void TEncEntropy::encodeSEI(const SEI& sei)
+{
+  m_pcEntropyCoderIf->codeSEI(sei);
+  return;
+}
+
 Void TEncEntropy::encodePPS( TComPPS* pcPPS )
 {
   m_pcEntropyCoderIf->codePPS( pcPPS );

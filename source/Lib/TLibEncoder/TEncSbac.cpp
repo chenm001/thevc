@@ -165,6 +165,11 @@ Void TEncSbac::codeNALUnitHeader( NalUnitType eNalUnitType, NalRefIdc eNalRefIdc
   return;
 }
 
+void TEncSbac::codeSEI(const SEI&)
+{
+  assert(0);
+}
+
 Void TEncSbac::codeSPS( TComSPS* pcSPS )
 {
   assert (0);
