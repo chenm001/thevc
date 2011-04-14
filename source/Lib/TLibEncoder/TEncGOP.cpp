@@ -39,6 +39,7 @@
 #include "TEncGOP.h"
 #include "TEncAnalyze.h"
 #include "../libmd5/MD5.h"
+#include "../TLibCommon/SEI.h"
 
 #include <time.h>
 
@@ -649,9 +650,19 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
 #endif
 
       /* calculate MD5sum for entire reconstructed picture */
-      unsigned char recon_digest[16];
-      calcMD5(*pcPic->getPicYuvRec(), recon_digest);
-      printf("[MD5:%s] ", digestToString(recon_digest));
+      SEIpictureDigest sei_recon_picture_digest;
+      sei_recon_picture_digest.method = SEIpictureDigest::MD5;
+      calcMD5(*pcPic->getPicYuvRec(), sei_recon_picture_digest.digest);
+      printf("[MD5:%s] ", digestToString(sei_recon_picture_digest.digest));
+
+      /* write the SEI messages (after any SPS/PPS) */
+      m_pcEntropyCoder->setEntropyCoder(m_pcCavlcCoder, pcSlice);
+      m_pcEntropyCoder->setBitstream(&bs_SPS_PPS_SEI);
+      m_pcEntropyCoder->encodeSEI(sei_recon_picture_digest);
+      /* and trailing bits */
+      bs_SPS_PPS_SEI.write(1, 1);
+      bs_SPS_PPS_SEI.writeAlignZero();
+      bs_SPS_PPS_SEI.write(1, 32);
 
       /* insert the bs_SPS_PPS_SEI before the pcBitstreamOut */
       bs_SPS_PPS_SEI.flushBuffer();
