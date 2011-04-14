@@ -149,6 +149,7 @@ public:
   }
   
   // utility functions
+  unsigned read(unsigned numberOfBits) { UInt tmp; read(numberOfBits, tmp); return tmp; }
   UInt* getStartStream() const { return m_apulStreamPacketBegin; }
   UInt*       getBuffer()               { return  m_pulStreamPacket;                    }
   Int         getBitsUntilByteAligned() { return m_iValidBits & (0x7);                  }
