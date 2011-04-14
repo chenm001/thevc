@@ -296,8 +296,13 @@ extern const UChar g_aucConvertTxtTypeToIdx[4];
 // Mode-Dependent DST Matrices
 #if INTRA_DST_TYPE_7
 extern const short g_as_DST_MAT_4 [4][4];
+#if ADD_PLANAR_MODE
+extern const UChar g_aucDCTDSTMode_Vert[NUM_INTRA_MODE];
+extern const UChar g_aucDCTDSTMode_Hor[NUM_INTRA_MODE];
+#else
 extern const UChar g_aucDCTDSTMode_Vert[34];
 extern const UChar g_aucDCTDSTMode_Hor[34];
+#endif
 # endif
 // ==========================================
 
