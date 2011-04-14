@@ -159,6 +159,8 @@ public:
   Void        flushBuffer();
   Void        rewindStreamPacket()      { m_pulStreamPacket = m_apulStreamPacketBegin;  }
   UInt        getBitsLeft()             { return  m_uiBitsLeft;                         }
+
+  void insertAt(const TComBitstream& src, unsigned pos);
 };
 
 #endif
