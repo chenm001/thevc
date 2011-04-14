@@ -36,8 +36,9 @@
 /**
  * Abstract class representing an SEI message with lightweight RTTI.
  */
-struct SEI
+class SEI
 {
+public:
   enum PayloadType {
     USER_DATA_UNREGISTERED = 5,
     PICTURE_DIGEST = 256,
@@ -45,8 +46,9 @@ struct SEI
   virtual PayloadType payloadType() const = 0;
 };
 
-struct SEIuserDataUnregistered : public SEI
+class SEIuserDataUnregistered : public SEI
 {
+public:
   PayloadType payloadType() const { return USER_DATA_UNREGISTERED; }
 
   ~SEIuserDataUnregistered()
@@ -59,8 +61,9 @@ struct SEIuserDataUnregistered : public SEI
   unsigned char *userData;
 };
 
-struct SEIpictureDigest : public SEI
+class SEIpictureDigest : public SEI
 {
+public:
   PayloadType payloadType() const { return PICTURE_DIGEST; }
 
   enum Method {
@@ -75,8 +78,9 @@ struct SEIpictureDigest : public SEI
  * A structure to collate all SEI messages.  This ought to be replaced
  * with a list of std::list<SEI*>.  However, since there is only one
  * user of the SEI framework, this will do initially */
-struct SEImessages
+class SEImessages
 {
+public:
   SEImessages()
     : user_data_unregistered(0)
     , picture_digest(0)
