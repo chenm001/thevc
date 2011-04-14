@@ -7,7 +7,7 @@ INC_DIR			= ../../../../source/Lib/TLibCommon
 LIB_DIR			= ../../../../lib
 BIN_DIR			= ../../../../bin
 
-SRC_DIR1		=
+SRC_DIR1		= ../../../../source/Lib/libmd5
 SRC_DIR2		=
 SRC_DIR3		=
 SRC_DIR4		=
@@ -44,6 +44,7 @@ OBJS          	= \
 			$(OBJ_DIR)/TComPic.o \
 			$(OBJ_DIR)/TComPicSym.o \
 			$(OBJ_DIR)/TComPicYuv.o \
+			$(OBJ_DIR)/TComPicYuvMD5.o \
 			$(OBJ_DIR)/TComPredFilter.o \
 			$(OBJ_DIR)/TComPrediction.o \
 			$(OBJ_DIR)/TComRdCost.o \
@@ -51,6 +52,7 @@ OBJS          	= \
 			$(OBJ_DIR)/TComSlice.o \
 			$(OBJ_DIR)/TComTrQuant.o \
 			$(OBJ_DIR)/TComYuv.o \
+			$(OBJ_DIR)/libmd5.o \
 
 LIBS				= -lpthread
 
