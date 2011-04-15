@@ -111,8 +111,8 @@ Void TAppDecTop::decode()
   
   while ( !bEos )
   {
-    Long lLocation          = m_cTVideoIOBitstreamFile.getFileLocation();
-    bEos                    = m_cTVideoIOBitstreamFile.readBits( pcBitstream );
+    streampos  lLocation = m_cTVideoIOBitstreamFile.getFileLocation();
+    bEos                 = m_cTVideoIOBitstreamFile.readBits( pcBitstream );
     if (bEos)
     {
       if (!bFirstSliceDecoded) m_cTDecTop.decode( bEos, pcBitstream, uiPOC, pcListPic, m_iSkipFrame, m_iPOCLastDisplay);
