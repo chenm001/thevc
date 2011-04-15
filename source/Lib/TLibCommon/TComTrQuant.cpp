@@ -524,7 +524,7 @@ void partialButterfly4(short block[4][4],short coeff[4][4],int shift)
 #if INTRA_DST_TYPE_7
 // Fast DST Algorithm. Full matrix multiplication for DST and Fast DST algorithm 
 // give identical results
-void FAST_FORWARD_DST(short block[4][4],short coeff[4][4],int shift)  // input block, output coeff
+void fastForwardDst(short block[4][4],short coeff[4][4],int shift)  // input block, output coeff
 {
   int i, c[4];
   int rnd_factor = 1<<(shift-1);
@@ -533,16 +533,16 @@ void FAST_FORWARD_DST(short block[4][4],short coeff[4][4],int shift)  // input b
     // Intermediate Variables
     c[0] = block[i][0] + block[i][3];
     c[1] = block[i][1] + block[i][3];
-        c[2] = block[i][0] - block[i][1];
+    c[2] = block[i][0] - block[i][1];
     c[3] = 74* block[i][2];
 
     coeff[0][i] =  (( 28 * (c[0] + (c[1] << 1)   )   + c[3]          )      + rnd_factor ) >> shift;
-        coeff[1][i] =  (( 74 * (block[i][0]+ block[i][1]  - block[i][3]) )      + rnd_factor ) >> shift;
-        coeff[2][i] =  (( 28 * (c[2]  +  (c[0] << 1) ))  -    c[3]              + rnd_factor ) >> shift;
-        coeff[3][i] =  (( 28 * ((c[2]<<1)   - c[1]   )   + c[3]   )             + rnd_factor ) >> shift;
+    coeff[1][i] =  (( 74 * (block[i][0]+ block[i][1]  - block[i][3]) )      + rnd_factor ) >> shift;
+    coeff[2][i] =  (( 28 * (c[2]  +  (c[0] << 1) ))  -    c[3]              + rnd_factor ) >> shift;
+    coeff[3][i] =  (( 28 * ((c[2]<<1)   - c[1]   )   + c[3]   )             + rnd_factor ) >> shift;
   }
 }
-void FAST_INVERSE_DST(short tmp[4][4],short block[4][4],int shift)  // input tmp, output block
+void fastInverseDst(short tmp[4][4],short block[4][4],int shift)  // input tmp, output block
 {
   int i, c[4];
   int rnd_factor = 1<<(shift-1);
@@ -551,21 +551,21 @@ void FAST_INVERSE_DST(short tmp[4][4],short block[4][4],int shift)  // input tmp
     // Intermediate Variables
     c[0] = tmp[0][i] + tmp[2][i];
     c[1] = tmp[2][i] + tmp[3][i];
-        c[2] = tmp[0][i] - tmp[3][i];
+    c[2] = tmp[0][i] - tmp[3][i];
     c[3] = 74* tmp[1][i];
 
     block[i][0] =  (( 28 * (c[0] + (c[1] << 1))   + c[3]   )             + rnd_factor ) >> shift;
-        block[i][1] =  (( 28 * ((c[2]<<1)  - c[1]    ) + c[3]   )            + rnd_factor ) >> shift;
+    block[i][1] =  (( 28 * ((c[2]<<1)  - c[1]    ) + c[3]   )            + rnd_factor ) >> shift;
     block[i][2] =  (( 74 * (tmp[0][i] - tmp[2][i]  + tmp[3][i]) )        + rnd_factor ) >> shift;
-        block[i][3] =  (( 28 * ((c[0]<<1)   + c[2] )  - c[3]   )             + rnd_factor ) >> shift;
+    block[i][3] =  (( 28 * ((c[0]<<1)   + c[2] )  - c[3]   )             + rnd_factor ) >> shift;
   }
 }
 #endif 
 
 #if INTRA_DST_TYPE_7
-  void xTr4(short block[4][4],short coeff[4][4],UInt uiMode)
+void xTr4(short block[4][4],short coeff[4][4],UInt uiMode)
 #else
-    void xTr4(short block[4][4],short coeff[4][4])
+void xTr4(short block[4][4],short coeff[4][4])
 #endif
 {
 #if FULL_NBIT
@@ -579,7 +579,7 @@ void FAST_INVERSE_DST(short tmp[4][4],short block[4][4],int shift)  // input tmp
 #if INTRA_DST_TYPE_7
   if (uiMode != REG_DCT && g_aucDCTDSTMode_Hor[uiMode])// Check for DCT or DST
   {
-    FAST_FORWARD_DST(block,tmp,shift_1st); // Forward DST BY FAST ALGORITHM, block input, tmp output
+    fastForwardDst(block,tmp,shift_1st); // Forward DST BY FAST ALGORITHM, block input, tmp output
   }
   else  
   {
@@ -592,7 +592,7 @@ void FAST_INVERSE_DST(short tmp[4][4],short block[4][4],int shift)  // input tmp
 #if INTRA_DST_TYPE_7
   if (uiMode != REG_DCT && g_aucDCTDSTMode_Vert[uiMode] )   // Check for DCT or DST
   {
-    FAST_FORWARD_DST(tmp,coeff,shift_2nd); // Forward DST BY FAST ALGORITHM, tmp input, coeff output
+    fastForwardDst(tmp,coeff,shift_2nd); // Forward DST BY FAST ALGORITHM, tmp input, coeff output
   }
   else  
   {
@@ -653,9 +653,9 @@ void xITr4(short coeff[4][4],short block[4][4])
 #if INTRA_DST_TYPE_7
   if (uiMode != REG_DCT && g_aucDCTDSTMode_Vert[uiMode] )    // Check for DCT or DST
   {
-    FAST_INVERSE_DST(coeff,tmp,shift_1st);    // Inverse DST by FAST Algorithm, coeff input, tmp output
+    fastInverseDst(coeff,tmp,shift_1st);    // Inverse DST by FAST Algorithm, coeff input, tmp output
   }
-  else  
+  else
   {
     partialButterflyInverse4(coeff,tmp,shift_1st);    
   } 
@@ -667,7 +667,7 @@ void xITr4(short coeff[4][4],short block[4][4])
 #if INTRA_DST_TYPE_7
   if (uiMode != REG_DCT && g_aucDCTDSTMode_Hor[uiMode] )    // Check for DCT or DST
   {
-    FAST_INVERSE_DST(tmp,block,shift_2nd); // Inverse DST by FAST Algorithm, tmp input, coeff output
+    fastInverseDst(tmp,block,shift_2nd); // Inverse DST by FAST Algorithm, tmp input, coeff output
   }
   else
   {
@@ -4524,9 +4524,8 @@ Void TComTrQuant::transformNxN( TComDataCU* pcCU, Pel* pcResidual, UInt uiStride
   assert( (pcCU->getSlice()->getSPS()->getMaxTrSize() >= uiWidth) );
 
   xT( uiMode, pcResidual, uiStride, m_plTempCoeff, uiWidth );
-    xQuant( pcCU, m_plTempCoeff, rpcCoeff, uiWidth, uiHeight, uiAbsSum, eTType, uiAbsPartIdx );
+  xQuant( pcCU, m_plTempCoeff, rpcCoeff, uiWidth, uiHeight, uiAbsSum, eTType, uiAbsPartIdx );
 }
-
 #else
 Void TComTrQuant::transformNxN( TComDataCU* pcCU, Pel* pcResidual, UInt uiStride, TCoeff*& rpcCoeff, UInt uiWidth, UInt uiHeight, UInt& uiAbsSum, TextType eTType, UInt uiAbsPartIdx )
 {
@@ -4543,13 +4542,13 @@ Void TComTrQuant::transformNxN( TComDataCU* pcCU, Pel* pcResidual, UInt uiStride
 #if INTRA_DST_TYPE_7
 Void TComTrQuant::invtransformNxN( TextType eText,UInt uiMode, Pel*& rpcResidual, UInt uiStride, TCoeff* pcCoeff, UInt uiWidth, UInt uiHeight )
 {
-  xDeQuant( pcCoeff, m_plTempCoeff, uiWidth, uiHeight );
+  xDeQuant( pcCoeff, m_plTempCoeff, uiWidth, uiHeight);
   xIT( uiMode, m_plTempCoeff, rpcResidual, uiStride, uiWidth);
 }
 #else
 Void TComTrQuant::invtransformNxN( Pel*& rpcResidual, UInt uiStride, TCoeff* pcCoeff, UInt uiWidth, UInt uiHeight )
 {
-  xDeQuant( pcCoeff, m_plTempCoeff, uiWidth, uiHeight );
+  xDeQuant( pcCoeff, m_plTempCoeff, uiWidth, uiHeight);
   xIT( m_plTempCoeff, rpcResidual, uiStride, uiWidth );
 }
 #endif
@@ -5176,7 +5175,7 @@ Void TComTrQuant::invRecurTransformNxN( TComDataCU* pcCU, UInt uiAbsPartIdx, Tex
     }
     Pel* pResi = rpcResidual + uiAddr;
 #if INTRA_DST_TYPE_7
-  invtransformNxN( eTxt, REG_DCT, pResi, uiStride, rpcCoeff, uiWidth, uiHeight );
+    invtransformNxN( eTxt, REG_DCT, pResi, uiStride, rpcCoeff, uiWidth, uiHeight );
 #else
     invtransformNxN( pResi, uiStride, rpcCoeff, uiWidth, uiHeight );
 #endif
@@ -5231,8 +5230,8 @@ Void TComTrQuant::xT( Pel* piBlkResi, UInt uiStride, Long* psCoeff, Int iSize )
     }
 
 #if INTRA_DST_TYPE_7
-  xTr4(block,coeff,uiMode);
-#else            
+    xTr4(block,coeff,uiMode);
+#else
     xTr4(block,coeff);     
 #endif
     for (j=0; j<4; j++)
@@ -5334,7 +5333,7 @@ Void TComTrQuant::xIT( Long* plCoef, Pel* pResidual, UInt uiStride, Int iSize )
       }    
     }
 #if INTRA_DST_TYPE_7
-  xITr4(coeff,block,uiMode);
+    xITr4(coeff,block,uiMode);
 #else
     xITr4(coeff,block);       
 #endif

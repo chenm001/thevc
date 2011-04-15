@@ -163,12 +163,6 @@
 
 #define UNIFY_INTER_TABLE                     1           // JCTVC-E381 CAVLC: Inter pred coding
 
-// Discrete Sine Transform (DST) Type - 7 
-#define INTRA_DST_TYPE_7                      1                     // JCTVC-E125 4x4 DST
-#if INTRA_DST_TYPE_7
-#define REG_DCT 65535  
-#endif
-
 
 ///////////////////////////////
 // SAMSUNG defines section end
@@ -290,6 +284,16 @@
 #define E243_CORE_TRANSFORMS                    1
 #if E243_CORE_TRANSFORMS
 #define MATRIX_MULT                             0   // Brute force matrix multiplication instead of partial butterfly
+#endif
+
+// Discrete Sine Transform (DST) Type - 7
+// Currently DST operates with E-243 only
+#define INTRA_DST_TYPE_7                      1           // JCTVC-E125 4x4 DST
+#if INTRA_DST_TYPE_7
+#define REG_DCT 65535
+#if !E243_CORE_TRANSFORMS                  // E243_CORE_TRANSFORMS should be ON when DST is used
+#error "E243_CORE_TRANSFORMS should be ON"
+#endif
 #endif
 
 // ====================================================================================================================
