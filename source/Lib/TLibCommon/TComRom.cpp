@@ -2371,17 +2371,10 @@ const LastCoeffStruct g_acstructLumaRun8x8[29][127] =
 #if INTRA_DST_TYPE_7
 const short g_as_DST_MAT_4 [4][4]=
 {
-#if DST_29_55
-  {29,   55,    74,   84},
-  {74,   74,    0 ,  -74},
-  {84,  -29,   -74,   55},
-  {55,  -84,    74,  -29},
-#else
   {28,   56,    74,   84},
   {74,   74,    0 ,  -74},
   {84,  -28,   -74,   56},
   {56,  -84,    74,  -28},
-#endif
 };
 // Mapping each Unified Directional Intra prediction direction to DCT/DST transform 
 // 0 implies use DCT, 1 implies DST

@@ -517,6 +517,10 @@ void partialButterfly4(short block[4][4],short coeff[4][4],int shift)
   }
 }
 
+/** 4x4 forward transform (2D)
+ *  \param block input data (residual)
+ *  \param coeff output data (transform coefficients)
+ */
 #if INTRA_DST_TYPE_7
 // Fast DST Algorithm. Full matrix multiplication for DST and Fast DST algorithm 
 // give identical results
@@ -526,17 +530,6 @@ void fastForwardDst(short block[4][4],short coeff[4][4],int shift)  // input blo
   int rnd_factor = 1<<(shift-1);
   for (i=0; i<4; i++)
   {
-#if DST_29_55
-    c[0] = block[i][0] + block[i][3];
-    c[1] = block[i][1] + block[i][3];
-    c[2] = block[i][0] - block[i][1];
-    c[3] = block[i][0] + block[i][1] - block[i][3];
-    Int b2 = 74 * block[i][2];
-    coeff[0][i] = (29 * c[0] + 55 * c[1] + b2 + rnd_factor) >> shift;
-    coeff[1][i] = (74 * c[3]                  + rnd_factor) >> shift;
-    coeff[2][i] = (29 * c[2] + 55 * c[0] - b2 + rnd_factor) >> shift;
-    coeff[3][i] = (55 * c[2] - 29 * c[1] + b2 + rnd_factor) >> shift;
-#else
     // Intermediate Variables
     c[0] = block[i][0] + block[i][3];
     c[1] = block[i][1] + block[i][3];
@@ -547,7 +540,6 @@ void fastForwardDst(short block[4][4],short coeff[4][4],int shift)  // input blo
     coeff[1][i] =  (( 74 * (block[i][0]+ block[i][1]  - block[i][3]) )      + rnd_factor ) >> shift;
     coeff[2][i] =  (( 28 * (c[2]  +  (c[0] << 1) ))  -    c[3]              + rnd_factor ) >> shift;
     coeff[3][i] =  (( 28 * ((c[2]<<1)   - c[1]   )   + c[3]   )             + rnd_factor ) >> shift;
-#endif
   }
 }
 void fastInverseDst(short tmp[4][4],short block[4][4],int shift)  // input tmp, output block
@@ -555,18 +547,7 @@ void fastInverseDst(short tmp[4][4],short block[4][4],int shift)  // input tmp, 
   int i, c[4];
   int rnd_factor = 1<<(shift-1);
   for (i=0; i<4; i++)
-  {
-#if DST_29_55
-    c[0] = tmp[0][i] + tmp[2][i];
-    c[1] = tmp[2][i] + tmp[3][i];
-    c[2] = tmp[0][i] - tmp[3][i];
-    c[3] = tmp[0][i] - tmp[2][i] + tmp[3][i];
-    Int b1 = 74 * tmp[1][i];
-    block[i][0] = (29 * c[0] + 55 * c[1] + b1 + rnd_factor) >> shift;
-    block[i][1] = (55 * c[2] - 29 * c[1] + b1 + rnd_factor) >> shift;
-    block[i][2] = (74 * c[3]                  + rnd_factor) >> shift;
-    block[i][3] = (29 * c[2] + 55 * c[0] - b1 + rnd_factor) >> shift;
-#else
+  {  
     // Intermediate Variables
     c[0] = tmp[0][i] + tmp[2][i];
     c[1] = tmp[2][i] + tmp[3][i];
@@ -577,15 +558,10 @@ void fastInverseDst(short tmp[4][4],short block[4][4],int shift)  // input tmp, 
     block[i][1] =  (( 28 * ((c[2]<<1)  - c[1]    ) + c[3]   )            + rnd_factor ) >> shift;
     block[i][2] =  (( 74 * (tmp[0][i] - tmp[2][i]  + tmp[3][i]) )        + rnd_factor ) >> shift;
     block[i][3] =  (( 28 * ((c[0]<<1)   + c[2] )  - c[3]   )             + rnd_factor ) >> shift;
-#endif
   }
 }
 #endif 
 
-/** 4x4 forward transform (2D)
- *  \param block input data (residual)
- *  \param coeff output data (transform coefficients)
- */
 #if INTRA_DST_TYPE_7
 void xTr4(short block[4][4],short coeff[4][4],UInt uiMode)
 #else
