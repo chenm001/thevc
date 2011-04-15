@@ -848,7 +848,7 @@ Void TComPattern::fillReferenceSamples( TComDataCU* pcCU, Pel* piRoiOrigin, Int*
       {
         // Interpolate from nearest samples if current unit is not available
         
-        while (!bNeighborFlags[iNext] && iNext < iTotalUnits)
+        while (iNext < iTotalUnits && !bNeighborFlags[iNext])
           iNext++;
 
         if (iPrev >= 0 && iNext < iTotalUnits)
