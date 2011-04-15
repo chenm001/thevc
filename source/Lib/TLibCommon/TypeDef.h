@@ -51,13 +51,9 @@
 
 
 
-////////////////////////////
-// HHI defines section start
-////////////////////////////
 #define HHI_DISABLE_INTER_NxN_SPLIT       1           ///< TN: disable redundant use of pu-mode NxN for CTBs larger 8x8 (inter only)
 #define HHI_RMP_SWITCH                    0
 
-// HHI tools
 #define HHI_RQT_FORCE_SPLIT_NxN           0           ///< MSHK: force split flags of residual quadtree for NxN PUs such that transform blocks are guaranteed to not span NxN PUs
 #define HHI_RQT_FORCE_SPLIT_RECT          0           ///< MSHK: force split flags of residual quadtree for rectangular PUs such that transform blocks are guaranteed to not span rectangular PUs
 #define HHI_RQT_INTRA_SPEEDUP             1           ///< tests one best mode with full rqt
@@ -75,10 +71,6 @@
 #else
 #define HHI_RQT_FORCE_SPLIT_ACC2_PU       0
 #endif
-
-//////////////////////////
-// HHI defines section end
-//////////////////////////
 
 // COLOCATED PREDICTOR
 // FOR MERGE
@@ -102,15 +94,8 @@
 #define AMVP_DECIMATION_FACTOR            4
 #define MV_COMPRESS_MODE_REFIDX           1           ///< (JCTVC-E147) compress all inter prediction parameters according to 1)
 
-//////////////////////////////
-// Nokia defines section start
-//////////////////////////////
-
 #define HIGH_ACCURACY_BI                  1          // High precision bi-prediction JCTVC-D321
 #define REMOVE_INTERMEDIATE_CLIPPING      1          // No intermediate clipping in bi-prediction JCTVC-E242
-//////////////////////////////
-// Nokia defines section end
-//////////////////////////////
 
 ////////////////
 // E494 (E227/E338/E344/E489/E494): PCP SIGMAP + REDUCED CONTEXTS
@@ -118,11 +103,6 @@
 
 #define PCP_SIGMAP_SIMPLE_LAST            1
 #define SIMPLE_CONTEXT_SIG                1
-
-
-/////////////////////////////////
-// QUALCOMM defines section start
-/////////////////////////////////
 
 
 #define QC_MOD_LCEC                       1           // JCTVC-D374: modified LCEC coeff. coding
@@ -145,13 +125,6 @@
 //#define ROUNDING_CONTROL_BIPRED ///< From JCTVC-B074 This part of the code is not needed anymore : KU
 #define TRANS_PRECISION_EXT     ///< From JCTVC-B074
 
-///////////////////////////////
-// QUALCOMM defines section end
-///////////////////////////////
-
-///////////////////////////////
-// SAMSUNG defines section start
-///////////////////////////////
 #define HHI_RQT_DISABLE_SUB                   0           ///< disabling subtree whose node size is smaller than partition size
 
 #define FAST_UDI_MAX_RDMODE_NUM               35          ///< maximum number of RD comparison in fast-UDI estimation loop 
@@ -163,13 +136,7 @@
 #define LM_CHROMA                             1           // JCTVC-E266: Chroma intra prediction based on luma signal
 
 #define UNIFY_INTER_TABLE                     1           // JCTVC-E381 CAVLC: Inter pred coding
-///////////////////////////////
-// SAMSUNG defines section end
-///////////////////////////////
 
-///////////////////////////////
-// DOCOMO defines section start
-///////////////////////////////
 #define DCM_RDCOST_TEMP_FIX //Enables temporary bug fixes to RD cost computation
 
 #define DCM_DECODING_REFRESH              1           ///< enable/disable decoding refresh (IDR and CDR)
@@ -191,23 +158,10 @@
 #define PLANAR_IDX                        (NUM_INTRA_MODE-1)
 #endif
 
-///////////////////////////////
-// DOCOMO defines section end
-///////////////////////////////
-
-////////////////////////////////
-// TOSHIBA defines section start
-////////////////////////////////
 #define TSB_ALF_HEADER                 1           // Send ALF ON/OFF flag in slice header
 #define IBDI_DISTORTION                0           ///< enable/disable SSE modification when IBDI is used (JCTVC-D152)
 #define FIXED_ROUNDING_FRAME_MEMORY    0           ///< enable/disable fixed rounding to 8-bitdepth of frame memory when IBDI is used  
-////////////////////////////////
-// TOSHIBA defines section end
-////////////////////////////////
 
-////////////////////////////////
-// MICROSOFT&USTC defines section start
-////////////////////////////////
 #define MS_LCEC_ONE_FRAME               1           // change the initial table in LCEC when there is up to one reference frame in each list, JCTVC-D141
 #define MS_LCEC_LOOKUP_TABLE_MAX_VALUE  1           // use the information of the max position in the lookup table, JCTVC-D141
 #define MS_LCEC_LOOKUP_TABLE_EXCEPTION  1           // deal with the case when the number of reference frames is greater than 2, JCTVC-D141
@@ -224,13 +178,7 @@
 #if CHANGE_GET_MERGE_CANDIDATE && !CHANGE_MERGE_CONTEXT
 #error CHANGE_GET_MERGE_CANDIDATE can only be defined with CHANGE_MERGE_CONTEXT
 #endif
-////////////////////////////////
-// MICROSOFT&USTC defines section end
-////////////////////////////////
 
-////////////////////////////////
-// MediaTek defines section start
-////////////////////////////////
 #define MTK_DISABLE_INTRA_NxN_SPLIT       1           ///< Disable use of PUs-mode NxN for CUs larger 8x8 (intra only)
 #define MTK_NONCROSS_INLOOP_FILTER        1           ///< Allow non-cross-slice-boundary in-loop filtering, including DB & ALF (JCTVC-D128)
 
@@ -239,20 +187,11 @@
 #define RVM_VCEGAM10_M 4
 #endif
 
-////////////////////////////////
-// MediaTek defines section end
-////////////////////////////////
-////////////////////////////////
-//MostProbableModeSignaling defines section start(MediaTek, DOCOMO)
-////////////////////////////////
-#define MTK_DCM_MPM 1
-///////////////////////////////
-//MostProbableModeSignaling defines section end
-///////////////////////////////
+#define MTK_DCM_MPM 1 // MostProbableModeSignaling
 
 #define FAST_UDI_USE_MPM 1
 #define SONY_SIG_CTX 1
-#define SNY_DQP                          1           ///< SONY's proposal on syntax change of dQP (JCT-VC D258)
+#define SNY_DQP                          1           ///< syntax change of dQP (JCT-VC D258)
 
 #define TI_ALF_MAX_VSIZE_7 1
 
@@ -274,29 +213,10 @@
 // AHG SLICES defines section end
 /////////////////////////////////
 
-/////////////////////////////////
-// NEC defines section start
-/////////////////////////////////
-
 #define CONSTRAINED_INTRA_PRED            1           // JCTVC-D086: constrained intra prediction
 
-/////////////////////////////////
-// NEC defines section end
-/////////////////////////////////
-
-
-/////////////////////////////////
-// MEDIATEK defines section start 
-/////////////////////////////////
 #define MTK_SAO                           1           // JCTVC-E049: Sample adaptive offset
-/////////////////////////////////
-// MEDIATEK defines section end
-/////////////////////////////////
 
-
-/////////////////////////////////
-// MQT (MEDIATEK, QUALCOMM, TOSHIBA) defines section start
-/////////////////////////////////
 #define MQT_ALF_NPASS                       1
 
 #define MQT_BA_RA                        1  // JCTVC-E323+E046
@@ -305,25 +225,16 @@
 #define VAR_SIZE_W           4
 #define NO_VAR_BIN          16
 #endif
-/////////////////////////////////
-// MQT (MEDIATEK, QUALCOMM, TOSHIBA) defines section start
-/////////////////////////////////
 
-/////////////////////////////////
-// MN(MITSUBISHI&NHK) defines section start
-/////////////////////////////////
 #if QC_MDIS
 #define MN_MDIS_SIMPLIFICATION       1       ///< JCTVC-E069: simplification of MDIS
 #endif
 #define MN_DC_PRED_FILTER            1       ///< JCTVC-E069: DC prediction samples filtering
-/////////////////////////////////
-// MN(MITSUBISHI&NHK) defines section end
-/////////////////////////////////
 
 #define MVD_CTX            1           // JCTVC-E324: Modified context selection for MVD
 #define PARALLEL_DEBLK_DECISION      1 // JCTC-E224: Parallel decisions
 #define PARALLEL_MERGED_DEBLK        1 // JCTC-E224, JCTVC-E181: Parallel decisions + Parallel filtering
-#define REFERENCE_SAMPLE_PADDING                1   // JCTVC-E488 (Ericsson, HiSilicon, NEC, Panasonic): padding of unavailable reference samples for intra prediction
+#define REFERENCE_SAMPLE_PADDING                1   // JCTVC-E488 padding of unavailable reference samples for intra prediction
 
 #define E243_CORE_TRANSFORMS                    1
 #if E243_CORE_TRANSFORMS
