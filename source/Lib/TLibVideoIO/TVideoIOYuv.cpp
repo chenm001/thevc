@@ -183,6 +183,36 @@ Bool TVideoIOYuv::isEof()
 }
 
 /**
+ * Skip @numFrames in input.
+ *
+ * This function correctly handles cases where the input file is not
+ * seekable, by consuming bytes.
+ */
+void TVideoIOYuv::skipFrames(unsigned int numFrames, unsigned int width, unsigned int height)
+{
+  if (!numFrames)
+    return;
+
+  const unsigned int wordsize = m_fileBitdepth > 8 ? 2 : 1;
+  const streamoff framesize = wordsize * width * height * 3 / 2;
+  const streamoff offset = framesize * numFrames;
+
+  /* attempt to seek */
+  if (!!m_cHandle.seekg(offset, ios::cur))
+    return; /* success */
+  m_cHandle.clear();
+
+  /* fall back to consuming the input */
+  char buf[512];
+  const unsigned offset_mod_bufsize = offset % sizeof(buf);
+  for (streamoff i = 0; i < offset - offset_mod_bufsize; i += sizeof(buf))
+  {
+    m_cHandle.read(buf, sizeof(buf));
+  }
+  m_cHandle.read(buf, offset_mod_bufsize);
+}
+
+/**
  * Read \f$ #width * #height \f$ pixels from #fd into #dst, optionally
  * padding the left and right edges by edge-extension.  Input may be
  * either 8bit or 16bit little-endian lsb-aligned words.

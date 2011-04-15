@@ -126,6 +126,7 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
   ("VerticalPadding,-pdy",  m_aiPad[1],      0, "vertical source padding size")
   ("PAD",                   m_bUsePAD,   false, "automatic source padding of multiple of 16" )
   ("FrameRate,-fr",         m_iFrameRate,        0, "Frame rate")
+  ("FrameSkip,-fs",         m_FrameSkip,         0u, "Number of frames to skip at start of input YUV")
   ("FramesToBeEncoded,f",   m_iFrameToBeEncoded, 0, "number of frames to be encoded (default=all)")
   ("FrameToBeEncoded",      m_iFrameToBeEncoded, 0, "depricated alias of FramesToBeEncoded")
   
@@ -491,7 +492,7 @@ Void TAppEncCfg::xPrintParameter()
   printf("Reconstruction File          : %s\n", m_pchReconFile          );
   printf("Real     Format              : %dx%d %dHz\n", m_iSourceWidth - m_aiPad[0], m_iSourceHeight-m_aiPad[1], m_iFrameRate );
   printf("Internal Format              : %dx%d %dHz\n", m_iSourceWidth, m_iSourceHeight, m_iFrameRate );
-  printf("Frame index                  : 0 - %d (%d frames)\n", m_iFrameToBeEncoded-1, m_iFrameToBeEncoded );
+  printf("Frame index                  : %u - %d (%d frames)\n", m_FrameSkip, m_FrameSkip+m_iFrameToBeEncoded-1, m_iFrameToBeEncoded );
   printf("Number of Ref. frames (P)    : %d\n", m_iNumOfReference);
   printf("Number of Ref. frames (B_L0) : %d\n", m_iNumOfReferenceB_L0);
   printf("Number of Ref. frames (B_L1) : %d\n", m_iNumOfReferenceB_L1);

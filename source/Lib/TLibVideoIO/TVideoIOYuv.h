@@ -64,6 +64,8 @@ public:
   
   Void  open  ( char* pchFile, Bool bWriteMode, unsigned int fileBitDepth, unsigned int internalBitDepth ); ///< open or create file
   Void  close ();                                           ///< close file
+
+  void skipFrames(unsigned int numFrames, unsigned int width, unsigned int height);
   
   Void  read  ( TComPicYuv*& rpcPicYuv, Int aiPad[2] );     ///< read  one YUV frame with padding parameter
   Void  write ( TComPicYuv*   pcPicYuv, Int aiPad[2] );     ///< write one YUV frame with padding parameter

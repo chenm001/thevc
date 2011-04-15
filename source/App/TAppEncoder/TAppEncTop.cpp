@@ -58,6 +58,7 @@ TAppEncTop::~TAppEncTop()
 Void TAppEncTop::xInitLibCfg()
 {
   m_cTEncTop.setFrameRate                    ( m_iFrameRate );
+  m_cTEncTop.setFrameSkip                    ( m_FrameSkip );
   m_cTEncTop.setSourceWidth                  ( m_iSourceWidth );
   m_cTEncTop.setSourceHeight                 ( m_iSourceHeight );
   m_cTEncTop.setFrameToBeEncoded             ( m_iFrameToBeEncoded );
@@ -158,6 +159,8 @@ Void TAppEncTop::xCreateLib()
 {
   // Video I/O
   m_cTVideoIOYuvInputFile.open( m_pchInputFile,     false, m_uiInputBitDepth, m_uiInternalBitDepth );  // read  mode
+  m_cTVideoIOYuvInputFile.skipFrames(m_FrameSkip, m_iSourceWidth, m_iSourceHeight);
+
   m_cTVideoIOYuvReconFile.open( m_pchReconFile,     true, m_uiOutputBitDepth, m_uiInternalBitDepth);  // write mode
   m_cTVideoIOBitsFile.openBits( m_pchBitstreamFile, true  );  // write mode
   
