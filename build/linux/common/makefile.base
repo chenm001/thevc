@@ -62,7 +62,7 @@ endif
 DEBUG_CPPFLAGS    = -g  -D_DEBUG
 #
 # release cpp
-RELEASE_CPPFLAGS  =  -O3 -ffloat-store -DNDEBUG -Wuninitialized
+RELEASE_CPPFLAGS  =  -O3 -ffloat-store -Wuninitialized
 
 
 #########################################################
