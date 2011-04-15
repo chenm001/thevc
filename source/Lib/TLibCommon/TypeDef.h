@@ -246,7 +246,7 @@
 #define INTRA_DST_TYPE_7                      1           // JCTVC-E125 4x4 DST
 #if INTRA_DST_TYPE_7
 #define REG_DCT 65535
-#if !E243_CORE_TRANSFORMS                  // E243_CORE_TRANSFORMS should be ON when DST is used
+#if !E243_CORE_TRANSFORMS                   // E243_CORE_TRANSFORMS should be ON when DST is used
 #error "E243_CORE_TRANSFORMS should be ON"
 #endif
 #endif

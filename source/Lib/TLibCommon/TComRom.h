@@ -328,7 +328,7 @@ extern const UChar g_aucDCTDSTMode_Hor[NUM_INTRA_MODE];
 extern const UChar g_aucDCTDSTMode_Vert[34];
 extern const UChar g_aucDCTDSTMode_Hor[34];
 #endif
-# endif
+#endif
 // ==========================================
 
 // ====================================================================================================================

@@ -303,6 +303,7 @@ Void TComTrQuant::setQPforQuant( Int iQP, Bool bLowpass, SliceType eSliceType, T
  *  \param coeff pointer to output data (transform coefficients)
  *  \param uiStride stride of input data
  *  \param uiTrSize transform size (uiTrSize x uiTrSize)
+ *  \param uiMode is Intra Prediction mode used in Mode-Dependent DCT/DST only
  */
 #if INTRA_DST_TYPE_7
 void xTr(Pel *block, Long *coeff, UInt uiStride, UInt uiTrSize, UInt uiMode)
@@ -401,6 +402,7 @@ void xTr(Pel *block, Long *coeff, UInt uiStride, UInt uiTrSize)
  *  \param block pointer to output data (residual)
  *  \param uiStride stride of output data
  *  \param uiTrSize transform size (uiTrSize x uiTrSize)
+ *  \param uiMode is Intra Prediction mode used in Mode-Dependent DCT/DST only
  */
 #if INTRA_DST_TYPE_7
 void xITr(Long *coeff, Pel *block, UInt uiStride, UInt uiTrSize, UInt uiMode)
@@ -517,10 +519,6 @@ void partialButterfly4(short block[4][4],short coeff[4][4],int shift)
   }
 }
 
-/** 4x4 forward transform (2D)
- *  \param block input data (residual)
- *  \param coeff output data (transform coefficients)
- */
 #if INTRA_DST_TYPE_7
 // Fast DST Algorithm. Full matrix multiplication for DST and Fast DST algorithm 
 // give identical results
@@ -535,11 +533,11 @@ void fastForwardDst(short block[4][4],short coeff[4][4],int shift)  // input blo
     c[1] = block[i][1] + block[i][3];
     c[2] = block[i][0] - block[i][1];
     c[3] = 74* block[i][2];
-
-    coeff[0][i] =  (( 28 * (c[0] + (c[1] << 1)   )   + c[3]          )      + rnd_factor ) >> shift;
-    coeff[1][i] =  (( 74 * (block[i][0]+ block[i][1]  - block[i][3]) )      + rnd_factor ) >> shift;
-    coeff[2][i] =  (( 28 * (c[2]  +  (c[0] << 1) ))  -    c[3]              + rnd_factor ) >> shift;
-    coeff[3][i] =  (( 28 * ((c[2]<<1)   - c[1]   )   + c[3]   )             + rnd_factor ) >> shift;
+    
+    coeff[0][i] =  ( 29 * c[0] + 55 * c[1]         + c[3]               + rnd_factor ) >> shift;
+    coeff[1][i] =  ( 74 * (block[i][0]+ block[i][1] - block[i][3])      + rnd_factor ) >> shift;
+    coeff[2][i] =  ( 29 * c[2] + 55 * c[0]         - c[3]               + rnd_factor ) >> shift;
+    coeff[3][i] =  ( 55 * c[2] - 29 * c[1]         + c[3]               + rnd_factor ) >> shift;
   }
 }
 void fastInverseDst(short tmp[4][4],short block[4][4],int shift)  // input tmp, output block
@@ -554,14 +552,18 @@ void fastInverseDst(short tmp[4][4],short block[4][4],int shift)  // input tmp, 
     c[2] = tmp[0][i] - tmp[3][i];
     c[3] = 74* tmp[1][i];
 
-    block[i][0] =  (( 28 * (c[0] + (c[1] << 1))   + c[3]   )             + rnd_factor ) >> shift;
-    block[i][1] =  (( 28 * ((c[2]<<1)  - c[1]    ) + c[3]   )            + rnd_factor ) >> shift;
-    block[i][2] =  (( 74 * (tmp[0][i] - tmp[2][i]  + tmp[3][i]) )        + rnd_factor ) >> shift;
-    block[i][3] =  (( 28 * ((c[0]<<1)   + c[2] )  - c[3]   )             + rnd_factor ) >> shift;
+    block[i][0] =  ( 29 * c[0] + 55 * c[1]     + c[3]               + rnd_factor ) >> shift;
+    block[i][1] =  ( 55 * c[2] - 29 * c[1]     + c[3]               + rnd_factor ) >> shift;
+    block[i][2] =  ( 74 * (tmp[0][i] - tmp[2][i]  + tmp[3][i])      + rnd_factor ) >> shift;
+    block[i][3] =  ( 55 * c[0] + 29 * c[2]     - c[3]               + rnd_factor ) >> shift;
   }
 }
 #endif 
-
+/** 4x4 forward transform (2D)
+ *  \param block input data (residual)
+ *  \param coeff output data (transform coefficients)
+ *  \param uiMode is Intra Prediction mode used in Mode-Dependent DCT/DST only
+ */
 #if INTRA_DST_TYPE_7
 void xTr4(short block[4][4],short coeff[4][4],UInt uiMode)
 #else
@@ -575,7 +577,6 @@ void xTr4(short block[4][4],short coeff[4][4])
 #endif
   int shift_2nd = 8;                    // log2(4) + 6
   short tmp[4][4]; 
-
 #if INTRA_DST_TYPE_7
   if (uiMode != REG_DCT && g_aucDCTDSTMode_Hor[uiMode])// Check for DCT or DST
   {
@@ -633,9 +634,8 @@ void partialButterflyInverse4(short tmp[4][4],short block[4][4],int shift)
 /** 4x4 inverse transform (2D)
  *  \param coeff input data (transform coefficients)
  *  \param block output data (residual)
+ *  \param uiMode is Intra Prediction mode used in Mode-Dependent DCT/DST only
  */
-
-
 #if INTRA_DST_TYPE_7
 void xITr4(short coeff[4][4],short block[4][4], UInt uiMode)
 #else
@@ -662,8 +662,6 @@ void xITr4(short coeff[4][4],short block[4][4])
 #else
   partialButterflyInverse4(coeff,tmp,shift_1st);
 #endif
-
-
 #if INTRA_DST_TYPE_7
   if (uiMode != REG_DCT && g_aucDCTDSTMode_Hor[uiMode] )    // Check for DCT or DST
   {
@@ -5205,6 +5203,7 @@ Void TComTrQuant::invRecurTransformNxN( TComDataCU* pcCU, UInt uiAbsPartIdx, Tex
  *  \param psCoeff output data (transform coefficients)
  *  \param uiStride stride of input residual data
  *  \param iSize transform size (iSize x iSize)
+ *  \param uiMode is Intra Prediction mode used in Mode-Dependent DCT/DST only
  */
 #if INTRA_DST_TYPE_7
 Void TComTrQuant::xT( UInt uiMode, Pel* piBlkResi, UInt uiStride, Long* psCoeff, Int iSize )
@@ -5228,7 +5227,6 @@ Void TComTrQuant::xT( Pel* piBlkResi, UInt uiStride, Long* psCoeff, Int iSize )
     {    
       memcpy(block[j],piBlkResi+j*uiStride,4*sizeof(short));      
     }
-
 #if INTRA_DST_TYPE_7
     xTr4(block,coeff,uiMode);
 #else
@@ -5305,6 +5303,7 @@ Void TComTrQuant::xT( Pel* piBlkResi, UInt uiStride, Long* psCoeff, Int iSize )
  *  \param pResidual output data (residual)
  *  \param uiStride stride of input residual data
  *  \param iSize transform size (iSize x iSize)
+ *  \param uiMode is Intra Prediction mode used in Mode-Dependent DCT/DST only
  */
 #if INTRA_DST_TYPE_7
 Void TComTrQuant::xIT( UInt uiMode, Long* plCoef, Pel* pResidual, UInt uiStride, Int iSize )
