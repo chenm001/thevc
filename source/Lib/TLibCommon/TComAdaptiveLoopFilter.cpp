@@ -305,6 +305,9 @@ const Int TComAdaptiveLoopFilter::m_aiSymmetricMag9x7[32] =
 TComAdaptiveLoopFilter::TComAdaptiveLoopFilter()
 {
   m_pcTempPicYuv = NULL;
+#if MTK_NONCROSS_INLOOP_FILTER
+  m_bUseNonCrossALF = false;
+#endif
 }
 
 Void TComAdaptiveLoopFilter:: xError(const char *text, int code)
