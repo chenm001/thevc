@@ -32,6 +32,7 @@ DEFS			= -DMSYS_LINUX
 
 # set objects
 OBJS          	= \
+				$(OBJ_DIR)/SEIread.o \
 				$(OBJ_DIR)/TDecBinCoderCABAC.o \
 				$(OBJ_DIR)/TDecCAVLC.o \
 				$(OBJ_DIR)/TDecCu.o \

@@ -32,6 +32,7 @@ DEFS			= -DMSYS_LINUX
 
 # set objects
 OBJS          	= \
+			$(OBJ_DIR)/SEIwrite.o \
 			$(OBJ_DIR)/TEncBinCoderCABAC.o \
 			$(OBJ_DIR)/TEncAdaptiveLoopFilter.o \
 			$(OBJ_DIR)/TEncAnalyze.o \

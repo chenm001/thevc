@@ -35,11 +35,15 @@
     \brief    GOP decoder class
 */
 
+extern bool g_md5_mismatch; ///< top level flag to signal when there is a decode problem
+
 #include "TDecGop.h"
 #include "TDecCAVLC.h"
 #include "TDecSbac.h"
 #include "TDecBinCoder.h"
 #include "TDecBinCoderCABAC.h"
+#include "../libmd5/MD5.h"
+#include "../TLibCommon/SEI.h"
 
 #include <time.h>
 
@@ -254,6 +258,36 @@ Void TDecGop::decompressGop (Bool bEos, TComBitstream* pcBitstream, TComPic*& rp
 #if FIXED_ROUNDING_FRAME_MEMORY
     rpcPic->getPicYuvRec()->xFixedRoundingPic();
 #endif 
+
+    /* calculate MD5sum for entire reconstructed picture */
+    unsigned char recon_digest[16];
+    calcMD5(*rpcPic->getPicYuvRec(), recon_digest);
+
+    /* compare digest against received version */
+    const char* md5_ok = "(unk)";
+    bool md5_mismatch = false;
+    SEImessages *seis = rpcPic->getSEIs();
+
+    if (seis && seis->picture_digest)
+    {
+      md5_ok = "(OK)";
+      for (unsigned i = 0; i < 16; i++)
+      {
+        if (recon_digest[i] != seis->picture_digest->digest[i])
+        {
+          md5_ok = "(***ERROR***)";
+          md5_mismatch = true;
+        }
+      }
+    }
+
+    printf("[MD5:%s,%s] ", digestToString(recon_digest), md5_ok);
+    if (md5_mismatch)
+    {
+      g_md5_mismatch = true;
+      printf("[rxMD5:%s] ", digestToString(seis->picture_digest->digest));
+    }
+
     rpcPic->setReconMark(true);
 #if MTK_NONCROSS_INLOOP_FILTER
     uiILSliceCount = 0;

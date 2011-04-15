@@ -30,64 +30,55 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
+#pragma once
+#include "libmd5.h"
 
-/** \file     decmain.cpp
-    \brief    Decoder application main
-*/
+class MD5 {
+public:
+  /**
+   * initialize digest state
+   */
+  MD5()
+  {
+    MD5Init(&m_state);
+  }
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <time.h>
-#include "TAppDecTop.h"
+  /**
+   * compute digest over @buf of length @len.
+   * multiple calls may extend the digest over more data.
+   */
+  void update(unsigned char *buf, unsigned len)
+  {
+    MD5Update(&m_state, buf, len);
+  }
 
-bool g_md5_mismatch = false; ///< top level flag that indicates if there has been a decoding mismatch
+  /**
+   * flush any outstanding MD5 data, write the digest into @digest.
+   */
+  void finalize(unsigned char digest[16])
+  {
+    MD5Final(digest, &m_state);
+  }
 
-// ====================================================================================================================
-// Main function
-// ====================================================================================================================
+private:
+  context_md5_t m_state;
+};
 
-int main(int argc, char* argv[])
+/**
+ * Produce an ascii(hex) representation of the 128bit @digest.
+ *
+ * Returns: a statically allocated null-terminated string.  DO NOT FREE.
+ */
+inline const char*
+digestToString(unsigned char digest[16])
 {
-  TAppDecTop  cTAppDecTop;
-
-  // print information
-  fprintf( stdout, "\n" );
-  fprintf( stdout, "HM software: Decoder Version [%s]", NV_VERSION );
-  fprintf( stdout, NVM_ONOS );
-  fprintf( stdout, NVM_COMPILEDBY );
-  fprintf( stdout, NVM_BITS );
-  fprintf( stdout, "\n" );
-
-  // create application decoder class
-  cTAppDecTop.create();
-
-  // parse configuration
-  if(!cTAppDecTop.parseCfg( argc, argv ))
+  const char* hex = "0123456789abcdef";
+  static char string[33];
+  for (int i = 0; i < 16; i++)
   {
-    cTAppDecTop.destroy();
-    return 1;
+    string[i*2+0] = hex[digest[i] >> 4];
+    string[i*2+1] = hex[digest[i] & 0xf];
   }
-
-  // starting time
-  double dResult;
-  long lBefore = clock();
-
-  // call decoding function
-  cTAppDecTop.decode();
-
-  if (g_md5_mismatch)
-  {
-    printf("\n\n***ERROR*** A decoding mismatch occured: signalled md5sum does not match\n");
-  }
-
-  // ending time
-  dResult = (double)(clock()-lBefore) / CLOCKS_PER_SEC;
-  printf("\n Total Time: %12.3f sec.\n", dResult);
-
-  // destroy application decoder class
-  cTAppDecTop.destroy();
-
-  return g_md5_mismatch ? EXIT_FAILURE : EXIT_SUCCESS;
+  return string;
 }
-
 

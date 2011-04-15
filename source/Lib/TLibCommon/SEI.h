@@ -1,7 +1,7 @@
 /* The copyright in this software is being made available under the BSD
  * License, included below. This software may be subject to other third party
  * and contributor rights, including patent rights, and no such rights are
- * granted under this license.   
+ * granted under this license.
  *
  * Copyright (c) 2010-2011, ITU/ISO/IEC
  * All rights reserved.
@@ -31,63 +31,71 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/** \file     decmain.cpp
-    \brief    Decoder application main
-*/
+#pragma once
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <time.h>
-#include "TAppDecTop.h"
-
-bool g_md5_mismatch = false; ///< top level flag that indicates if there has been a decoding mismatch
-
-// ====================================================================================================================
-// Main function
-// ====================================================================================================================
-
-int main(int argc, char* argv[])
+/**
+ * Abstract class representing an SEI message with lightweight RTTI.
+ */
+class SEI
 {
-  TAppDecTop  cTAppDecTop;
+public:
+  enum PayloadType {
+    USER_DATA_UNREGISTERED = 5,
+    PICTURE_DIGEST = 256,
+  };
+  virtual PayloadType payloadType() const = 0;
+};
 
-  // print information
-  fprintf( stdout, "\n" );
-  fprintf( stdout, "HM software: Decoder Version [%s]", NV_VERSION );
-  fprintf( stdout, NVM_ONOS );
-  fprintf( stdout, NVM_COMPILEDBY );
-  fprintf( stdout, NVM_BITS );
-  fprintf( stdout, "\n" );
+class SEIuserDataUnregistered : public SEI
+{
+public:
+  PayloadType payloadType() const { return USER_DATA_UNREGISTERED; }
 
-  // create application decoder class
-  cTAppDecTop.create();
+  SEIuserDataUnregistered()
+    : userData(0)
+    {}
 
-  // parse configuration
-  if(!cTAppDecTop.parseCfg( argc, argv ))
+  ~SEIuserDataUnregistered()
   {
-    cTAppDecTop.destroy();
-    return 1;
+    delete userData;
   }
 
-  // starting time
-  double dResult;
-  long lBefore = clock();
+  unsigned char uuid_iso_iec_11578[16];
+  unsigned userDataLength;
+  unsigned char *userData;
+};
 
-  // call decoding function
-  cTAppDecTop.decode();
+class SEIpictureDigest : public SEI
+{
+public:
+  PayloadType payloadType() const { return PICTURE_DIGEST; }
 
-  if (g_md5_mismatch)
+  enum Method {
+    MD5,
+    RESERVED,
+  } method;
+
+  unsigned char digest[16];
+};
+
+/**
+ * A structure to collate all SEI messages.  This ought to be replaced
+ * with a list of std::list<SEI*>.  However, since there is only one
+ * user of the SEI framework, this will do initially */
+class SEImessages
+{
+public:
+  SEImessages()
+    : user_data_unregistered(0)
+    , picture_digest(0)
+    {}
+
+  ~SEImessages()
   {
-    printf("\n\n***ERROR*** A decoding mismatch occured: signalled md5sum does not match\n");
+    delete user_data_unregistered;
+    delete picture_digest;
   }
 
-  // ending time
-  dResult = (double)(clock()-lBefore) / CLOCKS_PER_SEC;
-  printf("\n Total Time: %12.3f sec.\n", dResult);
-
-  // destroy application decoder class
-  cTAppDecTop.destroy();
-
-  return g_md5_mismatch ? EXIT_FAILURE : EXIT_SUCCESS;
-}
-
-
+  SEIuserDataUnregistered* user_data_unregistered;
+  SEIpictureDigest* picture_digest;
+};

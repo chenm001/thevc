@@ -36,6 +36,7 @@
 */
 
 #include "TDecCAVLC.h"
+#include "SEIread.h"
 
 // ====================================================================================================================
 // Constructor / destructor / create / destroy
@@ -78,6 +79,21 @@ Void  TDecCavlc::parseNalUnitHeader ( NalUnitType& eNalUnitType, UInt& TemporalI
     TemporalId = 0;
     bOutputFlag = true;
   }
+}
+
+/**
+ * unmarshal a sequence of SEI messages from bitstream.
+ */
+void TDecCavlc::parseSEI(SEImessages& seis)
+{
+  assert(!m_pcBitstream->getBitsUntilByteAligned());
+  do {
+    parseSEImessage(*m_pcBitstream, seis);
+    /* SEI messages are an integer number of bytes, something has failed
+     * in the parsing if bitstream not byte-aligned */
+    assert(!m_pcBitstream->getBitsUntilByteAligned());
+  } while (0x80 != m_pcBitstream->peekBits(8));
+  assert(m_pcBitstream->getBitsLeft() == 8); /* rsbp_trailing_bits */
 }
 
 Void TDecCavlc::parsePPS(TComPPS* pcPPS)

@@ -38,6 +38,8 @@
 #include "TEncTop.h"
 #include "TEncGOP.h"
 #include "TEncAnalyze.h"
+#include "../libmd5/MD5.h"
+#include "../TLibCommon/SEI.h"
 
 #include <time.h>
 
@@ -411,26 +413,35 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
       /////////////////////////////////////////////////////////////////////////////////////////////////// File writing
       // Set entropy coder
       m_pcEntropyCoder->setEntropyCoder   ( m_pcCavlcCoder, pcSlice );
-      m_pcEntropyCoder->setBitstream      ( pcBitstreamOut          );
-      
-      // write SPS
+
+      /* write various header sets.
+       * The header sets are written into a separate bitstream buffer to
+       * allow SEI messages that are calculated after the picture has been
+       * encoded to be sent before the picture.
+       */
+      TComBitstream bs_SPS_PPS_SEI;
+      bs_SPS_PPS_SEI.create(512); /* TODO: this should dynamically resize */
       if ( m_bSeqFirst )
       {
+        m_pcEntropyCoder->setBitstream(&bs_SPS_PPS_SEI);
+
         m_pcEntropyCoder->encodeSPS( pcSlice->getSPS() );
-        pcBitstreamOut->write( 1, 1 );
-        pcBitstreamOut->writeAlignZero();
+        bs_SPS_PPS_SEI.write( 1, 1 );
+        bs_SPS_PPS_SEI.writeAlignZero();
         // generate start code
-        pcBitstreamOut->write( 1, 32);
+        bs_SPS_PPS_SEI.write( 1, 32);
         
         m_pcEntropyCoder->encodePPS( pcSlice->getPPS() );
-        pcBitstreamOut->write( 1, 1 );
-        pcBitstreamOut->writeAlignZero();
+        bs_SPS_PPS_SEI.write( 1, 1 );
+        bs_SPS_PPS_SEI.writeAlignZero();
         // generate start code
-        pcBitstreamOut->write( 1, 32);
+        bs_SPS_PPS_SEI.write( 1, 32);
         m_bSeqFirst = false;
       }
       
-      UInt uiPosBefore      = pcBitstreamOut->getNumberOfWrittenBits()>>3;
+      /* use the main bitstream buffer for storing the marshalled picture */
+      m_pcEntropyCoder->setBitstream(pcBitstreamOut);
+
       uiStartCUAddrSliceIdx = 0;
       uiStartCUAddrSlice    = 0; 
       pcBitstreamOut->allocateMemoryForSliceLocations( pcPic->getPicSym()->getNumberOfCUsInFrame() ); // Assuming number of slices <= number of LCU. Needs to be changed for sub-LCU slice coding.
@@ -622,7 +633,7 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
       
       
       pcBitstreamOut->flushBuffer();
-      pcBitstreamOut->convertRBSPToPayload( uiPosBefore );
+      pcBitstreamOut->convertRBSPToPayload(0);
       
 #if AMVP_BUFFERCOMPRESS
       pcPic->compressMotion(); 
@@ -637,7 +648,26 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
 #if FIXED_ROUNDING_FRAME_MEMORY
       pcPic->getPicYuvRec()->xFixedRoundingPic();
 #endif
-      
+
+      /* calculate MD5sum for entire reconstructed picture */
+      SEIpictureDigest sei_recon_picture_digest;
+      sei_recon_picture_digest.method = SEIpictureDigest::MD5;
+      calcMD5(*pcPic->getPicYuvRec(), sei_recon_picture_digest.digest);
+      printf("[MD5:%s] ", digestToString(sei_recon_picture_digest.digest));
+
+      /* write the SEI messages (after any SPS/PPS) */
+      m_pcEntropyCoder->setEntropyCoder(m_pcCavlcCoder, pcSlice);
+      m_pcEntropyCoder->setBitstream(&bs_SPS_PPS_SEI);
+      m_pcEntropyCoder->encodeSEI(sei_recon_picture_digest);
+      /* and trailing bits */
+      bs_SPS_PPS_SEI.write(1, 1);
+      bs_SPS_PPS_SEI.writeAlignZero();
+      bs_SPS_PPS_SEI.write(1, 32);
+
+      /* insert the bs_SPS_PPS_SEI before the pcBitstreamOut */
+      bs_SPS_PPS_SEI.flushBuffer();
+      pcBitstreamOut->insertAt(bs_SPS_PPS_SEI, 0);
+
       pcPic->getPicYuvRec()->copyToPic(pcPicYuvRecOut);
       
       pcPic->setReconMark   ( true );

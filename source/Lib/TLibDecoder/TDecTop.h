@@ -43,6 +43,7 @@
 #include "../TLibCommon/TComPicYuv.h"
 #include "../TLibCommon/TComPic.h"
 #include "../TLibCommon/TComTrQuant.h"
+#include "../TLibCommon/SEI.h"
 
 #include "TDecGop.h"
 #include "TDecEntropy.h"
@@ -75,6 +76,8 @@ private:
   TComPPS                 m_cPPS;
   TComSlice*              m_apcSlicePilot;
   
+  SEImessages *m_SEIs; ///< "all" SEI messages.  If not NULL, we own the object.
+
   // functional classes
   TComPrediction          m_cPrediction;
   TComTrQuant             m_cTrQuant;

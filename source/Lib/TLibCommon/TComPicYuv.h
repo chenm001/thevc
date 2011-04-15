@@ -159,5 +159,7 @@ public:
 #endif  
 };// END CLASS DEFINITION TComPicYuv
 
+void calcMD5(TComPicYuv& pic, unsigned char digest[16]);
+
 #endif // __TCOMPICYUV__
 

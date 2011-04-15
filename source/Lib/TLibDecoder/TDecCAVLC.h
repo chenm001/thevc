@@ -48,6 +48,8 @@
 // Class definition
 // ====================================================================================================================
 
+class SEImessages;
+
 /// CAVLC decoder class
 class TDecCavlc : public TDecEntropyIf
 {
@@ -177,6 +179,7 @@ public:
   
   Void  parseSPS            ( TComSPS* pcSPS );
   Void  parsePPS            ( TComPPS* pcPPS);
+  void parseSEI(SEImessages&);
   Void  parseSliceHeader    ( TComSlice*& rpcSlice );
   Void  parseTerminatingBit ( UInt& ruiBit );
   
