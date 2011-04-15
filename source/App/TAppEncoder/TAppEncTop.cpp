@@ -58,7 +58,6 @@ TAppEncTop::~TAppEncTop()
 Void TAppEncTop::xInitLibCfg()
 {
   m_cTEncTop.setFrameRate                    ( m_iFrameRate );
-  m_cTEncTop.setFrameSkip                    ( m_iFrameSkip );
   m_cTEncTop.setSourceWidth                  ( m_iSourceWidth );
   m_cTEncTop.setSourceHeight                 ( m_iSourceHeight );
   m_cTEncTop.setFrameToBeEncoded             ( m_iFrameToBeEncoded );

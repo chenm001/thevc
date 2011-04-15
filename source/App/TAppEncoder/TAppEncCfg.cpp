@@ -126,7 +126,6 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
   ("VerticalPadding,-pdy",  m_aiPad[1],      0, "vertical source padding size")
   ("PAD",                   m_bUsePAD,   false, "automatic source padding of multiple of 16" )
   ("FrameRate,-fr",         m_iFrameRate,        0, "Frame rate")
-  ("FrameSkip,-fs",         m_iFrameSkip,        0, "Number of frames to skip at start of input YUV")
   ("FramesToBeEncoded,f",   m_iFrameToBeEncoded, 0, "number of frames to be encoded (default=all)")
   ("FrameToBeEncoded",      m_iFrameToBeEncoded, 0, "depricated alias of FramesToBeEncoded")
   
@@ -342,7 +341,6 @@ Void TAppEncCfg::xCheckParameter()
   xConfirmPara( m_uiInputBitDepth < 8,                                                      "InputBitDepth must be at least 8" );
 #endif
   xConfirmPara( m_iFrameRate <= 0,                                                          "Frame rate must be more than 1" );
-  xConfirmPara( m_iFrameSkip < 0,                                                           "Frame Skipping must be more than 0" );
   xConfirmPara( m_iFrameToBeEncoded <= 0,                                                   "Total Number Of Frames encoded must be more than 1" );
   xConfirmPara( m_iGOPSize < 1 ,                                                            "GOP Size must be more than 1" );
   xConfirmPara( m_iGOPSize > 1 &&  m_iGOPSize % 2,                                          "GOP Size must be a multiple of 2, if GOP Size is greater than 1" );
@@ -493,7 +491,7 @@ Void TAppEncCfg::xPrintParameter()
   printf("Reconstruction File          : %s\n", m_pchReconFile          );
   printf("Real     Format              : %dx%d %dHz\n", m_iSourceWidth - m_aiPad[0], m_iSourceHeight-m_aiPad[1], m_iFrameRate );
   printf("Internal Format              : %dx%d %dHz\n", m_iSourceWidth, m_iSourceHeight, m_iFrameRate );
-  printf("Frame index                  : %d - %d (%d frames)\n", m_iFrameSkip, m_iFrameSkip+m_iFrameToBeEncoded-1, m_iFrameToBeEncoded );
+  printf("Frame index                  : 0 - %d (%d frames)\n", m_iFrameToBeEncoded-1, m_iFrameToBeEncoded );
   printf("Number of Ref. frames (P)    : %d\n", m_iNumOfReference);
   printf("Number of Ref. frames (B_L0) : %d\n", m_iNumOfReferenceB_L0);
   printf("Number of Ref. frames (B_L1) : %d\n", m_iNumOfReferenceB_L1);

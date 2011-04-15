@@ -55,7 +55,6 @@ class TEncCfg
 protected:
   //==== File I/O ========
   Int       m_iFrameRate;
-  Int       m_iFrameSkip;
   Int       m_iSourceWidth;
   Int       m_iSourceHeight;
   Int       m_iFrameToBeEncoded;
@@ -154,7 +153,6 @@ public:
   virtual ~TEncCfg() {}
   
   Void      setFrameRate                    ( Int   i )      { m_iFrameRate = i; }
-  Void      setFrameSkip                    ( Int   i )      { m_iFrameSkip = i; }
   Void      setSourceWidth                  ( Int   i )      { m_iSourceWidth = i; }
   Void      setSourceHeight                 ( Int   i )      { m_iSourceHeight = i; }
   Void      setFrameToBeEncoded             ( Int   i )      { m_iFrameToBeEncoded = i; }
@@ -200,7 +198,6 @@ public:
   
   //====== Sequence ========
   Int       getFrameRate                    ()      { return  m_iFrameRate; }
-  Int       getFrameSkip                    ()      { return  m_iFrameSkip; }
   Int       getSourceWidth                  ()      { return  m_iSourceWidth; }
   Int       getSourceHeight                 ()      { return  m_iSourceHeight; }
   Int       getFrameToBeEncoded             ()      { return  m_iFrameToBeEncoded; }
