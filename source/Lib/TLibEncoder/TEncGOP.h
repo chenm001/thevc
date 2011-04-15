@@ -53,6 +53,10 @@
 
 #include "TEncAnalyze.h"
 
+#if RVM_VCEGAM10
+#include <vector>
+#endif
+
 class TEncTop;
 
 // ====================================================================================================================
@@ -107,6 +111,10 @@ private:
 //   UInt*                   m_puiILSliceEndLCU;
 // #endif
 
+#if RVM_VCEGAM10
+  std::vector<Int> m_vRVM_RP;
+#endif
+
 public:
   TEncGOP();
   virtual ~TEncGOP();
@@ -140,6 +148,10 @@ protected:
   Void  xCalculateAddPSNR ( TComPic* pcPic, TComPicYuv* pcPicD, UInt uiBits, Double dEncTime );
   
   UInt64 xFindDistortionFrame (TComPicYuv* pcPic0, TComPicYuv* pcPic1);
+
+#if RVM_VCEGAM10
+  Double xCalculateRVM();
+#endif
 };// END CLASS DEFINITION TEncGOP
 
 

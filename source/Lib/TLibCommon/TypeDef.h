@@ -233,6 +233,12 @@
 ////////////////////////////////
 #define MTK_DISABLE_INTRA_NxN_SPLIT       1           ///< Disable use of PUs-mode NxN for CUs larger 8x8 (intra only)
 #define MTK_NONCROSS_INLOOP_FILTER        1           ///< Allow non-cross-slice-boundary in-loop filtering, including DB & ALF (JCTVC-D128)
+
+#define RVM_VCEGAM10 1 // RVM model proposed in VCEG-AM10
+#if RVM_VCEGAM10
+#define RVM_VCEGAM10_M 4
+#endif
+
 ////////////////////////////////
 // MediaTek defines section end
 ////////////////////////////////

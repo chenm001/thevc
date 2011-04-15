@@ -716,6 +716,10 @@ Void TEncGOP::printOutSummary(UInt uiNumAllPicCoded)
   m_gcAnalyzeP.printSummary('P');
   m_gcAnalyzeB.printSummary('B');
 #endif
+
+#if RVM_VCEGAM10
+  printf( "\nRVM: %.3lf" , xCalculateRVM() );
+#endif
 }
 
 Void TEncGOP::preLoopFilterPicAll( TComPic* pcPic, UInt64& ruiDist, UInt64& ruiBits )
@@ -989,6 +993,10 @@ Void TEncGOP::xCalculateAddPSNR( TComPic* pcPic, TComPicYuv* pcPicD, UInt uibits
   // fix: total bits should consider slice size bits (32bit)
   uibits += 32;
   
+#if RVM_VCEGAM10
+  m_vRVM_RP.push_back( uibits );
+#endif
+
   //===== add PSNR =====
   m_gcAnalyzeAll.addResult (dYPSNR, dUPSNR, dVPSNR, (Double)uibits);
   TComSlice*  pcSlice = pcPic->getSlice(0);
@@ -1060,6 +1068,53 @@ NalUnitType TEncGOP::getNalUnitType(UInt uiPOCCurr)
     }
   }
   return NAL_UNIT_CODED_SLICE;
+}
+#endif
+
+#if RVM_VCEGAM10
+Double TEncGOP::xCalculateRVM()
+{
+  Double dRVM = 0;
+  
+  if( m_pcCfg->getGOPSize() == 1 && m_pcCfg->getIntraPeriod() != 1 && m_pcCfg->getFrameToBeEncoded() > RVM_VCEGAM10_M * 2 )
+  {
+    // calculate RVM only for lowdelay configurations
+    std::vector<Double> vRL , vB;
+    size_t N = m_vRVM_RP.size();
+    vRL.resize( N );
+    vB.resize( N );
+    
+    Int i;
+    Double dRavg = 0 , dBavg = 0;
+    vB[RVM_VCEGAM10_M] = 0;
+    for( i = RVM_VCEGAM10_M + 1 ; i < N - RVM_VCEGAM10_M + 1 ; i++ )
+    {
+      vRL[i] = 0;
+      for( Int j = i - RVM_VCEGAM10_M ; j <= i + RVM_VCEGAM10_M - 1 ; j++ )
+        vRL[i] += m_vRVM_RP[j];
+      vRL[i] /= ( 2 * RVM_VCEGAM10_M );
+      vB[i] = vB[i-1] + m_vRVM_RP[i] - vRL[i];
+      dRavg += m_vRVM_RP[i];
+      dBavg += vB[i];
+    }
+    
+    dRavg /= ( N - 2 * RVM_VCEGAM10_M );
+    dBavg /= ( N - 2 * RVM_VCEGAM10_M );
+    
+    double dSigamB = 0;
+    for( i = RVM_VCEGAM10_M + 1 ; i < N - RVM_VCEGAM10_M + 1 ; i++ )
+    {
+      Double tmp = vB[i] - dBavg;
+      dSigamB += tmp * tmp;
+    }
+    dSigamB = sqrt( dSigamB / ( N - 2 * RVM_VCEGAM10_M ) );
+    
+    double f = sqrt( 12.0 * ( RVM_VCEGAM10_M - 1 ) / ( RVM_VCEGAM10_M + 1 ) );
+    
+    dRVM = dSigamB / dRavg * f;
+  }
+  
+  return( dRVM );
 }
 #endif
 
