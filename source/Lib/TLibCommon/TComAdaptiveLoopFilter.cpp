@@ -2905,6 +2905,7 @@ Void TComSampleAdaptiveOffset::create( UInt uiSourceWidth, UInt uiSourceHeight, 
 
   m_pClipTable = &(m_pClipTableBase[CRANGE_EXT]);
 
+
 }
 
 
@@ -2914,10 +2915,28 @@ Void TComSampleAdaptiveOffset::create( UInt uiSourceWidth, UInt uiSourceHeight, 
 Void TComSampleAdaptiveOffset::destroy()
 {
 
+  if (m_ppLumaTableBo0)
+  {
+    delete m_ppLumaTableBo0; m_ppLumaTableBo0 = NULL;
+  }
+  if (m_ppLumaTableBo1)
+  {
+    delete m_ppLumaTableBo1; m_ppLumaTableBo1 = NULL;
+  }
+
   xDestroyQAOParts();
-  delete [] m_iUpBuff1;
-  delete [] m_iUpBuff2;
-  delete [] m_iUpBufft;
+  if (m_iUpBuff1)
+  {
+    delete [] m_iUpBuff1; m_iUpBuff1 = NULL;
+  }
+  if (m_iUpBuff2)
+  {
+    delete [] m_iUpBuff2; m_iUpBuff2 = NULL;
+  }
+  if (m_iUpBufft)
+  {
+    delete [] m_iUpBufft; m_iUpBufft = NULL;
+  }
 
 }
 
@@ -3040,12 +3059,18 @@ Void TComSampleAdaptiveOffset::xDestroyQAOParts()
   {
     //        freeALFParam( &(m_psAlfPart[i].sAlfParam) );
 
-    delete[] m_psQAOPart[i].pSubPartList;
-    m_psQAOPart[i].pSubPartList = NULL;
+    if (m_psQAOPart[i].pSubPartList)
+    {
+      delete[] m_psQAOPart[i].pSubPartList;    m_psQAOPart[i].pSubPartList = NULL;
+
+    }
 
   }
 
-  delete[] m_psQAOPart;
+  if (m_psQAOPart)
+  {
+    delete[] m_psQAOPart; m_psQAOPart = NULL;
+  }
 }
 
 

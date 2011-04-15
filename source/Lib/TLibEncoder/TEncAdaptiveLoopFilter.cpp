@@ -4512,38 +4512,122 @@ Void TEncSampleAdaptiveOffset::xQuadTreeDecisionFunc(Int iPartIdx, TComPicYuv* p
 /** destory TEncSampleAdaptiveOffset class.
  * \param  
  */
-Void TEncSampleAdaptiveOffset::destory()
+Void TEncSampleAdaptiveOffset::destoryEncBuffer()
 {
 
     for (Int i=0;i<m_iNumTotalParts;i++)
     {
       for (Int j=0;j<MAX_NUM_SAO_TYPE;j++)
       {
-        delete [] m_iCount [i][j]; 
-        delete [] m_iOffset[i][j]; 
-        delete [] m_iOffsetOrg[i][j]; 
+        if (m_iCount [i][j])
+        {
+          delete [] m_iCount [i][j]; 
+        }
+        if (m_iOffset[i][j])
+        {
+          delete [] m_iOffset[i][j]; 
+        }
+        if (m_iOffsetOrg[i][j])
+        {
+          delete [] m_iOffsetOrg[i][j]; 
+        }
       }
-      delete [] m_iRate[i];
-      delete [] m_iDist[i]; 
-      delete [] m_dCost[i]; 
-
-      delete [] m_iCount [i]; 
-      delete [] m_iOffset[i]; 
-      delete [] m_iOffsetOrg[i]; 
+      if (m_iRate[i])
+      {
+        delete [] m_iRate[i];
+      }
+      if (m_iDist[i])
+      {
+        delete [] m_iDist[i]; 
+      }
+      if (m_dCost[i])
+      {
+        delete [] m_dCost[i]; 
+      }
+      if (m_iCount [i])
+      {
+        delete [] m_iCount [i]; 
+      }
+      if (m_iOffset[i])
+      {
+        delete [] m_iOffset[i]; 
+      }
+      if (m_iOffsetOrg[i])
+      {
+        delete [] m_iOffsetOrg[i]; 
+      }
 
     }
-    delete [] m_iDistOrg ; 
-    delete [] m_dCostPartBest ; 
-    delete [] m_iTypePartBest ; 
+    if (m_iDistOrg)
+    {
+      delete [] m_iDistOrg ; m_iDistOrg = NULL;
+    }
+    if (m_dCostPartBest)
+    {
+      delete [] m_dCostPartBest ; m_dCostPartBest = NULL;
+    }
+    if (m_iTypePartBest)
+    {
+      delete [] m_iTypePartBest ; m_iTypePartBest = NULL;
+    }
+    if (m_iRate)
+    {
+      delete [] m_iRate ; m_iRate = NULL;
+    }
+    if (m_iDist)
+    {
+      delete [] m_iDist ; m_iDist = NULL;
+    }
+    if (m_dCost)
+    {
+      delete [] m_dCost ; m_dCost = NULL;
+    }
+    if (m_iCount)
+    {
+      delete [] m_iCount  ; m_iCount = NULL;
+    }
+    if (m_iOffset)
+    {
+      delete [] m_iOffset ; m_iOffset = NULL;
+    }
+    if (m_iOffsetOrg)
+    {
+      delete [] m_iOffsetOrg ; m_iOffsetOrg = NULL;
+    }
 
-    delete [] m_iRate ;
-    delete [] m_iDist ;
-    delete [] m_dCost ;
 
-    delete [] m_iCount  ;
-    delete [] m_iOffset ;
-    delete [] m_iOffsetOrg ;
+}
+Void TEncSampleAdaptiveOffset::createEncBuffer()
+{
+    m_iDistOrg = new Int64 [m_iNumTotalParts]; 
+    m_dCostPartBest = new Double [m_iNumTotalParts]; 
+    m_iTypePartBest = new Int [m_iNumTotalParts]; 
 
+    m_iRate = new Int64* [m_iNumTotalParts];
+    m_iDist = new Int64* [m_iNumTotalParts];
+    m_dCost = new Double*[m_iNumTotalParts];
+
+    m_iCount  = new Int64 **[m_iNumTotalParts];
+    m_iOffset = new Int64 **[m_iNumTotalParts];
+    m_iOffsetOrg = new Int64 **[m_iNumTotalParts];
+
+    for (Int i=0;i<m_iNumTotalParts;i++)
+    {
+      m_iRate[i] = new Int64  [MAX_NUM_SAO_TYPE];
+      m_iDist[i] = new Int64  [MAX_NUM_SAO_TYPE]; 
+      m_dCost[i] = new Double [MAX_NUM_SAO_TYPE]; 
+
+      m_iCount [i] = new Int64 *[MAX_NUM_SAO_TYPE]; 
+      m_iOffset[i] = new Int64 *[MAX_NUM_SAO_TYPE]; 
+      m_iOffsetOrg[i] = new Int64 *[MAX_NUM_SAO_TYPE]; 
+
+      for (Int j=0;j<MAX_NUM_SAO_TYPE;j++)
+      {
+        m_iCount [i][j] = new Int64 [MAX_NUM_QAO_CLASS]; 
+        m_iOffset[i][j] = new Int64 [MAX_NUM_QAO_CLASS]; 
+        m_iOffsetOrg[i][j]=  new Int64 [MAX_NUM_QAO_CLASS]; 
+      }
+    }
 
 }
 
@@ -4574,40 +4658,6 @@ Void TEncSampleAdaptiveOffset::startSaoEnc( TComPic* pcPic, TEncEntropy* pcEntro
   }
 
   m_bSaoFlag = 0;
-  if (bFirst)
-  {
-    bFirst = false;
-    m_iDistOrg = new Int64 [m_iNumTotalParts]; 
-    m_dCostPartBest = new Double [m_iNumTotalParts]; 
-    m_iTypePartBest = new Int [m_iNumTotalParts]; 
-
-    m_iRate = new Int64* [m_iNumTotalParts];
-    m_iDist = new Int64* [m_iNumTotalParts];
-    m_dCost = new Double*[m_iNumTotalParts];
-
-    m_iCount  = new Int64 **[m_iNumTotalParts];
-    m_iOffset = new Int64 **[m_iNumTotalParts];
-    m_iOffsetOrg = new Int64 **[m_iNumTotalParts];
-
-    for (Int i=0;i<m_iNumTotalParts;i++)
-    {
-      m_iRate[i] = new Int64  [MAX_NUM_SAO_TYPE];
-      m_iDist[i] = new Int64  [MAX_NUM_SAO_TYPE]; 
-      m_dCost[i] = new Double [MAX_NUM_SAO_TYPE]; 
-
-      m_iCount [i] = new Int64 *[MAX_NUM_SAO_TYPE]; 
-      m_iOffset[i] = new Int64 *[MAX_NUM_SAO_TYPE]; 
-      m_iOffsetOrg[i] = new Int64 *[MAX_NUM_SAO_TYPE]; 
-
-      for (Int j=0;j<MAX_NUM_SAO_TYPE;j++)
-      {
-        m_iCount [i][j] = new Int64 [MAX_NUM_QAO_CLASS]; 
-        m_iOffset[i][j] = new Int64 [MAX_NUM_QAO_CLASS]; 
-        m_iOffsetOrg[i][j]=  new Int64 [MAX_NUM_QAO_CLASS]; 
-      }
-    }
-  }
-
   for (Int i=0;i<m_iNumTotalParts;i++)
   {
     m_dCostPartBest[i] = MAX_DOUBLE;
