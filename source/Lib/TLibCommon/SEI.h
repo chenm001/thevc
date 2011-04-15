@@ -43,6 +43,10 @@ public:
     USER_DATA_UNREGISTERED = 5,
     PICTURE_DIGEST = 256,
   };
+  
+  SEI() {}
+  virtual ~SEI() {}
+  
   virtual PayloadType payloadType() const = 0;
 };
 
@@ -55,7 +59,7 @@ public:
     : userData(0)
     {}
 
-  ~SEIuserDataUnregistered()
+  virtual ~SEIuserDataUnregistered()
   {
     delete userData;
   }
@@ -70,6 +74,9 @@ class SEIpictureDigest : public SEI
 public:
   PayloadType payloadType() const { return PICTURE_DIGEST; }
 
+  SEIpictureDigest() {}
+  virtual ~SEIpictureDigest() {}
+  
   enum Method {
     MD5,
     RESERVED,
