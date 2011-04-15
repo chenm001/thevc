@@ -2181,10 +2181,10 @@ const LastCoeffStruct g_acstructLumaRun8x8[29][127] =
 #if INTRA_DST_TYPE_7
 const short g_as_DST_MAT_4 [4][4]=
 {
-  {28,   56,    74,   84},
+  {29,   55,    74,   84},
   {74,   74,    0 ,  -74},
-  {84,  -28,   -74,   56},
-  {56,  -84,    74,  -28},
+  {84,  -29,   -74,   55},
+  {55,  -84,    74,  -29},
 };
 // Mapping each Unified Directional Intra prediction direction to DCT/DST transform 
 // 0 implies use DCT, 1 implies DST
@@ -2196,10 +2196,9 @@ const UChar g_aucDCTDSTMode_Vert[34] =
 { //0  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33
   1, 0, 0, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0 ,0 
 #if ADD_PLANAR_MODE
-  ,1
+,0
 #endif
 };
-
 #if ADD_PLANAR_MODE
 const UChar g_aucDCTDSTMode_Hor[NUM_INTRA_MODE] =
 #else
@@ -2208,12 +2207,10 @@ const UChar g_aucDCTDSTMode_Hor[34] =
 { //0  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33
   0, 1, 0, 1, 1, 0, 0, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1 ,1 
 #if ADD_PLANAR_MODE
-  ,1
+,0
 #endif
 };
 #endif  // for INTRA_DST_TYPE_7
-
-
 
 
 
