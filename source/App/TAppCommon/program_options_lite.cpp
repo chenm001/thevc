@@ -339,13 +339,21 @@ namespace df
     {
       for(unsigned i = 1; i < argc; i++)
       {
-        if (argv[i][0] == '-' && argv[i][1] == '-')
+        if (argv[i][0] != '-')
         {
-          i += parseGNU(opts, argc - i, &argv[i]);
+          /* don't interpret non-option arguments */
           continue;
         }
-        if (argv[i][0] == '-')
+
+        if (argv[i][1] == 0)
         {
+          /* a lone single dash is an argument (usually signifying stdin) */
+          continue;
+        }
+
+        if (argv[i][1] != '-')
+        {
+          /* handle short (single dash) options */
 #if 0
           i += parsePOSIX(opts, argc - i, &argv[i]);
 #else
@@ -353,6 +361,15 @@ namespace df
 #endif
           continue;
         }
+
+        if (argv[i][2] == 0)
+        {
+          /* a lone double dash ends option processing */
+          return;
+        }
+
+        /* handle long (double dash) options */
+        i += parseGNU(opts, argc - i, &argv[i]);
       }
     }
     
