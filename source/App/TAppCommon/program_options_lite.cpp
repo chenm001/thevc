@@ -335,19 +335,24 @@ namespace df
       return 1;
     }
     
-    void scanArgv(Options& opts, unsigned argc, const char* argv[])
+    list<const char*>
+    scanArgv(Options& opts, unsigned argc, const char* argv[])
     {
+      /* a list for anything that didn't get handled as an option */
+      list<const char*> non_option_arguments;
+
       for(unsigned i = 1; i < argc; i++)
       {
         if (argv[i][0] != '-')
         {
-          /* don't interpret non-option arguments */
+          non_option_arguments.push_back(argv[i]);
           continue;
         }
 
         if (argv[i][1] == 0)
         {
           /* a lone single dash is an argument (usually signifying stdin) */
+          non_option_arguments.push_back(argv[i]);
           continue;
         }
 
@@ -365,12 +370,16 @@ namespace df
         if (argv[i][2] == 0)
         {
           /* a lone double dash ends option processing */
-          return;
+          while (++i < argc)
+            non_option_arguments.push_back(argv[i]);
+          break;
         }
 
         /* handle long (double dash) options */
         i += parseGNU(opts, argc - i, &argv[i]);
       }
+
+      return non_option_arguments;
     }
     
     void scanLine(Options& opts, string& line)

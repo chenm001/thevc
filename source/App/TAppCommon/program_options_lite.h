@@ -45,7 +45,7 @@ namespace df
     void doHelp(std::ostream& out, Options& opts, unsigned columns = 80);
     unsigned parseGNU(Options& opts, unsigned argc, const char* argv[]);
     unsigned parseSHORT(Options& opts, unsigned argc, const char* argv[]);
-    void scanArgv(Options& opts, unsigned argc, const char* argv[]);
+    std::list<const char*> scanArgv(Options& opts, unsigned argc, const char* argv[]);
     void scanLine(Options& opts, std::string& line);
     void scanFile(Options& opts, std::istream& in);
     void setDefaults(Options& opts);

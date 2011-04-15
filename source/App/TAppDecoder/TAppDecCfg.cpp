@@ -35,6 +35,7 @@
     \brief    Decoder configuration class
 */
 
+#include <cstdio>
 #include <cstring>
 #include <string>
 #include "TAppDecCfg.h"
@@ -73,7 +74,12 @@ Bool TAppDecCfg::parseCfg( Int argc, Char* argv[] )
   ;
 
   po::setDefaults(opts);
-  po::scanArgv(opts, argc, (const char**) argv);
+  const list<const char*>& argv_unhandled = po::scanArgv(opts, argc, (const char**) argv);
+
+  for (list<const char*>::const_iterator it = argv_unhandled.begin(); it != argv_unhandled.end(); it++)
+  {
+    fprintf(stderr, "Unhandled argument ignored: `%s'\n", *it);
+  }
 
   if (argc == 1 || do_help)
   {
