@@ -532,7 +532,7 @@ Void TAppEncCfg::xPrintParameter()
   
   printf("TOOL CFG: ");
   printf("ALF:%d ", m_bUseALF             );
-  printf("IBD:%d ", m_uiBitIncrement!=0   );
+  printf("IBD:%d ", !!g_uiBitIncrement);
   printf("HAD:%d ", m_bUseHADME           );
   printf("SRD:%d ", m_bUseSBACRD          );
   printf("RDQ:%d ", m_bUseRDOQ            );
