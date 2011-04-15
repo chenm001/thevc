@@ -245,6 +245,7 @@
 // Currently DST operates with E-243 only
 #define INTRA_DST_TYPE_7                      1           // JCTVC-E125 4x4 DST
 #if INTRA_DST_TYPE_7
+#define DST_29_55 1 // Use "29 55" DST approximation
 #define REG_DCT 65535
 #if !E243_CORE_TRANSFORMS                  // E243_CORE_TRANSFORMS should be ON when DST is used
 #error "E243_CORE_TRANSFORMS should be ON"
