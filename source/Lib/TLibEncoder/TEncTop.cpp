@@ -74,7 +74,11 @@ Void TEncTop::create ()
   m_cSliceEncoder.      create( getSourceWidth(), getSourceHeight(), g_uiMaxCUWidth, g_uiMaxCUHeight, g_uiMaxCUDepth );
   m_cCuEncoder.         create( g_uiMaxCUDepth, g_uiMaxCUWidth, g_uiMaxCUHeight );
 #if MTK_SAO
-  m_cEncSAO.create( getSourceWidth(), getSourceHeight(), g_uiMaxCUWidth, g_uiMaxCUHeight, g_uiMaxCUDepth );
+  if (m_bUseSAO)
+  {
+    m_cEncSAO.create( getSourceWidth(), getSourceHeight(), g_uiMaxCUWidth, g_uiMaxCUHeight, g_uiMaxCUDepth );
+    m_cEncSAO.createEncBuffer();
+  }
 #endif
   m_cAdaptiveLoopFilter.create( getSourceWidth(), getSourceHeight(), g_uiMaxCUWidth, g_uiMaxCUHeight, g_uiMaxCUDepth );
   m_cLoopFilter.        create( g_uiMaxCUDepth );
@@ -121,7 +125,11 @@ Void TEncTop::destroy ()
   m_cSliceEncoder.      destroy();
   m_cCuEncoder.         destroy();
 #if MTK_SAO
-  m_cEncSAO.            destory();
+  if (m_cSPS.getUseSAO())
+  {
+    m_cEncSAO.destroy();
+    m_cEncSAO.destoryEncBuffer();
+  }
 #endif
   m_cAdaptiveLoopFilter.destroy();
   m_cLoopFilter.        destroy();

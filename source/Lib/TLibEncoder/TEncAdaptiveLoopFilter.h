@@ -81,7 +81,8 @@ public:
   Void xPartTreeDisable(Int iPartIdx);
   Void xGetQAOStats(TComPicYuv* pcPicOrg, TComPicYuv* pcPicDec, TComPicYuv* pcPicRest);
   Void calcAoStatsCu(Int iAddr, Int iPartIdx);
-  Void destory();
+  Void destoryEncBuffer();
+  Void createEncBuffer();
 };
 #endif
 
