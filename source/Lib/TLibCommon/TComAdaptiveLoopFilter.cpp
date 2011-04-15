@@ -2917,11 +2917,11 @@ Void TComSampleAdaptiveOffset::destroy()
 
   if (m_ppLumaTableBo0)
   {
-    delete m_ppLumaTableBo0; m_ppLumaTableBo0 = NULL;
+    delete[] m_ppLumaTableBo0; m_ppLumaTableBo0 = NULL;
   }
   if (m_ppLumaTableBo1)
   {
-    delete m_ppLumaTableBo1; m_ppLumaTableBo1 = NULL;
+    delete[] m_ppLumaTableBo1; m_ppLumaTableBo1 = NULL;
   }
 
   xDestroyQAOParts();
