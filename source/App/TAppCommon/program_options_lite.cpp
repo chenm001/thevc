@@ -326,7 +326,10 @@ namespace df
       /* argument in argv[1] */
       /* xxx, need to handle case where option isn't required */
       if (argc == 1)
+      {
+        cerr << "Not processing option without argument `" << option << "'" << endl;
         return 0; /* run out of argv for argument */
+      }
       storePair(opts, false, true, option, string(argv[1]));
 
       return 1;
