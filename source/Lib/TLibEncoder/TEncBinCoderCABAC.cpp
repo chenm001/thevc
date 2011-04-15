@@ -40,6 +40,7 @@
 
 TEncBinCABAC::TEncBinCABAC()
 : m_pcTComBitIf( 0 )
+, m_bBinCountingEnabled(0)
 {
 }
 
