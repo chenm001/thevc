@@ -91,5 +91,11 @@ Bool TAppDecCfg::parseCfg( Int argc, Char* argv[] )
   m_pchBitstreamFile = cfg_BitstreamFile.empty() ? NULL : strdup(cfg_BitstreamFile.c_str());
   m_pchReconFile = cfg_ReconFile.empty() ? NULL : strdup(cfg_ReconFile.c_str());
 
+  if (!m_pchBitstreamFile)
+  {
+    fprintf(stderr, "No input file specifed, aborting\n");
+    return false;
+  }
+
   return true;
 }
