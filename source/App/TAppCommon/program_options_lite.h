@@ -1,7 +1,7 @@
 /* The copyright in this software is being made available under the BSD
  * License, included below. This software may be subject to other third party
  * and contributor rights, including patent rights, and no such rights are
- * granted under this license.   
+ * granted under this license.  
  *
  * Copyright (c) 2010-2011, ITU/ISO/IEC
  * All rights reserved.
@@ -45,7 +45,7 @@ namespace df
     void doHelp(std::ostream& out, Options& opts, unsigned columns = 80);
     unsigned parseGNU(Options& opts, unsigned argc, const char* argv[]);
     unsigned parseSHORT(Options& opts, unsigned argc, const char* argv[]);
-    void scanArgv(Options& opts, unsigned argc, const char* argv[]);
+    std::list<const char*> scanArgv(Options& opts, unsigned argc, const char* argv[]);
     void scanLine(Options& opts, std::string& line);
     void scanFile(Options& opts, std::istream& in);
     void setDefaults(Options& opts);

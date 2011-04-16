@@ -44,6 +44,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="0"
 				PreprocessorDefinitions="WIN32;_DEBUG;_LIB;_CRT_SECURE_NO_WARNINGS"
+				AdditionalIncludeDirectories="&quot;..\..\compat\msvc&quot;"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
@@ -105,6 +106,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="0"
 				PreprocessorDefinitions="WIN32;_DEBUG;_LIB;_CRT_SECURE_NO_WARNINGS"
+				AdditionalIncludeDirectories="&quot;..\..\compat\msvc&quot;"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
@@ -168,7 +170,8 @@
 				InlineFunctionExpansion="2"
 				EnableIntrinsicFunctions="false"
 				FavorSizeOrSpeed="1"
-				PreprocessorDefinitions="WIN32;NDEBUG;_LIB;_CRT_SECURE_NO_WARNINGS"
+				PreprocessorDefinitions="WIN32;_LIB;_CRT_SECURE_NO_WARNINGS"
+				AdditionalIncludeDirectories="&quot;..\..\compat\msvc&quot;"
 				StringPooling="true"
 				RuntimeLibrary="0"
 				WarningLevel="3"
@@ -232,7 +235,8 @@
 				InlineFunctionExpansion="2"
 				EnableIntrinsicFunctions="false"
 				FavorSizeOrSpeed="1"
-				PreprocessorDefinitions="WIN32;NDEBUG;_LIB;_CRT_SECURE_NO_WARNINGS"
+				PreprocessorDefinitions="WIN32;_LIB;_CRT_SECURE_NO_WARNINGS"
+				AdditionalIncludeDirectories="&quot;..\..\compat\msvc&quot;"
 				StringPooling="true"
 				RuntimeLibrary="0"
 				WarningLevel="3"
@@ -284,6 +288,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\source\Lib\libmd5\libmd5.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\source\Lib\TLibCommon\TComAdaptiveLoopFilter.cpp"
 				>
 			</File>
@@ -321,6 +329,10 @@
 			</File>
 			<File
 				RelativePath="..\..\source\Lib\TLibCommon\TComPicYuv.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\source\Lib\TLibCommon\TComPicYuvMD5.cpp"
 				>
 			</File>
 			<File
@@ -371,6 +383,18 @@
 			</File>
 			<File
 				RelativePath="..\..\source\Lib\TLibCommon\ContextTables.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\source\Lib\libmd5\libmd5.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\source\Lib\libmd5\MD5.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\source\Lib\TLibCommon\SEI.h"
 				>
 			</File>
 			<File

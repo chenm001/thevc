@@ -1,7 +1,7 @@
 /* The copyright in this software is being made available under the BSD
  * License, included below. This software may be subject to other third party
  * and contributor rights, including patent rights, and no such rights are
- * granted under this license.   
+ * granted under this license.  
  *
  * Copyright (c) 2010-2011, ITU/ISO/IEC
  * All rights reserved.
@@ -76,25 +76,48 @@ protected:
   UInt          m_uiMaxAlfCtrlDepth;
   UInt          m_uiLPTableE4[3][32];
   UInt          m_uiLPTableD4[3][32];
+#if !CAVLC_COEF_LRG_BLK
   UInt          m_uiLPTableE8[10][128];
   UInt          m_uiLPTableD8[10][128];
+#endif
   UInt          m_uiLastPosVlcIndex[10];
   
 #if LCEC_INTRA_MODE
+ #if MTK_DCM_MPM
+  UInt          m_uiIntraModeTableD17[2][16];
+  UInt          m_uiIntraModeTableE17[2][16];
+
+  UInt          m_uiIntraModeTableD34[2][33];
+  UInt          m_uiIntraModeTableE34[2][33];
+#else
   UInt          m_uiIntraModeTableD17[16];
   UInt          m_uiIntraModeTableE17[16];
 
   UInt          m_uiIntraModeTableD34[33];
   UInt          m_uiIntraModeTableE34[33];
 #endif
-
+#endif
+  
+#if CAVLC_RQT_CBP
+  UInt          m_uiCBP_YUV_TableE[4][8];
+  UInt          m_uiCBP_YUV_TableD[4][8];
+  UInt          m_uiCBP_YS_TableE[2][4];
+  UInt          m_uiCBP_YS_TableD[2][4];
+  UInt          m_uiCBP_YCS_TableE[2][8];
+  UInt          m_uiCBP_YCS_TableD[2][8];
+  UInt          m_uiCBP_4Y_TableE[2][15];
+  UInt          m_uiCBP_4Y_TableD[2][15];
+  UInt          m_uiCBP_4Y_VlcIdx;
+#else
   UInt          m_uiCBPTableE[2][8];
   UInt          m_uiCBPTableD[2][8];
-  UInt          m_uiCbpVlcIdx[2];
-  
   UInt          m_uiBlkCBPTableE[2][15];
   UInt          m_uiBlkCBPTableD[2][15];
+  UInt          m_uiCbpVlcIdx[2];
   UInt          m_uiBlkCbpVlcIdx;
+#endif
+
+
   
 #if MS_LCEC_LOOKUP_TABLE_EXCEPTION
   UInt          m_uiMI1TableE[9];
@@ -111,6 +134,30 @@ protected:
   UInt          m_uiSplitTableE[4][7];
   UInt          m_uiSplitTableD[4][7];
 #endif
+
+#if CAVLC_COUNTER_ADAPT
+#if CAVLC_RQT_CBP
+  UChar         m_ucCBP_YUV_TableCounter[4][4];
+  UChar         m_ucCBP_4Y_TableCounter[2][2];
+  UChar         m_ucCBP_YS_TableCounter[2][3];
+  UChar         m_ucCBP_YCS_TableCounter[2][4];
+  UChar         m_ucCBP_YUV_TableCounterSum[4];
+  UChar         m_ucCBP_4Y_TableCounterSum[2];
+  UChar         m_ucCBP_YS_TableCounterSum[2];
+  UChar         m_ucCBP_YCS_TableCounterSum[2];
+#else
+  UChar         m_ucCBFTableCounter    [2][4];
+  UChar         m_ucBlkCBPTableCounter [2][2];
+  UChar         m_ucCBFTableCounterSum[2];
+  UChar         m_ucBlkCBPTableCounterSum[2];
+#endif
+  UChar         m_ucMI1TableCounter       [4];
+  UChar         m_ucSplitTableCounter  [4][4];
+
+  UChar         m_ucSplitTableCounterSum[4];
+  UChar         m_ucMI1TableCounterSum;
+#endif
+
   Void  xCheckCoeff( TCoeff* pcCoef, UInt uiSize, UInt uiDepth, UInt& uiNumofCoeff, UInt& uiPart );
   
   Void  xWriteCode            ( UInt uiCode, UInt uiLength );
@@ -125,8 +172,12 @@ protected:
 #endif
   Void  xWriteVlc             ( UInt uiTableNumber, UInt uiCodeNumber );
 
+#if CAVLC_COEF_LRG_BLK
+  Void  xCodeCoeff             ( TCoeff* scoeff, Int n, Int blSize);
+#else
   Void  xCodeCoeff4x4          ( TCoeff* scoeff, Int iTableNumber );
   Void  xCodeCoeff8x8          ( TCoeff* scoeff, Int iTableNumber );
+#endif
   
   UInt  xConvertToUInt        ( Int iValue ) {  return ( iValue <= 0) ? -iValue<<1 : (iValue<<1)-1; }
   
@@ -134,7 +185,9 @@ public:
   
   Void  resetEntropy          ();
 
+#if !CAVLC_COEF_LRG_BLK
   UInt* GetLP8Table();
+#endif
   UInt* GetLP4Table();
 #if QC_MOD_LCEC
   UInt* GetLastPosVlcIndexTable();
@@ -154,6 +207,7 @@ public:
   
   Void  codeSPS                 ( TComSPS* pcSPS );
   Void  codePPS                 ( TComPPS* pcPPS );
+  void codeSEI(const SEI&);
   Void  codeSliceHeader         ( TComSlice* pcSlice );
   Void  codeTerminatingBit      ( UInt uilsLast );
   Void  codeSliceFinish         ();
@@ -163,7 +217,11 @@ public:
   Void codeAlfUvlc       ( UInt uiCode );
   Void codeAlfSvlc       ( Int   iCode );
   Void codeAlfCtrlDepth();
-  
+#if MTK_SAO
+  Void codeAoFlag       ( UInt uiCode );
+  Void codeAoUvlc       ( UInt uiCode );
+  Void codeAoSvlc       ( Int   iCode );
+#endif
   Void codeSkipFlag      ( TComDataCU* pcCU, UInt uiAbsPartIdx );
   Void codeMergeFlag     ( TComDataCU* pcCU, UInt uiAbsPartIdx );
   Void codeMergeIndex    ( TComDataCU* pcCU, UInt uiAbsPartIdx );
@@ -192,6 +250,10 @@ public:
   Void codeMvd           ( TComDataCU* pcCU, UInt uiAbsPartIdx, RefPicList eRefList );
   
   Void codeDeltaQP       ( TComDataCU* pcCU, UInt uiAbsPartIdx );
+#if CAVLC_RQT_CBP
+  Void codeCbfTrdiv      ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
+  UInt xGetFlagPattern   ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
+#endif
   Void codeCbf           ( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eType, UInt uiTrDepth );
   Void codeBlockCbf      ( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eType, UInt uiTrDepth, UInt uiQPartNum, Bool bRD = false);
   

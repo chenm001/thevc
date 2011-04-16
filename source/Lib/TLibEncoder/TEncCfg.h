@@ -1,7 +1,7 @@
 /* The copyright in this software is being made available under the BSD
  * License, included below. This software may be subject to other third party
  * and contributor rights, including patent rights, and no such rights are
- * granted under this license.   
+ * granted under this license.  
  *
  * Copyright (c) 2010-2011, ITU/ISO/IEC
  * All rights reserved.
@@ -55,7 +55,7 @@ class TEncCfg
 protected:
   //==== File I/O ========
   Int       m_iFrameRate;
-  Int       m_iFrameSkip;
+  Int       m_FrameSkip;
   Int       m_iSourceWidth;
   Int       m_iSourceHeight;
   Int       m_iFrameToBeEncoded;
@@ -93,6 +93,10 @@ protected:
   Int       m_iLoopFilterAlphaC0Offset;
   Int       m_iLoopFilterBetaOffset;
   
+#if MTK_SAO
+  Bool      m_bUseSAO;
+#endif
+
   //====== Motion search ========
   Int       m_iFastSearch;                      //  0:Full search  1:Diamond  2:PMVFAST
   Int       m_iSearchRange;                     //  0:Full frame
@@ -119,6 +123,10 @@ protected:
   Bool      m_bUseBQP;
   Bool      m_bUseFastEnc;
   Bool      m_bUseMRG; // SOPH:
+#if LM_CHROMA 
+  Bool      m_bUseLMChroma; 
+#endif
+
   Int*      m_aidQP;
   UInt      m_uiDeltaQpRD;
   
@@ -146,7 +154,7 @@ public:
   virtual ~TEncCfg() {}
   
   Void      setFrameRate                    ( Int   i )      { m_iFrameRate = i; }
-  Void      setFrameSkip                    ( Int   i )      { m_iFrameSkip = i; }
+  Void      setFrameSkip                    ( unsigned int i ) { m_FrameSkip = i; }
   Void      setSourceWidth                  ( Int   i )      { m_iSourceWidth = i; }
   Void      setSourceHeight                 ( Int   i )      { m_iSourceHeight = i; }
   Void      setFrameToBeEncoded             ( Int   i )      { m_iFrameToBeEncoded = i; }
@@ -192,7 +200,7 @@ public:
   
   //====== Sequence ========
   Int       getFrameRate                    ()      { return  m_iFrameRate; }
-  Int       getFrameSkip                    ()      { return  m_iFrameSkip; }
+  unsigned int getFrameSkip                 ()      { return  m_FrameSkip; }
   Int       getSourceWidth                  ()      { return  m_iSourceWidth; }
   Int       getSourceHeight                 ()      { return  m_iSourceHeight; }
   Int       getFrameToBeEncoded             ()      { return  m_iFrameToBeEncoded; }
@@ -280,6 +288,12 @@ public:
 #if CONSTRAINED_INTRA_PRED
   Bool      getUseConstrainedIntraPred      ()      { return m_bUseConstrainedIntraPred; }
 #endif  
+
+#if LM_CHROMA 
+  Bool getUseLMChroma                       ()      { return m_bUseLMChroma;        }
+  Void setUseLMChroma                       ( Bool b ) { m_bUseLMChroma  = b;       }
+#endif
+
   Int*      getdQPs                         ()      { return m_aidQP;       }
   UInt      getDeltaQpRD                    ()      { return m_uiDeltaQpRD; }
 #if HHI_RMP_SWITCH
@@ -303,6 +317,10 @@ public:
 #if MTK_NONCROSS_INLOOP_FILTER
   Void      setLFCrossSliceBoundaryFlag     ( Bool   bValue  )    { m_bLFCrossSliceBoundaryFlag = bValue; }
   Bool      getLFCrossSliceBoundaryFlag     ()                    { return m_bLFCrossSliceBoundaryFlag;   }
+#endif
+#if MTK_SAO
+  Void      setUseSAO                  (Bool bVal)     {m_bUseSAO = bVal;}
+  Bool      getUseSAO                  ()              {return m_bUseSAO;}
 #endif
 
 };

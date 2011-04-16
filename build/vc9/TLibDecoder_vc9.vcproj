@@ -45,6 +45,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="0"
 				PreprocessorDefinitions="WIN32;_DEBUG;_LIB;_CRT_SECURE_NO_WARNINGS"
+				AdditionalIncludeDirectories="&quot;..\..\compat\msvc&quot;"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
@@ -108,7 +109,8 @@
 				InlineFunctionExpansion="2"
 				EnableIntrinsicFunctions="false"
 				FavorSizeOrSpeed="1"
-				PreprocessorDefinitions="WIN32;NDEBUG;_LIB;_CRT_SECURE_NO_WARNINGS"
+				PreprocessorDefinitions="WIN32;_LIB;_CRT_SECURE_NO_WARNINGS"
+				AdditionalIncludeDirectories="&quot;..\..\compat\msvc&quot;"
 				StringPooling="true"
 				RuntimeLibrary="0"
 				EnableFunctionLevelLinking="true"
@@ -170,6 +172,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="0"
 				PreprocessorDefinitions="WIN32;_DEBUG;_LIB;_CRT_SECURE_NO_WARNINGS"
+				AdditionalIncludeDirectories="&quot;..\..\compat\msvc&quot;"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
@@ -234,7 +237,8 @@
 				InlineFunctionExpansion="2"
 				EnableIntrinsicFunctions="false"
 				FavorSizeOrSpeed="1"
-				PreprocessorDefinitions="WIN32;NDEBUG;_LIB;_CRT_SECURE_NO_WARNINGS"
+				PreprocessorDefinitions="WIN32;_LIB;_CRT_SECURE_NO_WARNINGS"
+				AdditionalIncludeDirectories="&quot;..\..\compat\msvc&quot;"
 				StringPooling="true"
 				RuntimeLibrary="0"
 				EnableFunctionLevelLinking="true"
@@ -278,6 +282,10 @@
 			Filter="cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx"
 			>
 			<File
+				RelativePath="..\..\source\Lib\TLibDecoder\SEIread.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\source\Lib\TLibDecoder\TDecBinCoderCABAC.cpp"
 				>
 			</File>
@@ -314,6 +322,10 @@
 			Name="Header Files"
 			Filter="h;hpp;hxx;hm;inl"
 			>
+			<File
+				RelativePath="..\..\source\Lib\TLibDecoder\SEIread.h"
+				>
+			</File>
 			<File
 				RelativePath="..\..\source\Lib\TLibDecoder\TDecBinCoder.h"
 				>

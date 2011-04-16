@@ -1,7 +1,7 @@
 /* The copyright in this software is being made available under the BSD
  * License, included below. This software may be subject to other third party
  * and contributor rights, including patent rights, and no such rights are
- * granted under this license.   
+ * granted under this license.  
  *
  * Copyright (c) 2010-2011, ITU/ISO/IEC
  * All rights reserved.
@@ -180,6 +180,36 @@ Void TVideoIOYuv::close()
 Bool TVideoIOYuv::isEof()
 {
   return m_cHandle.eof();
+}
+
+/**
+ * Skip @numFrames in input.
+ *
+ * This function correctly handles cases where the input file is not
+ * seekable, by consuming bytes.
+ */
+void TVideoIOYuv::skipFrames(unsigned int numFrames, unsigned int width, unsigned int height)
+{
+  if (!numFrames)
+    return;
+
+  const unsigned int wordsize = m_fileBitdepth > 8 ? 2 : 1;
+  const streamoff framesize = wordsize * width * height * 3 / 2;
+  const streamoff offset = framesize * numFrames;
+
+  /* attempt to seek */
+  if (!!m_cHandle.seekg(offset, ios::cur))
+    return; /* success */
+  m_cHandle.clear();
+
+  /* fall back to consuming the input */
+  char buf[512];
+  const unsigned offset_mod_bufsize = offset % sizeof(buf);
+  for (streamoff i = 0; i < offset - offset_mod_bufsize; i += sizeof(buf))
+  {
+    m_cHandle.read(buf, sizeof(buf));
+  }
+  m_cHandle.read(buf, offset_mod_bufsize);
 }
 
 /**

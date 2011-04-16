@@ -1,7 +1,7 @@
 /* The copyright in this software is being made available under the BSD
  * License, included below. This software may be subject to other third party
  * and contributor rights, including patent rights, and no such rights are
- * granted under this license.   
+ * granted under this license.  
  *
  * Copyright (c) 2010-2011, ITU/ISO/IEC
  * All rights reserved.
@@ -36,6 +36,7 @@
 */
 
 #include "TComBitStream.h"
+#include <string.h>
 #include <memory.h>
 
 // ====================================================================================================================
@@ -419,4 +420,44 @@ Void TComBitstream::freeMemoryAllocatedForSliceLocations ()
     m_auiSliceByteLocation   = NULL;
   }
   m_uiSliceCount             = 0;
+}
+
+/**
+ * insert the contents of the bytealigned (and flushed) bitstream @src
+ * into @this at byte position @pos.
+ *
+ * NB, there is currently a restriction that src_bytes must be a
+ * multiple of sizeof(UInt) if @this->write(...) is going to be called
+ * again.  This restriction will be removed when TComBitstream is refactored
+ * to work on bytes.
+ */
+void TComBitstream::insertAt(const TComBitstream& src, unsigned pos)
+{
+  unsigned src_bits = src.getNumberOfWrittenBits();
+  assert(0 == src_bits % 8);
+  unsigned src_bytes = src_bits/8;
+
+  /* check that there is enough space in the current buffer to accommodate @src */
+  unsigned this_buf_size = m_uiBufSize * sizeof(UInt);
+  unsigned this_bytes = this->getNumberOfWrittenBits()/8 * sizeof(UInt);
+  assert(this_buf_size - this_bytes > src_bytes);
+
+  /* make space */
+  unsigned char *this_dest = pos + src_bytes + (unsigned char*) this->getStartStream();
+  unsigned char *this_src = pos + (unsigned char*) this->getStartStream();
+  memmove(this_dest, this_src, this_bytes - pos);
+
+  /* splice src */
+  memcpy(this_src, src.getStartStream(), src_bytes);
+
+  /* update state */
+  this->m_uiBitsWritten += src_bits;
+  this->m_pulStreamPacket += src_bytes / sizeof(UInt);
+  /* XXX: this will go horribly wrong if data being inserted isn't a
+   * multiple of UInt. To work correctly, some data would have to be
+   * pulled back from the fifo into currentBits. */
+  /* Since davidf has rewritten this to work in bytes, i'm not going
+   * to make this work for UInt words.  This will be fine as long as
+   * no further data is pushed after this splice.
+   */
 }

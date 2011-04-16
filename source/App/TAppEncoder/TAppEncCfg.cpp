@@ -1,7 +1,7 @@
 /* The copyright in this software is being made available under the BSD
  * License, included below. This software may be subject to other third party
  * and contributor rights, including patent rights, and no such rights are
- * granted under this license.   
+ * granted under this license.  
  *
  * Copyright (c) 2010-2011, ITU/ISO/IEC
  * All rights reserved.
@@ -126,7 +126,7 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
   ("VerticalPadding,-pdy",  m_aiPad[1],      0, "vertical source padding size")
   ("PAD",                   m_bUsePAD,   false, "automatic source padding of multiple of 16" )
   ("FrameRate,-fr",         m_iFrameRate,        0, "Frame rate")
-  ("FrameSkip,-fs",         m_iFrameSkip,        0, "Number of frames to skip at start of input YUV")
+  ("FrameSkip,-fs",         m_FrameSkip,         0u, "Number of frames to skip at start of input YUV")
   ("FramesToBeEncoded,f",   m_iFrameToBeEncoded, 0, "number of frames to be encoded (default=all)")
   ("FrameToBeEncoded",      m_iFrameToBeEncoded, 0, "depricated alias of FramesToBeEncoded")
   
@@ -193,7 +193,16 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
   
   /* Coding tools */
   ("MRG", m_bUseMRG, true, "merging of motion partitions")
+
+#if LM_CHROMA 
+  ("LMChroma", m_bUseLMChroma, true, "intra chroma prediction based on recontructed luma")
+#endif
+
   ("ALF", m_bUseALF, true, "Adaptive Loop Filter")
+#if MTK_SAO
+  ("SAO", m_bUseSAO, true, "SAO")   
+#endif
+
 #if MQT_ALF_NPASS
   ("ALFEncodePassReduction", m_iALFEncodePassReduction, 0, "0:Original 16-pass, 1: 1-pass, 2: 2-pass encoding")
 #endif
@@ -222,7 +231,12 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
   ;
   
   po::setDefaults(opts);
-  po::scanArgv(opts, argc, (const char**) argv);
+  const list<const char*>& argv_unhandled = po::scanArgv(opts, argc, (const char**) argv);
+
+  for (list<const char*>::const_iterator it = argv_unhandled.begin(); it != argv_unhandled.end(); it++)
+  {
+    fprintf(stderr, "Unhandled argument ignored: `%s'\n", *it);
+  }
   
   if (argc == 1 || do_help)
   {
@@ -328,7 +342,6 @@ Void TAppEncCfg::xCheckParameter()
   xConfirmPara( m_uiInputBitDepth < 8,                                                      "InputBitDepth must be at least 8" );
 #endif
   xConfirmPara( m_iFrameRate <= 0,                                                          "Frame rate must be more than 1" );
-  xConfirmPara( m_iFrameSkip < 0,                                                           "Frame Skipping must be more than 0" );
   xConfirmPara( m_iFrameToBeEncoded <= 0,                                                   "Total Number Of Frames encoded must be more than 1" );
   xConfirmPara( m_iGOPSize < 1 ,                                                            "GOP Size must be more than 1" );
   xConfirmPara( m_iGOPSize > 1 &&  m_iGOPSize % 2,                                          "GOP Size must be a multiple of 2, if GOP Size is greater than 1" );
@@ -479,7 +492,7 @@ Void TAppEncCfg::xPrintParameter()
   printf("Reconstruction File          : %s\n", m_pchReconFile          );
   printf("Real     Format              : %dx%d %dHz\n", m_iSourceWidth - m_aiPad[0], m_iSourceHeight-m_aiPad[1], m_iFrameRate );
   printf("Internal Format              : %dx%d %dHz\n", m_iSourceWidth, m_iSourceHeight, m_iFrameRate );
-  printf("Frame index                  : %d - %d (%d frames)\n", m_iFrameSkip, m_iFrameSkip+m_iFrameToBeEncoded-1, m_iFrameToBeEncoded );
+  printf("Frame index                  : %u - %d (%d frames)\n", m_FrameSkip, m_FrameSkip+m_iFrameToBeEncoded-1, m_iFrameToBeEncoded );
   printf("Number of Ref. frames (P)    : %d\n", m_iNumOfReference);
   printf("Number of Ref. frames (B_L0) : %d\n", m_iNumOfReferenceB_L0);
   printf("Number of Ref. frames (B_L1) : %d\n", m_iNumOfReferenceB_L1);
@@ -519,7 +532,7 @@ Void TAppEncCfg::xPrintParameter()
   
   printf("TOOL CFG: ");
   printf("ALF:%d ", m_bUseALF             );
-  printf("IBD:%d ", m_uiBitIncrement!=0   );
+  printf("IBD:%d ", !!g_uiBitIncrement);
   printf("HAD:%d ", m_bUseHADME           );
   printf("SRD:%d ", m_bUseSBACRD          );
   printf("RDQ:%d ", m_bUseRDOQ            );
@@ -537,6 +550,9 @@ Void TAppEncCfg::xPrintParameter()
   printf("FEN:%d ", m_bUseFastEnc         );
   printf("RQT:%d ", 1     );
   printf("MRG:%d ", m_bUseMRG             ); // SOPH: Merge Mode
+#if LM_CHROMA 
+  printf("LMC:%d ", m_bUseLMChroma        ); 
+#endif
 #if HHI_RMP_SWITCH
   printf("RMP:%d ", m_bUseRMP);
 #endif
@@ -553,6 +569,10 @@ Void TAppEncCfg::xPrintParameter()
 #if CONSTRAINED_INTRA_PRED
   printf("CIP:%d ", m_bUseConstrainedIntraPred);
 #endif
+#if MTK_SAO
+  printf("SAO:%d ",    (m_bUseSAO)?(1):(0));
+#endif
+
   printf("\n");
   
   fflush(stdout);
@@ -573,6 +593,11 @@ Void TAppEncCfg::xPrintUsage()
   printf( "                   ASR - adaptive motion search range\n");
   printf( "                   FEN - fast encoder setting\n");  
   printf( "                   MRG - merging of motion partitions\n"); // SOPH: Merge Mode
+
+#if LM_CHROMA 
+  printf( "                   LMC - intra chroma prediction based on luma\n");
+#endif
+
   printf( "\n" );
   printf( "  Example 1) TAppEncoder.exe -c test.cfg -q 32 -g 8 -f 9 -s 64 -h 4\n");
   printf("              -> QP 32, hierarchical-B GOP 8, 9 frames, 64x64-8x8 CU (~4x4 PU)\n\n");

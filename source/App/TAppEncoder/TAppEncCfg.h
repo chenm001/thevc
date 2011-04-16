@@ -1,7 +1,7 @@
 /* The copyright in this software is being made available under the BSD
  * License, included below. This software may be subject to other third party
  * and contributor rights, including patent rights, and no such rights are
- * granted under this license.   
+ * granted under this license.  
  *
  * Copyright (c) 2010-2011, ITU/ISO/IEC
  * All rights reserved.
@@ -55,7 +55,7 @@ protected:
   
   // source specification
   Int       m_iFrameRate;                                     ///< source frame-rates (Hz)
-  Int       m_iFrameSkip;                                     ///< number of skipped frames from the beginning
+  unsigned int m_FrameSkip;                                   ///< number of skipped frames from the beginning
   Int       m_iSourceWidth;                                   ///< source width in pixel
   Int       m_iSourceHeight;                                  ///< source height in pixel
   Int       m_iFrameToBeEncoded;                              ///< number of encoded frames
@@ -104,9 +104,15 @@ protected:
   // coding tools (bit-depth)
   UInt      m_uiInputBitDepth;                                ///< bit-depth of input file
   UInt      m_uiOutputBitDepth;                               ///< bit-depth of output file
+#ifdef ENABLE_IBDI
   UInt      m_uiBitIncrement;                                 ///< bit-depth increment
+#endif
   UInt      m_uiInternalBitDepth;                             ///< Internal bit-depth (BitDepth+BitIncrement)
   
+#if MTK_SAO
+  Bool      m_bUseSAO; 
+#endif
+
   // coding tools (loop filter)
   Bool      m_bUseALF;                                        ///< flag for using adaptive loop filter
 #ifdef MQT_ALF_NPASS
@@ -123,6 +129,10 @@ protected:
   // coding tools (inter - merge motion partitions)
   Bool      m_bUseMRG;                                        ///< SOPH: flag for using motion partition Merge Mode
   
+#if LM_CHROMA 
+  Bool      m_bUseLMChroma;                                  ///< JL: Chroma intra prediction based on luma signal
+#endif
+
 #if HHI_RMP_SWITCH
   Bool      m_bUseRMP;
 #endif

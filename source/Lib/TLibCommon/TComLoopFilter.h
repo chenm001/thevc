@@ -1,7 +1,7 @@
 /* The copyright in this software is being made available under the BSD
  * License, included below. This software may be subject to other third party
  * and contributor rights, including patent rights, and no such rights are
- * granted under this license.   
+ * granted under this license.  
  *
  * Copyright (c) 2010-2011, ITU/ISO/IEC
  * All rights reserved.
@@ -57,10 +57,19 @@ private:
   Bool*     m_aapbEdgeFilter[2][3];
   LFCUParam m_stLFCUParam;                  ///< status structure
   
+#if (PARALLEL_DEBLK_DECISION && !PARALLEL_MERGED_DEBLK)
+  UInt m_decisions_D     [MAX_CU_SIZE/DEBLOCK_SMALLEST_BLOCK][MAX_CU_SIZE/DEBLOCK_SMALLEST_BLOCK];
+  UInt m_decisions_Sample[MAX_CU_SIZE/DEBLOCK_SMALLEST_BLOCK][MAX_CU_SIZE];
+#endif
+  
 protected:
   /// CU-level deblocking function
+#if PARALLEL_MERGED_DEBLK
+  Void xDeblockCU                 ( TComDataCU* pcCU, UInt uiAbsZorderIdx, UInt uiDepth, Int Edge );
+#else
   Void xDeblockCU                 ( TComDataCU* pcCU, UInt uiAbsZorderIdx, UInt uiDepth );
-  
+#endif
+
   // set / get functions
   Void xSetLoopfilterParam        ( TComDataCU* pcCU, UInt uiAbsZorderIdx );
   // filtering functions
@@ -78,10 +87,25 @@ protected:
   }
   Void xSetEdgefilterMultiple( TComDataCU* pcCU, UInt uiAbsZorderIdx, UInt uiDepth, Int iDir, Int iEdgeIdx, Bool bValue );
   
+#if (PARALLEL_DEBLK_DECISION && !PARALLEL_MERGED_DEBLK)
+  Void xEdgeFilterLuma            ( TComDataCU* pcCU, UInt uiAbsZorderIdx, UInt uiDepth, Int iDir, Int iEdge, Int iDecideExecute);
+#else
   Void xEdgeFilterLuma            ( TComDataCU* pcCU, UInt uiAbsZorderIdx, UInt uiDepth, Int iDir, Int iEdge );
+#endif
   Void xEdgeFilterChroma          ( TComDataCU* pcCU, UInt uiAbsZorderIdx, UInt uiDepth, Int iDir, Int iEdge );
   
+#if (PARALLEL_DEBLK_DECISION && !PARALLEL_MERGED_DEBLK)
+  __inline Void xPelFilterLumaStrong    ( Pel* piSrc, Int iOffset, Pel m0, Pel m1, Pel m2, Pel m3, Pel m4, Pel m5, Pel m6, Pel m7);
+  __inline Void xPelFilterLumaWeak      ( Pel* piSrc, Int iOffset, Int tc, Pel m1, Pel m2, Pel m3, Pel m4, Pel m5, Pel m6);
+  __inline Void xPelFilterLumaExecution ( Pel* piSrc, Int iOffset, Int tc, Int strongFilter);
+  __inline Int  xPelFilterLumaDecision  ( Pel* piSrc, Int iOffset, Int d, Int beta, Int tc);
+#endif
+
+#if PARALLEL_MERGED_DEBLK
+  __inline Void xPelFilterLuma( Pel* piSrc, Int iOffset, Int d, Int beta, Int tc , Pel* piSrcJudge);
+#else
   __inline Void xPelFilterLuma( Pel* piSrc, Int iOffset, Int d, Int beta, Int tc );
+#endif
   __inline Void xPelFilterChroma( Pel* piSrc, Int iOffset, Int tc );
   __inline Int xCalcD( Pel* piSrc, Int iOffset);
   

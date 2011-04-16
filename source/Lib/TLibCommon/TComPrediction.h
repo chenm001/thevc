@@ -1,7 +1,7 @@
 /* The copyright in this software is being made available under the BSD
  * License, included below. This software may be subject to other third party
  * and contributor rights, including patent rights, and no such rights are
- * granted under this license.   
+ * granted under this license.  
  *
  * Copyright (c) 2010-2011, ITU/ISO/IEC
  * All rights reserved.
@@ -62,7 +62,20 @@ protected:
   TComYuv   m_cYuvPredTemp;
   TComYuv   m_cYuvExt;
   
+#if LM_CHROMA
+  Pel*   m_pLumaRecBuffer;       // array for downsampled reconstructed luma sample 
+  Int    m_iLumaRecStride;
+  UInt   m_uiaShift[ 65 ];       // Table for multiplication to substitue of division operation
+#endif
+
   Void xPredIntraAng            ( Int* pSrc, Int srcStride, Pel*& rpDst, Int dstStride, UInt width, UInt height, UInt dirMode, Bool blkAboveAvailable, Bool blkLeftAvailable );
+#if ADD_PLANAR_MODE
+#if REFERENCE_SAMPLE_PADDING
+  Void xPredIntraPlanar         ( Int* pSrc, Int srcStride, Pel*& rpDst, Int dstStride, UInt width, UInt height );
+#else
+  Void xPredIntraPlanar         ( Int* pSrc, Int srcStride, Pel*& rpDst, Int dstStride, UInt width, UInt height, Bool blkAboveAvailable, Bool blkLeftAvailable );
+#endif
+#endif
   
   // motion compensation functions
 #if HIGH_ACCURACY_BI
@@ -80,6 +93,15 @@ protected:
   Void xPredInterLumaBlk_ha        ( TComDataCU* pcCU, TComPicYuv* pcPicYuvRef, UInt uiPartAddr, TComMv* pcMv, Int iWidth, Int iHeight,                         TComYuv*& rpcYuv );
   Void xPredInterChromaBlk_ha      ( TComDataCU* pcCU, TComPicYuv* pcPicYuvRef, UInt uiPartAddr, TComMv* pcMv, Int iWidth, Int iHeight,                         TComYuv*& rpcYuv                            );
   Void xDCTIF_FilterC_ha ( Pel*  piRefC, Int iRefStride,Pel*  piDstC,Int iDstStride,Int iWidth, Int iHeight,Int iMVyFrac,Int iMVxFrac);
+#endif
+
+#if LM_CHROMA
+  Void xGetRecPixels     ( TComPattern* pcPattern, Pel* pRecSrc, Int iRecSrcStride, Pel* pDst0, Int iDstStride, UInt uiWidth0, UInt uiHeight0 );   
+  Void xGetLLSPrediction ( TComPattern* pcPattern, Int* pSrc0, Int iSrcStride, Pel* pDst0, Int iDstStride, UInt uiWidth, UInt uiHeight, UInt uiExt0 );
+#endif
+
+#if MN_DC_PRED_FILTER
+  Void xDCPredFiltering( Int* pSrc, Int iSrcStride, Pel*& rpDst, Int iDstStride, Int iWidth, Int iHeight );
 #endif
 
 public:
@@ -103,6 +125,11 @@ public:
   Int* getPredicBuf()             { return m_piYuvExt;      }
   Int  getPredicBufWidth()        { return m_iYuvExtStride; }
   Int  getPredicBufHeight()       { return m_iYuvExtHeight; }
+
+#if LM_CHROMA
+  Void predLMIntraChroma( TComPattern* pcPattern, Int* piSrc, Pel* pPred, UInt uiPredStride, UInt uiCWidth, UInt uiCHeight, UInt uiChromaId );
+#endif
+
 };
 
 

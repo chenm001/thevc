@@ -1,7 +1,7 @@
 /* The copyright in this software is being made available under the BSD
  * License, included below. This software may be subject to other third party
  * and contributor rights, including patent rights, and no such rights are
- * granted under this license.   
+ * granted under this license.  
  *
  * Copyright (c) 2010-2011, ITU/ISO/IEC
  * All rights reserved.
@@ -38,6 +38,8 @@
 #include "TEncTop.h"
 #include "TEncGOP.h"
 #include "TEncAnalyze.h"
+#include "../libmd5/MD5.h"
+#include "../TLibCommon/SEI.h"
 
 #include <time.h>
 
@@ -110,6 +112,10 @@ Void TEncGOP::init ( TEncTop* pcTEncTop )
   // Adaptive Loop filter
   m_pcAdaptiveLoopFilter = pcTEncTop->getAdaptiveLoopFilter();
   //--Adaptive Loop filter
+#if MTK_SAO
+  m_pcSAO                = pcTEncTop->getSAO();
+#endif
+
 }
 
 // ====================================================================================================================
@@ -365,6 +371,9 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
       m_uiStoredStartCUAddrForEncodingEntropySlice[uiStartCUAddrEntropySliceIdx++]  = pcSlice->getSliceCurEndCUAddr();
       
       pcSlice = pcPic->getSlice(0);
+#if MTK_SAO  // PRE_DF
+      SAOParam cSaoParam;
+#endif
 
       //-- Loop filter
       m_pcLoopFilter->setCfg(pcSlice->getLoopFilterDisable(), m_pcCfg->getLoopFilterAlphaC0Offget(), m_pcCfg->getLoopFilterBetaOffget());
@@ -404,26 +413,35 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
       /////////////////////////////////////////////////////////////////////////////////////////////////// File writing
       // Set entropy coder
       m_pcEntropyCoder->setEntropyCoder   ( m_pcCavlcCoder, pcSlice );
-      m_pcEntropyCoder->setBitstream      ( pcBitstreamOut          );
-      
-      // write SPS
+
+      /* write various header sets.
+       * The header sets are written into a separate bitstream buffer to
+       * allow SEI messages that are calculated after the picture has been
+       * encoded to be sent before the picture.
+       */
+      TComBitstream bs_SPS_PPS_SEI;
+      bs_SPS_PPS_SEI.create(512); /* TODO: this should dynamically resize */
       if ( m_bSeqFirst )
       {
+        m_pcEntropyCoder->setBitstream(&bs_SPS_PPS_SEI);
+
         m_pcEntropyCoder->encodeSPS( pcSlice->getSPS() );
-        pcBitstreamOut->write( 1, 1 );
-        pcBitstreamOut->writeAlignZero();
+        bs_SPS_PPS_SEI.write( 1, 1 );
+        bs_SPS_PPS_SEI.writeAlignZero();
         // generate start code
-        pcBitstreamOut->write( 1, 32);
+        bs_SPS_PPS_SEI.write( 1, 32);
         
         m_pcEntropyCoder->encodePPS( pcSlice->getPPS() );
-        pcBitstreamOut->write( 1, 1 );
-        pcBitstreamOut->writeAlignZero();
+        bs_SPS_PPS_SEI.write( 1, 1 );
+        bs_SPS_PPS_SEI.writeAlignZero();
         // generate start code
-        pcBitstreamOut->write( 1, 32);
+        bs_SPS_PPS_SEI.write( 1, 32);
         m_bSeqFirst = false;
       }
       
-      UInt uiPosBefore      = pcBitstreamOut->getNumberOfWrittenBits()>>3;
+      /* use the main bitstream buffer for storing the marshalled picture */
+      m_pcEntropyCoder->setBitstream(pcBitstreamOut);
+
       uiStartCUAddrSliceIdx = 0;
       uiStartCUAddrSlice    = 0; 
       pcBitstreamOut->allocateMemoryForSliceLocations( pcPic->getPicSym()->getNumberOfCUsInFrame() ); // Assuming number of slices <= number of LCU. Needs to be changed for sub-LCU slice coding.
@@ -488,7 +506,11 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
         if (uiNextCUAddr==0)  // Compute ALF params and write only for first slice header
         {
           // adaptive loop filter
-          if ( pcSlice->getSPS()->getUseALF() )
+#if MTK_SAO
+          if ( pcSlice->getSPS()->getUseALF() || (pcSlice->getSPS()->getUseSAO()) )
+#else
+          if ( pcSlice->getSPS()->getUseALF())
+#endif
           {
             ALFParam cAlfParam;
 #if TSB_ALF_HEADER
@@ -509,11 +531,28 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
             m_pcEntropyCoder->setBitstream    ( m_pcBitCounter );
             
             m_pcAdaptiveLoopFilter->startALFEnc(pcPic, m_pcEntropyCoder );
-            
+#if MTK_SAO  // PostDF
+            {
+              if (pcSlice->getSPS()->getUseSAO())
+              {
+                m_pcSAO->startSaoEnc(pcPic, m_pcEntropyCoder, m_pcEncTop->getRDSbacCoder(), m_pcCfg->getUseSBACRD() ?  m_pcEncTop->getRDGoOnSbacCoder() : NULL);
+                m_pcSAO->SAOProcess(pcPic->getSlice(0)->getLambda());
+                m_pcSAO->copyQaoData(&cSaoParam);
+                m_pcSAO->endSaoEnc();
+              }
+            }
+#endif
             UInt uiMaxAlfCtrlDepth;
             
             UInt64 uiDist, uiBits;
-            m_pcAdaptiveLoopFilter->ALFProcess( &cAlfParam, pcSlice->getLambda(), uiDist, uiBits, uiMaxAlfCtrlDepth );
+#if MTK_SAO
+            if ( pcSlice->getSPS()->getUseALF())
+#endif
+              m_pcAdaptiveLoopFilter->ALFProcess( &cAlfParam, pcPic->getSlice(0)->getLambda(), uiDist, uiBits, uiMaxAlfCtrlDepth );
+#if MTK_SAO
+            else
+              cAlfParam.cu_control_flag = 0;
+#endif
             m_pcAdaptiveLoopFilter->endALFEnc();
             
             // set entropy coder for writing
@@ -543,6 +582,13 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
             {
               m_pcEntropyCoder->setAlfCtrl(false);
             }
+#if MTK_SAO
+            if (pcSlice->getSPS()->getUseSAO())
+            {
+              m_pcEntropyCoder->encodeSaoParam(&cSaoParam);
+            }
+            if (pcSlice->getSPS()->getUseALF())
+#endif
             m_pcEntropyCoder->encodeAlfParam(&cAlfParam);
             
 #if TSB_ALF_HEADER
@@ -587,7 +633,7 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
       
       
       pcBitstreamOut->flushBuffer();
-      pcBitstreamOut->convertRBSPToPayload( uiPosBefore );
+      pcBitstreamOut->convertRBSPToPayload(0);
       
 #if AMVP_BUFFERCOMPRESS
       pcPic->compressMotion(); 
@@ -602,7 +648,26 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
 #if FIXED_ROUNDING_FRAME_MEMORY
       pcPic->getPicYuvRec()->xFixedRoundingPic();
 #endif
-      
+
+      /* calculate MD5sum for entire reconstructed picture */
+      SEIpictureDigest sei_recon_picture_digest;
+      sei_recon_picture_digest.method = SEIpictureDigest::MD5;
+      calcMD5(*pcPic->getPicYuvRec(), sei_recon_picture_digest.digest);
+      printf("[MD5:%s] ", digestToString(sei_recon_picture_digest.digest));
+
+      /* write the SEI messages (after any SPS/PPS) */
+      m_pcEntropyCoder->setEntropyCoder(m_pcCavlcCoder, pcSlice);
+      m_pcEntropyCoder->setBitstream(&bs_SPS_PPS_SEI);
+      m_pcEntropyCoder->encodeSEI(sei_recon_picture_digest);
+      /* and trailing bits */
+      bs_SPS_PPS_SEI.write(1, 1);
+      bs_SPS_PPS_SEI.writeAlignZero();
+      bs_SPS_PPS_SEI.write(1, 32);
+
+      /* insert the bs_SPS_PPS_SEI before the pcBitstreamOut */
+      bs_SPS_PPS_SEI.flushBuffer();
+      pcBitstreamOut->insertAt(bs_SPS_PPS_SEI, 0);
+
       pcPic->getPicYuvRec()->copyToPic(pcPicYuvRecOut);
       
       pcPic->setReconMark   ( true );
@@ -650,6 +715,10 @@ Void TEncGOP::printOutSummary(UInt uiNumAllPicCoded)
   m_gcAnalyzeI.printSummary('I');
   m_gcAnalyzeP.printSummary('P');
   m_gcAnalyzeB.printSummary('B');
+#endif
+
+#if RVM_VCEGAM10
+  printf( "\nRVM: %.3lf" , xCalculateRVM() );
 #endif
 }
 
@@ -924,6 +993,10 @@ Void TEncGOP::xCalculateAddPSNR( TComPic* pcPic, TComPicYuv* pcPicD, UInt uibits
   // fix: total bits should consider slice size bits (32bit)
   uibits += 32;
   
+#if RVM_VCEGAM10
+  m_vRVM_RP.push_back( uibits );
+#endif
+
   //===== add PSNR =====
   m_gcAnalyzeAll.addResult (dYPSNR, dUPSNR, dVPSNR, (Double)uibits);
   TComSlice*  pcSlice = pcPic->getSlice(0);
@@ -995,6 +1068,53 @@ NalUnitType TEncGOP::getNalUnitType(UInt uiPOCCurr)
     }
   }
   return NAL_UNIT_CODED_SLICE;
+}
+#endif
+
+#if RVM_VCEGAM10
+Double TEncGOP::xCalculateRVM()
+{
+  Double dRVM = 0;
+  
+  if( m_pcCfg->getGOPSize() == 1 && m_pcCfg->getIntraPeriod() != 1 && m_pcCfg->getFrameToBeEncoded() > RVM_VCEGAM10_M * 2 )
+  {
+    // calculate RVM only for lowdelay configurations
+    std::vector<Double> vRL , vB;
+    size_t N = m_vRVM_RP.size();
+    vRL.resize( N );
+    vB.resize( N );
+    
+    Int i;
+    Double dRavg = 0 , dBavg = 0;
+    vB[RVM_VCEGAM10_M] = 0;
+    for( i = RVM_VCEGAM10_M + 1 ; i < N - RVM_VCEGAM10_M + 1 ; i++ )
+    {
+      vRL[i] = 0;
+      for( Int j = i - RVM_VCEGAM10_M ; j <= i + RVM_VCEGAM10_M - 1 ; j++ )
+        vRL[i] += m_vRVM_RP[j];
+      vRL[i] /= ( 2 * RVM_VCEGAM10_M );
+      vB[i] = vB[i-1] + m_vRVM_RP[i] - vRL[i];
+      dRavg += m_vRVM_RP[i];
+      dBavg += vB[i];
+    }
+    
+    dRavg /= ( N - 2 * RVM_VCEGAM10_M );
+    dBavg /= ( N - 2 * RVM_VCEGAM10_M );
+    
+    double dSigamB = 0;
+    for( i = RVM_VCEGAM10_M + 1 ; i < N - RVM_VCEGAM10_M + 1 ; i++ )
+    {
+      Double tmp = vB[i] - dBavg;
+      dSigamB += tmp * tmp;
+    }
+    dSigamB = sqrt( dSigamB / ( N - 2 * RVM_VCEGAM10_M ) );
+    
+    double f = sqrt( 12.0 * ( RVM_VCEGAM10_M - 1 ) / ( RVM_VCEGAM10_M + 1 ) );
+    
+    dRVM = dSigamB / dRavg * f;
+  }
+  
+  return( dRVM );
 }
 #endif
 

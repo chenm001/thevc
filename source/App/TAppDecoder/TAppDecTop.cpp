@@ -1,7 +1,7 @@
 /* The copyright in this software is being made available under the BSD
  * License, included below. This software may be subject to other third party
  * and contributor rights, including patent rights, and no such rights are
- * granted under this license.   
+ * granted under this license.  
  *
  * Copyright (c) 2010-2011, ITU/ISO/IEC
  * All rights reserved.
@@ -111,8 +111,8 @@ Void TAppDecTop::decode()
   
   while ( !bEos )
   {
-    Long lLocation          = m_cTVideoIOBitstreamFile.getFileLocation();
-    bEos                    = m_cTVideoIOBitstreamFile.readBits( pcBitstream );
+    streampos  lLocation = m_cTVideoIOBitstreamFile.getFileLocation();
+    bEos                 = m_cTVideoIOBitstreamFile.readBits( pcBitstream );
     if (bEos)
     {
       if (!bFirstSliceDecoded) m_cTDecTop.decode( bEos, pcBitstream, uiPOC, pcListPic, m_iSkipFrame, m_iPOCLastDisplay);

@@ -1,7 +1,7 @@
 /* The copyright in this software is being made available under the BSD
  * License, included below. This software may be subject to other third party
  * and contributor rights, including patent rights, and no such rights are
- * granted under this license.   
+ * granted under this license.  
  *
  * Copyright (c) 2010-2011, ITU/ISO/IEC
  * All rights reserved.
@@ -77,6 +77,9 @@ private:
   // coding tool
   TComTrQuant             m_cTrQuant;                     ///< transform & quantization class
   TComLoopFilter          m_cLoopFilter;                  ///< deblocking filter class
+#if MTK_SAO
+  TEncSampleAdaptiveOffset  m_cEncSAO;                    ///< sample adaptive offset class
+#endif
   TEncAdaptiveLoopFilter  m_cAdaptiveLoopFilter;          ///< adaptive loop filter class
   TEncEntropy             m_cEntropyCoder;                ///< entropy encoder
   TEncCavlc               m_cCavlcCoder;                  ///< CAVLC encoder
@@ -125,7 +128,9 @@ public:
   TComTrQuant*            getTrQuant            () { return  &m_cTrQuant;             }
   TComLoopFilter*         getLoopFilter         () { return  &m_cLoopFilter;          }
   TEncAdaptiveLoopFilter* getAdaptiveLoopFilter () { return  &m_cAdaptiveLoopFilter;  }
-  
+#if MTK_SAO
+  TEncSampleAdaptiveOffset* getSAO                () { return  &m_cEncSAO;              }
+#endif
   TEncGOP*                getGOPEncoder         () { return  &m_cGOPEncoder;          }
   TEncSlice*              getSliceEncoder       () { return  &m_cSliceEncoder;        }
   TEncCu*                 getCuEncoder          () { return  &m_cCuEncoder;           }

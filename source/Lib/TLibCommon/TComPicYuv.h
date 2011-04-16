@@ -1,7 +1,7 @@
 /* The copyright in this software is being made available under the BSD
  * License, included below. This software may be subject to other third party
  * and contributor rights, including patent rights, and no such rights are
- * granted under this license.   
+ * granted under this license.  
  *
  * Copyright (c) 2010-2011, ITU/ISO/IEC
  * All rights reserved.
@@ -158,6 +158,8 @@ public:
   Void  xFixedRoundingPic();
 #endif  
 };// END CLASS DEFINITION TComPicYuv
+
+void calcMD5(TComPicYuv& pic, unsigned char digest[16]);
 
 #endif // __TCOMPICYUV__
 

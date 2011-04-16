@@ -1,7 +1,7 @@
 /* The copyright in this software is being made available under the BSD
  * License, included below. This software may be subject to other third party
  * and contributor rights, including patent rights, and no such rights are
- * granted under this license.   
+ * granted under this license.  
  *
  * Copyright (c) 2010-2011, ITU/ISO/IEC
  * All rights reserved.
@@ -43,6 +43,7 @@
 #include "../TLibCommon/TComPicYuv.h"
 #include "../TLibCommon/TComPic.h"
 #include "../TLibCommon/TComTrQuant.h"
+#include "../TLibCommon/SEI.h"
 
 #include "TDecGop.h"
 #include "TDecEntropy.h"
@@ -75,6 +76,8 @@ private:
   TComPPS                 m_cPPS;
   TComSlice*              m_apcSlicePilot;
   
+  SEImessages *m_SEIs; ///< "all" SEI messages.  If not NULL, we own the object.
+
   // functional classes
   TComPrediction          m_cPrediction;
   TComTrQuant             m_cTrQuant;
@@ -87,6 +90,9 @@ private:
   TDecBinCABAC            m_cBinCABAC;
   TComLoopFilter          m_cLoopFilter;
   TComAdaptiveLoopFilter  m_cAdaptiveLoopFilter;
+#if MTK_SAO
+  TComSampleAdaptiveOffset m_cSAO;
+#endif
 
 #if DCM_SKIP_DECODING_FRAMES
   Bool isRandomAccessSkipPicture(Int& iSkipFrame,  Int& iPOCLastDisplay);

@@ -1,7 +1,7 @@
 /* The copyright in this software is being made available under the BSD
  * License, included below. This software may be subject to other third party
  * and contributor rights, including patent rights, and no such rights are
- * granted under this license.   
+ * granted under this license.  
  *
  * Copyright (c) 2010-2011, ITU/ISO/IEC
  * All rights reserved.
@@ -88,8 +88,11 @@ Void TDecTop::init()
 {
   // initialize ROM
   initROM();
-  
+#if MTK_SAO
+  m_cGopDecoder.  init( &m_cEntropyDecoder, &m_cSbacDecoder, &m_cBinCABAC, &m_cCavlcDecoder, &m_cSliceDecoder, &m_cLoopFilter, &m_cAdaptiveLoopFilter, &m_cSAO);
+#else
   m_cGopDecoder.  init( &m_cEntropyDecoder, &m_cSbacDecoder, &m_cBinCABAC, &m_cCavlcDecoder, &m_cSliceDecoder, &m_cLoopFilter, &m_cAdaptiveLoopFilter );
+#endif
   m_cSliceDecoder.init( &m_cEntropyDecoder, &m_cCuDecoder );
   m_cEntropyDecoder.init(&m_cPrediction);
 }
@@ -110,6 +113,10 @@ Void TDecTop::deletePicBuffer ( )
   
   // destroy ALF temporary buffers
   m_cAdaptiveLoopFilter.destroy();
+
+#if MTK_SAO
+  m_cSAO.destroy();
+#endif
   
   m_cLoopFilter.        destroy();
   
@@ -213,7 +220,9 @@ Void TDecTop::decode (Bool bEos, TComBitstream* pcBitstream, UInt& ruiPOC, TComL
       
       // create ALF temporary buffer
       m_cAdaptiveLoopFilter.create( m_cSPS.getWidth(), m_cSPS.getHeight(), g_uiMaxCUWidth, g_uiMaxCUHeight, g_uiMaxCUDepth );
-      
+#if MTK_SAO
+      m_cSAO.create( m_cSPS.getWidth(), m_cSPS.getHeight(), g_uiMaxCUWidth, g_uiMaxCUHeight, g_uiMaxCUDepth );
+#endif
       m_cLoopFilter.        create( g_uiMaxCUDepth );
       m_uiValidPS |= 1;
       
@@ -222,6 +231,11 @@ Void TDecTop::decode (Bool bEos, TComBitstream* pcBitstream, UInt& ruiPOC, TComL
     case NAL_UNIT_PPS:
       m_cEntropyDecoder.decodePPS( &m_cPPS );
       m_uiValidPS |= 2;
+      return false;
+
+    case NAL_UNIT_SEI:
+      m_SEIs = new SEImessages;
+      m_cEntropyDecoder.decodeSEI(*m_SEIs);
       return false;
 
     case NAL_UNIT_CODED_SLICE:
@@ -278,6 +292,10 @@ Void TDecTop::decode (Bool bEos, TComBitstream* pcBitstream, UInt& ruiPOC, TComL
         //  Get a new picture buffer
         xGetNewPicBuffer (m_apcSlicePilot, pcPic);
         
+        /* transfer any SEI messages that have been received to the picture */
+        pcPic->setSEIs(m_SEIs);
+        m_SEIs = NULL;
+
         // Recursive structure
         m_cCuDecoder.create ( g_uiMaxCUDepth, g_uiMaxCUWidth, g_uiMaxCUHeight );
         m_cCuDecoder.init   ( &m_cEntropyDecoder, &m_cTrQuant, &m_cPrediction );

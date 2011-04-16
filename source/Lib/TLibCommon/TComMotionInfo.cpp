@@ -1,7 +1,7 @@
 /* The copyright in this software is being made available under the BSD
  * License, included below. This software may be subject to other third party
  * and contributor rights, including patent rights, and no such rights are
- * granted under this license.   
+ * granted under this license.  
  *
  * Copyright (c) 2010-2011, ITU/ISO/IEC
  * All rights reserved.
@@ -280,6 +280,10 @@ Void TComCUMvField::setAllMvField ( TComMv& rcMv, Int iRefIdx, PartSize eCUMode,
 }
 
 #if AMVP_BUFFERCOMPRESS
+/**Subsampling of the stored prediction mode, reference index and motion vector
+ * \param pePredMode
+ * \returns Void
+ */
 Void TComCUMvField::compress(PredMode* pePredMode)
 {
   Int N = AMVP_DECIMATION_FACTOR;
@@ -288,10 +292,23 @@ Void TComCUMvField::compress(PredMode* pePredMode)
     Int  jj = uiPartIdx+N*N;
     
     TComMv cMv(0,0); 
+#if MV_COMPRESS_MODE_REFIDX
+    PredMode predMode = MODE_INTRA;
+    Int iRefIdx = 0;
+    
+    cMv = m_pcMv[ uiPartIdx ];
+    predMode = pePredMode[ uiPartIdx ];
+    iRefIdx = m_piRefIdx[ uiPartIdx ];
+#else
     if (pePredMode[uiPartIdx]!=MODE_INTRA) cMv = m_pcMv[ uiPartIdx ]; 
+#endif
     for ( Int i = jj-1; i >= uiPartIdx; i-- )
     {
       m_pcMv[ i ] = cMv;
+#if MV_COMPRESS_MODE_REFIDX
+      pePredMode[ i ] = predMode;
+      m_piRefIdx[ i ] = iRefIdx;
+#endif
     }
   }
 } 

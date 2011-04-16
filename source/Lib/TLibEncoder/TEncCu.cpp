@@ -1,7 +1,7 @@
 /* The copyright in this software is being made available under the BSD
  * License, included below. This software may be subject to other third party
  * and contributor rights, including patent rights, and no such rights are
- * granted under this license.   
+ * granted under this license.  
  *
  * Copyright (c) 2010-2011, ITU/ISO/IEC
  * All rights reserved.
@@ -402,7 +402,7 @@ Void TEncCu::xCompressCU( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, UInt u
       
       if( pcPic->getSlice(0)->getSPS()->getUseMRG() )
       {
-#if SAMSUNG_MRG_SKIP_DIRECT
+#if !HHI_MRG_SKIP
         xCheckRDCostAMVPSkip ( rpcBestCU, rpcTempCU );        rpcTempCU->initEstData();
 #endif
         xCheckRDCostMerge2Nx2N( rpcBestCU, rpcTempCU );            rpcTempCU->initEstData();
@@ -555,6 +555,12 @@ Void TEncCu::xCompressCU( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, UInt u
   assert( rpcBestCU->getTotalCost     (   ) != MAX_DOUBLE );
 }
 
+/** encode a CU block recursively
+ * \param pcCU
+ * \param uiAbsPartIdx
+ * \param uiDepth 
+ * \returns Void
+ */
 Void TEncCu::xEncodeCU( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
 {
   TComPic* pcPic = pcCU->getPic();
@@ -600,6 +606,9 @@ Void TEncCu::xEncodeCU( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
   
   if( pcCU->isSkipped( uiAbsPartIdx ) )
   {
+#if HHI_MRG_SKIP
+    m_pcEntropyCoder->encodeMergeIndex( pcCU, uiAbsPartIdx, 0 );
+#else
     if ( pcCU->getSlice()->getNumRefIdx( REF_PIC_LIST_0 ) > 0 ) //if ( ref. frame list0 has at least 1 entry )
     {
       m_pcEntropyCoder->encodeMVPIdx( pcCU, uiAbsPartIdx, REF_PIC_LIST_0);
@@ -608,6 +617,7 @@ Void TEncCu::xEncodeCU( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
     {
       m_pcEntropyCoder->encodeMVPIdx( pcCU, uiAbsPartIdx, REF_PIC_LIST_1);
     }
+#endif
     return;
   }
   m_pcEntropyCoder->encodePredMode( pcCU, uiAbsPartIdx );
@@ -645,14 +655,19 @@ Void TEncCu::xCheckRDCostSkip( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, B
   xCheckBestMode(rpcBestCU, rpcTempCU);
 }
 
+/** check RD costs for a CU block encoded with merge
+ * \param rpcBestCU
+ * \param rpcTempCU
+ * \returns Void
+ */
 Void TEncCu::xCheckRDCostMerge2Nx2N( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU )
 {
   assert( rpcTempCU->getSlice()->getSliceType() != I_SLICE );
-  TComMvField  cMvFieldNeighbours[HHI_NUM_MRG_CAND << 1]; // double length for mv of both lists
-  UChar uhInterDirNeighbours[HHI_NUM_MRG_CAND];
-  UInt uiNeighbourCandIdx[HHI_NUM_MRG_CAND]; //MVs with same idx => same cand
+  TComMvField  cMvFieldNeighbours[MRG_MAX_NUM_CANDS << 1]; // double length for mv of both lists
+  UChar uhInterDirNeighbours[MRG_MAX_NUM_CANDS];
+  UInt uiNeighbourCandIdx[MRG_MAX_NUM_CANDS]; //MVs with same idx => same cand
 
-  for( UInt ui = 0; ui < HHI_NUM_MRG_CAND; ++ui )
+  for( UInt ui = 0; ui < MRG_MAX_NUM_CANDS; ++ui )
   {
     uhInterDirNeighbours[ui] = 0;
     uiNeighbourCandIdx[ui] = 0;
@@ -662,24 +677,57 @@ Void TEncCu::xCheckRDCostMerge2Nx2N( TComDataCU*& rpcBestCU, TComDataCU*& rpcTem
   rpcTempCU->getInterMergeCandidates( 0, 0, uhDepth, cMvFieldNeighbours,uhInterDirNeighbours, uiNeighbourCandIdx );
   
   Bool bValidCands = false;
-  for( UInt uiMergeCand = 0; uiMergeCand < HHI_NUM_MRG_CAND; ++uiMergeCand )
+  for( UInt uiMergeCand = 0; uiMergeCand < MRG_MAX_NUM_CANDS; ++uiMergeCand )
   {
     if( uiNeighbourCandIdx[uiMergeCand] == ( uiMergeCand + 1 ) )
     {
+#if HHI_MRG_SKIP
+      TComYuv* pcPredYuvTemp = NULL;
+      for( UInt uiNoResidual = 0; uiNoResidual < 2; ++uiNoResidual )
+      {
+#endif
       bValidCands = true;
       // set MC parameters
+#if HHI_MRG_SKIP
+      rpcTempCU->setPredModeSubParts( MODE_SKIP, 0, uhDepth ); // interprets depth relative to LCU level
+#else
       rpcTempCU->setPredModeSubParts( MODE_INTER, 0, uhDepth ); // interprets depth relative to LCU level
+#endif
       rpcTempCU->setPartSizeSubParts( SIZE_2Nx2N, 0, uhDepth ); // interprets depth relative to LCU level
       rpcTempCU->setMergeFlagSubParts( true, 0, 0, uhDepth ); // interprets depth relative to LCU level
       rpcTempCU->setMergeIndexSubParts( uiMergeCand, 0, 0, uhDepth ); // interprets depth relative to LCU level
       rpcTempCU->setInterDirSubParts( uhInterDirNeighbours[uiMergeCand], 0, 0, uhDepth ); // interprets depth relative to LCU level
-      for( UInt uiInner = 0; uiInner < HHI_NUM_MRG_CAND; uiInner++ )
+      for( UInt uiInner = 0; uiInner < MRG_MAX_NUM_CANDS; uiInner++ )
       {
         rpcTempCU->setNeighbourCandIdxSubParts( uiInner, uiNeighbourCandIdx[uiInner], 0, 0,uhDepth );
       }
       rpcTempCU->getCUMvField( REF_PIC_LIST_0 )->setAllMvField( cMvFieldNeighbours[0 + 2*uiMergeCand].getMv(), cMvFieldNeighbours[0 + 2*uiMergeCand].getRefIdx(), SIZE_2Nx2N, 0, 0, 0 ); // interprets depth relative to rpcTempCU level
       rpcTempCU->getCUMvField( REF_PIC_LIST_1 )->setAllMvField( cMvFieldNeighbours[1 + 2*uiMergeCand].getMv(), cMvFieldNeighbours[1 + 2*uiMergeCand].getRefIdx(), SIZE_2Nx2N, 0, 0, 0 ); // interprets depth relative to rpcTempCU level
 
+#if HHI_MRG_SKIP
+      // do MC
+      if ( uiNoResidual == 0 ){
+        m_pcPredSearch->motionCompensation ( rpcTempCU, m_ppcPredYuvTemp[uhDepth] );
+        // save pred adress
+        pcPredYuvTemp = m_ppcPredYuvTemp[uhDepth];
+        
+      }
+      else {
+        if ( pcPredYuvTemp != m_ppcPredYuvTemp[uhDepth]) {
+          //adress changes take best (old temp)
+          pcPredYuvTemp = m_ppcPredYuvBest[uhDepth];
+        }
+      }
+      // estimate residual and encode everything
+      m_pcPredSearch->encodeResAndCalcRdInterCU( rpcTempCU,
+                                                m_ppcOrigYuv    [uhDepth],
+                                                pcPredYuvTemp,
+                                                m_ppcResiYuvTemp[uhDepth],
+                                                m_ppcResiYuvBest[uhDepth],
+                                                m_ppcRecoYuvTemp[uhDepth],
+                                                (uiNoResidual? true:false) );     
+      Bool bQtRootCbf = rpcTempCU->getQtRootCbf(0) == 1;
+#else
       // do MC
       m_pcPredSearch->motionCompensation ( rpcTempCU, m_ppcPredYuvTemp[uhDepth] );
 
@@ -691,15 +739,20 @@ Void TEncCu::xCheckRDCostMerge2Nx2N( TComDataCU*& rpcBestCU, TComDataCU*& rpcTem
                                                  m_ppcResiYuvBest[uhDepth],
                                                  m_ppcRecoYuvTemp[uhDepth],
                                                  false );
-
+#endif
       xCheckBestMode(rpcBestCU, rpcTempCU);
 
       rpcTempCU->initEstData();         
+#if HHI_MRG_SKIP
+      if (!bQtRootCbf)
+        break;
+      }
+#endif
     }
   }
   if( bValidCands )
   {
-    for( UInt uiMergeCand = 0; uiMergeCand < HHI_NUM_MRG_CAND; uiMergeCand++ )
+    for( UInt uiMergeCand = 0; uiMergeCand < MRG_MAX_NUM_CANDS; uiMergeCand++ )
     {
       rpcBestCU->setNeighbourCandIdxSubParts( uiMergeCand, uiNeighbourCandIdx[uiMergeCand], 0, 0,uhDepth );
     }
@@ -743,6 +796,11 @@ Void TEncCu::xCheckRDCostIntra( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, 
     m_pcPredSearch->preestChromaPredMode( rpcTempCU, m_ppcOrigYuv[uiDepth], m_ppcPredYuvTemp[uiDepth] );
   }
   m_pcPredSearch  ->estIntraPredQT      ( rpcTempCU, m_ppcOrigYuv[uiDepth], m_ppcPredYuvTemp[uiDepth], m_ppcResiYuvTemp[uiDepth], m_ppcRecoYuvTemp[uiDepth], uiPreCalcDistC, bSeparateLumaChroma );
+
+#if LM_CHROMA
+  m_ppcRecoYuvTemp[uiDepth]->copyToPicLuma(rpcTempCU->getPic()->getPicYuvRec(), rpcTempCU->getAddr(), rpcTempCU->getZorderIdxInCU() );
+#endif 
+  
   m_pcPredSearch  ->estIntraPredChromaQT( rpcTempCU, m_ppcOrigYuv[uiDepth], m_ppcPredYuvTemp[uiDepth], m_ppcResiYuvTemp[uiDepth], m_ppcRecoYuvTemp[uiDepth], uiPreCalcDistC );
   
   m_pcEntropyCoder->resetBits();
@@ -771,7 +829,7 @@ Void TEncCu::xCheckBestMode( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU )
     UChar uhDepth = rpcBestCU->getDepth(0);
     if( uhDepth == rpcTempCU->getDepth( 0 ) && rpcTempCU->getSlice()->getSliceType() != I_SLICE && rpcTempCU->getPartitionSize( 0 ) == SIZE_2Nx2N && !rpcTempCU->getMergeFlag( 0 ) )
     {
-      for( UInt ui = 0; ui < HHI_NUM_MRG_CAND; ui++ )
+      for( UInt ui = 0; ui < MRG_MAX_NUM_CANDS; ui++ )
       {
         rpcTempCU->setNeighbourCandIdxSubParts( ui, rpcBestCU->getNeighbourCandIdx( ui, 0 ), 0, 0, uhDepth );
       }          

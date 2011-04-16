@@ -1,7 +1,7 @@
 /* The copyright in this software is being made available under the BSD
  * License, included below. This software may be subject to other third party
  * and contributor rights, including patent rights, and no such rights are
- * granted under this license.   
+ * granted under this license.  
  *
  * Copyright (c) 2010-2011, ITU/ISO/IEC
  * All rights reserved.
@@ -167,6 +167,12 @@ Void TDecCu::decompressCU( TComDataCU* pcCU )
 // Protected member functions
 // ====================================================================================================================
 
+/** decode CU block recursively
+ * \param pcCU
+ * \param uiAbsPartIdx 
+ * \param uiDepth 
+ * \returns Void
+ */
 Void TDecCu::xDecodeCU( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
 {
   TComPic* pcPic = pcCU->getPic();
@@ -216,8 +222,27 @@ Void TDecCu::xDecodeCU( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
     m_pcEntropyDecoder->decodeSkipFlag( pcCU, uiAbsPartIdx, uiDepth );
   }
   
-  if( pcCU->isSkip( uiAbsPartIdx ) )
+
+  if( pcCU->isSkipped(uiAbsPartIdx) )
   {
+#if HHI_MRG_SKIP
+    m_ppcCU[uiDepth]->copyInterPredInfoFrom( pcCU, uiAbsPartIdx, REF_PIC_LIST_0 );
+    m_ppcCU[uiDepth]->copyInterPredInfoFrom( pcCU, uiAbsPartIdx, REF_PIC_LIST_1 );
+    TComMvField cMvFieldNeighbours[MRG_MAX_NUM_CANDS << 1]; // double length for mv of both lists
+    UChar uhInterDirNeighbours[MRG_MAX_NUM_CANDS];
+    UInt uiNeighbourCandIdx[MRG_MAX_NUM_CANDS]; //MVs with same idx => same cand
+    for( UInt ui = 0; ui < MRG_MAX_NUM_CANDS; ++ui )
+    {
+      uhInterDirNeighbours[ui] = 0;
+      uiNeighbourCandIdx[ui] = 0;
+    }
+    m_ppcCU[uiDepth]->getInterMergeCandidates( 0, 0, uiDepth, cMvFieldNeighbours, uhInterDirNeighbours, uiNeighbourCandIdx );
+    for(UInt uiIter = 0; uiIter < MRG_MAX_NUM_CANDS; uiIter++ )
+  {
+      pcCU->setNeighbourCandIdxSubParts( uiIter, uiNeighbourCandIdx[uiIter], uiAbsPartIdx, 0, uiDepth );
+    }
+    m_pcEntropyDecoder->decodeMergeIndex( pcCU, 0, uiAbsPartIdx, SIZE_2Nx2N, uhInterDirNeighbours, cMvFieldNeighbours, uiDepth );
+#else
     pcCU->setMVPIdxSubParts( -1, REF_PIC_LIST_0, uiAbsPartIdx, 0, uiDepth);
     pcCU->setMVPNumSubParts( -1, REF_PIC_LIST_0, uiAbsPartIdx, 0, uiDepth);
     
@@ -233,6 +258,7 @@ Void TDecCu::xDecodeCU( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
     {
       m_pcEntropyDecoder->decodeMVPIdx( pcCU, uiAbsPartIdx, uiDepth, REF_PIC_LIST_1, m_ppcCU[uiDepth]);
     }
+#endif
     return;
   }
   m_pcEntropyDecoder->decodePredMode( pcCU, uiAbsPartIdx, uiDepth );
@@ -347,7 +373,11 @@ Void TDecCu::xDecodeIntraTexture( TComDataCU* pcCU, UInt uiPartIdx, Pel* piReco,
     m_pcPrediction->predIntraLumaAng( pcPattern, pcCU->getLumaIntraDir(uiPartIdx), pPred, uiStride, uiWidth, uiHeight, pcCU, bAboveAvail, bLeftAvail );
     
     m_pcTrQuant->setQPforQuant( pcCU->getQP(uiPartIdx), !pcCU->getSlice()->getDepth(), pcCU->getSlice()->getSliceType(), TEXT_LUMA );
-    m_pcTrQuant->invtransformNxN( pResi, uiStride, pCoeff, uiWidth, uiHeight );
+#if INTRA_DST_TYPE_7
+  m_pcTrQuant->invtransformNxN(TEXT_LUMA, pcCU->getLumaIntraDir(uiPartIdx), pResi, uiStride, pCoeff, uiWidth, uiHeight );
+#else
+  m_pcTrQuant->invtransformNxN( pResi, uiStride, pCoeff, uiWidth, uiHeight );
+#endif
     // Reconstruction
     {
       pResi = piResi;
@@ -444,9 +474,12 @@ Void TDecCu::xRecurIntraInvTransChroma(TComDataCU* pcCU, UInt uiAbsPartIdx, Pel*
     // Inverse Transform
     if( pcCU->getCbf(0, eText, uiCurrTrMode) )
     {
-      m_pcTrQuant->invtransformNxN( pResi, uiStride, piCoeff, uiWidth, uiHeight );
+#if INTRA_DST_TYPE_7
+    m_pcTrQuant->invtransformNxN( eText, REG_DCT, pResi, uiStride, piCoeff, uiWidth, uiHeight);
+#else
+    m_pcTrQuant->invtransformNxN( pResi, uiStride, piCoeff, uiWidth, uiHeight );
+#endif
     }
-    
     pResi = piResi;
     
     for( uiY = 0; uiY < uiHeight; uiY++ )
@@ -529,7 +562,12 @@ TDecCu::xIntraRecLumaBlk( TComDataCU* pcCU,
   
   //===== inverse transform =====
   m_pcTrQuant->setQPforQuant  ( pcCU->getQP(0), !pcCU->getSlice()->getDepth(), pcCU->getSlice()->getSliceType(), TEXT_LUMA );
+#if INTRA_DST_TYPE_7
+  m_pcTrQuant->invtransformNxN( TEXT_LUMA, pcCU->getLumaIntraDir( uiAbsPartIdx ), piResi, uiStride, pcCoeff, uiWidth, uiHeight );
+#else
   m_pcTrQuant->invtransformNxN( piResi, uiStride, pcCoeff, uiWidth, uiHeight );
+#endif  
+
   
   //===== reconstruction =====
   {
@@ -589,10 +627,12 @@ TDecCu::xIntraRecChromaBlk( TComDataCU* pcCU,
   
   UInt      uiChromaPredMode  = pcCU->getChromaIntraDir( 0 );
   
+#if !LM_CHROMA
   if( uiChromaPredMode == 4 )
   {
     uiChromaPredMode          = pcCU->getLumaIntraDir( 0 );
   }
+#endif
   
   UInt      uiZOrder          = pcCU->getZorderIdxInCU() + uiAbsPartIdx;
   Pel*      piRecIPred        = ( uiChromaId > 0 ? pcCU->getPic()->getPicYuvRec()->getCrAddr( pcCU->getAddr(), uiZOrder ) : pcCU->getPic()->getPicYuvRec()->getCbAddr( pcCU->getAddr(), uiZOrder ) );
@@ -610,11 +650,31 @@ TDecCu::xIntraRecChromaBlk( TComDataCU* pcCU,
   Int* pPatChroma   = ( uiChromaId > 0 ? pcCU->getPattern()->getAdiCrBuf( uiWidth, uiHeight, m_pcPrediction->getPredicBuf() ) : pcCU->getPattern()->getAdiCbBuf( uiWidth, uiHeight, m_pcPrediction->getPredicBuf() ) );
   
   //===== get prediction signal =====
+#if LM_CHROMA
+  if(pcCU->getSlice()->getSPS()->getUseLMChroma() && uiChromaPredMode == 3)
+  {
+      m_pcPrediction->predLMIntraChroma( pcCU->getPattern(), pPatChroma, piPred, uiStride, uiWidth, uiHeight, uiChromaId );
+  }
+  else
+  {
+    if( uiChromaPredMode == 4 )
+    {
+    uiChromaPredMode          = pcCU->getLumaIntraDir( 0 );
+    }
+  m_pcPrediction->predIntraChromaAng( pcCU->getPattern(), pPatChroma, uiChromaPredMode, piPred, uiStride, uiWidth, uiHeight, pcCU, bAboveAvail, bLeftAvail );  
+  }
+#else // LM_CHROMA
   m_pcPrediction->predIntraChromaAng( pcCU->getPattern(), pPatChroma, uiChromaPredMode, piPred, uiStride, uiWidth, uiHeight, pcCU, bAboveAvail, bLeftAvail );
-  
+#endif
+
   //===== inverse transform =====
   m_pcTrQuant->setQPforQuant  ( pcCU->getQP(0), !pcCU->getSlice()->getDepth(), pcCU->getSlice()->getSliceType(), eText );
+#if INTRA_DST_TYPE_7 
+  m_pcTrQuant->invtransformNxN( eText, REG_DCT, piResi, uiStride, pcCoeff, uiWidth, uiHeight );
+#else
   m_pcTrQuant->invtransformNxN( piResi, uiStride, pcCoeff, uiWidth, uiHeight );
+#endif
+
   //===== reconstruction =====
   {
     Pel* pPred      = piPred;
@@ -669,11 +729,97 @@ TDecCu::xReconIntraQT( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
   UInt  uiNumPart     = pcCU->getNumPartInter();
   UInt  uiNumQParts   = pcCU->getTotalNumPart() >> 2;
   
+#if LM_CHROMA
+  for( UInt uiPU = 0; uiPU < uiNumPart; uiPU++ )
+  {
+    xIntraLumaRecQT( pcCU, uiInitTrDepth, uiPU * uiNumQParts, m_ppcYuvReco[uiDepth], m_ppcYuvReco[uiDepth], m_ppcYuvResi[uiDepth] );
+  }  
+
+  for( UInt uiPU = 0; uiPU < uiNumPart; uiPU++ )
+  {
+    xIntraChromaRecQT( pcCU, uiInitTrDepth, uiPU * uiNumQParts, m_ppcYuvReco[uiDepth], m_ppcYuvReco[uiDepth], m_ppcYuvResi[uiDepth] );
+  }
+#else
+
   for( UInt uiPU = 0; uiPU < uiNumPart; uiPU++ )
   {
     xIntraRecQT( pcCU, uiInitTrDepth, uiPU * uiNumQParts, m_ppcYuvReco[uiDepth], m_ppcYuvReco[uiDepth], m_ppcYuvResi[uiDepth] );
   }
+#endif
+
 }
+
+#if LM_CHROMA
+
+/** Funtion for deriving recontructed PU/CU Luma sample with QTree structure
+ * \param pcCU pointer of current CU
+ * \param uiTrDepth current tranform split depth
+ * \param uiAbsPartIdx  part index
+ * \param pcRecoYuv pointer to reconstructed sample arrays
+ * \param pcPredYuv pointer to prediction sample arrays
+ * \param pcResiYuv pointer to residue sample arrays
+ * 
+ \ This function dervies recontructed PU/CU Luma sample with recursive QTree structure
+ */
+Void
+TDecCu::xIntraLumaRecQT( TComDataCU* pcCU,
+                     UInt        uiTrDepth,
+                     UInt        uiAbsPartIdx,
+                     TComYuv*    pcRecoYuv,
+                     TComYuv*    pcPredYuv, 
+                     TComYuv*    pcResiYuv )
+{
+  UInt uiFullDepth  = pcCU->getDepth(0) + uiTrDepth;
+  UInt uiTrMode     = pcCU->getTransformIdx( uiAbsPartIdx );
+  if( uiTrMode == uiTrDepth )
+  {
+    xIntraRecLumaBlk  ( pcCU, uiTrDepth, uiAbsPartIdx, pcRecoYuv, pcPredYuv, pcResiYuv );
+  }
+  else
+  {
+    UInt uiNumQPart  = pcCU->getPic()->getNumPartInCU() >> ( ( uiFullDepth + 1 ) << 1 );
+    for( UInt uiPart = 0; uiPart < 4; uiPart++ )
+    {
+      xIntraLumaRecQT( pcCU, uiTrDepth + 1, uiAbsPartIdx + uiPart * uiNumQPart, pcRecoYuv, pcPredYuv, pcResiYuv );
+    }
+  }
+}
+
+/** Funtion for deriving recontructed PU/CU chroma samples with QTree structure
+ * \param pcCU pointer of current CU
+ * \param uiTrDepth current tranform split depth
+ * \param uiAbsPartIdx  part index
+ * \param pcRecoYuv pointer to reconstructed sample arrays
+ * \param pcPredYuv pointer to prediction sample arrays
+ * \param pcResiYuv pointer to residue sample arrays
+ * 
+ \ This function dervies recontructed PU/CU chroma samples with QTree recursive structure
+ */
+Void
+TDecCu::xIntraChromaRecQT( TComDataCU* pcCU,
+                     UInt        uiTrDepth,
+                     UInt        uiAbsPartIdx,
+                     TComYuv*    pcRecoYuv,
+                     TComYuv*    pcPredYuv, 
+                     TComYuv*    pcResiYuv )
+{
+  UInt uiFullDepth  = pcCU->getDepth(0) + uiTrDepth;
+  UInt uiTrMode     = pcCU->getTransformIdx( uiAbsPartIdx );
+  if( uiTrMode == uiTrDepth )
+  {
+    xIntraRecChromaBlk( pcCU, uiTrDepth, uiAbsPartIdx, pcRecoYuv, pcPredYuv, pcResiYuv, 0 );
+    xIntraRecChromaBlk( pcCU, uiTrDepth, uiAbsPartIdx, pcRecoYuv, pcPredYuv, pcResiYuv, 1 );
+  }
+  else
+  {
+    UInt uiNumQPart  = pcCU->getPic()->getNumPartInCU() >> ( ( uiFullDepth + 1 ) << 1 );
+    for( UInt uiPart = 0; uiPart < 4; uiPart++ )
+    {
+      xIntraChromaRecQT( pcCU, uiTrDepth + 1, uiAbsPartIdx + uiPart * uiNumQPart, pcRecoYuv, pcPredYuv, pcResiYuv );
+    }
+  }
+}
+#endif
 
 Void TDecCu::xCopyToPic( TComDataCU* pcCU, TComPic* pcPic, UInt uiZorderIdx, UInt uiDepth )
 {

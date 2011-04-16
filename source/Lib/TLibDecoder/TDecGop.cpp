@@ -1,7 +1,7 @@
 /* The copyright in this software is being made available under the BSD
  * License, included below. This software may be subject to other third party
  * and contributor rights, including patent rights, and no such rights are
- * granted under this license.   
+ * granted under this license.  
  *
  * Copyright (c) 2010-2011, ITU/ISO/IEC
  * All rights reserved.
@@ -35,11 +35,15 @@
     \brief    GOP decoder class
 */
 
+extern bool g_md5_mismatch; ///< top level flag to signal when there is a decode problem
+
 #include "TDecGop.h"
 #include "TDecCAVLC.h"
 #include "TDecSbac.h"
 #include "TDecBinCoder.h"
 #include "TDecBinCoderCABAC.h"
+#include "../libmd5/MD5.h"
+#include "../TLibCommon/SEI.h"
 
 #include <time.h>
 
@@ -75,7 +79,11 @@ Void TDecGop::init( TDecEntropy*            pcEntropyDecoder,
                    TDecCavlc*              pcCavlcDecoder, 
                    TDecSlice*              pcSliceDecoder, 
                    TComLoopFilter*         pcLoopFilter, 
-                   TComAdaptiveLoopFilter* pcAdaptiveLoopFilter )
+                   TComAdaptiveLoopFilter* pcAdaptiveLoopFilter 
+#if MTK_SAO
+                   ,TComSampleAdaptiveOffset* pcSAO
+#endif                   
+                   )
 {
   m_pcEntropyDecoder      = pcEntropyDecoder;
   m_pcSbacDecoder         = pcSbacDecoder;
@@ -84,6 +92,10 @@ Void TDecGop::init( TDecEntropy*            pcEntropyDecoder,
   m_pcSliceDecoder        = pcSliceDecoder;
   m_pcLoopFilter          = pcLoopFilter;
   m_pcAdaptiveLoopFilter  = pcAdaptiveLoopFilter;
+#if MTK_SAO
+  m_pcSAO  = pcSAO;
+#endif
+
 }
 
 // ====================================================================================================================
@@ -102,7 +114,6 @@ Void TDecGop::decompressGop (Bool bEos, TComBitstream* pcBitstream, TComPic*& rp
   static Bool  bFirst = true;
   static UInt  uiILSliceCount;
   static UInt* puiILSliceStartLCU;
-
   if (!bExecuteDeblockAndAlf)
   {
     if(bFirst)
@@ -142,6 +153,14 @@ Void TDecGop::decompressGop (Bool bEos, TComBitstream* pcBitstream, TComPic*& rp
     
     if (uiStartCUAddr==0)  // decode ALF params only from first slice header
     {
+#if MTK_SAO
+      if( rpcPic->getSlice(0)->getSPS()->getUseSAO() )
+      {  
+        m_pcSAO->InitSao(&m_cSaoParam);
+        m_pcEntropyDecoder->decodeSaoParam(&m_cSaoParam);
+      }
+#endif
+
       if ( rpcPic->getSlice(0)->getSPS()->getUseALF() )
       {
 #if TSB_ALF_HEADER
@@ -161,7 +180,14 @@ Void TDecGop::decompressGop (Bool bEos, TComBitstream* pcBitstream, TComPic*& rp
     // deblocking filter
     m_pcLoopFilter->setCfg(pcSlice->getLoopFilterDisable(), 0, 0);
     m_pcLoopFilter->loopFilterPic( rpcPic );
-    
+#if MTK_SAO
+    {
+      if( rpcPic->getSlice(0)->getSPS()->getUseSAO())
+      {
+        m_pcSAO->SAOProcess(rpcPic, &m_cSaoParam);
+      }
+    }
+#endif
     // adaptive loop filter
     if( pcSlice->getSPS()->getUseALF() )
     {
@@ -232,6 +258,36 @@ Void TDecGop::decompressGop (Bool bEos, TComBitstream* pcBitstream, TComPic*& rp
 #if FIXED_ROUNDING_FRAME_MEMORY
     rpcPic->getPicYuvRec()->xFixedRoundingPic();
 #endif 
+
+    /* calculate MD5sum for entire reconstructed picture */
+    unsigned char recon_digest[16];
+    calcMD5(*rpcPic->getPicYuvRec(), recon_digest);
+
+    /* compare digest against received version */
+    const char* md5_ok = "(unk)";
+    bool md5_mismatch = false;
+    SEImessages *seis = rpcPic->getSEIs();
+
+    if (seis && seis->picture_digest)
+    {
+      md5_ok = "(OK)";
+      for (unsigned i = 0; i < 16; i++)
+      {
+        if (recon_digest[i] != seis->picture_digest->digest[i])
+        {
+          md5_ok = "(***ERROR***)";
+          md5_mismatch = true;
+        }
+      }
+    }
+
+    printf("[MD5:%s,%s] ", digestToString(recon_digest), md5_ok);
+    if (md5_mismatch)
+    {
+      g_md5_mismatch = true;
+      printf("[rxMD5:%s] ", digestToString(seis->picture_digest->digest));
+    }
+
     rpcPic->setReconMark(true);
 #if MTK_NONCROSS_INLOOP_FILTER
     uiILSliceCount = 0;

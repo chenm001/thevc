@@ -1,7 +1,7 @@
 /* The copyright in this software is being made available under the BSD
  * License, included below. This software may be subject to other third party
  * and contributor rights, including patent rights, and no such rights are
- * granted under this license.   
+ * granted under this license.  
  *
  * Copyright (c) 2010-2011, ITU/ISO/IEC
  * All rights reserved.
@@ -58,7 +58,7 @@ TAppEncTop::~TAppEncTop()
 Void TAppEncTop::xInitLibCfg()
 {
   m_cTEncTop.setFrameRate                    ( m_iFrameRate );
-  m_cTEncTop.setFrameSkip                    ( m_iFrameSkip );
+  m_cTEncTop.setFrameSkip                    ( m_FrameSkip );
   m_cTEncTop.setSourceWidth                  ( m_iSourceWidth );
   m_cTEncTop.setSourceHeight                 ( m_iSourceHeight );
   m_cTEncTop.setFrameToBeEncoded             ( m_iFrameToBeEncoded );
@@ -122,6 +122,11 @@ Void TAppEncTop::xInitLibCfg()
   m_cTEncTop.setUseBQP                       ( m_bUseBQP      );
   m_cTEncTop.setUseFastEnc                   ( m_bUseFastEnc  );
   m_cTEncTop.setUseMRG                       ( m_bUseMRG      ); // SOPH:
+
+#if LM_CHROMA 
+  m_cTEncTop.setUseLMChroma                  ( m_bUseLMChroma );
+#endif
+
 #if HHI_RMP_SWITCH
   m_cTEncTop.setUseRMP                     ( m_bUseRMP );
 #endif
@@ -145,12 +150,17 @@ Void TAppEncTop::xInitLibCfg()
   }
   m_cTEncTop.setLFCrossSliceBoundaryFlag( m_bLFCrossSliceBoundaryFlag );
 #endif
+#if MTK_SAO
+  m_cTEncTop.setUseSAO               ( m_bUseSAO         );
+#endif
 }
 
 Void TAppEncTop::xCreateLib()
 {
   // Video I/O
   m_cTVideoIOYuvInputFile.open( m_pchInputFile,     false, m_uiInputBitDepth, m_uiInternalBitDepth );  // read  mode
+  m_cTVideoIOYuvInputFile.skipFrames(m_FrameSkip, m_iSourceWidth, m_iSourceHeight);
+
   m_cTVideoIOYuvReconFile.open( m_pchReconFile,     true, m_uiOutputBitDepth, m_uiInternalBitDepth);  // write mode
   m_cTVideoIOBitsFile.openBits( m_pchBitstreamFile, true  );  // write mode
   

@@ -1,7 +1,7 @@
 /* The copyright in this software is being made available under the BSD
  * License, included below. This software may be subject to other third party
  * and contributor rights, including patent rights, and no such rights are
- * granted under this license.   
+ * granted under this license.  
  *
  * Copyright (c) 2010-2011, ITU/ISO/IEC
  * All rights reserved.
@@ -79,6 +79,10 @@ extern       UInt   g_auiRasterToPelX[ MAX_NUM_SPU_W*MAX_NUM_SPU_W ];
 extern       UInt   g_auiRasterToPelY[ MAX_NUM_SPU_W*MAX_NUM_SPU_W ];
 
 Void         initRasterToPelXY ( UInt uiMaxCUWidth, UInt uiMaxCUHeight, UInt uiMaxDepth );
+#if MTK_SAO
+Int  LevelRowCol2Idx(int level, int row, int col);
+void Idx2LevelRowCol(int idx, int *level, int *row, int *col);
+#endif
 
 // global variable (LCU width/height, max. CU depth)
 extern       UInt g_uiMaxCUWidth;
@@ -87,6 +91,26 @@ extern       UInt g_uiMaxCUDepth;
 extern       UInt g_uiAddCUDepth;
 
 extern       UInt g_auiPUOffset[4];
+
+#if E243_CORE_TRANSFORMS
+#define QUANT_IQUANT_SHIFT    20 // Q(QP%6) * IQ(QP%6) = 2^20
+#define QUANT_SHIFT           14 // Q(4) = 2^14
+#define SCALE_BITS            15 // Inherited from TMuC, pressumably for fractional bit estimates in RDOQ
+#define MAX_TR_DYNAMIC_RANGE  15 // Maximum transform dynamic range (excluding sign bit)
+
+#define SHIFT_INV_1ST          7 // Shift after first inverse transform stage
+#define SHIFT_INV_2ND         12 // Shift after second inverse transform stage
+
+extern UInt g_auiQ[6];             // Q(QP%6)  
+extern UInt g_auiIQ[6];            // IQ(QP%6)
+extern const short g_aiT4[4][4];
+extern const short g_aiT8[8][8];
+extern const short g_aiT16[16][16];
+extern const short g_aiT32[32][32];
+
+
+
+#endif
 
 // ====================================================================================================================
 // Quantization & DeQuantization
@@ -122,6 +146,16 @@ extern       UInt   g_auiAntiScan8[64];                   // 2D context mapping 
 #if QC_MDCS
 extern       UInt*  g_auiSigLastScan[3][ MAX_CU_DEPTH ];  // raster index from scanning index (zigzag, hor, ver)
 #endif //QC_MDCS
+#if PCP_SIGMAP_SIMPLE_LAST
+extern       UInt   g_uiCtxXYOffset[ MAX_CU_DEPTH ];      //!< context offset for last pos coding
+extern       UInt   g_uiCtxXY      [ 31 ];                //!< context mapping for last pos coding
+#endif
+
+#if E253
+extern const UInt   g_auiGoRiceRange[4];                  //!< maximum value coded with Rice codes
+extern const UInt   g_auiGoRicePrefixLen[4];              //!< prefix length for each maximum value
+extern const UInt   g_aauiGoRiceUpdate[4][16];            //!< parameter update rules for Rice codes
+#endif
 
 // ====================================================================================================================
 // CAVLC table
@@ -138,19 +172,32 @@ extern const UChar  g_aucLenTableTO4 [4][5];
 extern const UChar  g_aucACTab[6];
 extern const UChar  g_aucFrameBits[32];
 
+#if !CAVLC_COEF_LRG_BLK
 extern const UInt    g_auiLPTableE8[8][128];
 extern const UInt    g_auiLPTableD8[8][128];
+#endif
 extern const UInt    g_auiLPTableE4[3][32];
 extern const UInt    g_auiLPTableD4[3][32];
 extern const UInt    g_auiLastPosVlcIndex[10];
 extern const UInt    g_auiLastPosVlcNum[10][17];
+#if RUNLEVEL_TABLE_CUT
+extern const UInt    g_auiLumaRun8x8[28][29];
+#else
 extern const UInt    g_auiLumaRun8x8[29][2][64];
+#endif
 
 #if LCEC_INTRA_MODE
+#if MTK_DCM_MPM
+extern const UInt    g_auiIntraModeTableD17[2][16];
+extern const UInt    g_auiIntraModeTableE17[2][16];
+extern const UInt    g_auiIntraModeTableD34[2][33];
+extern const UInt    g_auiIntraModeTableE34[2][33];
+#else
 extern const UInt    g_auiIntraModeTableD17[16];
 extern const UInt    g_auiIntraModeTableE17[16];
 extern const UInt    g_auiIntraModeTableD34[33];
 extern const UInt    g_auiIntraModeTableE34[33];
+#endif
 #endif
 
 #if QC_MOD_LCEC
@@ -159,7 +206,16 @@ extern const UInt    g_auiVlcTable8x8Intra[29];
 #else
 extern const UInt    g_auiVlcTable8x8[28];
 #endif
+#if RUNLEVEL_TABLE_CUT 
+extern const UInt    g_acstructLumaRun8x8[28][29];
+#else
 extern const LastCoeffStruct g_acstructLumaRun8x8[29][127];
+#endif
+
+#if CAVLC_COEF_LRG_BLK
+extern const UInt   g_auiVlcTable16x16Intra[29];
+extern const UInt   g_auiVlcTable16x16Inter[29];
+#endif
 
 #if LCEC_INTRA_MODE
 extern const UInt huff17_2[2][17];
@@ -169,18 +225,41 @@ extern const UInt lengthHuff34_2[2][34];
 #endif
 
 #if QC_MOD_LCEC
+#if CAVLC_COEF_LRG_BLK
+extern const UInt   *g_pLumaRunTr14x4[5]; 
+extern const UInt   *g_pLumaRunTr18x8[5]; 
+#else
 extern const UInt    g_auiLumaRunTr14x4[5][15];
 extern const UInt    g_auiLumaRunTr18x8[5][29];
 #endif
-
+#endif
+#if CAVLC_RQT_CBP
+extern const UInt    g_auiCBP_YUV_TableE[4][8];
+extern const UInt    g_auiCBP_YUV_TableD[4][8];
+extern const UInt    g_auiCBP_YS_TableE[2][4];
+extern const UInt    g_auiCBP_YS_TableD[2][4];
+extern const UInt    g_auiCBP_YCS_TableE[2][8];
+extern const UInt    g_auiCBP_YCS_TableD[2][8];
+extern const UInt    g_auiCBP_YCS_Table[2][8];
+extern const UInt    g_auiCBP_YCS_TableLen[2][8];
+extern const UInt    g_auiCBP_YC_TableE[2][4];
+extern const UInt    g_auiCBP_YC_TableD[2][4];
+extern const UInt    g_auiCBP_4Y_TableE[2][15];
+extern const UInt    g_auiCBP_4Y_TableD[2][15];
+extern const UInt    g_auiCBP_4Y_VlcNum[15];
+#else
 extern const UInt    g_auiCBPTableE[2][8];
 extern const UInt    g_auiCBPTableD[2][8];
-extern const UInt    g_auiCbpVlcNum[2][8];
-
 extern const UInt    g_auiBlkCBPTableE[2][15];
 extern const UInt    g_auiBlkCBPTableD[2][15];
 extern const UInt    g_auiBlkCbpVlcNum[15];
+#endif//
+extern const UInt    g_auiCbpVlcNum[2][8];
 
+#if UNIFY_INTER_TABLE
+extern const UInt g_auiComMI1TableE[9];
+extern const UInt g_auiComMI1TableD[9];
+#else
 extern const UInt g_auiMI1TableE[8];
 extern const UInt g_auiMI1TableD[8];
 extern const UInt g_auiMI2TableE[15];
@@ -198,6 +277,8 @@ extern const UInt g_auiMI1TableDOnly1Ref[8];
 extern const UInt g_auiMI1TableEOnly1RefNoL1[8];
 extern const UInt g_auiMI1TableDOnly1RefNoL1[8];
 #endif
+#endif
+
 #if QC_LCEC_INTER_MODE
 extern const UInt g_auiInterModeTableE[4][7];
 extern const UInt g_auiInterModeTableD[4][7];
@@ -215,7 +296,11 @@ extern const UChar  g_aucIntraModeNumFast[7];
 extern const UChar g_aucIntraModeNumAng[7];
 extern const UChar g_aucIntraModeBitsAng[7];
 extern const UChar g_aucAngModeMapping[4][34];
+#if ADD_PLANAR_MODE
+extern const UChar g_aucAngIntraModeOrder[NUM_INTRA_MODE];
+#else
 extern const UChar g_aucAngIntraModeOrder[34];
+#endif
 
 // ====================================================================================================================
 // Bit-depth
@@ -231,6 +316,20 @@ extern       UInt g_uiBASE_MAX;
 // ====================================================================================================================
 
 extern const UChar g_aucConvertTxtTypeToIdx[4];
+
+// ==========================================
+// Mode-Dependent DST Matrices
+#if INTRA_DST_TYPE_7
+extern const short g_as_DST_MAT_4 [4][4];
+#if ADD_PLANAR_MODE
+extern const UChar g_aucDCTDSTMode_Vert[NUM_INTRA_MODE];
+extern const UChar g_aucDCTDSTMode_Hor[NUM_INTRA_MODE];
+#else
+extern const UChar g_aucDCTDSTMode_Vert[34];
+extern const UChar g_aucDCTDSTMode_Hor[34];
+#endif
+#endif
+// ==========================================
 
 // ====================================================================================================================
 // Misc.
@@ -267,7 +366,48 @@ __inline UInt xRunLevelInd(Int lev, Int run, Int maxrun, UInt lrg1Pos)
   }
   return(cn);
 }
+
+#if RUNLEVEL_TABLE_CUT
+/** Function for deriving codeword index in CAVLC run-level coding 
+ * \param lev a value indicating coefficient level greater than one or not
+ * \param run length of run
+ * \param maxrun maximum length of run for a given coefficient location
+ * \returns the codeword index
+ * This function derives codeword index in CAVLC run-level coding .
+ */
+__inline UInt xRunLevelIndInter(Int lev, Int run, Int maxrun)
+{
+  UInt cn;
+  
+  if (maxrun < 28)
+  {
+    if (lev == 0)
+    {
+      cn = g_auiLumaRun8x8[maxrun][run];
+    }
+    else
+    {
+      cn = maxrun + g_auiLumaRun8x8[maxrun][run] + 1;  
+    }
+  }
+  else
+  {
+    if (lev == 0)
+    {
+      cn = run;
+    }
+    else
+    {
+      cn = maxrun + run + 2;
+    }
+  }
+
+  return(cn);
+}
 #endif
+#endif
+
+
 #if QC_MOD_LCEC_RDOQ
 __inline UInt xLeadingZeros(UInt uiCode)
 {
@@ -289,8 +429,72 @@ __inline UInt xLeadingZeros(UInt uiCode)
 
 extern       Char   g_aucConvertToBit  [ MAX_CU_SIZE+1 ];   // from width to log2(width)-2
 
+#if CAVLC_COEF_LRG_BLK
+/** Function for deriving codeword index in coding last significant position and level information.
+ * \param lev a value indicating coefficient level greater than one or not
+ * \param last_pos last significant coefficient position
+ * \param N block size
+ * \returns the codeword index
+ * This function derives codeword index in coding last significant position and level information in CAVLC. 
+ */
+__inline UInt xLastLevelInd(Int lev, Int last_pos, Int N)
+{
+  UInt cx;
+  UInt uiConvBit = g_aucConvertToBit[N]+2;
+
+  if (lev==0)
+  {
+    cx = ((last_pos + (last_pos>>uiConvBit))>>uiConvBit)+last_pos;
+  }
+  else
+  {
+    if (last_pos<N)
+    {
+      cx = (last_pos+1)<<uiConvBit;
+    }
+    else
+    {
+      cx = (0x01<<(uiConvBit<<1)) + last_pos;
+    }
+  }
+  return(cx);
+}
+
+__inline void xLastLevelIndInv(Int& lev, Int& last_pos, Int N, UInt cx)
+{
+  UInt uiConvBit = g_aucConvertToBit[N]+2;
+  Int N2 = 0x01<<(uiConvBit<<1);
+
+  if(cx <= N2+N)
+  {
+    if(cx && (cx&(N-1))==0)
+    {
+      lev = 1;
+      last_pos = (cx>>uiConvBit)-1;
+    }
+    else
+    {
+      lev = 0;
+      last_pos = cx - (cx>>uiConvBit);
+    }
+  }
+  else
+  {
+    lev = 1;
+    last_pos = cx - N2;
+  }
+}
+#endif
+
+
 #if CHROMA_CODEWORD_SWITCH 
 extern const UChar ChromaMapping[2][5];
+#endif
+
+#if ADD_PLANAR_MODE
+__inline Void mapPlanartoDC( UChar& curDir ) { curDir = (curDir == PLANAR_IDX) ? 2 : curDir; }
+__inline Void mapPlanartoDC(  UInt& curDir ) { curDir = (curDir == PLANAR_IDX) ? 2 : curDir; }
+__inline Void mapPlanartoDC(   Int& curDir ) { curDir = (curDir == PLANAR_IDX) ? 2 : curDir; }
 #endif
 
 #define ENC_DEC_TRACE 0
@@ -323,7 +527,67 @@ extern UInt64 g_nSymbolCounter;
 #define DTRACE_CABAC_N
 
 #endif
+#if CAVLC_COUNTER_ADAPT
+/** Function for codeword adaptation
+ * \param uiCodeIdx codeword index of the syntax element being coded
+ * \param pucTableCounter pointer to counter array
+ * \param rucTableCounterSum sum counter
+ * \param puiTableD pointer to table mapping codeword index to syntax element value
+ * \param puiTableE pointer to table mapping syntax element value to codeword index
+ * \param uiCounterNum number of counters
+ * \returns
+ * This function performs codeword adaptation.
+*/
+__inline Void adaptCodeword( UInt uiCodeIdx, UChar * pucTableCounter, UChar & rucTableCounterSum, UInt * puiTableD, UInt * puiTableE, UInt uiCounterNum )
+{
+  Bool bSwapping  = false;
+  UInt uiCodeword = puiTableD [uiCodeIdx];
 
+  UInt uiPrevCodeIdx   = (uiCodeIdx >= 1)? uiCodeIdx - 1 : 0;
+  UInt uiPrevCodeword  = puiTableD[uiPrevCodeIdx];
 
+  if ( uiCodeIdx < uiCounterNum ) 
+  {
+    pucTableCounter [uiCodeIdx] ++;
+
+    if (pucTableCounter[uiCodeIdx] >= pucTableCounter[uiPrevCodeIdx])
+    {
+      bSwapping = true;
+      UChar ucTempCounter             = pucTableCounter[uiCodeIdx];
+      pucTableCounter[uiCodeIdx]      = pucTableCounter[uiPrevCodeIdx];
+      pucTableCounter[uiPrevCodeIdx]  = ucTempCounter;
+    }
+
+    if ( rucTableCounterSum >= 15 )
+    {
+      rucTableCounterSum = 0;
+      for (UInt uiIdx = 0; uiIdx < uiCounterNum; uiIdx++)
+      {
+        pucTableCounter[uiIdx] >>= 1;
+      }
+    }
+    else
+    {
+      rucTableCounterSum ++;
+    }
+  }
+  else
+  {
+    bSwapping = true;
+  }
+
+  if ( bSwapping )
+  {
+    puiTableD[uiPrevCodeIdx] = uiCodeword;
+    puiTableD[uiCodeIdx    ] = uiPrevCodeword;
+
+    if  (puiTableE != NULL)
+    {
+      puiTableE[uiCodeword]     = uiPrevCodeIdx;
+      puiTableE[uiPrevCodeword] = uiCodeIdx;
+    }
+  }
+}
+#endif
 #endif  //__TCOMROM__
 

@@ -1,7 +1,7 @@
 /* The copyright in this software is being made available under the BSD
  * License, included below. This software may be subject to other third party
  * and contributor rights, including patent rights, and no such rights are
- * granted under this license.   
+ * granted under this license.  
  *
  * Copyright (c) 2010-2011, ITU/ISO/IEC
  * All rights reserved.
@@ -54,6 +54,8 @@
 // Class definition
 // ====================================================================================================================
 
+class SEImessages;
+
 /// SBAC decoder class
 class TDecSbac : public TDecEntropyIf
 {
@@ -74,6 +76,7 @@ public:
   
   Void  parseSPS                  ( TComSPS* pcSPS         ) {}
   Void  parsePPS                  ( TComPPS* pcPPS         ) {}
+  void parseSEI(SEImessages&) {}
   Void  parseSliceHeader          ( TComSlice*& rpcSlice   ) {}
   Void  parseTerminatingBit       ( UInt& ruiBit );
   Void  parseMVPIdx               ( TComDataCU* pcCU, Int& riMVPIdx, Int iMVPNum, UInt uiAbsPartIdx, UInt uiDepth, RefPicList eRefList );
@@ -82,15 +85,27 @@ public:
   Void  parseAlfUvlc              ( UInt& ruiVal           );
   Void  parseAlfSvlc              ( Int&  riVal            );
   Void  parseAlfCtrlDepth         ( UInt& ruiAlfCtrlDepth  );
-  
+#if MTK_SAO
+  Void  parseAoFlag              ( UInt& ruiVal           );
+  Void  parseAoUvlc              ( UInt& ruiVal           );
+  Void  parseAoSvlc              ( Int&  riVal            );
+#endif
 private:
   Void  xReadUnarySymbol    ( UInt& ruiSymbol, ContextModel* pcSCModel, Int iOffset );
   Void  xReadUnaryMaxSymbol ( UInt& ruiSymbol, ContextModel* pcSCModel, Int iOffset, UInt uiMaxSymbol );
   Void  xReadEpExGolomb     ( UInt& ruiSymbol, UInt uiCount );
+#if E253
+  Void  xReadGoRiceExGolomb ( UInt &ruiSymbol, UInt &ruiGoRiceParam );
+#else
   Void  xReadExGolombLevel  ( UInt& ruiSymbol, ContextModel& rcSCModel  );
+#endif
   
+#if MVD_CTX
+  Void  xReadMvd            ( Int& riMvdComp, UInt uiAbsSumL, UInt uiAbsSumA, UInt uiCtx );
+#else
   Void  xReadMvd            ( Int& riMvdComp, UInt uiAbsSum, UInt uiCtx );
-  
+#endif
+
   Void  xReadExGolombMvd    ( UInt& ruiSymbol, ContextModel* pcSCModel, UInt uiMaxBin );
   
 private:
@@ -131,6 +146,13 @@ public:
   Void parseCbf           ( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eType, UInt uiTrDepth, UInt uiDepth ) {}
   Void parseBlockCbf      ( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eType, UInt uiTrDepth, UInt uiDepth, UInt uiQPartNum ) {}
   
+#if CAVLC_RQT_CBP
+  Void parseCbfTrdiv      ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiTrDepth, UInt uiDepth, UInt& uiSubdiv ) {}
+#endif
+
+#if PCP_SIGMAP_SIMPLE_LAST
+  __inline Void parseLastSignificantXY( UInt& uiPosLastX, UInt& uiPosLastY, const UInt uiWidth, const TextType eTType, const UInt uiCTXIdx, const UInt uiScanIdx );
+#endif
   Void parseCoeffNxN      ( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx, UInt uiWidth, UInt uiHeight, UInt uiDepth, TextType eTType );
   
 private:
@@ -146,6 +168,9 @@ private:
   ContextModel3DBuffer m_cCUPredModeSCModel;
   
   ContextModel3DBuffer m_cCUIntraPredSCModel;
+#if ADD_PLANAR_MODE
+  ContextModel3DBuffer m_cPlanarFlagSCModel;
+#endif
   ContextModel3DBuffer m_cCUChromaPredSCModel;
   ContextModel3DBuffer m_cCUInterDirSCModel;
   ContextModel3DBuffer m_cCURefPicSCModel;
@@ -158,7 +183,12 @@ private:
   ContextModel3DBuffer m_cCUQtCbfSCModel;
   
   ContextModel3DBuffer m_cCUSigSCModel;
+#if PCP_SIGMAP_SIMPLE_LAST
+  ContextModel3DBuffer m_cCuCtxLastX;
+  ContextModel3DBuffer m_cCuCtxLastY;
+#else  
   ContextModel3DBuffer m_cCULastSCModel;
+#endif
   ContextModel3DBuffer m_cCUOneSCModel;
   ContextModel3DBuffer m_cCUAbsSCModel;
   
@@ -167,6 +197,12 @@ private:
   ContextModel3DBuffer m_cALFFlagSCModel;
   ContextModel3DBuffer m_cALFUvlcSCModel;
   ContextModel3DBuffer m_cALFSvlcSCModel;
+#if MTK_SAO
+  ContextModel3DBuffer m_cAOFlagSCModel;
+  ContextModel3DBuffer m_cAOUvlcSCModel;
+  ContextModel3DBuffer m_cAOSvlcSCModel;
+#endif
+
 };
 
 #endif // !defined(AFX_TDECSBAC_H__CFCAAA19_8110_47F4_9A16_810C4B5499D5__INCLUDED_)

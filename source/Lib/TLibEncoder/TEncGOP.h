@@ -1,7 +1,7 @@
 /* The copyright in this software is being made available under the BSD
  * License, included below. This software may be subject to other third party
  * and contributor rights, including patent rights, and no such rights are
- * granted under this license.   
+ * granted under this license.  
  *
  * Copyright (c) 2010-2011, ITU/ISO/IEC
  * All rights reserved.
@@ -53,6 +53,10 @@
 
 #include "TEncAnalyze.h"
 
+#if RVM_VCEGAM10
+#include <vector>
+#endif
+
 class TEncTop;
 
 // ====================================================================================================================
@@ -85,7 +89,9 @@ private:
   // Adaptive Loop filter
   TEncAdaptiveLoopFilter* m_pcAdaptiveLoopFilter;
   //--Adaptive Loop filter
-  
+#if MTK_SAO
+  TEncSampleAdaptiveOffset*  m_pcSAO;
+#endif
   TComBitCounter*         m_pcBitCounter;
   
   // indicate sequence first
@@ -104,6 +110,10 @@ private:
 //   UInt*                   m_puiILSliceStartLCU;
 //   UInt*                   m_puiILSliceEndLCU;
 // #endif
+
+#if RVM_VCEGAM10
+  std::vector<Int> m_vRVM_RP;
+#endif
 
 public:
   TEncGOP();
@@ -138,6 +148,10 @@ protected:
   Void  xCalculateAddPSNR ( TComPic* pcPic, TComPicYuv* pcPicD, UInt uiBits, Double dEncTime );
   
   UInt64 xFindDistortionFrame (TComPicYuv* pcPic0, TComPicYuv* pcPic1);
+
+#if RVM_VCEGAM10
+  Double xCalculateRVM();
+#endif
 };// END CLASS DEFINITION TEncGOP
 
 
