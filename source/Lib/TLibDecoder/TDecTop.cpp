@@ -38,6 +38,7 @@
 #include "TDecTop.h"
 
 TDecTop::TDecTop()
+: m_SEIs(0)
 {
   m_iGopSize      = 0;
   m_bGopSizeSet   = false;

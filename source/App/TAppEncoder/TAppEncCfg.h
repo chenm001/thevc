@@ -163,6 +163,8 @@ protected:
   Bool      m_bUseConstrainedIntraPred;                       ///< flag for using constrained intra prediction
 #endif
   
+  bool m_pictureDigestEnabled; ///< enable(1)/disable(0) md5 computation and SEI signalling
+
   // internal member functions
   Void  xSetGlobal      ();                                   ///< set global variables
   Void  xCheckParameter ();                                   ///< check validity of configuration values

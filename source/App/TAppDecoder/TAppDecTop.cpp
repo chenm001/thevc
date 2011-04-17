@@ -213,6 +213,7 @@ Void TAppDecTop::xInitDecLib()
 {
   // initialize decoder class
   m_cTDecTop.init();
+  m_cTDecTop.setPictureDigestEnabled(m_pictureDigestEnabled);
 }
 
 /** \param pcListPic list of pictures to be written to file

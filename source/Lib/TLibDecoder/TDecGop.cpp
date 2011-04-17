@@ -47,6 +47,8 @@ extern bool g_md5_mismatch; ///< top level flag to signal when there is a decode
 
 #include <time.h>
 
+static void calcAndPrintMD5Status(TComPicYuv& pic, const SEImessages* seis);
+
 // ====================================================================================================================
 // Constructor / destructor / initialization / destroy
 // ====================================================================================================================
@@ -259,33 +261,8 @@ Void TDecGop::decompressGop (Bool bEos, TComBitstream* pcBitstream, TComPic*& rp
     rpcPic->getPicYuvRec()->xFixedRoundingPic();
 #endif 
 
-    /* calculate MD5sum for entire reconstructed picture */
-    unsigned char recon_digest[16];
-    calcMD5(*rpcPic->getPicYuvRec(), recon_digest);
-
-    /* compare digest against received version */
-    const char* md5_ok = "(unk)";
-    bool md5_mismatch = false;
-    SEImessages *seis = rpcPic->getSEIs();
-
-    if (seis && seis->picture_digest)
-    {
-      md5_ok = "(OK)";
-      for (unsigned i = 0; i < 16; i++)
-      {
-        if (recon_digest[i] != seis->picture_digest->digest[i])
-        {
-          md5_ok = "(***ERROR***)";
-          md5_mismatch = true;
-        }
-      }
-    }
-
-    printf("[MD5:%s,%s] ", digestToString(recon_digest), md5_ok);
-    if (md5_mismatch)
-    {
-      g_md5_mismatch = true;
-      printf("[rxMD5:%s] ", digestToString(seis->picture_digest->digest));
+    if (m_pictureDigestEnabled) {
+      calcAndPrintMD5Status(*rpcPic->getPicYuvRec(), rpcPic->getSEIs());
     }
 
     rpcPic->setReconMark(true);
@@ -295,3 +272,44 @@ Void TDecGop::decompressGop (Bool bEos, TComBitstream* pcBitstream, TComPic*& rp
   }
 }
 
+/**
+ * Calculate and print MD5 for @pic, compare to picture_digest SEI if
+ * present in @seis.  @seis may be NULL.  MD5 is printed to stdout, in
+ * a manner suitable for the status line. Theformat is:
+ *  [MD5:xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx,(yyy)]
+ * Where, x..x is the md5
+ *        yyy has the following meanings:
+ *            OK          - calculated MD5 matches the SEI message
+ *            ***ERROR*** - calculated MD5 does not match the SEI message
+ *            unk         - no SEI message was available for comparison
+ */
+static void calcAndPrintMD5Status(TComPicYuv& pic, const SEImessages* seis)
+{
+  /* calculate MD5sum for entire reconstructed picture */
+  unsigned char recon_digest[16];
+  calcMD5(pic, recon_digest);
+
+  /* compare digest against received version */
+  const char* md5_ok = "(unk)";
+  bool md5_mismatch = false;
+
+  if (seis && seis->picture_digest)
+  {
+    md5_ok = "(OK)";
+    for (unsigned i = 0; i < 16; i++)
+    {
+      if (recon_digest[i] != seis->picture_digest->digest[i])
+      {
+        md5_ok = "(***ERROR***)";
+        md5_mismatch = true;
+      }
+    }
+  }
+
+  printf("[MD5:%s,%s] ", digestToString(recon_digest), md5_ok);
+  if (md5_mismatch)
+  {
+    g_md5_mismatch = true;
+    printf("[rxMD5:%s] ", digestToString(seis->picture_digest->digest));
+  }
+}

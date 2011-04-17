@@ -223,6 +223,9 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
   ("ConstrainedIntraPred", m_bUseConstrainedIntraPred, false, "Constrained Intra Prediction")
 #endif
   /* Misc. */
+  ("SEIpictureDigest", m_pictureDigestEnabled, true, "Control generation of picture_digest SEI messages\n"
+                                              "\t1: use MD5\n"
+                                              "\t0: disable")
   ("FEN", m_bUseFastEnc, false, "fast encoder setting")
   
   /* Compatability with old style -1 FOO or -0 FOO options. */

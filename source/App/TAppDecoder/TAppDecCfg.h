@@ -58,6 +58,8 @@ protected:
   Int           m_iSkipFrame;                         ///< counter for frames prior to the random access point to skip
 #endif
   UInt          m_outputBitDepth;                     ///< bit depth used for writing output
+
+  bool m_pictureDigestEnabled; ///< enable(1)/disable(0) acting on SEI picture_digest message
   
 public:
   TAppDecCfg()          {}

@@ -110,6 +110,8 @@ public:
   
   Void  create  ();
   Void  destroy ();
+
+  void setPictureDigestEnabled(bool enabled) { m_cGopDecoder.setPictureDigestEnabled(enabled); }
   
   Void  init();
 #if DCM_SKIP_DECODING_FRAMES
