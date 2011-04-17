@@ -153,6 +153,8 @@ Void TAppEncTop::xInitLibCfg()
 #if MTK_SAO
   m_cTEncTop.setUseSAO               ( m_bUseSAO         );
 #endif
+
+  m_cTEncTop.setPictureDigestEnabled(m_pictureDigestEnabled);
 }
 
 Void TAppEncTop::xCreateLib()

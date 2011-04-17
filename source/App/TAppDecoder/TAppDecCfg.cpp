@@ -71,6 +71,9 @@ Bool TAppDecCfg::parseCfg( Int argc, Char* argv[] )
   ("SkipFrames,s", m_iSkipFrame, 0, "number of frames to skip before random access")
 #endif
   ("OutputBitDepth,d", m_outputBitDepth, 0u, "bit depth of YUV output file (use 0 for native depth)")
+  ("SEIpictureDigest", m_pictureDigestEnabled, true, "Control handling of picture_digest SEI messages\n"
+                                              "\t1: check\n"
+                                              "\t0: ignore")
   ;
 
   po::setDefaults(opts);

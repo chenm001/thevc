@@ -149,6 +149,8 @@ protected:
   Bool      m_bLFCrossSliceBoundaryFlag;
 #endif
 
+  bool m_pictureDigestEnabled; ///< enable(1)/disable(0) md5 computation and SEI signalling
+
 public:
   TEncCfg()          {}
   virtual ~TEncCfg() {}
@@ -322,6 +324,9 @@ public:
   Void      setUseSAO                  (Bool bVal)     {m_bUseSAO = bVal;}
   Bool      getUseSAO                  ()              {return m_bUseSAO;}
 #endif
+
+  void setPictureDigestEnabled(bool b) { m_pictureDigestEnabled = b; }
+  bool getPictureDigestEnabled() { return m_pictureDigestEnabled; }
 
 };
 
