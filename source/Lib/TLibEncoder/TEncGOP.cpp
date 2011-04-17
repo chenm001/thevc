@@ -656,14 +656,28 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
         calcMD5(*pcPic->getPicYuvRec(), sei_recon_picture_digest.digest);
         printf("[MD5:%s] ", digestToString(sei_recon_picture_digest.digest));
 
-        /* write the SEI messages (after any SPS/PPS) */
+        TComBitstream seiBs;
+        seiBs.create(1024);
+        /* write the SEI messages */
         m_pcEntropyCoder->setEntropyCoder(m_pcCavlcCoder, pcSlice);
-        m_pcEntropyCoder->setBitstream(&bs_SPS_PPS_SEI);
+        m_pcEntropyCoder->setBitstream(&seiBs);
         m_pcEntropyCoder->encodeSEI(sei_recon_picture_digest);
         /* and trailing bits */
-        bs_SPS_PPS_SEI.write(1, 1);
-        bs_SPS_PPS_SEI.writeAlignZero();
+        seiBs.write(1, 1);
+        seiBs.writeAlignZero();
+        seiBs.flushBuffer();
+        seiBs.convertRBSPToPayload(0);
+
+        /* append the SEI message after any SPS/PPS */
+        /* the following loop is a work around current limitations in
+         * TComBitstream that won't be fixed before HM-3.0 */
+        UChar *seiData = reinterpret_cast<UChar *>(seiBs.getStartStream());
+        for (Int i = 0; i < seiBs.getNumberOfWrittenBits()/8; i++)
+        {
+          bs_SPS_PPS_SEI.write(seiData[i], 8);
+        }
         bs_SPS_PPS_SEI.write(1, 32);
+        seiBs.destroy();
       }
 
       /* insert the bs_SPS_PPS_SEI before the pcBitstreamOut */
