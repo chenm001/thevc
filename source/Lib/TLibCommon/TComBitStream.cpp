@@ -439,7 +439,7 @@ void TComBitstream::insertAt(const TComBitstream& src, unsigned pos)
 
   /* check that there is enough space in the current buffer to accommodate @src */
   unsigned this_buf_size = m_uiBufSize * sizeof(UInt);
-  unsigned this_bytes = this->getNumberOfWrittenBits()/8 * sizeof(UInt);
+  unsigned this_bytes = this->getNumberOfWrittenBits()/8;
   assert(this_buf_size - this_bytes > src_bytes);
 
   /* make space */
