@@ -1332,7 +1332,7 @@ Void TEncCavlc::codeInterDir( TComDataCU* pcCU, UInt uiAbsPartIdx )
   #endif
         if (m_pcSlice->getNoBackPredFlag())
         {
-          uiMaxVal = uiValNumRefIdxOfL0 + iRefFrame0*uiValNumRefIdxOfL1 + iRefFrame1;
+          uiIndex = uiValNumRefIdxOfL0 + iRefFrame0*uiValNumRefIdxOfL1 + iRefFrame1;
         }
         else
         {
