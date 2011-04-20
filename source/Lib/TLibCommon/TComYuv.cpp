@@ -1,7 +1,7 @@
 /* The copyright in this software is being made available under the BSD
  * License, included below. This software may be subject to other third party
  * and contributor rights, including patent rights, and no such rights are
- * granted under this license.   
+ * granted under this license.  
  *
  * Copyright (c) 2010-2011, ITU/ISO/IEC
  * All rights reserved.
@@ -603,7 +603,52 @@ Void TComYuv::addAvg( TComYuv* pcYuvSrc0, TComYuv* pcYuvSrc1, UInt iPartUnitIdx,
   UInt  iSrc0Stride = pcYuvSrc0->getStride();
   UInt  iSrc1Stride = pcYuvSrc1->getStride();
   UInt  iDstStride  = getStride();
+#if HIGH_ACCURACY_BI
+  Int shiftNum = 15 - (g_uiBitDepth + g_uiBitIncrement);
+  Int offset = (1<<(shiftNum - 1));
   
+  for ( y = iHeight-1; y >= 0; y-- )
+  {
+    for ( x = iWidth-1; x >= 0; )
+    {
+      // note: luma min width is 4
+      pDstY[x] = Clip((pSrcY0[x] + pSrcY1[x] + offset) >> shiftNum ); x--;
+      pDstY[x] = Clip((pSrcY0[x] + pSrcY1[x] + offset) >> shiftNum); x--;
+      pDstY[x] = Clip((pSrcY0[x] + pSrcY1[x] + offset) >> shiftNum); x--;
+      pDstY[x] = Clip((pSrcY0[x] + pSrcY1[x] + offset) >> shiftNum); x--;
+    }
+    pSrcY0 += iSrc0Stride;
+    pSrcY1 += iSrc1Stride;
+    pDstY  += iDstStride;
+  }
+  
+  iSrc0Stride = pcYuvSrc0->getCStride();
+  iSrc1Stride = pcYuvSrc1->getCStride();
+  iDstStride  = getCStride();
+  
+  iWidth  >>=1;
+  iHeight >>=1;
+  
+  for ( y = iHeight-1; y >= 0; y-- )
+  {
+    for ( x = iWidth-1; x >= 0; )
+    {
+      // note: chroma min width is 2
+      pDstU[x] = Clip((pSrcU0[x] + pSrcU1[x] + offset) >> shiftNum);
+      pDstV[x] = Clip((pSrcV0[x] + pSrcV1[x] + offset) >> shiftNum); x--;
+      pDstU[x] = Clip((pSrcU0[x] + pSrcU1[x] + offset) >> shiftNum);
+      pDstV[x] = Clip((pSrcV0[x] + pSrcV1[x] + offset) >> shiftNum); x--;
+    }
+    
+    pSrcU0 += iSrc0Stride;
+    pSrcU1 += iSrc1Stride;
+    pSrcV0 += iSrc0Stride;
+    pSrcV1 += iSrc1Stride;
+    pDstU  += iDstStride;
+    pDstV  += iDstStride;
+  }
+
+#else  
   for ( y = iHeight-1; y >= 0; y-- )
   {
     for ( x = iWidth-1; x >= 0; )
@@ -644,6 +689,7 @@ Void TComYuv::addAvg( TComYuv* pcYuvSrc0, TComYuv* pcYuvSrc1, UInt iPartUnitIdx,
     pDstU  += iDstStride;
     pDstV  += iDstStride;
   }
+#endif
 }
 
 Void TComYuv::removeHighFreq( TComYuv* pcYuvSrc, UInt uiWidht, UInt uiHeight )

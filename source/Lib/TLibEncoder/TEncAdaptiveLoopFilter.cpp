@@ -1,7 +1,7 @@
 /* The copyright in this software is being made available under the BSD
  * License, included below. This software may be subject to other third party
  * and contributor rights, including patent rights, and no such rights are
- * granted under this license.   
+ * granted under this license.  
  *
  * Copyright (c) 2010-2011, ITU/ISO/IEC
  * All rights reserved.
@@ -173,12 +173,57 @@ TEncAdaptiveLoopFilter::TEncAdaptiveLoopFilter()
 #if MTK_NONCROSS_INLOOP_FILTER
   m_pcSliceYuvTmp = NULL;
 #endif
-
+#if MQT_BA_RA && MQT_ALF_NPASS
+  m_aiFilterCoeffSaved = NULL;
+#endif
 }
 
 // ====================================================================================================================
 // Public member functions
 // ====================================================================================================================
+
+#if MQT_BA_RA && MQT_ALF_NPASS
+Void TEncAdaptiveLoopFilter::createAlfGlobalBuffers(Int iALFEncodePassReduction)
+{
+  if(iALFEncodePassReduction)
+  {
+    for(Int i=0; i< NUM_ALF_CLASS_METHOD; i++)
+    {
+      m_aiFilterCoeffSavedMethods[i] = new Int**[9];
+      for(Int j=0; j< 9; j++)
+      {
+        m_aiFilterCoeffSavedMethods[i][j] = new Int*[NO_VAR_BINS];
+        for(Int k=0; k< NO_VAR_BINS; k++)
+        {
+          m_aiFilterCoeffSavedMethods[i][j][k] = new Int[MAX_SQR_FILT_LENGTH];
+        }
+      }
+    }
+
+  }
+}
+
+Void TEncAdaptiveLoopFilter::destroyAlfGlobalBuffers()
+{
+  if(m_iALFEncodePassReduction)
+  {
+    for(Int i=0; i< NUM_ALF_CLASS_METHOD; i++)
+    {
+      for(Int j=0; j< 9; j++)
+      {
+        for(Int k=0; k< NO_VAR_BINS; k++)
+        {
+          delete[] m_aiFilterCoeffSavedMethods[i][j][k];
+        }
+        delete[] m_aiFilterCoeffSavedMethods[i][j];
+      }
+      delete[] m_aiFilterCoeffSavedMethods[i];
+    }
+
+  }
+
+}
+#endif
 
 /**
  \param pcPic           picture (TComPic) pointer
@@ -217,7 +262,9 @@ Void TEncAdaptiveLoopFilter::startALFEnc( TComPic* pcPic, TEncEntropy* pcEntropy
   initMatrix_int(&m_filterCoeffSymQuant, NO_VAR_BINS, MAX_SQR_FILT_LENGTH); 
   
   m_pixAcc = (double *) calloc(NO_VAR_BINS, sizeof(double));
+#if !MQT_BA_RA
   get_mem2Dpel(&m_varImg, m_im_height, m_im_width);
+#endif
   get_mem2Dpel(&m_maskImg, m_im_height, m_im_width);
   
   initMatrix_double(&m_E_temp, MAX_SQR_FILT_LENGTH, MAX_SQR_FILT_LENGTH);//
@@ -268,7 +315,9 @@ Void TEncAdaptiveLoopFilter::endALFEnc()
   destroyMatrix_int(m_filterCoeffSymQuant);
   
   free(m_pixAcc);
+#if !MQT_BA_RA
   free_mem2Dpel(m_varImg);
+#endif
   free_mem2Dpel(m_maskImg);
   
   destroyMatrix3D_double(m_E_merged, NO_VAR_BINS);
@@ -1763,7 +1812,7 @@ Void   TEncAdaptiveLoopFilter::xEncALFLuma_qc ( TComPicYuv* pcPicOrg, TComPicYuv
   imgpel* pOrg = (imgpel*) pcPicOrg->getLumaAddr();
   imgpel* pRest = (imgpel*) pcPicRest->getLumaAddr();
   imgpel* pDec = (imgpel*) pcPicDec->getLumaAddr();
-  
+
   Int tap               = ALF_MIN_NUM_TAP;
   m_pcTempAlfParam->tap = tap;
 #if TI_ALF_MAX_VSIZE_7
@@ -1772,7 +1821,220 @@ Void   TEncAdaptiveLoopFilter::xEncALFLuma_qc ( TComPicYuv* pcPicOrg, TComPicYuv
 #else
   m_pcTempAlfParam->num_coeff = (Int)tap*tap/4 + 2; 
 #endif
-  
+
+#if MQT_BA_RA
+
+#if MQT_ALF_NPASS
+
+  static Bool   bFirst = true;
+  static Int*   apiVarIndTabBest[NUM_ALF_CLASS_METHOD];
+  static Int**  appiBestCoeffSet[NUM_ALF_CLASS_METHOD];
+
+  static Double***  adBestySym;
+  static Double**** adBestESym;
+  static Double**   adBestpixAcc;  
+
+  if(bFirst)
+  {
+    if(m_iALFEncodePassReduction)
+    {
+      initMatrix4D_double(&adBestESym,NUM_ALF_CLASS_METHOD,  NO_VAR_BINS, MAX_SQR_FILT_LENGTH, MAX_SQR_FILT_LENGTH);
+      initMatrix3D_double(&adBestySym,NUM_ALF_CLASS_METHOD,  NO_VAR_BINS, MAX_SQR_FILT_LENGTH); 
+      initMatrix_double  (&adBestpixAcc,NUM_ALF_CLASS_METHOD,  NO_VAR_BINS );
+
+      for(Int i=0; i< NUM_ALF_CLASS_METHOD; i++)
+      {
+
+        apiVarIndTabBest[i] = new Int[NO_VAR_BINS];
+        appiBestCoeffSet[i] = new Int*[NO_VAR_BINS];
+        for(Int j=0; j< NO_VAR_BINS; j++)
+        {
+          appiBestCoeffSet[i][j]= new Int[MAX_SQR_FILT_LENGTH];
+        }
+      }
+    }
+
+    bFirst = false;
+  }
+
+  Int         ibestfiltNo[NUM_ALF_CLASS_METHOD];
+  Int         ibestfilters_per_fr[NUM_ALF_CLASS_METHOD];
+  Int64       iDist;
+  Int64       iMinMethodDist = MAX_INT;
+  UInt64      uiMinMethodRate;
+  Double      dMinMethodCost = MAX_DOUBLE;
+#endif
+  Int       iBestClassMethod = ALF_RA;
+  Double    adExtraCostReduction[NUM_ALF_CLASS_METHOD];
+  ALFParam  cFrmAlfParam        [NUM_ALF_CLASS_METHOD];
+  ALFParam* pcAlfParam = NULL;
+
+  for(Int i=0; i< NUM_ALF_CLASS_METHOD; i++)
+  {
+    pcAlfParam = &(cFrmAlfParam[i]);
+    allocALFParam(pcAlfParam);
+
+    pcAlfParam->alf_flag        = 1;
+    pcAlfParam->chroma_idc      = 0;
+    pcAlfParam->cu_control_flag = 0;
+    pcAlfParam->tap = tap;
+#if TI_ALF_MAX_VSIZE_7
+    pcAlfParam->tapV = TComAdaptiveLoopFilter::ALFTapHToTapV(pcAlfParam->tap);
+    pcAlfParam->num_coeff = TComAdaptiveLoopFilter::ALFTapHToNumCoeff(pcAlfParam->tap);
+#else
+    pcAlfParam->num_coeff = (Int)tap*tap/4 + 2; 
+#endif
+
+    switch(i)
+    {
+    case ALF_RA:
+      {
+        adExtraCostReduction[i] = (double)(m_im_height * m_im_width) * m_dLambdaLuma * 2.0 / 4096.0;
+      }
+      break;
+    default:
+      {
+        adExtraCostReduction[i] = 0.0;
+      }
+      break;
+    }
+
+  }
+
+  for(Int i=0; i< NUM_ALF_CLASS_METHOD; i++)
+  {
+    pcAlfParam       = &(cFrmAlfParam[i]);
+    m_varImg         = m_varImgMethods[i];
+    m_uiVarGenMethod = pcAlfParam->alf_pcr_region_flag = i;
+#if MQT_ALF_NPASS
+    if(m_iALFEncodePassReduction)
+    {
+      m_aiFilterCoeffSaved = m_aiFilterCoeffSavedMethods[m_uiVarGenMethod];
+    }
+    setInitialMask(pcPicOrg, pcPicDec);
+#else
+    for (Int i=0; i<Height; i++)
+    {
+      for (Int j=0; j<Width; j++)
+      {
+        m_maskImg[i][j] = 1;
+      }
+    }
+#if MTK_NONCROSS_INLOOP_FILTER
+    if(!m_bUseNonCrossALF)
+      calcVar(0, 0, m_varImg, pDec, 9/2, VAR_SIZE, Height, Width, LumaStride);
+    else
+      calcVarforSlices(m_varImg, pDec, 9/2, VAR_SIZE, LumaStride);
+#else
+    calcVar(m_varImg, pDec, 9/2, VAR_SIZE, Height, Width, LumaStride);
+#endif
+#endif
+
+#if MQT_ALF_NPASS
+    if(m_iALFEncodePassReduction)
+    {
+      xFirstEstimateFilteringFrameLumaAllTap(pOrg, pDec, LumaStride, 
+        pcAlfParam, apiVarIndTabBest[i], appiBestCoeffSet[i],
+        ibestfiltNo[i], ibestfilters_per_fr[i], 
+        adBestySym[i], adBestESym[i], adBestpixAcc[i],
+        uiRate, iDist, dCost);
+
+    }
+    else
+    {
+#endif
+      xFirstFilteringFrameLuma(pOrg, pDec, (imgpel*)m_pcPicYuvTmp->getLumaAddr(), pcAlfParam, pcAlfParam->tap, LumaStride); 
+#if MQT_ALF_NPASS
+    }
+#endif
+
+#if MQT_ALF_NPASS
+    if(!m_iALFEncodePassReduction)
+    {
+#endif
+      xCalcRDCost(pcPicOrg, m_pcPicYuvTmp, pcAlfParam, uiRate, uiDist, dCost); 
+#if MQT_ALF_NPASS
+      iDist = (Int64)uiDist;
+    }
+#endif
+
+    dCost -= adExtraCostReduction[i];
+
+    if(dCost < dMinMethodCost)
+    {
+      iBestClassMethod = i;
+      dMinMethodCost = dCost;
+      uiMinMethodRate= uiRate;
+      iMinMethodDist = iDist;
+#if MQT_ALF_NPASS
+      if(!m_iALFEncodePassReduction)
+      {
+#endif
+        m_pcPicYuvTmp->copyToPicLuma(pcPicRest);
+#if MQT_ALF_NPASS
+      }
+#endif
+
+    }  
+
+  }
+
+  dMinMethodCost += adExtraCostReduction[iBestClassMethod];
+
+
+  m_varImg= m_varImgMethods[iBestClassMethod];
+
+  m_uiVarGenMethod = iBestClassMethod;
+
+#if MQT_ALF_NPASS
+  if(m_iALFEncodePassReduction)
+  {
+
+    m_aiFilterCoeffSaved = m_aiFilterCoeffSavedMethods[iBestClassMethod];
+
+    setInitialMask(pcPicOrg, pcPicDec);
+
+    m_pcBestAlfParam->alf_flag = 1;
+    m_pcBestAlfParam->cu_control_flag = 0;
+    m_pcBestAlfParam->chroma_idc = 0;
+    m_pcBestAlfParam->alf_pcr_region_flag = iBestClassMethod;
+
+    m_pcBestAlfParam->tap = cFrmAlfParam[iBestClassMethod].tap;
+#if TI_ALF_MAX_VSIZE_7
+    m_pcBestAlfParam->tapV = TComAdaptiveLoopFilter::ALFTapHToTapV(pcAlfParam->tap);
+    m_pcBestAlfParam->num_coeff = TComAdaptiveLoopFilter::ALFTapHToNumCoeff(pcAlfParam->tap);
+#else
+    m_pcBestAlfParam->num_coeff = (Int)tap*tap/4 + 2; 
+#endif
+
+    xFirstFilteringFrameLuma(pOrg, pDec, pRest, m_pcBestAlfParam, m_pcBestAlfParam->tap, LumaStride); 
+
+
+
+    xCalcRDCost(pcPicOrg, pcPicRest, m_pcBestAlfParam, uiMinMethodRate, uiDist, dMinMethodCost);
+    iMinMethodDist = (Int64)uiDist;
+  }
+  else
+  {
+#endif
+    copyALFParam(m_pcBestAlfParam, &cFrmAlfParam[iBestClassMethod]); 
+#if MQT_ALF_NPASS
+
+  }
+#endif
+
+  ruiMinRate = uiMinMethodRate;
+  ruiMinDist = (UInt64)iMinMethodDist;
+  rdMinCost =  dMinMethodCost;
+
+
+  for(Int i=0; i< NUM_ALF_CLASS_METHOD; i++)
+  {
+    freeALFParam(&cFrmAlfParam[i]);
+  }
+
+#else  
+
 #if MQT_ALF_NPASS
   setInitialMask(pcPicOrg, pcPicDec);
 #else
@@ -1800,8 +2062,8 @@ Void   TEncAdaptiveLoopFilter::xEncALFLuma_qc ( TComPicYuv* pcPicOrg, TComPicYuv
   }
   else
 #endif
-  xFirstFilteringFrameLuma(pOrg, pDec, pRest, m_pcTempAlfParam, m_pcTempAlfParam->tap, LumaStride); 
-  
+    xFirstFilteringFrameLuma(pOrg, pDec, pRest, m_pcTempAlfParam, m_pcTempAlfParam->tap, LumaStride); 
+
   xCalcRDCost(pcPicOrg, pcPicRest, m_pcTempAlfParam, uiRate, uiDist, dCost); // change this function final coding 
   
   if( dCost < rdMinCost)
@@ -1810,7 +2072,9 @@ Void   TEncAdaptiveLoopFilter::xEncALFLuma_qc ( TComPicYuv* pcPicOrg, TComPicYuv
     ruiMinDist = uiDist;
     rdMinCost = dCost;
     copyALFParam(m_pcBestAlfParam, m_pcTempAlfParam); 
-  }  
+  } 
+
+#endif
 }
 
 Void   TEncAdaptiveLoopFilter::xFirstFilteringFrameLuma(imgpel* ImgOrg, imgpel* ImgDec, imgpel* ImgRest, ALFParam* ALFp, Int tap, Int Stride)
@@ -1835,6 +2099,11 @@ Void   TEncAdaptiveLoopFilter::xstoreInBlockMatrix(Int ypos, Int xpos, Int iheig
 Void   TEncAdaptiveLoopFilter::xstoreInBlockMatrix(imgpel* ImgOrg, imgpel* ImgDec, Int tap, Int Stride)
 #endif
 {
+#if MQT_BA_RA
+  Int var_step_size_w = VAR_SIZE_W;
+  Int var_step_size_h = VAR_SIZE_H;
+#endif
+
   Int i,j,k,l,varInd,ii,jj;
   Int x, y;
   Int fl =tap/2;
@@ -1920,7 +2189,11 @@ Void   TEncAdaptiveLoopFilter::xstoreInBlockMatrix(imgpel* ImgOrg, imgpel* ImgDe
         else
         {
 #endif
+#if MQT_BA_RA
+          varInd = m_varImg[i/var_step_size_h][j/var_step_size_w];
+#else
           varInd=min(m_varImg[i][j], NO_VAR_BINS-1);
+#endif
           k=0; 
           memset(ELocal, 0, sqrFiltLength*sizeof(int));
 #if TI_ALF_MAX_VSIZE_7
@@ -2019,7 +2292,15 @@ Void TEncAdaptiveLoopFilter::xfilterFrame_en(int ypos, int xpos, int iheight, in
 Void TEncAdaptiveLoopFilter::xfilterFrame_en(imgpel* ImgDec, imgpel* ImgRest,int filtNo, int Stride)
 #endif
 {
+#if MQT_BA_RA
+  imgpel *imgY_rec = ImgDec;
+  imgpel *p_imgY_pad, *p_imgY_pad0;
+  int var_step_size_w = VAR_SIZE_W;
+  int var_step_size_h = VAR_SIZE_H;
+  int i,j,y,x;
+#else
   int i,j,ii,jj,y,x;
+#endif
   int  *pattern; 
   int fl, fl_temp, sqrFiltLength;
   int pixelInt;
@@ -2027,8 +2308,10 @@ Void TEncAdaptiveLoopFilter::xfilterFrame_en(imgpel* ImgDec, imgpel* ImgRest,int
   
   pattern=m_patternTab_filt[filtNo];
   fl_temp=m_flTab[filtNo];
+#if !MQT_BA_RA
 #if TI_ALF_MAX_VSIZE_7
   Int fl_tempV = TComAdaptiveLoopFilter::ALFFlHToFlV(fl_temp);
+#endif
 #endif
   sqrFiltLength=MAX_SQR_FILT_LENGTH;  fl=FILTER_LENGTH/2;
   
@@ -2043,11 +2326,93 @@ Void TEncAdaptiveLoopFilter::xfilterFrame_en(imgpel* ImgDec, imgpel* ImgRest,int
     for (x=0, j = fl; j < m_im_width+fl; j++, x++)
     {
 #endif
+#if MQT_BA_RA
+      int varInd=m_varImg[y/var_step_size_h][x/var_step_size_w];
+#else
       int varInd=m_varImg[i-fl][j-fl];
       imgpel *im1,*im2;
+#endif
       int *coef = m_filterCoeffPrevSelected[varInd];
       pattern=m_patternTab_filt[filtNo];
       pixelInt= m_filterCoeffPrevSelected[varInd][sqrFiltLength-1]; 
+
+#if MQT_BA_RA
+      if (filtNo == 2) //5x5
+      {
+        pixelInt += coef[22]* (imgY_rec[(i-fl+2)*Stride + j-fl]+imgY_rec[(i-fl-2)*Stride + j-fl]);
+
+        pixelInt += coef[30]* (imgY_rec[(i-fl+1)*Stride + j-fl+1]+imgY_rec[(i-fl-1)*Stride + j-fl-1]);
+        pixelInt += coef[31]* (imgY_rec[(i-fl+1)*Stride + j-fl]  +imgY_rec[(i-fl-1)*Stride + j-fl]);
+        pixelInt += coef[32]* (imgY_rec[(i-fl+1)*Stride + j-fl-1]+imgY_rec[(i-fl-1)*Stride + j-fl+1]);
+
+        pixelInt += coef[38]* (imgY_rec[(i-fl)*Stride + j-fl-2]+imgY_rec[(i-fl)*Stride + j-fl+2]);
+        pixelInt += coef[39]* (imgY_rec[(i-fl)*Stride + j-fl-1]+imgY_rec[(i-fl)*Stride + j-fl+1]);
+        pixelInt += coef[40]* (imgY_rec[(i-fl)*Stride + j-fl]);
+      }
+      else if (filtNo == 1) //7x7
+      {
+        pixelInt += coef[13]* (imgY_rec[(i-fl+3)*Stride + j-fl]+imgY_rec[(i-fl-3)*Stride + j-fl]);
+
+        p_imgY_pad = imgY_rec + (i-fl+2)*Stride;
+        p_imgY_pad0 = imgY_rec + (i-fl-2)*Stride;
+        pixelInt += coef[21]* (p_imgY_pad[j-fl+1]+p_imgY_pad0[j-fl-1]);
+        pixelInt += coef[22]* (p_imgY_pad[j-fl]+p_imgY_pad0[j-fl]);
+        pixelInt += coef[23]* (p_imgY_pad[j-fl-1]+p_imgY_pad0[j-fl+1]);
+
+        p_imgY_pad = imgY_rec + (i-fl+1)*Stride;
+        p_imgY_pad0 = imgY_rec + (i-fl-1)*Stride;
+        pixelInt += coef[29]* (p_imgY_pad[j-fl+2]+p_imgY_pad0[j-fl-2]);
+        pixelInt += coef[30]* (p_imgY_pad[j-fl+1]+p_imgY_pad0[j-fl-1]);
+        pixelInt += coef[31]* (p_imgY_pad[j-fl]+p_imgY_pad0[j-fl]);
+        pixelInt += coef[32]* (p_imgY_pad[j-fl-1]+p_imgY_pad0[j-fl+1]);
+        pixelInt += coef[33]* (p_imgY_pad[j-fl-2]+p_imgY_pad0[j-fl+2]);
+
+        p_imgY_pad = imgY_rec + (i-fl)*Stride;
+        pixelInt += coef[37]* (p_imgY_pad[j-fl+3]+p_imgY_pad[j-fl-3]);
+        pixelInt += coef[38]* (p_imgY_pad[j-fl+2]+p_imgY_pad[j-fl-2]);
+        pixelInt += coef[39]* (p_imgY_pad[j-fl+1]+p_imgY_pad[j-fl-1]);
+        pixelInt += coef[40]* (p_imgY_pad[j-fl]);
+
+      }
+      else
+      {
+#if !TI_ALF_MAX_VSIZE_7
+        pixelInt += coef[4]* (imgY_rec[(i-fl+4)*Stride + j-fl]+imgY_rec[(i-fl-4)*Stride + j-fl]);
+#endif          
+        p_imgY_pad = imgY_rec + (i-fl+3)*Stride;
+        p_imgY_pad0 = imgY_rec + (i-fl-3)*Stride;
+        pixelInt += coef[12]* (p_imgY_pad[j-fl+1]+p_imgY_pad0[j-fl-1]);
+        pixelInt += coef[13]* (p_imgY_pad[j-fl]+p_imgY_pad0[j-fl]);
+        pixelInt += coef[14]* (p_imgY_pad[j-fl-1]+p_imgY_pad0[j-fl+1]);
+
+        p_imgY_pad = imgY_rec + (i-fl+2)*Stride;
+        p_imgY_pad0 = imgY_rec + (i-fl-2)*Stride;
+        pixelInt += coef[20]* (p_imgY_pad[j-fl+2]+p_imgY_pad0[j-fl-2]);
+        pixelInt += coef[21]* (p_imgY_pad[j-fl+1]+p_imgY_pad0[j-fl-1]);
+        pixelInt += coef[22]* (p_imgY_pad[j-fl]+p_imgY_pad0[j-fl]);
+        pixelInt += coef[23]* (p_imgY_pad[j-fl-1]+p_imgY_pad0[j-fl+1]);
+        pixelInt += coef[24]* (p_imgY_pad[j-fl-2]+p_imgY_pad0[j-fl+2]);
+
+        p_imgY_pad = imgY_rec + (i-fl+1)*Stride;
+        p_imgY_pad0 = imgY_rec + (i-fl-1)*Stride;
+        pixelInt += coef[28]* (p_imgY_pad[j-fl+3]+p_imgY_pad0[j-fl-3]);
+        pixelInt += coef[29]* (p_imgY_pad[j-fl+2]+p_imgY_pad0[j-fl-2]);
+        pixelInt += coef[30]* (p_imgY_pad[j-fl+1]+p_imgY_pad0[j-fl-1]);
+        pixelInt += coef[31]* (p_imgY_pad[j-fl]+p_imgY_pad0[j-fl]);
+        pixelInt += coef[32]* (p_imgY_pad[j-fl-1]+p_imgY_pad0[j-fl+1]);
+        pixelInt += coef[33]* (p_imgY_pad[j-fl-2]+p_imgY_pad0[j-fl+2]);
+        pixelInt += coef[34]* (p_imgY_pad[j-fl-3]+p_imgY_pad0[j-fl+3]);
+
+        p_imgY_pad = imgY_rec + (i-fl)*Stride;
+        pixelInt += coef[36]* (p_imgY_pad[j-fl+4]+p_imgY_pad[j-fl-4]);
+        pixelInt += coef[37]* (p_imgY_pad[j-fl+3]+p_imgY_pad[j-fl-3]);
+        pixelInt += coef[38]* (p_imgY_pad[j-fl+2]+p_imgY_pad[j-fl-2]);
+        pixelInt += coef[39]* (p_imgY_pad[j-fl+1]+p_imgY_pad[j-fl-1]);
+        pixelInt += coef[40]* (p_imgY_pad[j-fl]);
+
+      }
+#else
+
 #if TI_ALF_MAX_VSIZE_7
       for (ii = -fl_tempV; ii < 0; ii++)
 #else
@@ -2064,7 +2429,8 @@ Void TEncAdaptiveLoopFilter::xfilterFrame_en(imgpel* ImgDec, imgpel* ImgRest,int
       for (jj=-fl_temp; jj<0; jj++,im1++,im2--)
         pixelInt+=((*im1+ *im2)*coef[*(pattern++)]);
       pixelInt+=(ImgDec[y*Stride + x]*coef[*(pattern++)]);
-      
+#endif  
+
       pixelInt=(int)((pixelInt+offset) >> (NUM_BITS - 1));
       ImgRest[y*Stride + x] = Clip3(0, g_uiIBDI_MAX, pixelInt);
     }
@@ -3404,11 +3770,30 @@ Void TEncAdaptiveLoopFilter::setInitialMask(TComPicYuv* pcPicOrg, TComPicYuv* pc
   }
 }
 
+#if MQT_BA_RA
+Void  TEncAdaptiveLoopFilter::xFirstEstimateFilteringFrameLumaAllTap(imgpel* ImgOrg, imgpel* ImgDec, Int Stride, 
+                                                                     ALFParam* pcAlfSaved,
+                                                                     Int* aiVarIndTabBest,
+                                                                     Int** ppiBestCoeffSet,
+                                                                     Int& ibestfiltNo,
+                                                                     Int& ibestfilters_per_fr,
+                                                                     Double**  ppdBesty,
+                                                                     Double*** pppdBestE,
+                                                                     Double*   pdBestpixAcc,
+                                                                     UInt64& ruiRate,
+                                                                     Int64& riDist,
+                                                                     Double& rdCost
+                                                                     )
+#else
 Void   TEncAdaptiveLoopFilter::xFirstFilteringFrameLumaAllTap(imgpel* ImgOrg, imgpel* ImgDec, imgpel* ImgRest, Int Stride)
+#endif
 {
+#if !MQT_BA_RA
   static Bool bFirst = true;
   static Int  aiVarIndTabBest[NO_VAR_BINS];
+#endif
   static Double **ySym, ***ESym;
+#if !MQT_BA_RA
   static Int**  ppiBestCoeffSet;
 
   if(bFirst)
@@ -3416,15 +3801,24 @@ Void   TEncAdaptiveLoopFilter::xFirstFilteringFrameLumaAllTap(imgpel* ImgOrg, im
     initMatrix_int(&ppiBestCoeffSet, NO_VAR_BINS, MAX_SQR_FILT_LENGTH);
     bFirst = false;
   }
+#endif
 
   Int    lambda_val = ((Int) m_dLambdaLuma) * (1<<(2*g_uiBitIncrement));
+#if MQT_BA_RA
+  Int    filtNo, filters_per_fr;
+#else
   Int    filtNo, ibestfiltNo=0, filters_per_fr, ibestfilters_per_fr=0;
+#endif
   Int64  iEstimatedDist;
   UInt64 uiRate;
   Double dEstimatedCost, dEstimatedMinCost = MAX_DOUBLE;;
   Bool   bMatrixBaseReady  = false;
   m_iMatrixBaseFiltNo = 0; 
-
+#if MQT_BA_RA
+  m_pcTempAlfParam->alf_flag = 1;
+  m_pcTempAlfParam->cu_control_flag = 0;
+  m_pcTempAlfParam->chroma_idc = 0;
+#endif
   for(Int iTap = ALF_MAX_NUM_TAP; iTap>=ALF_MIN_NUM_TAP; iTap -= 2)
   {
     m_pcTempAlfParam->tap = iTap;
@@ -3485,7 +3879,15 @@ Void   TEncAdaptiveLoopFilter::xFirstFilteringFrameLumaAllTap(imgpel* ImgOrg, im
       dEstimatedMinCost   = dEstimatedCost;
       ibestfiltNo         = filtNo;
       ibestfilters_per_fr = filters_per_fr;
+#if MQT_BA_RA
+      ruiRate = uiRate;
+      riDist  = iEstimatedDist;
+      rdCost  = dEstimatedMinCost;
+
+      copyALFParam(pcAlfSaved, m_pcTempAlfParam); 
+#else
       copyALFParam(m_pcBestAlfParam, m_pcTempAlfParam); 
+#endif
       ::memcpy(aiVarIndTabBest, m_varIndTab, sizeof(Int)*NO_VAR_BINS);
       for(Int i=0; i< ibestfilters_per_fr; i++ )
       {
@@ -3493,6 +3895,48 @@ Void   TEncAdaptiveLoopFilter::xFirstFilteringFrameLumaAllTap(imgpel* ImgOrg, im
       }
     }
   }
+
+  filtNo         = ibestfiltNo;
+  filters_per_fr = ibestfilters_per_fr;
+  ::memcpy(m_varIndTab, aiVarIndTabBest, sizeof(Int)*NO_VAR_BINS);
+  for(Int i=0; i< filters_per_fr; i++ )
+  {
+#if MQT_BA_RA
+    ::memcpy(m_filterCoeffSym[i], ppiBestCoeffSet[i], sizeof(Int) * pcAlfSaved->num_coeff);
+#else
+    ::memcpy(m_filterCoeffSym[i], ppiBestCoeffSet[i], sizeof(Int) * m_pcTempAlfParam->num_coeff);
+#endif
+  }
+
+  xcalcPredFilterCoeff(filtNo);
+
+#if MQT_BA_RA
+
+
+  ::memset( pdBestpixAcc, 0,sizeof(double)*NO_VAR_BINS);
+  for (Int varInd=0; varInd<NO_VAR_BINS; varInd++)
+  {
+    ::memset(ppdBesty[varInd],0,sizeof(double)*MAX_SQR_FILT_LENGTH);
+    for (Int k=0; k< pcAlfSaved->num_coeff; k++)
+    {
+      ::memset(pppdBestE[varInd][k],0,sizeof(double)*MAX_SQR_FILT_LENGTH);
+    }
+  }
+  ESym     = m_EGlobalSym     [filtNo];
+  ySym     = m_yGlobalSym     [filtNo];
+
+  ::memcpy( pdBestpixAcc, m_pixAcc ,sizeof(double)*NO_VAR_BINS);
+  for (Int varInd=0; varInd<NO_VAR_BINS; varInd++)
+  {
+    ::memcpy(ppdBesty[varInd],ySym[varInd],sizeof(double)*MAX_SQR_FILT_LENGTH);
+    for (Int k=0; k< pcAlfSaved->num_coeff; k++)
+    {
+      ::memcpy(pppdBestE[varInd][k],ESym[varInd][k],sizeof(double)*MAX_SQR_FILT_LENGTH);
+    }
+  }
+
+
+#else
 
   filtNo         = ibestfiltNo;
   filters_per_fr = ibestfilters_per_fr;
@@ -3513,6 +3957,7 @@ Void   TEncAdaptiveLoopFilter::xFirstFilteringFrameLumaAllTap(imgpel* ImgOrg, im
   xfilterFrame_en(ImgDec, ImgRest, filtNo, Stride);
 #endif
 
+#endif
 }
 
 Void TEncAdaptiveLoopFilter::xretriveBlockMatrix(Int iNumTaps, 
@@ -3675,6 +4120,13 @@ Int64 TEncAdaptiveLoopFilter::xEstimateFiltDist(Int filters_per_fr, Int* VarIndT
 
 Void TEncAdaptiveLoopFilter::calcVarforSlices(imgpel **varmap, imgpel *imgY_Dec, Int pad_size, Int fl, Int img_stride)
 {
+#if MQT_BA_RA
+  if(m_uiVarGenMethod == ALF_RA)
+  {
+    return;
+  }
+#endif
+
   Pel* pPicSrc   = (Pel *)imgY_Dec;
   Pel* pPicSlice = m_pcSliceYuvTmp->getLumaAddr();
 
@@ -3821,7 +4273,7 @@ Void TEncAdaptiveLoopFilter::xCalcCorrelationFuncforChromaOneSlice(CAlfSlice* pS
 Void TEncAdaptiveLoopFilter::xFrameChromaforSlices(Int ComponentID, TComPicYuv* pcPicDecYuv, TComPicYuv* pcPicRestYuv, Int *qh, Int iTap )
 {
   Pel* pPicDec   = (ComponentID == ALF_Cb)?(    pcPicDecYuv->getCbAddr()):(    pcPicDecYuv->getCrAddr());
-//  Pel* pPicRest  = (ComponentID == ALF_Cb)?(   pcPicRestYuv->getCbAddr()):(   pcPicRestYuv->getCrAddr());
+  //  Pel* pPicRest  = (ComponentID == ALF_Cb)?(   pcPicRestYuv->getCbAddr()):(   pcPicRestYuv->getCrAddr());
   Pel* pPicSlice = (ComponentID == ALF_Cb)?(m_pcSliceYuvTmp->getCbAddr()):(m_pcSliceYuvTmp->getCrAddr());
 
   Int iStride = pcPicDecYuv->getCStride();
@@ -3841,3 +4293,743 @@ Void TEncAdaptiveLoopFilter::xFrameChromaforSlices(Int ComponentID, TComPicYuv* 
 
 #endif
 
+
+#if MTK_SAO
+inline Double xRoundIbdi2(Double x)
+{
+  return ((x)>0) ? (Int)(((Int)(x)+(1<<(g_uiBitIncrement-1)))/(1<<g_uiBitIncrement)) : ((Int)(((Int)(x)-(1<<(g_uiBitIncrement-1)))/(1<<g_uiBitIncrement)));
+}
+
+inline Double xRoundIbdi(Double x)
+{
+  return (g_uiBitIncrement >0 ? xRoundIbdi2((x)) : ((x)>=0 ? ((Int)((x)+0.5)) : ((Int)((x)-0.5)))) ;
+}
+
+/** run QAO One Part.
+ * \param  pQAOOnePart, iPartIdx
+ */
+Void TEncSampleAdaptiveOffset::xQAOOnePart(SAOQTPart* pQAOOnePart, Int iPartIdx)
+{
+  Int iTypeIdx;
+  Int iNumTotalType = MAX_NUM_SAO_TYPE;
+
+  Int64 iEstDist;
+  Int64 iOffsetOrg;
+  Int64 iOffset;
+  Int64 iCount;
+  Int iClassIdx;
+  Int uiShift = g_uiBitIncrement << 1;
+  Double dAreaWeight =  (pQAOOnePart->part_xe - pQAOOnePart->part_xs + 1) * (pQAOOnePart->part_ye - pQAOOnePart->part_ys + 1);
+  Double dComplexityCost = 0;
+  Int    iQaoPara1 = SAO_RDCO;
+
+  UInt uiDepth = pQAOOnePart->PartLevel;
+
+  //   m_iDistOrg [iPartIdx] = 0;
+
+  m_iDistOrg [iPartIdx] =  (Int64)((Double)(iQaoPara1)/10000 * m_dLambdaLuma * dAreaWeight);
+
+  for (iTypeIdx=-1; iTypeIdx<iNumTotalType; iTypeIdx++)
+  {
+    if( m_bUseSBACRD )
+    {
+      m_pcRDGoOnSbacCoder->load(m_pppcRDSbacCoder[uiDepth][CI_CURR_BEST]); // pcCU->getDepth(0) ==> m_puhDepth[uiIdx]
+      m_pcRDGoOnSbacCoder->resetBits();
+    }
+    else
+    {
+      m_pcEntropyCoder->resetEntropy();
+      m_pcEntropyCoder->resetBits();
+    }
+
+    iEstDist = 0;
+
+    m_pcEntropyCoder->m_pcEntropyCoderIf->codeAoUvlc(iTypeIdx+1);
+
+    if (iTypeIdx>=0)
+    {
+
+      for(iClassIdx=1; iClassIdx < m_iNumClass[iTypeIdx]+1; iClassIdx++)
+      {
+        if(m_iCount [iPartIdx][iTypeIdx][iClassIdx])
+        {
+          m_iOffset[iPartIdx][iTypeIdx][iClassIdx]    = (Int64) xRoundIbdi((Double)(m_iOffsetOrg[iPartIdx][iTypeIdx][iClassIdx]<<m_uiAoBitDepth) / (Double)m_iCount [iPartIdx][iTypeIdx][iClassIdx]);
+        }
+        else
+        {
+          m_iOffsetOrg[iPartIdx][iTypeIdx][iClassIdx] = 0;
+          m_iOffset[iPartIdx][iTypeIdx][iClassIdx] = 0;
+        }
+
+        iCount     =  m_iCount [iPartIdx][iTypeIdx][iClassIdx];
+        iOffset    =  m_iOffset[iPartIdx][iTypeIdx][iClassIdx] << (g_uiBitIncrement-m_uiAoBitDepth);
+        iOffsetOrg =  m_iOffsetOrg[iPartIdx][iTypeIdx][iClassIdx];
+        iEstDist   += (( iCount*iOffset*iOffset-iOffsetOrg*iOffset*2 ) >> uiShift);
+        m_pcEntropyCoder->m_pcEntropyCoderIf->codeAoSvlc((Int)m_iOffset[iPartIdx][iTypeIdx][iClassIdx]);
+      }
+      m_iDist[iPartIdx][iTypeIdx] = iEstDist;
+      m_iRate[iPartIdx][iTypeIdx] = m_pcEntropyCoder->getNumberOfWrittenBits();
+
+      m_dCost[iPartIdx][iTypeIdx] = (Double)((Double)m_iDist[iPartIdx][iTypeIdx] + m_dLambdaLuma * (Double) m_iRate[iPartIdx][iTypeIdx]);
+      dComplexityCost = (Double)(iQaoPara1)/10000 * m_dLambdaLuma * (Double)m_iWeightAO[iTypeIdx] * dAreaWeight;
+      m_dCost[iPartIdx][iTypeIdx] = (Double)((Double)m_iDist[iPartIdx][iTypeIdx] + m_dLambdaLuma * (Double) m_iRate[iPartIdx][iTypeIdx]) + dComplexityCost;
+
+      //       printf("\n%3d:%10.f, %10.0f, %10.0f",iPartIdx,(Double)m_iDist[iPartIdx][iTypeIdx], dComplexityCost);
+
+      // printf("\n%d, %d, %6d, %6d, %f", iPartIdx, iTypeIdx, (Int)m_iDist[iPartIdx][iTypeIdx], (Int)m_iRate[iPartIdx][iTypeIdx], m_dCost[iPartIdx][iTypeIdx]);
+      if(m_dCost[iPartIdx][iTypeIdx] < m_dCostPartBest[iPartIdx])
+      {
+        m_iDistOrg [iPartIdx] = (Int64)dComplexityCost;
+        m_dCostPartBest[iPartIdx] = m_dCost[iPartIdx][iTypeIdx];
+        m_iTypePartBest[iPartIdx] = iTypeIdx;
+        if( m_bUseSBACRD )
+          m_pcRDGoOnSbacCoder->store( m_pppcRDSbacCoder[pQAOOnePart->PartLevel][CI_TEMP_BEST] );
+      }
+    }
+    else
+    {
+
+      if(m_iDistOrg[iPartIdx] < m_dCostPartBest[iPartIdx] )
+      {
+        m_dCostPartBest[iPartIdx] = (Double) m_iDistOrg[iPartIdx] + m_pcEntropyCoder->getNumberOfWrittenBits()*m_dLambdaLuma ; 
+        m_iTypePartBest[iPartIdx] = -1;
+        if( m_bUseSBACRD )
+          m_pcRDGoOnSbacCoder->store( m_pppcRDSbacCoder[pQAOOnePart->PartLevel][CI_TEMP_BEST] );
+      }
+    }
+  }
+
+  pQAOOnePart->bProcessed = true;
+  pQAOOnePart->bSplit     = false;
+  pQAOOnePart->iMinDist   =        m_iTypePartBest[iPartIdx] >= 0 ? m_iDist[iPartIdx][m_iTypePartBest[iPartIdx]] : m_iDistOrg[iPartIdx];
+  pQAOOnePart->iMinRate   = (Int) (m_iTypePartBest[iPartIdx] >= 0 ? m_iRate[iPartIdx][m_iTypePartBest[iPartIdx]] : 0);
+  pQAOOnePart->dMinCost   = pQAOOnePart->iMinDist + m_dLambdaLuma * pQAOOnePart->iMinRate;
+  pQAOOnePart->iBestType  = m_iTypePartBest[iPartIdx];
+  if (pQAOOnePart->iBestType != -1)
+  {
+    pQAOOnePart->bEnableFlag =  1;
+    pQAOOnePart->iLength = m_iNumClass[m_psQAOPart[iPartIdx].iBestType];
+    for (Int i=0; i<pQAOOnePart->iLength ; i++)
+      pQAOOnePart->iOffset[i] = (Int) m_iOffset[iPartIdx][pQAOOnePart->iBestType][i+1];
+  }
+  else
+  {
+    pQAOOnePart->bEnableFlag =  0;
+    pQAOOnePart->iLength     =  0;
+  }
+
+}
+
+/** run Part Tree Disable.
+ * \param  pQAOOnePart, iPartIdx
+ */
+Void TEncSampleAdaptiveOffset::xPartTreeDisable(Int iPartIdx)
+{
+  SAOQTPart*  pQAOPart= &(m_psQAOPart[iPartIdx]);
+
+  pQAOPart->bEnableFlag = false;
+  pQAOPart->bSplit      = false;
+  pQAOPart->iLength     =  0;
+  pQAOPart->iBestType   = -1;
+
+  if (pQAOPart->PartLevel < m_uiMaxSplitLevel)
+  {
+    for (Int i=0; i<NUM_DOWN_PART; i++)
+    {
+      xPartTreeDisable(pQAOPart->DownPartsIdx[i]);
+    }
+  }
+
+}
+
+/** run QuadTree Decision Function.
+ * \param  iPartIdx, pcPicOrg, pcPicDec, pcPicRest, &dCostFinal
+ */
+Void TEncSampleAdaptiveOffset::xQuadTreeDecisionFunc(Int iPartIdx, TComPicYuv* pcPicOrg, TComPicYuv* pcPicDec, TComPicYuv* pcPicRest, Double &dCostFinal)
+{
+  SAOQTPart*  pQAOPart= &(m_psQAOPart[iPartIdx]);
+  UInt uiDepth = pQAOPart->PartLevel;
+  UInt uhNextDepth = uiDepth+1;
+
+  if (iPartIdx == 0)
+  {
+    dCostFinal = 0;
+  }
+
+  //QAO for this part
+  if(!pQAOPart->bProcessed)
+  {
+    xQAOOnePart (pQAOPart, iPartIdx);
+  }
+
+  //QAO for sub 4 parts
+  if (pQAOPart->PartLevel < m_uiMaxSplitLevel)
+  {
+    Double      dCostNotSplit = m_dLambdaLuma + pQAOPart->dMinCost;
+    Double      dCostSplit    = m_dLambdaLuma;
+
+    for (Int i=0; i< NUM_DOWN_PART ;i++)
+    {
+      if( m_bUseSBACRD )  
+      {
+        if ( 0 == iPartIdx) //initialize RD with previous depth buffer
+          m_pppcRDSbacCoder[uhNextDepth][CI_CURR_BEST]->load(m_pppcRDSbacCoder[uiDepth][CI_CURR_BEST]);
+        else
+          m_pppcRDSbacCoder[uhNextDepth][CI_CURR_BEST]->load(m_pppcRDSbacCoder[uhNextDepth][CI_NEXT_BEST]);
+      }  
+      xQuadTreeDecisionFunc(pQAOPart->DownPartsIdx[i], pcPicOrg, pcPicDec, pcPicRest, dCostFinal);
+      dCostSplit += dCostFinal;
+      if( m_bUseSBACRD )
+      {
+        m_pppcRDSbacCoder[uhNextDepth][CI_NEXT_BEST]->store(m_pppcRDSbacCoder[uiDepth][CI_TEMP_BEST]);
+      }
+    }
+
+
+    if(dCostSplit < dCostNotSplit)
+    {
+      dCostFinal = dCostSplit;
+      pQAOPart->bSplit      = true;
+      pQAOPart->bEnableFlag = false;
+      pQAOPart->iLength     =  0;
+      pQAOPart->iBestType   = -1;
+    }
+    else
+    {
+      dCostFinal = dCostNotSplit;
+      pQAOPart->bSplit = false;
+      for (Int i=0; i<NUM_DOWN_PART; i++)
+      {
+        xPartTreeDisable(pQAOPart->DownPartsIdx[i]);
+      }
+    }
+  }
+  else
+  {
+    dCostFinal = pQAOPart->dMinCost;
+  }
+}
+/** destory TEncSampleAdaptiveOffset class.
+ * \param  
+ */
+Void TEncSampleAdaptiveOffset::destoryEncBuffer()
+{
+
+    for (Int i=0;i<m_iNumTotalParts;i++)
+    {
+      for (Int j=0;j<MAX_NUM_SAO_TYPE;j++)
+      {
+        if (m_iCount [i][j])
+        {
+          delete [] m_iCount [i][j]; 
+        }
+        if (m_iOffset[i][j])
+        {
+          delete [] m_iOffset[i][j]; 
+        }
+        if (m_iOffsetOrg[i][j])
+        {
+          delete [] m_iOffsetOrg[i][j]; 
+        }
+      }
+      if (m_iRate[i])
+      {
+        delete [] m_iRate[i];
+      }
+      if (m_iDist[i])
+      {
+        delete [] m_iDist[i]; 
+      }
+      if (m_dCost[i])
+      {
+        delete [] m_dCost[i]; 
+      }
+      if (m_iCount [i])
+      {
+        delete [] m_iCount [i]; 
+      }
+      if (m_iOffset[i])
+      {
+        delete [] m_iOffset[i]; 
+      }
+      if (m_iOffsetOrg[i])
+      {
+        delete [] m_iOffsetOrg[i]; 
+      }
+
+    }
+    if (m_iDistOrg)
+    {
+      delete [] m_iDistOrg ; m_iDistOrg = NULL;
+    }
+    if (m_dCostPartBest)
+    {
+      delete [] m_dCostPartBest ; m_dCostPartBest = NULL;
+    }
+    if (m_iTypePartBest)
+    {
+      delete [] m_iTypePartBest ; m_iTypePartBest = NULL;
+    }
+    if (m_iRate)
+    {
+      delete [] m_iRate ; m_iRate = NULL;
+    }
+    if (m_iDist)
+    {
+      delete [] m_iDist ; m_iDist = NULL;
+    }
+    if (m_dCost)
+    {
+      delete [] m_dCost ; m_dCost = NULL;
+    }
+    if (m_iCount)
+    {
+      delete [] m_iCount  ; m_iCount = NULL;
+    }
+    if (m_iOffset)
+    {
+      delete [] m_iOffset ; m_iOffset = NULL;
+    }
+    if (m_iOffsetOrg)
+    {
+      delete [] m_iOffsetOrg ; m_iOffsetOrg = NULL;
+    }
+
+
+}
+Void TEncSampleAdaptiveOffset::createEncBuffer()
+{
+    m_iDistOrg = new Int64 [m_iNumTotalParts]; 
+    m_dCostPartBest = new Double [m_iNumTotalParts]; 
+    m_iTypePartBest = new Int [m_iNumTotalParts]; 
+
+    m_iRate = new Int64* [m_iNumTotalParts];
+    m_iDist = new Int64* [m_iNumTotalParts];
+    m_dCost = new Double*[m_iNumTotalParts];
+
+    m_iCount  = new Int64 **[m_iNumTotalParts];
+    m_iOffset = new Int64 **[m_iNumTotalParts];
+    m_iOffsetOrg = new Int64 **[m_iNumTotalParts];
+
+    for (Int i=0;i<m_iNumTotalParts;i++)
+    {
+      m_iRate[i] = new Int64  [MAX_NUM_SAO_TYPE];
+      m_iDist[i] = new Int64  [MAX_NUM_SAO_TYPE]; 
+      m_dCost[i] = new Double [MAX_NUM_SAO_TYPE]; 
+
+      m_iCount [i] = new Int64 *[MAX_NUM_SAO_TYPE]; 
+      m_iOffset[i] = new Int64 *[MAX_NUM_SAO_TYPE]; 
+      m_iOffsetOrg[i] = new Int64 *[MAX_NUM_SAO_TYPE]; 
+
+      for (Int j=0;j<MAX_NUM_SAO_TYPE;j++)
+      {
+        m_iCount [i][j] = new Int64 [MAX_NUM_QAO_CLASS]; 
+        m_iOffset[i][j] = new Int64 [MAX_NUM_QAO_CLASS]; 
+        m_iOffsetOrg[i][j]=  new Int64 [MAX_NUM_QAO_CLASS]; 
+      }
+    }
+
+}
+
+/** start Sao Encoder.
+ * \param pcPic, pcEntropyCoder, pppcRDSbacCoder, pcRDGoOnSbacCoder 
+ */
+Void TEncSampleAdaptiveOffset::startSaoEnc( TComPic* pcPic, TEncEntropy* pcEntropyCoder, TEncSbac*** pppcRDSbacCoder, TEncSbac* pcRDGoOnSbacCoder)
+{
+  if( pcRDGoOnSbacCoder )
+    m_bUseSBACRD = true;
+  else
+    m_bUseSBACRD = false;
+
+  m_pcPic = pcPic;
+  m_pcEntropyCoder = pcEntropyCoder;
+
+  m_pppcRDSbacCoder = pppcRDSbacCoder;
+  m_pcRDGoOnSbacCoder = pcRDGoOnSbacCoder;
+  m_pcEntropyCoder->resetEntropy();
+  m_pcEntropyCoder->resetBits();
+
+  if( m_bUseSBACRD )
+  {
+    m_pcRDGoOnSbacCoder->store( m_pppcRDSbacCoder[0][CI_NEXT_BEST]);
+    m_pppcRDSbacCoder[0][CI_CURR_BEST]->load( m_pppcRDSbacCoder[0][CI_NEXT_BEST]);
+  }
+
+  m_bSaoFlag = 0;
+  for (Int i=0;i<m_iNumTotalParts;i++)
+  {
+    m_dCostPartBest[i] = MAX_DOUBLE;
+    m_iTypePartBest[i] = -1;
+    m_iDistOrg[i] = 0;
+    for (Int j=0;j<MAX_NUM_SAO_TYPE;j++)
+    {
+      m_iDist[i][j] = 0;
+      m_iRate[i][j] = 0;
+      m_dCost[i][j] = 0;
+      for (Int k=0;k<MAX_NUM_QAO_CLASS;k++)
+      {
+        m_iCount [i][j][k] = 0;
+        m_iOffset[i][j][k] = 0;
+        m_iOffsetOrg[i][j][k] = 0;
+      }  
+    }
+  }
+
+  for(Int i=0; i< m_aiNumCulPartsLevel[m_uiMaxSplitLevel]; i++)
+  {
+    m_psQAOPart[i].bEnableFlag   =  0;
+    m_psQAOPart[i].iBestType     = -1;
+    m_psQAOPart[i].iLength       =  0;
+    m_psQAOPart[i].bSplit        =  false; 
+    m_psQAOPart[i].bProcessed    = false;
+    m_psQAOPart[i].dMinCost      = MAX_DOUBLE;
+    m_psQAOPart[i].iMinDist      = MAX_INT;
+    m_psQAOPart[i].iMinRate      = MAX_INT;
+
+    for (Int j=0;j<MAX_NUM_QAO_CLASS;j++)
+    {
+      m_psQAOPart[i].iOffset[j] = 0;
+    }
+  }
+
+  for(Int i=0; i< m_aiNumCulPartsLevel[m_uiMaxSplitLevel]; i++)
+  {
+    m_psQAOPart[i].bEnableFlag   =  0;
+    m_psQAOPart[i].iBestType     = -1;
+    m_psQAOPart[i].iLength       =  0;
+    for (Int j=0;j<MAX_NUM_QAO_CLASS;j++)
+    {
+      m_psQAOPart[i].iOffset[j] = 0;
+    }
+  }
+
+}
+
+/** end Sao Encoder.
+ * \param 
+ */
+Void TEncSampleAdaptiveOffset::endSaoEnc()
+{
+  m_pcPic = NULL;
+  m_pcEntropyCoder = NULL;
+}
+
+inline int xSign(int x)
+{
+  return ((x >> 31) | ((int)( (((unsigned int) -x)) >> 31)));
+}
+/** calculate Ao Stats Cu
+ * \param iAddr, iPartIdx
+ */
+Void TEncSampleAdaptiveOffset::calcAoStatsCu(Int iAddr, Int iPartIdx)
+{
+  Int x,y;
+  TComDataCU *pTmpCu = m_pcPic->getCU(iAddr);
+  TComSPS *pTmpSPS =  m_pcPic->getSlice(0)->getSPS();
+
+
+  Pel* pOrg      ;
+  Pel* pRec      ;
+  Int iStride    =  m_pcPic->getStride();
+  Int iLcuWidth  = pTmpSPS->getMaxCUHeight();
+  Int iLcuHeight = pTmpSPS->getMaxCUWidth();
+  Int iPicWidth  = pTmpSPS->getWidth();
+  Int iPicHeight = pTmpSPS->getHeight();
+  UInt uiLPelX   = pTmpCu->getCUPelX();
+  UInt uiRPelX   = uiLPelX + iLcuWidth;
+  UInt uiTPelY   = pTmpCu->getCUPelY();
+  UInt uiBPelY   = uiTPelY + iLcuHeight;
+  uiRPelX    = uiRPelX > iPicWidth ? iPicWidth : uiRPelX;
+  uiBPelY    = uiBPelY > iPicHeight? iPicHeight: uiBPelY;
+  iLcuWidth  = uiRPelX - uiLPelX;
+  iLcuHeight = uiBPelY - uiTPelY;
+  Int64* iStats ;
+  Int64* iCount ;
+  Int iClassIdx;
+
+
+  //   if(m_iAoType == BO_0 || m_iAoType == BO_1)
+  {
+    iStats = m_iOffsetOrg[iPartIdx][SAO_BO_0];
+    iCount = m_iCount    [iPartIdx][SAO_BO_0];
+
+    pOrg      = m_pcPic->getPicYuvOrg()->getLumaAddr(iAddr);
+    pRec      = m_pcPic->getPicYuvRec()->getLumaAddr(iAddr);
+
+    for (y=0; y<iLcuHeight; y++)
+    {
+      for (x=0; x<iLcuWidth; x++)
+      {
+        iClassIdx =  m_ppLumaTableBo0[pRec[x]];
+        if (iClassIdx)
+        {
+          iStats[iClassIdx] += (pOrg[x] - pRec[x]); 
+          iCount[iClassIdx] ++;
+        }
+      }
+      pOrg += iStride;
+      pRec += iStride;
+    }
+
+    iStats = m_iOffsetOrg[iPartIdx][SAO_BO_1];
+    iCount = m_iCount    [iPartIdx][SAO_BO_1];
+
+    pOrg      = m_pcPic->getPicYuvOrg()->getLumaAddr(iAddr);
+    pRec      = m_pcPic->getPicYuvRec()->getLumaAddr(iAddr);
+
+    for (y=0; y<iLcuHeight; y++)
+    {
+      for (x=0; x<iLcuWidth; x++)
+      {
+        iClassIdx =  m_ppLumaTableBo1[pRec[x]];
+        if (iClassIdx)
+        {
+          iStats[iClassIdx] += (pOrg[x] - pRec[x]); 
+          iCount[iClassIdx] ++;
+        }
+      }
+      pOrg += iStride;
+      pRec += iStride;
+    }
+  }
+
+  Int iSignLeft;
+  Int iSignRight;
+  Int iSignDown;
+  Int iSignDown1;
+  Int iSignDown2;
+
+  UInt uiEdgeType;
+
+  //   if (m_iAoType == EO_0  || m_iAoType == EO_1 || m_iAoType == EO_2 || m_iAoType == EO_3)
+  {
+    //     if (m_iAoType == EO_0  )
+    {
+      iStats = m_iOffsetOrg[iPartIdx][SAO_EO_0];
+      iCount = m_iCount    [iPartIdx][SAO_EO_0];
+
+      pOrg      = m_pcPic->getPicYuvOrg()->getLumaAddr(iAddr);
+      pRec      = m_pcPic->getPicYuvRec()->getLumaAddr(iAddr);
+      for (y=0; y<iLcuHeight; y++)
+      {
+        iSignLeft  = xSign(pRec[1] - pRec[0]);
+        for (x=1; x<iLcuWidth-1; x++)
+        {
+          iSignRight =  xSign(pRec[x] - pRec[x+1]); 
+          uiEdgeType =  iSignRight + iSignLeft + 2;
+          iSignLeft  = -iSignRight;
+
+          iStats[m_auiEoTable[uiEdgeType]] += (pOrg[x] - pRec[x]);
+          iCount[m_auiEoTable[uiEdgeType]] ++;
+        }
+        pOrg += iStride;
+        pRec += iStride;
+      }
+    }
+
+    //     if (m_iAoType == EO_1  )
+    {
+      iStats = m_iOffsetOrg[iPartIdx][SAO_EO_1];
+      iCount = m_iCount    [iPartIdx][SAO_EO_1];
+
+      pOrg      = m_pcPic->getPicYuvOrg()->getLumaAddr(iAddr);
+      pRec      = m_pcPic->getPicYuvRec()->getLumaAddr(iAddr);
+      pOrg += iStride;
+      pRec += iStride;
+
+      for (x=0; x< iLcuWidth; x++)
+      {
+        m_iUpBuff1[x] = xSign(pRec[x] - pRec[x-iStride]);
+      }
+
+      for (y=1; y<iLcuHeight-1; y++)
+      {
+        for (x=0; x<iLcuWidth; x++)
+        {
+
+          iSignDown  =  xSign(pRec[x] - pRec[x+iStride]); 
+          uiEdgeType =  iSignDown + m_iUpBuff1[x] + 2;
+          m_iUpBuff1[x]= -iSignDown;
+
+          iStats[m_auiEoTable[uiEdgeType]] += (pOrg[x] - pRec[x]);
+          iCount[m_auiEoTable[uiEdgeType]] ++;
+
+        }
+        pOrg += iStride;
+        pRec += iStride;
+      }
+    }
+    //     if (m_iAoType == EO_2  )
+    {
+      iStats = m_iOffsetOrg[iPartIdx][SAO_EO_2];
+      iCount = m_iCount    [iPartIdx][SAO_EO_2];
+
+      pOrg      = m_pcPic->getPicYuvOrg()->getLumaAddr(iAddr);
+      pRec      = m_pcPic->getPicYuvRec()->getLumaAddr(iAddr);
+      pOrg += iStride;
+      pRec += iStride;
+      for (x=1; x<iLcuWidth; x++)
+      {
+        m_iUpBuff1[x] = xSign(pRec[x] - pRec[x-iStride-1]);
+      }
+      for (y=1; y<iLcuHeight-1; y++)
+      {
+        iSignDown2 = xSign(pRec[iStride] - pRec[0]);
+        for (x=1; x<iLcuWidth-1; x++)
+        {
+          iSignDown1      =  xSign(pRec[x] - pRec[x+iStride+1]) ;
+          uiEdgeType      =  iSignDown1 + m_iUpBuff1[x] + 2;
+          m_iUpBufft[x+1] = -iSignDown1; 
+          iStats[m_auiEoTable[uiEdgeType]] += (pOrg[x] - pRec[x]);
+          iCount[m_auiEoTable[uiEdgeType]] ++;
+        }
+        m_iUpBufft[1] = iSignDown2;
+        ipSwap     = m_iUpBuff1;
+        m_iUpBuff1 = m_iUpBufft;
+        m_iUpBufft = ipSwap;
+
+        pRec += iStride;
+        pOrg += iStride;
+      }
+    } 
+    //     if (m_iAoType == EO_3  )
+    {
+      iStats = m_iOffsetOrg[iPartIdx][SAO_EO_3];
+      iCount = m_iCount    [iPartIdx][SAO_EO_3];
+
+      pOrg      = m_pcPic->getPicYuvOrg()->getLumaAddr(iAddr);
+      pRec      = m_pcPic->getPicYuvRec()->getLumaAddr(iAddr);
+      pOrg += iStride;
+      pRec += iStride;
+      for (x=0; x<iLcuWidth-1; x++)
+      {
+        m_iUpBuff1[x] = xSign(pRec[x] - pRec[x-iStride+1]);
+      }
+
+      for (y=1; y<iLcuHeight-1; y++)
+      {
+        for (x=1; x<iLcuWidth-1; x++)
+        {
+          iSignDown1      =  xSign(pRec[x] - pRec[x+iStride-1]) ;
+          uiEdgeType      =  iSignDown1 + m_iUpBuff1[x] + 2;
+          m_iUpBuff1[x-1]   = -iSignDown1; 
+          iStats[m_auiEoTable[uiEdgeType]] += (pOrg[x] - pRec[x]);
+          iCount[m_auiEoTable[uiEdgeType]] ++;
+        }
+        m_iUpBuff1[iLcuWidth-2] = xSign(pRec[iLcuWidth-2 + iStride] - pRec[iLcuWidth-1]);
+
+        pRec += iStride;
+        pOrg += iStride;
+      } 
+    } 
+  }
+
+}
+
+/** run get QAO Stats
+ * \param pcPicYuvOrg, pcPicYuvRec, pcPicYuvExt
+ */
+Void TEncSampleAdaptiveOffset::xGetQAOStats(TComPicYuv* pcPicYuvOrg, TComPicYuv* pcPicYuvRec, TComPicYuv* pcPicYuvExt)
+{
+  Int iLevelIdx, iPartIdx, iTypeIdx, iClassIdx;
+  Int i;
+  Int iNumTotalType = MAX_NUM_SAO_TYPE;
+  Int LcuIdxX;
+  Int LcuIdxY;
+  Int iAddr;
+  Int iFrameWidthInCU = m_pcPic->getFrameWidthInCU();
+  Int iDownPartIdx;
+  Int iPartStart;
+  Int iPartEnd;
+
+  if (m_uiMaxSplitLevel == 0)
+  {
+    iPartIdx = 0;
+    for (LcuIdxY = m_psQAOPart[iPartIdx].StartCUY; LcuIdxY<= m_psQAOPart[iPartIdx].EndCUY; LcuIdxY++)
+    {
+      for (LcuIdxX = m_psQAOPart[iPartIdx].StartCUX; LcuIdxX<= m_psQAOPart[iPartIdx].EndCUX; LcuIdxX++)
+      {
+        iAddr = LcuIdxY*iFrameWidthInCU + LcuIdxX;
+        calcAoStatsCu(iAddr, iPartIdx);
+      }
+    }
+
+  }
+  else
+  {
+    for(iPartIdx=m_aiNumCulPartsLevel[m_uiMaxSplitLevel-1]; iPartIdx<m_aiNumCulPartsLevel[m_uiMaxSplitLevel]; iPartIdx++)
+    {
+      for (LcuIdxY = m_psQAOPart[iPartIdx].StartCUY; LcuIdxY<= m_psQAOPart[iPartIdx].EndCUY; LcuIdxY++)
+      {
+        for (LcuIdxX = m_psQAOPart[iPartIdx].StartCUX; LcuIdxX<= m_psQAOPart[iPartIdx].EndCUX; LcuIdxX++)
+        {
+          iAddr = LcuIdxY*iFrameWidthInCU + LcuIdxX;
+          calcAoStatsCu(iAddr, iPartIdx);
+        }
+      }
+    }
+    for (iLevelIdx=m_uiMaxSplitLevel-1; iLevelIdx>=0; iLevelIdx--)
+    {
+      iPartStart = (iLevelIdx > 0) ? m_aiNumCulPartsLevel[iLevelIdx-1] : 0;
+      iPartEnd   = m_aiNumCulPartsLevel[iLevelIdx];
+      for(iPartIdx = iPartStart; iPartIdx < iPartEnd; iPartIdx++)
+      {
+        for (i=0; i<NUM_DOWN_PART; i++)
+        {
+          iDownPartIdx = m_psQAOPart[iPartIdx].DownPartsIdx[i];
+          for (iTypeIdx=0; iTypeIdx<iNumTotalType; iTypeIdx++)
+          {
+            for (iClassIdx=0; iClassIdx<m_iNumClass[iTypeIdx]+1; iClassIdx++)
+            {
+              m_iOffsetOrg[iPartIdx][iTypeIdx][iClassIdx] += m_iOffsetOrg[iDownPartIdx][iTypeIdx][iClassIdx];
+              m_iCount [iPartIdx][iTypeIdx][iClassIdx]    += m_iCount [iDownPartIdx][iTypeIdx][iClassIdx];
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+/** Sample adaptive offset Process
+ * \param dLambda
+ */
+Void TEncSampleAdaptiveOffset::SAOProcess( Double dLambda)
+{
+  // set lambda
+  TComPicYuv* pcPicYuvOrg = m_pcPic->getPicYuvOrg();
+  TComPicYuv* pcPicYuvRec = m_pcPic->getPicYuvRec();
+
+  TComPicYuv* pcPicYuvExt = NULL;
+
+  m_eSliceType           =  m_pcPic->getSlice(0)->getSliceType();
+  m_iPicNalReferenceIdc  = (m_pcPic->getSlice(0)->isReferenced() ? 1 :0);
+
+  m_dLambdaLuma    = dLambda;
+  m_dLambdaChroma  = dLambda;
+
+  if (g_uiBitIncrement>1)
+  {
+    m_uiAoBitDepth = 1;
+  }
+  else
+  {
+    m_uiAoBitDepth = 0;
+  }
+
+  Double dCostFinal = 0;
+
+  xGetQAOStats(pcPicYuvOrg, pcPicYuvRec, pcPicYuvExt);
+  xQuadTreeDecisionFunc(0, pcPicYuvOrg, pcPicYuvRec, pcPicYuvExt, dCostFinal);
+  m_bSaoFlag = dCostFinal < m_iDistOrg[0] ? 1:0;
+
+
+  if(m_bSaoFlag)
+  {
+    xProcessQuadTreeAo( 0, pcPicYuvRec,  pcPicYuvExt);
+  }
+
+}
+
+
+#endif

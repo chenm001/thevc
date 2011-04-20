@@ -1,7 +1,7 @@
 /* The copyright in this software is being made available under the BSD
  * License, included below. This software may be subject to other third party
  * and contributor rights, including patent rights, and no such rights are
- * granted under this license.   
+ * granted under this license.  
  *
  * Copyright (c) 2010-2011, ITU/ISO/IEC
  * All rights reserved.
@@ -36,6 +36,7 @@
 */
 
 #include "TComPic.h"
+#include "SEI.h"
 
 // ====================================================================================================================
 // Constructor / destructor / create / destroy
@@ -49,6 +50,10 @@ TComPic::TComPic()
   m_pcPicYuvPred      = NULL;
   m_pcPicYuvResi      = NULL;
   
+#if PARALLEL_MERGED_DEBLK
+  m_pcPicYuvDeblkBuf     = NULL;
+#endif
+
   m_bReconstructed    = false;
 }
 
@@ -65,6 +70,13 @@ Void TComPic::create( Int iWidth, Int iHeight, UInt uiMaxWidth, UInt uiMaxHeight
   }
   m_apcPicYuv[1]  = new TComPicYuv;  m_apcPicYuv[1]->create( iWidth, iHeight, uiMaxWidth, uiMaxHeight, uiMaxDepth );
   
+#if PARALLEL_MERGED_DEBLK
+  m_pcPicYuvDeblkBuf  = new TComPicYuv;  m_pcPicYuvDeblkBuf->create( iWidth, iHeight, uiMaxWidth, uiMaxHeight, uiMaxDepth );
+#endif
+
+  /* there are no SEI messages associated with this picture initially */
+  m_SEIs = NULL;
+
   return;
 }
 
@@ -91,6 +103,16 @@ Void TComPic::destroy()
     m_apcPicYuv[1]  = NULL;
   }
   
+#if PARALLEL_MERGED_DEBLK
+  if (m_pcPicYuvDeblkBuf)
+  {
+    m_pcPicYuvDeblkBuf->destroy();
+    delete m_pcPicYuvDeblkBuf;
+    m_pcPicYuvDeblkBuf  = NULL;
+  }
+#endif
+
+  delete m_SEIs;
 }
 
 #if AMVP_BUFFERCOMPRESS

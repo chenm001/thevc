@@ -1,7 +1,7 @@
 /* The copyright in this software is being made available under the BSD
  * License, included below. This software may be subject to other third party
  * and contributor rights, including patent rights, and no such rights are
- * granted under this license.   
+ * granted under this license.  
  *
  * Copyright (c) 2010-2011, ITU/ISO/IEC
  * All rights reserved.
@@ -76,9 +76,14 @@ private:
   
   // Adaptive Loop filter
   TComAdaptiveLoopFilter*       m_pcAdaptiveLoopFilter;
-  
+#if MTK_SAO
+  TComSampleAdaptiveOffset*              m_pcSAO;
+  SAOParam              m_cSaoParam;
+#endif
   ALFParam              m_cAlfParam;
   Double                m_dDecTime;
+
+  bool m_pictureDigestEnabled; ///< if true, handle picture_digest SEI messages
 
 public:
   TDecGop();
@@ -90,11 +95,17 @@ public:
                  TDecCavlc*              pcCavlcDecoder, 
                  TDecSlice*              pcSliceDecoder, 
                  TComLoopFilter*         pcLoopFilter, 
-                 TComAdaptiveLoopFilter* pcAdaptiveLoopFilter );
+                 TComAdaptiveLoopFilter* pcAdaptiveLoopFilter
+#if MTK_SAO
+                 ,TComSampleAdaptiveOffset*                pcSAO
+#endif
+                 );
   Void  create  ();
   Void  destroy ();
   Void  decompressGop ( Bool bEos, TComBitstream* pcBitstream, TComPic*& rpcPic, Bool bExecuteDeblockAndAlf );
   Void  setGopSize( Int i) { m_iGopSize = i; }
+
+  void setPictureDigestEnabled(bool enabled) { m_pictureDigestEnabled = enabled; }
 };
 
 #endif // !defined(AFX_TDECGOP_H__29440B7A_7CC0_48C7_8DD5_1A531D3CED45__INCLUDED_)

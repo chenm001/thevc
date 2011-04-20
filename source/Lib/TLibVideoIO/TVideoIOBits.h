@@ -1,7 +1,7 @@
 /* The copyright in this software is being made available under the BSD
  * License, included below. This software may be subject to other third party
  * and contributor rights, including patent rights, and no such rights are
- * granted under this license.   
+ * granted under this license.  
  *
  * Copyright (c) 2010-2011, ITU/ISO/IEC
  * All rights reserved.
@@ -44,8 +44,6 @@
 #include "../TLibCommon/CommonDef.h"
 #include "../TLibCommon/TComBitStream.h"
 
-using namespace std;
-
 // ====================================================================================================================
 // Class definition
 // ====================================================================================================================
@@ -54,7 +52,7 @@ using namespace std;
 class TVideoIOBits
 {
 private:
-  fstream   m_cHandle;                                      ///< file handle
+  std::fstream   m_cHandle;                                      ///< file handle
   
 public:
   TVideoIOBits()            {}
@@ -72,7 +70,7 @@ public:
 class TVideoIOBitsStartCode
 {
 private:
-  fstream   m_cHandle;                                      ///< file handle
+  std::fstream   m_cHandle;                                      ///< file handle
   
 public:
   TVideoIOBitsStartCode()            
@@ -86,10 +84,10 @@ public:
   Bool readBits   ( TComBitstream*& rpcBitstream    );      ///< read  one packet from file
   Void writeBits  ( TComBitstream*  pcBitstream     );      ///< write one packet to   file
   
-  Long        getFileLocation                  ()                   { return m_cHandle.tellg();                           }
-  Void        setFileLocation                  (Long uiLocation)    { m_cHandle.seekg(uiLocation, ios_base::beg);         }
-  Void        clear                            ()                   { m_cHandle.clear();                                  }
-  Bool        good                             ()                   { return m_cHandle.good();                            }
+  std::streampos   getFileLocation      ()                          { return m_cHandle.tellg();                           }
+  Void             setFileLocation      (std::streampos uiLocation) { m_cHandle.seekg(uiLocation, std::ios_base::beg);    }
+  Void             clear                ()                          { m_cHandle.clear();                                  }
+  Bool             good                 ()                          { return m_cHandle.good();                            }
 
 private:
   int xFindNextStartCode(UInt& ruiPacketSize, UChar* pucBuffer); ///< get packet size and number of startcode bytes and seeks to the packet's start position

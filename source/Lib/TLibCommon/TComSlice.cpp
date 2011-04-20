@@ -1,7 +1,7 @@
 /* The copyright in this software is being made available under the BSD
  * License, included below. This software may be subject to other third party
  * and contributor rights, including patent rights, and no such rights are
- * granted under this license.   
+ * granted under this license.  
  *
  * Copyright (c) 2010-2011, ITU/ISO/IEC
  * All rights reserved.
@@ -497,7 +497,6 @@ Void TComSlice::initEqualRef()
  * \param uiPOCCDR POC of the CDR picture
  * \param bRefreshPending flag indicating if a deferred decoding refresh is pending
  * \param rcListPic reference to the reference picture list
- * \returns 
  * This function marks the reference pictures as "unused for reference" in the following conditions.
  * If the nal_unit_type is IDR all pictures in the reference picture list  
  * is marked as "unused for reference" 

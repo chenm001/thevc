@@ -47,6 +47,7 @@ int main(int argc, const char** argv)
   unsigned int width, height;
   unsigned int bitdepth_in, bitdepth_out;
   unsigned int num_frames;
+  unsigned int num_frames_skip;
 
   po::Options opts;
   opts.addOptions()
@@ -58,6 +59,7 @@ int main(int argc, const char** argv)
   ("InputBitDepth", bitdepth_in, 8u, "bit-depth of input file")
   ("OutputBitDepth", bitdepth_out, 8u, "bit-depth of output file")
   ("NumFrames", num_frames, 0xffffffffu, "number of frames to process")
+  ("FrameSkip,-fs", num_frames_skip, 0u, "Number of frames to skip at start of input YUV")
   ;
 
   po::setDefaults(opts);
@@ -75,6 +77,8 @@ int main(int argc, const char** argv)
 
   input.open((char*)filename_in.c_str(), false, bitdepth_in, bitdepth_out);
   output.open((char*)filename_out.c_str(), true, bitdepth_out, bitdepth_out);
+
+  input.skipFrames(num_frames_skip, width, height);
 
   TComPicYuv frame;
   frame.create( width, height, 1, 1, 0 );

@@ -1,7 +1,7 @@
 /* The copyright in this software is being made available under the BSD
  * License, included below. This software may be subject to other third party
  * and contributor rights, including patent rights, and no such rights are
- * granted under this license.   
+ * granted under this license.  
  *
  * Copyright (c) 2010-2011, ITU/ISO/IEC
  * All rights reserved.
@@ -47,6 +47,7 @@
 
 class TDecSbac;
 class TDecCavlc;
+class SEImessages;
 
 // ====================================================================================================================
 // Class definition
@@ -67,6 +68,7 @@ public:
 
   virtual Void  parseSPS                  ( TComSPS* pcSPS )                                      = 0;
   virtual Void  parsePPS                  ( TComPPS* pcPPS )                                      = 0;
+  virtual void parseSEI(SEImessages&) = 0;
   virtual Void  parseSliceHeader          ( TComSlice*& rpcSlice )                                = 0;
   virtual Void  parseTerminatingBit       ( UInt& ruilsLast )                                     = 0;
   
@@ -96,6 +98,9 @@ public:
   
   virtual Void parseCbf           ( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eType, UInt uiTrDepth, UInt uiDepth ) = 0;
   virtual Void parseBlockCbf      ( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eType, UInt uiTrDepth, UInt uiDepth, UInt uiQPartNum ) = 0;
+#if CAVLC_RQT_CBP
+  virtual Void parseCbfTrdiv      ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiTrDepth, UInt uiDepth, UInt& uiSubdiv ) = 0;
+#endif
   
   virtual Void parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx, UInt uiWidth, UInt uiHeight, UInt uiDepth, TextType eTType ) = 0;
   
@@ -108,7 +113,12 @@ public:
   virtual Void parseAlfFlagNum    ( UInt& ruiVal, UInt minValue, UInt depth ) = 0;
   virtual Void parseAlfCtrlFlag   ( UInt &ruiAlfCtrlFlag ) = 0;
 #endif
-  
+
+#if MTK_SAO
+  virtual Void parseAoFlag       ( UInt& ruiVal           ) = 0;
+  virtual Void parseAoUvlc       ( UInt& ruiVal           ) = 0;
+  virtual Void parseAoSvlc       ( Int&  riVal            ) = 0;
+#endif
   virtual ~TDecEntropyIf() {}
 };
 
@@ -138,6 +148,7 @@ public:
 
   Void    decodeSPS                   ( TComSPS* pcSPS     )    { m_pcEntropyDecoderIf->parseSPS(pcSPS);                    }
   Void    decodePPS                   ( TComPPS* pcPPS     )    { m_pcEntropyDecoderIf->parsePPS(pcPPS);                    }
+  void decodeSEI(SEImessages& seis) { m_pcEntropyDecoderIf->parseSEI(seis); }
   Void    decodeSliceHeader           ( TComSlice*& rpcSlice )  { m_pcEntropyDecoderIf->parseSliceHeader(rpcSlice);         }
   Void    decodeTerminatingBit        ( UInt& ruiIsLast )       { m_pcEntropyDecoderIf->parseTerminatingBit(ruiIsLast);     }
   
@@ -187,6 +198,13 @@ public:
   Void readFilterCoeffs(ALFParam* pAlfParam);
   Void decodeFilterCoeff (ALFParam* pAlfParam);
   Int golombDecode(Int k);
+
+#if MTK_SAO
+  Void decodeQAOOnePart(SAOParam* pQaoParam, Int part_idx);
+  Void decodeQuadTreeSplitFlag(SAOParam* pQaoParam, Int part_idx);
+  Void decodeSaoParam(SAOParam* pQaoParam) ;
+#endif
+
 };// END CLASS DEFINITION TDecEntropy
 
 

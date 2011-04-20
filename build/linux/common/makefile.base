@@ -62,7 +62,7 @@ endif
 DEBUG_CPPFLAGS    = -g  -D_DEBUG
 #
 # release cpp
-RELEASE_CPPFLAGS  =  -O3 -ffloat-store -DNDEBUG -Wuninitialized
+RELEASE_CPPFLAGS  =  -O3 -ffloat-store -Wuninitialized
 
 
 #########################################################
@@ -246,6 +246,46 @@ $(OBJ_DIR)/%.r.o: $(SRC_DIR4)/%.cpp
 
 # create debug objects
 $(OBJ_DIR)/%.d.o: $(SRC_DIR4)/%.cpp
+	$(COMPILE_AND_DEPEND_DEBUG)
+
+# create release objects
+$(OBJ_DIR)/%.r.o: $(SRC_DIR)/%.c
+	$(COMPILE_AND_DEPEND_RELEASE)
+
+# create debug objects
+$(OBJ_DIR)/%.d.o: $(SRC_DIR)/%.c
+	$(COMPILE_AND_DEPEND_DEBUG)
+
+# create release objects
+$(OBJ_DIR)/%.r.o: $(SRC_DIR1)/%.c
+	$(COMPILE_AND_DEPEND_RELEASE)
+
+# create debug objects
+$(OBJ_DIR)/%.d.o: $(SRC_DIR1)/%.c
+	$(COMPILE_AND_DEPEND_DEBUG)
+
+# create release objects
+$(OBJ_DIR)/%.r.o: $(SRC_DIR2)/%.c
+	$(COMPILE_AND_DEPEND_RELEASE)
+
+# create debug objects
+$(OBJ_DIR)/%.d.o: $(SRC_DIR2)/%.c
+	$(COMPILE_AND_DEPEND_DEBUG)
+
+# create release objects
+$(OBJ_DIR)/%.r.o: $(SRC_DIR3)/%.c
+	$(COMPILE_AND_DEPEND_RELEASE)
+
+# create debug objects
+$(OBJ_DIR)/%.d.o: $(SRC_DIR3)/%.c
+	$(COMPILE_AND_DEPEND_DEBUG)
+
+# create release objects
+$(OBJ_DIR)/%.r.o: $(SRC_DIR4)/%.c
+	$(COMPILE_AND_DEPEND_RELEASE)
+
+# create debug objects
+$(OBJ_DIR)/%.d.o: $(SRC_DIR4)/%.c
 	$(COMPILE_AND_DEPEND_DEBUG)
 
 

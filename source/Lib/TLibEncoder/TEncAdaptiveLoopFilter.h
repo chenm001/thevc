@@ -1,7 +1,7 @@
 /* The copyright in this software is being made available under the BSD
  * License, included below. This software may be subject to other third party
  * and contributor rights, including patent rights, and no such rights are
- * granted under this license.   
+ * granted under this license.  
  *
  * Copyright (c) 2010-2011, ITU/ISO/IEC
  * All rights reserved.
@@ -48,6 +48,43 @@
 // ====================================================================================================================
 // Class definition
 // ====================================================================================================================
+#if MTK_SAO
+
+class TEncSampleAdaptiveOffset : public TComSampleAdaptiveOffset
+{
+private:
+  Double            m_dLambdaLuma;
+  Double            m_dLambdaChroma;
+
+  TEncEntropy*      m_pcEntropyCoder;
+  TEncSbac***       m_pppcRDSbacCoder;
+  TEncSbac*         m_pcRDGoOnSbacCoder;
+
+  Int64  ***m_iCount ;     //[MAX_NUM_QAO_PART][MAX_NUM_QAO_TYPE][MAX_NUM_QAO_CLASS]; 
+  Int64  ***m_iOffset;     //[MAX_NUM_QAO_PART][MAX_NUM_QAO_TYPE][MAX_NUM_QAO_CLASS]; 
+  Int64  ***m_iOffsetOrg  ;      //[MAX_NUM_QAO_PART][MAX_NUM_QAO_TYPE]; 
+  Int64  **m_iRate  ;      //[MAX_NUM_QAO_PART][MAX_NUM_QAO_TYPE]; 
+  Int64  **m_iDist  ;      //[MAX_NUM_QAO_PART][MAX_NUM_QAO_TYPE]; 
+  Double **m_dCost  ;      //[MAX_NUM_QAO_PART][MAX_NUM_QAO_TYPE]; 
+  Double *m_dCostPartBest ;//[MAX_NUM_QAO_PART]; 
+  Int64  *m_iDistOrg;      //[MAX_NUM_QAO_PART]; 
+  Int    *m_iTypePartBest ;//[MAX_NUM_QAO_PART]; 
+
+  Bool    m_bUseSBACRD;
+
+public:
+  Void startSaoEnc( TComPic* pcPic, TEncEntropy* pcEntropyCoder, TEncSbac*** pppcRDSbacCoder, TEncSbac* pcRDGoOnSbacCoder);
+  Void endSaoEnc();
+  Void SAOProcess(Double dLambda);
+  Void xQuadTreeDecisionFunc(Int iPartIdx, TComPicYuv* pcPicOrg, TComPicYuv* pcPicDec, TComPicYuv* pcPicRest, Double &dCostFinal);
+  Void xQAOOnePart(SAOQTPart* pQAOOnePart, Int iPartIdx);
+  Void xPartTreeDisable(Int iPartIdx);
+  Void xGetQAOStats(TComPicYuv* pcPicOrg, TComPicYuv* pcPicDec, TComPicYuv* pcPicRest);
+  Void calcAoStatsCu(Int iAddr, Int iPartIdx);
+  Void destoryEncBuffer();
+  Void createEncBuffer();
+};
+#endif
 
 /// estimation part of adaptive loop filter class
 class TEncAdaptiveLoopFilter : public TComAdaptiveLoopFilter
@@ -108,7 +145,12 @@ private:
   Int  m_iUsePreviousFilter;
   Int  m_iDesignCurrentFilter;
   Int  m_iFilterIdx;
+#if MQT_BA_RA
+  Int***   m_aiFilterCoeffSavedMethods[NUM_ALF_CLASS_METHOD];
+  Int***   m_aiFilterCoeffSaved;
+#else
   Int  m_aiFilterCoeffSaved[9][NO_VAR_BINS][MAX_SQR_FILT_LENGTH];
+#endif
   Int  m_iGOPSize;
   Int  m_iCurrentPOC;
   Int  m_iALFEncodePassReduction;
@@ -172,7 +214,11 @@ private:
   Void  setALFEncodingParam(TComPic *pcPic);
   Void  setFilterIdx(Int index);
   Void  setInitialMask(TComPicYuv* pcPicOrg, TComPicYuv* pcPicDec);
+#if MQT_BA_RA
+  Void  xFirstEstimateFilteringFrameLumaAllTap(imgpel* ImgOrg, imgpel* ImgDec, Int Stride, ALFParam* pcAlfSaved,Int* aiVarIndTabBest,Int** ppiBestCoeffSet, Int& ibestfiltNo,Int& ibestfilters_per_fr, Double** ppdBesty,Double*** pppdBestE,Double* pdBestpixAcc,UInt64& ruiRate,Int64& riDist,Double& rdCost);  
+#else
   Void  xFirstFilteringFrameLumaAllTap(imgpel* ImgOrg, imgpel* ImgDec, imgpel* ImgRest, Int Stride);
+#endif
   Int64 xFastFiltDistEstimation(Double** ppdE, Double* pdy, Int* piCoeff, Int iFiltLength);
   Int64 xEstimateFiltDist      (Int filters_per_fr, Int* VarIndTab, Double*** pppdE, Double** ppdy, Int** ppiCoeffSet, Int iFiltLength);
 #endif
@@ -290,6 +336,11 @@ public:
 #if MQT_ALF_NPASS
   Void  setGOPSize(Int val) { m_iGOPSize = val; }
   Void  setALFEncodePassReduction (Int iVal) {m_iALFEncodePassReduction = iVal;}
+
+#if MQT_BA_RA
+  Void createAlfGlobalBuffers(Int iALFEncodePassReduction);
+  Void destroyAlfGlobalBuffers();
+#endif
 #endif
 };
 #endif

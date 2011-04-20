@@ -1,7 +1,7 @@
 /* The copyright in this software is being made available under the BSD
  * License, included below. This software may be subject to other third party
  * and contributor rights, including patent rights, and no such rights are
- * granted under this license.   
+ * granted under this license.  
  *
  * Copyright (c) 2010-2011, ITU/ISO/IEC
  * All rights reserved.
@@ -57,7 +57,7 @@ public:
   virtual Void        writeAlignOne         () {};
   virtual Void        write                 ( UInt uiBits, UInt uiNumberOfBits )  = 0;
   virtual Void        resetBits             ()                                    = 0;
-  virtual UInt        getNumberOfWrittenBits()                                    = 0;
+  virtual UInt getNumberOfWrittenBits() const = 0;
   virtual ~TComBitIf() {}
 };
 
@@ -149,15 +149,18 @@ public:
   }
   
   // utility functions
-  UInt*       getStartStream()          { return m_apulStreamPacketBegin;               }
+  unsigned read(unsigned numberOfBits) { UInt tmp; read(numberOfBits, tmp); return tmp; }
+  UInt* getStartStream() const { return m_apulStreamPacketBegin; }
   UInt*       getBuffer()               { return  m_pulStreamPacket;                    }
   Int         getBitsUntilByteAligned() { return m_iValidBits & (0x7);                  }
   Void        setModeSbac()             { m_uiBitsLeft = 8*((m_uiBitsLeft+7)/8);        } // stop bit + trailing stuffing bits
   Bool        isWordAligned()           { return  (0 == (m_iValidBits & (0x1f)));       }
-  UInt        getNumberOfWrittenBits()  { return  m_uiBitsWritten;                      }
+  UInt getNumberOfWrittenBits() const { return  m_uiBitsWritten; }
   Void        flushBuffer();
   Void        rewindStreamPacket()      { m_pulStreamPacket = m_apulStreamPacketBegin;  }
   UInt        getBitsLeft()             { return  m_uiBitsLeft;                         }
+
+  void insertAt(const TComBitstream& src, unsigned pos);
 };
 
 #endif

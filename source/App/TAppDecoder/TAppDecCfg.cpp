@@ -1,7 +1,7 @@
 /* The copyright in this software is being made available under the BSD
  * License, included below. This software may be subject to other third party
  * and contributor rights, including patent rights, and no such rights are
- * granted under this license.   
+ * granted under this license.  
  *
  * Copyright (c) 2010-2011, ITU/ISO/IEC
  * All rights reserved.
@@ -35,6 +35,7 @@
     \brief    Decoder configuration class
 */
 
+#include <cstdio>
 #include <cstring>
 #include <string>
 #include "TAppDecCfg.h"
@@ -70,10 +71,18 @@ Bool TAppDecCfg::parseCfg( Int argc, Char* argv[] )
   ("SkipFrames,s", m_iSkipFrame, 0, "number of frames to skip before random access")
 #endif
   ("OutputBitDepth,d", m_outputBitDepth, 0u, "bit depth of YUV output file (use 0 for native depth)")
+  ("SEIpictureDigest", m_pictureDigestEnabled, true, "Control handling of picture_digest SEI messages\n"
+                                              "\t1: check\n"
+                                              "\t0: ignore")
   ;
 
   po::setDefaults(opts);
-  po::scanArgv(opts, argc, (const char**) argv);
+  const list<const char*>& argv_unhandled = po::scanArgv(opts, argc, (const char**) argv);
+
+  for (list<const char*>::const_iterator it = argv_unhandled.begin(); it != argv_unhandled.end(); it++)
+  {
+    fprintf(stderr, "Unhandled argument ignored: `%s'\n", *it);
+  }
 
   if (argc == 1 || do_help)
   {
@@ -84,6 +93,12 @@ Bool TAppDecCfg::parseCfg( Int argc, Char* argv[] )
   /* convert std::string to c string for compatability */
   m_pchBitstreamFile = cfg_BitstreamFile.empty() ? NULL : strdup(cfg_BitstreamFile.c_str());
   m_pchReconFile = cfg_ReconFile.empty() ? NULL : strdup(cfg_ReconFile.c_str());
+
+  if (!m_pchBitstreamFile)
+  {
+    fprintf(stderr, "No input file specifed, aborting\n");
+    return false;
+  }
 
   return true;
 }

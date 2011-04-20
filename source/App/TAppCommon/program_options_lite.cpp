@@ -1,7 +1,7 @@
 /* The copyright in this software is being made available under the BSD
  * License, included below. This software may be subject to other third party
  * and contributor rights, including patent rights, and no such rights are
- * granted under this license.   
+ * granted under this license.  
  *
  * Copyright (c) 2010-2011, ITU/ISO/IEC
  * All rights reserved.
@@ -326,23 +326,39 @@ namespace df
       /* argument in argv[1] */
       /* xxx, need to handle case where option isn't required */
       if (argc == 1)
+      {
+        cerr << "Not processing option without argument `" << option << "'" << endl;
         return 0; /* run out of argv for argument */
+      }
       storePair(opts, false, true, option, string(argv[1]));
 
       return 1;
     }
     
-    void scanArgv(Options& opts, unsigned argc, const char* argv[])
+    list<const char*>
+    scanArgv(Options& opts, unsigned argc, const char* argv[])
     {
+      /* a list for anything that didn't get handled as an option */
+      list<const char*> non_option_arguments;
+
       for(unsigned i = 1; i < argc; i++)
       {
-        if (argv[i][0] == '-' && argv[i][1] == '-')
+        if (argv[i][0] != '-')
         {
-          i += parseGNU(opts, argc - i, &argv[i]);
+          non_option_arguments.push_back(argv[i]);
           continue;
         }
-        if (argv[i][0] == '-')
+
+        if (argv[i][1] == 0)
         {
+          /* a lone single dash is an argument (usually signifying stdin) */
+          non_option_arguments.push_back(argv[i]);
+          continue;
+        }
+
+        if (argv[i][1] != '-')
+        {
+          /* handle short (single dash) options */
 #if 0
           i += parsePOSIX(opts, argc - i, &argv[i]);
 #else
@@ -350,7 +366,20 @@ namespace df
 #endif
           continue;
         }
+
+        if (argv[i][2] == 0)
+        {
+          /* a lone double dash ends option processing */
+          while (++i < argc)
+            non_option_arguments.push_back(argv[i]);
+          break;
+        }
+
+        /* handle long (double dash) options */
+        i += parseGNU(opts, argc - i, &argv[i]);
       }
+
+      return non_option_arguments;
     }
     
     void scanLine(Options& opts, string& line)

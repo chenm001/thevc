@@ -1,7 +1,7 @@
 /* The copyright in this software is being made available under the BSD
  * License, included below. This software may be subject to other third party
  * and contributor rights, including patent rights, and no such rights are
- * granted under this license.   
+ * granted under this license.  
  *
  * Copyright (c) 2010-2011, ITU/ISO/IEC
  * All rights reserved.
@@ -59,7 +59,13 @@
 #define NO_TEST_FILT           3       // Filter supports (5/7/9)
 #define NO_VAR_BINS           16 
 #define NO_FILTERS            16
+
+#if MQT_BA_RA 
+#define VAR_SIZE               1 // JCTVC-E323+E046
+#else
 #define VAR_SIZE               3
+#endif
+
 #define FILTER_LENGTH          9
 
 #define MAX_SQR_FILT_LENGTH   ((FILTER_LENGTH*FILTER_LENGTH) / 2 + 2)
@@ -111,9 +117,106 @@ enum AlfChromaID
 };
 #endif
 
+#if MQT_BA_RA
+enum ALFClassficationMethod
+{
+  ALF_BA =0,
+  ALF_RA,
+  NUM_ALF_CLASS_METHOD
+};
+#endif
 // ====================================================================================================================
 // Class definition
 // ====================================================================================================================
+
+#if MTK_SAO
+
+#define CRANGE_EXT                     512
+#define CRANGE                         4096
+#define CRANGE_ALL                     (CRANGE + (CRANGE_EXT*2))  
+#define AO_MAX_DEPTH                   4
+#define MAX_NUM_QAO_PART               341
+#define MTK_QAO_BO_BITS                5
+#define LUMA_GROUP_NUM                 (1<<MTK_QAO_BO_BITS)
+#define MAX_NUM_QAO_CLASS              32
+#define SAO_RDCO 0
+
+class TComSampleAdaptiveOffset
+{
+protected:
+  TComPic*          m_pcPic;
+
+
+  static UInt m_uiMaxDepth;
+  static const Int m_aiNumPartsInRow[5];
+  static const Int m_aiNumPartsLevel[5];
+  static const Int m_aiNumCulPartsLevel[5];
+  static const UInt m_auiEoTable[9];
+  static const UInt m_auiEoTable2D[9];
+  static const UInt m_iWeightAO[MAX_NUM_SAO_TYPE];
+  Int m_iOffsetBo[4096];
+  Int m_iOffsetEo[LUMA_GROUP_NUM];
+
+  Int  m_iPicWidth;
+  Int  m_iPicHeight;
+  UInt m_uiMaxSplitLevel;
+  UInt m_uiMaxCUWidth;
+  UInt m_uiMaxCUHeight;
+  Int  m_iNumCuInWidth;
+  Int  m_iNumCuInHeight;
+  Int  m_iNumTotalParts;
+  static Int  m_iNumClass[MAX_NUM_SAO_TYPE];
+
+  Bool m_bSaoFlag;
+  SAOQTPart *m_psQAOPart;
+
+  SliceType  m_eSliceType;
+  Int        m_iPicNalReferenceIdc;
+
+  UInt m_uiAoBitDepth;
+  UInt m_uiQP;
+
+  Bool  m_bBcEnable;
+  Int   m_iMinY;
+  Int   m_iMaxY;
+  Int   m_iMinCb;
+  Int   m_iMaxCb;
+  Int   m_iMinCr;
+  Int   m_iMaxCr;
+  Pel   *m_pClipTable;
+  Pel   m_pClipTableBase[CRANGE_ALL];
+  Pel   *m_ppLumaTableBo0;
+  Pel   *m_ppLumaTableBo1;
+
+  Int   *m_iUpBuff1;
+  Int   *m_iUpBuff2;
+  Int   *m_iUpBufft;
+  Int  *ipSwap;
+
+public:
+  Void create( UInt uiSourceWidth, UInt uiSourceHeight, UInt uiMaxCUWidth, UInt uiMaxCUHeight, UInt uiMaxCUDepth );
+  Void destroy ();
+  Void xCreateQAOParts();
+  Void xDestroyQAOParts();
+  Void xInitALfOnePart(Int part_level, Int part_row, Int part_col, Int parent_part_idx, Int StartCUX, Int EndCUX, Int StartCUY, Int EndCUY);
+  Void xMakeSubPartList(Int part_level, Int part_row, Int part_col, Int* pList, Int& rListLength, Int NumPartInRow);
+  Void xSetQTPartCUInfo();
+
+  Bool getQAOFlag      () {return m_bSaoFlag;}
+  Int  getMaxSplitLevel() {return (Int)m_uiMaxSplitLevel;}
+  SAOQTPart * getQTPart() {return m_psQAOPart;}
+
+  Void SAOProcess(TComPic* pcPic, SAOParam* pcQaoParam);
+  Void resetQTPart();
+  Void xAoOnePart(UInt uiPartIdx, TComPicYuv* pcPicYuvRec, TComPicYuv* pcPicYuvExt);
+  Void xProcessQuadTreeAo(UInt uiPartIdx, TComPicYuv* pcPicYuvRec, TComPicYuv* pcPicYuvExt);
+  Void copyQaoData(SAOParam* pcQaoParam);
+
+  Void InitSao(SAOParam* pSaoParam);
+  Void AoProcessCu(Int iAddr, Int iPartIdx);
+};
+#endif
+
 
 #if MTK_NONCROSS_INLOOP_FILTER
 
@@ -242,6 +345,13 @@ protected:
   imgpel **m_imgY_var;
   Int    **m_imgY_temp;
   
+#if MQT_BA_RA
+  Int**    m_imgY_ver;
+  Int**    m_imgY_hor;
+  UInt     m_uiVarGenMethod;
+  imgpel** m_varImgMethods[NUM_ALF_CLASS_METHOD];
+#endif 
+
   Int **m_filterCoeffSym;
   Int **m_filterCoeffPrevSelected;
   Int **m_filterCoeffTmp;
@@ -264,6 +374,9 @@ protected:
   Void setAlfCtrlFlagsforOneSlice (CAlfSlice* pSlice, ALFParam *pcAlfParam, UInt &idx);
 #endif
 
+#if MQT_BA_RA
+  Void createRegionIndexMap(imgpel **imgY_var, Int img_width, Int img_height);
+#endif
 
   /// ALF for luma component
   Void xALFLuma_qc( TComPic* pcPic, ALFParam* pcAlfParam, TComPicYuv* pcPicDec, TComPicYuv* pcPicRest );
