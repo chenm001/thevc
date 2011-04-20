@@ -2891,6 +2891,7 @@ Void TComDataCU::fillMvpCand ( UInt uiPartIdx, UInt uiPartAddr, RefPicList eRefP
     if (bAdded && pInfo->iN==2 && pInfo->m_acMvCand[0] == pInfo->m_acMvCand[1])
     {
       pInfo->iN--; //remove duplicate entries
+      bAdded = false;
     }
   }
 #if MTK_AMVP_SMVP_DERIVATION
