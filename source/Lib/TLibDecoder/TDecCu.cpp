@@ -226,39 +226,43 @@ Void TDecCu::xDecodeCU( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
   if( pcCU->isSkipped(uiAbsPartIdx) )
   {
 #if HHI_MRG_SKIP
-    m_ppcCU[uiDepth]->copyInterPredInfoFrom( pcCU, uiAbsPartIdx, REF_PIC_LIST_0 );
-    m_ppcCU[uiDepth]->copyInterPredInfoFrom( pcCU, uiAbsPartIdx, REF_PIC_LIST_1 );
-    TComMvField cMvFieldNeighbours[MRG_MAX_NUM_CANDS << 1]; // double length for mv of both lists
-    UChar uhInterDirNeighbours[MRG_MAX_NUM_CANDS];
-    UInt uiNeighbourCandIdx[MRG_MAX_NUM_CANDS]; //MVs with same idx => same cand
-    for( UInt ui = 0; ui < MRG_MAX_NUM_CANDS; ++ui )
+    if ( pcCU->getSlice()->getSPS()->getUseMRG() )
     {
-      uhInterDirNeighbours[ui] = 0;
-      uiNeighbourCandIdx[ui] = 0;
+      m_ppcCU[uiDepth]->copyInterPredInfoFrom( pcCU, uiAbsPartIdx, REF_PIC_LIST_0 );
+      m_ppcCU[uiDepth]->copyInterPredInfoFrom( pcCU, uiAbsPartIdx, REF_PIC_LIST_1 );
+      TComMvField cMvFieldNeighbours[MRG_MAX_NUM_CANDS << 1]; // double length for mv of both lists
+      UChar uhInterDirNeighbours[MRG_MAX_NUM_CANDS];
+      UInt uiNeighbourCandIdx[MRG_MAX_NUM_CANDS]; //MVs with same idx => same cand
+      for( UInt ui = 0; ui < MRG_MAX_NUM_CANDS; ++ui )
+      {
+        uhInterDirNeighbours[ui] = 0;
+        uiNeighbourCandIdx[ui] = 0;
+      }
+      m_ppcCU[uiDepth]->getInterMergeCandidates( 0, 0, uiDepth, cMvFieldNeighbours, uhInterDirNeighbours, uiNeighbourCandIdx );
+      for(UInt uiIter = 0; uiIter < MRG_MAX_NUM_CANDS; uiIter++ )
+      {
+        pcCU->setNeighbourCandIdxSubParts( uiIter, uiNeighbourCandIdx[uiIter], uiAbsPartIdx, 0, uiDepth );
+      }
+      m_pcEntropyDecoder->decodeMergeIndex( pcCU, 0, uiAbsPartIdx, SIZE_2Nx2N, uhInterDirNeighbours, cMvFieldNeighbours, uiDepth );
     }
-    m_ppcCU[uiDepth]->getInterMergeCandidates( 0, 0, uiDepth, cMvFieldNeighbours, uhInterDirNeighbours, uiNeighbourCandIdx );
-    for(UInt uiIter = 0; uiIter < MRG_MAX_NUM_CANDS; uiIter++ )
-  {
-      pcCU->setNeighbourCandIdxSubParts( uiIter, uiNeighbourCandIdx[uiIter], uiAbsPartIdx, 0, uiDepth );
-    }
-    m_pcEntropyDecoder->decodeMergeIndex( pcCU, 0, uiAbsPartIdx, SIZE_2Nx2N, uhInterDirNeighbours, cMvFieldNeighbours, uiDepth );
-#else
-    pcCU->setMVPIdxSubParts( -1, REF_PIC_LIST_0, uiAbsPartIdx, 0, uiDepth);
-    pcCU->setMVPNumSubParts( -1, REF_PIC_LIST_0, uiAbsPartIdx, 0, uiDepth);
-    
-    pcCU->setMVPIdxSubParts( -1, REF_PIC_LIST_1, uiAbsPartIdx, 0, uiDepth);
-    pcCU->setMVPNumSubParts( -1, REF_PIC_LIST_1, uiAbsPartIdx, 0, uiDepth);
-    
-    if ( pcCU->getSlice()->getNumRefIdx( REF_PIC_LIST_0 ) > 0 ) //if ( ref. frame list0 has at least 1 entry )
-    {
-      m_pcEntropyDecoder->decodeMVPIdx( pcCU, uiAbsPartIdx, uiDepth, REF_PIC_LIST_0, m_ppcCU[uiDepth]);
-    }
-    
-    if ( pcCU->getSlice()->getNumRefIdx( REF_PIC_LIST_1 ) > 0 ) //if ( ref. frame list1 has at least 1 entry )
-    {
-      m_pcEntropyDecoder->decodeMVPIdx( pcCU, uiAbsPartIdx, uiDepth, REF_PIC_LIST_1, m_ppcCU[uiDepth]);
-    }
+    else
 #endif
+    {
+      pcCU->setMVPIdxSubParts( -1, REF_PIC_LIST_0, uiAbsPartIdx, 0, uiDepth);
+      pcCU->setMVPNumSubParts( -1, REF_PIC_LIST_0, uiAbsPartIdx, 0, uiDepth);
+      
+      pcCU->setMVPIdxSubParts( -1, REF_PIC_LIST_1, uiAbsPartIdx, 0, uiDepth);
+      pcCU->setMVPNumSubParts( -1, REF_PIC_LIST_1, uiAbsPartIdx, 0, uiDepth);
+      
+      for ( UInt uiRefListIdx = 0; uiRefListIdx < 2; uiRefListIdx++ )
+      {        
+        if ( pcCU->getSlice()->getNumRefIdx( RefPicList( uiRefListIdx ) ) > 0 )
+        {
+          m_ppcCU[uiDepth]->copyInterPredInfoFrom( pcCU, uiAbsPartIdx, RefPicList( uiRefListIdx ) );
+          m_pcEntropyDecoder->decodeMVPIdxPU( m_ppcCU[uiDepth], 0, uiDepth, 0, RefPicList( uiRefListIdx ));
+        }
+      }
+    }
     return;
   }
   m_pcEntropyDecoder->decodePredMode( pcCU, uiAbsPartIdx, uiDepth );

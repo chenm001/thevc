@@ -144,7 +144,6 @@ public:
   Void    encodeSliceFinish         ();
   
   Void encodeAlfParam(ALFParam* pAlfParam);
-  Void encodeMVPIdx( TComDataCU* pcCU, UInt uiAbsPartIdx, RefPicList eRefList, Bool bRD = false );
   
   TEncEntropyIf*      m_pcEntropyCoderIf;
   
@@ -182,9 +181,6 @@ public:
   Void encodeIntraDirModeLuma  ( TComDataCU* pcCU, UInt uiAbsPartIdx );
   
   Void encodeIntraDirModeChroma( TComDataCU* pcCU, UInt uiAbsPartIdx, Bool bRD = false );
-  Void encodeInterDir          ( TComDataCU* pcCU, UInt uiAbsPartIdx, Bool bRD = false );
-  Void encodeRefFrmIdx         ( TComDataCU* pcCU, UInt uiAbsPartIdx, RefPicList eRefList, Bool bRD = false );
-  Void encodeMvd               ( TComDataCU* pcCU, UInt uiAbsPartIdx, RefPicList eRefList, Bool bRD = false );
   
   Void encodeTransformIdx      ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth, Bool bRD = false );
   Void encodeTransformSubdivFlag( UInt uiSymbol, UInt uiCtx );
