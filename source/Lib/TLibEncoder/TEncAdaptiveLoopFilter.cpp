@@ -3132,7 +3132,9 @@ Void  TEncAdaptiveLoopFilter::gnsBacksubstitution(double R[MAX_SQR_FILT_LENGTH][
 
 
 Int TEncAdaptiveLoopFilter::gnsSolveByChol(double **LHS, double *rhs, double *x, int noEq)
-{ 
+{
+  assert(noEq > 0);
+
   double aux[MAX_SQR_FILT_LENGTH];     /* Auxiliary vector */
   double U[MAX_SQR_FILT_LENGTH][MAX_SQR_FILT_LENGTH];    /* Upper triangular Cholesky factor of LHS */
   int  i, singular;          /* Looping variable */
