@@ -162,6 +162,14 @@ Void TDecTop::xGetNewPicBuffer ( TComSlice* pcSlice, TComPic*& rpcPic )
       bBufferIsAvailable = true;
       break;
     }
+
+    if ( rpcPic->getSlice( 0 )->isReferenced() == false )
+    {
+      rpcPic->setReconMark( false );
+      rpcPic->getPicYuvRec()->setBorderExtension( false );
+      bBufferIsAvailable = true;
+      break;
+    }
   }
   
   if ( !bBufferIsAvailable )
@@ -183,6 +191,10 @@ Void TDecTop::executeDeblockAndAlf(Bool bEos, TComBitstream* pcBitstream, UInt& 
   // Execute Deblock and ALF only + Cleanup
   TComSlice* pcSlice  = pcPic->getPicSym()->getSlice( m_uiSliceIdx                  );
   m_cGopDecoder.decompressGop ( bEos, pcBitstream, pcPic, true);
+
+  // Apply decoder picture marking at the end of coding
+  pcPic->getSlice( 0 )->decodingTLayerSwitchingMarking( m_cListPic );
+
   pcSlice->sortPicList        ( m_cListPic );       //  sorting for application output    
   ruiPOC              = pcPic->getSlice(m_uiSliceIdx-1)->getPOC();
   rpcListPic          = &m_cListPic;  
@@ -267,6 +279,8 @@ Void TDecTop::decode (Bool bEos, TComBitstream* pcBitstream, UInt& ruiPOC, TComL
 #endif
       m_cEntropyDecoder.decodeSliceHeader (m_apcSlicePilot);
 
+      m_apcSlicePilot->setTLayerInfo( TemporalId ); 
+
       if (m_apcSlicePilot->isNextSlice() && m_apcSlicePilot->getPOC()!=m_uiPrevPOC && !m_bFirstSliceInSequence)
       {
         m_uiPrevPOC = m_apcSlicePilot->getPOC();
@@ -322,7 +336,9 @@ Void TDecTop::decode (Bool bEos, TComBitstream* pcBitstream, UInt& ruiPOC, TComL
       assert(pcPic->getNumAllocatedSlice() == (m_uiSliceIdx + 1));
       m_apcSlicePilot = pcPic->getPicSym()->getSlice(m_uiSliceIdx); 
       pcPic->getPicSym()->setSlice(pcSlice, m_uiSliceIdx);
-      
+
+      pcPic->setTLayer( TemporalId );
+
       if (bNextSlice)
       {
 #if DCM_DECODING_REFRESH

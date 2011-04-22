@@ -136,7 +136,7 @@ Void TEncSlice::init( TEncTop* pcEncTop )
  \param iDepth        temporal layer depth
  \param rpcSlice      slice header class
  */
-Void TEncSlice::initEncSlice( TComPic* pcPic, Int iPOCLast, UInt uiPOCCurr, Int iNumPicRcvd, Int iTimeOffset, Int iDepth, TComSlice*& rpcSlice )
+Void TEncSlice::initEncSlice( TComPic* pcPic, Int iPOCLast, UInt uiPOCCurr, Int iNumPicRcvd, Int iTimeOffset, Int iDepth, TComSlice*& rpcSlice, TComSPS* pSPS, TComPPS *pPPS )
 {
   Double dQP;
   Double dLambda;
@@ -372,6 +372,21 @@ Void TEncSlice::initEncSlice( TComPic* pcPic, Int iPOCLast, UInt uiPOCCurr, Int 
   
   rpcSlice->setDepth            ( iDepth );
   
+  if ( pSPS->getMaxTLayers() > 1 )
+  {
+    assert( iDepth < pSPS->getMaxTLayers() );
+    pcPic->setTLayer( iDepth );
+  }
+  else 
+  {
+    pcPic->setTLayer( 0 );
+  }
+  rpcSlice->setTLayer( pcPic->getTLayer() );
+  rpcSlice->setTLayerSwitchingFlag( pPPS->getTLayerSwitchingFlag( pcPic->getTLayer() ) );
+
+  rpcSlice->setSPS( pSPS );
+  rpcSlice->setPPS( pPPS );
+
   // reference picture usage indicator for next frames
   rpcSlice->setDRBFlag          ( true );
   rpcSlice->setERBIndex         ( ERB_NONE );

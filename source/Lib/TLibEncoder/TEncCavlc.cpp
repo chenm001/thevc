@@ -237,6 +237,13 @@ Void TEncCavlc::codePPS( TComPPS* pcPPS )
 #if CONSTRAINED_INTRA_PRED
   xWriteFlag( pcPPS->getConstrainedIntraPred() ? 1 : 0 );
 #endif
+
+  xWriteUvlc( pcPPS->getNumTLayerSwitchingFlags() );          // num_temporal_layer_switching_point_flags
+  for( UInt i = 0; i < pcPPS->getNumTLayerSwitchingFlags(); i++ ) 
+  {
+    xWriteFlag( pcPPS->getTLayerSwitchingFlag( i ) ? 1 : 0 ); // temporal_layer_switching_point_flag
+  }
+
   return;
 }
 
@@ -259,7 +266,10 @@ Void TEncCavlc::codeSPS( TComSPS* pcSPS )
 {
   // uiFirstByte
   codeNALUnitHeader( NAL_UNIT_SPS, NAL_REF_IDC_PRIORITY_HIGHEST );
-  
+
+  xWriteCode( pcSPS->getMaxTLayers() - 1, 3 ); // maximum number of temporal layers minus 1
+
+
   // Structure
   xWriteUvlc  ( pcSPS->getWidth () );
   xWriteUvlc  ( pcSPS->getHeight() );
@@ -314,13 +324,16 @@ Void TEncCavlc::codeSPS( TComSPS* pcSPS )
   xWriteFlag( pcSPS->getUseSAO() ? 1 : 0);
 #endif
 
+  assert( pcSPS->getMaxTLayers() > 0 );         
+
+  xWriteFlag( pcSPS->getTemporalIdNestingFlag() ? 1 : 0 );  // temporal_id_nesting_flag
 }
 
 Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
 {
   // here someone can add an appropriated NalRefIdc type 
 #if DCM_DECODING_REFRESH
-  codeNALUnitHeader (pcSlice->getNalUnitType(), NAL_REF_IDC_PRIORITY_HIGHEST, 1, true);
+  codeNALUnitHeader (pcSlice->getNalUnitType(), NAL_REF_IDC_PRIORITY_HIGHEST, pcSlice->getTLayer(), true);
 #else
   codeNALUnitHeader (NAL_UNIT_CODED_SLICE, NAL_REF_IDC_PRIORITY_HIGHEST);
 #endif
