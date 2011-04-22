@@ -413,7 +413,6 @@ void xITr(Long *coeff, Pel *block, UInt uiStride, UInt uiTrSize)
   int i,j,k,iSum;
   Int tmp[32*32];
   const short *iT;
-  UInt uiLog2TrSize = g_aucConvertToBit[ uiTrSize ] + 2;
   if (uiTrSize==4)
   {
     iT  = g_aiT4[0];
