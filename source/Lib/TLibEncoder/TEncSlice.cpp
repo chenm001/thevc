@@ -127,6 +127,7 @@ Void TEncSlice::init( TEncTop* pcEncTop )
  - non-referenced frame marking
  - QP computation based on temporal structure
  - lambda computation based on QP
+ - set temporal layer ID and the parameter sets
  .
  \param pcPic         picture class
  \param iPOCLast      POC of last picture
@@ -135,6 +136,8 @@ Void TEncSlice::init( TEncTop* pcEncTop )
  \param iTimeOffset   POC offset for hierarchical structure
  \param iDepth        temporal layer depth
  \param rpcSlice      slice header class
+ \param pSPS          SPS associated with the slice
+ \param pPPS          PPS associated with the slice
  */
 Void TEncSlice::initEncSlice( TComPic* pcPic, Int iPOCLast, UInt uiPOCCurr, Int iNumPicRcvd, Int iTimeOffset, Int iDepth, TComSlice*& rpcSlice, TComSPS* pSPS, TComPPS *pPPS )
 {

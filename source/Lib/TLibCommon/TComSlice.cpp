@@ -667,6 +667,12 @@ Void TComSlice::copySliceInfo(TComSlice *pSrc)
   m_bNextEntropySlice             = pSrc->m_bNextEntropySlice;
 }
 
+/** Function for setting the slice's temporal layer ID and corresponding temporal_layer_switching_point_flag.
+ * \param uiTLayer Temporal layer ID of the current slice
+ * The decoder calls this function to set temporal_layer_switching_point_flag for each temporal layer based on 
+ * the SPS's temporal_id_nesting_flag and the parsed PPS.  Then, current slice's temporal layer ID and 
+ * temporal_layer_switching_point_flag is set accordingly.
+ */
 Void TComSlice::setTLayerInfo( UInt uiTLayer )
 {
   // If temporal_id_nesting_flag == 1, then num_temporal_layer_switching_point_flags shall be inferred to be 0 and temporal_layer_switching_point_flag shall be inferred to be 1 for all temporal layers
@@ -690,6 +696,16 @@ Void TComSlice::setTLayerInfo( UInt uiTLayer )
   m_bTLayerSwitchingFlag = m_pcPPS->getTLayerSwitchingFlag( uiTLayer );
 }
 
+/** Function for mimicking decoder's reference picture buffer management.
+ * \param rcListPic List of picture buffers
+ * \param iGOPSIze Current GOP size
+ * \param iMaxRefPicNum Maximum number of reference pictures allowed
+ * The encoder calls this function to mimic the picture buffer management of the decoder in the function xGetNewPicBuffer.
+ * This will ensure in the encoder that the pictures that does not exist in the decoder will not be used as reference.
+ * TODO: This assumes that the new pics are added at the end of the list.
+ *       This needs to be changed for the general case including for the long-term ref pics.
+ *       In the future, we should create a single common function for both the encoder and decoder.
+ */
 Void TComSlice::decodingMarking( TComList<TComPic*>& rcListPic, Int iGOPSIze, Int& iMaxRefPicNum )
 {
   Int iActualNumOfReference = 0;
@@ -729,6 +745,10 @@ Void TComSlice::decodingMarking( TComList<TComPic*>& rcListPic, Int iGOPSIze, In
   }
 }
 
+/** Function for marking reference pictures with higher temporal layer IDs as not used if the current picture is a temporal layer switching point.
+ * \param rcListPic List of picture buffers
+ * Both the encoder and decoder call this function to mark reference pictures with temporal layer ID higher than current picture's temporal layer ID as not used.
+ */
 Void TComSlice::decodingTLayerSwitchingMarking( TComList<TComPic*>& rcListPic )
 {
   TComPic* rpcPic;
