@@ -76,6 +76,13 @@ protected:
   Int       m_aiTLayerQPOffset[MAX_TLAYER];
   Int       m_aiPad[2];
   
+
+  Int       m_iMaxRefPicNum;                     ///< this is used to mimic the sliding mechanism used by the decoder
+                                                 // TODO: We need to have a common sliding mechanism used by both the encoder and decoder
+
+  Bool      m_bTLayering;                        ///< indicates whether temporal IDs are set based on the hierarchical coding structure
+  Bool      m_abTLayerSwitchingFlag[MAX_TLAYER]; ///< temporal layer switching flags corresponding to temporal layer
+
   //======= Transform =============
   UInt      m_uiQuadtreeTULog2MaxSize;
   UInt      m_uiQuadtreeTULog2MinSize;
@@ -177,6 +184,14 @@ public:
   Void      setTemporalLayerQPOffset        ( Int*  piTemporalLayerQPOffset )      { for ( Int i = 0; i < MAX_TLAYER; i++ ) m_aiTLayerQPOffset[i] = piTemporalLayerQPOffset[i]; }
   Void      setPad                          ( Int*  iPad                   )      { for ( Int i = 0; i < 2; i++ ) m_aiPad[i] = iPad[i]; }
   
+  Int       getMaxRefPicNum                 ()                              { return m_iMaxRefPicNum;           }
+  Void      setMaxRefPicNum                 ( Int iMaxRefPicNum )           { m_iMaxRefPicNum = iMaxRefPicNum;  }
+
+  Bool      getTLayering                    ()                              { return m_bTLayering;              } 
+  Void      setTLayering                    ( Bool bTLayering )             { m_bTLayering = bTLayering;        }
+  Bool      getTLayerSwitchingFlag          ( UInt uiTLayer )               { assert (uiTLayer < MAX_TLAYER ); return  m_abTLayerSwitchingFlag[uiTLayer];                   }
+  Void      setTLayerSwitchingFlag          ( Bool* pbTLayerSwitchingFlag ) { for ( Int i = 0; i < MAX_TLAYER; i++ ) m_abTLayerSwitchingFlag[i] = pbTLayerSwitchingFlag[i]; }
+
   //======== Transform =============
   Void      setQuadtreeTULog2MaxSize        ( UInt  u )      { m_uiQuadtreeTULog2MaxSize = u; }
   Void      setQuadtreeTULog2MinSize        ( UInt  u )      { m_uiQuadtreeTULog2MinSize = u; }

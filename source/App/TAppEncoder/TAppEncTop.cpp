@@ -78,7 +78,10 @@ Void TAppEncTop::xInitLibCfg()
   
   m_cTEncTop.setTemporalLayerQPOffset        ( m_aiTLayerQPOffset );
   m_cTEncTop.setPad                          ( m_aiPad );
-  
+    
+  m_cTEncTop.setTLayering                    ( m_bTLayering );
+  m_cTEncTop.setTLayerSwitchingFlag          ( m_abTLayerSwitchingFlag );
+
   //===== Slice ========
   m_cTEncTop.setHierarchicalCoding           ( m_bHierarchicalCoding );
   

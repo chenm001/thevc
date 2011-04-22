@@ -55,6 +55,8 @@ TEncTop::TEncTop()
   g_bJustDoIt = g_bEncDecTraceDisable;
   g_nSymbolCounter = 0;
 #endif
+
+  m_iMaxRefPicNum     = 0;
 }
 
 TEncTop::~TEncTop()
@@ -172,10 +174,8 @@ Void TEncTop::init()
   // initialize SPS
   xInitSPS();
   
-#if CONSTRAINED_INTRA_PRED
   // initialize PPS
   xInitPPS();
-#endif
 
   // initialize processing unit classes
   m_cGOPEncoder.  init( this );
@@ -206,6 +206,8 @@ Void TEncTop::init()
     m_cAdaptiveLoopFilter.setALFEncodePassReduction( m_iALFEncodePassReduction );
   }
 #endif
+
+  m_iMaxRefPicNum = 0;
 }
 
 // ====================================================================================================================
@@ -384,11 +386,59 @@ Void TEncTop::xInitSPS()
   m_cSPS.setUseSAO             ( m_bUseSAO         );
 #endif
 
+  if ( m_bTLayering )
+  {
+    Int iMaxTLayers = 1;
+    for ( i = 1; ; i++)
+    {
+      iMaxTLayers = i;
+      if ( (m_iRateGOPSize >> i) == 0 ) 
+      {
+        break;
+      }
+    }
+  
+    m_cSPS.setMaxTLayers( (UInt)iMaxTLayers );
+
+    Bool bTemporalIdNestingFlag = true;
+    for ( i = 0; i < m_cSPS.getMaxTLayers()-1; i++ )
+    {
+      if ( !m_abTLayerSwitchingFlag[i] )
+      {
+        bTemporalIdNestingFlag = false;
+        break;
+      }
+    }
+
+    m_cSPS.setTemporalIdNestingFlag( bTemporalIdNestingFlag );
+  }
+  else
+  {
+    m_cSPS.setMaxTLayers( 1 );
+    m_cSPS.setTemporalIdNestingFlag( false );
+  }
 }
 
-#if CONSTRAINED_INTRA_PRED
 Void TEncTop::xInitPPS()
 {
+#if CONSTRAINED_INTRA_PRED
   m_cPPS.setConstrainedIntraPred( m_bUseConstrainedIntraPred );
-}
 #endif
+
+  if ( m_cSPS.getTemporalIdNestingFlag() ) 
+  {
+    m_cPPS.setNumTLayerSwitchingFlags( 0 );
+    for ( UInt i = 0; i < m_cSPS.getMaxTLayers() - 1; i++ )
+    {
+      m_cPPS.setTLayerSwitchingFlag( i, true );
+    }
+  }
+  else
+  {
+    m_cPPS.setNumTLayerSwitchingFlags( m_cSPS.getMaxTLayers() - 1 );
+    for ( UInt i = 0; i < m_cPPS.getNumTLayerSwitchingFlags(); i++ )
+    {
+      m_cPPS.setTLayerSwitchingFlag( i, m_abTLayerSwitchingFlag[i] );
+    }
+  }   
+}

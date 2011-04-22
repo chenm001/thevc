@@ -104,6 +104,14 @@ Void TDecCavlc::parsePPS(TComPPS* pcPPS)
   xReadFlag ( uiCode ); pcPPS->setConstrainedIntraPred( uiCode ? true : false );
 #endif
 
+  xReadUvlc( uiCode );    // num_temporal_layer_switching_point_flags
+  pcPPS->setNumTLayerSwitchingFlags( uiCode );
+  for ( UInt i = 0; i < pcPPS->getNumTLayerSwitchingFlags(); i++ )
+  {
+    xReadFlag( uiCode );  // temporal_layer_switching_point_flag
+    pcPPS->setTLayerSwitchingFlag( i, uiCode > 0 ? true : false );
+  }
+
   return;
 }
 
@@ -112,6 +120,9 @@ Void TDecCavlc::parseSPS(TComSPS* pcSPS)
   UInt  uiCode;
   
   // Structure
+  xReadCode ( 3, uiCode ); // maximum number of temporal layers minus 1
+  pcSPS->setMaxTLayers( uiCode+1 );
+
   xReadUvlc ( uiCode ); pcSPS->setWidth       ( uiCode    );
   xReadUvlc ( uiCode ); pcSPS->setHeight      ( uiCode    );
   xReadUvlc ( uiCode ); pcSPS->setPadX        ( uiCode    );
@@ -192,6 +203,9 @@ Void TDecCavlc::parseSPS(TComSPS* pcSPS)
 #if MTK_SAO
   xReadFlag( uiCode ); pcSPS->setUseSAO       ( uiCode ? true : false );  
 #endif
+
+  xReadFlag( uiCode );  // temporal_id_nesting_flag
+  pcSPS->setTemporalIdNestingFlag ( uiCode > 0 ? true : false );
 
   return;
 }

@@ -44,6 +44,8 @@
 
 TComPic::TComPic()
 {
+  m_uiTLayer          = 0;
+
   m_apcPicSym         = NULL;
   m_apcPicYuv[0]      = NULL;
   m_apcPicYuv[1]      = NULL;

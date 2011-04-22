@@ -171,19 +171,22 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
       assert(pcPic->getNumAllocatedSlice() == 1);
       m_pcSliceEncoder->setSliceIdx(0);
       pcPic->setCurrSliceIdx(0);
-      m_pcSliceEncoder->initEncSlice ( pcPic, iPOCLast, uiPOCCurr, iNumPicRcvd, iTimeOffset, iDepth, pcSlice );
+
+      m_pcSliceEncoder->initEncSlice ( pcPic, iPOCLast, uiPOCCurr, iNumPicRcvd, iTimeOffset, iDepth, pcSlice, m_pcEncTop->getSPS(), m_pcEncTop->getPPS() );
       pcSlice->setSliceIdx(0);
-      
-      //  Set SPS
-      pcSlice->setSPS( m_pcEncTop->getSPS() );
-      pcSlice->setPPS( m_pcEncTop->getPPS() );
-      
+
 #if DCM_DECODING_REFRESH
       // Set the nal unit type
       pcSlice->setNalUnitType(getNalUnitType(uiPOCCurr));
       // Do decoding refresh marking if any 
       pcSlice->decodingRefreshMarking(m_uiPOCCDR, m_bRefreshPending, rcListPic);
 #endif
+
+      // TODO: We need a common sliding mechanism used by both the encoder and decoder
+      // Below is a temporay solution to mark pictures that will be taken off the decoder's ref pic buffer (due to limit on the buffer size) as unused
+      Int iMaxRefPicNum = m_pcCfg->getMaxRefPicNum();
+      pcSlice->decodingMarking( rcListPic, m_pcCfg->getGOPSize(), iMaxRefPicNum ); 
+      m_pcCfg->setMaxRefPicNum( iMaxRefPicNum );
 
       //  Set reference list
       pcSlice->setRefPicList ( rcListPic );
@@ -640,6 +643,9 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
 #endif 
       pcBitstreamOut->freeMemoryAllocatedForSliceLocations();
       
+      // Mark higher temporal layer pictures after switching point as unused
+      pcSlice->decodingTLayerSwitchingMarking( rcListPic );
+
       //-- For time output for each slice
       Double dEncTime = (double)(clock()-iBeforeTime) / CLOCKS_PER_SEC;
       
@@ -1028,11 +1034,14 @@ Void TEncGOP::xCalculateAddPSNR( TComPic* pcPic, TComPicYuv* pcPicD, UInt uibits
   {
     m_gcAnalyzeB.addResult (dYPSNR, dUPSNR, dVPSNR, (Double)uibits);
   }
-  printf("\nPOC %4d ( %c-SLICE, QP %d ) %10d bits ",
+
+  printf("\nPOC %4d TId: %1d ( %c-SLICE, QP %d ) %10d bits ",
          pcSlice->getPOC(),
+         pcSlice->getTLayer(),
          pcSlice->isIntra() ? 'I' : pcSlice->isInterP() ? 'P' : 'B',
          pcSlice->getSliceQp(),
          uibits );
+
   printf( "[Y %6.4lf dB    U %6.4lf dB    V %6.4lf dB]  ", dYPSNR, dUPSNR, dVPSNR );
   printf ("[ET %5.0f ] ", dEncTime );
   
