@@ -2632,18 +2632,19 @@ Void TComTrQuant::xRateDistOptQuant_LCEC(TComDataCU* pcCU, Long* pSrcCoeff, TCoe
 {
   Int     i, j;
   Int     iShift = 0;
-  Int     qp_rem, q_bits;
   Double  err, lagr, lagrMin;
-  Double  normFact = 0.0;
-  Double  OneOverNormFact = 0.0;
   Double  fTemp = 0.0;
   Int     iQuantCoeff;
   
 #if E243_CORE_TRANSFORMS
+  Int     q_bits;
   Int     iShiftQBits, iSign, iRate, lastPosMin, iBlockType;
   UInt    uiBitShift = SCALE_BITS, uiScanPos, levelInd;
   Int     levelBest, iLevel;
 #else
+  Int     qp_rem, q_bits;
+  Double  OneOverNormFact = 0.0;
+  Double  normFact = 0.0;
   Bool    bExt8x8Flag = false;
   Int     iShiftQBits, iSign, iRate, lastPosMin, iBlockType;
   UInt    uiBitShift = 15, uiScanPos, levelInd;
@@ -2660,7 +2661,9 @@ Void TComTrQuant::xRateDistOptQuant_LCEC(TComDataCU* pcCU, Long* pSrcCoeff, TCoe
   static TCoeff sQuantCoeff[256];
 #endif
 
+#if !E243_CORE_TRANSFORMS
   qp_rem    = m_cQP.m_iRem;
+#endif
   q_bits    = m_cQP.m_iBits;
 
   UInt noCoeff=(uiWidth < 8 ? 16 : 64);
@@ -2795,9 +2798,10 @@ Void TComTrQuant::xRateDistOptQuant_LCEC(TComDataCU* pcCU, Long* pSrcCoeff, TCoe
 #endif //QC_MDCS
 
 
-
+#if !E243_CORE_TRANSFORMS
         OneOverNormFact = 1.0 / normFact;
-
+#endif
+  
         UInt uiShift_local = iShift;
         UInt uiRes_local = (uiWidth - 1);
         UInt uiWidth_local = uiShift_local;
@@ -2994,7 +2998,7 @@ Void TComTrQuant::xRateDistOptQuant_LCEC(TComDataCU* pcCU, Long* pSrcCoeff, TCoe
         Int atable[5] = {4,6,14,28,0xfffffff};
         Int switch_thr[10] = {49,49,0,49,49,0,49,49,49,49};
 
-        Int levelIndBest, iRateMin=0, levelStart;
+        Int iRateMin=0, levelStart;
         Double lagrCoded=0, lagrNotCoded=0;
 #if CAVLC_COEF_LRG_BLK
         const UInt **pLumaRunTr1 = (uiWidth==4)? g_pLumaRunTr14x4:g_pLumaRunTr18x8;
@@ -3034,7 +3038,6 @@ Void TComTrQuant::xRateDistOptQuant_LCEC(TComDataCU* pcCU, Long* pSrcCoeff, TCoe
                 lagrMin = lagr;
                 iRateMin = iRate;
                 levelBest = iLevel;
-                levelIndBest = levelInd;
               }
             }
           }
@@ -5684,7 +5687,6 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
         Int c1 = 1;
         Int c2 = 0;
         UInt uiAbs  = 0;
-        UInt uiSign = 0;
         
         if( bFirstBlock )
         {
@@ -5714,8 +5716,8 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
           
           if( piCoeff[ uiIndex ]  )
           {
-            if( piCoeff[ uiIndex ] > 0) { uiAbs = static_cast<UInt>(  piCoeff[ uiIndex ] );  uiSign = 0; }
-            else                        { uiAbs = static_cast<UInt>( -piCoeff[ uiIndex ] );  uiSign = 1; }
+            if( piCoeff[ uiIndex ] > 0) { uiAbs = static_cast<UInt>(  piCoeff[ uiIndex ] ); }
+            else                        { uiAbs = static_cast<UInt>( -piCoeff[ uiIndex ] ); }
             
             UInt uiSymbol = uiAbs > 1 ? 1 : 0;
             
@@ -5746,7 +5748,6 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
     Int c1 = 1;
     Int c2 = 0;
     UInt uiAbs  = 0;
-    UInt uiSign = 0;
     
     for ( UInt uiScanPos = 0; uiScanPos < uiWidth*uiHeight; uiScanPos++ )
     {
@@ -5760,8 +5761,8 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
 
       if( piCoeff[ uiIndex ]  )
       {
-        if( piCoeff[ uiIndex ] > 0) { uiAbs = static_cast<UInt>(  piCoeff[ uiIndex ] );  uiSign = 0; }
-        else                        { uiAbs = static_cast<UInt>( -piCoeff[ uiIndex ] );  uiSign = 1; }
+        if( piCoeff[ uiIndex ] > 0) { uiAbs = static_cast<UInt>(  piCoeff[ uiIndex ] ); }
+        else                        { uiAbs = static_cast<UInt>( -piCoeff[ uiIndex ] ); }
         
         UInt uiSymbol = uiAbs > 1 ? 1 : 0;
         

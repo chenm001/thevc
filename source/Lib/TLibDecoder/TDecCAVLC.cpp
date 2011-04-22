@@ -1700,19 +1700,6 @@ Void TDecCavlc::parseRefFrmIdx( TComDataCU* pcCU, Int& riRefFrmIdx, UInt uiAbsPa
 Void TDecCavlc::parseMvd( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiPartIdx, UInt uiDepth, RefPicList eRefList )
 {
   Int iHor, iVer;
-  UInt uiAbsPartIdxL, uiAbsPartIdxA;
-  Int iHorPred, iVerPred;
-  
-  TComDataCU* pcCUL   = pcCU->getPULeft ( uiAbsPartIdxL, pcCU->getZorderIdxInCU() + uiAbsPartIdx );
-  TComDataCU* pcCUA   = pcCU->getPUAbove( uiAbsPartIdxA, pcCU->getZorderIdxInCU() + uiAbsPartIdx );
-  
-  TComCUMvField* pcCUMvFieldL = ( pcCUL == NULL || pcCUL->isIntra( uiAbsPartIdxL ) ) ? NULL : pcCUL->getCUMvField( eRefList );
-  TComCUMvField* pcCUMvFieldA = ( pcCUA == NULL || pcCUA->isIntra( uiAbsPartIdxA ) ) ? NULL : pcCUA->getCUMvField( eRefList );
-  
-  iHorPred = ( (pcCUMvFieldL == NULL) ? 0 : pcCUMvFieldL->getMvd( uiAbsPartIdxL ).getAbsHor() ) +
-  ( (pcCUMvFieldA == NULL) ? 0 : pcCUMvFieldA->getMvd( uiAbsPartIdxA ).getAbsHor() );
-  iVerPred = ( (pcCUMvFieldL == NULL) ? 0 : pcCUMvFieldL->getMvd( uiAbsPartIdxL ).getAbsVer() ) +
-  ( (pcCUMvFieldA == NULL) ? 0 : pcCUMvFieldA->getMvd( uiAbsPartIdxA ).getAbsVer() );
   
   TComMv cTmpMv( 0, 0 );
   pcCU->getCUMvField( eRefList )->setAllMv( cTmpMv, pcCU->getPartitionSize( uiAbsPartIdx ), uiAbsPartIdx, uiPartIdx, uiDepth );
@@ -2114,19 +2101,25 @@ Void TDecCavlc::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartI
   // point to coefficient
   TCoeff* piCoeff = pcCoef;
   
+#if !QC_MDCS
   // initialize scan
   const UInt*  pucScan;
+#endif
   
 #if CAVLC_COEF_LRG_BLK
   UInt maxBlSize = (eTType==TEXT_LUMA)? 32:8;
   UInt uiBlSize = Min(maxBlSize,uiWidth);
+#if !QC_MDCS
   UInt uiConvBit = g_aucConvertToBit[ pcCU->isIntra( uiAbsPartIdx ) ? uiWidth : uiBlSize];
+#endif
   UInt uiNoCoeff = uiBlSize*uiBlSize;
 #else
   //UInt uiConvBit = g_aucConvertToBit[ Min(8,uiWidth) ];
   UInt uiConvBit = g_aucConvertToBit[ pcCU->isIntra( uiAbsPartIdx ) ? uiWidth : Min(8,uiWidth)    ];
 #endif
+#if !QC_MDCS
   pucScan        = g_auiFrameScanXY  [ uiConvBit + 1 ];
+#endif
   
 #if QC_MDCS
   UInt uiBlkPos;

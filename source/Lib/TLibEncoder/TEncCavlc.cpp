@@ -1686,20 +1686,7 @@ Void TEncCavlc::codeMvd( TComDataCU* pcCU, UInt uiAbsPartIdx, RefPicList eRefLis
   TComCUMvField* pcCUMvField = pcCU->getCUMvField( eRefList );
   Int iHor = pcCUMvField->getMvd( uiAbsPartIdx ).getHor();
   Int iVer = pcCUMvField->getMvd( uiAbsPartIdx ).getVer();
-  
-  UInt uiAbsPartIdxL, uiAbsPartIdxA;
-  Int iHorPred, iVerPred;
-  
-  TComDataCU* pcCUL   = pcCU->getPULeft ( uiAbsPartIdxL, pcCU->getZorderIdxInCU() + uiAbsPartIdx );
-  TComDataCU* pcCUA   = pcCU->getPUAbove( uiAbsPartIdxA, pcCU->getZorderIdxInCU() + uiAbsPartIdx );
-  
-  TComCUMvField* pcCUMvFieldL = ( pcCUL == NULL || pcCUL->isIntra( uiAbsPartIdxL ) ) ? NULL : pcCUL->getCUMvField( eRefList );
-  TComCUMvField* pcCUMvFieldA = ( pcCUA == NULL || pcCUA->isIntra( uiAbsPartIdxA ) ) ? NULL : pcCUA->getCUMvField( eRefList );
-  iHorPred = ( (pcCUMvFieldL == NULL) ? 0 : pcCUMvFieldL->getMvd( uiAbsPartIdxL ).getAbsHor() ) +
-  ( (pcCUMvFieldA == NULL) ? 0 : pcCUMvFieldA->getMvd( uiAbsPartIdxA ).getAbsHor() );
-  iVerPred = ( (pcCUMvFieldL == NULL) ? 0 : pcCUMvFieldL->getMvd( uiAbsPartIdxL ).getAbsVer() ) +
-  ( (pcCUMvFieldA == NULL) ? 0 : pcCUMvFieldA->getMvd( uiAbsPartIdxA ).getAbsVer() );
-  
+    
   xWriteSvlc( iHor );
   xWriteSvlc( iVer );
   
@@ -1972,13 +1959,13 @@ Void TEncCavlc::codeBlockCbf( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eTyp
   uiCbf --;
 
 #if CAVLC_COUNTER_ADAPT
-  Int x,cx;
+  Int cx;
 #else
   Int x,cx,y,cy;
+  x = uiCbf;
 #endif
 
   UInt n = (pcCU->isIntra(uiAbsPartIdx) && eType == TEXT_LUMA)? 0:1;
-  x = uiCbf;
 
 #if CAVLC_RQT_CBP
   cx = m_uiCBP_4Y_TableE[n][uiCbf];
@@ -2050,19 +2037,25 @@ Void TEncCavlc::codeCoeffNxN    ( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPa
     return;
   }
   
+#if !QC_MDCS
   // initialize scan
   const UInt*  pucScan;
-
+#endif
+  
 #if CAVLC_COEF_LRG_BLK
   UInt maxBlSize = (eTType==TEXT_LUMA)?32:8;
   UInt uiBlSize = Min(maxBlSize,uiWidth);
+#if !QC_MDCS
   UInt uiConvBit = g_aucConvertToBit[ pcCU->isIntra( uiAbsPartIdx ) ? uiWidth :uiBlSize];
+#endif
   UInt uiNoCoeff = uiBlSize*uiBlSize;
 #else
   //UInt uiConvBit = g_aucConvertToBit[ Min(8,uiWidth)    ];
   UInt uiConvBit = g_aucConvertToBit[ pcCU->isIntra( uiAbsPartIdx ) ? uiWidth : Min(8,uiWidth)    ];
 #endif
+#if !QC_MDCS
   pucScan        = g_auiFrameScanXY [ uiConvBit + 1 ];
+#endif
   
 #if QC_MDCS
   UInt uiBlkPos;

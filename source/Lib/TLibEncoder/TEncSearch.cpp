@@ -2217,10 +2217,6 @@ Void TEncSearch::xMergeEstimation( TComDataCU* pcCU, TComYuv* pcYuvOrg, Int iPUI
     }
   }
   
-  UInt uiBestSAD = MAX_UINT;
-  UInt uiBestBitCost = MAX_UINT;
-  UInt uiBestBits = MAX_UINT;
-
   ruiCost = MAX_UINT;
   ruiBits = MAX_UINT;
 
@@ -2274,10 +2270,6 @@ Void TEncSearch::xMergeEstimation( TComDataCU* pcCU, TComYuv* pcYuvOrg, Int iPUI
           UChar uhNeighCand = uiNeighbourCandIdx[ui]; 
           puhNeighCands[ui] = uhNeighCand;
         }
-
-        uiBestSAD = uiCostCand;
-        uiBestBitCost = m_pcRdCost->getCost( uiBitsCand );
-        uiBestBits = uiBitsCand;
       }
     }
   }
@@ -3883,8 +3875,6 @@ Void TEncSearch::encodeResAndCalcRdInterCU( TComDataCU* pcCU, TComYuv* pcYuvOrg,
   UInt    uiQp, uiQpBest = 0, uiQpMin, uiQpMax;
   Double  dCost, dCostBest = MAX_DOUBLE;
   
-  UInt uiBestTrMode = 0;
-  
   UInt uiTrLevel = 0;
   if( (pcCU->getWidth(0) > pcCU->getSlice()->getSPS()->getMaxTrSize()) )
   {
@@ -4031,7 +4021,6 @@ Void TEncSearch::encodeResAndCalcRdInterCU( TComDataCU* pcCU, TComYuv* pcYuvOrg,
   
   if ( pcCU->isSkipped(0) )
   {
-    uiBestTrMode = 0;
     pcCU->setCbfSubParts( 0, 0, 0, 0, pcCU->getDepth( 0 ) );
   }
   

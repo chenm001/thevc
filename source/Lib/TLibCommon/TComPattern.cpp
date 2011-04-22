@@ -230,7 +230,6 @@ Void TComPattern::initAdiPattern( TComDataCU* pcCU, UInt uiZorderIdxInPart, UInt
   UInt  uiHeight;
   Int   iPicStride = pcCU->getPic()->getStride();
   Int   i;
-  Int   iCuAddr;
 #if REFERENCE_SAMPLE_PADDING
   Int   iUnitSize = 0;
   Int   iNumUnitsInCu = 0;
@@ -245,8 +244,6 @@ Void TComPattern::initAdiPattern( TComDataCU* pcCU, UInt uiZorderIdxInPart, UInt
   Bool  bBelowLeftFlag  = false;
   Bool  bAboveLeftFlag  = false;
 #endif // REFERENCE_SAMPLE_PADDING
-  
-  iCuAddr = pcCU->getAddr();
   
   UInt uiPartIdxLT, uiPartIdxRT, uiPartIdxLB, uiPartDum;
   
@@ -489,7 +486,6 @@ Void TComPattern::initAdiPatternChroma( TComDataCU* pcCU, UInt uiZorderIdxInPart
   UInt  uiWidth;
   UInt  uiHeight;
   Int   iPicStride = pcCU->getPic()->getCStride();
-  Int   iCuAddr;
 #if REFERENCE_SAMPLE_PADDING
   Int   iUnitSize = 0;
   Int   iNumUnitsInCu = 0;
@@ -505,8 +501,6 @@ Void TComPattern::initAdiPatternChroma( TComDataCU* pcCU, UInt uiZorderIdxInPart
   Bool  bBelowLeftFlag=false;
   Bool  bAboveLeftFlag    = false;
 #endif // REFERENCE_SAMPLE_PADDING
-  
-  iCuAddr = pcCU->getAddr();
   
   UInt uiPartIdxLT, uiPartIdxRT, uiPartIdxLB,uiPartDum;
   

@@ -229,7 +229,10 @@ int TVideoIOBitsStartCode::xFindNextStartCode(UInt& ruiPacketSize, UChar* pucBuf
   
   ruiPacketSize = iBytesRead - iNextStartCodeBytes;
   
-  m_cHandle.seekg( -iNextStartCodeBytes, ios::cur );
+  if (!m_cHandle.eof())
+  {
+    m_cHandle.seekg( -iNextStartCodeBytes, ios::cur );    
+  }
   return 0;
 }
 

@@ -320,10 +320,8 @@ Void TEncSlice::initEncSlice( TComPic* pcPic, Int iPOCLast, UInt uiPOCCurr, Int 
         {
           Int    iMaxDepth = 0;
           Int    iCnt = 1;
-          Int    hierarchy_layer;
           
           while ( iCnt < m_pcCfg->getRateGOPSize() ) { iCnt <<= 1; iMaxDepth++; }
-          hierarchy_layer = iMaxDepth - iDepth;
           
           dLambda *= 0.80;
           dLambda *= dLambda_scale;
@@ -442,9 +440,6 @@ Void TEncSlice::precompressSlice( TComPic*& rpcPic )
   
   TComSlice* pcSlice        = rpcPic->getSlice(getSliceIdx());
   Double     dPicRdCostBest = MAX_DOUBLE;
-  Double dSumCURdCostBest;
-  UInt64     uiPicDistBest;
-  UInt64     uiPicBitsBest;
   UInt       uiQpIdxBest = 0;
   
   Double dFrameLambda;
@@ -489,10 +484,6 @@ Void TEncSlice::precompressSlice( TComPic*& rpcPic )
     {
       uiQpIdxBest    = uiQpIdx;
       dPicRdCostBest = dPicRdCost;
-      dSumCURdCostBest = m_dPicRdCost;
-      
-      uiPicBitsBest = m_uiPicTotalBits + uiALFBits;
-      uiPicDistBest = uiPicDist;
     }
   }
   

@@ -372,7 +372,6 @@ Void TEncCu::xCompressCU( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, UInt u
   m_ppcOrigYuv[uiDepth]->copyFromPicYuv( pcPic->getPicYuvOrg(), rpcBestCU->getAddr(), rpcBestCU->getZorderIdxInCU() );
   
   // variables for fast encoder decision
-  TComDataCU* pcTempCU;
   Bool    bEarlySkip  = false;
   Bool    bTrySplit    = true;
   Double  fRD_Skip    = MAX_DOUBLE;
@@ -398,7 +397,6 @@ Void TEncCu::xCompressCU( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, UInt u
     if( rpcBestCU->getSlice()->getSliceType() != I_SLICE )
     {
       // SKIP
-      pcTempCU = rpcTempCU;
       
       if( pcPic->getSlice(0)->getSPS()->getUseMRG() )
       {

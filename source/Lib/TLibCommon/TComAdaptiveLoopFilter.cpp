@@ -1835,12 +1835,11 @@ Void TComAdaptiveLoopFilter::xFrameChroma(Int ypos, Int xpos, Int iHeight, Int i
 Void TComAdaptiveLoopFilter::xFrameChroma( TComPicYuv* pcPicDec, TComPicYuv* pcPicRest, Int *qh, Int iTap, Int iColor )
 #endif
 {
-  Int i, x, y, value, N, offset;
+  Int i, x, y, value, N;
   //  Pel PixSum[ALF_MAX_NUM_COEF_C];// th
   Pel PixSum[ALF_MAX_NUM_COEF]; 
   
   N      = (iTap*iTap+1)>>1;
-  offset = iTap>>1;
 #if !MTK_NONCROSS_INLOOP_FILTER
   Int iHeight = pcPicRest->getHeight() >> 1;
   Int iWidth = pcPicRest->getWidth() >> 1;

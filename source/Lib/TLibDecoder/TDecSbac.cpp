@@ -549,7 +549,6 @@ Void TDecSbac::parseMergeIndex ( TComDataCU* pcCU, UInt& ruiMergeIndex, UInt uiA
   Bool bAboveInvolved = false;
   Bool bCollocatedInvolved = false;
   Bool bCornerInvolved = false;
-  Bool bCornerBLInvolved = false;
   UInt uiNumCand = 0;
   for( UInt uiIter = 0; uiIter < MRG_MAX_NUM_CANDS; ++uiIter )
   {
@@ -571,10 +570,6 @@ Void TDecSbac::parseMergeIndex ( TComDataCU* pcCU, UInt& ruiMergeIndex, UInt uiA
       else if( uiIter == 3 )
       {
         bCornerInvolved = true;
-      }
-      else if( uiIter == 4 )
-      {
-        bCornerBLInvolved = true;
       }
     }
   }
@@ -655,8 +650,6 @@ Void TDecSbac::parseMergeIndex ( TComDataCU* pcCU, UInt& ruiMergeIndex, UInt uiA
   DTRACE_CABAC_V( bCollocatedInvolved )
   DTRACE_CABAC_T( "\tbCornerRTInvolved= " )
   DTRACE_CABAC_V( bCornerInvolved )
-  DTRACE_CABAC_T( "\tbCornerBLInvolved= " )
-  DTRACE_CABAC_V( bCornerBLInvolved )
   DTRACE_CABAC_T( "\n" )
 }
 

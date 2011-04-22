@@ -1423,7 +1423,6 @@ Void TEncAdaptiveLoopFilter::xcollectStatCodeFilterCoeffForce0(int **pDiffQFilte
 Void TEncAdaptiveLoopFilter::xdecideCoeffForce0(int codedVarBins[NO_VAR_BINS], double errorForce0Coeff[], double errorForce0CoeffTab[NO_VAR_BINS][2], int bitsVarBin[NO_VAR_BINS], double lambda, int filters_per_fr)
 {
   int filtNo;
-  double lagrangianDiff;
   int ind;
   
   errorForce0Coeff[0]=errorForce0Coeff[1]=0;
@@ -1433,12 +1432,12 @@ Void TEncAdaptiveLoopFilter::xdecideCoeffForce0(int codedVarBins[NO_VAR_BINS], d
   {
     // No coeffcient prediction bits used
 #if ENABLE_FORCECOEFF0
+    double lagrangianDiff;
     lagrangianDiff=errorForce0CoeffTab[filtNo][0]-(errorForce0CoeffTab[filtNo][1]+lambda*bitsVarBin[filtNo]);
     codedVarBins[filtNo]=(lagrangianDiff>0)? 1 : 0;
     errorForce0Coeff[0]+=errorForce0CoeffTab[filtNo][codedVarBins[filtNo]];
     errorForce0Coeff[1]+=errorForce0CoeffTab[filtNo][1];
 #else
-    lagrangianDiff=errorForce0CoeffTab[filtNo][0]-(errorForce0CoeffTab[filtNo][1]+lambda*bitsVarBin[filtNo]);
     codedVarBins[filtNo]= 1;
     errorForce0Coeff[0]+=errorForce0CoeffTab[filtNo][codedVarBins[filtNo]];
     errorForce0Coeff[1]+=errorForce0CoeffTab[filtNo][1];
@@ -1633,10 +1632,8 @@ Int TEncAdaptiveLoopFilter::xsendAllFiltersPPPredForce0(int **FilterCoeffQuant, 
 //filtNo==-1/realfiltNo, noFilters=filters_per_frames, realfiltNo=filtNo
 Int TEncAdaptiveLoopFilter::xcodeAuxInfo(int filtNo, int noFilters, int varIndTab[NO_VAR_BINS], int frNo, int createBitstream,int realfiltNo, ALFParam* ALFp)
 {
-  int i, filterPattern[NO_VAR_BINS], startSecondFilter=0, bitCt=0, codePrediction;
+  int i, filterPattern[NO_VAR_BINS], startSecondFilter=0, bitCt=0;
   Int64 NewbitCt;
-  
-  codePrediction = 0;
   
   //send realfiltNo (tap related)
   ALFp->realfiltNo = realfiltNo;
@@ -2105,7 +2102,6 @@ Void   TEncAdaptiveLoopFilter::xstoreInBlockMatrix(imgpel* ImgOrg, imgpel* ImgDe
 #endif
 
   Int i,j,k,l,varInd,ii,jj;
-  Int x, y;
   Int fl =tap/2;
 #if TI_ALF_MAX_VSIZE_7
   Int flV = TComAdaptiveLoopFilter::ALFFlHToFlV(fl);
@@ -2161,16 +2157,14 @@ Void   TEncAdaptiveLoopFilter::xstoreInBlockMatrix(imgpel* ImgOrg, imgpel* ImgDe
 
   {
 #if MTK_NONCROSS_INLOOP_FILTER
-    x = y = fl2; //cytsai: shall x, y  be removed ?
-
     for (i= ypos; i< ypos + iheight; i++)
     {
       for (j= xpos; j< xpos + iwidth; j++)
       {
 #else
-    for (i=0,y=fl2; i<m_im_height; i++,y++)
+    for (i=0; i<m_im_height; i++)
     {
-      for (j=0,x=fl2; j<m_im_width; j++,x++)
+      for (j=0; j<m_im_width; j++)
       {
 #endif
 #if MQT_ALF_NPASS
@@ -2298,17 +2292,18 @@ Void TEncAdaptiveLoopFilter::xfilterFrame_en(imgpel* ImgDec, imgpel* ImgRest,int
   int var_step_size_w = VAR_SIZE_W;
   int var_step_size_h = VAR_SIZE_H;
   int i,j,y,x;
+  int fl, sqrFiltLength;
 #else
   int i,j,ii,jj,y,x;
-#endif
   int  *pattern; 
   int fl, fl_temp, sqrFiltLength;
+#endif
   int pixelInt;
   int offset = (1<<(NUM_BITS - 2));
   
+#if !MQT_BA_RA
   pattern=m_patternTab_filt[filtNo];
   fl_temp=m_flTab[filtNo];
-#if !MQT_BA_RA
 #if TI_ALF_MAX_VSIZE_7
   Int fl_tempV = TComAdaptiveLoopFilter::ALFFlHToFlV(fl_temp);
 #endif
@@ -2333,7 +2328,9 @@ Void TEncAdaptiveLoopFilter::xfilterFrame_en(imgpel* ImgDec, imgpel* ImgRest,int
       imgpel *im1,*im2;
 #endif
       int *coef = m_filterCoeffPrevSelected[varInd];
+#if !MQT_BA_RA
       pattern=m_patternTab_filt[filtNo];
+#endif
       pixelInt= m_filterCoeffPrevSelected[varInd][sqrFiltLength-1]; 
 
 #if MQT_BA_RA
@@ -2439,7 +2436,7 @@ Void TEncAdaptiveLoopFilter::xfilterFrame_en(imgpel* ImgDec, imgpel* ImgRest,int
 
 Void TEncAdaptiveLoopFilter::xfindBestFilterVarPred(double **ySym, double ***ESym, double *pixAcc, int **filterCoeffSym, int **filterCoeffSymQuant, int filtNo, int *filters_per_fr_best, int varIndTab[], imgpel **imgY_rec, imgpel **varImg, imgpel **maskImg, imgpel **imgY_pad, double lambda_val)
 {
-  int filters_per_fr, firstFilt, coded, forceCoeff0,
+  int filters_per_fr, firstFilt, forceCoeff0,
   interval[NO_VAR_BINS][2], intervalBest[NO_VAR_BINS][2];
   int i, k, varInd;
   static double ***E_temp, **y_temp, *pixAcc_temp;
@@ -2447,15 +2444,12 @@ Void TEncAdaptiveLoopFilter::xfindBestFilterVarPred(double **ySym, double ***ESy
   double  error, lambda, lagrangian, lagrangianMin;
   
   int sqrFiltLength;
-  int *pattern, *patternMap, *weights;
+  int *weights;
   int numBits, coeffBits;
   double errorForce0CoeffTab[NO_VAR_BINS][2];
   int  codedVarBins[NO_VAR_BINS], createBistream /*, forceCoeff0 */;
-  int  usePrevFilt[NO_VAR_BINS], usePrevFiltDefault[NO_VAR_BINS];
   static int first=0;
   
-  for (i = 0; i < NO_VAR_BINS; i++)
-    usePrevFiltDefault[i]=usePrevFilt[i]=1;
   lambda = lambda_val;
   sqrFiltLength=MAX_SQR_FILT_LENGTH;
   
@@ -2471,8 +2465,6 @@ Void TEncAdaptiveLoopFilter::xfindBestFilterVarPred(double **ySym, double ***ESy
   sqrFiltLength=m_sqrFiltLengthTab[filtNo];   
   Int fl = m_flTab[filtNo];
   weights=m_weightsTab[filtNo];               
-  patternMap=m_patternMapTab[filtNo];  
-  pattern=m_patternTab[filtNo];
   
   memcpy(pixAcc_temp,pixAcc,sizeof(double)*NO_VAR_BINS);
   for (varInd=0; varInd<NO_VAR_BINS; varInd++)
@@ -2519,10 +2511,8 @@ Void TEncAdaptiveLoopFilter::xfindBestFilterVarPred(double **ySym, double ***ESy
   xfindBestCoeffCodMethod(codedVarBins, &forceCoeff0, filterCoeffSymQuant, fl, sqrFiltLength, 
                           (*filters_per_fr_best), errorForce0CoeffTab, &error, lambda);
   
-  coded=1;
   if (forceCoeff0==1 && (*filters_per_fr_best)==1)
   {
-    coded=0;
     coeffBits = xcodeAuxInfo(-1, (*filters_per_fr_best), varIndTab, 0, createBistream=0,filtNo, m_tempALFp);
   }
   else
@@ -2607,7 +2597,7 @@ Void TEncAdaptiveLoopFilter::xcodeFiltCoeff(int **filterCoeffSymQuant, int filtN
 #endif
 {
   int varInd, forceCoeff0, codedVarBins[NO_VAR_BINS], coeffBits, createBistream,   sqrFiltLength=m_sqrFiltLengthTab[filtNo], 
-  fl=m_flTab[filtNo], coded;
+  fl=m_flTab[filtNo];
   
   ALFp->filters_per_group_diff = filters_per_fr_best;
   ALFp->filters_per_group = filters_per_fr_best;
@@ -2627,10 +2617,8 @@ Void TEncAdaptiveLoopFilter::xcodeFiltCoeff(int **filterCoeffSymQuant, int filtN
     }
   }
 
-  coded=1;
   if (forceCoeff0==1 && filters_per_fr_best==1)
   {
-    coded=0;
     coeffBits = xcodeAuxInfo(-1, filters_per_fr_best, varIndTab, frNo, createBistream=1,filtNo, ALFp);
   }
   else
@@ -3674,7 +3662,7 @@ Void TEncAdaptiveLoopFilter::setInitialMask(TComPicYuv* pcPicOrg, TComPicYuv* pc
   else
   {
     Int uiBestDepth=0;
-    UInt64 uiRate, uiDist, uiMinRate, uiMinDist;
+    UInt64 uiRate, uiDist;
     Double dCost, dMinCost = MAX_DOUBLE;
     //imgpel* pOrg = (imgpel*)pcPicOrg->getLumaAddr();
     imgpel* pRest = (imgpel*)m_pcPicYuvTmp->getLumaAddr();
@@ -3706,8 +3694,6 @@ Void TEncAdaptiveLoopFilter::setInitialMask(TComPicYuv* pcPicOrg, TComPicYuv* pc
       if (dCost < dMinCost)
       {
         dMinCost  = dCost;
-        uiMinDist = uiDist;
-        uiMinRate = uiRate;
         m_pcPicYuvTmp->copyToPicLuma(m_pcPicYuvBest);
         copyALFParam(m_pcBestAlfParam, m_pcTempAlfParam);
       }
@@ -3738,8 +3724,6 @@ Void TEncAdaptiveLoopFilter::setInitialMask(TComPicYuv* pcPicOrg, TComPicYuv* pc
       {
         uiBestDepth = uiDepth;
         dMinCost    = dCost;
-        uiMinDist   = uiDist;
-        uiMinRate   = uiRate;
         copyALFParam(m_pcBestAlfParam, m_pcTempAlfParam);
         //save maskImg
         xCopyTmpAlfCtrlFlagsFrom();
