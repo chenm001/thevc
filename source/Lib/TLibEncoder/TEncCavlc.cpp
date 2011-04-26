@@ -2304,31 +2304,16 @@ Void TEncCavlc::codeAlfSvlc( Int iCode )
 #if MTK_SAO
 Void TEncCavlc::codeAoFlag( UInt uiCode )
 {
-
   xWriteFlag( uiCode );
-#if LCEC_STAT
-  if (m_bAdaptFlag)
-    m_uiBitAlfFlag += 1;
-#endif
 }
 
 Void TEncCavlc::codeAoUvlc( UInt uiCode )
 {
-#if LCEC_STAT
-  if (m_bAdaptFlag)
-    m_uiBitAlfUvlc += xWriteUvlc( uiCode );
-  else
-#endif
     xWriteUvlc( uiCode );
 }
 
 Void TEncCavlc::codeAoSvlc( Int iCode )
 {
-#if LCEC_STAT
-  if (m_bAdaptFlag)
-    m_uiBitAlfSvlc += xWriteSvlc( iCode );
-  else
-#endif
     xWriteSvlc( iCode );
 }
 
