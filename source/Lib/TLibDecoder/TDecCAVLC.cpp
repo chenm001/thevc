@@ -1728,30 +1728,17 @@ Void TDecCavlc::parseMvd( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiPartIdx, U
 
 Void TDecCavlc::parseDeltaQP( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
 {
-  UInt uiDQp;
+  UInt uiQp;
   Int  iDQp;
   
-  xReadFlag( uiDQp );
-  
-  if ( uiDQp == 0 )
-  {
+  xReadSvlc( iDQp );
 #if SUB_LCU_DQP
-    uiDQp = pcCU->getRefQP(uiAbsPartIdx);
+  uiQp = pcCU->getRefQP( uiAbsPartIdx ) + iDQp;
 #else
-    uiDQp = pcCU->getSlice()->getSliceQp();
+  uiQp = pcCU->getSlice()->getSliceQp() + iDQp;
 #endif
-  }
-  else
-  {
-    xReadSvlc( iDQp );
-#if SUB_LCU_DQP
-    uiDQp = pcCU->getRefQP( uiAbsPartIdx ) + iDQp;
-#else
-    uiDQp = pcCU->getSlice()->getSliceQp() + iDQp;
-#endif
-  }
-  
-  pcCU->setQPSubParts( uiDQp, uiAbsPartIdx, uiDepth );
+
+  pcCU->setQPSubParts( uiQp, uiAbsPartIdx, uiDepth );
 }
 
 #if CAVLC_RQT_CBP

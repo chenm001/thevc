@@ -1707,16 +1707,8 @@ Void TEncCavlc::codeDeltaQP( TComDataCU* pcCU, UInt uiAbsPartIdx )
 #else
   Int iDQp  = pcCU->getQP( uiAbsPartIdx ) - pcCU->getSlice()->getSliceQp();
 #endif
-  
-  if ( iDQp == 0 )
-  {
-    xWriteFlag( 0 );
-  }
-  else
-  {
-    xWriteFlag( 1 );
-    xWriteSvlc( iDQp );
-  }
+
+  xWriteSvlc( iDQp );
   
   return;
 }
