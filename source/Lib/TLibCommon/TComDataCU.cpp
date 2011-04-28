@@ -2537,6 +2537,7 @@ Void TComDataCU::getInterMergeCandidates( UInt uiAbsPartIdx, UInt uiPUIdx, UInt 
       if ( getSlice()->isInterB() )
       {       
 #if PANASONIC_MRG_TMVP_REFIDX
+      iRefIdx = iRefIdxSkip[1];
       if ( xGetCenterCol( uiPUIdx, REF_PIC_LIST_1, iRefIdx, &cMvTCenter[1] ) )
 #else
         if ( xGetCenterCol( uiPUIdx, REF_PIC_LIST_1, 0, &cMvTCenter[1] ) )
