@@ -1199,7 +1199,11 @@ Void TDecSbac::parseDeltaQP( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
   
   if ( uiDQp == 0 )
   {
+#if SUB_LCU_DQP
+    uiDQp = pcCU->getRefQP(uiAbsPartIdx);
+#else
     uiDQp = pcCU->getSlice()->getSliceQp();
+#endif
   }
   else
   {
@@ -1210,7 +1214,11 @@ Void TDecSbac::parseDeltaQP( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
     {
       iDQp = -iDQp;
     }
+#if SUB_LCU_DQP
+    uiDQp = pcCU->getRefQP(uiAbsPartIdx) + iDQp;
+#else
     uiDQp = pcCU->getSlice()->getSliceQp() + iDQp;
+#endif
   }
   
   pcCU->setQPSubParts( uiDQp, uiAbsPartIdx, uiDepth );

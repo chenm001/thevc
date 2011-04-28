@@ -175,6 +175,9 @@ Void TEncTop::init()
   xInitSPS();
   
   // initialize PPS
+#if SUB_LCU_DQP
+  m_cPPS.setSPS(&m_cSPS);
+#endif
   xInitPPS();
 
   // initialize processing unit classes
@@ -441,4 +444,17 @@ Void TEncTop::xInitPPS()
       m_cPPS.setTLayerSwitchingFlag( i, m_abTLayerSwitchingFlag[i] );
     }
   }   
+
+#if SUB_LCU_DQP
+  if( m_cPPS.getSPS()->getUseDQP() )
+  {
+    m_cPPS.setMaxCuDQPDepth( m_iMaxCuDQPDepth );
+    m_cPPS.setMinCuDQPSize( m_cPPS.getSPS()->getMaxCUWidth() >> ( m_cPPS.getMaxCuDQPDepth()) );
+  }
+  else
+  {
+    m_cPPS.setMaxCuDQPDepth( 0 );
+    m_cPPS.setMinCuDQPSize( m_cPPS.getSPS()->getMaxCUWidth() >> ( m_cPPS.getMaxCuDQPDepth()) );
+  }
+#endif
 }

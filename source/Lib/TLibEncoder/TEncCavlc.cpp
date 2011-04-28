@@ -244,6 +244,13 @@ Void TEncCavlc::codePPS( TComPPS* pcPPS )
     xWriteFlag( pcPPS->getTLayerSwitchingFlag( i ) ? 1 : 0 ); // temporal_layer_switching_point_flag
   }
 
+#if SUB_LCU_DQP
+  if( pcPPS->getSPS()->getUseDQP() )
+  {
+    xWriteUvlc(pcPPS->getMaxCuDQPDepth());
+  }
+#endif
+
   return;
 }
 
@@ -1695,7 +1702,11 @@ Void TEncCavlc::codeMvd( TComDataCU* pcCU, UInt uiAbsPartIdx, RefPicList eRefLis
 
 Void TEncCavlc::codeDeltaQP( TComDataCU* pcCU, UInt uiAbsPartIdx )
 {
+#if SUB_LCU_DQP
+  Int iDQp  = pcCU->getQP( uiAbsPartIdx ) - pcCU->getRefQP( uiAbsPartIdx );
+#else
   Int iDQp  = pcCU->getQP( uiAbsPartIdx ) - pcCU->getSlice()->getSliceQp();
+#endif
   
   if ( iDQp == 0 )
   {

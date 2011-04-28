@@ -97,6 +97,9 @@ private:
 #if SNY_DQP 
   Bool          m_bdQP;               ///< signal if LCU dQP encoded
 #endif//SNY_DQP
+#if SUB_LCU_DQP
+  UChar         m_hLastCodedQP;       ///< array of QP values
+#endif
   
   // -------------------------------------------------------------------------------------------------------------------
   // neighbour access variables
@@ -184,7 +187,11 @@ public:
   Void          initCU                ( TComPic* pcPic, UInt uiCUAddr );
   Void          initEstData           ();
   Void          initSubCU             ( TComDataCU* pcCU, UInt uiPartUnitIdx, UInt uiDepth );
-  
+
+#if SUB_LCU_DQP
+  Void          initEstDataDeltaQP    ( UInt uiDepth, UInt uiQP, UInt uiLastQP );
+#endif
+
   Void          copySubCU             ( TComDataCU* pcCU, UInt uiPartUnitIdx, UInt uiDepth );
   Void          copyInterPredInfoFrom ( TComDataCU* pcCU, UInt uiAbsPartIdx, RefPicList eRefPicList );
   Void          copyPartFrom          ( TComDataCU* pcCU, UInt uiPartUnitIdx, UInt uiDepth );
@@ -242,6 +249,10 @@ public:
   Bool          getdQPFlag            ()                        { return m_bdQP;              }
   Void          setdQPFlag            ( Bool b )                { m_bdQP = b;                 }
 #endif//SNY_DQP
+#if SUB_LCU_DQP
+  UChar         getLastCodedQP        ()                        { return m_hLastCodedQP;      }
+  Void          setLastCodedQP        ( UChar uQP )             { m_hLastCodedQP = uQP;       }
+#endif
   
   UChar*        getTransformIdx       ()                        { return m_puhTrIdx;          }
   UChar         getTransformIdx       ( UInt uiIdx )            { return m_puhTrIdx[uiIdx];   }
@@ -375,6 +386,11 @@ public:
   TComDataCU*   getPUAboveLeft              ( UInt&  uiALPartUnitIdx, UInt uiCurrPartUnitIdx, Bool bEnforceSliceRestriction=true, Bool bEnforceEntropySliceRestriction=true );
   TComDataCU*   getPUAboveRight             ( UInt&  uiARPartUnitIdx, UInt uiCurrPartUnitIdx, Bool bEnforceSliceRestriction=true, Bool bEnforceEntropySliceRestriction=true );
   TComDataCU*   getPUBelowLeft              ( UInt& uiBLPartUnitIdx, UInt uiCurrPartUnitIdx, Bool bEnforceSliceRestriction=true, Bool bEnforceEntropySliceRestriction=true );
+
+#if SUB_LCU_DQP
+  TComDataCU*   getQpMinCuLeft                   ( UInt&  uiLPartUnitIdx , UInt uiCurrAbsIdxInLCU, Bool bEnforceSliceRestriction=true, Bool bEnforceEntropySliceRestriction=true );
+  UChar         getRefQP                         ( UInt   uiCurrAbsIdxInLCU                       );
+#endif
 
 #if CONSTRAINED_INTRA_PRED
   TComDataCU*   getPUAboveRightAdi          ( UInt&  uiARPartUnitIdx, UInt uiPuWidth, UInt uiCurrPartUnitIdx, UInt uiPartUnitOffset = 1, Bool bEnforceSliceRestriction=true, Bool bEnforceEntropySliceRestriction=true );

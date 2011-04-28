@@ -976,8 +976,16 @@ Void TEncEntropy::xEncodeCoeff( TComDataCU* pcCU, TCoeff* pcCoeff, UInt uiAbsPar
     {
       if ( pcCU->getdQPFlag())// non-skip
       {
+#if SUB_LCU_DQP
+        encodeQP( pcCU, uiAbsPartIdx );
+        pcCU->setdQPFlag(false);
+        pcCU->setQPSubParts( pcCU->getQP( uiAbsPartIdx ), ((uiAbsPartIdx>>(8-(pcCU->getSlice()->getPPS()->getMaxCuDQPDepth()<<1)))<<(8-(pcCU->getSlice()->getPPS()->getMaxCuDQPDepth()<<1))), 
+          Min(uiDepth,pcCU->getSlice()->getPPS()->getMaxCuDQPDepth()) ); // set QP to default QP
+        pcCU->setLastCodedQP( pcCU->getRefQP( uiAbsPartIdx ));
+#else
         encodeQP( pcCU, 0 );
         pcCU->setdQPFlag(false);
+#endif
       }
     }
 #endif//SNY_DQP

@@ -242,6 +242,9 @@ Void TDecTop::decode (Bool bEos, TComBitstream* pcBitstream, UInt& ruiPOC, TComL
       return false;
 
     case NAL_UNIT_PPS:
+#if SUB_LCU_DQP
+      m_cPPS.setSPS(&m_cSPS);
+#endif
       m_cEntropyDecoder.decodePPS( &m_cPPS );
       m_uiValidPS |= 2;
       return false;
