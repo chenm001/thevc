@@ -82,6 +82,34 @@ TEncBinCABAC::finish()
   }
 }
 
+#if E057_INTRA_PCM
+Void
+TEncBinCABAC::bac_restart()
+{
+  /* Init bac */
+  m_uiLow           = 0;
+  m_uiRange         = 510;
+  m_uiBitsToFollow  = 0;
+  m_uiByte          = 0;
+  m_uiBitsLeft      = 9;
+}
+
+Void
+TEncBinCABAC::bac_finish()
+{
+  xWriteBitAndBitsToFollow( ( m_uiLow >> 9 ) & 1 );
+  xWriteBit               ( ( m_uiLow >> 8 ) & 1 );
+  xWriteBit               ( 1 ); // stop bit
+
+  if( 8 - m_uiBitsLeft != 0 )
+  {
+    m_pcTComBitIf->write  ( (m_uiByte <<= (m_uiBitsLeft)), 8 ); // pcm align zero
+    m_uiBitsLeft  = 8;
+    m_uiByte      = 0;
+  }
+}
+#endif
+
 Void
 TEncBinCABAC::copyState( TEncBinIf* pcTEncBinIf )
 {

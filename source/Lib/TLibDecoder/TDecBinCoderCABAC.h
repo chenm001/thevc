@@ -58,6 +58,16 @@ public:
   Void  decodeBinEP       ( UInt& ruiBin                           );
   Void  decodeBinTrm      ( UInt& ruiBin                           );
 
+#if E057_INTRA_PCM
+  Void  bac_restart       ();
+  Void  bac_finish        ();
+  Void  xReadCode         (UInt uiLength, UInt& ruiCode)
+  {
+    assert ( uiLength > 0 );
+    m_pcTComBitstream->read (uiLength, ruiCode);
+  }
+#endif
+
 private:
   Void  xReadBit          ( UInt& ruiVal );
 

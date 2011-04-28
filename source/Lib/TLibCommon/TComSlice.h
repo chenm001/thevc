@@ -69,6 +69,9 @@ private:
   UInt        m_uiQuadtreeTULog2MinSize;
   UInt        m_uiQuadtreeTUMaxDepthInter;
   UInt        m_uiQuadtreeTUMaxDepthIntra;
+#if E057_INTRA_PCM
+  UInt        m_uiPCMLog2MinSize;
+#endif
   Bool        m_bUseALF;
   Bool        m_bUseDQP;
   Bool        m_bUseLDC;
@@ -92,6 +95,15 @@ private:
   UInt        m_uiBitDepth;
   UInt        m_uiBitIncrement;
   
+#if E057_INTRA_PCM && E192_SPS_PCM_BIT_DEPTH_SYNTAX
+  // PCM Parameter
+  UInt        m_uiPCMBitDepthLuma;
+  UInt        m_uiPCMBitDepthChroma;
+#endif
+#if E057_INTRA_PCM && E192_SPS_PCM_FILTER_DISABLE_SYNTAX
+  Bool        m_bPCMFilterDisableFlag;
+#endif
+
   // Max physical transform size
   UInt        m_uiMaxTrSize;
   
@@ -121,6 +133,10 @@ public:
   UInt getMaxCUHeight ()         { return  m_uiMaxCUHeight; }
   Void setMaxCUDepth  ( UInt u ) { m_uiMaxCUDepth = u;      }
   UInt getMaxCUDepth  ()         { return  m_uiMaxCUDepth;  }
+#if E057_INTRA_PCM
+  Void setPCMLog2MinSize  ( UInt u ) { m_uiPCMLog2MinSize = u;      }
+  UInt getPCMLog2MinSize  ()         { return  m_uiPCMLog2MinSize;  }
+#endif
   Void setMinTrDepth  ( UInt u ) { m_uiMinTrDepth = u;      }
   UInt getMinTrDepth  ()         { return  m_uiMinTrDepth;  }
   Void setMaxTrDepth  ( UInt u ) { m_uiMaxTrDepth = u;      }
@@ -200,6 +216,16 @@ public:
 
   Bool      getTemporalIdNestingFlag()                { return m_bTemporalIdNestingFlag; }
   Void      setTemporalIdNestingFlag( Bool bValue )   { m_bTemporalIdNestingFlag = bValue; }
+#if E057_INTRA_PCM && E192_SPS_PCM_BIT_DEPTH_SYNTAX
+  UInt      getPCMBitDepthLuma     ()         { return m_uiPCMBitDepthLuma;     }
+  Void      setPCMBitDepthLuma     ( UInt u ) { m_uiPCMBitDepthLuma = u;        }
+  UInt      getPCMBitDepthChroma   ()         { return m_uiPCMBitDepthChroma;   }
+  Void      setPCMBitDepthChroma   ( UInt u ) { m_uiPCMBitDepthChroma = u;      }
+#endif
+#if E057_INTRA_PCM && E192_SPS_PCM_FILTER_DISABLE_SYNTAX
+  Void      setPCMFilterDisableFlag     ( Bool   bValue  )    { m_bPCMFilterDisableFlag = bValue; }
+  Bool      getPCMFilterDisableFlag     ()                    { return m_bPCMFilterDisableFlag;   } 
+#endif
 };
 
 /// PPS class

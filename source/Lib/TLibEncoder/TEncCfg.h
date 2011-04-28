@@ -146,6 +146,9 @@ protected:
 #if CONSTRAINED_INTRA_PRED
   Bool      m_bUseConstrainedIntraPred;
 #endif
+#if E057_INTRA_PCM
+  UInt      m_uiPCMLog2MinSize;
+#endif
   //====== Slice ========
   Int       m_iSliceMode;
   Int       m_iSliceArgument; 
@@ -155,7 +158,14 @@ protected:
 #if MTK_NONCROSS_INLOOP_FILTER
   Bool      m_bLFCrossSliceBoundaryFlag;
 #endif
-
+#if E057_INTRA_PCM && E192_SPS_PCM_BIT_DEPTH_SYNTAX
+  Bool      m_bPCMInputBitDepthFlag;
+  UInt      m_uiPCMBitDepthLuma;
+  UInt      m_uiPCMBitDepthChroma;
+#endif
+#if E057_INTRA_PCM && E192_SPS_PCM_FILTER_DISABLE_SYNTAX 
+  Bool      m_bPCMFilterDisableFlag;
+#endif
   bool m_pictureDigestEnabled; ///< enable(1)/disable(0) md5 computation and SEI signalling
 
 public:
@@ -280,6 +290,15 @@ public:
 #if CONSTRAINED_INTRA_PRED
   Void      setUseConstrainedIntraPred      ( Bool  b )     { m_bUseConstrainedIntraPred = b; }
 #endif
+#if E057_INTRA_PCM && E192_SPS_PCM_BIT_DEPTH_SYNTAX
+  Void      setPCMInputBitDepthFlag         ( Bool  b )     { m_bPCMInputBitDepthFlag = b; }
+#endif
+#if E057_INTRA_PCM && E192_SPS_PCM_FILTER_DISABLE_SYNTAX
+  Void      setPCMFilterDisableFlag         ( Bool  b )     {  m_bPCMFilterDisableFlag = b; }
+#endif
+#if E057_INTRA_PCM
+  Void      setPCMLog2MinSize               ( UInt u )     { m_uiPCMLog2MinSize = u;      }
+#endif
   Void      setdQPs                         ( Int*  p )     { m_aidQP       = p; }
   Void      setDeltaQpRD                    ( UInt  u )     {m_uiDeltaQpRD  = u; }
   Bool      getUseSBACRD                    ()      { return m_bUseSBACRD;  }
@@ -304,7 +323,16 @@ public:
   Bool      getUseMRG                       ()      { return m_bUseMRG;     } // SOPH:
 #if CONSTRAINED_INTRA_PRED
   Bool      getUseConstrainedIntraPred      ()      { return m_bUseConstrainedIntraPred; }
-#endif  
+#endif
+#if E057_INTRA_PCM && E192_SPS_PCM_BIT_DEPTH_SYNTAX
+  Bool      getPCMInputBitDepthFlag         ()      { return m_bPCMInputBitDepthFlag;   } 
+#endif
+#if E057_INTRA_PCM && E192_SPS_PCM_FILTER_DISABLE_SYNTAX
+  Bool      getPCMFilterDisableFlag         ()      { return m_bPCMFilterDisableFlag;   } 
+#endif
+#if E057_INTRA_PCM
+  UInt      getPCMLog2MinSize               ()      { return  m_uiPCMLog2MinSize;  }
+#endif
 
 #if LM_CHROMA 
   Bool getUseLMChroma                       ()      { return m_bUseLMChroma;        }

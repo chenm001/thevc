@@ -142,3 +142,30 @@ TDecBinCABAC::xReadBit( UInt& ruiVal )
   m_pcTComBitstream->read( 1, uiBit );
   ruiVal  = ( ruiVal << 1 ) | uiBit;
 }
+
+#if E057_INTRA_PCM
+Void
+TDecBinCABAC::bac_restart()
+{
+  m_uiRange    = 510;
+  m_uiValue    = 0;
+
+  for( UInt ui = 0; ui < 9; ui++ )
+  {
+    xReadBit( m_uiValue );
+  }
+}
+
+Void
+TDecBinCABAC::bac_finish()
+{
+  Int iNum = (m_pcTComBitstream->getBitsLeft() & (0x7));
+
+  for( UInt ui = 0; ui < iNum ; ui++ )
+  {
+    UInt uiBit = 0;
+
+    m_pcTComBitstream->read( 1, uiBit );
+  }
+}
+#endif

@@ -112,6 +112,15 @@ protected:
 #endif
   UInt      m_uiInternalBitDepth;                             ///< Internal bit-depth (BitDepth+BitIncrement)
   
+  // coding tools (PCM bit-depth)
+#if E057_INTRA_PCM && E192_SPS_PCM_BIT_DEPTH_SYNTAX
+  Bool      m_bPCMInputBitDepthFlag;                          ///< 0: PCM bit-depth is internal bit-depth. 1: PCM bit-depth is input bit-depth.
+  UInt      m_uiPCMBitDepthLuma;                              ///< PCM bit-depth for luma
+#endif
+#if E057_INTRA_PCM && E192_SPS_PCM_FILTER_DISABLE_SYNTAX
+  Bool      m_bPCMFilterDisableFlag;
+#endif
+
 #if MTK_SAO
   Bool      m_bUseSAO; 
 #endif
@@ -140,6 +149,11 @@ protected:
   Bool      m_bUseRMP;
 #endif
   
+  // coding tools (PCM)
+#if E057_INTRA_PCM
+  UInt      m_uiPCMLog2MinSize;
+#endif
+
   // coding tools (encoder-only parameters)
   Bool      m_bUseSBACRD;                                     ///< flag for using RD optimization based on SBAC
   Bool      m_bUseASR;                                        ///< flag for using adaptive motion search range

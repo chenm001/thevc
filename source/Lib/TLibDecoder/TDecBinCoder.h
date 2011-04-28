@@ -55,6 +55,12 @@ public:
   virtual Void  decodeBinEP       ( UInt& ruiBin                           )  = 0;
   virtual Void  decodeBinTrm      ( UInt& ruiBin                           )  = 0;
   
+#if E057_INTRA_PCM
+  virtual Void  bac_restart       ()                                          = 0;
+  virtual Void  bac_finish        ()                                          = 0;
+  virtual Void  xReadCode         (UInt uiLength, UInt& ruiCode)              = 0; /* revisit */
+#endif
+
   virtual ~TDecBinIf() {}
 };
 

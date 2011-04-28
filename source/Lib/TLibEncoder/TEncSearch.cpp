@@ -884,6 +884,18 @@ TEncSearch::xEncIntraHeader( TComDataCU*  pcCU,
       }
       
       m_pcEntropyCoder  ->encodePartSize( pcCU, 0, pcCU->getDepth(0), true );
+
+#if E057_INTRA_PCM
+      if (pcCU->isIntra(0) && pcCU->getPartitionSize(0) == SIZE_2Nx2N )
+      {
+        m_pcEntropyCoder->encodeIPCMInfo( pcCU, 0, true );
+
+        if ( pcCU->getIPCMFlag (0))
+        {
+          return;
+        }
+      }
+#endif
     }
     // luma prediction mode
     if( pcCU->getPartitionSize(0) == SIZE_2Nx2N )
@@ -2139,6 +2151,166 @@ TEncSearch::estIntraPredChromaQT( TComDataCU* pcCU,
     m_pcRDGoOnSbacCoder->load( m_pppcRDSbacCoder[uiDepth][CI_CURR_BEST] );
   }
 }
+
+#if E057_INTRA_PCM
+Void TEncSearch::xEncPCM (TComDataCU* pcCU, UInt uiAbsPartIdx, Pel* piOrg, Pel* piPCM, Pel* piPred, Pel* piResi, Pel* piReco, UInt uiStride, UInt uiWidth, UInt uiHeight, UInt uiCurrDepth, TextType eText )
+{
+  UInt uiX, uiY;
+  UInt uiReconStride;
+  Pel* pOrg  = piOrg;
+  Pel* pPCM  = piPCM;
+  Pel* pPred = piPred;
+  Pel* pResi = piResi;
+  Pel* pReco = piReco;
+  Pel* pRecoPic;
+#if E192_SPS_PCM_BIT_DEPTH_SYNTAX
+  UInt uiInternalBitDepth = g_uiBitDepth + g_uiBitIncrement;
+  UInt uiPCMBitDepth;
+#endif
+
+  if( eText == TEXT_LUMA)
+  {
+    uiReconStride = pcCU->getPic()->getPicYuvRec()->getStride();
+    pRecoPic      = pcCU->getPic()->getPicYuvRec()->getLumaAddr(pcCU->getAddr(), pcCU->getZorderIdxInCU()+uiAbsPartIdx);
+#if E192_SPS_PCM_BIT_DEPTH_SYNTAX
+    uiPCMBitDepth = pcCU->getSlice()->getSPS()->getPCMBitDepthLuma();
+#endif
+  }
+  else
+  {
+    uiReconStride = pcCU->getPic()->getPicYuvRec()->getCStride();
+
+    if( eText == TEXT_CHROMA_U )
+    {
+      pRecoPic = pcCU->getPic()->getPicYuvRec()->getCbAddr(pcCU->getAddr(), pcCU->getZorderIdxInCU()+uiAbsPartIdx);
+    }
+    else
+    {
+      pRecoPic = pcCU->getPic()->getPicYuvRec()->getCrAddr(pcCU->getAddr(), pcCU->getZorderIdxInCU()+uiAbsPartIdx);
+    }
+#if E192_SPS_PCM_BIT_DEPTH_SYNTAX
+    uiPCMBitDepth = pcCU->getSlice()->getSPS()->getPCMBitDepthChroma();
+#endif
+  }
+
+  // Reset pred and residual
+  for( uiY = 0; uiY < uiHeight; uiY++ )
+  {
+    for( uiX = 0; uiX < uiWidth; uiX++ )
+    {
+      pPred[uiX] = 0;
+      pResi[uiX] = 0;
+    }
+    pPred += uiStride;
+    pResi += uiStride;
+  }
+
+  // Encode
+  for( uiY = 0; uiY < uiHeight; uiY++ )
+  {
+    for( uiX = 0; uiX < uiWidth; uiX++ )
+    {
+#if E192_SPS_PCM_BIT_DEPTH_SYNTAX
+      pPCM[uiX] = (pOrg[uiX]>>(uiInternalBitDepth - uiPCMBitDepth));
+#else
+      pPCM[uiX] = (pOrg[uiX]>>g_uiBitIncrement);
+#endif
+    }
+    pPCM += uiWidth;
+    pOrg += uiStride;
+  }
+
+  pPCM  = piPCM;
+
+  // Reconstruction
+  for( uiY = 0; uiY < uiHeight; uiY++ )
+  {
+    for( uiX = 0; uiX < uiWidth; uiX++ )
+    {
+#if E192_SPS_PCM_BIT_DEPTH_SYNTAX
+      pReco   [uiX] = (pPCM[uiX]<<(uiInternalBitDepth - uiPCMBitDepth));
+#else
+      pReco   [uiX] = (pPCM[uiX]<<g_uiBitIncrement);
+#endif
+      pRecoPic[uiX] = pReco[uiX];
+    }
+    pPCM += uiWidth;
+    pReco += uiStride;
+    pRecoPic += uiReconStride;
+  }
+}
+
+Void TEncSearch::IPCMSearch( TComDataCU* pcCU, TComYuv* pcOrgYuv, TComYuv*& rpcPredYuv, TComYuv*& rpcResiYuv, TComYuv*& rpcRecoYuv )
+{
+  UInt   uiDepth        = pcCU->getDepth(0);
+  UInt   uiWidth        = pcCU->getWidth(0);
+  UInt   uiHeight       = pcCU->getHeight(0);
+  UInt   uiStride       = rpcPredYuv->getStride();
+  UInt   uiStrideC      = rpcPredYuv->getCStride();
+  UInt   uiWidthC       = uiWidth  >> 1;
+  UInt   uiHeightC      = uiHeight >> 1;
+  UInt   uiDistortion = 0;
+  UInt   uiBits;
+
+  Double dCost;
+
+  Pel*    pOrig;
+  Pel*    pResi;
+  Pel*    pReco;
+  Pel*    pPred;
+  Pel*    pPCM;
+
+  UInt uiAbsPartIdx = 0;
+
+  UInt uiMinCoeffSize = pcCU->getPic()->getMinCUWidth()*pcCU->getPic()->getMinCUHeight();
+  UInt uiLumaOffset   = uiMinCoeffSize*uiAbsPartIdx;
+  UInt uiChromaOffset = uiLumaOffset>>2;
+
+  // Luminance
+  pOrig    = pcOrgYuv->getLumaAddr(0, uiWidth);
+  pResi    = rpcResiYuv->getLumaAddr(0, uiWidth);
+  pPred    = rpcPredYuv->getLumaAddr(0, uiWidth);
+  pReco    = rpcRecoYuv->getLumaAddr(0, uiWidth);
+  pPCM     = pcCU->getPCMSampleY() + uiLumaOffset;
+
+  xEncPCM ( pcCU, 0, pOrig, pPCM, pPred, pResi, pReco, uiStride, uiWidth, uiHeight, 0, TEXT_LUMA );
+
+  // Chroma U
+  pOrig    = pcOrgYuv->getCbAddr();
+  pResi    = rpcResiYuv->getCbAddr();
+  pPred    = rpcPredYuv->getCbAddr();
+  pReco    = rpcRecoYuv->getCbAddr();
+  pPCM     = pcCU->getPCMSampleCb() + uiChromaOffset;
+
+  xEncPCM ( pcCU, 0, pOrig, pPCM, pPred, pResi, pReco, uiStrideC, uiWidthC, uiHeightC, 0, TEXT_CHROMA_U );
+
+  // Chroma V
+  pOrig    = pcOrgYuv->getCrAddr();
+  pResi    = rpcResiYuv->getCrAddr();
+  pPred    = rpcPredYuv->getCrAddr();
+  pReco    = rpcRecoYuv->getCrAddr();
+  pPCM     = pcCU->getPCMSampleCr() + uiChromaOffset;
+
+  xEncPCM ( pcCU, 0, pOrig, pPCM, pPred, pResi, pReco, uiStrideC, uiWidthC, uiHeightC, 0, TEXT_CHROMA_V );
+
+  m_pcEntropyCoder->resetBits();
+  xEncIntraHeader ( pcCU, uiDepth, uiAbsPartIdx, true, false);
+  uiBits = m_pcEntropyCoder->getNumberOfWrittenBits();
+
+  dCost = m_pcRdCost->calcRdCost( uiBits, uiDistortion );
+
+  if(m_bUseSBACRD)
+  {
+    m_pcRDGoOnSbacCoder->load(m_pppcRDSbacCoder[uiDepth][CI_CURR_BEST]);
+  }
+
+  pcCU->getTotalBits()       = uiBits;
+  pcCU->getTotalCost()       = dCost;
+  pcCU->getTotalDistortion() = uiDistortion;
+
+  pcCU->copyToPic(uiDepth, 0, 0);
+}
+#endif
 
 #if (!REFERENCE_SAMPLE_PADDING)
 Bool TEncSearch::predIntraLumaDirAvailable( UInt uiMode, UInt uiWidthBit, Bool bAboveAvail, Bool bLeftAvail)

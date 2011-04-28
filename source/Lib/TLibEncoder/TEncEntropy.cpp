@@ -538,6 +538,19 @@ Void TEncEntropy::encodePartSize( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDe
   m_pcEntropyCoderIf->codePartSize( pcCU, uiAbsPartIdx, uiDepth );
 }
 
+#if E057_INTRA_PCM
+Void TEncEntropy::encodeIPCMInfo( TComDataCU* pcCU, UInt uiAbsPartIdx, Bool bRD )
+{
+  if(pcCU->getWidth(uiAbsPartIdx) < (1<<pcCU->getSlice()->getSPS()->getPCMLog2MinSize()))
+    return;
+
+  if( bRD )
+    uiAbsPartIdx = 0;
+
+  m_pcEntropyCoderIf->codeIPCMInfo ( pcCU, uiAbsPartIdx );
+}
+#endif
+
 Void TEncEntropy::xEncodeTransformSubdiv( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth, UInt uiInnerQuadIdx, UInt& uiYCbfFront3, UInt& uiUCbfFront3, UInt& uiVCbfFront3 )
 {
   const UInt uiSubdiv = pcCU->getTransformIdx( uiAbsPartIdx ) + pcCU->getDepth( uiAbsPartIdx ) > uiDepth;

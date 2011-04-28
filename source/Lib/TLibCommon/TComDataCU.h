@@ -98,6 +98,12 @@ private:
   Bool          m_bdQP;               ///< signal if LCU dQP encoded
 #endif//SNY_DQP
   
+#if E057_INTRA_PCM
+  Pel*          m_pcIPCMSampleY;      ///< PCM sample buffer (Y)
+  Pel*          m_pcIPCMSampleCb;     ///< PCM sample buffer (Cb)
+  Pel*          m_pcIPCMSampleCr;     ///< PCM sample buffer (Cr)
+#endif
+
   // -------------------------------------------------------------------------------------------------------------------
   // neighbour access variables
   // -------------------------------------------------------------------------------------------------------------------
@@ -127,6 +133,10 @@ private:
   UInt*         m_puiAlfCtrlFlag;     ///< array of ALF flags
   UInt*         m_puiTmpAlfCtrlFlag;  ///< temporal array of ALF flags
   
+#if E057_INTRA_PCM
+  Bool*         m_pbIPCMFlag;         ///< array of intra_pcm flags
+#endif
+
   // -------------------------------------------------------------------------------------------------------------------
   // misc. variables
   // -------------------------------------------------------------------------------------------------------------------
@@ -259,6 +269,12 @@ public:
   TCoeff*&      getCoeffCb            ()                        { return m_pcTrCoeffCb;       }
   TCoeff*&      getCoeffCr            ()                        { return m_pcTrCoeffCr;       }
   
+#if E057_INTRA_PCM
+  Pel*&         getPCMSampleY         ()                        { return m_pcIPCMSampleY;     }
+  Pel*&         getPCMSampleCb        ()                        { return m_pcIPCMSampleCb;    }
+  Pel*&         getPCMSampleCr        ()                        { return m_pcIPCMSampleCr;    }
+#endif
+
   UChar         getCbf    ( UInt uiIdx, TextType eType )                  { return m_puhCbf[g_aucConvertTxtTypeToIdx[eType]][uiIdx];  }
   UChar*        getCbf    ( TextType eType )                              { return m_puhCbf[g_aucConvertTxtTypeToIdx[eType]];         }
   UChar         getCbf    ( UInt uiIdx, TextType eType, UInt uiTrDepth )  { return ( ( getCbf( uiIdx, eType ) >> uiTrDepth ) & 0x1 ); }
@@ -319,6 +335,13 @@ public:
   Void          copyAlfCtrlFlagToTmp  ();
   Void          copyAlfCtrlFlagFromTmp();
   
+#if E057_INTRA_PCM
+  Bool*         getIPCMFlag          ()                        { return m_pbIPCMFlag;               }
+  Bool          getIPCMFlag          (UInt uiIdx )             { return m_pbIPCMFlag[uiIdx];        }
+  Void          setIPCMFlag          (UInt uiIdx, Bool b )     { m_pbIPCMFlag[uiIdx] = b;           }
+  Void          setIPCMFlagSubParts  (Bool bIpcmFlag, UInt uiAbsPartIdx, UInt uiDepth);
+#endif
+
   // -------------------------------------------------------------------------------------------------------------------
   // member functions for accessing partition information
   // -------------------------------------------------------------------------------------------------------------------

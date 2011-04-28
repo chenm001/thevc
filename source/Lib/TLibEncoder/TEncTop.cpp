@@ -334,6 +334,10 @@ Void TEncTop::xInitSPS()
   m_cSPS.setMinTrDepth    ( 0                   );
   m_cSPS.setMaxTrDepth    ( 1                   );
   
+#if E057_INTRA_PCM
+  m_cSPS.setPCMLog2MinSize (m_uiPCMLog2MinSize);
+#endif
+
   m_cSPS.setUseALF        ( m_bUseALF           );
   
   m_cSPS.setQuadtreeTULog2MaxSize( m_uiQuadtreeTULog2MaxSize );
@@ -417,6 +421,13 @@ Void TEncTop::xInitSPS()
     m_cSPS.setMaxTLayers( 1 );
     m_cSPS.setTemporalIdNestingFlag( false );
   }
+#if E057_INTRA_PCM && E192_SPS_PCM_BIT_DEPTH_SYNTAX
+  m_cSPS.setPCMBitDepthLuma (g_uiPCMBitDepthLuma);
+  m_cSPS.setPCMBitDepthChroma (g_uiPCMBitDepthChroma);
+#endif
+#if E057_INTRA_PCM && E192_SPS_PCM_FILTER_DISABLE_SYNTAX
+  m_cSPS.setPCMFilterDisableFlag  ( m_bPCMFilterDisableFlag );
+#endif
 }
 
 Void TEncTop::xInitPPS()

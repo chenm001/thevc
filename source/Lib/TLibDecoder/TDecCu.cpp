@@ -266,9 +266,20 @@ Void TDecCu::xDecodeCU( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
     return;
   }
   m_pcEntropyDecoder->decodePredMode( pcCU, uiAbsPartIdx, uiDepth );
-  
   m_pcEntropyDecoder->decodePartSize( pcCU, uiAbsPartIdx, uiDepth );
   
+#if E057_INTRA_PCM
+  if (pcCU->isIntra( uiAbsPartIdx ) && pcCU->getPartitionSize( uiAbsPartIdx ) == SIZE_2Nx2N )
+  {
+    m_pcEntropyDecoder->decodeIPCMInfo( pcCU, uiAbsPartIdx, uiDepth );
+
+    if(pcCU->getIPCMFlag(uiAbsPartIdx))
+    {
+      return;
+    }
+  }
+#endif
+
   UInt uiCurrWidth      = pcCU->getWidth ( uiAbsPartIdx );
   UInt uiCurrHeight     = pcCU->getHeight( uiAbsPartIdx );
   
@@ -733,6 +744,14 @@ TDecCu::xReconIntraQT( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
   UInt  uiNumPart     = pcCU->getNumPartInter();
   UInt  uiNumQParts   = pcCU->getTotalNumPart() >> 2;
   
+#if E057_INTRA_PCM
+  if (pcCU->getIPCMFlag(0))
+  {
+    xReconPCM( pcCU, uiAbsPartIdx, uiDepth );
+    return;
+  }
+#endif
+
 #if LM_CHROMA
   for( UInt uiPU = 0; uiPU < uiNumPart; uiPU++ )
   {
@@ -861,4 +880,88 @@ Void TDecCu::xDecodeInterTexture ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiD
   piCoeff = pcCU->getCoeffCr(); pResi = m_ppcYuvResi[uiDepth]->getCrAddr();
   m_pcTrQuant->invRecurTransformNxN ( pcCU, 0, TEXT_CHROMA_V, pResi, 0, m_ppcYuvResi[uiDepth]->getCStride(), uiWidth, uiHeight, uiChromaTrMode, 0, piCoeff );
 }
+
+#if E057_INTRA_PCM
+Void TDecCu::xDecodePCMTexture( TComDataCU* pcCU, UInt uiPartIdx, Pel *piPCM, Pel* piReco, UInt uiStride, UInt uiWidth, UInt uiHeight, TextType ttText)
+{
+  UInt uiX, uiY;
+  Pel* piPicReco;
+  UInt uiPicStride;
+#if E192_SPS_PCM_BIT_DEPTH_SYNTAX
+  UInt uiPcmLeftShiftBit; 
+#endif
+
+  if( ttText == TEXT_LUMA )
+  {
+    uiPicStride   = pcCU->getPic()->getPicYuvRec()->getStride();
+    piPicReco = pcCU->getPic()->getPicYuvRec()->getLumaAddr(pcCU->getAddr(), pcCU->getZorderIdxInCU()+uiPartIdx);
+#if E192_SPS_PCM_BIT_DEPTH_SYNTAX
+    uiPcmLeftShiftBit = g_uiBitDepth + g_uiBitIncrement - pcCU->getSlice()->getSPS()->getPCMBitDepthLuma();
+#endif
+  }
+  else
+  {
+    uiPicStride = pcCU->getPic()->getPicYuvRec()->getCStride();
+
+    if( ttText == TEXT_CHROMA_U )
+    {
+      piPicReco = pcCU->getPic()->getPicYuvRec()->getCbAddr(pcCU->getAddr(), pcCU->getZorderIdxInCU()+uiPartIdx);
+    }
+    else
+    {
+      piPicReco = pcCU->getPic()->getPicYuvRec()->getCrAddr(pcCU->getAddr(), pcCU->getZorderIdxInCU()+uiPartIdx);
+    }
+#if E192_SPS_PCM_BIT_DEPTH_SYNTAX
+    uiPcmLeftShiftBit = g_uiBitDepth + g_uiBitIncrement - pcCU->getSlice()->getSPS()->getPCMBitDepthChroma();
+#endif
+  }
+
+  for( uiY = 0; uiY < uiHeight; uiY++ )
+  {
+    for( uiX = 0; uiX < uiWidth; uiX++ )
+    {
+#if E192_SPS_PCM_BIT_DEPTH_SYNTAX
+      piReco[uiX] = (piPCM[uiX] << uiPcmLeftShiftBit);
+#else
+      if(g_uiBitIncrement > 0)
+        piReco[uiX] = (piPCM[uiX] << g_uiBitIncrement);
+      else
+        piReco[uiX] = piPCM[uiX];
+#endif
+      piPicReco[uiX] = piReco[uiX];
+    }
+    piPCM += uiWidth;
+    piReco += uiStride;
+    piPicReco += uiPicStride;
+  }
+}
+
+Void TDecCu::xReconPCM( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
+{
+  // Luma
+  UInt uiWidth  = (g_uiMaxCUWidth >> uiDepth);
+  UInt uiHeight = (g_uiMaxCUHeight >> uiDepth);
+
+  Pel* piPcmY = pcCU->getPCMSampleY();
+  Pel* piRecoY = m_ppcYuvReco[uiDepth]->getLumaAddr(0, uiWidth);
+
+  UInt uiStride = m_ppcYuvResi[uiDepth]->getStride();
+
+  xDecodePCMTexture( pcCU, 0, piPcmY, piRecoY, uiStride, uiWidth, uiHeight, TEXT_LUMA);
+
+  // Cb and Cr
+  UInt uiCWidth  = (uiWidth>>1);
+  UInt uiCHeight = (uiHeight>>1);
+
+  Pel* piPcmCb = pcCU->getPCMSampleCb();
+  Pel* piPcmCr = pcCU->getPCMSampleCr();
+  Pel* pRecoCb = m_ppcYuvReco[uiDepth]->getCbAddr();
+  Pel* pRecoCr = m_ppcYuvReco[uiDepth]->getCrAddr();
+
+  UInt uiCStride = m_ppcYuvReco[uiDepth]->getCStride();
+
+  xDecodePCMTexture( pcCU, 0, piPcmCb, pRecoCb, uiCStride, uiCWidth, uiCHeight, TEXT_CHROMA_U);
+  xDecodePCMTexture( pcCU, 0, piPcmCr, pRecoCr, uiCStride, uiCWidth, uiCHeight, TEXT_CHROMA_V);
+}
+#endif
 

@@ -139,6 +139,9 @@ Void TAppEncTop::xInitLibCfg()
 #if CONSTRAINED_INTRA_PRED
   m_cTEncTop.setUseConstrainedIntraPred      ( m_bUseConstrainedIntraPred );
 #endif
+#if E057_INTRA_PCM
+  m_cTEncTop.setPCMLog2MinSize  ( m_uiPCMLog2MinSize);
+#endif
   //====== Slice ========
   m_cTEncTop.setSliceMode               ( m_iSliceMode                );
   m_cTEncTop.setSliceArgument           ( m_iSliceArgument            );
@@ -155,6 +158,12 @@ Void TAppEncTop::xInitLibCfg()
 #endif
 #if MTK_SAO
   m_cTEncTop.setUseSAO               ( m_bUseSAO         );
+#endif
+#if E057_INTRA_PCM && E192_SPS_PCM_BIT_DEPTH_SYNTAX
+  m_cTEncTop.setPCMInputBitDepthFlag  ( m_bPCMInputBitDepthFlag); 
+#endif
+#if E057_INTRA_PCM && E192_SPS_PCM_FILTER_DISABLE_SYNTAX
+  m_cTEncTop.setPCMFilterDisableFlag  ( m_bPCMFilterDisableFlag); 
 #endif
 
   m_cTEncTop.setPictureDigestEnabled(m_pictureDigestEnabled);
