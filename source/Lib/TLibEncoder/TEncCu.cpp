@@ -858,6 +858,13 @@ Void TEncCu::xCheckRDCostIntra( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, 
 }
 
 #if E057_INTRA_PCM
+/** Check R-D costs for a CU with PCM mode. 
+ * \param rpcBestCU pointer to best mode CU data structure
+ * \param rpcTempCU pointer to testing mode CU data structure
+ * \returns Void
+ * 
+ * \note Current PCM implementation encodes sample values in a lossless way. The distortion of PCM mode CUs are zero. PCM mode is selected if the best mode yields bits greater than that of PCM mode.
+ */
 Void TEncCu::xCheckIntraPCM( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU )
 {
   UInt uiDepth = rpcTempCU->getDepth( 0 );

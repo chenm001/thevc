@@ -154,10 +154,10 @@ Void TComDataCU::create(UInt uiNumPartition, UInt uiWidth, UInt uiHeight, Bool b
     m_pcTrCoeffCr        = (TCoeff*)xMalloc(TCoeff, uiWidth*uiHeight/4);
     
 #if E057_INTRA_PCM
-    m_pbIPCMFlag         = (Bool*  )xMalloc(Bool,   uiNumPartition);
-    m_pcIPCMSampleY      = (Pel*)xMalloc(Pel, uiWidth*uiHeight);
-    m_pcIPCMSampleCb     = (Pel*)xMalloc(Pel, uiWidth*uiHeight/4);
-    m_pcIPCMSampleCr     = (Pel*)xMalloc(Pel, uiWidth*uiHeight/4);
+    m_pbIPCMFlag         = (Bool*  )xMalloc(Bool, uiNumPartition);
+    m_pcIPCMSampleY      = (Pel*   )xMalloc(Pel , uiWidth*uiHeight);
+    m_pcIPCMSampleCb     = (Pel*   )xMalloc(Pel , uiWidth*uiHeight/4);
+    m_pcIPCMSampleCr     = (Pel*   )xMalloc(Pel , uiWidth*uiHeight/4);
 #endif
 
     m_acCUMvField[0].create( uiNumPartition );
@@ -222,7 +222,7 @@ Void TComDataCU::destroy()
     if ( m_pcTrCoeffCb        ) { xFree(m_pcTrCoeffCb);         m_pcTrCoeffCb       = NULL; }
     if ( m_pcTrCoeffCr        ) { xFree(m_pcTrCoeffCr);         m_pcTrCoeffCr       = NULL; }
 #if E057_INTRA_PCM
-    if ( m_pbIPCMFlag         ) { xFree(m_pbIPCMFlag);          m_pbIPCMFlag        = NULL; }
+    if ( m_pbIPCMFlag         ) { xFree(m_pbIPCMFlag   );       m_pbIPCMFlag        = NULL; }
     if ( m_pcIPCMSampleY      ) { xFree(m_pcIPCMSampleY);       m_pcIPCMSampleY     = NULL; }
     if ( m_pcIPCMSampleCb     ) { xFree(m_pcIPCMSampleCb);      m_pcIPCMSampleCb    = NULL; }
     if ( m_pcIPCMSampleCr     ) { xFree(m_pcIPCMSampleCr);      m_pcIPCMSampleCr    = NULL; }
@@ -3451,6 +3451,12 @@ Void TComDataCU::clearCbf( UInt uiIdx, TextType eType, UInt uiNumParts )
 }
 
 #if E057_INTRA_PCM
+/** Sets a I_PCM flag for all sub-partitions of a partition.
+ * \param bIpcmFlag
+ * \param uiAbsPartIdx
+ * \param uiDepth
+ * \returns Void
+ */
 Void TComDataCU::setIPCMFlagSubParts  (Bool bIpcmFlag, UInt uiAbsPartIdx, UInt uiDepth)
 {
   UInt uiCurrPartNumb = m_pcPic->getNumPartInCU() >> (uiDepth << 1);

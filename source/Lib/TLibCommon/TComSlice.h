@@ -94,15 +94,6 @@ private:
   AMVP_MODE   m_aeAMVPMode[MAX_CU_DEPTH];
   UInt        m_uiBitDepth;
   UInt        m_uiBitIncrement;
-  
-#if E057_INTRA_PCM && E192_SPS_PCM_BIT_DEPTH_SYNTAX
-  // PCM Parameter
-  UInt        m_uiPCMBitDepthLuma;
-  UInt        m_uiPCMBitDepthChroma;
-#endif
-#if E057_INTRA_PCM && E192_SPS_PCM_FILTER_DISABLE_SYNTAX
-  Bool        m_bPCMFilterDisableFlag;
-#endif
 
   // Max physical transform size
   UInt        m_uiMaxTrSize;
@@ -216,16 +207,6 @@ public:
 
   Bool      getTemporalIdNestingFlag()                { return m_bTemporalIdNestingFlag; }
   Void      setTemporalIdNestingFlag( Bool bValue )   { m_bTemporalIdNestingFlag = bValue; }
-#if E057_INTRA_PCM && E192_SPS_PCM_BIT_DEPTH_SYNTAX
-  UInt      getPCMBitDepthLuma     ()         { return m_uiPCMBitDepthLuma;     }
-  Void      setPCMBitDepthLuma     ( UInt u ) { m_uiPCMBitDepthLuma = u;        }
-  UInt      getPCMBitDepthChroma   ()         { return m_uiPCMBitDepthChroma;   }
-  Void      setPCMBitDepthChroma   ( UInt u ) { m_uiPCMBitDepthChroma = u;      }
-#endif
-#if E057_INTRA_PCM && E192_SPS_PCM_FILTER_DISABLE_SYNTAX
-  Void      setPCMFilterDisableFlag     ( Bool   bValue  )    { m_bPCMFilterDisableFlag = bValue; }
-  Bool      getPCMFilterDisableFlag     ()                    { return m_bPCMFilterDisableFlag;   } 
-#endif
 };
 
 /// PPS class

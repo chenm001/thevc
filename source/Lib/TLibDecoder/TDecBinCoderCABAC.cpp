@@ -144,8 +144,10 @@ TDecBinCABAC::xReadBit( UInt& ruiVal )
 }
 
 #if E057_INTRA_PCM
-Void
-TDecBinCABAC::bac_restart()
+/** Reset BAC register values.
+ * \returns Void
+ */
+Void TDecBinCABAC::resetBac()
 {
   m_uiRange    = 510;
   m_uiValue    = 0;
@@ -155,9 +157,10 @@ TDecBinCABAC::bac_restart()
     xReadBit( m_uiValue );
   }
 }
-
-Void
-TDecBinCABAC::bac_finish()
+/** Decode PCM alignment zero bits.
+ * \returns Void
+ */
+Void TDecBinCABAC::decodePCMAlignBits()
 {
   Int iNum = (m_pcTComBitstream->getBitsLeft() & (0x7));
 
@@ -167,5 +170,16 @@ TDecBinCABAC::bac_finish()
 
     m_pcTComBitstream->read( 1, uiBit );
   }
+}
+
+/** Read a PCM code.
+ * \param uiLength code bit-depth
+ * \param ruiCode pointer to PCM code value
+ * \returns Void
+ */
+Void  TDecBinCABAC::xReadPCMCode(UInt uiLength, UInt& ruiCode)
+{
+  assert ( uiLength > 0 );
+  m_pcTComBitstream->read (uiLength, ruiCode);
 }
 #endif

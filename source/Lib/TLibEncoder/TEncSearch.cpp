@@ -2153,7 +2153,21 @@ TEncSearch::estIntraPredChromaQT( TComDataCU* pcCU,
 }
 
 #if E057_INTRA_PCM
-Void TEncSearch::xEncPCM (TComDataCU* pcCU, UInt uiAbsPartIdx, Pel* piOrg, Pel* piPCM, Pel* piPred, Pel* piResi, Pel* piReco, UInt uiStride, UInt uiWidth, UInt uiHeight, UInt uiCurrDepth, TextType eText )
+/** Function for encoding and reconstructing luma/chroma samples of a PCM mode CU.
+ * \param pcCU pointer to current CU
+ * \param uiAbsPartIdx part index
+ * \param piOrg pointer to original sample arrays
+ * \param piPCM pointer to PCM code arrays
+ * \param piPred pointer to prediction signal arrays
+ * \param piResi pointer to residual signal arrays
+ * \param piResi pointer to reconstructed sample arrays
+ * \param uiStride stride of the original/prediction/residual sample arrays
+ * \param uiWidth block width
+ * \param uiHeight block height
+ * \param ttText texture component type
+ * \returns Void
+ */
+Void TEncSearch::xEncPCM (TComDataCU* pcCU, UInt uiAbsPartIdx, Pel* piOrg, Pel* piPCM, Pel* piPred, Pel* piResi, Pel* piReco, UInt uiStride, UInt uiWidth, UInt uiHeight, TextType eText )
 {
   UInt uiX, uiY;
   UInt uiReconStride;
@@ -2163,18 +2177,11 @@ Void TEncSearch::xEncPCM (TComDataCU* pcCU, UInt uiAbsPartIdx, Pel* piOrg, Pel* 
   Pel* pResi = piResi;
   Pel* pReco = piReco;
   Pel* pRecoPic;
-#if E192_SPS_PCM_BIT_DEPTH_SYNTAX
-  UInt uiInternalBitDepth = g_uiBitDepth + g_uiBitIncrement;
-  UInt uiPCMBitDepth;
-#endif
 
   if( eText == TEXT_LUMA)
   {
     uiReconStride = pcCU->getPic()->getPicYuvRec()->getStride();
     pRecoPic      = pcCU->getPic()->getPicYuvRec()->getLumaAddr(pcCU->getAddr(), pcCU->getZorderIdxInCU()+uiAbsPartIdx);
-#if E192_SPS_PCM_BIT_DEPTH_SYNTAX
-    uiPCMBitDepth = pcCU->getSlice()->getSPS()->getPCMBitDepthLuma();
-#endif
   }
   else
   {
@@ -2188,9 +2195,6 @@ Void TEncSearch::xEncPCM (TComDataCU* pcCU, UInt uiAbsPartIdx, Pel* piOrg, Pel* 
     {
       pRecoPic = pcCU->getPic()->getPicYuvRec()->getCrAddr(pcCU->getAddr(), pcCU->getZorderIdxInCU()+uiAbsPartIdx);
     }
-#if E192_SPS_PCM_BIT_DEPTH_SYNTAX
-    uiPCMBitDepth = pcCU->getSlice()->getSPS()->getPCMBitDepthChroma();
-#endif
   }
 
   // Reset pred and residual
@@ -2210,11 +2214,7 @@ Void TEncSearch::xEncPCM (TComDataCU* pcCU, UInt uiAbsPartIdx, Pel* piOrg, Pel* 
   {
     for( uiX = 0; uiX < uiWidth; uiX++ )
     {
-#if E192_SPS_PCM_BIT_DEPTH_SYNTAX
-      pPCM[uiX] = (pOrg[uiX]>>(uiInternalBitDepth - uiPCMBitDepth));
-#else
       pPCM[uiX] = (pOrg[uiX]>>g_uiBitIncrement);
-#endif
     }
     pPCM += uiWidth;
     pOrg += uiStride;
@@ -2227,11 +2227,7 @@ Void TEncSearch::xEncPCM (TComDataCU* pcCU, UInt uiAbsPartIdx, Pel* piOrg, Pel* 
   {
     for( uiX = 0; uiX < uiWidth; uiX++ )
     {
-#if E192_SPS_PCM_BIT_DEPTH_SYNTAX
-      pReco   [uiX] = (pPCM[uiX]<<(uiInternalBitDepth - uiPCMBitDepth));
-#else
       pReco   [uiX] = (pPCM[uiX]<<g_uiBitIncrement);
-#endif
       pRecoPic[uiX] = pReco[uiX];
     }
     pPCM += uiWidth;
@@ -2240,6 +2236,14 @@ Void TEncSearch::xEncPCM (TComDataCU* pcCU, UInt uiAbsPartIdx, Pel* piOrg, Pel* 
   }
 }
 
+/**  Function for PCM mode estimation.
+ * \param pcCU
+ * \param pcOrgYuv
+ * \param rpcPredYuv
+ * \param rpcResiYuv
+ * \param rpcRecoYuv
+ * \returns Void
+ */
 Void TEncSearch::IPCMSearch( TComDataCU* pcCU, TComYuv* pcOrgYuv, TComYuv*& rpcPredYuv, TComYuv*& rpcResiYuv, TComYuv*& rpcRecoYuv )
 {
   UInt   uiDepth        = pcCU->getDepth(0);
@@ -2273,7 +2277,7 @@ Void TEncSearch::IPCMSearch( TComDataCU* pcCU, TComYuv* pcOrgYuv, TComYuv*& rpcP
   pReco    = rpcRecoYuv->getLumaAddr(0, uiWidth);
   pPCM     = pcCU->getPCMSampleY() + uiLumaOffset;
 
-  xEncPCM ( pcCU, 0, pOrig, pPCM, pPred, pResi, pReco, uiStride, uiWidth, uiHeight, 0, TEXT_LUMA );
+  xEncPCM ( pcCU, 0, pOrig, pPCM, pPred, pResi, pReco, uiStride, uiWidth, uiHeight, TEXT_LUMA );
 
   // Chroma U
   pOrig    = pcOrgYuv->getCbAddr();
@@ -2282,7 +2286,7 @@ Void TEncSearch::IPCMSearch( TComDataCU* pcCU, TComYuv* pcOrgYuv, TComYuv*& rpcP
   pReco    = rpcRecoYuv->getCbAddr();
   pPCM     = pcCU->getPCMSampleCb() + uiChromaOffset;
 
-  xEncPCM ( pcCU, 0, pOrig, pPCM, pPred, pResi, pReco, uiStrideC, uiWidthC, uiHeightC, 0, TEXT_CHROMA_U );
+  xEncPCM ( pcCU, 0, pOrig, pPCM, pPred, pResi, pReco, uiStrideC, uiWidthC, uiHeightC, TEXT_CHROMA_U );
 
   // Chroma V
   pOrig    = pcOrgYuv->getCrAddr();
@@ -2291,7 +2295,7 @@ Void TEncSearch::IPCMSearch( TComDataCU* pcCU, TComYuv* pcOrgYuv, TComYuv*& rpcP
   pReco    = rpcRecoYuv->getCrAddr();
   pPCM     = pcCU->getPCMSampleCr() + uiChromaOffset;
 
-  xEncPCM ( pcCU, 0, pOrig, pPCM, pPred, pResi, pReco, uiStrideC, uiWidthC, uiHeightC, 0, TEXT_CHROMA_V );
+  xEncPCM ( pcCU, 0, pOrig, pPCM, pPred, pResi, pReco, uiStrideC, uiWidthC, uiHeightC, TEXT_CHROMA_V );
 
   m_pcEntropyCoder->resetBits();
   xEncIntraHeader ( pcCU, uiDepth, uiAbsPartIdx, true, false);

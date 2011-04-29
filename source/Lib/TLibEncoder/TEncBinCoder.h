@@ -56,9 +56,9 @@ public:
   virtual Void  copyState         ( TEncBinIf* pcTEncBinIf )                  = 0;    
 
 #if E057_INTRA_PCM
-  virtual Void  bac_restart       ()                                          = 0;
-  virtual Void  bac_finish        ()                                          = 0;
-  virtual Void  xWriteCode        (UInt uiCode, UInt uiLength)                = 0;
+  virtual Void  resetBac          ()                                          = 0;
+  virtual Void  encodePCMAlignBits()                                          = 0;
+  virtual Void  xWritePCMCode     (UInt uiCode, UInt uiLength)                = 0;
 #endif
 
   virtual Void  resetBits         ()                                          = 0;

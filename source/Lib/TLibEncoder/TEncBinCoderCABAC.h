@@ -56,12 +56,9 @@ public:
   Void  copyState         ( TEncBinIf* pcTEncBinIf );
   
 #if E057_INTRA_PCM
-  Void  bac_restart       ();
-  Void  bac_finish        ();
-  Void  xWriteCode         (UInt uiCode, UInt uiLength)
-  {
-    m_pcTComBitIf->write  (uiCode, uiLength);
-  }
+  Void  resetBac          ();
+  Void  encodePCMAlignBits();
+  Void  xWritePCMCode     (UInt uiCode, UInt uiLength);
 #endif
 
   Void  resetBits         ();

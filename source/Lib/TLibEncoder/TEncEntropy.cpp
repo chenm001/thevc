@@ -539,6 +539,12 @@ Void TEncEntropy::encodePartSize( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDe
 }
 
 #if E057_INTRA_PCM
+/** Encoder I_PCM information. 
+ * \param pcCU pointer to CU 
+ * \param uiAbsPartIdx CU index
+ * \param bRD flag indicating estimation or encoding
+ * \returns Void
+ */
 Void TEncEntropy::encodeIPCMInfo( TComDataCU* pcCU, UInt uiAbsPartIdx, Bool bRD )
 {
   if(pcCU->getWidth(uiAbsPartIdx) < (1<<pcCU->getSlice()->getSPS()->getPCMLog2MinSize()))

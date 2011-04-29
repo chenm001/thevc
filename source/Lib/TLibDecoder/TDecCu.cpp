@@ -774,7 +774,7 @@ TDecCu::xReconIntraQT( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
 
 #if LM_CHROMA
 
-/** Funtion for deriving recontructed PU/CU Luma sample with QTree structure
+/** Function for deriving recontructed PU/CU Luma sample with QTree structure
  * \param pcCU pointer of current CU
  * \param uiTrDepth current tranform split depth
  * \param uiAbsPartIdx  part index
@@ -808,7 +808,7 @@ TDecCu::xIntraLumaRecQT( TComDataCU* pcCU,
   }
 }
 
-/** Funtion for deriving recontructed PU/CU chroma samples with QTree structure
+/** Function for deriving recontructed PU/CU chroma samples with QTree structure
  * \param pcCU pointer of current CU
  * \param uiTrDepth current tranform split depth
  * \param uiAbsPartIdx  part index
@@ -882,22 +882,27 @@ Void TDecCu::xDecodeInterTexture ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiD
 }
 
 #if E057_INTRA_PCM
+/** Function for deriving reconstructed luma/chroma samples of a PCM mode CU.
+ * \param pcCU pointer to current CU
+ * \param uiPartIdx part index
+ * \param piPCM pointer to PCM code arrays
+ * \param piReco pointer to reconstructed sample arrays
+ * \param uiStride stride of reconstructed sample arrays
+ * \param uiWidth CU width
+ * \param uiHeight CU height
+ * \param ttText texture component type
+ * \returns Void
+ */
 Void TDecCu::xDecodePCMTexture( TComDataCU* pcCU, UInt uiPartIdx, Pel *piPCM, Pel* piReco, UInt uiStride, UInt uiWidth, UInt uiHeight, TextType ttText)
 {
   UInt uiX, uiY;
   Pel* piPicReco;
   UInt uiPicStride;
-#if E192_SPS_PCM_BIT_DEPTH_SYNTAX
-  UInt uiPcmLeftShiftBit; 
-#endif
 
   if( ttText == TEXT_LUMA )
   {
     uiPicStride   = pcCU->getPic()->getPicYuvRec()->getStride();
     piPicReco = pcCU->getPic()->getPicYuvRec()->getLumaAddr(pcCU->getAddr(), pcCU->getZorderIdxInCU()+uiPartIdx);
-#if E192_SPS_PCM_BIT_DEPTH_SYNTAX
-    uiPcmLeftShiftBit = g_uiBitDepth + g_uiBitIncrement - pcCU->getSlice()->getSPS()->getPCMBitDepthLuma();
-#endif
   }
   else
   {
@@ -911,23 +916,17 @@ Void TDecCu::xDecodePCMTexture( TComDataCU* pcCU, UInt uiPartIdx, Pel *piPCM, Pe
     {
       piPicReco = pcCU->getPic()->getPicYuvRec()->getCrAddr(pcCU->getAddr(), pcCU->getZorderIdxInCU()+uiPartIdx);
     }
-#if E192_SPS_PCM_BIT_DEPTH_SYNTAX
-    uiPcmLeftShiftBit = g_uiBitDepth + g_uiBitIncrement - pcCU->getSlice()->getSPS()->getPCMBitDepthChroma();
-#endif
   }
 
   for( uiY = 0; uiY < uiHeight; uiY++ )
   {
     for( uiX = 0; uiX < uiWidth; uiX++ )
     {
-#if E192_SPS_PCM_BIT_DEPTH_SYNTAX
-      piReco[uiX] = (piPCM[uiX] << uiPcmLeftShiftBit);
-#else
       if(g_uiBitIncrement > 0)
         piReco[uiX] = (piPCM[uiX] << g_uiBitIncrement);
       else
         piReco[uiX] = piPCM[uiX];
-#endif
+
       piPicReco[uiX] = piReco[uiX];
     }
     piPCM += uiWidth;
@@ -936,6 +935,12 @@ Void TDecCu::xDecodePCMTexture( TComDataCU* pcCU, UInt uiPartIdx, Pel *piPCM, Pe
   }
 }
 
+/** Function for reconstructing a PCM mode CU.
+ * \param pcCU pointer to current CU
+ * \param uiAbsPartIdx CU index
+ * \param uiDepth CU Depth
+ * \returns Void
+ */
 Void TDecCu::xReconPCM( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
 {
   // Luma

@@ -213,16 +213,6 @@ Void TDecCavlc::parseSPS(TComSPS* pcSPS)
   xReadFlag( uiCode );  // temporal_id_nesting_flag
   pcSPS->setTemporalIdNestingFlag ( uiCode > 0 ? true : false );
 
-#if E057_INTRA_PCM && E192_SPS_PCM_BIT_DEPTH_SYNTAX
-  xReadCode ( 4, uiCode );
-  pcSPS->setPCMBitDepthLuma   ( 1 + uiCode );
-  xReadCode ( 4, uiCode );
-  pcSPS->setPCMBitDepthChroma   ( 1 + uiCode );
-#endif
-#if E057_INTRA_PCM && E192_SPS_PCM_FILTER_DISABLE_SYNTAX
-  xReadFlag( uiCode ); 
-  pcSPS->setPCMFilterDisableFlag ( uiCode ? true : false );
-#endif
   return;
 }
 
@@ -951,6 +941,14 @@ Void TDecCavlc::parsePredMode( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth
 }
 
 #if E057_INTRA_PCM
+/** Parse I_PCM information. 
+ * \param pcCU
+ * \param uiAbsPartIdx 
+ * \param uiDepth
+ * \returns Void
+ *
+ * If I_PCM flag indicates that the CU is I_PCM, parse its PCM alignment bits and codes.  
+ */
 Void TDecCavlc::parseIPCMInfo( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
 {
   UInt uiSymbol;
@@ -975,25 +973,21 @@ Void TDecCavlc::parseIPCMInfo( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth
     UInt uiWidth;
     UInt uiHeight;
     UInt uiSampleBits;
-    UInt uix, uiy;
+    UInt uiX, uiY;
 
     piPCMSample = pcCU->getPCMSampleY() + uiLumaOffset;
     uiWidth = pcCU->getWidth(uiAbsPartIdx);
     uiHeight = pcCU->getHeight(uiAbsPartIdx);
-#if E192_SPS_PCM_BIT_DEPTH_SYNTAX
-    uiSampleBits = pcCU->getSlice()->getSPS()->getPCMBitDepthLuma();
-#else
     uiSampleBits = g_uiBitDepth;
-#endif
 
-    for(uiy = 0; uiy < uiHeight; uiy++)
+    for(uiY = 0; uiY < uiHeight; uiY++)
     {
-      for(uix = 0; uix < uiWidth; uix++)
+      for(uiX = 0; uiX < uiWidth; uiX++)
       {
         UInt uiSample;
         xReadCode(uiSampleBits, uiSample);
 
-        piPCMSample[uix] = uiSample;
+        piPCMSample[uiX] = uiSample;
       }
       piPCMSample += uiWidth;
     }
@@ -1001,19 +995,15 @@ Void TDecCavlc::parseIPCMInfo( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth
     piPCMSample = pcCU->getPCMSampleCb() + uiChromaOffset;
     uiWidth = pcCU->getWidth(uiAbsPartIdx)/2;
     uiHeight = pcCU->getHeight(uiAbsPartIdx)/2;
-#if E192_SPS_PCM_BIT_DEPTH_SYNTAX
-    uiSampleBits = pcCU->getSlice()->getSPS()->getPCMBitDepthChroma();
-#else
     uiSampleBits = g_uiBitDepth;
-#endif
 
-    for(uiy = 0; uiy < uiHeight; uiy++)
+    for(uiY = 0; uiY < uiHeight; uiY++)
     {
-      for(uix = 0; uix < uiWidth; uix++)
+      for(uiX = 0; uiX < uiWidth; uiX++)
       {
         UInt uiSample;
         xReadCode(uiSampleBits, uiSample);
-        piPCMSample[uix] = uiSample;
+        piPCMSample[uiX] = uiSample;
       }
       piPCMSample += uiWidth;
     }
@@ -1021,19 +1011,15 @@ Void TDecCavlc::parseIPCMInfo( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth
     piPCMSample = pcCU->getPCMSampleCr() + uiChromaOffset;
     uiWidth = pcCU->getWidth(uiAbsPartIdx)/2;
     uiHeight = pcCU->getHeight(uiAbsPartIdx)/2;
-#if E192_SPS_PCM_BIT_DEPTH_SYNTAX
-    uiSampleBits = pcCU->getSlice()->getSPS()->getPCMBitDepthChroma();
-#else
     uiSampleBits = g_uiBitDepth;
-#endif
 
-    for(uiy = 0; uiy < uiHeight; uiy++)
+    for(uiY = 0; uiY < uiHeight; uiY++)
     {
-      for(uix = 0; uix < uiWidth; uix++)
+      for(uiX = 0; uiX < uiWidth; uiX++)
       {
         UInt uiSample;
         xReadCode(uiSampleBits, uiSample);
-        piPCMSample[uix] = uiSample;
+        piPCMSample[uiX] = uiSample;
       }
       piPCMSample += uiWidth;
     }
@@ -2666,22 +2652,25 @@ Void TDecCavlc::xReadFlag (UInt& ruiCode)
 }
 
 #if E057_INTRA_PCM
+/** Parse PCM alignment zero bits.
+ * \returns Void
+ */
 Void TDecCavlc::xReadPCMAlignZero( )
 {
   UInt uiNumberOfBits = m_pcBitstream->getBitsUntilByteAligned();
 
   if(uiNumberOfBits)
   {
-    UInt ui;
+    UInt uiBits;
     UInt uiSymbol;
 
-    for(ui = 0; ui < uiNumberOfBits; ui++)
+    for(uiBits = 0; uiBits < uiNumberOfBits; uiBits++)
     {
       xReadFlag( uiSymbol );
 
       if(uiSymbol)
       {
-        printf("\nWarning! pcm_align_zero include a non-zero value\n"); /* revisit */
+        printf("\nWarning! pcm_align_zero include a non-zero value.\n");
       }
     }
   }

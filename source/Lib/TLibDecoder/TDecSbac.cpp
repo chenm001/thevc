@@ -397,6 +397,14 @@ Void TDecSbac::xReadExGolombLevel( UInt& ruiSymbol, ContextModel& rcSCModel  )
 
 
 #if E057_INTRA_PCM
+/** Parse I_PCM information. 
+ * \param pcCU
+ * \param uiAbsPartIdx 
+ * \param uiDepth
+ * \returns Void
+ *
+ * If I_PCM flag indicates that the CU is I_PCM, parse its PCM alignment bits and codes. 
+ */
 Void TDecSbac::parseIPCMInfo ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
 {
   UInt uiSymbol;
@@ -407,7 +415,7 @@ Void TDecSbac::parseIPCMInfo ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth
   {
     Bool bIpcmFlag = true;
 
-    m_pcTDecBinIf->bac_finish();
+    m_pcTDecBinIf->decodePCMAlignBits();
 
     pcCU->setPartSizeSubParts  ( SIZE_2Nx2N, uiAbsPartIdx, uiDepth );
     pcCU->setSizeSubParts      ( g_uiMaxCUWidth>>uiDepth, g_uiMaxCUHeight>>uiDepth, uiAbsPartIdx, uiDepth );
@@ -421,24 +429,20 @@ Void TDecSbac::parseIPCMInfo ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth
     UInt uiWidth;
     UInt uiHeight;
     UInt uiSampleBits;
-    UInt uix, uiy;
+    UInt uiX, uiY;
 
     piPCMSample = pcCU->getPCMSampleY() + uiLumaOffset;
     uiWidth = pcCU->getWidth(uiAbsPartIdx);
     uiHeight = pcCU->getHeight(uiAbsPartIdx);
-#if E192_SPS_PCM_BIT_DEPTH_SYNTAX
-    uiSampleBits = pcCU->getSlice()->getSPS()->getPCMBitDepthLuma();
-#else
     uiSampleBits = g_uiBitDepth;
-#endif
 
-    for(uiy = 0; uiy < uiHeight; uiy++)
+    for(uiY = 0; uiY < uiHeight; uiY++)
     {
-      for(uix = 0; uix < uiWidth; uix++)
+      for(uiX = 0; uiX < uiWidth; uiX++)
       {
         UInt uiSample;
-        m_pcTDecBinIf->xReadCode(uiSampleBits, uiSample);
-        piPCMSample[uix] = uiSample;
+        m_pcTDecBinIf->xReadPCMCode(uiSampleBits, uiSample);
+        piPCMSample[uiX] = uiSample;
       }
       piPCMSample += uiWidth;
     }
@@ -446,19 +450,15 @@ Void TDecSbac::parseIPCMInfo ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth
     piPCMSample = pcCU->getPCMSampleCb() + uiChromaOffset;
     uiWidth = pcCU->getWidth(uiAbsPartIdx)/2;
     uiHeight = pcCU->getHeight(uiAbsPartIdx)/2;
-#if E192_SPS_PCM_BIT_DEPTH_SYNTAX
-    uiSampleBits = pcCU->getSlice()->getSPS()->getPCMBitDepthChroma();
-#else
     uiSampleBits = g_uiBitDepth;
-#endif
 
-    for(uiy = 0; uiy < uiHeight; uiy++)
+    for(uiY = 0; uiY < uiHeight; uiY++)
     {
-      for(uix = 0; uix < uiWidth; uix++)
+      for(uiX = 0; uiX < uiWidth; uiX++)
       {
         UInt uiSample;
-        m_pcTDecBinIf->xReadCode(uiSampleBits, uiSample);
-        piPCMSample[uix] = uiSample;
+        m_pcTDecBinIf->xReadPCMCode(uiSampleBits, uiSample);
+        piPCMSample[uiX] = uiSample;
       }
       piPCMSample += uiWidth;
     }
@@ -466,24 +466,20 @@ Void TDecSbac::parseIPCMInfo ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth
     piPCMSample = pcCU->getPCMSampleCr() + uiChromaOffset;
     uiWidth = pcCU->getWidth(uiAbsPartIdx)/2;
     uiHeight = pcCU->getHeight(uiAbsPartIdx)/2;
-#if E192_SPS_PCM_BIT_DEPTH_SYNTAX
-    uiSampleBits = pcCU->getSlice()->getSPS()->getPCMBitDepthChroma();
-#else
     uiSampleBits = g_uiBitDepth;
-#endif
 
-    for(uiy = 0; uiy < uiHeight; uiy++)
+    for(uiY = 0; uiY < uiHeight; uiY++)
     {
-      for(uix = 0; uix < uiWidth; uix++)
+      for(uiX = 0; uiX < uiWidth; uiX++)
       {
         UInt uiSample;
-        m_pcTDecBinIf->xReadCode(uiSampleBits, uiSample);
-        piPCMSample[uix] = uiSample;
+        m_pcTDecBinIf->xReadPCMCode(uiSampleBits, uiSample);
+        piPCMSample[uiX] = uiSample;
       }
       piPCMSample += uiWidth;
     }
 
-    m_pcTDecBinIf->bac_restart();
+    m_pcTDecBinIf->resetBac();
   }
 }
 #endif

@@ -330,13 +330,6 @@ Void TEncCavlc::codeSPS( TComSPS* pcSPS )
   assert( pcSPS->getMaxTLayers() > 0 );         
 
   xWriteFlag( pcSPS->getTemporalIdNestingFlag() ? 1 : 0 );  // temporal_id_nesting_flag
-#if E057_INTRA_PCM && E192_SPS_PCM_BIT_DEPTH_SYNTAX
-  xWriteCode( pcSPS->getPCMBitDepthLuma() - 1, 4);
-  xWriteCode( pcSPS->getPCMBitDepthChroma() - 1, 4);
-#endif
-#if E057_INTRA_PCM && E192_SPS_PCM_FILTER_DISABLE_SYNTAX
-  xWriteFlag( pcSPS->getPCMFilterDisableFlag()?1 : 0);
-#endif
 }
 
 Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
@@ -826,9 +819,15 @@ Void TEncCavlc::codeQtRootCbf( TComDataCU* pcCU, UInt uiAbsPartIdx )
 }
 
 #if E057_INTRA_PCM
+/** Code I_PCM information. 
+ * \param pcCU pointer to CU
+ * \param uiAbsPartIdx CU index
+ * \returns Void
+ *
+ * If I_PCM flag indicates that the CU is I_PCM, code its PCM alignment bits and codes.  
+ */
 Void TEncCavlc::codeIPCMInfo( TComDataCU* pcCU, UInt uiAbsPartIdx)
 {
-  //UInt uiDepth = pcCU->getDepth(uiAbsPartIdx);
   UInt uiIPCM = (pcCU->getIPCMFlag(uiAbsPartIdx) == true)? 1 : 0;
 
   xWriteFlag(uiIPCM);
@@ -845,22 +844,18 @@ Void TEncCavlc::codeIPCMInfo( TComDataCU* pcCU, UInt uiAbsPartIdx)
     UInt uiWidth;
     UInt uiHeight;
     UInt uiSampleBits;
-    UInt uix, uiy;
+    UInt uiX, uiY;
 
     piPCMSample = pcCU->getPCMSampleY() + uiLumaOffset;
     uiWidth = pcCU->getWidth(uiAbsPartIdx);
     uiHeight = pcCU->getHeight(uiAbsPartIdx);
-#if E192_SPS_PCM_BIT_DEPTH_SYNTAX
-    uiSampleBits = pcCU->getSlice()->getSPS()->getPCMBitDepthLuma();
-#else
     uiSampleBits = g_uiBitDepth;
-#endif
 
-    for(uiy = 0; uiy < uiHeight; uiy++)
+    for(uiY = 0; uiY < uiHeight; uiY++)
     {
-      for(uix = 0; uix < uiWidth; uix++)
+      for(uiX = 0; uiX < uiWidth; uiX++)
       {
-        UInt uiSample = piPCMSample[uix];
+        UInt uiSample = piPCMSample[uiX];
 
         xWriteCode(uiSample, uiSampleBits);
       }
@@ -870,17 +865,13 @@ Void TEncCavlc::codeIPCMInfo( TComDataCU* pcCU, UInt uiAbsPartIdx)
     piPCMSample = pcCU->getPCMSampleCb() + uiChromaOffset;
     uiWidth = pcCU->getWidth(uiAbsPartIdx)/2;
     uiHeight = pcCU->getHeight(uiAbsPartIdx)/2;
-#if E192_SPS_PCM_BIT_DEPTH_SYNTAX
-    uiSampleBits = pcCU->getSlice()->getSPS()->getPCMBitDepthChroma();
-#else
     uiSampleBits = g_uiBitDepth;
-#endif
 
-    for(uiy = 0; uiy < uiHeight; uiy++)
+    for(uiY = 0; uiY < uiHeight; uiY++)
     {
-      for(uix = 0; uix < uiWidth; uix++)
+      for(uiX = 0; uiX < uiWidth; uiX++)
       {
-        UInt uiSample = piPCMSample[uix];
+        UInt uiSample = piPCMSample[uiX];
 
         xWriteCode(uiSample, uiSampleBits);
       }
@@ -890,17 +881,13 @@ Void TEncCavlc::codeIPCMInfo( TComDataCU* pcCU, UInt uiAbsPartIdx)
     piPCMSample = pcCU->getPCMSampleCr() + uiChromaOffset;
     uiWidth = pcCU->getWidth(uiAbsPartIdx)/2;
     uiHeight = pcCU->getHeight(uiAbsPartIdx)/2;
-#if E192_SPS_PCM_BIT_DEPTH_SYNTAX
-    uiSampleBits = pcCU->getSlice()->getSPS()->getPCMBitDepthChroma();
-#else
     uiSampleBits = g_uiBitDepth;
-#endif
 
-    for(uiy = 0; uiy < uiHeight; uiy++)
+    for(uiY = 0; uiY < uiHeight; uiY++)
     {
-      for(uix = 0; uix < uiWidth; uix++)
+      for(uiX = 0; uiX < uiWidth; uiX++)
       {
-        UInt uiSample = piPCMSample[uix];
+        UInt uiSample = piPCMSample[uiX];
 
         xWriteCode(uiSample, uiSampleBits);
       }
@@ -2475,6 +2462,9 @@ Void TEncCavlc::xWriteFlag( UInt uiCode )
 }
 
 #if E057_INTRA_PCM
+/** Write PCM alignment bits. 
+ * \returns Void
+ */
 Void  TEncCavlc::xWritePCMAlignZero    ()
 {
   m_pcBitIf->writeAlignZero();
