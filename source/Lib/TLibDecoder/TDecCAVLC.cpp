@@ -942,9 +942,9 @@ Void TDecCavlc::parsePredMode( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth
 
 #if E057_INTRA_PCM
 /** Parse I_PCM information. 
- * \param pcCU
- * \param uiAbsPartIdx 
- * \param uiDepth
+ * \param pcCU pointer to CU
+ * \param uiAbsPartIdx CU index
+ * \param uiDepth CU depth
  * \returns Void
  *
  * If I_PCM flag indicates that the CU is I_PCM, parse its PCM alignment bits and codes.  

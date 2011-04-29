@@ -3452,9 +3452,9 @@ Void TComDataCU::clearCbf( UInt uiIdx, TextType eType, UInt uiNumParts )
 
 #if E057_INTRA_PCM
 /** Sets a I_PCM flag for all sub-partitions of a partition.
- * \param bIpcmFlag
- * \param uiAbsPartIdx
- * \param uiDepth
+ * \param bIpcmFlag I_PCM flag
+ * \param uiAbsPartIdx patition index
+ * \param uiDepth CU depth
  * \returns Void
  */
 Void TComDataCU::setIPCMFlagSubParts  (Bool bIpcmFlag, UInt uiAbsPartIdx, UInt uiDepth)

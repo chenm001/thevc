@@ -539,7 +539,7 @@ Void TEncEntropy::encodePartSize( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDe
 }
 
 #if E057_INTRA_PCM
-/** Encoder I_PCM information. 
+/** Encode I_PCM information. 
  * \param pcCU pointer to CU 
  * \param uiAbsPartIdx CU index
  * \param bRD flag indicating estimation or encoding
