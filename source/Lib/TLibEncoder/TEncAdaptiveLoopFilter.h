@@ -142,20 +142,26 @@ private:
   Int **m_FilterCoeffQuantTemp;
   
 #if MQT_ALF_NPASS
-  Int  m_iUsePreviousFilter;
-  Int  m_iDesignCurrentFilter;
-  Int  m_iFilterIdx;
+  Int  m_iUsePreviousFilter;    //!< 1: use previous (time-delayed) filter 0: not use
+  Int  m_iDesignCurrentFilter;  //!< 1: design filter for current pic 0: design filter for future reference
+  Int  m_iFilterIdx;            //!< time-delayed filter buffer index
+
 #if MQT_BA_RA
-  Int***   m_aiFilterCoeffSavedMethods[NUM_ALF_CLASS_METHOD];
-  Int***   m_aiFilterCoeffSaved;
+  Int**         m_varIndTabSaved;                              //!< pointer to m_varIndTabSavedMethods[index] buffers; index = ALF_BA or ALF_RA
+  ALFParam**    m_pcAlfParamSaved;                             //!< pointer to m_pcAlfParamSavedMethods[index] buffers; index = ALF_BA or ALF_RA
+  Int**         m_varIndTabSavedMethods[NUM_ALF_CLASS_METHOD]; //!< time-delayed buffer for storing the merge indexs
+  ALFParam***   m_pcAlfParamSavedMethods;                      //!< time-delayed buffer for storing ALF parameters
 #else
   Int  m_aiFilterCoeffSaved[9][NO_VAR_BINS][MAX_SQR_FILT_LENGTH];
 #endif
-  Int  m_iGOPSize;
-  Int  m_iCurrentPOC;
-  Int  m_iALFEncodePassReduction;
-  Int  m_iALFNumOfRedesign;
+
+  Int  m_iGOPSize;                  //!< GOP size
+  Int  m_iCurrentPOC;               //!< current picture POC
+  Int  m_iALFEncodePassReduction;   //!< 0:16-pass (original). 1: 1-pass. 2: 2-pass
+  Int  m_iALFNumOfRedesign;         //!< number of redesigning filters per CU control depth
+#if !MQT_BA_RA
   Int  m_iMatrixBaseFiltNo;
+#endif
 
 #if TI_ALF_MAX_VSIZE_7
   static Int  m_aiTapPos9x9_In9x9Sym[21];
@@ -210,12 +216,17 @@ private:
   
 #if MQT_ALF_NPASS
   Void  xretriveBlockMatrix    (Int iNumTaps, Int* piTapPosInMaxFilter, Double*** pppdEBase, Double*** pppdETarget, Double** ppdyBase, Double** ppdyTarget );
+
+#if !MQT_BA_RA
   Void  xcalcPredFilterCoeffPrev(Int filtNo);
+#endif
   Void  setALFEncodingParam(TComPic *pcPic);
   Void  setFilterIdx(Int index);
   Void  setInitialMask(TComPicYuv* pcPicOrg, TComPicYuv* pcPicDec);
 #if MQT_BA_RA
-  Void  xFirstEstimateFilteringFrameLumaAllTap(imgpel* ImgOrg, imgpel* ImgDec, Int Stride, ALFParam* pcAlfSaved,Int* aiVarIndTabBest,Int** ppiBestCoeffSet, Int& ibestfiltNo,Int& ibestfilters_per_fr, Double** ppdBesty,Double*** pppdBestE,Double* pdBestpixAcc,UInt64& ruiRate,Int64& riDist,Double& rdCost);  
+  Void  saveFilterCoeffToBuffer(Int* varIndTab, ALFParam* pcAlfParam);
+  Void  decideCUOnOffControl(TComPicYuv* pcPicOrg, TComPicYuv* pcPicDec, TComPicYuv* pcPicBest, ALFParam* pcAlfBest, UInt64& ruiMinRate, UInt64& ruiMinDist, Double& rdMinCost);
+  Void  decideBestFiltersByOnePassEncoding(UInt  uiAdaptationMethod,TComPicYuv* pcPicOrg, TComPicYuv* pcPicDec, TComPicYuv* pcPicBest, ALFParam* pcAlfBest, UInt64& ruiRate, UInt64& ruiDist,Double& rdCost);
 #else
   Void  xFirstFilteringFrameLumaAllTap(imgpel* ImgOrg, imgpel* ImgDec, imgpel* ImgRest, Int Stride);
 #endif
@@ -341,6 +352,7 @@ public:
   Void createAlfGlobalBuffers(Int iALFEncodePassReduction);
   Void destroyAlfGlobalBuffers();
 #endif
+
 #endif
 };
 #endif
