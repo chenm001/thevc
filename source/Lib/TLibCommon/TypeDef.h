@@ -135,6 +135,10 @@
 
 #define LM_CHROMA                             1           // JCTVC-E266: Chroma intra prediction based on luma signal
 
+#if LM_CHROMA
+#define LM_CHROMA_TICKET156                   1 // Ticket156, luma-based chroma intra prediction take consideration of CIP, reference_pixel_paddin and slice boundary. 
+#endif
+
 #define UNIFY_INTER_TABLE                     1           // JCTVC-E381 CAVLC: Inter pred coding
 
 #define DCM_RDCOST_TEMP_FIX //Enables temporary bug fixes to RD cost computation
