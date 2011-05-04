@@ -802,11 +802,9 @@ Void TEncGOP::xInitGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rcLis
   {
     m_iHrchDepth = 1;
   }
-  
-#if MQT_ALF_NPASS
+#if MQT_ALF_NPASS && !MQT_BA_RA
   m_pcAdaptiveLoopFilter->setGOPSize( m_iGopSize );
 #endif
-
   return;
 }
 

@@ -88,6 +88,7 @@ Void TEncTop::create ()
 #if MQT_BA_RA && MQT_ALF_NPASS
   if(m_bUseALF)
   {
+    m_cAdaptiveLoopFilter.setGOPSize( getGOPSize() );
     m_cAdaptiveLoopFilter.createAlfGlobalBuffers(m_iALFEncodePassReduction);
   }
 #endif
