@@ -158,12 +158,12 @@ private:
   Int  m_iMatrixBaseFiltNo;       //!< the coorelation buffer that can be reused.
 
 #if TI_ALF_MAX_VSIZE_7
-  static Int  m_aiTapPos9x9_In9x9Sym[21]; //!< for N-pass encoding- filter tap relative position in 9x9
+  static Int  m_aiTapPos9x9_In9x9Sym[21]; //!< for N-pass encoding- filter tap relative position in 9x9 footprint
 #else
   static Int  m_aiTapPos9x9_In9x9Sym[22];
 #endif
-  static Int  m_aiTapPos7x7_In9x9Sym[14];
-  static Int  m_aiTapPos5x5_In9x9Sym[8];
+  static Int  m_aiTapPos7x7_In9x9Sym[14]; //!< for N-pass encoding- filter tap relative position in 9x9 footprint
+  static Int  m_aiTapPos5x5_In9x9Sym[8];  //!< for N-pass encoding- filter tap relative position in 9x9 footprint
   static Int* m_iTapPosTabIn9x9Sym[NO_TEST_FILT];
 #endif
 
@@ -209,24 +209,40 @@ private:
   Int    xGauss               ( Double **a, Int N );
   
 #if MQT_ALF_NPASS
-
+  /// Retrieve correlations from other correlation matrix
   Void  xretriveBlockMatrix    (Int iNumTaps, Int* piTapPosInMaxFilter, Double*** pppdEBase, Double*** pppdETarget, Double** ppdyBase, Double** ppdyTarget );
+
+  /// Calculate/Restore filter coefficients from previous filters
   Void  xcalcPredFilterCoeffPrev(Int filtNo);
+
+  /// set ALF encoding parameters
   Void  setALFEncodingParam(TComPic *pcPic);
+
+  /// set filter buffer index
   Void  setFilterIdx(Int index);
+
+  /// set initial m_maskImg
   Void  setInitialMask(TComPicYuv* pcPicOrg, TComPicYuv* pcPicDec);
+
 #if MQT_BA_RA
-
-
+  /// save filter coefficients to buffer
   Void  saveFilterCoeffToBuffer(Int **filterCoeffPrevSelected);
+
+  /// set initial m_maskImg with previous (time-delayed) filters
   Void  setMaskWithTimeDelayedResults(TComPicYuv* pcPicOrg, TComPicYuv* pcPicDec);
+
+  /// Estimate RD cost of all filter size & store the best one
   Void  xFirstEstimateFilteringFrameLumaAllTap(imgpel* ImgOrg, imgpel* ImgDec, Int Stride, ALFParam* pcAlfSaved, UInt64& ruiRate, UInt64& ruiDist,Double& rdCost);
 
 
 #else
   Void  xFirstFilteringFrameLumaAllTap(imgpel* ImgOrg, imgpel* ImgDec, imgpel* ImgRest, Int Stride);
 #endif
+
+  /// Estimate filtering distortion by correlation values and filter coefficients
   Int64 xFastFiltDistEstimation(Double** ppdE, Double* pdy, Int* piCoeff, Int iFiltLength);
+
+  /// Estimate total filtering cost of all groups
   Int64 xEstimateFiltDist      (Int filters_per_fr, Int* VarIndTab, Double*** pppdE, Double** ppdy, Int** ppiCoeffSet, Int iFiltLength);
 #endif
 
@@ -293,6 +309,7 @@ public:
 #endif
   Void xcalcPredFilterCoeff(Int filtNo);
 #if MQT_ALF_NPASS  
+  /// code filter coefficients
   UInt xcodeFiltCoeff(Int **filterCoeffSymQuant, Int filtNo, Int varIndTab[], Int filters_per_fr_best, Int frNo, ALFParam* ALFp);
 #else
   Void xcodeFiltCoeff(Int **filterCoeffSymQuant, Int filtNo, Int varIndTab[], Int filters_per_fr_best, Int frNo, ALFParam* ALFp);
@@ -341,11 +358,17 @@ public:
                                     int order);
   Int gnsCholeskyDec(double **inpMatr, double outMatr[MAX_SQR_FILT_LENGTH][MAX_SQR_FILT_LENGTH], int noEq);
 #if MQT_ALF_NPASS
+  /// set GOP size
   Void  setGOPSize(Int val) { m_iGOPSize = val; }
+
+  /// set N-pass encoding. 0: 16-pass encoding, 1: 1-pass encoding, 2: 2-pass encoding
   Void  setALFEncodePassReduction (Int iVal) {m_iALFEncodePassReduction = iVal;}
 
 #if MQT_BA_RA
+  /// create ALF global buffers
   Void createAlfGlobalBuffers(Int iALFEncodePassReduction);
+
+  /// destroy ALF global buffers
   Void destroyAlfGlobalBuffers();
 #endif
 #endif

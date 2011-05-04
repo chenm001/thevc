@@ -122,7 +122,7 @@ protected:
   // coding tools (loop filter)
   Bool      m_bUseALF;                                        ///< flag for using adaptive loop filter
 #ifdef MQT_ALF_NPASS
-  Int       m_iALFEncodePassReduction;                        ///< ALF encoding pass, 0 = original 16-pass, 1 = 1-pass, 2 = 2-pass
+  Int       m_iALFEncodePassReduction;                        //!< ALF encoding pass, 0 = original 16-pass, 1 = 1-pass, 2 = 2-pass
 #endif
   
   Bool      m_bLoopFilterDisable;                             ///< flag for using deblocking filter

@@ -183,6 +183,10 @@ TEncAdaptiveLoopFilter::TEncAdaptiveLoopFilter()
 // ====================================================================================================================
 
 #if MQT_BA_RA && MQT_ALF_NPASS
+/** create ALF global buffers
+ * \param iALFEncodePassReduction 0: 16-pass encoding, 1: 1-pass encoding, 2: 2-pass encoding
+ * This function is used to create the filter buffers to perform time-delay filtering.
+ */
 Void TEncAdaptiveLoopFilter::createAlfGlobalBuffers(Int iALFEncodePassReduction)
 {
   if(iALFEncodePassReduction)
@@ -204,6 +208,9 @@ Void TEncAdaptiveLoopFilter::createAlfGlobalBuffers(Int iALFEncodePassReduction)
 
   }
 }
+/** destroy ALF global buffers
+ * This function is used to destroy the filter buffers.
+ */
 
 Void TEncAdaptiveLoopFilter::destroyAlfGlobalBuffers()
 {
@@ -2604,6 +2611,16 @@ Void TEncAdaptiveLoopFilter::xcalcPredFilterCoeff(int filtNo)
 }
 
 #if MQT_ALF_NPASS
+/** code filter coefficients
+ * \param filterCoeffSymQuant filter coefficients buffer
+ * \param filtNo filter No.
+ * \param varIndTab[] merge index information
+ * \param filters_per_fr_best the number of filters used in this picture
+ * \param frNo 
+ * \param ALFp ALF parameters
+ * \returns bitrate
+ */
+
 UInt TEncAdaptiveLoopFilter::xcodeFiltCoeff(int **filterCoeffSymQuant, int filtNo, int varIndTab[], int filters_per_fr_best, int frNo, ALFParam* ALFp)
 #else
 Void TEncAdaptiveLoopFilter::xcodeFiltCoeff(int **filterCoeffSymQuant, int filtNo, int varIndTab[], int filters_per_fr_best, int frNo, ALFParam* ALFp)
@@ -3573,7 +3590,7 @@ Double TEncAdaptiveLoopFilter::findFilterCoeff(double ***EGlobalSeq, double **yG
 #if MQT_BA_RA
 
 /** Save redesigned filter set to buffer
- \param filterCoeffPrevSelected filter set buffer
+ * \param filterCoeffPrevSelected filter set buffer
  */
 Void TEncAdaptiveLoopFilter::saveFilterCoeffToBuffer(Int **filterCoeffPrevSelected)
 {
@@ -3621,11 +3638,10 @@ Void TEncAdaptiveLoopFilter::saveFilterCoeffToBuffer(Int **filterCoeffPrevSelect
   }
 }
 
-/** Initialized m_maskImg 
- \param pcPicOrg original picture
- \param pcPicDec reconstructed picture after deblocking
+/** set initial m_maskImg with previous (time-delayed) filters
+ * \param pcPicOrg original picture
+ * \param pcPicDec reconstructed picture after deblocking
  */
-
 Void TEncAdaptiveLoopFilter::setMaskWithTimeDelayedResults(TComPicYuv* pcPicOrg, TComPicYuv* pcPicDec)
 {
 
@@ -3781,7 +3797,9 @@ Void TEncAdaptiveLoopFilter::setMaskWithTimeDelayedResults(TComPicYuv* pcPicOrg,
 #endif
 
 
-
+/** set ALF encoding parameters
+ * \param pcPic picture pointer
+ */
 Void TEncAdaptiveLoopFilter::setALFEncodingParam(TComPic *pcPic)
 {
   if(m_iALFEncodePassReduction)
@@ -3806,6 +3824,9 @@ Void TEncAdaptiveLoopFilter::setALFEncodingParam(TComPic *pcPic)
 
 }
 
+/** Calculate/Restore filter coefficients from previous filters
+ * \param filtNo
+ */
 Void TEncAdaptiveLoopFilter::xcalcPredFilterCoeffPrev(Int filtNo)
 {
   int varInd, i;
@@ -3819,6 +3840,9 @@ Void TEncAdaptiveLoopFilter::xcalcPredFilterCoeffPrev(Int filtNo)
   }
 }
 
+/** set filter buffer index
+ * \param index the processing order of time-delayed filtering
+ */
 Void TEncAdaptiveLoopFilter::setFilterIdx(Int index)
 {
   if (m_iGOPSize == 8)
@@ -3871,6 +3895,10 @@ Void TEncAdaptiveLoopFilter::setFilterIdx(Int index)
   }
 }
 
+/** set initial m_maskImg
+ * \param pcPicOrg original picture pointer
+ * \param pcPicDec reconstructed picture pointer
+ */
 Void TEncAdaptiveLoopFilter::setInitialMask(TComPicYuv* pcPicOrg, TComPicYuv* pcPicDec)
 {
   Int Height = pcPicOrg->getHeight();
@@ -4001,14 +4029,15 @@ Void TEncAdaptiveLoopFilter::setInitialMask(TComPicYuv* pcPicOrg, TComPicYuv* pc
 
 
 #if MQT_BA_RA
+
 /** Estimate RD cost of all filter size & store the best one
- \param ImgOrg original picture
- \param ImgDec reconstructed picture after deblocking
- \param Sride  line buffer size of picture buffer
- \param pcAlfSaved the best Alf parameters 
- \returns ruiDist             estimated distortion
- \returns ruiRate             required bits
- \returns rdCost              estimated R-D cost
+ * \param ImgOrg original picture
+ * \param ImgDec reconstructed picture after deblocking
+ * \param Sride  line buffer size of picture buffer
+ * \param pcAlfSaved the best Alf parameters 
+ * \returns ruiDist             estimated distortion
+ * \returns ruiRate             required bits
+ * \returns rdCost              estimated R-D cost
  */
 Void  TEncAdaptiveLoopFilter::xFirstEstimateFilteringFrameLumaAllTap(imgpel* ImgOrg, imgpel* ImgDec, Int Stride, 
                                                                      ALFParam* pcAlfSaved,
@@ -4294,8 +4323,14 @@ Void   TEncAdaptiveLoopFilter::xFirstFilteringFrameLumaAllTap(imgpel* ImgOrg, im
 #endif
 
 
-
-
+/** Retrieve correlations from other correlation matrix
+ * \param iNumTaps number of filter taps
+ * \param piTapPosInMaxFilter relative tap position in 9x9 footprint
+ * \param pppdEBase base auto-correlation matrix
+ * \param ppdyBase base cross-correlation array
+ * \returns pppdETarget target auto-correlation matrix
+ * \returns ppdyTarget target cross-correlation array
+ */
 Void TEncAdaptiveLoopFilter::xretriveBlockMatrix(Int iNumTaps, 
                                                  Int* piTapPosInMaxFilter, 
                                                  Double*** pppdEBase, Double*** pppdETarget, 
@@ -4343,6 +4378,13 @@ Void TEncAdaptiveLoopFilter::xretriveBlockMatrix(Int iNumTaps,
 
 }
 
+/** Estimate filtering distortion by correlation values and filter coefficients
+ * \param ppdE auto-correlation matrix
+ * \param pdy cross-correlation array
+ * \param piCoeff  filter coefficients
+ * \param iFiltLength numbr of filter taps
+ * \returns estimated distortion
+ */
 Int64 TEncAdaptiveLoopFilter::xFastFiltDistEstimation(Double** ppdE, Double* pdy, Int* piCoeff, Int iFiltLength)
 {
   //static memory
@@ -4389,6 +4431,14 @@ Int64 TEncAdaptiveLoopFilter::xFastFiltDistEstimation(Double** ppdE, Double* pdy
 
 }
 
+
+/** Estimate total filtering cost of all groups
+ * \param filters_per_fr number of filters for the slice
+ * \param VarIndTab merge index of all groups
+ * \param pppdE  auto-correlation matrix pointer for all groups
+ * \param ppdy cross-correlation array pointer for all groups
+ * \returns estimated distortion
+ */
 Int64 TEncAdaptiveLoopFilter::xEstimateFiltDist(Int filters_per_fr, Int* VarIndTab, 
                                                 Double*** pppdE, Double** ppdy, 
                                                 Int** ppiCoeffSet, Int iFiltLength)
