@@ -86,13 +86,10 @@ Void TEncTop::create ()
   m_cLoopFilter.        create( g_uiMaxCUDepth );
 
 #if MQT_BA_RA && MQT_ALF_NPASS
-
-  if(m_bUseALF && (m_iALFEncodePassReduction != 0))
+  if(m_bUseALF)
   {
-    m_cAdaptiveLoopFilter.setGOPSize( getGOPSize() );
     m_cAdaptiveLoopFilter.createAlfGlobalBuffers(m_iALFEncodePassReduction);
   }
-
 #endif
 
   // if SBAC-based RD optimization is used

@@ -520,7 +520,7 @@ Void TComAdaptiveLoopFilter::create( Int iPicWidth, Int iPicHeight, UInt uiMaxCU
   initMatrix_int(&m_filterCoeffTmp, NO_VAR_BINS, MAX_SQR_FILT_LENGTH);      
   initMatrix_int(&m_filterCoeffSymTmp, NO_VAR_BINS, MAX_SQR_FILT_LENGTH);   
 
-#if MTK_NONCROSS_INLOOP_FILTER || (MQT_BA_RA && MQT_ALF_NPASS)
+#if MTK_NONCROSS_INLOOP_FILTER
   m_uiNumLCUsInWidth   = m_img_width  / uiMaxCUWidth;
   m_uiNumLCUsInHeight  = m_img_height / uiMaxCUHeight;
 
@@ -529,12 +529,6 @@ Void TComAdaptiveLoopFilter::create( Int iPicWidth, Int iPicHeight, UInt uiMaxCU
 #endif
 
 #if MQT_BA_RA
-
-#if MQT_ALF_NPASS
-  m_uiNumCUsInFrame = (m_uiNumLCUsInWidth*m_uiNumLCUsInHeight);
-#endif
-
-
   createRegionIndexMap(m_varImgMethods[ALF_RA], m_img_width, m_img_height);
 #endif
 }
