@@ -3660,7 +3660,7 @@ Void TEncAdaptiveLoopFilter::setMaskWithTimeDelayedResults(TComPicYuv* pcPicOrg,
 
 
 
-  UInt64    uiRate, uiDist, uiMinRate, uiMinDist;
+  UInt64    uiRate, uiDist;
   Double    dCost, dMinCost = MAX_DOUBLE;
   ALFParam  cAlfParam;
   allocALFParam(&cAlfParam);
@@ -3700,8 +3700,6 @@ Void TEncAdaptiveLoopFilter::setMaskWithTimeDelayedResults(TComPicYuv* pcPicOrg,
     if (dCost < dMinCost)
     {
       dMinCost  = dCost;
-      uiMinDist = uiDist;
-      uiMinRate = uiRate;
       m_pcPicYuvTmp->copyToPicLuma(m_pcPicYuvBest);
       copyALFParam(&cAlfParam, m_pcTempAlfParam);
     }
@@ -3711,7 +3709,6 @@ Void TEncAdaptiveLoopFilter::setMaskWithTimeDelayedResults(TComPicYuv* pcPicOrg,
   m_pcPicYuvBest->copyToPicLuma(m_pcPicYuvTmp);
   m_pcEntropyCoder->setAlfCtrl(true);
 
-  Int       uiBestDepth=0;
   Int maxDepth = g_uiMaxCUDepth;
   if (pcPicOrg->getWidth() < 1000) maxDepth = 2;
   for (UInt uiDepth = 0; uiDepth < maxDepth; uiDepth++)
@@ -3733,10 +3730,7 @@ Void TEncAdaptiveLoopFilter::setMaskWithTimeDelayedResults(TComPicYuv* pcPicOrg,
 
     if (dCost < dMinCost)
     {
-      uiBestDepth = uiDepth;
       dMinCost    = dCost;
-      uiMinDist   = uiDist;
-      uiMinRate   = uiRate;
       copyALFParam(&cAlfParam, m_pcTempAlfParam);
       ::memcpy(bestImgMask[0], m_maskImg[0], sizeof(imgpel)*m_im_height* m_im_width);
     }
