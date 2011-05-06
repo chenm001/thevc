@@ -66,6 +66,10 @@ protected:
   Void  xReadExGolombLevel  ( UInt& ruiSymbol );
   Void  xReadUnaryMaxSymbol ( UInt& ruiSymbol, UInt uiMaxSymbol );
   
+#if E057_INTRA_PCM
+  Void  xReadPCMAlignZero     ();
+#endif
+
   UInt  xGetBit             ();
   Int   xReadVlc            ( Int n );
 #if CAVLC_COEF_LRG_BLK
@@ -209,6 +213,10 @@ public:
   Void parseBlockCbf        ( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eType, UInt uiTrDepth, UInt uiDepth, UInt uiQPartNum );
   Void parseCoeffNxN        ( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx, UInt uiWidth, UInt uiHeight, UInt uiDepth, TextType eTType );
   
+#if E057_INTRA_PCM
+  Void parseIPCMInfo        ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth);
+#endif
+
   Void parseAlfCtrlDepth    ( UInt& ruiAlfCtrlDepth );
   Void parseAlfCtrlFlag     ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
 #if TSB_ALF_HEADER

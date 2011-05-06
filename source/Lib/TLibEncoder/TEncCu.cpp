@@ -446,6 +446,12 @@ Void TEncCu::xCompressCU( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, UInt u
       
     }
     
+#if E057_INTRA_PCM
+    // initialize PCM flag
+    rpcTempCU->setIPCMFlag( 0, false);
+    rpcTempCU->setIPCMFlagSubParts ( false, 0, rpcTempCU->getDepth(0));
+#endif
+
     // do normal intra modes
     if ( !bEarlySkip )
     {
@@ -468,6 +474,20 @@ Void TEncCu::xCompressCU( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, UInt u
       }
     }
     
+#if E057_INTRA_PCM
+    // test PCM
+    if(rpcTempCU->getWidth(0) >= (1<<pcPic->getSlice(0)->getSPS()->getPCMLog2MinSize()))
+    {
+      UInt uiRawBits = (g_uiBitDepth * rpcBestCU->getWidth(0) * rpcBestCU->getHeight(0) * 3 / 2);
+      UInt uiBestBits = rpcBestCU->getTotalBits();
+
+      if((uiBestBits > uiRawBits) || (rpcBestCU->getTotalCost() > m_pcRdCost->calcRdCost(uiRawBits, 0)))
+      {
+        xCheckIntraPCM (rpcBestCU, rpcTempCU); rpcTempCU->initEstData();
+      }
+    }
+#endif
+
     m_pcEntropyCoder->resetBits();
     m_pcEntropyCoder->encodeSplitFlag( rpcBestCU, 0, uiDepth, true );
     rpcBestCU->getTotalBits() += m_pcEntropyCoder->getNumberOfWrittenBits(); // split bits
@@ -626,6 +646,18 @@ Void TEncCu::xEncodeCU( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
   
   m_pcEntropyCoder->encodePartSize( pcCU, uiAbsPartIdx, uiDepth );
   
+#if E057_INTRA_PCM
+  if (pcCU->isIntra( uiAbsPartIdx ) && pcCU->getPartitionSize( uiAbsPartIdx ) == SIZE_2Nx2N )
+  {
+    m_pcEntropyCoder->encodeIPCMInfo( pcCU, uiAbsPartIdx );
+
+    if(pcCU->getIPCMFlag(uiAbsPartIdx))
+    {
+      return;
+    }
+  }
+#endif
+
   // prediction Info ( Intra : direction mode, Inter : Mv, reference idx )
   m_pcEntropyCoder->encodePredInfo( pcCU, uiAbsPartIdx );
   
@@ -810,7 +842,10 @@ Void TEncCu::xCheckRDCostIntra( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, 
   m_pcEntropyCoder->encodePredMode( rpcTempCU, 0,          true );
   m_pcEntropyCoder->encodePartSize( rpcTempCU, 0, uiDepth, true );
   m_pcEntropyCoder->encodePredInfo( rpcTempCU, 0,          true );
-  
+#if E057_INTRA_PCM
+  m_pcEntropyCoder->encodeIPCMInfo(rpcTempCU, 0, true );
+#endif
+
   // Encode Coefficients
   m_pcEntropyCoder->encodeCoeff( rpcTempCU, 0, uiDepth, rpcTempCU->getWidth (0), rpcTempCU->getHeight(0) );
   
@@ -821,6 +856,42 @@ Void TEncCu::xCheckRDCostIntra( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, 
   
   xCheckBestMode( rpcBestCU, rpcTempCU );
 }
+
+#if E057_INTRA_PCM
+/** Check R-D costs for a CU with PCM mode. 
+ * \param rpcBestCU pointer to best mode CU data structure
+ * \param rpcTempCU pointer to testing mode CU data structure
+ * \returns Void
+ * 
+ * \note Current PCM implementation encodes sample values in a lossless way. The distortion of PCM mode CUs are zero. PCM mode is selected if the best mode yields bits greater than that of PCM mode.
+ */
+Void TEncCu::xCheckIntraPCM( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU )
+{
+  UInt uiDepth = rpcTempCU->getDepth( 0 );
+
+  rpcTempCU->setIPCMFlag(0, true);
+  rpcTempCU->setIPCMFlagSubParts (true, 0, rpcTempCU->getDepth(0));
+  rpcTempCU->setPartSizeSubParts( SIZE_2Nx2N, 0, uiDepth );
+  rpcTempCU->setPredModeSubParts( MODE_INTRA, 0, uiDepth );
+
+  m_pcPredSearch->IPCMSearch( rpcTempCU, m_ppcOrigYuv[uiDepth], m_ppcPredYuvTemp[uiDepth], m_ppcResiYuvTemp[uiDepth], m_ppcRecoYuvTemp[uiDepth]);
+
+  if( m_bUseSBACRD ) m_pcRDGoOnSbacCoder->load(m_pppcRDSbacCoder[uiDepth][CI_CURR_BEST]);
+
+  m_pcEntropyCoder->resetBits();
+  m_pcEntropyCoder->encodeSkipFlag ( rpcTempCU, 0,          true );
+  m_pcEntropyCoder->encodePredMode ( rpcTempCU, 0,          true );
+  m_pcEntropyCoder->encodePartSize ( rpcTempCU, 0, uiDepth, true );
+  m_pcEntropyCoder->encodeIPCMInfo ( rpcTempCU, 0, true );
+
+  if( m_bUseSBACRD ) m_pcRDGoOnSbacCoder->store(m_pppcRDSbacCoder[uiDepth][CI_TEMP_BEST]);
+
+  rpcTempCU->getTotalBits() = m_pcEntropyCoder->getNumberOfWrittenBits();
+  rpcTempCU->getTotalCost() = m_pcRdCost->calcRdCost( rpcTempCU->getTotalBits(), rpcTempCU->getTotalDistortion() );
+
+  xCheckBestMode( rpcBestCU, rpcTempCU );
+}
+#endif
 
 // check whether current try is the best
 Void TEncCu::xCheckBestMode( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU )

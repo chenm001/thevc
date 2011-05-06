@@ -58,6 +58,12 @@ public:
   Void  decodeBinEP       ( UInt& ruiBin                           );
   Void  decodeBinTrm      ( UInt& ruiBin                           );
 
+#if E057_INTRA_PCM
+  Void  resetBac          ();
+  Void  decodePCMAlignBits();
+  Void  xReadPCMCode      (UInt uiLength, UInt& ruiCode);
+#endif
+
 private:
   Void  xReadBit          ( UInt& ruiVal );
 

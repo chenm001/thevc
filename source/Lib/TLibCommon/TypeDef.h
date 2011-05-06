@@ -251,6 +251,7 @@
 #endif
 #endif
 
+#define E057_INTRA_PCM                      1 // JCTVC-E057 PCM operation mode 2: Signal I_PCM flag when CU is 2Nx2N intra and its size is larger than or equal to 1<<(LOG2_MIN_I_PCM_CODING_BLOCK_SIZE_MINUS3+3).
 
 // ====================================================================================================================
 // Basic type redefinition

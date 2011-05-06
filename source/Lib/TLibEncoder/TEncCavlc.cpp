@@ -285,8 +285,11 @@ Void TEncCavlc::codeSPS( TComSPS* pcSPS )
   xWriteUvlc( pcSPS->getQuadtreeTULog2MaxSize() - pcSPS->getQuadtreeTULog2MinSize() );
   xWriteUvlc( pcSPS->getQuadtreeTUMaxDepthInter() - 1 );
   xWriteUvlc( pcSPS->getQuadtreeTUMaxDepthIntra() - 1 );
-  
-  
+
+#if E057_INTRA_PCM
+  xWriteUvlc( pcSPS->getPCMLog2MinSize() - 3 );
+#endif
+
   // Tools
   xWriteFlag  ( (pcSPS->getUseALF ()) ? 1 : 0 );
   xWriteFlag  ( (pcSPS->getUseDQP ()) ? 1 : 0 );
@@ -814,6 +817,85 @@ Void TEncCavlc::codeQtRootCbf( TComDataCU* pcCU, UInt uiAbsPartIdx )
   UInt uiCbf = pcCU->getQtRootCbf( uiAbsPartIdx );
   xWriteFlag( uiCbf ? 1 : 0 );
 }
+
+#if E057_INTRA_PCM
+/** Code I_PCM information. 
+ * \param pcCU pointer to CU
+ * \param uiAbsPartIdx CU index
+ * \returns Void
+ *
+ * If I_PCM flag indicates that the CU is I_PCM, code its PCM alignment bits and codes.  
+ */
+Void TEncCavlc::codeIPCMInfo( TComDataCU* pcCU, UInt uiAbsPartIdx)
+{
+  UInt uiIPCM = (pcCU->getIPCMFlag(uiAbsPartIdx) == true)? 1 : 0;
+
+  xWriteFlag(uiIPCM);
+
+  if (uiIPCM)
+  {
+    xWritePCMAlignZero();
+
+    UInt uiMinCoeffSize = pcCU->getPic()->getMinCUWidth()*pcCU->getPic()->getMinCUHeight();
+    UInt uiLumaOffset   = uiMinCoeffSize*uiAbsPartIdx;
+    UInt uiChromaOffset = uiLumaOffset>>2;
+
+    Pel* piPCMSample;
+    UInt uiWidth;
+    UInt uiHeight;
+    UInt uiSampleBits;
+    UInt uiX, uiY;
+
+    piPCMSample = pcCU->getPCMSampleY() + uiLumaOffset;
+    uiWidth = pcCU->getWidth(uiAbsPartIdx);
+    uiHeight = pcCU->getHeight(uiAbsPartIdx);
+    uiSampleBits = g_uiBitDepth;
+
+    for(uiY = 0; uiY < uiHeight; uiY++)
+    {
+      for(uiX = 0; uiX < uiWidth; uiX++)
+      {
+        UInt uiSample = piPCMSample[uiX];
+
+        xWriteCode(uiSample, uiSampleBits);
+      }
+      piPCMSample += uiWidth;
+    }
+
+    piPCMSample = pcCU->getPCMSampleCb() + uiChromaOffset;
+    uiWidth = pcCU->getWidth(uiAbsPartIdx)/2;
+    uiHeight = pcCU->getHeight(uiAbsPartIdx)/2;
+    uiSampleBits = g_uiBitDepth;
+
+    for(uiY = 0; uiY < uiHeight; uiY++)
+    {
+      for(uiX = 0; uiX < uiWidth; uiX++)
+      {
+        UInt uiSample = piPCMSample[uiX];
+
+        xWriteCode(uiSample, uiSampleBits);
+      }
+      piPCMSample += uiWidth;
+    }
+
+    piPCMSample = pcCU->getPCMSampleCr() + uiChromaOffset;
+    uiWidth = pcCU->getWidth(uiAbsPartIdx)/2;
+    uiHeight = pcCU->getHeight(uiAbsPartIdx)/2;
+    uiSampleBits = g_uiBitDepth;
+
+    for(uiY = 0; uiY < uiHeight; uiY++)
+    {
+      for(uiX = 0; uiX < uiWidth; uiX++)
+      {
+        UInt uiSample = piPCMSample[uiX];
+
+        xWriteCode(uiSample, uiSampleBits);
+      }
+      piPCMSample += uiWidth;
+    }
+  }
+}
+#endif
 
 #if LCEC_INTRA_MODE
 #if MTK_DCM_MPM
@@ -2378,6 +2460,16 @@ Void TEncCavlc::xWriteFlag( UInt uiCode )
 {
   m_pcBitIf->write( uiCode, 1 );
 }
+
+#if E057_INTRA_PCM
+/** Write PCM alignment bits. 
+ * \returns Void
+ */
+Void  TEncCavlc::xWritePCMAlignZero    ()
+{
+  m_pcBitIf->writeAlignZero();
+}
+#endif
 
 Void TEncCavlc::xCheckCoeff( TCoeff* pcCoef, UInt uiSize, UInt uiDepth, UInt& uiNumofCoeff, UInt& uiPart )
 {

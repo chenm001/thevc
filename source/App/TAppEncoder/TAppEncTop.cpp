@@ -139,6 +139,9 @@ Void TAppEncTop::xInitLibCfg()
 #if CONSTRAINED_INTRA_PRED
   m_cTEncTop.setUseConstrainedIntraPred      ( m_bUseConstrainedIntraPred );
 #endif
+#if E057_INTRA_PCM
+  m_cTEncTop.setPCMLog2MinSize          ( m_uiPCMLog2MinSize);
+#endif
   //====== Slice ========
   m_cTEncTop.setSliceMode               ( m_iSliceMode                );
   m_cTEncTop.setSliceArgument           ( m_iSliceArgument            );

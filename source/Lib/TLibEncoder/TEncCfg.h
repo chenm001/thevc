@@ -146,6 +146,9 @@ protected:
 #if CONSTRAINED_INTRA_PRED
   Bool      m_bUseConstrainedIntraPred;
 #endif
+#if E057_INTRA_PCM
+  UInt      m_uiPCMLog2MinSize;
+#endif
   //====== Slice ========
   Int       m_iSliceMode;
   Int       m_iSliceArgument; 
@@ -155,7 +158,6 @@ protected:
 #if MTK_NONCROSS_INLOOP_FILTER
   Bool      m_bLFCrossSliceBoundaryFlag;
 #endif
-
   bool m_pictureDigestEnabled; ///< enable(1)/disable(0) md5 computation and SEI signalling
 
 public:
@@ -280,6 +282,9 @@ public:
 #if CONSTRAINED_INTRA_PRED
   Void      setUseConstrainedIntraPred      ( Bool  b )     { m_bUseConstrainedIntraPred = b; }
 #endif
+#if E057_INTRA_PCM
+  Void      setPCMLog2MinSize               ( UInt u )     { m_uiPCMLog2MinSize = u;      }
+#endif
   Void      setdQPs                         ( Int*  p )     { m_aidQP       = p; }
   Void      setDeltaQpRD                    ( UInt  u )     {m_uiDeltaQpRD  = u; }
   Bool      getUseSBACRD                    ()      { return m_bUseSBACRD;  }
@@ -304,7 +309,10 @@ public:
   Bool      getUseMRG                       ()      { return m_bUseMRG;     } // SOPH:
 #if CONSTRAINED_INTRA_PRED
   Bool      getUseConstrainedIntraPred      ()      { return m_bUseConstrainedIntraPred; }
-#endif  
+#endif
+#if E057_INTRA_PCM
+  UInt      getPCMLog2MinSize               ()      { return  m_uiPCMLog2MinSize;  }
+#endif
 
 #if LM_CHROMA 
   Bool getUseLMChroma                       ()      { return m_bUseLMChroma;        }
