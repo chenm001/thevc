@@ -394,6 +394,12 @@ Void TEncSbac::xCopyFrom( TEncSbac* pSrc )
   this->m_cCUOneSCModel            .copyFrom( &pSrc->m_cCUOneSCModel             );
   this->m_cCUAbsSCModel            .copyFrom( &pSrc->m_cCUAbsSCModel             );
   this->m_cMVPIdxSCModel           .copyFrom( &pSrc->m_cMVPIdxSCModel            );
+#if MTK_SAO
+  this->m_cAOFlagSCModel           .copyFrom( &pSrc->m_cAOFlagSCModel            );
+  this->m_cAOUvlcSCModel           .copyFrom( &pSrc->m_cAOUvlcSCModel            );
+  this->m_cAOSvlcSCModel           .copyFrom( &pSrc->m_cAOSvlcSCModel            );
+#endif
+
 }
 
 Void TEncSbac::codeMVPIdx ( TComDataCU* pcCU, UInt uiAbsPartIdx, RefPicList eRefList )

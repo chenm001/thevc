@@ -3311,7 +3311,7 @@ Void TComSampleAdaptiveOffset::AoProcessCu(Int iAddr, Int iPartIdx)
       }
       for (y=1; y<iLcuHeight-1; y++)
       {
-        iSignDown2 = xSign(pRec[iStride] - pRec[0]);
+        iSignDown2 = xSign(pRec[iStride+1] - pRec[0]);
 
         for (x=1; x<iLcuWidth-1; x++)
         {
