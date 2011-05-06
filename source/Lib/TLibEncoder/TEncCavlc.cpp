@@ -244,6 +244,13 @@ Void TEncCavlc::codePPS( TComPPS* pcPPS )
     xWriteFlag( pcPPS->getTLayerSwitchingFlag( i ) ? 1 : 0 ); // temporal_layer_switching_point_flag
   }
 
+#if SUB_LCU_DQP
+  if( pcPPS->getSPS()->getUseDQP() )
+  {
+    xWriteUvlc(pcPPS->getMaxCuDQPDepth());
+  }
+#endif
+
   return;
 }
 
@@ -1777,17 +1784,13 @@ Void TEncCavlc::codeMvd( TComDataCU* pcCU, UInt uiAbsPartIdx, RefPicList eRefLis
 
 Void TEncCavlc::codeDeltaQP( TComDataCU* pcCU, UInt uiAbsPartIdx )
 {
+#if SUB_LCU_DQP
+  Int iDQp  = pcCU->getQP( uiAbsPartIdx ) - pcCU->getRefQP( uiAbsPartIdx );
+#else
   Int iDQp  = pcCU->getQP( uiAbsPartIdx ) - pcCU->getSlice()->getSliceQp();
-  
-  if ( iDQp == 0 )
-  {
-    xWriteFlag( 0 );
-  }
-  else
-  {
-    xWriteFlag( 1 );
-    xWriteSvlc( iDQp );
-  }
+#endif
+
+  xWriteSvlc( iDQp );
   
   return;
 }
@@ -2386,31 +2389,16 @@ Void TEncCavlc::codeAlfSvlc( Int iCode )
 #if MTK_SAO
 Void TEncCavlc::codeAoFlag( UInt uiCode )
 {
-
   xWriteFlag( uiCode );
-#if LCEC_STAT
-  if (m_bAdaptFlag)
-    m_uiBitAlfFlag += 1;
-#endif
 }
 
 Void TEncCavlc::codeAoUvlc( UInt uiCode )
 {
-#if LCEC_STAT
-  if (m_bAdaptFlag)
-    m_uiBitAlfUvlc += xWriteUvlc( uiCode );
-  else
-#endif
     xWriteUvlc( uiCode );
 }
 
 Void TEncCavlc::codeAoSvlc( Int iCode )
 {
-#if LCEC_STAT
-  if (m_bAdaptFlag)
-    m_uiBitAlfSvlc += xWriteSvlc( iCode );
-  else
-#endif
     xWriteSvlc( iCode );
 }
 

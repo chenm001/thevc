@@ -506,104 +506,95 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
         m_pcEntropyCoder->resetEntropy    ();
       }
       
-        if (uiNextCUAddr==0)  // Compute ALF params and write only for first slice header
+      if (uiNextCUAddr==0)  // Compute ALF params and write only for first slice header
+      {
+        // set entropy coder for RD
+        if ( pcSlice->getSymbolMode() )
         {
-          // adaptive loop filter
-#if MTK_SAO
-          if ( pcSlice->getSPS()->getUseALF() || (pcSlice->getSPS()->getUseSAO()) )
-#else
-          if ( pcSlice->getSPS()->getUseALF())
-#endif
-          {
-            ALFParam cAlfParam;
-#if TSB_ALF_HEADER
-            m_pcAdaptiveLoopFilter->setNumCUsInFrame(pcPic);
-#endif
-            m_pcAdaptiveLoopFilter->allocALFParam(&cAlfParam);
-            
-            // set entropy coder for RD
-            if ( pcSlice->getSymbolMode() )
-            {
-              m_pcEntropyCoder->setEntropyCoder ( m_pcEncTop->getRDGoOnSbacCoder(), pcSlice );
-            }
-            else
-            {
-              m_pcEntropyCoder->setEntropyCoder ( m_pcCavlcCoder, pcSlice );
-            }
-            m_pcEntropyCoder->resetEntropy    ();
-            m_pcEntropyCoder->setBitstream    ( m_pcBitCounter );
-            
-            m_pcAdaptiveLoopFilter->startALFEnc(pcPic, m_pcEntropyCoder );
-#if MTK_SAO  // PostDF
-            {
-              if (pcSlice->getSPS()->getUseSAO())
-              {
-                m_pcSAO->startSaoEnc(pcPic, m_pcEntropyCoder, m_pcEncTop->getRDSbacCoder(), m_pcCfg->getUseSBACRD() ?  m_pcEncTop->getRDGoOnSbacCoder() : NULL);
-                m_pcSAO->SAOProcess(pcPic->getSlice(0)->getLambda());
-                m_pcSAO->copyQaoData(&cSaoParam);
-                m_pcSAO->endSaoEnc();
-              }
-            }
-#endif
-            UInt uiMaxAlfCtrlDepth;
-            
-            UInt64 uiDist, uiBits;
-#if MTK_SAO
-            if ( pcSlice->getSPS()->getUseALF())
-#endif
-              m_pcAdaptiveLoopFilter->ALFProcess( &cAlfParam, pcPic->getSlice(0)->getLambda(), uiDist, uiBits, uiMaxAlfCtrlDepth );
-#if MTK_SAO
-            else
-              cAlfParam.cu_control_flag = 0;
-#endif
-            m_pcAdaptiveLoopFilter->endALFEnc();
-            
-            // set entropy coder for writing
-            m_pcSbacCoder->init( (TEncBinIf*)m_pcBinCABAC );
-            
-            if ( pcSlice->getSymbolMode() )
-            {
-              m_pcEntropyCoder->setEntropyCoder ( m_pcSbacCoder, pcSlice );
-            }
-            else
-            {
-              m_pcEntropyCoder->setEntropyCoder ( m_pcCavlcCoder, pcSlice );
-            }
-            m_pcEntropyCoder->resetEntropy    ();
-            m_pcEntropyCoder->setBitstream    ( pcBitstreamOut );
-            if (cAlfParam.cu_control_flag)
-            {
-              m_pcEntropyCoder->setAlfCtrl( true );
-              m_pcEntropyCoder->setMaxAlfCtrlDepth(uiMaxAlfCtrlDepth);
-              if (pcSlice->getSymbolMode() == 0)
-              {
-                m_pcCavlcCoder->setAlfCtrl(true);
-                m_pcCavlcCoder->setMaxAlfCtrlDepth(uiMaxAlfCtrlDepth); //D0201
-              }
-            }
-            else
-            {
-              m_pcEntropyCoder->setAlfCtrl(false);
-            }
-#if MTK_SAO
-            if (pcSlice->getSPS()->getUseSAO())
-            {
-              m_pcEntropyCoder->encodeSaoParam(&cSaoParam);
-            }
-            if (pcSlice->getSPS()->getUseALF())
-#endif
-            m_pcEntropyCoder->encodeAlfParam(&cAlfParam);
-            
-#if TSB_ALF_HEADER
-            if(cAlfParam.cu_control_flag)
-            {
-              m_pcEntropyCoder->encodeAlfCtrlParam(&cAlfParam);
-            }
-#endif
-            
-            m_pcAdaptiveLoopFilter->freeALFParam(&cAlfParam);
-          }
+          m_pcEntropyCoder->setEntropyCoder ( m_pcEncTop->getRDGoOnSbacCoder(), pcSlice );
         }
+        else
+        {
+          m_pcEntropyCoder->setEntropyCoder ( m_pcCavlcCoder, pcSlice );
+        }
+
+#if MTK_SAO
+        if ( pcSlice->getSPS()->getUseSAO() )
+        {
+          m_pcEntropyCoder->resetEntropy    ();
+          m_pcEntropyCoder->setBitstream    ( m_pcBitCounter );
+          m_pcSAO->startSaoEnc(pcPic, m_pcEntropyCoder, m_pcEncTop->getRDSbacCoder(), m_pcCfg->getUseSBACRD() ?  m_pcEncTop->getRDGoOnSbacCoder() : NULL);
+          m_pcSAO->SAOProcess(pcPic->getSlice(0)->getLambda());
+          m_pcSAO->copyQaoData(&cSaoParam);
+          m_pcSAO->endSaoEnc();
+        }
+
+#endif
+        // adaptive loop filter
+        ALFParam cAlfParam;
+        UInt uiMaxAlfCtrlDepth;
+        UInt64 uiDist, uiBits;
+
+        if ( pcSlice->getSPS()->getUseALF())
+        {
+          m_pcEntropyCoder->resetEntropy    ();
+          m_pcEntropyCoder->setBitstream    ( m_pcBitCounter );
+#if TSB_ALF_HEADER
+          m_pcAdaptiveLoopFilter->setNumCUsInFrame(pcPic);
+#endif
+          m_pcAdaptiveLoopFilter->allocALFParam(&cAlfParam);
+          m_pcAdaptiveLoopFilter->startALFEnc(pcPic, m_pcEntropyCoder );
+          m_pcAdaptiveLoopFilter->ALFProcess( &cAlfParam, pcPic->getSlice(0)->getLambda(), uiDist, uiBits, uiMaxAlfCtrlDepth );
+          m_pcAdaptiveLoopFilter->endALFEnc();
+        }
+
+        // set entropy coder for writing
+        m_pcSbacCoder->init( (TEncBinIf*)m_pcBinCABAC );
+        if ( pcSlice->getSymbolMode() )
+        {
+          m_pcEntropyCoder->setEntropyCoder ( m_pcSbacCoder, pcSlice );
+        }
+        else
+        {
+          m_pcEntropyCoder->setEntropyCoder ( m_pcCavlcCoder, pcSlice );
+        }
+        m_pcEntropyCoder->resetEntropy    ();
+        m_pcEntropyCoder->setBitstream    ( pcBitstreamOut );
+
+#if MTK_SAO
+        if (pcSlice->getSPS()->getUseSAO())
+        {
+          m_pcEntropyCoder->encodeSaoParam(&cSaoParam);
+        }
+#endif
+
+        if (pcSlice->getSPS()->getUseALF())
+        {
+          if (cAlfParam.cu_control_flag)
+          {
+            m_pcEntropyCoder->setAlfCtrl( true );
+            m_pcEntropyCoder->setMaxAlfCtrlDepth(uiMaxAlfCtrlDepth);
+            if (pcSlice->getSymbolMode() == 0)
+            {
+              m_pcCavlcCoder->setAlfCtrl(true);
+              m_pcCavlcCoder->setMaxAlfCtrlDepth(uiMaxAlfCtrlDepth); //D0201
+            }
+          }
+          else
+          {
+            m_pcEntropyCoder->setAlfCtrl(false);
+          }
+          m_pcEntropyCoder->encodeAlfParam(&cAlfParam);
+
+#if TSB_ALF_HEADER
+          if(cAlfParam.cu_control_flag)
+          {
+            m_pcEntropyCoder->encodeAlfCtrlParam(&cAlfParam);
+          }
+#endif
+          m_pcAdaptiveLoopFilter->freeALFParam(&cAlfParam);
+        }
+      }
         
         // File writing
         m_pcSliceEncoder->encodeSlice( pcPic, pcBitstreamOut );
@@ -811,11 +802,9 @@ Void TEncGOP::xInitGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rcLis
   {
     m_iHrchDepth = 1;
   }
-  
-#if MQT_ALF_NPASS
+#if MQT_ALF_NPASS && !MQT_BA_RA
   m_pcAdaptiveLoopFilter->setGOPSize( m_iGopSize );
 #endif
-
   return;
 }
 

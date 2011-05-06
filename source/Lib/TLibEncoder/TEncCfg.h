@@ -109,6 +109,9 @@ protected:
   Int       m_iSearchRange;                     //  0:Full frame
   Int       m_bipredSearchRange;
   Int       m_iMaxDeltaQP;                      //  Max. absolute delta QP (1:default)
+#if SUB_LCU_DQP
+  Int       m_iMaxCuDQPDepth;                   //  Max. depth for a minimum CuDQP (0:default)
+#endif
   
   //====== Tool list ========
   Bool      m_bUseSBACRD;
@@ -216,6 +219,9 @@ public:
   Void      setSearchRange                  ( Int   i )      { m_iSearchRange = i; }
   Void      setBipredSearchRange            ( Int   i )      { m_bipredSearchRange = i; }
   Void      setMaxDeltaQP                   ( Int   i )      { m_iMaxDeltaQP = i; }
+#if SUB_LCU_DQP
+  Void      setMaxCuDQPDepth                ( Int   i )      { m_iMaxCuDQPDepth = i; }
+#endif
   
   //====== Sequence ========
   Int       getFrameRate                    ()      { return  m_iFrameRate; }
@@ -261,6 +267,9 @@ public:
   Int       getFastSearch                   ()      { return  m_iFastSearch; }
   Int       getSearchRange                  ()      { return  m_iSearchRange; }
   Int       getMaxDeltaQP                   ()      { return  m_iMaxDeltaQP; }
+#if SUB_LCU_DQP
+  Int       getMaxCuDQPDepth                ()      { return  m_iMaxCuDQPDepth; }
+#endif
   
   //==== Tool list ========
   Void      setUseSBACRD                    ( Bool  b )     { m_bUseSBACRD  = b; }

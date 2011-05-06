@@ -150,7 +150,7 @@
 
 #define DCM_SIMPLIFIED_MVP                1           ///< enable/disable the simplified motion vector prediction(D231)
 #if DCM_SIMPLIFIED_MVP
-#define MTK_AMVP_SMVP_DERIVATION          1              ///< (JCTVC-E481 - D125 2.1) amvp spatial candidate derivation
+#define MTK_AMVP_SMVP_DERIVATION          1              ///< (JCTVC-E481 - D125 2.3) amvp spatial candidate derivation
 #define TI_AMVP_SMVP_SIMPLIFIED           1              ///< (JCTVC-E481 - F)amvp spatial candidate simplified scanning
 #endif
 
@@ -195,7 +195,8 @@
 
 #define FAST_UDI_USE_MPM 1
 #define SONY_SIG_CTX 1
-#define SNY_DQP                          1           ///< syntax change of dQP (JCT-VC D258)
+#define SNY_DQP                          1           ///< syntax change of dQP (JCTVC D258)
+#define SUB_LCU_DQP  1                               ///< syntax change of sub-LCU-level dQP (JCTVC-E051/220/391/436/217/D038/D258)
 
 #define TI_ALF_MAX_VSIZE_7 1
 

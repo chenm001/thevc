@@ -112,6 +112,18 @@ Void TDecCavlc::parsePPS(TComPPS* pcPPS)
     pcPPS->setTLayerSwitchingFlag( i, uiCode > 0 ? true : false );
   }
 
+#if SUB_LCU_DQP
+  if( pcPPS->getSPS()->getUseDQP() )
+  {
+    xReadUvlc(uiCode); pcPPS->setMaxCuDQPDepth(uiCode);
+    pcPPS->setMinCuDQPSize( pcPPS->getSPS()->getMaxCUWidth() >> ( pcPPS->getMaxCuDQPDepth()) );
+  }
+  else
+  {
+    pcPPS->setMaxCuDQPDepth( 0 );
+    pcPPS->setMinCuDQPSize( pcPPS->getSPS()->getMaxCUWidth() >> ( pcPPS->getMaxCuDQPDepth()) );
+  }
+#endif
   return;
 }
 
@@ -1814,22 +1826,17 @@ Void TDecCavlc::parseMvd( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiPartIdx, U
 
 Void TDecCavlc::parseDeltaQP( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
 {
-  UInt uiDQp;
+  UInt uiQp;
   Int  iDQp;
   
-  xReadFlag( uiDQp );
-  
-  if ( uiDQp == 0 )
-  {
-    uiDQp = pcCU->getSlice()->getSliceQp();
-  }
-  else
-  {
-    xReadSvlc( iDQp );
-    uiDQp = pcCU->getSlice()->getSliceQp() + iDQp;
-  }
-  
-  pcCU->setQPSubParts( uiDQp, uiAbsPartIdx, uiDepth );
+  xReadSvlc( iDQp );
+#if SUB_LCU_DQP
+  uiQp = pcCU->getRefQP( uiAbsPartIdx ) + iDQp;
+#else
+  uiQp = pcCU->getSlice()->getSliceQp() + iDQp;
+#endif
+
+  pcCU->setQPSubParts( uiQp, uiAbsPartIdx, uiDepth );
 }
 
 #if CAVLC_RQT_CBP

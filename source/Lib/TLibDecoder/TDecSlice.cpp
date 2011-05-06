@@ -87,16 +87,26 @@ Void TDecSlice::decompressSlice(TComBitstream* pcBitstream, TComPic*& rpcPic)
 
   // for all CUs in slice
   UInt  uiLastCUAddr = iStartCUAddr;
+#if SUB_LCU_DQP
+  UChar uhLastQP = rpcPic->getSlice( rpcPic->getCurrSliceIdx() )->getSliceQp();
+#endif
   for( Int iCUAddr = iStartCUAddr; !uiIsLast && iCUAddr < rpcPic->getNumCUsInFrame(); iCUAddr++, uiLastCUAddr++ )
   {
     pcCU = rpcPic->getCU( iCUAddr );
     pcCU->initCU( rpcPic, iCUAddr );
     
+#if SUB_LCU_DQP
+    pcCU->setLastCodedQP( uhLastQP );
+#endif
+
 #if ENC_DEC_TRACE
     g_bJustDoIt = g_bEncDecTraceEnable;
 #endif
     m_pcCuDecoder->decodeCU     ( pcCU, uiIsLast );
     m_pcCuDecoder->decompressCU ( pcCU );
+#if SUB_LCU_DQP
+    uhLastQP = pcCU->getLastCodedQP();
+#endif
     
 #if ENC_DEC_TRACE
     g_bJustDoIt = g_bEncDecTraceDisable;

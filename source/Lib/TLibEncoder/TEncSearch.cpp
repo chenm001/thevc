@@ -1672,7 +1672,18 @@ TEncSearch::estIntraPredQT( TComDataCU* pcCU,
   UInt    uiFastCandNum=g_aucIntraModeNumFast[ uiWidthBit ];
   
   //===== set QP and clear Cbf =====
+#if SUB_LCU_DQP
+  if ( pcCU->getSlice()->getSPS()->getUseDQP() == true)
+  {
+    pcCU->setQPSubParts( pcCU->getQP(0), 0, uiDepth );
+  }
+  else
+  {
+    pcCU->setQPSubParts( pcCU->getSlice()->getSliceQp(), 0, uiDepth );
+  }
+#else
   pcCU->setQPSubParts( pcCU->getSlice()->getSliceQp(), 0, uiDepth );
+#endif
   
   //===== loop over partitions =====
   UInt uiPartOffset = 0;
@@ -4076,7 +4087,10 @@ Void TEncSearch::encodeResAndCalcRdInterCU( TComDataCU* pcCU, TComYuv* pcYuvOrg,
   rpcYuvResi->subtract( pcYuvOrg, pcYuvPred, 0, uiWidth );
   for ( uiQp = uiQpMin; uiQp <= uiQpMax; uiQp++ )
   {
+#if SUB_LCU_DQP
+#else
     pcCU->setQPSubParts( uiQp, 0, pcCU->getDepth(0) );
+#endif
     dCost = 0.;
     uiBits = 0;
     uiDistortion = 0;

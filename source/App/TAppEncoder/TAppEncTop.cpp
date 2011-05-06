@@ -98,6 +98,9 @@ Void TAppEncTop::xInitLibCfg()
   m_cTEncTop.setSearchRange                  ( m_iSearchRange );
   m_cTEncTop.setBipredSearchRange            ( m_bipredSearchRange );
   m_cTEncTop.setMaxDeltaQP                   ( m_iMaxDeltaQP  );
+#if SUB_LCU_DQP
+  m_cTEncTop.setMaxCuDQPDepth                ( m_iMaxCuDQPDepth  );
+#endif
   
   //====== Tool list ========
   m_cTEncTop.setUseSBACRD                    ( m_bUseSBACRD   );

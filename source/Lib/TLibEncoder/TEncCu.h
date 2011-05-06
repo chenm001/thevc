@@ -119,6 +119,11 @@ protected:
   Void  xCompressCU         ( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, UInt uiDepth        );
   Void  xEncodeCU           ( TComDataCU*  pcCU, UInt uiAbsPartIdx,           UInt uiDepth        );
   
+#if SUB_LCU_DQP
+  Void  xCompressCUDQP     ( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, UInt uiDepth        );
+  Void  xCheckBestMode      ( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, UInt uiDepth        );
+#endif
+
   Void  xCheckRDCostAMVPSkip( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU                      );
   
   Void  xCheckRDCostMerge2Nx2N( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU                  );
