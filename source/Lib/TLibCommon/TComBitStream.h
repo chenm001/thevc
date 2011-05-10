@@ -84,23 +84,6 @@ protected:
   
   UInt        *m_auiSliceByteLocation, m_uiSliceCount;  // used to skip over slice start codes in initParsingConvertPayloadToRBSP()
   UInt        m_uiSliceProcessed;
-
-  UInt xSwap ( UInt ui )
-  {
-    // heiko.schwarz@hhi.fhg.de: support for BSD systems as proposed by Steffen Kamp [kamp@ient.rwth-aachen.de]
-#ifdef MSYS_BIG_ENDIAN
-    return ui;
-#else
-    UInt ul2;
-    
-    ul2  = ui>>24;
-    ul2 |= (ui>>8) & 0x0000ff00;
-    ul2 |= (ui<<8) & 0x00ff0000;
-    ul2 |= ui<<24;
-    
-    return ul2;
-#endif
-  }
   
   // read one word
   __inline Void xReadNextWord ();
