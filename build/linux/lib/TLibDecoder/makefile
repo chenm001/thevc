@@ -33,6 +33,7 @@ DEFS			= -DMSYS_LINUX
 # set objects
 OBJS          	= \
 				$(OBJ_DIR)/AnnexBread.o \
+				$(OBJ_DIR)/NALread.o \
 				$(OBJ_DIR)/SEIread.o \
 				$(OBJ_DIR)/TDecBinCoderCABAC.o \
 				$(OBJ_DIR)/TDecCAVLC.o \

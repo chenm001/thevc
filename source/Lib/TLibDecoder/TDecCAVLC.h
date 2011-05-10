@@ -179,8 +179,6 @@ public:
   Void  parseAoSvlc        ( Int&  riVal  );
 #endif
   
-  Void  parseNalUnitHeader  ( NalUnitType& eNalUnitType, UInt& TemporalId, Bool& bOutputFlag );
-  
   Void  parseSPS            ( TComSPS* pcSPS );
   Void  parsePPS            ( TComPPS* pcPPS);
   void parseSEI(SEImessages&);

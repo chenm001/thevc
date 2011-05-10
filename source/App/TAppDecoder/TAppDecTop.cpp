@@ -43,6 +43,7 @@
 
 #include "TAppDecTop.h"
 #include "../../Lib/TLibDecoder/AnnexBread.h"
+#include "../../Lib/TLibDecoder/NALread.h"
 
 // ====================================================================================================================
 // Constructor / destructor / initialization / destroy
@@ -108,16 +109,16 @@ Void TAppDecTop::decode()
     AnnexBStats stats = AnnexBStats();
     vector<uint8_t> nalUnit;
     byteStreamNALUnit(bytestream, nalUnit, stats);
-    TComInputBitstream nalUnitBitstream(&nalUnit);
-    TComInputBitstream *pcBitstream = &nalUnitBitstream;
-    nalUnitBitstream.initParsingConvertPayloadToRBSP(nalUnit.size());
+    InputNALUnit nalu;
+    if (!nalUnit.empty())
+      read(nalu, nalUnit);
 
     // call actual decoding function
 #if DCM_SKIP_DECODING_FRAMES
-    Bool bNewPicture = m_cTDecTop.decode(false, pcBitstream, uiPOC, pcListPic, m_iSkipFrame, m_iPOCLastDisplay);
+    Bool bNewPicture = m_cTDecTop.decode(false, nalu, uiPOC, pcListPic, m_iSkipFrame, m_iPOCLastDisplay);
     if (bNewPicture || !bitstreamFile)
     {
-      m_cTDecTop.executeDeblockAndAlf(false, pcBitstream, uiPOC, pcListPic, m_iSkipFrame, m_iPOCLastDisplay);
+      m_cTDecTop.executeDeblockAndAlf(false, uiPOC, pcListPic, m_iSkipFrame, m_iPOCLastDisplay);
     }
     if (bNewPicture)
     {
@@ -129,7 +130,7 @@ Void TAppDecTop::decode()
       bitstreamFile.seekg(location-streamoff(3));
     }
 #else
-    m_cTDecTop.decode( bEos, pcBitstream, uiPOC, pcListPic );
+    m_cTDecTop.decode( bEos, nalu, uiPOC, pcListPic );
 #endif
 
     if( pcListPic )

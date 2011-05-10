@@ -286,6 +286,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\source\Lib\TLibDecoder\NALread.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\source\Lib\TLibDecoder\SEIread.cpp"
 				>
 			</File>
@@ -328,6 +332,10 @@
 			>
 			<File
 				RelativePath="..\..\source\Lib\TLibDecoder\AnnexBread.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\source\Lib\TLibDecoder\NALread.h"
 				>
 			</File>
 			<File

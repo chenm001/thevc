@@ -57,30 +57,6 @@ TDecCavlc::~TDecCavlc()
 // Public member functions
 // ====================================================================================================================
 
-Void  TDecCavlc::parseNalUnitHeader ( NalUnitType& eNalUnitType, UInt& TemporalId, Bool& bOutputFlag )
-{
-  UInt  uiCode;
-  
-  xReadCode ( 1, uiCode ); assert( 0 == uiCode); // forbidden_zero_bit
-  xReadCode ( 2, uiCode );                       // nal_ref_idc
-  xReadCode ( 5, uiCode );                       // nal_unit_type
-  eNalUnitType = (NalUnitType) uiCode;
-
-  if ( (eNalUnitType == NAL_UNIT_CODED_SLICE) || (eNalUnitType == NAL_UNIT_CODED_SLICE_IDR) || (eNalUnitType == NAL_UNIT_CODED_SLICE_CDR) )
-  {
-    xReadCode(3, uiCode); // temporal_id
-    TemporalId = uiCode;
-    xReadFlag(uiCode);    // output_flag
-    bOutputFlag = (0!=uiCode);
-    xReadCode(4, uiCode); // reserved_one_4bits    
-  }
-  else
-  {
-    TemporalId = 0;
-    bOutputFlag = true;
-  }
-}
-
 /**
  * unmarshal a sequence of SEI messages from bitstream.
  */
