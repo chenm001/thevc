@@ -65,12 +65,8 @@ static unsigned int xSwap ( unsigned int ui )
 
 TComOutputBitstream::TComOutputBitstream()
 {
+  resetBits();
   m_fifo = new vector<unsigned int>;
-
-  m_iValidBits      = 32;
-
-  m_ulCurrentBits   = 0;
-  m_uiBitsWritten   = 0;
 }
 
 TComOutputBitstream::~TComOutputBitstream()
@@ -93,13 +89,12 @@ Void TComOutputBitstream::destroy()
 
 Void TComInputBitstream::create( UInt uiSizeInBytes )
 {
+  resetBits();
+
   UInt uiSize = uiSizeInBytes / sizeof(UInt);
 
   m_apulStreamPacketBegin = new UInt[uiSize];
   m_uiBufSize       = uiSize;
-  m_iValidBits      = 32;
-
-  m_ulCurrentBits   = 0;
 
   m_pulStreamPacket = m_apulStreamPacketBegin;
 }
