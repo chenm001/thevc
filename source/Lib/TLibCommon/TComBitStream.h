@@ -130,6 +130,11 @@ public:
   char* getByteStream() const;
 
   /**
+   * Return the number of valid bytes available from  getByteStream()
+   */
+  unsigned int getByteStreamLength();
+
+  /**
    * Reset all internal state.
    */
   Void clear();

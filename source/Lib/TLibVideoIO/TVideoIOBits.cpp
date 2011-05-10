@@ -242,7 +242,7 @@ int TVideoIOBitsStartCode::xFindNextStartCode(UInt& ruiPacketSize, UChar* pucBuf
 Void TVideoIOBitsStartCode::writeBits( TComOutputBitstream* pcBitstream )
 {
   char*  buf = pcBitstream->getByteStream();
-  UInt   uiBytes = pcBitstream->getNumberOfWrittenBits() >> 3;
+  UInt   uiBytes = pcBitstream->getByteStreamLength();
   Char   ucZero = 0;
   Char   ucOne = 1;
   

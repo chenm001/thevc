@@ -115,6 +115,11 @@ char* TComOutputBitstream::getByteStream() const
   return (char*) &m_fifo->front();
 }
 
+unsigned int TComOutputBitstream::getByteStreamLength()
+{
+  return m_fifo->size();
+}
+
 void TComOutputBitstream::clear()
 {
   m_fifo->clear();
