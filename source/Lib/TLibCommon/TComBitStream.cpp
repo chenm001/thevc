@@ -122,65 +122,65 @@ void TComOutputBitstream::rewindStreamPacket()
 Void TComOutputBitstream::write   ( UInt uiBits, UInt uiNumberOfBits )
 {
   assert( uiNumberOfBits <= 32 );
-  assert( ! ( (uiBits >> 1) >> (uiNumberOfBits - 1)) ); // because shift with 32 has no effect
-  
   m_uiBitsWritten += uiNumberOfBits;
-  
-  if( (Int)uiNumberOfBits < m_iValidBits)  // one word
-  {
-    m_iValidBits -= uiNumberOfBits;
-    
-    m_ulCurrentBits |= uiBits << m_iValidBits;
-    
+
+  /* any modulo 8 remainder of num_total_bits cannot be written this time,
+   * and will be held until next time. */
+  unsigned num_total_bits = uiNumberOfBits + m_num_held_bits;
+  unsigned next_num_held_bits = num_total_bits % 8;
+
+  /* form a byte aligned word (write_bits), by concatenating any held bits
+   * with the new bits, discarding the bits that will form the next_held_bits.
+   * eg: H = held bits, V = n new bits        /---- next_held_bits
+   * len(H)=7, len(V)=1: ... ---- HHHH HHHV . 0000 0000, next_num_held_bits=0
+   * len(H)=7, len(V)=2: ... ---- HHHH HHHV . V000 0000, next_num_held_bits=1
+   * if total_bits < 8, the value of v_ is not used */
+  unsigned char next_held_bits = uiBits << (8 - next_num_held_bits);
+
+  if (!(num_total_bits >> 3)) {
+    /* insufficient bits accumulated to write out, append new_held_bits to
+     * current held_bits */
+    /* NB, this requires that v only contains 0 in bit positions {31..n} */
+    m_held_bits |= next_held_bits;
+    m_num_held_bits = next_num_held_bits;
     return;
   }
-  
-  UInt uiShift = uiNumberOfBits - m_iValidBits;
-  
-  // add the last bits
-  m_ulCurrentBits |= uiBits >> uiShift;
-  
-  m_fifo->push_back(m_ulCurrentBits >> 24);
-  m_fifo->push_back(m_ulCurrentBits >> 16);
-  m_fifo->push_back(m_ulCurrentBits >> 8);
-  m_fifo->push_back(m_ulCurrentBits);
-  
-  // note: there is a problem with left shift with 32
-  m_iValidBits = 32 - uiShift;
-  
-  m_ulCurrentBits = uiBits << m_iValidBits;
-  
-  if( 0 == uiShift )
-  {
-    m_ulCurrentBits = 0;
+
+  /* topword serves to justify held_bits to align with the msb of uiBits */
+  unsigned topword = (uiNumberOfBits - next_num_held_bits) & ~((1 << 3) -1);
+  unsigned int write_bits = (m_held_bits << topword) | (uiBits >> next_num_held_bits);
+
+  switch (num_total_bits >> 3) {
+  case 4: m_fifo->push_back(write_bits >> 24);
+  case 3: m_fifo->push_back(write_bits >> 16);
+  case 2: m_fifo->push_back(write_bits >> 8);
+  case 1: m_fifo->push_back(write_bits);
   }
+
+  m_held_bits = next_held_bits;
+  m_num_held_bits = next_num_held_bits;
 }
 
 Void TComOutputBitstream::writeAlignOne()
 {
-  write( ( 1 << (m_iValidBits & 0x7) ) - 1, m_iValidBits & 0x7 );
+  unsigned int num_bits = getBitsUntilByteAligned();
+  write((1 << num_bits) - 1, num_bits);
   return;
 }
 
 Void TComOutputBitstream::writeAlignZero()
 {
-  write( 0, m_iValidBits & 0x7 );
-  return;
+  if (0 == m_num_held_bits)
+    return;
+  m_fifo->push_back(m_held_bits);
+  m_uiBitsWritten += getBitsUntilByteAligned();
+  m_held_bits = 0;
+  m_num_held_bits = 0;
 }
 
 Void  TComOutputBitstream::flushBuffer()
 {
-  if (m_iValidBits == 0)
-    return;
-  
-  m_fifo->push_back(m_ulCurrentBits >> 24);
-  m_fifo->push_back(m_ulCurrentBits >> 16);
-  m_fifo->push_back(m_ulCurrentBits >> 8);
-  m_fifo->push_back(m_ulCurrentBits);
-  
-  m_uiBitsWritten = (m_uiBitsWritten+7)/8;
-  
-  m_uiBitsWritten *= 8;
+  writeAlignZero();
 }
 
 Void TComInputBitstream::initParsing ( UInt uiNumBytes )

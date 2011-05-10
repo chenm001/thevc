@@ -81,10 +81,10 @@ class TComOutputBitstream : public TComBitIf
    */
   std::vector<uint8_t> *m_fifo;
 
-protected:
-  Int         m_iValidBits;
-  
-  UInt        m_ulCurrentBits;
+  unsigned int m_num_held_bits; /// number of bits not flushed to bytestream.
+  unsigned char m_held_bits; /// the bits held and not flushed to bytestream.
+                             /// this value is always msb-aligned, bigendian.
+
   UInt        m_uiBitsWritten;
   
   UInt        *m_auiSliceByteLocation, m_uiSliceCount;  // used to skip over slice start codes in initParsingConvertPayloadToRBSP()
@@ -119,8 +119,8 @@ public:
   // reset internal status
   Void        resetBits       ()
   {
-    m_iValidBits = 32;
-    m_ulCurrentBits = 0;
+    m_held_bits = 0;
+    m_num_held_bits = 0;
     m_uiBitsWritten = 0;
   }
 
@@ -139,7 +139,7 @@ public:
    */
   Void rewindStreamPacket();
 
-  Int         getBitsUntilByteAligned() { return m_iValidBits & (0x7);                  }
+  Int getBitsUntilByteAligned() { return (8 - m_num_held_bits) & 0x7; }
   UInt getNumberOfWrittenBits() const { return  m_uiBitsWritten; }
   Void        flushBuffer();
 
