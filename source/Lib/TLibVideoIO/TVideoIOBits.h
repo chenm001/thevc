@@ -65,7 +65,6 @@ public:
   Void closeBits  ();                                       ///< close file
   
   Bool readBits   ( TComInputBitstream* rpcBitstream    );      ///< read  one packet from file
-  Void writeBits  ( TComOutputBitstream*  pcBitstream     );      ///< write one packet to   file
   
   std::streampos   getFileLocation      ()                          { return m_cHandle.tellg();                           }
   Void             setFileLocation      (std::streampos uiLocation) { m_cHandle.seekg(uiLocation, std::ios_base::beg);    }

@@ -156,25 +156,3 @@ int TVideoIOBitsStartCode::xFindNextStartCode(UInt& ruiPacketSize, UChar* pucBuf
   }
   return 0;
 }
-
-/**
- \param  pcBitstream   bitstream class pointer
- */
-Void TVideoIOBitsStartCode::writeBits( TComOutputBitstream* pcBitstream )
-{
-  char*  buf = pcBitstream->getByteStream();
-  UInt   uiBytes = pcBitstream->getByteStreamLength();
-  Char   ucZero = 0;
-  Char   ucOne = 1;
-  
-  // write 32-bit packet size
-  m_cHandle.write( &ucZero , sizeof(Char) );
-  m_cHandle.write( &ucZero , sizeof(Char) );
-  m_cHandle.write( &ucZero , sizeof(Char) );
-  m_cHandle.write( &ucOne  , sizeof(Char) );
-  
-  // write packet data
-  m_cHandle.write(buf, uiBytes);
-}
-
-
