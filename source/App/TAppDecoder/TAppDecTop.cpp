@@ -36,20 +36,13 @@
 */
 
 #include <list>
+#include <vector>
 #include <stdio.h>
 #include <fcntl.h>
 #include <assert.h>
 
 #include "TAppDecTop.h"
-
-// ====================================================================================================================
-// Local constants
-// ====================================================================================================================
-
-/// initial bitstream buffer size
-/// should be large enough for parsing SPS
-/// resized as a function of picture size after parsing SPS
-#define BITS_BUF_SIZE 65536
+#include "../../Lib/TLibDecoder/AnnexBread.h"
 
 // ====================================================================================================================
 // Constructor / destructor / initialization / destroy
@@ -63,18 +56,10 @@ TAppDecTop::TAppDecTop()
 
 Void TAppDecTop::create()
 {
-  m_apcBitstream  = new TComInputBitstream;
-  m_apcBitstream->create( BITS_BUF_SIZE );
 }
 
 Void TAppDecTop::destroy()
 {
-  if ( m_apcBitstream )
-  {
-    m_apcBitstream->destroy();
-    delete m_apcBitstream;
-    m_apcBitstream = NULL;
-  }
 }
 
 // ====================================================================================================================
@@ -91,9 +76,17 @@ Void TAppDecTop::destroy()
  */
 Void TAppDecTop::decode()
 {
-  TComInputBitstream* pcBitstream = m_apcBitstream;
   UInt                uiPOC;
   TComList<TComPic*>* pcListPic;
+
+  ifstream bitstreamFile(m_pchBitstreamFile, ifstream::in | ifstream::binary);
+  if (!bitstreamFile)
+  {
+    fprintf(stderr, "\nfailed to open bitstream file `%s' for reading\n", m_pchBitstreamFile);
+    exit(EXIT_FAILURE);
+  }
+
+  InputByteStream bytestream(bitstreamFile);
 
   // create & initialize internal classes
   xCreateDecLib();
@@ -104,40 +97,44 @@ Void TAppDecTop::decode()
 
   // main decoder loop
   bool recon_opened = false; // reconstruction file not yet opened. (must be performed after SPS is seen)
-  Bool resizedBitstreamBuffer = false;
-  
-  while (m_cTVideoIOBitstreamFile.good())
+
+  while (!!bitstreamFile)
   {
-    streampos  lLocation = m_cTVideoIOBitstreamFile.getFileLocation();
-    m_cTVideoIOBitstreamFile.readBits( pcBitstream );
+    /* location serves to work around a design fault in the decoder, whereby
+     * the process of reading a new slice that is the first slice of a new frame
+     * requires the TDecTop::decode() method to be called again with the same
+     * nal unit. */
+    streampos location = bitstreamFile.tellg();
+    AnnexBStats stats = AnnexBStats();
+    vector<uint8_t> nalUnit;
+    byteStreamNALUnit(bytestream, nalUnit, stats);
+    TComInputBitstream nalUnitBitstream;
+    TComInputBitstream *pcBitstream = &nalUnitBitstream;
+    nalUnitBitstream.create(nalUnit.size());
+    memcpy(nalUnitBitstream.getBuffer(), nalUnit.data(), nalUnit.size());
+    nalUnitBitstream.initParsingConvertPayloadToRBSP(nalUnit.size());
 
     // call actual decoding function
 #if DCM_SKIP_DECODING_FRAMES
     Bool bNewPicture = m_cTDecTop.decode(false, pcBitstream, uiPOC, pcListPic, m_iSkipFrame, m_iPOCLastDisplay);
-    if (bNewPicture || !m_cTVideoIOBitstreamFile.good())
+    if (bNewPicture || !bitstreamFile)
     {
       m_cTDecTop.executeDeblockAndAlf(false, pcBitstream, uiPOC, pcListPic, m_iSkipFrame, m_iPOCLastDisplay);
     }
     if (bNewPicture)
     {
-      if (!m_cTVideoIOBitstreamFile.good()) m_cTVideoIOBitstreamFile.clear();
-      m_cTVideoIOBitstreamFile.setFileLocation( lLocation );
+      bitstreamFile.clear();
+      /* location points to the current nalunit payload[1] due to the
+       * need for the annexB parser to read three extra bytes.
+       * [1] except for the first NAL unit in the file
+       *     (but bNewPicture doesn't happen then) */
+      bitstreamFile.seekg(location-streamoff(3));
     }
 #else
     m_cTDecTop.decode( bEos, pcBitstream, uiPOC, pcListPic );
 #endif
 
-    
-    if (!resizedBitstreamBuffer)
-    {
-      TComSPS *sps = m_cTDecTop.getSPS();
-      if (sps)
-      {
-        pcBitstream->destroy();
-        pcBitstream->create(sps->getWidth() * sps->getHeight() * 2);
-        resizedBitstreamBuffer = true;
-      }
-    }
+    nalUnitBitstream.destroy();
     
     if( pcListPic )
     {
@@ -167,18 +164,12 @@ Void TAppDecTop::decode()
 
 Void TAppDecTop::xCreateDecLib()
 {
-  // open bitstream file
-  m_cTVideoIOBitstreamFile.openBits( m_pchBitstreamFile, false);  // read mode
-  
   // create decoder class
   m_cTDecTop.create();
 }
 
 Void TAppDecTop::xDestroyDecLib()
 {
-  // close bitstream file
-  m_cTVideoIOBitstreamFile.closeBits();
-  
   if ( m_pchReconFile )
   {
     m_cTVideoIOYuvReconFile. close();
