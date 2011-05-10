@@ -41,6 +41,7 @@
 TDecTop::TDecTop()
 : m_SEIs(0)
 {
+  m_pcPic = 0;
   m_iGopSize      = 0;
   m_bGopSizeSet   = false;
   m_iMaxRefPicNum = 0;
@@ -145,7 +146,7 @@ Void TDecTop::xGetNewPicBuffer ( TComSlice* pcSlice, TComPic*& rpcPic )
   
   if (m_cListPic.size() < (UInt)m_iMaxRefPicNum)
   {
-    rpcPic = new TComPic;
+    rpcPic = new TComPic();
     
     rpcPic->create ( pcSlice->getSPS()->getWidth(), pcSlice->getSPS()->getHeight(), g_uiMaxCUWidth, g_uiMaxCUHeight, g_uiMaxCUDepth, true);
     m_cListPic.pushBack( rpcPic );
@@ -187,6 +188,10 @@ Void TDecTop::xGetNewPicBuffer ( TComSlice* pcSlice, TComPic*& rpcPic )
 
 Void TDecTop::executeDeblockAndAlf(Bool bEos, UInt& ruiPOC, TComList<TComPic*>*& rpcListPic, Int& iSkipFrame,  Int& iPOCLastDisplay)
 {
+  if (!m_pcPic)
+    /* nothing to deblock */
+    return;
+
   TComPic*&   pcPic         = m_pcPic;
 
   // Execute Deblock and ALF only + Cleanup

@@ -78,7 +78,7 @@ Void TAppDecTop::destroy()
 Void TAppDecTop::decode()
 {
   UInt                uiPOC;
-  TComList<TComPic*>* pcListPic;
+  TComList<TComPic*>* pcListPic = NULL;
 
   ifstream bitstreamFile(m_pchBitstreamFile, ifstream::in | ifstream::binary);
   if (!bitstreamFile)
