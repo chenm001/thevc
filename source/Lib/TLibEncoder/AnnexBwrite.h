@@ -52,11 +52,7 @@ static void writeAnnexB(std::ostream& out, const AccessUnit& au)
   {
     const NALUnit& nalu = **it;
     static const char start_code_prefix[] = {0,0,0,1};
-#if 0
     if (it == au.begin() || nalu.m_UnitType == NAL_UNIT_SPS || nalu.m_UnitType == NAL_UNIT_PPS)
-#else
-    if (1 /* hack to work around broken start_code_prefix parsing by decoder */)
-#endif
     {
       /* From AVC, When any of the following conditions are fulfilled, the
        * zero_byte syntax element shall be present:
