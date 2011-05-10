@@ -116,13 +116,8 @@ public:
   Void        allocateMemoryForSliceLocations       ( UInt uiMaxNumOfSlices );
   Void        freeMemoryAllocatedForSliceLocations  ();
 
-  // reset internal status
-  Void        resetBits       ()
-  {
-    m_held_bits = 0;
-    m_num_held_bits = 0;
-    m_uiBitsWritten = 0;
-  }
+  /** this function should never be called */
+  void resetBits() { assert(0); }
 
   // utility functions
 
