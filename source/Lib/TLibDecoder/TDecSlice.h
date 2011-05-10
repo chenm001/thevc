@@ -69,7 +69,7 @@ public:
   Void  create            ( TComSlice* pcSlice, Int iWidth, Int iHeight, UInt uiMaxWidth, UInt uiMaxHeight, UInt uiMaxDepth );
   Void  destroy           ();
   
-  Void  decompressSlice   ( TComBitstream* pcBitstream, TComPic*& rpcPic );
+  Void  decompressSlice   ( TComInputBitstream* pcBitstream, TComPic*& rpcPic );
 
 };
 

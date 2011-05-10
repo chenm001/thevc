@@ -63,8 +63,7 @@ TAppDecTop::TAppDecTop()
 
 Void TAppDecTop::create()
 {
-  m_apcBitstream  = new TComBitstream;
-  
+  m_apcBitstream  = new TComInputBitstream;
   m_apcBitstream->create( BITS_BUF_SIZE );
 }
 
@@ -92,7 +91,7 @@ Void TAppDecTop::destroy()
  */
 Void TAppDecTop::decode()
 {
-  TComBitstream*      pcBitstream = m_apcBitstream;
+  TComInputBitstream* pcBitstream = m_apcBitstream;
   UInt                uiPOC;
   TComList<TComPic*>* pcListPic;
   Bool bFirstSliceDecoded = true;

@@ -86,7 +86,7 @@ protected:
 #endif
   
 private:
-  TComBitstream*        m_pcBitstream;
+  TComInputBitstream*   m_pcBitstream;
   UInt                  m_uiCoeffCost;
   Bool                  m_bRunLengthCoding;
   UInt                  m_uiRun;
@@ -163,7 +163,7 @@ private:
   
 public:
   Void  resetEntropy        ( TComSlice* pcSlice  );
-  Void  setBitstream        ( TComBitstream* p    )      { m_pcBitstream = p; }
+  Void  setBitstream        ( TComInputBitstream* p )   { m_pcBitstream = p; }
   Void  setAlfCtrl          ( Bool bAlfCtrl )            { m_bAlfCtrl = bAlfCtrl; }
   Void  setMaxAlfCtrlDepth  ( UInt uiMaxAlfCtrlDepth )  { m_uiMaxAlfCtrlDepth = uiMaxAlfCtrlDepth; }
   

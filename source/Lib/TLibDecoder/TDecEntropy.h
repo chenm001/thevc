@@ -62,7 +62,7 @@ public:
   virtual Void setMaxAlfCtrlDepth(UInt uiMaxAlfCtrlDepth)  = 0;
   
   virtual Void  resetEntropy          (TComSlice* pcSlice)                = 0;
-  virtual Void  setBitstream          ( TComBitstream* p )  = 0;
+  virtual Void  setBitstream          ( TComInputBitstream* p )  = 0;
   
   virtual Void  parseNalUnitHeader    ( NalUnitType& eNalUnitType, UInt& TemporalId, Bool& bOutputFlag )  = 0; 
 
@@ -142,7 +142,7 @@ public:
   Void decodeMVPIdxPU     ( TComDataCU* pcSubCU, UInt uiPartAddr, UInt uiDepth, UInt uiPartIdx, RefPicList eRefList );
   
   Void    setEntropyDecoder           ( TDecEntropyIf* p );
-  Void    setBitstream                ( TComBitstream* p )      { m_pcEntropyDecoderIf->setBitstream(p);                    }
+  Void    setBitstream                ( TComInputBitstream* p ) { m_pcEntropyDecoderIf->setBitstream(p);                    }
   Void    resetEntropy                ( TComSlice* p)           { m_pcEntropyDecoderIf->resetEntropy(p);                    }
 
   Void    decodeNalUnitHeader         ( NalUnitType& eNalUnitType, UInt& TemporalId, Bool& bOutputFlag )    

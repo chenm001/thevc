@@ -184,7 +184,7 @@ Void TDecTop::xGetNewPicBuffer ( TComSlice* pcSlice, TComPic*& rpcPic )
   }
 }
 
-Void TDecTop::executeDeblockAndAlf(Bool bEos, TComBitstream* pcBitstream, UInt& ruiPOC, TComList<TComPic*>*& rpcListPic, Int& iSkipFrame,  Int& iPOCLastDisplay)
+Void TDecTop::executeDeblockAndAlf(Bool bEos, TComInputBitstream* pcBitstream, UInt& ruiPOC, TComList<TComPic*>*& rpcListPic, Int& iSkipFrame,  Int& iPOCLastDisplay)
 {
   TComPic*&   pcPic         = m_pcPic;
 
@@ -205,9 +205,9 @@ Void TDecTop::executeDeblockAndAlf(Bool bEos, TComBitstream* pcBitstream, UInt& 
 }
 
 #if DCM_SKIP_DECODING_FRAMES
-Bool TDecTop::decode (Bool bEos, TComBitstream* pcBitstream, UInt& ruiPOC, TComList<TComPic*>*& rpcListPic, Int& iSkipFrame,  Int& iPOCLastDisplay)
+Bool TDecTop::decode (Bool bEos, TComInputBitstream* pcBitstream, UInt& ruiPOC, TComList<TComPic*>*& rpcListPic, Int& iSkipFrame,  Int& iPOCLastDisplay)
 #else
-Void TDecTop::decode (Bool bEos, TComBitstream* pcBitstream, UInt& ruiPOC, TComList<TComPic*>*& rpcListPic)
+Void TDecTop::decode (Bool bEos, TComInputBitstream* pcBitstream, UInt& ruiPOC, TComList<TComPic*>*& rpcListPic)
 #endif
 {
   if (m_bFirstSliceInPicture)

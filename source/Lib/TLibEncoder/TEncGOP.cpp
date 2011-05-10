@@ -122,11 +122,11 @@ Void TEncGOP::init ( TEncTop* pcTEncTop )
 // Public member functions
 // ====================================================================================================================
 
-Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rcListPic, TComList<TComPicYuv*>& rcListPicYuvRecOut, TComList<TComBitstream*> rcListBitstreamOut )
+Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rcListPic, TComList<TComPicYuv*>& rcListPicYuvRecOut, TComList<TComOutputBitstream*> rcListBitstreamOut )
 {
   TComPic*        pcPic;
   TComPicYuv*     pcPicYuvRecOut;
-  TComBitstream*  pcBitstreamOut;
+  TComOutputBitstream*  pcBitstreamOut;
   TComSlice*      pcSlice;
   
   xInitGOP( iPOCLast, iNumPicRcvd, rcListPic, rcListPicYuvRecOut );
@@ -422,7 +422,7 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
        * allow SEI messages that are calculated after the picture has been
        * encoded to be sent before the picture.
        */
-      TComBitstream bs_SPS_PPS_SEI;
+      TComOutputBitstream bs_SPS_PPS_SEI;
       bs_SPS_PPS_SEI.create(512); /* TODO: this should dynamically resize */
       if ( m_bSeqFirst )
       {
@@ -653,7 +653,7 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
         calcMD5(*pcPic->getPicYuvRec(), sei_recon_picture_digest.digest);
         printf("[MD5:%s] ", digestToString(sei_recon_picture_digest.digest));
 
-        TComBitstream seiBs;
+        TComOutputBitstream seiBs;
         seiBs.create(1024);
         /* write the SEI messages */
         m_pcEntropyCoder->setEntropyCoder(m_pcCavlcCoder, pcSlice);
@@ -667,7 +667,7 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
 
         /* append the SEI message after any SPS/PPS */
         /* the following loop is a work around current limitations in
-         * TComBitstream that won't be fixed before HM-3.0 */
+         * TComOutputBitstream that won't be fixed before HM-3.0 */
         UChar *seiData = reinterpret_cast<UChar *>(seiBs.getStartStream());
         for (Int i = 0; i < seiBs.getNumberOfWrittenBits()/8; i++)
         {
@@ -810,12 +810,12 @@ Void TEncGOP::xInitGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rcLis
 
 Void TEncGOP::xGetBuffer( TComList<TComPic*>&       rcListPic,
                          TComList<TComPicYuv*>&    rcListPicYuvRecOut,
-                         TComList<TComBitstream*>& rcListBitstreamOut,
+                         TComList<TComOutputBitstream*>& rcListBitstreamOut,
                          Int                       iNumPicRcvd,
                          Int                       iTimeOffset,
                          TComPic*&                 rpcPic,
                          TComPicYuv*&              rpcPicYuvRecOut,
-                         TComBitstream*&           rpcBitstreamOut,
+                         TComOutputBitstream*&     rpcBitstreamOut,
                          UInt                      uiPOCCurr )
 {
   Int i;
@@ -829,7 +829,7 @@ Void TEncGOP::xGetBuffer( TComList<TComPic*>&       rcListPic,
   rpcPicYuvRecOut = *(iterPicYuvRec);
   
   //  Bitstream output
-  TComList<TComBitstream*>::iterator  iterBitstream = rcListBitstreamOut.begin();
+  TComList<TComOutputBitstream*>::iterator  iterBitstream = rcListBitstreamOut.begin();
   for ( i = 0; i < m_iNumPicCoded; i++ )
   {
     iterBitstream++;

@@ -106,7 +106,7 @@ public:
   // compress and encode slice
   Void    precompressSlice    ( TComPic*& rpcPic                                );      ///< precompress slice for multi-loop opt.
   Void    compressSlice       ( TComPic*& rpcPic                                );      ///< analysis stage of slice
-  Void    encodeSlice         ( TComPic*& rpcPic, TComBitstream*& rpcBitstream  );      ///< entropy coding of slice
+  Void    encodeSlice         ( TComPic*& rpcPic, TComOutputBitstream*& rpcBitstream  );      ///< entropy coding of slice
   
   // misc. functions
   Void    setSearchRange      ( TComSlice* pcSlice  );                                  ///< set ME range adaptively

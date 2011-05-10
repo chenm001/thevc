@@ -151,7 +151,7 @@ public:
   
   /// encode several number of pictures until end-of-sequence
   Void encode( bool bEos, TComPicYuv* pcPicYuvOrg, TComList<TComPicYuv*>& rcListPicYuvRecOut,
-              TComList<TComBitstream*>& rcListBitstreamOut, Int& iNumEncoded );
+              TComList<TComOutputBitstream*>& rcListBitstreamOut, Int& iNumEncoded );
   
 };
 

@@ -61,8 +61,8 @@ public:
   Void openBits   ( char* pchFile,  Bool bWriteMode );      ///< open or create file
   Void closeBits  ();                                       ///< close file
   
-  Bool readBits   ( TComBitstream*& rpcBitstream    );      ///< read  one packet from file
-  Void writeBits  ( TComBitstream*  pcBitstream     );      ///< write one packet to   file
+  Bool readBits   ( TComInputBitstream* rpcBitstream    );      ///< read  one packet from file
+  Void writeBits  ( TComOutputBitstream*  pcBitstream     );      ///< write one packet to   file
   
 };
 
@@ -81,8 +81,8 @@ public:
   Void openBits   ( char* pchFile,  Bool bWriteMode );      ///< open or create file
   Void closeBits  ();                                       ///< close file
   
-  Bool readBits   ( TComBitstream*& rpcBitstream    );      ///< read  one packet from file
-  Void writeBits  ( TComBitstream*  pcBitstream     );      ///< write one packet to   file
+  Bool readBits   ( TComInputBitstream* rpcBitstream    );      ///< read  one packet from file
+  Void writeBits  ( TComOutputBitstream*  pcBitstream     );      ///< write one packet to   file
   
   std::streampos   getFileLocation      ()                          { return m_cHandle.tellg();                           }
   Void             setFileLocation      (std::streampos uiLocation) { m_cHandle.seekg(uiLocation, std::ios_base::beg);    }

@@ -67,7 +67,7 @@ public:
   Void  uninit                    (              )    { m_pcTDecBinIf = 0; }
   
   Void  resetEntropy              ( TComSlice* pcSlice     );
-  Void  setBitstream              ( TComBitstream* p       ) { m_pcBitstream = p; m_pcTDecBinIf->init( p ); }
+  Void  setBitstream              ( TComInputBitstream* p  ) { m_pcBitstream = p; m_pcTDecBinIf->init( p ); }
   
   Void  setAlfCtrl                ( Bool bAlfCtrl          ) { m_bAlfCtrl = bAlfCtrl;                   }
   Void  setMaxAlfCtrlDepth        ( UInt uiMaxAlfCtrlDepth ) { m_uiMaxAlfCtrlDepth = uiMaxAlfCtrlDepth; }
@@ -109,7 +109,7 @@ private:
   Void  xReadExGolombMvd    ( UInt& ruiSymbol, ContextModel* pcSCModel, UInt uiMaxBin );
   
 private:
-  TComBitstream*    m_pcBitstream;
+  TComInputBitstream* m_pcBitstream;
   TDecBinIf*        m_pcTDecBinIf;
   
   Bool m_bAlfCtrl;

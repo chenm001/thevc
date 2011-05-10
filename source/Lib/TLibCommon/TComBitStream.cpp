@@ -60,23 +60,41 @@ static unsigned int xSwap ( unsigned int ui )
 // Constructor / destructor / create / destroy
 // ====================================================================================================================
 
-Void TComBitstream::create( UInt uiSizeInBytes )
+Void TComOutputBitstream::create( UInt uiSizeInBytes )
 {
   UInt uiSize = uiSizeInBytes / sizeof(UInt);
-  
+
   m_apulStreamPacketBegin = new UInt[uiSize];
   m_uiBufSize       = uiSize;
   m_iValidBits      = 32;
-  
+
   m_ulCurrentBits   = 0;
   m_uiBitsWritten   = 0;
-  
+
   m_pulStreamPacket = m_apulStreamPacketBegin;
   m_auiSliceByteLocation = NULL;
   m_uiSliceCount         = 0;
 }
 
-Void TComBitstream::destroy()
+Void TComOutputBitstream::destroy()
+{
+  delete [] m_apulStreamPacketBegin;     m_apulStreamPacketBegin = NULL;
+}
+
+Void TComInputBitstream::create( UInt uiSizeInBytes )
+{
+  UInt uiSize = uiSizeInBytes / sizeof(UInt);
+
+  m_apulStreamPacketBegin = new UInt[uiSize];
+  m_uiBufSize       = uiSize;
+  m_iValidBits      = 32;
+
+  m_ulCurrentBits   = 0;
+
+  m_pulStreamPacket = m_apulStreamPacketBegin;
+}
+
+Void TComInputBitstream::destroy()
 {
   delete [] m_apulStreamPacketBegin;     m_apulStreamPacketBegin = NULL;
 }
@@ -85,7 +103,7 @@ Void TComBitstream::destroy()
 // Public member functions
 // ====================================================================================================================
 
-Void TComBitstream::write   ( UInt uiBits, UInt uiNumberOfBits )
+Void TComOutputBitstream::write   ( UInt uiBits, UInt uiNumberOfBits )
 {
   assert( m_uiBufSize > 0 );
   assert( uiNumberOfBits <= 32 );
@@ -121,19 +139,19 @@ Void TComBitstream::write   ( UInt uiBits, UInt uiNumberOfBits )
   }
 }
 
-Void TComBitstream::writeAlignOne()
+Void TComOutputBitstream::writeAlignOne()
 {
   write( ( 1 << (m_iValidBits & 0x7) ) - 1, m_iValidBits & 0x7 );
   return;
 }
 
-Void TComBitstream::writeAlignZero()
+Void TComOutputBitstream::writeAlignZero()
 {
   write( 0, m_iValidBits & 0x7 );
   return;
 }
 
-Void  TComBitstream::flushBuffer()
+Void  TComOutputBitstream::flushBuffer()
 {
   if (m_iValidBits == 0)
     return;
@@ -145,7 +163,7 @@ Void  TComBitstream::flushBuffer()
   m_uiBitsWritten *= 8;
 }
 
-Void TComBitstream::initParsing ( UInt uiNumBytes )
+Void TComInputBitstream::initParsing ( UInt uiNumBytes )
 {
   m_ulCurrentBits     = 0xdeaddead;
   m_uiNextBits        = 0xdeaddead;
@@ -163,7 +181,7 @@ Void TComBitstream::initParsing ( UInt uiNumBytes )
 }
 
 #if LCEC_INTRA_MODE || QC_LCEC_INTER_MODE
-Void TComBitstream::pseudoRead ( UInt uiNumberOfBits, UInt& ruiBits )
+Void TComInputBitstream::pseudoRead ( UInt uiNumberOfBits, UInt& ruiBits )
 {
   UInt ui_right_shift;
 
@@ -209,7 +227,7 @@ Void TComBitstream::pseudoRead ( UInt uiNumberOfBits, UInt& ruiBits )
 #endif
 
 
-Void TComBitstream::read (UInt uiNumberOfBits, UInt& ruiBits)
+Void TComInputBitstream::read (UInt uiNumberOfBits, UInt& ruiBits)
 {
   UInt ui_right_shift;
   
@@ -264,7 +282,7 @@ Void TComBitstream::read (UInt uiNumberOfBits, UInt& ruiBits)
 // Protected member functions
 // ====================================================================================================================
 
-__inline Void TComBitstream::xReadNextWord()
+__inline Void TComInputBitstream::xReadNextWord()
 {
   m_ulCurrentBits = m_uiNextBits;
   m_iValidBits += 32;
@@ -294,7 +312,7 @@ __inline Void TComBitstream::xReadNextWord()
   }
 }
 
-Void TComBitstream::initParsingConvertPayloadToRBSP( const UInt uiBytesRead )
+Void TComInputBitstream::initParsingConvertPayloadToRBSP( const UInt uiBytesRead )
 {
   UInt uiZeroCount    = 0;
   UInt uiReadOffset   = 0;
@@ -335,7 +353,7 @@ Void TComBitstream::initParsingConvertPayloadToRBSP( const UInt uiBytesRead )
   initParsing( uiWriteOffset );
 }
 
-Void TComBitstream::convertRBSPToPayload( UInt uiStartPos )
+Void TComOutputBitstream::convertRBSPToPayload( UInt uiStartPos )
 {
   UInt uiZeroCount    = 0;
   
@@ -392,13 +410,13 @@ Void TComBitstream::convertRBSPToPayload( UInt uiStartPos )
   m_uiBitsWritten = uiWriteOffset << 3;
 }
 
-Void TComBitstream::allocateMemoryForSliceLocations ( UInt uiMaxNumOfSlices )
+Void TComOutputBitstream::allocateMemoryForSliceLocations ( UInt uiMaxNumOfSlices )
 {
   m_auiSliceByteLocation     = new UInt[ uiMaxNumOfSlices ];
   m_uiSliceCount             = 0;
 }
 
-Void TComBitstream::freeMemoryAllocatedForSliceLocations ()
+Void TComOutputBitstream::freeMemoryAllocatedForSliceLocations ()
 {
   if (m_auiSliceByteLocation!=NULL)
   {
@@ -414,10 +432,10 @@ Void TComBitstream::freeMemoryAllocatedForSliceLocations ()
  *
  * NB, there is currently a restriction that src_bytes must be a
  * multiple of sizeof(UInt) if @this->write(...) is going to be called
- * again.  This restriction will be removed when TComBitstream is refactored
- * to work on bytes.
+ * again.  This restriction will be removed when TComOutputBitstream is
+ * refactored to work on bytes.
  */
-void TComBitstream::insertAt(const TComBitstream& src, unsigned pos)
+void TComOutputBitstream::insertAt(const TComOutputBitstream& src, unsigned pos)
 {
   unsigned src_bits = src.getNumberOfWrittenBits();
   assert(0 == src_bits % 8);

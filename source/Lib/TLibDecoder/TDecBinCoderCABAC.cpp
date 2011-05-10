@@ -48,7 +48,7 @@ TDecBinCABAC::~TDecBinCABAC()
 }
 
 Void
-TDecBinCABAC::init( TComBitstream* pcTComBitstream )
+TDecBinCABAC::init( TComInputBitstream* pcTComBitstream )
 {
   m_pcTComBitstream = pcTComBitstream;
 }

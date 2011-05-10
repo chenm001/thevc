@@ -89,7 +89,7 @@ Void TVideoIOBits::closeBits()
  \param  rpcBitstream    bitstream class pointer
  \retval                 true if EOF is reached
  */
-Bool TVideoIOBits::readBits( TComBitstream*& rpcBitstream )
+Bool TVideoIOBits::readBits( TComInputBitstream* rpcBitstream )
 {
   UInt  uiBytes = 0;
   
@@ -117,7 +117,7 @@ Bool TVideoIOBits::readBits( TComBitstream*& rpcBitstream )
 
 /** \param  pcBitstream   bitstream class pointer
  */
-Void TVideoIOBits::writeBits( TComBitstream* pcBitstream )
+Void TVideoIOBits::writeBits( TComOutputBitstream* pcBitstream )
 {
   UInt*  plBuff  = pcBitstream->getStartStream();
   UInt   uiBytes = pcBitstream->getNumberOfWrittenBits() >> 3;
@@ -166,7 +166,7 @@ Void TVideoIOBitsStartCode::closeBits()
  \param  rpcBitstream    bitstream class pointer
  \retval                 true if EOF is reached
  */
-Bool TVideoIOBitsStartCode::readBits( TComBitstream*& rpcBitstream )
+Bool TVideoIOBitsStartCode::readBits( TComInputBitstream* rpcBitstream )
 {
   rpcBitstream->rewindStreamPacket();
   
@@ -239,7 +239,7 @@ int TVideoIOBitsStartCode::xFindNextStartCode(UInt& ruiPacketSize, UChar* pucBuf
 /**
  \param  pcBitstream   bitstream class pointer
  */
-Void TVideoIOBitsStartCode::writeBits( TComBitstream* pcBitstream )
+Void TVideoIOBitsStartCode::writeBits( TComOutputBitstream* pcBitstream )
 {
   UInt*  plBuff  = pcBitstream->getStartStream();
   UInt   uiBytes = pcBitstream->getNumberOfWrittenBits() >> 3;

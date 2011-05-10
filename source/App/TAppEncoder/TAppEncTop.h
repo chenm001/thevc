@@ -59,7 +59,7 @@ private:
   TVideoIOBitsStartCode      m_cTVideoIOBitsFile;           ///< output bitstream file
   
   TComList<TComPicYuv*>      m_cListPicYuvRec;              ///< list of reconstruction YUV files
-  TComList<TComBitstream*>   m_cListBitstream;              ///< list of bitstreams
+  TComList<TComOutputBitstream*> m_cListBitstream;          ///< list of bitstreams
   
   Int                        m_iFrameRcvd;                  ///< number of received frames
   
@@ -72,7 +72,7 @@ protected:
   
   /// obtain required buffers
   Void  xGetBuffer        ( TComPicYuv*& rpcPicYuvRec,
-                           TComBitstream*& rpcBitStream );
+                           TComOutputBitstream*& rpcBitStream );
   
   /// delete allocated buffers
   Void  xDeleteBuffer     ();

@@ -64,8 +64,11 @@ public:
   virtual ~TComBitIf() {}
 };
 
-/// class for handling bitstream
-class TComBitstream : public TComBitIf
+/**
+ * Model of a writable bitstream that accumulates bits to produce a
+ * bytestream.
+ */
+class TComOutputBitstream : public TComBitIf
 {
 protected:
   UInt*       m_apulStreamPacketBegin;
@@ -77,20 +80,10 @@ protected:
   UInt        m_ulCurrentBits;
   UInt        m_uiBitsWritten;
   
-  UInt        m_uiDWordsLeft;
-  UInt        m_uiBitsLeft;
-  UInt        m_uiNextBits;
-  
   UInt        *m_auiSliceByteLocation, m_uiSliceCount;  // used to skip over slice start codes in initParsingConvertPayloadToRBSP()
   UInt        m_uiSliceProcessed;
   
-  // read one word
-  __inline Void xReadNextWord ();
-  
 public:
-  TComBitstream()             {}
-  virtual ~TComBitstream()    {}
-  
   // create / destroy
   Void        create          ( UInt uiSizeInBytes );
   Void        destroy         ();
@@ -100,13 +93,6 @@ public:
   Void        writeAlignOne   ();
   Void        writeAlignZero  ();
   Void        convertRBSPToPayload( UInt uiStartPos = 0);
-  // interface for decoding
-  Void        initParsingConvertPayloadToRBSP( const UInt uiBytesRead );
-  Void        initParsing     ( UInt uiNumBytes );
-#if LCEC_INTRA_MODE || QC_LCEC_INTER_MODE
-  Void        pseudoRead      ( UInt uiNumberOfBits, UInt& ruiBits );
-#endif
-  Void        read            ( UInt uiNumberOfBits, UInt& ruiBits );
   UInt        getSliceProcessed                ()       { return m_uiSliceProcessed;                }
   Void        setSliceProcessed                (UInt u) { m_uiSliceProcessed                = u;    }
   
@@ -120,6 +106,59 @@ public:
   Void        allocateMemoryForSliceLocations       ( UInt uiMaxNumOfSlices );
   Void        freeMemoryAllocatedForSliceLocations  ();
 
+  // reset internal status
+  Void        resetBits       ()
+  {
+    m_iValidBits = 32;
+    m_ulCurrentBits = 0;
+    m_uiBitsWritten = 0;
+  }
+
+  // utility functions
+  UInt* getStartStream() const { return m_apulStreamPacketBegin; }
+  Int         getBitsUntilByteAligned() { return m_iValidBits & (0x7);                  }
+  UInt getNumberOfWrittenBits() const { return  m_uiBitsWritten; }
+  Void        flushBuffer();
+  Void        rewindStreamPacket()      { m_pulStreamPacket = m_apulStreamPacketBegin;  }
+
+  void insertAt(const TComOutputBitstream& src, unsigned pos);
+};
+
+/**
+ * Model of an input bitstream that extracts bits from a predefined
+ * bytestream.
+ */
+class TComInputBitstream
+{
+protected:
+  UInt*       m_apulStreamPacketBegin;
+  UInt*       m_pulStreamPacket;
+  UInt        m_uiBufSize;
+
+  Int         m_iValidBits;
+
+  UInt        m_ulCurrentBits;
+
+  UInt        m_uiDWordsLeft;
+  UInt        m_uiBitsLeft;
+  UInt        m_uiNextBits;
+
+  // read one word
+  __inline Void xReadNextWord ();
+
+public:
+  // create / destroy
+  Void        create          ( UInt uiSizeInBytes );
+  Void        destroy         ();
+
+  // interface for decoding
+  Void        initParsingConvertPayloadToRBSP( const UInt uiBytesRead );
+  Void        initParsing     ( UInt uiNumBytes );
+#if LCEC_INTRA_MODE || QC_LCEC_INTER_MODE
+  Void        pseudoRead      ( UInt uiNumberOfBits, UInt& ruiBits );
+#endif
+  Void        read            ( UInt uiNumberOfBits, UInt& ruiBits );
+
   // Peek at bits in word-storage. Used in determining if we have completed reading of current bitstream and therefore slice in LCEC.
   UInt        peekBits (UInt uiBits) { return( m_ulCurrentBits >> (32 - uiBits));  }
 
@@ -128,22 +167,16 @@ public:
   {
     m_iValidBits = 32;
     m_ulCurrentBits = 0;
-    m_uiBitsWritten = 0;
   }
-  
+
   // utility functions
   unsigned read(unsigned numberOfBits) { UInt tmp; read(numberOfBits, tmp); return tmp; }
   UInt* getStartStream() const { return m_apulStreamPacketBegin; }
   UInt*       getBuffer()               { return  m_pulStreamPacket;                    }
   Int         getBitsUntilByteAligned() { return m_iValidBits & (0x7);                  }
   Void        setModeSbac()             { m_uiBitsLeft = 8*((m_uiBitsLeft+7)/8);        } // stop bit + trailing stuffing bits
-  Bool        isWordAligned()           { return  (0 == (m_iValidBits & (0x1f)));       }
-  UInt getNumberOfWrittenBits() const { return  m_uiBitsWritten; }
-  Void        flushBuffer();
   Void        rewindStreamPacket()      { m_pulStreamPacket = m_apulStreamPacketBegin;  }
   UInt        getBitsLeft()             { return  m_uiBitsLeft;                         }
-
-  void insertAt(const TComBitstream& src, unsigned pos);
 };
 
 #endif

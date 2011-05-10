@@ -652,7 +652,7 @@ Void TEncSlice::compressSlice( TComPic*& rpcPic )
  \param  rpcPic        picture class
  \retval rpcBitstream  bitstream class
  */
-Void TEncSlice::encodeSlice   ( TComPic*& rpcPic, TComBitstream*& rpcBitstream )
+Void TEncSlice::encodeSlice   ( TComPic*& rpcPic, TComOutputBitstream*& rpcBitstream )
 {
   UInt       uiCUAddr;
   UInt       uiStartCUAddr;

@@ -60,7 +60,7 @@ class TAppDecTop : public TAppDecCfg
 private:
   // class interface
   TDecTop                         m_cTDecTop;                     ///< decoder class
-  TComBitstream*                  m_apcBitstream;                 ///< bitstream class
+  TComInputBitstream*             m_apcBitstream;                 ///< bitstream class
   TVideoIOBitsStartCode           m_cTVideoIOBitstreamFile;       ///< file I/O class
   TVideoIOYuv                     m_cTVideoIOYuvReconFile;        ///< reconstruction YUV class
   
