@@ -101,8 +101,6 @@
 		6767964311AD628100421804 /* TEncSlice.h in Headers */ = {isa = PBXBuildFile; fileRef = 6767962E11AD628100421804 /* TEncSlice.h */; };
 		6767964411AD628100421804 /* TEncTop.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6767962F11AD628100421804 /* TEncTop.cpp */; };
 		6767964511AD628100421804 /* TEncTop.h in Headers */ = {isa = PBXBuildFile; fileRef = 6767963011AD628100421804 /* TEncTop.h */; };
-		6767965411AD62AC00421804 /* TVideoIOBits.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6767965011AD62AC00421804 /* TVideoIOBits.cpp */; };
-		6767965511AD62AC00421804 /* TVideoIOBits.h in Headers */ = {isa = PBXBuildFile; fileRef = 6767965111AD62AC00421804 /* TVideoIOBits.h */; };
 		6767965611AD62AC00421804 /* TVideoIOYuv.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6767965211AD62AC00421804 /* TVideoIOYuv.cpp */; };
 		6767965711AD62AC00421804 /* TVideoIOYuv.h in Headers */ = {isa = PBXBuildFile; fileRef = 6767965311AD62AC00421804 /* TVideoIOYuv.h */; };
 		6767967711AD66FD00421804 /* encmain.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6767967011AD66FD00421804 /* encmain.cpp */; };
@@ -118,6 +116,15 @@
 		7104E1E012005B0E00F42AA8 /* program_options_lite.h in Headers */ = {isa = PBXBuildFile; fileRef = 7104E1DE12005B0E00F42AA8 /* program_options_lite.h */; };
 		7104E1E312005B5600F42AA8 /* libTAppCommon.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 7104E1CD12005ABA00F42AA8 /* libTAppCommon.a */; };
 		710DD68B1335295200BE8EDE /* libTAppCommon.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 7104E1CD12005ABA00F42AA8 /* libTAppCommon.a */; };
+		712FAEAA1379BA2F00DB5314 /* AccessUnit.h in Headers */ = {isa = PBXBuildFile; fileRef = 712FAEA81379BA2F00DB5314 /* AccessUnit.h */; };
+		712FAEAB1379BA2F00DB5314 /* NAL.h in Headers */ = {isa = PBXBuildFile; fileRef = 712FAEA91379BA2F00DB5314 /* NAL.h */; };
+		712FAEAF1379BA4900DB5314 /* AnnexBwrite.h in Headers */ = {isa = PBXBuildFile; fileRef = 712FAEAC1379BA4900DB5314 /* AnnexBwrite.h */; };
+		712FAEB01379BA4900DB5314 /* NALwrite.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 712FAEAD1379BA4900DB5314 /* NALwrite.cpp */; };
+		712FAEB11379BA4900DB5314 /* NALwrite.h in Headers */ = {isa = PBXBuildFile; fileRef = 712FAEAE1379BA4900DB5314 /* NALwrite.h */; };
+		712FAEB61379BA6600DB5314 /* AnnexBread.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 712FAEB21379BA6600DB5314 /* AnnexBread.cpp */; };
+		712FAEB71379BA6600DB5314 /* AnnexBread.h in Headers */ = {isa = PBXBuildFile; fileRef = 712FAEB31379BA6600DB5314 /* AnnexBread.h */; };
+		712FAEB81379BA6600DB5314 /* NALread.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 712FAEB41379BA6600DB5314 /* NALread.cpp */; };
+		712FAEB91379BA6600DB5314 /* NALread.h in Headers */ = {isa = PBXBuildFile; fileRef = 712FAEB51379BA6600DB5314 /* NALread.h */; };
 		71AD603911EBC28500F5F1FE /* libTLibCommon.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 6767959411AD61BB00421804 /* libTLibCommon.a */; };
 		71AD603A11EBC28D00F5F1FE /* libTLibEncoder.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 6767961911AD626F00421804 /* libTLibEncoder.a */; };
 		71AD603B11EBC29600F5F1FE /* libTLibVideoIO.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 6767964B11AD629200421804 /* libTLibVideoIO.a */; };
@@ -281,8 +288,6 @@
 		6767962F11AD628100421804 /* TEncTop.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = TEncTop.cpp; path = source/Lib/TLibEncoder/TEncTop.cpp; sourceTree = "<group>"; };
 		6767963011AD628100421804 /* TEncTop.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TEncTop.h; path = source/Lib/TLibEncoder/TEncTop.h; sourceTree = "<group>"; };
 		6767964B11AD629200421804 /* libTLibVideoIO.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libTLibVideoIO.a; sourceTree = BUILT_PRODUCTS_DIR; };
-		6767965011AD62AC00421804 /* TVideoIOBits.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = TVideoIOBits.cpp; path = source/Lib/TLibVideoIO/TVideoIOBits.cpp; sourceTree = "<group>"; };
-		6767965111AD62AC00421804 /* TVideoIOBits.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TVideoIOBits.h; path = source/Lib/TLibVideoIO/TVideoIOBits.h; sourceTree = "<group>"; };
 		6767965211AD62AC00421804 /* TVideoIOYuv.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = TVideoIOYuv.cpp; path = source/Lib/TLibVideoIO/TVideoIOYuv.cpp; sourceTree = "<group>"; };
 		6767965311AD62AC00421804 /* TVideoIOYuv.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TVideoIOYuv.h; path = source/Lib/TLibVideoIO/TVideoIOYuv.h; sourceTree = "<group>"; };
 		6767966A11AD635600421804 /* TAppEncoder */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = TAppEncoder; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -300,6 +305,15 @@
 		7104E1CD12005ABA00F42AA8 /* libTAppCommon.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libTAppCommon.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		7104E1DD12005B0E00F42AA8 /* program_options_lite.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = program_options_lite.cpp; path = source/App/TAppCommon/program_options_lite.cpp; sourceTree = "<group>"; };
 		7104E1DE12005B0E00F42AA8 /* program_options_lite.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = program_options_lite.h; path = source/App/TAppCommon/program_options_lite.h; sourceTree = "<group>"; };
+		712FAEA81379BA2F00DB5314 /* AccessUnit.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AccessUnit.h; path = source/Lib/TLibCommon/AccessUnit.h; sourceTree = "<group>"; };
+		712FAEA91379BA2F00DB5314 /* NAL.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = NAL.h; path = source/Lib/TLibCommon/NAL.h; sourceTree = "<group>"; };
+		712FAEAC1379BA4900DB5314 /* AnnexBwrite.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AnnexBwrite.h; path = source/Lib/TLibEncoder/AnnexBwrite.h; sourceTree = "<group>"; };
+		712FAEAD1379BA4900DB5314 /* NALwrite.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = NALwrite.cpp; path = source/Lib/TLibEncoder/NALwrite.cpp; sourceTree = "<group>"; };
+		712FAEAE1379BA4900DB5314 /* NALwrite.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = NALwrite.h; path = source/Lib/TLibEncoder/NALwrite.h; sourceTree = "<group>"; };
+		712FAEB21379BA6600DB5314 /* AnnexBread.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = AnnexBread.cpp; path = source/Lib/TLibDecoder/AnnexBread.cpp; sourceTree = "<group>"; };
+		712FAEB31379BA6600DB5314 /* AnnexBread.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AnnexBread.h; path = source/Lib/TLibDecoder/AnnexBread.h; sourceTree = "<group>"; };
+		712FAEB41379BA6600DB5314 /* NALread.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = NALread.cpp; path = source/Lib/TLibDecoder/NALread.cpp; sourceTree = "<group>"; };
+		712FAEB51379BA6600DB5314 /* NALread.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = NALread.h; path = source/Lib/TLibDecoder/NALread.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -404,6 +418,8 @@
 		6767959711AD61D700421804 /* TLibCommon */ = {
 			isa = PBXGroup;
 			children = (
+				712FAEA81379BA2F00DB5314 /* AccessUnit.h */,
+				712FAEA91379BA2F00DB5314 /* NAL.h */,
 				65EA1B85135744C400988950 /* libmd5.h */,
 				65EA1B86135744C400988950 /* libmd5.c */,
 				65EA1B87135744C400988950 /* MD5.h */,
@@ -462,6 +478,10 @@
 		676795EF11AD620B00421804 /* TLibDecoder */ = {
 			isa = PBXGroup;
 			children = (
+				712FAEB21379BA6600DB5314 /* AnnexBread.cpp */,
+				712FAEB31379BA6600DB5314 /* AnnexBread.h */,
+				712FAEB41379BA6600DB5314 /* NALread.cpp */,
+				712FAEB51379BA6600DB5314 /* NALread.h */,
 				65EA1B8C135744EA00988950 /* SEIread.h */,
 				65EA1B8D135744EA00988950 /* SEIread.cpp */,
 				671E0D5611B6ADD300F3747B /* TDecBinCoder.h */,
@@ -488,6 +508,9 @@
 		6767961411AD624B00421804 /* TLibEncoder */ = {
 			isa = PBXGroup;
 			children = (
+				712FAEAC1379BA4900DB5314 /* AnnexBwrite.h */,
+				712FAEAD1379BA4900DB5314 /* NALwrite.cpp */,
+				712FAEAE1379BA4900DB5314 /* NALwrite.h */,
 				671E0D7211B6ADE900F3747B /* TEncBinCoder.h */,
 				671E0D7311B6ADE900F3747B /* TEncBinCoderCABAC.cpp */,
 				671E0D7411B6ADE900F3747B /* TEncBinCoderCABAC.h */,
@@ -519,8 +542,6 @@
 		6767964E11AD629700421804 /* TLibVideoIO */ = {
 			isa = PBXGroup;
 			children = (
-				6767965011AD62AC00421804 /* TVideoIOBits.cpp */,
-				6767965111AD62AC00421804 /* TVideoIOBits.h */,
 				6767965211AD62AC00421804 /* TVideoIOYuv.cpp */,
 				6767965311AD62AC00421804 /* TVideoIOYuv.h */,
 			);
@@ -602,6 +623,8 @@
 				65EA1B88135744C400988950 /* libmd5.h in Headers */,
 				65EA1B8A135744C400988950 /* MD5.h in Headers */,
 				65EA1B951357451300988950 /* SEI.h in Headers */,
+				712FAEAA1379BA2F00DB5314 /* AccessUnit.h in Headers */,
+				712FAEAB1379BA2F00DB5314 /* NAL.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -619,6 +642,8 @@
 				671E0D6411B6ADD300F3747B /* TDecBinCoder.h in Headers */,
 				671E0D6611B6ADD300F3747B /* TDecBinCoderCABAC.h in Headers */,
 				65EA1B8E135744EA00988950 /* SEIread.h in Headers */,
+				712FAEB71379BA6600DB5314 /* AnnexBread.h in Headers */,
+				712FAEB91379BA6600DB5314 /* NALread.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -640,6 +665,8 @@
 				671E0D8011B6ADE900F3747B /* TEncBinCoder.h in Headers */,
 				671E0D8211B6ADE900F3747B /* TEncBinCoderCABAC.h in Headers */,
 				65EA1B92135744FE00988950 /* SEIwrite.h in Headers */,
+				712FAEAF1379BA4900DB5314 /* AnnexBwrite.h in Headers */,
+				712FAEB11379BA4900DB5314 /* NALwrite.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -647,7 +674,6 @@
 			isa = PBXHeadersBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				6767965511AD62AC00421804 /* TVideoIOBits.h in Headers */,
 				6767965711AD62AC00421804 /* TVideoIOYuv.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -863,6 +889,8 @@
 				6767961211AD623900421804 /* TDecTop.cpp in Sources */,
 				671E0D6511B6ADD300F3747B /* TDecBinCoderCABAC.cpp in Sources */,
 				65EA1B8F135744EA00988950 /* SEIread.cpp in Sources */,
+				712FAEB61379BA6600DB5314 /* AnnexBread.cpp in Sources */,
+				712FAEB81379BA6600DB5314 /* NALread.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -882,6 +910,7 @@
 				6767964411AD628100421804 /* TEncTop.cpp in Sources */,
 				671E0D8111B6ADE900F3747B /* TEncBinCoderCABAC.cpp in Sources */,
 				65EA1B93135744FE00988950 /* SEIwrite.cpp in Sources */,
+				712FAEB01379BA4900DB5314 /* NALwrite.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -889,7 +918,6 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				6767965411AD62AC00421804 /* TVideoIOBits.cpp in Sources */,
 				6767965611AD62AC00421804 /* TVideoIOYuv.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

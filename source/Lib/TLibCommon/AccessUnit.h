@@ -33,7 +33,23 @@
 
 #pragma once
 
-class TComInputBitstream;
-class SEImessages;
+#include <list>
+#include "NAL.h"
 
-void parseSEImessage(TComInputBitstream& bs, SEImessages& seis);
+/**
+ * An AccessUnit is a list of one or more NAL units, according to the
+ * working draft.  All NAL units within the object belong to the same
+ * access unit.
+ *
+ * Care should be taken when copying an AccessUnit, not to call the
+ * destructor twice.
+ */
+class AccessUnit : public std::list<NALUnit*>
+{
+public:
+  ~AccessUnit()
+  {
+    for (iterator it = begin(); it != end(); it++)
+      delete *it;
+  }
+};

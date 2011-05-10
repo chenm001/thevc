@@ -69,6 +69,9 @@ private:
   UInt        m_uiQuadtreeTULog2MinSize;
   UInt        m_uiQuadtreeTUMaxDepthInter;
   UInt        m_uiQuadtreeTUMaxDepthIntra;
+#if E057_INTRA_PCM
+  UInt        m_uiPCMLog2MinSize;
+#endif
   Bool        m_bUseALF;
   Bool        m_bUseDQP;
   Bool        m_bUseLDC;
@@ -91,7 +94,7 @@ private:
   AMVP_MODE   m_aeAMVPMode[MAX_CU_DEPTH];
   UInt        m_uiBitDepth;
   UInt        m_uiBitIncrement;
-  
+
   // Max physical transform size
   UInt        m_uiMaxTrSize;
   
@@ -121,6 +124,10 @@ public:
   UInt getMaxCUHeight ()         { return  m_uiMaxCUHeight; }
   Void setMaxCUDepth  ( UInt u ) { m_uiMaxCUDepth = u;      }
   UInt getMaxCUDepth  ()         { return  m_uiMaxCUDepth;  }
+#if E057_INTRA_PCM
+  Void setPCMLog2MinSize  ( UInt u ) { m_uiPCMLog2MinSize = u;      }
+  UInt getPCMLog2MinSize  ()         { return  m_uiPCMLog2MinSize;  }
+#endif
   Void setMinTrDepth  ( UInt u ) { m_uiMinTrDepth = u;      }
   UInt getMinTrDepth  ()         { return  m_uiMinTrDepth;  }
   Void setMaxTrDepth  ( UInt u ) { m_uiMaxTrDepth = u;      }
@@ -210,6 +217,13 @@ private:
   Bool        m_bConstrainedIntraPred;    //  constrained_intra_pred_flag
 #endif
  
+#if SUB_LCU_DQP
+  // access channel
+  TComSPS*    m_pcSPS;
+  UInt        m_uiMaxCuDQPDepth;
+  UInt        m_uiMinCuDQPSize;
+#endif
+
   UInt        m_uiNumTlayerSwitchingFlags;            // num_temporal_layer_switching_point_flags
   Bool        m_abTLayerSwitchingFlag[ MAX_TLAYER ];  // temporal_layer_switching_point_flag
 
@@ -227,6 +241,15 @@ public:
 
   Bool      getTLayerSwitchingFlag( UInt uiTLayer )                       { assert( uiTLayer < MAX_TLAYER ); return m_abTLayerSwitchingFlag[ uiTLayer ]; }
   Void      setTLayerSwitchingFlag( UInt uiTLayer, Bool bValue )          { m_abTLayerSwitchingFlag[ uiTLayer ] = bValue; }
+
+#if SUB_LCU_DQP
+  Void      setSPS              ( TComSPS* pcSPS ) { m_pcSPS = pcSPS; }
+  TComSPS*  getSPS              ()         { return m_pcSPS;          }
+  Void      setMaxCuDQPDepth    ( UInt u ) { m_uiMaxCuDQPDepth = u;   }
+  UInt      getMaxCuDQPDepth    ()         { return m_uiMaxCuDQPDepth;}
+  Void      setMinCuDQPSize     ( UInt u ) { m_uiMinCuDQPSize = u;    }
+  UInt      getMinCuDQPSize     ()         { return m_uiMinCuDQPSize; }
+#endif
 };
 
 /// slice header class

@@ -35,13 +35,13 @@
 #include "../TLibCommon/SEI.h"
 #include "SEIread.h"
 
-static void parseSEIuserDataUnregistered(TComBitstream& bs, SEIuserDataUnregistered &sei, unsigned payloadSize);
-static void parseSEIpictureDigest(TComBitstream& bs, SEIpictureDigest& sei, unsigned payloadSize);
+static void parseSEIuserDataUnregistered(TComInputBitstream& bs, SEIuserDataUnregistered &sei, unsigned payloadSize);
+static void parseSEIpictureDigest(TComInputBitstream& bs, SEIpictureDigest& sei, unsigned payloadSize);
 
 /**
  * unmarshal a single SEI message from bitstream @bs
  */
-void parseSEImessage(TComBitstream& bs, SEImessages& seis)
+void parseSEImessage(TComInputBitstream& bs, SEImessages& seis)
 {
   unsigned payloadType = 0;
   for (unsigned char byte = 0xff; 0xff == byte; )
@@ -74,7 +74,7 @@ void parseSEImessage(TComBitstream& bs, SEImessages& seis)
  * parse bitstream @bs and unpack a user_data_unregistered SEI message
  * of @payloasSize bytes into @sei.
  */
-static void parseSEIuserDataUnregistered(TComBitstream& bs, SEIuserDataUnregistered &sei, unsigned payloadSize)
+static void parseSEIuserDataUnregistered(TComInputBitstream& bs, SEIuserDataUnregistered &sei, unsigned payloadSize)
 {
   assert(payloadSize >= 16);
   for (unsigned i = 0; i < 16; i++)
@@ -100,7 +100,7 @@ static void parseSEIuserDataUnregistered(TComBitstream& bs, SEIuserDataUnregiste
  * parse bitstream @bs and unpack a picture_digest SEI message
  * of @payloadSize bytes into @sei.
  */
-static void parseSEIpictureDigest(TComBitstream& bs, SEIpictureDigest& sei, unsigned payloadSize)
+static void parseSEIpictureDigest(TComInputBitstream& bs, SEIpictureDigest& sei, unsigned payloadSize)
 {
   assert(payloadSize >= 17);
   sei.method = static_cast<SEIpictureDigest::Method>(bs.read(8));

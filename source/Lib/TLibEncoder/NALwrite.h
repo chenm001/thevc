@@ -33,7 +33,41 @@
 
 #pragma once
 
-class TComInputBitstream;
-class SEImessages;
+#include <ostream>
 
-void parseSEImessage(TComInputBitstream& bs, SEImessages& seis);
+#include "../TLibCommon/TypeDef.h"
+#include "../TLibCommon/TComBitStream.h"
+#include "../TLibCommon/NAL.h"
+
+/**
+ * A convenience wrapper to NALUnit that also provides a
+ * bitstream object.
+ */
+struct OutputNALUnit : public NALUnit
+{
+  /**
+   * construct an OutputNALunit structure with given header values and
+   * storage for a bitstream.  Upon construction the NALunit header is
+   * written to the bitstream.
+   */
+  OutputNALUnit(
+    NalUnitType nalUnitType,
+    NalRefIdc nalRefIDC,
+    unsigned temporalID = 0,
+    bool outputFlag = true)
+  : m_Bitstream()
+  {
+    m_UnitType = nalUnitType;
+    m_RefIDC = nalRefIDC;
+    m_RefIDC = nalRefIDC;
+    m_TemporalID = temporalID;
+    m_OutputFlag = outputFlag;
+    m_RBSPayload = &m_Bitstream.getFIFO();
+  }
+
+  TComOutputBitstream m_Bitstream;
+};
+
+
+void write(std::ostream& out, const NALUnit& nalu);
+void writeRBSPTrailingBits(TComOutputBitstream& bs);

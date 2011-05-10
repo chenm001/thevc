@@ -395,6 +395,95 @@ Void TDecSbac::xReadExGolombLevel( UInt& ruiSymbol, ContextModel& rcSCModel  )
 }
 #endif
 
+
+#if E057_INTRA_PCM
+/** Parse I_PCM information. 
+ * \param pcCU
+ * \param uiAbsPartIdx 
+ * \param uiDepth
+ * \returns Void
+ *
+ * If I_PCM flag indicates that the CU is I_PCM, parse its PCM alignment bits and codes. 
+ */
+Void TDecSbac::parseIPCMInfo ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
+{
+  UInt uiSymbol;
+
+  m_pcTDecBinIf->decodeBinTrm(uiSymbol);
+
+  if (uiSymbol)
+  {
+    Bool bIpcmFlag = true;
+
+    m_pcTDecBinIf->decodePCMAlignBits();
+
+    pcCU->setPartSizeSubParts  ( SIZE_2Nx2N, uiAbsPartIdx, uiDepth );
+    pcCU->setSizeSubParts      ( g_uiMaxCUWidth>>uiDepth, g_uiMaxCUHeight>>uiDepth, uiAbsPartIdx, uiDepth );
+    pcCU->setIPCMFlagSubParts  ( bIpcmFlag, uiAbsPartIdx, uiDepth );
+
+    UInt uiMinCoeffSize = pcCU->getPic()->getMinCUWidth()*pcCU->getPic()->getMinCUHeight();
+    UInt uiLumaOffset   = uiMinCoeffSize*uiAbsPartIdx;
+    UInt uiChromaOffset = uiLumaOffset>>2;
+
+    Pel* piPCMSample;
+    UInt uiWidth;
+    UInt uiHeight;
+    UInt uiSampleBits;
+    UInt uiX, uiY;
+
+    piPCMSample = pcCU->getPCMSampleY() + uiLumaOffset;
+    uiWidth = pcCU->getWidth(uiAbsPartIdx);
+    uiHeight = pcCU->getHeight(uiAbsPartIdx);
+    uiSampleBits = g_uiBitDepth;
+
+    for(uiY = 0; uiY < uiHeight; uiY++)
+    {
+      for(uiX = 0; uiX < uiWidth; uiX++)
+      {
+        UInt uiSample;
+        m_pcTDecBinIf->xReadPCMCode(uiSampleBits, uiSample);
+        piPCMSample[uiX] = uiSample;
+      }
+      piPCMSample += uiWidth;
+    }
+
+    piPCMSample = pcCU->getPCMSampleCb() + uiChromaOffset;
+    uiWidth = pcCU->getWidth(uiAbsPartIdx)/2;
+    uiHeight = pcCU->getHeight(uiAbsPartIdx)/2;
+    uiSampleBits = g_uiBitDepth;
+
+    for(uiY = 0; uiY < uiHeight; uiY++)
+    {
+      for(uiX = 0; uiX < uiWidth; uiX++)
+      {
+        UInt uiSample;
+        m_pcTDecBinIf->xReadPCMCode(uiSampleBits, uiSample);
+        piPCMSample[uiX] = uiSample;
+      }
+      piPCMSample += uiWidth;
+    }
+
+    piPCMSample = pcCU->getPCMSampleCr() + uiChromaOffset;
+    uiWidth = pcCU->getWidth(uiAbsPartIdx)/2;
+    uiHeight = pcCU->getHeight(uiAbsPartIdx)/2;
+    uiSampleBits = g_uiBitDepth;
+
+    for(uiY = 0; uiY < uiHeight; uiY++)
+    {
+      for(uiX = 0; uiX < uiWidth; uiX++)
+      {
+        UInt uiSample;
+        m_pcTDecBinIf->xReadPCMCode(uiSampleBits, uiSample);
+        piPCMSample[uiX] = uiSample;
+      }
+      piPCMSample += uiWidth;
+    }
+
+    m_pcTDecBinIf->resetBac();
+  }
+}
+#endif
+
 Void TDecSbac::parseAlfCtrlDepth( UInt& ruiAlfCtrlDepth )
 {
   UInt uiSymbol;
@@ -1199,7 +1288,11 @@ Void TDecSbac::parseDeltaQP( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
   
   if ( uiDQp == 0 )
   {
+#if SUB_LCU_DQP
+    uiDQp = pcCU->getRefQP(uiAbsPartIdx);
+#else
     uiDQp = pcCU->getSlice()->getSliceQp();
+#endif
   }
   else
   {
@@ -1210,7 +1303,11 @@ Void TDecSbac::parseDeltaQP( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
     {
       iDQp = -iDQp;
     }
+#if SUB_LCU_DQP
+    uiDQp = pcCU->getRefQP(uiAbsPartIdx) + iDQp;
+#else
     uiDQp = pcCU->getSlice()->getSliceQp() + iDQp;
+#endif
   }
   
   pcCU->setQPSubParts( uiDQp, uiAbsPartIdx, uiDepth );

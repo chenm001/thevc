@@ -96,7 +96,9 @@ protected:
 #endif
 
 #if LM_CHROMA
+#if !LM_CHROMA_TICKET156
   Void xGetRecPixels     ( TComPattern* pcPattern, Pel* pRecSrc, Int iRecSrcStride, Pel* pDst0, Int iDstStride, UInt uiWidth0, UInt uiHeight0 );   
+#endif
   Void xGetLLSPrediction ( TComPattern* pcPattern, Int* pSrc0, Int iSrcStride, Pel* pDst0, Int iDstStride, UInt uiWidth, UInt uiHeight, UInt uiExt0 );
 #endif
 
@@ -128,6 +130,9 @@ public:
 
 #if LM_CHROMA
   Void predLMIntraChroma( TComPattern* pcPattern, Int* piSrc, Pel* pPred, UInt uiPredStride, UInt uiCWidth, UInt uiCHeight, UInt uiChromaId );
+#if LM_CHROMA_TICKET156 
+  Void getLumaRecPixels  ( TComPattern* pcPattern, UInt uiWidth0, UInt uiHeight0 );
+#endif
 #endif
 
 };

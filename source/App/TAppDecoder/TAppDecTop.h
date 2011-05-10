@@ -43,10 +43,8 @@
 #endif // _MSC_VER > 1000
 
 #include "../../Lib/TLibVideoIO/TVideoIOYuv.h"
-#include "../../Lib/TLibVideoIO/TVideoIOBits.h"
 #include "../../Lib/TLibCommon/TComList.h"
 #include "../../Lib/TLibCommon/TComPicYuv.h"
-#include "../../Lib/TLibCommon/TComBitStream.h"
 #include "../../Lib/TLibDecoder/TDecTop.h"
 #include "TAppDecCfg.h"
 
@@ -60,8 +58,6 @@ class TAppDecTop : public TAppDecCfg
 private:
   // class interface
   TDecTop                         m_cTDecTop;                     ///< decoder class
-  TComBitstream*                  m_apcBitstream;                 ///< bitstream class
-  TVideoIOBitsStartCode           m_cTVideoIOBitstreamFile;       ///< file I/O class
   TVideoIOYuv                     m_cTVideoIOYuvReconFile;        ///< reconstruction YUV class
   
   // for output control

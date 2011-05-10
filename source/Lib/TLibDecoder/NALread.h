@@ -33,7 +33,19 @@
 
 #pragma once
 
-class TComInputBitstream;
-class SEImessages;
+#include <ostream>
 
-void parseSEImessage(TComInputBitstream& bs, SEImessages& seis);
+#include "../TLibCommon/TypeDef.h"
+#include "../TLibCommon/TComBitStream.h"
+#include "../TLibCommon/NAL.h"
+
+/**
+ * A convenience wrapper to NALUnit that also provides a
+ * bitstream object.
+ */
+struct InputNALUnit : public NALUnit
+{
+  TComInputBitstream* m_Bitstream;
+};
+
+void read(InputNALUnit& nalu, std::vector<uint8_t>& nalUnitBuf);

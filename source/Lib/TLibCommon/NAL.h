@@ -33,7 +33,28 @@
 
 #pragma once
 
-class TComInputBitstream;
-class SEImessages;
+#include <stdint.h>
+#include <vector>
+#include "CommonDef.h"
 
-void parseSEImessage(TComInputBitstream& bs, SEImessages& seis);
+class TComOutputBitstream;
+
+/**
+ * Represents a single NALunit header and the associated RBSPayload
+ */
+struct NALUnit
+{
+  NalUnitType m_UnitType; ///< nal_unit_type
+  NalRefIdc m_RefIDC; ///< nal_ref_idc
+  unsigned m_TemporalID; ///< temporal_id
+  bool m_OutputFlag; ///< output_flag
+  std::vector<uint8_t>* m_RBSPayload; ///< rbsp_byte's
+
+  /** returns true if the NALunit is a slice NALunit */
+  bool isSlice()
+  {
+    return m_UnitType == NAL_UNIT_CODED_SLICE_IDR
+        || m_UnitType == NAL_UNIT_CODED_SLICE_CDR
+        || m_UnitType == NAL_UNIT_CODED_SLICE;
+  }
+};

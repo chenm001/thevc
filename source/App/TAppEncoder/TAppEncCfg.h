@@ -88,6 +88,9 @@ protected:
   Int*      m_aidQP;                                          ///< array of slice QP values
   Int       m_iMaxDeltaQP;                                    ///< max. |delta QP|
   UInt      m_uiDeltaQpRD;                                    ///< dQP range for multi-pass slice QP optimization
+#if SUB_LCU_DQP
+  Int       m_iMaxCuDQPDepth;                                 ///< Max. depth for a minimum CuDQPSize (0:default)
+#endif
   
   Bool      m_bTLayering;                                     ///< indicates whether temporal IDs are set based on the hierarchical coding structure
   Bool      m_abTLayerSwitchingFlag[MAX_TLAYER];              ///< temporal layer switching flags corresponding to each temporal layer
@@ -111,7 +114,7 @@ protected:
   UInt      m_uiBitIncrement;                                 ///< bit-depth increment
 #endif
   UInt      m_uiInternalBitDepth;                             ///< Internal bit-depth (BitDepth+BitIncrement)
-  
+
 #if MTK_SAO
   Bool      m_bUseSAO; 
 #endif
@@ -119,7 +122,7 @@ protected:
   // coding tools (loop filter)
   Bool      m_bUseALF;                                        ///< flag for using adaptive loop filter
 #ifdef MQT_ALF_NPASS
-  Int       m_iALFEncodePassReduction;                        ///< ALF encoding pass, 0 = original 16-pass, 1 = 1-pass, 2 = 2-pass
+  Int       m_iALFEncodePassReduction;                        //!< ALF encoding pass, 0 = original 16-pass, 1 = 1-pass, 2 = 2-pass
 #endif
   
   Bool      m_bLoopFilterDisable;                             ///< flag for using deblocking filter
@@ -140,6 +143,11 @@ protected:
   Bool      m_bUseRMP;
 #endif
   
+  // coding tools (PCM)
+#if E057_INTRA_PCM
+  UInt      m_uiPCMLog2MinSize;                               ///< log2 of minimum PCM block size
+#endif
+
   // coding tools (encoder-only parameters)
   Bool      m_bUseSBACRD;                                     ///< flag for using RD optimization based on SBAC
   Bool      m_bUseASR;                                        ///< flag for using adaptive motion search range

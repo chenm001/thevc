@@ -48,7 +48,7 @@ public:
   TDecBinCABAC ();
   virtual ~TDecBinCABAC();
 
-  Void  init              ( TComBitstream* pcTComBitstream );
+  Void  init              ( TComInputBitstream* pcTComBitstream );
   Void  uninit            ();
 
   Void  start             ();
@@ -58,11 +58,17 @@ public:
   Void  decodeBinEP       ( UInt& ruiBin                           );
   Void  decodeBinTrm      ( UInt& ruiBin                           );
 
+#if E057_INTRA_PCM
+  Void  resetBac          ();
+  Void  decodePCMAlignBits();
+  Void  xReadPCMCode      (UInt uiLength, UInt& ruiCode);
+#endif
+
 private:
   Void  xReadBit          ( UInt& ruiVal );
 
 private:
-  TComBitstream*      m_pcTComBitstream;
+  TComInputBitstream* m_pcTComBitstream;
   UInt                m_uiRange;
   UInt                m_uiValue;
 };

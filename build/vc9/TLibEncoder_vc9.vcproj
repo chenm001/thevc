@@ -282,6 +282,10 @@
 			Filter="cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx"
 			>
 			<File
+				RelativePath="..\..\source\Lib\TLibEncoder\NALwrite.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\source\Lib\TLibEncoder\SEIwrite.cpp"
 				>
 			</File>
@@ -334,6 +338,14 @@
 			Name="Header Files"
 			Filter="h;hpp;hxx;hm;inl;inc;xsd"
 			>
+			<File
+				RelativePath="..\..\source\Lib\TLibEncoder\AnnexBwrite.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\source\Lib\TLibEncoder\NALwrite.h"
+				>
+			</File>
 			<File
 				RelativePath="..\..\source\Lib\TLibEncoder\SEIwrite.h"
 				>

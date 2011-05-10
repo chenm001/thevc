@@ -280,10 +280,6 @@
 			Filter="cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx"
 			>
 			<File
-				RelativePath="..\..\source\Lib\TLibVideoIO\TVideoIOBits.cpp"
-				>
-			</File>
-			<File
 				RelativePath="..\..\source\Lib\TLibVideoIO\TVideoIOYuv.cpp"
 				>
 			</File>
@@ -292,10 +288,6 @@
 			Name="Header Files"
 			Filter="h;hpp;hxx;hm;inl"
 			>
-			<File
-				RelativePath="..\..\source\Lib\TLibVideoIO\TVideoIOBits.h"
-				>
-			</File>
 			<File
 				RelativePath="..\..\source\Lib\TLibVideoIO\TVideoIOYuv.h"
 				>
