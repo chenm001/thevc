@@ -110,14 +110,13 @@ Void TAppDecTop::decode()
   {
     streampos  lLocation = m_cTVideoIOBitstreamFile.getFileLocation();
     m_cTVideoIOBitstreamFile.readBits( pcBitstream );
-    const bool bEos = false;
 
     // call actual decoding function
 #if DCM_SKIP_DECODING_FRAMES
-    Bool bNewPicture     = m_cTDecTop.decode( bEos, pcBitstream, uiPOC, pcListPic, m_iSkipFrame, m_iPOCLastDisplay);
+    Bool bNewPicture = m_cTDecTop.decode(false, pcBitstream, uiPOC, pcListPic, m_iSkipFrame, m_iPOCLastDisplay);
     if (bNewPicture || !m_cTVideoIOBitstreamFile.good())
     {
-      m_cTDecTop.executeDeblockAndAlf( bEos, pcBitstream, uiPOC, pcListPic, m_iSkipFrame, m_iPOCLastDisplay);
+      m_cTDecTop.executeDeblockAndAlf(false, pcBitstream, uiPOC, pcListPic, m_iSkipFrame, m_iPOCLastDisplay);
     }
     if (bNewPicture)
     {
