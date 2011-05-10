@@ -135,9 +135,9 @@ public:
   char* getStartStream() const;
 
   /**
-   * Reset the internal write pointer to the start of the bytestream.
+   * Reset all internal state.
    */
-  Void rewindStreamPacket();
+  Void clear();
 
   Int getBitsUntilByteAligned() { return (8 - m_num_held_bits) & 0x7; }
   UInt getNumberOfWrittenBits() const { return  m_uiBitsWritten; }

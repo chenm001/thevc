@@ -66,8 +66,8 @@ static unsigned int xSwap ( unsigned int ui )
 
 TComOutputBitstream::TComOutputBitstream()
 {
-  resetBits();
   m_fifo = new vector<uint8_t>;
+  clear();
 }
 
 TComOutputBitstream::~TComOutputBitstream()
@@ -77,6 +77,7 @@ TComOutputBitstream::~TComOutputBitstream()
 
 Void TComOutputBitstream::create( UInt uiSizeInBytes )
 {
+  clear();
   m_auiSliceByteLocation = NULL;
   m_uiSliceCount         = 0;
   m_fifo->reserve(uiSizeInBytes);
@@ -114,9 +115,12 @@ char* TComOutputBitstream::getStartStream() const
   return (char*) &m_fifo->front();
 }
 
-void TComOutputBitstream::rewindStreamPacket()
+void TComOutputBitstream::clear()
 {
   m_fifo->clear();
+  m_held_bits = 0;
+  m_num_held_bits = 0;
+  m_uiBitsWritten = 0;
 }
 
 Void TComOutputBitstream::write   ( UInt uiBits, UInt uiNumberOfBits )

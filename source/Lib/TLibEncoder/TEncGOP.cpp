@@ -163,8 +163,7 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
       xGetBuffer( rcListPic, rcListPicYuvRecOut, rcListBitstreamOut, iNumPicRcvd, iTimeOffset,  pcPic, pcPicYuvRecOut, pcBitstreamOut, uiPOCCurr );
       
       //  Bitstream reset
-      pcBitstreamOut->resetBits();
-      pcBitstreamOut->rewindStreamPacket();
+      pcBitstreamOut->clear();
       
       //  Slice data initialization
       pcPic->clearSliceBuffer();

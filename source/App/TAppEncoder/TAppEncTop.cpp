@@ -305,7 +305,7 @@ Void TAppEncTop::xGetBuffer( TComPicYuv*& rpcPicYuvRec, TComOutputBitstream*& rp
     rpcPicYuvRec = m_cListPicYuvRec.popFront();
     rpcBitStream = m_cListBitstream.popFront();
     
-    rpcBitStream->rewindStreamPacket();
+    rpcBitStream->clear();
   }
   else
   {
