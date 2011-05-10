@@ -86,12 +86,12 @@ Void  TDecCavlc::parseNalUnitHeader ( NalUnitType& eNalUnitType, UInt& TemporalI
  */
 void TDecCavlc::parseSEI(SEImessages& seis)
 {
-  assert(!m_pcBitstream->getBitsUntilByteAligned());
+  assert(!m_pcBitstream->getNumBitsUntilByteAligned());
   do {
     parseSEImessage(*m_pcBitstream, seis);
     /* SEI messages are an integer number of bytes, something has failed
      * in the parsing if bitstream not byte-aligned */
-    assert(!m_pcBitstream->getBitsUntilByteAligned());
+    assert(!m_pcBitstream->getNumBitsUntilByteAligned());
   } while (0x80 != m_pcBitstream->peekBits(8));
   assert(m_pcBitstream->getBitsLeft() == 8); /* rsbp_trailing_bits */
 }
@@ -2664,7 +2664,7 @@ Void TDecCavlc::xReadFlag (UInt& ruiCode)
  */
 Void TDecCavlc::xReadPCMAlignZero( )
 {
-  UInt uiNumberOfBits = m_pcBitstream->getBitsUntilByteAligned();
+  UInt uiNumberOfBits = m_pcBitstream->getNumBitsUntilByteAligned();
 
   if(uiNumberOfBits)
   {

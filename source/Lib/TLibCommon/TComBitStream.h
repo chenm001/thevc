@@ -139,7 +139,11 @@ public:
    */
   Void clear();
 
-  Int getBitsUntilByteAligned() { return (8 - m_num_held_bits) & 0x7; }
+  /**
+   * returns the number of bits that need to be written to
+   * achieve byte alignment.
+   */
+  Int getNumBitsUntilByteAligned() { return (8 - m_num_held_bits) & 0x7; }
   UInt getNumberOfWrittenBits() const { return  m_uiBitsWritten; }
   Void        flushBuffer();
 
@@ -195,7 +199,7 @@ public:
   unsigned read(unsigned numberOfBits) { UInt tmp; read(numberOfBits, tmp); return tmp; }
   UInt* getStartStream() const { return m_apulStreamPacketBegin; }
   UInt*       getBuffer()               { return  m_pulStreamPacket;                    }
-  Int         getBitsUntilByteAligned() { return m_iValidBits & (0x7);                  }
+  Int         getNumBitsUntilByteAligned() { return m_iValidBits & (0x7); }
   Void        setModeSbac()             { m_uiBitsLeft = 8*((m_uiBitsLeft+7)/8);        } // stop bit + trailing stuffing bits
   Void        rewindStreamPacket()      { m_pulStreamPacket = m_apulStreamPacketBegin;  }
   UInt        getBitsLeft()             { return  m_uiBitsLeft;                         }

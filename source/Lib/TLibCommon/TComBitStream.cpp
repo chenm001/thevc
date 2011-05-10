@@ -172,7 +172,7 @@ Void TComOutputBitstream::write   ( UInt uiBits, UInt uiNumberOfBits )
 
 Void TComOutputBitstream::writeAlignOne()
 {
-  unsigned int num_bits = getBitsUntilByteAligned();
+  unsigned int num_bits = getNumBitsUntilByteAligned();
   write((1 << num_bits) - 1, num_bits);
   return;
 }
@@ -182,7 +182,7 @@ Void TComOutputBitstream::writeAlignZero()
   if (0 == m_num_held_bits)
     return;
   m_fifo->push_back(m_held_bits);
-  m_uiBitsWritten += getBitsUntilByteAligned();
+  m_uiBitsWritten += getNumBitsUntilByteAligned();
   m_held_bits = 0;
   m_num_held_bits = 0;
 }
@@ -387,7 +387,7 @@ Void TComOutputBitstream::convertRBSPToPayload( UInt uiStartPos )
   UInt uiZeroCount    = 0;
   
   //make sure the buffer is flushed
-  assert( 0 == getBitsUntilByteAligned() );
+  assert( 0 == getNumBitsUntilByteAligned() );
   
   const UInt uiBytesInBuffer = m_fifo->size();
   //make sure there's something in the buffer
