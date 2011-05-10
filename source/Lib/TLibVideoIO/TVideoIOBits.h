@@ -48,23 +48,6 @@
 // Class definition
 // ====================================================================================================================
 
-/// bitstream file I/O class
-class TVideoIOBits
-{
-private:
-  std::fstream   m_cHandle;                                      ///< file handle
-  
-public:
-  TVideoIOBits()            {}
-  virtual ~TVideoIOBits()   {}
-  
-  Void openBits   ( char* pchFile,  Bool bWriteMode );      ///< open or create file
-  Void closeBits  ();                                       ///< close file
-  
-  Bool readBits   ( TComInputBitstream* rpcBitstream    );      ///< read  one packet from file
-  Void writeBits  ( TComOutputBitstream*  pcBitstream     );      ///< write one packet to   file
-  
-};
 
 /// bitstream file I/O class
 class TVideoIOBitsStartCode
