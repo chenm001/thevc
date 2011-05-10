@@ -43,23 +43,6 @@
 
 using namespace std;
 
-static unsigned int xSwap ( unsigned int ui )
-{
-  // heiko.schwarz@hhi.fhg.de: support for BSD systems as proposed by Steffen Kamp [kamp@ient.rwth-aachen.de]
-#ifdef MSYS_BIG_ENDIAN
-  return ui;
-#else
-  UInt ul2;
-
-  ul2  = ui>>24;
-  ul2 |= (ui>>8) & 0x0000ff00;
-  ul2 |= (ui<<8) & 0x00ff0000;
-  ul2 |= ui<<24;
-
-  return ul2;
-#endif
-}
-
 // ====================================================================================================================
 // Constructor / destructor / create / destroy
 // ====================================================================================================================
@@ -164,19 +147,6 @@ Void TComOutputBitstream::writeAlignZero()
   m_num_held_bits = 0;
 }
 
-char* TComInputBitstream::getBuffer()
-{
-  return (char*) &m_fifo->front();
-}
-
-Void TComInputBitstream::initParsing ( UInt uiNumBytes )
-{
-  m_held_bits = 0;
-  m_num_held_bits = 0;
-  
-  m_fifo_idx = 0;
-}
-
 #if LCEC_INTRA_MODE || QC_LCEC_INTER_MODE
 Void TComInputBitstream::pseudoRead ( UInt uiNumberOfBits, UInt& ruiBits )
 {
@@ -250,52 +220,6 @@ Void TComInputBitstream::read (UInt uiNumberOfBits, UInt& ruiBits)
   m_held_bits = aligned_word;
 
   ruiBits = retval;
-}
-
-// ====================================================================================================================
-// Protected member functions
-// ====================================================================================================================
-
-Void TComInputBitstream::initParsingConvertPayloadToRBSP( const UInt uiBytesRead )
-{
-  UInt uiZeroCount    = 0;
-  UInt uiReadOffset   = 0;
-  UInt uiWriteOffset  = 0;
-  const char* pucRead = getBuffer();
-  char* pucWrite      = getBuffer();
-  
-  for( ; uiReadOffset < uiBytesRead; uiReadOffset++ )
-  {
-    if( 2 == uiZeroCount && 0x03 == pucRead[uiReadOffset] )
-    {
-      uiReadOffset++;
-      uiZeroCount = 0;
-      if (uiReadOffset>=uiBytesRead)
-      {
-        break;
-      }
-    }
-    
-    pucWrite[uiWriteOffset++] = pucRead[uiReadOffset];
-    
-    if( 0x00 == pucRead[uiReadOffset] )
-    {
-      uiZeroCount++;
-    }
-    else
-    {
-      uiZeroCount = 0;
-    }
-  }
-  
-  // th just clear the remaining bits in the buffer
-  for( UInt ui = uiWriteOffset; ui < uiBytesRead; ui++)
-  {
-    pucWrite[ui] = 0;
-  }
-  
-  m_fifo->resize(uiWriteOffset);
-  initParsing( uiWriteOffset );
 }
 
 /**

@@ -173,8 +173,6 @@ public:
   TComInputBitstream(std::vector<uint8_t>* buf);
 
   // interface for decoding
-  Void        initParsingConvertPayloadToRBSP( const UInt uiBytesRead );
-  Void        initParsing     ( UInt uiNumBytes );
 #if LCEC_INTRA_MODE || QC_LCEC_INTER_MODE
   Void        pseudoRead      ( UInt uiNumberOfBits, UInt& ruiBits );
 #endif
@@ -184,14 +182,6 @@ public:
   UInt        peekBits (UInt uiBits) { unsigned tmp; pseudoRead(uiBits, tmp); return tmp; }
 
   // utility functions
-  /**
-   * Return a pointer to the start of the byte-stream buffer.
-   * Pointer is valid until the next write/clear call.
-   * NB, data is arranged such that subsequent bytes in the
-   * bytestream are stored in ascending addresses.
-   */
-  char* getBuffer();
-
   unsigned read(unsigned numberOfBits) { UInt tmp; read(numberOfBits, tmp); return tmp; }
   unsigned getNumBitsUntilByteAligned() { return m_num_held_bits & (0x7); }
   unsigned getNumBitsLeft() { return 8*(m_fifo->size() - m_fifo_idx) - (8-m_num_held_bits)%8; }
