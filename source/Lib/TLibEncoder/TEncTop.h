@@ -45,7 +45,6 @@
 #include "../TLibCommon/AccessUnit.h"
 
 #include "../TLibVideoIO/TVideoIOYuv.h"
-#include "../TLibVideoIO/TVideoIOBits.h"
 
 #include "TEncCfg.h"
 #include "TEncGOP.h"

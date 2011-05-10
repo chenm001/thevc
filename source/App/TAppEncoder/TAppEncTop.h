@@ -39,10 +39,10 @@
 #define __TAPPENCTOP__
 
 #include <list>
+#include <ostream>
 
 #include "../../Lib/TLibEncoder/TEncTop.h"
 #include "../../Lib/TLibVideoIO/TVideoIOYuv.h"
-#include "../../Lib/TLibVideoIO/TVideoIOBits.h"
 #include "../../Lib/TLibCommon/AccessUnit.h"
 #include "TAppEncCfg.h"
 
@@ -58,7 +58,6 @@ private:
   TEncTop                    m_cTEncTop;                    ///< encoder class
   TVideoIOYuv                m_cTVideoIOYuvInputFile;       ///< input YUV file
   TVideoIOYuv                m_cTVideoIOYuvReconFile;       ///< output reconstruction file
-  TVideoIOBitsStartCode      m_cTVideoIOBitsFile;           ///< output bitstream file
   
   TComList<TComPicYuv*>      m_cListPicYuvRec;              ///< list of reconstruction YUV files
   
@@ -78,7 +77,7 @@ protected:
   Void  xDeleteBuffer     ();
   
   // file I/O
-  Void xWriteOutput(Int iNumEncoded, const std::list<AccessUnit>& accessUnits); ///< write bitstream to file
+  Void xWriteOutput(std::ostream& bitstreamFile, Int iNumEncoded, const std::list<AccessUnit>& accessUnits); ///< write bitstream to file
   
 public:
   TAppEncTop();

@@ -36,6 +36,8 @@
 */
 
 #include <list>
+#include <fstream>
+#include <stdlib.h>
 #include <stdio.h>
 #include <fcntl.h>
 #include <assert.h>
@@ -176,7 +178,6 @@ Void TAppEncTop::xCreateLib()
   m_cTVideoIOYuvInputFile.skipFrames(m_FrameSkip, m_iSourceWidth, m_iSourceHeight);
 
   m_cTVideoIOYuvReconFile.open( m_pchReconFile,     true, m_uiOutputBitDepth, m_uiInternalBitDepth);  // write mode
-  m_cTVideoIOBitsFile.openBits( m_pchBitstreamFile, true  );  // write mode
   
   // Neo Decoder
   m_cTEncTop.create();
@@ -187,7 +188,6 @@ Void TAppEncTop::xDestroyLib()
   // Video I/O
   m_cTVideoIOYuvInputFile.close();
   m_cTVideoIOYuvReconFile.close();
-  m_cTVideoIOBitsFile.closeBits();
   
   // Neo Decoder
   m_cTEncTop.destroy();
@@ -212,6 +212,13 @@ Void TAppEncTop::xInitLib()
  */
 Void TAppEncTop::encode()
 {
+  fstream bitstreamFile(m_pchBitstreamFile, fstream::binary | fstream::out);
+  if (!bitstreamFile)
+  {
+    fprintf(stderr, "\nfailed to open bitstream file `%s' for writing\n", m_pchBitstreamFile);
+    exit(EXIT_FAILURE);
+  }
+
   TComPicYuv*       pcPicYuvOrg = new TComPicYuv;
   TComPicYuv*       pcPicYuvRec = NULL;
   
@@ -250,7 +257,7 @@ Void TAppEncTop::encode()
     // write bistream to file if necessary
     if ( iNumEncoded > 0 )
     {
-      xWriteOutput(iNumEncoded, outputAccessUnits);
+      xWriteOutput(bitstreamFile, iNumEncoded, outputAccessUnits);
       outputAccessUnits.clear();
     }
   }
@@ -328,7 +335,7 @@ Void TAppEncTop::xDeleteBuffer( )
 
 /** \param iNumEncoded  number of encoded frames
  */
-Void TAppEncTop::xWriteOutput( Int iNumEncoded, const list<AccessUnit>& accessUnits)
+Void TAppEncTop::xWriteOutput(ostream& bitstreamFile, Int iNumEncoded, const list<AccessUnit>& accessUnits)
 {
   Int i;
   
@@ -346,7 +353,7 @@ Void TAppEncTop::xWriteOutput( Int iNumEncoded, const list<AccessUnit>& accessUn
     m_cTVideoIOYuvReconFile.write( pcPicYuvRec, m_aiPad );
 
     const AccessUnit& au = *(iterBitstream++);
-    writeAnnexB(m_cTVideoIOBitsFile.m_cHandle, au);
+    writeAnnexB(bitstreamFile, au);
   }
 }
 
