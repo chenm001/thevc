@@ -122,11 +122,10 @@ Void TEncGOP::init ( TEncTop* pcTEncTop )
 // Public member functions
 // ====================================================================================================================
 
-Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rcListPic, TComList<TComPicYuv*>& rcListPicYuvRecOut, TComList<TComOutputBitstream*> rcListBitstreamOut )
+Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rcListPic, TComList<TComPicYuv*>& rcListPicYuvRecOut, list<AccessUnit>& accessUnitsInGOP)
 {
   TComPic*        pcPic;
   TComPicYuv*     pcPicYuvRecOut;
-  TComOutputBitstream*  pcBitstreamOut;
   TComSlice*      pcSlice;
   
   xInitGOP( iPOCLast, iNumPicRcvd, rcListPic, rcListPicYuvRecOut );
@@ -160,10 +159,11 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
       /////////////////////////////////////////////////////////////////////////////////////////////////// Initial to start encoding
       UInt  uiPOCCurr = iPOCLast - (iNumPicRcvd - iTimeOffset);
       
-      xGetBuffer( rcListPic, rcListPicYuvRecOut, rcListBitstreamOut, iNumPicRcvd, iTimeOffset,  pcPic, pcPicYuvRecOut, pcBitstreamOut, uiPOCCurr );
-      
-      //  Bitstream reset
-      pcBitstreamOut->clear();
+      /* start a new access unit: create an entry in the list of output
+       * access units */
+      TComOutputBitstream* pcBitstreamOut = new TComOutputBitstream();
+      accessUnitsInGOP.push_back(pcBitstreamOut);
+      xGetBuffer( rcListPic, rcListPicYuvRecOut, iNumPicRcvd, iTimeOffset, pcPic, pcPicYuvRecOut, uiPOCCurr );
       
       //  Slice data initialization
       pcPic->clearSliceBuffer();
@@ -809,12 +809,10 @@ Void TEncGOP::xInitGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rcLis
 
 Void TEncGOP::xGetBuffer( TComList<TComPic*>&       rcListPic,
                          TComList<TComPicYuv*>&    rcListPicYuvRecOut,
-                         TComList<TComOutputBitstream*>& rcListBitstreamOut,
                          Int                       iNumPicRcvd,
                          Int                       iTimeOffset,
                          TComPic*&                 rpcPic,
                          TComPicYuv*&              rpcPicYuvRecOut,
-                         TComOutputBitstream*&     rpcBitstreamOut,
                          UInt                      uiPOCCurr )
 {
   Int i;
@@ -826,14 +824,6 @@ Void TEncGOP::xGetBuffer( TComList<TComPic*>&       rcListPic,
   }
   
   rpcPicYuvRecOut = *(iterPicYuvRec);
-  
-  //  Bitstream output
-  TComList<TComOutputBitstream*>::iterator  iterBitstream = rcListBitstreamOut.begin();
-  for ( i = 0; i < m_iNumPicCoded; i++ )
-  {
-    iterBitstream++;
-  }
-  rpcBitstreamOut = *(iterBitstream);
   
   //  Current pic.
   TComList<TComPic*>::iterator        iterPic       = rcListPic.begin();

@@ -42,6 +42,8 @@
 
 #include "TAppEncTop.h"
 
+using namespace std;
+
 // ====================================================================================================================
 // Constructor / destructor / initialization / destroy
 // ====================================================================================================================
@@ -211,7 +213,6 @@ Void TAppEncTop::encode()
 {
   TComPicYuv*       pcPicYuvOrg = new TComPicYuv;
   TComPicYuv*       pcPicYuvRec = NULL;
-  TComOutputBitstream* pcBitstream = NULL;
   
   // initialize internal class & member variables
   xInitLibCfg();
@@ -222,13 +223,15 @@ Void TAppEncTop::encode()
   Int   iNumEncoded = 0;
   Bool  bEos = false;
   
+  list<AccessUnit> outputAccessUnits; ///< list of access units to write out.  is populated by the encoding process
+
   // allocate original YUV buffer
   pcPicYuvOrg->create( m_iSourceWidth, m_iSourceHeight, m_uiMaxCUWidth, m_uiMaxCUHeight, m_uiMaxCUDepth );
   
   while ( !bEos )
   {
     // get buffers
-    xGetBuffer( pcPicYuvRec, pcBitstream );
+    xGetBuffer(pcPicYuvRec);
     
     // read input YUV file
     m_cTVideoIOYuvInputFile.read( pcPicYuvOrg, m_aiPad );
@@ -241,12 +244,15 @@ Void TAppEncTop::encode()
     bEos = ( m_iFrameRcvd == m_iFrameToBeEncoded ?    true : bEos   );
     
     // call encoding function for one frame
-    m_cTEncTop.encode( bEos, pcPicYuvOrg, m_cListPicYuvRec, m_cListBitstream, iNumEncoded );
+    m_cTEncTop.encode( bEos, pcPicYuvOrg, m_cListPicYuvRec, outputAccessUnits, iNumEncoded );
     
     // write bistream to file if necessary
     if ( iNumEncoded > 0 )
     {
-      xWriteOutput( iNumEncoded );
+      xWriteOutput(iNumEncoded, outputAccessUnits);
+      for (list<AccessUnit>::iterator it = outputAccessUnits.begin(); it != outputAccessUnits.end(); it++)
+        delete *it;
+      outputAccessUnits.clear();
     }
   }
   // delete original YUV buffer
@@ -274,27 +280,20 @@ Void TAppEncTop::encode()
  - end of the list has the latest picture
  .
  */
-Void TAppEncTop::xGetBuffer( TComPicYuv*& rpcPicYuvRec, TComOutputBitstream*& rpcBitStream )
+Void TAppEncTop::xGetBuffer( TComPicYuv*& rpcPicYuvRec)
 {
   if ( m_iGOPSize == 0 )
   {
     if (m_cListPicYuvRec.size() == 0)
     {
       rpcPicYuvRec = new TComPicYuv;
-      rpcBitStream = new TComOutputBitstream;
-      
       rpcPicYuvRec->create( m_iSourceWidth, m_iSourceHeight, m_uiMaxCUWidth, m_uiMaxCUHeight, m_uiMaxCUDepth );
-      rpcBitStream->create( (m_iSourceWidth * m_iSourceHeight * 3) >> 1 );
-      
       m_cListPicYuvRec.pushBack( rpcPicYuvRec );
-      m_cListBitstream.pushBack( rpcBitStream );
     }
     
     rpcPicYuvRec = m_cListPicYuvRec.popFront();
-    rpcBitStream = m_cListBitstream.popFront();
     
     m_cListPicYuvRec.pushBack( rpcPicYuvRec );
-    m_cListBitstream.pushBack( rpcBitStream );
     
     return;
   }
@@ -303,51 +302,39 @@ Void TAppEncTop::xGetBuffer( TComPicYuv*& rpcPicYuvRec, TComOutputBitstream*& rp
   if ( m_cListPicYuvRec.size() == (UInt)m_iGOPSize )
   {
     rpcPicYuvRec = m_cListPicYuvRec.popFront();
-    rpcBitStream = m_cListBitstream.popFront();
-    
-    rpcBitStream->clear();
   }
   else
   {
     rpcPicYuvRec = new TComPicYuv;
-    rpcBitStream = new TComOutputBitstream;
     
     rpcPicYuvRec->create( m_iSourceWidth, m_iSourceHeight, m_uiMaxCUWidth, m_uiMaxCUHeight, m_uiMaxCUDepth );
-    rpcBitStream->create( (m_iSourceWidth * m_iSourceHeight * 3) >> 1 );
   }
   m_cListPicYuvRec.pushBack( rpcPicYuvRec );
-  m_cListBitstream.pushBack( rpcBitStream );
 }
 
 Void TAppEncTop::xDeleteBuffer( )
 {
   TComList<TComPicYuv*>::iterator iterPicYuvRec  = m_cListPicYuvRec.begin();
-  TComList<TComOutputBitstream*>::iterator iterBitstream = m_cListBitstream.begin();
   
   Int iSize = Int( m_cListPicYuvRec.size() );
   
   for ( Int i = 0; i < iSize; i++ )
   {
     TComPicYuv*  pcPicYuvRec  = *(iterPicYuvRec++);
-    TComOutputBitstream* pcBitstream = *(iterBitstream++);
-    
     pcPicYuvRec->destroy();
-    pcBitstream->destroy();
-    
     delete pcPicYuvRec; pcPicYuvRec = NULL;
-    delete pcBitstream; pcBitstream = NULL;
   }
   
 }
 
 /** \param iNumEncoded  number of encoded frames
  */
-Void TAppEncTop::xWriteOutput( Int iNumEncoded )
+Void TAppEncTop::xWriteOutput( Int iNumEncoded, const list<AccessUnit>& accessUnits)
 {
   Int i;
   
   TComList<TComPicYuv*>::iterator iterPicYuvRec = m_cListPicYuvRec.end();
-  TComList<TComOutputBitstream*>::iterator iterBitstream = m_cListBitstream.begin();
+  list<AccessUnit>::const_iterator iterBitstream = accessUnits.begin();
   
   for ( i = 0; i < iNumEncoded; i++ )
   {
@@ -357,10 +344,10 @@ Void TAppEncTop::xWriteOutput( Int iNumEncoded )
   for ( i = 0; i < iNumEncoded; i++ )
   {
     TComPicYuv*  pcPicYuvRec  = *(iterPicYuvRec++);
-    TComOutputBitstream* pcBitstream = *(iterBitstream++);
-    
     m_cTVideoIOYuvReconFile.write( pcPicYuvRec, m_aiPad );
-    m_cTVideoIOBitsFile.writeBits( pcBitstream );
+
+    const AccessUnit& au = *(iterBitstream++);
+    m_cTVideoIOBitsFile.writeBits( const_cast<AccessUnit>(au) );
   }
 }
 

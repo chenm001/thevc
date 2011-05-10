@@ -38,10 +38,12 @@
 #ifndef __TAPPENCTOP__
 #define __TAPPENCTOP__
 
+#include <list>
+
 #include "../../Lib/TLibEncoder/TEncTop.h"
 #include "../../Lib/TLibVideoIO/TVideoIOYuv.h"
 #include "../../Lib/TLibVideoIO/TVideoIOBits.h"
-#include "../../Lib/TLibCommon/TComBitStream.h"
+#include "../../Lib/TLibCommon/AccessUnit.h"
 #include "TAppEncCfg.h"
 
 // ====================================================================================================================
@@ -59,7 +61,6 @@ private:
   TVideoIOBitsStartCode      m_cTVideoIOBitsFile;           ///< output bitstream file
   
   TComList<TComPicYuv*>      m_cListPicYuvRec;              ///< list of reconstruction YUV files
-  TComList<TComOutputBitstream*> m_cListBitstream;          ///< list of bitstreams
   
   Int                        m_iFrameRcvd;                  ///< number of received frames
   
@@ -71,14 +72,13 @@ protected:
   Void  xDestroyLib       ();                               ///< destroy encoder class
   
   /// obtain required buffers
-  Void  xGetBuffer        ( TComPicYuv*& rpcPicYuvRec,
-                           TComOutputBitstream*& rpcBitStream );
+  Void xGetBuffer(TComPicYuv*& rpcPicYuvRec);
   
   /// delete allocated buffers
   Void  xDeleteBuffer     ();
   
   // file I/O
-  Void  xWriteOutput      ( Int iNumEncoded );              ///< write bitstream to file
+  Void xWriteOutput(Int iNumEncoded, const std::list<AccessUnit>& accessUnits); ///< write bitstream to file
   
 public:
   TAppEncTop();
