@@ -45,7 +45,7 @@
 class TDecBinIf
 {
 public:
-  virtual Void  init              ( TComBitstream* pcTComBitstream )          = 0;
+  virtual Void  init              ( TComInputBitstream* pcTComBitstream )     = 0;
   virtual Void  uninit            ()                                          = 0;
 
   virtual Void  start             ()                                          = 0;

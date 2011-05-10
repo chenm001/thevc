@@ -57,43 +57,19 @@ TDecCavlc::~TDecCavlc()
 // Public member functions
 // ====================================================================================================================
 
-Void  TDecCavlc::parseNalUnitHeader ( NalUnitType& eNalUnitType, UInt& TemporalId, Bool& bOutputFlag )
-{
-  UInt  uiCode;
-  
-  xReadCode ( 1, uiCode ); assert( 0 == uiCode); // forbidden_zero_bit
-  xReadCode ( 2, uiCode );                       // nal_ref_idc
-  xReadCode ( 5, uiCode );                       // nal_unit_type
-  eNalUnitType = (NalUnitType) uiCode;
-
-  if ( (eNalUnitType == NAL_UNIT_CODED_SLICE) || (eNalUnitType == NAL_UNIT_CODED_SLICE_IDR) || (eNalUnitType == NAL_UNIT_CODED_SLICE_CDR) )
-  {
-    xReadCode(3, uiCode); // temporal_id
-    TemporalId = uiCode;
-    xReadFlag(uiCode);    // output_flag
-    bOutputFlag = (0!=uiCode);
-    xReadCode(4, uiCode); // reserved_one_4bits    
-  }
-  else
-  {
-    TemporalId = 0;
-    bOutputFlag = true;
-  }
-}
-
 /**
  * unmarshal a sequence of SEI messages from bitstream.
  */
 void TDecCavlc::parseSEI(SEImessages& seis)
 {
-  assert(!m_pcBitstream->getBitsUntilByteAligned());
+  assert(!m_pcBitstream->getNumBitsUntilByteAligned());
   do {
     parseSEImessage(*m_pcBitstream, seis);
     /* SEI messages are an integer number of bytes, something has failed
      * in the parsing if bitstream not byte-aligned */
-    assert(!m_pcBitstream->getBitsUntilByteAligned());
+    assert(!m_pcBitstream->getNumBitsUntilByteAligned());
   } while (0x80 != m_pcBitstream->peekBits(8));
-  assert(m_pcBitstream->getBitsLeft() == 8); /* rsbp_trailing_bits */
+  assert(m_pcBitstream->getNumBitsLeft() == 8); /* rsbp_trailing_bits */
 }
 
 Void TDecCavlc::parsePPS(TComPPS* pcPPS)
@@ -112,6 +88,18 @@ Void TDecCavlc::parsePPS(TComPPS* pcPPS)
     pcPPS->setTLayerSwitchingFlag( i, uiCode > 0 ? true : false );
   }
 
+#if SUB_LCU_DQP
+  if( pcPPS->getSPS()->getUseDQP() )
+  {
+    xReadUvlc(uiCode); pcPPS->setMaxCuDQPDepth(uiCode);
+    pcPPS->setMinCuDQPSize( pcPPS->getSPS()->getMaxCUWidth() >> ( pcPPS->getMaxCuDQPDepth()) );
+  }
+  else
+  {
+    pcPPS->setMaxCuDQPDepth( 0 );
+    pcPPS->setMinCuDQPSize( pcPPS->getSPS()->getMaxCUWidth() >> ( pcPPS->getMaxCuDQPDepth()) );
+  }
+#endif
   return;
 }
 
@@ -455,7 +443,7 @@ Void TDecCavlc::resetEntropy          (TComSlice* pcSlice)
 Void TDecCavlc::parseTerminatingBit( UInt& ruiBit )
 {
   ruiBit = false;
-  Int iBitsLeft = m_pcBitstream->getBitsLeft();
+  Int iBitsLeft = m_pcBitstream->getNumBitsLeft();
   if(iBitsLeft <= 8)
   {
     UInt uiPeekValue = m_pcBitstream->peekBits(iBitsLeft);
@@ -1814,22 +1802,17 @@ Void TDecCavlc::parseMvd( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiPartIdx, U
 
 Void TDecCavlc::parseDeltaQP( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
 {
-  UInt uiDQp;
+  UInt uiQp;
   Int  iDQp;
   
-  xReadFlag( uiDQp );
-  
-  if ( uiDQp == 0 )
-  {
-    uiDQp = pcCU->getSlice()->getSliceQp();
-  }
-  else
-  {
-    xReadSvlc( iDQp );
-    uiDQp = pcCU->getSlice()->getSliceQp() + iDQp;
-  }
-  
-  pcCU->setQPSubParts( uiDQp, uiAbsPartIdx, uiDepth );
+  xReadSvlc( iDQp );
+#if SUB_LCU_DQP
+  uiQp = pcCU->getRefQP( uiAbsPartIdx ) + iDQp;
+#else
+  uiQp = pcCU->getSlice()->getSliceQp() + iDQp;
+#endif
+
+  pcCU->setQPSubParts( uiQp, uiAbsPartIdx, uiDepth );
 }
 
 #if CAVLC_RQT_CBP
@@ -2657,7 +2640,7 @@ Void TDecCavlc::xReadFlag (UInt& ruiCode)
  */
 Void TDecCavlc::xReadPCMAlignZero( )
 {
-  UInt uiNumberOfBits = m_pcBitstream->getBitsUntilByteAligned();
+  UInt uiNumberOfBits = m_pcBitstream->getNumBitsUntilByteAligned();
 
   if(uiNumberOfBits)
   {

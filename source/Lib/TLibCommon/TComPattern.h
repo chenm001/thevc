@@ -107,8 +107,8 @@ private:
   Bool m_bLeftFlagForDCFilt;
   Bool m_bDCPredFilterFlag;
 #endif
-
-#if LM_CHROMA 
+  
+#if LM_CHROMA && !LM_CHROMA_TICKET156
   Bool m_bLeftAvailable;
   Bool m_bAboveAvailable;
 #endif
@@ -161,7 +161,11 @@ public:
                                Int         iOrgBufStride,
                                Int         iOrgBufHeight,
                                Bool&       bAbove,
-                               Bool&       bLeft );
+                               Bool&       bLeft
+#if LM_CHROMA_TICKET156
+                               , UInt uiExt = 1 // number of extension lines, default is one, for LM chroma two lines are necessary for downsampling
+#endif
+                               );
   
   /// set chroma parameters from CU data for accessing ADI data
   Void  initAdiPatternChroma  ( TComDataCU* pcCU,
@@ -173,7 +177,7 @@ public:
                                Bool&       bAbove,
                                Bool&       bLeft );
 
-#if LM_CHROMA 
+#if LM_CHROMA && !LM_CHROMA_TICKET156
   Bool  isLeftAvailable()         { return m_bLeftAvailable; }
   Bool  isAboveAvailable()        { return m_bAboveAvailable; }
 #endif
@@ -184,6 +188,11 @@ private:
 #if REFERENCE_SAMPLE_PADDING
   /// padding of unavailable reference samples for intra prediction
   Void  fillReferenceSamples        ( TComDataCU* pcCU, Pel* piRoiOrigin, Int* piAdiTemp, Bool* bNeighborFlags, Int iNumIntraNeighbor, Int iUnitSize, Int iNumUnitsInCu, Int iTotalUnits, UInt uiCuWidth, UInt uiCuHeight, UInt uiWidth, UInt uiHeight, Int iPicStride);
+
+#if LM_CHROMA_TICKET156
+  Void  fill2ReferenceSamples_LM    ( TComDataCU* pcCU, Pel* piRoiOrigin, Int* piAdiTemp, Bool* bNeighborFlags, Int iNumIntraNeighbor, Int iUnitSize, Int iNumUnitsInCu, Int iTotalUnits, UInt uiCuWidth, UInt uiCuHeight, UInt uiWidth, UInt uiHeight, Int iPicStride);
+#endif
+
 #endif
 #if CONSTRAINED_INTRA_PRED
   /// constrained intra prediction

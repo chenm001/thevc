@@ -535,6 +535,9 @@ Void TEncSlice::compressSlice( TComPic*& rpcPic )
   m_pcEntropyCoder->setMaxAlfCtrlDepth(0); //unnecessary
   
   // for every CU in slice
+#if SUB_LCU_DQP
+  UChar uhLastQP = pcSlice->getSliceQp();
+#endif
   for(  uiCUAddr = uiStartCUAddr; uiCUAddr < uiBoundingCUAddr; uiCUAddr++  )
   {
     // set QP
@@ -543,6 +546,10 @@ Void TEncSlice::compressSlice( TComPic*& rpcPic )
     TComDataCU*& pcCU = rpcPic->getCU( uiCUAddr );
     pcCU->initCU( rpcPic, uiCUAddr );
     
+#if SUB_LCU_DQP
+    pcCU->setLastCodedQP( uhLastQP );
+#endif
+
     // if RD based on SBAC is used
     if( m_pcCfg->getUseSBACRD() )
     {
@@ -558,6 +565,10 @@ Void TEncSlice::compressSlice( TComPic*& rpcPic )
       m_pcEntropyCoder->setBitstream    ( m_pcBitCounter );
       pppcRDSbacCoder->setBinCountingEnableFlag( true );
       
+#if SUB_LCU_DQP
+      // restore last QP
+      pcCU->setLastCodedQP( uhLastQP );
+#endif
       m_pcCuEncoder->encodeCU( pcCU );
 
       pppcRDSbacCoder->setBinCountingEnableFlag( false );
@@ -592,6 +603,10 @@ Void TEncSlice::compressSlice( TComPic*& rpcPic )
     {
       m_pcCuEncoder->compressCU( pcCU );
       m_pcCavlcCoder ->setAdaptFlag(true);
+#if SUB_LCU_DQP
+      // restore last QP
+      pcCU->setLastCodedQP( uhLastQP );
+#endif
       m_pcCuEncoder->encodeCU( pcCU );
       
       uiBitsCoded += m_pcBitCounter->getNumberOfWrittenBits();
@@ -620,6 +635,9 @@ Void TEncSlice::compressSlice( TComPic*& rpcPic )
       }
       m_pcCavlcCoder ->setAdaptFlag(false);
     }
+#if SUB_LCU_DQP
+    uhLastQP = pcCU->getLastCodedQP();
+#endif
     
     m_uiPicTotalBits += pcCU->getTotalBits();
     m_dPicRdCost     += pcCU->getTotalCost();
@@ -634,7 +652,7 @@ Void TEncSlice::compressSlice( TComPic*& rpcPic )
  \param  rpcPic        picture class
  \retval rpcBitstream  bitstream class
  */
-Void TEncSlice::encodeSlice   ( TComPic*& rpcPic, TComBitstream*& rpcBitstream )
+Void TEncSlice::encodeSlice   ( TComPic*& rpcPic, TComOutputBitstream* pcBitstream )
 {
   UInt       uiCUAddr;
   UInt       uiStartCUAddr;
@@ -657,7 +675,7 @@ Void TEncSlice::encodeSlice   ( TComPic*& rpcPic, TComBitstream*& rpcBitstream )
   }
   
   // set bitstream
-  m_pcEntropyCoder->setBitstream( rpcBitstream );
+  m_pcEntropyCoder->setBitstream( pcBitstream );
   // for every CU
 #if ENC_DEC_TRACE
   g_bJustDoIt = g_bEncDecTraceEnable;
@@ -670,12 +688,18 @@ Void TEncSlice::encodeSlice   ( TComPic*& rpcPic, TComBitstream*& rpcBitstream )
   g_bJustDoIt = g_bEncDecTraceDisable;
 #endif
 
+#if SUB_LCU_DQP
+  UChar uhLastQP = pcSlice->getSliceQp();
+#endif
   for(  uiCUAddr = uiStartCUAddr; uiCUAddr<uiBoundingCUAddr; uiCUAddr++  )
   {
     m_pcCuEncoder->setQpLast( pcSlice->getSliceQp() );
     TComDataCU*& pcCU = rpcPic->getCU( uiCUAddr );
 #if ENC_DEC_TRACE
     g_bJustDoIt = g_bEncDecTraceEnable;
+#endif
+#if SUB_LCU_DQP
+    pcCU->setLastCodedQP( uhLastQP );
 #endif
     if ( (m_pcCfg->getSliceMode()!=0 || m_pcCfg->getEntropySliceMode()!=0) && uiCUAddr==uiBoundingCUAddr-1 )
     {
@@ -685,6 +709,9 @@ Void TEncSlice::encodeSlice   ( TComPic*& rpcPic, TComBitstream*& rpcBitstream )
     {
       m_pcCuEncoder->encodeCU( pcCU );
     }
+#if SUB_LCU_DQP
+    uhLastQP = pcCU->getLastCodedQP();
+#endif
 #if ENC_DEC_TRACE
     g_bJustDoIt = g_bEncDecTraceDisable;
 #endif    

@@ -279,6 +279,14 @@
 			Filter="cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx"
 			>
 			<File
+				RelativePath="..\..\source\Lib\TLibDecoder\AnnexBread.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\source\Lib\TLibDecoder\NALread.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\source\Lib\TLibDecoder\SEIread.cpp"
 				>
 			</File>
@@ -319,6 +327,14 @@
 			Name="Header Files"
 			Filter="h;hpp;hxx;hm;inl"
 			>
+			<File
+				RelativePath="..\..\source\Lib\TLibDecoder\AnnexBread.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\source\Lib\TLibDecoder\NALread.h"
+				>
+			</File>
 			<File
 				RelativePath="..\..\source\Lib\TLibDecoder\SEIread.h"
 				>

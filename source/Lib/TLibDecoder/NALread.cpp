@@ -31,9 +31,64 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#pragma once
+#include <vector>
+#include <algorithm>
+#include <ostream>
 
-class TComInputBitstream;
-class SEImessages;
+#include "NALread.h"
+#include "../TLibCommon/NAL.h"
+#include "../TLibCommon/TComBitStream.h"
 
-void parseSEImessage(TComInputBitstream& bs, SEImessages& seis);
+using namespace std;
+
+static void convertPayloadToRBSP(vector<uint8_t>& nalUnitBuf)
+{
+  unsigned zeroCount = 0;
+  vector<uint8_t>::iterator it_read, it_write;
+  for (it_read = it_write = nalUnitBuf.begin(); it_read != nalUnitBuf.end(); it_read++, it_write++)
+  {
+    if (zeroCount == 2 && *it_read == 0x03)
+      it_read++;
+    zeroCount = (*it_read == 0x00) ? zeroCount+1 : 0;
+    *it_write = *it_read;
+  }
+
+  nalUnitBuf.resize(it_write - nalUnitBuf.begin());
+}
+
+/**
+ * create a NALunit structure with given header values and storage for
+ * a bitstream
+ */
+void read(InputNALUnit& nalu, vector<uint8_t>& nalUnitBuf)
+{
+  nalu.m_RBSPayload = &nalUnitBuf;
+
+  /* perform anti-emulation prevention */
+  convertPayloadToRBSP(nalUnitBuf);
+
+  nalu.m_Bitstream = new TComInputBitstream(&nalUnitBuf);
+  TComInputBitstream& bs = *nalu.m_Bitstream;
+
+  bool forbidden_zero_bit = bs.read(1);
+  assert(forbidden_zero_bit == 0);
+
+  nalu.m_RefIDC = (NalRefIdc) bs.read(2);
+  nalu.m_UnitType = (NalUnitType) bs.read(5);
+
+  switch (nalu.m_UnitType) {
+  case NAL_UNIT_CODED_SLICE:
+  case NAL_UNIT_CODED_SLICE_IDR:
+  case NAL_UNIT_CODED_SLICE_CDR: {
+    nalu.m_TemporalID = bs.read(3);
+    nalu.m_OutputFlag = bs.read(1);
+    unsigned reserved_one_4bits = bs.read(4);
+    assert(reserved_one_4bits == 1);
+    }
+    break;
+  default:
+    nalu.m_TemporalID = 0;
+    nalu.m_OutputFlag = true;
+    break;
+  }
+}

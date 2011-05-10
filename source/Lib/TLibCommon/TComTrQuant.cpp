@@ -3416,9 +3416,19 @@ Void TComTrQuant::xQuantLTR  (TComDataCU* pcCU, Long* pSrc, TCoeff*& pDes, Int i
 
       iLevel = (abs(iLevel) * uiQ + iAdd ) >> iQBits;
 #if CAVLC_COEF_LRG_BLK
-      if (m_iSymbolMode == 0 && n>=64 && eTType != TEXT_LUMA)
+      if (pcCU->isIntra( uiAbsPartIdx ))
       {
-        iLevel = 0;
+        if (m_iSymbolMode == 0 && n>=64 && eTType != TEXT_LUMA)
+        {
+          iLevel = 0;
+        }
+      }
+      else   
+      {
+        if (m_iSymbolMode == 0 && ((uiBlockPos%iWidth)>=8 || (uiBlockPos/iWidth)>=8) && eTType != TEXT_LUMA)
+        {
+          iLevel = 0;
+        }
       }
 #else
       if (m_iSymbolMode == 0 && iWidth>8)

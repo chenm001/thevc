@@ -88,6 +88,7 @@ Void TEncTop::create ()
 #if MQT_BA_RA && MQT_ALF_NPASS
   if(m_bUseALF)
   {
+    m_cAdaptiveLoopFilter.setGOPSize( getGOPSize() );
     m_cAdaptiveLoopFilter.createAlfGlobalBuffers(m_iALFEncodePassReduction);
   }
 #endif
@@ -175,6 +176,9 @@ Void TEncTop::init()
   xInitSPS();
   
   // initialize PPS
+#if SUB_LCU_DQP
+  m_cPPS.setSPS(&m_cSPS);
+#endif
   xInitPPS();
 
   // initialize processing unit classes
@@ -240,7 +244,7 @@ Void TEncTop::deletePicBuffer()
  \retval  rcListBitstreamOut  list of output bitstreams
  \retval  iNumEncoded         number of encoded pictures
  */
-Void TEncTop::encode( bool bEos, TComPicYuv* pcPicYuvOrg, TComList<TComPicYuv*>& rcListPicYuvRecOut, TComList<TComBitstream*>& rcListBitstreamOut, Int& iNumEncoded )
+Void TEncTop::encode( bool bEos, TComPicYuv* pcPicYuvOrg, TComList<TComPicYuv*>& rcListPicYuvRecOut, list<AccessUnit>& accessUnitsOut, Int& iNumEncoded )
 {
   TComPic* pcPicCurr = NULL;
   
@@ -255,7 +259,7 @@ Void TEncTop::encode( bool bEos, TComPicYuv* pcPicYuvOrg, TComList<TComPicYuv*>&
   }
   
   // compress GOP
-  m_cGOPEncoder.compressGOP( m_iPOCLast, m_iNumPicRcvd, m_cListPic, rcListPicYuvRecOut, rcListBitstreamOut );
+  m_cGOPEncoder.compressGOP(m_iPOCLast, m_iNumPicRcvd, m_cListPic, rcListPicYuvRecOut, accessUnitsOut);
   
   iNumEncoded         = m_iNumPicRcvd;
   m_iNumPicRcvd       = 0;
@@ -445,4 +449,17 @@ Void TEncTop::xInitPPS()
       m_cPPS.setTLayerSwitchingFlag( i, m_abTLayerSwitchingFlag[i] );
     }
   }   
+
+#if SUB_LCU_DQP
+  if( m_cPPS.getSPS()->getUseDQP() )
+  {
+    m_cPPS.setMaxCuDQPDepth( m_iMaxCuDQPDepth );
+    m_cPPS.setMinCuDQPSize( m_cPPS.getSPS()->getMaxCUWidth() >> ( m_cPPS.getMaxCuDQPDepth()) );
+  }
+  else
+  {
+    m_cPPS.setMaxCuDQPDepth( 0 );
+    m_cPPS.setMinCuDQPSize( m_cPPS.getSPS()->getMaxCUWidth() >> ( m_cPPS.getMaxCuDQPDepth()) );
+  }
+#endif
 }

@@ -48,7 +48,7 @@ public:
   TDecBinCABAC ();
   virtual ~TDecBinCABAC();
 
-  Void  init              ( TComBitstream* pcTComBitstream );
+  Void  init              ( TComInputBitstream* pcTComBitstream );
   Void  uninit            ();
 
   Void  start             ();
@@ -68,7 +68,7 @@ private:
   Void  xReadBit          ( UInt& ruiVal );
 
 private:
-  TComBitstream*      m_pcTComBitstream;
+  TComInputBitstream* m_pcTComBitstream;
   UInt                m_uiRange;
   UInt                m_uiValue;
 };

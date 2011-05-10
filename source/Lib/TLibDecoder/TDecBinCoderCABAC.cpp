@@ -48,7 +48,7 @@ TDecBinCABAC::~TDecBinCABAC()
 }
 
 Void
-TDecBinCABAC::init( TComBitstream* pcTComBitstream )
+TDecBinCABAC::init( TComInputBitstream* pcTComBitstream )
 {
   m_pcTComBitstream = pcTComBitstream;
 }
@@ -62,8 +62,6 @@ TDecBinCABAC::uninit()
 Void
 TDecBinCABAC::start()
 {
-  m_pcTComBitstream->setModeSbac();
-  
   m_uiRange    = 510;
   m_uiValue    = 0;
   for( UInt ui = 0; ui < 9; ui++ )
@@ -162,7 +160,7 @@ Void TDecBinCABAC::resetBac()
  */
 Void TDecBinCABAC::decodePCMAlignBits()
 {
-  Int iNum = (m_pcTComBitstream->getBitsLeft() & (0x7));
+  Int iNum = m_pcTComBitstream->getNumBitsUntilByteAligned();
 
   for( UInt ui = 0; ui < iNum ; ui++ )
   {

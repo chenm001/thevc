@@ -42,10 +42,9 @@
 #include "../TLibCommon/TComList.h"
 #include "../TLibCommon/TComPrediction.h"
 #include "../TLibCommon/TComTrQuant.h"
-#include "../TLibCommon/TComBitStream.h"
+#include "../TLibCommon/AccessUnit.h"
 
 #include "../TLibVideoIO/TVideoIOYuv.h"
-#include "../TLibVideoIO/TVideoIOBits.h"
 
 #include "TEncCfg.h"
 #include "TEncGOP.h"
@@ -151,7 +150,7 @@ public:
   
   /// encode several number of pictures until end-of-sequence
   Void encode( bool bEos, TComPicYuv* pcPicYuvOrg, TComList<TComPicYuv*>& rcListPicYuvRecOut,
-              TComList<TComBitstream*>& rcListBitstreamOut, Int& iNumEncoded );
+              std::list<AccessUnit>& accessUnitsOut, Int& iNumEncoded );
   
 };
 

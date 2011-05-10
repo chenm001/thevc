@@ -389,6 +389,7 @@ Void  print(ALFParam* pAlfParam)
  */
 Void TEncEntropy::encodeMergeFlag( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiPUIdx )
 { 
+#if !CHANGE_GET_MERGE_CANDIDATE
   UInt uiNumCand = 0;
   for(UInt uiIter = 0; uiIter < MRG_MAX_NUM_CANDS; uiIter++ )
   {
@@ -400,13 +401,16 @@ Void TEncEntropy::encodeMergeFlag( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiP
   }
   if ( uiNumCand )
   {
+#endif
     // at least one merge candidate exists
     m_pcEntropyCoderIf->codeMergeFlag( pcCU, uiAbsPartIdx );
+#if !CHANGE_GET_MERGE_CANDIDATE
   }
   else
   {
     assert( !pcCU->getMergeFlag( uiAbsPartIdx ) );
   }
+#endif
 }
 
 #if HHI_MRG_SKIP
@@ -995,8 +999,16 @@ Void TEncEntropy::xEncodeCoeff( TComDataCU* pcCU, TCoeff* pcCoeff, UInt uiAbsPar
     {
       if ( pcCU->getdQPFlag())// non-skip
       {
+#if SUB_LCU_DQP
+        encodeQP( pcCU, uiAbsPartIdx );
+        pcCU->setdQPFlag(false);
+        pcCU->setQPSubParts( pcCU->getQP( uiAbsPartIdx ), ((uiAbsPartIdx>>(8-(pcCU->getSlice()->getPPS()->getMaxCuDQPDepth()<<1)))<<(8-(pcCU->getSlice()->getPPS()->getMaxCuDQPDepth()<<1))), 
+          Min(uiDepth,pcCU->getSlice()->getPPS()->getMaxCuDQPDepth()) ); // set QP to default QP
+        pcCU->setLastCodedQP( pcCU->getRefQP( uiAbsPartIdx ));
+#else
         encodeQP( pcCU, 0 );
         pcCU->setdQPFlag(false);
+#endif
       }
     }
 #endif//SNY_DQP
