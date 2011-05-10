@@ -35,9 +35,12 @@
     \brief    class for handling bitstream
 */
 
+#include <vector>
 #include "TComBitStream.h"
 #include <string.h>
 #include <memory.h>
+
+using namespace std;
 
 static unsigned int xSwap ( unsigned int ui )
 {
@@ -60,25 +63,32 @@ static unsigned int xSwap ( unsigned int ui )
 // Constructor / destructor / create / destroy
 // ====================================================================================================================
 
-Void TComOutputBitstream::create( UInt uiSizeInBytes )
+TComOutputBitstream::TComOutputBitstream()
 {
-  UInt uiSize = uiSizeInBytes / sizeof(UInt);
+  m_fifo = new vector<unsigned int>;
 
-  m_apulStreamPacketBegin = new UInt[uiSize];
-  m_uiBufSize       = uiSize;
   m_iValidBits      = 32;
 
   m_ulCurrentBits   = 0;
   m_uiBitsWritten   = 0;
+}
 
-  m_pulStreamPacket = m_apulStreamPacketBegin;
+TComOutputBitstream::~TComOutputBitstream()
+{
+  delete m_fifo;
+}
+
+Void TComOutputBitstream::create( UInt uiSizeInBytes )
+{
   m_auiSliceByteLocation = NULL;
   m_uiSliceCount         = 0;
+  m_fifo->reserve(uiSizeInBytes);
 }
 
 Void TComOutputBitstream::destroy()
 {
-  delete [] m_apulStreamPacketBegin;     m_apulStreamPacketBegin = NULL;
+  delete m_fifo;
+  m_fifo = NULL;
 }
 
 Void TComInputBitstream::create( UInt uiSizeInBytes )
@@ -103,9 +113,18 @@ Void TComInputBitstream::destroy()
 // Public member functions
 // ====================================================================================================================
 
+unsigned int * TComOutputBitstream::getStartStream() const
+{
+  return &m_fifo->front();
+}
+
+void TComOutputBitstream::rewindStreamPacket()
+{
+  m_fifo->clear();
+}
+
 Void TComOutputBitstream::write   ( UInt uiBits, UInt uiNumberOfBits )
 {
-  assert( m_uiBufSize > 0 );
   assert( uiNumberOfBits <= 32 );
   assert( ! ( (uiBits >> 1) >> (uiNumberOfBits - 1)) ); // because shift with 32 has no effect
   
@@ -125,8 +144,7 @@ Void TComOutputBitstream::write   ( UInt uiBits, UInt uiNumberOfBits )
   // add the last bits
   m_ulCurrentBits |= uiBits >> uiShift;
   
-  *m_pulStreamPacket++ = xSwap( m_ulCurrentBits );
-  
+  m_fifo->push_back(xSwap(m_ulCurrentBits));
   
   // note: there is a problem with left shift with 32
   m_iValidBits = 32 - uiShift;
@@ -156,7 +174,7 @@ Void  TComOutputBitstream::flushBuffer()
   if (m_iValidBits == 0)
     return;
   
-  *m_pulStreamPacket = xSwap( m_ulCurrentBits );
+  m_fifo->push_back(xSwap(m_ulCurrentBits));
   
   m_uiBitsWritten = (m_uiBitsWritten+7)/8;
   
@@ -441,10 +459,11 @@ void TComOutputBitstream::insertAt(const TComOutputBitstream& src, unsigned pos)
   assert(0 == src_bits % 8);
   unsigned src_bytes = src_bits/8;
 
-  /* check that there is enough space in the current buffer to accommodate @src */
-  unsigned this_buf_size = m_uiBufSize * sizeof(UInt);
+  /* append n src_bytes to the end of the fifo */
+  unsigned this_buf_size = m_fifo->size() * sizeof(UInt);
+  m_fifo->resize((this_buf_size + src_bytes + sizeof(UInt)-1)/sizeof(UInt));
+
   unsigned this_bytes = this->getNumberOfWrittenBits()/8;
-  assert(this_buf_size - this_bytes > src_bytes);
 
   /* make space */
   unsigned char *this_dest = pos + src_bytes + (unsigned char*) this->getStartStream();
@@ -456,7 +475,6 @@ void TComOutputBitstream::insertAt(const TComOutputBitstream& src, unsigned pos)
 
   /* update state */
   this->m_uiBitsWritten += src_bits;
-  this->m_pulStreamPacket += src_bytes / sizeof(UInt);
   /* XXX: this will go horribly wrong if data being inserted isn't a
    * multiple of UInt. To work correctly, some data would have to be
    * pulled back from the fifo into currentBits. */

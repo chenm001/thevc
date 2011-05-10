@@ -42,6 +42,7 @@
 #pragma once
 #endif // _MSC_VER > 1000
 
+#include <vector>
 #include <stdio.h>
 #include <assert.h>
 #include "CommonDef.h"
@@ -70,11 +71,16 @@ public:
  */
 class TComOutputBitstream : public TComBitIf
 {
+  /**
+   * FIFO for storage of bytes.  Use:
+   *  - fifo.push_back(x) to append words
+   *  - fifo.clear() to empty the FIFO
+   *  - &fifo.front() to get a pointer to the data array.
+   *    NB, this pointer is only valid until the next push_back()/clear()
+   */
+  std::vector<unsigned int> *m_fifo;
+
 protected:
-  UInt*       m_apulStreamPacketBegin;
-  UInt*       m_pulStreamPacket;
-  UInt        m_uiBufSize;
-  
   Int         m_iValidBits;
   
   UInt        m_ulCurrentBits;
@@ -85,6 +91,9 @@ protected:
   
 public:
   // create / destroy
+  TComOutputBitstream();
+  ~TComOutputBitstream();
+
   Void        create          ( UInt uiSizeInBytes );
   Void        destroy         ();
   
@@ -115,11 +124,23 @@ public:
   }
 
   // utility functions
-  UInt* getStartStream() const { return m_apulStreamPacketBegin; }
+
+  /**
+   * Return a pointer to the start of the byte-stream buffer.
+   * Pointer is valid until the next write/flush/reset call.
+   * NB, data is arranged such that subsequent bytes in the
+   * bytestream are stored in ascending addresses.
+   */
+  UInt* getStartStream() const;
+
+  /**
+   * Reset the internal write pointer to the start of the bytestream.
+   */
+  Void rewindStreamPacket();
+
   Int         getBitsUntilByteAligned() { return m_iValidBits & (0x7);                  }
   UInt getNumberOfWrittenBits() const { return  m_uiBitsWritten; }
   Void        flushBuffer();
-  Void        rewindStreamPacket()      { m_pulStreamPacket = m_apulStreamPacketBegin;  }
 
   void insertAt(const TComOutputBitstream& src, unsigned pos);
 };
