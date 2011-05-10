@@ -107,28 +107,40 @@ Void TAppDecTop::decode()
      * nal unit. */
     streampos location = bitstreamFile.tellg();
     AnnexBStats stats = AnnexBStats();
+
     vector<uint8_t> nalUnit;
     byteStreamNALUnit(bytestream, nalUnit, stats);
-    InputNALUnit nalu;
-    if (!nalUnit.empty())
-      read(nalu, nalUnit);
 
     // call actual decoding function
 #if DCM_SKIP_DECODING_FRAMES
-    Bool bNewPicture = m_cTDecTop.decode(false, nalu, uiPOC, pcListPic, m_iSkipFrame, m_iPOCLastDisplay);
+    bool bNewPicture = false;
+    if (nalUnit.empty())
+      /* this can happen if the following occur:
+       *  - empty input file
+       *  - two back-to-back start_code_prefixes
+       *  - start_code_prefix immediately followed by EOF
+       */
+      fprintf(stderr, "Warning: Attempt to decode an empty NAL unit\n");
+    else
+    {
+      InputNALUnit nalu;
+      read(nalu, nalUnit);
+      bNewPicture = m_cTDecTop.decode(false, nalu, uiPOC, pcListPic, m_iSkipFrame, m_iPOCLastDisplay);
+      if (bNewPicture)
+      {
+        bitstreamFile.clear();
+        /* location points to the current nalunit payload[1] due to the
+         * need for the annexB parser to read three extra bytes.
+         * [1] except for the first NAL unit in the file
+         *     (but bNewPicture doesn't happen then) */
+        bitstreamFile.seekg(location-streamoff(3));
+      }
+    }
     if (bNewPicture || !bitstreamFile)
     {
       m_cTDecTop.executeDeblockAndAlf(false, uiPOC, pcListPic, m_iSkipFrame, m_iPOCLastDisplay);
     }
-    if (bNewPicture)
-    {
-      bitstreamFile.clear();
-      /* location points to the current nalunit payload[1] due to the
-       * need for the annexB parser to read three extra bytes.
-       * [1] except for the first NAL unit in the file
-       *     (but bNewPicture doesn't happen then) */
-      bitstreamFile.seekg(location-streamoff(3));
-    }
+
 #else
     m_cTDecTop.decode( bEos, nalu, uiPOC, pcListPic );
 #endif
