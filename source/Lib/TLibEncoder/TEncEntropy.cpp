@@ -389,6 +389,7 @@ Void  print(ALFParam* pAlfParam)
  */
 Void TEncEntropy::encodeMergeFlag( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiPUIdx )
 { 
+#if !CHANGE_GET_MERGE_CANDIDATE
   UInt uiNumCand = 0;
   for(UInt uiIter = 0; uiIter < MRG_MAX_NUM_CANDS; uiIter++ )
   {
@@ -400,13 +401,16 @@ Void TEncEntropy::encodeMergeFlag( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiP
   }
   if ( uiNumCand )
   {
+#endif
     // at least one merge candidate exists
     m_pcEntropyCoderIf->codeMergeFlag( pcCU, uiAbsPartIdx );
+#if !CHANGE_GET_MERGE_CANDIDATE
   }
   else
   {
     assert( !pcCU->getMergeFlag( uiAbsPartIdx ) );
   }
+#endif
 }
 
 #if HHI_MRG_SKIP
@@ -537,6 +541,25 @@ Void TEncEntropy::encodePartSize( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDe
   
   m_pcEntropyCoderIf->codePartSize( pcCU, uiAbsPartIdx, uiDepth );
 }
+
+#if E057_INTRA_PCM
+/** Encode I_PCM information. 
+ * \param pcCU pointer to CU 
+ * \param uiAbsPartIdx CU index
+ * \param bRD flag indicating estimation or encoding
+ * \returns Void
+ */
+Void TEncEntropy::encodeIPCMInfo( TComDataCU* pcCU, UInt uiAbsPartIdx, Bool bRD )
+{
+  if(pcCU->getWidth(uiAbsPartIdx) < (1<<pcCU->getSlice()->getSPS()->getPCMLog2MinSize()))
+    return;
+
+  if( bRD )
+    uiAbsPartIdx = 0;
+
+  m_pcEntropyCoderIf->codeIPCMInfo ( pcCU, uiAbsPartIdx );
+}
+#endif
 
 Void TEncEntropy::xEncodeTransformSubdiv( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth, UInt uiInnerQuadIdx, UInt& uiYCbfFront3, UInt& uiUCbfFront3, UInt& uiVCbfFront3 )
 {

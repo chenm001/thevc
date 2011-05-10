@@ -69,6 +69,9 @@ private:
   UInt        m_uiQuadtreeTULog2MinSize;
   UInt        m_uiQuadtreeTUMaxDepthInter;
   UInt        m_uiQuadtreeTUMaxDepthIntra;
+#if E057_INTRA_PCM
+  UInt        m_uiPCMLog2MinSize;
+#endif
   Bool        m_bUseALF;
   Bool        m_bUseDQP;
   Bool        m_bUseLDC;
@@ -91,7 +94,7 @@ private:
   AMVP_MODE   m_aeAMVPMode[MAX_CU_DEPTH];
   UInt        m_uiBitDepth;
   UInt        m_uiBitIncrement;
-  
+
   // Max physical transform size
   UInt        m_uiMaxTrSize;
   
@@ -121,6 +124,10 @@ public:
   UInt getMaxCUHeight ()         { return  m_uiMaxCUHeight; }
   Void setMaxCUDepth  ( UInt u ) { m_uiMaxCUDepth = u;      }
   UInt getMaxCUDepth  ()         { return  m_uiMaxCUDepth;  }
+#if E057_INTRA_PCM
+  Void setPCMLog2MinSize  ( UInt u ) { m_uiPCMLog2MinSize = u;      }
+  UInt getPCMLog2MinSize  ()         { return  m_uiPCMLog2MinSize;  }
+#endif
   Void setMinTrDepth  ( UInt u ) { m_uiMinTrDepth = u;      }
   UInt getMinTrDepth  ()         { return  m_uiMinTrDepth;  }
   Void setMaxTrDepth  ( UInt u ) { m_uiMaxTrDepth = u;      }

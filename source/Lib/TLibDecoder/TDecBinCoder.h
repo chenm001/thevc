@@ -45,7 +45,7 @@
 class TDecBinIf
 {
 public:
-  virtual Void  init              ( TComBitstream* pcTComBitstream )          = 0;
+  virtual Void  init              ( TComInputBitstream* pcTComBitstream )     = 0;
   virtual Void  uninit            ()                                          = 0;
 
   virtual Void  start             ()                                          = 0;
@@ -55,6 +55,12 @@ public:
   virtual Void  decodeBinEP       ( UInt& ruiBin                           )  = 0;
   virtual Void  decodeBinTrm      ( UInt& ruiBin                           )  = 0;
   
+#if E057_INTRA_PCM
+  virtual Void  resetBac          ()                                          = 0;
+  virtual Void  decodePCMAlignBits()                                          = 0;
+  virtual Void  xReadPCMCode      (UInt uiLength, UInt& ruiCode)              = 0;
+#endif
+
   virtual ~TDecBinIf() {}
 };
 

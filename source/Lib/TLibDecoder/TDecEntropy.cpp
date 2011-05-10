@@ -496,6 +496,22 @@ Void TDecEntropy::decodePredInfo    ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt 
   }
 }
 
+#if E057_INTRA_PCM
+/** Parse I_PCM information. 
+ * \param pcCU  pointer to CUpointer to CU
+ * \param uiAbsPartIdx CU index
+ * \param uiDepth CU depth
+ * \returns Void
+ */
+Void TDecEntropy::decodeIPCMInfo( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
+{
+  if(pcCU->getWidth(uiAbsPartIdx) < (1<<pcCU->getSlice()->getSPS()->getPCMLog2MinSize()))
+    return;
+
+  m_pcEntropyDecoderIf->parseIPCMInfo( pcCU, uiAbsPartIdx, uiDepth );
+}
+#endif 
+
 Void TDecEntropy::decodeIntraDirModeLuma  ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
 {
   m_pcEntropyDecoderIf->parseIntraDirLumaAng( pcCU, uiAbsPartIdx, uiDepth );
@@ -506,9 +522,8 @@ Void TDecEntropy::decodeIntraDirModeChroma( TComDataCU* pcCU, UInt uiAbsPartIdx,
   m_pcEntropyDecoderIf->parseIntraDirChroma( pcCU, uiAbsPartIdx, uiDepth );
 }
 
-/** decode motion information for every PU block
+/** decode motion information for every PU block.
  * \param pcCU
- * \param uiPartIdx 
  * \param uiAbsPartIdx 
  * \param uiDepth
  * \param pcSubCU

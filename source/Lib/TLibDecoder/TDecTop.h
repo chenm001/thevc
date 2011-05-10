@@ -50,6 +50,8 @@
 #include "TDecSbac.h"
 #include "TDecCAVLC.h"
 
+struct InputNALUnit;
+
 // ====================================================================================================================
 // Class definition
 // ====================================================================================================================
@@ -115,16 +117,16 @@ public:
   
   Void  init();
 #if DCM_SKIP_DECODING_FRAMES
-  Bool  decode (Bool bEos, TComBitstream* pcBitstream, UInt& ruiPOC, TComList<TComPic*>*& rpcListPic, Int& iSkipFrame, Int& iPOCLastDisplay);
+  Bool  decode (Bool bEos, InputNALUnit& nalu, UInt& ruiPOC, TComList<TComPic*>*& rpcListPic, Int& iSkipFrame, Int& iPOCLastDisplay);
 #else
-  Void  decode ( Bool bEos, TComBitstream* pcBitstream, UInt& ruiPOC, TComList<TComPic*>*& rpcListPic );
+  Void  decode ( Bool bEos, InputNALUnit& nalu, UInt& ruiPOC, TComList<TComPic*>*& rpcListPic );
 #endif
   
   TComSPS *getSPS() { return (m_uiValidPS & 1) ? &m_cSPS : NULL; }
   
   Void  deletePicBuffer();
 
-  Void executeDeblockAndAlf(Bool bEos, TComBitstream* pcBitstream, UInt& ruiPOC, TComList<TComPic*>*& rpcListPic, Int& iSkipFrame,  Int& iPOCLastDisplay);
+  Void executeDeblockAndAlf(Bool bEos, UInt& ruiPOC, TComList<TComPic*>*& rpcListPic, Int& iSkipFrame,  Int& iPOCLastDisplay);
 
 protected:
   Void  xGetNewPicBuffer  (TComSlice* pcSlice, TComPic*& rpcPic);

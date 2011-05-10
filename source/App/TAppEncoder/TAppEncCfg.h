@@ -114,7 +114,7 @@ protected:
   UInt      m_uiBitIncrement;                                 ///< bit-depth increment
 #endif
   UInt      m_uiInternalBitDepth;                             ///< Internal bit-depth (BitDepth+BitIncrement)
-  
+
 #if MTK_SAO
   Bool      m_bUseSAO; 
 #endif
@@ -143,6 +143,11 @@ protected:
   Bool      m_bUseRMP;
 #endif
   
+  // coding tools (PCM)
+#if E057_INTRA_PCM
+  UInt      m_uiPCMLog2MinSize;                               ///< log2 of minimum PCM block size
+#endif
+
   // coding tools (encoder-only parameters)
   Bool      m_bUseSBACRD;                                     ///< flag for using RD optimization based on SBAC
   Bool      m_bUseASR;                                        ///< flag for using adaptive motion search range

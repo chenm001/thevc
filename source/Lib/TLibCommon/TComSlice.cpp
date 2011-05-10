@@ -796,6 +796,10 @@ TComSPS::TComSPS()
 
   m_uiMaxTLayers            = 1;
   m_bTemporalIdNestingFlag  = false;
+
+#if E057_INTRA_PCM
+  m_uiPCMLog2MinSize = 7;
+#endif
 }
 
 TComSPS::~TComSPS()

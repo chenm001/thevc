@@ -35,11 +35,13 @@
     \brief    decoder class
 */
 
+#include "NALread.h"
 #include "TDecTop.h"
 
 TDecTop::TDecTop()
 : m_SEIs(0)
 {
+  m_pcPic = 0;
   m_iGopSize      = 0;
   m_bGopSizeSet   = false;
   m_iMaxRefPicNum = 0;
@@ -144,7 +146,7 @@ Void TDecTop::xGetNewPicBuffer ( TComSlice* pcSlice, TComPic*& rpcPic )
   
   if (m_cListPic.size() < (UInt)m_iMaxRefPicNum)
   {
-    rpcPic = new TComPic;
+    rpcPic = new TComPic();
     
     rpcPic->create ( pcSlice->getSPS()->getWidth(), pcSlice->getSPS()->getHeight(), g_uiMaxCUWidth, g_uiMaxCUHeight, g_uiMaxCUDepth, true);
     m_cListPic.pushBack( rpcPic );
@@ -184,13 +186,17 @@ Void TDecTop::xGetNewPicBuffer ( TComSlice* pcSlice, TComPic*& rpcPic )
   }
 }
 
-Void TDecTop::executeDeblockAndAlf(Bool bEos, TComBitstream* pcBitstream, UInt& ruiPOC, TComList<TComPic*>*& rpcListPic, Int& iSkipFrame,  Int& iPOCLastDisplay)
+Void TDecTop::executeDeblockAndAlf(Bool bEos, UInt& ruiPOC, TComList<TComPic*>*& rpcListPic, Int& iSkipFrame,  Int& iPOCLastDisplay)
 {
+  if (!m_pcPic)
+    /* nothing to deblock */
+    return;
+
   TComPic*&   pcPic         = m_pcPic;
 
   // Execute Deblock and ALF only + Cleanup
   TComSlice* pcSlice  = pcPic->getPicSym()->getSlice( m_uiSliceIdx                  );
-  m_cGopDecoder.decompressGop ( bEos, pcBitstream, pcPic, true);
+  m_cGopDecoder.decompressGop(bEos, NULL, pcPic, true);
 
   // Apply decoder picture marking at the end of coding
   pcPic->getSlice( 0 )->decodingTLayerSwitchingMarking( m_cListPic );
@@ -205,9 +211,9 @@ Void TDecTop::executeDeblockAndAlf(Bool bEos, TComBitstream* pcBitstream, UInt& 
 }
 
 #if DCM_SKIP_DECODING_FRAMES
-Bool TDecTop::decode (Bool bEos, TComBitstream* pcBitstream, UInt& ruiPOC, TComList<TComPic*>*& rpcListPic, Int& iSkipFrame,  Int& iPOCLastDisplay)
+Bool TDecTop::decode (Bool bEos, InputNALUnit& nalu, UInt& ruiPOC, TComList<TComPic*>*& rpcListPic, Int& iSkipFrame,  Int& iPOCLastDisplay)
 #else
-Void TDecTop::decode (Bool bEos, TComBitstream* pcBitstream, UInt& ruiPOC, TComList<TComPic*>*& rpcListPic)
+Void TDecTop::decode (Bool bEos, InputNALUnit& nalu, UInt& ruiPOC, TComList<TComPic*>*& rpcListPic)
 #endif
 {
   if (m_bFirstSliceInPicture)
@@ -218,15 +224,9 @@ Void TDecTop::decode (Bool bEos, TComBitstream* pcBitstream, UInt& ruiPOC, TComL
   
   // Initialize entropy decoder
   m_cEntropyDecoder.setEntropyDecoder (&m_cCavlcDecoder);
-  m_cEntropyDecoder.setBitstream      (pcBitstream);
-  
-  NalUnitType eNalUnitType;
-  UInt        TemporalId;
-  Bool        OutputFlag;
-  
-  m_cEntropyDecoder.decodeNalUnitHeader(eNalUnitType, TemporalId, OutputFlag);  
+  m_cEntropyDecoder.setBitstream      (nalu.m_Bitstream);
 
-  switch (eNalUnitType)
+  switch (nalu.m_UnitType)
   {
     case NAL_UNIT_SPS:
       m_cEntropyDecoder.decodeSPS( &m_cSPS );
@@ -278,11 +278,11 @@ Void TDecTop::decode (Bool bEos, TComBitstream* pcBitstream, UInt& ruiPOC, TComL
       }
 
 #if DCM_DECODING_REFRESH
-      m_apcSlicePilot->setNalUnitType        (eNalUnitType);
+      m_apcSlicePilot->setNalUnitType(nalu.m_UnitType);
 #endif
       m_cEntropyDecoder.decodeSliceHeader (m_apcSlicePilot);
 
-      m_apcSlicePilot->setTLayerInfo( TemporalId ); 
+      m_apcSlicePilot->setTLayerInfo(nalu.m_TemporalID);
 
       if (m_apcSlicePilot->isNextSlice() && m_apcSlicePilot->getPOC()!=m_uiPrevPOC && !m_bFirstSliceInSequence)
       {
@@ -340,7 +340,7 @@ Void TDecTop::decode (Bool bEos, TComBitstream* pcBitstream, UInt& ruiPOC, TComL
       m_apcSlicePilot = pcPic->getPicSym()->getSlice(m_uiSliceIdx); 
       pcPic->getPicSym()->setSlice(pcSlice, m_uiSliceIdx);
 
-      pcPic->setTLayer( TemporalId );
+      pcPic->setTLayer(nalu.m_TemporalID);
 
       if (bNextSlice)
       {
@@ -427,7 +427,7 @@ Void TDecTop::decode (Bool bEos, TComBitstream* pcBitstream, UInt& ruiPOC, TComL
       pcPic->setCurrSliceIdx(m_uiSliceIdx);
 
       //  Decode a picture
-      m_cGopDecoder.decompressGop ( bEos, pcBitstream, pcPic, false );
+      m_cGopDecoder.decompressGop(bEos, nalu.m_Bitstream, pcPic, false);
 
       m_bFirstSliceInPicture = false;
       m_uiSliceIdx++;

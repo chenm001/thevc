@@ -63,7 +63,7 @@ Void TDecSlice::init(TDecEntropy* pcEntropyDecoder, TDecCu* pcCuDecoder)
   m_pcCuDecoder       = pcCuDecoder;
 }
 
-Void TDecSlice::decompressSlice(TComBitstream* pcBitstream, TComPic*& rpcPic)
+Void TDecSlice::decompressSlice(TComInputBitstream* pcBitstream, TComPic*& rpcPic)
 {
   TComDataCU* pcCU;
   UInt        uiIsLast = 0;

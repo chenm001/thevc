@@ -35,13 +35,20 @@
     \brief    GOP encoder class
 */
 
+#include <list>
+#include <algorithm>
+
 #include "TEncTop.h"
 #include "TEncGOP.h"
 #include "TEncAnalyze.h"
 #include "../libmd5/MD5.h"
 #include "../TLibCommon/SEI.h"
+#include "../TLibCommon/NAL.h"
+#include "NALwrite.h"
 
 #include <time.h>
+
+using namespace std;
 
 // ====================================================================================================================
 // Constructor / destructor / initialization / destroy
@@ -122,11 +129,10 @@ Void TEncGOP::init ( TEncTop* pcTEncTop )
 // Public member functions
 // ====================================================================================================================
 
-Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rcListPic, TComList<TComPicYuv*>& rcListPicYuvRecOut, TComList<TComBitstream*> rcListBitstreamOut )
+Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rcListPic, TComList<TComPicYuv*>& rcListPicYuvRecOut, list<AccessUnit>& accessUnitsInGOP)
 {
   TComPic*        pcPic;
   TComPicYuv*     pcPicYuvRecOut;
-  TComBitstream*  pcBitstreamOut;
   TComSlice*      pcSlice;
   
   xInitGOP( iPOCLast, iNumPicRcvd, rcListPic, rcListPicYuvRecOut );
@@ -160,11 +166,11 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
       /////////////////////////////////////////////////////////////////////////////////////////////////// Initial to start encoding
       UInt  uiPOCCurr = iPOCLast - (iNumPicRcvd - iTimeOffset);
       
-      xGetBuffer( rcListPic, rcListPicYuvRecOut, rcListBitstreamOut, iNumPicRcvd, iTimeOffset,  pcPic, pcPicYuvRecOut, pcBitstreamOut, uiPOCCurr );
-      
-      //  Bitstream reset
-      pcBitstreamOut->resetBits();
-      pcBitstreamOut->rewindStreamPacket();
+      /* start a new access unit: create an entry in the list of output
+       * access units */
+      accessUnitsInGOP.push_back(AccessUnit());
+      AccessUnit& accessUnit = accessUnitsInGOP.back();
+      xGetBuffer( rcListPic, rcListPicYuvRecOut, iNumPicRcvd, iTimeOffset, pcPic, pcPicYuvRecOut, uiPOCCurr );
       
       //  Slice data initialization
       pcPic->clearSliceBuffer();
@@ -417,38 +423,29 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
       // Set entropy coder
       m_pcEntropyCoder->setEntropyCoder   ( m_pcCavlcCoder, pcSlice );
 
-      /* write various header sets.
-       * The header sets are written into a separate bitstream buffer to
-       * allow SEI messages that are calculated after the picture has been
-       * encoded to be sent before the picture.
-       */
-      TComBitstream bs_SPS_PPS_SEI;
-      bs_SPS_PPS_SEI.create(512); /* TODO: this should dynamically resize */
+      /* write various header sets. */
       if ( m_bSeqFirst )
       {
-        m_pcEntropyCoder->setBitstream(&bs_SPS_PPS_SEI);
+        OutputNALUnit* nalu = new OutputNALUnit(NAL_UNIT_SPS, NAL_REF_IDC_PRIORITY_HIGHEST);
+        accessUnit.push_back(nalu);
+        m_pcEntropyCoder->setBitstream(&nalu->m_Bitstream);
+        m_pcEntropyCoder->encodeSPS(pcSlice->getSPS());
+        writeRBSPTrailingBits(nalu->m_Bitstream);
 
-        m_pcEntropyCoder->encodeSPS( pcSlice->getSPS() );
-        bs_SPS_PPS_SEI.write( 1, 1 );
-        bs_SPS_PPS_SEI.writeAlignZero();
-        // generate start code
-        bs_SPS_PPS_SEI.write( 1, 32);
-        
-        m_pcEntropyCoder->encodePPS( pcSlice->getPPS() );
-        bs_SPS_PPS_SEI.write( 1, 1 );
-        bs_SPS_PPS_SEI.writeAlignZero();
-        // generate start code
-        bs_SPS_PPS_SEI.write( 1, 32);
+        nalu = new OutputNALUnit(NAL_UNIT_PPS, NAL_REF_IDC_PRIORITY_HIGHEST);
+        accessUnit.push_back(nalu);
+        m_pcEntropyCoder->setBitstream(&nalu->m_Bitstream);
+        m_pcEntropyCoder->encodePPS(pcSlice->getPPS());
+        writeRBSPTrailingBits(nalu->m_Bitstream);
+
         m_bSeqFirst = false;
       }
-      
+
       /* use the main bitstream buffer for storing the marshalled picture */
-      m_pcEntropyCoder->setBitstream(pcBitstreamOut);
+      m_pcEntropyCoder->setBitstream(NULL);
 
       uiStartCUAddrSliceIdx = 0;
       uiStartCUAddrSlice    = 0; 
-      pcBitstreamOut->allocateMemoryForSliceLocations( pcPic->getPicSym()->getNumberOfCUsInFrame() ); // Assuming number of slices <= number of LCU. Needs to be changed for sub-LCU slice coding.
-      pcBitstreamOut->setSliceCount( 0 );                                      // intialize number of slices to zero, used while converting RBSP to NALU
 
       uiStartCUAddrEntropySliceIdx = 0;
       uiStartCUAddrEntropySlice    = 0; 
@@ -491,13 +488,19 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
         if (uiNextCUAddr!=0)
         {
           m_pcEntropyCoder->setEntropyCoder   ( m_pcCavlcCoder, pcSlice );
-          m_pcEntropyCoder->setBitstream      ( pcBitstreamOut          );
           m_pcEntropyCoder->resetEntropy      ();
         }
 
-      // write SliceHeader
-      m_pcEntropyCoder->encodeSliceHeader ( pcSlice                 );
-      
+        /* start slice NALunit */
+#if DCM_DECODING_REFRESH
+        OutputNALUnit* nalu = new OutputNALUnit(pcSlice->getNalUnitType(), NAL_REF_IDC_PRIORITY_HIGHEST, pcSlice->getTLayer(), true);
+#else
+        NALUnit* nalu = newNALUnit(NAL_UNIT_CODED_SLICE, NAL_REF_IDC_PRIORITY_HIGHEST);
+#endif
+        accessUnit.push_back(nalu);
+        m_pcEntropyCoder->setBitstream(&nalu->m_Bitstream);
+        m_pcEntropyCoder->encodeSliceHeader(pcSlice);
+
       // is it needed?
       if ( pcSlice->getSymbolMode() )
       {
@@ -559,7 +562,7 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
           m_pcEntropyCoder->setEntropyCoder ( m_pcCavlcCoder, pcSlice );
         }
         m_pcEntropyCoder->resetEntropy    ();
-        m_pcEntropyCoder->setBitstream    ( pcBitstreamOut );
+        m_pcEntropyCoder->setBitstream(&nalu->m_Bitstream);
 
 #if MTK_SAO
         if (pcSlice->getSPS()->getUseSAO())
@@ -597,23 +600,13 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
       }
         
         // File writing
-        m_pcSliceEncoder->encodeSlice( pcPic, pcBitstreamOut );
-        
-        //  End of bitstream & byte align
-        pcBitstreamOut->write( 1, 1 );
-        pcBitstreamOut->writeAlignZero();
+        m_pcSliceEncoder->encodeSlice(pcPic, &nalu->m_Bitstream);
+        writeRBSPTrailingBits(nalu->m_Bitstream);
         
         UInt uiBoundingAddrSlice, uiBoundingAddrEntropySlice;
         uiBoundingAddrSlice        = m_uiStoredStartCUAddrForEncodingSlice[uiStartCUAddrSliceIdx];          
         uiBoundingAddrEntropySlice = m_uiStoredStartCUAddrForEncodingEntropySlice[uiStartCUAddrEntropySliceIdx];          
         uiNextCUAddr               = min(uiBoundingAddrSlice, uiBoundingAddrEntropySlice);
-        if (uiNextCUAddr < pcPic->getPicSym()->getNumberOfCUsInFrame())   // if more slices to be encoded insert start code
-        {
-          UInt uiSliceCount = pcBitstreamOut->getSliceCount();
-          pcBitstreamOut->setSliceByteLocation( uiSliceCount, (pcBitstreamOut->getNumberOfWrittenBits()>>3) );
-          pcBitstreamOut->setSliceCount( uiSliceCount+1 );
-          pcBitstreamOut->write( 1, 32);
-        }
       } // end iteration over slices
       
       
@@ -625,14 +618,9 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
       }
 #endif 
       
-      
-      pcBitstreamOut->flushBuffer();
-      pcBitstreamOut->convertRBSPToPayload(0);
-      
 #if AMVP_BUFFERCOMPRESS
       pcPic->compressMotion(); 
 #endif 
-      pcBitstreamOut->freeMemoryAllocatedForSliceLocations();
       
       // Mark higher temporal layer pictures after switching point as unused
       pcSlice->decodingTLayerSwitchingMarking( rcListPic );
@@ -640,7 +628,16 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
       //-- For time output for each slice
       Double dEncTime = (double)(clock()-iBeforeTime) / CLOCKS_PER_SEC;
       
-      xCalculateAddPSNR( pcPic, pcPic->getPicYuvRec(), pcBitstreamOut->getNumberOfWrittenBits(), dEncTime );
+      /* calculate the number of bits written. NB, this doesn't include
+       * the number of anti-emulation bytes required, or start_code_prefix
+       * or NALunit header.
+       */
+      unsigned numBits = 0;
+      for (AccessUnit::const_iterator it = accessUnit.begin(); it != accessUnit.end(); it++)
+      {
+        numBits += (*it)->m_RBSPayload->size() * 8;
+      }
+      xCalculateAddPSNR( pcPic, pcPic->getPicYuvRec(), numBits, dEncTime );
 
 #if FIXED_ROUNDING_FRAME_MEMORY
       pcPic->getPicYuvRec()->xFixedRoundingPic();
@@ -653,33 +650,16 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
         calcMD5(*pcPic->getPicYuvRec(), sei_recon_picture_digest.digest);
         printf("[MD5:%s] ", digestToString(sei_recon_picture_digest.digest));
 
-        TComBitstream seiBs;
-        seiBs.create(1024);
+        OutputNALUnit* nalu = new OutputNALUnit(NAL_UNIT_SEI, NAL_REF_IDC_PRIORITY_LOWEST);
+        /* insert the SEI message NALUnit before any Slice NALUnits */
+        AccessUnit::iterator it = find_if(accessUnit.begin(), accessUnit.end(), mem_fun(&NALUnit::isSlice));
+        accessUnit.insert(it, nalu);
         /* write the SEI messages */
         m_pcEntropyCoder->setEntropyCoder(m_pcCavlcCoder, pcSlice);
-        m_pcEntropyCoder->setBitstream(&seiBs);
+        m_pcEntropyCoder->setBitstream(&nalu->m_Bitstream);
         m_pcEntropyCoder->encodeSEI(sei_recon_picture_digest);
-        /* and trailing bits */
-        seiBs.write(1, 1);
-        seiBs.writeAlignZero();
-        seiBs.flushBuffer();
-        seiBs.convertRBSPToPayload(0);
-
-        /* append the SEI message after any SPS/PPS */
-        /* the following loop is a work around current limitations in
-         * TComBitstream that won't be fixed before HM-3.0 */
-        UChar *seiData = reinterpret_cast<UChar *>(seiBs.getStartStream());
-        for (Int i = 0; i < seiBs.getNumberOfWrittenBits()/8; i++)
-        {
-          bs_SPS_PPS_SEI.write(seiData[i], 8);
-        }
-        bs_SPS_PPS_SEI.write(1, 32);
-        seiBs.destroy();
+        writeRBSPTrailingBits(nalu->m_Bitstream);
       }
-
-      /* insert the bs_SPS_PPS_SEI before the pcBitstreamOut */
-      bs_SPS_PPS_SEI.flushBuffer();
-      pcBitstreamOut->insertAt(bs_SPS_PPS_SEI, 0);
 
       pcPic->getPicYuvRec()->copyToPic(pcPicYuvRecOut);
       
@@ -810,12 +790,10 @@ Void TEncGOP::xInitGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rcLis
 
 Void TEncGOP::xGetBuffer( TComList<TComPic*>&       rcListPic,
                          TComList<TComPicYuv*>&    rcListPicYuvRecOut,
-                         TComList<TComBitstream*>& rcListBitstreamOut,
                          Int                       iNumPicRcvd,
                          Int                       iTimeOffset,
                          TComPic*&                 rpcPic,
                          TComPicYuv*&              rpcPicYuvRecOut,
-                         TComBitstream*&           rpcBitstreamOut,
                          UInt                      uiPOCCurr )
 {
   Int i;
@@ -827,14 +805,6 @@ Void TEncGOP::xGetBuffer( TComList<TComPic*>&       rcListPic,
   }
   
   rpcPicYuvRecOut = *(iterPicYuvRec);
-  
-  //  Bitstream output
-  TComList<TComBitstream*>::iterator  iterBitstream = rcListBitstreamOut.begin();
-  for ( i = 0; i < m_iNumPicCoded; i++ )
-  {
-    iterBitstream++;
-  }
-  rpcBitstreamOut = *(iterBitstream);
   
   //  Current pic.
   TComList<TComPic*>::iterator        iterPic       = rcListPic.begin();
