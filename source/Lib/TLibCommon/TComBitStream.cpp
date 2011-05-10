@@ -66,7 +66,6 @@ Void TComBitstream::create( UInt uiSizeInBytes )
   
   m_apulStreamPacketBegin = new UInt[uiSize];
   m_uiBufSize       = uiSize;
-  m_uiBitSize       = 0;
   m_iValidBits      = 32;
   
   m_ulCurrentBits   = 0;
@@ -259,36 +258,6 @@ Void TComBitstream::read (UInt uiNumberOfBits, UInt& ruiBits)
     return ;
   }
   xReadNextWord();
-}
-
-Void TComBitstream::readAlignOne()
-{
-  UInt uiNumberOfBits = getBitsUntilByteAligned();
-  
-  // check the number_of_bits parameter matches the range
-  assert (uiNumberOfBits <= 32);
-  assert (uiNumberOfBits <= m_uiBitsLeft);
-  
-  // sub the desired number of bits
-  m_uiBitsLeft -= uiNumberOfBits;
-  m_iValidBits -= uiNumberOfBits;
-  
-  assert (m_uiBitsLeft%8 == 0);
-  assert (m_iValidBits%8 == 0);
-  
-  // check the current word for beeing still valid
-  if( 0 < m_iValidBits )
-  {
-    m_ulCurrentBits <<= uiNumberOfBits;
-    return;
-  }
-  
-  xReadNextWord();
-  
-  // shift to the right position
-  m_ulCurrentBits <<= 32 - m_iValidBits;
-  
-  return;
 }
 
 // ====================================================================================================================

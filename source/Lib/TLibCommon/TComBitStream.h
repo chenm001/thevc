@@ -72,7 +72,6 @@ protected:
   UInt*       m_pulStreamPacket;
   UInt        m_uiBufSize;
   
-  UInt        m_uiBitSize;
   Int         m_iValidBits;
   
   UInt        m_ulCurrentBits;
@@ -108,7 +107,6 @@ public:
   Void        pseudoRead      ( UInt uiNumberOfBits, UInt& ruiBits );
 #endif
   Void        read            ( UInt uiNumberOfBits, UInt& ruiBits );
-  Void        readAlignOne    ();
   UInt        getSliceProcessed                ()       { return m_uiSliceProcessed;                }
   Void        setSliceProcessed                (UInt u) { m_uiSliceProcessed                = u;    }
   
@@ -128,7 +126,6 @@ public:
   // reset internal status
   Void        resetBits       ()
   {
-    m_uiBitSize = 0;
     m_iValidBits = 32;
     m_ulCurrentBits = 0;
     m_uiBitsWritten = 0;
