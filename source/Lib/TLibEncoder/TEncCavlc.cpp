@@ -225,15 +225,11 @@ UInt* TEncCavlc::GetLastPosVlcIndexTable()
  */
 void TEncCavlc::codeSEI(const SEI& sei)
 {
-  codeNALUnitHeader(NAL_UNIT_SEI, NAL_REF_IDC_PRIORITY_LOWEST);
   writeSEImessage(*m_pcBitIf, sei);
 }
 
 Void TEncCavlc::codePPS( TComPPS* pcPPS )
 {
-  // uiFirstByte
-  codeNALUnitHeader( NAL_UNIT_PPS, NAL_REF_IDC_PRIORITY_HIGHEST );
-
 #if CONSTRAINED_INTRA_PRED
   xWriteFlag( pcPPS->getConstrainedIntraPred() ? 1 : 0 );
 #endif
@@ -254,26 +250,8 @@ Void TEncCavlc::codePPS( TComPPS* pcPPS )
   return;
 }
 
-Void TEncCavlc::codeNALUnitHeader( NalUnitType eNalUnitType, NalRefIdc eNalRefIdc, UInt TemporalId, Bool bOutputFlag )
-{
-  // uiFirstByte
-  xWriteCode( 0, 1);            // forbidden_zero_flag
-  xWriteCode( eNalRefIdc, 2);   // nal_ref_idc
-  xWriteCode( eNalUnitType, 5); // nal_unit_type
-
-  if ( (eNalUnitType == NAL_UNIT_CODED_SLICE) || (eNalUnitType == NAL_UNIT_CODED_SLICE_IDR) || (eNalUnitType == NAL_UNIT_CODED_SLICE_CDR) )
-  {
-    xWriteCode( TemporalId, 3);   // temporal_id
-    xWriteFlag( bOutputFlag );    // output_flag
-    xWriteCode( 1, 4);            // reseved_one_4bits
-  }
-}
-
 Void TEncCavlc::codeSPS( TComSPS* pcSPS )
 {
-  // uiFirstByte
-  codeNALUnitHeader( NAL_UNIT_SPS, NAL_REF_IDC_PRIORITY_HIGHEST );
-
   xWriteCode( pcSPS->getMaxTLayers() - 1, 3 ); // maximum number of temporal layers minus 1
 
 
@@ -341,13 +319,6 @@ Void TEncCavlc::codeSPS( TComSPS* pcSPS )
 
 Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
 {
-  // here someone can add an appropriated NalRefIdc type 
-#if DCM_DECODING_REFRESH
-  codeNALUnitHeader (pcSlice->getNalUnitType(), NAL_REF_IDC_PRIORITY_HIGHEST, pcSlice->getTLayer(), true);
-#else
-  codeNALUnitHeader (NAL_UNIT_CODED_SLICE, NAL_REF_IDC_PRIORITY_HIGHEST);
-#endif
-
   Bool bEntropySlice = false;
   if (pcSlice->isNextSlice())
   {

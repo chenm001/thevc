@@ -33,23 +33,28 @@
 
 #pragma once
 
-#include <list>
-#include "NAL.h"
+#include <stdint.h>
+#include <vector>
+#include "CommonDef.h"
+
+class TComOutputBitstream;
 
 /**
- * An AccessUnit is a list of one or more NAL units, according to the
- * working draft.  All NAL units within the object belong to the same
- * access unit.
- *
- * Care should be taken when copying an AccessUnit, not to call the
- * destructor twice.
+ * Represents a single NALunit header and the associated RBSPayload
  */
-class AccessUnit : public std::list<NALUnit*>
+struct NALUnit
 {
-public:
-  ~AccessUnit()
+  NalUnitType m_UnitType; ///< nal_unit_type
+  NalRefIdc m_RefIDC; ///< nal_ref_idc
+  unsigned m_TemporalID; ///< temporal_id
+  bool m_OutputFlag; ///< output_flag
+  std::vector<uint8_t>* m_RBSPayload; ///< rbsp_byte's
+
+  /** returns true if the NALunit is a slice NALunit */
+  bool isSlice()
   {
-    for (iterator it = begin(); it != end(); it++)
-      delete *it;
+    return m_UnitType == NAL_UNIT_CODED_SLICE_IDR
+        || m_UnitType == NAL_UNIT_CODED_SLICE_CDR
+        || m_UnitType == NAL_UNIT_CODED_SLICE;
   }
 };

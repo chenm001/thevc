@@ -33,23 +33,45 @@
 
 #pragma once
 
-#include <list>
-#include "NAL.h"
+#include <ostream>
+#include "../TLibCommon/AccessUnit.h"
+#include "NALwrite.h"
 
 /**
- * An AccessUnit is a list of one or more NAL units, according to the
- * working draft.  All NAL units within the object belong to the same
- * access unit.
+ * write all NALunits in @au@ to bytestream @out@ in a manner satisfying
+ * AnnexB of AVC.  NALunits are written in the order they are found in @au@.
+ * the zero_byte word is appended to:
+ *  - the initial startcode in the access unit,
+ *  - any SPS/PPS nal units
  *
- * Care should be taken when copying an AccessUnit, not to call the
- * destructor twice.
+ * All NALunit payloads must be bytealigned prior to the call.
  */
-class AccessUnit : public std::list<NALUnit*>
+static void writeAnnexB(std::ostream& out, const AccessUnit& au)
 {
-public:
-  ~AccessUnit()
+  for (AccessUnit::const_iterator it = au.begin(); it != au.end(); it++)
   {
-    for (iterator it = begin(); it != end(); it++)
-      delete *it;
+    const NALUnit& nalu = **it;
+    static const char start_code_prefix[] = {0,0,0,1};
+#if 0
+    if (it == au.begin() || nalu.m_UnitType == NAL_UNIT_SPS || nalu.m_UnitType == NAL_UNIT_PPS)
+#else
+    if (1 /* hack to work around broken start_code_prefix parsing by decoder */)
+#endif
+    {
+      /* From AVC, When any of the following conditions are fulfilled, the
+       * zero_byte syntax element shall be present:
+       *  - the nal_unit_type within the nal_unit() is equal to 7 (sequence
+       *    parameter set) or 8 (picture parameter set),
+       *  - the byte stream NAL unit syntax structure contains the first NAL
+       *    unit of an access unit in decoding order, as specified by subclause
+       *    7.4.1.2.3.
+       */
+      out.write(start_code_prefix, 4);
+    }
+    else
+    {
+      out.write(start_code_prefix+1, 3);
+    }
+    write(out, nalu);
   }
-};
+}

@@ -159,12 +159,6 @@ Void TEncSbac::resetEntropy           ()
   return;
 }
 
-Void TEncSbac::codeNALUnitHeader( NalUnitType eNalUnitType, NalRefIdc eNalRefIdc, UInt TemporalId, Bool bOutputFlag )
-{
-  assert (0);
-  return;
-}
-
 void TEncSbac::codeSEI(const SEI&)
 {
   assert(0);

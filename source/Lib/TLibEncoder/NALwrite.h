@@ -1,7 +1,7 @@
 /* The copyright in this software is being made available under the BSD
  * License, included below. This software may be subject to other third party
  * and contributor rights, including patent rights, and no such rights are
- * granted under this license.  
+ * granted under this license.
  *
  * Copyright (c) 2010-2011, ITU/ISO/IEC
  * All rights reserved.
@@ -31,51 +31,43 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/** \file     TVideoIOBits.h
-    \brief    bitstream file I/O class (header)
-*/
+#pragma once
 
-#ifndef __TVIDEOIOBITS__
-#define __TVIDEOIOBITS__
+#include <ostream>
 
-#include <stdio.h>
-#include <fstream>
-#include <iostream>
-#include "../TLibCommon/CommonDef.h"
+#include "../TLibCommon/TypeDef.h"
 #include "../TLibCommon/TComBitStream.h"
+#include "../TLibCommon/NAL.h"
 
-// ====================================================================================================================
-// Class definition
-// ====================================================================================================================
-
-
-/// bitstream file I/O class
-class TVideoIOBitsStartCode
+/**
+ * A convenience wrapper to NALUnit that also provides a
+ * bitstream object.
+ */
+struct OutputNALUnit : public NALUnit
 {
-public:
-  std::fstream   m_cHandle;                                      ///< file handle
-  
-public:
-  TVideoIOBitsStartCode()            
+  /**
+   * construct an OutputNALunit structure with given header values and
+   * storage for a bitstream.  Upon construction the NALunit header is
+   * written to the bitstream.
+   */
+  OutputNALUnit(
+    NalUnitType nalUnitType,
+    NalRefIdc nalRefIDC,
+    unsigned temporalID = 0,
+    bool outputFlag = true)
+  : m_Bitstream()
   {
+    m_UnitType = nalUnitType;
+    m_RefIDC = nalRefIDC;
+    m_RefIDC = nalRefIDC;
+    m_TemporalID = temporalID;
+    m_OutputFlag = outputFlag;
+    m_RBSPayload = &m_Bitstream.getFIFO();
   }
-  virtual ~TVideoIOBitsStartCode()   {}
-  
-  Void openBits   ( char* pchFile,  Bool bWriteMode );      ///< open or create file
-  Void closeBits  ();                                       ///< close file
-  
-  Bool readBits   ( TComInputBitstream* rpcBitstream    );      ///< read  one packet from file
-  Void writeBits  ( TComOutputBitstream*  pcBitstream     );      ///< write one packet to   file
-  
-  std::streampos   getFileLocation      ()                          { return m_cHandle.tellg();                           }
-  Void             setFileLocation      (std::streampos uiLocation) { m_cHandle.seekg(uiLocation, std::ios_base::beg);    }
-  Void             clear                ()                          { m_cHandle.clear();                                  }
-  Bool             good                 ()                          { return m_cHandle.good();                            }
 
-private:
-  int xFindNextStartCode(UInt& ruiPacketSize, UChar* pucBuffer); ///< get packet size and number of startcode bytes and seeks to the packet's start position
-  
+  TComOutputBitstream m_Bitstream;
 };
 
-#endif // __TVIDEOIOBITS__
 
+void write(std::ostream& out, const NALUnit& nalu);
+void writeRBSPTrailingBits(TComOutputBitstream& bs);

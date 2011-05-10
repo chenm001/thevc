@@ -41,6 +41,7 @@
 #include <assert.h>
 
 #include "TAppEncTop.h"
+#include "../../Lib/TLibEncoder/AnnexBwrite.h"
 
 using namespace std;
 
@@ -250,8 +251,6 @@ Void TAppEncTop::encode()
     if ( iNumEncoded > 0 )
     {
       xWriteOutput(iNumEncoded, outputAccessUnits);
-      for (list<AccessUnit>::iterator it = outputAccessUnits.begin(); it != outputAccessUnits.end(); it++)
-        delete *it;
       outputAccessUnits.clear();
     }
   }
@@ -347,7 +346,7 @@ Void TAppEncTop::xWriteOutput( Int iNumEncoded, const list<AccessUnit>& accessUn
     m_cTVideoIOYuvReconFile.write( pcPicYuvRec, m_aiPad );
 
     const AccessUnit& au = *(iterBitstream++);
-    m_cTVideoIOBitsFile.writeBits( const_cast<AccessUnit>(au) );
+    writeAnnexB(m_cTVideoIOBitsFile.m_cHandle, au);
   }
 }
 

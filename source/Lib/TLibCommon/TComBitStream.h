@@ -169,6 +169,11 @@ public:
   Void        flushBuffer();
 
   void insertAt(const TComOutputBitstream& src, unsigned pos);
+
+  /**
+   * Return a reference to the internal fifo
+   */
+  std::vector<uint8_t>& getFIFO() { return *m_fifo; }
 };
 
 /**
