@@ -667,7 +667,7 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
         /* append the SEI message after any SPS/PPS */
         /* the following loop is a work around current limitations in
          * TComOutputBitstream that won't be fixed before HM-3.0 */
-        UChar *seiData = reinterpret_cast<UChar *>(seiBs.getStartStream());
+        UChar *seiData = reinterpret_cast<UChar *>(seiBs.getByteStream());
         for (Int i = 0; i < seiBs.getNumberOfWrittenBits()/8; i++)
         {
           bs_SPS_PPS_SEI.write(seiData[i], 8);

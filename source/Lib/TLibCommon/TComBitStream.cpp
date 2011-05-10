@@ -110,7 +110,7 @@ Void TComInputBitstream::destroy()
 // Public member functions
 // ====================================================================================================================
 
-char* TComOutputBitstream::getStartStream() const
+char* TComOutputBitstream::getByteStream() const
 {
   return (char*) &m_fifo->front();
 }
@@ -393,7 +393,7 @@ Void TComOutputBitstream::convertRBSPToPayload( UInt uiStartPos )
   
   UChar* pucRead = new UChar[ uiBytesInBuffer ];
   //th this is not nice but ...
-  memcpy( pucRead, getStartStream(), uiBytesInBuffer );
+  memcpy( pucRead, getByteStream(), uiBytesInBuffer );
   
   vector<uint8_t>& writeBuf = *m_fifo;
   

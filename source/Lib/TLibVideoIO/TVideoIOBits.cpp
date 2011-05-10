@@ -119,7 +119,7 @@ Bool TVideoIOBits::readBits( TComInputBitstream* rpcBitstream )
  */
 Void TVideoIOBits::writeBits( TComOutputBitstream* pcBitstream )
 {
-  char*  buf  = reinterpret_cast<char*>(pcBitstream->getStartStream());
+  char*  buf  = reinterpret_cast<char*>(pcBitstream->getByteStream());
   UInt   uiBytes = pcBitstream->getNumberOfWrittenBits() >> 3;
   
   // write 32-bit packet size
@@ -241,7 +241,7 @@ int TVideoIOBitsStartCode::xFindNextStartCode(UInt& ruiPacketSize, UChar* pucBuf
  */
 Void TVideoIOBitsStartCode::writeBits( TComOutputBitstream* pcBitstream )
 {
-  char*  buf = pcBitstream->getStartStream();
+  char*  buf = pcBitstream->getByteStream();
   UInt   uiBytes = pcBitstream->getNumberOfWrittenBits() >> 3;
   Char   ucZero = 0;
   Char   ucOne = 1;

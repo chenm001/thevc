@@ -127,7 +127,7 @@ public:
    * NB, data is arranged such that subsequent bytes in the
    * bytestream are stored in ascending addresses.
    */
-  char* getStartStream() const;
+  char* getByteStream() const;
 
   /**
    * Reset all internal state.
