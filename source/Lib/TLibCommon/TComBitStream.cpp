@@ -75,21 +75,15 @@ TComOutputBitstream::~TComOutputBitstream()
   delete m_fifo;
 }
 
-Void TComInputBitstream::create( UInt uiSizeInBytes )
+TComInputBitstream::TComInputBitstream(vector<uint8_t>* buf)
 {
-  resetBits();
+  m_fifo = buf;
+  m_fifo_idx = 0;
+  m_uiBitsLeft = 0;
 
-  UInt uiSize = uiSizeInBytes / sizeof(UInt);
+  m_iValidBits      = 32;
 
-  m_apulStreamPacketBegin = new UInt[uiSize];
-  m_uiBufSize       = uiSize;
-
-  m_pulStreamPacket = m_apulStreamPacketBegin;
-}
-
-Void TComInputBitstream::destroy()
-{
-  delete [] m_apulStreamPacketBegin;     m_apulStreamPacketBegin = NULL;
+  m_ulCurrentBits   = 0;
 }
 
 // ====================================================================================================================
@@ -173,17 +167,20 @@ Void TComOutputBitstream::writeAlignZero()
   m_num_held_bits = 0;
 }
 
+char* TComInputBitstream::getBuffer()
+{
+  return (char*) &m_fifo->front();
+}
+
 Void TComInputBitstream::initParsing ( UInt uiNumBytes )
 {
   m_ulCurrentBits     = 0xdeaddead;
   m_uiNextBits        = 0xdeaddead;
-  m_uiBitsLeft        = 0;
   m_iValidBits        = 0;
-  m_uiDWordsLeft      = 0;
   
+  m_fifo_idx = 0;
   m_uiBitsLeft        = uiNumBytes << 3;
   
-  m_uiDWordsLeft      = m_uiBitsLeft >> 5;
   m_iValidBits        = -32;
   
   xReadNextWord();
@@ -298,16 +295,18 @@ __inline Void TComInputBitstream::xReadNextWord()
   m_iValidBits += 32;
   
   // chech if there are bytes left in the packet
-  if( m_uiDWordsLeft )
+  if( m_fifo_idx + 4 <= m_fifo->size() )
   {
     // read 32 bit from the packet
-    m_uiNextBits = xSwap( *m_pulStreamPacket++ );
-    m_uiDWordsLeft--;
+    m_uiNextBits = (*m_fifo)[m_fifo_idx+0] << 24
+                 | (*m_fifo)[m_fifo_idx+1] << 16
+                 | (*m_fifo)[m_fifo_idx+2] << 8
+                 | (*m_fifo)[m_fifo_idx+3];
+    m_fifo_idx += 4;
   }
   else
   {
     Int iBytesLeft  = ((Int)m_uiBitsLeft - m_iValidBits+7) >> 3;
-    UChar* puc      = (UChar*) m_pulStreamPacket;
     m_uiNextBits  = 0;
     
     if( iBytesLeft > 0)
@@ -315,7 +314,7 @@ __inline Void TComInputBitstream::xReadNextWord()
       for( Int iByte = 0; iByte < iBytesLeft; iByte++ )
       {
         m_uiNextBits <<= 8;
-        m_uiNextBits += puc[iByte];
+        m_uiNextBits += (*m_fifo)[m_fifo_idx++];
       }
       m_uiNextBits <<= (4-iBytesLeft)<<3;
     }
@@ -327,8 +326,8 @@ Void TComInputBitstream::initParsingConvertPayloadToRBSP( const UInt uiBytesRead
   UInt uiZeroCount    = 0;
   UInt uiReadOffset   = 0;
   UInt uiWriteOffset  = 0;
-  const UChar* pucRead = reinterpret_cast<UChar*> (getBuffer());
-  UChar* pucWrite      = reinterpret_cast<UChar*> (getBuffer());
+  const char* pucRead = getBuffer();
+  char* pucWrite      = getBuffer();
   
   for( ; uiReadOffset < uiBytesRead; uiReadOffset++ )
   {
@@ -360,6 +359,7 @@ Void TComInputBitstream::initParsingConvertPayloadToRBSP( const UInt uiBytesRead
     pucWrite[ui] = 0;
   }
   
+  m_fifo->resize(uiWriteOffset);
   initParsing( uiWriteOffset );
 }
 

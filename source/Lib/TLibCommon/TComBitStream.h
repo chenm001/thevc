@@ -156,16 +156,15 @@ public:
  */
 class TComInputBitstream
 {
+  std::vector<uint8_t> *m_fifo; /// FIFO for storage of complete bytes
+
 protected:
-  UInt*       m_apulStreamPacketBegin;
-  UInt*       m_pulStreamPacket;
-  UInt        m_uiBufSize;
+  unsigned int m_fifo_idx; /// Read index into m_fifo
 
   Int         m_iValidBits;
 
   UInt        m_ulCurrentBits;
 
-  UInt        m_uiDWordsLeft;
   UInt        m_uiBitsLeft;
   UInt        m_uiNextBits;
 
@@ -173,9 +172,12 @@ protected:
   __inline Void xReadNextWord ();
 
 public:
-  // create / destroy
-  Void        create          ( UInt uiSizeInBytes );
-  Void        destroy         ();
+  /**
+   * Create a new bitstream reader object that reads from #buf#.  Ownership
+   * of #buf# remains with the callee, although the constructed object
+   * will hold a reference to #buf#
+   */
+  TComInputBitstream(std::vector<uint8_t>* buf);
 
   // interface for decoding
   Void        initParsingConvertPayloadToRBSP( const UInt uiBytesRead );
@@ -188,20 +190,18 @@ public:
   // Peek at bits in word-storage. Used in determining if we have completed reading of current bitstream and therefore slice in LCEC.
   UInt        peekBits (UInt uiBits) { return( m_ulCurrentBits >> (32 - uiBits));  }
 
-  // reset internal status
-  Void        resetBits       ()
-  {
-    m_iValidBits = 32;
-    m_ulCurrentBits = 0;
-  }
-
   // utility functions
+  /**
+   * Return a pointer to the start of the byte-stream buffer.
+   * Pointer is valid until the next write/clear call.
+   * NB, data is arranged such that subsequent bytes in the
+   * bytestream are stored in ascending addresses.
+   */
+  char* getBuffer();
+
   unsigned read(unsigned numberOfBits) { UInt tmp; read(numberOfBits, tmp); return tmp; }
-  UInt* getStartStream() const { return m_apulStreamPacketBegin; }
-  UInt*       getBuffer()               { return  m_pulStreamPacket;                    }
   Int         getNumBitsUntilByteAligned() { return m_iValidBits & (0x7); }
   Void        setModeSbac()             { m_uiBitsLeft = 8*((m_uiBitsLeft+7)/8);        } // stop bit + trailing stuffing bits
-  Void        rewindStreamPacket()      { m_pulStreamPacket = m_apulStreamPacketBegin;  }
   UInt        getNumBitsLeft()             { return  m_uiBitsLeft;                         }
 };
 

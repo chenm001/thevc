@@ -108,10 +108,8 @@ Void TAppDecTop::decode()
     AnnexBStats stats = AnnexBStats();
     vector<uint8_t> nalUnit;
     byteStreamNALUnit(bytestream, nalUnit, stats);
-    TComInputBitstream nalUnitBitstream;
+    TComInputBitstream nalUnitBitstream(&nalUnit);
     TComInputBitstream *pcBitstream = &nalUnitBitstream;
-    nalUnitBitstream.create(nalUnit.size());
-    memcpy(nalUnitBitstream.getBuffer(), nalUnit.data(), nalUnit.size());
     nalUnitBitstream.initParsingConvertPayloadToRBSP(nalUnit.size());
 
     // call actual decoding function
@@ -134,8 +132,6 @@ Void TAppDecTop::decode()
     m_cTDecTop.decode( bEos, pcBitstream, uiPOC, pcListPic );
 #endif
 
-    nalUnitBitstream.destroy();
-    
     if( pcListPic )
     {
       if ( m_pchReconFile && !recon_opened )
