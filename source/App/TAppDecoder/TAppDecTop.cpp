@@ -103,39 +103,24 @@ Void TAppDecTop::decode()
 #endif
 
   // main decoder loop
-  Bool  bEos        = false;
   bool recon_opened = false; // reconstruction file not yet opened. (must be performed after SPS is seen)
   Bool resizedBitstreamBuffer = false;
   
-  while ( !bEos )
+  while (m_cTVideoIOBitstreamFile.good())
   {
     streampos  lLocation = m_cTVideoIOBitstreamFile.getFileLocation();
-    bEos                 = m_cTVideoIOBitstreamFile.readBits( pcBitstream );
-    if (bEos)
-    {
-      m_cTDecTop.executeDeblockAndAlf( bEos, pcBitstream, uiPOC, pcListPic, m_iSkipFrame, m_iPOCLastDisplay);
-      if( pcListPic )
-      {
-        if ( m_pchReconFile && !recon_opened )
-        {
-          if ( m_outputBitDepth == 0 )
-            m_outputBitDepth = g_uiBitDepth + g_uiBitIncrement;
+    m_cTVideoIOBitstreamFile.readBits( pcBitstream );
+    const bool bEos = false;
 
-          m_cTVideoIOYuvReconFile.open( m_pchReconFile, true, m_outputBitDepth, g_uiBitDepth + g_uiBitIncrement ); // write mode
-          recon_opened = true;
-        }
-        // write reconstuction to file
-        xWriteOutput( pcListPic );
-      }
-      break;
-    }
-    
     // call actual decoding function
 #if DCM_SKIP_DECODING_FRAMES
     Bool bNewPicture     = m_cTDecTop.decode( bEos, pcBitstream, uiPOC, pcListPic, m_iSkipFrame, m_iPOCLastDisplay);
-    if (bNewPicture)
+    if (bNewPicture || !m_cTVideoIOBitstreamFile.good())
     {
       m_cTDecTop.executeDeblockAndAlf( bEos, pcBitstream, uiPOC, pcListPic, m_iSkipFrame, m_iPOCLastDisplay);
+    }
+    if (bNewPicture)
+    {
       if (!m_cTVideoIOBitstreamFile.good()) m_cTVideoIOBitstreamFile.clear();
       m_cTVideoIOBitstreamFile.setFileLocation( lLocation );
     }
