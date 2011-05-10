@@ -162,7 +162,7 @@ Void TDecBinCABAC::resetBac()
  */
 Void TDecBinCABAC::decodePCMAlignBits()
 {
-  Int iNum = (m_pcTComBitstream->getBitsLeft() & (0x7));
+  Int iNum = m_pcTComBitstream->getNumBitsUntilByteAligned();
 
   for( UInt ui = 0; ui < iNum ; ui++ )
   {

@@ -93,7 +93,7 @@ void TDecCavlc::parseSEI(SEImessages& seis)
      * in the parsing if bitstream not byte-aligned */
     assert(!m_pcBitstream->getNumBitsUntilByteAligned());
   } while (0x80 != m_pcBitstream->peekBits(8));
-  assert(m_pcBitstream->getBitsLeft() == 8); /* rsbp_trailing_bits */
+  assert(m_pcBitstream->getNumBitsLeft() == 8); /* rsbp_trailing_bits */
 }
 
 Void TDecCavlc::parsePPS(TComPPS* pcPPS)
@@ -467,7 +467,7 @@ Void TDecCavlc::resetEntropy          (TComSlice* pcSlice)
 Void TDecCavlc::parseTerminatingBit( UInt& ruiBit )
 {
   ruiBit = false;
-  Int iBitsLeft = m_pcBitstream->getBitsLeft();
+  Int iBitsLeft = m_pcBitstream->getNumBitsLeft();
   if(iBitsLeft <= 8)
   {
     UInt uiPeekValue = m_pcBitstream->peekBits(iBitsLeft);

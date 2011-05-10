@@ -223,7 +223,7 @@ public:
   Int         getNumBitsUntilByteAligned() { return m_iValidBits & (0x7); }
   Void        setModeSbac()             { m_uiBitsLeft = 8*((m_uiBitsLeft+7)/8);        } // stop bit + trailing stuffing bits
   Void        rewindStreamPacket()      { m_pulStreamPacket = m_apulStreamPacketBegin;  }
-  UInt        getBitsLeft()             { return  m_uiBitsLeft;                         }
+  UInt        getNumBitsLeft()             { return  m_uiBitsLeft;                         }
 };
 
 #endif
