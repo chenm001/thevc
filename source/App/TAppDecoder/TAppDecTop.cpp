@@ -94,7 +94,6 @@ Void TAppDecTop::decode()
   TComInputBitstream* pcBitstream = m_apcBitstream;
   UInt                uiPOC;
   TComList<TComPic*>* pcListPic;
-  Bool bFirstSliceDecoded = true;
 
   // create & initialize internal classes
   xCreateDecLib();
@@ -114,7 +113,6 @@ Void TAppDecTop::decode()
     bEos                 = m_cTVideoIOBitstreamFile.readBits( pcBitstream );
     if (bEos)
     {
-      if (!bFirstSliceDecoded) m_cTDecTop.decode( bEos, pcBitstream, uiPOC, pcListPic, m_iSkipFrame, m_iPOCLastDisplay);
       m_cTDecTop.executeDeblockAndAlf( bEos, pcBitstream, uiPOC, pcListPic, m_iSkipFrame, m_iPOCLastDisplay);
       if( pcListPic )
       {
@@ -135,13 +133,11 @@ Void TAppDecTop::decode()
     // call actual decoding function
 #if DCM_SKIP_DECODING_FRAMES
     Bool bNewPicture     = m_cTDecTop.decode( bEos, pcBitstream, uiPOC, pcListPic, m_iSkipFrame, m_iPOCLastDisplay);
-    bFirstSliceDecoded   = true;
     if (bNewPicture)
     {
       m_cTDecTop.executeDeblockAndAlf( bEos, pcBitstream, uiPOC, pcListPic, m_iSkipFrame, m_iPOCLastDisplay);
       if (!m_cTVideoIOBitstreamFile.good()) m_cTVideoIOBitstreamFile.clear();
       m_cTVideoIOBitstreamFile.setFileLocation( lLocation );
-      bFirstSliceDecoded = false;
     }
 #else
     m_cTDecTop.decode( bEos, pcBitstream, uiPOC, pcListPic );
