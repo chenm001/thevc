@@ -87,17 +87,11 @@ class TComOutputBitstream : public TComBitIf
 
   UInt        m_uiBitsWritten;
   
-  UInt        *m_auiSliceByteLocation, m_uiSliceCount;  // used to skip over slice start codes in initParsingConvertPayloadToRBSP()
-  UInt        m_uiSliceProcessed;
-  
 public:
   // create / destroy
   TComOutputBitstream();
   ~TComOutputBitstream();
 
-  Void        create          ( UInt uiSizeInBytes );
-  Void        destroy         ();
-  
   // interface for encoding
   /**
    * append @uiNumberOfBits@ least significant bits of @uiBits@ to
@@ -110,20 +104,6 @@ public:
 
   /** insert zero bits until the bitstream is byte-aligned */
   Void        writeAlignZero  ();
-
-  Void        convertRBSPToPayload( UInt uiStartPos = 0);
-  UInt        getSliceProcessed                ()       { return m_uiSliceProcessed;                }
-  Void        setSliceProcessed                (UInt u) { m_uiSliceProcessed                = u;    }
-  
-  // interface for slice start-code positioning at encoder
-  UInt        getSliceCount                    ()                            { return m_uiSliceCount;                     }
-  UInt        getSliceByteLocation             ( UInt uiIdx )                { return m_auiSliceByteLocation[ uiIdx ];    }
-  Void        setSliceCount                    ( UInt uiCount )              { m_uiSliceCount = uiCount;                  }
-  Void        setSliceByteLocation             ( UInt uiIdx, UInt uiCount )  { m_auiSliceByteLocation[ uiIdx ] = uiCount; }
-
-  // memory allocation / deallocation interface for "slice location" bookkeeping
-  Void        allocateMemoryForSliceLocations       ( UInt uiMaxNumOfSlices );
-  Void        freeMemoryAllocatedForSliceLocations  ();
 
   /** this function should never be called */
   void resetBits() { assert(0); }
@@ -161,12 +141,6 @@ public:
    * is the total number of bits that getByteStreamLength() would return.
    */
   UInt getNumberOfWrittenBits() const { return  m_uiBitsWritten; }
-
-  /**
-   * Flush any partially written bytes.  This has the same effect as
-   * calling writeAlignZero().
-   */
-  Void        flushBuffer();
 
   void insertAt(const TComOutputBitstream& src, unsigned pos);
 

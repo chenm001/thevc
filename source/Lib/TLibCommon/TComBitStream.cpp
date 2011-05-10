@@ -75,20 +75,6 @@ TComOutputBitstream::~TComOutputBitstream()
   delete m_fifo;
 }
 
-Void TComOutputBitstream::create( UInt uiSizeInBytes )
-{
-  clear();
-  m_auiSliceByteLocation = NULL;
-  m_uiSliceCount         = 0;
-  m_fifo->reserve(uiSizeInBytes);
-}
-
-Void TComOutputBitstream::destroy()
-{
-  delete m_fifo;
-  m_fifo = NULL;
-}
-
 Void TComInputBitstream::create( UInt uiSizeInBytes )
 {
   resetBits();
@@ -185,11 +171,6 @@ Void TComOutputBitstream::writeAlignZero()
   m_uiBitsWritten += getNumBitsUntilByteAligned();
   m_held_bits = 0;
   m_num_held_bits = 0;
-}
-
-Void  TComOutputBitstream::flushBuffer()
-{
-  writeAlignZero();
 }
 
 Void TComInputBitstream::initParsing ( UInt uiNumBytes )
@@ -380,81 +361,6 @@ Void TComInputBitstream::initParsingConvertPayloadToRBSP( const UInt uiBytesRead
   }
   
   initParsing( uiWriteOffset );
-}
-
-Void TComOutputBitstream::convertRBSPToPayload( UInt uiStartPos )
-{
-  UInt uiZeroCount    = 0;
-  
-  //make sure the buffer is flushed
-  assert( 0 == getNumBitsUntilByteAligned() );
-  
-  const UInt uiBytesInBuffer = m_fifo->size();
-  //make sure there's something in the buffer
-  assert( 0 != uiBytesInBuffer );
-  
-  //make sure start pos is inside the buffer
-  assert( uiStartPos < uiBytesInBuffer );
-  
-  UChar* pucRead = new UChar[ uiBytesInBuffer ];
-  //th this is not nice but ...
-  memcpy( pucRead, getByteStream(), uiBytesInBuffer );
-  
-  vector<uint8_t>& writeBuf = *m_fifo;
-  
-  UInt uiWriteOffset  = uiStartPos;
-  UInt uiReadOffset = uiStartPos;
-  UInt uiSliceIdx   = 0;
-  while ( uiReadOffset < uiBytesInBuffer )
-  {
-    if (uiSliceIdx < m_uiSliceCount && uiReadOffset == m_auiSliceByteLocation[uiSliceIdx]) // skip over start codes introduced before slice headers
-    {
-      assert(pucRead[uiReadOffset] == 0); writeBuf[uiWriteOffset++] =  pucRead[uiReadOffset++];
-      assert(pucRead[uiReadOffset] == 0); writeBuf[uiWriteOffset++] =  pucRead[uiReadOffset++];
-      assert(pucRead[uiReadOffset] == 0); writeBuf[uiWriteOffset++] =  pucRead[uiReadOffset++];
-      assert(pucRead[uiReadOffset] == 1); writeBuf[uiWriteOffset++] =  pucRead[uiReadOffset++];
-
-      uiSliceIdx++;
-    }
-    if( 2 == uiZeroCount && 0 == (pucRead[uiReadOffset] & 0xfc) )
-    {
-      /* append an extra byte of storage to the end */
-      writeBuf.push_back(0);
-      writeBuf[uiWriteOffset++] = 0x03;
-      uiZeroCount = 0;
-    }
-    
-    writeBuf[uiWriteOffset++] = pucRead[uiReadOffset];
-    
-    if( 0 == pucRead[uiReadOffset] )
-    {
-      uiZeroCount++;
-    }
-    else
-    {
-      uiZeroCount = 0;
-    }
-    uiReadOffset++;
-  }
-  
-  delete [] pucRead;
-  m_uiBitsWritten = uiWriteOffset << 3;
-}
-
-Void TComOutputBitstream::allocateMemoryForSliceLocations ( UInt uiMaxNumOfSlices )
-{
-  m_auiSliceByteLocation     = new UInt[ uiMaxNumOfSlices ];
-  m_uiSliceCount             = 0;
-}
-
-Void TComOutputBitstream::freeMemoryAllocatedForSliceLocations ()
-{
-  if (m_auiSliceByteLocation!=NULL)
-  {
-    delete [] m_auiSliceByteLocation;
-    m_auiSliceByteLocation   = NULL;
-  }
-  m_uiSliceCount             = 0;
 }
 
 /**
