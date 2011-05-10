@@ -62,8 +62,6 @@ TDecBinCABAC::uninit()
 Void
 TDecBinCABAC::start()
 {
-  m_pcTComBitstream->setModeSbac();
-  
   m_uiRange    = 510;
   m_uiValue    = 0;
   for( UInt ui = 0; ui < 9; ui++ )

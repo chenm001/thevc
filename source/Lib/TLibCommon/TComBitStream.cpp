@@ -79,11 +79,8 @@ TComInputBitstream::TComInputBitstream(vector<uint8_t>* buf)
 {
   m_fifo = buf;
   m_fifo_idx = 0;
-  m_uiBitsLeft = 0;
-
-  m_iValidBits      = 32;
-
-  m_ulCurrentBits   = 0;
+  m_held_bits = 0;
+  m_num_held_bits = 0;
 }
 
 // ====================================================================================================================
@@ -174,152 +171,90 @@ char* TComInputBitstream::getBuffer()
 
 Void TComInputBitstream::initParsing ( UInt uiNumBytes )
 {
-  m_ulCurrentBits     = 0xdeaddead;
-  m_uiNextBits        = 0xdeaddead;
-  m_iValidBits        = 0;
+  m_held_bits = 0;
+  m_num_held_bits = 0;
   
   m_fifo_idx = 0;
-  m_uiBitsLeft        = uiNumBytes << 3;
-  
-  m_iValidBits        = -32;
-  
-  xReadNextWord();
-  xReadNextWord();
 }
 
 #if LCEC_INTRA_MODE || QC_LCEC_INTER_MODE
 Void TComInputBitstream::pseudoRead ( UInt uiNumberOfBits, UInt& ruiBits )
 {
-  UInt ui_right_shift;
+  unsigned int saved_num_held_bits = m_num_held_bits;
+  unsigned char saved_held_bits = m_held_bits;
+  unsigned int saved_fifo_idx = m_fifo_idx;
 
-  // check the number_of_bits parameter matches the range
-  assert( uiNumberOfBits <= 32 );
+  read(uiNumberOfBits, ruiBits);
 
-  if( uiNumberOfBits > m_uiBitsLeft )
-  {
-    //assert (0);
-  }
-
-  Int  iValidBits = m_iValidBits - uiNumberOfBits;
-  UInt ulCurrentBits=m_ulCurrentBits;
-  UInt uiNextBits= m_uiNextBits;
-  if( 0 <= iValidBits )
-  {
-    // calculate the number of bits to extract the desired number of bits
-    ui_right_shift = 32 - uiNumberOfBits ;
-    // mask out the value
-    ruiBits  = ulCurrentBits >> ui_right_shift;
-    //prepare for next access
-    ulCurrentBits = ulCurrentBits << uiNumberOfBits;
-  }
-  else
-  {
-    // mask out the value in the current word
-    ruiBits = ulCurrentBits;
-    // calculate the number of bits to extract the desired number of bits
-    ui_right_shift = iValidBits + uiNumberOfBits ;
-    // mask out the value in the next word
-    ruiBits |= uiNextBits >> ui_right_shift;
-    ruiBits >>= 32 - uiNumberOfBits;
-    uiNextBits <<=  -iValidBits;
-  }
-
-  // check the current word for being empty
-  //-- baekeun.lee@samsung.com
-  if ( 0 < m_iValidBits)
-  {
-    return ;
-  }
+  m_fifo_idx = saved_fifo_idx;
+  m_held_bits = saved_held_bits;
+  m_num_held_bits = saved_num_held_bits;
 }
 #endif
 
 
 Void TComInputBitstream::read (UInt uiNumberOfBits, UInt& ruiBits)
 {
-  UInt ui_right_shift;
-  
-  // check the number_of_bits parameter matches the range
   assert( uiNumberOfBits <= 32 );
   
-  if( uiNumberOfBits > m_uiBitsLeft )
+  /* NB, bits are extracted from the MSB of each byte. */
+  unsigned retval = 0;
+  if (uiNumberOfBits <= m_num_held_bits)
   {
-    assert (0);
+    /* n=1, len(H)=7:   -VHH HHHH, shift_down=6, mask=0xfe
+     * n=3, len(H)=7:   -VVV HHHH, shift_down=4, mask=0xf8
+     */
+    retval = m_held_bits >> (m_num_held_bits - uiNumberOfBits);
+    retval &= ~(0xff << uiNumberOfBits);
+    m_num_held_bits -= uiNumberOfBits;
+    ruiBits = retval;
+    return;
   }
-  
-  m_uiBitsLeft -= uiNumberOfBits;
-  m_iValidBits -= uiNumberOfBits;
-  
-  if( 0 <= m_iValidBits )
-  {
-    // calculate the number of bits to extract the desired number of bits
-    ui_right_shift = 32 - uiNumberOfBits ;
-    
-    // mask out the value
-    ruiBits  = m_ulCurrentBits >> ui_right_shift;
-    
-    //prepare for next access
-    m_ulCurrentBits = m_ulCurrentBits << uiNumberOfBits;
+
+  /* all num_held_bits will go into retval
+   *   => need to mask leftover bits from previous extractions
+   *   => align retval with top of extracted word */
+  /* n=5, len(H)=3: ---- -VVV, mask=0x07, shift_up=5-3=2,
+   * n=9, len(H)=3: ---- -VVV, mask=0x07, shift_up=9-3=6 */
+  uiNumberOfBits -= m_num_held_bits;
+  retval = m_held_bits & ~(0xff << m_num_held_bits);
+  retval <<= uiNumberOfBits;
+
+  /* number of whole bytes that need to be loaded to form retval */
+  /* n=32, len(H)=0, load 4bytes, shift_down=0
+   * n=32, len(H)=1, load 4bytes, shift_down=1
+   * n=31, len(H)=1, load 4bytes, shift_down=1+1
+   * n=8,  len(H)=0, load 1byte,  shift_down=0
+   * n=8,  len(H)=3, load 1byte,  shift_down=3
+   * n=5,  len(H)=1, load 1byte,  shift_down=1+3
+   */
+  unsigned aligned_word = 0;
+  unsigned num_bytes_to_load = (uiNumberOfBits - 1) >> 3;
+  assert(m_fifo_idx + num_bytes_to_load < m_fifo->size());
+
+  switch (num_bytes_to_load) {
+  case 3: aligned_word  = (*m_fifo)[m_fifo_idx++] << 24;
+  case 2: aligned_word |= (*m_fifo)[m_fifo_idx++] << 16;
+  case 1: aligned_word |= (*m_fifo)[m_fifo_idx++] <<  8;
+  case 0: aligned_word |= (*m_fifo)[m_fifo_idx++];
   }
-  else
-  {
-    // mask out the value in the current word
-    ruiBits = m_ulCurrentBits;
-    
-    // calculate the number of bits to extract the desired number of bits
-    ui_right_shift = m_iValidBits + uiNumberOfBits ;
-    
-    // mask out the value in the next word
-    ruiBits |= m_uiNextBits >> ui_right_shift;
-    
-    ruiBits >>= 32 - uiNumberOfBits;
-    
-    m_uiNextBits <<=  -m_iValidBits;
-  }
-  
-  // check the current word for being empty
-  //-- baekeun.lee@samsung.com
-  if ( 0 < m_iValidBits)
-  {
-    return ;
-  }
-  xReadNextWord();
+
+  /* resolve remainder bits */
+  unsigned next_num_held_bits = (32 - uiNumberOfBits) % 8;
+
+  /* copy required part of aligned_word into retval */
+  retval |= aligned_word >> next_num_held_bits;
+
+  /* store held bits */
+  m_num_held_bits = next_num_held_bits;
+  m_held_bits = aligned_word;
+
+  ruiBits = retval;
 }
 
 // ====================================================================================================================
 // Protected member functions
 // ====================================================================================================================
-
-__inline Void TComInputBitstream::xReadNextWord()
-{
-  m_ulCurrentBits = m_uiNextBits;
-  m_iValidBits += 32;
-  
-  // chech if there are bytes left in the packet
-  if( m_fifo_idx + 4 <= m_fifo->size() )
-  {
-    // read 32 bit from the packet
-    m_uiNextBits = (*m_fifo)[m_fifo_idx+0] << 24
-                 | (*m_fifo)[m_fifo_idx+1] << 16
-                 | (*m_fifo)[m_fifo_idx+2] << 8
-                 | (*m_fifo)[m_fifo_idx+3];
-    m_fifo_idx += 4;
-  }
-  else
-  {
-    Int iBytesLeft  = ((Int)m_uiBitsLeft - m_iValidBits+7) >> 3;
-    m_uiNextBits  = 0;
-    
-    if( iBytesLeft > 0)
-    {
-      for( Int iByte = 0; iByte < iBytesLeft; iByte++ )
-      {
-        m_uiNextBits <<= 8;
-        m_uiNextBits += (*m_fifo)[m_fifo_idx++];
-      }
-      m_uiNextBits <<= (4-iBytesLeft)<<3;
-    }
-  }
-}
 
 Void TComInputBitstream::initParsingConvertPayloadToRBSP( const UInt uiBytesRead )
 {

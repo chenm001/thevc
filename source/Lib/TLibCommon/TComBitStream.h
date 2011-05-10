@@ -161,15 +161,8 @@ class TComInputBitstream
 protected:
   unsigned int m_fifo_idx; /// Read index into m_fifo
 
-  Int         m_iValidBits;
-
-  UInt        m_ulCurrentBits;
-
-  UInt        m_uiBitsLeft;
-  UInt        m_uiNextBits;
-
-  // read one word
-  __inline Void xReadNextWord ();
+  unsigned int m_num_held_bits;
+  unsigned char m_held_bits;
 
 public:
   /**
@@ -188,7 +181,7 @@ public:
   Void        read            ( UInt uiNumberOfBits, UInt& ruiBits );
 
   // Peek at bits in word-storage. Used in determining if we have completed reading of current bitstream and therefore slice in LCEC.
-  UInt        peekBits (UInt uiBits) { return( m_ulCurrentBits >> (32 - uiBits));  }
+  UInt        peekBits (UInt uiBits) { unsigned tmp; pseudoRead(uiBits, tmp); return tmp; }
 
   // utility functions
   /**
@@ -200,9 +193,8 @@ public:
   char* getBuffer();
 
   unsigned read(unsigned numberOfBits) { UInt tmp; read(numberOfBits, tmp); return tmp; }
-  Int         getNumBitsUntilByteAligned() { return m_iValidBits & (0x7); }
-  Void        setModeSbac()             { m_uiBitsLeft = 8*((m_uiBitsLeft+7)/8);        } // stop bit + trailing stuffing bits
-  UInt        getNumBitsLeft()             { return  m_uiBitsLeft;                         }
+  unsigned getNumBitsUntilByteAligned() { return m_num_held_bits & (0x7); }
+  unsigned getNumBitsLeft() { return 8*(m_fifo->size() - m_fifo_idx) - (8-m_num_held_bits)%8; }
 };
 
 #endif
