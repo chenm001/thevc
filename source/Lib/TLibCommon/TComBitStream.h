@@ -99,9 +99,18 @@ public:
   Void        destroy         ();
   
   // interface for encoding
+  /**
+   * append @uiNumberOfBits@ least significant bits of @uiBits@ to
+   * the current bitstream
+   */
   Void        write           ( UInt uiBits, UInt uiNumberOfBits );
+
+  /** insert one bits until the bitstream is byte-aligned */
   Void        writeAlignOne   ();
+
+  /** insert zero bits until the bitstream is byte-aligned */
   Void        writeAlignZero  ();
+
   Void        convertRBSPToPayload( UInt uiStartPos = 0);
   UInt        getSliceProcessed                ()       { return m_uiSliceProcessed;                }
   Void        setSliceProcessed                (UInt u) { m_uiSliceProcessed                = u;    }
@@ -144,7 +153,19 @@ public:
    * achieve byte alignment.
    */
   Int getNumBitsUntilByteAligned() { return (8 - m_num_held_bits) & 0x7; }
+
+  /**
+   * Return the number of bits that have been written since the
+   * last resetBits()/clear() call.  Unless convertRBSPToPayload()
+   * has been called more recently, whereby the number of bits
+   * is the total number of bits that getByteStreamLength() would return.
+   */
   UInt getNumberOfWrittenBits() const { return  m_uiBitsWritten; }
+
+  /**
+   * Flush any partially written bytes.  This has the same effect as
+   * calling writeAlignZero().
+   */
   Void        flushBuffer();
 
   void insertAt(const TComOutputBitstream& src, unsigned pos);
