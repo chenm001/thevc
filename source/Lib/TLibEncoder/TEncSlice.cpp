@@ -652,7 +652,7 @@ Void TEncSlice::compressSlice( TComPic*& rpcPic )
  \param  rpcPic        picture class
  \retval rpcBitstream  bitstream class
  */
-Void TEncSlice::encodeSlice   ( TComPic*& rpcPic, TComOutputBitstream*& rpcBitstream )
+Void TEncSlice::encodeSlice   ( TComPic*& rpcPic, TComOutputBitstream* pcBitstream )
 {
   UInt       uiCUAddr;
   UInt       uiStartCUAddr;
@@ -675,7 +675,7 @@ Void TEncSlice::encodeSlice   ( TComPic*& rpcPic, TComOutputBitstream*& rpcBitst
   }
   
   // set bitstream
-  m_pcEntropyCoder->setBitstream( rpcBitstream );
+  m_pcEntropyCoder->setBitstream( pcBitstream );
   // for every CU
 #if ENC_DEC_TRACE
   g_bJustDoIt = g_bEncDecTraceEnable;
