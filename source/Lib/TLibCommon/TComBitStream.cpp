@@ -35,6 +35,7 @@
     \brief    class for handling bitstream
 */
 
+#include <stdint.h>
 #include <vector>
 #include "TComBitStream.h"
 #include <string.h>
@@ -66,7 +67,7 @@ static unsigned int xSwap ( unsigned int ui )
 TComOutputBitstream::TComOutputBitstream()
 {
   resetBits();
-  m_fifo = new vector<unsigned int>;
+  m_fifo = new vector<uint8_t>;
 }
 
 TComOutputBitstream::~TComOutputBitstream()
@@ -108,9 +109,9 @@ Void TComInputBitstream::destroy()
 // Public member functions
 // ====================================================================================================================
 
-unsigned int * TComOutputBitstream::getStartStream() const
+char* TComOutputBitstream::getStartStream() const
 {
-  return &m_fifo->front();
+  return (char*) &m_fifo->front();
 }
 
 void TComOutputBitstream::rewindStreamPacket()
@@ -139,7 +140,10 @@ Void TComOutputBitstream::write   ( UInt uiBits, UInt uiNumberOfBits )
   // add the last bits
   m_ulCurrentBits |= uiBits >> uiShift;
   
-  m_fifo->push_back(xSwap(m_ulCurrentBits));
+  m_fifo->push_back(m_ulCurrentBits >> 24);
+  m_fifo->push_back(m_ulCurrentBits >> 16);
+  m_fifo->push_back(m_ulCurrentBits >> 8);
+  m_fifo->push_back(m_ulCurrentBits);
   
   // note: there is a problem with left shift with 32
   m_iValidBits = 32 - uiShift;
@@ -169,7 +173,10 @@ Void  TComOutputBitstream::flushBuffer()
   if (m_iValidBits == 0)
     return;
   
-  m_fifo->push_back(xSwap(m_ulCurrentBits));
+  m_fifo->push_back(m_ulCurrentBits >> 24);
+  m_fifo->push_back(m_ulCurrentBits >> 16);
+  m_fifo->push_back(m_ulCurrentBits >> 8);
+  m_fifo->push_back(m_ulCurrentBits);
   
   m_uiBitsWritten = (m_uiBitsWritten+7)/8;
   
@@ -373,18 +380,18 @@ Void TComOutputBitstream::convertRBSPToPayload( UInt uiStartPos )
   //make sure the buffer is flushed
   assert( 0 == getBitsUntilByteAligned() );
   
-  const UInt uiBytesInBuffer = getNumberOfWrittenBits()>>3;
+  const UInt uiBytesInBuffer = m_fifo->size();
   //make sure there's something in the buffer
   assert( 0 != uiBytesInBuffer );
   
   //make sure start pos is inside the buffer
-  //  assert( uiStartPos > uiBytesInBuffer );
+  assert( uiStartPos < uiBytesInBuffer );
   
   UChar* pucRead = new UChar[ uiBytesInBuffer ];
   //th this is not nice but ...
   memcpy( pucRead, getStartStream(), uiBytesInBuffer );
   
-  UChar* pucWrite      =  reinterpret_cast<UChar*> (getStartStream());
+  vector<uint8_t>& writeBuf = *m_fifo;
   
   UInt uiWriteOffset  = uiStartPos;
   UInt uiReadOffset = uiStartPos;
@@ -393,20 +400,22 @@ Void TComOutputBitstream::convertRBSPToPayload( UInt uiStartPos )
   {
     if (uiSliceIdx < m_uiSliceCount && uiReadOffset == m_auiSliceByteLocation[uiSliceIdx]) // skip over start codes introduced before slice headers
     {
-      assert(pucRead[uiReadOffset] == 0); pucWrite[uiWriteOffset++] =  pucRead[uiReadOffset++];
-      assert(pucRead[uiReadOffset] == 0); pucWrite[uiWriteOffset++] =  pucRead[uiReadOffset++];
-      assert(pucRead[uiReadOffset] == 0); pucWrite[uiWriteOffset++] =  pucRead[uiReadOffset++];
-      assert(pucRead[uiReadOffset] == 1); pucWrite[uiWriteOffset++] =  pucRead[uiReadOffset++];
+      assert(pucRead[uiReadOffset] == 0); writeBuf[uiWriteOffset++] =  pucRead[uiReadOffset++];
+      assert(pucRead[uiReadOffset] == 0); writeBuf[uiWriteOffset++] =  pucRead[uiReadOffset++];
+      assert(pucRead[uiReadOffset] == 0); writeBuf[uiWriteOffset++] =  pucRead[uiReadOffset++];
+      assert(pucRead[uiReadOffset] == 1); writeBuf[uiWriteOffset++] =  pucRead[uiReadOffset++];
 
       uiSliceIdx++;
     }
     if( 2 == uiZeroCount && 0 == (pucRead[uiReadOffset] & 0xfc) )
     {
-      pucWrite[uiWriteOffset++] = 0x03;
+      /* append an extra byte of storage to the end */
+      writeBuf.push_back(0);
+      writeBuf[uiWriteOffset++] = 0x03;
       uiZeroCount = 0;
     }
     
-    pucWrite[uiWriteOffset++] = pucRead[uiReadOffset];
+    writeBuf[uiWriteOffset++] = pucRead[uiReadOffset];
     
     if( 0 == pucRead[uiReadOffset] )
     {
@@ -442,39 +451,15 @@ Void TComOutputBitstream::freeMemoryAllocatedForSliceLocations ()
 /**
  * insert the contents of the bytealigned (and flushed) bitstream @src
  * into @this at byte position @pos.
- *
- * NB, there is currently a restriction that src_bytes must be a
- * multiple of sizeof(UInt) if @this->write(...) is going to be called
- * again.  This restriction will be removed when TComOutputBitstream is
- * refactored to work on bytes.
  */
 void TComOutputBitstream::insertAt(const TComOutputBitstream& src, unsigned pos)
 {
   unsigned src_bits = src.getNumberOfWrittenBits();
   assert(0 == src_bits % 8);
-  unsigned src_bytes = src_bits/8;
 
-  /* append n src_bytes to the end of the fifo */
-  unsigned this_buf_size = m_fifo->size() * sizeof(UInt);
-  m_fifo->resize((this_buf_size + src_bytes + sizeof(UInt)-1)/sizeof(UInt));
-
-  unsigned this_bytes = this->getNumberOfWrittenBits()/8;
-
-  /* make space */
-  unsigned char *this_dest = pos + src_bytes + (unsigned char*) this->getStartStream();
-  unsigned char *this_src = pos + (unsigned char*) this->getStartStream();
-  memmove(this_dest, this_src, this_bytes - pos);
-
-  /* splice src */
-  memcpy(this_src, src.getStartStream(), src_bytes);
+  vector<uint8_t>::iterator at = this->m_fifo->begin() + pos;
+  this->m_fifo->insert(at, src.m_fifo->begin(), src.m_fifo->end());
 
   /* update state */
   this->m_uiBitsWritten += src_bits;
-  /* XXX: this will go horribly wrong if data being inserted isn't a
-   * multiple of UInt. To work correctly, some data would have to be
-   * pulled back from the fifo into currentBits. */
-  /* Since davidf has rewritten this to work in bytes, i'm not going
-   * to make this work for UInt words.  This will be fine as long as
-   * no further data is pushed after this splice.
-   */
 }

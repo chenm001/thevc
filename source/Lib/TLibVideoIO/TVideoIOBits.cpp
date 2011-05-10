@@ -119,14 +119,14 @@ Bool TVideoIOBits::readBits( TComInputBitstream* rpcBitstream )
  */
 Void TVideoIOBits::writeBits( TComOutputBitstream* pcBitstream )
 {
-  UInt*  plBuff  = pcBitstream->getStartStream();
+  char*  buf  = reinterpret_cast<char*>(pcBitstream->getStartStream());
   UInt   uiBytes = pcBitstream->getNumberOfWrittenBits() >> 3;
   
   // write 32-bit packet size
   m_cHandle.write( reinterpret_cast<char*>(&uiBytes ), sizeof(UInt) );
   
   // write packet data
-  m_cHandle.write( reinterpret_cast<char*>(plBuff   ), uiBytes      );
+  m_cHandle.write(buf, uiBytes);
 }
 
 ////////////////////////////////////////////////////////////////////
@@ -241,7 +241,7 @@ int TVideoIOBitsStartCode::xFindNextStartCode(UInt& ruiPacketSize, UChar* pucBuf
  */
 Void TVideoIOBitsStartCode::writeBits( TComOutputBitstream* pcBitstream )
 {
-  UInt*  plBuff  = pcBitstream->getStartStream();
+  char*  buf = pcBitstream->getStartStream();
   UInt   uiBytes = pcBitstream->getNumberOfWrittenBits() >> 3;
   Char   ucZero = 0;
   Char   ucOne = 1;
@@ -253,7 +253,7 @@ Void TVideoIOBitsStartCode::writeBits( TComOutputBitstream* pcBitstream )
   m_cHandle.write( &ucOne  , sizeof(Char) );
   
   // write packet data
-  m_cHandle.write( reinterpret_cast<char*>(plBuff   ), uiBytes      );
+  m_cHandle.write(buf, uiBytes);
 }
 
 

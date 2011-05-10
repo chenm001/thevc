@@ -42,6 +42,7 @@
 #pragma once
 #endif // _MSC_VER > 1000
 
+#include <stdint.h>
 #include <vector>
 #include <stdio.h>
 #include <assert.h>
@@ -78,7 +79,7 @@ class TComOutputBitstream : public TComBitIf
    *  - &fifo.front() to get a pointer to the data array.
    *    NB, this pointer is only valid until the next push_back()/clear()
    */
-  std::vector<unsigned int> *m_fifo;
+  std::vector<uint8_t> *m_fifo;
 
 protected:
   Int         m_iValidBits;
@@ -131,7 +132,7 @@ public:
    * NB, data is arranged such that subsequent bytes in the
    * bytestream are stored in ascending addresses.
    */
-  UInt* getStartStream() const;
+  char* getStartStream() const;
 
   /**
    * Reset the internal write pointer to the start of the bytestream.
