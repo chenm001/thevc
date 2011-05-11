@@ -48,7 +48,10 @@ static void convertPayloadToRBSP(vector<uint8_t>& nalUnitBuf)
   for (it_read = it_write = nalUnitBuf.begin(); it_read != nalUnitBuf.end(); it_read++, it_write++)
   {
     if (zeroCount == 2 && *it_read == 0x03)
+    {
       it_read++;
+      zeroCount = 0;
+    }
     zeroCount = (*it_read == 0x00) ? zeroCount+1 : 0;
     *it_write = *it_read;
   }
