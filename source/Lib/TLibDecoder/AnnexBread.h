@@ -57,6 +57,16 @@ public:
   }
 
   /**
+   * Reset the internal state.  Must be called if input stream is
+   * modified externally to this class
+   */
+  void reset()
+  {
+    m_NumFutureBytes = 0;
+    m_FutureBytes = 0;
+  }
+
+  /**
    * returns true if an EOF will be encountered within the next
    * @n@ bytes.
    */
