@@ -184,7 +184,7 @@ public:
   // utility functions
   unsigned read(unsigned numberOfBits) { UInt tmp; read(numberOfBits, tmp); return tmp; }
   unsigned getNumBitsUntilByteAligned() { return m_num_held_bits & (0x7); }
-  unsigned getNumBitsLeft() { return 8*(m_fifo->size() - m_fifo_idx) - (8-m_num_held_bits)%8; }
+  unsigned getNumBitsLeft() { return 8*((unsigned)m_fifo->size() - m_fifo_idx) + m_num_held_bits; }
 };
 
 #endif

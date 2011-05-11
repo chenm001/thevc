@@ -86,7 +86,7 @@ void write(ostream& out, const NALUnit& nalu)
     {
       static const char emulation_prevention_prefix[] = {0,0,3};
       out.write(emulation_prevention_prefix, 3);
-      found += 2;
+      num_nonemulated_bytes += 2;
     }
     it += num_nonemulated_bytes;
   };
