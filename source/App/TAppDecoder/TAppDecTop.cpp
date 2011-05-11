@@ -134,6 +134,7 @@ Void TAppDecTop::decode()
          * [1] except for the first NAL unit in the file
          *     (but bNewPicture doesn't happen then) */
         bitstreamFile.seekg(location-streamoff(3));
+        bytestream.reset();
       }
     }
     if (bNewPicture || !bitstreamFile)
