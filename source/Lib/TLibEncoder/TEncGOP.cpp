@@ -971,9 +971,6 @@ Void TEncGOP::xCalculateAddPSNR( TComPic* pcPic, TComPicYuv* pcPicD, UInt uibits
   dUPSNR            = ( uiSSDU ? 10.0 * log10( fRefValueC / (Double)uiSSDU ) : 99.99 );
   dVPSNR            = ( uiSSDV ? 10.0 * log10( fRefValueC / (Double)uiSSDV ) : 99.99 );
   
-  // fix: total bits should consider slice size bits (32bit)
-  uibits += 32;
-  
 #if RVM_VCEGAM10
   m_vRVM_RP.push_back( uibits );
 #endif
