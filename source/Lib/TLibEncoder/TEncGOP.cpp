@@ -530,6 +530,10 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
           m_pcSAO->SAOProcess(pcPic->getSlice(0)->getLambda());
           m_pcSAO->copyQaoData(&cSaoParam);
           m_pcSAO->endSaoEnc();
+
+#if E057_INTRA_PCM && E192_SPS_PCM_FILTER_DISABLE_SYNTAX
+          m_pcAdaptiveLoopFilter->PCMLFDisableProcess(pcPic);
+#endif
         }
 
 #endif
@@ -549,6 +553,10 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
           m_pcAdaptiveLoopFilter->startALFEnc(pcPic, m_pcEntropyCoder );
           m_pcAdaptiveLoopFilter->ALFProcess( &cAlfParam, pcPic->getSlice(0)->getLambda(), uiDist, uiBits, uiMaxAlfCtrlDepth );
           m_pcAdaptiveLoopFilter->endALFEnc();
+
+#if E057_INTRA_PCM && E192_SPS_PCM_FILTER_DISABLE_SYNTAX
+          m_pcAdaptiveLoopFilter->PCMLFDisableProcess(pcPic);
+#endif
         }
 
         // set entropy coder for writing
@@ -742,6 +750,10 @@ Void TEncGOP::preLoopFilterPicAll( TComPic* pcPic, UInt64& ruiDist, UInt64& ruiB
     m_pcAdaptiveLoopFilter->ALFProcess(&cAlfParam, pcSlice->getLambda(), ruiDist, ruiBits, uiMaxAlfCtrlDepth );
     m_pcAdaptiveLoopFilter->endALFEnc();
     m_pcAdaptiveLoopFilter->freeALFParam(&cAlfParam);
+
+#if E057_INTRA_PCM && E192_SPS_PCM_FILTER_DISABLE_SYNTAX
+    m_pcAdaptiveLoopFilter->PCMLFDisableProcess(pcPic);
+#endif
   }
   
   m_pcEntropyCoder->resetEntropy    ();

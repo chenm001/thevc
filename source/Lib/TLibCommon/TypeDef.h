@@ -257,6 +257,10 @@
 #endif
 
 #define E057_INTRA_PCM                      1 // JCTVC-E057 PCM operation mode 2: Signal I_PCM flag when CU is 2Nx2N intra and its size is larger than or equal to 1<<(LOG2_MIN_I_PCM_CODING_BLOCK_SIZE_MINUS3+3).
+#if E057_INTRA_PCM
+#define E192_SPS_PCM_BIT_DEPTH_SYNTAX       1 // JCTVC-E192: PCM bit depth
+#define E192_SPS_PCM_FILTER_DISABLE_SYNTAX  1 // JCTVC-E192: PCM filter disable flag
+#endif
 
 // ====================================================================================================================
 // Basic type redefinition

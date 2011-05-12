@@ -187,6 +187,10 @@ Void TDecGop::decompressGop (Bool bEos, TComInputBitstream* pcBitstream, TComPic
       if( rpcPic->getSlice(0)->getSPS()->getUseSAO())
       {
         m_pcSAO->SAOProcess(rpcPic, &m_cSaoParam);
+
+#if E057_INTRA_PCM && E192_SPS_PCM_FILTER_DISABLE_SYNTAX
+        m_pcAdaptiveLoopFilter->PCMLFDisableProcess(rpcPic);
+#endif
       }
     }
 #endif
@@ -214,6 +218,11 @@ Void TDecGop::decompressGop (Bool bEos, TComInputBitstream* pcBitstream, TComPic
       }
 #endif
       m_pcAdaptiveLoopFilter->ALFProcess(rpcPic, &m_cAlfParam);
+
+#if E057_INTRA_PCM && E192_SPS_PCM_FILTER_DISABLE_SYNTAX
+      m_pcAdaptiveLoopFilter->PCMLFDisableProcess(rpcPic);
+#endif
+
 #if MTK_NONCROSS_INLOOP_FILTER
       if(m_pcAdaptiveLoopFilter->getUseNonCrossAlf())
       {
