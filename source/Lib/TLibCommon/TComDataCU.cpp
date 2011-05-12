@@ -455,6 +455,9 @@ Void TComDataCU::initEstDataDeltaQP( UInt uiDepth, UInt uiQP, UInt uiLastQP )
   memset( m_phQP,              uiQP, iSizeInUchar );
   m_hLastCodedQP = uiLastQP;
   memset( m_puiAlfCtrlFlag,     0, iSizeInUInt );
+#if E057_INTRA_PCM
+  memset( m_pbIPCMFlag,         0, iSizeInBool );
+#endif
   memset( m_pbMergeFlag,        0, iSizeInBool  );
   memset( m_puhMergeIndex,      0, iSizeInUchar );
   for( UInt ui = 0; ui < MRG_MAX_NUM_CANDS; ui++ )
@@ -489,10 +492,17 @@ Void TComDataCU::initEstDataDeltaQP( UInt uiDepth, UInt uiQP, UInt uiLastQP )
 
   UInt uiTmp = m_puhWidth[0]*m_puhHeight[0];
   memset( m_pcTrCoeffY , 0, sizeof(TCoeff)*uiTmp );
+#if E057_INTRA_PCM
+  memset( m_pcIPCMSampleY , 0, sizeof( Pel ) * uiTmp );
+#endif
 
   uiTmp >>= 2;
   memset( m_pcTrCoeffCb, 0, sizeof(TCoeff)*uiTmp );
   memset( m_pcTrCoeffCr, 0, sizeof(TCoeff)*uiTmp );
+#if E057_INTRA_PCM
+  memset( m_pcIPCMSampleCb , 0, sizeof( Pel ) * uiTmp );
+  memset( m_pcIPCMSampleCr , 0, sizeof( Pel ) * uiTmp );
+#endif
 
   m_acCUMvField[0].clearMvField();
   m_acCUMvField[1].clearMvField();
