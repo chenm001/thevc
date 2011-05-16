@@ -92,9 +92,7 @@ Void TAppDecTop::decode()
   // create & initialize internal classes
   xCreateDecLib();
   xInitDecLib  ();
-#if DCM_SKIP_DECODING_FRAMES
   m_iPOCLastDisplay += m_iSkipFrame;      // set the last displayed POC correctly for skip forward.
-#endif
 
   // main decoder loop
   bool recon_opened = false; // reconstruction file not yet opened. (must be performed after SPS is seen)
@@ -112,7 +110,6 @@ Void TAppDecTop::decode()
     byteStreamNALUnit(bytestream, nalUnit, stats);
 
     // call actual decoding function
-#if DCM_SKIP_DECODING_FRAMES
     bool bNewPicture = false;
     if (nalUnit.empty())
       /* this can happen if the following occur:
@@ -141,10 +138,6 @@ Void TAppDecTop::decode()
     {
       m_cTDecTop.executeDeblockAndAlf(false, uiPOC, pcListPic, m_iSkipFrame, m_iPOCLastDisplay);
     }
-
-#else
-    m_cTDecTop.decode( bEos, nalu, uiPOC, pcListPic );
-#endif
 
     if( pcListPic )
     {

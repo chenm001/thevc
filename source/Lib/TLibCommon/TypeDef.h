@@ -144,9 +144,6 @@
 #define DCM_RDCOST_TEMP_FIX //Enables temporary bug fixes to RD cost computation
 
 #define DCM_DECODING_REFRESH              1           ///< enable/disable decoding refresh (IDR and CDR)
-#if DCM_DECODING_REFRESH
-#define DCM_SKIP_DECODING_FRAMES          1           ///< enable/disable the random access by the decoder
-#endif
 
 #define DCM_SIMPLIFIED_MVP                1           ///< enable/disable the simplified motion vector prediction(D231)
 #if DCM_SIMPLIFIED_MVP

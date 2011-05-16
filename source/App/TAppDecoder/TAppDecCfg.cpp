@@ -67,9 +67,7 @@ Bool TAppDecCfg::parseCfg( Int argc, Char* argv[] )
   ("BitstreamFile,b", cfg_BitstreamFile, string(""), "bitstream input file name")
   ("ReconFile,o",     cfg_ReconFile,     string(""), "reconstructed YUV output file name\n"
                                                      "YUV writing is skipped if omitted")
-#if DCM_SKIP_DECODING_FRAMES
   ("SkipFrames,s", m_iSkipFrame, 0, "number of frames to skip before random access")
-#endif
   ("OutputBitDepth,d", m_outputBitDepth, 0u, "bit depth of YUV output file (use 0 for native depth)")
   ("SEIpictureDigest", m_pictureDigestEnabled, true, "Control handling of picture_digest SEI messages\n"
                                               "\t1: check\n"
