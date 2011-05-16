@@ -41,6 +41,7 @@
 
 using namespace std;
 
+static const char emulation_prevention_three_byte[] = {3};
 
 /**
  * write @nalu@ to bytestream @out@, performing RBSP anti startcode
@@ -69,27 +70,53 @@ void write(ostream& out, const NALUnit& nalu)
 
   /* write out rsbp_byte's, inserting any required
    * emulation_prevention_three_byte's */
+  /* 7.4.1 ...
+   * emulation_prevention_three_byte is a byte equal to 0x03. When an
+   * emulation_prevention_three_byte is present in the NAL unit, it shall be
+   * discarded by the decoding process.
+   * The last byte of the NAL unit shall not be equal to 0x00.
+   * Within the NAL unit, the following three-byte sequences shall not occur at
+   * any byte-aligned position:
+   *  - 0x000000
+   *  - 0x000001
+   *  - 0x000002
+   * Within the NAL unit, any four-byte sequence that starts with 0x000003
+   * other than the following sequences shall not occur at any byte-aligned
+   * position:
+   *  - 0x00000300
+   *  - 0x00000301
+   *  - 0x00000302
+   *  - 0x00000303
+   */
   const vector<uint8_t>& rbsp = *nalu.m_RBSPayload;
 
   for (vector<uint8_t>::const_iterator it = rbsp.begin(); it != rbsp.end();)
   {
-    /* 1) find the next emulated start_code_prefix
+    /* 1) find the next emulated 00 00 {00,01,02,03}
      * 2a) if not found, write all remaining bytes out, stop.
      * 2b) otherwise, write all non-emulated bytes out
      * 3) insert emulation_prevention_three_byte
      */
-    static const char start_code_prefix[] = {0,0,1};
-    vector<uint8_t>::const_iterator found = search(it, rbsp.end(), start_code_prefix, start_code_prefix+3);
-    unsigned num_nonemulated_bytes = found - it;
-    out.write((char*)&*it, num_nonemulated_bytes);
+    vector<uint8_t>::const_iterator found = it;
+    do {
+      /* NB, end()-1, prevents finding a trailing two byte sequence */
+      found = search_n(found, rbsp.end()-1, 2, 0);
+      found++;
+      /* if not found, found == end, otherwise found = second zero byte */
+      if (found == rbsp.end())
+        break;
+      if (*(++found) <= 3)
+        break;
+    } while (true);
+
+    /* found is the first byte that shouldn't be written out this time */
+    out.write((char*)&*it, found - it);
+    it = found;
     if (found != rbsp.end())
     {
-      static const char emulation_prevention_prefix[] = {0,0,3};
-      out.write(emulation_prevention_prefix, 3);
-      num_nonemulated_bytes += 2;
+      out.write(emulation_prevention_three_byte, 1);
     }
-    it += num_nonemulated_bytes;
-  };
+  }
 }
 
 /**
