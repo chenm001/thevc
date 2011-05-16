@@ -148,13 +148,23 @@ Void TComOutputBitstream::writeAlignZero()
 }
 
 #if LCEC_INTRA_MODE || QC_LCEC_INTER_MODE
+/**
+ * read #uiNumberOfBits# from bitstream without updating the bitstream
+ * state, storing the result in #ruiBits#.
+ *
+ * If reading #uiNumberOfBits# would overrun the bitstream buffer,
+ * the bitsream is effectively padded with sufficient zero-bits to
+ * avoid the overrun.
+ */
 Void TComInputBitstream::pseudoRead ( UInt uiNumberOfBits, UInt& ruiBits )
 {
   unsigned int saved_num_held_bits = m_num_held_bits;
   unsigned char saved_held_bits = m_held_bits;
   unsigned int saved_fifo_idx = m_fifo_idx;
 
-  read(uiNumberOfBits, ruiBits);
+  unsigned num_bits_to_read = min(uiNumberOfBits, getNumBitsLeft());
+  read(num_bits_to_read, ruiBits);
+  ruiBits <<= (uiNumberOfBits - num_bits_to_read);
 
   m_fifo_idx = saved_fifo_idx;
   m_held_bits = saved_held_bits;

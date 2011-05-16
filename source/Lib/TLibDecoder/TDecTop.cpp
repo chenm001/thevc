@@ -54,9 +54,7 @@ TDecTop::TDecTop()
 #if DCM_DECODING_REFRESH
   m_bRefreshPending = 0;
   m_uiPOCCDR = 0;
-#if DCM_SKIP_DECODING_FRAMES
   m_uiPOCRA = MAX_UINT;          
-#endif
 #endif
   m_uiPrevPOC               = UInt(-1);
   m_bFirstSliceInPicture    = true;
@@ -210,11 +208,7 @@ Void TDecTop::executeDeblockAndAlf(Bool bEos, UInt& ruiPOC, TComList<TComPic*>*&
   return;
 }
 
-#if DCM_SKIP_DECODING_FRAMES
 Bool TDecTop::decode (Bool bEos, InputNALUnit& nalu, UInt& ruiPOC, TComList<TComPic*>*& rpcListPic, Int& iSkipFrame,  Int& iPOCLastDisplay)
-#else
-Void TDecTop::decode (Bool bEos, InputNALUnit& nalu, UInt& ruiPOC, TComList<TComPic*>*& rpcListPic)
-#endif
 {
   if (m_bFirstSliceInPicture)
   {
@@ -294,13 +288,11 @@ Void TDecTop::decode (Bool bEos, InputNALUnit& nalu, UInt& ruiPOC, TComList<TCom
       m_bFirstSliceInSequence = false;
       if (m_apcSlicePilot->isNextSlice())
       {
-#if DCM_SKIP_DECODING_FRAMES
         // Skip pictures due to random access
         if (isRandomAccessSkipPicture(iSkipFrame, iPOCLastDisplay))
         {
           return false;
         }
-#endif
       }
       
       if (m_bFirstSliceInPicture)
@@ -440,7 +432,6 @@ Void TDecTop::decode (Bool bEos, InputNALUnit& nalu, UInt& ruiPOC, TComList<TCom
   return false;
 }
 
-#if DCM_SKIP_DECODING_FRAMES
 /** Function for checking if picture should be skipped because of random access
  * \param iSkipFrame skip frame counter
  * \param iPOCLastDisplay POC of last picture displayed
@@ -486,5 +477,4 @@ Bool TDecTop::isRandomAccessSkipPicture(Int& iSkipFrame,  Int& iPOCLastDisplay)
   // if we reach here, then the picture is not skipped.
   return false; 
 }
-#endif
 

@@ -67,9 +67,7 @@ private:
 #if DCM_DECODING_REFRESH
   Bool                    m_bRefreshPending;    ///< refresh pending flag
   UInt                    m_uiPOCCDR;           ///< temporal reference of the CDR picture
-#if DCM_SKIP_DECODING_FRAMES
   UInt                    m_uiPOCRA;            ///< temporal reference of the random access point
-#endif
 #endif
 
   UInt                    m_uiValidPS;
@@ -96,9 +94,7 @@ private:
   TComSampleAdaptiveOffset m_cSAO;
 #endif
 
-#if DCM_SKIP_DECODING_FRAMES
   Bool isRandomAccessSkipPicture(Int& iSkipFrame,  Int& iPOCLastDisplay);
-#endif
   TComPic*                m_pcPic;
   UInt                    m_uiSliceIdx;
   UInt                    m_uiLastSliceIdx;
@@ -116,11 +112,7 @@ public:
   void setPictureDigestEnabled(bool enabled) { m_cGopDecoder.setPictureDigestEnabled(enabled); }
   
   Void  init();
-#if DCM_SKIP_DECODING_FRAMES
   Bool  decode (Bool bEos, InputNALUnit& nalu, UInt& ruiPOC, TComList<TComPic*>*& rpcListPic, Int& iSkipFrame, Int& iPOCLastDisplay);
-#else
-  Void  decode ( Bool bEos, InputNALUnit& nalu, UInt& ruiPOC, TComList<TComPic*>*& rpcListPic );
-#endif
   
   TComSPS *getSPS() { return (m_uiValidPS & 1) ? &m_cSPS : NULL; }
   
