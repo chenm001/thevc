@@ -117,6 +117,15 @@ void write(ostream& out, const NALUnit& nalu)
       out.write(emulation_prevention_three_byte, 1);
     }
   }
+
+  /* 7.4.1.1
+   * ... when the last byte of the RBSP data is equal to 0x00 (which can
+   * only occur when the RBSP ends in a cabac_zero_word), a final byte equal
+   * to 0x03 is appended to the end of the data.
+   */
+  if (rbsp.back() == 0x00) {
+    out.write(emulation_prevention_three_byte, 1);
+  }
 }
 
 /**
