@@ -1690,8 +1690,27 @@ UInt TComDataCU::getQuadtreeTULog2MinSizeInCU( UInt uiIdx )
     uiLog2MinTUSizeInCU--;
   }
 #endif  
-  
+ 
   UInt uiQuadtreeTUMaxDepth = getPredictionMode( uiIdx ) == MODE_INTRA ? m_pcSlice->getSPS()->getQuadtreeTUMaxDepthIntra() : m_pcSlice->getSPS()->getQuadtreeTUMaxDepthInter();
+
+#ifdef MOT_TUPU_MAXDEPTH1
+  PartSize  partSize  = getPartitionSize( uiIdx );
+  Int   SplitFlag = ((uiQuadtreeTUMaxDepth == 1) && (getPredictionMode( uiIdx ) == MODE_INTER) && (partSize == SIZE_Nx2N || partSize == SIZE_2NxN) );
+
+  if (uiLog2MinTUSizeInCU < m_pcSlice->getSPS()->getQuadtreeTULog2MinSize() + uiQuadtreeTUMaxDepth - 1 + SplitFlag)
+  {
+    uiLog2MinTUSizeInCU = m_pcSlice->getSPS()->getQuadtreeTULog2MinSize();  
+  }
+  else
+  {
+    uiLog2MinTUSizeInCU -= uiQuadtreeTUMaxDepth - 1 + SplitFlag;  
+  }
+  
+  if ( uiLog2MinTUSizeInCU > m_pcSlice->getSPS()->getQuadtreeTULog2MaxSize())
+  {
+    uiLog2MinTUSizeInCU = m_pcSlice->getSPS()->getQuadtreeTULog2MaxSize() - SplitFlag;
+  }  
+#else
   if (uiLog2MinTUSizeInCU < m_pcSlice->getSPS()->getQuadtreeTULog2MinSize() + uiQuadtreeTUMaxDepth - 1)
   {
     uiLog2MinTUSizeInCU = m_pcSlice->getSPS()->getQuadtreeTULog2MinSize();  
@@ -1705,6 +1724,8 @@ UInt TComDataCU::getQuadtreeTULog2MinSizeInCU( UInt uiIdx )
   {
     uiLog2MinTUSizeInCU = m_pcSlice->getSPS()->getQuadtreeTULog2MaxSize();
   }  
+#endif
+
   return uiLog2MinTUSizeInCU;
 #endif
 }
