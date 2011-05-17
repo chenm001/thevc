@@ -44,10 +44,7 @@
 ////////////////////////////
 
 #define E253                              1
-//////////////////////////////////////
-// Motorola Mobility E364 flag
-/////////////////////////////////////
-#define  MOT_TUPU_MAXDEPTH1               1
+#define MOT_TUPU_MAXDEPTH1                1           ///< E364, "Implicit TU" derivation when there is no TU tree (i.e., "max depth = 1"), the transform blocks should not cross PU boundaries
 ////////////////////////////
 // JCT-VC E end
 ////////////////////////////
