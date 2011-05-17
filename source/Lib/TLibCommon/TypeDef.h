@@ -44,12 +44,13 @@
 ////////////////////////////
 
 #define E253                              1
-
+//////////////////////////////////////
+// Motorola Mobility E364 flag
+/////////////////////////////////////
+#define  MOT_TUPU_MAXDEPTH1               1
 ////////////////////////////
 // JCT-VC E end
 ////////////////////////////
-
-
 
 #define HHI_DISABLE_INTER_NxN_SPLIT       1           ///< TN: disable redundant use of pu-mode NxN for CTBs larger 8x8 (inter only)
 #define HHI_RMP_SWITCH                    0
