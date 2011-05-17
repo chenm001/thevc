@@ -753,6 +753,19 @@ Void TEncCu::xCompressCUDQP( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, UIn
           }
         }
       }
+
+#if E057_INTRA_PCM
+      // test PCM
+      if(rpcTempCU->getWidth(0) >= (1<<pcPic->getSlice(0)->getSPS()->getPCMLog2MinSize()))
+      {
+        UInt uiRawBits = (g_uiBitDepth * rpcBestCU->getWidth(0) * rpcBestCU->getHeight(0) * 3 / 2);
+        UInt uiBestBits = rpcBestCU->getTotalBits();
+        if((uiBestBits > uiRawBits) || (rpcBestCU->getTotalCost() > m_pcRdCost->calcRdCost(uiRawBits, 0)))
+        {
+          xCheckIntraPCM (rpcBestCU, rpcTempCU); rpcTempCU->initEstDataDeltaQP( uiDepth, iQP, uhLastQP );
+        }
+      }
+#endif
     }
 
     m_pcEntropyCoder->resetBits();

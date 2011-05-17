@@ -2181,7 +2181,7 @@ TEncSearch::estIntraPredChromaQT( TComDataCU* pcCU,
  * \param piPCM pointer to PCM code arrays
  * \param piPred pointer to prediction signal arrays
  * \param piResi pointer to residual signal arrays
- * \param piResi pointer to reconstructed sample arrays
+ * \param piReco pointer to reconstructed sample arrays
  * \param uiStride stride of the original/prediction/residual sample arrays
  * \param uiWidth block width
  * \param uiHeight block height
@@ -2198,11 +2198,18 @@ Void TEncSearch::xEncPCM (TComDataCU* pcCU, UInt uiAbsPartIdx, Pel* piOrg, Pel* 
   Pel* pResi = piResi;
   Pel* pReco = piReco;
   Pel* pRecoPic;
+#if E192_SPS_PCM_BIT_DEPTH_SYNTAX
+  UInt uiInternalBitDepth = g_uiBitDepth + g_uiBitIncrement;
+  UInt uiPCMBitDepth;
+#endif
 
   if( eText == TEXT_LUMA)
   {
     uiReconStride = pcCU->getPic()->getPicYuvRec()->getStride();
     pRecoPic      = pcCU->getPic()->getPicYuvRec()->getLumaAddr(pcCU->getAddr(), pcCU->getZorderIdxInCU()+uiAbsPartIdx);
+#if E192_SPS_PCM_BIT_DEPTH_SYNTAX
+    uiPCMBitDepth = pcCU->getSlice()->getSPS()->getPCMBitDepthLuma();
+#endif
   }
   else
   {
@@ -2216,6 +2223,9 @@ Void TEncSearch::xEncPCM (TComDataCU* pcCU, UInt uiAbsPartIdx, Pel* piOrg, Pel* 
     {
       pRecoPic = pcCU->getPic()->getPicYuvRec()->getCrAddr(pcCU->getAddr(), pcCU->getZorderIdxInCU()+uiAbsPartIdx);
     }
+#if E192_SPS_PCM_BIT_DEPTH_SYNTAX
+    uiPCMBitDepth = pcCU->getSlice()->getSPS()->getPCMBitDepthChroma();
+#endif
   }
 
   // Reset pred and residual
@@ -2235,7 +2245,11 @@ Void TEncSearch::xEncPCM (TComDataCU* pcCU, UInt uiAbsPartIdx, Pel* piOrg, Pel* 
   {
     for( uiX = 0; uiX < uiWidth; uiX++ )
     {
+#if E192_SPS_PCM_BIT_DEPTH_SYNTAX
+      pPCM[uiX] = (pOrg[uiX]>>(uiInternalBitDepth - uiPCMBitDepth));
+#else
       pPCM[uiX] = (pOrg[uiX]>>g_uiBitIncrement);
+#endif
     }
     pPCM += uiWidth;
     pOrg += uiStride;
@@ -2248,7 +2262,11 @@ Void TEncSearch::xEncPCM (TComDataCU* pcCU, UInt uiAbsPartIdx, Pel* piOrg, Pel* 
   {
     for( uiX = 0; uiX < uiWidth; uiX++ )
     {
+#if E192_SPS_PCM_BIT_DEPTH_SYNTAX
+      pReco   [uiX] = (pPCM[uiX]<<(uiInternalBitDepth - uiPCMBitDepth));
+#else
       pReco   [uiX] = (pPCM[uiX]<<g_uiBitIncrement);
+#endif
       pRecoPic[uiX] = pReco[uiX];
     }
     pPCM += uiWidth;

@@ -276,6 +276,11 @@ public:
   
   /// estimate ALF parameters
   Void ALFProcess(ALFParam* pcAlfParam, Double dLambda, UInt64& ruiDist, UInt64& ruiBits, UInt& ruiMaxAlfCtrlDepth );
+
+#if E057_INTRA_PCM && E192_SPS_PCM_FILTER_DISABLE_SYNTAX
+  Void PCMLFDisableProcess (TComPic* pcPic);
+#endif
+
   /// test ALF for luma
   Void xEncALFLuma_qc                  ( TComPicYuv* pcPicOrg, TComPicYuv* pcPicDec, TComPicYuv* pcPicRest, UInt64& ruiMinRate, 
                                          UInt64& ruiMinDist, Double& rdMinCost );

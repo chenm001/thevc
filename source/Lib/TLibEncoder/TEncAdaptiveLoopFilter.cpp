@@ -480,6 +480,19 @@ Void TEncAdaptiveLoopFilter::ALFProcess( ALFParam* pcAlfParam, Double dLambda, U
   ruiMaxAlfCtrlDepth = m_pcEntropyCoder->getMaxAlfCtrlDepth();
 }
 
+#if E057_INTRA_PCM && E192_SPS_PCM_FILTER_DISABLE_SYNTAX
+/** PCM LF disable process.
+ * \param pcPic picture (TComPic) pointer
+ * \returns Void
+ *
+ * \note Replace filtered sample values of PCM mode blocks with the transmitted and reconstructed ones.
+ */
+Void TEncAdaptiveLoopFilter::PCMLFDisableProcess (TComPic* pcPic)
+{
+  xPCMRestoration(pcPic);
+}
+#endif
+
 // ====================================================================================================================
 // Protected member functions
 // ====================================================================================================================
