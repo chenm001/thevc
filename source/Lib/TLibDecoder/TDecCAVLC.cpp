@@ -298,7 +298,11 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice)
       {
         rpcSlice->setRefPicListCombinationFlag(false);
         rpcSlice->setRefPicListModificationFlagLC(false);
+#if TICTET_166 
+        rpcSlice->setNumRefIdx(REF_PIC_LIST_C, 0);
+#else
         rpcSlice->setNumRefIdx(REF_PIC_LIST_C, -1);
+#endif
       }
     }
 #endif
