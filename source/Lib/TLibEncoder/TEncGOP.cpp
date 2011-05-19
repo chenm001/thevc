@@ -231,11 +231,7 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
 #if DCM_COMB_LIST
       if (pcSlice->getSliceType() != B_SLICE || !pcSlice->getSPS()->getUseLComb())
       {
-#if TICTET_166 
         pcSlice->setNumRefIdx(REF_PIC_LIST_C, 0);
-#else
-        pcSlice->setNumRefIdx(REF_PIC_LIST_C, -1);
-#endif
         pcSlice->setRefPicListCombinationFlag(false);
         pcSlice->setRefPicListModificationFlagLC(false);
       }
@@ -282,11 +278,7 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
 #if DCM_COMB_LIST
       if(pcSlice->getNoBackPredFlag())
       {
-#if TICTET_166 
         pcSlice->setNumRefIdx(REF_PIC_LIST_C, 0);
-#else
-        pcSlice->setNumRefIdx(REF_PIC_LIST_C, -1);
-#endif
       }
       pcSlice->generateCombinedList();
 #endif

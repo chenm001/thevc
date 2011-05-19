@@ -100,9 +100,7 @@ Void TComSlice::initSlice()
   m_bRefPicListCombinationFlag = false;
   m_bRefPicListModificationFlagLC = false;
 
-#if TICTET_166 
   m_aiNumRefIdx[REF_PIC_LIST_C]      = 0;
-#endif
 
 #endif
 }
