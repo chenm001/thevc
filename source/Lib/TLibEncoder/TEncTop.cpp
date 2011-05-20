@@ -96,6 +96,11 @@ Void TEncTop::create ()
   // if SBAC-based RD optimization is used
   if( m_bUseSBACRD )
   {
+#if MTK_SAO
+    Int iMaxDepth  = g_uiMaxCUDepth;
+    g_uiMaxCUDepth = 4;
+#endif
+
     m_pppcRDSbacCoder = new TEncSbac** [g_uiMaxCUDepth+1];
     m_pppcBinCoderCABAC = new TEncBinCABAC** [g_uiMaxCUDepth+1];
     
@@ -111,6 +116,10 @@ Void TEncTop::create ()
         m_pppcRDSbacCoder   [iDepth][iCIIdx]->init( m_pppcBinCoderCABAC [iDepth][iCIIdx] );
       }
     }
+#if MTK_SAO
+    g_uiMaxCUDepth = iMaxDepth;
+#endif
+
   }
 }
 
@@ -141,6 +150,11 @@ Void TEncTop::destroy ()
   if( m_bUseSBACRD )
   {
     Int iDepth;
+#if MTK_SAO
+    Int iMaxDepth  = g_uiMaxCUDepth;
+    g_uiMaxCUDepth = 4;
+#endif
+
     for ( iDepth = 0; iDepth < g_uiMaxCUDepth+1; iDepth++ )
     {
       for (Int iCIIdx = 0; iCIIdx < CI_NUM; iCIIdx ++ )
@@ -158,6 +172,10 @@ Void TEncTop::destroy ()
     
     delete [] m_pppcRDSbacCoder;
     delete [] m_pppcBinCoderCABAC;
+#if MTK_SAO
+    g_uiMaxCUDepth = iMaxDepth;
+#endif
+
   }
   
   // destroy ROM
