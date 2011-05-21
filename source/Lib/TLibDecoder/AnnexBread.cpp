@@ -153,6 +153,6 @@ byteStreamNALUnit(
   } catch (...) {
     eof = true;
   }
-  stats.m_numBytesInNALUnit = nalUnit.size();
+  stats.m_numBytesInNALUnit = unsigned(nalUnit.size());
   return eof;
 }

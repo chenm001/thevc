@@ -168,7 +168,7 @@ namespace df
           cout << line.str() << endl;
           continue;
         }
-        size_t currlength = line.tellp();
+        size_t currlength = size_t(line.tellp());
         if (currlength > opt_width)
         {
           /* if option text is too long (and would collide with the

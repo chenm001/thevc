@@ -77,7 +77,7 @@ char* TComOutputBitstream::getByteStream() const
 
 unsigned int TComOutputBitstream::getByteStreamLength()
 {
-  return m_fifo->size();
+  return unsigned(m_fifo->size());
 }
 
 void TComOutputBitstream::clear()
