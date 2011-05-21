@@ -102,6 +102,9 @@ Void TComSlice::initSlice()
 #if DCM_COMB_LIST 
   m_bRefPicListCombinationFlag = false;
   m_bRefPicListModificationFlagLC = false;
+
+  m_aiNumRefIdx[REF_PIC_LIST_C]      = 0;
+
 #endif
 }
 

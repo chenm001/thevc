@@ -5736,9 +5736,9 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
               c1 = 0; c2++;
               uiNumOne++;
 #if E253
-              if( uiAbs > 3 )
+              if( uiAbs > 2 )
               {
-                uiAbs -= 4;
+                uiAbs -= 3;
                 uiAbs  = min<UInt>( uiAbs, 15 );
                 uiGoRiceParam = g_aauiGoRiceUpdate[ uiGoRiceParam ][ uiAbs ];
               }
@@ -5780,9 +5780,9 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
         {
           c1 = 0; c2++;
 #if E253
-          if( uiAbs > 3 )
+          if( uiAbs > 2 )
           {
-            uiAbs -= 4;
+            uiAbs -= 3;
             uiAbs  = min<UInt>( uiAbs, 15 );
             uiGoRiceParam = g_aauiGoRiceUpdate[ uiGoRiceParam ][ uiAbs ];
           }

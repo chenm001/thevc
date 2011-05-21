@@ -149,7 +149,8 @@
 #define TI_AMVP_SMVP_SIMPLIFIED           1              ///< (JCTVC-E481 - F)amvp spatial candidate simplified scanning
 #endif
 
-#define DCM_COMB_LIST                  1           ///< Use of combined list for uni-prediction in B-slices
+#define DCM_COMB_LIST                     1           ///< Use of combined list for uni-prediction in B-slices
+
 
 #define ADD_PLANAR_MODE                   1           ///< enable/disable Planar mode for intra prediction (JCTVC-E321)
 #if ADD_PLANAR_MODE
