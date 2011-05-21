@@ -911,6 +911,7 @@ UInt64 TEncGOP::xFindDistortionFrame (TComPicYuv* pcPic0, TComPicYuv* pcPic1)
   return uiTotalDiff;
 }
 
+#if VERBOSE_RATE
 static const char* nalUnitTypeToString(NalUnitType type)
 {
   switch (type)
@@ -927,7 +928,7 @@ static const char* nalUnitTypeToString(NalUnitType type)
   default: return "UNK";
   }
 }
-
+#endif
 
 Void TEncGOP::xCalculateAddPSNR( TComPic* pcPic, TComPicYuv* pcPicD, const AccessUnit& accessUnit, Double dEncTime )
 {
@@ -1010,7 +1011,9 @@ Void TEncGOP::xCalculateAddPSNR( TComPic* pcPic, TComPicYuv* pcPicD, const Acces
   for (AccessUnit::const_iterator it = accessUnit.begin(); it != accessUnit.end(); it++)
   {
     unsigned numRBSPBytes_nal = unsigned((*it)->m_nalUnitData.str().size());
+#if VERBOSE_RATE
     printf("*** %6s numBytesInNALunit: %u\n", nalUnitTypeToString((*it)->m_UnitType), numRBSPBytes_nal);
+#endif
     if ((*it)->m_UnitType != NAL_UNIT_SEI)
       numRBSPBytes += numRBSPBytes_nal;
   }

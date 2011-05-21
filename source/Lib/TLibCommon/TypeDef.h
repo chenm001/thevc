@@ -70,6 +70,8 @@
 #define HHI_RQT_FORCE_SPLIT_ACC2_PU       0
 #endif
 
+#define VERBOSE_RATE 0 ///< Print additional rate information in encoder
+
 // COLOCATED PREDICTOR
 // FOR MERGE
 #define MRG_NEIGH_COL                     1           ///< use of colocated MB in MERGE

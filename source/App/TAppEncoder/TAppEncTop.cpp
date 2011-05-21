@@ -404,6 +404,8 @@ void TAppEncTop::rateStatsAccum(const AccessUnit& au, const vector<unsigned>& an
 void TAppEncTop::printRateSummary()
 {
   double time = (double) m_iFrameRcvd / m_iFrameRate;
-  printf("Total (AnnexB) Bytes: %u, %.3f kbps\n", m_totalBytes, 0.008 * m_totalBytes / time);
-  printf(" of which, 'essential' bytes: %u, %.3f kbps\n", m_essentialBytes, 0.008 * m_essentialBytes / time);
+  printf("Bytes written to file: %u (%.3f kbps)\n", m_totalBytes, 0.008 * m_totalBytes / time);
+#if VERBOSE_RATE
+  printf("Bytes for SPS/PPS/Slice (Incl. Annex B): %u (%.3f kbps)\n", m_essentialBytes, 0.008 * m_essentialBytes / time);
+#endif
 }
