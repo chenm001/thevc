@@ -636,13 +636,6 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
       //-- For time output for each slice
       Double dEncTime = (double)(clock()-iBeforeTime) / CLOCKS_PER_SEC;
 
-      /** TODO: move this to after MD5sum/SEI after xFixedRoundingPic() is fixed */
-      xCalculateAddPSNR( pcPic, pcPic->getPicYuvRec(), accessUnit, dEncTime );
-
-#if FIXED_ROUNDING_FRAME_MEMORY
-      pcPic->getPicYuvRec()->xFixedRoundingPic();
-#endif
-
       const char* digestStr = NULL;
       if (m_pcCfg->getPictureDigestEnabled()) {
         /* calculate MD5sum for entire reconstructed picture */
@@ -664,10 +657,14 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
         accessUnit.insert(it, new NALUnitEBSP(nalu));
       }
 
-      /** XXX: xCalculateAddPSNR() should occur here */
+      xCalculateAddPSNR( pcPic, pcPic->getPicYuvRec(), accessUnit, dEncTime );
       if (digestStr)
         printf(" [MD5:%s]", digestStr);
 
+#if FIXED_ROUNDING_FRAME_MEMORY
+      /* TODO: this should happen after copyToPic(pcPicYuvRecOut) */
+      pcPic->getPicYuvRec()->xFixedRoundingPic();
+#endif
       pcPic->getPicYuvRec()->copyToPic(pcPicYuvRecOut);
       
       pcPic->setReconMark   ( true );

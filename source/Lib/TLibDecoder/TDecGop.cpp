@@ -267,13 +267,14 @@ Void TDecGop::decompressGop(TComInputBitstream* pcBitstream, TComPic*& rpcPic, B
       printf ("] ");
     }
 #endif
-#if FIXED_ROUNDING_FRAME_MEMORY
-    rpcPic->getPicYuvRec()->xFixedRoundingPic();
-#endif 
 
     if (m_pictureDigestEnabled) {
       calcAndPrintMD5Status(*rpcPic->getPicYuvRec(), rpcPic->getSEIs());
     }
+
+#if FIXED_ROUNDING_FRAME_MEMORY
+    rpcPic->getPicYuvRec()->xFixedRoundingPic();
+#endif
 
     rpcPic->setReconMark(true);
 
