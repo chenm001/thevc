@@ -31,80 +31,67 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#pragma once
+#include <vector>
+#include <algorithm>
+#include <ostream>
+
+#include "NALread.h"
+#include "../TLibCommon/NAL.h"
+#include "../TLibCommon/TComBitStream.h"
+
+using namespace std;
+
+static void convertPayloadToRBSP(vector<uint8_t>& nalUnitBuf)
+{
+  unsigned zeroCount = 0;
+  vector<uint8_t>::iterator it_read, it_write;
+  for (it_read = it_write = nalUnitBuf.begin(); it_read != nalUnitBuf.end(); it_read++, it_write++)
+  {
+    if (zeroCount == 2 && *it_read == 0x03)
+    {
+      it_read++;
+      zeroCount = 0;
+    }
+    zeroCount = (*it_read == 0x00) ? zeroCount+1 : 0;
+    *it_write = *it_read;
+  }
+
+  nalUnitBuf.resize(it_write - nalUnitBuf.begin());
+}
 
 /**
- * Abstract class representing an SEI message with lightweight RTTI.
+ * create a NALunit structure with given header values and storage for
+ * a bitstream
  */
-class SEI
+void read(InputNALUnit& nalu, vector<uint8_t>& nalUnitBuf)
 {
-public:
-  enum PayloadType
+  /* perform anti-emulation prevention */
+  convertPayloadToRBSP(nalUnitBuf);
+
+  nalu.m_Bitstream = new TComInputBitstream(&nalUnitBuf);
+  TComInputBitstream& bs = *nalu.m_Bitstream;
+
+  bool forbidden_zero_bit = bs.read(1);
+  assert(forbidden_zero_bit == 0);
+
+  nalu.m_RefIDC = (NalRefIdc) bs.read(2);
+  nalu.m_UnitType = (NalUnitType) bs.read(5);
+
+  switch (nalu.m_UnitType)
   {
-    USER_DATA_UNREGISTERED = 5,
-    PICTURE_DIGEST = 256,
-  };
-  
-  SEI() {}
-  virtual ~SEI() {}
-  
-  virtual PayloadType payloadType() const = 0;
-};
-
-class SEIuserDataUnregistered : public SEI
-{
-public:
-  PayloadType payloadType() const { return USER_DATA_UNREGISTERED; }
-
-  SEIuserDataUnregistered()
-    : userData(0)
-    {}
-
-  virtual ~SEIuserDataUnregistered()
-  {
-    delete userData;
+  case NAL_UNIT_CODED_SLICE:
+  case NAL_UNIT_CODED_SLICE_IDR:
+  case NAL_UNIT_CODED_SLICE_CDR:
+    {
+      nalu.m_TemporalID = bs.read(3);
+      nalu.m_OutputFlag = bs.read(1);
+      unsigned reserved_one_4bits = bs.read(4);
+      assert(reserved_one_4bits == 1);
+    }
+    break;
+  default:
+    nalu.m_TemporalID = 0;
+    nalu.m_OutputFlag = true;
+    break;
   }
-
-  unsigned char uuid_iso_iec_11578[16];
-  unsigned userDataLength;
-  unsigned char *userData;
-};
-
-class SEIpictureDigest : public SEI
-{
-public:
-  PayloadType payloadType() const { return PICTURE_DIGEST; }
-
-  SEIpictureDigest() {}
-  virtual ~SEIpictureDigest() {}
-  
-  enum Method
-  {
-    MD5,
-    RESERVED,
-  } method;
-
-  unsigned char digest[16];
-};
-
-/**
- * A structure to collate all SEI messages.  This ought to be replaced
- * with a list of std::list<SEI*>.  However, since there is only one
- * user of the SEI framework, this will do initially */
-class SEImessages
-{
-public:
-  SEImessages()
-    : user_data_unregistered(0)
-    , picture_digest(0)
-    {}
-
-  ~SEImessages()
-  {
-    delete user_data_unregistered;
-    delete picture_digest;
-  }
-
-  SEIuserDataUnregistered* user_data_unregistered;
-  SEIpictureDigest* picture_digest;
-};
+}

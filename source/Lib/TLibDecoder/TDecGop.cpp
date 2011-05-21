@@ -104,7 +104,7 @@ Void TDecGop::init( TDecEntropy*            pcEntropyDecoder,
 // Public member functions
 // ====================================================================================================================
 
-Void TDecGop::decompressGop (Bool bEos, TComBitstream* pcBitstream, TComPic*& rpcPic, Bool bExecuteDeblockAndAlf)
+Void TDecGop::decompressGop(TComInputBitstream* pcBitstream, TComPic*& rpcPic, Bool bExecuteDeblockAndAlf)
 {
   TComSlice*  pcSlice = rpcPic->getSlice(rpcPic->getCurrSliceIdx());
 
@@ -187,6 +187,10 @@ Void TDecGop::decompressGop (Bool bEos, TComBitstream* pcBitstream, TComPic*& rp
       if( rpcPic->getSlice(0)->getSPS()->getUseSAO())
       {
         m_pcSAO->SAOProcess(rpcPic, &m_cSaoParam);
+
+#if E057_INTRA_PCM && E192_SPS_PCM_FILTER_DISABLE_SYNTAX
+        m_pcAdaptiveLoopFilter->PCMLFDisableProcess(rpcPic);
+#endif
       }
     }
 #endif
@@ -214,6 +218,11 @@ Void TDecGop::decompressGop (Bool bEos, TComBitstream* pcBitstream, TComPic*& rp
       }
 #endif
       m_pcAdaptiveLoopFilter->ALFProcess(rpcPic, &m_cAlfParam);
+
+#if E057_INTRA_PCM && E192_SPS_PCM_FILTER_DISABLE_SYNTAX
+      m_pcAdaptiveLoopFilter->PCMLFDisableProcess(rpcPic);
+#endif
+
 #if MTK_NONCROSS_INLOOP_FILTER
       if(m_pcAdaptiveLoopFilter->getUseNonCrossAlf())
       {
@@ -228,11 +237,12 @@ Void TDecGop::decompressGop (Bool bEos, TComBitstream* pcBitstream, TComPic*& rp
 #endif 
     
     //-- For time output for each slice
-    printf("\nPOC %4d ( %c-SLICE, QP%3d ) ",
-           pcSlice->getPOC(),
-           pcSlice->isIntra() ? 'I' : pcSlice->isInterP() ? 'P' : 'B',
-           pcSlice->getSliceQp() );
-    
+    printf("\nPOC %4d TId: %1d ( %c-SLICE, QP%3d ) ",
+          pcSlice->getPOC(),
+          pcSlice->getTLayer(),
+          pcSlice->isIntra() ? 'I' : pcSlice->isInterP() ? 'P' : 'B',
+          pcSlice->getSliceQp() );
+
     m_dDecTime += (double)(clock()-iBeforeTime) / CLOCKS_PER_SEC;
     printf ("[DT %6.3f] ", m_dDecTime );
     m_dDecTime  = 0;
@@ -257,15 +267,18 @@ Void TDecGop::decompressGop (Bool bEos, TComBitstream* pcBitstream, TComPic*& rp
       printf ("] ");
     }
 #endif
-#if FIXED_ROUNDING_FRAME_MEMORY
-    rpcPic->getPicYuvRec()->xFixedRoundingPic();
-#endif 
 
-    if (m_pictureDigestEnabled) {
+    if (m_pictureDigestEnabled)
+    {
       calcAndPrintMD5Status(*rpcPic->getPicYuvRec(), rpcPic->getSEIs());
     }
 
+#if FIXED_ROUNDING_FRAME_MEMORY
+    rpcPic->getPicYuvRec()->xFixedRoundingPic();
+#endif
+
     rpcPic->setReconMark(true);
+
 #if MTK_NONCROSS_INLOOP_FILTER
     uiILSliceCount = 0;
 #endif

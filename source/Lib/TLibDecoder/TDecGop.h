@@ -102,7 +102,7 @@ public:
                  );
   Void  create  ();
   Void  destroy ();
-  Void  decompressGop ( Bool bEos, TComBitstream* pcBitstream, TComPic*& rpcPic, Bool bExecuteDeblockAndAlf );
+  Void  decompressGop(TComInputBitstream* pcBitstream, TComPic*& rpcPic, Bool bExecuteDeblockAndAlf );
   Void  setGopSize( Int i) { m_iGopSize = i; }
 
   void setPictureDigestEnabled(bool enabled) { m_pictureDigestEnabled = enabled; }

@@ -174,9 +174,9 @@ public:
   }
   
   
-  const Int per()   const { return m_iPer; }
-  const Int rem()   const { return m_iRem; }
-  const Int bits()  const { return m_iBits; }
+  Int per()   const { return m_iPer; }
+  Int rem()   const { return m_iRem; }
+  Int bits()  const { return m_iBits; }
   
   Int qp() {return m_iQP;}
 }; // END CLASS DEFINITION QpParam

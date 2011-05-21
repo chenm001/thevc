@@ -305,9 +305,6 @@ const Int TComAdaptiveLoopFilter::m_aiSymmetricMag9x7[32] =
 TComAdaptiveLoopFilter::TComAdaptiveLoopFilter()
 {
   m_pcTempPicYuv = NULL;
-#if MTK_NONCROSS_INLOOP_FILTER
-  m_bUseNonCrossALF = false;
-#endif
 }
 
 Void TComAdaptiveLoopFilter:: xError(const char *text, int code)
@@ -1835,12 +1832,11 @@ Void TComAdaptiveLoopFilter::xFrameChroma(Int ypos, Int xpos, Int iHeight, Int i
 Void TComAdaptiveLoopFilter::xFrameChroma( TComPicYuv* pcPicDec, TComPicYuv* pcPicRest, Int *qh, Int iTap, Int iColor )
 #endif
 {
-  Int i, x, y, value, N, offset;
+  Int i, x, y, value, N;
   //  Pel PixSum[ALF_MAX_NUM_COEF_C];// th
   Pel PixSum[ALF_MAX_NUM_COEF]; 
   
   N      = (iTap*iTap+1)>>1;
-  offset = iTap>>1;
 #if !MTK_NONCROSS_INLOOP_FILTER
   Int iHeight = pcPicRest->getHeight() >> 1;
   Int iWidth = pcPicRest->getWidth() >> 1;
@@ -3529,12 +3525,145 @@ Void TComSampleAdaptiveOffset::SAOProcess(TComPic* pcPic, SAOParam* pcQaoParam)
 
     m_pcPic = NULL;
   }
-
-
-
 }
 
 
-
-
 #endif // MTK_SAO
+#if E057_INTRA_PCM && E192_SPS_PCM_FILTER_DISABLE_SYNTAX
+/** PCM LF disable process. 
+ * \param pcPic picture (TComPic) pointer
+ * \returns Void
+ *
+ * \note Replace filtered sample values of PCM mode blocks with the transmitted and reconstructed ones.
+ */
+Void TComAdaptiveLoopFilter::PCMLFDisableProcess (TComPic* pcPic)
+{
+  xPCMRestoration(pcPic);
+}
+
+/** Picture-level PCM restoration. 
+ * \param pcPic picture (TComPic) pointer
+ * \returns Void
+ */
+Void TComAdaptiveLoopFilter::xPCMRestoration(TComPic* pcPic)
+{
+  Bool  bPCMFilter = (pcPic->getSlice(0)->getSPS()->getPCMFilterDisableFlag() && ((1<<pcPic->getSlice(0)->getSPS()->getPCMLog2MinSize()) <= g_uiMaxCUWidth))? true : false;
+
+  if(bPCMFilter)
+  {
+    for( UInt uiCUAddr = 0; uiCUAddr < pcPic->getNumCUsInFrame() ; uiCUAddr++ )
+    {
+      TComDataCU* pcCU = pcPic->getCU(uiCUAddr);
+
+      xPCMCURestoration(pcCU, 0, 0); 
+    } 
+  }
+}
+
+/** PCM CU restoration. 
+ * \param pcCU pointer to current CU
+ * \param uiAbsPartIdx part index
+ * \param uiDepth CU depth
+ * \returns Void
+ */
+Void TComAdaptiveLoopFilter::xPCMCURestoration ( TComDataCU* pcCU, UInt uiAbsZorderIdx, UInt uiDepth )
+{
+  TComPic* pcPic     = pcCU->getPic();
+  UInt uiCurNumParts = pcPic->getNumPartInCU() >> (uiDepth<<1);
+  UInt uiQNumParts   = uiCurNumParts>>2;
+
+  // go to sub-CU
+  if( pcCU->getDepth(uiAbsZorderIdx) > uiDepth )
+  {
+    for ( UInt uiPartIdx = 0; uiPartIdx < 4; uiPartIdx++, uiAbsZorderIdx+=uiQNumParts )
+    {
+      UInt uiLPelX   = pcCU->getCUPelX() + g_auiRasterToPelX[ g_auiZscanToRaster[uiAbsZorderIdx] ];
+      UInt uiTPelY   = pcCU->getCUPelY() + g_auiRasterToPelY[ g_auiZscanToRaster[uiAbsZorderIdx] ];
+      if( ( uiLPelX < pcCU->getSlice()->getSPS()->getWidth() ) && ( uiTPelY < pcCU->getSlice()->getSPS()->getHeight() ) )
+        xPCMCURestoration( pcCU, uiAbsZorderIdx, uiDepth+1 );
+    }
+    return;
+  }
+
+  // restore PCM samples
+  if (pcCU->getIPCMFlag(uiAbsZorderIdx))
+  {
+    xPCMSampleRestoration (pcCU, uiAbsZorderIdx, uiDepth, TEXT_LUMA    );
+    xPCMSampleRestoration (pcCU, uiAbsZorderIdx, uiDepth, TEXT_CHROMA_U);
+    xPCMSampleRestoration (pcCU, uiAbsZorderIdx, uiDepth, TEXT_CHROMA_V);
+  }
+}
+
+/** PCM sample restoration. 
+ * \param pcCU pointer to current CU
+ * \param uiAbsPartIdx part index
+ * \param uiDepth CU depth
+ * \param ttText texture component type
+ * \returns Void
+ */
+Void TComAdaptiveLoopFilter::xPCMSampleRestoration (TComDataCU* pcCU, UInt uiAbsZorderIdx, UInt uiDepth, TextType ttText)
+{
+  TComPicYuv* pcPicYuvRec = pcCU->getPic()->getPicYuvRec();
+  Pel* piSrc;
+  Pel* piPcm;
+  UInt uiStride;
+  UInt uiWidth;
+  UInt uiHeight;
+#if E192_SPS_PCM_BIT_DEPTH_SYNTAX
+  UInt uiPcmLeftShiftBit; 
+#endif
+  UInt uiX, uiY;
+  UInt uiMinCoeffSize = pcCU->getPic()->getMinCUWidth()*pcCU->getPic()->getMinCUHeight();
+  UInt uiLumaOffset   = uiMinCoeffSize*uiAbsZorderIdx;
+  UInt uiChromaOffset = uiLumaOffset>>2;
+
+  if( ttText == TEXT_LUMA )
+  {
+    piSrc = pcPicYuvRec->getLumaAddr( pcCU->getAddr(), uiAbsZorderIdx);
+    piPcm = pcCU->getPCMSampleY() + uiLumaOffset;
+    uiStride  = pcPicYuvRec->getStride();
+    uiWidth  = (g_uiMaxCUWidth >> uiDepth);
+    uiHeight = (g_uiMaxCUHeight >> uiDepth);
+#if E192_SPS_PCM_BIT_DEPTH_SYNTAX
+    uiPcmLeftShiftBit = g_uiBitDepth + g_uiBitIncrement - pcCU->getSlice()->getSPS()->getPCMBitDepthLuma();
+#endif
+  }
+  else
+  {
+    if( ttText == TEXT_CHROMA_U )
+    {
+      piSrc = pcPicYuvRec->getCbAddr( pcCU->getAddr(), uiAbsZorderIdx );
+      piPcm = pcCU->getPCMSampleCb() + uiChromaOffset;
+    }
+    else
+    {
+      piSrc = pcPicYuvRec->getCrAddr( pcCU->getAddr(), uiAbsZorderIdx );
+      piPcm = pcCU->getPCMSampleCr() + uiChromaOffset;
+    }
+
+    uiStride = pcPicYuvRec->getCStride();
+    uiWidth  = ((g_uiMaxCUWidth >> uiDepth)/2);
+    uiHeight = ((g_uiMaxCUWidth >> uiDepth)/2);
+#if E192_SPS_PCM_BIT_DEPTH_SYNTAX
+    uiPcmLeftShiftBit = g_uiBitDepth + g_uiBitIncrement - pcCU->getSlice()->getSPS()->getPCMBitDepthChroma();
+#endif
+  }
+
+  for( uiY = 0; uiY < uiHeight; uiY++ )
+  {
+    for( uiX = 0; uiX < uiWidth; uiX++ )
+    {
+#if E192_SPS_PCM_BIT_DEPTH_SYNTAX
+      piSrc[uiX] = (piPcm[uiX] << uiPcmLeftShiftBit);
+#else
+      if(g_uiBitIncrement > 0)
+        piSrc[uiX] = (piPcm[uiX] << g_uiBitIncrement);
+      else
+        piSrc[uiX] = piPcm[uiX];
+#endif
+    }
+    piPcm += uiWidth;
+    piSrc += uiStride;
+  }
+}
+#endif

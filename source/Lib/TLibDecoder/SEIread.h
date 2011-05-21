@@ -33,7 +33,7 @@
 
 #pragma once
 
-class TComBitstream;
+class TComInputBitstream;
 class SEImessages;
 
-void parseSEImessage(TComBitstream& bs, SEImessages& seis);
+void parseSEImessage(TComInputBitstream& bs, SEImessages& seis);

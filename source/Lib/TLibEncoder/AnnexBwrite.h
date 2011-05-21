@@ -33,78 +33,50 @@
 
 #pragma once
 
+#include <ostream>
+#include "../TLibCommon/AccessUnit.h"
+#include "NALwrite.h"
+
 /**
- * Abstract class representing an SEI message with lightweight RTTI.
+ * write all NALunits in @au@ to bytestream @out@ in a manner satisfying
+ * AnnexB of AVC.  NALunits are written in the order they are found in @au@.
+ * the zero_byte word is appended to:
+ *  - the initial startcode in the access unit,
+ *  - any SPS/PPS nal units
  */
-class SEI
+static std::vector<unsigned> writeAnnexB(std::ostream& out, const AccessUnit& au)
 {
-public:
-  enum PayloadType
+  std::vector<unsigned> annexBsizes;
+
+  for (AccessUnit::const_iterator it = au.begin(); it != au.end(); it++)
   {
-    USER_DATA_UNREGISTERED = 5,
-    PICTURE_DIGEST = 256,
-  };
-  
-  SEI() {}
-  virtual ~SEI() {}
-  
-  virtual PayloadType payloadType() const = 0;
-};
+    const NALUnitEBSP& nalu = **it;
+    unsigned size = 0; /* size of annexB unit in bytes */
 
-class SEIuserDataUnregistered : public SEI
-{
-public:
-  PayloadType payloadType() const { return USER_DATA_UNREGISTERED; }
+    static const char start_code_prefix[] = {0,0,0,1};
+    if (it == au.begin() || nalu.m_UnitType == NAL_UNIT_SPS || nalu.m_UnitType == NAL_UNIT_PPS)
+    {
+      /* From AVC, When any of the following conditions are fulfilled, the
+       * zero_byte syntax element shall be present:
+       *  - the nal_unit_type within the nal_unit() is equal to 7 (sequence
+       *    parameter set) or 8 (picture parameter set),
+       *  - the byte stream NAL unit syntax structure contains the first NAL
+       *    unit of an access unit in decoding order, as specified by subclause
+       *    7.4.1.2.3.
+       */
+      out.write(start_code_prefix, 4);
+      size += 4;
+    }
+    else
+    {
+      out.write(start_code_prefix+1, 3);
+      size += 3;
+    }
+    out << nalu.m_nalUnitData.str();
+    size += unsigned(nalu.m_nalUnitData.str().size());
 
-  SEIuserDataUnregistered()
-    : userData(0)
-    {}
-
-  virtual ~SEIuserDataUnregistered()
-  {
-    delete userData;
+    annexBsizes.push_back(size);
   }
 
-  unsigned char uuid_iso_iec_11578[16];
-  unsigned userDataLength;
-  unsigned char *userData;
-};
-
-class SEIpictureDigest : public SEI
-{
-public:
-  PayloadType payloadType() const { return PICTURE_DIGEST; }
-
-  SEIpictureDigest() {}
-  virtual ~SEIpictureDigest() {}
-  
-  enum Method
-  {
-    MD5,
-    RESERVED,
-  } method;
-
-  unsigned char digest[16];
-};
-
-/**
- * A structure to collate all SEI messages.  This ought to be replaced
- * with a list of std::list<SEI*>.  However, since there is only one
- * user of the SEI framework, this will do initially */
-class SEImessages
-{
-public:
-  SEImessages()
-    : user_data_unregistered(0)
-    , picture_digest(0)
-    {}
-
-  ~SEImessages()
-  {
-    delete user_data_unregistered;
-    delete picture_digest;
-  }
-
-  SEIuserDataUnregistered* user_data_unregistered;
-  SEIpictureDigest* picture_digest;
-};
+  return annexBsizes;
+}

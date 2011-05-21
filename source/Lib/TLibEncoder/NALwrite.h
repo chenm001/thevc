@@ -33,78 +33,48 @@
 
 #pragma once
 
+#include <ostream>
+
+#include "../TLibCommon/TypeDef.h"
+#include "../TLibCommon/TComBitStream.h"
+#include "../TLibCommon/NAL.h"
+
 /**
- * Abstract class representing an SEI message with lightweight RTTI.
+ * A convenience wrapper to NALUnit that also provides a
+ * bitstream object.
  */
-class SEI
+struct OutputNALUnit : public NALUnit
 {
-public:
-  enum PayloadType
+  /**
+   * construct an OutputNALunit structure with given header values and
+   * storage for a bitstream.  Upon construction the NALunit header is
+   * written to the bitstream.
+   */
+  OutputNALUnit(
+    NalUnitType nalUnitType,
+    NalRefIdc nalRefIDC,
+    unsigned temporalID = 0,
+    bool outputFlag = true)
+  : NALUnit(nalUnitType, nalRefIDC, temporalID, outputFlag)
+  , m_Bitstream()
+  {}
+
+  OutputNALUnit& operator=(const NALUnit& src)
   {
-    USER_DATA_UNREGISTERED = 5,
-    PICTURE_DIGEST = 256,
-  };
-  
-  SEI() {}
-  virtual ~SEI() {}
-  
-  virtual PayloadType payloadType() const = 0;
-};
-
-class SEIuserDataUnregistered : public SEI
-{
-public:
-  PayloadType payloadType() const { return USER_DATA_UNREGISTERED; }
-
-  SEIuserDataUnregistered()
-    : userData(0)
-    {}
-
-  virtual ~SEIuserDataUnregistered()
-  {
-    delete userData;
+    m_Bitstream.clear();
+    static_cast<NALUnit*>(this)->operator=(src);
+    return *this;
   }
 
-  unsigned char uuid_iso_iec_11578[16];
-  unsigned userDataLength;
-  unsigned char *userData;
+  TComOutputBitstream m_Bitstream;
 };
 
-class SEIpictureDigest : public SEI
+
+void write(std::ostream& out, const OutputNALUnit& nalu);
+void writeRBSPTrailingBits(TComOutputBitstream& bs);
+
+inline NALUnitEBSP::NALUnitEBSP(const OutputNALUnit& nalu)
+  : NALUnit(nalu)
 {
-public:
-  PayloadType payloadType() const { return PICTURE_DIGEST; }
-
-  SEIpictureDigest() {}
-  virtual ~SEIpictureDigest() {}
-  
-  enum Method
-  {
-    MD5,
-    RESERVED,
-  } method;
-
-  unsigned char digest[16];
-};
-
-/**
- * A structure to collate all SEI messages.  This ought to be replaced
- * with a list of std::list<SEI*>.  However, since there is only one
- * user of the SEI framework, this will do initially */
-class SEImessages
-{
-public:
-  SEImessages()
-    : user_data_unregistered(0)
-    , picture_digest(0)
-    {}
-
-  ~SEImessages()
-  {
-    delete user_data_unregistered;
-    delete picture_digest;
-  }
-
-  SEIuserDataUnregistered* user_data_unregistered;
-  SEIpictureDigest* picture_digest;
-};
+  write(m_nalUnitData, nalu);
+}

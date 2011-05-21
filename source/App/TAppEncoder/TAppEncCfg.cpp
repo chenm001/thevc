@@ -175,6 +175,9 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
   ("QP,q",          m_fQP,             30.0, "Qp value, if value is float, QP is switched once during encoding")
   ("DeltaQpRD,-dqr",m_uiDeltaQpRD,       0u, "max dQp offset for slice")
   ("MaxDeltaQP,d",  m_iMaxDeltaQP,        0, "max dQp offset for block")
+#if SUB_LCU_DQP
+  ("MaxCuDQPDepth,-dqd",  m_iMaxCuDQPDepth,        0, "max depth for a minimum CuDQP")
+#endif
   ("dQPFile,m",     cfg_dQPFile, string(""), "dQP file name")
   ("RDOQ",          m_bUseRDOQ, true)
   ("TemporalLayerQPOffset_L0,-tq0", m_aiTLayerQPOffset[0], MAX_QP + 1, "QP offset of temporal layer 0")
@@ -182,6 +185,13 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
   ("TemporalLayerQPOffset_L2,-tq2", m_aiTLayerQPOffset[2], MAX_QP + 1, "QP offset of temporal layer 2")
   ("TemporalLayerQPOffset_L3,-tq3", m_aiTLayerQPOffset[3], MAX_QP + 1, "QP offset of temporal layer 3")
   
+  ("TLayeringBasedOnCodingStruct,-tl", m_bTLayering, false, "Temporal ID is set based on the hierarchical coding structure")
+  
+  ("TLayerSwitchingFlag_L0,-ts0", m_abTLayerSwitchingFlag[0], false, "Switching flag for temporal layer 0")
+  ("TLayerSwitchingFlag_L1,-ts1", m_abTLayerSwitchingFlag[1], false, "Switching flag for temporal layer 1")
+  ("TLayerSwitchingFlag_L2,-ts2", m_abTLayerSwitchingFlag[2], false, "Switching flag for temporal layer 2")
+  ("TLayerSwitchingFlag_L3,-ts3", m_abTLayerSwitchingFlag[3], false, "Switching flag for temporal layer 3")
+
   /* Entropy coding parameters */
   ("SymbolMode,-sym", m_iSymbolMode, 1, "symbol mode (0=VLC, 1=SBAC)")
   ("SBACRD", m_bUseSBACRD, true, "SBAC based RD estimation")
@@ -220,7 +230,16 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
     ("LFCrossSliceBoundaryFlag", m_bLFCrossSliceBoundaryFlag, true)
 #endif
 #if CONSTRAINED_INTRA_PRED
-  ("ConstrainedIntraPred", m_bUseConstrainedIntraPred, false, "Constrained Intra Prediction")
+    ("ConstrainedIntraPred", m_bUseConstrainedIntraPred, false, "Constrained Intra Prediction")
+#endif
+#if E057_INTRA_PCM
+    ("PCMLog2MinSize", m_uiPCMLog2MinSize, 7u)
+#endif
+#if E057_INTRA_PCM && E192_SPS_PCM_BIT_DEPTH_SYNTAX
+    ("PCMInputBitDepthFlag", m_bPCMInputBitDepthFlag, true)
+#endif
+#if E057_INTRA_PCM && E192_SPS_PCM_FILTER_DISABLE_SYNTAX
+    ("PCMFilterDisableFlag", m_bPCMFilterDisableFlag, false)
 #endif
   /* Misc. */
   ("SEIpictureDigest", m_pictureDigestEnabled, true, "Control generation of picture_digest SEI messages\n"
@@ -362,6 +381,9 @@ Void TAppEncCfg::xCheckParameter()
   xConfirmPara( m_iSearchRange < 0 ,                                                        "Search Range must be more than 0" );
   xConfirmPara( m_bipredSearchRange < 0 ,                                                   "Search Range must be more than 0" );
   xConfirmPara( m_iMaxDeltaQP > 7,                                                          "Absolute Delta QP exceeds supported range (0 to 7)" );
+#if SUB_LCU_DQP
+  xConfirmPara( m_iMaxCuDQPDepth > m_uiMaxCUDepth - 1,                                          "Absolute depth for a minimum CuDQP exceeds maximum coding unit depth" );
+#endif
   xConfirmPara( m_iFrameToBeEncoded != 1 && m_iFrameToBeEncoded <= m_iGOPSize,              "Total Number of Frames to be encoded must be larger than GOP size");
   xConfirmPara( (m_uiMaxCUWidth  >> m_uiMaxCUDepth) < 4,                                    "Minimum partition width size should be larger than or equal to 8");
   xConfirmPara( (m_uiMaxCUHeight >> m_uiMaxCUDepth) < 4,                                    "Minimum partition height size should be larger than or equal to 8");
@@ -383,6 +405,11 @@ Void TAppEncCfg::xCheckParameter()
   xConfirmPara( m_uiQuadtreeTUMaxDepthInter > m_uiQuadtreeTULog2MaxSize - m_uiQuadtreeTULog2MinSize + 1, "QuadtreeTUMaxDepthInter must be less than or equal to the difference between QuadtreeTULog2MaxSize and QuadtreeTULog2MinSize plus 1" );
   xConfirmPara( m_uiQuadtreeTUMaxDepthIntra < 1,                                                         "QuadtreeTUMaxDepthIntra must be greater than or equal to 1" );
   xConfirmPara( m_uiQuadtreeTUMaxDepthIntra > m_uiQuadtreeTULog2MaxSize - m_uiQuadtreeTULog2MinSize + 1, "QuadtreeTUMaxDepthIntra must be less than or equal to the difference between QuadtreeTULog2MaxSize and QuadtreeTULog2MinSize plus 1" );
+
+#if E057_INTRA_PCM
+  xConfirmPara(  m_uiPCMLog2MinSize < 3,                                        "PCMLog2MinSize must be 3 or greater.");
+  xConfirmPara(  m_uiPCMLog2MinSize > 7,                                        "PCMLog2MinSize must be 7 or smaller.");
+#endif
 
   xConfirmPara( m_iSliceMode < 0 || m_iSliceMode > 2, "SliceMode exceeds supported range (0 to 2)" );
   if (m_iSliceMode!=0)
@@ -457,7 +484,8 @@ Void TAppEncCfg::xSetGlobal()
   else
   {
     g_uiBitDepth = min(8u, m_uiInputBitDepth);
-    if (m_uiInternalBitDepth == 0) {
+    if (m_uiInternalBitDepth == 0)
+    {
       /* default increement = 2 */
       m_uiInternalBitDepth = 2 + g_uiBitDepth;
     }
@@ -485,6 +513,11 @@ Void TAppEncCfg::xSetGlobal()
   {
     m_uiOutputBitDepth = m_uiInternalBitDepth;
   }
+
+#if E057_INTRA_PCM && E192_SPS_PCM_BIT_DEPTH_SYNTAX
+  g_uiPCMBitDepthLuma = m_uiPCMBitDepthLuma = ((m_bPCMInputBitDepthFlag)? m_uiInputBitDepth : m_uiInternalBitDepth);
+  g_uiPCMBitDepthChroma = ((m_bPCMInputBitDepthFlag)? m_uiInputBitDepth : m_uiInternalBitDepth);
+#endif
 }
 
 Void TAppEncCfg::xPrintParameter()
@@ -504,6 +537,9 @@ Void TAppEncCfg::xPrintParameter()
   printf("RQT trans. size (min / max)  : %d / %d\n", 1 << m_uiQuadtreeTULog2MinSize, 1 << m_uiQuadtreeTULog2MaxSize );
   printf("Max RQT depth inter          : %d\n", m_uiQuadtreeTUMaxDepthInter);
   printf("Max RQT depth intra          : %d\n", m_uiQuadtreeTUMaxDepthIntra);
+#if E057_INTRA_PCM
+  printf("Min PCM size                 : %d\n", 1 << m_uiPCMLog2MinSize);
+#endif
   printf("Motion search range          : %d\n", m_iSearchRange );
   printf("Intra period                 : %d\n", m_iIntraPeriod );
 #if DCM_DECODING_REFRESH
@@ -513,7 +549,10 @@ Void TAppEncCfg::xPrintParameter()
   printf("GOP size                     : %d\n", m_iGOPSize );
   printf("Rate GOP size                : %d\n", m_iRateGOPSize );
   printf("Internal bit depth           : %d\n", m_uiInternalBitDepth );
-  
+#if E057_INTRA_PCM && E192_SPS_PCM_BIT_DEPTH_SYNTAX
+  printf("PCM sample bit depth         : %d\n", m_uiPCMBitDepthLuma );
+#endif
+
   if ( m_iSymbolMode == 0 )
   {
     printf("Entropy coder                : VLC\n");
@@ -575,8 +614,10 @@ Void TAppEncCfg::xPrintParameter()
 #if MTK_SAO
   printf("SAO:%d ",    (m_bUseSAO)?(1):(0));
 #endif
-
-  printf("\n");
+#if E057_INTRA_PCM
+  printf("PCM:%d ", ((1<<m_uiPCMLog2MinSize) <= m_uiMaxCUWidth)? 1 : 0);
+#endif
+  printf("\n\n");
   
   fflush(stdout);
 }

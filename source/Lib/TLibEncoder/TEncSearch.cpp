@@ -884,6 +884,18 @@ TEncSearch::xEncIntraHeader( TComDataCU*  pcCU,
       }
       
       m_pcEntropyCoder  ->encodePartSize( pcCU, 0, pcCU->getDepth(0), true );
+
+#if E057_INTRA_PCM
+      if (pcCU->isIntra(0) && pcCU->getPartitionSize(0) == SIZE_2Nx2N )
+      {
+        m_pcEntropyCoder->encodeIPCMInfo( pcCU, 0, true );
+
+        if ( pcCU->getIPCMFlag (0))
+        {
+          return;
+        }
+      }
+#endif
     }
     // luma prediction mode
     if( pcCU->getPartitionSize(0) == SIZE_2Nx2N )
@@ -1124,6 +1136,16 @@ TEncSearch::xIntraCodingChromaBlk( TComDataCU* pcCU,
   Bool  bAboveAvail = false;
   Bool  bLeftAvail  = false;
   pcCU->getPattern()->initPattern         ( pcCU, uiTrDepth, uiAbsPartIdx );
+
+  #if LM_CHROMA_TICKET156
+  if( pcCU->getSlice()->getSPS()->getUseLMChroma() && uiChromaPredMode == 3 && uiChromaId == 0 )
+  {
+    pcCU->getPattern()->initAdiPattern( pcCU, uiAbsPartIdx, uiTrDepth, m_piYuvExt, m_iYuvExtStride, m_iYuvExtHeight, bAboveAvail, bLeftAvail, 2 );
+
+    getLumaRecPixels( pcCU->getPattern(), uiWidth, uiHeight );
+  }
+#endif
+
   pcCU->getPattern()->initAdiPatternChroma( pcCU, uiAbsPartIdx, uiTrDepth, m_piYuvExt, m_iYuvExtStride, m_iYuvExtHeight, bAboveAvail, bLeftAvail );
   Int*  pPatChroma  = ( uiChromaId > 0 ? pcCU->getPattern()->getAdiCrBuf( uiWidth, uiHeight, m_piYuvExt ) : pcCU->getPattern()->getAdiCbBuf( uiWidth, uiHeight, m_piYuvExt ) );
   
@@ -1650,7 +1672,18 @@ TEncSearch::estIntraPredQT( TComDataCU* pcCU,
   UInt    uiFastCandNum=g_aucIntraModeNumFast[ uiWidthBit ];
   
   //===== set QP and clear Cbf =====
+#if SUB_LCU_DQP
+  if ( pcCU->getSlice()->getSPS()->getUseDQP() == true)
+  {
+    pcCU->setQPSubParts( pcCU->getQP(0), 0, uiDepth );
+  }
+  else
+  {
+    pcCU->setQPSubParts( pcCU->getSlice()->getSliceQp(), 0, uiDepth );
+  }
+#else
   pcCU->setQPSubParts( pcCU->getSlice()->getSliceQp(), 0, uiDepth );
+#endif
   
   //===== loop over partitions =====
   UInt uiPartOffset = 0;
@@ -1713,7 +1746,7 @@ TEncSearch::estIntraPredQT( TComDataCU* pcCU,
     
     if(uiFastCandNum!=uiMaxMode)
     {
-      uiNewMaxMode = Min( uiFastCandNum, CandNum );
+      uiNewMaxMode = min( uiFastCandNum, CandNum );
       for( Int i = 0; i < uiNewMaxMode; i++)
       {
         uiRdModeList[i] = CandModeList[i];
@@ -2140,6 +2173,188 @@ TEncSearch::estIntraPredChromaQT( TComDataCU* pcCU,
   }
 }
 
+#if E057_INTRA_PCM
+/** Function for encoding and reconstructing luma/chroma samples of a PCM mode CU.
+ * \param pcCU pointer to current CU
+ * \param uiAbsPartIdx part index
+ * \param piOrg pointer to original sample arrays
+ * \param piPCM pointer to PCM code arrays
+ * \param piPred pointer to prediction signal arrays
+ * \param piResi pointer to residual signal arrays
+ * \param piReco pointer to reconstructed sample arrays
+ * \param uiStride stride of the original/prediction/residual sample arrays
+ * \param uiWidth block width
+ * \param uiHeight block height
+ * \param ttText texture component type
+ * \returns Void
+ */
+Void TEncSearch::xEncPCM (TComDataCU* pcCU, UInt uiAbsPartIdx, Pel* piOrg, Pel* piPCM, Pel* piPred, Pel* piResi, Pel* piReco, UInt uiStride, UInt uiWidth, UInt uiHeight, TextType eText )
+{
+  UInt uiX, uiY;
+  UInt uiReconStride;
+  Pel* pOrg  = piOrg;
+  Pel* pPCM  = piPCM;
+  Pel* pPred = piPred;
+  Pel* pResi = piResi;
+  Pel* pReco = piReco;
+  Pel* pRecoPic;
+#if E192_SPS_PCM_BIT_DEPTH_SYNTAX
+  UInt uiInternalBitDepth = g_uiBitDepth + g_uiBitIncrement;
+  UInt uiPCMBitDepth;
+#endif
+
+  if( eText == TEXT_LUMA)
+  {
+    uiReconStride = pcCU->getPic()->getPicYuvRec()->getStride();
+    pRecoPic      = pcCU->getPic()->getPicYuvRec()->getLumaAddr(pcCU->getAddr(), pcCU->getZorderIdxInCU()+uiAbsPartIdx);
+#if E192_SPS_PCM_BIT_DEPTH_SYNTAX
+    uiPCMBitDepth = pcCU->getSlice()->getSPS()->getPCMBitDepthLuma();
+#endif
+  }
+  else
+  {
+    uiReconStride = pcCU->getPic()->getPicYuvRec()->getCStride();
+
+    if( eText == TEXT_CHROMA_U )
+    {
+      pRecoPic = pcCU->getPic()->getPicYuvRec()->getCbAddr(pcCU->getAddr(), pcCU->getZorderIdxInCU()+uiAbsPartIdx);
+    }
+    else
+    {
+      pRecoPic = pcCU->getPic()->getPicYuvRec()->getCrAddr(pcCU->getAddr(), pcCU->getZorderIdxInCU()+uiAbsPartIdx);
+    }
+#if E192_SPS_PCM_BIT_DEPTH_SYNTAX
+    uiPCMBitDepth = pcCU->getSlice()->getSPS()->getPCMBitDepthChroma();
+#endif
+  }
+
+  // Reset pred and residual
+  for( uiY = 0; uiY < uiHeight; uiY++ )
+  {
+    for( uiX = 0; uiX < uiWidth; uiX++ )
+    {
+      pPred[uiX] = 0;
+      pResi[uiX] = 0;
+    }
+    pPred += uiStride;
+    pResi += uiStride;
+  }
+
+  // Encode
+  for( uiY = 0; uiY < uiHeight; uiY++ )
+  {
+    for( uiX = 0; uiX < uiWidth; uiX++ )
+    {
+#if E192_SPS_PCM_BIT_DEPTH_SYNTAX
+      pPCM[uiX] = (pOrg[uiX]>>(uiInternalBitDepth - uiPCMBitDepth));
+#else
+      pPCM[uiX] = (pOrg[uiX]>>g_uiBitIncrement);
+#endif
+    }
+    pPCM += uiWidth;
+    pOrg += uiStride;
+  }
+
+  pPCM  = piPCM;
+
+  // Reconstruction
+  for( uiY = 0; uiY < uiHeight; uiY++ )
+  {
+    for( uiX = 0; uiX < uiWidth; uiX++ )
+    {
+#if E192_SPS_PCM_BIT_DEPTH_SYNTAX
+      pReco   [uiX] = (pPCM[uiX]<<(uiInternalBitDepth - uiPCMBitDepth));
+#else
+      pReco   [uiX] = (pPCM[uiX]<<g_uiBitIncrement);
+#endif
+      pRecoPic[uiX] = pReco[uiX];
+    }
+    pPCM += uiWidth;
+    pReco += uiStride;
+    pRecoPic += uiReconStride;
+  }
+}
+
+/**  Function for PCM mode estimation.
+ * \param pcCU
+ * \param pcOrgYuv
+ * \param rpcPredYuv
+ * \param rpcResiYuv
+ * \param rpcRecoYuv
+ * \returns Void
+ */
+Void TEncSearch::IPCMSearch( TComDataCU* pcCU, TComYuv* pcOrgYuv, TComYuv*& rpcPredYuv, TComYuv*& rpcResiYuv, TComYuv*& rpcRecoYuv )
+{
+  UInt   uiDepth        = pcCU->getDepth(0);
+  UInt   uiWidth        = pcCU->getWidth(0);
+  UInt   uiHeight       = pcCU->getHeight(0);
+  UInt   uiStride       = rpcPredYuv->getStride();
+  UInt   uiStrideC      = rpcPredYuv->getCStride();
+  UInt   uiWidthC       = uiWidth  >> 1;
+  UInt   uiHeightC      = uiHeight >> 1;
+  UInt   uiDistortion = 0;
+  UInt   uiBits;
+
+  Double dCost;
+
+  Pel*    pOrig;
+  Pel*    pResi;
+  Pel*    pReco;
+  Pel*    pPred;
+  Pel*    pPCM;
+
+  UInt uiAbsPartIdx = 0;
+
+  UInt uiMinCoeffSize = pcCU->getPic()->getMinCUWidth()*pcCU->getPic()->getMinCUHeight();
+  UInt uiLumaOffset   = uiMinCoeffSize*uiAbsPartIdx;
+  UInt uiChromaOffset = uiLumaOffset>>2;
+
+  // Luminance
+  pOrig    = pcOrgYuv->getLumaAddr(0, uiWidth);
+  pResi    = rpcResiYuv->getLumaAddr(0, uiWidth);
+  pPred    = rpcPredYuv->getLumaAddr(0, uiWidth);
+  pReco    = rpcRecoYuv->getLumaAddr(0, uiWidth);
+  pPCM     = pcCU->getPCMSampleY() + uiLumaOffset;
+
+  xEncPCM ( pcCU, 0, pOrig, pPCM, pPred, pResi, pReco, uiStride, uiWidth, uiHeight, TEXT_LUMA );
+
+  // Chroma U
+  pOrig    = pcOrgYuv->getCbAddr();
+  pResi    = rpcResiYuv->getCbAddr();
+  pPred    = rpcPredYuv->getCbAddr();
+  pReco    = rpcRecoYuv->getCbAddr();
+  pPCM     = pcCU->getPCMSampleCb() + uiChromaOffset;
+
+  xEncPCM ( pcCU, 0, pOrig, pPCM, pPred, pResi, pReco, uiStrideC, uiWidthC, uiHeightC, TEXT_CHROMA_U );
+
+  // Chroma V
+  pOrig    = pcOrgYuv->getCrAddr();
+  pResi    = rpcResiYuv->getCrAddr();
+  pPred    = rpcPredYuv->getCrAddr();
+  pReco    = rpcRecoYuv->getCrAddr();
+  pPCM     = pcCU->getPCMSampleCr() + uiChromaOffset;
+
+  xEncPCM ( pcCU, 0, pOrig, pPCM, pPred, pResi, pReco, uiStrideC, uiWidthC, uiHeightC, TEXT_CHROMA_V );
+
+  m_pcEntropyCoder->resetBits();
+  xEncIntraHeader ( pcCU, uiDepth, uiAbsPartIdx, true, false);
+  uiBits = m_pcEntropyCoder->getNumberOfWrittenBits();
+
+  dCost = m_pcRdCost->calcRdCost( uiBits, uiDistortion );
+
+  if(m_bUseSBACRD)
+  {
+    m_pcRDGoOnSbacCoder->load(m_pppcRDSbacCoder[uiDepth][CI_CURR_BEST]);
+  }
+
+  pcCU->getTotalBits()       = uiBits;
+  pcCU->getTotalCost()       = dCost;
+  pcCU->getTotalDistortion() = uiDistortion;
+
+  pcCU->copyToPic(uiDepth, 0, 0);
+}
+#endif
+
 #if (!REFERENCE_SAMPLE_PADDING)
 Bool TEncSearch::predIntraLumaDirAvailable( UInt uiMode, UInt uiWidthBit, Bool bAboveAvail, Bool bLeftAvail)
 {
@@ -2217,10 +2432,6 @@ Void TEncSearch::xMergeEstimation( TComDataCU* pcCU, TComYuv* pcYuvOrg, Int iPUI
     }
   }
   
-  UInt uiBestSAD = MAX_UINT;
-  UInt uiBestBitCost = MAX_UINT;
-  UInt uiBestBits = MAX_UINT;
-
   ruiCost = MAX_UINT;
   ruiBits = MAX_UINT;
 
@@ -2274,10 +2485,6 @@ Void TEncSearch::xMergeEstimation( TComDataCU* pcCU, TComYuv* pcYuvOrg, Int iPUI
           UChar uhNeighCand = uiNeighbourCandIdx[ui]; 
           puhNeighCands[ui] = uhNeighCand;
         }
-
-        uiBestSAD = uiCostCand;
-        uiBestBitCost = m_pcRdCost->getCost( uiBitsCand );
-        uiBestBits = uiBitsCand;
       }
     }
   }
@@ -2375,7 +2582,7 @@ Void TEncSearch::predInterSearch( TComDataCU* pcCU, TComYuv* pcOrgYuv, TComYuv*&
     
 #if PART_MRG
     Bool bTestNormalMC = true;
-    if (pcCU->getWidth( 0 ) > 8 && iNumPart == 2 && iPartIdx == 0)
+    if (pcCU->getSlice()->getSPS()->getUseMRG() && pcCU->getWidth( 0 ) > 8 && iNumPart == 2 && iPartIdx == 0)
       bTestNormalMC = false;
     if (bTestNormalMC)
     {
@@ -3849,17 +4056,21 @@ Void TEncSearch::encodeResAndCalcRdInterCU( TComDataCU* pcCU, TComYuv* pcYuvOrg,
     m_pcEntropyCoder->resetBits();
     m_pcEntropyCoder->encodeSkipFlag(pcCU, 0, true);
 #if HHI_MRG_SKIP
-    m_pcEntropyCoder->encodeMergeIndex( pcCU, 0, 0, true );
-#else    
-    if ( pcCU->getSlice()->getNumRefIdx( REF_PIC_LIST_0 ) > 0 ) //if ( ref. frame list0 has at least 1 entry )
+    if ( pcCU->getSlice()->getSPS()->getUseMRG() )
     {
-      m_pcEntropyCoder->encodeMVPIdx( pcCU, 0, REF_PIC_LIST_0);
-    }
-    if ( pcCU->getSlice()->getNumRefIdx( REF_PIC_LIST_1 ) > 0 ) //if ( ref. frame list1 has at least 1 entry )
-    {
-      m_pcEntropyCoder->encodeMVPIdx( pcCU, 0, REF_PIC_LIST_1);
-    }
+      m_pcEntropyCoder->encodeMergeIndex( pcCU, 0, 0, true );
+    } 
+    else
 #endif
+    {
+      for ( UInt uiRefListIdx = 0; uiRefListIdx < 2; uiRefListIdx++ )
+      {
+        if ( pcCU->getSlice()->getNumRefIdx( RefPicList( uiRefListIdx ) ) > 0 )
+        {
+          m_pcEntropyCoder->encodeMVPIdxPU( pcCU, 0, RefPicList( uiRefListIdx ));
+        }
+      }
+    }
     
     uiBits = m_pcEntropyCoder->getNumberOfWrittenBits();
     pcCU->getTotalBits()       = uiBits;
@@ -3879,8 +4090,6 @@ Void TEncSearch::encodeResAndCalcRdInterCU( TComDataCU* pcCU, TComYuv* pcYuvOrg,
   UInt    uiQp, uiQpBest = 0, uiQpMin, uiQpMax;
   Double  dCost, dCostBest = MAX_DOUBLE;
   
-  UInt uiBestTrMode = 0;
-  
   UInt uiTrLevel = 0;
   if( (pcCU->getWidth(0) > pcCU->getSlice()->getSPS()->getMaxTrSize()) )
   {
@@ -3890,13 +4099,16 @@ Void TEncSearch::encodeResAndCalcRdInterCU( TComDataCU* pcCU, TComYuv* pcYuvOrg,
   
   while((uiWidth>>uiMaxTrMode) < (g_uiMaxCUWidth>>g_uiMaxCUDepth)) uiMaxTrMode--;
   
-  uiQpMin      = bHighPass ? Min( MAX_QP, Max( MIN_QP, pcCU->getQP(0) - m_iMaxDeltaQP ) ) : pcCU->getQP( 0 );
-  uiQpMax      = bHighPass ? Min( MAX_QP, Max( MIN_QP, pcCU->getQP(0) + m_iMaxDeltaQP ) ) : pcCU->getQP( 0 );
+  uiQpMin      = bHighPass ? min( MAX_QP, max( MIN_QP, pcCU->getQP(0) - m_iMaxDeltaQP ) ) : pcCU->getQP( 0 );
+  uiQpMax      = bHighPass ? min( MAX_QP, max( MIN_QP, pcCU->getQP(0) + m_iMaxDeltaQP ) ) : pcCU->getQP( 0 );
   
   rpcYuvResi->subtract( pcYuvOrg, pcYuvPred, 0, uiWidth );
   for ( uiQp = uiQpMin; uiQp <= uiQpMax; uiQp++ )
   {
+#if SUB_LCU_DQP
+#else
     pcCU->setQPSubParts( uiQp, 0, pcCU->getDepth(0) );
+#endif
     dCost = 0.;
     uiBits = 0;
     uiDistortion = 0;
@@ -4027,7 +4239,6 @@ Void TEncSearch::encodeResAndCalcRdInterCU( TComDataCU* pcCU, TComYuv* pcYuvOrg,
   
   if ( pcCU->isSkipped(0) )
   {
-    uiBestTrMode = 0;
     pcCU->setCbfSubParts( 0, 0, 0, 0, pcCU->getDepth( 0 ) );
   }
   
@@ -4059,9 +4270,19 @@ Void TEncSearch::xEstimateResidualQT( TComDataCU* pcCU, UInt uiQuadrant, UInt ui
   const Bool bNoForceSplit = pcCU->getPartitionSize( 0 ) == SIZE_2Nx2N || bNxNOK || bSymmetricOK;
   const Bool bCheckFull    = bNoForceSplit && ( uiLog2TrSize <= pcCU->getSlice()->getSPS()->getQuadtreeTULog2MaxSize() );
 #else
+
+#ifdef  MOT_TUPU_MAXDEPTH1
+  UInt SplitFlag = ((pcCU->getSlice()->getSPS()->getQuadtreeTUMaxDepthInter() == 1) && pcCU->getPredictionMode(uiAbsPartIdx) == MODE_INTER && ( pcCU->getPartitionSize(uiAbsPartIdx) == SIZE_2NxN || pcCU->getPartitionSize(uiAbsPartIdx) == SIZE_Nx2N));
+  Bool bCheckFull;
+  if ( SplitFlag && uiDepth == pcCU->getDepth(uiAbsPartIdx) && ( uiLog2TrSize >  pcCU->getQuadtreeTULog2MinSizeInCU(uiAbsPartIdx) ) )
+     bCheckFull = false;
+  else
+     bCheckFull =  ( uiLog2TrSize <= pcCU->getSlice()->getSPS()->getQuadtreeTULog2MaxSize() );
+#else
   const Bool bCheckFull    = ( uiLog2TrSize <= pcCU->getSlice()->getSPS()->getQuadtreeTULog2MaxSize() );
 #endif
-  
+#endif 
+
   const Bool bCheckSplit  = ( uiLog2TrSize >  pcCU->getQuadtreeTULog2MinSizeInCU(uiAbsPartIdx) );
   
   assert( bCheckFull || bCheckSplit );
@@ -4656,17 +4877,21 @@ Void  TEncSearch::xAddSymbolBitsInter( TComDataCU* pcCU, UInt uiQp, UInt uiTrMod
     
     m_pcEntropyCoder->resetBits();
 #if HHI_MRG_SKIP
-    m_pcEntropyCoder->encodeMergeIndex(pcCU, 0, 0, true);
-#else
-    if ( pcCU->getSlice()->getNumRefIdx( REF_PIC_LIST_0 ) > 0 ) //if ( ref. frame list0 has at least 1 entry )
+    if ( pcCU->getSlice()->getSPS()->getUseMRG() )
     {
-      m_pcEntropyCoder->encodeMVPIdx( pcCU, 0, REF_PIC_LIST_0);
-    }
-    if ( pcCU->getSlice()->getNumRefIdx( REF_PIC_LIST_1 ) > 0 ) //if ( ref. frame list1 has at least 1 entry )
-    {
-      m_pcEntropyCoder->encodeMVPIdx( pcCU, 0, REF_PIC_LIST_1);
-    }
+      m_pcEntropyCoder->encodeMergeIndex(pcCU, 0, 0, true);
+    } 
+    else
 #endif
+    {
+      for ( UInt uiRefListIdx = 0; uiRefListIdx < 2; uiRefListIdx++ )
+      {        
+        if ( pcCU->getSlice()->getNumRefIdx( RefPicList( uiRefListIdx ) ) > 0 )
+        {
+          m_pcEntropyCoder->encodeMVPIdxPU( pcCU, 0, RefPicList( uiRefListIdx ));
+        }
+      }
+    }
     ruiBits += m_pcEntropyCoder->getNumberOfWrittenBits();
   }
   else

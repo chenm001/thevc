@@ -76,6 +76,13 @@ protected:
   Int       m_aiTLayerQPOffset[MAX_TLAYER];
   Int       m_aiPad[2];
   
+
+  Int       m_iMaxRefPicNum;                     ///< this is used to mimic the sliding mechanism used by the decoder
+                                                 // TODO: We need to have a common sliding mechanism used by both the encoder and decoder
+
+  Bool      m_bTLayering;                        ///< indicates whether temporal IDs are set based on the hierarchical coding structure
+  Bool      m_abTLayerSwitchingFlag[MAX_TLAYER]; ///< temporal layer switching flags corresponding to temporal layer
+
   //======= Transform =============
   UInt      m_uiQuadtreeTULog2MaxSize;
   UInt      m_uiQuadtreeTULog2MinSize;
@@ -102,6 +109,9 @@ protected:
   Int       m_iSearchRange;                     //  0:Full frame
   Int       m_bipredSearchRange;
   Int       m_iMaxDeltaQP;                      //  Max. absolute delta QP (1:default)
+#if SUB_LCU_DQP
+  Int       m_iMaxCuDQPDepth;                   //  Max. depth for a minimum CuDQP (0:default)
+#endif
   
   //====== Tool list ========
   Bool      m_bUseSBACRD;
@@ -139,6 +149,9 @@ protected:
 #if CONSTRAINED_INTRA_PRED
   Bool      m_bUseConstrainedIntraPred;
 #endif
+#if E057_INTRA_PCM
+  UInt      m_uiPCMLog2MinSize;
+#endif
   //====== Slice ========
   Int       m_iSliceMode;
   Int       m_iSliceArgument; 
@@ -148,7 +161,14 @@ protected:
 #if MTK_NONCROSS_INLOOP_FILTER
   Bool      m_bLFCrossSliceBoundaryFlag;
 #endif
-
+#if E057_INTRA_PCM && E192_SPS_PCM_BIT_DEPTH_SYNTAX
+  Bool      m_bPCMInputBitDepthFlag;
+  UInt      m_uiPCMBitDepthLuma;
+  UInt      m_uiPCMBitDepthChroma;
+#endif
+#if E057_INTRA_PCM && E192_SPS_PCM_FILTER_DISABLE_SYNTAX 
+  Bool      m_bPCMFilterDisableFlag;
+#endif
   bool m_pictureDigestEnabled; ///< enable(1)/disable(0) md5 computation and SEI signalling
 
 public:
@@ -177,6 +197,14 @@ public:
   Void      setTemporalLayerQPOffset        ( Int*  piTemporalLayerQPOffset )      { for ( Int i = 0; i < MAX_TLAYER; i++ ) m_aiTLayerQPOffset[i] = piTemporalLayerQPOffset[i]; }
   Void      setPad                          ( Int*  iPad                   )      { for ( Int i = 0; i < 2; i++ ) m_aiPad[i] = iPad[i]; }
   
+  Int       getMaxRefPicNum                 ()                              { return m_iMaxRefPicNum;           }
+  Void      setMaxRefPicNum                 ( Int iMaxRefPicNum )           { m_iMaxRefPicNum = iMaxRefPicNum;  }
+
+  Bool      getTLayering                    ()                              { return m_bTLayering;              } 
+  Void      setTLayering                    ( Bool bTLayering )             { m_bTLayering = bTLayering;        }
+  Bool      getTLayerSwitchingFlag          ( UInt uiTLayer )               { assert (uiTLayer < MAX_TLAYER ); return  m_abTLayerSwitchingFlag[uiTLayer];                   }
+  Void      setTLayerSwitchingFlag          ( Bool* pbTLayerSwitchingFlag ) { for ( Int i = 0; i < MAX_TLAYER; i++ ) m_abTLayerSwitchingFlag[i] = pbTLayerSwitchingFlag[i]; }
+
   //======== Transform =============
   Void      setQuadtreeTULog2MaxSize        ( UInt  u )      { m_uiQuadtreeTULog2MaxSize = u; }
   Void      setQuadtreeTULog2MinSize        ( UInt  u )      { m_uiQuadtreeTULog2MinSize = u; }
@@ -199,6 +227,9 @@ public:
   Void      setSearchRange                  ( Int   i )      { m_iSearchRange = i; }
   Void      setBipredSearchRange            ( Int   i )      { m_bipredSearchRange = i; }
   Void      setMaxDeltaQP                   ( Int   i )      { m_iMaxDeltaQP = i; }
+#if SUB_LCU_DQP
+  Void      setMaxCuDQPDepth                ( Int   i )      { m_iMaxCuDQPDepth = i; }
+#endif
   
   //====== Sequence ========
   Int       getFrameRate                    ()      { return  m_iFrameRate; }
@@ -244,6 +275,9 @@ public:
   Int       getFastSearch                   ()      { return  m_iFastSearch; }
   Int       getSearchRange                  ()      { return  m_iSearchRange; }
   Int       getMaxDeltaQP                   ()      { return  m_iMaxDeltaQP; }
+#if SUB_LCU_DQP
+  Int       getMaxCuDQPDepth                ()      { return  m_iMaxCuDQPDepth; }
+#endif
   
   //==== Tool list ========
   Void      setUseSBACRD                    ( Bool  b )     { m_bUseSBACRD  = b; }
@@ -264,6 +298,15 @@ public:
   Void      setUseMRG                       ( Bool  b )     { m_bUseMRG     = b; } // SOPH:
 #if CONSTRAINED_INTRA_PRED
   Void      setUseConstrainedIntraPred      ( Bool  b )     { m_bUseConstrainedIntraPred = b; }
+#endif
+#if E057_INTRA_PCM && E192_SPS_PCM_BIT_DEPTH_SYNTAX
+  Void      setPCMInputBitDepthFlag         ( Bool  b )     { m_bPCMInputBitDepthFlag = b; }
+#endif
+#if E057_INTRA_PCM && E192_SPS_PCM_FILTER_DISABLE_SYNTAX
+  Void      setPCMFilterDisableFlag         ( Bool  b )     {  m_bPCMFilterDisableFlag = b; }
+#endif
+#if E057_INTRA_PCM
+  Void      setPCMLog2MinSize               ( UInt u )     { m_uiPCMLog2MinSize = u;      }
 #endif
   Void      setdQPs                         ( Int*  p )     { m_aidQP       = p; }
   Void      setDeltaQpRD                    ( UInt  u )     {m_uiDeltaQpRD  = u; }
@@ -289,7 +332,16 @@ public:
   Bool      getUseMRG                       ()      { return m_bUseMRG;     } // SOPH:
 #if CONSTRAINED_INTRA_PRED
   Bool      getUseConstrainedIntraPred      ()      { return m_bUseConstrainedIntraPred; }
-#endif  
+#endif
+#if E057_INTRA_PCM && E192_SPS_PCM_BIT_DEPTH_SYNTAX
+  Bool      getPCMInputBitDepthFlag         ()      { return m_bPCMInputBitDepthFlag;   } 
+#endif
+#if E057_INTRA_PCM && E192_SPS_PCM_FILTER_DISABLE_SYNTAX
+  Bool      getPCMFilterDisableFlag         ()      { return m_bPCMFilterDisableFlag;   } 
+#endif
+#if E057_INTRA_PCM
+  UInt      getPCMLog2MinSize               ()      { return  m_uiPCMLog2MinSize;  }
+#endif
 
 #if LM_CHROMA 
   Bool getUseLMChroma                       ()      { return m_bUseLMChroma;        }

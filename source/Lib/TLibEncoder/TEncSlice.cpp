@@ -127,6 +127,7 @@ Void TEncSlice::init( TEncTop* pcEncTop )
  - non-referenced frame marking
  - QP computation based on temporal structure
  - lambda computation based on QP
+ - set temporal layer ID and the parameter sets
  .
  \param pcPic         picture class
  \param iPOCLast      POC of last picture
@@ -135,8 +136,10 @@ Void TEncSlice::init( TEncTop* pcEncTop )
  \param iTimeOffset   POC offset for hierarchical structure
  \param iDepth        temporal layer depth
  \param rpcSlice      slice header class
+ \param pSPS          SPS associated with the slice
+ \param pPPS          PPS associated with the slice
  */
-Void TEncSlice::initEncSlice( TComPic* pcPic, Int iPOCLast, UInt uiPOCCurr, Int iNumPicRcvd, Int iTimeOffset, Int iDepth, TComSlice*& rpcSlice )
+Void TEncSlice::initEncSlice( TComPic* pcPic, Int iPOCLast, UInt uiPOCCurr, Int iNumPicRcvd, Int iTimeOffset, Int iDepth, TComSlice*& rpcSlice, TComSPS* pSPS, TComPPS *pPPS )
 {
   Double dQP;
   Double dLambda;
@@ -254,10 +257,12 @@ Void TEncSlice::initEncSlice( TComPic* pcPic, Int iPOCLast, UInt uiPOCCurr, Int 
 
   // pre-compute lambda and QP values for all possible QP candidates
 #if QC_MOD_LCEC_RDOQ
-  if (pcPic->getSlice(0)->isIntra()){
+  if (pcPic->getSlice(0)->isIntra())
+  {
     m_pcTrQuant->setRDOQOffset(1);
   }
-  else{
+  else
+  {
     if (m_pcCfg->getHierarchicalCoding())
       m_pcTrQuant->setRDOQOffset(1);
     else
@@ -317,10 +322,8 @@ Void TEncSlice::initEncSlice( TComPic* pcPic, Int iPOCLast, UInt uiPOCCurr, Int 
         {
           Int    iMaxDepth = 0;
           Int    iCnt = 1;
-          Int    hierarchy_layer;
           
           while ( iCnt < m_pcCfg->getRateGOPSize() ) { iCnt <<= 1; iMaxDepth++; }
-          hierarchy_layer = iMaxDepth - iDepth;
           
           dLambda *= 0.80;
           dLambda *= dLambda_scale;
@@ -334,7 +337,7 @@ Void TEncSlice::initEncSlice( TComPic* pcPic, Int iPOCLast, UInt uiPOCCurr, Int 
     // if hadamard is used in ME process
     if ( !m_pcCfg->getUseHADME() ) dLambda *= 0.95;
     
-    iQP = Max( MIN_QP, Min( MAX_QP, (Int)floor( dQP + 0.5 ) ) );
+    iQP = max( MIN_QP, min( MAX_QP, (Int)floor( dQP + 0.5 ) ) );
     
     m_pdRdPicLambda[iDQpIdx] = dLambda;
     m_pdRdPicQp    [iDQpIdx] = dQP;
@@ -372,6 +375,21 @@ Void TEncSlice::initEncSlice( TComPic* pcPic, Int iPOCLast, UInt uiPOCCurr, Int 
   
   rpcSlice->setDepth            ( iDepth );
   
+  if ( pSPS->getMaxTLayers() > 1 )
+  {
+    assert( iDepth < pSPS->getMaxTLayers() );
+    pcPic->setTLayer( iDepth );
+  }
+  else 
+  {
+    pcPic->setTLayer( 0 );
+  }
+  rpcSlice->setTLayer( pcPic->getTLayer() );
+  rpcSlice->setTLayerSwitchingFlag( pPPS->getTLayerSwitchingFlag( pcPic->getTLayer() ) );
+
+  rpcSlice->setSPS( pSPS );
+  rpcSlice->setPPS( pPPS );
+
   // reference picture usage indicator for next frames
   rpcSlice->setDRBFlag          ( true );
   rpcSlice->setERBIndex         ( ERB_NONE );
@@ -424,9 +442,6 @@ Void TEncSlice::precompressSlice( TComPic*& rpcPic )
   
   TComSlice* pcSlice        = rpcPic->getSlice(getSliceIdx());
   Double     dPicRdCostBest = MAX_DOUBLE;
-  Double dSumCURdCostBest;
-  UInt64     uiPicDistBest;
-  UInt64     uiPicBitsBest;
   UInt       uiQpIdxBest = 0;
   
   Double dFrameLambda;
@@ -471,10 +486,6 @@ Void TEncSlice::precompressSlice( TComPic*& rpcPic )
     {
       uiQpIdxBest    = uiQpIdx;
       dPicRdCostBest = dPicRdCost;
-      dSumCURdCostBest = m_dPicRdCost;
-      
-      uiPicBitsBest = m_uiPicTotalBits + uiALFBits;
-      uiPicDistBest = uiPicDist;
     }
   }
   
@@ -526,6 +537,9 @@ Void TEncSlice::compressSlice( TComPic*& rpcPic )
   m_pcEntropyCoder->setMaxAlfCtrlDepth(0); //unnecessary
   
   // for every CU in slice
+#if SUB_LCU_DQP
+  UChar uhLastQP = pcSlice->getSliceQp();
+#endif
   for(  uiCUAddr = uiStartCUAddr; uiCUAddr < uiBoundingCUAddr; uiCUAddr++  )
   {
     // set QP
@@ -534,6 +548,10 @@ Void TEncSlice::compressSlice( TComPic*& rpcPic )
     TComDataCU*& pcCU = rpcPic->getCU( uiCUAddr );
     pcCU->initCU( rpcPic, uiCUAddr );
     
+#if SUB_LCU_DQP
+    pcCU->setLastCodedQP( uhLastQP );
+#endif
+
     // if RD based on SBAC is used
     if( m_pcCfg->getUseSBACRD() )
     {
@@ -549,6 +567,10 @@ Void TEncSlice::compressSlice( TComPic*& rpcPic )
       m_pcEntropyCoder->setBitstream    ( m_pcBitCounter );
       pppcRDSbacCoder->setBinCountingEnableFlag( true );
       
+#if SUB_LCU_DQP
+      // restore last QP
+      pcCU->setLastCodedQP( uhLastQP );
+#endif
       m_pcCuEncoder->encodeCU( pcCU );
 
       pppcRDSbacCoder->setBinCountingEnableFlag( false );
@@ -558,7 +580,7 @@ Void TEncSlice::compressSlice( TComPic*& rpcPic )
         if (uiCUAddr==uiStartCUAddr && pcSlice->getSliceBits()==0)
         {
           // Could not fit even a single LCU within the slice under the defined byte-constraint. Display a warning message and code 1 LCU in the slice.
-          fprintf(stdout,"\nSlice overflow warning! codedBits=%6d, limitBytes=%6d", m_pcBitCounter->getNumberOfWrittenBits(), m_pcCfg->getSliceArgument() );
+          fprintf(stdout,"Slice overflow warning! codedBits=%6d, limitBytes=%6d\n", m_pcBitCounter->getNumberOfWrittenBits(), m_pcCfg->getSliceArgument() );
           uiCUAddr = uiCUAddr + 1;
         }
         pcSlice->setNextSlice( true );
@@ -571,7 +593,7 @@ Void TEncSlice::compressSlice( TComPic*& rpcPic )
         if (uiCUAddr == uiStartCUAddr)
         {
           // Could not fit even a single LCU within the entropy slice under the defined byte-constraint. Display a warning message and code 1 LCU in the entropy slice.
-          fprintf(stdout,"\nEntropy Slice overflow warning! codedBins=%6d, limitBins=%6d", uiBinsCoded, m_pcCfg->getEntropySliceArgument() );
+          fprintf(stdout,"Entropy Slice overflow warning! codedBins=%6d, limitBins=%6d\n", uiBinsCoded, m_pcCfg->getEntropySliceArgument() );
           uiCUAddr = uiCUAddr + 1;
         }
         pcSlice->setNextEntropySlice( true );
@@ -583,6 +605,10 @@ Void TEncSlice::compressSlice( TComPic*& rpcPic )
     {
       m_pcCuEncoder->compressCU( pcCU );
       m_pcCavlcCoder ->setAdaptFlag(true);
+#if SUB_LCU_DQP
+      // restore last QP
+      pcCU->setLastCodedQP( uhLastQP );
+#endif
       m_pcCuEncoder->encodeCU( pcCU );
       
       uiBitsCoded += m_pcBitCounter->getNumberOfWrittenBits();
@@ -591,7 +617,7 @@ Void TEncSlice::compressSlice( TComPic*& rpcPic )
         if (uiCUAddr==uiStartCUAddr && pcSlice->getSliceBits()==0)
         {
           // Could not fit even a single LCU within the slice under the defined byte-constraint. Display a warning message and code 1 LCU in the slice.
-          fprintf(stdout,"\nSlice overflow warning! codedBits=%6d, limitBytes=%6d", m_pcBitCounter->getNumberOfWrittenBits(), m_pcCfg->getSliceArgument() );
+          fprintf(stdout,"Slice overflow warning! codedBits=%6d, limitBytes=%6d\n", m_pcBitCounter->getNumberOfWrittenBits(), m_pcCfg->getSliceArgument() );
           uiCUAddr = uiCUAddr + 1;
         }
         pcSlice->setNextSlice( true );
@@ -603,7 +629,7 @@ Void TEncSlice::compressSlice( TComPic*& rpcPic )
         if (uiCUAddr == uiStartCUAddr)
         {
           // Could not fit even a single LCU within the entropy slice under the defined bit/bin-constraint. Display a warning message and code 1 LCU in the entropy slice.
-          fprintf(stdout,"\nEntropy Slice overflow warning! codedBits=%6d, limitBits=%6d", m_pcBitCounter->getNumberOfWrittenBits(), m_pcCfg->getEntropySliceArgument() );
+          fprintf(stdout,"Entropy Slice overflow warning! codedBits=%6d, limitBits=%6d\n", m_pcBitCounter->getNumberOfWrittenBits(), m_pcCfg->getEntropySliceArgument() );
           uiCUAddr = uiCUAddr + 1;
         }
         pcSlice->setNextEntropySlice( true );
@@ -611,6 +637,9 @@ Void TEncSlice::compressSlice( TComPic*& rpcPic )
       }
       m_pcCavlcCoder ->setAdaptFlag(false);
     }
+#if SUB_LCU_DQP
+    uhLastQP = pcCU->getLastCodedQP();
+#endif
     
     m_uiPicTotalBits += pcCU->getTotalBits();
     m_dPicRdCost     += pcCU->getTotalCost();
@@ -625,7 +654,7 @@ Void TEncSlice::compressSlice( TComPic*& rpcPic )
  \param  rpcPic        picture class
  \retval rpcBitstream  bitstream class
  */
-Void TEncSlice::encodeSlice   ( TComPic*& rpcPic, TComBitstream*& rpcBitstream )
+Void TEncSlice::encodeSlice   ( TComPic*& rpcPic, TComOutputBitstream* pcBitstream )
 {
   UInt       uiCUAddr;
   UInt       uiStartCUAddr;
@@ -648,7 +677,7 @@ Void TEncSlice::encodeSlice   ( TComPic*& rpcPic, TComBitstream*& rpcBitstream )
   }
   
   // set bitstream
-  m_pcEntropyCoder->setBitstream( rpcBitstream );
+  m_pcEntropyCoder->setBitstream( pcBitstream );
   // for every CU
 #if ENC_DEC_TRACE
   g_bJustDoIt = g_bEncDecTraceEnable;
@@ -661,12 +690,18 @@ Void TEncSlice::encodeSlice   ( TComPic*& rpcPic, TComBitstream*& rpcBitstream )
   g_bJustDoIt = g_bEncDecTraceDisable;
 #endif
 
+#if SUB_LCU_DQP
+  UChar uhLastQP = pcSlice->getSliceQp();
+#endif
   for(  uiCUAddr = uiStartCUAddr; uiCUAddr<uiBoundingCUAddr; uiCUAddr++  )
   {
     m_pcCuEncoder->setQpLast( pcSlice->getSliceQp() );
     TComDataCU*& pcCU = rpcPic->getCU( uiCUAddr );
 #if ENC_DEC_TRACE
     g_bJustDoIt = g_bEncDecTraceEnable;
+#endif
+#if SUB_LCU_DQP
+    pcCU->setLastCodedQP( uhLastQP );
 #endif
     if ( (m_pcCfg->getSliceMode()!=0 || m_pcCfg->getEntropySliceMode()!=0) && uiCUAddr==uiBoundingCUAddr-1 )
     {
@@ -676,6 +711,9 @@ Void TEncSlice::encodeSlice   ( TComPic*& rpcPic, TComBitstream*& rpcBitstream )
     {
       m_pcCuEncoder->encodeCU( pcCU );
     }
+#if SUB_LCU_DQP
+    uhLastQP = pcCU->getLastCodedQP();
+#endif
 #if ENC_DEC_TRACE
     g_bJustDoIt = g_bEncDecTraceDisable;
 #endif    

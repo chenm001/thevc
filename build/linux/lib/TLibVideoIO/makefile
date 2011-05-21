@@ -32,7 +32,6 @@ DEFS			= -DMSYS_LINUX -D_LARGEFILE64_SOURCE -D_FILE_OFFSET_BITS=64 -DMSYS_UNIX_L
 
 # set objects
 OBJS          	= \
-			$(OBJ_DIR)/TVideoIOBits.o \
 			$(OBJ_DIR)/TVideoIOYuv.o \
 						
 

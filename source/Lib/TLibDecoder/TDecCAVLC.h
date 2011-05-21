@@ -66,6 +66,10 @@ protected:
   Void  xReadExGolombLevel  ( UInt& ruiSymbol );
   Void  xReadUnaryMaxSymbol ( UInt& ruiSymbol, UInt uiMaxSymbol );
   
+#if E057_INTRA_PCM
+  Void  xReadPCMAlignZero     ();
+#endif
+
   UInt  xGetBit             ();
   Int   xReadVlc            ( Int n );
 #if CAVLC_COEF_LRG_BLK
@@ -82,7 +86,7 @@ protected:
 #endif
   
 private:
-  TComBitstream*        m_pcBitstream;
+  TComInputBitstream*   m_pcBitstream;
   UInt                  m_uiCoeffCost;
   Bool                  m_bRunLengthCoding;
   UInt                  m_uiRun;
@@ -159,7 +163,7 @@ private:
   
 public:
   Void  resetEntropy        ( TComSlice* pcSlice  );
-  Void  setBitstream        ( TComBitstream* p    )      { m_pcBitstream = p; }
+  Void  setBitstream        ( TComInputBitstream* p )   { m_pcBitstream = p; }
   Void  setAlfCtrl          ( Bool bAlfCtrl )            { m_bAlfCtrl = bAlfCtrl; }
   Void  setMaxAlfCtrlDepth  ( UInt uiMaxAlfCtrlDepth )  { m_uiMaxAlfCtrlDepth = uiMaxAlfCtrlDepth; }
   
@@ -174,8 +178,6 @@ public:
   Void  parseAoUvlc        ( UInt& ruiVal );
   Void  parseAoSvlc        ( Int&  riVal  );
 #endif
-  
-  Void  parseNalUnitHeader  ( NalUnitType& eNalUnitType, UInt& TemporalId, Bool& bOutputFlag );
   
   Void  parseSPS            ( TComSPS* pcSPS );
   Void  parsePPS            ( TComPPS* pcPPS);
@@ -209,6 +211,10 @@ public:
   Void parseBlockCbf        ( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eType, UInt uiTrDepth, UInt uiDepth, UInt uiQPartNum );
   Void parseCoeffNxN        ( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx, UInt uiWidth, UInt uiHeight, UInt uiDepth, TextType eTType );
   
+#if E057_INTRA_PCM
+  Void parseIPCMInfo        ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth);
+#endif
+
   Void parseAlfCtrlDepth    ( UInt& ruiAlfCtrlDepth );
   Void parseAlfCtrlFlag     ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
 #if TSB_ALF_HEADER

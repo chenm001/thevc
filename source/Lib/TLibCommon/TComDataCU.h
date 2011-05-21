@@ -97,7 +97,16 @@ private:
 #if SNY_DQP 
   Bool          m_bdQP;               ///< signal if LCU dQP encoded
 #endif//SNY_DQP
+#if SUB_LCU_DQP
+  UChar         m_hLastCodedQP;       ///< array of QP values
+#endif
   
+#if E057_INTRA_PCM
+  Pel*          m_pcIPCMSampleY;      ///< PCM sample buffer (Y)
+  Pel*          m_pcIPCMSampleCb;     ///< PCM sample buffer (Cb)
+  Pel*          m_pcIPCMSampleCr;     ///< PCM sample buffer (Cr)
+#endif
+
   // -------------------------------------------------------------------------------------------------------------------
   // neighbour access variables
   // -------------------------------------------------------------------------------------------------------------------
@@ -127,6 +136,10 @@ private:
   UInt*         m_puiAlfCtrlFlag;     ///< array of ALF flags
   UInt*         m_puiTmpAlfCtrlFlag;  ///< temporal array of ALF flags
   
+#if E057_INTRA_PCM
+  Bool*         m_pbIPCMFlag;         ///< array of intra_pcm flags
+#endif
+
   // -------------------------------------------------------------------------------------------------------------------
   // misc. variables
   // -------------------------------------------------------------------------------------------------------------------
@@ -184,7 +197,11 @@ public:
   Void          initCU                ( TComPic* pcPic, UInt uiCUAddr );
   Void          initEstData           ();
   Void          initSubCU             ( TComDataCU* pcCU, UInt uiPartUnitIdx, UInt uiDepth );
-  
+
+#if SUB_LCU_DQP
+  Void          initEstDataDeltaQP    ( UInt uiDepth, UInt uiQP, UInt uiLastQP );
+#endif
+
   Void          copySubCU             ( TComDataCU* pcCU, UInt uiPartUnitIdx, UInt uiDepth );
   Void          copyInterPredInfoFrom ( TComDataCU* pcCU, UInt uiAbsPartIdx, RefPicList eRefPicList );
   Void          copyPartFrom          ( TComDataCU* pcCU, UInt uiPartUnitIdx, UInt uiDepth );
@@ -242,6 +259,10 @@ public:
   Bool          getdQPFlag            ()                        { return m_bdQP;              }
   Void          setdQPFlag            ( Bool b )                { m_bdQP = b;                 }
 #endif//SNY_DQP
+#if SUB_LCU_DQP
+  UChar         getLastCodedQP        ()                        { return m_hLastCodedQP;      }
+  Void          setLastCodedQP        ( UChar uQP )             { m_hLastCodedQP = uQP;       }
+#endif
   
   UChar*        getTransformIdx       ()                        { return m_puhTrIdx;          }
   UChar         getTransformIdx       ( UInt uiIdx )            { return m_puhTrIdx[uiIdx];   }
@@ -259,6 +280,12 @@ public:
   TCoeff*&      getCoeffCb            ()                        { return m_pcTrCoeffCb;       }
   TCoeff*&      getCoeffCr            ()                        { return m_pcTrCoeffCr;       }
   
+#if E057_INTRA_PCM
+  Pel*&         getPCMSampleY         ()                        { return m_pcIPCMSampleY;     }
+  Pel*&         getPCMSampleCb        ()                        { return m_pcIPCMSampleCb;    }
+  Pel*&         getPCMSampleCr        ()                        { return m_pcIPCMSampleCr;    }
+#endif
+
   UChar         getCbf    ( UInt uiIdx, TextType eType )                  { return m_puhCbf[g_aucConvertTxtTypeToIdx[eType]][uiIdx];  }
   UChar*        getCbf    ( TextType eType )                              { return m_puhCbf[g_aucConvertTxtTypeToIdx[eType]];         }
   UChar         getCbf    ( UInt uiIdx, TextType eType, UInt uiTrDepth )  { return ( ( getCbf( uiIdx, eType ) >> uiTrDepth ) & 0x1 ); }
@@ -319,6 +346,13 @@ public:
   Void          copyAlfCtrlFlagToTmp  ();
   Void          copyAlfCtrlFlagFromTmp();
   
+#if E057_INTRA_PCM
+  Bool*         getIPCMFlag          ()                        { return m_pbIPCMFlag;               }
+  Bool          getIPCMFlag          (UInt uiIdx )             { return m_pbIPCMFlag[uiIdx];        }
+  Void          setIPCMFlag          (UInt uiIdx, Bool b )     { m_pbIPCMFlag[uiIdx] = b;           }
+  Void          setIPCMFlagSubParts  (Bool bIpcmFlag, UInt uiAbsPartIdx, UInt uiDepth);
+#endif
+
   // -------------------------------------------------------------------------------------------------------------------
   // member functions for accessing partition information
   // -------------------------------------------------------------------------------------------------------------------
@@ -375,6 +409,11 @@ public:
   TComDataCU*   getPUAboveLeft              ( UInt&  uiALPartUnitIdx, UInt uiCurrPartUnitIdx, Bool bEnforceSliceRestriction=true, Bool bEnforceEntropySliceRestriction=true );
   TComDataCU*   getPUAboveRight             ( UInt&  uiARPartUnitIdx, UInt uiCurrPartUnitIdx, Bool bEnforceSliceRestriction=true, Bool bEnforceEntropySliceRestriction=true );
   TComDataCU*   getPUBelowLeft              ( UInt& uiBLPartUnitIdx, UInt uiCurrPartUnitIdx, Bool bEnforceSliceRestriction=true, Bool bEnforceEntropySliceRestriction=true );
+
+#if SUB_LCU_DQP
+  TComDataCU*   getQpMinCuLeft                   ( UInt&  uiLPartUnitIdx , UInt uiCurrAbsIdxInLCU, Bool bEnforceSliceRestriction=true, Bool bEnforceEntropySliceRestriction=true );
+  UChar         getRefQP                         ( UInt   uiCurrAbsIdxInLCU                       );
+#endif
 
 #if CONSTRAINED_INTRA_PRED
   TComDataCU*   getPUAboveRightAdi          ( UInt&  uiARPartUnitIdx, UInt uiPuWidth, UInt uiCurrPartUnitIdx, UInt uiPartUnitOffset = 1, Bool bEnforceSliceRestriction=true, Bool bEnforceEntropySliceRestriction=true );

@@ -42,6 +42,8 @@
 #pragma once
 #endif // _MSC_VER > 1000
 
+#include <stdint.h>
+#include <vector>
 #include <stdio.h>
 #include <assert.h>
 #include "CommonDef.h"
@@ -55,112 +57,132 @@ class TComBitIf
 {
 public:
   virtual Void        writeAlignOne         () {};
+#if E057_INTRA_PCM
+  virtual Void        writeAlignZero        () {};
+#endif
   virtual Void        write                 ( UInt uiBits, UInt uiNumberOfBits )  = 0;
   virtual Void        resetBits             ()                                    = 0;
   virtual UInt getNumberOfWrittenBits() const = 0;
   virtual ~TComBitIf() {}
 };
 
-/// class for handling bitstream
-class TComBitstream : public TComBitIf
+/**
+ * Model of a writable bitstream that accumulates bits to produce a
+ * bytestream.
+ */
+class TComOutputBitstream : public TComBitIf
 {
-protected:
-  UInt*       m_apulStreamPacketBegin;
-  UInt*       m_pulStreamPacket;
-  UInt        m_uiBufSize;
-  
-  UInt        m_uiBitSize;
-  Int         m_iValidBits;
-  
-  UInt        m_ulCurrentBits;
-  UInt        m_uiBitsWritten;
-  
-  UInt        m_uiDWordsLeft;
-  UInt        m_uiBitsLeft;
-  UInt        m_uiNextBits;
-  
-  UInt        *m_auiSliceByteLocation, m_uiSliceCount;  // used to skip over slice start codes in initParsingConvertPayloadToRBSP()
-  UInt        m_uiSliceProcessed;
+  /**
+   * FIFO for storage of bytes.  Use:
+   *  - fifo.push_back(x) to append words
+   *  - fifo.clear() to empty the FIFO
+   *  - &fifo.front() to get a pointer to the data array.
+   *    NB, this pointer is only valid until the next push_back()/clear()
+   */
+  std::vector<uint8_t> *m_fifo;
 
-  UInt xSwap ( UInt ui )
-  {
-    // heiko.schwarz@hhi.fhg.de: support for BSD systems as proposed by Steffen Kamp [kamp@ient.rwth-aachen.de]
-#ifdef MSYS_BIG_ENDIAN
-    return ui;
-#else
-    UInt ul2;
-    
-    ul2  = ui>>24;
-    ul2 |= (ui>>8) & 0x0000ff00;
-    ul2 |= (ui<<8) & 0x00ff0000;
-    ul2 |= ui<<24;
-    
-    return ul2;
-#endif
-  }
-  
-  // read one word
-  __inline Void xReadNextWord ();
-  
+  unsigned int m_num_held_bits; /// number of bits not flushed to bytestream.
+  unsigned char m_held_bits; /// the bits held and not flushed to bytestream.
+                             /// this value is always msb-aligned, bigendian.
+
 public:
-  TComBitstream()             {}
-  virtual ~TComBitstream()    {}
-  
   // create / destroy
-  Void        create          ( UInt uiSizeInBytes );
-  Void        destroy         ();
-  
+  TComOutputBitstream();
+  ~TComOutputBitstream();
+
   // interface for encoding
+  /**
+   * append @uiNumberOfBits@ least significant bits of @uiBits@ to
+   * the current bitstream
+   */
   Void        write           ( UInt uiBits, UInt uiNumberOfBits );
+
+  /** insert one bits until the bitstream is byte-aligned */
   Void        writeAlignOne   ();
+
+  /** insert zero bits until the bitstream is byte-aligned */
   Void        writeAlignZero  ();
-  Void        convertRBSPToPayload( UInt uiStartPos = 0);
+
+  /** this function should never be called */
+  void resetBits() { assert(0); }
+
+  // utility functions
+
+  /**
+   * Return a pointer to the start of the byte-stream buffer.
+   * Pointer is valid until the next write/flush/reset call.
+   * NB, data is arranged such that subsequent bytes in the
+   * bytestream are stored in ascending addresses.
+   */
+  char* getByteStream() const;
+
+  /**
+   * Return the number of valid bytes available from  getByteStream()
+   */
+  unsigned int getByteStreamLength();
+
+  /**
+   * Reset all internal state.
+   */
+  Void clear();
+
+  /**
+   * returns the number of bits that need to be written to
+   * achieve byte alignment.
+   */
+  Int getNumBitsUntilByteAligned() { return (8 - m_num_held_bits) & 0x7; }
+
+  /**
+   * Return the number of bits that have been written since the last clear()
+   */
+  unsigned getNumberOfWrittenBits() const { return unsigned(m_fifo->size()) * 8 + m_num_held_bits; }
+
+  void insertAt(const TComOutputBitstream& src, unsigned pos);
+
+  /**
+   * Return a reference to the internal fifo
+   */
+  std::vector<uint8_t>& getFIFO() { return *m_fifo; }
+
+  /** Return a reference to the internal fifo */
+  const std::vector<uint8_t>& getFIFO() const { return *m_fifo; }
+};
+
+/**
+ * Model of an input bitstream that extracts bits from a predefined
+ * bytestream.
+ */
+class TComInputBitstream
+{
+  std::vector<uint8_t> *m_fifo; /// FIFO for storage of complete bytes
+
+protected:
+  unsigned int m_fifo_idx; /// Read index into m_fifo
+
+  unsigned int m_num_held_bits;
+  unsigned char m_held_bits;
+
+public:
+  /**
+   * Create a new bitstream reader object that reads from #buf#.  Ownership
+   * of #buf# remains with the callee, although the constructed object
+   * will hold a reference to #buf#
+   */
+  TComInputBitstream(std::vector<uint8_t>* buf);
+
   // interface for decoding
-  Void        initParsingConvertPayloadToRBSP( const UInt uiBytesRead );
-  Void        initParsing     ( UInt uiNumBytes );
 #if LCEC_INTRA_MODE || QC_LCEC_INTER_MODE
   Void        pseudoRead      ( UInt uiNumberOfBits, UInt& ruiBits );
 #endif
   Void        read            ( UInt uiNumberOfBits, UInt& ruiBits );
-  Void        readAlignOne    ();
-  UInt        getSliceProcessed                ()       { return m_uiSliceProcessed;                }
-  Void        setSliceProcessed                (UInt u) { m_uiSliceProcessed                = u;    }
-  
-  // interface for slice start-code positioning at encoder
-  UInt        getSliceCount                    ()                            { return m_uiSliceCount;                     }
-  UInt        getSliceByteLocation             ( UInt uiIdx )                { return m_auiSliceByteLocation[ uiIdx ];    }
-  Void        setSliceCount                    ( UInt uiCount )              { m_uiSliceCount = uiCount;                  }
-  Void        setSliceByteLocation             ( UInt uiIdx, UInt uiCount )  { m_auiSliceByteLocation[ uiIdx ] = uiCount; }
-
-  // memory allocation / deallocation interface for "slice location" bookkeeping
-  Void        allocateMemoryForSliceLocations       ( UInt uiMaxNumOfSlices );
-  Void        freeMemoryAllocatedForSliceLocations  ();
 
   // Peek at bits in word-storage. Used in determining if we have completed reading of current bitstream and therefore slice in LCEC.
-  UInt        peekBits (UInt uiBits) { return( m_ulCurrentBits >> (32 - uiBits));  }
+  UInt        peekBits (UInt uiBits) { unsigned tmp; pseudoRead(uiBits, tmp); return tmp; }
 
-  // reset internal status
-  Void        resetBits       ()
-  {
-    m_uiBitSize = 0;
-    m_iValidBits = 32;
-    m_ulCurrentBits = 0;
-    m_uiBitsWritten = 0;
-  }
-  
   // utility functions
   unsigned read(unsigned numberOfBits) { UInt tmp; read(numberOfBits, tmp); return tmp; }
-  UInt* getStartStream() const { return m_apulStreamPacketBegin; }
-  UInt*       getBuffer()               { return  m_pulStreamPacket;                    }
-  Int         getBitsUntilByteAligned() { return m_iValidBits & (0x7);                  }
-  Void        setModeSbac()             { m_uiBitsLeft = 8*((m_uiBitsLeft+7)/8);        } // stop bit + trailing stuffing bits
-  Bool        isWordAligned()           { return  (0 == (m_iValidBits & (0x1f)));       }
-  UInt getNumberOfWrittenBits() const { return  m_uiBitsWritten; }
-  Void        flushBuffer();
-  Void        rewindStreamPacket()      { m_pulStreamPacket = m_apulStreamPacketBegin;  }
-  UInt        getBitsLeft()             { return  m_uiBitsLeft;                         }
-
-  void insertAt(const TComBitstream& src, unsigned pos);
+  unsigned getNumBitsUntilByteAligned() { return m_num_held_bits & (0x7); }
+  unsigned getNumBitsLeft() { return 8*((unsigned)m_fifo->size() - m_fifo_idx) + m_num_held_bits; }
 };
 
 #endif

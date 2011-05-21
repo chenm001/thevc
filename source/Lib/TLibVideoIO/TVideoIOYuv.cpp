@@ -235,13 +235,17 @@ static void readPlane(Pel* dst, istream& fd, bool is16bit,
   for (int y = 0; y < height; y++)
   {
     fd.read(reinterpret_cast<char*>(buf), read_len);
-    if (!is16bit) {
-      for (int x = 0; x < width; x++) {
+    if (!is16bit)
+    {
+      for (int x = 0; x < width; x++)
+      {
         dst[x] = buf[x];
       }
     }
-    else {
-      for (int x = 0; x < width; x++) {
+    else
+    {
+      for (int x = 0; x < width; x++)
+      {
         dst[x] = (buf[2*x+1] << 8) | buf[2*x];
       }
     }

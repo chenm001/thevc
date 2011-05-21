@@ -52,6 +52,8 @@ class TComPic;
 class TComSPS
 {
 private:
+  UInt        m_uiMaxTLayers;           // maximum number of temporal layers
+
   // Structure
   UInt        m_uiWidth;
   UInt        m_uiHeight;
@@ -67,6 +69,9 @@ private:
   UInt        m_uiQuadtreeTULog2MinSize;
   UInt        m_uiQuadtreeTUMaxDepthInter;
   UInt        m_uiQuadtreeTUMaxDepthIntra;
+#if E057_INTRA_PCM
+  UInt        m_uiPCMLog2MinSize;
+#endif
   Bool        m_bUseALF;
   Bool        m_bUseDQP;
   Bool        m_bUseLDC;
@@ -89,7 +94,15 @@ private:
   AMVP_MODE   m_aeAMVPMode[MAX_CU_DEPTH];
   UInt        m_uiBitDepth;
   UInt        m_uiBitIncrement;
-  
+
+#if E057_INTRA_PCM && E192_SPS_PCM_BIT_DEPTH_SYNTAX
+  UInt        m_uiPCMBitDepthLuma;
+  UInt        m_uiPCMBitDepthChroma;
+#endif
+#if E057_INTRA_PCM && E192_SPS_PCM_FILTER_DISABLE_SYNTAX
+  Bool        m_bPCMFilterDisableFlag;
+#endif
+
   // Max physical transform size
   UInt        m_uiMaxTrSize;
   
@@ -101,6 +114,8 @@ private:
 #if MTK_SAO
   Bool        m_bUseSAO; 
 #endif
+
+  Bool        m_bTemporalIdNestingFlag; // temporal_id_nesting_flag
 
 public:
   TComSPS();
@@ -117,6 +132,10 @@ public:
   UInt getMaxCUHeight ()         { return  m_uiMaxCUHeight; }
   Void setMaxCUDepth  ( UInt u ) { m_uiMaxCUDepth = u;      }
   UInt getMaxCUDepth  ()         { return  m_uiMaxCUDepth;  }
+#if E057_INTRA_PCM
+  Void setPCMLog2MinSize  ( UInt u ) { m_uiPCMLog2MinSize = u;      }
+  UInt getPCMLog2MinSize  ()         { return  m_uiPCMLog2MinSize;  }
+#endif
   Void setMinTrDepth  ( UInt u ) { m_uiMinTrDepth = u;      }
   UInt getMinTrDepth  ()         { return  m_uiMinTrDepth;  }
   Void setMaxTrDepth  ( UInt u ) { m_uiMaxTrDepth = u;      }
@@ -191,6 +210,21 @@ public:
   Bool getUseSAO                  ()           {return m_bUseSAO;}
 #endif
 
+  UInt      getMaxTLayers()                           { return m_uiMaxTLayers; }
+  Void      setMaxTLayers( UInt uiMaxTLayers )        { assert( uiMaxTLayers <= MAX_TLAYER ); m_uiMaxTLayers = uiMaxTLayers; }
+
+  Bool      getTemporalIdNestingFlag()                { return m_bTemporalIdNestingFlag; }
+  Void      setTemporalIdNestingFlag( Bool bValue )   { m_bTemporalIdNestingFlag = bValue; }
+#if E057_INTRA_PCM && E192_SPS_PCM_BIT_DEPTH_SYNTAX
+  UInt      getPCMBitDepthLuma     ()         { return m_uiPCMBitDepthLuma;     }
+  Void      setPCMBitDepthLuma     ( UInt u ) { m_uiPCMBitDepthLuma = u;        }
+  UInt      getPCMBitDepthChroma   ()         { return m_uiPCMBitDepthChroma;   }
+  Void      setPCMBitDepthChroma   ( UInt u ) { m_uiPCMBitDepthChroma = u;      }
+#endif
+#if E057_INTRA_PCM && E192_SPS_PCM_FILTER_DISABLE_SYNTAX
+  Void      setPCMFilterDisableFlag     ( Bool   bValue  )    { m_bPCMFilterDisableFlag = bValue; }
+  Bool      getPCMFilterDisableFlag     ()                    { return m_bPCMFilterDisableFlag;   } 
+#endif
 };
 
 /// PPS class
@@ -200,7 +234,17 @@ private:
 #if CONSTRAINED_INTRA_PRED
   Bool        m_bConstrainedIntraPred;    //  constrained_intra_pred_flag
 #endif
-  
+ 
+#if SUB_LCU_DQP
+  // access channel
+  TComSPS*    m_pcSPS;
+  UInt        m_uiMaxCuDQPDepth;
+  UInt        m_uiMinCuDQPSize;
+#endif
+
+  UInt        m_uiNumTlayerSwitchingFlags;            // num_temporal_layer_switching_point_flags
+  Bool        m_abTLayerSwitchingFlag[ MAX_TLAYER ];  // temporal_layer_switching_point_flag
+
 public:
   TComPPS();
   virtual ~TComPPS();
@@ -208,6 +252,21 @@ public:
 #if CONSTRAINED_INTRA_PRED
   Bool      getConstrainedIntraPred ()         { return  m_bConstrainedIntraPred; }
   Void      setConstrainedIntraPred ( Bool b ) { m_bConstrainedIntraPred = b;     }
+#endif
+
+  UInt      getNumTLayerSwitchingFlags()                                  { return m_uiNumTlayerSwitchingFlags; }
+  Void      setNumTLayerSwitchingFlags( UInt uiNumTlayerSwitchingFlags )  { assert( uiNumTlayerSwitchingFlags < MAX_TLAYER ); m_uiNumTlayerSwitchingFlags = uiNumTlayerSwitchingFlags; }
+
+  Bool      getTLayerSwitchingFlag( UInt uiTLayer )                       { assert( uiTLayer < MAX_TLAYER ); return m_abTLayerSwitchingFlag[ uiTLayer ]; }
+  Void      setTLayerSwitchingFlag( UInt uiTLayer, Bool bValue )          { m_abTLayerSwitchingFlag[ uiTLayer ] = bValue; }
+
+#if SUB_LCU_DQP
+  Void      setSPS              ( TComSPS* pcSPS ) { m_pcSPS = pcSPS; }
+  TComSPS*  getSPS              ()         { return m_pcSPS;          }
+  Void      setMaxCuDQPDepth    ( UInt u ) { m_uiMaxCuDQPDepth = u;   }
+  UInt      getMaxCuDQPDepth    ()         { return m_uiMaxCuDQPDepth;}
+  Void      setMinCuDQPSize     ( UInt u ) { m_uiMinCuDQPSize = u;    }
+  UInt      getMinCuDQPSize     ()         { return m_uiMinCuDQPSize; }
 #endif
 };
 
@@ -269,6 +328,9 @@ private:
 #if MS_LCEC_LOOKUP_TABLE_EXCEPTION
   Bool        m_bRefIdxCombineCoding;
 #endif
+
+  UInt        m_uiTLayer;
+  Bool        m_bTLayerSwitchingFlag;
 
   UInt        m_uiSliceMode;
   UInt        m_uiSliceArgument;
@@ -386,6 +448,17 @@ public:
 #if DCM_COMB_LIST
   Void      generateCombinedList       ();
 #endif
+
+  UInt      getTLayer             ()                            { return m_uiTLayer;                      }
+  Void      setTLayer             ( UInt uiTLayer )             { m_uiTLayer = uiTLayer;                  }
+
+  Bool      getTLayerSwitchingFlag()                            { return m_bTLayerSwitchingFlag;          }
+  Void      setTLayerSwitchingFlag( Bool bValue )               { m_bTLayerSwitchingFlag = bValue;        }
+
+  Void      setTLayerInfo( UInt uiTLayer );
+  Void      decodingMarking( TComList<TComPic*>& rcListPic, Int iGOPSIze, Int& iMaxRefPicNum ); 
+  Void      decodingTLayerSwitchingMarking( TComList<TComPic*>& rcListPic );
+
   Void setSliceMode                     ( UInt uiMode )     { m_uiSliceMode = uiMode;                     }
   UInt getSliceMode                     ()                  { return m_uiSliceMode;                       }
   Void setSliceArgument                 ( UInt uiArgument ) { m_uiSliceArgument = uiArgument;             }
@@ -418,8 +491,8 @@ protected:
                          ERBIndex            eERBIndex,
                          UInt                uiPOCCurr,
                          RefPicList          eRefPicList,
-                         UInt                uiNthRefPic );
-  
+                         UInt                uiNthRefPic,
+                         UInt                uiTLayer );
 };// END CLASS DEFINITION TComSlice
 
 

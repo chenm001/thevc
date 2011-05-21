@@ -35,7 +35,11 @@
     \brief    context model class
 */
 
+#include <algorithm>
+
 #include "ContextModel.h"
+
+using namespace std;
 
 // ====================================================================================================================
 // Public member functions
@@ -51,15 +55,15 @@ Void
 ContextModel::init( Int iQp, Short asCtxInit[] )
 {
   Int iInitState  = ( ( asCtxInit[ 0 ] * iQp ) >> 4 ) + asCtxInit[ 1 ];
-  iInitState      = Min( Max( 1, iInitState ), 126 );
+  iInitState      = min( max( 1, iInitState ), 126 );
   if( iInitState >= 64 )
   {
-    m_ucState     = Min( 62, iInitState - 64 );
+    m_ucState     = min( 62, iInitState - 64 );
     m_ucState    += m_ucState + 1;
   }
   else
   {
-    m_ucState     = Min( 62, 63 - iInitState );
+    m_ucState     = min( 62, 63 - iInitState );
     m_ucState    += m_ucState;
   }
 }

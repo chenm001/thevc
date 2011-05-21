@@ -79,8 +79,6 @@
 #define MAX_SCAN_VAL    11
 #define MAX_EXP_GOLOMB  16
 
-#define min(a, b) (((a) < (b)) ? (a) : (b))
-#define max(a, b) (((a) > (b)) ? (a) : (b))
 #define imgpel  unsigned short
 
 #if TI_ALF_MAX_VSIZE_7
@@ -412,7 +410,12 @@ protected:
   UInt  m_uiNumCUsInFrame;
   Void  setAlfCtrlFlags (ALFParam *pAlfParam, TComDataCU *pcCU, UInt uiAbsPartIdx, UInt uiDepth, UInt &idx);
 #endif
-  
+#if E057_INTRA_PCM && E192_SPS_PCM_FILTER_DISABLE_SYNTAX
+  Void xPCMRestoration        (TComPic* pcPic);
+  Void xPCMCURestoration      (TComDataCU* pcCU, UInt uiAbsZorderIdx, UInt uiDepth);
+  Void xPCMSampleRestoration  (TComDataCU* pcCU, UInt uiAbsZorderIdx, UInt uiDepth, TextType ttText);
+#endif
+
   // ------------------------------------------------------------------------------------------------------------------
   // For chroma component
   // ------------------------------------------------------------------------------------------------------------------
@@ -449,7 +452,10 @@ public:
   
   // interface function
   Void ALFProcess             ( TComPic* pcPic, ALFParam* pcAlfParam ); ///< interface function for ALF process
-  
+#if E057_INTRA_PCM && E192_SPS_PCM_FILTER_DISABLE_SYNTAX
+  Void PCMLFDisableProcess    ( TComPic* pcPic);                        ///< interface function for ALF process 
+#endif
+
 #if TI_ALF_MAX_VSIZE_7
   static Int ALFTapHToTapV(Int tapH);
   static Int ALFTapHToNumCoeff(Int tapH);

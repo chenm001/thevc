@@ -33,78 +33,60 @@
 
 #pragma once
 
+#include <vector>
+#include <sstream>
+#include "CommonDef.h"
+
+class TComOutputBitstream;
+
 /**
- * Abstract class representing an SEI message with lightweight RTTI.
+ * Represents a single NALunit header and the associated RBSPayload
  */
-class SEI
+struct NALUnit
 {
-public:
-  enum PayloadType
+  NalUnitType m_UnitType; ///< nal_unit_type
+  NalRefIdc m_RefIDC; ///< nal_ref_idc
+  unsigned m_TemporalID; ///< temporal_id
+  bool m_OutputFlag; ///< output_flag
+
+  /** construct an NALunit structure with given header values. */
+  NALUnit(
+    NalUnitType nalUnitType,
+    NalRefIdc nalRefIDC,
+    unsigned temporalID = 0,
+    bool outputFlag = true)
   {
-    USER_DATA_UNREGISTERED = 5,
-    PICTURE_DIGEST = 256,
-  };
-  
-  SEI() {}
-  virtual ~SEI() {}
-  
-  virtual PayloadType payloadType() const = 0;
-};
-
-class SEIuserDataUnregistered : public SEI
-{
-public:
-  PayloadType payloadType() const { return USER_DATA_UNREGISTERED; }
-
-  SEIuserDataUnregistered()
-    : userData(0)
-    {}
-
-  virtual ~SEIuserDataUnregistered()
-  {
-    delete userData;
+    m_UnitType = nalUnitType;
+    m_RefIDC = nalRefIDC;
+    m_TemporalID = temporalID;
+    m_OutputFlag = outputFlag;
   }
 
-  unsigned char uuid_iso_iec_11578[16];
-  unsigned userDataLength;
-  unsigned char *userData;
-};
+  /** default constructor - no initialization; must be perfomed by user */
+  NALUnit() {}
 
-class SEIpictureDigest : public SEI
-{
-public:
-  PayloadType payloadType() const { return PICTURE_DIGEST; }
-
-  SEIpictureDigest() {}
-  virtual ~SEIpictureDigest() {}
-  
-  enum Method
+  /** returns true if the NALunit is a slice NALunit */
+  bool isSlice()
   {
-    MD5,
-    RESERVED,
-  } method;
-
-  unsigned char digest[16];
+    return m_UnitType == NAL_UNIT_CODED_SLICE_IDR
+        || m_UnitType == NAL_UNIT_CODED_SLICE_CDR
+        || m_UnitType == NAL_UNIT_CODED_SLICE;
+  }
 };
+
+struct OutputNALUnit;
 
 /**
- * A structure to collate all SEI messages.  This ought to be replaced
- * with a list of std::list<SEI*>.  However, since there is only one
- * user of the SEI framework, this will do initially */
-class SEImessages
+ * A single NALunit, with complete payload in EBSP format.
+ */
+struct NALUnitEBSP : public NALUnit
 {
-public:
-  SEImessages()
-    : user_data_unregistered(0)
-    , picture_digest(0)
-    {}
+  std::ostringstream m_nalUnitData;
 
-  ~SEImessages()
-  {
-    delete user_data_unregistered;
-    delete picture_digest;
-  }
-
-  SEIuserDataUnregistered* user_data_unregistered;
-  SEIpictureDigest* picture_digest;
+  /**
+   * convert the OutputNALUnit #nalu# into EBSP format by writing out
+   * the NALUnit header, then the rbsp_bytes including any
+   * emulation_prevention_three_byte symbols.
+   */
+  NALUnitEBSP(const OutputNALUnit& nalu);
 };

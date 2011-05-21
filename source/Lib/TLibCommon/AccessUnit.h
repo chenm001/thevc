@@ -33,78 +33,27 @@
 
 #pragma once
 
+#include <list>
+#include "NAL.h"
+
 /**
- * Abstract class representing an SEI message with lightweight RTTI.
+ * An AccessUnit is a list of one or more NAL units, according to the
+ * working draft.  All NAL units within the object belong to the same
+ * access unit.
+ *
+ * NALUnits held in the AccessUnit list are in EBSP format.  Attempting
+ * to insert an OutputNALUnit into the access unit will automatically cause
+ * the nalunit to have its headers written and anti-emulation performed.
+ *
+ * The AccessUnit owns all pointers stored within.  Destroying the
+ * AccessUnit will delete all contained objects.
  */
-class SEI
+class AccessUnit : public std::list<NALUnitEBSP*>
 {
 public:
-  enum PayloadType
+  ~AccessUnit()
   {
-    USER_DATA_UNREGISTERED = 5,
-    PICTURE_DIGEST = 256,
-  };
-  
-  SEI() {}
-  virtual ~SEI() {}
-  
-  virtual PayloadType payloadType() const = 0;
-};
-
-class SEIuserDataUnregistered : public SEI
-{
-public:
-  PayloadType payloadType() const { return USER_DATA_UNREGISTERED; }
-
-  SEIuserDataUnregistered()
-    : userData(0)
-    {}
-
-  virtual ~SEIuserDataUnregistered()
-  {
-    delete userData;
+    for (AccessUnit::iterator it = this->begin(); it != this->end(); it++)
+      delete *it;
   }
-
-  unsigned char uuid_iso_iec_11578[16];
-  unsigned userDataLength;
-  unsigned char *userData;
-};
-
-class SEIpictureDigest : public SEI
-{
-public:
-  PayloadType payloadType() const { return PICTURE_DIGEST; }
-
-  SEIpictureDigest() {}
-  virtual ~SEIpictureDigest() {}
-  
-  enum Method
-  {
-    MD5,
-    RESERVED,
-  } method;
-
-  unsigned char digest[16];
-};
-
-/**
- * A structure to collate all SEI messages.  This ought to be replaced
- * with a list of std::list<SEI*>.  However, since there is only one
- * user of the SEI framework, this will do initially */
-class SEImessages
-{
-public:
-  SEImessages()
-    : user_data_unregistered(0)
-    , picture_digest(0)
-    {}
-
-  ~SEImessages()
-  {
-    delete user_data_unregistered;
-    delete picture_digest;
-  }
-
-  SEIuserDataUnregistered* user_data_unregistered;
-  SEIpictureDigest* picture_digest;
 };

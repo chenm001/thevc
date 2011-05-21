@@ -35,429 +35,212 @@
     \brief    class for handling bitstream
 */
 
+#include <stdint.h>
+#include <vector>
 #include "TComBitStream.h"
 #include <string.h>
 #include <memory.h>
+
+using namespace std;
 
 // ====================================================================================================================
 // Constructor / destructor / create / destroy
 // ====================================================================================================================
 
-Void TComBitstream::create( UInt uiSizeInBytes )
+TComOutputBitstream::TComOutputBitstream()
 {
-  UInt uiSize = uiSizeInBytes / sizeof(UInt);
-  
-  m_apulStreamPacketBegin = new UInt[uiSize];
-  m_uiBufSize       = uiSize;
-  m_uiBitSize       = 0;
-  m_iValidBits      = 32;
-  
-  m_ulCurrentBits   = 0;
-  m_uiBitsWritten   = 0;
-  
-  m_pulStreamPacket = m_apulStreamPacketBegin;
-  m_auiSliceByteLocation = NULL;
-  m_uiSliceCount         = 0;
+  m_fifo = new vector<uint8_t>;
+  clear();
 }
 
-Void TComBitstream::destroy()
+TComOutputBitstream::~TComOutputBitstream()
 {
-  delete [] m_apulStreamPacketBegin;     m_apulStreamPacketBegin = NULL;
+  delete m_fifo;
+}
+
+TComInputBitstream::TComInputBitstream(vector<uint8_t>* buf)
+{
+  m_fifo = buf;
+  m_fifo_idx = 0;
+  m_held_bits = 0;
+  m_num_held_bits = 0;
 }
 
 // ====================================================================================================================
 // Public member functions
 // ====================================================================================================================
 
-Void TComBitstream::write   ( UInt uiBits, UInt uiNumberOfBits )
+char* TComOutputBitstream::getByteStream() const
 {
-  assert( m_uiBufSize > 0 );
+  return (char*) &m_fifo->front();
+}
+
+unsigned int TComOutputBitstream::getByteStreamLength()
+{
+  return unsigned(m_fifo->size());
+}
+
+void TComOutputBitstream::clear()
+{
+  m_fifo->clear();
+  m_held_bits = 0;
+  m_num_held_bits = 0;
+}
+
+Void TComOutputBitstream::write   ( UInt uiBits, UInt uiNumberOfBits )
+{
   assert( uiNumberOfBits <= 32 );
-  assert( ! ( (uiBits >> 1) >> (uiNumberOfBits - 1)) ); // because shift with 32 has no effect
-  
-  m_uiBitsWritten += uiNumberOfBits;
-  
-  if( (Int)uiNumberOfBits < m_iValidBits)  // one word
+
+  /* any modulo 8 remainder of num_total_bits cannot be written this time,
+   * and will be held until next time. */
+  unsigned num_total_bits = uiNumberOfBits + m_num_held_bits;
+  unsigned next_num_held_bits = num_total_bits % 8;
+
+  /* form a byte aligned word (write_bits), by concatenating any held bits
+   * with the new bits, discarding the bits that will form the next_held_bits.
+   * eg: H = held bits, V = n new bits        /---- next_held_bits
+   * len(H)=7, len(V)=1: ... ---- HHHH HHHV . 0000 0000, next_num_held_bits=0
+   * len(H)=7, len(V)=2: ... ---- HHHH HHHV . V000 0000, next_num_held_bits=1
+   * if total_bits < 8, the value of v_ is not used */
+  unsigned char next_held_bits = uiBits << (8 - next_num_held_bits);
+
+  if (!(num_total_bits >> 3))
   {
-    m_iValidBits -= uiNumberOfBits;
-    
-    m_ulCurrentBits |= uiBits << m_iValidBits;
-    
+    /* insufficient bits accumulated to write out, append new_held_bits to
+     * current held_bits */
+    /* NB, this requires that v only contains 0 in bit positions {31..n} */
+    m_held_bits |= next_held_bits;
+    m_num_held_bits = next_num_held_bits;
     return;
   }
-  
-  UInt uiShift = uiNumberOfBits - m_iValidBits;
-  
-  // add the last bits
-  m_ulCurrentBits |= uiBits >> uiShift;
-  
-  *m_pulStreamPacket++ = xSwap( m_ulCurrentBits );
-  
-  
-  // note: there is a problem with left shift with 32
-  m_iValidBits = 32 - uiShift;
-  
-  m_ulCurrentBits = uiBits << m_iValidBits;
-  
-  if( 0 == uiShift )
+
+  /* topword serves to justify held_bits to align with the msb of uiBits */
+  unsigned topword = (uiNumberOfBits - next_num_held_bits) & ~((1 << 3) -1);
+  unsigned int write_bits = (m_held_bits << topword) | (uiBits >> next_num_held_bits);
+
+  switch (num_total_bits >> 3)
   {
-    m_ulCurrentBits = 0;
+  case 4: m_fifo->push_back(write_bits >> 24);
+  case 3: m_fifo->push_back(write_bits >> 16);
+  case 2: m_fifo->push_back(write_bits >> 8);
+  case 1: m_fifo->push_back(write_bits);
   }
+
+  m_held_bits = next_held_bits;
+  m_num_held_bits = next_num_held_bits;
 }
 
-Void TComBitstream::writeAlignOne()
+Void TComOutputBitstream::writeAlignOne()
 {
-  write( ( 1 << (m_iValidBits & 0x7) ) - 1, m_iValidBits & 0x7 );
+  unsigned int num_bits = getNumBitsUntilByteAligned();
+  write((1 << num_bits) - 1, num_bits);
   return;
 }
 
-Void TComBitstream::writeAlignZero()
+Void TComOutputBitstream::writeAlignZero()
 {
-  write( 0, m_iValidBits & 0x7 );
-  return;
-}
-
-Void  TComBitstream::flushBuffer()
-{
-  if (m_iValidBits == 0)
+  if (0 == m_num_held_bits)
     return;
-  
-  *m_pulStreamPacket = xSwap( m_ulCurrentBits );
-  
-  m_uiBitsWritten = (m_uiBitsWritten+7)/8;
-  
-  m_uiBitsWritten *= 8;
-}
-
-Void TComBitstream::initParsing ( UInt uiNumBytes )
-{
-  m_ulCurrentBits     = 0xdeaddead;
-  m_uiNextBits        = 0xdeaddead;
-  m_uiBitsLeft        = 0;
-  m_iValidBits        = 0;
-  m_uiDWordsLeft      = 0;
-  
-  m_uiBitsLeft        = uiNumBytes << 3;
-  
-  m_uiDWordsLeft      = m_uiBitsLeft >> 5;
-  m_iValidBits        = -32;
-  
-  xReadNextWord();
-  xReadNextWord();
+  m_fifo->push_back(m_held_bits);
+  m_held_bits = 0;
+  m_num_held_bits = 0;
 }
 
 #if LCEC_INTRA_MODE || QC_LCEC_INTER_MODE
-Void TComBitstream::pseudoRead ( UInt uiNumberOfBits, UInt& ruiBits )
+/**
+ * read #uiNumberOfBits# from bitstream without updating the bitstream
+ * state, storing the result in #ruiBits#.
+ *
+ * If reading #uiNumberOfBits# would overrun the bitstream buffer,
+ * the bitsream is effectively padded with sufficient zero-bits to
+ * avoid the overrun.
+ */
+Void TComInputBitstream::pseudoRead ( UInt uiNumberOfBits, UInt& ruiBits )
 {
-  UInt ui_right_shift;
+  unsigned int saved_num_held_bits = m_num_held_bits;
+  unsigned char saved_held_bits = m_held_bits;
+  unsigned int saved_fifo_idx = m_fifo_idx;
 
-  // check the number_of_bits parameter matches the range
-  assert( uiNumberOfBits <= 32 );
+  unsigned num_bits_to_read = min(uiNumberOfBits, getNumBitsLeft());
+  read(num_bits_to_read, ruiBits);
+  ruiBits <<= (uiNumberOfBits - num_bits_to_read);
 
-  if( uiNumberOfBits > m_uiBitsLeft )
-  {
-    //assert (0);
-  }
-
-  Int  iValidBits = m_iValidBits - uiNumberOfBits;
-  UInt ulCurrentBits=m_ulCurrentBits;
-  UInt uiNextBits= m_uiNextBits;
-  if( 0 <= iValidBits )
-  {
-    // calculate the number of bits to extract the desired number of bits
-    ui_right_shift = 32 - uiNumberOfBits ;
-    // mask out the value
-    ruiBits  = ulCurrentBits >> ui_right_shift;
-    //prepare for next access
-    ulCurrentBits = ulCurrentBits << uiNumberOfBits;
-  }
-  else
-  {
-    // mask out the value in the current word
-    ruiBits = ulCurrentBits;
-    // calculate the number of bits to extract the desired number of bits
-    ui_right_shift = iValidBits + uiNumberOfBits ;
-    // mask out the value in the next word
-    ruiBits |= uiNextBits >> ui_right_shift;
-    ruiBits >>= 32 - uiNumberOfBits;
-    uiNextBits <<=  -iValidBits;
-  }
-
-  // check the current word for being empty
-  //-- baekeun.lee@samsung.com
-  if ( 0 < m_iValidBits)
-  {
-    return ;
-  }
+  m_fifo_idx = saved_fifo_idx;
+  m_held_bits = saved_held_bits;
+  m_num_held_bits = saved_num_held_bits;
 }
 #endif
 
 
-Void TComBitstream::read (UInt uiNumberOfBits, UInt& ruiBits)
+Void TComInputBitstream::read (UInt uiNumberOfBits, UInt& ruiBits)
 {
-  UInt ui_right_shift;
-  
-  // check the number_of_bits parameter matches the range
   assert( uiNumberOfBits <= 32 );
   
-  if( uiNumberOfBits > m_uiBitsLeft )
+  /* NB, bits are extracted from the MSB of each byte. */
+  unsigned retval = 0;
+  if (uiNumberOfBits <= m_num_held_bits)
   {
-    assert (0);
-  }
-  
-  m_uiBitsLeft -= uiNumberOfBits;
-  m_iValidBits -= uiNumberOfBits;
-  
-  if( 0 <= m_iValidBits )
-  {
-    // calculate the number of bits to extract the desired number of bits
-    ui_right_shift = 32 - uiNumberOfBits ;
-    
-    // mask out the value
-    ruiBits  = m_ulCurrentBits >> ui_right_shift;
-    
-    //prepare for next access
-    m_ulCurrentBits = m_ulCurrentBits << uiNumberOfBits;
-  }
-  else
-  {
-    // mask out the value in the current word
-    ruiBits = m_ulCurrentBits;
-    
-    // calculate the number of bits to extract the desired number of bits
-    ui_right_shift = m_iValidBits + uiNumberOfBits ;
-    
-    // mask out the value in the next word
-    ruiBits |= m_uiNextBits >> ui_right_shift;
-    
-    ruiBits >>= 32 - uiNumberOfBits;
-    
-    m_uiNextBits <<=  -m_iValidBits;
-  }
-  
-  // check the current word for being empty
-  //-- baekeun.lee@samsung.com
-  if ( 0 < m_iValidBits)
-  {
-    return ;
-  }
-  xReadNextWord();
-}
-
-Void TComBitstream::readAlignOne()
-{
-  UInt uiNumberOfBits = getBitsUntilByteAligned();
-  
-  // check the number_of_bits parameter matches the range
-  assert (uiNumberOfBits <= 32);
-  assert (uiNumberOfBits <= m_uiBitsLeft);
-  
-  // sub the desired number of bits
-  m_uiBitsLeft -= uiNumberOfBits;
-  m_iValidBits -= uiNumberOfBits;
-  
-  assert (m_uiBitsLeft%8 == 0);
-  assert (m_iValidBits%8 == 0);
-  
-  // check the current word for beeing still valid
-  if( 0 < m_iValidBits )
-  {
-    m_ulCurrentBits <<= uiNumberOfBits;
+    /* n=1, len(H)=7:   -VHH HHHH, shift_down=6, mask=0xfe
+     * n=3, len(H)=7:   -VVV HHHH, shift_down=4, mask=0xf8
+     */
+    retval = m_held_bits >> (m_num_held_bits - uiNumberOfBits);
+    retval &= ~(0xff << uiNumberOfBits);
+    m_num_held_bits -= uiNumberOfBits;
+    ruiBits = retval;
     return;
   }
-  
-  xReadNextWord();
-  
-  // shift to the right position
-  m_ulCurrentBits <<= 32 - m_iValidBits;
-  
-  return;
-}
 
-// ====================================================================================================================
-// Protected member functions
-// ====================================================================================================================
+  /* all num_held_bits will go into retval
+   *   => need to mask leftover bits from previous extractions
+   *   => align retval with top of extracted word */
+  /* n=5, len(H)=3: ---- -VVV, mask=0x07, shift_up=5-3=2,
+   * n=9, len(H)=3: ---- -VVV, mask=0x07, shift_up=9-3=6 */
+  uiNumberOfBits -= m_num_held_bits;
+  retval = m_held_bits & ~(0xff << m_num_held_bits);
+  retval <<= uiNumberOfBits;
 
-__inline Void TComBitstream::xReadNextWord()
-{
-  m_ulCurrentBits = m_uiNextBits;
-  m_iValidBits += 32;
-  
-  // chech if there are bytes left in the packet
-  if( m_uiDWordsLeft )
+  /* number of whole bytes that need to be loaded to form retval */
+  /* n=32, len(H)=0, load 4bytes, shift_down=0
+   * n=32, len(H)=1, load 4bytes, shift_down=1
+   * n=31, len(H)=1, load 4bytes, shift_down=1+1
+   * n=8,  len(H)=0, load 1byte,  shift_down=0
+   * n=8,  len(H)=3, load 1byte,  shift_down=3
+   * n=5,  len(H)=1, load 1byte,  shift_down=1+3
+   */
+  unsigned aligned_word = 0;
+  unsigned num_bytes_to_load = (uiNumberOfBits - 1) >> 3;
+  assert(m_fifo_idx + num_bytes_to_load < m_fifo->size());
+
+  switch (num_bytes_to_load)
   {
-    // read 32 bit from the packet
-    m_uiNextBits = xSwap( *m_pulStreamPacket++ );
-    m_uiDWordsLeft--;
+  case 3: aligned_word  = (*m_fifo)[m_fifo_idx++] << 24;
+  case 2: aligned_word |= (*m_fifo)[m_fifo_idx++] << 16;
+  case 1: aligned_word |= (*m_fifo)[m_fifo_idx++] <<  8;
+  case 0: aligned_word |= (*m_fifo)[m_fifo_idx++];
   }
-  else
-  {
-    Int iBytesLeft  = ((Int)m_uiBitsLeft - m_iValidBits+7) >> 3;
-    UChar* puc      = (UChar*) m_pulStreamPacket;
-    m_uiNextBits  = 0;
-    
-    if( iBytesLeft > 0)
-    {
-      for( Int iByte = 0; iByte < iBytesLeft; iByte++ )
-      {
-        m_uiNextBits <<= 8;
-        m_uiNextBits += puc[iByte];
-      }
-      m_uiNextBits <<= (4-iBytesLeft)<<3;
-    }
-  }
-}
 
-Void TComBitstream::initParsingConvertPayloadToRBSP( const UInt uiBytesRead )
-{
-  UInt uiZeroCount    = 0;
-  UInt uiReadOffset   = 0;
-  UInt uiWriteOffset  = 0;
-  const UChar* pucRead = reinterpret_cast<UChar*> (getBuffer());
-  UChar* pucWrite      = reinterpret_cast<UChar*> (getBuffer());
-  
-  for( ; uiReadOffset < uiBytesRead; uiReadOffset++ )
-  {
-    if( 2 == uiZeroCount && 0x03 == pucRead[uiReadOffset] )
-    {
-      uiReadOffset++;
-      uiZeroCount = 0;
-      if (uiReadOffset>=uiBytesRead)
-      {
-        break;
-      }
-    }
-    
-    pucWrite[uiWriteOffset++] = pucRead[uiReadOffset];
-    
-    if( 0x00 == pucRead[uiReadOffset] )
-    {
-      uiZeroCount++;
-    }
-    else
-    {
-      uiZeroCount = 0;
-    }
-  }
-  
-  // th just clear the remaining bits in the buffer
-  for( UInt ui = uiWriteOffset; ui < uiBytesRead; ui++)
-  {
-    pucWrite[ui] = 0;
-  }
-  
-  initParsing( uiWriteOffset );
-}
+  /* resolve remainder bits */
+  unsigned next_num_held_bits = (32 - uiNumberOfBits) % 8;
 
-Void TComBitstream::convertRBSPToPayload( UInt uiStartPos )
-{
-  UInt uiZeroCount    = 0;
-  
-  //make sure the buffer is flushed
-  assert( 0 == getBitsUntilByteAligned() );
-  
-  const UInt uiBytesInBuffer = getNumberOfWrittenBits()>>3;
-  //make sure there's something in the buffer
-  assert( 0 != uiBytesInBuffer );
-  
-  //make sure start pos is inside the buffer
-  //  assert( uiStartPos > uiBytesInBuffer );
-  
-  UChar* pucRead = new UChar[ uiBytesInBuffer ];
-  //th this is not nice but ...
-  memcpy( pucRead, getStartStream(), uiBytesInBuffer );
-  
-  UChar* pucWrite      =  reinterpret_cast<UChar*> (getStartStream());
-  
-  UInt uiWriteOffset  = uiStartPos;
-  UInt uiReadOffset = uiStartPos;
-  UInt uiSliceIdx   = 0;
-  while ( uiReadOffset < uiBytesInBuffer )
-  {
-    if (uiSliceIdx < m_uiSliceCount && uiReadOffset == m_auiSliceByteLocation[uiSliceIdx]) // skip over start codes introduced before slice headers
-    {
-      assert(pucRead[uiReadOffset] == 0); pucWrite[uiWriteOffset++] =  pucRead[uiReadOffset++];
-      assert(pucRead[uiReadOffset] == 0); pucWrite[uiWriteOffset++] =  pucRead[uiReadOffset++];
-      assert(pucRead[uiReadOffset] == 0); pucWrite[uiWriteOffset++] =  pucRead[uiReadOffset++];
-      assert(pucRead[uiReadOffset] == 1); pucWrite[uiWriteOffset++] =  pucRead[uiReadOffset++];
+  /* copy required part of aligned_word into retval */
+  retval |= aligned_word >> next_num_held_bits;
 
-      uiSliceIdx++;
-    }
-    if( 2 == uiZeroCount && 0 == (pucRead[uiReadOffset] & 0xfc) )
-    {
-      pucWrite[uiWriteOffset++] = 0x03;
-      uiZeroCount = 0;
-    }
-    
-    pucWrite[uiWriteOffset++] = pucRead[uiReadOffset];
-    
-    if( 0 == pucRead[uiReadOffset] )
-    {
-      uiZeroCount++;
-    }
-    else
-    {
-      uiZeroCount = 0;
-    }
-    uiReadOffset++;
-  }
-  
-  delete [] pucRead;
-  m_uiBitsWritten = uiWriteOffset << 3;
-}
+  /* store held bits */
+  m_num_held_bits = next_num_held_bits;
+  m_held_bits = aligned_word;
 
-Void TComBitstream::allocateMemoryForSliceLocations ( UInt uiMaxNumOfSlices )
-{
-  m_auiSliceByteLocation     = new UInt[ uiMaxNumOfSlices ];
-  m_uiSliceCount             = 0;
-}
-
-Void TComBitstream::freeMemoryAllocatedForSliceLocations ()
-{
-  if (m_auiSliceByteLocation!=NULL)
-  {
-    delete [] m_auiSliceByteLocation;
-    m_auiSliceByteLocation   = NULL;
-  }
-  m_uiSliceCount             = 0;
+  ruiBits = retval;
 }
 
 /**
  * insert the contents of the bytealigned (and flushed) bitstream @src
  * into @this at byte position @pos.
- *
- * NB, there is currently a restriction that src_bytes must be a
- * multiple of sizeof(UInt) if @this->write(...) is going to be called
- * again.  This restriction will be removed when TComBitstream is refactored
- * to work on bytes.
  */
-void TComBitstream::insertAt(const TComBitstream& src, unsigned pos)
+void TComOutputBitstream::insertAt(const TComOutputBitstream& src, unsigned pos)
 {
   unsigned src_bits = src.getNumberOfWrittenBits();
   assert(0 == src_bits % 8);
-  unsigned src_bytes = src_bits/8;
 
-  /* check that there is enough space in the current buffer to accommodate @src */
-  unsigned this_buf_size = m_uiBufSize * sizeof(UInt);
-  unsigned this_bytes = this->getNumberOfWrittenBits()/8;
-  assert(this_buf_size - this_bytes > src_bytes);
-
-  /* make space */
-  unsigned char *this_dest = pos + src_bytes + (unsigned char*) this->getStartStream();
-  unsigned char *this_src = pos + (unsigned char*) this->getStartStream();
-  memmove(this_dest, this_src, this_bytes - pos);
-
-  /* splice src */
-  memcpy(this_src, src.getStartStream(), src_bytes);
-
-  /* update state */
-  this->m_uiBitsWritten += src_bits;
-  this->m_pulStreamPacket += src_bytes / sizeof(UInt);
-  /* XXX: this will go horribly wrong if data being inserted isn't a
-   * multiple of UInt. To work correctly, some data would have to be
-   * pulled back from the fifo into currentBits. */
-  /* Since davidf has rewritten this to work in bytes, i'm not going
-   * to make this work for UInt words.  This will be fine as long as
-   * no further data is pushed after this splice.
-   */
+  vector<uint8_t>::iterator at = this->m_fifo->begin() + pos;
+  this->m_fifo->insert(at, src.m_fifo->begin(), src.m_fifo->end());
 }

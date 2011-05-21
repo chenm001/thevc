@@ -1050,13 +1050,81 @@ Void TComPrediction::xPredIntraPlanar( Int* pSrc, Int srcStride, Pel*& rpDst, In
 Void TComPrediction::predLMIntraChroma( TComPattern* pcPattern, Int* piSrc, Pel* pPred, UInt uiPredStride, UInt uiCWidth, UInt uiCHeight, UInt uiChromaId )
 {
   UInt uiWidth  = uiCWidth << 1;
-  UInt uiHeight = uiCHeight << 1;
 
+#if !LM_CHROMA_TICKET156
+  UInt uiHeight = uiCHeight << 1; 
+  
   if (uiChromaId == 0)
     xGetRecPixels( pcPattern, pcPattern->getROIY(), pcPattern->getPatternLStride(), m_pLumaRecBuffer + m_iLumaRecStride + 1, m_iLumaRecStride, uiWidth, uiHeight );
+#endif
 
   xGetLLSPrediction( pcPattern, piSrc+uiWidth+2, uiWidth+1, pPred, uiPredStride, uiCWidth, uiCHeight, 1 );  
 }
+
+#if LM_CHROMA_TICKET156
+
+/** Function for deriving downsampled luma sample of current chroma block and its above, left causal pixel
+ * \param pcPattern pointer to neighbouring pixel access pattern
+ * \param uiCWidth the width of the chroma block
+ * \param uiCHeight the height of the chroma block
+
+ \ This function derives downsampled luma sample of current chroma block and its above, left causal pixel
+ */
+Void TComPrediction::getLumaRecPixels( TComPattern* pcPattern, UInt uiCWidth, UInt uiCHeight )
+{
+  UInt uiWidth  = uiCWidth << 1;
+  UInt uiHeight = uiCHeight << 1;  
+
+  Pel* pRecSrc = pcPattern->getROIY();
+  Pel* pDst0 = m_pLumaRecBuffer + m_iLumaRecStride + 1;
+
+  Int iRecSrcStride = pcPattern->getPatternLStride();
+  Int iRecSrcStride2 = iRecSrcStride << 1;
+  Int iDstStride = m_iLumaRecStride;
+  Int iSrcStride = ( max( uiWidth, uiHeight ) << 1 ) + 1;
+
+  Int* ptrSrc = pcPattern->getAdiOrgBuf( uiWidth, uiHeight, m_piYuvExt );
+
+  // initial pointers
+  Pel* pDst = pDst0 - 1 - iDstStride;  
+  Int* piSrc = ptrSrc;
+
+  // top left corner downsampled from ADI buffer
+  // don't need this point
+  pDst[0] = ( piSrc[0] + piSrc[ iSrcStride ] ) >> 1;
+
+  // top row
+  pDst++;
+  piSrc++;
+  for( Int i = 0, i2 = i << 1; i < uiCWidth; i++, i2 = i << 1 )
+  {
+    pDst[i] = ( piSrc[ i2 ] + piSrc[ i2 + iSrcStride ] ) >> 1;
+  }
+
+  // left column downsampled from ADI buffer
+  pDst = pDst0 - 1;
+  piSrc = ptrSrc + ( iSrcStride << 1 ); // addressing 3rd row, where reference column is stored
+
+  for( Int j = 0, j2 = j << 1; j < uiCHeight; j++, j2 = j << 1 )
+  {
+    pDst[0] = ( piSrc[ j2 ] + piSrc[ j2 + 1 ] ) >> 1;
+
+    pDst += iDstStride;    
+  }
+
+  // inner part from reconstructed picture buffer
+  for( Int j = 0; j < uiCHeight; j++ )
+  {
+    for( Int i = 0, i2 = i << 1; i < uiCWidth; i++, i2 = i << 1 )
+    {
+      pDst0[i] = (pRecSrc[i2] + pRecSrc[i2 + iRecSrcStride]) >> 1;
+    }
+
+    pDst0 += iDstStride;
+    pRecSrc += iRecSrcStride2;
+  }
+}
+#else
 
 /** Function for deriving downsampled luma sample of current chroma block and its above, left causal pixel
  * \param pcPattern pointer to neighbouring pixel access pattern
@@ -1103,6 +1171,7 @@ Void TComPrediction::xGetRecPixels( TComPattern* pcPattern, Pel* pRecSrc, Int iR
       pSrc += iRecSrcStride*2;
     }  
 }
+#endif
 
 /** Function for deriving the positon of first non-zero binary bit of a value
  * \param x input value
@@ -1169,7 +1238,9 @@ Void TComPrediction::xGetLLSPrediction( TComPattern* pcPattern, Int* pSrc0, Int 
 
   Int x = 0, y = 0, xx = 0, xy = 0;
 
+#if !LM_CHROMA_TICKET156
   if( pcPattern->isAboveAvailable() )
+#endif
   {
     pSrc  = pSrc0  - iSrcStride;
     pLuma = pLuma0 - iLumaStride;
@@ -1184,7 +1255,9 @@ Void TComPrediction::xGetLLSPrediction( TComPattern* pcPattern, Int* pSrc0, Int 
     iCountShift += g_aucConvertToBit[ uiWidth ] + 2;
   }
 
+#if !LM_CHROMA_TICKET156
   if( pcPattern->isLeftAvailable() )
+#endif
   {
     pSrc  = pSrc0 - uiExt;
     pLuma = pLuma0 - uiExt;
@@ -1203,7 +1276,7 @@ Void TComPrediction::xGetLLSPrediction( TComPattern* pcPattern, Int* pSrc0, Int 
   }
 
   Int iBitdepth = ( ( g_uiBitDepth + g_uiBitIncrement ) + g_aucConvertToBit[ uiWidth ] + 3 ) * 2;
-  Int iTempShift = Max( ( iBitdepth - 31 + 1) / 2, 0);
+  Int iTempShift = max( ( iBitdepth - 31 + 1) / 2, 0);
 
   if(iTempShift > 0)
   {

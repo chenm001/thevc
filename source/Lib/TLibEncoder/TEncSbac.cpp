@@ -159,12 +159,6 @@ Void TEncSbac::resetEntropy           ()
   return;
 }
 
-Void TEncSbac::codeNALUnitHeader( NalUnitType eNalUnitType, NalRefIdc eNalRefIdc, UInt TemporalId, Bool bOutputFlag )
-{
-  assert (0);
-  return;
-}
-
 void TEncSbac::codeSEI(const SEI&)
 {
   assert(0);
@@ -614,7 +608,6 @@ Void TEncSbac::codeMergeIndex( TComDataCU* pcCU, UInt uiAbsPartIdx )
   Bool bAboveInvolved = false;
   Bool bCollocatedInvolved = false;
   Bool bCornerInvolved = false;
-  Bool bCornerBLInvolved = false;
   UInt uiNumCand = 0;
   for( UInt uiIter = 0; uiIter < MRG_MAX_NUM_CANDS; ++uiIter )
   {
@@ -636,10 +629,6 @@ Void TEncSbac::codeMergeIndex( TComDataCU* pcCU, UInt uiAbsPartIdx )
       else if( uiIter == 3 )
       {
         bCornerInvolved = true;
-      }
-      else if( uiIter == 4 )
-      {
-        bCornerBLInvolved = true;
       }
     }
   }
@@ -718,8 +707,6 @@ Void TEncSbac::codeMergeIndex( TComDataCU* pcCU, UInt uiAbsPartIdx )
   DTRACE_CABAC_V( bCollocatedInvolved );
   DTRACE_CABAC_T( "\tbCornerRTInvolved= " );
   DTRACE_CABAC_V( bCornerInvolved );
-  DTRACE_CABAC_T( "\tbCornerBLInvolved= " );
-  DTRACE_CABAC_V( bCornerBLInvolved );
   DTRACE_CABAC_T( "\n" );
 }
 
@@ -810,7 +797,8 @@ Void TEncSbac::codeIntraDirLumaAng( TComDataCU* pcCU, UInt uiAbsPartIdx )
         m_pcBinIf->encodeBin((uiDir & 0x08) >> 3, m_cCUIntraPredSCModel.get(0, 0, 1));
         m_pcBinIf->encodeBin((uiDir & 0x10) >> 4, m_cCUIntraPredSCModel.get(0, 0, 1));
       }
-      else{
+      else
+      {
         m_pcBinIf->encodeBin(1, m_cCUIntraPredSCModel.get(0, 0, 1));
         m_pcBinIf->encodeBin(1, m_cCUIntraPredSCModel.get(0, 0, 1));
         m_pcBinIf->encodeBin(1, m_cCUIntraPredSCModel.get(0, 0, 1));
@@ -947,18 +935,22 @@ Void TEncSbac::codeIntraDirChroma( TComDataCU* pcCU, UInt uiAbsPartIdx )
   Int  iMax = uiMode < 4 ? 2 : 3; 
   
   //switch codeword
-  if (uiIntraDirChroma == 4) {
+  if (uiIntraDirChroma == 4)
+  {
     uiIntraDirChroma = 0;
   } 
 #if CHROMA_CODEWORD_SWITCH 
-  else {
-    if (uiIntraDirChroma < uiMode) {
+  else
+  {
+    if (uiIntraDirChroma < uiMode)
+    {
       uiIntraDirChroma++;
     }
     uiIntraDirChroma = ChromaMapping[iMax-2][uiIntraDirChroma];
   }
 #else
-  else if (uiIntraDirChroma < uiMode) {
+  else if (uiIntraDirChroma < uiMode)
+  {
     uiIntraDirChroma++;
   }
 #endif
@@ -1107,7 +1099,11 @@ Void TEncSbac::codeMvd( TComDataCU* pcCU, UInt uiAbsPartIdx, RefPicList eRefList
 
 Void TEncSbac::codeDeltaQP( TComDataCU* pcCU, UInt uiAbsPartIdx )
 {
+#if SUB_LCU_DQP
+  Int iDQp  = pcCU->getQP( uiAbsPartIdx ) - pcCU->getRefQP( uiAbsPartIdx );
+#else
   Int iDQp  = pcCU->getQP( uiAbsPartIdx ) - pcCU->getSlice()->getSliceQp();
+#endif
   
   if ( iDQp == 0 )
   {
@@ -1141,6 +1137,97 @@ Void TEncSbac::codeQtCbf( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eType, U
   DTRACE_CABAC_V( uiAbsPartIdx )
   DTRACE_CABAC_T( "\n" )
 }
+
+#if E057_INTRA_PCM
+/** Code I_PCM information. 
+ * \param pcCU pointer to CU
+ * \param uiAbsPartIdx CU index
+ * \returns Void
+ *
+ * If I_PCM flag indicates that the CU is I_PCM, code its PCM alignment bits and codes.  
+ */
+Void TEncSbac::codeIPCMInfo( TComDataCU* pcCU, UInt uiAbsPartIdx)
+{
+  UInt uiIPCM = (pcCU->getIPCMFlag(uiAbsPartIdx) == true)? 1 : 0;
+
+  m_pcBinIf->encodeBinTrm (uiIPCM);
+
+  if (uiIPCM)
+  {
+    m_pcBinIf->encodePCMAlignBits();
+
+    UInt uiMinCoeffSize = pcCU->getPic()->getMinCUWidth()*pcCU->getPic()->getMinCUHeight();
+    UInt uiLumaOffset   = uiMinCoeffSize*uiAbsPartIdx;
+    UInt uiChromaOffset = uiLumaOffset>>2;
+    Pel* piPCMSample;
+    UInt uiWidth;
+    UInt uiHeight;
+    UInt uiSampleBits;
+    UInt uiX, uiY;
+
+    piPCMSample = pcCU->getPCMSampleY() + uiLumaOffset;
+    uiWidth = pcCU->getWidth(uiAbsPartIdx);
+    uiHeight = pcCU->getHeight(uiAbsPartIdx);
+#if E192_SPS_PCM_BIT_DEPTH_SYNTAX
+    uiSampleBits = pcCU->getSlice()->getSPS()->getPCMBitDepthLuma();
+#else
+    uiSampleBits = g_uiBitDepth;
+#endif
+
+    for(uiY = 0; uiY < uiHeight; uiY++)
+    {
+      for(uiX = 0; uiX < uiWidth; uiX++)
+      {
+        UInt uiSample = piPCMSample[uiX];
+
+        m_pcBinIf->xWritePCMCode(uiSample, uiSampleBits);
+      }
+      piPCMSample += uiWidth;
+    }
+
+    piPCMSample = pcCU->getPCMSampleCb() + uiChromaOffset;
+    uiWidth = pcCU->getWidth(uiAbsPartIdx)/2;
+    uiHeight = pcCU->getHeight(uiAbsPartIdx)/2;
+#if E192_SPS_PCM_BIT_DEPTH_SYNTAX
+    uiSampleBits = pcCU->getSlice()->getSPS()->getPCMBitDepthChroma();
+#else
+    uiSampleBits = g_uiBitDepth;
+#endif
+
+    for(uiY = 0; uiY < uiHeight; uiY++)
+    {
+      for(uiX = 0; uiX < uiWidth; uiX++)
+      {
+        UInt uiSample = piPCMSample[uiX];
+
+        m_pcBinIf->xWritePCMCode(uiSample, uiSampleBits);
+      }
+      piPCMSample += uiWidth;
+    }
+
+    piPCMSample = pcCU->getPCMSampleCr() + uiChromaOffset;
+    uiWidth = pcCU->getWidth(uiAbsPartIdx)/2;
+    uiHeight = pcCU->getHeight(uiAbsPartIdx)/2;
+#if E192_SPS_PCM_BIT_DEPTH_SYNTAX
+    uiSampleBits = pcCU->getSlice()->getSPS()->getPCMBitDepthChroma();
+#else
+    uiSampleBits = g_uiBitDepth;
+#endif
+
+    for(uiY = 0; uiY < uiHeight; uiY++)
+    {
+      for(uiX = 0; uiX < uiWidth; uiX++)
+      {
+        UInt uiSample = piPCMSample[uiX];
+
+        m_pcBinIf->xWritePCMCode(uiSample, uiSampleBits);
+      }
+      piPCMSample += uiWidth;
+    }
+    m_pcBinIf->resetBac();
+  }
+}
+#endif
 
 UInt xCheckCoeffPlainCNoRecur( const TCoeff* pcCoef, UInt uiSize, UInt uiDepth )
 {

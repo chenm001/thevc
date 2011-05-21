@@ -36,20 +36,14 @@
 */
 
 #include <list>
+#include <vector>
 #include <stdio.h>
 #include <fcntl.h>
 #include <assert.h>
 
 #include "TAppDecTop.h"
-
-// ====================================================================================================================
-// Local constants
-// ====================================================================================================================
-
-/// initial bitstream buffer size
-/// should be large enough for parsing SPS
-/// resized as a function of picture size after parsing SPS
-#define BITS_BUF_SIZE 65536
+#include "../../Lib/TLibDecoder/AnnexBread.h"
+#include "../../Lib/TLibDecoder/NALread.h"
 
 // ====================================================================================================================
 // Constructor / destructor / initialization / destroy
@@ -63,19 +57,10 @@ TAppDecTop::TAppDecTop()
 
 Void TAppDecTop::create()
 {
-  m_apcBitstream  = new TComBitstream;
-  
-  m_apcBitstream->create( BITS_BUF_SIZE );
 }
 
 Void TAppDecTop::destroy()
 {
-  if ( m_apcBitstream )
-  {
-    m_apcBitstream->destroy();
-    delete m_apcBitstream;
-    m_apcBitstream = NULL;
-  }
 }
 
 // ====================================================================================================================
@@ -92,74 +77,68 @@ Void TAppDecTop::destroy()
  */
 Void TAppDecTop::decode()
 {
-  TComBitstream*      pcBitstream = m_apcBitstream;
   UInt                uiPOC;
-  TComList<TComPic*>* pcListPic;
-  Bool bFirstSliceDecoded = true;
+  TComList<TComPic*>* pcListPic = NULL;
+
+  ifstream bitstreamFile(m_pchBitstreamFile, ifstream::in | ifstream::binary);
+  if (!bitstreamFile)
+  {
+    fprintf(stderr, "\nfailed to open bitstream file `%s' for reading\n", m_pchBitstreamFile);
+    exit(EXIT_FAILURE);
+  }
+
+  InputByteStream bytestream(bitstreamFile);
 
   // create & initialize internal classes
   xCreateDecLib();
   xInitDecLib  ();
-#if DCM_SKIP_DECODING_FRAMES
   m_iPOCLastDisplay += m_iSkipFrame;      // set the last displayed POC correctly for skip forward.
-#endif
 
   // main decoder loop
-  Bool  bEos        = false;
   bool recon_opened = false; // reconstruction file not yet opened. (must be performed after SPS is seen)
-  Bool resizedBitstreamBuffer = false;
-  
-  while ( !bEos )
+
+  while (!!bitstreamFile)
   {
-    streampos  lLocation = m_cTVideoIOBitstreamFile.getFileLocation();
-    bEos                 = m_cTVideoIOBitstreamFile.readBits( pcBitstream );
-    if (bEos)
-    {
-      if (!bFirstSliceDecoded) m_cTDecTop.decode( bEos, pcBitstream, uiPOC, pcListPic, m_iSkipFrame, m_iPOCLastDisplay);
-      m_cTDecTop.executeDeblockAndAlf( bEos, pcBitstream, uiPOC, pcListPic, m_iSkipFrame, m_iPOCLastDisplay);
-      if( pcListPic )
-      {
-        if ( m_pchReconFile && !recon_opened )
-        {
-          if ( m_outputBitDepth == 0 )
-            m_outputBitDepth = g_uiBitDepth + g_uiBitIncrement;
+    /* location serves to work around a design fault in the decoder, whereby
+     * the process of reading a new slice that is the first slice of a new frame
+     * requires the TDecTop::decode() method to be called again with the same
+     * nal unit. */
+    streampos location = bitstreamFile.tellg();
+    AnnexBStats stats = AnnexBStats();
 
-          m_cTVideoIOYuvReconFile.open( m_pchReconFile, true, m_outputBitDepth, g_uiBitDepth + g_uiBitIncrement ); // write mode
-          recon_opened = true;
-        }
-        // write reconstuction to file
-        xWriteOutput( pcListPic );
-      }
-      break;
-    }
-    
+    vector<uint8_t> nalUnit;
+    byteStreamNALUnit(bytestream, nalUnit, stats);
+
     // call actual decoding function
-#if DCM_SKIP_DECODING_FRAMES
-    Bool bNewPicture     = m_cTDecTop.decode( bEos, pcBitstream, uiPOC, pcListPic, m_iSkipFrame, m_iPOCLastDisplay);
-    bFirstSliceDecoded   = true;
-    if (bNewPicture)
+    bool bNewPicture = false;
+    if (nalUnit.empty())
+      /* this can happen if the following occur:
+       *  - empty input file
+       *  - two back-to-back start_code_prefixes
+       *  - start_code_prefix immediately followed by EOF
+       */
+      fprintf(stderr, "Warning: Attempt to decode an empty NAL unit\n");
+    else
     {
-      m_cTDecTop.executeDeblockAndAlf( bEos, pcBitstream, uiPOC, pcListPic, m_iSkipFrame, m_iPOCLastDisplay);
-      if (!m_cTVideoIOBitstreamFile.good()) m_cTVideoIOBitstreamFile.clear();
-      m_cTVideoIOBitstreamFile.setFileLocation( lLocation );
-      bFirstSliceDecoded = false;
-    }
-#else
-    m_cTDecTop.decode( bEos, pcBitstream, uiPOC, pcListPic );
-#endif
-
-    
-    if (!resizedBitstreamBuffer)
-    {
-      TComSPS *sps = m_cTDecTop.getSPS();
-      if (sps)
+      InputNALUnit nalu;
+      read(nalu, nalUnit);
+      bNewPicture = m_cTDecTop.decode(nalu, m_iSkipFrame, m_iPOCLastDisplay);
+      if (bNewPicture)
       {
-        pcBitstream->destroy();
-        pcBitstream->create(sps->getWidth() * sps->getHeight() * 2);
-        resizedBitstreamBuffer = true;
+        bitstreamFile.clear();
+        /* location points to the current nalunit payload[1] due to the
+         * need for the annexB parser to read three extra bytes.
+         * [1] except for the first NAL unit in the file
+         *     (but bNewPicture doesn't happen then) */
+        bitstreamFile.seekg(location-streamoff(3));
+        bytestream.reset();
       }
     }
-    
+    if (bNewPicture || !bitstreamFile)
+    {
+      m_cTDecTop.executeDeblockAndAlf(uiPOC, pcListPic, m_iSkipFrame, m_iPOCLastDisplay);
+    }
+
     if( pcListPic )
     {
       if ( m_pchReconFile && !recon_opened )
@@ -188,18 +167,12 @@ Void TAppDecTop::decode()
 
 Void TAppDecTop::xCreateDecLib()
 {
-  // open bitstream file
-  m_cTVideoIOBitstreamFile.openBits( m_pchBitstreamFile, false);  // read mode
-  
   // create decoder class
   m_cTDecTop.create();
 }
 
 Void TAppDecTop::xDestroyDecLib()
 {
-  // close bitstream file
-  m_cTVideoIOBitstreamFile.closeBits();
-  
   if ( m_pchReconFile )
   {
     m_cTVideoIOYuvReconFile. close();

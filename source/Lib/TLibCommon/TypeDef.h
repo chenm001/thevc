@@ -44,12 +44,10 @@
 ////////////////////////////
 
 #define E253                              1
-
+#define MOT_TUPU_MAXDEPTH1                1           ///< E364, "Implicit TU" derivation when there is no TU tree (i.e., "max depth = 1"), the transform blocks should not cross PU boundaries
 ////////////////////////////
 // JCT-VC E end
 ////////////////////////////
-
-
 
 #define HHI_DISABLE_INTER_NxN_SPLIT       1           ///< TN: disable redundant use of pu-mode NxN for CTBs larger 8x8 (inter only)
 #define HHI_RMP_SWITCH                    0
@@ -71,6 +69,8 @@
 #else
 #define HHI_RQT_FORCE_SPLIT_ACC2_PU       0
 #endif
+
+#define VERBOSE_RATE 0 ///< Print additional rate information in encoder
 
 // COLOCATED PREDICTOR
 // FOR MERGE
@@ -135,22 +135,24 @@
 
 #define LM_CHROMA                             1           // JCTVC-E266: Chroma intra prediction based on luma signal
 
+#if LM_CHROMA
+#define LM_CHROMA_TICKET156                   1 // Ticket156, luma-based chroma intra prediction take consideration of CIP, reference_pixel_paddin and slice boundary. 
+#endif
+
 #define UNIFY_INTER_TABLE                     1           // JCTVC-E381 CAVLC: Inter pred coding
 
 #define DCM_RDCOST_TEMP_FIX //Enables temporary bug fixes to RD cost computation
 
 #define DCM_DECODING_REFRESH              1           ///< enable/disable decoding refresh (IDR and CDR)
-#if DCM_DECODING_REFRESH
-#define DCM_SKIP_DECODING_FRAMES          1           ///< enable/disable the random access by the decoder
-#endif
 
 #define DCM_SIMPLIFIED_MVP                1           ///< enable/disable the simplified motion vector prediction(D231)
 #if DCM_SIMPLIFIED_MVP
-#define MTK_AMVP_SMVP_DERIVATION          1              ///< (JCTVC-E481 - D125 2.1) amvp spatial candidate derivation
+#define MTK_AMVP_SMVP_DERIVATION          1              ///< (JCTVC-E481 - D125 2.3) amvp spatial candidate derivation
 #define TI_AMVP_SMVP_SIMPLIFIED           1              ///< (JCTVC-E481 - F)amvp spatial candidate simplified scanning
 #endif
 
-#define DCM_COMB_LIST                  1           ///< Use of combined list for uni-prediction in B-slices
+#define DCM_COMB_LIST                     1           ///< Use of combined list for uni-prediction in B-slices
+
 
 #define ADD_PLANAR_MODE                   1           ///< enable/disable Planar mode for intra prediction (JCTVC-E321)
 #if ADD_PLANAR_MODE
@@ -191,7 +193,8 @@
 
 #define FAST_UDI_USE_MPM 1
 #define SONY_SIG_CTX 1
-#define SNY_DQP                          1           ///< syntax change of dQP (JCT-VC D258)
+#define SNY_DQP                          1           ///< syntax change of dQP (JCTVC D258)
+#define SUB_LCU_DQP  1                               ///< syntax change of sub-LCU-level dQP (JCTVC-E051/220/391/436/217/D038/D258)
 
 #define TI_ALF_MAX_VSIZE_7 1
 
@@ -249,6 +252,12 @@
 #if !E243_CORE_TRANSFORMS                   // E243_CORE_TRANSFORMS should be ON when DST is used
 #error "E243_CORE_TRANSFORMS should be ON"
 #endif
+#endif
+
+#define E057_INTRA_PCM                      1 // JCTVC-E057 PCM operation mode 2: Signal I_PCM flag when CU is 2Nx2N intra and its size is larger than or equal to 1<<(LOG2_MIN_I_PCM_CODING_BLOCK_SIZE_MINUS3+3).
+#if E057_INTRA_PCM
+#define E192_SPS_PCM_BIT_DEPTH_SYNTAX       1 // JCTVC-E192: PCM bit depth
+#define E192_SPS_PCM_FILTER_DISABLE_SYNTAX  1 // JCTVC-E192: PCM filter disable flag
 #endif
 
 // ====================================================================================================================

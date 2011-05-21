@@ -38,9 +38,13 @@
 #ifndef __COMMONDEF__
 #define __COMMONDEF__
 
-// this pragma can be used for turning off "signed and unsigned mismatch"
+#include <algorithm>
+
 #if _MSC_VER > 1000
+// disable "signed and unsigned mismatch"
 #pragma warning( disable : 4018 )
+// disable bool coercion "performance warning"
+#pragma warning( disable : 4800 )
 #endif // _MSC_VER > 1000
 #include "TypeDef.h"
 #include "TComRom.h"
@@ -120,10 +124,13 @@
 // Macro functions
 // ====================================================================================================================
 
-#define Max(x, y)                   ((x)>(y)?(x):(y))                                                 ///< max of (x, y)
-#define Min(x, y)                   ((x)<(y)?(x):(y))                                                 ///< min of (x, y)
 #define Median(a,b,c)               ((a)>(b)?(a)>(c)?(b)>(c)?(b):(c):(a):(b)>(c)?(a)>(c)?(a):(c):(b)) ///< 3-point median
-#define Clip(x)                     ( Min(g_uiIBDI_MAX, Max( 0, (x)) ) )                              ///< clip with bit-depth range
+
+extern UInt g_uiIBDI_MAX;
+/** clip #x#, such that 0 <= #x# <= g_uiIBDI_MAX */
+template <typename T> inline T Clip(T x) { return std::min<T>(T(g_uiIBDI_MAX), std::max<T>( T(0), x)); }
+
+/** clip #a#, such that #MinVal# <= #a# <= #MaxVal# */
 #define Clip3( MinVal, MaxVal, a)   ( ((a)<(MinVal)) ? (MinVal) : (((a)>(MaxVal)) ? (MaxVal) :(a)) )  ///< general min/max clip
 
 #define DATA_ALIGN                  1                                                                 ///< use 32-bit aligned malloc/free

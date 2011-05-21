@@ -54,6 +54,8 @@ class SEImessages;
 class TComPic
 {
 private:
+  UInt                  m_uiTLayer;               //  Temporal layer
+
   TComPicSym*           m_apcPicSym;              //  Symbol
   
   TComPicYuv*           m_apcPicYuv[2];           //  Texture,  0:org / 1:rec
@@ -75,6 +77,9 @@ public:
   Void          create( Int iWidth, Int iHeight, UInt uiMaxWidth, UInt uiMaxHeight, UInt uiMaxDepth, Bool bIsVirtual = false );
   Void          destroy();
   
+  UInt          getTLayer()                { return m_uiTLayer;   }
+  Void          setTLayer( UInt uiTLayer ) { m_uiTLayer = uiTLayer; }
+
   TComPicSym*   getPicSym()           { return  m_apcPicSym;    }
   TComSlice*    getSlice(Int i)       { return  m_apcPicSym->getSlice(i);  }
   Int           getPOC()              { return  m_apcPicSym->getSlice(m_uiCurrSliceIdx)->getPOC();  }

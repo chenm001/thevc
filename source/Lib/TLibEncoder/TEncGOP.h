@@ -38,13 +38,15 @@
 #ifndef __TENCGOP__
 #define __TENCGOP__
 
+#include <list>
+
 #include <stdlib.h>
 
 #include "../TLibCommon/TComList.h"
 #include "../TLibCommon/TComPic.h"
-#include "../TLibCommon/TComBitStream.h"
 #include "../TLibCommon/TComBitCounter.h"
 #include "../TLibCommon/TComLoopFilter.h"
+#include "../TLibCommon/AccessUnit.h"
 #include "TEncAdaptiveLoopFilter.h"
 #include "TEncSlice.h"
 #include "TEncEntropy.h"
@@ -123,7 +125,7 @@ public:
   Void  destroy     ();
   
   Void  init        ( TEncTop* pcTEncTop );
-  Void  compressGOP ( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rcListPic, TComList<TComPicYuv*>& rcListPicYuvRec, TComList<TComBitstream*> rcListBitstream );
+  Void  compressGOP ( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rcListPic, TComList<TComPicYuv*>& rcListPicYuvRec, std::list<AccessUnit>& accessUnitsInGOP );
   
   Int   getGOPSize()          { return  m_iGopSize;  }
   Int   getRateGOPSize()      { return  m_iRateGopSize;  }
@@ -139,13 +141,13 @@ public:
   
 protected:
   Void  xInitGOP          ( Int iPOC, Int iNumPicRcvd, TComList<TComPic*>& rcListPic, TComList<TComPicYuv*>& rcListPicYuvRecOut );
-  Void  xGetBuffer        ( TComList<TComPic*>& rcListPic, TComList<TComPicYuv*>& rcListPicYuvRecOut, TComList<TComBitstream*>& rcListBitstream, Int iNumPicRcvd, Int iTimeOffset, TComPic*& rpcPic, TComPicYuv*& rpcPicYuvRecOut, TComBitstream*& rpcBitstreamOut, UInt uiPOCCurr );
+  Void  xGetBuffer        ( TComList<TComPic*>& rcListPic, TComList<TComPicYuv*>& rcListPicYuvRecOut, Int iNumPicRcvd, Int iTimeOffset, TComPic*& rpcPic, TComPicYuv*& rpcPicYuvRecOut, UInt uiPOCCurr );
   
 #if DCM_DECODING_REFRESH
   NalUnitType getNalUnitType( UInt uiPOCCurr );
 #endif
 
-  Void  xCalculateAddPSNR ( TComPic* pcPic, TComPicYuv* pcPicD, UInt uiBits, Double dEncTime );
+  Void  xCalculateAddPSNR ( TComPic* pcPic, TComPicYuv* pcPicD, const AccessUnit&, Double dEncTime );
   
   UInt64 xFindDistortionFrame (TComPicYuv* pcPic0, TComPicYuv* pcPic1);
 

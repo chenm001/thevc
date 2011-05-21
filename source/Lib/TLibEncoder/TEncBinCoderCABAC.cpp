@@ -82,6 +82,48 @@ TEncBinCABAC::finish()
   }
 }
 
+#if E057_INTRA_PCM
+/** Reset BAC register and counter values.
+ * \returns Void
+ */
+Void TEncBinCABAC::resetBac()
+{
+  m_uiLow           = 0;
+  m_uiRange         = 510;
+  m_uiBitsToFollow  = 0;
+  m_uiByte          = 0;
+  m_uiBitsLeft      = 9;
+}
+
+/** Encode PCM alignment zero bits.
+ * \returns Void
+ */
+Void TEncBinCABAC::encodePCMAlignBits()
+{
+  xWriteBitAndBitsToFollow( ( m_uiLow >> 9 ) & 1 );
+  xWriteBit               ( ( m_uiLow >> 8 ) & 1 );
+  xWriteBit               ( 1 ); // stop bit
+
+  if( 8 - m_uiBitsLeft != 0 )
+  {
+    m_pcTComBitIf->write  ( m_uiByte, 8 - m_uiBitsLeft );
+    m_pcTComBitIf->writeAlignZero(); // pcm align zero
+    m_uiBitsLeft  = 8;
+    m_uiByte      = 0;
+  }
+}
+
+/** Write a PCM code.
+ * \param uiCode code value
+ * \param uiLength code bit-depth
+ * \returns Void
+ */
+Void  TEncBinCABAC::xWritePCMCode(UInt uiCode, UInt uiLength)
+{
+  m_pcTComBitIf->write  (uiCode, uiLength);
+}
+#endif
+
 Void
 TEncBinCABAC::copyState( TEncBinIf* pcTEncBinIf )
 {

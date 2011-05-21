@@ -35,11 +35,13 @@
     \brief    decoder class
 */
 
+#include "NALread.h"
 #include "TDecTop.h"
 
 TDecTop::TDecTop()
 : m_SEIs(0)
 {
+  m_pcPic = 0;
   m_iGopSize      = 0;
   m_bGopSizeSet   = false;
   m_iMaxRefPicNum = 0;
@@ -52,9 +54,7 @@ TDecTop::TDecTop()
 #if DCM_DECODING_REFRESH
   m_bRefreshPending = 0;
   m_uiPOCCDR = 0;
-#if DCM_SKIP_DECODING_FRAMES
   m_uiPOCRA = MAX_UINT;          
-#endif
 #endif
   m_uiPrevPOC               = UInt(-1);
   m_bFirstSliceInPicture    = true;
@@ -140,11 +140,11 @@ Void TDecTop::xGetNewPicBuffer ( TComSlice* pcSlice, TComPic*& rpcPic )
 {
   xUpdateGopSize(pcSlice);
   
-  m_iMaxRefPicNum = Max(m_iMaxRefPicNum, Max(Max(2, pcSlice->getNumRefIdx(REF_PIC_LIST_0)+1), m_iGopSize/2 + 2 + pcSlice->getNumRefIdx(REF_PIC_LIST_0)));
+  m_iMaxRefPicNum = max(m_iMaxRefPicNum, max(max(2, pcSlice->getNumRefIdx(REF_PIC_LIST_0)+1), m_iGopSize/2 + 2 + pcSlice->getNumRefIdx(REF_PIC_LIST_0)));
   
   if (m_cListPic.size() < (UInt)m_iMaxRefPicNum)
   {
-    rpcPic = new TComPic;
+    rpcPic = new TComPic();
     
     rpcPic->create ( pcSlice->getSPS()->getWidth(), pcSlice->getSPS()->getHeight(), g_uiMaxCUWidth, g_uiMaxCUHeight, g_uiMaxCUDepth, true);
     m_cListPic.pushBack( rpcPic );
@@ -162,6 +162,14 @@ Void TDecTop::xGetNewPicBuffer ( TComSlice* pcSlice, TComPic*& rpcPic )
       bBufferIsAvailable = true;
       break;
     }
+
+    if ( rpcPic->getSlice( 0 )->isReferenced() == false )
+    {
+      rpcPic->setReconMark( false );
+      rpcPic->getPicYuvRec()->setBorderExtension( false );
+      bBufferIsAvailable = true;
+      break;
+    }
   }
   
   if ( !bBufferIsAvailable )
@@ -176,14 +184,21 @@ Void TDecTop::xGetNewPicBuffer ( TComSlice* pcSlice, TComPic*& rpcPic )
   }
 }
 
-Void TDecTop::executeDeblockAndAlf(Bool bEos, TComBitstream* pcBitstream, UInt& ruiPOC, TComList<TComPic*>*& rpcListPic, Int& iSkipFrame,  Int& iPOCLastDisplay)
+Void TDecTop::executeDeblockAndAlf(UInt& ruiPOC, TComList<TComPic*>*& rpcListPic, Int& iSkipFrame, Int& iPOCLastDisplay)
 {
+  if (!m_pcPic)
+    /* nothing to deblock */
+    return;
+
   TComPic*&   pcPic         = m_pcPic;
 
   // Execute Deblock and ALF only + Cleanup
-  TComSlice* pcSlice  = pcPic->getPicSym()->getSlice( m_uiSliceIdx                  );
-  m_cGopDecoder.decompressGop ( bEos, pcBitstream, pcPic, true);
-  pcSlice->sortPicList        ( m_cListPic );       //  sorting for application output    
+  m_cGopDecoder.decompressGop(NULL, pcPic, true);
+
+  // Apply decoder picture marking at the end of coding
+  pcPic->getSlice( 0 )->decodingTLayerSwitchingMarking( m_cListPic );
+
+  TComSlice::sortPicList( m_cListPic ); // sorting for application output
   ruiPOC              = pcPic->getSlice(m_uiSliceIdx-1)->getPOC();
   rpcListPic          = &m_cListPic;  
   m_cCuDecoder.destroy();        
@@ -192,29 +207,15 @@ Void TDecTop::executeDeblockAndAlf(Bool bEos, TComBitstream* pcBitstream, UInt& 
   return;
 }
 
-#if DCM_SKIP_DECODING_FRAMES
-Bool TDecTop::decode (Bool bEos, TComBitstream* pcBitstream, UInt& ruiPOC, TComList<TComPic*>*& rpcListPic, Int& iSkipFrame,  Int& iPOCLastDisplay)
-#else
-Void TDecTop::decode (Bool bEos, TComBitstream* pcBitstream, UInt& ruiPOC, TComList<TComPic*>*& rpcListPic)
-#endif
+Bool TDecTop::decode(InputNALUnit& nalu, Int& iSkipFrame, Int& iPOCLastDisplay)
 {
-  if (m_bFirstSliceInPicture)
-  {
-    rpcListPic = NULL;
-  }
   TComPic*&   pcPic         = m_pcPic;
   
   // Initialize entropy decoder
   m_cEntropyDecoder.setEntropyDecoder (&m_cCavlcDecoder);
-  m_cEntropyDecoder.setBitstream      (pcBitstream);
-  
-  NalUnitType eNalUnitType;
-  UInt        TemporalId;
-  Bool        OutputFlag;
-  
-  m_cEntropyDecoder.decodeNalUnitHeader(eNalUnitType, TemporalId, OutputFlag);  
+  m_cEntropyDecoder.setBitstream      (nalu.m_Bitstream);
 
-  switch (eNalUnitType)
+  switch (nalu.m_UnitType)
   {
     case NAL_UNIT_SPS:
       m_cEntropyDecoder.decodeSPS( &m_cSPS );
@@ -230,6 +231,9 @@ Void TDecTop::decode (Bool bEos, TComBitstream* pcBitstream, UInt& ruiPOC, TComL
       return false;
 
     case NAL_UNIT_PPS:
+#if SUB_LCU_DQP
+      m_cPPS.setSPS(&m_cSPS);
+#endif
       m_cEntropyDecoder.decodePPS( &m_cPPS );
       m_uiValidPS |= 2;
       return false;
@@ -263,9 +267,11 @@ Void TDecTop::decode (Bool bEos, TComBitstream* pcBitstream, UInt& ruiPOC, TComL
       }
 
 #if DCM_DECODING_REFRESH
-      m_apcSlicePilot->setNalUnitType        (eNalUnitType);
+      m_apcSlicePilot->setNalUnitType(nalu.m_UnitType);
 #endif
       m_cEntropyDecoder.decodeSliceHeader (m_apcSlicePilot);
+
+      m_apcSlicePilot->setTLayerInfo(nalu.m_TemporalID);
 
       if (m_apcSlicePilot->isNextSlice() && m_apcSlicePilot->getPOC()!=m_uiPrevPOC && !m_bFirstSliceInSequence)
       {
@@ -277,13 +283,11 @@ Void TDecTop::decode (Bool bEos, TComBitstream* pcBitstream, UInt& ruiPOC, TComL
       m_bFirstSliceInSequence = false;
       if (m_apcSlicePilot->isNextSlice())
       {
-#if DCM_SKIP_DECODING_FRAMES
         // Skip pictures due to random access
         if (isRandomAccessSkipPicture(iSkipFrame, iPOCLastDisplay))
         {
           return false;
         }
-#endif
       }
       
       if (m_bFirstSliceInPicture)
@@ -322,7 +326,9 @@ Void TDecTop::decode (Bool bEos, TComBitstream* pcBitstream, UInt& ruiPOC, TComL
       assert(pcPic->getNumAllocatedSlice() == (m_uiSliceIdx + 1));
       m_apcSlicePilot = pcPic->getPicSym()->getSlice(m_uiSliceIdx); 
       pcPic->getPicSym()->setSlice(pcSlice, m_uiSliceIdx);
-      
+
+      pcPic->setTLayer(nalu.m_TemporalID);
+
       if (bNextSlice)
       {
 #if DCM_DECODING_REFRESH
@@ -408,7 +414,7 @@ Void TDecTop::decode (Bool bEos, TComBitstream* pcBitstream, UInt& ruiPOC, TComL
       pcPic->setCurrSliceIdx(m_uiSliceIdx);
 
       //  Decode a picture
-      m_cGopDecoder.decompressGop ( bEos, pcBitstream, pcPic, false );
+      m_cGopDecoder.decompressGop(nalu.m_Bitstream, pcPic, false);
 
       m_bFirstSliceInPicture = false;
       m_uiSliceIdx++;
@@ -421,7 +427,6 @@ Void TDecTop::decode (Bool bEos, TComBitstream* pcBitstream, UInt& ruiPOC, TComL
   return false;
 }
 
-#if DCM_SKIP_DECODING_FRAMES
 /** Function for checking if picture should be skipped because of random access
  * \param iSkipFrame skip frame counter
  * \param iPOCLastDisplay POC of last picture displayed
@@ -467,5 +472,4 @@ Bool TDecTop::isRandomAccessSkipPicture(Int& iSkipFrame,  Int& iPOCLastDisplay)
   // if we reach here, then the picture is not skipped.
   return false; 
 }
-#endif
 

@@ -55,6 +55,8 @@ TEncTop::TEncTop()
   g_bJustDoIt = g_bEncDecTraceDisable;
   g_nSymbolCounter = 0;
 #endif
+
+  m_iMaxRefPicNum     = 0;
 }
 
 TEncTop::~TEncTop()
@@ -86,6 +88,7 @@ Void TEncTop::create ()
 #if MQT_BA_RA && MQT_ALF_NPASS
   if(m_bUseALF)
   {
+    m_cAdaptiveLoopFilter.setGOPSize( getGOPSize() );
     m_cAdaptiveLoopFilter.createAlfGlobalBuffers(m_iALFEncodePassReduction);
   }
 #endif
@@ -172,10 +175,11 @@ Void TEncTop::init()
   // initialize SPS
   xInitSPS();
   
-#if CONSTRAINED_INTRA_PRED
   // initialize PPS
-  xInitPPS();
+#if SUB_LCU_DQP
+  m_cPPS.setSPS(&m_cSPS);
 #endif
+  xInitPPS();
 
   // initialize processing unit classes
   m_cGOPEncoder.  init( this );
@@ -206,6 +210,8 @@ Void TEncTop::init()
     m_cAdaptiveLoopFilter.setALFEncodePassReduction( m_iALFEncodePassReduction );
   }
 #endif
+
+  m_iMaxRefPicNum = 0;
 }
 
 // ====================================================================================================================
@@ -238,7 +244,7 @@ Void TEncTop::deletePicBuffer()
  \retval  rcListBitstreamOut  list of output bitstreams
  \retval  iNumEncoded         number of encoded pictures
  */
-Void TEncTop::encode( bool bEos, TComPicYuv* pcPicYuvOrg, TComList<TComPicYuv*>& rcListPicYuvRecOut, TComList<TComBitstream*>& rcListBitstreamOut, Int& iNumEncoded )
+Void TEncTop::encode( bool bEos, TComPicYuv* pcPicYuvOrg, TComList<TComPicYuv*>& rcListPicYuvRecOut, list<AccessUnit>& accessUnitsOut, Int& iNumEncoded )
 {
   TComPic* pcPicCurr = NULL;
   
@@ -253,7 +259,7 @@ Void TEncTop::encode( bool bEos, TComPicYuv* pcPicYuvOrg, TComList<TComPicYuv*>&
   }
   
   // compress GOP
-  m_cGOPEncoder.compressGOP( m_iPOCLast, m_iNumPicRcvd, m_cListPic, rcListPicYuvRecOut, rcListBitstreamOut );
+  m_cGOPEncoder.compressGOP(m_iPOCLast, m_iNumPicRcvd, m_cListPic, rcListPicYuvRecOut, accessUnitsOut);
   
   iNumEncoded         = m_iNumPicRcvd;
   m_iNumPicRcvd       = 0;
@@ -332,6 +338,10 @@ Void TEncTop::xInitSPS()
   m_cSPS.setMinTrDepth    ( 0                   );
   m_cSPS.setMaxTrDepth    ( 1                   );
   
+#if E057_INTRA_PCM
+  m_cSPS.setPCMLog2MinSize (m_uiPCMLog2MinSize);
+#endif
+
   m_cSPS.setUseALF        ( m_bUseALF           );
   
   m_cSPS.setQuadtreeTULog2MaxSize( m_uiQuadtreeTULog2MaxSize );
@@ -384,11 +394,79 @@ Void TEncTop::xInitSPS()
   m_cSPS.setUseSAO             ( m_bUseSAO         );
 #endif
 
+  if ( m_bTLayering )
+  {
+    Int iMaxTLayers = 1;
+    for ( i = 1; ; i++)
+    {
+      iMaxTLayers = i;
+      if ( (m_iRateGOPSize >> i) == 0 ) 
+      {
+        break;
+      }
+    }
+  
+    m_cSPS.setMaxTLayers( (UInt)iMaxTLayers );
+
+    Bool bTemporalIdNestingFlag = true;
+    for ( i = 0; i < m_cSPS.getMaxTLayers()-1; i++ )
+    {
+      if ( !m_abTLayerSwitchingFlag[i] )
+      {
+        bTemporalIdNestingFlag = false;
+        break;
+      }
+    }
+
+    m_cSPS.setTemporalIdNestingFlag( bTemporalIdNestingFlag );
+  }
+  else
+  {
+    m_cSPS.setMaxTLayers( 1 );
+    m_cSPS.setTemporalIdNestingFlag( false );
+  }
+#if E057_INTRA_PCM && E192_SPS_PCM_BIT_DEPTH_SYNTAX
+  m_cSPS.setPCMBitDepthLuma (g_uiPCMBitDepthLuma);
+  m_cSPS.setPCMBitDepthChroma (g_uiPCMBitDepthChroma);
+#endif
+#if E057_INTRA_PCM && E192_SPS_PCM_FILTER_DISABLE_SYNTAX
+  m_cSPS.setPCMFilterDisableFlag  ( m_bPCMFilterDisableFlag );
+#endif
 }
 
-#if CONSTRAINED_INTRA_PRED
 Void TEncTop::xInitPPS()
 {
+#if CONSTRAINED_INTRA_PRED
   m_cPPS.setConstrainedIntraPred( m_bUseConstrainedIntraPred );
-}
 #endif
+
+  if ( m_cSPS.getTemporalIdNestingFlag() ) 
+  {
+    m_cPPS.setNumTLayerSwitchingFlags( 0 );
+    for ( UInt i = 0; i < m_cSPS.getMaxTLayers() - 1; i++ )
+    {
+      m_cPPS.setTLayerSwitchingFlag( i, true );
+    }
+  }
+  else
+  {
+    m_cPPS.setNumTLayerSwitchingFlags( m_cSPS.getMaxTLayers() - 1 );
+    for ( UInt i = 0; i < m_cPPS.getNumTLayerSwitchingFlags(); i++ )
+    {
+      m_cPPS.setTLayerSwitchingFlag( i, m_abTLayerSwitchingFlag[i] );
+    }
+  }   
+
+#if SUB_LCU_DQP
+  if( m_cPPS.getSPS()->getUseDQP() )
+  {
+    m_cPPS.setMaxCuDQPDepth( m_iMaxCuDQPDepth );
+    m_cPPS.setMinCuDQPSize( m_cPPS.getSPS()->getMaxCUWidth() >> ( m_cPPS.getMaxCuDQPDepth()) );
+  }
+  else
+  {
+    m_cPPS.setMaxCuDQPDepth( 0 );
+    m_cPPS.setMinCuDQPSize( m_cPPS.getSPS()->getMaxCUWidth() >> ( m_cPPS.getMaxCuDQPDepth()) );
+  }
+#endif
+}

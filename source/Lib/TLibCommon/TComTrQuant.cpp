@@ -285,7 +285,7 @@ TComTrQuant::~TComTrQuant()
 /// Including Chroma QP Parameter setting
 Void TComTrQuant::setQPforQuant( Int iQP, Bool bLowpass, SliceType eSliceType, TextType eTxtType)
 {
-  iQP = Max( Min( iQP, 51 ), 0 );
+  iQP = max( min( iQP, 51 ), 0 );
   
   if(eTxtType != TEXT_LUMA) //Chroma
   {
@@ -332,7 +332,8 @@ void xTr(Pel *block, Long *coeff, UInt uiStride, UInt uiTrSize)
   {
     iT = g_aiT32[0];
   }
-  else{
+  else
+  {
     assert(0);
   }
 
@@ -413,7 +414,6 @@ void xITr(Long *coeff, Pel *block, UInt uiStride, UInt uiTrSize)
   int i,j,k,iSum;
   Int tmp[32*32];
   const short *iT;
-  UInt uiLog2TrSize = g_aucConvertToBit[ uiTrSize ] + 2;
   if (uiTrSize==4)
   {
     iT  = g_aiT4[0];
@@ -430,7 +430,8 @@ void xITr(Long *coeff, Pel *block, UInt uiStride, UInt uiTrSize)
   {
     iT = g_aiT32[0];
   }
-  else{
+  else
+  {
     assert(0);
   }
   int shift_1st = SHIFT_INV_1ST;
@@ -1884,7 +1885,7 @@ Int TComTrQuant::bitCountRDOQ(Int coeff, Int pos, Int nTab, Int lastCoeffFlag,In
 
   if ( N==4 )
   {
-    n = Max(0, nTab - 2);
+    n = max(0, nTab - 2);
   }
   else
   {
@@ -1896,7 +1897,7 @@ Int TComTrQuant::bitCountRDOQ(Int coeff, Int pos, Int nTab, Int lastCoeffFlag,In
 
 #if CAVLC_COEF_LRG_BLK
   uiModZeroCoding = (m_uiRDOQOffset==1 || N>8)? 1:0;
-  int tmprun = Min(maxrun,28);
+  int tmprun = min(maxrun,28);
 
   if( N<=8 )
   {
@@ -1907,7 +1908,8 @@ Int TComTrQuant::bitCountRDOQ(Int coeff, Int pos, Int nTab, Int lastCoeffFlag,In
     uiVlcTableTemp = (nTab==5)? g_auiVlcTable16x16Intra:g_auiVlcTable16x16Inter;
   }
 #else
-  if( nTab == 2 || nTab == 5 ){
+  if( nTab == 2 || nTab == 5 )
+  {
     uiVlcTableTemp = g_auiVlcTable8x8Intra;
   }
   else
@@ -1929,13 +1931,14 @@ Int TComTrQuant::bitCountRDOQ(Int coeff, Int pos, Int nTab, Int lastCoeffFlag,In
         cx = m_uiLPTableE4[(n << 5) + x];
         vlcNum = vlcTable4[n];
       }
-      else{
+      else
+      {
 #if CAVLC_COEF_LRG_BLK
         cx = xLastLevelInd(lev, pos, N);
 #else
         cx = m_uiLPTableE8[(n << 7) + x];
 #endif
-        vlcNum = g_auiLastPosVlcNum[n][Min(16,m_uiLastPosVlcIndex[n])];
+        vlcNum = g_auiLastPosVlcNum[n][min(16u,m_uiLastPosVlcIndex[n])];
       }
       bits=xCountVlcBits( vlcNum, cx );
 
@@ -1949,9 +1952,10 @@ Int TComTrQuant::bitCountRDOQ(Int coeff, Int pos, Int nTab, Int lastCoeffFlag,In
       }
 
     }
-    else{ // Level !=0  && lastCoeffFlag==0
-
-      if ( !levelMode ){   
+    else
+    { // Level !=0  && lastCoeffFlag==0
+      if ( !levelMode )
+      {   
 #if CAVLC_COEF_LRG_BLK
           if(nTab == 2 || nTab == 5)
           {
@@ -1963,12 +1967,15 @@ Int TComTrQuant::bitCountRDOQ(Int coeff, Int pos, Int nTab, Int lastCoeffFlag,In
           }
           vlc = uiVlcTableTemp[tmprun];
 #else
-        if ( N == 4 ){
+        if ( N == 4 )
+        {
           // 4x4
-          if ( nTab == 2 ){
+          if ( nTab == 2 )
+          {
             cn = xRunLevelInd(lev, run, maxrun, g_auiLumaRunTr14x4[uiTr1][maxrun]);
           }
-          else{
+          else
+          {
 #if RUNLEVEL_TABLE_CUT
             cn = xRunLevelIndInter(lev, run, maxrun);
 #else
@@ -1977,45 +1984,51 @@ Int TComTrQuant::bitCountRDOQ(Int coeff, Int pos, Int nTab, Int lastCoeffFlag,In
           }
           vlc = uiVlcTableTemp[maxrun];
         }
-        else {
+        else
+        {
           // 8x8
           if(nTab == 2 || nTab == 5)
           {
-            cn = xRunLevelInd(lev, run, maxrun, g_auiLumaRunTr18x8[uiTr1][Min(maxrun,28)]);
+            cn = xRunLevelInd(lev, run, maxrun, g_auiLumaRunTr18x8[uiTr1][min(maxrun,28)]);
           }
           else
           {
 #if RUNLEVEL_TABLE_CUT
             cn = xRunLevelIndInter(lev, run, maxrun);
 #else
-            cn = g_auiLumaRun8x8[Min(maxrun,28)][lev][run];
+            cn = g_auiLumaRun8x8[min(maxrun,28)][lev][run];
 #endif
           }
-          vlc = uiVlcTableTemp[Min(maxrun,28)];
+          vlc = uiVlcTableTemp[min(maxrun,28)];
         }
 #endif
         bits = xCountVlcBits( vlc, cn );
-        if ( level > 1 ){
+        if ( level > 1 )
+        {
           bits += xCountVlcBits( 0, 2 * (level - 2) + sign );
         }
-        else{
+        else
+        {
           bits++;
         } 
 
       }
-      else{ // Level !=0  && lastCoeffFlag==0 && levelMode
+      else
+      { // Level !=0  && lastCoeffFlag==0 && levelMode
         bits = (xCountVlcBits( vlc_adaptive, level ) + 1);
       }
     }
   }
-  else{
-
-    if (levelMode){
+  else
+  {
+    if (levelMode)
+    {
       bits=xCountVlcBits( vlc_adaptive, level );
     }
-    else{                        
-      if ( pos == 0 && lastCoeffFlag == 0){  
-
+    else
+    {                        
+      if ( pos == 0 && lastCoeffFlag == 0)
+      {  
 #if CAVLC_COEF_LRG_BLK
         vlc = uiVlcTableTemp[tmprun];
         if(nTab == 2 || nTab == 5)
@@ -2027,13 +2040,16 @@ Int TComTrQuant::bitCountRDOQ(Int coeff, Int pos, Int nTab, Int lastCoeffFlag,In
           cn = xRunLevelIndInter(0, run + 1, maxrun);
         }
 #else
-        if ( N == 4 ){
+        if ( N == 4 )
+        {
           // 4x4
           vlc = uiVlcTableTemp[maxrun];
-          if ( nTab == 2 ){
+          if ( nTab == 2 )
+          {
             cn = xRunLevelInd(0, run + 1, maxrun, g_auiLumaRunTr14x4[uiTr1][maxrun]);
           }
-          else{
+          else
+          {
 #if RUNLEVEL_TABLE_CUT
             cn = xRunLevelIndInter(0, run+1, maxrun);
 #else
@@ -2041,33 +2057,37 @@ Int TComTrQuant::bitCountRDOQ(Int coeff, Int pos, Int nTab, Int lastCoeffFlag,In
 #endif
           }
         }
-        else{
+        else
+        {
           // 8x8
-          vlc = uiVlcTableTemp[Min(maxrun, 28)];
-          if(nTab == 2 || nTab == 5){
-            cn = xRunLevelInd(0, run + 1, maxrun, g_auiLumaRunTr18x8[uiTr1][Min(maxrun, 28)]);
+          vlc = uiVlcTableTemp[min(maxrun, 28)];
+          if(nTab == 2 || nTab == 5)
+          {
+            cn = xRunLevelInd(0, run + 1, maxrun, g_auiLumaRunTr18x8[uiTr1][min(maxrun, 28)]);
           }
-          else{
+          else
+          {
 #if RUNLEVEL_TABLE_CUT
             cn = xRunLevelIndInter(0, run+1, maxrun);
 #else
-            cn = g_auiLumaRun8x8[Min(maxrun, 28)][0][run + 1];
+            cn = g_auiLumaRun8x8[min(maxrun, 28)][0][run + 1];
 #endif
           }
         }
 #endif
         bits=xCountVlcBits( vlc, cn );
       }
-      else{
+      else
+      {
         bits = 0;
 
-        if ( pos > 0 && uiModZeroCoding == 1 ){
-
+        if ( pos > 0 && uiModZeroCoding == 1 )
+        {
           Int iSum_big_coefTemp, levelModeTemp, maxrunTemp;
           UInt uiTr1Temp;
 
-          if ( lastCoeffFlag == 0 ){
-
+          if ( lastCoeffFlag == 0 )
+          {
 #if CAVLC_COEF_LRG_BLK
             vlc = uiVlcTableTemp[tmprun];
             if(nTab == 2 || nTab == 5)
@@ -2079,13 +2099,16 @@ Int TComTrQuant::bitCountRDOQ(Int coeff, Int pos, Int nTab, Int lastCoeffFlag,In
               cn = xRunLevelIndInter(0, run + 1, maxrun);
             }
 #else
-            if ( N == 4 ){
+            if ( N == 4 )
+            {
               // 4x4
               vlc = uiVlcTableTemp[maxrun];
-              if ( nTab == 2 ){
+              if ( nTab == 2 )
+              {
                 cn = xRunLevelInd(0, run + 1, maxrun, g_auiLumaRunTr14x4[uiTr1][maxrun]);
               }
-              else{
+              else
+              {
 #if RUNLEVEL_TABLE_CUT
                 cn = xRunLevelIndInter(0, run+1, maxrun);
 #else
@@ -2093,37 +2116,41 @@ Int TComTrQuant::bitCountRDOQ(Int coeff, Int pos, Int nTab, Int lastCoeffFlag,In
 #endif
               }
             }
-            else{
+            else
+            {
               // 8x8
-              vlc = uiVlcTableTemp[Min(maxrun, 28)];
-              if(nTab == 2 || nTab == 5){
-                cn = xRunLevelInd(0, run + 1, maxrun, g_auiLumaRunTr18x8[uiTr1][Min(maxrun, 28)]);
+              vlc = uiVlcTableTemp[min(maxrun, 28)];
+              if(nTab == 2 || nTab == 5)
+              {
+                cn = xRunLevelInd(0, run + 1, maxrun, g_auiLumaRunTr18x8[uiTr1][min(maxrun, 28)]);
               }
-              else{
+              else
+              {
 #if RUNLEVEL_TABLE_CUT
                 cn = xRunLevelIndInter(0, run+1, maxrun);
 #else
-                cn = g_auiLumaRun8x8[Min(maxrun,28)][0][run + 1];
+                cn = g_auiLumaRun8x8[min(maxrun,28)][0][run + 1];
 #endif
               }
             }
 #endif
           }
-          else{
-
+          else
+          {
             x = (pos - 1);
             if( N == 4 )
             {
               cn = m_uiLPTableE4[(n << 5) + x];
               vlc = vlcTable4[n];
             }
-            else{
+            else
+            {
 #if CAVLC_COEF_LRG_BLK
               cn = xLastLevelInd(lev, pos, N);
 #else
               cn = m_uiLPTableE8[(n << 7) + x];
 #endif
-              vlc = g_auiLastPosVlcNum[n][Min(16, m_uiLastPosVlcIndex[n])];
+              vlc = g_auiLastPosVlcNum[n][min(16u, m_uiLastPosVlcIndex[n])];
             }
           }
           bits+=xCountVlcBits( vlc, cn );
@@ -2134,49 +2161,59 @@ Int TComTrQuant::bitCountRDOQ(Int coeff, Int pos, Int nTab, Int lastCoeffFlag,In
           levelModeTemp = levelMode;
           Int switch_thr[10] = {49,49,0,49,49,0,49,49,49,49};
 
-          if ( N > 4 ){ 
-            if ( level > 1 ){
+          if ( N > 4 )
+          { 
+            if ( level > 1 )
+            {
               iSum_big_coefTemp += level;
               if ((N * N - pos - 1) > switch_thr[iBlockType] || iSum_big_coefTemp > 2) levelModeTemp = 1;
             }
           }
-          else{
+          else
+          {
             if ( level > 1 ) levelModeTemp = 1;
           }
 
-          if ( levelModeTemp == 1 ){
+          if ( levelModeTemp == 1 )
+          {
             bits-=xCountVlcBits( vlc_adaptive, 1);
           }
-          else{
+          else
+          {
             maxrunTemp = pos - 1;
             uiTr1Temp = uiTr1;
 
-            if ( uiTr1Temp > 0 && level < 2 ){
+            if ( uiTr1Temp > 0 && level < 2 )
+            {
               uiTr1Temp++;
-              uiTr1Temp = Min(MAX_TR1, uiTr1Temp);
+              uiTr1Temp = min(unsigned(MAX_TR1), uiTr1Temp);
             }
-            else{
+            else
+            {
               uiTr1Temp=0;
             }
 
 #if CAVLC_COEF_LRG_BLK
-            vlc = uiVlcTableTemp[Min(maxrunTemp,28)];
+            vlc = uiVlcTableTemp[min(maxrunTemp,28)];
             if(nTab == 2 || nTab == 5)
             {
-              cn = xRunLevelInd(0, 0, maxrunTemp, pLumaRunTr1[uiTr1Temp][Min(maxrunTemp,28)]);
+              cn = xRunLevelInd(0, 0, maxrunTemp, pLumaRunTr1[uiTr1Temp][min(maxrunTemp,28)]);
             }
             else
             {
               cn = xRunLevelIndInter(0, 0, maxrunTemp);
             }
 #else
-            if ( N == 4 ){
+            if ( N == 4 )
+            {
               // 4x4
               vlc = uiVlcTableTemp[maxrunTemp];
-              if ( nTab == 2 ){
+              if ( nTab == 2 )
+              {
                 cn = xRunLevelInd(0, 0, maxrunTemp, g_auiLumaRunTr14x4[uiTr1Temp][maxrunTemp]);
               }
-              else{
+              else
+              {
 #if RUNLEVEL_TABLE_CUT
                 cn = xRunLevelIndInter(0, 0, maxrunTemp);
 #else
@@ -2184,25 +2221,27 @@ Int TComTrQuant::bitCountRDOQ(Int coeff, Int pos, Int nTab, Int lastCoeffFlag,In
 #endif
               }
             }
-            else{
+            else
+            {
               // 8x8
-              vlc = uiVlcTableTemp[Min(maxrunTemp,28)];
-              if(nTab == 2 || nTab == 5){
-                cn = xRunLevelInd(0, 0, maxrunTemp, g_auiLumaRunTr18x8[uiTr1Temp][Min(maxrunTemp,28)]);
+              vlc = uiVlcTableTemp[min(maxrunTemp,28)];
+              if(nTab == 2 || nTab == 5)
+              {
+                cn = xRunLevelInd(0, 0, maxrunTemp, g_auiLumaRunTr18x8[uiTr1Temp][min(maxrunTemp,28)]);
               }
-              else{
+              else
+              {
 #if RUNLEVEL_TABLE_CUT
                 cn = xRunLevelIndInter(0, 0, maxrunTemp);
 #else
-                cn = g_auiLumaRun8x8[Min(maxrunTemp,28)][0][0];
+                cn = g_auiLumaRun8x8[min(maxrunTemp,28)][0][0];
 #endif
               }
             }
 #endif
             bits -= xCountVlcBits( vlc, cn );
           }
-        } // if ( pos > 0 && uiModZeroCoding == 1 ){
-
+        } // if ( pos > 0 && uiModZeroCoding == 1 )
       } 
     }
   }
@@ -2227,8 +2266,9 @@ Int TComTrQuant::xCodeCoeffCountBitsLast(TCoeff* scoeff, levelDataStruct* levelD
   UInt uiLumaRunNoTr18x8[29]={2, 2, 2, 3, 3, 3, 4, 4, 4, 5, 5, 5, 5, 6, 6, 6, 6, 7, 7, 7, 8, 8, 8, 9, 9, 9, 9, 9, 13};
 
 
-  if ( N == 4 ){
-    n = Max(0, nTab - 2);
+  if ( N == 4 )
+  {
+    n = max(0, nTab - 2);
   }
   else
   {
@@ -2260,8 +2300,8 @@ Int TComTrQuant::xCodeCoeffCountBitsLast(TCoeff* scoeff, levelDataStruct* levelD
 
   i--;
 
-  if ( i >= 0 ){
-
+  if ( i >= 0 )
+  {
     /* Go into run mode */
     run_done = 0;
     while ( !run_done )
@@ -2308,10 +2348,10 @@ Int TComTrQuant::xCodeCoeffCountBitsLast(TCoeff* scoeff, levelDataStruct* levelD
   const UInt *vlcTableInter = (N<=8)? g_auiVlcTable8x8Inter:g_auiVlcTable16x16Inter;
   const UInt *pLumaRunTr1 = (N==4)? uiLumaRunNoTr14x4:uiLumaRunNoTr18x8;
 #endif
-  for (i = last_pos_init; i >= 0; i--){
-
-    if (scoeff[i]){
-
+  for (i = last_pos_init; i >= 0; i--)
+  {
+    if (scoeff[i])
+    {
       bitsLast[i] = bitsRun[i] = 0; 
 
       last_pos = i;
@@ -2335,17 +2375,19 @@ Int TComTrQuant::xCodeCoeffCountBitsLast(TCoeff* scoeff, levelDataStruct* levelD
 
         x = uiNoCoeff*lev + last_pos;
 
-        if ( uiNoCoeff == 16 ){
+        if ( uiNoCoeff == 16 )
+        {
           cx = m_uiLPTableE4[n * 32 + x];
           vlcNum = vlcTable[n];
         }
-        else {
+        else
+        {
 #if CAVLC_COEF_LRG_BLK
           cx = xLastLevelInd(lev, last_pos, N);
 #else
           cx = m_uiLPTableE8[n * 128 + x];
 #endif
-          vlcNum = g_auiLastPosVlcNum[n][Min(16,m_uiLastPosVlcIndex[n])];
+          vlcNum = g_auiLastPosVlcNum[n][min(16u,m_uiLastPosVlcIndex[n])];
         }
         bitsLast[i]=bitsLevel + xCountVlcBits( vlcNum, cx);
       }
@@ -2355,7 +2397,8 @@ Int TComTrQuant::xCodeCoeffCountBitsLast(TCoeff* scoeff, levelDataStruct* levelD
       if ( i > 0 )
       {
         bitsLevel = 0;
-        if ( quantCoeffInfo[i].nexLevelVal != 0 ){
+        if ( quantCoeffInfo[i].nexLevelVal != 0 )
+        {
           absLevel = abs(quantCoeffInfo[i].nexLevelVal);
           sign = (quantCoeffInfo[i].nexLevelVal < 0) ? 1 : 0;
           lev = (absLevel == 1) ? 0 : 1;
@@ -2375,7 +2418,7 @@ Int TComTrQuant::xCodeCoeffCountBitsLast(TCoeff* scoeff, levelDataStruct* levelD
         maxrun = quantCoeffInfo[i].maxrun;
 
 #if CAVLC_COEF_LRG_BLK 
-        Int tmprun = Min(maxrun,28);
+        Int tmprun = min(maxrun,28);
         if(nTab == 2 || nTab == 5)
         {
           vlc = vlcTableIntra[tmprun]; 
@@ -2390,11 +2433,13 @@ Int TComTrQuant::xCodeCoeffCountBitsLast(TCoeff* scoeff, levelDataStruct* levelD
 #else
         if ( uiNoCoeff == 16 )
         {
-          if ( nTab == 2 ){
+          if ( nTab == 2 )
+          {
             vlc = g_auiVlcTable8x8Intra[maxrun];        
             cn = xRunLevelInd(quantCoeffInfo[i].nextLev, run, maxrun, uiLumaRunNoTr14x4[maxrun]);
           }
-          else{
+          else
+          {
             vlc = g_auiVlcTable8x8Inter[maxrun];           
 #if RUNLEVEL_TABLE_CUT
             cn = xRunLevelIndInter(quantCoeffInfo[i].nextLev, run, maxrun);
@@ -2406,12 +2451,14 @@ Int TComTrQuant::xCodeCoeffCountBitsLast(TCoeff* scoeff, levelDataStruct* levelD
         }
         else
         {
-          if(nTab == 2 || nTab == 5){
-            vlc = g_auiVlcTable8x8Intra[Min(maxrun,28)];          
+          if(nTab == 2 || nTab == 5)
+          {
+            vlc = g_auiVlcTable8x8Intra[min(maxrun,28)];          
             cn = xRunLevelInd(quantCoeffInfo[i].nextLev, run, maxrun, uiLumaRunNoTr18x8[min(maxrun,28)]);
           }
-          else{
-            vlc = g_auiVlcTable8x8Inter[Min(maxrun,28)];           
+          else
+          {
+            vlc = g_auiVlcTable8x8Inter[min(maxrun,28)];           
 #if RUNLEVEL_TABLE_CUT
             cn = xRunLevelIndInter(quantCoeffInfo[i].nextLev, run, maxrun); 
 #else
@@ -2426,8 +2473,10 @@ Int TComTrQuant::xCodeCoeffCountBitsLast(TCoeff* scoeff, levelDataStruct* levelD
   }
 
   lagrMin=0; lastPosMin=-1; 
-  for (i=0; i<uiNoCoeff; i++){
-    if ( scoeff[i] != 0 ){
+  for (i=0; i<uiNoCoeff; i++)
+  {
+    if ( scoeff[i] != 0 )
+    {
       lagrMin += levelData[i].errLevel[0];
     }
   }
@@ -2435,14 +2484,17 @@ Int TComTrQuant::xCodeCoeffCountBitsLast(TCoeff* scoeff, levelDataStruct* levelD
   UInt first=1; 
 
   bitsLastPrev=0; lagrPrev=lagrMin;
-  for (i=0; i<uiNoCoeff; i++){
-    if (scoeff[i]){
+  for (i=0; i<uiNoCoeff; i++)
+  {
+    if (scoeff[i])
+    {
       iRate = (bitsRun[i] + bitsLast[i] - bitsLastPrev) << uiBitShift;
       lagr = lagrPrev-levelData[i].errLevel[0] + levelData[i].errLevel[levelData[i].quantInd] + m_dLambda*iRate;
       bitsLastPrev = bitsLast[i];
       lagrPrev = lagr;
 
-      if ( lagr < lagrMin || abs(scoeff[i]) > 1 || first == 1){
+      if ( lagr < lagrMin || abs(scoeff[i]) > 1 || first == 1)
+      {
         lagrMin = lagr;
         lastPosMin =i;
         first = 0;
@@ -2506,7 +2558,7 @@ Int TComTrQuant::bitCount_LCEC(Int k,Int pos,Int n,Int lpflag,Int levelMode,Int 
       {
         cx = m_uiLPTableE8[n*128+x];
 #if QC_MOD_LCEC
-        vlcNum = g_auiLastPosVlcNum[n][Min(16,m_uiLastPosVlcIndex[n])];
+        vlcNum = g_auiLastPosVlcNum[n][min(16,m_uiLastPosVlcIndex[n])];
 #else
         vlcNum = vlcTable8[n];
 #endif
@@ -2633,18 +2685,19 @@ Void TComTrQuant::xRateDistOptQuant_LCEC(TComDataCU* pcCU, Long* pSrcCoeff, TCoe
 {
   Int     i, j;
   Int     iShift = 0;
-  Int     qp_rem, q_bits;
   Double  err, lagr, lagrMin;
-  Double  normFact = 0.0;
-  Double  OneOverNormFact = 0.0;
   Double  fTemp = 0.0;
   Int     iQuantCoeff;
   
 #if E243_CORE_TRANSFORMS
+  Int     q_bits;
   Int     iShiftQBits, iSign, iRate, lastPosMin, iBlockType;
   UInt    uiBitShift = SCALE_BITS, uiScanPos, levelInd;
   Int     levelBest, iLevel;
 #else
+  Int     qp_rem, q_bits;
+  Double  OneOverNormFact = 0.0;
+  Double  normFact = 0.0;
   Bool    bExt8x8Flag = false;
   Int     iShiftQBits, iSign, iRate, lastPosMin, iBlockType;
   UInt    uiBitShift = 15, uiScanPos, levelInd;
@@ -2661,13 +2714,15 @@ Void TComTrQuant::xRateDistOptQuant_LCEC(TComDataCU* pcCU, Long* pSrcCoeff, TCoe
   static TCoeff sQuantCoeff[256];
 #endif
 
+#if !E243_CORE_TRANSFORMS
   qp_rem    = m_cQP.m_iRem;
+#endif
   q_bits    = m_cQP.m_iBits;
 
   UInt noCoeff=(uiWidth < 8 ? 16 : 64);
 #if CAVLC_COEF_LRG_BLK
   UInt maxBlSize = (eTType==TEXT_LUMA)? 32:8;
-  UInt uiBlSize = Min(uiWidth,maxBlSize);
+  UInt uiBlSize = min(uiWidth,maxBlSize);
   noCoeff = uiBlSize*uiBlSize;
 #endif
 
@@ -2778,27 +2833,30 @@ Void TComTrQuant::xRateDistOptQuant_LCEC(TComDataCU* pcCU, Long* pSrcCoeff, TCoe
 #if CAVLC_COEF_LRG_BLK
         UInt uiLog2BlkSize = g_aucConvertToBit[ pcCU->isIntra( uiAbsPartIdx ) ? uiWidth : uiBlSize   ] + 2;
 #else
-        UInt uiLog2BlkSize = g_aucConvertToBit[ pcCU->isIntra( uiAbsPartIdx ) ? uiWidth : Min(8,uiWidth)    ] + 2;
+        UInt uiLog2BlkSize = g_aucConvertToBit[ pcCU->isIntra( uiAbsPartIdx ) ? uiWidth : min(8,uiWidth)    ] + 2;
 #endif
         const UInt uiScanIdx = pcCU->getCoefScanIdx(uiAbsPartIdx, uiWidth, eTType==TEXT_LUMA, pcCU->isIntra(uiAbsPartIdx));
 #else
         const UInt* pucScan;
-        if( !pcCU->isIntra(uiAbsPartIdx )){
+        if( !pcCU->isIntra(uiAbsPartIdx ))
+        {
 #if CAVLC_COEF_LRG_BLK
           pucScan = g_auiFrameScanXY[ g_aucConvertToBit[ uiBlSize ] + 1];
 #else
-          pucScan = g_auiFrameScanXY[ g_aucConvertToBit[ Min(uiWidth, 8) ] + 1];
+          pucScan = g_auiFrameScanXY[ g_aucConvertToBit[ min(uiWidth, 8) ] + 1];
 #endif
         }
-        else{
+        else
+        {
           pucScan = g_auiFrameScanXY[ g_aucConvertToBit[ uiWidth ] + 1];
         }
 #endif //QC_MDCS
 
 
-
+#if !E243_CORE_TRANSFORMS
         OneOverNormFact = 1.0 / normFact;
-
+#endif
+  
         UInt uiShift_local = iShift;
         UInt uiRes_local = (uiWidth - 1);
         UInt uiWidth_local = uiShift_local;
@@ -2851,19 +2909,23 @@ Void TComTrQuant::xRateDistOptQuant_LCEC(TComDataCU* pcCU, Long* pSrcCoeff, TCoe
           bLowPass = (uiSliceType == 0);
           iDefaultOffset_LTR = (bLowPass? 170 : 86);
 
-          if ( uiWidth == 4 && uiWidth == 4 ){
+          if ( uiWidth == 4 && uiWidth == 4 )
+          {
             iPer = QP_BITS + k - QOFFSET_BITS;
             iAddRDOQ = iDefaultOffset << iPer;
           }
-          else if ( uiWidth == 8 && uiWidth == 8){
+          else if ( uiWidth == 8 && uiWidth == 8)
+          {
             iPer = QP_BITS + k + 1 - QOFFSET_BITS;
             iAddRDOQ = iDefaultOffset << iPer;
           }
-          else if ( uiWidth == 16 && uiHeight == 16 ){
+          else if ( uiWidth == 16 && uiHeight == 16 )
+          {
             iPer = ECore16Shift + k - QOFFSET_BITS_LTR;
             iAddRDOQ = iDefaultOffset_LTR << iPer;
           }
-          else if ( uiWidth == 32 && uiHeight == 32 ){
+          else if ( uiWidth == 32 && uiHeight == 32 )
+          {
             iPer = ECore32Shift + k - QOFFSET_BITS_LTR;
             iAddRDOQ = iDefaultOffset_LTR << iPer;
           }
@@ -2934,7 +2996,8 @@ Void TComTrQuant::xRateDistOptQuant_LCEC(TComDataCU* pcCU, Long* pSrcCoeff, TCoe
             psLevelData->level[1] = psLevelData->levelQ;
             psLevelData->noLevels = 2;
 
-            if ( psLevelData->levelQ > 1 ){
+            if ( psLevelData->levelQ > 1 )
+            {
               psLevelData->noLevels++;
               psLevelData->level[2] = 1;
             }
@@ -2947,7 +3010,8 @@ Void TComTrQuant::xRateDistOptQuant_LCEC(TComDataCU* pcCU, Long* pSrcCoeff, TCoe
             psLevelData->level[2] = psLevelData->levelQ + 1;
             psLevelData->noLevels = 3;
 
-            if ( psLevelData->levelQ > 1 ){
+            if ( psLevelData->levelQ > 1 )
+            {
               psLevelData->noLevels++;
               psLevelData->level[3] = 1;
             }
@@ -2957,7 +3021,8 @@ Void TComTrQuant::xRateDistOptQuant_LCEC(TComDataCU* pcCU, Long* pSrcCoeff, TCoe
               psLevelData->quantInd = 2;
           }
 
-          for ( levelInd = 1; levelInd < psLevelData->noLevels; levelInd++ ){
+          for ( levelInd = 1; levelInd < psLevelData->noLevels; levelInd++ )
+          {
             err = (Double)((psLevelData->level[levelInd] << q_bits) - psLevelData->levelDouble);
             psLevelData->errLevel[levelInd] = err * err * fTemp;
             psLevelData->level[levelInd] *= iSign;
@@ -2995,24 +3060,25 @@ Void TComTrQuant::xRateDistOptQuant_LCEC(TComDataCU* pcCU, Long* pSrcCoeff, TCoe
         Int atable[5] = {4,6,14,28,0xfffffff};
         Int switch_thr[10] = {49,49,0,49,49,0,49,49,49,49};
 
-        Int levelIndBest, iRateMin=0, levelStart;
+        Int iRateMin=0, levelStart;
         Double lagrCoded=0, lagrNotCoded=0;
 #if CAVLC_COEF_LRG_BLK
         const UInt **pLumaRunTr1 = (uiWidth==4)? g_pLumaRunTr14x4:g_pLumaRunTr18x8;
         UInt coeffBlkSize = (uiWidth==4)? 4:(noCoeff==64)? 8:(noCoeff==256)? 16:32;
 #endif
 
-        for (iScanning = lastPosMin; iScanning>=0; iScanning--){
+        for (iScanning = lastPosMin; iScanning>=0; iScanning--)
+        {
           uiScanPos = iScanning;
           levelStart = (iScanning == lastPosMin) ? 1 : 0;
 
           sQuantCoeff[uiScanPos] = levelBest = 0;
           levelDataStruct *psLevelData = &levelData[uiScanPos];
-          if ( psLevelData->noLevels >1 || iScanning == 0 ){
-
+          if ( psLevelData->noLevels >1 || iScanning == 0 )
+          {
             lagrMin = 0; iRateMin = 0;
-            for (levelInd = levelStart; levelInd < psLevelData->noLevels; levelInd++){
-
+            for (levelInd = levelStart; levelInd < psLevelData->noLevels; levelInd++)
+            {
               lagr = psLevelData->errLevel[levelInd];
               iLevel=psLevelData->level[levelInd];
 
@@ -3020,46 +3086,53 @@ Void TComTrQuant::xRateDistOptQuant_LCEC(TComDataCU* pcCU, Long* pSrcCoeff, TCoe
               iRate = bitCountRDOQ(iLevel,uiScanPos,iBlockType,iLpFlag,iLevelMode,iRun,iMaxrun,iVlc_adaptive,
                 coeffBlkSize,uiTr1, iSum_big_coef, iBlockType, pcCU, pLumaRunTr1)<<uiBitShift;
 #else
-              if ( uiWidth == 4 ){
+              if ( uiWidth == 4 )
+              {
                 iRate = bitCountRDOQ(iLevel,uiScanPos,iBlockType,iLpFlag,iLevelMode,iRun,iMaxrun,iVlc_adaptive,4,uiTr1, 
                   iSum_big_coef,iBlockType, pcCU)<<uiBitShift;
               }
-              else{
+              else
+              {
                 iRate = bitCountRDOQ(iLevel,uiScanPos,iBlockType,iLpFlag,iLevelMode,iRun,iMaxrun,iVlc_adaptive,8,uiTr1, 
                   iSum_big_coef, iBlockType, pcCU) << uiBitShift;
               }
 #endif
               lagr += m_dLambda * iRate; 
 
-              if ( lagr < lagrMin || levelInd == levelStart){
+              if ( lagr < lagrMin || levelInd == levelStart)
+              {
                 lagrMin = lagr;
                 iRateMin = iRate;
                 levelBest = iLevel;
-                levelIndBest = levelInd;
               }
             }
           }
 
-          if ( levelBest != 0 ){
+          if ( levelBest != 0 )
+          {
             lagrCoded += lagrMin;
             lagrNotCoded += psLevelData->errLevel[0];
           }
-          if ( uiScanPos == 0 && levelBest == 0 ){
+          if ( uiScanPos == 0 && levelBest == 0 )
+          {
             lagrCoded += m_dLambda * iRateMin;
           }
 
           sQuantCoeff[uiScanPos] = levelBest;
 
           absBestLevel = abs(levelBest);
-          if ( levelBest != 0 ){  
-
-            if ( uiWidth > 4 ){ 
-              if ( !iLpFlag && absBestLevel > 1 ){
+          if ( levelBest != 0 )
+          {  
+            if ( uiWidth > 4 )
+            { 
+              if ( !iLpFlag && absBestLevel > 1 )
+              {
                 iSum_big_coef += absBestLevel;
                 if ((noCoeff - uiScanPos - 1) > switch_thr[iBlockType] || iSum_big_coef > 2) iLevelMode = 1; 
               }
             }
-            else{
+            else
+            {
               if ( absBestLevel > 1 ) iLevelMode = 1;
             }
 
@@ -3089,8 +3162,10 @@ Void TComTrQuant::xRateDistOptQuant_LCEC(TComDataCU* pcCU, Long* pSrcCoeff, TCoe
           }
         }
 
-        if (lastPosMin >= 0 && lagrCoded > lagrNotCoded){
-          for (iScanning = lastPosMin; iScanning>=0; iScanning--){
+        if (lastPosMin >= 0 && lagrCoded > lagrNotCoded)
+        {
+          for (iScanning = lastPosMin; iScanning>=0; iScanning--)
+          {
             sQuantCoeff[iScanning] = 0;
           }
         }
@@ -3277,7 +3352,7 @@ Void TComTrQuant::xRateDistOptQuant_LCEC             ( TComDataCU*              
     
     uiLevel = (UInt)(lLevelDouble  >> iQBits);      
     uiMaxLevel = uiLevel + 1;
-    uiMinLevel = Max(1,(Int)uiLevel - 2);
+    uiMinLevel = max(1,(Int)uiLevel - 2);
     
     uiBestAbsLevel = 0;
 #if QC_MOD_LCEC
@@ -3336,20 +3411,26 @@ Void TComTrQuant::xRateDistOptQuant_LCEC             ( TComDataCU*              
           iLevelMode = 1;
       }
 #if QC_MOD_LCEC
-      if (iLpFlag==1){
-        if (uiBestAbsLevel>1){
+      if (iLpFlag==1)
+      {
+        if (uiBestAbsLevel>1)
+        {
           uiTr1=0;
         }
-        else{
+        else
+        {
           uiTr1=1;
         }
       }
-      else{
-        if (uiTr1>0 && uiBestAbsLevel<2){
+      else
+      {
+        if (uiTr1>0 && uiBestAbsLevel<2)
+        {
           uiTr1++;
-          uiTr1=Min(MAX_TR1,uiTr1);
+          uiTr1=min(MAX_TR1,uiTr1);
         }
-        else{
+        else
+        {
           uiTr1=0;
         }
       }
@@ -3414,9 +3495,19 @@ Void TComTrQuant::xQuantLTR  (TComDataCU* pcCU, Long* pSrc, TCoeff*& pDes, Int i
 
       iLevel = (abs(iLevel) * uiQ + iAdd ) >> iQBits;
 #if CAVLC_COEF_LRG_BLK
-      if (m_iSymbolMode == 0 && n>=64 && eTType != TEXT_LUMA)
+      if (pcCU->isIntra( uiAbsPartIdx ))
       {
-        iLevel = 0;
+        if (m_iSymbolMode == 0 && n>=64 && eTType != TEXT_LUMA)
+        {
+          iLevel = 0;
+        }
+      }
+      else   
+      {
+        if (m_iSymbolMode == 0 && ((uiBlockPos%iWidth)>=8 || (uiBlockPos/iWidth)>=8) && eTType != TEXT_LUMA)
+        {
+          iLevel = 0;
+        }
       }
 #else
       if (m_iSymbolMode == 0 && iWidth>8)
@@ -5685,7 +5776,6 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
         Int c1 = 1;
         Int c2 = 0;
         UInt uiAbs  = 0;
-        UInt uiSign = 0;
         
         if( bFirstBlock )
         {
@@ -5715,8 +5805,8 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
           
           if( piCoeff[ uiIndex ]  )
           {
-            if( piCoeff[ uiIndex ] > 0) { uiAbs = static_cast<UInt>(  piCoeff[ uiIndex ] );  uiSign = 0; }
-            else                        { uiAbs = static_cast<UInt>( -piCoeff[ uiIndex ] );  uiSign = 1; }
+            if( piCoeff[ uiIndex ] > 0) { uiAbs = static_cast<UInt>(  piCoeff[ uiIndex ] ); }
+            else                        { uiAbs = static_cast<UInt>( -piCoeff[ uiIndex ] ); }
             
             UInt uiSymbol = uiAbs > 1 ? 1 : 0;
             
@@ -5725,9 +5815,9 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
               c1 = 0; c2++;
               uiNumOne++;
 #if E253
-              if( uiAbs > 3 )
+              if( uiAbs > 2 )
               {
-                uiAbs -= 4;
+                uiAbs -= 3;
                 uiAbs  = min<UInt>( uiAbs, 15 );
                 uiGoRiceParam = g_aauiGoRiceUpdate[ uiGoRiceParam ][ uiAbs ];
               }
@@ -5747,7 +5837,6 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
     Int c1 = 1;
     Int c2 = 0;
     UInt uiAbs  = 0;
-    UInt uiSign = 0;
     
     for ( UInt uiScanPos = 0; uiScanPos < uiWidth*uiHeight; uiScanPos++ )
     {
@@ -5761,8 +5850,8 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
 
       if( piCoeff[ uiIndex ]  )
       {
-        if( piCoeff[ uiIndex ] > 0) { uiAbs = static_cast<UInt>(  piCoeff[ uiIndex ] );  uiSign = 0; }
-        else                        { uiAbs = static_cast<UInt>( -piCoeff[ uiIndex ] );  uiSign = 1; }
+        if( piCoeff[ uiIndex ] > 0) { uiAbs = static_cast<UInt>(  piCoeff[ uiIndex ] ); }
+        else                        { uiAbs = static_cast<UInt>( -piCoeff[ uiIndex ] ); }
         
         UInt uiSymbol = uiAbs > 1 ? 1 : 0;
         
@@ -5770,9 +5859,9 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
         {
           c1 = 0; c2++;
 #if E253
-          if( uiAbs > 3 )
+          if( uiAbs > 2 )
           {
-            uiAbs -= 4;
+            uiAbs -= 3;
             uiAbs  = min<UInt>( uiAbs, 15 );
             uiGoRiceParam = g_aauiGoRiceUpdate[ uiGoRiceParam ][ uiAbs ];
           }
