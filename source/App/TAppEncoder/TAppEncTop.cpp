@@ -185,7 +185,8 @@ Void TAppEncTop::xCreateLib()
   m_cTVideoIOYuvInputFile.open( m_pchInputFile,     false, m_uiInputBitDepth, m_uiInternalBitDepth );  // read  mode
   m_cTVideoIOYuvInputFile.skipFrames(m_FrameSkip, m_iSourceWidth, m_iSourceHeight);
 
-  m_cTVideoIOYuvReconFile.open( m_pchReconFile,     true, m_uiOutputBitDepth, m_uiInternalBitDepth);  // write mode
+  if (m_pchReconFile)
+    m_cTVideoIOYuvReconFile.open(m_pchReconFile, true, m_uiOutputBitDepth, m_uiInternalBitDepth);  // write mode
   
   // Neo Decoder
   m_cTEncTop.create();
@@ -360,7 +361,8 @@ Void TAppEncTop::xWriteOutput(ostream& bitstreamFile, Int iNumEncoded, const lis
   for ( i = 0; i < iNumEncoded; i++ )
   {
     TComPicYuv*  pcPicYuvRec  = *(iterPicYuvRec++);
-    m_cTVideoIOYuvReconFile.write( pcPicYuvRec, m_aiPad );
+    if (m_pchReconFile)
+      m_cTVideoIOYuvReconFile.write( pcPicYuvRec, m_aiPad );
 
     const AccessUnit& au = *(iterBitstream++);
     const vector<unsigned>& stats = writeAnnexB(bitstreamFile, au);
