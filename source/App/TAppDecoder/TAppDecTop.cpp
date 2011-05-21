@@ -122,7 +122,7 @@ Void TAppDecTop::decode()
     {
       InputNALUnit nalu;
       read(nalu, nalUnit);
-      bNewPicture = m_cTDecTop.decode(false, nalu, uiPOC, pcListPic, m_iSkipFrame, m_iPOCLastDisplay);
+      bNewPicture = m_cTDecTop.decode(nalu, m_iSkipFrame, m_iPOCLastDisplay);
       if (bNewPicture)
       {
         bitstreamFile.clear();
@@ -136,7 +136,7 @@ Void TAppDecTop::decode()
     }
     if (bNewPicture || !bitstreamFile)
     {
-      m_cTDecTop.executeDeblockAndAlf(false, uiPOC, pcListPic, m_iSkipFrame, m_iPOCLastDisplay);
+      m_cTDecTop.executeDeblockAndAlf(uiPOC, pcListPic, m_iSkipFrame, m_iPOCLastDisplay);
     }
 
     if( pcListPic )

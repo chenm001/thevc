@@ -184,7 +184,7 @@ Void TDecTop::xGetNewPicBuffer ( TComSlice* pcSlice, TComPic*& rpcPic )
   }
 }
 
-Void TDecTop::executeDeblockAndAlf(Bool bEos, UInt& ruiPOC, TComList<TComPic*>*& rpcListPic, Int& iSkipFrame,  Int& iPOCLastDisplay)
+Void TDecTop::executeDeblockAndAlf(UInt& ruiPOC, TComList<TComPic*>*& rpcListPic, Int& iSkipFrame, Int& iPOCLastDisplay)
 {
   if (!m_pcPic)
     /* nothing to deblock */
@@ -194,7 +194,7 @@ Void TDecTop::executeDeblockAndAlf(Bool bEos, UInt& ruiPOC, TComList<TComPic*>*&
 
   // Execute Deblock and ALF only + Cleanup
   TComSlice* pcSlice  = pcPic->getPicSym()->getSlice( m_uiSliceIdx                  );
-  m_cGopDecoder.decompressGop(bEos, NULL, pcPic, true);
+  m_cGopDecoder.decompressGop(NULL, pcPic, true);
 
   // Apply decoder picture marking at the end of coding
   pcPic->getSlice( 0 )->decodingTLayerSwitchingMarking( m_cListPic );
@@ -208,12 +208,8 @@ Void TDecTop::executeDeblockAndAlf(Bool bEos, UInt& ruiPOC, TComList<TComPic*>*&
   return;
 }
 
-Bool TDecTop::decode (Bool bEos, InputNALUnit& nalu, UInt& ruiPOC, TComList<TComPic*>*& rpcListPic, Int& iSkipFrame,  Int& iPOCLastDisplay)
+Bool TDecTop::decode(InputNALUnit& nalu, Int& iSkipFrame, Int& iPOCLastDisplay)
 {
-  if (m_bFirstSliceInPicture)
-  {
-    rpcListPic = NULL;
-  }
   TComPic*&   pcPic         = m_pcPic;
   
   // Initialize entropy decoder
@@ -419,7 +415,7 @@ Bool TDecTop::decode (Bool bEos, InputNALUnit& nalu, UInt& ruiPOC, TComList<TCom
       pcPic->setCurrSliceIdx(m_uiSliceIdx);
 
       //  Decode a picture
-      m_cGopDecoder.decompressGop(bEos, nalu.m_Bitstream, pcPic, false);
+      m_cGopDecoder.decompressGop(nalu.m_Bitstream, pcPic, false);
 
       m_bFirstSliceInPicture = false;
       m_uiSliceIdx++;

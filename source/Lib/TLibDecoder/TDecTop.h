@@ -112,13 +112,13 @@ public:
   void setPictureDigestEnabled(bool enabled) { m_cGopDecoder.setPictureDigestEnabled(enabled); }
   
   Void  init();
-  Bool  decode (Bool bEos, InputNALUnit& nalu, UInt& ruiPOC, TComList<TComPic*>*& rpcListPic, Int& iSkipFrame, Int& iPOCLastDisplay);
+  Bool  decode(InputNALUnit& nalu, Int& iSkipFrame, Int& iPOCLastDisplay);
   
   TComSPS *getSPS() { return (m_uiValidPS & 1) ? &m_cSPS : NULL; }
   
   Void  deletePicBuffer();
 
-  Void executeDeblockAndAlf(Bool bEos, UInt& ruiPOC, TComList<TComPic*>*& rpcListPic, Int& iSkipFrame,  Int& iPOCLastDisplay);
+  Void executeDeblockAndAlf(UInt& ruiPOC, TComList<TComPic*>*& rpcListPic, Int& iSkipFrame,  Int& iPOCLastDisplay);
 
 protected:
   Void  xGetNewPicBuffer  (TComSlice* pcSlice, TComPic*& rpcPic);
