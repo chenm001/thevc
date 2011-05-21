@@ -332,7 +332,8 @@ Void TComSlice::generateCombinedList()
 
     for (Int iNumRefIdx = 0; iNumRefIdx < MAX_NUM_REF; iNumRefIdx++)
     {
-      if(iNumRefIdx < m_aiNumRefIdx[REF_PIC_LIST_0]){
+      if(iNumRefIdx < m_aiNumRefIdx[REF_PIC_LIST_0])
+      {
         Bool bTempRefIdxInL2 = true;
         for ( Int iRefIdxLC = 0; iRefIdxLC < m_aiNumRefIdx[REF_PIC_LIST_C]; iRefIdxLC++ )
         {
@@ -354,7 +355,8 @@ Void TComSlice::generateCombinedList()
         }
       }
 
-      if(iNumRefIdx < m_aiNumRefIdx[REF_PIC_LIST_1]){
+      if(iNumRefIdx < m_aiNumRefIdx[REF_PIC_LIST_1])
+      {
         Bool bTempRefIdxInL2 = true;
         for ( Int iRefIdxLC = 0; iRefIdxLC < m_aiNumRefIdx[REF_PIC_LIST_C]; iRefIdxLC++ )
         {

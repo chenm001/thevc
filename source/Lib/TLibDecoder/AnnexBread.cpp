@@ -148,9 +148,12 @@ byteStreamNALUnit(
   AnnexBStats& stats)
 {
   bool eof = false;
-  try {
+  try
+  {
     _byteStreamNALUnit(bs, nalUnit, stats);
-  } catch (...) {
+  }
+  catch (...)
+  {
     eof = true;
   }
   stats.m_numBytesInNALUnit = unsigned(nalUnit.size());

@@ -104,7 +104,8 @@ Void TComOutputBitstream::write   ( UInt uiBits, UInt uiNumberOfBits )
    * if total_bits < 8, the value of v_ is not used */
   unsigned char next_held_bits = uiBits << (8 - next_num_held_bits);
 
-  if (!(num_total_bits >> 3)) {
+  if (!(num_total_bits >> 3))
+  {
     /* insufficient bits accumulated to write out, append new_held_bits to
      * current held_bits */
     /* NB, this requires that v only contains 0 in bit positions {31..n} */
@@ -117,7 +118,8 @@ Void TComOutputBitstream::write   ( UInt uiBits, UInt uiNumberOfBits )
   unsigned topword = (uiNumberOfBits - next_num_held_bits) & ~((1 << 3) -1);
   unsigned int write_bits = (m_held_bits << topword) | (uiBits >> next_num_held_bits);
 
-  switch (num_total_bits >> 3) {
+  switch (num_total_bits >> 3)
+  {
   case 4: m_fifo->push_back(write_bits >> 24);
   case 3: m_fifo->push_back(write_bits >> 16);
   case 2: m_fifo->push_back(write_bits >> 8);
@@ -209,7 +211,8 @@ Void TComInputBitstream::read (UInt uiNumberOfBits, UInt& ruiBits)
   unsigned num_bytes_to_load = (uiNumberOfBits - 1) >> 3;
   assert(m_fifo_idx + num_bytes_to_load < m_fifo->size());
 
-  switch (num_bytes_to_load) {
+  switch (num_bytes_to_load)
+  {
   case 3: aligned_word  = (*m_fifo)[m_fifo_idx++] << 24;
   case 2: aligned_word |= (*m_fifo)[m_fifo_idx++] << 16;
   case 1: aligned_word |= (*m_fifo)[m_fifo_idx++] <<  8;

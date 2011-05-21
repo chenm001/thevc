@@ -1137,14 +1137,17 @@ Void TEncCu::xCheckRDCostMerge2Nx2N( TComDataCU*& rpcBestCU, TComDataCU*& rpcTem
 
 #if HHI_MRG_SKIP
       // do MC
-      if ( uiNoResidual == 0 ){
+      if ( uiNoResidual == 0 )
+      {
         m_pcPredSearch->motionCompensation ( rpcTempCU, m_ppcPredYuvTemp[uhDepth] );
         // save pred adress
         pcPredYuvTemp = m_ppcPredYuvTemp[uhDepth];
         
       }
-      else {
-        if ( pcPredYuvTemp != m_ppcPredYuvTemp[uhDepth]) {
+      else
+      {
+        if ( pcPredYuvTemp != m_ppcPredYuvTemp[uhDepth])
+        {
           //adress changes take best (old temp)
           pcPredYuvTemp = m_ppcPredYuvBest[uhDepth];
         }

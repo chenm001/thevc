@@ -63,7 +63,8 @@ TDecCavlc::~TDecCavlc()
 void TDecCavlc::parseSEI(SEImessages& seis)
 {
   assert(!m_pcBitstream->getNumBitsUntilByteAligned());
-  do {
+  do
+  {
     parseSEImessage(*m_pcBitstream, seis);
     /* SEI messages are an integer number of bytes, something has failed
      * in the parsing if bitstream not byte-aligned */

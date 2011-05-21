@@ -1044,7 +1044,8 @@ Void TEncCavlc::codeIntraDirLumaAng( TComDataCU* pcCU, UInt uiAbsPartIdx )
   {
     if (iDir == iMostProbable)
       xWriteFlag( 1 );
-    else{
+    else
+    {
       if (iDir>iMostProbable)
         iDir--;
       xWriteFlag( 0 );
@@ -1085,13 +1086,15 @@ Void TEncCavlc::codeIntraDirLumaAng( TComDataCU* pcCU, UInt uiAbsPartIdx )
     }
     xWriteCode(uiCode, uiLength);
   }
-  else{
+  else
+  {
     if (iDir==iMostProbable)
     {
       uiCode=huff34[0];
       uiLength=lengthHuff34[0];
     }
-    else{
+    else
+    {
       if (iDir>iMostProbable)
       {
         iDir--;
@@ -2759,7 +2762,8 @@ Void TEncCavlc::xCodeCoeff( TCoeff* scoeff, Int n, Int blSize)
     vlc = g_auiLastPosVlcNum[n][min(16u,m_uiLastPosVlcIndex[n])];
     xWriteVlc( vlc, cn );
 
-    if ( m_bAdaptFlag ){
+    if ( m_bAdaptFlag )
+    {
       // ADAPT_VLC_NUM
       cn = (blSize==8)? cn:(cn>>2);
       m_uiLastPosVlcIndex[n] += cn == m_uiLastPosVlcIndex[n] ? 0 : (cn < m_uiLastPosVlcIndex[n] ? -1 : 1);
@@ -3042,10 +3046,12 @@ Void TEncCavlc::xCodeCoeff4x4(TCoeff* scoeff, Int n )
           level = abs(scoeff[i]);
           lev = (level == 1) ? 0 : 1;
 #if QC_MOD_LCEC
-          if ( n == 2 ){
+          if ( n == 2 )
+          {
             cn = xRunLevelInd(lev, run, maxrun, g_auiLumaRunTr14x4[tr1][maxrun]);
           }
-          else{
+          else
+          {
 #if RUNLEVEL_TABLE_CUT
             cn = xRunLevelIndInter(lev, run, maxrun);
 #else
@@ -3091,10 +3097,12 @@ Void TEncCavlc::xCodeCoeff4x4(TCoeff* scoeff, Int n )
           if (run)
           {
 #if QC_MOD_LCEC
-            if (n==2){
+            if (n==2)
+            {
               cn=xRunLevelInd(0, run, maxrun, g_auiLumaRunTr14x4[tr1][maxrun]);
             }
-            else{
+            else
+            {
 #if RUNLEVEL_TABLE_CUT
               cn = xRunLevelIndInter(0, run, maxrun);
 #else
@@ -3215,7 +3223,8 @@ Void TEncCavlc::xCodeCoeff8x8( TCoeff* scoeff, Int n )
   }
   i++;
 #if QC_MOD_LCEC
-  if (level>1){
+  if (level>1)
+  {
     tr1=0;
   }
   else

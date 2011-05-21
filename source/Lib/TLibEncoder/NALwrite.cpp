@@ -55,7 +55,8 @@ void write(ostream& out, const OutputNALUnit& nalu)
   bsNALUHeader.write(nalu.m_RefIDC, 2); // nal_ref_idc
   bsNALUHeader.write(nalu.m_UnitType, 5); // nal_unit_type
 
-  switch (nalu.m_UnitType) {
+  switch (nalu.m_UnitType)
+  {
   case NAL_UNIT_CODED_SLICE:
   case NAL_UNIT_CODED_SLICE_IDR:
   case NAL_UNIT_CODED_SLICE_CDR:
@@ -98,7 +99,8 @@ void write(ostream& out, const OutputNALUnit& nalu)
      * 3) insert emulation_prevention_three_byte
      */
     vector<uint8_t>::const_iterator found = it;
-    do {
+    do
+    {
       /* NB, end()-1, prevents finding a trailing two byte sequence */
       found = search_n(found, rbsp.end()-1, 2, 0);
       found++;
@@ -123,7 +125,8 @@ void write(ostream& out, const OutputNALUnit& nalu)
    * only occur when the RBSP ends in a cabac_zero_word), a final byte equal
    * to 0x03 is appended to the end of the data.
    */
-  if (rbsp.back() == 0x00) {
+  if (rbsp.back() == 0x00)
+  {
     out.write(emulation_prevention_three_byte, 1);
   }
 }

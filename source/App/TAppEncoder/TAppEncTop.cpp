@@ -378,7 +378,8 @@ void TAppEncTop::rateStatsAccum(const AccessUnit& au, const vector<unsigned>& an
 
   for (; it_au != au.end(); it_au++, it_stats++)
   {
-    switch ((*it_au)->m_UnitType) {
+    switch ((*it_au)->m_UnitType)
+    {
     case NAL_UNIT_CODED_SLICE:
     case NAL_UNIT_CODED_SLICE_DATAPART_A:
     case NAL_UNIT_CODED_SLICE_DATAPART_B:

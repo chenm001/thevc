@@ -637,7 +637,8 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
       Double dEncTime = (double)(clock()-iBeforeTime) / CLOCKS_PER_SEC;
 
       const char* digestStr = NULL;
-      if (m_pcCfg->getPictureDigestEnabled()) {
+      if (m_pcCfg->getPictureDigestEnabled())
+      {
         /* calculate MD5sum for entire reconstructed picture */
         SEIpictureDigest sei_recon_picture_digest;
         sei_recon_picture_digest.method = SEIpictureDigest::MD5;
@@ -912,7 +913,8 @@ UInt64 TEncGOP::xFindDistortionFrame (TComPicYuv* pcPic0, TComPicYuv* pcPic1)
 
 static const char* nalUnitTypeToString(NalUnitType type)
 {
-  switch (type) {
+  switch (type)
+  {
   case NAL_UNIT_CODED_SLICE: return "SLICE";
 #if DCM_DECODING_REFRESH
   case NAL_UNIT_CODED_SLICE_CDR: return "CDR";

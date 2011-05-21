@@ -649,7 +649,9 @@ Void TDecEntropy::decodeRefFrmIdxPU( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt u
     if ( pcCU->getSlice()->getNumRefIdx ( REF_PIC_LIST_C ) > 1 )
     {
       m_pcEntropyDecoderIf->parseRefFrmIdx( pcCU, iRefFrmIdx, uiAbsPartIdx, uiDepth, REF_PIC_LIST_C );
-    }else{
+    }
+    else
+    {
       iRefFrmIdx=0;
     }
     uiInterDir = pcCU->getSlice()->getListIdFromIdxOfLC(iRefFrmIdx) + 1;

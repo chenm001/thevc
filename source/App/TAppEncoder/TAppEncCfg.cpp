@@ -484,7 +484,8 @@ Void TAppEncCfg::xSetGlobal()
   else
   {
     g_uiBitDepth = min(8u, m_uiInputBitDepth);
-    if (m_uiInternalBitDepth == 0) {
+    if (m_uiInternalBitDepth == 0)
+    {
       /* default increement = 2 */
       m_uiInternalBitDepth = 2 + g_uiBitDepth;
     }

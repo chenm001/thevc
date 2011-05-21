@@ -268,7 +268,8 @@ Void TDecGop::decompressGop(TComInputBitstream* pcBitstream, TComPic*& rpcPic, B
     }
 #endif
 
-    if (m_pictureDigestEnabled) {
+    if (m_pictureDigestEnabled)
+    {
       calcAndPrintMD5Status(*rpcPic->getPicYuvRec(), rpcPic->getSEIs());
     }
 

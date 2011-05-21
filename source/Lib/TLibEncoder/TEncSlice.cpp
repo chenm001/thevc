@@ -257,10 +257,12 @@ Void TEncSlice::initEncSlice( TComPic* pcPic, Int iPOCLast, UInt uiPOCCurr, Int 
 
   // pre-compute lambda and QP values for all possible QP candidates
 #if QC_MOD_LCEC_RDOQ
-  if (pcPic->getSlice(0)->isIntra()){
+  if (pcPic->getSlice(0)->isIntra())
+  {
     m_pcTrQuant->setRDOQOffset(1);
   }
-  else{
+  else
+  {
     if (m_pcCfg->getHierarchicalCoding())
       m_pcTrQuant->setRDOQOffset(1);
     else

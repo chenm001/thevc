@@ -39,7 +39,8 @@
 class SEI
 {
 public:
-  enum PayloadType {
+  enum PayloadType
+  {
     USER_DATA_UNREGISTERED = 5,
     PICTURE_DIGEST = 256,
   };
@@ -77,7 +78,8 @@ public:
   SEIpictureDigest() {}
   virtual ~SEIpictureDigest() {}
   
-  enum Method {
+  enum Method
+  {
     MD5,
     RESERVED,
   } method;

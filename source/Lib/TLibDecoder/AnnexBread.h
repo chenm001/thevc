@@ -37,7 +37,8 @@
 #include <istream>
 #include <vector>
 
-class InputByteStream {
+class InputByteStream
+{
 public:
   /**
    * Create a bytestream reader that will extract bytes from
@@ -77,13 +78,16 @@ public:
       return false;
 
     n -= m_NumFutureBytes;
-    try {
+    try
+    {
       for (unsigned i = 0; i < n; i++)
       {
         m_FutureBytes = (m_FutureBytes << 8) | m_Input.get();
         m_NumFutureBytes++;
       }
-    } catch (...) {
+    }
+    catch (...)
+    {
       return true;
     }
     return false;
@@ -148,7 +152,8 @@ private:
 /**
  * Statistics associated with AnnexB bytestreams
  */
-struct AnnexBStats {
+struct AnnexBStats
+{
   unsigned m_numLeadingZero8BitsBytes;
   unsigned m_numZeroByteBytes;
   unsigned m_numStartCodePrefixBytes;

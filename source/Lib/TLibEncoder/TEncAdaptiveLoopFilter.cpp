@@ -3506,8 +3506,8 @@ Double TEncAdaptiveLoopFilter::QuantizeIntegerFilterPP(double *filterCoeff, int 
             errMin=error;
             minInd=k;
           }
-        } // if (weights(k)<=diff){
-      } // for (k=0; k<sqrFiltLength; k++){
+        } // if (weights(k)<=diff)
+      } // for (k=0; k<sqrFiltLength; k++)
       filterCoeffQuant[minInd]--;
     }
     else
@@ -3533,8 +3533,8 @@ Double TEncAdaptiveLoopFilter::QuantizeIntegerFilterPP(double *filterCoeff, int 
             errMin=error;
             minInd=k;
           }
-        } // if (weights(k)<=diff){
-      } // for (k=0; k<sqrFiltLength; k++){
+        } // if (weights(k)<=diff)
+      } // for (k=0; k<sqrFiltLength; k++)
       filterCoeffQuant[minInd]++;
     }
     

@@ -797,7 +797,8 @@ Void TEncSbac::codeIntraDirLumaAng( TComDataCU* pcCU, UInt uiAbsPartIdx )
         m_pcBinIf->encodeBin((uiDir & 0x08) >> 3, m_cCUIntraPredSCModel.get(0, 0, 1));
         m_pcBinIf->encodeBin((uiDir & 0x10) >> 4, m_cCUIntraPredSCModel.get(0, 0, 1));
       }
-      else{
+      else
+      {
         m_pcBinIf->encodeBin(1, m_cCUIntraPredSCModel.get(0, 0, 1));
         m_pcBinIf->encodeBin(1, m_cCUIntraPredSCModel.get(0, 0, 1));
         m_pcBinIf->encodeBin(1, m_cCUIntraPredSCModel.get(0, 0, 1));
@@ -934,18 +935,22 @@ Void TEncSbac::codeIntraDirChroma( TComDataCU* pcCU, UInt uiAbsPartIdx )
   Int  iMax = uiMode < 4 ? 2 : 3; 
   
   //switch codeword
-  if (uiIntraDirChroma == 4) {
+  if (uiIntraDirChroma == 4)
+  {
     uiIntraDirChroma = 0;
   } 
 #if CHROMA_CODEWORD_SWITCH 
-  else {
-    if (uiIntraDirChroma < uiMode) {
+  else
+  {
+    if (uiIntraDirChroma < uiMode)
+    {
       uiIntraDirChroma++;
     }
     uiIntraDirChroma = ChromaMapping[iMax-2][uiIntraDirChroma];
   }
 #else
-  else if (uiIntraDirChroma < uiMode) {
+  else if (uiIntraDirChroma < uiMode)
+  {
     uiIntraDirChroma++;
   }
 #endif
