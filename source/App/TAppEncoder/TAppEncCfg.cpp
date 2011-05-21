@@ -616,7 +616,7 @@ Void TAppEncCfg::xPrintParameter()
 #if E057_INTRA_PCM
   printf("PCM:%d ", ((1<<m_uiPCMLog2MinSize) <= m_uiMaxCUWidth)? 1 : 0);
 #endif
-  printf("\n");
+  printf("\n\n");
   
   fflush(stdout);
 }

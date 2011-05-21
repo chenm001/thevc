@@ -656,7 +656,7 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
         SEIpictureDigest sei_recon_picture_digest;
         sei_recon_picture_digest.method = SEIpictureDigest::MD5;
         calcMD5(*pcPic->getPicYuvRec(), sei_recon_picture_digest.digest);
-        printf("[MD5:%s] ", digestToString(sei_recon_picture_digest.digest));
+        printf(" [MD5:%s]", digestToString(sei_recon_picture_digest.digest));
 
         OutputNALUnit* nalu = new OutputNALUnit(NAL_UNIT_SEI, NAL_REF_IDC_PRIORITY_LOWEST);
         /* insert the SEI message NALUnit before any Slice NALUnits */
@@ -675,6 +675,10 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
       
       m_bFirst = false;
       m_iNumPicCoded++;
+
+      /* logging: insert a newline at end of picture period */
+      printf("\n");
+      fflush(stdout);
     }
     
     // generalized B info.
@@ -719,7 +723,7 @@ Void TEncGOP::printOutSummary(UInt uiNumAllPicCoded)
 #endif
 
 #if RVM_VCEGAM10
-  printf( "\nRVM: %.3lf" , xCalculateRVM() );
+  printf("\nRVM: %.3lf\n" , xCalculateRVM());
 #endif
 }
 
@@ -1003,38 +1007,36 @@ Void TEncGOP::xCalculateAddPSNR( TComPic* pcPic, TComPicYuv* pcPicD, UInt uibits
     m_gcAnalyzeB.addResult (dYPSNR, dUPSNR, dVPSNR, (Double)uibits);
   }
 
-  printf("\nPOC %4d TId: %1d ( %c-SLICE, QP %d ) %10d bits ",
+  printf("POC %4d TId: %1d ( %c-SLICE, QP %d ) %10d bits",
          pcSlice->getPOC(),
          pcSlice->getTLayer(),
          pcSlice->isIntra() ? 'I' : pcSlice->isInterP() ? 'P' : 'B',
          pcSlice->getSliceQp(),
          uibits );
 
-  printf( "[Y %6.4lf dB    U %6.4lf dB    V %6.4lf dB]  ", dYPSNR, dUPSNR, dVPSNR );
-  printf ("[ET %5.0f ] ", dEncTime );
+  printf(" [Y %6.4lf dB    U %6.4lf dB    V %6.4lf dB]", dYPSNR, dUPSNR, dVPSNR );
+  printf(" [ET %5.0f ]", dEncTime );
   
   for (Int iRefList = 0; iRefList < 2; iRefList++)
   {
-    printf ("[L%d ", iRefList);
+    printf(" [L%d ", iRefList);
     for (Int iRefIndex = 0; iRefIndex < pcSlice->getNumRefIdx(RefPicList(iRefList)); iRefIndex++)
     {
       printf ("%d ", pcSlice->getRefPOC(RefPicList(iRefList), iRefIndex));
     }
-    printf ("] ");
+    printf("]");
   }
 #if DCM_COMB_LIST
   if(pcSlice->getNumRefIdx(REF_PIC_LIST_C)>0 && !pcSlice->getNoBackPredFlag())
   {
-    printf ("[LC ");
+    printf(" [LC ");
     for (Int iRefIndex = 0; iRefIndex < pcSlice->getNumRefIdx(REF_PIC_LIST_C); iRefIndex++)
     {
       printf ("%d ", pcSlice->getRefPOC((RefPicList)pcSlice->getListIdFromIdxOfLC(iRefIndex), pcSlice->getRefIdxFromIdxOfLC(iRefIndex)));
     }
-    printf ("] ");
+    printf("]");
   }
 #endif
-
-  fflush(stdout);
 }
 
 #if DCM_DECODING_REFRESH
