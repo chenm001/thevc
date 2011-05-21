@@ -85,13 +85,11 @@ void TComOutputBitstream::clear()
   m_fifo->clear();
   m_held_bits = 0;
   m_num_held_bits = 0;
-  m_uiBitsWritten = 0;
 }
 
 Void TComOutputBitstream::write   ( UInt uiBits, UInt uiNumberOfBits )
 {
   assert( uiNumberOfBits <= 32 );
-  m_uiBitsWritten += uiNumberOfBits;
 
   /* any modulo 8 remainder of num_total_bits cannot be written this time,
    * and will be held until next time. */
@@ -142,7 +140,6 @@ Void TComOutputBitstream::writeAlignZero()
   if (0 == m_num_held_bits)
     return;
   m_fifo->push_back(m_held_bits);
-  m_uiBitsWritten += getNumBitsUntilByteAligned();
   m_held_bits = 0;
   m_num_held_bits = 0;
 }
@@ -243,7 +240,4 @@ void TComOutputBitstream::insertAt(const TComOutputBitstream& src, unsigned pos)
 
   vector<uint8_t>::iterator at = this->m_fifo->begin() + pos;
   this->m_fifo->insert(at, src.m_fifo->begin(), src.m_fifo->end());
-
-  /* update state */
-  this->m_uiBitsWritten += src_bits;
 }

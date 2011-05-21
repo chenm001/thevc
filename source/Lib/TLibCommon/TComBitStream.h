@@ -85,8 +85,6 @@ class TComOutputBitstream : public TComBitIf
   unsigned char m_held_bits; /// the bits held and not flushed to bytestream.
                              /// this value is always msb-aligned, bigendian.
 
-  UInt        m_uiBitsWritten;
-  
 public:
   // create / destroy
   TComOutputBitstream();
@@ -135,12 +133,9 @@ public:
   Int getNumBitsUntilByteAligned() { return (8 - m_num_held_bits) & 0x7; }
 
   /**
-   * Return the number of bits that have been written since the
-   * last resetBits()/clear() call.  Unless convertRBSPToPayload()
-   * has been called more recently, whereby the number of bits
-   * is the total number of bits that getByteStreamLength() would return.
+   * Return the number of bits that have been written since the last clear()
    */
-  UInt getNumberOfWrittenBits() const { return  m_uiBitsWritten; }
+  unsigned getNumberOfWrittenBits() const { return unsigned(m_fifo->size()) * 8 + m_num_held_bits; }
 
   void insertAt(const TComOutputBitstream& src, unsigned pos);
 
