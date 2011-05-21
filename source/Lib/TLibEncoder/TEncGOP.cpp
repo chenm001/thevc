@@ -635,28 +635,21 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
 
       //-- For time output for each slice
       Double dEncTime = (double)(clock()-iBeforeTime) / CLOCKS_PER_SEC;
-      
-      /* calculate the number of bits written. NB, this doesn't include
-       * the number of anti-emulation bytes required, or start_code_prefix
-       * or NALunit header.
-       */
-      unsigned numBits = 0;
-      for (AccessUnit::const_iterator it = accessUnit.begin(); it != accessUnit.end(); it++)
-      {
-        numBits += (*it)->m_nalUnitData.str().size() * 8;
-      }
-      xCalculateAddPSNR( pcPic, pcPic->getPicYuvRec(), numBits, dEncTime );
+
+      /** TODO: move this to after MD5sum/SEI after xFixedRoundingPic() is fixed */
+      xCalculateAddPSNR( pcPic, pcPic->getPicYuvRec(), accessUnit, dEncTime );
 
 #if FIXED_ROUNDING_FRAME_MEMORY
       pcPic->getPicYuvRec()->xFixedRoundingPic();
 #endif
 
+      const char* digestStr = NULL;
       if (m_pcCfg->getPictureDigestEnabled()) {
         /* calculate MD5sum for entire reconstructed picture */
         SEIpictureDigest sei_recon_picture_digest;
         sei_recon_picture_digest.method = SEIpictureDigest::MD5;
         calcMD5(*pcPic->getPicYuvRec(), sei_recon_picture_digest.digest);
-        printf(" [MD5:%s]", digestToString(sei_recon_picture_digest.digest));
+        digestStr = digestToString(sei_recon_picture_digest.digest);
 
         OutputNALUnit nalu(NAL_UNIT_SEI, NAL_REF_IDC_PRIORITY_LOWEST);
 
@@ -670,6 +663,10 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
         AccessUnit::iterator it = find_if(accessUnit.begin(), accessUnit.end(), mem_fun(&NALUnit::isSlice));
         accessUnit.insert(it, new NALUnitEBSP(nalu));
       }
+
+      /** XXX: xCalculateAddPSNR() should occur here */
+      if (digestStr)
+        printf(" [MD5:%s]", digestStr);
 
       pcPic->getPicYuvRec()->copyToPic(pcPicYuvRecOut);
       
@@ -916,7 +913,24 @@ UInt64 TEncGOP::xFindDistortionFrame (TComPicYuv* pcPic0, TComPicYuv* pcPic1)
   return uiTotalDiff;
 }
 
-Void TEncGOP::xCalculateAddPSNR( TComPic* pcPic, TComPicYuv* pcPicD, UInt uibits, Double dEncTime )
+static const char* nalUnitTypeToString(NalUnitType type)
+{
+  switch (type) {
+  case NAL_UNIT_CODED_SLICE: return "SLICE";
+#if DCM_DECODING_REFRESH
+  case NAL_UNIT_CODED_SLICE_CDR: return "CDR";
+#endif
+  case NAL_UNIT_CODED_SLICE_IDR: return "IDR";
+  case NAL_UNIT_SEI: return "SEI";
+  case NAL_UNIT_SPS: return "SPS";
+  case NAL_UNIT_PPS: return "PPS";
+  case NAL_UNIT_FILLER_DATA: return "FILLER";
+  default: return "UNK";
+  }
+}
+
+
+Void TEncGOP::xCalculateAddPSNR( TComPic* pcPic, TComPicYuv* pcPicD, const AccessUnit& accessUnit, Double dEncTime )
 {
   Int     x, y;
   UInt64 uiSSDY  = 0;
@@ -988,7 +1002,19 @@ Void TEncGOP::xCalculateAddPSNR( TComPic* pcPic, TComPicYuv* pcPicD, UInt uibits
   dYPSNR            = ( uiSSDY ? 10.0 * log10( fRefValueY / (Double)uiSSDY ) : 99.99 );
   dUPSNR            = ( uiSSDU ? 10.0 * log10( fRefValueC / (Double)uiSSDU ) : 99.99 );
   dVPSNR            = ( uiSSDV ? 10.0 * log10( fRefValueC / (Double)uiSSDV ) : 99.99 );
-  
+
+  /* calculate the size of the access unit, excluding:
+   *  - any AnnexB contributions (start_code_prefix, zero_byte, etc.,)
+   */
+  unsigned numRBSPBytes = 0;
+  for (AccessUnit::const_iterator it = accessUnit.begin(); it != accessUnit.end(); it++)
+  {
+    unsigned numRBSPBytes_nal = unsigned((*it)->m_nalUnitData.str().size());
+    printf("*** %6s numBytesInNALunit: %u\n", nalUnitTypeToString((*it)->m_UnitType), numRBSPBytes_nal);
+    numRBSPBytes += numRBSPBytes_nal;
+  }
+
+  unsigned uibits = numRBSPBytes * 8;
 #if RVM_VCEGAM10
   m_vRVM_RP.push_back( uibits );
 #endif
