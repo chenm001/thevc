@@ -40,9 +40,11 @@
 
 #include <algorithm>
 
-// this pragma can be used for turning off "signed and unsigned mismatch"
 #if _MSC_VER > 1000
+// disable "signed and unsigned mismatch"
 #pragma warning( disable : 4018 )
+// disable bool coercion "performance warning"
+#pragma warning( disable : 4800 )
 #endif // _MSC_VER > 1000
 #include "TypeDef.h"
 #include "TComRom.h"
