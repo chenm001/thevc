@@ -57,8 +57,8 @@ public:
   ContextModel  ()                        { m_ucState = 0;             }
   ~ContextModel ()                        {}
   
-  const UChar getState  ()                { return ( m_ucState >> 1 ); }                    ///< get current state
-  const UChar getMps    ()                { return ( m_ucState  & 1 ); }                    ///< get curret MPS
+  UChar getState  ()                { return ( m_ucState >> 1 ); }                    ///< get current state
+  UChar getMps    ()                { return ( m_ucState  & 1 ); }                    ///< get curret MPS
   
   Void        init      ( Int   iQp, 
                          Short asCtxInit[] );                                              ///< initialize state with initial prob.
