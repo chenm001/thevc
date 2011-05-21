@@ -44,11 +44,15 @@
  *  - the initial startcode in the access unit,
  *  - any SPS/PPS nal units
  */
-static void writeAnnexB(std::ostream& out, const AccessUnit& au)
+static std::vector<unsigned> writeAnnexB(std::ostream& out, const AccessUnit& au)
 {
+  std::vector<unsigned> annexBsizes;
+
   for (AccessUnit::const_iterator it = au.begin(); it != au.end(); it++)
   {
     const NALUnitEBSP& nalu = **it;
+    unsigned size = 0; /* size of annexB unit in bytes */
+
     static const char start_code_prefix[] = {0,0,0,1};
     if (it == au.begin() || nalu.m_UnitType == NAL_UNIT_SPS || nalu.m_UnitType == NAL_UNIT_PPS)
     {
@@ -61,11 +65,18 @@ static void writeAnnexB(std::ostream& out, const AccessUnit& au)
        *    7.4.1.2.3.
        */
       out.write(start_code_prefix, 4);
+      size += 4;
     }
     else
     {
       out.write(start_code_prefix+1, 3);
+      size += 3;
     }
     out << nalu.m_nalUnitData.str();
+    size += unsigned(nalu.m_nalUnitData.str().size());
+
+    annexBsizes.push_back(size);
   }
+
+  return annexBsizes;
 }
