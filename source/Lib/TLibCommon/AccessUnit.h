@@ -41,15 +41,19 @@
  * working draft.  All NAL units within the object belong to the same
  * access unit.
  *
- * Care should be taken when copying an AccessUnit, not to call the
- * destructor twice.
+ * NALUnits held in the AccessUnit list are in EBSP format.  Attempting
+ * to insert an OutputNALUnit into the access unit will automatically cause
+ * the nalunit to have its headers written and anti-emulation performed.
+ *
+ * The AccessUnit owns all pointers stored within.  Destroying the
+ * AccessUnit will delete all contained objects.
  */
-class AccessUnit : public std::list<NALUnit*>
+class AccessUnit : public std::list<NALUnitEBSP*>
 {
 public:
   ~AccessUnit()
   {
-    for (iterator it = begin(); it != end(); it++)
+    for (AccessUnit::iterator it = this->begin(); it != this->end(); it++)
       delete *it;
   }
 };

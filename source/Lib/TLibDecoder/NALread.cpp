@@ -65,8 +65,6 @@ static void convertPayloadToRBSP(vector<uint8_t>& nalUnitBuf)
  */
 void read(InputNALUnit& nalu, vector<uint8_t>& nalUnitBuf)
 {
-  nalu.m_RBSPayload = &nalUnitBuf;
-
   /* perform anti-emulation prevention */
   convertPayloadToRBSP(nalUnitBuf);
 

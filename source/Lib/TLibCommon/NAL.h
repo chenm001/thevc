@@ -33,8 +33,8 @@
 
 #pragma once
 
-#include <stdint.h>
 #include <vector>
+#include <sstream>
 #include "CommonDef.h"
 
 class TComOutputBitstream;
@@ -48,7 +48,22 @@ struct NALUnit
   NalRefIdc m_RefIDC; ///< nal_ref_idc
   unsigned m_TemporalID; ///< temporal_id
   bool m_OutputFlag; ///< output_flag
-  std::vector<uint8_t>* m_RBSPayload; ///< rbsp_byte's
+
+  /** construct an NALunit structure with given header values. */
+  NALUnit(
+    NalUnitType nalUnitType,
+    NalRefIdc nalRefIDC,
+    unsigned temporalID = 0,
+    bool outputFlag = true)
+  {
+    m_UnitType = nalUnitType;
+    m_RefIDC = nalRefIDC;
+    m_TemporalID = temporalID;
+    m_OutputFlag = outputFlag;
+  }
+
+  /** default constructor - no initialization; must be perfomed by user */
+  NALUnit() {}
 
   /** returns true if the NALunit is a slice NALunit */
   bool isSlice()
@@ -57,4 +72,21 @@ struct NALUnit
         || m_UnitType == NAL_UNIT_CODED_SLICE_CDR
         || m_UnitType == NAL_UNIT_CODED_SLICE;
   }
+};
+
+struct OutputNALUnit;
+
+/**
+ * A single NALunit, with complete payload in EBSP format.
+ */
+struct NALUnitEBSP : public NALUnit
+{
+  std::ostringstream m_nalUnitData;
+
+  /**
+   * convert the OutputNALUnit #nalu# into EBSP format by writing out
+   * the NALUnit header, then the rbsp_bytes including any
+   * emulation_prevention_three_byte symbols.
+   */
+  NALUnitEBSP(const OutputNALUnit& nalu);
 };

@@ -143,6 +143,9 @@ public:
    * Return a reference to the internal fifo
    */
   std::vector<uint8_t>& getFIFO() { return *m_fifo; }
+
+  /** Return a reference to the internal fifo */
+  const std::vector<uint8_t>& getFIFO() const { return *m_fifo; }
 };
 
 /**

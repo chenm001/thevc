@@ -43,14 +43,12 @@
  * the zero_byte word is appended to:
  *  - the initial startcode in the access unit,
  *  - any SPS/PPS nal units
- *
- * All NALunit payloads must be bytealigned prior to the call.
  */
 static void writeAnnexB(std::ostream& out, const AccessUnit& au)
 {
   for (AccessUnit::const_iterator it = au.begin(); it != au.end(); it++)
   {
-    const NALUnit& nalu = **it;
+    const NALUnitEBSP& nalu = **it;
     static const char start_code_prefix[] = {0,0,0,1};
     if (it == au.begin() || nalu.m_UnitType == NAL_UNIT_SPS || nalu.m_UnitType == NAL_UNIT_PPS)
     {
@@ -68,6 +66,6 @@ static void writeAnnexB(std::ostream& out, const AccessUnit& au)
     {
       out.write(start_code_prefix+1, 3);
     }
-    write(out, nalu);
+    out << nalu.m_nalUnitData.str();
   }
 }

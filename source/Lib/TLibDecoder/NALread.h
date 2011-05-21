@@ -33,8 +33,6 @@
 
 #pragma once
 
-#include <ostream>
-
 #include "../TLibCommon/TypeDef.h"
 #include "../TLibCommon/TComBitStream.h"
 #include "../TLibCommon/NAL.h"

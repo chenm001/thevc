@@ -426,17 +426,17 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
       /* write various header sets. */
       if ( m_bSeqFirst )
       {
-        OutputNALUnit* nalu = new OutputNALUnit(NAL_UNIT_SPS, NAL_REF_IDC_PRIORITY_HIGHEST);
-        accessUnit.push_back(nalu);
-        m_pcEntropyCoder->setBitstream(&nalu->m_Bitstream);
+        OutputNALUnit nalu(NAL_UNIT_SPS, NAL_REF_IDC_PRIORITY_HIGHEST);
+        m_pcEntropyCoder->setBitstream(&nalu.m_Bitstream);
         m_pcEntropyCoder->encodeSPS(pcSlice->getSPS());
-        writeRBSPTrailingBits(nalu->m_Bitstream);
+        writeRBSPTrailingBits(nalu.m_Bitstream);
+        accessUnit.push_back(new NALUnitEBSP(nalu));
 
-        nalu = new OutputNALUnit(NAL_UNIT_PPS, NAL_REF_IDC_PRIORITY_HIGHEST);
-        accessUnit.push_back(nalu);
-        m_pcEntropyCoder->setBitstream(&nalu->m_Bitstream);
+        nalu = NALUnit(NAL_UNIT_PPS, NAL_REF_IDC_PRIORITY_HIGHEST);
+        m_pcEntropyCoder->setBitstream(&nalu.m_Bitstream);
         m_pcEntropyCoder->encodePPS(pcSlice->getPPS());
-        writeRBSPTrailingBits(nalu->m_Bitstream);
+        writeRBSPTrailingBits(nalu.m_Bitstream);
+        accessUnit.push_back(new NALUnitEBSP(nalu));
 
         m_bSeqFirst = false;
       }
@@ -493,12 +493,11 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
 
         /* start slice NALunit */
 #if DCM_DECODING_REFRESH
-        OutputNALUnit* nalu = new OutputNALUnit(pcSlice->getNalUnitType(), NAL_REF_IDC_PRIORITY_HIGHEST, pcSlice->getTLayer(), true);
+        OutputNALUnit nalu(pcSlice->getNalUnitType(), NAL_REF_IDC_PRIORITY_HIGHEST, pcSlice->getTLayer(), true);
 #else
-        NALUnit* nalu = newNALUnit(NAL_UNIT_CODED_SLICE, NAL_REF_IDC_PRIORITY_HIGHEST);
+        OutputNALUnit nalu(NAL_UNIT_CODED_SLICE, NAL_REF_IDC_PRIORITY_HIGHEST);
 #endif
-        accessUnit.push_back(nalu);
-        m_pcEntropyCoder->setBitstream(&nalu->m_Bitstream);
+        m_pcEntropyCoder->setBitstream(&nalu.m_Bitstream);
         m_pcEntropyCoder->encodeSliceHeader(pcSlice);
 
       // is it needed?
@@ -570,7 +569,7 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
           m_pcEntropyCoder->setEntropyCoder ( m_pcCavlcCoder, pcSlice );
         }
         m_pcEntropyCoder->resetEntropy    ();
-        m_pcEntropyCoder->setBitstream(&nalu->m_Bitstream);
+        m_pcEntropyCoder->setBitstream(&nalu.m_Bitstream);
 
 #if MTK_SAO
         if (pcSlice->getSPS()->getUseSAO())
@@ -608,8 +607,9 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
       }
         
         // File writing
-        m_pcSliceEncoder->encodeSlice(pcPic, &nalu->m_Bitstream);
-        writeRBSPTrailingBits(nalu->m_Bitstream);
+        m_pcSliceEncoder->encodeSlice(pcPic, &nalu.m_Bitstream);
+        writeRBSPTrailingBits(nalu.m_Bitstream);
+        accessUnit.push_back(new NALUnitEBSP(nalu));
         
         UInt uiBoundingAddrSlice, uiBoundingAddrEntropySlice;
         uiBoundingAddrSlice        = m_uiStoredStartCUAddrForEncodingSlice[uiStartCUAddrSliceIdx];          
@@ -643,7 +643,7 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
       unsigned numBits = 0;
       for (AccessUnit::const_iterator it = accessUnit.begin(); it != accessUnit.end(); it++)
       {
-        numBits += (*it)->m_RBSPayload->size() * 8;
+        numBits += (*it)->m_nalUnitData.str().size() * 8;
       }
       xCalculateAddPSNR( pcPic, pcPic->getPicYuvRec(), numBits, dEncTime );
 
@@ -658,15 +658,17 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
         calcMD5(*pcPic->getPicYuvRec(), sei_recon_picture_digest.digest);
         printf(" [MD5:%s]", digestToString(sei_recon_picture_digest.digest));
 
-        OutputNALUnit* nalu = new OutputNALUnit(NAL_UNIT_SEI, NAL_REF_IDC_PRIORITY_LOWEST);
-        /* insert the SEI message NALUnit before any Slice NALUnits */
-        AccessUnit::iterator it = find_if(accessUnit.begin(), accessUnit.end(), mem_fun(&NALUnit::isSlice));
-        accessUnit.insert(it, nalu);
+        OutputNALUnit nalu(NAL_UNIT_SEI, NAL_REF_IDC_PRIORITY_LOWEST);
+
         /* write the SEI messages */
         m_pcEntropyCoder->setEntropyCoder(m_pcCavlcCoder, pcSlice);
-        m_pcEntropyCoder->setBitstream(&nalu->m_Bitstream);
+        m_pcEntropyCoder->setBitstream(&nalu.m_Bitstream);
         m_pcEntropyCoder->encodeSEI(sei_recon_picture_digest);
-        writeRBSPTrailingBits(nalu->m_Bitstream);
+        writeRBSPTrailingBits(nalu.m_Bitstream);
+
+        /* insert the SEI message NALUnit before any Slice NALUnits */
+        AccessUnit::iterator it = find_if(accessUnit.begin(), accessUnit.end(), mem_fun(&NALUnit::isSlice));
+        accessUnit.insert(it, new NALUnitEBSP(nalu));
       }
 
       pcPic->getPicYuvRec()->copyToPic(pcPicYuvRecOut);

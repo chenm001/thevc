@@ -55,19 +55,26 @@ struct OutputNALUnit : public NALUnit
     NalRefIdc nalRefIDC,
     unsigned temporalID = 0,
     bool outputFlag = true)
-  : m_Bitstream()
+  : NALUnit(nalUnitType, nalRefIDC, temporalID, outputFlag)
+  , m_Bitstream()
+  {}
+
+  OutputNALUnit& operator=(const NALUnit& src)
   {
-    m_UnitType = nalUnitType;
-    m_RefIDC = nalRefIDC;
-    m_RefIDC = nalRefIDC;
-    m_TemporalID = temporalID;
-    m_OutputFlag = outputFlag;
-    m_RBSPayload = &m_Bitstream.getFIFO();
+    m_Bitstream.clear();
+    static_cast<NALUnit*>(this)->operator=(src);
+    return *this;
   }
 
   TComOutputBitstream m_Bitstream;
 };
 
 
-void write(std::ostream& out, const NALUnit& nalu);
+void write(std::ostream& out, const OutputNALUnit& nalu);
 void writeRBSPTrailingBits(TComOutputBitstream& bs);
+
+inline NALUnitEBSP::NALUnitEBSP(const OutputNALUnit& nalu)
+  : NALUnit(nalu)
+{
+  write(m_nalUnitData, nalu);
+}

@@ -47,7 +47,7 @@ static const char emulation_prevention_three_byte[] = {3};
  * write @nalu@ to bytestream @out@, performing RBSP anti startcode
  * emulation as required.  @nalu@.m_RBSPayload must be byte aligned.
  */
-void write(ostream& out, const NALUnit& nalu)
+void write(ostream& out, const OutputNALUnit& nalu)
 {
   TComOutputBitstream bsNALUHeader;
 
@@ -88,7 +88,7 @@ void write(ostream& out, const NALUnit& nalu)
    *  - 0x00000302
    *  - 0x00000303
    */
-  const vector<uint8_t>& rbsp = *nalu.m_RBSPayload;
+  const vector<uint8_t>& rbsp = nalu.m_Bitstream.getFIFO();
 
   for (vector<uint8_t>::const_iterator it = rbsp.begin(); it != rbsp.end();)
   {
