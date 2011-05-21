@@ -1075,17 +1075,17 @@ Void TEncAdaptiveLoopFilter::xQuantFilterCoef(Double* h, Int* qh, Int tap, int b
   // set of filter coefficients
   for(i=0; i<N; i++)
   {
-    qh[i] = Max(min_value,Min(max_value, qh[i]));
+    qh[i] = max(min_value,min(max_value, qh[i]));
   }
   
   // DC offset
   //  max_value = Min(  (1<<(3+Max(img_bitdepth_luma,img_bitdepth_chroma)))-1, (1<<14)-1);
   //  min_value = Max( -(1<<(3+Max(img_bitdepth_luma,img_bitdepth_chroma))),  -(1<<14)  );
-  max_value = Min(  (1<<(3+g_uiBitDepth + g_uiBitIncrement))-1, (1<<14)-1);
-  min_value = Max( -(1<<(3+g_uiBitDepth + g_uiBitIncrement)),  -(1<<14)  );
+  max_value = min(  (1<<(3+g_uiBitDepth + g_uiBitIncrement))-1, (1<<14)-1);
+  min_value = max( -(1<<(3+g_uiBitDepth + g_uiBitIncrement)),  -(1<<14)  );
   
   qh[N] =  (h[N]>=0.0)? (Int)( h[N]*(1<<(ALF_NUM_BIT_SHIFT-bit_depth+8)) + 0.5) : -(Int)(-h[N]*(1<<(ALF_NUM_BIT_SHIFT-bit_depth+8)) + 0.5);
-  qh[N] = Max(min_value,Min(max_value, qh[N]));
+  qh[N] = max(min_value,min(max_value, qh[N]));
   
   delete[] dh;
   dh = NULL;

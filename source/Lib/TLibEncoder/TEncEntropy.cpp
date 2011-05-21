@@ -1012,7 +1012,7 @@ Void TEncEntropy::xEncodeCoeff( TComDataCU* pcCU, TCoeff* pcCoeff, UInt uiAbsPar
         encodeQP( pcCU, uiAbsPartIdx );
         pcCU->setdQPFlag(false);
         pcCU->setQPSubParts( pcCU->getQP( uiAbsPartIdx ), ((uiAbsPartIdx>>(8-(pcCU->getSlice()->getPPS()->getMaxCuDQPDepth()<<1)))<<(8-(pcCU->getSlice()->getPPS()->getMaxCuDQPDepth()<<1))), 
-          Min(uiDepth,pcCU->getSlice()->getPPS()->getMaxCuDQPDepth()) ); // set QP to default QP
+          min(uiDepth,pcCU->getSlice()->getPPS()->getMaxCuDQPDepth()) ); // set QP to default QP
         pcCU->setLastCodedQP( pcCU->getRefQP( uiAbsPartIdx ));
 #else
         encodeQP( pcCU, 0 );

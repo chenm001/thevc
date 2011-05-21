@@ -913,7 +913,7 @@ Void TComPattern::fill2ReferenceSamples_LM( TComDataCU* pcCU, Pel* piRoiOrigin, 
   Int  i, j;
   Int  iDCValue = ( 1<<( g_uiBitDepth + g_uiBitIncrement - 1) );
   
-  Int iTempStride = Max( uiWidth, uiHeight );
+  Int iTempStride = max( uiWidth, uiHeight );
   Int* piAdiTemp1 = piAdiTemp;
   Int* piAdiTemp2 = piAdiTemp1 + iTempStride;
   Int* piAdiTemp3 = piAdiTemp2 + iTempStride;

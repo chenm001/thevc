@@ -1015,7 +1015,7 @@ Void TDecEntropy::xDecodeCoeff( TComDataCU* pcCU, TCoeff* pcCoeff, UInt uiAbsPar
       {
 #if SUB_LCU_DQP
         decodeQP( pcCU, ((uiAbsPartIdx>>(8-(pcCU->getSlice()->getPPS()->getMaxCuDQPDepth()<<1)))<<(8-(pcCU->getSlice()->getPPS()->getMaxCuDQPDepth()<<1))), 
-          Min(uiDepth,pcCU->getSlice()->getPPS()->getMaxCuDQPDepth()) );
+          min(uiDepth,pcCU->getSlice()->getPPS()->getMaxCuDQPDepth()) );
         pcCU->setdQPFlag(false);
         pcCU->setLastCodedQP( pcCU->getRefQP( uiAbsPartIdx ));
 #else

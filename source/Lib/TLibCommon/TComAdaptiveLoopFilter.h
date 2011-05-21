@@ -79,8 +79,6 @@
 #define MAX_SCAN_VAL    11
 #define MAX_EXP_GOLOMB  16
 
-#define min(a, b) (((a) < (b)) ? (a) : (b))
-#define max(a, b) (((a) > (b)) ? (a) : (b))
 #define imgpel  unsigned short
 
 #if TI_ALF_MAX_VSIZE_7

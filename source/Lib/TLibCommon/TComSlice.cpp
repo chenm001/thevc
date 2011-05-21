@@ -386,8 +386,8 @@ Void TComSlice::setRefPicList       ( TComList<TComPic*>& rcListPic )
     return;
   }
   
-  m_aiNumRefIdx[0] = Min ( m_aiNumRefIdx[0], (Int)(rcListPic.size())-1 );
-  m_aiNumRefIdx[1] = Min ( m_aiNumRefIdx[1], (Int)(rcListPic.size())-1 );
+  m_aiNumRefIdx[0] = min ( m_aiNumRefIdx[0], (Int)(rcListPic.size())-1 );
+  m_aiNumRefIdx[1] = min ( m_aiNumRefIdx[1], (Int)(rcListPic.size())-1 );
   
   sortPicList(rcListPic);
   
@@ -726,7 +726,7 @@ Void TComSlice::decodingMarking( TComList<TComPic*>& rcListPic, Int iGOPSIze, In
 
   // TODO: This assumes that the new pics are added at the end of the list
   // This needs to be changed for the general case including for the long-term ref pics
-  iMaxRefPicNum = Max(iMaxRefPicNum, Max(Max(2, getNumRefIdx(REF_PIC_LIST_0)+1), iGOPSIze/2 + 2 + getNumRefIdx(REF_PIC_LIST_0)));
+  iMaxRefPicNum = max(iMaxRefPicNum, max(max(2, getNumRefIdx(REF_PIC_LIST_0)+1), iGOPSIze/2 + 2 + getNumRefIdx(REF_PIC_LIST_0)));
   if ( iActualNumOfReference >= iMaxRefPicNum )
   {
     Int iNumToBeReset = iActualNumOfReference - iMaxRefPicNum + 1;

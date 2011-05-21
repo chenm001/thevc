@@ -45,7 +45,7 @@
 
 #define   EDGE_VER    0
 #define   EDGE_HOR    1
-#define   QpUV(iQpY)  ( g_aucChromaScale[ Max( Min( (iQpY), MAX_QP ), MIN_QP ) ] )
+#define   QpUV(iQpY)  ( g_aucChromaScale[ max( min( (iQpY), MAX_QP ), MIN_QP ) ] )
 
 
 #if (PARALLEL_DEBLK_DECISION && !PARALLEL_MERGED_DEBLK)

@@ -1081,7 +1081,7 @@ Void TComPrediction::getLumaRecPixels( TComPattern* pcPattern, UInt uiCWidth, UI
   Int iRecSrcStride = pcPattern->getPatternLStride();
   Int iRecSrcStride2 = iRecSrcStride << 1;
   Int iDstStride = m_iLumaRecStride;
-  Int iSrcStride = ( Max( uiWidth, uiHeight ) << 1 ) + 1;
+  Int iSrcStride = ( max( uiWidth, uiHeight ) << 1 ) + 1;
 
   Int* ptrSrc = pcPattern->getAdiOrgBuf( uiWidth, uiHeight, m_piYuvExt );
 
@@ -1276,7 +1276,7 @@ Void TComPrediction::xGetLLSPrediction( TComPattern* pcPattern, Int* pSrc0, Int 
   }
 
   Int iBitdepth = ( ( g_uiBitDepth + g_uiBitIncrement ) + g_aucConvertToBit[ uiWidth ] + 3 ) * 2;
-  Int iTempShift = Max( ( iBitdepth - 31 + 1) / 2, 0);
+  Int iTempShift = max( ( iBitdepth - 31 + 1) / 2, 0);
 
   if(iTempShift > 0)
   {

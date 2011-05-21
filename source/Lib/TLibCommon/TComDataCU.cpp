@@ -1397,7 +1397,7 @@ Int TComDataCU::getMostProbableIntraDirLuma( UInt uiAbsPartIdx )
   mapPlanartoDC( iAboveIntraDir );
 #endif
   
-  iMostProbable  = Min( iLeftIntraDir, iAboveIntraDir );
+  iMostProbable  = min( iLeftIntraDir, iAboveIntraDir );
   
   // Mode conversion process for blocks with different number of available prediction directions
   Int iIdx  = getIntraSizeIdx(uiAbsPartIdx);
@@ -1480,8 +1480,8 @@ Int TComDataCU::getIntraDirLumaPredictor( UInt uiAbsPartIdx, Int uiIntraDirPred[
  else
  {
    uiPredNum = 2;
-   uiIntraDirPred[0] = Min(iLeftIntraDir, iAboveIntraDir);
-   uiIntraDirPred[1] = Max(iLeftIntraDir, iAboveIntraDir);
+   uiIntraDirPred[0] = min(iLeftIntraDir, iAboveIntraDir);
+   uiIntraDirPred[1] = max(iLeftIntraDir, iAboveIntraDir);
  }
 
 
@@ -3576,8 +3576,8 @@ Void TComDataCU::clipMv    (TComMv&  rcMv)
   Int iVerMax = (m_pcSlice->getSPS()->getHeight() - m_uiCUPelY - 1 )<<iMvShift;
   Int iVerMin = (      -(Int)g_uiMaxCUHeight - (Int)m_uiCUPelY + 1 )<<iMvShift;
   
-  rcMv.setHor( Min (iHorMax, Max (iHorMin, rcMv.getHor())) );
-  rcMv.setVer( Min (iVerMax, Max (iVerMin, rcMv.getVer())) );
+  rcMv.setHor( min (iHorMax, max (iHorMin, rcMv.getHor())) );
+  rcMv.setVer( min (iVerMax, max (iVerMin, rcMv.getVer())) );
 }
 
 
