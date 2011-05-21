@@ -193,13 +193,12 @@ Void TDecTop::executeDeblockAndAlf(UInt& ruiPOC, TComList<TComPic*>*& rpcListPic
   TComPic*&   pcPic         = m_pcPic;
 
   // Execute Deblock and ALF only + Cleanup
-  TComSlice* pcSlice  = pcPic->getPicSym()->getSlice( m_uiSliceIdx                  );
   m_cGopDecoder.decompressGop(NULL, pcPic, true);
 
   // Apply decoder picture marking at the end of coding
   pcPic->getSlice( 0 )->decodingTLayerSwitchingMarking( m_cListPic );
 
-  pcSlice->sortPicList        ( m_cListPic );       //  sorting for application output    
+  TComSlice::sortPicList( m_cListPic ); // sorting for application output
   ruiPOC              = pcPic->getSlice(m_uiSliceIdx-1)->getPOC();
   rpcListPic          = &m_cListPic;  
   m_cCuDecoder.destroy();        
