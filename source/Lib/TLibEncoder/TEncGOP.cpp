@@ -1005,13 +1005,15 @@ Void TEncGOP::xCalculateAddPSNR( TComPic* pcPic, TComPicYuv* pcPicD, const Acces
 
   /* calculate the size of the access unit, excluding:
    *  - any AnnexB contributions (start_code_prefix, zero_byte, etc.,)
+   *  - SEI NAL units
    */
   unsigned numRBSPBytes = 0;
   for (AccessUnit::const_iterator it = accessUnit.begin(); it != accessUnit.end(); it++)
   {
     unsigned numRBSPBytes_nal = unsigned((*it)->m_nalUnitData.str().size());
     printf("*** %6s numBytesInNALunit: %u\n", nalUnitTypeToString((*it)->m_UnitType), numRBSPBytes_nal);
-    numRBSPBytes += numRBSPBytes_nal;
+    if ((*it)->m_UnitType != NAL_UNIT_SEI)
+      numRBSPBytes += numRBSPBytes_nal;
   }
 
   unsigned uibits = numRBSPBytes * 8;
