@@ -4982,6 +4982,27 @@ Void TEncSampleAdaptiveOffset::destoryEncBuffer()
       delete [] m_iOffsetOrg ; m_iOffsetOrg = NULL;
     }
 
+    {
+      Int iMaxDepth = 4;
+      Int iDepth;
+      for ( iDepth = 0; iDepth < iMaxDepth+1; iDepth++ )
+      {
+        for (Int iCIIdx = 0; iCIIdx < CI_NUM; iCIIdx ++ )
+        {
+          delete m_pppcRDSbacCoder[iDepth][iCIIdx];
+          delete m_pppcBinCoderCABAC[iDepth][iCIIdx];
+        }
+      }
+
+      for ( iDepth = 0; iDepth < iMaxDepth+1; iDepth++ )
+      {
+        delete [] m_pppcRDSbacCoder[iDepth];
+        delete [] m_pppcBinCoderCABAC[iDepth];
+      }
+
+      delete [] m_pppcRDSbacCoder;
+      delete [] m_pppcBinCoderCABAC;
+    }
 
 }
 Void TEncSampleAdaptiveOffset::createEncBuffer()
@@ -5016,6 +5037,25 @@ Void TEncSampleAdaptiveOffset::createEncBuffer()
       }
     }
 
+    {
+      Int iMaxDepth = 4;
+      m_pppcRDSbacCoder = new TEncSbac** [iMaxDepth+1];
+      m_pppcBinCoderCABAC = new TEncBinCABAC** [iMaxDepth+1];
+
+      for ( Int iDepth = 0; iDepth < iMaxDepth+1; iDepth++ )
+      {
+        m_pppcRDSbacCoder[iDepth] = new TEncSbac* [CI_NUM];
+        m_pppcBinCoderCABAC[iDepth] = new TEncBinCABAC* [CI_NUM];
+
+        for (Int iCIIdx = 0; iCIIdx < CI_NUM; iCIIdx ++ )
+        {
+          m_pppcRDSbacCoder[iDepth][iCIIdx] = new TEncSbac;
+          m_pppcBinCoderCABAC [iDepth][iCIIdx] = new TEncBinCABAC;
+          m_pppcRDSbacCoder   [iDepth][iCIIdx]->init( m_pppcBinCoderCABAC [iDepth][iCIIdx] );
+        }
+      }
+    }
+
 }
 
 /** start Sao Encoder.
@@ -5031,7 +5071,6 @@ Void TEncSampleAdaptiveOffset::startSaoEnc( TComPic* pcPic, TEncEntropy* pcEntro
   m_pcPic = pcPic;
   m_pcEntropyCoder = pcEntropyCoder;
 
-  m_pppcRDSbacCoder = pppcRDSbacCoder;
   m_pcRDGoOnSbacCoder = pcRDGoOnSbacCoder;
   m_pcEntropyCoder->resetEntropy();
   m_pcEntropyCoder->resetBits();
