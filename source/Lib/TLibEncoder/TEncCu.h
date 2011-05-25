@@ -116,6 +116,9 @@ public:
   Void  setQpLast           ( Int iQp ) { m_iQp = iQp; }
   
 protected:
+#if FINE_GRANULARITY_SLICES
+  Void  finishCU            ( TComDataCU*  pcCU, UInt uiAbsPartIdx,           UInt uiDepth        );
+#endif
   Void  xCompressCU         ( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, UInt uiDepth        );
   Void  xEncodeCU           ( TComDataCU*  pcCU, UInt uiAbsPartIdx,           UInt uiDepth        );
   

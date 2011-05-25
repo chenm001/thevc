@@ -227,10 +227,17 @@ private:
   UInt        m_uiNumTlayerSwitchingFlags;            // num_temporal_layer_switching_point_flags
   Bool        m_abTLayerSwitchingFlag[ MAX_TLAYER ];  // temporal_layer_switching_point_flag
 
+#if FINE_GRANULARITY_SLICES
+  Int         m_iSliceGranularity;
+#endif
 public:
   TComPPS();
   virtual ~TComPPS();
   
+#if FINE_GRANULARITY_SLICES
+  Int       getSliceGranularity()        { return m_iSliceGranularity; }
+  Void      setSliceGranularity( Int i ) { m_iSliceGranularity = i;    }
+#endif
 #if CONSTRAINED_INTRA_PRED
   Bool      getConstrainedIntraPred ()         { return  m_bConstrainedIntraPred; }
   Void      setConstrainedIntraPred ( Bool b ) { m_bConstrainedIntraPred = b;     }
@@ -326,6 +333,9 @@ private:
   Bool        m_bNextSlice;
   Bool        m_bNextEntropySlice;
   UInt        m_uiSliceBits;
+#if FINE_GRANULARITY_SLICES
+  UInt        m_uiEntropySliceCounter;
+#endif
   
 public:
   TComSlice();
@@ -466,6 +476,10 @@ public:
   Bool isNextEntropySlice               ()                  { return m_bNextEntropySlice;                 }
   Void setSliceBits                     ( UInt uiVal )      { m_uiSliceBits = uiVal;                      }
   UInt getSliceBits                     ()                  { return m_uiSliceBits;                       }  
+#if FINE_GRANULARITY_SLICES
+  Void setEntropySliceCounter           ( UInt uiVal )      { m_uiEntropySliceCounter = uiVal;            }
+  UInt getEntropySliceCounter           ()                  { return m_uiEntropySliceCounter;             }
+#endif
   
 protected:
   TComPic*  xGetRefPic  (TComList<TComPic*>& rcListPic,
