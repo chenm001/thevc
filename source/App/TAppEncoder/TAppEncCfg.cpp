@@ -589,7 +589,7 @@ Void TAppEncCfg::xPrintParameter()
 #if HHI_RMP_SWITCH
   printf("RMP:%d ", m_bUseRMP);
 #endif
-#ifdef FINE_GRANULARITY_SLICES
+#if FINE_GRANULARITY_SLICES
   printf("Slice: G=%d M=%d ", m_iSliceGranularity, m_iSliceMode);
   if (m_iSliceMode!=0)
   {
