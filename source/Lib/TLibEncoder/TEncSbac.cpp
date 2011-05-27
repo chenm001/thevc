@@ -1995,7 +1995,7 @@ Void TEncSbac::estCBFBit( estBitsSbacStruct* pcEstBitsSbac, UInt uiCTXIdx, TextT
 {
   ContextModel *pCtx = m_cCUQtCbfSCModel.get( 0 );
 
-  for( UInt uiCtxInc = 0; uiCtxInc < 45; uiCtxInc++ )
+  for( UInt uiCtxInc = 0; uiCtxInc < 3*NUM_QT_CBF_CTX; uiCtxInc++ )
   {
     pcEstBitsSbac->blockCbpBits[ uiCtxInc ][ 0 ] = biari_no_bits( 0, pCtx[ uiCtxInc ] );
     pcEstBitsSbac->blockCbpBits[ uiCtxInc ][ 1 ] = biari_no_bits( 1, pCtx[ uiCtxInc ] );

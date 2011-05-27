@@ -41,6 +41,7 @@
 #include "CommonDef.h"
 #include "TComYuv.h"
 #include "TComDataCU.h"
+#include "ContextTables.h"
 
 // ====================================================================================================================
 // Constants
@@ -75,7 +76,7 @@ typedef struct
   Int lastBits[16][2];
 #endif
   Int greaterOneBits[6][2][5][2];
-  Int blockCbpBits[45][2];
+  Int blockCbpBits[3*NUM_QT_CBF_CTX][2];
   Int blockRootCbpBits[4][2];
   Int scanZigzag[2];            ///< flag for zigzag scan
   Int scanNonZigzag[2];         ///< flag for non zigzag scan
