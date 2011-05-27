@@ -46,8 +46,6 @@
 #define NUM_SPLIT_FLAG_CTX            3       ///< number of context models for split flag
 #define NUM_SKIP_FLAG_CTX             3       ///< number of context models for skip flag
 
-#define NUM_ALF_CRTL_FLAG_CTX         3       ///< number of context models for ALF ctrl flag
-
 #define NUM_MERGE_FLAG_EXT_CTX        3       ///< number of context models for merge flag of merge extended
 #define NUM_MERGE_IDX_EXT_CTX         4       ///< number of context models for merge index of merge extended
 
@@ -72,7 +70,6 @@
 #define NUM_QT_CBF_CTX                15      ///< number of context models for QT CBF
 #define NUM_QT_ROOT_CBF_CTX           4       ///< number of context models for QT ROOT CBF
 #define NUM_DELTA_QP_CTX              4       ///< number of context models for dQP
-#define NUM_CBF_CTX                   4       ///< number of context models for CBF
 
 #define NUM_SIG_FLAG_CTX              16      ///< number of context models for sig flag
 #if PCP_SIGMAP_SIMPLE_LAST
