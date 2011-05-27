@@ -1563,50 +1563,6 @@ UInt TComDataCU::getCtxIntraDirChroma( UInt uiAbsPartIdx )
   return uiCtx;
 }
 
-UInt TComDataCU::getCtxCbf( UInt uiAbsPartIdx, TextType eType, UInt uiTrDepth )
-{
-  TComDataCU* pcTempCU;
-  UInt        uiTempPartIdx, uiTempTrDepth;
-  UInt        uiErrRet = !isIntra(uiAbsPartIdx) ? 0 : 1;
-  UInt        uiCtx = 0;
-  
-  // Get Cbf of left PU
-  pcTempCU = getPULeft( uiTempPartIdx, m_uiAbsIdxInLCU + uiAbsPartIdx );
-  if ( pcTempCU )
-  {
-    uiTempTrDepth = pcTempCU->getTransformIdx( uiTempPartIdx );
-#if E057_INTRA_PCM
-    if(pcTempCU->getIPCMFlag(uiTempPartIdx) == true)
-      uiCtx = 1;
-    else
-#endif
-    uiCtx = pcTempCU->getCbf( uiTempPartIdx, eType, uiTempTrDepth < uiTrDepth ? uiTempTrDepth : uiTrDepth );
-  }
-  else
-  {
-    uiCtx = uiErrRet;
-  }
-  
-  // Get Cbf of above PU
-  pcTempCU = getPUAbove( uiTempPartIdx, m_uiAbsIdxInLCU + uiAbsPartIdx );
-  if ( pcTempCU )
-  {
-    uiTempTrDepth = pcTempCU->getTransformIdx( uiTempPartIdx );
-#if E057_INTRA_PCM
-    if(pcTempCU->getIPCMFlag(uiTempPartIdx) == true)
-      uiCtx += 2;
-    else
-#endif
-    uiCtx += pcTempCU->getCbf( uiTempPartIdx, eType, uiTempTrDepth < uiTrDepth ? uiTempTrDepth : uiTrDepth ) << 1;
-  }
-  else
-  {
-    uiCtx += uiErrRet << 1;
-  }
-  
-  return uiCtx;
-}
-
 UInt TComDataCU::getCtxQtCbf( UInt uiAbsPartIdx, TextType eType, UInt uiTrDepth )
 {
   if( getPredictionMode( uiAbsPartIdx ) != MODE_INTRA && eType != TEXT_LUMA )
@@ -3984,54 +3940,6 @@ Int TComDataCU::xGetDistScaleFactor(Int iCurrPOC, Int iCurrRefPOC, Int iColPOC, 
     Int iX        = (0x4000 + abs(iTDD/2)) / iTDD;
     Int iScale    = Clip3( -1024, 1023, (iTDB * iX + 32) >> 6 );
     return iScale;
-  }
-}
-
-Void TComDataCU::xCalcCuCbf( UChar* puhCbf, UInt uiTrDepth, UInt uiCbfDepth, UInt uiCuDepth )
-{
-  if ( uiTrDepth == 0 )
-    return;
-  
-  UInt ui, uiNumSig = 0;
-  
-  UInt uiNumPart  = m_pcPic->getNumPartInCU() >> ( uiCuDepth << 1 );
-  UInt uiQNumPart = uiNumPart >> 2;
-  
-  UInt uiCbfDepth1 = uiCbfDepth + 1;
-  if( uiNumPart == 1 )
-  {
-    if ( ( puhCbf[0] >> uiCbfDepth1 ) & 0x1 )
-    {
-      uiNumSig = 1;
-    }
-    puhCbf[0] |= uiNumSig << uiCbfDepth;
-    
-    return;
-  }
-  assert( uiQNumPart );
-  
-  if ( uiCbfDepth < ( uiTrDepth - 1 ) )
-  {
-    UChar* puhNextCbf = puhCbf;
-    xCalcCuCbf( puhNextCbf, uiTrDepth, uiCbfDepth1, uiCuDepth+1 ); puhNextCbf += uiQNumPart;
-    xCalcCuCbf( puhNextCbf, uiTrDepth, uiCbfDepth1, uiCuDepth+1 ); puhNextCbf += uiQNumPart;
-    xCalcCuCbf( puhNextCbf, uiTrDepth, uiCbfDepth1, uiCuDepth+1 ); puhNextCbf += uiQNumPart;
-    xCalcCuCbf( puhNextCbf, uiTrDepth, uiCbfDepth1, uiCuDepth+1 );
-  }
-  
-  for ( ui = 0; ui < uiNumPart; ui += uiQNumPart )
-  {
-    if ( ( puhCbf[ui] >> uiCbfDepth1 ) & 0x1 )
-    {
-      uiNumSig = 1;
-      break;
-    }
-  }
-  
-  uiNumSig <<= uiCbfDepth;
-  for ( ui = 0; ui < uiNumPart; ui++ )
-  {
-    puhCbf[ui] |= uiNumSig;
   }
 }
 

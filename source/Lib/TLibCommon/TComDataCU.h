@@ -175,9 +175,6 @@ protected:
   /// compute scaling factor from POC difference
   Int           xGetDistScaleFactor   ( Int iCurrPOC, Int iCurrRefPOC, Int iColPOC, Int iColRefPOC );
   
-  /// calculate all CBF's from coefficients
-  Void          xCalcCuCbf            ( UChar* puhCbf, UInt uiTrDepth, UInt uiCbfDepth, UInt uiCuDepth );
-  
 #if FT_TCTR_AMVP || FT_TCTR_MRG
   Void xDeriveCenterIdx( PartSize eCUMode, UInt uiPartIdx, UInt& ruiPartIdxCenter );
   Bool xGetCenterCol( UInt uiPartIdx, RefPicList eRefPicList, int iRefIdx, TComMv *pcMv );
@@ -471,7 +468,6 @@ public:
   // -------------------------------------------------------------------------------------------------------------------
   
   UInt          getCtxSplitFlag                 ( UInt   uiAbsPartIdx, UInt uiDepth                   );
-  UInt          getCtxCbf                       ( UInt   uiAbsPartIdx, TextType eType, UInt uiTrDepth );
   UInt          getCtxQtCbf                     ( UInt   uiAbsPartIdx, TextType eType, UInt uiTrDepth );
   UInt          getCtxQtRootCbf                 ( UInt   uiAbsPartIdx                                 );
   UInt          getCtxRefIdx                    ( UInt   uiAbsPartIdx, RefPicList eRefPicList         );
