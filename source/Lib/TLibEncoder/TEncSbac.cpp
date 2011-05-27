@@ -40,9 +40,6 @@
 
 #include <map>
 
-extern UChar  stateMappingTable[113];
-extern Int entropyBits[128];
-
 // ====================================================================================================================
 // Constructor / destructor / create / destroy
 // ====================================================================================================================
@@ -2064,25 +2061,22 @@ Void TEncSbac::estSignificantMapBit( estBitsSbacStruct* pcEstBitsSbac, UInt uiCT
  */
 Void TEncSbac::estSignificantCoefficientsBit( estBitsSbacStruct* pcEstBitsSbac, UInt uiCTXIdx, TextType eTType )
 {
+  ContextModel *ctxOne = m_cCUOneSCModel.get(0, eTType);
+  ContextModel *ctxAbs = m_cCUAbsSCModel.get(0, eTType);
+  
   for( UInt uiSet = 0; uiSet < 6; uiSet++ )
   {
     for( UInt uiCtx = 0; uiCtx < 5; uiCtx++ )
     {
-      pcEstBitsSbac->greaterOneBits[ uiSet ][ 0 ][ uiCtx ][ 0 ] = biari_no_bits( 0, m_cCUOneSCModel.get( 0, eTType, ( uiSet << 2 ) + uiSet + uiCtx ) );
-      pcEstBitsSbac->greaterOneBits[ uiSet ][ 0 ][ uiCtx ][ 1 ] = biari_no_bits( 1, m_cCUOneSCModel.get( 0, eTType, ( uiSet << 2 ) + uiSet + uiCtx ) );
-      pcEstBitsSbac->greaterOneBits[ uiSet ][ 1 ][ uiCtx ][ 0 ] = biari_no_bits( 0, m_cCUAbsSCModel.get( 0, eTType, ( uiSet << 2 ) + uiSet + uiCtx ) );
-      pcEstBitsSbac->greaterOneBits[ uiSet ][ 1 ][ uiCtx ][ 1 ] = biari_no_bits( 1, m_cCUAbsSCModel.get( 0, eTType, ( uiSet << 2 ) + uiSet + uiCtx ) );
+      pcEstBitsSbac->greaterOneBits[ uiSet ][ 0 ][ uiCtx ][ 0 ] = biari_no_bits( 0, ctxOne[ 5 * uiSet + uiCtx ] );
+      pcEstBitsSbac->greaterOneBits[ uiSet ][ 0 ][ uiCtx ][ 1 ] = biari_no_bits( 1, ctxOne[ 5 * uiSet + uiCtx ] );
+      pcEstBitsSbac->greaterOneBits[ uiSet ][ 1 ][ uiCtx ][ 0 ] = biari_no_bits( 0, ctxAbs[ 5 * uiSet + uiCtx ] );
+      pcEstBitsSbac->greaterOneBits[ uiSet ][ 1 ][ uiCtx ][ 1 ] = biari_no_bits( 1, ctxAbs[ 5 * uiSet + uiCtx ] );
     }
   }
 }
 
 Int TEncSbac::biari_no_bits( Short symbol, ContextModel& rcSCModel )
 {
-  UInt  uiEstBits;
-  Short ui16State;
-  
-  symbol    = (Short)( symbol != 0 );
-  ui16State = symbol == rcSCModel.getMps() ? 64 + rcSCModel.getState() : 63 - rcSCModel.getState();
-  uiEstBits = entropyBits[ 127 - ui16State ];
-  return uiEstBits;
+  return rcSCModel.getEntropyBits(symbol);
 }

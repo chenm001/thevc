@@ -74,10 +74,13 @@ public:
     m_ucState   = ( m_aucNextStateMPS[ m_ucState >> 1 ] << 1 ) + ( m_ucState & 1 );
   }
   
+  Int getEntropyBits(Short val) { return m_entropyBits[m_ucState ^ val]; }
+  
 private:
   UChar         m_ucState;                                                                  ///< internal state variable
   static const  UChar m_aucNextStateMPS[ 64 ];
   static const  UChar m_aucNextStateLPS[ 64 ];
+  static const Int m_entropyBits[ 128 ];
 };
 
 #endif
