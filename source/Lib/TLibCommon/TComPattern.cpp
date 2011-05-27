@@ -780,7 +780,7 @@ Void TComPattern::fillReferenceSamples( TComDataCU* pcCU, Pel* piRoiOrigin, Int*
   {
     Int  iNumUnits2 = iNumUnitsInCu<<1;
     Int  iTotalSamples = iTotalUnits*iUnitSize;
-    Pel  *piAdiLine = new Pel[iTotalSamples];
+    Pel  piAdiLine[5 * MAX_CU_SIZE];
     Pel  *piAdiLineTemp; 
     Bool *pbNeighborFlags;
     Int  iPrev, iNext, iCurr;
@@ -884,9 +884,6 @@ Void TComPattern::fillReferenceSamples( TComDataCU* pcCU, Pel* piRoiOrigin, Int*
     piAdiLineTemp = piAdiLine + uiHeight - 1;
     for (i=1; i<uiHeight; i++)
       piAdiTemp[i*uiWidth] = piAdiLineTemp[-i];
-
-    delete [] piAdiLine;
-    piAdiLine = NULL;
   }
 }
 
@@ -973,8 +970,8 @@ Void TComPattern::fill2ReferenceSamples_LM( TComDataCU* pcCU, Pel* piRoiOrigin, 
   {
     Int  iNumUnits2 = iNumUnitsInCu<<1;
     Int  iTotalSamples = iTotalUnits*iUnitSize;
-    Pel  *piAdiLine1 = new Pel[iTotalSamples];
-    Pel  *piAdiLine2 = new Pel[iTotalSamples];
+    Pel  piAdiLine1[5 * MAX_CU_SIZE];
+    Pel  piAdiLine2[5 * MAX_CU_SIZE];
     Pel  *piAdiLineTemp1, *piAdiLineTemp2; 
     Bool *pbNeighborFlags;
     Int  iPrev, iNext, iCurr;
@@ -1123,12 +1120,6 @@ Void TComPattern::fill2ReferenceSamples_LM( TComDataCU* pcCU, Pel* piRoiOrigin, 
       piAdiTemp3[i-1] = piAdiLineTemp1[-i];
       piAdiTemp4[i-1] = piAdiLineTemp2[-i];
     }
-
-    delete [] piAdiLine1;
-    piAdiLine1 = NULL;
-
-    delete [] piAdiLine2;
-    piAdiLine2 = NULL;
   }
 }
 #endif
