@@ -238,7 +238,7 @@ Void TComPattern::initAdiPattern( TComDataCU* pcCU, UInt uiZorderIdxInPart, UInt
   Int   iUnitSize = 0;
   Int   iNumUnitsInCu = 0;
   Int   iTotalUnits = 0;
-  Bool* bNeighborFlags;
+  Bool  bNeighborFlags[4 * MAX_NUM_SPU_W + 1];
   Int   iNumIntraNeighbor = 0;
 #else  // REFERENCE_SAMPLE_PADDING
   Pel*  piRoiTemp;
@@ -261,7 +261,6 @@ Void TComPattern::initAdiPattern( TComDataCU* pcCU, UInt uiZorderIdxInPart, UInt
     iUnitSize      = g_uiMaxCUWidth >> g_uiMaxCUDepth;
     iNumUnitsInCu  = uiCuWidth / iUnitSize;
     iTotalUnits    = (iNumUnitsInCu << 2) + 1;
-    bNeighborFlags = new Bool[iTotalUnits];
 
     bNeighborFlags[iNumUnitsInCu*2] = isAboveLeftAvailableForCIP( pcCU, uiPartIdxLT );
     iNumIntraNeighbor  += (Int)(bNeighborFlags[iNumUnitsInCu*2]);
@@ -283,7 +282,6 @@ Void TComPattern::initAdiPattern( TComDataCU* pcCU, UInt uiZorderIdxInPart, UInt
     iUnitSize     = uiCuWidth;
     iNumUnitsInCu = 1;
     iTotalUnits   = 5;
-    bNeighborFlags = new Bool[iTotalUnits];
 
     ::memset(bNeighborFlags, false, sizeof(Bool)*iTotalUnits);
     if( pcCU->getPUAbove        ( uiPartDum,             uiPartIdxLT,    true, false ) ) { bNeighborFlags[3] = true; iNumIntraNeighbor++; }
@@ -312,7 +310,6 @@ Void TComPattern::initAdiPattern( TComDataCU* pcCU, UInt uiZorderIdxInPart, UInt
   iUnitSize     = uiCuWidth;
   iNumUnitsInCu = 1;
   iTotalUnits   = 5;
-  bNeighborFlags = new Bool[iTotalUnits];
 
   ::memset(bNeighborFlags, false, sizeof(Bool)*iTotalUnits);
   if( pcCU->getPUAbove        ( uiPartDum,             uiPartIdxLT, true, false ) ) { bNeighborFlags[3] = true; iNumIntraNeighbor++; }
@@ -367,9 +364,6 @@ Void TComPattern::initAdiPattern( TComDataCU* pcCU, UInt uiZorderIdxInPart, UInt
   else if( uiExt == 1 )
 #endif
   fillReferenceSamples ( pcCU, piRoiOrigin, piAdiTemp, bNeighborFlags, iNumIntraNeighbor, iUnitSize, iNumUnitsInCu, iTotalUnits, uiCuWidth, uiCuHeight, uiWidth, uiHeight, iPicStride);
-
-  delete [] bNeighborFlags;
-  bNeighborFlags = NULL;
 
 #if LM_CHROMA_TICKET156
   if( uiExt == 2 )
@@ -508,7 +502,7 @@ Void TComPattern::initAdiPatternChroma( TComDataCU* pcCU, UInt uiZorderIdxInPart
   Int   iUnitSize = 0;
   Int   iNumUnitsInCu = 0;
   Int   iTotalUnits = 0;
-  Bool* bNeighborFlags;
+  Bool  bNeighborFlags[4 * MAX_NUM_SPU_W + 1];
   Int   iNumIntraNeighbor = 0;
 #else // REFERENCE_SAMPLE_PADDING
   Pel*  piRoiTemp;
@@ -532,7 +526,6 @@ Void TComPattern::initAdiPatternChroma( TComDataCU* pcCU, UInt uiZorderIdxInPart
     iUnitSize      = (g_uiMaxCUWidth >> g_uiMaxCUDepth) >> 1; // for chroma
     iNumUnitsInCu  = (uiCuWidth / iUnitSize) >> 1;            // for chroma
     iTotalUnits    = (iNumUnitsInCu << 2) + 1;
-    bNeighborFlags = new Bool[iTotalUnits];
 
     bNeighborFlags[iNumUnitsInCu*2] = isAboveLeftAvailableForCIP( pcCU, uiPartIdxLT );
     iNumIntraNeighbor  += (Int)(bNeighborFlags[iNumUnitsInCu*2]);
@@ -554,7 +547,6 @@ Void TComPattern::initAdiPatternChroma( TComDataCU* pcCU, UInt uiZorderIdxInPart
     iUnitSize     = uiCuWidth >> 1;
     iNumUnitsInCu = 1;
     iTotalUnits   = 5;
-    bNeighborFlags = new Bool[iTotalUnits];
 
     ::memset(bNeighborFlags, false, sizeof(Bool)*iTotalUnits);
     if( pcCU->getPUAbove        ( uiPartDum,             uiPartIdxLT,    true, false ) ) { bNeighborFlags[3] = true; iNumIntraNeighbor++; }
@@ -575,7 +567,6 @@ Void TComPattern::initAdiPatternChroma( TComDataCU* pcCU, UInt uiZorderIdxInPart
   iUnitSize     = uiCuWidth >> 1;
   iNumUnitsInCu = 1;
   iTotalUnits   = 5;
-  bNeighborFlags = new Bool[iTotalUnits];
 
   ::memset(bNeighborFlags, false, sizeof(Bool)*iTotalUnits);
   if( pcCU->getPUAbove        ( uiPartDum,             uiPartIdxLT, true, false ) ) { bNeighborFlags[3] = true; iNumIntraNeighbor++; }
@@ -682,8 +673,6 @@ Void TComPattern::initAdiPatternChroma( TComDataCU* pcCU, UInt uiZorderIdxInPart
   
 #if REFERENCE_SAMPLE_PADDING
   fillReferenceSamples ( pcCU, piRoiOrigin, piAdiTemp, bNeighborFlags, iNumIntraNeighbor, iUnitSize, iNumUnitsInCu, iTotalUnits, uiCuWidth, uiCuHeight, uiWidth, uiHeight, iPicStride);
-  delete [] bNeighborFlags;
-  bNeighborFlags = NULL;
 #else // REFERENCE_SAMPLE_PADDING
   for (i=0;i<uiWidth;i++)
     piAdiTemp[i]=iDCValue;
