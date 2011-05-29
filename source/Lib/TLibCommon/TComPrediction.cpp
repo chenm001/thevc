@@ -1227,7 +1227,7 @@ Void TComPrediction::xGetLLSPrediction( TComPattern* pcPattern, Int* pSrc0, Int 
   if( iCountShift == 0 )
   {
     a = 0;
-    b = 128 << g_uiBitIncrement;
+    b = 1 << (g_uiBitDepth + g_uiBitIncrement - 1);
     iShift = 0;
   }
   else
