@@ -43,29 +43,24 @@
 // Tables
 // ====================================================================================================================
 
-const UChar g_aaucAvailableBlkMask[16][8] =
+#if QC_MDIS
+const UChar TComPattern::m_aucIntraFilter[5][34] =
 {
-  // 4x4 block neighbor availability      // MB neighbor availability
-  {0x0,0x0,0x0,0x0,  0x0,0x8,0x0,0x08  }, // L, A, AL, AR   <== WTF (blkIdx < 8)
-  {0x1,0x0,0x0,0x0,  0x1,0x8,0x0,0x08  }, //    A, AL, AR
-  {0xA,0xE,0xE,0x6,  0x0,0x8,0x0,0x08  }, // L,    AL, AR
-  {0xB,0xE,0xE,0x6,  0x1,0x8,0x0,0x08  }, //       AL, AR
-  
-  {0x4,0x0,0x0,0x0,  0x0,0x8,0x0,0x08  }, // L, A,     AR
-  {0x5,0x0,0x0,0x0,  0x1,0x8,0x0,0x08  }, //    A,     AR
-  {0xE,0xE,0xE,0x6,  0x0,0x8,0x0,0x08  }, // L,        AR
-  {0xF,0xE,0xE,0x6,  0x1,0x8,0x0,0x08  }, //           AR
-  
-  {0x0,0x0,0x0,0x8,  0x0,0x8,0x0,0x08  }, // L, A, AL       <== WTF (blkIdx < 8 || blkIdx >= 8)
-  {0x1,0x0,0x0,0x8,  0x1,0x8,0x0,0x08  }, //    A, AL
-  {0xA,0xE,0xE,0xE,  0x0,0x8,0x0,0x08  }, // L,    AL
-  {0xB,0xE,0xE,0xE,  0x1,0x8,0x0,0x08  }, //       AL
-  
-  {0x4,0x0,0x0,0x8,  0x0,0x8,0x0,0x08  }, // L, A,
-  {0x5,0x0,0x0,0x8,  0x1,0x8,0x0,0x08  }, //    A,
-  {0xE,0xE,0xE,0xE,  0x0,0x8,0x0,0x08  }, // L,
-  {0xF,0xE,0xE,0xE,  0x1,0x8,0x0,0x08  }  //
+#if MN_MDIS_SIMPLIFICATION
+  {0, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, //4x4
+  {0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, //8x8
+  {0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, //16x16
+  {0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, //32x32
+  {0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, //64x64
+#else
+  {0, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, //4x4
+  {0, 0, 0, 1, 1, 2, 2, 2, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, //8x8
+  {0, 0, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, //16x16
+  {0, 0, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2}, //32x32
+  {0, 0, 0, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, //64x64
+#endif
 };
+#endif
 
 // ====================================================================================================================
 // Public member functions (TComPatternParam)
@@ -1134,37 +1129,22 @@ Int* TComPattern::getAdiCrBuf(Int iCuWidth,Int iCuHeight, Int* piAdiBuf)
 }
 
 #if QC_MDIS
-Int* TComPattern::getPredictorPtr ( UInt uiDirMode, UInt uiWidthBits, Int iCuWidth, Int iCuHeight, Int* piAdiBuf )
+/** Get pointer to reference samples for intra prediction
+ * \param uiDirMode   prediction mode index
+ * \param log2BlkSize size of block (2 = 4x4, 3 = 8x8, 4 = 16x16, 5 = 32x32, 6 = 64x64)
+ * \param piAdiBuf    pointer to unfiltered reference samples
+ * \return            pointer to (possibly filtered) reference samples
+ *
+ * The prediction mode index is used to determine whether a smoothed reference sample buffer is returned.
+ */
+Int* TComPattern::getPredictorPtr( UInt uiDirMode, UInt log2BlkSize, Int* piAdiBuf )
 {
-#if MN_MDIS_SIMPLIFICATION
-  static const UChar g_aucIntraFilter[7][34] =
-  {
-      {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, //2x2
-      {0, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, //4x4
-      {0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, //8x8
-      {0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, //16x16
-      {0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, //32x32
-      {0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, //64x64
-      {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}  //128x128
-  };
-#else
-  static const UChar g_aucIntraFilter[7][34] =
-  {
-      {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, //2x2
-      {0, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, //4x4
-      {0, 0, 0, 1, 1, 2, 2, 2, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, //8x8
-      {0, 0, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, //16x16
-      {0, 0, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2}, //32x32
-      {0, 0, 0, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, //64x64
-      {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}  //128x128
-  };
-#endif
-
   Int* piSrc;
 #if ADD_PLANAR_MODE
   mapPlanartoDC( uiDirMode );
 #endif
-  UChar ucFiltIdx = g_aucIntraFilter[uiWidthBits][uiDirMode];
+  assert(log2BlkSize >= 2 && log2BlkSize < 7);
+  UChar ucFiltIdx = m_aucIntraFilter[log2BlkSize - 2][uiDirMode];
 
 #if MN_MDIS_SIMPLIFICATION
   assert( ucFiltIdx <= 1 );
@@ -1172,14 +1152,17 @@ Int* TComPattern::getPredictorPtr ( UInt uiDirMode, UInt uiWidthBits, Int iCuWid
   assert( ucFiltIdx <= 2 );
 #endif
 
-  piSrc = getAdiOrgBuf( iCuWidth, iCuHeight, piAdiBuf );
+  Int width  = 1 << log2BlkSize;
+  Int height = 1 << log2BlkSize;
+  
+  piSrc = getAdiOrgBuf( width, height, piAdiBuf );
 
   if ( ucFiltIdx )
   {
 #if MN_MDIS_SIMPLIFICATION
-    piSrc += ((iCuWidth << 1) + 1) * ((iCuHeight << 1) + 1);
+    piSrc += (2 * width + 1) * (2 * height + 1);
 #else
-    piSrc += (((iCuWidth << 1) + 1) * ((iCuHeight << 1) + 1) << (ucFiltIdx - 1));
+    piSrc += ((2 * width + 1) * (2 * height + 1)) << (ucFiltIdx - 1);
 #endif
   }
 

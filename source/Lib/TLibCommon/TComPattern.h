@@ -108,6 +108,10 @@ private:
   Bool m_bDCPredFilterFlag;
 #endif
   
+#if QC_MDIS
+  static const UChar m_aucIntraFilter[5][34];
+#endif
+  
 public:
   
   // ROI & pattern information, (ROI = &pattern[AboveOffset][LeftOffset])
@@ -125,7 +129,7 @@ public:
   Int*  getAdiCrBuf               ( Int iCuWidth, Int iCuHeight, Int* piAdiBuf );
   
 #if QC_MDIS
-  Int*  getPredictorPtr           ( UInt uiDirMode, UInt uiWidthBits, Int iCuWidth, Int iCuHeight, Int* piAdiBuf );
+  Int*  getPredictorPtr           ( UInt uiDirMode, UInt uiWidthBits, Int* piAdiBuf );
 #endif //QC_MDIS
   // -------------------------------------------------------------------------------------------------------------------
   // initialization functions
