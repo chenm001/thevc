@@ -43,7 +43,9 @@
 // ====================================================================================================================
 
 TComPrediction::TComPrediction()
+#if LM_CHROMA
 : m_pLumaRecBuffer(0)
+#endif
 {
   m_piYuvExt = NULL;
 }
@@ -1051,17 +1053,8 @@ Void TComPrediction::predLMIntraChroma( TComPattern* pcPattern, Int* piSrc, Pel*
 {
   UInt uiWidth  = uiCWidth << 1;
 
-#if !LM_CHROMA_TICKET156
-  UInt uiHeight = uiCHeight << 1; 
-  
-  if (uiChromaId == 0)
-    xGetRecPixels( pcPattern, pcPattern->getROIY(), pcPattern->getPatternLStride(), m_pLumaRecBuffer + m_iLumaRecStride + 1, m_iLumaRecStride, uiWidth, uiHeight );
-#endif
-
   xGetLLSPrediction( pcPattern, piSrc+uiWidth+2, uiWidth+1, pPred, uiPredStride, uiCWidth, uiCHeight, 1 );  
 }
-
-#if LM_CHROMA_TICKET156
 
 /** Function for deriving downsampled luma sample of current chroma block and its above, left causal pixel
  * \param pcPattern pointer to neighbouring pixel access pattern
@@ -1124,54 +1117,6 @@ Void TComPrediction::getLumaRecPixels( TComPattern* pcPattern, UInt uiCWidth, UI
     pRecSrc += iRecSrcStride2;
   }
 }
-#else
-
-/** Function for deriving downsampled luma sample of current chroma block and its above, left causal pixel
- * \param pcPattern pointer to neighbouring pixel access pattern
- * \param pRecSrc pointer to reconstructed luma sample array
- * \param iRecSrcStride the stride of reconstructed luma sample array
- * \param pDst0 pointer to downsampled luma sample array
- * \param iDstStride the stride of downsampled luma sample array
- * \param uiWidth0 the width of the luma block
- * \param uiHeight0 the height of the luma block
-
- \ This function derives downsampled luma sample of current chroma block and its above, left causal pixel
- */
-
-Void TComPrediction::xGetRecPixels( TComPattern* pcPattern, Pel* pRecSrc, Int iRecSrcStride, Pel* pDst0, Int iDstStride, UInt uiWidth0, UInt uiHeight0 )
-{
-  Pel* pSrc = pRecSrc;
-  Pel* pDst = pDst0;
-
-  Int uiCWidth = uiWidth0/2;
-  Int uiCHeight = uiHeight0/2;
-
-  if( pcPattern->isLeftAvailable() )
-  {
-    pSrc = pSrc - 2;
-    pDst = pDst - 1;
-
-    uiCWidth += 1;
-  }
-
-  if( pcPattern->isAboveAvailable() )
-  {
-    pSrc = pSrc - 2*iRecSrcStride;
-    pDst = pDst - iDstStride;
-
-    uiCHeight += 1;
-  }
-
-  for( Int j = 0; j < uiCHeight; j++ )
-    {
-      for( Int i = 0, ii = i << 1; i < uiCWidth; i++, ii = i << 1 )
-        pDst[i] = (pSrc[ii] + pSrc[ii + iRecSrcStride]) >> 1;
-
-      pDst += iDstStride;
-      pSrc += iRecSrcStride*2;
-    }  
-}
-#endif
 
 /** Function for deriving the positon of first non-zero binary bit of a value
  * \param x input value
@@ -1238,42 +1183,32 @@ Void TComPrediction::xGetLLSPrediction( TComPattern* pcPattern, Int* pSrc0, Int 
 
   Int x = 0, y = 0, xx = 0, xy = 0;
 
-#if !LM_CHROMA_TICKET156
-  if( pcPattern->isAboveAvailable() )
-#endif
+  pSrc  = pSrc0  - iSrcStride;
+  pLuma = pLuma0 - iLumaStride;
+
+  for( j = 0; j < uiWidth; j++ )
   {
-    pSrc  = pSrc0  - iSrcStride;
-    pLuma = pLuma0 - iLumaStride;
-
-    for( j = 0; j < uiWidth; j++ )
-    {
-      x += pLuma[j];
-      y += pSrc[j];
-      xx += pLuma[j] * pLuma[j];
-      xy += pLuma[j] * pSrc[j];
-    }
-    iCountShift += g_aucConvertToBit[ uiWidth ] + 2;
+    x += pLuma[j];
+    y += pSrc[j];
+    xx += pLuma[j] * pLuma[j];
+    xy += pLuma[j] * pSrc[j];
   }
+  iCountShift += g_aucConvertToBit[ uiWidth ] + 2;
 
-#if !LM_CHROMA_TICKET156
-  if( pcPattern->isLeftAvailable() )
-#endif
+  pSrc  = pSrc0 - uiExt;
+  pLuma = pLuma0 - uiExt;
+
+  for( i = 0; i < uiHeight; i++ )
   {
-    pSrc  = pSrc0 - uiExt;
-    pLuma = pLuma0 - uiExt;
+    x += pLuma[0];
+    y += pSrc[0];
+    xx += pLuma[0] * pLuma[0];
+    xy += pLuma[0] * pSrc[0];
 
-    for( i = 0; i < uiHeight; i++ )
-    {
-      x += pLuma[0];
-      y += pSrc[0];
-      xx += pLuma[0] * pLuma[0];
-      xy += pLuma[0] * pSrc[0];
-
-      pSrc  += iSrcStride;
-      pLuma += iLumaStride;
-    }
-    iCountShift += iCountShift > 0 ? 1 : ( g_aucConvertToBit[ uiWidth ] + 2 );
+    pSrc  += iSrcStride;
+    pLuma += iLumaStride;
   }
+  iCountShift += iCountShift > 0 ? 1 : ( g_aucConvertToBit[ uiWidth ] + 2 );
 
   Int iBitdepth = ( ( g_uiBitDepth + g_uiBitIncrement ) + g_aucConvertToBit[ uiWidth ] + 3 ) * 2;
   Int iTempShift = max( ( iBitdepth - 31 + 1) / 2, 0);

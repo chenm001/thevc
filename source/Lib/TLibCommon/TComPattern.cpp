@@ -208,17 +208,12 @@ Void TComPattern::initPattern( TComDataCU* pcCU, UInt uiPartDepth, UInt uiAbsPar
     }
   }
   
-#if LM_CHROMA && !LM_CHROMA_TICKET156
-  m_bLeftAvailable = uiCurrPicPelX > 0 ? true : false;
-  m_bAboveAvailable = uiCurrPicPelY > 0 ? true : false;
-#endif
-
   m_cPatternY .setPatternParamCU( pcCU, 0, uiWidth,      uiHeight,      uiOffsetLeft, uiOffsetRight, uiOffsetAbove, 0, uiPartDepth, uiAbsPartIdx );
   m_cPatternCb.setPatternParamCU( pcCU, 1, uiWidth >> 1, uiHeight >> 1, uiOffsetLeft, uiOffsetRight, uiOffsetAbove, 0, uiPartDepth, uiAbsPartIdx );
   m_cPatternCr.setPatternParamCU( pcCU, 2, uiWidth >> 1, uiHeight >> 1, uiOffsetLeft, uiOffsetRight, uiOffsetAbove, 0, uiPartDepth, uiAbsPartIdx );
 }
 
-#if LM_CHROMA_TICKET156
+#if LM_CHROMA
 Void TComPattern::initAdiPattern( TComDataCU* pcCU, UInt uiZorderIdxInPart, UInt uiPartDepth, Int* piAdiBuf, Int iOrgBufStride, Int iOrgBufHeight, Bool& bAbove, Bool& bLeft, UInt uiExt )
 #else
 Void TComPattern::initAdiPattern( TComDataCU* pcCU, UInt uiZorderIdxInPart, UInt uiPartDepth, Int* piAdiBuf, Int iOrgBufStride, Int iOrgBufHeight, Bool& bAbove, Bool& bLeft )
@@ -358,20 +353,18 @@ Void TComPattern::initAdiPattern( TComDataCU* pcCU, UInt uiZorderIdxInPart, UInt
   piAdiTemp   = piAdiBuf;
 
 #if REFERENCE_SAMPLE_PADDING
-#if LM_CHROMA_TICKET156
-  if( uiExt == 2 )
-    fill2ReferenceSamples_LM ( pcCU, piRoiOrigin, piAdiTemp, bNeighborFlags, iNumIntraNeighbor, iUnitSize, iNumUnitsInCu, iTotalUnits, uiCuWidth, uiCuHeight, uiWidth, uiHeight, iPicStride);
-  else if( uiExt == 1 )
-#endif
-  fillReferenceSamples ( pcCU, piRoiOrigin, piAdiTemp, bNeighborFlags, iNumIntraNeighbor, iUnitSize, iNumUnitsInCu, iTotalUnits, uiCuWidth, uiCuHeight, uiWidth, uiHeight, iPicStride);
-
-#if LM_CHROMA_TICKET156
+#if LM_CHROMA
   if( uiExt == 2 )
   {
+    fill2ReferenceSamples_LM ( pcCU, piRoiOrigin, piAdiTemp, bNeighborFlags, iNumIntraNeighbor, iUnitSize, iNumUnitsInCu, iTotalUnits, uiCuWidth, uiCuHeight, uiWidth, uiHeight, iPicStride);
     return;
   }
+  else if( uiExt == 1 )
 #endif
-
+  {
+    fillReferenceSamples ( pcCU, piRoiOrigin, piAdiTemp, bNeighborFlags, iNumIntraNeighbor, iUnitSize, iNumUnitsInCu, iTotalUnits, uiCuWidth, uiCuHeight, uiWidth, uiHeight, iPicStride);
+  }
+  
 #else // REFERENCE_SAMPLE_PADDING
   //BB: fill border with DC value - needed if( bAboveFlag=false || bLeftFlag=false )
   for (i=0;i<uiWidth;i++)
@@ -887,8 +880,7 @@ Void TComPattern::fillReferenceSamples( TComDataCU* pcCU, Pel* piRoiOrigin, Int*
   }
 }
 
-#if LM_CHROMA_TICKET156
-
+#if LM_CHROMA
 /** Function for deriving the neighboring luma reference pixels which is specifically used for luma-based chroma intra prediction method.
   // In this funtioned, first two rows in output buffer correspond to two rows of above reference pixels, 
   // and next two rows correspond to two columns of left reference pixels
@@ -1122,7 +1114,7 @@ Void TComPattern::fill2ReferenceSamples_LM( TComDataCU* pcCU, Pel* piRoiOrigin, 
     }
   }
 }
-#endif
+#endif // LM_CHROMA
 
 #endif // REFERENCE_SAMPLE_PADDING
 
