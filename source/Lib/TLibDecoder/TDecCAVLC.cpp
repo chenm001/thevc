@@ -315,10 +315,13 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice)
       }
       else
       {
-        rpcSlice->setRefPicListCombinationFlag(false);
         rpcSlice->setRefPicListModificationFlagLC(false);
         rpcSlice->setNumRefIdx(REF_PIC_LIST_C, 0);
       }
+    }
+    else
+    {
+      rpcSlice->setRefPicListCombinationFlag(false);      
     }
 #endif
     
