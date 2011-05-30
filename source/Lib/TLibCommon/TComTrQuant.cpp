@@ -5319,28 +5319,27 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
       uiGoRiceParam    = 0;
 #endif
 
-      uiSubPosX = g_auiFrameScanX[ g_aucConvertToBit[ uiWidth ] - 1 ][ uiSubBlk ] << 2;
-      uiSubPosY = g_auiFrameScanY[ g_aucConvertToBit[ uiWidth ] - 1 ][ uiSubBlk ] << 2;
+      uiSubPosX = g_auiFrameScanX[ uiLog2BlkSize - 3 ][ uiSubBlk ] << 2;
+      uiSubPosY = g_auiFrameScanY[ uiLog2BlkSize - 3 ][ uiSubBlk ] << 2;
       
-      Int* piCurr = &piCoeff[ uiSubPosX + uiSubPosY * uiWidth ];
+      Int offset = uiSubPosX + (uiSubPosY << uiLog2BlkSize);
+      Int* piCurr = &piCoeff[ offset ];
       
       for( UInt uiY = 0; uiY < 4; uiY++ )
       {
         for( UInt uiX = 0; uiX < 4; uiX++ )
         {
-          if( piCurr[ uiX ] )
+          if( piCurr[ uiY * uiWidth + uiX ] )
           {
             uiSubNumSig++;
           }
         }
-        piCurr += uiWidth;
       }
       
       if( uiSubNumSig > 0 )
       {
         Int c1 = 1;
         Int c2 = 0;
-        UInt uiAbs  = 0;
         
         if( bFirstBlock )
         {
@@ -5357,38 +5356,33 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
         {
           UInt  uiBlkPos  = g_auiFrameScanXY[ 1 ][ 15 - uiScanPos ];
           UInt  uiPosY    = uiBlkPos >> 2;
-          UInt  uiPosX    = uiBlkPos - ( uiPosY << 2 );
-          UInt  uiIndex   = (uiSubPosY + uiPosY) * uiWidth + uiSubPosX + uiPosX;
-          
-          puiOneCtx[ uiIndex ] = 5 * uiCtxSet + min<UInt>( c1, 4 );
-          puiAbsCtx[ uiIndex ] = 5 * uiCtxSet + min<UInt>( c2, 4 );
-#if E253
-          puiAbsGoRice[ uiIndex ] = uiGoRiceParam;
-#endif
+          UInt  uiPosX    = uiBlkPos & 3;
+          UInt  uiIndex   = (uiPosY << uiLog2BlkSize) + uiPosX + offset;
           
           if( piCoeff[ uiIndex ]  )
           {
-            if( piCoeff[ uiIndex ] > 0) { uiAbs = static_cast<UInt>(  piCoeff[ uiIndex ] ); }
-            else                        { uiAbs = static_cast<UInt>( -piCoeff[ uiIndex ] ); }
+            puiOneCtx[ uiIndex ] = 5 * uiCtxSet + c1;
+            puiAbsCtx[ uiIndex ] = 5 * uiCtxSet + c2;
+#if E253
+            puiAbsGoRice[ uiIndex ] = uiGoRiceParam;
+#endif            
+            UInt uiAbs = abs( piCoeff[ uiIndex ] );
             
-            UInt uiSymbol = uiAbs > 1 ? 1 : 0;
-            
-            if( uiSymbol )
+            if( uiAbs > 1 )
             {
-              c1 = 0; c2++;
+              c1 = 0;
+              c2 += (c2 < 4);
               uiNumOne++;
 #if E253
               if( uiAbs > 2 )
               {
-                uiAbs -= 3;
-                uiAbs  = min<UInt>( uiAbs, 15 );
-                uiGoRiceParam = g_aauiGoRiceUpdate[ uiGoRiceParam ][ uiAbs ];
+                uiGoRiceParam = g_aauiGoRiceUpdate[ uiGoRiceParam ][ min<UInt>( uiAbs - 3, 15 ) ];
               }
 #endif
             }
-            else if( c1 )
+            else if( c1 & 3 )
             {
-              c1++;
+              c1++; // Increment c1 if equal to 1, 2 or 3
             }
           }
         }
@@ -5399,40 +5393,34 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
   {
     Int c1 = 1;
     Int c2 = 0;
-    UInt uiAbs  = 0;
     
-    for ( UInt uiScanPos = 0; uiScanPos < uiWidth*uiHeight; uiScanPos++ )
+    for ( UInt uiScanPos = 0; uiScanPos < 16; uiScanPos++ )
     {
-      UInt uiIndex = g_auiFrameScanXY[ (int)g_aucConvertToBit[ uiWidth ] + 1 ][ uiWidth * uiHeight - uiScanPos - 1 ];
+      UInt uiIndex = g_auiFrameScanXY[ 1 ][ 15 - uiScanPos ];
       
-      puiOneCtx[ uiIndex ] = min<UInt>( c1, 4 );
-      puiAbsCtx[ uiIndex ] = min<UInt>( c2, 4 );
-#if E253
-      puiAbsGoRice[ uiIndex ] = uiGoRiceParam;
-#endif
-
       if( piCoeff[ uiIndex ]  )
       {
-        if( piCoeff[ uiIndex ] > 0) { uiAbs = static_cast<UInt>(  piCoeff[ uiIndex ] ); }
-        else                        { uiAbs = static_cast<UInt>( -piCoeff[ uiIndex ] ); }
+        puiOneCtx[ uiIndex ] = c1;
+        puiAbsCtx[ uiIndex ] = c2;
+#if E253
+        puiAbsGoRice[ uiIndex ] = uiGoRiceParam;
+#endif
+        UInt uiAbs = abs( piCoeff[ uiIndex ] );
         
-        UInt uiSymbol = uiAbs > 1 ? 1 : 0;
-        
-        if( uiSymbol )
+        if( uiAbs > 1 )
         {
-          c1 = 0; c2++;
+          c1 = 0;
+          c2 += (c2 < 4);
 #if E253
           if( uiAbs > 2 )
           {
-            uiAbs -= 3;
-            uiAbs  = min<UInt>( uiAbs, 15 );
-            uiGoRiceParam = g_aauiGoRiceUpdate[ uiGoRiceParam ][ uiAbs ];
+            uiGoRiceParam = g_aauiGoRiceUpdate[ uiGoRiceParam ][ min<UInt>( uiAbs - 3, 15 ) ];
           }
 #endif
         }
-        else if( c1 )
+        else if( c1 & 3 )
         {
-          c1++;
+          c1++; // Increment c1 if equal to 1, 2 or 3
         }
       }
     }
