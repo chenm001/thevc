@@ -5267,13 +5267,7 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
     lLevelDouble = abs( lLevelDouble * ( Long )( b64Flag ? iQuantCoeff : m_puiQuantMtx[ uiBlkPos ] ) );
 #endif    
     plLevelDouble[ uiBlkPos ] = lLevelDouble;
-    UInt uiMaxAbsLevel = lLevelDouble >> iQBits;
-    Bool bLowerInt     = ( ( lLevelDouble - Long( uiMaxAbsLevel << iQBits ) ) < Long( 1 << ( iQBits - 1 ) ) ) ? true : false;
-    
-    if( !bLowerInt )
-    {
-      uiMaxAbsLevel++;
-    }
+    UInt uiMaxAbsLevel = (lLevelDouble + (1L << (iQBits - 1))) >> iQBits;
     
     Double dErr          = Double( lLevelDouble );
     d64BlockUncodedCost += dErr * dErr * dTemp;
