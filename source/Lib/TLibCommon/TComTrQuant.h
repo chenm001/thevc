@@ -79,7 +79,9 @@ typedef struct
 #else  
   Int lastBits[16][2];
 #endif
-  Int greaterOneBits[6][2][5][2];
+  Int m_greaterOneBits[NUM_ONE_FLAG_CTX][2];
+  Int m_levelAbsBits[NUM_ABS_FLAG_CTX][2];
+
   Int blockCbpBits[3*NUM_QT_CBF_CTX][2];
   Int blockRootCbpBits[4][2];
   Int scanZigzag[2];            ///< flag for zigzag scan
@@ -314,19 +316,19 @@ UInt             getCurrLineNum(UInt uiScanIdx, UInt uiPosX, UInt uiPosY);
                                      UShort                          ui16AbsGoRice,
 #endif
                                      Int                             iQBits,
-                                     Double                          dTemp,
-                                     UShort                          ui16CtxBase   ) const;
+                                     Double                          dTemp
+                                    ) const;
   __inline Double xGetICRateCost   ( UInt                            uiAbsLevel,
 #if !PCP_SIGMAP_SIMPLE_LAST
                                      Bool                            bLastScanPos,
                                      UShort                          ui16CtxNumSig,
 #endif
                                      UShort                          ui16CtxNumOne,
-                                     UShort                          ui16CtxNumAbs,
+                                     UShort                          ui16CtxNumAbs
 #if E253
-                                     UShort                          ui16AbsGoRice,
+                                     ,UShort                          ui16AbsGoRice
 #endif
-                                     UShort                          ui16CtxBase   ) const;
+                                     ) const;
 #if PCP_SIGMAP_SIMPLE_LAST
   __inline Double xGetRateLast     ( UInt                            uiPosX,
                                      UInt                            uiPosY        ) const;

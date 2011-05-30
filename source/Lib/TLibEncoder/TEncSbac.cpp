@@ -2032,15 +2032,15 @@ Void TEncSbac::estSignificantCoefficientsBit( estBitsSbacStruct* pcEstBitsSbac, 
   ContextModel *ctxOne = m_cCUOneSCModel.get(0, eTType);
   ContextModel *ctxAbs = m_cCUAbsSCModel.get(0, eTType);
   
-  for( UInt uiSet = 0; uiSet < 6; uiSet++ )
+  for (Int ctxIdx = 0; ctxIdx < NUM_ONE_FLAG_CTX; ctxIdx++)
   {
-    for( UInt uiCtx = 0; uiCtx < 5; uiCtx++ )
-    {
-      pcEstBitsSbac->greaterOneBits[ uiSet ][ 0 ][ uiCtx ][ 0 ] = biari_no_bits( 0, ctxOne[ 5 * uiSet + uiCtx ] );
-      pcEstBitsSbac->greaterOneBits[ uiSet ][ 0 ][ uiCtx ][ 1 ] = biari_no_bits( 1, ctxOne[ 5 * uiSet + uiCtx ] );
-      pcEstBitsSbac->greaterOneBits[ uiSet ][ 1 ][ uiCtx ][ 0 ] = biari_no_bits( 0, ctxAbs[ 5 * uiSet + uiCtx ] );
-      pcEstBitsSbac->greaterOneBits[ uiSet ][ 1 ][ uiCtx ][ 1 ] = biari_no_bits( 1, ctxAbs[ 5 * uiSet + uiCtx ] );
-    }
+    pcEstBitsSbac->m_greaterOneBits[ ctxIdx ][ 0 ] = biari_no_bits( 0, ctxOne[ ctxIdx ] );
+    pcEstBitsSbac->m_greaterOneBits[ ctxIdx ][ 1 ] = biari_no_bits( 1, ctxOne[ ctxIdx ] );    
+  }
+  for (Int ctxIdx = 0; ctxIdx < NUM_ABS_FLAG_CTX; ctxIdx++)
+  {
+    pcEstBitsSbac->m_levelAbsBits[ ctxIdx ][ 0 ] = biari_no_bits( 0, ctxAbs[ ctxIdx ] );
+    pcEstBitsSbac->m_levelAbsBits[ ctxIdx ][ 1 ] = biari_no_bits( 1, ctxAbs[ ctxIdx ] );    
   }
 }
 
