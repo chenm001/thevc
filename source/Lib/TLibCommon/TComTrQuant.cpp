@@ -48,9 +48,10 @@
 
 #define RDOQ_CHROMA                 1           ///< use of RDOQ in chroma
 
+#if !E243_CORE_TRANSFORMS
 #define DQ_BITS                     6
 #define Q_BITS_8                    16
-#define SIGN_BITS                   1
+#endif
 
 // ====================================================================================================================
 // Tables
@@ -58,7 +59,8 @@
 
 // RDOQ parameter
 
-static const Int estErr4x4[6][4][4]=
+#if !E243_CORE_TRANSFORMS
+const Int TComTrQuant::estErr4x4[6][4][4]=
 {
   {
     {25600, 27040, 25600, 27040},
@@ -98,7 +100,8 @@ static const Int estErr4x4[6][4][4]=
   }
 };
 
-static const Int estErr8x8[6][8][8]={
+const Int TComTrQuant::estErr8x8[6][8][8]=
+{
   {
     {6553600, 6677056, 6400000, 6677056, 6553600, 6677056, 6400000, 6677056},
     {6677056, 6765201, 6658560, 6765201, 6677056, 6765201, 6658560, 6765201},
@@ -161,6 +164,10 @@ static const Int estErr8x8[6][8][8]={
   }
 };
 
+const Int TComTrQuant::estErr16x16[6] = { 25329, 30580, 42563, 49296, 64244, 82293 };
+const Int TComTrQuant::estErr32x32[6] = { 25351, 30674, 42843, 49687, 64898, 82136 };
+#endif
+
 #if QC_MOD_LCEC
 #if CAVLC_COEF_LRG_BLK
   static const int VLClength[14][128] = {
@@ -186,8 +193,6 @@ static const Int estErr8x8[6][8][8]={
 #endif
   };
 #endif
-static const Int estErr16x16[6] = { 25329, 30580, 42563, 49296, 64244, 82293 };
-static const Int estErr32x32[6] = { 25351, 30674, 42843, 49687, 64898, 82136 };
 
 // ====================================================================================================================
 // Qp class member functions
@@ -2504,10 +2509,9 @@ Void TComTrQuant::xRateDistOptQuant_LCEC(TComDataCU* pcCU, Long* pSrcCoeff, TCoe
   Int     qp_rem, q_bits;
   Double  OneOverNormFact = 0.0;
   Double  normFact = 0.0;
-  Bool    bExt8x8Flag = false;
   Int     iShiftQBits, iSign, iRate, lastPosMin, iBlockType;
   UInt    uiBitShift = 15, uiScanPos, levelInd;
-  Int     levelBest, iLevel, iAdd;
+  Int     levelBest, iLevel;
 #endif
 
   levelDataStruct* levelData = &slevelData[0];
@@ -2565,7 +2569,6 @@ Void TComTrQuant::xRateDistOptQuant_LCEC(TComDataCU* pcCU, Long* pSrcCoeff, TCoe
     if ( g_uiBitIncrement ) normFact *= 1 << (2 * g_uiBitIncrement);
     m_puiQuantMtx = &g_aiQuantCoef  [m_cQP.m_iRem][0];
     iShift = 2;
-    iAdd = m_cQP.m_iAdd4x4;
 
     if (eTType==TEXT_CHROMA_U || eTType==TEXT_CHROMA_V)
       iBlockType = eTType-2;
@@ -2580,7 +2583,6 @@ Void TComTrQuant::xRateDistOptQuant_LCEC(TComDataCU* pcCU, Long* pSrcCoeff, TCoe
       if ( g_uiBitIncrement ) normFact *= 1<<(2*g_uiBitIncrement);
       m_puiQuantMtx = &g_aiQuantCoef64[m_cQP.m_iRem][0];
       iShift = 3;
-      iAdd = m_cQP.m_iAdd8x8;
 
       if (eTType==TEXT_CHROMA_U || eTType==TEXT_CHROMA_V) 
         iBlockType = eTType-2;
@@ -2597,8 +2599,6 @@ Void TComTrQuant::xRateDistOptQuant_LCEC(TComDataCU* pcCU, Long* pSrcCoeff, TCoe
 
         m_puiQuantMtx = ( &g_aiQuantCoef256[m_cQP.m_iRem][0] );
         iShift = 4;
-        iAdd = m_cQP.m_iAdd16x16;
-        bExt8x8Flag = true;
 
         if (eTType==TEXT_CHROMA_U || eTType==TEXT_CHROMA_V) 
           iBlockType = eTType-2;
@@ -2615,8 +2615,6 @@ Void TComTrQuant::xRateDistOptQuant_LCEC(TComDataCU* pcCU, Long* pSrcCoeff, TCoe
 
           m_puiQuantMtx = ( &g_aiQuantCoef1024[m_cQP.m_iRem][0] );
           iShift = 5;
-          iAdd = m_cQP.m_iAdd32x32;
-          bExt8x8Flag = true;
 
           if (eTType==TEXT_CHROMA_U || eTType==TEXT_CHROMA_V) 
             iBlockType = eTType-2;
@@ -5158,7 +5156,6 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
   Bool   b64Flag     = false;
   Int    iQuantCoeff = 0;
   Int    iQpRem      = m_cQP.m_iRem;
-  Bool   bExt8x8Flag = false;
   Double dNormFactor = 0;
   if( uiWidth == 4 && uiHeight == 4 )
   {
@@ -5189,7 +5186,6 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
     }
     dTemp = estErr16x16[ iQpRem ] / dNormFactor;
     m_puiQuantMtx = ( &g_aiQuantCoef256[ m_cQP.m_iRem ][ 0 ] );
-    bExt8x8Flag = true;
   }
   else if ( uiWidth == 32 && uiHeight == 32 )
   {
@@ -5201,7 +5197,6 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
     }
     dTemp = estErr32x32[ iQpRem ] / dNormFactor;
     m_puiQuantMtx = ( &g_aiQuantCoef1024[ m_cQP.m_iRem ][ 0 ] );
-    bExt8x8Flag = true;
   }
   else
   {
@@ -5543,8 +5538,12 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
     }
 #endif //QC_MDCS
     
+#if E243_CORE_TRANSFORMS
+    dTemp = dErrScale;
+#else
     if      ( uiWidth == 4 ) dTemp = estErr4x4[ iQpRem ][ uiPosX ][ uiPosY ] / dNormFactor;
     else if ( uiWidth == 8 ) dTemp = estErr8x8[ iQpRem ][ uiPosX ][ uiPosY ] / dNormFactor;
+#endif
     
     UShort  uiCtxSig                = getSigCtxInc( piDstCoeff, uiPosX, uiPosY, uiLog2BlkSize, uiWidth );
     Bool    bLastScanPos            = ( uiScanPos == uiMaxNumCoeff - 1 );

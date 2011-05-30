@@ -359,7 +359,13 @@ UInt             getCurrLineNum(UInt uiScanIdx, UInt uiPosX, UInt uiPosY);
   Void xIT16  ( Long* plCoef, Pel* pResidual, UInt uiStride );
   Void xIT32  ( Long* plCoef, Pel* pResidual, UInt uiStride );
 
-
+#if !E243_CORE_TRANSFORMS
+  static const Int estErr4x4[6][4][4];
+  static const Int estErr8x8[6][8][8];
+  static const Int estErr16x16[6];
+  static const Int estErr32x32[6];
+#endif
+  
 };// END CLASS DEFINITION TComTrQuant
 
 
