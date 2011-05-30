@@ -170,9 +170,6 @@ protected:
   Void  xWriteEpExGolomb      ( UInt uiSymbol, UInt uiCount );
   Void  xWriteExGolombLevel    ( UInt uiSymbol );
   Void  xWriteUnaryMaxSymbol  ( UInt uiSymbol, UInt uiMaxSymbol );
-#if !QC_MOD_LCEC_RDOQ
-  UInt  xLeadingZeros         ( UInt uiCode );
-#endif
   Void  xWriteVlc             ( UInt uiTableNumber, UInt uiCodeNumber );
 
 #if CAVLC_COEF_LRG_BLK

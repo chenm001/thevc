@@ -2573,25 +2573,6 @@ Void TEncCavlc::xWriteEpExGolomb( UInt uiSymbol, UInt uiCount )
   return;
 }
 
-#if !QC_MOD_LCEC_RDOQ
-UInt TEncCavlc::xLeadingZeros(UInt uiCode)
-{
-  UInt uiCount = 0;
-  Int iDone = 0;
-  
-  if (uiCode)
-  {
-    while (!iDone)
-    {
-      uiCode >>= 1;
-      if (!uiCode) iDone = 1;
-      else uiCount++;
-    }
-  }
-  return uiCount;
-}
-#endif
-
 Void TEncCavlc::xWriteVlc(UInt uiTableNumber, UInt uiCodeNumber)
 {
 #if CAVLC_COEF_LRG_BLK

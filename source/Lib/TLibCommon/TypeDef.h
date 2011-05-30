@@ -107,7 +107,6 @@
 
 #define QC_MOD_LCEC                       1           // JCTVC-D374: modified LCEC coeff. coding
 #define LCEC_INTRA_MODE                   1           // JCTVC-D366: improved luma intra mode coding
-#define QC_MOD_LCEC_RDOQ                  1           // JCTVC-D374: improved RDOQ
 #define QC_LCEC_INTER_MODE                1
 #define QC_MDIS                           1           // JCTVC-D282: enable mode dependent intra smoothing
 #define QC_MDCS                           1           // JCTVC-D393: mode dependent coefficients coding 

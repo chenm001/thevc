@@ -412,7 +412,6 @@ __inline UInt xRunLevelIndInter(Int lev, Int run, Int maxrun)
 #endif
 
 
-#if QC_MOD_LCEC_RDOQ
 __inline UInt xLeadingZeros(UInt uiCode)
 {
   UInt uiCount = 0;
@@ -429,7 +428,6 @@ __inline UInt xLeadingZeros(UInt uiCode)
   }
   return uiCount;
 }
-#endif
 
 extern       Char   g_aucConvertToBit  [ MAX_CU_SIZE+1 ];   // from width to log2(width)-2
 

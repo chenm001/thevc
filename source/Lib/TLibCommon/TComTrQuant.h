@@ -86,7 +86,6 @@ typedef struct
   Int scanNonZigzag[2];         ///< flag for non zigzag scan
 } estBitsSbacStruct;
 
-#if QC_MOD_LCEC_RDOQ
 typedef struct
 {
   Int level[4];
@@ -107,7 +106,6 @@ typedef struct
   Int nextLev;
   Int nexLevelVal;
 } quantLevelStruct;
-#endif
 
 
 
@@ -214,9 +212,7 @@ public:
   // Misc functions
   Void setQPforQuant( Int iQP, Bool bLowpass, SliceType eSliceType, TextType eTxtType);
   Void setLambda(Double dLambda) { m_dLambda = dLambda;}
-#if QC_MOD_LCEC_RDOQ
   Void    setRDOQOffset ( UInt uiRDOQOffset ) { m_uiRDOQOffset = uiRDOQOffset; }
-#endif
   estBitsSbacStruct* m_pcEstBitsSbac;
   
   static UInt     getSigCtxInc     ( TCoeff*                         pcCoeff,
@@ -235,9 +231,7 @@ protected:
   
   QpParam  m_cQP;
   Double   m_dLambda;
-#if QC_MOD_LCEC_RDOQ
   UInt     m_uiRDOQOffset;
-#endif
   UInt     m_uiMaxTrSize;
   Bool     m_bEnc;
   Bool     m_bUseRDOQ;
@@ -272,7 +266,6 @@ private:
 
   // RDOQ functions
 
-#if QC_MOD_LCEC_RDOQ
   Int            xCodeCoeffCountBitsLast(TCoeff* scoeff, levelDataStruct* levelData, Int nTab, UInt uiNoCoeff);
   UInt           xCountVlcBits(UInt uiTableNumber, UInt uiCodeNumber);
 #if CAVLC_COEF_LRG_BLK
@@ -281,13 +274,6 @@ private:
 #else
   Int            bitCountRDOQ(Int coeff, Int pos, Int nTab, Int lastCoeffFlag,Int levelMode,Int run, Int maxrun, Int vlc_adaptive, Int N, 
                               UInt uiTr1, Int iSum_big_coef, Int iBlockType, TComDataCU* pcCU);
-#endif
-#else
-#if QC_MOD_LCEC 
-  Int            bitCount_LCEC(Int k,Int pos,Int nTab, Int lpflag,Int levelMode,Int run, Int maxrun, Int vlc_adaptive, Int N, UInt uiTr1);
-#else
-  Int            bitCount_LCEC(Int k,Int pos,Int n,Int lpflag,Int levelMode,Int run,Int maxrun,Int vlc_adaptive,Int N);
-#endif
 #endif
 #if QC_MDCS
 UInt             getCurrLineNum(UInt uiScanIdx, UInt uiPosX, UInt uiPosY);
