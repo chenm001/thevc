@@ -72,7 +72,7 @@ TEncSbac::TEncSbac()
 , m_cCUTransSubdivFlagSCModel ( 1,             1,               NUM_TRANS_SUBDIV_FLAG_CTX     )
 , m_cCUQtRootCbfSCModel       ( 1,             1,               NUM_QT_ROOT_CBF_CTX           )
 #if SIMPLE_CONTEXT_SIG
-, m_cCUSigSCModel             ( 4,             2,               NUM_SIG_FLAG_CTX              )
+, m_cCUSigSCModel             ( 1,             2,               NUM_SIG_FLAG_CTX              )
 #else
 , m_cCUSigSCModel             ( MAX_CU_DEPTH,  2,               NUM_SIG_FLAG_CTX              )
 #endif
@@ -1465,14 +1465,7 @@ Void TEncSbac::codeCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx
         UInt  uiSig     = pcCoef[ uiBlkPos ] != 0 ? 1 : 0;
         UInt  uiCtxSig  = TComTrQuant::getSigCtxInc( pcCoef, uiPosX, uiPosY, uiLog2BlockSize, uiWidth );
 #if SIMPLE_CONTEXT_SIG
-        if( uiCtxSig < 4 || eTType)
-        {
-          m_pcBinIf->encodeBin( uiSig, m_cCUSigSCModel.get( uiCTXIdx-2, eTType, uiCtxSig ) );
-        }
-        else
-        {
-          m_pcBinIf->encodeBin( uiSig, m_cCUSigSCModel.get( uiCTXIdx-2 ? uiCTXIdx-2 : 1, eTType, uiCtxSig ) );
-        }
+        m_pcBinIf->encodeBin( uiSig, m_cCUSigSCModel.get( 0, eTType, uiCtxSig ) );
 #else
         m_pcBinIf->encodeBin( uiSig, m_cCUSigSCModel.get( uiCTXIdx, eTType, uiCtxSig ) );
 #endif
@@ -1494,14 +1487,7 @@ Void TEncSbac::codeCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx
     UInt  uiSig    = pcCoef[ uiBlkPos ] != 0 ? 1 : 0;
     UInt  uiCtxSig = TComTrQuant::getSigCtxInc( pcCoef, uiPosX, uiPosY, uiLog2BlockSize, uiWidth );
 #if SIMPLE_CONTEXT_SIG
-      if( uiCtxSig < 4 || eTType)
-      {
-        m_pcBinIf->encodeBin( uiSig, m_cCUSigSCModel.get( uiCTXIdx-2, eTType, uiCtxSig ) );
-      }
-      else
-      {
-        m_pcBinIf->encodeBin( uiSig, m_cCUSigSCModel.get( uiCTXIdx-2 ? uiCTXIdx-2 : 1, eTType, uiCtxSig ) );
-      }
+    m_pcBinIf->encodeBin( uiSig, m_cCUSigSCModel.get( 0, eTType, uiCtxSig ) );
 #else
     m_pcBinIf->encodeBin( uiSig, m_cCUSigSCModel.get( uiCTXIdx, eTType, uiCtxSig ) );
 #endif
@@ -2014,20 +2000,37 @@ Void TEncSbac::estCBFBit( estBitsSbacStruct* pcEstBitsSbac, UInt uiCTXIdx, TextT
  */
 Void TEncSbac::estSignificantMapBit( estBitsSbacStruct* pcEstBitsSbac, UInt uiCTXIdx, TextType eTType )
 {
+#if SIMPLE_CONTEXT_SIG
+  Int firstCtx, numCtx = 15;
+  switch (uiCTXIdx)
+  {
+    case 2: // 32x32
+      firstCtx = 35;
+      break;
+    case 3: // 16x16
+      firstCtx = 31;
+      break;
+    case 4: // 8x8
+      firstCtx = 15;
+      numCtx = 16;
+      break;
+    default: // 4x4 (case 5)
+      firstCtx = 0;
+      break;
+  }
+  for ( Int ctxIdx = firstCtx; ctxIdx < firstCtx + numCtx; ctxIdx++ )
+  {
+    for( UInt uiBin = 0; uiBin < 2; uiBin++ )
+    {
+      pcEstBitsSbac->significantBits[ ctxIdx ][ uiBin ] = biari_no_bits ( uiBin, m_cCUSigSCModel.get(  0, eTType, ctxIdx ) );
+    }
+  }
+#endif
   for ( UInt uiCtx = 0; uiCtx < 16; uiCtx++ )
   {
     for( UInt uiBin = 0; uiBin < 2; uiBin++ )
     {
-#if SIMPLE_CONTEXT_SIG
-      if( uiCtx < 4 || eTType )
-      {
-        pcEstBitsSbac->significantBits[ uiCtx ][ uiBin ] = biari_no_bits ( uiBin, m_cCUSigSCModel.get( uiCTXIdx-2, eTType, uiCtx ) );
-      }
-      else
-      {
-        pcEstBitsSbac->significantBits[ uiCtx ][ uiBin ] = biari_no_bits ( uiBin, m_cCUSigSCModel.get( uiCTXIdx-2 ? uiCTXIdx-2 : 1, eTType, uiCtx ) );
-      }
-#else
+#if !SIMPLE_CONTEXT_SIG
       pcEstBitsSbac->significantBits[ uiCtx ][ uiBin ] = biari_no_bits ( uiBin, m_cCUSigSCModel.get(  uiCTXIdx, eTType, uiCtx ) );
 #endif
 

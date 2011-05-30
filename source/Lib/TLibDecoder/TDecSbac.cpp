@@ -67,7 +67,7 @@ TDecSbac::TDecSbac()
 , m_cCUDeltaQpSCModel         ( 1,             1,               NUM_DELTA_QP_CTX              )
 , m_cCUQtCbfSCModel           ( 1,             3,               NUM_QT_CBF_CTX                )
 #if SIMPLE_CONTEXT_SIG
-, m_cCUSigSCModel             ( 4,             2,               NUM_SIG_FLAG_CTX              ) 
+, m_cCUSigSCModel             ( 1,             2,               NUM_SIG_FLAG_CTX              ) 
 #else
 , m_cCUSigSCModel             ( MAX_CU_DEPTH,  2,               NUM_SIG_FLAG_CTX              )
 #endif
@@ -1472,14 +1472,7 @@ Void TDecSbac::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartId
       UInt  uiSig     = 0;
       UInt  uiCtxSig  = TComTrQuant::getSigCtxInc( pcCoef, uiPosX, uiPosY, uiLog2BlockSize, uiWidth );
 #if SIMPLE_CONTEXT_SIG
-      if( uiCtxSig < 4 || eTType )
-      {
-        m_pcTDecBinIf->decodeBin( uiSig, m_cCUSigSCModel.get( uiCTXIdx-2, eTType, uiCtxSig ) );
-      }
-      else
-      {
-        m_pcTDecBinIf->decodeBin( uiSig, m_cCUSigSCModel.get( uiCTXIdx-2 ? uiCTXIdx-2 : 1 , eTType, uiCtxSig ) );
-      }
+      m_pcTDecBinIf->decodeBin( uiSig, m_cCUSigSCModel.get( 0, eTType, uiCtxSig ) );
 #else
       m_pcTDecBinIf->decodeBin( uiSig, m_cCUSigSCModel.get( uiCTXIdx, eTType, uiCtxSig ) );
 #endif
@@ -1501,14 +1494,7 @@ Void TDecSbac::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartId
     UInt  uiSig     = 0;
     UInt  uiCtxSig  = TComTrQuant::getSigCtxInc( pcCoef, uiPosX, uiPosY, uiLog2BlockSize, uiWidth );
 #if SIMPLE_CONTEXT_SIG
-      if( uiCtxSig < 4 || eTType )
-      {
-        m_pcTDecBinIf->decodeBin( uiSig, m_cCUSigSCModel.get( uiCTXIdx-2, eTType, uiCtxSig ) );
-      }
-      else
-      {
-        m_pcTDecBinIf->decodeBin( uiSig, m_cCUSigSCModel.get( uiCTXIdx-2 ? uiCTXIdx-2 : 1 , eTType, uiCtxSig ) );
-      }
+    m_pcTDecBinIf->decodeBin( uiSig, m_cCUSigSCModel.get( 0, eTType, uiCtxSig ) );
 #else
     m_pcTDecBinIf->decodeBin( uiSig, m_cCUSigSCModel.get( uiCTXIdx, eTType, uiCtxSig ) );
 #endif

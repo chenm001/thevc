@@ -6116,6 +6116,46 @@ UInt TComTrQuant::getSigCtxInc    ( TCoeff*                         pcCoeff,
                                     const UInt                      uiLog2BlkSize,
                                     const UInt                      uiStride )
 {
+#if SIMPLE_CONTEXT_SIG
+  if ( uiLog2BlkSize == 2)
+  {
+    return 4 * uiPosY + uiPosX;
+  }
+  
+  if ( uiLog2BlkSize == 3 )
+  {
+    return 15 + 4 * (uiPosY >> 1) + (uiPosX >> 1);
+  }
+  
+  if( uiPosX <= 1 && uiPosY <= 1 )
+  {
+    return 31 + 2 * uiPosY + uiPosX + ((uiLog2BlkSize > 4) ? 15 : 0);
+  }
+  
+  const Int *pData = pcCoeff + uiPosX + (uiPosY << uiLog2BlkSize);
+  Int iStride = uiStride;
+
+  if( uiPosY == 0 )
+  {
+    return 31 + 4 + (pData[-1] != 0) + (pData[-2] != 0);
+  }
+  
+  if( uiPosX == 0 )
+  {
+    return 31 + 7 + (pData[-iStride] != 0) + (pData[-2*iStride] != 0);
+  }
+  
+  UInt cnt = (pData[-1] != 0) + (pData[-iStride] != 0) + (pData[-iStride-1] != 0);
+  if( uiPosX > 1 )
+  {
+    cnt += pData[-2] != 0;
+  }
+  if ( uiPosY > 1 && cnt < 4)
+  {
+    cnt += pData[-2*iStride] != 0;
+  }
+  return 31 + 10 + cnt;
+#else
   UInt  uiCtxInc  = 0;
   
   if( uiLog2BlkSize <= 3 )
@@ -6162,6 +6202,7 @@ UInt TComTrQuant::getSigCtxInc    ( TCoeff*                         pcCoeff,
     uiCtxInc            = 10 + min<UInt>( 4, uiCnt);
   }
   return uiCtxInc;
+#endif
 }
 #endif
 
