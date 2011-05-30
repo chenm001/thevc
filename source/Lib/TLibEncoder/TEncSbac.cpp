@@ -1511,8 +1511,6 @@ Void TEncSbac::codeCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx
    * Sign and bin0 PCP (Section 3.2 and 3.3 of JCTVC-B088)
    */
   Int  c1, c2;
-  UInt uiSign;
-  UInt uiAbs;
 #if E253
   UInt uiGoRiceParam = 0;
 #endif
@@ -1565,85 +1563,66 @@ Void TEncSbac::codeCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx
           uiNumOne = 0;
         }
         
+        TCoeff sigCoeff[16];
+        Int sigCoeffCount = 0;
+        ContextModel *baseCtxMod;
+        
+        baseCtxMod = m_cCUOneSCModel.get( 0, eTType ) + 5 * uiCtxSet;
         for( UInt uiScanPos = 0; uiScanPos < 16; uiScanPos++ )
         {
           UInt  uiBlkPos  = g_auiFrameScanXY[ 1 ][ 15 - uiScanPos ];
           UInt  uiPosY    = uiBlkPos >> 2;
-          UInt  uiPosX    = uiBlkPos - ( uiPosY << 2 );
+          UInt  uiPosX    = uiBlkPos & 3;
           UInt  uiIndex   = ( ( uiSubPosY + uiPosY ) << uiLog2BlockSize ) + uiSubPosX + uiPosX;
+          TCoeff val = pcCoef[uiIndex];
           
-          if( pcCoef[ uiIndex ]  )
+          if( val )
           {
-            if( pcCoef[ uiIndex ] > 0) { uiAbs = static_cast<UInt>( pcCoef[ uiIndex ]);  uiSign = 0; }
-            else                       { uiAbs = static_cast<UInt>(-pcCoef[ uiIndex ]);  uiSign = 1; }
+            sigCoeff[sigCoeffCount++] = val;
+            UInt symbol = abs(val) > 1;
+            m_pcBinIf->encodeBin( symbol, baseCtxMod[c1] );
             
-            UInt uiCtx    = min<UInt>(c1, 4);
-            UInt uiSymbol = uiAbs > 1 ? 1 : 0;
-            m_pcBinIf->encodeBin( uiSymbol, m_cCUOneSCModel.get( 0, eTType, ( uiCtxSet << 2 ) + uiCtxSet + uiCtx ) );
-            
-            if( uiSymbol )
+            if( symbol )
             {
-              c1     = 0;
+              c1 = 0;
             }
-            else if( c1 )
+            else if( c1 & 3 ) // Increment if c1 is 1, 2 or 3 (but not 0 or 4)
             {
               c1++;
             }
           }
         }
         
-        for( UInt uiScanPos = 0; uiScanPos < 16; uiScanPos++ )
+        if (c1 == 0)
         {
-          UInt  uiBlkPos  = g_auiFrameScanXY[ 1 ][ 15 - uiScanPos ];
-          UInt  uiPosY    = uiBlkPos >> 2;
-          UInt  uiPosX    = uiBlkPos - ( uiPosY << 2 );
-          UInt  uiIndex   = ( ( uiSubPosY + uiPosY ) << uiLog2BlockSize ) + uiSubPosX + uiPosX;
-          
-          if( pcCoef[ uiIndex ]  )
+          baseCtxMod = m_cCUAbsSCModel.get( 0, eTType ) + 5 * uiCtxSet;
+          for (Int idx = 0; idx < sigCoeffCount; idx++)
           {
-            if( pcCoef[ uiIndex ] > 0) { uiAbs = static_cast<UInt>( pcCoef[ uiIndex ]);  uiSign = 0; }
-            else                       { uiAbs = static_cast<UInt>(-pcCoef[ uiIndex ]);  uiSign = 1; }
-            
-            UInt uiSymbol = uiAbs > 1 ? 1 : 0;
-            
-            if( uiSymbol )
+            UInt absVal = abs(sigCoeff[idx]);
+            if (absVal > 1)
             {
-              UInt uiCtx  = min<UInt>(c2, 4);
-              uiAbs -= 2;
-              c2++;
-              uiNumOne++;
 #if E253
-              uiSymbol = uiAbs > 0 ? 1 : 0;
-
-              m_pcBinIf->encodeBin( uiSymbol, m_cCUAbsSCModel.get( 0, eTType, ( uiCtxSet << 2 ) + uiCtxSet + uiCtx ) );
-
-              if( uiSymbol )
+              UInt symbol = absVal > 2;
+              
+              m_pcBinIf->encodeBin( symbol, baseCtxMod[c2] );
+              
+              if( symbol )
               {
-                uiAbs -= 1;
-                xWriteGoRiceExGolomb( uiAbs, uiGoRiceParam );
+                xWriteGoRiceExGolomb( absVal - 3, uiGoRiceParam );
               }
 #else
-              xWriteExGolombLevel( uiAbs, m_cCUAbsSCModel.get( 0, eTType, ( uiCtxSet << 2 ) + uiCtxSet + uiCtx ) );
-#endif
+              xWriteExGolombLevel( absVal - 2, baseCtxMod[c2] );
+#endif        
+              c2 += (c2 < 4); // Increment c2 up to a maximum value of 4
+              uiNumOne++;
             }
           }
         }
         
-        for( UInt uiScanPos = 0; uiScanPos < 16; uiScanPos++ )
+        for (Int idx = 0; idx < sigCoeffCount; idx++)
         {
-          UInt  uiBlkPos  = g_auiFrameScanXY[ 1 ][ 15 - uiScanPos ];
-          UInt  uiPosY    = uiBlkPos >> 2;
-          UInt  uiPosX    = uiBlkPos - ( uiPosY << 2 );
-          UInt  uiIndex   = ( ( uiSubPosY + uiPosY ) << uiLog2BlockSize ) + uiSubPosX + uiPosX;
-          
-          if( pcCoef[ uiIndex ]  )
-          {
-            if( pcCoef[ uiIndex ] > 0) { uiAbs = static_cast<UInt>( pcCoef[ uiIndex ]);  uiSign = 0; }
-            else                       { uiAbs = static_cast<UInt>(-pcCoef[ uiIndex ]);  uiSign = 1; }
-            m_pcBinIf->encodeBinEP( uiSign );
-          }
+          m_pcBinIf->encodeBinEP( sigCoeff[idx] < 0 );
         }
-        
       }
     }
   }
@@ -1651,75 +1630,61 @@ Void TEncSbac::codeCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx
   {
     c1 = 1;
     c2 = 0;
+    TCoeff sigCoeff[16];
+    Int sigCoeffCount = 0;
+    ContextModel *baseCtxMod;
     
+    baseCtxMod = m_cCUOneSCModel.get( 0, eTType );    
     for( UInt uiScanPos = 0; uiScanPos < 16; uiScanPos++ )
     {
       UInt uiIndex = g_auiFrameScanXY[ 1 ][ 15 - uiScanPos ];
+      TCoeff val = pcCoef[uiIndex];
       
-      if( pcCoef[ uiIndex ]  )
+      if( val )
       {
-        if( pcCoef[ uiIndex ] > 0) { uiAbs = static_cast<UInt>( pcCoef[ uiIndex ]);  uiSign = 0; }
-        else                       { uiAbs = static_cast<UInt>(-pcCoef[ uiIndex ]);  uiSign = 1; }
+        sigCoeff[sigCoeffCount++] = val;
+        UInt symbol = abs(val) > 1;
+        m_pcBinIf->encodeBin( symbol, baseCtxMod[c1] );
         
-        UInt uiCtx    = min<UInt>(c1, 4);
-        UInt uiSymbol = uiAbs > 1 ? 1 : 0;
-        m_pcBinIf->encodeBin( uiSymbol, m_cCUOneSCModel.get( 0, eTType, uiCtx ) );
-        
-        if( uiSymbol )
+        if( symbol )
         {
           c1 = 0;
         }
-        else if( c1 )
+        else if( c1 & 3 ) // Increment if c1 is 1, 2 or 3 (but not 0 or 4)
         {
           c1++;
         }
       }
     }
     
-    for( UInt uiScanPos = 0; uiScanPos < 16; uiScanPos++ )
+    if (c1 == 0)
     {
-      UInt uiIndex = g_auiFrameScanXY[ 1 ][ 15 - uiScanPos ];
-      
-      if( pcCoef[ uiIndex ]  )
+      baseCtxMod = m_cCUAbsSCModel.get( 0, eTType );    
+      for (Int idx = 0; idx < sigCoeffCount; idx++)
       {
-        if( pcCoef[ uiIndex ] > 0) { uiAbs = static_cast<UInt>( pcCoef[ uiIndex ]);  uiSign = 0; }
-        else                       { uiAbs = static_cast<UInt>(-pcCoef[ uiIndex ]);  uiSign = 1; }
-        
-        UInt uiSymbol = uiAbs > 1 ? 1 : 0;
-        
-        if( uiSymbol )
+        UInt absVal = abs(sigCoeff[idx]);
+        if (absVal > 1)
         {
-          UInt uiCtx  = min<UInt>(c2, 4);
-          uiAbs -= 2;
-          c2++;
 #if E253
-          uiSymbol = uiAbs > 0 ? 1 : 0;
-
-          m_pcBinIf->encodeBin( uiSymbol, m_cCUAbsSCModel.get( 0, eTType, uiCtx ) );
-
-          if( uiSymbol )
+          UInt symbol = absVal > 2;
+          
+          m_pcBinIf->encodeBin( symbol, baseCtxMod[c2] );
+          
+          if( symbol )
           {
-            uiAbs -= 1;
-            xWriteGoRiceExGolomb( uiAbs, uiGoRiceParam );
+            xWriteGoRiceExGolomb( absVal - 3, uiGoRiceParam );
           }
 #else
-          xWriteExGolombLevel( uiAbs, m_cCUAbsSCModel.get( 0, eTType, uiCtx ) );
-#endif
+          xWriteExGolombLevel( absVal - 2, baseCtxMod[c2] );
+#endif        
+          c2 += (c2 < 4); // Increment c2 up to a maximum value of 4
         }
       }
     }
     
-    for( UInt uiScanPos = 0; uiScanPos < 16; uiScanPos++ )
+    for (Int idx = 0; idx < sigCoeffCount; idx++)
     {
-      UInt uiIndex = g_auiFrameScanXY[ 1 ][ 15 - uiScanPos ];
-      
-      if( pcCoef[ uiIndex ]  )
-      {
-        if( pcCoef[ uiIndex ] > 0) { uiAbs = static_cast<UInt>( pcCoef[ uiIndex ]);  uiSign = 0; }
-        else                       { uiAbs = static_cast<UInt>(-pcCoef[ uiIndex ]);  uiSign = 1; }
-        
-        m_pcBinIf->encodeBinEP( uiSign );
-      }
+      m_pcBinIf->encodeBinEP( sigCoeff[idx] < 0 );
     }
   }
   return;
