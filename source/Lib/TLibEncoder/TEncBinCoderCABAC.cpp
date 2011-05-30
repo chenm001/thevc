@@ -278,14 +278,42 @@ TEncBinCABAC::xWriteBit( UInt uiBit )
   }
 }
 
-Void  
-TEncBinCABAC::xWriteBitAndBitsToFollow( UInt uiBit )
+/**
+ * Write output bits, including withheld bits as counted by m_uiBitsToFollow
+ * \param uiBit bit value to be following by its inverse
+ */
+Void TEncBinCABAC::xWriteBitAndBitsToFollow( UInt uiBit )
 {
-  xWriteBit( uiBit );
-  uiBit = 1 - uiBit;
-  while( m_uiBitsToFollow > 0 )
+  UInt invBit = uiBit ^ 1;
+  
+  // Check whether bits will fit into current byte buffer without requiring a flush
+  if (m_uiBitsToFollow < m_uiBitsLeft - 1)
   {
-    m_uiBitsToFollow--;
-    xWriteBit( uiBit );
+    // Add bit equal to uiBit into byte buffer followed by m_uiBitsToFollows bits equal to !uiBit
+    m_uiByte = ((2 * m_uiByte + 1 ) << m_uiBitsToFollow) - invBit; 
+    
+    m_uiBitsLeft = (m_uiBitsLeft - 1) - m_uiBitsToFollow;
   }
+  else
+  {
+    // Fill byte buffer with bit equal to uiBit followed by as many bits equal to !uiBit as will fit
+    m_uiByte = ((2 * m_uiByte + 1 ) << (m_uiBitsLeft - 1)) - invBit;
+    
+    // Flush byte buffer
+    m_pcTComBitIf->write( m_uiByte, 8 );
+    
+    m_uiBitsToFollow -= m_uiBitsLeft - 1;
+    
+    while (m_uiBitsToFollow >= 8)
+    {
+      // Write byte equal to 0x00 if uiBit is equal to 1, and 0xff otherwise
+      m_pcTComBitIf->write( (invBit << 8) - invBit, 8 );
+      m_uiBitsToFollow -= 8;
+    }
+    
+    // Set byte buffer with m_uiBitsToFollows bits equal to !uiBit
+    m_uiByte = (invBit << m_uiBitsToFollow) - invBit;
+    m_uiBitsLeft = 8 - m_uiBitsToFollow;
+  }
+  m_uiBitsToFollow = 0;
 }
