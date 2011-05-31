@@ -70,6 +70,7 @@ private:
   UChar*          m_puhQTTempCbf[3];
   
   TComYuv*        m_pcQTTempTComYuv;
+  TComYuv         m_tmpYuvPred; // To be used in xGetInterPredictionError() to avoid constant memory allocation/deallocation
 protected:
   // interface to option
   TEncCfg*        m_pcEncCfg;

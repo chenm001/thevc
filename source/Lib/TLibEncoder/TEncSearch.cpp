@@ -118,6 +118,8 @@ TEncSearch::~TEncSearch()
   delete[] m_puhQTTempCbf[1];
   delete[] m_puhQTTempCbf[2];
   delete[] m_pcQTTempTComYuv;
+  
+  m_tmpYuvPred.destroy();
 }
 
 void TEncSearch::init(TEncCfg*      pcEncCfg,
@@ -195,6 +197,8 @@ void TEncSearch::init(TEncCfg*      pcEncCfg,
     m_ppcQTTempCoeffCr[ui] = new TCoeff[g_uiMaxCUWidth*g_uiMaxCUHeight>>2];
     m_pcQTTempTComYuv[ui].create( g_uiMaxCUWidth, g_uiMaxCUHeight );
   }
+  
+  m_tmpYuvPred.create(MAX_CU_SIZE, MAX_CU_SIZE);
 }
 
 #if FASTME_SMOOTHER_MV
@@ -2367,10 +2371,7 @@ Bool TEncSearch::predIntraLumaDirAvailable( UInt uiMode, UInt uiWidthBit, Bool b
 
 Void TEncSearch::xGetInterPredictionError( TComDataCU* pcCU, TComYuv* pcYuvOrg, Int iPartIdx, UInt& ruiErr, Bool bHadamard )
 {
-  TComYuv cYuvPred;
-  cYuvPred.create( pcYuvOrg->getWidth(), pcYuvOrg->getHeight() );
-
-  motionCompensation( pcCU, &cYuvPred, REF_PIC_LIST_X, iPartIdx );
+  motionCompensation( pcCU, &m_tmpYuvPred, REF_PIC_LIST_X, iPartIdx );
 
   UInt uiAbsPartIdx = 0;
   Int iWidth = 0;
@@ -2380,11 +2381,9 @@ Void TEncSearch::xGetInterPredictionError( TComDataCU* pcCU, TComYuv* pcYuvOrg, 
   DistParam cDistParam;
   m_pcRdCost->setDistParam( cDistParam, 
                             pcYuvOrg->getLumaAddr( uiAbsPartIdx ), pcYuvOrg->getStride(), 
-                            cYuvPred .getLumaAddr( uiAbsPartIdx ), cYuvPred .getStride(), 
+                            m_tmpYuvPred .getLumaAddr( uiAbsPartIdx ), m_tmpYuvPred .getStride(), 
                             iWidth, iHeight, m_pcEncCfg->getUseHADME() );
   ruiErr = cDistParam.DistFunc( &cDistParam );
-
-  cYuvPred.destroy();
 }
 
 /** estimation of best merge coding
