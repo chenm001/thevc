@@ -693,9 +693,15 @@ Void TEncSlice::encodeSlice   ( TComPic*& rpcPic, TComOutputBitstream* pcBitstre
   UInt       uiCUAddr;
   UInt       uiStartCUAddr;
   UInt       uiBoundingCUAddr;
+#if !FINE_GRANULARITY_SLICES
   xDetermineStartAndBoundingCUAddr  ( uiStartCUAddr, uiBoundingCUAddr, rpcPic, true );
+#endif
   TComSlice* pcSlice = rpcPic->getSlice(getSliceIdx());
 
+#if FINE_GRANULARITY_SLICES
+  uiStartCUAddr=pcSlice->getEntropySliceCurStartCUAddr();
+  uiBoundingCUAddr=pcSlice->getEntropySliceCurEndCUAddr();
+#endif
   // choose entropy coder
   Int iSymbolMode = pcSlice->getSymbolMode();
   if (iSymbolMode)
