@@ -52,8 +52,8 @@ using namespace std;
 class TComMv
 {
 private:
-  Int   m_iHor;     ///< horizontal component of motion vector
-  Int   m_iVer;     ///< vertical component of motion vector
+  Short m_iHor;     ///< horizontal component of motion vector
+  Short m_iVer;     ///< vertical component of motion vector
   
 public:
   
@@ -67,7 +67,7 @@ public:
   {
   }
   
-  TComMv( Int iHor, Int iVer ) :
+  TComMv( Short iHor, Short iVer ) :
   m_iHor(iHor),
   m_iVer(iVer)
   {
@@ -77,10 +77,10 @@ public:
   // set
   // ------------------------------------------------------------------------------------------------------------------
   
-  Void  set       ( Int iHor, Int iVer)     { m_iHor = iHor;  m_iVer = iVer;            }
-  Void  setHor    ( Int i )                 { m_iHor = i;                               }
-  Void  setVer    ( Int i )                 { m_iVer = i;                               }
-  Void  setZero   ()                        { m_iHor = m_iVer = 0;  }
+  Void  set       ( Short iHor, Short iVer)     { m_iHor = iHor;  m_iVer = iVer;            }
+  Void  setHor    ( Short i )                   { m_iHor = i;                               }
+  Void  setVer    ( Short i )                   { m_iVer = i;                               }
+  Void  setZero   ()                            { m_iHor = m_iVer = 0;  }
   
   // ------------------------------------------------------------------------------------------------------------------
   // get

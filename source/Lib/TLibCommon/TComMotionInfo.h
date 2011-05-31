@@ -90,7 +90,7 @@ class TComCUMvField
 private:
   TComMv*   m_pcMv;
   TComMv*   m_pcMvd;
-  Int*      m_piRefIdx;
+  Char*     m_piRefIdx;
   UInt      m_uiNumPartition;
   AMVPInfo  m_cAMVPInfo;
 public:
@@ -136,7 +136,7 @@ public:
   TComMv& getMvd            ( Int iIdx )               { return  m_pcMvd   [iIdx]; }
   TComMv* getMvd            ()                         { return  m_pcMvd;          }
   Int     getRefIdx         ( Int iIdx )               { return  m_piRefIdx[iIdx]; }
-  Int*    getRefIdx         ()                         { return  m_piRefIdx;       }
+  Char*   getRefIdx         ()                         { return  m_piRefIdx;       }
   
   AMVPInfo* getAMVPInfo () { return &m_cAMVPInfo; }
   // ------------------------------------------------------------------------------------------------------------------
@@ -149,7 +149,7 @@ public:
   
   Void    setMvPtr          ( TComMv*  cMvPtr     ) { m_pcMv    = cMvPtr;         }
   Void    setMvdPtr         ( TComMv*  cMvdPtr    ) { m_pcMvd  = cMvdPtr;         }
-  Void    setRefIdxPtr      ( Int*     iRefIdxPtr ) { m_piRefIdx = iRefIdxPtr;    }
+  Void    setRefIdxPtr      ( Char*    iRefIdxPtr ) { m_piRefIdx = iRefIdxPtr;    }
   Void    setNumPartition   ( Int      iNumPart   ) { m_uiNumPartition=iNumPart;  }
   
   Void    setAllMv          ( TComMv& rcMv,    PartSize eCUMode, Int iPartAddr, Int iPartIdx, UInt uiDepth );

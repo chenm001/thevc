@@ -52,7 +52,7 @@ Void TComCUMvField::create( UInt uiNumPartition )
 {
   m_pcMv     = ( TComMv* )xMalloc( TComMv, uiNumPartition );
   m_pcMvd    = ( TComMv* )xMalloc( TComMv, uiNumPartition );
-  m_piRefIdx = (    Int* )xMalloc( Int,    uiNumPartition );
+  m_piRefIdx = new Char[ uiNumPartition ];
   
   m_uiNumPartition = uiNumPartition;
 }
@@ -69,7 +69,8 @@ Void TComCUMvField::destroy()
   }
   if( m_piRefIdx )
   {
-    xFree( m_piRefIdx ); m_piRefIdx = NULL;
+    delete[] m_piRefIdx;
+    m_piRefIdx = NULL;
   }
 }
 
@@ -113,7 +114,7 @@ Void TComCUMvField::copyFrom( TComCUMvField* pcCUMvFieldSrc, Int iNumPartSrc, In
   
   memcpy( m_pcMv     + iPartAddrDst, pcCUMvFieldSrc->getMv(),     iSizeInTComMv );
   memcpy( m_pcMvd    + iPartAddrDst, pcCUMvFieldSrc->getMvd(),    iSizeInTComMv );
-  memcpy( m_piRefIdx + iPartAddrDst, pcCUMvFieldSrc->getRefIdx(), sizeof( Int ) * iNumPartSrc );
+  memcpy( m_piRefIdx + iPartAddrDst, pcCUMvFieldSrc->getRefIdx(), sizeof( *m_piRefIdx ) * iNumPartSrc );
 }
 
 Void TComCUMvField::copyTo( TComCUMvField* pcCUMvFieldDst, Int iPartAddrDst )
@@ -122,7 +123,7 @@ Void TComCUMvField::copyTo( TComCUMvField* pcCUMvFieldDst, Int iPartAddrDst )
   
   memcpy( pcCUMvFieldDst->getMv()     + iPartAddrDst, m_pcMv,     iSizeInTComMv );
   memcpy( pcCUMvFieldDst->getMvd()    + iPartAddrDst, m_pcMvd,    iSizeInTComMv );
-  memcpy( pcCUMvFieldDst->getRefIdx() + iPartAddrDst, m_piRefIdx, sizeof( Int ) * m_uiNumPartition );
+  memcpy( pcCUMvFieldDst->getRefIdx() + iPartAddrDst, m_piRefIdx, sizeof( *m_piRefIdx ) * m_uiNumPartition );
 }
 
 Void TComCUMvField::copyTo( TComCUMvField* pcCUMvFieldDst, Int iPartAddrDst, UInt uiOffset, UInt uiNumPart )
@@ -132,7 +133,7 @@ Void TComCUMvField::copyTo( TComCUMvField* pcCUMvFieldDst, Int iPartAddrDst, UIn
   
   memcpy( pcCUMvFieldDst->getMv()     + iOffset, m_pcMv     + uiOffset, iSizeInTComMv );
   memcpy( pcCUMvFieldDst->getMvd()    + iOffset, m_pcMvd    + uiOffset, iSizeInTComMv );
-  memcpy( pcCUMvFieldDst->getRefIdx() + iOffset, m_piRefIdx + uiOffset, sizeof( Int ) * uiNumPart );
+  memcpy( pcCUMvFieldDst->getRefIdx() + iOffset, m_piRefIdx + uiOffset, sizeof( *m_piRefIdx ) * uiNumPart );
 }
 
 Void TComCUMvField::copyMvTo( TComCUMvField* pcCUMvFieldDst, Int iPartAddrDst )
@@ -231,7 +232,7 @@ Void TComCUMvField::setAllMvd( TComMv& mvd, PartSize eCUMode, Int iPartAddr, Int
 Void TComCUMvField::setAllRefIdx ( Int iRefIdx, PartSize eCUMode, Int iPartAddr, Int iPartIdx, UInt uiDepth )
 {
   Int i;
-  Int* piRefIdx = m_piRefIdx + iPartAddr;
+  Char* piRefIdx = m_piRefIdx + iPartAddr;
   Int iNumPartition = m_uiNumPartition >> (uiDepth<<1);
   
   switch( eCUMode )
