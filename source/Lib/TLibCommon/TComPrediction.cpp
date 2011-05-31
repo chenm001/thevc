@@ -479,7 +479,7 @@ Void  TComPrediction::xPredInterLumaBlk_ha( TComDataCU* pcCU, TComPicYuv* pcPicY
   Int     iyFrac  = pcMv->getVer() & 0x3;
 
   Pel* piDstY = rpcYuv->getLumaAddr( uiPartAddr );
-    UInt shiftNum = 14-g_uiBitDepth-g_uiBitIncrement;
+  UInt shiftNum = 14-g_uiBitDepth-g_uiBitIncrement;
   //  Integer point
   if ( ixFrac == 0 && iyFrac == 0 )
   {
@@ -490,126 +490,78 @@ Void  TComPrediction::xPredInterLumaBlk_ha( TComDataCU* pcCU, TComPicYuv* pcPicY
       piDstY += iDstStride;
       piRefY += iRefStride;
     }
-    return;
   }
-
-  //  Half-pel horizontal
-  if ( ixFrac == 2 && iyFrac == 0 )
+  else if ( iyFrac == 0 )
   {
-    xCTI_FilterHalfHor_ha ( piRefY, iRefStride, 1, iWidth, iHeight, iDstStride, 1, piDstY );
-    return;
-  }
-
-  //  Half-pel vertical
-  if ( ixFrac == 0 && iyFrac == 2 )
-  {
-    xCTI_FilterHalfVer_ha ( piRefY, iRefStride, 1, iWidth, iHeight, iDstStride, 1, piDstY );
-    return;
-  }
-
-  Int   iExtStride = m_iYuvExtStride;//m_cYuvExt.getStride();
-  Int*  piExtY     = m_piYuvExt;//m_cYuvExt.getLumaAddr();
-
-  //  Half-pel center
-  if ( ixFrac == 2 && iyFrac == 2 )
-  {
-    xCTI_FilterHalfVer (piRefY - 3,  iRefStride, 1, iWidth +7, iHeight, iExtStride, 1, piExtY );
-    xCTI_FilterHalfHor_ha (piExtY + 3,  iExtStride, 1, iWidth    , iHeight, iDstStride, 1, piDstY );
-    return;
-  }
-
-  //  Quater-pel horizontal
-  if ( iyFrac == 0)
-  {
-    if ( ixFrac == 1)
+    switch ( ixFrac )
     {
-      xCTI_FilterQuarter0Hor_ha( piRefY, iRefStride, 1, iWidth, iHeight, iDstStride, 1, piDstY );
-      return;
-    }
-    if ( ixFrac == 3)
-    {
-      xCTI_FilterQuarter1Hor_ha( piRefY, iRefStride, 1, iWidth, iHeight, iDstStride, 1, piDstY );
-      return;
+      case 1:
+        xCTI_FilterQuarter0Hor_ha( piRefY, iRefStride, 1, iWidth, iHeight, iDstStride, 1, piDstY );
+        break;
+      case 2:
+        xCTI_FilterHalfHor_ha ( piRefY, iRefStride, 1, iWidth, iHeight, iDstStride, 1, piDstY );
+        break;
+      case 3:
+        xCTI_FilterQuarter1Hor_ha( piRefY, iRefStride, 1, iWidth, iHeight, iDstStride, 1, piDstY );
+        break;
+      default:
+        assert(false);
+        break;
     }
   }
-  if ( iyFrac == 2 )
+  else if ( ixFrac == 0)
   {
-    if ( ixFrac == 1)
+    switch ( iyFrac )
     {
-      xCTI_FilterHalfVer (piRefY -3,  iRefStride, 1, iWidth +7, iHeight, iExtStride, 1, piExtY );
-      xCTI_FilterQuarter0Hor_ha (piExtY + 3,  iExtStride, 1, iWidth, iHeight, iDstStride, 1, piDstY );
-      return;
-    }
-    if ( ixFrac == 3)
-    {
-      xCTI_FilterHalfVer (piRefY - 3,  iRefStride, 1, iWidth + 7, iHeight, iExtStride, 1, piExtY );
-      xCTI_FilterQuarter1Hor_ha (piExtY + 3,  iExtStride, 1, iWidth, iHeight, iDstStride, 1, piDstY );
-      return;
+      case 1:
+        xCTI_FilterQuarter0Ver_ha( piRefY, iRefStride, 1, iWidth, iHeight, iDstStride, 1, piDstY );
+        break;
+      case 2:
+        xCTI_FilterHalfVer_ha ( piRefY, iRefStride, 1, iWidth, iHeight, iDstStride, 1, piDstY );
+        break;
+      case 3:
+        xCTI_FilterQuarter1Ver_ha( piRefY, iRefStride, 1, iWidth, iHeight, iDstStride, 1, piDstY );
+        break;
+      default:
+        assert(false);
+        break;
     }
   }
-
-  //  Quater-pel vertical
-  if( ixFrac == 0 )
+  else
   {
-    if( iyFrac == 1 )
+    Int   iExtStride = m_iYuvExtStride;//m_cYuvExt.getStride();
+    Int*  piExtY     = m_piYuvExt;//m_cYuvExt.getLumaAddr();
+    
+    switch ( iyFrac )
     {
-      xCTI_FilterQuarter0Ver_ha( piRefY, iRefStride, 1, iWidth, iHeight, iDstStride, 1, piDstY );
-      return;
+      case 1:
+        xCTI_FilterQuarter0Ver (piRefY - 3,  iRefStride, 1, iWidth + 7, iHeight, iExtStride, 1, piExtY );
+        break;
+      case 2:
+        xCTI_FilterHalfVer (piRefY - 3,  iRefStride, 1, iWidth +7, iHeight, iExtStride, 1, piExtY );
+        break;
+      case 3:
+        xCTI_FilterQuarter1Ver (piRefY -3,  iRefStride, 1, iWidth + 7, iHeight, iExtStride, 1, piExtY );
+        break;
+      default:
+        assert(false);
+        break;
     }
-    if( iyFrac == 3 )
+    
+    switch ( ixFrac )
     {
-      xCTI_FilterQuarter1Ver_ha( piRefY, iRefStride, 1, iWidth, iHeight, iDstStride, 1, piDstY );
-      return;
-    }
-  }
-
-  if( ixFrac == 2 )
-  {
-    if( iyFrac == 1 )
-    {
-      xCTI_FilterQuarter0Ver (piRefY - 3,  iRefStride, 1, iWidth + 7, iHeight, iExtStride, 1, piExtY );
-      xCTI_FilterHalfHor_ha (piExtY + 3,  iExtStride, 1, iWidth    , iHeight, iDstStride, 1, piDstY );
-
-      return;
-    }
-    if( iyFrac == 3 )
-    {
-      xCTI_FilterQuarter1Ver (piRefY -3,  iRefStride, 1, iWidth + 7, iHeight, iExtStride, 1, piExtY );
-      xCTI_FilterHalfHor_ha (piExtY + 3,  iExtStride, 1, iWidth    , iHeight, iDstStride, 1, piDstY );
-      return;
-    }
-  }
-
-  /// Quarter-pel center
-  if ( iyFrac == 1)
-  {
-    if ( ixFrac == 1)
-    {
-      xCTI_FilterQuarter0Ver (piRefY - 3,  iRefStride, 1, iWidth + 7, iHeight, iExtStride, 1, piExtY );
-      xCTI_FilterQuarter0Hor_ha (piExtY + 3,  iExtStride, 1, iWidth    , iHeight, iDstStride, 1, piDstY );
-      return;
-    }
-    if ( ixFrac == 3)
-    {
-      xCTI_FilterQuarter0Ver (piRefY - 3,  iRefStride, 1, iWidth +7, iHeight, iExtStride, 1, piExtY );
-      xCTI_FilterQuarter1Hor_ha (piExtY + 3,  iExtStride, 1, iWidth    , iHeight, iDstStride, 1, piDstY );
-
-      return;
-    }
-  }
-  if ( iyFrac == 3 )
-  {
-    if ( ixFrac == 1)
-    {
-      xCTI_FilterQuarter1Ver (piRefY - 3,  iRefStride, 1, iWidth + 7, iHeight, iExtStride, 1, piExtY );
-      xCTI_FilterQuarter0Hor_ha (piExtY + 3,  iExtStride, 1, iWidth    , iHeight, iDstStride, 1, piDstY );
-      return;
-    }
-    if ( ixFrac == 3)
-    {
-      xCTI_FilterQuarter1Ver (piRefY - 3,  iRefStride, 1, iWidth + 7, iHeight, iExtStride, 1, piExtY );
-      xCTI_FilterQuarter1Hor_ha (piExtY + 3,  iExtStride, 1, iWidth    , iHeight, iDstStride, 1, piDstY );
-      return;
+      case 1:
+        xCTI_FilterQuarter0Hor_ha (piExtY + 3,  iExtStride, 1, iWidth, iHeight, iDstStride, 1, piDstY );
+        break;
+      case 2:
+        xCTI_FilterHalfHor_ha (piExtY + 3,  iExtStride, 1, iWidth    , iHeight, iDstStride, 1, piDstY );
+        break;
+      case 3:
+        xCTI_FilterQuarter1Hor_ha (piExtY + 3,  iExtStride, 1, iWidth, iHeight, iDstStride, 1, piDstY );
+        break;
+      default:
+        assert(false);
+        break;
     }
   }
 }
@@ -638,125 +590,78 @@ Void  TComPrediction::xPredInterLumaBlk( TComDataCU* pcCU, TComPicYuv* pcPicYuvR
       piDstY += iDstStride;
       piRefY += iRefStride;
     }
-    return;
   }
-
-  //  Half-pel horizontal
-  if ( ixFrac == 2 && iyFrac == 0 )
+  else if ( iyFrac == 0 )
   {
-    xCTI_FilterHalfHor ( piRefY, iRefStride, 1, iWidth, iHeight, iDstStride, 1, piDstY );
-    return;
-  }
-
-  //  Half-pel vertical
-  if ( ixFrac == 0 && iyFrac == 2 )
-  {
-    xCTI_FilterHalfVer ( piRefY, iRefStride, 1, iWidth, iHeight, iDstStride, 1, piDstY );
-    return;
-  }
-
-  Int   iExtStride = m_iYuvExtStride;//m_cYuvExt.getStride();
-  Int*  piExtY     = m_piYuvExt;//m_cYuvExt.getLumaAddr();
-
-  //  Half-pel center
-  if ( ixFrac == 2 && iyFrac == 2 )
-  {
-
-    xCTI_FilterHalfVer (piRefY - 3,  iRefStride, 1, iWidth +7, iHeight, iExtStride, 1, piExtY );
-    xCTI_FilterHalfHor (piExtY + 3,  iExtStride, 1, iWidth    , iHeight, iDstStride, 1, piDstY );
-    return;
-  }
-
-  //  Quater-pel horizontal
-  if ( iyFrac == 0)
-  {
-    if ( ixFrac == 1)
+    switch ( ixFrac )
     {
-      xCTI_FilterQuarter0Hor( piRefY, iRefStride, 1, iWidth, iHeight, iDstStride, 1, piDstY );
-      return;
-    }
-    if ( ixFrac == 3)
-    {
-      xCTI_FilterQuarter1Hor( piRefY, iRefStride, 1, iWidth, iHeight, iDstStride, 1, piDstY );
-      return;
+      case 1:
+        xCTI_FilterQuarter0Hor( piRefY, iRefStride, 1, iWidth, iHeight, iDstStride, 1, piDstY );
+        break;
+      case 2:
+        xCTI_FilterHalfHor ( piRefY, iRefStride, 1, iWidth, iHeight, iDstStride, 1, piDstY );
+        break;
+      case 3:
+        xCTI_FilterQuarter1Hor( piRefY, iRefStride, 1, iWidth, iHeight, iDstStride, 1, piDstY );
+        break;
+      default:
+        assert(false);
+        break;
     }
   }
-  if ( iyFrac == 2 )
+  else if ( ixFrac == 0)
   {
-    if ( ixFrac == 1)
+    switch ( iyFrac )
     {
-      xCTI_FilterHalfVer (piRefY -3,  iRefStride, 1, iWidth +7, iHeight, iExtStride, 1, piExtY );
-      xCTI_FilterQuarter0Hor (piExtY + 3,  iExtStride, 1, iWidth, iHeight, iDstStride, 1, piDstY );
-      return;
-    }
-    if ( ixFrac == 3)
-    {
-      xCTI_FilterHalfVer (piRefY - 3,  iRefStride, 1, iWidth + 7, iHeight, iExtStride, 1, piExtY );
-      xCTI_FilterQuarter1Hor (piExtY + 3,  iExtStride, 1, iWidth, iHeight, iDstStride, 1, piDstY );
-      return;
+      case 1:
+        xCTI_FilterQuarter0Ver( piRefY, iRefStride, 1, iWidth, iHeight, iDstStride, 1, piDstY );
+        break;
+      case 2:
+        xCTI_FilterHalfVer ( piRefY, iRefStride, 1, iWidth, iHeight, iDstStride, 1, piDstY );
+        break;
+      case 3:
+        xCTI_FilterQuarter1Ver( piRefY, iRefStride, 1, iWidth, iHeight, iDstStride, 1, piDstY );
+        break;
+      default:
+        assert(false);
+        break;
     }
   }
+  else
+  {
+    Int   iExtStride = m_iYuvExtStride;//m_cYuvExt.getStride();
+    Int*  piExtY     = m_piYuvExt;//m_cYuvExt.getLumaAddr();
 
-  //  Quater-pel vertical
-  if( ixFrac == 0 )
-  {
-    if( iyFrac == 1 )
+    switch ( iyFrac )
     {
-      xCTI_FilterQuarter0Ver( piRefY, iRefStride, 1, iWidth, iHeight, iDstStride, 1, piDstY );
-      return;
+      case 1:
+        xCTI_FilterQuarter0Ver (piRefY - 3,  iRefStride, 1, iWidth + 7, iHeight, iExtStride, 1, piExtY );
+        break;
+      case 2:
+        xCTI_FilterHalfVer (piRefY - 3,  iRefStride, 1, iWidth +7, iHeight, iExtStride, 1, piExtY );
+        break;
+      case 3:
+        xCTI_FilterQuarter1Ver (piRefY -3,  iRefStride, 1, iWidth + 7, iHeight, iExtStride, 1, piExtY );
+        break;
+      default:
+        assert(false);
+        break;
     }
-    if( iyFrac == 3 )
+    
+    switch ( ixFrac )
     {
-      xCTI_FilterQuarter1Ver( piRefY, iRefStride, 1, iWidth, iHeight, iDstStride, 1, piDstY );
-      return;
-    }
-  }
-
-  if( ixFrac == 2 )
-  {
-    if( iyFrac == 1 )
-    {
-      xCTI_FilterQuarter0Ver (piRefY - 3,  iRefStride, 1, iWidth + 7, iHeight, iExtStride, 1, piExtY );
-      xCTI_FilterHalfHor (piExtY + 3,  iExtStride, 1, iWidth    , iHeight, iDstStride, 1, piDstY );
-      return;
-    }
-    if( iyFrac == 3 )
-    {
-      xCTI_FilterQuarter1Ver (piRefY -3,  iRefStride, 1, iWidth + 7, iHeight, iExtStride, 1, piExtY );
-      xCTI_FilterHalfHor (piExtY + 3,  iExtStride, 1, iWidth    , iHeight, iDstStride, 1, piDstY );
-      return;
-    }
-  }
-
-  /// Quarter-pel center
-  if ( iyFrac == 1)
-  {
-    if ( ixFrac == 1)
-    {
-      xCTI_FilterQuarter0Ver (piRefY - 3,  iRefStride, 1, iWidth + 7, iHeight, iExtStride, 1, piExtY );
-      xCTI_FilterQuarter0Hor (piExtY + 3,  iExtStride, 1, iWidth    , iHeight, iDstStride, 1, piDstY );
-      return;
-    }
-    if ( ixFrac == 3)
-    {
-      xCTI_FilterQuarter0Ver (piRefY - 3,  iRefStride, 1, iWidth +7, iHeight, iExtStride, 1, piExtY );
-      xCTI_FilterQuarter1Hor (piExtY + 3,  iExtStride, 1, iWidth    , iHeight, iDstStride, 1, piDstY );
-      return;
-    }
-  }
-  if ( iyFrac == 3 )
-  {
-    if ( ixFrac == 1)
-    {
-      xCTI_FilterQuarter1Ver (piRefY - 3,  iRefStride, 1, iWidth + 7, iHeight, iExtStride, 1, piExtY );
-      xCTI_FilterQuarter0Hor (piExtY + 3,  iExtStride, 1, iWidth    , iHeight, iDstStride, 1, piDstY );
-      return;
-    }
-    if ( ixFrac == 3)
-    {
-      xCTI_FilterQuarter1Ver (piRefY - 3,  iRefStride, 1, iWidth + 7, iHeight, iExtStride, 1, piExtY );
-      xCTI_FilterQuarter1Hor (piExtY + 3,  iExtStride, 1, iWidth    , iHeight, iDstStride, 1, piDstY );
-      return;
+      case 1:
+        xCTI_FilterQuarter0Hor (piExtY + 3,  iExtStride, 1, iWidth, iHeight, iDstStride, 1, piDstY );
+        break;
+      case 2:
+        xCTI_FilterHalfHor (piExtY + 3,  iExtStride, 1, iWidth    , iHeight, iDstStride, 1, piDstY );
+        break;
+      case 3:
+        xCTI_FilterQuarter1Hor (piExtY + 3,  iExtStride, 1, iWidth, iHeight, iDstStride, 1, piDstY );
+        break;
+      default:
+        assert(false);
+        break;
     }
   }
 }
