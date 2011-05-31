@@ -5255,12 +5255,14 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
 
     Long lLevelDouble = plSrcCoeff[ uiBlkPos ];
 
+#if !E243_CORE_TRANSFORMS || !PCP_SIGMAP_SIMPLE_LAST
+    UInt    uiPosY   = uiBlkPos >> uiLog2BlkSize;
+    UInt    uiPosX   = uiBlkPos - ( uiPosY << uiLog2BlkSize );
+#endif
 #if E243_CORE_TRANSFORMS
     dTemp = dErrScale;  
     lLevelDouble = abs(lLevelDouble * (Long)uiQ);   
 #else 
-    UInt    uiPosY   = uiBlkPos >> uiLog2BlkSize;
-    UInt    uiPosX   = uiBlkPos - ( uiPosY << uiLog2BlkSize );
     if      ( uiWidth == 4 ) dTemp = estErr4x4[ iQpRem ][ uiPosX ][ uiPosY ] / dNormFactor;
     else if ( uiWidth == 8 ) dTemp = estErr8x8[ iQpRem ][ uiPosX ][ uiPosY ] / dNormFactor;
     
