@@ -1274,6 +1274,16 @@ Void TEncEntropy::encodeSaoParam(SAOParam* pSaoParam)
 
 }
 
-
+Int TEncEntropy::countNonZeroCoeffs( TCoeff* pcCoef, UInt uiSize )
+{
+  Int count = 0;
+  
+  for ( Int i = 0; i < uiSize * uiSize; i++ )
+  {
+    count += pcCoef[i] != 0;
+  }
+  
+  return count;
+}
 
 #endif

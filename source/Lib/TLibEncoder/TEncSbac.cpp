@@ -1237,28 +1237,6 @@ Void TEncSbac::codeIPCMInfo( TComDataCU* pcCU, UInt uiAbsPartIdx)
 }
 #endif
 
-UInt xCheckCoeffPlainCNoRecur( const TCoeff* pcCoef, UInt uiSize, UInt uiDepth )
-{
-  UInt uiNumofCoeff = 0;
-  UInt ui = uiSize>>uiDepth;
-  {
-    UInt x, y;
-    const TCoeff* pCeoff = pcCoef;
-    for( y=0 ; y<ui ; y++ )
-    {
-      for( x=0 ; x<ui ; x++ )
-      {
-        if( pCeoff[x] != 0 )
-        {
-          uiNumofCoeff++;
-        }
-      }
-      pCeoff += uiSize;
-    }
-  }
-  return uiNumofCoeff;
-}
-
 Void TEncSbac::codeQtRootCbf( TComDataCU* pcCU, UInt uiAbsPartIdx )
 {
   UInt uiCbf = pcCU->getQtRootCbf( uiAbsPartIdx );
@@ -1274,55 +1252,6 @@ Void TEncSbac::codeQtRootCbf( TComDataCU* pcCU, UInt uiAbsPartIdx )
   DTRACE_CABAC_V( uiAbsPartIdx )
   DTRACE_CABAC_T( "\n" )
 }
-
-Void TEncSbac::xCheckCoeff( TCoeff* pcCoef, UInt uiSize, UInt uiDepth, UInt& uiNumofCoeff, UInt& uiPart )
-{
-  UInt ui = uiSize>>uiDepth;
-  if( uiPart == 0 )
-  {
-    if( ui <= 4 )
-    {
-      UInt x, y;
-      TCoeff* pCeoff = pcCoef;
-      for( y=0 ; y<ui ; y++ )
-      {
-        for( x=0 ; x<ui ; x++ )
-        {
-          if( pCeoff[x] != 0 )
-          {
-            uiNumofCoeff++;
-          }
-        }
-        pCeoff += uiSize;
-      }
-    }
-    else
-    {
-      xCheckCoeff( pcCoef,                            uiSize, uiDepth+1, uiNumofCoeff, uiPart ); uiPart++; //1st Part
-      xCheckCoeff( pcCoef             + (ui>>1),      uiSize, uiDepth+1, uiNumofCoeff, uiPart ); uiPart++; //2nd Part
-      xCheckCoeff( pcCoef + (ui>>1)*uiSize,           uiSize, uiDepth+1, uiNumofCoeff, uiPart ); uiPart++; //3rd Part
-      xCheckCoeff( pcCoef + (ui>>1)*uiSize + (ui>>1), uiSize, uiDepth+1, uiNumofCoeff, uiPart );           //4th Part
-    }
-  }
-  else
-  {
-    UInt x, y;
-    TCoeff* pCeoff = pcCoef;
-    for( y=0 ; y<ui ; y++ )
-    {
-      for( x=0 ; x<ui ; x++ )
-      {
-        if( pCeoff[x] != 0 )
-        {
-          uiNumofCoeff++;
-        }
-      }
-      pCeoff += uiSize;
-    }
-  }
-}
-
-UInt xCheckCoeffPlainCNoRecur( const TCoeff* pcCoef, UInt uiSize, UInt uiDepth );
 
 #if PCP_SIGMAP_SIMPLE_LAST
 /** Encode (X,Y) position of the last significant coefficient
@@ -1412,8 +1341,7 @@ Void TEncSbac::codeCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx
   }
   
   // compute number of significant coefficients
-  UInt  uiPart = 0;
-  xCheckCoeff(pcCoef, uiWidth, 0, uiNumSig, uiPart );
+  uiNumSig = TEncEntropy::countNonZeroCoeffs(pcCoef, uiWidth);
   
   if ( bRD )
   {

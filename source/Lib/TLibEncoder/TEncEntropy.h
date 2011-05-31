@@ -220,6 +220,8 @@ public:
   Void    encodeSaoParam(SAOParam* pQaoParam) ;
 #endif
 
+  static Int countNonZeroCoeffs( TCoeff* pcCoef, UInt uiSize );
+
 };// END CLASS DEFINITION TEncEntropy
 
 

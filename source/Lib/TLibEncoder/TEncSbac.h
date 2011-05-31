@@ -119,8 +119,6 @@ private:
 #endif
   Void  xWriteTerminatingBit ( UInt uiBit );
   
-  Void  xCheckCoeff( TCoeff* pcCoef, UInt uiSize, UInt uiDepth, UInt& uiNumofCoeff, UInt& uiPart );
-
 #if MVD_CTX
   Void  xWriteMvd            ( Int iMvd, UInt uiAbsSumL, UInt uiAbsSumA, UInt uiCtx );
 #else

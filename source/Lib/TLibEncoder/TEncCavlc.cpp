@@ -2105,8 +2105,7 @@ Void TEncCavlc::codeCoeffNxN    ( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPa
   UInt uiScanning;
   
   // compute number of significant coefficients
-  UInt  uiPart = 0;
-  xCheckCoeff(piCoeff, uiWidth, 0, uiNumSig, uiPart );
+  uiNumSig = TEncEntropy::countNonZeroCoeffs(piCoeff, uiWidth);
   
   if ( bRD )
   {
@@ -2456,53 +2455,6 @@ Void  TEncCavlc::xWritePCMAlignZero    ()
   m_pcBitIf->writeAlignZero();
 }
 #endif
-
-Void TEncCavlc::xCheckCoeff( TCoeff* pcCoef, UInt uiSize, UInt uiDepth, UInt& uiNumofCoeff, UInt& uiPart )
-{
-  UInt ui = uiSize>>uiDepth;
-  if( uiPart == 0 )
-  {
-    if( ui <= 4 )
-    {
-      UInt x, y;
-      TCoeff* pCeoff = pcCoef;
-      for( y=0 ; y<ui ; y++ )
-      {
-        for( x=0 ; x<ui ; x++ )
-        {
-          if( pCeoff[x] != 0 )
-          {
-            uiNumofCoeff++;
-          }
-        }
-        pCeoff += uiSize;
-      }
-    }
-    else
-    {
-      xCheckCoeff( pcCoef,                            uiSize, uiDepth+1, uiNumofCoeff, uiPart ); uiPart++; //1st Part
-      xCheckCoeff( pcCoef             + (ui>>1),      uiSize, uiDepth+1, uiNumofCoeff, uiPart ); uiPart++; //2nd Part
-      xCheckCoeff( pcCoef + (ui>>1)*uiSize,           uiSize, uiDepth+1, uiNumofCoeff, uiPart ); uiPart++; //3rd Part
-      xCheckCoeff( pcCoef + (ui>>1)*uiSize + (ui>>1), uiSize, uiDepth+1, uiNumofCoeff, uiPart );           //4th Part
-    }
-  }
-  else
-  {
-    UInt x, y;
-    TCoeff* pCeoff = pcCoef;
-    for( y=0 ; y<ui ; y++ )
-    {
-      for( x=0 ; x<ui ; x++ )
-      {
-        if( pCeoff[x] != 0 )
-        {
-          uiNumofCoeff++;
-        }
-      }
-      pCeoff += uiSize;
-    }
-  }
-}
 
 Void TEncCavlc::xWriteUnaryMaxSymbol( UInt uiSymbol, UInt uiMaxSymbol )
 {
