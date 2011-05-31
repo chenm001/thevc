@@ -146,8 +146,8 @@ Void TComDataCU::create(UInt uiNumPartition, UInt uiWidth, UInt uiHeight, Bool b
     
     m_apiMVPIdx[0]       = new Char[ uiNumPartition ];
     m_apiMVPIdx[1]       = new Char[ uiNumPartition ];
-    m_apiMVPNum[0]       = (Int*   )xMalloc(Int,  uiNumPartition);
-    m_apiMVPNum[1]       = (Int*   )xMalloc(Int,  uiNumPartition);
+    m_apiMVPNum[0]       = new Char[ uiNumPartition ];
+    m_apiMVPNum[1]       = new Char[ uiNumPartition ];
     
     m_pcTrCoeffY         = (TCoeff*)xMalloc(TCoeff, uiWidth*uiHeight);
     m_pcTrCoeffCb        = (TCoeff*)xMalloc(TCoeff, uiWidth*uiHeight/4);
@@ -229,8 +229,8 @@ Void TComDataCU::destroy()
 #endif
     if ( m_apiMVPIdx[0]       ) { delete[] m_apiMVPIdx[0];      m_apiMVPIdx[0]      = NULL; }
     if ( m_apiMVPIdx[1]       ) { delete[] m_apiMVPIdx[1];      m_apiMVPIdx[1]      = NULL; }
-    if ( m_apiMVPNum[0]       ) { xFree(m_apiMVPNum[0]);        m_apiMVPNum[0]      = NULL; }
-    if ( m_apiMVPNum[1]       ) { xFree(m_apiMVPNum[1]);        m_apiMVPNum[1]      = NULL; }
+    if ( m_apiMVPNum[0]       ) { delete[] m_apiMVPNum[0];      m_apiMVPNum[0]      = NULL; }
+    if ( m_apiMVPNum[1]       ) { delete[] m_apiMVPNum[1];      m_apiMVPNum[1]      = NULL; }
     
     m_acCUMvField[0].destroy();
     m_acCUMvField[1].destroy();
@@ -757,7 +757,6 @@ Void TComDataCU::copyPartFrom( TComDataCU* pcCU, UInt uiPartUnitIdx, UInt uiDept
   UInt uiNumPartition = pcCU->getTotalNumPart();
   Int iSizeInUchar  = sizeof( UChar ) * uiNumPartition;
   Int iSizeInUInt   = sizeof( UInt  ) * uiNumPartition;
-  Int iSizeInInt    = sizeof( Int   ) * uiNumPartition;
   Int iSizeInBool   = sizeof( Bool  ) * uiNumPartition;
   
   memcpy( m_phQP       + uiOffset, pcCU->getQP(),             iSizeInUchar                        );
@@ -789,8 +788,8 @@ Void TComDataCU::copyPartFrom( TComDataCU* pcCU, UInt uiPartUnitIdx, UInt uiDept
   
   memcpy( m_apiMVPIdx[0] + uiOffset, pcCU->getMVPIdx(REF_PIC_LIST_0), iSizeInUchar );
   memcpy( m_apiMVPIdx[1] + uiOffset, pcCU->getMVPIdx(REF_PIC_LIST_1), iSizeInUchar );
-  memcpy( m_apiMVPNum[0] + uiOffset, pcCU->getMVPNum(REF_PIC_LIST_0), iSizeInInt );
-  memcpy( m_apiMVPNum[1] + uiOffset, pcCU->getMVPNum(REF_PIC_LIST_1), iSizeInInt );
+  memcpy( m_apiMVPNum[0] + uiOffset, pcCU->getMVPNum(REF_PIC_LIST_0), iSizeInUchar );
+  memcpy( m_apiMVPNum[1] + uiOffset, pcCU->getMVPNum(REF_PIC_LIST_1), iSizeInUchar );
   
 #if E057_INTRA_PCM
   memcpy( m_pbIPCMFlag + uiOffset, pcCU->getIPCMFlag(), iSizeInBool );
@@ -837,7 +836,6 @@ Void TComDataCU::copyToPic( UChar uhDepth )
   
   Int iSizeInUchar  = sizeof( UChar ) * m_uiNumPartition;
   Int iSizeInUInt   = sizeof( UInt  ) * m_uiNumPartition;
-  Int iSizeInInt    = sizeof( Int   ) * m_uiNumPartition;
   Int iSizeInBool   = sizeof( Bool  ) * m_uiNumPartition;
   
   memcpy( rpcCU->getQP() + m_uiAbsIdxInLCU, m_phQP, iSizeInUchar );
@@ -868,8 +866,8 @@ Void TComDataCU::copyToPic( UChar uhDepth )
   
   memcpy( rpcCU->getMVPIdx(REF_PIC_LIST_0) + m_uiAbsIdxInLCU, m_apiMVPIdx[0], iSizeInUchar );
   memcpy( rpcCU->getMVPIdx(REF_PIC_LIST_1) + m_uiAbsIdxInLCU, m_apiMVPIdx[1], iSizeInUchar );
-  memcpy( rpcCU->getMVPNum(REF_PIC_LIST_0) + m_uiAbsIdxInLCU, m_apiMVPNum[0], iSizeInInt );
-  memcpy( rpcCU->getMVPNum(REF_PIC_LIST_1) + m_uiAbsIdxInLCU, m_apiMVPNum[1], iSizeInInt );
+  memcpy( rpcCU->getMVPNum(REF_PIC_LIST_0) + m_uiAbsIdxInLCU, m_apiMVPNum[0], iSizeInUchar );
+  memcpy( rpcCU->getMVPNum(REF_PIC_LIST_1) + m_uiAbsIdxInLCU, m_apiMVPNum[1], iSizeInUchar );
   
   m_acCUMvField[0].copyTo( rpcCU->getCUMvField( REF_PIC_LIST_0 ), m_uiAbsIdxInLCU );
   m_acCUMvField[1].copyTo( rpcCU->getCUMvField( REF_PIC_LIST_1 ), m_uiAbsIdxInLCU );
@@ -910,7 +908,6 @@ Void TComDataCU::copyToPic( UChar uhDepth, UInt uiPartIdx, UInt uiPartDepth )
   
   Int iSizeInUchar  = sizeof( UChar  ) * uiQNumPart;
   Int iSizeInUInt   = sizeof( UInt   ) * uiQNumPart;
-  Int iSizeInInt    = sizeof( Int    ) * uiQNumPart;
   Int iSizeInBool   = sizeof( Bool   ) * uiQNumPart;
   
   memcpy( rpcCU->getQP() + uiPartOffset, m_phQP, iSizeInUchar );
@@ -940,8 +937,8 @@ Void TComDataCU::copyToPic( UChar uhDepth, UInt uiPartIdx, UInt uiPartDepth )
   
   memcpy( rpcCU->getMVPIdx(REF_PIC_LIST_0) + uiPartOffset, m_apiMVPIdx[0], iSizeInUchar );
   memcpy( rpcCU->getMVPIdx(REF_PIC_LIST_1) + uiPartOffset, m_apiMVPIdx[1], iSizeInUchar );
-  memcpy( rpcCU->getMVPNum(REF_PIC_LIST_0) + uiPartOffset, m_apiMVPNum[0], iSizeInInt );
-  memcpy( rpcCU->getMVPNum(REF_PIC_LIST_1) + uiPartOffset, m_apiMVPNum[1], iSizeInInt );
+  memcpy( rpcCU->getMVPNum(REF_PIC_LIST_0) + uiPartOffset, m_apiMVPNum[0], iSizeInUchar );
+  memcpy( rpcCU->getMVPNum(REF_PIC_LIST_1) + uiPartOffset, m_apiMVPNum[1], iSizeInUchar );
   m_acCUMvField[0].copyTo( rpcCU->getCUMvField( REF_PIC_LIST_0 ), m_uiAbsIdxInLCU, uiPartStart, uiQNumPart );
   m_acCUMvField[1].copyTo( rpcCU->getCUMvField( REF_PIC_LIST_1 ), m_uiAbsIdxInLCU, uiPartStart, uiQNumPart );
   
@@ -2047,7 +2044,7 @@ Void TComDataCU::setMVPNumSubParts( Int iMVPNum, RefPicList eRefPicList, UInt ui
 {
   UInt uiCurrPartNumQ = m_pcPic->getNumPartInCU() >> (uiDepth << 1) >> 2;
   UInt i;
-  Int* pi;
+  Char* pi;
   switch ( m_pePartSize[ uiAbsPartIdx ] )
   {
     case SIZE_2Nx2N:
