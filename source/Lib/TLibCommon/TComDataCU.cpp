@@ -1847,7 +1847,7 @@ Void TComDataCU::setCbfSubParts( UInt uiCbf, TextType eTType, UInt uiAbsPartIdx,
  */
 Void TComDataCU::setCbfSubParts ( UInt uiCbf, TextType eTType, UInt uiAbsPartIdx, UInt uiPartIdx, UInt uiDepth )
 {
-  setSubPartUChar( uiCbf, m_puhCbf[g_aucConvertTxtTypeToIdx[eTType]], uiAbsPartIdx, uiDepth, uiPartIdx );
+  setSubPart<UChar>( uiCbf, m_puhCbf[g_aucConvertTxtTypeToIdx[eTType]], uiAbsPartIdx, uiDepth, uiPartIdx );
 }
 #endif
 
@@ -1930,52 +1930,40 @@ Void TComDataCU::setLumaIntraDirSubParts( UInt uiDir, UInt uiAbsPartIdx, UInt ui
   memset( m_puhLumaIntraDir + uiAbsPartIdx, uiDir, sizeof(UChar)*uiCurrPartNumb );
 }
 
-Void TComDataCU::setSubPartUChar( UInt uiParameter, UChar* puhBaseLCU, UInt uiCUAddr, UInt uiCUDepth, UInt uiPUIdx )
+template<typename T>
+Void TComDataCU::setSubPart( T uiParameter, T* puhBaseLCU, UInt uiCUAddr, UInt uiCUDepth, UInt uiPUIdx )
 {
-  UInt uiCurrPartNumQ = (m_pcPic->getNumPartInCU() >> (uiCUDepth << 1)) >> 2;
+  assert( sizeof(T) == 1 ); // Using memset() works only for types of size 1
+  
+  UInt uiCurrPartNumQ = (m_pcPic->getNumPartInCU() >> (2 * uiCUDepth)) >> 2;
   switch ( m_pePartSize[ uiCUAddr ] )
   {
-  case SIZE_2Nx2N:
-    memset( puhBaseLCU + uiCUAddr, uiParameter, sizeof(UChar)*uiCurrPartNumQ << 2 );                      break;
-  case SIZE_2NxN:
-    memset( puhBaseLCU + uiCUAddr, uiParameter, sizeof(UChar)*uiCurrPartNumQ << 1 );                      break;
-  case SIZE_Nx2N:
-    memset( puhBaseLCU + uiCUAddr, uiParameter, sizeof(UChar)*uiCurrPartNumQ );
-    memset( puhBaseLCU + uiCUAddr + ( uiCurrPartNumQ << 1 ), uiParameter, sizeof(UChar)*uiCurrPartNumQ ); break;
-  case SIZE_NxN:
-    memset( puhBaseLCU + uiCUAddr, uiParameter, sizeof(UChar)*uiCurrPartNumQ );                           break;
-  default:
-    assert( 0 );
-  }
-}
-
-Void TComDataCU::setSubPartBool( Bool bParameter, Bool* pbBaseLCU, UInt uiCUAddr, UInt uiCUDepth, UInt uiPUIdx )
-{
-  UInt uiQuaterCUPartNum = (m_pcPic->getNumPartInCU() >> (uiCUDepth << 1)) >> 2;
-  switch ( m_pePartSize[ uiCUAddr ] )
-  {
-  case SIZE_2Nx2N:
-    memset( pbBaseLCU + uiCUAddr, bParameter, sizeof(Bool)*uiQuaterCUPartNum << 2 );                      break;
-  case SIZE_2NxN:
-    memset( pbBaseLCU + uiCUAddr, bParameter, sizeof(Bool)*uiQuaterCUPartNum << 1 );                      break;
-  case SIZE_Nx2N:
-    memset( pbBaseLCU + uiCUAddr, bParameter, sizeof(Bool)*uiQuaterCUPartNum );
-    memset( pbBaseLCU + uiCUAddr + ( uiQuaterCUPartNum << 1 ), bParameter, sizeof(Bool)*uiQuaterCUPartNum ); break;
-  case SIZE_NxN:
-    memset( pbBaseLCU + uiCUAddr, bParameter, sizeof(Bool)*uiQuaterCUPartNum );                           break;
-  default:
-    assert( 0 );
+    case SIZE_2Nx2N:
+      memset( puhBaseLCU + uiCUAddr, uiParameter, 4 * uiCurrPartNumQ );
+      break;
+    case SIZE_2NxN:
+      memset( puhBaseLCU + uiCUAddr, uiParameter, 2 * uiCurrPartNumQ );
+      break;
+    case SIZE_Nx2N:
+      memset( puhBaseLCU + uiCUAddr, uiParameter, uiCurrPartNumQ );
+      memset( puhBaseLCU + uiCUAddr + 2 * uiCurrPartNumQ, uiParameter, uiCurrPartNumQ );
+      break;
+    case SIZE_NxN:
+      memset( puhBaseLCU + uiCUAddr, uiParameter, uiCurrPartNumQ ); 
+      break;
+    default:
+      assert( 0 );
   }
 }
 
 Void TComDataCU::setMergeFlagSubParts ( Bool bMergeFlag, UInt uiAbsPartIdx, UInt uiPartIdx, UInt uiDepth )
 {
-  setSubPartBool( bMergeFlag, m_pbMergeFlag, uiAbsPartIdx, uiDepth, uiPartIdx );
+  setSubPart( bMergeFlag, m_pbMergeFlag, uiAbsPartIdx, uiDepth, uiPartIdx );
 }
 
 Void TComDataCU::setMergeIndexSubParts ( UInt uiMergeIndex, UInt uiAbsPartIdx, UInt uiPartIdx, UInt uiDepth )
 {
-  setSubPartUChar( uiMergeIndex, m_puhMergeIndex, uiAbsPartIdx, uiDepth, uiPartIdx );
+  setSubPart<UChar>( uiMergeIndex, m_puhMergeIndex, uiAbsPartIdx, uiDepth, uiPartIdx );
 }
 
 Void TComDataCU::setChromIntraDirSubParts( UInt uiDir, UInt uiAbsPartIdx, UInt uiDepth )
@@ -1987,110 +1975,17 @@ Void TComDataCU::setChromIntraDirSubParts( UInt uiDir, UInt uiAbsPartIdx, UInt u
 
 Void TComDataCU::setInterDirSubParts( UInt uiDir, UInt uiAbsPartIdx, UInt uiPartIdx, UInt uiDepth )
 {
-  setSubPartUChar( uiDir, m_puhInterDir, uiAbsPartIdx, uiDepth, uiPartIdx );
+  setSubPart<UChar>( uiDir, m_puhInterDir, uiAbsPartIdx, uiDepth, uiPartIdx );
 }
 
 Void TComDataCU::setMVPIdxSubParts( Int iMVPIdx, RefPicList eRefPicList, UInt uiAbsPartIdx, UInt uiPartIdx, UInt uiDepth )
 {
-  UInt uiCurrPartNumQ = m_pcPic->getNumPartInCU() >> (uiDepth << 1) >> 2;
-  UInt i;
-  Char* pi;
-  switch ( m_pePartSize[ uiAbsPartIdx ] )
-  {
-    case SIZE_2Nx2N:
-    {
-      pi = m_apiMVPIdx[eRefPicList] + uiAbsPartIdx;
-      for (i = 0; i < (uiCurrPartNumQ << 2); i++)
-      {
-        pi[i] = iMVPIdx;
-      }
-    }
-      break;
-    case SIZE_2NxN:
-    {
-      pi = m_apiMVPIdx[eRefPicList] + uiAbsPartIdx;
-      for (i = 0; i < (uiCurrPartNumQ << 1); i++)
-      {
-        pi[i] = iMVPIdx;
-      }
-    }
-      break;
-    case SIZE_Nx2N:
-    {
-      Char* pi2 = m_apiMVPIdx[eRefPicList] + uiAbsPartIdx + ( uiCurrPartNumQ << 1 );
-      pi = m_apiMVPIdx[eRefPicList] + uiAbsPartIdx;
-      for (i = 0; i < uiCurrPartNumQ; i++)
-      {
-        pi [i] = iMVPIdx;
-        pi2[i] = iMVPIdx;
-      }
-      break;
-    }
-    case SIZE_NxN:
-    {
-      pi = m_apiMVPIdx[eRefPicList] + uiAbsPartIdx;
-      for (i = 0; i < uiCurrPartNumQ; i++)
-      {
-        pi[i] = iMVPIdx;
-      }
-      break;
-    }
-    default:
-      assert( 0 );
-  }
+  setSubPart<Char>( iMVPIdx, m_apiMVPIdx[eRefPicList], uiAbsPartIdx, uiDepth, uiPartIdx );
 }
 
 Void TComDataCU::setMVPNumSubParts( Int iMVPNum, RefPicList eRefPicList, UInt uiAbsPartIdx, UInt uiPartIdx, UInt uiDepth )
 {
-  UInt uiCurrPartNumQ = m_pcPic->getNumPartInCU() >> (uiDepth << 1) >> 2;
-  UInt i;
-  Char* pi;
-  switch ( m_pePartSize[ uiAbsPartIdx ] )
-  {
-    case SIZE_2Nx2N:
-    {
-      pi = m_apiMVPNum[eRefPicList] + uiAbsPartIdx;
-      for (i = 0; i < (uiCurrPartNumQ << 2); i++)
-      {
-        pi[i] = iMVPNum;
-      }
-    }
-      break;
-    case SIZE_2NxN:
-    {
-      pi = m_apiMVPNum[eRefPicList] + uiAbsPartIdx;
-      for (i = 0; i < (uiCurrPartNumQ << 1); i++)
-      {
-        pi[i] = iMVPNum;
-      }
-    }
-      break;
-    case SIZE_Nx2N:
-    {
-      pi = m_apiMVPNum[eRefPicList] + uiAbsPartIdx;
-      for (i = 0; i < uiCurrPartNumQ; i++)
-      {
-        pi[i] = iMVPNum;
-      }
-      pi = m_apiMVPNum[eRefPicList] + uiAbsPartIdx + ( uiCurrPartNumQ << 1 );
-      for (i = 0; i < uiCurrPartNumQ; i++)
-      {
-        pi[i] = iMVPNum;
-      }
-    }
-      break;
-    case SIZE_NxN:
-    {
-      pi = m_apiMVPNum[eRefPicList] + uiAbsPartIdx;
-      for (i = 0; i < uiCurrPartNumQ; i++)
-      {
-        pi[i] = iMVPNum;
-      }
-    }
-      break;
-    default:
-      assert( 0 );
-  }
+  setSubPart<Char>( iMVPNum, m_apiMVPNum[eRefPicList], uiAbsPartIdx, uiDepth, uiPartIdx );
 }
 
 
@@ -3011,7 +2906,7 @@ Void TComDataCU::xCheckCornerCand( TComDataCU* pcCorner, UInt uiCornerPUIdx, UIn
 
 Void TComDataCU::setNeighbourCandIdxSubParts( UInt uiCandIdx, UChar uhNumCands, UInt uiAbsPartIdx, UInt uiPUIdx, UInt uiDepth )
 {
-  setSubPartUChar( uhNumCands, m_apuhNeighbourCandIdx[uiCandIdx], uiAbsPartIdx, uiDepth, uiPUIdx );
+  setSubPart<UChar>( uhNumCands, m_apuhNeighbourCandIdx[uiCandIdx], uiAbsPartIdx, uiDepth, uiPUIdx );
 }
 
 AMVP_MODE TComDataCU::getAMVPMode(UInt uiIdx)

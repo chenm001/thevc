@@ -315,8 +315,8 @@ public:
   Void          setNeighbourCandIdx         ( UInt uiCandIdx, UInt uiIdx, UChar uhNeighCands ) { m_apuhNeighbourCandIdx[uiCandIdx][uiIdx] = uhNeighCands;}
   Void          setNeighbourCandIdxSubParts ( UInt uiCandIdx, UChar uhNumCands, UInt uiAbsPartIdx, UInt uiPartIdx, UInt uiDepth );
 
-  Void          setSubPartBool        ( Bool bParameter, Bool* pbBaseLCU, UInt uiCUAddr, UInt uiCUDepth, UInt uiPUIdx );
-  Void          setSubPartUChar       ( UInt bParameter, UChar* pbBaseLCU, UInt uiCUAddr, UInt uiCUDepth, UInt uiPUIdx );
+  template <typename T>
+  Void          setSubPart            ( T bParameter, T* pbBaseLCU, UInt uiCUAddr, UInt uiCUDepth, UInt uiPUIdx );
 
   UChar*        getLumaIntraDir       ()                        { return m_puhLumaIntraDir;           }
   UChar         getLumaIntraDir       ( UInt uiIdx )            { return m_puhLumaIntraDir[uiIdx];    }
