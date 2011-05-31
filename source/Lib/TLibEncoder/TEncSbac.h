@@ -81,6 +81,7 @@ public:
   UInt  getCoeffCost           ()                { return  m_uiCoeffCost;  }
   
   Void  load                   ( TEncSbac* pScr  );
+  Void  loadIntraDirModeLuma   ( TEncSbac* pScr  );
   Void  store                  ( TEncSbac* pDest );
   Void  resetBits              ()                { m_pcBinIf->resetBits(); m_pcBitIf->resetBits(); }
   UInt  getNumberOfWrittenBits ()                { return m_pcBinIf->getNumWrittenBits(); }

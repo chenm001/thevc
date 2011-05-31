@@ -339,10 +339,21 @@ Void TEncSbac::xWriteExGolombLevel( UInt uiSymbol, ContextModel& rcSCModel  )
 #endif
 
 // SBAC RD
-Void  TEncSbac::load ( TEncSbac* pScr)
+Void  TEncSbac::load ( TEncSbac* pSrc)
 {
-  this->xCopyFrom(pScr);
+  this->xCopyFrom(pSrc);
 }
+
+Void  TEncSbac::loadIntraDirModeLuma( TEncSbac* pSrc)
+{
+  m_pcBinIf->copyState( pSrc->m_pcBinIf );
+  
+  this->m_cCUIntraPredSCModel      .copyFrom( &pSrc->m_cCUIntraPredSCModel       );
+#if ADD_PLANAR_MODE
+  this->m_cPlanarFlagSCModel       .copyFrom( &pSrc->m_cPlanarFlagSCModel        );
+#endif
+}
+
 
 Void  TEncSbac::store( TEncSbac* pDest)
 {
