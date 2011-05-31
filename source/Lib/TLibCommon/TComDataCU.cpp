@@ -3553,36 +3553,35 @@ Bool TComDataCU::xAddMVPCand( AMVPInfo* pInfo, RefPicList eRefPicList, Int iRefI
   return false;
 }
 
+/**
+ * Reduce list of motion vector predictors to a set of unique predictors
+ * \param pInfo list of motion vector predictors
+ */
 Void TComDataCU::xUniqueMVPCand(AMVPInfo* pInfo)
 {
+  Int n = 1;
   if ( pInfo->iN == 0 )
   {
-    pInfo->m_acMvCand[ pInfo->iN++ ].setZero();
-    return;
+    // Add a zero candidate is none is available
+    pInfo->m_acMvCand[ 0 ].setZero();
   }
-  
-  TComMv  acMv[ AMVP_MAX_NUM_CANDS ];
-  Int iNTmp, i, j;
-  
-  // make it be unique
-  iNTmp = 0;
-  acMv[ iNTmp++ ] = pInfo->m_acMvCand[0];
-  for ( i=1; i<pInfo->iN; i++ )
+  else
   {
-    // BugFix for 1603
-    for ( j=iNTmp - 1; j>=0; j-- )
+    for (Int i = 1; i < pInfo->iN; i++)
     {
-      if ( pInfo->m_acMvCand[i] == acMv[j] ) break;
-    }
-    if ( j<0 )
-    {
-      acMv[ iNTmp++ ] = pInfo->m_acMvCand[i];
+      Int j;
+      for (j = n - 1; j >= 0; j--)
+      {
+        if ( pInfo->m_acMvCand[ i ] == pInfo->m_acMvCand[ j ] )
+          break;
+      }
+      if ( j < 0 )
+      {
+        pInfo->m_acMvCand[ n++ ] = pInfo->m_acMvCand[ i ];
+      }
     }
   }
-  for ( i=0; i<iNTmp; i++ ) pInfo->m_acMvCand[i] = acMv[i];
-  pInfo->iN = iNTmp;
-  
-  return ;
+  pInfo->iN = n;
 }
 
 #if MTK_AMVP_SMVP_DERIVATION
