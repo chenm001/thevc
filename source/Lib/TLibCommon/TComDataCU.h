@@ -80,6 +80,7 @@ private:
   UChar*        m_puhWidth;           ///< array of widths
   UChar*        m_puhHeight;          ///< array of heights
   UChar*        m_puhDepth;           ///< array of depths
+  Int           m_unitSize;           ///< size of a "minimum partition"
   
   // -------------------------------------------------------------------------------------------------------------------
   // CU data
@@ -188,7 +189,7 @@ public:
   // create / destroy / initialize / copy
   // -------------------------------------------------------------------------------------------------------------------
   
-  Void          create                ( UInt uiNumPartition, UInt uiWidth, UInt uiHeight, Bool bDecSubCu );
+  Void          create                ( UInt uiNumPartition, UInt uiWidth, UInt uiHeight, Bool bDecSubCu, Int unitSize );
   Void          destroy               ();
   
   Void          initCU                ( TComPic* pcPic, UInt uiCUAddr );

@@ -158,7 +158,7 @@ public:
   Void    setAllMvField     ( TComMv& rcMv, Int iRefIdx, PartSize eMbMode, Int iPartAddr, Int iPartIdx, UInt uiDepth );
   
 #if AMVP_BUFFERCOMPRESS
-  Void    compress          (PredMode* pePredMode); 
+  Void    compress          (PredMode* pePredMode, Int scale); 
 #endif 
   
 };

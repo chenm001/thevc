@@ -283,9 +283,11 @@ Void TComCUMvField::setAllMvField ( TComMv& rcMv, Int iRefIdx, PartSize eCUMode,
  * \param pePredMode
  * \returns Void
  */
-Void TComCUMvField::compress(PredMode* pePredMode)
+Void TComCUMvField::compress(PredMode* pePredMode, Int scale)
 {
-  Int N = AMVP_DECIMATION_FACTOR;
+  Int N = scale;
+  assert( N * N <= m_uiNumPartition);
+  
   for ( Int uiPartIdx = 0; uiPartIdx <m_uiNumPartition; uiPartIdx+=(N*N) )
   {
     Int  jj = uiPartIdx+N*N;

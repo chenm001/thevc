@@ -108,13 +108,14 @@ TComDataCU::~TComDataCU()
 {
 }
 
-Void TComDataCU::create(UInt uiNumPartition, UInt uiWidth, UInt uiHeight, Bool bDecSubCu)
+Void TComDataCU::create(UInt uiNumPartition, UInt uiWidth, UInt uiHeight, Bool bDecSubCu, Int unitSize)
 {
   m_bDecSubCu = bDecSubCu;
   
   m_pcPic              = NULL;
   m_pcSlice            = NULL;
   m_uiNumPartition     = uiNumPartition;
+  m_unitSize = unitSize;
   
   if ( !bDecSubCu )
   {
@@ -3933,8 +3934,12 @@ Bool TComDataCU::xGetCenterCol( UInt uiPartIdx, RefPicList eRefPicList, int iRef
 #if AMVP_BUFFERCOMPRESS
 Void TComDataCU::compressMV()
 {
-  m_acCUMvField[0].compress(m_pePredMode);
-  m_acCUMvField[1].compress(m_pePredMode);
+  Int scaleFactor = 4 * AMVP_DECIMATION_FACTOR / m_unitSize;
+  if (scaleFactor > 1)
+  {
+    m_acCUMvField[0].compress(m_pePredMode, scaleFactor);
+    m_acCUMvField[1].compress(m_pePredMode, scaleFactor);    
+  }
 }
 #endif 
 
