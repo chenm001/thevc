@@ -234,6 +234,10 @@ Void TEncCavlc::codePPS( TComPPS* pcPPS )
   xWriteFlag( pcPPS->getConstrainedIntraPred() ? 1 : 0 );
 #endif
 
+#if FINE_GRANULARITY_SLICES
+  xWriteCode ( pcPPS->getSliceGranularity(), 2);
+#endif
+
   xWriteUvlc( pcPPS->getNumTLayerSwitchingFlags() );          // num_temporal_layer_switching_point_flags
   for( UInt i = 0; i < pcPPS->getNumTLayerSwitchingFlags(); i++ ) 
   {
@@ -344,11 +348,61 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
   }
   if (pcSlice->isNextSlice())
   {
-    xWriteUvlc(pcSlice->getSliceCurStartCUAddr());        // start CU addr for slice
+#if !FINE_GRANULARITY_SLICES
+    xWriteUvlc(pcSlice->getSliceCurStartCUAddr());        // Start CU addr for slice
+#else
+    int iMaxAddrOuter = pcSlice->getPic()->getNumCUsInFrame();
+    int iReqBitsOuter = 0;
+    while(iMaxAddrOuter>(1<<iReqBitsOuter)) 
+    {
+      iReqBitsOuter++;
+    }
+    int iMaxAddrInner = pcSlice->getPic()->getNumPartInCU()>>(2);
+    iMaxAddrInner = (1<<(pcSlice->getPPS()->getSliceGranularity()<<1));
+    int iReqBitsInner = 0;
+    while(iMaxAddrInner>(1<<iReqBitsInner))
+    {
+      iReqBitsInner++;
+    }
+    // Write slice address
+    int iLCUAddress = (pcSlice->getSliceCurStartCUAddr()/pcSlice->getPic()->getNumPartInCU());
+    int iInnerAddress = (pcSlice->getSliceCurStartCUAddr()%(pcSlice->getPic()->getNumPartInCU()))>>((pcSlice->getSPS()->getMaxCUDepth()-pcSlice->getPPS()->getSliceGranularity())<<1);
+    int iAddress    = (iLCUAddress << iReqBitsInner) + iInnerAddress;
+    xWriteFlag(iAddress==0);
+    if(iAddress>0) 
+    {
+      xWriteCode(iAddress, iReqBitsOuter+iReqBitsInner);
+    }
+#endif
   }
   else
   {
-    xWriteUvlc(pcSlice->getEntropySliceCurStartCUAddr()); // start CU addr for entropy slice
+#if !FINE_GRANULARITY_SLICES
+    xWriteUvlc(pcSlice->getEntropySliceCurStartCUAddr()); // Start CU addr for entropy slice
+#else
+    int iMaxAddrOuter = pcSlice->getPic()->getNumCUsInFrame();
+    int iReqBitsOuter = 0;
+    while(iMaxAddrOuter>(1<<iReqBitsOuter)) 
+    {
+      iReqBitsOuter++;
+    }
+    int iMaxAddrInner = pcSlice->getPic()->getNumPartInCU()>>(2);
+    iMaxAddrInner = (1<<(pcSlice->getPPS()->getSliceGranularity()<<1));
+    int iReqBitsInner = 0;
+    while(iMaxAddrInner>(1<<iReqBitsInner))
+    {
+      iReqBitsInner++;
+    }
+    // Write slice address
+    int iLCUAddress = (pcSlice->getEntropySliceCurStartCUAddr()/pcSlice->getPic()->getNumPartInCU());
+    int iInnerAddress = (pcSlice->getEntropySliceCurStartCUAddr()%(pcSlice->getPic()->getNumPartInCU()))>>((pcSlice->getSPS()->getMaxCUDepth()-pcSlice->getPPS()->getSliceGranularity())<<1);
+    int iAddress    = (iLCUAddress << iReqBitsInner) + iInnerAddress;
+    xWriteFlag(iAddress==0);
+    if(iAddress>0) 
+    {
+      xWriteCode(iAddress, iReqBitsOuter+iReqBitsInner);
+    }
+#endif
   }
   if (!bEntropySlice)
   {  

@@ -149,8 +149,13 @@ private:
   Double        m_dTotalCost;         ///< sum of partition RD costs
   UInt          m_uiTotalDistortion;  ///< sum of partition distortion
   UInt          m_uiTotalBits;        ///< sum of partition bits
+#if FINE_GRANULARITY_SLICES
+  UInt*         m_uiSliceStartCU;    ///< Start CU address of current slice
+  UInt*         m_uiEntropySliceStartCU; ///< Start CU address of current slice
+#else
   UInt          m_uiSliceStartCU;    ///< Start CU address of current slice
   UInt          m_uiEntropySliceStartCU; ///< Start CU address of current slice
+#endif
   
 protected:
   
@@ -215,6 +220,9 @@ public:
   TComSlice*    getSlice              ()                        { return m_pcSlice;         }
   UInt&         getAddr               ()                        { return m_uiCUAddr;        }
   UInt&         getZorderIdxInCU      ()                        { return m_uiAbsIdxInLCU; }
+#if FINE_GRANULARITY_SLICES
+  UInt          getSCUAddr            ()                        { return m_uiCUAddr*(1<<(m_pcSlice->getSPS()->getMaxCUDepth()<<1))+m_uiAbsIdxInLCU;}
+#endif
   UInt          getCUPelX             ()                        { return m_uiCUPelX;        }
   UInt          getCUPelY             ()                        { return m_uiCUPelY;        }
   TComPattern*  getPattern            ()                        { return m_pcPattern;       }
@@ -478,11 +486,17 @@ public:
   UInt          getCtxIntraDirChroma            ( UInt   uiAbsPartIdx                                 );
   UInt          getCtxMergeFlag                 ( UInt uiAbsPartIdx                                   );
   
+#if FINE_GRANULARITY_SLICES
+  Void          setSliceStartCU         ( UInt *uiStartCU )           { for(int i=0; i<(1<<(m_pcSlice->getSPS()->getMaxCUDepth()<<1)); i++) { m_uiSliceStartCU[i]=uiStartCU[i];}               }  
+  UInt          getSliceStartCU         ( UInt pos )                  { return m_uiSliceStartCU[pos];                                                                                          }
+  Void          setEntropySliceStartCU  ( UInt *uiEntropyStartCU )    { for(int i=0; i<(1<<(m_pcSlice->getSPS()->getMaxCUDepth()<<1)); i++) { m_uiEntropySliceStartCU[i]=uiEntropyStartCU[i];} }  
+  UInt          getEntropySliceStartCU  ( UInt pos )                  { return m_uiEntropySliceStartCU[pos];                                                                                   }
+#else
   Void          setSliceStartCU  ( UInt uiStartCU )    { m_uiSliceStartCU = uiStartCU;    }  
   UInt          getSliceStartCU  ()                    { return m_uiSliceStartCU;         }
   Void          setEntropySliceStartCU ( UInt uiStartCU ) { m_uiEntropySliceStartCU = uiStartCU;     }  
   UInt          getEntropySliceStartCU ()                 { return m_uiEntropySliceStartCU;          }
-
+#endif
   // -------------------------------------------------------------------------------------------------------------------
   // member functions for RD cost storage
   // -------------------------------------------------------------------------------------------------------------------

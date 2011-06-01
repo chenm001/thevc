@@ -324,7 +324,7 @@ Void TEncCu::encodeCU ( TComDataCU* pcCU, Bool bForceTerminate )
     pcCU->setdQPFlag(true); 
   }
 #endif//SNY_DQP
-  // encode CU data
+  // Encode CU data
   xEncodeCU( pcCU, 0, 0 );
   
 #if SNY_DQP
@@ -358,6 +358,7 @@ Void TEncCu::encodeCU ( TComDataCU* pcCU, Bool bForceTerminate )
   }
 #endif//SNY_DQP
   
+#if !FINE_GRANULARITY_SLICES
   //--- write terminating bit ---
   Bool bTerminateSlice = bForceTerminate;
   UInt uiCUAddr = pcCU->getAddr();
@@ -375,6 +376,7 @@ Void TEncCu::encodeCU ( TComDataCU* pcCU, Bool bForceTerminate )
   {
     m_pcEntropyCoder->encodeSliceFinish();
   }
+#endif
 }
 
 // ====================================================================================================================
@@ -408,7 +410,17 @@ Void TEncCu::xCompressCU( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, UInt u
   UInt uiTPelY   = rpcBestCU->getCUPelY();
   UInt uiBPelY   = uiTPelY + rpcBestCU->getHeight(0) - 1;
   
+#if FINE_GRANULARITY_SLICES
+  // If slice start or slice end is within this cu...
+  TComSlice * pcSlice = rpcTempCU->getPic()->getSlice(rpcTempCU->getPic()->getCurrSliceIdx());
+  Bool bSliceStart = pcSlice->getEntropySliceCurStartCUAddr()>rpcTempCU->getSCUAddr()&&pcSlice->getEntropySliceCurStartCUAddr()<rpcTempCU->getSCUAddr()+rpcTempCU->getTotalNumPart();
+  Bool bSliceEnd = (pcSlice->getEntropySliceCurEndCUAddr()>rpcTempCU->getSCUAddr()&&pcSlice->getEntropySliceCurEndCUAddr()<rpcTempCU->getSCUAddr()+rpcTempCU->getTotalNumPart());
+  Bool bInsidePicture = ( uiRPelX < rpcBestCU->getSlice()->getSPS()->getWidth() ) && ( uiBPelY < rpcBestCU->getSlice()->getSPS()->getHeight() );
+  // We need to split, so don't try these modes.
+  if(!bSliceEnd && !bSliceStart && bInsidePicture )
+#else
   if( ( uiRPelX < rpcBestCU->getSlice()->getSPS()->getWidth() ) && ( uiBPelY < rpcBestCU->getSlice()->getSPS()->getHeight() ) )
+#endif
   {
     // do inter modes
     if( rpcBestCU->getSlice()->getSliceType() != I_SLICE )
@@ -521,7 +533,11 @@ Void TEncCu::xCompressCU( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, UInt u
       }
     }
   }
+#if FINE_GRANULARITY_SLICES
+  else if(!(bSliceEnd && bInsidePicture))
+#else
   else
+#endif
   {
     bBoundary = true;
   }
@@ -538,7 +554,12 @@ Void TEncCu::xCompressCU( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, UInt u
       pcSubBestPartCU->initSubCU( rpcBestCU, uiPartUnitIdx, uhNextDepth );           // clear sub partition datas or init.
       pcSubTempPartCU->initSubCU( rpcBestCU, uiPartUnitIdx, uhNextDepth );           // clear sub partition datas or init.
       
+#if FINE_GRANULARITY_SLICES
+      Bool bInSlice = pcSubBestPartCU->getSCUAddr()+pcSubBestPartCU->getTotalNumPart()>pcSlice->getEntropySliceCurStartCUAddr()&&pcSubBestPartCU->getSCUAddr()<pcSlice->getEntropySliceCurEndCUAddr();
+      if(bInSlice && ( pcSubBestPartCU->getCUPelX() < pcSlice->getSPS()->getWidth() ) && ( pcSubBestPartCU->getCUPelY() < pcSlice->getSPS()->getHeight() ) )
+#else
       if( ( pcSubBestPartCU->getCUPelX() < pcSubBestPartCU->getSlice()->getSPS()->getWidth() ) && ( pcSubBestPartCU->getCUPelY() < pcSubBestPartCU->getSlice()->getSPS()->getHeight() ) )
+#endif
       {
         if( m_bUseSBACRD )
         {
@@ -577,8 +598,11 @@ Void TEncCu::xCompressCU( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, UInt u
   }                                                                                  // with sub partitioned prediction.
   
   rpcBestCU->copyToPic(uiDepth);                                                     // Copy Best data to Picture for next partition prediction.
-  
+#if FINE_GRANULARITY_SLICES
+  if( bBoundary ||(bSliceEnd && bInsidePicture))
+#else
   if( bBoundary )
+#endif
     return;
   
   xCopyYuv2Pic( rpcBestCU->getPic(), rpcBestCU->getAddr(), rpcBestCU->getZorderIdxInCU(), uiDepth );   // Copy Yuv data to picture Yuv
@@ -907,6 +931,85 @@ Void TEncCu::xCompressCUDQP( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, UIn
 }
 #endif
 
+#if FINE_GRANULARITY_SLICES
+/** finish encoding a cu and handle end-of-slice conditions
+ * \param pcCU
+ * \param uiAbsPartIdx
+ * \param uiDepth 
+ * \returns Void
+ */
+Void TEncCu::finishCU( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
+{
+  TComPic* pcPic = pcCU->getPic();
+  TComSlice * pcSlice = pcCU->getPic()->getSlice(pcCU->getPic()->getCurrSliceIdx());
+
+  //Calculate end address
+  UInt uiCUAddr = pcCU->getSCUAddr()+uiAbsPartIdx;
+
+  UInt uiInternalAddress = (pcSlice->getEntropySliceCurEndCUAddr()-1) % pcCU->getPic()->getNumPartInCU();
+  UInt uiExternalAddress = (pcSlice->getEntropySliceCurEndCUAddr()-1) / pcCU->getPic()->getNumPartInCU();
+  UInt uiPosX = ( uiExternalAddress % pcPic->getFrameWidthInCU() ) * g_uiMaxCUWidth+ g_auiRasterToPelX[ g_auiZscanToRaster[uiInternalAddress] ];
+  UInt uiPosY = ( uiExternalAddress / pcPic->getFrameWidthInCU() ) * g_uiMaxCUHeight+ g_auiRasterToPelY[ g_auiZscanToRaster[uiInternalAddress] ];
+  UInt uiWidth = pcSlice->getSPS()->getWidth();
+  UInt uiHeight = pcSlice->getSPS()->getHeight();
+  while(uiPosX>=uiWidth||uiPosY>=uiHeight)
+  {
+    uiInternalAddress--;
+    uiPosX = ( uiExternalAddress % pcPic->getFrameWidthInCU() ) * g_uiMaxCUWidth+ g_auiRasterToPelX[ g_auiZscanToRaster[uiInternalAddress] ];
+    uiPosY = ( uiExternalAddress / pcPic->getFrameWidthInCU() ) * g_uiMaxCUHeight+ g_auiRasterToPelY[ g_auiZscanToRaster[uiInternalAddress] ];
+  }
+  uiInternalAddress++;
+  if(uiInternalAddress==pcCU->getPic()->getNumPartInCU())
+  {
+    uiInternalAddress = 0;
+    uiExternalAddress++;
+  }
+  UInt uiRealEndAddress = uiExternalAddress*pcCU->getPic()->getNumPartInCU()+uiInternalAddress;
+
+  // Encode slice finish
+  Bool bTerminateSlice = false;
+  if (uiCUAddr+(pcCU->getPic()->getNumPartInCU()>>(uiDepth<<1)) == uiRealEndAddress)
+  {
+    bTerminateSlice = true;
+  }
+  m_pcEntropyCoder->encodeTerminatingBit( bTerminateSlice ? 1 : 0 );
+  if ( bTerminateSlice )
+  {
+    m_pcEntropyCoder->encodeSliceFinish();
+  }
+  // Calculate slice end IF this CU puts us over slice bit size.
+  unsigned iGranularitySize = pcCU->getPic()->getNumPartInCU()>>(pcSlice->getPPS()->getSliceGranularity()<<1);
+  int iGranularityEnd = ((pcCU->getSCUAddr()+uiAbsPartIdx)/iGranularitySize)*iGranularitySize;
+  if(iGranularityEnd<=pcSlice->getEntropySliceCurStartCUAddr()) 
+  {
+    iGranularityEnd+=max(iGranularitySize,(pcCU->getPic()->getNumPartInCU()>>(uiDepth<<1)));
+  }
+  // Set slice end parameter
+  if(pcSlice->getSliceMode()==AD_HOC_SLICES_FIXED_NUMBER_OF_BYTES_IN_SLICE&&pcSlice->getSliceBits()<1<<30&&pcSlice->getSliceBits()+m_pcBitCounter->getNumberOfWrittenBits()>pcSlice->getSliceArgument()<<3) 
+  {
+    pcSlice->setEntropySliceCurEndCUAddr(iGranularityEnd);
+    pcSlice->setSliceCurEndCUAddr(iGranularityEnd);
+    return;
+  }
+  // Set entropy slice end parameter
+  if(m_pcEncCfg->getUseSBACRD()) 
+  {
+    TEncBinCABAC *pppcRDSbacCoder = (TEncBinCABAC *) m_pppcRDSbacCoder[0][CI_CURR_BEST]->getEncBinIf();
+    UInt uiBinsCoded = pppcRDSbacCoder->getBinsCoded();
+    if(pcSlice->getEntropySliceMode()==SHARP_MULTIPLE_CONSTRAINT_BASED_ENTROPY_SLICE&&pcSlice->getSliceBits()<1<<30&&pcSlice->getEntropySliceCounter()+uiBinsCoded>pcSlice->getEntropySliceArgument())
+    {
+      pcSlice->setEntropySliceCurEndCUAddr(iGranularityEnd);
+    }
+  }
+  else
+  {
+    if(pcSlice->getEntropySliceMode()==SHARP_MULTIPLE_CONSTRAINT_BASED_ENTROPY_SLICE&&pcSlice->getSliceBits()<1<<30&&pcSlice->getEntropySliceCounter()+m_pcBitCounter->getNumberOfWrittenBits()>pcSlice->getEntropySliceArgument()) 
+    {
+      pcSlice->setEntropySliceCurEndCUAddr(iGranularityEnd);
+    }
+  }
+}
+#endif
 /** encode a CU block recursively
  * \param pcCU
  * \param uiAbsPartIdx
@@ -923,7 +1026,15 @@ Void TEncCu::xEncodeCU( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
   UInt uiTPelY   = pcCU->getCUPelY() + g_auiRasterToPelY[ g_auiZscanToRaster[uiAbsPartIdx] ];
   UInt uiBPelY   = uiTPelY + (g_uiMaxCUHeight>>uiDepth) - 1;
   
+#if FINE_GRANULARITY_SLICES
+  TComSlice * pcSlice = pcCU->getPic()->getSlice(pcCU->getPic()->getCurrSliceIdx());
+  // If slice start is within this cu...
+  Bool bSliceStart = pcSlice->getEntropySliceCurStartCUAddr()>pcCU->getAddr()*pcCU->getPic()->getNumPartInCU()+uiAbsPartIdx&&pcSlice->getEntropySliceCurStartCUAddr()<pcCU->getAddr()*pcCU->getPic()->getNumPartInCU()+uiAbsPartIdx+( pcPic->getNumPartInCU() >> (uiDepth<<1) );
+  // We need to split, so don't try these modes.
+  if(!bSliceStart&&( uiRPelX < pcSlice->getSPS()->getWidth() ) && ( uiBPelY < pcSlice->getSPS()->getHeight() ) )
+#else
   if( ( uiRPelX < pcCU->getSlice()->getSPS()->getWidth() ) && ( uiBPelY < pcCU->getSlice()->getSPS()->getHeight() ) )
+#endif
   {
     m_pcEntropyCoder->encodeSplitFlag( pcCU, uiAbsPartIdx, uiDepth );
   }
@@ -945,9 +1056,15 @@ Void TEncCu::xEncodeCU( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
     {
       uiLPelX   = pcCU->getCUPelX() + g_auiRasterToPelX[ g_auiZscanToRaster[uiAbsPartIdx] ];
       uiTPelY   = pcCU->getCUPelY() + g_auiRasterToPelY[ g_auiZscanToRaster[uiAbsPartIdx] ];
-      
+#if FINE_GRANULARITY_SLICES
+      Bool bInSlice = pcCU->getSCUAddr()+uiAbsPartIdx+uiQNumParts>pcSlice->getEntropySliceCurStartCUAddr()&&pcCU->getSCUAddr()+uiAbsPartIdx<pcSlice->getEntropySliceCurEndCUAddr();
+      if(bInSlice&&( uiLPelX < pcSlice->getSPS()->getWidth() ) && ( uiTPelY < pcSlice->getSPS()->getHeight() ) )
+#else
       if( ( uiLPelX < pcCU->getSlice()->getSPS()->getWidth() ) && ( uiTPelY < pcCU->getSlice()->getSPS()->getHeight() ) )
+#endif
+      {
         xEncodeCU( pcCU, uiAbsPartIdx, uiDepth+1 );
+      }
     }
 #if SUB_LCU_DQP
     if( (g_uiMaxCUWidth>>uiDepth) == pcCU->getSlice()->getPPS()->getMinCuDQPSize() && pcCU->getSlice()->getSPS()->getUseDQP())
@@ -974,7 +1091,6 @@ Void TEncCu::xEncodeCU( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
     pcCU->setdQPFlag(true); 
   }
 #endif
-
   if( !pcCU->getSlice()->isIntra() )
   {
     m_pcEntropyCoder->encodeSkipFlag( pcCU, uiAbsPartIdx );
@@ -1005,6 +1121,9 @@ Void TEncCu::xEncodeCU( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
       pcCU->setLastCodedQP( pcCU->getRefQP( uiAbsPartIdx ));
     }
 #endif
+#if FINE_GRANULARITY_SLICES
+    finishCU(pcCU,uiAbsPartIdx,uiDepth);
+#endif
     return;
   }
   m_pcEntropyCoder->encodePredMode( pcCU, uiAbsPartIdx );
@@ -1018,6 +1137,10 @@ Void TEncCu::xEncodeCU( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
 
     if(pcCU->getIPCMFlag(uiAbsPartIdx))
     {
+#if FINE_GRANULARITY_SLICES
+      // Encode slice finish
+      finishCU(pcCU,uiAbsPartIdx,uiDepth);
+#endif
       return;
     }
   }
@@ -1038,6 +1161,10 @@ Void TEncCu::xEncodeCU( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
       pcCU->setLastCodedQP( pcCU->getRefQP( uiAbsPartIdx ));
     }
   }
+#endif
+  // --- write terminating bit ---
+#if FINE_GRANULARITY_SLICES
+  finishCU(pcCU,uiAbsPartIdx,uiDepth);
 #endif
 }
 
@@ -1368,7 +1495,11 @@ Void TEncCu::xCheckIntraPCM( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU )
 // check whether current try is the best
 Void TEncCu::xCheckBestMode( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU )
 {
+#if FINE_GRANULARITY_SLICES
+  if( rpcTempCU->getTotalCost() < rpcBestCU->getTotalCost()||(rpcBestCU->getSlice()->getSliceMode()==AD_HOC_SLICES_FIXED_NUMBER_OF_BYTES_IN_SLICE&&(rpcBestCU->getTotalBits())>rpcBestCU->getSlice()->getSliceArgument()<<3))
+#else
   if( rpcTempCU->getTotalCost() < rpcBestCU->getTotalCost() )
+#endif
   {
     TComYuv* pcYuv;
     UChar uhDepth = rpcBestCU->getDepth(0);

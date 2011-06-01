@@ -71,7 +71,11 @@ Void TComPicSym::create  ( Int iPicWidth, Int iPicHeight, UInt uiMaxWidth, UInt 
     }
     delete [] m_apcTComSlice;
   }
+#if !FINE_GRANULARITY_SLICES
   m_apcTComSlice      = new TComSlice*[m_uiNumCUsInFrame];  
+#else
+  m_apcTComSlice      = new TComSlice*[m_uiNumCUsInFrame*m_uiNumPartitions];  
+#endif
   m_apcTComSlice[0]   = new TComSlice;
   m_uiNumAllocatedSlice = 1;
   for ( i=0; i<m_uiNumCUsInFrame ; i++ )
@@ -107,7 +111,9 @@ Void TComPicSym::destroy()
 
 Void TComPicSym::allocateNewSlice()
 {
+#if !FINE_GRANULARITY_SLICES
   assert(m_uiNumCUsInFrame >= m_uiNumAllocatedSlice);
+#endif
   m_apcTComSlice[m_uiNumAllocatedSlice ++] = new TComSlice;
 }
 

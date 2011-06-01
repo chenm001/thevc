@@ -4995,6 +4995,27 @@ Void TEncSampleAdaptiveOffset::destoryEncBuffer()
       delete [] m_iOffsetOrg ; m_iOffsetOrg = NULL;
     }
 
+    {
+      Int iMaxDepth = 4;
+      Int iDepth;
+      for ( iDepth = 0; iDepth < iMaxDepth+1; iDepth++ )
+      {
+        for (Int iCIIdx = 0; iCIIdx < CI_NUM; iCIIdx ++ )
+        {
+          delete m_pppcRDSbacCoder[iDepth][iCIIdx];
+          delete m_pppcBinCoderCABAC[iDepth][iCIIdx];
+        }
+      }
+
+      for ( iDepth = 0; iDepth < iMaxDepth+1; iDepth++ )
+      {
+        delete [] m_pppcRDSbacCoder[iDepth];
+        delete [] m_pppcBinCoderCABAC[iDepth];
+      }
+
+      delete [] m_pppcRDSbacCoder;
+      delete [] m_pppcBinCoderCABAC;
+    }
 
 }
 Void TEncSampleAdaptiveOffset::createEncBuffer()
@@ -5028,7 +5049,24 @@ Void TEncSampleAdaptiveOffset::createEncBuffer()
         m_iOffsetOrg[i][j]=  new Int64 [MAX_NUM_QAO_CLASS]; 
       }
     }
+    {
+      Int iMaxDepth = 4;
+      m_pppcRDSbacCoder = new TEncSbac** [iMaxDepth+1];
+      m_pppcBinCoderCABAC = new TEncBinCABAC** [iMaxDepth+1];
 
+      for ( Int iDepth = 0; iDepth < iMaxDepth+1; iDepth++ )
+      {
+        m_pppcRDSbacCoder[iDepth] = new TEncSbac* [CI_NUM];
+        m_pppcBinCoderCABAC[iDepth] = new TEncBinCABAC* [CI_NUM];
+
+        for (Int iCIIdx = 0; iCIIdx < CI_NUM; iCIIdx ++ )
+        {
+          m_pppcRDSbacCoder[iDepth][iCIIdx] = new TEncSbac;
+          m_pppcBinCoderCABAC [iDepth][iCIIdx] = new TEncBinCABAC;
+          m_pppcRDSbacCoder   [iDepth][iCIIdx]->init( m_pppcBinCoderCABAC [iDepth][iCIIdx] );
+        }
+      }
+    }
 }
 
 /** start Sao Encoder.
@@ -5044,7 +5082,6 @@ Void TEncSampleAdaptiveOffset::startSaoEnc( TComPic* pcPic, TEncEntropy* pcEntro
   m_pcPic = pcPic;
   m_pcEntropyCoder = pcEntropyCoder;
 
-  m_pppcRDSbacCoder = pppcRDSbacCoder;
   m_pcRDGoOnSbacCoder = pcRDGoOnSbacCoder;
   m_pcEntropyCoder->resetEntropy();
   m_pcEntropyCoder->resetBits();
@@ -5274,7 +5311,7 @@ Void TEncSampleAdaptiveOffset::calcAoStatsCu(Int iAddr, Int iPartIdx)
       }
       for (y=1; y<iLcuHeight-1; y++)
       {
-        iSignDown2 = xSign(pRec[iStride] - pRec[0]);
+        iSignDown2 = xSign(pRec[iStride+1] - pRec[0]);
         for (x=1; x<iLcuWidth-1; x++)
         {
           iSignDown1      =  xSign(pRec[x] - pRec[x+iStride+1]) ;

@@ -123,7 +123,11 @@ Void TDecCu::decodeCU( TComDataCU* pcCU, UInt& ruiIsLast )
   }
 #endif//SNY_DQP
   // start from the top level CU
+#if FINE_GRANULARITY_SLICES
+  xDecodeCU( pcCU, 0, 0, ruiIsLast);
+#else
   xDecodeCU( pcCU, 0, 0 );
+#endif
   
 #if SNY_DQP 
 #if SUB_LCU_DQP
@@ -156,7 +160,9 @@ Void TDecCu::decodeCU( TComDataCU* pcCU, UInt& ruiIsLast )
 #endif//SNY_DQP
   
   //--- Read terminating bit ---
+#if !FINE_GRANULARITY_SLICES
   m_pcEntropyDecoder->decodeTerminatingBit( ruiIsLast );
+#endif
 }
 
 /** \param    pcCU        pointer of CU data
@@ -176,7 +182,12 @@ Void TDecCu::decompressCU( TComDataCU* pcCU )
  * \param uiDepth 
  * \returns Void
  */
+
+#if FINE_GRANULARITY_SLICES
+Void TDecCu::xDecodeCU( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth, UInt& ruiIsLast)
+#else
 Void TDecCu::xDecodeCU( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
+#endif
 {
   TComPic* pcPic = pcCU->getPic();
   UInt uiCurNumParts    = pcPic->getNumPartInCU() >> (uiDepth<<1);
@@ -188,7 +199,13 @@ Void TDecCu::xDecodeCU( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
   UInt uiTPelY   = pcCU->getCUPelY() + g_auiRasterToPelY[ g_auiZscanToRaster[uiAbsPartIdx] ];
   UInt uiBPelY   = uiTPelY + (g_uiMaxCUHeight>>uiDepth) - 1;
   
+#if FINE_GRANULARITY_SLICES
+  TComSlice * pcSlice = pcCU->getPic()->getSlice(pcCU->getPic()->getCurrSliceIdx());
+  Bool bStartInCU = pcCU->getSCUAddr()+uiAbsPartIdx+uiCurNumParts>pcSlice->getEntropySliceCurStartCUAddr()&&pcCU->getSCUAddr()+uiAbsPartIdx<pcSlice->getEntropySliceCurStartCUAddr();
+  if((!bStartInCU) && ( uiRPelX < pcSlice->getSPS()->getWidth() ) && ( uiBPelY < pcSlice->getSPS()->getHeight() ) )
+#else
   if( ( uiRPelX < pcCU->getSlice()->getSPS()->getWidth() ) && ( uiBPelY < pcCU->getSlice()->getSPS()->getHeight() ) )
+#endif
   {
     m_pcEntropyDecoder->decodeSplitFlag( pcCU, uiAbsPartIdx, uiDepth );
   }
@@ -212,8 +229,22 @@ Void TDecCu::xDecodeCU( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
       uiLPelX   = pcCU->getCUPelX() + g_auiRasterToPelX[ g_auiZscanToRaster[uiIdx] ];
       uiTPelY   = pcCU->getCUPelY() + g_auiRasterToPelY[ g_auiZscanToRaster[uiIdx] ];
       
+#if FINE_GRANULARITY_SLICES
+      Bool bSubInSlice = pcCU->getSCUAddr()+uiIdx+uiQNumParts>pcSlice->getEntropySliceCurStartCUAddr();
+      if(bSubInSlice&&( uiLPelX < pcCU->getSlice()->getSPS()->getWidth() ) && ( uiTPelY < pcCU->getSlice()->getSPS()->getHeight() ) )
+      {
+        xDecodeCU( pcCU, uiIdx, uiDepth+1,ruiIsLast);
+      }
+      if(ruiIsLast)
+      {
+        return;
+      }
+#else
       if( ( uiLPelX < pcCU->getSlice()->getSPS()->getWidth() ) && ( uiTPelY < pcCU->getSlice()->getSPS()->getHeight() ) )
+      {
         xDecodeCU( pcCU, uiIdx, uiDepth+1 );
+      }
+#endif
       
       uiIdx += uiQNumParts;
     }
@@ -298,6 +329,22 @@ Void TDecCu::xDecodeCU( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
       pcCU->setLastCodedQP( pcCU->getRefQP( uiAbsPartIdx ));
     }
 #endif
+#if FINE_GRANULARITY_SLICES
+  m_pcEntropyDecoder->decodeTerminatingBit( ruiIsLast );
+
+  if(ruiIsLast) 
+  {
+    if(pcSlice->isNextEntropySlice()&&!pcSlice->isNextSlice()) 
+    {
+      pcSlice->setEntropySliceCurEndCUAddr(pcCU->getSCUAddr()+uiAbsPartIdx+uiCurNumParts);
+    }
+    else 
+    {
+      pcSlice->setSliceCurEndCUAddr(pcCU->getSCUAddr()+uiAbsPartIdx+uiCurNumParts);
+      pcSlice->setEntropySliceCurEndCUAddr(pcCU->getSCUAddr()+uiAbsPartIdx+uiCurNumParts);
+    }
+  }
+#endif
     return;
   }
   m_pcEntropyDecoder->decodePredMode( pcCU, uiAbsPartIdx, uiDepth );
@@ -310,6 +357,22 @@ Void TDecCu::xDecodeCU( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
 
     if(pcCU->getIPCMFlag(uiAbsPartIdx))
     {
+#if FINE_GRANULARITY_SLICES
+
+      m_pcEntropyDecoder->decodeTerminatingBit( ruiIsLast );
+      if(ruiIsLast) 
+      {
+        if(pcSlice->isNextEntropySlice()&&!pcSlice->isNextSlice()) 
+        {
+          pcSlice->setEntropySliceCurEndCUAddr(pcCU->getSCUAddr()+uiAbsPartIdx+uiCurNumParts);
+        }
+        else 
+        {
+          pcSlice->setSliceCurEndCUAddr(pcCU->getSCUAddr()+uiAbsPartIdx+uiCurNumParts);
+          pcSlice->setEntropySliceCurEndCUAddr(pcCU->getSCUAddr()+uiAbsPartIdx+uiCurNumParts);
+        }
+      }
+#endif
       return;
     }
   }
@@ -334,6 +397,21 @@ Void TDecCu::xDecodeCU( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
     }
   }
 #endif
+#if FINE_GRANULARITY_SLICES
+  m_pcEntropyDecoder->decodeTerminatingBit( ruiIsLast );
+  if(ruiIsLast) 
+  {
+    if(pcSlice->isNextEntropySlice()&&!pcSlice->isNextSlice()) 
+    {
+      pcSlice->setEntropySliceCurEndCUAddr(pcCU->getSCUAddr()+uiAbsPartIdx+uiCurNumParts);
+    }
+    else 
+    {
+      pcSlice->setSliceCurEndCUAddr(pcCU->getSCUAddr()+uiAbsPartIdx+uiCurNumParts);
+      pcSlice->setEntropySliceCurEndCUAddr(pcCU->getSCUAddr()+uiAbsPartIdx+uiCurNumParts);
+    }
+  }
+#endif
 }
 
 Void TDecCu::xDecompressCU( TComDataCU* pcCU, TComDataCU* pcCUCur, UInt uiAbsPartIdx,  UInt uiDepth )
@@ -346,7 +424,14 @@ Void TDecCu::xDecompressCU( TComDataCU* pcCU, TComDataCU* pcCUCur, UInt uiAbsPar
   UInt uiTPelY   = pcCU->getCUPelY() + g_auiRasterToPelY[ g_auiZscanToRaster[uiAbsPartIdx] ];
   UInt uiBPelY   = uiTPelY + (g_uiMaxCUHeight>>uiDepth) - 1;
   
+#if FINE_GRANULARITY_SLICES
+  UInt uiCurNumParts    = pcPic->getNumPartInCU() >> (uiDepth<<1);
+  TComSlice * pcSlice = pcCU->getPic()->getSlice(pcCU->getPic()->getCurrSliceIdx());
+  Bool bStartInCU = pcCU->getSCUAddr()+uiAbsPartIdx+uiCurNumParts>pcSlice->getEntropySliceCurStartCUAddr()&&pcCU->getSCUAddr()+uiAbsPartIdx<pcSlice->getEntropySliceCurStartCUAddr();
+  if(bStartInCU||( uiRPelX >= pcSlice->getSPS()->getWidth() ) || ( uiBPelY >= pcSlice->getSPS()->getHeight() ) )
+#else
   if( ( uiRPelX >= pcCU->getSlice()->getSPS()->getWidth() ) || ( uiBPelY >= pcCU->getSlice()->getSPS()->getHeight() ) )
+#endif
   {
     bBoundary = true;
   }
@@ -361,7 +446,12 @@ Void TDecCu::xDecompressCU( TComDataCU* pcCU, TComDataCU* pcCUCur, UInt uiAbsPar
       uiLPelX = pcCU->getCUPelX() + g_auiRasterToPelX[ g_auiZscanToRaster[uiIdx] ];
       uiTPelY = pcCU->getCUPelY() + g_auiRasterToPelY[ g_auiZscanToRaster[uiIdx] ];
       
+#if FINE_GRANULARITY_SLICES
+      Bool binSlice = (pcCU->getSCUAddr()+uiIdx+uiQNumParts>pcSlice->getEntropySliceCurStartCUAddr())&&(pcCU->getSCUAddr()+uiIdx<pcSlice->getEntropySliceCurEndCUAddr());
+      if(binSlice&&( uiLPelX < pcSlice->getSPS()->getWidth() ) && ( uiTPelY < pcSlice->getSPS()->getHeight() ) )
+#else
       if( ( uiLPelX < pcCU->getSlice()->getSPS()->getWidth() ) && ( uiTPelY < pcCU->getSlice()->getSPS()->getHeight() ) )
+#endif
         xDecompressCU(pcCU, m_ppcCU[uiNextDepth], uiIdx, uiNextDepth );
       
       uiIdx += uiQNumParts;
