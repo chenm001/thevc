@@ -318,11 +318,6 @@ Void TEncSlice::initEncSlice( TComPic* pcPic, Int iPOCLast, UInt uiPOCCurr, Int 
 #endif
         if ( rpcSlice->isReferenced() ) // HB structure and referenced
         {
-          Int    iMaxDepth = 0;
-          Int    iCnt = 1;
-          
-          while ( iCnt < m_pcCfg->getRateGOPSize() ) { iCnt <<= 1; iMaxDepth++; }
-          
           dLambda *= 0.80;
           dLambda *= dLambda_scale;
         }
