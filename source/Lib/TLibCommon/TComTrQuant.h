@@ -49,6 +49,7 @@
 
 #define QP_BITS                 15
 
+#if !E243_CORE_TRANSFORMS
 // AQO Parameter
 #define QOFFSET_BITS            15
 #define QOFFSET_BITS_LTR        9
@@ -61,6 +62,7 @@
 
 #define DenShift16              6
 #define DenShift32              8
+#endif
 
 // ====================================================================================================================
 // Type definition
@@ -127,6 +129,7 @@ public:
   Int m_iPer;
   Int m_iRem;
   
+#if !E243_CORE_TRANSFORMS
   Int m_iAdd2x2;
   Int m_iAdd4x4;
   Int m_iAdd8x8;
@@ -138,9 +141,11 @@ private:
   Int m_aiAdd8x8[MAX_QP+1][3];
   Int m_aiAdd16x16[MAX_QP+1][3];
   Int m_aiAdd32x32[MAX_QP+1][3];
+#endif
 public:
   Int m_iBits;
   
+#if !E243_CORE_TRANSFORMS
   Void initOffsetParam(Int iStartQP = MIN_QP, Int iEndQP = MAX_QP );
   Void setQOffset( Int iQP, SliceType eSliceType )
   {
@@ -150,8 +155,13 @@ public:
     m_iAdd16x16 = m_aiAdd16x16[iQP][eSliceType];
     m_iAdd32x32 = m_aiAdd32x32[iQP][eSliceType];
   }
+#endif
   
+#if E243_CORE_TRANSFORMS
+  Void setQpParam( Int iQP, Bool bLowpass, SliceType eSliceType )
+#else
   Void setQpParam( Int iQP, Bool bLowpass, SliceType eSliceType, Bool bEnc )
+#endif
   {
     assert ( iQP >= MIN_QP && iQP <= MAX_QP );
     m_iQP   = iQP;
@@ -164,10 +174,12 @@ public:
     
     m_iBits = QP_BITS + m_iPer;
     
+#if !E243_CORE_TRANSFORMS
     if ( bEnc )
     {
       setQOffset(iQP, eSliceType);
     }
+#endif
   }
   
   Void clear()

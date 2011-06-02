@@ -202,6 +202,7 @@ QpParam::QpParam()
 {
 }
 
+#if !E243_CORE_TRANSFORMS
 Void QpParam::initOffsetParam( Int iStartQP, Int iEndQP )
 {
   Int iDefaultOffset;
@@ -239,7 +240,8 @@ Void QpParam::initOffsetParam( Int iStartQP, Int iEndQP )
     }
   }
 }
-
+#endif
+    
 // ====================================================================================================================
 // TComTrQuant class member functions
 // ====================================================================================================================
@@ -278,7 +280,11 @@ Void TComTrQuant::setQPforQuant( Int iQP, Bool bLowpass, SliceType eSliceType, T
     iQP  = g_aucChromaScale[ iQP ];
   }
   
+#if E243_CORE_TRANSFORMS
+  m_cQP.setQpParam( iQP, bLowpass, eSliceType );
+#else
   m_cQP.setQpParam( iQP, bLowpass, eSliceType, m_bEnc );
+#endif
 }
 
 #if E243_CORE_TRANSFORMS
@@ -4156,10 +4162,12 @@ Void TComTrQuant::init( UInt uiMaxWidth, UInt uiMaxHeight, UInt uiMaxTrSize, Int
 #endif
   m_iSymbolMode = iSymbolMode;
   
+#if !E243_CORE_TRANSFORMS
   if ( m_bEnc )
   {
     m_cQP.initOffsetParam( MIN_QP, MAX_QP );
   }
+#endif
 }
 
 Void TComTrQuant::xQuant( TComDataCU* pcCU, Long* pSrc, TCoeff*& pDes, Int iWidth, Int iHeight, UInt& uiAcSum, TextType eTType, UInt uiAbsPartIdx )
