@@ -3336,6 +3336,7 @@ Void TEncSearch::xCheckBestMVP ( TComDataCU* pcCU, RefPicList eRefPicList, TComM
   
   m_pcRdCost->setPredictor( rcMvPred );
   Int iOrgMvBits  = m_pcRdCost->getBits(cMv.getHor(), cMv.getVer());
+  iOrgMvBits += m_auiMVPIdxCost[riMVPIdx][pcAMVPInfo->iN];
   Int iBestMvBits = iOrgMvBits;
   
   for (Int iMVPIdx = 0; iMVPIdx < pcAMVPInfo->iN; iMVPIdx++)
@@ -3345,6 +3346,7 @@ Void TEncSearch::xCheckBestMVP ( TComDataCU* pcCU, RefPicList eRefPicList, TComM
     m_pcRdCost->setPredictor( pcAMVPInfo->m_acMvCand[iMVPIdx] );
     
     Int iMvBits = m_pcRdCost->getBits(cMv.getHor(), cMv.getVer());
+    iMvBits += m_auiMVPIdxCost[iMVPIdx][pcAMVPInfo->iN];
     
     if (iMvBits < iBestMvBits)
     {
@@ -3356,9 +3358,6 @@ Void TEncSearch::xCheckBestMVP ( TComDataCU* pcCU, RefPicList eRefPicList, TComM
   if (iBestMVPIdx != riMVPIdx)  //if changed
   {
     rcMvPred = pcAMVPInfo->m_acMvCand[iBestMVPIdx];
-    
-    iOrgMvBits  += m_auiMVPIdxCost[riMVPIdx][pcAMVPInfo->iN];
-    iBestMvBits += m_auiMVPIdxCost[iBestMVPIdx][pcAMVPInfo->iN];
     
     riMVPIdx = iBestMVPIdx;
     UInt uiOrgBits = ruiBits;
