@@ -2550,6 +2550,7 @@ Void TEncSearch::predInterSearch( TComDataCU* pcCU, TComYuv* pcOrgYuv, TComYuv*&
 #if DCM_COMB_LIST
     UInt          uiCostTempL0[MAX_NUM_REF];
     for (Int iNumRef=0; iNumRef < MAX_NUM_REF; iNumRef++) uiCostTempL0[iNumRef] = MAX_UINT;
+    UInt          uiBitsTempL0[MAX_NUM_REF];
 #endif    
 
     xGetBlkBits( ePartSize, pcCU->getSlice()->isInterP(), iPartIdx, uiLastMode, uiMbBits);
@@ -2623,14 +2624,6 @@ Void TEncSearch::predInterSearch( TComDataCU* pcCU, TComYuv* pcOrgYuv, TComYuv*&
 #endif
             {
 #if DCM_COMB_LIST
-              if (pcCU->getSlice()->getNumRefIdx(REF_PIC_LIST_C) > 0 && !pcCU->getSlice()->getNoBackPredFlag())
-              {
-                uiCostTemp = uiCostTempL0[pcCU->getSlice()->getRefIdxOfL0FromRefIdxOfL1(iRefIdxTemp)];
-              }
-              else
-              {
-                uiCostTemp = MAX_UINT;
-              }
 #else
               uiCostTemp = MAX_UINT;
 #endif
@@ -2648,6 +2641,14 @@ Void TEncSearch::predInterSearch( TComDataCU* pcCU, TComYuv* pcOrgYuv, TComYuv*&
                 cMvTemp[1][iRefIdxTemp] = cMvTemp[0][pcCU->getSlice()->getRefIdxOfL0FromRefIdxOfL1(iRefIdxTemp)]; 
               }
 #endif
+              uiCostTemp = uiCostTempL0[pcCU->getSlice()->getRefIdxOfL0FromRefIdxOfL1(iRefIdxTemp)];
+              /*first subtract the bit-rate part of the cost of the other list*/
+              uiCostTemp -= m_pcRdCost->getCost( uiBitsTempL0[pcCU->getSlice()->getRefIdxOfL0FromRefIdxOfL1(iRefIdxTemp)] );
+              /*correct the bit-rate part of the current ref*/
+              m_pcRdCost->setPredictor  ( cMvPred[iRefList][iRefIdxTemp] );
+              uiBitsTemp += m_pcRdCost->getBits( cMvTemp[1][iRefIdxTemp].getHor(), cMvTemp[1][iRefIdxTemp].getVer() );
+              /*calculate the correct cost*/
+              uiCostTemp += m_pcRdCost->getCost( uiBitsTemp );
             }
             else
             {
@@ -2681,6 +2682,7 @@ Void TEncSearch::predInterSearch( TComDataCU* pcCU, TComYuv* pcOrgYuv, TComYuv*&
           if(iRefList==REF_PIC_LIST_0)
           {
             uiCostTempL0[iRefIdxTemp] = uiCostTemp;
+            uiBitsTempL0[iRefIdxTemp] = uiBitsTemp;
             if(pcCU->getSlice()->getRefIdxOfLC(REF_PIC_LIST_0, iRefIdxTemp)<0)
             {
               uiCostTemp = MAX_UINT;
