@@ -187,7 +187,7 @@ Void TEncSlice::initEncSlice( TComPic* pcPic, Int iPOCLast, UInt uiPOCCurr, Int 
   else
 #endif
   {
-    eSliceType = ( uiPOCCurr % m_pcCfg->getGOPSize() != 0 ) ? B_SLICE : P_SLICE;
+    eSliceType = ( uiPOCCurr % m_pcCfg->getGOPSize() != 0 || iDepth > 0) ? B_SLICE : P_SLICE;
   }
   eSliceType = (iPOCLast == 0 || uiPOCCurr % m_pcCfg->getIntraPeriod() == 0 || m_pcGOPEncoder->getGOPSize() == 0) ? I_SLICE : eSliceType;
   
