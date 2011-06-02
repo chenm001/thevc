@@ -116,6 +116,14 @@ public:
   virtual Void parseAlfCtrlFlag   ( UInt &ruiAlfCtrlFlag ) = 0;
 #endif
 
+#if FINE_GRANULARITY_SLICES && MTK_NONCROSS_INLOOP_FILTER
+  /// set slice granularity
+  virtual Void setSliceGranularity(Int iSliceGranularity) = 0;
+
+  /// get slice granularity
+  virtual Int  getSliceGranularity()                      = 0;
+#endif
+
 #if MTK_SAO
   virtual Void parseAoFlag       ( UInt& ruiVal           ) = 0;
   virtual Void parseAoUvlc       ( UInt& ruiVal           ) = 0;
@@ -196,6 +204,11 @@ public:
   Void readFilterCoeffs(ALFParam* pAlfParam);
   Void decodeFilterCoeff (ALFParam* pAlfParam);
   Int golombDecode(Int k);
+
+#if FINE_GRANULARITY_SLICES && MTK_NONCROSS_INLOOP_FILTER
+  /// set slice granularity
+  Void setSliceGranularity (Int iSliceGranularity) {m_pcEntropyDecoderIf->setSliceGranularity(iSliceGranularity);}
+#endif
 
 #if MTK_SAO
   Void decodeQAOOnePart(SAOParam* pQaoParam, Int part_idx);

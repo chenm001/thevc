@@ -46,6 +46,9 @@ TDecCavlc::TDecCavlc()
 {
   m_bAlfCtrl = false;
   m_uiMaxAlfCtrlDepth = 0;
+#if FINE_GRANULARITY_SLICES && MTK_NONCROSS_INLOOP_FILTER
+  m_iSliceGranularity = 0;
+#endif
 }
 
 TDecCavlc::~TDecCavlc()
@@ -2524,6 +2527,7 @@ Void TDecCavlc::parseAlfFlag (UInt& ruiVal)
 }
 
 #if TSB_ALF_HEADER
+
 Void TDecCavlc::parseAlfFlagNum( UInt& ruiVal, UInt minValue, UInt depth )
 {
   UInt uiLength = 0;

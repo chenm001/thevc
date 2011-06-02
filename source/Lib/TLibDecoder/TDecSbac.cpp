@@ -89,6 +89,9 @@ TDecSbac::TDecSbac()
 , m_cAOSvlcSCModel            ( 1,             1,               NUM_AO_SVLC_CTX              )
 #endif
 {
+#if FINE_GRANULARITY_SLICES && MTK_NONCROSS_INLOOP_FILTER
+  m_iSliceGranularity = 0;
+#endif
 }
 
 TDecSbac::~TDecSbac()

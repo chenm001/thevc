@@ -116,26 +116,23 @@ Void TDecGop::decompressGop(TComInputBitstream* pcBitstream, TComPic*& rpcPic, B
   static Bool  bFirst = true;
   static UInt  uiILSliceCount;
   static UInt* puiILSliceStartLCU;
+#endif
+
   if (!bExecuteDeblockAndAlf)
   {
+#if MTK_NONCROSS_INLOOP_FILTER
     if(bFirst)
     {
       uiILSliceCount = 0;
-      if(!pcSlice->getSPS()->getLFCrossSliceBoundaryFlag())
-      {
-        puiILSliceStartLCU = new UInt[rpcPic->getNumCUsInFrame() +1];
-      }
+      puiILSliceStartLCU = new UInt[(rpcPic->getNumCUsInFrame()* rpcPic->getNumPartInCU()) +1];
       bFirst = false;
     }
-    
-    if(!pcSlice->getSPS()->getLFCrossSliceBoundaryFlag())
+
+    UInt uiSliceStartCuAddr = pcSlice->getSliceCurStartCUAddr();
+    if(uiSliceStartCuAddr == uiStartCUAddr)
     {
-      UInt uiSliceStartCuAddr = pcSlice->getSliceCurStartCUAddr();
-      if(uiSliceStartCuAddr == uiStartCUAddr)
-      {
-        puiILSliceStartLCU[uiILSliceCount] = uiSliceStartCuAddr;
-        uiILSliceCount++;
-      }
+      puiILSliceStartLCU[uiILSliceCount] = uiSliceStartCuAddr;
+      uiILSliceCount++;
     }
 #endif //MTK_NONCROSS_INLOOP_FILTER
 
@@ -169,6 +166,10 @@ Void TDecGop::decompressGop(TComInputBitstream* pcBitstream, TComPic*& rpcPic, B
         m_pcAdaptiveLoopFilter->setNumCUsInFrame(rpcPic);
 #endif
         m_pcAdaptiveLoopFilter->allocALFParam(&m_cAlfParam);
+
+#if FINE_GRANULARITY_SLICES && MTK_NONCROSS_INLOOP_FILTER
+        m_pcEntropyDecoder->setSliceGranularity(pcSlice->getPPS()->getSliceGranularity());
+#endif
         m_pcEntropyDecoder->decodeAlfParam( &m_cAlfParam );
       }
     }
@@ -198,22 +199,35 @@ Void TDecGop::decompressGop(TComInputBitstream* pcBitstream, TComPic*& rpcPic, B
     if( pcSlice->getSPS()->getUseALF() )
     {
 #if MTK_NONCROSS_INLOOP_FILTER  
-      if(pcSlice->getSPS()->getLFCrossSliceBoundaryFlag())
+      m_pcAdaptiveLoopFilter->setNumSlicesInPic( uiILSliceCount );
+#if FINE_GRANULARITY_SLICES
+      m_pcAdaptiveLoopFilter->setSliceGranularityDepth(pcSlice->getPPS()->getSliceGranularity());
+#endif
+      if(uiILSliceCount == 1)
       {
         m_pcAdaptiveLoopFilter->setUseNonCrossAlf(false);
       }
       else
       {
+#if FINE_GRANULARITY_SLICES
+        puiILSliceStartLCU[uiILSliceCount] = rpcPic->getNumCUsInFrame()* rpcPic->getNumPartInCU();
+#else
         puiILSliceStartLCU[uiILSliceCount] = rpcPic->getNumCUsInFrame();
-        m_pcAdaptiveLoopFilter->setUseNonCrossAlf( (uiILSliceCount > 1) );
-        if(m_pcAdaptiveLoopFilter->getUseNonCrossAlf())
+#endif
+        m_pcAdaptiveLoopFilter->setUseNonCrossAlf(!pcSlice->getSPS()->getLFCrossSliceBoundaryFlag());
+        m_pcAdaptiveLoopFilter->createSlice(rpcPic);
+
+        for(UInt i=0; i< uiILSliceCount ; i++)
         {
-          m_pcAdaptiveLoopFilter->setNumSlicesInPic( uiILSliceCount );
-          m_pcAdaptiveLoopFilter->createSlice();
-          for(UInt i=0; i< uiILSliceCount ; i++)
-          {
-            (*m_pcAdaptiveLoopFilter)[i].create(rpcPic, i, puiILSliceStartLCU[i], puiILSliceStartLCU[i+1]-1);
-          }
+#if FINE_GRANULARITY_SLICES
+          UInt uiStartAddr = puiILSliceStartLCU[i];
+          UInt uiEndAddr   = puiILSliceStartLCU[i+1]-1;
+#else
+          UInt uiStartAddr = (puiILSliceStartLCU[i]*rpcPic->getNumPartInCU());
+          UInt uiEndAddr   = (puiILSliceStartLCU[i+1]*rpcPic->getNumPartInCU())-1;
+
+#endif
+          (*m_pcAdaptiveLoopFilter)[i].create(i, uiStartAddr, uiEndAddr);
         }
       }
 #endif
@@ -224,7 +238,7 @@ Void TDecGop::decompressGop(TComInputBitstream* pcBitstream, TComPic*& rpcPic, B
 #endif
 
 #if MTK_NONCROSS_INLOOP_FILTER
-      if(m_pcAdaptiveLoopFilter->getUseNonCrossAlf())
+      if(uiILSliceCount > 1)
       {
         m_pcAdaptiveLoopFilter->destroySlice();
       }

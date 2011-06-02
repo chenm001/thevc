@@ -326,10 +326,27 @@ Void TDecEntropy::decodeAlfParam(ALFParam* pAlfParam)
 }
 
 #if TSB_ALF_HEADER
+/** decode ALF CU control parameters
+ * \param pAlfParam ALF paramters
+ */
 Void TDecEntropy::decodeAlfCtrlParam( ALFParam* pAlfParam )
 {
   UInt uiSymbol;
+
+#if MTK_NONCROSS_INLOOP_FILTER
+  Int  iDepth         = pAlfParam->alf_max_depth;
+#if FINE_GRANULARITY_SLICES
+  Int  iGranularity   = m_pcEntropyDecoderIf->getSliceGranularity();
+  if(iGranularity > iDepth)
+  {
+    iDepth = iGranularity;
+  }
+#endif
+  m_pcEntropyDecoderIf->parseAlfFlagNum( uiSymbol, pAlfParam->num_cus_in_frame, iDepth );
+#else
   m_pcEntropyDecoderIf->parseAlfFlagNum( uiSymbol, pAlfParam->num_cus_in_frame, pAlfParam->alf_max_depth );
+#endif
+
   pAlfParam->num_alf_cu_flag = uiSymbol;
   
   for(UInt i=0; i<pAlfParam->num_alf_cu_flag; i++)

@@ -51,6 +51,9 @@ TEncCavlc::TEncCavlc()
   m_uiMaxAlfCtrlDepth = 0;
   
   m_bAdaptFlag        = true;    // adaptive VLC table
+#if FINE_GRANULARITY_SLICES && MTK_NONCROSS_INLOOP_FILTER
+  m_iSliceGranularity = 0;
+#endif
 }
 
 TEncCavlc::~TEncCavlc()
@@ -2402,10 +2405,23 @@ Void TEncCavlc::codeAlfFlag( UInt uiCode )
 }
 
 #if TSB_ALF_HEADER
+#if MTK_NONCROSS_INLOOP_FILTER
+/** Code number of ALF CU control flags
+ * \param uiCode number of ALF CU control flags
+ * \param minValue predictor of number of ALF CU control flags
+ * \param iDepth the possible max. processing CU depth
+ */
+Void TEncCavlc::codeAlfFlagNum( UInt uiCode, UInt minValue, Int iDepth)
+#else
 Void TEncCavlc::codeAlfFlagNum( UInt uiCode, UInt minValue )
+#endif
 {
   UInt uiLength = 0;
+#if MTK_NONCROSS_INLOOP_FILTER
+  UInt maxValue = (minValue << (iDepth*2));
+#else
   UInt maxValue = (minValue << (this->getMaxAlfCtrlDepth()*2));
+#endif
   assert((uiCode>=minValue)&&(uiCode<=maxValue));
   UInt temp = maxValue - minValue;
   for(UInt i=0; i<32; i++)

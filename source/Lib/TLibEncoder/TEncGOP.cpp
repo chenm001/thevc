@@ -320,6 +320,11 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
 #endif
 #endif
 
+
+#if MTK_NONCROSS_INLOOP_FILTER
+      UInt uiNumSlices = 1;
+#endif
+
 #if FINE_GRANULARITY_SLICES
       UInt uiInternalAddress = pcPic->getNumPartInCU()-4;
       UInt uiExternalAddress = pcPic->getPicSym()->getNumberOfCUsInFrame()-1;
@@ -402,6 +407,9 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
             pcSlice->setSliceCurStartCUAddr         ( uiStartCUAddrSlice      );
             pcSlice->setEntropySliceCurStartCUAddr  ( uiStartCUAddrSlice      );
             pcSlice->setSliceBits(0);
+#if MTK_NONCROSS_INLOOP_FILTER
+            uiNumSlices ++;
+#endif
           }
         }
         else if (pcSlice->isNextEntropySlice() || (bNoBinBitConstraintViolated && m_pcCfg->getEntropySliceMode()==SHARP_FIXED_NUMBER_OF_LCU_IN_ENTROPY_SLICE))
@@ -435,30 +443,36 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
 
       if(pcSlice->getSPS()->getUseALF())
       {
-        if(pcSlice->getSPS()->getLFCrossSliceBoundaryFlag())
+        m_pcAdaptiveLoopFilter->setNumSlicesInPic( uiNumSlices );
+#if FINE_GRANULARITY_SLICES
+        m_pcAdaptiveLoopFilter->setSliceGranularityDepth(pcSlice->getPPS()->getSliceGranularity());
+#endif
+        if(uiNumSlices == 1)
         {
           m_pcAdaptiveLoopFilter->setUseNonCrossAlf(false);
         }
         else
         {
-          UInt uiNumSlices = uiStartCUAddrSliceIdx-1;
-          m_pcAdaptiveLoopFilter->setUseNonCrossAlf( (uiNumSlices > 1)  );
-          if(m_pcAdaptiveLoopFilter->getUseNonCrossAlf())
+          m_pcAdaptiveLoopFilter->setUseNonCrossAlf(!pcSlice->getSPS()->getLFCrossSliceBoundaryFlag());
+          m_pcAdaptiveLoopFilter->createSlice(pcPic);
+
+          UInt uiStartAddr, uiEndAddr;
+
+          for(UInt i=0; i< uiNumSlices ; i++)
           {
-            m_pcAdaptiveLoopFilter->setNumSlicesInPic( uiNumSlices );
-            m_pcAdaptiveLoopFilter->createSlice();
+#if FINE_GRANULARITY_SLICES
+            uiStartAddr = m_uiStoredStartCUAddrForEncodingSlice[i];
+            uiEndAddr   = m_uiStoredStartCUAddrForEncodingSlice[i+1]-1;
+#else
+            uiStartAddr = (m_uiStoredStartCUAddrForEncodingSlice[i]* (pcPic->getNumPartInCU()));
+            uiEndAddr   = (m_uiStoredStartCUAddrForEncodingSlice[i+1]*(pcPic->getNumPartInCU()))-1;
 
-            //set the startLCU and endLCU addr. to ALF slices
-            for(UInt i=0; i< uiNumSlices ; i++)
-            {
-              (*m_pcAdaptiveLoopFilter)[i].create(pcPic, i, 
-                                                  m_uiStoredStartCUAddrForEncodingSlice[i], 
-                                                  m_uiStoredStartCUAddrForEncodingSlice[i+1]-1
-                                                  );
-
-            }
+#endif
+            (*m_pcAdaptiveLoopFilter)[i].create(i, uiStartAddr, uiEndAddr);
           }
+
         }
+        //m_pcAdaptiveLoopFilter->plotSliceBoundary();
       }
 #endif
       /////////////////////////////////////////////////////////////////////////////////////////////////// File writing
@@ -688,6 +702,9 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
 #if TSB_ALF_HEADER
             if(cAlfParam.cu_control_flag)
             {
+#if FINE_GRANULARITY_SLICES && MTK_NONCROSS_INLOOP_FILTER
+              m_pcEntropyCoder->setSliceGranularity(pcSlice->getPPS()->getSliceGranularity());
+#endif
               m_pcEntropyCoder->encodeAlfCtrlParam(&cAlfParam);
             }
 #endif
@@ -712,8 +729,10 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
 #if MTK_NONCROSS_INLOOP_FILTER
       if(pcSlice->getSPS()->getUseALF())
       {
-        if(m_pcAdaptiveLoopFilter->getUseNonCrossAlf())
+        if(m_pcAdaptiveLoopFilter->getNumSlicesInPic() > 1)
+        {
           m_pcAdaptiveLoopFilter->destroySlice();
+        }
       }
 #endif 
       
