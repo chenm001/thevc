@@ -214,7 +214,8 @@ public:
   // Misc functions
   Void setQPforQuant( Int iQP, Bool bLowpass, SliceType eSliceType, TextType eTxtType);
   Void setLambda(Double dLambda) { m_dLambda = dLambda;}
-  Void    setRDOQOffset ( UInt uiRDOQOffset ) { m_uiRDOQOffset = uiRDOQOffset; }
+  Void setRDOQOffset( UInt uiRDOQOffset ) { m_uiRDOQOffset = uiRDOQOffset; }
+  
   estBitsSbacStruct* m_pcEstBitsSbac;
   
   static UInt     getSigCtxInc     ( TCoeff*                         pcCoeff,
@@ -229,7 +230,9 @@ public:
 #endif
 protected:
   Long*    m_plTempCoeff;
+#if !E243_CORE_TRANSFORMS
   UInt*    m_puiQuantMtx;
+#endif
   
   QpParam  m_cQP;
   Double   m_dLambda;
@@ -252,19 +255,22 @@ private:
 #else
   Void xT   ( Pel* pResidual, UInt uiStride, Long* plCoeff, Int iSize );
 #endif
+#if !E243_CORE_TRANSFORMS
   Void xT2  ( Pel* pResidual, UInt uiStride, Long* plCoeff );
   Void xT4  ( Pel* pResidual, UInt uiStride, Long* plCoeff );
   Void xT8  ( Pel* pResidual, UInt uiStride, Long* plCoeff );
   Void xT16 ( Pel* pResidual, UInt uiStride, Long* plCoeff );
   Void xT32 ( Pel* pResidual, UInt uiStride, Long* plCoeff );
+#endif
   
   // quantization
   Void xQuant     ( TComDataCU* pcCU, Long* pSrc, TCoeff*& pDes, Int iWidth, Int iHeight, UInt& uiAcSum, TextType eTType, UInt uiAbsPartIdx );
   Void xQuantLTR  ( TComDataCU* pcCU, Long* pSrc, TCoeff*& pDes, Int iWidth, Int iHeight, UInt& uiAcSum, TextType eTType, UInt uiAbsPartIdx );
+#if !E243_CORE_TRANSFORMS
   Void xQuant2x2  ( Long* plSrcCoef, TCoeff*& pDstCoef, UInt& uiAbsSum );
   Void xQuant4x4  ( TComDataCU* pcCU, Long* plSrcCoef, TCoeff*& pDstCoef, UInt& uiAbsSum, TextType eTType, UInt uiAbsPartIdx );
   Void xQuant8x8  ( TComDataCU* pcCU, Long* plSrcCoef, TCoeff*& pDstCoef, UInt& uiAbsSum, TextType eTType, UInt uiAbsPartIdx );
-
+#endif
 
   // RDOQ functions
 
@@ -339,15 +345,19 @@ UInt             getCurrLineNum(UInt uiScanIdx, UInt uiPosX, UInt uiPosY);
   __inline Double xGetIEPRate      (                                               ) const;
   
   
-  __inline Int          xRound   ( Int i )   { return ((i)+(1<<5))>>6; }
+#if !E243_CORE_TRANSFORMS
+  __inline static Int   xRound   ( Int i )   { return ((i)+(1<<5))>>6; }
   __inline static Long  xTrRound ( Long i, UInt uiShift ) { return ((i)>>uiShift); }
+#endif
   
   // dequantization
   Void xDeQuant         ( TCoeff* pSrc,     Long*& pDes,       Int iWidth, Int iHeight );
   Void xDeQuantLTR      ( TCoeff* pSrc,     Long*&  pDes,      Int iWidth, Int iHeight );
+#if !E243_CORE_TRANSFORMS
   Void xDeQuant2x2      ( TCoeff* pSrcCoef, Long*& rplDstCoef );
   Void xDeQuant4x4      ( TCoeff* pSrcCoef, Long*& rplDstCoef );
   Void xDeQuant8x8      ( TCoeff* pSrcCoef, Long*& rplDstCoef );
+#endif
   
   // inverse transform
 #if INTRA_DST_TYPE_7
@@ -355,12 +365,14 @@ UInt             getCurrLineNum(UInt uiScanIdx, UInt uiPosX, UInt uiPosY);
 #else
   Void xIT    ( Long* plCoef, Pel* pResidual, UInt uiStride, Int iSize );
 #endif
+#if !E243_CORE_TRANSFORMS
   Void xIT2   ( Long* plCoef, Pel* pResidual, UInt uiStride );
   Void xIT4   ( Long* plCoef, Pel* pResidual, UInt uiStride );
   Void xIT8   ( Long* plCoef, Pel* pResidual, UInt uiStride );
   Void xIT16  ( Long* plCoef, Pel* pResidual, UInt uiStride );
   Void xIT32  ( Long* plCoef, Pel* pResidual, UInt uiStride );
-
+#endif
+  
 #if !E243_CORE_TRANSFORMS
   static const Int estErr4x4[6][4][4];
   static const Int estErr8x8[6][8][8];
