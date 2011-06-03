@@ -254,8 +254,8 @@ Void TDecCu::xDecodeCU( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
       if( pcCU->getdQPFlag())
       {
         pcCU->setQPSubParts( pcCU->getRefQP(uiAbsPartIdx), uiAbsPartIdx, uiDepth ); // set QP to default QP
-        pcCU->setLastCodedQP( pcCU->getRefQP( uiAbsPartIdx ));
       }
+      pcCU->setLastCodedQP( pcCU->getQP( uiAbsPartIdx ));
     }
 #endif
     
@@ -326,7 +326,7 @@ Void TDecCu::xDecodeCU( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
     if( (g_uiMaxCUWidth>>uiDepth) >= pcCU->getSlice()->getPPS()->getMinCuDQPSize() && pcCU->getSlice()->getSPS()->getUseDQP())
     {
       pcCU->setQPSubParts( pcCU->getRefQP(uiAbsPartIdx), uiAbsPartIdx, uiDepth ); // set QP to default QP
-      pcCU->setLastCodedQP( pcCU->getRefQP( uiAbsPartIdx ));
+      pcCU->setLastCodedQP( pcCU->getQP( uiAbsPartIdx ));
     }
 #endif
 #if FINE_GRANULARITY_SLICES
@@ -357,6 +357,13 @@ Void TDecCu::xDecodeCU( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
 
     if(pcCU->getIPCMFlag(uiAbsPartIdx))
     {
+#if SUB_LCU_DQP
+      if( (g_uiMaxCUWidth>>uiDepth) >= pcCU->getSlice()->getPPS()->getMinCuDQPSize() && pcCU->getSlice()->getSPS()->getUseDQP())
+      {
+        pcCU->setQPSubParts( pcCU->getRefQP(uiAbsPartIdx), uiAbsPartIdx, uiDepth ); // set QP to default QP
+        pcCU->setLastCodedQP( pcCU->getQP( uiAbsPartIdx ));
+      }
+#endif
 #if FINE_GRANULARITY_SLICES
 
       m_pcEntropyDecoder->decodeTerminatingBit( ruiIsLast );
@@ -393,8 +400,8 @@ Void TDecCu::xDecodeCU( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
     if( pcCU->getdQPFlag())
     {
       pcCU->setQPSubParts( pcCU->getRefQP(uiAbsPartIdx), uiAbsPartIdx, uiDepth ); // set QP to default QP
-      pcCU->setLastCodedQP( pcCU->getRefQP( uiAbsPartIdx ));
     }
+    pcCU->setLastCodedQP( pcCU->getQP( uiAbsPartIdx ));
   }
 #endif
 #if FINE_GRANULARITY_SLICES

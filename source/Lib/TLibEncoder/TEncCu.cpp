@@ -1071,12 +1071,12 @@ Void TEncCu::xEncodeCU( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
 #if SUB_LCU_DQP
     if( (g_uiMaxCUWidth>>uiDepth) == pcCU->getSlice()->getPPS()->getMinCuDQPSize() && pcCU->getSlice()->getSPS()->getUseDQP())
     {
+      uiAbsPartIdx -= uiQNumParts * 4;
       if( pcCU->getdQPFlag())
       {
-        uiAbsPartIdx -= uiQNumParts * 4;
         pcCU->setQPSubParts( pcCU->getRefQP( uiAbsPartIdx ), uiAbsPartIdx, uiDepth ); // set QP to default QP
-        pcCU->setLastCodedQP( pcCU->getRefQP( uiAbsPartIdx ));
       }
+      pcCU->setLastCodedQP( pcCU->getQP( uiAbsPartIdx ));
     }
 #endif
     return;
@@ -1120,7 +1120,7 @@ Void TEncCu::xEncodeCU( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
     if( (g_uiMaxCUWidth>>uiDepth) >= pcCU->getSlice()->getPPS()->getMinCuDQPSize() && pcCU->getSlice()->getSPS()->getUseDQP())
     {
       pcCU->setQPSubParts( pcCU->getRefQP( uiAbsPartIdx ), uiAbsPartIdx, uiDepth ); // set QP to default QP
-      pcCU->setLastCodedQP( pcCU->getRefQP( uiAbsPartIdx ));
+      pcCU->setLastCodedQP( pcCU->getQP( uiAbsPartIdx ));
     }
 #endif
 #if FINE_GRANULARITY_SLICES
@@ -1139,6 +1139,13 @@ Void TEncCu::xEncodeCU( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
 
     if(pcCU->getIPCMFlag(uiAbsPartIdx))
     {
+#if SUB_LCU_DQP
+      if( (g_uiMaxCUWidth>>uiDepth) >= pcCU->getSlice()->getPPS()->getMinCuDQPSize() && pcCU->getSlice()->getSPS()->getUseDQP())
+      {
+        pcCU->setQPSubParts( pcCU->getRefQP(uiAbsPartIdx), uiAbsPartIdx, uiDepth ); // set QP to default QP
+        pcCU->setLastCodedQP( pcCU->getQP( uiAbsPartIdx ));
+      }
+#endif
 #if FINE_GRANULARITY_SLICES
       // Encode slice finish
       finishCU(pcCU,uiAbsPartIdx,uiDepth);
@@ -1160,8 +1167,8 @@ Void TEncCu::xEncodeCU( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
     if( pcCU->getdQPFlag())
     {
       pcCU->setQPSubParts( pcCU->getRefQP( uiAbsPartIdx ), uiAbsPartIdx, uiDepth ); // set QP to default QP
-      pcCU->setLastCodedQP( pcCU->getRefQP( uiAbsPartIdx ));
     }
+    pcCU->setLastCodedQP( pcCU->getQP( uiAbsPartIdx ));
   }
 #endif
   // --- write terminating bit ---
