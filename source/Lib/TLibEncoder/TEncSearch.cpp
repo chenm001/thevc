@@ -38,6 +38,7 @@
 #include "../TLibCommon/TypeDef.h"
 #include "../TLibCommon/TComMotionInfo.h"
 #include "TEncSearch.h"
+#include <math.h>
 
 static TComMv s_acMvRefineH[9] =
 {

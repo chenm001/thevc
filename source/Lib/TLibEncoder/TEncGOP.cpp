@@ -47,6 +47,7 @@
 #include "NALwrite.h"
 
 #include <time.h>
+#include <math.h>
 
 using namespace std;
 

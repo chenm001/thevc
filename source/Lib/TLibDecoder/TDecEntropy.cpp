@@ -166,7 +166,6 @@ Int TDecEntropy::golombDecode(Int k)
   UInt uiSymbol;
   Int q = -1;
   Int nr = 0;
-  Int m = (Int)pow(2.0, k);
   Int a;
   
   uiSymbol = 1;
@@ -181,7 +180,7 @@ Int TDecEntropy::golombDecode(Int k)
     if(uiSymbol)
       nr += 1 << a;
   }
-  nr += q * m;                    // add the bits and the multiple of M
+  nr += q << k;
   if(nr != 0)
   {
     m_pcEntropyDecoderIf->parseAlfFlag(uiSymbol);

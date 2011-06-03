@@ -37,6 +37,7 @@
 
 #include "TEncTop.h"
 #include "TEncSlice.h"
+#include <math.h>
 
 // ====================================================================================================================
 // Constructor / destructor / create / destroy

@@ -287,11 +287,10 @@ Int TEncEntropy::writeFilterCoeffs(int sqrFiltLength, int filters_per_group, int
 
 Int TEncEntropy::golombEncode(int coeff, int k)
 {
-  int q, i, m;
+  int q, i;
   int symbol = abs(coeff);
   
-  m = (int)pow(2.0, k);
-  q = symbol / m;
+  q = symbol >> k;
   
   for (i = 0; i < q; i++)
     m_pcEntropyCoderIf->codeAlfFlag(1);
