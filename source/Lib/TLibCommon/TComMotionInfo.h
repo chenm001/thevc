@@ -67,21 +67,21 @@ private:
   
 public:
   TComMvField() :
-  m_iRefIdx (-1)
+  m_iRefIdx (NOT_VALID)
   {
   }
   
-  Void setMvField ( TComMv cMv, Int iRefIdx )
+  Void setMvField( TComMv const & cMv, Int iRefIdx )
   {
     m_acMv    = cMv;
     m_iRefIdx = iRefIdx;
   }
   
-  TComMv& getMv     ()      { return  m_acMv;             }
-  Int     getRefIdx ()      { return  m_iRefIdx;          }
+  TComMv const & getMv() const { return  m_acMv; }
   
-  Int     getHor    ()      { return  m_acMv.getHor();    }
-  Int     getVer    ()      { return  m_acMv.getVer();    }
+  Int getRefIdx() const { return  m_iRefIdx;       }
+  Int getHor   () const { return  m_acMv.getHor(); }
+  Int getVer   () const { return  m_acMv.getVer(); }
 };
 
 /// class for motion information in one CU
@@ -152,10 +152,10 @@ public:
   Void    setRefIdxPtr      ( Char*    iRefIdxPtr ) { m_piRefIdx = iRefIdxPtr;    }
   Void    setNumPartition   ( Int      iNumPart   ) { m_uiNumPartition=iNumPart;  }
   
-  Void    setAllMv          ( TComMv& rcMv,    PartSize eCUMode, Int iPartAddr, Int iPartIdx, UInt uiDepth );
-  Void    setAllMvd         ( TComMv& rcMvd,   PartSize eCUMode, Int iPartAddr, Int iPartIdx, UInt uiDepth );
-  Void    setAllRefIdx      ( Int     iRefIdx, PartSize eMbMode, Int iPartAddr, Int iPartIdx, UInt uiDepth );
-  Void    setAllMvField     ( TComMv& rcMv, Int iRefIdx, PartSize eMbMode, Int iPartAddr, Int iPartIdx, UInt uiDepth );
+  Void    setAllMv          ( TComMv const & rcMv,              PartSize eCUMode, Int iPartAddr, Int iPartIdx, UInt uiDepth );
+  Void    setAllMvd         ( TComMv const & rcMvd,             PartSize eCUMode, Int iPartAddr, Int iPartIdx, UInt uiDepth );
+  Void    setAllRefIdx      ( Int            iRefIdx,           PartSize eMbMode, Int iPartAddr, Int iPartIdx, UInt uiDepth );
+  Void    setAllMvField     ( TComMv const & rcMv, Int iRefIdx, PartSize eMbMode, Int iPartAddr, Int iPartIdx, UInt uiDepth );
   
 #if AMVP_BUFFERCOMPRESS
   Void    compress          (PredMode* pePredMode, Int scale); 

@@ -145,7 +145,7 @@ Void TComCUMvField::copyMvTo( TComCUMvField* pcCUMvFieldDst, Int iPartAddrDst )
 // Set
 // --------------------------------------------------------------------------------------------------------------------
 
-Void TComCUMvField::setAllMv( TComMv& mv, PartSize eCUMode, Int iPartAddr, Int iPartIdx, UInt uiDepth )
+Void TComCUMvField::setAllMv( TComMv const & mv, PartSize eCUMode, Int iPartAddr, Int iPartIdx, UInt uiDepth )
 {
   Int i;
   TComMv* pcMv = m_pcMv + iPartAddr;
@@ -187,7 +187,7 @@ Void TComCUMvField::setAllMv( TComMv& mv, PartSize eCUMode, Int iPartAddr, Int i
   }
 }
 
-Void TComCUMvField::setAllMvd( TComMv& mvd, PartSize eCUMode, Int iPartAddr, Int iPartIdx, UInt uiDepth )
+Void TComCUMvField::setAllMvd( TComMv const & mvd, PartSize eCUMode, Int iPartAddr, Int iPartIdx, UInt uiDepth )
 {
   Int i;
   TComMv* pcMvd = m_pcMvd + iPartAddr;
@@ -271,7 +271,7 @@ Void TComCUMvField::setAllRefIdx ( Int iRefIdx, PartSize eCUMode, Int iPartAddr,
   }
 }
 
-Void TComCUMvField::setAllMvField ( TComMv& rcMv, Int iRefIdx, PartSize eCUMode, Int iPartAddr, Int iPartIdx, UInt uiDepth )
+Void TComCUMvField::setAllMvField ( TComMv const & rcMv, Int iRefIdx, PartSize eCUMode, Int iPartAddr, Int iPartIdx, UInt uiDepth )
 {
   setAllMv( rcMv, eCUMode, iPartAddr, iPartIdx, uiDepth);
   setAllRefIdx(iRefIdx, eCUMode,iPartAddr,iPartIdx,uiDepth);
