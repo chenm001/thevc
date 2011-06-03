@@ -335,6 +335,7 @@ Void TEncCu::encodeCU ( TComDataCU* pcCU, Bool bForceTerminate )
   {
     if ( pcCU->isSkipped( 0 ) && pcCU->getDepth( 0 ) == 0 )
     {
+      pcCU->setQPSubParts( pcCU->getSlice()->getSliceQp(), 0, 0 ); 
     }
     else if ( pcCU->getdQPFlag())// non-skip
     {
@@ -350,6 +351,7 @@ Void TEncCu::encodeCU ( TComDataCU* pcCU, Bool bForceTerminate )
   {
     if ( pcCU->isSkipped( 0 ) && pcCU->getDepth( 0 ) == 0 )
     {
+      pcCU->setQPSubParts( pcCU->getSlice()->getSliceQp(), 0, 0 ); 
     }
     else
     {
