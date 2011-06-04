@@ -55,26 +55,6 @@ TComYuv::~TComYuv()
 {
 }
 
-Void TComYuv::printout()
-{
-  Int  x, y;
-  
-  Pel* pSrc = getLumaAddr(  );
-  Int  iStride = getStride();
-  
-  
-  printf("\nY ...");
-  for ( y = 0; y < iStride; y++ )
-  {
-    printf ("\n");
-    for ( x = 0; x < iStride; x++ )
-    {
-      printf ("%d ", pSrc[x]);
-    }
-    pSrc += iStride;
-  }
-}
-
 Void TComYuv::create( UInt iWidth, UInt iHeight )
 {
   // memory allocation
