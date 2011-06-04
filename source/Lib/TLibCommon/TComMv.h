@@ -91,13 +91,6 @@ public:
   // operations
   // ------------------------------------------------------------------------------------------------------------------
   
-  const TComMv& operator = (const TComMv& rcMv)
-  {
-    m_iHor = rcMv.m_iHor;
-    m_iVer = rcMv.m_iVer;
-    return  *this;
-  }
-  
   const TComMv& operator += (const TComMv& rcMv)
   {
     m_iHor += rcMv.m_iHor;
