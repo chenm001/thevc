@@ -672,51 +672,6 @@ Void TComYuv::addAvg( TComYuv* pcYuvSrc0, TComYuv* pcYuvSrc1, UInt iPartUnitIdx,
 #endif
 }
 
-Void TComYuv::removeHighFreq( TComYuv* pcYuvSrc, UInt uiWidht, UInt uiHeight )
-{
-  Int x, y;
-  
-  Pel* pSrc  = pcYuvSrc->getLumaAddr();
-  Pel* pSrcU = pcYuvSrc->getCbAddr();
-  Pel* pSrcV = pcYuvSrc->getCrAddr();
-  
-  Pel* pDst  = m_apiBufY;
-  Pel* pDstU = m_apiBufU;
-  Pel* pDstV = m_apiBufV;
-  
-  Int  iSrcStride = pcYuvSrc->getStride();
-  Int  iDstStride = getStride();
-  
-  for ( y = uiHeight-1; y >= 0; y-- )
-  {
-    for ( x = uiWidht-1; x >= 0; x-- )
-    {
-      pDst[x ] = xClip( (pDst[x ]<<1) - pSrc[x ] );
-    }
-    pSrc += iSrcStride;
-    pDst += iDstStride;
-  }
-  
-  iSrcStride = pcYuvSrc->getCStride();
-  iDstStride = getCStride();
-  
-  uiHeight >>= 1;
-  uiWidht  >>= 1;
-  
-  for ( y = uiHeight-1; y >= 0; y-- )
-  {
-    for ( x = uiWidht-1; x >= 0; x-- )
-    {
-      pDstU[x ] = xClip( (pDstU[x ]<<1) - pSrcU[x ] );
-      pDstV[x ] = xClip( (pDstV[x ]<<1) - pSrcV[x ] );
-    }
-    pSrcU += iSrcStride;
-    pSrcV += iSrcStride;
-    pDstU += iDstStride;
-    pDstV += iDstStride;
-  }
-}
-
 Void TComYuv::removeHighFreq( TComYuv* pcYuvSrc, UInt uiPartIdx, UInt uiWidht, UInt uiHeight )
 {
   Int x, y;
