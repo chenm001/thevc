@@ -1019,11 +1019,8 @@ Void TComDataCU::initSubCU( TComDataCU* pcCU, UInt uiPartUnitIdx, UInt uiDepth )
 
   m_apcCUColocated[0] = pcCU->getCUColocated(REF_PIC_LIST_0);
   m_apcCUColocated[1] = pcCU->getCUColocated(REF_PIC_LIST_1);
-  for(int i=0; i<m_pcPic->getNumPartInCU(); i++) 
-  {
-    m_uiSliceStartCU[i]=pcCU->m_uiSliceStartCU[i];
-    m_uiEntropySliceStartCU[i]=pcCU->m_uiEntropySliceStartCU[i];
-  }
+  memcpy(m_uiSliceStartCU,pcCU->m_uiSliceStartCU,sizeof(UInt)*m_pcPic->getNumPartInCU());
+  memcpy(m_uiEntropySliceStartCU,pcCU->m_uiEntropySliceStartCU,sizeof(UInt)*m_pcPic->getNumPartInCU());
 }
 #endif
 // --------------------------------------------------------------------------------------------------------------------
@@ -1113,11 +1110,8 @@ Void TComDataCU::copySubCU( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
   m_acCUMvField[1].setMvdPtr(pcCU->getCUMvField(REF_PIC_LIST_1)->getMvd()    + uiPart);
   m_acCUMvField[1].setRefIdxPtr(pcCU->getCUMvField(REF_PIC_LIST_1)->getRefIdx() + uiPart);
 #if FINE_GRANULARITY_SLICES
-  for(int i=0; i<m_pcPic->getNumPartInCU(); i++) 
-  {
-    m_uiSliceStartCU[i]=pcCU->m_uiSliceStartCU[i];
-    m_uiEntropySliceStartCU[i]=pcCU->m_uiEntropySliceStartCU[i];
-  }
+  m_uiSliceStartCU        = pcCU->m_uiSliceStartCU;
+  m_uiEntropySliceStartCU = pcCU->m_uiEntropySliceStartCU;
 #else
   m_uiSliceStartCU        = pcCU->getSliceStartCU();
   m_uiEntropySliceStartCU = pcCU->getEntropySliceStartCU();
@@ -1167,11 +1161,8 @@ Void TComDataCU::copyInterPredInfoFrom    ( TComDataCU* pcCU, UInt uiAbsPartIdx,
   m_acCUMvField[eRefPicList].setRefIdxPtr(pcCU->getCUMvField(eRefPicList)->getRefIdx() + uiAbsPartIdx);
 
 #if FINE_GRANULARITY_SLICES
-  for(int i=0; i<m_pcPic->getNumPartInCU(); i++) 
-  {
-    m_uiSliceStartCU[i]=pcCU->m_uiSliceStartCU[i];
-    m_uiEntropySliceStartCU[i]=pcCU->m_uiEntropySliceStartCU[i];
-  }
+  m_uiSliceStartCU        = pcCU->m_uiSliceStartCU;
+  m_uiEntropySliceStartCU = pcCU->m_uiEntropySliceStartCU;
 #else
   m_uiSliceStartCU        = pcCU->getSliceStartCU();
   m_uiEntropySliceStartCU = pcCU->getEntropySliceStartCU();
