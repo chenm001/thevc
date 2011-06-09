@@ -808,7 +808,11 @@ Void TComDataCU::initSubCU( TComDataCU* pcCU, UInt uiPartUnitIdx, UInt uiDepth )
   m_uiEntropySliceStartCU   = pcCU->getEntropySliceStartCU();
 }
 #else
+#if SUB_LCU_DQP
+Void TComDataCU::initSubCU( TComDataCU* pcCU, UInt uiPartUnitIdx, UInt uiDepth, UInt uiQP )
+#else
 Void TComDataCU::initSubCU( TComDataCU* pcCU, UInt uiPartUnitIdx, UInt uiDepth )
+#endif
 {
   assert( uiPartUnitIdx<4 );
 
@@ -833,7 +837,7 @@ Void TComDataCU::initSubCU( TComDataCU* pcCU, UInt uiPartUnitIdx, UInt uiDepth )
   Int iSizeInBool  = sizeof( Bool   ) * m_uiNumPartition;
 
 #if SUB_LCU_DQP
-  memset( m_phQP,              pcCU->getQP(0), iSizeInUchar );
+  memset( m_phQP,              uiQP, iSizeInUchar );
 #else
   memset( m_phQP,              getSlice()->getSliceQp(), iSizeInUchar );
 #endif
@@ -2503,11 +2507,12 @@ Void TComDataCU::setPredModeSubParts( PredMode eMode, UInt uiAbsPartIdx, UInt ui
 Void TComDataCU::setQPSubParts( UInt uiQP, UInt uiAbsPartIdx, UInt uiDepth )
 {
   UInt uiCurrPartNumb = m_pcPic->getNumPartInCU() >> (uiDepth << 1);
-  
+  TComSlice * pcSlice = getPic()->getSlice(getPic()->getCurrSliceIdx());
+
 #if FINE_GRANULARITY_SLICES
   for(UInt uiSCUIdx = uiAbsPartIdx; uiSCUIdx < uiAbsPartIdx+uiCurrPartNumb; uiSCUIdx++)
   {
-    if( m_pcPic->getCU( getAddr() )->getEntropySliceStartCU(uiSCUIdx+getZorderIdxInCU()) == getSlice()->getEntropySliceCurStartCUAddr() )
+    if( m_pcPic->getCU( getAddr() )->getEntropySliceStartCU(uiSCUIdx+getZorderIdxInCU()) == pcSlice->getEntropySliceCurStartCUAddr() )
     {
       m_phQP[uiSCUIdx] = uiQP;
     }

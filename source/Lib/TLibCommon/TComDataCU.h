@@ -204,7 +204,11 @@ public:
   
   Void          initCU                ( TComPic* pcPic, UInt uiCUAddr );
   Void          initEstData           ();
+#if SUB_LCU_DQP
+  Void          initSubCU             ( TComDataCU* pcCU, UInt uiPartUnitIdx, UInt uiDepth, UInt uiQP );
+#else
   Void          initSubCU             ( TComDataCU* pcCU, UInt uiPartUnitIdx, UInt uiDepth );
+#endif
 
 #if SUB_LCU_DQP
   Void          initEstDataDeltaQP    ( UInt uiDepth, UInt uiQP, UInt uiLastQP );

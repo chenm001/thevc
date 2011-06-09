@@ -322,7 +322,6 @@ Void TEncCu::encodeCU ( TComDataCU* pcCU, Bool bForceTerminate )
 #endif//SNY_DQP
   // Encode CU data
   xEncodeCU( pcCU, 0, 0 );
-
 #if SNY_DQP
 #if SUB_LCU_DQP
 #else
@@ -671,7 +670,19 @@ Void TEncCu::xCompressCU( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, UInt u
   else
   {
     idQP = 0;
+#if FINE_GRANULARITY_SLICES
+    if( pcPic->getCU( rpcTempCU->getAddr() )->getEntropySliceStartCU(rpcTempCU->getZorderIdxInCU()) == pcSlice->getEntropySliceCurStartCUAddr())
+    {
+      iStartQP = rpcTempCU->getQP(0);
+    }
+    else
+    {
+      UInt uiCurSliceStartPartIdx = pcSlice->getEntropySliceCurStartCUAddr() % pcPic->getNumPartInCU() - rpcTempCU->getZorderIdxInCU();
+      iStartQP = rpcTempCU->getQP(uiCurSliceStartPartIdx);
+    }
+#else
     iStartQP = rpcTempCU->getQP(0);
+#endif
   }
 
   for (iQP=iStartQP-idQP;  iQP<=iStartQP+idQP; iQP++)
@@ -692,8 +703,8 @@ Void TEncCu::xCompressCU( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, UInt u
       for ( UInt uiPartUnitIdx = 0; uiPartUnitIdx < 4; uiPartUnitIdx++ )
       {
 #if SUB_LCU_DQP
-        pcSubBestPartCU->initSubCU( rpcTempCU, uiPartUnitIdx, uhNextDepth );           // clear sub partition datas or init.
-        pcSubTempPartCU->initSubCU( rpcTempCU, uiPartUnitIdx, uhNextDepth );           // clear sub partition datas or init.
+        pcSubBestPartCU->initSubCU( rpcTempCU, uiPartUnitIdx, uhNextDepth, iQP );           // clear sub partition datas or init.
+        pcSubTempPartCU->initSubCU( rpcTempCU, uiPartUnitIdx, uhNextDepth, iQP );           // clear sub partition datas or init.
         pcSubBestPartCU->setLastCodedQP( rpcTempCU->getLastCodedQP() );
         pcSubTempPartCU->setLastCodedQP( rpcTempCU->getLastCodedQP() );
 #else
@@ -757,7 +768,19 @@ Void TEncCu::xCompressCU( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, UInt u
         if ( bHasRedisual )
         {
           m_pcEntropyCoder->resetBits();
+#if FINE_GRANULARITY_SLICES
+          if( pcPic->getCU( rpcTempCU->getAddr() )->getEntropySliceStartCU(rpcTempCU->getZorderIdxInCU()) == pcSlice->getEntropySliceCurStartCUAddr())
+          {
+            m_pcEntropyCoder->encodeQP( rpcTempCU, 0, false );
+          }
+          else
+          {
+            UInt uiCurSliceStartPartIdx = pcSlice->getEntropySliceCurStartCUAddr() % pcPic->getNumPartInCU() - rpcTempCU->getZorderIdxInCU();
+            m_pcEntropyCoder->encodeQP( rpcTempCU, uiCurSliceStartPartIdx, false );
+          }
+#else
           m_pcEntropyCoder->encodeQP( rpcTempCU, 0, false );
+#endif
           rpcTempCU->getTotalBits() += m_pcEntropyCoder->getNumberOfWrittenBits(); // dQP bits
           rpcTempCU->getTotalCost()  = m_pcRdCost->calcRdCost( rpcTempCU->getTotalBits(), rpcTempCU->getTotalDistortion() );
         }
@@ -770,7 +793,7 @@ Void TEncCu::xCompressCU( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, UInt u
           }
           else
           {
-            UInt uiCurSliceStartPartIdx = pcSlice->getEntropySliceCurStartCUAddr() % pcPic->getNumPartInCU();
+            UInt uiCurSliceStartPartIdx = pcSlice->getEntropySliceCurStartCUAddr() % pcPic->getNumPartInCU() - rpcTempCU->getZorderIdxInCU();
             rpcTempCU->setQPSubParts( rpcTempCU->getRefQP( uiCurSliceStartPartIdx ), 0, uiDepth ); // set QP to default QP
           }
 #else
