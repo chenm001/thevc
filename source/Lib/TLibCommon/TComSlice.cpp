@@ -77,6 +77,9 @@ TComSlice::TComSlice()
 
   m_uiTLayer             = 0;
   m_bTLayerSwitchingFlag = false;
+#if FINE_GRANULARITY_SLICES
+  m_bFinalized=false;
+#endif
 }
 
 TComSlice::~TComSlice()
@@ -105,6 +108,9 @@ Void TComSlice::initSlice()
 
   m_aiNumRefIdx[REF_PIC_LIST_C]      = 0;
 
+#endif
+#if FINE_GRANULARITY_SLICES
+  m_bFinalized=false;
 #endif
 }
 

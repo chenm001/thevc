@@ -394,6 +394,7 @@ Void TComDataCU::initCU( TComPic* pcPic, UInt iCUAddr )
   m_dTotalCost         = MAX_DOUBLE;
   m_uiTotalDistortion  = 0;
   m_uiTotalBits        = 0;
+  m_uiTotalBins        = 0;
   m_uiNumPartition     = pcPic->getNumPartInCU();
   for(int i=0; i<pcPic->getNumPartInCU(); i++) 
   {
@@ -573,6 +574,9 @@ Void TComDataCU::initEstData()
   m_uiTotalDistortion  = 0;
   m_uiTotalBits        = 0;
   
+#if FINE_GRANULARITY_SLICES  
+  m_uiTotalBins        = 0;
+#endif  
   Int iSizeInUchar = sizeof( UChar  ) * m_uiNumPartition;
   Int iSizeInUInt  = sizeof( UInt   ) * m_uiNumPartition;
   Int iSizeInBool  = sizeof( Bool   ) * m_uiNumPartition;
@@ -638,7 +642,9 @@ Void TComDataCU::initEstData( UInt uiDepth, UInt uiQP, UInt uiLastQP )
   m_dTotalCost         = MAX_DOUBLE;
   m_uiTotalDistortion  = 0;
   m_uiTotalBits        = 0;
-
+#if FINE_GRANULARITY_SLICES
+  m_uiTotalBins        = 0;
+#endif  
   m_hLastCodedQP = uiLastQP;
 
   UChar uhWidth  = g_uiMaxCUWidth  >> uiDepth;
@@ -889,7 +895,7 @@ Void TComDataCU::initSubCU( TComDataCU* pcCU, UInt uiPartUnitIdx, UInt uiDepth )
   m_dTotalCost         = MAX_DOUBLE;
   m_uiTotalDistortion  = 0;
   m_uiTotalBits        = 0;
-
+  m_uiTotalBins        = 0;
   m_uiNumPartition     = pcCU->getTotalNumPart() >> 2;
 
   Int iSizeInUchar = sizeof( UChar  ) * m_uiNumPartition;
@@ -1248,6 +1254,7 @@ Void TComDataCU::copyPartFrom( TComDataCU* pcCU, UInt uiPartUnitIdx, UInt uiDept
   memcpy( m_pcIPCMSampleCr + uiTmp2 , pcCU->getPCMSampleCr(), sizeof(Pel) * uiTmp );
 #endif
 #if FINE_GRANULARITY_SLICES
+  m_uiTotalBins += pcCU->getTotalBins();
   for(int i=0; i<m_pcPic->getNumPartInCU(); i++) 
   {
     m_uiSliceStartCU[i]=pcCU->m_uiSliceStartCU[i];
@@ -1326,6 +1333,7 @@ Void TComDataCU::copyToPic( UChar uhDepth )
   memcpy( rpcCU->getPCMSampleCr() + uiTmp2 , m_pcIPCMSampleCr, sizeof( Pel ) * uiTmp );
 #endif
 #if FINE_GRANULARITY_SLICES
+  rpcCU->getTotalBins() = m_uiTotalBins;
   for(int i=0; i<m_pcPic->getNumPartInCU(); i++) 
   {
     rpcCU->m_uiSliceStartCU[i]=m_uiSliceStartCU[i];
@@ -1406,6 +1414,7 @@ Void TComDataCU::copyToPic( UChar uhDepth, UInt uiPartIdx, UInt uiPartDepth )
   memcpy( rpcCU->getPCMSampleCr() + uiTmp2 , m_pcIPCMSampleCr, sizeof( Pel ) * uiTmp );
 #endif
 #if FINE_GRANULARITY_SLICES
+  rpcCU->getTotalBins() = m_uiTotalBins;
   for(int i=0; i<m_pcPic->getNumPartInCU(); i++) 
   {
     rpcCU->m_uiSliceStartCU[i]=m_uiSliceStartCU[i];

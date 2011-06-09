@@ -260,6 +260,12 @@ Void TEncCu::compressCU( TComDataCU*& rpcCU )
       m_pcEntropyCoder->resetBits();
       m_pcEntropyCoder->encodeQP( m_ppcBestCU[0], 0, false );
       m_ppcBestCU[0]->getTotalBits() += m_pcEntropyCoder->getNumberOfWrittenBits(); // dQP bits
+#if FINE_GRANULARITY_SLICES
+      if(m_pcEncCfg->getUseSBACRD())
+      {
+        m_ppcBestCU[0]->getTotalBins() += ((TEncBinCABAC *)((TEncSbac*)m_pcEntropyCoder->m_pcEntropyCoderIf)->getEncBinIf())->getBinsCoded();
+      }
+#endif
       m_ppcBestCU[0]->getTotalCost()  = m_pcRdCost->calcRdCost( m_ppcBestCU[0]->getTotalBits(), m_ppcBestCU[0]->getTotalDistortion() );
 
       fBestCost = m_ppcBestCU[0]->getTotalCost();
@@ -282,6 +288,12 @@ Void TEncCu::compressCU( TComDataCU*& rpcCU )
         m_pcEntropyCoder->resetBits();
         m_pcEntropyCoder->encodeQP( m_ppcBestCU[0], 0, false );
         m_ppcBestCU[0]->getTotalBits() += m_pcEntropyCoder->getNumberOfWrittenBits(); // dQP bits
+#if FINE_GRANULARITY_SLICES
+        if(m_pcEncCfg->getUseSBACRD())
+        {
+          m_ppcBestCU[0]->getTotalBins() += ((TEncBinCABAC *)((TEncSbac*)m_pcEntropyCoder->m_pcEntropyCoderIf)->getEncBinIf())->getBinsCoded();
+        }
+#endif
         m_ppcBestCU[0]->getTotalCost()  = m_pcRdCost->calcRdCost( m_ppcBestCU[0]->getTotalBits(), m_ppcBestCU[0]->getTotalDistortion() );
 
         if ( fBestCost > m_ppcBestCU[0]->getTotalCost() )
@@ -305,6 +317,12 @@ Void TEncCu::compressCU( TComDataCU*& rpcCU )
       m_pcEntropyCoder->resetBits();
       m_pcEntropyCoder->encodeQP( m_ppcBestCU[0], 0, false );
       m_ppcBestCU[0]->getTotalBits() += m_pcEntropyCoder->getNumberOfWrittenBits(); // dQP bits
+#if FINE_GRANULARITY_SLICES
+      if(m_pcEncCfg->getUseSBACRD())
+      {
+        m_ppcBestCU[0]->getTotalBins() += ((TEncBinCABAC *)((TEncSbac*)m_pcEntropyCoder->m_pcEntropyCoderIf)->getEncBinIf())->getBinsCoded();
+      }
+#endif
       m_ppcBestCU[0]->getTotalCost()  = m_pcRdCost->calcRdCost( m_ppcBestCU[0]->getTotalBits(), m_ppcBestCU[0]->getTotalDistortion() );
     }
   }
@@ -634,6 +652,12 @@ Void TEncCu::xCompressCU( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, UInt u
     m_pcEntropyCoder->resetBits();
     m_pcEntropyCoder->encodeSplitFlag( rpcBestCU, 0, uiDepth, true );
     rpcBestCU->getTotalBits() += m_pcEntropyCoder->getNumberOfWrittenBits(); // split bits
+#if FINE_GRANULARITY_SLICES
+    if(m_pcEncCfg->getUseSBACRD())
+    {
+      rpcBestCU->getTotalBins() += ((TEncBinCABAC *)((TEncSbac*)m_pcEntropyCoder->m_pcEntropyCoderIf)->getEncBinIf())->getBinsCoded();
+    }
+#endif
     rpcBestCU->getTotalCost()  = m_pcRdCost->calcRdCost( rpcBestCU->getTotalBits(), rpcBestCU->getTotalDistortion() );
 
     // accumulate statistics for early skip
@@ -744,6 +768,12 @@ Void TEncCu::xCompressCU( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, UInt u
         m_pcEntropyCoder->encodeSplitFlag( rpcTempCU, 0, uiDepth, true );
 
         rpcTempCU->getTotalBits() += m_pcEntropyCoder->getNumberOfWrittenBits(); // split bits
+#if FINE_GRANULARITY_SLICES
+        if(m_pcEncCfg->getUseSBACRD())
+        {
+          rpcBestCU->getTotalBins() += ((TEncBinCABAC *)((TEncSbac*)m_pcEntropyCoder->m_pcEntropyCoderIf)->getEncBinIf())->getBinsCoded();
+        }
+#endif
       }
       rpcTempCU->getTotalCost()  = m_pcRdCost->calcRdCost( rpcTempCU->getTotalBits(), rpcTempCU->getTotalDistortion() );
 
@@ -782,6 +812,12 @@ Void TEncCu::xCompressCU( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, UInt u
           m_pcEntropyCoder->encodeQP( rpcTempCU, 0, false );
 #endif
           rpcTempCU->getTotalBits() += m_pcEntropyCoder->getNumberOfWrittenBits(); // dQP bits
+#if FINE_GRANULARITY_SLICES
+          if(m_pcEncCfg->getUseSBACRD())
+          {
+            rpcBestCU->getTotalBins() += ((TEncBinCABAC *)((TEncSbac*)m_pcEntropyCoder->m_pcEntropyCoderIf)->getEncBinIf())->getBinsCoded();
+          }
+#endif
           rpcTempCU->getTotalCost()  = m_pcRdCost->calcRdCost( rpcTempCU->getTotalBits(), rpcTempCU->getTotalDistortion() );
         }
         else
@@ -821,7 +857,34 @@ Void TEncCu::xCompressCU( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, UInt u
       {
         m_pppcRDSbacCoder[uhNextDepth][CI_NEXT_BEST]->store(m_pppcRDSbacCoder[uiDepth][CI_TEMP_BEST]);
       }
-
+#if FINE_GRANULARITY_SLICES
+      Bool bEntropyLimit=false;
+      Bool bSliceLimit=false;
+      bSliceLimit=rpcBestCU->getSlice()->getSliceMode()==AD_HOC_SLICES_FIXED_NUMBER_OF_BYTES_IN_SLICE&&(rpcBestCU->getTotalBits()>rpcBestCU->getSlice()->getSliceArgument()<<3);
+      if(rpcBestCU->getSlice()->getSliceMode()==SHARP_MULTIPLE_CONSTRAINT_BASED_ENTROPY_SLICE&&m_pcEncCfg->getUseSBACRD())
+      {
+        if(rpcBestCU->getTotalBins()>rpcBestCU->getSlice()->getEntropySliceArgument())
+        {
+          bEntropyLimit=true;
+        }
+      }
+      else if(rpcBestCU->getSlice()->getSliceMode()==SHARP_MULTIPLE_CONSTRAINT_BASED_ENTROPY_SLICE)
+      {
+        if(rpcBestCU->getTotalBits()>rpcBestCU->getSlice()->getEntropySliceArgument())
+        {
+          bEntropyLimit=true;
+        }
+      }
+      if(rpcBestCU->getDepth(0)>=rpcBestCU->getSlice()->getPPS()->getSliceGranularity())
+      {
+        bSliceLimit=false;
+        bEntropyLimit=false;
+      }
+      if(bSliceLimit||bEntropyLimit)
+      {
+        rpcBestCU->getTotalCost()=rpcTempCU->getTotalCost()+1;
+      }
+#endif
 #if SUB_LCU_DQP
       xCheckBestMode( rpcBestCU, rpcTempCU, uiDepth);                                  // RD compare current larger prediction
 #else
@@ -912,7 +975,7 @@ Void TEncCu::finishCU( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
     iGranularityEnd+=max(iGranularitySize,(pcCU->getPic()->getNumPartInCU()>>(uiDepth<<1)));
   }
   // Set slice end parameter
-  if(pcSlice->getSliceMode()==AD_HOC_SLICES_FIXED_NUMBER_OF_BYTES_IN_SLICE&&pcSlice->getSliceBits()<1<<30&&pcSlice->getSliceBits()+m_pcBitCounter->getNumberOfWrittenBits()>pcSlice->getSliceArgument()<<3) 
+  if(pcSlice->getSliceMode()==AD_HOC_SLICES_FIXED_NUMBER_OF_BYTES_IN_SLICE&&!pcSlice->getFinalized()&&pcSlice->getSliceBits()+m_pcBitCounter->getNumberOfWrittenBits()>pcSlice->getSliceArgument()<<3) 
   {
     pcSlice->setEntropySliceCurEndCUAddr(iGranularityEnd);
     pcSlice->setSliceCurEndCUAddr(iGranularityEnd);
@@ -923,14 +986,14 @@ Void TEncCu::finishCU( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
   {
     TEncBinCABAC *pppcRDSbacCoder = (TEncBinCABAC *) m_pppcRDSbacCoder[0][CI_CURR_BEST]->getEncBinIf();
     UInt uiBinsCoded = pppcRDSbacCoder->getBinsCoded();
-    if(pcSlice->getEntropySliceMode()==SHARP_MULTIPLE_CONSTRAINT_BASED_ENTROPY_SLICE&&pcSlice->getSliceBits()<1<<30&&pcSlice->getEntropySliceCounter()+uiBinsCoded>pcSlice->getEntropySliceArgument())
+    if(pcSlice->getEntropySliceMode()==SHARP_MULTIPLE_CONSTRAINT_BASED_ENTROPY_SLICE&&!pcSlice->getFinalized()&&pcSlice->getEntropySliceCounter()+uiBinsCoded>pcSlice->getEntropySliceArgument())
     {
       pcSlice->setEntropySliceCurEndCUAddr(iGranularityEnd);
     }
   }
   else
   {
-    if(pcSlice->getEntropySliceMode()==SHARP_MULTIPLE_CONSTRAINT_BASED_ENTROPY_SLICE&&pcSlice->getSliceBits()<1<<30&&pcSlice->getEntropySliceCounter()+m_pcBitCounter->getNumberOfWrittenBits()>pcSlice->getEntropySliceArgument()) 
+    if(pcSlice->getEntropySliceMode()==SHARP_MULTIPLE_CONSTRAINT_BASED_ENTROPY_SLICE&&!pcSlice->getFinalized()&&pcSlice->getEntropySliceCounter()+m_pcBitCounter->getNumberOfWrittenBits()>pcSlice->getEntropySliceArgument()) 
     {
       pcSlice->setEntropySliceCurEndCUAddr(iGranularityEnd);
     }
@@ -1151,6 +1214,12 @@ Void TEncCu::xCheckRDCostSkip( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, B
       m_pcEntropyCoder->resetBits();
       m_pcEntropyCoder->encodeQP( rpcTempCU, 0, false );
       rpcTempCU->getTotalBits() += m_pcEntropyCoder->getNumberOfWrittenBits(); // dQP bits
+#if FINE_GRANULARITY_SLICES
+      if(m_pcEncCfg->getUseSBACRD())
+      {
+        rpcBestCU->getTotalBins() += ((TEncBinCABAC *)((TEncSbac*)m_pcEntropyCoder->m_pcEntropyCoderIf)->getEncBinIf())->getBinsCoded();
+      }
+#endif
       rpcTempCU->getTotalCost()  = m_pcRdCost->calcRdCost( rpcTempCU->getTotalBits(), rpcTempCU->getTotalDistortion() );
     }
     else
@@ -1266,6 +1335,12 @@ Void TEncCu::xCheckRDCostMerge2Nx2N( TComDataCU*& rpcBestCU, TComDataCU*& rpcTem
           m_pcEntropyCoder->resetBits();
           m_pcEntropyCoder->encodeQP( rpcTempCU, 0, false );
           rpcTempCU->getTotalBits() += m_pcEntropyCoder->getNumberOfWrittenBits(); // dQP bits
+#if FINE_GRANULARITY_SLICES
+          if(m_pcEncCfg->getUseSBACRD())
+          {
+            rpcBestCU->getTotalBins() += ((TEncBinCABAC *)((TEncSbac*)m_pcEntropyCoder->m_pcEntropyCoderIf)->getEncBinIf())->getBinsCoded();
+          }
+#endif
           rpcTempCU->getTotalCost()  = m_pcRdCost->calcRdCost( rpcTempCU->getTotalBits(), rpcTempCU->getTotalDistortion() );
         }
         else
@@ -1325,6 +1400,12 @@ Void TEncCu::xCheckRDCostInter( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, 
       m_pcEntropyCoder->resetBits();
       m_pcEntropyCoder->encodeQP( rpcTempCU, 0, false );
       rpcTempCU->getTotalBits() += m_pcEntropyCoder->getNumberOfWrittenBits(); // dQP bits
+#if FINE_GRANULARITY_SLICES
+      if(m_pcEncCfg->getUseSBACRD())
+      {
+        rpcBestCU->getTotalBins() += ((TEncBinCABAC *)((TEncSbac*)m_pcEntropyCoder->m_pcEntropyCoderIf)->getEncBinIf())->getBinsCoded();
+      }
+#endif
     }
     else
     {
@@ -1378,6 +1459,12 @@ Void TEncCu::xCheckRDCostIntra( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, 
   if( m_bUseSBACRD ) m_pcRDGoOnSbacCoder->store(m_pppcRDSbacCoder[uiDepth][CI_TEMP_BEST]);
   
   rpcTempCU->getTotalBits() = m_pcEntropyCoder->getNumberOfWrittenBits();
+#if FINE_GRANULARITY_SLICES
+  if(m_pcEncCfg->getUseSBACRD())
+  {
+    rpcBestCU->getTotalBins() = ((TEncBinCABAC *)((TEncSbac*)m_pcEntropyCoder->m_pcEntropyCoderIf)->getEncBinIf())->getBinsCoded();
+  }
+#endif
   rpcTempCU->getTotalCost() = m_pcRdCost->calcRdCost( rpcTempCU->getTotalBits(), rpcTempCU->getTotalDistortion() );
   
 #if SUB_LCU_DQP
@@ -1388,6 +1475,12 @@ Void TEncCu::xCheckRDCostIntra( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, 
       m_pcEntropyCoder->resetBits();
       m_pcEntropyCoder->encodeQP( rpcTempCU, 0, false );
       rpcTempCU->getTotalBits() += m_pcEntropyCoder->getNumberOfWrittenBits(); // dQP bits
+#if FINE_GRANULARITY_SLICES
+      if(m_pcEncCfg->getUseSBACRD())
+      {
+        rpcBestCU->getTotalBins() += ((TEncBinCABAC *)((TEncSbac*)m_pcEntropyCoder->m_pcEntropyCoderIf)->getEncBinIf())->getBinsCoded();
+      }
+#endif
       rpcTempCU->getTotalCost()  = m_pcRdCost->calcRdCost( rpcTempCU->getTotalBits(), rpcTempCU->getTotalDistortion() );
     }
     else
@@ -1433,6 +1526,12 @@ Void TEncCu::xCheckIntraPCM( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU )
   if( m_bUseSBACRD ) m_pcRDGoOnSbacCoder->store(m_pppcRDSbacCoder[uiDepth][CI_TEMP_BEST]);
 
   rpcTempCU->getTotalBits() = m_pcEntropyCoder->getNumberOfWrittenBits();
+#if FINE_GRANULARITY_SLICES
+  if(m_pcEncCfg->getUseSBACRD())
+  {
+    rpcBestCU->getTotalBins() = ((TEncBinCABAC *)((TEncSbac*)m_pcEntropyCoder->m_pcEntropyCoderIf)->getEncBinIf())->getBinsCoded();
+  }
+#endif
   rpcTempCU->getTotalCost() = m_pcRdCost->calcRdCost( rpcTempCU->getTotalBits(), rpcTempCU->getTotalDistortion() );
 
   xCheckBestMode( rpcBestCU, rpcTempCU );
@@ -1442,11 +1541,7 @@ Void TEncCu::xCheckIntraPCM( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU )
 // check whether current try is the best
 Void TEncCu::xCheckBestMode( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU )
 {
-#if FINE_GRANULARITY_SLICES
-  if( rpcTempCU->getTotalCost() < rpcBestCU->getTotalCost()||(rpcBestCU->getSlice()->getSliceMode()==AD_HOC_SLICES_FIXED_NUMBER_OF_BYTES_IN_SLICE&&(rpcBestCU->getTotalBits())>rpcBestCU->getSlice()->getSliceArgument()<<3))
-#else
   if( rpcTempCU->getTotalCost() < rpcBestCU->getTotalCost() )
-#endif
   {
     TComYuv* pcYuv;
     UChar uhDepth = rpcBestCU->getDepth(0);
@@ -1489,11 +1584,7 @@ Void TEncCu::xCheckBestMode( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU )
  */
 Void TEncCu::xCheckBestMode( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, UInt uiDepth )
 {
-#if FINE_GRANULARITY_SLICES
-  if( rpcTempCU->getTotalCost() < rpcBestCU->getTotalCost()||(rpcBestCU->getSlice()->getSliceMode()==AD_HOC_SLICES_FIXED_NUMBER_OF_BYTES_IN_SLICE&&(rpcBestCU->getTotalBits())>rpcBestCU->getSlice()->getSliceArgument()<<3))
-#else
   if( rpcTempCU->getTotalCost() < rpcBestCU->getTotalCost() )
-#endif
   {
     TComYuv* pcYuv;
     if( rpcTempCU->getSlice()->getSPS()->getUseMRG() && uiDepth == rpcTempCU->getDepth( 0 ) && rpcTempCU->getSlice()->getSliceType() != I_SLICE && rpcTempCU->getPartitionSize( 0 ) == SIZE_2Nx2N && !rpcTempCU->getMergeFlag( 0 ) )
