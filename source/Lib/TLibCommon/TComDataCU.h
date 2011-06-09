@@ -203,15 +203,15 @@ public:
   Void          destroy               ();
   
   Void          initCU                ( TComPic* pcPic, UInt uiCUAddr );
+#if SUB_LCU_DQP
+  Void          initEstData           ( UInt uiDepth, UInt uiQP, UInt uiLastQP );
+#else
   Void          initEstData           ();
+#endif
 #if SUB_LCU_DQP
   Void          initSubCU             ( TComDataCU* pcCU, UInt uiPartUnitIdx, UInt uiDepth, UInt uiQP );
 #else
   Void          initSubCU             ( TComDataCU* pcCU, UInt uiPartUnitIdx, UInt uiDepth );
-#endif
-
-#if SUB_LCU_DQP
-  Void          initEstDataDeltaQP    ( UInt uiDepth, UInt uiQP, UInt uiLastQP );
 #endif
 
   Void          copySubCU             ( TComDataCU* pcCU, UInt uiPartUnitIdx, UInt uiDepth );

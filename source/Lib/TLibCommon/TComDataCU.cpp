@@ -564,6 +564,8 @@ Void TComDataCU::initCU( TComPic* pcPic, UInt iCUAddr )
   }
 }
 #endif
+
+#if !SUB_LCU_DQP
 // initialize prediction data
 Void TComDataCU::initEstData()
 {
@@ -621,8 +623,7 @@ Void TComDataCU::initEstData()
   m_acCUMvField[0].clearMvField();
   m_acCUMvField[1].clearMvField();
 }
-
-#if SUB_LCU_DQP
+#else
 /** initialize prediction data with enabling sub-LCU-level delta QP
 *\param  uiDepth  depth of the current CU 
 *\param  uiQP     QP for the current CU
@@ -631,8 +632,9 @@ Void TComDataCU::initEstData()
 *- set QP value according to input QP 
 *- set last-coded QP value according to input last-coded QP 
 */
-Void TComDataCU::initEstDataDeltaQP( UInt uiDepth, UInt uiQP, UInt uiLastQP )
+Void TComDataCU::initEstData( UInt uiDepth, UInt uiQP, UInt uiLastQP )
 {
+#if FINE_GRANULARITY_SLICES
   m_dTotalCost         = MAX_DOUBLE;
   m_uiTotalDistortion  = 0;
   m_uiTotalBits        = 0;
@@ -644,10 +646,7 @@ Void TComDataCU::initEstDataDeltaQP( UInt uiDepth, UInt uiQP, UInt uiLastQP )
 
   for (UInt ui = 0; ui < m_uiNumPartition; ui++)
   {
-    if(getAddr()*m_pcPic->getNumPartInCU()+m_uiAbsIdxInLCU+ui<getSlice()->getEntropySliceCurStartCUAddr()) 
-    {
-    }
-    else
+    if(getAddr()*m_pcPic->getNumPartInCU()+m_uiAbsIdxInLCU+ui >= getSlice()->getEntropySliceCurStartCUAddr()) 
     {
       m_apiMVPIdx[0][ui] = -1;
       m_apiMVPIdx[1][ui] = -1;
@@ -681,10 +680,7 @@ Void TComDataCU::initEstDataDeltaQP( UInt uiDepth, UInt uiQP, UInt uiLastQP )
 
   UInt uiTmp = uhWidth*uhHeight;
 
-  if(getAddr()*m_pcPic->getNumPartInCU()+m_uiAbsIdxInLCU<getSlice()->getEntropySliceCurStartCUAddr()) 
-  {
-  }
-  else
+  if(getAddr()*m_pcPic->getNumPartInCU()+m_uiAbsIdxInLCU >= getSlice()->getEntropySliceCurStartCUAddr()) 
   {
     m_acCUMvField[0].clearMvField();
     m_acCUMvField[1].clearMvField();
@@ -707,8 +703,72 @@ Void TComDataCU::initEstDataDeltaQP( UInt uiDepth, UInt uiQP, UInt uiLastQP )
 #endif
     }
   }
+#else
+  m_dTotalCost         = MAX_DOUBLE;
+  m_uiTotalDistortion  = 0;
+  m_uiTotalBits        = 0;
+
+  Int iSizeInUchar = sizeof( UChar  ) * m_uiNumPartition;
+  Int iSizeInUInt  = sizeof( UInt   ) * m_uiNumPartition;
+  Int iSizeInBool  = sizeof( Bool   ) * m_uiNumPartition;
+  memset( m_phQP,              uiQP, iSizeInUchar );
+  m_hLastCodedQP = uiLastQP;
+  memset( m_puiAlfCtrlFlag,     0, iSizeInUInt );
+#if E057_INTRA_PCM
+  memset( m_pbIPCMFlag,         0, iSizeInBool );
+#endif
+  memset( m_pbMergeFlag,        0, iSizeInBool  );
+  memset( m_puhMergeIndex,      0, iSizeInUchar );
+  for( UInt ui = 0; ui < MRG_MAX_NUM_CANDS; ui++ )
+  {
+    memset( m_apuhNeighbourCandIdx[ ui ], 0, iSizeInUchar );
+  }
+  memset( m_puhLumaIntraDir,    2, iSizeInUchar );
+  memset( m_puhChromaIntraDir,  0, iSizeInUchar );
+  memset( m_puhInterDir,        0, iSizeInUchar );
+  memset( m_puhTrIdx,           0, iSizeInUchar );
+  memset( m_puhCbf[0],          0, iSizeInUchar );
+  memset( m_puhCbf[1],          0, iSizeInUchar );
+  memset( m_puhCbf[2],          0, iSizeInUchar );
+
+  memset( m_puhDepth,     uiDepth, iSizeInUchar );
+
+  UChar uhWidth  = g_uiMaxCUWidth  >> uiDepth;
+  UChar uhHeight = g_uiMaxCUHeight >> uiDepth;
+  memset( m_puhWidth,          uhWidth,  iSizeInUchar );
+  memset( m_puhHeight,         uhHeight, iSizeInUchar );
+
+  memset( m_apiMVPIdx[0], -1, sizeof(m_apiMVPIdx[0][0]) * m_uiNumPartition);
+  memset( m_apiMVPIdx[1], -1, sizeof(m_apiMVPIdx[1][0]) * m_uiNumPartition);
+  memset( m_apiMVPNum[0], -1, sizeof(m_apiMVPNum[0][0]) * m_uiNumPartition);
+  memset( m_apiMVPNum[1], -1, sizeof(m_apiMVPNum[1][0]) * m_uiNumPartition);
+
+  for (UInt ui = 0; ui < m_uiNumPartition; ui++)
+  {
+    m_pePartSize[ui] = SIZE_NONE;
+    m_pePredMode[ui] = MODE_NONE;
+  }
+
+  UInt uiTmp = m_puhWidth[0]*m_puhHeight[0];
+  memset( m_pcTrCoeffY , 0, sizeof(TCoeff)*uiTmp );
+#if E057_INTRA_PCM
+  memset( m_pcIPCMSampleY , 0, sizeof( Pel ) * uiTmp );
+#endif
+
+  uiTmp >>= 2;
+  memset( m_pcTrCoeffCb, 0, sizeof(TCoeff)*uiTmp );
+  memset( m_pcTrCoeffCr, 0, sizeof(TCoeff)*uiTmp );
+#if E057_INTRA_PCM
+  memset( m_pcIPCMSampleCb , 0, sizeof( Pel ) * uiTmp );
+  memset( m_pcIPCMSampleCr , 0, sizeof( Pel ) * uiTmp );
+#endif
+
+  m_acCUMvField[0].clearMvField();
+  m_acCUMvField[1].clearMvField();
+#endif
 }
 #endif
+
 
 // initialize Sub partition
 #if !FINE_GRANULARITY_SLICES
