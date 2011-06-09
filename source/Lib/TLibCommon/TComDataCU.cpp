@@ -640,60 +640,77 @@ Void TComDataCU::initEstDataDeltaQP( UInt uiDepth, UInt uiQP, UInt uiLastQP )
   Int iSizeInUchar = sizeof( UChar  ) * m_uiNumPartition;
   Int iSizeInUInt  = sizeof( UInt   ) * m_uiNumPartition;
   Int iSizeInBool  = sizeof( Bool   ) * m_uiNumPartition;
-  memset( m_phQP,              uiQP, iSizeInUchar );
-  m_hLastCodedQP = uiLastQP;
-  memset( m_puiAlfCtrlFlag,     0, iSizeInUInt );
-#if E057_INTRA_PCM
-  memset( m_pbIPCMFlag,         0, iSizeInBool );
-#endif
-  memset( m_pbMergeFlag,        0, iSizeInBool  );
-  memset( m_puhMergeIndex,      0, iSizeInUchar );
-  for( UInt ui = 0; ui < MRG_MAX_NUM_CANDS; ui++ )
-  {
-    memset( m_apuhNeighbourCandIdx[ ui ], 0, iSizeInUchar );
-  }
-  memset( m_puhLumaIntraDir,    2, iSizeInUchar );
-  memset( m_puhChromaIntraDir,  0, iSizeInUchar );
-  memset( m_puhInterDir,        0, iSizeInUchar );
-  memset( m_puhTrIdx,           0, iSizeInUchar );
-  memset( m_puhCbf[0],          0, iSizeInUchar );
-  memset( m_puhCbf[1],          0, iSizeInUchar );
-  memset( m_puhCbf[2],          0, iSizeInUchar );
 
-  memset( m_puhDepth,     uiDepth, iSizeInUchar );
+  m_hLastCodedQP = uiLastQP;
 
   UChar uhWidth  = g_uiMaxCUWidth  >> uiDepth;
   UChar uhHeight = g_uiMaxCUHeight >> uiDepth;
-  memset( m_puhWidth,          uhWidth,  iSizeInUchar );
-  memset( m_puhHeight,         uhHeight, iSizeInUchar );
 
-  memset( m_apiMVPIdx[0], -1, sizeof(m_apiMVPIdx[0][0]) * m_uiNumPartition);
-  memset( m_apiMVPIdx[1], -1, sizeof(m_apiMVPIdx[1][0]) * m_uiNumPartition);
-  memset( m_apiMVPNum[0], -1, sizeof(m_apiMVPNum[0][0]) * m_uiNumPartition);
-  memset( m_apiMVPNum[1], -1, sizeof(m_apiMVPNum[1][0]) * m_uiNumPartition);
-  
   for (UInt ui = 0; ui < m_uiNumPartition; ui++)
   {
-    m_pePartSize[ui] = SIZE_NONE;
-    m_pePredMode[ui] = MODE_NONE;
+    if(getAddr()*m_pcPic->getNumPartInCU()+m_uiAbsIdxInLCU+ui<getSlice()->getEntropySliceCurStartCUAddr()) 
+    {
+    }
+    else
+    {
+      m_apiMVPIdx[0][ui] = -1;
+      m_apiMVPIdx[1][ui] = -1;
+      m_apiMVPNum[0][ui] = -1;
+      m_apiMVPNum[1][ui] = -1;
+      m_puhDepth  [ui] = uiDepth;
+      m_puhWidth  [ui] = uhWidth;
+      m_puhHeight [ui] = uhHeight;
+      m_puhTrIdx  [ui] = 0;
+      m_pePartSize[ui] = SIZE_NONE;
+      m_pePredMode[ui] = MODE_NONE;
+#if E057_INTRA_PCM
+      m_pbIPCMFlag[ui] = 0;
+#endif
+      m_phQP[ui] = uiQP;
+      m_puiAlfCtrlFlag[ui]= 0;
+      m_pbMergeFlag[ui] = 0;
+      m_puhMergeIndex[ui] = 0;
+      for( UInt ui2 = 0; ui2 < MRG_MAX_NUM_CANDS; ui2++ )
+      {
+        m_apuhNeighbourCandIdx[ ui2 ][ui] = 0;
+      }
+      m_puhLumaIntraDir[ui] = 2;
+      m_puhChromaIntraDir[ui] = 0;
+      m_puhInterDir[ui] = 0;
+      m_puhCbf[0][ui] = 0;
+      m_puhCbf[1][ui] = 0;
+      m_puhCbf[2][ui] = 0;
+    }
   }
 
-  UInt uiTmp = m_puhWidth[0]*m_puhHeight[0];
-  memset( m_pcTrCoeffY , 0, sizeof(TCoeff)*uiTmp );
-#if E057_INTRA_PCM
-  memset( m_pcIPCMSampleY , 0, sizeof( Pel ) * uiTmp );
-#endif
+  UInt uiTmp = uhWidth*uhHeight;
 
-  uiTmp >>= 2;
-  memset( m_pcTrCoeffCb, 0, sizeof(TCoeff)*uiTmp );
-  memset( m_pcTrCoeffCr, 0, sizeof(TCoeff)*uiTmp );
+  if(getAddr()*m_pcPic->getNumPartInCU()+m_uiAbsIdxInLCU<getSlice()->getEntropySliceCurStartCUAddr()) 
+  {
+  }
+  else
+  {
+    m_acCUMvField[0].clearMvField();
+    m_acCUMvField[1].clearMvField();
+    uiTmp = uhWidth*uhHeight;
+    for(int i=0; i<uiTmp; i++) 
+    {
+      m_pcTrCoeffY[i] = 0;
 #if E057_INTRA_PCM
-  memset( m_pcIPCMSampleCb , 0, sizeof( Pel ) * uiTmp );
-  memset( m_pcIPCMSampleCr , 0, sizeof( Pel ) * uiTmp );
+      m_pcIPCMSampleY[i] = 0;
 #endif
-
-  m_acCUMvField[0].clearMvField();
-  m_acCUMvField[1].clearMvField();
+    }
+    uiTmp>>=2;
+    for(int i=0; i<uiTmp; i++) 
+    {
+      m_pcTrCoeffCr[i] = 0;
+      m_pcTrCoeffCb[i] = 0;
+#if E057_INTRA_PCM
+      m_pcIPCMSampleCb[i] = 0;
+      m_pcIPCMSampleCr[i] = 0;
+#endif
+    }
+  }
 }
 #endif
 
@@ -819,7 +836,11 @@ Void TComDataCU::initSubCU( TComDataCU* pcCU, UInt uiPartUnitIdx, UInt uiDepth )
   Int iSizeInUInt  = sizeof( UInt   ) * m_uiNumPartition;
   Int iSizeInBool  = sizeof( Bool   ) * m_uiNumPartition;
 
-  memset( m_phQP, getSlice()->getSliceQp(), iSizeInUchar );
+#if SUB_LCU_DQP
+  memset( m_phQP,              pcCU->getQP(0), iSizeInUchar );
+#else
+  memset( m_phQP,              getSlice()->getSliceQp(), iSizeInUchar );
+#endif
 
   memset( m_puiAlfCtrlFlag,     0, iSizeInUInt );
   memset( m_pbMergeFlag,        0, iSizeInBool  );
@@ -1773,19 +1794,36 @@ TComDataCU* TComDataCU::getQpMinCuLeft( UInt& uiLPartUnitIdx, UInt uiCurrAbsIdxI
 {
   UInt uiNumPartInCUWidth = m_pcPic->getNumPartInWidth();
 
+  UInt uiAbsZorderQpMinCUIdx   = (uiCurrAbsIdxInLCU>>(8-(getSlice()->getPPS()->getMaxCuDQPDepth()<<1)))<<(8-(getSlice()->getPPS()->getMaxCuDQPDepth()<<1));
   UInt uiAbsRorderQpMinCUIdx   = g_auiZscanToRaster[(uiCurrAbsIdxInLCU>>(8-(getSlice()->getPPS()->getMaxCuDQPDepth()<<1)))<<(8-(getSlice()->getPPS()->getMaxCuDQPDepth()<<1))];
   UInt uiNumPartInQpMinCUWidth = getSlice()->getPPS()->getMinCuDQPSize()>>2;
+
+  if( (uiCurrAbsIdxInLCU != uiAbsZorderQpMinCUIdx) && 
+    ((bEnforceSliceRestriction && (m_pcPic->getCU( getAddr() )->getSliceStartCU(uiCurrAbsIdxInLCU) != m_pcPic->getCU( getAddr() )->getSliceStartCU (uiAbsZorderQpMinCUIdx))) ||
+    (bEnforceEntropySliceRestriction &&(m_pcPic->getCU( getAddr() )->getEntropySliceStartCU(uiCurrAbsIdxInLCU) != m_pcPic->getCU( getAddr() )->getEntropySliceStartCU (uiAbsZorderQpMinCUIdx)) )) )
+  {
+    return NULL;
+  }
 
   if( uiAbsRorderQpMinCUIdx % uiNumPartInCUWidth )
   {
     uiLPartUnitIdx = g_auiRasterToZscan[ uiAbsRorderQpMinCUIdx - uiNumPartInQpMinCUWidth ];
+#if FINE_GRANULARITY_SLICES 
+    TComDataCU* pcTempReconCU = m_pcPic->getCU( getAddr() );
+    if ((bEnforceSliceRestriction        && (pcTempReconCU==NULL || pcTempReconCU->getSlice() == NULL || pcTempReconCU->getSCUAddr()+uiLPartUnitIdx < m_pcPic->getCU( getAddr() )->getSliceStartCU       (uiAbsZorderQpMinCUIdx)))
+      ||(bEnforceEntropySliceRestriction && (pcTempReconCU==NULL || pcTempReconCU->getSlice() == NULL || pcTempReconCU->getSCUAddr()+uiLPartUnitIdx < m_pcPic->getCU( getAddr() )->getEntropySliceStartCU(uiAbsZorderQpMinCUIdx))))
+    {
+      return NULL;
+    }
+#endif
     return m_pcPic->getCU( getAddr() );
   }
 
   uiLPartUnitIdx = g_auiRasterToZscan[ uiAbsRorderQpMinCUIdx + uiNumPartInCUWidth - uiNumPartInQpMinCUWidth ];
+
 #if FINE_GRANULARITY_SLICES
-  if ( (bEnforceSliceRestriction && (m_pcCULeft==NULL || m_pcCULeft->getSlice()==NULL || m_pcCULeft->getAddr() < m_uiSliceStartCU[uiCurrAbsIdxInLCU])) ||
-    (bEnforceEntropySliceRestriction && (m_pcCULeft==NULL || m_pcCULeft->getSlice()==NULL || m_pcCULeft->getAddr() < m_uiEntropySliceStartCU[uiCurrAbsIdxInLCU])) )
+  if ((bEnforceSliceRestriction        && (m_pcCULeft==NULL || m_pcCULeft->getSlice()==NULL || m_pcCULeft->getSCUAddr()+uiLPartUnitIdx < m_pcPic->getCU( getAddr() )->getSliceStartCU       (uiAbsZorderQpMinCUIdx)))
+    ||(bEnforceEntropySliceRestriction && (m_pcCULeft==NULL || m_pcCULeft->getSlice()==NULL || m_pcCULeft->getSCUAddr()+uiLPartUnitIdx < m_pcPic->getCU( getAddr() )->getEntropySliceStartCU(uiAbsZorderQpMinCUIdx))))
 #else
   if ( (bEnforceSliceRestriction && (m_pcCULeft==NULL || m_pcCULeft->getSlice()==NULL || m_pcCULeft->getAddr() < m_uiSliceStartCU)) ||
     (bEnforceEntropySliceRestriction && (m_pcCULeft==NULL || m_pcCULeft->getSlice()==NULL || m_pcCULeft->getAddr() < m_uiEntropySliceStartCU)) )
@@ -1796,6 +1834,7 @@ TComDataCU* TComDataCU::getQpMinCuLeft( UInt& uiLPartUnitIdx, UInt uiCurrAbsIdxI
 
   return m_pcCULeft;
 }
+
 
 /** Get reference QP from left QpMinCu or latest coded QP
 *\param   uiCurrAbsIdxInLCU
@@ -2467,7 +2506,17 @@ Void TComDataCU::setQPSubParts( UInt uiQP, UInt uiAbsPartIdx, UInt uiDepth )
 {
   UInt uiCurrPartNumb = m_pcPic->getNumPartInCU() >> (uiDepth << 1);
   
+#if FINE_GRANULARITY_SLICES
+  for(UInt uiSCUIdx = uiAbsPartIdx; uiSCUIdx < uiAbsPartIdx+uiCurrPartNumb; uiSCUIdx++)
+  {
+    if( m_pcPic->getCU( getAddr() )->getEntropySliceStartCU(uiSCUIdx+getZorderIdxInCU()) == getSlice()->getEntropySliceCurStartCUAddr() )
+    {
+      m_phQP[uiSCUIdx] = uiQP;
+    }
+  }
+#else
   memset( m_phQP + uiAbsPartIdx, uiQP, sizeof(Char)*uiCurrPartNumb );
+#endif
 }
 
 Void TComDataCU::setLumaIntraDirSubParts( UInt uiDir, UInt uiAbsPartIdx, UInt uiDepth )

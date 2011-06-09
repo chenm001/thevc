@@ -1903,7 +1903,13 @@ Void TDecCavlc::parseDeltaQP( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth 
   uiQp = pcCU->getSlice()->getSliceQp() + iDQp;
 #endif
 
+#if SUB_LCU_DQP
+  UInt uiAbsQpCUPartIdx = (uiAbsPartIdx>>(8-(pcCU->getSlice()->getPPS()->getMaxCuDQPDepth()<<1)))<<(8-(pcCU->getSlice()->getPPS()->getMaxCuDQPDepth()<<1)) ;
+  UInt uiQpCUDepth =   min(uiDepth,pcCU->getSlice()->getPPS()->getMaxCuDQPDepth()) ;
+  pcCU->setQPSubParts( uiQp, uiAbsQpCUPartIdx, uiQpCUDepth );
+#else
   pcCU->setQPSubParts( uiQp, uiAbsPartIdx, uiDepth );
+#endif
 }
 
 #if CAVLC_RQT_CBP
