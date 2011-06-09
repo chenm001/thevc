@@ -637,10 +637,6 @@ Void TComDataCU::initEstDataDeltaQP( UInt uiDepth, UInt uiQP, UInt uiLastQP )
   m_uiTotalDistortion  = 0;
   m_uiTotalBits        = 0;
 
-  Int iSizeInUchar = sizeof( UChar  ) * m_uiNumPartition;
-  Int iSizeInUInt  = sizeof( UInt   ) * m_uiNumPartition;
-  Int iSizeInBool  = sizeof( Bool   ) * m_uiNumPartition;
-
   m_hLastCodedQP = uiLastQP;
 
   UChar uhWidth  = g_uiMaxCUWidth  >> uiDepth;
