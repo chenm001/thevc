@@ -438,7 +438,34 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
       m_pcLoopFilter->setCfg(pcSlice->getLoopFilterDisable(), m_pcCfg->getLoopFilterAlphaC0Offget(), m_pcCfg->getLoopFilterBetaOffget());
       m_pcLoopFilter->loopFilterPic( pcPic );
 
-#if MTK_NONCROSS_INLOOP_FILTER
+#if MTK_SAO && MTK_NONCROSS_INLOOP_FILTER && FINE_GRANULARITY_SLICES 
+      pcSlice = pcPic->getSlice(0);
+
+      if(pcSlice->getSPS()->getUseSAO())
+      {
+        m_pcSAO->setNumSlicesInPic( uiNumSlices );
+        m_pcSAO->setSliceGranularityDepth(pcSlice->getPPS()->getSliceGranularity());
+        if(uiNumSlices == 1)
+        {
+          m_pcSAO->setUseNonCrossAlf(false);
+        }
+        else
+        {
+          m_pcSAO->setPic(pcPic);
+          m_pcSAO->setUseNonCrossAlf(!pcSlice->getSPS()->getLFCrossSliceBoundaryFlag());
+          m_pcSAO->InitIsFineSliceCu();
+          UInt uiStartAddr, uiEndAddr;
+          for(UInt i=0; i< uiNumSlices ; i++)
+          {
+            uiStartAddr = m_uiStoredStartCUAddrForEncodingSlice[i];
+            uiEndAddr   = m_uiStoredStartCUAddrForEncodingSlice[i+1]-1;
+            m_pcSAO->createSliceMap(i, uiStartAddr, uiEndAddr);
+          }
+        }
+      }
+#endif
+
+#if MTK_NONCROSS_INLOOP_FILTER 
       pcSlice = pcPic->getSlice(0);
 
       if(pcSlice->getSPS()->getUseALF())
@@ -472,9 +499,10 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
           }
 
         }
-        //m_pcAdaptiveLoopFilter->plotSliceBoundary();
+//         m_pcAdaptiveLoopFilter->plotSliceBoundary();
       }
 #endif
+
       /////////////////////////////////////////////////////////////////////////////////////////////////// File writing
       // Set entropy coder
       m_pcEntropyCoder->setEntropyCoder   ( m_pcCavlcCoder, pcSlice );

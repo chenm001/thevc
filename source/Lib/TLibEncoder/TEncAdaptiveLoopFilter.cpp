@@ -5488,10 +5488,273 @@ inline int xSign(int x)
 {
   return ((x >> 31) | ((int)( (((unsigned int) -x)) >> 31)));
 }
-/** calculate Ao Stats Cu
+#if SAO_FGS_MNIF
+/** calculate SAO statistics for current LCU with slice granularity
+ * \param iAddr, iPartIdx
+ */
+Void TEncSampleAdaptiveOffset::calcAoStatsCuMap(Int iAddr, Int iPartIdx)
+{
+  Int x,y;
+  TComDataCU *pTmpCu = m_pcPic->getCU(iAddr);
+  TComSPS *pTmpSPS =  m_pcPic->getSlice(0)->getSPS();
+
+
+  Pel* pOrg      ;
+  Pel* pRec      ;
+  Pel* pMap      ;    
+  Int iStride    =  m_pcPic->getStride();
+  Int iLcuWidth  = pTmpSPS->getMaxCUHeight();
+  Int iLcuHeight = pTmpSPS->getMaxCUWidth();
+  Int iPicWidth  = pTmpSPS->getWidth();
+  Int iPicHeight = pTmpSPS->getHeight();
+  UInt uiLPelX   = pTmpCu->getCUPelX();
+  UInt uiRPelX   = uiLPelX + iLcuWidth;
+  UInt uiTPelY   = pTmpCu->getCUPelY();
+  UInt uiBPelY   = uiTPelY + iLcuHeight;
+  uiRPelX    = uiRPelX > iPicWidth ? iPicWidth : uiRPelX;
+  uiBPelY    = uiBPelY > iPicHeight? iPicHeight: uiBPelY;
+  iLcuWidth  = uiRPelX - uiLPelX;
+  iLcuHeight = uiBPelY - uiTPelY;
+  Int64* iStats ;
+  Int64* iCount ;
+  Int iClassIdx;
+
+
+  //   if(m_iAoType == BO_0 || m_iAoType == BO_1)
+  {
+    iStats = m_iOffsetOrg[iPartIdx][SAO_BO_0];
+    iCount = m_iCount    [iPartIdx][SAO_BO_0];
+
+    pOrg      = m_pcPic->getPicYuvOrg()->getLumaAddr(iAddr);
+    pRec      = m_pcPic->getPicYuvRec()->getLumaAddr(iAddr);
+
+    for (y=0; y<iLcuHeight; y++)
+    {
+      for (x=0; x<iLcuWidth; x++)
+      {
+        iClassIdx =  m_ppLumaTableBo0[pRec[x]];
+        if (iClassIdx)
+        {
+            iStats[iClassIdx] += (pOrg[x] - pRec[x]); 
+            iCount[iClassIdx] ++;
+        }
+      }
+      pOrg += iStride;
+      pRec += iStride;
+    }
+
+    iStats = m_iOffsetOrg[iPartIdx][SAO_BO_1];
+    iCount = m_iCount    [iPartIdx][SAO_BO_1];
+
+    pOrg      = m_pcPic->getPicYuvOrg()->getLumaAddr(iAddr);
+    pRec      = m_pcPic->getPicYuvRec()->getLumaAddr(iAddr);
+
+    for (y=0; y<iLcuHeight; y++)
+    {
+      for (x=0; x<iLcuWidth; x++)
+      {
+        iClassIdx =  m_ppLumaTableBo1[pRec[x]];
+        if (iClassIdx)
+        {
+            iStats[iClassIdx] += (pOrg[x] - pRec[x]); 
+            iCount[iClassIdx] ++;
+        }
+      }
+      pOrg += iStride;
+      pRec += iStride;
+    }
+  }
+
+  Int iSignLeft;
+  Int iSignRight;
+  Int iSignDown;
+  Int iSignDown1;
+  Int iSignDown2;
+
+  UInt uiEdgeType;
+
+  //   if (m_iAoType == EO_0  || m_iAoType == EO_1 || m_iAoType == EO_2 || m_iAoType == EO_3)
+  {
+    //     if (m_iAoType == EO_0  )
+    {
+      iStats = m_iOffsetOrg[iPartIdx][SAO_EO_0];
+      iCount = m_iCount    [iPartIdx][SAO_EO_0];
+
+      pOrg      = m_pcPic->getPicYuvOrg()->getLumaAddr(iAddr);
+      pRec      = m_pcPic->getPicYuvRec()->getLumaAddr(iAddr);
+      pMap      = m_pcPicYuvMap->getLumaAddr(iAddr);    
+
+      for (y=0; y<iLcuHeight; y++)
+      {
+        iSignLeft  = xSign(pRec[1] - pRec[0]);
+        for (x=1; x<iLcuWidth-1; x++)
+        {
+          iSignRight =  xSign(pRec[x] - pRec[x+1]); 
+          uiEdgeType =  iSignRight + iSignLeft + 2;
+          iSignLeft  = -iSignRight;
+          if (pMap[x-1] == pMap[x+1])
+          {
+            iStats[m_auiEoTable[uiEdgeType]] += (pOrg[x] - pRec[x]);
+            iCount[m_auiEoTable[uiEdgeType]] ++;
+          }
+        }
+        pOrg += iStride;
+        pRec += iStride;
+        pMap += iStride;
+
+      }
+    }
+
+    //     if (m_iAoType == EO_1  )
+    {
+      iStats = m_iOffsetOrg[iPartIdx][SAO_EO_1];
+      iCount = m_iCount    [iPartIdx][SAO_EO_1];
+
+      pOrg      = m_pcPic->getPicYuvOrg()->getLumaAddr(iAddr);
+      pRec      = m_pcPic->getPicYuvRec()->getLumaAddr(iAddr);
+      pMap      = m_pcPicYuvMap->getLumaAddr(iAddr);    
+
+      pOrg += iStride;
+      pRec += iStride;
+      pMap += iStride;
+
+      for (x=0; x< iLcuWidth; x++)
+      {
+        m_iUpBuff1[x] = xSign(pRec[x] - pRec[x-iStride]);
+      }
+
+      for (y=1; y<iLcuHeight-1; y++)
+      {
+        for (x=0; x<iLcuWidth; x++)
+        {
+
+          iSignDown  =  xSign(pRec[x] - pRec[x+iStride]); 
+          uiEdgeType =  iSignDown + m_iUpBuff1[x] + 2;
+          m_iUpBuff1[x]= -iSignDown;
+          if (pMap[x-iStride] == pMap[x+iStride])
+          {
+            iStats[m_auiEoTable[uiEdgeType]] += (pOrg[x] - pRec[x]);
+            iCount[m_auiEoTable[uiEdgeType]] ++;
+          }
+        }
+        pOrg += iStride;
+        pRec += iStride;
+        pMap += iStride;
+
+      }
+    }
+    //     if (m_iAoType == EO_2  )
+    {
+      iStats = m_iOffsetOrg[iPartIdx][SAO_EO_2];
+      iCount = m_iCount    [iPartIdx][SAO_EO_2];
+
+      pOrg      = m_pcPic->getPicYuvOrg()->getLumaAddr(iAddr);
+      pRec      = m_pcPic->getPicYuvRec()->getLumaAddr(iAddr);
+      pMap      = m_pcPicYuvMap->getLumaAddr(iAddr);    
+
+      pOrg += iStride;
+      pRec += iStride;
+      pMap += iStride;
+      for (x=1; x<iLcuWidth; x++)
+      {
+        m_iUpBuff1[x] = xSign(pRec[x] - pRec[x-iStride-1]);
+      }
+      for (y=1; y<iLcuHeight-1; y++)
+      {
+        iSignDown2 = xSign(pRec[iStride+1] - pRec[0]);
+        for (x=1; x<iLcuWidth-1; x++)
+        {
+          iSignDown1      =  xSign(pRec[x] - pRec[x+iStride+1]) ;
+          uiEdgeType      =  iSignDown1 + m_iUpBuff1[x] + 2;
+          m_iUpBufft[x+1] = -iSignDown1; 
+          if (pMap[x-iStride-1] == pMap[x+iStride+1] )
+          {
+            iStats[m_auiEoTable[uiEdgeType]] += (pOrg[x] - pRec[x]);
+            iCount[m_auiEoTable[uiEdgeType]] ++;
+          }
+        }
+        m_iUpBufft[1] = iSignDown2;
+        ipSwap     = m_iUpBuff1;
+        m_iUpBuff1 = m_iUpBufft;
+        m_iUpBufft = ipSwap;
+
+        pRec += iStride;
+        pOrg += iStride;
+        pMap += iStride;
+
+      }
+    } 
+    //     if (m_iAoType == EO_3  )
+    {
+      iStats = m_iOffsetOrg[iPartIdx][SAO_EO_3];
+      iCount = m_iCount    [iPartIdx][SAO_EO_3];
+
+      pOrg      = m_pcPic->getPicYuvOrg()->getLumaAddr(iAddr);
+      pRec      = m_pcPic->getPicYuvRec()->getLumaAddr(iAddr);
+      pMap      = m_pcPicYuvMap->getLumaAddr(iAddr);    
+
+      pOrg += iStride;
+      pRec += iStride;
+      for (x=0; x<iLcuWidth-1; x++)
+      {
+        m_iUpBuff1[x] = xSign(pRec[x] - pRec[x-iStride+1]);
+      }
+
+      for (y=1; y<iLcuHeight-1; y++)
+      {
+        for (x=1; x<iLcuWidth-1; x++)
+        {
+          iSignDown1      =  xSign(pRec[x] - pRec[x+iStride-1]) ;
+          uiEdgeType      =  iSignDown1 + m_iUpBuff1[x] + 2;
+          m_iUpBuff1[x-1]   = -iSignDown1; 
+          if (pMap[x-iStride+1] == pMap[x+iStride-1])
+          {
+            iStats[m_auiEoTable[uiEdgeType]] += (pOrg[x] - pRec[x]);
+            iCount[m_auiEoTable[uiEdgeType]] ++;
+          }
+        }
+        m_iUpBuff1[iLcuWidth-2] = xSign(pRec[iLcuWidth-2 + iStride] - pRec[iLcuWidth-1]);
+
+        pRec += iStride;
+        pOrg += iStride;
+        pMap += iStride;
+
+      } 
+    } 
+  }
+
+}
+/** calculate SAO statistics for current LCU
  * \param iAddr, iPartIdx
  */
 Void TEncSampleAdaptiveOffset::calcAoStatsCu(Int iAddr, Int iPartIdx)
+{
+  if (getIsFineSlice())
+  {
+    if (getIsFineSliceCu(iAddr))
+    {
+      calcAoStatsCuMap( iAddr, iPartIdx);
+    }
+    else
+    {
+      calcAoStatsCuOrg( iAddr, iPartIdx);
+    }
+  }
+  else
+  {
+    calcAoStatsCuOrg( iAddr, iPartIdx);
+  }
+}
+#endif
+
+#if SAO_FGS_MNIF
+/** calculate SAO statistics for current LCU without slice granularity
+ * \param iAddr, iPartIdx
+ */
+Void TEncSampleAdaptiveOffset::calcAoStatsCuOrg(Int iAddr, Int iPartIdx)
+#else
+Void TEncSampleAdaptiveOffset::calcAoStatsCu(Int iAddr, Int iPartIdx)
+#endif
 {
   Int x,y;
   TComDataCU *pTmpCu = m_pcPic->getCU(iAddr);
@@ -5798,6 +6061,13 @@ Void TEncSampleAdaptiveOffset::SAOProcess( Double dLambda)
   {
     xProcessQuadTreeAo( 0, pcPicYuvRec,  pcPicYuvExt);
   }
+
+#if MTK_SAO && MTK_NONCROSS_INLOOP_FILTER && FINE_GRANULARITY_SLICES 
+  if (getIsFineSlice())
+  {
+    endFGSParam();
+  }
+#endif
 
 }
 

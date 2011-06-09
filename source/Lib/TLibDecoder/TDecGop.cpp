@@ -185,9 +185,39 @@ Void TDecGop::decompressGop(TComInputBitstream* pcBitstream, TComPic*& rpcPic, B
     m_pcLoopFilter->loopFilterPic( rpcPic );
 #if MTK_SAO
     {
+
+#if MTK_SAO && MTK_NONCROSS_INLOOP_FILTER && FINE_GRANULARITY_SLICES 
+      if( pcSlice->getSPS()->getUseSAO() )
+      {
+        m_pcSAO->setNumSlicesInPic( uiILSliceCount );
+        m_pcSAO->setSliceGranularityDepth(pcSlice->getPPS()->getSliceGranularity());
+        if(uiILSliceCount == 1)
+        {
+          m_pcSAO->setUseNonCrossAlf(false);
+        }
+        else
+        {
+          if(m_cSaoParam.bSaoFlag)
+          {
+            m_pcSAO->setPic(rpcPic);
+            puiILSliceStartLCU[uiILSliceCount] = rpcPic->getNumCUsInFrame()* rpcPic->getNumPartInCU();
+            m_pcSAO->setUseNonCrossAlf(!pcSlice->getSPS()->getLFCrossSliceBoundaryFlag());
+            m_pcSAO->InitIsFineSliceCu();
+
+            for(UInt i=0; i< uiILSliceCount ; i++)
+            {
+              UInt uiStartAddr = puiILSliceStartLCU[i];
+              UInt uiEndAddr   = puiILSliceStartLCU[i+1]-1;
+              m_pcSAO->createSliceMap(i, uiStartAddr, uiEndAddr);
+            }
+          }
+        }
+      }
+#endif
       if( rpcPic->getSlice(0)->getSPS()->getUseSAO())
       {
-        m_pcSAO->SAOProcess(rpcPic, &m_cSaoParam);
+
+        m_pcSAO->SAOProcess(rpcPic, &m_cSaoParam);  
 
 #if E057_INTRA_PCM && E192_SPS_PCM_FILTER_DISABLE_SYNTAX
         m_pcAdaptiveLoopFilter->PCMLFDisableProcess(rpcPic);
@@ -195,6 +225,8 @@ Void TDecGop::decompressGop(TComInputBitstream* pcBitstream, TComPic*& rpcPic, B
       }
     }
 #endif
+
+
     // adaptive loop filter
     if( pcSlice->getSPS()->getUseALF() )
     {

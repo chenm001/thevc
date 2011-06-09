@@ -140,6 +140,7 @@ enum ALFClassficationMethod
 #define LUMA_GROUP_NUM                 (1<<MTK_QAO_BO_BITS)
 #define MAX_NUM_QAO_CLASS              32
 #define SAO_RDCO 0
+#define SAO_FGS_MNIF                   MTK_SAO && FINE_GRANULARITY_SLICES && MTK_NONCROSS_INLOOP_FILTER
 
 class TComSampleAdaptiveOffset
 {
@@ -191,7 +192,14 @@ protected:
   Int   *m_iUpBuff1;
   Int   *m_iUpBuff2;
   Int   *m_iUpBufft;
-  Int  *ipSwap;
+  Int   *ipSwap;
+#if SAO_FGS_MNIF
+  Bool  m_bUseNonCrossALF;       //!< true for performing non-cross slice boundary ALF
+  UInt  m_uiNumSlicesInPic;      //!< number of slices in picture
+  Int   m_iSGDepth;              //!< slice granularity depth
+  Bool  *m_bIsFineSliceCu;
+  TComPicYuv* m_pcPicYuvMap;
+#endif
 
 public:
   Void create( UInt uiSourceWidth, UInt uiSourceHeight, UInt uiMaxCUWidth, UInt uiMaxCUHeight, UInt uiMaxCUDepth );
@@ -214,6 +222,26 @@ public:
 
   Void InitSao(SAOParam* pSaoParam);
   Void AoProcessCu(Int iAddr, Int iPartIdx);
+
+#if SAO_FGS_MNIF
+  Void AoProcessCuOrg(Int iAddr, Int iPartIdx);  //!< LCU-basd SAO process without slice granularity 
+  Void AoProcessCuMap(Int iAddr, Int iPartIdx);  //!< LCU-basd SAO process with slice granularity
+  Bool getIsFineSlice(){return m_iSGDepth && m_bUseNonCrossALF;}    //!< check slice granularity and non cross ALF
+  Bool getIsFineSliceCu(Int iAddr){return m_bIsFineSliceCu[iAddr];} //!< check slice granularity and non cross ALF for current LCU
+
+  Void setNumSlicesInPic(UInt uiNum) {m_uiNumSlicesInPic = uiNum;}  //!< set num of slices in picture
+  UInt getNumSlicesInPic()           {return m_uiNumSlicesInPic;}   //!< get num of slices in picture
+  Void setUseNonCrossAlf(Bool bVal)  {m_bUseNonCrossALF = bVal;}    //!< set use non cross Alf
+  Bool getUseNonCrossAlf()           {return m_bUseNonCrossALF;}    //!< get use non cross Alf
+  Void setSliceGranularityDepth(Int iDepth) { m_iSGDepth = iDepth; }//!< set slice granularity depth
+  Int  getSliceGranularityDepth()           { return m_iSGDepth;   }//!< get slice granularity depth
+  Void createSliceMap(UInt iSliceIdx, UInt uiStartAddr, UInt uiEndAddr);//!< create slice map
+  Void InitIsFineSliceCu(){memset(m_bIsFineSliceCu,0, sizeof(Bool)*m_iNumCuInWidth*m_iNumCuInHeight);} //!< Init is fine slice LCU
+  Void startFGSParam(); //!< start FGS parameters
+  Void endFGSParam();   //!< end FGS parameters
+  Void setPic(TComPic* pcPic){m_pcPic = pcPic;} //!< set pic
+#endif
+
 };
 #endif
 
