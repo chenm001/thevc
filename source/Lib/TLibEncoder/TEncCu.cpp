@@ -1601,7 +1601,6 @@ Void TEncCu::xCopyYuv2Pic(TComPic* rpcPic, UInt uiCUAddr, UInt uiAbsZorderIdx, U
 #endif
 {
 #if SUB_LCU_DQP
-  Bool bBoundary = false;
   UInt uiRPelX   = uiLPelX + (g_uiMaxCUWidth>>uiDepth)  - 1;
   UInt uiBPelY   = uiTPelY + (g_uiMaxCUHeight>>uiDepth) - 1;
 #if FINE_GRANULARITY_SLICES
