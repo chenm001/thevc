@@ -778,7 +778,11 @@ Void TComDataCU::initEstData( UInt uiDepth, UInt uiQP, UInt uiLastQP )
 
 // initialize Sub partition
 #if !FINE_GRANULARITY_SLICES
+#if SUB_LCU_DQP
+Void TComDataCU::initSubCU( TComDataCU* pcCU, UInt uiPartUnitIdx, UInt uiDepth, UInt uiQP )
+#else
 Void TComDataCU::initSubCU( TComDataCU* pcCU, UInt uiPartUnitIdx, UInt uiDepth )
+#endif
 {
   assert( uiPartUnitIdx<4 );
   
@@ -807,7 +811,7 @@ Void TComDataCU::initSubCU( TComDataCU* pcCU, UInt uiPartUnitIdx, UInt uiDepth )
   Int iSizeInBool  = sizeof( Bool   ) * m_uiNumPartition;
   
 #if SUB_LCU_DQP
-  memset( m_phQP,              pcCU->getQP(0), iSizeInUchar );
+  memset( m_phQP,              uiQP, iSizeInUchar );
 #else
   memset( m_phQP,              getSlice()->getSliceQp(), iSizeInUchar );
 #endif
@@ -1854,11 +1858,12 @@ TComDataCU* TComDataCU::getQpMinCuLeft( UInt& uiLPartUnitIdx, UInt uiCurrAbsIdxI
 {
   UInt uiNumPartInCUWidth = m_pcPic->getNumPartInWidth();
 
-  UInt uiAbsZorderQpMinCUIdx   = (uiCurrAbsIdxInLCU>>(8-(getSlice()->getPPS()->getMaxCuDQPDepth()<<1)))<<(8-(getSlice()->getPPS()->getMaxCuDQPDepth()<<1));
   UInt uiAbsRorderQpMinCUIdx   = g_auiZscanToRaster[(uiCurrAbsIdxInLCU>>(8-(getSlice()->getPPS()->getMaxCuDQPDepth()<<1)))<<(8-(getSlice()->getPPS()->getMaxCuDQPDepth()<<1))];
   UInt uiNumPartInQpMinCUWidth = getSlice()->getPPS()->getMinCuDQPSize()>>2;
 
 #if FINE_GRANULARITY_SLICES 
+  
+  UInt uiAbsZorderQpMinCUIdx   = (uiCurrAbsIdxInLCU>>(8-(getSlice()->getPPS()->getMaxCuDQPDepth()<<1)))<<(8-(getSlice()->getPPS()->getMaxCuDQPDepth()<<1));
   if( (uiCurrAbsIdxInLCU != uiAbsZorderQpMinCUIdx) && 
     ((bEnforceSliceRestriction && (m_pcPic->getCU( getAddr() )->getSliceStartCU(uiCurrAbsIdxInLCU) != m_pcPic->getCU( getAddr() )->getSliceStartCU (uiAbsZorderQpMinCUIdx))) ||
     (bEnforceEntropySliceRestriction &&(m_pcPic->getCU( getAddr() )->getEntropySliceStartCU(uiCurrAbsIdxInLCU) != m_pcPic->getCU( getAddr() )->getEntropySliceStartCU (uiAbsZorderQpMinCUIdx)) )) )
@@ -2567,9 +2572,9 @@ Void TComDataCU::setPredModeSubParts( PredMode eMode, UInt uiAbsPartIdx, UInt ui
 Void TComDataCU::setQPSubParts( UInt uiQP, UInt uiAbsPartIdx, UInt uiDepth )
 {
   UInt uiCurrPartNumb = m_pcPic->getNumPartInCU() >> (uiDepth << 1);
+#if FINE_GRANULARITY_SLICES
   TComSlice * pcSlice = getPic()->getSlice(getPic()->getCurrSliceIdx());
 
-#if FINE_GRANULARITY_SLICES
   for(UInt uiSCUIdx = uiAbsPartIdx; uiSCUIdx < uiAbsPartIdx+uiCurrPartNumb; uiSCUIdx++)
   {
     if( m_pcPic->getCU( getAddr() )->getEntropySliceStartCU(uiSCUIdx+getZorderIdxInCU()) == pcSlice->getEntropySliceCurStartCUAddr() )
