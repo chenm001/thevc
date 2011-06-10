@@ -52,6 +52,12 @@
 
 struct InputNALUnit;
 
+#if E045_SLICE_COMMON_INFO_SHARING
+#define MAX_NUM_PPS 1
+#define MAX_NUM_PPS_BUFFER (MAX_NUM_PPS +1)
+#endif
+
+
 // ====================================================================================================================
 // Class definition
 // ====================================================================================================================
@@ -73,7 +79,14 @@ private:
   UInt                    m_uiValidPS;
   TComList<TComPic*>      m_cListPic;         //  Dynamic buffer
   TComSPS                 m_cSPS;
+#if E045_SLICE_COMMON_INFO_SHARING
+  TComPPS*                m_pcPPS;       //!< PPS
+  TComPPS*                m_pcPPSBuffer; //!< PPS buffer
+  Bool*                   m_pbHasNewPPS; //!< Availability for each PPS in PPS buffer
+  Int                     m_iPPSCounter; //!< PPS counter
+#else
   TComPPS                 m_cPPS;
+#endif
   TComSlice*              m_apcSlicePilot;
   
   SEImessages *m_SEIs; ///< "all" SEI messages.  If not NULL, we own the object.
@@ -123,6 +136,23 @@ public:
 protected:
   Void  xGetNewPicBuffer  (TComSlice* pcSlice, TComPic*& rpcPic);
   Void  xUpdateGopSize    (TComSlice* pcSlice);
+
+#if E045_SLICE_COMMON_INFO_SHARING
+  /// create PPS buffer
+  Void     createPPSBuffer      ();
+  /// destroy PPS buffer
+  Void     destroyPPSBuffer     ();
+  /// signal the PPS availability
+  Void     signalNewPPSAvailable();
+  /// update PPS buffer counter
+  Void     updatePPSBuffer      ();
+  /// get new PPS buffer for the coming PPS
+  TComPPS* getNewPPSBuffer      ();
+  /// get PPS pointer
+  TComPPS* getPPS               ()   {return m_pcPPS;}
+  /// signal if the PPS is available
+  Bool     hasNewPPS            ()   {return m_pbHasNewPPS[m_iPPSCounter];}
+#endif
   
 };// END CLASS DEFINITION TDecTop
 

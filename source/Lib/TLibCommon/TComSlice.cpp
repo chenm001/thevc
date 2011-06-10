@@ -822,6 +822,10 @@ TComPPS::TComPPS()
   {
     m_abTLayerSwitchingFlag[i] = false;
   }
+#if E045_SLICE_COMMON_INFO_SHARING
+  m_bSharedPPSInfoEnabled = false;
+#endif
+
 }
 
 TComPPS::~TComPPS()

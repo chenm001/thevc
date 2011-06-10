@@ -526,13 +526,16 @@ Void TComAdaptiveLoopFilter::create( Int iPicWidth, Int iPicHeight, UInt uiMaxCU
   initMatrix_int(&m_filterCoeffTmp, NO_VAR_BINS, MAX_SQR_FILT_LENGTH);      
   initMatrix_int(&m_filterCoeffSymTmp, NO_VAR_BINS, MAX_SQR_FILT_LENGTH);   
 
-#if MTK_NONCROSS_INLOOP_FILTER
-  m_uiNumLCUsInWidth   = m_img_width  / uiMaxCUWidth;
-  m_uiNumLCUsInHeight  = m_img_height / uiMaxCUHeight;
+#if TSB_ALF_HEADER && E045_SLICE_COMMON_INFO_SHARING
+  UInt uiNumLCUsInWidth   = m_img_width  / uiMaxCUWidth;
+  UInt uiNumLCUsInHeight  = m_img_height / uiMaxCUHeight;
 
-  m_uiNumLCUsInWidth  += ( m_img_width % uiMaxCUWidth ) ? 1 : 0;
-  m_uiNumLCUsInHeight += ( m_img_height % uiMaxCUHeight ) ? 1 : 0;
+  uiNumLCUsInWidth  += ( m_img_width % uiMaxCUWidth ) ? 1 : 0;
+  uiNumLCUsInHeight += ( m_img_height % uiMaxCUHeight ) ? 1 : 0;
+
+  m_uiNumCUsInFrame = uiNumLCUsInWidth* uiNumLCUsInHeight; 
 #endif
+
 
 #if MQT_BA_RA
   createRegionIndexMap(m_varImgMethods[ALF_RA], m_img_width, m_img_height);
@@ -2148,10 +2151,13 @@ Void TComAdaptiveLoopFilter::xFrameChroma( TComPicYuv* pcPicDec, TComPicYuv* pcP
 }
 
 #if TSB_ALF_HEADER
+
+#if !E045_SLICE_COMMON_INFO_SHARING
 Void TComAdaptiveLoopFilter::setNumCUsInFrame(TComPic *pcPic)
 {
   m_uiNumCUsInFrame = pcPic->getNumCUsInFrame();
 }
+#endif
 
 Void TComAdaptiveLoopFilter::setAlfCtrlFlags(ALFParam *pAlfParam, TComDataCU *pcCU, UInt uiAbsPartIdx, UInt uiDepth, UInt &idx)
 {
@@ -2437,132 +2443,6 @@ Void TComAdaptiveLoopFilter::transferCtrlFlagsFromAlfParamOneSlice(UInt s, Bool 
   }
   cSlice.setNumCtrlFlags(uiNumCtrlFlags);
 }
-
-/** Plot slice boundaries for debugging (Not be called in normal encoding)
- * This function provides encoder to draw the slice boundaries and write into "SliceBoundary.raw" (8-bit gray-level, picture width x picture height)
- */
-#define PLOT_SLICEBOUNDARY_COLOR 255
-#define PLOT_SGUBOUNDARY_COLOR   70
-Void TComAdaptiveLoopFilter::plotSliceBoundary()
-{
-  static Bool bFirst = true;
-  static UChar* pSliceBoundaryMap = NULL;
-  if(bFirst)
-  {
-    FILE* fid = fopen("SliceBoundary.raw", "wb");
-    fclose(fid);
-
-    pSliceBoundaryMap = new UChar[m_img_width*m_img_height];
-    bFirst = false;
-  }
-
-  ::memset(pSliceBoundaryMap, 0, sizeof(UChar)*m_img_width*m_img_height);
-
-  if(m_uiNumSlicesInPic ==1)
-  {
-    for(UInt j=0; j< m_img_height; j++)
-    {
-      UChar* pMapLine = pSliceBoundaryMap + (j*m_img_width);
-
-      if(j==0 || j== m_img_height -1)
-      {
-        ::memset(pMapLine, PLOT_SLICEBOUNDARY_COLOR, sizeof(UChar)*m_img_width);
-      }
-
-      *pMapLine = *(pMapLine + m_img_width -1) = PLOT_SLICEBOUNDARY_COLOR;
-    }
-
-    FILE* fid = fopen("SliceBoundary.raw", "a+b");
-    fwrite(pSliceBoundaryMap, sizeof(UChar), m_img_width*m_img_height, fid);
-    fclose(fid);
-    return;
-  }
-
-  UInt uiLPelX, uiTPelY, uiWidth, uiHeight;
-  UChar* pMapStart;
-  UChar* pMap;
-
-  for(UInt s=0; s< m_uiNumSlicesInPic; s++)
-  {
-    for(UInt idx =0; idx < m_pSlice[s].getNumLCUs(); idx++)
-    {
-
-      for(UInt i=0; i< m_pSlice[s][idx].getNumSGU(); i++)
-      {
-        AlfSGUInfo& rSGU = m_pSlice[s][idx][i];
-        uiLPelX = rSGU.posX;
-        uiTPelY = rSGU.posY;
-        uiWidth = rSGU.width;
-        uiHeight= rSGU.height;
-
-        pMapStart = pSliceBoundaryMap+ (uiTPelY*m_img_width) + uiLPelX;
-
-        //plot SGU boundary
-        pMap = pMapStart;
-        ::memset(pMap, PLOT_SGUBOUNDARY_COLOR, sizeof(UChar)*uiWidth);
-        pMap = pMapStart + (uiHeight-1)*m_img_width;
-        ::memset(pMap, PLOT_SGUBOUNDARY_COLOR, sizeof(UChar)*uiWidth);
-        pMap = pMapStart;
-        for(UInt y=0; y< uiHeight; y++)
-        {
-          *pMap = PLOT_SGUBOUNDARY_COLOR;
-          pMap += m_img_width;
-        }
-        pMap = pMapStart + (uiWidth -1);
-        for(UInt y=0; y< uiHeight; y++)
-        {
-          *pMap =PLOT_SGUBOUNDARY_COLOR;
-          pMap += m_img_width;
-        }
-
-        //plot slice boundary
-        //SGU_T
-        if(!rSGU.isBorderAvailable[SGU_T])
-        {
-          pMap = pMapStart;
-          ::memset(pMap, PLOT_SLICEBOUNDARY_COLOR, sizeof(UChar)*uiWidth);
-        }
-
-        //SGU_B
-        if(!rSGU.isBorderAvailable[SGU_B])
-        {
-          pMap = pMapStart + (uiHeight-1)*m_img_width;
-          ::memset(pMap, PLOT_SLICEBOUNDARY_COLOR, sizeof(UChar)*uiWidth);
-
-        }
-
-        //SGU_L
-        if(!rSGU.isBorderAvailable[SGU_L])
-        {
-          pMap = pMapStart;
-          for(UInt y=0; y< uiHeight; y++)
-          {
-            *pMap = PLOT_SLICEBOUNDARY_COLOR;
-            pMap += m_img_width;
-          }
-
-        }
-
-        //SGU_R
-        if(!rSGU.isBorderAvailable[SGU_R])
-        {
-          pMap = pMapStart + (uiWidth -1);
-          for(UInt y=0; y< uiHeight; y++)
-          {
-            *pMap = PLOT_SLICEBOUNDARY_COLOR;
-            pMap += m_img_width;
-          }
-        }
-      }
-    }
-  }
-
-  FILE* fid = fopen("SliceBoundary.raw", "a+b");
-  fwrite(pSliceBoundaryMap, sizeof(UChar), m_img_width*m_img_height, fid);
-  fclose(fid);
-}
-
-
 
 //-------------- CAlfLCU -----------------//
 

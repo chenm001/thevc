@@ -178,6 +178,10 @@ private:
   TComPicYuv* m_pcSliceYuvTmp;    //!< temporary picture buffer when non-across slice boundary ALF is enabled
 #endif
 
+#if E045_SLICE_COMMON_INFO_SHARING
+  Bool  m_bSharedPPSAlfParamEnabled; //!< true for shared ALF parameters in PPS enabled
+#endif
+
 private:
   // init / uninit internal variables
   Void xInitParam      ();
@@ -403,5 +407,11 @@ public:
   Void destroyAlfGlobalBuffers();
 #endif
 #endif
+
+#if E045_SLICE_COMMON_INFO_SHARING
+  /// set shared ALF parameters in PPS enabled/disabled
+  Void setSharedPPSAlfParamEnabled(Bool b) {m_bSharedPPSAlfParamEnabled = b;}
+#endif
+
 };
 #endif

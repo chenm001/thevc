@@ -256,6 +256,8 @@
 #define E192_SPS_PCM_FILTER_DISABLE_SYNTAX  1 // JCTVC-E192: PCM filter disable flag
 #endif
 
+#define E045_SLICE_COMMON_INFO_SHARING 1 //JCTVC-E045: Slice common information sharing
+
 // ====================================================================================================================
 // Basic type redefinition
 // ====================================================================================================================

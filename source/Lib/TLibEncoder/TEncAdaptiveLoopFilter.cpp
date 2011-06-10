@@ -176,6 +176,11 @@ TEncAdaptiveLoopFilter::TEncAdaptiveLoopFilter()
 #if MQT_BA_RA && MQT_ALF_NPASS
   m_aiFilterCoeffSaved = NULL;
 #endif
+
+#if E045_SLICE_COMMON_INFO_SHARING
+  m_bSharedPPSAlfParamEnabled = false;
+#endif
+
 }
 
 // ====================================================================================================================
@@ -1131,6 +1136,10 @@ Void TEncAdaptiveLoopFilter::xCalcRDCost(ALFParam* pAlfParam, UInt64& ruiRate, U
 {
   if(pAlfParam != NULL)
   {
+#if E045_SLICE_COMMON_INFO_SHARING
+    ruiRate = 0;
+#endif
+
     Int* piTmpCoef;
     piTmpCoef = new Int[ALF_MAX_NUM_COEF];
     
@@ -1141,7 +1150,35 @@ Void TEncAdaptiveLoopFilter::xCalcRDCost(ALFParam* pAlfParam, UInt64& ruiRate, U
     m_pcEntropyCoder->resetEntropy();
     m_pcEntropyCoder->resetBits();
     m_pcEntropyCoder->encodeAlfParam(pAlfParam);
-    
+
+#if E045_SLICE_COMMON_INFO_SHARING
+    if(m_uiNumSlicesInPic ==1)
+    {
+      if(m_bSharedPPSAlfParamEnabled)
+      {
+        ruiRate += m_pcEntropyCoder->getNumberOfWrittenBits();
+        m_pcEntropyCoder->resetEntropy();
+        m_pcEntropyCoder->resetBits();
+      }
+
+      m_pcEntropyCoder->encodeAlfCtrlParam(pAlfParam);
+      ruiRate += m_pcEntropyCoder->getNumberOfWrittenBits();
+    }
+    else
+    {
+      ruiRate = m_pcEntropyCoder->getNumberOfWrittenBits();
+      for(UInt s=0; s< m_uiNumSlicesInPic; s++)
+      {
+        m_pcEntropyCoder->resetEntropy();
+        m_pcEntropyCoder->resetBits();
+        m_pcEntropyCoder->encodeAlfCtrlParam(pAlfParam, m_uiNumSlicesInPic, &(m_pSlice[s]));
+        ruiRate += m_pcEntropyCoder->getNumberOfWrittenBits();
+      }
+    }
+#if !TSB_ALF_HEADER
+    xEncodeCUAlfCtrlFlags();
+#endif
+#else
     if(pAlfParam->cu_control_flag)
     {
 #if TSB_ALF_HEADER
@@ -1156,6 +1193,7 @@ Void TEncAdaptiveLoopFilter::xCalcRDCost(ALFParam* pAlfParam, UInt64& ruiRate, U
 #endif
     }
     ruiRate = m_pcEntropyCoder->getNumberOfWrittenBits();
+#endif
     memcpy(pAlfParam->coeff, piTmpCoef, sizeof(int)*pAlfParam->num_coeff);
     delete[] piTmpCoef;
     piTmpCoef = NULL;
@@ -1180,6 +1218,9 @@ Void TEncAdaptiveLoopFilter::xCalcRDCost(TComPicYuv* pcPicOrg, TComPicYuv* pcPic
 {
   if(pAlfParam != NULL)
   {
+#if E045_SLICE_COMMON_INFO_SHARING
+    ruiRate = 0;
+#endif
     Int* piTmpCoef;
     piTmpCoef = new Int[ALF_MAX_NUM_COEF];
     
@@ -1191,6 +1232,34 @@ Void TEncAdaptiveLoopFilter::xCalcRDCost(TComPicYuv* pcPicOrg, TComPicYuv* pcPic
     m_pcEntropyCoder->resetBits();
     m_pcEntropyCoder->encodeAlfParam(pAlfParam);
     
+#if E045_SLICE_COMMON_INFO_SHARING
+    if(m_uiNumSlicesInPic ==1)
+    {
+      if(m_bSharedPPSAlfParamEnabled)
+      {
+        ruiRate += m_pcEntropyCoder->getNumberOfWrittenBits();
+        m_pcEntropyCoder->resetEntropy();
+        m_pcEntropyCoder->resetBits();
+      }
+
+      m_pcEntropyCoder->encodeAlfCtrlParam(pAlfParam);
+      ruiRate += m_pcEntropyCoder->getNumberOfWrittenBits();
+    }
+    else
+    {
+      ruiRate = m_pcEntropyCoder->getNumberOfWrittenBits();
+      for(UInt s=0; s< m_uiNumSlicesInPic; s++)
+      {
+        m_pcEntropyCoder->resetEntropy();
+        m_pcEntropyCoder->resetBits();
+        m_pcEntropyCoder->encodeAlfCtrlParam(pAlfParam, m_uiNumSlicesInPic, &(m_pSlice[s]));
+        ruiRate += m_pcEntropyCoder->getNumberOfWrittenBits();
+      }
+    }
+#if !TSB_ALF_HEADER
+    xEncodeCUAlfCtrlFlags();
+#endif
+#else
     if(pAlfParam->cu_control_flag)
     {
 #if TSB_ALF_HEADER
@@ -1205,6 +1274,7 @@ Void TEncAdaptiveLoopFilter::xCalcRDCost(TComPicYuv* pcPicOrg, TComPicYuv* pcPic
 #endif
     }
     ruiRate = m_pcEntropyCoder->getNumberOfWrittenBits();
+#endif
     memcpy(pAlfParam->coeff, piTmpCoef, sizeof(int)*pAlfParam->num_coeff);
     delete[] piTmpCoef;
     piTmpCoef = NULL;
@@ -1230,6 +1300,10 @@ Void TEncAdaptiveLoopFilter::xCalcRDCostChroma(TComPicYuv* pcPicOrg, TComPicYuv*
 {
   if(pAlfParam->chroma_idc)
   {
+#if E045_SLICE_COMMON_INFO_SHARING
+    ruiRate = 0;
+#endif
+
     Int* piTmpCoef;
     piTmpCoef = new Int[ALF_MAX_NUM_COEF_C];
     
@@ -1241,6 +1315,34 @@ Void TEncAdaptiveLoopFilter::xCalcRDCostChroma(TComPicYuv* pcPicOrg, TComPicYuv*
     m_pcEntropyCoder->resetBits();
     m_pcEntropyCoder->encodeAlfParam(pAlfParam);
     
+#if E045_SLICE_COMMON_INFO_SHARING
+    if(m_uiNumSlicesInPic ==1)
+    {
+      if(m_bSharedPPSAlfParamEnabled)
+      {
+        ruiRate += m_pcEntropyCoder->getNumberOfWrittenBits();
+        m_pcEntropyCoder->resetEntropy();
+        m_pcEntropyCoder->resetBits();
+      }
+
+      m_pcEntropyCoder->encodeAlfCtrlParam(pAlfParam);
+      ruiRate += m_pcEntropyCoder->getNumberOfWrittenBits();
+    }
+    else
+    {
+      ruiRate = m_pcEntropyCoder->getNumberOfWrittenBits();
+      for(UInt s=0; s< m_uiNumSlicesInPic; s++)
+      {
+        m_pcEntropyCoder->resetEntropy();
+        m_pcEntropyCoder->resetBits();
+        m_pcEntropyCoder->encodeAlfCtrlParam(pAlfParam, m_uiNumSlicesInPic, &(m_pSlice[s]));
+        ruiRate += m_pcEntropyCoder->getNumberOfWrittenBits();
+      }
+    }
+#if !TSB_ALF_HEADER
+    xEncodeCUAlfCtrlFlags();
+#endif
+#else
     if(pAlfParam->cu_control_flag)
     {
 #if TSB_ALF_HEADER
@@ -1255,6 +1357,7 @@ Void TEncAdaptiveLoopFilter::xCalcRDCostChroma(TComPicYuv* pcPicOrg, TComPicYuv*
 #endif
     }
     ruiRate = m_pcEntropyCoder->getNumberOfWrittenBits();
+#endif
     memcpy(pAlfParam->coeff_chroma, piTmpCoef, sizeof(int)*pAlfParam->num_coeff_chroma);
     delete[] piTmpCoef;
     piTmpCoef = NULL;

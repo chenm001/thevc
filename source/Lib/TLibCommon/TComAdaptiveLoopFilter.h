@@ -504,8 +504,7 @@ protected:
 
 #if MTK_NONCROSS_INLOOP_FILTER
   Bool        m_bUseNonCrossALF;       //!< true for performing non-cross slice boundary ALF
-  UInt        m_uiNumLCUsInWidth;      //!< number of LCUs in picture width
-  UInt        m_uiNumLCUsInHeight;     //!< number of LCUs in picture height
+
   UInt        m_uiNumSlicesInPic;      //!< number of slices in picture
   CAlfSlice*  m_pSlice;                //!< ALF slice units
   Bool        m_bIsFirstDecodedSlice;  //!< true for the first decoding slice
@@ -592,7 +591,7 @@ public:
   Void allocALFParam  ( ALFParam* pAlfParam );
   Void freeALFParam   ( ALFParam* pAlfParam );
   Void copyALFParam   ( ALFParam* pDesAlfParam, ALFParam* pSrcAlfParam );
-#if TSB_ALF_HEADER
+#if TSB_ALF_HEADER && (!E045_SLICE_COMMON_INFO_SHARING)
   Void  setNumCUsInFrame        (TComPic *pcPic);
 #endif
   
@@ -630,9 +629,6 @@ public:
   /// get slice granularity
   Int  getSliceGranularityDepth()           { return m_iSGDepth;  }
 #endif
-  /// Plot slice boundaries for debugging (Not be called in normal encoding)
-  Void plotSliceBoundary();
-
   /// Set number of slices in picture
   Void setNumSlicesInPic(UInt uiNum) {m_uiNumSlicesInPic = uiNum;}
 
