@@ -155,6 +155,7 @@ private:
   UInt          m_uiTotalDistortion;  ///< sum of partition distortion
   UInt          m_uiTotalBits;        ///< sum of partition bits
 #if FINE_GRANULARITY_SLICES
+  UInt          m_uiTotalBins;       ///< sum of partition bins
   UInt*         m_uiSliceStartCU;    ///< Start CU address of current slice
   UInt*         m_uiEntropySliceStartCU; ///< Start CU address of current slice
 #else
@@ -203,11 +204,15 @@ public:
   Void          destroy               ();
   
   Void          initCU                ( TComPic* pcPic, UInt uiCUAddr );
-  Void          initEstData           ();
-  Void          initSubCU             ( TComDataCU* pcCU, UInt uiPartUnitIdx, UInt uiDepth );
-
 #if SUB_LCU_DQP
-  Void          initEstDataDeltaQP    ( UInt uiDepth, UInt uiQP, UInt uiLastQP );
+  Void          initEstData           ( UInt uiDepth, UInt uiQP, UInt uiLastQP );
+#else
+  Void          initEstData           ();
+#endif
+#if SUB_LCU_DQP
+  Void          initSubCU             ( TComDataCU* pcCU, UInt uiPartUnitIdx, UInt uiDepth, UInt uiQP );
+#else
+  Void          initSubCU             ( TComDataCU* pcCU, UInt uiPartUnitIdx, UInt uiDepth );
 #endif
 
   Void          copySubCU             ( TComDataCU* pcCU, UInt uiPartUnitIdx, UInt uiDepth );
@@ -508,6 +513,7 @@ public:
   UInt          getSliceStartCU         ( UInt pos )                  { return m_uiSliceStartCU[pos];                                                                                          }
   Void          setEntropySliceStartCU  ( UInt *uiEntropyStartCU )    { for(int i=0; i<(1<<(m_pcSlice->getSPS()->getMaxCUDepth()<<1)); i++) { m_uiEntropySliceStartCU[i]=uiEntropyStartCU[i];} }  
   UInt          getEntropySliceStartCU  ( UInt pos )                  { return m_uiEntropySliceStartCU[pos];                                                                                   }
+  UInt&         getTotalBins            ()                            { return m_uiTotalBins;                                                                                                  }
 #else
   Void          setSliceStartCU  ( UInt uiStartCU )    { m_uiSliceStartCU = uiStartCU;    }  
   UInt          getSliceStartCU  ()                    { return m_uiSliceStartCU;         }

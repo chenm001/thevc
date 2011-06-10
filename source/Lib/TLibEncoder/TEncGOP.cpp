@@ -713,7 +713,7 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
           }
         }
 #if FINE_GRANULARITY_SLICES
-        pcSlice->setSliceBits((1<<30));
+        pcSlice->setFinalized(true);
 #endif
         // File writing
         m_pcSliceEncoder->encodeSlice(pcPic, &nalu.m_Bitstream);

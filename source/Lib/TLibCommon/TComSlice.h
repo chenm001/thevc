@@ -353,6 +353,7 @@ private:
   UInt        m_uiSliceBits;
 #if FINE_GRANULARITY_SLICES
   UInt        m_uiEntropySliceCounter;
+  Bool        m_bFinalized;
 #endif
   
 public:
@@ -497,6 +498,8 @@ public:
 #if FINE_GRANULARITY_SLICES
   Void setEntropySliceCounter           ( UInt uiVal )      { m_uiEntropySliceCounter = uiVal;            }
   UInt getEntropySliceCounter           ()                  { return m_uiEntropySliceCounter;             }
+  Void setFinalized                     ( Bool uiVal )      { m_bFinalized = uiVal;                       }
+  Bool getFinalized                     ()                  { return m_bFinalized;                        }
 #endif
   
 protected:
