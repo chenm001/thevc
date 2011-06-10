@@ -47,6 +47,7 @@
 #include "NALwrite.h"
 
 #include <time.h>
+#include <math.h>
 
 using namespace std;
 
@@ -92,8 +93,13 @@ Void  TEncGOP::create( Int iWidth, Int iHeight, UInt iMaxCUWidth, UInt iMaxCUHei
   UInt uiWidthInCU       = ( iWidth %iMaxCUWidth  ) ? iWidth /iMaxCUWidth  + 1 : iWidth /iMaxCUWidth;
   UInt uiHeightInCU      = ( iHeight%iMaxCUHeight ) ? iHeight/iMaxCUHeight + 1 : iHeight/iMaxCUHeight;
   UInt uiNumCUsInFrame   = uiWidthInCU * uiHeightInCU;
+#if FINE_GRANULARITY_SLICES
+  m_uiStoredStartCUAddrForEncodingSlice = new UInt [uiNumCUsInFrame*(1<<(g_uiMaxCUDepth<<1))+1];
+  m_uiStoredStartCUAddrForEncodingEntropySlice = new UInt [uiNumCUsInFrame*(1<<(g_uiMaxCUDepth<<1))+1];
+#else
   m_uiStoredStartCUAddrForEncodingSlice = new UInt [uiNumCUsInFrame+1];
   m_uiStoredStartCUAddrForEncodingEntropySlice = new UInt [uiNumCUsInFrame+1];
+#endif
 }
 
 Void  TEncGOP::destroy()
@@ -315,21 +321,59 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
 #endif
 #endif
 
+
+#if MTK_NONCROSS_INLOOP_FILTER
+      UInt uiNumSlices = 1;
+#endif
+
+#if FINE_GRANULARITY_SLICES
+      UInt uiInternalAddress = pcPic->getNumPartInCU()-4;
+      UInt uiExternalAddress = pcPic->getPicSym()->getNumberOfCUsInFrame()-1;
+      UInt uiPosX = ( uiExternalAddress % pcPic->getFrameWidthInCU() ) * g_uiMaxCUWidth+ g_auiRasterToPelX[ g_auiZscanToRaster[uiInternalAddress] ];
+      UInt uiPosY = ( uiExternalAddress / pcPic->getFrameWidthInCU() ) * g_uiMaxCUHeight+ g_auiRasterToPelY[ g_auiZscanToRaster[uiInternalAddress] ];
+      UInt uiWidth = pcSlice->getSPS()->getWidth();
+      UInt uiHeight = pcSlice->getSPS()->getHeight();
+      while(uiPosX>=uiWidth||uiPosY>=uiHeight) 
+      {
+        uiInternalAddress--;
+        uiPosX = ( uiExternalAddress % pcPic->getFrameWidthInCU() ) * g_uiMaxCUWidth+ g_auiRasterToPelX[ g_auiZscanToRaster[uiInternalAddress] ];
+        uiPosY = ( uiExternalAddress / pcPic->getFrameWidthInCU() ) * g_uiMaxCUHeight+ g_auiRasterToPelY[ g_auiZscanToRaster[uiInternalAddress] ];
+      }
+      uiInternalAddress++;
+      if(uiInternalAddress==pcPic->getNumPartInCU()) 
+      {
+        uiInternalAddress = 0;
+        uiExternalAddress++;
+      }
+      UInt uiRealEndAddress = uiExternalAddress*pcPic->getNumPartInCU()+uiInternalAddress;
+#endif
       UInt uiStartCUAddrSliceIdx = 0; // used to index "m_uiStoredStartCUAddrForEncodingSlice" containing locations of slice boundaries
       UInt uiStartCUAddrSlice    = 0; // used to keep track of current slice's starting CU addr.
       pcSlice->setSliceCurStartCUAddr( uiStartCUAddrSlice ); // Setting "start CU addr" for current slice
+#if FINE_GRANULARITY_SLICES
+      memset(m_uiStoredStartCUAddrForEncodingSlice, 0, sizeof(UInt) * (pcPic->getPicSym()->getNumberOfCUsInFrame()*pcPic->getNumPartInCU()+1));
+#else
       memset(m_uiStoredStartCUAddrForEncodingSlice, 0, sizeof(UInt) * (pcPic->getPicSym()->getNumberOfCUsInFrame()+1));
+#endif
 
       UInt uiStartCUAddrEntropySliceIdx = 0; // used to index "m_uiStoredStartCUAddrForEntropyEncodingSlice" containing locations of slice boundaries
       UInt uiStartCUAddrEntropySlice    = 0; // used to keep track of current Entropy slice's starting CU addr.
       pcSlice->setEntropySliceCurStartCUAddr( uiStartCUAddrEntropySlice ); // Setting "start CU addr" for current Entropy slice
+      
+#if FINE_GRANULARITY_SLICES
+      memset(m_uiStoredStartCUAddrForEncodingEntropySlice, 0, sizeof(UInt) * (pcPic->getPicSym()->getNumberOfCUsInFrame()*pcPic->getNumPartInCU()+1));
+#else
       memset(m_uiStoredStartCUAddrForEncodingEntropySlice, 0, sizeof(UInt) * (pcPic->getPicSym()->getNumberOfCUsInFrame()+1));
-
+#endif
       UInt uiNextCUAddr = 0;
       m_uiStoredStartCUAddrForEncodingSlice[uiStartCUAddrSliceIdx++]                = uiNextCUAddr;
       m_uiStoredStartCUAddrForEncodingEntropySlice[uiStartCUAddrEntropySliceIdx++]  = uiNextCUAddr;
 
+#if FINE_GRANULARITY_SLICES
+      while(uiNextCUAddr<uiRealEndAddress) // determine slice boundaries
+#else
       while(uiNextCUAddr<pcPic->getPicSym()->getNumberOfCUsInFrame()) // determine slice boundaries
+#endif
       {
         pcSlice->setNextSlice       ( false );
         pcSlice->setNextEntropySlice( false );
@@ -349,7 +393,11 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
             m_uiStoredStartCUAddrForEncodingEntropySlice[uiStartCUAddrEntropySliceIdx++]  = uiStartCUAddrSlice;
           }
           
+#if FINE_GRANULARITY_SLICES
+          if (uiStartCUAddrSlice < uiRealEndAddress)
+#else
           if (uiStartCUAddrSlice < pcPic->getPicSym()->getNumberOfCUsInFrame())
+#endif
           {
             pcPic->allocateNewSlice();          
             pcPic->setCurrSliceIdx                  ( uiStartCUAddrSliceIdx-1 );
@@ -360,6 +408,9 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
             pcSlice->setSliceCurStartCUAddr         ( uiStartCUAddrSlice      );
             pcSlice->setEntropySliceCurStartCUAddr  ( uiStartCUAddrSlice      );
             pcSlice->setSliceBits(0);
+#if MTK_NONCROSS_INLOOP_FILTER
+            uiNumSlices ++;
+#endif
           }
         }
         else if (pcSlice->isNextEntropySlice() || (bNoBinBitConstraintViolated && m_pcCfg->getEntropySliceMode()==SHARP_FIXED_NUMBER_OF_LCU_IN_ENTROPY_SLICE))
@@ -388,37 +439,79 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
       m_pcLoopFilter->setCfg(pcSlice->getLoopFilterDisable(), m_pcCfg->getLoopFilterAlphaC0Offget(), m_pcCfg->getLoopFilterBetaOffget());
       m_pcLoopFilter->loopFilterPic( pcPic );
 
-#if MTK_NONCROSS_INLOOP_FILTER
+#if MTK_SAO && MTK_NONCROSS_INLOOP_FILTER && FINE_GRANULARITY_SLICES 
+      pcSlice = pcPic->getSlice(0);
+
+      if(pcSlice->getSPS()->getUseSAO())
+      {
+        m_pcSAO->setNumSlicesInPic( uiNumSlices );
+        m_pcSAO->setSliceGranularityDepth(pcSlice->getPPS()->getSliceGranularity());
+        if(uiNumSlices == 1)
+        {
+          m_pcSAO->setUseNonCrossAlf(false);
+        }
+        else
+        {
+          m_pcSAO->setPic(pcPic);
+          m_pcSAO->setUseNonCrossAlf(!pcSlice->getSPS()->getLFCrossSliceBoundaryFlag());
+          m_pcSAO->InitIsFineSliceCu();
+          UInt uiStartAddr, uiEndAddr;
+          for(UInt i=0; i< uiNumSlices ; i++)
+          {
+            uiStartAddr = m_uiStoredStartCUAddrForEncodingSlice[i];
+            uiEndAddr   = m_uiStoredStartCUAddrForEncodingSlice[i+1]-1;
+            m_pcSAO->createSliceMap(i, uiStartAddr, uiEndAddr);
+          }
+        }
+      }
+#endif
+
+#if E045_SLICE_COMMON_INFO_SHARING
+      ALFParam cAlfParam;
+#endif
+
+#if MTK_NONCROSS_INLOOP_FILTER || E045_SLICE_COMMON_INFO_SHARING
       pcSlice = pcPic->getSlice(0);
 
       if(pcSlice->getSPS()->getUseALF())
       {
-        if(pcSlice->getSPS()->getLFCrossSliceBoundaryFlag())
+        m_pcAdaptiveLoopFilter->setNumSlicesInPic( uiNumSlices );
+#if FINE_GRANULARITY_SLICES
+        m_pcAdaptiveLoopFilter->setSliceGranularityDepth(pcSlice->getPPS()->getSliceGranularity());
+#endif
+        if(uiNumSlices == 1)
         {
           m_pcAdaptiveLoopFilter->setUseNonCrossAlf(false);
         }
         else
         {
-          UInt uiNumSlices = uiStartCUAddrSliceIdx-1;
-          m_pcAdaptiveLoopFilter->setUseNonCrossAlf( (uiNumSlices > 1)  );
-          if(m_pcAdaptiveLoopFilter->getUseNonCrossAlf())
+          m_pcAdaptiveLoopFilter->setUseNonCrossAlf(!pcSlice->getSPS()->getLFCrossSliceBoundaryFlag());
+          m_pcAdaptiveLoopFilter->createSlice(pcPic);
+
+          UInt uiStartAddr, uiEndAddr;
+
+          for(UInt i=0; i< uiNumSlices ; i++)
           {
-            m_pcAdaptiveLoopFilter->setNumSlicesInPic( uiNumSlices );
-            m_pcAdaptiveLoopFilter->createSlice();
+#if FINE_GRANULARITY_SLICES
+            uiStartAddr = m_uiStoredStartCUAddrForEncodingSlice[i];
+            uiEndAddr   = m_uiStoredStartCUAddrForEncodingSlice[i+1]-1;
+#else
+            uiStartAddr = (m_uiStoredStartCUAddrForEncodingSlice[i]* (pcPic->getNumPartInCU()));
+            uiEndAddr   = (m_uiStoredStartCUAddrForEncodingSlice[i+1]*(pcPic->getNumPartInCU()))-1;
 
-            //set the startLCU and endLCU addr. to ALF slices
-            for(UInt i=0; i< uiNumSlices ; i++)
-            {
-              (*m_pcAdaptiveLoopFilter)[i].create(pcPic, i, 
-                                                  m_uiStoredStartCUAddrForEncodingSlice[i], 
-                                                  m_uiStoredStartCUAddrForEncodingSlice[i+1]-1
-                                                  );
-
-            }
+#endif
+            (*m_pcAdaptiveLoopFilter)[i].create(i, uiStartAddr, uiEndAddr);
           }
+
         }
+#if E045_SLICE_COMMON_INFO_SHARING
+        m_pcAdaptiveLoopFilter->allocALFParam(&cAlfParam);
+        pcSlice->getPPS()->setSharedPPSInfoEnabled(false); //initial value is false.
+#endif
+
       }
 #endif
+
       /////////////////////////////////////////////////////////////////////////////////////////////////// File writing
       // Set entropy coder
       m_pcEntropyCoder->setEntropyCoder   ( m_pcCavlcCoder, pcSlice );
@@ -451,8 +544,25 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
       uiStartCUAddrEntropySlice    = 0; 
       uiNextCUAddr                 = 0;
       pcSlice = pcPic->getSlice(uiStartCUAddrSliceIdx);
+
+#if E045_SLICE_COMMON_INFO_SHARING
+      UInt uiMaxAlfCtrlDepth = 0;
+      Int processingState = (pcSlice->getSPS()->getUseALF() || pcSlice->getSPS()->getUseSAO())?(EXECUTE_INLOOPFILTER):(ENCODE_SLICE);
+#endif
+
+#if FINE_GRANULARITY_SLICES
+      bool skippedSlice=false;
+      while (uiNextCUAddr < uiRealEndAddress) // Iterate over all slices
+#else
       while (uiNextCUAddr < pcPic->getPicSym()->getNumberOfCUsInFrame()) // Iterate over all slices
+#endif
       {
+#if E045_SLICE_COMMON_INFO_SHARING
+        switch(processingState)
+        {
+        case ENCODE_SLICE:
+          {
+#endif
         pcSlice->setNextSlice       ( false );
         pcSlice->setNextEntropySlice( false );
         if (uiNextCUAddr == m_uiStoredStartCUAddrForEncodingSlice[uiStartCUAddrSliceIdx])
@@ -484,13 +594,59 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
           uiStartCUAddrEntropySliceIdx++;
         }
 
+#if FINE_GRANULARITY_SLICES
+        UInt uiDummyStartCUAddr;
+        UInt uiDummyBoundingCUAddr;
+        m_pcSliceEncoder->xDetermineStartAndBoundingCUAddr(uiDummyStartCUAddr,uiDummyBoundingCUAddr,pcPic,true);
+
+        uiInternalAddress = (pcSlice->getEntropySliceCurEndCUAddr()-1) % pcPic->getNumPartInCU();
+        uiExternalAddress = (pcSlice->getEntropySliceCurEndCUAddr()-1) / pcPic->getNumPartInCU();
+        uiPosX = ( uiExternalAddress % pcPic->getFrameWidthInCU() ) * g_uiMaxCUWidth+ g_auiRasterToPelX[ g_auiZscanToRaster[uiInternalAddress] ];
+        uiPosY = ( uiExternalAddress / pcPic->getFrameWidthInCU() ) * g_uiMaxCUHeight+ g_auiRasterToPelY[ g_auiZscanToRaster[uiInternalAddress] ];
+        uiWidth = pcSlice->getSPS()->getWidth();
+        uiHeight = pcSlice->getSPS()->getHeight();
+        while(uiPosX>=uiWidth||uiPosY>=uiHeight)
+        {
+          uiInternalAddress--;
+          uiPosX = ( uiExternalAddress % pcPic->getFrameWidthInCU() ) * g_uiMaxCUWidth+ g_auiRasterToPelX[ g_auiZscanToRaster[uiInternalAddress] ];
+          uiPosY = ( uiExternalAddress / pcPic->getFrameWidthInCU() ) * g_uiMaxCUHeight+ g_auiRasterToPelY[ g_auiZscanToRaster[uiInternalAddress] ];
+        }
+        uiInternalAddress++;
+        if(uiInternalAddress==pcPic->getNumPartInCU())
+        {
+          uiInternalAddress = 0;
+          uiExternalAddress++;
+        }
+        UInt uiEndAddress = uiExternalAddress*pcPic->getNumPartInCU()+uiInternalAddress;
+        if(uiEndAddress<=pcSlice->getEntropySliceCurStartCUAddr()) {
+          UInt uiBoundingAddrSlice, uiBoundingAddrEntropySlice;
+          uiBoundingAddrSlice        = m_uiStoredStartCUAddrForEncodingSlice[uiStartCUAddrSliceIdx];          
+          uiBoundingAddrEntropySlice = m_uiStoredStartCUAddrForEncodingEntropySlice[uiStartCUAddrEntropySliceIdx];          
+          uiNextCUAddr               = min(uiBoundingAddrSlice, uiBoundingAddrEntropySlice);
+          if(pcSlice->isNextSlice())
+          {
+            skippedSlice=true;
+          }
+          continue;
+        }
+        if(skippedSlice) 
+        {
+          pcSlice->setNextSlice       ( true );
+          pcSlice->setNextEntropySlice( false );
+        }
+        skippedSlice=false;
+#endif
+
+#if !E045_SLICE_COMMON_INFO_SHARING
         // Get ready for writing slice header (other than the first one in the picture)
         if (uiNextCUAddr!=0)
         {
+#endif
           m_pcEntropyCoder->setEntropyCoder   ( m_pcCavlcCoder, pcSlice );
           m_pcEntropyCoder->resetEntropy      ();
+#if !E045_SLICE_COMMON_INFO_SHARING
         }
-
+#endif
         /* start slice NALunit */
 #if DCM_DECODING_REFRESH
         OutputNALUnit nalu(pcSlice->getNalUnitType(), NAL_REF_IDC_PRIORITY_HIGHEST, pcSlice->getTLayer(), true);
@@ -500,112 +656,148 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
         m_pcEntropyCoder->setBitstream(&nalu.m_Bitstream);
         m_pcEntropyCoder->encodeSliceHeader(pcSlice);
 
-      // is it needed?
-      if ( pcSlice->getSymbolMode() )
-      {
-        m_pcSbacCoder->init( (TEncBinIf*)m_pcBinCABAC );
-        m_pcEntropyCoder->setEntropyCoder ( m_pcSbacCoder, pcSlice );
-        m_pcEntropyCoder->resetEntropy    ();
-      }
-      
-      if (uiNextCUAddr==0)  // Compute ALF params and write only for first slice header
-      {
-        // set entropy coder for RD
+        // is it needed?
         if ( pcSlice->getSymbolMode() )
         {
-          m_pcEntropyCoder->setEntropyCoder ( m_pcEncTop->getRDGoOnSbacCoder(), pcSlice );
-        }
-        else
-        {
-          m_pcEntropyCoder->setEntropyCoder ( m_pcCavlcCoder, pcSlice );
-        }
-
-#if MTK_SAO
-        if ( pcSlice->getSPS()->getUseSAO() )
-        {
-          m_pcEntropyCoder->resetEntropy    ();
-          m_pcEntropyCoder->setBitstream    ( m_pcBitCounter );
-          m_pcSAO->startSaoEnc(pcPic, m_pcEntropyCoder, m_pcEncTop->getRDSbacCoder(), m_pcCfg->getUseSBACRD() ?  m_pcEncTop->getRDGoOnSbacCoder() : NULL);
-          m_pcSAO->SAOProcess(pcPic->getSlice(0)->getLambda());
-          m_pcSAO->copyQaoData(&cSaoParam);
-          m_pcSAO->endSaoEnc();
-
-#if E057_INTRA_PCM && E192_SPS_PCM_FILTER_DISABLE_SYNTAX
-          m_pcAdaptiveLoopFilter->PCMLFDisableProcess(pcPic);
-#endif
-        }
-
-#endif
-        // adaptive loop filter
-        ALFParam cAlfParam;
-        UInt uiMaxAlfCtrlDepth;
-        UInt64 uiDist, uiBits;
-
-        if ( pcSlice->getSPS()->getUseALF())
-        {
-          m_pcEntropyCoder->resetEntropy    ();
-          m_pcEntropyCoder->setBitstream    ( m_pcBitCounter );
-#if TSB_ALF_HEADER
-          m_pcAdaptiveLoopFilter->setNumCUsInFrame(pcPic);
-#endif
-          m_pcAdaptiveLoopFilter->allocALFParam(&cAlfParam);
-          m_pcAdaptiveLoopFilter->startALFEnc(pcPic, m_pcEntropyCoder );
-          m_pcAdaptiveLoopFilter->ALFProcess( &cAlfParam, pcPic->getSlice(0)->getLambda(), uiDist, uiBits, uiMaxAlfCtrlDepth );
-          m_pcAdaptiveLoopFilter->endALFEnc();
-
-#if E057_INTRA_PCM && E192_SPS_PCM_FILTER_DISABLE_SYNTAX
-          m_pcAdaptiveLoopFilter->PCMLFDisableProcess(pcPic);
-#endif
-        }
-
-        // set entropy coder for writing
-        m_pcSbacCoder->init( (TEncBinIf*)m_pcBinCABAC );
-        if ( pcSlice->getSymbolMode() )
-        {
+          m_pcSbacCoder->init( (TEncBinIf*)m_pcBinCABAC );
           m_pcEntropyCoder->setEntropyCoder ( m_pcSbacCoder, pcSlice );
+          m_pcEntropyCoder->resetEntropy    ();
         }
-        else
-        {
-          m_pcEntropyCoder->setEntropyCoder ( m_pcCavlcCoder, pcSlice );
-        }
-        m_pcEntropyCoder->resetEntropy    ();
-        m_pcEntropyCoder->setBitstream(&nalu.m_Bitstream);
 
-#if MTK_SAO
-        if (pcSlice->getSPS()->getUseSAO())
-        {
-          m_pcEntropyCoder->encodeSaoParam(&cSaoParam);
-        }
+#if E045_SLICE_COMMON_INFO_SHARING
+        if(pcSlice->isNextSlice())
+#else
+        if (uiNextCUAddr==0)  // Compute ALF params and write only for first slice header
 #endif
-
-        if (pcSlice->getSPS()->getUseALF())
         {
-          if (cAlfParam.cu_control_flag)
+#if !E045_SLICE_COMMON_INFO_SHARING
+          // set entropy coder for RD
+          if ( pcSlice->getSymbolMode() )
           {
-            m_pcEntropyCoder->setAlfCtrl( true );
-            m_pcEntropyCoder->setMaxAlfCtrlDepth(uiMaxAlfCtrlDepth);
-            if (pcSlice->getSymbolMode() == 0)
-            {
-              m_pcCavlcCoder->setAlfCtrl(true);
-              m_pcCavlcCoder->setMaxAlfCtrlDepth(uiMaxAlfCtrlDepth); //D0201
-            }
+            m_pcEntropyCoder->setEntropyCoder ( m_pcEncTop->getRDGoOnSbacCoder(), pcSlice );
           }
           else
           {
-            m_pcEntropyCoder->setAlfCtrl(false);
+            m_pcEntropyCoder->setEntropyCoder ( m_pcCavlcCoder, pcSlice );
           }
-          m_pcEntropyCoder->encodeAlfParam(&cAlfParam);
 
-#if TSB_ALF_HEADER
-          if(cAlfParam.cu_control_flag)
+#if MTK_SAO
+          if ( pcSlice->getSPS()->getUseSAO() )
           {
-            m_pcEntropyCoder->encodeAlfCtrlParam(&cAlfParam);
+            m_pcEntropyCoder->resetEntropy    ();
+            m_pcEntropyCoder->setBitstream    ( m_pcBitCounter );
+            m_pcSAO->startSaoEnc(pcPic, m_pcEntropyCoder, m_pcEncTop->getRDSbacCoder(), m_pcCfg->getUseSBACRD() ?  m_pcEncTop->getRDGoOnSbacCoder() : NULL);
+            m_pcSAO->SAOProcess(pcPic->getSlice(0)->getLambda());
+            m_pcSAO->copyQaoData(&cSaoParam);
+            m_pcSAO->endSaoEnc();
+
+#if E057_INTRA_PCM && E192_SPS_PCM_FILTER_DISABLE_SYNTAX
+            m_pcAdaptiveLoopFilter->PCMLFDisableProcess(pcPic);
+#endif
+          }
+
+#endif
+          // adaptive loop filter
+          ALFParam cAlfParam;
+          UInt uiMaxAlfCtrlDepth;
+          UInt64 uiDist, uiBits;
+
+          if ( pcSlice->getSPS()->getUseALF())
+          {
+            m_pcEntropyCoder->resetEntropy    ();
+            m_pcEntropyCoder->setBitstream    ( m_pcBitCounter );
+#if TSB_ALF_HEADER
+            m_pcAdaptiveLoopFilter->setNumCUsInFrame(pcPic);
+#endif
+            m_pcAdaptiveLoopFilter->allocALFParam(&cAlfParam);
+            m_pcAdaptiveLoopFilter->startALFEnc(pcPic, m_pcEntropyCoder );
+            m_pcAdaptiveLoopFilter->ALFProcess( &cAlfParam, pcPic->getSlice(0)->getLambda(), uiDist, uiBits, uiMaxAlfCtrlDepth );
+            m_pcAdaptiveLoopFilter->endALFEnc();
+
+#if E057_INTRA_PCM && E192_SPS_PCM_FILTER_DISABLE_SYNTAX
+            m_pcAdaptiveLoopFilter->PCMLFDisableProcess(pcPic);
+#endif
           }
 #endif
-          m_pcAdaptiveLoopFilter->freeALFParam(&cAlfParam);
+          // set entropy coder for writing
+          m_pcSbacCoder->init( (TEncBinIf*)m_pcBinCABAC );
+          if ( pcSlice->getSymbolMode() )
+          {
+            m_pcEntropyCoder->setEntropyCoder ( m_pcSbacCoder, pcSlice );
+          }
+          else
+          {
+            m_pcEntropyCoder->setEntropyCoder ( m_pcCavlcCoder, pcSlice );
+          }
+          m_pcEntropyCoder->resetEntropy    ();
+          m_pcEntropyCoder->setBitstream(&nalu.m_Bitstream);
+
+#if E045_SLICE_COMMON_INFO_SHARING
+          if(uiNextCUAddr == 0) //SAO parameters are in the first slice header
+          {
+#endif
+#if MTK_SAO
+          if (pcSlice->getSPS()->getUseSAO())
+          {
+            m_pcEntropyCoder->encodeSaoParam(&cSaoParam);
+          }
+#endif
+#if E045_SLICE_COMMON_INFO_SHARING
+          }
+#endif
+
+          if (pcSlice->getSPS()->getUseALF())
+          {
+            if (cAlfParam.cu_control_flag)
+            {
+              m_pcEntropyCoder->setAlfCtrl( true );
+              m_pcEntropyCoder->setMaxAlfCtrlDepth(uiMaxAlfCtrlDepth);
+              if (pcSlice->getSymbolMode() == 0)
+              {
+                m_pcCavlcCoder->setAlfCtrl(true);
+                m_pcCavlcCoder->setMaxAlfCtrlDepth(uiMaxAlfCtrlDepth); //D0201
+              }
+            }
+            else
+            {
+              m_pcEntropyCoder->setAlfCtrl(false);
+            }
+#if E045_SLICE_COMMON_INFO_SHARING
+            if(!pcSlice->getPPS()->getSharedPPSInfoEnabled())
+            {
+#endif
+            m_pcEntropyCoder->encodeAlfParam(&cAlfParam);
+#if E045_SLICE_COMMON_INFO_SHARING
+            }
+#endif
+
+#if E045_SLICE_COMMON_INFO_SHARING
+            if(uiNumSlices == 1)
+            {
+              m_pcEntropyCoder->encodeAlfCtrlParam(&cAlfParam);
+            }
+            else
+            {
+              m_pcEntropyCoder->encodeAlfCtrlParam(&cAlfParam, m_pcAdaptiveLoopFilter->getNumSlicesInPic(), &((*m_pcAdaptiveLoopFilter)[pcPic->getCurrSliceIdx()]));
+            }
+#else
+#if TSB_ALF_HEADER
+            if(cAlfParam.cu_control_flag)
+            {
+#if FINE_GRANULARITY_SLICES && MTK_NONCROSS_INLOOP_FILTER
+              m_pcEntropyCoder->setSliceGranularity(pcSlice->getPPS()->getSliceGranularity());
+#endif
+              m_pcEntropyCoder->encodeAlfCtrlParam(&cAlfParam);
+            }
+#endif
+            m_pcAdaptiveLoopFilter->freeALFParam(&cAlfParam);
+#endif
+
+          }
         }
-      }
-        
+#if FINE_GRANULARITY_SLICES
+        pcSlice->setFinalized(true);
+#endif
         // File writing
         m_pcSliceEncoder->encodeSlice(pcPic, &nalu.m_Bitstream);
         writeRBSPTrailingBits(nalu.m_Bitstream);
@@ -615,14 +807,105 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
         uiBoundingAddrSlice        = m_uiStoredStartCUAddrForEncodingSlice[uiStartCUAddrSliceIdx];          
         uiBoundingAddrEntropySlice = m_uiStoredStartCUAddrForEncodingEntropySlice[uiStartCUAddrEntropySliceIdx];          
         uiNextCUAddr               = min(uiBoundingAddrSlice, uiBoundingAddrEntropySlice);
+#if E045_SLICE_COMMON_INFO_SHARING
+        processingState = ENCODE_SLICE;
+          }
+          break;
+        case EXECUTE_INLOOPFILTER:
+          {
+            pcSlice->getPPS()->setSharedPPSInfoEnabled(  (m_pcCfg->getSliceMode() == 0)?(false):( pcSlice->getSPS()->getUseALF() )  );
+
+            // set entropy coder for RD
+            if ( pcSlice->getSymbolMode() )
+            {
+              m_pcEntropyCoder->setEntropyCoder ( m_pcEncTop->getRDGoOnSbacCoder(), pcSlice );
+            }
+            else
+            {
+              m_pcEntropyCoder->setEntropyCoder ( m_pcCavlcCoder, pcSlice );
+            }
+
+#if MTK_SAO
+            if ( pcSlice->getSPS()->getUseSAO() )
+            {
+              m_pcEntropyCoder->resetEntropy    ();
+              m_pcEntropyCoder->setBitstream    ( m_pcBitCounter );
+              m_pcSAO->startSaoEnc(pcPic, m_pcEntropyCoder, m_pcEncTop->getRDSbacCoder(), m_pcCfg->getUseSBACRD() ?  m_pcEncTop->getRDGoOnSbacCoder() : NULL);
+              m_pcSAO->SAOProcess(pcPic->getSlice(0)->getLambda());
+              m_pcSAO->copyQaoData(&cSaoParam);
+              m_pcSAO->endSaoEnc();
+
+#if E057_INTRA_PCM && E192_SPS_PCM_FILTER_DISABLE_SYNTAX
+              m_pcAdaptiveLoopFilter->PCMLFDisableProcess(pcPic);
+#endif
+            }
+
+#endif
+            // adaptive loop filter
+            UInt64 uiDist, uiBits;
+            if ( pcSlice->getSPS()->getUseALF())
+            {
+              m_pcAdaptiveLoopFilter->setSharedPPSAlfParamEnabled( pcSlice->getPPS()->getSharedPPSInfoEnabled() );
+              m_pcEntropyCoder->resetEntropy    ();
+              m_pcEntropyCoder->setBitstream    ( m_pcBitCounter );
+              m_pcAdaptiveLoopFilter->startALFEnc(pcPic, m_pcEntropyCoder );
+              m_pcAdaptiveLoopFilter->ALFProcess( &cAlfParam, pcPic->getSlice(0)->getLambda(), uiDist, uiBits, uiMaxAlfCtrlDepth );
+              m_pcAdaptiveLoopFilter->endALFEnc();
+
+#if E057_INTRA_PCM && E192_SPS_PCM_FILTER_DISABLE_SYNTAX
+              m_pcAdaptiveLoopFilter->PCMLFDisableProcess(pcPic);
+#endif
+            }
+
+            //assign the new state
+            processingState = (!pcSlice->getPPS()->getSharedPPSInfoEnabled())?(ENCODE_SLICE):(ENCODE_PPS);
+          }
+          break;
+        case ENCODE_PPS:
+          {
+            TComPPS* pcPPS = pcSlice->getPPS();
+            m_pcEntropyCoder->setEntropyCoder   ( m_pcCavlcCoder, pcSlice );
+            m_pcEntropyCoder->resetEntropy      ();
+
+            OutputNALUnit nalu(NAL_UNIT_PPS, NAL_REF_IDC_PRIORITY_HIGHEST);
+            m_pcEntropyCoder->setBitstream(&nalu.m_Bitstream);
+            m_pcEntropyCoder->encodePPS(pcPPS);
+
+            if(pcPPS->getSharedPPSInfoEnabled())
+            {
+              if(pcSlice->getSPS()->getUseALF())
+              {
+                m_pcEntropyCoder->encodeAlfParam(&cAlfParam);
+              }
+            }
+
+            writeRBSPTrailingBits(nalu.m_Bitstream);
+            accessUnit.push_back(new NALUnitEBSP(nalu));
+
+            processingState = ENCODE_SLICE;
+          }
+          break;
+        default:
+          {
+            printf("Not a supported encoding state\n");
+            assert(0);
+            exit(-1);
+          }
+        }
+#endif
       } // end iteration over slices
       
       
-#if MTK_NONCROSS_INLOOP_FILTER
+#if MTK_NONCROSS_INLOOP_FILTER || E045_SLICE_COMMON_INFO_SHARING
       if(pcSlice->getSPS()->getUseALF())
       {
-        if(m_pcAdaptiveLoopFilter->getUseNonCrossAlf())
+        if(m_pcAdaptiveLoopFilter->getNumSlicesInPic() > 1)
+        {
           m_pcAdaptiveLoopFilter->destroySlice();
+        }
+#if E045_SLICE_COMMON_INFO_SHARING
+        m_pcAdaptiveLoopFilter->freeALFParam(&cAlfParam);
+#endif
       }
 #endif 
       
@@ -740,7 +1023,7 @@ Void TEncGOP::preLoopFilterPicAll( TComPic* pcPic, UInt64& ruiDist, UInt64& ruiB
   if( pcSlice->getSPS()->getUseALF() )
   {
     ALFParam cAlfParam;
-#if TSB_ALF_HEADER
+#if TSB_ALF_HEADER && (!E045_SLICE_COMMON_INFO_SHARING)
     m_pcAdaptiveLoopFilter->setNumCUsInFrame(pcPic);
 #endif
     m_pcAdaptiveLoopFilter->allocALFParam(&cAlfParam);

@@ -51,6 +51,9 @@ TEncCavlc::TEncCavlc()
   m_uiMaxAlfCtrlDepth = 0;
   
   m_bAdaptFlag        = true;    // adaptive VLC table
+#if FINE_GRANULARITY_SLICES && MTK_NONCROSS_INLOOP_FILTER
+  m_iSliceGranularity = 0;
+#endif
 }
 
 TEncCavlc::~TEncCavlc()
@@ -234,6 +237,10 @@ Void TEncCavlc::codePPS( TComPPS* pcPPS )
   xWriteFlag( pcPPS->getConstrainedIntraPred() ? 1 : 0 );
 #endif
 
+#if FINE_GRANULARITY_SLICES
+  xWriteCode ( pcPPS->getSliceGranularity(), 2);
+#endif
+
   xWriteUvlc( pcPPS->getNumTLayerSwitchingFlags() );          // num_temporal_layer_switching_point_flags
   for( UInt i = 0; i < pcPPS->getNumTLayerSwitchingFlags(); i++ ) 
   {
@@ -245,6 +252,10 @@ Void TEncCavlc::codePPS( TComPPS* pcPPS )
   {
     xWriteUvlc(pcPPS->getMaxCuDQPDepth());
   }
+#endif
+
+#if E045_SLICE_COMMON_INFO_SHARING
+  xWriteFlag( pcPPS->getSharedPPSInfoEnabled() ? 1: 0);
 #endif
 
   return;
@@ -344,11 +355,61 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
   }
   if (pcSlice->isNextSlice())
   {
-    xWriteUvlc(pcSlice->getSliceCurStartCUAddr());        // start CU addr for slice
+#if !FINE_GRANULARITY_SLICES
+    xWriteUvlc(pcSlice->getSliceCurStartCUAddr());        // Start CU addr for slice
+#else
+    int iMaxAddrOuter = pcSlice->getPic()->getNumCUsInFrame();
+    int iReqBitsOuter = 0;
+    while(iMaxAddrOuter>(1<<iReqBitsOuter)) 
+    {
+      iReqBitsOuter++;
+    }
+    int iMaxAddrInner = pcSlice->getPic()->getNumPartInCU()>>(2);
+    iMaxAddrInner = (1<<(pcSlice->getPPS()->getSliceGranularity()<<1));
+    int iReqBitsInner = 0;
+    while(iMaxAddrInner>(1<<iReqBitsInner))
+    {
+      iReqBitsInner++;
+    }
+    // Write slice address
+    int iLCUAddress = (pcSlice->getSliceCurStartCUAddr()/pcSlice->getPic()->getNumPartInCU());
+    int iInnerAddress = (pcSlice->getSliceCurStartCUAddr()%(pcSlice->getPic()->getNumPartInCU()))>>((pcSlice->getSPS()->getMaxCUDepth()-pcSlice->getPPS()->getSliceGranularity())<<1);
+    int iAddress    = (iLCUAddress << iReqBitsInner) + iInnerAddress;
+    xWriteFlag(iAddress==0);
+    if(iAddress>0) 
+    {
+      xWriteCode(iAddress, iReqBitsOuter+iReqBitsInner);
+    }
+#endif
   }
   else
   {
-    xWriteUvlc(pcSlice->getEntropySliceCurStartCUAddr()); // start CU addr for entropy slice
+#if !FINE_GRANULARITY_SLICES
+    xWriteUvlc(pcSlice->getEntropySliceCurStartCUAddr()); // Start CU addr for entropy slice
+#else
+    int iMaxAddrOuter = pcSlice->getPic()->getNumCUsInFrame();
+    int iReqBitsOuter = 0;
+    while(iMaxAddrOuter>(1<<iReqBitsOuter)) 
+    {
+      iReqBitsOuter++;
+    }
+    int iMaxAddrInner = pcSlice->getPic()->getNumPartInCU()>>(2);
+    iMaxAddrInner = (1<<(pcSlice->getPPS()->getSliceGranularity()<<1));
+    int iReqBitsInner = 0;
+    while(iMaxAddrInner>(1<<iReqBitsInner))
+    {
+      iReqBitsInner++;
+    }
+    // Write slice address
+    int iLCUAddress = (pcSlice->getEntropySliceCurStartCUAddr()/pcSlice->getPic()->getNumPartInCU());
+    int iInnerAddress = (pcSlice->getEntropySliceCurStartCUAddr()%(pcSlice->getPic()->getNumPartInCU()))>>((pcSlice->getSPS()->getMaxCUDepth()-pcSlice->getPPS()->getSliceGranularity())<<1);
+    int iAddress    = (iLCUAddress << iReqBitsInner) + iInnerAddress;
+    xWriteFlag(iAddress==0);
+    if(iAddress>0) 
+    {
+      xWriteCode(iAddress, iReqBitsOuter+iReqBitsInner);
+    }
+#endif
   }
   if (!bEntropySlice)
   {  
@@ -2105,8 +2166,7 @@ Void TEncCavlc::codeCoeffNxN    ( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPa
   UInt uiScanning;
   
   // compute number of significant coefficients
-  UInt  uiPart = 0;
-  xCheckCoeff(piCoeff, uiWidth, 0, uiNumSig, uiPart );
+  uiNumSig = TEncEntropy::countNonZeroCoeffs(piCoeff, uiWidth);
   
   if ( bRD )
   {
@@ -2349,10 +2409,23 @@ Void TEncCavlc::codeAlfFlag( UInt uiCode )
 }
 
 #if TSB_ALF_HEADER
+#if MTK_NONCROSS_INLOOP_FILTER
+/** Code number of ALF CU control flags
+ * \param uiCode number of ALF CU control flags
+ * \param minValue predictor of number of ALF CU control flags
+ * \param iDepth the possible max. processing CU depth
+ */
+Void TEncCavlc::codeAlfFlagNum( UInt uiCode, UInt minValue, Int iDepth)
+#else
 Void TEncCavlc::codeAlfFlagNum( UInt uiCode, UInt minValue )
+#endif
 {
   UInt uiLength = 0;
+#if MTK_NONCROSS_INLOOP_FILTER
+  UInt maxValue = (minValue << (iDepth*2));
+#else
   UInt maxValue = (minValue << (this->getMaxAlfCtrlDepth()*2));
+#endif
   assert((uiCode>=minValue)&&(uiCode<=maxValue));
   UInt temp = maxValue - minValue;
   for(UInt i=0; i<32; i++)
@@ -2457,53 +2530,6 @@ Void  TEncCavlc::xWritePCMAlignZero    ()
 }
 #endif
 
-Void TEncCavlc::xCheckCoeff( TCoeff* pcCoef, UInt uiSize, UInt uiDepth, UInt& uiNumofCoeff, UInt& uiPart )
-{
-  UInt ui = uiSize>>uiDepth;
-  if( uiPart == 0 )
-  {
-    if( ui <= 4 )
-    {
-      UInt x, y;
-      TCoeff* pCeoff = pcCoef;
-      for( y=0 ; y<ui ; y++ )
-      {
-        for( x=0 ; x<ui ; x++ )
-        {
-          if( pCeoff[x] != 0 )
-          {
-            uiNumofCoeff++;
-          }
-        }
-        pCeoff += uiSize;
-      }
-    }
-    else
-    {
-      xCheckCoeff( pcCoef,                            uiSize, uiDepth+1, uiNumofCoeff, uiPart ); uiPart++; //1st Part
-      xCheckCoeff( pcCoef             + (ui>>1),      uiSize, uiDepth+1, uiNumofCoeff, uiPart ); uiPart++; //2nd Part
-      xCheckCoeff( pcCoef + (ui>>1)*uiSize,           uiSize, uiDepth+1, uiNumofCoeff, uiPart ); uiPart++; //3rd Part
-      xCheckCoeff( pcCoef + (ui>>1)*uiSize + (ui>>1), uiSize, uiDepth+1, uiNumofCoeff, uiPart );           //4th Part
-    }
-  }
-  else
-  {
-    UInt x, y;
-    TCoeff* pCeoff = pcCoef;
-    for( y=0 ; y<ui ; y++ )
-    {
-      for( x=0 ; x<ui ; x++ )
-      {
-        if( pCeoff[x] != 0 )
-        {
-          uiNumofCoeff++;
-        }
-      }
-      pCeoff += uiSize;
-    }
-  }
-}
-
 Void TEncCavlc::xWriteUnaryMaxSymbol( UInt uiSymbol, UInt uiMaxSymbol )
 {
   if (uiMaxSymbol == 0)
@@ -2572,25 +2598,6 @@ Void TEncCavlc::xWriteEpExGolomb( UInt uiSymbol, UInt uiCount )
   }
   return;
 }
-
-#if !QC_MOD_LCEC_RDOQ
-UInt TEncCavlc::xLeadingZeros(UInt uiCode)
-{
-  UInt uiCount = 0;
-  Int iDone = 0;
-  
-  if (uiCode)
-  {
-    while (!iDone)
-    {
-      uiCode >>= 1;
-      if (!uiCode) iDone = 1;
-      else uiCount++;
-    }
-  }
-  return uiCount;
-}
-#endif
 
 Void TEncCavlc::xWriteVlc(UInt uiTableNumber, UInt uiCodeNumber)
 {

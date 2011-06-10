@@ -159,6 +159,19 @@ Void TAppEncTop::xInitLibCfg()
   //====== Entropy Slice ========
   m_cTEncTop.setEntropySliceMode        ( m_iEntropySliceMode         );
   m_cTEncTop.setEntropySliceArgument    ( m_iEntropySliceArgument     );
+#if FINE_GRANULARITY_SLICES
+  int iNumPartInCU = 1<<(m_uiMaxCUDepth<<1);
+  if(m_iEntropySliceMode==SHARP_FIXED_NUMBER_OF_LCU_IN_ENTROPY_SLICE)
+  {
+    m_cTEncTop.setEntropySliceArgument ( m_iEntropySliceArgument * ( iNumPartInCU >> ( m_iSliceGranularity << 1 ) ) );
+  }
+  if(m_iSliceMode==AD_HOC_SLICES_FIXED_NUMBER_OF_LCU_IN_SLICE)
+  {
+    m_cTEncTop.setSliceArgument ( m_iSliceArgument * ( iNumPartInCU >> ( m_iSliceGranularity << 1 ) ) );
+  }
+  
+  m_cTEncTop.setSliceGranularity        ( m_iSliceGranularity         );
+#endif
 #if MTK_NONCROSS_INLOOP_FILTER
   if(m_iSliceMode == 0 )
   {

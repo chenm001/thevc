@@ -108,11 +108,10 @@ private:
   Bool m_bDCPredFilterFlag;
 #endif
   
-#if LM_CHROMA && !LM_CHROMA_TICKET156
-  Bool m_bLeftAvailable;
-  Bool m_bAboveAvailable;
+#if QC_MDIS
+  static const UChar m_aucIntraFilter[5][34];
 #endif
-
+  
 public:
   
   // ROI & pattern information, (ROI = &pattern[AboveOffset][LeftOffset])
@@ -130,7 +129,7 @@ public:
   Int*  getAdiCrBuf               ( Int iCuWidth, Int iCuHeight, Int* piAdiBuf );
   
 #if QC_MDIS
-  Int*  getPredictorPtr           ( UInt uiDirMode, UInt uiWidthBits, Int iCuWidth, Int iCuHeight, Int* piAdiBuf );
+  Int*  getPredictorPtr           ( UInt uiDirMode, UInt uiWidthBits, Int* piAdiBuf );
 #endif //QC_MDIS
   // -------------------------------------------------------------------------------------------------------------------
   // initialization functions
@@ -162,8 +161,8 @@ public:
                                Int         iOrgBufHeight,
                                Bool&       bAbove,
                                Bool&       bLeft
-#if LM_CHROMA_TICKET156
-                               , UInt uiExt = 1 // number of extension lines, default is one, for LM chroma two lines are necessary for downsampling
+#if LM_CHROMA
+                               ,UInt uiExt = 1 // number of extension lines, default is one, for LM chroma two lines are necessary for downsampling
 #endif
                                );
   
@@ -177,22 +176,16 @@ public:
                                Bool&       bAbove,
                                Bool&       bLeft );
 
-#if LM_CHROMA && !LM_CHROMA_TICKET156
-  Bool  isLeftAvailable()         { return m_bLeftAvailable; }
-  Bool  isAboveAvailable()        { return m_bAboveAvailable; }
-#endif
-
 #if (CONSTRAINED_INTRA_PRED || REFERENCE_SAMPLE_PADDING)
 private:
 
 #if REFERENCE_SAMPLE_PADDING
   /// padding of unavailable reference samples for intra prediction
   Void  fillReferenceSamples        ( TComDataCU* pcCU, Pel* piRoiOrigin, Int* piAdiTemp, Bool* bNeighborFlags, Int iNumIntraNeighbor, Int iUnitSize, Int iNumUnitsInCu, Int iTotalUnits, UInt uiCuWidth, UInt uiCuHeight, UInt uiWidth, UInt uiHeight, Int iPicStride);
-
-#if LM_CHROMA_TICKET156
+#if LM_CHROMA
   Void  fill2ReferenceSamples_LM    ( TComDataCU* pcCU, Pel* piRoiOrigin, Int* piAdiTemp, Bool* bNeighborFlags, Int iNumIntraNeighbor, Int iUnitSize, Int iNumUnitsInCu, Int iTotalUnits, UInt uiCuWidth, UInt uiCuHeight, UInt uiWidth, UInt uiHeight, Int iPicStride);
 #endif
-
+  
 #endif
 #if CONSTRAINED_INTRA_PRED
   /// constrained intra prediction

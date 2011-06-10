@@ -43,29 +43,24 @@
 // Tables
 // ====================================================================================================================
 
-const UChar g_aaucAvailableBlkMask[16][8] =
+#if QC_MDIS
+const UChar TComPattern::m_aucIntraFilter[5][34] =
 {
-  // 4x4 block neighbor availability      // MB neighbor availability
-  {0x0,0x0,0x0,0x0,  0x0,0x8,0x0,0x08  }, // L, A, AL, AR   <== WTF (blkIdx < 8)
-  {0x1,0x0,0x0,0x0,  0x1,0x8,0x0,0x08  }, //    A, AL, AR
-  {0xA,0xE,0xE,0x6,  0x0,0x8,0x0,0x08  }, // L,    AL, AR
-  {0xB,0xE,0xE,0x6,  0x1,0x8,0x0,0x08  }, //       AL, AR
-  
-  {0x4,0x0,0x0,0x0,  0x0,0x8,0x0,0x08  }, // L, A,     AR
-  {0x5,0x0,0x0,0x0,  0x1,0x8,0x0,0x08  }, //    A,     AR
-  {0xE,0xE,0xE,0x6,  0x0,0x8,0x0,0x08  }, // L,        AR
-  {0xF,0xE,0xE,0x6,  0x1,0x8,0x0,0x08  }, //           AR
-  
-  {0x0,0x0,0x0,0x8,  0x0,0x8,0x0,0x08  }, // L, A, AL       <== WTF (blkIdx < 8 || blkIdx >= 8)
-  {0x1,0x0,0x0,0x8,  0x1,0x8,0x0,0x08  }, //    A, AL
-  {0xA,0xE,0xE,0xE,  0x0,0x8,0x0,0x08  }, // L,    AL
-  {0xB,0xE,0xE,0xE,  0x1,0x8,0x0,0x08  }, //       AL
-  
-  {0x4,0x0,0x0,0x8,  0x0,0x8,0x0,0x08  }, // L, A,
-  {0x5,0x0,0x0,0x8,  0x1,0x8,0x0,0x08  }, //    A,
-  {0xE,0xE,0xE,0xE,  0x0,0x8,0x0,0x08  }, // L,
-  {0xF,0xE,0xE,0xE,  0x1,0x8,0x0,0x08  }  //
+#if MN_MDIS_SIMPLIFICATION
+  {0, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, //4x4
+  {0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, //8x8
+  {0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, //16x16
+  {0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, //32x32
+  {0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, //64x64
+#else
+  {0, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, //4x4
+  {0, 0, 0, 1, 1, 2, 2, 2, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, //8x8
+  {0, 0, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, //16x16
+  {0, 0, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2}, //32x32
+  {0, 0, 0, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, //64x64
+#endif
 };
+#endif
 
 // ====================================================================================================================
 // Public member functions (TComPatternParam)
@@ -208,17 +203,12 @@ Void TComPattern::initPattern( TComDataCU* pcCU, UInt uiPartDepth, UInt uiAbsPar
     }
   }
   
-#if LM_CHROMA && !LM_CHROMA_TICKET156
-  m_bLeftAvailable = uiCurrPicPelX > 0 ? true : false;
-  m_bAboveAvailable = uiCurrPicPelY > 0 ? true : false;
-#endif
-
   m_cPatternY .setPatternParamCU( pcCU, 0, uiWidth,      uiHeight,      uiOffsetLeft, uiOffsetRight, uiOffsetAbove, 0, uiPartDepth, uiAbsPartIdx );
   m_cPatternCb.setPatternParamCU( pcCU, 1, uiWidth >> 1, uiHeight >> 1, uiOffsetLeft, uiOffsetRight, uiOffsetAbove, 0, uiPartDepth, uiAbsPartIdx );
   m_cPatternCr.setPatternParamCU( pcCU, 2, uiWidth >> 1, uiHeight >> 1, uiOffsetLeft, uiOffsetRight, uiOffsetAbove, 0, uiPartDepth, uiAbsPartIdx );
 }
 
-#if LM_CHROMA_TICKET156
+#if LM_CHROMA
 Void TComPattern::initAdiPattern( TComDataCU* pcCU, UInt uiZorderIdxInPart, UInt uiPartDepth, Int* piAdiBuf, Int iOrgBufStride, Int iOrgBufHeight, Bool& bAbove, Bool& bLeft, UInt uiExt )
 #else
 Void TComPattern::initAdiPattern( TComDataCU* pcCU, UInt uiZorderIdxInPart, UInt uiPartDepth, Int* piAdiBuf, Int iOrgBufStride, Int iOrgBufHeight, Bool& bAbove, Bool& bLeft )
@@ -238,7 +228,7 @@ Void TComPattern::initAdiPattern( TComDataCU* pcCU, UInt uiZorderIdxInPart, UInt
   Int   iUnitSize = 0;
   Int   iNumUnitsInCu = 0;
   Int   iTotalUnits = 0;
-  Bool* bNeighborFlags;
+  Bool  bNeighborFlags[4 * MAX_NUM_SPU_W + 1];
   Int   iNumIntraNeighbor = 0;
 #else  // REFERENCE_SAMPLE_PADDING
   Pel*  piRoiTemp;
@@ -261,7 +251,6 @@ Void TComPattern::initAdiPattern( TComDataCU* pcCU, UInt uiZorderIdxInPart, UInt
     iUnitSize      = g_uiMaxCUWidth >> g_uiMaxCUDepth;
     iNumUnitsInCu  = uiCuWidth / iUnitSize;
     iTotalUnits    = (iNumUnitsInCu << 2) + 1;
-    bNeighborFlags = new Bool[iTotalUnits];
 
     bNeighborFlags[iNumUnitsInCu*2] = isAboveLeftAvailableForCIP( pcCU, uiPartIdxLT );
     iNumIntraNeighbor  += (Int)(bNeighborFlags[iNumUnitsInCu*2]);
@@ -283,7 +272,6 @@ Void TComPattern::initAdiPattern( TComDataCU* pcCU, UInt uiZorderIdxInPart, UInt
     iUnitSize     = uiCuWidth;
     iNumUnitsInCu = 1;
     iTotalUnits   = 5;
-    bNeighborFlags = new Bool[iTotalUnits];
 
     ::memset(bNeighborFlags, false, sizeof(Bool)*iTotalUnits);
     if( pcCU->getPUAbove        ( uiPartDum,             uiPartIdxLT,    true, false ) ) { bNeighborFlags[3] = true; iNumIntraNeighbor++; }
@@ -312,7 +300,6 @@ Void TComPattern::initAdiPattern( TComDataCU* pcCU, UInt uiZorderIdxInPart, UInt
   iUnitSize     = uiCuWidth;
   iNumUnitsInCu = 1;
   iTotalUnits   = 5;
-  bNeighborFlags = new Bool[iTotalUnits];
 
   ::memset(bNeighborFlags, false, sizeof(Bool)*iTotalUnits);
   if( pcCU->getPUAbove        ( uiPartDum,             uiPartIdxLT, true, false ) ) { bNeighborFlags[3] = true; iNumIntraNeighbor++; }
@@ -361,23 +348,18 @@ Void TComPattern::initAdiPattern( TComDataCU* pcCU, UInt uiZorderIdxInPart, UInt
   piAdiTemp   = piAdiBuf;
 
 #if REFERENCE_SAMPLE_PADDING
-#if LM_CHROMA_TICKET156
-  if( uiExt == 2 )
-    fill2ReferenceSamples_LM ( pcCU, piRoiOrigin, piAdiTemp, bNeighborFlags, iNumIntraNeighbor, iUnitSize, iNumUnitsInCu, iTotalUnits, uiCuWidth, uiCuHeight, uiWidth, uiHeight, iPicStride);
-  else if( uiExt == 1 )
-#endif
-  fillReferenceSamples ( pcCU, piRoiOrigin, piAdiTemp, bNeighborFlags, iNumIntraNeighbor, iUnitSize, iNumUnitsInCu, iTotalUnits, uiCuWidth, uiCuHeight, uiWidth, uiHeight, iPicStride);
-
-  delete [] bNeighborFlags;
-  bNeighborFlags = NULL;
-
-#if LM_CHROMA_TICKET156
+#if LM_CHROMA
   if( uiExt == 2 )
   {
+    fill2ReferenceSamples_LM ( pcCU, piRoiOrigin, piAdiTemp, bNeighborFlags, iNumIntraNeighbor, iUnitSize, iNumUnitsInCu, iTotalUnits, uiCuWidth, uiCuHeight, uiWidth, uiHeight, iPicStride);
     return;
   }
+  else if( uiExt == 1 )
 #endif
-
+  {
+    fillReferenceSamples ( pcCU, piRoiOrigin, piAdiTemp, bNeighborFlags, iNumIntraNeighbor, iUnitSize, iNumUnitsInCu, iTotalUnits, uiCuWidth, uiCuHeight, uiWidth, uiHeight, iPicStride);
+  }
+  
 #else // REFERENCE_SAMPLE_PADDING
   //BB: fill border with DC value - needed if( bAboveFlag=false || bLeftFlag=false )
   for (i=0;i<uiWidth;i++)
@@ -508,7 +490,7 @@ Void TComPattern::initAdiPatternChroma( TComDataCU* pcCU, UInt uiZorderIdxInPart
   Int   iUnitSize = 0;
   Int   iNumUnitsInCu = 0;
   Int   iTotalUnits = 0;
-  Bool* bNeighborFlags;
+  Bool  bNeighborFlags[4 * MAX_NUM_SPU_W + 1];
   Int   iNumIntraNeighbor = 0;
 #else // REFERENCE_SAMPLE_PADDING
   Pel*  piRoiTemp;
@@ -532,7 +514,6 @@ Void TComPattern::initAdiPatternChroma( TComDataCU* pcCU, UInt uiZorderIdxInPart
     iUnitSize      = (g_uiMaxCUWidth >> g_uiMaxCUDepth) >> 1; // for chroma
     iNumUnitsInCu  = (uiCuWidth / iUnitSize) >> 1;            // for chroma
     iTotalUnits    = (iNumUnitsInCu << 2) + 1;
-    bNeighborFlags = new Bool[iTotalUnits];
 
     bNeighborFlags[iNumUnitsInCu*2] = isAboveLeftAvailableForCIP( pcCU, uiPartIdxLT );
     iNumIntraNeighbor  += (Int)(bNeighborFlags[iNumUnitsInCu*2]);
@@ -554,7 +535,6 @@ Void TComPattern::initAdiPatternChroma( TComDataCU* pcCU, UInt uiZorderIdxInPart
     iUnitSize     = uiCuWidth >> 1;
     iNumUnitsInCu = 1;
     iTotalUnits   = 5;
-    bNeighborFlags = new Bool[iTotalUnits];
 
     ::memset(bNeighborFlags, false, sizeof(Bool)*iTotalUnits);
     if( pcCU->getPUAbove        ( uiPartDum,             uiPartIdxLT,    true, false ) ) { bNeighborFlags[3] = true; iNumIntraNeighbor++; }
@@ -575,7 +555,6 @@ Void TComPattern::initAdiPatternChroma( TComDataCU* pcCU, UInt uiZorderIdxInPart
   iUnitSize     = uiCuWidth >> 1;
   iNumUnitsInCu = 1;
   iTotalUnits   = 5;
-  bNeighborFlags = new Bool[iTotalUnits];
 
   ::memset(bNeighborFlags, false, sizeof(Bool)*iTotalUnits);
   if( pcCU->getPUAbove        ( uiPartDum,             uiPartIdxLT, true, false ) ) { bNeighborFlags[3] = true; iNumIntraNeighbor++; }
@@ -682,8 +661,6 @@ Void TComPattern::initAdiPatternChroma( TComDataCU* pcCU, UInt uiZorderIdxInPart
   
 #if REFERENCE_SAMPLE_PADDING
   fillReferenceSamples ( pcCU, piRoiOrigin, piAdiTemp, bNeighborFlags, iNumIntraNeighbor, iUnitSize, iNumUnitsInCu, iTotalUnits, uiCuWidth, uiCuHeight, uiWidth, uiHeight, iPicStride);
-  delete [] bNeighborFlags;
-  bNeighborFlags = NULL;
 #else // REFERENCE_SAMPLE_PADDING
   for (i=0;i<uiWidth;i++)
     piAdiTemp[i]=iDCValue;
@@ -791,7 +768,7 @@ Void TComPattern::fillReferenceSamples( TComDataCU* pcCU, Pel* piRoiOrigin, Int*
   {
     Int  iNumUnits2 = iNumUnitsInCu<<1;
     Int  iTotalSamples = iTotalUnits*iUnitSize;
-    Pel  *piAdiLine = new Pel[iTotalSamples];
+    Pel  piAdiLine[5 * MAX_CU_SIZE];
     Pel  *piAdiLineTemp; 
     Bool *pbNeighborFlags;
     Int  iPrev, iNext, iCurr;
@@ -895,14 +872,10 @@ Void TComPattern::fillReferenceSamples( TComDataCU* pcCU, Pel* piRoiOrigin, Int*
     piAdiLineTemp = piAdiLine + uiHeight - 1;
     for (i=1; i<uiHeight; i++)
       piAdiTemp[i*uiWidth] = piAdiLineTemp[-i];
-
-    delete [] piAdiLine;
-    piAdiLine = NULL;
   }
 }
 
-#if LM_CHROMA_TICKET156
-
+#if LM_CHROMA
 /** Function for deriving the neighboring luma reference pixels which is specifically used for luma-based chroma intra prediction method.
   // In this funtioned, first two rows in output buffer correspond to two rows of above reference pixels, 
   // and next two rows correspond to two columns of left reference pixels
@@ -984,8 +957,8 @@ Void TComPattern::fill2ReferenceSamples_LM( TComDataCU* pcCU, Pel* piRoiOrigin, 
   {
     Int  iNumUnits2 = iNumUnitsInCu<<1;
     Int  iTotalSamples = iTotalUnits*iUnitSize;
-    Pel  *piAdiLine1 = new Pel[iTotalSamples];
-    Pel  *piAdiLine2 = new Pel[iTotalSamples];
+    Pel  piAdiLine1[5 * MAX_CU_SIZE];
+    Pel  piAdiLine2[5 * MAX_CU_SIZE];
     Pel  *piAdiLineTemp1, *piAdiLineTemp2; 
     Bool *pbNeighborFlags;
     Int  iPrev, iNext, iCurr;
@@ -1134,15 +1107,9 @@ Void TComPattern::fill2ReferenceSamples_LM( TComDataCU* pcCU, Pel* piRoiOrigin, 
       piAdiTemp3[i-1] = piAdiLineTemp1[-i];
       piAdiTemp4[i-1] = piAdiLineTemp2[-i];
     }
-
-    delete [] piAdiLine1;
-    piAdiLine1 = NULL;
-
-    delete [] piAdiLine2;
-    piAdiLine2 = NULL;
   }
 }
-#endif
+#endif // LM_CHROMA
 
 #endif // REFERENCE_SAMPLE_PADDING
 
@@ -1162,37 +1129,22 @@ Int* TComPattern::getAdiCrBuf(Int iCuWidth,Int iCuHeight, Int* piAdiBuf)
 }
 
 #if QC_MDIS
-Int* TComPattern::getPredictorPtr ( UInt uiDirMode, UInt uiWidthBits, Int iCuWidth, Int iCuHeight, Int* piAdiBuf )
+/** Get pointer to reference samples for intra prediction
+ * \param uiDirMode   prediction mode index
+ * \param log2BlkSize size of block (2 = 4x4, 3 = 8x8, 4 = 16x16, 5 = 32x32, 6 = 64x64)
+ * \param piAdiBuf    pointer to unfiltered reference samples
+ * \return            pointer to (possibly filtered) reference samples
+ *
+ * The prediction mode index is used to determine whether a smoothed reference sample buffer is returned.
+ */
+Int* TComPattern::getPredictorPtr( UInt uiDirMode, UInt log2BlkSize, Int* piAdiBuf )
 {
-#if MN_MDIS_SIMPLIFICATION
-  static const UChar g_aucIntraFilter[7][34] =
-  {
-      {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, //2x2
-      {0, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, //4x4
-      {0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, //8x8
-      {0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, //16x16
-      {0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, //32x32
-      {0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, //64x64
-      {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}  //128x128
-  };
-#else
-  static const UChar g_aucIntraFilter[7][34] =
-  {
-      {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, //2x2
-      {0, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, //4x4
-      {0, 0, 0, 1, 1, 2, 2, 2, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, //8x8
-      {0, 0, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, //16x16
-      {0, 0, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2}, //32x32
-      {0, 0, 0, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, //64x64
-      {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}  //128x128
-  };
-#endif
-
   Int* piSrc;
 #if ADD_PLANAR_MODE
   mapPlanartoDC( uiDirMode );
 #endif
-  UChar ucFiltIdx = g_aucIntraFilter[uiWidthBits][uiDirMode];
+  assert(log2BlkSize >= 2 && log2BlkSize < 7);
+  UChar ucFiltIdx = m_aucIntraFilter[log2BlkSize - 2][uiDirMode];
 
 #if MN_MDIS_SIMPLIFICATION
   assert( ucFiltIdx <= 1 );
@@ -1200,14 +1152,17 @@ Int* TComPattern::getPredictorPtr ( UInt uiDirMode, UInt uiWidthBits, Int iCuWid
   assert( ucFiltIdx <= 2 );
 #endif
 
-  piSrc = getAdiOrgBuf( iCuWidth, iCuHeight, piAdiBuf );
+  Int width  = 1 << log2BlkSize;
+  Int height = 1 << log2BlkSize;
+  
+  piSrc = getAdiOrgBuf( width, height, piAdiBuf );
 
   if ( ucFiltIdx )
   {
 #if MN_MDIS_SIMPLIFICATION
-    piSrc += ((iCuWidth << 1) + 1) * ((iCuHeight << 1) + 1);
+    piSrc += (2 * width + 1) * (2 * height + 1);
 #else
-    piSrc += (((iCuWidth << 1) + 1) * ((iCuHeight << 1) + 1) << (ucFiltIdx - 1));
+    piSrc += ((2 * width + 1) * (2 * height + 1)) << (ucFiltIdx - 1);
 #endif
   }
 

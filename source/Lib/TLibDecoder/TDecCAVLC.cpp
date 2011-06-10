@@ -46,6 +46,9 @@ TDecCavlc::TDecCavlc()
 {
   m_bAlfCtrl = false;
   m_uiMaxAlfCtrlDepth = 0;
+#if FINE_GRANULARITY_SLICES && MTK_NONCROSS_INLOOP_FILTER
+  m_iSliceGranularity = 0;
+#endif
 }
 
 TDecCavlc::~TDecCavlc()
@@ -81,6 +84,9 @@ Void TDecCavlc::parsePPS(TComPPS* pcPPS)
   xReadFlag ( uiCode ); pcPPS->setConstrainedIntraPred( uiCode ? true : false );
 #endif
 
+#if FINE_GRANULARITY_SLICES
+  xReadCode ( 2, uiCode ); pcPPS->setSliceGranularity(uiCode);
+#endif
   xReadUvlc( uiCode );    // num_temporal_layer_switching_point_flags
   pcPPS->setNumTLayerSwitchingFlags( uiCode );
   for ( UInt i = 0; i < pcPPS->getNumTLayerSwitchingFlags(); i++ )
@@ -101,6 +107,11 @@ Void TDecCavlc::parsePPS(TComPPS* pcPPS)
     pcPPS->setMinCuDQPSize( pcPPS->getSPS()->getMaxCUWidth() >> ( pcPPS->getMaxCuDQPDepth()) );
   }
 #endif
+
+#if E045_SLICE_COMMON_INFO_SHARING
+  xReadFlag( uiCode); pcPPS->setSharedPPSInfoEnabled( uiCode ? true : false);
+#endif
+
   return;
 }
 
@@ -232,8 +243,35 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice)
   {
     rpcSlice->setNextSlice        ( false );
     rpcSlice->setNextEntropySlice ( true  );
-
+#if !FINE_GRANULARITY_SLICES
     xReadUvlc(uiCode);
+#else
+    int iNumCUs = ((rpcSlice->getSPS()->getWidth()+rpcSlice->getSPS()->getMaxCUWidth()-1)/rpcSlice->getSPS()->getMaxCUWidth())*((rpcSlice->getSPS()->getHeight()+rpcSlice->getSPS()->getMaxCUHeight()-1)/rpcSlice->getSPS()->getMaxCUHeight());
+    int iMaxParts = (1<<(rpcSlice->getSPS()->getMaxCUDepth()<<1));
+    int iNumParts = (1<<(rpcSlice->getPPS()->getSliceGranularity()<<1));
+    UInt uiLCUAddress = 0;
+    int iReqBitsOuter = 0;
+    while(iNumCUs>(1<<iReqBitsOuter))
+    {
+      iReqBitsOuter++;
+    }
+    int iReqBitsInner = 0;
+    while((iNumParts)>(1<<iReqBitsInner)) 
+    {
+      iReqBitsInner++;
+    }
+    xReadFlag(uiCode);
+    UInt uiAddress;
+    UInt uiInnerAddress = 0;
+    if(!uiCode)
+    {
+      xReadCode(iReqBitsOuter+iReqBitsInner, uiAddress);
+      uiLCUAddress = uiAddress >> iReqBitsInner;
+      uiInnerAddress = uiAddress - (uiLCUAddress<<iReqBitsInner);
+    }
+    uiCode=(iMaxParts*uiLCUAddress)+(uiInnerAddress*(iMaxParts>>(rpcSlice->getPPS()->getSliceGranularity()<<1)));
+    rpcSlice->setEntropySliceCurEndCUAddr(iNumCUs*iMaxParts);
+#endif
     rpcSlice->setEntropySliceCurStartCUAddr( uiCode ); // start CU addr for entropy slice
   }
   else
@@ -241,9 +279,42 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice)
     rpcSlice->setNextSlice        ( true  );
     rpcSlice->setNextEntropySlice ( false );
     
+#if !FINE_GRANULARITY_SLICES
     xReadUvlc(uiCode);
     rpcSlice->setSliceCurStartCUAddr( uiCode );        // start CU addr for slice
     rpcSlice->setEntropySliceCurStartCUAddr( uiCode ); // start CU addr for entropy slice  
+#else
+    int iNumCUs = ((rpcSlice->getSPS()->getWidth()+rpcSlice->getSPS()->getMaxCUWidth()-1)/rpcSlice->getSPS()->getMaxCUWidth())*((rpcSlice->getSPS()->getHeight()+rpcSlice->getSPS()->getMaxCUHeight()-1)/rpcSlice->getSPS()->getMaxCUHeight());
+    int iMaxParts = (1<<(rpcSlice->getSPS()->getMaxCUDepth()<<1));
+    int iNumParts = (1<<(rpcSlice->getPPS()->getSliceGranularity()<<1));
+    UInt uiLCUAddress = 0;
+    int iReqBitsOuter = 0;
+    while(iNumCUs>(1<<iReqBitsOuter))
+    {
+      iReqBitsOuter++;
+    }
+    int iReqBitsInner = 0;
+    while((iNumParts)>(1<<iReqBitsInner)) 
+    {
+      iReqBitsInner++;
+    }
+    xReadFlag(uiCode);
+    UInt uiAddress;
+    UInt uiInnerAddress = 0;
+    if(!uiCode)
+    {
+      xReadCode(iReqBitsOuter+iReqBitsInner, uiAddress);
+      uiLCUAddress = uiAddress >> iReqBitsInner;
+      uiInnerAddress = uiAddress - (uiLCUAddress<<iReqBitsInner);
+    }
+    uiCode=(iMaxParts*uiLCUAddress)+(uiInnerAddress*(iMaxParts>>(rpcSlice->getPPS()->getSliceGranularity()<<1)));
+
+    rpcSlice->setSliceCurStartCUAddr((iMaxParts*uiLCUAddress)+(uiInnerAddress*(iMaxParts>>(rpcSlice->getPPS()->getSliceGranularity()<<1))));
+    rpcSlice->setEntropySliceCurStartCUAddr(rpcSlice->getSliceCurStartCUAddr());
+    rpcSlice->setSliceCurEndCUAddr(iNumCUs*iMaxParts);
+    rpcSlice->setEntropySliceCurEndCUAddr(iNumCUs*iMaxParts);
+#endif
+
     
     xReadFlag ( uiCode );
     rpcSlice->setSymbolMode( uiCode );
@@ -315,10 +386,13 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice)
       }
       else
       {
-        rpcSlice->setRefPicListCombinationFlag(false);
         rpcSlice->setRefPicListModificationFlagLC(false);
         rpcSlice->setNumRefIdx(REF_PIC_LIST_C, 0);
       }
+    }
+    else
+    {
+      rpcSlice->setRefPicListCombinationFlag(false);      
     }
 #endif
     
@@ -640,8 +714,8 @@ Void TDecCavlc::parseSplitFlag     ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt u
       pcCU->setPredModeSubParts( MODE_SKIP,  uiAbsPartIdx, uiDepth );
       pcCU->setPartSizeSubParts( SIZE_2Nx2N, uiAbsPartIdx, uiDepth );
       pcCU->setSizeSubParts( g_uiMaxCUWidth>>uiDepth, g_uiMaxCUHeight>>uiDepth, uiAbsPartIdx, uiDepth );
-      pcCU->getCUMvField( REF_PIC_LIST_0 )->setAllMvd    ( cZeroMv, SIZE_2Nx2N, uiAbsPartIdx, 0, uiDepth );
-      pcCU->getCUMvField( REF_PIC_LIST_1 )->setAllMvd    ( cZeroMv, SIZE_2Nx2N, uiAbsPartIdx, 0, uiDepth );
+      pcCU->getCUMvField( REF_PIC_LIST_0 )->setAllMvd    ( cZeroMv, SIZE_2Nx2N, uiAbsPartIdx, uiDepth );
+      pcCU->getCUMvField( REF_PIC_LIST_1 )->setAllMvd    ( cZeroMv, SIZE_2Nx2N, uiAbsPartIdx, uiDepth );
       pcCU->setTrIdxSubParts( 0, uiAbsPartIdx, uiDepth );
       pcCU->setCbfSubParts  ( 0, 0, 0, uiAbsPartIdx, uiDepth );
 
@@ -658,18 +732,18 @@ Void TDecCavlc::parseSplitFlag     ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt u
           pcCU->setInterDirSubParts( 1, uiAbsPartIdx, 0, uiDepth );
           
           if ( pcCU->getSlice()->getNumRefIdx( REF_PIC_LIST_0 ) > 0 )
-            pcCU->getCUMvField( REF_PIC_LIST_0 )->setAllRefIdx(  0, SIZE_2Nx2N, uiAbsPartIdx, 0, uiDepth );
+            pcCU->getCUMvField( REF_PIC_LIST_0 )->setAllRefIdx(  0, SIZE_2Nx2N, uiAbsPartIdx, uiDepth );
           if ( pcCU->getSlice()->getNumRefIdx( REF_PIC_LIST_1 ) > 0 )
-            pcCU->getCUMvField( REF_PIC_LIST_1 )->setAllRefIdx( NOT_VALID, SIZE_2Nx2N, uiAbsPartIdx, 0, uiDepth );
+            pcCU->getCUMvField( REF_PIC_LIST_1 )->setAllRefIdx( NOT_VALID, SIZE_2Nx2N, uiAbsPartIdx, uiDepth );
         }
         else
         {
           pcCU->setInterDirSubParts( 3, uiAbsPartIdx, 0, uiDepth );
           
           if ( pcCU->getSlice()->getNumRefIdx( REF_PIC_LIST_0 ) > 0 )
-            pcCU->getCUMvField( REF_PIC_LIST_0 )->setAllRefIdx(  0, SIZE_2Nx2N, uiAbsPartIdx, 0, uiDepth );
+            pcCU->getCUMvField( REF_PIC_LIST_0 )->setAllRefIdx(  0, SIZE_2Nx2N, uiAbsPartIdx, uiDepth );
           if ( pcCU->getSlice()->getNumRefIdx( REF_PIC_LIST_1 ) > 0 )
-            pcCU->getCUMvField( REF_PIC_LIST_1 )->setAllRefIdx( 0, SIZE_2Nx2N, uiAbsPartIdx, 0, uiDepth );
+            pcCU->getCUMvField( REF_PIC_LIST_1 )->setAllRefIdx( 0, SIZE_2Nx2N, uiAbsPartIdx, uiDepth );
         }
       }
     }
@@ -1810,14 +1884,14 @@ Void TDecCavlc::parseMvd( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiPartIdx, U
   Int iHor, iVer;
   
   TComMv cTmpMv( 0, 0 );
-  pcCU->getCUMvField( eRefList )->setAllMv( cTmpMv, pcCU->getPartitionSize( uiAbsPartIdx ), uiAbsPartIdx, uiPartIdx, uiDepth );
+  pcCU->getCUMvField( eRefList )->setAllMv( cTmpMv, pcCU->getPartitionSize( uiAbsPartIdx ), uiAbsPartIdx, uiDepth );
   
   xReadSvlc( iHor );
   xReadSvlc( iVer );
   
   // set mvd
   TComMv cMv( iHor, iVer );
-  pcCU->getCUMvField( eRefList )->setAllMvd( cMv, pcCU->getPartitionSize( uiAbsPartIdx ), uiAbsPartIdx, uiPartIdx, uiDepth );
+  pcCU->getCUMvField( eRefList )->setAllMvd( cMv, pcCU->getPartitionSize( uiAbsPartIdx ), uiAbsPartIdx, uiDepth );
   
   return;
 }
@@ -1834,7 +1908,13 @@ Void TDecCavlc::parseDeltaQP( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth 
   uiQp = pcCU->getSlice()->getSliceQp() + iDQp;
 #endif
 
+#if SUB_LCU_DQP
+  UInt uiAbsQpCUPartIdx = (uiAbsPartIdx>>(8-(pcCU->getSlice()->getPPS()->getMaxCuDQPDepth()<<1)))<<(8-(pcCU->getSlice()->getPPS()->getMaxCuDQPDepth()<<1)) ;
+  UInt uiQpCUDepth =   min(uiDepth,pcCU->getSlice()->getPPS()->getMaxCuDQPDepth()) ;
+  pcCU->setQPSubParts( uiQp, uiAbsQpCUPartIdx, uiQpCUDepth );
+#else
   pcCU->setQPSubParts( uiQp, uiAbsPartIdx, uiDepth );
+#endif
 }
 
 #if CAVLC_RQT_CBP
@@ -2458,6 +2538,7 @@ Void TDecCavlc::parseAlfFlag (UInt& ruiVal)
 }
 
 #if TSB_ALF_HEADER
+
 Void TDecCavlc::parseAlfFlagNum( UInt& ruiVal, UInt minValue, UInt depth )
 {
   UInt uiLength = 0;

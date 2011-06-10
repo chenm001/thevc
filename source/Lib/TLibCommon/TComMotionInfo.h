@@ -66,22 +66,22 @@ private:
   Int       m_iRefIdx;
   
 public:
-  TComMvField() :
-  m_iRefIdx (-1)
-  {
-  }
+  TComMvField() : m_iRefIdx( NOT_VALID ) {}
   
-  Void setMvField ( TComMv cMv, Int iRefIdx )
+  Void setMvField( TComMv const & cMv, Int iRefIdx )
   {
     m_acMv    = cMv;
     m_iRefIdx = iRefIdx;
   }
   
-  TComMv& getMv     ()      { return  m_acMv;             }
-  Int     getRefIdx ()      { return  m_iRefIdx;          }
+  Void setRefIdx( Int refIdx ) { m_iRefIdx = refIdx; }
   
-  Int     getHor    ()      { return  m_acMv.getHor();    }
-  Int     getVer    ()      { return  m_acMv.getVer();    }
+  TComMv const & getMv() const { return  m_acMv; }
+  TComMv       & getMv()       { return  m_acMv; }
+  
+  Int getRefIdx() const { return  m_iRefIdx;       }
+  Int getHor   () const { return  m_acMv.getHor(); }
+  Int getVer   () const { return  m_acMv.getVer(); }
 };
 
 /// class for motion information in one CU
@@ -90,75 +90,68 @@ class TComCUMvField
 private:
   TComMv*   m_pcMv;
   TComMv*   m_pcMvd;
-  Int*      m_piRefIdx;
+  Char*     m_piRefIdx;
   UInt      m_uiNumPartition;
   AMVPInfo  m_cAMVPInfo;
-public:
-  TComCUMvField()
-  {
-    m_pcMv     = NULL;
-    m_pcMvd    = NULL;
-    m_piRefIdx = NULL;
-  }
-  ~TComCUMvField()
-  {
-    m_pcMv     = NULL;
-    m_pcMvd    = NULL;
-    m_piRefIdx = NULL;
-  }
   
+  template <typename T>
+  Void setAll( T *p, T const & val, PartSize eCUMode, Int iPartAddr, UInt uiDepth );
+
+public:
+  TComCUMvField() : m_pcMv(NULL), m_pcMvd(NULL), m_piRefIdx(NULL), m_uiNumPartition(0) {}
+  ~TComCUMvField() {}
+
   // ------------------------------------------------------------------------------------------------------------------
   // create / destroy
   // ------------------------------------------------------------------------------------------------------------------
   
-  Void    create        ( UInt uiNumPartition );
-  Void    destroy       ();
+  Void    create( UInt uiNumPartition );
+  Void    destroy();
   
   // ------------------------------------------------------------------------------------------------------------------
   // clear / copy
   // ------------------------------------------------------------------------------------------------------------------
+
+  Void    clearMvField();
   
-  Void    clearMv       ( Int iPartAddr, UInt uiDepth );
-  Void    clearMvd      ( Int iPartAddr, UInt uiDepth );
-  Void    clearMvField  ();
-  
-  Void    copyFrom          ( TComCUMvField* pcCUMvFieldSrc, Int iNumPartSrc, Int iPartAddrDst );
-  Void    copyTo            ( TComCUMvField* pcCUMvFieldDst, Int iPartAddrDst );
-  Void    copyTo            ( TComCUMvField* pcCUMvFieldDst, Int iPartAddrDst, UInt uiOffset, UInt uiNumPart );
-  Void    copyMvTo          ( TComCUMvField* pcCUMvFieldDst, Int iPartAddrDst );
+  Void    copyFrom( TComCUMvField const * pcCUMvFieldSrc, Int iNumPartSrc, Int iPartAddrDst );
+  Void    copyTo  ( TComCUMvField* pcCUMvFieldDst, Int iPartAddrDst ) const;
+  Void    copyTo  ( TComCUMvField* pcCUMvFieldDst, Int iPartAddrDst, UInt uiOffset, UInt uiNumPart ) const;
   
   // ------------------------------------------------------------------------------------------------------------------
   // get
   // ------------------------------------------------------------------------------------------------------------------
   
-  TComMv& getMv             ( Int iIdx )               { return  m_pcMv    [iIdx]; }
-  TComMv* getMv             ()                         { return  m_pcMv;           }
-  TComMv& getMvd            ( Int iIdx )               { return  m_pcMvd   [iIdx]; }
-  TComMv* getMvd            ()                         { return  m_pcMvd;          }
-  Int     getRefIdx         ( Int iIdx )               { return  m_piRefIdx[iIdx]; }
-  Int*    getRefIdx         ()                         { return  m_piRefIdx;       }
+  TComMv const & getMv    ( Int iIdx ) const { return  m_pcMv    [iIdx]; }
+  TComMv const & getMvd   ( Int iIdx ) const { return  m_pcMvd   [iIdx]; }
+  Int            getRefIdx( Int iIdx ) const { return  m_piRefIdx[iIdx]; }
   
   AMVPInfo* getAMVPInfo () { return &m_cAMVPInfo; }
+  
   // ------------------------------------------------------------------------------------------------------------------
   // set
   // ------------------------------------------------------------------------------------------------------------------
   
-  Void    setMv             ( TComMv  cMv,     Int iIdx ) { m_pcMv    [iIdx] = cMv;     }
-  Void    setMvd            ( TComMv  cMvd,    Int iIdx ) { m_pcMvd   [iIdx] = cMvd;    }
-  Void    setRefIdx         ( Int     iRefIdx, Int iIdx ) { m_piRefIdx[iIdx] = iRefIdx; }
   
-  Void    setMvPtr          ( TComMv*  cMvPtr     ) { m_pcMv    = cMvPtr;         }
-  Void    setMvdPtr         ( TComMv*  cMvdPtr    ) { m_pcMvd  = cMvdPtr;         }
-  Void    setRefIdxPtr      ( Int*     iRefIdxPtr ) { m_piRefIdx = iRefIdxPtr;    }
-  Void    setNumPartition   ( Int      iNumPart   ) { m_uiNumPartition=iNumPart;  }
+  Void    setAllMv     ( TComMv const & rcMv,         PartSize eCUMode, Int iPartAddr, UInt uiDepth );
+  Void    setAllMvd    ( TComMv const & rcMvd,        PartSize eCUMode, Int iPartAddr, UInt uiDepth );
+  Void    setAllRefIdx ( Int iRefIdx,                 PartSize eMbMode, Int iPartAddr, UInt uiDepth );
+  Void    setAllMvField( TComMvField const & mvField, PartSize eMbMode, Int iPartAddr, UInt uiDepth );
   
-  Void    setAllMv          ( TComMv& rcMv,    PartSize eCUMode, Int iPartAddr, Int iPartIdx, UInt uiDepth );
-  Void    setAllMvd         ( TComMv& rcMvd,   PartSize eCUMode, Int iPartAddr, Int iPartIdx, UInt uiDepth );
-  Void    setAllRefIdx      ( Int     iRefIdx, PartSize eMbMode, Int iPartAddr, Int iPartIdx, UInt uiDepth );
-  Void    setAllMvField     ( TComMv& rcMv, Int iRefIdx, PartSize eMbMode, Int iPartAddr, Int iPartIdx, UInt uiDepth );
+  Void setNumPartition( Int iNumPart )
+  {
+    m_uiNumPartition = iNumPart;
+  }
+  
+  Void linkToWithOffset( TComCUMvField const * src, Int offset )
+  {
+    m_pcMv     = src->m_pcMv     + offset;
+    m_pcMvd    = src->m_pcMvd    + offset;
+    m_piRefIdx = src->m_piRefIdx + offset;
+  }
   
 #if AMVP_BUFFERCOMPRESS
-  Void    compress          (PredMode* pePredMode); 
+  Void compress(PredMode* pePredMode, Int scale); 
 #endif 
   
 };

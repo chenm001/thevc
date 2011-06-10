@@ -55,26 +55,6 @@ TComYuv::~TComYuv()
 {
 }
 
-Void TComYuv::printout()
-{
-  Int  x, y;
-  
-  Pel* pSrc = getLumaAddr(  );
-  Int  iStride = getStride();
-  
-  
-  printf("\nY ...");
-  for ( y = 0; y < iStride; y++ )
-  {
-    printf ("\n");
-    for ( x = 0; x < iStride; x++ )
-    {
-      printf ("%d ", pSrc[x]);
-    }
-    pSrc += iStride;
-  }
-}
-
 Void TComYuv::create( UInt iWidth, UInt iHeight )
 {
   // memory allocation
@@ -692,51 +672,6 @@ Void TComYuv::addAvg( TComYuv* pcYuvSrc0, TComYuv* pcYuvSrc1, UInt iPartUnitIdx,
 #endif
 }
 
-Void TComYuv::removeHighFreq( TComYuv* pcYuvSrc, UInt uiWidht, UInt uiHeight )
-{
-  Int x, y;
-  
-  Pel* pSrc  = pcYuvSrc->getLumaAddr();
-  Pel* pSrcU = pcYuvSrc->getCbAddr();
-  Pel* pSrcV = pcYuvSrc->getCrAddr();
-  
-  Pel* pDst  = m_apiBufY;
-  Pel* pDstU = m_apiBufU;
-  Pel* pDstV = m_apiBufV;
-  
-  Int  iSrcStride = pcYuvSrc->getStride();
-  Int  iDstStride = getStride();
-  
-  for ( y = uiHeight-1; y >= 0; y-- )
-  {
-    for ( x = uiWidht-1; x >= 0; x-- )
-    {
-      pDst[x ] = xClip( (pDst[x ]<<1) - pSrc[x ] );
-    }
-    pSrc += iSrcStride;
-    pDst += iDstStride;
-  }
-  
-  iSrcStride = pcYuvSrc->getCStride();
-  iDstStride = getCStride();
-  
-  uiHeight >>= 1;
-  uiWidht  >>= 1;
-  
-  for ( y = uiHeight-1; y >= 0; y-- )
-  {
-    for ( x = uiWidht-1; x >= 0; x-- )
-    {
-      pDstU[x ] = xClip( (pDstU[x ]<<1) - pSrcU[x ] );
-      pDstV[x ] = xClip( (pDstV[x ]<<1) - pSrcV[x ] );
-    }
-    pSrcU += iSrcStride;
-    pSrcV += iSrcStride;
-    pDstU += iDstStride;
-    pDstV += iDstStride;
-  }
-}
-
 Void TComYuv::removeHighFreq( TComYuv* pcYuvSrc, UInt uiPartIdx, UInt uiWidht, UInt uiHeight )
 {
   Int x, y;
@@ -781,62 +716,3 @@ Void TComYuv::removeHighFreq( TComYuv* pcYuvSrc, UInt uiPartIdx, UInt uiWidht, U
     pDstV += iDstStride;
   }
 }
-
-
-Pel* TComYuv::getLumaAddr( UInt uiPartUnitIdx )
-{
-  UInt iBlkX;
-  UInt iBlkY;
-  iBlkX = g_auiRasterToPelX[g_auiZscanToRaster[uiPartUnitIdx]];
-  iBlkY = g_auiRasterToPelY[g_auiZscanToRaster[uiPartUnitIdx]];
-  
-  return m_apiBufY + iBlkY*getStride() + iBlkX;
-}
-
-Pel* TComYuv::getCbAddr( UInt uiPartUnitIdx )
-{
-  UInt iBlkX;
-  UInt iBlkY;
-  iBlkX = g_auiRasterToPelX[g_auiZscanToRaster[uiPartUnitIdx]] >> 1;
-  iBlkY = g_auiRasterToPelY[g_auiZscanToRaster[uiPartUnitIdx]] >> 1;
-  
-  return m_apiBufU + iBlkY*getCStride() + iBlkX;
-}
-
-Pel* TComYuv::getCrAddr( UInt uiPartUnitIdx )
-{
-  UInt iBlkX;
-  UInt iBlkY;
-  iBlkX = g_auiRasterToPelX[g_auiZscanToRaster[uiPartUnitIdx]] >> 1;
-  iBlkY = g_auiRasterToPelY[g_auiZscanToRaster[uiPartUnitIdx]] >> 1;
-  
-  return m_apiBufV + iBlkY*getCStride() + iBlkX;
-}
-
-Pel* TComYuv::getLumaAddr( UInt iTransUnitIdx, UInt iBlkSize )
-{
-  UInt uiNumTrInWidth = m_iWidth / iBlkSize;
-  UInt   iBlkX   = iTransUnitIdx % uiNumTrInWidth;
-  UInt   iBlkY   = iTransUnitIdx / uiNumTrInWidth;
-  
-  return m_apiBufY + (iBlkX + iBlkY * getStride()) * iBlkSize;
-}
-
-Pel* TComYuv::getCbAddr( UInt iTransUnitIdx, UInt iBlkSize )
-{
-  UInt uiNumTrInWidth = m_iCWidth / iBlkSize;
-  UInt   iBlkX   = iTransUnitIdx % uiNumTrInWidth;
-  UInt   iBlkY   = iTransUnitIdx / uiNumTrInWidth;
-  
-  return m_apiBufU + (iBlkX + iBlkY * getCStride()) * iBlkSize;
-}
-
-Pel* TComYuv::getCrAddr( UInt iTransUnitIdx, UInt iBlkSize )
-{
-  UInt uiNumTrInWidth = m_iCWidth / iBlkSize;
-  UInt   iBlkX   = iTransUnitIdx % uiNumTrInWidth;
-  UInt   iBlkY   = iTransUnitIdx / uiNumTrInWidth;
-  
-  return m_apiBufV + (iBlkX + iBlkY * getCStride()) * iBlkSize;
-}
-

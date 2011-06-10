@@ -41,6 +41,7 @@
 #include "CommonDef.h"
 #include "TComYuv.h"
 #include "TComDataCU.h"
+#include "ContextTables.h"
 
 // ====================================================================================================================
 // Constants
@@ -48,6 +49,7 @@
 
 #define QP_BITS                 15
 
+#if !E243_CORE_TRANSFORMS
 // AQO Parameter
 #define QOFFSET_BITS            15
 #define QOFFSET_BITS_LTR        9
@@ -60,6 +62,7 @@
 
 #define DenShift16              6
 #define DenShift32              8
+#endif
 
 // ====================================================================================================================
 // Type definition
@@ -67,21 +70,26 @@
 
 typedef struct
 {
+#if SIMPLE_CONTEXT_SIG
+  Int significantBits[NUM_SIG_FLAG_CTX][2];
+#else
   Int significantBits[16][2];
+#endif
 #if PCP_SIGMAP_SIMPLE_LAST
   Int lastXBits[32];
   Int lastYBits[32];
 #else  
   Int lastBits[16][2];
 #endif
-  Int greaterOneBits[6][2][5][2];
-  Int blockCbpBits[45][2];
+  Int m_greaterOneBits[NUM_ONE_FLAG_CTX][2];
+  Int m_levelAbsBits[NUM_ABS_FLAG_CTX][2];
+
+  Int blockCbpBits[3*NUM_QT_CBF_CTX][2];
   Int blockRootCbpBits[4][2];
   Int scanZigzag[2];            ///< flag for zigzag scan
   Int scanNonZigzag[2];         ///< flag for non zigzag scan
 } estBitsSbacStruct;
 
-#if QC_MOD_LCEC_RDOQ
 typedef struct
 {
   Int level[4];
@@ -102,7 +110,6 @@ typedef struct
   Int nextLev;
   Int nexLevelVal;
 } quantLevelStruct;
-#endif
 
 
 
@@ -122,6 +129,7 @@ public:
   Int m_iPer;
   Int m_iRem;
   
+#if !E243_CORE_TRANSFORMS
   Int m_iAdd2x2;
   Int m_iAdd4x4;
   Int m_iAdd8x8;
@@ -133,9 +141,11 @@ private:
   Int m_aiAdd8x8[MAX_QP+1][3];
   Int m_aiAdd16x16[MAX_QP+1][3];
   Int m_aiAdd32x32[MAX_QP+1][3];
+#endif
 public:
   Int m_iBits;
   
+#if !E243_CORE_TRANSFORMS
   Void initOffsetParam(Int iStartQP = MIN_QP, Int iEndQP = MAX_QP );
   Void setQOffset( Int iQP, SliceType eSliceType )
   {
@@ -145,8 +155,13 @@ public:
     m_iAdd16x16 = m_aiAdd16x16[iQP][eSliceType];
     m_iAdd32x32 = m_aiAdd32x32[iQP][eSliceType];
   }
+#endif
   
+#if E243_CORE_TRANSFORMS
+  Void setQpParam( Int iQP, Bool bLowpass, SliceType eSliceType )
+#else
   Void setQpParam( Int iQP, Bool bLowpass, SliceType eSliceType, Bool bEnc )
+#endif
   {
     assert ( iQP >= MIN_QP && iQP <= MAX_QP );
     m_iQP   = iQP;
@@ -159,10 +174,12 @@ public:
     
     m_iBits = QP_BITS + m_iPer;
     
+#if !E243_CORE_TRANSFORMS
     if ( bEnc )
     {
       setQOffset(iQP, eSliceType);
     }
+#endif
   }
   
   Void clear()
@@ -209,9 +226,8 @@ public:
   // Misc functions
   Void setQPforQuant( Int iQP, Bool bLowpass, SliceType eSliceType, TextType eTxtType);
   Void setLambda(Double dLambda) { m_dLambda = dLambda;}
-#if QC_MOD_LCEC_RDOQ
-  Void    setRDOQOffset ( UInt uiRDOQOffset ) { m_uiRDOQOffset = uiRDOQOffset; }
-#endif
+  Void setRDOQOffset( UInt uiRDOQOffset ) { m_uiRDOQOffset = uiRDOQOffset; }
+  
   estBitsSbacStruct* m_pcEstBitsSbac;
   
   static UInt     getSigCtxInc     ( TCoeff*                         pcCoeff,
@@ -226,13 +242,13 @@ public:
 #endif
 protected:
   Long*    m_plTempCoeff;
+#if !E243_CORE_TRANSFORMS
   UInt*    m_puiQuantMtx;
+#endif
   
   QpParam  m_cQP;
   Double   m_dLambda;
-#if QC_MOD_LCEC_RDOQ
   UInt     m_uiRDOQOffset;
-#endif
   UInt     m_uiMaxTrSize;
   Bool     m_bEnc;
   Bool     m_bUseRDOQ;
@@ -251,23 +267,25 @@ private:
 #else
   Void xT   ( Pel* pResidual, UInt uiStride, Long* plCoeff, Int iSize );
 #endif
+#if !E243_CORE_TRANSFORMS
   Void xT2  ( Pel* pResidual, UInt uiStride, Long* plCoeff );
   Void xT4  ( Pel* pResidual, UInt uiStride, Long* plCoeff );
   Void xT8  ( Pel* pResidual, UInt uiStride, Long* plCoeff );
   Void xT16 ( Pel* pResidual, UInt uiStride, Long* plCoeff );
   Void xT32 ( Pel* pResidual, UInt uiStride, Long* plCoeff );
+#endif
   
   // quantization
   Void xQuant     ( TComDataCU* pcCU, Long* pSrc, TCoeff*& pDes, Int iWidth, Int iHeight, UInt& uiAcSum, TextType eTType, UInt uiAbsPartIdx );
   Void xQuantLTR  ( TComDataCU* pcCU, Long* pSrc, TCoeff*& pDes, Int iWidth, Int iHeight, UInt& uiAcSum, TextType eTType, UInt uiAbsPartIdx );
+#if !E243_CORE_TRANSFORMS
   Void xQuant2x2  ( Long* plSrcCoef, TCoeff*& pDstCoef, UInt& uiAbsSum );
   Void xQuant4x4  ( TComDataCU* pcCU, Long* plSrcCoef, TCoeff*& pDstCoef, UInt& uiAbsSum, TextType eTType, UInt uiAbsPartIdx );
   Void xQuant8x8  ( TComDataCU* pcCU, Long* plSrcCoef, TCoeff*& pDstCoef, UInt& uiAbsSum, TextType eTType, UInt uiAbsPartIdx );
-
+#endif
 
   // RDOQ functions
 
-#if QC_MOD_LCEC_RDOQ
   Int            xCodeCoeffCountBitsLast(TCoeff* scoeff, levelDataStruct* levelData, Int nTab, UInt uiNoCoeff);
   UInt           xCountVlcBits(UInt uiTableNumber, UInt uiCodeNumber);
 #if CAVLC_COEF_LRG_BLK
@@ -276,13 +294,6 @@ private:
 #else
   Int            bitCountRDOQ(Int coeff, Int pos, Int nTab, Int lastCoeffFlag,Int levelMode,Int run, Int maxrun, Int vlc_adaptive, Int N, 
                               UInt uiTr1, Int iSum_big_coef, Int iBlockType, TComDataCU* pcCU);
-#endif
-#else
-#if QC_MOD_LCEC 
-  Int            bitCount_LCEC(Int k,Int pos,Int nTab, Int lpflag,Int levelMode,Int run, Int maxrun, Int vlc_adaptive, Int N, UInt uiTr1);
-#else
-  Int            bitCount_LCEC(Int k,Int pos,Int n,Int lpflag,Int levelMode,Int run,Int maxrun,Int vlc_adaptive,Int N);
-#endif
 #endif
 #if QC_MDCS
 UInt             getCurrLineNum(UInt uiScanIdx, UInt uiPosX, UInt uiPosY);
@@ -323,19 +334,19 @@ UInt             getCurrLineNum(UInt uiScanIdx, UInt uiPosX, UInt uiPosY);
                                      UShort                          ui16AbsGoRice,
 #endif
                                      Int                             iQBits,
-                                     Double                          dTemp,
-                                     UShort                          ui16CtxBase   ) const;
+                                     Double                          dTemp
+                                    ) const;
   __inline Double xGetICRateCost   ( UInt                            uiAbsLevel,
 #if !PCP_SIGMAP_SIMPLE_LAST
                                      Bool                            bLastScanPos,
                                      UShort                          ui16CtxNumSig,
 #endif
                                      UShort                          ui16CtxNumOne,
-                                     UShort                          ui16CtxNumAbs,
+                                     UShort                          ui16CtxNumAbs
 #if E253
-                                     UShort                          ui16AbsGoRice,
+                                     ,UShort                          ui16AbsGoRice
 #endif
-                                     UShort                          ui16CtxBase   ) const;
+                                     ) const;
 #if PCP_SIGMAP_SIMPLE_LAST
   __inline Double xGetRateLast     ( UInt                            uiPosX,
                                      UInt                            uiPosY        ) const;
@@ -346,15 +357,19 @@ UInt             getCurrLineNum(UInt uiScanIdx, UInt uiPosX, UInt uiPosY);
   __inline Double xGetIEPRate      (                                               ) const;
   
   
-  __inline Int          xRound   ( Int i )   { return ((i)+(1<<5))>>6; }
+#if !E243_CORE_TRANSFORMS
+  __inline static Int   xRound   ( Int i )   { return ((i)+(1<<5))>>6; }
   __inline static Long  xTrRound ( Long i, UInt uiShift ) { return ((i)>>uiShift); }
+#endif
   
   // dequantization
   Void xDeQuant         ( TCoeff* pSrc,     Long*& pDes,       Int iWidth, Int iHeight );
   Void xDeQuantLTR      ( TCoeff* pSrc,     Long*&  pDes,      Int iWidth, Int iHeight );
+#if !E243_CORE_TRANSFORMS
   Void xDeQuant2x2      ( TCoeff* pSrcCoef, Long*& rplDstCoef );
   Void xDeQuant4x4      ( TCoeff* pSrcCoef, Long*& rplDstCoef );
   Void xDeQuant8x8      ( TCoeff* pSrcCoef, Long*& rplDstCoef );
+#endif
   
   // inverse transform
 #if INTRA_DST_TYPE_7
@@ -362,13 +377,21 @@ UInt             getCurrLineNum(UInt uiScanIdx, UInt uiPosX, UInt uiPosY);
 #else
   Void xIT    ( Long* plCoef, Pel* pResidual, UInt uiStride, Int iSize );
 #endif
+#if !E243_CORE_TRANSFORMS
   Void xIT2   ( Long* plCoef, Pel* pResidual, UInt uiStride );
   Void xIT4   ( Long* plCoef, Pel* pResidual, UInt uiStride );
   Void xIT8   ( Long* plCoef, Pel* pResidual, UInt uiStride );
   Void xIT16  ( Long* plCoef, Pel* pResidual, UInt uiStride );
   Void xIT32  ( Long* plCoef, Pel* pResidual, UInt uiStride );
-
-
+#endif
+  
+#if !E243_CORE_TRANSFORMS
+  static const Int estErr4x4[6][4][4];
+  static const Int estErr8x8[6][8][8];
+  static const Int estErr16x16[6];
+  static const Int estErr32x32[6];
+#endif
+  
 };// END CLASS DEFINITION TComTrQuant
 
 

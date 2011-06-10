@@ -69,6 +69,22 @@ private:
   UInt     m_iCWidth;
   UInt     m_iCHeight;
   
+  static Int getAddrOffset( UInt uiPartUnitIdx, UInt width )
+  {
+    Int blkX = g_auiRasterToPelX[ g_auiZscanToRaster[ uiPartUnitIdx ] ];
+    Int blkY = g_auiRasterToPelY[ g_auiZscanToRaster[ uiPartUnitIdx ] ];
+    
+    return blkX + blkY * width;
+  }
+
+  static Int getAddrOffset( UInt iTransUnitIdx, UInt iBlkSize, UInt width )
+  {
+    Int blkX = ( iTransUnitIdx * iBlkSize ) &  ( width - 1 );
+    Int blkY = ( iTransUnitIdx * iBlkSize ) &~ ( width - 1 );
+    
+    return blkX + blkY * iBlkSize;
+  }
+  
 public:
   
   TComYuv();
@@ -132,7 +148,6 @@ public:
   Void    addAvg            ( TComYuv* pcYuvSrc0, TComYuv* pcYuvSrc1, UInt iPartUnitIdx, UInt iWidth, UInt iHeight );
 
   //   Remove High frequency
-  Void    removeHighFreq    ( TComYuv* pcYuvSrc, UInt uiWidht, UInt uiHeight );
   Void    removeHighFreq    ( TComYuv* pcYuvSrc, UInt uiPartIdx, UInt uiWidht, UInt uiHeight );
   
   // ------------------------------------------------------------------------------------------------------------------
@@ -145,14 +160,14 @@ public:
   Pel*    getCrAddr   ()    { return m_apiBufV; }
   
   //  Access starting position of YUV partition unit buffer
-  Pel*    getLumaAddr       ( UInt iPartUnitIdx );
-  Pel*    getCbAddr         ( UInt iPartUnitIdx );
-  Pel*    getCrAddr         ( UInt iPartUnitIdx );
+  Pel* getLumaAddr( UInt iPartUnitIdx ) { return m_apiBufY +   getAddrOffset( iPartUnitIdx, m_iWidth  )       ; }
+  Pel* getCbAddr  ( UInt iPartUnitIdx ) { return m_apiBufU + ( getAddrOffset( iPartUnitIdx, m_iCWidth ) >> 1 ); }
+  Pel* getCrAddr  ( UInt iPartUnitIdx ) { return m_apiBufV + ( getAddrOffset( iPartUnitIdx, m_iCWidth ) >> 1 ); }
   
   //  Access starting position of YUV transform unit buffer
-  Pel*    getLumaAddr       ( UInt iTransUnitIdx, UInt iBlkSize );
-  Pel*    getCbAddr         ( UInt iTransUnitIdx, UInt iBlkSize );
-  Pel*    getCrAddr         ( UInt iTransUnitIdx, UInt iBlkSize );
+  Pel* getLumaAddr( UInt iTransUnitIdx, UInt iBlkSize ) { return m_apiBufY + getAddrOffset( iTransUnitIdx, iBlkSize, m_iWidth  ); }
+  Pel* getCbAddr  ( UInt iTransUnitIdx, UInt iBlkSize ) { return m_apiBufU + getAddrOffset( iTransUnitIdx, iBlkSize, m_iCWidth ); }
+  Pel* getCrAddr  ( UInt iTransUnitIdx, UInt iBlkSize ) { return m_apiBufV + getAddrOffset( iTransUnitIdx, iBlkSize, m_iCWidth ); }
   
   //  Get stride value of YUV buffer
   UInt    getStride   ()    { return  m_iWidth;   }
@@ -162,8 +177,6 @@ public:
   UInt    getWidth    ()    { return  m_iWidth;   }
   UInt    getCHeight  ()    { return  m_iCHeight; }
   UInt    getCWidth   ()    { return  m_iCWidth;  }
-  
-  Void    printout();
   
   // ------------------------------------------------------------------------------------------------------------------
   //  Miscellaneous

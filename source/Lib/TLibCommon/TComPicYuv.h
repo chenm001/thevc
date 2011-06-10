@@ -71,9 +71,10 @@ private:
   
   Int   m_iCuWidth;             ///< Width of Coding Unit (CU)
   Int   m_iCuHeight;            ///< Height of Coding Unit (CU)
-  Int   m_iBaseUnitWidth;       ///< Width of Base Unit (with maximum depth or minimum size, m_iCuWidth >> Max. Depth)
-  Int   m_iBaseUnitHeight;      ///< Height of Base Unit (with maximum depth or minimum size, m_iCuHeight >> Max. Depth)
-  Int   m_iNumCuInWidth;
+  Int*  m_cuOffsetY;
+  Int*  m_cuOffsetC;
+  Int*  m_buOffsetY;
+  Int*  m_buOffsetC;
   
   Int   m_iLumaMarginX;
   Int   m_iLumaMarginY;
@@ -129,12 +130,12 @@ public:
   Pel*  getCrAddr   ()     { return  m_piPicOrgV;    }
   
   //  Access starting position of original picture for specific coding unit (CU) or partition unit (PU)
-  Pel*  getLumaAddr ( Int iCuAddr );
-  Pel*  getCbAddr   ( Int iCuAddr );
-  Pel*  getCrAddr   ( Int iCuAddr );
-  Pel*  getLumaAddr ( Int iCuAddr, Int uiAbsZorderIdx );
-  Pel*  getCbAddr   ( Int iCuAddr, Int uiAbsZorderIdx );
-  Pel*  getCrAddr   ( Int iCuAddr, Int uiAbsZorderIdx );
+  Pel*  getLumaAddr ( Int iCuAddr ) { return m_piPicOrgY + m_cuOffsetY[ iCuAddr ]; }
+  Pel*  getCbAddr   ( Int iCuAddr ) { return m_piPicOrgU + m_cuOffsetC[ iCuAddr ]; }
+  Pel*  getCrAddr   ( Int iCuAddr ) { return m_piPicOrgV + m_cuOffsetC[ iCuAddr ]; }
+  Pel*  getLumaAddr ( Int iCuAddr, Int uiAbsZorderIdx ) { return m_piPicOrgY + m_cuOffsetY[iCuAddr] + m_buOffsetY[g_auiZscanToRaster[uiAbsZorderIdx]]; }
+  Pel*  getCbAddr   ( Int iCuAddr, Int uiAbsZorderIdx ) { return m_piPicOrgU + m_cuOffsetC[iCuAddr] + m_buOffsetC[g_auiZscanToRaster[uiAbsZorderIdx]]; }
+  Pel*  getCrAddr   ( Int iCuAddr, Int uiAbsZorderIdx ) { return m_piPicOrgV + m_cuOffsetC[iCuAddr] + m_buOffsetC[g_auiZscanToRaster[uiAbsZorderIdx]]; }
   
   // ------------------------------------------------------------------------------------------------
   //  Miscellaneous

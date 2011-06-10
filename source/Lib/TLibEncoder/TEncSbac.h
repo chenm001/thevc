@@ -81,6 +81,7 @@ public:
   UInt  getCoeffCost           ()                { return  m_uiCoeffCost;  }
   
   Void  load                   ( TEncSbac* pScr  );
+  Void  loadIntraDirModeLuma   ( TEncSbac* pScr  );
   Void  store                  ( TEncSbac* pDest );
   Void  resetBits              ()                { m_pcBinIf->resetBits(); m_pcBitIf->resetBits(); }
   UInt  getNumberOfWrittenBits ()                { return m_pcBinIf->getNumWrittenBits(); }
@@ -98,7 +99,14 @@ public:
   Void  codeAlfSvlc       ( Int  uiCode );
   Void  codeAlfCtrlDepth  ();
 #if TSB_ALF_HEADER
+
+#if MTK_NONCROSS_INLOOP_FILTER
+  /// Code number of ALF CU control flags
+  Void codeAlfFlagNum        ( UInt uiCode, UInt minValue, Int iDepth);
+#else
   Void codeAlfFlagNum        ( UInt uiCode, UInt minValue );
+#endif
+
   Void codeAlfCtrlFlag       ( UInt uiSymbol );
 #endif
 #if MTK_SAO
@@ -118,8 +126,6 @@ private:
 #endif
   Void  xWriteTerminatingBit ( UInt uiBit );
   
-  Void  xCheckCoeff( TCoeff* pcCoef, UInt uiSize, UInt uiDepth, UInt& uiNumofCoeff, UInt& uiPart );
-
 #if MVD_CTX
   Void  xWriteMvd            ( Int iMvd, UInt uiAbsSumL, UInt uiAbsSumA, UInt uiCtx );
 #else
@@ -139,9 +145,20 @@ protected:
   
   // Adaptive loop filter
   UInt          m_uiMaxAlfCtrlDepth;
+#if FINE_GRANULARITY_SLICES && MTK_NONCROSS_INLOOP_FILTER
+  Int           m_iSliceGranularity; //!< slice granularity
+#endif
   //--Adaptive loop filter
   
 public:
+
+#if FINE_GRANULARITY_SLICES && MTK_NONCROSS_INLOOP_FILTER
+  /// set slice granularity
+  Void setSliceGranularity(Int iSliceGranularity)  {m_iSliceGranularity = iSliceGranularity;}
+
+  /// get slice granularity
+  Int  getSliceGranularity()                       {return m_iSliceGranularity;             }
+#endif
   Void codeAlfCtrlFlag   ( TComDataCU* pcCU, UInt uiAbsPartIdx );
   Void codeSkipFlag      ( TComDataCU* pcCU, UInt uiAbsPartIdx );
   Void codeMergeFlag     ( TComDataCU* pcCU, UInt uiAbsPartIdx );

@@ -226,6 +226,9 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
     ("SliceArgument",        m_iSliceArgument,       0, "if SliceMode==1 SliceArgument represents max # of LCUs. if SliceMode==2 SliceArgument represents max # of bytes.")
     ("EntropySliceMode",     m_iEntropySliceMode,    0, "0: Disable all entropy slice limits, 1: Enforce max # of LCUs, 2: Enforce constraint based entropy slices")
     ("EntropySliceArgument", m_iEntropySliceArgument,0, "if EntropySliceMode==1 SliceArgument represents max # of LCUs. if EntropySliceMode==2 EntropySliceArgument represents max # of bins.")
+#if FINE_GRANULARITY_SLICES
+    ("SliceGranularity",     m_iSliceGranularity,    0, "0: Slices always end at LCU borders. 1-3: slices may end at a depth of 1-3 below LCU level.")
+#endif
 #if MTK_NONCROSS_INLOOP_FILTER
     ("LFCrossSliceBoundaryFlag", m_bLFCrossSliceBoundaryFlag, true)
 #endif
@@ -421,7 +424,10 @@ Void TAppEncCfg::xCheckParameter()
   {
     xConfirmPara( m_iEntropySliceArgument < 1 ,         "EntropySliceArgument should be larger than or equal to 1" );
   }
-  
+#if FINE_GRANULARITY_SLICES
+  xConfirmPara( m_iSliceGranularity >= m_uiMaxCUDepth, "SliceGranularity must be smaller than maximum cu depth");
+  xConfirmPara( m_iSliceGranularity <0 || m_iSliceGranularity > 3, "SliceGranularity exceeds supported range (0 to 3)" );
+#endif
   xConfirmPara( m_iSymbolMode < 0 || m_iSymbolMode > 1,                                     "SymbolMode must be equal to 0 or 1" );
   
 #if DCM_COMB_LIST
@@ -598,6 +604,18 @@ Void TAppEncCfg::xPrintParameter()
 #if HHI_RMP_SWITCH
   printf("RMP:%d ", m_bUseRMP);
 #endif
+#if FINE_GRANULARITY_SLICES
+  printf("Slice: G=%d M=%d ", m_iSliceGranularity, m_iSliceMode);
+  if (m_iSliceMode!=0)
+  {
+    printf("A=%d ", m_iSliceArgument);
+  }
+  printf("EntropySlice: M=%d ",m_iEntropySliceMode);
+  if (m_iEntropySliceMode!=0)
+  {
+    printf("A=%d ", m_iEntropySliceArgument);
+  }
+#else
   printf("Slice:%d ",m_iSliceMode);
   if (m_iSliceMode!=0)
   {
@@ -608,6 +626,7 @@ Void TAppEncCfg::xPrintParameter()
   {
     printf("(%d) ", m_iEntropySliceArgument);
   }
+#endif
 #if CONSTRAINED_INTRA_PRED
   printf("CIP:%d ", m_bUseConstrainedIntraPred);
 #endif

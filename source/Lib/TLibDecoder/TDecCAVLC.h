@@ -92,6 +92,9 @@ private:
   UInt                  m_uiRun;
   Bool m_bAlfCtrl;
   UInt m_uiMaxAlfCtrlDepth;
+#if FINE_GRANULARITY_SLICES && MTK_NONCROSS_INLOOP_FILTER
+  Int           m_iSliceGranularity; //!< slice granularity
+#endif
   UInt                      m_uiLPTableD4[3][32];
 #if !CAVLC_COEF_LRG_BLK
   UInt                      m_uiLPTableD8[10][128];
@@ -166,7 +169,13 @@ public:
   Void  setBitstream        ( TComInputBitstream* p )   { m_pcBitstream = p; }
   Void  setAlfCtrl          ( Bool bAlfCtrl )            { m_bAlfCtrl = bAlfCtrl; }
   Void  setMaxAlfCtrlDepth  ( UInt uiMaxAlfCtrlDepth )  { m_uiMaxAlfCtrlDepth = uiMaxAlfCtrlDepth; }
-  
+#if FINE_GRANULARITY_SLICES && MTK_NONCROSS_INLOOP_FILTER
+  /// set slice granularity
+  Void setSliceGranularity(Int iSliceGranularity)  {m_iSliceGranularity = iSliceGranularity;}
+
+  /// get slice granularity
+  Int  getSliceGranularity()                       {return m_iSliceGranularity;             }
+#endif
   Void  parseTransformSubdivFlag( UInt& ruiSubdivFlag, UInt uiLog2TransformBlockSize );
   Void  parseQtCbf          ( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eType, UInt uiTrDepth, UInt uiDepth );
   Void  parseQtRootCbf      ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth, UInt& uiQtRootCbf );

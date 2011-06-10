@@ -107,7 +107,6 @@
 
 #define QC_MOD_LCEC                       1           // JCTVC-D374: modified LCEC coeff. coding
 #define LCEC_INTRA_MODE                   1           // JCTVC-D366: improved luma intra mode coding
-#define QC_MOD_LCEC_RDOQ                  1           // JCTVC-D374: improved RDOQ
 #define QC_LCEC_INTER_MODE                1
 #define QC_MDIS                           1           // JCTVC-D282: enable mode dependent intra smoothing
 #define QC_MDCS                           1           // JCTVC-D393: mode dependent coefficients coding 
@@ -134,10 +133,6 @@
 #define ZERO_MVD_EST                          0           ///< Zero Mvd Estimation in normal mode
 
 #define LM_CHROMA                             1           // JCTVC-E266: Chroma intra prediction based on luma signal
-
-#if LM_CHROMA
-#define LM_CHROMA_TICKET156                   1 // Ticket156, luma-based chroma intra prediction take consideration of CIP, reference_pixel_paddin and slice boundary. 
-#endif
 
 #define UNIFY_INTER_TABLE                     1           // JCTVC-E381 CAVLC: Inter pred coding
 
@@ -206,6 +201,7 @@
 /////////////////////////////////
 // AHG SLICES defines section start
 /////////////////////////////////
+#define FINE_GRANULARITY_SLICES 1
 #define AD_HOC_SLICES_FIXED_NUMBER_OF_LCU_IN_SLICE      1          ///< OPTION IDENTIFIER. mode==1 -> Limit maximum number of largest coding tree blocks in a slice
 #define AD_HOC_SLICES_FIXED_NUMBER_OF_BYTES_IN_SLICE    2          ///< OPTION IDENTIFIER. mode==2 -> Limit maximum number of bins/bits in a slice
 
@@ -259,6 +255,8 @@
 #define E192_SPS_PCM_BIT_DEPTH_SYNTAX       1 // JCTVC-E192: PCM bit depth
 #define E192_SPS_PCM_FILTER_DISABLE_SYNTAX  1 // JCTVC-E192: PCM filter disable flag
 #endif
+
+#define E045_SLICE_COMMON_INFO_SHARING 1 //JCTVC-E045: Slice common information sharing
 
 // ====================================================================================================================
 // Basic type redefinition

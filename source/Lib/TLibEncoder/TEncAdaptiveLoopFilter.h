@@ -59,6 +59,7 @@ private:
   TEncEntropy*      m_pcEntropyCoder;
   TEncSbac***       m_pppcRDSbacCoder;
   TEncSbac*         m_pcRDGoOnSbacCoder;
+  TEncBinCABAC***   m_pppcBinCoderCABAC;            ///< temporal CABAC state storage for RD computation
 
   Int64  ***m_iCount ;     //[MAX_NUM_QAO_PART][MAX_NUM_QAO_TYPE][MAX_NUM_QAO_CLASS]; 
   Int64  ***m_iOffset;     //[MAX_NUM_QAO_PART][MAX_NUM_QAO_TYPE][MAX_NUM_QAO_CLASS]; 
@@ -81,6 +82,12 @@ public:
   Void xPartTreeDisable(Int iPartIdx);
   Void xGetQAOStats(TComPicYuv* pcPicOrg, TComPicYuv* pcPicDec, TComPicYuv* pcPicRest);
   Void calcAoStatsCu(Int iAddr, Int iPartIdx);
+
+#if SAO_FGS_MNIF
+  Void calcAoStatsCuMap(Int iAddr, Int iPartIdx);
+  Void calcAoStatsCuOrg(Int iAddr, Int iPartIdx);
+#endif
+
   Void destoryEncBuffer();
   Void createEncBuffer();
 };
@@ -168,7 +175,11 @@ private:
 #endif
 
 #if MTK_NONCROSS_INLOOP_FILTER
-  TComPicYuv* m_pcSliceYuvTmp;
+  TComPicYuv* m_pcSliceYuvTmp;    //!< temporary picture buffer when non-across slice boundary ALF is enabled
+#endif
+
+#if E045_SLICE_COMMON_INFO_SHARING
+  Bool  m_bSharedPPSAlfParamEnabled; //!< true for shared ALF parameters in PPS enabled
 #endif
 
 private:
@@ -248,15 +259,34 @@ private:
 
 
 #if MTK_NONCROSS_INLOOP_FILTER
+  /// Calculate block autocorrelations and crosscorrelations for ALF slices
   Void xstoreInBlockMatrixforSlices  (imgpel* ImgOrg, imgpel* ImgDec, Int tap, Int iStride);
+
+  /// Calculate block autocorrelations and crosscorrelations for one ALF slice
   Void xstoreInBlockMatrixforOneSlice(CAlfSlice* pSlice, imgpel* ImgOrg, imgpel* ImgDec, Int tap, Int iStride, Bool bFirstSlice, Bool bLastSlice);
+
+  /// Calculate ALF grouping indices for ALF slices
   Void xfilterSlices_en              (imgpel* ImgDec, imgpel* ImgRest,int filtNo, int Stride);
+
+  /// calculate ALF grouping indices for one ALF slice
   Void xfilterOneSlice_en            (CAlfSlice* pSlice, imgpel* ImgDec, imgpel* ImgRest,int filtNo, int iStride);
+
+  /// Calculate ALF grouping indices for ALF slices
   Void calcVarforSlices              (imgpel **varmap, imgpel *imgY_pad, Int pad_size, Int fl, Int img_stride);
 
-  //only for chroma
+  /// Copy CU control flags from TComCU
+  Void getCtrlFlagsForSlices(Bool bCUCtrlEnabled, Int iCUCtrlDepth);
+
+  /// Copy CU control flags to ALF parameters
+  Void transferCtrlFlagsToAlfParam(UInt& ruiNumFlags, UInt* puiFlags);
+
+  /// Calculate autocorrelations and crosscorrelations for chroma slices
   Void xCalcCorrelationFuncforChromaSlices  (Int ComponentID, Pel* pOrg, Pel* pCmp, Int iTap, Int iOrgStride, Int iCmpStride);
+
+  /// Calculate autocorrelations and crosscorrelations for one chroma slice
   Void xCalcCorrelationFuncforChromaOneSlice(CAlfSlice* pSlice, Pel* pOrg, Pel* pCmp, Int iTap, Int iStride, Bool bLastSlice);
+
+  /// Calculate block autocorrelations and crosscorrelations for one chroma slice
   Void xFrameChromaforSlices                (Int ComponentID, TComPicYuv* pcPicDec, TComPicYuv* pcPicRest, Int *qh, Int iTap);
 #endif
 
@@ -377,5 +407,11 @@ public:
   Void destroyAlfGlobalBuffers();
 #endif
 #endif
+
+#if E045_SLICE_COMMON_INFO_SHARING
+  /// set shared ALF parameters in PPS enabled/disabled
+  Void setSharedPPSAlfParamEnabled(Bool b) {m_bSharedPPSAlfParamEnabled = b;}
+#endif
+
 };
 #endif

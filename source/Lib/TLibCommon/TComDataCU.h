@@ -80,6 +80,7 @@ private:
   UChar*        m_puhWidth;           ///< array of widths
   UChar*        m_puhHeight;          ///< array of heights
   UChar*        m_puhDepth;           ///< array of depths
+  Int           m_unitSize;           ///< size of a "minimum partition"
   
   // -------------------------------------------------------------------------------------------------------------------
   // CU data
@@ -107,6 +108,11 @@ private:
   Pel*          m_pcIPCMSampleCr;     ///< PCM sample buffer (Cr)
 #endif
 
+#if MTK_NONCROSS_INLOOP_FILTER
+  Int*          m_piSliceSUMap;       ///< pointer of slice ID map
+#endif
+
+
   // -------------------------------------------------------------------------------------------------------------------
   // neighbour access variables
   // -------------------------------------------------------------------------------------------------------------------
@@ -131,8 +137,8 @@ private:
   UChar*        m_puhLumaIntraDir;    ///< array of intra directions (luma)
   UChar*        m_puhChromaIntraDir;  ///< array of intra directions (chroma)
   UChar*        m_puhInterDir;        ///< array of inter directions
-  Int*          m_apiMVPIdx[2];       ///< array of motion vector predictor candidates
-  Int*          m_apiMVPNum[2];       ///< array of number of possible motion vectors predictors
+  Char*         m_apiMVPIdx[2];       ///< array of motion vector predictor candidates
+  Char*         m_apiMVPNum[2];       ///< array of number of possible motion vectors predictors
   UInt*         m_puiAlfCtrlFlag;     ///< array of ALF flags
   UInt*         m_puiTmpAlfCtrlFlag;  ///< temporal array of ALF flags
   
@@ -148,8 +154,14 @@ private:
   Double        m_dTotalCost;         ///< sum of partition RD costs
   UInt          m_uiTotalDistortion;  ///< sum of partition distortion
   UInt          m_uiTotalBits;        ///< sum of partition bits
+#if FINE_GRANULARITY_SLICES
+  UInt          m_uiTotalBins;       ///< sum of partition bins
+  UInt*         m_uiSliceStartCU;    ///< Start CU address of current slice
+  UInt*         m_uiEntropySliceStartCU; ///< Start CU address of current slice
+#else
   UInt          m_uiSliceStartCU;    ///< Start CU address of current slice
   UInt          m_uiEntropySliceStartCU; ///< Start CU address of current slice
+#endif
   
 protected:
   
@@ -175,9 +187,6 @@ protected:
   /// compute scaling factor from POC difference
   Int           xGetDistScaleFactor   ( Int iCurrPOC, Int iCurrRefPOC, Int iColPOC, Int iColRefPOC );
   
-  /// calculate all CBF's from coefficients
-  Void          xCalcCuCbf            ( UChar* puhCbf, UInt uiTrDepth, UInt uiCbfDepth, UInt uiCuDepth );
-  
 #if FT_TCTR_AMVP || FT_TCTR_MRG
   Void xDeriveCenterIdx( PartSize eCUMode, UInt uiPartIdx, UInt& ruiPartIdxCenter );
   Bool xGetCenterCol( UInt uiPartIdx, RefPicList eRefPicList, int iRefIdx, TComMv *pcMv );
@@ -191,15 +200,19 @@ public:
   // create / destroy / initialize / copy
   // -------------------------------------------------------------------------------------------------------------------
   
-  Void          create                ( UInt uiNumPartition, UInt uiWidth, UInt uiHeight, Bool bDecSubCu );
+  Void          create                ( UInt uiNumPartition, UInt uiWidth, UInt uiHeight, Bool bDecSubCu, Int unitSize );
   Void          destroy               ();
   
   Void          initCU                ( TComPic* pcPic, UInt uiCUAddr );
-  Void          initEstData           ();
-  Void          initSubCU             ( TComDataCU* pcCU, UInt uiPartUnitIdx, UInt uiDepth );
-
 #if SUB_LCU_DQP
-  Void          initEstDataDeltaQP    ( UInt uiDepth, UInt uiQP, UInt uiLastQP );
+  Void          initEstData           ( UInt uiDepth, UInt uiQP, UInt uiLastQP );
+#else
+  Void          initEstData           ();
+#endif
+#if SUB_LCU_DQP
+  Void          initSubCU             ( TComDataCU* pcCU, UInt uiPartUnitIdx, UInt uiDepth, UInt uiQP );
+#else
+  Void          initSubCU             ( TComDataCU* pcCU, UInt uiPartUnitIdx, UInt uiDepth );
 #endif
 
   Void          copySubCU             ( TComDataCU* pcCU, UInt uiPartUnitIdx, UInt uiDepth );
@@ -217,6 +230,9 @@ public:
   TComSlice*    getSlice              ()                        { return m_pcSlice;         }
   UInt&         getAddr               ()                        { return m_uiCUAddr;        }
   UInt&         getZorderIdxInCU      ()                        { return m_uiAbsIdxInLCU; }
+#if FINE_GRANULARITY_SLICES
+  UInt          getSCUAddr            ()                        { return m_uiCUAddr*(1<<(m_pcSlice->getSPS()->getMaxCUDepth()<<1))+m_uiAbsIdxInLCU;}
+#endif
   UInt          getCUPelX             ()                        { return m_uiCUPelX;        }
   UInt          getCUPelY             ()                        { return m_uiCUPelY;        }
   TComPattern*  getPattern            ()                        { return m_pcPattern;       }
@@ -318,8 +334,8 @@ public:
   Void          setNeighbourCandIdx         ( UInt uiCandIdx, UInt uiIdx, UChar uhNeighCands ) { m_apuhNeighbourCandIdx[uiCandIdx][uiIdx] = uhNeighCands;}
   Void          setNeighbourCandIdxSubParts ( UInt uiCandIdx, UChar uhNumCands, UInt uiAbsPartIdx, UInt uiPartIdx, UInt uiDepth );
 
-  Void          setSubPartBool        ( Bool bParameter, Bool* pbBaseLCU, UInt uiCUAddr, UInt uiCUDepth, UInt uiPUIdx );
-  Void          setSubPartUChar       ( UInt bParameter, UChar* pbBaseLCU, UInt uiCUAddr, UInt uiCUDepth, UInt uiPUIdx );
+  template <typename T>
+  Void          setSubPart            ( T bParameter, T* pbBaseLCU, UInt uiCUAddr, UInt uiCUDepth, UInt uiPUIdx );
 
   UChar*        getLumaIntraDir       ()                        { return m_puhLumaIntraDir;           }
   UChar         getLumaIntraDir       ( UInt uiIdx )            { return m_puhLumaIntraDir[uiIdx];    }
@@ -353,6 +369,18 @@ public:
   Void          setIPCMFlagSubParts  (Bool bIpcmFlag, UInt uiAbsPartIdx, UInt uiDepth);
 #endif
 
+#if MTK_NONCROSS_INLOOP_FILTER
+  /// get slice ID for SU
+  Int           getSUSliceID          (UInt uiIdx)              {return m_piSliceSUMap[uiIdx];      } 
+
+  /// get the pointer of slice ID map
+  Int*          getSliceSUMap         ()                        {return m_piSliceSUMap;             }
+
+  /// set the pointer of slice ID map
+  Void          setSliceSUMap         (Int *pi)                 {m_piSliceSUMap = pi;               }
+#endif
+
+
   // -------------------------------------------------------------------------------------------------------------------
   // member functions for accessing partition information
   // -------------------------------------------------------------------------------------------------------------------
@@ -376,11 +404,11 @@ public:
 
   Void          setMVPIdx             ( RefPicList eRefPicList, UInt uiIdx, Int iMVPIdx)  { m_apiMVPIdx[eRefPicList][uiIdx] = iMVPIdx;  }
   Int           getMVPIdx             ( RefPicList eRefPicList, UInt uiIdx)               { return m_apiMVPIdx[eRefPicList][uiIdx];     }
-  Int*          getMVPIdx             ( RefPicList eRefPicList )                          { return m_apiMVPIdx[eRefPicList];            }
-  
+  Char*         getMVPIdx             ( RefPicList eRefPicList )                          { return m_apiMVPIdx[eRefPicList];            }
+
   Void          setMVPNum             ( RefPicList eRefPicList, UInt uiIdx, Int iMVPNum ) { m_apiMVPNum[eRefPicList][uiIdx] = iMVPNum;  }
   Int           getMVPNum             ( RefPicList eRefPicList, UInt uiIdx )              { return m_apiMVPNum[eRefPicList][uiIdx];     }
-  Int*          getMVPNum             ( RefPicList eRefPicList )                          { return m_apiMVPNum[eRefPicList];            }
+  Char*         getMVPNum             ( RefPicList eRefPicList )                          { return m_apiMVPNum[eRefPicList];            }
   
   Void          setMVPIdxSubParts     ( Int iMVPIdx, RefPicList eRefPicList, UInt uiAbsPartIdx, UInt uiPartIdx, UInt uiDepth );
   Void          setMVPNumSubParts     ( Int iMVPNum, RefPicList eRefPicList, UInt uiAbsPartIdx, UInt uiPartIdx, UInt uiDepth );
@@ -471,7 +499,6 @@ public:
   // -------------------------------------------------------------------------------------------------------------------
   
   UInt          getCtxSplitFlag                 ( UInt   uiAbsPartIdx, UInt uiDepth                   );
-  UInt          getCtxCbf                       ( UInt   uiAbsPartIdx, TextType eType, UInt uiTrDepth );
   UInt          getCtxQtCbf                     ( UInt   uiAbsPartIdx, TextType eType, UInt uiTrDepth );
   UInt          getCtxQtRootCbf                 ( UInt   uiAbsPartIdx                                 );
   UInt          getCtxRefIdx                    ( UInt   uiAbsPartIdx, RefPicList eRefPicList         );
@@ -481,11 +508,18 @@ public:
   UInt          getCtxIntraDirChroma            ( UInt   uiAbsPartIdx                                 );
   UInt          getCtxMergeFlag                 ( UInt uiAbsPartIdx                                   );
   
+#if FINE_GRANULARITY_SLICES
+  Void          setSliceStartCU         ( UInt *uiStartCU )           { for(int i=0; i<(1<<(m_pcSlice->getSPS()->getMaxCUDepth()<<1)); i++) { m_uiSliceStartCU[i]=uiStartCU[i];}               }  
+  UInt          getSliceStartCU         ( UInt pos )                  { return m_uiSliceStartCU[pos];                                                                                          }
+  Void          setEntropySliceStartCU  ( UInt *uiEntropyStartCU )    { for(int i=0; i<(1<<(m_pcSlice->getSPS()->getMaxCUDepth()<<1)); i++) { m_uiEntropySliceStartCU[i]=uiEntropyStartCU[i];} }  
+  UInt          getEntropySliceStartCU  ( UInt pos )                  { return m_uiEntropySliceStartCU[pos];                                                                                   }
+  UInt&         getTotalBins            ()                            { return m_uiTotalBins;                                                                                                  }
+#else
   Void          setSliceStartCU  ( UInt uiStartCU )    { m_uiSliceStartCU = uiStartCU;    }  
   UInt          getSliceStartCU  ()                    { return m_uiSliceStartCU;         }
   Void          setEntropySliceStartCU ( UInt uiStartCU ) { m_uiEntropySliceStartCU = uiStartCU;     }  
   UInt          getEntropySliceStartCU ()                 { return m_uiEntropySliceStartCU;          }
-
+#endif
   // -------------------------------------------------------------------------------------------------------------------
   // member functions for RD cost storage
   // -------------------------------------------------------------------------------------------------------------------

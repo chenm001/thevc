@@ -245,10 +245,23 @@ private:
   UInt        m_uiNumTlayerSwitchingFlags;            // num_temporal_layer_switching_point_flags
   Bool        m_abTLayerSwitchingFlag[ MAX_TLAYER ];  // temporal_layer_switching_point_flag
 
+#if FINE_GRANULARITY_SLICES
+  Int         m_iSliceGranularity;
+#endif
+
+#if E045_SLICE_COMMON_INFO_SHARING
+  Bool        m_bSharedPPSInfoEnabled;  //!< Shared info. in PPS is enabled/disabled
+  ALFParam    m_cSharedAlfParam;        //!< Shared ALF parameters in PPS 
+#endif
+
 public:
   TComPPS();
   virtual ~TComPPS();
   
+#if FINE_GRANULARITY_SLICES
+  Int       getSliceGranularity()        { return m_iSliceGranularity; }
+  Void      setSliceGranularity( Int i ) { m_iSliceGranularity = i;    }
+#endif
 #if CONSTRAINED_INTRA_PRED
   Bool      getConstrainedIntraPred ()         { return  m_bConstrainedIntraPred; }
   Void      setConstrainedIntraPred ( Bool b ) { m_bConstrainedIntraPred = b;     }
@@ -268,6 +281,17 @@ public:
   Void      setMinCuDQPSize     ( UInt u ) { m_uiMinCuDQPSize = u;    }
   UInt      getMinCuDQPSize     ()         { return m_uiMinCuDQPSize; }
 #endif
+
+#if E045_SLICE_COMMON_INFO_SHARING
+  ///  set shared PPS info enabled/disabled
+  Void      setSharedPPSInfoEnabled(Bool b) {m_bSharedPPSInfoEnabled = b;   }
+  /// get shared PPS info enabled/disabled flag
+  Bool      getSharedPPSInfoEnabled()       {return m_bSharedPPSInfoEnabled;}
+  /// get shared ALF parameters in PPS
+  ALFParam* getSharedAlfParam()             {return &m_cSharedAlfParam;     }
+#endif
+
+
 };
 
 /// slice header class
@@ -344,6 +368,10 @@ private:
   Bool        m_bNextSlice;
   Bool        m_bNextEntropySlice;
   UInt        m_uiSliceBits;
+#if FINE_GRANULARITY_SLICES
+  UInt        m_uiEntropySliceCounter;
+  Bool        m_bFinalized;
+#endif
   
 public:
   TComSlice();
@@ -484,6 +512,12 @@ public:
   Bool isNextEntropySlice               ()                  { return m_bNextEntropySlice;                 }
   Void setSliceBits                     ( UInt uiVal )      { m_uiSliceBits = uiVal;                      }
   UInt getSliceBits                     ()                  { return m_uiSliceBits;                       }  
+#if FINE_GRANULARITY_SLICES
+  Void setEntropySliceCounter           ( UInt uiVal )      { m_uiEntropySliceCounter = uiVal;            }
+  UInt getEntropySliceCounter           ()                  { return m_uiEntropySliceCounter;             }
+  Void setFinalized                     ( Bool uiVal )      { m_bFinalized = uiVal;                       }
+  Bool getFinalized                     ()                  { return m_bFinalized;                        }
+#endif
   
 protected:
   TComPic*  xGetRefPic  (TComList<TComPic*>& rcListPic,

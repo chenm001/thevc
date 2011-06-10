@@ -43,7 +43,9 @@
 // ====================================================================================================================
 
 TComPrediction::TComPrediction()
+#if LM_CHROMA
 : m_pLumaRecBuffer(0)
+#endif
 {
   m_piYuvExt = NULL;
 }
@@ -298,7 +300,7 @@ Void TComPrediction::predIntraLumaAng(TComPattern* pcTComPattern, UInt uiDirMode
 #endif //NDEBUG
 
 #if QC_MDIS
-  ptrSrc = pcTComPattern->getPredictorPtr( uiDirMode, g_aucConvertToBit[ iWidth ] + 1, iWidth, iHeight, m_piYuvExt );
+  ptrSrc = pcTComPattern->getPredictorPtr( uiDirMode, g_aucConvertToBit[ iWidth ] + 2, m_piYuvExt );
 #else
   ptrSrc = pcTComPattern->getAdiOrgBuf( iWidth, iHeight, m_piYuvExt );
 #endif //QC_MDIS
@@ -477,7 +479,7 @@ Void  TComPrediction::xPredInterLumaBlk_ha( TComDataCU* pcCU, TComPicYuv* pcPicY
   Int     iyFrac  = pcMv->getVer() & 0x3;
 
   Pel* piDstY = rpcYuv->getLumaAddr( uiPartAddr );
-    UInt shiftNum = 14-g_uiBitDepth-g_uiBitIncrement;
+  UInt shiftNum = 14-g_uiBitDepth-g_uiBitIncrement;
   //  Integer point
   if ( ixFrac == 0 && iyFrac == 0 )
   {
@@ -488,126 +490,78 @@ Void  TComPrediction::xPredInterLumaBlk_ha( TComDataCU* pcCU, TComPicYuv* pcPicY
       piDstY += iDstStride;
       piRefY += iRefStride;
     }
-    return;
   }
-
-  //  Half-pel horizontal
-  if ( ixFrac == 2 && iyFrac == 0 )
+  else if ( iyFrac == 0 )
   {
-    xCTI_FilterHalfHor_ha ( piRefY, iRefStride, 1, iWidth, iHeight, iDstStride, 1, piDstY );
-    return;
-  }
-
-  //  Half-pel vertical
-  if ( ixFrac == 0 && iyFrac == 2 )
-  {
-    xCTI_FilterHalfVer_ha ( piRefY, iRefStride, 1, iWidth, iHeight, iDstStride, 1, piDstY );
-    return;
-  }
-
-  Int   iExtStride = m_iYuvExtStride;//m_cYuvExt.getStride();
-  Int*  piExtY     = m_piYuvExt;//m_cYuvExt.getLumaAddr();
-
-  //  Half-pel center
-  if ( ixFrac == 2 && iyFrac == 2 )
-  {
-    xCTI_FilterHalfVer (piRefY - 3,  iRefStride, 1, iWidth +7, iHeight, iExtStride, 1, piExtY );
-    xCTI_FilterHalfHor_ha (piExtY + 3,  iExtStride, 1, iWidth    , iHeight, iDstStride, 1, piDstY );
-    return;
-  }
-
-  //  Quater-pel horizontal
-  if ( iyFrac == 0)
-  {
-    if ( ixFrac == 1)
+    switch ( ixFrac )
     {
-      xCTI_FilterQuarter0Hor_ha( piRefY, iRefStride, 1, iWidth, iHeight, iDstStride, 1, piDstY );
-      return;
-    }
-    if ( ixFrac == 3)
-    {
-      xCTI_FilterQuarter1Hor_ha( piRefY, iRefStride, 1, iWidth, iHeight, iDstStride, 1, piDstY );
-      return;
+      case 1:
+        xCTI_FilterQuarter0Hor_ha( piRefY, iRefStride, 1, iWidth, iHeight, iDstStride, 1, piDstY );
+        break;
+      case 2:
+        xCTI_FilterHalfHor_ha ( piRefY, iRefStride, 1, iWidth, iHeight, iDstStride, 1, piDstY );
+        break;
+      case 3:
+        xCTI_FilterQuarter1Hor_ha( piRefY, iRefStride, 1, iWidth, iHeight, iDstStride, 1, piDstY );
+        break;
+      default:
+        assert(false);
+        break;
     }
   }
-  if ( iyFrac == 2 )
+  else if ( ixFrac == 0)
   {
-    if ( ixFrac == 1)
+    switch ( iyFrac )
     {
-      xCTI_FilterHalfVer (piRefY -3,  iRefStride, 1, iWidth +7, iHeight, iExtStride, 1, piExtY );
-      xCTI_FilterQuarter0Hor_ha (piExtY + 3,  iExtStride, 1, iWidth, iHeight, iDstStride, 1, piDstY );
-      return;
-    }
-    if ( ixFrac == 3)
-    {
-      xCTI_FilterHalfVer (piRefY - 3,  iRefStride, 1, iWidth + 7, iHeight, iExtStride, 1, piExtY );
-      xCTI_FilterQuarter1Hor_ha (piExtY + 3,  iExtStride, 1, iWidth, iHeight, iDstStride, 1, piDstY );
-      return;
+      case 1:
+        xCTI_FilterQuarter0Ver_ha( piRefY, iRefStride, 1, iWidth, iHeight, iDstStride, 1, piDstY );
+        break;
+      case 2:
+        xCTI_FilterHalfVer_ha ( piRefY, iRefStride, 1, iWidth, iHeight, iDstStride, 1, piDstY );
+        break;
+      case 3:
+        xCTI_FilterQuarter1Ver_ha( piRefY, iRefStride, 1, iWidth, iHeight, iDstStride, 1, piDstY );
+        break;
+      default:
+        assert(false);
+        break;
     }
   }
-
-  //  Quater-pel vertical
-  if( ixFrac == 0 )
+  else
   {
-    if( iyFrac == 1 )
+    Int   iExtStride = m_iYuvExtStride;//m_cYuvExt.getStride();
+    Int*  piExtY     = m_piYuvExt;//m_cYuvExt.getLumaAddr();
+    
+    switch ( iyFrac )
     {
-      xCTI_FilterQuarter0Ver_ha( piRefY, iRefStride, 1, iWidth, iHeight, iDstStride, 1, piDstY );
-      return;
+      case 1:
+        xCTI_FilterQuarter0Ver (piRefY - 3,  iRefStride, 1, iWidth + 7, iHeight, iExtStride, 1, piExtY );
+        break;
+      case 2:
+        xCTI_FilterHalfVer (piRefY - 3,  iRefStride, 1, iWidth +7, iHeight, iExtStride, 1, piExtY );
+        break;
+      case 3:
+        xCTI_FilterQuarter1Ver (piRefY -3,  iRefStride, 1, iWidth + 7, iHeight, iExtStride, 1, piExtY );
+        break;
+      default:
+        assert(false);
+        break;
     }
-    if( iyFrac == 3 )
+    
+    switch ( ixFrac )
     {
-      xCTI_FilterQuarter1Ver_ha( piRefY, iRefStride, 1, iWidth, iHeight, iDstStride, 1, piDstY );
-      return;
-    }
-  }
-
-  if( ixFrac == 2 )
-  {
-    if( iyFrac == 1 )
-    {
-      xCTI_FilterQuarter0Ver (piRefY - 3,  iRefStride, 1, iWidth + 7, iHeight, iExtStride, 1, piExtY );
-      xCTI_FilterHalfHor_ha (piExtY + 3,  iExtStride, 1, iWidth    , iHeight, iDstStride, 1, piDstY );
-
-      return;
-    }
-    if( iyFrac == 3 )
-    {
-      xCTI_FilterQuarter1Ver (piRefY -3,  iRefStride, 1, iWidth + 7, iHeight, iExtStride, 1, piExtY );
-      xCTI_FilterHalfHor_ha (piExtY + 3,  iExtStride, 1, iWidth    , iHeight, iDstStride, 1, piDstY );
-      return;
-    }
-  }
-
-  /// Quarter-pel center
-  if ( iyFrac == 1)
-  {
-    if ( ixFrac == 1)
-    {
-      xCTI_FilterQuarter0Ver (piRefY - 3,  iRefStride, 1, iWidth + 7, iHeight, iExtStride, 1, piExtY );
-      xCTI_FilterQuarter0Hor_ha (piExtY + 3,  iExtStride, 1, iWidth    , iHeight, iDstStride, 1, piDstY );
-      return;
-    }
-    if ( ixFrac == 3)
-    {
-      xCTI_FilterQuarter0Ver (piRefY - 3,  iRefStride, 1, iWidth +7, iHeight, iExtStride, 1, piExtY );
-      xCTI_FilterQuarter1Hor_ha (piExtY + 3,  iExtStride, 1, iWidth    , iHeight, iDstStride, 1, piDstY );
-
-      return;
-    }
-  }
-  if ( iyFrac == 3 )
-  {
-    if ( ixFrac == 1)
-    {
-      xCTI_FilterQuarter1Ver (piRefY - 3,  iRefStride, 1, iWidth + 7, iHeight, iExtStride, 1, piExtY );
-      xCTI_FilterQuarter0Hor_ha (piExtY + 3,  iExtStride, 1, iWidth    , iHeight, iDstStride, 1, piDstY );
-      return;
-    }
-    if ( ixFrac == 3)
-    {
-      xCTI_FilterQuarter1Ver (piRefY - 3,  iRefStride, 1, iWidth + 7, iHeight, iExtStride, 1, piExtY );
-      xCTI_FilterQuarter1Hor_ha (piExtY + 3,  iExtStride, 1, iWidth    , iHeight, iDstStride, 1, piDstY );
-      return;
+      case 1:
+        xCTI_FilterQuarter0Hor_ha (piExtY + 3,  iExtStride, 1, iWidth, iHeight, iDstStride, 1, piDstY );
+        break;
+      case 2:
+        xCTI_FilterHalfHor_ha (piExtY + 3,  iExtStride, 1, iWidth    , iHeight, iDstStride, 1, piDstY );
+        break;
+      case 3:
+        xCTI_FilterQuarter1Hor_ha (piExtY + 3,  iExtStride, 1, iWidth, iHeight, iDstStride, 1, piDstY );
+        break;
+      default:
+        assert(false);
+        break;
     }
   }
 }
@@ -636,125 +590,78 @@ Void  TComPrediction::xPredInterLumaBlk( TComDataCU* pcCU, TComPicYuv* pcPicYuvR
       piDstY += iDstStride;
       piRefY += iRefStride;
     }
-    return;
   }
-
-  //  Half-pel horizontal
-  if ( ixFrac == 2 && iyFrac == 0 )
+  else if ( iyFrac == 0 )
   {
-    xCTI_FilterHalfHor ( piRefY, iRefStride, 1, iWidth, iHeight, iDstStride, 1, piDstY );
-    return;
-  }
-
-  //  Half-pel vertical
-  if ( ixFrac == 0 && iyFrac == 2 )
-  {
-    xCTI_FilterHalfVer ( piRefY, iRefStride, 1, iWidth, iHeight, iDstStride, 1, piDstY );
-    return;
-  }
-
-  Int   iExtStride = m_iYuvExtStride;//m_cYuvExt.getStride();
-  Int*  piExtY     = m_piYuvExt;//m_cYuvExt.getLumaAddr();
-
-  //  Half-pel center
-  if ( ixFrac == 2 && iyFrac == 2 )
-  {
-
-    xCTI_FilterHalfVer (piRefY - 3,  iRefStride, 1, iWidth +7, iHeight, iExtStride, 1, piExtY );
-    xCTI_FilterHalfHor (piExtY + 3,  iExtStride, 1, iWidth    , iHeight, iDstStride, 1, piDstY );
-    return;
-  }
-
-  //  Quater-pel horizontal
-  if ( iyFrac == 0)
-  {
-    if ( ixFrac == 1)
+    switch ( ixFrac )
     {
-      xCTI_FilterQuarter0Hor( piRefY, iRefStride, 1, iWidth, iHeight, iDstStride, 1, piDstY );
-      return;
-    }
-    if ( ixFrac == 3)
-    {
-      xCTI_FilterQuarter1Hor( piRefY, iRefStride, 1, iWidth, iHeight, iDstStride, 1, piDstY );
-      return;
+      case 1:
+        xCTI_FilterQuarter0Hor( piRefY, iRefStride, 1, iWidth, iHeight, iDstStride, 1, piDstY );
+        break;
+      case 2:
+        xCTI_FilterHalfHor ( piRefY, iRefStride, 1, iWidth, iHeight, iDstStride, 1, piDstY );
+        break;
+      case 3:
+        xCTI_FilterQuarter1Hor( piRefY, iRefStride, 1, iWidth, iHeight, iDstStride, 1, piDstY );
+        break;
+      default:
+        assert(false);
+        break;
     }
   }
-  if ( iyFrac == 2 )
+  else if ( ixFrac == 0)
   {
-    if ( ixFrac == 1)
+    switch ( iyFrac )
     {
-      xCTI_FilterHalfVer (piRefY -3,  iRefStride, 1, iWidth +7, iHeight, iExtStride, 1, piExtY );
-      xCTI_FilterQuarter0Hor (piExtY + 3,  iExtStride, 1, iWidth, iHeight, iDstStride, 1, piDstY );
-      return;
-    }
-    if ( ixFrac == 3)
-    {
-      xCTI_FilterHalfVer (piRefY - 3,  iRefStride, 1, iWidth + 7, iHeight, iExtStride, 1, piExtY );
-      xCTI_FilterQuarter1Hor (piExtY + 3,  iExtStride, 1, iWidth, iHeight, iDstStride, 1, piDstY );
-      return;
+      case 1:
+        xCTI_FilterQuarter0Ver( piRefY, iRefStride, 1, iWidth, iHeight, iDstStride, 1, piDstY );
+        break;
+      case 2:
+        xCTI_FilterHalfVer ( piRefY, iRefStride, 1, iWidth, iHeight, iDstStride, 1, piDstY );
+        break;
+      case 3:
+        xCTI_FilterQuarter1Ver( piRefY, iRefStride, 1, iWidth, iHeight, iDstStride, 1, piDstY );
+        break;
+      default:
+        assert(false);
+        break;
     }
   }
+  else
+  {
+    Int   iExtStride = m_iYuvExtStride;//m_cYuvExt.getStride();
+    Int*  piExtY     = m_piYuvExt;//m_cYuvExt.getLumaAddr();
 
-  //  Quater-pel vertical
-  if( ixFrac == 0 )
-  {
-    if( iyFrac == 1 )
+    switch ( iyFrac )
     {
-      xCTI_FilterQuarter0Ver( piRefY, iRefStride, 1, iWidth, iHeight, iDstStride, 1, piDstY );
-      return;
+      case 1:
+        xCTI_FilterQuarter0Ver (piRefY - 3,  iRefStride, 1, iWidth + 7, iHeight, iExtStride, 1, piExtY );
+        break;
+      case 2:
+        xCTI_FilterHalfVer (piRefY - 3,  iRefStride, 1, iWidth +7, iHeight, iExtStride, 1, piExtY );
+        break;
+      case 3:
+        xCTI_FilterQuarter1Ver (piRefY -3,  iRefStride, 1, iWidth + 7, iHeight, iExtStride, 1, piExtY );
+        break;
+      default:
+        assert(false);
+        break;
     }
-    if( iyFrac == 3 )
+    
+    switch ( ixFrac )
     {
-      xCTI_FilterQuarter1Ver( piRefY, iRefStride, 1, iWidth, iHeight, iDstStride, 1, piDstY );
-      return;
-    }
-  }
-
-  if( ixFrac == 2 )
-  {
-    if( iyFrac == 1 )
-    {
-      xCTI_FilterQuarter0Ver (piRefY - 3,  iRefStride, 1, iWidth + 7, iHeight, iExtStride, 1, piExtY );
-      xCTI_FilterHalfHor (piExtY + 3,  iExtStride, 1, iWidth    , iHeight, iDstStride, 1, piDstY );
-      return;
-    }
-    if( iyFrac == 3 )
-    {
-      xCTI_FilterQuarter1Ver (piRefY -3,  iRefStride, 1, iWidth + 7, iHeight, iExtStride, 1, piExtY );
-      xCTI_FilterHalfHor (piExtY + 3,  iExtStride, 1, iWidth    , iHeight, iDstStride, 1, piDstY );
-      return;
-    }
-  }
-
-  /// Quarter-pel center
-  if ( iyFrac == 1)
-  {
-    if ( ixFrac == 1)
-    {
-      xCTI_FilterQuarter0Ver (piRefY - 3,  iRefStride, 1, iWidth + 7, iHeight, iExtStride, 1, piExtY );
-      xCTI_FilterQuarter0Hor (piExtY + 3,  iExtStride, 1, iWidth    , iHeight, iDstStride, 1, piDstY );
-      return;
-    }
-    if ( ixFrac == 3)
-    {
-      xCTI_FilterQuarter0Ver (piRefY - 3,  iRefStride, 1, iWidth +7, iHeight, iExtStride, 1, piExtY );
-      xCTI_FilterQuarter1Hor (piExtY + 3,  iExtStride, 1, iWidth    , iHeight, iDstStride, 1, piDstY );
-      return;
-    }
-  }
-  if ( iyFrac == 3 )
-  {
-    if ( ixFrac == 1)
-    {
-      xCTI_FilterQuarter1Ver (piRefY - 3,  iRefStride, 1, iWidth + 7, iHeight, iExtStride, 1, piExtY );
-      xCTI_FilterQuarter0Hor (piExtY + 3,  iExtStride, 1, iWidth    , iHeight, iDstStride, 1, piDstY );
-      return;
-    }
-    if ( ixFrac == 3)
-    {
-      xCTI_FilterQuarter1Ver (piRefY - 3,  iRefStride, 1, iWidth + 7, iHeight, iExtStride, 1, piExtY );
-      xCTI_FilterQuarter1Hor (piExtY + 3,  iExtStride, 1, iWidth    , iHeight, iDstStride, 1, piDstY );
-      return;
+      case 1:
+        xCTI_FilterQuarter0Hor (piExtY + 3,  iExtStride, 1, iWidth, iHeight, iDstStride, 1, piDstY );
+        break;
+      case 2:
+        xCTI_FilterHalfHor (piExtY + 3,  iExtStride, 1, iWidth    , iHeight, iDstStride, 1, piDstY );
+        break;
+      case 3:
+        xCTI_FilterQuarter1Hor (piExtY + 3,  iExtStride, 1, iWidth, iHeight, iDstStride, 1, piDstY );
+        break;
+      default:
+        assert(false);
+        break;
     }
   }
 }
@@ -1051,17 +958,8 @@ Void TComPrediction::predLMIntraChroma( TComPattern* pcPattern, Int* piSrc, Pel*
 {
   UInt uiWidth  = uiCWidth << 1;
 
-#if !LM_CHROMA_TICKET156
-  UInt uiHeight = uiCHeight << 1; 
-  
-  if (uiChromaId == 0)
-    xGetRecPixels( pcPattern, pcPattern->getROIY(), pcPattern->getPatternLStride(), m_pLumaRecBuffer + m_iLumaRecStride + 1, m_iLumaRecStride, uiWidth, uiHeight );
-#endif
-
   xGetLLSPrediction( pcPattern, piSrc+uiWidth+2, uiWidth+1, pPred, uiPredStride, uiCWidth, uiCHeight, 1 );  
 }
-
-#if LM_CHROMA_TICKET156
 
 /** Function for deriving downsampled luma sample of current chroma block and its above, left causal pixel
  * \param pcPattern pointer to neighbouring pixel access pattern
@@ -1124,54 +1022,6 @@ Void TComPrediction::getLumaRecPixels( TComPattern* pcPattern, UInt uiCWidth, UI
     pRecSrc += iRecSrcStride2;
   }
 }
-#else
-
-/** Function for deriving downsampled luma sample of current chroma block and its above, left causal pixel
- * \param pcPattern pointer to neighbouring pixel access pattern
- * \param pRecSrc pointer to reconstructed luma sample array
- * \param iRecSrcStride the stride of reconstructed luma sample array
- * \param pDst0 pointer to downsampled luma sample array
- * \param iDstStride the stride of downsampled luma sample array
- * \param uiWidth0 the width of the luma block
- * \param uiHeight0 the height of the luma block
-
- \ This function derives downsampled luma sample of current chroma block and its above, left causal pixel
- */
-
-Void TComPrediction::xGetRecPixels( TComPattern* pcPattern, Pel* pRecSrc, Int iRecSrcStride, Pel* pDst0, Int iDstStride, UInt uiWidth0, UInt uiHeight0 )
-{
-  Pel* pSrc = pRecSrc;
-  Pel* pDst = pDst0;
-
-  Int uiCWidth = uiWidth0/2;
-  Int uiCHeight = uiHeight0/2;
-
-  if( pcPattern->isLeftAvailable() )
-  {
-    pSrc = pSrc - 2;
-    pDst = pDst - 1;
-
-    uiCWidth += 1;
-  }
-
-  if( pcPattern->isAboveAvailable() )
-  {
-    pSrc = pSrc - 2*iRecSrcStride;
-    pDst = pDst - iDstStride;
-
-    uiCHeight += 1;
-  }
-
-  for( Int j = 0; j < uiCHeight; j++ )
-    {
-      for( Int i = 0, ii = i << 1; i < uiCWidth; i++, ii = i << 1 )
-        pDst[i] = (pSrc[ii] + pSrc[ii + iRecSrcStride]) >> 1;
-
-      pDst += iDstStride;
-      pSrc += iRecSrcStride*2;
-    }  
-}
-#endif
 
 /** Function for deriving the positon of first non-zero binary bit of a value
  * \param x input value
@@ -1238,42 +1088,32 @@ Void TComPrediction::xGetLLSPrediction( TComPattern* pcPattern, Int* pSrc0, Int 
 
   Int x = 0, y = 0, xx = 0, xy = 0;
 
-#if !LM_CHROMA_TICKET156
-  if( pcPattern->isAboveAvailable() )
-#endif
+  pSrc  = pSrc0  - iSrcStride;
+  pLuma = pLuma0 - iLumaStride;
+
+  for( j = 0; j < uiWidth; j++ )
   {
-    pSrc  = pSrc0  - iSrcStride;
-    pLuma = pLuma0 - iLumaStride;
-
-    for( j = 0; j < uiWidth; j++ )
-    {
-      x += pLuma[j];
-      y += pSrc[j];
-      xx += pLuma[j] * pLuma[j];
-      xy += pLuma[j] * pSrc[j];
-    }
-    iCountShift += g_aucConvertToBit[ uiWidth ] + 2;
+    x += pLuma[j];
+    y += pSrc[j];
+    xx += pLuma[j] * pLuma[j];
+    xy += pLuma[j] * pSrc[j];
   }
+  iCountShift += g_aucConvertToBit[ uiWidth ] + 2;
 
-#if !LM_CHROMA_TICKET156
-  if( pcPattern->isLeftAvailable() )
-#endif
+  pSrc  = pSrc0 - uiExt;
+  pLuma = pLuma0 - uiExt;
+
+  for( i = 0; i < uiHeight; i++ )
   {
-    pSrc  = pSrc0 - uiExt;
-    pLuma = pLuma0 - uiExt;
+    x += pLuma[0];
+    y += pSrc[0];
+    xx += pLuma[0] * pLuma[0];
+    xy += pLuma[0] * pSrc[0];
 
-    for( i = 0; i < uiHeight; i++ )
-    {
-      x += pLuma[0];
-      y += pSrc[0];
-      xx += pLuma[0] * pLuma[0];
-      xy += pLuma[0] * pSrc[0];
-
-      pSrc  += iSrcStride;
-      pLuma += iLumaStride;
-    }
-    iCountShift += iCountShift > 0 ? 1 : ( g_aucConvertToBit[ uiWidth ] + 2 );
+    pSrc  += iSrcStride;
+    pLuma += iLumaStride;
   }
+  iCountShift += iCountShift > 0 ? 1 : ( g_aucConvertToBit[ uiWidth ] + 2 );
 
   Int iBitdepth = ( ( g_uiBitDepth + g_uiBitIncrement ) + g_aucConvertToBit[ uiWidth ] + 3 ) * 2;
   Int iTempShift = max( ( iBitdepth - 31 + 1) / 2, 0);
@@ -1292,7 +1132,7 @@ Void TComPrediction::xGetLLSPrediction( TComPattern* pcPattern, Int* pSrc0, Int 
   if( iCountShift == 0 )
   {
     a = 0;
-    b = 128 << g_uiBitIncrement;
+    b = 1 << (g_uiBitDepth + g_uiBitIncrement - 1);
     iShift = 0;
   }
   else

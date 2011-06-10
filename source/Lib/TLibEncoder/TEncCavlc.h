@@ -74,6 +74,9 @@ protected:
   UInt          m_uiRun;
   Bool          m_bAlfCtrl;
   UInt          m_uiMaxAlfCtrlDepth;
+#if FINE_GRANULARITY_SLICES && MTK_NONCROSS_INLOOP_FILTER
+  Int           m_iSliceGranularity;  //!< slice granularity
+#endif
   UInt          m_uiLPTableE4[3][32];
   UInt          m_uiLPTableD4[3][32];
 #if !CAVLC_COEF_LRG_BLK
@@ -158,8 +161,6 @@ protected:
   UChar         m_ucMI1TableCounterSum;
 #endif
 
-  Void  xCheckCoeff( TCoeff* pcCoef, UInt uiSize, UInt uiDepth, UInt& uiNumofCoeff, UInt& uiPart );
-  
   Void  xWriteCode            ( UInt uiCode, UInt uiLength );
   Void  xWriteUvlc            ( UInt uiCode );
   Void  xWriteSvlc            ( Int iCode   );
@@ -170,9 +171,6 @@ protected:
   Void  xWriteEpExGolomb      ( UInt uiSymbol, UInt uiCount );
   Void  xWriteExGolombLevel    ( UInt uiSymbol );
   Void  xWriteUnaryMaxSymbol  ( UInt uiSymbol, UInt uiMaxSymbol );
-#if !QC_MOD_LCEC_RDOQ
-  UInt  xLeadingZeros         ( UInt uiCode );
-#endif
   Void  xWriteVlc             ( UInt uiTableNumber, UInt uiCodeNumber );
 
 #if CAVLC_COEF_LRG_BLK
@@ -227,8 +225,23 @@ public:
   Void codeMergeFlag     ( TComDataCU* pcCU, UInt uiAbsPartIdx );
   Void codeMergeIndex    ( TComDataCU* pcCU, UInt uiAbsPartIdx );
   Void codeAlfCtrlFlag   ( TComDataCU* pcCU, UInt uiAbsPartIdx );
+
+#if FINE_GRANULARITY_SLICES && MTK_NONCROSS_INLOOP_FILTER
+  /// set slice granularity
+  Void setSliceGranularity(Int iSliceGranularity)  {m_iSliceGranularity = iSliceGranularity;}
+
+  ///get slice granularity
+  Int  getSliceGranularity()                       {return m_iSliceGranularity;             }
+#endif
+
 #if TSB_ALF_HEADER
+#if MTK_NONCROSS_INLOOP_FILTER
+  /// Code number of ALF CU control flags
+  Void codeAlfFlagNum    ( UInt uiCode, UInt minValue, Int iDepth);
+#else
   Void codeAlfFlagNum    ( UInt uiCode, UInt minValue );
+#endif
+
   Void codeAlfCtrlFlag   ( UInt uiSymbol );
 #endif
 #if QC_LCEC_INTER_MODE
