@@ -106,6 +106,13 @@ public:
   Void  setGopSize( Int i) { m_iGopSize = i; }
 
   void setPictureDigestEnabled(bool enabled) { m_pictureDigestEnabled = enabled; }
+
+#if E045_SLICE_COMMON_INFO_SHARING
+private:
+  /// copy shared ALF parameters from PPS
+  Void copySharedAlfParamFromPPS(ALFParam* pAlfDst, ALFParam* pAlfSrc);
+#endif
+
 };
 
 #endif // !defined(AFX_TDECGOP_H__29440B7A_7CC0_48C7_8DD5_1A531D3CED45__INCLUDED_)

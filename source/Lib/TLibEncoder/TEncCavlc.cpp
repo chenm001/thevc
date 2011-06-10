@@ -254,6 +254,10 @@ Void TEncCavlc::codePPS( TComPPS* pcPPS )
   }
 #endif
 
+#if E045_SLICE_COMMON_INFO_SHARING
+  xWriteFlag( pcPPS->getSharedPPSInfoEnabled() ? 1: 0);
+#endif
+
   return;
 }
 

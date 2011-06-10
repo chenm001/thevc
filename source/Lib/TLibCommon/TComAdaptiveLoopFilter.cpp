@@ -526,13 +526,16 @@ Void TComAdaptiveLoopFilter::create( Int iPicWidth, Int iPicHeight, UInt uiMaxCU
   initMatrix_int(&m_filterCoeffTmp, NO_VAR_BINS, MAX_SQR_FILT_LENGTH);      
   initMatrix_int(&m_filterCoeffSymTmp, NO_VAR_BINS, MAX_SQR_FILT_LENGTH);   
 
-#if MTK_NONCROSS_INLOOP_FILTER
-  m_uiNumLCUsInWidth   = m_img_width  / uiMaxCUWidth;
-  m_uiNumLCUsInHeight  = m_img_height / uiMaxCUHeight;
+#if TSB_ALF_HEADER && E045_SLICE_COMMON_INFO_SHARING
+  UInt uiNumLCUsInWidth   = m_img_width  / uiMaxCUWidth;
+  UInt uiNumLCUsInHeight  = m_img_height / uiMaxCUHeight;
 
-  m_uiNumLCUsInWidth  += ( m_img_width % uiMaxCUWidth ) ? 1 : 0;
-  m_uiNumLCUsInHeight += ( m_img_height % uiMaxCUHeight ) ? 1 : 0;
+  uiNumLCUsInWidth  += ( m_img_width % uiMaxCUWidth ) ? 1 : 0;
+  uiNumLCUsInHeight += ( m_img_height % uiMaxCUHeight ) ? 1 : 0;
+
+  m_uiNumCUsInFrame = uiNumLCUsInWidth* uiNumLCUsInHeight; 
 #endif
+
 
 #if MQT_BA_RA
   createRegionIndexMap(m_varImgMethods[ALF_RA], m_img_width, m_img_height);
@@ -2148,10 +2151,13 @@ Void TComAdaptiveLoopFilter::xFrameChroma( TComPicYuv* pcPicDec, TComPicYuv* pcP
 }
 
 #if TSB_ALF_HEADER
+
+#if !E045_SLICE_COMMON_INFO_SHARING
 Void TComAdaptiveLoopFilter::setNumCUsInFrame(TComPic *pcPic)
 {
   m_uiNumCUsInFrame = pcPic->getNumCUsInFrame();
 }
+#endif
 
 Void TComAdaptiveLoopFilter::setAlfCtrlFlags(ALFParam *pAlfParam, TComDataCU *pcCU, UInt uiAbsPartIdx, UInt uiDepth, UInt &idx)
 {
@@ -2437,132 +2443,6 @@ Void TComAdaptiveLoopFilter::transferCtrlFlagsFromAlfParamOneSlice(UInt s, Bool 
   }
   cSlice.setNumCtrlFlags(uiNumCtrlFlags);
 }
-
-/** Plot slice boundaries for debugging (Not be called in normal encoding)
- * This function provides encoder to draw the slice boundaries and write into "SliceBoundary.raw" (8-bit gray-level, picture width x picture height)
- */
-#define PLOT_SLICEBOUNDARY_COLOR 255
-#define PLOT_SGUBOUNDARY_COLOR   70
-Void TComAdaptiveLoopFilter::plotSliceBoundary()
-{
-  static Bool bFirst = true;
-  static UChar* pSliceBoundaryMap = NULL;
-  if(bFirst)
-  {
-    FILE* fid = fopen("SliceBoundary.raw", "wb");
-    fclose(fid);
-
-    pSliceBoundaryMap = new UChar[m_img_width*m_img_height];
-    bFirst = false;
-  }
-
-  ::memset(pSliceBoundaryMap, 0, sizeof(UChar)*m_img_width*m_img_height);
-
-  if(m_uiNumSlicesInPic ==1)
-  {
-    for(UInt j=0; j< m_img_height; j++)
-    {
-      UChar* pMapLine = pSliceBoundaryMap + (j*m_img_width);
-
-      if(j==0 || j== m_img_height -1)
-      {
-        ::memset(pMapLine, PLOT_SLICEBOUNDARY_COLOR, sizeof(UChar)*m_img_width);
-      }
-
-      *pMapLine = *(pMapLine + m_img_width -1) = PLOT_SLICEBOUNDARY_COLOR;
-    }
-
-    FILE* fid = fopen("SliceBoundary.raw", "a+b");
-    fwrite(pSliceBoundaryMap, sizeof(UChar), m_img_width*m_img_height, fid);
-    fclose(fid);
-    return;
-  }
-
-  UInt uiLPelX, uiTPelY, uiWidth, uiHeight;
-  UChar* pMapStart;
-  UChar* pMap;
-
-  for(UInt s=0; s< m_uiNumSlicesInPic; s++)
-  {
-    for(UInt idx =0; idx < m_pSlice[s].getNumLCUs(); idx++)
-    {
-
-      for(UInt i=0; i< m_pSlice[s][idx].getNumSGU(); i++)
-      {
-        AlfSGUInfo& rSGU = m_pSlice[s][idx][i];
-        uiLPelX = rSGU.posX;
-        uiTPelY = rSGU.posY;
-        uiWidth = rSGU.width;
-        uiHeight= rSGU.height;
-
-        pMapStart = pSliceBoundaryMap+ (uiTPelY*m_img_width) + uiLPelX;
-
-        //plot SGU boundary
-        pMap = pMapStart;
-        ::memset(pMap, PLOT_SGUBOUNDARY_COLOR, sizeof(UChar)*uiWidth);
-        pMap = pMapStart + (uiHeight-1)*m_img_width;
-        ::memset(pMap, PLOT_SGUBOUNDARY_COLOR, sizeof(UChar)*uiWidth);
-        pMap = pMapStart;
-        for(UInt y=0; y< uiHeight; y++)
-        {
-          *pMap = PLOT_SGUBOUNDARY_COLOR;
-          pMap += m_img_width;
-        }
-        pMap = pMapStart + (uiWidth -1);
-        for(UInt y=0; y< uiHeight; y++)
-        {
-          *pMap =PLOT_SGUBOUNDARY_COLOR;
-          pMap += m_img_width;
-        }
-
-        //plot slice boundary
-        //SGU_T
-        if(!rSGU.isBorderAvailable[SGU_T])
-        {
-          pMap = pMapStart;
-          ::memset(pMap, PLOT_SLICEBOUNDARY_COLOR, sizeof(UChar)*uiWidth);
-        }
-
-        //SGU_B
-        if(!rSGU.isBorderAvailable[SGU_B])
-        {
-          pMap = pMapStart + (uiHeight-1)*m_img_width;
-          ::memset(pMap, PLOT_SLICEBOUNDARY_COLOR, sizeof(UChar)*uiWidth);
-
-        }
-
-        //SGU_L
-        if(!rSGU.isBorderAvailable[SGU_L])
-        {
-          pMap = pMapStart;
-          for(UInt y=0; y< uiHeight; y++)
-          {
-            *pMap = PLOT_SLICEBOUNDARY_COLOR;
-            pMap += m_img_width;
-          }
-
-        }
-
-        //SGU_R
-        if(!rSGU.isBorderAvailable[SGU_R])
-        {
-          pMap = pMapStart + (uiWidth -1);
-          for(UInt y=0; y< uiHeight; y++)
-          {
-            *pMap = PLOT_SLICEBOUNDARY_COLOR;
-            pMap += m_img_width;
-          }
-        }
-      }
-    }
-  }
-
-  FILE* fid = fopen("SliceBoundary.raw", "a+b");
-  fwrite(pSliceBoundaryMap, sizeof(UChar), m_img_width*m_img_height, fid);
-  fclose(fid);
-}
-
-
 
 //-------------- CAlfLCU -----------------//
 
@@ -3799,7 +3679,7 @@ Void TComSampleAdaptiveOffset::create( UInt uiSourceWidth, UInt uiSourceHeight, 
   m_iUpBuff2 = new Int[m_iPicWidth+2];
   m_iUpBufft = new Int[m_iPicWidth+2];
 
-  Pel i;
+  Int i;
 
 
   UInt uiMaxY  = g_uiIBDI_MAX;
@@ -3824,6 +3704,12 @@ Void TComSampleAdaptiveOffset::create( UInt uiSourceWidth, UInt uiSourceHeight, 
 
   m_pClipTable = &(m_pClipTableBase[CRANGE_EXT]);
 
+
+#if SAO_FGS_MNIF
+  m_pcPicYuvMap = new TComPicYuv;
+  m_pcPicYuvMap->create( m_iPicWidth, m_iPicHeight, m_uiMaxCUWidth, m_uiMaxCUHeight, uiMaxCUDepth );
+  m_bIsFineSliceCu = new Bool [m_iNumCuInWidth*m_iNumCuInHeight];
+#endif
 
 }
 
@@ -3856,6 +3742,19 @@ Void TComSampleAdaptiveOffset::destroy()
   {
     delete [] m_iUpBufft; m_iUpBufft = NULL;
   }
+
+#if SAO_FGS_MNIF
+  if (m_pcPicYuvMap)
+  {
+    m_pcPicYuvMap->destroy();
+    delete m_pcPicYuvMap; m_pcPicYuvMap = NULL;
+  }
+  if (m_bIsFineSliceCu)
+  {
+    delete [] m_bIsFineSliceCu; m_bIsFineSliceCu = NULL;
+  }
+
+#endif
 
 }
 
@@ -4157,7 +4056,306 @@ inline int xSign(int x)
 /** Adaptive offset process for Cu
  * \param  iAddr, iPartIdx
  */
+#if SAO_FGS_MNIF
+Void TComSampleAdaptiveOffset::startFGSParam()
+{
+  for (Int i=0;i<m_iNumCuInWidth*m_iNumCuInHeight;i++)
+  {
+    m_bIsFineSliceCu[i] = 0;
+  }
+}
+
+Void TComSampleAdaptiveOffset::endFGSParam()
+{
+  Pel *pMap;
+  Int iStride = m_pcPicYuvMap->getStride();
+  Int x,y;
+  for (Int i=0;i<m_iNumCuInWidth*m_iNumCuInHeight;i++)
+  {
+    pMap = m_pcPicYuvMap->getLumaAddr(i);  
+    if(m_bIsFineSliceCu[i])
+    {
+      for (y=0;y<m_uiMaxCUHeight;y++)
+      {
+        for (x=0;x<m_uiMaxCUWidth;x++)
+        {
+          pMap[x]=0;
+        }
+        pMap += iStride;
+      }
+    }
+  }
+}
+
+Void TComSampleAdaptiveOffset::createSliceMap(UInt iSliceIdx, UInt uiStartAddr, UInt uiEndAddr)
+{
+  Pel* pMap       ;    
+  Int  iStride    = m_pcPicYuvMap->getStride();
+  UInt uiLPelX    ;
+  UInt uiTPelY    ;
+  UInt uiStartLCU;
+  UInt uiEndLCU;
+  UInt uiFirstCUInStartLCU ;
+  UInt uiLastCUInEndLCU ;
+  UInt uiNumSUInLCU = m_pcPic->getNumPartInHeight()*m_pcPic->getNumPartInWidth();
+  Int i,k,l;
+  UInt uiMinCUWidth  = m_pcPic->getMinCUWidth(); 
+  UInt uiMinCUHeight = m_pcPic->getMinCUHeight();
+
+  uiStartLCU          = uiStartAddr / uiNumSUInLCU;
+  uiFirstCUInStartLCU = uiStartAddr % uiNumSUInLCU;
+  uiEndLCU            = uiEndAddr   / uiNumSUInLCU;
+  uiLastCUInEndLCU    = uiEndAddr   % uiNumSUInLCU;
+
+  if (uiFirstCUInStartLCU!= 0)
+  {
+    m_bIsFineSliceCu[uiStartLCU] = 1;
+  }
+  if (uiLastCUInEndLCU!= uiNumSUInLCU-1)
+  {
+    m_bIsFineSliceCu[uiEndLCU] = 1;
+  }
+
+  if (m_bIsFineSliceCu[uiStartLCU])
+  {
+    if (uiStartLCU == uiEndLCU)
+    {
+      pMap = m_pcPicYuvMap->getLumaAddr(uiStartLCU);
+      for (i=uiFirstCUInStartLCU;i<=uiLastCUInEndLCU;i++)
+      {
+        uiLPelX     = g_auiRasterToPelX[ g_auiZscanToRaster[i] ];
+        uiTPelY     = g_auiRasterToPelY[ g_auiZscanToRaster[i] ];
+
+        for (l=0;l<uiMinCUHeight;l++)
+        {
+          for (k=0;k<uiMinCUWidth;k++)
+          {
+            pMap[(uiLPelX+k)+(uiTPelY+l)*iStride] = iSliceIdx;
+          }
+        }
+      }
+    }
+    else 
+    {
+      if (uiStartLCU<uiEndLCU)
+      {
+        pMap = m_pcPicYuvMap->getLumaAddr(uiStartLCU);
+        for (i=uiFirstCUInStartLCU;i<uiNumSUInLCU;i++)
+        {
+          uiLPelX     = g_auiRasterToPelX[ g_auiZscanToRaster[i] ];
+          uiTPelY     = g_auiRasterToPelY[ g_auiZscanToRaster[i] ];
+
+          for (l=0;l<uiMinCUHeight;l++)
+          {
+            for (k=0;k<uiMinCUWidth;k++)
+            {
+              pMap[(uiLPelX+k)+(uiTPelY+l)*iStride] = iSliceIdx;
+            }
+          }
+        }
+
+        pMap = m_pcPicYuvMap->getLumaAddr(uiEndLCU);
+        for (i=0;i<=uiLastCUInEndLCU;i++)
+        {
+          uiLPelX     = g_auiRasterToPelX[ g_auiZscanToRaster[i] ];
+          uiTPelY     = g_auiRasterToPelY[ g_auiZscanToRaster[i] ];
+
+          for (l=0;l<uiMinCUHeight;l++)
+          {
+            for (k=0;k<uiMinCUWidth;k++)
+            {
+              pMap[(uiLPelX+k)+(uiTPelY+l)*iStride] = iSliceIdx;
+            }
+          }
+        }
+      }
+    }
+
+  }
+
+
+
+}
 Void TComSampleAdaptiveOffset::AoProcessCu(Int iAddr, Int iPartIdx)
+{
+  if (getIsFineSlice())
+  {
+    if (getIsFineSliceCu(iAddr))
+    {
+      AoProcessCuMap( iAddr, iPartIdx);
+    }
+    else
+    {
+      AoProcessCuOrg( iAddr, iPartIdx);
+    }
+  }
+  else
+  {
+    AoProcessCuOrg( iAddr, iPartIdx);
+  }
+  
+}
+
+Void TComSampleAdaptiveOffset::AoProcessCuMap(Int iAddr, Int iPartIdx)
+{
+  Int x,y;
+  TComDataCU *pTmpCu = m_pcPic->getCU(iAddr);
+  Pel* pRec       = m_pcPic->getPicYuvRec()->getLumaAddr(iAddr);
+  Pel* pMap       = m_pcPicYuvMap->getLumaAddr(iAddr);    
+  Int  iStride    = m_pcPic->getStride();
+  Int  iLcuWidth  = m_uiMaxCUWidth;
+  Int  iLcuHeight = m_uiMaxCUHeight;
+  UInt uiLPelX    = pTmpCu->getCUPelX();
+  UInt uiRPelX    = uiLPelX + iLcuWidth;
+  UInt uiTPelY    = pTmpCu->getCUPelY();
+  UInt uiBPelY    = uiTPelY + iLcuHeight;
+  Int  iAoType    = m_psQAOPart[iPartIdx].iBestType;
+  Int  iSignLeft;
+  Int  iSignRight;
+  Int  iSignDown;
+  Int  iSignDown1;
+  Int  iSignDown2;
+  UInt uiEdgeType;
+
+  uiRPelX    = uiRPelX > m_iPicWidth  ? m_iPicWidth : uiRPelX;
+  uiBPelY    = uiBPelY > m_iPicHeight ? m_iPicHeight: uiBPelY;
+  iLcuWidth  = uiRPelX - uiLPelX;
+  iLcuHeight = uiBPelY - uiTPelY;
+
+  switch (iAoType)
+  {
+  case SAO_EO_0:
+    {
+      for (y=0; y<iLcuHeight; y++)
+      {
+        iSignLeft  = xSign(pRec[1] - pRec[0]);
+        for (x=1; x<iLcuWidth-1; x++)
+        {
+          iSignRight =  xSign(pRec[x] - pRec[x+1]); 
+          uiEdgeType =  iSignRight + iSignLeft + 2;
+          iSignLeft  = -iSignRight;
+          if (pMap[x-1] == pMap[x+1])
+          {
+            pRec[x] = m_pClipTable[pRec[x] + m_iOffsetEo[uiEdgeType]];
+          }
+        }
+        pRec += iStride;
+        pMap += iStride;
+      }
+      break;
+    }
+  case SAO_EO_1:
+    {
+      pRec += iStride;
+      pMap += iStride;
+      for (x=0; x< iLcuWidth; x++)
+      {
+        m_iUpBuff1[x] = xSign(pRec[x] - pRec[x-iStride]);
+      }
+      for (y=1; y<iLcuHeight-1; y++)
+      {
+        for (x=0; x<iLcuWidth; x++)
+        {
+          iSignDown  =  xSign(pRec[x] - pRec[x+iStride]); 
+          uiEdgeType =  iSignDown + m_iUpBuff1[x] + 2;
+          m_iUpBuff1[x]= -iSignDown;
+          if (pMap[x-iStride] != 0 && pMap[x+iStride] != 0)
+          {
+            pRec[x] = m_pClipTable[pRec[x] + m_iOffsetEo[uiEdgeType]];
+          }
+        }
+        pRec += iStride;
+        pMap += iStride;
+      }
+      break;
+    }
+  case SAO_EO_2:
+    {
+      pRec += iStride;
+      pMap += iStride;
+      for (x=1; x<iLcuWidth; x++)
+      {
+        m_iUpBuff1[x] = xSign(pRec[x] - pRec[x-iStride-1]);
+      }
+      for (y=1; y<iLcuHeight-1; y++)
+      {
+        iSignDown2 = xSign(pRec[iStride+1] - pRec[0]);
+
+        for (x=1; x<iLcuWidth-1; x++)
+        {
+          iSignDown1      =  xSign(pRec[x] - pRec[x+iStride+1]) ;
+          uiEdgeType      =  iSignDown1 + m_iUpBuff1[x] + 2;
+          m_iUpBufft[x+1] = -iSignDown1; 
+          if (pMap[x-iStride-1] != 0 && pMap[x+iStride+1] != 0)
+          {
+            pRec[x] = m_pClipTable[pRec[x] + m_iOffsetEo[uiEdgeType]];
+          }
+        }
+        m_iUpBufft[1] = iSignDown2;
+
+        ipSwap     = m_iUpBuff1;
+        m_iUpBuff1 = m_iUpBufft;
+        m_iUpBufft = ipSwap;
+
+        pRec += iStride;
+        pMap += iStride;
+
+      }
+      break;
+    } 
+  case SAO_EO_3:
+    {
+      pRec += iStride;
+      pMap += iStride;
+      for (x=0; x<iLcuWidth-1; x++)
+      {
+        m_iUpBuff1[x] = xSign(pRec[x] - pRec[x-iStride+1]);
+      }
+      for (y=1; y<iLcuHeight-1; y++)
+      {
+        for (x=1; x<iLcuWidth-1; x++)
+        {
+          iSignDown1      =  xSign(pRec[x] - pRec[x+iStride-1]) ;
+          uiEdgeType      =  iSignDown1 + m_iUpBuff1[x] + 2;
+          m_iUpBuff1[x-1]   = -iSignDown1; 
+          if (pMap[x-iStride+1] != 0 && pMap[x+iStride-1] != 0)
+          {
+            pRec[x] = m_pClipTable[pRec[x] + m_iOffsetEo[uiEdgeType]];
+          }
+        }
+        m_iUpBuff1[iLcuWidth-2] = xSign(pRec[iLcuWidth-2 + iStride] - pRec[iLcuWidth-1]);
+
+        pRec += iStride;
+        pMap += iStride;
+
+      } 
+      break;
+    }   
+  case SAO_BO_0:
+  case SAO_BO_1:
+    {
+      for (y=0; y<iLcuHeight; y++)
+      {
+        for (x=0; x<iLcuWidth; x++)
+        {
+            pRec[x] = m_iOffsetBo[pRec[x]];
+        }
+        pRec += iStride;
+      }
+      break;
+    }
+  default: break;
+
+  }
+}
+
+#endif
+
+#if SAO_FGS_MNIF
+Void TComSampleAdaptiveOffset::AoProcessCuOrg(Int iAddr, Int iPartIdx)
+#else
+Void TComSampleAdaptiveOffset::AoProcessCu(Int iAddr, Int iPartIdx)
+#endif
 {
   Int x,y;
   TComDataCU *pTmpCu = m_pcPic->getCU(iAddr);
@@ -4289,8 +4487,6 @@ Void TComSampleAdaptiveOffset::AoProcessCu(Int iAddr, Int iPartIdx)
 
   }
 }
-
-
 /** run adaptive offset One Part
  * \param  uiPartIdx, pcPicYuvDst, pcPicYuvSrc
  */
@@ -4438,13 +4634,20 @@ Void TComSampleAdaptiveOffset::SAOProcess(TComPic* pcPic, SAOParam* pcQaoParam)
     TComPicYuv* pcPicYuvRec = m_pcPic->getPicYuvRec();
     TComPicYuv* pcPicYuvExt = NULL;
 
-
     {
       xProcessQuadTreeAo( 0, pcPicYuvRec,  pcPicYuvExt);
     }
 
     m_pcPic = NULL;
+
+#if MTK_SAO && MTK_NONCROSS_INLOOP_FILTER && FINE_GRANULARITY_SLICES 
+    if (getIsFineSlice())
+    {
+      endFGSParam();
+    }
+#endif
   }
+
 }
 
 

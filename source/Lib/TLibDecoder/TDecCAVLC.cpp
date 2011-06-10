@@ -107,6 +107,11 @@ Void TDecCavlc::parsePPS(TComPPS* pcPPS)
     pcPPS->setMinCuDQPSize( pcPPS->getSPS()->getMaxCUWidth() >> ( pcPPS->getMaxCuDQPDepth()) );
   }
 #endif
+
+#if E045_SLICE_COMMON_INFO_SHARING
+  xReadFlag( uiCode); pcPPS->setSharedPPSInfoEnabled( uiCode ? true : false);
+#endif
+
   return;
 }
 

@@ -44,6 +44,10 @@
 #include "../TLibCommon/ContextModel.h"
 #include "../TLibCommon/TComPic.h"
 #include "../TLibCommon/TComTrQuant.h"
+#if E045_SLICE_COMMON_INFO_SHARING
+#include "../TLibCommon/TComAdaptiveLoopFilter.h"
+#endif
+
 class TEncSbac;
 class TEncCavlc;
 class SEI;
@@ -197,8 +201,13 @@ public:
   Void encodeAlfCtrlFlag(UInt uiFlag);
 #endif
 
-#if TSB_ALF_HEADER
+#if TSB_ALF_HEADER || E045_SLICE_COMMON_INFO_SHARING
+#if E045_SLICE_COMMON_INFO_SHARING
+  /// encode ALF CU control flags
+  Void encodeAlfCtrlParam      ( ALFParam *pAlfParam, UInt uiNumSlices= 1, CAlfSlice* pcAlfSlice= NULL);
+#else
   Void encodeAlfCtrlParam      ( ALFParam *pAlfParam );
+#endif
 #endif
   Void encodePredMode          ( TComDataCU* pcCU, UInt uiAbsPartIdx, Bool bRD = false );
   Void encodePartSize          ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth, Bool bRD = false );

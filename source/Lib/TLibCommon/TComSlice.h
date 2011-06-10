@@ -248,6 +248,12 @@ private:
 #if FINE_GRANULARITY_SLICES
   Int         m_iSliceGranularity;
 #endif
+
+#if E045_SLICE_COMMON_INFO_SHARING
+  Bool        m_bSharedPPSInfoEnabled;  //!< Shared info. in PPS is enabled/disabled
+  ALFParam    m_cSharedAlfParam;        //!< Shared ALF parameters in PPS 
+#endif
+
 public:
   TComPPS();
   virtual ~TComPPS();
@@ -275,6 +281,17 @@ public:
   Void      setMinCuDQPSize     ( UInt u ) { m_uiMinCuDQPSize = u;    }
   UInt      getMinCuDQPSize     ()         { return m_uiMinCuDQPSize; }
 #endif
+
+#if E045_SLICE_COMMON_INFO_SHARING
+  ///  set shared PPS info enabled/disabled
+  Void      setSharedPPSInfoEnabled(Bool b) {m_bSharedPPSInfoEnabled = b;   }
+  /// get shared PPS info enabled/disabled flag
+  Bool      getSharedPPSInfoEnabled()       {return m_bSharedPPSInfoEnabled;}
+  /// get shared ALF parameters in PPS
+  ALFParam* getSharedAlfParam()             {return &m_cSharedAlfParam;     }
+#endif
+
+
 };
 
 /// slice header class

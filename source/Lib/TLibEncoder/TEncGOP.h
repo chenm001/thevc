@@ -156,6 +156,18 @@ protected:
 #endif
 };// END CLASS DEFINITION TEncGOP
 
+// ====================================================================================================================
+// Enumeration
+// ====================================================================================================================
+#if E045_SLICE_COMMON_INFO_SHARING
+enum PROCESSING_STATE
+{
+  EXECUTE_INLOOPFILTER,
+  ENCODE_PPS,
+  ENCODE_SLICE
+};
+#endif
+
 
 #endif // __TENCGOP__
 

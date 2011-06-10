@@ -169,8 +169,13 @@ public:
   Void decodeMergeFlag         ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth, UInt uiPUIdx );
   Void decodeMergeIndex        ( TComDataCU* pcSubCU, UInt uiPartIdx, UInt uiPartAddr, PartSize eCUMode, UChar* puhInterDirNeighbours, TComMvField* pcMvFieldNeighbours, UInt uiDepth );
   Void decodeAlfCtrlFlag       ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
-#if TSB_ALF_HEADER
+#if TSB_ALF_HEADER || E045_SLICE_COMMON_INFO_SHARING
+#if E045_SLICE_COMMON_INFO_SHARING
+  /// decode ALF CU control flags
+  Void decodeAlfCtrlParam      ( ALFParam *pAlfParam , Bool bFirstSliceInPic);
+#else
   Void decodeAlfCtrlParam      ( ALFParam *pAlfParam );
+#endif
 #endif
   
   Void decodePredMode          ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );

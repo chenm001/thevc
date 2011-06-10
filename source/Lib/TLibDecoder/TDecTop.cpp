@@ -59,6 +59,10 @@ TDecTop::TDecTop()
   m_uiPrevPOC               = UInt(-1);
   m_bFirstSliceInPicture    = true;
   m_bFirstSliceInSequence   = true;
+#if E045_SLICE_COMMON_INFO_SHARING
+  m_pcPPSBuffer = NULL;
+  m_pbHasNewPPS = NULL;
+#endif
 }
 
 TDecTop::~TDecTop()
@@ -77,6 +81,9 @@ Void TDecTop::create()
 
 Void TDecTop::destroy()
 {
+#if E045_SLICE_COMMON_INFO_SHARING
+  destroyPPSBuffer();
+#endif
   m_cGopDecoder.destroy();
   
   delete m_apcSlicePilot;
@@ -210,7 +217,10 @@ Void TDecTop::executeDeblockAndAlf(UInt& ruiPOC, TComList<TComPic*>*& rpcListPic
 Bool TDecTop::decode(InputNALUnit& nalu, Int& iSkipFrame, Int& iPOCLastDisplay)
 {
   TComPic*&   pcPic         = m_pcPic;
-  
+#if E045_SLICE_COMMON_INFO_SHARING
+  static TComPPS*    pcNewPPS = NULL;
+#endif
+
   // Initialize entropy decoder
   m_cEntropyDecoder.setEntropyDecoder (&m_cCavlcDecoder);
   m_cEntropyDecoder.setBitstream      (nalu.m_Bitstream);
@@ -226,15 +236,35 @@ Bool TDecTop::decode(InputNALUnit& nalu, Int& iSkipFrame, Int& iPOCLastDisplay)
       m_cSAO.create( m_cSPS.getWidth(), m_cSPS.getHeight(), g_uiMaxCUWidth, g_uiMaxCUHeight, g_uiMaxCUDepth );
 #endif
       m_cLoopFilter.        create( g_uiMaxCUDepth );
+#if E045_SLICE_COMMON_INFO_SHARING
+      createPPSBuffer();
+#endif
       m_uiValidPS |= 1;
       
       return false;
 
     case NAL_UNIT_PPS:
+
+#if E045_SLICE_COMMON_INFO_SHARING
+      pcNewPPS = getNewPPSBuffer();
+#if SUB_LCU_DQP
+      pcNewPPS->setSPS(&m_cSPS);
+#endif
+      m_cEntropyDecoder.decodePPS( pcNewPPS );
+      if(pcNewPPS->getSharedPPSInfoEnabled())
+      {
+        if(m_cSPS.getUseALF())
+        {
+          m_cEntropyDecoder.decodeAlfParam( pcNewPPS->getSharedAlfParam());
+        }
+      }
+      signalNewPPSAvailable();
+#else
 #if SUB_LCU_DQP
       m_cPPS.setSPS(&m_cSPS);
 #endif
       m_cEntropyDecoder.decodePPS( &m_cPPS );
+#endif
       m_uiValidPS |= 2;
       return false;
 
@@ -254,12 +284,23 @@ Bool TDecTop::decode(InputNALUnit& nalu, Int& iSkipFrame, Int& iPOCLastDisplay)
         m_apcSlicePilot->initSlice();
         m_uiSliceIdx     = 0;
         m_uiLastSliceIdx = 0;
+#if E045_SLICE_COMMON_INFO_SHARING
+        if(hasNewPPS())
+        {
+          m_pcPPS = pcNewPPS;
+          updatePPSBuffer();
+        }
+#endif
       }
       m_apcSlicePilot->setSliceIdx(m_uiSliceIdx);
 
       //  Read slice header
       m_apcSlicePilot->setSPS( &m_cSPS );
+#if E045_SLICE_COMMON_INFO_SHARING
+      m_apcSlicePilot->setPPS( m_pcPPS );
+#else
       m_apcSlicePilot->setPPS( &m_cPPS );
+#endif
       m_apcSlicePilot->setSliceIdx(m_uiSliceIdx);
       if (!m_bFirstSliceInPicture)
       {
@@ -472,4 +513,69 @@ Bool TDecTop::isRandomAccessSkipPicture(Int& iSkipFrame,  Int& iPOCLastDisplay)
   // if we reach here, then the picture is not skipped.
   return false; 
 }
+#if E045_SLICE_COMMON_INFO_SHARING
+Void TDecTop::createPPSBuffer()
+{
+  m_pcPPSBuffer = new TComPPS[MAX_NUM_PPS_BUFFER];
+  m_pbHasNewPPS = new Bool[MAX_NUM_PPS_BUFFER];
+
+  m_iPPSCounter = 0;
+
+  for(Int i=0; i< MAX_NUM_PPS_BUFFER; i++)
+  {
+    m_pbHasNewPPS[i] = false;
+  }
+
+  if(m_cSPS.getUseALF())
+  {
+    for(Int i=0; i< MAX_NUM_PPS_BUFFER; i++)
+    {
+      m_cAdaptiveLoopFilter.allocALFParam(m_pcPPSBuffer[i].getSharedAlfParam());
+    }
+  }
+
+  m_pcPPS = &(m_pcPPSBuffer[0]);
+}
+
+Void TDecTop::destroyPPSBuffer()
+{
+  if(m_pbHasNewPPS != NULL)
+  {
+    delete[] m_pbHasNewPPS;
+    m_pbHasNewPPS = NULL;
+  }
+
+  if(m_pcPPSBuffer != NULL)
+  {
+    if(m_cSPS.getUseALF())
+    {
+      for (Int i=0; i< MAX_NUM_PPS_BUFFER; i++)
+      {
+        m_cAdaptiveLoopFilter.freeALFParam(m_pcPPSBuffer[i].getSharedAlfParam());
+      }
+    }
+    delete[] m_pcPPSBuffer;
+    m_pcPPSBuffer = NULL;
+  }
+}
+
+TComPPS* TDecTop::getNewPPSBuffer()
+{
+  return &(m_pcPPSBuffer[m_iPPSCounter]);
+}
+
+Void TDecTop::signalNewPPSAvailable()
+{
+  m_pbHasNewPPS[m_iPPSCounter] = true;
+}
+
+Void TDecTop::updatePPSBuffer()
+{
+  m_pbHasNewPPS[m_iPPSCounter] = false;
+  m_iPPSCounter = (m_iPPSCounter +1)%MAX_NUM_PPS_BUFFER;
+}
+
+
+#endif
+
 

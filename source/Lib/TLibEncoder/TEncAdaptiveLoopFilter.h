@@ -82,6 +82,12 @@ public:
   Void xPartTreeDisable(Int iPartIdx);
   Void xGetQAOStats(TComPicYuv* pcPicOrg, TComPicYuv* pcPicDec, TComPicYuv* pcPicRest);
   Void calcAoStatsCu(Int iAddr, Int iPartIdx);
+
+#if SAO_FGS_MNIF
+  Void calcAoStatsCuMap(Int iAddr, Int iPartIdx);
+  Void calcAoStatsCuOrg(Int iAddr, Int iPartIdx);
+#endif
+
   Void destoryEncBuffer();
   Void createEncBuffer();
 };
@@ -170,6 +176,10 @@ private:
 
 #if MTK_NONCROSS_INLOOP_FILTER
   TComPicYuv* m_pcSliceYuvTmp;    //!< temporary picture buffer when non-across slice boundary ALF is enabled
+#endif
+
+#if E045_SLICE_COMMON_INFO_SHARING
+  Bool  m_bSharedPPSAlfParamEnabled; //!< true for shared ALF parameters in PPS enabled
 #endif
 
 private:
@@ -397,5 +407,11 @@ public:
   Void destroyAlfGlobalBuffers();
 #endif
 #endif
+
+#if E045_SLICE_COMMON_INFO_SHARING
+  /// set shared ALF parameters in PPS enabled/disabled
+  Void setSharedPPSAlfParamEnabled(Bool b) {m_bSharedPPSAlfParamEnabled = b;}
+#endif
+
 };
 #endif
