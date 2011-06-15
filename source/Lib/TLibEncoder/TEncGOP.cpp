@@ -1074,10 +1074,8 @@ Void TEncGOP::xInitGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rcLis
     m_iHrchDepth  = 1;
   }
   
-  if (m_iGopSize == 0)
-  {
-    m_iHrchDepth = 1;
-  }
+  assert (m_iGopSize > 0); 
+
 #if MQT_ALF_NPASS && !MQT_BA_RA
   m_pcAdaptiveLoopFilter->setGOPSize( m_iGopSize );
 #endif

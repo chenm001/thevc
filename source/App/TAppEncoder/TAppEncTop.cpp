@@ -312,6 +312,8 @@ Void TAppEncTop::encode()
  */
 Void TAppEncTop::xGetBuffer( TComPicYuv*& rpcPicYuvRec)
 {
+  assert( m_iGOPSize > 0 );
+  
   // org. buffer
   if ( m_cListPicYuvRec.size() == (UInt)m_iGOPSize )
   {
