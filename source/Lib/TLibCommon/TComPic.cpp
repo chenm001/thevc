@@ -52,10 +52,6 @@ TComPic::TComPic()
   m_pcPicYuvPred      = NULL;
   m_pcPicYuvResi      = NULL;
   
-#if PARALLEL_MERGED_DEBLK
-  m_pcPicYuvDeblkBuf     = NULL;
-#endif
-
   m_bReconstructed    = false;
 }
 
@@ -72,10 +68,6 @@ Void TComPic::create( Int iWidth, Int iHeight, UInt uiMaxWidth, UInt uiMaxHeight
   }
   m_apcPicYuv[1]  = new TComPicYuv;  m_apcPicYuv[1]->create( iWidth, iHeight, uiMaxWidth, uiMaxHeight, uiMaxDepth );
   
-#if PARALLEL_MERGED_DEBLK
-  m_pcPicYuvDeblkBuf  = new TComPicYuv;  m_pcPicYuvDeblkBuf->create( iWidth, iHeight, uiMaxWidth, uiMaxHeight, uiMaxDepth );
-#endif
-
   /* there are no SEI messages associated with this picture initially */
   m_SEIs = NULL;
 
@@ -105,15 +97,6 @@ Void TComPic::destroy()
     m_apcPicYuv[1]  = NULL;
   }
   
-#if PARALLEL_MERGED_DEBLK
-  if (m_pcPicYuvDeblkBuf)
-  {
-    m_pcPicYuvDeblkBuf->destroy();
-    delete m_pcPicYuvDeblkBuf;
-    m_pcPicYuvDeblkBuf  = NULL;
-  }
-#endif
-
   delete m_SEIs;
 }
 

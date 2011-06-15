@@ -235,7 +235,11 @@ Bool TDecTop::decode(InputNALUnit& nalu, Int& iSkipFrame, Int& iPOCLastDisplay)
 #if MTK_SAO
       m_cSAO.create( m_cSPS.getWidth(), m_cSPS.getHeight(), g_uiMaxCUWidth, g_uiMaxCUHeight, g_uiMaxCUDepth );
 #endif
+#if PARALLEL_MERGED_DEBLK
+      m_cLoopFilter.create( m_cSPS.getWidth(), m_cSPS.getHeight(), g_uiMaxCUWidth, g_uiMaxCUHeight, g_uiMaxCUDepth );
+#else
       m_cLoopFilter.        create( g_uiMaxCUDepth );
+#endif
 #if E045_SLICE_COMMON_INFO_SHARING
       createPPSBuffer();
 #endif

@@ -83,8 +83,12 @@ Void TEncTop::create ()
   }
 #endif
   m_cAdaptiveLoopFilter.create( getSourceWidth(), getSourceHeight(), g_uiMaxCUWidth, g_uiMaxCUHeight, g_uiMaxCUDepth );
+#if PARALLEL_MERGED_DEBLK
+  m_cLoopFilter.create( getSourceWidth(), getSourceHeight(), g_uiMaxCUWidth, g_uiMaxCUHeight, g_uiMaxCUDepth );
+#else
   m_cLoopFilter.        create( g_uiMaxCUDepth );
-
+#endif
+  
 #if MQT_BA_RA && MQT_ALF_NPASS
   if(m_bUseALF)
   {

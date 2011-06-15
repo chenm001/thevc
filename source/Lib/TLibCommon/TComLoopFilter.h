@@ -61,6 +61,9 @@ private:
   UInt m_decisions_D     [MAX_CU_SIZE/DEBLOCK_SMALLEST_BLOCK][MAX_CU_SIZE/DEBLOCK_SMALLEST_BLOCK];
   UInt m_decisions_Sample[MAX_CU_SIZE/DEBLOCK_SMALLEST_BLOCK][MAX_CU_SIZE];
 #endif
+#if PARALLEL_MERGED_DEBLK
+  TComPicYuv m_preDeblockPic;
+#endif
   
 protected:
   /// CU-level deblocking function
@@ -128,7 +131,11 @@ public:
   TComLoopFilter();
   virtual ~TComLoopFilter();
   
+#if PARALLEL_MERGED_DEBLK
+  Void  create                    ( Int width, Int height, Int maxCUWidth, Int maxCUHeight, Int uiMaxCUDepth );
+#else
   Void  create                    ( UInt uiMaxCUDepth );
+#endif
   Void  destroy                   ();
   
   /// set configuration
