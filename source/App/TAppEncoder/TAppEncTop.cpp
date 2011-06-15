@@ -312,22 +312,6 @@ Void TAppEncTop::encode()
  */
 Void TAppEncTop::xGetBuffer( TComPicYuv*& rpcPicYuvRec)
 {
-  if ( m_iGOPSize == 0 )
-  {
-    if (m_cListPicYuvRec.size() == 0)
-    {
-      rpcPicYuvRec = new TComPicYuv;
-      rpcPicYuvRec->create( m_iSourceWidth, m_iSourceHeight, m_uiMaxCUWidth, m_uiMaxCUHeight, m_uiMaxCUDepth );
-      m_cListPicYuvRec.pushBack( rpcPicYuvRec );
-    }
-    
-    rpcPicYuvRec = m_cListPicYuvRec.popFront();
-    
-    m_cListPicYuvRec.pushBack( rpcPicYuvRec );
-    
-    return;
-  }
-  
   // org. buffer
   if ( m_cListPicYuvRec.size() == (UInt)m_iGOPSize )
   {
