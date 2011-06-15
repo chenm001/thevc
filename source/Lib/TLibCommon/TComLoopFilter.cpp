@@ -139,7 +139,6 @@ Void TComLoopFilter::loopFilterPic( TComPic* pcPic )
     for( Int iPlane = 0; iPlane < 3; iPlane++ )
     {
       ::memset( m_aapucBS       [EDGE_VER][iPlane], 0, sizeof( UChar ) * m_uiNumPartitions );
-      assert( 0 == false );
       ::memset( m_aapbEdgeFilter[EDGE_VER][iPlane], 0, sizeof( bool  ) * m_uiNumPartitions );
     }
 
@@ -155,7 +154,6 @@ Void TComLoopFilter::loopFilterPic( TComPic* pcPic )
     for( Int iPlane = 0; iPlane < 3; iPlane++ )
     {
       ::memset( m_aapucBS       [EDGE_HOR][iPlane], 0, sizeof( UChar ) * m_uiNumPartitions );
-      assert( 0 == false );
       ::memset( m_aapbEdgeFilter[EDGE_HOR][iPlane], 0, sizeof( bool  ) * m_uiNumPartitions );
     }
 
@@ -173,7 +171,6 @@ Void TComLoopFilter::loopFilterPic( TComPic* pcPic )
       for( Int iPlane = 0; iPlane < 3; iPlane++ )
       {
         ::memset( m_aapucBS       [iDir][iPlane], 0, sizeof( UChar ) * m_uiNumPartitions );
-        assert( 0 == false );
         ::memset( m_aapbEdgeFilter[iDir][iPlane], 0, sizeof( bool  ) * m_uiNumPartitions );
       }
     }

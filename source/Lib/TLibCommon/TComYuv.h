@@ -176,14 +176,7 @@ public:
   
   UInt    getWidth    ()    { return  m_iWidth;   }
   UInt    getCHeight  ()    { return  m_iCHeight; }
-  UInt    getCWidth   ()    { return  m_iCWidth;  }
-  
-  // ------------------------------------------------------------------------------------------------------------------
-  //  Miscellaneous
-  // ------------------------------------------------------------------------------------------------------------------
-  
-  __inline Pel  xClip  (Pel x )      { return ( (x < 0) ? 0 : (x > (Pel)g_uiIBDI_MAX) ? (Pel)g_uiIBDI_MAX : x ); }
-  
+  UInt    getCWidth   ()    { return  m_iCWidth;  }  
 };// END CLASS DEFINITION TComYuv
 
 

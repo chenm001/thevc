@@ -103,7 +103,6 @@
 #define _SUMMARY_OUT_               0           ///< print-out PSNR results of all slices to summary.txt
 #define _SUMMARY_PIC_               0           ///< print-out PSNR results for each slice type to summary.txt
 
-#define MAX_REF_PIC_NUM             64
 #define MAX_GOP                     64          ///< max. value of hierarchical GOP size
 
 #define MAX_NUM_REF                 4           ///< max. value of multiple reference frames
@@ -124,7 +123,9 @@
 // Macro functions
 // ====================================================================================================================
 
+#if !DCM_SIMPLIFIED_MVP
 #define Median(a,b,c)               ((a)>(b)?(a)>(c)?(b)>(c)?(b):(c):(a):(b)>(c)?(a)>(c)?(a):(c):(b)) ///< 3-point median
+#endif
 
 extern UInt g_uiIBDI_MAX;
 /** clip #x#, such that 0 <= #x# <= g_uiIBDI_MAX */
@@ -192,10 +193,12 @@ template <typename T> inline T Clip(T x) { return std::min<T>(T(g_uiIBDI_MAX), s
 // Early-skip threshold (encoder)
 #define EARLY_SKIP_THRES            1.50        ///< if RD < thres*avg[BestSkipRD]
 
+#ifdef TRANS_PRECISION_EXT
 const int g_iShift8x8    = 2;
 const int g_iShift16x16  = 2;
 const int g_iShift32x32  = 2;
 const int g_iShift64x64  = 2;
+#endif
 
 /* End of Rounding control */
 

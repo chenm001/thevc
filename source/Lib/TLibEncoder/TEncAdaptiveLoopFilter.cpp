@@ -2722,7 +2722,7 @@ Void TEncAdaptiveLoopFilter::xfilterFrame_en(imgpel* ImgDec, imgpel* ImgRest,int
 #endif  
 
       pixelInt=(int)((pixelInt+offset) >> (NUM_BITS - 1));
-      ImgRest[y*Stride + x] = Clip3(0, g_uiIBDI_MAX, pixelInt);
+      ImgRest[y*Stride + x] = Clip( pixelInt );
     }
   }
 }

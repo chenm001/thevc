@@ -352,7 +352,7 @@ Void TComYuv::addClipLuma( TComYuv* pcYuvSrc0, TComYuv* pcYuvSrc1, UInt uiTrUnit
   {
     for ( x = uiPartSize-1; x >= 0; x-- )
     {
-      pDst[x] = xClip( pSrc0[x] + pSrc1[x] );
+      pDst[x] = Clip( pSrc0[x] + pSrc1[x] );
     }
     pSrc0 += iSrc0Stride;
     pSrc1 += iSrc1Stride;
@@ -378,8 +378,8 @@ Void TComYuv::addClipChroma( TComYuv* pcYuvSrc0, TComYuv* pcYuvSrc1, UInt uiTrUn
   {
     for ( x = uiPartSize-1; x >= 0; x-- )
     {
-      pDstU[x] = xClip( pSrcU0[x] + pSrcU1[x] );
-      pDstV[x] = xClip( pSrcV0[x] + pSrcV1[x] );
+      pDstU[x] = Clip( pSrcU0[x] + pSrcU1[x] );
+      pDstV[x] = Clip( pSrcV0[x] + pSrcV1[x] );
     }
     
     pSrcU0 += iSrc0Stride;
@@ -691,7 +691,7 @@ Void TComYuv::removeHighFreq( TComYuv* pcYuvSrc, UInt uiPartIdx, UInt uiWidht, U
   {
     for ( x = uiWidht-1; x >= 0; x-- )
     {
-      pDst[x ] = xClip( (pDst[x ]<<1) - pSrc[x ] );
+      pDst[x ] = Clip( (pDst[x ]<<1) - pSrc[x ] );
     }
     pSrc += iSrcStride;
     pDst += iDstStride;
@@ -707,8 +707,8 @@ Void TComYuv::removeHighFreq( TComYuv* pcYuvSrc, UInt uiPartIdx, UInt uiWidht, U
   {
     for ( x = uiWidht-1; x >= 0; x-- )
     {
-      pDstU[x ] = xClip( (pDstU[x ]<<1) - pSrcU[x ] );
-      pDstV[x ] = xClip( (pDstV[x ]<<1) - pSrcV[x ] );
+      pDstU[x ] = Clip( (pDstU[x ]<<1) - pSrcU[x ] );
+      pDstV[x ] = Clip( (pDstV[x ]<<1) - pSrcV[x ] );
     }
     pSrcU += iSrcStride;
     pSrcV += iSrcStride;

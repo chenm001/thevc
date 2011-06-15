@@ -584,15 +584,6 @@ enum AMVP_MODE
   AM_EXPL,              ///< explicit signalling of motion vector index
 };
 
-/// interpolation filter type
-enum InterpFilterType
-{
-  IPF_SAMSUNG_DIF_DEFAULT = 0,          ///< Samsung DCT-based filter
-  IPF_HHI_4TAP_MOMS,                    ///< HHI 4-tap MOMS filter
-  IPF_HHI_6TAP_MOMS,                    ///< HHI 6-tap MOMS filter
-  IPF_LAST
-};
-
 #if QC_MDCS
 /// coefficient scanning type used in ACS
 enum COEFF_SCAN_TYPE
