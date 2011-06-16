@@ -151,7 +151,7 @@ public:
   }
   
 #if AMVP_BUFFERCOMPRESS
-  Void compress(PredMode* pePredMode, Int scale); 
+  Void compress(Char* pePredMode, Int scale); 
 #endif 
   
 };

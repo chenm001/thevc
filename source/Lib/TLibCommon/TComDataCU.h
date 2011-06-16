@@ -87,7 +87,7 @@ private:
   // -------------------------------------------------------------------------------------------------------------------
   
   Char*         m_pePartSize;         ///< array of partition sizes
-  PredMode*     m_pePredMode;         ///< array of prediction modes
+  Char*         m_pePredMode;         ///< array of prediction modes
   UChar*        m_phQP;               ///< array of QP values
   UChar*        m_puhTrIdx;           ///< array of transform indices
   UChar*        m_puhCbf[3];          ///< array of coded block flags (CBF)
@@ -252,8 +252,8 @@ public:
   Void          setPartitionSize      ( UInt uiIdx, PartSize uh){ m_pePartSize[uiIdx] = uh;   }
   Void          setPartSizeSubParts   ( PartSize eMode, UInt uiAbsPartIdx, UInt uiDepth );
   
-  PredMode*     getPredictionMode     ()                        { return m_pePredMode;        }
-  PredMode      getPredictionMode     ( UInt uiIdx )            { return m_pePredMode[uiIdx]; }
+  Char*         getPredictionMode     ()                        { return m_pePredMode;        }
+  PredMode      getPredictionMode     ( UInt uiIdx )            { return static_cast<PredMode>( m_pePredMode[uiIdx] ); }
   Void          setPredictionMode     ( UInt uiIdx, PredMode uh){ m_pePredMode[uiIdx] = uh;   }
   Void          setPredModeSubParts   ( PredMode eMode, UInt uiAbsPartIdx, UInt uiDepth );
   
