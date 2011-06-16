@@ -535,5 +535,90 @@ public:
 
 };
 
+namespace RasterAddress
+{
+  /** Check whether 2 addresses point to the same column
+   * \param addrA          First address in raster scan order
+   * \param addrB          Second address in raters scan order
+   * \param numUnitsPerRow Number of units in a row
+   * \return Result of test
+   */
+  static inline Bool isEqualCol( Int addrA, Int addrB, Int numUnitsPerRow )
+  {
+    // addrA % numUnitsPerRow == addrB % numUnitsPerRow
+    return (( addrA ^ addrB ) &  ( numUnitsPerRow - 1 ) ) == 0;
+  }
+  
+  /** Check whether 2 addresses point to the same row
+   * \param addrA          First address in raster scan order
+   * \param addrB          Second address in raters scan order
+   * \param numUnitsPerRow Number of units in a row
+   * \return Result of test
+   */
+  static inline Bool isEqualRow( Int addrA, Int addrB, Int numUnitsPerRow )
+  {
+    // addrA / numUnitsPerRow == addrB / numUnitsPerRow
+    return (( addrA ^ addrB ) &~ ( numUnitsPerRow - 1 ) ) == 0;
+  }
+  
+  /** Check whether 2 addresses point to the same row or column
+   * \param addrA          First address in raster scan order
+   * \param addrB          Second address in raters scan order
+   * \param numUnitsPerRow Number of units in a row
+   * \return Result of test
+   */
+  static inline Bool isEqualRowOrCol( Int addrA, Int addrB, Int numUnitsPerRow )
+  {
+    return isEqualCol( addrA, addrB, numUnitsPerRow ) | isEqualRow( addrA, addrB, numUnitsPerRow );
+  }
+  
+  /** Check whether one address points to the first column
+   * \param addr           Address in raster scan order
+   * \param numUnitsPerRow Number of units in a row
+   * \return Result of test
+   */
+  static inline Bool isZeroCol( Int addr, Int numUnitsPerRow )
+  {
+    // addr % numUnitsPerRow == 0
+    return ( addr & ( numUnitsPerRow - 1 ) ) == 0;
+  }
+  
+  /** Check whether one address points to the first row
+   * \param addr           Address in raster scan order
+   * \param numUnitsPerRow Number of units in a row
+   * \return Result of test
+   */
+  static inline Bool isZeroRow( Int addr, Int numUnitsPerRow )
+  {
+    // addr / numUnitsPerRow == 0
+    return ( addr &~ ( numUnitsPerRow - 1 ) ) == 0;
+  }
+  
+  /** Check whether one address points to a column whose index is smaller than a given value
+   * \param addr           Address in raster scan order
+   * \param val            Given column index value
+   * \param numUnitsPerRow Number of units in a row
+   * \return Result of test
+   */
+  static inline Bool lessThanCol( Int addr, Int val, Int numUnitsPerRow )
+  {
+    // addr % numUnitsPerRow < val
+    return ( addr & ( numUnitsPerRow - 1 ) ) < val;
+  }
+  
+  /** Check whether one address points to a row whose index is smaller than a given value
+   * \param addr           Address in raster scan order
+   * \param val            Given row index value
+   * \param numUnitsPerRow Number of units in a row
+   * \return Result of test
+   */
+  static inline Bool lessThanRow( Int addr, Int val, Int numUnitsPerRow )
+  {
+    // addr / numUnitsPerRow < val
+    return addr < val * numUnitsPerRow;
+  }
+};
+
+
 #endif
 
