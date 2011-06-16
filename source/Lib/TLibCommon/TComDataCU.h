@@ -139,8 +139,8 @@ private:
   UChar*        m_puhInterDir;        ///< array of inter directions
   Char*         m_apiMVPIdx[2];       ///< array of motion vector predictor candidates
   Char*         m_apiMVPNum[2];       ///< array of number of possible motion vectors predictors
-  UInt*         m_puiAlfCtrlFlag;     ///< array of ALF flags
-  UInt*         m_puiTmpAlfCtrlFlag;  ///< temporal array of ALF flags
+  Bool*         m_puiAlfCtrlFlag;     ///< array of ALF flags
+  Bool*         m_puiTmpAlfCtrlFlag;  ///< temporal array of ALF flags
   
 #if E057_INTRA_PCM
   Bool*         m_pbIPCMFlag;         ///< array of intra_pcm flags
@@ -352,10 +352,10 @@ public:
   Void          setInterDir           ( UInt uiIdx, UChar  uh ) { m_puhInterDir[uiIdx] = uh;          }
   Void          setInterDirSubParts   ( UInt uiDir,  UInt uiAbsPartIdx, UInt uiPartIdx, UInt uiDepth );
   
-  UInt*         getAlfCtrlFlag        ()                        { return m_puiAlfCtrlFlag;            }
-  UInt          getAlfCtrlFlag        ( UInt uiIdx )            { return m_puiAlfCtrlFlag[uiIdx];     }
-  Void          setAlfCtrlFlag        ( UInt uiIdx, UInt uiFlag){ m_puiAlfCtrlFlag[uiIdx] = uiFlag;   }
-  Void          setAlfCtrlFlagSubParts( UInt uiFlag, UInt uiAbsPartIdx, UInt uiDepth );
+  Bool*         getAlfCtrlFlag        ()                        { return m_puiAlfCtrlFlag;            }
+  Bool          getAlfCtrlFlag        ( UInt uiIdx )            { return m_puiAlfCtrlFlag[uiIdx];     }
+  Void          setAlfCtrlFlag        ( UInt uiIdx, Bool uiFlag){ m_puiAlfCtrlFlag[uiIdx] = uiFlag;   }
+  Void          setAlfCtrlFlagSubParts( Bool uiFlag, UInt uiAbsPartIdx, UInt uiDepth );
   
   Void          createTmpAlfCtrlFlag  ();
   Void          destroyTmpAlfCtrlFlag ();
