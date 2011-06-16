@@ -86,7 +86,7 @@ private:
   // CU data
   // -------------------------------------------------------------------------------------------------------------------
   
-  PartSize*     m_pePartSize;         ///< array of partition sizes
+  Char*         m_pePartSize;         ///< array of partition sizes
   PredMode*     m_pePredMode;         ///< array of prediction modes
   UChar*        m_phQP;               ///< array of QP values
   UChar*        m_puhTrIdx;           ///< array of transform indices
@@ -247,8 +247,8 @@ public:
   // member functions for CU data
   // -------------------------------------------------------------------------------------------------------------------
   
-  PartSize*     getPartitionSize      ()                        { return m_pePartSize;        }
-  PartSize      getPartitionSize      ( UInt uiIdx )            { return m_pePartSize[uiIdx]; }
+  Char*         getPartitionSize      ()                        { return m_pePartSize;        }
+  PartSize      getPartitionSize      ( UInt uiIdx )            { return static_cast<PartSize>( m_pePartSize[uiIdx] ); }
   Void          setPartitionSize      ( UInt uiIdx, PartSize uh){ m_pePartSize[uiIdx] = uh;   }
   Void          setPartSizeSubParts   ( PartSize eMode, UInt uiAbsPartIdx, UInt uiDepth );
   

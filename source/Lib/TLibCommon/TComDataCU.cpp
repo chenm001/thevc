@@ -123,7 +123,7 @@ Void TComDataCU::create(UInt uiNumPartition, UInt uiWidth, UInt uiHeight, Bool b
     m_puhDepth           = (UChar*    )xMalloc(UChar,    uiNumPartition);
     m_puhWidth           = (UChar*    )xMalloc(UChar,    uiNumPartition);
     m_puhHeight          = (UChar*    )xMalloc(UChar,    uiNumPartition);
-    m_pePartSize         = (PartSize* )xMalloc(PartSize, uiNumPartition);
+    m_pePartSize         = new Char[ uiNumPartition ];
     m_pePredMode         = (PredMode* )xMalloc(PredMode, uiNumPartition);
     
     m_puiAlfCtrlFlag     = new Bool[ uiNumPartition ];
@@ -207,7 +207,7 @@ Void TComDataCU::destroy()
     if ( m_puhDepth           ) { xFree(m_puhDepth);            m_puhDepth          = NULL; }
     if ( m_puhWidth           ) { xFree(m_puhWidth);            m_puhWidth          = NULL; }
     if ( m_puhHeight          ) { xFree(m_puhHeight);           m_puhHeight         = NULL; }
-    if ( m_pePartSize         ) { xFree(m_pePartSize);          m_pePartSize        = NULL; }
+    if ( m_pePartSize         ) { delete[] m_pePartSize;        m_pePartSize        = NULL; }
     if ( m_pePredMode         ) { xFree(m_pePredMode);          m_pePredMode        = NULL; }
     if ( m_puhCbf[0]          ) { xFree(m_puhCbf[0]);           m_puhCbf[0]         = NULL; }
     if ( m_puhCbf[1]          ) { xFree(m_puhCbf[1]);           m_puhCbf[1]         = NULL; }
@@ -319,9 +319,10 @@ Void TComDataCU::initCU( TComPic* pcPic, UInt iCUAddr )
   memset( m_apiMVPNum[0], -1, sizeof(m_apiMVPNum[0][0]) * m_uiNumPartition);
   memset( m_apiMVPNum[1], -1, sizeof(m_apiMVPNum[1][0]) * m_uiNumPartition);
   
+  memset(m_pePartSize, SIZE_NONE, sizeof( *m_pePartSize ) * m_uiNumPartition );
+  
   for (UInt ui = 0; ui < m_uiNumPartition; ui++)
   {
-    m_pePartSize[ui] = SIZE_NONE;
     m_pePredMode[ui] = MODE_NONE;
   }
   
@@ -604,9 +605,10 @@ Void TComDataCU::initEstData()
   memset( m_apiMVPNum[0], -1, sizeof(m_apiMVPNum[0][0]) * m_uiNumPartition);
   memset( m_apiMVPNum[1], -1, sizeof(m_apiMVPNum[1][0]) * m_uiNumPartition);
   
+  memset( m_pePartSize, SIZE_NONE, sizeof( *m_pePartSize) * m_uiNumPartition );
+  
   for (UInt ui = 0; ui < m_uiNumPartition; ui++)
   {
-    m_pePartSize[ui] = SIZE_NONE;
     m_pePredMode[ui] = MODE_NONE;
   }
   
@@ -749,9 +751,10 @@ Void TComDataCU::initEstData( UInt uiDepth, UInt uiQP, UInt uiLastQP )
   memset( m_apiMVPNum[0], -1, sizeof(m_apiMVPNum[0][0]) * m_uiNumPartition);
   memset( m_apiMVPNum[1], -1, sizeof(m_apiMVPNum[1][0]) * m_uiNumPartition);
 
+  memset( m_pePartSize, SIZE_NONE, sizeof( *m_pePartSize ) * m_uiNumPartition );
+  
   for (UInt ui = 0; ui < m_uiNumPartition; ui++)
   {
-    m_pePartSize[ui] = SIZE_NONE;
     m_pePredMode[ui] = MODE_NONE;
   }
 
@@ -844,9 +847,10 @@ Void TComDataCU::initSubCU( TComDataCU* pcCU, UInt uiPartUnitIdx, UInt uiDepth )
   memset( m_apiMVPNum[0], -1, sizeof(m_apiMVPNum[0][0]) * m_uiNumPartition);
   memset( m_apiMVPNum[1], -1, sizeof(m_apiMVPNum[1][0]) * m_uiNumPartition);
   
+  memset( m_pePartSize, SIZE_NONE, sizeof( *m_pePartSize ) * m_uiNumPartition );
+  
   for (UInt ui = 0; ui < m_uiNumPartition; ui++)
   {
-    m_pePartSize[ui] = SIZE_NONE;
     m_pePredMode[ui] = MODE_NONE;
   }
   
@@ -1052,7 +1056,7 @@ Void TComDataCU::copySubCU( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
   UInt uiHeight        = g_uiMaxCUHeight >> uiDepth;
   
   m_phQP=pcCU->getQP()                    + uiPart;
-  m_pePartSize=pcCU->getPartitionSize()   + uiPart;
+  m_pePartSize = pcCU->getPartitionSize() + uiPart;
   m_pePredMode=pcCU->getPredictionMode()  + uiPart;
   
   m_pbMergeFlag         = pcCU->getMergeFlag()        + uiPart;
@@ -1192,7 +1196,7 @@ Void TComDataCU::copyPartFrom( TComDataCU* pcCU, UInt uiPartUnitIdx, UInt uiDept
 #if SUB_LCU_DQP
   m_hLastCodedQP = pcCU->getLastCodedQP();
 #endif
-  memcpy( m_pePartSize + uiOffset, pcCU->getPartitionSize(),  sizeof( PartSize ) * uiNumPartition );
+  memcpy( m_pePartSize + uiOffset, pcCU->getPartitionSize(),  sizeof( *m_pePartSize ) * uiNumPartition );
   memcpy( m_pePredMode + uiOffset, pcCU->getPredictionMode(), sizeof( PredMode ) * uiNumPartition );
   
   memcpy( m_puiAlfCtrlFlag      + uiOffset, pcCU->getAlfCtrlFlag(),       iSizeInBool  );
@@ -1277,7 +1281,7 @@ Void TComDataCU::copyToPic( UChar uhDepth )
   
   memcpy( rpcCU->getQP() + m_uiAbsIdxInLCU, m_phQP, iSizeInUchar );
   
-  memcpy( rpcCU->getPartitionSize()  + m_uiAbsIdxInLCU, m_pePartSize, sizeof( PartSize ) * m_uiNumPartition );
+  memcpy( rpcCU->getPartitionSize()  + m_uiAbsIdxInLCU, m_pePartSize, sizeof( *m_pePartSize ) * m_uiNumPartition );
   memcpy( rpcCU->getPredictionMode() + m_uiAbsIdxInLCU, m_pePredMode, sizeof( PredMode ) * m_uiNumPartition );
   
   memcpy( rpcCU->getAlfCtrlFlag()    + m_uiAbsIdxInLCU, m_puiAlfCtrlFlag,    iSizeInBool  );
@@ -1357,7 +1361,7 @@ Void TComDataCU::copyToPic( UChar uhDepth, UInt uiPartIdx, UInt uiPartDepth )
   
   memcpy( rpcCU->getQP() + uiPartOffset, m_phQP, iSizeInUchar );
   
-  memcpy( rpcCU->getPartitionSize()  + uiPartOffset, m_pePartSize, sizeof( PartSize ) * uiQNumPart );
+  memcpy( rpcCU->getPartitionSize()  + uiPartOffset, m_pePartSize, sizeof( *m_pePartSize ) * uiQNumPart );
   memcpy( rpcCU->getPredictionMode() + uiPartOffset, m_pePredMode, sizeof( PredMode ) * uiQNumPart );
   
   memcpy( rpcCU->getAlfCtrlFlag()       + uiPartOffset, m_puiAlfCtrlFlag,      iSizeInBool  );
@@ -2538,12 +2542,8 @@ Void TComDataCU::copyAlfCtrlFlagFromTmp()
 
 Void TComDataCU::setPartSizeSubParts( PartSize eMode, UInt uiAbsPartIdx, UInt uiDepth )
 {
-  UInt uiCurrPartNumb = m_pcPic->getNumPartInCU() >> (uiDepth << 1);
-  
-  for (UInt ui = 0; ui < uiCurrPartNumb; ui++ )
-  {
-    m_pePartSize[uiAbsPartIdx + ui] = eMode;
-  }
+  assert( sizeof( *m_pePartSize) == 1 );
+  memset( m_pePartSize + uiAbsPartIdx, eMode, m_pcPic->getNumPartInCU() >> ( 2 * uiDepth ) );
 }
 
 Void TComDataCU::setPredModeSubParts( PredMode eMode, UInt uiAbsPartIdx, UInt uiDepth )
@@ -3003,7 +3003,7 @@ Void TComDataCU::getInterMergeCandidates( UInt uiAbsPartIdx, UInt uiPUIdx, UInt 
   UInt uiPUIdxLT = 0;
   UInt uiPUIdxRT  = 0;
   UInt uiPUIdxLB = 0;
-  PartSize cCurPS = m_pePartSize[uiAbsPartIdx];
+  PartSize cCurPS = getPartitionSize( uiAbsPartIdx );
   deriveLeftRightTopIdxGeneral( cCurPS, uiAbsPartIdx, uiPUIdx, uiPUIdxLT, uiPUIdxRT );
   deriveLeftBottomIdxGeneral( cCurPS, uiAbsPartIdx, uiPUIdx, uiPUIdxLB );
 
@@ -3064,7 +3064,7 @@ Void TComDataCU::getInterMergeCandidates( UInt uiAbsPartIdx, UInt uiPUIdx, UInt 
   //>> MTK colocated-RightBottom
   UInt uiPartIdxRB;
   Int uiLCUIdx = getAddr();
-  PartSize eCUMode = m_pePartSize[0];
+  PartSize eCUMode = getPartitionSize( 0 );
 
   deriveRightBottomIdx( eCUMode, uiPUIdx, uiPartIdxRB );  
 
@@ -3331,12 +3331,12 @@ Void TComDataCU::getInterMergeCandidates( UInt uiAbsPartIdx, UInt uiPUIdx, UInt 
   uiPUIdxLT = 0;
   uiPUIdxRT  = 0;
   uiPUIdxLB = 0;
-  cCurPS = m_pePartSize[uiAbsPartIdx];
+  cCurPS = getPartitionSize( uiAbsPartIdx );
 #else
   UInt uiPUIdxLT = 0;
   UInt uiPUIdxRT  = 0;
   UInt uiPUIdxLB = 0;
-  PartSize cCurPS = m_pePartSize[uiAbsPartIdx];
+  PartSize cCurPS = getPartitionSize( uiAbsPartIdx );
 #endif
 
   deriveLeftRightTopIdxGeneral( cCurPS, uiAbsPartIdx, uiPUIdx, uiPUIdxLT, uiPUIdxRT );
@@ -3576,7 +3576,7 @@ AMVP_MODE TComDataCU::getAMVPMode(UInt uiIdx)
  */
 Void TComDataCU::fillMvpCand ( UInt uiPartIdx, UInt uiPartAddr, RefPicList eRefPicList, Int iRefIdx, AMVPInfo* pInfo )
 {
-  PartSize eCUMode = m_pePartSize[0];
+  PartSize eCUMode = getPartitionSize( 0 );
   
   TComMv cMvPred;
   
@@ -4514,7 +4514,7 @@ Void TComDataCU::xDeriveCenterIdx( PartSize eCUMode, UInt uiPartIdx, UInt& ruiPa
  */
 Bool TComDataCU::xGetCenterCol( UInt uiPartIdx, RefPicList eRefPicList, int iRefIdx, TComMv *pcMv )
 {
-  PartSize eCUMode = m_pePartSize[0];
+  PartSize eCUMode = getPartitionSize( 0 );
   
   Int iCurrPOC = m_pcSlice->getPOC();
   
