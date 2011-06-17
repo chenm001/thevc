@@ -172,8 +172,8 @@ Void TComDataCU::create(UInt uiNumPartition, UInt uiWidth, UInt uiHeight, Bool b
   }
   
 #if FINE_GRANULARITY_SLICES
-  m_uiSliceStartCU        = (UInt*  )xMalloc(UInt, (1<<(g_uiMaxCUDepth<<1)));
-  m_uiEntropySliceStartCU = (UInt*  )xMalloc(UInt, (1<<(g_uiMaxCUDepth<<1)));
+  m_uiSliceStartCU        = (UInt*  )xMalloc(UInt, ((size_t)1<<(g_uiMaxCUDepth<<1)));
+  m_uiEntropySliceStartCU = (UInt*  )xMalloc(UInt, ((size_t)1<<(g_uiMaxCUDepth<<1)));
 #endif
   // create pattern memory
   m_pcPattern            = (TComPattern*)xMalloc(TComPattern, 1);

@@ -103,8 +103,8 @@ Void TComPicYuv::create( Int iPicWidth, Int iPicHeight, UInt uiMaxCUWidth, UInt 
     }
   }
   
-  m_buOffsetY = new Int[1 << (2 * uiMaxCUDepth)];
-  m_buOffsetC = new Int[1 << (2 * uiMaxCUDepth)];
+  m_buOffsetY = new Int[(size_t)1 << (2 * uiMaxCUDepth)];
+  m_buOffsetC = new Int[(size_t)1 << (2 * uiMaxCUDepth)];
   for (Int buRow = 0; buRow < (1 << uiMaxCUDepth); buRow++)
   {
     for (Int buCol = 0; buCol < (1 << uiMaxCUDepth); buCol++)
@@ -160,7 +160,7 @@ Void TComPicYuv::createLuma( Int iPicWidth, Int iPicHeight, UInt uiMaxCUWidth, U
     }
   }
   
-  m_buOffsetY = new Int[1 << (2 * uiMaxCUDepth)];
+  m_buOffsetY = new Int[(size_t)1 << (2 * uiMaxCUDepth)];
   m_buOffsetC = NULL;
   for (Int buRow = 0; buRow < (1 << uiMaxCUDepth); buRow++)
   {
