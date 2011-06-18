@@ -516,7 +516,6 @@ Void TComSlice::initEqualRef()
   }
 }
 
-#if DCM_DECODING_REFRESH
 /** Function for marking the reference pictures when an IDR and CDR is encountered.
  * \param uiPOCCDR POC of the CDR picture
  * \param bRefreshPending flag indicating if a deferred decoding refresh is pending
@@ -571,7 +570,6 @@ Void TComSlice::decodingRefreshMarking(UInt& uiPOCCDR, Bool& bRefreshPending, TC
     }
   }
 }
-#endif
 
 Void TComSlice::copySliceInfo(TComSlice *pSrc)
 {
@@ -580,9 +578,7 @@ Void TComSlice::copySliceInfo(TComSlice *pSrc)
   Int i, j, k;
 
   m_iPOC                 = pSrc->m_iPOC;
-#if DCM_DECODING_REFRESH
   m_eNalUnitType         = pSrc->m_eNalUnitType;
-#endif  
   m_eSliceType           = pSrc->m_eSliceType;
   m_iSliceQp             = pSrc->m_iSliceQp;
   m_iSymbolMode          = pSrc->m_iSymbolMode;

@@ -72,9 +72,7 @@ Void TAppEncTop::xInitLibCfg()
   
   //====== Coding Structure ========
   m_cTEncTop.setIntraPeriod                  ( m_iIntraPeriod );
-#if DCM_DECODING_REFRESH
   m_cTEncTop.setDecodingRefreshType          ( m_iDecodingRefreshType );
-#endif
   m_cTEncTop.setGOPSize                      ( m_iGOPSize );
   m_cTEncTop.setRateGOPSize                  ( m_iRateGOPSize );
   m_cTEncTop.setNumOfReference               ( m_iNumOfReference );
@@ -378,11 +376,7 @@ void TAppEncTop::rateStatsAccum(const AccessUnit& au, const vector<unsigned>& an
     case NAL_UNIT_CODED_SLICE:
     case NAL_UNIT_CODED_SLICE_DATAPART_A:
     case NAL_UNIT_CODED_SLICE_DATAPART_B:
-#if DCM_DECODING_REFRESH
     case NAL_UNIT_CODED_SLICE_CDR:
-#else
-    case NAL_UNIT_CODED_SLICE_DATAPART_C:
-#endif
     case NAL_UNIT_CODED_SLICE_IDR:
     case NAL_UNIT_SPS:
     case NAL_UNIT_PPS:

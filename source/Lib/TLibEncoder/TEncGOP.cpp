@@ -73,10 +73,8 @@ TEncGOP::TEncGOP()
   
   m_bSeqFirst           = true;
   
-#if DCM_DECODING_REFRESH
   m_bRefreshPending     = 0;
   m_uiPOCCDR            = 0;
-#endif
 
   return;
 }
@@ -187,12 +185,10 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
       m_pcSliceEncoder->initEncSlice ( pcPic, iPOCLast, uiPOCCurr, iNumPicRcvd, iTimeOffset, iDepth, pcSlice, m_pcEncTop->getSPS(), m_pcEncTop->getPPS() );
       pcSlice->setSliceIdx(0);
 
-#if DCM_DECODING_REFRESH
       // Set the nal unit type
       pcSlice->setNalUnitType(getNalUnitType(uiPOCCurr));
       // Do decoding refresh marking if any 
       pcSlice->decodingRefreshMarking(m_uiPOCCDR, m_bRefreshPending, rcListPic);
-#endif
 
       // TODO: We need a common sliding mechanism used by both the encoder and decoder
       // Below is a temporay solution to mark pictures that will be taken off the decoder's ref pic buffer (due to limit on the buffer size) as unused
@@ -631,11 +627,7 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
         }
 #endif
         /* start slice NALunit */
-#if DCM_DECODING_REFRESH
         OutputNALUnit nalu(pcSlice->getNalUnitType(), NAL_REF_IDC_PRIORITY_HIGHEST, pcSlice->getTLayer(), true);
-#else
-        OutputNALUnit nalu(NAL_UNIT_CODED_SLICE, NAL_REF_IDC_PRIORITY_HIGHEST);
-#endif
         m_pcEntropyCoder->setBitstream(&nalu.m_Bitstream);
         m_pcEntropyCoder->encodeSliceHeader(pcSlice);
 
@@ -1181,9 +1173,7 @@ static const char* nalUnitTypeToString(NalUnitType type)
   switch (type)
   {
   case NAL_UNIT_CODED_SLICE: return "SLICE";
-#if DCM_DECODING_REFRESH
   case NAL_UNIT_CODED_SLICE_CDR: return "CDR";
-#endif
   case NAL_UNIT_CODED_SLICE_IDR: return "IDR";
   case NAL_UNIT_SEI: return "SEI";
   case NAL_UNIT_SPS: return "SPS";
@@ -1335,7 +1325,6 @@ Void TEncGOP::xCalculateAddPSNR( TComPic* pcPic, TComPicYuv* pcPicD, const Acces
 #endif
 }
 
-#if DCM_DECODING_REFRESH
 /** Function for deciding the nal_unit_type.
  * \param uiPOCCurr POC of the current picture
  * \returns the nal_unit type of the picture
@@ -1360,7 +1349,6 @@ NalUnitType TEncGOP::getNalUnitType(UInt uiPOCCurr)
   }
   return NAL_UNIT_CODED_SLICE;
 }
-#endif
 
 #if RVM_VCEGAM10
 Double TEncGOP::xCalculateRVM()

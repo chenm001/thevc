@@ -51,11 +51,9 @@ TDecTop::TDecTop()
   g_bJustDoIt = g_bEncDecTraceDisable;
   g_nSymbolCounter = 0;
 #endif
-#if DCM_DECODING_REFRESH
   m_bRefreshPending = 0;
   m_uiPOCCDR = 0;
   m_uiPOCRA = MAX_UINT;          
-#endif
   m_uiPrevPOC               = UInt(-1);
   m_bFirstSliceInPicture    = true;
   m_bFirstSliceInSequence   = true;
@@ -311,9 +309,7 @@ Bool TDecTop::decode(InputNALUnit& nalu, Int& iSkipFrame, Int& iPOCLastDisplay)
         memcpy(m_apcSlicePilot, pcPic->getPicSym()->getSlice(m_uiSliceIdx-1), sizeof(TComSlice));
       }
 
-#if DCM_DECODING_REFRESH
       m_apcSlicePilot->setNalUnitType(nalu.m_UnitType);
-#endif
       m_cEntropyDecoder.decodeSliceHeader (m_apcSlicePilot);
 
       m_apcSlicePilot->setTLayerInfo(nalu.m_TemporalID);
@@ -376,10 +372,8 @@ Bool TDecTop::decode(InputNALUnit& nalu, Int& iSkipFrame, Int& iPOCLastDisplay)
 
       if (bNextSlice)
       {
-#if DCM_DECODING_REFRESH
         // Do decoding refresh marking if any
         pcSlice->decodingRefreshMarking(m_uiPOCCDR, m_bRefreshPending, m_cListPic);
-#endif
         
         // Set reference list
         pcSlice->setRefPicList( m_cListPic );

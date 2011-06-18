@@ -117,8 +117,6 @@
 
 #define DCM_RDCOST_TEMP_FIX //Enables temporary bug fixes to RD cost computation
 
-#define DCM_DECODING_REFRESH              1           ///< enable/disable decoding refresh (IDR and CDR)
-
 #define DCM_SIMPLIFIED_MVP                1           ///< enable/disable the simplified motion vector prediction(D231)
 #if DCM_SIMPLIFIED_MVP
 #define MTK_AMVP_SMVP_DERIVATION          1              ///< (JCTVC-E481 - D125 2.3) amvp spatial candidate derivation

@@ -62,9 +62,7 @@ protected:
   
   //====== Coding Structure ========
   UInt      m_uiIntraPeriod;
-#if DCM_DECODING_REFRESH
   UInt      m_uiDecodingRefreshType;            ///< the type of decoding refresh employed for the random access.
-#endif
   Int       m_iGOPSize;
   Int       m_iRateGOPSize;
   Int       m_iNumOfReference;
@@ -180,9 +178,7 @@ public:
   
   //====== Coding Structure ========
   Void      setIntraPeriod                  ( Int   i )      { m_uiIntraPeriod = (UInt)i; }
-#if DCM_DECODING_REFRESH
   Void      setDecodingRefreshType          ( Int   i )      { m_uiDecodingRefreshType = (UInt)i; }
-#endif
   Void      setGOPSize                      ( Int   i )      { m_iGOPSize = i; }
   Void      setRateGOPSize                  ( Int   i )      { m_iRateGOPSize = i; }
   Void      setNumOfReference               ( Int   i )      { m_iNumOfReference = i; }
@@ -237,9 +233,7 @@ public:
   
   //==== Coding Structure ========
   UInt      getIntraPeriod                  ()      { return  m_uiIntraPeriod; }
-#if DCM_DECODING_REFRESH
   UInt      getDecodingRefreshType          ()      { return  m_uiDecodingRefreshType; }
-#endif
   Int       getGOPSize                      ()      { return  m_iGOPSize; }
   Int       getRateGOPSize                  ()      { return  m_iRateGOPSize; }
   Int       getNumOfReference               ()      { return  m_iNumOfReference; }

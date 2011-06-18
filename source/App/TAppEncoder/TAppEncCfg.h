@@ -64,9 +64,7 @@ protected:
   
   // coding structure
   Int       m_iIntraPeriod;                                   ///< period of I-slice (random access period)
-#if DCM_DECODING_REFRESH
   Int       m_iDecodingRefreshType;                           ///< random access type
-#endif
   Int       m_iGOPSize;                                       ///< GOP size of hierarchical structure
   Int       m_iRateGOPSize;                                   ///< GOP size for QP variance
   Int       m_iNumOfReference;                                ///< total number of reference frames in P-slice

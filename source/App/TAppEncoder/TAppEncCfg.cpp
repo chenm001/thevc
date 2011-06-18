@@ -146,9 +146,7 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
   
   /* Coding structure paramters */
   ("IntraPeriod,-ip",m_iIntraPeriod, -1, "intra period in frames, (-1: only first frame)")
-#if DCM_DECODING_REFRESH
   ("DecodingRefreshType,-dr",m_iDecodingRefreshType, 0, "intra refresh, (0:none 1:CDR 2:IDR)")
-#endif
   ("GOPSize,g",      m_iGOPSize,      1, "GOP size of temporal structure")
   ("RateGOPSize,-rg",m_iRateGOPSize, -1, "GOP size of hierarchical QP assignment (-1: implies inherit GOPSize value)")
   ("NumOfReference,r",       m_iNumOfReference,     1, "Number of reference (P)")
@@ -365,9 +363,7 @@ Void TAppEncCfg::xCheckParameter()
   xConfirmPara( m_iGOPSize < 1 ,                                                            "GOP Size must be more than 1" );
   xConfirmPara( m_iGOPSize > 1 &&  m_iGOPSize % 2,                                          "GOP Size must be a multiple of 2, if GOP Size is greater than 1" );
   xConfirmPara( (m_iIntraPeriod > 0 && m_iIntraPeriod < m_iGOPSize) || m_iIntraPeriod == 0, "Intra period must be more than GOP size, or -1 , not 0" );
-#if DCM_DECODING_REFRESH
   xConfirmPara( m_iDecodingRefreshType < 0 || m_iDecodingRefreshType > 2,                   "Decoding Refresh Type must be equal to 0, 1 or 2" );
-#endif
   xConfirmPara( m_iQP < 0 || m_iQP > 51,                                                    "QP exceeds supported range (0 to 51)" );
 #if MQT_ALF_NPASS
   xConfirmPara( m_iALFEncodePassReduction < 0 || m_iALFEncodePassReduction > 2,             "ALFEncodePassReduction must be equal to 0, 1 or 2");
@@ -542,9 +538,7 @@ Void TAppEncCfg::xPrintParameter()
 #endif
   printf("Motion search range          : %d\n", m_iSearchRange );
   printf("Intra period                 : %d\n", m_iIntraPeriod );
-#if DCM_DECODING_REFRESH
   printf("Decoding refresh type        : %d\n", m_iDecodingRefreshType );
-#endif
   printf("QP                           : %5.2f\n", m_fQP );
   printf("GOP size                     : %d\n", m_iGOPSize );
   printf("Rate GOP size                : %d\n", m_iRateGOPSize );
