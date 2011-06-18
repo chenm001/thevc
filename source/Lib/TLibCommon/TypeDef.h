@@ -52,8 +52,6 @@
 #define HHI_DISABLE_INTER_NxN_SPLIT       1           ///< TN: disable redundant use of pu-mode NxN for CTBs larger 8x8 (inter only)
 #define HHI_RMP_SWITCH                    0
 
-#define HHI_RQT_FORCE_SPLIT_NxN           0           ///< MSHK: force split flags of residual quadtree for NxN PUs such that transform blocks are guaranteed to not span NxN PUs
-#define HHI_RQT_FORCE_SPLIT_RECT          0           ///< MSHK: force split flags of residual quadtree for rectangular PUs such that transform blocks are guaranteed to not span rectangular PUs
 #define HHI_RQT_INTRA_SPEEDUP             1           ///< tests one best mode with full rqt
 #define HHI_RQT_INTRA_SPEEDUP_MOD         0           ///< tests two best modes with full rqt
 
@@ -62,12 +60,6 @@
 
 #if HHI_RQT_INTRA_SPEEDUP_MOD && !HHI_RQT_INTRA_SPEEDUP
 #error
-#endif
-
-#if ( HHI_RQT_FORCE_SPLIT_NxN || HHI_RQT_FORCE_SPLIT_RECT)
-#define HHI_RQT_FORCE_SPLIT_ACC2_PU       1
-#else
-#define HHI_RQT_FORCE_SPLIT_ACC2_PU       0
 #endif
 
 #define VERBOSE_RATE 0 ///< Print additional rate information in encoder
@@ -122,8 +114,6 @@
 
 /* Rounding control */
 #define TRANS_PRECISION_EXT     ///< From JCTVC-B074
-
-#define HHI_RQT_DISABLE_SUB                   0           ///< disabling subtree whose node size is smaller than partition size
 
 #define FAST_UDI_MAX_RDMODE_NUM               35          ///< maximum number of RD comparison in fast-UDI estimation loop 
 

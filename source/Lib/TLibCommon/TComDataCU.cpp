@@ -2271,19 +2271,12 @@ UInt TComDataCU::getCtxQtRootCbf( UInt uiAbsPartIdx )
 
 UInt TComDataCU::getQuadtreeTULog2MinSizeInCU( UInt uiIdx )
 {
-#if HHI_RQT_DISABLE_SUB
-  return getQuadtreeTULog2RootSizeInCU(uiIdx);
-#else
-#if HHI_RQT_FORCE_SPLIT_ACC2_PU
-  UInt uiLog2MinTUSizeInCU = getQuadtreeTULog2RootSizeInCU(uiIdx);
-#else
   UInt uiLog2MinTUSizeInCU = g_aucConvertToBit[getWidth( uiIdx )] + 2;
   
   if ( getPredictionMode( uiIdx ) == MODE_INTRA && getPartitionSize( uiIdx ) == SIZE_NxN )
   {
     uiLog2MinTUSizeInCU--;
   }
-#endif  
  
   UInt uiQuadtreeTUMaxDepth = getPredictionMode( uiIdx ) == MODE_INTRA ? m_pcSlice->getSPS()->getQuadtreeTUMaxDepthIntra() : m_pcSlice->getSPS()->getQuadtreeTUMaxDepthInter();
 
@@ -2321,44 +2314,7 @@ UInt TComDataCU::getQuadtreeTULog2MinSizeInCU( UInt uiIdx )
 #endif
 
   return uiLog2MinTUSizeInCU;
-#endif
 }
-
-#if HHI_RQT_FORCE_SPLIT_ACC2_PU || HHI_RQT_DISABLE_SUB
-UInt TComDataCU::getQuadtreeTULog2RootSizeInCU( UInt uiIdx )
-{
-  UInt uiLog2RootTUSizeInCU = g_aucConvertToBit[getWidth( uiIdx )] +2;
-  
-#if !HHI_RQT_FORCE_SPLIT_NxN && !HHI_RQT_DISABLE_SUB
-  if ( getPredictionMode( uiIdx ) == MODE_INTRA && getPartitionSize( uiIdx ) == SIZE_NxN )
-  {
-    uiLog2RootTUSizeInCU--;
-    return (uiLog2RootTUSizeInCU > m_pcSlice->getSPS()->getQuadtreeTULog2MaxSize() ? m_pcSlice->getSPS()->getQuadtreeTULog2MaxSize() : uiLog2RootTUSizeInCU);
-  }
-#endif
-  
-  if (m_pePartSize[ uiIdx ] == SIZE_2Nx2N)
-  {
-    return (uiLog2RootTUSizeInCU > m_pcSlice->getSPS()->getQuadtreeTULog2MaxSize() ? m_pcSlice->getSPS()->getQuadtreeTULog2MaxSize() : uiLog2RootTUSizeInCU);
-  }
-  else if (m_pePartSize[ uiIdx ] >= SIZE_2NxN && m_pePartSize[ uiIdx ] <= SIZE_Nx2N)  
-  {
-#if HHI_RQT_FORCE_SPLIT_RECT || HHI_RQT_DISABLE_SUB
-    uiLog2RootTUSizeInCU--;
-#endif
-    return (uiLog2RootTUSizeInCU > m_pcSlice->getSPS()->getQuadtreeTULog2MaxSize() ? m_pcSlice->getSPS()->getQuadtreeTULog2MaxSize() : uiLog2RootTUSizeInCU);
-  }
-  else if (m_pePartSize[ uiIdx ] == SIZE_NxN)  
-  {
-#if HHI_RQT_FORCE_SPLIT_NxN || HHI_RQT_DISABLE_SUB
-    uiLog2RootTUSizeInCU--;
-#endif
-    return (uiLog2RootTUSizeInCU > m_pcSlice->getSPS()->getQuadtreeTULog2MaxSize() ? m_pcSlice->getSPS()->getQuadtreeTULog2MaxSize() : uiLog2RootTUSizeInCU);
-  }
-  
-  return (uiLog2RootTUSizeInCU > m_pcSlice->getSPS()->getQuadtreeTULog2MaxSize() ? m_pcSlice->getSPS()->getQuadtreeTULog2MaxSize() : uiLog2RootTUSizeInCU);
-}
-#endif
 
 UInt TComDataCU::getCtxAlfCtrlFlag( UInt uiAbsPartIdx )
 {

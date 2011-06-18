@@ -684,28 +684,7 @@ Void TEncEntropy::xEncodeTransformSubdiv( TComDataCU* pcCU, UInt uiAbsPartIdx, U
     else
     {
       assert( uiLog2TrafoSize > pcCU->getQuadtreeTULog2MinSizeInCU(uiAbsPartIdx) );
-#if HHI_RQT_FORCE_SPLIT_ACC2_PU
-      UInt uiCtx = uiDepth;
-      const UInt uiTrMode = uiDepth - pcCU->getDepth( uiAbsPartIdx );
-#if HHI_RQT_FORCE_SPLIT_NxN
-      const Bool bNxNOK         = pcCU->getPartitionSize( uiAbsPartIdx ) == SIZE_NxN && uiTrMode > 0;
-#else
-      const Bool bNxNOK         = pcCU->getPartitionSize( uiAbsPartIdx ) == SIZE_NxN;
-#endif
-#if HHI_RQT_FORCE_SPLIT_RECT
-      const Bool bSymmetricOK   = pcCU->getPartitionSize( uiAbsPartIdx ) >= SIZE_2NxN  && pcCU->getPartitionSize( uiAbsPartIdx ) < SIZE_NxN   && uiTrMode > 0;
-#else
-      const Bool bSymmetricOK   = pcCU->getPartitionSize( uiAbsPartIdx ) >= SIZE_2NxN  && pcCU->getPartitionSize( uiAbsPartIdx ) < SIZE_NxN;
-#endif
-      const Bool bNeedSubdivFlag = pcCU->getPartitionSize( uiAbsPartIdx ) == SIZE_2Nx2N || pcCU->getPredictionMode( uiAbsPartIdx ) == MODE_INTRA ||
-      bNxNOK || bSymmetricOK;
-      if( bNeedSubdivFlag )
-      {
-        m_pcEntropyCoderIf->codeTransformSubdivFlag( uiSubdiv, uiCtx );
-      }
-#else
       m_pcEntropyCoderIf->codeTransformSubdivFlag( uiSubdiv, uiDepth );
-#endif
     }
 #if CAVLC_RQT_CBP
   }

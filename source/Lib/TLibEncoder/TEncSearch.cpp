@@ -4067,21 +4067,6 @@ Void TEncSearch::xEstimateResidualQT( TComDataCU* pcCU, UInt uiQuadrant, UInt ui
   assert( pcCU->getDepth( 0 ) == pcCU->getDepth( uiAbsPartIdx ) );
   const UInt uiLog2TrSize = g_aucConvertToBit[pcCU->getSlice()->getSPS()->getMaxCUWidth() >> uiDepth]+2;
   
-#if HHI_RQT_FORCE_SPLIT_ACC2_PU
-#if HHI_RQT_FORCE_SPLIT_NxN
-  const Bool bNxNOK = pcCU->getPartitionSize( 0 ) == SIZE_NxN && uiTrMode > 0;
-#else
-  const Bool bNxNOK = pcCU->getPartitionSize( 0 ) == SIZE_NxN;
-#endif
-#if HHI_RQT_FORCE_SPLIT_RECT
-  const Bool bSymmetricOK  = pcCU->getPartitionSize( 0 ) >= SIZE_2NxN  && pcCU->getPartitionSize( 0 ) < SIZE_NxN   && uiTrMode > 0;
-#else
-  const Bool bSymmetricOK  = pcCU->getPartitionSize( 0 ) >= SIZE_2NxN  && pcCU->getPartitionSize( 0 ) < SIZE_NxN;
-#endif
-  const Bool bNoForceSplit = pcCU->getPartitionSize( 0 ) == SIZE_2Nx2N || bNxNOK || bSymmetricOK;
-  const Bool bCheckFull    = bNoForceSplit && ( uiLog2TrSize <= pcCU->getSlice()->getSPS()->getQuadtreeTULog2MaxSize() );
-#else
-
 #ifdef  MOT_TUPU_MAXDEPTH1
   UInt SplitFlag = ((pcCU->getSlice()->getSPS()->getQuadtreeTUMaxDepthInter() == 1) && pcCU->getPredictionMode(uiAbsPartIdx) == MODE_INTER && ( pcCU->getPartitionSize(uiAbsPartIdx) == SIZE_2NxN || pcCU->getPartitionSize(uiAbsPartIdx) == SIZE_Nx2N));
   Bool bCheckFull;
@@ -4092,7 +4077,6 @@ Void TEncSearch::xEstimateResidualQT( TComDataCU* pcCU, UInt uiQuadrant, UInt ui
 #else
   const Bool bCheckFull    = ( uiLog2TrSize <= pcCU->getSlice()->getSPS()->getQuadtreeTULog2MaxSize() );
 #endif
-#endif 
 
   const Bool bCheckSplit  = ( uiLog2TrSize >  pcCU->getQuadtreeTULog2MinSizeInCU(uiAbsPartIdx) );
   
