@@ -131,7 +131,6 @@ Void TEncCavlc::resetEntropy()
     ::memcpy(m_uiMI2TableE, g_auiMI2TableENoL1, 15*sizeof(UInt));
     ::memcpy(m_uiMI2TableD, g_auiMI2TableDNoL1, 15*sizeof(UInt));
   }
-#if MS_LCEC_ONE_FRAME
   if ( m_pcSlice->getNumRefIdx(REF_PIC_LIST_0) <= 1 && m_pcSlice->getNumRefIdx(REF_PIC_LIST_1) <= 1 )
   {
     if ( m_pcSlice->getNoBackPredFlag() || ( m_pcSlice->getNumRefIdx(REF_PIC_LIST_C) > 0 && m_pcSlice->getNumRefIdx(REF_PIC_LIST_C) <= 1 ) )
@@ -145,7 +144,6 @@ Void TEncCavlc::resetEntropy()
       ::memcpy(m_uiMI1TableD, g_auiMI1TableDOnly1Ref, 8*sizeof(UInt));
     }
   }
-#endif
 #if MS_LCEC_LOOKUP_TABLE_EXCEPTION
   if (m_pcSlice->getNumRefIdx(REF_PIC_LIST_C)>0)
   {

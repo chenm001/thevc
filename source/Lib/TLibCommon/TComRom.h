@@ -262,12 +262,10 @@ extern const UInt g_auiMI1TableDNoL1[8];
 extern const UInt g_auiMI2TableENoL1[15];
 extern const UInt g_auiMI2TableDNoL1[15];
 
-#if MS_LCEC_ONE_FRAME
 extern const UInt g_auiMI1TableEOnly1Ref[8];
 extern const UInt g_auiMI1TableDOnly1Ref[8];
 extern const UInt g_auiMI1TableEOnly1RefNoL1[8];
 extern const UInt g_auiMI1TableDOnly1RefNoL1[8];
-#endif
 #endif
 
 #if QC_LCEC_INTER_MODE

@@ -1337,7 +1337,6 @@ const UInt g_auiMI1TableDNoL1[8] = {0,1,4,6,5,7,2,3};
 const UInt g_auiMI2TableENoL1[15] = {0,1,2,12,14,13,3,4,6,5,10,9,8,11,7};
 const UInt g_auiMI2TableDNoL1[15] = {0,1,2,6,7,9,8,14,12,11,10,13,3,5,4};
 
-#if MS_LCEC_ONE_FRAME
 // as there are two lists used for bi-directional prediction, and one list for uni-directional prediction
 // for uni-directional prediction, when pcSlice->getNoBackPredFlag() is true, list 0 is used for uni-directional prediction
 // when pcSlice->getNoBackPredFlag() is false, combined list is used for uni-directional prediction
@@ -1359,7 +1358,6 @@ const UInt g_auiMI1TableEOnly1Ref[8] = {0,3,1,4,2,6,5,7};
 const UInt g_auiMI1TableDOnly1Ref[8] = {0,2,4,1,3,6,5,7};
 const UInt g_auiMI1TableEOnly1RefNoL1[8] = {0,2,3,4,1,6,5,7};
 const UInt g_auiMI1TableDOnly1RefNoL1[8] = {0,4,1,2,3,6,5,7};
-#endif
 #endif
 
 #if QC_LCEC_INTER_MODE
