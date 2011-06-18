@@ -795,10 +795,8 @@ Void TDecSbac::parsePartSize( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth 
   
   if ( pcCU->isIntra( uiAbsPartIdx ) )
   {
-#if MTK_DISABLE_INTRA_NxN_SPLIT
     uiSymbol = 1;
     if( uiDepth == g_uiMaxCUDepth - g_uiAddCUDepth )
-#endif
     {
       m_pcTDecBinIf->decodeBin( uiSymbol, m_cCUPartSizeSCModel.get( 0, 0, 0) );
     }
@@ -842,9 +840,7 @@ Void TDecSbac::parsePartSize( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth 
       if (uiSymbol == 0)
       {
         pcCU->setPredModeSubParts( MODE_INTRA, uiAbsPartIdx, uiDepth );
-#if MTK_DISABLE_INTRA_NxN_SPLIT
         if( uiDepth == g_uiMaxCUDepth - g_uiAddCUDepth )
-#endif
         {
           m_pcTDecBinIf->decodeBin( uiSymbol, m_cCUPartSizeSCModel.get( 0, 0, 4) );
         }

@@ -609,9 +609,7 @@ Void TEncCu::xCompressCU( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, UInt u
 #else
           rpcTempCU->initEstData();
 #endif
-#if MTK_DISABLE_INTRA_NxN_SPLIT
           if( uiDepth == g_uiMaxCUDepth - g_uiAddCUDepth )
-#endif
           {
             if( rpcTempCU->getWidth(0) > ( 1 << rpcTempCU->getSlice()->getSPS()->getQuadtreeTULog2MinSize() ) )
             {

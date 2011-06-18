@@ -499,17 +499,15 @@ Void TEncCavlc::codePartSize( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth 
 {
   if ( pcCU->getSlice()->isIntra() && pcCU->isIntra( uiAbsPartIdx ) )
   {
-#if MTK_DISABLE_INTRA_NxN_SPLIT
     if( uiDepth == (g_uiMaxCUDepth - g_uiAddCUDepth))
-#endif
+    {
       xWriteFlag( pcCU->getPartitionSize(uiAbsPartIdx ) == SIZE_2Nx2N? 1 : 0 );
+    }
     return;
   }
 
 
-#if MTK_DISABLE_INTRA_NxN_SPLIT 
   if( uiDepth == g_uiMaxCUDepth - g_uiAddCUDepth )
-#endif
   {    
     if ((pcCU->getPartitionSize(uiAbsPartIdx ) == SIZE_NxN) || pcCU->isIntra( uiAbsPartIdx ))
     {
@@ -521,9 +519,6 @@ Void TEncCavlc::codePartSize( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth 
       else
       {
         xWriteFlag(0);
-#if !MTK_DISABLE_INTRA_NxN_SPLIT
-        if( uiDepth == g_uiMaxCUDepth - g_uiAddCUDepth )
-#endif
         xWriteFlag( uiIntraFlag? 1 : 0 );
       }
 
@@ -549,11 +544,6 @@ Void TEncCavlc::codePartSize( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth 
     if( uiDepth == g_uiMaxCUDepth - g_uiAddCUDepth )
     {
       xWriteFlag( 0 );
-    }
-#if MTK_DISABLE_INTRA_NxN_SPLIT
-    if( uiDepth == g_uiMaxCUDepth - g_uiAddCUDepth )
-#endif
-    {
       xWriteFlag( (eSize == SIZE_2Nx2N? 0 : 1) );
     }
     return;
@@ -561,9 +551,7 @@ Void TEncCavlc::codePartSize( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth 
   
   if ( pcCU->isIntra( uiAbsPartIdx ) )
   {
-#if MTK_DISABLE_INTRA_NxN_SPLIT
     if( uiDepth == g_uiMaxCUDepth - g_uiAddCUDepth )
-#endif
     {
       xWriteFlag( eSize == SIZE_2Nx2N? 1 : 0 );
     }
