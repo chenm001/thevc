@@ -892,7 +892,6 @@ Void TEncSbac::codeIntraDirChroma( TComDataCU* pcCU, UInt uiAbsPartIdx )
   }
 #endif
  
-#if CHROMA_CODEWORD
   UInt uiMode = pcCU->getLumaIntraDir(uiAbsPartIdx);
 #if ADD_PLANAR_MODE
   if ( (uiMode == 2 ) || (uiMode == PLANAR_IDX) )
@@ -967,28 +966,13 @@ Void TEncSbac::codeIntraDirChroma( TComDataCU* pcCU, UInt uiAbsPartIdx )
     m_pcBinIf->encodeBin( 1, m_cCUChromaPredSCModel.get( 0, 0, uiCtx ) );
     xWriteUnaryMaxSymbol( uiIntraDirChroma - 1, m_cCUChromaPredSCModel.get( 0, 0 ) + 3, 0, iMax );
   }
-#else // CHROMA_CODEWORD
-  if ( 0 == uiIntraDirChroma )
-  {
-    m_pcBinIf->encodeBin( 0, m_cCUChromaPredSCModel.get( 0, 0, uiCtx ) );
-  }
-  else
-  {
-    m_pcBinIf->encodeBin( 1, m_cCUChromaPredSCModel.get( 0, 0, uiCtx ) );
-    xWriteUnaryMaxSymbol( uiIntraDirChroma - 1, m_cCUChromaPredSCModel.get( 0, 0 ) + 3, 0, 3 );
-  }
-#endif
 
 #if ADD_PLANAR_MODE
   uiIntraDirChroma = pcCU->getChromaIntraDir( uiAbsPartIdx );
-#if CHROMA_CODEWORD
   uiMode = pcCU->getLumaIntraDir(uiAbsPartIdx);
   mapPlanartoDC( uiIntraDirChroma );
   mapPlanartoDC( uiMode );
   if ( (uiIntraDirChroma == 2) && (uiMode != 2) )
-#else
-  if ( (uiIntraDirChroma == PLANAR_IDX) || (uiIntraDirChroma == 2) )
-#endif
   {
     m_pcBinIf->encodeBin( planarFlag, m_cPlanarFlagSCModel.get(0,0,1) );
   }

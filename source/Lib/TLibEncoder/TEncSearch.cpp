@@ -2015,7 +2015,6 @@ TEncSearch::estIntraPredChromaQT( TComDataCU* pcCU,
 #endif
   
   UInt  uiMinMode = 0;
-#if CHROMA_CODEWORD 
 #if ADD_PLANAR_MODE
   UInt  uiMaxMode = 6;
   
@@ -2051,18 +2050,10 @@ TEncSearch::estIntraPredChromaQT( TComDataCU* pcCU,
 #endif
 
 #endif
-#else
-#if ADD_PLANAR_MODE
-  UInt  uiMaxMode = ( ( (uiLumaMode != PLANAR_IDX) && (uiLumaMode >= 4) ) ? 6 : 5 );
-#else
-  UInt  uiMaxMode = ( uiModeList[4] >= 4 ? 5 : 4 );
-#endif
-#endif
   
   //----- check chroma modes -----
   for( UInt uiMode = uiMinMode; uiMode < uiMaxMode; uiMode++ )
   {
-#if CHROMA_CODEWORD
 #if ADD_PLANAR_MODE
     if ( uiModeList[uiMode] == uiIgnore )
 #else
@@ -2071,7 +2062,6 @@ TEncSearch::estIntraPredChromaQT( TComDataCU* pcCU,
     {
       continue;
     }
-#endif
     //----- restore context models -----
     if( m_bUseSBACRD )
     {

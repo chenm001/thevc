@@ -1014,7 +1014,6 @@ Void TDecSbac::parseIntraDirChroma( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt ui
 {
   UInt uiSymbol;
   
-#if CHROMA_CODEWORD
   UInt uiMode = pcCU->getLumaIntraDir(uiAbsPartIdx);
 #if ADD_PLANAR_MODE
   if ( (uiMode == 2 ) || (uiMode == PLANAR_IDX) )
@@ -1089,27 +1088,15 @@ Void TDecSbac::parseIntraDirChroma( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt ui
 #endif
 #endif // <-- LM_CHROMA
 
-#else // CHROMA_CODEWORD
-  m_pcTDecBinIf->decodeBin( uiSymbol, m_cCUChromaPredSCModel.get( 0, 0, pcCU->getCtxIntraDirChroma( uiAbsPartIdx ) ) );
-  
-  if ( uiSymbol )
-  {
-    xReadUnaryMaxSymbol( uiSymbol, m_cCUChromaPredSCModel.get( 0, 0 ) + 3, 0, 3 );
-    uiSymbol++;
-  }
-#endif
-  
 #if ADD_PLANAR_MODE
   if (uiSymbol == 2)
   {
-#if CHROMA_CODEWORD
     uiMode = pcCU->getLumaIntraDir(uiAbsPartIdx);
     if (uiMode == 2)
     {
       uiSymbol = PLANAR_IDX;
     }
     else if (uiMode != PLANAR_IDX)
-#endif
     {
       UInt planarFlag;
       m_pcTDecBinIf->decodeBin( planarFlag, m_cPlanarFlagSCModel.get(0,0,1) );

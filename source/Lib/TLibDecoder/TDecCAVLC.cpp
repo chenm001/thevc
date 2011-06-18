@@ -1105,7 +1105,6 @@ Void TDecCavlc::parseIntraDirLumaAng  ( TComDataCU* pcCU, UInt uiAbsPartIdx, UIn
 Void TDecCavlc::parseIntraDirChroma( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
 {
   UInt uiSymbol;
-#if CHROMA_CODEWORD
   UInt uiMode = pcCU->getLumaIntraDir(uiAbsPartIdx);
 #if ADD_PLANAR_MODE
   if ( (uiMode == 2 ) || (uiMode == PLANAR_IDX) )
@@ -1170,27 +1169,16 @@ Void TDecCavlc::parseIntraDirChroma( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt u
 #endif // --> LM_CHROMA
 
   //printf("uiMode %d, chroma %d, codeword %d, imax %d\n", uiMode, uiSymbol, uiRead, iMax);
-#else
-  xReadFlag( uiSymbol );
-  
-  if ( uiSymbol )
-  {
-    xReadUnaryMaxSymbol( uiSymbol, 3 );
-    uiSymbol++;
-  }
-#endif
 
 #if ADD_PLANAR_MODE
   if (uiSymbol == 2)
   {
-#if CHROMA_CODEWORD
     uiMode = pcCU->getLumaIntraDir(uiAbsPartIdx);
     if (uiMode == 2)
     {
       uiSymbol = PLANAR_IDX;
     }
     else if (uiMode != PLANAR_IDX)
-#endif
     {
       UInt planarFlag;
       xReadFlag( planarFlag );
