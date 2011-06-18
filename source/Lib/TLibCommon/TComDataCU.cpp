@@ -172,8 +172,8 @@ Void TComDataCU::create(UInt uiNumPartition, UInt uiWidth, UInt uiHeight, Bool b
   }
   
 #if FINE_GRANULARITY_SLICES
-  m_uiSliceStartCU        = (UInt*  )xMalloc(UInt, ((size_t)1<<(g_uiMaxCUDepth<<1)));
-  m_uiEntropySliceStartCU = (UInt*  )xMalloc(UInt, ((size_t)1<<(g_uiMaxCUDepth<<1)));
+  m_uiSliceStartCU        = (UInt*  )xMalloc(UInt, uiNumPartition);
+  m_uiEntropySliceStartCU = (UInt*  )xMalloc(UInt, uiNumPartition);
 #endif
   // create pattern memory
   m_pcPattern            = (TComPattern*)xMalloc(TComPattern, 1);
@@ -249,6 +249,19 @@ Void TComDataCU::destroy()
   
   m_apcCUColocated[0]   = NULL;
   m_apcCUColocated[1]   = NULL;
+
+#if FINE_GRANULARITY_SLICES
+  if( m_uiSliceStartCU )
+  {
+    xFree(m_uiSliceStartCU);
+    m_uiSliceStartCU=NULL;
+  }
+  if(m_uiEntropySliceStartCU )
+  {
+    xFree(m_uiEntropySliceStartCU);
+    m_uiEntropySliceStartCU=NULL;
+  }
+#endif
 }
 
 // ====================================================================================================================
@@ -1016,8 +1029,8 @@ Void TComDataCU::initSubCU( TComDataCU* pcCU, UInt uiPartUnitIdx, UInt uiDepth )
 
   m_apcCUColocated[0] = pcCU->getCUColocated(REF_PIC_LIST_0);
   m_apcCUColocated[1] = pcCU->getCUColocated(REF_PIC_LIST_1);
-  memcpy(m_uiSliceStartCU,pcCU->m_uiSliceStartCU,sizeof(UInt)*m_pcPic->getNumPartInCU());
-  memcpy(m_uiEntropySliceStartCU,pcCU->m_uiEntropySliceStartCU,sizeof(UInt)*m_pcPic->getNumPartInCU());
+  memcpy(m_uiSliceStartCU,pcCU->m_uiSliceStartCU+uiPartOffset,sizeof(UInt)*m_uiNumPartition);
+  memcpy(m_uiEntropySliceStartCU,pcCU->m_uiEntropySliceStartCU+uiPartOffset,sizeof(UInt)*m_uiNumPartition);
 }
 #endif
 // --------------------------------------------------------------------------------------------------------------------
@@ -1103,8 +1116,8 @@ Void TComDataCU::copySubCU( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
   m_acCUMvField[0].linkToWithOffset( pcCU->getCUMvField(REF_PIC_LIST_0), uiPart );
   m_acCUMvField[1].linkToWithOffset( pcCU->getCUMvField(REF_PIC_LIST_1), uiPart );
 #if FINE_GRANULARITY_SLICES
-  m_uiSliceStartCU        = pcCU->m_uiSliceStartCU;
-  m_uiEntropySliceStartCU = pcCU->m_uiEntropySliceStartCU;
+  memcpy(m_uiSliceStartCU,pcCU->m_uiSliceStartCU+uiPart,sizeof(UInt)*m_uiNumPartition);
+  memcpy(m_uiEntropySliceStartCU,pcCU->m_uiEntropySliceStartCU+uiPart,sizeof(UInt)*m_uiNumPartition);
 #else
   m_uiSliceStartCU        = pcCU->getSliceStartCU();
   m_uiEntropySliceStartCU = pcCU->getEntropySliceStartCU();
@@ -1152,8 +1165,8 @@ Void TComDataCU::copyInterPredInfoFrom    ( TComDataCU* pcCU, UInt uiAbsPartIdx,
   m_acCUMvField[ eRefPicList ].linkToWithOffset( pcCU->getCUMvField(eRefPicList), uiAbsPartIdx );
 
 #if FINE_GRANULARITY_SLICES
-  m_uiSliceStartCU        = pcCU->m_uiSliceStartCU;
-  m_uiEntropySliceStartCU = pcCU->m_uiEntropySliceStartCU;
+  memcpy(m_uiSliceStartCU,pcCU->m_uiSliceStartCU+uiAbsPartIdx,sizeof(UInt)*m_uiNumPartition);
+  memcpy(m_uiEntropySliceStartCU,pcCU->m_uiEntropySliceStartCU+uiAbsPartIdx,sizeof(UInt)*m_uiNumPartition);
 #else
   m_uiSliceStartCU        = pcCU->getSliceStartCU();
   m_uiEntropySliceStartCU = pcCU->getEntropySliceStartCU();
@@ -1239,11 +1252,8 @@ Void TComDataCU::copyPartFrom( TComDataCU* pcCU, UInt uiPartUnitIdx, UInt uiDept
 #endif
 #if FINE_GRANULARITY_SLICES
   m_uiTotalBins += pcCU->getTotalBins();
-  for(int i=0; i<m_pcPic->getNumPartInCU(); i++) 
-  {
-    m_uiSliceStartCU[i]=pcCU->m_uiSliceStartCU[i];
-    m_uiEntropySliceStartCU[i]=pcCU->m_uiEntropySliceStartCU[i];
-  }
+  memcpy( m_uiSliceStartCU        + uiOffset, pcCU->m_uiSliceStartCU,        sizeof( UInt ) * uiNumPartition  );
+  memcpy( m_uiEntropySliceStartCU + uiOffset, pcCU->m_uiEntropySliceStartCU, sizeof( UInt ) * uiNumPartition  );
 #else
   m_uiSliceStartCU        = pcCU->getSliceStartCU();
   m_uiEntropySliceStartCU = pcCU->getEntropySliceStartCU();
@@ -1317,11 +1327,8 @@ Void TComDataCU::copyToPic( UChar uhDepth )
 #endif
 #if FINE_GRANULARITY_SLICES
   rpcCU->getTotalBins() = m_uiTotalBins;
-  for(int i=0; i<m_pcPic->getNumPartInCU(); i++) 
-  {
-    rpcCU->m_uiSliceStartCU[i]=m_uiSliceStartCU[i];
-    rpcCU->m_uiEntropySliceStartCU[i]=m_uiEntropySliceStartCU[i];
-  }
+  memcpy( rpcCU->m_uiSliceStartCU        + m_uiAbsIdxInLCU, m_uiSliceStartCU,        sizeof( UInt ) * m_uiNumPartition  );
+  memcpy( rpcCU->m_uiEntropySliceStartCU + m_uiAbsIdxInLCU, m_uiEntropySliceStartCU, sizeof( UInt ) * m_uiNumPartition  );
 #else
   rpcCU->setSliceStartCU( m_uiSliceStartCU );
   rpcCU->setEntropySliceStartCU( m_uiEntropySliceStartCU );
@@ -1397,11 +1404,8 @@ Void TComDataCU::copyToPic( UChar uhDepth, UInt uiPartIdx, UInt uiPartDepth )
 #endif
 #if FINE_GRANULARITY_SLICES
   rpcCU->getTotalBins() = m_uiTotalBins;
-  for(int i=0; i<m_pcPic->getNumPartInCU(); i++) 
-  {
-    rpcCU->m_uiSliceStartCU[i]=m_uiSliceStartCU[i];
-    rpcCU->m_uiEntropySliceStartCU[i]=m_uiEntropySliceStartCU[i];
-  }
+  memcpy( rpcCU->m_uiSliceStartCU        + uiPartOffset, m_uiSliceStartCU,        sizeof( UInt ) * uiQNumPart  );
+  memcpy( rpcCU->m_uiEntropySliceStartCU + uiPartOffset, m_uiEntropySliceStartCU, sizeof( UInt ) * uiQNumPart  );
 #else
   rpcCU->setSliceStartCU( m_uiSliceStartCU );
   rpcCU->setEntropySliceStartCU( m_uiEntropySliceStartCU );

@@ -500,10 +500,8 @@ public:
   UInt          getCtxMergeFlag                 ( UInt uiAbsPartIdx                                   );
   
 #if FINE_GRANULARITY_SLICES
-  Void          setSliceStartCU         ( UInt *uiStartCU )           { for(int i=0; i<(1<<(m_pcSlice->getSPS()->getMaxCUDepth()<<1)); i++) { m_uiSliceStartCU[i]=uiStartCU[i];}               }  
-  UInt          getSliceStartCU         ( UInt pos )                  { return m_uiSliceStartCU[pos];                                                                                          }
-  Void          setEntropySliceStartCU  ( UInt *uiEntropyStartCU )    { for(int i=0; i<(1<<(m_pcSlice->getSPS()->getMaxCUDepth()<<1)); i++) { m_uiEntropySliceStartCU[i]=uiEntropyStartCU[i];} }  
-  UInt          getEntropySliceStartCU  ( UInt pos )                  { return m_uiEntropySliceStartCU[pos];                                                                                   }
+  UInt          getSliceStartCU         ( UInt pos )                  { return m_uiSliceStartCU[pos-m_uiAbsIdxInLCU];                                                                                          }
+  UInt          getEntropySliceStartCU  ( UInt pos )                  { return m_uiEntropySliceStartCU[pos-m_uiAbsIdxInLCU];                                                                                   }
   UInt&         getTotalBins            ()                            { return m_uiTotalBins;                                                                                                  }
 #else
   Void          setSliceStartCU  ( UInt uiStartCU )    { m_uiSliceStartCU = uiStartCU;    }  
