@@ -181,13 +181,8 @@ Void TComRdCost::init()
   m_afpDistortFunc[21] = TComRdCost::xGetSADs16N;
   
   m_afpDistortFunc[22] = TComRdCost::xGetHADs;
-#ifdef DCM_RDCOST_TEMP_FIX //Temporary fix since xGetHADs4 and xGetHADs8 assume that the row size cannot be 1, 2, 3 or 6 when the column size is 4 or 8.
   m_afpDistortFunc[23] = TComRdCost::xGetHADs;
   m_afpDistortFunc[24] = TComRdCost::xGetHADs;
-#else
-  m_afpDistortFunc[23] = TComRdCost::xGetHADs4;
-  m_afpDistortFunc[24] = TComRdCost::xGetHADs8;
-#endif
   m_afpDistortFunc[25] = TComRdCost::xGetHADs;
   m_afpDistortFunc[26] = TComRdCost::xGetHADs;
   m_afpDistortFunc[27] = TComRdCost::xGetHADs;
@@ -379,9 +374,7 @@ UInt TComRdCost::getDistPart( Pel* piCur, Int iCurStride,  Pel* piOrg, Int iOrgS
   cDtParam.pCur       = piCur;
   cDtParam.iStrideOrg = iOrgStride;
   cDtParam.iStrideCur = iCurStride;
-#ifdef DCM_RDCOST_TEMP_FIX //Temporary fix since DistParam is lacking a constructor and the variable iStep is not initialized
   cDtParam.iStep      = 1;
-#endif
   return cDtParam.DistFunc( &cDtParam );
 }
 
@@ -2062,37 +2055,24 @@ UInt TComRdCost::xGetHADs( DistParam* pcDtParam )
       piCur += iOffsetCur;
     }
   }
-#ifdef DCM_RDCOST_TEMP_FIX //Temporary fix since row size can be 1 or 3 for chroma (such a case does not occur under current encoder settings)
   else if( ( iRows % 2 == 0) && (iCols % 2 == 0) )
   {
     Int  iOffsetOrg = iStrideOrg<<1;
     Int  iOffsetCur = iStrideCur<<1;
-#else
-  else
-  {
-#endif
     for ( y=0; y<iRows; y+=2 )
     {
       for ( x=0; x<iCols; x+=2 )
       {
         uiSum += xCalcHADs2x2( &piOrg[x], &piCur[x*iStep], iStrideOrg, iStrideCur, iStep );
       }
-#ifdef DCM_RDCOST_TEMP_FIX //Temporary fix since we need to increment by 2*iStride instead of iStride
       piOrg += iOffsetOrg;
       piCur += iOffsetCur;
-#else
-      piOrg += iStrideOrg;
-      piCur += iStrideCur;
-#endif
     }
   }
-#ifdef DCM_RDCOST_TEMP_FIX //Temporary fix to return MAX_UINT until this case is properly handled
   else
   {
-    printf("xGetHADs not supported for this dimension. Skipping computation of HAD and returning MAX_UINT\n");
-    return (MAX_UINT);
+    assert(false);
   }
-#endif
   
   return ( uiSum >> g_uiBitIncrement );
 }
