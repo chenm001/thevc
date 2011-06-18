@@ -176,6 +176,47 @@ Void TDecCu::decompressCU( TComDataCU* pcCU )
 // Protected member functions
 // ====================================================================================================================
 
+#if FINE_GRANULARITY_SLICES
+/**decode end-of-slice flag
+ * \param pcCU
+ * \param uiAbsPartIdx 
+ * \param uiDepth 
+ * \returns Bool
+ */
+Bool TDecCu::xDecodeSliceEnd( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth) {
+  UInt uiIsLast;
+  TComPic* pcPic = pcCU->getPic();
+  TComSlice * pcSlice = pcPic->getSlice(pcPic->getCurrSliceIdx());
+  UInt uiCurNumParts    = pcPic->getNumPartInCU() >> (uiDepth<<1);
+  UInt uiWidth = pcSlice->getSPS()->getWidth();
+  UInt uiHeight = pcSlice->getSPS()->getHeight();
+  UInt uiGranularityWidth = g_uiMaxCUWidth>>(pcSlice->getPPS()->getSliceGranularity());
+  UInt uiPosX = pcCU->getCUPelX() + g_auiRasterToPelX[ g_auiZscanToRaster[uiAbsPartIdx] ];
+  UInt uiPosY = pcCU->getCUPelY() + g_auiRasterToPelY[ g_auiZscanToRaster[uiAbsPartIdx] ];
+
+  if(((uiPosX+pcCU->getWidth(uiAbsPartIdx))%uiGranularityWidth==0||(uiPosX+pcCU->getWidth(uiAbsPartIdx)==uiWidth))
+    &&((uiPosY+pcCU->getHeight(uiAbsPartIdx))%uiGranularityWidth==0||(uiPosY+pcCU->getHeight(uiAbsPartIdx)==uiHeight)))
+  {
+    m_pcEntropyDecoder->decodeTerminatingBit( uiIsLast );
+  }
+  else
+    uiIsLast=0;
+  if(uiIsLast) 
+  {
+    if(pcSlice->isNextEntropySlice()&&!pcSlice->isNextSlice()) 
+    {
+      pcSlice->setEntropySliceCurEndCUAddr(pcCU->getSCUAddr()+uiAbsPartIdx+uiCurNumParts);
+    }
+    else 
+    {
+      pcSlice->setSliceCurEndCUAddr(pcCU->getSCUAddr()+uiAbsPartIdx+uiCurNumParts);
+      pcSlice->setEntropySliceCurEndCUAddr(pcCU->getSCUAddr()+uiAbsPartIdx+uiCurNumParts);
+    }
+  }
+
+  return uiIsLast>0;
+}
+#endif
 /** decode CU block recursively
  * \param pcCU
  * \param uiAbsPartIdx 
@@ -374,20 +415,7 @@ Void TDecCu::xDecodeCU( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
     }
 #endif
 #if FINE_GRANULARITY_SLICES
-  m_pcEntropyDecoder->decodeTerminatingBit( ruiIsLast );
-
-  if(ruiIsLast) 
-  {
-    if(pcSlice->isNextEntropySlice()&&!pcSlice->isNextSlice()) 
-    {
-      pcSlice->setEntropySliceCurEndCUAddr(pcCU->getSCUAddr()+uiAbsPartIdx+uiCurNumParts);
-    }
-    else 
-    {
-      pcSlice->setSliceCurEndCUAddr(pcCU->getSCUAddr()+uiAbsPartIdx+uiCurNumParts);
-      pcSlice->setEntropySliceCurEndCUAddr(pcCU->getSCUAddr()+uiAbsPartIdx+uiCurNumParts);
-    }
-  }
+    ruiIsLast = xDecodeSliceEnd( pcCU, uiAbsPartIdx, uiDepth);
 #endif
     return;
   }
@@ -409,20 +437,7 @@ Void TDecCu::xDecodeCU( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
       }
 #endif
 #if FINE_GRANULARITY_SLICES
-
-      m_pcEntropyDecoder->decodeTerminatingBit( ruiIsLast );
-      if(ruiIsLast) 
-      {
-        if(pcSlice->isNextEntropySlice()&&!pcSlice->isNextSlice()) 
-        {
-          pcSlice->setEntropySliceCurEndCUAddr(pcCU->getSCUAddr()+uiAbsPartIdx+uiCurNumParts);
-        }
-        else 
-        {
-          pcSlice->setSliceCurEndCUAddr(pcCU->getSCUAddr()+uiAbsPartIdx+uiCurNumParts);
-          pcSlice->setEntropySliceCurEndCUAddr(pcCU->getSCUAddr()+uiAbsPartIdx+uiCurNumParts);
-        }
-      }
+      ruiIsLast = xDecodeSliceEnd( pcCU, uiAbsPartIdx, uiDepth);
 #endif
       return;
     }
@@ -449,19 +464,7 @@ Void TDecCu::xDecodeCU( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
   }
 #endif
 #if FINE_GRANULARITY_SLICES
-  m_pcEntropyDecoder->decodeTerminatingBit( ruiIsLast );
-  if(ruiIsLast) 
-  {
-    if(pcSlice->isNextEntropySlice()&&!pcSlice->isNextSlice()) 
-    {
-      pcSlice->setEntropySliceCurEndCUAddr(pcCU->getSCUAddr()+uiAbsPartIdx+uiCurNumParts);
-    }
-    else 
-    {
-      pcSlice->setSliceCurEndCUAddr(pcCU->getSCUAddr()+uiAbsPartIdx+uiCurNumParts);
-      pcSlice->setEntropySliceCurEndCUAddr(pcCU->getSCUAddr()+uiAbsPartIdx+uiCurNumParts);
-    }
-  }
+  ruiIsLast = xDecodeSliceEnd( pcCU, uiAbsPartIdx, uiDepth);
 #endif
 }
 

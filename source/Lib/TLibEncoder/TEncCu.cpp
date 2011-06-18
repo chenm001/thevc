@@ -955,7 +955,14 @@ Void TEncCu::finishCU( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
   {
     bTerminateSlice = true;
   }
-  m_pcEntropyCoder->encodeTerminatingBit( bTerminateSlice ? 1 : 0 );
+  UInt uiGranularityWidth = g_uiMaxCUWidth>>(pcSlice->getPPS()->getSliceGranularity());
+  uiPosX = pcCU->getCUPelX() + g_auiRasterToPelX[ g_auiZscanToRaster[uiAbsPartIdx] ];
+  uiPosY = pcCU->getCUPelY() + g_auiRasterToPelY[ g_auiZscanToRaster[uiAbsPartIdx] ];
+  if(((uiPosX+pcCU->getWidth(uiAbsPartIdx))%uiGranularityWidth==0||(uiPosX+pcCU->getWidth(uiAbsPartIdx)==uiWidth))
+    &&((uiPosY+pcCU->getHeight(uiAbsPartIdx))%uiGranularityWidth==0||(uiPosY+pcCU->getHeight(uiAbsPartIdx)==uiHeight)))
+  {
+    m_pcEntropyCoder->encodeTerminatingBit( bTerminateSlice ? 1 : 0 );
+  }
   if ( bTerminateSlice )
   {
     m_pcEntropyCoder->encodeSliceFinish();
