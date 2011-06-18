@@ -556,9 +556,7 @@ Void TEncCu::xCompressCU( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, UInt u
           xCheckRDCostInter( rpcBestCU, rpcTempCU, SIZE_2Nx2N );
           rpcTempCU->initEstData();
 #endif
-#if HHI_DISABLE_INTER_NxN_SPLIT
           if( uiDepth == g_uiMaxCUDepth - g_uiAddCUDepth )
-#endif
           {
             xCheckRDCostInter( rpcBestCU, rpcTempCU, SIZE_NxN   );
 #if SUB_LCU_DQP

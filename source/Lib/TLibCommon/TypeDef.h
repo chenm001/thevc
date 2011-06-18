@@ -49,7 +49,6 @@
 // JCT-VC E end
 ////////////////////////////
 
-#define HHI_DISABLE_INTER_NxN_SPLIT       1           ///< TN: disable redundant use of pu-mode NxN for CTBs larger 8x8 (inter only)
 #define HHI_RMP_SWITCH                    0
 
 #define HHI_RQT_INTRA_SPEEDUP             1           ///< tests one best mode with full rqt
