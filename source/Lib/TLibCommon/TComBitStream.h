@@ -171,7 +171,7 @@ public:
   TComInputBitstream(std::vector<uint8_t>* buf);
 
   // interface for decoding
-#if LCEC_INTRA_MODE || QC_LCEC_INTER_MODE
+#if QC_LCEC_INTER_MODE
   Void        pseudoRead      ( UInt uiNumberOfBits, UInt& ruiBits );
 #endif
   Void        read            ( UInt uiNumberOfBits, UInt& ruiBits );

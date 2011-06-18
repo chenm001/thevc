@@ -146,7 +146,7 @@ Void TComOutputBitstream::writeAlignZero()
   m_num_held_bits = 0;
 }
 
-#if LCEC_INTRA_MODE || QC_LCEC_INTER_MODE
+#if QC_LCEC_INTER_MODE
 /**
  * read #uiNumberOfBits# from bitstream without updating the bitstream
  * state, storing the result in #ruiBits#.

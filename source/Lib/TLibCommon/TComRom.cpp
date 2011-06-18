@@ -1420,7 +1420,6 @@ const UInt g_auiLPTableD8[8][128] =
 };
 #endif
 
-#if LCEC_INTRA_MODE
 #if MTK_DCM_MPM
 
 const UInt  g_auiIntraModeTableD17[2][16]=
@@ -1450,7 +1449,6 @@ const UInt  g_auiIntraModeTableE17[16]={1,11,9,10,7,15,13,3,12,8,5,2,14,6,4,0};
 
 const UInt  g_auiIntraModeTableD34[33]={0,29,1,2,30,20,28,15,32,21,27,11,10,7,19,14,16,23,22,8,4,18,31,26,17,9,25,6,3,12,13,24,5};
 const UInt  g_auiIntraModeTableE34[33]={0,2,3,28,20,32,27,13,19,25,12,11,29,30,15,7,16,24,21,14,5,9,18,17,31,26,23,10,6,1,4,22,8};
-#endif
 #endif
 
 const UInt g_auiLastPosVlcIndex[10] = {0,0,0,0,0,0,0,0,0,0};
@@ -1970,7 +1968,6 @@ const UInt g_auiVlcTable16x16Intra[29] = {8,0,0,0,0,5,5,5,5,5,5,5,5,5,5,5,5,5,1,
 const UInt g_auiVlcTable16x16Inter[29] = {8,0,1,1,1,1,2,2,2,2,2,2,2,6,6,6,6,6,6,3,3,3,3,3,3,3,3,3,3};
 #endif
 
-#if LCEC_INTRA_MODE
 #if MTK_DCM_MPM
 const UInt huff17_2[2][17]=
 {
@@ -2013,7 +2010,6 @@ const UInt lengthHuff34_2[2][34]=
   {1, 4, 5, 5, 5, 5, 5, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 8, 8},
   {2, 4, 4, 4, 5, 5, 5, 5, 5, 5, 5, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 7, 7}
 };
-#endif
 #endif
 
 #if RUNLEVEL_TABLE_CUT

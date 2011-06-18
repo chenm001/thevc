@@ -2116,7 +2116,7 @@ Int TComDataCU::getIntraDirLumaPredictor( UInt uiAbsPartIdx, Int uiIntraDirPred[
   return uiPredNum;
 }
 #endif
-#if LCEC_INTRA_MODE
+
 Int TComDataCU::getLeftIntraDirLuma( UInt uiAbsPartIdx )
 {
   TComDataCU* pcTempCU;
@@ -2148,7 +2148,6 @@ Int TComDataCU::getAboveIntraDirLuma( UInt uiAbsPartIdx )
 
   return iAboveIntraDir;
 }
-#endif
 
 UInt TComDataCU::getCtxSplitFlag( UInt uiAbsPartIdx, UInt uiDepth )
 {

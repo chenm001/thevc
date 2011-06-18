@@ -186,7 +186,6 @@ extern const UInt    g_auiLumaRun8x8[28][29];
 extern const UInt    g_auiLumaRun8x8[29][2][64];
 #endif
 
-#if LCEC_INTRA_MODE
 #if MTK_DCM_MPM
 extern const UInt    g_auiIntraModeTableD17[2][16];
 extern const UInt    g_auiIntraModeTableE17[2][16];
@@ -197,7 +196,6 @@ extern const UInt    g_auiIntraModeTableD17[16];
 extern const UInt    g_auiIntraModeTableE17[16];
 extern const UInt    g_auiIntraModeTableD34[33];
 extern const UInt    g_auiIntraModeTableE34[33];
-#endif
 #endif
 
 extern const UInt    g_auiVlcTable8x8Inter[29];
@@ -213,12 +211,10 @@ extern const UInt   g_auiVlcTable16x16Intra[29];
 extern const UInt   g_auiVlcTable16x16Inter[29];
 #endif
 
-#if LCEC_INTRA_MODE
 extern const UInt huff17_2[2][17];
 extern const UInt lengthHuff17_2[2][17];
 extern const UInt huff34_2[2][34];
 extern const UInt lengthHuff34_2[2][34];
-#endif
 
 #if CAVLC_COEF_LRG_BLK
 extern const UInt   *g_pLumaRunTr14x4[5]; 

@@ -83,8 +83,7 @@ protected:
 #endif
   UInt          m_uiLastPosVlcIndex[10];
   
-#if LCEC_INTRA_MODE
- #if MTK_DCM_MPM
+#if MTK_DCM_MPM
   UInt          m_uiIntraModeTableD17[2][16];
   UInt          m_uiIntraModeTableE17[2][16];
 
@@ -96,7 +95,6 @@ protected:
 
   UInt          m_uiIntraModeTableD34[33];
   UInt          m_uiIntraModeTableE34[33];
-#endif
 #endif
   
 #if CAVLC_RQT_CBP

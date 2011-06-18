@@ -458,7 +458,6 @@ Void TDecCavlc::resetEntropy          (TComSlice* pcSlice)
 #endif
 #endif
   
-#if LCEC_INTRA_MODE
 #if MTK_DCM_MPM
   ::memcpy(m_uiIntraModeTableD17[0], g_auiIntraModeTableD17[0], 16*sizeof(UInt));
   ::memcpy(m_uiIntraModeTableD34[0], g_auiIntraModeTableD34[0], 33*sizeof(UInt));
@@ -467,7 +466,6 @@ Void TDecCavlc::resetEntropy          (TComSlice* pcSlice)
 #else
   ::memcpy(m_uiIntraModeTableD17, g_auiIntraModeTableD17, 16*sizeof(UInt));
   ::memcpy(m_uiIntraModeTableD34, g_auiIntraModeTableD34, 33*sizeof(UInt));
-#endif
 #endif
 #if QC_LCEC_INTER_MODE 
   ::memcpy(m_uiSplitTableD, g_auiInterModeTableD, 4*7*sizeof(UInt));
@@ -1054,7 +1052,6 @@ Void TDecCavlc::parseIPCMInfo( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth
 }
 #endif
 
-#if LCEC_INTRA_MODE
 #if MTK_DCM_MPM
 Void TDecCavlc::parseIntraDirLumaAng  ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
 { 
@@ -1302,60 +1299,6 @@ Void TDecCavlc::parseIntraDirLumaAng  ( TComDataCU* pcCU, UInt uiAbsPartIdx, UIn
   }
 #endif
   pcCU->setLumaIntraDirSubParts( (UChar)uiIPredMode, uiAbsPartIdx, uiDepth );     
-}
-#endif
-#else
-Void TDecCavlc::parseIntraDirLumaAng  ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
-{
-  UInt uiSymbol;
-  Int  uiIPredMode;
-  Int  iMostProbable = pcCU->getMostProbableIntraDirLuma( uiAbsPartIdx );
-  
-  xReadFlag( uiSymbol );
-  
-  if ( uiSymbol )
-    uiIPredMode = iMostProbable;
-  else
-  {
-    Int iIntraIdx = pcCU->getIntraSizeIdx(uiAbsPartIdx);
-    if ( g_aucIntraModeBitsAng[iIntraIdx] < 6 )
-    {
-      xReadFlag( uiSymbol ); uiIPredMode  = uiSymbol;
-      if ( g_aucIntraModeBitsAng[iIntraIdx] > 2 ) { xReadFlag( uiSymbol ); uiIPredMode |= uiSymbol << 1; }
-      if ( g_aucIntraModeBitsAng[iIntraIdx] > 3 ) { xReadFlag( uiSymbol ); uiIPredMode |= uiSymbol << 2; }
-      if ( g_aucIntraModeBitsAng[iIntraIdx] > 4 ) { xReadFlag( uiSymbol ); uiIPredMode |= uiSymbol << 3; }
-    }
-    else
-    {
-      xReadFlag( uiSymbol ); uiIPredMode  = uiSymbol;
-      xReadFlag( uiSymbol ); uiIPredMode |= uiSymbol << 1;
-      xReadFlag( uiSymbol ); uiIPredMode |= uiSymbol << 2;
-      xReadFlag( uiSymbol ); uiIPredMode |= uiSymbol << 3;
-      xReadFlag( uiSymbol ); uiIPredMode |= uiSymbol << 4;
-      
-      if (uiIPredMode == 31)
-      { // Escape coding for the last two modes
-        xReadFlag( uiSymbol );
-        uiIPredMode = uiSymbol ? 32 : 31;
-      }
-    }
-    
-    if (uiIPredMode >= iMostProbable)
-      uiIPredMode++;
-  }
-  
-#if ADD_PLANAR_MODE
-  if (uiIPredMode == 2)
-  {
-    UInt planarFlag;
-    xReadFlag( planarFlag );
-    if ( planarFlag )
-    {
-      uiIPredMode = PLANAR_IDX;
-    }
-  }
-#endif
-  pcCU->setLumaIntraDirSubParts( (UChar)uiIPredMode, uiAbsPartIdx, uiDepth );
 }
 #endif
 

@@ -93,7 +93,6 @@
 #define PCP_SIGMAP_SIMPLE_LAST            1
 #define SIMPLE_CONTEXT_SIG                1
 
-#define LCEC_INTRA_MODE                   1           // JCTVC-D366: improved luma intra mode coding
 #define QC_LCEC_INTER_MODE                1
 #define QC_MDIS                           1           // JCTVC-D282: enable mode dependent intra smoothing
 #define QC_MDCS                           1           // JCTVC-D393: mode dependent coefficients coding 

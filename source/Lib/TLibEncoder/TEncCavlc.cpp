@@ -77,7 +77,6 @@ Void TEncCavlc::resetEntropy()
   ::memcpy(m_uiLPTableD4, g_auiLPTableD4, 3*32*sizeof(UInt));
   ::memcpy(m_uiLastPosVlcIndex, g_auiLastPosVlcIndex, 10*sizeof(UInt));
   
-#if LCEC_INTRA_MODE
 #if MTK_DCM_MPM
   ::memcpy(m_uiIntraModeTableD17[0], g_auiIntraModeTableD17[0], 16*sizeof(UInt));
   ::memcpy(m_uiIntraModeTableE17[0], g_auiIntraModeTableE17[0], 16*sizeof(UInt));
@@ -94,7 +93,6 @@ Void TEncCavlc::resetEntropy()
 
   ::memcpy(m_uiIntraModeTableD34, g_auiIntraModeTableD34, 33*sizeof(UInt));
   ::memcpy(m_uiIntraModeTableE34, g_auiIntraModeTableE34, 33*sizeof(UInt));
-#endif
 #endif
   
 #if CAVLC_RQT_CBP
@@ -918,7 +916,6 @@ Void TEncCavlc::codeIPCMInfo( TComDataCU* pcCU, UInt uiAbsPartIdx)
 }
 #endif
 
-#if LCEC_INTRA_MODE
 #if MTK_DCM_MPM
 Void TEncCavlc::codeIntraDirLumaAng( TComDataCU* pcCU, UInt uiAbsPartIdx )
 {
@@ -1146,69 +1143,6 @@ Void TEncCavlc::codeIntraDirLumaAng( TComDataCU* pcCU, UInt uiAbsPartIdx )
 #if ADD_PLANAR_MODE
   iDir = pcCU->getLumaIntraDir( uiAbsPartIdx );
   if ( (iDir == PLANAR_IDX) || (iDir == 2) )
-  {
-    xWriteFlag( planarFlag );
-  }
-#endif
-
-}
-#endif
-#else
-
-Void TEncCavlc::codeIntraDirLumaAng( TComDataCU* pcCU, UInt uiAbsPartIdx )
-{
-  UInt uiDir         = pcCU->getLumaIntraDir( uiAbsPartIdx );
-  Int  iMostProbable = pcCU->getMostProbableIntraDirLuma( uiAbsPartIdx );
-#if ADD_PLANAR_MODE
-  UInt planarFlag    = 0;
-  if (uiDir == PLANAR_IDX)
-  {
-    uiDir = 2;
-    planarFlag = 1;
-  }
-#endif
-  
-  if (uiDir == iMostProbable)
-  {
-    xWriteFlag( 1 );
-  }
-  else
-  {
-    xWriteFlag( 0 );
-    uiDir = uiDir > iMostProbable ? uiDir - 1 : uiDir;
-    Int iIntraIdx = pcCU->getIntraSizeIdx(uiAbsPartIdx);
-    if ( g_aucIntraModeBitsAng[iIntraIdx] < 6 )
-    {
-      xWriteFlag( uiDir & 0x01 ? 1 : 0 );
-      if ( g_aucIntraModeBitsAng[iIntraIdx] > 2 ) xWriteFlag( uiDir & 0x02 ? 1 : 0 );
-      if ( g_aucIntraModeBitsAng[iIntraIdx] > 3 ) xWriteFlag( uiDir & 0x04 ? 1 : 0 );
-      if ( g_aucIntraModeBitsAng[iIntraIdx] > 4 ) xWriteFlag( uiDir & 0x08 ? 1 : 0 );
-    }
-    else
-    {
-      if (uiDir < 31)
-      { // uiDir is here 0...32, 5 bits for uiDir 0...30, 31 is an escape code for coding one more bit for 31 and 32
-        xWriteFlag( uiDir & 0x01 ? 1 : 0 );
-        xWriteFlag( uiDir & 0x02 ? 1 : 0 );
-        xWriteFlag( uiDir & 0x04 ? 1 : 0 );
-        xWriteFlag( uiDir & 0x08 ? 1 : 0 );
-        xWriteFlag( uiDir & 0x10 ? 1 : 0 );
-      }
-      else
-      {
-        xWriteFlag( 1 );
-        xWriteFlag( 1 );
-        xWriteFlag( 1 );
-        xWriteFlag( 1 );
-        xWriteFlag( 1 );
-        xWriteFlag( uiDir == 32 ? 1 : 0 );
-      }
-    }
-  }
-
-#if ADD_PLANAR_MODE
-  uiDir = pcCU->getLumaIntraDir( uiAbsPartIdx );
-  if ( (uiDir == PLANAR_IDX) || (uiDir == 2) )
   {
     xWriteFlag( planarFlag );
   }
