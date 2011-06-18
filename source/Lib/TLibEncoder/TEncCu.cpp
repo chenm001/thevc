@@ -332,17 +332,13 @@ Void TEncCu::compressCU( TComDataCU*& rpcCU )
  */
 Void TEncCu::encodeCU ( TComDataCU* pcCU, Bool bForceTerminate )
 {
-#if SNY_DQP  
   if ( pcCU->getSlice()->getSPS()->getUseDQP() )
   {
     pcCU->setdQPFlag(true); 
   }
-#endif//SNY_DQP
   // Encode CU data
   xEncodeCU( pcCU, 0, 0 );
-#if SNY_DQP
-#if SUB_LCU_DQP
-#else
+#if !SUB_LCU_DQP
   // dQP: only for LCU
   if ( pcCU->getSlice()->getSPS()->getUseDQP() )
   {
@@ -358,20 +354,6 @@ Void TEncCu::encodeCU ( TComDataCU* pcCU, Bool bForceTerminate )
     }
   }
 #endif
-#else
-  // dQP: only for LCU
-  if ( pcCU->getSlice()->getSPS()->getUseDQP() )
-  {
-    if ( pcCU->isSkipped( 0 ) && pcCU->getDepth( 0 ) == 0 )
-    {
-      pcCU->setQPSubParts( pcCU->getSlice()->getSliceQp(), 0, 0 ); 
-    }
-    else
-    {
-      m_pcEntropyCoder->encodeQP( pcCU, 0 );
-    }
-  }
-#endif//SNY_DQP
   
 #if !FINE_GRANULARITY_SLICES
   //--- write terminating bit ---

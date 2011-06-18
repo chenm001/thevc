@@ -95,9 +95,7 @@ private:
   TCoeff*       m_pcTrCoeffY;         ///< transformed coefficient buffer (Y)
   TCoeff*       m_pcTrCoeffCb;        ///< transformed coefficient buffer (Cb)
   TCoeff*       m_pcTrCoeffCr;        ///< transformed coefficient buffer (Cr)
-#if SNY_DQP 
   Bool          m_bdQP;               ///< signal if LCU dQP encoded
-#endif//SNY_DQP
 #if SUB_LCU_DQP
   UChar         m_hLastCodedQP;       ///< array of QP values
 #endif
@@ -271,10 +269,8 @@ public:
   UChar         getQP                 ( UInt uiIdx )            { return m_phQP[uiIdx];       }
   Void          setQP                 ( UInt uiIdx, UChar  uh ) { m_phQP[uiIdx] = uh;         }
   Void          setQPSubParts         ( UInt uiQP,   UInt uiAbsPartIdx, UInt uiDepth );
-#if SNY_DQP
   Bool          getdQPFlag            ()                        { return m_bdQP;              }
   Void          setdQPFlag            ( Bool b )                { m_bdQP = b;                 }
-#endif//SNY_DQP
 #if SUB_LCU_DQP
   UChar         getLastCodedQP        ()                        { return m_hLastCodedQP;      }
   Void          setLastCodedQP        ( UChar uQP )             { m_hLastCodedQP = uQP;       }

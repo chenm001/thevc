@@ -1048,7 +1048,6 @@ Void TEncEntropy::xEncodeCoeff( TComDataCU* pcCU, TCoeff* pcCoeff, UInt uiAbsPar
 {
   if ( pcCU->getCbf( uiAbsPartIdx, eType, uiTrIdx ) )
   {
-#if SNY_DQP
     // dQP: only for LCU once
     if ( pcCU->getSlice()->getSPS()->getUseDQP() )
     {
@@ -1065,7 +1064,6 @@ Void TEncEntropy::xEncodeCoeff( TComDataCU* pcCU, TCoeff* pcCoeff, UInt uiAbsPar
 #endif
       }
     }
-#endif//SNY_DQP
     UInt uiLumaTrMode, uiChromaTrMode;
     pcCU->convertTransIdx( uiAbsPartIdx, pcCU->getTransformIdx( uiAbsPartIdx ), uiLumaTrMode, uiChromaTrMode );
     const UInt uiStopTrMode = eType == TEXT_LUMA ? uiLumaTrMode : uiChromaTrMode;

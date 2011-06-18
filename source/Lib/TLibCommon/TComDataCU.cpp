@@ -99,9 +99,7 @@ TComDataCU::TComDataCU()
   m_uiSliceStartCU        = 0;
   m_uiEntropySliceStartCU = 0;
 
-#if SNY_DQP 
   m_bdQP               = false;               
-#endif//SNY_DQP
 }
 
 TComDataCU::~TComDataCU()
