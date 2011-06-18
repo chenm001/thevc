@@ -911,7 +911,6 @@ Void TEncEntropy::encodePUWise( TComDataCU* pcCU, UInt uiAbsPartIdx, Bool bRD )
     }
     else
     {
-#if MS_LCEC_LOOKUP_TABLE_EXCEPTION
       if ( pcCU->getSlice()->getSymbolMode() == 0 )
       {
         if ( pcCU->isSuroundingRefIdxException( uiAbsPartIdx ) )
@@ -923,7 +922,6 @@ Void TEncEntropy::encodePUWise( TComDataCU* pcCU, UInt uiAbsPartIdx, Bool bRD )
           pcCU->getSlice()->setRefIdxCombineCoding( true );
         }
       }
-#endif
       encodeInterDirPU( pcCU, uiSubPartIdx );
       for ( UInt uiRefListIdx = 0; uiRefListIdx < 2; uiRefListIdx++ )
       {

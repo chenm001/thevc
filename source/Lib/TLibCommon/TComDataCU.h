@@ -481,9 +481,7 @@ public:
   Int           getIntraDirLumaPredictor        ( UInt uiAbsPartIdx, Int uiIntraDirPred[]                 );
 #endif
 
-#if MS_LCEC_LOOKUP_TABLE_EXCEPTION
   Bool          isSuroundingRefIdxException     ( UInt   uiAbsPartIdx );
-#endif
   
   // -------------------------------------------------------------------------------------------------------------------
   // member functions for SBAC context

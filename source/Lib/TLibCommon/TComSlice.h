@@ -328,9 +328,7 @@ private:
   Bool        m_abEqualRef  [2][MAX_NUM_REF][MAX_NUM_REF];
   
   Bool        m_bNoBackPredFlag;
-#if MS_LCEC_LOOKUP_TABLE_EXCEPTION
   Bool        m_bRefIdxCombineCoding;
-#endif
 
   UInt        m_uiTLayer;
   Bool        m_bTLayerSwitchingFlag;
@@ -440,10 +438,8 @@ public:
   
   Bool getNoBackPredFlag() { return m_bNoBackPredFlag; }
   Void setNoBackPredFlag( Bool b ) { m_bNoBackPredFlag = b; }
-#if MS_LCEC_LOOKUP_TABLE_EXCEPTION
   Bool getRefIdxCombineCoding() { return m_bRefIdxCombineCoding; }
   Void setRefIdxCombineCoding( Bool b ) { m_bRefIdxCombineCoding = b; }
-#endif
   Void      generateCombinedList       ();
 
   UInt      getTLayer             ()                            { return m_uiTLayer;                      }

@@ -116,15 +116,8 @@ protected:
   UInt          m_uiBlkCbpVlcIdx;
 #endif
 
-
-  
-#if MS_LCEC_LOOKUP_TABLE_EXCEPTION
   UInt          m_uiMI1TableE[9];
   UInt          m_uiMI1TableD[9];
-#else
-  UInt          m_uiMI1TableE[8];
-  UInt          m_uiMI1TableD[8];
-#endif
   UInt          m_uiMI2TableE[15];
   UInt          m_uiMI2TableD[15];
   

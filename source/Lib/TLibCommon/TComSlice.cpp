@@ -62,9 +62,7 @@ TComSlice::TComSlice()
   
   initEqualRef();
   m_bNoBackPredFlag = false;
-#if MS_LCEC_LOOKUP_TABLE_EXCEPTION
   m_bRefIdxCombineCoding = false;
-#endif
   m_bRefPicListCombinationFlag = false;
   m_bRefPicListModificationFlagLC = false;
   m_uiSliceCurStartCUAddr        = 0;
@@ -94,9 +92,7 @@ Void TComSlice::initSlice()
   
   initEqualRef();
   m_bNoBackPredFlag = false;
-#if MS_LCEC_LOOKUP_TABLE_EXCEPTION
   m_bRefIdxCombineCoding = false;
-#endif
   m_bRefPicListCombinationFlag = false;
   m_bRefPicListModificationFlagLC = false;
 
@@ -635,9 +631,7 @@ Void TComSlice::copySliceInfo(TComSlice *pSrc)
   }
 
   m_bNoBackPredFlag      = pSrc->m_bNoBackPredFlag;
-#if MS_LCEC_LOOKUP_TABLE_EXCEPTION
   m_bRefIdxCombineCoding = pSrc->m_bRefIdxCombineCoding;
-#endif
 
   m_uiTLayer                      = pSrc->m_uiTLayer;
   m_bTLayerSwitchingFlag          = pSrc->m_bTLayerSwitchingFlag;

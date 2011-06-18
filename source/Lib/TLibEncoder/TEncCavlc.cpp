@@ -144,7 +144,6 @@ Void TEncCavlc::resetEntropy()
       ::memcpy(m_uiMI1TableD, g_auiMI1TableDOnly1Ref, 8*sizeof(UInt));
     }
   }
-#if MS_LCEC_LOOKUP_TABLE_EXCEPTION
   if (m_pcSlice->getNumRefIdx(REF_PIC_LIST_C)>0)
   {
     m_uiMI1TableE[8] = 8;
@@ -158,7 +157,6 @@ Void TEncCavlc::resetEntropy()
     m_uiMI1TableE[m_uiMI1TableD[8]] = 8;
     m_uiMI1TableE[m_uiMI1TableD[6]] = 6;
   }
-#endif
 #endif
 
 #if QC_LCEC_INTER_MODE
@@ -1387,11 +1385,7 @@ Void TEncCavlc::codeInterDir( TComDataCU* pcCU, UInt uiAbsPartIdx )
   }
 
 #else //UNIFY_INTER_TABLE  
-#if MS_LCEC_LOOKUP_TABLE_EXCEPTION
   if ( pcCU->getSlice()->getRefIdxCombineCoding() )
-#else
-  if(pcCU->getSlice()->getNumRefIdx( REF_PIC_LIST_0 ) <= 2 && pcCU->getSlice()->getNumRefIdx( REF_PIC_LIST_1 ) <= 2)
-#endif
   {
 #if CAVLC_COUNTER_ADAPT
     Int x,cx;
@@ -1418,7 +1412,6 @@ Void TEncCavlc::codeInterDir( TComDataCU* pcCU, UInt uiAbsPartIdx )
         }
         uiIndex = iRefFrame0;
         
-#if MS_LCEC_LOOKUP_TABLE_EXCEPTION
         if(pcCU->getSlice()->getNumRefIdx(REF_PIC_LIST_C) > 0)
         {
           if ( iRefFrame0 >= 4 )
@@ -1433,7 +1426,6 @@ Void TEncCavlc::codeInterDir( TComDataCU* pcCU, UInt uiAbsPartIdx )
             uiIndex = 8;
           }
         }        
-#endif        
       }
       else if (uiInterDir==1)
       {
@@ -1447,7 +1439,6 @@ Void TEncCavlc::codeInterDir( TComDataCU* pcCU, UInt uiAbsPartIdx )
           iRefFrame1 = pcCU->getCUMvField( REF_PIC_LIST_1 )->getRefIdx( uiAbsPartIdx );
           uiIndex = 2 + iRefFrame1;
         }
-#if MS_LCEC_LOOKUP_TABLE_EXCEPTION
         if(pcCU->getSlice()->getNumRefIdx(REF_PIC_LIST_C) > 0)
         {
           if ( iRefFrame1 >= 4 )
@@ -1462,19 +1453,16 @@ Void TEncCavlc::codeInterDir( TComDataCU* pcCU, UInt uiAbsPartIdx )
             uiIndex = 8;
           }
         } 
-#endif
       }
       else
       {
         iRefFrame0 = pcCU->getCUMvField( REF_PIC_LIST_0 )->getRefIdx( uiAbsPartIdx );
         iRefFrame1 = pcCU->getCUMvField( REF_PIC_LIST_1 )->getRefIdx( uiAbsPartIdx );
         uiIndex = 4 + 2*iRefFrame0 + iRefFrame1;
-#if MS_LCEC_LOOKUP_TABLE_EXCEPTION
         if ( iRefFrame0 >= 2 || iRefFrame1 >= 2 )
         {
           uiIndex = 8;
         }
-#endif
       }
     }
     
@@ -1500,9 +1488,7 @@ Void TEncCavlc::codeInterDir( TComDataCU* pcCU, UInt uiAbsPartIdx )
     
     {
       UInt uiMaxVal = 7;
-#if MS_LCEC_LOOKUP_TABLE_EXCEPTION
       uiMaxVal = 8;
-#endif
       if ( pcCU->getSlice()->getNumRefIdx( REF_PIC_LIST_0 ) <= 1 && pcCU->getSlice()->getNumRefIdx( REF_PIC_LIST_1 ) <= 1 )
       {
         if ( pcCU->getSlice()->getNoBackPredFlag() || ( pcCU->getSlice()->getNumRefIdx(REF_PIC_LIST_C) > 0 && pcCU->getSlice()->getNumRefIdx(REF_PIC_LIST_C) <= 1 ) )
@@ -1533,9 +1519,7 @@ Void TEncCavlc::codeInterDir( TComDataCU* pcCU, UInt uiAbsPartIdx )
       xWriteUnaryMaxSymbol( cx, uiMaxVal );
     }
     
-#if MS_LCEC_LOOKUP_TABLE_EXCEPTION
     if ( x<8 ) 
-#endif   
     {
       return;
     }
@@ -1585,7 +1569,6 @@ Void TEncCavlc::codeRefFrmIdx( TComDataCU* pcCU, UInt uiAbsPartIdx, RefPicList e
     return;
   }
   
-#if MS_LCEC_LOOKUP_TABLE_EXCEPTION
   if ( pcCU->getSlice()->getRefIdxCombineCoding() && pcCU->getInterDir(uiAbsPartIdx)==3 &&
       pcCU->getCUMvField( REF_PIC_LIST_0 )->getRefIdx( uiAbsPartIdx ) < 2 &&
       pcCU->getCUMvField( REF_PIC_LIST_1 )->getRefIdx( uiAbsPartIdx ) < 2 )
@@ -1632,22 +1615,11 @@ Void TEncCavlc::codeRefFrmIdx( TComDataCU* pcCU, UInt uiAbsPartIdx, RefPicList e
     return;
   }
   xWriteFlag( ( iRefFrame - uiRefFrmIdxMinus == 0 ? 0 : 1 ) );
-#else
-  xWriteFlag( ( iRefFrame == 0 ? 0 : 1 ) );
-#endif
   
-#if MS_LCEC_LOOKUP_TABLE_EXCEPTION
   if ( iRefFrame - uiRefFrmIdxMinus > 0 )
-#else    
-  if ( iRefFrame > 0 )
-#endif
   {
     {
-#if MS_LCEC_LOOKUP_TABLE_EXCEPTION
       xWriteUnaryMaxSymbol( iRefFrame - 1 - uiRefFrmIdxMinus, pcCU->getSlice()->getNumRefIdx( eRefListTemp )-2 - uiRefFrmIdxMinus );
-#else
-      xWriteUnaryMaxSymbol( iRefFrame - 1, pcCU->getSlice()->getNumRefIdx( eRefListTemp )-2 );
-#endif
     }
   }
   return;

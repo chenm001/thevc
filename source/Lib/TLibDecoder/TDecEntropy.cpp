@@ -641,7 +641,6 @@ Void TDecEntropy::decodePUWise( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDept
     }
     else
     {
-#if MS_LCEC_LOOKUP_TABLE_EXCEPTION
       if ( pcCU->getSlice()->getSymbolMode() == 0 )
       {
         if ( pcCU->isSuroundingRefIdxException( uiAbsPartIdx ) )
@@ -653,7 +652,6 @@ Void TDecEntropy::decodePUWise( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDept
           pcCU->getSlice()->setRefIdxCombineCoding( true );
         }
       }
-#endif
       decodeInterDirPU( pcCU, uiSubPartIdx, uiDepth, uiPartIdx );
       for ( UInt uiRefListIdx = 0; uiRefListIdx < 2; uiRefListIdx++ )
       {        

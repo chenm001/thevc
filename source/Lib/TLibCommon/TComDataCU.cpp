@@ -4419,7 +4419,6 @@ UInt TComDataCU::getCoefScanIdx(UInt uiAbsPartIdx, UInt uiWidth, Bool bIsLuma, B
 }
 #endif //QC_MDCS
 
-#if MS_LCEC_LOOKUP_TABLE_EXCEPTION
 Bool TComDataCU::isSuroundingRefIdxException     ( UInt   uiAbsPartIdx )
 {
   if ( !getSlice()->isInterB() )
@@ -4586,4 +4585,3 @@ Bool TComDataCU::isSuroundingRefIdxException     ( UInt   uiAbsPartIdx )
   
   return false;
 }
-#endif

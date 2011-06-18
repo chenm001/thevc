@@ -414,7 +414,6 @@ Void TDecCavlc::resetEntropy          (TComSlice* pcSlice)
       ::memcpy(m_uiMI1TableD,        g_auiMI1TableDOnly1Ref,        8*sizeof(UInt));
     }
   }
-#if MS_LCEC_LOOKUP_TABLE_EXCEPTION
   if (pcSlice->getNumRefIdx(REF_PIC_LIST_C)>0)
   {
     m_uiMI1TableD[8] = 8;
@@ -424,7 +423,6 @@ Void TDecCavlc::resetEntropy          (TComSlice* pcSlice)
     m_uiMI1TableD[8] = m_uiMI1TableD[6];
     m_uiMI1TableD[6] = 8;
   }
-#endif
 #endif
   
 #if MTK_DCM_MPM
@@ -1488,11 +1486,7 @@ Void TDecCavlc::parseInterDir( TComDataCU* pcCU, UInt& ruiInterDir, UInt uiAbsPa
     }
   }
 #else  //UNIFY_INTER_TABLE  
-#if MS_LCEC_LOOKUP_TABLE_EXCEPTION
   if ( pcCU->getSlice()->getRefIdxCombineCoding() )
-#else
-  if(pcCU->getSlice()->getNumRefIdx( REF_PIC_LIST_0 ) <= 2 && pcCU->getSlice()->getNumRefIdx( REF_PIC_LIST_1 ) <= 2)
-#endif
   {
     UInt uiIndex,uiInterDir,tmp;
 
@@ -1503,9 +1497,7 @@ Void TDecCavlc::parseInterDir( TComDataCU* pcCU, UInt& ruiInterDir, UInt uiAbsPa
 #endif
 
     UInt uiMaxVal = 7;
-#if MS_LCEC_LOOKUP_TABLE_EXCEPTION
     uiMaxVal = 8;
-#endif
     if ( pcCU->getSlice()->getNumRefIdx( REF_PIC_LIST_0 ) <= 1 && pcCU->getSlice()->getNumRefIdx( REF_PIC_LIST_1 ) <= 1 )
     {
       if ( pcCU->getSlice()->getNoBackPredFlag() || ( pcCU->getSlice()->getNumRefIdx(REF_PIC_LIST_C) > 0 && pcCU->getSlice()->getNumRefIdx(REF_PIC_LIST_C) <= 1 ) )
@@ -1554,7 +1546,6 @@ Void TDecCavlc::parseInterDir( TComDataCU* pcCU, UInt& ruiInterDir, UInt uiAbsPa
 #endif
     {
       uiInterDir = min(2,uiIndex>>1);  
-#if MS_LCEC_LOOKUP_TABLE_EXCEPTION
       if ( uiIndex >=4 )
       {
         uiInterDir = 2;
@@ -1563,7 +1554,6 @@ Void TDecCavlc::parseInterDir( TComDataCU* pcCU, UInt& ruiInterDir, UInt uiAbsPa
       {
         uiInterDir = 0;
       }
-#endif
       if(uiInterDir!=2 && pcCU->getSlice()->getNumRefIdx(REF_PIC_LIST_C)>0)
       {
         uiInterDir = 0;
@@ -1571,11 +1561,7 @@ Void TDecCavlc::parseInterDir( TComDataCU* pcCU, UInt& ruiInterDir, UInt uiAbsPa
       }
       else if (uiInterDir==0)
       {
-#if MS_LCEC_LOOKUP_TABLE_EXCEPTION
         m_iRefFrame0[uiAbsPartIdx] = uiIndex;
-#else
-        m_iRefFrame0[uiAbsPartIdx] = uiIndex&1;
-#endif
       }
       else if (uiInterDir==1)
         m_iRefFrame1[uiAbsPartIdx] = uiIndex&1;
@@ -1586,19 +1572,15 @@ Void TDecCavlc::parseInterDir( TComDataCU* pcCU, UInt& ruiInterDir, UInt uiAbsPa
       }
     }
     ruiInterDir = uiInterDir+1;
-#if MS_LCEC_LOOKUP_TABLE_EXCEPTION
     if ( x < 8 )
-#endif
     {
       return;
     }
   }
 #endif //UNIFY_INTER_TABLE
   
-#if MS_LCEC_LOOKUP_TABLE_EXCEPTION
   m_iRefFrame0[uiAbsPartIdx] = 1000;
   m_iRefFrame1[uiAbsPartIdx] = 1000;
-#endif
   
   xReadFlag( uiSymbol );
   
@@ -1644,7 +1626,6 @@ Void TDecCavlc::parseRefFrmIdx( TComDataCU* pcCU, Int& riRefFrmIdx, UInt uiAbsPa
     return;
   }    
   
-#if MS_LCEC_LOOKUP_TABLE_EXCEPTION
   if ( ( m_iRefFrame0[uiAbsPartIdx] != 1000 || m_iRefFrame1[uiAbsPartIdx] != 1000 ) &&
       pcCU->getSlice()->getRefIdxCombineCoding() )
   {
@@ -1689,23 +1670,16 @@ Void TDecCavlc::parseRefFrmIdx( TComDataCU* pcCU, Int& riRefFrmIdx, UInt uiAbsPa
     riRefFrmIdx += uiRefFrmIdxMinus;
     return;
   }
-#endif
   
   xReadFlag ( uiSymbol );
   if ( uiSymbol )
   {
-#if MS_LCEC_LOOKUP_TABLE_EXCEPTION
     xReadUnaryMaxSymbol( uiSymbol, pcCU->getSlice()->getNumRefIdx( eRefList )-2 - uiRefFrmIdxMinus );
-#else
-    xReadUnaryMaxSymbol( uiSymbol, pcCU->getSlice()->getNumRefIdx( eRefList )-2 );
-#endif
     
     uiSymbol++;
   }
   riRefFrmIdx = uiSymbol;
-#if MS_LCEC_LOOKUP_TABLE_EXCEPTION
   riRefFrmIdx += uiRefFrmIdxMinus;
-#endif
   
   return;
 }
