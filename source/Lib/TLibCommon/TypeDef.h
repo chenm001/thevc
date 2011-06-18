@@ -120,9 +120,6 @@
 #define MTK_AMVP_SMVP_DERIVATION          1              ///< (JCTVC-E481 - D125 2.3) amvp spatial candidate derivation
 #define TI_AMVP_SMVP_SIMPLIFIED           1              ///< (JCTVC-E481 - F)amvp spatial candidate simplified scanning
 
-#define DCM_COMB_LIST                     1           ///< Use of combined list for uni-prediction in B-slices
-
-
 #define ADD_PLANAR_MODE                   1           ///< enable/disable Planar mode for intra prediction (JCTVC-E321)
 #if ADD_PLANAR_MODE
 #define NUM_INTRA_MODE                    35
@@ -476,9 +473,7 @@ enum RefPicList
 {
   REF_PIC_LIST_0 = 0,   ///< reference list 0
   REF_PIC_LIST_1 = 1,   ///< reference list 1
-#if DCM_COMB_LIST
   REF_PIC_LIST_C = 2,   ///< combined reference list for uni-prediction in B-Slices
-#endif
   REF_PIC_LIST_X = 100  ///< special mark
 };
 

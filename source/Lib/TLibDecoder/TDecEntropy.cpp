@@ -704,7 +704,6 @@ Void TDecEntropy::decodeInterDirPU( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt ui
 
 Void TDecEntropy::decodeRefFrmIdxPU( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth, UInt uiPartIdx, RefPicList eRefList )
 {
-#if DCM_COMB_LIST 
   if(pcCU->getSlice()->getNumRefIdx(REF_PIC_LIST_C) > 0 && pcCU->getInterDir( uiAbsPartIdx ) != 3)
   {
     if(eRefList == REF_PIC_LIST_1)
@@ -737,30 +736,25 @@ Void TDecEntropy::decodeRefFrmIdxPU( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt u
   }
   else
   {
-#endif
+    Int iRefFrmIdx = 0;
+    Int iParseRefFrmIdx = pcCU->getInterDir( uiAbsPartIdx ) & ( 1 << eRefList );
 
-  Int iRefFrmIdx = 0;
-  Int iParseRefFrmIdx = pcCU->getInterDir( uiAbsPartIdx ) & ( 1 << eRefList );
+    if ( pcCU->getSlice()->getNumRefIdx( eRefList ) > 1 && iParseRefFrmIdx )
+    {
+      m_pcEntropyDecoderIf->parseRefFrmIdx( pcCU, iRefFrmIdx, uiAbsPartIdx, uiDepth, eRefList );
+    }
+    else if ( !iParseRefFrmIdx )
+    {
+      iRefFrmIdx = NOT_VALID;
+    }
+    else
+    {
+      iRefFrmIdx = 0;
+    }
 
-  if ( pcCU->getSlice()->getNumRefIdx( eRefList ) > 1 && iParseRefFrmIdx )
-  {
-    m_pcEntropyDecoderIf->parseRefFrmIdx( pcCU, iRefFrmIdx, uiAbsPartIdx, uiDepth, eRefList );
+    PartSize ePartSize = pcCU->getPartitionSize( uiAbsPartIdx );
+    pcCU->getCUMvField( eRefList )->setAllRefIdx( iRefFrmIdx, ePartSize, uiAbsPartIdx, uiDepth );
   }
-  else if ( !iParseRefFrmIdx )
-  {
-    iRefFrmIdx = NOT_VALID;
-  }
-  else
-  {
-    iRefFrmIdx = 0;
-  }
-
-  PartSize ePartSize = pcCU->getPartitionSize( uiAbsPartIdx );
-  pcCU->getCUMvField( eRefList )->setAllRefIdx( iRefFrmIdx, ePartSize, uiAbsPartIdx, uiDepth );
-
-#if DCM_COMB_LIST
-  }
-#endif  
 }
 
 /** decode motion vector difference for a PU block

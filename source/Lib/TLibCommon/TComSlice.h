@@ -82,10 +82,8 @@ private:
   Bool        m_bUseLMChroma; // JL:
 #endif
 
-#if DCM_COMB_LIST
   Bool        m_bUseLComb;
   Bool        m_bLCMod;
-#endif
   
   // Parameter
   AMVP_MODE   m_aeAMVPMode[MAX_CU_DEPTH];
@@ -170,12 +168,10 @@ public:
   Void setUsePAD      ( Bool b ) { m_bUsePAD   = b;         }
   Void setUseMRG      ( Bool b ) { m_bUseMRG  = b;          } // SOPH:
   
-#if DCM_COMB_LIST
   Void setUseLComb    (Bool b)   { m_bUseLComb = b;         }
   Bool getUseLComb    ()         { return m_bUseLComb;      }
   Void setLCMod       (Bool b)   { m_bLCMod = b;     }
   Bool getLCMod       ()         { return m_bLCMod;  }
-#endif
 
 #if LM_CHROMA 
   Bool getUseLMChroma ()         { return m_bUseLMChroma;        }
@@ -301,7 +297,6 @@ private:
   
   Bool        m_bDRBFlag;             //  flag for future usage as reference buffer
   ERBIndex    m_eERBIndex;            //  flag for future usage as reference buffer
-#if DCM_COMB_LIST
   Int         m_aiNumRefIdx   [3];    //  for multiple reference of current slice
 
   Int         m_iRefIdxOfLC[2][MAX_NUM_REF_LC];
@@ -311,9 +306,6 @@ private:
   Int         m_iRefIdxOfL0FromRefIdxOfL1[MAX_NUM_REF_LC];
   Bool        m_bRefPicListModificationFlagLC;
   Bool        m_bRefPicListCombinationFlag;
-#else
-  Int         m_aiNumRefIdx   [2];    //  for multiple reference of current slice
-#endif  
 
   //  Data
   Int         m_iSliceQpDelta;
@@ -387,7 +379,6 @@ public:
   Int       getDepth            ()                              { return  m_iDepth;                     }
   UInt      getColDir           ()                              { return  m_uiColDir;                   }
   
-#if DCM_COMB_LIST 
   Int       getRefIdxOfLC       (RefPicList e, Int iRefIdx)     { return m_iRefIdxOfLC[e][iRefIdx];           }
   Int       getListIdFromIdxOfLC(Int iRefIdx)                   { return m_eListIdFromIdxOfLC[iRefIdx];       }
   Int       getRefIdxFromIdxOfLC(Int iRefIdx)                   { return m_iRefIdxFromIdxOfLC[iRefIdx];       }
@@ -400,7 +391,6 @@ public:
   Void      setListIdFromIdxOfLC(Int  iRefIdx, UInt uiVal)      { m_eListIdFromIdxOfLC[iRefIdx]=uiVal; }
   Void      setRefIdxFromIdxOfLC(Int  iRefIdx, UInt uiVal)      { m_iRefIdxFromIdxOfLC[iRefIdx]=uiVal; }
   Void      setRefIdxOfLC       (RefPicList e, Int iRefIdx, Int RefIdxLC)     { m_iRefIdxOfLC[e][iRefIdx]=RefIdxLC;}
-#endif
 
   Void      setReferenced(Bool b)                               { m_bRefenced = b; }
   Bool      isReferenced()                                      { return m_bRefenced; }
@@ -454,9 +444,7 @@ public:
   Bool getRefIdxCombineCoding() { return m_bRefIdxCombineCoding; }
   Void setRefIdxCombineCoding( Bool b ) { m_bRefIdxCombineCoding = b; }
 #endif
-#if DCM_COMB_LIST
   Void      generateCombinedList       ();
-#endif
 
   UInt      getTLayer             ()                            { return m_uiTLayer;                      }
   Void      setTLayer             ( UInt uiTLayer )             { m_uiTLayer = uiTLayer;                  }

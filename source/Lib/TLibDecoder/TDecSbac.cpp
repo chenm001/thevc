@@ -1136,12 +1136,10 @@ Void TDecSbac::parseInterDir( TComDataCU* pcCU, UInt& ruiInterDir, UInt uiAbsPar
   {
     uiSymbol = 2;
   }
-#if DCM_COMB_LIST
   else if(pcCU->getSlice()->getNumRefIdx(REF_PIC_LIST_C) > 0)
   {
     uiSymbol = 0;
   }
-#endif
   else if ( pcCU->getSlice()->getNoBackPredFlag() )
   {
     uiSymbol = 0;
@@ -1159,7 +1157,6 @@ Void TDecSbac::parseRefFrmIdx( TComDataCU* pcCU, Int& riRefFrmIdx, UInt uiAbsPar
 {
   UInt uiSymbol;
 
-#if DCM_COMB_LIST
   if(pcCU->getSlice()->getNumRefIdx(REF_PIC_LIST_C ) > 0 && eRefList==REF_PIC_LIST_C)
   {
     UInt uiCtx;
@@ -1179,22 +1176,17 @@ Void TDecSbac::parseRefFrmIdx( TComDataCU* pcCU, Int& riRefFrmIdx, UInt uiAbsPar
   }
   else
   {
-#endif
-
-  UInt uiCtx = pcCU->getCtxRefIdx( uiAbsPartIdx, eRefList );
-  
-  m_pcTDecBinIf->decodeBin ( uiSymbol, m_cCURefPicSCModel.get( 0, 0, uiCtx ) );
-  if ( uiSymbol )
-  {
-    xReadUnaryMaxSymbol( uiSymbol, &m_cCURefPicSCModel.get( 0, 0, 4 ), 1, pcCU->getSlice()->getNumRefIdx( eRefList )-2 );
+    UInt uiCtx = pcCU->getCtxRefIdx( uiAbsPartIdx, eRefList );
     
-    uiSymbol++;
+    m_pcTDecBinIf->decodeBin ( uiSymbol, m_cCURefPicSCModel.get( 0, 0, uiCtx ) );
+    if ( uiSymbol )
+    {
+      xReadUnaryMaxSymbol( uiSymbol, &m_cCURefPicSCModel.get( 0, 0, 4 ), 1, pcCU->getSlice()->getNumRefIdx( eRefList )-2 );
+      
+      uiSymbol++;
+    }
+    riRefFrmIdx = uiSymbol;
   }
-  riRefFrmIdx = uiSymbol;
-
-#if DCM_COMB_LIST
-  }
-#endif
 
   return;
 }

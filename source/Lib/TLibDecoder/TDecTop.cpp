@@ -381,7 +381,6 @@ Bool TDecTop::decode(InputNALUnit& nalu, Int& iSkipFrame, Int& iPOCLastDisplay)
         // HierP + GPB case
         if ( m_cSPS.getUseLDC() && pcSlice->isInterB() )
         {
-#if DCM_COMB_LIST
           if(pcSlice->getRefPicListCombinationFlag() && (pcSlice->getNumRefIdx(REF_PIC_LIST_0) > pcSlice->getNumRefIdx(REF_PIC_LIST_1)))
           {
             for (Int iRefIdx = 0; iRefIdx < pcSlice->getNumRefIdx(REF_PIC_LIST_1); iRefIdx++)
@@ -391,7 +390,6 @@ Bool TDecTop::decode(InputNALUnit& nalu, Int& iSkipFrame, Int& iPOCLastDisplay)
           }
           else
           {
-#endif
             Int iNumRefIdx = pcSlice->getNumRefIdx(REF_PIC_LIST_0);
             pcSlice->setNumRefIdx( REF_PIC_LIST_1, iNumRefIdx );
             
@@ -399,9 +397,7 @@ Bool TDecTop::decode(InputNALUnit& nalu, Int& iSkipFrame, Int& iPOCLastDisplay)
             {
               pcSlice->setRefPic(pcSlice->getRefPic(REF_PIC_LIST_0, iRefIdx), REF_PIC_LIST_1, iRefIdx);
             }
-#if DCM_COMB_LIST
           }
-#endif
         }
         
         // For generalized B
@@ -420,34 +416,28 @@ Bool TDecTop::decode(InputNALUnit& nalu, Int& iSkipFrame, Int& iPOCLastDisplay)
         //---------------
         pcSlice->setRefPOCList();
         
-#if DCM_COMB_LIST 
         if(!pcSlice->getRefPicListModificationFlagLC())
         {
           pcSlice->generateCombinedList();
         }
-#endif
         
         pcSlice->setNoBackPredFlag( false );
-#if DCM_COMB_LIST
         if ( pcSlice->getSliceType() == B_SLICE && !pcSlice->getRefPicListCombinationFlag())
-#else
-          if ( pcSlice->getSliceType() == B_SLICE )
-#endif
+        {
+          if ( pcSlice->getNumRefIdx(RefPicList( 0 ) ) == pcSlice->getNumRefIdx(RefPicList( 1 ) ) )
           {
-            if ( pcSlice->getNumRefIdx(RefPicList( 0 ) ) == pcSlice->getNumRefIdx(RefPicList( 1 ) ) )
+            pcSlice->setNoBackPredFlag( true );
+            int i;
+            for ( i=0; i < pcSlice->getNumRefIdx(RefPicList( 1 ) ); i++ )
             {
-              pcSlice->setNoBackPredFlag( true );
-              int i;
-              for ( i=0; i < pcSlice->getNumRefIdx(RefPicList( 1 ) ); i++ )
+              if ( pcSlice->getRefPOC(RefPicList(1), i) != pcSlice->getRefPOC(RefPicList(0), i) ) 
               {
-                if ( pcSlice->getRefPOC(RefPicList(1), i) != pcSlice->getRefPOC(RefPicList(0), i) ) 
-                {
-                  pcSlice->setNoBackPredFlag( false );
-                  break;
-                }
+                pcSlice->setNoBackPredFlag( false );
+                break;
               }
             }
           }
+        }
       }
       
       pcPic->setCurrSliceIdx(m_uiSliceIdx);

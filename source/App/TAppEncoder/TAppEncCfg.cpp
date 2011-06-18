@@ -155,10 +155,8 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
   ("HierarchicalCoding",     m_bHierarchicalCoding, true)
   ("LowDelayCoding",         m_bUseLDC,             false, "low-delay mode")
   ("GPB", m_bUseGPB, false, "generalized B instead of P in low-delay mode")
-#if DCM_COMB_LIST
   ("ListCombination, -lc", m_bUseLComb, true, "combined reference list for uni-prediction in B-slices")
   ("LCModification", m_bLCMod, false, "enables signalling of combined reference list derivation")
-#endif
   ("NRF", m_bUseNRF,  true, "non-reference frame marking in last layer")
   ("BQP", m_bUseBQP, false, "hier-P style QP assignment in low-delay mode")
 
@@ -420,9 +418,7 @@ Void TAppEncCfg::xCheckParameter()
 #endif
   xConfirmPara( m_iSymbolMode < 0 || m_iSymbolMode > 1,                                     "SymbolMode must be equal to 0 or 1" );
   
-#if DCM_COMB_LIST
   xConfirmPara( m_bUseLComb==false && m_bUseLDC==false,         "LComb can only be 0 if LowDelayCoding is 1" );
-#endif
   
   // max CU width and height should be power of 2
   UInt ui = m_uiMaxCUWidth;
@@ -579,10 +575,8 @@ Void TAppEncCfg::xPrintParameter()
   printf("NRF:%d ", m_bUseNRF             );
   printf("BQP:%d ", m_bUseBQP             );
   printf("GPB:%d ", m_bUseGPB             );
-#if DCM_COMB_LIST
   printf("LComb:%d ", m_bUseLComb         );
   printf("LCMod:%d ", m_bLCMod         );
-#endif
   printf("FEN:%d ", m_bUseFastEnc         );
   printf("RQT:%d ", 1     );
   printf("MRG:%d ", m_bUseMRG             ); // SOPH: Merge Mode

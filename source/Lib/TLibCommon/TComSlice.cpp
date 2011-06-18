@@ -65,10 +65,8 @@ TComSlice::TComSlice()
 #if MS_LCEC_LOOKUP_TABLE_EXCEPTION
   m_bRefIdxCombineCoding = false;
 #endif
-#if DCM_COMB_LIST 
   m_bRefPicListCombinationFlag = false;
   m_bRefPicListModificationFlagLC = false;
-#endif
   m_uiSliceCurStartCUAddr        = 0;
   m_uiEntropySliceCurStartCUAddr = 0;
 
@@ -99,13 +97,11 @@ Void TComSlice::initSlice()
 #if MS_LCEC_LOOKUP_TABLE_EXCEPTION
   m_bRefIdxCombineCoding = false;
 #endif
-#if DCM_COMB_LIST 
   m_bRefPicListCombinationFlag = false;
   m_bRefPicListModificationFlagLC = false;
 
   m_aiNumRefIdx[REF_PIC_LIST_C]      = 0;
 
-#endif
 #if FINE_GRANULARITY_SLICES
   m_bFinalized=false;
 #endif
@@ -317,7 +313,6 @@ Void TComSlice::setRefPOCList       ()
 
 }
 
-#if DCM_COMB_LIST 
 Void TComSlice::generateCombinedList()
 {
   if(m_aiNumRefIdx[REF_PIC_LIST_C] > 0)
@@ -382,7 +377,6 @@ Void TComSlice::generateCombinedList()
     }
   }
 }
-#endif
 
 Void TComSlice::setRefPicList       ( TComList<TComPic*>& rcListPic )
 {
@@ -586,7 +580,6 @@ Void TComSlice::copySliceInfo(TComSlice *pSrc)
   m_bDRBFlag             = pSrc->m_bDRBFlag;
   m_eERBIndex            = pSrc->m_eERBIndex;
   
-#if DCM_COMB_LIST  
   for (i = 0; i < 3; i++)
   {
     m_aiNumRefIdx[i]     = pSrc->m_aiNumRefIdx[i];
@@ -608,12 +601,6 @@ Void TComSlice::copySliceInfo(TComSlice *pSrc)
   }
   m_bRefPicListModificationFlagLC = pSrc->m_bRefPicListModificationFlagLC;
   m_bRefPicListCombinationFlag    = pSrc->m_bRefPicListCombinationFlag;
-#else
-  for (i = 0; i < 2; i++)
-  {
-    m_aiNumRefIdx[i]     = pSrc->m_aiNumRefIdx[i];
-  }
-#endif  
 
   m_iSliceQpDelta        = pSrc->m_iSliceQpDelta;
   for (i = 0; i < 2; i++)

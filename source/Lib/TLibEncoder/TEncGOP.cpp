@@ -213,7 +213,6 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
         {
           pcSlice->setSliceType( B_SLICE ); // Change slice type by force
           
-#if DCM_COMB_LIST
           if(pcSlice->getSPS()->getUseLComb() && (m_pcCfg->getNumOfReferenceB_L1() < m_pcCfg->getNumOfReferenceB_L0()) && (pcSlice->getNumRefIdx(REF_PIC_LIST_0)>1))
           {
             pcSlice->setNumRefIdx( REF_PIC_LIST_1, m_pcCfg->getNumOfReferenceB_L1() );
@@ -225,21 +224,17 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
           }
           else
           {
-#endif
-          Int iNumRefIdx = pcSlice->getNumRefIdx(REF_PIC_LIST_0);
-          pcSlice->setNumRefIdx( REF_PIC_LIST_1, iNumRefIdx );
-          
-          for (Int iRefIdx = 0; iRefIdx < iNumRefIdx; iRefIdx++)
-          {
-            pcSlice->setRefPic(pcSlice->getRefPic(REF_PIC_LIST_0, iRefIdx), REF_PIC_LIST_1, iRefIdx);
+            Int iNumRefIdx = pcSlice->getNumRefIdx(REF_PIC_LIST_0);
+            pcSlice->setNumRefIdx( REF_PIC_LIST_1, iNumRefIdx );
+            
+            for (Int iRefIdx = 0; iRefIdx < iNumRefIdx; iRefIdx++)
+            {
+              pcSlice->setRefPic(pcSlice->getRefPic(REF_PIC_LIST_0, iRefIdx), REF_PIC_LIST_1, iRefIdx);
+            }
           }
-#if DCM_COMB_LIST
-          }
-#endif
         }
       }
 
-#if DCM_COMB_LIST
       if (pcSlice->getSliceType() != B_SLICE || !pcSlice->getSPS()->getUseLComb())
       {
         pcSlice->setNumRefIdx(REF_PIC_LIST_C, 0);
@@ -252,7 +247,6 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
         pcSlice->setRefPicListModificationFlagLC(pcSlice->getSPS()->getLCMod());
         pcSlice->setNumRefIdx(REF_PIC_LIST_C, pcSlice->getNumRefIdx(REF_PIC_LIST_0));
       }
-#endif
       
       if (pcSlice->getSliceType() == B_SLICE)
       {
@@ -265,11 +259,7 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
       pcSlice->setRefPOCList();
       
       pcSlice->setNoBackPredFlag( false );
-#if DCM_COMB_LIST
       if ( pcSlice->getSliceType() == B_SLICE && !pcSlice->getRefPicListCombinationFlag())
-#else
-      if ( pcSlice->getSliceType() == B_SLICE )
-#endif
       {
         if ( pcSlice->getNumRefIdx(RefPicList( 0 ) ) == pcSlice->getNumRefIdx(RefPicList( 1 ) ) )
         {
@@ -286,13 +276,11 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
         }
       }
 
-#if DCM_COMB_LIST
       if(pcSlice->getNoBackPredFlag())
       {
         pcSlice->setNumRefIdx(REF_PIC_LIST_C, 0);
       }
       pcSlice->generateCombinedList();
-#endif
       
       /////////////////////////////////////////////////////////////////////////////////////////////////// Compress a slice
       //  Slice compression
@@ -1312,7 +1300,6 @@ Void TEncGOP::xCalculateAddPSNR( TComPic* pcPic, TComPicYuv* pcPicD, const Acces
     }
     printf("]");
   }
-#if DCM_COMB_LIST
   if(pcSlice->getNumRefIdx(REF_PIC_LIST_C)>0 && !pcSlice->getNoBackPredFlag())
   {
     printf(" [LC ");
@@ -1322,7 +1309,6 @@ Void TEncGOP::xCalculateAddPSNR( TComPic* pcPic, TComPicYuv* pcPicD, const Acces
     }
     printf("]");
   }
-#endif
 }
 
 /** Function for deciding the nal_unit_type.

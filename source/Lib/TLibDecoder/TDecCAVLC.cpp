@@ -341,7 +341,6 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice)
       rpcSlice->setNumRefIdx(REF_PIC_LIST_1, 0);
     }
     
-#if DCM_COMB_LIST
     if (rpcSlice->isInterB())
     {
       xReadFlag (uiCode);      rpcSlice->setRefPicListCombinationFlag(uiCode ? 1 : 0);
@@ -372,7 +371,6 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice)
     {
       rpcSlice->setRefPicListCombinationFlag(false);      
     }
-#endif
     
     xReadFlag (uiCode);     rpcSlice->setDRBFlag          (uiCode ? 1 : 0);
     if ( !rpcSlice->getDRBFlag() )
@@ -422,11 +420,7 @@ Void TDecCavlc::resetEntropy          (TComSlice* pcSlice)
   ::memcpy(m_uiMI1TableD,        g_auiMI1TableD,        8*sizeof(UInt));
   ::memcpy(m_uiMI2TableD,        g_auiMI2TableD,        15*sizeof(UInt));
   
-#if DCM_COMB_LIST
   if ( pcSlice->getNoBackPredFlag() || pcSlice->getNumRefIdx(REF_PIC_LIST_C)>0)
-#else
-  if ( pcSlice->getNoBackPredFlag() )
-#endif
   {
     ::memcpy(m_uiMI1TableD,        g_auiMI1TableDNoL1,        8*sizeof(UInt));
     ::memcpy(m_uiMI2TableD,        g_auiMI2TableDNoL1,        15*sizeof(UInt));
@@ -1411,12 +1405,8 @@ Void TDecCavlc::parseInterDir( TComDataCU* pcCU, UInt& ruiInterDir, UInt uiAbsPa
   UInt uiSymbol;
 
 #if UNIFY_INTER_TABLE
-#if DCM_COMB_LIST
   UInt uiNumRefIdxOfLC = pcCU->getSlice()->getNumRefIdx(REF_PIC_LIST_C);
-#endif
-#if DCM_COMB_LIST
   UInt uiValNumRefIdxOfLC = min(4,pcCU->getSlice()->getNumRefIdx(REF_PIC_LIST_C));
-#endif
   UInt uiValNumRefIdxOfL0 = min(2,pcCU->getSlice()->getNumRefIdx(REF_PIC_LIST_0));
   UInt uiValNumRefIdxOfL1 = min(2,pcCU->getSlice()->getNumRefIdx(REF_PIC_LIST_1));
 
@@ -1432,14 +1422,11 @@ Void TDecCavlc::parseInterDir( TComDataCU* pcCU, UInt& ruiInterDir, UInt uiAbsPa
     UInt *m_uiMITableD = m_uiMI1TableD;
 
     UInt uiMaxVal;
-#if DCM_COMB_LIST
     if (uiNumRefIdxOfLC > 0)
     {
       uiMaxVal = uiValNumRefIdxOfLC + uiValNumRefIdxOfL0*uiValNumRefIdxOfL1;
     }
-    else
-#endif
-    if (pcCU->getSlice()->getNoBackPredFlag())
+    else if (pcCU->getSlice()->getNoBackPredFlag())
     {
       uiMaxVal = uiValNumRefIdxOfL0 + uiValNumRefIdxOfL0*uiValNumRefIdxOfL1;
     }
@@ -1468,7 +1455,6 @@ Void TDecCavlc::parseInterDir( TComDataCU* pcCU, UInt& ruiInterDir, UInt uiAbsPa
     
     if (uiIndex < uiMaxVal)
     {
-#if DCM_COMB_LIST
       if (uiNumRefIdxOfLC > 0)
       {
         if (uiIndex < uiValNumRefIdxOfLC)
@@ -1485,9 +1471,7 @@ Void TDecCavlc::parseInterDir( TComDataCU* pcCU, UInt& ruiInterDir, UInt uiAbsPa
           m_iRefFrame1[uiAbsPartIdx] = uiTmp%uiValNumRefIdxOfL1;          
         }
       }
-      else
-#endif
-      if (pcCU->getSlice()->getNoBackPredFlag())
+      else if (pcCU->getSlice()->getNoBackPredFlag())
       {
         if (uiIndex < uiValNumRefIdxOfL0)
         {
@@ -1610,15 +1594,12 @@ Void TDecCavlc::parseInterDir( TComDataCU* pcCU, UInt& ruiInterDir, UInt uiAbsPa
         uiInterDir = 0;
       }
 #endif
-#if DCM_COMB_LIST
       if(uiInterDir!=2 && pcCU->getSlice()->getNumRefIdx(REF_PIC_LIST_C)>0)
       {
         uiInterDir = 0;
         m_iRefFrame0[uiAbsPartIdx] = uiIndex;
       }
-      else 
-#endif
-      if (uiInterDir==0)
+      else if (uiInterDir==0)
       {
 #if MS_LCEC_LOOKUP_TABLE_EXCEPTION
         m_iRefFrame0[uiAbsPartIdx] = uiIndex;
@@ -1655,12 +1636,10 @@ Void TDecCavlc::parseInterDir( TComDataCU* pcCU, UInt& ruiInterDir, UInt uiAbsPa
   {
     uiSymbol = 2;
   }
-#if DCM_COMB_LIST
   else if(pcCU->getSlice()->getNumRefIdx(REF_PIC_LIST_C) > 0)
   {
     uiSymbol = 0;
   }
-#endif
   else if ( pcCU->getSlice()->getNoBackPredFlag() )
   {
     uiSymbol = 0;
@@ -1680,14 +1659,11 @@ Void TDecCavlc::parseRefFrmIdx( TComDataCU* pcCU, Int& riRefFrmIdx, UInt uiAbsPa
   
   if (pcCU->getSlice()->getNumRefIdx( REF_PIC_LIST_0 ) <= 2 && pcCU->getSlice()->getNumRefIdx( REF_PIC_LIST_1 ) <= 2 && pcCU->getSlice()->isInterB())
   {
-#if DCM_COMB_LIST
     if(pcCU->getSlice()->getNumRefIdx(REF_PIC_LIST_C ) > 0 && eRefList==REF_PIC_LIST_C)
     {
       riRefFrmIdx = m_iRefFrame0[uiAbsPartIdx]; 
     }
-    else 
-#endif
-    if (eRefList==REF_PIC_LIST_0)
+    else if (eRefList==REF_PIC_LIST_0)
     {
       riRefFrmIdx = m_iRefFrame0[uiAbsPartIdx];      
     }
