@@ -1077,9 +1077,7 @@ Void TEncCavlc::codeIntraDirChroma( TComDataCU* pcCU, UInt uiAbsPartIdx )
 
     if (bUseLMFlag)
       uiIntraDirChroma++;
-#if CHROMA_CODEWORD_SWITCH 
     uiIntraDirChroma = ChromaMapping[iMax-3][uiIntraDirChroma];
-#endif
   }
 
   xWriteUnaryMaxSymbol( uiIntraDirChroma, iMax);
@@ -1092,7 +1090,6 @@ Void TEncCavlc::codeIntraDirChroma( TComDataCU* pcCU, UInt uiAbsPartIdx )
   {
     uiIntraDirChroma = 0;
   }
-#if CHROMA_CODEWORD_SWITCH 
   else
   {
     if (uiIntraDirChroma < uiMode)
@@ -1101,12 +1098,6 @@ Void TEncCavlc::codeIntraDirChroma( TComDataCU* pcCU, UInt uiAbsPartIdx )
     }
     uiIntraDirChroma = ChromaMapping[iMax-3][uiIntraDirChroma];
   }
-#else
-  else if (uiIntraDirChroma < uiMode)
-  {
-    uiIntraDirChroma++;
-  }
-#endif
   xWriteUnaryMaxSymbol( uiIntraDirChroma, iMax);
 #endif //<-- LM_CHROMA
 

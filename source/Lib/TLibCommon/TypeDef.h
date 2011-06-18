@@ -155,8 +155,6 @@
 
 #define TI_ALF_MAX_VSIZE_7 1
 
-#define CHROMA_CODEWORD_SWITCH  1                     ///< Switch the places of the last two codewords 
-
 #define FULL_NBIT 0 ///< When enabled, does not use g_uiBitIncrement anymore to support > 8 bit data
 
 /////////////////////////////////

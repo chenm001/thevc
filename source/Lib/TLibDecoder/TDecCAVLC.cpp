@@ -1130,9 +1130,7 @@ Void TDecCavlc::parseIntraDirChroma( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt u
   }
   else
   {
-#if CHROMA_CODEWORD_SWITCH 
     uiSymbol = ChromaMapping[iMax-3][uiSymbol];
-#endif
 
     if (pcCU->getSlice()->getSPS()->getUseLMChroma())
        uiSymbol --;
@@ -1151,7 +1149,6 @@ Void TDecCavlc::parseIntraDirChroma( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt u
   {
     uiSymbol = 4;
   }
-#if CHROMA_CODEWORD_SWITCH 
   else
   {
     uiSymbol = ChromaMapping[iMax-3][uiSymbol];
@@ -1160,12 +1157,6 @@ Void TDecCavlc::parseIntraDirChroma( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt u
       uiSymbol --;
     }
   }
-#else
-  else if (uiSymbol <= uiMode)
-  {
-    uiSymbol --;
-  }
-#endif
 #endif // --> LM_CHROMA
 
   //printf("uiMode %d, chroma %d, codeword %d, imax %d\n", uiMode, uiSymbol, uiRead, iMax);

@@ -473,10 +473,7 @@ __inline void xLastLevelIndInv(Int& lev, Int& last_pos, Int N, UInt cx)
 }
 #endif
 
-
-#if CHROMA_CODEWORD_SWITCH 
 extern const UChar ChromaMapping[2][5];
-#endif
 
 #if ADD_PLANAR_MODE
 __inline Void mapPlanartoDC( UChar& curDir ) { curDir = (curDir == PLANAR_IDX) ? 2 : curDir; }
