@@ -159,10 +159,8 @@ Void TEncCavlc::resetEntropy()
   }
 #endif
 
-#if QC_LCEC_INTER_MODE
   ::memcpy(m_uiSplitTableE, g_auiInterModeTableE, 4*7*sizeof(UInt));
   ::memcpy(m_uiSplitTableD, g_auiInterModeTableD, 4*7*sizeof(UInt));
-#endif
   
   m_uiMITableVlcIdx = 0;  
 
@@ -467,7 +465,7 @@ Void TEncCavlc::codeMVPIdx ( TComDataCU* pcCU, UInt uiAbsPartIdx, RefPicList eRe
   
   xWriteUnaryMaxSymbol(iSymbol, iNum-1);
 }
-#if QC_LCEC_INTER_MODE
+
 Void TEncCavlc::codePartSize( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
 {
   if ( pcCU->getSlice()->isIntra() && pcCU->isIntra( uiAbsPartIdx ) )
@@ -499,78 +497,6 @@ Void TEncCavlc::codePartSize( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth 
     }
   }
 }
-#else
-Void TEncCavlc::codePartSize( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
-{
-  PartSize eSize         = pcCU->getPartitionSize( uiAbsPartIdx );
-  
-  if ( pcCU->getSlice()->isInterB() && pcCU->isIntra( uiAbsPartIdx ) )
-  {
-    xWriteFlag( 0 );
-    {
-      xWriteFlag( 0 );
-      xWriteFlag( 0 );
-    }
-    if( uiDepth == g_uiMaxCUDepth - g_uiAddCUDepth )
-    {
-      xWriteFlag( 0 );
-      xWriteFlag( (eSize == SIZE_2Nx2N? 0 : 1) );
-    }
-    return;
-  }
-  
-  if ( pcCU->isIntra( uiAbsPartIdx ) )
-  {
-    if( uiDepth == g_uiMaxCUDepth - g_uiAddCUDepth )
-    {
-      xWriteFlag( eSize == SIZE_2Nx2N? 1 : 0 );
-    }
-    return;
-  }
-  
-  switch(eSize)
-  {
-    case SIZE_2Nx2N:
-    {
-      xWriteFlag( 1 );
-      break;
-    }
-    case SIZE_2NxN:
-    {
-      xWriteFlag( 0 );
-      xWriteFlag( 1 );
-      break;
-    }
-    case SIZE_Nx2N:
-    {
-      xWriteFlag( 0 );
-      xWriteFlag( 0 );
-      xWriteFlag( 1 );
-      break;
-    }
-    case SIZE_NxN:
-    {
-      if( uiDepth == g_uiMaxCUDepth - g_uiAddCUDepth )
-      {
-        xWriteFlag( 0 );
-        {
-          xWriteFlag( 0 );
-          xWriteFlag( 0 );
-        }
-        if (pcCU->getSlice()->isInterB())
-        {
-          xWriteFlag( 1 );
-        }
-      }
-      break;
-    }
-    default:
-    {
-      assert(0);
-    }
-  }
-}
-#endif
 
 /** code prediction mode
  * \param pcCU
@@ -579,18 +505,8 @@ Void TEncCavlc::codePartSize( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth 
  */
 Void TEncCavlc::codePredMode( TComDataCU* pcCU, UInt uiAbsPartIdx )
 {
-#if QC_LCEC_INTER_MODE
   codeInterModeFlag(pcCU, uiAbsPartIdx,(UInt)pcCU->getDepth(uiAbsPartIdx),2);
   return;
-#else
-  // get context function is here
-  Int iPredMode = pcCU->getPredictionMode( uiAbsPartIdx );
-  if ( pcCU->getSlice()->isInterB() )
-  {
-    return;
-  }
-  xWriteFlag( iPredMode == MODE_INTER ? 0 : 1 );
-#endif
 }
 
 /** code merge flag
@@ -600,10 +516,8 @@ Void TEncCavlc::codePredMode( TComDataCU* pcCU, UInt uiAbsPartIdx )
  */
 Void TEncCavlc::codeMergeFlag    ( TComDataCU* pcCU, UInt uiAbsPartIdx )
 {
-#if QC_LCEC_INTER_MODE
   if (pcCU->getPartitionSize(uiAbsPartIdx) == SIZE_2Nx2N )
      return;
-#endif
   UInt uiSymbol = pcCU->getMergeFlag( uiAbsPartIdx ) ? 1 : 0;
   xWriteFlag( uiSymbol );
 }
@@ -697,7 +611,7 @@ Void TEncCavlc::codeAlfCtrlDepth()
   
   xWriteUnaryMaxSymbol(uiDepth, g_uiMaxCUDepth-1);
 }
-#if QC_LCEC_INTER_MODE
+
 Void TEncCavlc::codeInterModeFlag( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth, UInt uiEncMode )
 {
   Bool bHasSplit = ( uiDepth == g_uiMaxCUDepth - g_uiAddCUDepth )? 0 : 1;
@@ -759,30 +673,22 @@ Void TEncCavlc::codeInterModeFlag( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiD
   }
   return;
 }
-#endif
+
 Void TEncCavlc::codeSkipFlag( TComDataCU* pcCU, UInt uiAbsPartIdx )
 {
-#if QC_LCEC_INTER_MODE
   codeInterModeFlag(pcCU,uiAbsPartIdx,(UInt)pcCU->getDepth(uiAbsPartIdx),1);
   return;
-#else
-  // get context function is here
-  UInt uiSymbol = pcCU->isSkipped( uiAbsPartIdx ) ? 1 : 0;
-  xWriteFlag( uiSymbol );
-#endif
 }
 
 Void TEncCavlc::codeSplitFlag   ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
 {
   if( uiDepth == g_uiMaxCUDepth - g_uiAddCUDepth )
     return;
-#if QC_LCEC_INTER_MODE
   if (!pcCU->getSlice()->isIntra())
   {
     codeInterModeFlag(pcCU,uiAbsPartIdx,uiDepth,0);
     return;
   }
-#endif
   UInt uiCurrSplitFlag = ( pcCU->getDepth( uiAbsPartIdx ) > uiDepth ) ? 1 : 0;
   
   xWriteFlag( uiCurrSplitFlag );

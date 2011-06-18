@@ -1360,12 +1360,8 @@ const UInt g_auiMI1TableEOnly1RefNoL1[8] = {0,2,3,4,1,6,5,7};
 const UInt g_auiMI1TableDOnly1RefNoL1[8] = {0,4,1,2,3,6,5,7};
 #endif
 
-#if QC_LCEC_INTER_MODE
 const UInt g_auiInterModeTableE[4][7] = {{0,1,2,3,4,5,6},{0,1,2,3,4,5,6},{0,1,2,3,4,5,6},{6,0,1,2,3,4,5}};
 const UInt g_auiInterModeTableD[4][7] = {{0,1,2,3,4,5,6},{0,1,2,3,4,5,6},{0,1,2,3,4,5,6},{1,2,3,4,5,6,0}};
-#endif
-
-
 
 // Below table need to be optimized
 const UInt g_auiMITableVlcNum[15] = 

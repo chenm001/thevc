@@ -434,9 +434,7 @@ Void TDecCavlc::resetEntropy          (TComSlice* pcSlice)
   ::memcpy(m_uiIntraModeTableD17, g_auiIntraModeTableD17, 16*sizeof(UInt));
   ::memcpy(m_uiIntraModeTableD34, g_auiIntraModeTableD34, 33*sizeof(UInt));
 #endif
-#if QC_LCEC_INTER_MODE 
   ::memcpy(m_uiSplitTableD, g_auiInterModeTableD, 4*7*sizeof(UInt));
-#endif 
   m_uiMITableVlcIdx = 0;
 
 #if CAVLC_COUNTER_ADAPT
@@ -512,59 +510,7 @@ Void TDecCavlc::parseAlfCtrlFlag( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDe
 
 Void TDecCavlc::parseSkipFlag( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
 {
-#if QC_LCEC_INTER_MODE
   return;
-#else
-  
-  if( pcCU->getSlice()->isIntra() )
-  {
-    return;
-  }
-  
-  UInt uiSymbol = 0;
-  xReadFlag( uiSymbol );
-  
-  if( uiSymbol )
-  {
-    pcCU->setPredModeSubParts( MODE_SKIP,  uiAbsPartIdx, uiDepth );
-    pcCU->setPartSizeSubParts( SIZE_2Nx2N, uiAbsPartIdx, uiDepth );
-    pcCU->setSizeSubParts( g_uiMaxCUWidth>>uiDepth, g_uiMaxCUHeight>>uiDepth, uiAbsPartIdx, uiDepth );
-#if HHI_MRG_SKIP
-    if ( pcCU->getSlice()->getSPS()->getUseMRG() )
-    {
-    pcCU->setMergeFlagSubParts( true , uiAbsPartIdx, 0, uiDepth );
-    } 
-    else
-#endif // HHI_MRG_SKIP
-    {
-      TComMv cZeroMv(0,0);
-      pcCU->getCUMvField( REF_PIC_LIST_0 )->setAllMvd    ( cZeroMv, SIZE_2Nx2N, uiAbsPartIdx, 0, uiDepth );
-      pcCU->getCUMvField( REF_PIC_LIST_1 )->setAllMvd    ( cZeroMv, SIZE_2Nx2N, uiAbsPartIdx, 0, uiDepth );
-      
-      pcCU->setTrIdxSubParts( 0, uiAbsPartIdx, uiDepth );
-      pcCU->setCbfSubParts  ( 0, 0, 0, uiAbsPartIdx, uiDepth );
-      
-      if ( pcCU->getSlice()->isInterP() )
-      {
-        pcCU->setInterDirSubParts( 1, uiAbsPartIdx, 0, uiDepth );
-        
-        if ( pcCU->getSlice()->getNumRefIdx( REF_PIC_LIST_0 ) > 0 )
-          pcCU->getCUMvField( REF_PIC_LIST_0 )->setAllRefIdx(  0, SIZE_2Nx2N, uiAbsPartIdx, 0, uiDepth );
-        if ( pcCU->getSlice()->getNumRefIdx( REF_PIC_LIST_1 ) > 0 )
-          pcCU->getCUMvField( REF_PIC_LIST_1 )->setAllRefIdx( NOT_VALID, SIZE_2Nx2N, uiAbsPartIdx, 0, uiDepth );
-      }
-      else
-      {
-        pcCU->setInterDirSubParts( 3, uiAbsPartIdx, 0, uiDepth );
-        
-        if ( pcCU->getSlice()->getNumRefIdx( REF_PIC_LIST_0 ) > 0 )
-          pcCU->getCUMvField( REF_PIC_LIST_0 )->setAllRefIdx(  0, SIZE_2Nx2N, uiAbsPartIdx, 0, uiDepth );
-        if ( pcCU->getSlice()->getNumRefIdx( REF_PIC_LIST_1 ) > 0 )
-          pcCU->getCUMvField( REF_PIC_LIST_1 )->setAllRefIdx( 0, SIZE_2Nx2N, uiAbsPartIdx, 0, uiDepth );
-      }
-    }
-  }
-#endif // QC_LCEC_INTER_MODE
 }
 
 /** parse the motion vector predictor index
@@ -582,7 +528,7 @@ Void TDecCavlc::parseMVPIdx( TComDataCU* pcCU, Int& riMVPIdx, Int iMVPNum, UInt 
   xReadUnaryMaxSymbol(uiSymbol, iMVPNum-1);
   riMVPIdx = uiSymbol;
 }
-#if QC_LCEC_INTER_MODE
+
 /** parse the split flag
  * \param pcCU
  * \param uiAbsPartIdx 
@@ -724,23 +670,6 @@ Void TDecCavlc::parseSplitFlag     ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt u
     }
   }
 }
-#else
-Void TDecCavlc::parseSplitFlag( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
-{
-  if( uiDepth == g_uiMaxCUDepth - g_uiAddCUDepth )
-  {
-    pcCU->setDepthSubParts( uiDepth, uiAbsPartIdx );
-    return ;
-  }
-  
-  UInt uiSymbol;
-  xReadFlag( uiSymbol );
-  pcCU->setDepthSubParts( uiDepth + uiSymbol, uiAbsPartIdx );
-  
-  return ;
-}
-#endif
-#if QC_LCEC_INTER_MODE
 
 /** parse partition size
  * \param pcCU
@@ -813,83 +742,6 @@ Void TDecCavlc::parsePartSize( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth
     }
   }
 }
-#else
-Void TDecCavlc::parsePartSize( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
-{
-  UInt uiSymbol, uiMode = 0;
-  PartSize eMode;
-  
-  if ( pcCU->isIntra( uiAbsPartIdx ) )
-  {
-    eMode = SIZE_2Nx2N;
-    if( uiDepth == g_uiMaxCUDepth - g_uiAddCUDepth )
-    {
-      xReadFlag( uiSymbol );
-      eMode = uiSymbol ? SIZE_2Nx2N : SIZE_NxN;
-    }
-  }
-  else
-  {
-    {
-      UInt uiMaxNumBits = 3;
-      for ( UInt ui = 0; ui < uiMaxNumBits; ui++ )
-      {
-        xReadFlag( uiSymbol );
-        if ( uiSymbol )
-        {
-          break;
-        }
-        uiMode++;
-      }
-    }
-    eMode = (PartSize) uiMode;
-    
-    if (pcCU->getSlice()->isInterB() && uiMode == 3)
-    {
-      uiSymbol = 0;
-      if( uiDepth == g_uiMaxCUDepth - g_uiAddCUDepth )
-      {
-        xReadFlag( uiSymbol );
-      }
-      
-      if (uiSymbol == 0)
-      {
-        pcCU->setPredModeSubParts( MODE_INTRA, uiAbsPartIdx, uiDepth );
-        if( uiDepth == g_uiMaxCUDepth - g_uiAddCUDepth )
-        {
-          xReadFlag( uiSymbol );
-        }
-        if (uiSymbol == 0)
-        {
-          eMode = SIZE_2Nx2N;
-        }
-      }
-    }
-    
-  }
-  
-  pcCU->setPartSizeSubParts( eMode, uiAbsPartIdx, uiDepth );
-  pcCU->setSizeSubParts( g_uiMaxCUWidth>>uiDepth, g_uiMaxCUHeight>>uiDepth, uiAbsPartIdx, uiDepth );
-  
-  UInt uiTrLevel = 0;
-  
-  UInt uiWidthInBit  = g_aucConvertToBit[pcCU->getWidth(uiAbsPartIdx)]+2;
-  UInt uiTrSizeInBit = g_aucConvertToBit[pcCU->getSlice()->getSPS()->getMaxTrSize()]+2;
-  uiTrLevel          = uiWidthInBit >= uiTrSizeInBit ? uiWidthInBit - uiTrSizeInBit : 0;
-  
-  if( pcCU->getPredictionMode(uiAbsPartIdx) == MODE_INTRA )
-  {
-    if( pcCU->getPartitionSize( uiAbsPartIdx ) == SIZE_NxN )
-    {
-      pcCU->setTrIdxSubParts( 1+uiTrLevel, uiAbsPartIdx, uiDepth );
-    }
-    else
-    {
-      pcCU->setTrIdxSubParts( uiTrLevel, uiAbsPartIdx, uiDepth );
-    }
-  }
-}
-#endif
 
 /** parse prediction mode
  * \param pcCU
@@ -904,20 +756,6 @@ Void TDecCavlc::parsePredMode( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth
     pcCU->setPredModeSubParts( MODE_INTRA, uiAbsPartIdx, uiDepth );
     return ;
   }
-#if !QC_LCEC_INTER_MODE  
-  UInt uiSymbol;
-  Int  iPredMode = MODE_INTER;
- 
-  if ( pcCU->getSlice()->isInterB() )
-  {
-    pcCU->setPredModeSubParts( (PredMode)iPredMode, uiAbsPartIdx, uiDepth );
-    return;
-  }
-  xReadFlag( uiSymbol );
-  iPredMode += uiSymbol;
-
-  pcCU->setPredModeSubParts( (PredMode)iPredMode, uiAbsPartIdx, uiDepth );
-#endif
 }
 
 #if E057_INTRA_PCM
@@ -2395,10 +2233,8 @@ Void TDecCavlc::parseAoSvlc (Int&  riVal)
 
 Void TDecCavlc::parseMergeFlag ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth, UInt uiPUIdx )
 {
-#if QC_LCEC_INTER_MODE
   if (pcCU->getPartitionSize(uiAbsPartIdx) == SIZE_2Nx2N )
     return;
-#endif
   UInt uiSymbol;
   xReadFlag( uiSymbol );
   pcCU->setMergeFlagSubParts( uiSymbol ? true : false, uiAbsPartIdx, uiPUIdx, uiDepth );
