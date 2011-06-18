@@ -219,9 +219,7 @@ void TEncCavlc::codeSEI(const SEI& sei)
 
 Void TEncCavlc::codePPS( TComPPS* pcPPS )
 {
-#if CONSTRAINED_INTRA_PRED
   xWriteFlag( pcPPS->getConstrainedIntraPred() ? 1 : 0 );
-#endif
 
 #if FINE_GRANULARITY_SLICES
   xWriteCode ( pcPPS->getSliceGranularity(), 2);

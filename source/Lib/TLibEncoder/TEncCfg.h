@@ -136,9 +136,7 @@ protected:
   Int*      m_aidQP;
   UInt      m_uiDeltaQpRD;
   
-#if CONSTRAINED_INTRA_PRED
   Bool      m_bUseConstrainedIntraPred;
-#endif
 #if E057_INTRA_PCM
   UInt      m_uiPCMLog2MinSize;
 #endif
@@ -283,9 +281,7 @@ public:
   Void      setUseBQP                       ( Bool  b )     { m_bUseBQP     = b; }
   Void      setUseFastEnc                   ( Bool  b )     { m_bUseFastEnc = b; }
   Void      setUseMRG                       ( Bool  b )     { m_bUseMRG     = b; } // SOPH:
-#if CONSTRAINED_INTRA_PRED
   Void      setUseConstrainedIntraPred      ( Bool  b )     { m_bUseConstrainedIntraPred = b; }
-#endif
 #if E057_INTRA_PCM && E192_SPS_PCM_BIT_DEPTH_SYNTAX
   Void      setPCMInputBitDepthFlag         ( Bool  b )     { m_bPCMInputBitDepthFlag = b; }
 #endif
@@ -315,9 +311,7 @@ public:
   Bool      getUseBQP                       ()      { return m_bUseBQP;     }
   Bool      getUseFastEnc                   ()      { return m_bUseFastEnc; }
   Bool      getUseMRG                       ()      { return m_bUseMRG;     } // SOPH:
-#if CONSTRAINED_INTRA_PRED
   Bool      getUseConstrainedIntraPred      ()      { return m_bUseConstrainedIntraPred; }
-#endif
 #if E057_INTRA_PCM && E192_SPS_PCM_BIT_DEPTH_SYNTAX
   Bool      getPCMInputBitDepthFlag         ()      { return m_bPCMInputBitDepthFlag;   } 
 #endif

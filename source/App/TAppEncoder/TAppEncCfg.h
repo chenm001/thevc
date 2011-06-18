@@ -169,9 +169,7 @@ protected:
 #if MTK_NONCROSS_INLOOP_FILTER
   Bool m_bLFCrossSliceBoundaryFlag;  ///< 0: Cross-slice-boundary in-loop filtering 1: non-cross-slice-boundary in-loop filtering
 #endif
-#if CONSTRAINED_INTRA_PRED
   Bool      m_bUseConstrainedIntraPred;                       ///< flag for using constrained intra prediction
-#endif
   
   bool m_pictureDigestEnabled; ///< enable(1)/disable(0) md5 computation and SEI signalling
 

@@ -80,9 +80,7 @@ Void TDecCavlc::parsePPS(TComPPS* pcPPS)
 {
   UInt  uiCode;
   
-#if CONSTRAINED_INTRA_PRED
   xReadFlag ( uiCode ); pcPPS->setConstrainedIntraPred( uiCode ? true : false );
-#endif
 
 #if FINE_GRANULARITY_SLICES
   xReadCode ( 2, uiCode ); pcPPS->setSliceGranularity(uiCode);

@@ -136,9 +136,7 @@ Void TAppEncTop::xInitLibCfg()
   m_cTEncTop.setUseLMChroma                  ( m_bUseLMChroma );
 #endif
 
-#if CONSTRAINED_INTRA_PRED
   m_cTEncTop.setUseConstrainedIntraPred      ( m_bUseConstrainedIntraPred );
-#endif
 #if E057_INTRA_PCM
   m_cTEncTop.setPCMLog2MinSize          ( m_uiPCMLog2MinSize);
 #endif

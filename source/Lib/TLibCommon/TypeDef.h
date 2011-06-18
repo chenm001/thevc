@@ -170,8 +170,6 @@
 // AHG SLICES defines section end
 /////////////////////////////////
 
-#define CONSTRAINED_INTRA_PRED            1           // JCTVC-D086: constrained intra prediction
-
 #define MTK_SAO                           1           // JCTVC-E049: Sample adaptive offset
 
 #define MQT_ALF_NPASS                       1

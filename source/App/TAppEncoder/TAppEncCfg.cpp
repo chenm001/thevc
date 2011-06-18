@@ -219,9 +219,7 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
 #if MTK_NONCROSS_INLOOP_FILTER
     ("LFCrossSliceBoundaryFlag", m_bLFCrossSliceBoundaryFlag, true)
 #endif
-#if CONSTRAINED_INTRA_PRED
     ("ConstrainedIntraPred", m_bUseConstrainedIntraPred, false, "Constrained Intra Prediction")
-#endif
 #if E057_INTRA_PCM
     ("PCMLog2MinSize", m_uiPCMLog2MinSize, 7u)
 #endif
@@ -580,9 +578,7 @@ Void TAppEncCfg::xPrintParameter()
     printf("(%d) ", m_iEntropySliceArgument);
   }
 #endif
-#if CONSTRAINED_INTRA_PRED
   printf("CIP:%d ", m_bUseConstrainedIntraPred);
-#endif
 #if MTK_SAO
   printf("SAO:%d ",    (m_bUseSAO)?(1):(0));
 #endif

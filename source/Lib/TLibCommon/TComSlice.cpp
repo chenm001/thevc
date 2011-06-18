@@ -790,9 +790,7 @@ TComSPS::~TComSPS()
 
 TComPPS::TComPPS()
 {
-#if CONSTRAINED_INTRA_PRED
   m_bConstrainedIntraPred = false;
-#endif
 
   m_uiNumTlayerSwitchingFlags = 0;
   for ( UInt i = 0; i < MAX_TLAYER; i++ )

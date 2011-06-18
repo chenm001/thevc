@@ -219,9 +219,7 @@ public:
 class TComPPS
 {
 private:
-#if CONSTRAINED_INTRA_PRED
   Bool        m_bConstrainedIntraPred;    //  constrained_intra_pred_flag
-#endif
  
 #if SUB_LCU_DQP
   // access channel
@@ -250,10 +248,8 @@ public:
   Int       getSliceGranularity()        { return m_iSliceGranularity; }
   Void      setSliceGranularity( Int i ) { m_iSliceGranularity = i;    }
 #endif
-#if CONSTRAINED_INTRA_PRED
   Bool      getConstrainedIntraPred ()         { return  m_bConstrainedIntraPred; }
   Void      setConstrainedIntraPred ( Bool b ) { m_bConstrainedIntraPred = b;     }
-#endif
 
   UInt      getNumTLayerSwitchingFlags()                                  { return m_uiNumTlayerSwitchingFlags; }
   Void      setNumTLayerSwitchingFlags( UInt uiNumTlayerSwitchingFlags )  { assert( uiNumTlayerSwitchingFlags < MAX_TLAYER ); m_uiNumTlayerSwitchingFlags = uiNumTlayerSwitchingFlags; }
