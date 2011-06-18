@@ -3516,34 +3516,22 @@ Void TComDataCU::fillMvpCand ( UInt uiPartIdx, UInt uiPartAddr, RefPicList eRefP
   TComMv cMvPred;
   
   pInfo->iN = 0;
-#if !DCM_SIMPLIFIED_MVP
-  UInt uiIdx;
-#endif
   
   if (iRefIdx < 0)
   {
     return;
   }
-#if !DCM_SIMPLIFIED_MVP
-  pInfo->m_acMvCand[pInfo->iN++] = cMvPred;   //dummy mv
-#endif
   
   //-- Get Spatial MV
   UInt uiPartIdxLT, uiPartIdxRT, uiPartIdxLB;
-#if (DCM_SIMPLIFIED_MVP && !TI_AMVP_SMVP_SIMPLIFIED) || (!DCM_SIMPLIFIED_MVP) || MTK_TMVP_H_AMVP
+#if (!TI_AMVP_SMVP_SIMPLIFIED) || MTK_TMVP_H_AMVP
   UInt uiNumPartInCUWidth = m_pcPic->getNumPartInWidth();
 #endif
   Bool bAdded = false;
-#if !DCM_SIMPLIFIED_MVP
-  Int iLeftMvIdx = -1;
-  Int iAboveMvIdx = -1;
-  Int iCornerMvIdx = -1;
-#endif
   
   deriveLeftRightTopIdx( eCUMode, uiPartIdx, uiPartIdxLT, uiPartIdxRT );
   deriveLeftBottomIdx( eCUMode, uiPartIdx, uiPartIdxLB );
   
-#if DCM_SIMPLIFIED_MVP
   // Left predictor search
   bAdded = xAddMVPCand( pInfo, eRefPicList, iRefIdx, uiPartIdxLB, MD_BELOW_LEFT);
 #if TI_AMVP_SMVP_SIMPLIFIED
@@ -3650,115 +3638,6 @@ Void TComDataCU::fillMvpCand ( UInt uiPartIdx, UInt uiPartAddr, RefPicList eRefP
         pInfo->iN--; //remove duplicate entries
       }
     }
-  }
-#endif
-#else  
-  //Left
-  for ( uiIdx = g_auiZscanToRaster[uiPartIdxLT]; uiIdx <= g_auiZscanToRaster[uiPartIdxLB]; uiIdx+= uiNumPartInCUWidth )
-  {
-    bAdded = xAddMVPCand( pInfo, eRefPicList, iRefIdx, g_auiRasterToZscan[uiIdx], MD_LEFT );
-    if (bAdded && iLeftMvIdx < 0)
-    {
-      iLeftMvIdx = pInfo->iN-1;
-    }
-    if (bAdded) break;
-  }
-  
-  bAdded = false;
-  //Above
-  for ( uiIdx = g_auiZscanToRaster[uiPartIdxLT]; uiIdx <= g_auiZscanToRaster[uiPartIdxRT]; uiIdx++ )
-  {
-    bAdded = xAddMVPCand( pInfo, eRefPicList, iRefIdx, g_auiRasterToZscan[uiIdx], MD_ABOVE);
-    if (bAdded && iAboveMvIdx < 0)
-    {
-      iAboveMvIdx = pInfo->iN-1;
-    }
-    if (bAdded) break;
-  }
-  
-  bAdded = false;
-  //Above Right
-  bAdded = xAddMVPCand( pInfo, eRefPicList, iRefIdx, uiPartIdxRT, MD_ABOVE_RIGHT);
-  if (bAdded && iCornerMvIdx < 0)
-  {
-    iCornerMvIdx = pInfo->iN-1;
-  }
-  
-  //Below Left
-  if (!bAdded)
-  {
-    bAdded = xAddMVPCand( pInfo, eRefPicList, iRefIdx, uiPartIdxLB, MD_BELOW_LEFT);
-  }
-  if (bAdded && iCornerMvIdx < 0)
-  {
-    iCornerMvIdx = pInfo->iN-1;
-  }
-  
-  //Above Left
-  if (!bAdded)
-  {
-    bAdded = xAddMVPCand( pInfo, eRefPicList, iRefIdx, uiPartIdxLT, MD_ABOVE_LEFT);
-  }
-  
-  if (bAdded && iCornerMvIdx < 0)
-  {
-    iCornerMvIdx = pInfo->iN-1;
-  }
-  
-  assert(iLeftMvIdx!=0 && iAboveMvIdx!=0 && iCornerMvIdx!=0);
-  
-  if (iLeftMvIdx < 0 && iAboveMvIdx < 0 && iCornerMvIdx < 0)
-  {
-    //done --> already zero Mv
-  }
-  else if ( (iLeftMvIdx > 0 && iAboveMvIdx > 0 && iCornerMvIdx > 0) || iLeftMvIdx*iAboveMvIdx*iCornerMvIdx < 0)
-  {
-    TComMv cLeftMv, cAboveMv, cCornerMv;
-    
-    if (iLeftMvIdx > 0)
-    {
-      cLeftMv = pInfo->m_acMvCand[iLeftMvIdx];
-    }
-    if (iAboveMvIdx > 0)
-    {
-      cAboveMv = pInfo->m_acMvCand[iAboveMvIdx];
-    }
-    if (iCornerMvIdx > 0)
-    {
-      cCornerMv = pInfo->m_acMvCand[iCornerMvIdx];
-    }
-    pInfo->m_acMvCand[0].setHor ( Median (cLeftMv.getHor(), cAboveMv.getHor(), cCornerMv.getHor()) );
-    pInfo->m_acMvCand[0].setVer ( Median (cLeftMv.getVer(), cAboveMv.getVer(), cCornerMv.getVer()) );
-  }
-  else //only one is available among three candidates
-  {
-    if (iLeftMvIdx > 0)
-    {
-      pInfo->m_acMvCand[0] = pInfo->m_acMvCand[iLeftMvIdx];
-    }
-    else if (iAboveMvIdx > 0)
-    {
-      pInfo->m_acMvCand[0] = pInfo->m_acMvCand[iAboveMvIdx];
-    }
-    else if (iCornerMvIdx > 0)
-    {
-      pInfo->m_acMvCand[0] = pInfo->m_acMvCand[iCornerMvIdx];
-    }
-    else
-    {
-      assert(0);
-    }
-  }
-  
-  clipMv(pInfo->m_acMvCand[0]);
-  TComMv cTempMv;
-  if ( ( ( ((eCUMode == SIZE_2NxN)) && uiPartIdx == 1 ) ||
-        ( ((eCUMode == SIZE_Nx2N)) && uiPartIdx == 0 ) )
-      && iLeftMvIdx > 0 )
-  {
-    cTempMv = pInfo->m_acMvCand[0];
-    pInfo->m_acMvCand[0] = pInfo->m_acMvCand[iLeftMvIdx];
-    pInfo->m_acMvCand[iLeftMvIdx] = cTempMv;
   }
 #endif
   
@@ -3919,75 +3798,6 @@ Void TComDataCU::fillMvpCand ( UInt uiPartIdx, UInt uiPartAddr, RefPicList eRefP
   xUniqueMVPCand( pInfo );
   return ;
 }
-
-#if DCM_SIMPLIFIED_MVP==0
-Bool TComDataCU::clearMVPCand( TComMv cMvd, AMVPInfo* pInfo )
-{
-  // only works for multiple candidates
-  if (pInfo->iN <= 1)
-  {
-    return false;
-  }
-  
-  // only works for non-zero mvd case
-  if (cMvd.getHor() == 0 && cMvd.getVer() == 0)
-  {
-    return false;
-  }
-  
-  TComMv  acMv[ AMVP_MAX_NUM_CANDS ];
-  Int aiValid [ AMVP_MAX_NUM_CANDS ];
-  
-  Int iNTmp, i, j;
-  
-  for ( i=0; i<pInfo->iN; i++ )
-  {
-    aiValid[i] = 1;
-  }
-  
-  for ( i=0; i<pInfo->iN; i++ )
-  {
-    TComMv cMvCand = pInfo->m_acMvCand[i] + cMvd;
-    
-    UInt uiBestBits = xGetMvdBits(cMvd);
-    for ( j=0; j<pInfo->iN; j++ )
-    {
-      if (aiValid[j] && i!=j && xGetMvdBits(cMvCand-pInfo->m_acMvCand[j]) < uiBestBits)
-      {
-        aiValid[i] = 0;
-      }
-    }
-  }
-  
-  iNTmp = 0;
-  for ( i=0; i<pInfo->iN; i++ )
-  {
-    if (aiValid[i])
-      iNTmp++;
-  }
-  
-  if (iNTmp == pInfo->iN)
-  {
-    return false;
-  }
-  
-  assert(iNTmp > 0);
-  
-  iNTmp = 0;
-  for ( i=0; i<pInfo->iN; i++ )
-  {
-    if (aiValid[i])
-    {
-      acMv[iNTmp++] = pInfo->m_acMvCand[i];
-    }
-  }
-  
-  for ( i=0; i<iNTmp; i++ ) pInfo->m_acMvCand[i] = acMv[i];
-  pInfo->iN = iNTmp;
-  
-  return true;
-}
-#endif
 
 Int TComDataCU::searchMVPIdx(TComMv cMv, AMVPInfo* pInfo)
 {

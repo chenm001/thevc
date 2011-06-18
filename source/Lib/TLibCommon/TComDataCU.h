@@ -393,9 +393,6 @@ public:
   
   AMVP_MODE     getAMVPMode           ( UInt uiIdx );
   Void          fillMvpCand           ( UInt uiPartIdx, UInt uiPartAddr, RefPicList eRefPicList, Int iRefIdx, AMVPInfo* pInfo );
-#if DCM_SIMPLIFIED_MVP==0
-  Bool          clearMVPCand          ( TComMv cMvd, AMVPInfo* pInfo );
-#endif
   Int           searchMVPIdx          ( TComMv cMv,  AMVPInfo* pInfo );
 
   Void          setMVPIdx             ( RefPicList eRefPicList, UInt uiIdx, Int iMVPIdx)  { m_apiMVPIdx[eRefPicList][uiIdx] = iMVPIdx;  }

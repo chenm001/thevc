@@ -123,10 +123,6 @@
 // Macro functions
 // ====================================================================================================================
 
-#if !DCM_SIMPLIFIED_MVP
-#define Median(a,b,c)               ((a)>(b)?(a)>(c)?(b)>(c)?(b):(c):(a):(b)>(c)?(a)>(c)?(a):(c):(b)) ///< 3-point median
-#endif
-
 extern UInt g_uiIBDI_MAX;
 /** clip #x#, such that 0 <= #x# <= g_uiIBDI_MAX */
 template <typename T> inline T Clip(T x) { return std::min<T>(T(g_uiIBDI_MAX), std::max<T>( T(0), x)); }
