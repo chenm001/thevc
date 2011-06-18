@@ -83,7 +83,6 @@
 #define AMVP_DECIMATION_FACTOR            4
 #define MV_COMPRESS_MODE_REFIDX           1           ///< (JCTVC-E147) compress all inter prediction parameters according to 1)
 
-#define HIGH_ACCURACY_BI                  1          // High precision bi-prediction JCTVC-D321
 #define REMOVE_INTERMEDIATE_CLIPPING      1          // No intermediate clipping in bi-prediction JCTVC-E242
 
 ////////////////

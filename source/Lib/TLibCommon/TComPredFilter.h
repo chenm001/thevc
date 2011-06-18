@@ -101,7 +101,6 @@ public:
    __inline Int xCTI_Filter_VP04_C_OCT3( Pel* pSrc, Int iStride );
    __inline Int xCTI_Filter_VI04_C_OCT3( Int* pSrc, Int iStride );
 
-#if HIGH_ACCURACY_BI
   __inline Void xCTI_FilterHalfHor_ha(Pel* piSrc, Int iSrcStride, Int iSrcStep, Int iWidth, Int iHeight, Int iDstStride, Int iDstStep, Pel*& rpiDst); //
   __inline Void xCTI_FilterHalfHor_ha(Int* piSrc, Int iSrcStride, Int iSrcStep, Int iWidth, Int iHeight, Int iDstStride, Int iDstStep, Pel*& rpiDst);//
   
@@ -120,11 +119,8 @@ public:
   __inline Void xCTI_Filter1DHorC_ha (Pel* piSrc, Int iSrcStride,  Int iWidth, Int iHeight, Int iDstStride,  Pel*& rpiDst, Int iMV);
   __inline Void xCTI_Filter1DVerC_ha (Pel* piSrc, Int iSrcStride,  Int iWidth, Int iHeight, Int iDstStride,  Pel*& rpiDst, Int iMV);
   __inline Void xCTI_Filter2DHorC_ha (Int* piSrc, Int iSrcStride,  Int iWidth, Int iHeight, Int iDstStride,  Pel*& rpiDst, Int iMV);
-
-#endif
 };
 
-#if HIGH_ACCURACY_BI
 __inline Void TComPredFilter::xCTI_FilterHalfHor_ha(Pel* piSrc, Int iSrcStride, Int iSrcStep, Int iWidth, Int iHeight, Int iDstStride, Int iDstStep, Pel*& rpiDst)
 {
   Pel*  piDst    = rpiDst;
@@ -552,9 +548,6 @@ __inline Void TComPredFilter::xCTI_FilterHalfVer_ha  (Pel* piSrc, Int iSrcStride
   return;
 
 }
-
-
-#endif
 
 // ------------------------------------------------------------------------------------------------
 // DCTIF filters
@@ -1586,7 +1579,6 @@ __inline Void TComPredFilter::xCTI_Filter1DHorC(Pel* piSrc, Int iSrcStride, Int 
   return;
 }
 
-#if HIGH_ACCURACY_BI
 __inline Void TComPredFilter::xCTI_Filter2DHorC_ha(Int* piSrc, Int iSrcStride,  Int iWidth, Int iHeight, Int iDstStride,  Pel*& rpiDst, Int iMV)
 {
   Pel*  piDst    = rpiDst;
@@ -2056,7 +2048,6 @@ __inline Void TComPredFilter::xCTI_Filter1DHorC_ha(Pel* piSrc, Int iSrcStride, I
  }
   return;
 }
-#endif
 
 
 __inline Int TComPredFilter::xCTI_Filter_VP04_C_OCT0( Pel* pSrc,  Int iStride )
