@@ -2410,7 +2410,6 @@ const UChar g_aucIntraModeNumFast[7] =
   3   // 128x128  
 };
 #else // FAST_UDI_USE_MPM
-#if SAMSUNG_FAST_UDI_MODESET==0
 const UChar g_aucIntraModeNumFast[7] =
 {
   3,  //   2x2
@@ -2421,18 +2420,6 @@ const UChar g_aucIntraModeNumFast[7] =
   5,  //  64x64   33
   4   // 128x128  33
 };
-#else
-const UChar g_aucIntraModeNumFast[7] =
-{
-  3,  //   2x2
-  9,  //   4x4
-  9,  //   8x8
-  9,  //  16x16   33
-  9,  //  32x32   33
-  5,  //  64x64   33
-  4   // 128x128  33
-};
-#endif
 #endif // FAST_UDI_USE_MPM
 
 // chroma

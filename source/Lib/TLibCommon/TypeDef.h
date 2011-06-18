@@ -109,8 +109,6 @@
 
 #define FAST_UDI_MAX_RDMODE_NUM               35          ///< maximum number of RD comparison in fast-UDI estimation loop 
 
-#define SAMSUNG_FAST_UDI_MODESET              0           ///< 0: {9,9,4,4,5} (default) and 1: {9,9,9,9,5} for {4x4,8x8,16x16,32x32,64x64} 
-
 #define ZERO_MVD_EST                          0           ///< Zero Mvd Estimation in normal mode
 
 #define LM_CHROMA                             1           // JCTVC-E266: Chroma intra prediction based on luma signal
