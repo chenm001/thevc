@@ -292,9 +292,6 @@ Void TEncCavlc::codeSPS( TComSPS* pcSPS )
 #if FULL_NBIT
   xWriteUvlc( pcSPS->getBitDepth() - 8 );
 #else
-#if ENABLE_IBDI
-  xWriteUvlc( pcSPS->getBitDepth() - 8 );
-#endif
   xWriteUvlc( pcSPS->getBitIncrement() );
 #endif
 

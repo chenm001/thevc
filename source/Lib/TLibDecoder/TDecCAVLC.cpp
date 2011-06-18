@@ -178,16 +178,11 @@ Void TDecCavlc::parseSPS(TComSPS* pcSPS)
   pcSPS->setBitDepth(g_uiBitDepth);
   pcSPS->setBitIncrement(g_uiBitIncrement);
 #else
-#if ENABLE_IBDI
-  xReadUvlc( uiCode ); pcSPS->setBitDepth     ( uiCode+8 ); g_uiBitDepth     = uiCode + 8;
-  xReadUvlc( uiCode ); pcSPS->setBitIncrement ( uiCode   ); g_uiBitIncrement = uiCode;
-#else
   xReadUvlc( uiCode );
   g_uiBitDepth = 8;
   g_uiBitIncrement = uiCode;
   pcSPS->setBitDepth(g_uiBitDepth);
   pcSPS->setBitIncrement(g_uiBitIncrement);
-#endif
 #endif
   
   g_uiBASE_MAX  = ((1<<(g_uiBitDepth))-1);

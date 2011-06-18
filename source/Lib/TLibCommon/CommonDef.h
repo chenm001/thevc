@@ -175,8 +175,6 @@ template <typename T> inline T Clip3( T minVal, T maxVal, T a) { return std::min
 // Adaptive search range depending on POC difference
 #define ADAPT_SR_SCALE              1           ///< division factor for adaptive search range
 
-#define ENABLE_IBDI                 0
-
 #define CLIP_TO_709_RANGE           0
 
 // IBDI range restriction for skipping clip

@@ -118,9 +118,6 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
   ("InputBitDepth",         m_uiInputBitDepth, 8u, "bit-depth of input file")
   ("BitDepth",              m_uiInputBitDepth, 8u, "deprecated alias of InputBitDepth")
   ("OutputBitDepth",        m_uiOutputBitDepth, 0u, "bit-depth of output file")
-#if ENABLE_IBDI
-  ("BitIncrement",          m_uiBitIncrement, 0xffffffffu, "bit-depth increasement")
-#endif
   ("InternalBitDepth",      m_uiInternalBitDepth, 0u, "Internal bit-depth (BitDepth+BitIncrement)")
   ("HorizontalPadding,-pdx",m_aiPad[0],      0, "horizontal source padding size")
   ("VerticalPadding,-pdy",  m_aiPad[1],      0, "vertical source padding size")
@@ -351,11 +348,7 @@ Void TAppEncCfg::xCheckParameter()
   bool check_failed = false; /* abort if there is a fatal configuration problem */
 #define xConfirmPara(a,b) check_failed |= confirmPara(a,b)
   // check range of parameters
-#if ENABLE_IBDI
-  xConfirmPara( m_uiInternalBitDepth > 0 && (int)m_uiBitIncrement != -1,                    "InternalBitDepth and BitIncrement may not be specified simultaneously");
-#else
   xConfirmPara( m_uiInputBitDepth < 8,                                                      "InputBitDepth must be at least 8" );
-#endif
   xConfirmPara( m_iFrameRate <= 0,                                                          "Frame rate must be more than 1" );
   xConfirmPara( m_iFrameToBeEncoded <= 0,                                                   "Total Number Of Frames encoded must be more than 1" );
   xConfirmPara( m_iGOPSize < 1 ,                                                            "GOP Size must be more than 1" );
@@ -466,31 +459,12 @@ Void TAppEncCfg::xSetGlobal()
   g_uiMaxCUDepth = m_uiMaxCUDepth;
   
   // set internal bit-depth and constants
-#if ENABLE_IBDI
-  if ((int)m_uiBitIncrement != -1)
-  {
-    g_uiBitDepth = m_uiInputBitDepth;
-    g_uiBitIncrement = m_uiBitIncrement;
-    m_uiInternalBitDepth = g_uiBitDepth + g_uiBitIncrement;
-  }
-  else
-  {
-    g_uiBitDepth = min(8u, m_uiInputBitDepth);
-    if (m_uiInternalBitDepth == 0)
-    {
-      /* default increement = 2 */
-      m_uiInternalBitDepth = 2 + g_uiBitDepth;
-    }
-    g_uiBitIncrement = m_uiInternalBitDepth - g_uiBitDepth;
-  }
-#else
 #if FULL_NBIT
   g_uiBitDepth = m_uiInternalBitDepth;
   g_uiBitIncrement = 0;
 #else
   g_uiBitDepth = 8;
   g_uiBitIncrement = m_uiInternalBitDepth - g_uiBitDepth;
-#endif
 #endif
 
   g_uiBASE_MAX     = ((1<<(g_uiBitDepth))-1);
