@@ -121,7 +121,6 @@
 #define ENABLE_FORCECOEFF0  0
 
 /* Rounding control */
-//#define ROUNDING_CONTROL_BIPRED ///< From JCTVC-B074 This part of the code is not needed anymore : KU
 #define TRANS_PRECISION_EXT     ///< From JCTVC-B074
 
 #define HHI_RQT_DISABLE_SUB                   0           ///< disabling subtree whose node size is smaller than partition size

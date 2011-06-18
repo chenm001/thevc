@@ -418,11 +418,6 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
   if (!pcSlice->isIntra())
   {
     xWriteFlag  (pcSlice->isReferenced() ? 1 : 0);
-#if !HIGH_ACCURACY_BI
-#ifdef ROUNDING_CONTROL_BIPRED
-    xWriteFlag  (pcSlice->isRounding() ? 1 : 0);
-#endif
-#endif
   }
   
   xWriteFlag  (pcSlice->getLoopFilterDisable());

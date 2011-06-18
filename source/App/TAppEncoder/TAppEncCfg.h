@@ -179,9 +179,6 @@ protected:
 #if MTK_NONCROSS_INLOOP_FILTER
   Bool m_bLFCrossSliceBoundaryFlag;  ///< 0: Cross-slice-boundary in-loop filtering 1: non-cross-slice-boundary in-loop filtering
 #endif
-#ifdef ROUNDING_CONTROL_BIPRED
-  Bool m_useRoundingControlBipred;
-#endif
 #if CONSTRAINED_INTRA_PRED
   Bool      m_bUseConstrainedIntraPred;                       ///< flag for using constrained intra prediction
 #endif

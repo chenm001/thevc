@@ -53,10 +53,6 @@ class TComPattern;
 // for function pointer
 typedef UInt (*FpDistFunc) (DistParam*);
 
-#ifdef ROUNDING_CONTROL_BIPRED
-typedef UInt (*FpDistFuncRnd) (DistParam*, Pel*, Bool);
-#endif
-
 // ====================================================================================================================
 // Class definition
 // ====================================================================================================================
@@ -73,9 +69,6 @@ public:
   Int   iCols;
   Int   iStep;
   FpDistFunc DistFunc;
-#ifdef ROUNDING_CONTROL_BIPRED
-  FpDistFuncRnd DistFuncRnd;
-#endif
   
   // (vertical) subsampling shift (for reducing complexity)
   // - 0 = no subsampling, 1 = even rows, 2 = every 4th, etc.
@@ -91,9 +84,6 @@ public:
     iCols = 0;
     iStep = 1;
     DistFunc = NULL;
-#ifdef ROUNDING_CONTROL_BIPRED
-    DistFuncRnd = NULL;
-#endif
     iSubShift = 0;
   }
 };
@@ -107,9 +97,6 @@ private:
   Int                     m_iBlkHeight;
   
   FpDistFunc              m_afpDistortFunc[33]; // [eDFunc]
-#ifdef ROUNDING_CONTROL_BIPRED
-  FpDistFuncRnd           m_afpDistortFuncRnd[33];
-#endif
   
   Double                  m_dLambda;
   Double                  m_sqrtLambda;
@@ -145,11 +132,6 @@ public:
   Void    setDistParam( TComPattern* pcPatternKey, Pel* piRefY, Int iRefStride,            DistParam& rcDistParam );
   Void    setDistParam( TComPattern* pcPatternKey, Pel* piRefY, Int iRefStride, Int iStep, DistParam& rcDistParam, Bool bHADME=false );
   Void    setDistParam( DistParam& rcDP, Pel* p1, Int iStride1, Pel* p2, Int iStride2, Int iWidth, Int iHeight, Bool bHadamard = false );
-  
-#ifdef ROUNDING_CONTROL_BIPRED
-  Void    setDistParam_Bi( TComPattern* pcPatternKey, Pel* piRefY, Int iRefStride,            DistParam& rcDistParam );
-  Void    setDistParam_Bi( TComPattern* pcPatternKey, Pel* piRefY, Int iRefStride, Int iStep, DistParam& rcDistParam, Bool bHADME=false );
-#endif
   
   UInt    calcHAD         ( Pel* pi0, Int iStride0, Pel* pi1, Int iStride1, Int iWidth, Int iHeight );
   
@@ -203,41 +185,6 @@ private:
   static UInt xCalcHADs2x2      ( Pel *piOrg, Pel *piCurr, Int iStrideOrg, Int iStrideCur, Int iStep );
   static UInt xCalcHADs4x4      ( Pel *piOrg, Pel *piCurr, Int iStrideOrg, Int iStrideCur, Int iStep );
   static UInt xCalcHADs8x8      ( Pel *piOrg, Pel *piCurr, Int iStrideOrg, Int iStrideCur, Int iStep );
-  
-#ifdef ROUNDING_CONTROL_BIPRED
-  
-  static UInt xGetSSE           ( DistParam* pcDtParam, Pel* pRefY, Bool bRound );
-  static UInt xGetSSE4          ( DistParam* pcDtParam, Pel* pRefY, Bool bRound );
-  static UInt xGetSSE8          ( DistParam* pcDtParam, Pel* pRefY, Bool bRound );
-  static UInt xGetSSE16         ( DistParam* pcDtParam, Pel* pRefY, Bool bRound );
-  static UInt xGetSSE32         ( DistParam* pcDtParam, Pel* pRefY, Bool bRound );
-  static UInt xGetSSE64         ( DistParam* pcDtParam, Pel* pRefY, Bool bRound );
-  static UInt xGetSSE16N        ( DistParam* pcDtParam, Pel* pRefY, Bool bRound );
-  
-  static UInt xGetSAD           ( DistParam* pcDtParam, Pel* pRefY, Bool bRound );
-  static UInt xGetSAD4          ( DistParam* pcDtParam, Pel* pRefY, Bool bRound );
-  static UInt xGetSAD8          ( DistParam* pcDtParam, Pel* pRefY, Bool bRound );
-  static UInt xGetSAD16         ( DistParam* pcDtParam, Pel* pRefY, Bool bRound );
-  static UInt xGetSAD32         ( DistParam* pcDtParam, Pel* pRefY, Bool bRound );
-  static UInt xGetSAD64         ( DistParam* pcDtParam, Pel* pRefY, Bool bRound );
-  static UInt xGetSAD16N        ( DistParam* pcDtParam, Pel* pRefY, Bool bRound );
-  
-  static UInt xGetSADs          ( DistParam* pcDtParam, Pel* pRefY, Bool bRound );
-  static UInt xGetSADs4         ( DistParam* pcDtParam, Pel* pRefY, Bool bRound );
-  static UInt xGetSADs8         ( DistParam* pcDtParam, Pel* pRefY, Bool bRound );
-  static UInt xGetSADs16        ( DistParam* pcDtParam, Pel* pRefY, Bool bRound );
-  static UInt xGetSADs32        ( DistParam* pcDtParam, Pel* pRefY, Bool bRound );
-  static UInt xGetSADs64        ( DistParam* pcDtParam, Pel* pRefY, Bool bRound );
-  static UInt xGetSADs16N       ( DistParam* pcDtParam, Pel* pRefY, Bool bRound );
-  
-  static UInt xGetHADs4         ( DistParam* pcDtParam, Pel* pRefY, Bool bRound );
-  static UInt xGetHADs8         ( DistParam* pcDtParam, Pel* pRefY, Bool bRound );
-  static UInt xGetHADs          ( DistParam* pcDtParam, Pel* pRefY, Bool bRound );
-  static UInt xCalcHADs2x2      ( Pel *piOrg, Pel *piCurr, Int iStrideOrg, Int iStrideCur, Int iStep, Pel* pRefY, Int refYStride, Bool bRound );
-  static UInt xCalcHADs4x4      ( Pel *piOrg, Pel *piCurr, Int iStrideOrg, Int iStrideCur, Int iStep, Pel* pRefY, Int refYStride, Bool bRound );
-  static UInt xCalcHADs8x8      ( Pel *piOrg, Pel *piCurr, Int iStrideOrg, Int iStrideCur, Int iStep, Pel* pRefY, Int refYStride, Bool bRound );
-  
-#endif
   
 public:
   UInt   getDistPart( Pel* piCur, Int iCurStride,  Pel* piOrg, Int iOrgStride, UInt uiBlkWidth, UInt uiBlkHeight, DFunc eDFunc = DF_SSE );

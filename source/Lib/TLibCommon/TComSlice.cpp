@@ -58,9 +58,6 @@ TComSlice::TComSlice()
   
   m_pcPic               = NULL;
   m_bRefenced           = false;
-#ifdef ROUNDING_CONTROL_BIPRED
-  m_bRounding           = false;
-#endif
   m_uiColDir = 0;
   
   initEqualRef();
@@ -635,9 +632,6 @@ Void TComSlice::copySliceInfo(TComSlice *pSrc)
 
   // referenced slice
   m_bRefenced            = pSrc->m_bRefenced;
-#ifdef ROUNDING_CONTROL_BIPRED
-  m_bRounding            = pSrc->m_bRounding;
-#endif
 
   // access channel
   m_pcSPS                = pSrc->m_pcSPS;

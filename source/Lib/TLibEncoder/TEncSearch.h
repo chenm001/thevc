@@ -122,10 +122,6 @@ public:
 protected:
   
   /// sub-function for motion vector refinement used in fractional-pel accuracy
-#ifdef ROUNDING_CONTROL_BIPRED
-  UInt  xPatternRefinement_Bi( TComPattern* pcPatternKey, Pel* piRef, Int iRefStride, Int iIntStep, Int iFrac, TComMv& rcMvFrac, Pel* pRefY2, Bool bRound );
-#endif
-  
   UInt  xPatternRefinement( TComPattern* pcPatternKey, Pel* piRef, Int iRefStride, Int iIntStep, Int iFrac, TComMv& rcMvFrac );
   
 #if (!REFERENCE_SAMPLE_PADDING)
@@ -371,31 +367,6 @@ protected:
                                     TComMv*       pcMvSrchRngRB,
                                     TComMv&       rcMv,
                                     UInt&         ruiSAD );
-  
-#ifdef ROUNDING_CONTROL_BIPRED
-  Void xPatternSearch_Bi             ( TComPattern*  pcPatternKey,
-                                       Pel*          piRefY,
-                                       Int           iRefStride,
-                                       TComMv*       pcMvSrchRngLT,
-                                       TComMv*       pcMvSrchRngRB,
-                                       TComMv&       rcMv,
-                                       UInt&         ruiSAD,
-                                       Pel*          pcRefY2,
-                                       Bool          bRound);
-  
-  Void xPatternSearchFracDIF_Bi      ( TComDataCU*   pcCU,
-                                       TComPattern*  pcPatternKey,
-                                       Pel*          piRefY,
-                                       Int           iRefStride,
-                                       TComMv*       pcMvInt,
-                                       TComMv&       rcMvHalf,
-                                       TComMv&       rcMvQter,
-                                       UInt&         ruiCost,
-                                       Pel*          pcRefY2,
-                                       Bool          bRound);
-  
-  
-#endif
   
   Void xPatternSearch             ( TComPattern*  pcPatternKey,
                                     Pel*          piRefY,

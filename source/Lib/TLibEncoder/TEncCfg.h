@@ -143,9 +143,6 @@ protected:
 #if HHI_RMP_SWITCH
   Bool      m_bUseRMP;
 #endif
-#ifdef ROUNDING_CONTROL_BIPRED
-  Bool m_useRoundingControlBipred;
-#endif
 #if CONSTRAINED_INTRA_PRED
   Bool      m_bUseConstrainedIntraPred;
 #endif
@@ -356,10 +353,6 @@ public:
 #if HHI_RMP_SWITCH
   Void      setUseRMP                      ( Bool b ) { m_bUseRMP = b; }
   Bool      getUseRMP                      ()      {return m_bUseRMP; }
-#endif
-#ifdef ROUNDING_CONTROL_BIPRED
-  Void setUseRoundingControlBipred(Bool b) { m_useRoundingControlBipred = b; }
-  Bool getUseRoundingControlBipred() { return m_useRoundingControlBipred; }
 #endif
   //====== Slice ========
   Void  setSliceMode                   ( Int  i )       { m_iSliceMode = i;              }

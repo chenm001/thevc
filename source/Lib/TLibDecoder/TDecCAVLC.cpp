@@ -326,24 +326,6 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice)
     
     rpcSlice->setReferenced       (uiCode ? true : false);
     
-#if !HIGH_ACCURACY_BI
-#ifdef ROUNDING_CONTROL_BIPRED
-    if(!rpcSlice->isIntra())
-    {
-      xReadFlag( uiCode );
-      Bool b = (uiCode != 0);
-      rpcSlice->setRounding(b);
-    }
-#endif
-#else
-#if !HIGH_ACCURACY_BI
-    if(!rpcSlice->isIntra())
-    {
-      rpcSlice->setRounding(false);
-    }
-#endif
-#endif
-    
     xReadFlag (   uiCode);  rpcSlice->setLoopFilterDisable(uiCode ? 1 : 0);
     
     if (!rpcSlice->isIntra())

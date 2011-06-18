@@ -219,9 +219,6 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
 #if HHI_RMP_SWITCH
   ("RMP", m_bUseRMP ,true, "Rectangular motion partition" )
 #endif
-#ifdef ROUNDING_CONTROL_BIPRED
-  ("RoundingControlBipred", m_useRoundingControlBipred, false, "Rounding control for bi-prediction")
-#endif
     ("SliceMode",            m_iSliceMode,           0, "0: Disable all Recon slice limits, 1: Enforce max # of LCUs, 2: Enforce max # of bytes")
     ("SliceArgument",        m_iSliceArgument,       0, "if SliceMode==1 SliceArgument represents max # of LCUs. if SliceMode==2 SliceArgument represents max # of bytes.")
     ("EntropySliceMode",     m_iEntropySliceMode,    0, "0: Disable all entropy slice limits, 1: Enforce max # of LCUs, 2: Enforce constraint based entropy slices")

@@ -143,9 +143,6 @@ Void TAppEncTop::xInitLibCfg()
 #if HHI_RMP_SWITCH
   m_cTEncTop.setUseRMP                     ( m_bUseRMP );
 #endif
-#ifdef ROUNDING_CONTROL_BIPRED
-  m_cTEncTop.setUseRoundingControlBipred(m_useRoundingControlBipred);
-#endif
 #if CONSTRAINED_INTRA_PRED
   m_cTEncTop.setUseConstrainedIntraPred      ( m_bUseConstrainedIntraPred );
 #endif
