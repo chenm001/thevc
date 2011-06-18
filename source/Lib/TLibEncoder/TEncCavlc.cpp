@@ -1483,9 +1483,6 @@ Void TEncCavlc::codeInterDir( TComDataCU* pcCU, UInt uiAbsPartIdx )
     cx = m_uiMITableE[x];
     
     /* Adapt table */
-#if !MS_LCEC_LOOKUP_TABLE_MAX_VALUE
-    UInt vlcn = g_auiMITableVlcNum[m_uiMITableVlcIdx];    
-#endif
     if ( m_bAdaptFlag )
     {
 #if CAVLC_COUNTER_ADAPT
@@ -1502,7 +1499,6 @@ Void TEncCavlc::codeInterDir( TComDataCU* pcCU, UInt uiAbsPartIdx )
     }
     
     {
-#if MS_LCEC_LOOKUP_TABLE_MAX_VALUE
       UInt uiMaxVal = 7;
 #if MS_LCEC_LOOKUP_TABLE_EXCEPTION
       uiMaxVal = 8;
@@ -1535,9 +1531,6 @@ Void TEncCavlc::codeInterDir( TComDataCU* pcCU, UInt uiAbsPartIdx )
       }
       
       xWriteUnaryMaxSymbol( cx, uiMaxVal );
-#else
-      xWriteVlc( vlcn, cx );
-#endif
     }
     
 #if MS_LCEC_LOOKUP_TABLE_EXCEPTION

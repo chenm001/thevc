@@ -1502,7 +1502,6 @@ Void TDecCavlc::parseInterDir( TComDataCU* pcCU, UInt& ruiInterDir, UInt uiAbsPa
     Int x,cx,y,cy;
 #endif
 
-#if MS_LCEC_LOOKUP_TABLE_MAX_VALUE
     UInt uiMaxVal = 7;
 #if MS_LCEC_LOOKUP_TABLE_EXCEPTION
     uiMaxVal = 8;
@@ -1535,10 +1534,6 @@ Void TDecCavlc::parseInterDir( TComDataCU* pcCU, UInt& ruiInterDir, UInt uiAbsPa
     }
     
     xReadUnaryMaxSymbol( tmp, uiMaxVal );
-#else    
-    UInt vlcn = g_auiMITableVlcNum[m_uiMITableVlcIdx];
-    tmp = xReadVlc( vlcn );
-#endif
 
     UInt *m_uiMITableD = m_uiMI1TableD;
     x = m_uiMITableD[tmp];
