@@ -87,9 +87,6 @@ private:
   Bool        m_bLCMod;
 #endif
   
-#if HHI_RMP_SWITCH
-  Bool        m_bUseRMP;
-#endif
   // Parameter
   AMVP_MODE   m_aeAMVPMode[MAX_CU_DEPTH];
   UInt        m_uiBitDepth;
@@ -180,11 +177,6 @@ public:
   Bool getLCMod       ()         { return m_bLCMod;  }
 #endif
 
-#if HHI_RMP_SWITCH
-  Bool getUseRMP     ()         { return m_bUseRMP; }
-  Void setUseRMP     ( Bool b ) { m_bUseRMP = b;    }
-#endif
-  
 #if LM_CHROMA 
   Bool getUseLMChroma ()         { return m_bUseLMChroma;        }
   Void setUseLMChroma ( Bool b ) { m_bUseLMChroma  = b;          }

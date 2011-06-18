@@ -140,9 +140,6 @@ Void TAppEncTop::xInitLibCfg()
   m_cTEncTop.setUseLMChroma                  ( m_bUseLMChroma );
 #endif
 
-#if HHI_RMP_SWITCH
-  m_cTEncTop.setUseRMP                     ( m_bUseRMP );
-#endif
 #if CONSTRAINED_INTRA_PRED
   m_cTEncTop.setUseConstrainedIntraPred      ( m_bUseConstrainedIntraPred );
 #endif

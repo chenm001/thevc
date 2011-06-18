@@ -216,9 +216,6 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
 #if MQT_ALF_NPASS
   ("ALFEncodePassReduction", m_iALFEncodePassReduction, 0, "0:Original 16-pass, 1: 1-pass, 2: 2-pass encoding")
 #endif
-#if HHI_RMP_SWITCH
-  ("RMP", m_bUseRMP ,true, "Rectangular motion partition" )
-#endif
     ("SliceMode",            m_iSliceMode,           0, "0: Disable all Recon slice limits, 1: Enforce max # of LCUs, 2: Enforce max # of bytes")
     ("SliceArgument",        m_iSliceArgument,       0, "if SliceMode==1 SliceArgument represents max # of LCUs. if SliceMode==2 SliceArgument represents max # of bytes.")
     ("EntropySliceMode",     m_iEntropySliceMode,    0, "0: Disable all entropy slice limits, 1: Enforce max # of LCUs, 2: Enforce constraint based entropy slices")
@@ -597,9 +594,6 @@ Void TAppEncCfg::xPrintParameter()
   printf("MRG:%d ", m_bUseMRG             ); // SOPH: Merge Mode
 #if LM_CHROMA 
   printf("LMC:%d ", m_bUseLMChroma        ); 
-#endif
-#if HHI_RMP_SWITCH
-  printf("RMP:%d ", m_bUseRMP);
 #endif
 #if FINE_GRANULARITY_SLICES
   printf("Slice: G=%d M=%d ", m_iSliceGranularity, m_iSliceMode);

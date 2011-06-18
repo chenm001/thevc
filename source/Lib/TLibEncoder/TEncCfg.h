@@ -140,9 +140,6 @@ protected:
   Int*      m_aidQP;
   UInt      m_uiDeltaQpRD;
   
-#if HHI_RMP_SWITCH
-  Bool      m_bUseRMP;
-#endif
 #if CONSTRAINED_INTRA_PRED
   Bool      m_bUseConstrainedIntraPred;
 #endif
@@ -350,10 +347,6 @@ public:
 
   Int*      getdQPs                         ()      { return m_aidQP;       }
   UInt      getDeltaQpRD                    ()      { return m_uiDeltaQpRD; }
-#if HHI_RMP_SWITCH
-  Void      setUseRMP                      ( Bool b ) { m_bUseRMP = b; }
-  Bool      getUseRMP                      ()      {return m_bUseRMP; }
-#endif
   //====== Slice ========
   Void  setSliceMode                   ( Int  i )       { m_iSliceMode = i;              }
   Void  setSliceArgument               ( Int  i )       { m_iSliceArgument = i;          }

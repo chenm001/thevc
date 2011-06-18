@@ -145,10 +145,6 @@ protected:
   Bool      m_bUseLMChroma;                                  ///< JL: Chroma intra prediction based on luma signal
 #endif
 
-#if HHI_RMP_SWITCH
-  Bool      m_bUseRMP;
-#endif
-  
   // coding tools (PCM)
 #if E057_INTRA_PCM
   UInt      m_uiPCMLog2MinSize;                               ///< log2 of minimum PCM block size

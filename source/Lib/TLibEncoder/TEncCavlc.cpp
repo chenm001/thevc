@@ -296,10 +296,6 @@ Void TEncCavlc::codeSPS( TComSPS* pcSPS )
   xWriteFlag  ( (pcSPS->getUseLMChroma ()) ? 1 : 0 ); 
 #endif
 
-#if HHI_RMP_SWITCH
-  xWriteFlag  ( (pcSPS->getUseRMP()) ? 1 : 0 );
-#endif
-    
   // AMVP mode for each depth
   for (Int i = 0; i < pcSPS->getMaxCUDepth(); i++)
   {
@@ -534,9 +530,6 @@ Void TEncCavlc::codePartSize( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth 
   if ( pcCU->getSlice()->isInterB() && pcCU->isIntra( uiAbsPartIdx ) )
   {
     xWriteFlag( 0 );
-#if HHI_RMP_SWITCH
-    if( pcCU->getSlice()->getSPS()->getUseRMP() )
-#endif
     {
       xWriteFlag( 0 );
       xWriteFlag( 0 );
@@ -583,9 +576,6 @@ Void TEncCavlc::codePartSize( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth 
       if( uiDepth == g_uiMaxCUDepth - g_uiAddCUDepth )
       {
         xWriteFlag( 0 );
-#if HHI_RMP_SWITCH
-        if( pcCU->getSlice()->getSPS()->getUseRMP())
-#endif
         {
           xWriteFlag( 0 );
           xWriteFlag( 0 );

@@ -421,9 +421,6 @@ Void TEncSbac::codePartSize( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
   if ( pcCU->getSlice()->isInterB() && pcCU->isIntra( uiAbsPartIdx ) )
   {
     m_pcBinIf->encodeBin( 0, m_cCUPartSizeSCModel.get( 0, 0, 0) );
-#if HHI_RMP_SWITCH
-    if( pcCU->getSlice()->getSPS()->getUseRMP() )
-#endif
     {
       m_pcBinIf->encodeBin( 0, m_cCUPartSizeSCModel.get( 0, 0, 1) );
       m_pcBinIf->encodeBin( 0, m_cCUPartSizeSCModel.get( 0, 0, 2) );
@@ -475,9 +472,6 @@ Void TEncSbac::codePartSize( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
       if( uiDepth == g_uiMaxCUDepth - g_uiAddCUDepth )
       {
         m_pcBinIf->encodeBin( 0, m_cCUPartSizeSCModel.get( 0, 0, 0) );
-#if HHI_RMP_SWITCH
-        if( pcCU->getSlice()->getSPS()->getUseRMP() )
-#endif
         {
           m_pcBinIf->encodeBin( 0, m_cCUPartSizeSCModel.get( 0, 0, 1) );
           m_pcBinIf->encodeBin( 0, m_cCUPartSizeSCModel.get( 0, 0, 2) );

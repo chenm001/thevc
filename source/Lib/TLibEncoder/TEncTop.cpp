@@ -383,11 +383,6 @@ Void TEncTop::xInitSPS()
   }
 #endif
   
-  
-#if HHI_RMP_SWITCH
-  m_cSPS.setUseRMP( m_bUseRMP );
-#endif
-  
   m_cSPS.setBitDepth    ( g_uiBitDepth        );
   m_cSPS.setBitIncrement( g_uiBitIncrement    );
 

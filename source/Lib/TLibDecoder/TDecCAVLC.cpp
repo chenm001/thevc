@@ -163,10 +163,6 @@ Void TDecCavlc::parseSPS(TComSPS* pcSPS)
   xReadFlag( uiCode ); pcSPS->setUseLMChroma ( uiCode ? true : false ); 
 #endif
 
-#if HHI_RMP_SWITCH
-  xReadFlag( uiCode ); pcSPS->setUseRMP( uiCode ? true : false );
-#endif
-  
   // AMVP mode for each depth (AM_NONE or AM_EXPL)
   for (Int i = 0; i < pcSPS->getMaxCUDepth(); i++)
   {
@@ -869,17 +865,6 @@ Void TDecCavlc::parsePartSize( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth
   }
   else
   {
-#if HHI_RMP_SWITCH
-    if ( !pcCU->getSlice()->getSPS()->getUseRMP())
-    {
-      xReadFlag( uiSymbol );
-      if( uiSymbol )
-        uiMode = 0;
-      else
-        uiMode = 3;
-    }
-    else
-#endif
     {
       UInt uiMaxNumBits = 3;
       for ( UInt ui = 0; ui < uiMaxNumBits; ui++ )

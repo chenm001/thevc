@@ -567,9 +567,6 @@ Void TEncCu::xCompressCU( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, UInt u
           }
         }
 
-#if HHI_RMP_SWITCH
-        if( pcPic->getSlice(0)->getSPS()->getUseRMP() )
-#endif
         { // 2NxN, Nx2N
           xCheckRDCostInter( rpcBestCU, rpcTempCU, SIZE_Nx2N  );
 #if SUB_LCU_DQP

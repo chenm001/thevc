@@ -804,17 +804,6 @@ Void TDecSbac::parsePartSize( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth 
   }
   else
   {
-#if HHI_RMP_SWITCH
-    if ( !pcCU->getSlice()->getSPS()->getUseRMP())
-    {
-      m_pcTDecBinIf->decodeBin( uiSymbol, m_cCUPartSizeSCModel.get( 0, 0, 0) );
-      if( uiSymbol )
-        uiMode = 0;
-      else
-        uiMode = 3;
-    }
-    else
-#endif
     {
       UInt uiMaxNumBits = 3;
       for ( UInt ui = 0; ui < uiMaxNumBits; ui++ )
