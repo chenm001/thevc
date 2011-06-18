@@ -500,7 +500,6 @@ Void TEncEntropy::encodeAlfCtrlFlag(UInt uiFlag)
 #endif
 
 
-#if TSB_ALF_HEADER || E045_SLICE_COMMON_INFO_SHARING
 /** Encode ALF CU control flag parameters
  * \param pAlfParam ALF parameters
  */
@@ -527,7 +526,6 @@ Void TEncEntropy::encodeAlfCtrlParam( ALFParam* pAlfParam )
   m_pcEntropyCoderIf->codeAlfCtrlDepth();
 #endif
 
-#if TSB_ALF_HEADER
 #if E045_SLICE_COMMON_INFO_SHARING
   UInt uiNumAlfCUFlags = (uiNumSlices == 1)?(pAlfParam->num_alf_cu_flag):(pcAlfSlice->getNumCtrlFlags());
 
@@ -574,12 +572,7 @@ Void TEncEntropy::encodeAlfCtrlParam( ALFParam* pAlfParam )
     }
   }
 #endif
-
-
-#endif
-
 }
-#endif
 
 /** encode prediction mode
  * \param pcCU

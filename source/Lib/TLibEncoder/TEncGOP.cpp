@@ -669,9 +669,7 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
           {
             m_pcEntropyCoder->resetEntropy    ();
             m_pcEntropyCoder->setBitstream    ( m_pcBitCounter );
-#if TSB_ALF_HEADER
             m_pcAdaptiveLoopFilter->setNumCUsInFrame(pcPic);
-#endif
             m_pcAdaptiveLoopFilter->allocALFParam(&cAlfParam);
             m_pcAdaptiveLoopFilter->startALFEnc(pcPic, m_pcEntropyCoder );
             m_pcAdaptiveLoopFilter->ALFProcess( &cAlfParam, pcPic->getSlice(0)->getLambda(), uiDist, uiBits, uiMaxAlfCtrlDepth );
@@ -744,7 +742,6 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
               m_pcEntropyCoder->encodeAlfCtrlParam(&cAlfParam, m_pcAdaptiveLoopFilter->getNumSlicesInPic(), &((*m_pcAdaptiveLoopFilter)[pcPic->getCurrSliceIdx()]));
             }
 #else
-#if TSB_ALF_HEADER
             if(cAlfParam.cu_control_flag)
             {
 #if FINE_GRANULARITY_SLICES && MTK_NONCROSS_INLOOP_FILTER
@@ -752,7 +749,6 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
 #endif
               m_pcEntropyCoder->encodeAlfCtrlParam(&cAlfParam);
             }
-#endif
             m_pcAdaptiveLoopFilter->freeALFParam(&cAlfParam);
 #endif
 
@@ -986,7 +982,7 @@ Void TEncGOP::preLoopFilterPicAll( TComPic* pcPic, UInt64& ruiDist, UInt64& ruiB
   if( pcSlice->getSPS()->getUseALF() )
   {
     ALFParam cAlfParam;
-#if TSB_ALF_HEADER && (!E045_SLICE_COMMON_INFO_SHARING)
+#if (!E045_SLICE_COMMON_INFO_SHARING)
     m_pcAdaptiveLoopFilter->setNumCUsInFrame(pcPic);
 #endif
     m_pcAdaptiveLoopFilter->allocALFParam(&cAlfParam);

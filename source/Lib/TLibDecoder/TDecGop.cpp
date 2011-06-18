@@ -216,7 +216,7 @@ Void TDecGop::decompressGop(TComInputBitstream* pcBitstream, TComPic*& rpcPic, B
 
       if ( rpcPic->getSlice(0)->getSPS()->getUseALF() )
       {
-#if TSB_ALF_HEADER && (!E045_SLICE_COMMON_INFO_SHARING)
+#if (!E045_SLICE_COMMON_INFO_SHARING)
         m_pcAdaptiveLoopFilter->setNumCUsInFrame(rpcPic);
 #endif
         m_pcAdaptiveLoopFilter->allocALFParam(&m_cAlfParam);

@@ -118,10 +118,8 @@ private:
 
 public:
   Void parseAlfCtrlFlag   ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
-#if TSB_ALF_HEADER
   Void parseAlfFlagNum    ( UInt& ruiVal, UInt minValue, UInt depth );
   Void parseAlfCtrlFlag   ( UInt &ruiAlfCtrlFlag );
-#endif
 
 #if FINE_GRANULARITY_SLICES && MTK_NONCROSS_INLOOP_FILTER
   /// set slice granularity

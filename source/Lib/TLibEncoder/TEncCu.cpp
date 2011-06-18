@@ -1083,11 +1083,6 @@ Void TEncCu::xEncodeCU( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
     return;
   }
   
-#if TSB_ALF_HEADER
-#else
-  m_pcEntropyCoder->encodeAlfCtrlFlag( pcCU, uiAbsPartIdx );
-#endif
-  
 #if SUB_LCU_DQP
   if( (g_uiMaxCUWidth>>uiDepth) >= pcCU->getSlice()->getPPS()->getMinCuDQPSize() && pcCU->getSlice()->getSPS()->getUseDQP())
   {

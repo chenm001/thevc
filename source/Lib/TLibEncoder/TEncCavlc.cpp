@@ -2248,7 +2248,6 @@ Void TEncCavlc::codeAlfFlag( UInt uiCode )
   xWriteFlag( uiCode );
 }
 
-#if TSB_ALF_HEADER
 #if MTK_NONCROSS_INLOOP_FILTER
 /** Code number of ALF CU control flags
  * \param uiCode number of ALF CU control flags
@@ -2286,7 +2285,6 @@ Void TEncCavlc::codeAlfCtrlFlag( UInt uiSymbol )
 {
   xWriteFlag( uiSymbol );
 }
-#endif
 
 Void TEncCavlc::codeAlfUvlc( UInt uiCode )
 {

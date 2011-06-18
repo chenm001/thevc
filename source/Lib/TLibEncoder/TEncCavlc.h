@@ -228,7 +228,6 @@ public:
   Int  getSliceGranularity()                       {return m_iSliceGranularity;             }
 #endif
 
-#if TSB_ALF_HEADER
 #if MTK_NONCROSS_INLOOP_FILTER
   /// Code number of ALF CU control flags
   Void codeAlfFlagNum    ( UInt uiCode, UInt minValue, Int iDepth);
@@ -237,7 +236,6 @@ public:
 #endif
 
   Void codeAlfCtrlFlag   ( UInt uiSymbol );
-#endif
 #if QC_LCEC_INTER_MODE
   Void codeInterModeFlag( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth, UInt uiEncMode );
 #endif  

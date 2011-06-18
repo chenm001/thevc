@@ -2390,8 +2390,6 @@ Void TDecCavlc::parseAlfFlag (UInt& ruiVal)
   xReadFlag( ruiVal );
 }
 
-#if TSB_ALF_HEADER
-
 Void TDecCavlc::parseAlfFlagNum( UInt& ruiVal, UInt minValue, UInt depth )
 {
   UInt uiLength = 0;
@@ -2422,7 +2420,6 @@ Void TDecCavlc::parseAlfCtrlFlag( UInt &ruiAlfCtrlFlag )
   xReadFlag( uiSymbol );
   ruiAlfCtrlFlag = uiSymbol;
 }
-#endif
 
 Void TDecCavlc::parseAlfUvlc (UInt& ruiVal)
 {

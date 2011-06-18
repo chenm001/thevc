@@ -1702,7 +1702,6 @@ Void TEncSbac::codeAlfFlag       ( UInt uiCode )
   m_pcBinIf->encodeBin( uiSymbol, m_cALFFlagSCModel.get( 0, 0, 0 ) );
 }
 
-#if TSB_ALF_HEADER
 #if MTK_NONCROSS_INLOOP_FILTER
 /** Code number of ALF CU control flags
  * \param uiCode number of ALF CU control flags
@@ -1744,7 +1743,6 @@ Void TEncSbac::codeAlfCtrlFlag( UInt uiSymbol )
 {
   m_pcBinIf->encodeBin( uiSymbol, m_cCUAlfCtrlFlagSCModel.get( 0, 0, 0) );
 }
-#endif
 
 Void TEncSbac::codeAlfUvlc       ( UInt uiCode )
 {

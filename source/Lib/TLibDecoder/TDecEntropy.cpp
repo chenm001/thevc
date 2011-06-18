@@ -312,10 +312,8 @@ Void TDecEntropy::decodeAlfParam(ALFParam* pAlfParam)
     m_pcEntropyDecoderIf->setAlfCtrl(true);
     m_pcEntropyDecoderIf->parseAlfCtrlDepth(uiSymbol);
     m_pcEntropyDecoderIf->setMaxAlfCtrlDepth(uiSymbol);
-#if TSB_ALF_HEADER
     pAlfParam->alf_max_depth = uiSymbol;
     decodeAlfCtrlParam(pAlfParam);
-#endif
   }
   else
   {
@@ -325,7 +323,6 @@ Void TDecEntropy::decodeAlfParam(ALFParam* pAlfParam)
 #endif
 }
 
-#if TSB_ALF_HEADER || E045_SLICE_COMMON_INFO_SHARING
 /** decode ALF CU control parameters
  * \param pAlfParam ALF paramters
  */
@@ -349,9 +346,7 @@ Void TDecEntropy::decodeAlfCtrlParam( ALFParam* pAlfParam )
     m_pcEntropyDecoderIf->setAlfCtrl(true);
     m_pcEntropyDecoderIf->parseAlfCtrlDepth(uiSymbol);
     m_pcEntropyDecoderIf->setMaxAlfCtrlDepth(uiSymbol);
-#if TSB_ALF_HEADER
     pAlfParam->alf_max_depth = uiSymbol;
-#endif
   }
   else
   {
@@ -359,8 +354,6 @@ Void TDecEntropy::decodeAlfCtrlParam( ALFParam* pAlfParam )
     return;
   }
 #endif
-
-#if TSB_ALF_HEADER //E045_SLICE_COMMON_INFO_SHARING
 
 #if E045_SLICE_COMMON_INFO_SHARING
   Int iSymbol;
@@ -407,10 +400,7 @@ Void TDecEntropy::decodeAlfCtrlParam( ALFParam* pAlfParam )
   {
     m_pcEntropyDecoderIf->parseAlfCtrlFlag( pAlfParam->alf_cu_flag[i] );
   }
-#endif
-
 }
-#endif
 
 Void TDecEntropy::decodeAlfCtrlFlag( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
 {
