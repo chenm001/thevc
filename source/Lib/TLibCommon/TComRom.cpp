@@ -1934,7 +1934,6 @@ const UInt g_auiLumaRun8x8[29][2][64] =
 };
 #endif
 
-#if  QC_MOD_LCEC
 const UInt g_auiLumaRunTr14x4[5][15]=
 {
     {0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0},
@@ -1963,17 +1962,12 @@ const UInt *g_pLumaRunTr18x8[5] = {
   &g_auiLumaRunTr18x8[3][0], &g_auiLumaRunTr18x8[4][0]
 };
 #endif
-#endif
 
-#if QC_MOD_LCEC
 const UInt g_auiVlcTable8x8Inter[29] = {8,0,0,5,5,5,5,5,5,5,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,3};
 const UInt g_auiVlcTable8x8Intra[29] = {8,0,0,5,5,5,5,5,5,5,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,3};
 #if CAVLC_COEF_LRG_BLK
 const UInt g_auiVlcTable16x16Intra[29] = {8,0,0,0,0,5,5,5,5,5,5,5,5,5,5,5,5,5,1,1,1,1,1,1,1,1,1,1,2};
 const UInt g_auiVlcTable16x16Inter[29] = {8,0,1,1,1,1,2,2,2,2,2,2,2,6,6,6,6,6,6,3,3,3,3,3,3,3,3,3,3};
-#endif
-#else
-const UInt g_auiVlcTable8x8[28] = {8,0,0,5,5,5,5,5,5,5,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6};
 #endif
 
 #if LCEC_INTRA_MODE

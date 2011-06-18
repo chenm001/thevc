@@ -206,11 +206,7 @@ public:
   ~TComTrQuant();
   
   // initialize class
-#if QC_MOD_LCEC
   Void init                 ( UInt uiMaxWidth, UInt uiMaxHeight, UInt uiMaxTrSize, Int iSymbolMode = 0, UInt *aTable4 = NULL, UInt *aTable8 = NULL, UInt *aTableLastPosVlcIndex=NULL, Bool bUseRDOQ = false,  Bool bEnc = false );
-#else
-  Void init                 ( UInt uiMaxWidth, UInt uiMaxHeight, UInt uiMaxTrSize, Int iSymbolMode = 0, UInt *aTable4 = NULL, UInt *aTable8 = NULL, Bool bUseRDOQ = false,  Bool bEnc = false );
-#endif
   
   // transform & inverse transform functions
   Void transformNxN         ( TComDataCU* pcCU, Pel*   pcResidual, UInt uiStride, TCoeff*& rpcCoeff, UInt uiWidth, UInt uiHeight,
@@ -256,9 +252,7 @@ protected:
   UInt     *m_uiLPTableE8;
   UInt     *m_uiLPTableE4;
   Int      m_iSymbolMode;
-#if QC_MOD_LCEC
   UInt     *m_uiLastPosVlcIndex;
-#endif
   
 private:
   // forward Transform

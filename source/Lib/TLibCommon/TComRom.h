@@ -200,12 +200,8 @@ extern const UInt    g_auiIntraModeTableE34[33];
 #endif
 #endif
 
-#if QC_MOD_LCEC
 extern const UInt    g_auiVlcTable8x8Inter[29];
 extern const UInt    g_auiVlcTable8x8Intra[29];
-#else
-extern const UInt    g_auiVlcTable8x8[28];
-#endif
 #if RUNLEVEL_TABLE_CUT 
 extern const UInt    g_acstructLumaRun8x8[28][29];
 #else
@@ -224,7 +220,6 @@ extern const UInt huff34_2[2][34];
 extern const UInt lengthHuff34_2[2][34];
 #endif
 
-#if QC_MOD_LCEC
 #if CAVLC_COEF_LRG_BLK
 extern const UInt   *g_pLumaRunTr14x4[5]; 
 extern const UInt   *g_pLumaRunTr18x8[5]; 
@@ -232,7 +227,7 @@ extern const UInt   *g_pLumaRunTr18x8[5];
 extern const UInt    g_auiLumaRunTr14x4[5][15];
 extern const UInt    g_auiLumaRunTr18x8[5][29];
 #endif
-#endif
+
 #if CAVLC_RQT_CBP
 extern const UInt    g_auiCBP_YUV_TableE[4][8];
 extern const UInt    g_auiCBP_YUV_TableD[4][8];
@@ -338,7 +333,6 @@ extern const UChar g_aucDCTDSTMode_Hor[34];
 // ====================================================================================================================
 // Misc.
 // ====================================================================================================================
-#if QC_MOD_LCEC
 __inline UInt xRunLevelInd(Int lev, Int run, Int maxrun, UInt lrg1Pos)
 {
   UInt cn;
@@ -408,7 +402,6 @@ __inline UInt xRunLevelIndInter(Int lev, Int run, Int maxrun)
 
   return(cn);
 }
-#endif
 #endif
 
 

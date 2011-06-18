@@ -168,7 +168,6 @@ const Int TComTrQuant::estErr16x16[6] = { 25329, 30580, 42563, 49296, 64244, 822
 const Int TComTrQuant::estErr32x32[6] = { 25351, 30674, 42843, 49687, 64898, 82136 };
 #endif
 
-#if QC_MOD_LCEC
 #if CAVLC_COEF_LRG_BLK
   static const int VLClength[14][128] = {
 #else
@@ -192,7 +191,6 @@ const Int TComTrQuant::estErr32x32[6] = { 25351, 30674, 42843, 49687, 64898, 821
     ,{ 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,12,12,12,12,12,12,12,12,12,12,12,12,12,12,12,12}
 #endif
   };
-#endif
 
 // ====================================================================================================================
 // Qp class member functions
@@ -4145,21 +4143,15 @@ Void TComTrQuant::xIT32( Long* pSrc, Pel* pDes, UInt uiStride )
   }
 }
 #endif //!E243_CORE_TRANSFORMS
-#if QC_MOD_LCEC
 Void TComTrQuant::init( UInt uiMaxWidth, UInt uiMaxHeight, UInt uiMaxTrSize, Int iSymbolMode, UInt *aTableLP4, UInt *aTableLP8, UInt *aTableLastPosVlcIndex,
                        Bool bUseRDOQ,  Bool bEnc )
-#else 
-Void TComTrQuant::init( UInt uiMaxWidth, UInt uiMaxHeight, UInt uiMaxTrSize, Int iSymbolMode, UInt *aTableLP4, UInt *aTableLP8, Bool bUseRDOQ,  Bool bEnc )
-#endif
 {
   m_uiMaxTrSize  = uiMaxTrSize;
   m_bEnc         = bEnc;
   m_bUseRDOQ     = bUseRDOQ;
   m_uiLPTableE8 = aTableLP8;
   m_uiLPTableE4 = aTableLP4;
-#if QC_MOD_LCEC
   m_uiLastPosVlcIndex=aTableLastPosVlcIndex;
-#endif
   m_iSymbolMode = iSymbolMode;
   
 #if !E243_CORE_TRANSFORMS

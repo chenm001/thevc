@@ -78,11 +78,9 @@ protected:
   Void  xParseCoeff4x4      ( TCoeff* scoeff, Int iTableNumber );
   Void  xParseCoeff8x8      ( TCoeff* scoeff, Int iTableNumber );
 #endif
-#if QC_MOD_LCEC
   Void  xRunLevelIndInv     (LastCoeffStruct *combo, Int maxrun, UInt lrg1Pos, UInt cn);
 #if RUNLEVEL_TABLE_CUT
   Void  xRunLevelIndInterInv(LastCoeffStruct *combo, Int maxrun, UInt cn);
-#endif
 #endif
   
 private:

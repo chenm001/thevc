@@ -45,9 +45,7 @@
 #include "../TLibCommon/CommonDef.h"
 #include "../TLibCommon/TComBitStream.h"
 #include "TEncEntropy.h"
-#if QC_MOD_LCEC
 #include "../TLibCommon/TComRom.h"
-#endif
 
 class TEncTop;
 
@@ -190,9 +188,7 @@ public:
   UInt* GetLP8Table();
 #endif
   UInt* GetLP4Table();
-#if QC_MOD_LCEC
   UInt* GetLastPosVlcIndexTable();
-#endif
   Void  setBitstream          ( TComBitIf* p )  { m_pcBitIf = p;  }
   Void  setSlice              ( TComSlice* p )  { m_pcSlice = p;  }
   Bool getAlfCtrl() {return m_bAlfCtrl;}

@@ -173,9 +173,7 @@ Void TEncTop::destroy ()
 Void TEncTop::init()
 {
   UInt *aTable4=NULL, *aTable8=NULL;
-#if QC_MOD_LCEC
   UInt* aTableLastPosVlcIndex=NULL; 
-#endif
   // initialize SPS
   xInitSPS();
   
@@ -196,14 +194,10 @@ Void TEncTop::init()
   aTable8 = m_pcCavlcCoder->GetLP8Table();
 #endif
   aTable4 = m_pcCavlcCoder->GetLP4Table();
-#if QC_MOD_LCEC
   aTableLastPosVlcIndex=m_pcCavlcCoder->GetLastPosVlcIndexTable();
   
   m_cTrQuant.init( g_uiMaxCUWidth, g_uiMaxCUHeight, 1 << m_uiQuadtreeTULog2MaxSize, m_iSymbolMode, aTable4, aTable8, 
     aTableLastPosVlcIndex, m_bUseRDOQ, true );
-#else
-  m_cTrQuant.init( g_uiMaxCUWidth, g_uiMaxCUHeight, 1 << m_uiQuadtreeTULog2MaxSize, m_iSymbolMode, aTable4, aTable8, m_bUseRDOQ, true );
-#endif
   
   // initialize encoder search class
   m_cSearch.init( this, &m_cTrQuant, m_iSearchRange, m_bipredSearchRange, m_iFastSearch, 0, &m_cEntropyCoder, &m_cRdCost, getRDSbacCoder(), getRDGoOnSbacCoder() );
