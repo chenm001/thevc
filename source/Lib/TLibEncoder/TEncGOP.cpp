@@ -514,7 +514,11 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
 
 #if E045_SLICE_COMMON_INFO_SHARING
       UInt uiMaxAlfCtrlDepth = 0;
+#if MTK_SAO
       Int processingState = (pcSlice->getSPS()->getUseALF() || pcSlice->getSPS()->getUseSAO())?(EXECUTE_INLOOPFILTER):(ENCODE_SLICE);
+#else
+      Int processingState = (pcSlice->getSPS()->getUseALF() )?(EXECUTE_INLOOPFILTER):(ENCODE_SLICE);
+#endif
 #endif
 
 #if FINE_GRANULARITY_SLICES

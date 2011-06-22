@@ -1316,6 +1316,7 @@ Void TEncEntropy::encodeSaoParam(SAOParam* pSaoParam)
   }
 
 }
+#endif
 
 Int TEncEntropy::countNonZeroCoeffs( TCoeff* pcCoef, UInt uiSize )
 {
@@ -1329,4 +1330,3 @@ Int TEncEntropy::countNonZeroCoeffs( TCoeff* pcCoef, UInt uiSize )
   return count;
 }
 
-#endif
