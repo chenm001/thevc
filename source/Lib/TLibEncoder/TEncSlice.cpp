@@ -560,7 +560,9 @@ Void TEncSlice::compressSlice( TComPic*& rpcPic )
       // set go-on entropy coder
       m_pcEntropyCoder->setEntropyCoder ( m_pcRDGoOnSbacCoder, pcSlice );
       m_pcEntropyCoder->setBitstream    ( m_pcBitCounter );
-      
+#if FINE_GRANULARITY_SLICES
+      ((TEncBinCABAC*)m_pcRDGoOnSbacCoder->getEncBinIf())->setBinCountingEnableFlag(true);
+#endif
       // run CU encoder
       m_pcCuEncoder->compressCU( pcCU );
       
@@ -570,6 +572,7 @@ Void TEncSlice::compressSlice( TComPic*& rpcPic )
       pppcRDSbacCoder->setBinCountingEnableFlag( true );
 #if FINE_GRANULARITY_SLICES
       m_pcBitCounter->resetBits();
+      pppcRDSbacCoder->setBinsCoded( 0 );
 #endif
 #if SUB_LCU_DQP
       // restore last QP
@@ -579,8 +582,7 @@ Void TEncSlice::compressSlice( TComPic*& rpcPic )
 
       pppcRDSbacCoder->setBinCountingEnableFlag( false );
 #if FINE_GRANULARITY_SLICES
-      pcSlice->setSliceBits( (UInt)(pcSlice->getSliceBits() + m_pcBitCounter->getNumberOfWrittenBits()) );
-      if (m_pcCfg->getSliceMode()==AD_HOC_SLICES_FIXED_NUMBER_OF_BYTES_IN_SLICE && ( ( pcSlice->getSliceBits() ) ) > m_pcCfg->getSliceArgument()<<3)
+      if (m_pcCfg->getSliceMode()==AD_HOC_SLICES_FIXED_NUMBER_OF_BYTES_IN_SLICE && ( ( pcSlice->getSliceBits() + m_pcBitCounter->getNumberOfWrittenBits() ) ) > m_pcCfg->getSliceArgument()<<3)
       {
 #else
       uiBitsCoded += m_pcBitCounter->getNumberOfWrittenBits();
@@ -597,8 +599,7 @@ Void TEncSlice::compressSlice( TComPic*& rpcPic )
         break;
       }
 #if FINE_GRANULARITY_SLICES
-      pcSlice->setEntropySliceCounter(pcSlice->getEntropySliceCounter()+pppcRDSbacCoder->getBinsCoded());
-      if (m_pcCfg->getEntropySliceMode()==SHARP_MULTIPLE_CONSTRAINT_BASED_ENTROPY_SLICE && pcSlice->getEntropySliceCounter() > m_pcCfg->getEntropySliceArgument()&&pcSlice->getSliceCurEndCUAddr()!=pcSlice->getEntropySliceCurEndCUAddr())
+      if (m_pcCfg->getEntropySliceMode()==SHARP_MULTIPLE_CONSTRAINT_BASED_ENTROPY_SLICE && pcSlice->getEntropySliceCounter()+pppcRDSbacCoder->getBinsCoded() > m_pcCfg->getEntropySliceArgument()&&pcSlice->getSliceCurEndCUAddr()!=pcSlice->getEntropySliceCurEndCUAddr())
       {
 #else
       
@@ -611,6 +612,9 @@ Void TEncSlice::compressSlice( TComPic*& rpcPic )
           fprintf(stdout,"Entropy Slice overflow warning! codedBins=%6d, limitBins=%6d\n", uiBinsCoded, m_pcCfg->getEntropySliceArgument() );
           uiCUAddr = uiCUAddr + 1;
         }
+#endif
+#if !FINE_GRANULARITY_SLICES
+        uiBitsCoded -= m_pcBitCounter->getNumberOfWrittenBits();
 #endif
         pcSlice->setNextEntropySlice( true );
         break;
@@ -628,8 +632,7 @@ Void TEncSlice::compressSlice( TComPic*& rpcPic )
       m_pcCuEncoder->encodeCU( pcCU );
       
 #if FINE_GRANULARITY_SLICES
-      pcSlice->setSliceBits( (UInt)(pcSlice->getSliceBits() + m_pcBitCounter->getNumberOfWrittenBits()) );
-      if (m_pcCfg->getSliceMode()==AD_HOC_SLICES_FIXED_NUMBER_OF_BYTES_IN_SLICE && ( ( pcSlice->getSliceBits() ) ) > m_pcCfg->getSliceArgument()<<3)
+      if (m_pcCfg->getSliceMode()==AD_HOC_SLICES_FIXED_NUMBER_OF_BYTES_IN_SLICE && ( ( pcSlice->getSliceBits()+ m_pcBitCounter->getNumberOfWrittenBits() ) ) > m_pcCfg->getSliceArgument()<<3)
       {
 #else
       uiBitsCoded += m_pcBitCounter->getNumberOfWrittenBits();
@@ -646,8 +649,7 @@ Void TEncSlice::compressSlice( TComPic*& rpcPic )
         break;
       }
 #if FINE_GRANULARITY_SLICES
-      pcSlice->setEntropySliceCounter(pcSlice->getEntropySliceCounter()+m_pcBitCounter->getNumberOfWrittenBits());
-      if (m_pcCfg->getEntropySliceMode()==SHARP_MULTIPLE_CONSTRAINT_BASED_ENTROPY_SLICE && pcSlice->getEntropySliceCounter() > m_pcCfg->getEntropySliceArgument()&&pcSlice->getSliceCurEndCUAddr()!=pcSlice->getEntropySliceCurEndCUAddr())
+      if (m_pcCfg->getEntropySliceMode()==SHARP_MULTIPLE_CONSTRAINT_BASED_ENTROPY_SLICE && pcSlice->getEntropySliceCounter()+ m_pcBitCounter->getNumberOfWrittenBits()> m_pcCfg->getEntropySliceArgument()&&pcSlice->getSliceCurEndCUAddr()!=pcSlice->getEntropySliceCurEndCUAddr())
       {
 
 #else
@@ -659,6 +661,10 @@ Void TEncSlice::compressSlice( TComPic*& rpcPic )
           fprintf(stdout,"Entropy Slice overflow warning! codedBits=%6d, limitBits=%6d\n", m_pcBitCounter->getNumberOfWrittenBits(), m_pcCfg->getEntropySliceArgument() );
           uiCUAddr = uiCUAddr + 1;
         }
+#endif
+
+#if !FINE_GRANULARITY_SLICES
+        uiBitsCoded -= m_pcBitCounter->getNumberOfWrittenBits();
 #endif
         pcSlice->setNextEntropySlice( true );
         break;

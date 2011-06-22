@@ -142,6 +142,12 @@ TEncBinCABAC::resetBits()
   m_uiBitsToFollow  = 0;
   m_uiByte          = 0;
   m_uiBitsLeft      = 9;
+#if FINE_GRANULARITY_SLICES
+  if (m_bBinCountingEnabled)
+  {
+    m_uiBinsCoded=0;
+  }
+#endif
 }
 
 UInt
