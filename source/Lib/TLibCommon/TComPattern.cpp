@@ -223,7 +223,6 @@ Void TComPattern::initAdiPattern( TComDataCU* pcCU, UInt uiZorderIdxInPart, UInt
   UInt  uiWidth;
   UInt  uiHeight;
   Int   iPicStride = pcCU->getPic()->getStride();
-  Int   i;
 #if REFERENCE_SAMPLE_PADDING
   Int   iUnitSize = 0;
   Int   iNumUnitsInCu = 0;
@@ -395,6 +394,7 @@ Void TComPattern::initAdiPattern( TComDataCU* pcCU, UInt uiZorderIdxInPart, UInt
 #endif // REFERENCE_SAMPLE_PADDING
   
 #if QC_MDIS
+  Int   i;
   // generate filtered intra prediction samples
   Int iBufSize = uiCuHeight2 + uiCuWidth2 + 1;  // left and left above border + above and above right border + top left corner = length of 3. filter buffer
 

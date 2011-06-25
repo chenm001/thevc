@@ -1229,11 +1229,13 @@ __inline Void TEncSbac::codeLastSignificantXY( UInt uiPosX, UInt uiPosY, const U
   UInt  uiCtxLast;
   const UInt uiCtxOffset = g_uiCtxXYOffset[uiCTXIdx];
 
+#if QC_MDCS
   if( uiScanIdx == SCAN_VER )
   {
     swap( uiPosX, uiPosY );
   }
-
+#endif
+  
   for(uiCtxLast=0; uiCtxLast<uiPosX; uiCtxLast++)
   {
     m_pcBinIf->encodeBin( 0, m_cCuCtxLastX.get( 0, eTType, uiCtxOffset + g_uiCtxXY[uiCtxLast] ) );
@@ -1343,7 +1345,11 @@ Void TEncSbac::codeCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx
         uiNumSig--;
         if( uiNumSig == 0 )
         {
+#if QC_MDCS
           codeLastSignificantXY(uiPosLastX, uiPosLastY, uiWidth, eTType, uiCTXIdx, uiScanIdx);
+#else
+          codeLastSignificantXY(uiPosLastX, uiPosLastY, uiWidth, eTType, uiCTXIdx, 0);
+#endif
           uiScanPosLast = uiScanPos;
           break;
         }

@@ -1343,10 +1343,12 @@ __inline Void TDecSbac::parseLastSignificantXY( UInt& uiPosLastX, UInt& uiPosLas
     }
   }
 
+#if QC_MDCS
   if( uiScanIdx == SCAN_VER )
   {
     swap( uiPosLastX, uiPosLastY );
   }
+#endif
 }
 #endif
 
@@ -1414,7 +1416,11 @@ Void TDecSbac::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartId
 #if PCP_SIGMAP_SIMPLE_LAST
   //===== decode last significant =====
   UInt uiPosLastX, uiPosLastY;
+#if QC_MDCS
   parseLastSignificantXY( uiPosLastX, uiPosLastY, uiWidth, eTType, uiCTXIdx, uiScanIdx );
+#else
+  parseLastSignificantXY( uiPosLastX, uiPosLastY, uiWidth, eTType, uiCTXIdx, 0 );
+#endif
   UInt uiBlkPosLast      = uiPosLastX + (uiPosLastY<<uiLog2BlockSize);
   pcCoef[ uiBlkPosLast ] = 1;
   sigCoeffCount++;

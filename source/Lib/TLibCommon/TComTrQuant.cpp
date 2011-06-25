@@ -2530,7 +2530,7 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
   //===== quantization =====
   for( UInt uiScanPos = 0; uiScanPos < uiMaxNumCoeff; uiScanPos++ )
   {
-#if PCP_SIGMAP_SIMPLE_LAST
+#if QC_MDCS
     UInt    uiBlkPos = g_auiSigLastScan[uiScanIdx][uiLog2BlkSize-1][uiScanPos];  
 #else
     UInt    uiBlkPos = g_auiFrameScanXY[ uiLog2BlkSize-1 ][ uiScanPos ];
@@ -2727,7 +2727,11 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
 
   for( UInt uiScanPos = 0; uiScanPos < uiLastScanPos; uiScanPos++ )
   {
-    UInt   uiBlkPos     = g_auiSigLastScan[uiScanIdx][uiLog2BlkSize-1][uiScanPos];  
+#if QC_MDCS
+    UInt   uiBlkPos     = g_auiSigLastScan[uiScanIdx][uiLog2BlkSize-1][uiScanPos];
+#else
+    UInt   uiBlkPos     = g_auiFrameScanXY[ uiLog2BlkSize-1 ][ uiScanPos ];
+#endif
     UInt   uiPosY       = uiBlkPos >> uiLog2BlkSize;
     UInt   uiPosX       = uiBlkPos - ( uiPosY << uiLog2BlkSize );
 
@@ -2746,7 +2750,11 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
     if( uiBestNonZeroLevel != 0 )
     {
       d64CostLast        += d64BaseCost;
+#if QC_MDCS
       d64CostLast        += uiScanIdx == SCAN_VER ? xGetRateLast( uiPosY, uiPosX ) : xGetRateLast( uiPosX, uiPosY );
+#else
+      d64CostLast        += xGetRateLast( uiPosX, uiPosY );
+#endif
       if( d64CostLast < d64BestCost )
       {
         d64BestCost       = d64CostLast;
