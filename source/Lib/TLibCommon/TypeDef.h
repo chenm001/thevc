@@ -102,9 +102,6 @@
 
 #define ENABLE_FORCECOEFF0  0
 
-/* Rounding control */
-#define TRANS_PRECISION_EXT     ///< From JCTVC-B074
-
 #define FAST_UDI_MAX_RDMODE_NUM               35          ///< maximum number of RD comparison in fast-UDI estimation loop 
 
 #define ZERO_MVD_EST                          0           ///< Zero Mvd Estimation in normal mode
@@ -191,19 +188,13 @@
 #define PARALLEL_MERGED_DEBLK        1 // JCTC-E224, JCTVC-E181: Parallel decisions + Parallel filtering
 #define REFERENCE_SAMPLE_PADDING                1   // JCTVC-E488 padding of unavailable reference samples for intra prediction
 
-#define E243_CORE_TRANSFORMS                    1
-#if E243_CORE_TRANSFORMS
 #define MATRIX_MULT                             0   // Brute force matrix multiplication instead of partial butterfly
-#endif
 
 // Discrete Sine Transform (DST) Type - 7
 // Currently DST operates with E-243 only
 #define INTRA_DST_TYPE_7                      1           // JCTVC-E125 4x4 DST
 #if INTRA_DST_TYPE_7
 #define REG_DCT 65535
-#if !E243_CORE_TRANSFORMS                   // E243_CORE_TRANSFORMS should be ON when DST is used
-#error "E243_CORE_TRANSFORMS should be ON"
-#endif
 #endif
 
 #define E057_INTRA_PCM                      1 // JCTVC-E057 PCM operation mode 2: Signal I_PCM flag when CU is 2Nx2N intra and its size is larger than or equal to 1<<(LOG2_MIN_I_PCM_CODING_BLOCK_SIZE_MINUS3+3).

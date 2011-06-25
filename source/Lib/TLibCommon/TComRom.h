@@ -92,7 +92,6 @@ extern       UInt g_uiAddCUDepth;
 
 extern       UInt g_auiPUOffset[4];
 
-#if E243_CORE_TRANSFORMS
 #define QUANT_IQUANT_SHIFT    20 // Q(QP%6) * IQ(QP%6) = 2^20
 #define QUANT_SHIFT           14 // Q(4) = 2^14
 #define SCALE_BITS            15 // Inherited from TMuC, pressumably for fractional bit estimates in RDOQ
@@ -107,27 +106,6 @@ extern const short g_aiT4[4][4];
 extern const short g_aiT8[8][8];
 extern const short g_aiT16[16][16];
 extern const short g_aiT32[32][32];
-
-
-
-#endif
-
-// ====================================================================================================================
-// Quantization & DeQuantization
-// ====================================================================================================================
-
-extern       UInt   g_aiQuantCoef4      [6];
-extern       Int    g_aiDequantCoef4    [6];
-extern       UInt   g_aiQuantCoef       [6][16];
-extern       Int    g_aiDequantCoef     [6][16];
-extern       Int    g_aiDequantCoef64   [6][64];
-extern       UInt   g_aiQuantCoef64     [6][64];
-extern       UInt   g_aiQuantCoef256    [6][256];
-extern       UInt   g_aiDeQuantCoef256  [6][256];
-extern       UInt   g_aiQuantCoef1024   [6][1024];
-extern       UInt   g_aiDeQuantCoef1024 [6][1024];
-extern       UInt   g_aiQuantCoef4096   [6];
-extern       UInt   g_aiDeQuantCoef4096 [6];
 
 // ====================================================================================================================
 // Luma QP to Chroma QP mapping
