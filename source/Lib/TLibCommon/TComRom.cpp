@@ -1076,12 +1076,14 @@ const UInt g_auiLumaRunTr18x8[5][29]=
 };
 
 #if CAVLC_COEF_LRG_BLK
-const UInt *g_pLumaRunTr14x4[5] = { 
+const UInt *g_pLumaRunTr14x4[5] =
+{ 
   &g_auiLumaRunTr14x4[0][0], &g_auiLumaRunTr14x4[1][0], &g_auiLumaRunTr14x4[2][0], 
   &g_auiLumaRunTr14x4[3][0], &g_auiLumaRunTr14x4[4][0]
 };
 
-const UInt *g_pLumaRunTr18x8[5] = { 
+const UInt *g_pLumaRunTr18x8[5] =
+{ 
   &g_auiLumaRunTr18x8[0][0], &g_auiLumaRunTr18x8[1][0], &g_auiLumaRunTr18x8[2][0], 
   &g_auiLumaRunTr18x8[3][0], &g_auiLumaRunTr18x8[4][0]
 };
@@ -1774,29 +1776,27 @@ Void initFrameScanXY( UInt* pBuff, UInt* pBuffX, UInt* pBuffY, Int iWidth, Int i
 #if QC_MDCS
 Void initSigLastScan(UInt* pBuffZ, UInt* pBuffH, UInt* pBuffV, Int iWidth, Int iHeight, Int iDepth)
 {
+  memcpy(pBuffZ, g_auiFrameScanXY[iDepth], sizeof(UInt)*iWidth*iHeight);
 
-    memcpy(pBuffZ, g_auiFrameScanXY[iDepth], sizeof(UInt)*iWidth*iHeight);
-
-    UInt uiCnt = 0;
-    for(Int iY=0; iY < iHeight; iY++)
-    {
-      for(Int iX=0; iX < iWidth; iX++)
-      {
-        pBuffH[uiCnt] = iY*iWidth + iX;
-        uiCnt ++;
-      }
-    }
-
-    uiCnt = 0;
+  UInt uiCnt = 0;
+  for(Int iY=0; iY < iHeight; iY++)
+  {
     for(Int iX=0; iX < iWidth; iX++)
     {
-      for(Int iY=0; iY < iHeight; iY++)
-      {
-        pBuffV[uiCnt] = iY*iWidth + iX;
-        uiCnt ++;
-      }
+      pBuffH[uiCnt] = iY*iWidth + iX;
+      uiCnt ++;
     }
-    
+  }
+
+  uiCnt = 0;
+  for(Int iX=0; iX < iWidth; iX++)
+  {
+    for(Int iY=0; iY < iHeight; iY++)
+    {
+      pBuffV[uiCnt] = iY*iWidth + iX;
+      uiCnt ++;
+    }
+  }    
 }
 #endif //QC_MDCS
 
