@@ -109,7 +109,7 @@ private:
 #endif
   
 #if QC_MDIS
-#if ADD_PLANAR_MODE
+#if ADD_PLANAR_MODE || LM_CHROMA
   static const UChar m_aucIntraFilter[5][NUM_INTRA_MODE];
 #else
   static const UChar m_aucIntraFilter[5][34];

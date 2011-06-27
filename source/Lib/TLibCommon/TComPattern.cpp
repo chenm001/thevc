@@ -44,7 +44,7 @@
 // ====================================================================================================================
 
 #if QC_MDIS
-#if ADD_PLANAR_MODE
+#if ADD_PLANAR_MODE || LM_CHROMA
 const UChar TComPattern::m_aucIntraFilter[5][NUM_INTRA_MODE] =
 #else
 const UChar TComPattern::m_aucIntraFilter[5][34] =
@@ -52,54 +52,54 @@ const UChar TComPattern::m_aucIntraFilter[5][34] =
 {
 #if MN_MDIS_SIMPLIFICATION
   {0, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
-#if ADD_PLANAR_MODE
-    ,0
+#if ADD_PLANAR_MODE || LM_CHROMA
+    ,0, 0
 #endif
   }, //4x4
   {0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
-#if ADD_PLANAR_MODE
-    ,0
+#if ADD_PLANAR_MODE || LM_CHROMA
+    ,0, 0
 #endif
   }, //8x8
   {0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
-#if ADD_PLANAR_MODE
-    ,0
+#if ADD_PLANAR_MODE || LM_CHROMA
+    ,0, 0
 #endif
   }, //16x16
   {0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1
-#if ADD_PLANAR_MODE
-    ,0
+#if ADD_PLANAR_MODE || LM_CHROMA
+    ,0, 0
 #endif
   }, //32x32
   {0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
-#if ADD_PLANAR_MODE
-    ,0
+#if ADD_PLANAR_MODE || LM_CHROMA
+    ,0, 0
 #endif
   }, //64x64
 #else
   {0, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
-#if ADD_PLANAR_MODE
-    ,0
+#if ADD_PLANAR_MODE || LM_CHROMA
+    ,0, 0
 #endif
   }, //4x4
   {0, 0, 0, 1, 1, 2, 2, 2, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
-#if ADD_PLANAR_MODE
-    ,0
+#if ADD_PLANAR_MODE || LM_CHROMA
+    ,0, 0
 #endif
 }, //8x8
   {0, 0, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
-#if ADD_PLANAR_MODE
-    ,0
+#if ADD_PLANAR_MODE || LM_CHROMA
+    ,0, 0
 #endif
   }, //16x16
   {0, 0, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2
-#if ADD_PLANAR_MODE
-    ,0
+#if ADD_PLANAR_MODE || LM_CHROMA
+    ,0, 0
 #endif
   }, //32x32
   {0, 0, 0, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
-#if ADD_PLANAR_MODE
-    ,0
+#if ADD_PLANAR_MODE || LM_CHROMA
+    ,0, 0
 #endif
   }, //64x64
 #endif

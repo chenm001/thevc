@@ -1041,7 +1041,7 @@ Void TDecSbac::parseIntraDirChroma( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt ui
   } 
   else if (uiSymbol == 1 && pcCU->getSlice()->getSPS()->getUseLMChroma())
   {
-    uiSymbol = 3;
+    uiSymbol = LM_CHROMA_IDX;
   }
   else 
   {

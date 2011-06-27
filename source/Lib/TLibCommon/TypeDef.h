@@ -114,9 +114,11 @@
 #define TI_AMVP_SMVP_SIMPLIFIED           1              ///< (JCTVC-E481 - F)amvp spatial candidate simplified scanning
 
 #define ADD_PLANAR_MODE                   1           ///< enable/disable Planar mode for intra prediction (JCTVC-E321)
-#if ADD_PLANAR_MODE
-#define NUM_INTRA_MODE                    35
-#define PLANAR_IDX                        (NUM_INTRA_MODE-1)
+
+#if ADD_PLANAR_MODE || LM_CHROMA
+#define NUM_INTRA_MODE 36
+#define PLANAR_IDX     34
+#define LM_CHROMA_IDX  35
 #endif
 
 #define IBDI_DISTORTION                0           ///< enable/disable SSE modification when IBDI is used (JCTVC-D152)

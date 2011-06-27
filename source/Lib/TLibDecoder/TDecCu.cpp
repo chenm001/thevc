@@ -659,7 +659,7 @@ TDecCu::xIntraRecChromaBlk( TComDataCU* pcCU,
   pcCU->getPattern()->initPattern         ( pcCU, uiTrDepth, uiAbsPartIdx );
 
 #if LM_CHROMA
-  if( pcCU->getSlice()->getSPS()->getUseLMChroma() && uiChromaPredMode == 3 && uiChromaId == 0 )
+  if( uiChromaPredMode == LM_CHROMA_IDX && uiChromaId == 0 )
   {
     pcCU->getPattern()->initAdiPattern( pcCU, uiAbsPartIdx, uiTrDepth, 
                                      m_pcPrediction->getPredicBuf       (),
@@ -680,7 +680,7 @@ TDecCu::xIntraRecChromaBlk( TComDataCU* pcCU,
   
   //===== get prediction signal =====
 #if LM_CHROMA
-  if(pcCU->getSlice()->getSPS()->getUseLMChroma() && uiChromaPredMode == 3)
+  if( uiChromaPredMode == LM_CHROMA_IDX )
   {
     m_pcPrediction->predLMIntraChroma( pcCU->getPattern(), pPatChroma, piPred, uiStride, uiWidth, uiHeight, uiChromaId );
   }
@@ -688,9 +688,9 @@ TDecCu::xIntraRecChromaBlk( TComDataCU* pcCU,
   {
     if( uiChromaPredMode == 4 )
     {
-    uiChromaPredMode          = pcCU->getLumaIntraDir( 0 );
+      uiChromaPredMode = pcCU->getLumaIntraDir( 0 );
     }
-  m_pcPrediction->predIntraChromaAng( pcCU->getPattern(), pPatChroma, uiChromaPredMode, piPred, uiStride, uiWidth, uiHeight, pcCU, bAboveAvail, bLeftAvail );  
+    m_pcPrediction->predIntraChromaAng( pcCU->getPattern(), pPatChroma, uiChromaPredMode, piPred, uiStride, uiWidth, uiHeight, pcCU, bAboveAvail, bLeftAvail );  
   }
 #else // LM_CHROMA
   m_pcPrediction->predIntraChromaAng( pcCU->getPattern(), pPatChroma, uiChromaPredMode, piPred, uiStride, uiWidth, uiHeight, pcCU, bAboveAvail, bLeftAvail );

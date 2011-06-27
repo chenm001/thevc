@@ -1095,12 +1095,10 @@ TEncSearch::xIntraCodingChromaBlk( TComDataCU* pcCU,
   UInt      uiRecIPredStride  = pcCU->getPic()->getPicYuvRec()->getCStride();
   
   //===== update chroma mode =====
-#if !LM_CHROMA
   if( uiChromaPredMode == 4 )
   {
     uiChromaPredMode          = pcCU->getLumaIntraDir( 0 );
   }
-#endif
   
   //===== init availability pattern =====
   Bool  bAboveAvail = false;
@@ -1108,7 +1106,7 @@ TEncSearch::xIntraCodingChromaBlk( TComDataCU* pcCU,
   pcCU->getPattern()->initPattern         ( pcCU, uiTrDepth, uiAbsPartIdx );
 
 #if LM_CHROMA
-  if( pcCU->getSlice()->getSPS()->getUseLMChroma() && uiChromaPredMode == 3 && uiChromaId == 0 )
+  if( uiChromaPredMode == LM_CHROMA_IDX && uiChromaId == 0 )
   {
     pcCU->getPattern()->initAdiPattern( pcCU, uiAbsPartIdx, uiTrDepth, m_piYuvExt, m_iYuvExtStride, m_iYuvExtHeight, bAboveAvail, bLeftAvail, 2 );
 
@@ -1121,17 +1119,13 @@ TEncSearch::xIntraCodingChromaBlk( TComDataCU* pcCU,
   
   //===== get prediction signal =====
 #if LM_CHROMA
-  if(pcCU->getSlice()->getSPS()->getUseLMChroma() && uiChromaPredMode == 3)
+  if( uiChromaPredMode == LM_CHROMA_IDX )
   {
     predLMIntraChroma( pcCU->getPattern(), pPatChroma, piPred, uiStride, uiWidth, uiHeight, uiChromaId );
   }
   else
   {
-    if( uiChromaPredMode == 4 )
-    {
-      uiChromaPredMode          = pcCU->getLumaIntraDir( 0 );
-    }
-  predIntraChromaAng( pcCU->getPattern(), pPatChroma, uiChromaPredMode, piPred, uiStride, uiWidth, uiHeight, pcCU, bAboveAvail, bLeftAvail );  
+    predIntraChromaAng( pcCU->getPattern(), pPatChroma, uiChromaPredMode, piPred, uiStride, uiWidth, uiHeight, pcCU, bAboveAvail, bLeftAvail );  
   }
 #else // LM_CHROMA
   predIntraChromaAng( pcCU->getPattern(), pPatChroma, uiChromaPredMode, piPred, uiStride, uiWidth, uiHeight, pcCU, bAboveAvail, bLeftAvail );
@@ -1996,72 +1990,45 @@ TEncSearch::estIntraPredChromaQT( TComDataCU* pcCU,
   Double  dBestCost   = MAX_DOUBLE;
   
   //----- init mode list -----
-#if ADD_PLANAR_MODE
-  UInt  uiModeList[6];
-  uiModeList[0] = PLANAR_IDX;
-  for( Int i = 0; i < 5; i++ )
-  {
-    uiModeList[i+1] = i;
-  }
+  UInt uiModeList[6];
+  UInt uiMaxMode = 0;
+
   UInt uiLumaMode = pcCU->getLumaIntraDir(0);
-#else
-  UInt  uiModeList[5];
-  for( Int i = 0; i < 4; i++ )
+
+#if ADD_PLANAR_MODE
+  if (uiLumaMode != PLANAR_IDX)
   {
-    uiModeList[i] = i;
+    uiModeList[uiMaxMode++] = PLANAR_IDX;    
+  }
+#endif
+  
+  for ( Int i = 0; i < 3; i++ )
+  {
+    if (uiLumaMode != i)
+    {
+      uiModeList[uiMaxMode++] = i;      
+    }
   }
   
-  uiModeList[4]   = pcCU->getLumaIntraDir(0);
+#if LM_CHROMA
+  if ( pcCU->getSlice()->getSPS()->getUseLMChroma() )
+  {
+    uiModeList[uiMaxMode++] = LM_CHROMA_IDX;
+  }
+  else
 #endif
+  if (uiLumaMode != 3)
+  {
+    uiModeList[uiMaxMode++] = 3;
+  }
+    
+  uiModeList[uiMaxMode++] = 4;
   
   UInt  uiMinMode = 0;
-#if ADD_PLANAR_MODE
-  UInt  uiMaxMode = 6;
-  
-#if LM_CHROMA
-  UInt  uiIgnore;
-  if(pcCU->getSlice()->getSPS()->getUseLMChroma())
-  {
-    uiIgnore = ( ( (uiLumaMode != PLANAR_IDX) && (uiLumaMode >= 3) ) ? uiMaxMode : uiLumaMode );
-  }
-  else
-  {
-    uiIgnore = ( ( (uiLumaMode != PLANAR_IDX) && (uiLumaMode >= 4) ) ? uiMaxMode : uiLumaMode );
-  }
-#else
-  UInt  uiIgnore = ( ( (uiLumaMode != PLANAR_IDX) && (uiLumaMode >= 4) ) ? uiMaxMode : uiLumaMode );
-#endif
-
-#else
-  UInt  uiMaxMode = 5;
-
-#if LM_CHROMA
-  UInt  uiIgnore;
-  if(pcCU->getSlice()->getSPS()->getUseLMChroma())
-  {
-    uiIgnore = (uiModeList[4] >= 0 && uiModeList[4] < 3) ? uiModeList[4] : 6;
-  }
-  else
-  {
-    uiIgnore = (uiModeList[4] >= 0 && uiModeList[4] < 4) ? uiModeList[4] : 6;
-  }
-#else
-  UInt  uiIgnore = (uiModeList[4] < 4) ? uiModeList[4] : 6;
-#endif
-
-#endif
   
   //----- check chroma modes -----
   for( UInt uiMode = uiMinMode; uiMode < uiMaxMode; uiMode++ )
   {
-#if ADD_PLANAR_MODE
-    if ( uiModeList[uiMode] == uiIgnore )
-#else
-    if (uiMode == uiIgnore)
-#endif
-    {
-      continue;
-    }
     //----- restore context models -----
     if( m_bUseSBACRD )
     {
@@ -2070,11 +2037,7 @@ TEncSearch::estIntraPredChromaQT( TComDataCU* pcCU,
     
     //----- chroma coding -----
     UInt    uiDist = 0;
-#if ADD_PLANAR_MODE
     pcCU->setChromIntraDirSubParts  ( uiModeList[uiMode], 0, uiDepth );
-#else
-    pcCU->setChromIntraDirSubParts  ( uiMode, 0, uiDepth );
-#endif
     xRecurIntraChromaCodingQT       ( pcCU,   0, 0, pcOrgYuv, pcPredYuv, pcResiYuv, uiDist );
     UInt    uiBits = xGetIntraBitsQT( pcCU,   0, 0, false, true, false );
     Double  dCost  = m_pcRdCost->calcRdCost( uiBits, uiDist );
@@ -2084,11 +2047,7 @@ TEncSearch::estIntraPredChromaQT( TComDataCU* pcCU,
     {
       dBestCost   = dCost;
       uiBestDist  = uiDist;
-#if ADD_PLANAR_MODE
       uiBestMode  = uiModeList[uiMode];
-#else
-      uiBestMode  = uiMode;
-#endif
       UInt  uiQPN = pcCU->getPic()->getNumPartInCU() >> ( uiDepth << 1 );
       xSetIntraResultChromaQT( pcCU, 0, 0, pcRecoYuv );
       ::memcpy( m_puhQTTempCbf[1], pcCU->getCbf( TEXT_CHROMA_U ), uiQPN * sizeof( UChar ) );

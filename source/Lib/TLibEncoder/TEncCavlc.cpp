@@ -1036,8 +1036,9 @@ Void TEncCavlc::codeIntraDirLumaAng( TComDataCU* pcCU, UInt uiAbsPartIdx )
 Void TEncCavlc::codeIntraDirChroma( TComDataCU* pcCU, UInt uiAbsPartIdx )
 {
   UInt uiIntraDirChroma = pcCU->getChromaIntraDir   ( uiAbsPartIdx );
+  
 #if ADD_PLANAR_MODE
-  UInt planarFlag       = 0;
+  UInt planarFlag = 0;
   if (uiIntraDirChroma == PLANAR_IDX)
   {
     uiIntraDirChroma = 2;
@@ -1064,17 +1065,21 @@ Void TEncCavlc::codeIntraDirChroma( TComDataCU* pcCU, UInt uiAbsPartIdx )
   {
     uiIntraDirChroma = 0;
   }
-  else if (uiIntraDirChroma == 3 && bUseLMFlag )
+  else if (uiIntraDirChroma == LM_CHROMA_IDX )
   {
     uiIntraDirChroma = 1;
   }
   else
   {
     if (uiIntraDirChroma < uiMode)
+    {
       uiIntraDirChroma++;
-
+    }
+    
     if (bUseLMFlag)
+    {
       uiIntraDirChroma++;
+    }
     uiIntraDirChroma = ChromaMapping[iMax-3][uiIntraDirChroma];
   }
 

@@ -913,7 +913,7 @@ Void TEncSbac::codeIntraDirChroma( TComDataCU* pcCU, UInt uiAbsPartIdx )
   {
     uiIntraDirChroma = 0;
   } 
-  else if (uiIntraDirChroma == 3 && bUseLMFlag )
+  else if (uiIntraDirChroma == LM_CHROMA_IDX )
   {
     uiIntraDirChroma = 1;
   }
