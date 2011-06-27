@@ -4291,27 +4291,49 @@ Void TComDataCU::compressMV()
 #if QC_MDCS
 UInt TComDataCU::getCoefScanIdx(UInt uiAbsPartIdx, UInt uiWidth, Bool bIsLuma, Bool bIsIntra)
 {
-  static const UChar aucIntraLumaDirToScanIdx[MAX_CU_DEPTH][34] =
+#if ADD_PLANAR_MODE
+  static const UChar aucIntraDirToScanIdx[MAX_CU_DEPTH][NUM_INTRA_MODE] =
+#else
+  static const UChar aucIntraDirToScanIdx[MAX_CU_DEPTH][34] =
+#endif
   {
-    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, },
-    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, },
-    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, },
-    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, },
-    {1, 2, 0, 0, 1, 1, 0, 2, 2, 0, 0, 1, 1, 0, 0, 2, 2, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 2, 2, 2, 2, 0, 0, },
-    {1, 2, 0, 0, 1, 1, 0, 2, 2, 0, 0, 1, 1, 0, 0, 2, 2, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 2, 2, 2, 2, 0, 0, },
-    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, },
+    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+#if ADD_PLANAR_MODE
+      0
+#endif
+    },
+    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+#if ADD_PLANAR_MODE
+      0
+#endif
+    },
+    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+#if ADD_PLANAR_MODE
+      0
+#endif
+    },
+    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+#if ADD_PLANAR_MODE
+      0
+#endif
+    },
+    {1, 2, 0, 0, 1, 1, 0, 2, 2, 0, 0, 1, 1, 0, 0, 2, 2, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 2, 2, 2, 2, 0, 0,
+#if ADD_PLANAR_MODE
+      0
+#endif
+    },
+    {1, 2, 0, 0, 1, 1, 0, 2, 2, 0, 0, 1, 1, 0, 0, 2, 2, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 2, 2, 2, 2, 0, 0,
+#if ADD_PLANAR_MODE
+      0
+#endif
+    },
+    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+#if ADD_PLANAR_MODE
+      0
+#endif
+    },
   };
-  static const UChar aucIntraChromaDirToScanIdx[MAX_CU_DEPTH][5] = 
-  {
-    {0, 0, 0, 0, 0, },
-    {0, 0, 0, 0, 0, },
-    {0, 0, 0, 0, 0, },
-    {0, 0, 0, 0, 0, },
-    {0, 0, 0, 0, 0, },
-    {1, 2, 0, 0, 0, },
-    {1, 2, 0, 0, 0, },
-  };
-
+  
   UInt uiCTXIdx;
   UInt uiScanIdx;
   UInt uiDirMode;
@@ -4336,29 +4358,16 @@ UInt TComDataCU::getCoefScanIdx(UInt uiAbsPartIdx, UInt uiWidth, Bool bIsLuma, B
   if ( bIsLuma )
   {
     uiDirMode = getLumaIntraDir(uiAbsPartIdx);
-#if ADD_PLANAR_MODE
-    mapPlanartoDC( uiDirMode );
-#endif
-    uiScanIdx = aucIntraLumaDirToScanIdx[uiCTXIdx][uiDirMode];
+    uiScanIdx = aucIntraDirToScanIdx[uiCTXIdx][uiDirMode];
   }
   else
   {
-       uiDirMode = getChromaIntraDir(uiAbsPartIdx);
-#if ADD_PLANAR_MODE
-       mapPlanartoDC( uiDirMode );
-#endif
-       if (uiDirMode < 4)
-       {
-         uiScanIdx = (aucIntraChromaDirToScanIdx[uiCTXIdx][uiDirMode]);
-       }
-       else
-       {
-         uiDirMode = getLumaIntraDir(uiAbsPartIdx);
-#if ADD_PLANAR_MODE
-         mapPlanartoDC( uiDirMode );
-#endif
-         uiScanIdx = aucIntraLumaDirToScanIdx[max<UInt>(uiCTXIdx-1,0)][uiDirMode];
-       }
+    uiDirMode = getChromaIntraDir(uiAbsPartIdx);
+    if (uiDirMode == 4)
+    {
+      uiDirMode = getLumaIntraDir(uiAbsPartIdx);
+    }
+    uiScanIdx = aucIntraDirToScanIdx[max<Int>(uiCTXIdx-1,0)][uiDirMode];
   }
 
   return uiScanIdx;
