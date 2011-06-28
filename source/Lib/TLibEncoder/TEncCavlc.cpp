@@ -2176,7 +2176,10 @@ Void TEncCavlc::xWriteUvlc     ( UInt uiCode )
     uiLength += 2;
   }
   
-  m_pcBitIf->write( uiCode, uiLength );
+  //m_pcBitIf->write( uiCode, uiLength );
+  // Take care of cases where uiLength > 32
+  m_pcBitIf->write( 0, uiLength >> 1);
+  m_pcBitIf->write( uiCode, (uiLength+1) >> 1);
 }
 
 Void TEncCavlc::xWriteSvlc     ( Int iCode )

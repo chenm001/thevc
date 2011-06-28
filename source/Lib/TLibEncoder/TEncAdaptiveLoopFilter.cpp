@@ -3447,6 +3447,8 @@ Int TEncAdaptiveLoopFilter::gnsSolveByChol(double **LHS, double *rhs, double *x,
       LHS[i][i] += REG;
     /* Compute upper triangular U such that U'*U = regularized LHS */
     singular = gnsCholeskyDec(LHS, U, noEq);
+    assert( singular == 1 );
+    
     /* Solve  U'*aux = rhs for aux */  
     gnsTransposeBacksubstitution(U, rhs, aux, noEq);   
     
