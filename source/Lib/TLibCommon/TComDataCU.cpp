@@ -3818,9 +3818,9 @@ Void TComDataCU::setIPCMFlagSubParts  (Bool bIpcmFlag, UInt uiAbsPartIdx, UInt u
 }
 #endif
 
-/** Test if the current block is skipped or not
- * \param uiPartIdx
- * \returns Bool
+/** Test whether the current block is skipped
+ * \param uiPartIdx Block index
+ * \returns Flag indicating whether the block is skipped
  */
 Bool TComDataCU::isSkipped( UInt uiPartIdx )
 {

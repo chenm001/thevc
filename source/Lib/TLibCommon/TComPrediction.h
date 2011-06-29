@@ -63,17 +63,17 @@ protected:
   TComYuv   m_cYuvExt;
   
 #if LM_CHROMA
-  Pel*   m_pLumaRecBuffer;       // array for downsampled reconstructed luma sample 
-  Int    m_iLumaRecStride;
-  UInt   m_uiaShift[ 65 ];       // Table for multiplication to substitue of division operation
+  Pel*   m_pLumaRecBuffer;       ///< array for downsampled reconstructed luma sample 
+  Int    m_iLumaRecStride;       ///< stride of #m_pLumaRecBuffer array
+  UInt   m_uiaShift[ 65 ];       ///< Table for multiplication to substitue of division operation
 #endif
 
   Void xPredIntraAng            ( Int* pSrc, Int srcStride, Pel*& rpDst, Int dstStride, UInt width, UInt height, UInt dirMode, Bool blkAboveAvailable, Bool blkLeftAvailable );
 #if ADD_PLANAR_MODE
 #if REFERENCE_SAMPLE_PADDING
-  Void xPredIntraPlanar         ( Int* pSrc, Int srcStride, Pel*& rpDst, Int dstStride, UInt width, UInt height );
+  Void xPredIntraPlanar         ( Int* pSrc, Int srcStride, Pel* rpDst, Int dstStride, UInt width, UInt height );
 #else
-  Void xPredIntraPlanar         ( Int* pSrc, Int srcStride, Pel*& rpDst, Int dstStride, UInt width, UInt height, Bool blkAboveAvailable, Bool blkLeftAvailable );
+  Void xPredIntraPlanar         ( Int* pSrc, Int srcStride, Pel* rpDst, Int dstStride, UInt width, UInt height, Bool blkAboveAvailable, Bool blkLeftAvailable );
 #endif
 #endif
   

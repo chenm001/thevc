@@ -190,8 +190,8 @@ Void TComCUMvField::setAllMvField( TComMvField const & mvField, PartSize eCUMode
 
 #if AMVP_BUFFERCOMPRESS
 /**Subsampling of the stored prediction mode, reference index and motion vector
- * \param pePredMode
- * \returns Void
+ * \param pePredMode Pointer to prediction modes
+ * \param scale      Factor by which to subsample motion information
  */
 Void TComCUMvField::compress(Char* pePredMode, Int scale)
 {
