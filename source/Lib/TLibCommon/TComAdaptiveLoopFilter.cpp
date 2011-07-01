@@ -4005,6 +4005,8 @@ Void TComSampleAdaptiveOffset::xInitALfOnePart(Int iPartLevel, Int iPartRow, Int
  */
 Void TComSampleAdaptiveOffset::xMakeSubPartList(Int iPartLevel, Int iPartRow, Int iPartCol, Int* pList, Int& rListLength, Int NumPartInRow)
 {
+  assert (iPartRow < MAX_INT/2);
+  assert (NumPartInRow < MAX_INT/2);
 
   if(iPartLevel != m_uiMaxSplitLevel)
   {
