@@ -127,7 +127,6 @@ public:
   virtual Int  getSliceGranularity()                      = 0;
 #endif
 
-#if TSB_ALF_HEADER
 #if MTK_NONCROSS_INLOOP_FILTER
   /// Code number of ALF CU control flags
   virtual Void codeAlfFlagNum       ( UInt uiCode, UInt minValue, Int iDepth) = 0;
@@ -135,7 +134,6 @@ public:
   virtual Void codeAlfFlagNum       ( UInt uiCode, UInt minValue ) = 0;
 #endif
   virtual Void codeAlfCtrlFlag      ( UInt uiSymbol ) = 0;
-#endif
 #if MTK_SAO
   virtual Void codeAoFlag          ( UInt uiCode ) = 0;
   virtual Void codeAoUvlc          ( UInt uiCode ) = 0;
@@ -201,13 +199,11 @@ public:
   Void encodeAlfCtrlFlag(UInt uiFlag);
 #endif
 
-#if TSB_ALF_HEADER || E045_SLICE_COMMON_INFO_SHARING
 #if E045_SLICE_COMMON_INFO_SHARING
   /// encode ALF CU control flags
   Void encodeAlfCtrlParam      ( ALFParam *pAlfParam, UInt uiNumSlices= 1, CAlfSlice* pcAlfSlice= NULL);
 #else
   Void encodeAlfCtrlParam      ( ALFParam *pAlfParam );
-#endif
 #endif
   Void encodePredMode          ( TComDataCU* pcCU, UInt uiAbsPartIdx, Bool bRD = false );
   Void encodePartSize          ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth, Bool bRD = false );

@@ -312,10 +312,8 @@ Void TDecEntropy::decodeAlfParam(ALFParam* pAlfParam)
     m_pcEntropyDecoderIf->setAlfCtrl(true);
     m_pcEntropyDecoderIf->parseAlfCtrlDepth(uiSymbol);
     m_pcEntropyDecoderIf->setMaxAlfCtrlDepth(uiSymbol);
-#if TSB_ALF_HEADER
     pAlfParam->alf_max_depth = uiSymbol;
     decodeAlfCtrlParam(pAlfParam);
-#endif
   }
   else
   {
@@ -325,7 +323,6 @@ Void TDecEntropy::decodeAlfParam(ALFParam* pAlfParam)
 #endif
 }
 
-#if TSB_ALF_HEADER || E045_SLICE_COMMON_INFO_SHARING
 /** decode ALF CU control parameters
  * \param pAlfParam ALF paramters
  */
@@ -349,9 +346,7 @@ Void TDecEntropy::decodeAlfCtrlParam( ALFParam* pAlfParam )
     m_pcEntropyDecoderIf->setAlfCtrl(true);
     m_pcEntropyDecoderIf->parseAlfCtrlDepth(uiSymbol);
     m_pcEntropyDecoderIf->setMaxAlfCtrlDepth(uiSymbol);
-#if TSB_ALF_HEADER
     pAlfParam->alf_max_depth = uiSymbol;
-#endif
   }
   else
   {
@@ -359,8 +354,6 @@ Void TDecEntropy::decodeAlfCtrlParam( ALFParam* pAlfParam )
     return;
   }
 #endif
-
-#if TSB_ALF_HEADER //E045_SLICE_COMMON_INFO_SHARING
 
 #if E045_SLICE_COMMON_INFO_SHARING
   Int iSymbol;
@@ -407,10 +400,7 @@ Void TDecEntropy::decodeAlfCtrlParam( ALFParam* pAlfParam )
   {
     m_pcEntropyDecoderIf->parseAlfCtrlFlag( pAlfParam->alf_cu_flag[i] );
   }
-#endif
-
 }
-#endif
 
 Void TDecEntropy::decodeAlfCtrlFlag( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
 {
@@ -651,7 +641,6 @@ Void TDecEntropy::decodePUWise( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDept
     }
     else
     {
-#if MS_LCEC_LOOKUP_TABLE_EXCEPTION
       if ( pcCU->getSlice()->getSymbolMode() == 0 )
       {
         if ( pcCU->isSuroundingRefIdxException( uiAbsPartIdx ) )
@@ -663,7 +652,6 @@ Void TDecEntropy::decodePUWise( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDept
           pcCU->getSlice()->setRefIdxCombineCoding( true );
         }
       }
-#endif
       decodeInterDirPU( pcCU, uiSubPartIdx, uiDepth, uiPartIdx );
       for ( UInt uiRefListIdx = 0; uiRefListIdx < 2; uiRefListIdx++ )
       {        
@@ -704,7 +692,6 @@ Void TDecEntropy::decodeInterDirPU( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt ui
 
 Void TDecEntropy::decodeRefFrmIdxPU( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth, UInt uiPartIdx, RefPicList eRefList )
 {
-#if DCM_COMB_LIST 
   if(pcCU->getSlice()->getNumRefIdx(REF_PIC_LIST_C) > 0 && pcCU->getInterDir( uiAbsPartIdx ) != 3)
   {
     if(eRefList == REF_PIC_LIST_1)
@@ -737,30 +724,25 @@ Void TDecEntropy::decodeRefFrmIdxPU( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt u
   }
   else
   {
-#endif
+    Int iRefFrmIdx = 0;
+    Int iParseRefFrmIdx = pcCU->getInterDir( uiAbsPartIdx ) & ( 1 << eRefList );
 
-  Int iRefFrmIdx = 0;
-  Int iParseRefFrmIdx = pcCU->getInterDir( uiAbsPartIdx ) & ( 1 << eRefList );
+    if ( pcCU->getSlice()->getNumRefIdx( eRefList ) > 1 && iParseRefFrmIdx )
+    {
+      m_pcEntropyDecoderIf->parseRefFrmIdx( pcCU, iRefFrmIdx, uiAbsPartIdx, uiDepth, eRefList );
+    }
+    else if ( !iParseRefFrmIdx )
+    {
+      iRefFrmIdx = NOT_VALID;
+    }
+    else
+    {
+      iRefFrmIdx = 0;
+    }
 
-  if ( pcCU->getSlice()->getNumRefIdx( eRefList ) > 1 && iParseRefFrmIdx )
-  {
-    m_pcEntropyDecoderIf->parseRefFrmIdx( pcCU, iRefFrmIdx, uiAbsPartIdx, uiDepth, eRefList );
+    PartSize ePartSize = pcCU->getPartitionSize( uiAbsPartIdx );
+    pcCU->getCUMvField( eRefList )->setAllRefIdx( iRefFrmIdx, ePartSize, uiAbsPartIdx, uiDepth );
   }
-  else if ( !iParseRefFrmIdx )
-  {
-    iRefFrmIdx = NOT_VALID;
-  }
-  else
-  {
-    iRefFrmIdx = 0;
-  }
-
-  PartSize ePartSize = pcCU->getPartitionSize( uiAbsPartIdx );
-  pcCU->getCUMvField( eRefList )->setAllRefIdx( iRefFrmIdx, ePartSize, uiAbsPartIdx, uiDepth );
-
-#if DCM_COMB_LIST
-  }
-#endif  
 }
 
 /** decode motion vector difference for a PU block
@@ -794,9 +776,6 @@ Void TDecEntropy::decodeMVPIdxPU( TComDataCU* pcSubCU, UInt uiPartAddr, UInt uiD
   iMVPIdx = -1;
   cMv = cZeroMv;
   pcSubCU->fillMvpCand(uiPartIdx, uiPartAddr, eRefList, iRefIdx, pAMVPInfo);
-#if DCM_SIMPLIFIED_MVP==0
-  pcSubCU->clearMVPCand(pcSubCUMvField->getMvd(uiPartAddr), pAMVPInfo);
-#endif
   pcSubCU->setMVPNumSubParts(pAMVPInfo->iN, eRefList, uiPartAddr, uiPartIdx, uiDepth);
   if ( (pcSubCU->getInterDir(uiPartAddr) & ( 1 << eRefList )) && (pAMVPInfo->iN > 1) && (pcSubCU->getAMVPMode(uiPartAddr) == AM_EXPL) )
   {
@@ -853,31 +832,7 @@ Void TDecEntropy::xDecodeTransformSubdiv( TComDataCU* pcCU, UInt uiAbsPartIdx, U
   else
   {
     assert( uiLog2TrafoSize > pcCU->getQuadtreeTULog2MinSizeInCU(uiAbsPartIdx) );
-#if HHI_RQT_FORCE_SPLIT_ACC2_PU
-    const UInt uiTrMode = uiDepth - pcCU->getDepth( uiAbsPartIdx );
-    UInt uiCtx = uiDepth;
-#if HHI_RQT_FORCE_SPLIT_NxN
-    const Bool bNxNOK = pcCU->getPartitionSize( uiAbsPartIdx ) == SIZE_NxN && uiTrMode > 0;
-#else
-    const Bool bNxNOK = pcCU->getPartitionSize( uiAbsPartIdx ) == SIZE_NxN;
-#endif
-#if HHI_RQT_FORCE_SPLIT_RECT
-    const Bool bSymmetricOK  = pcCU->getPartitionSize( uiAbsPartIdx ) >= SIZE_2NxN  && pcCU->getPartitionSize( uiAbsPartIdx ) < SIZE_NxN   && uiTrMode > 0;
-#else
-    const Bool bSymmetricOK  = pcCU->getPartitionSize( uiAbsPartIdx ) >= SIZE_2NxN  && pcCU->getPartitionSize( uiAbsPartIdx ) < SIZE_NxN;
-#endif
-    const Bool bNeedSubdivFlag = pcCU->getPartitionSize( uiAbsPartIdx ) == SIZE_2Nx2N || pcCU->getPredictionMode( uiAbsPartIdx ) == MODE_INTRA ||
-    bNxNOK || bSymmetricOK;
-    
-    if( ! bNeedSubdivFlag )
-    {
-      uiSubdiv = 1;
-    }
-    else
-      m_pcEntropyDecoderIf->parseTransformSubdivFlag( uiSubdiv, uiCtx );
-#else
     m_pcEntropyDecoderIf->parseTransformSubdivFlag( uiSubdiv, uiDepth );
-#endif
   }
 #if CAVLC_RQT_CBP
   }
@@ -1082,7 +1037,6 @@ Void TDecEntropy::xDecodeCoeff( TComDataCU* pcCU, TCoeff* pcCoeff, UInt uiAbsPar
 {
   if ( pcCU->getCbf( uiAbsPartIdx, eType, uiTrIdx ) )
   {
-#if SNY_DQP   
     // dQP: only for LCU
     if ( pcCU->getSlice()->getSPS()->getUseDQP() )
     {
@@ -1097,7 +1051,6 @@ Void TDecEntropy::xDecodeCoeff( TComDataCU* pcCU, TCoeff* pcCoeff, UInt uiAbsPar
 #endif
       }
     }   
-#endif//SNY_DQP
     UInt uiLumaTrMode, uiChromaTrMode;
     pcCU->convertTransIdx( uiAbsPartIdx, pcCU->getTransformIdx( uiAbsPartIdx ), uiLumaTrMode, uiChromaTrMode );
     const UInt uiStopTrMode = eType == TEXT_LUMA ? uiLumaTrMode : uiChromaTrMode;

@@ -171,9 +171,7 @@ public:
   TComInputBitstream(std::vector<uint8_t>* buf);
 
   // interface for decoding
-#if LCEC_INTRA_MODE || QC_LCEC_INTER_MODE
   Void        pseudoRead      ( UInt uiNumberOfBits, UInt& ruiBits );
-#endif
   Void        read            ( UInt uiNumberOfBits, UInt& ruiBits );
 
   // Peek at bits in word-storage. Used in determining if we have completed reading of current bitstream and therefore slice in LCEC.

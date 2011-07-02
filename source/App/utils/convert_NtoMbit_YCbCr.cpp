@@ -1,7 +1,7 @@
 /* The copyright in this software is being made available under the BSD
  * License, included below. This software may be subject to other third party
  * and contributor rights, including patent rights, and no such rights are
- * granted under this license.   
+ * granted under this license.  
  *
  * Copyright (c) 2010-2011, ITU/ISO/IEC
  * All rights reserved.
@@ -86,13 +86,16 @@ int main(int argc, const char** argv)
   int pad[2] = {0, 0};
 
   unsigned int num_frames_processed = 0;
-  while (!input.isEof()) {
-    TComPicYuv *stupid = &frame;
-    input.read(stupid, pad);
-
+  while (!input.isEof()) 
+  {
+    if (! input.read(&frame, pad))
+    {
+      break;
+    }
 #if 0
     Pel* img = frame.getLumaAddr();
-    for (int y = 0; y < height; y++) {
+    for (int y = 0; y < height; y++) 
+    {
       for (int x = 0; x < height; x++)
         img[x] = 0;
       img += frame.getStride();

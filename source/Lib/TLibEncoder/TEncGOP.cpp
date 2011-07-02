@@ -73,10 +73,8 @@ TEncGOP::TEncGOP()
   
   m_bSeqFirst           = true;
   
-#if DCM_DECODING_REFRESH
   m_bRefreshPending     = 0;
   m_uiPOCCDR            = 0;
-#endif
 
   return;
 }
@@ -187,12 +185,10 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
       m_pcSliceEncoder->initEncSlice ( pcPic, iPOCLast, uiPOCCurr, iNumPicRcvd, iTimeOffset, iDepth, pcSlice, m_pcEncTop->getSPS(), m_pcEncTop->getPPS() );
       pcSlice->setSliceIdx(0);
 
-#if DCM_DECODING_REFRESH
       // Set the nal unit type
       pcSlice->setNalUnitType(getNalUnitType(uiPOCCurr));
       // Do decoding refresh marking if any 
       pcSlice->decodingRefreshMarking(m_uiPOCCDR, m_bRefreshPending, rcListPic);
-#endif
 
       // TODO: We need a common sliding mechanism used by both the encoder and decoder
       // Below is a temporay solution to mark pictures that will be taken off the decoder's ref pic buffer (due to limit on the buffer size) as unused
@@ -217,7 +213,6 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
         {
           pcSlice->setSliceType( B_SLICE ); // Change slice type by force
           
-#if DCM_COMB_LIST
           if(pcSlice->getSPS()->getUseLComb() && (m_pcCfg->getNumOfReferenceB_L1() < m_pcCfg->getNumOfReferenceB_L0()) && (pcSlice->getNumRefIdx(REF_PIC_LIST_0)>1))
           {
             pcSlice->setNumRefIdx( REF_PIC_LIST_1, m_pcCfg->getNumOfReferenceB_L1() );
@@ -229,21 +224,17 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
           }
           else
           {
-#endif
-          Int iNumRefIdx = pcSlice->getNumRefIdx(REF_PIC_LIST_0);
-          pcSlice->setNumRefIdx( REF_PIC_LIST_1, iNumRefIdx );
-          
-          for (Int iRefIdx = 0; iRefIdx < iNumRefIdx; iRefIdx++)
-          {
-            pcSlice->setRefPic(pcSlice->getRefPic(REF_PIC_LIST_0, iRefIdx), REF_PIC_LIST_1, iRefIdx);
+            Int iNumRefIdx = pcSlice->getNumRefIdx(REF_PIC_LIST_0);
+            pcSlice->setNumRefIdx( REF_PIC_LIST_1, iNumRefIdx );
+            
+            for (Int iRefIdx = 0; iRefIdx < iNumRefIdx; iRefIdx++)
+            {
+              pcSlice->setRefPic(pcSlice->getRefPic(REF_PIC_LIST_0, iRefIdx), REF_PIC_LIST_1, iRefIdx);
+            }
           }
-#if DCM_COMB_LIST
-          }
-#endif
         }
       }
 
-#if DCM_COMB_LIST
       if (pcSlice->getSliceType() != B_SLICE || !pcSlice->getSPS()->getUseLComb())
       {
         pcSlice->setNumRefIdx(REF_PIC_LIST_C, 0);
@@ -256,7 +247,6 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
         pcSlice->setRefPicListModificationFlagLC(pcSlice->getSPS()->getLCMod());
         pcSlice->setNumRefIdx(REF_PIC_LIST_C, pcSlice->getNumRefIdx(REF_PIC_LIST_0));
       }
-#endif
       
       if (pcSlice->getSliceType() == B_SLICE)
       {
@@ -269,11 +259,7 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
       pcSlice->setRefPOCList();
       
       pcSlice->setNoBackPredFlag( false );
-#if DCM_COMB_LIST
       if ( pcSlice->getSliceType() == B_SLICE && !pcSlice->getRefPicListCombinationFlag())
-#else
-      if ( pcSlice->getSliceType() == B_SLICE )
-#endif
       {
         if ( pcSlice->getNumRefIdx(RefPicList( 0 ) ) == pcSlice->getNumRefIdx(RefPicList( 1 ) ) )
         {
@@ -290,13 +276,11 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
         }
       }
 
-#if DCM_COMB_LIST
       if(pcSlice->getNoBackPredFlag())
       {
         pcSlice->setNumRefIdx(REF_PIC_LIST_C, 0);
       }
       pcSlice->generateCombinedList();
-#endif
       
       /////////////////////////////////////////////////////////////////////////////////////////////////// Compress a slice
       //  Slice compression
@@ -304,23 +288,6 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
       {
         m_pcSliceEncoder->setSearchRange(pcSlice);
       }
-#ifdef ROUNDING_CONTROL_BIPRED
-      Bool b = true;
-      if (m_pcCfg->getUseRoundingControlBipred())
-      {
-        if (m_pcCfg->getGOPSize()==1)
-          b = ((pcSlice->getPOC()&1)==0);
-        else
-          b = (pcSlice->isReferenced() == 0);
-      }
-
-#if HIGH_ACCURACY_BI
-      pcSlice->setRounding(false);
-#else
-      pcSlice->setRounding(b);
-#endif
-#endif
-
 
 #if MTK_NONCROSS_INLOOP_FILTER
       UInt uiNumSlices = 1;
@@ -547,7 +514,11 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
 
 #if E045_SLICE_COMMON_INFO_SHARING
       UInt uiMaxAlfCtrlDepth = 0;
+#if MTK_SAO
       Int processingState = (pcSlice->getSPS()->getUseALF() || pcSlice->getSPS()->getUseSAO())?(EXECUTE_INLOOPFILTER):(ENCODE_SLICE);
+#else
+      Int processingState = (pcSlice->getSPS()->getUseALF() )?(EXECUTE_INLOOPFILTER):(ENCODE_SLICE);
+#endif
 #endif
 
 #if FINE_GRANULARITY_SLICES
@@ -648,11 +619,7 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
         }
 #endif
         /* start slice NALunit */
-#if DCM_DECODING_REFRESH
         OutputNALUnit nalu(pcSlice->getNalUnitType(), NAL_REF_IDC_PRIORITY_HIGHEST, pcSlice->getTLayer(), true);
-#else
-        OutputNALUnit nalu(NAL_UNIT_CODED_SLICE, NAL_REF_IDC_PRIORITY_HIGHEST);
-#endif
         m_pcEntropyCoder->setBitstream(&nalu.m_Bitstream);
         m_pcEntropyCoder->encodeSliceHeader(pcSlice);
 
@@ -706,9 +673,7 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
           {
             m_pcEntropyCoder->resetEntropy    ();
             m_pcEntropyCoder->setBitstream    ( m_pcBitCounter );
-#if TSB_ALF_HEADER
             m_pcAdaptiveLoopFilter->setNumCUsInFrame(pcPic);
-#endif
             m_pcAdaptiveLoopFilter->allocALFParam(&cAlfParam);
             m_pcAdaptiveLoopFilter->startALFEnc(pcPic, m_pcEntropyCoder );
             m_pcAdaptiveLoopFilter->ALFProcess( &cAlfParam, pcPic->getSlice(0)->getLambda(), uiDist, uiBits, uiMaxAlfCtrlDepth );
@@ -781,7 +746,6 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
               m_pcEntropyCoder->encodeAlfCtrlParam(&cAlfParam, m_pcAdaptiveLoopFilter->getNumSlicesInPic(), &((*m_pcAdaptiveLoopFilter)[pcPic->getCurrSliceIdx()]));
             }
 #else
-#if TSB_ALF_HEADER
             if(cAlfParam.cu_control_flag)
             {
 #if FINE_GRANULARITY_SLICES && MTK_NONCROSS_INLOOP_FILTER
@@ -789,7 +753,6 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
 #endif
               m_pcEntropyCoder->encodeAlfCtrlParam(&cAlfParam);
             }
-#endif
             m_pcAdaptiveLoopFilter->freeALFParam(&cAlfParam);
 #endif
 
@@ -1023,7 +986,7 @@ Void TEncGOP::preLoopFilterPicAll( TComPic* pcPic, UInt64& ruiDist, UInt64& ruiB
   if( pcSlice->getSPS()->getUseALF() )
   {
     ALFParam cAlfParam;
-#if TSB_ALF_HEADER && (!E045_SLICE_COMMON_INFO_SHARING)
+#if (!E045_SLICE_COMMON_INFO_SHARING)
     m_pcAdaptiveLoopFilter->setNumCUsInFrame(pcPic);
 #endif
     m_pcAdaptiveLoopFilter->allocALFParam(&cAlfParam);
@@ -1074,10 +1037,8 @@ Void TEncGOP::xInitGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rcLis
     m_iHrchDepth  = 1;
   }
   
-  if (m_iGopSize == 0)
-  {
-    m_iHrchDepth = 1;
-  }
+  assert (m_iGopSize > 0); 
+
 #if MQT_ALF_NPASS && !MQT_BA_RA
   m_pcAdaptiveLoopFilter->setGOPSize( m_iGopSize );
 #endif
@@ -1200,9 +1161,7 @@ static const char* nalUnitTypeToString(NalUnitType type)
   switch (type)
   {
   case NAL_UNIT_CODED_SLICE: return "SLICE";
-#if DCM_DECODING_REFRESH
   case NAL_UNIT_CODED_SLICE_CDR: return "CDR";
-#endif
   case NAL_UNIT_CODED_SLICE_IDR: return "IDR";
   case NAL_UNIT_SEI: return "SEI";
   case NAL_UNIT_SPS: return "SPS";
@@ -1341,7 +1300,6 @@ Void TEncGOP::xCalculateAddPSNR( TComPic* pcPic, TComPicYuv* pcPicD, const Acces
     }
     printf("]");
   }
-#if DCM_COMB_LIST
   if(pcSlice->getNumRefIdx(REF_PIC_LIST_C)>0 && !pcSlice->getNoBackPredFlag())
   {
     printf(" [LC ");
@@ -1351,10 +1309,8 @@ Void TEncGOP::xCalculateAddPSNR( TComPic* pcPic, TComPicYuv* pcPicD, const Acces
     }
     printf("]");
   }
-#endif
 }
 
-#if DCM_DECODING_REFRESH
 /** Function for deciding the nal_unit_type.
  * \param uiPOCCurr POC of the current picture
  * \returns the nal_unit type of the picture
@@ -1379,7 +1335,6 @@ NalUnitType TEncGOP::getNalUnitType(UInt uiPOCCurr)
   }
   return NAL_UNIT_CODED_SLICE;
 }
-#endif
 
 #if RVM_VCEGAM10
 Double TEncGOP::xCalculateRVM()

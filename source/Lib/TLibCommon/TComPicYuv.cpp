@@ -103,8 +103,8 @@ Void TComPicYuv::create( Int iPicWidth, Int iPicHeight, UInt uiMaxCUWidth, UInt 
     }
   }
   
-  m_buOffsetY = new Int[1 << (2 * uiMaxCUDepth)];
-  m_buOffsetC = new Int[1 << (2 * uiMaxCUDepth)];
+  m_buOffsetY = new Int[(size_t)1 << (2 * uiMaxCUDepth)];
+  m_buOffsetC = new Int[(size_t)1 << (2 * uiMaxCUDepth)];
   for (Int buRow = 0; buRow < (1 << uiMaxCUDepth); buRow++)
   {
     for (Int buCol = 0; buCol < (1 << uiMaxCUDepth); buCol++)
@@ -160,7 +160,7 @@ Void TComPicYuv::createLuma( Int iPicWidth, Int iPicHeight, UInt uiMaxCUWidth, U
     }
   }
   
-  m_buOffsetY = new Int[1 << (2 * uiMaxCUDepth)];
+  m_buOffsetY = new Int[(size_t)1 << (2 * uiMaxCUDepth)];
   m_buOffsetC = NULL;
   for (Int buRow = 0; buRow < (1 << uiMaxCUDepth); buRow++)
   {
@@ -311,7 +311,7 @@ Void TComPicYuv::dump (char* pFileName, Bool bAdd)
   {
     for ( x = 0; x < m_iPicWidth; x++ )
     {
-      uc = (UChar)Clip3(0, iMax, (piY[x]+offset)>>shift);
+      uc = (UChar)Clip3<Pel>(0, iMax, (piY[x]+offset)>>shift);
       
       fwrite( &uc, sizeof(UChar), 1, pFile );
     }
@@ -322,7 +322,7 @@ Void TComPicYuv::dump (char* pFileName, Bool bAdd)
   {
     for ( x = 0; x < m_iPicWidth >> 1; x++ )
     {
-      uc = (UChar)Clip3(0, iMax, (piCb[x]+offset)>>shift);
+      uc = (UChar)Clip3<Pel>(0, iMax, (piCb[x]+offset)>>shift);
       fwrite( &uc, sizeof(UChar), 1, pFile );
     }
     piCb += getCStride();
@@ -332,7 +332,7 @@ Void TComPicYuv::dump (char* pFileName, Bool bAdd)
   {
     for ( x = 0; x < m_iPicWidth >> 1; x++ )
     {
-      uc = (UChar)Clip3(0, iMax, (piCr[x]+offset)>>shift);
+      uc = (UChar)Clip3<Pel>(0, iMax, (piCr[x]+offset)>>shift);
       fwrite( &uc, sizeof(UChar), 1, pFile );
     }
     piCr += getCStride();

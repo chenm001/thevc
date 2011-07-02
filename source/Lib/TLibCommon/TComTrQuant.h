@@ -49,21 +49,6 @@
 
 #define QP_BITS                 15
 
-#if !E243_CORE_TRANSFORMS
-// AQO Parameter
-#define QOFFSET_BITS            15
-#define QOFFSET_BITS_LTR        9
-
-// LTR Butterfly Paramter
-#define ECore16Shift            10
-#define DCore16Shift            10
-#define ECore32Shift            10
-#define DCore32Shift            10
-
-#define DenShift16              6
-#define DenShift32              8
-#endif
-
 // ====================================================================================================================
 // Type definition
 // ====================================================================================================================
@@ -129,39 +114,10 @@ public:
   Int m_iPer;
   Int m_iRem;
   
-#if !E243_CORE_TRANSFORMS
-  Int m_iAdd2x2;
-  Int m_iAdd4x4;
-  Int m_iAdd8x8;
-  Int m_iAdd16x16;
-  Int m_iAdd32x32;
-private:
-  Int m_aiAdd2x2[MAX_QP+1][3];
-  Int m_aiAdd4x4[MAX_QP+1][3];
-  Int m_aiAdd8x8[MAX_QP+1][3];
-  Int m_aiAdd16x16[MAX_QP+1][3];
-  Int m_aiAdd32x32[MAX_QP+1][3];
-#endif
 public:
   Int m_iBits;
-  
-#if !E243_CORE_TRANSFORMS
-  Void initOffsetParam(Int iStartQP = MIN_QP, Int iEndQP = MAX_QP );
-  Void setQOffset( Int iQP, SliceType eSliceType )
-  {
-    m_iAdd2x2 = m_aiAdd2x2[iQP][eSliceType];
-    m_iAdd4x4 = m_aiAdd4x4[iQP][eSliceType];
-    m_iAdd8x8 = m_aiAdd8x8[iQP][eSliceType];
-    m_iAdd16x16 = m_aiAdd16x16[iQP][eSliceType];
-    m_iAdd32x32 = m_aiAdd32x32[iQP][eSliceType];
-  }
-#endif
-  
-#if E243_CORE_TRANSFORMS
+    
   Void setQpParam( Int iQP, Bool bLowpass, SliceType eSliceType )
-#else
-  Void setQpParam( Int iQP, Bool bLowpass, SliceType eSliceType, Bool bEnc )
-#endif
   {
     assert ( iQP >= MIN_QP && iQP <= MAX_QP );
     m_iQP   = iQP;
@@ -173,13 +129,6 @@ public:
     m_iRem  = (iQP + 6*g_uiBitIncrement)%6;
     
     m_iBits = QP_BITS + m_iPer;
-    
-#if !E243_CORE_TRANSFORMS
-    if ( bEnc )
-    {
-      setQOffset(iQP, eSliceType);
-    }
-#endif
   }
   
   Void clear()
@@ -206,11 +155,7 @@ public:
   ~TComTrQuant();
   
   // initialize class
-#if QC_MOD_LCEC
   Void init                 ( UInt uiMaxWidth, UInt uiMaxHeight, UInt uiMaxTrSize, Int iSymbolMode = 0, UInt *aTable4 = NULL, UInt *aTable8 = NULL, UInt *aTableLastPosVlcIndex=NULL, Bool bUseRDOQ = false,  Bool bEnc = false );
-#else
-  Void init                 ( UInt uiMaxWidth, UInt uiMaxHeight, UInt uiMaxTrSize, Int iSymbolMode = 0, UInt *aTable4 = NULL, UInt *aTable8 = NULL, Bool bUseRDOQ = false,  Bool bEnc = false );
-#endif
   
   // transform & inverse transform functions
   Void transformNxN         ( TComDataCU* pcCU, Pel*   pcResidual, UInt uiStride, TCoeff*& rpcCoeff, UInt uiWidth, UInt uiHeight,
@@ -242,9 +187,6 @@ public:
 #endif
 protected:
   Long*    m_plTempCoeff;
-#if !E243_CORE_TRANSFORMS
-  UInt*    m_puiQuantMtx;
-#endif
   
   QpParam  m_cQP;
   Double   m_dLambda;
@@ -256,9 +198,7 @@ protected:
   UInt     *m_uiLPTableE8;
   UInt     *m_uiLPTableE4;
   Int      m_iSymbolMode;
-#if QC_MOD_LCEC
   UInt     *m_uiLastPosVlcIndex;
-#endif
   
 private:
   // forward Transform
@@ -267,22 +207,10 @@ private:
 #else
   Void xT   ( Pel* pResidual, UInt uiStride, Long* plCoeff, Int iSize );
 #endif
-#if !E243_CORE_TRANSFORMS
-  Void xT2  ( Pel* pResidual, UInt uiStride, Long* plCoeff );
-  Void xT4  ( Pel* pResidual, UInt uiStride, Long* plCoeff );
-  Void xT8  ( Pel* pResidual, UInt uiStride, Long* plCoeff );
-  Void xT16 ( Pel* pResidual, UInt uiStride, Long* plCoeff );
-  Void xT32 ( Pel* pResidual, UInt uiStride, Long* plCoeff );
-#endif
   
   // quantization
   Void xQuant     ( TComDataCU* pcCU, Long* pSrc, TCoeff*& pDes, Int iWidth, Int iHeight, UInt& uiAcSum, TextType eTType, UInt uiAbsPartIdx );
   Void xQuantLTR  ( TComDataCU* pcCU, Long* pSrc, TCoeff*& pDes, Int iWidth, Int iHeight, UInt& uiAcSum, TextType eTType, UInt uiAbsPartIdx );
-#if !E243_CORE_TRANSFORMS
-  Void xQuant2x2  ( Long* plSrcCoef, TCoeff*& pDstCoef, UInt& uiAbsSum );
-  Void xQuant4x4  ( TComDataCU* pcCU, Long* plSrcCoef, TCoeff*& pDstCoef, UInt& uiAbsSum, TextType eTType, UInt uiAbsPartIdx );
-  Void xQuant8x8  ( TComDataCU* pcCU, Long* plSrcCoef, TCoeff*& pDstCoef, UInt& uiAbsSum, TextType eTType, UInt uiAbsPartIdx );
-#endif
 
   // RDOQ functions
 
@@ -357,39 +285,15 @@ UInt             getCurrLineNum(UInt uiScanIdx, UInt uiPosX, UInt uiPosY);
   __inline Double xGetIEPRate      (                                               ) const;
   
   
-#if !E243_CORE_TRANSFORMS
-  __inline static Int   xRound   ( Int i )   { return ((i)+(1<<5))>>6; }
-  __inline static Long  xTrRound ( Long i, UInt uiShift ) { return ((i)>>uiShift); }
-#endif
-  
   // dequantization
   Void xDeQuant         ( TCoeff* pSrc,     Long*& pDes,       Int iWidth, Int iHeight );
   Void xDeQuantLTR      ( TCoeff* pSrc,     Long*&  pDes,      Int iWidth, Int iHeight );
-#if !E243_CORE_TRANSFORMS
-  Void xDeQuant2x2      ( TCoeff* pSrcCoef, Long*& rplDstCoef );
-  Void xDeQuant4x4      ( TCoeff* pSrcCoef, Long*& rplDstCoef );
-  Void xDeQuant8x8      ( TCoeff* pSrcCoef, Long*& rplDstCoef );
-#endif
   
   // inverse transform
 #if INTRA_DST_TYPE_7
   Void xIT    ( UInt uiMode, Long* plCoef, Pel* pResidual, UInt uiStride, Int iSize );
 #else
   Void xIT    ( Long* plCoef, Pel* pResidual, UInt uiStride, Int iSize );
-#endif
-#if !E243_CORE_TRANSFORMS
-  Void xIT2   ( Long* plCoef, Pel* pResidual, UInt uiStride );
-  Void xIT4   ( Long* plCoef, Pel* pResidual, UInt uiStride );
-  Void xIT8   ( Long* plCoef, Pel* pResidual, UInt uiStride );
-  Void xIT16  ( Long* plCoef, Pel* pResidual, UInt uiStride );
-  Void xIT32  ( Long* plCoef, Pel* pResidual, UInt uiStride );
-#endif
-  
-#if !E243_CORE_TRANSFORMS
-  static const Int estErr4x4[6][4][4];
-  static const Int estErr8x8[6][8][8];
-  static const Int estErr16x16[6];
-  static const Int estErr32x32[6];
 #endif
   
 };// END CLASS DEFINITION TComTrQuant

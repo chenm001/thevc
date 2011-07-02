@@ -45,9 +45,7 @@
 #include "../TLibCommon/CommonDef.h"
 #include "../TLibCommon/TComBitStream.h"
 #include "TEncEntropy.h"
-#if QC_MOD_LCEC
 #include "../TLibCommon/TComRom.h"
-#endif
 
 class TEncTop;
 
@@ -85,8 +83,7 @@ protected:
 #endif
   UInt          m_uiLastPosVlcIndex[10];
   
-#if LCEC_INTRA_MODE
- #if MTK_DCM_MPM
+#if MTK_DCM_MPM
   UInt          m_uiIntraModeTableD17[2][16];
   UInt          m_uiIntraModeTableE17[2][16];
 
@@ -98,7 +95,6 @@ protected:
 
   UInt          m_uiIntraModeTableD34[33];
   UInt          m_uiIntraModeTableE34[33];
-#endif
 #endif
   
 #if CAVLC_RQT_CBP
@@ -120,23 +116,14 @@ protected:
   UInt          m_uiBlkCbpVlcIdx;
 #endif
 
-
-  
-#if MS_LCEC_LOOKUP_TABLE_EXCEPTION
   UInt          m_uiMI1TableE[9];
   UInt          m_uiMI1TableD[9];
-#else
-  UInt          m_uiMI1TableE[8];
-  UInt          m_uiMI1TableD[8];
-#endif
   UInt          m_uiMI2TableE[15];
   UInt          m_uiMI2TableD[15];
   
   UInt          m_uiMITableVlcIdx;
-#if QC_LCEC_INTER_MODE
   UInt          m_uiSplitTableE[4][7];
   UInt          m_uiSplitTableD[4][7];
-#endif
 
 #if CAVLC_COUNTER_ADAPT
 #if CAVLC_RQT_CBP
@@ -190,9 +177,7 @@ public:
   UInt* GetLP8Table();
 #endif
   UInt* GetLP4Table();
-#if QC_MOD_LCEC
   UInt* GetLastPosVlcIndexTable();
-#endif
   Void  setBitstream          ( TComBitIf* p )  { m_pcBitIf = p;  }
   Void  setSlice              ( TComSlice* p )  { m_pcSlice = p;  }
   Bool getAlfCtrl() {return m_bAlfCtrl;}
@@ -234,7 +219,6 @@ public:
   Int  getSliceGranularity()                       {return m_iSliceGranularity;             }
 #endif
 
-#if TSB_ALF_HEADER
 #if MTK_NONCROSS_INLOOP_FILTER
   /// Code number of ALF CU control flags
   Void codeAlfFlagNum    ( UInt uiCode, UInt minValue, Int iDepth);
@@ -243,10 +227,7 @@ public:
 #endif
 
   Void codeAlfCtrlFlag   ( UInt uiSymbol );
-#endif
-#if QC_LCEC_INTER_MODE
   Void codeInterModeFlag( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth, UInt uiEncMode );
-#endif  
   Void codeSplitFlag     ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
   
   Void codePartSize      ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );

@@ -103,13 +103,10 @@
 #define _SUMMARY_OUT_               0           ///< print-out PSNR results of all slices to summary.txt
 #define _SUMMARY_PIC_               0           ///< print-out PSNR results for each slice type to summary.txt
 
-#define MAX_REF_PIC_NUM             64
 #define MAX_GOP                     64          ///< max. value of hierarchical GOP size
 
 #define MAX_NUM_REF                 4           ///< max. value of multiple reference frames
-#if DCM_COMB_LIST
 #define MAX_NUM_REF_LC              8           ///< max. value of combined reference frames
-#endif
 
 #define MAX_UINT                    0xFFFFFFFFU ///< max. value of unsigned 32-bit integer
 #define MAX_INT                     2147483647  ///< max. value of signed 32-bit integer
@@ -124,14 +121,12 @@
 // Macro functions
 // ====================================================================================================================
 
-#define Median(a,b,c)               ((a)>(b)?(a)>(c)?(b)>(c)?(b):(c):(a):(b)>(c)?(a)>(c)?(a):(c):(b)) ///< 3-point median
-
 extern UInt g_uiIBDI_MAX;
 /** clip #x#, such that 0 <= #x# <= g_uiIBDI_MAX */
 template <typename T> inline T Clip(T x) { return std::min<T>(T(g_uiIBDI_MAX), std::max<T>( T(0), x)); }
 
 /** clip #a#, such that #MinVal# <= #a# <= #MaxVal# */
-#define Clip3( MinVal, MaxVal, a)   ( ((a)<(MinVal)) ? (MinVal) : (((a)>(MaxVal)) ? (MaxVal) :(a)) )  ///< general min/max clip
+template <typename T> inline T Clip3( T minVal, T maxVal, T a) { return std::min<T> (std::max<T> (minVal, a) , maxVal); }  ///< general min/max clip
 
 #define DATA_ALIGN                  1                                                                 ///< use 32-bit aligned malloc/free
 #if     DATA_ALIGN && _WIN32 && ( _MSC_VER > 1300 )
@@ -154,9 +149,7 @@ template <typename T> inline T Clip(T x) { return std::min<T>(T(g_uiIBDI_MAX), s
 // ====================================================================================================================
 
 // modified LCEC coefficient coding
-#if QC_MOD_LCEC
 #define MAX_TR1                           4
-#endif
 
 // AMVP: advanced motion vector prediction
 #define AMVP_MAX_NUM_CANDS          5           ///< max number of final candidates
@@ -182,8 +175,6 @@ template <typename T> inline T Clip(T x) { return std::min<T>(T(g_uiIBDI_MAX), s
 // Adaptive search range depending on POC difference
 #define ADAPT_SR_SCALE              1           ///< division factor for adaptive search range
 
-#define ENABLE_IBDI                 0
-
 #define CLIP_TO_709_RANGE           0
 
 // IBDI range restriction for skipping clip
@@ -192,10 +183,12 @@ template <typename T> inline T Clip(T x) { return std::min<T>(T(g_uiIBDI_MAX), s
 // Early-skip threshold (encoder)
 #define EARLY_SKIP_THRES            1.50        ///< if RD < thres*avg[BestSkipRD]
 
+#ifdef TRANS_PRECISION_EXT
 const int g_iShift8x8    = 2;
 const int g_iShift16x16  = 2;
 const int g_iShift32x32  = 2;
 const int g_iShift64x64  = 2;
+#endif
 
 /* End of Rounding control */
 
@@ -213,11 +206,7 @@ enum NalUnitType
   NAL_UNIT_CODED_SLICE,
   NAL_UNIT_CODED_SLICE_DATAPART_A,
   NAL_UNIT_CODED_SLICE_DATAPART_B,
-#if DCM_DECODING_REFRESH
   NAL_UNIT_CODED_SLICE_CDR,
-#else
-  NAL_UNIT_CODED_SLICE_DATAPART_C,
-#endif
   NAL_UNIT_CODED_SLICE_IDR,
   NAL_UNIT_SEI,
   NAL_UNIT_SPS,

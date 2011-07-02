@@ -93,7 +93,11 @@ Void TComLoopFilter::setCfg( UInt uiDisableDblkIdc, Int iAlphaOffset, Int iBetaO
   m_uiDisableDeblockingFilterIdc  = uiDisableDblkIdc;
 }
 
+#if PARALLEL_MERGED_DEBLK
+Void TComLoopFilter::create( Int width, Int height, Int maxCUWidth, Int maxCUHeight, Int uiMaxCUDepth )
+#else
 Void TComLoopFilter::create( UInt uiMaxCUDepth )
+#endif
 {
   m_uiNumPartitions = 1 << ( uiMaxCUDepth<<1 );
   for( UInt uiDir = 0; uiDir < 2; uiDir++ )
@@ -104,6 +108,10 @@ Void TComLoopFilter::create( UInt uiMaxCUDepth )
       m_aapbEdgeFilter[uiDir][uiPlane] = new Bool [m_uiNumPartitions];
     }
   }
+  
+#if PARALLEL_MERGED_DEBLK
+  m_preDeblockPic.createLuma( width, height, maxCUWidth, maxCUHeight, uiMaxCUDepth );
+#endif
 }
 
 Void TComLoopFilter::destroy()
@@ -116,6 +124,10 @@ Void TComLoopFilter::destroy()
       delete [] m_aapbEdgeFilter[uiDir][uiPlane];
     }
   }
+  
+#if PARALLEL_MERGED_DEBLK
+  m_preDeblockPic.destroyLuma();
+#endif
 }
 
 /**
@@ -129,7 +141,7 @@ Void TComLoopFilter::loopFilterPic( TComPic* pcPic )
     return;
   
 #if PARALLEL_MERGED_DEBLK
-  pcPic->getPicYuvRec()->copyToPicLuma(pcPic->getPicYuvDeblkBuf());
+  pcPic->getPicYuvRec()->copyToPicLuma(&m_preDeblockPic);
 
   // Horizontal filtering
   for ( UInt uiCUAddr = 0; uiCUAddr < pcPic->getNumCUsInFrame(); uiCUAddr++ )
@@ -139,7 +151,6 @@ Void TComLoopFilter::loopFilterPic( TComPic* pcPic )
     for( Int iPlane = 0; iPlane < 3; iPlane++ )
     {
       ::memset( m_aapucBS       [EDGE_VER][iPlane], 0, sizeof( UChar ) * m_uiNumPartitions );
-      assert( 0 == false );
       ::memset( m_aapbEdgeFilter[EDGE_VER][iPlane], 0, sizeof( bool  ) * m_uiNumPartitions );
     }
 
@@ -155,7 +166,6 @@ Void TComLoopFilter::loopFilterPic( TComPic* pcPic )
     for( Int iPlane = 0; iPlane < 3; iPlane++ )
     {
       ::memset( m_aapucBS       [EDGE_HOR][iPlane], 0, sizeof( UChar ) * m_uiNumPartitions );
-      assert( 0 == false );
       ::memset( m_aapbEdgeFilter[EDGE_HOR][iPlane], 0, sizeof( bool  ) * m_uiNumPartitions );
     }
 
@@ -173,7 +183,6 @@ Void TComLoopFilter::loopFilterPic( TComPic* pcPic )
       for( Int iPlane = 0; iPlane < 3; iPlane++ )
       {
         ::memset( m_aapucBS       [iDir][iPlane], 0, sizeof( UChar ) * m_uiNumPartitions );
-        assert( 0 == false );
         ::memset( m_aapbEdgeFilter[iDir][iPlane], 0, sizeof( bool  ) * m_uiNumPartitions );
       }
     }
@@ -539,8 +548,7 @@ Void TComLoopFilter::xEdgeFilterLuma( TComDataCU* pcCU, UInt uiAbsZorderIdx, UIn
   Pel* piSrc    = pcPicYuvRec->getLumaAddr( pcCU->getAddr(), uiAbsZorderIdx );
   Pel* piTmpSrc = piSrc;
 #if PARALLEL_MERGED_DEBLK
-  TComPicYuv* pcPicYuvJudge = pcCU->getPic()->getPicYuvDeblkBuf();
-  Pel* piSrcJudge    = pcPicYuvJudge->getLumaAddr( pcCU->getAddr(), uiAbsZorderIdx );
+  Pel* piSrcJudge    = m_preDeblockPic.getLumaAddr( pcCU->getAddr(), uiAbsZorderIdx );
   Pel* piTmpSrcJudge = piSrcJudge;
 #endif
 
@@ -609,7 +617,7 @@ Void TComLoopFilter::xEdgeFilterLuma( TComDataCU* pcCU, UInt uiAbsZorderIdx, UIn
     
     Int iBitdepthScale = (1<<(g_uiBitIncrement+g_uiBitDepth-8));
     
-    UInt uiTcOffset = (uiBs>2)?4:0;
+    Int uiTcOffset = (uiBs>2)?4:0;
     
     Int iIndexTC = Clip3(0, MAX_QP+4, iQP + uiTcOffset );
     Int iIndexB = Clip3(0, MAX_QP, iQP );
@@ -868,7 +876,7 @@ Void TComLoopFilter::xEdgeFilterChroma( TComDataCU* pcCU, UInt uiAbsZorderIdx, U
     
     Int iBitdepthScale = (1<<(g_uiBitIncrement+g_uiBitDepth-8));
     
-    UInt uiTcOffset = (ucBs>2)?4:0;
+    Int uiTcOffset = (ucBs>2)?4:0;
     
     Int iIndexTC = Clip3(0, MAX_QP+4, iQP + uiTcOffset );
     

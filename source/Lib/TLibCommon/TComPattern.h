@@ -109,7 +109,11 @@ private:
 #endif
   
 #if QC_MDIS
+#if ADD_PLANAR_MODE || LM_CHROMA
+  static const UChar m_aucIntraFilter[5][NUM_INTRA_MODE];
+#else
   static const UChar m_aucIntraFilter[5][34];
+#endif
 #endif
   
 public:
@@ -176,7 +180,6 @@ public:
                                Bool&       bAbove,
                                Bool&       bLeft );
 
-#if (CONSTRAINED_INTRA_PRED || REFERENCE_SAMPLE_PADDING)
 private:
 
 #if REFERENCE_SAMPLE_PADDING
@@ -187,7 +190,6 @@ private:
 #endif
   
 #endif
-#if CONSTRAINED_INTRA_PRED
   /// constrained intra prediction
   Bool  isAboveLeftAvailableForCIP  ( TComDataCU* pcCU, UInt uiPartIdxLT );
 #if REFERENCE_SAMPLE_PADDING
@@ -200,8 +202,6 @@ private:
   Bool  isLeftAvailableForCIP       ( TComDataCU* pcCU, UInt uiPartIdxLT, UInt uiPartIdxLB );
   Bool  isAboveRightAvailableForCIP ( TComDataCU* pcCU, UInt uiPartIdxLT, UInt uiPartIdxRT );
   Bool  isBelowLeftAvailableForCIP  ( TComDataCU* pcCU, UInt uiPartIdxLT, UInt uiPartIdxLB );
-#endif
-#endif // CONSTRAINED_INTRA_PRED
 #endif
 };
 

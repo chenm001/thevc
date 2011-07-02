@@ -99,11 +99,9 @@ private:
   // indicate sequence first
   Bool                    m_bSeqFirst;
   
-#if DCM_DECODING_REFRESH
   // clean decoding refresh
   Bool                    m_bRefreshPending;
   UInt                    m_uiPOCCDR;
-#endif
   UInt*                   m_uiStoredStartCUAddrForEncodingSlice;
   UInt*                   m_uiStoredStartCUAddrForEncodingEntropySlice;
 
@@ -143,9 +141,7 @@ protected:
   Void  xInitGOP          ( Int iPOC, Int iNumPicRcvd, TComList<TComPic*>& rcListPic, TComList<TComPicYuv*>& rcListPicYuvRecOut );
   Void  xGetBuffer        ( TComList<TComPic*>& rcListPic, TComList<TComPicYuv*>& rcListPicYuvRecOut, Int iNumPicRcvd, Int iTimeOffset, TComPic*& rpcPic, TComPicYuv*& rpcPicYuvRecOut, UInt uiPOCCurr );
   
-#if DCM_DECODING_REFRESH
   NalUnitType getNalUnitType( UInt uiPOCCurr );
-#endif
 
   Void  xCalculateAddPSNR ( TComPic* pcPic, TComPicYuv* pcPicD, const AccessUnit&, Double dEncTime );
   

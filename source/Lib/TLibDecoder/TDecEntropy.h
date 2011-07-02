@@ -111,10 +111,8 @@ public:
   virtual Void parseAlfSvlc       ( Int&  riVal            ) = 0;
   virtual Void parseAlfCtrlDepth  ( UInt& ruiAlfCtrlDepth  ) = 0;
   virtual Void parseAlfCtrlFlag   ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth ) = 0;
-#if TSB_ALF_HEADER
   virtual Void parseAlfFlagNum    ( UInt& ruiVal, UInt minValue, UInt depth ) = 0;
   virtual Void parseAlfCtrlFlag   ( UInt &ruiAlfCtrlFlag ) = 0;
-#endif
 
 #if FINE_GRANULARITY_SLICES && MTK_NONCROSS_INLOOP_FILTER
   /// set slice granularity
@@ -169,13 +167,11 @@ public:
   Void decodeMergeFlag         ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth, UInt uiPUIdx );
   Void decodeMergeIndex        ( TComDataCU* pcSubCU, UInt uiPartIdx, UInt uiPartAddr, PartSize eCUMode, UChar* puhInterDirNeighbours, TComMvField* pcMvFieldNeighbours, UInt uiDepth );
   Void decodeAlfCtrlFlag       ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
-#if TSB_ALF_HEADER || E045_SLICE_COMMON_INFO_SHARING
 #if E045_SLICE_COMMON_INFO_SHARING
   /// decode ALF CU control flags
   Void decodeAlfCtrlParam      ( ALFParam *pAlfParam , Bool bFirstSliceInPic);
 #else
   Void decodeAlfCtrlParam      ( ALFParam *pAlfParam );
-#endif
 #endif
   
   Void decodePredMode          ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );

@@ -555,10 +555,8 @@ protected:
   Void xCUAdaptive_qc(TComPic* pcPic, ALFParam* pcAlfParam, imgpel *imgY_rec_post, imgpel *imgY_rec, Int Stride);
   Void subfilterFrame(imgpel *imgY_rec_post, imgpel *imgY_rec, int filtNo, int start_height, int end_height, int start_width, int end_width, int Stride);
   Void filterFrame(imgpel *imgY_rec_post, imgpel *imgY_rec, int filtNo, int Stride);
-#if TSB_ALF_HEADER
   UInt  m_uiNumCUsInFrame;
   Void  setAlfCtrlFlags (ALFParam *pAlfParam, TComDataCU *pcCU, UInt uiAbsPartIdx, UInt uiDepth, UInt &idx);
-#endif
 #if E057_INTRA_PCM && E192_SPS_PCM_FILTER_DISABLE_SYNTAX
   Void xPCMRestoration        (TComPic* pcPic);
   Void xPCMCURestoration      (TComDataCU* pcCU, UInt uiAbsZorderIdx, UInt uiDepth);
@@ -591,7 +589,7 @@ public:
   Void allocALFParam  ( ALFParam* pAlfParam );
   Void freeALFParam   ( ALFParam* pAlfParam );
   Void copyALFParam   ( ALFParam* pDesAlfParam, ALFParam* pSrcAlfParam );
-#if TSB_ALF_HEADER && (!E045_SLICE_COMMON_INFO_SHARING)
+#if (!E045_SLICE_COMMON_INFO_SHARING)
   Void  setNumCUsInFrame        (TComPic *pcPic);
 #endif
   
@@ -615,11 +613,9 @@ public:
 #if MTK_NONCROSS_INLOOP_FILTER
 public:
 
-
-#if TSB_ALF_HEADER
   /// Copy ALF CU control flags from ALF parameters for slices
   Void transferCtrlFlagsFromAlfParam(ALFParam* pcAlfParam);
-#endif
+  
   /// Copy ALF CU control flags from ALF parameter for one slice
   Void transferCtrlFlagsFromAlfParamOneSlice(UInt s, Bool bCUCtrlEnabled, Int iAlfDepth, UInt* puiFlags);
 #if FINE_GRANULARITY_SLICES

@@ -77,7 +77,6 @@ Void TEncCavlc::resetEntropy()
   ::memcpy(m_uiLPTableD4, g_auiLPTableD4, 3*32*sizeof(UInt));
   ::memcpy(m_uiLastPosVlcIndex, g_auiLastPosVlcIndex, 10*sizeof(UInt));
   
-#if LCEC_INTRA_MODE
 #if MTK_DCM_MPM
   ::memcpy(m_uiIntraModeTableD17[0], g_auiIntraModeTableD17[0], 16*sizeof(UInt));
   ::memcpy(m_uiIntraModeTableE17[0], g_auiIntraModeTableE17[0], 16*sizeof(UInt));
@@ -94,7 +93,6 @@ Void TEncCavlc::resetEntropy()
 
   ::memcpy(m_uiIntraModeTableD34, g_auiIntraModeTableD34, 33*sizeof(UInt));
   ::memcpy(m_uiIntraModeTableE34, g_auiIntraModeTableE34, 33*sizeof(UInt));
-#endif
 #endif
   
 #if CAVLC_RQT_CBP
@@ -126,18 +124,13 @@ Void TEncCavlc::resetEntropy()
   ::memcpy(m_uiMI2TableE, g_auiMI2TableE, 15*sizeof(UInt));
   ::memcpy(m_uiMI2TableD, g_auiMI2TableD, 15*sizeof(UInt));
   
-#if DCM_COMB_LIST
   if ( m_pcSlice->getNoBackPredFlag() || m_pcSlice->getNumRefIdx(REF_PIC_LIST_C)>0)
-#else
-  if ( m_pcSlice->getNoBackPredFlag() )
-#endif
   {
     ::memcpy(m_uiMI1TableE, g_auiMI1TableENoL1, 8*sizeof(UInt));
     ::memcpy(m_uiMI1TableD, g_auiMI1TableDNoL1, 8*sizeof(UInt));
     ::memcpy(m_uiMI2TableE, g_auiMI2TableENoL1, 15*sizeof(UInt));
     ::memcpy(m_uiMI2TableD, g_auiMI2TableDNoL1, 15*sizeof(UInt));
   }
-#if MS_LCEC_ONE_FRAME
   if ( m_pcSlice->getNumRefIdx(REF_PIC_LIST_0) <= 1 && m_pcSlice->getNumRefIdx(REF_PIC_LIST_1) <= 1 )
   {
     if ( m_pcSlice->getNoBackPredFlag() || ( m_pcSlice->getNumRefIdx(REF_PIC_LIST_C) > 0 && m_pcSlice->getNumRefIdx(REF_PIC_LIST_C) <= 1 ) )
@@ -151,8 +144,6 @@ Void TEncCavlc::resetEntropy()
       ::memcpy(m_uiMI1TableD, g_auiMI1TableDOnly1Ref, 8*sizeof(UInt));
     }
   }
-#endif
-#if MS_LCEC_LOOKUP_TABLE_EXCEPTION
   if (m_pcSlice->getNumRefIdx(REF_PIC_LIST_C)>0)
   {
     m_uiMI1TableE[8] = 8;
@@ -167,12 +158,9 @@ Void TEncCavlc::resetEntropy()
     m_uiMI1TableE[m_uiMI1TableD[6]] = 6;
   }
 #endif
-#endif
 
-#if QC_LCEC_INTER_MODE
   ::memcpy(m_uiSplitTableE, g_auiInterModeTableE, 4*7*sizeof(UInt));
   ::memcpy(m_uiSplitTableD, g_auiInterModeTableD, 4*7*sizeof(UInt));
-#endif
   
   m_uiMITableVlcIdx = 0;  
 
@@ -216,12 +204,10 @@ UInt* TEncCavlc::GetLP4Table()
   return &m_uiLPTableE4[0][0];
 }
 
-#if QC_MOD_LCEC
 UInt* TEncCavlc::GetLastPosVlcIndexTable()
 {   
   return &m_uiLastPosVlcIndex[0];
 }
-#endif
 
 /**
  * marshall the SEI message @sei.
@@ -233,9 +219,7 @@ void TEncCavlc::codeSEI(const SEI& sei)
 
 Void TEncCavlc::codePPS( TComPPS* pcPPS )
 {
-#if CONSTRAINED_INTRA_PRED
   xWriteFlag( pcPPS->getConstrainedIntraPred() ? 1 : 0 );
-#endif
 
 #if FINE_GRANULARITY_SLICES
   xWriteCode ( pcPPS->getSliceGranularity(), 2);
@@ -296,10 +280,6 @@ Void TEncCavlc::codeSPS( TComSPS* pcSPS )
   xWriteFlag  ( (pcSPS->getUseLMChroma ()) ? 1 : 0 ); 
 #endif
 
-#if HHI_RMP_SWITCH
-  xWriteFlag  ( (pcSPS->getUseRMP()) ? 1 : 0 );
-#endif
-    
   // AMVP mode for each depth
   for (Int i = 0; i < pcSPS->getMaxCUDepth(); i++)
   {
@@ -310,9 +290,6 @@ Void TEncCavlc::codeSPS( TComSPS* pcSPS )
 #if FULL_NBIT
   xWriteUvlc( pcSPS->getBitDepth() - 8 );
 #else
-#if ENABLE_IBDI
-  xWriteUvlc( pcSPS->getBitDepth() - 8 );
-#endif
   xWriteUvlc( pcSPS->getBitIncrement() );
 #endif
 
@@ -353,33 +330,33 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
   xWriteUvlc  (pcSlice->getSliceType() );
   xWriteSvlc  (pcSlice->getSliceQp() );
   }
+#if FINE_GRANULARITY_SLICES
+  //calculate number of bits required for slice address
+  Int iMaxAddrOuter = pcSlice->getPic()->getNumCUsInFrame();
+  Int iReqBitsOuter = 0;
+  while(iMaxAddrOuter>(1<<iReqBitsOuter)) 
+  {
+    iReqBitsOuter++;
+  }
+  Int iMaxAddrInner = pcSlice->getPic()->getNumPartInCU()>>(2);
+  iMaxAddrInner = (1<<(pcSlice->getPPS()->getSliceGranularity()<<1));
+  int iReqBitsInner = 0;
+
+  while(iMaxAddrInner>(1<<iReqBitsInner))
+  {
+    iReqBitsInner++;
+  }
+  Int iLCUAddress;
+  Int iInnerAddress;
+#endif
   if (pcSlice->isNextSlice())
   {
 #if !FINE_GRANULARITY_SLICES
     xWriteUvlc(pcSlice->getSliceCurStartCUAddr());        // Start CU addr for slice
 #else
-    int iMaxAddrOuter = pcSlice->getPic()->getNumCUsInFrame();
-    int iReqBitsOuter = 0;
-    while(iMaxAddrOuter>(1<<iReqBitsOuter)) 
-    {
-      iReqBitsOuter++;
-    }
-    int iMaxAddrInner = pcSlice->getPic()->getNumPartInCU()>>(2);
-    iMaxAddrInner = (1<<(pcSlice->getPPS()->getSliceGranularity()<<1));
-    int iReqBitsInner = 0;
-    while(iMaxAddrInner>(1<<iReqBitsInner))
-    {
-      iReqBitsInner++;
-    }
-    // Write slice address
-    int iLCUAddress = (pcSlice->getSliceCurStartCUAddr()/pcSlice->getPic()->getNumPartInCU());
-    int iInnerAddress = (pcSlice->getSliceCurStartCUAddr()%(pcSlice->getPic()->getNumPartInCU()))>>((pcSlice->getSPS()->getMaxCUDepth()-pcSlice->getPPS()->getSliceGranularity())<<1);
-    int iAddress    = (iLCUAddress << iReqBitsInner) + iInnerAddress;
-    xWriteFlag(iAddress==0);
-    if(iAddress>0) 
-    {
-      xWriteCode(iAddress, iReqBitsOuter+iReqBitsInner);
-    }
+    // Calculate slice address
+    iLCUAddress = (pcSlice->getSliceCurStartCUAddr()/pcSlice->getPic()->getNumPartInCU());
+    iInnerAddress = (pcSlice->getSliceCurStartCUAddr()%(pcSlice->getPic()->getNumPartInCU()))>>((pcSlice->getSPS()->getMaxCUDepth()-pcSlice->getPPS()->getSliceGranularity())<<1);
 #endif
   }
   else
@@ -387,30 +364,21 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
 #if !FINE_GRANULARITY_SLICES
     xWriteUvlc(pcSlice->getEntropySliceCurStartCUAddr()); // Start CU addr for entropy slice
 #else
-    int iMaxAddrOuter = pcSlice->getPic()->getNumCUsInFrame();
-    int iReqBitsOuter = 0;
-    while(iMaxAddrOuter>(1<<iReqBitsOuter)) 
-    {
-      iReqBitsOuter++;
-    }
-    int iMaxAddrInner = pcSlice->getPic()->getNumPartInCU()>>(2);
-    iMaxAddrInner = (1<<(pcSlice->getPPS()->getSliceGranularity()<<1));
-    int iReqBitsInner = 0;
-    while(iMaxAddrInner>(1<<iReqBitsInner))
-    {
-      iReqBitsInner++;
-    }
-    // Write slice address
-    int iLCUAddress = (pcSlice->getEntropySliceCurStartCUAddr()/pcSlice->getPic()->getNumPartInCU());
-    int iInnerAddress = (pcSlice->getEntropySliceCurStartCUAddr()%(pcSlice->getPic()->getNumPartInCU()))>>((pcSlice->getSPS()->getMaxCUDepth()-pcSlice->getPPS()->getSliceGranularity())<<1);
-    int iAddress    = (iLCUAddress << iReqBitsInner) + iInnerAddress;
-    xWriteFlag(iAddress==0);
-    if(iAddress>0) 
-    {
-      xWriteCode(iAddress, iReqBitsOuter+iReqBitsInner);
-    }
+    // Calculate slice address
+    iLCUAddress = (pcSlice->getEntropySliceCurStartCUAddr()/pcSlice->getPic()->getNumPartInCU());
+    iInnerAddress = (pcSlice->getEntropySliceCurStartCUAddr()%(pcSlice->getPic()->getNumPartInCU()))>>((pcSlice->getSPS()->getMaxCUDepth()-pcSlice->getPPS()->getSliceGranularity())<<1);
+    
 #endif
   }
+#if FINE_GRANULARITY_SLICES
+  //write slice address
+  int iAddress    = (iLCUAddress << iReqBitsInner) + iInnerAddress;
+  xWriteFlag(iAddress==0);
+  if(iAddress>0) 
+  {
+    xWriteCode(iAddress, iReqBitsOuter+iReqBitsInner);
+  }
+#endif
   if (!bEntropySlice)
   {  
   xWriteFlag  (pcSlice->getSymbolMode() > 0 ? 1 : 0);
@@ -418,11 +386,6 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
   if (!pcSlice->isIntra())
   {
     xWriteFlag  (pcSlice->isReferenced() ? 1 : 0);
-#if !HIGH_ACCURACY_BI
-#ifdef ROUNDING_CONTROL_BIPRED
-    xWriteFlag  (pcSlice->isRounding() ? 1 : 0);
-#endif
-#endif
   }
   
   xWriteFlag  (pcSlice->getLoopFilterDisable());
@@ -444,7 +407,6 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
     pcSlice->setNumRefIdx(REF_PIC_LIST_1, 0);
   }
   
-#if DCM_COMB_LIST
   if (pcSlice->isInterB())
   {
     xWriteFlag  (pcSlice->getRefPicListCombinationFlag() ? 1 : 0 );
@@ -463,7 +425,6 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
       }
     }
   }
-#endif
 
   xWriteFlag  (pcSlice->getDRBFlag() ? 1 : 0 );
   if ( !pcSlice->getDRBFlag() )
@@ -499,22 +460,20 @@ Void TEncCavlc::codeMVPIdx ( TComDataCU* pcCU, UInt uiAbsPartIdx, RefPicList eRe
   
   xWriteUnaryMaxSymbol(iSymbol, iNum-1);
 }
-#if QC_LCEC_INTER_MODE
+
 Void TEncCavlc::codePartSize( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
 {
   if ( pcCU->getSlice()->isIntra() && pcCU->isIntra( uiAbsPartIdx ) )
   {
-#if MTK_DISABLE_INTRA_NxN_SPLIT
     if( uiDepth == (g_uiMaxCUDepth - g_uiAddCUDepth))
-#endif
+    {
       xWriteFlag( pcCU->getPartitionSize(uiAbsPartIdx ) == SIZE_2Nx2N? 1 : 0 );
+    }
     return;
   }
 
 
-#if MTK_DISABLE_INTRA_NxN_SPLIT && HHI_DISABLE_INTER_NxN_SPLIT 
   if( uiDepth == g_uiMaxCUDepth - g_uiAddCUDepth )
-#endif
   {    
     if ((pcCU->getPartitionSize(uiAbsPartIdx ) == SIZE_NxN) || pcCU->isIntra( uiAbsPartIdx ))
     {
@@ -526,11 +485,6 @@ Void TEncCavlc::codePartSize( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth 
       else
       {
         xWriteFlag(0);
-#if MTK_DISABLE_INTRA_NxN_SPLIT && !HHI_DISABLE_INTER_NxN_SPLIT 
-        if( uiDepth == g_uiMaxCUDepth - g_uiAddCUDepth )
-#elif !MTK_DISABLE_INTRA_NxN_SPLIT && HHI_DISABLE_INTER_NxN_SPLIT 
-        if( uiDepth == g_uiMaxCUDepth - g_uiAddCUDepth )
-#endif
         xWriteFlag( uiIntraFlag? 1 : 0 );
       }
 
@@ -538,97 +492,6 @@ Void TEncCavlc::codePartSize( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth 
     }
   }
 }
-#else
-Void TEncCavlc::codePartSize( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
-{
-  PartSize eSize         = pcCU->getPartitionSize( uiAbsPartIdx );
-  
-  if ( pcCU->getSlice()->isInterB() && pcCU->isIntra( uiAbsPartIdx ) )
-  {
-    xWriteFlag( 0 );
-#if HHI_RMP_SWITCH
-    if( pcCU->getSlice()->getSPS()->getUseRMP() )
-#endif
-    {
-      xWriteFlag( 0 );
-      xWriteFlag( 0 );
-    }
-#if HHI_DISABLE_INTER_NxN_SPLIT
-    if( uiDepth == g_uiMaxCUDepth - g_uiAddCUDepth )
-    {
-      xWriteFlag( 0 );
-    }
-#else
-    xWriteFlag( 0 );
-#endif
-#if MTK_DISABLE_INTRA_NxN_SPLIT
-    if( uiDepth == g_uiMaxCUDepth - g_uiAddCUDepth )
-#endif
-    {
-      xWriteFlag( (eSize == SIZE_2Nx2N? 0 : 1) );
-    }
-    return;
-  }
-  
-  if ( pcCU->isIntra( uiAbsPartIdx ) )
-  {
-#if MTK_DISABLE_INTRA_NxN_SPLIT
-    if( uiDepth == g_uiMaxCUDepth - g_uiAddCUDepth )
-#endif
-    {
-      xWriteFlag( eSize == SIZE_2Nx2N? 1 : 0 );
-    }
-    return;
-  }
-  
-  switch(eSize)
-  {
-    case SIZE_2Nx2N:
-    {
-      xWriteFlag( 1 );
-      break;
-    }
-    case SIZE_2NxN:
-    {
-      xWriteFlag( 0 );
-      xWriteFlag( 1 );
-      break;
-    }
-    case SIZE_Nx2N:
-    {
-      xWriteFlag( 0 );
-      xWriteFlag( 0 );
-      xWriteFlag( 1 );
-      break;
-    }
-    case SIZE_NxN:
-    {
-#if HHI_DISABLE_INTER_NxN_SPLIT
-      if( uiDepth == g_uiMaxCUDepth - g_uiAddCUDepth )
-#endif
-      {
-        xWriteFlag( 0 );
-#if HHI_RMP_SWITCH
-        if( pcCU->getSlice()->getSPS()->getUseRMP())
-#endif
-        {
-          xWriteFlag( 0 );
-          xWriteFlag( 0 );
-        }
-        if (pcCU->getSlice()->isInterB())
-        {
-          xWriteFlag( 1 );
-        }
-      }
-      break;
-    }
-    default:
-    {
-      assert(0);
-    }
-  }
-}
-#endif
 
 /** code prediction mode
  * \param pcCU
@@ -637,18 +500,8 @@ Void TEncCavlc::codePartSize( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth 
  */
 Void TEncCavlc::codePredMode( TComDataCU* pcCU, UInt uiAbsPartIdx )
 {
-#if QC_LCEC_INTER_MODE
   codeInterModeFlag(pcCU, uiAbsPartIdx,(UInt)pcCU->getDepth(uiAbsPartIdx),2);
   return;
-#else
-  // get context function is here
-  Int iPredMode = pcCU->getPredictionMode( uiAbsPartIdx );
-  if ( pcCU->getSlice()->isInterB() )
-  {
-    return;
-  }
-  xWriteFlag( iPredMode == MODE_INTER ? 0 : 1 );
-#endif
 }
 
 /** code merge flag
@@ -658,10 +511,8 @@ Void TEncCavlc::codePredMode( TComDataCU* pcCU, UInt uiAbsPartIdx )
  */
 Void TEncCavlc::codeMergeFlag    ( TComDataCU* pcCU, UInt uiAbsPartIdx )
 {
-#if QC_LCEC_INTER_MODE
   if (pcCU->getPartitionSize(uiAbsPartIdx) == SIZE_2Nx2N )
      return;
-#endif
   UInt uiSymbol = pcCU->getMergeFlag( uiAbsPartIdx ) ? 1 : 0;
   xWriteFlag( uiSymbol );
 }
@@ -755,7 +606,7 @@ Void TEncCavlc::codeAlfCtrlDepth()
   
   xWriteUnaryMaxSymbol(uiDepth, g_uiMaxCUDepth-1);
 }
-#if QC_LCEC_INTER_MODE
+
 Void TEncCavlc::codeInterModeFlag( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth, UInt uiEncMode )
 {
   Bool bHasSplit = ( uiDepth == g_uiMaxCUDepth - g_uiAddCUDepth )? 0 : 1;
@@ -817,30 +668,22 @@ Void TEncCavlc::codeInterModeFlag( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiD
   }
   return;
 }
-#endif
+
 Void TEncCavlc::codeSkipFlag( TComDataCU* pcCU, UInt uiAbsPartIdx )
 {
-#if QC_LCEC_INTER_MODE
   codeInterModeFlag(pcCU,uiAbsPartIdx,(UInt)pcCU->getDepth(uiAbsPartIdx),1);
   return;
-#else
-  // get context function is here
-  UInt uiSymbol = pcCU->isSkipped( uiAbsPartIdx ) ? 1 : 0;
-  xWriteFlag( uiSymbol );
-#endif
 }
 
 Void TEncCavlc::codeSplitFlag   ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
 {
   if( uiDepth == g_uiMaxCUDepth - g_uiAddCUDepth )
     return;
-#if QC_LCEC_INTER_MODE
   if (!pcCU->getSlice()->isIntra())
   {
     codeInterModeFlag(pcCU,uiAbsPartIdx,uiDepth,0);
     return;
   }
-#endif
   UInt uiCurrSplitFlag = ( pcCU->getDepth( uiAbsPartIdx ) > uiDepth ) ? 1 : 0;
   
   xWriteFlag( uiCurrSplitFlag );
@@ -955,7 +798,6 @@ Void TEncCavlc::codeIPCMInfo( TComDataCU* pcCU, UInt uiAbsPartIdx)
 }
 #endif
 
-#if LCEC_INTRA_MODE
 #if MTK_DCM_MPM
 Void TEncCavlc::codeIntraDirLumaAng( TComDataCU* pcCU, UInt uiAbsPartIdx )
 {
@@ -1190,75 +1032,13 @@ Void TEncCavlc::codeIntraDirLumaAng( TComDataCU* pcCU, UInt uiAbsPartIdx )
 
 }
 #endif
-#else
-
-Void TEncCavlc::codeIntraDirLumaAng( TComDataCU* pcCU, UInt uiAbsPartIdx )
-{
-  UInt uiDir         = pcCU->getLumaIntraDir( uiAbsPartIdx );
-  Int  iMostProbable = pcCU->getMostProbableIntraDirLuma( uiAbsPartIdx );
-#if ADD_PLANAR_MODE
-  UInt planarFlag    = 0;
-  if (uiDir == PLANAR_IDX)
-  {
-    uiDir = 2;
-    planarFlag = 1;
-  }
-#endif
-  
-  if (uiDir == iMostProbable)
-  {
-    xWriteFlag( 1 );
-  }
-  else
-  {
-    xWriteFlag( 0 );
-    uiDir = uiDir > iMostProbable ? uiDir - 1 : uiDir;
-    Int iIntraIdx = pcCU->getIntraSizeIdx(uiAbsPartIdx);
-    if ( g_aucIntraModeBitsAng[iIntraIdx] < 6 )
-    {
-      xWriteFlag( uiDir & 0x01 ? 1 : 0 );
-      if ( g_aucIntraModeBitsAng[iIntraIdx] > 2 ) xWriteFlag( uiDir & 0x02 ? 1 : 0 );
-      if ( g_aucIntraModeBitsAng[iIntraIdx] > 3 ) xWriteFlag( uiDir & 0x04 ? 1 : 0 );
-      if ( g_aucIntraModeBitsAng[iIntraIdx] > 4 ) xWriteFlag( uiDir & 0x08 ? 1 : 0 );
-    }
-    else
-    {
-      if (uiDir < 31)
-      { // uiDir is here 0...32, 5 bits for uiDir 0...30, 31 is an escape code for coding one more bit for 31 and 32
-        xWriteFlag( uiDir & 0x01 ? 1 : 0 );
-        xWriteFlag( uiDir & 0x02 ? 1 : 0 );
-        xWriteFlag( uiDir & 0x04 ? 1 : 0 );
-        xWriteFlag( uiDir & 0x08 ? 1 : 0 );
-        xWriteFlag( uiDir & 0x10 ? 1 : 0 );
-      }
-      else
-      {
-        xWriteFlag( 1 );
-        xWriteFlag( 1 );
-        xWriteFlag( 1 );
-        xWriteFlag( 1 );
-        xWriteFlag( 1 );
-        xWriteFlag( uiDir == 32 ? 1 : 0 );
-      }
-    }
-  }
-
-#if ADD_PLANAR_MODE
-  uiDir = pcCU->getLumaIntraDir( uiAbsPartIdx );
-  if ( (uiDir == PLANAR_IDX) || (uiDir == 2) )
-  {
-    xWriteFlag( planarFlag );
-  }
-#endif
-
-}
-#endif
 
 Void TEncCavlc::codeIntraDirChroma( TComDataCU* pcCU, UInt uiAbsPartIdx )
 {
   UInt uiIntraDirChroma = pcCU->getChromaIntraDir   ( uiAbsPartIdx );
+  
 #if ADD_PLANAR_MODE
-  UInt planarFlag       = 0;
+  UInt planarFlag = 0;
   if (uiIntraDirChroma == PLANAR_IDX)
   {
     uiIntraDirChroma = 2;
@@ -1266,7 +1046,6 @@ Void TEncCavlc::codeIntraDirChroma( TComDataCU* pcCU, UInt uiAbsPartIdx )
   }
 #endif
 
-#if CHROMA_CODEWORD
   UInt uiMode = pcCU->getLumaIntraDir(uiAbsPartIdx);
 #if ADD_PLANAR_MODE
   if ( (uiMode == 2 ) || (uiMode == PLANAR_IDX) )
@@ -1286,20 +1065,22 @@ Void TEncCavlc::codeIntraDirChroma( TComDataCU* pcCU, UInt uiAbsPartIdx )
   {
     uiIntraDirChroma = 0;
   }
-  else if (uiIntraDirChroma == 3 && bUseLMFlag )
+  else if (uiIntraDirChroma == LM_CHROMA_IDX )
   {
     uiIntraDirChroma = 1;
   }
   else
   {
     if (uiIntraDirChroma < uiMode)
+    {
       uiIntraDirChroma++;
-
+    }
+    
     if (bUseLMFlag)
+    {
       uiIntraDirChroma++;
-#if CHROMA_CODEWORD_SWITCH 
+    }
     uiIntraDirChroma = ChromaMapping[iMax-3][uiIntraDirChroma];
-#endif
   }
 
   xWriteUnaryMaxSymbol( uiIntraDirChroma, iMax);
@@ -1312,7 +1093,6 @@ Void TEncCavlc::codeIntraDirChroma( TComDataCU* pcCU, UInt uiAbsPartIdx )
   {
     uiIntraDirChroma = 0;
   }
-#if CHROMA_CODEWORD_SWITCH 
   else
   {
     if (uiIntraDirChroma < uiMode)
@@ -1321,37 +1101,15 @@ Void TEncCavlc::codeIntraDirChroma( TComDataCU* pcCU, UInt uiAbsPartIdx )
     }
     uiIntraDirChroma = ChromaMapping[iMax-3][uiIntraDirChroma];
   }
-#else
-  else if (uiIntraDirChroma < uiMode)
-  {
-    uiIntraDirChroma++;
-  }
-#endif
   xWriteUnaryMaxSymbol( uiIntraDirChroma, iMax);
 #endif //<-- LM_CHROMA
 
-#else // CHROMA_CODEWORD
-  if ( 0 == uiIntraDirChroma )
-  {
-    xWriteFlag( 0 );
-  }
-  else
-  {
-    xWriteFlag( 1 );
-    xWriteUnaryMaxSymbol( uiIntraDirChroma - 1, 3 );
-  }
-#endif
-
 #if ADD_PLANAR_MODE
   uiIntraDirChroma = pcCU->getChromaIntraDir( uiAbsPartIdx );
-#if CHROMA_CODEWORD
   uiMode = pcCU->getLumaIntraDir(uiAbsPartIdx);
   mapPlanartoDC( uiIntraDirChroma );
   mapPlanartoDC( uiMode );
   if ( (uiIntraDirChroma == 2) && (uiMode != 2) )
-#else
-  if ( (uiIntraDirChroma == PLANAR_IDX) || (uiIntraDirChroma == 2) )
-#endif
   {
     xWriteFlag( planarFlag );
   }
@@ -1365,12 +1123,8 @@ Void TEncCavlc::codeInterDir( TComDataCU* pcCU, UInt uiAbsPartIdx )
   uiInterDir--;
 
 #if UNIFY_INTER_TABLE
-#if DCM_COMB_LIST
   UInt uiNumRefIdxOfLC = pcCU->getSlice()->getNumRefIdx(REF_PIC_LIST_C);
-#endif
-#if DCM_COMB_LIST
   UInt uiValNumRefIdxOfLC = min(4,pcCU->getSlice()->getNumRefIdx(REF_PIC_LIST_C));
-#endif
   UInt uiValNumRefIdxOfL0 = min(2,pcCU->getSlice()->getNumRefIdx(REF_PIC_LIST_0));
   UInt uiValNumRefIdxOfL1 = min(2,pcCU->getSlice()->getNumRefIdx(REF_PIC_LIST_1));
 
@@ -1391,14 +1145,11 @@ Void TEncCavlc::codeInterDir( TComDataCU* pcCU, UInt uiAbsPartIdx )
     m_uiMITableD = m_uiMI1TableD;
 
     UInt uiMaxVal;
-#if DCM_COMB_LIST
     if (uiNumRefIdxOfLC > 0)
     {
       uiMaxVal = uiValNumRefIdxOfLC + uiValNumRefIdxOfL0*uiValNumRefIdxOfL1;
     }
-    else
-#endif
-    if (m_pcSlice->getNoBackPredFlag())
+    else if (m_pcSlice->getNoBackPredFlag())
     {
       uiMaxVal = uiValNumRefIdxOfL0 + uiValNumRefIdxOfL0*uiValNumRefIdxOfL1;
     }
@@ -1409,18 +1160,15 @@ Void TEncCavlc::codeInterDir( TComDataCU* pcCU, UInt uiAbsPartIdx )
 
     if (uiInterDir==0)
     { 
-#if DCM_COMB_LIST
       if(uiNumRefIdxOfLC > 0)
       {
         iRefFrame0 = pcCU->getSlice()->getRefIdxOfLC(REF_PIC_LIST_0, pcCU->getCUMvField( REF_PIC_LIST_0 )->getRefIdx( uiAbsPartIdx ));
       }
       else
-#endif
       {
         iRefFrame0 = pcCU->getCUMvField( REF_PIC_LIST_0 )->getRefIdx( uiAbsPartIdx );
       }
       uiIndex = iRefFrame0;
-#if DCM_COMB_LIST      
       if(uiNumRefIdxOfLC > 0)
       {
         if ( iRefFrame0 >= 4 )
@@ -1429,7 +1177,6 @@ Void TEncCavlc::codeInterDir( TComDataCU* pcCU, UInt uiAbsPartIdx )
         }
       }
       else
-#endif
       {
         if ( iRefFrame0 > 1 )
         {
@@ -1439,19 +1186,16 @@ Void TEncCavlc::codeInterDir( TComDataCU* pcCU, UInt uiAbsPartIdx )
     }
     else if (uiInterDir==1)
     {
-#if DCM_COMB_LIST
       if(uiNumRefIdxOfLC > 0)
       {
         iRefFrame1 = pcCU->getSlice()->getRefIdxOfLC(REF_PIC_LIST_1, pcCU->getCUMvField( REF_PIC_LIST_1 )->getRefIdx( uiAbsPartIdx ));
         uiIndex = iRefFrame1;
       }
       else
-#endif
       {
         iRefFrame1 = pcCU->getCUMvField( REF_PIC_LIST_1 )->getRefIdx( uiAbsPartIdx );
         uiIndex = uiValNumRefIdxOfL0 + iRefFrame1;
       }
-#if DCM_COMB_LIST
       if(uiNumRefIdxOfLC > 0)
       {
         if ( iRefFrame1 >= 4 )
@@ -1460,7 +1204,6 @@ Void TEncCavlc::codeInterDir( TComDataCU* pcCU, UInt uiAbsPartIdx )
         }
       }
       else
-#endif
       {
         if ( iRefFrame1 > 1 )
         {
@@ -1478,14 +1221,11 @@ Void TEncCavlc::codeInterDir( TComDataCU* pcCU, UInt uiAbsPartIdx )
       }
       else
       {
-  #if DCM_COMB_LIST
         if(uiNumRefIdxOfLC > 0)
         {
           uiIndex = uiValNumRefIdxOfLC + iRefFrame0*uiValNumRefIdxOfL1 + iRefFrame1;
         } 
-        else
-  #endif
-        if (m_pcSlice->getNoBackPredFlag())
+        else if (m_pcSlice->getNoBackPredFlag())
         {
           uiIndex = uiValNumRefIdxOfL0 + iRefFrame0*uiValNumRefIdxOfL1 + iRefFrame1;
         }
@@ -1525,11 +1265,7 @@ Void TEncCavlc::codeInterDir( TComDataCU* pcCU, UInt uiAbsPartIdx )
   }
 
 #else //UNIFY_INTER_TABLE  
-#if MS_LCEC_LOOKUP_TABLE_EXCEPTION
   if ( pcCU->getSlice()->getRefIdxCombineCoding() )
-#else
-  if(pcCU->getSlice()->getNumRefIdx( REF_PIC_LIST_0 ) <= 2 && pcCU->getSlice()->getNumRefIdx( REF_PIC_LIST_1 ) <= 2)
-#endif
   {
 #if CAVLC_COUNTER_ADAPT
     Int x,cx;
@@ -1546,7 +1282,6 @@ Void TEncCavlc::codeInterDir( TComDataCU* pcCU, UInt uiAbsPartIdx )
       m_uiMITableD = m_uiMI1TableD;
       if (uiInterDir==0)
       { 
-#if DCM_COMB_LIST
         if(pcCU->getSlice()->getNumRefIdx(REF_PIC_LIST_C) > 0)
         {
           iRefFrame0 = pcCU->getSlice()->getRefIdxOfLC(REF_PIC_LIST_0, pcCU->getCUMvField( REF_PIC_LIST_0 )->getRefIdx( uiAbsPartIdx ));
@@ -1555,12 +1290,8 @@ Void TEncCavlc::codeInterDir( TComDataCU* pcCU, UInt uiAbsPartIdx )
         {
           iRefFrame0 = pcCU->getCUMvField( REF_PIC_LIST_0 )->getRefIdx( uiAbsPartIdx );
         }
-#else
-        iRefFrame0 = pcCU->getCUMvField( REF_PIC_LIST_0 )->getRefIdx( uiAbsPartIdx );
-#endif
         uiIndex = iRefFrame0;
         
-#if MS_LCEC_LOOKUP_TABLE_EXCEPTION
         if(pcCU->getSlice()->getNumRefIdx(REF_PIC_LIST_C) > 0)
         {
           if ( iRefFrame0 >= 4 )
@@ -1575,11 +1306,9 @@ Void TEncCavlc::codeInterDir( TComDataCU* pcCU, UInt uiAbsPartIdx )
             uiIndex = 8;
           }
         }        
-#endif        
       }
       else if (uiInterDir==1)
       {
-#if DCM_COMB_LIST
         if(pcCU->getSlice()->getNumRefIdx(REF_PIC_LIST_C) > 0)
         {
           iRefFrame1 = pcCU->getSlice()->getRefIdxOfLC(REF_PIC_LIST_1, pcCU->getCUMvField( REF_PIC_LIST_1 )->getRefIdx( uiAbsPartIdx ));
@@ -1590,7 +1319,6 @@ Void TEncCavlc::codeInterDir( TComDataCU* pcCU, UInt uiAbsPartIdx )
           iRefFrame1 = pcCU->getCUMvField( REF_PIC_LIST_1 )->getRefIdx( uiAbsPartIdx );
           uiIndex = 2 + iRefFrame1;
         }
-#if MS_LCEC_LOOKUP_TABLE_EXCEPTION
         if(pcCU->getSlice()->getNumRefIdx(REF_PIC_LIST_C) > 0)
         {
           if ( iRefFrame1 >= 4 )
@@ -1605,23 +1333,16 @@ Void TEncCavlc::codeInterDir( TComDataCU* pcCU, UInt uiAbsPartIdx )
             uiIndex = 8;
           }
         } 
-#endif
-#else
-        iRefFrame1 = pcCU->getCUMvField( REF_PIC_LIST_1 )->getRefIdx( uiAbsPartIdx );
-        uiIndex = 2 + iRefFrame1;
-#endif
       }
       else
       {
         iRefFrame0 = pcCU->getCUMvField( REF_PIC_LIST_0 )->getRefIdx( uiAbsPartIdx );
         iRefFrame1 = pcCU->getCUMvField( REF_PIC_LIST_1 )->getRefIdx( uiAbsPartIdx );
         uiIndex = 4 + 2*iRefFrame0 + iRefFrame1;
-#if MS_LCEC_LOOKUP_TABLE_EXCEPTION
         if ( iRefFrame0 >= 2 || iRefFrame1 >= 2 )
         {
           uiIndex = 8;
         }
-#endif
       }
     }
     
@@ -1630,9 +1351,6 @@ Void TEncCavlc::codeInterDir( TComDataCU* pcCU, UInt uiAbsPartIdx )
     cx = m_uiMITableE[x];
     
     /* Adapt table */
-#if !MS_LCEC_LOOKUP_TABLE_MAX_VALUE
-    UInt vlcn = g_auiMITableVlcNum[m_uiMITableVlcIdx];    
-#endif
     if ( m_bAdaptFlag )
     {
 #if CAVLC_COUNTER_ADAPT
@@ -1649,11 +1367,8 @@ Void TEncCavlc::codeInterDir( TComDataCU* pcCU, UInt uiAbsPartIdx )
     }
     
     {
-#if MS_LCEC_LOOKUP_TABLE_MAX_VALUE
       UInt uiMaxVal = 7;
-#if MS_LCEC_LOOKUP_TABLE_EXCEPTION
       uiMaxVal = 8;
-#endif
       if ( pcCU->getSlice()->getNumRefIdx( REF_PIC_LIST_0 ) <= 1 && pcCU->getSlice()->getNumRefIdx( REF_PIC_LIST_1 ) <= 1 )
       {
         if ( pcCU->getSlice()->getNoBackPredFlag() || ( pcCU->getSlice()->getNumRefIdx(REF_PIC_LIST_C) > 0 && pcCU->getSlice()->getNumRefIdx(REF_PIC_LIST_C) <= 1 ) )
@@ -1682,14 +1397,9 @@ Void TEncCavlc::codeInterDir( TComDataCU* pcCU, UInt uiAbsPartIdx )
       }
       
       xWriteUnaryMaxSymbol( cx, uiMaxVal );
-#else
-      xWriteVlc( vlcn, cx );
-#endif
     }
     
-#if MS_LCEC_LOOKUP_TABLE_EXCEPTION
     if ( x<8 ) 
-#endif   
     {
       return;
     }
@@ -1702,11 +1412,7 @@ Void TEncCavlc::codeInterDir( TComDataCU* pcCU, UInt uiAbsPartIdx )
     assert( uiInterDir != 1 );
     return;
   }
-#if DCM_COMB_LIST
   if ( uiInterDir < 2 && pcCU->getSlice()->getNumRefIdx(REF_PIC_LIST_C) <= 0)
-#else
-  if ( uiInterDir < 2 )
-#endif
   {
     xWriteFlag( uiInterDir );
   }
@@ -1716,7 +1422,6 @@ Void TEncCavlc::codeInterDir( TComDataCU* pcCU, UInt uiAbsPartIdx )
 
 Void TEncCavlc::codeRefFrmIdx( TComDataCU* pcCU, UInt uiAbsPartIdx, RefPicList eRefList )
 {
-#if DCM_COMB_LIST
   Int iRefFrame;
   RefPicList eRefListTemp;
 
@@ -1738,16 +1443,12 @@ Void TEncCavlc::codeRefFrmIdx( TComDataCU* pcCU, UInt uiAbsPartIdx, RefPicList e
     eRefListTemp = eRefList;
     iRefFrame = pcCU->getCUMvField( eRefList )->getRefIdx( uiAbsPartIdx );
   }
-#else
-  Int iRefFrame = pcCU->getCUMvField( eRefList )->getRefIdx( uiAbsPartIdx );
-#endif  
 
   if (pcCU->getSlice()->getNumRefIdx( REF_PIC_LIST_0 ) <= 2 && pcCU->getSlice()->getNumRefIdx( REF_PIC_LIST_1 ) <= 2 && pcCU->getSlice()->isInterB())
   {
     return;
   }
   
-#if MS_LCEC_LOOKUP_TABLE_EXCEPTION
   if ( pcCU->getSlice()->getRefIdxCombineCoding() && pcCU->getInterDir(uiAbsPartIdx)==3 &&
       pcCU->getCUMvField( REF_PIC_LIST_0 )->getRefIdx( uiAbsPartIdx ) < 2 &&
       pcCU->getCUMvField( REF_PIC_LIST_1 )->getRefIdx( uiAbsPartIdx ) < 2 )
@@ -1794,30 +1495,11 @@ Void TEncCavlc::codeRefFrmIdx( TComDataCU* pcCU, UInt uiAbsPartIdx, RefPicList e
     return;
   }
   xWriteFlag( ( iRefFrame - uiRefFrmIdxMinus == 0 ? 0 : 1 ) );
-#else
-  xWriteFlag( ( iRefFrame == 0 ? 0 : 1 ) );
-#endif
   
-#if MS_LCEC_LOOKUP_TABLE_EXCEPTION
   if ( iRefFrame - uiRefFrmIdxMinus > 0 )
-#else    
-  if ( iRefFrame > 0 )
-#endif
   {
     {
-#if DCM_COMB_LIST
-#if MS_LCEC_LOOKUP_TABLE_EXCEPTION
       xWriteUnaryMaxSymbol( iRefFrame - 1 - uiRefFrmIdxMinus, pcCU->getSlice()->getNumRefIdx( eRefListTemp )-2 - uiRefFrmIdxMinus );
-#else
-      xWriteUnaryMaxSymbol( iRefFrame - 1, pcCU->getSlice()->getNumRefIdx( eRefListTemp )-2 );
-#endif
-#else
-#if MS_LCEC_LOOKUP_TABLE_EXCEPTION
-      xWriteUnaryMaxSymbol( iRefFrame - 1 - uiRefFrmIdxMinus, pcCU->getSlice()->getNumRefIdx( eRefList )-2 - uiRefFrmIdxMinus );      
-#else
-      xWriteUnaryMaxSymbol( iRefFrame - 1, pcCU->getSlice()->getNumRefIdx( eRefList )-2 );
-#endif
-#endif
     }
   }
   return;
@@ -2250,14 +1932,10 @@ Void TEncCavlc::codeCoeffNxN    ( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPa
       scoeff[15-uiScanning] = piCoeff[ pucScan[ uiScanning ] ];
 #endif //QC_MDCS
     }
-#if QC_MOD_LCEC
     if (eTType==TEXT_CHROMA_U || eTType==TEXT_CHROMA_V)
       iBlockType = eTType-2;
     else
       iBlockType = 2 + ( pcCU->isIntra(uiAbsPartIdx) ? 0 : pcCU->getSlice()->getSliceType() );
-#else
-    iBlockType = pcCU->isIntra(uiAbsPartIdx) ? 0 : pcCU->getSlice()->getSliceType();
-#endif
     
 #if CAVLC_COEF_LRG_BLK
     xCodeCoeff( scoeff, iBlockType, 4 );
@@ -2276,14 +1954,10 @@ Void TEncCavlc::codeCoeffNxN    ( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPa
       scoeff[15-uiScanning] = piCoeff[ pucScan[ uiScanning ] ];
 #endif //QC_MDCS
     }
-#if QC_MOD_LCEC
     if (eTType==TEXT_CHROMA_U || eTType==TEXT_CHROMA_V)
       iBlockType = eTType-2;
     else
       iBlockType = 2 + ( pcCU->isIntra(uiAbsPartIdx) ? 0 : pcCU->getSlice()->getSliceType() );
-#else
-    iBlockType = pcCU->isIntra(uiAbsPartIdx) ? 0 : pcCU->getSlice()->getSliceType();
-#endif
     
 #if CAVLC_COEF_LRG_BLK
     xCodeCoeff( scoeff, iBlockType, 4 );
@@ -2408,7 +2082,6 @@ Void TEncCavlc::codeAlfFlag( UInt uiCode )
   xWriteFlag( uiCode );
 }
 
-#if TSB_ALF_HEADER
 #if MTK_NONCROSS_INLOOP_FILTER
 /** Code number of ALF CU control flags
  * \param uiCode number of ALF CU control flags
@@ -2446,7 +2119,6 @@ Void TEncCavlc::codeAlfCtrlFlag( UInt uiSymbol )
 {
   xWriteFlag( uiSymbol );
 }
-#endif
 
 Void TEncCavlc::codeAlfUvlc( UInt uiCode )
 {
@@ -2504,7 +2176,10 @@ Void TEncCavlc::xWriteUvlc     ( UInt uiCode )
     uiLength += 2;
   }
   
-  m_pcBitIf->write( uiCode, uiLength );
+  //m_pcBitIf->write( uiCode, uiLength );
+  // Take care of cases where uiLength > 32
+  m_pcBitIf->write( 0, uiLength >> 1);
+  m_pcBitIf->write( uiCode, (uiLength+1) >> 1);
 }
 
 Void TEncCavlc::xWriteSvlc     ( Int iCode )
@@ -2922,17 +2597,11 @@ Void TEncCavlc::xCodeCoeff4x4(TCoeff* scoeff, Int n )
   UInt cn;
   Int level,vlc,sign,done,last_pos,start;
   Int run_done,maxrun,run,lev;
-#if QC_MOD_LCEC
   Int vlc_adaptive=0;
-#else
-  Int tmprun, vlc_adaptive=0;
-#endif
   static const int atable[5] = {4,6,14,28,0xfffffff};
   Int tmp;
-#if QC_MOD_LCEC
   Int nTab = max(0,n-2);
   Int tr1;
-#endif
   
   /* Do the last coefficient first */
   i = 0;
@@ -2958,7 +2627,6 @@ Void TEncCavlc::xCodeCoeff4x4(TCoeff* scoeff, Int n )
   level = abs(scoeff[i]);
   lev = (level == 1) ? 0 : 1;
   
-#if QC_MOD_LCEC
   if (level>1)
   {
     tr1=0;
@@ -2967,7 +2635,6 @@ Void TEncCavlc::xCodeCoeff4x4(TCoeff* scoeff, Int n )
   {
     tr1=1;
   }
-#endif
 
   {
     int x,y,cx,cy,vlcNum;
@@ -2975,32 +2642,19 @@ Void TEncCavlc::xCodeCoeff4x4(TCoeff* scoeff, Int n )
     
     x = 16*lev + last_pos;
     
-#if QC_MOD_LCEC
     cx = m_uiLPTableE4[nTab][x];
     vlcNum = vlcTable[nTab];
-#else
-    cx = m_uiLPTableE4[n][x];
-    vlcNum = vlcTable[n];
-#endif
     
     xWriteVlc( vlcNum, cx );
     
     if ( m_bAdaptFlag )
     {
       cy = max( 0, cx-1 );
-#if QC_MOD_LCEC
       y = m_uiLPTableD4[nTab][cy];
       m_uiLPTableD4[nTab][cy] = x;
       m_uiLPTableD4[nTab][cx] = y;
       m_uiLPTableE4[nTab][x] = cy;
       m_uiLPTableE4[nTab][y] = cx;
-#else
-      y = m_uiLPTableD4[n][cy];
-      m_uiLPTableD4[n][cy] = x;
-      m_uiLPTableD4[n][cx] = y;
-      m_uiLPTableE4[n][x] = cy;
-      m_uiLPTableE4[n][y] = cx;
-#endif
     }
   }
   
@@ -3022,23 +2676,10 @@ Void TEncCavlc::xCodeCoeff4x4(TCoeff* scoeff, Int n )
     while (!run_done)
     {
       maxrun = 15-i;
-#if QC_MOD_LCEC
       if ( n == 2 )
         vlc = g_auiVlcTable8x8Intra[maxrun];
       else
         vlc = g_auiVlcTable8x8Inter[maxrun];
-#else
-      tmprun = maxrun;
-      if (maxrun > 27)
-      {
-        vlc = 3;
-        tmprun = 28;
-      }
-      else
-      {
-        vlc = g_auiVlcTable8x8[maxrun];
-      }
-#endif
       
       run = 0;
       done = 0;
@@ -3052,7 +2693,6 @@ Void TEncCavlc::xCodeCoeff4x4(TCoeff* scoeff, Int n )
         {
           level = abs(scoeff[i]);
           lev = (level == 1) ? 0 : 1;
-#if QC_MOD_LCEC
           if ( n == 2 )
           {
             cn = xRunLevelInd(lev, run, maxrun, g_auiLumaRunTr14x4[tr1][maxrun]);
@@ -3065,24 +2705,12 @@ Void TEncCavlc::xCodeCoeff4x4(TCoeff* scoeff, Int n )
             cn = g_auiLumaRun8x8[maxrun][lev][run];
 #endif
           }
-#else
-          if (maxrun > 27)
-          {
-            cn = g_auiLumaRun8x8[28][lev][run];
-          }
-          else
-          {
-            cn = g_auiLumaRun8x8[maxrun][lev][run];
-          }
-#endif
             xWriteVlc( vlc, cn );
           
-#if QC_MOD_LCEC
           if (tr1>0 && tr1 < MAX_TR1)
           {
             tr1++;
           }
-#endif
           sign = (scoeff[i] < 0) ? 1 : 0;
           if (level > 1)
           {
@@ -3103,7 +2731,6 @@ Void TEncCavlc::xCodeCoeff4x4(TCoeff* scoeff, Int n )
           run_done = 1;
           if (run)
           {
-#if QC_MOD_LCEC
             if (n==2)
             {
               cn=xRunLevelInd(0, run, maxrun, g_auiLumaRunTr14x4[tr1][maxrun]);
@@ -3116,16 +2743,6 @@ Void TEncCavlc::xCodeCoeff4x4(TCoeff* scoeff, Int n )
               cn = g_auiLumaRun8x8[maxrun][0][run];
 #endif
             }
-#else
-            if (maxrun > 27)
-            {
-              cn = g_auiLumaRun8x8[28][0][run];
-            }
-            else
-            {
-              cn = g_auiLumaRun8x8[maxrun][0][run];
-            }
-#endif
             xWriteVlc( vlc, cn );
           }
         }
@@ -3159,16 +2776,9 @@ Void TEncCavlc::xCodeCoeff8x8( TCoeff* scoeff, Int n )
   unsigned int cn;
   int level,vlc,sign,done,last_pos,start;
   int run_done,maxrun,run,lev;
-#if QC_MOD_LCEC
   int vlc_adaptive=0;
-#else
-  int tmprun,vlc_adaptive=0;
-#endif
   static const int atable[5] = {4,6,14,28,0xfffffff};
   int tmp;
-#if QC_MOD_LCEC
-  Int tr1;
-#endif
   
   static const int switch_thr[10] = {49,49,0,49,49,0,49,49,49,49};
   int sum_big_coef = 0;
@@ -3229,7 +2839,6 @@ Void TEncCavlc::xCodeCoeff8x8( TCoeff* scoeff, Int n )
     xWriteFlag( sign );
   }
   i++;
-#if QC_MOD_LCEC
   if (level>1)
   {
     tr1=0;
@@ -3238,7 +2847,6 @@ Void TEncCavlc::xCodeCoeff8x8( TCoeff* scoeff, Int n )
   {
     tr1=1;
   }
-#endif
   
   if (i < 64)
   {
@@ -3247,23 +2855,10 @@ Void TEncCavlc::xCodeCoeff8x8( TCoeff* scoeff, Int n )
     while ( !run_done )
     {
       maxrun = 63-i;
-#if QC_MOD_LCEC
       if(n == 2 || n == 5)
         vlc = g_auiVlcTable8x8Intra[min(maxrun,28)];
       else
         vlc = g_auiVlcTable8x8Inter[min(maxrun,28)];
-#else
-      tmprun = maxrun;
-      if (maxrun > 27)
-      {
-        vlc = 3;
-        tmprun = 28;
-      }
-      else
-      {
-        vlc = g_auiVlcTable8x8[maxrun];
-      }
-#endif   
       
       run = 0;
       done = 0;
@@ -3277,7 +2872,6 @@ Void TEncCavlc::xCodeCoeff8x8( TCoeff* scoeff, Int n )
         {
           level = abs(scoeff[i]);
           lev = (level == 1) ? 0 : 1;
-#if QC_MOD_LCEC
           if(n == 2 || n == 5)
             cn = xRunLevelInd(lev, run, maxrun, g_auiLumaRunTr18x8[tr1][min(maxrun,28)]);
           else
@@ -3286,19 +2880,8 @@ Void TEncCavlc::xCodeCoeff8x8( TCoeff* scoeff, Int n )
 #else
             cn = g_auiLumaRun8x8[min(maxrun,28)][lev][run];
 #endif
-#else
-          if (maxrun > 27)
-          {
-            cn = g_auiLumaRun8x8[28][lev][run];
-          }
-          else
-          {
-            cn = g_auiLumaRun8x8[maxrun][lev][run];
-          }
-#endif
           xWriteVlc( vlc, cn );
           
-#if QC_MOD_LCEC
           if (tr1==0 || level >=2)
           {
             tr1=0;
@@ -3307,7 +2890,6 @@ Void TEncCavlc::xCodeCoeff8x8( TCoeff* scoeff, Int n )
           {
             tr1++;
           }
-#endif
           sign = (scoeff[i] < 0) ? 1 : 0;
           if (level > 1)
           {
@@ -3332,7 +2914,6 @@ Void TEncCavlc::xCodeCoeff8x8( TCoeff* scoeff, Int n )
           run_done = 1;
           if (run)
           {
-#if QC_MOD_LCEC
             if(n == 2 || n == 5)
               cn=xRunLevelInd(0, run, maxrun, g_auiLumaRunTr18x8[tr1][min(maxrun,28)]);
             else
@@ -3340,16 +2921,6 @@ Void TEncCavlc::xCodeCoeff8x8( TCoeff* scoeff, Int n )
               cn = xRunLevelIndInter(0, run, maxrun);
 #else
               cn = g_auiLumaRun8x8[min(maxrun,28)][0][run];
-#endif
-#else
-            if (maxrun > 27)
-            {
-              cn = g_auiLumaRun8x8[28][0][run];
-            }
-            else
-            {
-              cn = g_auiLumaRun8x8[maxrun][0][run];
-            }
 #endif
             xWriteVlc( vlc, cn );
           }

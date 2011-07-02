@@ -49,11 +49,6 @@
 // JCT-VC E end
 ////////////////////////////
 
-#define HHI_DISABLE_INTER_NxN_SPLIT       1           ///< TN: disable redundant use of pu-mode NxN for CTBs larger 8x8 (inter only)
-#define HHI_RMP_SWITCH                    0
-
-#define HHI_RQT_FORCE_SPLIT_NxN           0           ///< MSHK: force split flags of residual quadtree for NxN PUs such that transform blocks are guaranteed to not span NxN PUs
-#define HHI_RQT_FORCE_SPLIT_RECT          0           ///< MSHK: force split flags of residual quadtree for rectangular PUs such that transform blocks are guaranteed to not span rectangular PUs
 #define HHI_RQT_INTRA_SPEEDUP             1           ///< tests one best mode with full rqt
 #define HHI_RQT_INTRA_SPEEDUP_MOD         0           ///< tests two best modes with full rqt
 
@@ -62,12 +57,6 @@
 
 #if HHI_RQT_INTRA_SPEEDUP_MOD && !HHI_RQT_INTRA_SPEEDUP
 #error
-#endif
-
-#if ( HHI_RQT_FORCE_SPLIT_NxN || HHI_RQT_FORCE_SPLIT_RECT)
-#define HHI_RQT_FORCE_SPLIT_ACC2_PU       1
-#else
-#define HHI_RQT_FORCE_SPLIT_ACC2_PU       0
 #endif
 
 #define VERBOSE_RATE 0 ///< Print additional rate information in encoder
@@ -94,7 +83,6 @@
 #define AMVP_DECIMATION_FACTOR            4
 #define MV_COMPRESS_MODE_REFIDX           1           ///< (JCTVC-E147) compress all inter prediction parameters according to 1)
 
-#define HIGH_ACCURACY_BI                  1          // High precision bi-prediction JCTVC-D321
 #define REMOVE_INTERMEDIATE_CLIPPING      1          // No intermediate clipping in bi-prediction JCTVC-E242
 
 ////////////////
@@ -104,31 +92,17 @@
 #define PCP_SIGMAP_SIMPLE_LAST            1
 #define SIMPLE_CONTEXT_SIG                1
 
-
-#define QC_MOD_LCEC                       1           // JCTVC-D374: modified LCEC coeff. coding
-#define LCEC_INTRA_MODE                   1           // JCTVC-D366: improved luma intra mode coding
-#define QC_LCEC_INTER_MODE                1
 #define QC_MDIS                           1           // JCTVC-D282: enable mode dependent intra smoothing
 #define QC_MDCS                           1           // JCTVC-D393: mode dependent coefficients coding 
-#if QC_MOD_LCEC
 #define RUNLEVEL_TABLE_CUT                1           // JCTVC-E384: Run-Level table size reduction
 #if RUNLEVEL_TABLE_CUT
 #define CAVLC_COEF_LRG_BLK                1           // JCTVC-E383: enable large block coeff. coding
-#endif
 #endif
 
 
 #define ENABLE_FORCECOEFF0  0
 
-/* Rounding control */
-//#define ROUNDING_CONTROL_BIPRED ///< From JCTVC-B074 This part of the code is not needed anymore : KU
-#define TRANS_PRECISION_EXT     ///< From JCTVC-B074
-
-#define HHI_RQT_DISABLE_SUB                   0           ///< disabling subtree whose node size is smaller than partition size
-
 #define FAST_UDI_MAX_RDMODE_NUM               35          ///< maximum number of RD comparison in fast-UDI estimation loop 
-
-#define SAMSUNG_FAST_UDI_MODESET              0           ///< 0: {9,9,4,4,5} (default) and 1: {9,9,9,9,5} for {4x4,8x8,16x16,32x32,64x64} 
 
 #define ZERO_MVD_EST                          0           ///< Zero Mvd Estimation in normal mode
 
@@ -136,32 +110,20 @@
 
 #define UNIFY_INTER_TABLE                     1           // JCTVC-E381 CAVLC: Inter pred coding
 
-#define DCM_RDCOST_TEMP_FIX //Enables temporary bug fixes to RD cost computation
-
-#define DCM_DECODING_REFRESH              1           ///< enable/disable decoding refresh (IDR and CDR)
-
-#define DCM_SIMPLIFIED_MVP                1           ///< enable/disable the simplified motion vector prediction(D231)
-#if DCM_SIMPLIFIED_MVP
 #define MTK_AMVP_SMVP_DERIVATION          1              ///< (JCTVC-E481 - D125 2.3) amvp spatial candidate derivation
 #define TI_AMVP_SMVP_SIMPLIFIED           1              ///< (JCTVC-E481 - F)amvp spatial candidate simplified scanning
-#endif
-
-#define DCM_COMB_LIST                     1           ///< Use of combined list for uni-prediction in B-slices
-
 
 #define ADD_PLANAR_MODE                   1           ///< enable/disable Planar mode for intra prediction (JCTVC-E321)
-#if ADD_PLANAR_MODE
-#define NUM_INTRA_MODE                    35
-#define PLANAR_IDX                        (NUM_INTRA_MODE-1)
+
+#if ADD_PLANAR_MODE || LM_CHROMA
+#define NUM_INTRA_MODE 36
+#define PLANAR_IDX     34
+#define LM_CHROMA_IDX  35
 #endif
 
-#define TSB_ALF_HEADER                 1           // Send ALF ON/OFF flag in slice header
 #define IBDI_DISTORTION                0           ///< enable/disable SSE modification when IBDI is used (JCTVC-D152)
 #define FIXED_ROUNDING_FRAME_MEMORY    0           ///< enable/disable fixed rounding to 8-bitdepth of frame memory when IBDI is used  
 
-#define MS_LCEC_ONE_FRAME               1           // change the initial table in LCEC when there is up to one reference frame in each list, JCTVC-D141
-#define MS_LCEC_LOOKUP_TABLE_MAX_VALUE  1           // use the information of the max position in the lookup table, JCTVC-D141
-#define MS_LCEC_LOOKUP_TABLE_EXCEPTION  1           // deal with the case when the number of reference frames is greater than 2, JCTVC-D141
 #define MS_LCEC_UNI_EXCEPTION_THRES     1           // for GPB case, uni-prediction, > MS_LCEC_UNI_EXCEPTION_THRES is exception
 #define CAVLC_COUNTER_ADAPT             1          // counter based CAVLC adaptation, JCTVC-E143
 #if CAVLC_COUNTER_ADAPT
@@ -176,7 +138,6 @@
 #error CHANGE_GET_MERGE_CANDIDATE can only be defined with CHANGE_MERGE_CONTEXT
 #endif
 
-#define MTK_DISABLE_INTRA_NxN_SPLIT       1           ///< Disable use of PUs-mode NxN for CUs larger 8x8 (intra only)
 #define MTK_NONCROSS_INLOOP_FILTER        1           ///< Allow non-cross-slice-boundary in-loop filtering, including DB & ALF (JCTVC-D128)
 
 #define RVM_VCEGAM10 1 // RVM model proposed in VCEG-AM10
@@ -188,13 +149,9 @@
 
 #define FAST_UDI_USE_MPM 1
 #define SONY_SIG_CTX 1
-#define SNY_DQP                          1           ///< syntax change of dQP (JCTVC D258)
 #define SUB_LCU_DQP  1                               ///< syntax change of sub-LCU-level dQP (JCTVC-E051/220/391/436/217/D038/D258)
 
 #define TI_ALF_MAX_VSIZE_7 1
-
-#define CHROMA_CODEWORD 1                             ///< enable new intra chroma mode encoding by setting to 1. setting to 0 should yield same results as TMuC 0.9
-#define CHROMA_CODEWORD_SWITCH  1                     ///< Switch the places of the last two codewords 
 
 #define FULL_NBIT 0 ///< When enabled, does not use g_uiBitIncrement anymore to support > 8 bit data
 
@@ -211,8 +168,6 @@
 /////////////////////////////////
 // AHG SLICES defines section end
 /////////////////////////////////
-
-#define CONSTRAINED_INTRA_PRED            1           // JCTVC-D086: constrained intra prediction
 
 #define MTK_SAO                           1           // JCTVC-E049: Sample adaptive offset
 
@@ -235,19 +190,13 @@
 #define PARALLEL_MERGED_DEBLK        1 // JCTC-E224, JCTVC-E181: Parallel decisions + Parallel filtering
 #define REFERENCE_SAMPLE_PADDING                1   // JCTVC-E488 padding of unavailable reference samples for intra prediction
 
-#define E243_CORE_TRANSFORMS                    1
-#if E243_CORE_TRANSFORMS
 #define MATRIX_MULT                             0   // Brute force matrix multiplication instead of partial butterfly
-#endif
 
 // Discrete Sine Transform (DST) Type - 7
 // Currently DST operates with E-243 only
 #define INTRA_DST_TYPE_7                      1           // JCTVC-E125 4x4 DST
 #if INTRA_DST_TYPE_7
 #define REG_DCT 65535
-#if !E243_CORE_TRANSFORMS                   // E243_CORE_TRANSFORMS should be ON when DST is used
-#error "E243_CORE_TRANSFORMS should be ON"
-#endif
 #endif
 
 #define E057_INTRA_PCM                      1 // JCTVC-E057 PCM operation mode 2: Signal I_PCM flag when CU is 2Nx2N intra and its size is larger than or equal to 1<<(LOG2_MIN_I_PCM_CODING_BLOCK_SIZE_MINUS3+3).
@@ -428,12 +377,10 @@ struct _AlfParam
   Int minKStart;
   Int maxScanVal;
   Int kMinTab[42];
-#if TSB_ALF_HEADER
   UInt num_alf_cu_flag;
   UInt num_cus_in_frame;
   UInt alf_max_depth;
   UInt *alf_cu_flag;
-#endif
 
 #if MQT_BA_RA
   Int alf_pcr_region_flag; 
@@ -503,9 +450,7 @@ enum RefPicList
 {
   REF_PIC_LIST_0 = 0,   ///< reference list 0
   REF_PIC_LIST_1 = 1,   ///< reference list 1
-#if DCM_COMB_LIST
   REF_PIC_LIST_C = 2,   ///< combined reference list for uni-prediction in B-Slices
-#endif
   REF_PIC_LIST_X = 100  ///< special mark
 };
 
@@ -582,15 +527,6 @@ enum AMVP_MODE
 {
   AM_NONE = 0,          ///< no AMVP mode
   AM_EXPL,              ///< explicit signalling of motion vector index
-};
-
-/// interpolation filter type
-enum InterpFilterType
-{
-  IPF_SAMSUNG_DIF_DEFAULT = 0,          ///< Samsung DCT-based filter
-  IPF_HHI_4TAP_MOMS,                    ///< HHI 4-tap MOMS filter
-  IPF_HHI_6TAP_MOMS,                    ///< HHI 6-tap MOMS filter
-  IPF_LAST
 };
 
 #if QC_MDCS

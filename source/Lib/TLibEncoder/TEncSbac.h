@@ -98,7 +98,6 @@ public:
   Void  codeAlfUvlc       ( UInt uiCode );
   Void  codeAlfSvlc       ( Int  uiCode );
   Void  codeAlfCtrlDepth  ();
-#if TSB_ALF_HEADER
 
 #if MTK_NONCROSS_INLOOP_FILTER
   /// Code number of ALF CU control flags
@@ -108,7 +107,6 @@ public:
 #endif
 
   Void codeAlfCtrlFlag       ( UInt uiSymbol );
-#endif
 #if MTK_SAO
   Void  codeAoFlag       ( UInt uiCode );
   Void  codeAoUvlc       ( UInt uiCode );

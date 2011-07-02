@@ -70,11 +70,9 @@ private:
   Bool                    m_bGopSizeSet;
   int                     m_iMaxRefPicNum;
   
-#if DCM_DECODING_REFRESH
   Bool                    m_bRefreshPending;    ///< refresh pending flag
   UInt                    m_uiPOCCDR;           ///< temporal reference of the CDR picture
   UInt                    m_uiPOCRA;            ///< temporal reference of the random access point
-#endif
 
   UInt                    m_uiValidPS;
   TComList<TComPic*>      m_cListPic;         //  Dynamic buffer

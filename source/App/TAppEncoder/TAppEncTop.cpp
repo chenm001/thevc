@@ -72,9 +72,7 @@ Void TAppEncTop::xInitLibCfg()
   
   //====== Coding Structure ========
   m_cTEncTop.setIntraPeriod                  ( m_iIntraPeriod );
-#if DCM_DECODING_REFRESH
   m_cTEncTop.setDecodingRefreshType          ( m_iDecodingRefreshType );
-#endif
   m_cTEncTop.setGOPSize                      ( m_iGOPSize );
   m_cTEncTop.setRateGOPSize                  ( m_iRateGOPSize );
   m_cTEncTop.setNumOfReference               ( m_iNumOfReference );
@@ -119,10 +117,8 @@ Void TAppEncTop::xInitLibCfg()
   m_cTEncTop.setALFEncodePassReduction       ( m_iALFEncodePassReduction );
 #endif
   m_cTEncTop.setUseGPB                       ( m_bUseGPB      );
-#if DCM_COMB_LIST
   m_cTEncTop.setUseLComb                     ( m_bUseLComb    );
   m_cTEncTop.setLCMod                        ( m_bLCMod         );
-#endif
   m_cTEncTop.setdQPs                         ( m_aidQP        );
   m_cTEncTop.setUseRDOQ                      ( m_bUseRDOQ     );
   m_cTEncTop.setUseLDC                       ( m_bUseLDC      );
@@ -140,15 +136,7 @@ Void TAppEncTop::xInitLibCfg()
   m_cTEncTop.setUseLMChroma                  ( m_bUseLMChroma );
 #endif
 
-#if HHI_RMP_SWITCH
-  m_cTEncTop.setUseRMP                     ( m_bUseRMP );
-#endif
-#ifdef ROUNDING_CONTROL_BIPRED
-  m_cTEncTop.setUseRoundingControlBipred(m_useRoundingControlBipred);
-#endif
-#if CONSTRAINED_INTRA_PRED
   m_cTEncTop.setUseConstrainedIntraPred      ( m_bUseConstrainedIntraPred );
-#endif
 #if E057_INTRA_PCM
   m_cTEncTop.setPCMLog2MinSize          ( m_uiPCMLog2MinSize);
 #endif
@@ -312,21 +300,7 @@ Void TAppEncTop::encode()
  */
 Void TAppEncTop::xGetBuffer( TComPicYuv*& rpcPicYuvRec)
 {
-  if ( m_iGOPSize == 0 )
-  {
-    if (m_cListPicYuvRec.size() == 0)
-    {
-      rpcPicYuvRec = new TComPicYuv;
-      rpcPicYuvRec->create( m_iSourceWidth, m_iSourceHeight, m_uiMaxCUWidth, m_uiMaxCUHeight, m_uiMaxCUDepth );
-      m_cListPicYuvRec.pushBack( rpcPicYuvRec );
-    }
-    
-    rpcPicYuvRec = m_cListPicYuvRec.popFront();
-    
-    m_cListPicYuvRec.pushBack( rpcPicYuvRec );
-    
-    return;
-  }
+  assert( m_iGOPSize > 0 );
   
   // org. buffer
   if ( m_cListPicYuvRec.size() == (UInt)m_iGOPSize )
@@ -398,11 +372,7 @@ void TAppEncTop::rateStatsAccum(const AccessUnit& au, const vector<unsigned>& an
     case NAL_UNIT_CODED_SLICE:
     case NAL_UNIT_CODED_SLICE_DATAPART_A:
     case NAL_UNIT_CODED_SLICE_DATAPART_B:
-#if DCM_DECODING_REFRESH
     case NAL_UNIT_CODED_SLICE_CDR:
-#else
-    case NAL_UNIT_CODED_SLICE_DATAPART_C:
-#endif
     case NAL_UNIT_CODED_SLICE_IDR:
     case NAL_UNIT_SPS:
     case NAL_UNIT_PPS:

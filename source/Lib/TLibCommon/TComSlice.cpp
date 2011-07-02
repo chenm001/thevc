@@ -58,20 +58,13 @@ TComSlice::TComSlice()
   
   m_pcPic               = NULL;
   m_bRefenced           = false;
-#ifdef ROUNDING_CONTROL_BIPRED
-  m_bRounding           = false;
-#endif
   m_uiColDir = 0;
   
   initEqualRef();
   m_bNoBackPredFlag = false;
-#if MS_LCEC_LOOKUP_TABLE_EXCEPTION
   m_bRefIdxCombineCoding = false;
-#endif
-#if DCM_COMB_LIST 
   m_bRefPicListCombinationFlag = false;
   m_bRefPicListModificationFlagLC = false;
-#endif
   m_uiSliceCurStartCUAddr        = 0;
   m_uiEntropySliceCurStartCUAddr = 0;
 
@@ -99,16 +92,12 @@ Void TComSlice::initSlice()
   
   initEqualRef();
   m_bNoBackPredFlag = false;
-#if MS_LCEC_LOOKUP_TABLE_EXCEPTION
   m_bRefIdxCombineCoding = false;
-#endif
-#if DCM_COMB_LIST 
   m_bRefPicListCombinationFlag = false;
   m_bRefPicListModificationFlagLC = false;
 
   m_aiNumRefIdx[REF_PIC_LIST_C]      = 0;
 
-#endif
 #if FINE_GRANULARITY_SLICES
   m_bFinalized=false;
 #endif
@@ -320,7 +309,6 @@ Void TComSlice::setRefPOCList       ()
 
 }
 
-#if DCM_COMB_LIST 
 Void TComSlice::generateCombinedList()
 {
   if(m_aiNumRefIdx[REF_PIC_LIST_C] > 0)
@@ -385,7 +373,6 @@ Void TComSlice::generateCombinedList()
     }
   }
 }
-#endif
 
 Void TComSlice::setRefPicList       ( TComList<TComPic*>& rcListPic )
 {
@@ -519,7 +506,6 @@ Void TComSlice::initEqualRef()
   }
 }
 
-#if DCM_DECODING_REFRESH
 /** Function for marking the reference pictures when an IDR and CDR is encountered.
  * \param uiPOCCDR POC of the CDR picture
  * \param bRefreshPending flag indicating if a deferred decoding refresh is pending
@@ -574,7 +560,6 @@ Void TComSlice::decodingRefreshMarking(UInt& uiPOCCDR, Bool& bRefreshPending, TC
     }
   }
 }
-#endif
 
 Void TComSlice::copySliceInfo(TComSlice *pSrc)
 {
@@ -583,9 +568,7 @@ Void TComSlice::copySliceInfo(TComSlice *pSrc)
   Int i, j, k;
 
   m_iPOC                 = pSrc->m_iPOC;
-#if DCM_DECODING_REFRESH
   m_eNalUnitType         = pSrc->m_eNalUnitType;
-#endif  
   m_eSliceType           = pSrc->m_eSliceType;
   m_iSliceQp             = pSrc->m_iSliceQp;
   m_iSymbolMode          = pSrc->m_iSymbolMode;
@@ -593,7 +576,6 @@ Void TComSlice::copySliceInfo(TComSlice *pSrc)
   m_bDRBFlag             = pSrc->m_bDRBFlag;
   m_eERBIndex            = pSrc->m_eERBIndex;
   
-#if DCM_COMB_LIST  
   for (i = 0; i < 3; i++)
   {
     m_aiNumRefIdx[i]     = pSrc->m_aiNumRefIdx[i];
@@ -615,12 +597,6 @@ Void TComSlice::copySliceInfo(TComSlice *pSrc)
   }
   m_bRefPicListModificationFlagLC = pSrc->m_bRefPicListModificationFlagLC;
   m_bRefPicListCombinationFlag    = pSrc->m_bRefPicListCombinationFlag;
-#else
-  for (i = 0; i < 2; i++)
-  {
-    m_aiNumRefIdx[i]     = pSrc->m_aiNumRefIdx[i];
-  }
-#endif  
 
   m_iSliceQpDelta        = pSrc->m_iSliceQpDelta;
   for (i = 0; i < 2; i++)
@@ -635,9 +611,6 @@ Void TComSlice::copySliceInfo(TComSlice *pSrc)
 
   // referenced slice
   m_bRefenced            = pSrc->m_bRefenced;
-#ifdef ROUNDING_CONTROL_BIPRED
-  m_bRounding            = pSrc->m_bRounding;
-#endif
 
   // access channel
   m_pcSPS                = pSrc->m_pcSPS;
@@ -658,9 +631,7 @@ Void TComSlice::copySliceInfo(TComSlice *pSrc)
   }
 
   m_bNoBackPredFlag      = pSrc->m_bNoBackPredFlag;
-#if MS_LCEC_LOOKUP_TABLE_EXCEPTION
   m_bRefIdxCombineCoding = pSrc->m_bRefIdxCombineCoding;
-#endif
 
   m_uiTLayer                      = pSrc->m_uiTLayer;
   m_bTLayerSwitchingFlag          = pSrc->m_bTLayerSwitchingFlag;
@@ -819,9 +790,7 @@ TComSPS::~TComSPS()
 
 TComPPS::TComPPS()
 {
-#if CONSTRAINED_INTRA_PRED
   m_bConstrainedIntraPred = false;
-#endif
 
   m_uiNumTlayerSwitchingFlags = 0;
   for ( UInt i = 0; i < MAX_TLAYER; i++ )

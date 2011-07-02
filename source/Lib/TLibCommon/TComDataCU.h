@@ -86,8 +86,8 @@ private:
   // CU data
   // -------------------------------------------------------------------------------------------------------------------
   
-  PartSize*     m_pePartSize;         ///< array of partition sizes
-  PredMode*     m_pePredMode;         ///< array of prediction modes
+  Char*         m_pePartSize;         ///< array of partition sizes
+  Char*         m_pePredMode;         ///< array of prediction modes
   UChar*        m_phQP;               ///< array of QP values
   UChar*        m_puhTrIdx;           ///< array of transform indices
   UChar*        m_puhCbf[3];          ///< array of coded block flags (CBF)
@@ -95,9 +95,7 @@ private:
   TCoeff*       m_pcTrCoeffY;         ///< transformed coefficient buffer (Y)
   TCoeff*       m_pcTrCoeffCb;        ///< transformed coefficient buffer (Cb)
   TCoeff*       m_pcTrCoeffCr;        ///< transformed coefficient buffer (Cr)
-#if SNY_DQP 
   Bool          m_bdQP;               ///< signal if LCU dQP encoded
-#endif//SNY_DQP
 #if SUB_LCU_DQP
   UChar         m_hLastCodedQP;       ///< array of QP values
 #endif
@@ -139,8 +137,8 @@ private:
   UChar*        m_puhInterDir;        ///< array of inter directions
   Char*         m_apiMVPIdx[2];       ///< array of motion vector predictor candidates
   Char*         m_apiMVPNum[2];       ///< array of number of possible motion vectors predictors
-  UInt*         m_puiAlfCtrlFlag;     ///< array of ALF flags
-  UInt*         m_puiTmpAlfCtrlFlag;  ///< temporal array of ALF flags
+  Bool*         m_puiAlfCtrlFlag;     ///< array of ALF flags
+  Bool*         m_puiTmpAlfCtrlFlag;  ///< temporal array of ALF flags
   
 #if E057_INTRA_PCM
   Bool*         m_pbIPCMFlag;         ///< array of intra_pcm flags
@@ -247,13 +245,13 @@ public:
   // member functions for CU data
   // -------------------------------------------------------------------------------------------------------------------
   
-  PartSize*     getPartitionSize      ()                        { return m_pePartSize;        }
-  PartSize      getPartitionSize      ( UInt uiIdx )            { return m_pePartSize[uiIdx]; }
+  Char*         getPartitionSize      ()                        { return m_pePartSize;        }
+  PartSize      getPartitionSize      ( UInt uiIdx )            { return static_cast<PartSize>( m_pePartSize[uiIdx] ); }
   Void          setPartitionSize      ( UInt uiIdx, PartSize uh){ m_pePartSize[uiIdx] = uh;   }
   Void          setPartSizeSubParts   ( PartSize eMode, UInt uiAbsPartIdx, UInt uiDepth );
   
-  PredMode*     getPredictionMode     ()                        { return m_pePredMode;        }
-  PredMode      getPredictionMode     ( UInt uiIdx )            { return m_pePredMode[uiIdx]; }
+  Char*         getPredictionMode     ()                        { return m_pePredMode;        }
+  PredMode      getPredictionMode     ( UInt uiIdx )            { return static_cast<PredMode>( m_pePredMode[uiIdx] ); }
   Void          setPredictionMode     ( UInt uiIdx, PredMode uh){ m_pePredMode[uiIdx] = uh;   }
   Void          setPredModeSubParts   ( PredMode eMode, UInt uiAbsPartIdx, UInt uiDepth );
   
@@ -271,10 +269,8 @@ public:
   UChar         getQP                 ( UInt uiIdx )            { return m_phQP[uiIdx];       }
   Void          setQP                 ( UInt uiIdx, UChar  uh ) { m_phQP[uiIdx] = uh;         }
   Void          setQPSubParts         ( UInt uiQP,   UInt uiAbsPartIdx, UInt uiDepth );
-#if SNY_DQP
   Bool          getdQPFlag            ()                        { return m_bdQP;              }
   Void          setdQPFlag            ( Bool b )                { m_bdQP = b;                 }
-#endif//SNY_DQP
 #if SUB_LCU_DQP
   UChar         getLastCodedQP        ()                        { return m_hLastCodedQP;      }
   Void          setLastCodedQP        ( UChar uQP )             { m_hLastCodedQP = uQP;       }
@@ -285,10 +281,6 @@ public:
   Void          setTrIdxSubParts      ( UInt uiTrIdx, UInt uiAbsPartIdx, UInt uiDepth );
   
   UInt          getQuadtreeTULog2MinSizeInCU( UInt uiIdx );
-  
-#if HHI_RQT_FORCE_SPLIT_ACC2_PU || HHI_RQT_DISABLE_SUB
-  UInt          getQuadtreeTULog2RootSizeInCU( UInt uiIdx );
-#endif
   
   TComCUMvField* getCUMvField         ( RefPicList e )          { return  &m_acCUMvField[e];  }
   
@@ -352,10 +344,10 @@ public:
   Void          setInterDir           ( UInt uiIdx, UChar  uh ) { m_puhInterDir[uiIdx] = uh;          }
   Void          setInterDirSubParts   ( UInt uiDir,  UInt uiAbsPartIdx, UInt uiPartIdx, UInt uiDepth );
   
-  UInt*         getAlfCtrlFlag        ()                        { return m_puiAlfCtrlFlag;            }
-  UInt          getAlfCtrlFlag        ( UInt uiIdx )            { return m_puiAlfCtrlFlag[uiIdx];     }
-  Void          setAlfCtrlFlag        ( UInt uiIdx, UInt uiFlag){ m_puiAlfCtrlFlag[uiIdx] = uiFlag;   }
-  Void          setAlfCtrlFlagSubParts( UInt uiFlag, UInt uiAbsPartIdx, UInt uiDepth );
+  Bool*         getAlfCtrlFlag        ()                        { return m_puiAlfCtrlFlag;            }
+  Bool          getAlfCtrlFlag        ( UInt uiIdx )            { return m_puiAlfCtrlFlag[uiIdx];     }
+  Void          setAlfCtrlFlag        ( UInt uiIdx, Bool uiFlag){ m_puiAlfCtrlFlag[uiIdx] = uiFlag;   }
+  Void          setAlfCtrlFlagSubParts( Bool uiFlag, UInt uiAbsPartIdx, UInt uiDepth );
   
   Void          createTmpAlfCtrlFlag  ();
   Void          destroyTmpAlfCtrlFlag ();
@@ -397,9 +389,6 @@ public:
   
   AMVP_MODE     getAMVPMode           ( UInt uiIdx );
   Void          fillMvpCand           ( UInt uiPartIdx, UInt uiPartAddr, RefPicList eRefPicList, Int iRefIdx, AMVPInfo* pInfo );
-#if DCM_SIMPLIFIED_MVP==0
-  Bool          clearMVPCand          ( TComMv cMvd, AMVPInfo* pInfo );
-#endif
   Int           searchMVPIdx          ( TComMv cMv,  AMVPInfo* pInfo );
 
   Void          setMVPIdx             ( RefPicList eRefPicList, UInt uiIdx, Int iMVPIdx)  { m_apiMVPIdx[eRefPicList][uiIdx] = iMVPIdx;  }
@@ -443,13 +432,8 @@ public:
   UChar         getRefQP                         ( UInt   uiCurrAbsIdxInLCU                       );
 #endif
 
-#if CONSTRAINED_INTRA_PRED
   TComDataCU*   getPUAboveRightAdi          ( UInt&  uiARPartUnitIdx, UInt uiPuWidth, UInt uiCurrPartUnitIdx, UInt uiPartUnitOffset = 1, Bool bEnforceSliceRestriction=true, Bool bEnforceEntropySliceRestriction=true );
   TComDataCU*   getPUBelowLeftAdi           ( UInt& uiBLPartUnitIdx, UInt uiPuHeight, UInt uiCurrPartUnitIdx, UInt uiPartUnitOffset = 1, Bool bEnforceSliceRestriction=true, Bool bEnforceEntropySliceRestriction=true );
-#else
-  TComDataCU*   getPUAboveRightAdi          ( UInt&  uiARPartUnitIdx, UInt uiPuWidth, UInt uiCurrPartUnitIdx, Bool bEnforceSliceRestriction=true, Bool bEnforceEntropySliceRestriction=true );
-  TComDataCU*   getPUBelowLeftAdi           ( UInt& uiBLPartUnitIdx, UInt uiPuHeight, UInt uiCurrPartUnitIdx, Bool bEnforceSliceRestriction=true, Bool bEnforceEntropySliceRestriction=true );
-#endif
   
   Void          deriveLeftRightTopIdx       ( PartSize eCUMode, UInt uiPartIdx, UInt& ruiPartIdxLT, UInt& ruiPartIdxRT );
   Void          deriveLeftBottomIdx         ( PartSize eCUMode, UInt uiPartIdx, UInt& ruiPartIdxLB );
@@ -481,18 +465,14 @@ public:
   UInt          getIntraSizeIdx                 ( UInt uiAbsPartIdx                                       );
   Void          convertTransIdx                 ( UInt uiAbsPartIdx, UInt uiTrIdx, UInt& ruiLumaTrMode, UInt& ruiChromaTrMode );
   
-#if LCEC_INTRA_MODE
   Int           getLeftIntraDirLuma             ( UInt uiAbsPartIdx );
   Int           getAboveIntraDirLuma            ( UInt uiAbsPartIdx );
-#endif
 
 #if MTK_DCM_MPM
   Int           getIntraDirLumaPredictor        ( UInt uiAbsPartIdx, Int uiIntraDirPred[]                 );
 #endif
 
-#if MS_LCEC_LOOKUP_TABLE_EXCEPTION
   Bool          isSuroundingRefIdxException     ( UInt   uiAbsPartIdx );
-#endif
   
   // -------------------------------------------------------------------------------------------------------------------
   // member functions for SBAC context
@@ -509,10 +489,8 @@ public:
   UInt          getCtxMergeFlag                 ( UInt uiAbsPartIdx                                   );
   
 #if FINE_GRANULARITY_SLICES
-  Void          setSliceStartCU         ( UInt *uiStartCU )           { for(int i=0; i<(1<<(m_pcSlice->getSPS()->getMaxCUDepth()<<1)); i++) { m_uiSliceStartCU[i]=uiStartCU[i];}               }  
-  UInt          getSliceStartCU         ( UInt pos )                  { return m_uiSliceStartCU[pos];                                                                                          }
-  Void          setEntropySliceStartCU  ( UInt *uiEntropyStartCU )    { for(int i=0; i<(1<<(m_pcSlice->getSPS()->getMaxCUDepth()<<1)); i++) { m_uiEntropySliceStartCU[i]=uiEntropyStartCU[i];} }  
-  UInt          getEntropySliceStartCU  ( UInt pos )                  { return m_uiEntropySliceStartCU[pos];                                                                                   }
+  UInt          getSliceStartCU         ( UInt pos )                  { return m_uiSliceStartCU[pos-m_uiAbsIdxInLCU];                                                                                          }
+  UInt          getEntropySliceStartCU  ( UInt pos )                  { return m_uiEntropySliceStartCU[pos-m_uiAbsIdxInLCU];                                                                                   }
   UInt&         getTotalBins            ()                            { return m_uiTotalBins;                                                                                                  }
 #else
   Void          setSliceStartCU  ( UInt uiStartCU )    { m_uiSliceStartCU = uiStartCU;    }  
@@ -534,6 +512,91 @@ public:
 #endif //QC_MDCS
 
 };
+
+namespace RasterAddress
+{
+  /** Check whether 2 addresses point to the same column
+   * \param addrA          First address in raster scan order
+   * \param addrB          Second address in raters scan order
+   * \param numUnitsPerRow Number of units in a row
+   * \return Result of test
+   */
+  static inline Bool isEqualCol( Int addrA, Int addrB, Int numUnitsPerRow )
+  {
+    // addrA % numUnitsPerRow == addrB % numUnitsPerRow
+    return (( addrA ^ addrB ) &  ( numUnitsPerRow - 1 ) ) == 0;
+  }
+  
+  /** Check whether 2 addresses point to the same row
+   * \param addrA          First address in raster scan order
+   * \param addrB          Second address in raters scan order
+   * \param numUnitsPerRow Number of units in a row
+   * \return Result of test
+   */
+  static inline Bool isEqualRow( Int addrA, Int addrB, Int numUnitsPerRow )
+  {
+    // addrA / numUnitsPerRow == addrB / numUnitsPerRow
+    return (( addrA ^ addrB ) &~ ( numUnitsPerRow - 1 ) ) == 0;
+  }
+  
+  /** Check whether 2 addresses point to the same row or column
+   * \param addrA          First address in raster scan order
+   * \param addrB          Second address in raters scan order
+   * \param numUnitsPerRow Number of units in a row
+   * \return Result of test
+   */
+  static inline Bool isEqualRowOrCol( Int addrA, Int addrB, Int numUnitsPerRow )
+  {
+    return isEqualCol( addrA, addrB, numUnitsPerRow ) | isEqualRow( addrA, addrB, numUnitsPerRow );
+  }
+  
+  /** Check whether one address points to the first column
+   * \param addr           Address in raster scan order
+   * \param numUnitsPerRow Number of units in a row
+   * \return Result of test
+   */
+  static inline Bool isZeroCol( Int addr, Int numUnitsPerRow )
+  {
+    // addr % numUnitsPerRow == 0
+    return ( addr & ( numUnitsPerRow - 1 ) ) == 0;
+  }
+  
+  /** Check whether one address points to the first row
+   * \param addr           Address in raster scan order
+   * \param numUnitsPerRow Number of units in a row
+   * \return Result of test
+   */
+  static inline Bool isZeroRow( Int addr, Int numUnitsPerRow )
+  {
+    // addr / numUnitsPerRow == 0
+    return ( addr &~ ( numUnitsPerRow - 1 ) ) == 0;
+  }
+  
+  /** Check whether one address points to a column whose index is smaller than a given value
+   * \param addr           Address in raster scan order
+   * \param val            Given column index value
+   * \param numUnitsPerRow Number of units in a row
+   * \return Result of test
+   */
+  static inline Bool lessThanCol( Int addr, Int val, Int numUnitsPerRow )
+  {
+    // addr % numUnitsPerRow < val
+    return ( addr & ( numUnitsPerRow - 1 ) ) < val;
+  }
+  
+  /** Check whether one address points to a row whose index is smaller than a given value
+   * \param addr           Address in raster scan order
+   * \param val            Given row index value
+   * \param numUnitsPerRow Number of units in a row
+   * \return Result of test
+   */
+  static inline Bool lessThanRow( Int addr, Int val, Int numUnitsPerRow )
+  {
+    // addr / numUnitsPerRow < val
+    return addr < val * numUnitsPerRow;
+  }
+};
+
 
 #endif
 

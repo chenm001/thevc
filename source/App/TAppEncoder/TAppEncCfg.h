@@ -64,9 +64,7 @@ protected:
   
   // coding structure
   Int       m_iIntraPeriod;                                   ///< period of I-slice (random access period)
-#if DCM_DECODING_REFRESH
   Int       m_iDecodingRefreshType;                           ///< random access type
-#endif
   Int       m_iGOPSize;                                       ///< GOP size of hierarchical structure
   Int       m_iRateGOPSize;                                   ///< GOP size for QP variance
   Int       m_iNumOfReference;                                ///< total number of reference frames in P-slice
@@ -76,10 +74,9 @@ protected:
   Bool      m_bUseLDC;                                        ///< flag for using low-delay coding mode
   Bool      m_bUseNRF;                                        ///< flag for using non-referenced frame in hierarchical structure
   Bool      m_bUseGPB;                                        ///< flag for using generalized P & B structure
-#if DCM_COMB_LIST
   Bool      m_bUseLComb;                                      ///< flag for using combined reference list for uni-prediction in B-slices (JCTVC-D421)
   Bool      m_bLCMod;                                         ///< flag for specifying whether the combined reference list for uni-prediction in B-slices is uploaded explicitly
-#endif
+
   // coding quality
   Double    m_fQP;                                            ///< QP value of key-picture (floating point)
   Int       m_iQP;                                            ///< QP value of key-picture (integer)
@@ -110,9 +107,6 @@ protected:
   // coding tools (bit-depth)
   UInt      m_uiInputBitDepth;                                ///< bit-depth of input file
   UInt      m_uiOutputBitDepth;                               ///< bit-depth of output file
-#ifdef ENABLE_IBDI
-  UInt      m_uiBitIncrement;                                 ///< bit-depth increment
-#endif
   UInt      m_uiInternalBitDepth;                             ///< Internal bit-depth (BitDepth+BitIncrement)
 
   // coding tools (PCM bit-depth)
@@ -145,10 +139,6 @@ protected:
   Bool      m_bUseLMChroma;                                  ///< JL: Chroma intra prediction based on luma signal
 #endif
 
-#if HHI_RMP_SWITCH
-  Bool      m_bUseRMP;
-#endif
-  
   // coding tools (PCM)
 #if E057_INTRA_PCM
   UInt      m_uiPCMLog2MinSize;                               ///< log2 of minimum PCM block size
@@ -179,12 +169,7 @@ protected:
 #if MTK_NONCROSS_INLOOP_FILTER
   Bool m_bLFCrossSliceBoundaryFlag;  ///< 0: Cross-slice-boundary in-loop filtering 1: non-cross-slice-boundary in-loop filtering
 #endif
-#ifdef ROUNDING_CONTROL_BIPRED
-  Bool m_useRoundingControlBipred;
-#endif
-#if CONSTRAINED_INTRA_PRED
   Bool      m_bUseConstrainedIntraPred;                       ///< flag for using constrained intra prediction
-#endif
   
   bool m_pictureDigestEnabled; ///< enable(1)/disable(0) md5 computation and SEI signalling
 

@@ -1175,22 +1175,14 @@ Void TEncAdaptiveLoopFilter::xCalcRDCost(ALFParam* pAlfParam, UInt64& ruiRate, U
         ruiRate += m_pcEntropyCoder->getNumberOfWrittenBits();
       }
     }
-#if !TSB_ALF_HEADER
-    xEncodeCUAlfCtrlFlags();
-#endif
 #else
     if(pAlfParam->cu_control_flag)
     {
-#if TSB_ALF_HEADER
-
 #if FINE_GRANULARITY_SLICES && MTK_NONCROSS_INLOOP_FILTER
       m_pcEntropyCoder->setSliceGranularity(m_iSGDepth);
 #endif
 
       m_pcEntropyCoder->encodeAlfCtrlParam(pAlfParam);
-#else
-      xEncodeCUAlfCtrlFlags();
-#endif
     }
     ruiRate = m_pcEntropyCoder->getNumberOfWrittenBits();
 #endif
@@ -1256,22 +1248,14 @@ Void TEncAdaptiveLoopFilter::xCalcRDCost(TComPicYuv* pcPicOrg, TComPicYuv* pcPic
         ruiRate += m_pcEntropyCoder->getNumberOfWrittenBits();
       }
     }
-#if !TSB_ALF_HEADER
-    xEncodeCUAlfCtrlFlags();
-#endif
 #else
     if(pAlfParam->cu_control_flag)
     {
-#if TSB_ALF_HEADER
-
 #if FINE_GRANULARITY_SLICES && MTK_NONCROSS_INLOOP_FILTER
       m_pcEntropyCoder->setSliceGranularity(m_iSGDepth);
 #endif
 
       m_pcEntropyCoder->encodeAlfCtrlParam(pAlfParam);
-#else
-      xEncodeCUAlfCtrlFlags();
-#endif
     }
     ruiRate = m_pcEntropyCoder->getNumberOfWrittenBits();
 #endif
@@ -1339,22 +1323,14 @@ Void TEncAdaptiveLoopFilter::xCalcRDCostChroma(TComPicYuv* pcPicOrg, TComPicYuv*
         ruiRate += m_pcEntropyCoder->getNumberOfWrittenBits();
       }
     }
-#if !TSB_ALF_HEADER
-    xEncodeCUAlfCtrlFlags();
-#endif
 #else
     if(pAlfParam->cu_control_flag)
     {
-#if TSB_ALF_HEADER
-
 #if FINE_GRANULARITY_SLICES && MTK_NONCROSS_INLOOP_FILTER
       m_pcEntropyCoder->setSliceGranularity(m_iSGDepth);
 #endif
 
       m_pcEntropyCoder->encodeAlfCtrlParam(pAlfParam);
-#else
-      xEncodeCUAlfCtrlFlags();
-#endif
     }
     ruiRate = m_pcEntropyCoder->getNumberOfWrittenBits();
 #endif
@@ -2722,7 +2698,7 @@ Void TEncAdaptiveLoopFilter::xfilterFrame_en(imgpel* ImgDec, imgpel* ImgRest,int
 #endif  
 
       pixelInt=(int)((pixelInt+offset) >> (NUM_BITS - 1));
-      ImgRest[y*Stride + x] = Clip3(0, g_uiIBDI_MAX, pixelInt);
+      ImgRest[y*Stride + x] = Clip( pixelInt );
     }
   }
 }
@@ -2965,44 +2941,28 @@ Void TEncAdaptiveLoopFilter::xcodeFiltCoeff(int **filterCoeffSymQuant, int filtN
  * \return ruiDist distortion after CU control
  * \return pAlfParam ALF parameters (CU control flags & number of CU control flags will be assigned)
  */
-#if TSB_ALF_HEADER
 Void TEncAdaptiveLoopFilter::xSetCUAlfCtrlFlags_qc(UInt uiAlfCtrlDepth, TComPicYuv* pcPicOrg, TComPicYuv* pcPicDec, TComPicYuv* pcPicRest, UInt64& ruiDist, ALFParam *pAlfParam)
-#else
-Void TEncAdaptiveLoopFilter::xSetCUAlfCtrlFlags_qc(UInt uiAlfCtrlDepth, TComPicYuv* pcPicOrg, TComPicYuv* pcPicDec, TComPicYuv* pcPicRest, UInt64& ruiDist)
-#endif
 {
   ruiDist = 0;
-#if TSB_ALF_HEADER
   pAlfParam->num_alf_cu_flag = 0;
-#endif
   
   for( UInt uiCUAddr = 0; uiCUAddr < m_pcPic->getNumCUsInFrame() ; uiCUAddr++ )
   {
     TComDataCU* pcCU = m_pcPic->getCU( uiCUAddr );
-#if TSB_ALF_HEADER
     xSetCUAlfCtrlFlag_qc(pcCU, 0, 0, uiAlfCtrlDepth, pcPicOrg, pcPicDec, pcPicRest, ruiDist, pAlfParam);
-#else
-    xSetCUAlfCtrlFlag_qc(pcCU, 0, 0, uiAlfCtrlDepth, pcPicOrg, pcPicDec, pcPicRest, ruiDist);
-#endif
   }
 
 #if MTK_NONCROSS_INLOOP_FILTER
   if(m_uiNumSlicesInPic > 1)
   {
     getCtrlFlagsForSlices(true, (Int)uiAlfCtrlDepth);
-#if TSB_ALF_HEADER
     transferCtrlFlagsToAlfParam(pAlfParam->num_alf_cu_flag, pAlfParam->alf_cu_flag);
-#endif
   }
 #endif
 
 }
 
-#if TSB_ALF_HEADER
 Void TEncAdaptiveLoopFilter::xSetCUAlfCtrlFlag_qc(TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth, UInt uiAlfCtrlDepth, TComPicYuv* pcPicOrg, TComPicYuv* pcPicDec, TComPicYuv* pcPicRest, UInt64& ruiDist, ALFParam *pAlfParam)
-#else
-Void TEncAdaptiveLoopFilter::xSetCUAlfCtrlFlag_qc(TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth, UInt uiAlfCtrlDepth, TComPicYuv* pcPicOrg, TComPicYuv* pcPicDec, TComPicYuv* pcPicRest, UInt64& ruiDist)
-#endif
 {
   Bool bBoundary = false;
   UInt uiLPelX   = pcCU->getCUPelX() + g_auiRasterToPelX[ g_auiZscanToRaster[uiAbsPartIdx] ];
@@ -3024,11 +2984,7 @@ Void TEncAdaptiveLoopFilter::xSetCUAlfCtrlFlag_qc(TComDataCU* pcCU, UInt uiAbsPa
       uiTPelY   = pcCU->getCUPelY() + g_auiRasterToPelY[ g_auiZscanToRaster[uiAbsPartIdx] ];
       
       if( ( uiLPelX < pcCU->getSlice()->getSPS()->getWidth() ) && ( uiTPelY < pcCU->getSlice()->getSPS()->getHeight() ) )
-#if TSB_ALF_HEADER
         xSetCUAlfCtrlFlag_qc(pcCU, uiAbsPartIdx, uiDepth+1, uiAlfCtrlDepth, pcPicOrg, pcPicDec, pcPicRest, ruiDist, pAlfParam);
-#else
-      xSetCUAlfCtrlFlag_qc(pcCU, uiAbsPartIdx, uiDepth+1, uiAlfCtrlDepth, pcPicOrg, pcPicDec, pcPicRest, ruiDist);
-#endif
     }
     return;
   }
@@ -3084,9 +3040,7 @@ Void TEncAdaptiveLoopFilter::xSetCUAlfCtrlFlag_qc(TComDataCU* pcCU, UInt uiAbsPa
   {
     ruiDist += uiFiltSSD;
     pcCU->setAlfCtrlFlagSubParts(1, uiAbsPartIdx, uiSetDepth);
-#if TSB_ALF_HEADER
     pAlfParam->alf_cu_flag[pAlfParam->num_alf_cu_flag]=1;
-#endif
     for (int i=uiTPelY ;i<=min(uiBPelY,(unsigned int)(pcPicOrg->getHeight()-1))  ;i++)
     {
       for (int j=uiLPelX ;j<=min(uiRPelX,(unsigned int)(pcPicOrg->getWidth()-1)) ;j++)
@@ -3099,9 +3053,7 @@ Void TEncAdaptiveLoopFilter::xSetCUAlfCtrlFlag_qc(TComDataCU* pcCU, UInt uiAbsPa
   {
     ruiDist += uiRecSSD;
     pcCU->setAlfCtrlFlagSubParts(0, uiAbsPartIdx, uiSetDepth);
-#if TSB_ALF_HEADER
     pAlfParam->alf_cu_flag[pAlfParam->num_alf_cu_flag]=0;
-#endif
     for (int i=uiTPelY ;i<=min(uiBPelY,(unsigned int)(pcPicOrg->getHeight()-1))  ;i++)
     {
       for (int j=uiLPelX ;j<=min(uiRPelX,(unsigned int)(pcPicOrg->getWidth()-1)) ;j++)
@@ -3110,9 +3062,7 @@ Void TEncAdaptiveLoopFilter::xSetCUAlfCtrlFlag_qc(TComDataCU* pcCU, UInt uiAbsPa
       }
     }
   }
-#if TSB_ALF_HEADER
   pAlfParam->num_alf_cu_flag++;
-#endif
 }
 
 Void TEncAdaptiveLoopFilter::xReDesignFilterCoeff_qc(TComPicYuv* pcPicOrg, TComPicYuv* pcPicDec, TComPicYuv* pcPicRest, Bool bReadCorr)
@@ -3179,11 +3129,7 @@ Void TEncAdaptiveLoopFilter::xCUAdaptiveControl_qc(TComPicYuv* pcPicOrg, TComPic
       UInt64 uiRate, uiDist;
       Double dCost;
      //m_pcPicYuvTmp: filtered signal, pcPicDec: orig reconst
-#if TSB_ALF_HEADER
       xSetCUAlfCtrlFlags_qc(uiDepth, pcPicOrg, pcPicDec, m_pcPicYuvTmp, uiDist, m_pcTempAlfParam); //set up varImg here
-#else
-      xSetCUAlfCtrlFlags_qc(uiDepth, pcPicOrg, pcPicDec, m_pcPicYuvTmp, uiDist); //set up varImg here
-#endif
       
       xCalcRDCost(m_pcTempAlfParam, uiRate, uiDist, dCost);
       
@@ -3227,11 +3173,7 @@ Void TEncAdaptiveLoopFilter::xCUAdaptiveControl_qc(TComPicYuv* pcPicOrg, TComPic
       UInt64 uiRate, uiDist;
       Double dCost;
 
-#if TSB_ALF_HEADER
       xSetCUAlfCtrlFlags_qc(uiDepth, pcPicOrg, pcPicDec, m_pcPicYuvTmp, uiDist, m_pcTempAlfParam); //set up varImg here
-#else
-      xSetCUAlfCtrlFlags_qc(uiDepth, pcPicOrg, pcPicDec, m_pcPicYuvTmp, uiDist); //set up varImg here
-#endif
 
       xCalcRDCost(m_pcTempAlfParam, uiRate, uiDist, dCost);
 
@@ -3255,9 +3197,7 @@ Void TEncAdaptiveLoopFilter::xCUAdaptiveControl_qc(TComPicYuv* pcPicOrg, TComPic
     if(m_uiNumSlicesInPic > 1)
     {
       getCtrlFlagsForSlices(true, (Int)uiBestDepth);
-#if TSB_ALF_HEADER
       transferCtrlFlagsToAlfParam(m_pcBestAlfParam->num_alf_cu_flag, m_pcBestAlfParam->alf_cu_flag);
-#endif
     }
 #endif
 
@@ -3325,11 +3265,7 @@ Void TEncAdaptiveLoopFilter::xFilterTapDecision_qc(TComPicYuv* pcPicOrg, TComPic
     if (m_pcTempAlfParam->cu_control_flag)
     {
       xReDesignFilterCoeff_qc(pcPicOrg, pcPicDec, m_pcPicYuvTmp, false);
-#if TSB_ALF_HEADER
       xSetCUAlfCtrlFlags_qc(m_pcEntropyCoder->getMaxAlfCtrlDepth(), pcPicOrg, pcPicDec, m_pcPicYuvTmp, uiDist, m_pcTempAlfParam);
-#else
-      xSetCUAlfCtrlFlags_qc(m_pcEntropyCoder->getMaxAlfCtrlDepth(), pcPicOrg, pcPicDec, m_pcPicYuvTmp, uiDist);
-#endif
       xCalcRDCost(m_pcTempAlfParam, uiRate, uiDist, dCost);
     }
 
@@ -3371,9 +3307,7 @@ Void TEncAdaptiveLoopFilter::xFilterTapDecision_qc(TComPicYuv* pcPicOrg, TComPic
     if(m_uiNumSlicesInPic > 1)
     {
       getCtrlFlagsForSlices(true, (Int)m_pcEntropyCoder->getMaxAlfCtrlDepth());
-#if TSB_ALF_HEADER
       transferCtrlFlagsToAlfParam(m_pcBestAlfParam->num_alf_cu_flag, m_pcBestAlfParam->alf_cu_flag);
-#endif
     }
 #endif
 
@@ -3513,6 +3447,8 @@ Int TEncAdaptiveLoopFilter::gnsSolveByChol(double **LHS, double *rhs, double *x,
       LHS[i][i] += REG;
     /* Compute upper triangular U such that U'*U = regularized LHS */
     singular = gnsCholeskyDec(LHS, U, noEq);
+    assert( singular == 1 );
+    
     /* Solve  U'*aux = rhs for aux */  
     gnsTransposeBacksubstitution(U, rhs, aux, noEq);   
     
@@ -4037,11 +3973,7 @@ Void TEncAdaptiveLoopFilter::setMaskWithTimeDelayedResults(TComPicYuv* pcPicOrg,
     copyALFParam(m_pcTempAlfParam, &cAlfParam);
     m_pcTempAlfParam->cu_control_flag = 1;
 
-#if TSB_ALF_HEADER
     xSetCUAlfCtrlFlags_qc(uiDepth, pcPicOrg, pcPicDec, m_pcPicYuvTmp, uiDist, m_pcTempAlfParam); //set up varImg here
-#else
-    xSetCUAlfCtrlFlags_qc(uiDepth, pcPicOrg, pcPicDec, m_pcPicYuvTmp, uiDist); //set up varImg here
-#endif
     m_pcEntropyCoder->resetEntropy();
     m_pcEntropyCoder->resetBits();
     xEncodeCUAlfCtrlFlags();
@@ -4292,11 +4224,7 @@ Void TEncAdaptiveLoopFilter::setInitialMask(TComPicYuv* pcPicOrg, TComPicYuv* pc
       copyALFParam(m_pcTempAlfParam, m_pcBestAlfParam);
       m_pcTempAlfParam->cu_control_flag = 1;
 
-#if TSB_ALF_HEADER
       xSetCUAlfCtrlFlags_qc(uiDepth, pcPicOrg, pcPicDec, m_pcPicYuvTmp, uiDist, m_pcTempAlfParam); //set up varImg here
-#else
-      xSetCUAlfCtrlFlags_qc(uiDepth, pcPicOrg, pcPicDec, m_pcPicYuvTmp, uiDist); //set up varImg here
-#endif
       m_pcEntropyCoder->resetEntropy();
       m_pcEntropyCoder->resetBits();
       xEncodeCUAlfCtrlFlags();

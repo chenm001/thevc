@@ -118,9 +118,6 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
   ("InputBitDepth",         m_uiInputBitDepth, 8u, "bit-depth of input file")
   ("BitDepth",              m_uiInputBitDepth, 8u, "deprecated alias of InputBitDepth")
   ("OutputBitDepth",        m_uiOutputBitDepth, 0u, "bit-depth of output file")
-#if ENABLE_IBDI
-  ("BitIncrement",          m_uiBitIncrement, 0xffffffffu, "bit-depth increasement")
-#endif
   ("InternalBitDepth",      m_uiInternalBitDepth, 0u, "Internal bit-depth (BitDepth+BitIncrement)")
   ("HorizontalPadding,-pdx",m_aiPad[0],      0, "horizontal source padding size")
   ("VerticalPadding,-pdy",  m_aiPad[1],      0, "vertical source padding size")
@@ -146,9 +143,7 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
   
   /* Coding structure paramters */
   ("IntraPeriod,-ip",m_iIntraPeriod, -1, "intra period in frames, (-1: only first frame)")
-#if DCM_DECODING_REFRESH
   ("DecodingRefreshType,-dr",m_iDecodingRefreshType, 0, "intra refresh, (0:none 1:CDR 2:IDR)")
-#endif
   ("GOPSize,g",      m_iGOPSize,      1, "GOP size of temporal structure")
   ("RateGOPSize,-rg",m_iRateGOPSize, -1, "GOP size of hierarchical QP assignment (-1: implies inherit GOPSize value)")
   ("NumOfReference,r",       m_iNumOfReference,     1, "Number of reference (P)")
@@ -157,10 +152,8 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
   ("HierarchicalCoding",     m_bHierarchicalCoding, true)
   ("LowDelayCoding",         m_bUseLDC,             false, "low-delay mode")
   ("GPB", m_bUseGPB, false, "generalized B instead of P in low-delay mode")
-#if DCM_COMB_LIST
   ("ListCombination, -lc", m_bUseLComb, true, "combined reference list for uni-prediction in B-slices")
   ("LCModification", m_bLCMod, false, "enables signalling of combined reference list derivation")
-#endif
   ("NRF", m_bUseNRF,  true, "non-reference frame marking in last layer")
   ("BQP", m_bUseBQP, false, "hier-P style QP assignment in low-delay mode")
 
@@ -216,12 +209,6 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
 #if MQT_ALF_NPASS
   ("ALFEncodePassReduction", m_iALFEncodePassReduction, 0, "0:Original 16-pass, 1: 1-pass, 2: 2-pass encoding")
 #endif
-#if HHI_RMP_SWITCH
-  ("RMP", m_bUseRMP ,true, "Rectangular motion partition" )
-#endif
-#ifdef ROUNDING_CONTROL_BIPRED
-  ("RoundingControlBipred", m_useRoundingControlBipred, false, "Rounding control for bi-prediction")
-#endif
     ("SliceMode",            m_iSliceMode,           0, "0: Disable all Recon slice limits, 1: Enforce max # of LCUs, 2: Enforce max # of bytes")
     ("SliceArgument",        m_iSliceArgument,       0, "if SliceMode==1 SliceArgument represents max # of LCUs. if SliceMode==2 SliceArgument represents max # of bytes.")
     ("EntropySliceMode",     m_iEntropySliceMode,    0, "0: Disable all entropy slice limits, 1: Enforce max # of LCUs, 2: Enforce constraint based entropy slices")
@@ -232,9 +219,7 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
 #if MTK_NONCROSS_INLOOP_FILTER
     ("LFCrossSliceBoundaryFlag", m_bLFCrossSliceBoundaryFlag, true)
 #endif
-#if CONSTRAINED_INTRA_PRED
     ("ConstrainedIntraPred", m_bUseConstrainedIntraPred, false, "Constrained Intra Prediction")
-#endif
 #if E057_INTRA_PCM
     ("PCMLog2MinSize", m_uiPCMLog2MinSize, 7u)
 #endif
@@ -361,19 +346,13 @@ Void TAppEncCfg::xCheckParameter()
   bool check_failed = false; /* abort if there is a fatal configuration problem */
 #define xConfirmPara(a,b) check_failed |= confirmPara(a,b)
   // check range of parameters
-#if ENABLE_IBDI
-  xConfirmPara( m_uiInternalBitDepth > 0 && (int)m_uiBitIncrement != -1,                    "InternalBitDepth and BitIncrement may not be specified simultaneously");
-#else
   xConfirmPara( m_uiInputBitDepth < 8,                                                      "InputBitDepth must be at least 8" );
-#endif
   xConfirmPara( m_iFrameRate <= 0,                                                          "Frame rate must be more than 1" );
   xConfirmPara( m_iFrameToBeEncoded <= 0,                                                   "Total Number Of Frames encoded must be more than 1" );
   xConfirmPara( m_iGOPSize < 1 ,                                                            "GOP Size must be more than 1" );
   xConfirmPara( m_iGOPSize > 1 &&  m_iGOPSize % 2,                                          "GOP Size must be a multiple of 2, if GOP Size is greater than 1" );
   xConfirmPara( (m_iIntraPeriod > 0 && m_iIntraPeriod < m_iGOPSize) || m_iIntraPeriod == 0, "Intra period must be more than GOP size, or -1 , not 0" );
-#if DCM_DECODING_REFRESH
   xConfirmPara( m_iDecodingRefreshType < 0 || m_iDecodingRefreshType > 2,                   "Decoding Refresh Type must be equal to 0, 1 or 2" );
-#endif
   xConfirmPara( m_iQP < 0 || m_iQP > 51,                                                    "QP exceeds supported range (0 to 51)" );
 #if MQT_ALF_NPASS
   xConfirmPara( m_iALFEncodePassReduction < 0 || m_iALFEncodePassReduction > 2,             "ALFEncodePassReduction must be equal to 0, 1 or 2");
@@ -430,9 +409,7 @@ Void TAppEncCfg::xCheckParameter()
 #endif
   xConfirmPara( m_iSymbolMode < 0 || m_iSymbolMode > 1,                                     "SymbolMode must be equal to 0 or 1" );
   
-#if DCM_COMB_LIST
   xConfirmPara( m_bUseLComb==false && m_bUseLDC==false,         "LComb can only be 0 if LowDelayCoding is 1" );
-#endif
   
   // max CU width and height should be power of 2
   UInt ui = m_uiMaxCUWidth;
@@ -480,31 +457,12 @@ Void TAppEncCfg::xSetGlobal()
   g_uiMaxCUDepth = m_uiMaxCUDepth;
   
   // set internal bit-depth and constants
-#if ENABLE_IBDI
-  if ((int)m_uiBitIncrement != -1)
-  {
-    g_uiBitDepth = m_uiInputBitDepth;
-    g_uiBitIncrement = m_uiBitIncrement;
-    m_uiInternalBitDepth = g_uiBitDepth + g_uiBitIncrement;
-  }
-  else
-  {
-    g_uiBitDepth = min(8u, m_uiInputBitDepth);
-    if (m_uiInternalBitDepth == 0)
-    {
-      /* default increement = 2 */
-      m_uiInternalBitDepth = 2 + g_uiBitDepth;
-    }
-    g_uiBitIncrement = m_uiInternalBitDepth - g_uiBitDepth;
-  }
-#else
 #if FULL_NBIT
   g_uiBitDepth = m_uiInternalBitDepth;
   g_uiBitIncrement = 0;
 #else
   g_uiBitDepth = 8;
   g_uiBitIncrement = m_uiInternalBitDepth - g_uiBitDepth;
-#endif
 #endif
 
   g_uiBASE_MAX     = ((1<<(g_uiBitDepth))-1);
@@ -548,9 +506,7 @@ Void TAppEncCfg::xPrintParameter()
 #endif
   printf("Motion search range          : %d\n", m_iSearchRange );
   printf("Intra period                 : %d\n", m_iIntraPeriod );
-#if DCM_DECODING_REFRESH
   printf("Decoding refresh type        : %d\n", m_iDecodingRefreshType );
-#endif
   printf("QP                           : %5.2f\n", m_fQP );
   printf("GOP size                     : %d\n", m_iGOPSize );
   printf("Rate GOP size                : %d\n", m_iRateGOPSize );
@@ -591,18 +547,13 @@ Void TAppEncCfg::xPrintParameter()
   printf("NRF:%d ", m_bUseNRF             );
   printf("BQP:%d ", m_bUseBQP             );
   printf("GPB:%d ", m_bUseGPB             );
-#if DCM_COMB_LIST
   printf("LComb:%d ", m_bUseLComb         );
   printf("LCMod:%d ", m_bLCMod         );
-#endif
   printf("FEN:%d ", m_bUseFastEnc         );
   printf("RQT:%d ", 1     );
   printf("MRG:%d ", m_bUseMRG             ); // SOPH: Merge Mode
 #if LM_CHROMA 
   printf("LMC:%d ", m_bUseLMChroma        ); 
-#endif
-#if HHI_RMP_SWITCH
-  printf("RMP:%d ", m_bUseRMP);
 #endif
 #if FINE_GRANULARITY_SLICES
   printf("Slice: G=%d M=%d ", m_iSliceGranularity, m_iSliceMode);
@@ -627,9 +578,7 @@ Void TAppEncCfg::xPrintParameter()
     printf("(%d) ", m_iEntropySliceArgument);
   }
 #endif
-#if CONSTRAINED_INTRA_PRED
   printf("CIP:%d ", m_bUseConstrainedIntraPred);
-#endif
 #if MTK_SAO
   printf("SAO:%d ",    (m_bUseSAO)?(1):(0));
 #endif

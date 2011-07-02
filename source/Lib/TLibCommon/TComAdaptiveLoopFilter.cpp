@@ -526,7 +526,7 @@ Void TComAdaptiveLoopFilter::create( Int iPicWidth, Int iPicHeight, UInt uiMaxCU
   initMatrix_int(&m_filterCoeffTmp, NO_VAR_BINS, MAX_SQR_FILT_LENGTH);      
   initMatrix_int(&m_filterCoeffSymTmp, NO_VAR_BINS, MAX_SQR_FILT_LENGTH);   
 
-#if TSB_ALF_HEADER && E045_SLICE_COMMON_INFO_SHARING
+#if E045_SLICE_COMMON_INFO_SHARING
   UInt uiNumLCUsInWidth   = m_img_width  / uiMaxCUWidth;
   UInt uiNumLCUsInHeight  = m_img_height / uiMaxCUHeight;
 
@@ -616,11 +616,9 @@ Void TComAdaptiveLoopFilter::allocALFParam(ALFParam* pAlfParam)
     pAlfParam->coeffmulti[i] = new Int[ALF_MAX_NUM_COEF];
     ::memset(pAlfParam->coeffmulti[i],        0, sizeof(Int)*ALF_MAX_NUM_COEF );
   }
-#if TSB_ALF_HEADER
   pAlfParam->num_cus_in_frame = m_uiNumCUsInFrame;
   pAlfParam->num_alf_cu_flag  = 0;
   pAlfParam->alf_cu_flag      = new UInt[(m_uiNumCUsInFrame << ((g_uiMaxCUDepth-1)*2))];
-#endif
 
 #if MQT_BA_RA
   pAlfParam->alf_pcr_region_flag = 0;
@@ -649,13 +647,11 @@ Void TComAdaptiveLoopFilter::freeALFParam(ALFParam* pAlfParam)
   }
   delete[] pAlfParam->coeffmulti;
   pAlfParam->coeffmulti = NULL;
-#if TSB_ALF_HEADER
   if(pAlfParam->alf_cu_flag != NULL)
   {
     delete[] pAlfParam->alf_cu_flag;
     pAlfParam->alf_cu_flag = NULL;
   }
-#endif
 }
 
 Void TComAdaptiveLoopFilter::copyALFParam(ALFParam* pDesAlfParam, ALFParam* pSrcAlfParam)
@@ -694,10 +690,8 @@ Void TComAdaptiveLoopFilter::copyALFParam(ALFParam* pDesAlfParam, ALFParam* pSrc
     ::memcpy(pDesAlfParam->coeffmulti[i], pSrcAlfParam->coeffmulti[i], sizeof(Int)*ALF_MAX_NUM_COEF);
   }
   
-#if TSB_ALF_HEADER
   pDesAlfParam->num_alf_cu_flag = pSrcAlfParam->num_alf_cu_flag;
   ::memcpy(pDesAlfParam->alf_cu_flag, pSrcAlfParam->alf_cu_flag, sizeof(UInt)*pSrcAlfParam->num_alf_cu_flag);
-#endif
 }
 
 // --------------------------------------------------------------------------------------------------------------------
@@ -807,7 +801,6 @@ Void TComAdaptiveLoopFilter::ALFProcess(TComPic* pcPic, ALFParam* pcAlfParam)
   }
 #endif
 
-#if TSB_ALF_HEADER
   if(pcAlfParam->cu_control_flag)
   {
 #if MTK_NONCROSS_INLOOP_FILTER
@@ -834,7 +827,6 @@ Void TComAdaptiveLoopFilter::ALFProcess(TComPic* pcPic, ALFParam* pcAlfParam)
     }
 #endif
   }
-#endif
   xALFLuma_qc(pcPic, pcAlfParam, pcPicYuvExtRec, pcPicYuvRec);
   
   if(pcAlfParam->chroma_idc)
@@ -2150,8 +2142,6 @@ Void TComAdaptiveLoopFilter::xFrameChroma( TComPicYuv* pcPicDec, TComPicYuv* pcP
   }
 }
 
-#if TSB_ALF_HEADER
-
 #if !E045_SLICE_COMMON_INFO_SHARING
 Void TComAdaptiveLoopFilter::setNumCUsInFrame(TComPic *pcPic)
 {
@@ -2207,7 +2197,6 @@ Void TComAdaptiveLoopFilter::setAlfCtrlFlags(ALFParam *pAlfParam, TComDataCU *pc
     idx++;
   }
 }
-#endif
 
 #if MTK_NONCROSS_INLOOP_FILTER
 
@@ -2387,8 +2376,6 @@ Void TComAdaptiveLoopFilter::xFilterOneSlice(CAlfSlice* pSlice, imgpel* pDec, im
   }
 }
 
-#if TSB_ALF_HEADER
-
 /** Copy ALF CU control flags from ALF parameters for slices
  * \param pcAlfParam ALF parameters
  */
@@ -2407,7 +2394,6 @@ Void TComAdaptiveLoopFilter::transferCtrlFlagsFromAlfParam(ALFParam* pcAlfParam)
 
   assert(uiNumFlags == pcAlfParam->num_alf_cu_flag);
 }
-#endif
 
 /** Copy ALF CU control flags from ALF parameter for one slice
  * \param s ALF parameters
@@ -4019,6 +4005,8 @@ Void TComSampleAdaptiveOffset::xInitALfOnePart(Int iPartLevel, Int iPartRow, Int
  */
 Void TComSampleAdaptiveOffset::xMakeSubPartList(Int iPartLevel, Int iPartRow, Int iPartCol, Int* pList, Int& rListLength, Int NumPartInRow)
 {
+  assert (iPartRow < MAX_INT/2);
+  assert (NumPartInRow < MAX_INT/2);
 
   if(iPartLevel != m_uiMaxSplitLevel)
   {

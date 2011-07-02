@@ -62,9 +62,7 @@ protected:
   
   //====== Coding Structure ========
   UInt      m_uiIntraPeriod;
-#if DCM_DECODING_REFRESH
   UInt      m_uiDecodingRefreshType;            ///< the type of decoding refresh employed for the random access.
-#endif
   Int       m_iGOPSize;
   Int       m_iRateGOPSize;
   Int       m_iNumOfReference;
@@ -122,10 +120,8 @@ protected:
   Bool      m_bUseASR;
   Bool      m_bUseHADME;
   Bool      m_bUseGPB;
-#if DCM_COMB_LIST
   Bool      m_bUseLComb;
   Bool      m_bLCMod;
-#endif
   Bool      m_bUseRDOQ;
   Bool      m_bUseLDC;
   Bool      m_bUsePAD;
@@ -140,15 +136,7 @@ protected:
   Int*      m_aidQP;
   UInt      m_uiDeltaQpRD;
   
-#if HHI_RMP_SWITCH
-  Bool      m_bUseRMP;
-#endif
-#ifdef ROUNDING_CONTROL_BIPRED
-  Bool m_useRoundingControlBipred;
-#endif
-#if CONSTRAINED_INTRA_PRED
   Bool      m_bUseConstrainedIntraPred;
-#endif
 #if E057_INTRA_PCM
   UInt      m_uiPCMLog2MinSize;
 #endif
@@ -186,9 +174,7 @@ public:
   
   //====== Coding Structure ========
   Void      setIntraPeriod                  ( Int   i )      { m_uiIntraPeriod = (UInt)i; }
-#if DCM_DECODING_REFRESH
   Void      setDecodingRefreshType          ( Int   i )      { m_uiDecodingRefreshType = (UInt)i; }
-#endif
   Void      setGOPSize                      ( Int   i )      { m_iGOPSize = i; }
   Void      setRateGOPSize                  ( Int   i )      { m_iRateGOPSize = i; }
   Void      setNumOfReference               ( Int   i )      { m_iNumOfReference = i; }
@@ -243,9 +229,7 @@ public:
   
   //==== Coding Structure ========
   UInt      getIntraPeriod                  ()      { return  m_uiIntraPeriod; }
-#if DCM_DECODING_REFRESH
   UInt      getDecodingRefreshType          ()      { return  m_uiDecodingRefreshType; }
-#endif
   Int       getGOPSize                      ()      { return  m_iGOPSize; }
   Int       getRateGOPSize                  ()      { return  m_iRateGOPSize; }
   Int       getNumOfReference               ()      { return  m_iNumOfReference; }
@@ -288,10 +272,8 @@ public:
   Void      setUseHADME                     ( Bool  b )     { m_bUseHADME   = b; }
   Void      setUseALF                       ( Bool  b )     { m_bUseALF   = b; }
   Void      setUseGPB                       ( Bool  b )     { m_bUseGPB     = b; }
-#if DCM_COMB_LIST
   Void      setUseLComb                     ( Bool  b )     { m_bUseLComb   = b; }
   Void      setLCMod                        ( Bool  b )     { m_bLCMod   = b;    }
-#endif
   Void      setUseRDOQ                      ( Bool  b )     { m_bUseRDOQ    = b; }
   Void      setUseLDC                       ( Bool  b )     { m_bUseLDC     = b; }
   Void      setUsePAD                       ( Bool  b )     { m_bUsePAD     = b; }
@@ -299,9 +281,7 @@ public:
   Void      setUseBQP                       ( Bool  b )     { m_bUseBQP     = b; }
   Void      setUseFastEnc                   ( Bool  b )     { m_bUseFastEnc = b; }
   Void      setUseMRG                       ( Bool  b )     { m_bUseMRG     = b; } // SOPH:
-#if CONSTRAINED_INTRA_PRED
   Void      setUseConstrainedIntraPred      ( Bool  b )     { m_bUseConstrainedIntraPred = b; }
-#endif
 #if E057_INTRA_PCM && E192_SPS_PCM_BIT_DEPTH_SYNTAX
   Void      setPCMInputBitDepthFlag         ( Bool  b )     { m_bPCMInputBitDepthFlag = b; }
 #endif
@@ -322,10 +302,8 @@ public:
   Int       getALFEncodePassReduction       ()       { return m_iALFEncodePassReduction; }
 #endif
   Bool      getUseGPB                       ()      { return m_bUseGPB;     }
-#if DCM_COMB_LIST
   Bool      getUseLComb                     ()      { return m_bUseLComb;   }
   Bool      getLCMod                        ()      { return m_bLCMod; }
-#endif
   Bool      getUseRDOQ                      ()      { return m_bUseRDOQ;    }
   Bool      getUseLDC                       ()      { return m_bUseLDC;     }
   Bool      getUsePAD                       ()      { return m_bUsePAD;     }
@@ -333,9 +311,7 @@ public:
   Bool      getUseBQP                       ()      { return m_bUseBQP;     }
   Bool      getUseFastEnc                   ()      { return m_bUseFastEnc; }
   Bool      getUseMRG                       ()      { return m_bUseMRG;     } // SOPH:
-#if CONSTRAINED_INTRA_PRED
   Bool      getUseConstrainedIntraPred      ()      { return m_bUseConstrainedIntraPred; }
-#endif
 #if E057_INTRA_PCM && E192_SPS_PCM_BIT_DEPTH_SYNTAX
   Bool      getPCMInputBitDepthFlag         ()      { return m_bPCMInputBitDepthFlag;   } 
 #endif
@@ -353,14 +329,6 @@ public:
 
   Int*      getdQPs                         ()      { return m_aidQP;       }
   UInt      getDeltaQpRD                    ()      { return m_uiDeltaQpRD; }
-#if HHI_RMP_SWITCH
-  Void      setUseRMP                      ( Bool b ) { m_bUseRMP = b; }
-  Bool      getUseRMP                      ()      {return m_bUseRMP; }
-#endif
-#ifdef ROUNDING_CONTROL_BIPRED
-  Void setUseRoundingControlBipred(Bool b) { m_useRoundingControlBipred = b; }
-  Bool getUseRoundingControlBipred() { return m_useRoundingControlBipred; }
-#endif
   //====== Slice ========
   Void  setSliceMode                   ( Int  i )       { m_iSliceMode = i;              }
   Void  setSliceArgument               ( Int  i )       { m_iSliceArgument = i;          }

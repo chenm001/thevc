@@ -83,8 +83,12 @@ Void TEncTop::create ()
   }
 #endif
   m_cAdaptiveLoopFilter.create( getSourceWidth(), getSourceHeight(), g_uiMaxCUWidth, g_uiMaxCUHeight, g_uiMaxCUDepth );
+#if PARALLEL_MERGED_DEBLK
+  m_cLoopFilter.create( getSourceWidth(), getSourceHeight(), g_uiMaxCUWidth, g_uiMaxCUHeight, g_uiMaxCUDepth );
+#else
   m_cLoopFilter.        create( g_uiMaxCUDepth );
-
+#endif
+  
 #if MQT_BA_RA && MQT_ALF_NPASS
   if(m_bUseALF)
   {
@@ -169,9 +173,7 @@ Void TEncTop::destroy ()
 Void TEncTop::init()
 {
   UInt *aTable4=NULL, *aTable8=NULL;
-#if QC_MOD_LCEC
   UInt* aTableLastPosVlcIndex=NULL; 
-#endif
   // initialize SPS
   xInitSPS();
   
@@ -192,14 +194,10 @@ Void TEncTop::init()
   aTable8 = m_pcCavlcCoder->GetLP8Table();
 #endif
   aTable4 = m_pcCavlcCoder->GetLP4Table();
-#if QC_MOD_LCEC
   aTableLastPosVlcIndex=m_pcCavlcCoder->GetLastPosVlcIndexTable();
   
   m_cTrQuant.init( g_uiMaxCUWidth, g_uiMaxCUHeight, 1 << m_uiQuadtreeTULog2MaxSize, m_iSymbolMode, aTable4, aTable8, 
     aTableLastPosVlcIndex, m_bUseRDOQ, true );
-#else
-  m_cTrQuant.init( g_uiMaxCUWidth, g_uiMaxCUHeight, 1 << m_uiQuadtreeTULog2MaxSize, m_iSymbolMode, aTable4, aTable8, m_bUseRDOQ, true );
-#endif
   
   // initialize encoder search class
   m_cSearch.init( this, &m_cTrQuant, m_iSearchRange, m_bipredSearchRange, m_iFastSearch, 0, &m_cEntropyCoder, &m_cRdCost, getRDSbacCoder(), getRDGoOnSbacCoder() );
@@ -361,10 +359,8 @@ Void TEncTop::xInitSPS()
   
   m_cSPS.setMaxTrSize   ( 1 << m_uiQuadtreeTULog2MaxSize );
   
-#if DCM_COMB_LIST
   m_cSPS.setUseLComb    ( m_bUseLComb           );
   m_cSPS.setLCMod       ( m_bLCMod   );
-#endif
 
   Int i;
 #if HHI_AMVP_OFF
@@ -377,11 +373,6 @@ Void TEncTop::xInitSPS()
   {
     m_cSPS.setAMVPMode( i, AM_EXPL );
   }
-#endif
-  
-  
-#if HHI_RMP_SWITCH
-  m_cSPS.setUseRMP( m_bUseRMP );
 #endif
   
   m_cSPS.setBitDepth    ( g_uiBitDepth        );
@@ -436,9 +427,7 @@ Void TEncTop::xInitSPS()
 
 Void TEncTop::xInitPPS()
 {
-#if CONSTRAINED_INTRA_PRED
   m_cPPS.setConstrainedIntraPred( m_bUseConstrainedIntraPred );
-#endif
 #if FINE_GRANULARITY_SLICES
   m_cPPS.setSliceGranularity(m_iSliceGranularity);
 #endif

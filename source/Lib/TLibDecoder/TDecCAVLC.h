@@ -78,11 +78,9 @@ protected:
   Void  xParseCoeff4x4      ( TCoeff* scoeff, Int iTableNumber );
   Void  xParseCoeff8x8      ( TCoeff* scoeff, Int iTableNumber );
 #endif
-#if QC_MOD_LCEC
   Void  xRunLevelIndInv     (LastCoeffStruct *combo, Int maxrun, UInt lrg1Pos, UInt cn);
 #if RUNLEVEL_TABLE_CUT
   Void  xRunLevelIndInterInv(LastCoeffStruct *combo, Int maxrun, UInt cn);
-#endif
 #endif
   
 private:
@@ -101,7 +99,6 @@ private:
 #endif
   UInt                      m_uiLastPosVlcIndex[10];
   
-#if LCEC_INTRA_MODE
 #if MTK_DCM_MPM
   UInt                      m_uiIntraModeTableD17[2][16];
   UInt                      m_uiIntraModeTableD34[2][33];
@@ -109,10 +106,7 @@ private:
   UInt                      m_uiIntraModeTableD17[16];
   UInt                      m_uiIntraModeTableD34[33];
 #endif
-#endif
-#if QC_LCEC_INTER_MODE
   UInt                      m_uiSplitTableD[4][7];
-#endif
 #if CAVLC_RQT_CBP
   UInt                      m_uiCBP_YUV_TableD[4][8];
   UInt                      m_uiCBP_YS_TableD[2][4];
@@ -132,11 +126,7 @@ private:
   Int                   m_iRefFrame1[1000];
   Bool                  m_bMVres0[1000];
   Bool                  m_bMVres1[1000];
-#if MS_LCEC_LOOKUP_TABLE_EXCEPTION
   UInt                  m_uiMI1TableD[9];
-#else
-  UInt                  m_uiMI1TableD[8];
-#endif
   UInt                  m_uiMI2TableD[15]; 
   UInt                  m_uiMITableVlcIdx;
 
@@ -226,11 +216,8 @@ public:
 
   Void parseAlfCtrlDepth    ( UInt& ruiAlfCtrlDepth );
   Void parseAlfCtrlFlag     ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
-#if TSB_ALF_HEADER
   Void parseAlfFlagNum      ( UInt& ruiVal, UInt minValue, UInt depth );
   Void parseAlfCtrlFlag     ( UInt &ruiAlfCtrlFlag );
-#endif
-  
 };
 #endif // !defined(AFX_TDECCAVLC_H__9732DD64_59B0_4A41_B29E_1A5B18821EAD__INCLUDED_)
 

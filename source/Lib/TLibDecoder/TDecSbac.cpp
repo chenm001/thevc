@@ -795,10 +795,8 @@ Void TDecSbac::parsePartSize( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth 
   
   if ( pcCU->isIntra( uiAbsPartIdx ) )
   {
-#if MTK_DISABLE_INTRA_NxN_SPLIT
     uiSymbol = 1;
     if( uiDepth == g_uiMaxCUDepth - g_uiAddCUDepth )
-#endif
     {
       m_pcTDecBinIf->decodeBin( uiSymbol, m_cCUPartSizeSCModel.get( 0, 0, 0) );
     }
@@ -806,17 +804,6 @@ Void TDecSbac::parsePartSize( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth 
   }
   else
   {
-#if HHI_RMP_SWITCH
-    if ( !pcCU->getSlice()->getSPS()->getUseRMP())
-    {
-      m_pcTDecBinIf->decodeBin( uiSymbol, m_cCUPartSizeSCModel.get( 0, 0, 0) );
-      if( uiSymbol )
-        uiMode = 0;
-      else
-        uiMode = 3;
-    }
-    else
-#endif
     {
       UInt uiMaxNumBits = 3;
       for ( UInt ui = 0; ui < uiMaxNumBits; ui++ )
@@ -833,10 +820,8 @@ Void TDecSbac::parsePartSize( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth 
     
     if (pcCU->getSlice()->isInterB() && uiMode == 3)
     {
-#if HHI_DISABLE_INTER_NxN_SPLIT
       uiSymbol = 0;
       if( uiDepth == g_uiMaxCUDepth - g_uiAddCUDepth )
-#endif
       {
         m_pcTDecBinIf->decodeBin( uiSymbol, m_cCUPartSizeSCModel.get( 0, 0, 3) );
       }
@@ -844,9 +829,7 @@ Void TDecSbac::parsePartSize( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth 
       if (uiSymbol == 0)
       {
         pcCU->setPredModeSubParts( MODE_INTRA, uiAbsPartIdx, uiDepth );
-#if MTK_DISABLE_INTRA_NxN_SPLIT
         if( uiDepth == g_uiMaxCUDepth - g_uiAddCUDepth )
-#endif
         {
           m_pcTDecBinIf->decodeBin( uiSymbol, m_cCUPartSizeSCModel.get( 0, 0, 4) );
         }
@@ -1031,7 +1014,6 @@ Void TDecSbac::parseIntraDirChroma( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt ui
 {
   UInt uiSymbol;
   
-#if CHROMA_CODEWORD
   UInt uiMode = pcCU->getLumaIntraDir(uiAbsPartIdx);
 #if ADD_PLANAR_MODE
   if ( (uiMode == 2 ) || (uiMode == PLANAR_IDX) )
@@ -1059,13 +1041,11 @@ Void TDecSbac::parseIntraDirChroma( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt ui
   } 
   else if (uiSymbol == 1 && pcCU->getSlice()->getSPS()->getUseLMChroma())
   {
-    uiSymbol = 3;
+    uiSymbol = LM_CHROMA_IDX;
   }
   else 
   {
-#if CHROMA_CODEWORD_SWITCH 
     uiSymbol = ChromaMapping[iMax-2][uiSymbol];
-#endif
 
     if (pcCU->getSlice()->getSPS()->getUseLMChroma())
        uiSymbol --;
@@ -1089,7 +1069,6 @@ Void TDecSbac::parseIntraDirChroma( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt ui
   {
     uiSymbol = 4;
   } 
-#if CHROMA_CODEWORD_SWITCH 
   else
   {
     uiSymbol = ChromaMapping[iMax-2][uiSymbol];
@@ -1098,35 +1077,17 @@ Void TDecSbac::parseIntraDirChroma( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt ui
       uiSymbol --;
     }
   }
-#else
-  else if (uiSymbol <= uiMode)
-  {
-    uiSymbol --;
-  }
-#endif
 #endif // <-- LM_CHROMA
 
-#else // CHROMA_CODEWORD
-  m_pcTDecBinIf->decodeBin( uiSymbol, m_cCUChromaPredSCModel.get( 0, 0, pcCU->getCtxIntraDirChroma( uiAbsPartIdx ) ) );
-  
-  if ( uiSymbol )
-  {
-    xReadUnaryMaxSymbol( uiSymbol, m_cCUChromaPredSCModel.get( 0, 0 ) + 3, 0, 3 );
-    uiSymbol++;
-  }
-#endif
-  
 #if ADD_PLANAR_MODE
   if (uiSymbol == 2)
   {
-#if CHROMA_CODEWORD
     uiMode = pcCU->getLumaIntraDir(uiAbsPartIdx);
     if (uiMode == 2)
     {
       uiSymbol = PLANAR_IDX;
     }
     else if (uiMode != PLANAR_IDX)
-#endif
     {
       UInt planarFlag;
       m_pcTDecBinIf->decodeBin( planarFlag, m_cPlanarFlagSCModel.get(0,0,1) );
@@ -1153,12 +1114,10 @@ Void TDecSbac::parseInterDir( TComDataCU* pcCU, UInt& ruiInterDir, UInt uiAbsPar
   {
     uiSymbol = 2;
   }
-#if DCM_COMB_LIST
   else if(pcCU->getSlice()->getNumRefIdx(REF_PIC_LIST_C) > 0)
   {
     uiSymbol = 0;
   }
-#endif
   else if ( pcCU->getSlice()->getNoBackPredFlag() )
   {
     uiSymbol = 0;
@@ -1176,7 +1135,6 @@ Void TDecSbac::parseRefFrmIdx( TComDataCU* pcCU, Int& riRefFrmIdx, UInt uiAbsPar
 {
   UInt uiSymbol;
 
-#if DCM_COMB_LIST
   if(pcCU->getSlice()->getNumRefIdx(REF_PIC_LIST_C ) > 0 && eRefList==REF_PIC_LIST_C)
   {
     UInt uiCtx;
@@ -1196,22 +1154,17 @@ Void TDecSbac::parseRefFrmIdx( TComDataCU* pcCU, Int& riRefFrmIdx, UInt uiAbsPar
   }
   else
   {
-#endif
-
-  UInt uiCtx = pcCU->getCtxRefIdx( uiAbsPartIdx, eRefList );
-  
-  m_pcTDecBinIf->decodeBin ( uiSymbol, m_cCURefPicSCModel.get( 0, 0, uiCtx ) );
-  if ( uiSymbol )
-  {
-    xReadUnaryMaxSymbol( uiSymbol, &m_cCURefPicSCModel.get( 0, 0, 4 ), 1, pcCU->getSlice()->getNumRefIdx( eRefList )-2 );
+    UInt uiCtx = pcCU->getCtxRefIdx( uiAbsPartIdx, eRefList );
     
-    uiSymbol++;
+    m_pcTDecBinIf->decodeBin ( uiSymbol, m_cCURefPicSCModel.get( 0, 0, uiCtx ) );
+    if ( uiSymbol )
+    {
+      xReadUnaryMaxSymbol( uiSymbol, &m_cCURefPicSCModel.get( 0, 0, 4 ), 1, pcCU->getSlice()->getNumRefIdx( eRefList )-2 );
+      
+      uiSymbol++;
+    }
+    riRefFrmIdx = uiSymbol;
   }
-  riRefFrmIdx = uiSymbol;
-
-#if DCM_COMB_LIST
-  }
-#endif
 
   return;
 }
@@ -1390,10 +1343,12 @@ __inline Void TDecSbac::parseLastSignificantXY( UInt& uiPosLastX, UInt& uiPosLas
     }
   }
 
+#if QC_MDCS
   if( uiScanIdx == SCAN_VER )
   {
     swap( uiPosLastX, uiPosLastY );
   }
+#endif
 }
 #endif
 
@@ -1461,7 +1416,11 @@ Void TDecSbac::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartId
 #if PCP_SIGMAP_SIMPLE_LAST
   //===== decode last significant =====
   UInt uiPosLastX, uiPosLastY;
+#if QC_MDCS
   parseLastSignificantXY( uiPosLastX, uiPosLastY, uiWidth, eTType, uiCTXIdx, uiScanIdx );
+#else
+  parseLastSignificantXY( uiPosLastX, uiPosLastY, uiWidth, eTType, uiCTXIdx, 0 );
+#endif
   UInt uiBlkPosLast      = uiPosLastX + (uiPosLastY<<uiLog2BlockSize);
   pcCoef[ uiBlkPosLast ] = 1;
   sigCoeffCount++;
@@ -1729,7 +1688,6 @@ Void TDecSbac::parseAlfFlag (UInt& ruiVal)
   ruiVal = uiSymbol;
 }
 
-#if TSB_ALF_HEADER
 Void TDecSbac::parseAlfFlagNum( UInt& ruiVal, UInt minValue, UInt depth )
 {
   UInt uiLength = 0;
@@ -1766,7 +1724,6 @@ Void TDecSbac::parseAlfCtrlFlag( UInt &ruiAlfCtrlFlag )
   m_pcTDecBinIf->decodeBin( uiSymbol, m_cCUAlfCtrlFlagSCModel.get( 0, 0, 0 ) );
   ruiAlfCtrlFlag = uiSymbol;
 }
-#endif
 
 Void TDecSbac::parseAlfUvlc (UInt& ruiVal)
 {

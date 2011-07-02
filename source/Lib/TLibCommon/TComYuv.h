@@ -142,9 +142,6 @@ public:
   Void    subtractChroma    ( TComYuv* pcYuvSrc0, TComYuv* pcYuvSrc1, UInt uiTrUnitIdx, UInt uiPartSize );
   
   //  (pcYuvSrc0 + pcYuvSrc1)/2 for YUV partition
-#ifdef ROUNDING_CONTROL_BIPRED
-  Void    addAvg            ( TComYuv* pcYuvSrc0, TComYuv* pcYuvSrc1, UInt iPartUnitIdx, UInt iWidth, UInt iHeight, Bool bRound );
-#endif
   Void    addAvg            ( TComYuv* pcYuvSrc0, TComYuv* pcYuvSrc1, UInt iPartUnitIdx, UInt iWidth, UInt iHeight );
 
   //   Remove High frequency
@@ -176,14 +173,7 @@ public:
   
   UInt    getWidth    ()    { return  m_iWidth;   }
   UInt    getCHeight  ()    { return  m_iCHeight; }
-  UInt    getCWidth   ()    { return  m_iCWidth;  }
-  
-  // ------------------------------------------------------------------------------------------------------------------
-  //  Miscellaneous
-  // ------------------------------------------------------------------------------------------------------------------
-  
-  __inline Pel  xClip  (Pel x )      { return ( (x < 0) ? 0 : (x > (Pel)g_uiIBDI_MAX) ? (Pel)g_uiIBDI_MAX : x ); }
-  
+  UInt    getCWidth   ()    { return  m_iCWidth;  }  
 };// END CLASS DEFINITION TComYuv
 
 

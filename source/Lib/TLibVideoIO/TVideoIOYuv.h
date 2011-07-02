@@ -67,10 +67,11 @@ public:
 
   void skipFrames(unsigned int numFrames, unsigned int width, unsigned int height);
   
-  Void  read  ( TComPicYuv*& rpcPicYuv, Int aiPad[2] );     ///< read  one YUV frame with padding parameter
-  Void  write ( TComPicYuv*   pcPicYuv, Int aiPad[2] );     ///< write one YUV frame with padding parameter
+  bool  read  ( TComPicYuv*   pPicYuv, Int aiPad[2] );     ///< read  one YUV frame with padding parameter
+  bool  write ( TComPicYuv*   pPicYuv, Int aiPad[2] );     ///< write one YUV frame with padding parameter
   
-  Bool  isEof ();                                           ///< check end-of-file
+  bool  isEof ();                                           ///< check for end-of-file
+  bool  isFail();                                           ///< check for failure
   
 };
 

@@ -92,7 +92,6 @@ extern       UInt g_uiAddCUDepth;
 
 extern       UInt g_auiPUOffset[4];
 
-#if E243_CORE_TRANSFORMS
 #define QUANT_IQUANT_SHIFT    20 // Q(QP%6) * IQ(QP%6) = 2^20
 #define QUANT_SHIFT           14 // Q(4) = 2^14
 #define SCALE_BITS            15 // Inherited from TMuC, pressumably for fractional bit estimates in RDOQ
@@ -107,27 +106,6 @@ extern const short g_aiT4[4][4];
 extern const short g_aiT8[8][8];
 extern const short g_aiT16[16][16];
 extern const short g_aiT32[32][32];
-
-
-
-#endif
-
-// ====================================================================================================================
-// Quantization & DeQuantization
-// ====================================================================================================================
-
-extern       UInt   g_aiQuantCoef4      [6];
-extern       Int    g_aiDequantCoef4    [6];
-extern       UInt   g_aiQuantCoef       [6][16];
-extern       Int    g_aiDequantCoef     [6][16];
-extern       Int    g_aiDequantCoef64   [6][64];
-extern       UInt   g_aiQuantCoef64     [6][64];
-extern       UInt   g_aiQuantCoef256    [6][256];
-extern       UInt   g_aiDeQuantCoef256  [6][256];
-extern       UInt   g_aiQuantCoef1024   [6][1024];
-extern       UInt   g_aiDeQuantCoef1024 [6][1024];
-extern       UInt   g_aiQuantCoef4096   [6];
-extern       UInt   g_aiDeQuantCoef4096 [6];
 
 // ====================================================================================================================
 // Luma QP to Chroma QP mapping
@@ -186,7 +164,6 @@ extern const UInt    g_auiLumaRun8x8[28][29];
 extern const UInt    g_auiLumaRun8x8[29][2][64];
 #endif
 
-#if LCEC_INTRA_MODE
 #if MTK_DCM_MPM
 extern const UInt    g_auiIntraModeTableD17[2][16];
 extern const UInt    g_auiIntraModeTableE17[2][16];
@@ -198,14 +175,9 @@ extern const UInt    g_auiIntraModeTableE17[16];
 extern const UInt    g_auiIntraModeTableD34[33];
 extern const UInt    g_auiIntraModeTableE34[33];
 #endif
-#endif
 
-#if QC_MOD_LCEC
 extern const UInt    g_auiVlcTable8x8Inter[29];
 extern const UInt    g_auiVlcTable8x8Intra[29];
-#else
-extern const UInt    g_auiVlcTable8x8[28];
-#endif
 #if RUNLEVEL_TABLE_CUT 
 extern const UInt    g_acstructLumaRun8x8[28][29];
 #else
@@ -217,14 +189,11 @@ extern const UInt   g_auiVlcTable16x16Intra[29];
 extern const UInt   g_auiVlcTable16x16Inter[29];
 #endif
 
-#if LCEC_INTRA_MODE
 extern const UInt huff17_2[2][17];
 extern const UInt lengthHuff17_2[2][17];
 extern const UInt huff34_2[2][34];
 extern const UInt lengthHuff34_2[2][34];
-#endif
 
-#if QC_MOD_LCEC
 #if CAVLC_COEF_LRG_BLK
 extern const UInt   *g_pLumaRunTr14x4[5]; 
 extern const UInt   *g_pLumaRunTr18x8[5]; 
@@ -232,7 +201,7 @@ extern const UInt   *g_pLumaRunTr18x8[5];
 extern const UInt    g_auiLumaRunTr14x4[5][15];
 extern const UInt    g_auiLumaRunTr18x8[5][29];
 #endif
-#endif
+
 #if CAVLC_RQT_CBP
 extern const UInt    g_auiCBP_YUV_TableE[4][8];
 extern const UInt    g_auiCBP_YUV_TableD[4][8];
@@ -271,18 +240,14 @@ extern const UInt g_auiMI1TableDNoL1[8];
 extern const UInt g_auiMI2TableENoL1[15];
 extern const UInt g_auiMI2TableDNoL1[15];
 
-#if MS_LCEC_ONE_FRAME
 extern const UInt g_auiMI1TableEOnly1Ref[8];
 extern const UInt g_auiMI1TableDOnly1Ref[8];
 extern const UInt g_auiMI1TableEOnly1RefNoL1[8];
 extern const UInt g_auiMI1TableDOnly1RefNoL1[8];
 #endif
-#endif
 
-#if QC_LCEC_INTER_MODE
 extern const UInt g_auiInterModeTableE[4][7];
 extern const UInt g_auiInterModeTableD[4][7];
-#endif
 // ====================================================================================================================
 // ADI table
 // ====================================================================================================================
@@ -296,7 +261,7 @@ extern const UChar  g_aucIntraModeNumFast[7];
 extern const UChar g_aucIntraModeNumAng[7];
 extern const UChar g_aucIntraModeBitsAng[7];
 extern const UChar g_aucAngModeMapping[4][34];
-#if ADD_PLANAR_MODE
+#if ADD_PLANAR_MODE || LM_CHROMA
 extern const UChar g_aucAngIntraModeOrder[NUM_INTRA_MODE];
 #else
 extern const UChar g_aucAngIntraModeOrder[34];
@@ -325,7 +290,7 @@ extern const UChar g_aucConvertTxtTypeToIdx[4];
 // Mode-Dependent DST Matrices
 #if INTRA_DST_TYPE_7
 extern const short g_as_DST_MAT_4 [4][4];
-#if ADD_PLANAR_MODE
+#if ADD_PLANAR_MODE || LM_CHROMA
 extern const UChar g_aucDCTDSTMode_Vert[NUM_INTRA_MODE];
 extern const UChar g_aucDCTDSTMode_Hor[NUM_INTRA_MODE];
 #else
@@ -338,7 +303,6 @@ extern const UChar g_aucDCTDSTMode_Hor[34];
 // ====================================================================================================================
 // Misc.
 // ====================================================================================================================
-#if QC_MOD_LCEC
 __inline UInt xRunLevelInd(Int lev, Int run, Int maxrun, UInt lrg1Pos)
 {
   UInt cn;
@@ -408,7 +372,6 @@ __inline UInt xRunLevelIndInter(Int lev, Int run, Int maxrun)
 
   return(cn);
 }
-#endif
 #endif
 
 
@@ -488,13 +451,9 @@ __inline void xLastLevelIndInv(Int& lev, Int& last_pos, Int N, UInt cx)
 }
 #endif
 
-
-#if CHROMA_CODEWORD_SWITCH 
 extern const UChar ChromaMapping[2][5];
-#endif
 
 #if ADD_PLANAR_MODE
-__inline Void mapPlanartoDC( UChar& curDir ) { curDir = (curDir == PLANAR_IDX) ? 2 : curDir; }
 __inline Void mapPlanartoDC(  UInt& curDir ) { curDir = (curDir == PLANAR_IDX) ? 2 : curDir; }
 __inline Void mapPlanartoDC(   Int& curDir ) { curDir = (curDir == PLANAR_IDX) ? 2 : curDir; }
 #endif

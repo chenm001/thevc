@@ -44,20 +44,64 @@
 // ====================================================================================================================
 
 #if QC_MDIS
+#if ADD_PLANAR_MODE || LM_CHROMA
+const UChar TComPattern::m_aucIntraFilter[5][NUM_INTRA_MODE] =
+#else
 const UChar TComPattern::m_aucIntraFilter[5][34] =
+#endif
 {
 #if MN_MDIS_SIMPLIFICATION
-  {0, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, //4x4
-  {0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, //8x8
-  {0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, //16x16
-  {0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, //32x32
-  {0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, //64x64
+  {0, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+#if ADD_PLANAR_MODE || LM_CHROMA
+    ,0, 0
+#endif
+  }, //4x4
+  {0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+#if ADD_PLANAR_MODE || LM_CHROMA
+    ,0, 0
+#endif
+  }, //8x8
+  {0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+#if ADD_PLANAR_MODE || LM_CHROMA
+    ,0, 0
+#endif
+  }, //16x16
+  {0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1
+#if ADD_PLANAR_MODE || LM_CHROMA
+    ,0, 0
+#endif
+  }, //32x32
+  {0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+#if ADD_PLANAR_MODE || LM_CHROMA
+    ,0, 0
+#endif
+  }, //64x64
 #else
-  {0, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, //4x4
-  {0, 0, 0, 1, 1, 2, 2, 2, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, //8x8
-  {0, 0, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, //16x16
-  {0, 0, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2}, //32x32
-  {0, 0, 0, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, //64x64
+  {0, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+#if ADD_PLANAR_MODE || LM_CHROMA
+    ,0, 0
+#endif
+  }, //4x4
+  {0, 0, 0, 1, 1, 2, 2, 2, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+#if ADD_PLANAR_MODE || LM_CHROMA
+    ,0, 0
+#endif
+}, //8x8
+  {0, 0, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+#if ADD_PLANAR_MODE || LM_CHROMA
+    ,0, 0
+#endif
+  }, //16x16
+  {0, 0, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2
+#if ADD_PLANAR_MODE || LM_CHROMA
+    ,0, 0
+#endif
+  }, //32x32
+  {0, 0, 0, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+#if ADD_PLANAR_MODE || LM_CHROMA
+    ,0, 0
+#endif
+  }, //64x64
 #endif
 };
 #endif
@@ -223,7 +267,6 @@ Void TComPattern::initAdiPattern( TComDataCU* pcCU, UInt uiZorderIdxInPart, UInt
   UInt  uiWidth;
   UInt  uiHeight;
   Int   iPicStride = pcCU->getPic()->getStride();
-  Int   i;
 #if REFERENCE_SAMPLE_PADDING
   Int   iUnitSize = 0;
   Int   iNumUnitsInCu = 0;
@@ -244,7 +287,6 @@ Void TComPattern::initAdiPattern( TComDataCU* pcCU, UInt uiZorderIdxInPart, UInt
   pcCU->deriveLeftRightTopIdxAdi( uiPartIdxLT, uiPartIdxRT, uiZorderIdxInPart, uiPartDepth );
   pcCU->deriveLeftBottomIdxAdi  ( uiPartIdxLB,              uiZorderIdxInPart, uiPartDepth );
   
-#if CONSTRAINED_INTRA_PRED
   if ( pcCU->getSlice()->getPPS()->getConstrainedIntraPred() )
   {
 #if REFERENCE_SAMPLE_PADDING
@@ -295,34 +337,6 @@ Void TComPattern::initAdiPattern( TComDataCU* pcCU, UInt uiZorderIdxInPart, UInt
 #endif
 #endif // REFERENCE_SAMPLE_PADDING
   }
-#else //CONSTRAINED_INTRA_PRED
-#if REFERENCE_SAMPLE_PADDING
-  iUnitSize     = uiCuWidth;
-  iNumUnitsInCu = 1;
-  iTotalUnits   = 5;
-
-  ::memset(bNeighborFlags, false, sizeof(Bool)*iTotalUnits);
-  if( pcCU->getPUAbove        ( uiPartDum,             uiPartIdxLT, true, false ) ) { bNeighborFlags[3] = true; iNumIntraNeighbor++; }
-  if( pcCU->getPUAboveRightAdi( uiPartDum, uiCuWidth,  uiPartIdxRT, true, false ) ) { bNeighborFlags[4] = true; iNumIntraNeighbor++; }
-  if( pcCU->getPULeft         ( uiPartDum,             uiPartIdxLT, true, false ) ) { bNeighborFlags[1] = true; iNumIntraNeighbor++; }
-  if( pcCU->getPUBelowLeftAdi ( uiPartDum, uiCuHeight, uiPartIdxLB, true, false ) ) { bNeighborFlags[0] = true; iNumIntraNeighbor++; }
-  if( pcCU->getPUAboveLeft    ( uiPartDum,             uiPartIdxLT, true, false ) ) { bNeighborFlags[2] = true; iNumIntraNeighbor++; }
-#if MN_DC_PRED_FILTER
-  m_bAboveFlagForDCFilt = bNeighborFlags[3];
-  m_bLeftFlagForDCFilt  = bNeighborFlags[1];
-#endif
-#else // REFERENCE_SAMPLE_PADDING
-  if( pcCU->getPUAbove        ( uiPartDum,             uiPartIdxLT, true, false ) ) bAboveFlag      = true;
-  if( pcCU->getPUAboveRightAdi( uiPartDum, uiCuWidth,  uiPartIdxRT, true, false ) ) bAboveRightFlag = true;
-  if( pcCU->getPULeft         ( uiPartDum,             uiPartIdxLT, true, false ) ) bLeftFlag       = true;
-  if( pcCU->getPUBelowLeftAdi ( uiPartDum, uiCuHeight, uiPartIdxLB, true, false ) ) bBelowLeftFlag  = true;
-  if( pcCU->getPUAboveLeft    ( uiPartDum,             uiPartIdxLT, true, false ) ) bAboveLeftFlag  = true;
-#if MN_DC_PRED_FILTER
-  m_bAboveFlagForDCFilt = bAboveFlag;
-  m_bLeftFlagForDCFilt  = bLeftFlag;
-#endif
-#endif // REFERENCE_SAMPLE_PADDING
-#endif //CONSTRAINED_INTRA_PRED
 
 #if MN_DC_PRED_FILTER
   m_bDCPredFilterFlag = (m_bAboveFlagForDCFilt && m_bLeftFlagForDCFilt) ? true : false;
@@ -424,6 +438,7 @@ Void TComPattern::initAdiPattern( TComDataCU* pcCU, UInt uiZorderIdxInPart, UInt
 #endif // REFERENCE_SAMPLE_PADDING
   
 #if QC_MDIS
+  Int   i;
   // generate filtered intra prediction samples
   Int iBufSize = uiCuHeight2 + uiCuWidth2 + 1;  // left and left above border + above and above right border + top left corner = length of 3. filter buffer
 
@@ -507,7 +522,6 @@ Void TComPattern::initAdiPatternChroma( TComDataCU* pcCU, UInt uiZorderIdxInPart
   pcCU->deriveLeftRightTopIdxAdi( uiPartIdxLT, uiPartIdxRT, uiZorderIdxInPart, uiPartDepth );
   pcCU->deriveLeftBottomIdxAdi  ( uiPartIdxLB,              uiZorderIdxInPart, uiPartDepth );
   
-#if CONSTRAINED_INTRA_PRED
   if ( pcCU->getSlice()->getPPS()->getConstrainedIntraPred() )
   {
 #if REFERENCE_SAMPLE_PADDING
@@ -550,26 +564,6 @@ Void TComPattern::initAdiPatternChroma( TComDataCU* pcCU, UInt uiZorderIdxInPart
     if( pcCU->getPUAboveLeft    ( uiPartDum,             uiPartIdxLT,    true, false ) ) bAboveLeftFlag  = true;
 #endif // REFERENCE_SAMPLE_PADDING
   }
-#else //CONSTRAINED_INTRA_PRED
-#if REFERENCE_SAMPLE_PADDING
-  iUnitSize     = uiCuWidth >> 1;
-  iNumUnitsInCu = 1;
-  iTotalUnits   = 5;
-
-  ::memset(bNeighborFlags, false, sizeof(Bool)*iTotalUnits);
-  if( pcCU->getPUAbove        ( uiPartDum,             uiPartIdxLT, true, false ) ) { bNeighborFlags[3] = true; iNumIntraNeighbor++; }
-  if( pcCU->getPUAboveRightAdi( uiPartDum, uiCuWidth,  uiPartIdxRT, true, false ) ) { bNeighborFlags[4] = true; iNumIntraNeighbor++; }
-  if( pcCU->getPULeft         ( uiPartDum,             uiPartIdxLT, true, false ) ) { bNeighborFlags[1] = true; iNumIntraNeighbor++; }
-  if( pcCU->getPUBelowLeftAdi ( uiPartDum, uiCuHeight, uiPartIdxLB, true, false ) ) { bNeighborFlags[0] = true; iNumIntraNeighbor++; }
-  if( pcCU->getPUAboveLeft    ( uiPartDum,             uiPartIdxLT, true, false ) ) { bNeighborFlags[2] = true; iNumIntraNeighbor++; }
-#else // REFERENCE_SAMPLE_PADDING
-  if( pcCU->getPUAbove        ( uiPartDum,             uiPartIdxLT, true, false ) ) bAboveFlag      = true;
-  if( pcCU->getPUAboveRightAdi( uiPartDum, uiCuWidth,  uiPartIdxRT, true, false ) ) bAboveRightFlag = true;
-  if( pcCU->getPULeft         ( uiPartDum,             uiPartIdxLT, true, false ) ) bLeftFlag       = true;
-  if( pcCU->getPUBelowLeftAdi ( uiPartDum, uiCuHeight, uiPartIdxLB, true, false ) ) bBelowLeftFlag  = true;
-  if( pcCU->getPUAboveLeft    ( uiPartDum,             uiPartIdxLT, true, false ) ) bAboveLeftFlag  = true;
-#endif // REFERENCE_SAMPLE_PADDING
-#endif //CONSTRAINED_INTRA_PRED
   
 #if REFERENCE_SAMPLE_PADDING
   bAbove = true;
@@ -1140,9 +1134,6 @@ Int* TComPattern::getAdiCrBuf(Int iCuWidth,Int iCuHeight, Int* piAdiBuf)
 Int* TComPattern::getPredictorPtr( UInt uiDirMode, UInt log2BlkSize, Int* piAdiBuf )
 {
   Int* piSrc;
-#if ADD_PLANAR_MODE
-  mapPlanartoDC( uiDirMode );
-#endif
   assert(log2BlkSize >= 2 && log2BlkSize < 7);
   UChar ucFiltIdx = m_aucIntraFilter[log2BlkSize - 2][uiDirMode];
 
@@ -1170,7 +1161,6 @@ Int* TComPattern::getPredictorPtr( UInt uiDirMode, UInt log2BlkSize, Int* piAdiB
 }
 #endif //QC_MDIS
 
-#if CONSTRAINED_INTRA_PRED
 Bool TComPattern::isAboveLeftAvailableForCIP( TComDataCU* pcCU, UInt uiPartIdxLT )
 {
   Bool bAboveLeftFlag;
@@ -1382,4 +1372,3 @@ Bool TComPattern::isBelowLeftAvailableForCIP( TComDataCU* pcCU, UInt uiPartIdxLT
   return bBelowLeftFlag;
 #endif
 }
-#endif //CONSTRAINED_INTRA_PRED

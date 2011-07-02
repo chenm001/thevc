@@ -421,22 +421,15 @@ Void TEncSbac::codePartSize( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
   if ( pcCU->getSlice()->isInterB() && pcCU->isIntra( uiAbsPartIdx ) )
   {
     m_pcBinIf->encodeBin( 0, m_cCUPartSizeSCModel.get( 0, 0, 0) );
-#if HHI_RMP_SWITCH
-    if( pcCU->getSlice()->getSPS()->getUseRMP() )
-#endif
     {
       m_pcBinIf->encodeBin( 0, m_cCUPartSizeSCModel.get( 0, 0, 1) );
       m_pcBinIf->encodeBin( 0, m_cCUPartSizeSCModel.get( 0, 0, 2) );
     }
-#if HHI_DISABLE_INTER_NxN_SPLIT
     if( uiDepth == g_uiMaxCUDepth - g_uiAddCUDepth )
-#endif
     {
       m_pcBinIf->encodeBin( 0, m_cCUPartSizeSCModel.get( 0, 0, 3) );
     }
-#if MTK_DISABLE_INTRA_NxN_SPLIT
     if( uiDepth == g_uiMaxCUDepth - g_uiAddCUDepth )
-#endif
     {
       m_pcBinIf->encodeBin( (eSize == SIZE_2Nx2N? 0 : 1), m_cCUPartSizeSCModel.get( 0, 0, 4) );
     }
@@ -445,9 +438,7 @@ Void TEncSbac::codePartSize( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
   
   if ( pcCU->isIntra( uiAbsPartIdx ) )
   {
-#if MTK_DISABLE_INTRA_NxN_SPLIT
     if( uiDepth == g_uiMaxCUDepth - g_uiAddCUDepth )
-#endif
     {
       m_pcBinIf->encodeBin( eSize == SIZE_2Nx2N? 1 : 0, m_cCUPartSizeSCModel.get( 0, 0, 0 ) );
     }
@@ -478,14 +469,9 @@ Void TEncSbac::codePartSize( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
     }
     case SIZE_NxN:
     {
-#if HHI_DISABLE_INTER_NxN_SPLIT
       if( uiDepth == g_uiMaxCUDepth - g_uiAddCUDepth )
-#endif
       {
         m_pcBinIf->encodeBin( 0, m_cCUPartSizeSCModel.get( 0, 0, 0) );
-#if HHI_RMP_SWITCH
-        if( pcCU->getSlice()->getSPS()->getUseRMP() )
-#endif
         {
           m_pcBinIf->encodeBin( 0, m_cCUPartSizeSCModel.get( 0, 0, 1) );
           m_pcBinIf->encodeBin( 0, m_cCUPartSizeSCModel.get( 0, 0, 2) );
@@ -906,7 +892,6 @@ Void TEncSbac::codeIntraDirChroma( TComDataCU* pcCU, UInt uiAbsPartIdx )
   }
 #endif
  
-#if CHROMA_CODEWORD
   UInt uiMode = pcCU->getLumaIntraDir(uiAbsPartIdx);
 #if ADD_PLANAR_MODE
   if ( (uiMode == 2 ) || (uiMode == PLANAR_IDX) )
@@ -928,7 +913,7 @@ Void TEncSbac::codeIntraDirChroma( TComDataCU* pcCU, UInt uiAbsPartIdx )
   {
     uiIntraDirChroma = 0;
   } 
-  else if (uiIntraDirChroma == 3 && bUseLMFlag )
+  else if (uiIntraDirChroma == LM_CHROMA_IDX )
   {
     uiIntraDirChroma = 1;
   }
@@ -940,10 +925,7 @@ Void TEncSbac::codeIntraDirChroma( TComDataCU* pcCU, UInt uiAbsPartIdx )
     if (bUseLMFlag)
       uiIntraDirChroma++;
 
-#if CHROMA_CODEWORD_SWITCH 
     uiIntraDirChroma = ChromaMapping[iMax-2][uiIntraDirChroma];
-#endif
-
   }
 
 
@@ -955,7 +937,6 @@ Void TEncSbac::codeIntraDirChroma( TComDataCU* pcCU, UInt uiAbsPartIdx )
   {
     uiIntraDirChroma = 0;
   } 
-#if CHROMA_CODEWORD_SWITCH 
   else
   {
     if (uiIntraDirChroma < uiMode)
@@ -964,12 +945,6 @@ Void TEncSbac::codeIntraDirChroma( TComDataCU* pcCU, UInt uiAbsPartIdx )
     }
     uiIntraDirChroma = ChromaMapping[iMax-2][uiIntraDirChroma];
   }
-#else
-  else if (uiIntraDirChroma < uiMode)
-  {
-    uiIntraDirChroma++;
-  }
-#endif
 #endif // <-- LM_CHROMA
   
   if ( 0 == uiIntraDirChroma )
@@ -981,28 +956,13 @@ Void TEncSbac::codeIntraDirChroma( TComDataCU* pcCU, UInt uiAbsPartIdx )
     m_pcBinIf->encodeBin( 1, m_cCUChromaPredSCModel.get( 0, 0, uiCtx ) );
     xWriteUnaryMaxSymbol( uiIntraDirChroma - 1, m_cCUChromaPredSCModel.get( 0, 0 ) + 3, 0, iMax );
   }
-#else // CHROMA_CODEWORD
-  if ( 0 == uiIntraDirChroma )
-  {
-    m_pcBinIf->encodeBin( 0, m_cCUChromaPredSCModel.get( 0, 0, uiCtx ) );
-  }
-  else
-  {
-    m_pcBinIf->encodeBin( 1, m_cCUChromaPredSCModel.get( 0, 0, uiCtx ) );
-    xWriteUnaryMaxSymbol( uiIntraDirChroma - 1, m_cCUChromaPredSCModel.get( 0, 0 ) + 3, 0, 3 );
-  }
-#endif
 
 #if ADD_PLANAR_MODE
   uiIntraDirChroma = pcCU->getChromaIntraDir( uiAbsPartIdx );
-#if CHROMA_CODEWORD
   uiMode = pcCU->getLumaIntraDir(uiAbsPartIdx);
   mapPlanartoDC( uiIntraDirChroma );
   mapPlanartoDC( uiMode );
   if ( (uiIntraDirChroma == 2) && (uiMode != 2) )
-#else
-  if ( (uiIntraDirChroma == PLANAR_IDX) || (uiIntraDirChroma == 2) )
-#endif
   {
     m_pcBinIf->encodeBin( planarFlag, m_cPlanarFlagSCModel.get(0,0,1) );
   }
@@ -1023,11 +983,7 @@ Void TEncSbac::codeInterDir( TComDataCU* pcCU, UInt uiAbsPartIdx )
     return;
   }
   
-#if DCM_COMB_LIST
   if ( uiInterDir < 2 && pcCU->getSlice()->getNumRefIdx(REF_PIC_LIST_C) <= 0)
-#else
-  if ( uiInterDir < 2 )
-#endif
   {
     m_pcBinIf->encodeBin( uiInterDir, m_cCUInterDirSCModel.get( 0, 0, 3 ) );
   }
@@ -1037,7 +993,6 @@ Void TEncSbac::codeInterDir( TComDataCU* pcCU, UInt uiAbsPartIdx )
 
 Void TEncSbac::codeRefFrmIdx( TComDataCU* pcCU, UInt uiAbsPartIdx, RefPicList eRefList )
 {
-#if DCM_COMB_LIST
   if ( pcCU->getSlice()->getNumRefIdx(REF_PIC_LIST_C) > 0 && pcCU->getInterDir( uiAbsPartIdx ) != 3)
   {
     Int iRefFrame = pcCU->getSlice()->getRefIdxOfLC(eRefList, pcCU->getCUMvField( eRefList )->getRefIdx( uiAbsPartIdx ));
@@ -1054,20 +1009,17 @@ Void TEncSbac::codeRefFrmIdx( TComDataCU* pcCU, UInt uiAbsPartIdx, RefPicList eR
   }
   else
   {
-#endif
-  Int iRefFrame = pcCU->getCUMvField( eRefList )->getRefIdx( uiAbsPartIdx );
-  
-  UInt uiCtx = pcCU->getCtxRefIdx( uiAbsPartIdx, eRefList );
-  
-  m_pcBinIf->encodeBin( ( iRefFrame == 0 ? 0 : 1 ), m_cCURefPicSCModel.get( 0, 0, uiCtx ) );
-  
-  if ( iRefFrame > 0 )
-  {
-    xWriteUnaryMaxSymbol( iRefFrame - 1, &m_cCURefPicSCModel.get( 0, 0, 4 ), 1, pcCU->getSlice()->getNumRefIdx( eRefList )-2 );
+    Int iRefFrame = pcCU->getCUMvField( eRefList )->getRefIdx( uiAbsPartIdx );
+    
+    UInt uiCtx = pcCU->getCtxRefIdx( uiAbsPartIdx, eRefList );
+    
+    m_pcBinIf->encodeBin( ( iRefFrame == 0 ? 0 : 1 ), m_cCURefPicSCModel.get( 0, 0, uiCtx ) );
+    
+    if ( iRefFrame > 0 )
+    {
+      xWriteUnaryMaxSymbol( iRefFrame - 1, &m_cCURefPicSCModel.get( 0, 0, 4 ), 1, pcCU->getSlice()->getNumRefIdx( eRefList )-2 );
+    }
   }
-#if DCM_COMB_LIST
-  }
-#endif
   return;
 }
 
@@ -1277,11 +1229,13 @@ __inline Void TEncSbac::codeLastSignificantXY( UInt uiPosX, UInt uiPosY, const U
   UInt  uiCtxLast;
   const UInt uiCtxOffset = g_uiCtxXYOffset[uiCTXIdx];
 
+#if QC_MDCS
   if( uiScanIdx == SCAN_VER )
   {
     swap( uiPosX, uiPosY );
   }
-
+#endif
+  
   for(uiCtxLast=0; uiCtxLast<uiPosX; uiCtxLast++)
   {
     m_pcBinIf->encodeBin( 0, m_cCuCtxLastX.get( 0, eTType, uiCtxOffset + g_uiCtxXY[uiCtxLast] ) );
@@ -1391,7 +1345,11 @@ Void TEncSbac::codeCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx
         uiNumSig--;
         if( uiNumSig == 0 )
         {
+#if QC_MDCS
           codeLastSignificantXY(uiPosLastX, uiPosLastY, uiWidth, eTType, uiCTXIdx, uiScanIdx);
+#else
+          codeLastSignificantXY(uiPosLastX, uiPosLastY, uiWidth, eTType, uiCTXIdx, 0);
+#endif
           uiScanPosLast = uiScanPos;
           break;
         }
@@ -1724,7 +1682,6 @@ Void TEncSbac::codeAlfFlag       ( UInt uiCode )
   m_pcBinIf->encodeBin( uiSymbol, m_cALFFlagSCModel.get( 0, 0, 0 ) );
 }
 
-#if TSB_ALF_HEADER
 #if MTK_NONCROSS_INLOOP_FILTER
 /** Code number of ALF CU control flags
  * \param uiCode number of ALF CU control flags
@@ -1766,7 +1723,6 @@ Void TEncSbac::codeAlfCtrlFlag( UInt uiSymbol )
 {
   m_pcBinIf->encodeBin( uiSymbol, m_cCUAlfCtrlFlagSCModel.get( 0, 0, 0) );
 }
-#endif
 
 Void TEncSbac::codeAlfUvlc       ( UInt uiCode )
 {
