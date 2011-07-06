@@ -107,10 +107,10 @@ Void TEncBinCABAC::encodePCMAlignBits()
   if( 8 - m_uiBitsLeft != 0 )
   {
     m_pcTComBitIf->write  ( m_uiByte, 8 - m_uiBitsLeft );
-    m_pcTComBitIf->writeAlignZero(); // pcm align zero
-    m_uiBitsLeft  = 8;
-    m_uiByte      = 0;
   }
+  m_pcTComBitIf->writeAlignZero(); // pcm align zero
+  m_uiBitsLeft  = 8;
+  m_uiByte      = 0;
 }
 
 /** Write a PCM code.
