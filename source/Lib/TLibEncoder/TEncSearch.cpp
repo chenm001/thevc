@@ -2529,14 +2529,17 @@ Void TEncSearch::predInterSearch( TComDataCU* pcCU, TComYuv* pcOrgYuv, TComYuv*&
               if ( pcCU->getSlice()->getNoBackPredFlag() || pcCU->getSlice()->getSPS()->getUseLDC() )
               {
                 cMvTemp[1][iRefIdxTemp] = cMvTemp[0][iRefIdxTemp];
+                uiCostTemp = uiCostTempL0[iRefIdxTemp];
+                /*first subtract the bit-rate part of the cost of the other list*/
+                uiCostTemp -= m_pcRdCost->getCost( uiBitsTempL0[iRefIdxTemp] );
               }
               else
               {
                 cMvTemp[1][iRefIdxTemp] = cMvTemp[0][pcCU->getSlice()->getRefIdxOfL0FromRefIdxOfL1(iRefIdxTemp)]; 
+                uiCostTemp = uiCostTempL0[pcCU->getSlice()->getRefIdxOfL0FromRefIdxOfL1(iRefIdxTemp)];
+                /*first subtract the bit-rate part of the cost of the other list*/
+                uiCostTemp -= m_pcRdCost->getCost( uiBitsTempL0[pcCU->getSlice()->getRefIdxOfL0FromRefIdxOfL1(iRefIdxTemp)] );
               }
-              uiCostTemp = uiCostTempL0[pcCU->getSlice()->getRefIdxOfL0FromRefIdxOfL1(iRefIdxTemp)];
-              /*first subtract the bit-rate part of the cost of the other list*/
-              uiCostTemp -= m_pcRdCost->getCost( uiBitsTempL0[pcCU->getSlice()->getRefIdxOfL0FromRefIdxOfL1(iRefIdxTemp)] );
               /*correct the bit-rate part of the current ref*/
               m_pcRdCost->setPredictor  ( cMvPred[iRefList][iRefIdxTemp] );
               uiBitsTemp += m_pcRdCost->getBits( cMvTemp[1][iRefIdxTemp].getHor(), cMvTemp[1][iRefIdxTemp].getVer() );
