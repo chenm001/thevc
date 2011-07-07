@@ -5061,12 +5061,21 @@ Void TEncAdaptiveLoopFilter::transferCtrlFlagsToAlfParam(UInt& ruiNumFlags, UInt
 #if MTK_SAO
 inline Double xRoundIbdi2(Double x)
 {
+#if FULL_NBIT
+  Int bitDepthMinus8 = g_uiBitDepth - 8;
+  return ((x)>0) ? (Int)(((Int)(x)+(1<<(bitDepthMinus8-1)))/(1<<bitDepthMinus8)) : ((Int)(((Int)(x)-(1<<(bitDepthMinus8-1)))/(1<<bitDepthMinus8)));
+#else
   return ((x)>0) ? (Int)(((Int)(x)+(1<<(g_uiBitIncrement-1)))/(1<<g_uiBitIncrement)) : ((Int)(((Int)(x)-(1<<(g_uiBitIncrement-1)))/(1<<g_uiBitIncrement)));
+#endif
 }
 
 inline Double xRoundIbdi(Double x)
 {
+#if FULL_NBIT
+  return (g_uiBitDepth > 8 ? xRoundIbdi2((x)) : ((x)>=0 ? ((Int)((x)+0.5)) : ((Int)((x)-0.5)))) ;
+#else
   return (g_uiBitIncrement >0 ? xRoundIbdi2((x)) : ((x)>=0 ? ((Int)((x)+0.5)) : ((Int)((x)-0.5)))) ;
+#endif
 }
 
 /** run QAO One Part.
@@ -5126,7 +5135,11 @@ Void TEncSampleAdaptiveOffset::xQAOOnePart(SAOQTPart* pQAOOnePart, Int iPartIdx)
         }
 
         iCount     =  m_iCount [iPartIdx][iTypeIdx][iClassIdx];
+#if FULL_NBIT
+        iOffset    =  m_iOffset[iPartIdx][iTypeIdx][iClassIdx] << (g_uiBitDepth-8-m_uiAoBitDepth);
+#else
         iOffset    =  m_iOffset[iPartIdx][iTypeIdx][iClassIdx] << (g_uiBitIncrement-m_uiAoBitDepth);
+#endif
         iOffsetOrg =  m_iOffsetOrg[iPartIdx][iTypeIdx][iClassIdx];
         iEstDist   += (( iCount*iOffset*iOffset-iOffsetOrg*iOffset*2 ) >> uiShift);
         m_pcEntropyCoder->m_pcEntropyCoderIf->codeAoSvlc((Int)m_iOffset[iPartIdx][iTypeIdx][iClassIdx]);
@@ -6072,7 +6085,11 @@ Void TEncSampleAdaptiveOffset::SAOProcess( Double dLambda)
   m_dLambdaLuma    = dLambda;
   m_dLambdaChroma  = dLambda;
 
+#if FULL_NBIT
+  if (g_uiBitDepth>9)
+#else
   if (g_uiBitIncrement>1)
+#endif
   {
     m_uiAoBitDepth = 1;
   }
