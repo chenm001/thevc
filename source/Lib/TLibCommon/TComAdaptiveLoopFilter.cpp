@@ -2759,7 +2759,7 @@ Void CAlfLCU::setSGUBorderAvailability(UInt uiNumLCUInPicWidth, UInt uiNumLCUInP
       }
       else if(bLCUTBoundary)
       {
-        zRefSU       = g_auiRasterToZscan[ rTRefSU+ 1];
+        zRefSU       = g_auiRasterToZscan[ rTRefSU+ uiWidthSU];
         piRefMapLCU  = piTRefMapLCU;
       }
       else if(bLCURBoundary)
@@ -2769,7 +2769,7 @@ Void CAlfLCU::setSGUBorderAvailability(UInt uiNumLCUInPicWidth, UInt uiNumLCUInP
       }
       else //inside LCU
       {
-        zRefSU       = g_auiRasterToZscan[ rTLSU - uiNumSUInLCUWidth +1];
+        zRefSU       = g_auiRasterToZscan[ rTLSU - uiNumSUInLCUWidth +uiWidthSU];
         piRefMapLCU  = piSliceIDMapLCU;
       }
       piRefID = piRefMapLCU + zRefSU;
