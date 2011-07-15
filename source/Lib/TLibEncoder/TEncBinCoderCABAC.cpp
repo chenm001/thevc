@@ -160,7 +160,7 @@ Void
 TEncBinCABAC::encodeBin( UInt uiBin, ContextModel &rcCtxModel )
 {
   {
-    DTRACE_CABAC_V( g_nSymbolCounter++ )
+    DTRACE_CABAC_VL( g_nSymbolCounter++ )
     DTRACE_CABAC_T( "\tstate=" )
     DTRACE_CABAC_V( ( rcCtxModel.getState() << 1 ) + rcCtxModel.getMps() )
     DTRACE_CABAC_T( "\tsymbol=" )
@@ -208,7 +208,7 @@ Void
 TEncBinCABAC::encodeBinEP( UInt uiBin )
 {
   {
-    DTRACE_CABAC_V( g_nSymbolCounter++ )
+    DTRACE_CABAC_VL( g_nSymbolCounter++ )
     DTRACE_CABAC_T( "\tEPsymbol=" )
     DTRACE_CABAC_V( uiBin )
     DTRACE_CABAC_T( "\n" )

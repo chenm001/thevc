@@ -756,32 +756,56 @@ Void TComSlice::decodingTLayerSwitchingMarking( TComList<TComPic*>& rcListPic )
 // ------------------------------------------------------------------------------------------------
 
 TComSPS::TComSPS()
+: m_SPSId                     (  0)
+, m_ProfileIdc                (  0)
+, m_LevelIdc                  (  0)
+, m_uiMaxTLayers              (  1)
+// Structure
+, m_uiWidth                   (352)
+, m_uiHeight                  (288)
+, m_uiMaxCUWidth              ( 32)
+, m_uiMaxCUHeight             ( 32)
+, m_uiMaxCUDepth              (  3)
+, m_uiMinTrDepth              (  0)
+, m_uiMaxTrDepth              (  1)
+, m_uiQuadtreeTULog2MaxSize   (  0)
+, m_uiQuadtreeTULog2MinSize   (  0)
+, m_uiQuadtreeTUMaxDepthInter (  0)
+, m_uiQuadtreeTUMaxDepthIntra (  0)
+// Tool list
+#if E057_INTRA_PCM
+, m_uiPCMLog2MinSize          (  7)
+#endif
+, m_bUseALF                   (false)
+, m_bUseDQP                   (false)
+, m_bUseLDC                   (false)
+, m_bUsePAD                   (false)
+, m_bUseMRG                   (false)
+#if LM_CHROMA 
+, m_bUseLMChroma              (false)
+#endif
+, m_bUseLComb                 (false)
+, m_bLCMod                    (false)
+, m_uiBitDepth                (  8)
+, m_uiBitIncrement            (  0)
+#if E057_INTRA_PCM && E192_SPS_PCM_BIT_DEPTH_SYNTAX
+, m_uiPCMBitDepthLuma         (  8)
+, m_uiPCMBitDepthChroma       (  8)
+#endif
+#if E057_INTRA_PCM && E192_SPS_PCM_FILTER_DISABLE_SYNTAX
+, m_bPCMFilterDisableFlag     (false)
+#endif
+, m_uiMaxTrSize               ( 32)
+#if MTK_NONCROSS_INLOOP_FILTER
+, m_bLFCrossSliceBoundaryFlag (false)
+#endif
+#if MTK_SAO
+, m_bUseSAO                   (false) 
+#endif
+, m_bTemporalIdNestingFlag    (false)
 {
-  // Structure
-  m_uiWidth       = 352;
-  m_uiHeight      = 288;
-  m_uiMaxCUWidth  = 32;
-  m_uiMaxCUHeight = 32;
-  m_uiMaxCUDepth  = 3;
-  m_uiMinTrDepth  = 0;
-  m_uiMaxTrDepth  = 1;
-  m_uiMaxTrSize   = 32;
-  
-  // Tool list
-  m_bUseALF       = false;
-  m_bUseDQP       = false;
-  
-  m_bUseMRG      = false; // SOPH:
-  
   // AMVP parameter
   ::memset( m_aeAMVPMode, 0, sizeof( m_aeAMVPMode ) );
-
-  m_uiMaxTLayers            = 1;
-  m_bTemporalIdNestingFlag  = false;
-
-#if E057_INTRA_PCM
-  m_uiPCMLog2MinSize = 7;
-#endif
 }
 
 TComSPS::~TComSPS()
@@ -789,18 +813,25 @@ TComSPS::~TComSPS()
 }
 
 TComPPS::TComPPS()
+: m_PPSId                       (0)
+, m_bConstrainedIntraPred       (false)
+#if SUB_LCU_DQP
+, m_pcSPS                       (NULL)
+, m_uiMaxCuDQPDepth             (0)
+, m_uiMinCuDQPSize              (0)
+#endif
+, m_uiNumTlayerSwitchingFlags   (0)
+#if FINE_GRANULARITY_SLICES
+, m_iSliceGranularity           (0)
+#endif
+#if E045_SLICE_COMMON_INFO_SHARING
+, m_bSharedPPSInfoEnabled       (false)
+#endif
 {
-  m_bConstrainedIntraPred = false;
-
-  m_uiNumTlayerSwitchingFlags = 0;
   for ( UInt i = 0; i < MAX_TLAYER; i++ )
   {
     m_abTLayerSwitchingFlag[i] = false;
   }
-#if E045_SLICE_COMMON_INFO_SHARING
-  m_bSharedPPSInfoEnabled = false;
-#endif
-
 }
 
 TComPPS::~TComPPS()

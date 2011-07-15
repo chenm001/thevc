@@ -52,6 +52,10 @@ class TComPic;
 class TComSPS
 {
 private:
+  Int         m_SPSId;
+  Int         m_ProfileIdc;
+  Int         m_LevelIdc;
+
   UInt        m_uiMaxTLayers;           // maximum number of temporal layers
 
   // Structure
@@ -115,6 +119,13 @@ private:
 public:
   TComSPS();
   virtual ~TComSPS();
+
+  Int  getSPSId       ()         { return m_SPSId;          }
+  Void setSPSId       (Int i)    { m_SPSId = i;             }
+  Int  getProfileIdc  ()         { return m_ProfileIdc;     }
+  Void setProfileIdc  (Int i)    { m_ProfileIdc = i;        }
+  Int  getLevelIdc    ()         { return m_LevelIdc;       }
+  Void setLevelIdc    (Int i)    { m_LevelIdc = i;          }
   
   // structure
   Void setWidth       ( UInt u ) { m_uiWidth = u;           }
@@ -219,7 +230,9 @@ public:
 class TComPPS
 {
 private:
-  Bool        m_bConstrainedIntraPred;    //  constrained_intra_pred_flag
+  Int         m_PPSId;                    // pic_parameter_set_id
+  Int         m_SPSId;                    // seq_parameter_set_id
+  Bool        m_bConstrainedIntraPred;    // constrained_intra_pred_flag
  
 #if SUB_LCU_DQP
   // access channel
@@ -243,6 +256,11 @@ private:
 public:
   TComPPS();
   virtual ~TComPPS();
+  
+  Int       getPPSId ()      { return m_PPSId; }
+  Void      setPPSId (Int i) { m_PPSId = i; }
+  Int       getSPSId ()      { return m_SPSId; }
+  Void      setSPSId (Int i) { m_SPSId = i; }
   
 #if FINE_GRANULARITY_SLICES
   Int       getSliceGranularity()        { return m_iSliceGranularity; }

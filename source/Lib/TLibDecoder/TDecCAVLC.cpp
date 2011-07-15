@@ -38,6 +38,62 @@
 #include "TDecCAVLC.h"
 #include "SEIread.h"
 
+#if ENC_DEC_TRACE
+
+#define READ_CODE(size, code, name)     xReadCodeTr ( size, code, name )
+#define READ_UVLC(      code, name)     xReadUvlcTr (       code, name )
+#define READ_SVLC(      code, name)     xReadSvlcTr (       code, name )
+#define READ_FLAG(      code, name)     xReadFlagTr (       code, name )
+
+Void  xTraceSPSHeader (TComSPS *pSPS)
+{
+  fprintf( g_hTrace, "=========== Sequence Parameter Set ID: %d ===========\n", pSPS->getSPSId() );
+}
+
+Void  xTracePPSHeader (TComPPS *pPPS)
+{
+  fprintf( g_hTrace, "=========== Picture Parameter Set ID: %d ===========\n", pPPS->getPPSId() );
+}
+
+Void  TDecCavlc::xReadCodeTr           (UInt length, UInt& rValue, const Char *pSymbolName)
+{
+  xReadCode (length, rValue);
+  fprintf( g_hTrace, "%8lld  ", g_nSymbolCounter++ );
+  fprintf( g_hTrace, "%-40s u(%d) : %d\n", pSymbolName, length, rValue ); 
+}
+
+Void  TDecCavlc::xReadUvlcTr           (UInt& rValue, const Char *pSymbolName)
+{
+  xReadUvlc (rValue);
+  fprintf( g_hTrace, "%8lld  ", g_nSymbolCounter++ );
+  fprintf( g_hTrace, "%-40s u(v) : %d\n", pSymbolName, rValue ); 
+}
+
+Void  TDecCavlc::xReadSvlcTr           (Int& rValue, const Char *pSymbolName)
+{
+  xReadSvlc(rValue);
+  fprintf( g_hTrace, "%8lld  ", g_nSymbolCounter++ );
+  fprintf( g_hTrace, "%-40s s(v) : %d\n", pSymbolName, rValue ); 
+}
+
+Void  TDecCavlc::xReadFlagTr           (UInt& rValue, const Char *pSymbolName)
+{
+  xReadFlag(rValue);
+  fprintf( g_hTrace, "%8lld  ", g_nSymbolCounter++ );
+  fprintf( g_hTrace, "%-40s u(1) : %d\n", pSymbolName, rValue ); 
+}
+
+#else
+
+#define READ_CODE(size, code, name)     xReadCode ( size, code )
+#define READ_UVLC(      code, name)     xReadUvlc (       code )
+#define READ_SVLC(      code, name)     xReadSvlc (       code )
+#define READ_FLAG(      code, name)     xReadFlag (       code )
+
+#endif
+
+
+
 // ====================================================================================================================
 // Constructor / destructor / create / destroy
 // ====================================================================================================================
@@ -78,25 +134,37 @@ void TDecCavlc::parseSEI(SEImessages& seis)
 
 Void TDecCavlc::parsePPS(TComPPS* pcPPS)
 {
-  UInt  uiCode;
-  
-  xReadFlag ( uiCode ); pcPPS->setConstrainedIntraPred( uiCode ? true : false );
-
-#if FINE_GRANULARITY_SLICES
-  xReadCode ( 2, uiCode ); pcPPS->setSliceGranularity(uiCode);
+#if ENC_DEC_TRACE  
+  xTracePPSHeader (pcPPS);
 #endif
-  xReadUvlc( uiCode );    // num_temporal_layer_switching_point_flags
-  pcPPS->setNumTLayerSwitchingFlags( uiCode );
+  UInt  uiCode;
+  READ_UVLC( uiCode, "pic_parameter_set_id");                      pcPPS->setPPSId (uiCode);
+  READ_UVLC( uiCode, "seq_parameter_set_id");                      pcPPS->setSPSId (uiCode);
+  // entropy_coding_mode_flag
+  READ_UVLC( uiCode, "num_temporal_layer_switching_point_flags" ); pcPPS->setNumTLayerSwitchingFlags( uiCode );
   for ( UInt i = 0; i < pcPPS->getNumTLayerSwitchingFlags(); i++ )
   {
-    xReadFlag( uiCode );  // temporal_layer_switching_point_flag
-    pcPPS->setTLayerSwitchingFlag( i, uiCode > 0 ? true : false );
+    READ_FLAG( uiCode, "temporal_layer_switching_point_flag" );    pcPPS->setTLayerSwitchingFlag( i, uiCode > 0 ? true : false );
   }
+  
+  // num_ref_idx_l0_default_active_minus1
+  // num_ref_idx_l1_default_active_minus1
+  // pic_init_qp_minus26  /* relative to 26 */
+  READ_FLAG( uiCode, "constrained_intra_pred_flag" );              pcPPS->setConstrainedIntraPred( uiCode ? true : false );
+#if FINE_GRANULARITY_SLICES
+  READ_CODE( 2, uiCode, "slice_granularity" );                     pcPPS->setSliceGranularity(uiCode);
+#endif
+#if E045_SLICE_COMMON_INFO_SHARING
+  READ_FLAG( uiCode, "shared_pps_info_enabled_flag" );             pcPPS->setSharedPPSInfoEnabled( uiCode ? true : false);
+#endif
+
+  // alf_param() ?
 
 #if SUB_LCU_DQP
   if( pcPPS->getSPS()->getUseDQP() )
   {
-    xReadUvlc(uiCode); pcPPS->setMaxCuDQPDepth(uiCode);
+    READ_UVLC( uiCode, "max_cu_qp_delta_depth");
+    pcPPS->setMaxCuDQPDepth(uiCode);
     pcPPS->setMinCuDQPSize( pcPPS->getSPS()->getMaxCUWidth() >> ( pcPPS->getMaxCuDQPDepth()) );
   }
   else
@@ -106,77 +174,35 @@ Void TDecCavlc::parsePPS(TComPPS* pcPPS)
   }
 #endif
 
-#if E045_SLICE_COMMON_INFO_SHARING
-  xReadFlag( uiCode); pcPPS->setSharedPPSInfoEnabled( uiCode ? true : false);
-#endif
 
   return;
 }
 
 Void TDecCavlc::parseSPS(TComSPS* pcSPS)
 {
+#if ENC_DEC_TRACE  
+  xTraceSPSHeader (pcSPS);
+#endif
+  
   UInt  uiCode;
-  
-  // Structure
-  xReadCode ( 3, uiCode ); // maximum number of temporal layers minus 1
-  pcSPS->setMaxTLayers( uiCode+1 );
 
-  xReadUvlc ( uiCode ); pcSPS->setWidth       ( uiCode    );
-  xReadUvlc ( uiCode ); pcSPS->setHeight      ( uiCode    );
-  xReadUvlc ( uiCode ); pcSPS->setPadX        ( uiCode    );
-  xReadUvlc ( uiCode ); pcSPS->setPadY        ( uiCode    );
-  
-  xReadUvlc ( uiCode ); 
-  pcSPS->setMaxCUWidth  ( uiCode    ); g_uiMaxCUWidth  = uiCode;
-  pcSPS->setMaxCUHeight ( uiCode    ); g_uiMaxCUHeight = uiCode;
-  
-  xReadUvlc ( uiCode ); 
-  pcSPS->setMaxCUDepth  ( uiCode+1  ); g_uiMaxCUDepth  = uiCode + 1;
-  UInt uiMaxCUDepthCorrect = uiCode;
-  
-  xReadUvlc( uiCode ); pcSPS->setQuadtreeTULog2MinSize( uiCode + 2 );
-  xReadUvlc( uiCode ); pcSPS->setQuadtreeTULog2MaxSize( uiCode + pcSPS->getQuadtreeTULog2MinSize() );
-  pcSPS->setMaxTrSize( 1<<(uiCode + pcSPS->getQuadtreeTULog2MinSize()) );  
-  xReadUvlc ( uiCode ); pcSPS->setQuadtreeTUMaxDepthInter( uiCode+1 );
-  xReadUvlc ( uiCode ); pcSPS->setQuadtreeTUMaxDepthIntra( uiCode+1 );
-  g_uiAddCUDepth = 0;
-  while( ( pcSPS->getMaxCUWidth() >> uiMaxCUDepthCorrect ) > ( 1 << ( pcSPS->getQuadtreeTULog2MinSize() + g_uiAddCUDepth )  ) ) g_uiAddCUDepth++;    
-  pcSPS->setMaxCUDepth( uiMaxCUDepthCorrect+g_uiAddCUDepth  ); g_uiMaxCUDepth  = uiMaxCUDepthCorrect+g_uiAddCUDepth;
-  // BB: these parameters may be removed completly and replaced by the fixed values
-  pcSPS->setMinTrDepth( 0 );
-  pcSPS->setMaxTrDepth( 1 );
-  
-#if E057_INTRA_PCM
-  xReadUvlc ( uiCode ); 
-  pcSPS->setPCMLog2MinSize (uiCode+3); 
-#endif
-
-  // Tool on/off
-  xReadFlag( uiCode ); pcSPS->setUseALF ( uiCode ? true : false );
-  xReadFlag( uiCode ); pcSPS->setUseDQP ( uiCode ? true : false );
-  xReadFlag( uiCode ); pcSPS->setUseLDC ( uiCode ? true : false );
-  xReadFlag( uiCode ); pcSPS->setUseMRG ( uiCode ? true : false ); // SOPH:
-  
-#if LM_CHROMA 
-  xReadFlag( uiCode ); pcSPS->setUseLMChroma ( uiCode ? true : false ); 
-#endif
-
-  // AMVP mode for each depth (AM_NONE or AM_EXPL)
-  for (Int i = 0; i < pcSPS->getMaxCUDepth(); i++)
-  {
-    xReadFlag( uiCode );
-    pcSPS->setAMVPMode( i, (AMVP_MODE)uiCode );
-  }
-  
-  // Bit-depth information
+  READ_CODE( 8,  uiCode, "profile_idc" );                        pcSPS->setProfileIdc( uiCode );
+  READ_CODE( 8,  uiCode, "reserved_zero_8bits" );
+  READ_CODE( 8,  uiCode, "level_idc" );                          pcSPS->setLevelIdc( uiCode );
+  READ_UVLC(     uiCode, "seq_parameter_set_id" );               pcSPS->setSPSId( uiCode );
+  READ_CODE( 3,  uiCode, "max_temporal_layers_minus1" );         pcSPS->setMaxTLayers( uiCode+1 );
+  READ_CODE( 16, uiCode, "pic_width_in_luma_samples" );          pcSPS->setWidth       ( uiCode    );
+  READ_CODE( 16, uiCode, "pic_height_in_luma_samples" );         pcSPS->setHeight      ( uiCode    );
+  //READ_UVLC ( uiCode, "pic_width_in_luma_samples" ); pcSPS->setWidth       ( uiCode    );
+  //READ_UVLC ( uiCode, "pic_height_in_luma_samples" ); pcSPS->setHeight      ( uiCode    );
 #if FULL_NBIT
-  xReadUvlc( uiCode );
+  READ_UVLC(     uiCode, "bit_depth_luma_minus8" );
   g_uiBitDepth = 8 + uiCode;
   g_uiBitIncrement = 0;
   pcSPS->setBitDepth(g_uiBitDepth);
   pcSPS->setBitIncrement(g_uiBitIncrement);
 #else
-  xReadUvlc( uiCode );
+  READ_UVLC(     uiCode, "bit_depth_luma_minus8" );
   g_uiBitDepth = 8;
   g_uiBitIncrement = uiCode;
   pcSPS->setBitDepth(g_uiBitDepth);
@@ -190,28 +216,75 @@ Void TDecCavlc::parseSPS(TComSPS* pcSPS)
 #else
   g_uiIBDI_MAX  = ((1<<(g_uiBitDepth+g_uiBitIncrement))-1);
 #endif
-
+  READ_UVLC( uiCode,    "bit_depth_chroma_minus8" );
+#if E057_INTRA_PCM && E192_SPS_PCM_BIT_DEPTH_SYNTAX
+  READ_CODE( 4, uiCode, "pcm_bit_depth_luma_minus1" );           pcSPS->setPCMBitDepthLuma   ( 1 + uiCode );
+  READ_CODE( 4, uiCode, "pcm_bit_depth_chroma_minus1" );         pcSPS->setPCMBitDepthChroma ( 1 + uiCode );
+#endif
+  // log2_max_frame_num_minus4
+  // pic_order_cnt_type
+  // if( pic_order_cnt_type  = =  0 )
+  //   log2_max_pic_order_cnt_lsb_minus4
+  // else if( pic_order_cnt_type  = =  1 ) {
+  //   delta_pic_order_always_zero_flag
+  //   offset_for_non_ref_pic
+  //   num_ref_frames_in_pic_order_cnt_cycle
+  //   for( i = 0; i < num_ref_frames_in_pic_order_cnt_cycle; i++ )
+  //     offset_for_ref_frame[ i ]
+  //  }
+  // max_num_ref_frames
+  // gaps_in_frame_num_value_allowed_flag
+  READ_UVLC( uiCode, "log2_min_coding_block_size_minus3" );
+  UInt log2MinCUSize = uiCode + 3;
+  READ_UVLC( uiCode, "log2_diff_max_min_coding_block_size" );
+  UInt uiMaxCUDepthCorrect = uiCode;
+  pcSPS->setMaxCUWidth  ( 1<<(log2MinCUSize + uiMaxCUDepthCorrect) ); g_uiMaxCUWidth  = 1<<(log2MinCUSize + uiMaxCUDepthCorrect);
+  pcSPS->setMaxCUHeight ( 1<<(log2MinCUSize + uiMaxCUDepthCorrect) ); g_uiMaxCUHeight = 1<<(log2MinCUSize + uiMaxCUDepthCorrect);
+  READ_UVLC( uiCode, "log2_min_transform_block_size_minus2" );   pcSPS->setQuadtreeTULog2MinSize( uiCode + 2 );
+  READ_UVLC( uiCode, "log2_diff_max_min_transform_block_size" ); pcSPS->setQuadtreeTULog2MaxSize( uiCode + pcSPS->getQuadtreeTULog2MinSize() );
+  pcSPS->setMaxTrSize( 1<<(uiCode + pcSPS->getQuadtreeTULog2MinSize()) );
+#if E057_INTRA_PCM
+  READ_UVLC( uiCode, "log2_min_pcm_coding_block_size_minus3" );  pcSPS->setPCMLog2MinSize (uiCode+3); 
+#endif
+  READ_UVLC( uiCode, "max_transform_hierarchy_depth_inter" );    pcSPS->setQuadtreeTUMaxDepthInter( uiCode+1 );
+  READ_UVLC( uiCode, "max_transform_hierarchy_depth_intra" );    pcSPS->setQuadtreeTUMaxDepthIntra( uiCode+1 );
+  g_uiAddCUDepth = 0;
+  while( ( pcSPS->getMaxCUWidth() >> uiMaxCUDepthCorrect ) > ( 1 << ( pcSPS->getQuadtreeTULog2MinSize() + g_uiAddCUDepth )  ) ) g_uiAddCUDepth++;    
+  pcSPS->setMaxCUDepth( uiMaxCUDepthCorrect+g_uiAddCUDepth  ); g_uiMaxCUDepth  = uiMaxCUDepthCorrect+g_uiAddCUDepth;
+  // BB: these parameters may be removed completly and replaced by the fixed values
+  pcSPS->setMinTrDepth( 0 );
+  pcSPS->setMaxTrDepth( 1 );
+#if LM_CHROMA 
+  READ_FLAG( uiCode, "chroma_pred_from_luma_enabled_flag" );     pcSPS->setUseLMChroma ( uiCode ? true : false ); 
+#endif
 #if MTK_NONCROSS_INLOOP_FILTER
-  xReadFlag( uiCode );
-  pcSPS->setLFCrossSliceBoundaryFlag( uiCode ? true : false);
+  READ_FLAG( uiCode, "loop_filter_across_slice_flag" );          pcSPS->setLFCrossSliceBoundaryFlag( uiCode ? true : false);
 #endif
 #if MTK_SAO
-  xReadFlag( uiCode ); pcSPS->setUseSAO       ( uiCode ? true : false );  
+  READ_FLAG( uiCode, "sample_adaptive_offset_enabled_flag" );    pcSPS->setUseSAO       ( uiCode ? true : false );  
 #endif
-
-  xReadFlag( uiCode );  // temporal_id_nesting_flag
-  pcSPS->setTemporalIdNestingFlag ( uiCode > 0 ? true : false );
-
-#if E057_INTRA_PCM && E192_SPS_PCM_BIT_DEPTH_SYNTAX
-  xReadCode ( 4, uiCode );
-  pcSPS->setPCMBitDepthLuma   ( 1 + uiCode );
-  xReadCode ( 4, uiCode );
-  pcSPS->setPCMBitDepthChroma   ( 1 + uiCode );
-#endif
+  READ_FLAG( uiCode, "adaptive_loop_filter_enabled_flag" );      pcSPS->setUseALF ( uiCode ? true : false );
 #if E057_INTRA_PCM && E192_SPS_PCM_FILTER_DISABLE_SYNTAX
-  xReadFlag( uiCode ); 
-  pcSPS->setPCMFilterDisableFlag ( uiCode ? true : false );
+  READ_FLAG( uiCode, "pcm_loop_filter_disable_flag" );           pcSPS->setPCMFilterDisableFlag ( uiCode ? true : false );
 #endif
+  READ_FLAG( uiCode, "cu_qp_delta_enabled_flag" );               pcSPS->setUseDQP ( uiCode ? true : false );
+  READ_FLAG( uiCode, "temporal_id_nesting_flag" );               pcSPS->setTemporalIdNestingFlag ( uiCode > 0 ? true : false );
+
+  // !!!KS: Syntax not in WD !!!
+
+  xReadUvlc ( uiCode ); pcSPS->setPadX        ( uiCode    );
+  xReadUvlc ( uiCode ); pcSPS->setPadY        ( uiCode    );
+
+  xReadFlag( uiCode ); pcSPS->setUseLDC ( uiCode ? true : false );
+  xReadFlag( uiCode ); pcSPS->setUseMRG ( uiCode ? true : false );
+  
+  // AMVP mode for each depth (AM_NONE or AM_EXPL)
+  for (Int i = 0; i < pcSPS->getMaxCUDepth(); i++)
+  {
+    xReadFlag( uiCode );
+    pcSPS->setAMVPMode( i, (AMVP_MODE)uiCode );
+  }
+
   return;
 }
 

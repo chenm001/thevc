@@ -38,6 +38,68 @@
 #include "TEncCavlc.h"
 #include "SEIwrite.h"
 
+
+#if ENC_DEC_TRACE
+
+#define WRITE_CODE(size, code, name)     xWriteCodeTr ( size, code, name )
+#define WRITE_UVLC(      code, name)     xWriteUvlcTr (       code, name )
+#define WRITE_SVLC(      code, name)     xWriteSvlcTr (       code, name )
+#define WRITE_FLAG(      code, name)     xWriteFlagTr (       code, name )
+
+Void  xWriteUvlcTr          ( UInt value,               const Char *pSymbolName);
+Void  xWriteSvlcTr          ( Int  value,               const Char *pSymbolName);
+Void  xWriteFlagTr          ( UInt value,               const Char *pSymbolName);
+
+Void  xTraceSPSHeader (TComSPS *pSPS)
+{
+  fprintf( g_hTrace, "=========== Sequence Parameter Set ID: %d ===========\n", pSPS->getSPSId() );
+}
+
+Void  xTracePPSHeader (TComPPS *pPPS)
+{
+  fprintf( g_hTrace, "=========== Picture Parameter Set ID: %d ===========\n", pPPS->getPPSId() );
+}
+
+
+Void  TEncCavlc::xWriteCodeTr (UInt value, UInt  length, const Char *pSymbolName)
+{
+  xWriteCode (value,length);
+  fprintf( g_hTrace, "%8lld  ", g_nSymbolCounter++ );
+  fprintf( g_hTrace, "%-40s u(%d) : %d\n", pSymbolName, length, value ); 
+}
+
+Void  TEncCavlc::xWriteUvlcTr (UInt value, const Char *pSymbolName)
+{
+  xWriteUvlc (value);
+  fprintf( g_hTrace, "%8lld  ", g_nSymbolCounter++ );
+  fprintf( g_hTrace, "%-40s u(v) : %d\n", pSymbolName, value ); 
+}
+
+Void  TEncCavlc::xWriteSvlcTr (Int value, const Char *pSymbolName)
+{
+  xWriteSvlc(value);
+  fprintf( g_hTrace, "%8lld  ", g_nSymbolCounter++ );
+  fprintf( g_hTrace, "%-40s s(v) : %d\n", pSymbolName, value ); 
+}
+
+Void  TEncCavlc::xWriteFlagTr(UInt value, const Char *pSymbolName)
+{
+  xWriteFlag(value);
+  fprintf( g_hTrace, "%8lld  ", g_nSymbolCounter++ );
+  fprintf( g_hTrace, "%-40s u(1) : %d\n", pSymbolName, value ); 
+}
+
+#else
+
+#define WRITE_CODE(size, code, name)     xWriteCode ( size, code )
+#define WRITE_UVLC(      code, name)     xWriteUvlc (       code )
+#define WRITE_SVLC(      code, name)     xWritevlc (       code )
+#define WRITE_FLAG(      code, name)     xWriteFlag (       code )
+
+#endif
+
+
+
 // ====================================================================================================================
 // Constructor / destructor / create / destroy
 // ====================================================================================================================
@@ -219,97 +281,136 @@ void TEncCavlc::codeSEI(const SEI& sei)
 
 Void TEncCavlc::codePPS( TComPPS* pcPPS )
 {
-  xWriteFlag( pcPPS->getConstrainedIntraPred() ? 1 : 0 );
-
-#if FINE_GRANULARITY_SLICES
-  xWriteCode ( pcPPS->getSliceGranularity(), 2);
+#if ENC_DEC_TRACE  
+  xTracePPSHeader (pcPPS);
 #endif
-
-  xWriteUvlc( pcPPS->getNumTLayerSwitchingFlags() );          // num_temporal_layer_switching_point_flags
+  
+  WRITE_UVLC( pcPPS->getPPSId(),                             "pic_parameter_set_id" );
+  WRITE_UVLC( pcPPS->getSPSId(),                             "seq_parameter_set_id" );
+  // entropy_coding_mode_flag
+  WRITE_UVLC( pcPPS->getNumTLayerSwitchingFlags(),           "num_temporal_layer_switching_point_flags" );
   for( UInt i = 0; i < pcPPS->getNumTLayerSwitchingFlags(); i++ ) 
   {
-    xWriteFlag( pcPPS->getTLayerSwitchingFlag( i ) ? 1 : 0 ); // temporal_layer_switching_point_flag
+    WRITE_FLAG( pcPPS->getTLayerSwitchingFlag( i ) ? 1 : 0 , "temporal_layer_switching_point_flag" ); 
   }
-
+  //   num_ref_idx_l0_default_active_minus1
+  //   num_ref_idx_l1_default_active_minus1
+  //   pic_init_qp_minus26  /* relative to 26 */
+  WRITE_FLAG( pcPPS->getConstrainedIntraPred() ? 1 : 0,      "constrained_intra_pred_flag" );
+#if FINE_GRANULARITY_SLICES
+  WRITE_CODE( pcPPS->getSliceGranularity(), 2,               "slice_granularity");
+#endif
+#if E045_SLICE_COMMON_INFO_SHARING
+  WRITE_FLAG( pcPPS->getSharedPPSInfoEnabled() ? 1: 0,       "shared_pps_info_enabled_flag" );
+#endif
+  //   if( shared_pps_info_enabled_flag )
+  //     if( adaptive_loop_filter_enabled_flag )
+  //       alf_param( )
+  //   if( cu_qp_delta_enabled_flag )
+  //     max_cu_qp_delta_depth
 #if SUB_LCU_DQP
   if( pcPPS->getSPS()->getUseDQP() )
   {
-    xWriteUvlc(pcPPS->getMaxCuDQPDepth());
+    WRITE_UVLC( pcPPS->getMaxCuDQPDepth(),                   "max_cu_qp_delta_depth" );
   }
 #endif
-
-#if E045_SLICE_COMMON_INFO_SHARING
-  xWriteFlag( pcPPS->getSharedPPSInfoEnabled() ? 1: 0);
-#endif
-
   return;
 }
 
 Void TEncCavlc::codeSPS( TComSPS* pcSPS )
 {
-  xWriteCode( pcSPS->getMaxTLayers() - 1, 3 ); // maximum number of temporal layers minus 1
+#if ENC_DEC_TRACE  
+  xTraceSPSHeader (pcSPS);
+#endif
+  WRITE_CODE( pcSPS->getProfileIdc (),     8,       "profile_idc" );
+  WRITE_CODE( 0,                           8,       "reserved_zero_8bits" );
+  WRITE_CODE( pcSPS->getLevelIdc (),       8,       "level_idc" );
+  WRITE_UVLC( pcSPS->getSPSId (),                   "seq_parameter_set_id" );
+  WRITE_CODE( pcSPS->getMaxTLayers() - 1,  3,       "max_temporal_layers_minus1" );
+  WRITE_CODE( pcSPS->getWidth (),         16,       "pic_width_in_luma_samples" );
+//  WRITE_UVLC( pcSPS->getWidth (),                   "pic_width_in_luma_samples" );
+  WRITE_CODE( pcSPS->getHeight(),         16,       "pic_height_in_luma_samples" );
+//  WRITE_UVLC( pcSPS->getHeight(),                   "pic_height_in_luma_samples" );
 
+#if FULL_NBIT
+  WRITE_UVLC( pcSPS->getBitDepth() - 8,             "bit_depth_luma_minus8" );
+#else
+  WRITE_UVLC( pcSPS->getBitIncrement(),             "bit_depth_luma_minus8" );
+#endif
+#if FULL_NBIT
+  WRITE_UVLC( pcSPS->getBitDepth() - 8,             "bit_depth_chroma_minus8" );
+#else
+  WRITE_UVLC( pcSPS->getBitIncrement(),             "bit_depth_chroma_minus8" );
+#endif
+#if E057_INTRA_PCM && E192_SPS_PCM_BIT_DEPTH_SYNTAX
+  WRITE_CODE( pcSPS->getPCMBitDepthLuma() - 1, 4,   "pcm_bit_depth_luma_minus1" );
+  WRITE_CODE( pcSPS->getPCMBitDepthChroma() - 1, 4, "pcm_bit_depth_chroma_minus1" );
+#endif
 
-  // Structure
-  xWriteUvlc  ( pcSPS->getWidth () );
-  xWriteUvlc  ( pcSPS->getHeight() );
+  // log2_max_frame_num_minus4
+  // pic_order_cnt_type
+  // if( pic_order_cnt_type  = =  0 )
+  //   log2_max_pic_order_cnt_lsb_minus4
+  // else if( pic_order_cnt_type  = =  1 ) {
+  //   delta_pic_order_always_zero_flag
+  //   offset_for_non_ref_pic
+  //   num_ref_frames_in_pic_order_cnt_cycle
+  //   for( i = 0; i < num_ref_frames_in_pic_order_cnt_cycle; i++ )
+  //     offset_for_ref_frame[ i ]
+  // }
+  // max_num_ref_frames
+  // gaps_in_frame_num_value_allowed_flag
+  assert( pcSPS->getMaxCUWidth() == pcSPS->getMaxCUHeight() );
+  
+  UInt MinCUSize = pcSPS->getMaxCUWidth() >> ( pcSPS->getMaxCUDepth()-g_uiAddCUDepth );
+  UInt log2MinCUSize = 0;
+  while(MinCUSize > 1)
+  {
+    MinCUSize >>= 1;
+    log2MinCUSize++;
+  }
+  
+  WRITE_UVLC( log2MinCUSize - 3,                                                     "log2_min_coding_block_size_minus3" );
+  WRITE_UVLC( pcSPS->getMaxCUDepth()-g_uiAddCUDepth,                                 "log2_diff_max_min_coding_block_size" );
+  WRITE_UVLC( pcSPS->getQuadtreeTULog2MinSize() - 2,                                 "log2_min_transform_block_size_minus2" );
+  WRITE_UVLC( pcSPS->getQuadtreeTULog2MaxSize() - pcSPS->getQuadtreeTULog2MinSize(), "log2_diff_max_min_transform_block_size" );
+#if E057_INTRA_PCM
+  WRITE_UVLC( pcSPS->getPCMLog2MinSize() - 3,                                        "log2_min_pcm_coding_block_size_minus3" );
+#endif
+  WRITE_UVLC( pcSPS->getQuadtreeTUMaxDepthInter() - 1,                               "max_transform_hierarchy_depth_inter" );
+  WRITE_UVLC( pcSPS->getQuadtreeTUMaxDepthIntra() - 1,                               "max_transform_hierarchy_depth_intra" );
+#if LM_CHROMA
+  WRITE_FLAG  ( (pcSPS->getUseLMChroma ()) ? 1 : 0,                                  "chroma_pred_from_luma_enabled_flag" ); 
+#endif
+#if MTK_NONCROSS_INLOOP_FILTER
+  WRITE_FLAG( pcSPS->getLFCrossSliceBoundaryFlag()?1 : 0,                            "loop_filter_across_slice_flag");
+#endif
+#if MTK_SAO
+  WRITE_FLAG( pcSPS->getUseSAO() ? 1 : 0,                                            "sample_adaptive_offset_enabled_flag");
+#endif
+  WRITE_FLAG( (pcSPS->getUseALF ()) ? 1 : 0,                                         "adaptive_loop_filter_enabled_flag");
+#if E057_INTRA_PCM && E192_SPS_PCM_FILTER_DISABLE_SYNTAX
+  WRITE_FLAG( pcSPS->getPCMFilterDisableFlag()?1 : 0,                                "pcm_loop_filter_disable_flag");
+#endif
+  WRITE_FLAG( (pcSPS->getUseDQP ()) ? 1 : 0,                                         "cu_qp_delta_enabled_flag" );
+  assert( pcSPS->getMaxTLayers() > 0 );         
+
+  WRITE_FLAG( pcSPS->getTemporalIdNestingFlag() ? 1 : 0,                             "temporal_id_nesting_flag" );
+
+  // !!!KS: Syntax not in WD !!!
   
   xWriteUvlc  ( pcSPS->getPad (0) );
   xWriteUvlc  ( pcSPS->getPad (1) );
-  
-  assert( pcSPS->getMaxCUWidth() == pcSPS->getMaxCUHeight() );
-  xWriteUvlc  ( pcSPS->getMaxCUWidth()   );
-  xWriteUvlc  ( pcSPS->getMaxCUDepth()-g_uiAddCUDepth );
-  
-  xWriteUvlc( pcSPS->getQuadtreeTULog2MinSize() - 2 );
-  xWriteUvlc( pcSPS->getQuadtreeTULog2MaxSize() - pcSPS->getQuadtreeTULog2MinSize() );
-  xWriteUvlc( pcSPS->getQuadtreeTUMaxDepthInter() - 1 );
-  xWriteUvlc( pcSPS->getQuadtreeTUMaxDepthIntra() - 1 );
-
-#if E057_INTRA_PCM
-  xWriteUvlc( pcSPS->getPCMLog2MinSize() - 3 );
-#endif
 
   // Tools
-  xWriteFlag  ( (pcSPS->getUseALF ()) ? 1 : 0 );
-  xWriteFlag  ( (pcSPS->getUseDQP ()) ? 1 : 0 );
   xWriteFlag  ( (pcSPS->getUseLDC ()) ? 1 : 0 );
   xWriteFlag  ( (pcSPS->getUseMRG ()) ? 1 : 0 ); // SOPH:
   
-#if LM_CHROMA
-  xWriteFlag  ( (pcSPS->getUseLMChroma ()) ? 1 : 0 ); 
-#endif
-
   // AMVP mode for each depth
   for (Int i = 0; i < pcSPS->getMaxCUDepth(); i++)
   {
     xWriteFlag( pcSPS->getAMVPMode(i) ? 1 : 0);
   }
-  
-  // Bit-depth information
-#if FULL_NBIT
-  xWriteUvlc( pcSPS->getBitDepth() - 8 );
-#else
-  xWriteUvlc( pcSPS->getBitIncrement() );
-#endif
-
-#if MTK_NONCROSS_INLOOP_FILTER
-  xWriteFlag( pcSPS->getLFCrossSliceBoundaryFlag()?1 : 0);
-#endif
-#if MTK_SAO
-  xWriteFlag( pcSPS->getUseSAO() ? 1 : 0);
-#endif
-
-  assert( pcSPS->getMaxTLayers() > 0 );         
-
-  xWriteFlag( pcSPS->getTemporalIdNestingFlag() ? 1 : 0 );  // temporal_id_nesting_flag
-#if E057_INTRA_PCM && E192_SPS_PCM_BIT_DEPTH_SYNTAX
-  xWriteCode( pcSPS->getPCMBitDepthLuma() - 1, 4);
-  xWriteCode( pcSPS->getPCMBitDepthChroma() - 1, 4);
-#endif
-#if E057_INTRA_PCM && E192_SPS_PCM_FILTER_DISABLE_SYNTAX
-  xWriteFlag( pcSPS->getPCMFilterDisableFlag()?1 : 0);
-#endif
 }
 
 Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )

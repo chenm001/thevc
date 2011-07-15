@@ -958,7 +958,7 @@ Void TDecEntropy::xDecodeTransformSubdiv( TComDataCU* pcCU, UInt uiAbsPartIdx, U
       pcCU->setTrIdxSubParts( uiTrDepth, uiAbsPartIdx, uiDepth );
       
       {
-        DTRACE_CABAC_V( g_nSymbolCounter++ );
+        DTRACE_CABAC_VL( g_nSymbolCounter++ );
         DTRACE_CABAC_T( "\tTrIdx: abspart=" );
         DTRACE_CABAC_V( uiAbsPartIdx );
         DTRACE_CABAC_T( "\tdepth=" );
@@ -1014,7 +1014,7 @@ Void TDecEntropy::xDecodeTransformSubdiv( TComDataCU* pcCU, UInt uiAbsPartIdx, U
 
 Void TDecEntropy::decodeTransformIdx( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
 {
-  DTRACE_CABAC_V( g_nSymbolCounter++ )
+  DTRACE_CABAC_VL( g_nSymbolCounter++ )
   DTRACE_CABAC_T( "\tdecodeTransformIdx()\tCUDepth=" )
   DTRACE_CABAC_V( uiDepth )
   DTRACE_CABAC_T( "\n" )
@@ -1073,7 +1073,7 @@ Void TDecEntropy::xDecodeCoeff( TComDataCU* pcCU, TCoeff* pcCoeff, UInt uiAbsPar
     else
     {
       {
-        DTRACE_CABAC_V( g_nSymbolCounter++ );
+        DTRACE_CABAC_VL( g_nSymbolCounter++ );
         DTRACE_CABAC_T( "\tgoing down\tdepth=" );
         DTRACE_CABAC_V( uiDepth );
         DTRACE_CABAC_T( "\ttridx=" );
@@ -1125,7 +1125,7 @@ Void TDecEntropy::xDecodeCoeff( TComDataCU* pcCU, TCoeff* pcCoeff, UInt uiAbsPar
       }
 #endif
       {
-        DTRACE_CABAC_V( g_nSymbolCounter++ );
+        DTRACE_CABAC_VL( g_nSymbolCounter++ );
         DTRACE_CABAC_T( "\tgoing up\n" );
       }
     }
