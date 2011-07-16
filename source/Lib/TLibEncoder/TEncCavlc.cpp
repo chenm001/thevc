@@ -60,6 +60,11 @@ Void  xTracePPSHeader (TComPPS *pPPS)
   fprintf( g_hTrace, "=========== Picture Parameter Set ID: %d ===========\n", pPPS->getPPSId() );
 }
 
+Void  xTraceSliceHeader (TComSlice *pSlice)
+{
+  fprintf( g_hTrace, "=========== Slice ===========\n");
+}
+
 
 Void  TEncCavlc::xWriteCodeTr (UInt value, UInt  length, const Char *pSymbolName)
 {
@@ -93,7 +98,7 @@ Void  TEncCavlc::xWriteFlagTr(UInt value, const Char *pSymbolName)
 
 #define WRITE_CODE(size, code, name)     xWriteCode ( size, code )
 #define WRITE_UVLC(      code, name)     xWriteUvlc (       code )
-#define WRITE_SVLC(      code, name)     xWritevlc (       code )
+#define WRITE_SVLC(      code, name)     xWriteSvlc (       code )
 #define WRITE_FLAG(      code, name)     xWriteFlag (       code )
 
 #endif
@@ -415,22 +420,81 @@ Void TEncCavlc::codeSPS( TComSPS* pcSPS )
 
 Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
 {
-  Bool bEntropySlice = false;
-  if (pcSlice->isNextSlice())
-  {
-    xWriteFlag( 0 ); // Entropy slice flag
-  }
-  else
-  {
-    bEntropySlice = true;
-    xWriteFlag( 1 ); // Entropy slice flag
-  }
+#if ENC_DEC_TRACE  
+  xTraceSliceHeader (pcSlice);
+#endif
+  
+  Bool bEntropySlice = (!pcSlice->isNextSlice());
+  WRITE_FLAG( bEntropySlice ? 1 : 0, "lightweight_slice_flag" );
+  
   if (!bEntropySlice)
   {
-  xWriteCode  (pcSlice->getPOC(), 10 );   //  9 == SPS->Log2MaxFrameNum
-  xWriteUvlc  (pcSlice->getSliceType() );
-  xWriteSvlc  (pcSlice->getSliceQp() );
+    WRITE_UVLC( pcSlice->getSliceType(), "slice_type" );
+    // pic_parameter_set_id
+    // frame_num
+    // if( IdrPicFlag )
+    //   idr_pic_id
+    // if( pic_order_cnt_type  = =  0 )
+    //   pic_order_cnt_lsb  
+    WRITE_CODE( pcSlice->getPOC(), 10, "pic_order_cnt_lsb" );   //  9 == SPS->Log2MaxFrameNum
+    // if( slice_type  = =  P  | |  slice_type  = =  B ) {
+    //   num_ref_idx_active_override_flag
+    //   if( num_ref_idx_active_override_flag ) {
+    //     num_ref_idx_l0_active_minus1
+    //     if( slice_type  = =  B )
+    //       num_ref_idx_l1_active_minus1
+    //   }
+    // }
+    
+    // we always set num_ref_idx_active_override_flag equal to one. this might be done in a more intelligent way 
+    if (!pcSlice->isIntra())
+    {
+      WRITE_FLAG( 1 ,                                             "num_ref_idx_active_override_flag");
+      WRITE_CODE( pcSlice->getNumRefIdx( REF_PIC_LIST_0 ) - 1, 3, "num_ref_idx_l0_active_minus1" );
+    }
+    else
+    {
+      pcSlice->setNumRefIdx(REF_PIC_LIST_0, 0);
+    }
+    if (pcSlice->isInterB())
+    {
+      WRITE_CODE( pcSlice->getNumRefIdx( REF_PIC_LIST_1 ) - 1, 3, "num_ref_idx_l1_active_minus1" );
+    }
+    else
+    {
+      pcSlice->setNumRefIdx(REF_PIC_LIST_1, 0);
+    }
   }
+  // ref_pic_list_modification( )
+  // ref_pic_list_combination( )
+  // maybe move to own function?
+  if (pcSlice->isInterB())
+  {
+    WRITE_FLAG(pcSlice->getRefPicListCombinationFlag() ? 1 : 0,       "ref_pic_list_combination_flag" );
+    if(pcSlice->getRefPicListCombinationFlag())
+    {
+      WRITE_UVLC( pcSlice->getNumRefIdx(REF_PIC_LIST_C) - 1,          "num_ref_idx lc_active_minus1");
+      
+      WRITE_FLAG( pcSlice->getRefPicListModificationFlagLC() ? 1 : 0, "ref_pic_list_modification_flag_lc" );
+      if(pcSlice->getRefPicListModificationFlagLC())
+      {
+        for (UInt i=0;i<pcSlice->getNumRefIdx(REF_PIC_LIST_C);i++)
+        {
+          WRITE_FLAG( pcSlice->getListIdFromIdxOfLC(i),               "pic_from_list_0_flag" );
+          WRITE_UVLC( pcSlice->getRefIdxFromIdxOfLC(i),               "ref_idx_list_curr" );
+        }
+      }
+    }
+  }
+    
+  // if( nal_ref_idc != 0 )
+  //   dec_ref_pic_marking( )
+  // if( entropy_coding_mode_flag  &&  slice_type  !=  I)
+  //   cabac_init_idc
+  // first_slice_in_pic_flag
+  // if( first_slice_in_pic_flag == 0 )
+  //    slice_address
+  // the slice start address seems to be aligned with the WD if FINE_GRANULARITY_SLICES is enabled
 #if FINE_GRANULARITY_SLICES
   //calculate number of bits required for slice address
   Int iMaxAddrOuter = pcSlice->getPic()->getNumCUsInFrame();
@@ -442,7 +506,7 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
   Int iMaxAddrInner = pcSlice->getPic()->getNumPartInCU()>>(2);
   iMaxAddrInner = (1<<(pcSlice->getPPS()->getSliceGranularity()<<1));
   int iReqBitsInner = 0;
-
+  
   while(iMaxAddrInner>(1<<iReqBitsInner))
   {
     iReqBitsInner++;
@@ -453,7 +517,7 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
   if (pcSlice->isNextSlice())
   {
 #if !FINE_GRANULARITY_SLICES
-    xWriteUvlc(pcSlice->getSliceCurStartCUAddr());        // Start CU addr for slice
+    WRITE_UVLC( pcSlice->getSliceCurStartCUAddr(), "slice_address" );        // Start CU addr for slice
 #else
     // Calculate slice address
     iLCUAddress = (pcSlice->getSliceCurStartCUAddr()/pcSlice->getPic()->getNumPartInCU());
@@ -463,7 +527,7 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
   else
   {
 #if !FINE_GRANULARITY_SLICES
-    xWriteUvlc(pcSlice->getEntropySliceCurStartCUAddr()); // Start CU addr for entropy slice
+    WRITE_UVLC( pcSlice->getEntropySliceCurStartCUAddr(), "slice_address" ); // Start CU addr for entropy slice
 #else
     // Calculate slice address
     iLCUAddress = (pcSlice->getEntropySliceCurStartCUAddr()/pcSlice->getPic()->getNumPartInCU());
@@ -474,71 +538,63 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
 #if FINE_GRANULARITY_SLICES
   //write slice address
   int iAddress    = (iLCUAddress << iReqBitsInner) + iInnerAddress;
-  xWriteFlag(iAddress==0);
+  WRITE_FLAG( iAddress==0, "first_slice_in_pic_flag" );
   if(iAddress>0) 
   {
-    xWriteCode(iAddress, iReqBitsOuter+iReqBitsInner);
+    WRITE_CODE( iAddress, iReqBitsOuter+iReqBitsInner, "slice_address" );
   }
 #endif
+  
+  // if( !lightweight_slice_flag ) {
+  if (!bEntropySlice)
+  {
+    //   slice_qp_delta
+    WRITE_SVLC( pcSlice->getSliceQp(), "slice_qp" ); // this should be delta
+  //   if( sample_adaptive_offset_enabled_flag )
+  //     sao_param()
+  //   if( deblocking_filter_control_present_flag ) {
+  //     disable_deblocking_filter_idc
+    WRITE_FLAG(pcSlice->getLoopFilterDisable(), "loop_filter_disable");  // should be an IDC
+
+  //     if( disable_deblocking_filter_idc  !=  1 ) {
+  //       slice_alpha_c0_offset_div2
+  //       slice_beta_offset_div2
+  //     }
+  //   }
+  //   if( slice_type = = B )
+  //   collocated_from_l0_flag
+#if AMVP_NEIGH_COL
+    if ( pcSlice->getSliceType() == B_SLICE )
+    {
+      WRITE_FLAG( pcSlice->getColDir(), "collocated_from_l0_flag" );
+    }
+#endif
+    //   if( adaptive_loop_filter_enabled_flag ) {
+  //     if( !shared_pps_info_enabled_flag )
+  //       alf_param( )
+  //     alf_cu_control_param( )
+  //   }
+  // }
+  }
+  
+  // !!!! sytnax elements not in the WD !!!!
+  
   if (!bEntropySlice)
   {  
-  xWriteFlag  (pcSlice->getSymbolMode() > 0 ? 1 : 0);
-  
-  if (!pcSlice->isIntra())
-  {
-    xWriteFlag  (pcSlice->isReferenced() ? 1 : 0);
-  }
-  
-  xWriteFlag  (pcSlice->getLoopFilterDisable());
-  
-  if (!pcSlice->isIntra())
-  {
-    xWriteCode  ((pcSlice->getNumRefIdx( REF_PIC_LIST_0 )), 3 );
-  }
-  else
-  {
-    pcSlice->setNumRefIdx(REF_PIC_LIST_0, 0);
-  }
-  if (pcSlice->isInterB())
-  {
-    xWriteCode  ((pcSlice->getNumRefIdx( REF_PIC_LIST_1 )), 3 );
-  }
-  else
-  {
-    pcSlice->setNumRefIdx(REF_PIC_LIST_1, 0);
-  }
-  
-  if (pcSlice->isInterB())
-  {
-    xWriteFlag  (pcSlice->getRefPicListCombinationFlag() ? 1 : 0 );
-    if(pcSlice->getRefPicListCombinationFlag())
+    xWriteFlag  (pcSlice->getSymbolMode() > 0 ? 1 : 0); // entropy_coding_mode_flag -> PPS
+    
+    if (!pcSlice->isIntra())
     {
-      xWriteUvlc( pcSlice->getNumRefIdx(REF_PIC_LIST_C)-1);
-
-      xWriteFlag  (pcSlice->getRefPicListModificationFlagLC() ? 1 : 0 );
-      if(pcSlice->getRefPicListModificationFlagLC())
-      {
-        for (UInt i=0;i<pcSlice->getNumRefIdx(REF_PIC_LIST_C);i++)
-        {
-          xWriteFlag( pcSlice->getListIdFromIdxOfLC(i));
-          xWriteUvlc( pcSlice->getRefIdxFromIdxOfLC(i));
-        }
-      }
+      xWriteFlag  (pcSlice->isReferenced() ? 1 : 0);      // nal_ref_idc -> nal unit header
     }
-  }
 
-  xWriteFlag  (pcSlice->getDRBFlag() ? 1 : 0 );
-  if ( !pcSlice->getDRBFlag() )
-  {
-    xWriteCode  (pcSlice->getERBIndex(), 2);
-  }
-  
-#if AMVP_NEIGH_COL
-  if ( pcSlice->getSliceType() == B_SLICE )
-  {
-    xWriteFlag( pcSlice->getColDir() );
-  }
-#endif
+    // ????
+    xWriteFlag  (pcSlice->getDRBFlag() ? 1 : 0 );
+    if ( !pcSlice->getDRBFlag() )
+    {
+      // looks like a long-term flag that is currently unused
+      xWriteCode  (pcSlice->getERBIndex(), 2);
+    }
   }
 }
 

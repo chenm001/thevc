@@ -55,6 +55,12 @@ Void  xTracePPSHeader (TComPPS *pPPS)
   fprintf( g_hTrace, "=========== Picture Parameter Set ID: %d ===========\n", pPPS->getPPSId() );
 }
 
+Void  xTraceSliceHeader (TComSlice *pSlice)
+{
+  fprintf( g_hTrace, "=========== Slice ===========\n");
+}
+
+
 Void  TDecCavlc::xReadCodeTr           (UInt length, UInt& rValue, const Char *pSymbolName)
 {
   xReadCode (length, rValue);
@@ -288,19 +294,103 @@ Void TDecCavlc::parseSPS(TComSPS* pcSPS)
   return;
 }
 
+
 Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice)
 {
   UInt  uiCode;
   Int   iCode;
-
-  xReadFlag ( uiCode );
+  
+#if ENC_DEC_TRACE
+  xTraceSliceHeader(rpcSlice);
+#endif
+  
+  // lightweight_slice_flag
+  READ_FLAG( uiCode, "lightweight_slice_flag" );
   Bool bEntropySlice = uiCode ? true : false;
+
+  
+  // if( !lightweight_slice_flag ) {
   if (!bEntropySlice)
   {
-    xReadCode (10, uiCode);  rpcSlice->setPOC              (uiCode);             // 9 == SPS->Log2MaxFrameNum()
-    xReadUvlc (   uiCode);  rpcSlice->setSliceType        ((SliceType)uiCode);
-    xReadSvlc (    iCode);  rpcSlice->setSliceQp          (iCode);
+    //   slice_type
+    READ_UVLC (   uiCode, "slice_type" );  rpcSlice->setSliceType        ((SliceType)uiCode);
+    //   pic_parameter_set_id
+    //   frame_num
+    //   if( IdrPicFlag )
+    //     idr_pic_id
+    //   if( pic_order_cnt_type  = =  0 )
+    //     pic_order_cnt_lsb  
+    READ_CODE (10, uiCode, "pic_order_cnt_lsb" );  rpcSlice->setPOC              (uiCode);             // 9 == SPS->Log2MaxFrameNum()
+    //   if( slice_type  = =  P  | |  slice_type  = =  B ) {
+    //     num_ref_idx_active_override_flag
+    //   if( num_ref_idx_active_override_flag ) {
+    //     num_ref_idx_l0_active_minus1
+    //     if( slice_type  = =  B )
+    //       num_ref_idx_l1_active_minus1
+    //   }
+    if (!rpcSlice->isIntra())
+    {
+      READ_FLAG( uiCode, "num_ref_idx_active_override_flag");
+      if (uiCode)
+      {
+        READ_CODE (3, uiCode, "num_ref_idx_l0_active_minus1" );  rpcSlice->setNumRefIdx( REF_PIC_LIST_0, uiCode + 1 );
+        if (rpcSlice->isInterB())
+        {
+          READ_CODE (3, uiCode, "num_ref_idx_l1_active_minus1" );  rpcSlice->setNumRefIdx( REF_PIC_LIST_1, uiCode + 1 );
+        }
+        else
+        {
+          rpcSlice->setNumRefIdx(REF_PIC_LIST_1, 0);
+        }
+      }
+      else
+      {
+        rpcSlice->setNumRefIdx(REF_PIC_LIST_0, 0);
+        rpcSlice->setNumRefIdx(REF_PIC_LIST_1, 0);
+      }
+    }
+    // }
   }
+  // ref_pic_list_modification( )
+  // ref_pic_list_combination( )
+  if (rpcSlice->isInterB())
+  {
+    READ_FLAG( uiCode, "ref_pic_list_combination_flag" );       rpcSlice->setRefPicListCombinationFlag( uiCode ? 1 : 0 );
+    if(uiCode)
+    {
+      READ_UVLC( uiCode, "num_ref_idx_lc_active_minus1" );      rpcSlice->setNumRefIdx( REF_PIC_LIST_C, uiCode + 1 );
+      
+      READ_FLAG( uiCode, "ref_pic_list_modification_flag_lc" ); rpcSlice->setRefPicListModificationFlagLC( uiCode ? 1 : 0 );
+      if(uiCode)
+      {
+        for (UInt i=0;i<rpcSlice->getNumRefIdx(REF_PIC_LIST_C);i++)
+        {
+          READ_FLAG( uiCode, "pic_from_list_0_flag" );
+          rpcSlice->setListIdFromIdxOfLC(i, uiCode);
+          READ_UVLC( uiCode, "ref_idx_list_curr" );
+          rpcSlice->setRefIdxFromIdxOfLC(i, uiCode);
+          rpcSlice->setRefIdxOfLC((RefPicList)rpcSlice->getListIdFromIdxOfLC(i), rpcSlice->getRefIdxFromIdxOfLC(i), i);
+        }
+      }
+    }
+    else
+    {
+      rpcSlice->setRefPicListModificationFlagLC(false);
+      rpcSlice->setNumRefIdx(REF_PIC_LIST_C, 0);
+    }
+  }
+  else
+  {
+    rpcSlice->setRefPicListCombinationFlag(false);      
+  }
+  
+  // if( nal_ref_idc != 0 )
+  //   dec_ref_pic_marking( )
+  // if( entropy_coding_mode_flag  &&  slice_type  !=  I)
+  //   cabac_init_idc
+  // first_slice_in_pic_flag
+  // if( first_slice_in_pic_flag == 0 )
+  //   slice_address
 #if FINE_GRANULARITY_SLICES
   int iNumCUs = ((rpcSlice->getSPS()->getWidth()+rpcSlice->getSPS()->getMaxCUWidth()-1)/rpcSlice->getSPS()->getMaxCUWidth())*((rpcSlice->getSPS()->getHeight()+rpcSlice->getSPS()->getMaxCUHeight()-1)/rpcSlice->getSPS()->getMaxCUHeight());
   int iMaxParts = (1<<(rpcSlice->getSPS()->getMaxCUDepth()<<1));
@@ -316,12 +406,12 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice)
   {
     iReqBitsInner++;
   }
-  xReadFlag(uiCode);
+  READ_FLAG( uiCode, "first_slice_in_pic_flag" );
   UInt uiAddress;
   UInt uiInnerAddress = 0;
   if(!uiCode)
   {
-    xReadCode(iReqBitsOuter+iReqBitsInner, uiAddress);
+    READ_CODE( iReqBitsOuter+iReqBitsInner, uiAddress, "slice_address" );
     uiLCUAddress = uiAddress >> iReqBitsInner;
     uiInnerAddress = uiAddress - (uiLCUAddress<<iReqBitsInner);
   }
@@ -336,7 +426,7 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice)
     rpcSlice->setNextSlice        ( false );
     rpcSlice->setNextEntropySlice ( true  );
 #if !FINE_GRANULARITY_SLICES
-    xReadUvlc(uiCode);
+    READ_UVLC( uiCode, "slice_address" );
     rpcSlice->setEntropySliceCurStartCUAddr( uiCode ); // start CU addr for entropy slice
 #endif
   }
@@ -346,89 +436,62 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice)
     rpcSlice->setNextEntropySlice ( false );
     
 #if !FINE_GRANULARITY_SLICES
-    xReadUvlc(uiCode);
+    READ_UVLC( uiCode, "slice_address" );
     rpcSlice->setSliceCurStartCUAddr( uiCode );        // start CU addr for slice
     rpcSlice->setEntropySliceCurStartCUAddr( uiCode ); // start CU addr for entropy slice  
 #else
     rpcSlice->setSliceCurStartCUAddr(uiCode);
     rpcSlice->setSliceCurEndCUAddr(iNumCUs*iMaxParts);
 #endif
-
-    
-    xReadFlag ( uiCode );
-    rpcSlice->setSymbolMode( uiCode );
-    
-    if (!rpcSlice->isIntra())
-      xReadFlag (   uiCode);
-    else
-      uiCode = 1;
-    
-    rpcSlice->setReferenced       (uiCode ? true : false);
-    
-    xReadFlag (   uiCode);  rpcSlice->setLoopFilterDisable(uiCode ? 1 : 0);
-    
-    if (!rpcSlice->isIntra())
-    {
-      xReadCode (3, uiCode);  rpcSlice->setNumRefIdx      (REF_PIC_LIST_0, uiCode);
-    }
-    else
-    {
-      rpcSlice->setNumRefIdx(REF_PIC_LIST_0, 0);
-    }
-    if (rpcSlice->isInterB())
-    {
-      xReadCode (3, uiCode);  rpcSlice->setNumRefIdx      (REF_PIC_LIST_1, uiCode);
-    }
-    else
-    {
-      rpcSlice->setNumRefIdx(REF_PIC_LIST_1, 0);
-    }
-    
-    if (rpcSlice->isInterB())
-    {
-      xReadFlag (uiCode);      rpcSlice->setRefPicListCombinationFlag(uiCode ? 1 : 0);
-      if(uiCode)
-      {
-        xReadUvlc(uiCode);      rpcSlice->setNumRefIdx      (REF_PIC_LIST_C, uiCode+1);
-        
-        xReadFlag (uiCode);     rpcSlice->setRefPicListModificationFlagLC(uiCode ? 1 : 0);
-        if(uiCode)
-        {
-          for (UInt i=0;i<rpcSlice->getNumRefIdx(REF_PIC_LIST_C);i++)
-          {
-            xReadFlag(uiCode);
-            rpcSlice->setListIdFromIdxOfLC(i, uiCode);
-            xReadUvlc(uiCode);
-            rpcSlice->setRefIdxFromIdxOfLC(i, uiCode);
-            rpcSlice->setRefIdxOfLC((RefPicList)rpcSlice->getListIdFromIdxOfLC(i), rpcSlice->getRefIdxFromIdxOfLC(i), i);
-          }
-        }
-      }
-      else
-      {
-        rpcSlice->setRefPicListModificationFlagLC(false);
-        rpcSlice->setNumRefIdx(REF_PIC_LIST_C, 0);
-      }
-    }
-    else
-    {
-      rpcSlice->setRefPicListCombinationFlag(false);      
-    }
-    
-    xReadFlag (uiCode);     rpcSlice->setDRBFlag          (uiCode ? 1 : 0);
-    if ( !rpcSlice->getDRBFlag() )
-    {
-      xReadCode(2, uiCode); rpcSlice->setERBIndex( (ERBIndex)uiCode );    assert (uiCode == ERB_NONE || uiCode == ERB_LTR);
-    }  
-    
+    // if( !lightweight_slice_flag ) {
+    //   slice_qp_delta
+    // should be delta
+    READ_SVLC( iCode, "slice_qp" );  rpcSlice->setSliceQp          (iCode);
+   
+    //   if( sample_adaptive_offset_enabled_flag )
+    //     sao_param()
+    //   if( deblocking_filter_control_present_flag ) {
+    //     disable_deblocking_filter_idc
+    // this should be an idc
+    READ_FLAG ( uiCode, "loop_filter_disable" );  rpcSlice->setLoopFilterDisable(uiCode ? 1 : 0);
+    //     if( disable_deblocking_filter_idc  !=  1 ) {
+    //       slice_alpha_c0_offset_div2
+    //       slice_beta_offset_div2
+    //     }
+    //   }
+    //   if( slice_type = = B )
+    //     collocated_from_l0_flag
 #if AMVP_NEIGH_COL
     if ( rpcSlice->getSliceType() == B_SLICE )
     {
-      xReadFlag (uiCode);
+      READ_FLAG( uiCode, "collocated_from_l0_flag" );
       rpcSlice->setColDir(uiCode);
     }
 #endif
+    
+    //   if( adaptive_loop_filter_enabled_flag ) {
+    //     if( !shared_pps_info_enabled_flag )
+    //       alf_param( )
+    //     alf_cu_control_param( )
+    //   }
+    // }
   }
+  // !!!! Syntax elements not in the WD  !!!!!
+  xReadFlag ( uiCode ); rpcSlice->setSymbolMode( uiCode );
+  
+  if (!rpcSlice->isIntra())
+  {
+    xReadFlag ( uiCode); rpcSlice->setReferenced (uiCode ? true : false);
+  }
+  else
+    rpcSlice->setReferenced (true);
+  
+  xReadFlag (uiCode);     rpcSlice->setDRBFlag          (uiCode ? 1 : 0);
+  if ( !rpcSlice->getDRBFlag() )
+  {
+    xReadCode(2, uiCode); rpcSlice->setERBIndex( (ERBIndex)uiCode );    assert (uiCode == ERB_NONE || uiCode == ERB_LTR);
+  }  
+  
   return;
 }
 
