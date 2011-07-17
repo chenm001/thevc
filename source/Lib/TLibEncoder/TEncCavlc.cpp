@@ -429,8 +429,8 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
   
   if (!bEntropySlice)
   {
-    WRITE_UVLC( pcSlice->getSliceType(), "slice_type" );
-    // pic_parameter_set_id
+    WRITE_UVLC( pcSlice->getSliceType(),       "slice_type" );
+    WRITE_UVLC( pcSlice->getPPS()->getPPSId(), "pic_parameter_set_id" );
     // frame_num
     // if( IdrPicFlag )
     //   idr_pic_id
@@ -583,11 +583,6 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
   {  
     xWriteFlag  (pcSlice->getSymbolMode() > 0 ? 1 : 0); // entropy_coding_mode_flag -> PPS
     
-    if (!pcSlice->isIntra())
-    {
-      xWriteFlag  (pcSlice->isReferenced() ? 1 : 0);      // nal_ref_idc -> nal unit header
-    }
-
     // ????
     xWriteFlag  (pcSlice->getDRBFlag() ? 1 : 0 );
     if ( !pcSlice->getDRBFlag() )

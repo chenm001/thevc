@@ -313,14 +313,14 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice)
   if (!bEntropySlice)
   {
     //   slice_type
-    READ_UVLC (   uiCode, "slice_type" );  rpcSlice->setSliceType        ((SliceType)uiCode);
-    //   pic_parameter_set_id
+    READ_UVLC (    uiCode, "slice_type" );            rpcSlice->setSliceType((SliceType)uiCode);
+    READ_UVLC (    uiCode, "pic_parameter_set_id" );  rpcSlice->setPPSId(uiCode);
     //   frame_num
     //   if( IdrPicFlag )
     //     idr_pic_id
     //   if( pic_order_cnt_type  = =  0 )
     //     pic_order_cnt_lsb  
-    READ_CODE (10, uiCode, "pic_order_cnt_lsb" );  rpcSlice->setPOC              (uiCode);             // 9 == SPS->Log2MaxFrameNum()
+    READ_CODE (10, uiCode, "pic_order_cnt_lsb" );     rpcSlice->setPOC(uiCode);             // 9 == SPS->Log2MaxFrameNum()
     //   if( slice_type  = =  P  | |  slice_type  = =  B ) {
     //     num_ref_idx_active_override_flag
     //   if( num_ref_idx_active_override_flag ) {
@@ -479,14 +479,7 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice)
   // !!!! Syntax elements not in the WD  !!!!!
   xReadFlag ( uiCode ); rpcSlice->setSymbolMode( uiCode );
   
-  if (!rpcSlice->isIntra())
-  {
-    xReadFlag ( uiCode); rpcSlice->setReferenced (uiCode ? true : false);
-  }
-  else
-    rpcSlice->setReferenced (true);
-  
-  xReadFlag (uiCode);     rpcSlice->setDRBFlag          (uiCode ? 1 : 0);
+  xReadFlag (uiCode);   rpcSlice->setDRBFlag          (uiCode ? 1 : 0);
   if ( !rpcSlice->getDRBFlag() )
   {
     xReadCode(2, uiCode); rpcSlice->setERBIndex( (ERBIndex)uiCode );    assert (uiCode == ERB_NONE || uiCode == ERB_LTR);

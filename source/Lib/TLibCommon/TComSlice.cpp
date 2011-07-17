@@ -40,39 +40,63 @@
 #include "TComPic.h"
 
 TComSlice::TComSlice()
+: m_iPPSId                        ( -1 )
+, m_iPOC                          ( 0 )
+, m_eNalUnitType                  ( NAL_UNIT_CODED_SLICE_IDR )
+, m_eSliceType                    ( I_SLICE )
+, m_iSliceQp                      ( 0 )
+, m_iSymbolMode                   ( 1 )
+, m_bLoopFilterDisable            ( false )
+, m_bDRBFlag                      ( true )
+, m_eERBIndex                     ( ERB_NONE )
+, m_bRefPicListModificationFlagLC ( false )
+, m_bRefPicListCombinationFlag    ( false )
+, m_iSliceQpDelta                 ( 0 )
+, m_iDepth                        ( 0 )
+, m_bRefenced                     ( false )
+, m_pcSPS                         ( NULL )
+, m_pcPPS                         ( NULL )
+, m_pcPic                         ( NULL )
+, m_uiColDir                      ( 0 )
+, m_dLambda                       ( 0.0 )
+, m_bNoBackPredFlag               ( false )
+, m_bRefIdxCombineCoding          ( false )
+, m_uiTLayer                      ( 0 )
+, m_bTLayerSwitchingFlag          ( false )
+, m_uiSliceMode                   ( 0 )
+, m_uiSliceArgument               ( 0 )
+, m_uiSliceCurStartCUAddr         ( 0 )
+, m_uiSliceCurEndCUAddr           ( 0 )
+, m_uiSliceIdx                    ( 0 )
+, m_uiEntropySliceMode            ( 0 )
+, m_uiEntropySliceArgument        ( 0 )
+, m_uiEntropySliceCurStartCUAddr  ( 0 )
+, m_uiEntropySliceCurEndCUAddr    ( 0 )
+, m_bNextSlice                    ( false )
+, m_bNextEntropySlice             ( false )
+, m_uiSliceBits                   ( 0 )
+#if FINE_GRANULARITY_SLICES
+, m_uiEntropySliceCounter         ( 0 )
+, m_bFinalized                    ( false )
+#endif
 {
-  m_iPOC                = 0;
-  m_eSliceType          = I_SLICE;
-  m_iSliceQp            = 0;
-  m_iSymbolMode         = 1;
-  m_aiNumRefIdx[0]      = 0;
-  m_aiNumRefIdx[1]      = 0;
-  m_bLoopFilterDisable  = false;
-  
-  m_bDRBFlag            = true;
-  m_eERBIndex           = ERB_NONE;
-  
-  m_iSliceQpDelta       = 0;
-  
-  m_iDepth              = 0;
-  
-  m_pcPic               = NULL;
-  m_bRefenced           = false;
-  m_uiColDir = 0;
+  m_aiNumRefIdx[0] = m_aiNumRefIdx[1] = m_aiNumRefIdx[2] = 0;
   
   initEqualRef();
-  m_bNoBackPredFlag = false;
-  m_bRefIdxCombineCoding = false;
-  m_bRefPicListCombinationFlag = false;
-  m_bRefPicListModificationFlagLC = false;
-  m_uiSliceCurStartCUAddr        = 0;
-  m_uiEntropySliceCurStartCUAddr = 0;
-
-  m_uiTLayer             = 0;
-  m_bTLayerSwitchingFlag = false;
-#if FINE_GRANULARITY_SLICES
-  m_bFinalized=false;
-#endif
+  
+  for(Int iNumCount = 0; iNumCount < MAX_NUM_REF_LC; iNumCount++)
+  {
+    m_iRefIdxOfLC[REF_PIC_LIST_0][iNumCount]=-1;
+    m_iRefIdxOfLC[REF_PIC_LIST_1][iNumCount]=-1;
+    m_eListIdFromIdxOfLC[iNumCount]=0;
+    m_iRefIdxFromIdxOfLC[iNumCount]=0;
+    m_iRefIdxOfL0FromRefIdxOfL1[iNumCount] = -1;
+    m_iRefIdxOfL1FromRefIdxOfL0[iNumCount] = -1;
+    m_apcRefPicList [0][iNumCount] = NULL;
+    m_apcRefPicList [1][iNumCount] = NULL;
+    m_aiRefPOCList  [0][iNumCount] = 0;
+    m_aiRefPOCList  [1][iNumCount] = 0;
+  }
 }
 
 TComSlice::~TComSlice()
