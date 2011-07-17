@@ -92,6 +92,9 @@ TComSlice::TComSlice()
     m_iRefIdxFromIdxOfLC[iNumCount]=0;
     m_iRefIdxOfL0FromRefIdxOfL1[iNumCount] = -1;
     m_iRefIdxOfL1FromRefIdxOfL0[iNumCount] = -1;
+  }    
+  for(Int iNumCount = 0; iNumCount < MAX_NUM_REF; iNumCount++)
+  {
     m_apcRefPicList [0][iNumCount] = NULL;
     m_apcRefPicList [1][iNumCount] = NULL;
     m_aiRefPOCList  [0][iNumCount] = 0;
