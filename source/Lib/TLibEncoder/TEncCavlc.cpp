@@ -1833,7 +1833,7 @@ Void TEncCavlc::codeBlockCbf( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eTyp
   return;
 }
 
-Void TEncCavlc::codeCoeffNxN    ( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx, UInt uiWidth, UInt uiHeight, UInt uiDepth, TextType eTType, Bool bRD )
+Void TEncCavlc::codeCoeffNxN    ( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx, UInt uiWidth, UInt uiHeight, UInt uiDepth, TextType eTType )
 {
   if ( uiWidth > m_pcSlice->getSPS()->getMaxTrSize() )
   {
@@ -1849,13 +1849,6 @@ Void TEncCavlc::codeCoeffNxN    ( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPa
   
   // compute number of significant coefficients
   uiNumSig = TEncEntropy::countNonZeroCoeffs(piCoeff, uiWidth);
-  
-  if ( bRD )
-  {
-    UInt uiTempDepth = uiDepth - pcCU->getDepth( uiAbsPartIdx );
-    pcCU->setCbfSubParts( ( uiNumSig ? 1 : 0 ) << uiTempDepth, eTType, uiAbsPartIdx, uiDepth );
-    codeCbf( pcCU, uiAbsPartIdx, eTType, uiTempDepth );
-  }
   
   if ( uiNumSig == 0 )
   {

@@ -95,10 +95,6 @@ private:
   TCoeff*       m_pcTrCoeffY;         ///< transformed coefficient buffer (Y)
   TCoeff*       m_pcTrCoeffCb;        ///< transformed coefficient buffer (Cb)
   TCoeff*       m_pcTrCoeffCr;        ///< transformed coefficient buffer (Cr)
-  Bool          m_bdQP;               ///< signal if LCU dQP encoded
-#if SUB_LCU_DQP
-  UChar         m_hLastCodedQP;       ///< array of QP values
-#endif
   
 #if E057_INTRA_PCM
   Pel*          m_pcIPCMSampleY;      ///< PCM sample buffer (Y)
@@ -190,6 +186,10 @@ protected:
   Bool xGetCenterCol( UInt uiPartIdx, RefPicList eRefPicList, int iRefIdx, TComMv *pcMv );
 #endif
   
+#if SUB_LCU_DQP
+  Int           getLastValidPartIdx   ( Int iAbsPartIdx );
+#endif
+
 public:
   TComDataCU();
   virtual ~TComDataCU();
@@ -203,7 +203,7 @@ public:
   
   Void          initCU                ( TComPic* pcPic, UInt uiCUAddr );
 #if SUB_LCU_DQP
-  Void          initEstData           ( UInt uiDepth, UInt uiQP, UInt uiLastQP );
+  Void          initEstData           ( UInt uiDepth, UInt uiQP );
 #else
   Void          initEstData           ();
 #endif
@@ -212,6 +212,7 @@ public:
 #else
   Void          initSubCU             ( TComDataCU* pcCU, UInt uiPartUnitIdx, UInt uiDepth );
 #endif
+  Void          setOutsideCUPart      ( UInt uiAbsPartIdx, UInt uiDepth );
 
   Void          copySubCU             ( TComDataCU* pcCU, UInt uiPartUnitIdx, UInt uiDepth );
   Void          copyInterPredInfoFrom ( TComDataCU* pcCU, UInt uiAbsPartIdx, RefPicList eRefPicList );
@@ -269,11 +270,8 @@ public:
   UChar         getQP                 ( UInt uiIdx )            { return m_phQP[uiIdx];       }
   Void          setQP                 ( UInt uiIdx, UChar  uh ) { m_phQP[uiIdx] = uh;         }
   Void          setQPSubParts         ( UInt uiQP,   UInt uiAbsPartIdx, UInt uiDepth );
-  Bool          getdQPFlag            ()                        { return m_bdQP;              }
-  Void          setdQPFlag            ( Bool b )                { m_bdQP = b;                 }
 #if SUB_LCU_DQP
-  UChar         getLastCodedQP        ()                        { return m_hLastCodedQP;      }
-  Void          setLastCodedQP        ( UChar uQP )             { m_hLastCodedQP = uQP;       }
+  UChar         getLastCodedQP        ( UInt uiAbsPartIdx );
 #endif
   
   UChar*        getTransformIdx       ()                        { return m_puhTrIdx;          }
