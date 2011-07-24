@@ -38,6 +38,68 @@
 #include "TDecCAVLC.h"
 #include "SEIread.h"
 
+#if ENC_DEC_TRACE
+
+#define READ_CODE(size, code, name)     xReadCodeTr ( size, code, name )
+#define READ_UVLC(      code, name)     xReadUvlcTr (       code, name )
+#define READ_SVLC(      code, name)     xReadSvlcTr (       code, name )
+#define READ_FLAG(      code, name)     xReadFlagTr (       code, name )
+
+Void  xTraceSPSHeader (TComSPS *pSPS)
+{
+  fprintf( g_hTrace, "=========== Sequence Parameter Set ID: %d ===========\n", pSPS->getSPSId() );
+}
+
+Void  xTracePPSHeader (TComPPS *pPPS)
+{
+  fprintf( g_hTrace, "=========== Picture Parameter Set ID: %d ===========\n", pPPS->getPPSId() );
+}
+
+Void  xTraceSliceHeader (TComSlice *pSlice)
+{
+  fprintf( g_hTrace, "=========== Slice ===========\n");
+}
+
+
+Void  TDecCavlc::xReadCodeTr           (UInt length, UInt& rValue, const Char *pSymbolName)
+{
+  xReadCode (length, rValue);
+  fprintf( g_hTrace, "%8lld  ", g_nSymbolCounter++ );
+  fprintf( g_hTrace, "%-40s u(%d) : %d\n", pSymbolName, length, rValue ); 
+}
+
+Void  TDecCavlc::xReadUvlcTr           (UInt& rValue, const Char *pSymbolName)
+{
+  xReadUvlc (rValue);
+  fprintf( g_hTrace, "%8lld  ", g_nSymbolCounter++ );
+  fprintf( g_hTrace, "%-40s u(v) : %d\n", pSymbolName, rValue ); 
+}
+
+Void  TDecCavlc::xReadSvlcTr           (Int& rValue, const Char *pSymbolName)
+{
+  xReadSvlc(rValue);
+  fprintf( g_hTrace, "%8lld  ", g_nSymbolCounter++ );
+  fprintf( g_hTrace, "%-40s s(v) : %d\n", pSymbolName, rValue ); 
+}
+
+Void  TDecCavlc::xReadFlagTr           (UInt& rValue, const Char *pSymbolName)
+{
+  xReadFlag(rValue);
+  fprintf( g_hTrace, "%8lld  ", g_nSymbolCounter++ );
+  fprintf( g_hTrace, "%-40s u(1) : %d\n", pSymbolName, rValue ); 
+}
+
+#else
+
+#define READ_CODE(size, code, name)     xReadCode ( size, code )
+#define READ_UVLC(      code, name)     xReadUvlc (       code )
+#define READ_SVLC(      code, name)     xReadSvlc (       code )
+#define READ_FLAG(      code, name)     xReadFlag (       code )
+
+#endif
+
+
+
 // ====================================================================================================================
 // Constructor / destructor / create / destroy
 // ====================================================================================================================
@@ -78,25 +140,37 @@ void TDecCavlc::parseSEI(SEImessages& seis)
 
 Void TDecCavlc::parsePPS(TComPPS* pcPPS)
 {
-  UInt  uiCode;
-  
-  xReadFlag ( uiCode ); pcPPS->setConstrainedIntraPred( uiCode ? true : false );
-
-#if FINE_GRANULARITY_SLICES
-  xReadCode ( 2, uiCode ); pcPPS->setSliceGranularity(uiCode);
+#if ENC_DEC_TRACE  
+  xTracePPSHeader (pcPPS);
 #endif
-  xReadUvlc( uiCode );    // num_temporal_layer_switching_point_flags
-  pcPPS->setNumTLayerSwitchingFlags( uiCode );
+  UInt  uiCode;
+  READ_UVLC( uiCode, "pic_parameter_set_id");                      pcPPS->setPPSId (uiCode);
+  READ_UVLC( uiCode, "seq_parameter_set_id");                      pcPPS->setSPSId (uiCode);
+  // entropy_coding_mode_flag
+  READ_UVLC( uiCode, "num_temporal_layer_switching_point_flags" ); pcPPS->setNumTLayerSwitchingFlags( uiCode );
   for ( UInt i = 0; i < pcPPS->getNumTLayerSwitchingFlags(); i++ )
   {
-    xReadFlag( uiCode );  // temporal_layer_switching_point_flag
-    pcPPS->setTLayerSwitchingFlag( i, uiCode > 0 ? true : false );
+    READ_FLAG( uiCode, "temporal_layer_switching_point_flag" );    pcPPS->setTLayerSwitchingFlag( i, uiCode > 0 ? true : false );
   }
+  
+  // num_ref_idx_l0_default_active_minus1
+  // num_ref_idx_l1_default_active_minus1
+  // pic_init_qp_minus26  /* relative to 26 */
+  READ_FLAG( uiCode, "constrained_intra_pred_flag" );              pcPPS->setConstrainedIntraPred( uiCode ? true : false );
+#if FINE_GRANULARITY_SLICES
+  READ_CODE( 2, uiCode, "slice_granularity" );                     pcPPS->setSliceGranularity(uiCode);
+#endif
+#if E045_SLICE_COMMON_INFO_SHARING
+  READ_FLAG( uiCode, "shared_pps_info_enabled_flag" );             pcPPS->setSharedPPSInfoEnabled( uiCode ? true : false);
+#endif
+
+  // alf_param() ?
 
 #if SUB_LCU_DQP
   if( pcPPS->getSPS()->getUseDQP() )
   {
-    xReadUvlc(uiCode); pcPPS->setMaxCuDQPDepth(uiCode);
+    READ_UVLC( uiCode, "max_cu_qp_delta_depth");
+    pcPPS->setMaxCuDQPDepth(uiCode);
     pcPPS->setMinCuDQPSize( pcPPS->getSPS()->getMaxCUWidth() >> ( pcPPS->getMaxCuDQPDepth()) );
   }
   else
@@ -106,77 +180,35 @@ Void TDecCavlc::parsePPS(TComPPS* pcPPS)
   }
 #endif
 
-#if E045_SLICE_COMMON_INFO_SHARING
-  xReadFlag( uiCode); pcPPS->setSharedPPSInfoEnabled( uiCode ? true : false);
-#endif
 
   return;
 }
 
 Void TDecCavlc::parseSPS(TComSPS* pcSPS)
 {
+#if ENC_DEC_TRACE  
+  xTraceSPSHeader (pcSPS);
+#endif
+  
   UInt  uiCode;
-  
-  // Structure
-  xReadCode ( 3, uiCode ); // maximum number of temporal layers minus 1
-  pcSPS->setMaxTLayers( uiCode+1 );
 
-  xReadUvlc ( uiCode ); pcSPS->setWidth       ( uiCode    );
-  xReadUvlc ( uiCode ); pcSPS->setHeight      ( uiCode    );
-  xReadUvlc ( uiCode ); pcSPS->setPadX        ( uiCode    );
-  xReadUvlc ( uiCode ); pcSPS->setPadY        ( uiCode    );
-  
-  xReadUvlc ( uiCode ); 
-  pcSPS->setMaxCUWidth  ( uiCode    ); g_uiMaxCUWidth  = uiCode;
-  pcSPS->setMaxCUHeight ( uiCode    ); g_uiMaxCUHeight = uiCode;
-  
-  xReadUvlc ( uiCode ); 
-  pcSPS->setMaxCUDepth  ( uiCode+1  ); g_uiMaxCUDepth  = uiCode + 1;
-  UInt uiMaxCUDepthCorrect = uiCode;
-  
-  xReadUvlc( uiCode ); pcSPS->setQuadtreeTULog2MinSize( uiCode + 2 );
-  xReadUvlc( uiCode ); pcSPS->setQuadtreeTULog2MaxSize( uiCode + pcSPS->getQuadtreeTULog2MinSize() );
-  pcSPS->setMaxTrSize( 1<<(uiCode + pcSPS->getQuadtreeTULog2MinSize()) );  
-  xReadUvlc ( uiCode ); pcSPS->setQuadtreeTUMaxDepthInter( uiCode+1 );
-  xReadUvlc ( uiCode ); pcSPS->setQuadtreeTUMaxDepthIntra( uiCode+1 );
-  g_uiAddCUDepth = 0;
-  while( ( pcSPS->getMaxCUWidth() >> uiMaxCUDepthCorrect ) > ( 1 << ( pcSPS->getQuadtreeTULog2MinSize() + g_uiAddCUDepth )  ) ) g_uiAddCUDepth++;    
-  pcSPS->setMaxCUDepth( uiMaxCUDepthCorrect+g_uiAddCUDepth  ); g_uiMaxCUDepth  = uiMaxCUDepthCorrect+g_uiAddCUDepth;
-  // BB: these parameters may be removed completly and replaced by the fixed values
-  pcSPS->setMinTrDepth( 0 );
-  pcSPS->setMaxTrDepth( 1 );
-  
-#if E057_INTRA_PCM
-  xReadUvlc ( uiCode ); 
-  pcSPS->setPCMLog2MinSize (uiCode+3); 
-#endif
-
-  // Tool on/off
-  xReadFlag( uiCode ); pcSPS->setUseALF ( uiCode ? true : false );
-  xReadFlag( uiCode ); pcSPS->setUseDQP ( uiCode ? true : false );
-  xReadFlag( uiCode ); pcSPS->setUseLDC ( uiCode ? true : false );
-  xReadFlag( uiCode ); pcSPS->setUseMRG ( uiCode ? true : false ); // SOPH:
-  
-#if LM_CHROMA 
-  xReadFlag( uiCode ); pcSPS->setUseLMChroma ( uiCode ? true : false ); 
-#endif
-
-  // AMVP mode for each depth (AM_NONE or AM_EXPL)
-  for (Int i = 0; i < pcSPS->getMaxCUDepth(); i++)
-  {
-    xReadFlag( uiCode );
-    pcSPS->setAMVPMode( i, (AMVP_MODE)uiCode );
-  }
-  
-  // Bit-depth information
+  READ_CODE( 8,  uiCode, "profile_idc" );                        pcSPS->setProfileIdc( uiCode );
+  READ_CODE( 8,  uiCode, "reserved_zero_8bits" );
+  READ_CODE( 8,  uiCode, "level_idc" );                          pcSPS->setLevelIdc( uiCode );
+  READ_UVLC(     uiCode, "seq_parameter_set_id" );               pcSPS->setSPSId( uiCode );
+  READ_CODE( 3,  uiCode, "max_temporal_layers_minus1" );         pcSPS->setMaxTLayers( uiCode+1 );
+  READ_CODE( 16, uiCode, "pic_width_in_luma_samples" );          pcSPS->setWidth       ( uiCode    );
+  READ_CODE( 16, uiCode, "pic_height_in_luma_samples" );         pcSPS->setHeight      ( uiCode    );
+  //READ_UVLC ( uiCode, "pic_width_in_luma_samples" ); pcSPS->setWidth       ( uiCode    );
+  //READ_UVLC ( uiCode, "pic_height_in_luma_samples" ); pcSPS->setHeight      ( uiCode    );
 #if FULL_NBIT
-  xReadUvlc( uiCode );
+  READ_UVLC(     uiCode, "bit_depth_luma_minus8" );
   g_uiBitDepth = 8 + uiCode;
   g_uiBitIncrement = 0;
   pcSPS->setBitDepth(g_uiBitDepth);
   pcSPS->setBitIncrement(g_uiBitIncrement);
 #else
-  xReadUvlc( uiCode );
+  READ_UVLC(     uiCode, "bit_depth_luma_minus8" );
   g_uiBitDepth = 8;
   g_uiBitIncrement = uiCode;
   pcSPS->setBitDepth(g_uiBitDepth);
@@ -190,44 +222,175 @@ Void TDecCavlc::parseSPS(TComSPS* pcSPS)
 #else
   g_uiIBDI_MAX  = ((1<<(g_uiBitDepth+g_uiBitIncrement))-1);
 #endif
-
+  READ_UVLC( uiCode,    "bit_depth_chroma_minus8" );
+#if E057_INTRA_PCM && E192_SPS_PCM_BIT_DEPTH_SYNTAX
+  READ_CODE( 4, uiCode, "pcm_bit_depth_luma_minus1" );           pcSPS->setPCMBitDepthLuma   ( 1 + uiCode );
+  READ_CODE( 4, uiCode, "pcm_bit_depth_chroma_minus1" );         pcSPS->setPCMBitDepthChroma ( 1 + uiCode );
+#endif
+  // log2_max_frame_num_minus4
+  // pic_order_cnt_type
+  // if( pic_order_cnt_type  = =  0 )
+  //   log2_max_pic_order_cnt_lsb_minus4
+  // else if( pic_order_cnt_type  = =  1 ) {
+  //   delta_pic_order_always_zero_flag
+  //   offset_for_non_ref_pic
+  //   num_ref_frames_in_pic_order_cnt_cycle
+  //   for( i = 0; i < num_ref_frames_in_pic_order_cnt_cycle; i++ )
+  //     offset_for_ref_frame[ i ]
+  //  }
+  // max_num_ref_frames
+  // gaps_in_frame_num_value_allowed_flag
+  READ_UVLC( uiCode, "log2_min_coding_block_size_minus3" );
+  UInt log2MinCUSize = uiCode + 3;
+  READ_UVLC( uiCode, "log2_diff_max_min_coding_block_size" );
+  UInt uiMaxCUDepthCorrect = uiCode;
+  pcSPS->setMaxCUWidth  ( 1<<(log2MinCUSize + uiMaxCUDepthCorrect) ); g_uiMaxCUWidth  = 1<<(log2MinCUSize + uiMaxCUDepthCorrect);
+  pcSPS->setMaxCUHeight ( 1<<(log2MinCUSize + uiMaxCUDepthCorrect) ); g_uiMaxCUHeight = 1<<(log2MinCUSize + uiMaxCUDepthCorrect);
+  READ_UVLC( uiCode, "log2_min_transform_block_size_minus2" );   pcSPS->setQuadtreeTULog2MinSize( uiCode + 2 );
+  READ_UVLC( uiCode, "log2_diff_max_min_transform_block_size" ); pcSPS->setQuadtreeTULog2MaxSize( uiCode + pcSPS->getQuadtreeTULog2MinSize() );
+  pcSPS->setMaxTrSize( 1<<(uiCode + pcSPS->getQuadtreeTULog2MinSize()) );
+#if E057_INTRA_PCM
+  READ_UVLC( uiCode, "log2_min_pcm_coding_block_size_minus3" );  pcSPS->setPCMLog2MinSize (uiCode+3); 
+#endif
+  READ_UVLC( uiCode, "max_transform_hierarchy_depth_inter" );    pcSPS->setQuadtreeTUMaxDepthInter( uiCode+1 );
+  READ_UVLC( uiCode, "max_transform_hierarchy_depth_intra" );    pcSPS->setQuadtreeTUMaxDepthIntra( uiCode+1 );
+  g_uiAddCUDepth = 0;
+  while( ( pcSPS->getMaxCUWidth() >> uiMaxCUDepthCorrect ) > ( 1 << ( pcSPS->getQuadtreeTULog2MinSize() + g_uiAddCUDepth )  ) ) g_uiAddCUDepth++;    
+  pcSPS->setMaxCUDepth( uiMaxCUDepthCorrect+g_uiAddCUDepth  ); g_uiMaxCUDepth  = uiMaxCUDepthCorrect+g_uiAddCUDepth;
+  // BB: these parameters may be removed completly and replaced by the fixed values
+  pcSPS->setMinTrDepth( 0 );
+  pcSPS->setMaxTrDepth( 1 );
+#if LM_CHROMA 
+  READ_FLAG( uiCode, "chroma_pred_from_luma_enabled_flag" );     pcSPS->setUseLMChroma ( uiCode ? true : false ); 
+#endif
 #if MTK_NONCROSS_INLOOP_FILTER
-  xReadFlag( uiCode );
-  pcSPS->setLFCrossSliceBoundaryFlag( uiCode ? true : false);
+  READ_FLAG( uiCode, "loop_filter_across_slice_flag" );          pcSPS->setLFCrossSliceBoundaryFlag( uiCode ? true : false);
 #endif
 #if MTK_SAO
-  xReadFlag( uiCode ); pcSPS->setUseSAO       ( uiCode ? true : false );  
+  READ_FLAG( uiCode, "sample_adaptive_offset_enabled_flag" );    pcSPS->setUseSAO       ( uiCode ? true : false );  
 #endif
-
-  xReadFlag( uiCode );  // temporal_id_nesting_flag
-  pcSPS->setTemporalIdNestingFlag ( uiCode > 0 ? true : false );
-
-#if E057_INTRA_PCM && E192_SPS_PCM_BIT_DEPTH_SYNTAX
-  xReadCode ( 4, uiCode );
-  pcSPS->setPCMBitDepthLuma   ( 1 + uiCode );
-  xReadCode ( 4, uiCode );
-  pcSPS->setPCMBitDepthChroma   ( 1 + uiCode );
-#endif
+  READ_FLAG( uiCode, "adaptive_loop_filter_enabled_flag" );      pcSPS->setUseALF ( uiCode ? true : false );
 #if E057_INTRA_PCM && E192_SPS_PCM_FILTER_DISABLE_SYNTAX
-  xReadFlag( uiCode ); 
-  pcSPS->setPCMFilterDisableFlag ( uiCode ? true : false );
+  READ_FLAG( uiCode, "pcm_loop_filter_disable_flag" );           pcSPS->setPCMFilterDisableFlag ( uiCode ? true : false );
 #endif
+  READ_FLAG( uiCode, "cu_qp_delta_enabled_flag" );               pcSPS->setUseDQP ( uiCode ? true : false );
+  READ_FLAG( uiCode, "temporal_id_nesting_flag" );               pcSPS->setTemporalIdNestingFlag ( uiCode > 0 ? true : false );
+
+  // !!!KS: Syntax not in WD !!!
+
+  xReadUvlc ( uiCode ); pcSPS->setPadX        ( uiCode    );
+  xReadUvlc ( uiCode ); pcSPS->setPadY        ( uiCode    );
+
+  xReadFlag( uiCode ); pcSPS->setUseLDC ( uiCode ? true : false );
+  xReadFlag( uiCode ); pcSPS->setUseMRG ( uiCode ? true : false );
+  
+  // AMVP mode for each depth (AM_NONE or AM_EXPL)
+  for (Int i = 0; i < pcSPS->getMaxCUDepth(); i++)
+  {
+    xReadFlag( uiCode );
+    pcSPS->setAMVPMode( i, (AMVP_MODE)uiCode );
+  }
+
   return;
 }
+
 
 Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice)
 {
   UInt  uiCode;
   Int   iCode;
-
-  xReadFlag ( uiCode );
+  
+#if ENC_DEC_TRACE
+  xTraceSliceHeader(rpcSlice);
+#endif
+  
+  // lightweight_slice_flag
+  READ_FLAG( uiCode, "lightweight_slice_flag" );
   Bool bEntropySlice = uiCode ? true : false;
+
+  
+  // if( !lightweight_slice_flag ) {
   if (!bEntropySlice)
   {
-    xReadCode (10, uiCode);  rpcSlice->setPOC              (uiCode);             // 9 == SPS->Log2MaxFrameNum()
-    xReadUvlc (   uiCode);  rpcSlice->setSliceType        ((SliceType)uiCode);
-    xReadSvlc (    iCode);  rpcSlice->setSliceQp          (iCode);
+    //   slice_type
+    READ_UVLC (    uiCode, "slice_type" );            rpcSlice->setSliceType((SliceType)uiCode);
+    READ_UVLC (    uiCode, "pic_parameter_set_id" );  rpcSlice->setPPSId(uiCode);
+    //   frame_num
+    //   if( IdrPicFlag )
+    //     idr_pic_id
+    //   if( pic_order_cnt_type  = =  0 )
+    //     pic_order_cnt_lsb  
+    READ_CODE (10, uiCode, "pic_order_cnt_lsb" );     rpcSlice->setPOC(uiCode);             // 9 == SPS->Log2MaxFrameNum()
+    //   if( slice_type  = =  P  | |  slice_type  = =  B ) {
+    //     num_ref_idx_active_override_flag
+    //   if( num_ref_idx_active_override_flag ) {
+    //     num_ref_idx_l0_active_minus1
+    //     if( slice_type  = =  B )
+    //       num_ref_idx_l1_active_minus1
+    //   }
+    if (!rpcSlice->isIntra())
+    {
+      READ_FLAG( uiCode, "num_ref_idx_active_override_flag");
+      if (uiCode)
+      {
+        READ_CODE (3, uiCode, "num_ref_idx_l0_active_minus1" );  rpcSlice->setNumRefIdx( REF_PIC_LIST_0, uiCode + 1 );
+        if (rpcSlice->isInterB())
+        {
+          READ_CODE (3, uiCode, "num_ref_idx_l1_active_minus1" );  rpcSlice->setNumRefIdx( REF_PIC_LIST_1, uiCode + 1 );
+        }
+        else
+        {
+          rpcSlice->setNumRefIdx(REF_PIC_LIST_1, 0);
+        }
+      }
+      else
+      {
+        rpcSlice->setNumRefIdx(REF_PIC_LIST_0, 0);
+        rpcSlice->setNumRefIdx(REF_PIC_LIST_1, 0);
+      }
+    }
+    // }
   }
+  // ref_pic_list_modification( )
+  // ref_pic_list_combination( )
+  if (rpcSlice->isInterB())
+  {
+    READ_FLAG( uiCode, "ref_pic_list_combination_flag" );       rpcSlice->setRefPicListCombinationFlag( uiCode ? 1 : 0 );
+    if(uiCode)
+    {
+      READ_UVLC( uiCode, "num_ref_idx_lc_active_minus1" );      rpcSlice->setNumRefIdx( REF_PIC_LIST_C, uiCode + 1 );
+      
+      READ_FLAG( uiCode, "ref_pic_list_modification_flag_lc" ); rpcSlice->setRefPicListModificationFlagLC( uiCode ? 1 : 0 );
+      if(uiCode)
+      {
+        for (UInt i=0;i<rpcSlice->getNumRefIdx(REF_PIC_LIST_C);i++)
+        {
+          READ_FLAG( uiCode, "pic_from_list_0_flag" );
+          rpcSlice->setListIdFromIdxOfLC(i, uiCode);
+          READ_UVLC( uiCode, "ref_idx_list_curr" );
+          rpcSlice->setRefIdxFromIdxOfLC(i, uiCode);
+          rpcSlice->setRefIdxOfLC((RefPicList)rpcSlice->getListIdFromIdxOfLC(i), rpcSlice->getRefIdxFromIdxOfLC(i), i);
+        }
+      }
+    }
+    else
+    {
+      rpcSlice->setRefPicListModificationFlagLC(false);
+      rpcSlice->setNumRefIdx(REF_PIC_LIST_C, 0);
+    }
+  }
+  else
+  {
+    rpcSlice->setRefPicListCombinationFlag(false);      
+  }
+  
+  // if( nal_ref_idc != 0 )
+  //   dec_ref_pic_marking( )
+  // if( entropy_coding_mode_flag  &&  slice_type  !=  I)
+  //   cabac_init_idc
+  // first_slice_in_pic_flag
+  // if( first_slice_in_pic_flag == 0 )
+  //   slice_address
 #if FINE_GRANULARITY_SLICES
   int iNumCUs = ((rpcSlice->getSPS()->getWidth()+rpcSlice->getSPS()->getMaxCUWidth()-1)/rpcSlice->getSPS()->getMaxCUWidth())*((rpcSlice->getSPS()->getHeight()+rpcSlice->getSPS()->getMaxCUHeight()-1)/rpcSlice->getSPS()->getMaxCUHeight());
   int iMaxParts = (1<<(rpcSlice->getSPS()->getMaxCUDepth()<<1));
@@ -243,12 +406,12 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice)
   {
     iReqBitsInner++;
   }
-  xReadFlag(uiCode);
+  READ_FLAG( uiCode, "first_slice_in_pic_flag" );
   UInt uiAddress;
   UInt uiInnerAddress = 0;
   if(!uiCode)
   {
-    xReadCode(iReqBitsOuter+iReqBitsInner, uiAddress);
+    READ_CODE( iReqBitsOuter+iReqBitsInner, uiAddress, "slice_address" );
     uiLCUAddress = uiAddress >> iReqBitsInner;
     uiInnerAddress = uiAddress - (uiLCUAddress<<iReqBitsInner);
   }
@@ -263,7 +426,7 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice)
     rpcSlice->setNextSlice        ( false );
     rpcSlice->setNextEntropySlice ( true  );
 #if !FINE_GRANULARITY_SLICES
-    xReadUvlc(uiCode);
+    READ_UVLC( uiCode, "slice_address" );
     rpcSlice->setEntropySliceCurStartCUAddr( uiCode ); // start CU addr for entropy slice
 #endif
   }
@@ -273,89 +436,55 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice)
     rpcSlice->setNextEntropySlice ( false );
     
 #if !FINE_GRANULARITY_SLICES
-    xReadUvlc(uiCode);
+    READ_UVLC( uiCode, "slice_address" );
     rpcSlice->setSliceCurStartCUAddr( uiCode );        // start CU addr for slice
     rpcSlice->setEntropySliceCurStartCUAddr( uiCode ); // start CU addr for entropy slice  
 #else
     rpcSlice->setSliceCurStartCUAddr(uiCode);
     rpcSlice->setSliceCurEndCUAddr(iNumCUs*iMaxParts);
 #endif
-
-    
-    xReadFlag ( uiCode );
-    rpcSlice->setSymbolMode( uiCode );
-    
-    if (!rpcSlice->isIntra())
-      xReadFlag (   uiCode);
-    else
-      uiCode = 1;
-    
-    rpcSlice->setReferenced       (uiCode ? true : false);
-    
-    xReadFlag (   uiCode);  rpcSlice->setLoopFilterDisable(uiCode ? 1 : 0);
-    
-    if (!rpcSlice->isIntra())
-    {
-      xReadCode (3, uiCode);  rpcSlice->setNumRefIdx      (REF_PIC_LIST_0, uiCode);
-    }
-    else
-    {
-      rpcSlice->setNumRefIdx(REF_PIC_LIST_0, 0);
-    }
-    if (rpcSlice->isInterB())
-    {
-      xReadCode (3, uiCode);  rpcSlice->setNumRefIdx      (REF_PIC_LIST_1, uiCode);
-    }
-    else
-    {
-      rpcSlice->setNumRefIdx(REF_PIC_LIST_1, 0);
-    }
-    
-    if (rpcSlice->isInterB())
-    {
-      xReadFlag (uiCode);      rpcSlice->setRefPicListCombinationFlag(uiCode ? 1 : 0);
-      if(uiCode)
-      {
-        xReadUvlc(uiCode);      rpcSlice->setNumRefIdx      (REF_PIC_LIST_C, uiCode+1);
-        
-        xReadFlag (uiCode);     rpcSlice->setRefPicListModificationFlagLC(uiCode ? 1 : 0);
-        if(uiCode)
-        {
-          for (UInt i=0;i<rpcSlice->getNumRefIdx(REF_PIC_LIST_C);i++)
-          {
-            xReadFlag(uiCode);
-            rpcSlice->setListIdFromIdxOfLC(i, uiCode);
-            xReadUvlc(uiCode);
-            rpcSlice->setRefIdxFromIdxOfLC(i, uiCode);
-            rpcSlice->setRefIdxOfLC((RefPicList)rpcSlice->getListIdFromIdxOfLC(i), rpcSlice->getRefIdxFromIdxOfLC(i), i);
-          }
-        }
-      }
-      else
-      {
-        rpcSlice->setRefPicListModificationFlagLC(false);
-        rpcSlice->setNumRefIdx(REF_PIC_LIST_C, 0);
-      }
-    }
-    else
-    {
-      rpcSlice->setRefPicListCombinationFlag(false);      
-    }
-    
-    xReadFlag (uiCode);     rpcSlice->setDRBFlag          (uiCode ? 1 : 0);
-    if ( !rpcSlice->getDRBFlag() )
-    {
-      xReadCode(2, uiCode); rpcSlice->setERBIndex( (ERBIndex)uiCode );    assert (uiCode == ERB_NONE || uiCode == ERB_LTR);
-    }  
-    
+    // if( !lightweight_slice_flag ) {
+    //   slice_qp_delta
+    // should be delta
+    READ_SVLC( iCode, "slice_qp" );  rpcSlice->setSliceQp          (iCode);
+   
+    //   if( sample_adaptive_offset_enabled_flag )
+    //     sao_param()
+    //   if( deblocking_filter_control_present_flag ) {
+    //     disable_deblocking_filter_idc
+    // this should be an idc
+    READ_FLAG ( uiCode, "loop_filter_disable" );  rpcSlice->setLoopFilterDisable(uiCode ? 1 : 0);
+    //     if( disable_deblocking_filter_idc  !=  1 ) {
+    //       slice_alpha_c0_offset_div2
+    //       slice_beta_offset_div2
+    //     }
+    //   }
+    //   if( slice_type = = B )
+    //     collocated_from_l0_flag
 #if AMVP_NEIGH_COL
     if ( rpcSlice->getSliceType() == B_SLICE )
     {
-      xReadFlag (uiCode);
+      READ_FLAG( uiCode, "collocated_from_l0_flag" );
       rpcSlice->setColDir(uiCode);
     }
 #endif
+    
+    //   if( adaptive_loop_filter_enabled_flag ) {
+    //     if( !shared_pps_info_enabled_flag )
+    //       alf_param( )
+    //     alf_cu_control_param( )
+    //   }
+    // }
   }
+  // !!!! Syntax elements not in the WD  !!!!!
+  xReadFlag ( uiCode ); rpcSlice->setSymbolMode( uiCode );
+  
+  xReadFlag (uiCode);   rpcSlice->setDRBFlag          (uiCode ? 1 : 0);
+  if ( !rpcSlice->getDRBFlag() )
+  {
+    xReadCode(2, uiCode); rpcSlice->setERBIndex( (ERBIndex)uiCode );    assert (uiCode == ERB_NONE || uiCode == ERB_LTR);
+  }  
+  
   return;
 }
 

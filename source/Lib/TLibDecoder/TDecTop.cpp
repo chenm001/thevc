@@ -310,6 +310,7 @@ Bool TDecTop::decode(InputNALUnit& nalu, Int& iSkipFrame, Int& iPOCLastDisplay)
       }
 
       m_apcSlicePilot->setNalUnitType(nalu.m_UnitType);
+      m_apcSlicePilot->setReferenced(nalu.m_RefIDC != NAL_REF_IDC_PRIORITY_LOWEST);
       m_cEntropyDecoder.decodeSliceHeader (m_apcSlicePilot);
 
       m_apcSlicePilot->setTLayerInfo(nalu.m_TemporalID);

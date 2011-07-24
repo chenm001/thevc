@@ -751,7 +751,7 @@ Void TEncEntropy::xEncodeTransformSubdiv( TComDataCU* pcCU, UInt uiAbsPartIdx, U
     else
     {
       {
-        DTRACE_CABAC_V( g_nSymbolCounter++ );
+        DTRACE_CABAC_VL( g_nSymbolCounter++ );
         DTRACE_CABAC_T( "\tTrIdx: abspart=" );
         DTRACE_CABAC_V( uiAbsPartIdx );
         DTRACE_CABAC_T( "\tdepth=" );
@@ -808,7 +808,7 @@ Void TEncEntropy::encodeTransformIdx( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt 
     uiAbsPartIdx = 0;
   }
   
-  DTRACE_CABAC_V( g_nSymbolCounter++ )
+  DTRACE_CABAC_VL( g_nSymbolCounter++ )
   DTRACE_CABAC_T( "\tdecodeTransformIdx()\tCUDepth=" )
   DTRACE_CABAC_V( uiDepth )
   DTRACE_CABAC_T( "\n" )
@@ -1080,7 +1080,7 @@ Void TEncEntropy::xEncodeCoeff( TComDataCU* pcCU, TCoeff* pcCoeff, UInt uiAbsPar
     else
     {
       {
-        DTRACE_CABAC_V( g_nSymbolCounter++ );
+        DTRACE_CABAC_VL( g_nSymbolCounter++ );
         DTRACE_CABAC_T( "\tgoing down\tdepth=" );
         DTRACE_CABAC_V( uiDepth );
         DTRACE_CABAC_T( "\ttridx=" );
@@ -1120,7 +1120,7 @@ Void TEncEntropy::xEncodeCoeff( TComDataCU* pcCU, TCoeff* pcCoeff, UInt uiAbsPar
         xEncodeCoeff( pcCU, pcCoeff, uiIdx, uiDepth, uiWidth, uiHeight, uiTrIdx, uiCurrTrIdx, eType, bCodeDQP );
       }
       {
-        DTRACE_CABAC_V( g_nSymbolCounter++ );
+        DTRACE_CABAC_VL( g_nSymbolCounter++ );
         DTRACE_CABAC_T( "\tgoing up\n" );
       }
     }
@@ -1151,7 +1151,7 @@ Void TEncEntropy::encodeCoeff( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth
   
   if( pcCU->isIntra(uiAbsPartIdx) )
   {
-    DTRACE_CABAC_V( g_nSymbolCounter++ )
+    DTRACE_CABAC_VL( g_nSymbolCounter++ )
     DTRACE_CABAC_T( "\tdecodeTransformIdx()\tCUDepth=" )
     DTRACE_CABAC_V( uiDepth )
     DTRACE_CABAC_T( "\n" )

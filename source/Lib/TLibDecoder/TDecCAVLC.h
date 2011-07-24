@@ -58,13 +58,19 @@ public:
   virtual ~TDecCavlc();
   
 protected:
-  Void  xReadCode             (UInt uiLength, UInt& ruiCode);
-  Void  xReadUvlc             (UInt& ruiVal);
-  Void  xReadSvlc             (Int& riVal);
-  Void  xReadFlag             (UInt& ruiCode);
-  Void  xReadEpExGolomb     ( UInt& ruiSymbol, UInt uiCount );
-  Void  xReadExGolombLevel  ( UInt& ruiSymbol );
-  Void  xReadUnaryMaxSymbol ( UInt& ruiSymbol, UInt uiMaxSymbol );
+  Void  xReadCode             (UInt   uiLength, UInt& ruiCode);
+  Void  xReadUvlc             (UInt&  ruiVal);
+  Void  xReadSvlc             (Int&   riVal);
+  Void  xReadFlag             (UInt&  ruiCode);
+  Void  xReadEpExGolomb       ( UInt& ruiSymbol, UInt uiCount );
+  Void  xReadExGolombLevel    ( UInt& ruiSymbol );
+  Void  xReadUnaryMaxSymbol   ( UInt& ruiSymbol, UInt uiMaxSymbol );
+#if ENC_DEC_TRACE
+  Void  xReadCodeTr           (UInt  length, UInt& rValue, const Char *pSymbolName);
+  Void  xReadUvlcTr           (              UInt& rValue, const Char *pSymbolName);
+  Void  xReadSvlcTr           (               Int& rValue, const Char *pSymbolName);
+  Void  xReadFlagTr           (              UInt& rValue, const Char *pSymbolName);
+#endif
   
 #if E057_INTRA_PCM
   Void  xReadPCMAlignZero     ();
