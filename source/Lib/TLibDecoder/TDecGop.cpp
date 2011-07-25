@@ -354,12 +354,14 @@ Void TDecGop::decompressGop(TComInputBitstream* pcBitstream, TComPic*& rpcPic, B
 #if AMVP_BUFFERCOMPRESS
     rpcPic->compressMotion(); 
 #endif 
+    Char c = (pcSlice->isIntra() ? 'I' : pcSlice->isInterP() ? 'P' : 'B');
+    if (!pcSlice->isReferenced()) c += 32;
     
     //-- For time output for each slice
     printf("\nPOC %4d TId: %1d ( %c-SLICE, QP%3d ) ",
           pcSlice->getPOC(),
           pcSlice->getTLayer(),
-          pcSlice->isIntra() ? 'I' : pcSlice->isInterP() ? 'P' : 'B',
+          c,
           pcSlice->getSliceQp() );
 
     m_dDecTime += (double)(clock()-iBeforeTime) / CLOCKS_PER_SEC;

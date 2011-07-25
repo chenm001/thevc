@@ -98,8 +98,6 @@ TComDataCU::TComDataCU()
   m_bDecSubCu          = false;
   m_uiSliceStartCU        = 0;
   m_uiEntropySliceStartCU = 0;
-
-  m_bdQP               = false;               
 }
 
 TComDataCU::~TComDataCU()
@@ -641,16 +639,13 @@ Void TComDataCU::initEstData()
 *- set QP value according to input QP 
 *- set last-coded QP value according to input last-coded QP 
 */
-Void TComDataCU::initEstData( UInt uiDepth, UInt uiQP, UInt uiLastQP )
+Void TComDataCU::initEstData( UInt uiDepth, UInt uiQP )
 {
 #if FINE_GRANULARITY_SLICES
   m_dTotalCost         = MAX_DOUBLE;
   m_uiTotalDistortion  = 0;
   m_uiTotalBits        = 0;
-#if FINE_GRANULARITY_SLICES
   m_uiTotalBins        = 0;
-#endif  
-  m_hLastCodedQP = uiLastQP;
 
   UChar uhWidth  = g_uiMaxCUWidth  >> uiDepth;
   UChar uhHeight = g_uiMaxCUHeight >> uiDepth;
@@ -723,7 +718,6 @@ Void TComDataCU::initEstData( UInt uiDepth, UInt uiQP, UInt uiLastQP )
   Int iSizeInUInt  = sizeof( UInt   ) * m_uiNumPartition;
   Int iSizeInBool  = sizeof( Bool   ) * m_uiNumPartition;
   memset( m_phQP,              uiQP, iSizeInUchar );
-  m_hLastCodedQP = uiLastQP;
   memset( m_puiAlfCtrlFlag,     0, iSizeInBool );
 #if E057_INTRA_PCM
   memset( m_pbIPCMFlag,         0, iSizeInBool );
@@ -1031,6 +1025,19 @@ Void TComDataCU::initSubCU( TComDataCU* pcCU, UInt uiPartUnitIdx, UInt uiDepth )
   memcpy(m_uiEntropySliceStartCU,pcCU->m_uiEntropySliceStartCU+uiPartOffset,sizeof(UInt)*m_uiNumPartition);
 }
 #endif
+
+Void TComDataCU::setOutsideCUPart( UInt uiAbsPartIdx, UInt uiDepth )
+{
+  UInt uiNumPartition = m_uiNumPartition >> (uiDepth << 1);
+  UInt uiSizeInUchar = sizeof( UChar  ) * uiNumPartition;
+
+  UChar uhWidth  = g_uiMaxCUWidth  >> uiDepth;
+  UChar uhHeight = g_uiMaxCUHeight >> uiDepth;
+  memset( m_puhDepth    + uiAbsPartIdx,     uiDepth,  uiSizeInUchar );
+  memset( m_puhWidth    + uiAbsPartIdx,     uhWidth,  uiSizeInUchar );
+  memset( m_puhHeight   + uiAbsPartIdx,     uhHeight, uiSizeInUchar );
+}
+
 // --------------------------------------------------------------------------------------------------------------------
 // Copy
 // --------------------------------------------------------------------------------------------------------------------
@@ -1188,9 +1195,6 @@ Void TComDataCU::copyPartFrom( TComDataCU* pcCU, UInt uiPartUnitIdx, UInt uiDept
   Int iSizeInBool   = sizeof( Bool  ) * uiNumPartition;
   
   memcpy( m_phQP       + uiOffset, pcCU->getQP(),             iSizeInUchar                        );
-#if SUB_LCU_DQP
-  m_hLastCodedQP = pcCU->getLastCodedQP();
-#endif
   memcpy( m_pePartSize + uiOffset, pcCU->getPartitionSize(),  sizeof( *m_pePartSize ) * uiNumPartition );
   memcpy( m_pePredMode + uiOffset, pcCU->getPredictionMode(), sizeof( *m_pePredMode ) * uiNumPartition );
   
@@ -1806,82 +1810,6 @@ TComDataCU* TComDataCU::getPUBelowLeftAdi(UInt& uiBLPartUnitIdx, UInt uiPuHeight
   return NULL;
 }
 
-#if SUB_LCU_DQP
-/** Get left QpMinCu
-*\param   uiLPartUnitIdx
-*\param   uiCurrAbsIdxInLCU
-*\param   bEnforceSliceRestriction
-*\param   bEnforceEntropySliceRestriction
-*\returns TComDataCU*   point of TComDataCU of left QpMinCu
-*/
-TComDataCU* TComDataCU::getQpMinCuLeft( UInt& uiLPartUnitIdx, UInt uiCurrAbsIdxInLCU, Bool bEnforceSliceRestriction, Bool bEnforceEntropySliceRestriction)
-{
-  UInt uiNumPartInCUWidth = m_pcPic->getNumPartInWidth();
-
-  UInt uiAbsRorderQpMinCUIdx   = g_auiZscanToRaster[(uiCurrAbsIdxInLCU>>(8-(getSlice()->getPPS()->getMaxCuDQPDepth()<<1)))<<(8-(getSlice()->getPPS()->getMaxCuDQPDepth()<<1))];
-  UInt uiNumPartInQpMinCUWidth = getSlice()->getPPS()->getMinCuDQPSize()>>2;
-
-#if FINE_GRANULARITY_SLICES 
-  
-  UInt uiAbsZorderQpMinCUIdx   = (uiCurrAbsIdxInLCU>>(8-(getSlice()->getPPS()->getMaxCuDQPDepth()<<1)))<<(8-(getSlice()->getPPS()->getMaxCuDQPDepth()<<1));
-  if( (uiCurrAbsIdxInLCU != uiAbsZorderQpMinCUIdx) && 
-    ((bEnforceSliceRestriction && (m_pcPic->getCU( getAddr() )->getSliceStartCU(uiCurrAbsIdxInLCU) != m_pcPic->getCU( getAddr() )->getSliceStartCU (uiAbsZorderQpMinCUIdx))) ||
-    (bEnforceEntropySliceRestriction &&(m_pcPic->getCU( getAddr() )->getEntropySliceStartCU(uiCurrAbsIdxInLCU) != m_pcPic->getCU( getAddr() )->getEntropySliceStartCU (uiAbsZorderQpMinCUIdx)) )) )
-  {
-    return NULL;
-  }
-#endif
-
-  if ( !RasterAddress::isZeroCol( uiAbsRorderQpMinCUIdx, uiNumPartInCUWidth ) )
-  {
-    uiLPartUnitIdx = g_auiRasterToZscan[ uiAbsRorderQpMinCUIdx - uiNumPartInQpMinCUWidth ];
-#if FINE_GRANULARITY_SLICES 
-    TComDataCU* pcTempReconCU = m_pcPic->getCU( getAddr() );
-    if ((bEnforceSliceRestriction        && (pcTempReconCU==NULL || pcTempReconCU->getSlice() == NULL || pcTempReconCU->getSCUAddr()+uiLPartUnitIdx < m_pcPic->getCU( getAddr() )->getSliceStartCU       (uiAbsZorderQpMinCUIdx)))
-      ||(bEnforceEntropySliceRestriction && (pcTempReconCU==NULL || pcTempReconCU->getSlice() == NULL || pcTempReconCU->getSCUAddr()+uiLPartUnitIdx < m_pcPic->getCU( getAddr() )->getEntropySliceStartCU(uiAbsZorderQpMinCUIdx))))
-    {
-      return NULL;
-    }
-#endif
-    return m_pcPic->getCU( getAddr() );
-  }
-
-  uiLPartUnitIdx = g_auiRasterToZscan[ uiAbsRorderQpMinCUIdx + uiNumPartInCUWidth - uiNumPartInQpMinCUWidth ];
-
-#if FINE_GRANULARITY_SLICES
-  if ((bEnforceSliceRestriction        && (m_pcCULeft==NULL || m_pcCULeft->getSlice()==NULL || m_pcCULeft->getSCUAddr()+uiLPartUnitIdx < m_pcPic->getCU( getAddr() )->getSliceStartCU       (uiAbsZorderQpMinCUIdx)))
-    ||(bEnforceEntropySliceRestriction && (m_pcCULeft==NULL || m_pcCULeft->getSlice()==NULL || m_pcCULeft->getSCUAddr()+uiLPartUnitIdx < m_pcPic->getCU( getAddr() )->getEntropySliceStartCU(uiAbsZorderQpMinCUIdx))))
-#else
-  if ( (bEnforceSliceRestriction && (m_pcCULeft==NULL || m_pcCULeft->getSlice()==NULL || m_pcCULeft->getAddr() < m_uiSliceStartCU)) ||
-    (bEnforceEntropySliceRestriction && (m_pcCULeft==NULL || m_pcCULeft->getSlice()==NULL || m_pcCULeft->getAddr() < m_uiEntropySliceStartCU)) )
-#endif
-  {
-    return NULL;
-  }
-
-  return m_pcCULeft;
-}
-
-
-/** Get reference QP from left QpMinCu or latest coded QP
-*\param   uiCurrAbsIdxInLCU
-*\returns UChar   reference QP value
-*/
-UChar TComDataCU::getRefQP( UInt uiCurrAbsIdxInLCU )
-{
-  // Left CU
-  TComDataCU* pcCULeft;
-  UInt        uiLPartIdx;
-  pcCULeft = getQpMinCuLeft( uiLPartIdx, m_uiAbsIdxInLCU + uiCurrAbsIdxInLCU );
-  if ( pcCULeft )
-  {
-    return pcCULeft->getQP(uiLPartIdx);
-  }
-  // Last QP
-  return getLastCodedQP();
-}
-#endif
-
 TComDataCU* TComDataCU::getPUAboveRightAdi(UInt&  uiARPartUnitIdx, UInt uiPuWidth, UInt uiCurrPartUnitIdx, UInt uiPartUnitOffset, Bool bEnforceSliceRestriction, Bool bEnforceEntropySliceRestriction )
 {
   UInt uiAbsPartIdxRT     = g_auiZscanToRaster[uiCurrPartUnitIdx];
@@ -1962,6 +1890,126 @@ TComDataCU* TComDataCU::getPUAboveRightAdi(UInt&  uiARPartUnitIdx, UInt uiPuWidt
   }
   return m_pcCUAboveRight;
 }
+
+#if SUB_LCU_DQP
+/** Get left QpMinCu
+*\param   uiLPartUnitIdx
+*\param   uiCurrAbsIdxInLCU
+*\param   bEnforceSliceRestriction
+*\param   bEnforceEntropySliceRestriction
+*\returns TComDataCU*   point of TComDataCU of left QpMinCu
+*/
+TComDataCU* TComDataCU::getQpMinCuLeft( UInt& uiLPartUnitIdx, UInt uiCurrAbsIdxInLCU, Bool bEnforceSliceRestriction, Bool bEnforceEntropySliceRestriction)
+{
+  UInt uiNumPartInCUWidth = m_pcPic->getNumPartInWidth();
+
+  UInt uiAbsRorderQpMinCUIdx   = g_auiZscanToRaster[(uiCurrAbsIdxInLCU>>(8-(getSlice()->getPPS()->getMaxCuDQPDepth()<<1)))<<(8-(getSlice()->getPPS()->getMaxCuDQPDepth()<<1))];
+  UInt uiNumPartInQpMinCUWidth = getSlice()->getPPS()->getMinCuDQPSize()>>2;
+
+#if FINE_GRANULARITY_SLICES 
+  
+  UInt uiAbsZorderQpMinCUIdx   = (uiCurrAbsIdxInLCU>>(8-(getSlice()->getPPS()->getMaxCuDQPDepth()<<1)))<<(8-(getSlice()->getPPS()->getMaxCuDQPDepth()<<1));
+  if( (uiCurrAbsIdxInLCU != uiAbsZorderQpMinCUIdx) && 
+    ((bEnforceSliceRestriction && (m_pcPic->getCU( getAddr() )->getSliceStartCU(uiCurrAbsIdxInLCU) != m_pcPic->getCU( getAddr() )->getSliceStartCU (uiAbsZorderQpMinCUIdx))) ||
+    (bEnforceEntropySliceRestriction &&(m_pcPic->getCU( getAddr() )->getEntropySliceStartCU(uiCurrAbsIdxInLCU) != m_pcPic->getCU( getAddr() )->getEntropySliceStartCU (uiAbsZorderQpMinCUIdx)) )) )
+  {
+    return NULL;
+  }
+#endif
+
+  if ( !RasterAddress::isZeroCol( uiAbsRorderQpMinCUIdx, uiNumPartInCUWidth ) )
+  {
+    uiLPartUnitIdx = g_auiRasterToZscan[ uiAbsRorderQpMinCUIdx - uiNumPartInQpMinCUWidth ];
+#if FINE_GRANULARITY_SLICES 
+    TComDataCU* pcTempReconCU = m_pcPic->getCU( getAddr() );
+    if ((bEnforceSliceRestriction        && (pcTempReconCU==NULL || pcTempReconCU->getSlice() == NULL || pcTempReconCU->getSCUAddr()+uiLPartUnitIdx < m_pcPic->getCU( getAddr() )->getSliceStartCU       (uiAbsZorderQpMinCUIdx)))
+      ||(bEnforceEntropySliceRestriction && (pcTempReconCU==NULL || pcTempReconCU->getSlice() == NULL || pcTempReconCU->getSCUAddr()+uiLPartUnitIdx < m_pcPic->getCU( getAddr() )->getEntropySliceStartCU(uiAbsZorderQpMinCUIdx))))
+    {
+      return NULL;
+    }
+#endif
+    return m_pcPic->getCU( getAddr() );
+  }
+
+  uiLPartUnitIdx = g_auiRasterToZscan[ uiAbsRorderQpMinCUIdx + uiNumPartInCUWidth - uiNumPartInQpMinCUWidth ];
+
+#if FINE_GRANULARITY_SLICES
+  if ((bEnforceSliceRestriction        && (m_pcCULeft==NULL || m_pcCULeft->getSlice()==NULL || m_pcCULeft->getSCUAddr()+uiLPartUnitIdx < m_pcPic->getCU( getAddr() )->getSliceStartCU       (uiAbsZorderQpMinCUIdx)))
+    ||(bEnforceEntropySliceRestriction && (m_pcCULeft==NULL || m_pcCULeft->getSlice()==NULL || m_pcCULeft->getSCUAddr()+uiLPartUnitIdx < m_pcPic->getCU( getAddr() )->getEntropySliceStartCU(uiAbsZorderQpMinCUIdx))))
+#else
+  if ( (bEnforceSliceRestriction && (m_pcCULeft==NULL || m_pcCULeft->getSlice()==NULL || m_pcCULeft->getAddr() < m_uiSliceStartCU)) ||
+    (bEnforceEntropySliceRestriction && (m_pcCULeft==NULL || m_pcCULeft->getSlice()==NULL || m_pcCULeft->getAddr() < m_uiEntropySliceStartCU)) )
+#endif
+  {
+    return NULL;
+  }
+
+  return m_pcCULeft;
+}
+
+/** Get reference QP from left QpMinCu or latest coded QP
+*\param   uiCurrAbsIdxInLCU
+*\returns UChar   reference QP value
+*/
+UChar TComDataCU::getRefQP( UInt uiCurrAbsIdxInLCU )
+{
+  // Left CU
+  TComDataCU* pcCULeft;
+  UInt        uiLPartIdx;
+  pcCULeft = getQpMinCuLeft( uiLPartIdx, m_uiAbsIdxInLCU + uiCurrAbsIdxInLCU );
+  if ( pcCULeft )
+  {
+    return pcCULeft->getQP(uiLPartIdx);
+  }
+  // Last QP
+  return getLastCodedQP( uiCurrAbsIdxInLCU );
+}
+
+Int TComDataCU::getLastValidPartIdx( Int iAbsPartIdx )
+{
+  Int iLastValidPartIdx = iAbsPartIdx-1;
+  while ( iLastValidPartIdx >= 0
+       && getPredictionMode( iLastValidPartIdx ) == MODE_NONE )
+  {
+    UInt uiDepth = getDepth( iLastValidPartIdx );
+    iLastValidPartIdx -= m_uiNumPartition>>(uiDepth<<1);
+  }
+  return iLastValidPartIdx;
+}
+
+UChar TComDataCU::getLastCodedQP( UInt uiAbsPartIdx )
+{
+  UInt uiQUPartIdxMask = ~((1<<(8-(getSlice()->getPPS()->getMaxCuDQPDepth()<<1)))-1);
+  Int iLastValidPartIdx = getLastValidPartIdx( uiAbsPartIdx&uiQUPartIdxMask );
+#if FINE_GRANULARITY_SLICES
+  if ( uiAbsPartIdx < m_uiNumPartition
+    && (getSCUAddr()+iLastValidPartIdx < getSliceStartCU(m_uiAbsIdxInLCU+uiAbsPartIdx) || getSCUAddr()+iLastValidPartIdx < getEntropySliceStartCU(m_uiAbsIdxInLCU+uiAbsPartIdx) ))
+  {
+    return getSlice()->getSliceQp();
+  }
+  else
+#endif
+  if ( iLastValidPartIdx >= 0 )
+  {
+    return getQP( iLastValidPartIdx );
+  }
+  else
+  {
+    if ( getZorderIdxInCU() > 0 )
+    {
+      return getPic()->getCU( getAddr() )->getLastCodedQP( getZorderIdxInCU() );
+    }
+    else if ( getAddr() > 0 )
+    {
+      return getPic()->getCU( getAddr()-1 )->getLastCodedQP( getPic()->getNumPartInCU() );
+    }
+    else
+    {
+      return getSlice()->getSliceQp();
+    }
+  }
+}
+#endif
 
 Int TComDataCU::getMostProbableIntraDirLuma( UInt uiAbsPartIdx )
 {

@@ -76,7 +76,7 @@ private:
   TComYuv**               m_ppcOrigYuv;     ///< Original Yuv for each depth
   
   //  Data : encoder control
-  Int                     m_iQp;            ///< Last QP
+  Bool                    m_bEncodeDQP;
   
   //  Access channel
   TEncCfg*                m_pcEncCfg;
@@ -112,9 +112,6 @@ public:
   /// CU encoding function
   Void  encodeCU            ( TComDataCU*    pcCU, Bool bForceTerminate = false  );
   
-  /// set QP value
-  Void  setQpLast           ( Int iQp ) { m_iQp = iQp; }
-  
 protected:
 #if FINE_GRANULARITY_SLICES
   Void  finishCU            ( TComDataCU*  pcCU, UInt uiAbsPartIdx,           UInt uiDepth        );
@@ -145,6 +142,9 @@ protected:
   Void  xCopyYuv2Pic        ( TComPic* rpcPic, UInt uiCUAddr, UInt uiAbsZorderIdx, UInt uiDepth );
 #endif
   Void  xCopyYuv2Tmp        ( UInt uhPartUnitIdx, UInt uiDepth );
+
+  Bool getdQPFlag           ()                        { return m_bEncodeDQP;        }
+  Void setdQPFlag           ( Bool b )                { m_bEncodeDQP = b;           }
 };
 
 

@@ -107,10 +107,10 @@ Void TEncBinCABAC::encodePCMAlignBits()
   if( 8 - m_uiBitsLeft != 0 )
   {
     m_pcTComBitIf->write  ( m_uiByte, 8 - m_uiBitsLeft );
-    m_pcTComBitIf->writeAlignZero(); // pcm align zero
-    m_uiBitsLeft  = 8;
-    m_uiByte      = 0;
   }
+  m_pcTComBitIf->writeAlignZero(); // pcm align zero
+  m_uiBitsLeft  = 8;
+  m_uiByte      = 0;
 }
 
 /** Write a PCM code.
@@ -160,7 +160,7 @@ Void
 TEncBinCABAC::encodeBin( UInt uiBin, ContextModel &rcCtxModel )
 {
   {
-    DTRACE_CABAC_V( g_nSymbolCounter++ )
+    DTRACE_CABAC_VL( g_nSymbolCounter++ )
     DTRACE_CABAC_T( "\tstate=" )
     DTRACE_CABAC_V( ( rcCtxModel.getState() << 1 ) + rcCtxModel.getMps() )
     DTRACE_CABAC_T( "\tsymbol=" )
@@ -208,7 +208,7 @@ Void
 TEncBinCABAC::encodeBinEP( UInt uiBin )
 {
   {
-    DTRACE_CABAC_V( g_nSymbolCounter++ )
+    DTRACE_CABAC_VL( g_nSymbolCounter++ )
     DTRACE_CABAC_T( "\tEPsymbol=" )
     DTRACE_CABAC_V( uiBin )
     DTRACE_CABAC_T( "\n" )

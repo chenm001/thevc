@@ -2759,7 +2759,7 @@ Void CAlfLCU::setSGUBorderAvailability(UInt uiNumLCUInPicWidth, UInt uiNumLCUInP
       }
       else if(bLCUTBoundary)
       {
-        zRefSU       = g_auiRasterToZscan[ rTRefSU+ 1];
+        zRefSU       = g_auiRasterToZscan[ rTRefSU+ uiWidthSU];
         piRefMapLCU  = piTRefMapLCU;
       }
       else if(bLCURBoundary)
@@ -2769,7 +2769,7 @@ Void CAlfLCU::setSGUBorderAvailability(UInt uiNumLCUInPicWidth, UInt uiNumLCUInP
       }
       else //inside LCU
       {
-        zRefSU       = g_auiRasterToZscan[ rTLSU - uiNumSUInLCUWidth +1];
+        zRefSU       = g_auiRasterToZscan[ rTLSU - uiNumSUInLCUWidth +uiWidthSU];
         piRefMapLCU  = piSliceIDMapLCU;
       }
       piRefID = piRefMapLCU + zRefSU;
@@ -3669,11 +3669,14 @@ Void TComSampleAdaptiveOffset::create( UInt uiSourceWidth, UInt uiSourceHeight, 
 
 
   UInt uiMaxY  = g_uiIBDI_MAX;
-  UInt uiMinY  = 0   << g_uiBitIncrement;
+  UInt uiMinY  = 0;
 
-
+#if FULL_NBIT
+  Int iCcTableRange = CRANGE >> (4-(g_uiBitDepth-8));
+#else
   Int iCcTableRange = CRANGE >> (4-g_uiBitIncrement);
-
+#endif
+  
   for(i=0;i<iCcTableRange;i++)
   {
     m_pClipTableBase[i+CRANGE_EXT] = i;
@@ -4496,8 +4499,14 @@ Void TComSampleAdaptiveOffset::xAoOnePart(UInt uiPartIdx, TComPicYuv* pcPicYuvDs
     if (uiTypeIdx == SAO_BO_0 || uiTypeIdx == SAO_BO_1)
     {
       for (i=0;i<m_psQAOPart[uiPartIdx].iLength;i++)
+      {
+#if FULL_NBIT
+        iOffset[i+1] = m_psQAOPart[uiPartIdx].iOffset[i] << (g_uiBitDepth-8-m_uiAoBitDepth);
+#else
         iOffset[i+1] = m_psQAOPart[uiPartIdx].iOffset[i] << (g_uiBitIncrement-m_uiAoBitDepth);
-
+#endif
+      }
+      
       if (uiTypeIdx == SAO_BO_0 )
       {
         ppLumaTable = m_ppLumaTableBo0;
@@ -4507,7 +4516,11 @@ Void TComSampleAdaptiveOffset::xAoOnePart(UInt uiPartIdx, TComPicYuv* pcPicYuvDs
         ppLumaTable = m_ppLumaTableBo1;
       }
 
+#if FULL_NBIT
+      for (i=0;i<(1<<(g_uiBitDepth));i++)
+#else
       for (i=0;i<(1<<(g_uiBitIncrement+8));i++)
+#endif
       {
         m_iOffsetBo[i] = m_pClipTable[i + iOffset[ppLumaTable[i]]];
       }
@@ -4517,7 +4530,11 @@ Void TComSampleAdaptiveOffset::xAoOnePart(UInt uiPartIdx, TComPicYuv* pcPicYuvDs
     {
       for (i=0;i<m_psQAOPart[uiPartIdx].iLength;i++)
       {
+#if FULL_NBIT
+        iOffset[i+1] = m_psQAOPart[uiPartIdx].iOffset[i] << (g_uiBitDepth-8-m_uiAoBitDepth);
+#else
         iOffset[i+1] = m_psQAOPart[uiPartIdx].iOffset[i] << (g_uiBitIncrement-m_uiAoBitDepth);
+#endif
       }
       for (uiEdgeType=0;uiEdgeType<6;uiEdgeType++)
       {
@@ -4610,7 +4627,11 @@ Void TComSampleAdaptiveOffset::SAOProcess(TComPic* pcPic, SAOParam* pcQaoParam)
 
   if (pcQaoParam->bSaoFlag)
   {
+#if FULL_NBIT
+    if (g_uiBitDepth-8>1)
+#else
     if (g_uiBitIncrement>1)
+#endif
     {
       m_uiAoBitDepth = 1;
     }
@@ -4768,9 +4789,13 @@ Void TComAdaptiveLoopFilter::xPCMSampleRestoration (TComDataCU* pcCU, UInt uiAbs
       piSrc[uiX] = (piPcm[uiX] << uiPcmLeftShiftBit);
 #else
       if(g_uiBitIncrement > 0)
+      {
         piSrc[uiX] = (piPcm[uiX] << g_uiBitIncrement);
+      }
       else
+      {
         piSrc[uiX] = piPcm[uiX];
+      }
 #endif
     }
     piPcm += uiWidth;

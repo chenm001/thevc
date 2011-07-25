@@ -52,6 +52,10 @@ class TComPic;
 class TComSPS
 {
 private:
+  Int         m_SPSId;
+  Int         m_ProfileIdc;
+  Int         m_LevelIdc;
+
   UInt        m_uiMaxTLayers;           // maximum number of temporal layers
 
   // Structure
@@ -115,6 +119,13 @@ private:
 public:
   TComSPS();
   virtual ~TComSPS();
+
+  Int  getSPSId       ()         { return m_SPSId;          }
+  Void setSPSId       (Int i)    { m_SPSId = i;             }
+  Int  getProfileIdc  ()         { return m_ProfileIdc;     }
+  Void setProfileIdc  (Int i)    { m_ProfileIdc = i;        }
+  Int  getLevelIdc    ()         { return m_LevelIdc;       }
+  Void setLevelIdc    (Int i)    { m_LevelIdc = i;          }
   
   // structure
   Void setWidth       ( UInt u ) { m_uiWidth = u;           }
@@ -219,7 +230,9 @@ public:
 class TComPPS
 {
 private:
-  Bool        m_bConstrainedIntraPred;    //  constrained_intra_pred_flag
+  Int         m_PPSId;                    // pic_parameter_set_id
+  Int         m_SPSId;                    // seq_parameter_set_id
+  Bool        m_bConstrainedIntraPred;    // constrained_intra_pred_flag
  
 #if SUB_LCU_DQP
   // access channel
@@ -243,6 +256,11 @@ private:
 public:
   TComPPS();
   virtual ~TComPPS();
+  
+  Int       getPPSId ()      { return m_PPSId; }
+  Void      setPPSId (Int i) { m_PPSId = i; }
+  Int       getSPSId ()      { return m_SPSId; }
+  Void      setSPSId (Int i) { m_SPSId = i; }
   
 #if FINE_GRANULARITY_SLICES
   Int       getSliceGranularity()        { return m_iSliceGranularity; }
@@ -284,6 +302,7 @@ class TComSlice
   
 private:
   //  Bitstream writing
+  Int         m_iPPSId;               ///< picture parameter set ID
   Int         m_iPOC;
   NalUnitType m_eNalUnitType;         ///< Nal unit type for the slice
   SliceType   m_eSliceType;
@@ -355,8 +374,11 @@ public:
   Void      setSPS          ( TComSPS* pcSPS ) { m_pcSPS = pcSPS; }
   TComSPS*  getSPS          () { return m_pcSPS; }
   
-  Void      setPPS          ( TComPPS* pcPPS ) { m_pcPPS = pcPPS; }
+  Void      setPPS          ( TComPPS* pcPPS )         { assert(pcPPS!=NULL); m_pcPPS = pcPPS; m_iPPSId = pcPPS->getPPSId(); }
   TComPPS*  getPPS          () { return m_pcPPS; }
+
+  Void      setPPSId        ( Int PPSId )         { m_iPPSId = PPSId; }
+  Int       getPPSId        () { return m_iPPSId; }
   
   SliceType getSliceType    ()                          { return  m_eSliceType;         }
   Int       getPOC          ()                          { return  m_iPOC;           }
@@ -436,17 +458,17 @@ public:
   Void setNoBackPredFlag( Bool b ) { m_bNoBackPredFlag = b; }
   Bool getRefIdxCombineCoding() { return m_bRefIdxCombineCoding; }
   Void setRefIdxCombineCoding( Bool b ) { m_bRefIdxCombineCoding = b; }
-  Void      generateCombinedList       ();
+  Void generateCombinedList       ();
 
-  UInt      getTLayer             ()                            { return m_uiTLayer;                      }
-  Void      setTLayer             ( UInt uiTLayer )             { m_uiTLayer = uiTLayer;                  }
+  UInt getTLayer             ()                            { return m_uiTLayer;                      }
+  Void setTLayer             ( UInt uiTLayer )             { m_uiTLayer = uiTLayer;                  }
 
-  Bool      getTLayerSwitchingFlag()                            { return m_bTLayerSwitchingFlag;          }
-  Void      setTLayerSwitchingFlag( Bool bValue )               { m_bTLayerSwitchingFlag = bValue;        }
+  Bool getTLayerSwitchingFlag()                            { return m_bTLayerSwitchingFlag;          }
+  Void setTLayerSwitchingFlag( Bool bValue )               { m_bTLayerSwitchingFlag = bValue;        }
 
-  Void      setTLayerInfo( UInt uiTLayer );
-  Void      decodingMarking( TComList<TComPic*>& rcListPic, Int iGOPSIze, Int& iMaxRefPicNum ); 
-  Void      decodingTLayerSwitchingMarking( TComList<TComPic*>& rcListPic );
+  Void setTLayerInfo( UInt uiTLayer );
+  Void decodingMarking( TComList<TComPic*>& rcListPic, Int iGOPSIze, Int& iMaxRefPicNum ); 
+  Void decodingTLayerSwitchingMarking( TComList<TComPic*>& rcListPic );
 
   Void setSliceMode                     ( UInt uiMode )     { m_uiSliceMode = uiMode;                     }
   UInt getSliceMode                     ()                  { return m_uiSliceMode;                       }

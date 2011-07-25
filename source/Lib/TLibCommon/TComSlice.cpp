@@ -40,39 +40,66 @@
 #include "TComPic.h"
 
 TComSlice::TComSlice()
+: m_iPPSId                        ( -1 )
+, m_iPOC                          ( 0 )
+, m_eNalUnitType                  ( NAL_UNIT_CODED_SLICE_IDR )
+, m_eSliceType                    ( I_SLICE )
+, m_iSliceQp                      ( 0 )
+, m_iSymbolMode                   ( 1 )
+, m_bLoopFilterDisable            ( false )
+, m_bDRBFlag                      ( true )
+, m_eERBIndex                     ( ERB_NONE )
+, m_bRefPicListModificationFlagLC ( false )
+, m_bRefPicListCombinationFlag    ( false )
+, m_iSliceQpDelta                 ( 0 )
+, m_iDepth                        ( 0 )
+, m_bRefenced                     ( false )
+, m_pcSPS                         ( NULL )
+, m_pcPPS                         ( NULL )
+, m_pcPic                         ( NULL )
+, m_uiColDir                      ( 0 )
+, m_dLambda                       ( 0.0 )
+, m_bNoBackPredFlag               ( false )
+, m_bRefIdxCombineCoding          ( false )
+, m_uiTLayer                      ( 0 )
+, m_bTLayerSwitchingFlag          ( false )
+, m_uiSliceMode                   ( 0 )
+, m_uiSliceArgument               ( 0 )
+, m_uiSliceCurStartCUAddr         ( 0 )
+, m_uiSliceCurEndCUAddr           ( 0 )
+, m_uiSliceIdx                    ( 0 )
+, m_uiEntropySliceMode            ( 0 )
+, m_uiEntropySliceArgument        ( 0 )
+, m_uiEntropySliceCurStartCUAddr  ( 0 )
+, m_uiEntropySliceCurEndCUAddr    ( 0 )
+, m_bNextSlice                    ( false )
+, m_bNextEntropySlice             ( false )
+, m_uiSliceBits                   ( 0 )
+#if FINE_GRANULARITY_SLICES
+, m_uiEntropySliceCounter         ( 0 )
+, m_bFinalized                    ( false )
+#endif
 {
-  m_iPOC                = 0;
-  m_eSliceType          = I_SLICE;
-  m_iSliceQp            = 0;
-  m_iSymbolMode         = 1;
-  m_aiNumRefIdx[0]      = 0;
-  m_aiNumRefIdx[1]      = 0;
-  m_bLoopFilterDisable  = false;
-  
-  m_bDRBFlag            = true;
-  m_eERBIndex           = ERB_NONE;
-  
-  m_iSliceQpDelta       = 0;
-  
-  m_iDepth              = 0;
-  
-  m_pcPic               = NULL;
-  m_bRefenced           = false;
-  m_uiColDir = 0;
+  m_aiNumRefIdx[0] = m_aiNumRefIdx[1] = m_aiNumRefIdx[2] = 0;
   
   initEqualRef();
-  m_bNoBackPredFlag = false;
-  m_bRefIdxCombineCoding = false;
-  m_bRefPicListCombinationFlag = false;
-  m_bRefPicListModificationFlagLC = false;
-  m_uiSliceCurStartCUAddr        = 0;
-  m_uiEntropySliceCurStartCUAddr = 0;
-
-  m_uiTLayer             = 0;
-  m_bTLayerSwitchingFlag = false;
-#if FINE_GRANULARITY_SLICES
-  m_bFinalized=false;
-#endif
+  
+  for(Int iNumCount = 0; iNumCount < MAX_NUM_REF_LC; iNumCount++)
+  {
+    m_iRefIdxOfLC[REF_PIC_LIST_0][iNumCount]=-1;
+    m_iRefIdxOfLC[REF_PIC_LIST_1][iNumCount]=-1;
+    m_eListIdFromIdxOfLC[iNumCount]=0;
+    m_iRefIdxFromIdxOfLC[iNumCount]=0;
+    m_iRefIdxOfL0FromRefIdxOfL1[iNumCount] = -1;
+    m_iRefIdxOfL1FromRefIdxOfL0[iNumCount] = -1;
+  }    
+  for(Int iNumCount = 0; iNumCount < MAX_NUM_REF; iNumCount++)
+  {
+    m_apcRefPicList [0][iNumCount] = NULL;
+    m_apcRefPicList [1][iNumCount] = NULL;
+    m_aiRefPOCList  [0][iNumCount] = 0;
+    m_aiRefPOCList  [1][iNumCount] = 0;
+  }
 }
 
 TComSlice::~TComSlice()
@@ -756,32 +783,56 @@ Void TComSlice::decodingTLayerSwitchingMarking( TComList<TComPic*>& rcListPic )
 // ------------------------------------------------------------------------------------------------
 
 TComSPS::TComSPS()
+: m_SPSId                     (  0)
+, m_ProfileIdc                (  0)
+, m_LevelIdc                  (  0)
+, m_uiMaxTLayers              (  1)
+// Structure
+, m_uiWidth                   (352)
+, m_uiHeight                  (288)
+, m_uiMaxCUWidth              ( 32)
+, m_uiMaxCUHeight             ( 32)
+, m_uiMaxCUDepth              (  3)
+, m_uiMinTrDepth              (  0)
+, m_uiMaxTrDepth              (  1)
+, m_uiQuadtreeTULog2MaxSize   (  0)
+, m_uiQuadtreeTULog2MinSize   (  0)
+, m_uiQuadtreeTUMaxDepthInter (  0)
+, m_uiQuadtreeTUMaxDepthIntra (  0)
+// Tool list
+#if E057_INTRA_PCM
+, m_uiPCMLog2MinSize          (  7)
+#endif
+, m_bUseALF                   (false)
+, m_bUseDQP                   (false)
+, m_bUseLDC                   (false)
+, m_bUsePAD                   (false)
+, m_bUseMRG                   (false)
+#if LM_CHROMA 
+, m_bUseLMChroma              (false)
+#endif
+, m_bUseLComb                 (false)
+, m_bLCMod                    (false)
+, m_uiBitDepth                (  8)
+, m_uiBitIncrement            (  0)
+#if E057_INTRA_PCM && E192_SPS_PCM_BIT_DEPTH_SYNTAX
+, m_uiPCMBitDepthLuma         (  8)
+, m_uiPCMBitDepthChroma       (  8)
+#endif
+#if E057_INTRA_PCM && E192_SPS_PCM_FILTER_DISABLE_SYNTAX
+, m_bPCMFilterDisableFlag     (false)
+#endif
+, m_uiMaxTrSize               ( 32)
+#if MTK_NONCROSS_INLOOP_FILTER
+, m_bLFCrossSliceBoundaryFlag (false)
+#endif
+#if MTK_SAO
+, m_bUseSAO                   (false) 
+#endif
+, m_bTemporalIdNestingFlag    (false)
 {
-  // Structure
-  m_uiWidth       = 352;
-  m_uiHeight      = 288;
-  m_uiMaxCUWidth  = 32;
-  m_uiMaxCUHeight = 32;
-  m_uiMaxCUDepth  = 3;
-  m_uiMinTrDepth  = 0;
-  m_uiMaxTrDepth  = 1;
-  m_uiMaxTrSize   = 32;
-  
-  // Tool list
-  m_bUseALF       = false;
-  m_bUseDQP       = false;
-  
-  m_bUseMRG      = false; // SOPH:
-  
   // AMVP parameter
   ::memset( m_aeAMVPMode, 0, sizeof( m_aeAMVPMode ) );
-
-  m_uiMaxTLayers            = 1;
-  m_bTemporalIdNestingFlag  = false;
-
-#if E057_INTRA_PCM
-  m_uiPCMLog2MinSize = 7;
-#endif
 }
 
 TComSPS::~TComSPS()
@@ -789,18 +840,25 @@ TComSPS::~TComSPS()
 }
 
 TComPPS::TComPPS()
+: m_PPSId                       (0)
+, m_bConstrainedIntraPred       (false)
+#if SUB_LCU_DQP
+, m_pcSPS                       (NULL)
+, m_uiMaxCuDQPDepth             (0)
+, m_uiMinCuDQPSize              (0)
+#endif
+, m_uiNumTlayerSwitchingFlags   (0)
+#if FINE_GRANULARITY_SLICES
+, m_iSliceGranularity           (0)
+#endif
+#if E045_SLICE_COMMON_INFO_SHARING
+, m_bSharedPPSInfoEnabled       (false)
+#endif
 {
-  m_bConstrainedIntraPred = false;
-
-  m_uiNumTlayerSwitchingFlags = 0;
   for ( UInt i = 0; i < MAX_TLAYER; i++ )
   {
     m_abTLayerSwitchingFlag[i] = false;
   }
-#if E045_SLICE_COMMON_INFO_SHARING
-  m_bSharedPPSInfoEnabled = false;
-#endif
-
 }
 
 TComPPS::~TComPPS()
