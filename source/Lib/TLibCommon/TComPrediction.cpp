@@ -910,7 +910,7 @@ Void TComPrediction::xPredIntraPlanar( Int* pSrc, Int srcStride, Pel* rpDst, Int
 #endif
 
   // Prepare intermediate variables used in interpolation
-#if PLANAR_E483
+#if PLANAR_F483
   bottomLeft = leftColumn[blkSize];
   topRight   = topRow[blkSize];
 #else
