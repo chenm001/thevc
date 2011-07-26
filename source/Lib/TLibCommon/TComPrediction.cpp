@@ -910,8 +910,13 @@ Void TComPrediction::xPredIntraPlanar( Int* pSrc, Int srcStride, Pel* rpDst, Int
 #endif
 
   // Prepare intermediate variables used in interpolation
+#if PLANAR_E483
+  bottomLeft = leftColumn[blkSize];
+  topRight   = topRow[blkSize];
+#else
   bottomLeft = leftColumn[blkSize-1];
   topRight   = topRow[blkSize-1];
+#endif
   for (k=0;k<blkSize;k++)
   {
     bottomRow[k]   = bottomLeft - topRow[k];

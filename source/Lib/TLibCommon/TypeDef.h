@@ -119,6 +119,7 @@
 #define NUM_INTRA_MODE 36
 #define PLANAR_IDX     34
 #define LM_CHROMA_IDX  35
+#define PLANAR_E483 1 ///< Modify samples used for planar prediction as per JCTVC-E483
 #endif
 
 #define IBDI_DISTORTION                0           ///< enable/disable SSE modification when IBDI is used (JCTVC-D152)
