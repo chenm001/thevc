@@ -112,6 +112,7 @@
 
 #define MTK_AMVP_SMVP_DERIVATION          1              ///< (JCTVC-E481 - D125 2.3) amvp spatial candidate derivation
 #define TI_AMVP_SMVP_SIMPLIFIED           1              ///< (JCTVC-E481 - F)amvp spatial candidate simplified scanning
+#define MV_SCALE_ROUNDING_F142            1           ///< Modified rounding when scaling motion vectors (JCTVC-F142)
 
 #define ADD_PLANAR_MODE                   1           ///< enable/disable Planar mode for intra prediction (JCTVC-E321)
 
@@ -119,7 +120,7 @@
 #define NUM_INTRA_MODE 36
 #define PLANAR_IDX     34
 #define LM_CHROMA_IDX  35
-#define PLANAR_F483 1 ///< Modify samples used for planar prediction as per JCTVC-E483
+#define PLANAR_F483 1 ///< Modify samples used for planar prediction as per JCTVC-F483
 #endif
 
 #define IBDI_DISTORTION                0           ///< enable/disable SSE modification when IBDI is used (JCTVC-D152)
