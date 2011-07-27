@@ -327,7 +327,6 @@ Void TDecSbac::xReadUnarySymbol( UInt& ruiSymbol, ContextModel* pcSCModel, Int i
   ruiSymbol = uiSymbol;
 }
 
-#if E253
 /** Parsing of coeff_abs_level_minus3
  * \param ruiSymbol reference to coeff_abs_level_minus3
  * \param ruiGoRiceParam reference to Rice parameter
@@ -374,29 +373,6 @@ Void TDecSbac::xReadGoRiceExGolomb( UInt &ruiSymbol, UInt &ruiGoRiceParam )
 
   return;
 }
-#else
-Void TDecSbac::xReadExGolombLevel( UInt& ruiSymbol, ContextModel& rcSCModel  )
-{
-  UInt uiSymbol;
-  UInt uiCount = 0;
-  do
-  {
-    m_pcTDecBinIf->decodeBin( uiSymbol, rcSCModel );
-    uiCount++;
-  }
-  while( uiSymbol && ( uiCount != 13 ) );
-  
-  ruiSymbol = uiCount - 1;
-  
-  if( uiSymbol )
-  {
-    xReadEpExGolomb( uiSymbol, 0 );
-    ruiSymbol += uiSymbol + 1;
-  }
-  
-  return;
-}
-#endif
 
 
 #if E057_INTRA_PCM
@@ -1503,9 +1479,7 @@ Void TDecSbac::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartId
   Int  c1, c2;
   UInt uiSign;
   UInt uiLevel;
-#if E253
   UInt uiGoRiceParam = 0;
-#endif
 
   if( uiNum4x4Blk > 1 )
   {
@@ -1518,9 +1492,7 @@ Void TDecSbac::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartId
       UInt uiSubNumSig = 0;
       UInt uiSubPosX   = 0;
       UInt uiSubPosY   = 0;
-#if E253
       uiGoRiceParam    = 0;
-#endif
 
       uiSubPosX = g_auiFrameScanX[ g_aucConvertToBit[ uiWidth ] - 1 ][ uiSubBlk ] << 2;
       uiSubPosY = g_auiFrameScanY[ g_aucConvertToBit[ uiWidth ] - 1 ][ uiSubBlk ] << 2;
@@ -1581,7 +1553,6 @@ Void TDecSbac::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartId
           {
             if( sigCoeff[idx] == 2 )
             {
-#if E253
               m_pcTDecBinIf->decodeBin( uiLevel, baseCtxMod[c2] );
               
               if( uiLevel )
@@ -1589,10 +1560,6 @@ Void TDecSbac::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartId
                 xReadGoRiceExGolomb( uiLevel, uiGoRiceParam );
                 sigCoeff[idx] = uiLevel + 3;
               }
-#else
-              xReadExGolombLevel( uiLevel, baseCtxMod[c2] );
-              sigCoeff[idx] = uiLevel + 2;
-#endif
               c2 += (c2 < 4);
               uiNumOne++;
             }
@@ -1649,7 +1616,6 @@ Void TDecSbac::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartId
       {
         if( sigCoeff[idx] == 2 )
         {
-#if E253
           m_pcTDecBinIf->decodeBin( uiLevel, baseCtxMod[c2] );
           
           if( uiLevel )
@@ -1657,10 +1623,6 @@ Void TDecSbac::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartId
             xReadGoRiceExGolomb( uiLevel, uiGoRiceParam );
             sigCoeff[idx] = uiLevel + 3;
           }
-#else
-          xReadExGolombLevel( uiLevel, baseCtxMod[c2] );
-          sigCoeff[idx] = uiLevel + 2;
-#endif
           c2 += (c2 < 4);
         }
       }

@@ -1691,7 +1691,6 @@ UInt g_uiCtxXY[ 31 ] =
 // scanning order to 8x8 context model mapping table
 UInt  g_auiAntiScan8  [64];
 
-#if E253
 // Rice parameters for absolute transform levels
 const UInt g_auiGoRiceRange[4] =
 {
@@ -1718,7 +1717,6 @@ const UInt g_aauiGoRiceUpdate[4][16] =
     3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3
   }
 };
-#endif
 
 // initialize g_auiFrameScanXY
 Void initFrameScanXY( UInt* pBuff, UInt* pBuffX, UInt* pBuffY, Int iWidth, Int iHeight )

@@ -129,11 +129,9 @@ extern       UInt   g_uiCtxXYOffset[ MAX_CU_DEPTH ];      //!< context offset fo
 extern       UInt   g_uiCtxXY      [ 31 ];                //!< context mapping for last pos coding
 #endif
 
-#if E253
 extern const UInt   g_auiGoRiceRange[4];                  //!< maximum value coded with Rice codes
 extern const UInt   g_auiGoRicePrefixLen[4];              //!< prefix length for each maximum value
 extern const UInt   g_aauiGoRiceUpdate[4][16];            //!< parameter update rules for Rice codes
-#endif
 
 // ====================================================================================================================
 // CAVLC table

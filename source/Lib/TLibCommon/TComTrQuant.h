@@ -258,9 +258,7 @@ UInt             getCurrLineNum(UInt uiScanIdx, UInt uiPosX, UInt uiPosY);
                                      UShort                          ui16CtxNumSig,
                                      UShort                          ui16CtxNumOne,
                                      UShort                          ui16CtxNumAbs,
-#if E253
                                      UShort                          ui16AbsGoRice,
-#endif
                                      Int                             iQBits,
                                      Double                          dTemp
                                     ) const;
@@ -270,10 +268,8 @@ UInt             getCurrLineNum(UInt uiScanIdx, UInt uiPosX, UInt uiPosY);
                                      UShort                          ui16CtxNumSig,
 #endif
                                      UShort                          ui16CtxNumOne,
-                                     UShort                          ui16CtxNumAbs
-#if E253
-                                     ,UShort                          ui16AbsGoRice
-#endif
+                                     UShort                          ui16CtxNumAbs,
+                                     UShort                          ui16AbsGoRice
                                      ) const;
 #if PCP_SIGMAP_SIMPLE_LAST
   __inline Double xGetRateLast     ( UInt                            uiPosX,

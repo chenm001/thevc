@@ -92,11 +92,7 @@ private:
   Void  xReadUnarySymbol    ( UInt& ruiSymbol, ContextModel* pcSCModel, Int iOffset );
   Void  xReadUnaryMaxSymbol ( UInt& ruiSymbol, ContextModel* pcSCModel, Int iOffset, UInt uiMaxSymbol );
   Void  xReadEpExGolomb     ( UInt& ruiSymbol, UInt uiCount );
-#if E253
   Void  xReadGoRiceExGolomb ( UInt &ruiSymbol, UInt &ruiGoRiceParam );
-#else
-  Void  xReadExGolombLevel  ( UInt& ruiSymbol, ContextModel& rcSCModel  );
-#endif
   
 #if MVD_CTX
   Void  xReadMvd            ( Int& riMvdComp, UInt uiAbsSumL, UInt uiAbsSumA, UInt uiCtx );

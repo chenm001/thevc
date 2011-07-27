@@ -255,7 +255,6 @@ Void TEncSbac::xWriteEpExGolomb( UInt uiSymbol, UInt uiCount )
   return;
 }
 
-#if E253
 /** Coding of coeff_abs_level_minus3
  * \param uiSymbol value of coeff_abs_level_minus3
  * \param ruiGoRiceParam reference to Rice parameter
@@ -309,36 +308,6 @@ Void TEncSbac::xWriteGoRiceExGolomb( UInt uiSymbol, UInt &ruiGoRiceParam )
 
   return;
 }
-#else
-Void TEncSbac::xWriteExGolombLevel( UInt uiSymbol, ContextModel& rcSCModel  )
-{
-  if( uiSymbol )
-  {
-    m_pcBinIf->encodeBin( 1, rcSCModel );
-    UInt uiCount = 0;
-    Bool bNoExGo = (uiSymbol < 13);
-    
-    while( --uiSymbol && ++uiCount < 13 )
-    {
-      m_pcBinIf->encodeBin( 1, rcSCModel );
-    }
-    if( bNoExGo )
-    {
-      m_pcBinIf->encodeBin( 0, rcSCModel );
-    }
-    else
-    {
-      xWriteEpExGolomb( uiSymbol, 0 );
-    }
-  }
-  else
-  {
-    m_pcBinIf->encodeBin( 0, rcSCModel );
-  }
-  
-  return;
-}
-#endif
 
 // SBAC RD
 Void  TEncSbac::load ( TEncSbac* pSrc)
@@ -1414,9 +1383,7 @@ Void TEncSbac::codeCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx
    * Sign and bin0 PCP (Section 3.2 and 3.3 of JCTVC-B088)
    */
   Int  c1, c2;
-#if E253
   UInt uiGoRiceParam = 0;
-#endif
 
   if( uiNum4x4Blk > 1 )
   {
@@ -1429,9 +1396,7 @@ Void TEncSbac::codeCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx
       UInt uiSubNumSig = 0;
       UInt uiSubPosX   = 0;
       UInt uiSubPosY   = 0;
-#if E253
       uiGoRiceParam    = 0;
-#endif
 
       uiSubPosX = g_auiFrameScanX[ g_aucConvertToBit[ uiWidth ] - 1 ][ uiSubBlk ] << 2;
       uiSubPosY = g_auiFrameScanY[ g_aucConvertToBit[ uiWidth ] - 1 ][ uiSubBlk ] << 2;
@@ -1504,7 +1469,6 @@ Void TEncSbac::codeCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx
             UInt absVal = abs(sigCoeff[idx]);
             if (absVal > 1)
             {
-#if E253
               UInt symbol = absVal > 2;
               
               m_pcBinIf->encodeBin( symbol, baseCtxMod[c2] );
@@ -1513,9 +1477,6 @@ Void TEncSbac::codeCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx
               {
                 xWriteGoRiceExGolomb( absVal - 3, uiGoRiceParam );
               }
-#else
-              xWriteExGolombLevel( absVal - 2, baseCtxMod[c2] );
-#endif        
               c2 += (c2 < 4); // Increment c2 up to a maximum value of 4
               uiNumOne++;
             }
@@ -1568,7 +1529,6 @@ Void TEncSbac::codeCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx
         UInt absVal = abs(sigCoeff[idx]);
         if (absVal > 1)
         {
-#if E253
           UInt symbol = absVal > 2;
           
           m_pcBinIf->encodeBin( symbol, baseCtxMod[c2] );
@@ -1577,9 +1537,6 @@ Void TEncSbac::codeCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx
           {
             xWriteGoRiceExGolomb( absVal - 3, uiGoRiceParam );
           }
-#else
-          xWriteExGolombLevel( absVal - 2, baseCtxMod[c2] );
-#endif        
           c2 += (c2 < 4); // Increment c2 up to a maximum value of 4
         }
       }

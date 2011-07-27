@@ -117,11 +117,7 @@ private:
   Void  xWriteUnarySymbol    ( UInt uiSymbol, ContextModel* pcSCModel, Int iOffset );
   Void  xWriteUnaryMaxSymbol ( UInt uiSymbol, ContextModel* pcSCModel, Int iOffset, UInt uiMaxSymbol );
   Void  xWriteEpExGolomb     ( UInt uiSymbol, UInt uiCount );
-#if E253
   Void  xWriteGoRiceExGolomb ( UInt uiSymbol, UInt &ruiGoRiceParam );
-#else
-  Void  xWriteExGolombLevel  ( UInt uiSymbol, ContextModel& rcSCModel  );
-#endif
   Void  xWriteTerminatingBit ( UInt uiBit );
   
 #if MVD_CTX
