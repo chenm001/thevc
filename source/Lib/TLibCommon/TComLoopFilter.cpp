@@ -54,7 +54,12 @@
 #define   DECIDE_AND_EXECUTE_FILTER    2
 #endif
 
-
+#define F143 1
+#if F143
+#define DEFAULT_INTRA_TC_OFFSET 2 ///< Default intra TC offset
+#else
+#define DEFAULT_INTRA_TC_OFFSET 4 ///< Default intra TC offset
+#endif
 
 // ====================================================================================================================
 // Tables
@@ -617,7 +622,7 @@ Void TComLoopFilter::xEdgeFilterLuma( TComDataCU* pcCU, UInt uiAbsZorderIdx, UIn
     
     Int iBitdepthScale = (1<<(g_uiBitIncrement+g_uiBitDepth-8));
     
-    Int uiTcOffset = (uiBs>2)?4:0;
+    Int uiTcOffset = ( uiBs > 2 ) ? DEFAULT_INTRA_TC_OFFSET : 0;
     
     Int iIndexTC = Clip3(0, MAX_QP+4, iQP + uiTcOffset );
     Int iIndexB = Clip3(0, MAX_QP, iQP );
@@ -876,7 +881,7 @@ Void TComLoopFilter::xEdgeFilterChroma( TComDataCU* pcCU, UInt uiAbsZorderIdx, U
     
     Int iBitdepthScale = (1<<(g_uiBitIncrement+g_uiBitDepth-8));
     
-    Int uiTcOffset = (ucBs>2)?4:0;
+    Int uiTcOffset = ( ucBs > 2 ) ? DEFAULT_INTRA_TC_OFFSET : 0;
     
     Int iIndexTC = Clip3(0, MAX_QP+4, iQP + uiTcOffset );
     
