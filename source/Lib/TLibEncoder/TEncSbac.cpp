@@ -925,7 +925,9 @@ Void TEncSbac::codeIntraDirChroma( TComDataCU* pcCU, UInt uiAbsPartIdx )
     if (bUseLMFlag)
       uiIntraDirChroma++;
 
+#if CHROMA_CODEWORD_SWITCH
     uiIntraDirChroma = ChromaMapping[iMax-2][uiIntraDirChroma];
+#endif
   }
 
 
@@ -943,7 +945,9 @@ Void TEncSbac::codeIntraDirChroma( TComDataCU* pcCU, UInt uiAbsPartIdx )
     {
       uiIntraDirChroma++;
     }
+#if CHROMA_CODEWORD_SWITCH
     uiIntraDirChroma = ChromaMapping[iMax-2][uiIntraDirChroma];
+#endif
   }
 #endif // <-- LM_CHROMA
   

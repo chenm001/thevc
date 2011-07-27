@@ -1045,8 +1045,10 @@ Void TDecSbac::parseIntraDirChroma( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt ui
   }
   else 
   {
+#if CHROMA_CODEWORD_SWITCH
     uiSymbol = ChromaMapping[iMax-2][uiSymbol];
-
+#endif
+    
     if (pcCU->getSlice()->getSPS()->getUseLMChroma())
        uiSymbol --;
 
@@ -1071,7 +1073,9 @@ Void TDecSbac::parseIntraDirChroma( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt ui
   } 
   else
   {
+#if CHROMA_CODEWORD_SWITCH
     uiSymbol = ChromaMapping[iMax-2][uiSymbol];
+#endif
     if (uiSymbol <= uiMode)
     {
       uiSymbol --;
