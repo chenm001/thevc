@@ -66,11 +66,7 @@ TDecSbac::TDecSbac()
 , m_cCUQtRootCbfSCModel       ( 1,             1,               NUM_QT_ROOT_CBF_CTX           )
 , m_cCUDeltaQpSCModel         ( 1,             1,               NUM_DELTA_QP_CTX              )
 , m_cCUQtCbfSCModel           ( 1,             3,               NUM_QT_CBF_CTX                )
-#if SIMPLE_CONTEXT_SIG
 , m_cCUSigSCModel             ( 1,             2,               NUM_SIG_FLAG_CTX              ) 
-#else
-, m_cCUSigSCModel             ( MAX_CU_DEPTH,  2,               NUM_SIG_FLAG_CTX              )
-#endif
 #if PCP_SIGMAP_SIMPLE_LAST
 , m_cCuCtxLastX               ( 1,             2,               NUM_CTX_LAST_FLAG_XY          )
 , m_cCuCtxLastY               ( 1,             2,               NUM_CTX_LAST_FLAG_XY          )
@@ -1421,11 +1417,7 @@ Void TDecSbac::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartId
     UInt  uiPosX    = uiBlkPos - ( uiPosY << uiLog2BlockSize );
     UInt  uiSig     = 0;
     UInt  uiCtxSig  = TComTrQuant::getSigCtxInc( pcCoef, uiPosX, uiPosY, uiLog2BlockSize, uiWidth );
-#if SIMPLE_CONTEXT_SIG
     m_pcTDecBinIf->decodeBin( uiSig, m_cCUSigSCModel.get( 0, eTType, uiCtxSig ) );
-#else
-    m_pcTDecBinIf->decodeBin( uiSig, m_cCUSigSCModel.get( uiCTXIdx, eTType, uiCtxSig ) );
-#endif
     pcCoef[ uiBlkPos ] = uiSig;
     sigCoeffCount += uiSig;
   }
@@ -1444,11 +1436,7 @@ Void TDecSbac::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartId
     //===== code significance flag =====
     UInt  uiSig     = 0;
     UInt  uiCtxSig  = TComTrQuant::getSigCtxInc( pcCoef, uiPosX, uiPosY, uiLog2BlockSize, uiWidth );
-#if SIMPLE_CONTEXT_SIG
     m_pcTDecBinIf->decodeBin( uiSig, m_cCUSigSCModel.get( 0, eTType, uiCtxSig ) );
-#else
-    m_pcTDecBinIf->decodeBin( uiSig, m_cCUSigSCModel.get( uiCTXIdx, eTType, uiCtxSig ) );
-#endif
     if( uiSig )
     {
       pcCoef[ uiBlkPos ] = 1;

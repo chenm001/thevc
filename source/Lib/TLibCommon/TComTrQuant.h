@@ -55,11 +55,7 @@
 
 typedef struct
 {
-#if SIMPLE_CONTEXT_SIG
   Int significantBits[NUM_SIG_FLAG_CTX][2];
-#else
-  Int significantBits[16][2];
-#endif
 #if PCP_SIGMAP_SIMPLE_LAST
   Int lastXBits[32];
   Int lastYBits[32];
