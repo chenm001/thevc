@@ -88,8 +88,6 @@
 // E494 (E227/E338/E344/E489/E494): PCP SIGMAP + REDUCED CONTEXTS
 ////////////////
 
-#define PCP_SIGMAP_SIMPLE_LAST            1
-
 #define QC_MDIS                           1           // JCTVC-D282: enable mode dependent intra smoothing
 #define QC_MDCS                           1           // JCTVC-D393: mode dependent coefficients coding 
 #define RUNLEVEL_TABLE_CUT                1           // JCTVC-E384: Run-Level table size reduction

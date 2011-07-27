@@ -1676,7 +1676,6 @@ UInt* g_auiFrameScanY [ MAX_CU_DEPTH  ];
 UInt* g_auiSigLastScan[3][ MAX_CU_DEPTH ];
 #endif //QC_MDCS
 
-#if PCP_SIGMAP_SIMPLE_LAST
 UInt g_uiCtxXYOffset[ MAX_CU_DEPTH ] =
 {
   15, 15, 15, 8, 3, 0, 0
@@ -1686,7 +1685,6 @@ UInt g_uiCtxXY[ 31 ] =
 {
   0, 1, 2, 3, 3, 4, 4, 5, 5, 5, 5, 6, 6, 6, 6, 7, 7, 7, 7, 8, 8, 8, 8, 9, 9, 9, 9, 10, 10, 10, 10
 };
-#endif
 
 // scanning order to 8x8 context model mapping table
 UInt  g_auiAntiScan8  [64];

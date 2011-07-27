@@ -67,12 +67,8 @@ TDecSbac::TDecSbac()
 , m_cCUDeltaQpSCModel         ( 1,             1,               NUM_DELTA_QP_CTX              )
 , m_cCUQtCbfSCModel           ( 1,             3,               NUM_QT_CBF_CTX                )
 , m_cCUSigSCModel             ( 1,             2,               NUM_SIG_FLAG_CTX              ) 
-#if PCP_SIGMAP_SIMPLE_LAST
 , m_cCuCtxLastX               ( 1,             2,               NUM_CTX_LAST_FLAG_XY          )
 , m_cCuCtxLastY               ( 1,             2,               NUM_CTX_LAST_FLAG_XY          )
-#else
-, m_cCULastSCModel            ( MAX_CU_DEPTH,  2,               NUM_LAST_FLAG_CTX             )
-#endif
 , m_cCUOneSCModel             ( 1,             2,               NUM_ONE_FLAG_CTX              )
 , m_cCUAbsSCModel             ( 1,             2,               NUM_ABS_FLAG_CTX              )
 , m_cMVPIdxSCModel            ( 1,             1,               NUM_MVP_IDX_CTX               )
@@ -122,12 +118,8 @@ Void TDecSbac::resetEntropy          (TComSlice* pcSlice)
   m_cCUQtCbfSCModel.initBuffer           ( eSliceType, iQp, (Short*)INIT_QT_CBF );
   m_cCUQtRootCbfSCModel.initBuffer       ( eSliceType, iQp, (Short*)INIT_QT_ROOT_CBF );
   m_cCUSigSCModel.initBuffer             ( eSliceType, iQp, (Short*)INIT_SIG_FLAG );
-#if PCP_SIGMAP_SIMPLE_LAST
   m_cCuCtxLastX.initBuffer               ( eSliceType, iQp, (Short*)INIT_LAST_X );
   m_cCuCtxLastY.initBuffer               ( eSliceType, iQp, (Short*)INIT_LAST_Y );
-#else
-  m_cCULastSCModel.initBuffer            ( eSliceType, iQp, (Short*)INIT_LAST_FLAG );
-#endif
   m_cCUOneSCModel.initBuffer             ( eSliceType, iQp, (Short*)INIT_ONE_FLAG );
   m_cCUAbsSCModel.initBuffer             ( eSliceType, iQp, (Short*)INIT_ABS_FLAG );
   m_cMVPIdxSCModel.initBuffer            ( eSliceType, iQp, (Short*)INIT_MVP_IDX );
@@ -1284,8 +1276,6 @@ Void TDecSbac::parseQtCbf( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eType, 
   pcCU->setCbfSubParts( uiSymbol << uiTrDepth, eType, uiAbsPartIdx, uiDepth );
 }
 
-
-#if PCP_SIGMAP_SIMPLE_LAST
 /** Parse (X,Y) position of the last significant coefficient
  * \param uiPosLastX reference to X component of last coefficient
  * \param uiPosLastY reference to Y component of last coefficient
@@ -1326,7 +1316,6 @@ __inline Void TDecSbac::parseLastSignificantXY( UInt& uiPosLastX, UInt& uiPosLas
   }
 #endif
 }
-#endif
 
 Void TDecSbac::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx, UInt uiWidth, UInt uiHeight, UInt uiDepth, TextType eTType )
 {
@@ -1381,15 +1370,11 @@ Void TDecSbac::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartId
   const UInt  uiMaxNumCoeff     = 1 << ( uiLog2BlockSize << 1 );
   const UInt  uiMaxNumCoeffM1   = uiMaxNumCoeff - 1;
   const UInt  uiNum4x4Blk       = max<UInt>( 1, uiMaxNumCoeff >> 4 );
-#if !PCP_SIGMAP_SIMPLE_LAST
-  bool        bLastReceived     = false;
-#endif
 #if QC_MDCS
   const UInt uiScanIdx = pcCU->getCoefScanIdx(uiAbsPartIdx, uiWidth, eTType==TEXT_LUMA, pcCU->isIntra(uiAbsPartIdx));
 #endif //QC_MDCS
   Int sigCoeffCount = 0;
   
-#if PCP_SIGMAP_SIMPLE_LAST
   //===== decode last significant =====
   UInt uiPosLastX, uiPosLastY;
 #if QC_MDCS
@@ -1422,45 +1407,6 @@ Void TDecSbac::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartId
     sigCoeffCount += uiSig;
   }
 
-#else
-  for( UInt uiScanPos = 0; uiScanPos < uiMaxNumCoeffM1; uiScanPos++ )
-  {
-#if QC_MDCS
-    UInt uiBlkPos = g_auiSigLastScan[uiScanIdx][uiLog2BlockSize-1][uiScanPos]; 
-#else
-    UInt  uiBlkPos  = g_auiFrameScanXY[ uiLog2BlockSize-1 ][ uiScanPos ];
-#endif //QC_MDCS
-    UInt  uiPosY    = uiBlkPos >> uiLog2BlockSize;
-    UInt  uiPosX    = uiBlkPos - ( uiPosY << uiLog2BlockSize );
-    
-    //===== code significance flag =====
-    UInt  uiSig     = 0;
-    UInt  uiCtxSig  = TComTrQuant::getSigCtxInc( pcCoef, uiPosX, uiPosY, uiLog2BlockSize, uiWidth );
-    m_pcTDecBinIf->decodeBin( uiSig, m_cCUSigSCModel.get( 0, eTType, uiCtxSig ) );
-    if( uiSig )
-    {
-      pcCoef[ uiBlkPos ] = 1;
-      sigCoeffCount++;
-      
-      //===== code last flag =====
-      UInt  uiLast     = 0;
-      UInt  uiCtxLast  = TComTrQuant::getLastCtxInc( uiPosX, uiPosY, uiLog2BlockSize );
-      m_pcTDecBinIf->decodeBin( uiLast, m_cCULastSCModel.get( uiCTXIdx, eTType, uiCtxLast ) );
-      
-      if( uiLast )
-      {
-        bLastReceived = true;
-        break;
-      }
-    }
-  }
-  if( !bLastReceived )
-  {
-    pcCoef[ uiMaxNumCoeffM1 ] = 1;
-    sigCoeffCount++;
-  }
-#endif
-  
   /*
    * Sign and bin0 PCP (Section 3.2 and 3.3 of JCTVC-B088)
    */

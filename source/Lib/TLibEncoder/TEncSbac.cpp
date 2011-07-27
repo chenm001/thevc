@@ -72,12 +72,8 @@ TEncSbac::TEncSbac()
 , m_cCUTransSubdivFlagSCModel ( 1,             1,               NUM_TRANS_SUBDIV_FLAG_CTX     )
 , m_cCUQtRootCbfSCModel       ( 1,             1,               NUM_QT_ROOT_CBF_CTX           )
 , m_cCUSigSCModel             ( 1,             2,               NUM_SIG_FLAG_CTX              )
-#if PCP_SIGMAP_SIMPLE_LAST
 , m_cCuCtxLastX               ( 1,             2,               NUM_CTX_LAST_FLAG_XY          )
 , m_cCuCtxLastY               ( 1,             2,               NUM_CTX_LAST_FLAG_XY          )
-#else
-, m_cCULastSCModel            ( MAX_CU_DEPTH,  2,               NUM_LAST_FLAG_CTX             )
-#endif
 , m_cCUOneSCModel             ( 1,             2,               NUM_ONE_FLAG_CTX              )
 , m_cCUAbsSCModel             ( 1,             2,               NUM_ABS_FLAG_CTX              )
 , m_cMVPIdxSCModel            ( 1,             1,               NUM_MVP_IDX_CTX               )
@@ -128,12 +124,8 @@ Void TEncSbac::resetEntropy           ()
   m_cCUQtCbfSCModel.initBuffer           ( eSliceType, iQp, (Short*)INIT_QT_CBF );
   m_cCUQtRootCbfSCModel.initBuffer       ( eSliceType, iQp, (Short*)INIT_QT_ROOT_CBF );
   m_cCUSigSCModel.initBuffer             ( eSliceType, iQp, (Short*)INIT_SIG_FLAG );
-#if PCP_SIGMAP_SIMPLE_LAST
   m_cCuCtxLastX.initBuffer               ( eSliceType, iQp, (Short*)INIT_LAST_X );
   m_cCuCtxLastY.initBuffer               ( eSliceType, iQp, (Short*)INIT_LAST_Y );
-#else
-  m_cCULastSCModel.initBuffer            ( eSliceType, iQp, (Short*)INIT_LAST_FLAG );
-#endif
   m_cCUOneSCModel.initBuffer             ( eSliceType, iQp, (Short*)INIT_ONE_FLAG );
   m_cCUAbsSCModel.initBuffer             ( eSliceType, iQp, (Short*)INIT_ABS_FLAG );
   m_cMVPIdxSCModel.initBuffer            ( eSliceType, iQp, (Short*)INIT_MVP_IDX );
@@ -354,12 +346,8 @@ Void TEncSbac::xCopyFrom( TEncSbac* pSrc )
   this->m_cCUTransSubdivFlagSCModel.copyFrom( &pSrc->m_cCUTransSubdivFlagSCModel );
   this->m_cCUQtRootCbfSCModel      .copyFrom( &pSrc->m_cCUQtRootCbfSCModel       );
   this->m_cCUSigSCModel            .copyFrom( &pSrc->m_cCUSigSCModel             );
-#if PCP_SIGMAP_SIMPLE_LAST
   this->m_cCuCtxLastX              .copyFrom( &pSrc->m_cCuCtxLastX               );
   this->m_cCuCtxLastY              .copyFrom( &pSrc->m_cCuCtxLastY               );
-#else
-  this->m_cCULastSCModel           .copyFrom( &pSrc->m_cCULastSCModel            );
-#endif
   this->m_cCUOneSCModel            .copyFrom( &pSrc->m_cCUOneSCModel             );
   this->m_cCUAbsSCModel            .copyFrom( &pSrc->m_cCUAbsSCModel             );
   this->m_cMVPIdxSCModel           .copyFrom( &pSrc->m_cMVPIdxSCModel            );
@@ -1182,7 +1170,6 @@ Void TEncSbac::codeQtRootCbf( TComDataCU* pcCU, UInt uiAbsPartIdx )
   DTRACE_CABAC_T( "\n" )
 }
 
-#if PCP_SIGMAP_SIMPLE_LAST
 /** Encode (X,Y) position of the last significant coefficient
  * \param uiPosX X component of last coefficient
  * \param uiPosY Y component of last coefficient
@@ -1223,7 +1210,6 @@ __inline Void TEncSbac::codeLastSignificantXY( UInt uiPosX, UInt uiPosY, const U
     m_pcBinIf->encodeBin( 1, m_cCuCtxLastY.get( 0, eTType, uiCtxOffset + g_uiCtxXY[uiCtxLast] ) );
   }
 }
-#endif
 
 Void TEncSbac::codeCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx, UInt uiWidth, UInt uiHeight, UInt uiDepth, TextType eTType )
 {
@@ -1282,15 +1268,11 @@ Void TEncSbac::codeCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx
   //----- encode significance map -----
   const UInt   uiLog2BlockSize   = g_aucConvertToBit[ uiWidth ] + 2;
   const UInt   uiMaxNumCoeff     = 1 << ( uiLog2BlockSize << 1 );
-#if !PCP_SIGMAP_SIMPLE_LAST
-  const UInt   uiMaxNumCoeffM1   = uiMaxNumCoeff - 1;
-#endif
   const UInt   uiNum4x4Blk       = max<UInt>( 1, uiMaxNumCoeff >> 4 );
 #if QC_MDCS
   const UInt uiScanIdx = pcCU->getCoefScanIdx(uiAbsPartIdx, uiWidth, eTType==TEXT_LUMA, pcCU->isIntra(uiAbsPartIdx));
 #endif //QC_MDCS
   
-#if PCP_SIGMAP_SIMPLE_LAST
     //===== code last coeff =====
     UInt uiScanPosLast = 0, uiPosLastX, uiPosLastY;
     for( UInt uiScanPos = 0; uiScanPos < uiMaxNumCoeff; uiScanPos++ )
@@ -1336,37 +1318,6 @@ Void TEncSbac::codeCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx
       }
     }
 
-#else
-  for( UInt uiScanPos = 0; uiScanPos < uiMaxNumCoeffM1; uiScanPos++ )
-  {
-#if QC_MDCS
-    UInt uiBlkPos   = g_auiSigLastScan[uiScanIdx][uiLog2BlockSize-1][uiScanPos]; 
-#else
-    UInt  uiBlkPos  = g_auiFrameScanXY[ uiLog2BlockSize-1 ][ uiScanPos ];
-#endif //QC_MDCS
-    UInt  uiPosY    = uiBlkPos >> uiLog2BlockSize;
-    UInt  uiPosX    = uiBlkPos - ( uiPosY << uiLog2BlockSize );
-    
-    //===== code significance flag =====
-    UInt  uiSig    = pcCoef[ uiBlkPos ] != 0 ? 1 : 0;
-    UInt  uiCtxSig = TComTrQuant::getSigCtxInc( pcCoef, uiPosX, uiPosY, uiLog2BlockSize, uiWidth );
-    m_pcBinIf->encodeBin( uiSig, m_cCUSigSCModel.get( 0, eTType, uiCtxSig ) );
-    if( uiSig )
-    {
-      uiNumSig--;
-      
-      //===== code last flag =====
-      UInt  uiLast    = ( uiNumSig == 0 ) ? 1 : 0;
-      UInt  uiCtxLast = TComTrQuant::getLastCtxInc( uiPosX, uiPosY, uiLog2BlockSize );
-      m_pcBinIf->encodeBin( uiLast, m_cCULastSCModel.get( uiCTXIdx, eTType, uiCtxLast ) );
-      
-      if( uiLast )
-      {
-        break;
-      }
-    }
-  }
-#endif 
   /*
    * Sign and bin0 PCP (Section 3.2 and 3.3 of JCTVC-B088)
    */
@@ -1848,17 +1799,7 @@ Void TEncSbac::estSignificantMapBit( estBitsSbacStruct* pcEstBitsSbac, UInt uiCT
       pcEstBitsSbac->significantBits[ ctxIdx ][ uiBin ] = biari_no_bits ( uiBin, m_cCUSigSCModel.get(  0, eTType, ctxIdx ) );
     }
   }
-  for ( UInt uiCtx = 0; uiCtx < 16; uiCtx++ )
-  {
-    for( UInt uiBin = 0; uiBin < 2; uiBin++ )
-    {
-#if !PCP_SIGMAP_SIMPLE_LAST    
-      pcEstBitsSbac->lastBits[ uiCtx ][ uiBin ]        = biari_no_bits ( uiBin, m_cCULastSCModel.get( uiCTXIdx, eTType, uiCtx ) );
-#endif
-    }
-  }
 
-#if PCP_SIGMAP_SIMPLE_LAST
   Int iBitsX = 0, iBitsY = 0;
   const UInt uiCtxOffset = g_uiCtxXYOffset[uiCTXIdx];
   const UInt uiWidthM1   = (1 << (7-uiCTXIdx)) - 1;
@@ -1871,7 +1812,6 @@ Void TEncSbac::estSignificantMapBit( estBitsSbacStruct* pcEstBitsSbac, UInt uiCT
   }
   pcEstBitsSbac->lastXBits[uiWidthM1] = iBitsX;
   pcEstBitsSbac->lastYBits[uiWidthM1] = iBitsY;
-#endif
 }
 
 /*!
