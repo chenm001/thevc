@@ -3027,7 +3027,7 @@ __inline Double TComTrQuant::xGetICRateCost  ( UInt                            u
  */
 #if MODIFIED_LAST_CODING
 /*
-/* \param uiWidth width of the transform unit (TU)
+ * \param uiWidth width of the transform unit (TU)
 */
 __inline Double TComTrQuant::xGetRateLast   ( const UInt                      uiPosX,
                                               const UInt                      uiPosY,
