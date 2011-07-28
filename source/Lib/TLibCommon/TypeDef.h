@@ -40,6 +40,15 @@
 
 
 ////////////////////////////
+// JCT-VC F start
+////////////////////////////
+#define MRG_UNIFIED_POS_F419                 1       // 1: enable F419, 0: disable it
+#define AMVP_NO_INTERM_DUPL_CHECK_F050       1       // F050 : Disable the redundancy checking during the derivation of top MVP for for AMVP 
+////////////////////////////
+// JCT-VC F end
+////////////////////////////
+
+////////////////////////////
 // JCT-VC E start
 ////////////////////////////
 
