@@ -861,12 +861,17 @@ Void TComPrediction::xPredIntraPlanar( Int* pSrc, Int srcStride, Pel* rpDst, Int
 
   // Get left and above reference column and row
 #if REFERENCE_SAMPLE_PADDING
+#if PLANAR_F483
+  for(k=0;k<blkSize+1;k++)
+#else
   for(k=0;k<blkSize;k++)
+#endif
   {
     topRow[k] = pSrc[k-srcStride];
     leftColumn[k] = pSrc[k*srcStride-1];
   }
 #else
+  // PLANAR_F483 not supported here
   if (!blkAboveAvailable && !blkLeftAvailable)
   {
     for(k=0;k<blkSize;k++)
