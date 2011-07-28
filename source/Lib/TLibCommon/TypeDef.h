@@ -169,6 +169,7 @@
 /////////////////////////////////
 
 #define MTK_SAO                           1           // JCTVC-E049: Sample adaptive offset
+#define MTK_SAO_CHROMA                    1
 
 #define MQT_ALF_NPASS                       1
 
@@ -324,6 +325,12 @@ struct _SaoParam
 {
   Bool       bSaoFlag;
   SAOQTPart* psSaoPart;
+#if MTK_SAO_CHROMA
+  Bool       bSaoFlagCb;
+  Bool       bSaoFlagCr;
+  SAOQTPart* psSaoPartCb;
+  SAOQTPart* psSaoPartCr;
+#endif
   Int        iMaxSplitLevel;
   Int        iNumClass[MAX_NUM_SAO_TYPE];
 };

@@ -245,9 +245,15 @@ public:
   Int golombEncode(int coeff, int k);
   Int lengthGolomb(int coeffVal, int k);
 #if MTK_SAO
+#if MTK_SAO_CHROMA
+  Void    encodeQAOOnePart(SAOParam* pQaoParam, Int part_idx, Int iYCbCr);
+  Void    encodeQuadTreeSplitFlag(SAOParam* pQaoParam, Int part_idx, Int iYCbCr);
+  Void    encodeSaoParam(SAOParam* pQaoParam) ;
+#else
   Void    encodeQAOOnePart(SAOParam* pQaoParam, Int part_idx);
   Void    encodeQuadTreeSplitFlag(SAOParam* pQaoParam, Int part_idx);
   Void    encodeSaoParam(SAOParam* pQaoParam) ;
+#endif
 #endif
 
   static Int countNonZeroCoeffs( TCoeff* pcCoef, UInt uiSize );

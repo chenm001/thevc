@@ -82,10 +82,14 @@ public:
   Void xPartTreeDisable(Int iPartIdx);
   Void xGetQAOStats(TComPicYuv* pcPicOrg, TComPicYuv* pcPicDec, TComPicYuv* pcPicRest);
   Void calcAoStatsCu(Int iAddr, Int iPartIdx);
-
+  Void xQuadTreeDecisionFunc(SAOQTPart *psQTPart, Int iPartIdx, Double &dCostFinal, Int iMaxLevel, Double dLambda);
+  Void xQAOOnePart(SAOQTPart *psQTPart, Int iPartIdx, Double dLambda);
+  Void xPartTreeDisable(SAOQTPart *psQTPart, Int iPartIdx);
+  Void xGetQAOStats(SAOQTPart *psQTPart, Int iYCbCr);
+  Void calcAoStatsCu(Int iAddr, Int iPartIdx, Int iYCbCr);
 #if SAO_FGS_MNIF
-  Void calcAoStatsCuMap(Int iAddr, Int iPartIdx);
-  Void calcAoStatsCuOrg(Int iAddr, Int iPartIdx);
+  Void calcAoStatsCuMap(Int iAddr, Int iPartIdx, Int iYCbCr);
+  Void calcAoStatsCuOrg(Int iAddr, Int iPartIdx, Int iYCbCr);
 #endif
 
   Void destoryEncBuffer();

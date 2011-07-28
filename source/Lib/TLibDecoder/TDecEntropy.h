@@ -212,8 +212,13 @@ public:
 #endif
 
 #if MTK_SAO
+#if MTK_SAO_CHROMA
+  Void decodeQAOOnePart(SAOParam* pQaoParam, Int part_idx, Int iYCbCr);
+  Void decodeQuadTreeSplitFlag(SAOParam* pQaoParam, Int part_idx, Int iYCbCr);
+#else
   Void decodeQAOOnePart(SAOParam* pQaoParam, Int part_idx);
   Void decodeQuadTreeSplitFlag(SAOParam* pQaoParam, Int part_idx);
+#endif
   Void decodeSaoParam(SAOParam* pQaoParam) ;
 #endif
 

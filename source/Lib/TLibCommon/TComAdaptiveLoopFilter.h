@@ -170,6 +170,12 @@ protected:
 
   Bool m_bSaoFlag;
   SAOQTPart *m_psQAOPart;
+#if MTK_SAO_CHROMA
+  Bool m_bSaoFlagCb;
+  Bool m_bSaoFlagCr;
+  SAOQTPart *m_psQAOPartCb;
+  SAOQTPart *m_psQAOPartCr;
+#endif
 
   SliceType  m_eSliceType;
   Int        m_iPicNalReferenceIdc;
@@ -204,28 +210,29 @@ protected:
 public:
   Void create( UInt uiSourceWidth, UInt uiSourceHeight, UInt uiMaxCUWidth, UInt uiMaxCUHeight, UInt uiMaxCUDepth );
   Void destroy ();
-  Void xCreateQAOParts();
-  Void xDestroyQAOParts();
-  Void xInitALfOnePart(Int part_level, Int part_row, Int part_col, Int parent_part_idx, Int StartCUX, Int EndCUX, Int StartCUY, Int EndCUY);
+  Void xCreateQAOParts (SAOQTPart *psQTPart);
+  Void xDestroyQAOParts(SAOQTPart *psQTPart);
   Void xMakeSubPartList(Int part_level, Int part_row, Int part_col, Int* pList, Int& rListLength, Int NumPartInRow);
-  Void xSetQTPartCUInfo();
 
   Bool getQAOFlag      () {return m_bSaoFlag;}
   Int  getMaxSplitLevel() {return (Int)m_uiMaxSplitLevel;}
   SAOQTPart * getQTPart() {return m_psQAOPart;}
 
   Void SAOProcess(TComPic* pcPic, SAOParam* pcQaoParam);
-  Void resetQTPart();
-  Void xAoOnePart(UInt uiPartIdx, TComPicYuv* pcPicYuvRec, TComPicYuv* pcPicYuvExt);
-  Void xProcessQuadTreeAo(UInt uiPartIdx, TComPicYuv* pcPicYuvRec, TComPicYuv* pcPicYuvExt);
+  Void resetQTPart(SAOQTPart *psQTPart);
+  Void xSetQTPartCUInfo(SAOQTPart *psQTPart);
+  Void xInitALfOnePart(SAOQTPart *psQTPart, Int part_level, Int part_row, Int part_col, Int parent_part_idx, Int StartCUX, Int EndCUX, Int StartCUY, Int EndCUY);
+  Void AoProcessCu(Int iAddr, Int iAoType, Int iYCbCr);
+  Void xAoOnePart(SAOQTPart *psQTPart, UInt uiPartIdx, Int iYCbCr);
+  Void xProcessQuadTreeAo(SAOQTPart *psQTPart, UInt uiPartIdx, Int iYCbCr);
+  Pel* getPicYuvAddr(TComPicYuv* pcPicYuv, Int iYCbCr,Int iAddr);
   Void copyQaoData(SAOParam* pcQaoParam);
 
   Void InitSao(SAOParam* pSaoParam);
-  Void AoProcessCu(Int iAddr, Int iPartIdx);
 
 #if SAO_FGS_MNIF
-  Void AoProcessCuOrg(Int iAddr, Int iPartIdx);  //!< LCU-basd SAO process without slice granularity 
-  Void AoProcessCuMap(Int iAddr, Int iPartIdx);  //!< LCU-basd SAO process with slice granularity
+  Void AoProcessCuOrg(Int iAddr, Int iPartIdx, Int iYCbCr);  //!< LCU-basd SAO process without slice granularity 
+  Void AoProcessCuMap(Int iAddr, Int iPartIdx, Int iYCbCr);  //!< LCU-basd SAO process with slice granularity
   Bool getIsFineSlice(){return m_iSGDepth && m_bUseNonCrossALF;}    //!< check slice granularity and non cross ALF
   Bool getIsFineSliceCu(Int iAddr){return m_bIsFineSliceCu[iAddr];} //!< check slice granularity and non cross ALF for current LCU
 

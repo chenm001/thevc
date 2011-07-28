@@ -1214,12 +1214,32 @@ Void TDecEntropy::decodeCoeff( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth
 /** decodeQAO One Part
  * \param  pQaoParam, iPartIdx
  */
+#if MTK_SAO_CHROMA
+Void TDecEntropy::decodeQAOOnePart(SAOParam* pQaoParam, Int iPartIdx, Int iYCbCr)
+#else
 Void TDecEntropy::decodeQAOOnePart(SAOParam* pQaoParam, Int iPartIdx)
+#endif
 {
   UInt uiSymbol;
   Int iSymbol;  
-
+#if MTK_SAO_CHROMA
+  SAOQTPart*  pAlfPart = NULL;
+  if (iYCbCr == 0)
+  {
+    pAlfPart = &(pQaoParam->psSaoPart[iPartIdx]);
+  }
+  else if (iYCbCr == 1)
+  {
+    pAlfPart = &(pQaoParam->psSaoPartCb[iPartIdx]);
+  }
+  else 
+  {
+    pAlfPart = &(pQaoParam->psSaoPartCr[iPartIdx]);
+  }
+#else
   SAOQTPart*  pAlfPart = &(pQaoParam->psSaoPart[iPartIdx]);
+#endif
+
   static Int iTypeLength[MAX_NUM_SAO_TYPE] = {
     SAO_EO_LEN,
     SAO_EO_LEN,
@@ -1264,17 +1284,41 @@ Void TDecEntropy::decodeQAOOnePart(SAOParam* pQaoParam, Int iPartIdx)
   {
     for(Int i=0;i<NUM_DOWN_PART;i++)
     {
+#if MTK_SAO_CHROMA
+      decodeQAOOnePart(pQaoParam, pAlfPart->DownPartsIdx[i], iYCbCr);
+#else
       decodeQAOOnePart(pQaoParam, pAlfPart->DownPartsIdx[i]);
+#endif
     }
   }
 }
 /** decode QuadTree Split Flag
  * \param  pQaoParam, iPartIdx
  */
+#if MTK_SAO_CHROMA
+Void TDecEntropy::decodeQuadTreeSplitFlag(SAOParam* pQaoParam, Int iPartIdx, Int iYCbCr)
+#else
 Void TDecEntropy::decodeQuadTreeSplitFlag(SAOParam* pQaoParam, Int iPartIdx)
+#endif
 {
   UInt uiSymbol;
+#if MTK_SAO_CHROMA
+  SAOQTPart*  pAlfPart = NULL;
+  if (iYCbCr == 0)
+  {
+    pAlfPart= &(pQaoParam->psSaoPart[iPartIdx]);
+  }
+  else if ( iYCbCr == 1 )
+  {
+    pAlfPart= &(pQaoParam->psSaoPartCb[iPartIdx]);
+  }
+  else 
+  {
+    pAlfPart= &(pQaoParam->psSaoPartCr[iPartIdx]);
+  }
+#else
   SAOQTPart*  pAlfPart = &(pQaoParam->psSaoPart[iPartIdx]);
+#endif
 
   if(pAlfPart->PartLevel < pQaoParam->iMaxSplitLevel)
   {
@@ -1286,7 +1330,11 @@ Void TDecEntropy::decodeQuadTreeSplitFlag(SAOParam* pQaoParam, Int iPartIdx)
     {
       for (Int i=0;i<NUM_DOWN_PART;i++)
       {
+#if MTK_SAO_CHROMA
+        decodeQuadTreeSplitFlag(pQaoParam, pAlfPart->DownPartsIdx[i], iYCbCr);
+#else
         decodeQuadTreeSplitFlag(pQaoParam, pAlfPart->DownPartsIdx[i]);
+#endif
       }
     }
   }
@@ -1310,8 +1358,27 @@ Void TDecEntropy::decodeSaoParam(SAOParam* pQaoParam)
   }
   if (pQaoParam->bSaoFlag)
   {
+#if MTK_SAO_CHROMA
+    decodeQuadTreeSplitFlag(pQaoParam, 0, 0);
+    decodeQAOOnePart(pQaoParam, 0, 0);
+    m_pcEntropyDecoderIf->parseAoFlag(uiSymbol);
+    pQaoParam->bSaoFlagCb = uiSymbol? true:false;
+    if (pQaoParam->bSaoFlagCb)
+    {
+      decodeQuadTreeSplitFlag(pQaoParam, 0, 1);
+      decodeQAOOnePart(pQaoParam, 0, 1);
+    }
+    m_pcEntropyDecoderIf->parseAoFlag(uiSymbol);
+    pQaoParam->bSaoFlagCr = uiSymbol? true:false;
+    if (pQaoParam->bSaoFlagCr)
+    {
+      decodeQuadTreeSplitFlag(pQaoParam, 0, 2);
+      decodeQAOOnePart(pQaoParam, 0, 2);
+    }
+#else
     decodeQuadTreeSplitFlag(pQaoParam, 0);
     decodeQAOOnePart(pQaoParam, 0);
+#endif
   }
 
 }
