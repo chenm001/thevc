@@ -3517,9 +3517,11 @@ Void TComDataCU::fillMvpCand ( UInt uiPartIdx, UInt uiPartAddr, RefPicList eRefP
   PartSize eCUMode = getPartitionSize( 0 );
   
   TComMv cMvPred;
-  
-  pInfo->iN = 0;
-  
+#if MV_LIMIT_SCALE_F088
+  Bool bAddedSmvp = false;
+#endif   
+
+  pInfo->iN = 0;  
   if (iRefIdx < 0)
   {
     return;
@@ -3543,9 +3545,15 @@ Void TComDataCU::fillMvpCand ( UInt uiPartIdx, UInt uiPartAddr, RefPicList eRefP
   if(!bAdded)
   {
     bAdded = xAddMVPCandOrder( pInfo, eRefPicList, iRefIdx, uiPartIdxLB, MD_BELOW_LEFT);
+#if MV_LIMIT_SCALE_F088
+    bAddedSmvp = bAdded;
+#endif
     if (!bAdded) 
     {
       bAdded = xAddMVPCandOrder( pInfo, eRefPicList, iRefIdx, uiPartIdxLB, MD_LEFT );
+#if MV_LIMIT_SCALE_F088
+      bAddedSmvp = bAdded;
+#endif
     }
   }
   // Above predictor search
@@ -3581,6 +3589,10 @@ Void TComDataCU::fillMvpCand ( UInt uiPartIdx, UInt uiPartAddr, RefPicList eRefP
     }
 #endif
   }
+#if MV_LIMIT_SCALE_F088
+  bAdded = bAddedSmvp;
+  if (pInfo->iN==2) bAdded = true;
+#endif
 
   if(!bAdded)
   {
@@ -3590,6 +3602,9 @@ Void TComDataCU::fillMvpCand ( UInt uiPartIdx, UInt uiPartAddr, RefPicList eRefP
     {
       pInfo->iN--; //remove duplicate entries
       bAdded = false;
+#if MV_LIMIT_SCALE_F088
+      bAdded  =  true;
+#endif
     }
 #endif
     if (!bAdded) 
@@ -3600,6 +3615,9 @@ Void TComDataCU::fillMvpCand ( UInt uiPartIdx, UInt uiPartAddr, RefPicList eRefP
       {
         pInfo->iN--; //remove duplicate entries
         bAdded = false;
+#if MV_LIMIT_SCALE_F088
+        bAdded  =  true;
+#endif
       }
 #endif
     }
@@ -3840,6 +3858,35 @@ Bool TComDataCU::xAddMVPCand( AMVPInfo* pInfo, RefPicList eRefPicList, Int iRefI
     pInfo->m_acMvCand[ pInfo->iN++] = cMvPred;
     return true;
   }
+#if MV_LIMIT_SCALE_F088
+
+  if ( pcTmpCU == NULL ) 
+    return false;
+
+  RefPicList eRefPicList2nd = REF_PIC_LIST_0;
+  if(       eRefPicList == REF_PIC_LIST_0 )
+    eRefPicList2nd = REF_PIC_LIST_1;
+  else if ( eRefPicList == REF_PIC_LIST_1)
+    eRefPicList2nd = REF_PIC_LIST_0;
+
+
+  Int iCurrRefPOC = m_pcSlice->getRefPic( eRefPicList, iRefIdx)->getPOC();
+  Int iNeibRefPOC;
+
+
+  if( pcTmpCU->getCUMvField(eRefPicList2nd)->getRefIdx(uiIdx) >= 0 )
+  {
+    iNeibRefPOC = pcTmpCU->getSlice()->getRefPOC( eRefPicList2nd, pcTmpCU->getCUMvField(eRefPicList2nd)->getRefIdx(uiIdx) );
+    if( iNeibRefPOC == iCurrRefPOC ) // Same Reference Frame But Diff List//
+    {
+      TComMv cMvPred = pcTmpCU->getCUMvField(eRefPicList2nd)->getMv(uiIdx);
+
+      clipMv(cMvPred);
+      pInfo->m_acMvCand[ pInfo->iN++] = cMvPred;
+      return true;
+    }
+  }
+#endif
   return false;
 }
 
@@ -3934,7 +3981,7 @@ Bool TComDataCU::xAddMVPCandOrder( AMVPInfo* pInfo, RefPicList eRefPicList, Int 
   Int iNeibPOC = iCurrPOC;
   Int iNeibRefPOC;
 
-
+#if !MV_LIMIT_SCALE_F088
   if( pcTmpCU->getCUMvField(eRefPicList2nd)->getRefIdx(uiIdx) >= 0 )
   {
     iNeibRefPOC = pcTmpCU->getSlice()->getRefPOC( eRefPicList2nd, pcTmpCU->getCUMvField(eRefPicList2nd)->getRefIdx(uiIdx) );
@@ -3947,6 +3994,7 @@ Bool TComDataCU::xAddMVPCandOrder( AMVPInfo* pInfo, RefPicList eRefPicList, Int 
       return true;
     }
   }
+#endif
   //---------------  V1 (END) ------------------//
   if( pcTmpCU->getCUMvField(eRefPicList)->getRefIdx(uiIdx) >= 0)
   {
