@@ -126,6 +126,7 @@
 #define FIXED_ROUNDING_FRAME_MEMORY    0           ///< enable/disable fixed rounding to 8-bitdepth of frame memory when IBDI is used  
 
 #define MS_LCEC_UNI_EXCEPTION_THRES     1           // for GPB case, uni-prediction, > MS_LCEC_UNI_EXCEPTION_THRES is exception
+#define CAVLC_UNIFY_INTER_TABLE_FIX     1           // JCTVC-F199, max value fix of unified inter table
 #define CAVLC_COUNTER_ADAPT             1          // counter based CAVLC adaptation, JCTVC-E143
 #if CAVLC_COUNTER_ADAPT
 #define CAVLC_RQT_CBP                   1           //CAVLC coding of cbf and split flag, JCTVC-E404

@@ -1411,10 +1411,29 @@ Void TEncCavlc::codeInterDir( TComDataCU* pcCU, UInt uiAbsPartIdx )
       m_uiMITableVlcIdx += cx == m_uiMITableVlcIdx ? 0 : (cx < m_uiMITableVlcIdx ? -1 : 1);
 #endif
     }
+
+#if CAVLC_UNIFY_INTER_TABLE_FIX
+    Bool bCodeException = false;
+    if ( pcCU->getSlice()->getNumRefIdx(REF_PIC_LIST_C) > 4 ||
+         pcCU->getSlice()->getNumRefIdx(REF_PIC_LIST_0) > 2 ||
+         pcCU->getSlice()->getNumRefIdx(REF_PIC_LIST_1) > 2 )
+    {
+      bCodeException = true;
+    }
+    else
+    {
+      bCodeException = false;
+      uiMaxVal--;
+    }
+#endif
     
     xWriteUnaryMaxSymbol( cx, uiMaxVal );
     
-    if ( x<uiMaxVal ) 
+#if CAVLC_UNIFY_INTER_TABLE_FIX
+    if ( x<uiMaxVal || !bCodeException )
+#else
+    if ( x<uiMaxVal )
+#endif
     {
       return;
     }
