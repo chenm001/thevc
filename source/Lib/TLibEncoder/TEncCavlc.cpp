@@ -2670,7 +2670,7 @@ Void TEncCavlc::xCodeCoeff( TCoeff* scoeff, Int n, Int blSize)
     UInt const *vlcTable;
     if(n==2||n==5)
     {
-      vlcTable= blSize==4? g_auiVlcTable4x4Intra : g_auiVlcTable8x8Intra;
+      vlcTable= g_auiVlcTable8x8Intra;
     }
     else
     {

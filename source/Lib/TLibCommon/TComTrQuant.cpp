@@ -1003,7 +1003,7 @@ Int TComTrQuant::bitCountRDOQ(Int coeff, Int pos, Int nTab, Int lastCoeffFlag,In
 #if MOD_INTRA_TABLE
   if(nTab==2||nTab==5)
   {
-    uiVlcTableTemp = (N == 4? g_auiVlcTable4x4Intra: g_auiVlcTable8x8Intra);
+    uiVlcTableTemp = g_auiVlcTable8x8Intra;
   }
   else
   {
@@ -1504,7 +1504,7 @@ Int TComTrQuant::xCodeCoeffCountBitsLast(TCoeff* scoeff, levelDataStruct* levelD
 #if CAVLC_COEF_LRG_BLK
 #if MOD_INTRA_TABLE
   UInt  const *  vlcTableIntra;
-  vlcTableIntra = (N==4? g_auiVlcTable4x4Intra: g_auiVlcTable8x8Intra);
+  vlcTableIntra =  g_auiVlcTable8x8Intra;
 #else
   const UInt *vlcTableIntra = (N<=8)? g_auiVlcTable8x8Intra:g_auiVlcTable16x16Intra;
 #endif

@@ -174,9 +174,7 @@ extern const UInt    g_auiIntraModeTableE34[33];
 
 extern const UInt    g_auiVlcTable8x8Inter[29];
 extern const UInt    g_auiVlcTable8x8Intra[29];
-#if MOD_INTRA_TABLE
-extern const UInt    g_auiVlcTable4x4Intra[29];
-#endif
+
 #if RUNLEVEL_TABLE_CUT 
 extern const UInt    g_acstructLumaRun8x8[28][29];
 #else
