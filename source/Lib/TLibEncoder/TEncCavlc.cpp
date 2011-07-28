@@ -2578,7 +2578,7 @@ Void TEncCavlc::xCodeCoeff( TCoeff* scoeff, Int n, Int blSize)
 {
   static const int switch_thr[10] = {49,49,0,49,49,0,49,49,49,49};
 #if MOD_INTRA_TABLE
-  static const int table_tr1[2][5] = {{0, 1, 1, 1, 0},{0, 1, 2, 3, 4}};
+  static const int aiTableTr1[2][5] = {{0, 1, 1, 1, 0},{0, 1, 2, 3, 4}};
 #endif
   int i, noCoeff = blSize*blSize;
   unsigned int cn;
@@ -2690,10 +2690,14 @@ Void TEncCavlc::xCodeCoeff( TCoeff* scoeff, Int n, Int blSize)
       maxrun = noCoeff-i-1;
       tmprun = min(maxrun, 28);
 #if MOD_INTRA_TABLE 
-    if (tmprun < 28 || blSize<=8 || (n!=2&&n!=5))
-      vlc = vlcTable[tmprun];
-    else
-      vlc = 2;
+      if (tmprun < 28 || blSize<=8 || (n!=2&&n!=5))
+      {
+        vlc = vlcTable[tmprun];
+      }
+      else
+      {
+        vlc = 2;
+      }
 #else
       vlc = vlcTable[tmprun];
 #endif
@@ -2713,7 +2717,7 @@ Void TEncCavlc::xCodeCoeff( TCoeff* scoeff, Int n, Int blSize)
           if(n == 2 || n == 5)
           {
 #if MOD_INTRA_TABLE
-            cn = xRunLevelInd(lev, run, maxrun, pLumaRunTr1[table_tr1[(blSize&4)>>2][tr1]][tmprun]);
+            cn = xRunLevelInd(lev, run, maxrun, pLumaRunTr1[aiTableTr1[(blSize&4)>>2][tr1]][tmprun]);
 #else
             cn = xRunLevelInd(lev, run, maxrun, pLumaRunTr1[tr1][tmprun]);
 #endif
@@ -2761,7 +2765,7 @@ Void TEncCavlc::xCodeCoeff( TCoeff* scoeff, Int n, Int blSize)
             if(n == 2 || n == 5)
             {
 #if MOD_INTRA_TABLE
-              cn = xRunLevelInd(0, run, maxrun, pLumaRunTr1[table_tr1[(blSize&4)>>2][tr1]][tmprun]);
+              cn = xRunLevelInd(0, run, maxrun, pLumaRunTr1[aiTableTr1[(blSize&4)>>2][tr1]][tmprun]);
 #else
               cn = xRunLevelInd(0, run, maxrun, pLumaRunTr1[tr1][tmprun]);
 #endif

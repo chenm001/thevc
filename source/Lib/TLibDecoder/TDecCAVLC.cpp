@@ -3243,7 +3243,7 @@ Void TDecCavlc::xParseCoeff(TCoeff* scoeff, int n, Int blSize)
 {
   static const Int switch_thr[10] = {49,49,0,49,49,0,49,49,49,49};
 #if MOD_INTRA_TABLE
-  static const int table_tr1[2][5] = {{0, 1, 1, 1, 0},{0, 1, 2, 3, 4}};
+  static const int aiTableTr1[2][5] = {{0, 1, 1, 1, 0},{0, 1, 2, 3, 4}};
 #endif
   Int i, noCoeff=blSize*blSize;;
   UInt sign;
@@ -3327,9 +3327,13 @@ Void TDecCavlc::xParseCoeff(TCoeff* scoeff, int n, Int blSize)
     tmprun = min(maxrun,28);
 #if MOD_INTRA_TABLE 
     if (tmprun < 28 || blSize<=8 || (n!=2&&n!=5))
+    {
       tmp = vlcTable[tmprun];
+    }
     else
+    {
       tmp = 2;
+    }
 #else
     tmp = vlcTable[tmprun];
 #endif
@@ -3340,7 +3344,7 @@ Void TDecCavlc::xParseCoeff(TCoeff* scoeff, int n, Int blSize)
     if (n == 2 || n == 5)
     {
 #if MOD_INTRA_TABLE
-      xRunLevelIndInv(&combo, maxrun, pLumaRunTr1[table_tr1[(blSize&4)>>2][tr1]][tmprun], cn);
+      xRunLevelIndInv(&combo, maxrun, pLumaRunTr1[aiTableTr1[(blSize&4)>>2][tr1]][tmprun], cn);
 #else
       xRunLevelIndInv(&combo, maxrun, pLumaRunTr1[tr1][tmprun], cn);
 #endif
