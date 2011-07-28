@@ -2044,7 +2044,11 @@ Void TDecCavlc::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartI
 #endif
   
 #if CAVLC_COEF_LRG_BLK
+#if CAVLC_COEF_LRG_BLK_CHROMA
+  UInt maxBlSize = 32;
+#else
   UInt maxBlSize = (eTType==TEXT_LUMA)? 32:8;
+#endif
   UInt uiBlSize = min(maxBlSize,uiWidth);
 #if !QC_MDCS
   UInt uiConvBit = g_aucConvertToBit[ pcCU->isIntra( uiAbsPartIdx ) ? uiWidth : uiBlSize];
@@ -3258,7 +3262,11 @@ Void TDecCavlc::xParseCoeff(TCoeff* scoeff, int n, Int blSize)
     xLastLevelIndInv(combo.level, combo.last_pos, blSize, cn);
 
     /* Adapt LP table */
+#if CAVLC_COEF_LRG_BLK_CHROMA
+    cn = (blSize==8 || n<2)?cn:(cn>>2);
+#else
     cn = (blSize==8)?cn:(cn>>2);
+#endif
     // ADAPT_VLC_NUM
     m_uiLastPosVlcIndex[n] += cn == m_uiLastPosVlcIndex[n] ? 0 : (cn < m_uiLastPosVlcIndex[n] ? -1 : 1);
   }

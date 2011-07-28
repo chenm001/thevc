@@ -95,6 +95,7 @@
 #define CAVLC_COEF_LRG_BLK                1           // JCTVC-E383: enable large block coeff. coding
 #endif
 
+#define CAVLC_COEF_LRG_BLK_CHROMA         1           // JCTVC-F608: enable big block coding for chroma
 
 #define ENABLE_FORCECOEFF0  0
 
