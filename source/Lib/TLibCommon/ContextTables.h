@@ -46,10 +46,18 @@
 #define NUM_SPLIT_FLAG_CTX            3       ///< number of context models for split flag
 #define NUM_SKIP_FLAG_CTX             3       ///< number of context models for skip flag
 
+#if DNB_MERGE_FLAG
+#define NUM_MERGE_FLAG_EXT_CTX        1       ///< number of context models for merge flag of merge extended
+#else
 #define NUM_MERGE_FLAG_EXT_CTX        3       ///< number of context models for merge flag of merge extended
+#endif
 #define NUM_MERGE_IDX_EXT_CTX         4       ///< number of context models for merge index of merge extended
 
+#if DNB_ALF_CTRL_FLAG
+#define NUM_ALF_CTRL_FLAG_CTX         1       ///< number of context models for ALF control flag
+#else
 #define NUM_ALF_CTRL_FLAG_CTX         3       ///< number of context models for ALF control flag
+#endif
 #define NUM_PART_SIZE_CTX             5       ///< number of context models for partition size
 #define NUM_PRED_MODE_CTX             2       ///< number of context models for prediction mode
 #if MTK_DCM_MPM
@@ -61,18 +69,34 @@
 #define NUM_PLANARFLAG_CTX            2       ///< number of context models for planar mode flag (intra prediction)
 #endif
 
+#if DNB_INTRA_CHR_PRED_MODE
+#define NUM_CHROMA_PRED_CTX           2       ///< number of context models for intra prediction (chroma)
+#else
 #define NUM_CHROMA_PRED_CTX           4       ///< number of context models for intra prediction (chroma)
+#endif
 #define NUM_INTER_DIR_CTX             4       ///< number of context models for inter prediction direction
+#if MODIFIED_MVD_CODING
+#define NUM_MV_RES_CTX                2       ///< number of context models for motion vector difference
+#else
 #define NUM_MV_RES_CTX                7       ///< number of context models for motion vector difference
+#endif
 
+#if DNB_REF_FRAME_IDX
+#define NUM_REF_NO_CTX                4       ///< number of context models for reference index
+#else
 #define NUM_REF_NO_CTX                6       ///< number of context models for reference index
+#endif
 #define NUM_TRANS_SUBDIV_FLAG_CTX     10      ///< number of context models for transform subdivision flags
 #define NUM_QT_CBF_CTX                5       ///< number of context models for QT CBF
 #define NUM_QT_ROOT_CBF_CTX           4       ///< number of context models for QT ROOT CBF
 #define NUM_DELTA_QP_CTX              4       ///< number of context models for dQP
 
 #define NUM_SIG_FLAG_CTX              50      ///< number of context models for sig flag
+#if MODIFIED_LAST_CODING
+#define NUM_CTX_LAST_FLAG_XY          19      ///< number of context models for PCP last flag
+#else
 #define NUM_CTX_LAST_FLAG_XY          26      ///< number of context models for PCP last flag
+#endif
 #define NUM_ONE_FLAG_CTX              30      ///< number of context models for greater than one
 #define NUM_ABS_FLAG_CTX              30      ///< number of context models for magnitude
 
@@ -123,6 +147,21 @@ INIT_SKIP_FLAG[3][NUM_SKIP_FLAG_CTX][2] =
 };
 
 // initial probability for skip flag
+#if DNB_ALF_CTRL_FLAG
+static const Short
+INIT_ALF_CTRL_FLAG[3][NUM_ALF_CTRL_FLAG_CTX][2] =
+{
+  {
+    {    0,   64 }
+  },
+  {
+    {    0,   64 }
+  },
+  {
+    {    0,   64 }
+  }
+};
+#else
 static const Short
 INIT_ALF_CTRL_FLAG[3][NUM_ALF_CTRL_FLAG_CTX][2] =
 {
@@ -136,8 +175,24 @@ INIT_ALF_CTRL_FLAG[3][NUM_ALF_CTRL_FLAG_CTX][2] =
     {    0,   64 }, {    0,   64 }, {    0,   64 }
   }
 };
+#endif
 
 // initial probability for merge flag
+#if DNB_MERGE_FLAG
+static const Short
+INIT_MERGE_FLAG_EXT[3][NUM_MERGE_FLAG_EXT_CTX][2] =
+{
+  {
+    {    0,   64 }
+  },
+  {
+    {    0,   64 }
+  },
+  {
+    {    0,   64 }
+  }
+};
+#else
 static const Short
 INIT_MERGE_FLAG_EXT[3][NUM_MERGE_FLAG_EXT_CTX][2] =
 {
@@ -151,6 +206,7 @@ INIT_MERGE_FLAG_EXT[3][NUM_MERGE_FLAG_EXT_CTX][2] =
     {    0,   64 }, {    0,   64 }, {    0,   64 }
   }
 };
+#endif
 
 static const Short
 INIT_MERGE_IDX_EXT[3][NUM_MERGE_IDX_EXT_CTX][2] =
@@ -248,6 +304,21 @@ INIT_PLANARFLAG[3][NUM_PLANARFLAG_CTX][2] =
 #endif
 
 // initial probability for intra direction of chroma
+#if DNB_INTRA_CHR_PRED_MODE
+static const Short
+INIT_CHROMA_PRED_MODE[3][NUM_CHROMA_PRED_CTX][2] =
+{
+  {
+    {  0,   64 }, {   0,   64 }
+  },
+  {
+    {  0,   64 }, {   0,   64 }
+  },
+  {
+    {  0,   64 }, {   0,   64 }
+  }
+};
+#else
 static const Short
 INIT_CHROMA_PRED_MODE[3][4][2] =
 {
@@ -261,6 +332,7 @@ INIT_CHROMA_PRED_MODE[3][4][2] =
     {  0,   64 }, {   0,   64 }, {  0,  64 }, {  0,  64 }
   }
 };
+#endif
 
 // initial probability for temporal direction
 static const Short
@@ -278,6 +350,21 @@ INIT_INTER_DIR[3][4][2] =
 };
 
 // initial probability for motion vector difference
+#if MODIFIED_MVD_CODING
+static const
+Short INIT_MVD[3][NUM_MV_RES_CTX][2] =
+{
+  {
+    {    0,   64 }, {    0,   64 }
+  },
+  {
+    {    0,   64 }, {    0,   64 }
+  },
+  {
+    {    0,   64 }, {    0,   64 }
+  }
+};
+#else
 static const Short INIT_MVD[3][14][2] =
 {
   {
@@ -299,8 +386,24 @@ static const Short INIT_MVD[3][14][2] =
     {    5,   64 }, {   10,   67 }
   }
 };
+#endif
 
 // initial probability for reference frame index
+#if DNB_REF_FRAME_IDX
+static const Short
+INIT_REF_PIC[3][NUM_REF_NO_CTX][2] =
+{
+  {
+    {    0,   64 }, {    0,   64 }, {    0,   64 }, {    0,   64 }
+  },
+  {
+    {   -6,   59 }, {  -17,   96 }, {    1,   59 }, {    0,   64 }
+  },
+  {
+    {   -9,   55 }, {  -12,   86 }, {  -18,   55 }, {    0,   64 }
+  }
+};
+#else
 static const Short
 INIT_REF_PIC[3][NUM_REF_NO_CTX][2] =
 {
@@ -317,6 +420,7 @@ INIT_REF_PIC[3][NUM_REF_NO_CTX][2] =
     {  -18,   55 }, {    0,   64 }
   }
 };
+#endif
 
 // initial probability for dQP
 static const Short
@@ -367,6 +471,44 @@ INIT_QT_ROOT_CBF[3][NUM_QT_ROOT_CBF_CTX][2] =
   }
 };
 
+#if MODIFIED_LAST_CODING
+static const Short
+INIT_LAST[3][2*NUM_CTX_LAST_FLAG_XY][2] =
+{
+  {
+    {   14,   25 }, {   10,   38 }, {   12,   41 },
+    {   22,   25 }, {   10,   37 }, {    9,   40 },
+    {   17,   19 }, {   15,   21 }, {   16,   18 }, {   17,   16 }, {   18,   13 }, {   16,   18 },
+    {   23,   -2 }, {   20,   -2 }, {   24,   -9 }, {   24,   -7 }, {   18,   10 }, {    9,   24 }, {   22,   -7 },
+    {   37,    9 }, {   35,   14 }, {   53,   -5 },
+    {   31,   21 }, {   13,   39 }, {   21,   28 },
+    {   35,    2 }, {   22,   17 }, {   18,   23 }, {    9,   40 }, {   14,   32 }, {    7,   44 },
+    {    0,   64 }, {    0,   64 }, {    0,   64 }, {    0,   64 }, {    0,   64 }, {    0,   64 }, {    0,   64 }
+  },
+  {
+    {   12,   35 }, {   12,   40 }, {   13,   47 },
+    {   21,   16 }, {   24,   10 }, {   23,   15 },
+    {   13,   34 }, {   22,   10 }, {   29,   10 }, {   29,   -8 }, {   27,   -5 }, {   20,    7 },
+    {   25,   13 }, {   30,   -8 }, {   35,  -20 }, {   37,  -29 }, {   42,  -41 }, {   42,  -45 }, {   43,  -46 },
+
+    {   21,   36 }, {   22,   37 }, {   35,   27 },
+    {   11,   53 }, {   22,   27 }, {   27,   18 },
+    {   -3,   83 }, {   14,   35 }, {   23,   18 }, {   27,    3 }, {   32,  -11 }, {   17,   11 },
+    {    0,   64 }, {    0,   64 }, {    0,   64 }, {    0,   64 }, {    0,   64 }, {    0,   64 }, {    0,   64 }
+  },
+  {
+    {   12,   35 }, {   12,   40 }, {   13,   47 },
+    {   21,   16 }, {   24,   10 }, {   23,   15 },
+    {   13,   34 }, {   22,   10 }, {   29,   10 }, {   29,   -8 }, {   27,   -5 }, {   20,    7 },
+    {   25,   13 }, {   30,   -8 }, {   35,  -20 }, {   37,  -29 }, {   42,  -41 }, {   42,  -45 }, {   43,  -46 },
+
+    {   21,   36 }, {   22,   37 }, {   35,   27 },
+    {   11,   53 }, {   22,   27 }, {   27,   18 },
+    {   -3,   83 }, {   14,   35 }, {   23,   18 }, {   27,    3 }, {   32,  -11 }, {   17,   11 },
+    {    0,   64 }, {    0,   64 }, {    0,   64 }, {    0,   64 }, {    0,   64 }, {    0,   64 }, {    0,   64 }
+  }
+};
+#else
 static const Short
 INIT_LAST_X[3][2*NUM_CTX_LAST_FLAG_XY][2] =
 {
@@ -466,6 +608,7 @@ INIT_LAST_Y[3][2*NUM_CTX_LAST_FLAG_XY][2] =
     {   0,  64 }, {   0,  64 }, {   0,  64 }, {   0,  64 }
   }
 };
+#endif
 
 static const Short
 INIT_SIG_FLAG[3][2 * NUM_SIG_FLAG_CTX][2] =

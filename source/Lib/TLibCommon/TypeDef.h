@@ -38,6 +38,33 @@
 #ifndef _TYPEDEF__
 #define _TYPEDEF__
 
+////////////////////////////
+// BoG Context Reduction
+////////////////////////////
+
+#define ENABLE_CONTEXT_REDUCTIONS         1
+
+#if ENABLE_CONTEXT_REDUCTIONS
+#define MODIFIED_MVD_CODING               1           ///< modified binarization, coding and bin reordering of MVD
+#define MODIFIED_LAST_CODING              1           ///< modified binarization and coding of last significant position
+#define DNB_MERGE_FLAG                    1           ///< disable of neighbour evaluation for merge_flag
+#define DNB_INTRA_CHR_PRED_MODE           1           ///< disable of neighbour evaluation for intra_chroma_pred_mode
+#define DNB_REF_FRAME_IDX                 1           ///< disable of neighbour evaluation for ref_frame_idx
+#define DNB_ALF_CTRL_FLAG                 1           ///< disable of neighbour evaluation for alf_ctrl_flag
+#define DNB_INTER_PRED_MODE               1           ///< disable of neighbour evaluation for inter_pred_flag (use depth for that)
+#define DNB_CHROMA_CBF_FLAGS              1           ///< disable of neighbour evaluation for chroma cbf (use depth for that)
+#define DNB_LUMA_CBF_FLAGS                1           ///< disable of neighbour evaluation for luma cbf
+#else
+#define MODIFIED_MVD_CODING               0           ///< modified binarization, coding and bin reordering of MVD
+#define MODIFIED_LAST_CODING              0           ///< modified binarization and coding of last significant position
+#define DNB_MERGE_FLAG                    0           ///< disable of neighbour evaluation for merge_flag
+#define DNB_INTRA_CHR_PRED_MODE           0           ///< disable of neighbour evaluation for intra_chroma_pred_mode
+#define DNB_REF_FRAME_IDX                 0           ///< disable of neighbour evaluation for ref_frame_idx
+#define DNB_ALF_CTRL_FLAG                 0           ///< disable of neighbour evaluation for alf_ctrl_flag
+#define DNB_INTER_PRED_MODE               0           ///< disable of neighbour evaluation for inter_pred_flag
+#define DNB_CHROMA_CBF_FLAGS              0           ///< disable of neighbour evaluation for chroma cbf (use depth for that)
+#define DNB_LUMA_CBF_FLAGS                0           ///< disable of neighbour evaluation for luma cbf
+#endif
 
 ////////////////////////////
 // JCT-VC E start

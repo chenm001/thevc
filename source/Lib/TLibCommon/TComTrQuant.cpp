@@ -2700,7 +2700,11 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
     {
       d64CostLast        += d64BaseCost;
 #if QC_MDCS
+#if MODIFIED_LAST_CODING
+      d64CostLast        += uiScanIdx == SCAN_VER ? xGetRateLast( uiPosY, uiPosX, uiWidth ) : xGetRateLast( uiPosX, uiPosY, uiWidth );
+#else
       d64CostLast        += uiScanIdx == SCAN_VER ? xGetRateLast( uiPosY, uiPosX ) : xGetRateLast( uiPosX, uiPosY );
+#endif
 #else
       d64CostLast        += xGetRateLast( uiPosX, uiPosY );
 #endif
@@ -3021,11 +3025,48 @@ __inline Double TComTrQuant::xGetICRateCost  ( UInt                            u
  * \param uiPosY Y coordinate of the last significant coefficient
  * \returns cost of last significant coefficient
  */
+#if MODIFIED_LAST_CODING
+/*
+/* \param uiWidth width of the transform unit (TU)
+*/
+__inline Double TComTrQuant::xGetRateLast   ( const UInt                      uiPosX,
+                                              const UInt                      uiPosY,
+                                              const UInt                      uiBlkWdth     ) const
+{
+  UInt uiCtxX              = uiPosX;
+  UInt uiCtxY              = uiPosY;
+  const UInt uiMinWidth    = min<UInt>( 4, uiBlkWdth );
+  const UInt uiHalfWidth   = uiBlkWdth >> 1;
+  const UInt uiLog2BlkSize = g_aucConvertToBit[ uiHalfWidth ] + 2;
+
+  Double uiCost = 0;
+
+  if( uiHalfWidth >= uiMinWidth )
+  {
+    if( uiPosX >= uiHalfWidth )
+    {
+      uiCost += xGetIEPRate() * uiLog2BlkSize;
+      uiCtxX  = uiHalfWidth;
+    }
+
+    if( uiPosY >= uiHalfWidth )
+    {
+      uiCost += xGetIEPRate() * uiLog2BlkSize;
+      uiCtxY  = uiHalfWidth;
+    }
+  }
+
+  uiCost += m_pcEstBitsSbac->lastXBits[ uiCtxX ] + m_pcEstBitsSbac->lastYBits[ uiCtxY ];
+
+  return xGetICost( uiCost );
+}
+#else
 __inline Double TComTrQuant::xGetRateLast   ( UInt                            uiPosX,
                                               UInt                            uiPosY ) const
 {
   return xGetICost( m_pcEstBitsSbac->lastXBits[ uiPosX ] + m_pcEstBitsSbac->lastYBits[ uiPosY ] );
 }
+#endif
 
  /** Calculates the cost for specific absolute transform level
  * \param uiAbsLevel scaled quantized level

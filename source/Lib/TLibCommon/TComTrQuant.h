@@ -241,15 +241,19 @@ UInt             getCurrLineNum(UInt uiScanIdx, UInt uiPosX, UInt uiPosY);
                                      UShort                          ui16CtxNumAbs,
                                      UShort                          ui16AbsGoRice,
                                      Int                             iQBits,
-                                     Double                          dTemp
-                                    ) const;
+                                     Double                          dTemp         ) const;
   __inline Double xGetICRateCost   ( UInt                            uiAbsLevel,
                                      UShort                          ui16CtxNumOne,
                                      UShort                          ui16CtxNumAbs,
-                                     UShort                          ui16AbsGoRice
-                                     ) const;
+                                     UShort                          ui16AbsGoRice ) const;
+#if MODIFIED_LAST_CODING
+  __inline Double xGetRateLast     ( const UInt                      uiPosX,
+                                     const UInt                      uiPosY,
+                                     const UInt                      uiBlkWdth     ) const;
+#else
   __inline Double xGetRateLast     ( UInt                            uiPosX,
                                      UInt                            uiPosY        ) const;
+#endif
   __inline Double xGetRateSigCoef (  UShort                          uiSignificance,
                                      UShort                          ui16CtxNumSig ) const;
   __inline Double xGetICost        ( Double                          dRate         ) const; 

@@ -1676,6 +1676,15 @@ UInt* g_auiFrameScanY [ MAX_CU_DEPTH  ];
 UInt* g_auiSigLastScan[3][ MAX_CU_DEPTH ];
 #endif //QC_MDCS
 
+#if MODIFIED_LAST_CODING
+const UInt g_uiLastCtx[ 32 ] =
+{
+  0, 1, 2, 2, // 4x4
+  3, 4, 5, 5, // 8x8
+  6, 7, 8, 9, 10, 10, 11, 11, // 16x16
+  12, 13, 14, 15, 16, 16, 16, 16, 17, 17, 17, 17, 18, 18, 18, 18 // 32x32
+};
+#else
 UInt g_uiCtxXYOffset[ MAX_CU_DEPTH ] =
 {
   15, 15, 15, 8, 3, 0, 0
@@ -1685,6 +1694,7 @@ UInt g_uiCtxXY[ 31 ] =
 {
   0, 1, 2, 3, 3, 4, 4, 5, 5, 5, 5, 6, 6, 6, 6, 7, 7, 7, 7, 8, 8, 8, 8, 9, 9, 9, 9, 10, 10, 10, 10
 };
+#endif
 
 // scanning order to 8x8 context model mapping table
 UInt  g_auiAntiScan8  [64];

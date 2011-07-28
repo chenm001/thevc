@@ -94,6 +94,7 @@ private:
   Void  xReadEpExGolomb     ( UInt& ruiSymbol, UInt uiCount );
   Void  xReadGoRiceExGolomb ( UInt &ruiSymbol, UInt &ruiGoRiceParam );
   
+#if !MODIFIED_MVD_CODING
 #if MVD_CTX
   Void  xReadMvd            ( Int& riMvdComp, UInt uiAbsSumL, UInt uiAbsSumA, UInt uiCtx );
 #else
@@ -101,6 +102,7 @@ private:
 #endif
 
   Void  xReadExGolombMvd    ( UInt& ruiSymbol, ContextModel* pcSCModel, UInt uiMaxBin );
+#endif
   
 private:
   TComInputBitstream* m_pcBitstream;
