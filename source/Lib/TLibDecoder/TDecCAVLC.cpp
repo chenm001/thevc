@@ -3242,6 +3242,9 @@ Void TDecCavlc::xParseCoeff8x8(TCoeff* scoeff, int n)
 Void TDecCavlc::xParseCoeff(TCoeff* scoeff, int n, Int blSize)
 {
   static const Int switch_thr[10] = {49,49,0,49,49,0,49,49,49,49};
+#if MOD_INTRA_TABLE
+  static const int table_tr1[2][5] = {{0, 1, 1, 1, 0},{0, 1, 2, 3, 4}};
+#endif
   Int i, noCoeff=blSize*blSize;;
   UInt sign;
   LastCoeffStruct combo;
@@ -3307,20 +3310,40 @@ Void TDecCavlc::xParseCoeff(TCoeff* scoeff, int n, Int blSize)
   scoeff[i++] = sign? -tmp:tmp;
 
   done = 0;
+
+#if MOD_INTRA_TABLE
+  const UInt *vlcTable = (n == 2||n == 5)?  g_auiVlcTable8x8Intra:
+    ((blSize<=8)? g_auiVlcTable8x8Inter:g_auiVlcTable16x16Inter);
+
+  const UInt **pLumaRunTr1 = (blSize==4)? g_pLumaRunTr14x4: ((blSize==8)? g_pLumaRunTr18x8: g_pLumaRunTr116x16);
+#else
   const UInt *vlcTable = (n == 2||n == 5)? ((blSize<=8)? g_auiVlcTable8x8Intra:g_auiVlcTable16x16Intra):
     ((blSize<=8)? g_auiVlcTable8x8Inter:g_auiVlcTable16x16Inter);
   const UInt **pLumaRunTr1 = (blSize==4)? g_pLumaRunTr14x4:g_pLumaRunTr18x8;
+#endif
   while (!done && i < noCoeff)
   {
     maxrun = noCoeff - 1 -i;
     tmprun = min(maxrun,28);
+#if MOD_INTRA_TABLE 
+    if (tmprun < 28 || blSize<=8 || (n!=2&&n!=5))
+      tmp = vlcTable[tmprun];
+    else
+      tmp = 2;
+#else
     tmp = vlcTable[tmprun];
+#endif
+
 
     /* Go into run mode */
     cn = xReadVlc( tmp );
     if (n == 2 || n == 5)
     {
+#if MOD_INTRA_TABLE
+      xRunLevelIndInv(&combo, maxrun, pLumaRunTr1[table_tr1[(blSize&4)>>2][tr1]][tmprun], cn);
+#else
       xRunLevelIndInv(&combo, maxrun, pLumaRunTr1[tr1][tmprun], cn);
+#endif
     }
     else
     {

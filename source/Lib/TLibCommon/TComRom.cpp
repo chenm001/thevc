@@ -1058,6 +1058,26 @@ const UInt g_auiLumaRun8x8[29][2][64] =
 };
 #endif
 
+#if MOD_INTRA_TABLE 
+const UInt g_auiLumaRunTr14x4[5][15]=
+{
+  {0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+  {2, 2, 2, 2, 3, 2, 2, 4, 4, 2, 4, 4, 2, 2, 2},
+  {2, 2, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, M1},
+  {1, 1, 1, 2, 2, 1, 2, 2, 2, 2, 2, 2, 2, M1, M1},
+  {1, 1, 1, 2, 1, 1, 2, 2, 0, 0, 2, 0, 0, M1, M1}
+};
+const UInt g_auiLumaRunTr18x8[2][29]=
+{
+  {2,2,1,2,2,2,2,4,2,2,2,2,2,4,4,6,4,4,4,4,4,4,6,6,4,4,4,6,6},
+  {2,3,3,3,3,2,4,8,4,2,4,4,4,6,6,8,6,6,6,8,8,8,10,12,8,8,8,10,14}
+};
+const UInt g_auiLumaRunTr116x16[2][29]=
+{
+  {1,1,1,2,2,2,2,2,2,2,2,4,4,4,4,4,4,6,6,6,4,4,6,6,6,6,8,6,10},
+  {1,3,2,3,4,4,4,6,6,6,6,6,8,14,10,8,8,10,10,16,12,10,10,12,12,12,28,16,22}
+};
+#else
 const UInt g_auiLumaRunTr14x4[5][15]=
 {
     {0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0},
@@ -1074,6 +1094,7 @@ const UInt g_auiLumaRunTr18x8[5][29]=
     {2, 1, 2, 2, 3, 3, 4, 4, 5, 5, 5, 6, 6, 7, 7, 7, 8, 9, 9, 10, 10, 11, 11, 12, 12, 13, 13, 13, 13},
     {2, 1, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 4, 5, 5, 5, 5, 5, 6, 6, 6, 6, 6, 6, 7, 7, 8}
 };
+#endif
 
 #if CAVLC_COEF_LRG_BLK
 const UInt *g_pLumaRunTr14x4[5] =
@@ -1081,18 +1102,35 @@ const UInt *g_pLumaRunTr14x4[5] =
   &g_auiLumaRunTr14x4[0][0], &g_auiLumaRunTr14x4[1][0], &g_auiLumaRunTr14x4[2][0], 
   &g_auiLumaRunTr14x4[3][0], &g_auiLumaRunTr14x4[4][0]
 };
-
+#if MOD_INTRA_TABLE
+const UInt *g_pLumaRunTr18x8[2] = 
+{ 
+  &g_auiLumaRunTr18x8[0][0], &g_auiLumaRunTr18x8[1][0]
+};
+const UInt *g_pLumaRunTr116x16[2] = 
+{ 
+  &g_auiLumaRunTr116x16[0][0], &g_auiLumaRunTr116x16[1][0]
+};
+#else
 const UInt *g_pLumaRunTr18x8[5] =
 { 
   &g_auiLumaRunTr18x8[0][0], &g_auiLumaRunTr18x8[1][0], &g_auiLumaRunTr18x8[2][0], 
   &g_auiLumaRunTr18x8[3][0], &g_auiLumaRunTr18x8[4][0]
 };
 #endif
+#endif
 
-const UInt g_auiVlcTable8x8Inter[29] = {8,0,0,5,5,5,5,5,5,5,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,3};
-const UInt g_auiVlcTable8x8Intra[29] = {8,0,0,5,5,5,5,5,5,5,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,3};
+const UInt g_auiVlcTable8x8Inter[29]   = {8,0,0,5,5,5,5,5,5,5,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,3};
+#if MOD_INTRA_TABLE
+const UInt g_auiVlcTable4x4Intra[29]   = {8,0,0,0,0,1,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5}; 
+const UInt g_auiVlcTable8x8Intra[29]   = {8,0,0,0,0,1,5,5,5,5,5,5,5,5,5,5,5,5,1,1,1,1,1,1,1,1,1,1,1}; 
+#else 
+const UInt g_auiVlcTable8x8Intra[29]   = {8,0,0,5,5,5,5,5,5,5,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,3};
+#endif
 #if CAVLC_COEF_LRG_BLK
+#if MOD_INTRA_TABLE == 0
 const UInt g_auiVlcTable16x16Intra[29] = {8,0,0,0,0,5,5,5,5,5,5,5,5,5,5,5,5,5,1,1,1,1,1,1,1,1,1,1,2};
+#endif
 const UInt g_auiVlcTable16x16Inter[29] = {8,0,1,1,1,1,2,2,2,2,2,2,2,6,6,6,6,6,6,3,3,3,3,3,3,3,3,3,3};
 #endif
 

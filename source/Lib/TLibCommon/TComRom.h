@@ -174,6 +174,9 @@ extern const UInt    g_auiIntraModeTableE34[33];
 
 extern const UInt    g_auiVlcTable8x8Inter[29];
 extern const UInt    g_auiVlcTable8x8Intra[29];
+#if MOD_INTRA_TABLE
+extern const UInt    g_auiVlcTable4x4Intra[29];
+#endif
 #if RUNLEVEL_TABLE_CUT 
 extern const UInt    g_acstructLumaRun8x8[28][29];
 #else
@@ -192,7 +195,12 @@ extern const UInt lengthHuff34_2[2][34];
 
 #if CAVLC_COEF_LRG_BLK
 extern const UInt   *g_pLumaRunTr14x4[5]; 
+#if MOD_INTRA_TABLE
+extern const UInt   *g_pLumaRunTr116x16[2];
+extern const UInt   *g_pLumaRunTr18x8[2]; 
+#else
 extern const UInt   *g_pLumaRunTr18x8[5]; 
+#endif
 #else
 extern const UInt    g_auiLumaRunTr14x4[5][15];
 extern const UInt    g_auiLumaRunTr18x8[5][29];
