@@ -51,6 +51,33 @@ const UChar TComPattern::m_aucIntraFilter[5][34] =
 #endif
 {
 #if MN_MDIS_SIMPLIFICATION
+#if MDIS2
+  {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+#if ADD_PLANAR_MODE || LM_CHROMA
+    ,0, 0
+#endif
+  }, //4x4
+  {0, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+#if ADD_PLANAR_MODE || LM_CHROMA
+    ,1, 0
+#endif
+  }, //8x8
+  {0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1
+#if ADD_PLANAR_MODE || LM_CHROMA
+    ,1, 0
+#endif
+  }, //16x16
+  {0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1
+#if ADD_PLANAR_MODE || LM_CHROMA
+    ,1, 0
+#endif
+  }, //32x32
+  {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+#if ADD_PLANAR_MODE || LM_CHROMA
+    ,0, 0
+#endif
+  }, //64x64
+#else
   {0, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
 #if ADD_PLANAR_MODE || LM_CHROMA
     ,0, 0
@@ -76,6 +103,7 @@ const UChar TComPattern::m_aucIntraFilter[5][34] =
     ,0, 0
 #endif
   }, //64x64
+#endif
 #else
   {0, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
 #if ADD_PLANAR_MODE || LM_CHROMA
