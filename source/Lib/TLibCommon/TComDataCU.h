@@ -161,9 +161,7 @@ protected:
   
   /// add possible motion vector predictor candidates
   Bool          xAddMVPCand           ( AMVPInfo* pInfo, RefPicList eRefPicList, Int iRefIdx, UInt uiPartUnitIdx, MVP_DIR eDir );
-#if MTK_AMVP_SMVP_DERIVATION
   Bool          xAddMVPCandOrder      ( AMVPInfo* pInfo, RefPicList eRefPicList, Int iRefIdx, UInt uiPartUnitIdx, MVP_DIR eDir );
-#endif  
 
 #if MTK_TMVP_H_MRG || MTK_TMVP_H_AMVP
   Void          deriveRightBottomIdx        ( PartSize eCUMode, UInt uiPartIdx, UInt& ruiPartIdxRB );

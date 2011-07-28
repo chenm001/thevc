@@ -106,7 +106,6 @@
 
 #define UNIFY_INTER_TABLE                     1           // JCTVC-E381 CAVLC: Inter pred coding
 
-#define MTK_AMVP_SMVP_DERIVATION          1              ///< (JCTVC-E481 - D125 2.3) amvp spatial candidate derivation
 #define TI_AMVP_SMVP_SIMPLIFIED           1              ///< (JCTVC-E481 - F)amvp spatial candidate simplified scanning
 #define MV_SCALE_ROUNDING_F142            1           ///< Modified rounding when scaling motion vectors (JCTVC-F142)
 

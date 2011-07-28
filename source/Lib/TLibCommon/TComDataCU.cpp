@@ -3544,7 +3544,6 @@ Void TComDataCU::fillMvpCand ( UInt uiPartIdx, UInt uiPartAddr, RefPicList eRefP
   }
 #endif
   
-#if MTK_AMVP_SMVP_DERIVATION
   if(!bAdded)
   {
     bAdded = xAddMVPCandOrder( pInfo, eRefPicList, iRefIdx, uiPartIdxLB, MD_BELOW_LEFT);
@@ -3560,7 +3559,6 @@ Void TComDataCU::fillMvpCand ( UInt uiPartIdx, UInt uiPartAddr, RefPicList eRefP
     }
 #endif
   }
-#endif
   // Above predictor search
   bAdded = xAddMVPCand( pInfo, eRefPicList, iRefIdx, uiPartIdxRT, MD_ABOVE_RIGHT);
   if (bAdded && pInfo->iN==2 && pInfo->m_acMvCand[0] == pInfo->m_acMvCand[1])
@@ -3598,7 +3596,6 @@ Void TComDataCU::fillMvpCand ( UInt uiPartIdx, UInt uiPartAddr, RefPicList eRefP
       bAdded = false;
     }
   }
-#if MTK_AMVP_SMVP_DERIVATION
   if(!bAdded)
   {
     bAdded = xAddMVPCandOrder( pInfo, eRefPicList, iRefIdx, uiPartIdxRT, MD_ABOVE_RIGHT);
@@ -3637,7 +3634,6 @@ Void TComDataCU::fillMvpCand ( UInt uiPartIdx, UInt uiPartAddr, RefPicList eRefP
       }
     }
   }
-#endif
   
   if (getAMVPMode(uiPartAddr) == AM_NONE)  //Should be optimized later for special cases
   {
@@ -3978,7 +3974,6 @@ Void TComDataCU::xUniqueMVPCand(AMVPInfo* pInfo)
   pInfo->iN = n;
 }
 
-#if MTK_AMVP_SMVP_DERIVATION
 /** 
  * \param pInfo
  * \param eRefPicList 
@@ -4099,7 +4094,6 @@ Bool TComDataCU::xAddMVPCandOrder( AMVPInfo* pInfo, RefPicList eRefPicList, Int 
   //---------------------- V3(END) --------------------//
   return false;
 }
-#endif
 
 /** 
  * \param eRefPicList
