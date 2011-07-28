@@ -70,18 +70,15 @@ private:
   Double *m_dCostPartBest ;//[MAX_NUM_QAO_PART]; 
   Int64  *m_iDistOrg;      //[MAX_NUM_QAO_PART]; 
   Int    *m_iTypePartBest ;//[MAX_NUM_QAO_PART]; 
-
+#if SAO_CLIP_OFFSET
+  Int     m_iOffsetTh;
+#endif
   Bool    m_bUseSBACRD;
 
 public:
   Void startSaoEnc( TComPic* pcPic, TEncEntropy* pcEntropyCoder, TEncSbac*** pppcRDSbacCoder, TEncSbac* pcRDGoOnSbacCoder);
   Void endSaoEnc();
   Void SAOProcess(Double dLambda);
-  Void xQuadTreeDecisionFunc(Int iPartIdx, TComPicYuv* pcPicOrg, TComPicYuv* pcPicDec, TComPicYuv* pcPicRest, Double &dCostFinal);
-  Void xQAOOnePart(SAOQTPart* pQAOOnePart, Int iPartIdx);
-  Void xPartTreeDisable(Int iPartIdx);
-  Void xGetQAOStats(TComPicYuv* pcPicOrg, TComPicYuv* pcPicDec, TComPicYuv* pcPicRest);
-  Void calcAoStatsCu(Int iAddr, Int iPartIdx);
   Void xQuadTreeDecisionFunc(SAOQTPart *psQTPart, Int iPartIdx, Double &dCostFinal, Int iMaxLevel, Double dLambda);
   Void xQAOOnePart(SAOQTPart *psQTPart, Int iPartIdx, Double dLambda);
   Void xPartTreeDisable(SAOQTPart *psQTPart, Int iPartIdx);

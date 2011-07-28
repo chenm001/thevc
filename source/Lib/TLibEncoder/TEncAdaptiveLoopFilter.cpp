@@ -5119,7 +5119,14 @@ Void TEncSampleAdaptiveOffset::xQAOOnePart(SAOQTPart *psQTPart, Int iPartIdx, Do
       {
         if(m_iCount [iPartIdx][iTypeIdx][iClassIdx])
         {
+#if SAO_ACCURATE_OFFSET
+          m_iOffset[iPartIdx][iTypeIdx][iClassIdx]    = (Int64) xRoundIbdi((Double)(m_iOffsetOrg[iPartIdx][iTypeIdx][iClassIdx]<<g_uiBitIncrement) / (Double)(m_iCount [iPartIdx][iTypeIdx][iClassIdx]<<m_uiAoBitDepth));
+#else
           m_iOffset[iPartIdx][iTypeIdx][iClassIdx]    = (Int64) xRoundIbdi((Double)(m_iOffsetOrg[iPartIdx][iTypeIdx][iClassIdx]<<m_uiAoBitDepth) / (Double)m_iCount [iPartIdx][iTypeIdx][iClassIdx]);
+#endif
+#if SAO_CLIP_OFFSET
+          m_iOffset[iPartIdx][iTypeIdx][iClassIdx] = Clip3(-m_iOffsetTh, m_iOffsetTh-1, (Int)m_iOffset[iPartIdx][iTypeIdx][iClassIdx]);
+#endif
         }
         else
         {
@@ -5128,7 +5135,11 @@ Void TEncSampleAdaptiveOffset::xQAOOnePart(SAOQTPart *psQTPart, Int iPartIdx, Do
         }
 
         iCount     =  m_iCount [iPartIdx][iTypeIdx][iClassIdx];
+#if SAO_ACCURATE_OFFSET
+        iOffset    =  m_iOffset[iPartIdx][iTypeIdx][iClassIdx] << m_uiAoBitDepth;
+#else
         iOffset    =  m_iOffset[iPartIdx][iTypeIdx][iClassIdx] << (g_uiBitIncrement-m_uiAoBitDepth);
+#endif
         iOffsetOrg =  m_iOffsetOrg[iPartIdx][iTypeIdx][iClassIdx];
         iEstDist   += (( iCount*iOffset*iOffset-iOffsetOrg*iOffset*2 ) >> uiShift);
         m_pcEntropyCoder->m_pcEntropyCoderIf->codeAoSvlc((Int)m_iOffset[iPartIdx][iTypeIdx][iClassIdx]);
@@ -6255,6 +6266,9 @@ Void TEncSampleAdaptiveOffset::SAOProcess( Double dLambda)
   m_dLambdaLuma    = dLambda;
   m_dLambdaChroma  = dLambda;
 
+#if SAO_ACCURATE_OFFSET
+  m_uiAoBitDepth = g_uiBitDepth + g_uiBitIncrement - min((Int)(g_uiBitDepth + g_uiBitIncrement), 10);
+#else
   if (g_uiBitIncrement>1)
   {
     m_uiAoBitDepth = 1;
@@ -6263,6 +6277,17 @@ Void TEncSampleAdaptiveOffset::SAOProcess( Double dLambda)
   {
     m_uiAoBitDepth = 0;
   }
+#endif
+#if SAO_CLIP_OFFSET
+  const Int iOffsetBitRange8Bit = 4;
+#if SAO_ACCURATE_OFFSET
+  Int iOffsetBitDepth = g_uiBitDepth + g_uiBitIncrement - m_uiAoBitDepth;
+#else
+  Int iOffsetBitDepth = g_uiBitDepth + m_uiAoBitDepth;
+#endif
+  Int iOffsetBitRange = iOffsetBitRange8Bit + (iOffsetBitDepth - 8);
+  m_iOffsetTh = 1 << (iOffsetBitRange - 1);
+#endif
 
   Double dCostFinal = 0;
 

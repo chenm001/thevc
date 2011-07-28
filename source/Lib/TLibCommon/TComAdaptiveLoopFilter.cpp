@@ -4636,7 +4636,11 @@ Void TComSampleAdaptiveOffset::xAoOnePart(SAOQTPart *psQTPart, UInt uiPartIdx, I
     if (uiTypeIdx == SAO_BO_0 || uiTypeIdx == SAO_BO_1)
     {
       for (i=0;i<pOnePart->iLength;i++)
+#if SAO_ACCURATE_OFFSET
+        iOffset[i+1] = pOnePart->iOffset[i] << m_uiAoBitDepth;
+#else
         iOffset[i+1] = pOnePart->iOffset[i] << (g_uiBitIncrement-m_uiAoBitDepth);
+#endif
 
       if (uiTypeIdx == SAO_BO_0 )
       {
@@ -4657,7 +4661,12 @@ Void TComSampleAdaptiveOffset::xAoOnePart(SAOQTPart *psQTPart, UInt uiPartIdx, I
     {
       for (i=0;i<pOnePart->iLength;i++)
       {
+#if SAO_ACCURATE_OFFSET
+        iOffset[i+1] = pOnePart->iOffset[i] << m_uiAoBitDepth;
+#else
         iOffset[i+1] = pOnePart->iOffset[i] << (g_uiBitIncrement-m_uiAoBitDepth);
+#endif
+
       }
       for (uiEdgeType=0;uiEdgeType<6;uiEdgeType++)
       {
@@ -4759,6 +4768,9 @@ Void TComSampleAdaptiveOffset::SAOProcess(TComPic* pcPic, SAOParam* pcQaoParam)
 
   if (pcQaoParam->bSaoFlag)
   {
+#if SAO_ACCURATE_OFFSET
+    m_uiAoBitDepth = g_uiBitDepth + g_uiBitIncrement - min((Int)(g_uiBitDepth + g_uiBitIncrement), 10);
+#else
     if (g_uiBitIncrement>1)
     {
       m_uiAoBitDepth = 1;
@@ -4767,6 +4779,7 @@ Void TComSampleAdaptiveOffset::SAOProcess(TComPic* pcPic, SAOParam* pcQaoParam)
     {
       m_uiAoBitDepth = 0;
     }
+#endif
     m_pcPic = pcPic;
 
 #if !MTK_SAO_CHROMA
