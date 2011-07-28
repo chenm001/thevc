@@ -74,7 +74,6 @@
 #if !FT_TCTR_AMVP
 #define PANASONIC_AMVPTEMPORALEXT         1           ///< 
 #endif
-#define MTK_TMVP_H_AMVP                   1           ///< (JCTVC-E481 - D125 2.1) right-bottom collocated for amvp 
 // FOR BOTH
 #define PANASONIC_AMVPTEMPORALMOD         1           ///< (JCTVC-E481 - D125 2.4' / D274 3')
 #define AMVP_BUFFERCOMPRESS               1           ///< motion vector buffer compression
