@@ -2722,7 +2722,6 @@ Void TComDataCU::deriveLeftBottomIdx( PartSize      eCUMode,   UInt  uiPartIdx, 
   }
 }
 
-#if MTK_TMVP_H_MRG || MTK_TMVP_H_AMVP
 /** Derives the partition index of neighbouring bottom right block
  * \param in eCUMode
  * \param in uiPartIdx 
@@ -2752,7 +2751,6 @@ Void TComDataCU::deriveRightBottomIdx( PartSize      eCUMode,   UInt  uiPartIdx,
       break;
   }
 }
-#endif
 
 Void TComDataCU::deriveLeftRightTopIdxAdi ( UInt& ruiPartIdxLT, UInt& ruiPartIdxRT, UInt uiPartOffset, UInt uiPartDepth )
 {
@@ -2993,7 +2991,6 @@ Void TComDataCU::getInterMergeCandidates( UInt uiAbsPartIdx, UInt uiPUIdx, UInt 
     }
   }
 #endif
-#if MTK_TMVP_H_MRG
   //>> MTK colocated-RightBottom
   UInt uiPartIdxRB;
   Int uiLCUIdx = getAddr();
@@ -3103,160 +3100,6 @@ Void TComDataCU::getInterMergeCandidates( UInt uiAbsPartIdx, UInt uiPUIdx, UInt 
     }
   }
   uiIdx++;
-#else //MTK_TMVP_H_MRG
-#if FT_TCTR_MRG
-    TComMv cMvTCenter[2];
-#if PANASONIC_MRG_TMVP_REFIDX
-  Int iRefIdx = iRefIdxSkip[0];
-  if (xGetCenterCol( uiPUIdx, REF_PIC_LIST_0, iRefIdx, &cMvTCenter[0] ))
-#else
-    if (xGetCenterCol( uiPUIdx, REF_PIC_LIST_0, 0, &cMvTCenter[0] ))
-#endif
-    {
-      UInt uiArrayAddr = uiIdx - 1;
-      abCandIsInter[uiArrayAddr] = true;
-#if PANASONIC_MRG_TMVP_REFIDX
-    pcMvFieldNeighbours[uiArrayAddr << 1].setMvField( cMvTCenter[0], iRefIdx );
-#else
-      pcMvFieldNeighbours[uiArrayAddr << 1].setMvField( cMvTCenter[0], 0 );
-#endif
-      puiNeighbourCandIdx[uiArrayAddr] = uiIdx;
-
-      if ( getSlice()->isInterB() )
-      {       
-#if PANASONIC_MRG_TMVP_REFIDX
-      iRefIdx = iRefIdxSkip[1];
-      if ( xGetCenterCol( uiPUIdx, REF_PIC_LIST_1, iRefIdx, &cMvTCenter[1] ) )
-#else
-        if ( xGetCenterCol( uiPUIdx, REF_PIC_LIST_1, 0, &cMvTCenter[1] ) )
-#endif
-        {
-#if PANASONIC_MRG_TMVP_REFIDX
-        pcMvFieldNeighbours[ ( uiArrayAddr << 1 ) + 1 ].setMvField( cMvTCenter[1], iRefIdx );
-#else
-          pcMvFieldNeighbours[ ( uiArrayAddr << 1 ) + 1 ].setMvField( cMvTCenter[1], 0 );
-#endif
-          puhInterDirNeighbours[uiArrayAddr] = 3;
-        }
-        else
-        {
-          puhInterDirNeighbours[uiArrayAddr] = 1;
-        }
-      }
-      else
-      {
-        puhInterDirNeighbours[uiArrayAddr] = 1;
-      }
-    }
-  uiIdx++;
-#else //FT_TCTR_MRG
-  UInt uiColDir = ( m_pcSlice->isInterB()? m_pcSlice->getColDir() : 0 );
-  TComDataCU* pcCUColocated = getCUColocated( RefPicList( uiColDir ) );
-  RefPicList eColRefPicList = ( m_pcSlice->isInterB()? RefPicList( 1-uiColDir ) : REF_PIC_LIST_0 );
-#if PANASONIC_MERGETEMPORALEXT
-  RefPicList eColRefPicList2 = (m_pcSlice->isInterB()? RefPicList(uiColDir) : REF_PIC_LIST_0);
-#endif
-  if( pcCUColocated && !pcCUColocated->isIntra( uiAbsPartAddr ) &&
-    pcCUColocated->getCUMvField( eColRefPicList )->getRefIdx( uiAbsPartAddr ) >= 0 )
-  {
-    Int iColPOC = pcCUColocated->getSlice()->getPOC();
-    Int iColRefPOC = pcCUColocated->getSlice()->getRefPOC( eColRefPicList, pcCUColocated->getCUMvField( eColRefPicList )->getRefIdx( uiAbsPartAddr ) );
-    TComMv cColMv = pcCUColocated->getCUMvField( eColRefPicList )->getMv( uiAbsPartAddr );
-
-    Int iCurrPOC = m_pcSlice->getPOC();
-    Int iCurrRefPOC = m_pcSlice->getRefPic( REF_PIC_LIST_0, 0 )->getPOC();
-
-    TComMv cMv;
-    Int iScale = xGetDistScaleFactor( iCurrPOC, iCurrRefPOC, iColPOC, iColRefPOC );
-
-    if( iScale == 1024 )
-    {
-      cMv = cColMv;
-    }
-    else
-    {
-      cMv = cColMv.scaleMv( iScale );
-    }
-    clipMv( cMv );
-    UInt uiArrayAddr = uiIdx - 1;
-    abCandIsInter[uiArrayAddr] = true;
-    pcMvFieldNeighbours[uiArrayAddr << 1].setMvField( cMv, 0 );
-    puiNeighbourCandIdx[uiArrayAddr] = uiIdx;
-    if ( getSlice()->isInterB() )
-    {
-      iCurrRefPOC = m_pcSlice->getRefPic( REF_PIC_LIST_1, 0 )->getPOC();
-      TComMv cMvB;
-      iScale = xGetDistScaleFactor( iCurrPOC, iCurrRefPOC, iColPOC, iColRefPOC );
-      if( iScale == 1024 )
-      {
-        cMvB = cColMv;
-      }
-      else
-      {
-        cMvB = cColMv.scaleMv( iScale );
-      }
-      clipMv( cMvB );
-      pcMvFieldNeighbours[ ( uiArrayAddr << 1 ) + 1 ].setMvField( cMvB, 0 );
-      puhInterDirNeighbours[uiArrayAddr] = 3;
-    }
-    else
-    {
-      puhInterDirNeighbours[uiArrayAddr] = 1;
-    }
-  }
-#if PANASONIC_MERGETEMPORALEXT
-  else if( pcCUColocated && !pcCUColocated->isIntra( uiAbsPartAddr ) &&
-          pcCUColocated->getCUMvField( eColRefPicList2 )->getRefIdx( uiAbsPartAddr ) >= 0 )
-  {
-    Int iColPOC = pcCUColocated->getSlice()->getPOC();
-    Int iColRefPOC = pcCUColocated->getSlice()->getRefPOC( eColRefPicList2, pcCUColocated->getCUMvField( eColRefPicList2 )->getRefIdx( uiAbsPartAddr ) );
-    TComMv cColMv = pcCUColocated->getCUMvField( eColRefPicList2 )->getMv( uiAbsPartAddr );
-    
-    Int iCurrPOC = m_pcSlice->getPOC();
-    Int iCurrRefPOC = m_pcSlice->getRefPic( REF_PIC_LIST_0, 0 )->getPOC();
-    
-    TComMv cMv;
-    Int iScale = xGetDistScaleFactor( iCurrPOC, iCurrRefPOC, iColPOC, iColRefPOC );
-    
-    if( iScale == 1024 )
-    {
-      cMv = cColMv;
-    }
-    else
-    {
-      cMv = cColMv.scaleMv( iScale );
-    }
-    clipMv( cMv );
-    UInt uiArrayAddr = uiIdx - 1;
-    abCandIsInter[uiArrayAddr] = true;
-    pcMvFieldNeighbours[uiArrayAddr << 1].setMvField( cMv, 0 );
-    puiNeighbourCandIdx[uiArrayAddr] = uiIdx;
-    if ( getSlice()->isInterB() )
-    {
-      iCurrRefPOC = m_pcSlice->getRefPic( REF_PIC_LIST_1, 0 )->getPOC();
-      TComMv cMvB;
-      iScale = xGetDistScaleFactor( iCurrPOC, iCurrRefPOC, iColPOC, iColRefPOC );
-      if( iScale == 1024 )
-      {
-        cMvB = cColMv;
-      }
-      else
-      {
-        cMvB = cColMv.scaleMv( iScale );
-      }
-      clipMv( cMvB );
-      pcMvFieldNeighbours[ ( uiArrayAddr << 1 ) + 1 ].setMvField( cMvB, 0 );
-      puhInterDirNeighbours[uiArrayAddr] = 3;
-    }
-    else
-    {
-      puhInterDirNeighbours[uiArrayAddr] = 1;
-    }
-  }
-#endif // PANASONIC_MERGETEMPORALEXT
-  uiIdx++;
-#endif // FT_TCTR_MRG
-#endif // MTK_TMVP_H_MRG 
 #endif // MRG_NEIGH_COL
 
   // cor [3]
@@ -4064,7 +3907,6 @@ Bool TComDataCU::xAddMVPCandOrder( AMVPInfo* pInfo, RefPicList eRefPicList, Int 
  * \param riRefIdx
  * \returns Bool
  */
-#if MTK_TMVP_H_MRG || MTK_TMVP_H_AMVP
 Bool TComDataCU::xGetColMVP( RefPicList eRefPicList, Int uiCUAddr, Int uiPartUnitIdx, TComMv& rcMv, Int& riRefIdx )
 {
   UInt uiAbsPartAddr = uiPartUnitIdx;
@@ -4141,7 +3983,6 @@ Bool TComDataCU::xGetColMVP( RefPicList eRefPicList, Int uiCUAddr, Int uiPartUni
   clipMv(rcMv);
   return true;
 }
-#endif
 
 UInt TComDataCU::xGetMvdBits(TComMv cMvd)
 {

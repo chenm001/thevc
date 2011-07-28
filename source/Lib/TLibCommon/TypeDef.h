@@ -67,7 +67,6 @@
 #if !FT_TCTR_MRG
 #define PANASONIC_MERGETEMPORALEXT        1           ///< 
 #endif
-#define MTK_TMVP_H_MRG                    1           ///< (JCTVC-E481 - D125 2.1) right-bottom collocated for merge
 #define PANASONIC_MRG_TMVP_REFIDX         1           ///< (JCTVC-E481 - D274 (2) ) refidx derivation for merge TMVP  
 // FOR AMVP
 #define AMVP_NEIGH_COL                    1           ///< use of colocated MB in AMVP
