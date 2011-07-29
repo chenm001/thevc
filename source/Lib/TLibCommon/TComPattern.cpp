@@ -281,7 +281,11 @@ Void TComPattern::initPattern( TComDataCU* pcCU, UInt uiPartDepth, UInt uiAbsPar
 }
 
 #if LM_CHROMA
-Void TComPattern::initAdiPattern( TComDataCU* pcCU, UInt uiZorderIdxInPart, UInt uiPartDepth, Int* piAdiBuf, Int iOrgBufStride, Int iOrgBufHeight, Bool& bAbove, Bool& bLeft, UInt uiExt )
+#if LM_CHROMA_SIMPLIFICATION
+  Void TComPattern::initAdiPattern( TComDataCU* pcCU, UInt uiZorderIdxInPart, UInt uiPartDepth, Int* piAdiBuf, Int iOrgBufStride, Int iOrgBufHeight, Bool& bAbove, Bool& bLeft, Bool bLMmode )
+#else
+  Void TComPattern::initAdiPattern( TComDataCU* pcCU, UInt uiZorderIdxInPart, UInt uiPartDepth, Int* piAdiBuf, Int iOrgBufStride, Int iOrgBufHeight, Bool& bAbove, Bool& bLeft, UInt uiExt )
+#endif
 #else
 Void TComPattern::initAdiPattern( TComDataCU* pcCU, UInt uiZorderIdxInPart, UInt uiPartDepth, Int* piAdiBuf, Int iOrgBufStride, Int iOrgBufHeight, Bool& bAbove, Bool& bLeft )
 #endif
@@ -390,6 +394,9 @@ Void TComPattern::initAdiPattern( TComDataCU* pcCU, UInt uiZorderIdxInPart, UInt
   piAdiTemp   = piAdiBuf;
 
 #if REFERENCE_SAMPLE_PADDING
+#if LM_CHROMA_SIMPLIFICATION
+    fillReferenceSamples ( pcCU, piRoiOrigin, piAdiTemp, bNeighborFlags, iNumIntraNeighbor, iUnitSize, iNumUnitsInCu, iTotalUnits, uiCuWidth, uiCuHeight, uiWidth, uiHeight, iPicStride, bLMmode);
+#else
 #if LM_CHROMA
   if( uiExt == 2 )
   {
@@ -401,6 +408,7 @@ Void TComPattern::initAdiPattern( TComDataCU* pcCU, UInt uiZorderIdxInPart, UInt
   {
     fillReferenceSamples ( pcCU, piRoiOrigin, piAdiTemp, bNeighborFlags, iNumIntraNeighbor, iUnitSize, iNumUnitsInCu, iTotalUnits, uiCuWidth, uiCuHeight, uiWidth, uiHeight, iPicStride);
   }
+#endif
   
 #else // REFERENCE_SAMPLE_PADDING
   //BB: fill border with DC value - needed if( bAboveFlag=false || bLeftFlag=false )
@@ -741,7 +749,11 @@ Void TComPattern::initAdiPatternChroma( TComDataCU* pcCU, UInt uiZorderIdxInPart
 }
 
 #if REFERENCE_SAMPLE_PADDING
+#if LM_CHROMA_SIMPLIFICATION
+Void TComPattern::fillReferenceSamples( TComDataCU* pcCU, Pel* piRoiOrigin, Int* piAdiTemp, Bool* bNeighborFlags, Int iNumIntraNeighbor, Int iUnitSize, Int iNumUnitsInCu, Int iTotalUnits, UInt uiCuWidth, UInt uiCuHeight, UInt uiWidth, UInt uiHeight, Int iPicStride, Bool bLMmode )
+#else
 Void TComPattern::fillReferenceSamples( TComDataCU* pcCU, Pel* piRoiOrigin, Int* piAdiTemp, Bool* bNeighborFlags, Int iNumIntraNeighbor, Int iUnitSize, Int iNumUnitsInCu, Int iTotalUnits, UInt uiCuWidth, UInt uiCuHeight, UInt uiWidth, UInt uiHeight, Int iPicStride)
+#endif
 {
   Pel* piRoiTemp;
   Int  i, j;
@@ -763,6 +775,12 @@ Void TComPattern::fillReferenceSamples( TComDataCU* pcCU, Pel* piRoiOrigin, Int*
 
     // Fill left border with rec. samples
     piRoiTemp = piRoiOrigin - 1;
+
+#if LM_CHROMA_SIMPLIFICATION
+    if (bLMmode)
+      piRoiTemp --; // move to the second left column
+#endif
+
     for (i=0; i<uiCuHeight; i++)
     {
       piAdiTemp[(1+i)*uiWidth] = piRoiTemp[0];
@@ -813,6 +831,10 @@ Void TComPattern::fillReferenceSamples( TComDataCU* pcCU, Pel* piRoiOrigin, Int*
 
     // Fill left & below-left samples
     piRoiTemp += iPicStride;
+#if LM_CHROMA_SIMPLIFICATION
+    if (bLMmode)
+      piRoiTemp --; // move the second left column
+#endif
     piAdiLineTemp--;
     pbNeighborFlags--;
     for (j=0; j<iNumUnits2; j++)
@@ -897,7 +919,7 @@ Void TComPattern::fillReferenceSamples( TComDataCU* pcCU, Pel* piRoiOrigin, Int*
   }
 }
 
-#if LM_CHROMA
+#if LM_CHROMA && !LM_CHROMA_SIMPLIFICATION
 /** Function for deriving the neighboring luma reference pixels which is specifically used for luma-based chroma intra prediction method.
   // In this funtioned, first two rows in output buffer correspond to two rows of above reference pixels, 
   // and next two rows correspond to two columns of left reference pixels

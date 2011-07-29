@@ -1108,8 +1108,11 @@ TEncSearch::xIntraCodingChromaBlk( TComDataCU* pcCU,
 #if LM_CHROMA
   if( uiChromaPredMode == LM_CHROMA_IDX && uiChromaId == 0 )
   {
+#if LM_CHROMA_SIMPLIFICATION
+    pcCU->getPattern()->initAdiPattern( pcCU, uiAbsPartIdx, uiTrDepth, m_piYuvExt, m_iYuvExtStride, m_iYuvExtHeight, bAboveAvail, bLeftAvail, true );
+#else
     pcCU->getPattern()->initAdiPattern( pcCU, uiAbsPartIdx, uiTrDepth, m_piYuvExt, m_iYuvExtStride, m_iYuvExtHeight, bAboveAvail, bLeftAvail, 2 );
-
+#endif
     getLumaRecPixels( pcCU->getPattern(), uiWidth, uiHeight );
   }
 #endif

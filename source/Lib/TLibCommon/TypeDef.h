@@ -103,6 +103,9 @@
 #define ZERO_MVD_EST                          0           ///< Zero Mvd Estimation in normal mode
 
 #define LM_CHROMA                             1           // JCTVC-E266: Chroma intra prediction based on luma signal
+#if LM_CHROMA
+#define LM_CHROMA_SIMPLIFICATION              1           // JCTVC-F760: LM simplification: One line luma reference pixel buffer, alpha 7 bits.
+#endif
 
 #define UNIFY_INTER_TABLE                     1           // JCTVC-E381 CAVLC: Inter pred coding
 
