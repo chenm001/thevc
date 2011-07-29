@@ -3268,7 +3268,11 @@ Void TDecCavlc::xParseCoeff(TCoeff* scoeff, int n, Int blSize)
   UInt sign;
   LastCoeffStruct combo;
   Int cn, maxrun, tmprun;
+#if TBL_RUN_ADAPT
+   Int vlc_adaptive = 0;
+#else
   Int atable[5] = {4,6,14,28,0xfffffff};
+#endif
   Int done, tr1, tmp;
   Int sum_big_coef = 0;
 
@@ -3385,6 +3389,13 @@ Void TDecCavlc::xParseCoeff(TCoeff* scoeff, int n, Int blSize)
         sum_big_coef += tmp;
         if (blSize==4 ||i > switch_thr[n] || sum_big_coef > 2)
         {
+#if TBL_RUN_ADAPT
+        if (tmp > atable[vlc_adaptive])
+        {
+           vlc_adaptive++;
+        }
+
+#endif          
           done = 1;
         }
       }
@@ -3409,7 +3420,9 @@ Void TDecCavlc::xParseCoeff(TCoeff* scoeff, int n, Int blSize)
   if (i < noCoeff)
   {
     /* Get the rest in level mode */
+#if !TBL_RUN_ADAPT
     Int vlc_adaptive = 0;
+#endif 
     while (i < noCoeff)
     {
       tmp = xReadVlc( vlc_adaptive );

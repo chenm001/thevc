@@ -338,6 +338,9 @@ const UChar g_aucChromaScale[52]=
 #define M1 (UInt)-1
 #endif
 
+#if TBL_RUN_ADAPT
+const Int atable[5] = {3,7,15,31,0xfffffff};
+#endif
 // Below table need to be optimized
 const UInt g_auiCbpVlcNum[2][8] =
 {

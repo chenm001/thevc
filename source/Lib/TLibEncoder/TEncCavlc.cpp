@@ -2604,7 +2604,9 @@ Void TEncCavlc::xCodeCoeff( TCoeff* scoeff, Int n, Int blSize)
   int level,vlc,sign,done,last_pos,start;
   int run_done,maxrun,run,lev;
   int tmprun,vlc_adaptive=0;
+#if !TBL_RUN_ADAPT
   static const int atable[5] = {4,6,14,28,0xfffffff};
+#endif
   int sum_big_coef = 0;
   Int tr1;
 
@@ -2765,6 +2767,12 @@ Void TEncCavlc::xCodeCoeff( TCoeff* scoeff, Int n, Int blSize)
             sum_big_coef += level;
             if (blSize == 4 || i > switch_thr[n] || sum_big_coef > 2)
             {
+#if TBL_RUN_ADAPT
+            if (level > atable[vlc_adaptive])
+            {
+               vlc_adaptive++;
+            }
+#endif
               run_done = 1;
             }
           }

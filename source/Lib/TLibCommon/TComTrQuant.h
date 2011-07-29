@@ -211,8 +211,13 @@ private:
   UInt           xCountVlcBits(UInt uiTableNumber, UInt uiCodeNumber);
 #if CAVLC_COEF_LRG_BLK
 #if CAVLC_RDOQ_MOD
+#if TBL_RUN_ADAPT
+  Int            bitCountRDOQ(Int coeff, Int pos, Int nTab, Int lastCoeffFlag,Int levelMode,Int run, Int maxrun, Int* vlc_adaptive, Int N, 
+                              UInt uiTr1, Int iSum_big_coef, Int iBlockType, TComDataCU* pcCU, const UInt **pLumaRunTr1, Int iNextRun);
+#else
   Int            bitCountRDOQ(Int coeff, Int pos, Int nTab, Int lastCoeffFlag,Int levelMode,Int run, Int maxrun, Int vlc_adaptive, Int N, 
                               UInt uiTr1, Int iSum_big_coef, Int iBlockType, TComDataCU* pcCU, const UInt **pLumaRunTr1, Int iNextRun);
+#endif
 #else
   Int            bitCountRDOQ(Int coeff, Int pos, Int nTab, Int lastCoeffFlag,Int levelMode,Int run, Int maxrun, Int vlc_adaptive, Int N, 
                               UInt uiTr1, Int iSum_big_coef, Int iBlockType, TComDataCU* pcCU, const UInt **pLumaRunTr1);
