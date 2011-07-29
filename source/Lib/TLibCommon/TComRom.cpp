@@ -608,6 +608,7 @@ const UInt g_auiLastPosVlcNum[10][17] =
 
 
 #if RUNLEVEL_TABLE_CUT
+#if !CAVLC_RUNLEVEL_TABLE_REM
 const UInt g_auiLumaRun8x8[28][29] =
 {
   {1,   0,  M1,  M1,  M1,  M1,  M1,  M1,  M1,  M1,  M1,  M1,  M1,  M1,  M1,  M1,  M1,  M1,  M1,  M1,  M1,  M1,  M1,  M1,  M1,  M1,  M1,  M1,  M1},
@@ -639,6 +640,7 @@ const UInt g_auiLumaRun8x8[28][29] =
   {1,   2,   4,   7,  11,  15,  12,   9,  10,   8,   5,   3,   6,  14,  16,  22,  23,  24,  20,  19,  13,  18,  26,  27,  25,  21,  17,   0,  M1},
   {1,   2,   3,   5,   6,  10,  14,  13,  11,   9,  12,   7,   4,   8,  16,  18,  21,  23,  25,  20,  22,  15,  19,  27,  28,  26,  24,  17,   0}
 };
+#endif
 #else
 const UInt g_auiLumaRun8x8[29][2][64] =
 {
@@ -1181,6 +1183,7 @@ const UInt lengthHuff34_2[2][34]=
 #endif
 
 #if RUNLEVEL_TABLE_CUT
+#if !CAVLC_RUNLEVEL_TABLE_REM
 const UInt g_acstructLumaRun8x8[28][29] =
 {
   {  1,  0, M1, M1, M1, M1, M1, M1, M1, M1, M1, M1, M1, M1, M1, M1, M1, M1, M1, M1, M1, M1, M1, M1, M1, M1, M1, M1, M1},
@@ -1212,6 +1215,7 @@ const UInt g_acstructLumaRun8x8[28][29] =
   { 27,  0,  1, 11,  2, 10, 12,  3,  9,  7,  8,  4,  6, 20, 13,  5, 14, 26, 21, 19, 18, 25, 15, 16, 17, 24, 22, 23, M1},
   { 28,  0,  1,  2, 12,  3,  4, 11, 13,  9,  5,  8, 10,  7,  6, 21, 14, 27, 15, 22, 19, 16, 20, 17, 26, 18, 25, 23, 24}
 };
+#endif
 #else
 const LastCoeffStruct g_acstructLumaRun8x8[29][127] =
 {

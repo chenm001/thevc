@@ -2113,7 +2113,11 @@ Void TEncCavlc::codeCoeffNxN    ( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPa
       iBlockType = 2 + ( pcCU->isIntra(uiAbsPartIdx) ? 0 : pcCU->getSlice()->getSliceType() );
     
 #if CAVLC_COEF_LRG_BLK
-    xCodeCoeff( scoeff, iBlockType, 4 );
+    xCodeCoeff( scoeff, iBlockType, 4
+#if CAVLC_RUNLEVEL_TABLE_REM
+              , pcCU->isIntra(uiAbsPartIdx)
+#endif
+              );
 #else
     xCodeCoeff4x4( scoeff, iBlockType );
 #endif
@@ -2135,7 +2139,11 @@ Void TEncCavlc::codeCoeffNxN    ( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPa
       iBlockType = 2 + ( pcCU->isIntra(uiAbsPartIdx) ? 0 : pcCU->getSlice()->getSliceType() );
     
 #if CAVLC_COEF_LRG_BLK
-    xCodeCoeff( scoeff, iBlockType, 4 );
+    xCodeCoeff( scoeff, iBlockType, 4
+#if CAVLC_RUNLEVEL_TABLE_REM
+              , pcCU->isIntra(uiAbsPartIdx)
+#endif
+              );
 #else
     xCodeCoeff4x4( scoeff, iBlockType );
 #endif
@@ -2157,7 +2165,11 @@ Void TEncCavlc::codeCoeffNxN    ( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPa
       iBlockType = 2 + ( pcCU->isIntra(uiAbsPartIdx) ? 0 : pcCU->getSlice()->getSliceType() );
     
 #if CAVLC_COEF_LRG_BLK
-    xCodeCoeff( scoeff, iBlockType, 8 );
+    xCodeCoeff( scoeff, iBlockType, 8
+#if CAVLC_RUNLEVEL_TABLE_REM
+              , pcCU->isIntra(uiAbsPartIdx)
+#endif
+              );
 #else
     xCodeCoeff8x8( scoeff, iBlockType );
 #endif
@@ -2239,7 +2251,11 @@ Void TEncCavlc::codeCoeffNxN    ( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPa
     {
       iBlockType = 5 + ( pcCU->isIntra(uiAbsPartIdx) ? 0 : pcCU->getSlice()->getSliceType() );
     }
-    xCodeCoeff( scoeff, iBlockType, uiBlSize);
+    xCodeCoeff( scoeff, iBlockType, uiBlSize
+#if CAVLC_RUNLEVEL_TABLE_REM
+              , pcCU->isIntra(uiAbsPartIdx)
+#endif
+              );
 #endif
 
     //#endif
@@ -2598,7 +2614,11 @@ Void TEncCavlc::xWriteVlc(UInt uiTableNumber, UInt uiCodeNumber)
  * \returns 
  * This function performs encoding for a block of transform coefficient in CAVLC. 
  */
-Void TEncCavlc::xCodeCoeff( TCoeff* scoeff, Int n, Int blSize)
+Void TEncCavlc::xCodeCoeff( TCoeff* scoeff, Int n, Int blSize
+#if CAVLC_RUNLEVEL_TABLE_REM
+                          , Int isIntra
+#endif
+                          )
 {
   static const int switch_thr[10] = {49,49,0,49,49,0,49,49,49,49};
 #if MOD_INTRA_TABLE
@@ -2614,6 +2634,10 @@ Void TEncCavlc::xCodeCoeff( TCoeff* scoeff, Int n, Int blSize)
 #endif
   int sum_big_coef = 0;
   Int tr1;
+
+#if CAVLC_RUNLEVEL_TABLE_REM
+  Int scale = (isIntra && n < 2) ? 0 : 3;
+#endif
 
   /* Do the last coefficient first */
   i = 0;
@@ -2750,7 +2774,11 @@ Void TEncCavlc::xCodeCoeff( TCoeff* scoeff, Int n, Int blSize)
           }
           else
           {
+#if CAVLC_RUNLEVEL_TABLE_REM
+            cn = xRunLevelIndInter(lev, run, maxrun, scale);
+#else
             cn = xRunLevelIndInter(lev, run, maxrun);
+#endif
           }
 
           xWriteVlc( vlc, cn );
@@ -2804,7 +2832,11 @@ Void TEncCavlc::xCodeCoeff( TCoeff* scoeff, Int n, Int blSize)
             }
             else
             {
+#if CAVLC_RUNLEVEL_TABLE_REM
+              cn = xRunLevelIndInter(0, run, maxrun, scale);
+#else
               cn = xRunLevelIndInter(0, run, maxrun);
+#endif
             }
 
             xWriteVlc( vlc, cn );

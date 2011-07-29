@@ -135,6 +135,7 @@
 #define CAVLC_RQT_CBP                   1           //CAVLC coding of cbf and split flag, JCTVC-E404
 #endif
 
+#define CAVLC_RUNLEVEL_TABLE_REM        1           // CAVLC coding of run-level without table (JCTVC-F543)
 
 #define AVOID_ZERO_MERGE_CANDIDATE      1           // (JCTVC-E146/E118) insert zero MV if no merge candidates are available
 #define CHANGE_MERGE_CONTEXT            1           // (JCTVC-E146/E118) change merge flag context derivation
