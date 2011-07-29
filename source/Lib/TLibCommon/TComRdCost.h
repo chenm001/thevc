@@ -171,6 +171,7 @@ private:
   static UInt xGetSAD64         ( DistParam* pcDtParam );
   static UInt xGetSAD16N        ( DistParam* pcDtParam );
   
+#if !GENERIC_IF
   static UInt xGetSADs          ( DistParam* pcDtParam );
   static UInt xGetSADs4         ( DistParam* pcDtParam );
   static UInt xGetSADs8         ( DistParam* pcDtParam );
@@ -178,6 +179,7 @@ private:
   static UInt xGetSADs32        ( DistParam* pcDtParam );
   static UInt xGetSADs64        ( DistParam* pcDtParam );
   static UInt xGetSADs16N       ( DistParam* pcDtParam );
+#endif
   
   static UInt xGetHADs4         ( DistParam* pcDtParam );
   static UInt xGetHADs8         ( DistParam* pcDtParam );

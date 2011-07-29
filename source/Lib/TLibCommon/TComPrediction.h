@@ -44,14 +44,22 @@
 #include "TComMotionInfo.h"
 #include "TComPattern.h"
 #include "TComTrQuant.h"
+#if GENERIC_IF
+#include "TComInterpolationFilter.h"
+#else
 #include "TComPredFilter.h"
+#endif
 
 // ====================================================================================================================
 // Class definition
 // ====================================================================================================================
 
 /// prediction class
+#if GENERIC_IF
+class TComPrediction
+#else
 class TComPrediction : public TComPredFilter
+#endif
 {
 protected:
   Int*      m_piYuvExt;
@@ -60,7 +68,14 @@ protected:
   
   TComYuv   m_acYuvPred[2];
   TComYuv   m_cYuvPredTemp;
+#if !GENERIC_IF
   TComYuv   m_cYuvExt;
+#else
+  TComYuv m_filteredBlock[4][4];
+  TComYuv m_filteredBlockTmp[4];
+  
+  TComInterpolationFilter m_if;
+#endif
   
 #if LM_CHROMA
   Pel*   m_pLumaRecBuffer;       ///< array for downsampled reconstructed luma sample 
@@ -80,15 +95,22 @@ protected:
   // motion compensation functions
   Void xPredInterUni            ( TComDataCU* pcCU,                          UInt uiPartAddr,               Int iWidth, Int iHeight, RefPicList eRefPicList, TComYuv*& rpcYuvPred, Int iPartIdx, Bool bi=false          );
   Void xPredInterBi             ( TComDataCU* pcCU,                          UInt uiPartAddr,               Int iWidth, Int iHeight,                         TComYuv*& rpcYuvPred, Int iPartIdx          );
+#if GENERIC_IF
+  Void xPredInterLumaBlk        ( TComDataCU* pcCU, TComPicYuv* pcPicYuvRef, UInt uiPartAddr, TComMv* pcMv, Int iWidth, Int iHeight, TComYuv*& rpcYuv, Bool bi = false );
+  Void xPredInterChromaBlk      ( TComDataCU* pcCU, TComPicYuv* pcPicYuvRef, UInt uiPartAddr, TComMv* pcMv, Int iWidth, Int iHeight, TComYuv*& rpcYuv, Bool bi = false );
+#else
   Void xPredInterLumaBlk        ( TComDataCU* pcCU, TComPicYuv* pcPicYuvRef, UInt uiPartAddr, TComMv* pcMv, Int iWidth, Int iHeight,                         TComYuv*& rpcYuv );
   Void xPredInterChromaBlk      ( TComDataCU* pcCU, TComPicYuv* pcPicYuvRef, UInt uiPartAddr, TComMv* pcMv, Int iWidth, Int iHeight,                         TComYuv*& rpcYuv                            );
+#endif
   Void xWeightedAverage         ( TComDataCU* pcCU, TComYuv* pcYuvSrc0, TComYuv* pcYuvSrc1, Int iRefIdx0, Int iRefIdx1, UInt uiPartAddr, Int iWidth, Int iHeight, TComYuv*& rpcYuvDst );
+#if !GENERIC_IF
   Void xDCTIF_FilterC ( Pel*  piRefC, Int iRefStride,Pel*  piDstC,Int iDstStride,Int iWidth, Int iHeight,Int iMVyFrac,Int iMVxFrac);
 
   Void xPredInterLumaBlk_ha        ( TComDataCU* pcCU, TComPicYuv* pcPicYuvRef, UInt uiPartAddr, TComMv* pcMv, Int iWidth, Int iHeight,                         TComYuv*& rpcYuv );
   Void xPredInterChromaBlk_ha      ( TComDataCU* pcCU, TComPicYuv* pcPicYuvRef, UInt uiPartAddr, TComMv* pcMv, Int iWidth, Int iHeight,                         TComYuv*& rpcYuv                            );
   Void xDCTIF_FilterC_ha ( Pel*  piRefC, Int iRefStride,Pel*  piDstC,Int iDstStride,Int iWidth, Int iHeight,Int iMVyFrac,Int iMVxFrac);
-
+#endif
+  
 #if LM_CHROMA
   Void xGetLLSPrediction ( TComPattern* pcPattern, Int* pSrc0, Int iSrcStride, Pel* pDst0, Int iDstStride, UInt uiWidth, UInt uiHeight, UInt uiExt0 );
 #endif

@@ -52,8 +52,10 @@ TComPrediction::TComPrediction()
 
 TComPrediction::~TComPrediction()
 {
+#if !GENERIC_IF
   m_cYuvExt.destroy();
-
+#endif
+  
   delete[] m_piYuvExt;
 
   m_acYuvPred[0].destroy();
@@ -67,15 +69,43 @@ TComPrediction::~TComPrediction()
     delete [] m_pLumaRecBuffer;
   }
 #endif
+  
+#if GENERIC_IF
+  Int i, j;
+  for (i = 0; i < 4; i++)
+  {
+    for (j = 0; j < 4; j++)
+    {
+      m_filteredBlock[i][j].destroy();
+    }
+    m_filteredBlockTmp[i].destroy();
+  }
+#endif
 }
 
 Void TComPrediction::initTempBuff()
 {
   if( m_piYuvExt == NULL )
   {
+#if GENERIC_IF
+    Int extWidth  = g_uiMaxCUWidth + 16; 
+    Int extHeight = g_uiMaxCUHeight + 1;
+    Int i, j;
+    for (i = 0; i < 4; i++)
+    {
+      m_filteredBlockTmp[i].create(extWidth, extHeight + 7);
+      for (j = 0; j < 4; j++)
+      {
+        m_filteredBlock[i][j].create(extWidth, extHeight);
+      }
+    }
+    m_iYuvExtHeight  = ((g_uiMaxCUHeight + 2) << 4);
+    m_iYuvExtStride = ((g_uiMaxCUWidth  + 8) << 4);
+#else
     m_iYuvExtHeight  = ((g_uiMaxCUHeight + 2) << 4);
     m_iYuvExtStride = ((g_uiMaxCUWidth  + 8) << 4);
     m_cYuvExt.create( m_iYuvExtStride, m_iYuvExtHeight );
+#endif
     m_piYuvExt = new Int[ m_iYuvExtStride * m_iYuvExtHeight ];
 
     // new structure
@@ -411,6 +441,10 @@ Void TComPrediction::xPredInterUni ( TComDataCU* pcCU, UInt uiPartAddr, Int iWid
   Int         iRefIdx     = pcCU->getCUMvField( eRefPicList )->getRefIdx( uiPartAddr );           assert (iRefIdx >= 0);
   TComMv      cMv         = pcCU->getCUMvField( eRefPicList )->getMv( uiPartAddr );
   pcCU->clipMv(cMv);
+#if GENERIC_IF
+  xPredInterLumaBlk  ( pcCU, pcCU->getSlice()->getRefPic( eRefPicList, iRefIdx )->getPicYuvRec(), uiPartAddr, &cMv, iWidth, iHeight, rpcYuvPred, bi );
+  xPredInterChromaBlk( pcCU, pcCU->getSlice()->getRefPic( eRefPicList, iRefIdx )->getPicYuvRec(), uiPartAddr, &cMv, iWidth, iHeight, rpcYuvPred, bi );
+#else
   if(!bi)
   {
     xPredInterLumaBlk ( pcCU, pcCU->getSlice()->getRefPic( eRefPicList, iRefIdx )->getPicYuvRec()    , uiPartAddr, &cMv, iWidth, iHeight, rpcYuvPred );
@@ -428,6 +462,7 @@ Void TComPrediction::xPredInterUni ( TComDataCU* pcCU, UInt uiPartAddr, Int iWid
   {
     xPredInterChromaBlk_ha ( pcCU, pcCU->getSlice()->getRefPic( eRefPicList, iRefIdx )->getPicYuvRec()    , uiPartAddr, &cMv, iWidth, iHeight, rpcYuvPred );
   }
+#endif
 }
 
 Void TComPrediction::xPredInterBi ( TComDataCU* pcCU, UInt uiPartAddr, Int iWidth, Int iHeight, TComYuv*& rpcYuvPred, Int iPartIdx )
@@ -461,6 +496,52 @@ Void TComPrediction::xPredInterBi ( TComDataCU* pcCU, UInt uiPartAddr, Int iWidt
   xWeightedAverage( pcCU, &m_acYuvPred[0], &m_acYuvPred[1], iRefIdx[0], iRefIdx[1], uiPartAddr, iWidth, iHeight, rpcYuvPred );
 }
 
+#if GENERIC_IF
+/**
+ * \brief Generate motion-compensated luma block
+ *
+ * \param cu       Pointer to current CU
+ * \param refPic   Pointer to reference picture
+ * \param partAddr Address of block within CU
+ * \param mv       Motion vector
+ * \param width    Width of block
+ * \param height   Height of block
+ * \param dstPic   Pointer to destination picture
+ * \param bi       Flag indicating whether bipred is used
+ */
+Void TComPrediction::xPredInterLumaBlk( TComDataCU *cu, TComPicYuv *refPic, UInt partAddr, TComMv *mv, Int width, Int height, TComYuv *&dstPic, Bool bi )
+{
+  Int refStride = refPic->getStride();  
+  Int refOffset = ( mv->getHor() >> 2 ) + ( mv->getVer() >> 2 ) * refStride;
+  Pel *ref      = refPic->getLumaAddr( cu->getAddr(), cu->getZorderIdxInCU() + partAddr ) + refOffset;
+  
+  Int dstStride = dstPic->getStride();
+  Pel *dst      = dstPic->getLumaAddr( partAddr );
+  
+  Int xFrac = mv->getHor() & 0x3;
+  Int yFrac = mv->getVer() & 0x3;
+
+  if ( yFrac == 0 )
+  {
+    m_if.filterHorLuma( ref, refStride, dst, dstStride, width, height, xFrac,       !bi );
+  }
+  else if ( xFrac == 0 )
+  {
+    m_if.filterVerLuma( ref, refStride, dst, dstStride, width, height, yFrac, true, !bi );
+  }
+  else
+  {
+    Int tmpStride = m_filteredBlockTmp[0].getStride();
+    Short *tmp    = m_filteredBlockTmp[0].getLumaAddr();
+
+    Int filterSize = NTAPS_LUMA;
+    Int halfFilterSize = ( filterSize >> 1 );
+
+    m_if.filterHorLuma(ref - (halfFilterSize-1)*refStride, refStride, tmp, tmpStride, width, height+filterSize-1, xFrac, false     );
+    m_if.filterVerLuma(tmp + (halfFilterSize-1)*tmpStride, tmpStride, dst, dstStride, width, height,              yFrac, false, !bi);    
+  }
+}
+#else
 Void  TComPrediction::xPredInterLumaBlk_ha( TComDataCU* pcCU, TComPicYuv* pcPicYuvRef, UInt uiPartAddr, TComMv* pcMv, Int iWidth, Int iHeight, TComYuv*& rpcYuv )
 {
   Int     iRefStride = pcPicYuvRef->getStride();
@@ -659,7 +740,66 @@ Void  TComPrediction::xPredInterLumaBlk( TComDataCU* pcCU, TComPicYuv* pcPicYuvR
     }
   }
 }
+#endif
 
+#if GENERIC_IF
+/**
+ * \brief Generate motion-compensated luma block
+ *
+ * \param cu       Pointer to current CU
+ * \param refPic   Pointer to reference picture
+ * \param partAddr Address of block within CU
+ * \param mv       Motion vector
+ * \param width    Width of block
+ * \param height   Height of block
+ * \param dstPic   Pointer to destination picture
+ * \param bi       Flag indicating whether bipred is used
+ */
+Void TComPrediction::xPredInterChromaBlk( TComDataCU* pcCU, TComPicYuv* pcPicYuvRef, UInt uiPartAddr, TComMv* pcMv, Int iWidth, Int iHeight, TComYuv*& rpcYuv, Bool bi )
+{
+  Int     iRefStride  = pcPicYuvRef->getCStride();
+  Int     iDstStride  = rpcYuv->getCStride();
+  
+  Int     iRefOffset  = (pcMv->getHor() >> 3) + (pcMv->getVer() >> 3) * iRefStride;
+  
+  Pel*    piRefCb     = pcPicYuvRef->getCbAddr( pcCU->getAddr(), pcCU->getZorderIdxInCU() + uiPartAddr ) + iRefOffset;
+  Pel*    piRefCr     = pcPicYuvRef->getCrAddr( pcCU->getAddr(), pcCU->getZorderIdxInCU() + uiPartAddr ) + iRefOffset;
+  
+  Pel* piDstCb = rpcYuv->getCbAddr( uiPartAddr );
+  Pel* piDstCr = rpcYuv->getCrAddr( uiPartAddr );
+  
+  Int     ixFrac  = pcMv->getHor() & 0x7;
+  Int     iyFrac  = pcMv->getVer() & 0x7;
+  UInt    uiCWidth  = iWidth  >> 1;
+  UInt    uiCHeight = iHeight >> 1;
+  
+  Int     iExtStride = m_filteredBlockTmp[0].getStride();
+  Short*  piExtY     = m_filteredBlockTmp[0].getLumaAddr();
+  
+  Int filterSize = NTAPS_CHROMA;
+  
+  Int halfFilterSize = (filterSize>>1);
+  
+  if ( iyFrac == 0 )
+  {
+    m_if.filterHorChroma(piRefCb, iRefStride, piDstCb,  iDstStride, uiCWidth, uiCHeight, ixFrac, !bi);    
+    m_if.filterHorChroma(piRefCr, iRefStride, piDstCr,  iDstStride, uiCWidth, uiCHeight, ixFrac, !bi);    
+  }
+  else if ( ixFrac == 0 )
+  {
+    m_if.filterVerChroma(piRefCb, iRefStride, piDstCb, iDstStride, uiCWidth, uiCHeight, iyFrac, true, !bi);    
+    m_if.filterVerChroma(piRefCr, iRefStride, piDstCr, iDstStride, uiCWidth, uiCHeight, iyFrac, true, !bi);    
+  }
+  else
+  {
+    m_if.filterHorChroma(piRefCb - (halfFilterSize-1)*iRefStride, iRefStride, piExtY,  iExtStride, uiCWidth, uiCHeight+filterSize-1, ixFrac, false);
+    m_if.filterVerChroma(piExtY  + (halfFilterSize-1)*iExtStride, iExtStride, piDstCb, iDstStride, uiCWidth, uiCHeight  , iyFrac, false, !bi);
+    
+    m_if.filterHorChroma(piRefCr - (halfFilterSize-1)*iRefStride, iRefStride, piExtY,  iExtStride, uiCWidth, uiCHeight+filterSize-1, ixFrac, false);
+    m_if.filterVerChroma(piExtY  + (halfFilterSize-1)*iExtStride, iExtStride, piDstCr, iDstStride, uiCWidth, uiCHeight  , iyFrac, false, !bi);    
+  }
+}
+#else
 Void TComPrediction::xPredInterChromaBlk_ha( TComDataCU* pcCU, TComPicYuv* pcPicYuvRef, UInt uiPartAddr, TComMv* pcMv, Int iWidth, Int iHeight, TComYuv*& rpcYuv )
 {
   Int     iRefStride  = pcPicYuvRef->getCStride();
@@ -780,6 +920,7 @@ Void  TComPrediction::xDCTIF_FilterC_ha ( Pel*  piRefC, Int iRefStride,Pel*  piD
   return;
 
 }
+#endif
 
 Void TComPrediction::xWeightedAverage( TComDataCU* pcCU, TComYuv* pcYuvSrc0, TComYuv* pcYuvSrc1, Int iRefIdx0, Int iRefIdx1, UInt uiPartIdx, Int iWidth, Int iHeight, TComYuv*& rpcYuvDst )
 {
