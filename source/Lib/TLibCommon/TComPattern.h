@@ -102,7 +102,7 @@ private:
   TComPatternParam  m_cPatternY;
   TComPatternParam  m_cPatternCb;
   TComPatternParam  m_cPatternCr;
-#if MN_DC_PRED_FILTER
+#if MN_DC_PRED_FILTER && !UNIFICATION_OF_AVAILABILITY
   Bool m_bAboveFlagForDCFilt;
   Bool m_bLeftFlagForDCFilt;
   Bool m_bDCPredFilterFlag;
@@ -123,7 +123,7 @@ public:
   Int   getROIYWidth()            { return m_cPatternY.m_iROIWidth;       }
   Int   getROIYHeight()           { return m_cPatternY.m_iROIHeight;      }
   Int   getPatternLStride()       { return m_cPatternY.m_iPatternStride;  }
-#if MN_DC_PRED_FILTER
+#if MN_DC_PRED_FILTER && !UNIFICATION_OF_AVAILABILITY
   Bool  getDCPredFilterFlag()     { return m_bDCPredFilterFlag; }
 #endif
 
