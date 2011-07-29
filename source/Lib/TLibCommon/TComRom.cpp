@@ -1627,18 +1627,6 @@ const UChar g_aucAngIntraModeOrder[34] =
 #endif
 };
 
-#if FIXED_MPM
-const UChar g_aucIntraModeNumAng[7] =
-{
-  4,  //   2x2
-  18,  //   4x4
-  35,  //   8x8
-  35,  //  16x16
-  35,  //  32x32
-  4,  //  64x64
-  6   // 128x128
-};
-#else
 const UChar g_aucIntraModeNumAng[7] =
 {
   3,  //   2x2
@@ -1649,7 +1637,6 @@ const UChar g_aucIntraModeNumAng[7] =
   3,  //  64x64
   5   // 128x128
 };
-#endif
 
 const UChar g_aucIntraModeBitsAng[7] =
 {
