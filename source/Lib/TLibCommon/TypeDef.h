@@ -203,7 +203,7 @@
 #define MN_DC_PRED_FILTER            1       ///< JCTVC-E069: DC prediction samples filtering
 #define UNIFICATION_OF_AVAILABILITY  1       ///< JCTVC-F178: unification of sample availability for DC
 #if MN_DC_PRED_FILTER
-#define MN_DC_PRED_FILTER_UNIFIED    1       // using unified filter for all block size
+#define MN_DC_PRED_FILTER_UNIFIED    1       ///< JCTVC-F252 using unified filter for all block size
 #endif
 
 #define MVD_CTX            1           // JCTVC-E324: Modified context selection for MVD
