@@ -2070,6 +2070,8 @@ Void TEncCavlc::codeCoeffNxN    ( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPa
   TCoeff scoeff[64];
 #endif
   Int iBlockType;
+
+#if !REMOVE_DIRECT_INTRA_DC_CODING
   UInt uiCodeDCCoef = 0;
   TCoeff dcCoeff = 0;
   if (pcCU->isIntra(uiAbsPartIdx))
@@ -2090,6 +2092,7 @@ Void TEncCavlc::codeCoeffNxN    ( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPa
       piCoeff[0] = 1;
     }
   }
+#endif
   
   if( uiSize == 2*2 )
   {
@@ -2242,10 +2245,12 @@ Void TEncCavlc::codeCoeffNxN    ( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPa
     //#endif
   }
   
+#if !REMOVE_DIRECT_INTRA_DC_CODING
   if (uiCodeDCCoef == 1)
   {
     piCoeff[0] = dcCoeff;
   }
+#endif
 }
 
 Void TEncCavlc::codeAlfFlag( UInt uiCode )

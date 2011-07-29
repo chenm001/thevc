@@ -2091,6 +2091,8 @@ Void TDecCavlc::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartI
   const UInt uiScanIdx = pcCU->getCoefScanIdx(uiAbsPartIdx, uiWidth, eTType==TEXT_LUMA, pcCU->isIntra(uiAbsPartIdx));
 #endif //QC_MDCS
   
+
+#if !REMOVE_DIRECT_INTRA_DC_CODING
   UInt uiDecodeDCCoeff = 0;
   Int dcCoeff = 0;
   if (pcCU->isIntra(uiAbsPartIdx))
@@ -2113,6 +2115,7 @@ Void TDecCavlc::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartI
       }
     }
   }
+#endif
   
   UInt uiScanning;
   
@@ -2268,10 +2271,12 @@ Void TDecCavlc::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartI
     }
   }
   
+#if !REMOVE_DIRECT_INTRA_DC_CODING
   if (uiDecodeDCCoeff == 1)
   {
     piCoeff[0] = dcCoeff;
   }
+#endif
   
   return ;
 }
