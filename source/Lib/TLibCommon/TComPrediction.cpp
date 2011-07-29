@@ -1002,15 +1002,15 @@ Void TComPrediction::getLumaRecPixels( TComPattern* pcPattern, UInt uiCWidth, UI
   // top row downsampled from ADI buffer
   pDst++;     
   piSrc ++;
-  for( Int i = 0, ii = i << 1; i < uiCWidth; i++, ii = i << 1 )
+  for (Int i = 0; i < uiCWidth; i++)
   {
-    pDst[i] = ((piSrc[ii] * 2 ) + piSrc[ii - 1] + piSrc[ii + 1] + 2) >> 2;
+    pDst[i] = ((piSrc[2*i] * 2 ) + piSrc[2*i - 1] + piSrc[2*i + 1] + 2) >> 2;
   }
 
   // left column downsampled from ADI buffer
   pDst = pDst0 - 1; 
   piSrc = ptrSrc + iSrcStride;
-  for( Int j = 0, j2 = j << 1; j < uiCHeight; j++, j2 = j << 1 )
+  for (Int j = 0; j < uiCHeight; j++)
   {
     pDst[0] = ( piSrc[0] + piSrc[iSrcStride] ) >> 1;
     piSrc += iSrcStride << 1; 
@@ -1020,18 +1020,18 @@ Void TComPrediction::getLumaRecPixels( TComPattern* pcPattern, UInt uiCWidth, UI
   // top row
   pDst++;
   piSrc++;
-  for( Int i = 0, i2 = i << 1; i < uiCWidth; i++, i2 = i << 1 )
+  for (Int i = 0; i < uiCWidth; i++)
   {
-    pDst[i] = ( piSrc[ i2 ] + piSrc[ i2 + iSrcStride ] ) >> 1;
+    pDst[i] = ( piSrc[ 2*i ] + piSrc[ 2*i + iSrcStride ] ) >> 1;
   }
 
   // left column downsampled from ADI buffer
   pDst = pDst0 - 1;
   piSrc = ptrSrc + ( iSrcStride << 1 ); // addressing 3rd row, where reference column is stored
 
-  for( Int j = 0, j2 = j << 1; j < uiCHeight; j++, j2 = j << 1 )
+  for (Int j = 0; j < uiCHeight; j++)
   {
-    pDst[0] = ( piSrc[ j2 ] + piSrc[ j2 + 1 ] ) >> 1;
+    pDst[0] = ( piSrc[ 2*j ] + piSrc[ 2*j + 1 ] ) >> 1;
 
     pDst += iDstStride;    
   }
@@ -1041,9 +1041,9 @@ Void TComPrediction::getLumaRecPixels( TComPattern* pcPattern, UInt uiCWidth, UI
   // inner part from reconstructed picture buffer
   for( Int j = 0; j < uiCHeight; j++ )
   {
-    for( Int i = 0, i2 = i << 1; i < uiCWidth; i++, i2 = i << 1 )
+    for (Int i = 0; i < uiCWidth; i++)
     {
-      pDst0[i] = (pRecSrc[i2] + pRecSrc[i2 + iRecSrcStride]) >> 1;
+      pDst0[i] = (pRecSrc[2*i] + pRecSrc[2*i + iRecSrcStride]) >> 1;
     }
 
     pDst0 += iDstStride;
