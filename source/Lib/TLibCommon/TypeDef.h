@@ -103,7 +103,7 @@
 #define LOG2_SCAN_SET_SIZE                4
 #endif
 #define DIAG_SCAN                         1
-
+#define CABAC_COEFF_DATA_REORDER          1           ///< JCTVC-F130: reordering of CABAC coefficient data
 #define QC_MDIS                           1           // JCTVC-D282: enable mode dependent intra smoothing
 #define QC_MDCS                           1           // JCTVC-D393: mode dependent coefficients coding 
 #define RUNLEVEL_TABLE_CUT                1           // JCTVC-E384: Run-Level table size reduction

@@ -1704,24 +1704,57 @@ Void TDecSbac::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartId
           if( pcCoef[ uiBlkPos ] == 2 ) 
           {
             m_pcTDecBinIf->decodeBin( uiBin, baseCtxMod[c2] );
+#if CABAC_COEFF_DATA_REORDER
+            pcCoef[ uiBlkPos ] = uiBin + 2;
+#else
             if( uiBin )
             {
               UInt uiLevel;
               xReadGoRiceExGolomb( uiLevel, uiGoRiceParam );
               pcCoef[ uiBlkPos ] = uiLevel + 3;
             }
+#endif
             c2 += (c2 < 4);
             uiNumOne++;
           }
         }
       }
 
+#if CABAC_COEFF_DATA_REORDER
+      UInt coeffSign[SCAN_SET_SIZE];
       for( Int iScanPos = iLastPos; iScanPos >= 0; iScanPos-- )
       {
         UInt uiBlkPos = puiSetScan[ iScanPos ]; 
         if( pcCoef[ uiBlkPos ] )
         {
+          m_pcTDecBinIf->decodeBinEP( coeffSign[iScanPos] );          
+        }
+      }
+      
+      if (c1 == 0)
+      {
+        for( Int iScanPos = iLastPos; iScanPos >= 0; iScanPos-- )
+        {
+          UInt uiBlkPos = puiSetScan[ iScanPos ]; 
+          if( pcCoef[ uiBlkPos ] == 3 )
+          {
+            UInt uiLevel;
+            xReadGoRiceExGolomb( uiLevel, uiGoRiceParam );
+            pcCoef[ uiBlkPos ] = uiLevel + 3;            
+          }
+        }
+      }
+#endif
+      for( Int iScanPos = iLastPos; iScanPos >= 0; iScanPos-- )
+      {
+        UInt uiBlkPos = puiSetScan[ iScanPos ]; 
+        if( pcCoef[ uiBlkPos ] )
+        {
+#if CABAC_COEFF_DATA_REORDER
+          uiBin = coeffSign[ iScanPos ];
+#else
           m_pcTDecBinIf->decodeBinEP( uiBin );
+#endif
           pcCoef[ uiBlkPos ] = ( uiBin ? -pcCoef[ uiBlkPos ] : pcCoef[ uiBlkPos ] );
         }
       }
@@ -1814,17 +1847,42 @@ Void TDecSbac::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartId
             {
               m_pcTDecBinIf->decodeBin( uiLevel, baseCtxMod[c2] );
               
+#if CABAC_COEFF_DATA_REORDER
+              sigCoeff[idx] = uiLevel + 2;
+#else
               if( uiLevel )
               {
                 xReadGoRiceExGolomb( uiLevel, uiGoRiceParam );
                 sigCoeff[idx] = uiLevel + 3;
               }
+#endif
               c2 += (c2 < 4);
+              
               uiNumOne++;
             }
           }
         }
         
+#if CABAC_COEFF_DATA_REORDER
+        UInt coeffSign[16];
+        
+        for (Int idx = 0; idx < uiSubNumSig; idx++)
+        {
+          m_pcTDecBinIf->decodeBinEP( coeffSign[idx] );
+        }
+        
+        if (c1 == 0)
+        {
+          for (Int idx = 0; idx < uiSubNumSig; idx++)
+          {
+            if( sigCoeff[idx] == 3 )
+            {
+              xReadGoRiceExGolomb( uiLevel, uiGoRiceParam );
+              sigCoeff[idx] = uiLevel + 3;
+            }
+          }
+        }
+#endif
         Int idx = 0;
         for( UInt uiScanPos = 0; uiScanPos < 16; uiScanPos++ )
         {
@@ -1837,7 +1895,11 @@ Void TDecSbac::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartId
           
           if( uiLevel )
           {
+#if CABAC_COEFF_DATA_REORDER
+            uiSign = coeffSign[idx];
+#else
             m_pcTDecBinIf->decodeBinEP( uiSign );
+#endif
             TCoeff val = sigCoeff[idx++];
             pcCoef[ uiIndex ] = ( uiSign ? -(Int)val : (Int)val );
           }
@@ -1877,16 +1939,40 @@ Void TDecSbac::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartId
         {
           m_pcTDecBinIf->decodeBin( uiLevel, baseCtxMod[c2] );
           
+#if CABAC_COEFF_DATA_REORDER
+          sigCoeff[idx] = uiLevel + 2;
+#else
           if( uiLevel )
           {
             xReadGoRiceExGolomb( uiLevel, uiGoRiceParam );
             sigCoeff[idx] = uiLevel + 3;
           }
+#endif
           c2 += (c2 < 4);
         }
       }
     }
     
+#if CABAC_COEFF_DATA_REORDER
+    UInt coeffSign[16];
+    
+    for (Int idx = 0; idx < uiSubNumSig; idx++)
+    {
+      m_pcTDecBinIf->decodeBinEP( coeffSign[idx] );
+    }
+    
+    if (c1 == 0)
+    {
+      for (Int idx = 0; idx < uiSubNumSig; idx++)
+      {
+        if( sigCoeff[idx] == 3 )
+        {
+          xReadGoRiceExGolomb( uiLevel, uiGoRiceParam );
+          sigCoeff[idx] = uiLevel + 3;
+        }
+      }
+    }
+#endif
     Int idx = 0;
     for( UInt uiScanPos = 0; uiScanPos < 16; uiScanPos++ )
     {
@@ -1895,7 +1981,11 @@ Void TDecSbac::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartId
       
       if( uiLevel )
       {
+#if CABAC_COEFF_DATA_REORDER
+        uiSign = coeffSign[idx];
+#else
         m_pcTDecBinIf->decodeBinEP( uiSign );
+#endif
         TCoeff val = sigCoeff[idx++];
         pcCoef[ uiIndex ] = ( uiSign ? -(Int)val : (Int)val );
       }
