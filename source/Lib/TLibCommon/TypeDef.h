@@ -197,7 +197,7 @@
 #if QC_MDIS
 #define MN_MDIS_SIMPLIFICATION       1       ///< JCTVC-E069: simplification of MDIS
 #if MN_MDIS_SIMPLIFICATION
-#define MDIS2                        1       ///< JCTVC-E126: MDIS modifications
+#define MDIS2                        1       ///< JCTVC-F126: MDIS modifications
 #endif
 #endif
 #define MN_DC_PRED_FILTER            1       ///< JCTVC-E069: DC prediction samples filtering
