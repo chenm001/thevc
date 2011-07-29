@@ -435,11 +435,7 @@ Void TComLoopFilter::xGetBoundaryStrengthSingle ( TComDataCU* pcCU, UInt uiAbsZo
   }
   else  // (iDir == EDGE_HOR)
   {
-#if REDUCE_UPPER_MOTION_DATA
-    pcCUP = pcCUQ->getPUAbove(uiPartP, uiPartQ, !pcCU->getSlice()->getSPS()->getLFCrossSliceBoundaryFlag(), false, true);
-#else
     pcCUP = pcCUQ->getPUAbove(uiPartP, uiPartQ, !pcCU->getSlice()->getSPS()->getLFCrossSliceBoundaryFlag(), false);
-#endif
   }
 #else
   //-- Calculate Block Index
@@ -449,11 +445,7 @@ Void TComLoopFilter::xGetBoundaryStrengthSingle ( TComDataCU* pcCU, UInt uiAbsZo
   }
   else  // (iDir == EDGE_HOR)
   {
-#if REDUCE_UPPER_MOTION_DATA
-    pcCUP = pcCUQ->getPUAbove(uiPartP, uiPartQ, false, false, true);
-#else
     pcCUP = pcCUQ->getPUAbove(uiPartP, uiPartQ, false, false);
-#endif
   }
 #endif
   
@@ -472,6 +464,16 @@ Void TComLoopFilter::xGetBoundaryStrengthSingle ( TComDataCU* pcCU, UInt uiAbsZo
     }
     else
     {
+#if REDUCE_UPPER_MOTION_DATA
+      if (iDir == EDGE_HOR)
+      {
+#if MTK_NONCROSS_INLOOP_FILTER
+        pcCUP = pcCUQ->getPUAbove(uiPartP, uiPartQ, !pcCU->getSlice()->getSPS()->getLFCrossSliceBoundaryFlag(), false, true);
+#else
+        pcCUP = pcCUQ->getPUAbove(uiPartP, uiPartQ, false, false, true);
+#endif
+      }
+#endif
       if (pcSlice->isInterB())
       {
         Int iRefIdx;
