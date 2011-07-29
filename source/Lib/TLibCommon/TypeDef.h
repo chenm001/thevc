@@ -39,6 +39,8 @@
 #define _TYPEDEF__
 
 
+
+
 ////////////////////////////
 // JCT-VC E start
 ////////////////////////////
@@ -211,6 +213,9 @@
 #endif
 
 #define E045_SLICE_COMMON_INFO_SHARING 1 //JCTVC-E045: Slice common information sharing
+
+
+#define UNIFY_INTRA_AVAIL      1    ////<JCTVC-F477, "Unification of the Availability Checking method for Intra prediction>
 
 // ====================================================================================================================
 // Basic type redefinition

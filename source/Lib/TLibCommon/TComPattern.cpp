@@ -314,32 +314,58 @@ Void TComPattern::initAdiPattern( TComDataCU* pcCU, UInt uiZorderIdxInPart, UInt
   Bool  bAboveLeftFlag  = false;
 #endif // REFERENCE_SAMPLE_PADDING
   
-  UInt uiPartIdxLT, uiPartIdxRT, uiPartIdxLB, uiPartDum;
+  UInt uiPartIdxLT, uiPartIdxRT, uiPartIdxLB;
+#if !UNIFY_INTRA_AVAIL
+  UInt uiPartDum;
+#endif
+
   
   pcCU->deriveLeftRightTopIdxAdi( uiPartIdxLT, uiPartIdxRT, uiZorderIdxInPart, uiPartDepth );
   pcCU->deriveLeftBottomIdxAdi  ( uiPartIdxLB,              uiZorderIdxInPart, uiPartDepth );
   
+#if !UNIFY_INTRA_AVAIL
   if ( pcCU->getSlice()->getPPS()->getConstrainedIntraPred() )
+#endif //UNIFY_INTRA_AVAIL  
   {
 #if REFERENCE_SAMPLE_PADDING
     iUnitSize      = g_uiMaxCUWidth >> g_uiMaxCUDepth;
     iNumUnitsInCu  = uiCuWidth / iUnitSize;
     iTotalUnits    = (iNumUnitsInCu << 2) + 1;
 
-    bNeighborFlags[iNumUnitsInCu*2] = isAboveLeftAvailableForCIP( pcCU, uiPartIdxLT );
-    iNumIntraNeighbor  += (Int)(bNeighborFlags[iNumUnitsInCu*2]);
-    iNumIntraNeighbor  += isAboveAvailableForCIP     ( pcCU, uiPartIdxLT, uiPartIdxRT, bNeighborFlags+(iNumUnitsInCu*2)+1 );
-    iNumIntraNeighbor  += isAboveRightAvailableForCIP( pcCU, uiPartIdxLT, uiPartIdxRT, bNeighborFlags+(iNumUnitsInCu*3)+1 );
-    iNumIntraNeighbor  += isLeftAvailableForCIP      ( pcCU, uiPartIdxLT, uiPartIdxLB, bNeighborFlags+(iNumUnitsInCu*2)-1 );
-    iNumIntraNeighbor  += isBelowLeftAvailableForCIP ( pcCU, uiPartIdxLT, uiPartIdxLB, bNeighborFlags+ iNumUnitsInCu   -1 );
+#if UNIFY_INTRA_AVAIL
+  bNeighborFlags[iNumUnitsInCu*2] = isAboveLeftAvailable( pcCU, uiPartIdxLT );
+  iNumIntraNeighbor  += (Int)(bNeighborFlags[iNumUnitsInCu*2]);
+  iNumIntraNeighbor  += isAboveAvailable     ( pcCU, uiPartIdxLT, uiPartIdxRT, bNeighborFlags+(iNumUnitsInCu*2)+1 );
+  iNumIntraNeighbor  += isAboveRightAvailable( pcCU, uiPartIdxLT, uiPartIdxRT, bNeighborFlags+(iNumUnitsInCu*3)+1 );
+  iNumIntraNeighbor  += isLeftAvailable      ( pcCU, uiPartIdxLT, uiPartIdxLB, bNeighborFlags+(iNumUnitsInCu*2)-1 );
+  iNumIntraNeighbor  += isBelowLeftAvailable ( pcCU, uiPartIdxLT, uiPartIdxLB, bNeighborFlags+ iNumUnitsInCu   -1 );
+#else // UNIFY_INTRA_AVAIL
+  bNeighborFlags[iNumUnitsInCu*2] = isAboveLeftAvailableForCIP( pcCU, uiPartIdxLT );
+  iNumIntraNeighbor  += (Int)(bNeighborFlags[iNumUnitsInCu*2]);
+  iNumIntraNeighbor  += isAboveAvailableForCIP     ( pcCU, uiPartIdxLT, uiPartIdxRT, bNeighborFlags+(iNumUnitsInCu*2)+1 );
+  iNumIntraNeighbor  += isAboveRightAvailableForCIP( pcCU, uiPartIdxLT, uiPartIdxRT, bNeighborFlags+(iNumUnitsInCu*3)+1 );
+  iNumIntraNeighbor  += isLeftAvailableForCIP      ( pcCU, uiPartIdxLT, uiPartIdxLB, bNeighborFlags+(iNumUnitsInCu*2)-1 );
+  iNumIntraNeighbor  += isBelowLeftAvailableForCIP ( pcCU, uiPartIdxLT, uiPartIdxLB, bNeighborFlags+ iNumUnitsInCu   -1 );
+#endif // UNIFY_INTRA_AVAIL
+
 #else // REFERENCE_SAMPLE_PADDING
+#if UNIFY_INTRA_AVAIL
+    bAboveFlag      = isAboveAvailable     ( pcCU, uiPartIdxLT, uiPartIdxRT );
+    bAboveRightFlag = isAboveRightAvailable( pcCU, uiPartIdxLT, uiPartIdxRT );
+    bLeftFlag       = isLeftAvailable      ( pcCU, uiPartIdxLT, uiPartIdxLB );
+    bBelowLeftFlag  = isBelowLeftAvailable ( pcCU, uiPartIdxLT, uiPartIdxLB );
+    bAboveLeftFlag  = isAboveLeftAvailable ( pcCU, uiPartIdxLT );
+#else // UNIFY_INTRA_AVAIL
     bAboveFlag      = isAboveAvailableForCIP     ( pcCU, uiPartIdxLT, uiPartIdxRT );
     bAboveRightFlag = isAboveRightAvailableForCIP( pcCU, uiPartIdxLT, uiPartIdxRT );
     bLeftFlag       = isLeftAvailableForCIP      ( pcCU, uiPartIdxLT, uiPartIdxLB );
     bBelowLeftFlag  = isBelowLeftAvailableForCIP ( pcCU, uiPartIdxLT, uiPartIdxLB );
     bAboveLeftFlag  = isAboveLeftAvailableForCIP ( pcCU, uiPartIdxLT );
+
+#endif // UNIFY_INTRA_AVAIL
 #endif // REFERENCE_SAMPLE_PADDING
   }
+#if !UNIFY_INTRA_AVAIL
   else
   {
 #if REFERENCE_SAMPLE_PADDING
@@ -369,7 +395,7 @@ Void TComPattern::initAdiPattern( TComDataCU* pcCU, UInt uiZorderIdxInPart, UInt
 #endif
 #endif // REFERENCE_SAMPLE_PADDING
   }
-
+#endif //UNIFY_INTRA_AVAIL
 #if MN_DC_PRED_FILTER
   m_bDCPredFilterFlag = (m_bAboveFlagForDCFilt && m_bLeftFlagForDCFilt) ? true : false;
 #endif
@@ -537,6 +563,7 @@ Void TComPattern::initAdiPatternChroma( TComDataCU* pcCU, UInt uiZorderIdxInPart
   UInt  uiWidth;
   UInt  uiHeight;
   Int   iPicStride = pcCU->getPic()->getCStride();
+
 #if REFERENCE_SAMPLE_PADDING
   Int   iUnitSize = 0;
   Int   iNumUnitsInCu = 0;
@@ -553,32 +580,56 @@ Void TComPattern::initAdiPatternChroma( TComDataCU* pcCU, UInt uiZorderIdxInPart
   Bool  bAboveLeftFlag    = false;
 #endif // REFERENCE_SAMPLE_PADDING
   
-  UInt uiPartIdxLT, uiPartIdxRT, uiPartIdxLB,uiPartDum;
+  UInt uiPartIdxLT, uiPartIdxRT, uiPartIdxLB;
+#if !UNIFY_INTRA_AVAIL
+  UInt uiPartDum;
+#endif
   
   pcCU->deriveLeftRightTopIdxAdi( uiPartIdxLT, uiPartIdxRT, uiZorderIdxInPart, uiPartDepth );
   pcCU->deriveLeftBottomIdxAdi  ( uiPartIdxLB,              uiZorderIdxInPart, uiPartDepth );
   
+#if !UNIFY_INTRA_AVAIL
   if ( pcCU->getSlice()->getPPS()->getConstrainedIntraPred() )
+#endif  
   {
 #if REFERENCE_SAMPLE_PADDING
     iUnitSize      = (g_uiMaxCUWidth >> g_uiMaxCUDepth) >> 1; // for chroma
     iNumUnitsInCu  = (uiCuWidth / iUnitSize) >> 1;            // for chroma
     iTotalUnits    = (iNumUnitsInCu << 2) + 1;
 
-    bNeighborFlags[iNumUnitsInCu*2] = isAboveLeftAvailableForCIP( pcCU, uiPartIdxLT );
-    iNumIntraNeighbor  += (Int)(bNeighborFlags[iNumUnitsInCu*2]);
-    iNumIntraNeighbor  += isAboveAvailableForCIP     ( pcCU, uiPartIdxLT, uiPartIdxRT, bNeighborFlags+(iNumUnitsInCu*2)+1 );
-    iNumIntraNeighbor  += isAboveRightAvailableForCIP( pcCU, uiPartIdxLT, uiPartIdxRT, bNeighborFlags+(iNumUnitsInCu*3)+1 );
-    iNumIntraNeighbor  += isLeftAvailableForCIP      ( pcCU, uiPartIdxLT, uiPartIdxLB, bNeighborFlags+(iNumUnitsInCu*2)-1 );
-    iNumIntraNeighbor  += isBelowLeftAvailableForCIP ( pcCU, uiPartIdxLT, uiPartIdxLB, bNeighborFlags+ iNumUnitsInCu   -1 );
+#if UNIFY_INTRA_AVAIL
+  bNeighborFlags[iNumUnitsInCu*2] = isAboveLeftAvailable( pcCU, uiPartIdxLT );
+  iNumIntraNeighbor  += (Int)(bNeighborFlags[iNumUnitsInCu*2]);
+  iNumIntraNeighbor  += isAboveAvailable     ( pcCU, uiPartIdxLT, uiPartIdxRT, bNeighborFlags+(iNumUnitsInCu*2)+1 );
+  iNumIntraNeighbor  += isAboveRightAvailable( pcCU, uiPartIdxLT, uiPartIdxRT, bNeighborFlags+(iNumUnitsInCu*3)+1 );
+  iNumIntraNeighbor  += isLeftAvailable      ( pcCU, uiPartIdxLT, uiPartIdxLB, bNeighborFlags+(iNumUnitsInCu*2)-1 );
+  iNumIntraNeighbor  += isBelowLeftAvailable ( pcCU, uiPartIdxLT, uiPartIdxLB, bNeighborFlags+ iNumUnitsInCu   -1 );
+#else //UNIFY_INTRA_AVAIL
+  bNeighborFlags[iNumUnitsInCu*2] = isAboveLeftAvailableForCIP( pcCU, uiPartIdxLT );
+  iNumIntraNeighbor  += (Int)(bNeighborFlags[iNumUnitsInCu*2]);
+  iNumIntraNeighbor  += isAboveAvailableForCIP     ( pcCU, uiPartIdxLT, uiPartIdxRT, bNeighborFlags+(iNumUnitsInCu*2)+1 );
+  iNumIntraNeighbor  += isAboveRightAvailableForCIP( pcCU, uiPartIdxLT, uiPartIdxRT, bNeighborFlags+(iNumUnitsInCu*3)+1 );
+  iNumIntraNeighbor  += isLeftAvailableForCIP      ( pcCU, uiPartIdxLT, uiPartIdxLB, bNeighborFlags+(iNumUnitsInCu*2)-1 );
+  iNumIntraNeighbor  += isBelowLeftAvailableForCIP ( pcCU, uiPartIdxLT, uiPartIdxLB, bNeighborFlags+ iNumUnitsInCu   -1 );
+#endif// UNIFY_INTRA_AVAIL
 #else // REFERENCE_SAMPLE_PADDING
+
+#if UNIFY_INTRA_AVAIL
+    bAboveFlag      = isAboveAvailable     ( pcCU, uiPartIdxLT, uiPartIdxRT );
+    bAboveRightFlag = isAboveRightAvailable( pcCU, uiPartIdxLT, uiPartIdxRT );
+    bLeftFlag       = isLeftAvailable      ( pcCU, uiPartIdxLT, uiPartIdxLB );
+    bBelowLeftFlag  = isBelowLeftAvailable ( pcCU, uiPartIdxLT, uiPartIdxLB );
+    bAboveLeftFlag  = isAboveLeftAvailable ( pcCU, uiPartIdxLT );
+#else //UNIFY_INTRA_AVAIL
     bAboveFlag      = isAboveAvailableForCIP     ( pcCU, uiPartIdxLT, uiPartIdxRT );
     bAboveRightFlag = isAboveRightAvailableForCIP( pcCU, uiPartIdxLT, uiPartIdxRT );
     bLeftFlag       = isLeftAvailableForCIP      ( pcCU, uiPartIdxLT, uiPartIdxLB );
     bBelowLeftFlag  = isBelowLeftAvailableForCIP ( pcCU, uiPartIdxLT, uiPartIdxLB );
     bAboveLeftFlag  = isAboveLeftAvailableForCIP ( pcCU, uiPartIdxLT );
+#endif //UNIFY_INTRA_AVAIL
 #endif // REFERENCE_SAMPLE_PADDING
   }
+#if !UNIFY_INTRA_AVAIL
   else
   {
 #if REFERENCE_SAMPLE_PADDING
@@ -600,6 +651,7 @@ Void TComPattern::initAdiPatternChroma( TComDataCU* pcCU, UInt uiZorderIdxInPart
     if( pcCU->getPUAboveLeft    ( uiPartDum,             uiPartIdxLT,    true, false ) ) bAboveLeftFlag  = true;
 #endif // REFERENCE_SAMPLE_PADDING
   }
+#endif //UNIFY_INTRA_AVAIL  
   
 #if REFERENCE_SAMPLE_PADDING
   bAbove = true;
@@ -1211,20 +1263,44 @@ Int* TComPattern::getPredictorPtr( UInt uiDirMode, UInt log2BlkSize, Int* piAdiB
 }
 #endif //QC_MDIS
 
+#if UNIFY_INTRA_AVAIL
+Bool TComPattern::isAboveLeftAvailable( TComDataCU* pcCU, UInt uiPartIdxLT )
+#else //UNIFY_INTRA_AVAIL
 Bool TComPattern::isAboveLeftAvailableForCIP( TComDataCU* pcCU, UInt uiPartIdxLT )
+#endif //UNIFY_INTRA_AVAIL
 {
   Bool bAboveLeftFlag;
   UInt uiPartAboveLeft;
   TComDataCU* pcCUAboveLeft = pcCU->getPUAboveLeft( uiPartAboveLeft, uiPartIdxLT, true, false );
+#if UNIFY_INTRA_AVAIL
+  if(pcCU->getSlice()->getPPS()->getConstrainedIntraPred())
+  {
+    bAboveLeftFlag = ( pcCUAboveLeft && pcCUAboveLeft->getPredictionMode( uiPartAboveLeft ) == MODE_INTRA );
+  }
+  else
+  {
+    bAboveLeftFlag = (pcCUAboveLeft ? true : false);
+  }
+#else
   bAboveLeftFlag = ( pcCUAboveLeft && pcCUAboveLeft->getPredictionMode( uiPartAboveLeft ) == MODE_INTRA );
+#endif
   return bAboveLeftFlag;
 }
 
+#if UNIFY_INTRA_AVAIL
+
+#if REFERENCE_SAMPLE_PADDING
+Int TComPattern::isAboveAvailable( TComDataCU* pcCU, UInt uiPartIdxLT, UInt uiPartIdxRT, Bool *bValidFlags )
+#else
+Bool TComPattern::isAboveAvailable( TComDataCU* pcCU, UInt uiPartIdxLT, UInt uiPartIdxRT )
+#endif
+#else //UNIFY_INTRA_AVAIL
 #if REFERENCE_SAMPLE_PADDING
 Int TComPattern::isAboveAvailableForCIP( TComDataCU* pcCU, UInt uiPartIdxLT, UInt uiPartIdxRT, Bool *bValidFlags )
 #else
 Bool TComPattern::isAboveAvailableForCIP( TComDataCU* pcCU, UInt uiPartIdxLT, UInt uiPartIdxRT )
 #endif
+#endif //UNIFY_INTRA_AVAIL
 {
   const UInt uiRasterPartBegin = g_auiZscanToRaster[uiPartIdxLT];
   const UInt uiRasterPartEnd = g_auiZscanToRaster[uiPartIdxRT]+1;
@@ -1244,6 +1320,9 @@ Bool TComPattern::isAboveAvailableForCIP( TComDataCU* pcCU, UInt uiPartIdxLT, UI
     UInt uiPartAbove;
     TComDataCU* pcCUAbove = pcCU->getPUAbove( uiPartAbove, g_auiRasterToZscan[uiRasterPart], true, false );
 #if REFERENCE_SAMPLE_PADDING
+#if UNIFY_INTRA_AVAIL
+  if(pcCU->getSlice()->getPPS()->getConstrainedIntraPred())
+  {
     if ( pcCUAbove && pcCUAbove->getPredictionMode( uiPartAbove ) == MODE_INTRA )
     {
       iNumIntra++;
@@ -1256,6 +1335,37 @@ Bool TComPattern::isAboveAvailableForCIP( TComDataCU* pcCU, UInt uiPartIdxLT, UI
       m_bAboveFlagForDCFilt = false;
 #endif
     }
+  }
+  else
+  {
+    if (pcCUAbove)
+    {
+      iNumIntra++;
+      *pbValidFlags = true;
+    }
+    else
+    {
+      *pbValidFlags = false;
+#if MN_DC_PRED_FILTER
+      m_bAboveFlagForDCFilt = false;
+#endif
+    }
+  }
+#else //#if UNIFY_INTRA_AVAIL
+  if ( pcCUAbove && pcCUAbove->getPredictionMode( uiPartAbove ) == MODE_INTRA )
+  {
+    iNumIntra++;
+    *pbValidFlags = true;
+  }
+  else
+  {
+    *pbValidFlags = false;
+#if MN_DC_PRED_FILTER
+    m_bAboveFlagForDCFilt = false;
+#endif
+  }
+
+#endif //#if UNIFY_INTRA_AVAIL
     pbValidFlags++;
 #else
     if ( !pcCUAbove || pcCUAbove->getPredictionMode( uiPartAbove ) != MODE_INTRA )
@@ -1275,11 +1385,19 @@ Bool TComPattern::isAboveAvailableForCIP( TComDataCU* pcCU, UInt uiPartIdxLT, UI
 #endif
 }
 
+#if UNIFY_INTRA_AVAIL
+#if REFERENCE_SAMPLE_PADDING
+Int TComPattern::isLeftAvailable( TComDataCU* pcCU, UInt uiPartIdxLT, UInt uiPartIdxLB, Bool *bValidFlags )
+#else
+Bool TComPattern::isLeftAvailable( TComDataCU* pcCU, UInt uiPartIdxLT, UInt uiPartIdxLB )
+#endif
+#else //UNIFY_INTRA_AVAIL
 #if REFERENCE_SAMPLE_PADDING
 Int TComPattern::isLeftAvailableForCIP( TComDataCU* pcCU, UInt uiPartIdxLT, UInt uiPartIdxLB, Bool *bValidFlags )
 #else
 Bool TComPattern::isLeftAvailableForCIP( TComDataCU* pcCU, UInt uiPartIdxLT, UInt uiPartIdxLB )
 #endif
+#endif //UNIFY_INTRA_AVAIL
 {
   const UInt uiRasterPartBegin = g_auiZscanToRaster[uiPartIdxLT];
   const UInt uiRasterPartEnd = g_auiZscanToRaster[uiPartIdxLB]+1;
@@ -1299,6 +1417,9 @@ Bool TComPattern::isLeftAvailableForCIP( TComDataCU* pcCU, UInt uiPartIdxLT, UIn
     UInt uiPartLeft;
     TComDataCU* pcCULeft = pcCU->getPULeft( uiPartLeft, g_auiRasterToZscan[uiRasterPart], true, false );
 #if REFERENCE_SAMPLE_PADDING
+#if UNIFY_INTRA_AVAIL
+  if(pcCU->getSlice()->getPPS()->getConstrainedIntraPred())
+  {
     if ( pcCULeft && pcCULeft->getPredictionMode( uiPartLeft ) == MODE_INTRA )
     {
       iNumIntra++;
@@ -1311,6 +1432,36 @@ Bool TComPattern::isLeftAvailableForCIP( TComDataCU* pcCU, UInt uiPartIdxLT, UIn
       m_bLeftFlagForDCFilt = false;
 #endif
     }
+  }
+  else
+  {
+    if ( pcCULeft )
+    {
+      iNumIntra++;
+      *pbValidFlags = true;
+    }
+    else
+    {
+      *pbValidFlags = false;
+#if MN_DC_PRED_FILTER
+      m_bLeftFlagForDCFilt = false;
+#endif
+    }
+  }
+#else //#if UNIFY_INTRA_AVAIL
+  if ( pcCULeft && pcCULeft->getPredictionMode( uiPartLeft ) == MODE_INTRA )
+  {
+    iNumIntra++;
+    *pbValidFlags = true;
+  }
+  else
+  {
+    *pbValidFlags = false;
+#if MN_DC_PRED_FILTER
+    m_bLeftFlagForDCFilt = false;
+#endif
+  }
+#endif //#if UNIFY_INTRA_AVAIL
     pbValidFlags--; // opposite direction
 #else
     if ( !pcCULeft || pcCULeft->getPredictionMode( uiPartLeft ) != MODE_INTRA )
@@ -1331,11 +1482,19 @@ Bool TComPattern::isLeftAvailableForCIP( TComDataCU* pcCU, UInt uiPartIdxLT, UIn
 #endif
 }
 
+#if UNIFY_INTRA_AVAIL
+#if REFERENCE_SAMPLE_PADDING
+Int TComPattern::isAboveRightAvailable( TComDataCU* pcCU, UInt uiPartIdxLT, UInt uiPartIdxRT, Bool *bValidFlags )
+#else
+Bool TComPattern::isAboveRightAvailable( TComDataCU* pcCU, UInt uiPartIdxLT, UInt uiPartIdxRT )
+#endif
+#else //UNIFY_INTRA_AVAIL
 #if REFERENCE_SAMPLE_PADDING
 Int TComPattern::isAboveRightAvailableForCIP( TComDataCU* pcCU, UInt uiPartIdxLT, UInt uiPartIdxRT, Bool *bValidFlags )
 #else
 Bool TComPattern::isAboveRightAvailableForCIP( TComDataCU* pcCU, UInt uiPartIdxLT, UInt uiPartIdxRT )
 #endif
+#endif //UNIFY_INTRA_AVAIL
 {
   const UInt uiNumUnitsInPU = g_auiZscanToRaster[uiPartIdxRT] - g_auiZscanToRaster[uiPartIdxLT] + 1;
   const UInt uiPuWidth = uiNumUnitsInPU * pcCU->getPic()->getMinCUWidth();
@@ -1351,6 +1510,9 @@ Bool TComPattern::isAboveRightAvailableForCIP( TComDataCU* pcCU, UInt uiPartIdxL
     UInt uiPartAboveRight;
     TComDataCU* pcCUAboveRight = pcCU->getPUAboveRightAdi( uiPartAboveRight, uiPuWidth, uiPartIdxRT, uiOffset, true, false );
 #if REFERENCE_SAMPLE_PADDING
+#if UNIFY_INTRA_AVAIL
+  if(pcCU->getSlice()->getPPS()->getConstrainedIntraPred())
+  {
     if ( pcCUAboveRight && pcCUAboveRight->getPredictionMode( uiPartAboveRight ) == MODE_INTRA )
     {
       iNumIntra++;
@@ -1360,6 +1522,31 @@ Bool TComPattern::isAboveRightAvailableForCIP( TComDataCU* pcCU, UInt uiPartIdxL
     {
       *pbValidFlags = false;
     }
+  }
+  else
+  {
+    if ( pcCUAboveRight )
+    {
+      iNumIntra++;
+      *pbValidFlags = true;
+    }
+    else
+    {
+      *pbValidFlags = false;
+    }
+  }
+#else //#if UNIFY_INTRA_AVAIL
+
+  if ( pcCUAboveRight && pcCUAboveRight->getPredictionMode( uiPartAboveRight ) == MODE_INTRA )
+  {
+    iNumIntra++;
+    *pbValidFlags = true;
+  }
+  else
+  {
+    *pbValidFlags = false;
+  }
+#endif //#if UNIFY_INTRA_AVAIL
     pbValidFlags++;
 #else
     if ( !pcCUAboveRight || pcCUAboveRight->getPredictionMode( uiPartAboveRight ) != MODE_INTRA )
@@ -1377,11 +1564,19 @@ Bool TComPattern::isAboveRightAvailableForCIP( TComDataCU* pcCU, UInt uiPartIdxL
 #endif
 }
 
+#if UNIFY_INTRA_AVAIL
+#if REFERENCE_SAMPLE_PADDING
+Int TComPattern::isBelowLeftAvailable( TComDataCU* pcCU, UInt uiPartIdxLT, UInt uiPartIdxLB, Bool *bValidFlags )
+#else
+Bool TComPattern::isBelowLeftAvailable( TComDataCU* pcCU, UInt uiPartIdxLT, UInt uiPartIdxLB )
+#endif
+#else //UNIFY_INTRA_AVAIL
 #if REFERENCE_SAMPLE_PADDING
 Int TComPattern::isBelowLeftAvailableForCIP( TComDataCU* pcCU, UInt uiPartIdxLT, UInt uiPartIdxLB, Bool *bValidFlags )
 #else
 Bool TComPattern::isBelowLeftAvailableForCIP( TComDataCU* pcCU, UInt uiPartIdxLT, UInt uiPartIdxLB )
 #endif
+#endif // UNIFY_INTRA_AVAIL
 {
   const UInt uiNumUnitsInPU = (g_auiZscanToRaster[uiPartIdxLB] - g_auiZscanToRaster[uiPartIdxLT]) / pcCU->getPic()->getNumPartInWidth() + 1;
   const UInt uiPuHeight = uiNumUnitsInPU * pcCU->getPic()->getMinCUHeight();
@@ -1397,6 +1592,9 @@ Bool TComPattern::isBelowLeftAvailableForCIP( TComDataCU* pcCU, UInt uiPartIdxLT
     UInt uiPartBelowLeft;
     TComDataCU* pcCUBelowLeft = pcCU->getPUBelowLeftAdi( uiPartBelowLeft, uiPuHeight, uiPartIdxLB, uiOffset, true, false );
 #if REFERENCE_SAMPLE_PADDING
+#if UNIFY_INTRA_AVAIL
+  if(pcCU->getSlice()->getPPS()->getConstrainedIntraPred())
+  {
     if ( pcCUBelowLeft && pcCUBelowLeft->getPredictionMode( uiPartBelowLeft ) == MODE_INTRA )
     {
       iNumIntra++;
@@ -1406,6 +1604,30 @@ Bool TComPattern::isBelowLeftAvailableForCIP( TComDataCU* pcCU, UInt uiPartIdxLT
     {
       *pbValidFlags = false;
     }
+  }
+  else
+  {
+    if ( pcCUBelowLeft )
+    {
+      iNumIntra++;
+      *pbValidFlags = true;
+    }
+    else
+    {
+      *pbValidFlags = false;
+    }
+  }
+#else // #if UNIFY_INTRA_AVAIL
+  if ( pcCUBelowLeft && pcCUBelowLeft->getPredictionMode( uiPartBelowLeft ) == MODE_INTRA )
+  {
+    iNumIntra++;
+    *pbValidFlags = true;
+  }
+  else
+  {
+    *pbValidFlags = false;
+  }
+#endif // #if UNIFY_INTRA_AVAIL
     pbValidFlags--; // opposite direction
 #else
     if ( !pcCUBelowLeft || pcCUBelowLeft->getPredictionMode( uiPartBelowLeft ) != MODE_INTRA )
