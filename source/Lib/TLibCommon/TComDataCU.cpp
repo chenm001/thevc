@@ -1511,7 +1511,7 @@ TComDataCU* TComDataCU::getPUAbove( UInt& uiAPartUnitIdx, UInt uiCurrPartUnitIdx
 #if REDUCE_UPPER_MOTION_DATA
   if(MotionDataCompresssion)
   {
-    uiAPartUnitIdx = g_auiMotionRefer[uiAPartUnitIdx];
+    uiAPartUnitIdx = g_motionRefer[uiAPartUnitIdx];
   }
 #endif
 
@@ -1572,7 +1572,7 @@ TComDataCU* TComDataCU::getPUAboveLeft( UInt& uiALPartUnitIdx, UInt uiCurrPartUn
 #if REDUCE_UPPER_MOTION_DATA
     if(MotionDataCompresssion)
     {
-      uiALPartUnitIdx = g_auiMotionRefer[uiALPartUnitIdx];
+      uiALPartUnitIdx = g_motionRefer[uiALPartUnitIdx];
     }
 #endif
 #if FINE_GRANULARITY_SLICES
@@ -1608,7 +1608,7 @@ TComDataCU* TComDataCU::getPUAboveLeft( UInt& uiALPartUnitIdx, UInt uiCurrPartUn
 #if REDUCE_UPPER_MOTION_DATA
   if(MotionDataCompresssion)
   {
-    uiALPartUnitIdx = g_auiMotionRefer[uiALPartUnitIdx];
+    uiALPartUnitIdx = g_motionRefer[uiALPartUnitIdx];
   }
 #endif
 #if FINE_GRANULARITY_SLICES
@@ -1679,7 +1679,7 @@ TComDataCU* TComDataCU::getPUAboveRight( UInt& uiARPartUnitIdx, UInt uiCurrPartU
 #if REDUCE_UPPER_MOTION_DATA
     if(MotionDataCompresssion)
     {
-      uiARPartUnitIdx = g_auiMotionRefer[uiARPartUnitIdx];
+      uiARPartUnitIdx = g_motionRefer[uiARPartUnitIdx];
     }
 #endif
 
@@ -1706,7 +1706,7 @@ TComDataCU* TComDataCU::getPUAboveRight( UInt& uiARPartUnitIdx, UInt uiCurrPartU
 #if REDUCE_UPPER_MOTION_DATA
   if(MotionDataCompresssion)
   {
-    uiARPartUnitIdx = g_auiMotionRefer[uiARPartUnitIdx];
+    uiARPartUnitIdx = g_motionRefer[uiARPartUnitIdx];
   }
 #endif
 #if FINE_GRANULARITY_SLICES

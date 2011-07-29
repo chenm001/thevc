@@ -71,7 +71,7 @@ Void         initSigLastScan(UInt* pBuffZ, UInt* pBuffH, UInt* pBuffV, Int iWidt
 extern       UInt   g_auiZscanToRaster[ MAX_NUM_SPU_W*MAX_NUM_SPU_W ];
 extern       UInt   g_auiRasterToZscan[ MAX_NUM_SPU_W*MAX_NUM_SPU_W ];
 #if REDUCE_UPPER_MOTION_DATA
-extern       UInt   g_auiMotionRefer[ MAX_NUM_SPU_W*MAX_NUM_SPU_W ];
+extern       UInt   g_motionRefer[ MAX_NUM_SPU_W*MAX_NUM_SPU_W ];
 #endif
 
 Void         initZscanToRaster ( Int iMaxDepth, Int iDepth, UInt uiStartVal, UInt*& rpuiCurrIdx );
