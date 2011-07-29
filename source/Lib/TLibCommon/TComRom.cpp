@@ -1627,7 +1627,7 @@ const UChar g_aucAngIntraModeOrder[34] =
 #endif
 };
 
-#if FIXED_MPM_
+#if FIXED_MPM
 const UChar g_aucIntraModeNumAng[7] =
 {
   4,  //   2x2
