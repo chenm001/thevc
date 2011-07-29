@@ -435,7 +435,11 @@ Void TComLoopFilter::xGetBoundaryStrengthSingle ( TComDataCU* pcCU, UInt uiAbsZo
   }
   else  // (iDir == EDGE_HOR)
   {
+#if REDUCE_UPPER_MOTION_DATA
+    pcCUP = pcCUQ->getPUAbove(uiPartP, uiPartQ, !pcCU->getSlice()->getSPS()->getLFCrossSliceBoundaryFlag(), false, true);
+#else
     pcCUP = pcCUQ->getPUAbove(uiPartP, uiPartQ, !pcCU->getSlice()->getSPS()->getLFCrossSliceBoundaryFlag(), false);
+#endif
   }
 #else
   //-- Calculate Block Index
@@ -445,7 +449,11 @@ Void TComLoopFilter::xGetBoundaryStrengthSingle ( TComDataCU* pcCU, UInt uiAbsZo
   }
   else  // (iDir == EDGE_HOR)
   {
+#if REDUCE_UPPER_MOTION_DATA
+    pcCUP = pcCUQ->getPUAbove(uiPartP, uiPartQ, false, false, true);
+#else
     pcCUP = pcCUQ->getPUAbove(uiPartP, uiPartQ, false, false);
+#endif
   }
 #endif
   

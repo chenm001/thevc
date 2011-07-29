@@ -1468,7 +1468,11 @@ TComDataCU* TComDataCU::getPULeft( UInt& uiLPartUnitIdx, UInt uiCurrPartUnitIdx,
   return m_pcCULeft;
 }
 
+#if REDUCE_UPPER_MOTION_DATA
+TComDataCU* TComDataCU::getPUAbove( UInt& uiAPartUnitIdx, UInt uiCurrPartUnitIdx, Bool bEnforceSliceRestriction, Bool bEnforceEntropySliceRestriction, Bool MotionDataCompresssion )
+#else
 TComDataCU* TComDataCU::getPUAbove( UInt& uiAPartUnitIdx, UInt uiCurrPartUnitIdx, Bool bEnforceSliceRestriction, Bool bEnforceEntropySliceRestriction )
+#endif
 {
   UInt uiAbsPartIdx       = g_auiZscanToRaster[uiCurrPartUnitIdx];
   UInt uiAbsZorderCUIdx   = g_auiZscanToRaster[m_uiAbsIdxInLCU];
@@ -1504,6 +1508,12 @@ TComDataCU* TComDataCU::getPUAbove( UInt& uiAPartUnitIdx, UInt uiCurrPartUnitIdx
   }
   
   uiAPartUnitIdx = g_auiRasterToZscan[ uiAbsPartIdx + m_pcPic->getNumPartInCU() - uiNumPartInCUWidth ];
+#if REDUCE_UPPER_MOTION_DATA
+  if(MotionDataCompresssion)
+  {
+    uiAPartUnitIdx = g_auiMotionRefer[uiAPartUnitIdx];
+  }
+#endif
 
 #if FINE_GRANULARITY_SLICES
   if ((bEnforceSliceRestriction        && (m_pcCUAbove==NULL || m_pcCUAbove->getSlice()==NULL || m_pcCUAbove->getSCUAddr()+uiAPartUnitIdx < m_pcPic->getCU( getAddr() )->getSliceStartCU       (uiCurrPartUnitIdx)))
@@ -1518,7 +1528,11 @@ TComDataCU* TComDataCU::getPUAbove( UInt& uiAPartUnitIdx, UInt uiCurrPartUnitIdx
   return m_pcCUAbove;
 }
 
+#if REDUCE_UPPER_MOTION_DATA
+TComDataCU* TComDataCU::getPUAboveLeft( UInt& uiALPartUnitIdx, UInt uiCurrPartUnitIdx, Bool bEnforceSliceRestriction, Bool bEnforceEntropySliceRestriction, Bool MotionDataCompresssion )
+#else
 TComDataCU* TComDataCU::getPUAboveLeft( UInt& uiALPartUnitIdx, UInt uiCurrPartUnitIdx, Bool bEnforceSliceRestriction, Bool bEnforceEntropySliceRestriction )
+#endif
 {
   UInt uiAbsPartIdx       = g_auiZscanToRaster[uiCurrPartUnitIdx];
   UInt uiAbsZorderCUIdx   = g_auiZscanToRaster[m_uiAbsIdxInLCU];
@@ -1555,6 +1569,12 @@ TComDataCU* TComDataCU::getPUAboveLeft( UInt& uiALPartUnitIdx, UInt uiCurrPartUn
       }
     }
     uiALPartUnitIdx = g_auiRasterToZscan[ uiAbsPartIdx + getPic()->getNumPartInCU() - uiNumPartInCUWidth - 1 ];
+#if REDUCE_UPPER_MOTION_DATA
+    if(MotionDataCompresssion)
+    {
+      uiALPartUnitIdx = g_auiMotionRefer[uiALPartUnitIdx];
+    }
+#endif
 #if FINE_GRANULARITY_SLICES
     if ((bEnforceSliceRestriction        && (m_pcCUAbove==NULL || m_pcCUAbove->getSlice()==NULL || m_pcCUAbove->getSCUAddr()+uiALPartUnitIdx < m_pcPic->getCU( getAddr() )->getSliceStartCU       (uiCurrPartUnitIdx)))
       ||(bEnforceEntropySliceRestriction && (m_pcCUAbove==NULL || m_pcCUAbove->getSlice()==NULL || m_pcCUAbove->getSCUAddr()+uiALPartUnitIdx < m_pcPic->getCU( getAddr() )->getEntropySliceStartCU(uiCurrPartUnitIdx))))
@@ -1585,6 +1605,12 @@ TComDataCU* TComDataCU::getPUAboveLeft( UInt& uiALPartUnitIdx, UInt uiCurrPartUn
   }
   
   uiALPartUnitIdx = g_auiRasterToZscan[ m_pcPic->getNumPartInCU() - 1 ];
+#if REDUCE_UPPER_MOTION_DATA
+  if(MotionDataCompresssion)
+  {
+    uiALPartUnitIdx = g_auiMotionRefer[uiALPartUnitIdx];
+  }
+#endif
 #if FINE_GRANULARITY_SLICES
   if ((bEnforceSliceRestriction        && (m_pcCUAboveLeft==NULL || m_pcCUAboveLeft->getSlice()==NULL || m_pcCUAboveLeft->getSCUAddr()+uiALPartUnitIdx < m_pcPic->getCU( getAddr() )->getSliceStartCU       (uiCurrPartUnitIdx)))
     ||(bEnforceEntropySliceRestriction && (m_pcCUAboveLeft==NULL || m_pcCUAboveLeft->getSlice()==NULL || m_pcCUAboveLeft->getSCUAddr()+uiALPartUnitIdx < m_pcPic->getCU( getAddr() )->getEntropySliceStartCU(uiCurrPartUnitIdx))))
@@ -1598,7 +1624,11 @@ TComDataCU* TComDataCU::getPUAboveLeft( UInt& uiALPartUnitIdx, UInt uiCurrPartUn
   return m_pcCUAboveLeft;
 }
 
+#if REDUCE_UPPER_MOTION_DATA
+TComDataCU* TComDataCU::getPUAboveRight( UInt& uiARPartUnitIdx, UInt uiCurrPartUnitIdx, Bool bEnforceSliceRestriction, Bool bEnforceEntropySliceRestriction, Bool MotionDataCompresssion )
+#else
 TComDataCU* TComDataCU::getPUAboveRight( UInt& uiARPartUnitIdx, UInt uiCurrPartUnitIdx, Bool bEnforceSliceRestriction, Bool bEnforceEntropySliceRestriction )
+#endif
 {
   UInt uiAbsPartIdxRT     = g_auiZscanToRaster[uiCurrPartUnitIdx];
   UInt uiAbsZorderCUIdx   = g_auiZscanToRaster[ m_uiAbsIdxInLCU ] + m_puhWidth[0] / m_pcPic->getMinCUWidth() - 1;
@@ -1646,6 +1676,12 @@ TComDataCU* TComDataCU::getPUAboveRight( UInt& uiARPartUnitIdx, UInt uiCurrPartU
       return NULL;
     }
     uiARPartUnitIdx = g_auiRasterToZscan[ uiAbsPartIdxRT + m_pcPic->getNumPartInCU() - uiNumPartInCUWidth + 1 ];
+#if REDUCE_UPPER_MOTION_DATA
+    if(MotionDataCompresssion)
+    {
+      uiARPartUnitIdx = g_auiMotionRefer[uiARPartUnitIdx];
+    }
+#endif
 
 #if FINE_GRANULARITY_SLICES
     if ((bEnforceSliceRestriction        && (m_pcCUAbove==NULL || m_pcCUAbove->getSlice()==NULL || m_pcCUAbove->getSCUAddr()+uiARPartUnitIdx < m_pcPic->getCU( getAddr() )->getSliceStartCU       (uiCurrPartUnitIdx)))
@@ -1667,6 +1703,12 @@ TComDataCU* TComDataCU::getPUAboveRight( UInt& uiARPartUnitIdx, UInt uiCurrPartU
   }
   
   uiARPartUnitIdx = g_auiRasterToZscan[ m_pcPic->getNumPartInCU() - uiNumPartInCUWidth ];
+#if REDUCE_UPPER_MOTION_DATA
+  if(MotionDataCompresssion)
+  {
+    uiARPartUnitIdx = g_auiMotionRefer[uiARPartUnitIdx];
+  }
+#endif
 #if FINE_GRANULARITY_SLICES
   if ((bEnforceSliceRestriction        && (m_pcCUAboveRight==NULL || m_pcCUAboveRight->getSlice()==NULL || m_pcCUAboveRight->getSCUAddr()+uiARPartUnitIdx < m_pcPic->getCU( getAddr() )->getSliceStartCU       (uiCurrPartUnitIdx)))
     ||(bEnforceEntropySliceRestriction && (m_pcCUAboveRight==NULL || m_pcCUAboveRight->getSlice()==NULL || m_pcCUAboveRight->getSCUAddr()+uiARPartUnitIdx < m_pcPic->getCU( getAddr() )->getEntropySliceStartCU(uiCurrPartUnitIdx))))
@@ -2380,7 +2422,11 @@ UInt TComDataCU::getCtxInterDir( UInt uiAbsPartIdx )
   uiCtx += ( pcTempCU ) ? ( ( pcTempCU->getInterDir( uiTempPartIdx ) % 3 ) ? 0 : 1 ) : 0;
   
   // Get BCBP of Above PU
+#if REDUCE_UPPER_MOTION_DATA
+  pcTempCU = getPUAbove( uiTempPartIdx, m_uiAbsIdxInLCU + uiAbsPartIdx, true, true, true );
+#else
   pcTempCU = getPUAbove( uiTempPartIdx, m_uiAbsIdxInLCU + uiAbsPartIdx );
+#endif
   uiCtx += ( pcTempCU ) ? ( ( pcTempCU->getInterDir( uiTempPartIdx ) % 3 ) ? 0 : 1 ) : 0;
   
   return uiCtx;
@@ -2399,7 +2445,11 @@ UInt TComDataCU::getCtxRefIdx( UInt uiAbsPartIdx, RefPicList eRefPicList )
   uiCtx += cMvFieldTemp.getRefIdx() > 0 ? 1 : 0;
   
   // Get BCBP of Above PU
+#if REDUCE_UPPER_MOTION_DATA
+  pcTempCU = getPUAbove( uiTempPartIdx, m_uiAbsIdxInLCU + uiAbsPartIdx, true, true, true );
+#else
   pcTempCU = getPUAbove( uiTempPartIdx, m_uiAbsIdxInLCU + uiAbsPartIdx );
+#endif
   getMvField( pcTempCU, uiTempPartIdx, eRefPicList, cMvFieldTemp );
   uiCtx += cMvFieldTemp.getRefIdx() > 0 ? 2 : 0;
   
@@ -2905,7 +2955,11 @@ Void TComDataCU::getInterMergeCandidates( UInt uiAbsPartIdx, UInt uiPUIdx, UInt 
   // above
   UInt uiAbovePartIdx = 0;
   TComDataCU* pcCUAbove = 0;
+#if REDUCE_UPPER_MOTION_DATA
+  pcCUAbove = getPUAbove( uiAbovePartIdx, uiPartIdxRT, true, true, true );
+#else
   pcCUAbove = getPUAbove( uiAbovePartIdx, uiPartIdxRT );
+#endif
   if ( avoidMergeCandidate( uiAbsPartIdx, uiPUIdx, uiDepth, pcCUAbove, uiAbovePartIdx ) )
   {
     pcCUAbove = NULL;
@@ -2931,7 +2985,11 @@ Void TComDataCU::getInterMergeCandidates( UInt uiAbsPartIdx, UInt uiPUIdx, UInt 
   // above right
   UInt uiAboveRightPartIdx = 0;
   TComDataCU* pcCUAboveRight = 0;
+#if REDUCE_UPPER_MOTION_DATA
+  pcCUAboveRight = getPUAboveRight( uiAboveRightPartIdx, uiPartIdxRT, true, true, true);
+#else
   pcCUAboveRight = getPUAboveRight( uiAboveRightPartIdx, uiPartIdxRT);
+#endif
   if ( avoidMergeCandidate( uiAbsPartIdx, uiPUIdx, uiDepth, pcCUAboveRight, uiAboveRightPartIdx ) )
   {
     pcCUAboveRight = NULL;
@@ -2985,7 +3043,11 @@ Void TComDataCU::getInterMergeCandidates( UInt uiAbsPartIdx, UInt uiPUIdx, UInt 
   {
     UInt uiAboveLeftPartIdx = 0;
     TComDataCU* pcCUAboveLeft = 0;
+#if REDUCE_UPPER_MOTION_DATA
+    pcCUAboveLeft = getPUAboveLeft( uiAboveLeftPartIdx, uiAbsPartAddr, true, true, true );
+#else
     pcCUAboveLeft = getPUAboveLeft( uiAboveLeftPartIdx, uiAbsPartAddr );
+#endif
     if( avoidMergeCandidate( uiAbsPartIdx, uiPUIdx, uiDepth, pcCUAboveLeft, uiAboveLeftPartIdx ) )
     {
       pcCUAboveLeft = NULL;
@@ -3039,7 +3101,11 @@ Void TComDataCU::getInterMergeCandidates( UInt uiAbsPartIdx, UInt uiPUIdx, UInt 
   // top [1]
   UInt uiAbovePartIdx = 0;
   TComDataCU* pcCUAbove = 0;
+#if REDUCE_UPPER_MOTION_DATA
+  pcCUAbove = getPUAbove( uiAbovePartIdx, uiAbsPartAddr, true, true, true );
+#else
   pcCUAbove = getPUAbove( uiAbovePartIdx, uiAbsPartAddr );
+#endif
   if( avoidMergeCandidate( uiAbsPartIdx, uiPUIdx, uiDepth, pcCUAbove, uiAbovePartIdx ) )
   {
     pcCUAbove = NULL;
@@ -3090,22 +3156,38 @@ Void TComDataCU::getInterMergeCandidates( UInt uiAbsPartIdx, UInt uiPUIdx, UInt 
 #if MRG_UNIFIED_POS_F419
     pcTmpCU = getPULeft(uiIdxblk, uiPUIdxLB);
     iRefIdxLeft[i] = (pcTmpCU != NULL) ? pcTmpCU->getCUMvField(eRefPicList)->getRefIdx(uiIdxblk) : -1;
+#if REDUCE_UPPER_MOTION_DATA
+    pcTmpCU = getPUAbove(uiIdxblk, uiPUIdxRT, true, true, true);
+#else
     pcTmpCU = getPUAbove(uiIdxblk, uiPUIdxRT);
+#endif
     iRefIdxAbove[i] = (pcTmpCU != NULL) ? pcTmpCU->getCUMvField(eRefPicList)->getRefIdx(uiIdxblk) : -1;
 #else  
     pcTmpCU = getPULeft(uiIdxblk, uiPUIdxLT);
     iRefIdxLeft[i] = (pcTmpCU != NULL) ? pcTmpCU->getCUMvField(eRefPicList)->getRefIdx(uiIdxblk) : -1;
+#if REDUCE_UPPER_MOTION_DATA
+    pcTmpCU = getPUAbove(uiIdxblk, uiPUIdxLT, true, true, true);
+#else
     pcTmpCU = getPUAbove(uiIdxblk, uiPUIdxLT);
+#endif
     iRefIdxAbove[i] = (pcTmpCU != NULL) ? pcTmpCU->getCUMvField(eRefPicList)->getRefIdx(uiIdxblk) : -1;
 #endif
+#if REDUCE_UPPER_MOTION_DATA
+    pcTmpCU = getPUAboveRight( uiIdxblk, uiPUIdxRT, true, true, true );
+#else
     pcTmpCU = getPUAboveRight( uiIdxblk, uiPUIdxRT );
+#endif
     if (pcTmpCU == NULL) 
     {
       pcTmpCU = getPUBelowLeft( uiIdxblk, uiPUIdxLB );
     }
     if (pcTmpCU == NULL) 
     {
+#if REDUCE_UPPER_MOTION_DATA
+      pcTmpCU = getPUAboveLeft( uiIdxblk, uiPUIdxLT, true, true, true );
+#else
       pcTmpCU = getPUAboveLeft( uiIdxblk, uiPUIdxLT );
+#endif
     }
     iRefIdxCor[i] = (pcTmpCU != NULL) ? pcTmpCU->getCUMvField(eRefPicList)->getRefIdx(uiIdxblk) : -1;
 
@@ -3289,7 +3371,11 @@ Void TComDataCU::getInterMergeCandidates( UInt uiAbsPartIdx, UInt uiPUIdx, UInt 
   {
     if( !bRTCornerCand )
     {
+#if REDUCE_UPPER_MOTION_DATA
+      pcCorner = getPUAboveRight( uiCornerIdx, uiPUIdxRT, true, true, true );
+#else
       pcCorner = getPUAboveRight( uiCornerIdx, uiPUIdxRT );
+#endif
       xCheckCornerCand( pcCorner, uiCornerIdx, uiIter, bRTCornerCand );
       if( avoidMergeCandidate( uiAbsPartIdx, uiPUIdx, uiDepth, pcCorner, uiCornerIdx ) )
       {
@@ -3826,12 +3912,20 @@ Bool TComDataCU::xAddMVPCand( AMVPInfo* pInfo, RefPicList eRefPicList, Int iRefI
     }
     case MD_ABOVE:
     {
+#if REDUCE_UPPER_MOTION_DATA
+      pcTmpCU = getPUAbove(uiIdx, uiPartUnitIdx, true, true, true);
+#else
       pcTmpCU = getPUAbove(uiIdx, uiPartUnitIdx);
+#endif
       break;
     }
     case MD_ABOVE_RIGHT:
     {
+#if REDUCE_UPPER_MOTION_DATA
+      pcTmpCU = getPUAboveRight(uiIdx, uiPartUnitIdx, true, true, true);
+#else
       pcTmpCU = getPUAboveRight(uiIdx, uiPartUnitIdx);
+#endif
       break;
     }
     case MD_BELOW_LEFT:
@@ -3841,7 +3935,11 @@ Bool TComDataCU::xAddMVPCand( AMVPInfo* pInfo, RefPicList eRefPicList, Int iRefI
     }
     case MD_ABOVE_LEFT:
     {
+#if REDUCE_UPPER_MOTION_DATA
+      pcTmpCU = getPUAboveLeft(uiIdx, uiPartUnitIdx, true, true, true);
+#else
       pcTmpCU = getPUAboveLeft(uiIdx, uiPartUnitIdx);
+#endif
       break;
     }
     default:
@@ -3942,12 +4040,20 @@ Bool TComDataCU::xAddMVPCandOrder( AMVPInfo* pInfo, RefPicList eRefPicList, Int 
     }
   case MD_ABOVE:
     {
+#if REDUCE_UPPER_MOTION_DATA
+      pcTmpCU = getPUAbove(uiIdx, uiPartUnitIdx, true, true, true);
+#else
       pcTmpCU = getPUAbove(uiIdx, uiPartUnitIdx);
+#endif
       break;
     }
   case MD_ABOVE_RIGHT:
     {
+#if REDUCE_UPPER_MOTION_DATA
+      pcTmpCU = getPUAboveRight(uiIdx, uiPartUnitIdx, true, true, true);
+#else
       pcTmpCU = getPUAboveRight(uiIdx, uiPartUnitIdx);
+#endif
       break;
     }
   case MD_BELOW_LEFT:
@@ -3957,7 +4063,11 @@ Bool TComDataCU::xAddMVPCandOrder( AMVPInfo* pInfo, RefPicList eRefPicList, Int 
     }
   case MD_ABOVE_LEFT:
     {
+#if REDUCE_UPPER_MOTION_DATA
+      pcTmpCU = getPUAboveLeft(uiIdx, uiPartUnitIdx, true, true, true);
+#else
       pcTmpCU = getPUAboveLeft(uiIdx, uiPartUnitIdx);
+#endif
       break;
     }
   default:
@@ -4403,7 +4513,11 @@ Bool TComDataCU::isSuroundingRefIdxException     ( UInt   uiAbsPartIdx )
     }
     
     // Above PU
+#if REDUCE_UPPER_MOTION_DATA
+    pcTempCU = getPUAbove( uiTempPartIdx, m_uiAbsIdxInLCU + uiAbsPartIdx, true, true, true );
+#else
     pcTempCU = getPUAbove( uiTempPartIdx, m_uiAbsIdxInLCU + uiAbsPartIdx );
+#endif
     if ( pcTempCU )
     {
       if (pcTempCU->getInterDir(uiTempPartIdx) == 1 )
@@ -4427,7 +4541,11 @@ Bool TComDataCU::isSuroundingRefIdxException     ( UInt   uiAbsPartIdx )
     }
     
     // Above left PU
+#if REDUCE_UPPER_MOTION_DATA
+    pcTempCU = getPUAboveLeft( uiTempPartIdx, m_uiAbsIdxInLCU + uiAbsPartIdx, true, true, true );
+#else
     pcTempCU = getPUAboveLeft( uiTempPartIdx, m_uiAbsIdxInLCU + uiAbsPartIdx );
+#endif
     if ( pcTempCU )
     {
       if (pcTempCU->getInterDir(uiTempPartIdx) == 1 )
@@ -4479,7 +4597,11 @@ Bool TComDataCU::isSuroundingRefIdxException     ( UInt   uiAbsPartIdx )
   }
   
   // Above PU
+#if REDUCE_UPPER_MOTION_DATA
+  pcTempCU = getPUAbove( uiTempPartIdx, m_uiAbsIdxInLCU + uiAbsPartIdx, true, true, true );
+#else
   pcTempCU = getPUAbove( uiTempPartIdx, m_uiAbsIdxInLCU + uiAbsPartIdx );
+#endif
   if ( pcTempCU )
   {
     if (pcTempCU->getInterDir(uiTempPartIdx) == 1 )
@@ -4503,7 +4625,11 @@ Bool TComDataCU::isSuroundingRefIdxException     ( UInt   uiAbsPartIdx )
   }
   
   // Above left PU
+#if REDUCE_UPPER_MOTION_DATA
+  pcTempCU = getPUAboveLeft( uiTempPartIdx, m_uiAbsIdxInLCU + uiAbsPartIdx, true, true, true );
+#else
   pcTempCU = getPUAboveLeft( uiTempPartIdx, m_uiAbsIdxInLCU + uiAbsPartIdx );
+#endif
   if ( pcTempCU )
   {
     if (pcTempCU->getInterDir(uiTempPartIdx) == 1 )

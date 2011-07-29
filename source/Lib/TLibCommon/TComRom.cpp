@@ -107,6 +107,9 @@ UInt g_auiZscanToRaster [ MAX_NUM_SPU_W*MAX_NUM_SPU_W ] = { 0, };
 UInt g_auiRasterToZscan [ MAX_NUM_SPU_W*MAX_NUM_SPU_W ] = { 0, };
 UInt g_auiRasterToPelX  [ MAX_NUM_SPU_W*MAX_NUM_SPU_W ] = { 0, };
 UInt g_auiRasterToPelY  [ MAX_NUM_SPU_W*MAX_NUM_SPU_W ] = { 0, };
+#if REDUCE_UPPER_MOTION_DATA
+UInt g_auiMotionRefer   [ MAX_NUM_SPU_W*MAX_NUM_SPU_W ] = { 0, }; 
+#endif
 
 UInt g_auiPUOffset[4] = { 0, 8, 4, 4 };
 
@@ -142,6 +145,52 @@ Void initRasterToZscan ( UInt uiMaxCUWidth, UInt uiMaxCUHeight, UInt uiMaxDepth 
     g_auiRasterToZscan[ g_auiZscanToRaster[i] ] = i;
   }
 }
+
+#if REDUCE_UPPER_MOTION_DATA
+/** generate motion data compression mapping table
+* \param uiMaxCUWidth, width of LCU
+* \param uiMaxCUHeight, hight of LCU
+* \param uiMaxDepth, max depth of LCU
+* \returns Void
+*/
+Void initMotionReferIdx ( UInt uiMaxCUWidth, UInt uiMaxCUHeight, UInt uiMaxDepth )
+{
+  UInt  uiMinCUWidth  = uiMaxCUWidth  >> ( uiMaxDepth - 1 );
+  UInt  uiMinCUHeight = uiMaxCUHeight >> ( uiMaxDepth - 1 );
+
+  UInt  uiNumPartInWidth  = (UInt)uiMaxCUWidth  / uiMinCUWidth;
+  UInt  uiNumPartInHeight = (UInt)uiMaxCUHeight / uiMinCUHeight;
+
+  for ( UInt i = 0; i < uiNumPartInWidth*uiNumPartInHeight; i++ )
+  {
+    g_auiMotionRefer[i] = i;
+  }
+
+  if ( uiNumPartInWidth < 4 )
+  {
+    return;
+  }
+
+  UInt uiCompressionNum = 2;
+
+  for ( UInt i = uiNumPartInWidth*(uiNumPartInHeight-1); i < uiNumPartInWidth*uiNumPartInHeight; i += uiCompressionNum*2)
+  {
+    for ( UInt j = 1; j < uiCompressionNum; j++ )
+    {
+      g_auiMotionRefer[g_auiRasterToZscan[i+j]] = g_auiRasterToZscan[i];
+    }
+  }
+
+  for ( UInt i = uiNumPartInWidth*(uiNumPartInHeight-1)+uiCompressionNum*2-1; i < uiNumPartInWidth*uiNumPartInHeight; i += uiCompressionNum*2)
+  {
+    for ( UInt j = 1; j < uiCompressionNum; j++ )
+    {
+      g_auiMotionRefer[g_auiRasterToZscan[i-j]] = g_auiRasterToZscan[i];
+    }
+  }
+}
+
+#endif
 
 Void initRasterToPelXY ( UInt uiMaxCUWidth, UInt uiMaxCUHeight, UInt uiMaxDepth )
 {

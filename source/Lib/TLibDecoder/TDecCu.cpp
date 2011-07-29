@@ -91,6 +91,9 @@ Void TDecCu::create( UInt uiMaxDepth, UInt uiMaxWidth, UInt uiMaxHeight )
   
   // initialize conversion matrix from partition index to pel
   initRasterToPelXY( uiMaxWidth, uiMaxHeight, m_uiMaxDepth );
+#if REDUCE_UPPER_MOTION_DATA
+  initMotionReferIdx ( uiMaxWidth, uiMaxHeight, m_uiMaxDepth );
+#endif
 }
 
 Void TDecCu::destroy()
