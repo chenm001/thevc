@@ -841,6 +841,7 @@ TComSPS::~TComSPS()
 
 TComPPS::TComPPS()
 : m_PPSId                       (0)
+, m_SPSId                       (0)
 , m_bConstrainedIntraPred       (false)
 #if SUB_LCU_DQP
 , m_pcSPS                       (NULL)
