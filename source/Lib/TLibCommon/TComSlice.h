@@ -76,6 +76,9 @@ private:
 #if E057_INTRA_PCM
   UInt        m_uiPCMLog2MinSize;
 #endif
+#if DISABLE_4x4_INTER
+  Bool        m_bDisInter4x4;
+#endif    
   Bool        m_bUseALF;
   Bool        m_bUseDQP;
   Bool        m_bUseLDC;
@@ -141,6 +144,10 @@ public:
 #if E057_INTRA_PCM
   Void setPCMLog2MinSize  ( UInt u ) { m_uiPCMLog2MinSize = u;      }
   UInt getPCMLog2MinSize  ()         { return  m_uiPCMLog2MinSize;  }
+#endif
+#if DISABLE_4x4_INTER
+  Bool getDisInter4x4()         { return m_bDisInter4x4;        }
+  Void setDisInter4x4      ( Bool b ) { m_bDisInter4x4  = b;          }
 #endif
   Void setMinTrDepth  ( UInt u ) { m_uiMinTrDepth = u;      }
   UInt getMinTrDepth  ()         { return  m_uiMinTrDepth;  }

@@ -227,6 +227,9 @@ Void TDecCavlc::parseSPS(TComSPS* pcSPS)
   READ_CODE( 4, uiCode, "pcm_bit_depth_luma_minus1" );           pcSPS->setPCMBitDepthLuma   ( 1 + uiCode );
   READ_CODE( 4, uiCode, "pcm_bit_depth_chroma_minus1" );         pcSPS->setPCMBitDepthChroma ( 1 + uiCode );
 #endif
+#if DISABLE_4x4_INTER
+  xReadFlag( uiCode ); pcSPS->setDisInter4x4( uiCode ? true : false );
+#endif
   // log2_max_frame_num_minus4
   // pic_order_cnt_type
   // if( pic_order_cnt_type  = =  0 )
@@ -828,8 +831,19 @@ Void TDecCavlc::parsePartSize( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth
     }
     else
     {
+#if DISABLE_4x4_INTER
+      if(pcCU->getSlice()->getSPS()->getDisInter4x4())
+      {
+        uiMode = 2;
+      }
+      else
+      {
+#endif
       xReadFlag( uiSymbol );
       uiMode = uiSymbol ? 2 : 0;
+#if DISABLE_4x4_INTER
+      }
+#endif
     }
   }
   PartSize ePartSize;

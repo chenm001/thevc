@@ -538,6 +538,10 @@ Void TEncCu::xCompressCU( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, UInt u
           xCheckRDCostInter( rpcBestCU, rpcTempCU, SIZE_2Nx2N );
           rpcTempCU->initEstData();
 #endif
+#if DISABLE_4x4_INTER
+        if(!rpcBestCU->getSlice()->getSPS()->getDisInter4x4() )
+        {
+#endif
           if( uiDepth == g_uiMaxCUDepth - g_uiAddCUDepth )
           {
             xCheckRDCostInter( rpcBestCU, rpcTempCU, SIZE_NxN   );
@@ -547,6 +551,9 @@ Void TEncCu::xCompressCU( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, UInt u
             rpcTempCU->initEstData();
 #endif
           }
+#if DISABLE_4x4_INTER
+        }
+#endif
         }
 
         { // 2NxN, Nx2N

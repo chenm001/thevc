@@ -811,6 +811,9 @@ TComSPS::TComSPS()
 #if E057_INTRA_PCM
 , m_uiPCMLog2MinSize          (  7)
 #endif
+#if DISABLE_4x4_INTER
+, m_bDisInter4x4              (  1)
+#endif    
 , m_bUseALF                   (false)
 , m_bUseDQP                   (false)
 , m_bUseLDC                   (false)

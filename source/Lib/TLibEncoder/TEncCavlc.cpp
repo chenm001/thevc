@@ -351,7 +351,9 @@ Void TEncCavlc::codeSPS( TComSPS* pcSPS )
   WRITE_CODE( pcSPS->getPCMBitDepthLuma() - 1, 4,   "pcm_bit_depth_luma_minus1" );
   WRITE_CODE( pcSPS->getPCMBitDepthChroma() - 1, 4, "pcm_bit_depth_chroma_minus1" );
 #endif
-
+#if DISABLE_4x4_INTER
+  xWriteFlag  ( (pcSPS->getDisInter4x4()) ? 1 : 0 );
+#endif  
   // log2_max_frame_num_minus4
   // pic_order_cnt_type
   // if( pic_order_cnt_type  = =  0 )
@@ -637,7 +639,14 @@ Void TEncCavlc::codePartSize( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth 
       else
       {
         xWriteFlag(0);
+#if DISABLE_4x4_INTER
+        if(!pcCU->getSlice()->getSPS()->getDisInter4x4())
+        {
+#endif
         xWriteFlag( uiIntraFlag? 1 : 0 );
+#if DISABLE_4x4_INTER
+        }
+#endif
       }
 
       return;
