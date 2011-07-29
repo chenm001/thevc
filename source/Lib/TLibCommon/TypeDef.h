@@ -192,6 +192,10 @@
 #endif
 #define MN_DC_PRED_FILTER            1       ///< JCTVC-E069: DC prediction samples filtering
 
+#if MN_DC_PRED_FILTER
+#define MN_DC_PRED_FILTER_UNIFIED    1       // using unified filter for all block size
+#endif
+
 #define MVD_CTX            1           // JCTVC-E324: Modified context selection for MVD
 #define PARALLEL_DEBLK_DECISION      1 // JCTC-E224: Parallel decisions
 #define PARALLEL_MERGED_DEBLK        1 // JCTC-E224, JCTVC-E181: Parallel decisions + Parallel filtering
