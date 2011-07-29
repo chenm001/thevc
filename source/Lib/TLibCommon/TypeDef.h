@@ -181,6 +181,7 @@
 #define VAR_SIZE_H           4
 #define VAR_SIZE_W           4
 #define NO_VAR_BIN          16
+#define BA_SUB               1  // JCTVC-F301: ALF BA on subset of pixels
 #endif
 
 #define STAR_CROSS_SHAPES_LUMA 1 // JCTVC-F303: ALF using vertical-size 5 filters with up to 9 coefficients
