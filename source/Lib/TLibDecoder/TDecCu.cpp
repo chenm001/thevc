@@ -651,7 +651,11 @@ TDecCu::xIntraRecChromaBlk( TComDataCU* pcCU,
   }
   else
   {
+#if FIXED_MPM
+    if( uiChromaPredMode == DM_CHROMA_IDX )
+#else
     if( uiChromaPredMode == 4 )
+#endif
     {
       uiChromaPredMode = pcCU->getLumaIntraDir( 0 );
     }

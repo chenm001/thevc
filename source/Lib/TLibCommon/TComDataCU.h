@@ -466,7 +466,10 @@ public:
   Int           getLeftIntraDirLuma             ( UInt uiAbsPartIdx );
   Int           getAboveIntraDirLuma            ( UInt uiAbsPartIdx );
 
-#if MTK_DCM_MPM
+#if FIXED_MPM
+  Void          getAllowedChromaDir             ( UInt uiAbsPartIdx, UInt* uiModeList );
+  Int           getIntraDirLumaPredictor        ( UInt uiAbsPartIdx, Int* uiIntraDirPred, Int* piMode = NULL );
+#elif MTK_DCM_MPM
   Int           getIntraDirLumaPredictor        ( UInt uiAbsPartIdx, Int uiIntraDirPred[]                 );
 #endif
 

@@ -151,6 +151,16 @@
 
 #define MTK_DCM_MPM 1 // MostProbableModeSignaling
 
+#define FIXED_MPM                        1           ///< Fixed number of MPMs for intra mode parsing. Solution A of JCTVC-F765
+#if FIXED_MPM
+#define NUM_CHROMA_MODE        6                     // total number of chroma modes
+#define DM_CHROMA_IDX          36                    // chroma mode index for derived from luma intra mode
+#if !ADD_PLANAR_MODE || !MTK_DCM_MPM
+#error "ADD_PLANAR_MODE and MTK_DCM_MPM should be enabled"
+#endif
+#endif
+
+
 #define FAST_UDI_USE_MPM 1
 #define SONY_SIG_CTX 1
 #define SUB_LCU_DQP  1                               ///< syntax change of sub-LCU-level dQP (JCTVC-E051/220/391/436/217/D038/D258)
