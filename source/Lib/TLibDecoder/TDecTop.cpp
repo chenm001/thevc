@@ -413,6 +413,31 @@ Bool TDecTop::decode(InputNALUnit& nalu, Int& iSkipFrame, Int& iPOCLastDisplay)
             pcSlice->setRefPic(pcSlice->getRefPic(REF_PIC_LIST_0, iRefIdx), REF_PIC_LIST_1, iRefIdx);
           }
         }
+#if TMVP_ONE_LIST_CHECK
+        if (pcSlice->isInterB())
+        {
+          Bool bLowDelay = true;
+          Int  iCurrPOC  = pcSlice->getPOC();
+          Int iRefIdx = 0;
+
+          for (iRefIdx = 0; iRefIdx < pcSlice->getNumRefIdx(REF_PIC_LIST_0) && bLowDelay; iRefIdx++)
+          {
+            if ( pcSlice->getRefPic(REF_PIC_LIST_0, iRefIdx)->getPOC() > iCurrPOC )
+            {
+              bLowDelay = false;
+            }
+          }
+          for (iRefIdx = 0; iRefIdx < pcSlice->getNumRefIdx(REF_PIC_LIST_1) && bLowDelay; iRefIdx++)
+          {
+            if ( pcSlice->getRefPic(REF_PIC_LIST_1, iRefIdx)->getPOC() > iCurrPOC )
+            {
+              bLowDelay = false;
+            }
+          }
+
+          pcSlice->setCheckLDC(bLowDelay);            
+        }
+#endif
         
         //---------------
         pcSlice->setRefPOCList();

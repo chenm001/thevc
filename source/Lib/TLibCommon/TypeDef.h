@@ -214,6 +214,8 @@
 
 #define E045_SLICE_COMMON_INFO_SHARING 1 //JCTVC-E045: Slice common information sharing
 
+#define TMVP_ONE_LIST_CHECK    1 //JCTVC-F587: Reduction of reference picture list checking for temporal motion vector prediction
+
 // ====================================================================================================================
 // Basic type redefinition
 // ====================================================================================================================

@@ -4180,6 +4180,26 @@ Bool TComDataCU::xGetColMVP( RefPicList eRefPicList, Int uiCUAddr, Int uiPartUni
   {
     return false;
   }
+
+#if TMVP_ONE_LIST_CHECK
+  eColRefPicList = getSlice()->getCheckLDC() ? eRefPicList : RefPicList(1-getSlice()->getColDir());
+
+  Int iColRefIdx = pColCU->getCUMvField(RefPicList(eColRefPicList))->getRefIdx(uiAbsPartAddr);
+
+  if (iColRefIdx < 0 )
+  {
+    eColRefPicList = RefPicList(1 - eColRefPicList);
+    iColRefIdx = pColCU->getCUMvField(RefPicList(eColRefPicList))->getRefIdx(uiAbsPartAddr);
+
+    if (iColRefIdx < 0 )
+    {
+      return false;
+    }
+  }
+
+  // Scale the vector.
+  iColRefPOC = pColCU->getSlice()->getRefPOC(eColRefPicList, iColRefIdx);
+#else
   // Prefer a vector crossing us.  Prefer shortest.
   eColRefPicList = REF_PIC_LIST_0;
   bool bFirstCrosses = false;
@@ -4221,6 +4241,7 @@ Bool TComDataCU::xGetColMVP( RefPicList eRefPicList, Int uiCUAddr, Int uiPartUni
   }
   // Scale the vector.
   iColRefPOC = pColCU->getSlice()->getRefPOC(eColRefPicList, pColCU->getCUMvField(eColRefPicList)->getRefIdx(uiAbsPartAddr));
+#endif
   cColMv = pColCU->getCUMvField(eColRefPicList)->getMv(uiAbsPartAddr);
 
   iCurrRefPOC = m_pcSlice->getRefPic(eRefPicList, riRefIdx)->getPOC();
