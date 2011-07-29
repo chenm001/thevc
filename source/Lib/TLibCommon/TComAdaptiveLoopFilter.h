@@ -66,9 +66,20 @@
 #define VAR_SIZE               3
 #endif
 
+#if STAR_CROSS_SHAPES_LUMA
+// max tap = max_horizontal_tap = 11
+#define FILTER_LENGTH         11
+#else
 #define FILTER_LENGTH          9
+#endif
 
+#if STAR_CROSS_SHAPES_LUMA
+// ((max_horizontal_tap * max_vertical_tap) / 2 + 2) = ((11 * 5) / 2 + 2)
+#define MAX_SQR_FILT_LENGTH   29
+#else
 #define MAX_SQR_FILT_LENGTH   ((FILTER_LENGTH*FILTER_LENGTH) / 2 + 2)
+#endif
+
 #if TI_ALF_MAX_VSIZE_7
 #define SQR_FILT_LENGTH_9SYM  ((9*9) / 4 + 2 - 1) 
 #else
@@ -76,11 +87,21 @@
 #endif
 #define SQR_FILT_LENGTH_7SYM  ((7*7) / 4 + 2) 
 #define SQR_FILT_LENGTH_5SYM  ((5*5) / 4 + 2) 
+#if STAR_CROSS_SHAPES_LUMA
+// max_tap + 2 = 11 + 2 
+#define MAX_SCAN_VAL    13
+#else
 #define MAX_SCAN_VAL    11
+#endif
 #define MAX_EXP_GOLOMB  16
 
 #define imgpel  unsigned short
 
+#if STAR_CROSS_SHAPES_LUMA
+extern Int depthIntShape0Sym[10];
+extern Int depthIntShape1Sym[9];
+extern Int *pDepthIntTab_shapes[NO_TEST_FILT];
+#endif
 #if TI_ALF_MAX_VSIZE_7
 extern Int depthInt9x9Sym[21];
 #else
@@ -461,6 +482,18 @@ protected:
   // ------------------------------------------------------------------------------------------------------------------
   // For luma component
   // ------------------------------------------------------------------------------------------------------------------
+#if STAR_CROSS_SHAPES_LUMA
+  static Int patternShape0Sym[17];
+  static Int weightsShape0Sym[10];
+  static Int patternShape0Sym_Quart[29];
+  static Int patternShape1Sym[15];
+  static Int weightsShape1Sym[9];
+  static Int patternShape1Sym_Quart[29];
+  static Int *patternTab_filt_shapes[NO_TEST_FILT];
+  static Int *patternTab_shapes[NO_TEST_FILT]; 
+  static Int *patternMapTab_shapes[NO_TEST_FILT];
+  static Int *weightsTab_shapes[NO_TEST_FILT];
+#endif
 #if TI_ALF_MAX_VSIZE_7
   static Int m_pattern9x9Sym[39];
   static Int m_weights9x9Sym[21];
@@ -475,6 +508,11 @@ protected:
   static Int m_pattern5x5Sym[13];
   static Int m_weights5x5Sym[8];
   static Int m_pattern5x5Sym_Quart[45];
+#if STAR_CROSS_SHAPES_LUMA
+  static Int pattern11x5Sym_Shape0[17];
+  static Int pattern11x5Sym_Shape1[15];
+  static Int pattern11x5Sym_11x5[55];
+#endif
 #if TI_ALF_MAX_VSIZE_7
   static Int m_pattern9x9Sym_9[39];
 #else

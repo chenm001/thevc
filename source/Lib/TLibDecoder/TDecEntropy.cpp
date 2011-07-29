@@ -47,8 +47,12 @@ Void TDecEntropy::setEntropyDecoder         ( TDecEntropyIf* p )
 Void TDecEntropy::decodeAux(ALFParam* pAlfParam)
 {
   UInt uiSymbol;
+#if STAR_CROSS_SHAPES_LUMA
+  Int sqrFiltLengthTab[2] = {10, 9}; 
+#else
   Int sqrFiltLengthTab[3] = {SQR_FILT_LENGTH_9SYM, SQR_FILT_LENGTH_7SYM, SQR_FILT_LENGTH_5SYM};
   Int FiltTab[3] = {9, 7, 5};
+#endif
   
   pAlfParam->filters_per_group = 0;
   
@@ -67,11 +71,15 @@ Void TDecEntropy::decodeAux(ALFParam* pAlfParam)
 #endif
 
   m_pcEntropyDecoderIf->parseAlfUvlc(uiSymbol);
+#if STAR_CROSS_SHAPES_LUMA
+  pAlfParam->realfiltNo = uiSymbol;
+#else
   Int TabIdx = uiSymbol;
   pAlfParam->realfiltNo = 2-TabIdx;
   pAlfParam->tap = FiltTab[pAlfParam->realfiltNo];
 #if TI_ALF_MAX_VSIZE_7
   pAlfParam->tapV = TComAdaptiveLoopFilter::ALFTapHToTapV(pAlfParam->tap);
+#endif
 #endif
   pAlfParam->num_coeff = sqrFiltLengthTab[pAlfParam->realfiltNo];
   
@@ -128,6 +136,11 @@ Void TDecEntropy::readFilterCodingParams(ALFParam* pAlfParam)
   int kMin;
   int maxScanVal;
   int *pDepthInt;
+#if STAR_CROSS_SHAPES_LUMA
+  // Determine maxScanVal
+  maxScanVal = 0;
+  pDepthInt = pDepthIntTab_shapes[pAlfParam->realfiltNo];
+#else
   int fl;
   
   // Determine fl
@@ -141,6 +154,7 @@ Void TDecEntropy::readFilterCodingParams(ALFParam* pAlfParam)
   // Determine maxScanVal
   maxScanVal = 0;
   pDepthInt = pDepthIntTab[fl - 2];
+#endif
   for(ind = 0; ind < pAlfParam->num_coeff; ind++)
     maxScanVal = max(maxScanVal, pDepthInt[ind]);
   
@@ -195,6 +209,9 @@ Void TDecEntropy::readFilterCoeffs(ALFParam* pAlfParam)
 {
   int ind, scanPos, i;
   int *pDepthInt;
+#if STAR_CROSS_SHAPES_LUMA
+  pDepthInt = pDepthIntTab_shapes[pAlfParam->realfiltNo];
+#else
   int fl;
   
   if(pAlfParam->num_coeff == SQR_FILT_LENGTH_9SYM)
@@ -205,6 +222,7 @@ Void TDecEntropy::readFilterCoeffs(ALFParam* pAlfParam)
     fl = 2;
   
   pDepthInt = pDepthIntTab[fl - 2];
+#endif
   
   for(ind = 0; ind < pAlfParam->filters_per_group_diff; ++ind)
   {
