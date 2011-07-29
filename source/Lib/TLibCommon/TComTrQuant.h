@@ -230,6 +230,20 @@ UInt             getCurrLineNum(UInt uiScanIdx, UInt uiPosX, UInt uiPosY);
                                      UInt&                           uiAbsSum,
                                      TextType                        eTType,
                                      UInt                            uiAbsPartIdx );
+#if UNIFIED_SCAN
+__inline UInt              xGetCodedLevel  ( Double&                         rd64CodedCost,
+                                             Double&                         rd64CodedCost0,
+                                             Double&                         rd64CodedCostSig,
+                                             Long                            lLevelDouble,
+                                             UInt                            uiMaxAbsLevel,
+                                             UShort                          ui16CtxNumSig,
+                                             UShort                          ui16CtxNumOne,
+                                             UShort                          ui16CtxNumAbs,
+                                             UShort                          ui16AbsGoRice,
+                                             Int                             iQBits,
+                                             Double                          dTemp,
+                                             Bool                            bLast        ) const;
+#else
   __inline UInt  xGetCodedLevel    ( Double&                         rd64UncodedCost,
                                      Double&                         rd64CodedCost,
                                      Double&                         rd64CodedLastCost,
@@ -241,7 +255,9 @@ UInt             getCurrLineNum(UInt uiScanIdx, UInt uiPosX, UInt uiPosY);
                                      UShort                          ui16CtxNumAbs,
                                      UShort                          ui16AbsGoRice,
                                      Int                             iQBits,
-                                     Double                          dTemp         ) const;
+                                     Double                          dTemp
+                                    ) const;
+#endif
   __inline Double xGetICRateCost   ( UInt                            uiAbsLevel,
                                      UShort                          ui16CtxNumOne,
                                      UShort                          ui16CtxNumAbs,

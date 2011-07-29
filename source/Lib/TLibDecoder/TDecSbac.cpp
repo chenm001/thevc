@@ -1558,7 +1558,9 @@ Void TDecSbac::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartId
   const UInt  uiLog2BlockSize   = g_aucConvertToBit[ uiWidth ] + 2;
   const UInt  uiMaxNumCoeff     = 1 << ( uiLog2BlockSize << 1 );
   const UInt  uiMaxNumCoeffM1   = uiMaxNumCoeff - 1;
+#if !UNIFIED_SCAN
   const UInt  uiNum4x4Blk       = max<UInt>( 1, uiMaxNumCoeff >> 4 );
+#endif
 #if QC_MDCS
   const UInt uiScanIdx = pcCU->getCoefScanIdx(uiAbsPartIdx, uiWidth, eTType==TEXT_LUMA, pcCU->isIntra(uiAbsPartIdx));
 #endif //QC_MDCS
@@ -1576,17 +1578,52 @@ Void TDecSbac::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartId
   sigCoeffCount++;
 
   //===== decode significance flags =====
+#if UNIFIED_SCAN
+  UInt uiScanPosLast   = uiBlkPosLast;
+  if( uiScanIdx == SCAN_ZIGZAG )
+  {
+    UInt uiD         = uiPosLastY + uiPosLastX;
+    if( uiD < uiWidth )
+    {
+#if DIAG_SCAN
+      uiScanPosLast  = uiPosLastX + (( uiD * ( uiD + 1 ) ) >> 1);
+#else
+      uiScanPosLast  = ( uiD * ( uiD + 1 ) ) >> 1;
+      uiScanPosLast += uiD % 2 ? uiPosLastY : uiPosLastX;
+#endif
+    } 
+    else
+    {
+      UInt uiDI      = ( (uiWidth-1) << 1 ) - uiD;
+#if DIAG_SCAN
+      uiScanPosLast  = uiMaxNumCoeffM1 - ( uiDI * ( uiDI + 1 ) >> 1 ) - uiWidth + 1 + uiPosLastX;
+#else
+      uiScanPosLast  = uiMaxNumCoeffM1 - ( uiDI * ( uiDI + 1 ) >> 1 );
+      uiScanPosLast -= uiDI % 2 ? uiWidth - 1 - uiPosLastY : uiWidth - 1 - uiPosLastX;
+#endif
+    }
+  }
+  else if( uiScanIdx == SCAN_VER )
+  {
+    uiScanPosLast = uiPosLastY + (uiPosLastX<<uiLog2BlockSize);
+  }
+
+  for( UInt uiScanPos = uiScanPosLast-1; uiScanPos != -1; uiScanPos-- )
+#else
   for( UInt uiScanPos = 0; uiScanPos < uiMaxNumCoeffM1; uiScanPos++ )
+#endif
   {
 #if QC_MDCS
     UInt uiBlkPos = g_auiSigLastScan[uiScanIdx][uiLog2BlockSize-1][uiScanPos]; 
 #else
     UInt  uiBlkPos  = g_auiFrameScanXY[ uiLog2BlockSize-1 ][ uiScanPos ];
 #endif //QC_MDCS
+#if !UNIFIED_SCAN
     if( uiBlkPosLast == uiBlkPos )
     {
       break;
     }
+#endif
     UInt  uiPosY    = uiBlkPos >> uiLog2BlockSize;
     UInt  uiPosX    = uiBlkPos - ( uiPosY << uiLog2BlockSize );
     UInt  uiSig     = 0;
@@ -1596,6 +1633,105 @@ Void TDecSbac::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartId
     sigCoeffCount += uiSig;
   }
 
+#if UNIFIED_SCAN
+  const UInt uiLog2BlockSizeM1 = uiLog2BlockSize - 1;
+  const Int  iLastScanSet      = uiScanPosLast >> LOG2_SCAN_SET_SIZE;
+  UInt uiNumOne                = 0;
+  UInt uiGoRiceParam           = 0;
+
+  for( Int iSubSet = iLastScanSet; iSubSet >= 0 && sigCoeffCount > 0; iSubSet-- )
+  {
+    Bool bSigSubSet  = false;
+    Int  iLastPos    = 0;
+    Int  iSubPos     = iSubSet << LOG2_SCAN_SET_SIZE;
+    uiGoRiceParam    = 0;
+
+    const UInt *puiSetScan  = g_auiSigLastScan[uiScanIdx][uiLog2BlockSizeM1] + iSubPos;
+    for( Int iScanPos = SCAN_SET_SIZE-1; iScanPos >= 0; iScanPos-- )
+    {
+      UInt uiBlkPos = puiSetScan[ iScanPos ];
+      if( pcCoef[ uiBlkPos ] )
+      {
+        bSigSubSet  = true;
+        iLastPos    = iScanPos;
+        break;
+      }
+    }
+
+    if( bSigSubSet )
+    {
+      UInt c1 = 1;
+      UInt c2 = 0;
+      UInt uiCtxSet = iSubSet > 0 ? 3 : 0;
+      UInt uiBin;
+
+      if( uiNumOne > 0 )
+      {
+        uiCtxSet++;
+        if( uiNumOne > 3 )
+        {
+          uiCtxSet++;
+        }
+      }
+
+      uiNumOne       >>= 1;
+      ContextModel *baseCtxMod = m_cCUOneSCModel.get( 0, eTType ) + 5 * uiCtxSet;
+
+      for( Int iScanPos = iLastPos; iScanPos >= 0; iScanPos-- )
+      {
+        UInt uiBlkPos = puiSetScan[ iScanPos ]; 
+        if( pcCoef[ uiBlkPos ] )
+        {
+          m_pcTDecBinIf->decodeBin( uiBin, baseCtxMod[c1] );
+          if( uiBin == 1 )
+          {
+            c1 = 0;
+          }
+          else if( c1 & 3 )
+          {
+            c1++;
+          }
+          pcCoef[ uiBlkPos ] = uiBin + 1;
+        }
+      }
+
+      if (c1 == 0)
+      {
+        baseCtxMod = m_cCUAbsSCModel.get( 0, eTType ) + 5 * uiCtxSet;
+        for( Int iScanPos = iLastPos; iScanPos >= 0; iScanPos-- )
+        {
+          UInt uiBlkPos = puiSetScan[ iScanPos ]; 
+          if( pcCoef[ uiBlkPos ] == 2 ) 
+          {
+            m_pcTDecBinIf->decodeBin( uiBin, baseCtxMod[c2] );
+            if( uiBin )
+            {
+              UInt uiLevel;
+              xReadGoRiceExGolomb( uiLevel, uiGoRiceParam );
+              pcCoef[ uiBlkPos ] = uiLevel + 3;
+            }
+            c2 += (c2 < 4);
+            uiNumOne++;
+          }
+        }
+      }
+
+      for( Int iScanPos = iLastPos; iScanPos >= 0; iScanPos-- )
+      {
+        UInt uiBlkPos = puiSetScan[ iScanPos ]; 
+        if( pcCoef[ uiBlkPos ] )
+        {
+          m_pcTDecBinIf->decodeBinEP( uiBin );
+          pcCoef[ uiBlkPos ] = ( uiBin ? -pcCoef[ uiBlkPos ] : pcCoef[ uiBlkPos ] );
+        }
+      }
+    }
+    else
+    {
+      uiNumOne >>= 1;
+    }
+  }
+#else
   /*
    * Sign and bin0 PCP (Section 3.2 and 3.3 of JCTVC-B088)
    */
@@ -1765,6 +1901,7 @@ Void TDecSbac::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartId
       }
     }
   }
+#endif
   
   return;
 }

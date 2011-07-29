@@ -1783,7 +1783,30 @@ Void initFrameScanXY( UInt* pBuff, UInt* pBuffX, UInt* pBuffY, Int iWidth, Int i
 #if QC_MDCS
 Void initSigLastScan(UInt* pBuffZ, UInt* pBuffH, UInt* pBuffV, Int iWidth, Int iHeight, Int iDepth)
 {
+#if DIAG_SCAN
+  const UInt  uiNumScanPos  = UInt( iWidth * iWidth );
+  UInt        uiNextScanPos = 0;
+
+  for( UInt uiScanLine = 0; uiNextScanPos < uiNumScanPos; uiScanLine++ )
+  {
+    int    iPrimDim  = int( uiScanLine );
+    int    iScndDim  = 0;
+    while( iPrimDim >= iWidth )
+    {
+      iScndDim++;
+      iPrimDim--;
+    }
+    while( iPrimDim >= 0 && iScndDim < iWidth )
+    {
+      pBuffZ[ uiNextScanPos ] = iPrimDim * iWidth + iScndDim ;
+      uiNextScanPos++;
+      iScndDim++;
+      iPrimDim--;
+    }
+  }
+#else
   memcpy(pBuffZ, g_auiFrameScanXY[iDepth], sizeof(UInt)*iWidth*iHeight);
+#endif
 
   UInt uiCnt = 0;
   for(Int iY=0; iY < iHeight; iY++)

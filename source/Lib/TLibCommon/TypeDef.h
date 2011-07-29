@@ -97,9 +97,12 @@
 
 #define REMOVE_INTERMEDIATE_CLIPPING      1          // No intermediate clipping in bi-prediction JCTVC-E242
 
-////////////////
-// E494 (E227/E338/E344/E489/E494): PCP SIGMAP + REDUCED CONTEXTS
-////////////////
+#define UNIFIED_SCAN                      1           // JCTVC-F288+F134(F746) Unified Scans for significance map and coefficient level
+#if UNIFIED_SCAN
+#define SCAN_SET_SIZE                     16
+#define LOG2_SCAN_SET_SIZE                4
+#endif
+#define DIAG_SCAN                         1
 
 #define QC_MDIS                           1           // JCTVC-D282: enable mode dependent intra smoothing
 #define QC_MDCS                           1           // JCTVC-D393: mode dependent coefficients coding 
@@ -160,7 +163,6 @@
 #define MTK_DCM_MPM 1 // MostProbableModeSignaling
 
 #define FAST_UDI_USE_MPM 1
-#define SONY_SIG_CTX 1
 #define SUB_LCU_DQP  1                               ///< syntax change of sub-LCU-level dQP (JCTVC-E051/220/391/436/217/D038/D258)
 
 #define TI_ALF_MAX_VSIZE_7 1

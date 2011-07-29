@@ -1448,7 +1448,9 @@ Void TEncSbac::codeCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx
   //----- encode significance map -----
   const UInt   uiLog2BlockSize   = g_aucConvertToBit[ uiWidth ] + 2;
   const UInt   uiMaxNumCoeff     = 1 << ( uiLog2BlockSize << 1 );
+#if !UNIFIED_SCAN
   const UInt   uiNum4x4Blk       = max<UInt>( 1, uiMaxNumCoeff >> 4 );
+#endif
 #if QC_MDCS
   const UInt uiScanIdx = pcCU->getCoefScanIdx(uiAbsPartIdx, uiWidth, eTType==TEXT_LUMA, pcCU->isIntra(uiAbsPartIdx));
 #endif //QC_MDCS
@@ -1482,22 +1484,124 @@ Void TEncSbac::codeCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx
     }
 
     //===== code significance flag =====
-    {
-      for( UInt uiScanPos = 0; uiScanPos < uiScanPosLast; uiScanPos++ )
-      {
-#if QC_MDCS
-        UInt uiBlkPos   = g_auiSigLastScan[uiScanIdx][uiLog2BlockSize-1][uiScanPos]; 
+#if UNIFIED_SCAN
+    for( UInt uiScanPos = uiScanPosLast-1; uiScanPos != -1; uiScanPos-- )
 #else
-        UInt  uiBlkPos  = g_auiFrameScanXY[ uiLog2BlockSize-1 ][ uiScanPos ];
+    for( UInt uiScanPos = 0; uiScanPos < uiScanPosLast; uiScanPos++ )
+#endif
+    {
+#if QC_MDCS
+      UInt uiBlkPos   = g_auiSigLastScan[uiScanIdx][uiLog2BlockSize-1][uiScanPos]; 
+#else
+      UInt  uiBlkPos  = g_auiFrameScanXY[ uiLog2BlockSize-1 ][ uiScanPos ];
 #endif //QC_MDCS
-        UInt  uiPosY    = uiBlkPos >> uiLog2BlockSize;
-        UInt  uiPosX    = uiBlkPos - ( uiPosY << uiLog2BlockSize );
-        UInt  uiSig     = pcCoef[ uiBlkPos ] != 0 ? 1 : 0;
-        UInt  uiCtxSig  = TComTrQuant::getSigCtxInc( pcCoef, uiPosX, uiPosY, uiLog2BlockSize, uiWidth );
-        m_pcBinIf->encodeBin( uiSig, m_cCUSigSCModel.get( 0, eTType, uiCtxSig ) );
+      UInt  uiPosY    = uiBlkPos >> uiLog2BlockSize;
+      UInt  uiPosX    = uiBlkPos - ( uiPosY << uiLog2BlockSize );
+      UInt  uiSig     = pcCoef[ uiBlkPos ] != 0 ? 1 : 0;
+      UInt  uiCtxSig  = TComTrQuant::getSigCtxInc( pcCoef, uiPosX, uiPosY, uiLog2BlockSize, uiWidth );
+      m_pcBinIf->encodeBin( uiSig, m_cCUSigSCModel.get( 0, eTType, uiCtxSig ) );
+    }
+
+#if UNIFIED_SCAN
+  const UInt uiLog2BlockSizeM1 = uiLog2BlockSize - 1;
+  const Int  iLastScanSet      = uiScanPosLast >> LOG2_SCAN_SET_SIZE;
+  UInt uiNumOne                = 0;
+  UInt uiGoRiceParam           = 0;
+
+  for( Int iSubSet = iLastScanSet; iSubSet >= 0; iSubSet-- )
+  {
+    Bool bSigSubSet  = false;
+    Int  iLastPos    = 0;
+    Int  iSubPos     = iSubSet << LOG2_SCAN_SET_SIZE;
+    uiGoRiceParam    = 0;
+
+    const UInt *puiSetScan  = g_auiSigLastScan[uiScanIdx][uiLog2BlockSizeM1] + iSubPos;
+    for( Int iScanPos = SCAN_SET_SIZE-1; iScanPos >= 0; iScanPos-- )
+    {
+      UInt uiBlkPos = puiSetScan[ iScanPos ];
+      if( pcCoef[ uiBlkPos ] )
+      {
+        bSigSubSet  = true;
+        iLastPos    = iScanPos;
+        break;
       }
     }
 
+    if( bSigSubSet )
+    {
+      UInt c1 = 1;
+      UInt c2 = 0;
+      UInt uiCtxSet = iSubSet > 0 ? 3 : 0;
+
+      if( uiNumOne > 0 )
+      {
+        uiCtxSet++;
+        if( uiNumOne > 3 )
+        {
+          uiCtxSet++;
+        }
+      }
+
+      uiNumOne       >>= 1;
+      ContextModel *baseCtxMod = m_cCUOneSCModel.get( 0, eTType ) + 5 * uiCtxSet;
+
+      for( Int iScanPos = iLastPos; iScanPos >= 0; iScanPos-- )
+      {
+        UInt uiBlkPos = puiSetScan[ iScanPos ];
+        if( pcCoef[ uiBlkPos ] )
+        {
+          UInt uiSymbol = abs( pcCoef[ uiBlkPos ] ) > 1 ? 1 : 0;
+          m_pcBinIf->encodeBin( uiSymbol, baseCtxMod[c1] );
+          if( uiSymbol )
+          {
+            c1 = 0;
+          }
+          else if( c1 & 3 )
+          {
+            c1++;
+          }
+        }
+      }
+
+      if (c1 == 0)
+      {
+        baseCtxMod = m_cCUAbsSCModel.get( 0, eTType ) + 5 * uiCtxSet;
+        for( Int iScanPos = iLastPos; iScanPos >= 0; iScanPos-- )
+        {
+          UInt uiBlkPos = puiSetScan[ iScanPos ];
+          if( pcCoef[ uiBlkPos ] )
+          {
+            UInt absVal = abs( pcCoef[ uiBlkPos ] );
+            if( absVal > 1 )
+            {
+              UInt symbol = absVal > 2;
+              m_pcBinIf->encodeBin( symbol, baseCtxMod[c2] );
+              if( symbol )
+              {
+                xWriteGoRiceExGolomb( absVal - 3, uiGoRiceParam );
+              }     
+              c2 += (c2 < 4); // Increment c2 up to a maximum value of 4
+              uiNumOne++;
+            }
+          }
+        }
+    }
+
+      for( Int iScanPos = iLastPos; iScanPos >= 0; iScanPos-- )
+      {
+        UInt uiBlkPos = puiSetScan[ iScanPos ];
+        if( pcCoef[ uiBlkPos ] )
+        {
+          m_pcBinIf->encodeBinEP( pcCoef[ uiBlkPos ] < 0 );
+        }
+      }
+    }
+    else
+    {
+      uiNumOne >>= 1;
+    }
+  }
+#else
   /*
    * Sign and bin0 PCP (Section 3.2 and 3.3 of JCTVC-B088)
    */
@@ -1666,6 +1770,7 @@ Void TEncSbac::codeCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx
       m_pcBinIf->encodeBinEP( sigCoeff[idx] < 0 );
     }
   }
+#endif
   return;
 }
 
@@ -1960,12 +2065,23 @@ Void TEncSbac::estSignificantMapBit( estBitsSbacStruct* pcEstBitsSbac, UInt uiCT
   Int firstCtx, numCtx = 15;
   switch (uiCTXIdx)
   {
+#if UNIFIED_SCAN
+    case 2: // 32x32
+      firstCtx = 31;
+      numCtx = 13;
+      break;
+    case 3: // 16x16
+      firstCtx = 31;
+      numCtx = 13;
+      break;
+#else
     case 2: // 32x32
       firstCtx = 35;
       break;
     case 3: // 16x16
       firstCtx = 31;
       break;
+#endif
     case 4: // 8x8
       firstCtx = 15;
       numCtx = 16;
