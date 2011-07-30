@@ -1344,6 +1344,7 @@ Void TDecEntropy::decodeQuadTreeSplitFlag(SAOParam* pQaoParam, Int iPartIdx)
     //send one flag
     m_pcEntropyDecoderIf->parseAoFlag(uiSymbol); 
     pAlfPart->bSplit = uiSymbol? true:false; 
+
     if(pAlfPart->bSplit)
     {
       for (Int i=0;i<NUM_DOWN_PART;i++)
@@ -1366,6 +1367,7 @@ Void TDecEntropy::decodeSaoParam(SAOParam* pQaoParam)
   UInt uiSymbol;
 
   m_pcEntropyDecoderIf->parseAoFlag(uiSymbol);
+
   if (uiSymbol)
   {
     pQaoParam->bSaoFlag = true;
@@ -1374,12 +1376,14 @@ Void TDecEntropy::decodeSaoParam(SAOParam* pQaoParam)
   {
     pQaoParam->bSaoFlag = false;
   }
+
   if (pQaoParam->bSaoFlag)
   {
 #if MTK_SAO_CHROMA
     decodeQuadTreeSplitFlag(pQaoParam, 0, 0);
     decodeQAOOnePart(pQaoParam, 0, 0);
     m_pcEntropyDecoderIf->parseAoFlag(uiSymbol);
+
     pQaoParam->bSaoFlagCb = uiSymbol? true:false;
     if (pQaoParam->bSaoFlagCb)
     {

@@ -227,6 +227,9 @@ protected:
   Bool  *m_bIsFineSliceCu;
   TComPicYuv* m_pcPicYuvMap;
 #endif
+#if MTK_SAO_REMOVE_SKIP
+  TComPicYuv* m_pcPicYuvTmp;
+#endif
 
 public:
   Void create( UInt uiSourceWidth, UInt uiSourceHeight, UInt uiMaxCUWidth, UInt uiMaxCUHeight, UInt uiMaxCUDepth );

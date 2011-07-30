@@ -1287,6 +1287,7 @@ Void TEncEntropy::encodeQAOOnePart(SAOParam* pQaoParam, Int iPartIdx )
     }
     
     m_pcEntropyCoderIf->codeAoUvlc(uiSymbol);
+
     if (pAlfPart->bEnableFlag)
     {
       for(Int i=0; i< pAlfPart->iLength; i++)
@@ -1342,6 +1343,7 @@ Void TEncEntropy::encodeQuadTreeSplitFlag(SAOParam* pSaoParam, Int iPartIdx)
 
     //send one flag
     m_pcEntropyCoderIf->codeAoFlag( (pSaoPart->bSplit)?(1):(0)  );
+
     if(pSaoPart->bSplit)
     {
       for (Int i=0;i<NUM_DOWN_PART;i++)

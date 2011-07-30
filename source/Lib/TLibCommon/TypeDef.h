@@ -170,9 +170,10 @@
 
 #define MTK_SAO                           1           // JCTVC-E049: Sample adaptive offset
 #define MTK_SAO_CHROMA                    1           // JCTVC-F057: Sample adaptive offset for Chroma
+#define MTK_SAO_REMOVE_SKIP               1
+
 #define SAO_ACCURATE_OFFSET               1           // JCTVC-F396
 #define SAO_CLIP_OFFSET                   1           // JCTVC-F396
-
 
 #define MQT_ALF_NPASS                       1
 
