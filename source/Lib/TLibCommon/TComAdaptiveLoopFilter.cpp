@@ -1197,8 +1197,8 @@ Void TComAdaptiveLoopFilter::calcVar(imgpel **imgY_var, imgpel *imgY_pad, int pa
   Int end_width = img_width;
 #endif
   Int i, j;
-  Int *p_imgY_temp;
 #if (!BA_SUB)
+  Int *p_imgY_temp;
 #if FULL_NBIT
   Int shift= (11+ g_uiBitIncrement + g_uiBitDepth - 8);
 #else
@@ -1228,7 +1228,9 @@ Void TComAdaptiveLoopFilter::calcVar(imgpel **imgY_var, imgpel *imgY_pad, int pa
     imgpel *p_imgY_pad = &imgY_pad[yoffset];
     imgpel *p_imgY_pad_up   = &imgY_pad[yoffset + img_stride];
     imgpel *p_imgY_pad_down = &imgY_pad[yoffset - img_stride];
+#if !BA_SUB
     p_imgY_temp = (Int*)&m_imgY_temp[i-1][start_width];
+#endif
 #if BA_SUB
     for(j = 1+start_width+1; j < end_width +fl2plusOne; j=j+2)  // BA_SUB: Compute at sub-sample by 2
 #else
