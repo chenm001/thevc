@@ -97,7 +97,7 @@
 
 #define REMOVE_INTERMEDIATE_CLIPPING      1          // No intermediate clipping in bi-prediction JCTVC-E242
 
-#define UNIFIED_SCAN                      1           // JCTVC-F288+F134(F746) Unified Scans for significance map and coefficient level
+#define UNIFIED_SCAN                      1           // JCTVC-F288+F132(F746) Unified Scans for significance map and coefficient level
 #if UNIFIED_SCAN
 #define SCAN_SET_SIZE                     16
 #define LOG2_SCAN_SET_SIZE                4
