@@ -212,6 +212,8 @@
 #define E192_SPS_PCM_FILTER_DISABLE_SYNTAX  1 // JCTVC-E192: PCM filter disable flag
 #endif
 
+#define F118_LUMA_DEBLOCK  1                  // JCTVC-F118: Luma part of the deblocking filter 
+
 #define E045_SLICE_COMMON_INFO_SHARING 1 //JCTVC-E045: Slice common information sharing
 
 // ====================================================================================================================
