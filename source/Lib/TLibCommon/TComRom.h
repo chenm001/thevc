@@ -135,6 +135,9 @@ extern const UInt   g_aauiGoRiceUpdate[4][16];            //!< parameter update 
 // CAVLC table
 // ====================================================================================================================
 
+#if TBL_RUN_ADAPT
+extern const Int    atable[5];
+#endif
 extern const UChar  g_aucCodeTable3[7][15];
 extern const UChar  g_aucLenTable3 [7][15];
 extern const UChar  g_aucCodeTableTZ4[3][4];
@@ -174,6 +177,7 @@ extern const UInt    g_auiIntraModeTableE34[33];
 
 extern const UInt    g_auiVlcTable8x8Inter[29];
 extern const UInt    g_auiVlcTable8x8Intra[29];
+
 #if RUNLEVEL_TABLE_CUT 
 extern const UInt    g_acstructLumaRun8x8[28][29];
 #else
@@ -192,7 +196,12 @@ extern const UInt lengthHuff34_2[2][34];
 
 #if CAVLC_COEF_LRG_BLK
 extern const UInt   *g_pLumaRunTr14x4[5]; 
+#if MOD_INTRA_TABLE
+extern const UInt   *g_pLumaRunTr116x16[2];
+extern const UInt   *g_pLumaRunTr18x8[2]; 
+#else
 extern const UInt   *g_pLumaRunTr18x8[5]; 
+#endif
 #else
 extern const UInt    g_auiLumaRunTr14x4[5][15];
 extern const UInt    g_auiLumaRunTr18x8[5][29];
@@ -339,10 +348,15 @@ __inline UInt xRunLevelInd(Int lev, Int run, Int maxrun, UInt lrg1Pos)
  * \returns the codeword index
  * This function derives codeword index in CAVLC run-level coding .
  */
+#if CAVLC_RUNLEVEL_TABLE_REM
+__inline UInt xRunLevelIndInter(Int lev, Int run, Int maxrun, Int scale)
+#else
 __inline UInt xRunLevelIndInter(Int lev, Int run, Int maxrun)
+#endif
 {
   UInt cn;
-  
+
+#if !CAVLC_RUNLEVEL_TABLE_REM
   if (maxrun < 28)
   {
     if (lev == 0)
@@ -355,10 +369,18 @@ __inline UInt xRunLevelIndInter(Int lev, Int run, Int maxrun)
     }
   }
   else
+#endif
   {
     if (lev == 0)
     {
       cn = run;
+#if CAVLC_RUNLEVEL_TABLE_REM
+      {
+        int thr = (maxrun + 1) >> scale;
+        if (run >= thr)
+          cn = (run > maxrun) ? thr : (run+1);
+      }
+#endif
     }
     else
     {

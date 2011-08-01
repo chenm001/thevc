@@ -1351,6 +1351,21 @@ Void TDecCavlc::parseInterDir( TComDataCU* pcCU, UInt& ruiInterDir, UInt uiAbsPa
       uiMaxVal = uiValNumRefIdxOfL0 + uiValNumRefIdxOfL1 + uiValNumRefIdxOfL0*uiValNumRefIdxOfL1;
     }
 
+#if CAVLC_UNIFY_INTER_TABLE_FIX
+    Bool bCodeException = false;
+    if ( pcCU->getSlice()->getNumRefIdx(REF_PIC_LIST_C) > 4 ||
+         pcCU->getSlice()->getNumRefIdx(REF_PIC_LIST_0) > 2 ||
+         pcCU->getSlice()->getNumRefIdx(REF_PIC_LIST_1) > 2 )
+    {
+      bCodeException = true;
+    }
+    else
+    {
+      bCodeException = false;
+      uiMaxVal--;
+    }
+#endif
+
     xReadUnaryMaxSymbol( tmp, uiMaxVal );
 
     x = m_uiMITableD[tmp];
@@ -1369,7 +1384,11 @@ Void TDecCavlc::parseInterDir( TComDataCU* pcCU, UInt& ruiInterDir, UInt uiAbsPa
     m_uiMITableVlcIdx += cx == m_uiMITableVlcIdx ? 0 : (cx < m_uiMITableVlcIdx ? -1 : 1);
 #endif
     
+#if CAVLC_UNIFY_INTER_TABLE_FIX
+    if (uiIndex < uiMaxVal || !bCodeException )
+#else
     if (uiIndex < uiMaxVal)
+#endif
     {
       if (uiNumRefIdxOfLC > 0)
       {
@@ -2044,7 +2063,11 @@ Void TDecCavlc::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartI
 #endif
   
 #if CAVLC_COEF_LRG_BLK
+#if CAVLC_COEF_LRG_BLK_CHROMA
+  UInt maxBlSize = 32;
+#else
   UInt maxBlSize = (eTType==TEXT_LUMA)? 32:8;
+#endif
   UInt uiBlSize = min(maxBlSize,uiWidth);
 #if !QC_MDCS
   UInt uiConvBit = g_aucConvertToBit[ pcCU->isIntra( uiAbsPartIdx ) ? uiWidth : uiBlSize];
@@ -2068,6 +2091,8 @@ Void TDecCavlc::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartI
   const UInt uiScanIdx = pcCU->getCoefScanIdx(uiAbsPartIdx, uiWidth, eTType==TEXT_LUMA, pcCU->isIntra(uiAbsPartIdx));
 #endif //QC_MDCS
   
+
+#if !REMOVE_DIRECT_INTRA_DC_CODING
   UInt uiDecodeDCCoeff = 0;
   Int dcCoeff = 0;
   if (pcCU->isIntra(uiAbsPartIdx))
@@ -2090,6 +2115,7 @@ Void TDecCavlc::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartI
       }
     }
   }
+#endif
   
   UInt uiScanning;
   
@@ -2108,7 +2134,11 @@ Void TDecCavlc::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartI
       iBlockType = 2 + ( pcCU->isIntra(uiAbsPartIdx) ? 0 : pcCU->getSlice()->getSliceType() );
 
 #if CAVLC_COEF_LRG_BLK
-    xParseCoeff( scoeff, iBlockType, 4 );
+    xParseCoeff( scoeff, iBlockType, 4
+#if CAVLC_RUNLEVEL_TABLE_REM
+               , pcCU->isIntra(uiAbsPartIdx)
+#endif
+               );
 #else
     xParseCoeff4x4( scoeff, iBlockType );
 #endif
@@ -2130,7 +2160,11 @@ Void TDecCavlc::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartI
     else
       iBlockType = 2 + ( pcCU->isIntra(uiAbsPartIdx) ? 0 : pcCU->getSlice()->getSliceType() );
 #if CAVLC_COEF_LRG_BLK
-    xParseCoeff( scoeff, iBlockType, 4 );
+    xParseCoeff( scoeff, iBlockType, 4
+#if CAVLC_RUNLEVEL_TABLE_REM
+               , pcCU->isIntra(uiAbsPartIdx)
+#endif
+               );
 #else
     xParseCoeff4x4( scoeff, iBlockType );
 #endif
@@ -2152,7 +2186,11 @@ Void TDecCavlc::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartI
     else
       iBlockType = 2 + ( pcCU->isIntra(uiAbsPartIdx) ? 0 : pcCU->getSlice()->getSliceType() );
 #if CAVLC_COEF_LRG_BLK
-    xParseCoeff( scoeff, iBlockType, 8 );
+    xParseCoeff( scoeff, iBlockType, 8
+#if CAVLC_RUNLEVEL_TABLE_REM
+               , pcCU->isIntra(uiAbsPartIdx)
+#endif
+               );
 #else
     xParseCoeff8x8( scoeff, iBlockType );
 #endif
@@ -2178,7 +2216,11 @@ Void TDecCavlc::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartI
       else
         iBlockType = 5 + ( pcCU->isIntra(uiAbsPartIdx) ? 0 : pcCU->getSlice()->getSliceType() );
 #if CAVLC_COEF_LRG_BLK 
-      xParseCoeff( scoeff, iBlockType, uiBlSize );
+      xParseCoeff( scoeff, iBlockType, uiBlSize
+#if CAVLC_RUNLEVEL_TABLE_REM
+                 , pcCU->isIntra(uiAbsPartIdx)
+#endif
+                 );
 #else
       xParseCoeff8x8( scoeff, iBlockType );
 #endif
@@ -2219,7 +2261,11 @@ Void TDecCavlc::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartI
         iBlockType = 5 + ( pcCU->isIntra(uiAbsPartIdx) ? 0 : pcCU->getSlice()->getSliceType() );
 
 #if CAVLC_COEF_LRG_BLK
-      xParseCoeff( scoeff, iBlockType, uiBlSize );
+      xParseCoeff( scoeff, iBlockType, uiBlSize
+#if CAVLC_RUNLEVEL_TABLE_REM
+                 , pcCU->isIntra(uiAbsPartIdx)
+#endif
+                 );
       for (uiScanning=0; uiScanning<uiNoCoeff; uiScanning++)
       {
 #if QC_MDCS
@@ -2245,10 +2291,12 @@ Void TDecCavlc::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartI
     }
   }
   
+#if !REMOVE_DIRECT_INTRA_DC_CODING
   if (uiDecodeDCCoeff == 1)
   {
     piCoeff[0] = dcCoeff;
   }
+#endif
   
   return ;
 }
@@ -3031,8 +3079,14 @@ Void TDecCavlc::xRunLevelIndInv(LastCoeffStruct *combo, Int maxrun, UInt lrg1Pos
  * \returns
  * This function derives run and level value in CAVLC run-level coding based on codeword index and maximum run value.  
  */
+#if CAVLC_RUNLEVEL_TABLE_REM
+Void TDecCavlc::xRunLevelIndInterInv(LastCoeffStruct *combo, Int maxrun, UInt cn, UInt scale)
+#else
 Void TDecCavlc::xRunLevelIndInterInv(LastCoeffStruct *combo, Int maxrun, UInt cn)
+#endif
 {
+
+#if !CAVLC_RUNLEVEL_TABLE_REM
   if (maxrun<28)
   {
     if(cn > maxrun+1)
@@ -3047,11 +3101,19 @@ Void TDecCavlc::xRunLevelIndInterInv(LastCoeffStruct *combo, Int maxrun, UInt cn
     }
   }
   else
+#endif
   {
     if(cn<maxrun+2)
     {
       combo->level = 0;
       combo->last_pos = cn;
+#if CAVLC_RUNLEVEL_TABLE_REM
+      {
+        int thr = (maxrun + 1) >> scale;
+        if (combo->last_pos >= thr)
+          combo->last_pos = (combo->last_pos == thr) ? (maxrun+1) : (combo->last_pos-1);
+      }
+#endif
     }
     else
     {
@@ -3235,18 +3297,33 @@ Void TDecCavlc::xParseCoeff8x8(TCoeff* scoeff, int n)
  * \returns 
  * This function performs parsing for a block of transform coefficient in CAVLC. 
  */
-Void TDecCavlc::xParseCoeff(TCoeff* scoeff, int n, Int blSize)
+Void TDecCavlc::xParseCoeff(TCoeff* scoeff, int n, Int blSize
+#if CAVLC_RUNLEVEL_TABLE_REM
+                            , Int isIntra
+#endif
+                            )
 {
   static const Int switch_thr[10] = {49,49,0,49,49,0,49,49,49,49};
+#if MOD_INTRA_TABLE
+  static const int aiTableTr1[2][5] = {{0, 1, 1, 1, 0},{0, 1, 2, 3, 4}};
+#endif
   Int i, noCoeff=blSize*blSize;;
   UInt sign;
   LastCoeffStruct combo;
   Int cn, maxrun, tmprun;
+#if TBL_RUN_ADAPT
+   Int vlc_adaptive = 0;
+#else
   Int atable[5] = {4,6,14,28,0xfffffff};
+#endif
   Int done, tr1, tmp;
   Int sum_big_coef = 0;
 
   memset(scoeff,0,sizeof(TCoeff)*noCoeff);
+
+#if CAVLC_RUNLEVEL_TABLE_REM
+  Int scale = (isIntra && n < 2) ? 0 : 3;
+#endif
 
   /* Get the last nonzero coeff */
   if(blSize >=8 )
@@ -3258,7 +3335,11 @@ Void TDecCavlc::xParseCoeff(TCoeff* scoeff, int n, Int blSize)
     xLastLevelIndInv(combo.level, combo.last_pos, blSize, cn);
 
     /* Adapt LP table */
+#if CAVLC_COEF_LRG_BLK_CHROMA
+    cn = (blSize==8 || n<2)?cn:(cn>>2);
+#else
     cn = (blSize==8)?cn:(cn>>2);
+#endif
     // ADAPT_VLC_NUM
     m_uiLastPosVlcIndex[n] += cn == m_uiLastPosVlcIndex[n] ? 0 : (cn < m_uiLastPosVlcIndex[n] ? -1 : 1);
   }
@@ -3299,24 +3380,52 @@ Void TDecCavlc::xParseCoeff(TCoeff* scoeff, int n, Int blSize)
   scoeff[i++] = sign? -tmp:tmp;
 
   done = 0;
+
+#if MOD_INTRA_TABLE
+  const UInt *vlcTable = (n == 2||n == 5)?  g_auiVlcTable8x8Intra:
+    ((blSize<=8)? g_auiVlcTable8x8Inter:g_auiVlcTable16x16Inter);
+
+  const UInt **pLumaRunTr1 = (blSize==4)? g_pLumaRunTr14x4: ((blSize==8)? g_pLumaRunTr18x8: g_pLumaRunTr116x16);
+#else
   const UInt *vlcTable = (n == 2||n == 5)? ((blSize<=8)? g_auiVlcTable8x8Intra:g_auiVlcTable16x16Intra):
     ((blSize<=8)? g_auiVlcTable8x8Inter:g_auiVlcTable16x16Inter);
   const UInt **pLumaRunTr1 = (blSize==4)? g_pLumaRunTr14x4:g_pLumaRunTr18x8;
+#endif
   while (!done && i < noCoeff)
   {
     maxrun = noCoeff - 1 -i;
     tmprun = min(maxrun,28);
+#if MOD_INTRA_TABLE 
+    if (tmprun < 28 || blSize<=8 || (n!=2&&n!=5))
+    {
+      tmp = vlcTable[tmprun];
+    }
+    else
+    {
+      tmp = 2;
+    }
+#else
     tmp = vlcTable[tmprun];
+#endif
+
 
     /* Go into run mode */
     cn = xReadVlc( tmp );
     if (n == 2 || n == 5)
     {
+#if MOD_INTRA_TABLE
+      xRunLevelIndInv(&combo, maxrun, pLumaRunTr1[aiTableTr1[(blSize&4)>>2][tr1]][tmprun], cn);
+#else
       xRunLevelIndInv(&combo, maxrun, pLumaRunTr1[tr1][tmprun], cn);
+#endif
     }
     else
     {
+#if CAVLC_RUNLEVEL_TABLE_REM
+      xRunLevelIndInterInv(&combo, maxrun, cn, scale);
+#else
       xRunLevelIndInterInv(&combo, maxrun, cn);
+#endif
     }
 
     i += combo.last_pos;
@@ -3331,6 +3440,13 @@ Void TDecCavlc::xParseCoeff(TCoeff* scoeff, int n, Int blSize)
         sum_big_coef += tmp;
         if (blSize==4 ||i > switch_thr[n] || sum_big_coef > 2)
         {
+#if TBL_RUN_ADAPT
+        if (tmp > atable[vlc_adaptive])
+        {
+           vlc_adaptive++;
+        }
+
+#endif          
           done = 1;
         }
       }
@@ -3355,7 +3471,9 @@ Void TDecCavlc::xParseCoeff(TCoeff* scoeff, int n, Int blSize)
   if (i < noCoeff)
   {
     /* Get the rest in level mode */
+#if !TBL_RUN_ADAPT
     Int vlc_adaptive = 0;
+#endif 
     while (i < noCoeff)
     {
       tmp = xReadVlc( vlc_adaptive );

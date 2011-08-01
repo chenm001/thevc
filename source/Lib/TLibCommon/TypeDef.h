@@ -39,6 +39,8 @@
 #define _TYPEDEF__
 
 
+
+
 ////////////////////////////
 // JCT-VC E start
 ////////////////////////////
@@ -94,8 +96,11 @@
 #if RUNLEVEL_TABLE_CUT
 #define CAVLC_COEF_LRG_BLK                1           // JCTVC-E383: enable large block coeff. coding
 #endif
-
-
+#define CAVLC_RDOQ_MOD                    1           // JCTVC-F296: reduce positions for LAST checking and modify bits estimation
+#define CAVLC_COEF_LRG_BLK_CHROMA         1           // JCTVC-F608: enable big block coding for chroma
+#define MOD_INTRA_TABLE                   1           // JCTVC-F612: modified intra table for coefficients coding
+#define TBL_RUN_ADAPT                     1           // JCTVC-F467: cavlc table adaptation from last run-mode
+#define REMOVE_DIRECT_INTRA_DC_CODING     1           // JCTVC-F465: Removal of direct coding of Intra DC coefficient in CAVLC
 #define ENABLE_FORCECOEFF0  0
 
 #define FAST_UDI_MAX_RDMODE_NUM               35          ///< maximum number of RD comparison in fast-UDI estimation loop 
@@ -124,11 +129,13 @@
 #define FIXED_ROUNDING_FRAME_MEMORY    0           ///< enable/disable fixed rounding to 8-bitdepth of frame memory when IBDI is used  
 
 #define MS_LCEC_UNI_EXCEPTION_THRES     1           // for GPB case, uni-prediction, > MS_LCEC_UNI_EXCEPTION_THRES is exception
+#define CAVLC_UNIFY_INTER_TABLE_FIX     1           // JCTVC-F199, max value fix of unified inter table
 #define CAVLC_COUNTER_ADAPT             1          // counter based CAVLC adaptation, JCTVC-E143
 #if CAVLC_COUNTER_ADAPT
 #define CAVLC_RQT_CBP                   1           //CAVLC coding of cbf and split flag, JCTVC-E404
 #endif
 
+#define CAVLC_RUNLEVEL_TABLE_REM        1           // CAVLC coding of run-level without table (JCTVC-F543)
 
 #define AVOID_ZERO_MERGE_CANDIDATE      1           // (JCTVC-E146/E118) insert zero MV if no merge candidates are available
 #define CHANGE_MERGE_CONTEXT            1           // (JCTVC-E146/E118) change merge flag context derivation

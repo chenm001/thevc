@@ -338,6 +338,9 @@ const UChar g_aucChromaScale[52]=
 #define M1 (UInt)-1
 #endif
 
+#if TBL_RUN_ADAPT
+const Int atable[5] = {3,7,15,31,0xfffffff};
+#endif
 // Below table need to be optimized
 const UInt g_auiCbpVlcNum[2][8] =
 {
@@ -605,6 +608,7 @@ const UInt g_auiLastPosVlcNum[10][17] =
 
 
 #if RUNLEVEL_TABLE_CUT
+#if !CAVLC_RUNLEVEL_TABLE_REM
 const UInt g_auiLumaRun8x8[28][29] =
 {
   {1,   0,  M1,  M1,  M1,  M1,  M1,  M1,  M1,  M1,  M1,  M1,  M1,  M1,  M1,  M1,  M1,  M1,  M1,  M1,  M1,  M1,  M1,  M1,  M1,  M1,  M1,  M1,  M1},
@@ -636,6 +640,7 @@ const UInt g_auiLumaRun8x8[28][29] =
   {1,   2,   4,   7,  11,  15,  12,   9,  10,   8,   5,   3,   6,  14,  16,  22,  23,  24,  20,  19,  13,  18,  26,  27,  25,  21,  17,   0,  M1},
   {1,   2,   3,   5,   6,  10,  14,  13,  11,   9,  12,   7,   4,   8,  16,  18,  21,  23,  25,  20,  22,  15,  19,  27,  28,  26,  24,  17,   0}
 };
+#endif
 #else
 const UInt g_auiLumaRun8x8[29][2][64] =
 {
@@ -1058,6 +1063,26 @@ const UInt g_auiLumaRun8x8[29][2][64] =
 };
 #endif
 
+#if MOD_INTRA_TABLE 
+const UInt g_auiLumaRunTr14x4[5][15]=
+{
+  {0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+  {2, 2, 2, 2, 3, 2, 2, 4, 4, 2, 4, 4, 2, 2, 2},
+  {2, 2, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, M1},
+  {1, 1, 1, 2, 2, 1, 2, 2, 2, 2, 2, 2, 2, M1, M1},
+  {1, 1, 1, 2, 1, 1, 2, 2, 0, 0, 2, 0, 0, M1, M1}
+};
+const UInt g_auiLumaRunTr18x8[2][29]=
+{
+  {2,2,1,2,2,2,2,4,2,2,2,2,2,4,4,6,4,4,4,4,4,4,6,6,4,4,4,6,6},
+  {2,3,3,3,3,2,4,8,4,2,4,4,4,6,6,8,6,6,6,8,8,8,10,12,8,8,8,10,14}
+};
+const UInt g_auiLumaRunTr116x16[2][29]=
+{
+  {1,1,1,2,2,2,2,2,2,2,2,4,4,4,4,4,4,6,6,6,4,4,6,6,6,6,8,6,10},
+  {1,3,2,3,4,4,4,6,6,6,6,6,8,14,10,8,8,10,10,16,12,10,10,12,12,12,28,16,22}
+};
+#else
 const UInt g_auiLumaRunTr14x4[5][15]=
 {
     {0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0},
@@ -1074,6 +1099,7 @@ const UInt g_auiLumaRunTr18x8[5][29]=
     {2, 1, 2, 2, 3, 3, 4, 4, 5, 5, 5, 6, 6, 7, 7, 7, 8, 9, 9, 10, 10, 11, 11, 12, 12, 13, 13, 13, 13},
     {2, 1, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 4, 5, 5, 5, 5, 5, 6, 6, 6, 6, 6, 6, 7, 7, 8}
 };
+#endif
 
 #if CAVLC_COEF_LRG_BLK
 const UInt *g_pLumaRunTr14x4[5] =
@@ -1081,18 +1107,34 @@ const UInt *g_pLumaRunTr14x4[5] =
   &g_auiLumaRunTr14x4[0][0], &g_auiLumaRunTr14x4[1][0], &g_auiLumaRunTr14x4[2][0], 
   &g_auiLumaRunTr14x4[3][0], &g_auiLumaRunTr14x4[4][0]
 };
-
+#if MOD_INTRA_TABLE
+const UInt *g_pLumaRunTr18x8[2] = 
+{ 
+  &g_auiLumaRunTr18x8[0][0], &g_auiLumaRunTr18x8[1][0]
+};
+const UInt *g_pLumaRunTr116x16[2] = 
+{ 
+  &g_auiLumaRunTr116x16[0][0], &g_auiLumaRunTr116x16[1][0]
+};
+#else
 const UInt *g_pLumaRunTr18x8[5] =
 { 
   &g_auiLumaRunTr18x8[0][0], &g_auiLumaRunTr18x8[1][0], &g_auiLumaRunTr18x8[2][0], 
   &g_auiLumaRunTr18x8[3][0], &g_auiLumaRunTr18x8[4][0]
 };
 #endif
+#endif
 
-const UInt g_auiVlcTable8x8Inter[29] = {8,0,0,5,5,5,5,5,5,5,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,3};
-const UInt g_auiVlcTable8x8Intra[29] = {8,0,0,5,5,5,5,5,5,5,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,3};
+const UInt g_auiVlcTable8x8Inter[29]   = {8,0,0,5,5,5,5,5,5,5,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,3};
+#if MOD_INTRA_TABLE
+const UInt g_auiVlcTable8x8Intra[29]   = {8,0,0,0,0,1,5,5,5,5,5,5,5,5,5,5,5,5,1,1,1,1,1,1,1,1,1,1,1}; 
+#else 
+const UInt g_auiVlcTable8x8Intra[29]   = {8,0,0,5,5,5,5,5,5,5,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,3};
+#endif
 #if CAVLC_COEF_LRG_BLK
+#if MOD_INTRA_TABLE == 0
 const UInt g_auiVlcTable16x16Intra[29] = {8,0,0,0,0,5,5,5,5,5,5,5,5,5,5,5,5,5,1,1,1,1,1,1,1,1,1,1,2};
+#endif
 const UInt g_auiVlcTable16x16Inter[29] = {8,0,1,1,1,1,2,2,2,2,2,2,2,6,6,6,6,6,6,3,3,3,3,3,3,3,3,3,3};
 #endif
 
@@ -1141,6 +1183,7 @@ const UInt lengthHuff34_2[2][34]=
 #endif
 
 #if RUNLEVEL_TABLE_CUT
+#if !CAVLC_RUNLEVEL_TABLE_REM
 const UInt g_acstructLumaRun8x8[28][29] =
 {
   {  1,  0, M1, M1, M1, M1, M1, M1, M1, M1, M1, M1, M1, M1, M1, M1, M1, M1, M1, M1, M1, M1, M1, M1, M1, M1, M1, M1, M1},
@@ -1172,6 +1215,7 @@ const UInt g_acstructLumaRun8x8[28][29] =
   { 27,  0,  1, 11,  2, 10, 12,  3,  9,  7,  8,  4,  6, 20, 13,  5, 14, 26, 21, 19, 18, 25, 15, 16, 17, 24, 22, 23, M1},
   { 28,  0,  1,  2, 12,  3,  4, 11, 13,  9,  5,  8, 10,  7,  6, 21, 14, 27, 15, 22, 19, 16, 20, 17, 26, 18, 25, 23, 24}
 };
+#endif
 #else
 const LastCoeffStruct g_acstructLumaRun8x8[29][127] =
 {
