@@ -4875,7 +4875,7 @@ Void TComSampleAdaptiveOffset::AoProcessCuMap(Int iAddr, Int iAoType, Int iYCbCr
 
       for (y=0; y<iLcuHeight; y++)
       {
-        iSignLeft  = xSign(pTmp[iStartX+1] - pTmp[iStartX]);
+        iSignLeft  = xSign(pTmp[iStartX] - pTmp[iStartX-1]);
         for (x=iStartX; x< iEndX; x++)
         {
           iSignRight =  xSign(pTmp[x] - pTmp[x+1]); 
@@ -5358,7 +5358,7 @@ Void TComSampleAdaptiveOffset::AoProcessCu(Int iAddr, Int iAoType, Int iYCbCr)
 
       for (y=0; y<iLcuHeight; y++)
       {
-        iSignLeft  = xSign(pTmp[iStartX+1] - pTmp[iStartX]);
+        iSignLeft  = xSign(pTmp[iStartX] - pTmp[iStartX-1]);
         for (x=iStartX; x< iEndX; x++)
         {
           iSignRight =  xSign(pTmp[x] - pTmp[x+1]); 

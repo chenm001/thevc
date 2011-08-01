@@ -6574,7 +6574,7 @@ Void TEncSampleAdaptiveOffset::calcAoStatsCuMap(Int iAddr, Int iPartIdx, Int iYC
 
       for (y=0; y<iLcuHeight; y++)
       {
-        iSignLeft  = xSign(pRec[iStartX] - pRec[iStartX]);
+        iSignLeft  = xSign(pRec[iStartX] - pRec[iStartX-1]);
         for (x=iStartX; x< iEndX; x++)
         {
           iSignRight =  xSign(pRec[x] - pRec[x+1]); 
@@ -7204,7 +7204,7 @@ Void TEncSampleAdaptiveOffset::calcAoStatsCu(Int iAddr, Int iPartIdx, Int iYCbCr
 
       for (y=0; y<iLcuHeight; y++)
       {
-        iSignLeft  = xSign(pRec[iStartX+1] - pRec[iStartX]);
+        iSignLeft  = xSign(pRec[iStartX] - pRec[iStartX-1]);
         for (x=iStartX; x< iEndX; x++)
         {
           iSignRight =  xSign(pRec[x] - pRec[x+1]); 
