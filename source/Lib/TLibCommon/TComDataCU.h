@@ -182,6 +182,10 @@ protected:
   Bool xGetCenterCol( UInt uiPartIdx, RefPicList eRefPicList, int iRefIdx, TComMv *pcMv );
 #endif
   
+#if MRG_AMVP_ADD_CAND_F470
+  Void xCheckDuplicateCand(TComMvField* pcMvFieldNeighbours, UChar* puhInterDirNeighbours, UInt* puiNeighbourCandIdx, bool* pbCandIsInter, UInt& ruiArrayAddr);
+#endif
+
 #if SUB_LCU_DQP
   Int           getLastValidPartIdx   ( Int iAbsPartIdx );
 #endif

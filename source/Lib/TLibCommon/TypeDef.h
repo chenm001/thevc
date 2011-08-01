@@ -47,6 +47,9 @@
 #define MV_LIMIT_SCALE_F088                  1       // F088 : limit number of spatial MVP scaling to one
 #define DISABLE_4x4_INTER                    1       // Coding one flag into SPS to enable/disable INTER4x4 
 #define REDUCE_UPPER_MOTION_DATA             1       // F060 : motion data line buffer compression
+#define MRG_AMVP_FIXED_IDX_F470              1       // 1:Merge/AMVP indices are coded in truncated unary codes of fixed maximum length
+#define AVOID_NEIGHBOR_REF_F470              1       // 1:Disable adaptive switching methods for inter_pred_flag and ref_idx_lx
+#define MRG_AMVP_ADD_CAND_F470               1       // 1:add new candidates following original ones
 ////////////////////////////
 // JCT-VC F end
 ////////////////////////////
@@ -76,18 +79,12 @@
 // FOR MERGE
 #define MRG_NEIGH_COL                     1           ///< use of colocated MB in MERGE
 #define FT_TCTR_MRG                       1           ///< central colocated in MERGE
-#if !FT_TCTR_MRG
-#define PANASONIC_MERGETEMPORALEXT        1           ///< 
-#endif
-#define PANASONIC_MRG_TMVP_REFIDX         1           ///< (JCTVC-E481 - D274 (2) ) refidx derivation for merge TMVP  
+#define MRG_TMVP_REFIDX                   1           ///< (JCTVC-E481 - D274 (2) ) refidx derivation for merge TMVP  
 // FOR AMVP
 #define AMVP_NEIGH_COL                    1           ///< use of colocated MB in AMVP
 #define FT_TCTR_AMVP                      1           ///< central colocated in AMVP
-#if !FT_TCTR_AMVP
-#define PANASONIC_AMVPTEMPORALEXT         1           ///< 
-#endif
 // FOR BOTH
-#define PANASONIC_AMVPTEMPORALMOD         1           ///< (JCTVC-E481 - D125 2.4' / D274 3')
+#define AMVPTEMPORALMOD                   1           ///< (JCTVC-E481 - D125 2.4' / D274 3')
 #define AMVP_BUFFERCOMPRESS               1           ///< motion vector buffer compression
 #define AMVP_DECIMATION_FACTOR            4
 #define MV_COMPRESS_MODE_REFIDX           1           ///< (JCTVC-E147) compress all inter prediction parameters according to 1)

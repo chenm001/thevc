@@ -1188,7 +1188,11 @@ Void TEncCu::xCheckRDCostMerge2Nx2N( TComDataCU*& rpcBestCU, TComDataCU*& rpcTem
   Bool bValidCands = false;
   for( UInt uiMergeCand = 0; uiMergeCand < MRG_MAX_NUM_CANDS; ++uiMergeCand )
   {
+#if MRG_AMVP_FIXED_IDX_F470
+    if( uiNeighbourCandIdx[uiMergeCand] > 0 )
+#else
     if( uiNeighbourCandIdx[uiMergeCand] == ( uiMergeCand + 1 ) )
+#endif
     {
 #if HHI_MRG_SKIP
       TComYuv* pcPredYuvTemp = NULL;
