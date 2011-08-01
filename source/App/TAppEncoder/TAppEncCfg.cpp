@@ -156,7 +156,9 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
   ("LCModification", m_bLCMod, false, "enables signalling of combined reference list derivation")
   ("NRF", m_bUseNRF,  true, "non-reference frame marking in last layer")
   ("BQP", m_bUseBQP, false, "hier-P style QP assignment in low-delay mode")
-
+#if DISABLE_4x4_INTER
+  ("DisableInter4x4", m_bDisInter4x4, true, "Disable Inter 4x4")
+#endif
   /* motion options */
   ("FastSearch", m_iFastSearch, 1, "0:Full search  1:Diamond  2:PMVFAST")
   ("SearchRange,-sr",m_iSearchRange, 96, "motion search range")
@@ -514,7 +516,9 @@ Void TAppEncCfg::xPrintParameter()
 #if E057_INTRA_PCM && E192_SPS_PCM_BIT_DEPTH_SYNTAX
   printf("PCM sample bit depth         : %d\n", m_uiPCMBitDepthLuma );
 #endif
-
+#if DISABLE_4x4_INTER
+  printf("DisableInter4x4              : %d\n", m_bDisInter4x4);  
+#endif
   if ( m_iSymbolMode == 0 )
   {
     printf("Entropy coder                : VLC\n");

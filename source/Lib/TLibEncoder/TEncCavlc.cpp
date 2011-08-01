@@ -351,7 +351,9 @@ Void TEncCavlc::codeSPS( TComSPS* pcSPS )
   WRITE_CODE( pcSPS->getPCMBitDepthLuma() - 1, 4,   "pcm_bit_depth_luma_minus1" );
   WRITE_CODE( pcSPS->getPCMBitDepthChroma() - 1, 4, "pcm_bit_depth_chroma_minus1" );
 #endif
-
+#if DISABLE_4x4_INTER
+  xWriteFlag  ( (pcSPS->getDisInter4x4()) ? 1 : 0 );
+#endif  
   // log2_max_frame_num_minus4
   // pic_order_cnt_type
   // if( pic_order_cnt_type  = =  0 )
@@ -608,7 +610,11 @@ Void TEncCavlc::codeSliceFinish ()
 Void TEncCavlc::codeMVPIdx ( TComDataCU* pcCU, UInt uiAbsPartIdx, RefPicList eRefList )
 {
   Int iSymbol = pcCU->getMVPIdx(eRefList, uiAbsPartIdx);
+#if MRG_AMVP_FIXED_IDX_F470
+  Int iNum = AMVP_MAX_NUM_CANDS;
+#else
   Int iNum    = pcCU->getMVPNum(eRefList, uiAbsPartIdx);
+#endif
   
   xWriteUnaryMaxSymbol(iSymbol, iNum-1);
 }
@@ -637,7 +643,14 @@ Void TEncCavlc::codePartSize( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth 
       else
       {
         xWriteFlag(0);
+#if DISABLE_4x4_INTER
+        if(!( pcCU->getSlice()->getSPS()->getDisInter4x4() && (pcCU->getWidth(uiAbsPartIdx)==8) && (pcCU->getHeight(uiAbsPartIdx)==8) ))
+        {
+#endif
         xWriteFlag( uiIntraFlag? 1 : 0 );
+#if DISABLE_4x4_INTER
+        }
+#endif
       }
 
       return;
@@ -676,6 +689,9 @@ Void TEncCavlc::codeMergeFlag    ( TComDataCU* pcCU, UInt uiAbsPartIdx )
  */
 Void TEncCavlc::codeMergeIndex    ( TComDataCU* pcCU, UInt uiAbsPartIdx )
 {
+#if MRG_AMVP_FIXED_IDX_F470
+  UInt uiNumCand = MRG_MAX_NUM_CANDS;
+#else
   Bool bLeftInvolved = false;
   Bool bAboveInvolved = false;
   Bool bCollocatedInvolved = false;
@@ -704,8 +720,10 @@ Void TEncCavlc::codeMergeIndex    ( TComDataCU* pcCU, UInt uiAbsPartIdx )
       }
     }
   }
+#endif
   assert( uiNumCand > 1 );
   UInt uiUnaryIdx = pcCU->getMergeIndex( uiAbsPartIdx );
+#if !(MRG_AMVP_FIXED_IDX_F470)
   if( !bCornerInvolved && uiUnaryIdx > 3 )
   {
     --uiUnaryIdx;
@@ -722,6 +740,7 @@ Void TEncCavlc::codeMergeIndex    ( TComDataCU* pcCU, UInt uiAbsPartIdx )
   {
     --uiUnaryIdx;
   }
+#endif
   for( UInt ui = 0; ui < uiNumCand - 1; ++ui )
   {
     const UInt uiSymbol = ui == uiUnaryIdx ? 0 : 1;

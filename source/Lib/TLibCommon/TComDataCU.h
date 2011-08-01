@@ -161,14 +161,10 @@ protected:
   
   /// add possible motion vector predictor candidates
   Bool          xAddMVPCand           ( AMVPInfo* pInfo, RefPicList eRefPicList, Int iRefIdx, UInt uiPartUnitIdx, MVP_DIR eDir );
-#if MTK_AMVP_SMVP_DERIVATION
   Bool          xAddMVPCandOrder      ( AMVPInfo* pInfo, RefPicList eRefPicList, Int iRefIdx, UInt uiPartUnitIdx, MVP_DIR eDir );
-#endif  
 
-#if MTK_TMVP_H_MRG || MTK_TMVP_H_AMVP
   Void          deriveRightBottomIdx        ( PartSize eCUMode, UInt uiPartIdx, UInt& ruiPartIdxRB );
   Bool          xGetColMVP( RefPicList eRefPicList, Int uiCUAddr, Int uiPartUnitIdx, TComMv& rcMv, Int& riRefIdx );
-#endif
   
   /// remove redundant candidates
   Void          xUniqueMVPCand        ( AMVPInfo* pInfo );
@@ -186,6 +182,10 @@ protected:
   Bool xGetCenterCol( UInt uiPartIdx, RefPicList eRefPicList, int iRefIdx, TComMv *pcMv );
 #endif
   
+#if MRG_AMVP_ADD_CAND_F470
+  Void xCheckDuplicateCand(TComMvField* pcMvFieldNeighbours, UChar* puhInterDirNeighbours, UInt* puiNeighbourCandIdx, bool* pbCandIsInter, UInt& ruiArrayAddr);
+#endif
+
 #if SUB_LCU_DQP
   Int           getLastValidPartIdx   ( Int iAbsPartIdx );
 #endif
@@ -420,9 +420,15 @@ public:
   TComDataCU*   getCUColocated              ( RefPicList eRefPicList ) { return m_apcCUColocated[eRefPicList]; }
   
   TComDataCU*   getPULeft                   ( UInt&  uiLPartUnitIdx , UInt uiCurrPartUnitIdx, Bool bEnforceSliceRestriction=true, Bool bEnforceEntropySliceRestriction=true );
+#if REDUCE_UPPER_MOTION_DATA
+  TComDataCU*   getPUAbove                  ( UInt&  uiAPartUnitIdx , UInt uiCurrPartUnitIdx, Bool bEnforceSliceRestriction=true, Bool bEnforceEntropySliceRestriction=true, Bool MotionDataCompresssion = false );
+  TComDataCU*   getPUAboveLeft              ( UInt&  uiALPartUnitIdx, UInt uiCurrPartUnitIdx, Bool bEnforceSliceRestriction=true, Bool bEnforceEntropySliceRestriction=true, Bool MotionDataCompresssion = false );
+  TComDataCU*   getPUAboveRight             ( UInt&  uiARPartUnitIdx, UInt uiCurrPartUnitIdx, Bool bEnforceSliceRestriction=true, Bool bEnforceEntropySliceRestriction=true, Bool MotionDataCompresssion = false );
+#else
   TComDataCU*   getPUAbove                  ( UInt&  uiAPartUnitIdx , UInt uiCurrPartUnitIdx, Bool bEnforceSliceRestriction=true, Bool bEnforceEntropySliceRestriction=true );
   TComDataCU*   getPUAboveLeft              ( UInt&  uiALPartUnitIdx, UInt uiCurrPartUnitIdx, Bool bEnforceSliceRestriction=true, Bool bEnforceEntropySliceRestriction=true );
   TComDataCU*   getPUAboveRight             ( UInt&  uiARPartUnitIdx, UInt uiCurrPartUnitIdx, Bool bEnforceSliceRestriction=true, Bool bEnforceEntropySliceRestriction=true );
+#endif
   TComDataCU*   getPUBelowLeft              ( UInt& uiBLPartUnitIdx, UInt uiCurrPartUnitIdx, Bool bEnforceSliceRestriction=true, Bool bEnforceEntropySliceRestriction=true );
 
 #if SUB_LCU_DQP

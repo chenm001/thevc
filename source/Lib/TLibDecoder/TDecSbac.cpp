@@ -633,6 +633,12 @@ Void TDecSbac::parseMergeFlag ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDept
 
 Void TDecSbac::parseMergeIndex ( TComDataCU* pcCU, UInt& ruiMergeIndex, UInt uiAbsPartIdx, UInt uiDepth )
 {
+#if MRG_AMVP_FIXED_IDX_F470
+  UInt uiNumCand = MRG_MAX_NUM_CANDS;
+  Bool bLeftInvolved = true;
+  Bool bAboveInvolved = true;
+  Bool bCollocatedInvolved = true;
+#else
   Bool bLeftInvolved = false;
   Bool bAboveInvolved = false;
   Bool bCollocatedInvolved = false;
@@ -661,6 +667,7 @@ Void TDecSbac::parseMergeIndex ( TComDataCU* pcCU, UInt& ruiMergeIndex, UInt uiA
       }
     }
   }
+#endif
   assert( uiNumCand > 1 );
 
   UInt auiCtx[4] = { 0, 0, 0, 3 };
@@ -704,7 +711,7 @@ Void TDecSbac::parseMergeIndex ( TComDataCU* pcCU, UInt& ruiMergeIndex, UInt uiA
       break;
     }
   }
-
+#if !(MRG_AMVP_FIXED_IDX_F470)
   if( !bLeftInvolved )
   {
     ++uiUnaryIdx;
@@ -721,7 +728,7 @@ Void TDecSbac::parseMergeIndex ( TComDataCU* pcCU, UInt& ruiMergeIndex, UInt uiA
   {
     ++uiUnaryIdx;
   }
-
+#endif
   ruiMergeIndex = uiUnaryIdx;
 
   DTRACE_CABAC_VL( g_nSymbolCounter++ )
@@ -744,8 +751,11 @@ Void TDecSbac::parseMergeIndex ( TComDataCU* pcCU, UInt& ruiMergeIndex, UInt uiA
 Void TDecSbac::parseMVPIdx      ( TComDataCU* pcCU, Int& riMVPIdx, Int iMVPNum, UInt uiAbsPartIdx, UInt uiDepth, RefPicList eRefList )
 {
   UInt uiSymbol;
+#if MRG_AMVP_FIXED_IDX_F470
+  xReadUnaryMaxSymbol(uiSymbol, m_cMVPIdxSCModel.get(0), 1, AMVP_MAX_NUM_CANDS-1);
+#else
   xReadUnaryMaxSymbol(uiSymbol, m_cMVPIdxSCModel.get(0), 1, iMVPNum-1);
-
+#endif
   riMVPIdx = uiSymbol;
 }
 
@@ -790,6 +800,12 @@ Void TDecSbac::parsePartSize( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth 
   {
     {
       UInt uiMaxNumBits = 3;
+#if DISABLE_4x4_INTER
+      if(pcCU->getSlice()->getSPS()->getDisInter4x4() && ( (g_uiMaxCUWidth>>uiDepth)==8) && ( (g_uiMaxCUHeight>>uiDepth)==8) )
+      {
+        uiMaxNumBits = 2;
+      }
+#endif
       for ( UInt ui = 0; ui < uiMaxNumBits; ui++ )
       {
         m_pcTDecBinIf->decodeBin( uiSymbol, m_cCUPartSizeSCModel.get( 0, 0, ui) );
@@ -801,7 +817,29 @@ Void TDecSbac::parsePartSize( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth 
       }
     }
     eMode = (PartSize) uiMode;
-    
+#if DISABLE_4x4_INTER
+    if(pcCU->getSlice()->getSPS()->getDisInter4x4() && ( (g_uiMaxCUWidth>>uiDepth)==8) && ( (g_uiMaxCUHeight>>uiDepth)==8) )
+    {
+      if (pcCU->getSlice()->isInterB() && uiMode == 2)
+      {
+        uiSymbol = 0;
+        m_pcTDecBinIf->decodeBin( uiSymbol, m_cCUPartSizeSCModel.get( 0, 0, 2) );
+        if (uiSymbol == 0)
+        {
+          pcCU->setPredModeSubParts( MODE_INTRA, uiAbsPartIdx, uiDepth );
+          if( uiDepth == g_uiMaxCUDepth - g_uiAddCUDepth )
+          {
+            m_pcTDecBinIf->decodeBin( uiSymbol, m_cCUPartSizeSCModel.get( 0, 0, 3) );
+          }
+          eMode = SIZE_NxN;
+          if (uiSymbol == 0)
+            eMode = SIZE_2Nx2N;
+        }
+      }
+    }
+    else
+    {
+#endif    
     if (pcCU->getSlice()->isInterB() && uiMode == 3)
     {
       uiSymbol = 0;
@@ -821,6 +859,9 @@ Void TDecSbac::parsePartSize( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth 
           eMode = SIZE_2Nx2N;
       }
     }
+#if DISABLE_4x4_INTER
+    }
+#endif
   }
   
   pcCU->setPartSizeSubParts( eMode, uiAbsPartIdx, uiDepth );
@@ -1274,7 +1315,11 @@ Void TDecSbac::parseMvd( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiPartIdx, UI
 #endif
 
   TComDataCU* pcCUL   = pcCU->getPULeft ( uiAbsPartIdxL, pcCU->getZorderIdxInCU() + uiAbsPartIdx );
+#if REDUCE_UPPER_MOTION_DATA
+  TComDataCU* pcCUA   = pcCU->getPUAbove( uiAbsPartIdxA, pcCU->getZorderIdxInCU() + uiAbsPartIdx, true, true, true );
+#else
   TComDataCU* pcCUA   = pcCU->getPUAbove( uiAbsPartIdxA, pcCU->getZorderIdxInCU() + uiAbsPartIdx );
+#endif
   
   TComCUMvField* pcCUMvFieldL = ( pcCUL == NULL || pcCUL->isIntra( uiAbsPartIdxL ) ) ? NULL : pcCUL->getCUMvField( eRefList );
   TComCUMvField* pcCUMvFieldA = ( pcCUA == NULL || pcCUA->isIntra( uiAbsPartIdxA ) ) ? NULL : pcCUA->getCUMvField( eRefList );

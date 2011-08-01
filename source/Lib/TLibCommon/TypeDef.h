@@ -55,6 +55,21 @@
 
 
 ////////////////////////////
+// JCT-VC F start
+////////////////////////////
+#define MRG_UNIFIED_POS_F419                 1       // 1: enable F419, 0: disable it
+#define AMVP_NO_INTERM_DUPL_CHECK_F050       1       // F050 : Disable the redundancy checking during the derivation of top MVP for AMVP 
+#define MV_LIMIT_SCALE_F088                  1       // F088 : limit number of spatial MVP scaling to one
+#define DISABLE_4x4_INTER                    1       // Coding one flag into SPS to enable/disable INTER4x4 
+#define REDUCE_UPPER_MOTION_DATA             1       // F060 : motion data line buffer compression
+#define MRG_AMVP_FIXED_IDX_F470              1       // 1:Merge/AMVP indices are coded in truncated unary codes of fixed maximum length
+#define AVOID_NEIGHBOR_REF_F470              1       // 1:Disable adaptive switching methods for inter_pred_flag and ref_idx_lx
+#define MRG_AMVP_ADD_CAND_F470               1       // 1:add new candidates following original ones
+////////////////////////////
+// JCT-VC F end
+////////////////////////////
+
+////////////////////////////
 // JCT-VC E start
 ////////////////////////////
 
@@ -79,25 +94,18 @@
 // FOR MERGE
 #define MRG_NEIGH_COL                     1           ///< use of colocated MB in MERGE
 #define FT_TCTR_MRG                       1           ///< central colocated in MERGE
-#if !FT_TCTR_MRG
-#define PANASONIC_MERGETEMPORALEXT        1           ///< 
-#endif
-#define MTK_TMVP_H_MRG                    1           ///< (JCTVC-E481 - D125 2.1) right-bottom collocated for merge
-#define PANASONIC_MRG_TMVP_REFIDX         1           ///< (JCTVC-E481 - D274 (2) ) refidx derivation for merge TMVP  
+#define MRG_TMVP_REFIDX                   1           ///< (JCTVC-E481 - D274 (2) ) refidx derivation for merge TMVP  
 // FOR AMVP
 #define AMVP_NEIGH_COL                    1           ///< use of colocated MB in AMVP
 #define FT_TCTR_AMVP                      1           ///< central colocated in AMVP
-#if !FT_TCTR_AMVP
-#define PANASONIC_AMVPTEMPORALEXT         1           ///< 
-#endif
-#define MTK_TMVP_H_AMVP                   1           ///< (JCTVC-E481 - D125 2.1) right-bottom collocated for amvp 
 // FOR BOTH
-#define PANASONIC_AMVPTEMPORALMOD         1           ///< (JCTVC-E481 - D125 2.4' / D274 3')
+#define AMVPTEMPORALMOD                   1           ///< (JCTVC-E481 - D125 2.4' / D274 3')
 #define AMVP_BUFFERCOMPRESS               1           ///< motion vector buffer compression
 #define AMVP_DECIMATION_FACTOR            4
 #define MV_COMPRESS_MODE_REFIDX           1           ///< (JCTVC-E147) compress all inter prediction parameters according to 1)
 
 #define REMOVE_INTERMEDIATE_CLIPPING      1          // No intermediate clipping in bi-prediction JCTVC-E242
+#define GENERIC_IF 1 ///< JCTVC-F537: generic interpolation functions
 
 #define UNIFIED_SCAN                      1           // JCTVC-F288+F132(F746) Unified Scans for significance map and coefficient level
 #if UNIFIED_SCAN
@@ -127,8 +135,6 @@
 
 #define UNIFY_INTER_TABLE                     1           // JCTVC-E381 CAVLC: Inter pred coding
 
-#define MTK_AMVP_SMVP_DERIVATION          1              ///< (JCTVC-E481 - D125 2.3) amvp spatial candidate derivation
-#define TI_AMVP_SMVP_SIMPLIFIED           1              ///< (JCTVC-E481 - F)amvp spatial candidate simplified scanning
 #define MV_SCALE_ROUNDING_F142            1           ///< Modified rounding when scaling motion vectors (JCTVC-F142)
 
 #define ADD_PLANAR_MODE                   1           ///< enable/disable Planar mode for intra prediction (JCTVC-E321)
@@ -237,6 +243,8 @@
 #define F118_LUMA_DEBLOCK  1                  // JCTVC-F118: Luma part of the deblocking filter 
 
 #define E045_SLICE_COMMON_INFO_SHARING 1 //JCTVC-E045: Slice common information sharing
+
+#define TMVP_ONE_LIST_CHECK    1 //JCTVC-F587: Reduction of reference picture list checking for temporal motion vector prediction
 
 // ====================================================================================================================
 // Basic type redefinition

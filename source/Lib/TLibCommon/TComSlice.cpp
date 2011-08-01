@@ -51,6 +51,9 @@ TComSlice::TComSlice()
 , m_eERBIndex                     ( ERB_NONE )
 , m_bRefPicListModificationFlagLC ( false )
 , m_bRefPicListCombinationFlag    ( false )
+#if TMVP_ONE_LIST_CHECK
+, m_bCheckLDC                     ( false )
+#endif
 , m_iSliceQpDelta                 ( 0 )
 , m_iDepth                        ( 0 )
 , m_bRefenced                     ( false )
@@ -122,6 +125,9 @@ Void TComSlice::initSlice()
   m_bRefIdxCombineCoding = false;
   m_bRefPicListCombinationFlag = false;
   m_bRefPicListModificationFlagLC = false;
+#if TMVP_ONE_LIST_CHECK
+  m_bCheckLDC = false;
+#endif
 
   m_aiNumRefIdx[REF_PIC_LIST_C]      = 0;
 
@@ -624,7 +630,9 @@ Void TComSlice::copySliceInfo(TComSlice *pSrc)
   }
   m_bRefPicListModificationFlagLC = pSrc->m_bRefPicListModificationFlagLC;
   m_bRefPicListCombinationFlag    = pSrc->m_bRefPicListCombinationFlag;
-
+#if TMVP_ONE_LIST_CHECK
+  m_bCheckLDC             = pSrc->m_bCheckLDC;
+#endif
   m_iSliceQpDelta        = pSrc->m_iSliceQpDelta;
   for (i = 0; i < 2; i++)
   {
@@ -803,6 +811,9 @@ TComSPS::TComSPS()
 #if E057_INTRA_PCM
 , m_uiPCMLog2MinSize          (  7)
 #endif
+#if DISABLE_4x4_INTER
+, m_bDisInter4x4              (  1)
+#endif    
 , m_bUseALF                   (false)
 , m_bUseDQP                   (false)
 , m_bUseLDC                   (false)

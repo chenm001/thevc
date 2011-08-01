@@ -80,7 +80,9 @@ protected:
 
   Bool      m_bTLayering;                        ///< indicates whether temporal IDs are set based on the hierarchical coding structure
   Bool      m_abTLayerSwitchingFlag[MAX_TLAYER]; ///< temporal layer switching flags corresponding to temporal layer
-
+#if DISABLE_4x4_INTER
+  Bool      m_bDisInter4x4;
+#endif
   //======= Transform =============
   UInt      m_uiQuadtreeTULog2MaxSize;
   UInt      m_uiQuadtreeTULog2MinSize;
@@ -194,6 +196,10 @@ public:
   Bool      getTLayerSwitchingFlag          ( UInt uiTLayer )               { assert (uiTLayer < MAX_TLAYER ); return  m_abTLayerSwitchingFlag[uiTLayer];                   }
   Void      setTLayerSwitchingFlag          ( Bool* pbTLayerSwitchingFlag ) { for ( Int i = 0; i < MAX_TLAYER; i++ ) m_abTLayerSwitchingFlag[i] = pbTLayerSwitchingFlag[i]; }
 
+#if DISABLE_4x4_INTER
+  Bool      getDisInter4x4                  ()              { return m_bDisInter4x4;        }
+  Void      setDisInter4x4                  ( Bool b )      { m_bDisInter4x4  = b;          }
+#endif
   //======== Transform =============
   Void      setQuadtreeTULog2MaxSize        ( UInt  u )      { m_uiQuadtreeTULog2MaxSize = u; }
   Void      setQuadtreeTULog2MinSize        ( UInt  u )      { m_uiQuadtreeTULog2MinSize = u; }

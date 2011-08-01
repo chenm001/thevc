@@ -76,6 +76,9 @@ private:
 #if E057_INTRA_PCM
   UInt        m_uiPCMLog2MinSize;
 #endif
+#if DISABLE_4x4_INTER
+  Bool        m_bDisInter4x4;
+#endif    
   Bool        m_bUseALF;
   Bool        m_bUseDQP;
   Bool        m_bUseLDC;
@@ -141,6 +144,10 @@ public:
 #if E057_INTRA_PCM
   Void setPCMLog2MinSize  ( UInt u ) { m_uiPCMLog2MinSize = u;      }
   UInt getPCMLog2MinSize  ()         { return  m_uiPCMLog2MinSize;  }
+#endif
+#if DISABLE_4x4_INTER
+  Bool getDisInter4x4()         { return m_bDisInter4x4;        }
+  Void setDisInter4x4      ( Bool b ) { m_bDisInter4x4  = b;          }
 #endif
   Void setMinTrDepth  ( UInt u ) { m_uiMinTrDepth = u;      }
   UInt getMinTrDepth  ()         { return  m_uiMinTrDepth;  }
@@ -322,6 +329,10 @@ private:
   Bool        m_bRefPicListModificationFlagLC;
   Bool        m_bRefPicListCombinationFlag;
 
+#if TMVP_ONE_LIST_CHECK
+  Bool        m_bCheckLDC;
+#endif
+
   //  Data
   Int         m_iSliceQpDelta;
   TComPic*    m_apcRefPicList [2][MAX_NUM_REF];
@@ -394,7 +405,10 @@ public:
   Int       getRefPOC           ( RefPicList e, Int iRefIdx)    { return  m_aiRefPOCList[e][iRefIdx];   }
   Int       getDepth            ()                              { return  m_iDepth;                     }
   UInt      getColDir           ()                              { return  m_uiColDir;                   }
-  
+#if TMVP_ONE_LIST_CHECK
+  Bool      getCheckLDC     ()                                  { return m_bCheckLDC; }
+#endif
+
   Int       getRefIdxOfLC       (RefPicList e, Int iRefIdx)     { return m_iRefIdxOfLC[e][iRefIdx];           }
   Int       getListIdFromIdxOfLC(Int iRefIdx)                   { return m_eListIdFromIdxOfLC[iRefIdx];       }
   Int       getRefIdxFromIdxOfLC(Int iRefIdx)                   { return m_iRefIdxFromIdxOfLC[iRefIdx];       }
@@ -432,6 +446,9 @@ public:
   Void      setRefPicList       ( TComList<TComPic*>& rcListPic );
   Void      setRefPOCList       ();
   Void      setColDir           ( UInt uiDir ) { m_uiColDir = uiDir; }
+#if TMVP_ONE_LIST_CHECK
+  Void      setCheckLDC         ( Bool b )                      { m_bCheckLDC = b; }
+#endif
   
   Bool      isIntra         ()                          { return  m_eSliceType == I_SLICE;  }
   Bool      isInterB        ()                          { return  m_eSliceType == B_SLICE;  }

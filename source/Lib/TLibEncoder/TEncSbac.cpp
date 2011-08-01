@@ -371,7 +371,11 @@ Void TEncSbac::xCopyFrom( TEncSbac* pSrc )
 Void TEncSbac::codeMVPIdx ( TComDataCU* pcCU, UInt uiAbsPartIdx, RefPicList eRefList )
 {
   Int iSymbol = pcCU->getMVPIdx(eRefList, uiAbsPartIdx);
+#if MRG_AMVP_FIXED_IDX_F470
+  Int iNum = AMVP_MAX_NUM_CANDS;
+#else
   Int iNum    = pcCU->getMVPNum(eRefList, uiAbsPartIdx);
+#endif
 
   xWriteUnaryMaxSymbol(iSymbol, m_cMVPIdxSCModel.get(0), 1, iNum-1);
 }
@@ -387,14 +391,25 @@ Void TEncSbac::codePartSize( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
       m_pcBinIf->encodeBin( 0, m_cCUPartSizeSCModel.get( 0, 0, 1) );
       m_pcBinIf->encodeBin( 0, m_cCUPartSizeSCModel.get( 0, 0, 2) );
     }
-    if( uiDepth == g_uiMaxCUDepth - g_uiAddCUDepth )
+#if DISABLE_4x4_INTER
+    if(pcCU->getSlice()->getSPS()->getDisInter4x4() && (pcCU->getWidth(uiAbsPartIdx)==8) && (pcCU->getHeight(uiAbsPartIdx)==8) )
     {
-      m_pcBinIf->encodeBin( 0, m_cCUPartSizeSCModel.get( 0, 0, 3) );
+      if( uiDepth == g_uiMaxCUDepth - g_uiAddCUDepth )
+      {
+        m_pcBinIf->encodeBin( (eSize == SIZE_2Nx2N? 0 : 1), m_cCUPartSizeSCModel.get( 0, 0, 3) );
+      }
     }
-    if( uiDepth == g_uiMaxCUDepth - g_uiAddCUDepth )
+    else
     {
-      m_pcBinIf->encodeBin( (eSize == SIZE_2Nx2N? 0 : 1), m_cCUPartSizeSCModel.get( 0, 0, 4) );
+#endif
+      if( uiDepth == g_uiMaxCUDepth - g_uiAddCUDepth )
+      {
+        m_pcBinIf->encodeBin( 0, m_cCUPartSizeSCModel.get( 0, 0, 3) );
+        m_pcBinIf->encodeBin( (eSize == SIZE_2Nx2N? 0 : 1), m_cCUPartSizeSCModel.get( 0, 0, 4) );
+      }
+#if DISABLE_4x4_INTER
     }
+#endif
     return;
   }
   
@@ -423,14 +438,38 @@ Void TEncSbac::codePartSize( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
     }
     case SIZE_Nx2N:
     {
+#if DISABLE_4x4_INTER
+    if(pcCU->getSlice()->getSPS()->getDisInter4x4() && (pcCU->getWidth(uiAbsPartIdx)==8) && (pcCU->getHeight(uiAbsPartIdx)==8) )
+    {
+      m_pcBinIf->encodeBin( 0, m_cCUPartSizeSCModel.get( 0, 0, 0) );
+      m_pcBinIf->encodeBin( 0, m_cCUPartSizeSCModel.get( 0, 0, 1) );
+      if (pcCU->getSlice()->isInterB())
+      {
+        m_pcBinIf->encodeBin( 1, m_cCUPartSizeSCModel.get( 0, 0, 2) );
+      }
+    }
+    else
+    {
+#endif
       m_pcBinIf->encodeBin( 0, m_cCUPartSizeSCModel.get( 0, 0, 0) );
       m_pcBinIf->encodeBin( 0, m_cCUPartSizeSCModel.get( 0, 0, 1) );
       m_pcBinIf->encodeBin( 1, m_cCUPartSizeSCModel.get( 0, 0, 2) );
-      
+#if DISABLE_4x4_INTER
+    }
+#endif      
       break;
     }
     case SIZE_NxN:
     {
+#if DISABLE_4x4_INTER
+    if(pcCU->getSlice()->getSPS()->getDisInter4x4() && (pcCU->getWidth(uiAbsPartIdx)==8) && (pcCU->getHeight(uiAbsPartIdx)==8) )
+    {
+      assert(0);
+      break;
+    }
+    else
+    {
+#endif
       if( uiDepth == g_uiMaxCUDepth - g_uiAddCUDepth )
       {
         m_pcBinIf->encodeBin( 0, m_cCUPartSizeSCModel.get( 0, 0, 0) );
@@ -445,6 +484,9 @@ Void TEncSbac::codePartSize( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
         }
       }
       break;
+#if DISABLE_4x4_INTER
+    }
+#endif
     }
     default:
     {
@@ -578,6 +620,12 @@ Void TEncSbac::codeMergeFlag( TComDataCU* pcCU, UInt uiAbsPartIdx )
  */
 Void TEncSbac::codeMergeIndex( TComDataCU* pcCU, UInt uiAbsPartIdx )
 {
+#if MRG_AMVP_FIXED_IDX_F470
+  UInt uiNumCand = MRG_MAX_NUM_CANDS;
+  Bool bLeftInvolved = true;
+  Bool bAboveInvolved = true;
+  Bool bCollocatedInvolved = true;
+#else
   Bool bLeftInvolved = false;
   Bool bAboveInvolved = false;
   Bool bCollocatedInvolved = false;
@@ -606,6 +654,7 @@ Void TEncSbac::codeMergeIndex( TComDataCU* pcCU, UInt uiAbsPartIdx )
       }
     }
   }
+#endif
   assert( uiNumCand > 1 );
 
   UInt auiCtx[4] = { 0, 0, 0, 3 };
@@ -640,7 +689,7 @@ Void TEncSbac::codeMergeIndex( TComDataCU* pcCU, UInt uiAbsPartIdx )
   }
 
   UInt uiUnaryIdx = pcCU->getMergeIndex( uiAbsPartIdx );
-
+#if !(MRG_AMVP_FIXED_IDX_F470)
   if( !bCornerInvolved && uiUnaryIdx > 3 )
   {
     --uiUnaryIdx;
@@ -657,7 +706,7 @@ Void TEncSbac::codeMergeIndex( TComDataCU* pcCU, UInt uiAbsPartIdx )
   {
     --uiUnaryIdx;
   }
-
+#endif
   for( UInt ui = 0; ui < uiNumCand - 1; ++ui )
   {
     const UInt uiSymbol = ui == uiUnaryIdx ? 0 : 1;
@@ -857,6 +906,7 @@ Void TEncSbac::codeIntraDirChroma( TComDataCU* pcCU, UInt uiAbsPartIdx )
   UInt uiCtx            = pcCU->getCtxIntraDirChroma( uiAbsPartIdx );
 #endif
   UInt uiIntraDirChroma = pcCU->getChromaIntraDir   ( uiAbsPartIdx );
+  
 #if ADD_PLANAR_MODE
   UInt planarFlag       = 0;
   if (uiIntraDirChroma == PLANAR_IDX)
@@ -1108,7 +1158,11 @@ Void TEncSbac::codeMvd( TComDataCU* pcCU, UInt uiAbsPartIdx, RefPicList eRefList
 #endif
 
   TComDataCU* pcCUL   = pcCU->getPULeft ( uiAbsPartIdxL, pcCU->getZorderIdxInCU() + uiAbsPartIdx );
+#if REDUCE_UPPER_MOTION_DATA
+  TComDataCU* pcCUA   = pcCU->getPUAbove( uiAbsPartIdxA, pcCU->getZorderIdxInCU() + uiAbsPartIdx, true, true, true );
+#else
   TComDataCU* pcCUA   = pcCU->getPUAbove( uiAbsPartIdxA, pcCU->getZorderIdxInCU() + uiAbsPartIdx );
+#endif
   
   TComCUMvField* pcCUMvFieldL = ( pcCUL == NULL || pcCUL->isIntra( uiAbsPartIdxL ) ) ? NULL : pcCUL->getCUMvField( eRefList );
   TComCUMvField* pcCUMvFieldA = ( pcCUA == NULL || pcCUA->isIntra( uiAbsPartIdxA ) ) ? NULL : pcCUA->getCUMvField( eRefList );

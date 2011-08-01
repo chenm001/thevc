@@ -76,7 +76,9 @@ protected:
   Bool      m_bUseGPB;                                        ///< flag for using generalized P & B structure
   Bool      m_bUseLComb;                                      ///< flag for using combined reference list for uni-prediction in B-slices (JCTVC-D421)
   Bool      m_bLCMod;                                         ///< flag for specifying whether the combined reference list for uni-prediction in B-slices is uploaded explicitly
-
+#if DISABLE_4x4_INTER
+  Bool      m_bDisInter4x4;
+#endif
   // coding quality
   Double    m_fQP;                                            ///< QP value of key-picture (floating point)
   Int       m_iQP;                                            ///< QP value of key-picture (integer)

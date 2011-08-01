@@ -172,6 +172,15 @@ Void TComRdCost::init()
   m_afpDistortFunc[13] = TComRdCost::xGetSAD64;
   m_afpDistortFunc[14] = TComRdCost::xGetSAD16N;
   
+#if GENERIC_IF
+  m_afpDistortFunc[15] = TComRdCost::xGetSAD;
+  m_afpDistortFunc[16] = TComRdCost::xGetSAD4;
+  m_afpDistortFunc[17] = TComRdCost::xGetSAD8;
+  m_afpDistortFunc[18] = TComRdCost::xGetSAD16;
+  m_afpDistortFunc[19] = TComRdCost::xGetSAD32;
+  m_afpDistortFunc[20] = TComRdCost::xGetSAD64;
+  m_afpDistortFunc[21] = TComRdCost::xGetSAD16N;
+#else
   m_afpDistortFunc[15] = TComRdCost::xGetSADs;
   m_afpDistortFunc[16] = TComRdCost::xGetSADs4;
   m_afpDistortFunc[17] = TComRdCost::xGetSADs8;
@@ -179,6 +188,7 @@ Void TComRdCost::init()
   m_afpDistortFunc[19] = TComRdCost::xGetSADs32;
   m_afpDistortFunc[20] = TComRdCost::xGetSADs64;
   m_afpDistortFunc[21] = TComRdCost::xGetSADs16N;
+#endif
   
   m_afpDistortFunc[22] = TComRdCost::xGetHADs;
   m_afpDistortFunc[23] = TComRdCost::xGetHADs;
@@ -691,6 +701,7 @@ UInt TComRdCost::xGetSAD64( DistParam* pcDtParam )
   return ( uiSum >> g_uiBitIncrement );
 }
 
+#if !GENERIC_IF
 // --------------------------------------------------------------------------------------------------------------------
 // SAD with step (used in fractional search)
 // --------------------------------------------------------------------------------------------------------------------
@@ -1102,6 +1113,7 @@ UInt TComRdCost::xGetSADs64( DistParam* pcDtParam )
   
   return ( uiSum >> g_uiBitIncrement );
 }
+#endif
 
 // --------------------------------------------------------------------------------------------------------------------
 // SSE
@@ -1745,11 +1757,18 @@ UInt TComRdCost::xGetSSE64( DistParam* pcDtParam )
 UInt TComRdCost::xCalcHADs2x2( Pel *piOrg, Pel *piCur, Int iStrideOrg, Int iStrideCur, Int iStep )
 {
   Int satd = 0, diff[4], m[4];
+#if GENERIC_IF
+  assert( iStep == 1 );
+  diff[0] = piOrg[0             ] - piCur[0];
+  diff[1] = piOrg[1             ] - piCur[1];
+  diff[2] = piOrg[iStrideOrg    ] - piCur[0 + iStrideCur];
+  diff[3] = piOrg[iStrideOrg + 1] - piCur[1 + iStrideCur];
+#else
   diff[0] = piOrg[0             ] - piCur[0*iStep];
   diff[1] = piOrg[1             ] - piCur[1*iStep];
   diff[2] = piOrg[iStrideOrg    ] - piCur[0*iStep + iStrideCur];
   diff[3] = piOrg[iStrideOrg + 1] - piCur[1*iStep + iStrideCur];
-  
+#endif  
   m[0] = diff[0] + diff[2];
   m[1] = diff[1] + diff[3];
   m[2] = diff[0] - diff[2];
@@ -1767,6 +1786,19 @@ UInt TComRdCost::xCalcHADs4x4( Pel *piOrg, Pel *piCur, Int iStrideOrg, Int iStri
 {
   Int k, satd = 0, diff[16], m[16], d[16];
   
+#if GENERIC_IF
+  assert( iStep == 1 );
+  for( k = 0; k < 16; k+=4 )
+  {
+    diff[k+0] = piOrg[0] - piCur[0];
+    diff[k+1] = piOrg[1] - piCur[1];
+    diff[k+2] = piOrg[2] - piCur[2];
+    diff[k+3] = piOrg[3] - piCur[3];
+    
+    piCur += iStrideCur;
+    piOrg += iStrideOrg;
+  }
+#else
   for( k = 0; k < 16; k+=4 )
   {
     diff[k+0] = piOrg[0] - piCur[0*iStep];
@@ -1777,6 +1809,7 @@ UInt TComRdCost::xCalcHADs4x4( Pel *piOrg, Pel *piCur, Int iStrideOrg, Int iStri
     piCur += iStrideCur;
     piOrg += iStrideOrg;
   }
+#endif
   
   /*===== hadamard transform =====*/
   m[ 0] = diff[ 0] + diff[12];
@@ -1860,6 +1893,23 @@ UInt TComRdCost::xCalcHADs8x8( Pel *piOrg, Pel *piCur, Int iStrideOrg, Int iStri
 {
   Int k, i, j, jj, sad=0;
   Int diff[64], m1[8][8], m2[8][8], m3[8][8];
+#if GENERIC_IF
+  assert( iStep == 1 );
+  for( k = 0; k < 64; k += 8 )
+  {
+    diff[k+0] = piOrg[0] - piCur[0];
+    diff[k+1] = piOrg[1] - piCur[1];
+    diff[k+2] = piOrg[2] - piCur[2];
+    diff[k+3] = piOrg[3] - piCur[3];
+    diff[k+4] = piOrg[4] - piCur[4];
+    diff[k+5] = piOrg[5] - piCur[5];
+    diff[k+6] = piOrg[6] - piCur[6];
+    diff[k+7] = piOrg[7] - piCur[7];
+    
+    piCur += iStrideCur;
+    piOrg += iStrideOrg;
+  }
+#else
   Int iStep2 = iStep<<1;
   Int iStep3 = iStep2 + iStep;
   Int iStep4 = iStep3 + iStep;
@@ -1881,6 +1931,7 @@ UInt TComRdCost::xCalcHADs8x8( Pel *piOrg, Pel *piCur, Int iStrideOrg, Int iStri
     piCur += iStrideCur;
     piOrg += iStrideOrg;
   }
+#endif
   
   //horizontal
   for (j=0; j < 8; j++)
@@ -1945,11 +1996,18 @@ UInt TComRdCost::xCalcHADs8x8( Pel *piOrg, Pel *piCur, Int iStrideOrg, Int iStri
     m2[7][i] = m1[6][i] - m1[7][i];
   }
   
+#if GENERIC_IF
+  for ( i = 0; i < 64; i++ )
+  {
+    sad += abs(m2[0][i]);
+  }
+#else
   for (j=0; j < 8; j++)
   {
     for (i=0; i < 8; i++)
       sad += (abs(m2[j][i]));
   }
+#endif
   
   sad=((sad+2)>>2);
   

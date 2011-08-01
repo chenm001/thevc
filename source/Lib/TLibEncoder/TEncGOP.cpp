@@ -185,6 +185,10 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
       m_pcSliceEncoder->initEncSlice ( pcPic, iPOCLast, uiPOCCurr, iNumPicRcvd, iTimeOffset, iDepth, pcSlice, m_pcEncTop->getSPS(), m_pcEncTop->getPPS() );
       pcSlice->setSliceIdx(0);
 
+#if DISABLE_4x4_INTER
+      m_pcEncTop->getSPS()->setDisInter4x4(m_pcEncTop->getDisInter4x4());
+#endif 
+
       // Set the nal unit type
       pcSlice->setNalUnitType(getNalUnitType(uiPOCCurr));
       // Do decoding refresh marking if any 
@@ -251,6 +255,28 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
       if (pcSlice->getSliceType() == B_SLICE)
       {
         pcSlice->setColDir(uiColDir);
+#if TMVP_ONE_LIST_CHECK
+        Bool bLowDelay = true;
+        Int  iCurrPOC  = pcSlice->getPOC();
+        Int iRefIdx = 0;
+
+        for (iRefIdx = 0; iRefIdx < pcSlice->getNumRefIdx(REF_PIC_LIST_0) && bLowDelay; iRefIdx++)
+        {
+          if ( pcSlice->getRefPic(REF_PIC_LIST_0, iRefIdx)->getPOC() > iCurrPOC )
+          {
+            bLowDelay = false;
+          }
+        }
+        for (iRefIdx = 0; iRefIdx < pcSlice->getNumRefIdx(REF_PIC_LIST_1) && bLowDelay; iRefIdx++)
+        {
+          if ( pcSlice->getRefPic(REF_PIC_LIST_1, iRefIdx)->getPOC() > iCurrPOC )
+          {
+            bLowDelay = false;
+          }
+        }
+
+        pcSlice->setCheckLDC(bLowDelay);  
+#endif
       }
       
       uiColDir = 1-uiColDir;

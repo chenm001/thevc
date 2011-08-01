@@ -93,6 +93,9 @@ Void TEncCu::create(UChar uhTotalDepth, UInt uiMaxWidth, UInt uiMaxHeight)
   
   // initialize conversion matrix from partition index to pel
   initRasterToPelXY( uiMaxWidth, uiMaxHeight, m_uhTotalDepth );
+#if REDUCE_UPPER_MOTION_DATA
+  initMotionReferIdx ( uiMaxWidth, uiMaxHeight, m_uhTotalDepth );
+#endif
 }
 
 Void TEncCu::destroy()
@@ -535,6 +538,10 @@ Void TEncCu::xCompressCU( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, UInt u
           xCheckRDCostInter( rpcBestCU, rpcTempCU, SIZE_2Nx2N );
           rpcTempCU->initEstData();
 #endif
+#if DISABLE_4x4_INTER
+        if(!( rpcBestCU->getSlice()->getSPS()->getDisInter4x4()  && (rpcBestCU->getWidth(0)==8) && (rpcBestCU->getHeight(0)==8) ))
+        {
+#endif
           if( uiDepth == g_uiMaxCUDepth - g_uiAddCUDepth )
           {
             xCheckRDCostInter( rpcBestCU, rpcTempCU, SIZE_NxN   );
@@ -544,6 +551,9 @@ Void TEncCu::xCompressCU( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, UInt u
             rpcTempCU->initEstData();
 #endif
           }
+#if DISABLE_4x4_INTER
+        }
+#endif
         }
 
         { // 2NxN, Nx2N
@@ -1178,7 +1188,11 @@ Void TEncCu::xCheckRDCostMerge2Nx2N( TComDataCU*& rpcBestCU, TComDataCU*& rpcTem
   Bool bValidCands = false;
   for( UInt uiMergeCand = 0; uiMergeCand < MRG_MAX_NUM_CANDS; ++uiMergeCand )
   {
+#if MRG_AMVP_FIXED_IDX_F470
+    if( uiNeighbourCandIdx[uiMergeCand] > 0 )
+#else
     if( uiNeighbourCandIdx[uiMergeCand] == ( uiMergeCand + 1 ) )
+#endif
     {
 #if HHI_MRG_SKIP
       TComYuv* pcPredYuvTemp = NULL;

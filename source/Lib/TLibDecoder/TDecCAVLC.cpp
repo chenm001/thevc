@@ -227,6 +227,9 @@ Void TDecCavlc::parseSPS(TComSPS* pcSPS)
   READ_CODE( 4, uiCode, "pcm_bit_depth_luma_minus1" );           pcSPS->setPCMBitDepthLuma   ( 1 + uiCode );
   READ_CODE( 4, uiCode, "pcm_bit_depth_chroma_minus1" );         pcSPS->setPCMBitDepthChroma ( 1 + uiCode );
 #endif
+#if DISABLE_4x4_INTER
+  xReadFlag( uiCode ); pcSPS->setDisInter4x4( uiCode ? true : false );
+#endif
   // log2_max_frame_num_minus4
   // pic_order_cnt_type
   // if( pic_order_cnt_type  = =  0 )
@@ -647,7 +650,11 @@ Void TDecCavlc::parseSkipFlag( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth
 Void TDecCavlc::parseMVPIdx( TComDataCU* pcCU, Int& riMVPIdx, Int iMVPNum, UInt uiAbsPartIdx, UInt uiDepth, RefPicList eRefList )
 {
   UInt uiSymbol;
+#if MRG_AMVP_FIXED_IDX_F470
+  xReadUnaryMaxSymbol(uiSymbol, AMVP_MAX_NUM_CANDS-1);
+#else
   xReadUnaryMaxSymbol(uiSymbol, iMVPNum-1);
+#endif
   riMVPIdx = uiSymbol;
 }
 
@@ -828,8 +835,19 @@ Void TDecCavlc::parsePartSize( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth
     }
     else
     {
+#if DISABLE_4x4_INTER
+      if(pcCU->getSlice()->getSPS()->getDisInter4x4() && ( (g_uiMaxCUWidth>>uiDepth)==8) && ( (g_uiMaxCUHeight>>uiDepth)==8) )
+      {
+        uiMode = 2;
+      }
+      else
+      {
+#endif
       xReadFlag( uiSymbol );
       uiMode = uiSymbol ? 2 : 0;
+#if DISABLE_4x4_INTER
+      }
+#endif
     }
   }
   PartSize ePartSize;
@@ -2402,6 +2420,9 @@ Void TDecCavlc::parseMergeFlag ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDep
  */
 Void TDecCavlc::parseMergeIndex ( TComDataCU* pcCU, UInt& ruiMergeIndex, UInt uiAbsPartIdx, UInt uiDepth )
 {
+#if MRG_AMVP_FIXED_IDX_F470
+  UInt uiNumCand = MRG_MAX_NUM_CANDS;
+#else
   Bool bLeftInvolved = false;
   Bool bAboveInvolved = false;
   Bool bCollocatedInvolved = false;
@@ -2430,6 +2451,7 @@ Void TDecCavlc::parseMergeIndex ( TComDataCU* pcCU, UInt& ruiMergeIndex, UInt ui
       }
     }
   }
+#endif
   assert( uiNumCand > 1 );
   UInt uiUnaryIdx = 0;
   for( ; uiUnaryIdx < uiNumCand - 1; ++uiUnaryIdx )
@@ -2441,6 +2463,7 @@ Void TDecCavlc::parseMergeIndex ( TComDataCU* pcCU, UInt& ruiMergeIndex, UInt ui
       break;
     }
   }
+#if !(MRG_AMVP_FIXED_IDX_F470)
   if( !bLeftInvolved )
   {
     ++uiUnaryIdx;
@@ -2458,6 +2481,7 @@ Void TDecCavlc::parseMergeIndex ( TComDataCU* pcCU, UInt& ruiMergeIndex, UInt ui
   {
     ++uiUnaryIdx;
   }
+#endif
   ruiMergeIndex = uiUnaryIdx;
 }
 
