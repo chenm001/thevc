@@ -126,15 +126,21 @@ Void TEncEntropy::codeAux(ALFParam* pAlfParam)
     m_pcEntropyCoderIf->codeAlfFlag(0);
   }
 #endif
+#if !STAR_CROSS_SHAPES_LUMA
   Int FiltTab[3] = {9, 7, 5};
   Int Tab = FiltTab[pAlfParam->realfiltNo];
+#endif
   //  m_pcEntropyCoderIf->codeAlfUvlc(pAlfParam->realfiltNo); 
 
 #if MQT_BA_RA  
   m_pcEntropyCoderIf->codeAlfFlag(pAlfParam->alf_pcr_region_flag);
 #endif
 
+#if STAR_CROSS_SHAPES_LUMA
+  m_pcEntropyCoderIf->codeAlfUvlc(pAlfParam->realfiltNo); 
+#else
   m_pcEntropyCoderIf->codeAlfUvlc((Tab-5)/2); 
+#endif
   
   if (pAlfParam->filtNo>=0)
   {
@@ -177,13 +183,19 @@ Int TEncEntropy::codeFilterCoeff(ALFParam* ALFp)
   int filters_per_group = ALFp->filters_per_group_diff;
   int sqrFiltLength = ALFp->num_coeff;
   int filtNo = ALFp->realfiltNo;
+#if !STAR_CROSS_SHAPES_LUMA
   int flTab[]={9/2, 7/2, 5/2};
   int fl = flTab[filtNo];
+#endif
   int i, k, kMin, kStart, minBits, ind, scanPos, maxScanVal, coeffVal, len = 0,
   *pDepthInt=NULL, kMinTab[MAX_SQR_FILT_LENGTH], bitsCoeffScan[MAX_SCAN_VAL][MAX_EXP_GOLOMB],
   minKStart, minBitsKStart, bitsKStart;
   
+#if STAR_CROSS_SHAPES_LUMA
+  pDepthInt = pDepthIntTab_shapes[filtNo];
+#else 
   pDepthInt = pDepthIntTab[fl-2];
+#endif
   
   maxScanVal = 0;
   for(i = 0; i < sqrFiltLength; i++)
@@ -1244,9 +1256,29 @@ Void TEncEntropy::estimateBit (estBitsSbacStruct* pcEstBitsSbac, UInt uiWidth, T
 /** encode QAO One Part
  * \param  pQaoParam, iPartIdx
  */
+#if MTK_SAO_CHROMA
+Void TEncEntropy::encodeQAOOnePart(SAOParam* pQaoParam, Int iPartIdx, Int iYCbCr)
+#else
 Void TEncEntropy::encodeQAOOnePart(SAOParam* pQaoParam, Int iPartIdx )
+#endif
 {
+#if MTK_SAO_CHROMA
+  SAOQTPart*  pAlfPart = NULL;
+  if (iYCbCr == 0)
+  {
+    pAlfPart = &(pQaoParam->psSaoPart[iPartIdx]); 
+  }
+  else if (iYCbCr == 1)
+  {
+    pAlfPart = &(pQaoParam->psSaoPartCb[iPartIdx]); 
+  }
+  else 
+  {
+    pAlfPart = &(pQaoParam->psSaoPartCr[iPartIdx]); 
+  }
+#else
   SAOQTPart*  pAlfPart = &(pQaoParam->psSaoPart[iPartIdx]);
+#endif 
   UInt uiSymbol;
 
   if(!pAlfPart->bSplit)
@@ -1261,6 +1293,7 @@ Void TEncEntropy::encodeQAOOnePart(SAOParam* pQaoParam, Int iPartIdx )
     }
     
     m_pcEntropyCoderIf->codeAoUvlc(uiSymbol);
+
     if (pAlfPart->bEnableFlag)
     {
       for(Int i=0; i< pAlfPart->iLength; i++)
@@ -1276,27 +1309,56 @@ Void TEncEntropy::encodeQAOOnePart(SAOParam* pQaoParam, Int iPartIdx )
   {
     for (Int i=0;i<NUM_DOWN_PART;i++)
     {
+#if MTK_SAO_CHROMA
+      encodeQAOOnePart(pQaoParam, pAlfPart->DownPartsIdx[i], iYCbCr);
+#else
       encodeQAOOnePart(pQaoParam, pAlfPart->DownPartsIdx[i]);
+#endif
     }
   }
 }
 /** encode QuadTree Split Flag
  * \param  pQaoParam, iPartIdx
  */
+#if MTK_SAO_CHROMA
+Void TEncEntropy::encodeQuadTreeSplitFlag(SAOParam* pSaoParam, Int iPartIdx, Int iYCbCr)
+#else
 Void TEncEntropy::encodeQuadTreeSplitFlag(SAOParam* pSaoParam, Int iPartIdx)
+#endif
 {
+#if MTK_SAO_CHROMA
+  SAOQTPart*  pSaoPart = NULL;
+  if (iYCbCr == 0)
+  {
+    pSaoPart = &(pSaoParam->psSaoPart[iPartIdx]);
+  }
+  else if (iYCbCr == 1)
+  {
+    pSaoPart = &(pSaoParam->psSaoPartCb[iPartIdx]);
+  }
+  else 
+  {
+    pSaoPart = &(pSaoParam->psSaoPartCr[iPartIdx]);
+  }
+#else
   SAOQTPart*  pSaoPart = &(pSaoParam->psSaoPart[iPartIdx]);
+#endif
 
   if(pSaoPart->PartLevel < pSaoParam->iMaxSplitLevel)
   {
 
     //send one flag
     m_pcEntropyCoderIf->codeAoFlag( (pSaoPart->bSplit)?(1):(0)  );
+
     if(pSaoPart->bSplit)
     {
       for (Int i=0;i<NUM_DOWN_PART;i++)
       {
+#if MTK_SAO_CHROMA
+        encodeQuadTreeSplitFlag(pSaoParam, pSaoPart->DownPartsIdx[i], iYCbCr);
+#else
         encodeQuadTreeSplitFlag(pSaoParam, pSaoPart->DownPartsIdx[i]);
+#endif
       }
     } 
   }
@@ -1308,11 +1370,33 @@ Void TEncEntropy::encodeQuadTreeSplitFlag(SAOParam* pSaoParam, Int iPartIdx)
 Void TEncEntropy::encodeSaoParam(SAOParam* pSaoParam)
 {
   m_pcEntropyCoderIf->codeAoFlag(pSaoParam->bSaoFlag); 
+#if MTK_SAO_CHROMA
+  if (pSaoParam->bSaoFlag)
+  {
+    encodeQuadTreeSplitFlag(pSaoParam, 0, 0);
+    encodeQAOOnePart(pSaoParam, 0, 0);
+
+    m_pcEntropyCoderIf->codeAoFlag(pSaoParam->bSaoFlagCb); 
+    if (pSaoParam->bSaoFlagCb)
+    {
+      encodeQuadTreeSplitFlag(pSaoParam, 0, 1);
+      encodeQAOOnePart(pSaoParam, 0, 1);
+    }
+
+    m_pcEntropyCoderIf->codeAoFlag(pSaoParam->bSaoFlagCr); 
+    if (pSaoParam->bSaoFlagCr)
+    {
+      encodeQuadTreeSplitFlag(pSaoParam, 0, 2);
+      encodeQAOOnePart(pSaoParam, 0, 2);
+    }
+  }
+#else
   if (pSaoParam->bSaoFlag)
   {
     encodeQuadTreeSplitFlag(pSaoParam, 0);
     encodeQAOOnePart(pSaoParam, 0);
   }
+#endif
 }
 #endif
 

@@ -191,6 +191,11 @@
 /////////////////////////////////
 
 #define MTK_SAO                           1           // JCTVC-E049: Sample adaptive offset
+#define MTK_SAO_CHROMA                    1           // JCTVC-F057: Sample adaptive offset for Chroma
+#define MTK_SAO_REMOVE_SKIP               1
+
+#define SAO_ACCURATE_OFFSET               1           // JCTVC-F396
+#define SAO_CLIP_OFFSET                   1           // JCTVC-F396
 
 #define MQT_ALF_NPASS                       1
 
@@ -199,7 +204,10 @@
 #define VAR_SIZE_H           4
 #define VAR_SIZE_W           4
 #define NO_VAR_BIN          16
+#define BA_SUB               1  // JCTVC-F301: ALF BA on subset of pixels
 #endif
+
+#define STAR_CROSS_SHAPES_LUMA 1 // JCTVC-F303: ALF using vertical-size 5 filters with up to 9 coefficients
 
 #if QC_MDIS
 #define MN_MDIS_SIMPLIFICATION       1       ///< JCTVC-E069: simplification of MDIS
@@ -225,6 +233,8 @@
 #define E192_SPS_PCM_BIT_DEPTH_SYNTAX       1 // JCTVC-E192: PCM bit depth
 #define E192_SPS_PCM_FILTER_DISABLE_SYNTAX  1 // JCTVC-E192: PCM filter disable flag
 #endif
+
+#define F118_LUMA_DEBLOCK  1                  // JCTVC-F118: Luma part of the deblocking filter 
 
 #define E045_SLICE_COMMON_INFO_SHARING 1 //JCTVC-E045: Slice common information sharing
 
@@ -346,6 +356,12 @@ struct _SaoParam
 {
   Bool       bSaoFlag;
   SAOQTPart* psSaoPart;
+#if MTK_SAO_CHROMA
+  Bool       bSaoFlagCb;
+  Bool       bSaoFlagCr;
+  SAOQTPart* psSaoPartCb;
+  SAOQTPart* psSaoPartCr;
+#endif
   Int        iMaxSplitLevel;
   Int        iNumClass[MAX_NUM_SAO_TYPE];
 };
@@ -357,11 +373,13 @@ struct _AlfParam
   Int alf_flag;                           ///< indicates use of ALF
   Int cu_control_flag;                    ///< coding unit based control flag
   Int chroma_idc;                         ///< indicates use of ALF for chroma
+#if !STAR_CROSS_SHAPES_LUMA
 #if TI_ALF_MAX_VSIZE_7
   Int tap;                                ///< number of filter taps - horizontal
   Int tapV;                               ///< number of filter taps - vertical
 #else
   Int tap;                                ///< number of filter taps
+#endif
 #endif
   Int num_coeff;                          ///< number of filter coefficients
   Int *coeff;                             ///< filter coefficient array
