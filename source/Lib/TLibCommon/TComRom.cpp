@@ -70,7 +70,12 @@ Void initROM()
     g_auiSigLastScan[0][i] = new UInt[ c*c ];
     g_auiSigLastScan[1][i] = new UInt[ c*c ];
     g_auiSigLastScan[2][i] = new UInt[ c*c ];
+#if DIAG_SCAN
+    g_auiSigLastScan[3][i] = new UInt[ c*c ];
+    initSigLastScan( g_auiSigLastScan[0][i], g_auiSigLastScan[1][i], g_auiSigLastScan[2][i], g_auiSigLastScan[3][i], c, c, i);
+#else
     initSigLastScan( g_auiSigLastScan[0][i], g_auiSigLastScan[1][i], g_auiSigLastScan[2][i], c, c, i);
+#endif
 #endif //QC_MDCS
 
     c <<= 1;
@@ -90,6 +95,9 @@ Void destroyROM()
     delete[] g_auiSigLastScan[0][i];
     delete[] g_auiSigLastScan[1][i];
     delete[] g_auiSigLastScan[2][i];
+#if DIAG_SCAN
+    delete[] g_auiSigLastScan[3][i];
+#endif
 #endif //QC_MDCS
   }
 }
@@ -1717,9 +1725,22 @@ UInt* g_auiFrameScanXY[ MAX_CU_DEPTH  ];
 UInt* g_auiFrameScanX [ MAX_CU_DEPTH  ];
 UInt* g_auiFrameScanY [ MAX_CU_DEPTH  ];
 #if QC_MDCS
+#if DIAG_SCAN
+UInt* g_auiSigLastScan[4][ MAX_CU_DEPTH ];
+#else
 UInt* g_auiSigLastScan[3][ MAX_CU_DEPTH ];
+#endif
 #endif //QC_MDCS
 
+#if MODIFIED_LAST_CODING
+const UInt g_uiLastCtx[ 32 ] =
+{
+  0, 1, 2, 2, // 4x4
+  3, 4, 5, 5, // 8x8
+  6, 7, 8, 9, 10, 10, 11, 11, // 16x16
+  12, 13, 14, 15, 16, 16, 16, 16, 17, 17, 17, 17, 18, 18, 18, 18 // 32x32
+};
+#else
 UInt g_uiCtxXYOffset[ MAX_CU_DEPTH ] =
 {
   15, 15, 15, 8, 3, 0, 0
@@ -1729,6 +1750,7 @@ UInt g_uiCtxXY[ 31 ] =
 {
   0, 1, 2, 3, 3, 4, 4, 5, 5, 5, 5, 6, 6, 6, 6, 7, 7, 7, 7, 8, 8, 8, 8, 9, 9, 9, 9, 10, 10, 10, 10
 };
+#endif
 
 // scanning order to 8x8 context model mapping table
 UInt  g_auiAntiScan8  [64];
@@ -1815,8 +1837,35 @@ Void initFrameScanXY( UInt* pBuff, UInt* pBuffX, UInt* pBuffY, Int iWidth, Int i
 }
 
 #if QC_MDCS
+#if DIAG_SCAN
+Void initSigLastScan(UInt* pBuffZ, UInt* pBuffH, UInt* pBuffV, UInt* pBuffD, Int iWidth, Int iHeight, Int iDepth)
+#else
 Void initSigLastScan(UInt* pBuffZ, UInt* pBuffH, UInt* pBuffV, Int iWidth, Int iHeight, Int iDepth)
+#endif
 {
+#if DIAG_SCAN
+  const UInt  uiNumScanPos  = UInt( iWidth * iWidth );
+  UInt        uiNextScanPos = 0;
+
+  for( UInt uiScanLine = 0; uiNextScanPos < uiNumScanPos; uiScanLine++ )
+  {
+    int    iPrimDim  = int( uiScanLine );
+    int    iScndDim  = 0;
+    while( iPrimDim >= iWidth )
+    {
+      iScndDim++;
+      iPrimDim--;
+    }
+    while( iPrimDim >= 0 && iScndDim < iWidth )
+    {
+      pBuffD[ uiNextScanPos ] = iPrimDim * iWidth + iScndDim ;
+      uiNextScanPos++;
+      iScndDim++;
+      iPrimDim--;
+    }
+  }
+#endif
+  
   memcpy(pBuffZ, g_auiFrameScanXY[iDepth], sizeof(UInt)*iWidth*iHeight);
 
   UInt uiCnt = 0;

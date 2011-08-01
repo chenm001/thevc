@@ -733,6 +733,19 @@ TEncSearch::xEncSubdivCbfQT( TComDataCU*  pcCU,
   }
 #endif
   
+#if DNB_CHROMA_CBF_FLAGS
+  if( pcCU->getSlice()->getSymbolMode() && bChroma )
+  {
+    if( uiLog2TrafoSize > pcCU->getSlice()->getSPS()->getQuadtreeTULog2MinSize() )
+    {
+      if( uiTrDepth==0 || pcCU->getCbf( uiAbsPartIdx, TEXT_CHROMA_U, uiTrDepth-1 ) )
+        m_pcEntropyCoder->encodeQtCbf( pcCU, uiAbsPartIdx, TEXT_CHROMA_U, uiTrDepth );
+      if( uiTrDepth==0 || pcCU->getCbf( uiAbsPartIdx, TEXT_CHROMA_V, uiTrDepth-1 ) )
+        m_pcEntropyCoder->encodeQtCbf( pcCU, uiAbsPartIdx, TEXT_CHROMA_V, uiTrDepth );
+    }
+  }
+#endif
+
   if( uiSubdiv )
   {
     UInt uiQPartNum = pcCU->getPic()->getNumPartInCU() >> ( ( uiFullDepth + 1 ) << 1 );
@@ -750,6 +763,7 @@ TEncSearch::xEncSubdivCbfQT( TComDataCU*  pcCU,
     {
       m_pcEntropyCoder->encodeQtCbf( pcCU, uiAbsPartIdx, TEXT_LUMA,     uiTrMode );
     }
+#if !DNB_CHROMA_CBF_FLAGS
     if( bChroma )
     {
       Bool bCodeChroma = true;
@@ -765,6 +779,7 @@ TEncSearch::xEncSubdivCbfQT( TComDataCU*  pcCU,
         m_pcEntropyCoder->encodeQtCbf( pcCU, uiAbsPartIdx, TEXT_CHROMA_V, uiTrDepth );
       }
     }
+#endif
   }
 }
 

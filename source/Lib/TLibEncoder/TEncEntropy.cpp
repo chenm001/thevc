@@ -686,7 +686,11 @@ Void TEncEntropy::xEncodeTransformSubdiv( TComDataCU* pcCU, UInt uiAbsPartIdx, U
   }
   else
   {
+#if DNB_CHROMA_CBF_FLAGS
+    if( uiLog2TrafoSize <= pcCU->getSlice()->getSPS()->getQuadtreeTULog2MaxSize() )
+#else
     if( pcCU->getPredictionMode(uiAbsPartIdx) != MODE_INTRA && uiLog2TrafoSize <= pcCU->getSlice()->getSPS()->getQuadtreeTULog2MaxSize() )
+#endif
     {
       const UInt uiTrDepthCurr = uiDepth - pcCU->getDepth( uiAbsPartIdx );
       const Bool bFirstCbfOfCU = uiLog2TrafoSize == pcCU->getSlice()->getSPS()->getQuadtreeTULog2MaxSize() || uiTrDepthCurr == 0;
@@ -781,6 +785,7 @@ Void TEncEntropy::xEncodeTransformSubdiv( TComDataCU* pcCU, UInt uiAbsPartIdx, U
         }
       }
       
+#if !DNB_CHROMA_CBF_FLAGS
       if( pcCU->getPredictionMode(uiAbsPartIdx) == MODE_INTRA )
       {
         Bool bCodeChroma = true;
@@ -795,6 +800,7 @@ Void TEncEntropy::xEncodeTransformSubdiv( TComDataCU* pcCU, UInt uiAbsPartIdx, U
           m_pcEntropyCoderIf->codeQtCbf( pcCU, uiAbsPartIdx, TEXT_CHROMA_V, uiChromaTrMode );
         }
       }
+#endif
     }
   }
 }

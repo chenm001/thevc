@@ -266,6 +266,20 @@ UInt             getCurrLineNum(UInt uiScanIdx, UInt uiPosX, UInt uiPosY);
                                      UInt&                           uiAbsSum,
                                      TextType                        eTType,
                                      UInt                            uiAbsPartIdx );
+#if UNIFIED_SCAN
+__inline UInt              xGetCodedLevel  ( Double&                         rd64CodedCost,
+                                             Double&                         rd64CodedCost0,
+                                             Double&                         rd64CodedCostSig,
+                                             Long                            lLevelDouble,
+                                             UInt                            uiMaxAbsLevel,
+                                             UShort                          ui16CtxNumSig,
+                                             UShort                          ui16CtxNumOne,
+                                             UShort                          ui16CtxNumAbs,
+                                             UShort                          ui16AbsGoRice,
+                                             Int                             iQBits,
+                                             Double                          dTemp,
+                                             Bool                            bLast        ) const;
+#else
   __inline UInt  xGetCodedLevel    ( Double&                         rd64UncodedCost,
                                      Double&                         rd64CodedCost,
                                      Double&                         rd64CodedLastCost,
@@ -279,13 +293,19 @@ UInt             getCurrLineNum(UInt uiScanIdx, UInt uiPosX, UInt uiPosY);
                                      Int                             iQBits,
                                      Double                          dTemp
                                     ) const;
+#endif
   __inline Double xGetICRateCost   ( UInt                            uiAbsLevel,
                                      UShort                          ui16CtxNumOne,
                                      UShort                          ui16CtxNumAbs,
-                                     UShort                          ui16AbsGoRice
-                                     ) const;
+                                     UShort                          ui16AbsGoRice ) const;
+#if MODIFIED_LAST_CODING
+  __inline Double xGetRateLast     ( const UInt                      uiPosX,
+                                     const UInt                      uiPosY,
+                                     const UInt                      uiBlkWdth     ) const;
+#else
   __inline Double xGetRateLast     ( UInt                            uiPosX,
                                      UInt                            uiPosY        ) const;
+#endif
   __inline Double xGetRateSigCoef (  UShort                          uiSignificance,
                                      UShort                          ui16CtxNumSig ) const;
   __inline Double xGetICost        ( Double                          dRate         ) const; 

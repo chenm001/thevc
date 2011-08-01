@@ -2171,6 +2171,7 @@ UInt TComDataCU::getCtxSplitFlag( UInt uiAbsPartIdx, UInt uiDepth )
   return uiCtx;
 }
 
+#if !DNB_INTRA_CHR_PRED_MODE
 UInt TComDataCU::getCtxIntraDirChroma( UInt uiAbsPartIdx )
 {
   TComDataCU* pcTempCU;
@@ -2187,19 +2188,45 @@ UInt TComDataCU::getCtxIntraDirChroma( UInt uiAbsPartIdx )
   
   return uiCtx;
 }
+#endif
 
 UInt TComDataCU::getCtxQtCbf( UInt uiAbsPartIdx, TextType eType, UInt uiTrDepth )
 {
+#if DNB_LUMA_CBF_FLAGS && DNB_CHROMA_CBF_FLAGS
+  if( eType )
+  {
+    return uiTrDepth;
+  }
+  else
+  {
+    const UInt uiDepth = getDepth( uiAbsPartIdx );
+    const UInt uiLog2TrafoSize = g_aucConvertToBit[ getSlice()->getSPS()->getMaxCUWidth() ] + 2 - uiDepth - uiTrDepth;
+    const UInt uiCtx = uiTrDepth == 0 || uiLog2TrafoSize == getSlice()->getSPS()->getQuadtreeTULog2MaxSize() ? 1 : 0;
+    return uiCtx;
+  }
+#else
+#if DNB_CHROMA_CBF_FLAGS
+  if( eType != TEXT_LUMA )
+  {
+    return uiTrDepth;
+  }
+#else
   if( getPredictionMode( uiAbsPartIdx ) != MODE_INTRA && eType != TEXT_LUMA )
   {
     return uiTrDepth;
   }
+#endif
+
   UInt uiCtx = 0;
   const UInt uiDepth = getDepth( uiAbsPartIdx );
   const UInt uiLog2TrafoSize = g_aucConvertToBit[getSlice()->getSPS()->getMaxCUWidth()]+2 - uiDepth - uiTrDepth;
   
   if( uiTrDepth == 0 || uiLog2TrafoSize == getSlice()->getSPS()->getQuadtreeTULog2MaxSize() )
   {
+#if DNB_LUMA_CBF_FLAGS
+  if( eType != TEXT_LUMA )
+  {
+#endif
     TComDataCU* pcTempCU;
     UInt        uiTempPartIdx, uiTempTrDepth;
     
@@ -2228,9 +2255,13 @@ UInt TComDataCU::getCtxQtCbf( UInt uiAbsPartIdx, TextType eType, UInt uiTrDepth 
 #endif
       uiCtx += pcTempCU->getCbf( uiTempPartIdx, eType, uiTempTrDepth ) << 1;
     }
+#if DNB_LUMA_CBF_FLAGS
+  }
+#endif
     uiCtx++;
   }
   return uiCtx;
+#endif
 }
 
 UInt TComDataCU::getCtxQtRootCbf( UInt uiAbsPartIdx )
@@ -2313,6 +2344,7 @@ UInt TComDataCU::getQuadtreeTULog2MinSizeInCU( UInt uiIdx )
   return uiLog2MinTUSizeInCU;
 }
 
+#if !DNB_ALF_CTRL_FLAG
 UInt TComDataCU::getCtxAlfCtrlFlag( UInt uiAbsPartIdx )
 {
   TComDataCU* pcTempCU;
@@ -2329,6 +2361,7 @@ UInt TComDataCU::getCtxAlfCtrlFlag( UInt uiAbsPartIdx )
   
   return uiCtx;
 }
+#endif
 
 UInt TComDataCU::getCtxSkipFlag( UInt uiAbsPartIdx )
 {
@@ -2347,6 +2380,7 @@ UInt TComDataCU::getCtxSkipFlag( UInt uiAbsPartIdx )
   return uiCtx;
 }
 
+#if !DNB_MERGE_FLAG
 /** CABAC context derivation for merge flag
  * \param uiAbsPartIdx
  * \returns context offset
@@ -2368,9 +2402,13 @@ UInt TComDataCU::getCtxMergeFlag( UInt uiAbsPartIdx )
 #endif
   return uiCtx;
 }
+#endif
 
 UInt TComDataCU::getCtxInterDir( UInt uiAbsPartIdx )
 {
+#if DNB_INTER_PRED_MODE
+  return getDepth( uiAbsPartIdx );
+#else
   TComDataCU* pcTempCU;
   UInt        uiTempPartIdx;
   UInt        uiCtx = 0;
@@ -2384,6 +2422,7 @@ UInt TComDataCU::getCtxInterDir( UInt uiAbsPartIdx )
   uiCtx += ( pcTempCU ) ? ( ( pcTempCU->getInterDir( uiTempPartIdx ) % 3 ) ? 0 : 1 ) : 0;
   
   return uiCtx;
+#endif
 }
 
 UInt TComDataCU::getCtxRefIdx( UInt uiAbsPartIdx, RefPicList eRefPicList )

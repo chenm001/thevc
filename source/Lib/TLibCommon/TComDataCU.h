@@ -481,10 +481,16 @@ public:
   UInt          getCtxQtRootCbf                 ( UInt   uiAbsPartIdx                                 );
   UInt          getCtxRefIdx                    ( UInt   uiAbsPartIdx, RefPicList eRefPicList         );
   UInt          getCtxSkipFlag                  ( UInt   uiAbsPartIdx                                 );
+#if !DNB_ALF_CTRL_FLAG
   UInt          getCtxAlfCtrlFlag               ( UInt   uiAbsPartIdx                                 );
+#endif
   UInt          getCtxInterDir                  ( UInt   uiAbsPartIdx                                 );
+#if !DNB_INTRA_CHR_PRED_MODE
   UInt          getCtxIntraDirChroma            ( UInt   uiAbsPartIdx                                 );
+#endif
+#if !DNB_MERGE_FLAG
   UInt          getCtxMergeFlag                 ( UInt uiAbsPartIdx                                   );
+#endif
   
 #if FINE_GRANULARITY_SLICES
   UInt          getSliceStartCU         ( UInt pos )                  { return m_uiSliceStartCU[pos-m_uiAbsIdxInLCU];                                                                                          }
