@@ -644,7 +644,7 @@ Void TEncCavlc::codePartSize( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth 
       {
         xWriteFlag(0);
 #if DISABLE_4x4_INTER
-        if(!pcCU->getSlice()->getSPS()->getDisInter4x4())
+        if(!( pcCU->getSlice()->getSPS()->getDisInter4x4() && (pcCU->getWidth(uiAbsPartIdx)==8) && (pcCU->getHeight(uiAbsPartIdx)==8) ))
         {
 #endif
         xWriteFlag( uiIntraFlag? 1 : 0 );

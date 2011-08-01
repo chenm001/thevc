@@ -383,7 +383,7 @@ Void TEncSbac::codePartSize( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
       m_pcBinIf->encodeBin( 0, m_cCUPartSizeSCModel.get( 0, 0, 2) );
     }
 #if DISABLE_4x4_INTER
-    if(pcCU->getSlice()->getSPS()->getDisInter4x4())
+    if(pcCU->getSlice()->getSPS()->getDisInter4x4() && (pcCU->getWidth(uiAbsPartIdx)==8) && (pcCU->getHeight(uiAbsPartIdx)==8) )
     {
       if( uiDepth == g_uiMaxCUDepth - g_uiAddCUDepth )
       {
@@ -430,7 +430,7 @@ Void TEncSbac::codePartSize( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
     case SIZE_Nx2N:
     {
 #if DISABLE_4x4_INTER
-    if(pcCU->getSlice()->getSPS()->getDisInter4x4())
+    if(pcCU->getSlice()->getSPS()->getDisInter4x4() && (pcCU->getWidth(uiAbsPartIdx)==8) && (pcCU->getHeight(uiAbsPartIdx)==8) )
     {
       m_pcBinIf->encodeBin( 0, m_cCUPartSizeSCModel.get( 0, 0, 0) );
       m_pcBinIf->encodeBin( 0, m_cCUPartSizeSCModel.get( 0, 0, 1) );
@@ -453,7 +453,7 @@ Void TEncSbac::codePartSize( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
     case SIZE_NxN:
     {
 #if DISABLE_4x4_INTER
-    if(pcCU->getSlice()->getSPS()->getDisInter4x4())
+    if(pcCU->getSlice()->getSPS()->getDisInter4x4() && (pcCU->getWidth(uiAbsPartIdx)==8) && (pcCU->getHeight(uiAbsPartIdx)==8) )
     {
       assert(0);
       break;

@@ -836,7 +836,7 @@ Void TDecCavlc::parsePartSize( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth
     else
     {
 #if DISABLE_4x4_INTER
-      if(pcCU->getSlice()->getSPS()->getDisInter4x4())
+      if(pcCU->getSlice()->getSPS()->getDisInter4x4() && ( (g_uiMaxCUWidth>>uiDepth)==8) && ( (g_uiMaxCUHeight>>uiDepth)==8) )
       {
         uiMode = 2;
       }

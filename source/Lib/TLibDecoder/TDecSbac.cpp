@@ -781,7 +781,7 @@ Void TDecSbac::parsePartSize( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth 
     {
       UInt uiMaxNumBits = 3;
 #if DISABLE_4x4_INTER
-      if(pcCU->getSlice()->getSPS()->getDisInter4x4())
+      if(pcCU->getSlice()->getSPS()->getDisInter4x4() && ( (g_uiMaxCUWidth>>uiDepth)==8) && ( (g_uiMaxCUHeight>>uiDepth)==8) )
       {
         uiMaxNumBits = 2;
       }
@@ -798,7 +798,7 @@ Void TDecSbac::parsePartSize( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth 
     }
     eMode = (PartSize) uiMode;
 #if DISABLE_4x4_INTER
-    if(pcCU->getSlice()->getSPS()->getDisInter4x4())
+    if(pcCU->getSlice()->getSPS()->getDisInter4x4() && ( (g_uiMaxCUWidth>>uiDepth)==8) && ( (g_uiMaxCUHeight>>uiDepth)==8) )
     {
       if (pcCU->getSlice()->isInterB() && uiMode == 2)
       {
