@@ -1793,7 +1793,11 @@ TComDataCU* TComDataCU::getPUBelowLeftAdi(UInt& uiBLPartUnitIdx, UInt uiPuHeight
   UInt uiAbsZorderCUIdxLB = g_auiZscanToRaster[ m_uiAbsIdxInLCU ] + ((m_puhHeight[0] / m_pcPic->getMinCUHeight()) - 1)*m_pcPic->getNumPartInWidth();
   UInt uiNumPartInCUWidth = m_pcPic->getNumPartInWidth();
   
+#if UNIFY_INTRA_AVAIL
+  if( ( m_pcPic->getCU(m_uiCUAddr)->getCUPelY() + g_auiRasterToPelY[uiAbsPartIdxLB] + (m_pcPic->getPicSym()->getMinCUHeight() * uiPartUnitOffset)) >= m_pcSlice->getSPS()->getHeight())
+#else
   if( ( m_pcPic->getCU(m_uiCUAddr)->getCUPelY() + g_auiRasterToPelY[uiAbsPartIdxLB] + uiPuHeight ) >= m_pcSlice->getSPS()->getHeight() )
+#endif
   {
     uiBLPartUnitIdx = MAX_UINT;
     return NULL;
@@ -1858,7 +1862,11 @@ TComDataCU* TComDataCU::getPUAboveRightAdi(UInt&  uiARPartUnitIdx, UInt uiPuWidt
   UInt uiAbsZorderCUIdx   = g_auiZscanToRaster[ m_uiAbsIdxInLCU ] + (m_puhWidth[0] / m_pcPic->getMinCUWidth()) - 1;
   UInt uiNumPartInCUWidth = m_pcPic->getNumPartInWidth();
   
+#if UNIFY_INTRA_AVAIL
+  if( ( m_pcPic->getCU(m_uiCUAddr)->getCUPelX() + g_auiRasterToPelX[uiAbsPartIdxRT] + (m_pcPic->getPicSym()->getMinCUHeight() * uiPartUnitOffset)) >= m_pcSlice->getSPS()->getWidth() )
+#else  
   if( ( m_pcPic->getCU(m_uiCUAddr)->getCUPelX() + g_auiRasterToPelX[uiAbsPartIdxRT] + uiPuWidth ) >= m_pcSlice->getSPS()->getWidth() )
+#endif
   {
     uiARPartUnitIdx = MAX_UINT;
     return NULL;
@@ -2062,14 +2070,14 @@ Int TComDataCU::getMostProbableIntraDirLuma( UInt uiAbsPartIdx )
   // Get intra direction of left PU
   pcTempCU = getPULeft( uiTempPartIdx, m_uiAbsIdxInLCU + uiAbsPartIdx, true, false );
   iLeftIntraDir  = pcTempCU ? ( pcTempCU->isIntra( uiTempPartIdx ) ? pcTempCU->getLumaIntraDir( uiTempPartIdx ) : 2 ) : NOT_VALID;
-#if ADD_PLANAR_MODE
+#if ADD_PLANAR_MODE && !FIXED_MPM
   mapPlanartoDC( iLeftIntraDir );
 #endif
   
   // Get intra direction of above PU
   pcTempCU = getPUAbove( uiTempPartIdx, m_uiAbsIdxInLCU + uiAbsPartIdx, true, false );
   iAboveIntraDir = pcTempCU ? ( pcTempCU->isIntra( uiTempPartIdx ) ? pcTempCU->getLumaIntraDir( uiTempPartIdx ) : 2 ) : NOT_VALID;
-#if ADD_PLANAR_MODE
+#if ADD_PLANAR_MODE && !FIXED_MPM
   mapPlanartoDC( iAboveIntraDir );
 #endif
   
@@ -2090,8 +2098,53 @@ Int TComDataCU::getMostProbableIntraDirLuma( UInt uiAbsPartIdx )
   
   return ( NOT_VALID == iMostProbable ) ? 2 : iMostProbable;
 }
+
+#if FIXED_MPM
+/** Get allowed chroma intra modes
+*\param   uiAbsPartIdx
+*\param   uiModeList  pointer to chroma intra modes array
+*\returns 
+*- fill uiModeList with chroma intra modes
+*/
+Void TComDataCU::getAllowedChromaDir( UInt uiAbsPartIdx, UInt* uiModeList )
+{
+  uiModeList[0] = PLANAR_IDX;
+  uiModeList[1] = 0;
+  uiModeList[2] = 1;
+  uiModeList[3] = 2;
+  uiModeList[4] = LM_CHROMA_IDX;
+  uiModeList[5] = DM_CHROMA_IDX;
+
+  UInt uiLumaMode = getLumaIntraDir( uiAbsPartIdx );
+
+  for( Int i = 0; i < NUM_CHROMA_MODE - 2; i++ )
+  {
+    if( uiLumaMode == uiModeList[i] )
+    {
+      uiModeList[i] = 6; // VER+8 mode
+      break;
+    }
+  }
+}
+#endif
+
 #if MTK_DCM_MPM
+#if FIXED_MPM
+/** Get most probable intra modes
+*\param   uiAbsPartIdx
+*\param   uiIntraDirPred  pointer to the array for MPM storage
+*\param   piMode          it is set with MPM mode in case both MPM are equal. It is used to restrict RD search at encode side.
+*\returns Number of MPM
+*/
+Int TComDataCU::getIntraDirLumaPredictor( UInt uiAbsPartIdx, Int* uiIntraDirPred, Int* piMode  )
+#else
+/** Get most probable intra modes
+*\param   uiAbsPartIdx
+*\param   uiIntraDirPred  an array for MPM storage
+*\returns Number of MPM
+*/
 Int TComDataCU::getIntraDirLumaPredictor( UInt uiAbsPartIdx, Int uiIntraDirPred[] )
+#endif
 {
   TComDataCU* pcTempCU;
   UInt        uiTempPartIdx;
@@ -2100,15 +2153,19 @@ Int TComDataCU::getIntraDirLumaPredictor( UInt uiAbsPartIdx, Int uiIntraDirPred[
 
   // Get intra direction of left PU
   pcTempCU = getPULeft( uiTempPartIdx, m_uiAbsIdxInLCU + uiAbsPartIdx );
+
   iLeftIntraDir  = pcTempCU ? ( pcTempCU->isIntra( uiTempPartIdx ) ? pcTempCU->getLumaIntraDir( uiTempPartIdx ) : 2 ) : 2;
-#if ADD_PLANAR_MODE
+
+#if ADD_PLANAR_MODE && !FIXED_MPM
   mapPlanartoDC( iLeftIntraDir );
 #endif
 
   // Get intra direction of above PU
   pcTempCU = getPUAbove( uiTempPartIdx, m_uiAbsIdxInLCU + uiAbsPartIdx );
+
   iAboveIntraDir = pcTempCU ? ( pcTempCU->isIntra( uiTempPartIdx ) ? pcTempCU->getLumaIntraDir( uiTempPartIdx ) : 2 ) : 2;
-#if ADD_PLANAR_MODE
+
+#if ADD_PLANAR_MODE && !FIXED_MPM
   mapPlanartoDC( iAboveIntraDir );
 #endif
 
@@ -2150,8 +2207,24 @@ Int TComDataCU::getIntraDirLumaPredictor( UInt uiAbsPartIdx, Int uiIntraDirPred[
    
  if(iLeftIntraDir == iAboveIntraDir)
  {
+#if FIXED_MPM   
+   uiPredNum = 2;
+
+   if( piMode )
+   {
+    *piMode = iLeftIntraDir;
+   }
+
+   iAboveIntraDir = iLeftIntraDir == PLANAR_IDX ? 2 : PLANAR_IDX; // DC or Planar
+
+   assert( iLeftIntraDir != iAboveIntraDir );
+
+   uiIntraDirPred[0] = min(iLeftIntraDir, iAboveIntraDir);
+   uiIntraDirPred[1] = max(iLeftIntraDir, iAboveIntraDir);
+#else
    uiPredNum = 1;
    uiIntraDirPred[0] = iLeftIntraDir ;
+#endif
  }
  else
  {
@@ -2174,7 +2247,7 @@ Int TComDataCU::getLeftIntraDirLuma( UInt uiAbsPartIdx )
   // Get intra direction of left PU
   pcTempCU = getPULeft( uiTempPartIdx, m_uiAbsIdxInLCU + uiAbsPartIdx );
   iLeftIntraDir  = pcTempCU ? ( pcTempCU->isIntra( uiTempPartIdx ) ? pcTempCU->getLumaIntraDir( uiTempPartIdx ) : 2 ) : NOT_VALID;
-#if ADD_PLANAR_MODE
+#if ADD_PLANAR_MODE && !FIXED_MPM
   mapPlanartoDC( iLeftIntraDir );
 #endif
 
@@ -2190,7 +2263,7 @@ Int TComDataCU::getAboveIntraDirLuma( UInt uiAbsPartIdx )
   // Get intra direction of above PU
   pcTempCU = getPUAbove( uiTempPartIdx, m_uiAbsIdxInLCU + uiAbsPartIdx );
   iAboveIntraDir = pcTempCU ? ( pcTempCU->isIntra( uiTempPartIdx ) ? pcTempCU->getLumaIntraDir( uiTempPartIdx ) : 2 ) : NOT_VALID;
-#if ADD_PLANAR_MODE
+#if ADD_PLANAR_MODE && !FIXED_MPM
   mapPlanartoDC( iAboveIntraDir );
 #endif
 
@@ -4742,7 +4815,11 @@ UInt TComDataCU::getCoefScanIdx(UInt uiAbsPartIdx, UInt uiWidth, Bool bIsLuma, B
   else
   {
     uiDirMode = getChromaIntraDir(uiAbsPartIdx);
+#if FIXED_MPM
+    if( uiDirMode == DM_CHROMA_IDX )
+#else
     if (uiDirMode == 4)
+#endif
     {
       uiDirMode = getLumaIntraDir(uiAbsPartIdx);
     }

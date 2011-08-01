@@ -603,6 +603,12 @@ const UInt g_auiLPTableD8[8][128] =
 
 #if MTK_DCM_MPM
 
+#if FIXED_MPM
+const UInt  g_auiIntraModeTableD17[17] = { 0, 3, 2, 15, 8, 11, 1, 10, 7, 4, 14, 9, 6, 5, 13, 12, 0 };
+const UInt  g_auiIntraModeTableE17[17] = { 0, 6, 2, 1, 9, 13, 12, 8, 4, 11, 7, 5, 15, 14, 10, 3, 0 };
+const UInt  g_auiIntraModeTableD34[34] = { 0, 2, 3, 29, 1, 8, 30, 21, 28, 16, 7, 15, 20, 31, 9, 11, 6, 4, 5, 12, 10, 14, 22, 19, 17, 27, 13, 18, 23, 26, 32, 24, 25, 0 };
+const UInt  g_auiIntraModeTableE34[34] = { 0, 4, 1, 2, 17, 18, 16, 10, 5, 14, 20, 15, 19, 26, 21, 11, 9, 24, 27, 23, 12, 7, 22, 28, 31, 32, 29, 25, 8, 3, 6, 13, 30, 0 };
+#else
 const UInt  g_auiIntraModeTableD17[2][16]=
 {
   {0, 15, 11, 10, 13,  7,  9, 4, 14,  2, 3, 6,  8, 5, 12, 1},
@@ -623,6 +629,7 @@ const UInt  g_auiIntraModeTableE34[2][33]=
   {1, 5, 0, 31, 20, 29, 27,  9, 11, 30, 17, 12, 22, 32, 19, 8, 10, 24, 21, 15, 4, 6, 14, 23, 25, 28, 26, 18, 7, 2,  3, 13, 16},
   {3, 1, 0, 30, 21, 31, 25, 10, 19, 23, 12, 13, 29, 27, 11, 8, 17, 20, 16,  7, 5, 9, 22, 24, 28, 26, 18,  6, 2, 4, 14, 15,  0}
 };
+#endif
 
 #else
 const UInt  g_auiIntraModeTableD17[16]={15,0,11,7,14,10,13,4,9,2,3,1,8,6,12,5};
@@ -1191,6 +1198,13 @@ const UInt g_auiVlcTable16x16Inter[29] = {8,0,1,1,1,1,2,2,2,2,2,2,2,6,6,6,6,6,6,
 #endif
 
 #if MTK_DCM_MPM
+
+#if FIXED_MPM
+const UInt huff17_2[18]       = { 1, 0, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 31, 30, 0 };
+const UInt lengthHuff17_2[18] = { 1, 4, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 6, 6, 0 };
+const UInt huff34_2[35]       = { 1, 0, 5, 4, 3, 2, 24, 23, 22, 21, 20, 19, 18, 17, 16, 15, 14, 13, 12, 62, 61, 60, 59, 58, 57, 56, 55, 54, 53, 52, 51, 50, 127, 126, 0 };
+const UInt lengthHuff34_2[35] = { 1, 4, 5, 5, 5, 5, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 8, 8, 0 };
+#else
 const UInt huff17_2[2][17]=
 {
   {1, 7, 6, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 3, 2, 1, 0},
@@ -1211,6 +1225,8 @@ const UInt lengthHuff34_2[2][34]=
   {1, 4,  5,  5,  5,  5,  5,  5,  6,  6,  6,  6,  6,  6,  6,  6,  7,  7,  7,  7,  7,  7,  7,  7,  7,  7,  7,  7,  7,  7,  8,  8,  8, 8 },
   {1, 4,  5,  5,  5,  5,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  7,  7,  7,  7,  7,  7,  7,  7,  7,  7,  7,  7,  7,  7, 0 }
 };
+#endif
+
 #else
 const UInt huff17_2[2][17]=
 {
@@ -1698,7 +1714,11 @@ const UChar g_aucAngIntraModeOrder[34] =
   30, // 32 HOR+5   HOR+7
   32, // 33 HOR+7   HOR+8
 #if ADD_PLANAR_MODE || LM_CHROMA
+#if FIXED_MPM
+  34, // PLANAR_IDX PLANAR PLANAR
+#else
   0, // PLANAR_IDX PLANAR PLANAR
+#endif
   0, // LM_CHROMA_IDX 
 #endif
 };
@@ -1725,6 +1745,15 @@ const UChar g_aucIntraModeBitsAng[7] =
   3   // 128x128   5   2+1
 };
 
+#if FIXED_MPM
+const UChar g_aucAngModeMapping[4][35] = // intra mode conversion for most probable
+{
+  {2,3,2,2,4, 4,4,0,0,0, 0,0,0,0,2, 2,2,2,2,2, 2,1,1,1,1, 1,1,1,1,1, 2,2,2,2, PLANAR_IDX},               // conversion to 6 modes
+  {2,3,3,2,4, 4,4,2,0,0, 0,2,5,5,5, 2,6,6,3,2, 7,7,7,2,1, 1,1,2,8,8, 8,2,2,2, PLANAR_IDX},               // conversion to 10 modes
+  {2,3,3,10,10, 4,11,11,0,0, 0,12,12,5,5, 13,13,6,14,14, 7,7,15,15,1, 1,1,16,16,8, 8,2,2,9, PLANAR_IDX}, // conversion to 18 modes
+  {2,2,2,2,2, 2,2,0,0,0, 0,0,0,0,2, 2,2,2,2,2, 2,1,1,1,1, 1,1,1,1,1, 2,2,2,2, PLANAR_IDX}                // conversion to 4 modes
+};
+#else
 const UChar g_aucAngModeMapping[4][34] = // intra mode conversion for most probable
 {
   {2,3,2,2,4, 4,4,0,0,0, 0,0,0,0,2, 2,2,2,2,2, 2,1,1,1,1, 1,1,1,1,1, 2,2,2,2},               // conversion to 5 modes
@@ -1732,6 +1761,7 @@ const UChar g_aucAngModeMapping[4][34] = // intra mode conversion for most proba
   {2,3,3,10,10, 4,11,11,0,0, 0,12,12,5,5, 13,13,6,14,14, 7,7,15,15,1, 1,1,16,16,8, 8,2,2,9}, // conversion to 17 modes
   {2,2,2,2,2, 2,2,0,0,0, 0,0,0,0,2, 2,2,2,2,2, 2,1,1,1,1, 1,1,1,1,1, 2,2,2,2}                // conversion to 3 modes
 };
+#endif
 
 // ====================================================================================================================
 // Bit-depth
@@ -1935,10 +1965,14 @@ Void initSigLastScan(UInt* pBuffZ, UInt* pBuffH, UInt* pBuffV, Int iWidth, Int i
 #endif //QC_MDCS
 
 #if CHROMA_CODEWORD_SWITCH
+#if FIXED_MPM
+const UChar ChromaMapping[4] = {0, 1, 3, 2};
+#else
 const UChar ChromaMapping[2][5] = 
 {
   {0, 1, 3, 2, 4},
   {0, 1, 2, 4, 3}
 };
+#endif
 #endif
 

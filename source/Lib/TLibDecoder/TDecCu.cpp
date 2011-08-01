@@ -652,7 +652,12 @@ TDecCu::xIntraRecChromaBlk( TComDataCU* pcCU,
                                      m_pcPrediction->getPredicBuf       (),
                                      m_pcPrediction->getPredicBufWidth  (),
                                      m_pcPrediction->getPredicBufHeight (),
-                                     bAboveAvail, bLeftAvail, 2 );
+                                     bAboveAvail, bLeftAvail, 
+#if LM_CHROMA_SIMPLIFICATION
+                                     true );
+#else
+                                     2 );
+#endif
 
     m_pcPrediction->getLumaRecPixels( pcCU->getPattern(), uiWidth, uiHeight );
   }
@@ -673,7 +678,11 @@ TDecCu::xIntraRecChromaBlk( TComDataCU* pcCU,
   }
   else
   {
+#if FIXED_MPM
+    if( uiChromaPredMode == DM_CHROMA_IDX )
+#else
     if( uiChromaPredMode == 4 )
+#endif
     {
       uiChromaPredMode = pcCU->getLumaIntraDir( 0 );
     }

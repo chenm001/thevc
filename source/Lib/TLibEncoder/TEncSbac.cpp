@@ -764,7 +764,7 @@ Void TEncSbac::codeIntraDirLumaAng( TComDataCU* pcCU, UInt uiAbsPartIdx )
 {
   UInt uiDir         = pcCU->getLumaIntraDir( uiAbsPartIdx );
   Int iIntraIdx = pcCU->getIntraSizeIdx(uiAbsPartIdx);
-#if ADD_PLANAR_MODE
+#if ADD_PLANAR_MODE && !FIXED_MPM
   UInt planarFlag    = 0;
   if (uiDir == PLANAR_IDX)
   {
@@ -789,20 +789,44 @@ Void TEncSbac::codeIntraDirLumaAng( TComDataCU* pcCU, UInt uiAbsPartIdx )
   if(uiPredIdx != -1)
   {
     m_pcBinIf->encodeBin( 1, m_cCUIntraPredSCModel.get( 0, 0, 0 ) );
+#if FIXED_MPM
+    m_pcBinIf->encodeBin( uiPredIdx, m_cCUIntraPredSCModel.get( 0, 0, 2 ) );
+#else
     if(uiPredNum == 2)
     {
       m_pcBinIf->encodeBin( uiPredIdx, m_cCUIntraPredSCModel.get( 0, 0, 2 ) );
     }
-
+#endif
   }
   else
   {
     m_pcBinIf->encodeBin( 0, m_cCUIntraPredSCModel.get( 0, 0, 0 ) );
   
+#if FIXED_MPM    
+    // planar mode is coded with shortest codeword (0)
+    if( uiDir == PLANAR_IDX )
+    {
+      uiDir = 0;
+    }
+    else
+    {
+      for(Int i = (uiPredNum - 1); i >= 0; i--)
+      {
+        uiDir = uiDir > uiPreds[i] ? uiDir - 1 : uiDir;
+      }
+
+      if( uiPreds[uiPredNum - 1] != PLANAR_IDX )
+      {
+        uiDir++;
+      }
+    }
+#else
     for(Int i = (uiPredNum - 1); i >= 0; i--)
     {
       uiDir = uiDir > uiPreds[i] ? uiDir - 1 : uiDir;
     }
+#endif
+
 
     if ( g_aucIntraModeBitsAng[iIntraIdx] < 6 )
     {
@@ -831,7 +855,7 @@ Void TEncSbac::codeIntraDirLumaAng( TComDataCU* pcCU, UInt uiAbsPartIdx )
        }
      }
    }
-#if ADD_PLANAR_MODE
+#if ADD_PLANAR_MODE && !FIXED_MPM
   uiDir = pcCU->getLumaIntraDir( uiAbsPartIdx );
   if ( (uiDir == PLANAR_IDX) || (uiDir == 2) )
   {
@@ -902,9 +926,47 @@ Void TEncSbac::codeIntraDirLumaAng( TComDataCU* pcCU, UInt uiAbsPartIdx )
 #endif
 Void TEncSbac::codeIntraDirChroma( TComDataCU* pcCU, UInt uiAbsPartIdx )
 {
-#if !DNB_INTRA_CHR_PRED_MODE
-  UInt uiCtx            = pcCU->getCtxIntraDirChroma( uiAbsPartIdx );
+#if FIXED_MPM
+  UInt uiIntraDirChroma = pcCU->getChromaIntraDir( uiAbsPartIdx );
+
+  if( uiIntraDirChroma == DM_CHROMA_IDX ) 
+  {
+    m_pcBinIf->encodeBin( 0, m_cCUChromaPredSCModel.get( 0, 0, 0 ) );
+  } 
+  else if( uiIntraDirChroma == LM_CHROMA_IDX )
+  {
+    m_pcBinIf->encodeBin( 1, m_cCUChromaPredSCModel.get( 0, 0, 0 ) );
+    m_pcBinIf->encodeBin( 0, m_cCUChromaPredSCModel.get( 0, 0, 1 ) );
+  }
+  else
+  { 
+    UInt uiAllowedChromaDir[ NUM_CHROMA_MODE ];
+    pcCU->getAllowedChromaDir( uiAbsPartIdx, uiAllowedChromaDir );
+
+    for( Int i = 0; i < NUM_CHROMA_MODE - 2; i++ )
+    {
+      if( uiIntraDirChroma == uiAllowedChromaDir[i] )
+      {
+        uiIntraDirChroma = i;
+        break;
+      }
+    }
+    m_pcBinIf->encodeBin( 1, m_cCUChromaPredSCModel.get( 0, 0, 0 ) );
+
+    if (pcCU->getSlice()->getSPS()->getUseLMChroma())
+    {
+      m_pcBinIf->encodeBin( 1, m_cCUChromaPredSCModel.get( 0, 0, 1 ));
+    }
+#if CHROMA_CODEWORD_SWITCH 
+    uiIntraDirChroma = ChromaMapping[uiIntraDirChroma];
 #endif
+    xWriteUnaryMaxSymbol( uiIntraDirChroma, m_cCUChromaPredSCModel.get( 0, 0 ) + 1, 0, 3 );
+  }
+  return;
+#else
+# if !DNB_INTRA_CHR_PRED_MODE
+  UInt uiCtx            = pcCU->getCtxIntraDirChroma( uiAbsPartIdx );
+# endif
   UInt uiIntraDirChroma = pcCU->getChromaIntraDir   ( uiAbsPartIdx );
   
 #if ADD_PLANAR_MODE
@@ -1005,6 +1067,7 @@ Void TEncSbac::codeIntraDirChroma( TComDataCU* pcCU, UInt uiAbsPartIdx )
   }
 #endif
   return;
+#endif
 }
 
 Void TEncSbac::codeInterDir( TComDataCU* pcCU, UInt uiAbsPartIdx )

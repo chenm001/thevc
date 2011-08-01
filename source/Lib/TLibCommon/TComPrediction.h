@@ -80,7 +80,11 @@ protected:
 #if LM_CHROMA
   Pel*   m_pLumaRecBuffer;       ///< array for downsampled reconstructed luma sample 
   Int    m_iLumaRecStride;       ///< stride of #m_pLumaRecBuffer array
-  UInt   m_uiaShift[ 65 ];       ///< Table for multiplication to substitue of division operation
+#if LM_CHROMA_SIMPLIFICATION
+  UInt   m_uiaShift[ 63 ];       // Table for multiplication to substitue of division operation
+#else
+  UInt   m_uiaShift[ 65 ];       // Table for multiplication to substitue of division operation
+#endif
 #endif
 
   Void xPredIntraAng            ( Int* pSrc, Int srcStride, Pel*& rpDst, Int dstStride, UInt width, UInt height, UInt dirMode, Bool blkAboveAvailable, Bool blkLeftAvailable );

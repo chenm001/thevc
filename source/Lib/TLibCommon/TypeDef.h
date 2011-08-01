@@ -69,6 +69,8 @@
 // JCT-VC F end
 ////////////////////////////
 
+
+
 ////////////////////////////
 // JCT-VC E start
 ////////////////////////////
@@ -132,6 +134,9 @@
 #define ZERO_MVD_EST                          0           ///< Zero Mvd Estimation in normal mode
 
 #define LM_CHROMA                             1           // JCTVC-E266: Chroma intra prediction based on luma signal
+#if LM_CHROMA
+#define LM_CHROMA_SIMPLIFICATION              1           // JCTVC-F760: LM simplification: One line luma reference pixel buffer, alpha 7 bits.
+#endif
 
 #define UNIFY_INTER_TABLE                     1           // JCTVC-E381 CAVLC: Inter pred coding
 
@@ -175,6 +180,16 @@
 
 #define MTK_DCM_MPM 1 // MostProbableModeSignaling
 
+#define FIXED_MPM                        1           ///< Fixed number of MPMs for intra mode parsing. Solution A of JCTVC-F765
+#if FIXED_MPM
+#define NUM_CHROMA_MODE        6                     // total number of chroma modes
+#define DM_CHROMA_IDX          36                    // chroma mode index for derived from luma intra mode
+#if !ADD_PLANAR_MODE || !MTK_DCM_MPM
+#error "ADD_PLANAR_MODE and MTK_DCM_MPM should be enabled"
+#endif
+#endif
+
+
 #define FAST_UDI_USE_MPM 1
 #define SUB_LCU_DQP  1                               ///< syntax change of sub-LCU-level dQP (JCTVC-E051/220/391/436/217/D038/D258)
 
@@ -217,8 +232,15 @@
 
 #if QC_MDIS
 #define MN_MDIS_SIMPLIFICATION       1       ///< JCTVC-E069: simplification of MDIS
+#if MN_MDIS_SIMPLIFICATION
+#define MDIS2                        1       ///< JCTVC-F126: MDIS modifications
+#endif
 #endif
 #define MN_DC_PRED_FILTER            1       ///< JCTVC-E069: DC prediction samples filtering
+#define UNIFICATION_OF_AVAILABILITY  1       ///< JCTVC-F178: unification of sample availability for DC
+#if MN_DC_PRED_FILTER
+#define MN_DC_PRED_FILTER_UNIFIED    1       ///< JCTVC-F252 using unified filter for all block size
+#endif
 
 #define MVD_CTX            1           // JCTVC-E324: Modified context selection for MVD
 #define PARALLEL_DEBLK_DECISION      1 // JCTC-E224: Parallel decisions
@@ -245,6 +267,8 @@
 #define E045_SLICE_COMMON_INFO_SHARING 1 //JCTVC-E045: Slice common information sharing
 
 #define TMVP_ONE_LIST_CHECK    1 //JCTVC-F587: Reduction of reference picture list checking for temporal motion vector prediction
+
+#define UNIFY_INTRA_AVAIL      1    ////<JCTVC-F477, "Unification of the Availability Checking method for Intra prediction>
 
 // ====================================================================================================================
 // Basic type redefinition

@@ -922,12 +922,15 @@ Void TDecSbac::parseIntraDirLumaAng  ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt
 
   Int uiPreds[2] = {-1, -1};
   Int uiPredNum = pcCU->getIntraDirLumaPredictor(uiAbsPartIdx, uiPreds);  
-
  
   m_pcTDecBinIf->decodeBin( uiSymbol, m_cCUIntraPredSCModel.get( 0, 0, 0) );
  
   if ( uiSymbol )
   {
+#if FIXED_MPM
+    m_pcTDecBinIf->decodeBin( uiSymbol, m_cCUIntraPredSCModel.get( 0, 0, 2 ) );
+    uiIPredMode = uiPreds[uiSymbol];
+#else
     if(uiPredNum == 1)   
     {
       uiIPredMode = uiPreds[0];
@@ -937,6 +940,7 @@ Void TDecSbac::parseIntraDirLumaAng  ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt
       m_pcTDecBinIf->decodeBin( uiSymbol, m_cCUIntraPredSCModel.get( 0, 0, 2) );
       uiIPredMode = uiPreds[uiSymbol];
     }
+#endif
   }
   else
   {
@@ -962,12 +966,35 @@ Void TDecSbac::parseIntraDirLumaAng  ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt
 
   }
 
+#if FIXED_MPM
+    // planar mode is coded with shortest codeword (0)
+    if( uiIPredMode == 0 && uiPreds[uiPredNum - 1] != PLANAR_IDX )
+    {
+      uiIPredMode = PLANAR_IDX;
+    }
+    else
+    {
+      if( uiPreds[uiPredNum - 1] != PLANAR_IDX )
+      {
+        uiIPredMode--;
+      }
+
+      for( UInt i = 0; i < uiPredNum; i++ )
+      {
+        if( uiIPredMode >= uiPreds[i] )
+        { 
+          uiIPredMode ++; 
+        }
+      }
+    }
+#else
     for(UInt i = 0; i < uiPredNum; i++)
     {
       if(uiIPredMode >= uiPreds[i]) {  uiIPredMode ++; }
     }
+#endif
   }
-#if ADD_PLANAR_MODE
+#if ADD_PLANAR_MODE && !FIXED_MPM
   if (uiIPredMode == 2)
   {
     UInt planarFlag;
@@ -1037,6 +1064,45 @@ Void TDecSbac::parseIntraDirLumaAng  ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt
 #endif
 Void TDecSbac::parseIntraDirChroma( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
 {
+#if FIXED_MPM
+  UInt uiSymbol;
+
+  m_pcTDecBinIf->decodeBin( uiSymbol, m_cCUChromaPredSCModel.get( 0, 0, 0 ) );
+
+  if( uiSymbol == 0 )
+  {
+    uiSymbol = DM_CHROMA_IDX;
+  } 
+  else 
+  {
+    if( pcCU->getSlice()->getSPS()->getUseLMChroma() )
+    {
+      m_pcTDecBinIf->decodeBin( uiSymbol, m_cCUChromaPredSCModel.get( 0, 0, 1 ) );
+    }
+    else
+    {
+      uiSymbol = 1;
+    }
+
+    if( uiSymbol == 0 )
+    {
+      uiSymbol = LM_CHROMA_IDX;
+    } 
+    else
+    {
+      UInt uiIPredMode;
+      xReadUnaryMaxSymbol( uiIPredMode, m_cCUChromaPredSCModel.get( 0, 0 ) + 1, 0, 3 );
+#if CHROMA_CODEWORD_SWITCH 
+      uiIPredMode = ChromaMapping[uiIPredMode];
+#endif
+      UInt uiAllowedChromaDir[ NUM_CHROMA_MODE ];
+      pcCU->getAllowedChromaDir( uiAbsPartIdx, uiAllowedChromaDir );
+      uiSymbol = uiAllowedChromaDir[ uiIPredMode ];
+    }
+  }
+  pcCU->setChromIntraDirSubParts( uiSymbol, uiAbsPartIdx, uiDepth );
+  return;
+#else
   UInt uiSymbol;
   
   UInt uiMode = pcCU->getLumaIntraDir(uiAbsPartIdx);
@@ -1138,6 +1204,7 @@ Void TDecSbac::parseIntraDirChroma( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt ui
   pcCU->setChromIntraDirSubParts( uiSymbol, uiAbsPartIdx, uiDepth );
   
   return;
+#endif
 }
 
 Void TDecSbac::parseInterDir( TComDataCU* pcCU, UInt& ruiInterDir, UInt uiAbsPartIdx, UInt uiDepth )

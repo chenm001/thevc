@@ -119,10 +119,13 @@ Void TComPrediction::initTempBuff()
   m_iLumaRecStride =  (g_uiMaxCUWidth>>1) + 1;
   m_pLumaRecBuffer = new Pel[ m_iLumaRecStride * m_iLumaRecStride ];
 
-  for( Int i = 1; i < 66; i++ )
-  {
+#if LM_CHROMA_SIMPLIFICATION
+  for( Int i = 1; i < 64; i++ )
     m_uiaShift[i-1] = ( (1 << 15) + i/2 ) / i;
-  }
+#else
+  for( Int i = 1; i < 66; i++ )
+    m_uiaShift[i-1] = ( (1 << 15) + i/2 ) / i;
+#endif
 #endif
 }
 
@@ -364,7 +367,11 @@ Void TComPrediction::predIntraLumaAng(TComPattern* pcTComPattern, UInt uiDirMode
     xPredIntraAng( ptrSrc+sw+1, sw, pDst, uiStride, iWidth, iHeight, g_aucAngIntraModeOrder[ uiDirMode ], bAbove,  bLeft );
 
 #if MN_DC_PRED_FILTER
+#if UNIFICATION_OF_AVAILABILITY
+    if ((uiDirMode == 2) && bAbove && bLeft)
+#else
     if ( uiDirMode == 2 && pcTComPattern->getDCPredFilterFlag() )
+#endif
     {
       xDCPredFiltering( ptrSrc+sw+1, sw, pDst, uiStride, iWidth, iHeight);
     }
@@ -1132,33 +1139,56 @@ Void TComPrediction::getLumaRecPixels( TComPattern* pcPattern, UInt uiCWidth, UI
 
   // top left corner downsampled from ADI buffer
   // don't need this point
+#if !LM_CHROMA_SIMPLIFICATION       
   pDst[0] = ( piSrc[0] + piSrc[ iSrcStride ] ) >> 1;
+#endif
 
+#if LM_CHROMA_SIMPLIFICATION
+  // top row downsampled from ADI buffer
+  pDst++;     
+  piSrc ++;
+  for (Int i = 0; i < uiCWidth; i++)
+  {
+    pDst[i] = ((piSrc[2*i] * 2 ) + piSrc[2*i - 1] + piSrc[2*i + 1] + 2) >> 2;
+  }
+
+  // left column downsampled from ADI buffer
+  pDst = pDst0 - 1; 
+  piSrc = ptrSrc + iSrcStride;
+  for (Int j = 0; j < uiCHeight; j++)
+  {
+    pDst[0] = ( piSrc[0] + piSrc[iSrcStride] ) >> 1;
+    piSrc += iSrcStride << 1; 
+    pDst += iDstStride;    
+  }
+#else
   // top row
   pDst++;
   piSrc++;
-  for( Int i = 0, i2 = i << 1; i < uiCWidth; i++, i2 = i << 1 )
+  for (Int i = 0; i < uiCWidth; i++)
   {
-    pDst[i] = ( piSrc[ i2 ] + piSrc[ i2 + iSrcStride ] ) >> 1;
+    pDst[i] = ( piSrc[ 2*i ] + piSrc[ 2*i + iSrcStride ] ) >> 1;
   }
 
   // left column downsampled from ADI buffer
   pDst = pDst0 - 1;
   piSrc = ptrSrc + ( iSrcStride << 1 ); // addressing 3rd row, where reference column is stored
 
-  for( Int j = 0, j2 = j << 1; j < uiCHeight; j++, j2 = j << 1 )
+  for (Int j = 0; j < uiCHeight; j++)
   {
-    pDst[0] = ( piSrc[ j2 ] + piSrc[ j2 + 1 ] ) >> 1;
+    pDst[0] = ( piSrc[ 2*j ] + piSrc[ 2*j + 1 ] ) >> 1;
 
     pDst += iDstStride;    
   }
 
+#endif
+
   // inner part from reconstructed picture buffer
   for( Int j = 0; j < uiCHeight; j++ )
   {
-    for( Int i = 0, i2 = i << 1; i < uiCWidth; i++, i2 = i << 1 )
+    for (Int i = 0; i < uiCWidth; i++)
     {
-      pDst0[i] = (pRecSrc[i2] + pRecSrc[i2 + iRecSrcStride]) >> 1;
+      pDst0[i] = (pRecSrc[2*i] + pRecSrc[2*i + iRecSrcStride]) >> 1;
     }
 
     pDst0 += iDstStride;
@@ -1191,6 +1221,41 @@ Int GetMSB( UInt x )
 
   return iMSB;
 }
+
+#if LM_CHROMA_SIMPLIFICATION
+/** Function for counting leading number of zeros/ones
+ * \param x input value
+ \ This function counts leading number of zeros for positive numbers and
+ \ leading number of ones for negative numbers. This can be implemented in
+ \ single instructure cycle on many processors.
+ */
+
+Short CountLeadingZerosOnes (Short x)
+{
+  Short clz;
+  Short i;
+
+  if(x == 0) {
+    clz = 0;
+  }
+  else {
+    if (x == -1)
+    {
+      clz = 15;
+    }
+    else {
+      if(x < 0)
+        x = ~x;
+      clz = 15;
+      for(i = 0;i < 15;++i) {
+        if(x) clz --;
+        x = x >> 1;
+      }
+    }
+  }
+  return clz;
+}
+#endif
 
 /** Function for deriving LM intra prediction.
  * \param pcPattern pointer to neighbouring pixel access pattern
@@ -1248,8 +1313,12 @@ Void TComPrediction::xGetLLSPrediction( TComPattern* pcPattern, Int* pSrc0, Int 
   }
   iCountShift += iCountShift > 0 ? 1 : ( g_aucConvertToBit[ uiWidth ] + 2 );
 
+#if LM_CHROMA_SIMPLIFICATION
+  Int iTempShift = ( g_uiBitDepth + g_uiBitIncrement ) + g_aucConvertToBit[ uiWidth ] + 3 - 15;
+#else
   Int iBitdepth = ( ( g_uiBitDepth + g_uiBitIncrement ) + g_aucConvertToBit[ uiWidth ] + 3 ) * 2;
   Int iTempShift = max( ( iBitdepth - 31 + 1) / 2, 0);
+#endif
 
   if(iTempShift > 0)
   {
@@ -1273,6 +1342,7 @@ Void TComPrediction::xGetLLSPrediction( TComPattern* pcPattern, Int* pSrc0, Int 
     Int a1 = ( xy << iCountShift ) - y * x;
     Int a2 = ( xx << iCountShift ) - x * x;              
 
+#if !LM_CHROMA_SIMPLIFICATION
     if( a2 == 0 || a1 == 0 )
     {
       a = 0;
@@ -1280,6 +1350,7 @@ Void TComPrediction::xGetLLSPrediction( TComPattern* pcPattern, Int* pSrc0, Int 
       iShift = 0;
     }
     else
+#endif
     {
       const Int iShiftA2 = 6;
       const Int iShiftA1 = 15;
@@ -1309,8 +1380,15 @@ Void TComPrediction::xGetLLSPrediction( TComPattern* pcPattern, Int* pSrc0, Int 
 
       a1s = a1 >> iScaleShiftA1;
 
+#if LM_CHROMA_SIMPLIFICATION
+      if (a2s >= 1)
+        a = a1s * m_uiaShift[ a2s - 1];
+      else
+        a = 0;
+#else
       a = a1s * m_uiaShift[ abs( a2s ) ];
-      
+#endif
+
       if( iScaleShiftA < 0 )
       {
         a = a << -iScaleShiftA;
@@ -1320,6 +1398,9 @@ Void TComPrediction::xGetLLSPrediction( TComPattern* pcPattern, Int* pSrc0, Int 
         a = a >> iScaleShiftA;
       }
       
+#if LM_CHROMA_SIMPLIFICATION
+       a = Clip3(-( 1 << 15 ), ( 1 << 15 ) - 1, a); 
+#else
       if( a > ( 1 << 15 ) - 1 )
       {
         a = ( 1 << 15 ) - 1;
@@ -1328,7 +1409,23 @@ Void TComPrediction::xGetLLSPrediction( TComPattern* pcPattern, Int* pSrc0, Int 
       {
         a = -( 1 << 15 );
       }
-      
+#endif
+     
+#if LM_CHROMA_SIMPLIFICATION
+      {
+        Int minA = -(1 << (6));
+        Int maxA = (1 << 6) - 1;
+        if( a <= maxA && a >= minA ) {
+          // do nothing
+        }
+        else {
+          Short n = CountLeadingZerosOnes(a);
+          a = a >> (6-n);
+          iShift -= (6-n);
+        }
+      }
+#endif
+
       b = (  y - ( ( a * x ) >> iShift ) + ( 1 << ( iCountShift - 1 ) ) ) >> iCountShift;
     }
   }   
@@ -1370,6 +1467,17 @@ Void TComPrediction::xDCPredFiltering( Int* pSrc, Int iSrcStride, Pel*& rpDst, I
 {
   Pel* pDst = rpDst;
   Int x, y, iDstStride2, iSrcStride2;
+#if MN_DC_PRED_FILTER_UNIFIED
+   // boundary pixels processing
+      pDst[0] = (Pel)((pSrc[-iSrcStride] + pSrc[-1] + 2 * pDst[0] + 2) >> 2);
+
+      for ( x = 1; x < iWidth; x++ )
+        pDst[x] = (Pel)((pSrc[x - iSrcStride] +  pDst[x-1]+2 * pDst[x] + 2) >> 2);
+
+      for ( y = 1, iDstStride2 = iDstStride, iSrcStride2 = iSrcStride-1; y < iHeight; y++, iDstStride2+=iDstStride, iSrcStride2+=iSrcStride )
+        pDst[iDstStride2] = (Pel)((pSrc[iSrcStride2] + pDst[iDstStride2-iDstStride]+ 2 * pDst[iDstStride2] + 2) >> 2);
+
+#else
   Int iIntraSizeIdx = g_aucConvertToBit[ iWidth ] + 1;
   static const UChar g_aucDCPredFilter[7] = { 0, 3, 2, 1, 0, 0, 0};
 
@@ -1427,6 +1535,7 @@ Void TComPrediction::xDCPredFiltering( Int* pSrc, Int iSrcStride, Pel*& rpDst, I
     }
     break;
   }
+#endif
 
   return;
 }
