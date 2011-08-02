@@ -905,33 +905,10 @@ Void TDecSbac::parseIntraDirLumaAng  ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt
 
   }
 
-#if FIXED_MPM
-    // planar mode is coded with shortest codeword (0)
-    if( uiIPredMode == 0 && uiPreds[uiPredNum - 1] != PLANAR_IDX )
-    {
-      uiIPredMode = PLANAR_IDX;
-    }
-    else
-    {
-      if( uiPreds[uiPredNum - 1] != PLANAR_IDX )
-      {
-        uiIPredMode--;
-      }
-
-      for( UInt i = 0; i < uiPredNum; i++ )
-      {
-        if( uiIPredMode >= uiPreds[i] )
-        { 
-          uiIPredMode ++; 
-        }
-      }
-    }
-#else
     for(UInt i = 0; i < uiPredNum; i++)
     {
       if(uiIPredMode >= uiPreds[i]) {  uiIPredMode ++; }
     }
-#endif
   }
 #if ADD_PLANAR_MODE && !FIXED_MPM
   if (uiIPredMode == 2)

@@ -1662,7 +1662,7 @@ TEncSearch::estIntraPredQT( TComDataCU* pcCU,
     pcCU->getPattern()->initAdiPattern( pcCU, uiPartOffset, uiInitTrDepth, m_piYuvExt, m_iYuvExtStride, m_iYuvExtHeight, bAboveAvail, bLeftAvail );
     
     //===== determine set of modes to be tested (using prediction signal only) =====
-#if ADD_PLANAR_MODE
+#if ADD_PLANAR_MODE && !FIXED_MPM
     Int numModesAvailable     = g_aucIntraModeNumAng[uiWidthBit] + 1;
 #else
     Int numModesAvailable     = g_aucIntraModeNumAng[uiWidthBit];
@@ -1686,7 +1686,7 @@ TEncSearch::estIntraPredQT( TComDataCU* pcCU,
       
       for( Int modeIdx = 0; modeIdx < numModesAvailable; modeIdx++ )
       {
-#if ADD_PLANAR_MODE
+#if ADD_PLANAR_MODE && !FIXED_MPM
         UInt uiMode = (modeIdx == 0) ? PLANAR_IDX : modeIdx - 1;
 #else
         UInt uiMode = modeIdx;
@@ -1758,7 +1758,7 @@ TEncSearch::estIntraPredQT( TComDataCU* pcCU,
     {
       for( Int i=0; i < numModesForFullRD; i++)
       {
-#if ADD_PLANAR_MODE
+#if ADD_PLANAR_MODE && !FIXED_MPM
         uiRdModeList[i] = (i == 0) ? PLANAR_IDX : i-1; 
 #else
         uiRdModeList[i] = i;

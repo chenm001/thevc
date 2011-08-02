@@ -1001,30 +1001,10 @@ Void TEncCavlc::codeIntraDirLumaAng( TComDataCU* pcCU, UInt uiAbsPartIdx )
     {
       xWriteFlag(0);
 
-#if FIXED_MPM
-      // planar mode is coded with shortest codeword (0)
-      if( iDir == PLANAR_IDX )
-      {
-        iDir = 0;
-      }
-      else
-      {
-        for(Int i = (uiPredNum - 1); i >= 0; i--)
-        {
-          iDir = iDir > uiPreds[i] ? iDir - 1 : iDir;
-        }
-
-        if( uiPreds[uiPredNum - 1] != PLANAR_IDX )
-        {
-          iDir++;
-        }
-      }
-#else
       for(Int i = (uiPredNum - 1); i >= 0; i--)
       {
         iDir = iDir > uiPreds[i] ? iDir - 1 : iDir;
       }
-#endif
 
       xWriteFlag( iDir & 0x01 ? 1 : 0 );
       if ( g_aucIntraModeBitsAng[iIntraIdx] > 2 ) { xWriteFlag( iDir & 0x02 ? 1 : 0 ); }
@@ -1067,30 +1047,10 @@ Void TEncCavlc::codeIntraDirLumaAng( TComDataCU* pcCU, UInt uiAbsPartIdx )
      }
      else
      {
-#if FIXED_MPM
-       // planar mode is coded with shortest codeword (0)
-       if( iDir == PLANAR_IDX )
-       {
-         iDir = 0;
-       }
-       else
-       {
-         for(Int i = (uiPredNum - 1); i >= 0; i--)
-         {
-           iDir = iDir > uiPreds[i] ? iDir - 1 : iDir;
-         }
-
-         if( uiPreds[uiPredNum - 1] != PLANAR_IDX )
-         {
-           iDir++;
-         }
-       }
-#else
        for(Int i = (uiPredNum - 1); i >= 0; i--)
        {
          iDir = iDir > uiPreds[i] ? iDir - 1 : iDir;
        }
-#endif
 
        iRankIntraMode=m_uiIntraModeTableE[iDir];
 

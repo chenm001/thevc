@@ -338,9 +338,17 @@ Void TComPrediction::predIntraLumaAng(TComPattern* pcTComPattern, UInt uiDirMode
 
 #if MN_DC_PRED_FILTER
 #if UNIFICATION_OF_AVAILABILITY
+#if FIXED_MPM
+    if( (uiDirMode == DC_IDX ) && bAbove && bLeft )
+#else
     if ((uiDirMode == 2) && bAbove && bLeft)
+#endif
+#else
+#if FIXED_MPM
+    if ( uiDirMode == DC_IDX && pcTComPattern->getDCPredFilterFlag() )
 #else
     if ( uiDirMode == 2 && pcTComPattern->getDCPredFilterFlag() )
+#endif
 #endif
     {
       xDCPredFiltering( ptrSrc+sw+1, sw, pDst, uiStride, iWidth, iHeight);
