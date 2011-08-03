@@ -270,7 +270,7 @@
 
 #define UNIFY_INTRA_AVAIL      1    ////<JCTVC-F477, "Unification of the Availability Checking method for Intra prediction>
 
-#define AMP                                   0           ///< JCTVC-F379: asymmetric motion partition
+#define AMP                                   1           ///< JCTVC-F379: asymmetric motion partition
 #if AMP
 #define AMP_SAD                               1           ///< dedicated SAD functions for AMP
 #define AMP_ENC_SPEEDUP                       1           ///< encoder only speed-up by AMP mode skipping
