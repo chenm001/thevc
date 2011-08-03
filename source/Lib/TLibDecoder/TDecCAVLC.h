@@ -123,7 +123,11 @@ private:
   UInt                      m_uiIntraModeTableD17[16];
   UInt                      m_uiIntraModeTableD34[33];
 #endif
+#if AMP
+  UInt                      m_uiSplitTableD[4][11];
+#else
   UInt                      m_uiSplitTableD[4][7];
+#endif
 #if CAVLC_RQT_CBP
   UInt                      m_uiCBP_YUV_TableD[4][8];
   UInt                      m_uiCBP_YS_TableD[2][4];

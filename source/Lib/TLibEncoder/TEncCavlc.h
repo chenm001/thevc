@@ -128,8 +128,13 @@ protected:
   UInt          m_uiMI2TableD[15];
   
   UInt          m_uiMITableVlcIdx;
+#if AMP
+  UInt          m_uiSplitTableE[4][11];
+  UInt          m_uiSplitTableD[4][11];
+#else
   UInt          m_uiSplitTableE[4][7];
   UInt          m_uiSplitTableD[4][7];
+#endif
 
 #if CAVLC_COUNTER_ADAPT
 #if CAVLC_RQT_CBP

@@ -59,6 +59,10 @@
 #define NUM_ALF_CTRL_FLAG_CTX         3       ///< number of context models for ALF control flag
 #endif
 #define NUM_PART_SIZE_CTX             5       ///< number of context models for partition size
+#if AMP
+#define NUM_CU_X_POS_CTX              2       ///< number of context models for partition size (AMP)
+#define NUM_CU_Y_POS_CTX              2       ///< number of context models for partition size (AMP)
+#endif
 #define NUM_PRED_MODE_CTX             2       ///< number of context models for prediction mode
 #if MTK_DCM_MPM
 #define NUM_ADI_CTX                   3       ///< number of context models for intra prediction
@@ -243,6 +247,38 @@ INIT_PART_SIZE[3][NUM_PART_SIZE_CTX][2] =
     {  -11,   70 }
   }
 };
+
+#if AMP
+// initial probability for AMP split position (X)
+static const Short
+INIT_CU_X_POS[3][NUM_CU_X_POS_CTX][2] =
+{
+  {
+    {    0,   64 }, {    0,   64 }
+  },
+  {
+    {   -1,   59 }, {    0,   63 }
+  },
+  {
+    {   -1,   55 }, {   -3,   67 }
+  }
+};
+
+// initial probability for AMP split position (Y)
+static const Short
+INIT_CU_Y_POS[3][NUM_CU_Y_POS_CTX][2] =
+{
+  {
+    {    0,   64 }, {    0,   64 }
+  },
+  {
+    {    0,   57 }, {   -2,   66 }
+  },
+  {
+    {   -3,   61 }, {   -3,   66 }
+  }
+};
+#endif
 
 // initial probability for prediction mode
 static const Short
@@ -1193,6 +1229,5 @@ INIT_TRANS_SUBDIV_FLAG[3][NUM_TRANS_SUBDIV_FLAG_CTX][2] =
     {    0,   64 }, {    0,   64 }
   }
 };
-
 #endif
 

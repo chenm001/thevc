@@ -101,7 +101,11 @@ extern       UInt g_uiMaxCUHeight;
 extern       UInt g_uiMaxCUDepth;
 extern       UInt g_uiAddCUDepth;
 
+#if AMP
+extern       UInt g_auiPUOffset[8];
+#else
 extern       UInt g_auiPUOffset[4];
+#endif
 
 #define QUANT_IQUANT_SHIFT    20 // Q(QP%6) * IQ(QP%6) = 2^20
 #define QUANT_SHIFT           14 // Q(4) = 2^14
@@ -282,8 +286,13 @@ extern const UInt g_auiMI1TableEOnly1RefNoL1[8];
 extern const UInt g_auiMI1TableDOnly1RefNoL1[8];
 #endif
 
+#if AMP
+extern const UInt g_auiInterModeTableE[4][11];
+extern const UInt g_auiInterModeTableD[4][11];
+#else
 extern const UInt g_auiInterModeTableE[4][7];
 extern const UInt g_auiInterModeTableD[4][7];
+#endif
 // ====================================================================================================================
 // ADI table
 // ====================================================================================================================

@@ -96,7 +96,11 @@ private:
   Int                     m_iBlkWidth;
   Int                     m_iBlkHeight;
   
+#if AMP_SAD
+  FpDistFunc              m_afpDistortFunc[64]; // [eDFunc]
+#else  
   FpDistFunc              m_afpDistortFunc[33]; // [eDFunc]
+#endif  
   
   Double                  m_dLambda;
   Double                  m_sqrtLambda;
@@ -171,6 +175,18 @@ private:
   static UInt xGetSAD64         ( DistParam* pcDtParam );
   static UInt xGetSAD16N        ( DistParam* pcDtParam );
   
+#if AMP_SAD
+  static UInt xGetSAD12         ( DistParam* pcDtParam );
+  static UInt xGetSAD24         ( DistParam* pcDtParam );
+  static UInt xGetSAD48         ( DistParam* pcDtParam );
+
+#if !GENERIC_IF
+  static UInt xGetSADs12        ( DistParam* pcDtParam );
+  static UInt xGetSADs24        ( DistParam* pcDtParam );
+  static UInt xGetSADs48        ( DistParam* pcDtParam );
+#endif
+#endif
+
 #if !GENERIC_IF
   static UInt xGetSADs          ( DistParam* pcDtParam );
   static UInt xGetSADs4         ( DistParam* pcDtParam );

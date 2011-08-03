@@ -2701,6 +2701,80 @@ Void TComDataCU::setSubPart( T uiParameter, T* puhBaseLCU, UInt uiCUAddr, UInt u
     case SIZE_NxN:
       memset( puhBaseLCU + uiCUAddr, uiParameter, uiCurrPartNumQ ); 
       break;
+#if AMP
+    case SIZE_2NxnU:
+      if ( uiPUIdx == 0 )
+      {
+        memset( puhBaseLCU + uiCUAddr, uiParameter, (uiCurrPartNumQ >> 1) );                      
+        memset( puhBaseLCU + uiCUAddr + uiCurrPartNumQ, uiParameter, (uiCurrPartNumQ >> 1) );                      
+      }
+      else if ( uiPUIdx == 1 )
+      {
+        memset( puhBaseLCU + uiCUAddr, uiParameter, (uiCurrPartNumQ >> 1) );                      
+        memset( puhBaseLCU + uiCUAddr + uiCurrPartNumQ, uiParameter, ((uiCurrPartNumQ >> 1) + (uiCurrPartNumQ << 1)) );                      
+      }
+      else
+      {
+        assert(0);
+      }
+      break;
+    case SIZE_2NxnD:
+      if ( uiPUIdx == 0 )
+      {
+        memset( puhBaseLCU + uiCUAddr, uiParameter, ((uiCurrPartNumQ << 1) + (uiCurrPartNumQ >> 1)) );                      
+        memset( puhBaseLCU + uiCUAddr + (uiCurrPartNumQ << 1) + uiCurrPartNumQ, uiParameter, (uiCurrPartNumQ >> 1) );                      
+      }
+      else if ( uiPUIdx == 1 )
+      {
+        memset( puhBaseLCU + uiCUAddr, uiParameter, (uiCurrPartNumQ >> 1) );                      
+        memset( puhBaseLCU + uiCUAddr + uiCurrPartNumQ, uiParameter, (uiCurrPartNumQ >> 1) );                      
+      }
+      else
+      {
+        assert(0);
+      }
+      break;
+    case SIZE_nLx2N:
+      if ( uiPUIdx == 0 )
+      {
+        memset( puhBaseLCU + uiCUAddr, uiParameter, (uiCurrPartNumQ >> 2) );
+        memset( puhBaseLCU + uiCUAddr + (uiCurrPartNumQ >> 1), uiParameter, (uiCurrPartNumQ >> 2) ); 
+        memset( puhBaseLCU + uiCUAddr + (uiCurrPartNumQ << 1), uiParameter, (uiCurrPartNumQ >> 2) ); 
+        memset( puhBaseLCU + uiCUAddr + (uiCurrPartNumQ << 1) + (uiCurrPartNumQ >> 1), uiParameter, (uiCurrPartNumQ >> 2) ); 
+      }
+      else if ( uiPUIdx == 1 )
+      {
+        memset( puhBaseLCU + uiCUAddr, uiParameter, (uiCurrPartNumQ >> 2) );
+        memset( puhBaseLCU + uiCUAddr + (uiCurrPartNumQ >> 1), uiParameter, (uiCurrPartNumQ + (uiCurrPartNumQ >> 2)) ); 
+        memset( puhBaseLCU + uiCUAddr + (uiCurrPartNumQ << 1), uiParameter, (uiCurrPartNumQ >> 2) ); 
+        memset( puhBaseLCU + uiCUAddr + (uiCurrPartNumQ << 1) + (uiCurrPartNumQ >> 1), uiParameter, (uiCurrPartNumQ + (uiCurrPartNumQ >> 2)) ); 
+      }
+      else
+      {
+        assert(0);
+      }
+      break;
+    case SIZE_nRx2N:
+      if ( uiPUIdx == 0 )
+      {      
+        memset( puhBaseLCU + uiCUAddr, uiParameter, (uiCurrPartNumQ + (uiCurrPartNumQ >> 2)) );                           
+        memset( puhBaseLCU + uiCUAddr + uiCurrPartNumQ + (uiCurrPartNumQ >> 1), uiParameter, (uiCurrPartNumQ >> 2) );                           
+        memset( puhBaseLCU + uiCUAddr + (uiCurrPartNumQ << 1), uiParameter, (uiCurrPartNumQ + (uiCurrPartNumQ >> 2)) );                           
+        memset( puhBaseLCU + uiCUAddr + (uiCurrPartNumQ << 1) + uiCurrPartNumQ + (uiCurrPartNumQ >> 1), uiParameter, (uiCurrPartNumQ >> 2) );                           
+      }
+      else if ( uiPUIdx == 1 )
+      {
+        memset( puhBaseLCU + uiCUAddr, uiParameter, (uiCurrPartNumQ >> 2) );                           
+        memset( puhBaseLCU + uiCUAddr + (uiCurrPartNumQ >> 1), uiParameter, (uiCurrPartNumQ >> 2) );                           
+        memset( puhBaseLCU + uiCUAddr + (uiCurrPartNumQ << 1), uiParameter, (uiCurrPartNumQ >> 2) );                           
+        memset( puhBaseLCU + uiCUAddr + (uiCurrPartNumQ << 1) + (uiCurrPartNumQ >> 1), uiParameter, (uiCurrPartNumQ >> 2) );                          
+      }
+      else
+      {
+        assert(0);
+      }
+      break;
+#endif
     default:
       assert( 0 );
   }
@@ -2764,6 +2838,12 @@ UChar TComDataCU::getNumPartInter()
     case SIZE_2NxN:     iNumPart = 2; break;
     case SIZE_Nx2N:     iNumPart = 2; break;
     case SIZE_NxN:      iNumPart = 4; break;
+#if AMP
+    case SIZE_2NxnU:    iNumPart = 2; break;
+    case SIZE_2NxnD:    iNumPart = 2; break;
+    case SIZE_nLx2N:    iNumPart = 2; break;
+    case SIZE_nRx2N:    iNumPart = 2; break;
+#endif
     default:            assert (0);   break;
   }
   
@@ -2783,6 +2863,28 @@ Void TComDataCU::getPartIndexAndSize( UInt uiPartIdx, UInt& ruiPartAddr, Int& ri
     case SIZE_NxN:
       riWidth = getWidth(0) >> 1; riHeight = getHeight(0) >> 1; ruiPartAddr = ( m_uiNumPartition >> 2 ) * uiPartIdx;
       break;
+#if AMP
+    case SIZE_2NxnU:
+      riWidth     = getWidth(0);
+      riHeight    = ( uiPartIdx == 0 ) ?  getHeight(0) >> 2 : ( getHeight(0) >> 2 ) + ( getHeight(0) >> 1 );
+      ruiPartAddr = ( uiPartIdx == 0 ) ? 0 : m_uiNumPartition >> 3;
+      break;
+    case SIZE_2NxnD:
+      riWidth     = getWidth(0);
+      riHeight    = ( uiPartIdx == 0 ) ?  ( getHeight(0) >> 2 ) + ( getHeight(0) >> 1 ) : getHeight(0) >> 2;
+      ruiPartAddr = ( uiPartIdx == 0 ) ? 0 : (m_uiNumPartition >> 1) + (m_uiNumPartition >> 3);
+      break;
+    case SIZE_nLx2N:
+      riWidth     = ( uiPartIdx == 0 ) ? getWidth(0) >> 2 : ( getWidth(0) >> 2 ) + ( getWidth(0) >> 1 );
+      riHeight    = getHeight(0);
+      ruiPartAddr = ( uiPartIdx == 0 ) ? 0 : m_uiNumPartition >> 4;
+      break;
+    case SIZE_nRx2N:
+      riWidth     = ( uiPartIdx == 0 ) ? ( getWidth(0) >> 2 ) + ( getWidth(0) >> 1 ) : getWidth(0) >> 2;
+      riHeight    = getHeight(0);
+      ruiPartAddr = ( uiPartIdx == 0 ) ? 0 : (m_uiNumPartition >> 2) + (m_uiNumPartition >> 4);
+      break;
+#endif
     default:
       assert ( m_pePartSize[0] == SIZE_2Nx2N );
       riWidth = getWidth(0);      riHeight = getHeight(0);      ruiPartAddr = 0;
@@ -2815,6 +2917,38 @@ Void TComDataCU::deriveLeftRightTopIdxGeneral ( PartSize eCUMode, UInt uiAbsPart
     case SIZE_2NxN:  uiPUWidth = m_puhWidth[uiAbsPartIdx];   break;
     case SIZE_Nx2N:  uiPUWidth = m_puhWidth[uiAbsPartIdx]  >> 1;  break;
     case SIZE_NxN:   uiPUWidth = m_puhWidth[uiAbsPartIdx]  >> 1; break;
+#if AMP
+    case SIZE_2NxnU:   uiPUWidth = m_puhWidth[uiAbsPartIdx]; break;
+    case SIZE_2NxnD:   uiPUWidth = m_puhWidth[uiAbsPartIdx]; break;
+    case SIZE_nLx2N:   
+      if ( uiPartIdx == 0 )
+      {
+        uiPUWidth = m_puhWidth[uiAbsPartIdx]  >> 2; 
+      }
+      else if ( uiPartIdx == 1 )
+      {
+        uiPUWidth = (m_puhWidth[uiAbsPartIdx]  >> 1) + (m_puhWidth[uiAbsPartIdx]  >> 2); 
+      }
+      else
+      {
+        assert(0);
+      }
+      break;
+    case SIZE_nRx2N:   
+      if ( uiPartIdx == 0 )
+      {
+        uiPUWidth = (m_puhWidth[uiAbsPartIdx]  >> 1) + (m_puhWidth[uiAbsPartIdx]  >> 2); 
+      }
+      else if ( uiPartIdx == 1 )
+      {
+        uiPUWidth = m_puhWidth[uiAbsPartIdx]  >> 2; 
+      }
+      else
+      {
+        assert(0);
+      }
+      break;
+#endif
     default:
       assert (0);
       break;
@@ -2832,6 +2966,38 @@ Void TComDataCU::deriveLeftBottomIdxGeneral( PartSize eCUMode, UInt uiAbsPartIdx
     case SIZE_2NxN:  uiPUHeight = m_puhHeight[uiAbsPartIdx] >> 1;    break;
     case SIZE_Nx2N:  uiPUHeight = m_puhHeight[uiAbsPartIdx];  break;
     case SIZE_NxN:   uiPUHeight = m_puhHeight[uiAbsPartIdx] >> 1;    break;
+#if AMP
+    case SIZE_2NxnU: 
+      if ( uiPartIdx == 0 )
+      {
+        uiPUHeight = m_puhHeight[uiAbsPartIdx] >> 2;    
+      }
+      else if ( uiPartIdx == 1 )
+      {
+        uiPUHeight = (m_puhHeight[uiAbsPartIdx] >> 1) + (m_puhHeight[uiAbsPartIdx] >> 2);    
+      }
+      else
+      {
+        assert(0);
+      }
+      break;
+    case SIZE_2NxnD: 
+      if ( uiPartIdx == 0 )
+      {
+        uiPUHeight = (m_puhHeight[uiAbsPartIdx] >> 1) + (m_puhHeight[uiAbsPartIdx] >> 2);    
+      }
+      else if ( uiPartIdx == 1 )
+      {
+        uiPUHeight = m_puhHeight[uiAbsPartIdx] >> 2;    
+      }
+      else
+      {
+        assert(0);
+      }
+      break;
+    case SIZE_nLx2N: uiPUHeight = m_puhHeight[uiAbsPartIdx];  break;
+    case SIZE_nRx2N: uiPUHeight = m_puhHeight[uiAbsPartIdx];  break;
+#endif
     default:
       assert (0);
       break;
@@ -2857,6 +3023,24 @@ Void TComDataCU::deriveLeftRightTopIdx ( PartSize eCUMode, UInt uiPartIdx, UInt&
     case SIZE_NxN:
       ruiPartIdxLT += ( m_uiNumPartition >> 2 ) * uiPartIdx;         ruiPartIdxRT +=  ( m_uiNumPartition >> 2 ) * ( uiPartIdx - 1 );
       break;
+#if AMP
+    case SIZE_2NxnU:
+      ruiPartIdxLT += ( uiPartIdx == 0 )? 0 : m_uiNumPartition >> 3;
+      ruiPartIdxRT += ( uiPartIdx == 0 )? 0 : m_uiNumPartition >> 3;
+      break;
+    case SIZE_2NxnD:
+      ruiPartIdxLT += ( uiPartIdx == 0 )? 0 : ( m_uiNumPartition >> 1 ) + ( m_uiNumPartition >> 3 );
+      ruiPartIdxRT += ( uiPartIdx == 0 )? 0 : ( m_uiNumPartition >> 1 ) + ( m_uiNumPartition >> 3 );
+      break;
+    case SIZE_nLx2N:
+      ruiPartIdxLT += ( uiPartIdx == 0 )? 0 : m_uiNumPartition >> 4;
+      ruiPartIdxRT -= ( uiPartIdx == 1 )? 0 : ( m_uiNumPartition >> 2 ) + ( m_uiNumPartition >> 4 );
+      break;
+    case SIZE_nRx2N:
+      ruiPartIdxLT += ( uiPartIdx == 0 )? 0 : ( m_uiNumPartition >> 2 ) + ( m_uiNumPartition >> 4 );
+      ruiPartIdxRT -= ( uiPartIdx == 1 )? 0 : m_uiNumPartition >> 4;
+      break;
+#endif
     default:
       assert (0);
       break;
@@ -2882,6 +3066,20 @@ Void TComDataCU::deriveLeftBottomIdx( PartSize      eCUMode,   UInt  uiPartIdx, 
     case SIZE_NxN:
       ruiPartIdxLB += ( m_uiNumPartition >> 2 ) * uiPartIdx;
       break;
+#if AMP
+    case SIZE_2NxnU:
+      ruiPartIdxLB += ( uiPartIdx == 0 ) ? -((Int)m_uiNumPartition >> 3) : m_uiNumPartition >> 1;
+      break;
+    case SIZE_2NxnD:
+      ruiPartIdxLB += ( uiPartIdx == 0 ) ? (m_uiNumPartition >> 2) + (m_uiNumPartition >> 3): m_uiNumPartition >> 1;
+      break;
+    case SIZE_nLx2N:
+      ruiPartIdxLB += ( uiPartIdx == 0 ) ? m_uiNumPartition >> 1 : (m_uiNumPartition >> 1) + (m_uiNumPartition >> 4);
+      break;
+    case SIZE_nRx2N:
+      ruiPartIdxLB += ( uiPartIdx == 0 ) ? m_uiNumPartition >> 1 : (m_uiNumPartition >> 1) + (m_uiNumPartition >> 2) + (m_uiNumPartition >> 4);
+      break;
+#endif
     default:
       assert (0);
       break;
@@ -2912,6 +3110,20 @@ Void TComDataCU::deriveRightBottomIdx( PartSize      eCUMode,   UInt  uiPartIdx,
     case SIZE_NxN:   
       ruiPartIdxRB += ( m_uiNumPartition >> 2 ) * ( uiPartIdx - 1 );   
       break;
+#if AMP
+    case SIZE_2NxnU:
+      ruiPartIdxRB += ( uiPartIdx == 0 ) ? -((Int)m_uiNumPartition >> 3) : m_uiNumPartition >> 1;
+      break;
+    case SIZE_2NxnD:
+      ruiPartIdxRB += ( uiPartIdx == 0 ) ? (m_uiNumPartition >> 2) + (m_uiNumPartition >> 3): m_uiNumPartition >> 1;
+      break;
+    case SIZE_nLx2N:
+      ruiPartIdxRB += ( uiPartIdx == 0 ) ? (m_uiNumPartition >> 3) + (m_uiNumPartition >> 4): m_uiNumPartition >> 1;
+      break;
+    case SIZE_nRx2N:
+      ruiPartIdxRB += ( uiPartIdx == 0 ) ? (m_uiNumPartition >> 2) + (m_uiNumPartition >> 3) + (m_uiNumPartition >> 4) : m_uiNumPartition >> 1;
+      break;
+#endif
     default:
       assert (0);
       break;
@@ -3639,7 +3851,7 @@ Void TComDataCU::getInterMergeCandidates( UInt uiAbsPartIdx, UInt uiPUIdx, UInt 
 #endif
 
 #if MRG_AMVP_ADD_CAND_F470
-  if ( getSlice()->isInterB() )
+ if ( getSlice()->isInterB() )
   {
     Int iCombinedCount = 0;
     UInt uiPriorityList0[20] = {0 , 1, 0, 2, 1, 2, 0, 3, 1, 3, 2, 3};

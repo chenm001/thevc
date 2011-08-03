@@ -270,6 +270,18 @@
 
 #define UNIFY_INTRA_AVAIL      1    ////<JCTVC-F477, "Unification of the Availability Checking method for Intra prediction>
 
+#define AMP                                   0           ///< JCTVC-F379: asymmetric motion partition
+#if AMP
+#define AMP_SAD                               1           ///< dedicated SAD functions for AMP
+#define AMP_ENC_SPEEDUP                       1           ///< encoder only speed-up by AMP mode skipping
+#endif
+#if AMP_ENC_SPEEDUP
+#define AMP_MRG                               1           ///< encoder only force merge for AMP partition (no motion search for AMP)
+#endif
+
+
+#define BUG_FIX 1 //! bug fix by samsung
+
 // ====================================================================================================================
 // Basic type redefinition
 // ====================================================================================================================
@@ -492,7 +504,12 @@ enum PartSize
   SIZE_2NxN,            ///< symmetric motion partition,  2Nx N
   SIZE_Nx2N,            ///< symmetric motion partition,   Nx2N
   SIZE_NxN,             ///< symmetric motion partition,   Nx N
-  
+#if AMP
+  SIZE_2NxnU,           ///< asymmetric motion partition, 2Nx( N/2) + 2Nx(3N/2)
+  SIZE_2NxnD,           ///< asymmetric motion partition, 2Nx(3N/2) + 2Nx( N/2)
+  SIZE_nLx2N,           ///< asymmetric motion partition, ( N/2)x2N + (3N/2)x2N
+  SIZE_nRx2N,           ///< asymmetric motion partition, (3N/2)x2N + ( N/2)x2N
+#endif  
   SIZE_NONE = 15
 };
 
@@ -561,7 +578,19 @@ enum DFunc
   DF_HADS64   = 27,     ///<  64xM HAD with step
   DF_HADS16N  = 28,     ///< 16NxM HAD with step
   
+#if AMP_SAD
+  DF_SAD12    = 43,
+  DF_SAD24    = 44,
+  DF_SAD48    = 45,
+
+  DF_SADS12   = 46,
+  DF_SADS24   = 47,
+  DF_SADS48   = 48,
+
+  DF_SSE_FRAME = 50     ///< Frame-based SSE
+#else
   DF_SSE_FRAME = 33     ///< Frame-based SSE
+#endif
 };
 
 /// index for reference type

@@ -231,8 +231,13 @@ Void TEncCavlc::resetEntropy()
   }
 #endif
 
+#if AMP
+  ::memcpy(m_uiSplitTableE, g_auiInterModeTableE, 4*11*sizeof(UInt));
+  ::memcpy(m_uiSplitTableD, g_auiInterModeTableD, 4*11*sizeof(UInt));
+#else
   ::memcpy(m_uiSplitTableE, g_auiInterModeTableE, 4*7*sizeof(UInt));
   ::memcpy(m_uiSplitTableD, g_auiInterModeTableD, 4*7*sizeof(UInt));
+#endif
   
   m_uiMITableVlcIdx = 0;  
 
@@ -812,7 +817,11 @@ Void TEncCavlc::codeInterModeFlag( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiD
   }
   if (uiEncMode != uiControl )
     return;
+#if AMP
+  UInt uiEndSym = bHasSplit ? 11 : 11;
+#else
   UInt uiEndSym = bHasSplit ? 7 : 6;
+#endif
   uiDepth = uiTableDepth;
   UInt uiLength = m_uiSplitTableE[uiDepth][uiMode] + 1;
   if (uiLength == uiEndSym)

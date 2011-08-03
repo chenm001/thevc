@@ -84,6 +84,10 @@ TEncSbac::TEncSbac()
 , m_cALFFlagSCModel           ( 1,             1,               NUM_ALF_FLAG_CTX              )
 , m_cALFUvlcSCModel           ( 1,             1,               NUM_ALF_UVLC_CTX              )
 , m_cALFSvlcSCModel           ( 1,             1,               NUM_ALF_SVLC_CTX              )
+#if AMP
+, m_cCUXPosiSCModel           ( 1,             1,               NUM_CU_X_POS_CTX              )
+, m_cCUYPosiSCModel           ( 1,             1,               NUM_CU_Y_POS_CTX              )
+#endif
 #if MTK_SAO
 , m_cAOFlagSCModel            ( 1,             1,               NUM_AO_FLAG_CTX              )
 , m_cAOUvlcSCModel            ( 1,             1,               NUM_AO_UVLC_CTX              )
@@ -115,6 +119,10 @@ Void TEncSbac::resetEntropy           ()
   m_cCUMergeFlagExtSCModel.initBuffer    ( eSliceType, iQp, (Short*)INIT_MERGE_FLAG_EXT);
   m_cCUMergeIdxExtSCModel.initBuffer     ( eSliceType, iQp, (Short*)INIT_MERGE_IDX_EXT);
   m_cCUPartSizeSCModel.initBuffer        ( eSliceType, iQp, (Short*)INIT_PART_SIZE );
+#if AMP
+  m_cCUXPosiSCModel.initBuffer           ( eSliceType, iQp, (Short*)INIT_CU_X_POS );
+  m_cCUYPosiSCModel.initBuffer           ( eSliceType, iQp, (Short*)INIT_CU_Y_POS );
+#endif
   m_cCUPredModeSCModel.initBuffer        ( eSliceType, iQp, (Short*)INIT_PRED_MODE );
   m_cCUIntraPredSCModel.initBuffer       ( eSliceType, iQp, (Short*)INIT_INTRA_PRED_MODE );
 #if ADD_PLANAR_MODE
@@ -359,6 +367,10 @@ Void TEncSbac::xCopyFrom( TEncSbac* pSrc )
   this->m_cCuCtxLastY              .copyFrom( &pSrc->m_cCuCtxLastY               );
   this->m_cCUOneSCModel            .copyFrom( &pSrc->m_cCUOneSCModel             );
   this->m_cCUAbsSCModel            .copyFrom( &pSrc->m_cCUAbsSCModel             );
+#if AMP
+  this->m_cCUXPosiSCModel          .copyFrom( &pSrc->m_cCUXPosiSCModel           );
+  this->m_cCUYPosiSCModel          .copyFrom( &pSrc->m_cCUXPosiSCModel           );
+#endif
   this->m_cMVPIdxSCModel           .copyFrom( &pSrc->m_cMVPIdxSCModel            );
 #if MTK_SAO
   this->m_cAOFlagSCModel           .copyFrom( &pSrc->m_cAOFlagSCModel            );
@@ -430,13 +442,34 @@ Void TEncSbac::codePartSize( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
       break;
     }
     case SIZE_2NxN:
+#if AMP
+    case SIZE_2NxnU:
+    case SIZE_2NxnD:
+#endif
     {
       m_pcBinIf->encodeBin( 0, m_cCUPartSizeSCModel.get( 0, 0, 0) );
       m_pcBinIf->encodeBin( 1, m_cCUPartSizeSCModel.get( 0, 0, 1) );
-      
+#if AMP
+      if ( pcCU->getSlice()->getSPS()->getAMPAcc( uiDepth ) )
+      {
+        if (eSize == SIZE_2NxN)
+        {
+          m_pcBinIf->encodeBin(1, m_cCUYPosiSCModel.get( 0, 0, 0 ));
+        }
+        else
+        {
+          m_pcBinIf->encodeBin(0, m_cCUYPosiSCModel.get( 0, 0, 0 ));
+          m_pcBinIf->encodeBin((eSize == SIZE_2NxnU? 0: 1), m_cCUYPosiSCModel.get( 0, 0, 1 ));
+        }
+      }
+#endif      
       break;
     }
     case SIZE_Nx2N:
+#if AMP
+    case SIZE_nLx2N:
+    case SIZE_nRx2N:
+#endif
     {
 #if DISABLE_4x4_INTER
     if(pcCU->getSlice()->getSPS()->getDisInter4x4() && (pcCU->getWidth(uiAbsPartIdx)==8) && (pcCU->getHeight(uiAbsPartIdx)==8) )
@@ -454,6 +487,20 @@ Void TEncSbac::codePartSize( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
       m_pcBinIf->encodeBin( 0, m_cCUPartSizeSCModel.get( 0, 0, 0) );
       m_pcBinIf->encodeBin( 0, m_cCUPartSizeSCModel.get( 0, 0, 1) );
       m_pcBinIf->encodeBin( 1, m_cCUPartSizeSCModel.get( 0, 0, 2) );
+#if AMP
+      if ( pcCU->getSlice()->getSPS()->getAMPAcc( uiDepth ) )
+      {
+        if (eSize == SIZE_Nx2N)
+        {
+          m_pcBinIf->encodeBin(1, m_cCUXPosiSCModel.get( 0, 0, 0 ));
+        }
+        else
+        {
+          m_pcBinIf->encodeBin(0, m_cCUXPosiSCModel.get( 0, 0, 0 ));
+          m_pcBinIf->encodeBin((eSize == SIZE_nLx2N? 0: 1), m_cCUXPosiSCModel.get( 0, 0, 1 ));
+        }
+      }
+#endif      
 #if DISABLE_4x4_INTER
     }
 #endif      
