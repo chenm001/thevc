@@ -1613,7 +1613,7 @@ Void TDecSbac::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartId
   }
 
 #if DIAG_SCAN
-  uiScanIdx = ( uiScanIdx ) ? uiScanIdx : 3; // Map 0 to diagonal scan
+  uiScanIdx = ( uiScanIdx == SCAN_ZIGZAG ) ? SCAN_DIAG : uiScanIdx; // Map zigzag to diagonal scan
 #endif
   
   for( UInt uiScanPos = uiScanPosLast-1; uiScanPos != -1; uiScanPos-- )

@@ -102,7 +102,7 @@
 #define SCAN_SET_SIZE                     16
 #define LOG2_SCAN_SET_SIZE                4
 #endif
-#define DIAG_SCAN                         1
+#define DIAG_SCAN                         1           ///< JCTVC-F129: use up-right diagonal scan rather than zig-zag for CABAC           
 #define CABAC_COEFF_DATA_REORDER          1           ///< JCTVC-F130: reordering of CABAC coefficient data
 #define QC_MDIS                           1           // JCTVC-D282: enable mode dependent intra smoothing
 #define QC_MDCS                           1           // JCTVC-D393: mode dependent coefficients coding 
@@ -549,7 +549,12 @@ enum COEFF_SCAN_TYPE
 {
   SCAN_ZIGZAG = 0,      ///< typical zigzag scan
   SCAN_HOR,             ///< horizontal first scan
+#if DIAG_SCAN
+  SCAN_VER,              ///< vertical first scan
+  SCAN_DIAG              ///< up-right diagonal scan
+#else
   SCAN_VER              ///< vertical first scan
+#endif
 };
 #endif //QC_MDCS
 
