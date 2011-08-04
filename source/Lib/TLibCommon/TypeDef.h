@@ -279,9 +279,6 @@
 #define AMP_MRG                               1           ///< encoder only force merge for AMP partition (no motion search for AMP)
 #endif
 
-
-#define BUG_FIX 1 //! bug fix by samsung
-
 // ====================================================================================================================
 // Basic type redefinition
 // ====================================================================================================================

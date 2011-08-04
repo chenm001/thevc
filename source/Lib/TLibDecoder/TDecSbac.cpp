@@ -1355,13 +1355,8 @@ Void TDecSbac::parseMvd( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiPartIdx, UI
   UInt uiSymbol;
   UInt uiHorAbs;
   UInt uiVerAbs;
-#if BUG_FIX
   UInt uiHorSign = 0;
   UInt uiVerSign = 0;
-#else
-  UInt uiHorSign;
-  UInt uiVerSign;
-#endif
   ContextModel *pCtx = m_cCUMvdSCModel.get( 0 );
 
   m_pcTDecBinIf->decodeBin( uiHorAbs, *pCtx );
