@@ -107,6 +107,10 @@ private:
   
   Double** m_ppdAlfCorr;
   Double* m_pdDoubleAlfCoeff;
+#if ALF_CHROMA_NEW_SHAPES
+  Double** m_ppdAlfCorrCb;
+  Double** m_ppdAlfCorrCr;
+#endif
   
   SliceType m_eSliceType;
   Int m_iPicNalReferenceIdc;
@@ -316,8 +320,15 @@ private:
 
 
 protected:
+#if ALF_CHROMA_NEW_SHAPES
+  Void   xFilterTapDecisionChroma      (UInt64 uiLumaRate, TComPicYuv* pcPicOrg, TComPicYuv* pcPicDec, TComPicYuv* pcPicRest, UInt64& ruiDist, UInt64& ruiBits);
+  UInt64 xCalcRateChroma               (ALFParam* pAlfParam);
+  Void   xCalcALFCoeffChroma           (Int iChromaIdc, Int iShape, Int* piCoeff);
+  Int64  xFastFiltDistEstimationChroma (Double** ppdCorr, Int* piCoeff, Int iSqrFiltLength);
+#else
   /// do ALF for chroma
   Void xEncALFChroma          ( UInt64 uiLumaRate, TComPicYuv* pcPicOrg, TComPicYuv* pcPicDec, TComPicYuv* pcPicRest, UInt64& ruiDist, UInt64& ruiBits );
+#endif
 public:
   TEncAdaptiveLoopFilter          ();
   virtual ~TEncAdaptiveLoopFilter () {}

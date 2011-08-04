@@ -229,6 +229,9 @@
 #endif
 
 #define STAR_CROSS_SHAPES_LUMA 1 // JCTVC-F303: ALF using vertical-size 5 filters with up to 9 coefficients
+#if STAR_CROSS_SHAPES_LUMA
+  #define ALF_CHROMA_NEW_SHAPES        1 // JCTVC-F303, JCTVC-F042, JCTVC-F157: ALF using the same shapes as for luma
+#endif
 
 #if QC_MDIS
 #define MN_MDIS_SIMPLIFICATION       1       ///< JCTVC-E069: simplification of MDIS
@@ -415,7 +418,11 @@ struct _AlfParam
 #endif
   Int num_coeff;                          ///< number of filter coefficients
   Int *coeff;                             ///< filter coefficient array
+#if ALF_CHROMA_NEW_SHAPES
+  Int realfiltNo_chroma;                  ///< index of filter shape (chroma)
+#else
   Int tap_chroma;                         ///< number of filter taps (chroma)
+#endif
   Int num_coeff_chroma;                   ///< number of filter coefficients (chroma)
   Int *coeff_chroma;                      ///< filter coefficient array (chroma)
   //CodeAux related
