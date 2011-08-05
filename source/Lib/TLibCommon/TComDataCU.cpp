@@ -2605,6 +2605,7 @@ UInt TComDataCU::getCtxInterDir( UInt uiAbsPartIdx )
 #endif
 }
 
+#if !DNB_REF_FRAME_IDX
 UInt TComDataCU::getCtxRefIdx( UInt uiAbsPartIdx, RefPicList eRefPicList )
 {
 #if AVOID_NEIGHBOR_REF_F470
@@ -2632,6 +2633,7 @@ UInt TComDataCU::getCtxRefIdx( UInt uiAbsPartIdx, RefPicList eRefPicList )
   return uiCtx;
 #endif
 }
+#endif
 
 Void TComDataCU::setCbfSubParts( UInt uiCbfY, UInt uiCbfU, UInt uiCbfV, UInt uiAbsPartIdx, UInt uiDepth )
 {

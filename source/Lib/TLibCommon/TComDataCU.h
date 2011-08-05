@@ -496,7 +496,9 @@ public:
   UInt          getCtxSplitFlag                 ( UInt   uiAbsPartIdx, UInt uiDepth                   );
   UInt          getCtxQtCbf                     ( UInt   uiAbsPartIdx, TextType eType, UInt uiTrDepth );
   UInt          getCtxQtRootCbf                 ( UInt   uiAbsPartIdx                                 );
+#if !DNB_REF_FRAME_IDX
   UInt          getCtxRefIdx                    ( UInt   uiAbsPartIdx, RefPicList eRefPicList         );
+#endif
   UInt          getCtxSkipFlag                  ( UInt   uiAbsPartIdx                                 );
 #if !DNB_ALF_CTRL_FLAG
   UInt          getCtxAlfCtrlFlag               ( UInt   uiAbsPartIdx                                 );
