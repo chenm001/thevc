@@ -69,7 +69,7 @@
 #else
 #define NUM_ADI_CTX                   2
 #endif
-#if ADD_PLANAR_MODE
+#if ADD_PLANAR_MODE && !FIXED_MPM
 #define NUM_PLANARFLAG_CTX            2       ///< number of context models for planar mode flag (intra prediction)
 #endif
 
@@ -326,7 +326,7 @@ INIT_INTRA_PRED_MODE[3][NUM_ADI_CTX][2] =
 };
 #endif
 
-#if ADD_PLANAR_MODE
+#if ADD_PLANAR_MODE && !FIXED_MPM
 // initial probability for planar mode flag
 static const Short
 INIT_PLANARFLAG[3][NUM_PLANARFLAG_CTX][2] =
