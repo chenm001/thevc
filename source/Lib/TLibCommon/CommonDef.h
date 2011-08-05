@@ -188,15 +188,6 @@ template <typename T> inline T Clip3( T minVal, T maxVal, T a) { return std::min
 // Early-skip threshold (encoder)
 #define EARLY_SKIP_THRES            1.50        ///< if RD < thres*avg[BestSkipRD]
 
-#ifdef TRANS_PRECISION_EXT
-const int g_iShift8x8    = 2;
-const int g_iShift16x16  = 2;
-const int g_iShift32x32  = 2;
-const int g_iShift64x64  = 2;
-#endif
-
-/* End of Rounding control */
-
 enum NalRefIdc
 {
   NAL_REF_IDC_PRIORITY_LOWEST = 0,
