@@ -799,7 +799,11 @@ Void TComAdaptiveLoopFilter::copyALFParam(ALFParam* pDesAlfParam, ALFParam* pSrc
 #endif
 #endif
   pDesAlfParam->num_coeff = pSrcAlfParam->num_coeff;
+#if ALF_CHROMA_NEW_SHAPES
+  pDesAlfParam->realfiltNo_chroma = pSrcAlfParam->realfiltNo_chroma;
+#else
   pDesAlfParam->tap_chroma = pSrcAlfParam->tap_chroma;
+#endif
   pDesAlfParam->num_coeff_chroma = pSrcAlfParam->num_coeff_chroma;
 
 #if MQT_BA_RA
@@ -884,6 +888,13 @@ Void TComAdaptiveLoopFilter::predictALFCoeff( ALFParam* pAlfParam)
 
 Void TComAdaptiveLoopFilter::predictALFCoeffChroma( ALFParam* pAlfParam )
 {
+#if ALF_CHROMA_NEW_SHAPES
+  Int i, sum, pred, N;
+  const Int* pFiltMag = NULL;
+
+  pFiltMag = weightsTab_shapes[pAlfParam->realfiltNo_chroma];
+  N = pAlfParam->num_coeff_chroma - 1;
+#else
   Int i, sum, pred, tap, N;
   const Int* pFiltMag = NULL;
   
@@ -904,6 +915,7 @@ Void TComAdaptiveLoopFilter::predictALFCoeffChroma( ALFParam* pAlfParam )
       break;
   }
   N = (tap*tap+1)>>1;
+#endif
   sum=0;
   for(i=0; i<N;i++)
   {
@@ -2286,7 +2298,11 @@ Void TComAdaptiveLoopFilter::xALFChroma(ALFParam* pcAlfParam, TComPicYuv* pcPicD
   {
 #if MTK_NONCROSS_INLOOP_FILTER
     if(!m_bUseNonCrossALF)
+#if ALF_CHROMA_NEW_SHAPES
+      xFrameChroma(0, 0, (m_img_height>>1), (m_img_width>>1), pcPicDec, pcPicRest, pcAlfParam->coeff_chroma, pcAlfParam->realfiltNo_chroma, 0);
+#else
       xFrameChroma(0, 0, (m_img_height>>1), (m_img_width>>1), pcPicDec, pcPicRest, pcAlfParam->coeff_chroma, pcAlfParam->tap_chroma, 0);
+#endif
     else
     {
       Int iStride   = pcPicRest->getCStride();
@@ -2298,11 +2314,19 @@ Void TComAdaptiveLoopFilter::xALFChroma(ALFParam* pcAlfParam, TComPicYuv* pcPicD
         CAlfSlice* pSlice = &(m_pSlice[s]);
         pSlice->copySliceChroma(pDec, pRest, iStride);
         pSlice->extendSliceBorderChroma(pDec, iStride, (UInt)EXTEND_NUM_PEL_C);
+#if ALF_CHROMA_NEW_SHAPES
+        xFrameChromaforOneSlice(pSlice, ALF_Cb, pcPicDec, pcPicRest, pcAlfParam->coeff_chroma, pcAlfParam->realfiltNo_chroma);
+#else
         xFrameChromaforOneSlice(pSlice, ALF_Cb, pcPicDec, pcPicRest, pcAlfParam->coeff_chroma, pcAlfParam->tap_chroma);
+#endif
       }
     }
 #else
+#if ALF_CHROMA_NEW_SHAPES
+    xFrameChroma(pcPicDec, pcPicRest, pcAlfParam->coeff_chroma, pcAlfParam->realfiltNo_chroma, 0);
+#else
     xFrameChroma(pcPicDec, pcPicRest, pcAlfParam->coeff_chroma, pcAlfParam->tap_chroma, 0);
+#endif
 #endif
   }
   
@@ -2310,7 +2334,11 @@ Void TComAdaptiveLoopFilter::xALFChroma(ALFParam* pcAlfParam, TComPicYuv* pcPicD
   {
 #if MTK_NONCROSS_INLOOP_FILTER
     if(!m_bUseNonCrossALF)
+#if ALF_CHROMA_NEW_SHAPES
+      xFrameChroma(0, 0, (m_img_height>>1), (m_img_width>>1), pcPicDec, pcPicRest, pcAlfParam->coeff_chroma, pcAlfParam->realfiltNo_chroma, 1);
+#else
       xFrameChroma(0, 0, (m_img_height>>1), (m_img_width>>1), pcPicDec, pcPicRest, pcAlfParam->coeff_chroma, pcAlfParam->tap_chroma, 1);
+#endif
     else
     {
       Int iStride   = pcPicRest->getCStride();
@@ -2321,11 +2349,19 @@ Void TComAdaptiveLoopFilter::xALFChroma(ALFParam* pcAlfParam, TComPicYuv* pcPicD
         CAlfSlice* pSlice = &(m_pSlice[s]);
         pSlice->copySliceChroma(pDec, pRest, iStride);
         pSlice->extendSliceBorderChroma(pDec, iStride, (UInt)EXTEND_NUM_PEL_C);
+#if ALF_CHROMA_NEW_SHAPES
+        xFrameChromaforOneSlice(pSlice, ALF_Cr, pcPicDec, pcPicRest, pcAlfParam->coeff_chroma, pcAlfParam->realfiltNo_chroma);
+#else
         xFrameChromaforOneSlice(pSlice, ALF_Cr, pcPicDec, pcPicRest, pcAlfParam->coeff_chroma, pcAlfParam->tap_chroma);
+#endif
       }
     }
 #else
+#if ALF_CHROMA_NEW_SHAPES
+    xFrameChroma(pcPicDec, pcPicRest, pcAlfParam->coeff_chroma, pcAlfParam->realfiltNo_chroma, 1);
+#else
     xFrameChroma(pcPicDec, pcPicRest, pcAlfParam->coeff_chroma, pcAlfParam->tap_chroma, 1);
+#endif
 #endif
   }
 }
@@ -2343,11 +2379,20 @@ Void TComAdaptiveLoopFilter::xFrameChroma(Int ypos, Int xpos, Int iHeight, Int i
 Void TComAdaptiveLoopFilter::xFrameChroma( TComPicYuv* pcPicDec, TComPicYuv* pcPicRest, Int *qh, Int iTap, Int iColor )
 #endif
 {
+#if ALF_CHROMA_NEW_SHAPES
+  Int x, y, value, N;
+  Pel *pImgPad1,*pImgPad2,*pImgPad3,*pImgPad4;
+#else
   Int i, x, y, value, N;
   //  Pel PixSum[ALF_MAX_NUM_COEF_C];// th
   Pel PixSum[ALF_MAX_NUM_COEF]; 
+#endif
   
+#if ALF_CHROMA_NEW_SHAPES
+  N = m_sqrFiltLengthTab[iTap] - 1;
+#else
   N      = (iTap*iTap+1)>>1;
+#endif
 #if !MTK_NONCROSS_INLOOP_FILTER
   Int iHeight = pcPicRest->getHeight() >> 1;
   Int iWidth = pcPicRest->getWidth() >> 1;
@@ -2384,11 +2429,78 @@ Void TComAdaptiveLoopFilter::xFrameChroma( TComPicYuv* pcPicDec, TComPicYuv* pcP
   }
 #endif
 
+#if !ALF_CHROMA_NEW_SHAPES
   Pel* pTmpDec1, *pTmpDec2;
   Pel* pTmpPixSum;
+#endif
   
   switch(iTap)
   {
+#if ALF_CHROMA_NEW_SHAPES
+  case 0:
+    for (y = 0; y < iHeight; y++)
+    {
+      pImgPad1 = pDec + iDecStride;
+      pImgPad2 = pDec - iDecStride;
+      pImgPad3 = pDec + 2*iDecStride;
+      pImgPad4 = pDec - 2*iDecStride;
+
+      for (x = 0; x < iWidth; x++)
+      {
+        value  = 0;
+        value += qh[0] * (pImgPad3[x+2] + pImgPad4[x-2]);
+        value += qh[1] * (pImgPad3[x]   + pImgPad4[x]);
+        value += qh[2] * (pImgPad3[x-2] + pImgPad4[x+2]);
+
+        value += qh[3] * (pImgPad1[x+1] + pImgPad2[x-1]);
+        value += qh[4] * (pImgPad1[x]   + pImgPad2[x]);
+        value += qh[5] * (pImgPad1[x-1] + pImgPad2[x+1]);
+
+        value += qh[6] * (pDec[x+2]     + pDec[x-2]);
+        value += qh[7] * (pDec[x+1]     + pDec[x-1]);
+        value += qh[8] * (pDec[x]);
+
+        // DC offset
+        value += qh[N] << iShift;
+        value = (value + ALF_ROUND_OFFSET)>>ALF_NUM_BIT_SHIFT;
+        pRest[x] = (Pel) Clip(value);
+      }
+      pRest += iRestStride;   
+      pDec += iDecStride;
+    }
+    break;
+
+  case 1:
+    for (y = 0; y < iHeight; y++)
+    {
+      pImgPad1 = pDec + iDecStride;
+      pImgPad2 = pDec - iDecStride;
+      pImgPad3 = pDec + 2*iDecStride;
+      pImgPad4 = pDec - 2*iDecStride;
+
+      for (x = 0; x < iWidth; x++)
+      {
+        value  = 0;
+        value += qh[0] * (pImgPad3[x] + pImgPad4[x]);
+        value += qh[1] * (pImgPad1[x] + pImgPad2[x]);
+
+        value += qh[2] * (pDec[x+5]   + pDec[x-5]);
+        value += qh[3] * (pDec[x+4]   + pDec[x-4]);
+        value += qh[4] * (pDec[x+3]   + pDec[x-3]);
+        value += qh[5] * (pDec[x+2]   + pDec[x-2]);
+        value += qh[6] * (pDec[x+1]   + pDec[x-1]);
+        value += qh[7] * (pDec[x]);
+
+        // DC offset
+        value += qh[N] << iShift;
+        value = (value + ALF_ROUND_OFFSET)>>ALF_NUM_BIT_SHIFT;
+        pRest[x] = (Pel) Clip(value);
+      }
+      pRest += iRestStride;
+      pDec += iDecStride;
+    }
+    break;
+#else
     case 5:
     {
       Int iJump = iDecStride - 4;
@@ -2641,6 +2753,7 @@ Void TComAdaptiveLoopFilter::xFrameChroma( TComPicYuv* pcPicDec, TComPicYuv* pcP
       }
     }
       break;
+#endif
     default:
       assert(0);
       break;
