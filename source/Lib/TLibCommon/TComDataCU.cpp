@@ -5224,3 +5224,60 @@ Bool TComDataCU::isSuroundingRefIdxException     ( UInt   uiAbsPartIdx )
   
   return false;
 }
+
+#if NSQT
+Bool TComDataCU::useNonSquareTrans(UInt uiTrMode)
+{
+   const UInt uiLog2TrSize = g_aucConvertToBit[ getSlice()->getSPS()->getMaxCUWidth() >> ( m_puhDepth[ 0 ] + uiTrMode ) ] + 2;
+   if ( uiTrMode && uiLog2TrSize < getSlice()->getSPS()->getQuadtreeTULog2MaxSize() && getWidth( 0 ) > 8 &&
+#if AMP
+     ( m_pePartSize[0] == SIZE_Nx2N || m_pePartSize[0] == SIZE_2NxN || ( m_pePartSize[0] >= SIZE_2NxnU && m_pePartSize[0] <= SIZE_nRx2N ) ) )
+#else
+     ( m_pePartSize[0] == SIZE_Nx2N || m_pePartSize[0] == SIZE_2NxN ) )
+#endif
+     return true;
+   else
+     return false;
+}
+
+Void TComDataCU::getPixOffset(UInt uiTrMode,  UInt ui, UInt uiAbsPartIdx, UInt uiDepth, UInt& uiPix_X, UInt& uiPix_Y, TextType eTxt)
+{
+#if AMP
+  UInt uiPartDir = ( m_pePartSize[ 0 ] == SIZE_Nx2N || m_pePartSize[ 0 ] == SIZE_nLx2N || m_pePartSize[ 0 ] == SIZE_nRx2N ) ? 0 : 1;
+#else
+  UInt uiPartDir = ( m_pePartSize[ 0 ] == SIZE_Nx2N ) ? 0 : 1;
+#endif
+  UInt uiLog2TrSize = g_aucConvertToBit[ getSlice()->getSPS()->getMaxCUWidth() >> uiDepth ] + 2;
+
+  if( eTxt != TEXT_LUMA )
+    uiLog2TrSize --;
+
+  if( uiTrMode == 1 )
+  {
+    uiPix_X = uiPartDir ? 0 : ui * ( 1 << ( uiLog2TrSize - 1 ) );
+    uiPix_Y = uiPartDir ? ui * ( 1 << ( uiLog2TrSize - 1 ) ) : 0;
+  }
+  else if( getWidth( 0 ) == 64 && uiTrMode == 2 )
+  {
+    UInt uiQPartNumSubdiv = getPic()->getNumPartInCU() >> ( ( uiDepth - 1 ) << 1 );
+    UInt uilastdepth = uiAbsPartIdx / uiQPartNumSubdiv;
+    uiPix_X = ( ( uilastdepth & 0x01 ) << ( uiLog2TrSize + 1 ) ) + ( uiPartDir ? 0 : ui * ( 1 << ( uiLog2TrSize - 1 ) ) );
+    uiPix_Y = ( ( ( uilastdepth >> 1 ) & 0x01 ) << ( uiLog2TrSize + 1 ) ) + ( uiPartDir ? ui * ( 1<< ( uiLog2TrSize - 1 ) ) : 0 );
+  }
+  else 
+  {
+    UInt uiQPartNumSubdiv = getPic()->getNumPartInCU() >> ( ( uiDepth - 1 ) << 1);
+    UInt uilastdepth = uiAbsPartIdx / uiQPartNumSubdiv;
+    if( ( 1 << uiLog2TrSize ) == 4 )
+    {
+      uiPix_X = uiPartDir ? ui * ( 1 << uiLog2TrSize ) : uilastdepth * ( 1 << uiLog2TrSize );
+      uiPix_Y = uiPartDir ? uilastdepth * ( 1 << uiLog2TrSize ) : ui * ( 1 << uiLog2TrSize );
+    }
+    else
+    {
+      uiPix_X = uiPartDir ? ( ui & 0x01 ) * ( 1 << ( uiLog2TrSize + 1 ) ) : uilastdepth * ( 1 << uiLog2TrSize ) + ( ui & 0x01 ) * ( 1 << ( uiLog2TrSize - 1 ) );
+      uiPix_Y = uiPartDir ? uilastdepth * ( 1 << uiLog2TrSize ) + ( ( ui >> 1 ) & 0x01 ) * ( 1 << ( uiLog2TrSize - 1 ) ) : ( ( ui >> 1 ) & 0x01 ) * ( 1 << ( uiLog2TrSize + 1 ) );
+    }
+  }
+}
+#endif

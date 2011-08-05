@@ -65,6 +65,7 @@
 #define MRG_AMVP_FIXED_IDX_F470              1       // 1:Merge/AMVP indices are coded in truncated unary codes of fixed maximum length
 #define AVOID_NEIGHBOR_REF_F470              1       // 1:Disable adaptive switching methods for inter_pred_flag and ref_idx_lx
 #define MRG_AMVP_ADD_CAND_F470               1       // 1:add new candidates following original ones
+#define NSQT                                 1       // F410 & F412 : Non-Square Quadtree Transform
 ////////////////////////////
 // JCT-VC F end
 ////////////////////////////

@@ -2180,6 +2180,19 @@ Void TEncCavlc::codeBlockCbf( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eTyp
 
 Void TEncCavlc::codeCoeffNxN    ( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx, UInt uiWidth, UInt uiHeight, UInt uiDepth, TextType eTType )
 {
+#if NSQT
+  Bool bNonSqureFlag = ( uiWidth != uiHeight );
+  UInt uiNonSqureScanTableIdx = 0;
+  if( bNonSqureFlag )
+  {
+    UInt uiWidthBit  =  g_aucConvertToBit[ uiWidth ] + 2;
+    UInt uiHeightBit =  g_aucConvertToBit[ uiHeight ] + 2;
+    uiNonSqureScanTableIdx = ( uiWidth * uiHeight ) == 64 ? 0 : 1;
+    uiWidth  = 1 << ( ( uiWidthBit + uiHeightBit) >> 1 );
+    uiHeight = uiWidth;
+  }    
+#endif
+
   if ( uiWidth > m_pcSlice->getSPS()->getMaxTrSize() )
   {
     uiWidth  = m_pcSlice->getSPS()->getMaxTrSize();
@@ -2320,6 +2333,16 @@ Void TEncCavlc::codeCoeffNxN    ( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPa
   }
   else if ( uiSize == 8*8 )
   {
+#if NSQT
+    if( bNonSqureFlag )  
+    {
+      for ( uiScanning = 0; uiScanning < 64; uiScanning++ )
+      { 
+        scoeff[63-uiScanning] = piCoeff[ g_auiNonSquareSigLastScan[ uiNonSqureScanTableIdx ][ uiScanning ] ];
+      } 
+    }
+    else  
+#endif
     for (uiScanning=0; uiScanning<64; uiScanning++)
     {
 #if QC_MDCS
@@ -2351,6 +2374,16 @@ Void TEncCavlc::codeCoeffNxN    ( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPa
 #if CAVLC_COEF_LRG_BLK
       UInt uiBlSizeInBit = g_aucConvertToBit[uiBlSize] + 2;
       UInt uiWidthInBit = g_aucConvertToBit[uiWidth] + 2;
+#if NSQT
+      if( bNonSqureFlag ) 
+      {
+        for (uiScanning=0; uiScanning< uiNoCoeff; uiScanning++)
+        {
+          scoeff[uiNoCoeff-uiScanning-1] = piCoeff[ g_auiNonSquareSigLastScan[ uiNonSqureScanTableIdx ][ uiScanning ] ];
+        }    
+      }
+      else  
+#endif 
       for (uiScanning=0; uiScanning<uiNoCoeff; uiScanning++)
       {
 #if QC_MDCS
@@ -2435,6 +2468,18 @@ Void TEncCavlc::codeCoeffNxN    ( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPa
   if (uiCodeDCCoef == 1)
   {
     piCoeff[0] = dcCoeff;
+  }
+#endif
+#if NSQT
+  if( bNonSqureFlag && !pcCU->isIntra( uiAbsPartIdx ) )
+  {
+    TCoeff orgCoeff[ 256 ];
+    memcpy( &orgCoeff[ 0 ], pcCoef, uiNoCoeff * sizeof( TCoeff ) );
+    for( UInt uiScanPos = 0; uiScanPos < uiNoCoeff; uiScanPos++ )
+    {
+      uiBlkPos = g_auiNonSquareSigLastScan[ uiNonSqureScanTableIdx ][uiScanPos];
+      pcCoef[ g_auiFrameScanXY[ (int)g_aucConvertToBit[ uiWidth ] + 1 ][ uiScanPos ] ] = orgCoeff[uiBlkPos]; 
+    }  
   }
 #endif
 }

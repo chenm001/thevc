@@ -66,7 +66,9 @@ Void         initSigLastScan(UInt* pBuffZ, UInt* pBuffH, UInt* pBuffV, UInt* pBu
 Void         initSigLastScan(UInt* pBuffZ, UInt* pBuffH, UInt* pBuffV, Int iWidth, Int iHeight, Int iDepth);
 #endif
 #endif //QC_MDCS
-
+#if NSQT
+Void         initNonSquareSigLastScan(UInt* pBuffZ, UInt uiWidth, UInt uiHeight);
+#endif
 // ====================================================================================================================
 // Data structure related table & variable
 // ====================================================================================================================
@@ -143,6 +145,11 @@ extern       UInt*  g_auiSigLastScan[4][ MAX_CU_DEPTH ];  // raster index from s
 extern       UInt*  g_auiSigLastScan[3][ MAX_CU_DEPTH ];  // raster index from scanning index (zigzag, hor, ver)
 #endif
 #endif //QC_MDCS
+
+#if NSQT
+extern       UInt*  g_auiNonSquareSigLastScan[ 2 ];      // raster index from scanning index (zigzag)
+#endif 
+
 #if MODIFIED_LAST_CODING
 extern const UInt   g_uiLastCtx[32];
 #else

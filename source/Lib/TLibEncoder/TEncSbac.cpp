@@ -1581,6 +1581,20 @@ Void TEncSbac::codeCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx
   DTRACE_CABAC_T( "\tpredmode=" )
   DTRACE_CABAC_V(  pcCU->getPredictionMode( uiAbsPartIdx ) )
   DTRACE_CABAC_T( "\n" )
+
+#if NSQT
+  Bool bNonSqureFlag = ( uiWidth != uiHeight );
+  UInt uiNonSqureScanTableIdx = 0;
+  if( bNonSqureFlag )
+  {
+    UInt uiWidthBit  =  g_aucConvertToBit[ uiWidth ] + 2;
+    UInt uiHeightBit =  g_aucConvertToBit[ uiHeight ] + 2;
+    uiNonSqureScanTableIdx = ( uiWidth * uiHeight ) == 64 ? 0 : 1;
+    uiWidth  = 1 << ( ( uiWidthBit + uiHeightBit ) >> 1 );
+    uiHeight = uiWidth;
+  }    
+#endif
+
   if( uiWidth > m_pcSlice->getSPS()->getMaxTrSize() )
   {
     uiWidth  = m_pcSlice->getSPS()->getMaxTrSize();
@@ -1624,6 +1638,19 @@ Void TEncSbac::codeCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx
 #endif
 #endif //QC_MDCS
   
+#if NSQT
+  static TCoeff orgCoeff[ 256 ];
+  if( bNonSqureFlag )
+  {        
+    memcpy( &orgCoeff[ 0 ], pcCoef, uiMaxNumCoeff * sizeof( TCoeff ) );
+    for( UInt uiScanPos = 0; uiScanPos < uiMaxNumCoeff; uiScanPos++ )
+    {
+      UInt uiBlkPos = g_auiNonSquareSigLastScan[ uiNonSqureScanTableIdx ][ uiScanPos ];
+      pcCoef[ g_auiFrameScanXY[ (int)g_aucConvertToBit[ uiWidth ] + 1 ][ uiScanPos ] ] = orgCoeff[ uiBlkPos ]; 
+    }        
+  }
+#endif
+
     //===== code last coeff =====
     UInt uiScanPosLast = 0, uiPosLastX, uiPosLastY;
     for( UInt uiScanPos = 0; uiScanPos < uiMaxNumCoeff; uiScanPos++ )
