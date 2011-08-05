@@ -80,6 +80,18 @@ Void initROM()
 
     c <<= 1;
   }  
+
+#if NSQT
+  UInt uiWidth[ 2 ]  = { 16, 32 };
+  UInt uiHeight[ 2 ] = { 4,  8  };
+  for ( i = 0; i < 2; i++ )
+  {
+    UInt uiW = uiWidth[ i ];
+    UInt uiH = uiHeight[ i ];
+    g_auiNonSquareSigLastScan[ i ] = new UInt[ uiW * uiH ];
+    initNonSquareSigLastScan( g_auiNonSquareSigLastScan[ i ], uiW, uiH);
+  }
+#endif
 }
 
 Void destroyROM()
@@ -119,7 +131,11 @@ UInt g_auiRasterToPelY  [ MAX_NUM_SPU_W*MAX_NUM_SPU_W ] = { 0, };
 UInt g_motionRefer   [ MAX_NUM_SPU_W*MAX_NUM_SPU_W ] = { 0, }; 
 #endif
 
+#if AMP
+UInt g_auiPUOffset[8] = { 0, 8, 4, 4, 2, 10, 1, 5};
+#else
 UInt g_auiPUOffset[4] = { 0, 8, 4, 4 };
+#endif
 
 Void initZscanToRaster ( Int iMaxDepth, Int iDepth, UInt uiStartVal, UInt*& rpuiCurrIdx )
 {
@@ -547,8 +563,13 @@ const UInt g_auiMI1TableEOnly1RefNoL1[8] = {0,2,3,4,1,6,5,7};
 const UInt g_auiMI1TableDOnly1RefNoL1[8] = {0,4,1,2,3,6,5,7};
 #endif
 
+#if AMP
+const UInt g_auiInterModeTableE[4][11] = {{0,1,2,3,4,5,6,7,8,9,10},{0,1,2,3,4,5,6,7,8,9,10},{0,1,2,3,4,5,6,7,8,9,10},{6,0,1,2,3,4,5,7,8,9,10}};
+const UInt g_auiInterModeTableD[4][11] = {{0,1,2,3,4,5,6,7,8,9,10},{0,1,2,3,4,5,6,7,8,9,10},{0,1,2,3,4,5,6,7,8,9,10},{1,2,3,4,5,6,0,7,8,9,10}};
+#else
 const UInt g_auiInterModeTableE[4][7] = {{0,1,2,3,4,5,6},{0,1,2,3,4,5,6},{0,1,2,3,4,5,6},{6,0,1,2,3,4,5}};
 const UInt g_auiInterModeTableD[4][7] = {{0,1,2,3,4,5,6},{0,1,2,3,4,5,6},{0,1,2,3,4,5,6},{1,2,3,4,5,6,0}};
+#endif
 
 // Below table need to be optimized
 const UInt g_auiMITableVlcNum[15] = 
@@ -1806,6 +1827,10 @@ UInt* g_auiSigLastScan[3][ MAX_CU_DEPTH ];
 #endif
 #endif //QC_MDCS
 
+#if NSQT
+UInt* g_auiNonSquareSigLastScan[ 2 ];
+#endif
+
 #if MODIFIED_LAST_CODING
 const UInt g_uiLastCtx[ 32 ] =
 {
@@ -1975,4 +2000,47 @@ const UChar ChromaMapping[2][5] =
 };
 #endif
 #endif
+#if NSQT
+Void initNonSquareSigLastScan(UInt* pBuffZ, UInt uiWidth, UInt uiHeight)
+{
 
+  Int x, y, c = 0;
+
+  // starting point
+  pBuffZ[ c++ ] = 0;
+
+  // loop
+  x=0; y=1;
+  while (1)
+  {
+    // increase loop
+    while ( y>=0 )
+    {
+      if ( x >= 0 && x < uiWidth && y >= 0 && y < uiHeight )
+      {
+        pBuffZ[ c++ ] = x + y * uiWidth;
+      }
+      x++;
+      y--;
+    }
+    y=0;
+
+    // decrease loop
+    while ( x>=0 )
+    {
+      if ( x >= 0 && x < uiWidth && y >= 0 && y < uiHeight )
+      {
+        pBuffZ[ c++ ] = x + y * uiWidth;
+      }
+      x--;
+      y++;
+    }
+    x=0;
+
+    // termination condition
+    if ( c >= uiWidth * uiHeight ) 
+      break;
+  }
+
+}
+#endif

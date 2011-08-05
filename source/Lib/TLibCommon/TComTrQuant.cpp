@@ -352,6 +352,32 @@ void partialButterfly4(short block[4][4],short coeff[4][4],int shift)
   }
 }
 
+#if NSQT
+void partialButterfly4(short *block,short *coeff,int shift, int line)
+{
+  int j;  
+  int E[2],O[2];
+  int add = 1<<(shift-1);
+
+  for (j=0; j<line; j++)
+  {    
+    /* E and O */
+    E[0] = block[0] + block[3];
+    O[0] = block[0] - block[3];
+    E[1] = block[1] + block[2];
+    O[1] = block[1] - block[2];
+
+    coeff[0] = (g_aiT4[0][0]*E[0] + g_aiT4[0][1]*E[1] + add)>>shift;
+    coeff[2*line] = (g_aiT4[2][0]*E[0] + g_aiT4[2][1]*E[1] + add)>>shift;
+    coeff[line] = (g_aiT4[1][0]*O[0] + g_aiT4[1][1]*O[1] + add)>>shift;
+    coeff[3*line] = (g_aiT4[3][0]*O[0] + g_aiT4[3][1]*O[1] + add)>>shift;
+
+    block += 4;
+    coeff ++;
+  }
+}
+#endif
+
 #if INTRA_DST_TYPE_7
 // Fast DST Algorithm. Full matrix multiplication for DST and Fast DST algorithm 
 // give identical results
@@ -464,6 +490,33 @@ void partialButterflyInverse4(short tmp[4][4],short block[4][4],int shift)
   }
 }
 
+#if NSQT
+void partialButterflyInverse4(short *tmp,short *block,int shift, int line)
+{
+  int j;    
+  int E[2],O[2];
+  int add = 1<<(shift-1);
+
+  for (j=0; j<line; j++)
+  {    
+    /* Utilizing symmetry properties to the maximum to minimize the number of multiplications */    
+    O[0] = g_aiT4[1][0]*tmp[line] + g_aiT4[3][0]*tmp[3*line];
+    O[1] = g_aiT4[1][1]*tmp[line] + g_aiT4[3][1]*tmp[3*line];
+    E[0] = g_aiT4[0][0]*tmp[0] + g_aiT4[2][0]*tmp[2*line];
+    E[1] = g_aiT4[0][1]*tmp[0] + g_aiT4[2][1]*tmp[2*line];
+
+    /* Combining even and odd terms at each hierarchy levels to calculate the final spatial domain vector */ 
+    block[0] = (E[0] + O[0] + add)>>shift;
+    block[1] = (E[1] + O[1] + add)>>shift;
+    block[2] = (E[1] - O[1] + add)>>shift;
+    block[3] = (E[0] - O[0] + add)>>shift;
+
+    tmp   ++;
+    block += 4;
+  }
+}
+#endif
+
 /** 4x4 inverse transform (2D)
  *  \param coeff input data (transform coefficients)
  *  \param block output data (residual)
@@ -547,6 +600,44 @@ void partialButterfly8(short block[8][8],short coeff[8][8],int shift)
   }
 }
 
+#if NSQT
+void partialButterfly8(short *block,short *coeff,int shift, int line)
+{
+  int j,k;  
+  int E[4],O[4];
+  int EE[2],EO[2];
+  int add = 1<<(shift-1);
+
+  for (j=0; j<line; j++)
+  {  
+    /* E and O*/
+    for (k=0;k<4;k++)
+    {
+      E[k] = block[k] + block[7-k];
+      O[k] = block[k] - block[7-k];
+    }    
+    /* EE and EO */
+    EE[0] = E[0] + E[3];    
+    EO[0] = E[0] - E[3];
+    EE[1] = E[1] + E[2];
+    EO[1] = E[1] - E[2];
+
+    coeff[0] = (g_aiT8[0][0]*EE[0] + g_aiT8[0][1]*EE[1] + add)>>shift;
+    coeff[4*line] = (g_aiT8[4][0]*EE[0] + g_aiT8[4][1]*EE[1] + add)>>shift; 
+    coeff[2*line] = (g_aiT8[2][0]*EO[0] + g_aiT8[2][1]*EO[1] + add)>>shift;
+    coeff[6*line] = (g_aiT8[6][0]*EO[0] + g_aiT8[6][1]*EO[1] + add)>>shift; 
+
+    coeff[line] = (g_aiT8[1][0]*O[0] + g_aiT8[1][1]*O[1] + g_aiT8[1][2]*O[2] + g_aiT8[1][3]*O[3] + add)>>shift;
+    coeff[3*line] = (g_aiT8[3][0]*O[0] + g_aiT8[3][1]*O[1] + g_aiT8[3][2]*O[2] + g_aiT8[3][3]*O[3] + add)>>shift;
+    coeff[5*line] = (g_aiT8[5][0]*O[0] + g_aiT8[5][1]*O[1] + g_aiT8[5][2]*O[2] + g_aiT8[5][3]*O[3] + add)>>shift;
+    coeff[7*line] = (g_aiT8[7][0]*O[0] + g_aiT8[7][1]*O[1] + g_aiT8[7][2]*O[2] + g_aiT8[7][3]*O[3] + add)>>shift;
+
+    block += 8;
+    coeff ++;
+  }
+}
+#endif
+
 /** 8x8 forward transform (2D)
  *  \param block input data (residual)
  *  \param coeff  output data (transform coefficients)
@@ -602,6 +693,43 @@ void partialButterflyInverse8(short tmp[8][8],short block[8][8],int shift)
     }        
   }
 }
+
+#if NSQT
+void partialButterflyInverse8(short *tmp,short *block,int shift, int line)
+{
+  int j,k;    
+  int E[4],O[4];
+  int EE[2],EO[2];
+  int add = 1<<(shift-1);
+
+  for (j=0; j<line; j++) 
+  {    
+    /* Utilizing symmetry properties to the maximum to minimize the number of multiplications */
+    for (k=0;k<4;k++)
+    {
+      O[k] = g_aiT8[ 1][k]*tmp[line] + g_aiT8[ 3][k]*tmp[3*line] + g_aiT8[ 5][k]*tmp[5*line] + g_aiT8[ 7][k]*tmp[7*line];
+    }
+
+    EO[0] = g_aiT8[2][0]*tmp[ 2*line ] + g_aiT8[6][0]*tmp[ 6*line ];
+    EO[1] = g_aiT8[2][1]*tmp[ 2*line ] + g_aiT8[6][1]*tmp[ 6*line ];
+    EE[0] = g_aiT8[0][0]*tmp[ 0      ] + g_aiT8[4][0]*tmp[ 4*line ];
+    EE[1] = g_aiT8[0][1]*tmp[ 0      ] + g_aiT8[4][1]*tmp[ 4*line ];
+
+    /* Combining even and odd terms at each hierarchy levels to calculate the final spatial domain vector */ 
+    E[0] = EE[0] + EO[0];
+    E[3] = EE[0] - EO[0];
+    E[1] = EE[1] + EO[1];
+    E[2] = EE[1] - EO[1];
+    for (k=0;k<4;k++)
+    {
+      block[ k   ] = (E[k] + O[k] + add)>>shift;
+      block[ k+4 ] = (E[3-k] - O[3-k] + add)>>shift;
+    }   
+    tmp ++;
+    block += 8;
+  }
+}
+#endif
 
 /** 8x8 inverse transform (2D)
  *  \param coeff input data (transform coefficients)
@@ -673,6 +801,58 @@ void partialButterfly16(short block[16][16],short coeff[16][16],int shift)
   }
 }
 
+#if NSQT
+void partialButterfly16(short *block,short *coeff,int shift, int line)
+{
+  int j,k;
+  int E[8],O[8];
+  int EE[4],EO[4];
+  int EEE[2],EEO[2];
+  int add = 1<<(shift-1);
+
+  for (j=0; j<line; j++) 
+  {    
+    /* E and O*/
+    for (k=0;k<8;k++)
+    {
+      E[k] = block[k] + block[15-k];
+      O[k] = block[k] - block[15-k];
+    } 
+    /* EE and EO */
+    for (k=0;k<4;k++)
+    {
+      EE[k] = E[k] + E[7-k];
+      EO[k] = E[k] - E[7-k];
+    }
+    /* EEE and EEO */
+    EEE[0] = EE[0] + EE[3];    
+    EEO[0] = EE[0] - EE[3];
+    EEE[1] = EE[1] + EE[2];
+    EEO[1] = EE[1] - EE[2];
+
+    coeff[ 0      ] = (g_aiT16[ 0][0]*EEE[0] + g_aiT16[ 0][1]*EEE[1] + add)>>shift;        
+    coeff[ 8*line ] = (g_aiT16[ 8][0]*EEE[0] + g_aiT16[ 8][1]*EEE[1] + add)>>shift;    
+    coeff[ 4*line ] = (g_aiT16[ 4][0]*EEO[0] + g_aiT16[ 4][1]*EEO[1] + add)>>shift;        
+    coeff[ 12*line] = (g_aiT16[12][0]*EEO[0] + g_aiT16[12][1]*EEO[1] + add)>>shift;
+
+    for (k=2;k<16;k+=4)
+    {
+      coeff[ k*line ] = (g_aiT16[k][0]*EO[0] + g_aiT16[k][1]*EO[1] + g_aiT16[k][2]*EO[2] + g_aiT16[k][3]*EO[3] + add)>>shift;      
+    }
+
+    for (k=1;k<16;k+=2)
+    {
+      coeff[ k*line ] = (g_aiT16[k][0]*O[0] + g_aiT16[k][1]*O[1] + g_aiT16[k][2]*O[2] + g_aiT16[k][3]*O[3] + 
+        g_aiT16[k][4]*O[4] + g_aiT16[k][5]*O[5] + g_aiT16[k][6]*O[6] + g_aiT16[k][7]*O[7] + add)>>shift;
+    }
+
+    block += 16;
+    coeff ++; 
+
+  }
+}
+#endif
+
 /** 16x16 forward transform (2D)
  *  \param block input data (residual)
  *  \param coeff output data (transform coefficients)
@@ -739,6 +919,54 @@ void partialButterflyInverse16(short tmp[16][16],short block[16][16],int shift)
     }        
   }
 }
+
+#if NSQT
+void partialButterflyInverse16(short *tmp,short *block,int shift, int line)
+{
+  int j,k;  
+  int E[8],O[8];
+  int EE[4],EO[4];
+  int EEE[2],EEO[2];
+  int add = 1<<(shift-1);
+
+  for (j=0; j<line; j++)
+  {    
+    /* Utilizing symmetry properties to the maximum to minimize the number of multiplications */
+    for (k=0;k<8;k++)
+    {
+      O[k] = g_aiT16[ 1][k]*tmp[ line] + g_aiT16[ 3][k]*tmp[ 3*line] + g_aiT16[ 5][k]*tmp[ 5*line] + g_aiT16[ 7][k]*tmp[ 7*line] + 
+        g_aiT16[ 9][k]*tmp[ 9*line] + g_aiT16[11][k]*tmp[11*line] + g_aiT16[13][k]*tmp[13*line] + g_aiT16[15][k]*tmp[15*line];
+    }
+    for (k=0;k<4;k++)
+    {
+      EO[k] = g_aiT16[ 2][k]*tmp[ 2*line] + g_aiT16[ 6][k]*tmp[ 6*line] + g_aiT16[10][k]*tmp[10*line] + g_aiT16[14][k]*tmp[14*line];
+    }
+    EEO[0] = g_aiT16[4][0]*tmp[ 4*line ] + g_aiT16[12][0]*tmp[ 12*line ];
+    EEE[0] = g_aiT16[0][0]*tmp[ 0      ] + g_aiT16[ 8][0]*tmp[ 8*line  ];
+    EEO[1] = g_aiT16[4][1]*tmp[ 4*line ] + g_aiT16[12][1]*tmp[ 12*line ];
+    EEE[1] = g_aiT16[0][1]*tmp[ 0      ] + g_aiT16[ 8][1]*tmp[ 8*line  ];
+
+    /* Combining even and odd terms at each hierarchy levels to calculate the final spatial domain vector */ 
+    for (k=0;k<2;k++)
+    {
+      EE[k] = EEE[k] + EEO[k];
+      EE[k+2] = EEE[1-k] - EEO[1-k];
+    }    
+    for (k=0;k<4;k++)
+    {
+      E[k] = EE[k] + EO[k];
+      E[k+4] = EE[3-k] - EO[3-k];
+    }    
+    for (k=0;k<8;k++)
+    {
+      block[k] = (E[k] + O[k] + add)>>shift;
+      block[k+8] = (E[7-k] - O[7-k] + add)>>shift;
+    }   
+    tmp ++; 
+    block += 16;
+  }
+}
+#endif
 
 /** 16x16 inverse transform (2D)
  *  \param coeff input data (transform coefficients)
@@ -821,6 +1049,68 @@ void partialButterfly32(short block[32][32],short coeff[32][32],int shift)
   }
 }
 
+#if NSQT
+void partialButterfly32(short *block,short *coeff,int shift, int line)
+{
+  int j,k;
+  int E[16],O[16];
+  int EE[8],EO[8];
+  int EEE[4],EEO[4];
+  int EEEE[2],EEEO[2];
+  int add = 1<<(shift-1);
+
+  for (j=0; j<line; j++)
+  {    
+    /* E and O*/
+    for (k=0;k<16;k++)
+    {
+      E[k] = block[k] + block[31-k];
+      O[k] = block[k] - block[31-k];
+    } 
+    /* EE and EO */
+    for (k=0;k<8;k++)
+    {
+      EE[k] = E[k] + E[15-k];
+      EO[k] = E[k] - E[15-k];
+    }
+    /* EEE and EEO */
+    for (k=0;k<4;k++)
+    {
+      EEE[k] = EE[k] + EE[7-k];
+      EEO[k] = EE[k] - EE[7-k];
+    }
+    /* EEEE and EEEO */
+    EEEE[0] = EEE[0] + EEE[3];    
+    EEEO[0] = EEE[0] - EEE[3];
+    EEEE[1] = EEE[1] + EEE[2];
+    EEEO[1] = EEE[1] - EEE[2];
+
+    coeff[ 0       ] = (g_aiT32[ 0][0]*EEEE[0] + g_aiT32[ 0][1]*EEEE[1] + add)>>shift;
+    coeff[ 16*line ] = (g_aiT32[16][0]*EEEE[0] + g_aiT32[16][1]*EEEE[1] + add)>>shift;
+    coeff[ 8*line  ] = (g_aiT32[ 8][0]*EEEO[0] + g_aiT32[ 8][1]*EEEO[1] + add)>>shift; 
+    coeff[ 24*line ] = (g_aiT32[24][0]*EEEO[0] + g_aiT32[24][1]*EEEO[1] + add)>>shift;
+    for (k=4;k<32;k+=8)
+    {
+      coeff[ k*line ] = (g_aiT32[k][0]*EEO[0] + g_aiT32[k][1]*EEO[1] + g_aiT32[k][2]*EEO[2] + g_aiT32[k][3]*EEO[3] + add)>>shift;
+    }       
+    for (k=2;k<32;k+=4)
+    {
+      coeff[ k*line ] = (g_aiT32[k][0]*EO[0] + g_aiT32[k][1]*EO[1] + g_aiT32[k][2]*EO[2] + g_aiT32[k][3]*EO[3] + 
+        g_aiT32[k][4]*EO[4] + g_aiT32[k][5]*EO[5] + g_aiT32[k][6]*EO[6] + g_aiT32[k][7]*EO[7] + add)>>shift;
+    }       
+    for (k=1;k<32;k+=2)
+    {
+      coeff[ k*line ] = (g_aiT32[k][ 0]*O[ 0] + g_aiT32[k][ 1]*O[ 1] + g_aiT32[k][ 2]*O[ 2] + g_aiT32[k][ 3]*O[ 3] + 
+        g_aiT32[k][ 4]*O[ 4] + g_aiT32[k][ 5]*O[ 5] + g_aiT32[k][ 6]*O[ 6] + g_aiT32[k][ 7]*O[ 7] +
+        g_aiT32[k][ 8]*O[ 8] + g_aiT32[k][ 9]*O[ 9] + g_aiT32[k][10]*O[10] + g_aiT32[k][11]*O[11] + 
+        g_aiT32[k][12]*O[12] + g_aiT32[k][13]*O[13] + g_aiT32[k][14]*O[14] + g_aiT32[k][15]*O[15] + add)>>shift;
+    }
+    block += 32;
+    coeff ++;
+  }
+}
+#endif
+
 /** 32x32 forward transform (2D)
  *  \param block input data (residual)
  *  \param coeff output data (transform coefficients)
@@ -900,6 +1190,66 @@ void partialButterflyInverse32(short tmp[32][32],short block[32][32],int shift)
   }
 }
 
+#if NSQT
+void partialButterflyInverse32(short *tmp,short *block,int shift, int line)
+{
+  int j,k;  
+  int E[16],O[16];
+  int EE[8],EO[8];
+  int EEE[4],EEO[4];
+  int EEEE[2],EEEO[2];
+  int add = 1<<(shift-1);
+
+  for (j=0; j<line; j++)
+  {    
+    /* Utilizing symmetry properties to the maximum to minimize the number of multiplications */
+    for (k=0;k<16;k++)
+    {
+      O[k] = g_aiT32[ 1][k]*tmp[ line  ] + g_aiT32[ 3][k]*tmp[ 3*line  ] + g_aiT32[ 5][k]*tmp[ 5*line  ] + g_aiT32[ 7][k]*tmp[ 7*line  ] + 
+        g_aiT32[ 9][k]*tmp[ 9*line  ] + g_aiT32[11][k]*tmp[ 11*line ] + g_aiT32[13][k]*tmp[ 13*line ] + g_aiT32[15][k]*tmp[ 15*line ] + 
+        g_aiT32[17][k]*tmp[ 17*line ] + g_aiT32[19][k]*tmp[ 19*line ] + g_aiT32[21][k]*tmp[ 21*line ] + g_aiT32[23][k]*tmp[ 23*line ] + 
+        g_aiT32[25][k]*tmp[ 25*line ] + g_aiT32[27][k]*tmp[ 27*line ] + g_aiT32[29][k]*tmp[ 29*line ] + g_aiT32[31][k]*tmp[ 31*line ];
+    }
+    for (k=0;k<8;k++)
+    {
+      EO[k] = g_aiT32[ 2][k]*tmp[ 2*line  ] + g_aiT32[ 6][k]*tmp[ 6*line  ] + g_aiT32[10][k]*tmp[ 10*line ] + g_aiT32[14][k]*tmp[ 14*line ] + 
+        g_aiT32[18][k]*tmp[ 18*line ] + g_aiT32[22][k]*tmp[ 22*line ] + g_aiT32[26][k]*tmp[ 26*line ] + g_aiT32[30][k]*tmp[ 30*line ];
+    }
+    for (k=0;k<4;k++)
+    {
+      EEO[k] = g_aiT32[4][k]*tmp[ 4*line ] + g_aiT32[12][k]*tmp[ 12*line ] + g_aiT32[20][k]*tmp[ 20*line ] + g_aiT32[28][k]*tmp[ 28*line ];
+    }
+    EEEO[0] = g_aiT32[8][0]*tmp[ 8*line ] + g_aiT32[24][0]*tmp[ 24*line ];
+    EEEO[1] = g_aiT32[8][1]*tmp[ 8*line ] + g_aiT32[24][1]*tmp[ 24*line ];
+    EEEE[0] = g_aiT32[0][0]*tmp[ 0      ] + g_aiT32[16][0]*tmp[ 16*line ];    
+    EEEE[1] = g_aiT32[0][1]*tmp[ 0      ] + g_aiT32[16][1]*tmp[ 16*line ];
+
+    /* Combining even and odd terms at each hierarchy levels to calculate the final spatial domain vector */
+    EEE[0] = EEEE[0] + EEEO[0];
+    EEE[3] = EEEE[0] - EEEO[0];
+    EEE[1] = EEEE[1] + EEEO[1];
+    EEE[2] = EEEE[1] - EEEO[1];    
+    for (k=0;k<4;k++)
+    {
+      EE[k] = EEE[k] + EEO[k];
+      EE[k+4] = EEE[3-k] - EEO[3-k];
+    }    
+    for (k=0;k<8;k++)
+    {
+      E[k] = EE[k] + EO[k];
+      E[k+8] = EE[7-k] - EO[7-k];
+    }    
+    for (k=0;k<16;k++)
+    {
+      block[ k    ] = (E[k] + O[k] + add)>>shift;
+      block[ k+16 ] = (E[15-k] - O[15-k] + add)>>shift;
+    }
+    tmp ++;
+    block += 32;
+  }
+}
+#endif
+
 /** 32x32 inverse transform (2D)
  *  \param coeff input data (transform coefficients)
  *  \param block output data (residual)
@@ -917,6 +1267,65 @@ void xITr32(short coeff[32][32],short block[32][32])
   partialButterflyInverse32(coeff,tmp,shift_1st);
   partialButterflyInverse32(tmp,block,shift_2nd);
 }
+
+#if NSQT
+/** MxN forward transform (2D)
+*  \param block input data (residual)
+*  \param coeff output data (transform coefficients)
+*  \param iWidth input data (width of transform)
+*  \param iHeight input data (height of transform)
+*/
+void xTrMxN(short *block,short *coeff, int iWidth, int iHeight)
+{
+#if FULL_NBIT
+  int shift_1st = g_aucConvertToBit[iWidth]  + 1 + g_uiBitDepth - 8; // log2(iWidth) - 1 + g_uiBitDepth - 8
+#else
+  int shift_1st = g_aucConvertToBit[iWidth]  + 1 + g_uiBitIncrement; // log2(iWidth) - 1 + g_uiBitIncrement
+#endif
+  int shift_2nd = g_aucConvertToBit[iHeight]  + 8;                   // log2(iHeight) + 6
+
+  short tmp[ 64 * 64 ];
+
+  if( iWidth == 16 && iHeight == 4)
+  {
+    partialButterfly16( block, tmp, shift_1st, iHeight );
+    partialButterfly4( tmp, coeff, shift_2nd, iWidth );
+  }
+  else if( iWidth == 32 && iHeight == 8 )
+  {
+    partialButterfly32( block, tmp, shift_1st, iHeight );
+    partialButterfly8( tmp, coeff, shift_2nd, iWidth );
+  }
+}
+/** MxN inverse transform (2D)
+*  \param coeff input data (transform coefficients)
+*  \param block output data (residual)
+*  \param iWidth input data (width of transform)
+*  \param iHeight input data (height of transform)
+*/
+void xITrMxN(short *coeff,short *block, int iWidth, int iHeight)
+{
+  int shift_1st = SHIFT_INV_1ST;
+#if FULL_NBIT
+  int shift_2nd = SHIFT_INV_2ND - ((short)g_uiBitDepth - 8);
+#else
+  int shift_2nd = SHIFT_INV_2ND - g_uiBitIncrement;
+#endif
+
+  short tmp[ 64*64];
+  if( iWidth == 16 && iHeight == 4)
+  {
+    partialButterflyInverse4(coeff,tmp,shift_1st,iWidth);
+    partialButterflyInverse16(tmp,block,shift_2nd,iHeight);
+  }
+  else if( iWidth == 32 && iHeight == 8)
+  {
+    partialButterflyInverse8(coeff,tmp,shift_1st,iWidth);
+    partialButterflyInverse32(tmp,block,shift_2nd,iHeight);
+  }
+}
+#endif
+
 #endif //MATRIX_MULT
 
 UInt TComTrQuant::xCountVlcBits(UInt uiTableNumber, UInt uiCodeNumber)
@@ -1867,7 +2276,20 @@ Void TComTrQuant::xRateDistOptQuant_LCEC(TComDataCU* pcCU, Long* pSrcCoeff, TCoe
 #else
   static TCoeff sQuantCoeff[256];
 #endif
-  
+
+#if NSQT
+  Bool bNonSqureFlag = ( uiWidth != uiHeight );
+  UInt uiNonSqureScanTableIdx = 0;
+  if( bNonSqureFlag )
+  {
+    UInt uiWidthBit  = g_aucConvertToBit[ uiWidth ] + 2;
+    UInt uiHeightBit = g_aucConvertToBit[ uiHeight ] + 2;
+    uiNonSqureScanTableIdx = ( uiWidth * uiHeight ) == 64 ? 0 : 1;
+    uiWidth  = 1 << ( ( uiWidthBit + uiHeightBit) >> 1 );
+    uiHeight = uiWidth;
+  }    
+#endif
+
   q_bits    = m_cQP.m_iBits;
   
   UInt noCoeff=(uiWidth < 8 ? 16 : 64);
@@ -1972,6 +2394,13 @@ Void TComTrQuant::xRateDistOptQuant_LCEC(TComDataCU* pcCU, Long* pSrcCoeff, TCoe
 #endif
   for (iScanning=noCoeff-1; iScanning>=0; iScanning--) 
   {
+#if NSQT
+    if( bNonSqureFlag )
+    {
+      iPos =  g_auiNonSquareSigLastScan[uiNonSqureScanTableIdx][iScanning];
+    }
+    else 
+#endif
 #if QC_MDCS
     iPos = g_auiSigLastScan[uiScanIdx][uiLog2BlkSize-1][iScanning];
 #else
@@ -2320,6 +2749,13 @@ Void TComTrQuant::xRateDistOptQuant_LCEC(TComDataCU* pcCU, Long* pSrcCoeff, TCoe
   {
     for (iScanning = noCoeff - 1; iScanning >= 0; iScanning--) 
     {
+#if NSQT
+      if( bNonSqureFlag )
+      {
+        iPos =  g_auiNonSquareSigLastScan[uiNonSqureScanTableIdx][iScanning];
+      }
+      else 
+#endif
 #if QC_MDCS
       iPos = g_auiSigLastScan[uiScanIdx][uiLog2BlkSize-1][iScanning];
 #else
@@ -2346,9 +2782,26 @@ Void TComTrQuant::xQuantLTR  (TComDataCU* pcCU, Long* pSrc, TCoeff*& pDes, Int i
   }
   else
   {
+#if NSQT 
+    Bool bNonSqureFlag = ( iWidth != iHeight );
+    UInt uiNonSqureScanTableIdx = 0;
+    if( bNonSqureFlag )
+    {
+      UInt uiWidthBit  = g_aucConvertToBit[ iWidth ] + 2;
+      UInt uiHeightBit = g_aucConvertToBit[ iHeight ] + 2;
+      uiNonSqureScanTableIdx = ( iWidth * iHeight ) == 64 ? 0 : 1;
+      iWidth  = 1 << ( ( uiWidthBit + uiHeightBit) >> 1 );
+      iHeight = iWidth;
+    }    
+#endif
+
     const UInt*  pucScan;
     UInt uiConvBit = g_aucConvertToBit[ iWidth ];
     pucScan        = g_auiFrameScanXY [ uiConvBit + 1 ];
+#if NSQT
+    if( bNonSqureFlag)
+      pucScan = g_auiNonSquareSigLastScan[ uiNonSqureScanTableIdx ];
+#endif
 
     UInt uiLog2TrSize = g_aucConvertToBit[ iWidth ] + 2;
     UInt uiQ = g_auiQ[m_cQP.rem()];
@@ -2415,7 +2868,16 @@ Void TComTrQuant::xDeQuantLTR( TCoeff* pSrc, Long*& pDes, Int iWidth, Int iHeigh
   
   TCoeff* piQCoef   = pSrc;
   Long*   piCoef    = pDes;
-  
+#if NSQT
+  if( iWidth != iHeight )
+  {
+    UInt uiWidthBit  = g_aucConvertToBit[ iWidth ]  + 2;
+    UInt uiHeightBit = g_aucConvertToBit[ iHeight ] + 2;
+    iWidth  = 1 << ( ( uiWidthBit + uiHeightBit) >> 1 );
+    iHeight = iWidth;
+  }    
+#endif
+
   if ( iWidth > (Int)m_uiMaxTrSize )
   {
     iWidth  = m_uiMaxTrSize;
@@ -2477,7 +2939,11 @@ Void TComTrQuant::transformNxN( TComDataCU* pcCU, Pel* pcResidual, UInt uiStride
   uiAbsSum = 0;
   assert( (pcCU->getSlice()->getSPS()->getMaxTrSize() >= uiWidth) );
 
+#if NSQT
+  xT( uiMode, pcResidual, uiStride, m_plTempCoeff, uiWidth, uiHeight );
+#else
   xT( uiMode, pcResidual, uiStride, m_plTempCoeff, uiWidth );
+#endif
   xQuant( pcCU, m_plTempCoeff, rpcCoeff, uiWidth, uiHeight, uiAbsSum, eTType, uiAbsPartIdx );
 }
 #else
@@ -2486,8 +2952,12 @@ Void TComTrQuant::transformNxN( TComDataCU* pcCU, Pel* pcResidual, UInt uiStride
   uiAbsSum = 0;
   
   assert( (pcCU->getSlice()->getSPS()->getMaxTrSize() >= uiWidth) );
-  
+
+#if NSQT
+  xT( pcResidual, uiStride, m_plTempCoeff, uiWidth, uiHeight );
+#else
   xT( pcResidual, uiStride, m_plTempCoeff, uiWidth );
+#endif
   xQuant( pcCU, m_plTempCoeff, rpcCoeff, uiWidth, uiHeight, uiAbsSum, eTType, uiAbsPartIdx );
 }
 #endif
@@ -2497,13 +2967,21 @@ Void TComTrQuant::transformNxN( TComDataCU* pcCU, Pel* pcResidual, UInt uiStride
 Void TComTrQuant::invtransformNxN( TextType eText,UInt uiMode, Pel*& rpcResidual, UInt uiStride, TCoeff* pcCoeff, UInt uiWidth, UInt uiHeight )
 {
   xDeQuant( pcCoeff, m_plTempCoeff, uiWidth, uiHeight);
+#if NSQT
+  xIT( uiMode, m_plTempCoeff, rpcResidual, uiStride, uiWidth, uiHeight );
+#else
   xIT( uiMode, m_plTempCoeff, rpcResidual, uiStride, uiWidth);
+#endif
 }
 #else
 Void TComTrQuant::invtransformNxN( Pel*& rpcResidual, UInt uiStride, TCoeff* pcCoeff, UInt uiWidth, UInt uiHeight )
 {
   xDeQuant( pcCoeff, m_plTempCoeff, uiWidth, uiHeight);
+#if NSQT
+  xIT( m_plTempCoeff, rpcResidual, uiStride, uiWidth, uiHeight );
+#else
   xIT( m_plTempCoeff, rpcResidual, uiStride, uiWidth );
+#endif
 }
 #endif
 
@@ -2515,6 +2993,10 @@ Void TComTrQuant::invRecurTransformNxN( TComDataCU* pcCU, UInt uiAbsPartIdx, Tex
   UInt uiLumaTrMode, uiChromaTrMode;
   pcCU->convertTransIdx( uiAbsPartIdx, pcCU->getTransformIdx( uiAbsPartIdx ), uiLumaTrMode, uiChromaTrMode );
   const UInt uiStopTrMode = eTxt == TEXT_LUMA ? uiLumaTrMode : uiChromaTrMode;
+#if NSQT
+  UChar    uhDepth   = pcCU->getDepth( uiAbsPartIdx ); 
+  PartSize ePartSize = pcCU->getPartitionSize( uiAbsPartIdx );
+#endif
   
   assert(1); // as long as quadtrees are not used for residual transform
   
@@ -2522,6 +3004,9 @@ Void TComTrQuant::invRecurTransformNxN( TComDataCU* pcCU, UInt uiAbsPartIdx, Tex
   {
     UInt uiDepth      = pcCU->getDepth( uiAbsPartIdx ) + uiTrMode;
     UInt uiLog2TrSize = g_aucConvertToBit[ pcCU->getSlice()->getSPS()->getMaxCUWidth() >> uiDepth ] + 2;
+#if NSQT
+    UInt uiTrModeC    = uiTrMode;
+#endif
     if( eTxt != TEXT_LUMA && uiLog2TrSize == pcCU->getSlice()->getSPS()->getQuadtreeTULog2MinSize() )
     {
       UInt uiQPDiv = pcCU->getPic()->getNumPartInCU() >> ( ( uiDepth - 1 ) << 1 );
@@ -2531,8 +3016,42 @@ Void TComTrQuant::invRecurTransformNxN( TComDataCU* pcCU, UInt uiAbsPartIdx, Tex
       }
       uiWidth  <<= 1;
       uiHeight <<= 1;
+#if NSQT
+      uiTrModeC--;
+#endif
     }
     Pel* pResi = rpcResidual + uiAddr;
+#if NSQT
+    if( ( eTxt == TEXT_LUMA && pcCU->useNonSquareTrans( uiTrMode ) ) || ( eTxt != TEXT_LUMA && pcCU->useNonSquareTrans( uiTrModeC ) ) )
+    {
+#if AMP
+      UInt uiTrWidth  = ( ePartSize == SIZE_Nx2N || ePartSize == SIZE_nLx2N || ePartSize == SIZE_nRx2N )? uiWidth >> 1 : uiWidth << 1;
+      UInt uiTrHeight = ( ePartSize == SIZE_Nx2N || ePartSize == SIZE_nLx2N || ePartSize == SIZE_nRx2N )? uiHeight << 1 : uiHeight >> 1;
+#else
+      UInt uiTrWidth  = ( ePartSize == SIZE_Nx2N )? uiWidth >> 1 : uiWidth << 1;
+      UInt uiTrHeight = ( ePartSize == SIZE_Nx2N )? uiHeight << 1 : uiHeight >> 1;
+#endif
+
+      if( uiWidth == 4 )
+      {
+        uiTrWidth = uiTrHeight = 4;
+      }
+
+      if( uiTrWidth != uiTrHeight )
+      {
+        TCoeff  orgCoeff[ 256 ];
+        UInt uiNonSqureScanTableIdx = ( uiTrWidth * uiTrHeight ) == 64 ? 0 : 1;
+        memcpy( &orgCoeff[0], rpcCoeff, uiWidth * uiHeight * sizeof( TCoeff ) ); 
+        for( UInt uiScanPos = 0; uiScanPos < uiWidth * uiHeight; uiScanPos++ )
+        {
+          UInt uiBlkPos = g_auiNonSquareSigLastScan[ uiNonSqureScanTableIdx ][ uiScanPos ];
+          rpcCoeff[ uiBlkPos ] = orgCoeff[ g_auiFrameScanXY[ (int)g_aucConvertToBit[ uiWidth ] + 1 ][ uiScanPos ] ];
+        }
+        uiWidth  = uiTrWidth;
+        uiHeight = uiTrHeight;
+      }
+    }
+#endif
 #if INTRA_DST_TYPE_7
     invtransformNxN( eTxt, REG_DCT, pResi, uiStride, rpcCoeff, uiWidth, uiHeight );
 #else
@@ -2547,10 +3066,52 @@ Void TComTrQuant::invRecurTransformNxN( TComDataCU* pcCU, UInt uiAbsPartIdx, Tex
     UInt uiAddrOffset = uiHeight * uiStride;
     UInt uiCoefOffset = uiWidth * uiHeight;
     UInt uiPartOffset = pcCU->getTotalNumPart() >> (uiTrMode<<1);
+#if NSQT
+    if( pcCU->useNonSquareTrans( uiTrMode ) && ! ( uiWidth == 4 && uiTrMode == 1 ) )
+    {
+      if( uiTrMode == 1 || ( ( uhDepth == 0 || uiWidth == 4 ) && uiTrMode == 2 ) )
+      {
+#if AMP
+        if( ePartSize == SIZE_Nx2N || ePartSize == SIZE_nLx2N || ePartSize == SIZE_nRx2N )
+#else
+        if( ePartSize == SIZE_Nx2N )
+#endif
+          uiAddrOffset = ( uiTrMode == 1 || ( uhDepth == 0 && uiTrMode == 2 ) ) ? uiWidth >> 1 : uiAddrOffset;
+        else
+          uiAddrOffset = ( uiTrMode == 1 || ( uhDepth == 0 && uiTrMode == 2 ) ) ? ( uiWidth >> 1 ) * uiStride : uiWidth;
+
+        invRecurTransformNxN( pcCU, uiAbsPartIdx, eTxt, rpcResidual, uiAddr                    , uiStride, uiWidth, uiHeight, uiMaxTrMode, uiTrMode, rpcCoeff ); rpcCoeff += uiCoefOffset; uiAbsPartIdx += uiPartOffset;
+        invRecurTransformNxN( pcCU, uiAbsPartIdx, eTxt, rpcResidual, uiAddr + uiAddrOffset     , uiStride, uiWidth, uiHeight, uiMaxTrMode, uiTrMode, rpcCoeff ); rpcCoeff += uiCoefOffset; uiAbsPartIdx += uiPartOffset;
+        invRecurTransformNxN( pcCU, uiAbsPartIdx, eTxt, rpcResidual, uiAddr + 2*uiAddrOffset   , uiStride, uiWidth, uiHeight, uiMaxTrMode, uiTrMode, rpcCoeff ); rpcCoeff += uiCoefOffset; uiAbsPartIdx += uiPartOffset;
+        invRecurTransformNxN( pcCU, uiAbsPartIdx, eTxt, rpcResidual, uiAddr + 3*uiAddrOffset   , uiStride, uiWidth, uiHeight, uiMaxTrMode, uiTrMode, rpcCoeff );
+      }
+      else
+      {
+#if AMP
+        UInt uiTrWidth  = ( ePartSize == SIZE_Nx2N || ePartSize == SIZE_nLx2N || ePartSize == SIZE_nRx2N ) ? uiWidth >> 1 : uiWidth << 1;
+        UInt uiTrHeight = ( ePartSize == SIZE_Nx2N || ePartSize == SIZE_nLx2N || ePartSize == SIZE_nRx2N ) ? uiWidth << 1 : uiWidth >> 1;
+#else
+        UInt uiTrWidth  = ( ePartSize == SIZE_Nx2N ) ? uiWidth >> 1 : uiWidth << 1;
+        UInt uiTrHeight = ( ePartSize == SIZE_Nx2N ) ? uiWidth << 1 : uiWidth >> 1;
+#endif
+        {
+          invRecurTransformNxN( pcCU, uiAbsPartIdx, eTxt, rpcResidual, uiAddr                                   , uiStride, uiWidth, uiHeight, uiMaxTrMode, uiTrMode, rpcCoeff ); rpcCoeff += uiCoefOffset; uiAbsPartIdx += uiPartOffset;
+          invRecurTransformNxN( pcCU, uiAbsPartIdx, eTxt, rpcResidual, uiAddr + uiTrWidth                       , uiStride, uiWidth, uiHeight, uiMaxTrMode, uiTrMode, rpcCoeff ); rpcCoeff += uiCoefOffset; uiAbsPartIdx += uiPartOffset;
+          invRecurTransformNxN( pcCU, uiAbsPartIdx, eTxt, rpcResidual, uiAddr + uiTrHeight*uiStride             , uiStride, uiWidth, uiHeight, uiMaxTrMode, uiTrMode, rpcCoeff ); rpcCoeff += uiCoefOffset; uiAbsPartIdx += uiPartOffset;
+          invRecurTransformNxN( pcCU, uiAbsPartIdx, eTxt, rpcResidual, uiAddr + uiTrHeight*uiStride+uiTrWidth   , uiStride, uiWidth, uiHeight, uiMaxTrMode, uiTrMode, rpcCoeff );
+        }
+      }
+    }
+    else
+    {
+#endif
     invRecurTransformNxN( pcCU, uiAbsPartIdx, eTxt, rpcResidual, uiAddr                         , uiStride, uiWidth, uiHeight, uiMaxTrMode, uiTrMode, rpcCoeff ); rpcCoeff += uiCoefOffset; uiAbsPartIdx += uiPartOffset;
     invRecurTransformNxN( pcCU, uiAbsPartIdx, eTxt, rpcResidual, uiAddr + uiWidth               , uiStride, uiWidth, uiHeight, uiMaxTrMode, uiTrMode, rpcCoeff ); rpcCoeff += uiCoefOffset; uiAbsPartIdx += uiPartOffset;
     invRecurTransformNxN( pcCU, uiAbsPartIdx, eTxt, rpcResidual, uiAddr + uiAddrOffset          , uiStride, uiWidth, uiHeight, uiMaxTrMode, uiTrMode, rpcCoeff ); rpcCoeff += uiCoefOffset; uiAbsPartIdx += uiPartOffset;
     invRecurTransformNxN( pcCU, uiAbsPartIdx, eTxt, rpcResidual, uiAddr + uiAddrOffset + uiWidth, uiStride, uiWidth, uiHeight, uiMaxTrMode, uiTrMode, rpcCoeff );
+#if NSQT
+    }
+#endif
   }
 }
 
@@ -2566,12 +3127,28 @@ Void TComTrQuant::invRecurTransformNxN( TComDataCU* pcCU, UInt uiAbsPartIdx, Tex
  *  \param uiMode is Intra Prediction mode used in Mode-Dependent DCT/DST only
  */
 #if INTRA_DST_TYPE_7
+#if NSQT
+Void TComTrQuant::xT( UInt uiMode, Pel* piBlkResi, UInt uiStride, Long* psCoeff, Int iWidth, Int iHeight )
+#else
 Void TComTrQuant::xT( UInt uiMode, Pel* piBlkResi, UInt uiStride, Long* psCoeff, Int iSize )
+#endif
+#else
+#if NSQT
+Void TComTrQuant::xT( Pel* piBlkResi, UInt uiStride, Long* psCoeff, Int iWidth, Int iHeight )
 #else
 Void TComTrQuant::xT( Pel* piBlkResi, UInt uiStride, Long* psCoeff, Int iSize )
 #endif
+#endif
 {
 #if MATRIX_MULT  
+#if NSQT
+  Int iSize = iWidth; 
+  if( iWidth != iHeight)
+  {
+    xTrMxN( piBlkResi, psCoeff, uiStride, (UInt)iWidth, (UInt)iHeight );
+    return;
+  }
+#endif
 #if INTRA_DST_TYPE_7
   xTr(piBlkResi,psCoeff,uiStride,(UInt)iSize,uiMode);
 #else
@@ -2579,6 +3156,40 @@ Void TComTrQuant::xT( Pel* piBlkResi, UInt uiStride, Long* psCoeff, Int iSize )
 #endif
 #else
   Int j,k;
+#if NSQT
+  Int iSize = iWidth; 
+  if( iWidth != iHeight)
+  {
+    Int iMaxSize = max( iWidth , iHeight);
+    Int iMinSize = min( iWidth , iHeight);    
+    short block[ 64 * 64 ];
+    short coeff[ 64 * 64 ];
+    if( iWidth > iHeight)
+    {
+      for (j = 0; j < iHeight; j++)
+      {    
+        memcpy( block + j * iWidth, piBlkResi + j * uiStride, iWidth * sizeof( short ) );      
+      }
+    }
+    else
+    {
+      for ( j = 0; j < iHeight; j ++)
+      {    
+        for ( k = 0; k < iWidth; k ++)
+        {     
+          block[ k * iHeight + j ] =  piBlkResi[ k ];
+        }  
+        piBlkResi += uiStride;
+      } 
+    }
+    xTrMxN( block, coeff, iMaxSize, iMinSize );
+    for ( j = 0; j < iHeight * iWidth; j++ )
+    {    
+      psCoeff[ j ] = coeff[ j ];
+    }
+    return ;
+  }
+#endif
   if (iSize==4)
   {   
     short block[4][4];   
@@ -2666,12 +3277,28 @@ Void TComTrQuant::xT( Pel* piBlkResi, UInt uiStride, Long* psCoeff, Int iSize )
  *  \param uiMode is Intra Prediction mode used in Mode-Dependent DCT/DST only
  */
 #if INTRA_DST_TYPE_7
+#if NSQT
+Void TComTrQuant::xIT( UInt uiMode, Long* plCoef, Pel* pResidual, UInt uiStride, Int iWidth, Int iHeight )
+#else
 Void TComTrQuant::xIT( UInt uiMode, Long* plCoef, Pel* pResidual, UInt uiStride, Int iSize )
+#endif
+#else
+#if NSQT
+Void TComTrQuant::xIT( Long* plCoef, Pel* pResidual, UInt uiStride, Int iWidth, Int iHeight )
 #else
 Void TComTrQuant::xIT( Long* plCoef, Pel* pResidual, UInt uiStride, Int iSize )
 #endif
+#endif
 {
 #if MATRIX_MULT  
+#if NSQT
+  Int iSize = iWidth;
+  if( iWidth != iHeight )
+  {
+    xITrMxN( plCoef, pResidual, uiStride, (UInt)iWidth, (UInt)iHeight );
+    return;
+  }
+#endif
 #if INTRA_DST_TYPE_7
   xITr(plCoef,pResidual,uiStride,(UInt)iSize,uiMode);
 #else
@@ -2679,6 +3306,40 @@ Void TComTrQuant::xIT( Long* plCoef, Pel* pResidual, UInt uiStride, Int iSize )
 #endif
 #else
   Int j,k;
+#if NSQT
+  Int iSize = iWidth; 
+  if( iWidth != iHeight )
+  {
+    Int iMaxSize = max( iWidth , iHeight);
+    Int iMinSize = min( iWidth , iHeight);
+    short block[ 64 * 64 ];
+    short coeff[ 64 * 64 ];
+    for ( j = 0; j < iHeight * iWidth; j++ )
+    {    
+      coeff[j] = (short)plCoef[j];
+    }
+    xITrMxN( coeff, block, iMaxSize, iMinSize );
+    if( iWidth > iHeight )
+    {
+      for ( j = 0; j < iHeight; j++ )
+      {    
+        memcpy( pResidual + j * uiStride, block + j * iWidth, iWidth * sizeof(short) );      
+      }
+    }
+    else
+    {
+      for ( j = 0; j < iHeight; j++ )
+      {    
+        for ( k = 0; k < iWidth; k++ )
+        {     
+          pResidual[k] = block[k * iHeight + j];
+        }  
+        pResidual += uiStride;
+      } 
+    }
+    return ;
+  }
+#endif
   if (iSize==4)
   {    
     short block[4][4];
@@ -2806,6 +3467,18 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
   Int    iQBits      = m_cQP.m_iBits;
   Double dTemp       = 0;
   
+#if NSQT
+  Bool bNonSqureFlag = ( uiWidth != uiHeight );
+  UInt uiNonSqureScanTableIdx = 0;
+  if( bNonSqureFlag )
+  {
+    UInt uiWidthBit  = g_aucConvertToBit[ uiWidth ] + 2;
+    UInt uiHeightBit = g_aucConvertToBit[ uiHeight ] + 2;
+    uiNonSqureScanTableIdx = ( uiWidth * uiHeight ) == 64 ? 0 : 1;
+    uiWidth  = 1 << ( ( uiWidthBit + uiHeightBit ) >> 1 );
+    uiHeight = uiWidth;
+  }    
+#endif
   UInt uiLog2TrSize = g_aucConvertToBit[ uiWidth ] + 2;
   UInt uiQ = g_auiQ[m_cQP.rem()];
 
@@ -2840,6 +3513,18 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
   const UInt uiScanIdx = pcCU->getCoefScanIdx(uiAbsPartIdx, uiWidth, eTType==TEXT_LUMA, pcCU->isIntra(uiAbsPartIdx));
 #endif
 #endif //QC_MDCS
+#if NSQT
+  static Long  orgSrcCoeff[ 256 ];
+  if( bNonSqureFlag )
+  {
+    memcpy( &orgSrcCoeff[ 0 ], plSrcCoeff, uiMaxNumCoeff * sizeof( Long ) );
+    for( UInt uiScanPos = 0; uiScanPos < uiMaxNumCoeff; uiScanPos++ )
+    {
+      UInt uiBlkPos = g_auiNonSquareSigLastScan[ uiNonSqureScanTableIdx ][ uiScanPos ];
+      plSrcCoeff[ g_auiFrameScanXY[ (int)g_aucConvertToBit[ uiWidth ] + 1 ][ uiScanPos ] ] = orgSrcCoeff[ uiBlkPos ]; 
+    }
+  }
+#endif
   
 #if UNIFIED_SCAN
   Long plLevelDouble[ MAX_CU_SIZE * MAX_CU_SIZE ];
@@ -3255,6 +3940,20 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
         piDstCoeff[ uiBlkPos ] = 0;
       }      
     }
+  }
+#endif
+#if NSQT
+  static TCoeff dstCoeff[ 256 ];
+  if( bNonSqureFlag )
+  {
+    memcpy( plSrcCoeff, &orgSrcCoeff[ 0 ], uiMaxNumCoeff * sizeof( Long ) );
+
+    memcpy( &dstCoeff[ 0 ], piDstCoeff, uiMaxNumCoeff * sizeof( TCoeff ) );        
+    for( UInt uiScanPos = 0; uiScanPos < uiMaxNumCoeff; uiScanPos++ )
+    {
+      UInt uiBlkPos = g_auiNonSquareSigLastScan[ uiNonSqureScanTableIdx ][ uiScanPos ];
+      piDstCoeff[ uiBlkPos ] = dstCoeff[ g_auiFrameScanXY[ (int)g_aucConvertToBit[ uiWidth ] + 1 ][ uiScanPos ] ];
+    }        
   }
 #endif
 }

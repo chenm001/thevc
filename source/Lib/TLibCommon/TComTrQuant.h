@@ -193,9 +193,17 @@ protected:
 private:
   // forward Transform
 #if INTRA_DST_TYPE_7
+#if NSQT
+  Void xT   ( UInt uiMode,Pel* pResidual, UInt uiStride, Long* plCoeff, Int iWidth, Int iHeight );
+#else
   Void xT   ( UInt uiMode,Pel* pResidual, UInt uiStride, Long* plCoeff, Int iSize );
+#endif
+#else
+#if NSQT
+  Void xT   ( Pel* pResidual, UInt uiStride, Long* plCoeff, Int iWidth, Int iHeight );
 #else
   Void xT   ( Pel* pResidual, UInt uiStride, Long* plCoeff, Int iSize );
+#endif
 #endif
   
   // quantization
@@ -318,9 +326,17 @@ __inline UInt              xGetCodedLevel  ( Double&                         rd6
   
   // inverse transform
 #if INTRA_DST_TYPE_7
+#if NSQT
+  Void xIT    ( UInt uiMode, Long* plCoef, Pel* pResidual, UInt uiStride, Int iWidth, Int iHeight );
+#else
   Void xIT    ( UInt uiMode, Long* plCoef, Pel* pResidual, UInt uiStride, Int iSize );
+#endif
+#else
+#if NSQT
+  Void xIT    ( Long* plCoef, Pel* pResidual, UInt uiStride, Int iWidth, Int iHeight );
 #else
   Void xIT    ( Long* plCoef, Pel* pResidual, UInt uiStride, Int iSize );
+#endif
 #endif
   
 };// END CLASS DEFINITION TComTrQuant

@@ -200,6 +200,12 @@ public:
   AMVP_MODE getAMVPMode ( UInt uiDepth ) { assert(uiDepth < g_uiMaxCUDepth);  return m_aeAMVPMode[uiDepth]; }
   Void      setAMVPMode ( UInt uiDepth, AMVP_MODE eMode) { assert(uiDepth < g_uiMaxCUDepth);  m_aeAMVPMode[uiDepth] = eMode; }
   
+#if AMP
+  // AMP accuracy
+  Int       getAMPAcc   ( UInt uiDepth ) { return m_iAMPAcc[uiDepth]; }
+  Void      setAMPAcc   ( UInt uiDepth, Int iAccu ) { assert( uiDepth < g_uiMaxCUDepth);  m_iAMPAcc[uiDepth] = iAccu; }
+#endif  
+
   // Bit-depth
   UInt      getBitDepth     ()         { return m_uiBitDepth;     }
   Void      setBitDepth     ( UInt u ) { m_uiBitDepth = u;        }

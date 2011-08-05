@@ -227,7 +227,20 @@ Bool TDecTop::decode(InputNALUnit& nalu, Int& iSkipFrame, Int& iPOCLastDisplay)
   {
     case NAL_UNIT_SPS:
       m_cEntropyDecoder.decodeSPS( &m_cSPS );
-      
+
+#if AMP    
+      for (Int i = 0; i < m_cSPS.getMaxCUDepth() - 1; i++)
+      {
+        // m_cSPS.setAMPAcc( i, m_cSPS.getUseAMP() );
+        m_cSPS.setAMPAcc( i, 1 );
+      }
+
+      for (Int i = m_cSPS.getMaxCUDepth() - 1; i < m_cSPS.getMaxCUDepth(); i++)
+      {
+        m_cSPS.setAMPAcc( i, 0 );
+      }
+#endif
+
       // create ALF temporary buffer
       m_cAdaptiveLoopFilter.create( m_cSPS.getWidth(), m_cSPS.getHeight(), g_uiMaxCUWidth, g_uiMaxCUHeight, g_uiMaxCUDepth );
 #if MTK_SAO

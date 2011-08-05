@@ -380,6 +380,87 @@ Void TEncCu::encodeCU ( TComDataCU* pcCU, Bool bForceTerminate )
 // ====================================================================================================================
 // Protected member functions
 // ====================================================================================================================
+/** Derive small set of test modes for AMP encoder speed-up
+ *\param   rpcBestCU
+ *\param   eParentPartSize
+ *\param   bTestAMP_Hor
+ *\param   bTestAMP_Ver
+ *\param   bTestMergeAMP_Hor
+ *\param   bTestMergeAMP_Ver
+ *\returns Void 
+*/
+#if AMP_ENC_SPEEDUP
+#if AMP_MRG
+Void TEncCu::deriveTestModeAMP (TComDataCU *&rpcBestCU, PartSize eParentPartSize, Bool &bTestAMP_Hor, Bool &bTestAMP_Ver, Bool &bTestMergeAMP_Hor, Bool &bTestMergeAMP_Ver)
+#else
+Void TEncCu::deriveTestModeAMP (TComDataCU *&rpcBestCU, PartSize eParentPartSize, Bool &bTestAMP_Hor, Bool &bTestAMP_Ver)
+#endif
+{
+  if ( rpcBestCU->getPartitionSize(0) == SIZE_2NxN )
+  {
+    bTestAMP_Hor = true;
+  }
+  else if ( rpcBestCU->getPartitionSize(0) == SIZE_Nx2N )
+  {
+    bTestAMP_Ver = true;
+  }
+  else if ( rpcBestCU->getPartitionSize(0) == SIZE_2Nx2N && rpcBestCU->getMergeFlag(0) == false && rpcBestCU->isSkipped(0) == false )
+  {
+    bTestAMP_Hor = true;          
+    bTestAMP_Ver = true;          
+  }
+
+#if AMP_MRG
+  //! Utilizing the partition size of parent PU    
+  if ( eParentPartSize >= SIZE_2NxnU && eParentPartSize <= SIZE_nRx2N )
+  { 
+    bTestMergeAMP_Hor = true;
+    bTestMergeAMP_Ver = true;
+  }
+
+  if ( eParentPartSize == SIZE_NONE ) //! if parent is intra
+  {
+    if ( rpcBestCU->getPartitionSize(0) == SIZE_2NxN )
+    {
+      bTestMergeAMP_Hor = true;
+    }
+    else if ( rpcBestCU->getPartitionSize(0) == SIZE_Nx2N )
+    {
+      bTestMergeAMP_Ver = true;
+    }
+  }
+
+  if ( rpcBestCU->getPartitionSize(0) == SIZE_2Nx2N && rpcBestCU->isSkipped(0) == false )
+  {
+    bTestMergeAMP_Hor = true;          
+    bTestMergeAMP_Ver = true;          
+  }
+
+  if ( rpcBestCU->getWidth(0) == 64 )
+  { 
+    bTestAMP_Hor = false;
+    bTestAMP_Ver = false;
+  }    
+#else
+  //! Utilizing the partition size of parent PU        
+  if ( eParentPartSize >= SIZE_2NxnU && eParentPartSize <= SIZE_nRx2N )
+  { 
+    bTestAMP_Hor = true;
+    bTestAMP_Ver = true;
+  }
+
+  if ( eParentPartSize == SIZE_2Nx2N )
+  { 
+    bTestAMP_Hor = false;
+    bTestAMP_Ver = false;
+  }      
+#endif
+}
+#endif
+
+// ====================================================================================================================
+// Protected member functions
+// ====================================================================================================================
 /** Compress a CU block recursively with enabling sub-LCU-level delta QP
  *\param   rpcBestCU
  *\param   rpcTempCU
@@ -388,7 +469,11 @@ Void TEncCu::encodeCU ( TComDataCU* pcCU, Bool bForceTerminate )
  *
  *- for loop of QP value to compress the current CU with all possible QP
 */
+#if AMP_ENC_SPEEDUP
+Void TEncCu::xCompressCU( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, UInt uiDepth, PartSize eParentPartSize )
+#else
 Void TEncCu::xCompressCU( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, UInt uiDepth )
+#endif
 {
   TComPic* pcPic = rpcBestCU->getPic();
 
@@ -571,6 +656,119 @@ Void TEncCu::xCompressCU( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, UInt u
 #endif
         }
 
+#if AMP
+        //! Try AMP (SIZE_2NxnU, SIZE_2NxnD, SIZE_nLx2N, SIZE_nRx2N)
+        if( pcPic->getSlice(0)->getSPS()->getAMPAcc(uiDepth) )
+        {
+#if AMP_ENC_SPEEDUP        
+          Bool bTestAMP_Hor = false, bTestAMP_Ver = false;
+
+#if AMP_MRG
+          Bool bTestMergeAMP_Hor = false, bTestMergeAMP_Ver = false;
+
+          deriveTestModeAMP (rpcBestCU, eParentPartSize, bTestAMP_Hor, bTestAMP_Ver, bTestMergeAMP_Hor, bTestMergeAMP_Ver);
+#else
+          deriveTestModeAMP (rpcBestCU, eParentPartSize, bTestAMP_Hor, bTestAMP_Ver);
+#endif
+
+          //! Do horizontal AMP
+          if ( bTestAMP_Hor )
+          {
+            xCheckRDCostInter( rpcBestCU, rpcTempCU, SIZE_2NxnU );
+#if SUB_LCU_DQP
+            rpcTempCU->initEstData( uiDepth, iQP );
+#else
+            rpcTempCU->initEstData();
+#endif
+            xCheckRDCostInter( rpcBestCU, rpcTempCU, SIZE_2NxnD );
+#if SUB_LCU_DQP
+            rpcTempCU->initEstData( uiDepth, iQP );
+#else
+            rpcTempCU->initEstData();
+#endif
+          }
+#if AMP_MRG
+          else if ( bTestMergeAMP_Hor ) 
+          {
+            xCheckRDCostInter( rpcBestCU, rpcTempCU, SIZE_2NxnU, true );
+#if SUB_LCU_DQP
+            rpcTempCU->initEstData( uiDepth, iQP );
+#else
+            rpcTempCU->initEstData();
+#endif
+            xCheckRDCostInter( rpcBestCU, rpcTempCU, SIZE_2NxnD, true );
+#if SUB_LCU_DQP
+            rpcTempCU->initEstData( uiDepth, iQP );
+#else
+            rpcTempCU->initEstData();
+#endif
+          }
+#endif
+
+          //! Do horizontal AMP
+          if ( bTestAMP_Ver )
+          {
+            xCheckRDCostInter( rpcBestCU, rpcTempCU, SIZE_nLx2N );
+#if SUB_LCU_DQP
+            rpcTempCU->initEstData( uiDepth, iQP );
+#else
+            rpcTempCU->initEstData();
+#endif
+            xCheckRDCostInter( rpcBestCU, rpcTempCU, SIZE_nRx2N );
+#if SUB_LCU_DQP
+            rpcTempCU->initEstData( uiDepth, iQP );
+#else
+            rpcTempCU->initEstData();
+#endif
+          }
+#if AMP_MRG
+          else if ( bTestMergeAMP_Ver )
+          {
+            xCheckRDCostInter( rpcBestCU, rpcTempCU, SIZE_nLx2N, true );
+#if SUB_LCU_DQP
+            rpcTempCU->initEstData( uiDepth, iQP );
+#else
+            rpcTempCU->initEstData();
+#endif
+            xCheckRDCostInter( rpcBestCU, rpcTempCU, SIZE_nRx2N, true );
+#if SUB_LCU_DQP
+            rpcTempCU->initEstData( uiDepth, iQP );
+#else
+            rpcTempCU->initEstData();
+#endif
+          }
+#endif
+
+#else
+          xCheckRDCostInter( rpcBestCU, rpcTempCU, SIZE_2NxnU );
+#if SUB_LCU_DQP
+          rpcTempCU->initEstData( uiDepth, iQP );
+#else
+          rpcTempCU->initEstData();
+#endif
+          xCheckRDCostInter( rpcBestCU, rpcTempCU, SIZE_2NxnD );
+#if SUB_LCU_DQP
+          rpcTempCU->initEstData( uiDepth, iQP );
+#else
+          rpcTempCU->initEstData();
+#endif
+          xCheckRDCostInter( rpcBestCU, rpcTempCU, SIZE_nLx2N );
+#if SUB_LCU_DQP
+          rpcTempCU->initEstData( uiDepth, iQP );
+#else
+          rpcTempCU->initEstData();
+#endif
+
+          xCheckRDCostInter( rpcBestCU, rpcTempCU, SIZE_nRx2N );
+#if SUB_LCU_DQP
+          rpcTempCU->initEstData( uiDepth, iQP );
+#else
+          rpcTempCU->initEstData();
+#endif
+
+#endif
+        }    
+#endif
       }
 
 #if E057_INTRA_PCM
@@ -578,7 +776,6 @@ Void TEncCu::xCompressCU( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, UInt u
       rpcTempCU->setIPCMFlag( 0, false);
       rpcTempCU->setIPCMFlagSubParts ( false, 0, uiDepth); //SUB_LCU_DQP
 #endif
-
 
       // do normal intra modes
       if ( !bEarlySkip )
@@ -735,7 +932,18 @@ Void TEncCu::xCompressCU( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, UInt u
             }
           }
 
+#if AMP_ENC_SPEEDUP
+            if ( rpcBestCU->isIntra(0) )
+            {
+                xCompressCU( pcSubBestPartCU, pcSubTempPartCU, uhNextDepth, SIZE_NONE );
+            }
+            else
+            {
+                xCompressCU( pcSubBestPartCU, pcSubTempPartCU, uhNextDepth, rpcBestCU->getPartitionSize(0) );
+            }
+#else
           xCompressCU( pcSubBestPartCU, pcSubTempPartCU, uhNextDepth );
+#endif
 
           rpcTempCU->copyPartFrom( pcSubBestPartCU, uiPartUnitIdx, uhNextDepth );         // Keep best part data to current temporary data.
           xCopyYuv2Tmp( pcSubBestPartCU->getTotalNumPart()*uiPartUnitIdx, uhNextDepth );
@@ -1304,7 +1512,11 @@ Void TEncCu::xCheckRDCostMerge2Nx2N( TComDataCU*& rpcBestCU, TComDataCU*& rpcTem
   }
 }
 
+#if AMP_MRG
+Void TEncCu::xCheckRDCostInter( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, PartSize ePartSize, Bool bUseMRG)
+#else
 Void TEncCu::xCheckRDCostInter( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, PartSize ePartSize )
+#endif
 {
   UChar uhDepth = rpcTempCU->getDepth( 0 );
   
@@ -1313,13 +1525,41 @@ Void TEncCu::xCheckRDCostInter( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, 
   rpcTempCU->setPartSizeSubParts  ( ePartSize,  0, uhDepth );
   rpcTempCU->setPredModeSubParts  ( MODE_INTER, 0, uhDepth );
   
+#if AMP_MRG
+  rpcTempCU->setMergeAMP (true);
+  m_pcPredSearch->predInterSearch ( rpcTempCU, m_ppcOrigYuv[uhDepth], m_ppcPredYuvTemp[uhDepth], m_ppcResiYuvTemp[uhDepth], m_ppcRecoYuvTemp[uhDepth], false, bUseMRG );
+#else  
   m_pcPredSearch->predInterSearch ( rpcTempCU, m_ppcOrigYuv[uhDepth], m_ppcPredYuvTemp[uhDepth], m_ppcResiYuvTemp[uhDepth], m_ppcRecoYuvTemp[uhDepth] );
+#endif
+
 #if PART_MRG
   if (rpcTempCU->getSlice()->getSPS()->getUseMRG() && rpcTempCU->getWidth(0) > 8 && !rpcTempCU->getMergeFlag(0) && (ePartSize != SIZE_2Nx2N && ePartSize != SIZE_NxN))
   {
     return;
   }
 #endif
+
+#if PART_MRG
+  if (rpcTempCU->getSlice()->getSPS()->getUseMRG() && rpcTempCU->getWidth(0) > 8 && !rpcTempCU->getMergeFlag(0) && (ePartSize != SIZE_2Nx2N && ePartSize != SIZE_NxN))
+  {
+    return;
+  }
+
+#if AMP_MRG
+  if ( !rpcTempCU->getMergeAMP() )
+  {
+    return;
+  }
+#endif
+#endif
+
+#if !PART_MRG && AMP_MRG
+  if ( !rpcTempCU->getMergeAMP() )
+  {
+    return;
+  }
+#endif
+
   m_pcPredSearch->encodeResAndCalcRdInterCU( rpcTempCU, m_ppcOrigYuv[uhDepth], m_ppcPredYuvTemp[uhDepth], m_ppcResiYuvTemp[uhDepth], m_ppcResiYuvBest[uhDepth], m_ppcRecoYuvTemp[uhDepth], false );
   
 #if SUB_LCU_DQP

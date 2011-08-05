@@ -66,7 +66,9 @@ Void         initSigLastScan(UInt* pBuffZ, UInt* pBuffH, UInt* pBuffV, UInt* pBu
 Void         initSigLastScan(UInt* pBuffZ, UInt* pBuffH, UInt* pBuffV, Int iWidth, Int iHeight, Int iDepth);
 #endif
 #endif //QC_MDCS
-
+#if NSQT
+Void         initNonSquareSigLastScan(UInt* pBuffZ, UInt uiWidth, UInt uiHeight);
+#endif
 // ====================================================================================================================
 // Data structure related table & variable
 // ====================================================================================================================
@@ -101,7 +103,11 @@ extern       UInt g_uiMaxCUHeight;
 extern       UInt g_uiMaxCUDepth;
 extern       UInt g_uiAddCUDepth;
 
+#if AMP
+extern       UInt g_auiPUOffset[8];
+#else
 extern       UInt g_auiPUOffset[4];
+#endif
 
 #define QUANT_IQUANT_SHIFT    20 // Q(QP%6) * IQ(QP%6) = 2^20
 #define QUANT_SHIFT           14 // Q(4) = 2^14
@@ -139,6 +145,11 @@ extern       UInt*  g_auiSigLastScan[4][ MAX_CU_DEPTH ];  // raster index from s
 extern       UInt*  g_auiSigLastScan[3][ MAX_CU_DEPTH ];  // raster index from scanning index (zigzag, hor, ver)
 #endif
 #endif //QC_MDCS
+
+#if NSQT
+extern       UInt*  g_auiNonSquareSigLastScan[ 2 ];      // raster index from scanning index (zigzag)
+#endif 
+
 #if MODIFIED_LAST_CODING
 extern const UInt   g_uiLastCtx[32];
 #else
@@ -282,8 +293,13 @@ extern const UInt g_auiMI1TableEOnly1RefNoL1[8];
 extern const UInt g_auiMI1TableDOnly1RefNoL1[8];
 #endif
 
+#if AMP
+extern const UInt g_auiInterModeTableE[4][11];
+extern const UInt g_auiInterModeTableD[4][11];
+#else
 extern const UInt g_auiInterModeTableE[4][7];
 extern const UInt g_auiInterModeTableD[4][7];
+#endif
 // ====================================================================================================================
 // ADI table
 // ====================================================================================================================

@@ -335,6 +335,7 @@ public:
 
   Int*      getdQPs                         ()      { return m_aidQP;       }
   UInt      getDeltaQpRD                    ()      { return m_uiDeltaQpRD; }
+
   //====== Slice ========
   Void  setSliceMode                   ( Int  i )       { m_iSliceMode = i;              }
   Void  setSliceArgument               ( Int  i )       { m_iSliceArgument = i;          }

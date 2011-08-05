@@ -234,6 +234,10 @@ private:
   ContextModel3DBuffer m_cALFFlagSCModel;
   ContextModel3DBuffer m_cALFUvlcSCModel;
   ContextModel3DBuffer m_cALFSvlcSCModel;
+#if AMP
+  ContextModel3DBuffer m_cCUXPosiSCModel;
+  ContextModel3DBuffer m_cCUYPosiSCModel;
+#endif
 #if MTK_SAO
   ContextModel3DBuffer m_cAOFlagSCModel;
   ContextModel3DBuffer m_cAOUvlcSCModel;

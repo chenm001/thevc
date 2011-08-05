@@ -181,8 +181,12 @@ public:
                                   TComYuv*&   rpcPredYuv,
                                   TComYuv*&   rpcResiYuv,
                                   TComYuv*&   rpcRecoYuv,
-                                  Bool        bUseRes = false );
-  
+                                  Bool        bUseRes = false
+#if AMP_MRG
+                                 ,Bool        bUseMRG = false
+#endif
+                                );
+
   /// encoder estimation - intra prediction (skip)
   Void predInterSkipSearch      ( TComDataCU* pcCU,
                                   TComYuv*    pcOrgYuv,
@@ -423,7 +427,11 @@ protected:
 #else
   Void xEstimateResidualQT( TComDataCU* pcCU, UInt uiQuadrant, UInt uiAbsPartIdx, TComYuv* pcResi, const UInt uiDepth, Double &rdCost, UInt &ruiBits, UInt &ruiDist, UInt *puiZeroDist );
 #endif
+#if NSQT
+  Void xSetResidualQTData( TComDataCU* pcCU, UInt uiQuadrant, UInt uiAbsPartIdx, TComYuv* pcResi, UInt uiDepth, Bool bSpatial );
+#else
   Void xSetResidualQTData( TComDataCU* pcCU, UInt uiAbsPartIdx, TComYuv* pcResi, UInt uiDepth, Bool bSpatial );
+#endif
   
   UInt  xModeBitsIntra ( TComDataCU* pcCU, UInt uiMode, UInt uiPU, UInt uiPartOffset, UInt uiDepth, UInt uiInitTrDepth );
   UInt  xUpdateCandList( UInt uiMode, Double uiCost, UInt uiFastCandNum, UInt * CandModeList, Double * CandCostList );
