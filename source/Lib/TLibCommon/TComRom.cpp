@@ -1635,9 +1635,16 @@ const UChar g_aucDCTDSTMode_Vert[NUM_INTRA_MODE] =
 const UChar g_aucDCTDSTMode_Vert[34] =
 #endif
 { //0  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33
+#if FIXED_MPM
+  1, 1, 0, 0, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0 
+#if LM_CHROMA
+ , 0
+#endif
+#else
   1, 0, 0, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0 ,0 
 #if ADD_PLANAR_MODE || LM_CHROMA
 ,1, 0
+#endif
 #endif
 };
 #if ADD_PLANAR_MODE || LM_CHROMA
@@ -1646,9 +1653,16 @@ const UChar g_aucDCTDSTMode_Hor[NUM_INTRA_MODE] =
 const UChar g_aucDCTDSTMode_Hor[34] =
 #endif
 { //0  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33
+#if FIXED_MPM
+  1, 0, 1, 0, 1, 1, 0, 0, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1 
+#if ADD_PLANAR_MODE || LM_CHROMA
+ , 0
+#endif
+#else
   0, 1, 0, 1, 1, 0, 0, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1 ,1 
 #if ADD_PLANAR_MODE || LM_CHROMA
 ,1, 0
+#endif
 #endif
 };
 #endif  // for INTRA_DST_TYPE_7
@@ -1700,6 +1714,46 @@ const UChar g_aucAngIntraModeOrder[NUM_INTRA_MODE] =
 const UChar g_aucAngIntraModeOrder[34] =
 #endif
 {     //  ModeOrder LogicalOrderInPredFunctions
+#if FIXED_MPM
+  34, //  PLANAR_IDX PLANAR PLANAR
+  9,  //  0 VER     DC
+  25, //  1 HOR     VER-8 (diagonal from top-left to bottom-right = HOR-8)
+  0,  //  2 DC      VER-7
+  1,  //  4 VER-8   VER-6
+  5,  //  5 VER-4   VER-5
+  13, //  6 VER+4   VER-4
+  17, //  7 VER+8   VER-3
+  21, //  8 HOR-4   VER-2
+  29, //  9 HOR+4   VER-1
+  33, // 10 HOR+8   VER
+  3,  // 11 VER-6   VER+1
+  7,  // 12 VER-2   VER+2
+  11, // 13 VER+2   VER+3
+  15, // 14 VER+6   VER+4
+  19, // 15 HOR-6   VER+5
+  23, // 16 HOR-2   VER+6
+  27, // 17 HOR+2   VER+7
+  31, // 18 HOR+6   VER+8
+  2,  // 19 VER-7   HOR-7
+  4,  // 20 VER-5   HOR-6
+  6,  // 21 VER-3   HOR-5
+  8,  // 22 VER-1   HOR-4
+  10, // 23 VER+1   HOR-3
+  12, // 24 VER+3   HOR-2
+  14, // 25 VER+5   HOR-1
+  16, // 26 VER+7   HOR
+  18, // 27 HOR-7   HOR+1
+  20, // 28 HOR-5   HOR+2
+  22, // 29 HOR-3   HOR+3
+  24, // 30 HOR-1   HOR+4
+  26, // 31 HOR+1   HOR+5
+  28, // 32 HOR+3   HOR+6
+  30, // 33 HOR+5   HOR+7
+  32, // 34 HOR+7   HOR+8
+#if LM_CHROMA
+  0, // LM_CHROMA_IDX 
+#endif
+#else
   9,  //  0 VER     DC
   25, //  1 HOR     VER-8 (diagonal from top-left to bottom-right = HOR-8)
   0,  //  2 DC      VER-7
@@ -1742,8 +1796,21 @@ const UChar g_aucAngIntraModeOrder[34] =
 #endif
   0, // LM_CHROMA_IDX 
 #endif
+#endif
 };
 
+#if FIXED_MPM
+const UChar g_aucIntraModeNumAng[7] =
+{
+  4,  //   2x2
+  18,  //   4x4
+  35,  //   8x8
+  35,  //  16x16
+  35,  //  32x32
+  4,  //  64x64
+  6   // 128x128
+};
+#else
 const UChar g_aucIntraModeNumAng[7] =
 {
   3,  //   2x2
@@ -1754,6 +1821,7 @@ const UChar g_aucIntraModeNumAng[7] =
   3,  //  64x64
   5   // 128x128
 };
+#endif
 
 const UChar g_aucIntraModeBitsAng[7] =
 {
@@ -1769,10 +1837,10 @@ const UChar g_aucIntraModeBitsAng[7] =
 #if FIXED_MPM
 const UChar g_aucAngModeMapping[4][35] = // intra mode conversion for most probable
 {
-  {2,3,2,2,4, 4,4,0,0,0, 0,0,0,0,2, 2,2,2,2,2, 2,1,1,1,1, 1,1,1,1,1, 2,2,2,2, PLANAR_IDX},               // conversion to 6 modes
-  {2,3,3,2,4, 4,4,2,0,0, 0,2,5,5,5, 2,6,6,3,2, 7,7,7,2,1, 1,1,2,8,8, 8,2,2,2, PLANAR_IDX},               // conversion to 10 modes
-  {2,3,3,10,10, 4,11,11,0,0, 0,12,12,5,5, 13,13,6,14,14, 7,7,15,15,1, 1,1,16,16,8, 8,2,2,9, PLANAR_IDX}, // conversion to 18 modes
-  {2,2,2,2,2, 2,2,0,0,0, 0,0,0,0,2, 2,2,2,2,2, 2,1,1,1,1, 1,1,1,1,1, 2,2,2,2, PLANAR_IDX}                // conversion to 4 modes
+  {3,  4,  3,  3,  5,  5,  5,  1,  1,  1,  1,  1,  1,  1,  3,  3,  3,  3,  3,  3,  3,  2,  2,  2,  2,  2,  2,  2,  2,  2,  3,  3,  3,  3},        // conversion to 5 modes
+  {3,  4,  4,  3,  5,  5,  5,  3,  1,  1,  1,  3,  6,  6,  6,  3,  7,  7,  4,  3,  8,  8,  8,  3,  2,  2,  2,  3,  9,  9,  9,  3,  3,  3},        // conversion to 9 modes
+  {3,  4,  4,  11, 11, 5,  12, 12, 1,  1,  1,  13, 13, 6,  6,  14, 14, 7,  15, 15, 8,  8,  16, 16, 2,  2,  2,  17, 17, 9,  9,  3,  3,  10},       // conversion to 17 modes
+  {3,  3,  3,  3,  3,  3,  3,  1,  1,  1,  1,  1,  1,  1,  3,  3,  3,  3,  3,  3,  3,  2,  2,  2,  2,  2,  2,  2,  2,  2,  3,  3,  3,  3}         // conversion to 3 modes
 };
 #else
 const UChar g_aucAngModeMapping[4][34] = // intra mode conversion for most probable

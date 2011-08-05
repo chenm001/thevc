@@ -849,31 +849,10 @@ Void TEncSbac::codeIntraDirLumaAng( TComDataCU* pcCU, UInt uiAbsPartIdx )
   {
     m_pcBinIf->encodeBin( 0, m_cCUIntraPredSCModel.get( 0, 0, 0 ) );
   
-#if FIXED_MPM    
-    // planar mode is coded with shortest codeword (0)
-    if( uiDir == PLANAR_IDX )
-    {
-      uiDir = 0;
-    }
-    else
-    {
-      for(Int i = (uiPredNum - 1); i >= 0; i--)
-      {
-        uiDir = uiDir > uiPreds[i] ? uiDir - 1 : uiDir;
-      }
-
-      if( uiPreds[uiPredNum - 1] != PLANAR_IDX )
-      {
-        uiDir++;
-      }
-    }
-#else
     for(Int i = (uiPredNum - 1); i >= 0; i--)
     {
       uiDir = uiDir > uiPreds[i] ? uiDir - 1 : uiDir;
     }
-#endif
-
 
     if ( g_aucIntraModeBitsAng[iIntraIdx] < 6 )
     {
@@ -1632,7 +1611,7 @@ Void TEncSbac::codeCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx
 #if QC_MDCS
 #if DIAG_SCAN
   UInt uiScanIdx = pcCU->getCoefScanIdx(uiAbsPartIdx, uiWidth, eTType==TEXT_LUMA, pcCU->isIntra(uiAbsPartIdx));
-  uiScanIdx = ( uiScanIdx ) ? uiScanIdx : 3; // Map 0 to diagonal scan
+  uiScanIdx = ( uiScanIdx == SCAN_ZIGZAG ) ? SCAN_DIAG : uiScanIdx; // Map zigzag to diagonal scan
 #else
   const UInt uiScanIdx = pcCU->getCoefScanIdx(uiAbsPartIdx, uiWidth, eTType==TEXT_LUMA, pcCU->isIntra(uiAbsPartIdx));
 #endif

@@ -1044,33 +1044,10 @@ Void TDecCavlc::parseIntraDirLumaAng  ( TComDataCU* pcCU, UInt uiAbsPartIdx, UIn
       if ( g_aucIntraModeBitsAng[iIntraIdx] > 2 ) { xReadFlag( uiSymbol ); uiIPredMode |= uiSymbol << 1; }
       if ( g_aucIntraModeBitsAng[iIntraIdx] > 3 ) { xReadFlag( uiSymbol ); uiIPredMode |= uiSymbol << 2; }
 
-#if FIXED_MPM
-      // planar mode is coded with shortest codeword (0)
-      if( uiIPredMode == 0 && uiPreds[uiPredNum - 1] != PLANAR_IDX )
-      {
-        uiIPredMode = PLANAR_IDX;
-      }
-      else
-      {
-        if( uiPreds[uiPredNum - 1] != PLANAR_IDX )
-        {
-          uiIPredMode--;
-        }
-
-        for( UInt i = 0; i < uiPredNum; i++ )
-        {
-          if(uiIPredMode >= uiPreds[i])
-          { 
-            uiIPredMode ++; 
-          }
-        }
-      }
-#else
       for(UInt i = 0; i < uiPredNum; i++)
       {
         if(uiIPredMode >= uiPreds[i]) { uiIPredMode ++;}
       }
-#endif
     }
   }
   else 
@@ -1132,28 +1109,6 @@ Void TDecCavlc::parseIntraDirLumaAng  ( TComDataCU* pcCU, UInt uiAbsPartIdx, UIn
       m_uiIntraModeTableD[ iRankIntraModeLarger ] = iDir;
       m_uiIntraModeTableD[ iRankIntraMode ] = iDirLarger;
 
-#if FIXED_MPM
-      // planar mode is coded with shortest codeword (0)
-      if( iDir == 0 && uiPreds[uiPredNum - 1] != PLANAR_IDX )
-      {
-        iDir = PLANAR_IDX;
-      }
-      else
-      {
-        if( uiPreds[uiPredNum - 1] != PLANAR_IDX )
-        {
-          iDir--;
-        }
-
-        for( UInt i = 0; i < uiPredNum; i++ )
-        {
-          if( iDir >= uiPreds[i] )
-          { 
-            iDir++; 
-          }
-        }
-      }
-#else
       for(UInt i = 0; i < uiPredNum; i++)
       {
         if(iDir >= uiPreds[i]) 
@@ -1161,7 +1116,6 @@ Void TDecCavlc::parseIntraDirLumaAng  ( TComDataCU* pcCU, UInt uiAbsPartIdx, UIn
           iDir ++;
         }
       }
-#endif
 
       uiIPredMode = iDir;
     }

@@ -115,7 +115,7 @@
 #define SCAN_SET_SIZE                     16
 #define LOG2_SCAN_SET_SIZE                4
 #endif
-#define DIAG_SCAN                         1
+#define DIAG_SCAN                         1           ///< JCTVC-F129: use up-right diagonal scan rather than zig-zag for CABAC           
 #define CABAC_COEFF_DATA_REORDER          1           ///< JCTVC-F130: reordering of CABAC coefficient data
 #define QC_MDIS                           1           // JCTVC-D282: enable mode dependent intra smoothing
 #define QC_MDCS                           1           // JCTVC-D393: mode dependent coefficients coding 
@@ -183,6 +183,9 @@
 
 #define FIXED_MPM                        1           ///< Fixed number of MPMs for intra mode parsing. Solution A of JCTVC-F765
 #if FIXED_MPM
+#undef PLANAR_IDX
+#define PLANAR_IDX             0
+#define DC_IDX                 3                     // index for intra DC mode
 #define NUM_CHROMA_MODE        6                     // total number of chroma modes
 #define DM_CHROMA_IDX          36                    // chroma mode index for derived from luma intra mode
 #if !ADD_PLANAR_MODE || !MTK_DCM_MPM
@@ -640,7 +643,12 @@ enum COEFF_SCAN_TYPE
 {
   SCAN_ZIGZAG = 0,      ///< typical zigzag scan
   SCAN_HOR,             ///< horizontal first scan
+#if DIAG_SCAN
+  SCAN_VER,              ///< vertical first scan
+  SCAN_DIAG              ///< up-right diagonal scan
+#else
   SCAN_VER              ///< vertical first scan
+#endif
 };
 #endif //QC_MDCS
 

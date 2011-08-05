@@ -997,33 +997,10 @@ Void TDecSbac::parseIntraDirLumaAng  ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt
 
   }
 
-#if FIXED_MPM
-    // planar mode is coded with shortest codeword (0)
-    if( uiIPredMode == 0 && uiPreds[uiPredNum - 1] != PLANAR_IDX )
-    {
-      uiIPredMode = PLANAR_IDX;
-    }
-    else
-    {
-      if( uiPreds[uiPredNum - 1] != PLANAR_IDX )
-      {
-        uiIPredMode--;
-      }
-
-      for( UInt i = 0; i < uiPredNum; i++ )
-      {
-        if( uiIPredMode >= uiPreds[i] )
-        { 
-          uiIPredMode ++; 
-        }
-      }
-    }
-#else
     for(UInt i = 0; i < uiPredNum; i++)
     {
       if(uiIPredMode >= uiPreds[i]) {  uiIPredMode ++; }
     }
-#endif
   }
 #if ADD_PLANAR_MODE && !FIXED_MPM
   if (uiIPredMode == 2)
@@ -1769,7 +1746,7 @@ Void TDecSbac::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartId
   }
 
 #if DIAG_SCAN
-  uiScanIdx = ( uiScanIdx ) ? uiScanIdx : 3; // Map 0 to diagonal scan
+  uiScanIdx = ( uiScanIdx == SCAN_ZIGZAG ) ? SCAN_DIAG : uiScanIdx; // Map zigzag to diagonal scan
 #endif
   
   for( UInt uiScanPos = uiScanPosLast-1; uiScanPos != -1; uiScanPos-- )

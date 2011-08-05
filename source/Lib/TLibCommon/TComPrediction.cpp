@@ -368,9 +368,17 @@ Void TComPrediction::predIntraLumaAng(TComPattern* pcTComPattern, UInt uiDirMode
 
 #if MN_DC_PRED_FILTER
 #if UNIFICATION_OF_AVAILABILITY
+#if FIXED_MPM
+    if( (uiDirMode == DC_IDX ) && bAbove && bLeft )
+#else
     if ((uiDirMode == 2) && bAbove && bLeft)
+#endif
+#else
+#if FIXED_MPM
+    if ( uiDirMode == DC_IDX && pcTComPattern->getDCPredFilterFlag() )
 #else
     if ( uiDirMode == 2 && pcTComPattern->getDCPredFilterFlag() )
+#endif
 #endif
     {
       xDCPredFiltering( ptrSrc+sw+1, sw, pDst, uiStride, iWidth, iHeight);
@@ -1467,16 +1475,20 @@ Void TComPrediction::xDCPredFiltering( Int* pSrc, Int iSrcStride, Pel*& rpDst, I
 {
   Pel* pDst = rpDst;
   Int x, y, iDstStride2, iSrcStride2;
+
 #if MN_DC_PRED_FILTER_UNIFIED
-   // boundary pixels processing
-      pDst[0] = (Pel)((pSrc[-iSrcStride] + pSrc[-1] + 2 * pDst[0] + 2) >> 2);
+  // boundary pixels processing
+  pDst[0] = (Pel)((pSrc[-iSrcStride] + pSrc[-1] + 2 * pDst[0] + 2) >> 2);
 
-      for ( x = 1; x < iWidth; x++ )
-        pDst[x] = (Pel)((pSrc[x - iSrcStride] +  pDst[x-1]+2 * pDst[x] + 2) >> 2);
+  for ( x = 1; x < iWidth; x++ )
+  {
+    pDst[x] = (Pel)((pSrc[x - iSrcStride] +  3 * pDst[x] + 2) >> 2);
+  }
 
-      for ( y = 1, iDstStride2 = iDstStride, iSrcStride2 = iSrcStride-1; y < iHeight; y++, iDstStride2+=iDstStride, iSrcStride2+=iSrcStride )
-        pDst[iDstStride2] = (Pel)((pSrc[iSrcStride2] + pDst[iDstStride2-iDstStride]+ 2 * pDst[iDstStride2] + 2) >> 2);
-
+  for ( y = 1, iDstStride2 = iDstStride, iSrcStride2 = iSrcStride-1; y < iHeight; y++, iDstStride2+=iDstStride, iSrcStride2+=iSrcStride )
+  {
+    pDst[iDstStride2] = (Pel)((pSrc[iSrcStride2] + 3 * pDst[iDstStride2] + 2) >> 2);
+  }
 #else
   Int iIntraSizeIdx = g_aucConvertToBit[ iWidth ] + 1;
   static const UChar g_aucDCPredFilter[7] = { 0, 3, 2, 1, 0, 0, 0};
