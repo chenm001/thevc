@@ -52,6 +52,10 @@
 #define DNB_CHROMA_CBF_FLAGS              1           ///< F606:               disable of neighbour evaluation for chroma cbf (use depth for that)
 #define DNB_LUMA_CBF_FLAGS                1           ///< F429:               disable of neighbour evaluation for luma cbf
 
+#define WEIGHTED_CHROMA_DISTORTION  1   ///< F386: weighting of chroma for RDO
+#define RDOQ_CHROMA_LAMBDA          1   ///< F386: weighting of chroma for RDOQ
+#define ALF_CHROMA_LAMBDA           1   ///< F386: weighting of chroma for ALF
+#define SAO_CHROMA_LAMBDA           1   ///< F386: weighting of chroma for SAO
 
 
 ////////////////////////////

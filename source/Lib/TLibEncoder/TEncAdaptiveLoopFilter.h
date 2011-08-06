@@ -78,7 +78,11 @@ private:
 public:
   Void startSaoEnc( TComPic* pcPic, TEncEntropy* pcEntropyCoder, TEncSbac*** pppcRDSbacCoder, TEncSbac* pcRDGoOnSbacCoder);
   Void endSaoEnc();
+#if SAO_CHROMA_LAMBDA
+  Void SAOProcess(Double dLambda, Double dLambdaChroma);
+#else
   Void SAOProcess(Double dLambda);
+#endif
   Void xQuadTreeDecisionFunc(SAOQTPart *psQTPart, Int iPartIdx, Double &dCostFinal, Int iMaxLevel, Double dLambda);
   Void xQAOOnePart(SAOQTPart *psQTPart, Int iPartIdx, Double dLambda);
   Void xPartTreeDisable(SAOQTPart *psQTPart, Int iPartIdx);
@@ -340,7 +344,11 @@ public:
   Void endALFEnc();
   
   /// estimate ALF parameters
+#if ALF_CHROMA_LAMBDA  
+  Void ALFProcess(ALFParam* pcAlfParam, Double dLambdaLuma, Double dLambdaChroma, UInt64& ruiDist, UInt64& ruiBits, UInt& ruiMaxAlfCtrlDepth );
+#else
   Void ALFProcess(ALFParam* pcAlfParam, Double dLambda, UInt64& ruiDist, UInt64& ruiBits, UInt& ruiMaxAlfCtrlDepth );
+#endif
 
 #if E057_INTRA_PCM && E192_SPS_PCM_FILTER_DISABLE_SYNTAX
   Void PCMLFDisableProcess (TComPic* pcPic);

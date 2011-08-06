@@ -61,7 +61,12 @@ TComSlice::TComSlice()
 , m_pcPPS                         ( NULL )
 , m_pcPic                         ( NULL )
 , m_uiColDir                      ( 0 )
+#if ALF_CHROMA_LAMBDA || SAO_CHROMA_LAMBDA
+, m_dLambdaLuma( 0.0 )
+, m_dLambdaChroma( 0.0 )
+#else
 , m_dLambda                       ( 0.0 )
+#endif
 , m_bNoBackPredFlag               ( false )
 , m_bRefIdxCombineCoding          ( false )
 , m_uiTLayer                      ( 0 )
@@ -638,7 +643,12 @@ Void TComSlice::copySliceInfo(TComSlice *pSrc)
   m_pcPic                = pSrc->m_pcPic;
 
   m_uiColDir             = pSrc->m_uiColDir;
+#if ALF_CHROMA_LAMBDA || SAO_CHROMA_LAMBDA 
+  m_dLambdaLuma          = pSrc->m_dLambdaLuma;
+  m_dLambdaChroma        = pSrc->m_dLambdaChroma;
+#else
   m_dLambda              = pSrc->m_dLambda;
+#endif
   for (i = 0; i < 2; i++)
   {
     for (j = 0; j < MAX_NUM_REF; j++)
