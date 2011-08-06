@@ -4405,18 +4405,6 @@ Void TComDataCU::fillMvpCand ( UInt uiPartIdx, UInt uiPartAddr, RefPicList eRefP
   return ;
 }
 
-Int TComDataCU::searchMVPIdx(TComMv cMv, AMVPInfo* pInfo)
-{
-  for ( Int i=0; i<pInfo->iN; i++ )
-  {
-    if (cMv == pInfo->m_acMvCand[i])
-      return i;
-  }
-  
-  assert(0);
-  return -1;
-}
-
 Void TComDataCU::clipMv    (TComMv&  rcMv)
 {
   Int  iMvShift = 2;
