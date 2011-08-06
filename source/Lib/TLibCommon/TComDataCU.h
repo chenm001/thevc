@@ -487,7 +487,9 @@ public:
   Int           getIntraDirLumaPredictor        ( UInt uiAbsPartIdx, Int uiIntraDirPred[]                 );
 #endif
 
+#if !AVOID_NEIGHBOR_REF_F470
   Bool          isSuroundingRefIdxException     ( UInt   uiAbsPartIdx );
+#endif
   
   // -------------------------------------------------------------------------------------------------------------------
   // member functions for SBAC context

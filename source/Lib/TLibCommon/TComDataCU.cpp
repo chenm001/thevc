@@ -5143,6 +5143,7 @@ UInt TComDataCU::getCoefScanIdx(UInt uiAbsPartIdx, UInt uiWidth, Bool bIsLuma, B
 }
 #endif //QC_MDCS
 
+#if !AVOID_NEIGHBOR_REF_F470
 Bool TComDataCU::isSuroundingRefIdxException     ( UInt   uiAbsPartIdx )
 {
   if ( !getSlice()->isInterB() )
@@ -5325,6 +5326,7 @@ Bool TComDataCU::isSuroundingRefIdxException     ( UInt   uiAbsPartIdx )
   
   return false;
 }
+#endif
 
 #if NSQT
 Bool TComDataCU::useNonSquareTrans(UInt uiTrMode)
