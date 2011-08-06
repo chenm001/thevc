@@ -3985,7 +3985,7 @@ UInt TComTrQuant::getSigCtxInc    ( TCoeff*                         pcCoeff,
   if( uiPosX + uiPosY < 2 )
   {
     return 31 + 2 * uiPosY + uiPosX;
-    }
+  }
   
   const Int *pData = pcCoeff + uiPosX + (uiPosY << uiLog2BlkSize);
   Int iStride = uiStride;
@@ -3994,7 +3994,7 @@ UInt TComTrQuant::getSigCtxInc    ( TCoeff*                         pcCoeff,
   {
     UInt cnt = (pData[1] != 0) + (pData[2] != 0) + (pData[iStride] != 0) + (pData[2*iStride] != 0) + (pData[iStride+1] != 0);
     return 31 + 3 + min<UInt>( 4, cnt );
-    }
+  }
   
   UInt uiWidthM1   = uiStride - 1;
   UInt cnt = 0;
@@ -4008,16 +4008,16 @@ UInt TComTrQuant::getSigCtxInc    ( TCoeff*                         pcCoeff,
     if( uiPosX < uiWidthM1 - 1 )
     {
       cnt += pData[2] != 0;
-      }
     }
+  }
   if ( uiPosY < uiWidthM1 )
-    {
+  {
     cnt += pData[iStride] != 0;
     if ( uiPosY < uiWidthM1 - 1 && cnt < 4 )
-      {
+    {
       cnt += pData[2*iStride] != 0;
-      }
     }
+  }
 
   return 31 + 8 + cnt;
 #else
