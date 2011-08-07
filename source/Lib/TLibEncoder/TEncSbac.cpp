@@ -369,7 +369,7 @@ Void TEncSbac::xCopyFrom( TEncSbac* pSrc )
   this->m_cCUAbsSCModel            .copyFrom( &pSrc->m_cCUAbsSCModel             );
 #if AMP
   this->m_cCUXPosiSCModel          .copyFrom( &pSrc->m_cCUXPosiSCModel           );
-  this->m_cCUYPosiSCModel          .copyFrom( &pSrc->m_cCUXPosiSCModel           );
+  this->m_cCUYPosiSCModel          .copyFrom( &pSrc->m_cCUYPosiSCModel           );
 #endif
   this->m_cMVPIdxSCModel           .copyFrom( &pSrc->m_cMVPIdxSCModel            );
 #if MTK_SAO

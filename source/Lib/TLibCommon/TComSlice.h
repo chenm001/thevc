@@ -342,6 +342,7 @@ private:
   //  Data
   Int         m_iSliceQpDelta;
   TComPic*    m_apcRefPicList [2][MAX_NUM_REF];
+  Int         m_aiRefPOCList  [2][MAX_NUM_REF];
   Int         m_iDepth;
   
   // referenced slice?
@@ -412,6 +413,7 @@ public:
   Int       getNumRefIdx        ( RefPicList e )                { return  m_aiNumRefIdx[e];             }
   TComPic*  getPic              ()                              { return  m_pcPic;                      }
   TComPic*  getRefPic           ( RefPicList e, Int iRefIdx)    { return  m_apcRefPicList[e][iRefIdx];  }
+  Int       getRefPOC           ( RefPicList e, Int iRefIdx)    { return  m_aiRefPOCList[e][iRefIdx];   }
   Int       getDepth            ()                              { return  m_iDepth;                     }
   UInt      getColDir           ()                              { return  m_uiColDir;                   }
 #if TMVP_ONE_LIST_CHECK
@@ -447,11 +449,13 @@ public:
   Void      setLoopFilterDisable( Bool b )                      { m_bLoopFilterDisable= b;      }
   
   Void      setRefPic           ( TComPic* p, RefPicList e, Int iRefIdx ) { m_apcRefPicList[e][iRefIdx] = p; }
+  Void      setRefPOC           ( Int i, RefPicList e, Int iRefIdx ) { m_aiRefPOCList[e][iRefIdx] = i; }
   Void      setNumRefIdx        ( RefPicList e, Int i )         { m_aiNumRefIdx[e]    = i;      }
   Void      setPic              ( TComPic* p )                  { m_pcPic             = p;      }
   Void      setDepth            ( Int iDepth )                  { m_iDepth            = iDepth; }
   
   Void      setRefPicList       ( TComList<TComPic*>& rcListPic );
+  Void      setRefPOCList       ();
   Void      setColDir           ( UInt uiDir ) { m_uiColDir = uiDir; }
 #if TMVP_ONE_LIST_CHECK
   Void      setCheckLDC         ( Bool b )                      { m_bCheckLDC = b; }
