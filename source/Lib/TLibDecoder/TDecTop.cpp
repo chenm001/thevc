@@ -453,6 +453,8 @@ Bool TDecTop::decode(InputNALUnit& nalu, Int& iSkipFrame, Int& iPOCLastDisplay)
 #endif
         
         //---------------
+        pcSlice->setRefPOCList();
+        
         if(!pcSlice->getRefPicListModificationFlagLC())
         {
           pcSlice->generateCombinedList();
@@ -467,7 +469,7 @@ Bool TDecTop::decode(InputNALUnit& nalu, Int& iSkipFrame, Int& iPOCLastDisplay)
             int i;
             for ( i=0; i < pcSlice->getNumRefIdx(RefPicList( 1 ) ); i++ )
             {
-              if ( pcSlice->getRefPic(RefPicList(1), i)->getPOC() != pcSlice->getRefPic(RefPicList(0), i)->getPOC() ) 
+              if ( pcSlice->getRefPOC(RefPicList(1), i) != pcSlice->getRefPOC(RefPicList(0), i) ) 
               {
                 pcSlice->setNoBackPredFlag( false );
                 break;

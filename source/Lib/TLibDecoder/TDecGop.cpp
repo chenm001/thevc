@@ -379,7 +379,7 @@ Void TDecGop::decompressGop(TComInputBitstream* pcBitstream, TComPic*& rpcPic, B
       printf ("[L%d ", iRefList);
       for (Int iRefIndex = 0; iRefIndex < pcSlice->getNumRefIdx(RefPicList(iRefList)); iRefIndex++)
       {
-        printf ("%d ", pcSlice->getRefPic(RefPicList(iRefList), iRefIndex)->getPOC());
+        printf ("%d ", pcSlice->getRefPOC(RefPicList(iRefList), iRefIndex));
       }
       printf ("] ");
     }
@@ -388,7 +388,7 @@ Void TDecGop::decompressGop(TComInputBitstream* pcBitstream, TComPic*& rpcPic, B
       printf ("[LC ");
       for (Int iRefIndex = 0; iRefIndex < pcSlice->getNumRefIdx(REF_PIC_LIST_C); iRefIndex++)
       {
-        printf ("%d ", pcSlice->getRefPic((RefPicList)pcSlice->getListIdFromIdxOfLC(iRefIndex), pcSlice->getRefIdxFromIdxOfLC(iRefIndex))->getPOC());
+        printf ("%d ", pcSlice->getRefPOC((RefPicList)pcSlice->getListIdFromIdxOfLC(iRefIndex), pcSlice->getRefIdxFromIdxOfLC(iRefIndex)));
       }
       printf ("] ");
     }

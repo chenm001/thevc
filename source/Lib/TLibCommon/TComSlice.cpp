@@ -100,6 +100,8 @@ TComSlice::TComSlice()
   {
     m_apcRefPicList [0][iNumCount] = NULL;
     m_apcRefPicList [1][iNumCount] = NULL;
+    m_aiRefPOCList  [0][iNumCount] = 0;
+    m_aiRefPOCList  [1][iNumCount] = 0;
   }
 }
 
@@ -326,6 +328,18 @@ TComPic* TComSlice::xGetRefPic (TComList<TComPic*>& rcListPic,
   }
   
   return  pcRefPic;
+}
+
+Void TComSlice::setRefPOCList       ()
+{
+  for (Int iDir = 0; iDir < 2; iDir++)
+  {
+    for (Int iNumRefIdx = 0; iNumRefIdx < m_aiNumRefIdx[iDir]; iNumRefIdx++)
+    {
+      m_aiRefPOCList[iDir][iNumRefIdx] = m_apcRefPicList[iDir][iNumRefIdx]->getPOC();
+    }
+  }
+
 }
 
 Void TComSlice::generateCombinedList()
@@ -625,6 +639,7 @@ Void TComSlice::copySliceInfo(TComSlice *pSrc)
     for (j = 0; j < MAX_NUM_REF; j++)
     {
       m_apcRefPicList[i][j]  = pSrc->m_apcRefPicList[i][j];
+      m_aiRefPOCList[i][j]   = pSrc->m_aiRefPOCList[i][j];
     }
   }  
   m_iDepth               = pSrc->m_iDepth;
