@@ -899,9 +899,13 @@ Void TComPattern::fillReferenceSamples( TComDataCU* pcCU, Pel* piRoiOrigin, Int*
   {
     // Fill border with DC value
     for (i=0; i<uiWidth; i++)
+    {
       piAdiTemp[i] = iDCValue;
+    }
     for (i=1; i<uiHeight; i++)
+    {
       piAdiTemp[i*uiWidth] = iDCValue;
+    }
   }
   else if (iNumIntraNeighbor == iTotalUnits)
   {
@@ -914,7 +918,9 @@ Void TComPattern::fillReferenceSamples( TComDataCU* pcCU, Pel* piRoiOrigin, Int*
 
 #if LM_CHROMA_SIMPLIFICATION
     if (bLMmode)
+    {
       piRoiTemp --; // move to the second left column
+    }
 #endif
 
     for (i=0; i<uiCuHeight; i++)
@@ -933,12 +939,16 @@ Void TComPattern::fillReferenceSamples( TComDataCU* pcCU, Pel* piRoiOrigin, Int*
     // Fill top border with rec. samples
     piRoiTemp = piRoiOrigin - iPicStride;
     for (i=0; i<uiCuWidth; i++)
+    {
       piAdiTemp[1+i] = piRoiTemp[i];
-
+    }
+    
     // Fill top right border with rec. samples
     piRoiTemp = piRoiOrigin - iPicStride + uiCuWidth;
     for (i=0; i<uiCuWidth; i++)
+    {
       piAdiTemp[1+uiCuWidth+i] = piRoiTemp[i];
+    }
   }
   else // reference samples are partially available
   {
@@ -952,8 +962,10 @@ Void TComPattern::fillReferenceSamples( TComDataCU* pcCU, Pel* piRoiOrigin, Int*
 
     // Initialize
     for (i=0; i<iTotalSamples; i++)
+    {
       piAdiLine[i] = iDCValue;
-
+    }
+    
     // Fill top-left sample
     piRoiTemp = piRoiOrigin - iPicStride - 1;
     piAdiLineTemp = piAdiLine + (iNumUnits2*iUnitSize);
@@ -962,14 +974,18 @@ Void TComPattern::fillReferenceSamples( TComDataCU* pcCU, Pel* piRoiOrigin, Int*
     {
       piAdiLineTemp[0] = piRoiTemp[0];
       for (i=1; i<iUnitSize; i++)
+      {
         piAdiLineTemp[i] = piAdiLineTemp[0];
+      }
     }
 
     // Fill left & below-left samples
     piRoiTemp += iPicStride;
 #if LM_CHROMA_SIMPLIFICATION
     if (bLMmode)
+    {
       piRoiTemp --; // move the second left column
+    }
 #endif
     piAdiLineTemp--;
     pbNeighborFlags--;
@@ -978,7 +994,9 @@ Void TComPattern::fillReferenceSamples( TComDataCU* pcCU, Pel* piRoiOrigin, Int*
       if (*pbNeighborFlags)
       {
         for (i=0; i<iUnitSize; i++)
+        {
           piAdiLineTemp[-i] = piRoiTemp[i*iPicStride];
+        }
       }
       piRoiTemp += iUnitSize*iPicStride;
       piAdiLineTemp -= iUnitSize;
@@ -994,7 +1012,9 @@ Void TComPattern::fillReferenceSamples( TComDataCU* pcCU, Pel* piRoiOrigin, Int*
       if (*pbNeighborFlags)
       {
         for (i=0; i<iUnitSize; i++)
+        {
           piAdiLineTemp[i] = piRoiTemp[i];
+        }
       }
       piRoiTemp += iUnitSize;
       piAdiLineTemp += iUnitSize;
@@ -1021,22 +1041,34 @@ Void TComPattern::fillReferenceSamples( TComDataCU* pcCU, Pel* piRoiOrigin, Int*
         // Interpolate from nearest samples if current unit is not available
         
         while (iNext < iTotalUnits && !bNeighborFlags[iNext])
+        {
           iNext++;
-
+        }
+        
         if (iPrev >= 0 && iNext < iTotalUnits)
+        {
           piRef = (piAdiLine[iCurr*iUnitSize-1] + piAdiLine[iNext*iUnitSize] + 1) >> 1;
+        }
         else if (iPrev >= 0)
+        {
           piRef = piAdiLine[iCurr*iUnitSize-1];
+        }
         else if (iNext < iTotalUnits)
+        {
           piRef = piAdiLine[iNext*iUnitSize];
+        }
         else
-          printf("\nERROR! No valid samples to interpolate.\n");
+        {
+          assert( false );
+        }
 
         // Pad unavailable samples with new value
         while (iCurr < iNext)
         {
           for (i=0; i<iUnitSize; i++)
+          {
             piAdiLineTemp[i] = piRef;
+          }
           piAdiLineTemp += iUnitSize;
           iPrev++;
           iCurr++;
@@ -1048,10 +1080,14 @@ Void TComPattern::fillReferenceSamples( TComDataCU* pcCU, Pel* piRoiOrigin, Int*
     // Copy processed samples
     piAdiLineTemp = piAdiLine + uiHeight + iUnitSize - 2;
     for (i=0; i<uiWidth; i++)
+    {
       piAdiTemp[i] = piAdiLineTemp[i];
+    }
     piAdiLineTemp = piAdiLine + uiHeight - 1;
     for (i=1; i<uiHeight; i++)
+    {
       piAdiTemp[i*uiWidth] = piAdiLineTemp[-i];
+    }
   }
 }
 
