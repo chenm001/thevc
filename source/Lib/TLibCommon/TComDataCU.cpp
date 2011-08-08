@@ -691,23 +691,19 @@ Void TComDataCU::initEstData( UInt uiDepth, UInt uiQP )
     m_acCUMvField[0].clearMvField();
     m_acCUMvField[1].clearMvField();
     uiTmp = uhWidth*uhHeight;
-    for(int i=0; i<uiTmp; i++) 
-    {
-      m_pcTrCoeffY[i] = 0;
+    
+    memset( m_pcTrCoeffY,    0, uiTmp * sizeof( *m_pcTrCoeffY    ) );
 #if E057_INTRA_PCM
-      m_pcIPCMSampleY[i] = 0;
+    memset( m_pcIPCMSampleY, 0, uiTmp * sizeof( *m_pcIPCMSampleY ) );
 #endif
-    }
+
     uiTmp>>=2;
-    for(int i=0; i<uiTmp; i++) 
-    {
-      m_pcTrCoeffCr[i] = 0;
-      m_pcTrCoeffCb[i] = 0;
+    memset( m_pcTrCoeffCb,    0, uiTmp * sizeof( *m_pcTrCoeffCb    ) );
+    memset( m_pcTrCoeffCr,    0, uiTmp * sizeof( *m_pcTrCoeffCr    ) );
 #if E057_INTRA_PCM
-      m_pcIPCMSampleCb[i] = 0;
-      m_pcIPCMSampleCr[i] = 0;
+    memset( m_pcIPCMSampleCb, 0, uiTmp * sizeof( *m_pcIPCMSampleCb ) );
+    memset( m_pcIPCMSampleCr, 0, uiTmp * sizeof( *m_pcIPCMSampleCr ) );
 #endif
-    }
   }
 #else
   m_dTotalCost         = MAX_DOUBLE;
