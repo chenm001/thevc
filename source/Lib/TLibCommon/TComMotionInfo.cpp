@@ -84,10 +84,13 @@ Void TComCUMvField::destroy()
 
 Void TComCUMvField::clearMvField()
 {
-  memset( m_pcMv,  0, m_uiNumPartition * sizeof( *m_pcMv  ) );
-  memset( m_pcMvd, 0, m_uiNumPartition * sizeof( *m_pcMvd ) );
+  for ( Int i = 0; i < m_uiNumPartition; i++ )
+  {
+    m_pcMv [ i ].setZero();
+    m_pcMvd[ i ].setZero();      
+  }
   assert( sizeof( *m_piRefIdx ) == 1 );
-  memset( m_piRefIdx, NOT_VALID, m_uiNumPartition );
+  memset( m_piRefIdx, NOT_VALID, m_uiNumPartition * sizeof( *m_piRefIdx ) );
 }
 
 Void TComCUMvField::copyFrom( TComCUMvField const * pcCUMvFieldSrc, Int iNumPartSrc, Int iPartAddrDst )
