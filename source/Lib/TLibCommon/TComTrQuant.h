@@ -153,14 +153,14 @@ public:
   Void init                 ( UInt uiMaxWidth, UInt uiMaxHeight, UInt uiMaxTrSize, Int iSymbolMode = 0, UInt *aTable4 = NULL, UInt *aTable8 = NULL, UInt *aTableLastPosVlcIndex=NULL, Bool bUseRDOQ = false,  Bool bEnc = false );
   
   // transform & inverse transform functions
-  Void transformNxN         ( TComDataCU* pcCU, Pel*   pcResidual, UInt uiStride, TCoeff*& rpcCoeff, UInt uiWidth, UInt uiHeight,
+  Void transformNxN         ( TComDataCU* pcCU, Pel*   pcResidual, UInt uiStride, TCoeff* rpcCoeff, UInt uiWidth, UInt uiHeight,
                              UInt& uiAbsSum, TextType eTType, UInt uiAbsPartIdx );
 #if INTRA_DST_TYPE_7
-  Void invtransformNxN      (TextType eText, UInt uiMode,Pel*& rpcResidual, UInt uiStride, TCoeff*   pcCoeff, UInt uiWidth, UInt uiHeight);
+  Void invtransformNxN      (TextType eText, UInt uiMode,Pel* rpcResidual, UInt uiStride, TCoeff*   pcCoeff, UInt uiWidth, UInt uiHeight);
 #else
-  Void invtransformNxN      ( Pel*& rpcResidual, UInt uiStride, TCoeff*   pcCoeff, UInt uiWidth, UInt uiHeight );
+  Void invtransformNxN      ( Pel* rpcResidual, UInt uiStride, TCoeff*   pcCoeff, UInt uiWidth, UInt uiHeight );
 #endif
-  Void invRecurTransformNxN ( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eTxt, Pel*& rpcResidual, UInt uiAddr,   UInt uiStride, UInt uiWidth, UInt uiHeight,
+  Void invRecurTransformNxN ( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eTxt, Pel* rpcResidual, UInt uiAddr,   UInt uiStride, UInt uiWidth, UInt uiHeight,
                              UInt uiMaxTrMode,  UInt uiTrMode, TCoeff* rpcCoeff );
   
   // Misc functions
@@ -207,8 +207,8 @@ private:
 #endif
   
   // quantization
-  Void xQuant     ( TComDataCU* pcCU, Long* pSrc, TCoeff*& pDes, Int iWidth, Int iHeight, UInt& uiAcSum, TextType eTType, UInt uiAbsPartIdx );
-  Void xQuantLTR  ( TComDataCU* pcCU, Long* pSrc, TCoeff*& pDes, Int iWidth, Int iHeight, UInt& uiAcSum, TextType eTType, UInt uiAbsPartIdx );
+  Void xQuant     ( TComDataCU* pcCU, Long* pSrc, TCoeff* pDes, Int iWidth, Int iHeight, UInt& uiAcSum, TextType eTType, UInt uiAbsPartIdx );
+  Void xQuantLTR  ( TComDataCU* pcCU, Long* pSrc, TCoeff* pDes, Int iWidth, Int iHeight, UInt& uiAcSum, TextType eTType, UInt uiAbsPartIdx );
 
   // RDOQ functions
 #if CAVLC_RDOQ_MOD
@@ -259,7 +259,7 @@ UInt             getCurrLineNum(UInt uiScanIdx, UInt uiPosX, UInt uiPosY);
 #endif
   Void           xRateDistOptQuant_LCEC ( TComDataCU*                     pcCU,
                                           Long*                           plSrcCoeff,
-                                          TCoeff*&                        piDstCoeff,
+                                          TCoeff*                         piDstCoeff,
                                           UInt                            uiWidth,
                                           UInt                            uiHeight,
                                           UInt&                           uiAbsSum,
@@ -268,7 +268,7 @@ UInt             getCurrLineNum(UInt uiScanIdx, UInt uiPosX, UInt uiPosY);
   
   Void           xRateDistOptQuant ( TComDataCU*                     pcCU,
                                      Long*                           plSrcCoeff,
-                                     TCoeff*&                        piDstCoeff,
+                                     TCoeff*                         piDstCoeff,
                                      UInt                            uiWidth,
                                      UInt                            uiHeight,
                                      UInt&                           uiAbsSum,
@@ -321,8 +321,8 @@ __inline UInt              xGetCodedLevel  ( Double&                         rd6
   
   
   // dequantization
-  Void xDeQuant         ( TCoeff* pSrc,     Long*& pDes,       Int iWidth, Int iHeight );
-  Void xDeQuantLTR      ( TCoeff* pSrc,     Long*&  pDes,      Int iWidth, Int iHeight );
+  Void xDeQuant         ( TCoeff* pSrc,     Long* pDes,       Int iWidth, Int iHeight );
+  Void xDeQuantLTR      ( TCoeff* pSrc,     Long*  pDes,      Int iWidth, Int iHeight );
   
   // inverse transform
 #if INTRA_DST_TYPE_7
