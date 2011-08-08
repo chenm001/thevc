@@ -3527,14 +3527,12 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
 #endif
   
 #if UNIFIED_SCAN
-  Long plLevelDouble[ MAX_CU_SIZE * MAX_CU_SIZE ];
-  Double pdCost [ 32*32*3 ];
-  Double *pdCostCoeff  = pdCost;
-  Double *pdCostCoeff0 = pdCost +  uiMaxNumCoeff;
-  Double *pdCostSig    = pdCost + (uiMaxNumCoeff<<1);
-  ::memset( pdCost,        0, sizeof(Double) *  uiMaxNumCoeff * 3    );
-  ::memset( piDstCoeff,    0, sizeof(TCoeff) *  uiMaxNumCoeff        );
-  ::memset( plLevelDouble, 0, sizeof(Long)   *  uiMaxNumCoeff        );
+  Long plLevelDouble [ 32 * 32 ];
+  Double pdCostCoeff [ 32 * 32 ];
+  Double pdCostSig   [ 32 * 32 ];
+  Double pdCostCoeff0[ 32 * 32 ];
+  ::memset( pdCostCoeff, 0, sizeof(Double) *  uiMaxNumCoeff );
+  ::memset( pdCostSig,   0, sizeof(Double) *  uiMaxNumCoeff );
 
   UInt    uiCtxSet            = 0;
   Int     c1                  = 1;
