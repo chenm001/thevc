@@ -402,6 +402,7 @@ Void TComDataCU::initCU( TComPic* pcPic, UInt iCUAddr )
   m_uiTotalBits        = 0;
   m_uiTotalBins        = 0;
   m_uiNumPartition     = pcPic->getNumPartInCU();
+  
   for(int i=0; i<pcPic->getNumPartInCU(); i++) 
   {
     if(iCUAddr*pcPic->getNumPartInCU()+i>=getSlice()->getSliceCurStartCUAddr())
@@ -425,73 +426,77 @@ Void TComDataCU::initCU( TComPic* pcPic, UInt iCUAddr )
     }
   }
 
-  for (UInt ui = 0; ui < m_uiNumPartition; ui++)
+  Int partStartIdx = getSlice()->getEntropySliceCurStartCUAddr() - iCUAddr * pcPic->getNumPartInCU();
+
+  Int numElements = min<Int>( partStartIdx, m_uiNumPartition );
+  for ( Int ui = 0; ui < numElements; ui++ )
   {
-    if(iCUAddr*pcPic->getNumPartInCU()+ui>=getSlice()->getEntropySliceCurStartCUAddr()) 
+    TComDataCU * pcFrom = pcPic->getCU(getAddr());
+    m_pePartSize[ui] = pcFrom->getPartitionSize(ui);
+    m_pePredMode[ui] = pcFrom->getPredictionMode(ui);
+    m_puhDepth[ui] = pcFrom->getDepth(ui);
+    m_puhWidth  [ui] = pcFrom->getWidth(ui);
+    m_puhHeight [ui] = pcFrom->getHeight(ui);
+    m_puhTrIdx  [ui] = pcFrom->getTransformIdx(ui);
+    m_apiMVPIdx[0][ui] = pcFrom->m_apiMVPIdx[0][ui];;
+    m_apiMVPIdx[1][ui] = pcFrom->m_apiMVPIdx[1][ui];
+    m_apiMVPNum[0][ui] = pcFrom->m_apiMVPNum[0][ui];
+    m_apiMVPNum[1][ui] = pcFrom->m_apiMVPNum[1][ui];
+    m_phQP[ui]=pcFrom->m_phQP[ui];
+    m_puiAlfCtrlFlag[ui]=pcFrom->m_puiAlfCtrlFlag[ui];
+    m_pbMergeFlag[ui]=pcFrom->m_pbMergeFlag[ui];
+    m_puhMergeIndex[ui]=pcFrom->m_puhMergeIndex[ui];
+    for( UInt ui2 = 0; ui2 < MRG_MAX_NUM_CANDS; ui2++ )
     {
-      m_pePartSize[ui] = SIZE_NONE;
-      m_pePredMode[ui] = MODE_NONE;
-      m_puhDepth  [ui] = 0;
-      m_puhTrIdx  [ui] = 0;
-      m_puhWidth  [ui] = g_uiMaxCUWidth;
-      m_puhHeight [ui] = g_uiMaxCUHeight;
-      m_apiMVPIdx[0][ui] = -1;
-      m_apiMVPIdx[1][ui] = -1;
-      m_apiMVPNum[0][ui] = -1;
-      m_apiMVPNum[1][ui] = -1;
-      m_phQP[ui]=getSlice()->getSliceQp();
-      m_puiAlfCtrlFlag[ui] = false;
-      m_pbMergeFlag[ui]=0;
-      m_puhMergeIndex[ui]=0;
-      for( UInt ui2 = 0; ui2 < MRG_MAX_NUM_CANDS; ui2++ )
-      {
-        m_apuhNeighbourCandIdx[ ui2 ][ui]=0;
-      }
-      m_puhLumaIntraDir[ui]=2;
-      m_puhChromaIntraDir[ui]=0;
-      m_puhInterDir[ui]=0;
-      m_puhCbf[0][ui]=0;
-      m_puhCbf[1][ui]=0;
-      m_puhCbf[2][ui]=0;
-#if E057_INTRA_PCM
-      m_pbIPCMFlag[ui] = 0;
-#endif
+      m_apuhNeighbourCandIdx[ ui2 ][ui]=pcFrom->m_apuhNeighbourCandIdx[ui2][ui];
     }
-    else 
-    {
-      TComDataCU * pcFrom = pcPic->getCU(getAddr());
-      m_pePartSize[ui] = pcFrom->getPartitionSize(ui);
-      m_pePredMode[ui] = pcFrom->getPredictionMode(ui);
-      m_puhDepth[ui] = pcFrom->getDepth(ui);
-      m_puhWidth  [ui] = pcFrom->getWidth(ui);
-      m_puhHeight [ui] = pcFrom->getHeight(ui);
-      m_puhTrIdx  [ui] = pcFrom->getTransformIdx(ui);
-      m_apiMVPIdx[0][ui] = pcFrom->m_apiMVPIdx[0][ui];;
-      m_apiMVPIdx[1][ui] = pcFrom->m_apiMVPIdx[1][ui];
-      m_apiMVPNum[0][ui] = pcFrom->m_apiMVPNum[0][ui];
-      m_apiMVPNum[1][ui] = pcFrom->m_apiMVPNum[1][ui];
-      m_phQP[ui]=pcFrom->m_phQP[ui];
-      m_puiAlfCtrlFlag[ui]=pcFrom->m_puiAlfCtrlFlag[ui];
-      m_pbMergeFlag[ui]=pcFrom->m_pbMergeFlag[ui];
-      m_puhMergeIndex[ui]=pcFrom->m_puhMergeIndex[ui];
-      for( UInt ui2 = 0; ui2 < MRG_MAX_NUM_CANDS; ui2++ )
-      {
-        m_apuhNeighbourCandIdx[ ui2 ][ui]=pcFrom->m_apuhNeighbourCandIdx[ui2][ui];
-      }
-      m_puhLumaIntraDir[ui]=pcFrom->m_puhLumaIntraDir[ui];
-      m_puhChromaIntraDir[ui]=pcFrom->m_puhChromaIntraDir[ui];
-      m_puhInterDir[ui]=pcFrom->m_puhInterDir[ui];
-      m_puhCbf[0][ui]=pcFrom->m_puhCbf[0][ui];
-      m_puhCbf[1][ui]=pcFrom->m_puhCbf[1][ui];
-      m_puhCbf[2][ui]=pcFrom->m_puhCbf[2][ui];
+    m_puhLumaIntraDir[ui]=pcFrom->m_puhLumaIntraDir[ui];
+    m_puhChromaIntraDir[ui]=pcFrom->m_puhChromaIntraDir[ui];
+    m_puhInterDir[ui]=pcFrom->m_puhInterDir[ui];
+    m_puhCbf[0][ui]=pcFrom->m_puhCbf[0][ui];
+    m_puhCbf[1][ui]=pcFrom->m_puhCbf[1][ui];
+    m_puhCbf[2][ui]=pcFrom->m_puhCbf[2][ui];
 #if E057_INTRA_PCM
-      m_pbIPCMFlag[ui] = pcFrom->m_pbIPCMFlag[ui];
+    m_pbIPCMFlag[ui] = pcFrom->m_pbIPCMFlag[ui];
 #endif
+  }
+  
+  Int firstElement = max<Int>( partStartIdx, 0 );
+  numElements = m_uiNumPartition - firstElement;
+  
+  if ( numElements > 0 )
+  {
+    memset( m_pePartSize        + firstElement, SIZE_NONE,                numElements * sizeof( *m_pePartSize ) );
+    memset( m_pePredMode        + firstElement, MODE_NONE,                numElements * sizeof( *m_pePredMode ) );
+    memset( m_puhDepth          + firstElement, 0,                        numElements * sizeof( *m_puhDepth ) );
+    memset( m_puhTrIdx          + firstElement, 0,                        numElements * sizeof( *m_puhTrIdx ) );
+    memset( m_puhWidth          + firstElement, g_uiMaxCUWidth,           numElements * sizeof( *m_puhWidth ) );
+    memset( m_puhHeight         + firstElement, g_uiMaxCUHeight,          numElements * sizeof( *m_puhHeight ) );
+    memset( m_apiMVPIdx[0]      + firstElement, -1,                       numElements * sizeof( *m_apiMVPIdx[0] ) );
+    memset( m_apiMVPIdx[1]      + firstElement, -1,                       numElements * sizeof( *m_apiMVPIdx[1] ) );
+    memset( m_apiMVPNum[0]      + firstElement, -1,                       numElements * sizeof( *m_apiMVPNum[0] ) );
+    memset( m_apiMVPNum[1]      + firstElement, -1,                       numElements * sizeof( *m_apiMVPNum[1] ) );
+    memset( m_phQP              + firstElement, getSlice()->getSliceQp(), numElements * sizeof( *m_phQP ) );
+    memset( m_puiAlfCtrlFlag    + firstElement, false,                    numElements * sizeof( *m_puiAlfCtrlFlag ) );
+    memset( m_pbMergeFlag       + firstElement, false,                    numElements * sizeof( *m_pbMergeFlag ) );
+    memset( m_puhMergeIndex     + firstElement, 0,                        numElements * sizeof( *m_puhMergeIndex ) );
+    memset( m_puhLumaIntraDir   + firstElement, 2,                        numElements * sizeof( *m_puhLumaIntraDir ) );
+    memset( m_puhChromaIntraDir + firstElement, 0,                        numElements * sizeof( *m_puhChromaIntraDir ) );
+    memset( m_puhInterDir       + firstElement, 0,                        numElements * sizeof( *m_puhInterDir ) );
+    memset( m_puhCbf[0]         + firstElement, 0,                        numElements * sizeof( *m_puhCbf[0] ) );
+    memset( m_puhCbf[1]         + firstElement, 0,                        numElements * sizeof( *m_puhCbf[1] ) );
+    memset( m_puhCbf[2]         + firstElement, 0,                        numElements * sizeof( *m_puhCbf[2] ) );
+#if E057_INTRA_PCM
+    memset( m_pbIPCMFlag        + firstElement, false,                    numElements * sizeof( *m_pbIPCMFlag ) );
+#endif
+    for ( Int i = 0; i < MRG_MAX_NUM_CANDS; i++ )
+    {
+      memset( m_apuhNeighbourCandIdx[i] + firstElement, 0, numElements * sizeof( *m_apuhNeighbourCandIdx[i] ) );      
     }
   }
-
+  
   UInt uiTmp = g_uiMaxCUWidth*g_uiMaxCUHeight;
-  if(iCUAddr*pcPic->getNumPartInCU()>=getSlice()->getEntropySliceCurStartCUAddr()) 
+  if ( 0 >= partStartIdx ) 
   {
     m_acCUMvField[0].clearMvField();
     m_acCUMvField[1].clearMvField();
