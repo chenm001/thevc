@@ -113,7 +113,10 @@ TComTrQuant::~TComTrQuant()
   }
   
   // delete bit estimation class
-  if ( m_pcEstBitsSbac ) delete m_pcEstBitsSbac;
+  if ( m_pcEstBitsSbac )
+  {
+    delete m_pcEstBitsSbac;
+  }
 }
 
 /// Including Chroma QP Parameter setting
@@ -1584,9 +1587,9 @@ Int TComTrQuant::bitCountRDOQ(Int coeff, Int pos, Int nTab, Int lastCoeffFlag,In
       else
       { // Level !=0  && lastCoeffFlag==0 && levelMode
 #if TBL_RUN_ADAPT
-          bits = (xCountVlcBits( vlc_adap, level ) + 1);
+        bits = (xCountVlcBits( vlc_adap, level ) + 1);
 #else
-          bits = (xCountVlcBits( vlc_adaptive, level ) + 1);
+        bits = (xCountVlcBits( vlc_adaptive, level ) + 1);
 #endif
       }
     }
@@ -1596,9 +1599,9 @@ Int TComTrQuant::bitCountRDOQ(Int coeff, Int pos, Int nTab, Int lastCoeffFlag,In
     if (levelMode)
     {
 #if TBL_RUN_ADAPT
-        bits=xCountVlcBits( vlc_adap, level );
+      bits=xCountVlcBits( vlc_adap, level );
 #else
-        bits=xCountVlcBits( vlc_adaptive, level );
+      bits=xCountVlcBits( vlc_adaptive, level );
 #endif
     }
     else
@@ -1800,30 +1803,36 @@ Int TComTrQuant::bitCountRDOQ(Int coeff, Int pos, Int nTab, Int lastCoeffFlag,In
             {
               iSum_big_coefTemp += level;
 #if TBL_RUN_ADAPT
-          if ((N * N - pos - 1) > switch_thr[iBlockType] || iSum_big_coefTemp > 2)
-          { 
-             if (level > atable[vlc_adap])
-             {
+              if ((N * N - pos - 1) > switch_thr[iBlockType] || iSum_big_coefTemp > 2)
+              { 
+                if (level > atable[vlc_adap])
+                {
                   vlc_adap++;
-             }
-             levelModeTemp = 1;
-          }
+                }
+                levelModeTemp = 1;
+              }
 #else
-              if ((N * N - pos - 1) > switch_thr[iBlockType] || iSum_big_coefTemp > 2) levelModeTemp = 1;
+              if ((N * N - pos - 1) > switch_thr[iBlockType] || iSum_big_coefTemp > 2)
+              {
+                levelModeTemp = 1;
+              }
 #endif
             }
           }
           else
           {
-            if ( level > 1 ) levelModeTemp = 1;
+            if ( level > 1 )
+            {
+              levelModeTemp = 1;
+            }
           }
           
           if ( levelModeTemp == 1 )
           {
 #if TBL_RUN_ADAPT
-             bits-=xCountVlcBits( vlc_adap, 1);
+            bits-=xCountVlcBits( vlc_adap, 1);
 #else
-             bits-=xCountVlcBits( vlc_adaptive, 1);
+            bits-=xCountVlcBits( vlc_adaptive, 1);
 #endif
           }
           else
@@ -2386,8 +2395,9 @@ Void TComTrQuant::xRateDistOptQuant_LCEC(TComDataCU* pcCU, Long* pSrcCoeff, TCoe
     iAddRDOQ = (uiWidth<16 ? 10922 : 10880) >> (15-q_bits);
   }
   if (m_uiRDOQOffset==1)
+  {
     iAddRDOQ=iShiftQBits;
-  
+  }
 #if CAVLC_RDOQ_MOD
   Int64 iThLast=(1 << (q_bits-1)) /(Long)uiQ;
   Int iPrevSigIdx = noCoeff-1;
@@ -2401,11 +2411,13 @@ Void TComTrQuant::xRateDistOptQuant_LCEC(TComDataCU* pcCU, Long* pSrcCoeff, TCoe
     }
     else 
 #endif
+    {
 #if QC_MDCS
-    iPos = g_auiSigLastScan[uiScanIdx][uiLog2BlkSize-1][iScanning];
+      iPos = g_auiSigLastScan[uiScanIdx][uiLog2BlkSize-1][iScanning];
 #else
-    iPos = pucScan[iScanning];
+      iPos = pucScan[iScanning];
 #endif //QC_MDCS
+    }
     j = iPos >> uiShift_local;
     i = iPos &  uiRes_local;
     iPos = (j << uiWidth_local) + i;
@@ -2458,10 +2470,13 @@ Void TComTrQuant::xRateDistOptQuant_LCEC(TComDataCU* pcCU, Long* pSrcCoeff, TCoe
 #endif
       }
       if (iQuantCoeff==0)
+      {
         psLevelData->quantInd=0;
+      }
       else
+      {
         psLevelData->quantInd=1;
-      
+      }
     }
     else if ( psLevelData->lowerInt )
     {
@@ -2492,9 +2507,13 @@ Void TComTrQuant::xRateDistOptQuant_LCEC(TComDataCU* pcCU, Long* pSrcCoeff, TCoe
         psLevelData->level[3] = 1;
       }
       if ( iQuantCoeff == psLevelData->level[1] )
+      {
         psLevelData->quantInd = 1;
+      }
       else
+      {
         psLevelData->quantInd = 2;
+      }
 #if CAVLC_RDOQ_MOD
       levelData[iPrevSigIdx].iNextRun = iPrevSigIdx - iScanning - 1; 
       iPrevSigIdx = iScanning;
@@ -2522,9 +2541,13 @@ Void TComTrQuant::xRateDistOptQuant_LCEC(TComDataCU* pcCU, Long* pSrcCoeff, TCoe
 #if CAVLC_COEF_LRG_BLK==0
   UInt uiNum;
   if ( uiWidth == 4 )
+  {
     uiNum = 4;
+  }
   else
+  {
     uiNum = 8;
+  }
 #endif
   
   // Last Position
@@ -2658,14 +2681,14 @@ Void TComTrQuant::xRateDistOptQuant_LCEC(TComDataCU* pcCU, Long* pSrcCoeff, TCoe
         {
           iSum_big_coef += absBestLevel;
 #if TBL_RUN_ADAPT
-         if((noCoeff - uiScanPos - 1) > switch_thr[iBlockType] || iSum_big_coef > 2)
-         { 
+          if((noCoeff - uiScanPos - 1) > switch_thr[iBlockType] || iSum_big_coef > 2)
+          { 
             if (absBestLevel > atable[iVlc_adaptive])
             {
-               iVlc_adaptive++;
+              iVlc_adaptive++;
             }
             iLevelMode = 1; 
-         }
+          }
 #else
          if ((noCoeff - uiScanPos - 1) > switch_thr[iBlockType] || iSum_big_coef > 2) iLevelMode = 1; 
 #endif 
@@ -2673,7 +2696,10 @@ Void TComTrQuant::xRateDistOptQuant_LCEC(TComDataCU* pcCU, Long* pSrcCoeff, TCoe
       }
       else
       {
-        if ( absBestLevel > 1 ) iLevelMode = 1;
+        if ( absBestLevel > 1 )
+        {
+          iLevelMode = 1;
+        }
       }
       
       if ( iLpFlag == 1 )
@@ -2694,7 +2720,10 @@ Void TComTrQuant::xRateDistOptQuant_LCEC(TComDataCU* pcCU, Long* pSrcCoeff, TCoe
       iMaxrun = iScanning - 1;
       iLpFlag = 0;
       iRun = 0;
-      if ( iLevelMode && (absBestLevel > atable[iVlc_adaptive])) iVlc_adaptive++;        
+      if ( iLevelMode && (absBestLevel > atable[iVlc_adaptive]))
+      {
+        iVlc_adaptive++;
+      }        
     }
     else
     {
@@ -2756,11 +2785,13 @@ Void TComTrQuant::xRateDistOptQuant_LCEC(TComDataCU* pcCU, Long* pSrcCoeff, TCoe
       }
       else 
 #endif
+      {
 #if QC_MDCS
-      iPos = g_auiSigLastScan[uiScanIdx][uiLog2BlkSize-1][iScanning];
+        iPos = g_auiSigLastScan[uiScanIdx][uiLog2BlkSize-1][iScanning];
 #else
-      iPos = pucScan[iScanning];
+        iPos = pucScan[iScanning];
 #endif //QC_MDCS
+      }
       pDstCoeff[iPos] = sQuantCoeff[iScanning];
       uiAbsSum += abs(sQuantCoeff[iScanning]);
     }
@@ -2776,9 +2807,13 @@ Void TComTrQuant::xQuantLTR  (TComDataCU* pcCU, Long* pSrc, TCoeff* pDes, Int iW
   if ( m_bUseRDOQ && (eTType == TEXT_LUMA || RDOQ_CHROMA) )
   {
     if ( m_iSymbolMode == 0)
+    {
       xRateDistOptQuant_LCEC(pcCU, piCoef, pDes, iWidth, iHeight, uiAcSum, eTType, uiAbsPartIdx );
+    }
     else
+    {
       xRateDistOptQuant( pcCU, piCoef, pDes, iWidth, iHeight, uiAcSum, eTType, uiAbsPartIdx );
+    }
   }
   else
   {
@@ -2800,7 +2835,9 @@ Void TComTrQuant::xQuantLTR  (TComDataCU* pcCU, Long* pSrc, TCoeff* pDes, Int iW
     pucScan        = g_auiFrameScanXY [ uiConvBit + 1 ];
 #if NSQT
     if( bNonSqureFlag)
+    {
       pucScan = g_auiNonSquareSigLastScan[ uiNonSqureScanTableIdx ];
+    }
 #endif
 
     UInt uiLog2TrSize = g_aucConvertToBit[ iWidth ] + 2;
@@ -2846,11 +2883,17 @@ Void TComTrQuant::xQuantLTR  (TComDataCU* pcCU, Long* pSrc, TCoeff* pDes, Int iW
         /* Two methods of limiting number of encoded coefficients to 8x8 for intra and inter respectively */
         if (pcCU->isIntra( uiAbsPartIdx ))
         {
-          if(n>=64) iLevel = 0;
+          if(n>=64)
+          {
+            iLevel = 0;
+          }
         }
         else
         {
-          if ((uiBlockPos%iWidth)>=8 || (uiBlockPos/iWidth)>=8) iLevel = 0;
+          if ((uiBlockPos%iWidth)>=8 || (uiBlockPos/iWidth)>=8)
+          {
+            iLevel = 0;
+          }
         }
       }
 #endif
@@ -2932,10 +2975,14 @@ Void TComTrQuant::transformNxN( TComDataCU* pcCU, Pel* pcResidual, UInt uiStride
 {
   UInt uiMode;  //luma intra pred
   if(eTType == TEXT_LUMA && pcCU->getPredictionMode(uiAbsPartIdx) == MODE_INTRA )
+  {
     uiMode = pcCU->getLumaIntraDir( uiAbsPartIdx );
+  }
   else
+  {
     uiMode = REG_DCT;
-
+  }
+  
   uiAbsSum = 0;
   assert( (pcCU->getSlice()->getSPS()->getMaxTrSize() >= uiWidth) );
 
@@ -2988,7 +3035,9 @@ Void TComTrQuant::invtransformNxN( Pel* rpcResidual, UInt uiStride, TCoeff* pcCo
 Void TComTrQuant::invRecurTransformNxN( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eTxt, Pel* rpcResidual, UInt uiAddr, UInt uiStride, UInt uiWidth, UInt uiHeight, UInt uiMaxTrMode, UInt uiTrMode, TCoeff* rpcCoeff )
 {
   if( !pcCU->getCbf(uiAbsPartIdx, eTxt, uiTrMode) )
+  {
     return;
+  }
   
   UInt uiLumaTrMode, uiChromaTrMode;
   pcCU->convertTransIdx( uiAbsPartIdx, pcCU->getTransformIdx( uiAbsPartIdx ), uiLumaTrMode, uiChromaTrMode );
@@ -3076,9 +3125,13 @@ Void TComTrQuant::invRecurTransformNxN( TComDataCU* pcCU, UInt uiAbsPartIdx, Tex
 #else
         if( ePartSize == SIZE_Nx2N )
 #endif
+        {
           uiAddrOffset = ( uiTrMode == 1 || ( uhDepth == 0 && uiTrMode == 2 ) ) ? uiWidth >> 1 : uiAddrOffset;
+        }
         else
+        {
           uiAddrOffset = ( uiTrMode == 1 || ( uhDepth == 0 && uiTrMode == 2 ) ) ? ( uiWidth >> 1 ) * uiStride : uiWidth;
+        }
 
         invRecurTransformNxN( pcCU, uiAbsPartIdx, eTxt, rpcResidual, uiAddr                    , uiStride, uiWidth, uiHeight, uiMaxTrMode, uiTrMode, rpcCoeff ); rpcCoeff += uiCoefOffset; uiAbsPartIdx += uiPartOffset;
         invRecurTransformNxN( pcCU, uiAbsPartIdx, eTxt, rpcResidual, uiAddr + uiAddrOffset     , uiStride, uiWidth, uiHeight, uiMaxTrMode, uiTrMode, rpcCoeff ); rpcCoeff += uiCoefOffset; uiAbsPartIdx += uiPartOffset;
@@ -3094,24 +3147,20 @@ Void TComTrQuant::invRecurTransformNxN( TComDataCU* pcCU, UInt uiAbsPartIdx, Tex
         UInt uiTrWidth  = ( ePartSize == SIZE_Nx2N ) ? uiWidth >> 1 : uiWidth << 1;
         UInt uiTrHeight = ( ePartSize == SIZE_Nx2N ) ? uiWidth << 1 : uiWidth >> 1;
 #endif
-        {
-          invRecurTransformNxN( pcCU, uiAbsPartIdx, eTxt, rpcResidual, uiAddr                                   , uiStride, uiWidth, uiHeight, uiMaxTrMode, uiTrMode, rpcCoeff ); rpcCoeff += uiCoefOffset; uiAbsPartIdx += uiPartOffset;
-          invRecurTransformNxN( pcCU, uiAbsPartIdx, eTxt, rpcResidual, uiAddr + uiTrWidth                       , uiStride, uiWidth, uiHeight, uiMaxTrMode, uiTrMode, rpcCoeff ); rpcCoeff += uiCoefOffset; uiAbsPartIdx += uiPartOffset;
-          invRecurTransformNxN( pcCU, uiAbsPartIdx, eTxt, rpcResidual, uiAddr + uiTrHeight*uiStride             , uiStride, uiWidth, uiHeight, uiMaxTrMode, uiTrMode, rpcCoeff ); rpcCoeff += uiCoefOffset; uiAbsPartIdx += uiPartOffset;
-          invRecurTransformNxN( pcCU, uiAbsPartIdx, eTxt, rpcResidual, uiAddr + uiTrHeight*uiStride+uiTrWidth   , uiStride, uiWidth, uiHeight, uiMaxTrMode, uiTrMode, rpcCoeff );
-        }
+        invRecurTransformNxN( pcCU, uiAbsPartIdx, eTxt, rpcResidual, uiAddr                                   , uiStride, uiWidth, uiHeight, uiMaxTrMode, uiTrMode, rpcCoeff ); rpcCoeff += uiCoefOffset; uiAbsPartIdx += uiPartOffset;
+        invRecurTransformNxN( pcCU, uiAbsPartIdx, eTxt, rpcResidual, uiAddr + uiTrWidth                       , uiStride, uiWidth, uiHeight, uiMaxTrMode, uiTrMode, rpcCoeff ); rpcCoeff += uiCoefOffset; uiAbsPartIdx += uiPartOffset;
+        invRecurTransformNxN( pcCU, uiAbsPartIdx, eTxt, rpcResidual, uiAddr + uiTrHeight*uiStride             , uiStride, uiWidth, uiHeight, uiMaxTrMode, uiTrMode, rpcCoeff ); rpcCoeff += uiCoefOffset; uiAbsPartIdx += uiPartOffset;
+        invRecurTransformNxN( pcCU, uiAbsPartIdx, eTxt, rpcResidual, uiAddr + uiTrHeight*uiStride+uiTrWidth   , uiStride, uiWidth, uiHeight, uiMaxTrMode, uiTrMode, rpcCoeff );
       }
     }
     else
+#endif
     {
-#endif
-    invRecurTransformNxN( pcCU, uiAbsPartIdx, eTxt, rpcResidual, uiAddr                         , uiStride, uiWidth, uiHeight, uiMaxTrMode, uiTrMode, rpcCoeff ); rpcCoeff += uiCoefOffset; uiAbsPartIdx += uiPartOffset;
-    invRecurTransformNxN( pcCU, uiAbsPartIdx, eTxt, rpcResidual, uiAddr + uiWidth               , uiStride, uiWidth, uiHeight, uiMaxTrMode, uiTrMode, rpcCoeff ); rpcCoeff += uiCoefOffset; uiAbsPartIdx += uiPartOffset;
-    invRecurTransformNxN( pcCU, uiAbsPartIdx, eTxt, rpcResidual, uiAddr + uiAddrOffset          , uiStride, uiWidth, uiHeight, uiMaxTrMode, uiTrMode, rpcCoeff ); rpcCoeff += uiCoefOffset; uiAbsPartIdx += uiPartOffset;
-    invRecurTransformNxN( pcCU, uiAbsPartIdx, eTxt, rpcResidual, uiAddr + uiAddrOffset + uiWidth, uiStride, uiWidth, uiHeight, uiMaxTrMode, uiTrMode, rpcCoeff );
-#if NSQT
+      invRecurTransformNxN( pcCU, uiAbsPartIdx, eTxt, rpcResidual, uiAddr                         , uiStride, uiWidth, uiHeight, uiMaxTrMode, uiTrMode, rpcCoeff ); rpcCoeff += uiCoefOffset; uiAbsPartIdx += uiPartOffset;
+      invRecurTransformNxN( pcCU, uiAbsPartIdx, eTxt, rpcResidual, uiAddr + uiWidth               , uiStride, uiWidth, uiHeight, uiMaxTrMode, uiTrMode, rpcCoeff ); rpcCoeff += uiCoefOffset; uiAbsPartIdx += uiPartOffset;
+      invRecurTransformNxN( pcCU, uiAbsPartIdx, eTxt, rpcResidual, uiAddr + uiAddrOffset          , uiStride, uiWidth, uiHeight, uiMaxTrMode, uiTrMode, rpcCoeff ); rpcCoeff += uiCoefOffset; uiAbsPartIdx += uiPartOffset;
+      invRecurTransformNxN( pcCU, uiAbsPartIdx, eTxt, rpcResidual, uiAddr + uiAddrOffset + uiWidth, uiStride, uiWidth, uiHeight, uiMaxTrMode, uiTrMode, rpcCoeff );
     }
-#endif
   }
 }
 
@@ -4115,7 +4164,7 @@ __inline UInt TComTrQuant::xGetCodedLevel ( Double&                         rd64
       rd64CodedCost     = dCurrCost;
       rd64CodedCostSig  = dCurrCostSig;
     }
-}
+  }
 
   return uiBestAbsLevel;
 }
