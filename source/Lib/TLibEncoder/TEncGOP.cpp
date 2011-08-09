@@ -652,6 +652,7 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
         // is it needed?
         if ( pcSlice->getSymbolMode() )
         {
+          nalu.m_Bitstream.writeAlignOne(); // Byte-alignment before CABAC data
           m_pcSbacCoder->init( (TEncBinIf*)m_pcBinCABAC );
           m_pcEntropyCoder->setEntropyCoder ( m_pcSbacCoder, pcSlice );
           m_pcEntropyCoder->resetEntropy    ();

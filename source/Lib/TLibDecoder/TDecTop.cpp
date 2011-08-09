@@ -326,6 +326,16 @@ Bool TDecTop::decode(InputNALUnit& nalu, Int& iSkipFrame, Int& iPOCLastDisplay)
       m_apcSlicePilot->setReferenced(nalu.m_RefIDC != NAL_REF_IDC_PRIORITY_LOWEST);
       m_cEntropyDecoder.decodeSliceHeader (m_apcSlicePilot);
 
+      if ( m_apcSlicePilot->getSymbolMode() )
+      {
+        Int numBitsForByteAlignment = nalu.m_Bitstream->getNumBitsUntilByteAligned();
+        if ( numBitsForByteAlignment > 0 )
+        {
+          UInt bitsForByteAlignment;
+          nalu.m_Bitstream->read( numBitsForByteAlignment, bitsForByteAlignment );
+          assert( bitsForByteAlignment == ( ( 1 << numBitsForByteAlignment ) - 1 ) );
+        }
+      }
       m_apcSlicePilot->setTLayerInfo(nalu.m_TemporalID);
 
       if (m_apcSlicePilot->isNextSlice() && m_apcSlicePilot->getPOC()!=m_uiPrevPOC && !m_bFirstSliceInSequence)
