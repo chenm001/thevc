@@ -1866,6 +1866,16 @@ Void TEncCavlc::codeCbfTrdiv( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth 
   UInt uiFlagPattern = xGetFlagPattern( pcCU, uiAbsPartIdx, uiDepth );
   n = pcCU->isIntra( uiAbsPartIdx ) ? 0 : 1;
 
+#if LG_MRG_2Nx2N_CBF 
+  Bool bMRG_2Nx2N_TrDepth_Is_Zero = false;
+  if(  uiTrDepth==0 
+    && pcCU->getPartitionSize( uiAbsPartIdx) == SIZE_2Nx2N 
+    && pcCU->getMergeFlag( uiAbsPartIdx ) )
+  {
+    bMRG_2Nx2N_TrDepth_Is_Zero = true;
+  }
+#endif
+
   if(uiFlagPattern < 8)
   {
     UInt uiFullDepth = pcCU->getDepth(uiAbsPartIdx) + uiTrDepth;
@@ -1931,22 +1941,64 @@ Void TEncCavlc::codeCbfTrdiv( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth 
     {
       UInt  uiIdx = uiTrDepth? (2 + n) : n;
       cx = m_uiCBP_YUV_TableE[uiIdx][(uiCBFV<<0) + (uiCBFU<<1) + (uiCBFY<<2)];
-      xWriteUnaryMaxSymbol(cx,7);
 
-      if ( m_bAdaptFlag )
+#if LG_MRG_2Nx2N_CBF
+      if (bMRG_2Nx2N_TrDepth_Is_Zero)
       {
-        adaptCodeword(cx,  m_ucCBP_YUV_TableCounter[uiIdx],  m_ucCBP_YUV_TableCounterSum[uiIdx],  m_uiCBP_YUV_TableD[uiIdx],  m_uiCBP_YUV_TableE[uiIdx], 4);
+        UInt uiCxOri = cx;
+        if ( cx > m_uiCBP_YUV_TableE[uiIdx][0] )
+        {
+          cx--;
+        }
+
+        xWriteUnaryMaxSymbol(cx,6);
+
+        if ( m_bAdaptFlag )
+        {
+          adaptCodeword(uiCxOri,  m_ucCBP_YUV_TableCounter[uiIdx],  m_ucCBP_YUV_TableCounterSum[uiIdx],  m_uiCBP_YUV_TableD[uiIdx],  m_uiCBP_YUV_TableE[uiIdx], 4);
+        }
       }
+      else
+      {      
+#endif
+        xWriteUnaryMaxSymbol(cx,7);
+
+        if ( m_bAdaptFlag )
+        {
+          adaptCodeword(cx,  m_ucCBP_YUV_TableCounter[uiIdx],  m_ucCBP_YUV_TableCounterSum[uiIdx],  m_uiCBP_YUV_TableD[uiIdx],  m_uiCBP_YUV_TableE[uiIdx], 4);
+        }
+#if LG_MRG_2Nx2N_CBF
+      }
+#endif
     }
     else if ( uiFlagPattern == 11 || uiFlagPattern == 13 || uiFlagPattern == 15 )
     {
       cx = m_uiCBP_YCS_TableE[n][(uiCBFY<<2)+((uiCBFU||uiCBFV?1:0)<<1)+uiSubdiv];
-      xWriteCode(g_auiCBP_YCS_Table[n][cx], g_auiCBP_YCS_TableLen[n][cx]);
-
-      if ( m_bAdaptFlag )
+#if LG_MRG_2Nx2N_CBF
+      if (bMRG_2Nx2N_TrDepth_Is_Zero)
       {
-        adaptCodeword(cx, m_ucCBP_YCS_TableCounter[n],  m_ucCBP_YCS_TableCounterSum[n],  m_uiCBP_YCS_TableD[n],  m_uiCBP_YCS_TableE[n], 4);
+        UInt uiCxOri = cx;
+        if ( cx > m_uiCBP_YCS_TableE[n][0] )
+          cx--;
+        xWriteUnaryMaxSymbol(cx,5);
+
+        if ( m_bAdaptFlag )
+        {
+          adaptCodeword(uiCxOri, m_ucCBP_YCS_TableCounter[n],  m_ucCBP_YCS_TableCounterSum[n],  m_uiCBP_YCS_TableD[n],  m_uiCBP_YCS_TableE[n], 4);
+        }
       }
+      else
+      {      
+#endif
+        xWriteCode(g_auiCBP_YCS_Table[n][cx], g_auiCBP_YCS_TableLen[n][cx]);
+
+        if ( m_bAdaptFlag )
+        {
+          adaptCodeword(cx, m_ucCBP_YCS_TableCounter[n],  m_ucCBP_YCS_TableCounterSum[n],  m_uiCBP_YCS_TableD[n],  m_uiCBP_YCS_TableE[n], 4);
+        }
+#if LG_MRG_2Nx2N_CBF
+      }
+#endif
 
       //U and V          
       if ( uiFlagPattern == 15)

@@ -91,6 +91,10 @@
 #define PART_MRG                          0            // If the number of partitions is two and size > 8, only merging mode is enabled for the first partition & do not code merge_flag for the first partition
 #define HHI_MRG_SKIP                      1            // (JCTVC-E481 - merge skip) replaces the AMVP based skip by merge based skip (E481 - MERGE skip)
 
+#if HHI_MRG_SKIP
+#define LG_MRG_2Nx2N_CBF                  1
+#endif
+
 #if HHI_RQT_INTRA_SPEEDUP_MOD && !HHI_RQT_INTRA_SPEEDUP
 #error
 #endif
