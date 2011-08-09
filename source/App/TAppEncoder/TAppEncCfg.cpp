@@ -173,6 +173,10 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
 #if SUB_LCU_DQP
   ("MaxCuDQPDepth,-dqd",  m_iMaxCuDQPDepth,        0, "max depth for a minimum CuDQP")
 #endif
+#if QP_ADAPTATION
+  ("AdaptiveQP,-aq", m_bUseAdaptiveQP, false, "QP adaptation based on a psycho-visual model")
+  ("MaxQPAdaptationRange,-aqr", m_iQPAdaptationRange, 6, "QP adaptation range")
+#endif
   ("dQPFile,m",     cfg_dQPFile, string(""), "dQP file name")
   ("RDOQ",          m_bUseRDOQ, true)
   ("TemporalLayerQPOffset_L0,-tq0", m_aiTLayerQPOffset[0], MAX_QP + 1, "QP offset of temporal layer 0")
@@ -390,6 +394,9 @@ Void TAppEncCfg::xCheckParameter()
 #if SUB_LCU_DQP
   xConfirmPara( m_iMaxCuDQPDepth > m_uiMaxCUDepth - 1,                                          "Absolute depth for a minimum CuDQP exceeds maximum coding unit depth" );
 #endif
+#if QP_ADAPTATION
+  xConfirmPara( m_iQPAdaptationRange <= 0,                                                  "QP Adaptation Range must be more than 0" );
+#endif
   xConfirmPara( m_iFrameToBeEncoded != 1 && m_iFrameToBeEncoded <= m_iGOPSize,              "Total Number of Frames to be encoded must be larger than GOP size");
   xConfirmPara( (m_uiMaxCUWidth  >> m_uiMaxCUDepth) < 4,                                    "Minimum partition width size should be larger than or equal to 8");
   xConfirmPara( (m_uiMaxCUHeight >> m_uiMaxCUDepth) < 4,                                    "Minimum partition height size should be larger than or equal to 8");
@@ -537,6 +544,12 @@ Void TAppEncCfg::xPrintParameter()
   printf("Intra period                 : %d\n", m_iIntraPeriod );
   printf("Decoding refresh type        : %d\n", m_iDecodingRefreshType );
   printf("QP                           : %5.2f\n", m_fQP );
+#if SUB_LCU_DQP
+  printf("Max dQP signaling depth      : %d\n", m_iMaxCuDQPDepth);
+#endif
+#if QP_ADAPTATION
+  printf("QP adaptation                : %d (range=%d)\n", m_bUseAdaptiveQP, (m_bUseAdaptiveQP ? m_iQPAdaptationRange : 0) );
+#endif
   printf("GOP size                     : %d\n", m_iGOPSize );
   printf("Rate GOP size                : %d\n", m_iRateGOPSize );
   printf("Internal bit depth           : %d\n", m_uiInternalBitDepth );

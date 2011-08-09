@@ -37,6 +37,9 @@
 
 #include "../TLibCommon/CommonDef.h"
 #include "TEncTop.h"
+#if QP_ADAPTATION
+#include "TEncPic.h"
+#endif
 
 // ====================================================================================================================
 // Constructor / destructor / create / destroy
@@ -250,6 +253,14 @@ Void TEncTop::encode( bool bEos, TComPicYuv* pcPicYuvOrg, TComList<TComPicYuv*>&
   xGetNewPicBuffer( pcPicCurr );
   pcPicYuvOrg->copyToPic( pcPicCurr->getPicYuvOrg() );
   
+#if QP_ADAPTATION
+  // compute image characteristics
+  if ( getUseAdaptiveQP() )
+  {
+    m_cPreanalyzer.xPreanalyze( dynamic_cast<TEncPic*>( pcPicCurr ) );
+  }
+#endif
+  
   if ( m_iPOCLast != 0 && ( m_iNumPicRcvd != m_iGOPSize && m_iGOPSize ) && !bEos )
   {
     iNumEncoded = 0;
@@ -332,8 +343,22 @@ Void TEncTop::xGetNewPicBuffer ( TComPic*& rpcPic )
       rpcPic = *(++iterPic);
       if ( abs(rpcPic->getPOC() - m_iPOCLast) <= m_iGOPSize )
       {
+#if QP_ADAPTATION
+        if ( getUseAdaptiveQP() )
+        {
+          TEncPic* pcEPic = new TEncPic;
+          pcEPic->create( m_iSourceWidth, m_iSourceHeight, g_uiMaxCUWidth, g_uiMaxCUHeight, g_uiMaxCUDepth, m_cPPS.getMaxCuDQPDepth()+1 );
+          rpcPic = pcEPic;
+        }
+        else
+        {
+          rpcPic = new TComPic;
+          rpcPic->create( m_iSourceWidth, m_iSourceHeight, g_uiMaxCUWidth, g_uiMaxCUHeight, g_uiMaxCUDepth );
+        }
+#else
         rpcPic = new TComPic;
         rpcPic->create( m_iSourceWidth, m_iSourceHeight, g_uiMaxCUWidth, g_uiMaxCUHeight, g_uiMaxCUDepth );
+#endif
       }
       else
       {
@@ -344,8 +369,22 @@ Void TEncTop::xGetNewPicBuffer ( TComPic*& rpcPic )
   }
   else
   {
+#if QP_ADAPTATION
+    if ( getUseAdaptiveQP() )
+    {
+      TEncPic* pcEPic = new TEncPic;
+      pcEPic->create( m_iSourceWidth, m_iSourceHeight, g_uiMaxCUWidth, g_uiMaxCUHeight, g_uiMaxCUDepth, m_cPPS.getMaxCuDQPDepth()+1 );
+      rpcPic = pcEPic;
+    }
+    else
+    {
+      rpcPic = new TComPic;
+      rpcPic->create( m_iSourceWidth, m_iSourceHeight, g_uiMaxCUWidth, g_uiMaxCUHeight, g_uiMaxCUDepth );
+    }
+#else
     rpcPic = new TComPic;
     rpcPic->create( m_iSourceWidth, m_iSourceHeight, g_uiMaxCUWidth, g_uiMaxCUHeight, g_uiMaxCUDepth );
+#endif
   }
   
   m_cListPic.pushBack( rpcPic );
@@ -381,7 +420,11 @@ Void TEncTop::xInitSPS()
   m_cSPS.setQuadtreeTUMaxDepthInter( m_uiQuadtreeTUMaxDepthInter    );
   m_cSPS.setQuadtreeTUMaxDepthIntra( m_uiQuadtreeTUMaxDepthIntra    );
   
+#if QP_ADAPTATION
+  m_cSPS.setUseDQP        ( m_iMaxDeltaQP != 0 || m_bUseAdaptiveQP );
+#else
   m_cSPS.setUseDQP        ( m_iMaxDeltaQP != 0  );
+#endif
   m_cSPS.setUseLDC        ( m_bUseLDC           );
   m_cSPS.setUsePAD        ( m_bUsePAD           );
   

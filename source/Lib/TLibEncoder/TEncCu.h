@@ -123,6 +123,9 @@ protected:
 #endif
   Void  xEncodeCU           ( TComDataCU*  pcCU, UInt uiAbsPartIdx,           UInt uiDepth        );
   
+#if QP_ADAPTATION
+  Int   xComputeQP          ( TComDataCU* pcCU, UInt uiDepth );
+#endif
 #if SUB_LCU_DQP
   Void  xCheckBestMode      ( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, UInt uiDepth        );
 #endif
@@ -139,6 +142,9 @@ protected:
 #endif
   Void  xCheckRDCostIntra   ( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, PartSize ePartSize  );
   Void  xCheckBestMode      ( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU                      );
+#if SUB_LCU_DQP
+  Void  xCheckDQP           ( TComDataCU*  pcCU );
+#endif
   
 #if E057_INTRA_PCM
   Void  xCheckIntraPCM      ( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU                      );

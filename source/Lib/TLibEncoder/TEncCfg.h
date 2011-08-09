@@ -108,9 +108,15 @@ protected:
   Int       m_iFastSearch;                      //  0:Full search  1:Diamond  2:PMVFAST
   Int       m_iSearchRange;                     //  0:Full frame
   Int       m_bipredSearchRange;
+
+  //====== Quality control ========
   Int       m_iMaxDeltaQP;                      //  Max. absolute delta QP (1:default)
 #if SUB_LCU_DQP
   Int       m_iMaxCuDQPDepth;                   //  Max. depth for a minimum CuDQP (0:default)
+#endif
+#if QP_ADAPTATION
+  Bool      m_bUseAdaptiveQP;
+  Int       m_iQPAdaptationRange;
 #endif
   
   //====== Tool list ========
@@ -225,9 +231,15 @@ public:
   Void      setFastSearch                   ( Int   i )      { m_iFastSearch = i; }
   Void      setSearchRange                  ( Int   i )      { m_iSearchRange = i; }
   Void      setBipredSearchRange            ( Int   i )      { m_bipredSearchRange = i; }
+
+  //====== Quality control ========
   Void      setMaxDeltaQP                   ( Int   i )      { m_iMaxDeltaQP = i; }
 #if SUB_LCU_DQP
   Void      setMaxCuDQPDepth                ( Int   i )      { m_iMaxCuDQPDepth = i; }
+#endif
+#if QP_ADAPTATION
+  Void      setUseAdaptiveQP                ( Bool  b )      { m_bUseAdaptiveQP = b; }
+  Void      setQPAdaptationRange            ( Int   i )      { m_iQPAdaptationRange = i; }
 #endif
   
   //====== Sequence ========
@@ -271,9 +283,15 @@ public:
   //==== Motion search ========
   Int       getFastSearch                   ()      { return  m_iFastSearch; }
   Int       getSearchRange                  ()      { return  m_iSearchRange; }
+
+  //==== Quality control ========
   Int       getMaxDeltaQP                   ()      { return  m_iMaxDeltaQP; }
 #if SUB_LCU_DQP
   Int       getMaxCuDQPDepth                ()      { return  m_iMaxCuDQPDepth; }
+#endif
+#if QP_ADAPTATION
+  Bool      getUseAdaptiveQP                ()      { return  m_bUseAdaptiveQP; }
+  Int       getQPAdaptationRange            ()      { return  m_iQPAdaptationRange; }
 #endif
   
   //==== Tool list ========
