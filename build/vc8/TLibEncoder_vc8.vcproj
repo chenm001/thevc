@@ -330,6 +330,14 @@
 				RelativePath="..\..\source\Lib\TLibEncoder\TEncTop.cpp"
 				>
 			</File>
+			<File
+				RelativePath="..\..\source\Lib\TLibEncoder\TEncPic.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\source\Lib\TLibEncoder\TEncPreanalyzer.cpp"
+				>
+			</File>
 		</Filter>
 		<Filter
 			Name="Header Files"
@@ -397,6 +405,14 @@
 			</File>
 			<File
 				RelativePath="..\..\source\Lib\TLibEncoder\TEncTop.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\source\Lib\TLibEncoder\TEncPic.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\source\Lib\TLibEncoder\TEncPreanalyzer.h"
 				>
 			</File>
 		</Filter>

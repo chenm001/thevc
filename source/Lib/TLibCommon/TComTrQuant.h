@@ -165,7 +165,12 @@ public:
   
   // Misc functions
   Void setQPforQuant( Int iQP, Bool bLowpass, SliceType eSliceType, TextType eTxtType);
+#if RDOQ_CHROMA_LAMBDA 
+  Void setLambda(Double dLambdaLuma, Double dLambdaChroma) { m_dLambdaLuma = dLambdaLuma; m_dLambdaChroma = dLambdaChroma; }
+  Void selectLambda(TextType eTType) { m_dLambda = (eTType == TEXT_LUMA) ? m_dLambdaLuma : m_dLambdaChroma; }
+#else
   Void setLambda(Double dLambda) { m_dLambda = dLambda;}
+#endif
   Void setRDOQOffset( UInt uiRDOQOffset ) { m_uiRDOQOffset = uiRDOQOffset; }
   
   estBitsSbacStruct* m_pcEstBitsSbac;
@@ -179,6 +184,10 @@ protected:
   Long*    m_plTempCoeff;
   
   QpParam  m_cQP;
+#if RDOQ_CHROMA_LAMBDA
+  Double   m_dLambdaLuma;
+  Double   m_dLambdaChroma;
+#endif
   Double   m_dLambda;
   UInt     m_uiRDOQOffset;
   UInt     m_uiMaxTrSize;

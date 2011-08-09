@@ -108,9 +108,15 @@ protected:
   Int       m_iFastSearch;                      //  0:Full search  1:Diamond  2:PMVFAST
   Int       m_iSearchRange;                     //  0:Full frame
   Int       m_bipredSearchRange;
+
+  //====== Quality control ========
   Int       m_iMaxDeltaQP;                      //  Max. absolute delta QP (1:default)
 #if SUB_LCU_DQP
   Int       m_iMaxCuDQPDepth;                   //  Max. depth for a minimum CuDQP (0:default)
+#endif
+#if QP_ADAPTATION
+  Bool      m_bUseAdaptiveQP;
+  Int       m_iQPAdaptationRange;
 #endif
   
   //====== Tool list ========
@@ -130,6 +136,9 @@ protected:
   Bool      m_bUseNRF;
   Bool      m_bUseBQP;
   Bool      m_bUseFastEnc;
+#if EARLY_CU_DETERMINATION
+  Bool      m_bUseEarlyCU;
+#endif
   Bool      m_bUseMRG; // SOPH:
 #if LM_CHROMA 
   Bool      m_bUseLMChroma; 
@@ -163,6 +172,10 @@ protected:
   Bool      m_bPCMFilterDisableFlag;
 #endif
   bool m_pictureDigestEnabled; ///< enable(1)/disable(0) md5 computation and SEI signalling
+
+#if REF_SETTING_FOR_LD
+  Bool      m_bUseNewRefSetting;
+#endif
 
 public:
   TEncCfg()          {}
@@ -221,9 +234,15 @@ public:
   Void      setFastSearch                   ( Int   i )      { m_iFastSearch = i; }
   Void      setSearchRange                  ( Int   i )      { m_iSearchRange = i; }
   Void      setBipredSearchRange            ( Int   i )      { m_bipredSearchRange = i; }
+
+  //====== Quality control ========
   Void      setMaxDeltaQP                   ( Int   i )      { m_iMaxDeltaQP = i; }
 #if SUB_LCU_DQP
   Void      setMaxCuDQPDepth                ( Int   i )      { m_iMaxCuDQPDepth = i; }
+#endif
+#if QP_ADAPTATION
+  Void      setUseAdaptiveQP                ( Bool  b )      { m_bUseAdaptiveQP = b; }
+  Void      setQPAdaptationRange            ( Int   i )      { m_iQPAdaptationRange = i; }
 #endif
   
   //====== Sequence ========
@@ -267,9 +286,15 @@ public:
   //==== Motion search ========
   Int       getFastSearch                   ()      { return  m_iFastSearch; }
   Int       getSearchRange                  ()      { return  m_iSearchRange; }
+
+  //==== Quality control ========
   Int       getMaxDeltaQP                   ()      { return  m_iMaxDeltaQP; }
 #if SUB_LCU_DQP
   Int       getMaxCuDQPDepth                ()      { return  m_iMaxCuDQPDepth; }
+#endif
+#if QP_ADAPTATION
+  Bool      getUseAdaptiveQP                ()      { return  m_bUseAdaptiveQP; }
+  Int       getQPAdaptationRange            ()      { return  m_iQPAdaptationRange; }
 #endif
   
   //==== Tool list ========
@@ -286,6 +311,9 @@ public:
   Void      setUseNRF                       ( Bool  b )     { m_bUseNRF     = b; }
   Void      setUseBQP                       ( Bool  b )     { m_bUseBQP     = b; }
   Void      setUseFastEnc                   ( Bool  b )     { m_bUseFastEnc = b; }
+#if EARLY_CU_DETERMINATION
+  Void      setUseEarlyCU                   ( Bool  b )     { m_bUseEarlyCU = b; }
+#endif
   Void      setUseMRG                       ( Bool  b )     { m_bUseMRG     = b; } // SOPH:
   Void      setUseConstrainedIntraPred      ( Bool  b )     { m_bUseConstrainedIntraPred = b; }
 #if E057_INTRA_PCM && E192_SPS_PCM_BIT_DEPTH_SYNTAX
@@ -316,6 +344,9 @@ public:
   Bool      getUseNRF                       ()      { return m_bUseNRF;     }
   Bool      getUseBQP                       ()      { return m_bUseBQP;     }
   Bool      getUseFastEnc                   ()      { return m_bUseFastEnc; }
+#if EARLY_CU_DETERMINATION
+  Bool      getUseEarlyCU                   ()      { return m_bUseEarlyCU; }
+#endif
   Bool      getUseMRG                       ()      { return m_bUseMRG;     } // SOPH:
   Bool      getUseConstrainedIntraPred      ()      { return m_bUseConstrainedIntraPred; }
 #if E057_INTRA_PCM && E192_SPS_PCM_BIT_DEPTH_SYNTAX
@@ -361,6 +392,11 @@ public:
 
   void setPictureDigestEnabled(bool b) { m_pictureDigestEnabled = b; }
   bool getPictureDigestEnabled() { return m_pictureDigestEnabled; }
+
+#if REF_SETTING_FOR_LD
+  Void      setUseNewRefSetting    ( Bool b ) { m_bUseNewRefSetting = b;    }
+  Bool      getUseNewRefSetting    ()         { return m_bUseNewRefSetting; }
+#endif
 
 };
 

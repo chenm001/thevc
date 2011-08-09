@@ -52,7 +52,10 @@
 #define DNB_CHROMA_CBF_FLAGS              1           ///< F606:               disable of neighbour evaluation for chroma cbf (use depth for that)
 #define DNB_LUMA_CBF_FLAGS                1           ///< F429:               disable of neighbour evaluation for luma cbf
 
-
+#define WEIGHTED_CHROMA_DISTORTION  1   ///< F386: weighting of chroma for RDO
+#define RDOQ_CHROMA_LAMBDA          1   ///< F386: weighting of chroma for RDOQ
+#define ALF_CHROMA_LAMBDA           1   ///< F386: weighting of chroma for ALF
+#define SAO_CHROMA_LAMBDA           1   ///< F386: weighting of chroma for SAO
 
 ////////////////////////////
 // JCT-VC F start
@@ -86,6 +89,10 @@
 
 #define PART_MRG                          0            // If the number of partitions is two and size > 8, only merging mode is enabled for the first partition & do not code merge_flag for the first partition
 #define HHI_MRG_SKIP                      1            // (JCTVC-E481 - merge skip) replaces the AMVP based skip by merge based skip (E481 - MERGE skip)
+
+#if HHI_MRG_SKIP
+#define LG_MRG_2Nx2N_CBF                  1
+#endif
 
 #if HHI_RQT_INTRA_SPEEDUP_MOD && !HHI_RQT_INTRA_SPEEDUP
 #error
@@ -163,6 +170,11 @@
 #define CAVLC_RQT_CBP                   1           //CAVLC coding of cbf and split flag, JCTVC-E404
 #endif
 
+#define REF_SETTING_FOR_LD              1           // reference frame setting for low delay setting (JCTVC-F701)
+                                                    // using one nearest frame as reference frame, and the other frames are high quality (POC%4==0) frames (1+X)
+                                                    // this should be done with encoder only decision
+                                                    // but because of the absence of reference frame management, the related code was hard coded currently
+
 #define CAVLC_RUNLEVEL_TABLE_REM        1           // CAVLC coding of run-level without table (JCTVC-F543)
 
 #define AVOID_ZERO_MERGE_CANDIDATE      1           // (JCTVC-E146/E118) insert zero MV if no merge candidates are available
@@ -196,6 +208,13 @@
 
 #define FAST_UDI_USE_MPM 1
 #define SUB_LCU_DQP  1                               ///< syntax change of sub-LCU-level dQP (JCTVC-E051/220/391/436/217/D038/D258)
+
+#if SUB_LCU_DQP
+#define QP_ADAPTATION                     0           ///< Enable TM5Step3-like QP adaptation in encoder (JCTVC-D308/E215)
+#if QP_ADAPTATION
+#define RDO_WITHOUT_DQP_BITS              0           ///< Disable counting dQP bits in RDO-based mode decision
+#endif
+#endif
 
 #define TI_ALF_MAX_VSIZE_7 1
 
@@ -285,6 +304,11 @@
 #if AMP_ENC_SPEEDUP
 #define AMP_MRG                               1           ///< encoder only force merge for AMP partition (no motion search for AMP)
 #endif
+
+
+#define F745_DQP_BINARIZATION          1 //JCTVC-F745: DQP binarization
+
+#define EARLY_CU_DETERMINATION            1 //JCTVC-F092
 
 // ====================================================================================================================
 // Basic type redefinition

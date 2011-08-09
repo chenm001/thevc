@@ -420,7 +420,11 @@ UInt TComRdCost::calcHAD( Pel* pi0, Int iStride0, Pel* pi1, Int iStride1, Int iW
   return ( uiSum >> g_uiBitIncrement );
 }
 
+#if WEIGHTED_CHROMA_DISTORTION
+UInt TComRdCost::getDistPart( Pel* piCur, Int iCurStride,  Pel* piOrg, Int iOrgStride, UInt uiBlkWidth, UInt uiBlkHeight, Bool bWeighted, DFunc eDFunc )
+#else
 UInt TComRdCost::getDistPart( Pel* piCur, Int iCurStride,  Pel* piOrg, Int iOrgStride, UInt uiBlkWidth, UInt uiBlkHeight, DFunc eDFunc )
+#endif
 {
   DistParam cDtParam;
   setDistParam( uiBlkWidth, uiBlkHeight, eDFunc, cDtParam );
@@ -429,8 +433,21 @@ UInt TComRdCost::getDistPart( Pel* piCur, Int iCurStride,  Pel* piOrg, Int iOrgS
   cDtParam.iStrideOrg = iOrgStride;
   cDtParam.iStrideCur = iCurStride;
   cDtParam.iStep      = 1;
+#if WEIGHTED_CHROMA_DISTORTION
+  if (bWeighted)
+  {
+    return ((int) (m_chromaDistortionWeight * cDtParam.DistFunc( &cDtParam )));
+  }
+  else
+  {
+    return cDtParam.DistFunc( &cDtParam );
+  }
+#else
   return cDtParam.DistFunc( &cDtParam );
+#endif
 }
+
+
 
 // ====================================================================================================================
 // Distortion functions

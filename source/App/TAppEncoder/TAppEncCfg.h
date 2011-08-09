@@ -90,6 +90,10 @@ protected:
 #if SUB_LCU_DQP
   Int       m_iMaxCuDQPDepth;                                 ///< Max. depth for a minimum CuDQPSize (0:default)
 #endif
+#if QP_ADAPTATION
+  Bool      m_bUseAdaptiveQP;                                 ///< Flag for enabling QP adaptation based on a psycho-visual model
+  Int       m_iQPAdaptationRange;                             ///< dQP range by QP adaptation
+#endif
   
   Bool      m_bTLayering;                                     ///< indicates whether temporal IDs are set based on the hierarchical coding structure
   Bool      m_abTLayerSwitchingFlag[MAX_TLAYER];              ///< temporal layer switching flags corresponding to each temporal layer
@@ -159,7 +163,9 @@ protected:
   Int       m_iSearchRange;                                   ///< ME search range
   Int       m_bipredSearchRange;                              ///< ME search range for bipred refinement
   Bool      m_bUseFastEnc;                                    ///< flag for using fast encoder setting
-  
+#if EARLY_CU_DETERMINATION
+  Bool      m_bUseEarlyCU;                                    ///< flag for using Early CU setting
+#endif  
   Int       m_iSliceMode;           ///< 0: Disable all Recon slice limits, 1 : Maximum number of largest coding units per slice, 2: Maximum number of bytes in a slice
   Int       m_iSliceArgument;       ///< If m_iSliceMode==1, m_iSliceArgument=max. # of largest coding units. If m_iSliceMode==2, m_iSliceArgument=max. # of bytes.
   Int       m_iEntropySliceMode;    ///< 0: Disable all entropy slice limits, 1 : Maximum number of largest coding units per slice, 2: Constraint based entropy slice
@@ -174,6 +180,10 @@ protected:
   Bool      m_bUseConstrainedIntraPred;                       ///< flag for using constrained intra prediction
   
   bool m_pictureDigestEnabled; ///< enable(1)/disable(0) md5 computation and SEI signalling
+
+#if REF_SETTING_FOR_LD
+  Bool      m_bUseNewRefSetting;
+#endif
 
   // internal member functions
   Void  xSetGlobal      ();                                   ///< set global variables

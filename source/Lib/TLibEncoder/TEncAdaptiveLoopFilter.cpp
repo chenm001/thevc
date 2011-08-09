@@ -427,6 +427,17 @@ Void TEncAdaptiveLoopFilter::endALFEnc()
 
 }
 
+#if ALF_CHROMA_LAMBDA  
+/**
+ \param pcAlfParam           ALF parameter
+ \param dLambdaLuma          luma lambda value for RD cost computation
+ \param dLambdaChroma        chroma lambda value for RD cost computation
+ \retval ruiDist             distortion
+ \retval ruiBits             required bits
+ \retval ruiMaxAlfCtrlDepth  optimal partition depth
+ */
+Void TEncAdaptiveLoopFilter::ALFProcess( ALFParam* pcAlfParam, Double dLambdaLuma, Double dLambdaChroma, UInt64& ruiDist, UInt64& ruiBits, UInt& ruiMaxAlfCtrlDepth )
+#else
 /**
  \param pcAlfParam           ALF parameter
  \param dLambda              lambda value for RD cost computation
@@ -435,6 +446,7 @@ Void TEncAdaptiveLoopFilter::endALFEnc()
  \retval ruiMaxAlfCtrlDepth  optimal partition depth
  */
 Void TEncAdaptiveLoopFilter::ALFProcess( ALFParam* pcAlfParam, Double dLambda, UInt64& ruiDist, UInt64& ruiBits, UInt& ruiMaxAlfCtrlDepth )
+#endif
 {
 #if !STAR_CROSS_SHAPES_LUMA
   Int tap, num_coef;
@@ -451,9 +463,14 @@ Void TEncAdaptiveLoopFilter::ALFProcess( ALFParam* pcAlfParam, Double dLambda, U
 #endif
   
   // set lambda
+#if ALF_CHROMA_LAMBDA  
+  m_dLambdaLuma   = dLambdaLuma;
+  m_dLambdaChroma = dLambdaChroma;
+#else
   m_dLambdaLuma   = dLambda;
   m_dLambdaChroma = dLambda;
-  
+#endif
+
   TComPicYuv* pcPicOrg = m_pcPic->getPicYuvOrg();
   
   // extend image for filtering
@@ -8153,10 +8170,18 @@ Void TEncSampleAdaptiveOffset::xGetQAOStats(SAOQTPart *psQTPart, Int iYCbCr)
 }
 
 
+#if SAO_CHROMA_LAMBDA 
+/** Sample adaptive offset Process
+ * \param dLambdaLuma
+ * \param dLambdaChroma
+ */
+Void TEncSampleAdaptiveOffset::SAOProcess( Double dLambdaLuma, Double dLambdaChroma)
+#else
 /** Sample adaptive offset Process
  * \param dLambda
  */
 Void TEncSampleAdaptiveOffset::SAOProcess( Double dLambda)
+#endif
 {
 
 #if MTK_SAO_REMOVE_SKIP
@@ -8166,8 +8191,13 @@ Void TEncSampleAdaptiveOffset::SAOProcess( Double dLambda)
   m_eSliceType           =  m_pcPic->getSlice(0)->getSliceType();
   m_iPicNalReferenceIdc  = (m_pcPic->getSlice(0)->isReferenced() ? 1 :0);
 
+#if SAO_CHROMA_LAMBDA 
+  m_dLambdaLuma    = dLambdaLuma;
+  m_dLambdaChroma  = dLambdaChroma;
+#else
   m_dLambdaLuma    = dLambda;
   m_dLambdaChroma  = dLambda;
+#endif
 
 #if SAO_ACCURATE_OFFSET
 #if FULL_NBIT

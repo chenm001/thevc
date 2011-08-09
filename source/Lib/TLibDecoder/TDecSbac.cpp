@@ -1490,6 +1490,22 @@ Void TDecSbac::parseDeltaQP( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
   }
   else
   {
+#if F745_DQP_BINARIZATION
+    UInt uiSign;
+    UInt uiQpBdOffsetY = 6*(g_uiBitIncrement + g_uiBitDepth - 8);
+    m_pcTDecBinIf->decodeBinEP(uiSign);
+
+    UInt uiMaxAbsDQpMinus1 = 24 + (uiQpBdOffsetY/2) + (uiSign);
+    UInt uiAbsDQpMinus1;
+    xReadUnaryMaxSymbol (uiAbsDQpMinus1,  &m_cCUDeltaQpSCModel.get( 0, 0, 2 ), 1, uiMaxAbsDQpMinus1);
+
+    iDQp = uiAbsDQpMinus1 + 1;
+
+    if(uiSign)
+    {
+      iDQp = -iDQp;
+    }
+#else
     xReadUnarySymbol( uiDQp, &m_cCUDeltaQpSCModel.get( 0, 0, 2 ), 1 );
     iDQp = ( uiDQp + 2 ) / 2;
     
@@ -1497,11 +1513,13 @@ Void TDecSbac::parseDeltaQP( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
     {
       iDQp = -iDQp;
     }
+#endif
 #if SUB_LCU_DQP
     uiDQp = pcCU->getRefQP(uiAbsPartIdx) + iDQp;
 #else
     uiDQp = pcCU->getSlice()->getSliceQp() + iDQp;
 #endif
+
   }
   
 #if SUB_LCU_DQP

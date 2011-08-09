@@ -61,7 +61,12 @@ TComSlice::TComSlice()
 , m_pcPPS                         ( NULL )
 , m_pcPic                         ( NULL )
 , m_uiColDir                      ( 0 )
+#if ALF_CHROMA_LAMBDA || SAO_CHROMA_LAMBDA
+, m_dLambdaLuma( 0.0 )
+, m_dLambdaChroma( 0.0 )
+#else
 , m_dLambda                       ( 0.0 )
+#endif
 , m_bNoBackPredFlag               ( false )
 , m_bRefIdxCombineCoding          ( false )
 , m_uiTLayer                      ( 0 )
@@ -653,7 +658,12 @@ Void TComSlice::copySliceInfo(TComSlice *pSrc)
   m_pcPic                = pSrc->m_pcPic;
 
   m_uiColDir             = pSrc->m_uiColDir;
+#if ALF_CHROMA_LAMBDA || SAO_CHROMA_LAMBDA 
+  m_dLambdaLuma          = pSrc->m_dLambdaLuma;
+  m_dLambdaChroma        = pSrc->m_dLambdaChroma;
+#else
   m_dLambda              = pSrc->m_dLambda;
+#endif
   for (i = 0; i < 2; i++)
   {
     for (j = 0; j < MAX_NUM_REF; j++)
@@ -785,6 +795,58 @@ Void TComSlice::decodingTLayerSwitchingMarking( TComList<TComPic*>& rcListPic )
   }
 }
 
+#if REF_SETTING_FOR_LD
+Int TComSlice::getActualRefNumber( TComList<TComPic*>& rcListPic )
+{
+  Int iActualNumOfReference = 0;
+
+  TComList<TComPic*>::iterator iterPic = rcListPic.begin();
+  while ( iterPic != rcListPic.end() )
+  {
+    TComPic* rpcPic = *(iterPic);
+    if ( rpcPic->getSlice( 0 )->isReferenced() ) 
+    {
+      iActualNumOfReference++;
+    }
+    iterPic++;
+  }
+
+  return iActualNumOfReference;
+}
+
+Void TComSlice::decodingRefMarkingForLD( TComList<TComPic*>& rcListPic, Int iMaxNumRefFrames, Int iCurrentPOC )
+{
+  assert( iMaxNumRefFrames >= 1 );
+  while( getActualRefNumber( rcListPic ) > iMaxNumRefFrames )
+  {
+    sortPicList( rcListPic );
+    TComList<TComPic*>::iterator it = rcListPic.begin();
+    while( it != rcListPic.end() )
+    {
+      if ( (*it)->getSlice(0)->isReferenced() && (*it)->getSlice(0)->getPOC() != iCurrentPOC && (*it)->getSlice(0)->getPOC() % 4 != 0 )
+      {
+        (*it)->getSlice(0)->setReferenced( false );   // mark POC%4!=0 as unused for reference
+        break;
+      }
+      it++;
+    }
+    if ( it == rcListPic.end() )  // all the reference frames POC%4== 0, mark the first reference frame as unused for reference
+    {
+      it = rcListPic.begin();
+      while( it != rcListPic.end() )
+      {
+        if ( (*it)->getSlice(0)->isReferenced() )
+        {
+          (*it)->getSlice(0)->setReferenced( false );
+          break;
+        }
+        it++;
+      }
+    }
+  }
+}
+#endif
+
 
 // ------------------------------------------------------------------------------------------------
 // Sequence parameter set (SPS)
@@ -841,6 +903,10 @@ TComSPS::TComSPS()
 , m_bUseSAO                   (false) 
 #endif
 , m_bTemporalIdNestingFlag    (false)
+#if REF_SETTING_FOR_LD
+, m_bUseNewRefSetting         (false)
+, m_uiMaxNumRefFrames         (  0)
+#endif
 {
   // AMVP parameter
   ::memset( m_aeAMVPMode, 0, sizeof( m_aeAMVPMode ) );

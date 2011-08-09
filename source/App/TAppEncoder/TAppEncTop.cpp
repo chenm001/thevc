@@ -105,9 +105,15 @@ Void TAppEncTop::xInitLibCfg()
   m_cTEncTop.setFastSearch                   ( m_iFastSearch  );
   m_cTEncTop.setSearchRange                  ( m_iSearchRange );
   m_cTEncTop.setBipredSearchRange            ( m_bipredSearchRange );
+
+  //====== Quality control ========
   m_cTEncTop.setMaxDeltaQP                   ( m_iMaxDeltaQP  );
 #if SUB_LCU_DQP
   m_cTEncTop.setMaxCuDQPDepth                ( m_iMaxCuDQPDepth  );
+#endif
+#if QP_ADAPTATION
+  m_cTEncTop.setUseAdaptiveQP                ( m_bUseAdaptiveQP  );
+  m_cTEncTop.setQPAdaptationRange            ( m_iQPAdaptationRange );
 #endif
   
   //====== Tool list ========
@@ -133,6 +139,9 @@ Void TAppEncTop::xInitLibCfg()
   m_cTEncTop.setUseNRF                       ( m_bUseNRF      );
   m_cTEncTop.setUseBQP                       ( m_bUseBQP      );
   m_cTEncTop.setUseFastEnc                   ( m_bUseFastEnc  );
+#if EARLY_CU_DETERMINATION
+  m_cTEncTop.setUseEarlyCU                   ( m_bUseEarlyCU  ); 
+#endif
   m_cTEncTop.setUseMRG                       ( m_bUseMRG      ); // SOPH:
 
 #if LM_CHROMA 
@@ -180,6 +189,10 @@ Void TAppEncTop::xInitLibCfg()
 #endif
 
   m_cTEncTop.setPictureDigestEnabled(m_pictureDigestEnabled);
+
+#if REF_SETTING_FOR_LD
+  m_cTEncTop.setUseNewRefSetting( m_bUseNewRefSetting );
+#endif
 }
 
 Void TAppEncTop::xCreateLib()

@@ -119,6 +119,11 @@ private:
 
   Bool        m_bTemporalIdNestingFlag; // temporal_id_nesting_flag
 
+#if REF_SETTING_FOR_LD
+  Bool        m_bUseNewRefSetting;
+  UInt        m_uiMaxNumRefFrames;
+#endif
+
 public:
   TComSPS();
   virtual ~TComSPS();
@@ -236,6 +241,13 @@ public:
 #if E057_INTRA_PCM && E192_SPS_PCM_FILTER_DISABLE_SYNTAX
   Void      setPCMFilterDisableFlag     ( Bool   bValue  )    { m_bPCMFilterDisableFlag = bValue; }
   Bool      getPCMFilterDisableFlag     ()                    { return m_bPCMFilterDisableFlag;   } 
+#endif
+
+#if REF_SETTING_FOR_LD
+  Void      setUseNewRefSetting    ( Bool b ) { m_bUseNewRefSetting = b;    }
+  Bool      getUseNewRefSetting    ()         { return m_bUseNewRefSetting; }
+  Void      setMaxNumRefFrames     ( UInt u ) { m_uiMaxNumRefFrames = u;    }
+  UInt      getMaxNumRefFrames     ()         { return m_uiMaxNumRefFrames; }
 #endif
 };
 
@@ -355,8 +367,13 @@ private:
   
   UInt        m_uiColDir;  // direction to get colocated CUs
   
+#if ALF_CHROMA_LAMBDA || SAO_CHROMA_LAMBDA
+  Double      m_dLambdaLuma;
+  Double      m_dLambdaChroma;
+#else
   Double      m_dLambda;
-  
+#endif
+
   Bool        m_abEqualRef  [2][MAX_NUM_REF][MAX_NUM_REF];
   
   Bool        m_bNoBackPredFlag;
@@ -460,8 +477,14 @@ public:
   Bool      isInterB        ()                          { return  m_eSliceType == B_SLICE;  }
   Bool      isInterP        ()                          { return  m_eSliceType == P_SLICE;  }
   
+#if ALF_CHROMA_LAMBDA || SAO_CHROMA_LAMBDA  
+  Void      setLambda( Double d, Double e ) { m_dLambdaLuma = d; m_dLambdaChroma = e;}
+  Double    getLambdaLuma() { return m_dLambdaLuma;        }
+  Double    getLambdaChroma() { return m_dLambdaChroma;        }
+#else
   Void      setLambda( Double d ) { m_dLambda = d; }
   Double    getLambda() { return m_dLambda;        }
+#endif
   
   Void      initEqualRef();
   Bool      isEqualRef  ( RefPicList e, Int iRefIdx1, Int iRefIdx2 )
@@ -492,6 +515,11 @@ public:
   Void setTLayerInfo( UInt uiTLayer );
   Void decodingMarking( TComList<TComPic*>& rcListPic, Int iGOPSIze, Int& iMaxRefPicNum ); 
   Void decodingTLayerSwitchingMarking( TComList<TComPic*>& rcListPic );
+
+#if REF_SETTING_FOR_LD
+  Int getActualRefNumber( TComList<TComPic*>& rcListPic );
+  Void decodingRefMarkingForLD( TComList<TComPic*>& rcListPic, Int iMaxNumRefFrames, Int iCurrentPOC );
+#endif
 
   Void setSliceMode                     ( UInt uiMode )     { m_uiSliceMode = uiMode;                     }
   UInt getSliceMode                     ()                  { return m_uiSliceMode;                       }

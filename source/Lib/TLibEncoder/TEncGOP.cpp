@@ -681,7 +681,15 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
             m_pcEntropyCoder->resetEntropy    ();
             m_pcEntropyCoder->setBitstream    ( m_pcBitCounter );
             m_pcSAO->startSaoEnc(pcPic, m_pcEntropyCoder, m_pcEncTop->getRDSbacCoder(), m_pcCfg->getUseSBACRD() ?  m_pcEncTop->getRDGoOnSbacCoder() : NULL);
+#if SAO_CHROMA_LAMBDA 
+            m_pcSAO->SAOProcess(pcPic->getSlice(0)->getLambdaLuma(), pcPic->getSlice(0)->getLambdaChroma());
+#else
+#if ALF_CHROMA_LAMBDA
+            m_pcSAO->SAOProcess(pcPic->getSlice(0)->getLambdaLuma());
+#else
             m_pcSAO->SAOProcess(pcPic->getSlice(0)->getLambda());
+#endif
+#endif
             m_pcSAO->copyQaoData(&cSaoParam);
             m_pcSAO->endSaoEnc();
 
@@ -703,7 +711,15 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
             m_pcAdaptiveLoopFilter->setNumCUsInFrame(pcPic);
             m_pcAdaptiveLoopFilter->allocALFParam(&cAlfParam);
             m_pcAdaptiveLoopFilter->startALFEnc(pcPic, m_pcEntropyCoder );
+#if ALF_CHROMA_LAMBDA 
+            m_pcAdaptiveLoopFilter->ALFProcess( &cAlfParam, pcPic->getSlice(0)->getLambdaLuma(), pcPic->getSlice(0)->getLambdaChroma(), uiDist, uiBits, uiMaxAlfCtrlDepth );
+#else
+#if SAO_CHROMA_LAMBDA 
+            m_pcAdaptiveLoopFilter->ALFProcess( &cAlfParam, pcPic->getSlice(0)->getLambdaLuma(), uiDist, uiBits, uiMaxAlfCtrlDepth );
+#else
             m_pcAdaptiveLoopFilter->ALFProcess( &cAlfParam, pcPic->getSlice(0)->getLambda(), uiDist, uiBits, uiMaxAlfCtrlDepth );
+#endif
+#endif
             m_pcAdaptiveLoopFilter->endALFEnc();
 
 #if E057_INTRA_PCM && E192_SPS_PCM_FILTER_DISABLE_SYNTAX
@@ -821,7 +837,15 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
               m_pcEntropyCoder->resetEntropy    ();
               m_pcEntropyCoder->setBitstream    ( m_pcBitCounter );
               m_pcSAO->startSaoEnc(pcPic, m_pcEntropyCoder, m_pcEncTop->getRDSbacCoder(), m_pcCfg->getUseSBACRD() ?  m_pcEncTop->getRDGoOnSbacCoder() : NULL);
+#if SAO_CHROMA_LAMBDA 
+              m_pcSAO->SAOProcess(pcPic->getSlice(0)->getLambdaLuma(), pcPic->getSlice(0)->getLambdaChroma());
+#else
+#if ALF_CHROMA_LAMBDA
+              m_pcSAO->SAOProcess(pcPic->getSlice(0)->getLambdaLuma());
+#else
               m_pcSAO->SAOProcess(pcPic->getSlice(0)->getLambda());
+#endif
+#endif
               m_pcSAO->copyQaoData(&cSaoParam);
               m_pcSAO->endSaoEnc();
 
@@ -839,7 +863,15 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
               m_pcEntropyCoder->resetEntropy    ();
               m_pcEntropyCoder->setBitstream    ( m_pcBitCounter );
               m_pcAdaptiveLoopFilter->startALFEnc(pcPic, m_pcEntropyCoder );
+#if ALF_CHROMA_LAMBDA 
+              m_pcAdaptiveLoopFilter->ALFProcess( &cAlfParam, pcPic->getSlice(0)->getLambdaLuma(), pcPic->getSlice(0)->getLambdaChroma(), uiDist, uiBits, uiMaxAlfCtrlDepth );
+#else
+#if SAO_CHROMA_LAMBDA 
+              m_pcAdaptiveLoopFilter->ALFProcess( &cAlfParam, pcPic->getSlice(0)->getLambdaLuma(), uiDist, uiBits, uiMaxAlfCtrlDepth );
+#else
               m_pcAdaptiveLoopFilter->ALFProcess( &cAlfParam, pcPic->getSlice(0)->getLambda(), uiDist, uiBits, uiMaxAlfCtrlDepth );
+#endif
+#endif
               m_pcAdaptiveLoopFilter->endALFEnc();
 
 #if E057_INTRA_PCM && E192_SPS_PCM_FILTER_DISABLE_SYNTAX
@@ -942,6 +974,16 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
       pcPic->getPicYuvRec()->copyToPic(pcPicYuvRecOut);
       
       pcPic->setReconMark   ( true );
+
+#if REF_SETTING_FOR_LD
+      if ( pcPic->getSlice(0)->getSPS()->getUseNewRefSetting() )
+      {
+        if ( pcPic->getSlice(0)->isReferenced() )
+        {
+          pcPic->getSlice(0)->decodingRefMarkingForLD( rcListPic, pcPic->getSlice(0)->getSPS()->getMaxNumRefFrames(), pcPic->getSlice(0)->getPOC() );
+        }
+      }
+#endif
       
       m_bFirst = false;
       m_iNumPicCoded++;
@@ -1021,7 +1063,15 @@ Void TEncGOP::preLoopFilterPicAll( TComPic* pcPic, UInt64& ruiDist, UInt64& ruiB
     m_pcAdaptiveLoopFilter->startALFEnc(pcPic, m_pcEntropyCoder);
     
     UInt uiMaxAlfCtrlDepth;
+#if ALF_CHROMA_LAMBDA  
+    m_pcAdaptiveLoopFilter->ALFProcess(&cAlfParam, pcSlice->getLambdaLuma(), pcSlice->getLambdaChroma(), ruiDist, ruiBits, uiMaxAlfCtrlDepth );
+#else
+#if SAO_CHROMA_LAMBDA 
+    m_pcAdaptiveLoopFilter->ALFProcess(&cAlfParam, pcSlice->getLambdaLuma(), ruiDist, ruiBits, uiMaxAlfCtrlDepth );
+#else
     m_pcAdaptiveLoopFilter->ALFProcess(&cAlfParam, pcSlice->getLambda(), ruiDist, ruiBits, uiMaxAlfCtrlDepth );
+#endif
+#endif
     m_pcAdaptiveLoopFilter->endALFEnc();
     m_pcAdaptiveLoopFilter->freeALFParam(&cAlfParam);
 

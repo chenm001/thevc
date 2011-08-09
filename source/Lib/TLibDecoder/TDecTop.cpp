@@ -198,7 +198,11 @@ Void TDecTop::executeDeblockAndAlf(UInt& ruiPOC, TComList<TComPic*>*& rpcListPic
   TComPic*&   pcPic         = m_pcPic;
 
   // Execute Deblock and ALF only + Cleanup
+#if REF_SETTING_FOR_LD
+  m_cGopDecoder.decompressGop(NULL, pcPic, true, m_cListPic );
+#else
   m_cGopDecoder.decompressGop(NULL, pcPic, true);
+#endif
 
   // Apply decoder picture marking at the end of coding
   pcPic->getSlice( 0 )->decodingTLayerSwitchingMarking( m_cListPic );
@@ -492,7 +496,11 @@ Bool TDecTop::decode(InputNALUnit& nalu, Int& iSkipFrame, Int& iPOCLastDisplay)
       pcPic->setCurrSliceIdx(m_uiSliceIdx);
 
       //  Decode a picture
+#if REF_SETTING_FOR_LD
+      m_cGopDecoder.decompressGop(nalu.m_Bitstream, pcPic, false, m_cListPic );
+#else
       m_cGopDecoder.decompressGop(nalu.m_Bitstream, pcPic, false);
+#endif
 
       m_bFirstSliceInPicture = false;
       m_uiSliceIdx++;
