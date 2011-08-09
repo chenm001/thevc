@@ -164,6 +164,10 @@ protected:
 #endif
   bool m_pictureDigestEnabled; ///< enable(1)/disable(0) md5 computation and SEI signalling
 
+#if REF_SETTING_FOR_LD
+  Bool      m_bUseNewRefSetting;
+#endif
+
 public:
   TEncCfg()          {}
   virtual ~TEncCfg() {}
@@ -361,6 +365,11 @@ public:
 
   void setPictureDigestEnabled(bool b) { m_pictureDigestEnabled = b; }
   bool getPictureDigestEnabled() { return m_pictureDigestEnabled; }
+
+#if REF_SETTING_FOR_LD
+  Void      setUseNewRefSetting    ( Bool b ) { m_bUseNewRefSetting = b;    }
+  Bool      getUseNewRefSetting    ()         { return m_bUseNewRefSetting; }
+#endif
 
 };
 

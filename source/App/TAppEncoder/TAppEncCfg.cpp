@@ -235,6 +235,10 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
   ("SEIpictureDigest", m_pictureDigestEnabled, true, "Control generation of picture_digest SEI messages\n"
                                               "\t1: use MD5\n"
                                               "\t0: disable")
+#if REF_SETTING_FOR_LD
+  ("UsingNewRefSetting", m_bUseNewRefSetting, false, "Use 1+X reference frame setting for LD" )
+#endif
+
   ("FEN", m_bUseFastEnc, false, "fast encoder setting")
   
   /* Compatability with old style -1 FOO or -0 FOO options. */
@@ -324,6 +328,24 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
       fclose(fpt);
     }
   }
+
+#if REF_SETTING_FOR_LD
+  if ( m_iGOPSize > 1 )
+  {
+    if ( m_bUseNewRefSetting )
+    {
+      printf( "\nwarning: new reference frame setting can be 1 only when GOP size is 1 (LD case), set to 0" );
+      m_bUseNewRefSetting = false;
+    }
+  }
+  if ( m_iRateGOPSize != 4 )
+  {
+    if ( m_bUseNewRefSetting )
+    {
+      printf( "\nwarning: new reference frame setting was originally designed for default LD setting (rateGOPSize=4), no action" );
+    }
+  }
+#endif
   
   // check validity of input parameters
   xCheckParameter();
@@ -434,7 +456,12 @@ Void TAppEncCfg::xCheckParameter()
   {
     m_bUseSBACRD = false;
   }
-  
+
+
+#if REF_SETTING_FOR_LD
+  xConfirmPara( m_bUseNewRefSetting && m_iGOPSize>1, "New reference frame setting was only designed for LD setting" );
+#endif
+
 #undef xConfirmPara
   if (check_failed)
   {
@@ -588,6 +615,9 @@ Void TAppEncCfg::xPrintParameter()
 #endif
 #if E057_INTRA_PCM
   printf("PCM:%d ", ((1<<m_uiPCMLog2MinSize) <= m_uiMaxCUWidth)? 1 : 0);
+#endif
+#if REF_SETTING_FOR_LD
+  printf("NewRefSetting:%d ", m_bUseNewRefSetting?1:0);
 #endif
   printf("\n\n");
   

@@ -167,6 +167,11 @@
 #define CAVLC_RQT_CBP                   1           //CAVLC coding of cbf and split flag, JCTVC-E404
 #endif
 
+#define REF_SETTING_FOR_LD              1           // reference frame setting for low delay setting (JCTVC-F701)
+                                                    // using one nearest frame as reference frame, and the other frames are high quality (POC%4==0) frames (1+X)
+                                                    // this should be done with encoder only decision
+                                                    // but because of the absence of reference frame management, the related code was hard coded currently
+
 #define CAVLC_RUNLEVEL_TABLE_REM        1           // CAVLC coding of run-level without table (JCTVC-F543)
 
 #define AVOID_ZERO_MERGE_CANDIDATE      1           // (JCTVC-E146/E118) insert zero MV if no merge candidates are available

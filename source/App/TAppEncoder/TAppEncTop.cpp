@@ -180,6 +180,10 @@ Void TAppEncTop::xInitLibCfg()
 #endif
 
   m_cTEncTop.setPictureDigestEnabled(m_pictureDigestEnabled);
+
+#if REF_SETTING_FOR_LD
+  m_cTEncTop.setUseNewRefSetting( m_bUseNewRefSetting );
+#endif
 }
 
 Void TAppEncTop::xCreateLib()

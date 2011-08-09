@@ -294,6 +294,16 @@ Void TDecCavlc::parseSPS(TComSPS* pcSPS)
     pcSPS->setAMVPMode( i, (AMVP_MODE)uiCode );
   }
 
+#if REF_SETTING_FOR_LD
+  // these syntax elements should not be sent at SPS when the full reference frame management is supported
+  xReadFlag( uiCode ); pcSPS->setUseNewRefSetting( uiCode>0 ? true : false );
+  if ( pcSPS->getUseNewRefSetting() )
+  {
+    xReadUvlc( uiCode );
+    pcSPS->setMaxNumRefFrames( uiCode );
+  }
+#endif
+
   return;
 }
 

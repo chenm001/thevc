@@ -175,6 +175,10 @@ protected:
   
   bool m_pictureDigestEnabled; ///< enable(1)/disable(0) md5 computation and SEI signalling
 
+#if REF_SETTING_FOR_LD
+  Bool      m_bUseNewRefSetting;
+#endif
+
   // internal member functions
   Void  xSetGlobal      ();                                   ///< set global variables
   Void  xCheckParameter ();                                   ///< check validity of configuration values

@@ -163,8 +163,11 @@ Void TDecGop::copySharedAlfParamFromPPS(ALFParam* pAlfDst, ALFParam* pAlfSrc)
 // ====================================================================================================================
 // Public member functions
 // ====================================================================================================================
-
+#if REF_SETTING_FOR_LD
+Void TDecGop::decompressGop(TComInputBitstream* pcBitstream, TComPic*& rpcPic, Bool bExecuteDeblockAndAlf, TComList<TComPic*>& rcListPic )
+#else
 Void TDecGop::decompressGop(TComInputBitstream* pcBitstream, TComPic*& rpcPic, Bool bExecuteDeblockAndAlf)
+#endif
 {
   TComSlice*  pcSlice = rpcPic->getSlice(rpcPic->getCurrSliceIdx());
 
@@ -403,6 +406,16 @@ Void TDecGop::decompressGop(TComInputBitstream* pcBitstream, TComPic*& rpcPic, B
 #endif
 
     rpcPic->setReconMark(true);
+
+#if REF_SETTING_FOR_LD
+      if ( rpcPic->getSlice(0)->getSPS()->getUseNewRefSetting() )
+      {
+        if ( rpcPic->getSlice(0)->isReferenced() )
+        {
+          rpcPic->getSlice(0)->decodingRefMarkingForLD( rcListPic, rpcPic->getSlice(0)->getSPS()->getMaxNumRefFrames(), rpcPic->getSlice(0)->getPOC() );
+        }
+      }
+#endif
 
 #if MTK_NONCROSS_INLOOP_FILTER
     uiILSliceCount = 0;

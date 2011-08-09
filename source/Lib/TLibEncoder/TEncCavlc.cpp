@@ -428,6 +428,15 @@ Void TEncCavlc::codeSPS( TComSPS* pcSPS )
   {
     xWriteFlag( pcSPS->getAMVPMode(i) ? 1 : 0);
   }
+
+#if REF_SETTING_FOR_LD
+  // these syntax elements should not be sent at SPS when the full reference frame management is supported
+  xWriteFlag( pcSPS->getUseNewRefSetting() ? 1 : 0 );
+  if ( pcSPS->getUseNewRefSetting() )
+  {
+    xWriteUvlc( pcSPS->getMaxNumRefFrames() );
+  }
+#endif
 }
 
 Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )

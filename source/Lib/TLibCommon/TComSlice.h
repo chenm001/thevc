@@ -119,6 +119,11 @@ private:
 
   Bool        m_bTemporalIdNestingFlag; // temporal_id_nesting_flag
 
+#if REF_SETTING_FOR_LD
+  Bool        m_bUseNewRefSetting;
+  UInt        m_uiMaxNumRefFrames;
+#endif
+
 public:
   TComSPS();
   virtual ~TComSPS();
@@ -236,6 +241,13 @@ public:
 #if E057_INTRA_PCM && E192_SPS_PCM_FILTER_DISABLE_SYNTAX
   Void      setPCMFilterDisableFlag     ( Bool   bValue  )    { m_bPCMFilterDisableFlag = bValue; }
   Bool      getPCMFilterDisableFlag     ()                    { return m_bPCMFilterDisableFlag;   } 
+#endif
+
+#if REF_SETTING_FOR_LD
+  Void      setUseNewRefSetting    ( Bool b ) { m_bUseNewRefSetting = b;    }
+  Bool      getUseNewRefSetting    ()         { return m_bUseNewRefSetting; }
+  Void      setMaxNumRefFrames     ( UInt u ) { m_uiMaxNumRefFrames = u;    }
+  UInt      getMaxNumRefFrames     ()         { return m_uiMaxNumRefFrames; }
 #endif
 };
 
@@ -503,6 +515,11 @@ public:
   Void setTLayerInfo( UInt uiTLayer );
   Void decodingMarking( TComList<TComPic*>& rcListPic, Int iGOPSIze, Int& iMaxRefPicNum ); 
   Void decodingTLayerSwitchingMarking( TComList<TComPic*>& rcListPic );
+
+#if REF_SETTING_FOR_LD
+  Int getActualRefNumber( TComList<TComPic*>& rcListPic );
+  Void decodingRefMarkingForLD( TComList<TComPic*>& rcListPic, Int iMaxNumRefFrames, Int iCurrentPOC );
+#endif
 
   Void setSliceMode                     ( UInt uiMode )     { m_uiSliceMode = uiMode;                     }
   UInt getSliceMode                     ()                  { return m_uiSliceMode;                       }

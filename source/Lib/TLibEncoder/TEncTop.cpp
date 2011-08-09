@@ -287,7 +287,41 @@ Void TEncTop::xGetNewPicBuffer ( TComPic*& rpcPic )
   // bug-fix - erase frame memory (previous GOP) which is not used for reference any more
   if (m_cListPic.size() >= (UInt)(m_iGOPSize + 2 * getNumOfReference() + 1) )  // 2)   //  K. Lee bug fix - for multiple reference > 2
   {
+#if REF_SETTING_FOR_LD
+    if ( m_bUseNewRefSetting )
+    {
+      TComList<TComPic*>::iterator  it = m_cListPic.begin();
+      while ( it != m_cListPic.end() )
+      {
+        if ( (*it)->getReconMark() == false )
+        {
+          rpcPic = *it;
+          m_cListPic.erase( it );
+          break;
+        }
+        if ( !(*it)->getSlice(0)->isReferenced() )
+        {
+          (*it)->setReconMark( false );
+          (*it)->getPicYuvRec()->setBorderExtension( false );
+          rpcPic = *it;
+          m_cListPic.erase( it );
+          break;
+        }
+
+        it++;
+      }
+      if ( it == m_cListPic.end() )
+      {
+        assert(0);
+      }
+    }
+    else
+    {
+      rpcPic = m_cListPic.popFront();
+    }
+#else
     rpcPic = m_cListPic.popFront();
+#endif
     
     // is it necessary without long-term reference?
     if ( rpcPic->getERBIndex() > 0 && abs(rpcPic->getPOC() - m_iPOCLast) <= 0 )
@@ -437,6 +471,14 @@ Void TEncTop::xInitSPS()
 #endif
 #if E057_INTRA_PCM && E192_SPS_PCM_FILTER_DISABLE_SYNTAX
   m_cSPS.setPCMFilterDisableFlag  ( m_bPCMFilterDisableFlag );
+#endif
+
+#if REF_SETTING_FOR_LD
+  m_cSPS.setUseNewRefSetting( m_bUseNewRefSetting );
+  if ( m_bUseNewRefSetting )
+  {
+    m_cSPS.setMaxNumRefFrames( m_iNumOfReference );
+  }
 #endif
 }
 
