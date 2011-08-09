@@ -139,6 +139,9 @@ Void TAppEncTop::xInitLibCfg()
   m_cTEncTop.setUseNRF                       ( m_bUseNRF      );
   m_cTEncTop.setUseBQP                       ( m_bUseBQP      );
   m_cTEncTop.setUseFastEnc                   ( m_bUseFastEnc  );
+#if EARLY_CU_DETERMINATION
+  m_cTEncTop.setUseEarlyCU                   ( m_bUseEarlyCU  ); 
+#endif
   m_cTEncTop.setUseMRG                       ( m_bUseMRG      ); // SOPH:
 
 #if LM_CHROMA 

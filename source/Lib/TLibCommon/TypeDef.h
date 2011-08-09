@@ -57,7 +57,6 @@
 #define ALF_CHROMA_LAMBDA           1   ///< F386: weighting of chroma for ALF
 #define SAO_CHROMA_LAMBDA           1   ///< F386: weighting of chroma for SAO
 
-
 ////////////////////////////
 // JCT-VC F start
 ////////////////////////////
@@ -308,6 +307,8 @@
 
 
 #define F745_DQP_BINARIZATION          1 //JCTVC-F745: DQP binarization
+
+#define EARLY_CU_DETERMINATION            1 //JCTVC-F092
 
 // ====================================================================================================================
 // Basic type redefinition

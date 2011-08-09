@@ -136,6 +136,9 @@ protected:
   Bool      m_bUseNRF;
   Bool      m_bUseBQP;
   Bool      m_bUseFastEnc;
+#if EARLY_CU_DETERMINATION
+  Bool      m_bUseEarlyCU;
+#endif
   Bool      m_bUseMRG; // SOPH:
 #if LM_CHROMA 
   Bool      m_bUseLMChroma; 
@@ -308,6 +311,9 @@ public:
   Void      setUseNRF                       ( Bool  b )     { m_bUseNRF     = b; }
   Void      setUseBQP                       ( Bool  b )     { m_bUseBQP     = b; }
   Void      setUseFastEnc                   ( Bool  b )     { m_bUseFastEnc = b; }
+#if EARLY_CU_DETERMINATION
+  Void      setUseEarlyCU                   ( Bool  b )     { m_bUseEarlyCU = b; }
+#endif
   Void      setUseMRG                       ( Bool  b )     { m_bUseMRG     = b; } // SOPH:
   Void      setUseConstrainedIntraPred      ( Bool  b )     { m_bUseConstrainedIntraPred = b; }
 #if E057_INTRA_PCM && E192_SPS_PCM_BIT_DEPTH_SYNTAX
@@ -338,6 +344,9 @@ public:
   Bool      getUseNRF                       ()      { return m_bUseNRF;     }
   Bool      getUseBQP                       ()      { return m_bUseBQP;     }
   Bool      getUseFastEnc                   ()      { return m_bUseFastEnc; }
+#if EARLY_CU_DETERMINATION
+  Bool      getUseEarlyCU                   ()      { return m_bUseEarlyCU; }
+#endif
   Bool      getUseMRG                       ()      { return m_bUseMRG;     } // SOPH:
   Bool      getUseConstrainedIntraPred      ()      { return m_bUseConstrainedIntraPred; }
 #if E057_INTRA_PCM && E192_SPS_PCM_BIT_DEPTH_SYNTAX

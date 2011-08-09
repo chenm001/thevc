@@ -490,6 +490,12 @@ Void TEncCu::xCompressCU( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, UInt u
   Bool    bEarlySkip  = false;
   Bool    bTrySplit    = true;
   Double  fRD_Skip    = MAX_DOUBLE;
+
+  // variable for Early CU determination
+#if EARLY_CU_DETERMINATION
+  Bool    bSubBranch = true;
+#endif
+
 #if SUB_LCU_DQP
   Bool    bTrySplitDQP  = true;
 #endif
@@ -859,6 +865,18 @@ Void TEncCu::xCompressCU( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, UInt u
         aiNum [ iIdx ] ++;
       }
     }
+
+    // Early CU determination
+#if EARLY_CU_DETERMINATION
+    if( m_pcEncCfg->getUseEarlyCU() && ((*rpcBestCU->getPredictionMode()) == 0) )
+    {
+      bSubBranch = false;
+    }
+    else
+    {
+      bSubBranch = true;
+    }
+#endif
   }
 #if FINE_GRANULARITY_SLICES
   else if(!(bSliceEnd && bInsidePicture))
@@ -906,10 +924,18 @@ Void TEncCu::xCompressCU( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, UInt u
     rpcTempCU->initEstData( uiDepth, iQP );
 
     // further split
+#if EARLY_CU_DETERMINATION
+    if( bSubBranch && bTrySplitDQP && uiDepth < g_uiMaxCUDepth - g_uiAddCUDepth )
+#else
     if( bTrySplitDQP && uiDepth < g_uiMaxCUDepth - g_uiAddCUDepth )
+#endif
 #else
     // further split
+#if EARLY_CU_DETERMINATION
+    if( bSubBranch && bTrySplit && uiDepth < g_uiMaxCUDepth - g_uiAddCUDepth )
+#else
     if( bTrySplit && uiDepth < g_uiMaxCUDepth - g_uiAddCUDepth )
+#endif
 #endif
     {
       UChar       uhNextDepth         = uiDepth+1;
