@@ -306,6 +306,9 @@
 #define AMP_MRG                               1           ///< encoder only force merge for AMP partition (no motion search for AMP)
 #endif
 
+
+#define F745_DQP_BINARIZATION          1 //JCTVC-F745: DQP binarization
+
 // ====================================================================================================================
 // Basic type redefinition
 // ====================================================================================================================
