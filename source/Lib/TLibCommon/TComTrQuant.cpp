@@ -3602,7 +3602,7 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
     Double dErr               = Double( lLevelDouble );
     pdCostCoeff0[ uiBlkPos ]  = dErr * dErr * dTemp;
     d64BlockUncodedCost      += pdCostCoeff0[ uiBlkPos ];
-    piDstCoeff[ uiBlkPos ]    = plSrcCoeff[ uiBlkPos ] > 0 ? uiMaxAbsLevel : -Int( uiMaxAbsLevel );
+    piDstCoeff[ uiBlkPos ]    = uiMaxAbsLevel;
 
     if ( uiMaxAbsLevel > 0 && iLastScanPos < 0 )
     {
