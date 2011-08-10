@@ -3600,8 +3600,8 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
     UInt uiMaxAbsLevel        = (lLevelDouble + (1L << (iQBits - 1))) >> iQBits;
 
     Double dErr               = Double( lLevelDouble );
-    pdCostCoeff0[ uiBlkPos ]  = dErr * dErr * dTemp;
-    d64BlockUncodedCost      += pdCostCoeff0[ uiBlkPos ];
+    pdCostCoeff0[ iScanPos ]  = dErr * dErr * dTemp;
+    d64BlockUncodedCost      += pdCostCoeff0[ iScanPos ];
     piDstCoeff[ uiBlkPos ]    = uiMaxAbsLevel;
 
     if ( uiMaxAbsLevel > 0 && iLastScanPos < 0 )
@@ -3618,18 +3618,18 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
       UInt  uiAbsCtx         = 5 * uiCtxSet + c2;
       if( iScanPos == iLastScanPos )
       {
-        uiLevel              = xGetCodedLevel( pdCostCoeff[ uiBlkPos ], pdCostCoeff0[ uiBlkPos ], pdCostSig[ uiBlkPos ], lLevelDouble, uiMaxAbsLevel, 0, uiOneCtx, uiAbsCtx, uiGoRiceParam, iQBits, dTemp, 1 );
+        uiLevel              = xGetCodedLevel( pdCostCoeff[ iScanPos ], pdCostCoeff0[ iScanPos ], pdCostSig[ iScanPos ], lLevelDouble, uiMaxAbsLevel, 0, uiOneCtx, uiAbsCtx, uiGoRiceParam, iQBits, dTemp, 1 );
       }
       else
       {
         UInt   uiPosY        = uiBlkPos >> uiLog2BlkSize;
         UInt   uiPosX        = uiBlkPos - ( uiPosY << uiLog2BlkSize );
         UShort uiCtxSig      = getSigCtxInc( piDstCoeff, uiPosX, uiPosY, uiLog2BlkSize, uiWidth );
-        uiLevel              = xGetCodedLevel( pdCostCoeff[ uiBlkPos ], pdCostCoeff0[ uiBlkPos ], pdCostSig[ uiBlkPos ], lLevelDouble, uiMaxAbsLevel, uiCtxSig, uiOneCtx, uiAbsCtx, uiGoRiceParam, iQBits, dTemp, 0 );
+        uiLevel              = xGetCodedLevel( pdCostCoeff[ iScanPos ], pdCostCoeff0[ iScanPos ], pdCostSig[ iScanPos ], lLevelDouble, uiMaxAbsLevel, uiCtxSig, uiOneCtx, uiAbsCtx, uiGoRiceParam, iQBits, dTemp, 0 );
       }
 
       piDstCoeff[ uiBlkPos ] = uiLevel;
-      d64BaseCost           += pdCostCoeff [ uiBlkPos ];
+      d64BaseCost           += pdCostCoeff [ iScanPos ];
 
       //===== update bin model =====
       if( uiLevel > 1 )
@@ -3667,7 +3667,7 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
     }
     else
     {
-      d64BaseCost    += pdCostCoeff0[ uiBlkPos ];
+      d64BaseCost    += pdCostCoeff0[ iScanPos ];
     }
   }
 
@@ -3707,7 +3707,7 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
       Double d64CostLast= uiScanIdx == SCAN_VER ? xGetRateLast( uiPosY, uiPosX ) : xGetRateLast( uiPosX, uiPosY );
 #endif
       d64BaseCost      += d64CostLast;
-      d64BaseCost      -= pdCostSig[ uiBlkPos ];
+      d64BaseCost      -= pdCostSig[ iScanPos ];
       if( d64BaseCost < d64BestCost )
       {
         iBestLastIdxP1  = iScanPos + 1;
@@ -3717,12 +3717,12 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
       {
         break;
       }
-      d64BaseCost      -= (d64CostLast + pdCostCoeff[ uiBlkPos ] - pdCostSig[ uiBlkPos ]);
-      d64BaseCost      += pdCostCoeff0[ uiBlkPos ];
+      d64BaseCost      -= (d64CostLast + pdCostCoeff[ iScanPos ] - pdCostSig[ iScanPos ]);
+      d64BaseCost      += pdCostCoeff0[ iScanPos ];
     }
     else
     {
-      d64BaseCost      -= pdCostSig[ uiBlkPos ];
+      d64BaseCost      -= pdCostSig[ iScanPos ];
     }
   }
 
