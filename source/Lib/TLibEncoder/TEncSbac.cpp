@@ -274,49 +274,35 @@ Void TEncSbac::xWriteEpExGolomb( UInt uiSymbol, UInt uiCount )
  */
 Void TEncSbac::xWriteGoRiceExGolomb( UInt uiSymbol, UInt &ruiGoRiceParam )
 {
-  UInt uiCount      = 0;
   UInt uiMaxVlc     = g_auiGoRiceRange[ ruiGoRiceParam ];
   Bool bExGolomb    = ( uiSymbol > uiMaxVlc );
   UInt uiCodeWord   = min<UInt>( uiSymbol, ( uiMaxVlc + 1 ) );
   UInt uiQuotient   = uiCodeWord >> ruiGoRiceParam;
-  UInt uiUnaryPart  = uiQuotient;
   UInt uiMaxPreLen  = g_auiGoRicePrefixLen[ ruiGoRiceParam ];
-
-  if( uiUnaryPart )
+  
+  UInt binValues;
+  Int numBins;
+  
+  if ( uiQuotient >= uiMaxPreLen )
   {
-    m_pcBinIf->encodeBinEP( 1 );
-    uiCount++;
-
-    while( --uiUnaryPart && uiCount < uiMaxPreLen )
-    {
-      m_pcBinIf->encodeBinEP( 1 );
-      uiCount++;
-    }
-
-    if( uiCount < uiMaxPreLen )
-    {
-      m_pcBinIf->encodeBinEP( uiUnaryPart ? 1 : 0 );
-    }
+    numBins = uiMaxPreLen;
+    binValues = ( 1 << numBins ) - 1;
   }
   else
   {
-    m_pcBinIf->encodeBinEP( 0 );
+    numBins = uiQuotient + 1;
+    binValues = ( 1 << numBins ) - 2;
   }
-
-  for( UInt ui = 0; ui < ruiGoRiceParam; ui++ )
-  {
-    m_pcBinIf->encodeBinEP( ( uiCodeWord >> ( ruiGoRiceParam - 1 - ui ) ) & 1 );
-  }
-
+  
+  m_pcBinIf->encodeBinsEP( ( binValues << ruiGoRiceParam ) + uiCodeWord - ( uiQuotient << ruiGoRiceParam ), numBins + ruiGoRiceParam );
+  
   ruiGoRiceParam = g_aauiGoRiceUpdate[ ruiGoRiceParam ][ min<UInt>( uiSymbol, 15 ) ];
-
+  
   if( bExGolomb )
   {
     uiSymbol -= uiMaxVlc + 1;
     xWriteEpExGolomb( uiSymbol, 0 );
   }
-
-  return;
 }
 
 // SBAC RD
