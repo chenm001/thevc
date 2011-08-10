@@ -949,7 +949,7 @@ Void TDecSbac::parseIntraDirLumaAng  ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt
   Int iIntraIdx = pcCU->getIntraSizeIdx(uiAbsPartIdx);
  
   UInt uiSymbol;
-  Int  uiIPredMode;
+  Int  intraPredMode;
 
   Int uiPreds[2] = {-1, -1};
   Int uiPredNum = pcCU->getIntraDirLumaPredictor(uiAbsPartIdx, uiPreds);  
@@ -960,61 +960,54 @@ Void TDecSbac::parseIntraDirLumaAng  ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt
   {
 #if FIXED_MPM
     m_pcTDecBinIf->decodeBin( uiSymbol, m_cCUIntraPredSCModel.get( 0, 0, 2 ) );
-    uiIPredMode = uiPreds[uiSymbol];
+    intraPredMode = uiPreds[uiSymbol];
 #else
     if(uiPredNum == 1)   
     {
-      uiIPredMode = uiPreds[0];
+      intraPredMode = uiPreds[0];
     }
     else 
     {
       m_pcTDecBinIf->decodeBin( uiSymbol, m_cCUIntraPredSCModel.get( 0, 0, 2) );
-      uiIPredMode = uiPreds[uiSymbol];
+      intraPredMode = uiPreds[uiSymbol];
     }
 #endif
   }
   else
   {
-    if ( g_aucIntraModeBitsAng[iIntraIdx] < 6 )
+    intraPredMode = 0;
+    
+    for ( Int i = 0; i < g_aucIntraModeBitsAng[iIntraIdx] - 1; i++ )
     {
-      m_pcTDecBinIf->decodeBin( uiSymbol, m_cCUIntraPredSCModel.get( 0, 0, 1 ) ); uiIPredMode  = uiSymbol;
-      if ( g_aucIntraModeBitsAng[iIntraIdx] > 2 ) { m_pcTDecBinIf->decodeBin( uiSymbol, m_cCUIntraPredSCModel.get( 0, 0, 1 ) ); uiIPredMode |= uiSymbol << 1; }
-      if ( g_aucIntraModeBitsAng[iIntraIdx] > 3 ) { m_pcTDecBinIf->decodeBin( uiSymbol, m_cCUIntraPredSCModel.get( 0, 0, 1 ) ); uiIPredMode |= uiSymbol << 2; }
-      if ( g_aucIntraModeBitsAng[iIntraIdx] > 4 ) { m_pcTDecBinIf->decodeBin( uiSymbol, m_cCUIntraPredSCModel.get( 0, 0, 1 ) ); uiIPredMode |= uiSymbol << 3; }
-    }
-    else
-    {
-    m_pcTDecBinIf->decodeBin( uiSymbol, m_cCUIntraPredSCModel.get( 0, 0, 1 ) ); uiIPredMode  = uiSymbol;
-    m_pcTDecBinIf->decodeBin( uiSymbol, m_cCUIntraPredSCModel.get( 0, 0, 1 ) ); uiIPredMode |= uiSymbol << 1;
-    m_pcTDecBinIf->decodeBin( uiSymbol, m_cCUIntraPredSCModel.get( 0, 0, 1 ) ); uiIPredMode |= uiSymbol << 2;
-    m_pcTDecBinIf->decodeBin( uiSymbol, m_cCUIntraPredSCModel.get( 0, 0, 1 ) ); uiIPredMode |= uiSymbol << 3;
-    m_pcTDecBinIf->decodeBin( uiSymbol, m_cCUIntraPredSCModel.get( 0, 0, 1 ) ); uiIPredMode |= uiSymbol << 4;
-
-    if (uiIPredMode == 31){ // Escape coding for the last two modes
       m_pcTDecBinIf->decodeBin( uiSymbol, m_cCUIntraPredSCModel.get( 0, 0, 1 ) );
-      uiIPredMode = uiSymbol ? 32 : 31;
+      intraPredMode |= uiSymbol << i;
     }
-
-  }
-
-    for(UInt i = 0; i < uiPredNum; i++)
+    
+    if ( intraPredMode == 31 )
     {
-      if(uiIPredMode >= uiPreds[i]) {  uiIPredMode ++; }
+      m_pcTDecBinIf->decodeBin( uiSymbol, m_cCUIntraPredSCModel.get( 0, 0, 1 ) );
+      intraPredMode += uiSymbol;      
+    }
+    
+    for ( Int i = 0; i < uiPredNum; i++ )
+    {
+      intraPredMode += ( intraPredMode >= uiPreds[i] );
     }
   }
+  
 #if ADD_PLANAR_MODE && !FIXED_MPM
-  if (uiIPredMode == 2)
+  if (intraPredMode == 2)
   {
     UInt planarFlag;
     m_pcTDecBinIf->decodeBin( planarFlag, m_cPlanarFlagSCModel.get(0,0,0) );
     if ( planarFlag )
     {
-      uiIPredMode = PLANAR_IDX;
+      intraPredMode = PLANAR_IDX;
     }
   }
 #endif
 
-  pcCU->setLumaIntraDirSubParts( (UChar)uiIPredMode, uiAbsPartIdx, uiDepth );
+  pcCU->setLumaIntraDirSubParts( (UChar)intraPredMode, uiAbsPartIdx, uiDepth );
 }
 #else
 Void TDecSbac::parseIntraDirLumaAng  ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )

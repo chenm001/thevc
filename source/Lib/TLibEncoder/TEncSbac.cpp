@@ -854,32 +854,21 @@ Void TEncSbac::codeIntraDirLumaAng( TComDataCU* pcCU, UInt uiAbsPartIdx )
       uiDir = uiDir > uiPreds[i] ? uiDir - 1 : uiDir;
     }
 
-    if ( g_aucIntraModeBitsAng[iIntraIdx] < 6 )
+    if ( uiDir < 31 )
     {
-      m_pcBinIf->encodeBin((uiDir & 0x01), m_cCUIntraPredSCModel.get(0, 0, 1));
-      if ( g_aucIntraModeBitsAng[iIntraIdx] > 2 ) { m_pcBinIf->encodeBin((uiDir & 0x02) >> 1, m_cCUIntraPredSCModel.get(0, 0, 1));}
-      if ( g_aucIntraModeBitsAng[iIntraIdx] > 3 ) { m_pcBinIf->encodeBin((uiDir & 0x04) >> 2, m_cCUIntraPredSCModel.get(0, 0, 1));}
-      if ( g_aucIntraModeBitsAng[iIntraIdx] > 4 ) { m_pcBinIf->encodeBin((uiDir & 0x08) >> 3, m_cCUIntraPredSCModel.get(0, 0, 1));}
+      for ( Int i = 0; i < g_aucIntraModeBitsAng[ iIntraIdx ] - 1; i++ )
+      {
+        m_pcBinIf->encodeBin( ( uiDir >> i ) & 1, m_cCUIntraPredSCModel.get(0, 0, 1) );            
+      }      
     }
     else
     {
-      if (uiDir < 31){ // uiDir is here 0...32, 5 bits for uiDir 0...30, 31 is an escape code for coding one more bit for 31 and 32
-        m_pcBinIf->encodeBin((uiDir & 0x01),      m_cCUIntraPredSCModel.get(0, 0, 1));
-        m_pcBinIf->encodeBin((uiDir & 0x02) >> 1, m_cCUIntraPredSCModel.get(0, 0, 1));
-        m_pcBinIf->encodeBin((uiDir & 0x04) >> 2, m_cCUIntraPredSCModel.get(0, 0, 1));
-        m_pcBinIf->encodeBin((uiDir & 0x08) >> 3, m_cCUIntraPredSCModel.get(0, 0, 1));
-        m_pcBinIf->encodeBin((uiDir & 0x10) >> 4, m_cCUIntraPredSCModel.get(0, 0, 1));
-      }
-      else
+      for ( Int i = 0; i < 5; i++ )
       {
-        m_pcBinIf->encodeBin(1, m_cCUIntraPredSCModel.get(0, 0, 1));
-        m_pcBinIf->encodeBin(1, m_cCUIntraPredSCModel.get(0, 0, 1));
-        m_pcBinIf->encodeBin(1, m_cCUIntraPredSCModel.get(0, 0, 1));
-        m_pcBinIf->encodeBin(1, m_cCUIntraPredSCModel.get(0, 0, 1));
-        m_pcBinIf->encodeBin(1, m_cCUIntraPredSCModel.get(0, 0, 1));
-        m_pcBinIf->encodeBin((uiDir == 32) ? 1 : 0, m_cCUIntraPredSCModel.get(0, 0, 1));
-       }
-     }
+        m_pcBinIf->encodeBin( 1, m_cCUIntraPredSCModel.get(0, 0, 1) );            
+      }      
+      m_pcBinIf->encodeBin( uiDir - 31, m_cCUIntraPredSCModel.get(0, 0, 1) );                  
+    }
    }
 #if ADD_PLANAR_MODE && !FIXED_MPM
   uiDir = pcCU->getLumaIntraDir( uiAbsPartIdx );
