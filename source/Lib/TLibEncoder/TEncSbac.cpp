@@ -247,19 +247,24 @@ Void TEncSbac::xWriteUnaryMaxSymbol( UInt uiSymbol, ContextModel* pcSCModel, Int
 
 Void TEncSbac::xWriteEpExGolomb( UInt uiSymbol, UInt uiCount )
 {
+  UInt bins = 0;
+  Int numBins = 0;
+  
   while( uiSymbol >= (UInt)(1<<uiCount) )
   {
-    m_pcBinIf->encodeBinEP( 1 );
-    uiSymbol -= 1<<uiCount;
+    bins = 2 * bins + 1;
+    numBins++;
+    uiSymbol -= 1 << uiCount;
     uiCount  ++;
   }
-  m_pcBinIf->encodeBinEP( 0 );
-  while( uiCount-- )
-  {
-    m_pcBinIf->encodeBinEP( (uiSymbol>>uiCount) & 1 );
-  }
+  bins = 2 * bins + 0;
+  numBins++;
   
-  return;
+  bins = (bins << uiCount) | uiSymbol;
+  numBins += uiCount;
+  
+  assert( numBins <= 32 );
+  m_pcBinIf->encodeBinsEP( bins, numBins );
 }
 
 /** Coding of coeff_abs_level_minus3
