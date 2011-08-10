@@ -1650,8 +1650,8 @@ Void TEncSbac::codeCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx
     Int  iSubPos     = iSubSet << LOG2_SCAN_SET_SIZE;
     uiGoRiceParam    = 0;
     Int absCoeff[16];
-    Int signCoeff[16];
-
+    UInt coeffSigns = 0;
+    
     const UInt *puiSetScan  = g_auiSigLastScan[uiScanIdx][uiLog2BlockSizeM1] + iSubPos;
     for( Int iScanPos = SCAN_SET_SIZE-1; iScanPos >= 0; iScanPos-- )
     {
@@ -1659,17 +1659,17 @@ Void TEncSbac::codeCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx
       if( pcCoef[ uiBlkPos ] )
       {
         absCoeff[ numNonZero ] = abs( pcCoef[ uiBlkPos ] );
-        signCoeff[ numNonZero ] = pcCoef[ uiBlkPos ] < 0;
+        coeffSigns = 2 * coeffSigns + ( pcCoef[ uiBlkPos ] < 0 );
         numNonZero++;
       }
     }
-
+    
     if( numNonZero > 0 )
     {
       UInt c1 = 1;
       UInt c2 = 0;
       UInt uiCtxSet = iSubSet > 0 ? 3 : 0;
-
+      
       if( uiNumOne > 0 )
       {
         uiCtxSet++;
@@ -1678,10 +1678,10 @@ Void TEncSbac::codeCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx
           uiCtxSet++;
         }
       }
-
+      
       uiNumOne       >>= 1;
       ContextModel *baseCtxMod = m_cCUOneSCModel.get( 0, eTType ) + 5 * uiCtxSet;
-
+      
       for ( Int idx = 0; idx < numNonZero; idx++ )
       {
         UInt uiSymbol = absCoeff[ idx ] > 1;
@@ -1695,7 +1695,7 @@ Void TEncSbac::codeCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx
           c1++;
         }
       }
-
+      
       if (c1 == 0)
       {
         baseCtxMod = m_cCUAbsSCModel.get( 0, eTType ) + 5 * uiCtxSet;
@@ -1716,11 +1716,8 @@ Void TEncSbac::codeCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx
           }
         }
       }
-
-      for ( Int idx = 0; idx < numNonZero; idx++ )
-      {
-        m_pcBinIf->encodeBinEP( signCoeff[ idx ] );
-      }
+      
+      m_pcBinIf->encodeBinsEP( coeffSigns, numNonZero );
       
 #if CABAC_COEFF_DATA_REORDER
       if (c1 == 0)
