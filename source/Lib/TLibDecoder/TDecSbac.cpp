@@ -302,16 +302,14 @@ Void TDecSbac::xReadEpExGolomb( UInt& ruiSymbol, UInt uiCount )
     uiSymbol += uiBit << uiCount++;
   }
   
-  uiCount--;
-  while( uiCount-- )
+  if ( --uiCount )
   {
-    m_pcTDecBinIf->decodeBinEP( uiBit );
-    uiSymbol += uiBit << uiCount;
+    UInt bins;
+    m_pcTDecBinIf->decodeBinsEP( bins, uiCount );
+    uiSymbol += bins;
   }
   
   ruiSymbol = uiSymbol;
-  
-  return;
 }
 
 Void TDecSbac::xReadUnarySymbol( UInt& ruiSymbol, ContextModel* pcSCModel, Int iOffset )
