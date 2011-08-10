@@ -3706,18 +3706,17 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
 #else
       Double d64CostLast= uiScanIdx == SCAN_VER ? xGetRateLast( uiPosY, uiPosX ) : xGetRateLast( uiPosX, uiPosY );
 #endif
-      d64BaseCost      += d64CostLast;
-      d64BaseCost      -= pdCostSig[ iScanPos ];
-      if( d64BaseCost < d64BestCost )
+      Double totalCost = d64BaseCost + d64CostLast - pdCostSig[ iScanPos ];
+      if( totalCost < d64BestCost )
       {
         iBestLastIdxP1  = iScanPos + 1;
-        d64BestCost     = d64BaseCost;
+        d64BestCost     = totalCost;
       }
       if( piDstCoeff[ uiBlkPos ] > 1 )
       {
         break;
       }
-      d64BaseCost      -= (d64CostLast + pdCostCoeff[ iScanPos ] - pdCostSig[ iScanPos ]);
+      d64BaseCost      -= pdCostCoeff[ iScanPos ];
       d64BaseCost      += pdCostCoeff0[ iScanPos ];
     }
     else
