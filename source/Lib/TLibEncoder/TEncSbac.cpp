@@ -275,7 +275,6 @@ Void TEncSbac::xWriteGoRiceExGolomb( UInt uiSymbol, UInt &ruiGoRiceParam )
   UInt uiCodeWord   = min<UInt>( uiSymbol, ( uiMaxVlc + 1 ) );
   UInt uiQuotient   = uiCodeWord >> ruiGoRiceParam;
   UInt uiUnaryPart  = uiQuotient;
-  UInt uiRemainder  = 1;
   UInt uiMaxPreLen  = g_auiGoRicePrefixLen[ ruiGoRiceParam ];
 
   if( uiUnaryPart )
@@ -301,8 +300,7 @@ Void TEncSbac::xWriteGoRiceExGolomb( UInt uiSymbol, UInt &ruiGoRiceParam )
 
   for( UInt ui = 0; ui < ruiGoRiceParam; ui++ )
   {
-    m_pcBinIf->encodeBinEP( ( uiRemainder & uiCodeWord ) ? 1 : 0 );
-    uiRemainder = uiRemainder << 1;
+    m_pcBinIf->encodeBinEP( ( uiCodeWord >> ( ruiGoRiceParam - 1 - ui ) ) & 1 );
   }
 
   ruiGoRiceParam = g_aauiGoRiceUpdate[ ruiGoRiceParam ][ min<UInt>( uiSymbol, 15 ) ];

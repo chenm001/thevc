@@ -362,11 +362,9 @@ Void TDecSbac::xReadGoRiceExGolomb( UInt &ruiSymbol, UInt &ruiGoRiceParam )
 
   for( UInt ui = 0; ui < ruiGoRiceParam; ui++ )
   {
-    m_pcTDecBinIf->decodeBinEP( uiCodeWord );
-    if( uiCodeWord )
-    {
-      uiRemainder += 1 << ui;
-    }
+    UInt bin;
+    m_pcTDecBinIf->decodeBinEP( bin );
+    uiRemainder += uiRemainder + bin;
   }
 
   ruiSymbol      = uiRemainder + ( uiQuotient << ruiGoRiceParam );
