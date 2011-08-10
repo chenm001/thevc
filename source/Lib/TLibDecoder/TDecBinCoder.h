@@ -53,6 +53,7 @@ public:
 
   virtual Void  decodeBin         ( UInt& ruiBin, ContextModel& rcCtxModel )  = 0;
   virtual Void  decodeBinEP       ( UInt& ruiBin                           )  = 0;
+  virtual Void  decodeBinsEP      ( UInt& ruiBins, Int numBins             )  = 0;
   virtual Void  decodeBinTrm      ( UInt& ruiBin                           )  = 0;
   
 #if E057_INTRA_PCM
