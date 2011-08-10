@@ -3576,7 +3576,6 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
 #endif
   
 #if UNIFIED_SCAN
-  Long plLevelDouble [ 32 * 32 ];
   Double pdCostCoeff [ 32 * 32 ];
   Double pdCostSig   [ 32 * 32 ];
   Double pdCostCoeff0[ 32 * 32 ];
@@ -3598,7 +3597,6 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
     UInt    uiBlkPos          = scan[iScanPos];
     Long lLevelDouble         = plSrcCoeff[ uiBlkPos ];
     lLevelDouble              = abs(lLevelDouble * (Long)uiQ);     
-    plLevelDouble[ uiBlkPos ] = lLevelDouble;
     UInt uiMaxAbsLevel        = (lLevelDouble + (1L << (iQBits - 1))) >> iQBits;
 
     Double dErr               = Double( lLevelDouble );
@@ -3620,14 +3618,14 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
       UInt  uiAbsCtx         = 5 * uiCtxSet + c2;
       if( iScanPos == iLastScanPos )
       {
-        uiLevel              = xGetCodedLevel( pdCostCoeff[ uiBlkPos ], pdCostCoeff0[ uiBlkPos ], pdCostSig[ uiBlkPos ], plLevelDouble[ uiBlkPos ], uiMaxAbsLevel, 0, uiOneCtx, uiAbsCtx, uiGoRiceParam, iQBits, dTemp, 1 );
+        uiLevel              = xGetCodedLevel( pdCostCoeff[ uiBlkPos ], pdCostCoeff0[ uiBlkPos ], pdCostSig[ uiBlkPos ], lLevelDouble, uiMaxAbsLevel, 0, uiOneCtx, uiAbsCtx, uiGoRiceParam, iQBits, dTemp, 1 );
       }
       else
       {
         UInt   uiPosY        = uiBlkPos >> uiLog2BlkSize;
         UInt   uiPosX        = uiBlkPos - ( uiPosY << uiLog2BlkSize );
         UShort uiCtxSig      = getSigCtxInc( piDstCoeff, uiPosX, uiPosY, uiLog2BlkSize, uiWidth );
-        uiLevel              = xGetCodedLevel( pdCostCoeff[ uiBlkPos ], pdCostCoeff0[ uiBlkPos ], pdCostSig[ uiBlkPos ], plLevelDouble[ uiBlkPos ], uiMaxAbsLevel, uiCtxSig, uiOneCtx, uiAbsCtx, uiGoRiceParam, iQBits, dTemp, 0 );
+        uiLevel              = xGetCodedLevel( pdCostCoeff[ uiBlkPos ], pdCostCoeff0[ uiBlkPos ], pdCostSig[ uiBlkPos ], lLevelDouble, uiMaxAbsLevel, uiCtxSig, uiOneCtx, uiAbsCtx, uiGoRiceParam, iQBits, dTemp, 0 );
       }
 
       piDstCoeff[ uiBlkPos ] = plSrcCoeff[ uiBlkPos ] < 0 ? -Int( uiLevel ) : uiLevel;
