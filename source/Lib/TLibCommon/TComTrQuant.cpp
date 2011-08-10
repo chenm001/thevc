@@ -3628,7 +3628,7 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
         uiLevel              = xGetCodedLevel( pdCostCoeff[ uiBlkPos ], pdCostCoeff0[ uiBlkPos ], pdCostSig[ uiBlkPos ], lLevelDouble, uiMaxAbsLevel, uiCtxSig, uiOneCtx, uiAbsCtx, uiGoRiceParam, iQBits, dTemp, 0 );
       }
 
-      piDstCoeff[ uiBlkPos ] = plSrcCoeff[ uiBlkPos ] < 0 ? -Int( uiLevel ) : uiLevel;
+      piDstCoeff[ uiBlkPos ] = uiLevel;
       d64BaseCost           += pdCostCoeff [ uiBlkPos ];
 
       //===== update bin model =====
@@ -3726,16 +3726,18 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
     }
   }
 
-  //===== clean uncoded coefficients =====
-  for ( Int iScanPos = 0; iScanPos < iBestLastIdxP1; iScanPos++ )
+  for ( Int scanPos = 0; scanPos < iBestLastIdxP1; scanPos++ )
   {
-    UInt uiBlkPos = scan[iScanPos];
-    uiAbsSum += abs( piDstCoeff[ uiBlkPos ] );
+    Int blkPos = scan[ scanPos ];
+    Int level  = piDstCoeff[ blkPos ];
+    uiAbsSum += level;
+    piDstCoeff[ blkPos ] = ( plSrcCoeff[ blkPos ] < 0 ) ? -level : level;
   }
   
-  for ( Int iScanPos = iBestLastIdxP1; iScanPos <= iLastScanPos; iScanPos++ )
+  //===== clean uncoded coefficients =====
+  for ( Int scanPos = iBestLastIdxP1; scanPos <= iLastScanPos; scanPos++ )
   {
-    piDstCoeff[ scan[ iScanPos ] ] = 0;
+    piDstCoeff[ scan[ scanPos ] ] = 0;
   }
 
 #else
