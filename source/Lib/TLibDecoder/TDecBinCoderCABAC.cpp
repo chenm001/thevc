@@ -105,20 +105,13 @@ TDecBinCABAC::decodeBin( UInt& ruiBin, ContextModel &rcCtxModel )
   else
   {
     // LPS path
-    m_uiValue  -= scaledRange;
-    m_uiRange   = uiLPS;
+    Int numBits = TComCABACTables::sm_aucRenormTable[ uiLPS >> 3 ];
+    m_uiValue   = ( m_uiValue - scaledRange ) << numBits;
+    m_uiRange   = uiLPS << numBits;
     ruiBin      = 1 - rcCtxModel.getMps();
     rcCtxModel.updateLPS();
     
-    Int numBits = 0;
-    do
-    {
-      m_uiRange *= 2;
-      numBits++;
-    } while ( m_uiRange < 256 );
-    
     m_bitsNeeded += numBits;
-    m_uiValue <<= numBits;
     
     if ( m_bitsNeeded >= 0 )
     {

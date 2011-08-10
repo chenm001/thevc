@@ -178,17 +178,12 @@ Void TEncBinCABAC::encodeBin( UInt binValue, ContextModel &rcCtxModel )
   
   if( binValue != rcCtxModel.getMps() )
   {
-    m_uiLow    += m_uiRange;
-    m_uiRange   = uiLPS;
+    Int numBits = TComCABACTables::sm_aucRenormTable[ uiLPS >> 3 ];
+    m_uiLow     = ( m_uiLow + m_uiRange ) << numBits;
+    m_uiRange   = uiLPS << numBits;
     rcCtxModel.updateLPS();
     
-    do
-    {
-      m_uiLow   <<= 1;
-      m_uiRange <<= 1;
-      m_bitsLeft--;
-    }
-    while( m_uiRange < 256 );
+    m_bitsLeft -= numBits;
   }
   else
   {
