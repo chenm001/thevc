@@ -3727,17 +3727,15 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
   }
 
   //===== clean uncoded coefficients =====
-  for( Int iScanPos = 0; iScanPos <= iLastScanPos; iScanPos++ )
+  for ( Int iScanPos = 0; iScanPos < iBestLastIdxP1; iScanPos++ )
   {
-    UInt uiBlkPos = scan[iScanPos];  
-    if( iScanPos < iBestLastIdxP1 )
-    {
-      uiAbsSum += abs( piDstCoeff[ uiBlkPos ] );
-    }
-    else
-    {
-      piDstCoeff[ uiBlkPos ] = 0;
-    }      
+    UInt uiBlkPos = scan[iScanPos];
+    uiAbsSum += abs( piDstCoeff[ uiBlkPos ] );
+  }
+  
+  for ( Int iScanPos = iBestLastIdxP1; iScanPos <= iLastScanPos; iScanPos++ )
+  {
+    piDstCoeff[ scan[ iScanPos ] ] = 0;
   }
 
 #else
