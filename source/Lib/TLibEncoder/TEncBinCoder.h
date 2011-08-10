@@ -66,6 +66,7 @@ public:
 
   virtual Void  encodeBin         ( UInt  uiBin,  ContextModel& rcCtxModel )  = 0;
   virtual Void  encodeBinEP       ( UInt  uiBin                            )  = 0;
+  virtual Void  encodeBinsEP      ( UInt  uiBins, Int numBins              )  = 0;
   virtual Void  encodeBinTrm      ( UInt  uiBin                            )  = 0;
 
   virtual TEncBinCABAC*   getTEncBinCABAC   ()  { return 0; }
