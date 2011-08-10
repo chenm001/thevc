@@ -43,6 +43,8 @@
 // Constants
 // ====================================================================================================================
 
+#define MAX_NUM_CTX_MOD             512       ///< maximum number of supported contexts
+
 #define NUM_SPLIT_FLAG_CTX            3       ///< number of context models for split flag
 #define NUM_SKIP_FLAG_CTX             3       ///< number of context models for skip flag
 

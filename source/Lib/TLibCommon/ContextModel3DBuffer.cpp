@@ -41,20 +41,14 @@
 // Constructor / destructor / initialization / destroy
 // ====================================================================================================================
 
-ContextModel3DBuffer::ContextModel3DBuffer( UInt uiSizeZ, UInt uiSizeY, UInt uiSizeX ) :
-m_sizeX  ( uiSizeX ),
-m_sizeXY ( uiSizeX * uiSizeY ),
-m_sizeXYZ( uiSizeX * uiSizeY * uiSizeZ )
+ContextModel3DBuffer::ContextModel3DBuffer( UInt uiSizeZ, UInt uiSizeY, UInt uiSizeX, ContextModel *basePtr, Int &count )
+: m_sizeX  ( uiSizeX )
+, m_sizeXY ( uiSizeX * uiSizeY )
+, m_sizeXYZ( uiSizeX * uiSizeY * uiSizeZ )
 {
   // allocate 3D buffer
-  m_contextModel = new ContextModel[ m_sizeXYZ ];
-}
-
-ContextModel3DBuffer::~ContextModel3DBuffer()
-{
-  // delete 3D buffer
-  delete [] m_contextModel;
-  m_contextModel = NULL;
+  m_contextModel = basePtr;
+  count += m_sizeXYZ;
 }
 
 // ====================================================================================================================

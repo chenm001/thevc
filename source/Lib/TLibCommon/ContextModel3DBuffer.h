@@ -59,8 +59,8 @@ protected:
   const UInt    m_sizeXYZ;      ///< total size of 3D buffer
   
 public:
-  ContextModel3DBuffer  ( UInt uiSizeZ, UInt uiSizeY, UInt uiSizeX );
-  ~ContextModel3DBuffer ();
+  ContextModel3DBuffer  ( UInt uiSizeZ, UInt uiSizeY, UInt uiSizeX, ContextModel *basePtr, Int &count );
+  ~ContextModel3DBuffer () {}
   
   // access functions
   ContextModel& get( UInt uiZ, UInt uiY, UInt uiX )
