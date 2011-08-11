@@ -3322,17 +3322,11 @@ Void TComDataCU::getInterMergeCandidates( UInt uiAbsPartIdx, UInt uiPUIdx, UInt 
   UInt uiLeftPartIdx = 0;
   TComDataCU* pcCULeft = 0;
   pcCULeft = getPULeft( uiLeftPartIdx, uiPartIdxLB );
-  if ( avoidMergeCandidate( uiAbsPartIdx, uiPUIdx, uiDepth, pcCULeft, uiLeftPartIdx ) )
-  {
-    pcCULeft = NULL;
-  }
-  if ( pcCULeft && !pcCULeft->isIntra( uiLeftPartIdx ) )
+  if ( !avoidMergeCandidate( uiAbsPartIdx, uiPUIdx, uiDepth, pcCULeft, uiLeftPartIdx ) && !pcCULeft->isIntra( uiLeftPartIdx ) )
   {
     abCandIsInter[iCount] = true;
     puiNeighbourCandIdx[iCount] = iCount + 1;
-  }
-  if ( abCandIsInter[iCount] )
-  {
+  
     // get Inter Dir
     puhInterDirNeighbours[iCount] = pcCULeft->getInterDir( uiLeftPartIdx );
     // get Mv from Left
@@ -3352,17 +3346,11 @@ Void TComDataCU::getInterMergeCandidates( UInt uiAbsPartIdx, UInt uiPUIdx, UInt 
 #else
   pcCUAbove = getPUAbove( uiAbovePartIdx, uiPartIdxRT );
 #endif
-  if ( avoidMergeCandidate( uiAbsPartIdx, uiPUIdx, uiDepth, pcCUAbove, uiAbovePartIdx ) )
-  {
-    pcCUAbove = NULL;
-  }
-  if ( pcCUAbove && !pcCUAbove->isIntra( uiAbovePartIdx ) )
+  if ( !avoidMergeCandidate( uiAbsPartIdx, uiPUIdx, uiDepth, pcCUAbove, uiAbovePartIdx ) && !pcCUAbove->isIntra( uiAbovePartIdx ) )
   {
     abCandIsInter[iCount] = true;
     puiNeighbourCandIdx[iCount] = iCount + 1;
-  }
-  if ( abCandIsInter[iCount] )
-  {
+  
     // get Inter Dir
     puhInterDirNeighbours[iCount] = pcCUAbove->getInterDir( uiAbovePartIdx );
     // get Mv from Left
@@ -3382,17 +3370,11 @@ Void TComDataCU::getInterMergeCandidates( UInt uiAbsPartIdx, UInt uiPUIdx, UInt 
 #else
   pcCUAboveRight = getPUAboveRight( uiAboveRightPartIdx, uiPartIdxRT);
 #endif
-  if ( avoidMergeCandidate( uiAbsPartIdx, uiPUIdx, uiDepth, pcCUAboveRight, uiAboveRightPartIdx ) )
-  {
-    pcCUAboveRight = NULL;
-  }
-  if ( pcCUAboveRight && !pcCUAboveRight->isIntra( uiAboveRightPartIdx ) )
+  if ( !avoidMergeCandidate( uiAbsPartIdx, uiPUIdx, uiDepth, pcCUAboveRight, uiAboveRightPartIdx ) && !pcCUAboveRight->isIntra( uiAboveRightPartIdx ) )
   {
     abCandIsInter[iCount] = true;
     puiNeighbourCandIdx[iCount] = iCount + 1;
-  }
-  if ( abCandIsInter[iCount] )
-  {
+  
     // get Inter Dir
     puhInterDirNeighbours[iCount] = pcCUAboveRight->getInterDir( uiAboveRightPartIdx );
     // get Mv from Left
@@ -3408,17 +3390,11 @@ Void TComDataCU::getInterMergeCandidates( UInt uiAbsPartIdx, UInt uiPUIdx, UInt 
   UInt uiLeftBottomPartIdx = 0;
   TComDataCU* pcCULeftBottom = 0;
   pcCULeftBottom = this->getPUBelowLeft( uiLeftBottomPartIdx, uiPartIdxLB );
-  if ( avoidMergeCandidate( uiAbsPartIdx, uiPUIdx, uiDepth, pcCULeftBottom, uiLeftBottomPartIdx ) )
-  {
-    pcCULeftBottom = NULL;
-  }
-  if ( pcCULeftBottom && !pcCULeftBottom->isIntra( uiLeftBottomPartIdx ) )
+  if ( !avoidMergeCandidate( uiAbsPartIdx, uiPUIdx, uiDepth, pcCULeftBottom, uiLeftBottomPartIdx ) && !pcCULeftBottom->isIntra( uiLeftBottomPartIdx ) )
   {
     abCandIsInter[iCount] = true;
     puiNeighbourCandIdx[iCount] = iCount + 1;
-  }
-  if ( abCandIsInter[iCount] )
-  {
+  
     // get Inter Dir
     puhInterDirNeighbours[iCount] = pcCULeftBottom->getInterDir( uiLeftBottomPartIdx );
     // get Mv from Left
@@ -3440,17 +3416,11 @@ Void TComDataCU::getInterMergeCandidates( UInt uiAbsPartIdx, UInt uiPUIdx, UInt 
 #else
     pcCUAboveLeft = getPUAboveLeft( uiAboveLeftPartIdx, uiAbsPartAddr );
 #endif
-    if( avoidMergeCandidate( uiAbsPartIdx, uiPUIdx, uiDepth, pcCUAboveLeft, uiAboveLeftPartIdx ) )
-    {
-      pcCUAboveLeft = NULL;
-    }
-    if ( pcCUAboveLeft && !pcCUAboveLeft->isIntra( uiAboveLeftPartIdx ) )
+    if( !avoidMergeCandidate( uiAbsPartIdx, uiPUIdx, uiDepth, pcCUAboveLeft, uiAboveLeftPartIdx ) && !pcCUAboveLeft->isIntra( uiAboveLeftPartIdx ) )
     {
       abCandIsInter[iCount] = true;
       puiNeighbourCandIdx[iCount] = iCount + 1;
-    }
-    if ( abCandIsInter[iCount] )
-    {
+    
       // get Inter Dir
       puhInterDirNeighbours[iCount] = pcCUAboveLeft->getInterDir( uiAboveLeftPartIdx );
       // get Mv from Left
@@ -3467,17 +3437,11 @@ Void TComDataCU::getInterMergeCandidates( UInt uiAbsPartIdx, UInt uiPUIdx, UInt 
   UInt uiLeftPartIdx = 0;
   TComDataCU* pcCULeft = 0;
   pcCULeft  = getPULeft( uiLeftPartIdx, uiAbsPartAddr );
-  if( avoidMergeCandidate( uiAbsPartIdx, uiPUIdx, uiDepth, pcCULeft, uiLeftPartIdx ) )
-  {
-    pcCULeft = NULL;
-  }
-  if( pcCULeft && !pcCULeft->isIntra( uiLeftPartIdx ) )
+  if( !avoidMergeCandidate( uiAbsPartIdx, uiPUIdx, uiDepth, pcCULeft, uiLeftPartIdx ) && !pcCULeft->isIntra( uiLeftPartIdx ) )
   {
     abCandIsInter[0] = true;
     puiNeighbourCandIdx[0] = uiIdx;
-  }
-  if ( abCandIsInter[0] )
-  {
+  
     // get Inter Dir
     puhInterDirNeighbours[0] = pcCULeft->getInterDir( uiLeftPartIdx );
     // get Mv from Left
@@ -3498,17 +3462,11 @@ Void TComDataCU::getInterMergeCandidates( UInt uiAbsPartIdx, UInt uiPUIdx, UInt 
 #else
   pcCUAbove = getPUAbove( uiAbovePartIdx, uiAbsPartAddr );
 #endif
-  if( avoidMergeCandidate( uiAbsPartIdx, uiPUIdx, uiDepth, pcCUAbove, uiAbovePartIdx ) )
-  {
-    pcCUAbove = NULL;
-  }
-  if ( pcCUAbove && !pcCUAbove->isIntra( uiAbovePartIdx ) )
+  if( !avoidMergeCandidate( uiAbsPartIdx, uiPUIdx, uiDepth, pcCUAbove, uiAbovePartIdx ) && !pcCUAbove->isIntra( uiAbovePartIdx ) )
   {
     abCandIsInter[1] = true;
     puiNeighbourCandIdx[1] = uiIdx;
-  }
-  if ( abCandIsInter[1] )
-  {
+  
     // get Inter Dir
     puhInterDirNeighbours[1] = pcCUAbove->getInterDir( uiAbovePartIdx );
     // get Mv from Above
