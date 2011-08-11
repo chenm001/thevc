@@ -1761,6 +1761,7 @@ Void TDecSbac::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartId
   const UInt * const scan = g_auiFrameScanXY[ uiLog2BlockSize-1 ];
 #endif
   
+  ContextModel * const baseCtx = m_cCUSigSCModel.get( 0, eTType );
 #if UNIFIED_SCAN
   for( UInt uiScanPos = uiScanPosLast-1; uiScanPos != -1; uiScanPos-- )
 #else  
@@ -1778,7 +1779,7 @@ Void TDecSbac::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartId
     UInt  uiPosX    = uiBlkPos - ( uiPosY << uiLog2BlockSize );
     UInt  uiSig     = 0;
     UInt  uiCtxSig  = TComTrQuant::getSigCtxInc( pcCoef, uiPosX, uiPosY, uiLog2BlockSize, uiWidth );
-    m_pcTDecBinIf->decodeBin( uiSig, m_cCUSigSCModel.get( 0, eTType, uiCtxSig ) );
+    m_pcTDecBinIf->decodeBin( uiSig, baseCtx[ uiCtxSig ] );
     pcCoef[ uiBlkPos ] = uiSig;
     sigCoeffCount += uiSig;
   }
