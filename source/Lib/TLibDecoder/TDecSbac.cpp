@@ -1753,17 +1753,21 @@ Void TDecSbac::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartId
 #if DIAG_SCAN
   uiScanIdx = ( uiScanIdx == SCAN_ZIGZAG ) ? SCAN_DIAG : uiScanIdx; // Map zigzag to diagonal scan
 #endif
+#endif // UNIFIED_SCAN
   
-  for( UInt uiScanPos = uiScanPosLast-1; uiScanPos != -1; uiScanPos-- )
+#if QC_MDCS
+  const UInt * const scan = g_auiSigLastScan[ uiScanIdx ][ uiLog2BlockSize-1 ];
 #else
+  const UInt * const scan = g_auiFrameScanXY[ uiLog2BlockSize-1 ];
+#endif
+  
+#if UNIFIED_SCAN
+  for( UInt uiScanPos = uiScanPosLast-1; uiScanPos != -1; uiScanPos-- )
+#else  
   for( UInt uiScanPos = 0; uiScanPos < uiMaxNumCoeffM1; uiScanPos++ )
 #endif
   {
-#if QC_MDCS
-    UInt uiBlkPos = g_auiSigLastScan[uiScanIdx][uiLog2BlockSize-1][uiScanPos]; 
-#else
-    UInt  uiBlkPos  = g_auiFrameScanXY[ uiLog2BlockSize-1 ][ uiScanPos ];
-#endif //QC_MDCS
+    UInt uiBlkPos = scan[ uiScanPos ];
 #if !UNIFIED_SCAN
     if( uiBlkPosLast == uiBlkPos )
     {
@@ -1780,7 +1784,6 @@ Void TDecSbac::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartId
   }
 
 #if UNIFIED_SCAN
-  const UInt uiLog2BlockSizeM1 = uiLog2BlockSize - 1;
   const Int  iLastScanSet      = uiScanPosLast >> LOG2_SCAN_SET_SIZE;
   UInt uiNumOne                = 0;
   UInt uiGoRiceParam           = 0;
@@ -1791,7 +1794,7 @@ Void TDecSbac::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartId
     uiGoRiceParam    = 0;
     Int numNonZero = 0;
     
-    const UInt *puiSetScan  = g_auiSigLastScan[uiScanIdx][uiLog2BlockSizeM1] + iSubPos;
+    const UInt *puiSetScan  = scan + iSubPos;
     Int pos[SCAN_SET_SIZE];
     
     for( Int iScanPos = SCAN_SET_SIZE-1; iScanPos >= 0; iScanPos-- )
