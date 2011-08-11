@@ -1595,37 +1595,33 @@ Void TEncSbac::codeCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx
   const UInt * const scan = g_auiFrameScanXY[ uiLog2BlockSize - 1 ];
 #endif
   
-  //===== code last coeff =====
-  UInt uiScanPosLast = 0, uiPosLastX, uiPosLastY;
-  for( UInt uiScanPos = 0; uiScanPos < uiMaxNumCoeff; uiScanPos++ )
+  // Find position of last coefficient
+  Int scanPosLast = -1;
+  Int posLast;
+  
+  do
   {
-    UInt uiBlkPos = scan[ uiScanPos ]; 
-    uiPosLastY = uiBlkPos >> uiLog2BlockSize;
-    uiPosLastX = uiBlkPos - ( uiPosLastY << uiLog2BlockSize );
-
-    if( pcCoef[ uiBlkPos ] != 0 )
-    {
-      uiNumSig--;
-      if( uiNumSig == 0 )
-      {
-#if QC_MDCS
-        codeLastSignificantXY(uiPosLastX, uiPosLastY, uiWidth, eTType, uiCTXIdx, uiScanIdx);
-#else
-        codeLastSignificantXY(uiPosLastX, uiPosLastY, uiWidth, eTType, uiCTXIdx, 0);
-#endif
-        uiScanPosLast = uiScanPos;
-        break;
-      }
-    }
+    posLast = scan[ ++scanPosLast ];
+    uiNumSig -= ( pcCoef[ posLast ] != 0 );
   }
+  while ( uiNumSig > 0 );
 
+  // Code position of last coefficient
+  Int posLastY = posLast >> uiLog2BlockSize;
+  Int posLastX = posLast - ( posLastY << uiLog2BlockSize );
+#if QC_MDCS
+  codeLastSignificantXY(posLastX, posLastY, uiWidth, eTType, uiCTXIdx, uiScanIdx);
+#else
+  codeLastSignificantXY(posLastX, posLastY, uiWidth, eTType, uiCTXIdx, 0);
+#endif
+  
   //===== code significance flag =====
   ContextModel * const baseCtx = m_cCUSigSCModel.get( 0, eTType );
   
 #if UNIFIED_SCAN
-  for( UInt uiScanPos = uiScanPosLast-1; uiScanPos != -1; uiScanPos-- )
+  for( UInt uiScanPos = scanPosLast-1; uiScanPos != -1; uiScanPos-- )
 #else
-  for( UInt uiScanPos = 0; uiScanPos < uiScanPosLast; uiScanPos++ )
+  for( UInt uiScanPos = 0; uiScanPos < scanPosLast; uiScanPos++ )
 #endif
   {
     UInt  uiBlkPos  = scan[ uiScanPos ]; 
@@ -1637,7 +1633,7 @@ Void TEncSbac::codeCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx
   }
 
 #if UNIFIED_SCAN
-  const Int  iLastScanSet      = uiScanPosLast >> LOG2_SCAN_SET_SIZE;
+  const Int  iLastScanSet      = scanPosLast >> LOG2_SCAN_SET_SIZE;
   UInt uiNumOne                = 0;
   UInt uiGoRiceParam           = 0;
 
