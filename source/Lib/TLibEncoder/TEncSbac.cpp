@@ -2205,14 +2205,16 @@ Void TEncSbac::estCBFBit( estBitsSbacStruct* pcEstBitsSbac, UInt uiCTXIdx, TextT
 
   for( UInt uiCtxInc = 0; uiCtxInc < 3*NUM_QT_CBF_CTX; uiCtxInc++ )
   {
-    pcEstBitsSbac->blockCbpBits[ uiCtxInc ][ 0 ] = biari_no_bits( 0, pCtx[ uiCtxInc ] );
-    pcEstBitsSbac->blockCbpBits[ uiCtxInc ][ 1 ] = biari_no_bits( 1, pCtx[ uiCtxInc ] );
+    pcEstBitsSbac->blockCbpBits[ uiCtxInc ][ 0 ] = pCtx[ uiCtxInc ].getEntropyBits( 0 );
+    pcEstBitsSbac->blockCbpBits[ uiCtxInc ][ 1 ] = pCtx[ uiCtxInc ].getEntropyBits( 1 );
   }
 
+  pCtx = m_cCUQtRootCbfSCModel.get( 0 );
+  
   for( UInt uiCtxInc = 0; uiCtxInc < 4; uiCtxInc++ )
   {
-    pcEstBitsSbac->blockRootCbpBits[ uiCtxInc ][ 0 ] = biari_no_bits( 0, m_cCUQtRootCbfSCModel.get( 0, 0, uiCtxInc ) );
-    pcEstBitsSbac->blockRootCbpBits[ uiCtxInc ][ 1 ] = biari_no_bits( 1, m_cCUQtRootCbfSCModel.get( 0, 0, uiCtxInc ) );
+    pcEstBitsSbac->blockRootCbpBits[ uiCtxInc ][ 0 ] = pCtx[ uiCtxInc ].getEntropyBits( 0 );
+    pcEstBitsSbac->blockRootCbpBits[ uiCtxInc ][ 1 ] = pCtx[ uiCtxInc ].getEntropyBits( 1 );
   }
 }
 
@@ -2230,9 +2232,6 @@ Void TEncSbac::estSignificantMapBit( estBitsSbacStruct* pcEstBitsSbac, UInt uiCT
   {
 #if UNIFIED_SCAN
     case 2: // 32x32
-      firstCtx = 31;
-      numCtx = 13;
-      break;
     case 3: // 16x16
       firstCtx = 31;
       numCtx = 13;
@@ -2257,7 +2256,7 @@ Void TEncSbac::estSignificantMapBit( estBitsSbacStruct* pcEstBitsSbac, UInt uiCT
   {
     for( UInt uiBin = 0; uiBin < 2; uiBin++ )
     {
-      pcEstBitsSbac->significantBits[ ctxIdx ][ uiBin ] = biari_no_bits ( uiBin, m_cCUSigSCModel.get(  0, eTType, ctxIdx ) );
+      pcEstBitsSbac->significantBits[ ctxIdx ][ uiBin ] = m_cCUSigSCModel.get(  0, eTType, ctxIdx ).getEntropyBits( uiBin );
     }
   }
 
@@ -2279,15 +2278,16 @@ Void TEncSbac::estSignificantMapBit( estBitsSbacStruct* pcEstBitsSbac, UInt uiCT
   for ( UInt uiCtx = 0; uiCtx < uiWidthM1; uiCtx++ )
   {
 #if MODIFIED_LAST_CODING
-    pcEstBitsSbac->lastXBits[ uiCtx ] = iBitsX + biari_no_bits( 1, *( pCtxX + puiCtxIdx[ uiCtx ] ) );
-    pcEstBitsSbac->lastYBits[ uiCtx ] = iBitsY + biari_no_bits( 1, *( pCtxY + puiCtxIdx[ uiCtx ] ) );
-    iBitsX += biari_no_bits( 0, *( pCtxX + puiCtxIdx[ uiCtx ] ) );
-    iBitsY += biari_no_bits( 0, *( pCtxY + puiCtxIdx[ uiCtx ] ) );
+    Int ctxOffset = puiCtxIdx[ uiCtx ];
+    pcEstBitsSbac->lastXBits[ uiCtx ] = iBitsX + pCtxX[ ctxOffset ].getEntropyBits( 1 );
+    pcEstBitsSbac->lastYBits[ uiCtx ] = iBitsY + pCtxY[ ctxOffset ].getEntropyBits( 1 );
+    iBitsX += pCtxX[ ctxOffset ].getEntropyBits( 0 );
+    iBitsY += pCtxY[ ctxOffset ].getEntropyBits( 0 );
 #else
-    pcEstBitsSbac->lastXBits[uiCtx] = iBitsX + biari_no_bits (1, m_cCuCtxLastX.get( 0, eTType, uiCtxOffset + g_uiCtxXY[uiCtx] ));
-    pcEstBitsSbac->lastYBits[uiCtx] = iBitsY + biari_no_bits (1, m_cCuCtxLastY.get( 0, eTType, uiCtxOffset + g_uiCtxXY[uiCtx] ));
-    iBitsX += biari_no_bits (0, m_cCuCtxLastX.get( 0, eTType, uiCtxOffset + g_uiCtxXY[uiCtx] ));
-    iBitsY += biari_no_bits (0, m_cCuCtxLastY.get( 0, eTType, uiCtxOffset + g_uiCtxXY[uiCtx] ));
+    pcEstBitsSbac->lastXBits[uiCtx] = iBitsX + m_cCuCtxLastX.get( 0, eTType, uiCtxOffset + g_uiCtxXY[uiCtx] ).getEntropyBits( 1 );
+    pcEstBitsSbac->lastYBits[uiCtx] = iBitsY + m_cCuCtxLastY.get( 0, eTType, uiCtxOffset + g_uiCtxXY[uiCtx] ).getEntropyBits( 1 );
+    iBitsX += m_cCuCtxLastX.get( 0, eTType, uiCtxOffset + g_uiCtxXY[uiCtx] ).getEntropyBits( 0 );
+    iBitsY += m_cCuCtxLastY.get( 0, eTType, uiCtxOffset + g_uiCtxXY[uiCtx] ).getEntropyBits( 0 );
 #endif
   }
   pcEstBitsSbac->lastXBits[uiWidthM1] = iBitsX;
@@ -2307,17 +2307,13 @@ Void TEncSbac::estSignificantCoefficientsBit( estBitsSbacStruct* pcEstBitsSbac, 
   
   for (Int ctxIdx = 0; ctxIdx < NUM_ONE_FLAG_CTX; ctxIdx++)
   {
-    pcEstBitsSbac->m_greaterOneBits[ ctxIdx ][ 0 ] = biari_no_bits( 0, ctxOne[ ctxIdx ] );
-    pcEstBitsSbac->m_greaterOneBits[ ctxIdx ][ 1 ] = biari_no_bits( 1, ctxOne[ ctxIdx ] );    
+    pcEstBitsSbac->m_greaterOneBits[ ctxIdx ][ 0 ] = ctxOne[ ctxIdx ].getEntropyBits( 0 );
+    pcEstBitsSbac->m_greaterOneBits[ ctxIdx ][ 1 ] = ctxOne[ ctxIdx ].getEntropyBits( 1 );    
   }
+  
   for (Int ctxIdx = 0; ctxIdx < NUM_ABS_FLAG_CTX; ctxIdx++)
   {
-    pcEstBitsSbac->m_levelAbsBits[ ctxIdx ][ 0 ] = biari_no_bits( 0, ctxAbs[ ctxIdx ] );
-    pcEstBitsSbac->m_levelAbsBits[ ctxIdx ][ 1 ] = biari_no_bits( 1, ctxAbs[ ctxIdx ] );    
+    pcEstBitsSbac->m_levelAbsBits[ ctxIdx ][ 0 ] = ctxAbs[ ctxIdx ].getEntropyBits( 0 );
+    pcEstBitsSbac->m_levelAbsBits[ ctxIdx ][ 1 ] = ctxAbs[ ctxIdx ].getEntropyBits( 1 );    
   }
-}
-
-Int TEncSbac::biari_no_bits( Short symbol, ContextModel& rcSCModel )
-{
-  return rcSCModel.getEntropyBits(symbol);
 }
