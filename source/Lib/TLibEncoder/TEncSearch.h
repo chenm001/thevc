@@ -338,9 +338,12 @@ protected:
                                     TComMvField*    pacMvField,
                                     UInt&           uiMergeIndex,
                                     UInt&           ruiCost,
-                                    UInt&           ruiBits,
-                                    UChar*          puhNeighCands,
-                                    Bool&           bValid );
+                                    UInt&           ruiBits
+#if !MRG_AMVP_FIXED_IDX_F470
+                                  , UChar*          puhNeighCands,
+                                    Bool&           bValid
+#endif
+                                   );
   // -------------------------------------------------------------------------------------------------------------------
   // motion estimation
   // -------------------------------------------------------------------------------------------------------------------
