@@ -1620,6 +1620,8 @@ Void TEncSbac::codeCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx
   }
 
   //===== code significance flag =====
+  ContextModel * const baseCtx = m_cCUSigSCModel.get( 0, eTType );
+  
 #if UNIFIED_SCAN
   for( UInt uiScanPos = uiScanPosLast-1; uiScanPos != -1; uiScanPos-- )
 #else
@@ -1631,7 +1633,7 @@ Void TEncSbac::codeCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx
     UInt  uiPosX    = uiBlkPos - ( uiPosY << uiLog2BlockSize );
     UInt  uiSig     = pcCoef[ uiBlkPos ] != 0 ? 1 : 0;
     UInt  uiCtxSig  = TComTrQuant::getSigCtxInc( pcCoef, uiPosX, uiPosY, uiLog2BlockSize, uiWidth );
-    m_pcBinIf->encodeBin( uiSig, m_cCUSigSCModel.get( 0, eTType, uiCtxSig ) );
+    m_pcBinIf->encodeBin( uiSig, baseCtx[ uiCtxSig ] );
   }
 
 #if UNIFIED_SCAN
