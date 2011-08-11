@@ -1589,15 +1589,17 @@ Void TEncSbac::codeCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx
   }
 #endif
 
+#if QC_MDCS
+  const UInt * const scan = g_auiSigLastScan[ uiScanIdx ][ uiLog2BlockSize - 1 ];
+#else
+  const UInt * const scan = g_auiFrameScanXY[ uiLog2BlockSize - 1 ];
+#endif
+  
   //===== code last coeff =====
   UInt uiScanPosLast = 0, uiPosLastX, uiPosLastY;
   for( UInt uiScanPos = 0; uiScanPos < uiMaxNumCoeff; uiScanPos++ )
   {
-#if QC_MDCS
-    UInt uiBlkPos    = g_auiSigLastScan[uiScanIdx][uiLog2BlockSize-1][uiScanPos]; 
-#else
-    UInt  uiBlkPos   = g_auiFrameScanXY[ uiLog2BlockSize-1 ][ uiScanPos ];
-#endif //QC_MDCS
+    UInt uiBlkPos = scan[ uiScanPos ]; 
     uiPosLastY = uiBlkPos >> uiLog2BlockSize;
     uiPosLastX = uiBlkPos - ( uiPosLastY << uiLog2BlockSize );
 
@@ -1624,11 +1626,7 @@ Void TEncSbac::codeCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx
   for( UInt uiScanPos = 0; uiScanPos < uiScanPosLast; uiScanPos++ )
 #endif
   {
-#if QC_MDCS
-    UInt uiBlkPos   = g_auiSigLastScan[uiScanIdx][uiLog2BlockSize-1][uiScanPos]; 
-#else
-    UInt  uiBlkPos  = g_auiFrameScanXY[ uiLog2BlockSize-1 ][ uiScanPos ];
-#endif //QC_MDCS
+    UInt  uiBlkPos  = scan[ uiScanPos ]; 
     UInt  uiPosY    = uiBlkPos >> uiLog2BlockSize;
     UInt  uiPosX    = uiBlkPos - ( uiPosY << uiLog2BlockSize );
     UInt  uiSig     = pcCoef[ uiBlkPos ] != 0 ? 1 : 0;
@@ -1637,7 +1635,6 @@ Void TEncSbac::codeCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx
   }
 
 #if UNIFIED_SCAN
-  const UInt uiLog2BlockSizeM1 = uiLog2BlockSize - 1;
   const Int  iLastScanSet      = uiScanPosLast >> LOG2_SCAN_SET_SIZE;
   UInt uiNumOne                = 0;
   UInt uiGoRiceParam           = 0;
@@ -1650,7 +1647,7 @@ Void TEncSbac::codeCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx
     Int absCoeff[16];
     UInt coeffSigns = 0;
     
-    const UInt *puiSetScan  = g_auiSigLastScan[uiScanIdx][uiLog2BlockSizeM1] + iSubPos;
+    const UInt * const puiSetScan  = scan + iSubPos;
     for( Int iScanPos = SCAN_SET_SIZE-1; iScanPos >= 0; iScanPos-- )
     {
       UInt uiBlkPos = puiSetScan[ iScanPos ];
