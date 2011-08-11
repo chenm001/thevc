@@ -627,9 +627,7 @@ Void TEncSbac::codeMergeIndex( TComDataCU* pcCU, UInt uiAbsPartIdx )
 {
 #if MRG_AMVP_FIXED_IDX_F470
   UInt uiNumCand = MRG_MAX_NUM_CANDS;
-  Bool bLeftInvolved = true;
-  Bool bAboveInvolved = true;
-  Bool bCollocatedInvolved = true;
+  UInt auiCtx[4] = { 0, 1, 2, 3 };
 #else
   Bool bLeftInvolved = false;
   Bool bAboveInvolved = false;
@@ -659,7 +657,6 @@ Void TEncSbac::codeMergeIndex( TComDataCU* pcCU, UInt uiAbsPartIdx )
       }
     }
   }
-#endif
   assert( uiNumCand > 1 );
 
   UInt auiCtx[4] = { 0, 0, 0, 3 };
@@ -692,6 +689,7 @@ Void TEncSbac::codeMergeIndex( TComDataCU* pcCU, UInt uiAbsPartIdx )
   {
     auiCtx[2] =  bCollocatedInvolved ? 2 : 3;
   }
+#endif
 
   UInt uiUnaryIdx = pcCU->getMergeIndex( uiAbsPartIdx );
 #if !(MRG_AMVP_FIXED_IDX_F470)

@@ -639,9 +639,7 @@ Void TDecSbac::parseMergeIndex ( TComDataCU* pcCU, UInt& ruiMergeIndex, UInt uiA
 {
 #if MRG_AMVP_FIXED_IDX_F470
   UInt uiNumCand = MRG_MAX_NUM_CANDS;
-  Bool bLeftInvolved = true;
-  Bool bAboveInvolved = true;
-  Bool bCollocatedInvolved = true;
+  UInt auiCtx[4] = { 0, 1, 2, 3 };
 #else
   Bool bLeftInvolved = false;
   Bool bAboveInvolved = false;
@@ -671,7 +669,6 @@ Void TDecSbac::parseMergeIndex ( TComDataCU* pcCU, UInt& ruiMergeIndex, UInt uiA
       }
     }
   }
-#endif
   assert( uiNumCand > 1 );
 
   UInt auiCtx[4] = { 0, 0, 0, 3 };
@@ -704,6 +701,7 @@ Void TDecSbac::parseMergeIndex ( TComDataCU* pcCU, UInt& ruiMergeIndex, UInt uiA
   {
     auiCtx[2] =  bCollocatedInvolved ? 2 : 3;
   }
+#endif
 
   UInt uiUnaryIdx = 0;
   for( ; uiUnaryIdx < uiNumCand - 1; ++uiUnaryIdx )
