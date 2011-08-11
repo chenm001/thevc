@@ -301,17 +301,20 @@ Void TEncTop::xGetNewPicBuffer ( TComPic*& rpcPic )
 #if REF_SETTING_FOR_LD
     if ( m_bUseNewRefSetting )
     {
+      Bool bFound = false;
       TComList<TComPic*>::iterator  it = m_cListPic.begin();
       while ( it != m_cListPic.end() )
       {
         if ( (*it)->getReconMark() == false )
         {
+          bFound = true;
           rpcPic = *it;
           m_cListPic.erase( it );
           break;
         }
         if ( !(*it)->getSlice(0)->isReferenced() )
         {
+          bFound = true;
           (*it)->setReconMark( false );
           (*it)->getPicYuvRec()->setBorderExtension( false );
           rpcPic = *it;
@@ -321,7 +324,7 @@ Void TEncTop::xGetNewPicBuffer ( TComPic*& rpcPic )
 
         it++;
       }
-      if ( it == m_cListPic.end() )
+      if ( !bFound )
       {
         assert(0);
       }
