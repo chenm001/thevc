@@ -7006,7 +7006,7 @@ Void TEncSampleAdaptiveOffset::calcAoStatsCuMap(Int iAddr, Int iPartIdx, Int iYC
     iLcuHeight = uiBPelY - uiTPelY;
 
     pRec       = m_pcPic->getPicYuvRec()->getLumaAddr(iAddr);
-    pMap       =  m_pcPicYuvMap->getCbAddr(iAddr);    
+    pMap       = m_pcPicYuvMap->getLumaAddr(iAddr);    
     iStride    = m_pcPic->getStride();
   }
 
