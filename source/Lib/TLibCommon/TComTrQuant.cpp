@@ -4032,7 +4032,7 @@ UInt TComTrQuant::getSigCtxInc    ( TCoeff*                         pcCoeff,
     return 31 + 2 * uiPosY + uiPosX;
   }
   
-  const Int *pData = pcCoeff + uiPosX + (uiPosY << uiLog2BlkSize);
+  const TCoeff *pData = pcCoeff + uiPosX + (uiPosY << uiLog2BlkSize);
   Int iStride = uiStride;
 
   if( uiPosX + uiPosY < 5 )
