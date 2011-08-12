@@ -1749,11 +1749,11 @@ Void TDecSbac::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartId
   {
     uiScanPosLast = uiPosLastY + (uiPosLastX<<uiLog2BlockSize);
   }
+#endif // UNIFIED_SCAN
 
 #if DIAG_SCAN
   uiScanIdx = ( uiScanIdx == SCAN_ZIGZAG ) ? SCAN_DIAG : uiScanIdx; // Map zigzag to diagonal scan
 #endif
-#endif // UNIFIED_SCAN
   
 #if QC_MDCS
   const UInt * const scan = g_auiSigLastScan[ uiScanIdx ][ uiLog2BlockSize-1 ];
