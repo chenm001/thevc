@@ -6554,7 +6554,7 @@ Void TEncSampleAdaptiveOffset::xQuadTreeDecisionFunc(SAOQTPart *psQTPart, Int iP
     {
       if( m_bUseSBACRD )  
       {
-        if ( 0 == iPartIdx) //initialize RD with previous depth buffer
+        if ( 0 == i) //initialize RD with previous depth buffer
         {
           m_pppcRDSbacCoder[uhNextDepth][CI_CURR_BEST]->load(m_pppcRDSbacCoder[uiDepth][CI_CURR_BEST]);
         }
@@ -6567,7 +6567,7 @@ Void TEncSampleAdaptiveOffset::xQuadTreeDecisionFunc(SAOQTPart *psQTPart, Int iP
       dCostSplit += dCostFinal;
       if( m_bUseSBACRD )
       {
-        m_pppcRDSbacCoder[uhNextDepth][CI_NEXT_BEST]->store(m_pppcRDSbacCoder[uiDepth][CI_TEMP_BEST]);
+        m_pppcRDSbacCoder[uhNextDepth][CI_NEXT_BEST]->load(m_pppcRDSbacCoder[uhNextDepth][CI_TEMP_BEST]);
       }
     }
 
@@ -6579,6 +6579,10 @@ Void TEncSampleAdaptiveOffset::xQuadTreeDecisionFunc(SAOQTPart *psQTPart, Int iP
       pOnePart->bEnableFlag = false;
       pOnePart->iLength     =  0;
       pOnePart->iBestType   = -1;
+      if( m_bUseSBACRD )
+      {
+        m_pppcRDSbacCoder[uiDepth][CI_NEXT_BEST]->load(m_pppcRDSbacCoder[uhNextDepth][CI_NEXT_BEST]);
+      }
     }
     else
     {
@@ -6587,6 +6591,10 @@ Void TEncSampleAdaptiveOffset::xQuadTreeDecisionFunc(SAOQTPart *psQTPart, Int iP
       for (Int i=0; i<NUM_DOWN_PART; i++)
       {
         xPartTreeDisable(psQTPart, pOnePart->DownPartsIdx[i]);
+      }
+      if( m_bUseSBACRD )
+      {
+        m_pppcRDSbacCoder[uiDepth][CI_NEXT_BEST]->load(m_pppcRDSbacCoder[uiDepth][CI_TEMP_BEST]);
       }
     }
   }
