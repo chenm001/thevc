@@ -741,7 +741,7 @@ Void TComSlice::decodingMarking( TComList<TComPic*>& rcListPic, Int iGOPSIze, In
   while ( iterPic != rcListPic.end() )
   {
     TComPic* rpcPic = *(iterPic);
-    if ( rpcPic->getSlice( 0 )->isReferenced() ) 
+    if ( rpcPic->getSlice( 0 )->isReferenced() && rpcPic->getReconMark() ) 
     {
       if ( rpcPic != getPic() )
       {
@@ -804,7 +804,7 @@ Int TComSlice::getActualRefNumber( TComList<TComPic*>& rcListPic )
   while ( iterPic != rcListPic.end() )
   {
     TComPic* rpcPic = *(iterPic);
-    if ( rpcPic->getSlice( 0 )->isReferenced() ) 
+    if ( rpcPic->getSlice( 0 )->isReferenced() && rpcPic->getReconMark() ) 
     {
       iActualNumOfReference++;
     }
