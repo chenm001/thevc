@@ -192,7 +192,7 @@ Int TEncEntropy::codeFilterCoeff(ALFParam* ALFp)
   minKStart, minBitsKStart, bitsKStart;
   
 #if STAR_CROSS_SHAPES_LUMA
-  pDepthInt = pDepthIntTab_shapes[filtNo];
+  pDepthInt = pDepthIntTabShapes[filtNo];
 #else 
   pDepthInt = pDepthIntTab[fl-2];
 #endif

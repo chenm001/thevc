@@ -139,7 +139,7 @@ Void TDecEntropy::readFilterCodingParams(ALFParam* pAlfParam)
 #if STAR_CROSS_SHAPES_LUMA
   // Determine maxScanVal
   maxScanVal = 0;
-  pDepthInt = pDepthIntTab_shapes[pAlfParam->realfiltNo];
+  pDepthInt = pDepthIntTabShapes[pAlfParam->realfiltNo];
 #else
   int fl;
   
@@ -210,7 +210,7 @@ Void TDecEntropy::readFilterCoeffs(ALFParam* pAlfParam)
   int ind, scanPos, i;
   int *pDepthInt;
 #if STAR_CROSS_SHAPES_LUMA
-  pDepthInt = pDepthIntTab_shapes[pAlfParam->realfiltNo];
+  pDepthInt = pDepthIntTabShapes[pAlfParam->realfiltNo];
 #else
   int fl;
   

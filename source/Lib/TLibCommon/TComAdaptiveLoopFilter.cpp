@@ -383,7 +383,7 @@ Int depthInt5x5Sym[8] =
 };
 
 #if STAR_CROSS_SHAPES_LUMA
-Int* pDepthIntTab_shapes[NO_TEST_FILT] =
+Int* pDepthIntTabShapes[NO_TEST_FILT] =
 { 
     depthIntShape0Sym, depthIntShape1Sym
 };

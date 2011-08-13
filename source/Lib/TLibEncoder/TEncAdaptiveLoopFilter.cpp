@@ -1853,7 +1853,7 @@ Void TEncAdaptiveLoopFilter::xcollectStatCodeFilterCoeffForce0(int **pDiffQFilte
   minKStart, minBitsKStart, bitsKStart;
   
 #if STAR_CROSS_SHAPES_LUMA
-  pDepthInt = pDepthIntTab_shapes[fl];
+  pDepthInt = pDepthIntTabShapes[fl];
 #else
   pDepthInt=pDepthIntTab[fl-2];
 #endif
@@ -2194,7 +2194,7 @@ Int   TEncAdaptiveLoopFilter::xcodeFilterCoeff(int **pDiffQFilterCoeffIntPP, int
   minKStart, minBitsKStart, bitsKStart;
   
 #if STAR_CROSS_SHAPES_LUMA
-  pDepthInt = pDepthIntTab_shapes[fl];
+  pDepthInt = pDepthIntTabShapes[fl];
 #else
   pDepthInt = pDepthIntTab[fl-2];
 #endif

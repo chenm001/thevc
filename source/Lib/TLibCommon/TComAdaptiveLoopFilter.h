@@ -100,7 +100,7 @@
 #if STAR_CROSS_SHAPES_LUMA
 extern Int depthIntShape0Sym[10];
 extern Int depthIntShape1Sym[9];
-extern Int *pDepthIntTab_shapes[NO_TEST_FILT];
+extern Int *pDepthIntTabShapes[NO_TEST_FILT];
 #endif
 #if TI_ALF_MAX_VSIZE_7
 extern Int depthInt9x9Sym[21];
