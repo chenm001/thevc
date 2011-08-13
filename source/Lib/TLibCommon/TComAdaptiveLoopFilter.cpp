@@ -49,53 +49,50 @@
 //Shape0: Star5x5
 Int TComAdaptiveLoopFilter::patternShape0Sym[17] = 
 {
-    0,    1,    2, 
-       3, 4, 5,
-    6, 7, 8, 7, 6, 
-       5, 4, 3, 
-    2,    1,    0
+  0,    1,    2, 
+     3, 4, 5,
+  6, 7, 8, 7, 6,
+     5, 4, 3, 
+  2,    1,    0
 };
 
 Int TComAdaptiveLoopFilter::weightsShape0Sym[10] = 
 {
-    2,    2,    2,    
-       2, 2, 2,        
-    2, 2, 1, 1
-
+  2,    2,    2,    
+     2, 2, 2,        
+  2, 2, 1, 1
 };
 
 Int TComAdaptiveLoopFilter::patternShape0Sym_Quart[29] = 
-{    
-    0,  0,  0,  1,  0,  2,  0,  3,  0,  0,  0,
-    0,  0,  0,  0,  4,  5,  6,  0,  0,  0,  0,
-    0,  0,  0,  7,  8,  9, 10
+{
+  0,  0,  0,  1,  0,  2,  0,  3,  0,  0,  0,
+  0,  0,  0,  0,  4,  5,  6,  0,  0,  0,  0,
+  0,  0,  0,  7,  8,  9, 10
 };
 //Shape1: Cross11x5
 Int TComAdaptiveLoopFilter::patternShape1Sym[15] = 
 {
-                   0,
-                   1,                                               
-    2, 3, 4, 5, 6, 7, 6, 5, 4, 3, 2,                      
-                   1,
-                   0
+                 0,
+                 1,
+  2, 3, 4, 5, 6, 7, 6, 5, 4, 3, 2,                      
+                 1,
+                 0
 };
 
 Int TComAdaptiveLoopFilter::weightsShape1Sym[9] = 
 {                      
-                   2,
-                   2,
-    2, 2, 2, 2, 2, 1, 1
-
+                 2,
+                 2,
+  2, 2, 2, 2, 2, 1, 1
 };
 
 Int TComAdaptiveLoopFilter::patternShape1Sym_Quart[29] = 
 {
-    0,  0,  0,  0,  0,  1,  0,  0,  0,  0,  0,
-    0,  0,  0,  0,  0,  2,  0,  0,  0,  0,  0,
-    3,  4,  5,  6,  7,  8,  9
+  0,  0,  0,  0,  0,  1,  0,  0,  0,  0,  0,
+  0,  0,  0,  0,  0,  2,  0,  0,  0,  0,  0,
+  3,  4,  5,  6,  7,  8,  9
 };
 #endif
-
 
 #if TI_ALF_MAX_VSIZE_7
 Int TComAdaptiveLoopFilter::m_pattern9x9Sym[39] = 
@@ -252,49 +249,49 @@ Int TComAdaptiveLoopFilter::m_pattern9x9Sym_5[13] =
 // Shape0
 Int TComAdaptiveLoopFilter::pattern11x5SymShape0[17] = 
 {
-        3,    5,    7,
-          15,16,17,
-       25,26,27,26,25,
-          17,16,15, 
-        7,    5,    3 
+  3,    5,    7,
+    15,16,17,
+  25,26,27,26,25,
+    17,16,15, 
+  7,    5,    3 
 };
 // Shape1
 Int TComAdaptiveLoopFilter::pattern11x5SymShape1[15] = 
 {
-                    5, 
-                   16, 
-    22,23,24,25,26,27,26,25,24,23,22,
-                   16, 
-                    5  
+                  5, 
+                 16, 
+  22,23,24,25,26,27,26,25,24,23,22,
+                 16, 
+                  5  
 };
 
 Int TComAdaptiveLoopFilter::pattern11x5Sym11x5[55] =
 {
-     0, 1, 2, 3, 4, 5, 6, 7, 8, 9,10,
-    11,12,13,14,15,16,17,18,19,20,21,
-    22,23,24,25,26,27,26,25,24,23,22,
-    21,20,19,18,17,16,15,14,13,12,11,
-    10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0
+   0, 1, 2, 3, 4, 5, 6, 7, 8, 9,10,
+  11,12,13,14,15,16,17,18,19,20,21,
+  22,23,24,25,26,27,26,25,24,23,22,
+  21,20,19,18,17,16,15,14,13,12,11,
+  10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0
 };
 
 Int* TComAdaptiveLoopFilter::patternTabFiltShapes[NO_TEST_FILT] =
 {
-    pattern11x5SymShape0, pattern11x5SymShape1
+  pattern11x5SymShape0, pattern11x5SymShape1
 }; 
 
 Int* TComAdaptiveLoopFilter::patternTabShapes[NO_TEST_FILT] =
 {
-    patternShape0Sym, patternShape1Sym, pattern11x5Sym11x5
+  patternShape0Sym, patternShape1Sym, pattern11x5Sym11x5
 }; 
 
 Int* TComAdaptiveLoopFilter::patternMapTabShapes[NO_TEST_FILT] =
 {
-    patternShape0Sym_Quart, patternShape1Sym_Quart
+  patternShape0Sym_Quart, patternShape1Sym_Quart
 };
 
 Int* TComAdaptiveLoopFilter::weightsTabShapes[NO_TEST_FILT] =
 {
-    weightsShape0Sym, weightsShape1Sym
+  weightsShape0Sym, weightsShape1Sym
 };
 #endif
 
@@ -339,16 +336,16 @@ Int TComAdaptiveLoopFilter::m_sqrFiltLengthTab[NO_TEST_FILT] =
 // Shape0
 Int depthIntShape0Sym[10] = 
 {
-       1,    3,    1,
-          3, 4, 3, 
-       3, 4, 5, 5                 
+  1,    3,    1,
+     3, 4, 3, 
+  3, 4, 5, 5                 
 };
 // Shape1
 Int depthIntShape1Sym[9] = 
 {
-                   9,
-                  10,
-    6, 7, 8, 9,10,11,11                        
+                 9,
+                10,
+  6, 7, 8, 9,10,11,11                        
 };
 #endif
 
@@ -385,7 +382,7 @@ Int depthInt5x5Sym[8] =
 #if STAR_CROSS_SHAPES_LUMA
 Int* pDepthIntTabShapes[NO_TEST_FILT] =
 { 
-    depthIntShape0Sym, depthIntShape1Sym
+  depthIntShape0Sym, depthIntShape1Sym
 };
 #endif
 
@@ -1100,7 +1097,7 @@ Void TComAdaptiveLoopFilter::getCurrentFilter(int **filterCoeffSym,ALFParam* pcA
       memset(m_filterCoeffPrevSelected[varInd],0,sizeof(int)*MAX_SQR_FILT_LENGTH);
     }
 #if STAR_CROSS_SHAPES_LUMA
-    patternMap=patternMapTabShapes[pcAlfParam->realfiltNo];
+  patternMap=patternMapTabShapes[pcAlfParam->realfiltNo];
 #else
     patternMap=patternMapTab[pcAlfParam->realfiltNo];
 #endif
@@ -1558,7 +1555,7 @@ Void TComAdaptiveLoopFilter::filterFrame(imgpel *imgYRecPost, imgpel *imgYRec, i
         pixelInt += coef[16]* (pImgYPad1[j]+pImgYPad2[j]);
         pixelInt += coef[17]* (pImgYPad1[j-1]+pImgYPad2[j+1]);
 
-         pixelInt += coef[25]* (pImgYPad[j+2]+pImgYPad[j-2]);
+        pixelInt += coef[25]* (pImgYPad[j+2]+pImgYPad[j-2]);
         pixelInt += coef[26]* (pImgYPad[j+1]+pImgYPad[j-1]);
         pixelInt += coef[27]* (pImgYPad[j]);
 
@@ -1982,13 +1979,13 @@ Void TComAdaptiveLoopFilter::filterFrame(imgpel *imgY_rec_post, imgpel *imgY_rec
   int *pattern_fix = patternTabFiltShapes[filtNo]; 
   if (filtNo == 0)
   {
-      fl_temp_h = 2;
-      fl_temp_v = 2;    
+    fl_temp_h = 2;
+    fl_temp_v = 2;    
   }
   else //if (filtNo == 1)
   {
-      fl_temp_h = 5;
-      fl_temp_v = 2;    
+    fl_temp_h = 5;
+    fl_temp_v = 2;    
   }
 #else
   int *pattern_fix=m_patternTab_filt[filtNo];
@@ -2001,66 +1998,66 @@ Void TComAdaptiveLoopFilter::filterFrame(imgpel *imgY_rec_post, imgpel *imgY_rec
 #if STAR_CROSS_SHAPES_LUMA
   if (filtNo == 0)
   {
-      for (i = fl; i < m_img_height+fl; i++)
+    for (i = fl; i < m_img_height+fl; i++)
+    {
+      p_imgY_var = m_imgY_var[i-fl];
+      p_imgY_pad = imgY_rec + (i-fl)*Stride;
+      for (j = fl; j < m_img_width+fl; j++)
       {
-          p_imgY_var = m_imgY_var[i-fl];
-          p_imgY_pad = imgY_rec + (i-fl)*Stride;
-          for (j = fl; j < m_img_width+fl; j++)
-          {
-              coef = m_filterCoeffPrevSelected[*(p_imgY_var++)];
-              pixelInt=coef[last_coef];
-              pattern=pattern_fix;
+        coef = m_filterCoeffPrevSelected[*(p_imgY_var++)];
+        pixelInt=coef[last_coef];
+        pattern=pattern_fix;
 
-              for (ii=-fl_temp_v; ii<0; ii++)
-              {
-                  m = (ii == -fl_temp_v)? 2: 1;
-                  im1= &(imgY_rec[(i-fl+ii)*Stride + j-fl-m]);
-                  im2= &(imgY_rec[(i-fl-ii)*Stride + j-fl+m]);
-                  for (jj=-m; jj<=m; jj++)
-                      if ((m == 1) || (m == 2 && jj%2 == 0))
-                          pixelInt+=((*(im1++)+ *(im2--))*coef[*(pattern++)]);
-              }
+        for (ii=-fl_temp_v; ii<0; ii++)
+        {
+          m = (ii == -fl_temp_v)? 2: 1;
+          im1= &(imgY_rec[(i-fl+ii)*Stride + j-fl-m]);
+          im2= &(imgY_rec[(i-fl-ii)*Stride + j-fl+m]);
+          for (jj=-m; jj<=m; jj++)
+          if ((m == 1) || (m == 2 && jj%2 == 0))
+            pixelInt+=((*(im1++)+ *(im2--))*coef[*(pattern++)]);
+        }
               
-              im1= &(p_imgY_pad[(j-fl)-fl_temp_h]);
-              im2= &(p_imgY_pad[(j-fl)+fl_temp_h]);
-              for (jj=0; jj<fl_temp_h; jj++)
-                  pixelInt+=((*(im1++)+ *(im2--))*coef[*(pattern++)]);
+        im1= &(p_imgY_pad[(j-fl)-fl_temp_h]);
+        im2= &(p_imgY_pad[(j-fl)+fl_temp_h]);
+        for (jj=0; jj<fl_temp_h; jj++)
+          pixelInt+=((*(im1++)+ *(im2--))*coef[*(pattern++)]);
   
-              pixelInt+=(p_imgY_pad[j-fl]*coef[*(pattern++)]);
-              pixelInt=(int)((pixelInt+offset) >> (num_bits_minus_1));
-              imgY_rec_post[(i-fl)*Stride + j-fl]=max(0, min(pixelInt,max_val));
-          }
+        pixelInt+=(p_imgY_pad[j-fl]*coef[*(pattern++)]);
+        pixelInt=(int)((pixelInt+offset) >> (num_bits_minus_1));
+        imgY_rec_post[(i-fl)*Stride + j-fl]=max(0, min(pixelInt,max_val));
       }
+    }
   }
   else //if (filtNo == 1)
   {
-      for (i = fl; i < m_img_height+fl; i++)
+    for (i = fl; i < m_img_height+fl; i++)
+    {
+      p_imgY_var = m_imgY_var[i-fl];
+      p_imgY_pad = imgY_rec + (i-fl)*Stride;
+      for (j = fl; j < m_img_width+fl; j++)
       {
-          p_imgY_var = m_imgY_var[i-fl];
-          p_imgY_pad = imgY_rec + (i-fl)*Stride;
-          for (j = fl; j < m_img_width+fl; j++)
-          {
-              coef = m_filterCoeffPrevSelected[*(p_imgY_var++)];
-              pixelInt=coef[last_coef];
-              pattern=pattern_fix;
+        coef = m_filterCoeffPrevSelected[*(p_imgY_var++)];
+        pixelInt=coef[last_coef];
+        pattern=pattern_fix;
 
-              for (ii=-fl_temp_v; ii<0; ii++)
-              {
-                  im1= &(imgY_rec[(i-fl+ii)*Stride + j-fl]);
-                  im2= &(imgY_rec[(i-fl-ii)*Stride + j-fl]);
-                  pixelInt+=((*(im1)+ *(im2))*coef[*(pattern++)]);
-              }
+        for (ii=-fl_temp_v; ii<0; ii++)
+        {
+          im1= &(imgY_rec[(i-fl+ii)*Stride + j-fl]);
+          im2= &(imgY_rec[(i-fl-ii)*Stride + j-fl]);
+          pixelInt+=((*(im1)+ *(im2))*coef[*(pattern++)]);
+        }
 
-              im1= &(p_imgY_pad[(j-fl)-fl_temp_h]);
-              im2= &(p_imgY_pad[(j-fl)+fl_temp_h]);    
-              for (jj=0; jj<fl_temp_h; jj++)
-                  pixelInt+=((*(im1++)+ *(im2--))*coef[*(pattern++)]);
+        im1= &(p_imgY_pad[(j-fl)-fl_temp_h]);
+        im2= &(p_imgY_pad[(j-fl)+fl_temp_h]);    
+        for (jj=0; jj<fl_temp_h; jj++)
+          pixelInt+=((*(im1++)+ *(im2--))*coef[*(pattern++)]);
               
-              pixelInt+=(p_imgY_pad[j-fl]*coef[*(pattern++)]);
-              pixelInt=(int)((pixelInt+offset) >> (num_bits_minus_1));
-              imgY_rec_post[(i-fl)*Stride + j-fl]=max(0, min(pixelInt,max_val));
-          }
-      }
+        pixelInt+=(p_imgY_pad[j-fl]*coef[*(pattern++)]);
+        pixelInt=(int)((pixelInt+offset) >> (num_bits_minus_1));
+        imgY_rec_post[(i-fl)*Stride + j-fl]=max(0, min(pixelInt,max_val));
+      }    
+    }
   }
 #else
   // Filter
@@ -2120,13 +2117,13 @@ Void TComAdaptiveLoopFilter::subfilterFrame(imgpel *imgY_rec_post, imgpel *imgY_
   int *pattern_fix = patternTabFiltShapes[filtNo]; 
   if (filtNo == 0)
   {
-      fl_temp_h = 2;
-      fl_temp_v = 2;    
+    fl_temp_h = 2;
+    fl_temp_v = 2;    
   }
   else //if (filtNo == 1)
   {
-      fl_temp_h = 5;
-      fl_temp_v = 2;    
+    fl_temp_h = 5;
+    fl_temp_v = 2;    
   }
 #else
   int *pattern_fix=m_patternTab_filt[filtNo];
@@ -2139,66 +2136,66 @@ Void TComAdaptiveLoopFilter::subfilterFrame(imgpel *imgY_rec_post, imgpel *imgY_
 #if STAR_CROSS_SHAPES_LUMA
   if (filtNo == 0)
   {
-      for (i = fl + start_height; i < end_height+fl; i++)
+    for (i = fl + start_height; i < end_height+fl; i++)
+    {
+      p_imgY_var = m_imgY_var[i-fl] + start_width;
+      p_imgY_pad = imgY_rec + (i-fl)*Stride;
+      for (j = fl + start_width; j < end_width+fl; j++)
       {
-          p_imgY_var = m_imgY_var[i-fl] + start_width;
-          p_imgY_pad = imgY_rec + (i-fl)*Stride;
-          for (j = fl + start_width; j < end_width+fl; j++)
-          {
-              coef = m_filterCoeffPrevSelected[*(p_imgY_var++)];
-              pixelInt=coef[last_coef];
-              pattern=pattern_fix;
+        coef = m_filterCoeffPrevSelected[*(p_imgY_var++)];
+        pixelInt=coef[last_coef];
+        pattern=pattern_fix;
 
-              for (ii=-fl_temp_v; ii<0; ii++)
-              {
-                  m = (ii == -fl_temp_v)? 2: 1;
-                  im1= &(imgY_rec[(i-fl+ii)*Stride + j-fl-m]);
-                  im2= &(imgY_rec[(i-fl-ii)*Stride + j-fl+m]);
-                  for (jj=-m; jj<=m; jj++)
-                      if ((m == 1) || (m == 2 && jj%2 == 0))
-                          pixelInt+=((*(im1++)+ *(im2--))*coef[*(pattern++)]);
-              }
+        for (ii=-fl_temp_v; ii<0; ii++)
+        {
+          m = (ii == -fl_temp_v)? 2: 1;
+          im1= &(imgY_rec[(i-fl+ii)*Stride + j-fl-m]);
+          im2= &(imgY_rec[(i-fl-ii)*Stride + j-fl+m]);
+          for (jj=-m; jj<=m; jj++)
+          if ((m == 1) || (m == 2 && jj%2 == 0))
+            pixelInt+=((*(im1++)+ *(im2--))*coef[*(pattern++)]);
+        }
   
-              im1= &(p_imgY_pad[(j-fl)-fl_temp_h]);
-              im2= &(p_imgY_pad[(j-fl)+fl_temp_h]);    
-              for (jj=0; jj<fl_temp_h; jj++)
-                  pixelInt+=((*(im1++)+ *(im2--))*coef[*(pattern++)]);
+        im1= &(p_imgY_pad[(j-fl)-fl_temp_h]);
+        im2= &(p_imgY_pad[(j-fl)+fl_temp_h]);    
+        for (jj=0; jj<fl_temp_h; jj++)
+          pixelInt+=((*(im1++)+ *(im2--))*coef[*(pattern++)]);
               
-              pixelInt+=(p_imgY_pad[j-fl]*coef[*(pattern++)]);
-              pixelInt=(int)((pixelInt+offset) >> (num_bits_minus_1));
-              imgY_rec_post[(i-fl)*Stride + j-fl]=max(0, min(pixelInt,max_val));
-          }
+        pixelInt+=(p_imgY_pad[j-fl]*coef[*(pattern++)]);
+        pixelInt=(int)((pixelInt+offset) >> (num_bits_minus_1));
+        imgY_rec_post[(i-fl)*Stride + j-fl]=max(0, min(pixelInt,max_val));
       }
+    }
   }
   else //if (filtNo == 1)
   {
-      for (i = fl + start_height; i < end_height+fl; i++)
+    for (i = fl + start_height; i < end_height+fl; i++)
+    {
+      p_imgY_var = m_imgY_var[i-fl] + start_width;
+      p_imgY_pad = imgY_rec + (i-fl)*Stride;
+      for (j = fl + start_width; j < end_width+fl; j++)
       {
-          p_imgY_var = m_imgY_var[i-fl] + start_width;
-          p_imgY_pad = imgY_rec + (i-fl)*Stride;
-          for (j = fl + start_width; j < end_width+fl; j++)
-          {
-              coef = m_filterCoeffPrevSelected[*(p_imgY_var++)];
-              pixelInt=coef[last_coef];
-              pattern=pattern_fix;
+        coef = m_filterCoeffPrevSelected[*(p_imgY_var++)];
+        pixelInt=coef[last_coef];
+        pattern=pattern_fix;
 
-              for (ii=-fl_temp_v; ii<0; ii++)
-              {
-                  im1= &(imgY_rec[(i-fl+ii)*Stride + j-fl]);
-                  im2= &(imgY_rec[(i-fl-ii)*Stride + j-fl]);
-                  pixelInt+=((*(im1)+ *(im2))*coef[*(pattern++)]);
-              }
+        for (ii=-fl_temp_v; ii<0; ii++)
+        {
+          im1= &(imgY_rec[(i-fl+ii)*Stride + j-fl]);
+          im2= &(imgY_rec[(i-fl-ii)*Stride + j-fl]);
+          pixelInt+=((*(im1)+ *(im2))*coef[*(pattern++)]);
+        }
 
-              im1= &(p_imgY_pad[(j-fl)-fl_temp_h]);
-              im2= &(p_imgY_pad[(j-fl)+fl_temp_h]);
-              for (jj=0; jj<fl_temp_h; jj++)
-                  pixelInt+=((*(im1++)+ *(im2--))*coef[*(pattern++)]);
+        im1= &(p_imgY_pad[(j-fl)-fl_temp_h]);
+        im2= &(p_imgY_pad[(j-fl)+fl_temp_h]);
+        for (jj=0; jj<fl_temp_h; jj++)
+          pixelInt+=((*(im1++)+ *(im2--))*coef[*(pattern++)]);
 
-              pixelInt+=(p_imgY_pad[j-fl]*coef[*(pattern++)]);
-              pixelInt=(int)((pixelInt+offset) >> (num_bits_minus_1));
-              imgY_rec_post[(i-fl)*Stride + j-fl]=max(0, min(pixelInt,max_val));
-          }
+        pixelInt+=(p_imgY_pad[j-fl]*coef[*(pattern++)]);
+        pixelInt=(int)((pixelInt+offset) >> (num_bits_minus_1));
+        imgY_rec_post[(i-fl)*Stride + j-fl]=max(0, min(pixelInt,max_val));
       }
+    }
   }
 #else
   // Filter
