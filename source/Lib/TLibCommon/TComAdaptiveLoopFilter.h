@@ -512,9 +512,9 @@ protected:
   static Int m_weights5x5Sym[8];
   static Int m_pattern5x5Sym_Quart[45];
 #if STAR_CROSS_SHAPES_LUMA
-  static Int pattern11x5Sym_Shape0[17];
-  static Int pattern11x5Sym_Shape1[15];
-  static Int pattern11x5Sym_11x5[55];
+  static Int pattern11x5SymShape0[17];
+  static Int pattern11x5SymShape1[15];
+  static Int pattern11x5Sym11x5[55];
 #endif
 #if TI_ALF_MAX_VSIZE_7
   static Int m_pattern9x9Sym_9[39];

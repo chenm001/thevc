@@ -250,7 +250,7 @@ Int TComAdaptiveLoopFilter::m_pattern9x9Sym_5[13] =
 
 #if STAR_CROSS_SHAPES_LUMA
 // Shape0
-Int TComAdaptiveLoopFilter::pattern11x5Sym_Shape0[17] = 
+Int TComAdaptiveLoopFilter::pattern11x5SymShape0[17] = 
 {
         3,    5,    7,
           15,16,17,
@@ -259,7 +259,7 @@ Int TComAdaptiveLoopFilter::pattern11x5Sym_Shape0[17] =
         7,    5,    3 
 };
 // Shape1
-Int TComAdaptiveLoopFilter::pattern11x5Sym_Shape1[15] = 
+Int TComAdaptiveLoopFilter::pattern11x5SymShape1[15] = 
 {
                     5, 
                    16, 
@@ -268,7 +268,7 @@ Int TComAdaptiveLoopFilter::pattern11x5Sym_Shape1[15] =
                     5  
 };
 
-Int TComAdaptiveLoopFilter::pattern11x5Sym_11x5[55] =
+Int TComAdaptiveLoopFilter::pattern11x5Sym11x5[55] =
 {
      0, 1, 2, 3, 4, 5, 6, 7, 8, 9,10,
     11,12,13,14,15,16,17,18,19,20,21,
@@ -279,12 +279,12 @@ Int TComAdaptiveLoopFilter::pattern11x5Sym_11x5[55] =
 
 Int* TComAdaptiveLoopFilter::patternTabFiltShapes[NO_TEST_FILT] =
 {
-    pattern11x5Sym_Shape0, pattern11x5Sym_Shape1
+    pattern11x5SymShape0, pattern11x5SymShape1
 }; 
 
 Int* TComAdaptiveLoopFilter::patternTabShapes[NO_TEST_FILT] =
 {
-    patternShape0Sym, patternShape1Sym, pattern11x5Sym_11x5
+    patternShape0Sym, patternShape1Sym, pattern11x5Sym11x5
 }; 
 
 Int* TComAdaptiveLoopFilter::patternMapTabShapes[NO_TEST_FILT] =
