@@ -2798,7 +2798,7 @@ Void TComTrQuant::xRateDistOptQuant_LCEC(TComDataCU* pcCU, Long* pSrcCoeff, TCoe
   }
 }
 
-Void TComTrQuant::xQuantLTR  (TComDataCU* pcCU, Long* pSrc, TCoeff* pDes, Int iWidth, Int iHeight, UInt& uiAcSum, TextType eTType, UInt uiAbsPartIdx )
+Void TComTrQuant::xQuant(TComDataCU* pcCU, Long* pSrc, TCoeff* pDes, Int iWidth, Int iHeight, UInt& uiAcSum, TextType eTType, UInt uiAbsPartIdx )
 {
   Long*   piCoef    = pSrc;
   TCoeff* piQCoef   = pDes;
@@ -2906,7 +2906,7 @@ Void TComTrQuant::xQuantLTR  (TComDataCU* pcCU, Long* pSrc, TCoeff* pDes, Int iW
 
 }
 
-Void TComTrQuant::xDeQuantLTR( TCoeff* pSrc, Long* pDes, Int iWidth, Int iHeight )
+Void TComTrQuant::xDeQuant( TCoeff* pSrc, Long* pDes, Int iWidth, Int iHeight )
 {
   
   TCoeff* piQCoef   = pSrc;
@@ -2958,16 +2958,6 @@ Void TComTrQuant::init( UInt uiMaxWidth, UInt uiMaxHeight, UInt uiMaxTrSize, Int
   m_uiLPTableE4 = aTableLP4;
   m_uiLastPosVlcIndex=aTableLastPosVlcIndex;
   m_iSymbolMode = iSymbolMode;  
-}
-
-Void TComTrQuant::xQuant( TComDataCU* pcCU, Long* pSrc, TCoeff* pDes, Int iWidth, Int iHeight, UInt& uiAcSum, TextType eTType, UInt uiAbsPartIdx )
-{
-  xQuantLTR(pcCU, pSrc, pDes, iWidth, iHeight, uiAcSum, eTType, uiAbsPartIdx );
-}
-
-Void TComTrQuant::xDeQuant( TCoeff* pSrc, Long* pDes, Int iWidth, Int iHeight )
-{
-  xDeQuantLTR( pSrc, pDes, iWidth, iHeight );
 }
 
 #if INTRA_DST_TYPE_7

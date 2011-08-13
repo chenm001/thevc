@@ -216,8 +216,7 @@ private:
 #endif
   
   // quantization
-  Void xQuant     ( TComDataCU* pcCU, Long* pSrc, TCoeff* pDes, Int iWidth, Int iHeight, UInt& uiAcSum, TextType eTType, UInt uiAbsPartIdx );
-  Void xQuantLTR  ( TComDataCU* pcCU, Long* pSrc, TCoeff* pDes, Int iWidth, Int iHeight, UInt& uiAcSum, TextType eTType, UInt uiAbsPartIdx );
+  Void xQuant( TComDataCU* pcCU, Long* pSrc, TCoeff* pDes, Int iWidth, Int iHeight, UInt& uiAcSum, TextType eTType, UInt uiAbsPartIdx );
 
   // RDOQ functions
 #if CAVLC_RDOQ_MOD
@@ -331,7 +330,6 @@ __inline UInt              xGetCodedLevel  ( Double&                         rd6
   
   // dequantization
   Void xDeQuant         ( TCoeff* pSrc,     Long* pDes,       Int iWidth, Int iHeight );
-  Void xDeQuantLTR      ( TCoeff* pSrc,     Long*  pDes,      Int iWidth, Int iHeight );
   
   // inverse transform
 #if INTRA_DST_TYPE_7
