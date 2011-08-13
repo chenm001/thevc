@@ -277,22 +277,22 @@ Int TComAdaptiveLoopFilter::pattern11x5Sym_11x5[55] =
     10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0
 };
 
-Int* TComAdaptiveLoopFilter::patternTab_filt_shapes[NO_TEST_FILT] =
+Int* TComAdaptiveLoopFilter::patternTabFiltShapes[NO_TEST_FILT] =
 {
     pattern11x5Sym_Shape0, pattern11x5Sym_Shape1
 }; 
 
-Int* TComAdaptiveLoopFilter::patternTab_shapes[NO_TEST_FILT] =
+Int* TComAdaptiveLoopFilter::patternTabShapes[NO_TEST_FILT] =
 {
     patternShape0Sym, patternShape1Sym, pattern11x5Sym_11x5
 }; 
 
-Int* TComAdaptiveLoopFilter::patternMapTab_shapes[NO_TEST_FILT] =
+Int* TComAdaptiveLoopFilter::patternMapTabShapes[NO_TEST_FILT] =
 {
     patternShape0Sym_Quart, patternShape1Sym_Quart
 };
 
-Int* TComAdaptiveLoopFilter::weightsTab_shapes[NO_TEST_FILT] =
+Int* TComAdaptiveLoopFilter::weightsTabShapes[NO_TEST_FILT] =
 {
     weightsShape0Sym, weightsShape1Sym
 };
@@ -841,7 +841,7 @@ Void TComAdaptiveLoopFilter::predictALFCoeff( ALFParam* pAlfParam)
 {
 #if STAR_CROSS_SHAPES_LUMA
   Int i, sum, pred, N;
-  const Int* pFiltMag = weightsTab_shapes[pAlfParam->realfiltNo];
+  const Int* pFiltMag = weightsTabShapes[pAlfParam->realfiltNo];
   N = pAlfParam->num_coeff - 1;
 #else
   Int i, sum, pred, tap, N;
@@ -892,7 +892,7 @@ Void TComAdaptiveLoopFilter::predictALFCoeffChroma( ALFParam* pAlfParam )
   Int i, sum, pred, N;
   const Int* pFiltMag = NULL;
 
-  pFiltMag = weightsTab_shapes[pAlfParam->realfiltNo_chroma];
+  pFiltMag = weightsTabShapes[pAlfParam->realfiltNo_chroma];
   N = pAlfParam->num_coeff_chroma - 1;
 #else
   Int i, sum, pred, tap, N;
@@ -1100,7 +1100,7 @@ Void TComAdaptiveLoopFilter::getCurrentFilter(int **filterCoeffSym,ALFParam* pcA
       memset(m_filterCoeffPrevSelected[varInd],0,sizeof(int)*MAX_SQR_FILT_LENGTH);
     }
 #if STAR_CROSS_SHAPES_LUMA
-    patternMap=patternMapTab_shapes[pcAlfParam->realfiltNo];
+    patternMap=patternMapTabShapes[pcAlfParam->realfiltNo];
 #else
     patternMap=patternMapTab[pcAlfParam->realfiltNo];
 #endif
@@ -1979,7 +1979,7 @@ Void TComAdaptiveLoopFilter::filterFrame(imgpel *imgY_rec_post, imgpel *imgY_rec
 #if STAR_CROSS_SHAPES_LUMA
   Int fl_temp_h = 0;// horizontal_tap / 2
   Int fl_temp_v = 0;// vertical_tap / 2
-  int *pattern_fix = patternTab_filt_shapes[filtNo]; 
+  int *pattern_fix = patternTabFiltShapes[filtNo]; 
   if (filtNo == 0)
   {
       fl_temp_h = 2;
@@ -2117,7 +2117,7 @@ Void TComAdaptiveLoopFilter::subfilterFrame(imgpel *imgY_rec_post, imgpel *imgY_
 #if STAR_CROSS_SHAPES_LUMA
   Int fl_temp_h = 0;// horizontal_tap / 2
   Int fl_temp_v = 0;// vertical_tap / 2
-  int *pattern_fix = patternTab_filt_shapes[filtNo]; 
+  int *pattern_fix = patternTabFiltShapes[filtNo]; 
   if (filtNo == 0)
   {
       fl_temp_h = 2;

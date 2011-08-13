@@ -953,7 +953,7 @@ Void TEncAdaptiveLoopFilter::xCalcCorrelationFunc(Pel* pOrg, Pel* pCmp, Int iTap
 #if ALF_CHROMA_NEW_SHAPES
   Int fl_h, fl_v, ii, jj, m, N;
   N = m_sqrFiltLengthTab[iTap] - 1;
-  pFiltPos = patternTab_shapes[iTap];
+  pFiltPos = patternTabShapes[iTap];
   // star shape
   if (iTap == 0)
   {
@@ -2812,7 +2812,7 @@ Void   TEncAdaptiveLoopFilter::xstoreInBlockMatrix(imgpel* ImgOrg, imgpel* ImgDe
 #endif
 
 #if STAR_CROSS_SHAPES_LUMA
-  p_pattern= patternTab_shapes[filtNo];
+  p_pattern= patternTabShapes[filtNo];
 #else
   p_pattern= m_patternTab[filtNo];
 #endif
@@ -3250,7 +3250,7 @@ Void TEncAdaptiveLoopFilter::xfilterFrame_en(imgpel* ImgDec, imgpel* ImgRest,int
   Int fl_temp_h = 0;// horizontal_tap / 2
   Int fl_temp_v = 0;// vertical_tap / 2
   Int m = 0;
-  pattern = patternTab_filt_shapes[filtNo];
+  pattern = patternTabFiltShapes[filtNo];
   if (filtNo == 0)
   {
       fl_temp_h = 2;
@@ -3426,7 +3426,7 @@ Void TEncAdaptiveLoopFilter::xfilterFrame_en(imgpel* ImgDec, imgpel* ImgRest,int
               int varInd=m_varImg[i-fl][j-fl];
               imgpel *im1,*im2;
               int *coef = m_filterCoeffPrevSelected[varInd];
-              pattern = patternTab_filt_shapes[filtNo];
+              pattern = patternTabFiltShapes[filtNo];
               pixelInt= m_filterCoeffPrevSelected[varInd][sqrFiltLength-1]; 
               for (ii=-fl_temp_v; ii<0; ii++)
               {
@@ -3457,7 +3457,7 @@ Void TEncAdaptiveLoopFilter::xfilterFrame_en(imgpel* ImgDec, imgpel* ImgRest,int
               int varInd=m_varImg[i-fl][j-fl];
               imgpel *im1,*im2;
               int *coef = m_filterCoeffPrevSelected[varInd];
-              pattern = patternTab_filt_shapes[filtNo];
+              pattern = patternTabFiltShapes[filtNo];
               pixelInt= m_filterCoeffPrevSelected[varInd][sqrFiltLength-1];
               for (ii=-fl_temp_v; ii<0; ii++)
               {
@@ -3533,7 +3533,7 @@ Void TEncAdaptiveLoopFilter::xfindBestFilterVarPred(double **ySym, double ***ESy
   sqrFiltLength= m_sqrFiltLengthTab[filtNo] ;
   // in HM-3.x fl specifies the filter tap - in our proposal fl specifies the filter number (0: Cross5x5 - 1: Cross11x5)
   Int fl = filtNo;
-  weights = weightsTab_shapes[filtNo];               
+  weights = weightsTabShapes[filtNo];               
 #else   
   sqrFiltLength=m_sqrFiltLengthTab[filtNo];   
   Int fl = m_flTab[filtNo];
@@ -3632,7 +3632,7 @@ Void TEncAdaptiveLoopFilter::xcalcPredFilterCoeff(int filtNo)
   int *patternMap, varInd, i, k;
   
 #if STAR_CROSS_SHAPES_LUMA
-  patternMap = patternMapTab_shapes[filtNo];
+  patternMap = patternMapTabShapes[filtNo];
 #if MQT_ALF_NPASS && !MQT_BA_RA
   if (m_iALFEncodePassReduction && (!m_iUsePreviousFilter || !m_iDesignCurrentFilter))
   {

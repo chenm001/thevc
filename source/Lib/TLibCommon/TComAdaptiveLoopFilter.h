@@ -492,10 +492,10 @@ protected:
   static Int patternShape1Sym[15];
   static Int weightsShape1Sym[9];
   static Int patternShape1Sym_Quart[29];
-  static Int *patternTab_filt_shapes[NO_TEST_FILT];
-  static Int *patternTab_shapes[NO_TEST_FILT]; 
-  static Int *patternMapTab_shapes[NO_TEST_FILT];
-  static Int *weightsTab_shapes[NO_TEST_FILT];
+  static Int *patternTabFiltShapes[NO_TEST_FILT];
+  static Int *patternTabShapes[NO_TEST_FILT]; 
+  static Int *patternMapTabShapes[NO_TEST_FILT];
+  static Int *weightsTabShapes[NO_TEST_FILT];
 #endif
 #if TI_ALF_MAX_VSIZE_7
   static Int m_pattern9x9Sym[39];
