@@ -1990,18 +1990,18 @@ Void TComAdaptiveLoopFilter::filterFrame(imgpel *imgY_rec_post, imgpel *imgY_rec
   int num_bits_minus_1= NUM_BITS-1;
   int offset = (1<<(NUM_BITS-2));
 #if STAR_CROSS_SHAPES_LUMA
-  Int fl_temp_h = 0;// horizontal_tap / 2
-  Int fl_temp_v = 0;// vertical_tap / 2
-  int *pattern_fix = patternTabFiltShapes[filtNo]; 
+  Int flH = 0;// horizontal_tap / 2
+  Int flV = 0;// vertical_tap / 2
+  int *patternFix = patternTabFiltShapes[filtNo]; 
   if (filtNo == 0)
   {
-    fl_temp_h = 2;
-    fl_temp_v = 2;    
+    flH = 2;
+    flV = 2;    
   }
   else //if (filtNo == 1)
   {
-    fl_temp_h = 5;
-    fl_temp_v = 2;    
+    flH = 5;
+    flV = 2;    
   }
 #else
   int *pattern_fix=m_patternTab_filt[filtNo];
@@ -2022,11 +2022,11 @@ Void TComAdaptiveLoopFilter::filterFrame(imgpel *imgY_rec_post, imgpel *imgY_rec
       {
         coef = m_filterCoeffPrevSelected[*(p_imgY_var++)];
         pixelInt=coef[last_coef];
-        pattern=pattern_fix;
+        pattern=patternFix;
 
-        for (ii=-fl_temp_v; ii<0; ii++)
+        for (ii=-flV; ii<0; ii++)
         {
-          m = (ii == -fl_temp_v)? 2: 1;
+          m = (ii == -flV)? 2: 1;
           im1= &(imgY_rec[(i-fl+ii)*Stride + j-fl-m]);
           im2= &(imgY_rec[(i-fl-ii)*Stride + j-fl+m]);
           for (jj=-m; jj<=m; jj++)
@@ -2036,9 +2036,9 @@ Void TComAdaptiveLoopFilter::filterFrame(imgpel *imgY_rec_post, imgpel *imgY_rec
           }
         }
               
-        im1= &(p_imgY_pad[(j-fl)-fl_temp_h]);
-        im2= &(p_imgY_pad[(j-fl)+fl_temp_h]);
-        for (jj=0; jj<fl_temp_h; jj++)
+        im1= &(p_imgY_pad[(j-fl)-flH]);
+        im2= &(p_imgY_pad[(j-fl)+flH]);
+        for (jj=0; jj<flH; jj++)
           pixelInt+=((*(im1++)+ *(im2--))*coef[*(pattern++)]);
   
         pixelInt+=(p_imgY_pad[j-fl]*coef[*(pattern++)]);
@@ -2057,18 +2057,18 @@ Void TComAdaptiveLoopFilter::filterFrame(imgpel *imgY_rec_post, imgpel *imgY_rec
       {
         coef = m_filterCoeffPrevSelected[*(p_imgY_var++)];
         pixelInt=coef[last_coef];
-        pattern=pattern_fix;
+        pattern=patternFix;
 
-        for (ii=-fl_temp_v; ii<0; ii++)
+        for (ii=-flV; ii<0; ii++)
         {
           im1= &(imgY_rec[(i-fl+ii)*Stride + j-fl]);
           im2= &(imgY_rec[(i-fl-ii)*Stride + j-fl]);
           pixelInt+=((*(im1)+ *(im2))*coef[*(pattern++)]);
         }
 
-        im1= &(p_imgY_pad[(j-fl)-fl_temp_h]);
-        im2= &(p_imgY_pad[(j-fl)+fl_temp_h]);    
-        for (jj=0; jj<fl_temp_h; jj++)
+        im1= &(p_imgY_pad[(j-fl)-flH]);
+        im2= &(p_imgY_pad[(j-fl)+flH]);    
+        for (jj=0; jj<flH; jj++)
         {
           pixelInt+=((*(im1++)+ *(im2--))*coef[*(pattern++)]);
         }     
@@ -2131,18 +2131,18 @@ Void TComAdaptiveLoopFilter::subfilterFrame(imgpel *imgY_rec_post, imgpel *imgY_
   int num_bits_minus_1= NUM_BITS-1;
   int offset = (1<<(NUM_BITS-2));
 #if STAR_CROSS_SHAPES_LUMA
-  Int fl_temp_h = 0;// horizontal_tap / 2
-  Int fl_temp_v = 0;// vertical_tap / 2
-  int *pattern_fix = patternTabFiltShapes[filtNo]; 
+  Int flH = 0;// horizontal_tap / 2
+  Int flV = 0;// vertical_tap / 2
+  int *patternFix = patternTabFiltShapes[filtNo]; 
   if (filtNo == 0)
   {
-    fl_temp_h = 2;
-    fl_temp_v = 2;    
+    flH = 2;
+    flV = 2;    
   }
   else //if (filtNo == 1)
   {
-    fl_temp_h = 5;
-    fl_temp_v = 2;    
+    flH = 5;
+    flV = 2;    
   }
 #else
   int *pattern_fix=m_patternTab_filt[filtNo];
@@ -2163,11 +2163,11 @@ Void TComAdaptiveLoopFilter::subfilterFrame(imgpel *imgY_rec_post, imgpel *imgY_
       {
         coef = m_filterCoeffPrevSelected[*(p_imgY_var++)];
         pixelInt=coef[last_coef];
-        pattern=pattern_fix;
+        pattern=patternFix;
 
-        for (ii=-fl_temp_v; ii<0; ii++)
+        for (ii=-flV; ii<0; ii++)
         {
-          m = (ii == -fl_temp_v)? 2: 1;
+          m = (ii == -flV)? 2: 1;
           im1= &(imgY_rec[(i-fl+ii)*Stride + j-fl-m]);
           im2= &(imgY_rec[(i-fl-ii)*Stride + j-fl+m]);
           for (jj=-m; jj<=m; jj++)
@@ -2177,9 +2177,9 @@ Void TComAdaptiveLoopFilter::subfilterFrame(imgpel *imgY_rec_post, imgpel *imgY_
           }
         }
   
-        im1= &(p_imgY_pad[(j-fl)-fl_temp_h]);
-        im2= &(p_imgY_pad[(j-fl)+fl_temp_h]);    
-        for (jj=0; jj<fl_temp_h; jj++)
+        im1= &(p_imgY_pad[(j-fl)-flH]);
+        im2= &(p_imgY_pad[(j-fl)+flH]);    
+        for (jj=0; jj<flH; jj++)
           pixelInt+=((*(im1++)+ *(im2--))*coef[*(pattern++)]);
               
         pixelInt+=(p_imgY_pad[j-fl]*coef[*(pattern++)]);
@@ -2198,18 +2198,18 @@ Void TComAdaptiveLoopFilter::subfilterFrame(imgpel *imgY_rec_post, imgpel *imgY_
       {
         coef = m_filterCoeffPrevSelected[*(p_imgY_var++)];
         pixelInt=coef[last_coef];
-        pattern=pattern_fix;
+        pattern=patternFix;
 
-        for (ii=-fl_temp_v; ii<0; ii++)
+        for (ii=-flV; ii<0; ii++)
         {
           im1= &(imgY_rec[(i-fl+ii)*Stride + j-fl]);
           im2= &(imgY_rec[(i-fl-ii)*Stride + j-fl]);
           pixelInt+=((*(im1)+ *(im2))*coef[*(pattern++)]);
         }
 
-        im1= &(p_imgY_pad[(j-fl)-fl_temp_h]);
-        im2= &(p_imgY_pad[(j-fl)+fl_temp_h]);
-        for (jj=0; jj<fl_temp_h; jj++)
+        im1= &(p_imgY_pad[(j-fl)-flH]);
+        im2= &(p_imgY_pad[(j-fl)+flH]);
+        for (jj=0; jj<flH; jj++)
           pixelInt+=((*(im1++)+ *(im2--))*coef[*(pattern++)]);
 
         pixelInt+=(p_imgY_pad[j-fl]*coef[*(pattern++)]);
