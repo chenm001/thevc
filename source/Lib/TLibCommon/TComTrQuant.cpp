@@ -2313,7 +2313,7 @@ Void TComTrQuant::xRateDistOptQuant_LCEC(TComDataCU* pcCU, Long* pSrcCoeff, TCoe
 #endif
   
   UInt uiLog2TrSize = g_aucConvertToBit[ uiWidth ] + 2;
-  UInt uiQ = g_auiQ[m_cQP.rem()];
+  UInt uiQ = g_quantScales[m_cQP.rem()];
   
 #if FULL_NBIT
   UInt uiBitDepth = g_uiBitDepth;
@@ -2841,7 +2841,7 @@ Void TComTrQuant::xQuant(TComDataCU* pcCU, Long* pSrc, TCoeff* pDes, Int iWidth,
 #endif
 
     UInt uiLog2TrSize = g_aucConvertToBit[ iWidth ] + 2;
-    UInt uiQ = g_auiQ[m_cQP.rem()];
+    UInt uiQ = g_quantScales[m_cQP.rem()];
 
 #if FULL_NBIT
     UInt uiBitDepth = g_uiBitDepth;
@@ -2939,7 +2939,7 @@ Void TComTrQuant::xDeQuant( TCoeff* pSrc, Long* pDes, Int iWidth, Int iHeight )
   UInt iTransformShift = MAX_TR_DYNAMIC_RANGE - uiBitDepth - uiLog2TrSize; 
   iShift = QUANT_IQUANT_SHIFT - QUANT_SHIFT - iTransformShift;
   iAdd = 1 << (iShift-1);
-  uiQ = g_auiIQ[m_cQP.m_iRem];
+  uiQ = g_invQuantScales[m_cQP.m_iRem];
 
   for( Int n = 0; n < iWidth*iHeight; n++ )
   {
@@ -3519,7 +3519,7 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
   }    
 #endif
   UInt uiLog2TrSize = g_aucConvertToBit[ uiWidth ] + 2;
-  UInt uiQ = g_auiQ[m_cQP.rem()];
+  UInt uiQ = g_quantScales[m_cQP.rem()];
 
 #if FULL_NBIT
   UInt uiBitDepth = g_uiBitDepth;

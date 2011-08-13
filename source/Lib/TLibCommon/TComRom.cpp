@@ -303,12 +303,12 @@ void Idx2LevelRowCol(int idx, int *level, int *row, int *col)
 }
 #endif
 
-UInt g_auiQ[6] =
+Int g_quantScales[6] =
 {
   26214,23302,20560,18396,16384,14564
 };    
 
-UInt g_auiIQ[6] =
+Int g_invQuantScales[6] =
 {
   40,45,51,57,64,72
 };
