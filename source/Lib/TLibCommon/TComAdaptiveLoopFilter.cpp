@@ -1992,7 +1992,7 @@ Void TComAdaptiveLoopFilter::filterFrame(imgpel *imgY_rec_post, imgpel *imgY_rec
 #if STAR_CROSS_SHAPES_LUMA
   Int flH = 0;// horizontal_tap / 2
   Int flV = 0;// vertical_tap / 2
-  int *patternFix = patternTabFiltShapes[filtNo]; 
+  Int *patternFix = patternTabFiltShapes[filtNo]; 
   if (filtNo == 0)
   {
     flH = 2;
@@ -2042,7 +2042,7 @@ Void TComAdaptiveLoopFilter::filterFrame(imgpel *imgY_rec_post, imgpel *imgY_rec
           pixelInt+=((*(im1++)+ *(im2--))*coef[*(pattern++)]);
   
         pixelInt+=(p_imgY_pad[j-fl]*coef[*(pattern++)]);
-        pixelInt=(int)((pixelInt+offset) >> (num_bits_minus_1));
+        pixelInt=(Int)((pixelInt+offset) >> (num_bits_minus_1));
         imgY_rec_post[(i-fl)*Stride + j-fl]=max(0, min(pixelInt,max_val));
       }
     }
@@ -2073,7 +2073,7 @@ Void TComAdaptiveLoopFilter::filterFrame(imgpel *imgY_rec_post, imgpel *imgY_rec
           pixelInt+=((*(im1++)+ *(im2--))*coef[*(pattern++)]);
         }     
         pixelInt+=(p_imgY_pad[j-fl]*coef[*(pattern++)]);
-        pixelInt=(int)((pixelInt+offset) >> (num_bits_minus_1));
+        pixelInt=(Int)((pixelInt+offset) >> (num_bits_minus_1));
         imgY_rec_post[(i-fl)*Stride + j-fl]=max(0, min(pixelInt,max_val));
       }    
     }
@@ -2133,7 +2133,7 @@ Void TComAdaptiveLoopFilter::subfilterFrame(imgpel *imgY_rec_post, imgpel *imgY_
 #if STAR_CROSS_SHAPES_LUMA
   Int flH = 0;// horizontal_tap / 2
   Int flV = 0;// vertical_tap / 2
-  int *patternFix = patternTabFiltShapes[filtNo]; 
+  Int *patternFix = patternTabFiltShapes[filtNo]; 
   if (filtNo == 0)
   {
     flH = 2;
@@ -2183,7 +2183,7 @@ Void TComAdaptiveLoopFilter::subfilterFrame(imgpel *imgY_rec_post, imgpel *imgY_
           pixelInt+=((*(im1++)+ *(im2--))*coef[*(pattern++)]);
               
         pixelInt+=(p_imgY_pad[j-fl]*coef[*(pattern++)]);
-        pixelInt=(int)((pixelInt+offset) >> (num_bits_minus_1));
+        pixelInt=(Int)((pixelInt+offset) >> (num_bits_minus_1));
         imgY_rec_post[(i-fl)*Stride + j-fl]=max(0, min(pixelInt,max_val));
       }
     }
@@ -2213,7 +2213,7 @@ Void TComAdaptiveLoopFilter::subfilterFrame(imgpel *imgY_rec_post, imgpel *imgY_
           pixelInt+=((*(im1++)+ *(im2--))*coef[*(pattern++)]);
 
         pixelInt+=(p_imgY_pad[j-fl]*coef[*(pattern++)]);
-        pixelInt=(int)((pixelInt+offset) >> (num_bits_minus_1));
+        pixelInt=(Int)((pixelInt+offset) >> (num_bits_minus_1));
         imgY_rec_post[(i-fl)*Stride + j-fl]=max(0, min(pixelInt,max_val));
       }
     }
