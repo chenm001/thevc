@@ -1097,7 +1097,7 @@ Void TComAdaptiveLoopFilter::getCurrentFilter(int **filterCoeffSym,ALFParam* pcA
       memset(m_filterCoeffPrevSelected[varInd],0,sizeof(int)*MAX_SQR_FILT_LENGTH);
     }
 #if STAR_CROSS_SHAPES_LUMA
-  patternMap=patternMapTabShapes[pcAlfParam->realfiltNo];
+    patternMap=patternMapTabShapes[pcAlfParam->realfiltNo];
 #else
     patternMap=patternMapTab[pcAlfParam->realfiltNo];
 #endif
