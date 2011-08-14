@@ -4032,6 +4032,11 @@ Void TComDataCU::getInterMergeCandidates( UInt uiAbsPartIdx, UInt uiPUIdx, UInt 
 
 #if !MRG_AMVP_ADD_CAND_F470
 #if AVOID_ZERO_MERGE_CANDIDATE
+#if MRG_AMVP_FIXED_IDX_F470
+if( ruiNumValidMergeCand == 0 )
+{
+  ruiNumValidMergeCand = 1;
+#else
   // if all merge candidate
   int i;
   for ( i=0; i<MRG_MAX_NUM_CANDS; i++ )
@@ -4043,12 +4048,7 @@ Void TComDataCU::getInterMergeCandidates( UInt uiAbsPartIdx, UInt uiPUIdx, UInt 
   }
   if ( i==MRG_MAX_NUM_CANDS ) // no merge candidate
   {
-    abCandIsInter[0] = true;
-#if MRG_AMVP_FIXED_IDX_F470
-    ruiNumValidMergeCand = 1;
-#else
     puiNeighbourCandIdx[0] = 1;
-#endif
     puhInterDirNeighbours[0] = 1;
     pcMvFieldNeighbours[0].setMvField( TComMv(0, 0), 0 );
     if ( getSlice()->isInterB() )
@@ -4056,6 +4056,7 @@ Void TComDataCU::getInterMergeCandidates( UInt uiAbsPartIdx, UInt uiPUIdx, UInt 
       puhInterDirNeighbours[0] = 3;
       pcMvFieldNeighbours[1].setMvField( TComMv(0, 0), 0 );
     }
+#endif
   }
 #endif
 #endif

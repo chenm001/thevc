@@ -69,6 +69,8 @@
 #define AVOID_NEIGHBOR_REF_F470              1       // 1:Disable adaptive switching methods for inter_pred_flag and ref_idx_lx
 #if MRG_AMVP_FIXED_IDX_F470
 #define MRG_AMVP_ADD_CAND_F470               1       // 1:add new candidates following original ones
+#else
+#define MRG_AMVP_ADD_CAND_F470               0
 #endif
 #define NSQT                                 1       // F410 & F412 : Non-Square Quadtree Transform
 ////////////////////////////
