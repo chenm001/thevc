@@ -157,13 +157,13 @@ Int* TEncAdaptiveLoopFilter::m_iTapPosTabIn9x9Sym[NO_TEST_FILT] =
 #endif
 
 #if STAR_CROSS_SHAPES_LUMA
-Int TEncAdaptiveLoopFilter::m_aiFilterPosShape0_In11x5Sym[10] =
+Int TEncAdaptiveLoopFilter::m_aiFilterPosShape0In11x5Sym[10] =
 {
         3,    5,    7,
           15,16,17,
        25,26,27,28
 };
-Int TEncAdaptiveLoopFilter::m_aiFilterPosShape1_In11x5Sym[9] =
+Int TEncAdaptiveLoopFilter::m_aiFilterPosShape1In11x5Sym[9] =
 {
                     5, 
                    16, 
@@ -172,7 +172,7 @@ Int TEncAdaptiveLoopFilter::m_aiFilterPosShape1_In11x5Sym[9] =
 
 Int* TEncAdaptiveLoopFilter::m_iFilterTabIn11x5Sym[NO_TEST_FILT] =
 {
-  m_aiFilterPosShape0_In11x5Sym, m_aiFilterPosShape1_In11x5Sym
+  m_aiFilterPosShape0In11x5Sym, m_aiFilterPosShape1In11x5Sym
 };
 #endif
 // ====================================================================================================================
@@ -194,10 +194,10 @@ TEncAdaptiveLoopFilter::TEncAdaptiveLoopFilter()
   m_pcPicYuvBest = NULL;
   m_pcPicYuvTmp = NULL;
 #if STAR_CROSS_SHAPES_LUMA
-  pcAlfParam_Shape0 = NULL;
-  pcAlfParam_Shape1 = NULL;
-  pcPicYuvRec_Shape0 = NULL;
-  pcPicYuvRec_Shape1 = NULL;
+  pcAlfParamShape0 = NULL;
+  pcAlfParamShape1 = NULL;
+  pcPicYuvRecShape0 = NULL;
+  pcPicYuvRecShape1 = NULL;
 #endif
 #if MTK_NONCROSS_INLOOP_FILTER
   m_pcSliceYuvTmp = NULL;
@@ -306,17 +306,17 @@ Void TEncAdaptiveLoopFilter::startALFEnc( TComPic* pcPic, TEncEntropy* pcEntropy
   allocALFParam(m_pcBestAlfParam);
   allocALFParam(m_pcTempAlfParam);
 #if STAR_CROSS_SHAPES_LUMA
-  pcPicYuvRec_Shape0 = new TComPicYuv();
-  pcPicYuvRec_Shape0->createLuma(iWidth, iHeight, g_uiMaxCUWidth, g_uiMaxCUHeight, g_uiMaxCUDepth);
+  pcPicYuvRecShape0 = new TComPicYuv();
+  pcPicYuvRecShape0->createLuma(iWidth, iHeight, g_uiMaxCUWidth, g_uiMaxCUHeight, g_uiMaxCUDepth);
  
-  pcPicYuvRec_Shape1 = new TComPicYuv();
-  pcPicYuvRec_Shape1->createLuma(iWidth, iHeight, g_uiMaxCUWidth, g_uiMaxCUHeight, g_uiMaxCUDepth);
+  pcPicYuvRecShape1 = new TComPicYuv();
+  pcPicYuvRecShape1->createLuma(iWidth, iHeight, g_uiMaxCUWidth, g_uiMaxCUHeight, g_uiMaxCUDepth);
   
-  pcAlfParam_Shape0 = new ALFParam;
-  pcAlfParam_Shape1 = new ALFParam;
+  pcAlfParamShape0 = new ALFParam;
+  pcAlfParamShape1 = new ALFParam;
 
-  allocALFParam(pcAlfParam_Shape0);  
-  allocALFParam(pcAlfParam_Shape1);
+  allocALFParam(pcAlfParamShape0);  
+  allocALFParam(pcAlfParamShape1);
 #endif
   m_im_width = iWidth;
   m_im_height = iHeight;
@@ -375,19 +375,19 @@ Void TEncAdaptiveLoopFilter::endALFEnc()
   delete m_pcBestAlfParam;
   delete m_pcTempAlfParam;
 #if STAR_CROSS_SHAPES_LUMA
-  pcPicYuvRec_Shape0->destroyLuma();
-  delete pcPicYuvRec_Shape0;
-  pcPicYuvRec_Shape0 = NULL;
+  pcPicYuvRecShape0->destroyLuma();
+  delete pcPicYuvRecShape0;
+  pcPicYuvRecShape0 = NULL;
 
-  pcPicYuvRec_Shape1->destroyLuma();
-  delete pcPicYuvRec_Shape1;
-  pcPicYuvRec_Shape1 = NULL;
+  pcPicYuvRecShape1->destroyLuma();
+  delete pcPicYuvRecShape1;
+  pcPicYuvRecShape1 = NULL;
 
-  freeALFParam(pcAlfParam_Shape0);
-  freeALFParam(pcAlfParam_Shape1);
+  freeALFParam(pcAlfParamShape0);
+  freeALFParam(pcAlfParamShape1);
 
-  delete pcAlfParam_Shape0;
-  delete pcAlfParam_Shape1;
+  delete pcAlfParamShape0;
+  delete pcAlfParamShape1;
 #endif
   // delete qc filters
   destroyMatrix4D_double(m_EGlobalSym, NO_TEST_FILT,  NO_VAR_BINS);
@@ -2470,8 +2470,8 @@ Void   TEncAdaptiveLoopFilter::xEncALFLuma_qc ( TComPicYuv* pcPicOrg, TComPicYuv
                   uiMinRate_Shape0 = uiRate;
                   uiMinDist_Shape0 = uiDist;
                   dMinCost_Shape0  = dCost;
-                  m_pcPicYuvTmp->copyToPicLuma(pcPicYuvRec_Shape0);
-                  copyALFParam(pcAlfParam_Shape0, pcAlfParam);
+                  m_pcPicYuvTmp->copyToPicLuma(pcPicYuvRecShape0);
+                  copyALFParam(pcAlfParamShape0, pcAlfParam);
               }
               else //if (filter_shape == 1)
               {
@@ -2479,15 +2479,15 @@ Void   TEncAdaptiveLoopFilter::xEncALFLuma_qc ( TComPicYuv* pcPicOrg, TComPicYuv
                   uiMinRate_Shape1 = uiRate;
                   uiMinDist_Shape1 = uiDist;
                   dMinCost_Shape1  = dCost;
-                  m_pcPicYuvTmp->copyToPicLuma(pcPicYuvRec_Shape1);
-                  copyALFParam(pcAlfParam_Shape1, pcAlfParam);
+                  m_pcPicYuvTmp->copyToPicLuma(pcPicYuvRecShape1);
+                  copyALFParam(pcAlfParamShape1, pcAlfParam);
               }
           }
           
           if (dMinCost_Shape0 <= dMinCost_Shape1)
           {
-              pcPicYuvRec_Shape0->copyToPicLuma(m_pcPicYuvTmp);
-              copyALFParam(pcAlfParam, pcAlfParam_Shape0);
+              pcPicYuvRecShape0->copyToPicLuma(m_pcPicYuvTmp);
+              copyALFParam(pcAlfParam, pcAlfParamShape0);
               uiRate = uiMinRate_Shape0;
               uiDist = uiMinDist_Shape0;
               dCost = dMinCost_Shape0;
@@ -2495,8 +2495,8 @@ Void   TEncAdaptiveLoopFilter::xEncALFLuma_qc ( TComPicYuv* pcPicOrg, TComPicYuv
           }
           else //if (dMinCost_Shape1 < dMinCost_Shape0)
           {
-              pcPicYuvRec_Shape1->copyToPicLuma(m_pcPicYuvTmp);
-              copyALFParam(pcAlfParam, pcAlfParam_Shape1);
+              pcPicYuvRecShape1->copyToPicLuma(m_pcPicYuvTmp);
+              copyALFParam(pcAlfParam, pcAlfParamShape1);
               uiRate = uiMinRate_Shape1;
               uiDist = uiMinDist_Shape1;
               dCost = dMinCost_Shape1;
@@ -2675,8 +2675,8 @@ Void   TEncAdaptiveLoopFilter::xEncALFLuma_qc ( TComPicYuv* pcPicOrg, TComPicYuv
               uiMinRate_Shape0 = uiRate;
               uiMinDist_Shape0 = uiDist;
               dMinCost_Shape0  = dCost;
-              m_pcPicYuvTmp->copyToPicLuma(pcPicYuvRec_Shape0);
-              copyALFParam(pcAlfParam_Shape0, m_pcTempAlfParam);
+              m_pcPicYuvTmp->copyToPicLuma(pcPicYuvRecShape0);
+              copyALFParam(pcAlfParamShape0, m_pcTempAlfParam);
           }
           else //if (filter_shape == 1) 
           {
@@ -2684,22 +2684,22 @@ Void   TEncAdaptiveLoopFilter::xEncALFLuma_qc ( TComPicYuv* pcPicOrg, TComPicYuv
               uiMinRate_Shape1 = uiRate;
               uiMinDist_Shape1 = uiDist;
               dMinCost_Shape1  = dCost;
-              m_pcPicYuvTmp->copyToPicLuma(pcPicYuvRec_Shape1);
-              copyALFParam(pcAlfParam_Shape1, m_pcTempAlfParam);
+              m_pcPicYuvTmp->copyToPicLuma(pcPicYuvRecShape1);
+              copyALFParam(pcAlfParamShape1, m_pcTempAlfParam);
           }
       }
       if (dMinCost_Shape0 <= dMinCost_Shape1)
       {
-          pcPicYuvRec_Shape0->copyToPicLuma(m_pcPicYuvTmp);
-          copyALFParam(m_pcTempAlfParam, pcAlfParam_Shape0);
+          pcPicYuvRecShape0->copyToPicLuma(m_pcPicYuvTmp);
+          copyALFParam(m_pcTempAlfParam, pcAlfParamShape0);
           uiRate = uiMinRate_Shape0;
           uiDist = uiMinDist_Shape0;
           dCost = dMinCost_Shape0;
       }
       else //if (dMinCost_Shape1 < dMinCost_Shape0)
       {
-          pcPicYuvRec_Shape1->copyToPicLuma(m_pcPicYuvTmp);
-          copyALFParam(m_pcTempAlfParam, pcAlfParam_Shape1);
+          pcPicYuvRecShape1->copyToPicLuma(m_pcPicYuvTmp);
+          copyALFParam(m_pcTempAlfParam, pcAlfParamShape1);
           uiRate = uiMinRate_Shape1;
           uiDist = uiMinDist_Shape1;
           dCost = dMinCost_Shape1;

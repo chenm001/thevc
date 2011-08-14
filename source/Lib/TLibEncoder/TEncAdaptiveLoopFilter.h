@@ -132,10 +132,10 @@ private:
   TComPicYuv* m_pcPicYuvTmp;
   
 #if STAR_CROSS_SHAPES_LUMA
-  ALFParam* pcAlfParam_Shape0;
-  ALFParam* pcAlfParam_Shape1;
-  TComPicYuv* pcPicYuvRec_Shape0;
-  TComPicYuv* pcPicYuvRec_Shape1;
+  ALFParam* pcAlfParamShape0;
+  ALFParam* pcAlfParamShape1;
+  TComPicYuv* pcPicYuvRecShape0;
+  TComPicYuv* pcPicYuvRecShape1;
 #endif
 
   UInt m_uiNumSCUInCU;
@@ -198,8 +198,8 @@ private:
 #endif
 
 #if STAR_CROSS_SHAPES_LUMA
-  static Int  m_aiFilterPosShape0_In11x5Sym[10]; //!< for N-pass encoding- filter shape relative position in 19x5 footprint
-  static Int  m_aiFilterPosShape1_In11x5Sym[9]; //!< for N-pass encoding- filter shape relative position in 19x5 footprint
+  static Int  m_aiFilterPosShape0In11x5Sym[10]; //!< for N-pass encoding- filter shape relative position in 19x5 footprint
+  static Int  m_aiFilterPosShape1In11x5Sym[9]; //!< for N-pass encoding- filter shape relative position in 19x5 footprint
   static Int* m_iFilterTabIn11x5Sym[NO_TEST_FILT];
 #endif
 
