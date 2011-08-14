@@ -3335,7 +3335,7 @@ Bool TComDataCU::avoidMergeCandidate( UInt uiAbsPartIdx, UInt uiPUIdx, UInt uiDe
  * \returns Void
  */
 #if MRG_AMVP_FIXED_IDX_F470
-Void TComDataCU::getInterMergeCandidates( UInt uiAbsPartIdx, UInt uiPUIdx, UInt uiDepth, TComMvField* pcMvFieldNeighbours, UChar* puhInterDirNeighbours, UInt& ruiNumValidMergeCand )
+Void TComDataCU::getInterMergeCandidates( UInt uiAbsPartIdx, UInt uiPUIdx, UInt uiDepth, TComMvField* pcMvFieldNeighbours, UChar* puhInterDirNeighbours, Int& numValidMergeCand )
 #else
 Void TComDataCU::getInterMergeCandidates( UInt uiAbsPartIdx, UInt uiPUIdx, UInt uiDepth, TComMvField* pcMvFieldNeighbours, UChar* puhInterDirNeighbours, UInt* puiNeighbourCandIdx )
 #endif
@@ -3823,21 +3823,19 @@ Void TComDataCU::getInterMergeCandidates( UInt uiAbsPartIdx, UInt uiPUIdx, UInt 
   }
 #endif//MRG_UNIFIED_POS_F419
 
-#if MRG_AMVP_FIXED_IDX_F470
   for( UInt uiOuter = 0; uiOuter < MRG_MAX_NUM_CANDS; uiOuter++ )
   {
+#if MRG_AMVP_FIXED_IDX_F470
     if( abCandIsInter[ uiOuter ] )
+#else
+    if( abCandIsInter[ uiOuter ] && ( puiNeighbourCandIdx[uiOuter] == uiOuter + 1 ) )
+#endif
     {
       for( UInt uiIter = uiOuter + 1; uiIter < MRG_MAX_NUM_CANDS; uiIter++ )
       {
+#if MRG_AMVP_FIXED_IDX_F470
         {
 #else
-  for( UInt uiOuter = 0; uiOuter < MRG_MAX_NUM_CANDS; uiOuter++ )
-  {
-    if( abCandIsInter[ uiOuter ] && ( puiNeighbourCandIdx[uiOuter] == uiOuter + 1 ) )
-    {
-      for( UInt uiIter = uiOuter + 1; uiIter < MRG_MAX_NUM_CANDS; uiIter++ )
-      {
         if( abCandIsInter[ uiIter ] )
         {
 #endif
@@ -4027,15 +4025,15 @@ Void TComDataCU::getInterMergeCandidates( UInt uiAbsPartIdx, UInt uiPUIdx, UInt 
   }
 #endif
 
-  ruiNumValidMergeCand = uiArrayAddr;
+  numValidMergeCand = uiArrayAddr;
 #endif
 
 #if !MRG_AMVP_ADD_CAND_F470
 #if AVOID_ZERO_MERGE_CANDIDATE
 #if MRG_AMVP_FIXED_IDX_F470
-if( ruiNumValidMergeCand == 0 )
+if( numValidMergeCand == 0 )
 {
-  ruiNumValidMergeCand = 1;
+  numValidMergeCand = 1;
 #else
   // if all merge candidate
   int i;
@@ -4063,6 +4061,13 @@ if( ruiNumValidMergeCand == 0 )
 }
 
 #if MRG_AMVP_ADD_CAND_F470
+/** Check the duplicated candidate in the list
+ * \param pcMvFieldNeighbours
+ * \param puhInterDirNeighbours 
+ * \param pbCandIsInter
+ * \param ruiArrayAddr
+ * \returns Void
+ */
 Void TComDataCU::xCheckDuplicateCand(TComMvField* pcMvFieldNeighbours, UChar* puhInterDirNeighbours, bool* pbCandIsInter, UInt& ruiArrayAddr)
 {
   if (getSlice()->isInterB())
