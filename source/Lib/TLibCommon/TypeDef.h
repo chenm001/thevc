@@ -327,8 +327,6 @@ typedef       short               Short;
 typedef       unsigned short      UShort;
 typedef       int                 Int;
 typedef       unsigned int        UInt;
-typedef       long                Long;
-typedef       unsigned long       ULong;
 typedef       double              Double;
 
 // ====================================================================================================================

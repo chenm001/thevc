@@ -97,7 +97,7 @@ TComTrQuant::TComTrQuant()
   m_cQP.clear();
   
   // allocate temporary buffers
-  m_plTempCoeff  = new Long[ MAX_CU_SIZE*MAX_CU_SIZE ];
+  m_plTempCoeff  = new Int[ MAX_CU_SIZE*MAX_CU_SIZE ];
   
   // allocate bit estimation class  (for RDOQ)
   m_pcEstBitsSbac = new estBitsSbacStruct;
@@ -141,9 +141,9 @@ Void TComTrQuant::setQPforQuant( Int iQP, Bool bLowpass, SliceType eSliceType, T
  *  \param uiMode is Intra Prediction mode used in Mode-Dependent DCT/DST only
  */
 #if INTRA_DST_TYPE_7
-void xTr(Pel *block, Long *coeff, UInt uiStride, UInt uiTrSize, UInt uiMode)
+void xTr(Pel *block, Int *coeff, UInt uiStride, UInt uiTrSize, UInt uiMode)
 #else
-void xTr(Pel *block, Long *coeff, UInt uiStride, UInt uiTrSize)
+void xTr(Pel *block, Int *coeff, UInt uiStride, UInt uiTrSize)
 #endif
 {
   Int i,j,k,iSum;
@@ -241,9 +241,9 @@ void xTr(Pel *block, Long *coeff, UInt uiStride, UInt uiTrSize)
  *  \param uiMode is Intra Prediction mode used in Mode-Dependent DCT/DST only
  */
 #if INTRA_DST_TYPE_7
-void xITr(Long *coeff, Pel *block, UInt uiStride, UInt uiTrSize, UInt uiMode)
+void xITr(Int *coeff, Pel *block, UInt uiStride, UInt uiTrSize, UInt uiMode)
 #else
-void xITr(Long *coeff, Pel *block, UInt uiStride, UInt uiTrSize)
+void xITr(Int *coeff, Pel *block, UInt uiStride, UInt uiTrSize)
 #endif
 {
   int i,j,k,iSum;
@@ -2259,7 +2259,7 @@ Int TComTrQuant::xCodeCoeffCountBitsLast(TCoeff* scoeff, levelDataStruct* levelD
 }
     
 static levelDataStruct slevelData  [ MAX_CU_SIZE*MAX_CU_SIZE ];
-Void TComTrQuant::xRateDistOptQuant_LCEC(TComDataCU* pcCU, Long* pSrcCoeff, TCoeff* pDstCoeff, UInt uiWidth, UInt uiHeight, UInt& uiAbsSum, TextType eTType, 
+Void TComTrQuant::xRateDistOptQuant_LCEC(TComDataCU* pcCU, Int* pSrcCoeff, TCoeff* pDstCoeff, UInt uiWidth, UInt uiHeight, UInt& uiAbsSum, TextType eTType, 
                                          UInt uiAbsPartIdx )
 {
   Int     i, j;
@@ -2399,7 +2399,7 @@ Void TComTrQuant::xRateDistOptQuant_LCEC(TComDataCU* pcCU, Long* pSrcCoeff, TCoe
     iAddRDOQ=iShiftQBits;
   }
 #if CAVLC_RDOQ_MOD
-  Int64 iThLast=(1 << (q_bits-1)) /(Long)uiQ;
+  Int iThLast=(1 << (q_bits-1)) /uiQ;
   Int iPrevSigIdx = noCoeff-1;
 #endif
   for (iScanning=noCoeff-1; iScanning>=0; iScanning--) 
@@ -2423,7 +2423,7 @@ Void TComTrQuant::xRateDistOptQuant_LCEC(TComDataCU* pcCU, Long* pSrcCoeff, TCoe
     iPos = (j << uiWidth_local) + i;
     
 #if CAVLC_RDOQ_MOD
-    Int64 iAbsCoeff=abs( pSrcCoeff[iPos] );
+    Int iAbsCoeff=abs( pSrcCoeff[iPos] );
     if (iAbsCoeff>iThLast)
     {
 #endif
@@ -2431,7 +2431,7 @@ Void TComTrQuant::xRateDistOptQuant_LCEC(TComDataCU* pcCU, Long* pSrcCoeff, TCoe
     psLevelData->levelDouble = abs(pSrcCoeff[iPos]) * uiQ;          
     iQuantCoeff = (Int)((psLevelData->levelDouble + iAddRDOQ) >> q_bits);
     
-    psLevelData->levelQ   = (Long)( psLevelData->levelDouble >> q_bits );
+    psLevelData->levelQ   = ( psLevelData->levelDouble >> q_bits );
     psLevelData->lowerInt = ( ( psLevelData->levelDouble - (psLevelData->levelQ << q_bits) ) < iShiftQBits ) ? true : false;
     
     iSign = pSrcCoeff[iPos] < 0 ? -1 : 1;
@@ -2798,9 +2798,9 @@ Void TComTrQuant::xRateDistOptQuant_LCEC(TComDataCU* pcCU, Long* pSrcCoeff, TCoe
   }
 }
 
-Void TComTrQuant::xQuant(TComDataCU* pcCU, Long* pSrc, TCoeff* pDes, Int iWidth, Int iHeight, UInt& uiAcSum, TextType eTType, UInt uiAbsPartIdx )
+Void TComTrQuant::xQuant(TComDataCU* pcCU, Int* pSrc, TCoeff* pDes, Int iWidth, Int iHeight, UInt& uiAcSum, TextType eTType, UInt uiAbsPartIdx )
 {
-  Long*   piCoef    = pSrc;
+  Int*   piCoef    = pSrc;
   TCoeff* piQCoef   = pDes;
   Int   iAdd = 0;
   
@@ -2855,10 +2855,10 @@ Void TComTrQuant::xQuant(TComDataCU* pcCU, Long* pSrc, TCoeff* pDes, Int iWidth,
 
     for( Int n = 0; n < iWidth*iHeight; n++ )
     {
-      Long iLevel;
+      Int iLevel;
       Int  iSign;
       UInt uiBlockPos = pucScan[n]; 
-      iLevel  = (Long) piCoef[uiBlockPos];
+      iLevel  = piCoef[uiBlockPos];
       iSign   = (iLevel < 0 ? -1: 1);      
 
       iLevel = (abs(iLevel) * uiQ + iAdd ) >> iQBits;
@@ -2906,11 +2906,11 @@ Void TComTrQuant::xQuant(TComDataCU* pcCU, Long* pSrc, TCoeff* pDes, Int iWidth,
 
 }
 
-Void TComTrQuant::xDeQuant( TCoeff* pSrc, Long* pDes, Int iWidth, Int iHeight )
+Void TComTrQuant::xDeQuant( const TCoeff* pSrc, Int* pDes, Int iWidth, Int iHeight )
 {
   
-  TCoeff* piQCoef   = pSrc;
-  Long*   piCoef    = pDes;
+  const TCoeff* piQCoef   = pSrc;
+  Int*   piCoef    = pDes;
 #if NSQT
   if( iWidth != iHeight )
   {
@@ -2928,7 +2928,6 @@ Void TComTrQuant::xDeQuant( TCoeff* pSrc, Long* pDes, Int iWidth, Int iHeight )
   }
   
   Int iShift,iAdd,iCoeffQ;
-  UInt uiQ;
   UInt uiLog2TrSize = g_aucConvertToBit[ iWidth ] + 2;
 
 #if FULL_NBIT
@@ -2939,11 +2938,11 @@ Void TComTrQuant::xDeQuant( TCoeff* pSrc, Long* pDes, Int iWidth, Int iHeight )
   UInt iTransformShift = MAX_TR_DYNAMIC_RANGE - uiBitDepth - uiLog2TrSize; 
   iShift = QUANT_IQUANT_SHIFT - QUANT_SHIFT - iTransformShift;
   iAdd = 1 << (iShift-1);
-  uiQ = g_invQuantScales[m_cQP.m_iRem];
+  Int scale = g_invQuantScales[m_cQP.m_iRem] << m_cQP.m_iPer;
 
   for( Int n = 0; n < iWidth*iHeight; n++ )
   {
-    iCoeffQ = ((piQCoef[n]*(Int)uiQ << m_cQP.m_iPer)+iAdd)>>iShift;
+    iCoeffQ = ( piQCoef[n] * scale + iAdd ) >> iShift;
     piCoef[n] = Clip3(-32768,32767,iCoeffQ);
   } 
 }
@@ -3167,15 +3166,15 @@ Void TComTrQuant::invRecurTransformNxN( TComDataCU* pcCU, UInt uiAbsPartIdx, Tex
  */
 #if INTRA_DST_TYPE_7
 #if NSQT
-Void TComTrQuant::xT( UInt uiMode, Pel* piBlkResi, UInt uiStride, Long* psCoeff, Int iWidth, Int iHeight )
+Void TComTrQuant::xT( UInt uiMode, Pel* piBlkResi, UInt uiStride, Int* psCoeff, Int iWidth, Int iHeight )
 #else
-Void TComTrQuant::xT( UInt uiMode, Pel* piBlkResi, UInt uiStride, Long* psCoeff, Int iSize )
+Void TComTrQuant::xT( UInt uiMode, Pel* piBlkResi, UInt uiStride, Int* psCoeff, Int iSize )
 #endif
 #else
 #if NSQT
-Void TComTrQuant::xT( Pel* piBlkResi, UInt uiStride, Long* psCoeff, Int iWidth, Int iHeight )
+Void TComTrQuant::xT( Pel* piBlkResi, UInt uiStride, Int* psCoeff, Int iWidth, Int iHeight )
 #else
-Void TComTrQuant::xT( Pel* piBlkResi, UInt uiStride, Long* psCoeff, Int iSize )
+Void TComTrQuant::xT( Pel* piBlkResi, UInt uiStride, Int* psCoeff, Int iSize )
 #endif
 #endif
 {
@@ -3317,15 +3316,15 @@ Void TComTrQuant::xT( Pel* piBlkResi, UInt uiStride, Long* psCoeff, Int iSize )
  */
 #if INTRA_DST_TYPE_7
 #if NSQT
-Void TComTrQuant::xIT( UInt uiMode, Long* plCoef, Pel* pResidual, UInt uiStride, Int iWidth, Int iHeight )
+Void TComTrQuant::xIT( UInt uiMode, Int* plCoef, Pel* pResidual, UInt uiStride, Int iWidth, Int iHeight )
 #else
-Void TComTrQuant::xIT( UInt uiMode, Long* plCoef, Pel* pResidual, UInt uiStride, Int iSize )
+Void TComTrQuant::xIT( UInt uiMode, Int* plCoef, Pel* pResidual, UInt uiStride, Int iSize )
 #endif
 #else
 #if NSQT
-Void TComTrQuant::xIT( Long* plCoef, Pel* pResidual, UInt uiStride, Int iWidth, Int iHeight )
+Void TComTrQuant::xIT( Int* plCoef, Pel* pResidual, UInt uiStride, Int iWidth, Int iHeight )
 #else
-Void TComTrQuant::xIT( Long* plCoef, Pel* pResidual, UInt uiStride, Int iSize )
+Void TComTrQuant::xIT( Int* plCoef, Pel* pResidual, UInt uiStride, Int iSize )
 #endif
 #endif
 {
@@ -3495,7 +3494,7 @@ UInt TComTrQuant::getCurrLineNum(UInt uiScanIdx, UInt uiPosX, UInt uiPosY)
  * coding engines using probability models like CABAC
  */
 Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*                     pcCU,
-                                                      Long*                           plSrcCoeff,
+                                                      Int*                            plSrcCoeff,
                                                       TCoeff*                         piDstCoeff,
                                                       UInt                            uiWidth,
                                                       UInt                            uiHeight,
@@ -3519,7 +3518,7 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
   }    
 #endif
   UInt uiLog2TrSize = g_aucConvertToBit[ uiWidth ] + 2;
-  UInt uiQ = g_quantScales[m_cQP.rem()];
+  Int uiQ = g_quantScales[m_cQP.rem()];
 
 #if FULL_NBIT
   UInt uiBitDepth = g_uiBitDepth;
@@ -3553,10 +3552,10 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
 #endif
 #endif //QC_MDCS
 #if NSQT
-  static Long  orgSrcCoeff[ 256 ];
+  static Int  orgSrcCoeff[ 256 ];
   if( bNonSqureFlag )
   {
-    memcpy( &orgSrcCoeff[ 0 ], plSrcCoeff, uiMaxNumCoeff * sizeof( Long ) );
+    memcpy( &orgSrcCoeff[ 0 ], plSrcCoeff, uiMaxNumCoeff * sizeof( Int ) );
     for( UInt uiScanPos = 0; uiScanPos < uiMaxNumCoeff; uiScanPos++ )
     {
       UInt uiBlkPos = g_auiNonSquareSigLastScan[ uiNonSqureScanTableIdx ][ uiScanPos ];
@@ -3585,10 +3584,10 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
   {
     //===== quantization =====
     UInt    uiBlkPos          = scan[iScanPos];
-    Long lLevelDouble         = plSrcCoeff[ uiBlkPos ];
-    lLevelDouble              = abs(lLevelDouble * (Long)uiQ);     
-    UInt uiMaxAbsLevel        = (lLevelDouble + (1L << (iQBits - 1))) >> iQBits;
-
+    Int lLevelDouble          = plSrcCoeff[ uiBlkPos ];
+    lLevelDouble              = abs(lLevelDouble * uiQ);     
+    UInt uiMaxAbsLevel        = (lLevelDouble + (1 << (iQBits - 1))) >> iQBits;
+    
     Double dErr               = Double( lLevelDouble );
     pdCostCoeff0[ iScanPos ]  = dErr * dErr * dTemp;
     d64BlockUncodedCost      += pdCostCoeff0[ iScanPos ];
@@ -3731,12 +3730,12 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
 
 #else
   Int  piCoeff      [ MAX_CU_SIZE * MAX_CU_SIZE ];
-  Long plLevelDouble[ MAX_CU_SIZE * MAX_CU_SIZE ];
+  Int  plLevelDouble[ MAX_CU_SIZE * MAX_CU_SIZE ];
   UInt puiEstParams [ 32*32*3 ];
 
   ::memset( piDstCoeff,    0, sizeof(TCoeff) *   uiMaxNumCoeff        );
   ::memset( piCoeff,       0, sizeof(Int)    *   uiMaxNumCoeff        );
-  ::memset( plLevelDouble, 0, sizeof(Long)   *   uiMaxNumCoeff        );
+  ::memset( plLevelDouble, 0, sizeof(Int)    *   uiMaxNumCoeff        );
   ::memset( puiEstParams,  0, sizeof(UInt)   *   uiMaxNumCoeff * 3    );
 
   UInt *puiOneCtx    = puiEstParams;
@@ -3752,12 +3751,12 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
     UInt    uiBlkPos = g_auiFrameScanXY[ uiLog2BlkSize-1 ][ uiScanPos ];
 #endif
 
-    Long lLevelDouble = plSrcCoeff[ uiBlkPos ];
+    Int lLevelDouble = plSrcCoeff[ uiBlkPos ];
 
     dTemp = dErrScale;  
-    lLevelDouble = abs(lLevelDouble * (Long)uiQ);   
+    lLevelDouble = abs(lLevelDouble * uiQ);   
     plLevelDouble[ uiBlkPos ] = lLevelDouble;
-    UInt uiMaxAbsLevel = (lLevelDouble + (1L << (iQBits - 1))) >> iQBits;
+    UInt uiMaxAbsLevel = (lLevelDouble + (1 << (iQBits - 1))) >> iQBits;
     
     Double dErr          = Double( lLevelDouble );
     d64BlockUncodedCost += dErr * dErr * dTemp;
@@ -3981,7 +3980,7 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
   static TCoeff dstCoeff[ 256 ];
   if( bNonSqureFlag )
   {
-    memcpy( plSrcCoeff, &orgSrcCoeff[ 0 ], uiMaxNumCoeff * sizeof( Long ) );
+    memcpy( plSrcCoeff, &orgSrcCoeff[ 0 ], uiMaxNumCoeff * sizeof( Int ) );
 
     memcpy( &dstCoeff[ 0 ], piDstCoeff, uiMaxNumCoeff * sizeof( TCoeff ) );        
     for( UInt uiScanPos = 0; uiScanPos < uiMaxNumCoeff; uiScanPos++ )
@@ -4107,7 +4106,7 @@ UInt TComTrQuant::getSigCtxInc    ( TCoeff*                         pcCoeff,
 __inline UInt TComTrQuant::xGetCodedLevel ( Double&                         rd64CodedCost,
                                             Double&                         rd64CodedCost0,
                                             Double&                         rd64CodedCostSig,
-                                            Long                            lLevelDouble,
+                                            Int                             lLevelDouble,
                                             UInt                            uiMaxAbsLevel,
                                             UShort                          ui16CtxNumSig,
                                             UShort                          ui16CtxNumOne,
@@ -4119,6 +4118,7 @@ __inline UInt TComTrQuant::xGetCodedLevel ( Double&                         rd64
 {
   Double dCurrCostSig   = 0; 
   UInt   uiBestAbsLevel = 0;
+  
   if( !bLast && uiMaxAbsLevel < 3 )
   {
     rd64CodedCostSig    = xGetRateSigCoef( 0, ui16CtxNumSig ); 
@@ -4139,9 +4139,9 @@ __inline UInt TComTrQuant::xGetCodedLevel ( Double&                         rd64
   }
 
   UInt uiMinAbsLevel    = ( uiMaxAbsLevel > 1 ? uiMaxAbsLevel - 1 : 1 );
-  for( UInt uiAbsLevel  = uiMaxAbsLevel; uiAbsLevel >= uiMinAbsLevel ; uiAbsLevel-- )
+  for( Int uiAbsLevel  = uiMaxAbsLevel; uiAbsLevel >= uiMinAbsLevel ; uiAbsLevel-- )
   {
-    Double dErr         = Double( lLevelDouble  - Long( uiAbsLevel << iQBits ) );
+    Double dErr         = Double( lLevelDouble  - ( uiAbsLevel << iQBits ) );
     Double dCurrCost    = dErr * dErr * dTemp + xGetICRateCost( uiAbsLevel, ui16CtxNumOne, ui16CtxNumAbs, ui16AbsGoRice );
     dCurrCost          += dCurrCostSig;
 
@@ -4177,7 +4177,7 @@ __inline UInt TComTrQuant::xGetCodedLevel  ( Double&                         rd6
                                              Double&                         rd64CodedCost,
                                              Double&                         rd64CodedLastCost,
                                              UInt&                           ruiBestNonZeroLevel,
-                                             Long                            lLevelDouble,
+                                             Int                             lLevelDouble,
                                              UInt                            uiMaxAbsLevel,
                                              UShort                          ui16CtxNumSig,
                                              UShort                          ui16CtxNumOne,
@@ -4196,9 +4196,9 @@ __inline UInt TComTrQuant::xGetCodedLevel  ( Double&                         rd6
   ruiBestNonZeroLevel   = 0;
   if( uiMaxAbsLevel )
   {
-    UInt uiAbsLevel     = uiMaxAbsLevel;
+    Int uiAbsLevel     = uiMaxAbsLevel;
     ruiBestNonZeroLevel = uiMaxAbsLevel;
-    Double dErr         = Double( lLevelDouble - Long( uiAbsLevel << iQBits ) );
+    Double dErr         = Double( lLevelDouble - ( uiAbsLevel << iQBits ) );
     rd64CodedLastCost   = dErr * dErr * dTemp + xGetICRateCost( uiAbsLevel, ui16CtxNumOne, ui16CtxNumAbs, ui16AbsGoRice );
   }
   else
@@ -4206,10 +4206,10 @@ __inline UInt TComTrQuant::xGetCodedLevel  ( Double&                         rd6
     return uiBestAbsLevel;
   }
 
-  UInt uiAbsLevel = ( uiMaxAbsLevel > 1 ? uiMaxAbsLevel - 1 : 1 );
+  Int uiAbsLevel = ( uiMaxAbsLevel > 1 ? uiMaxAbsLevel - 1 : 1 );
   if( uiAbsLevel != uiMaxAbsLevel )
   {
-    Double dErr        = Double( lLevelDouble - Long( uiAbsLevel << iQBits ) );
+    Double dErr        = Double( lLevelDouble - ( uiAbsLevel << iQBits ) );
     Double dCurrCost   = dErr * dErr * dTemp + xGetICRateCost( uiAbsLevel, ui16CtxNumOne, ui16CtxNumAbs, ui16AbsGoRice );
     if( dCurrCost < rd64CodedLastCost )
     {
