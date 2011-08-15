@@ -4678,50 +4678,6 @@ inline int xSign(int x)
  * \param  iAddr, iPartIdx
  */
 #if SAO_FGS_MNIF
-Void TComSampleAdaptiveOffset::startFGSParam()
-{
-  for (Int i=0;i<m_iNumCuInWidth*m_iNumCuInHeight;i++)
-  {
-    m_bIsFineSliceCu[i] = 0;
-  }
-}
-
-Void TComSampleAdaptiveOffset::endFGSParam()
-{
-  Pel *pMap;
-#if MTK_SAO_CHROMA
-  Pel *pMapCb;
-  Pel *pMapCr;
-#endif
-  Int iStride = m_pcPicYuvMap->getStride();
-#if MTK_SAO_CHROMA
-  Int iStrideC = m_pcPicYuvMap->getCStride();
-#endif
- 
-  Int y;
-  for (Int i=0;i<m_iNumCuInWidth*m_iNumCuInHeight;i++)
-  {
-    pMap = m_pcPicYuvMap->getLumaAddr(i);  
-#if MTK_SAO_CHROMA
-    pMapCb = m_pcPicYuvMap->getCbAddr(i);  
-    pMapCr = m_pcPicYuvMap->getCrAddr(i);
-#endif
-    for (y=0;y<m_uiMaxCUHeight;y++)
-    {
-      memset(pMap, m_uiMaxCUWidth, sizeof(Pel));
-      pMap += iStride;
-    }
-#if MTK_SAO_CHROMA
-    for (y=0;y<(m_uiMaxCUHeight>>1);y++)
-    {
-      memset(pMapCb, (m_uiMaxCUWidth>>1), sizeof(Pel));
-      memset(pMapCr, (m_uiMaxCUWidth>>1), sizeof(Pel));
-      pMapCb += iStrideC;
-      pMapCr += iStrideC;
-    }
-#endif
-  }
-}
 
 Void TComSampleAdaptiveOffset::createSliceMap(UInt iSliceIdx, UInt uiStartAddr, UInt uiEndAddr)
 {
@@ -5943,12 +5899,6 @@ Void TComSampleAdaptiveOffset::SAOProcess(TComPic* pcPic, SAOParam* pcQaoParam)
 
     }
     m_pcPic = NULL;
-#if MTK_SAO && MTK_NONCROSS_INLOOP_FILTER && FINE_GRANULARITY_SLICES 
-    if (getUseNonCrossAlf())
-    {
-      endFGSParam();
-    }
-#endif
 
   }
 

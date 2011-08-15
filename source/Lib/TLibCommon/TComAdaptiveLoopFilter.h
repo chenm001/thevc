@@ -268,8 +268,6 @@ public:
   Int  getSliceGranularityDepth()           { return m_iSGDepth;   }//!< get slice granularity depth
   Void createSliceMap(UInt iSliceIdx, UInt uiStartAddr, UInt uiEndAddr);//!< create slice map
   Void InitIsFineSliceCu(){memset(m_bIsFineSliceCu,0, sizeof(Bool)*m_iNumCuInWidth*m_iNumCuInHeight);} //!< Init is fine slice LCU
-  Void startFGSParam(); //!< start FGS parameters
-  Void endFGSParam();   //!< end FGS parameters
   Void setPic(TComPic* pcPic){m_pcPic = pcPic;} //!< set pic
 #endif
 

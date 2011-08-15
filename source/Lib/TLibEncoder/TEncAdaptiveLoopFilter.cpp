@@ -8309,12 +8309,6 @@ Void TEncSampleAdaptiveOffset::SAOProcess( Double dLambda)
     xProcessQuadTreeAo(m_psQAOPart, 0, 0);
 #endif
   }
-#if MTK_SAO && MTK_NONCROSS_INLOOP_FILTER && FINE_GRANULARITY_SLICES 
-  if (getUseNonCrossAlf())
-  {
-    endFGSParam();
-  }
-#endif
 
 }
 #endif
