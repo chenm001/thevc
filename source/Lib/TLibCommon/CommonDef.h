@@ -122,10 +122,11 @@
 // ====================================================================================================================
 
 extern UInt g_uiIBDI_MAX;
-/** clip #x#, such that 0 <= #x# <= g_uiIBDI_MAX */
+
+/** clip x, such that 0 <= x <= #g_uiIBDI_MAX */
 template <typename T> inline T Clip(T x) { return std::min<T>(T(g_uiIBDI_MAX), std::max<T>( T(0), x)); }
 
-/** clip #a#, such that #MinVal# <= #a# <= #MaxVal# */
+/** clip a, such that minVal <= a <= maxVal */
 template <typename T> inline T Clip3( T minVal, T maxVal, T a) { return std::min<T> (std::max<T> (minVal, a) , maxVal); }  ///< general min/max clip
 
 #define DATA_ALIGN                  1                                                                 ///< use 32-bit aligned malloc/free
