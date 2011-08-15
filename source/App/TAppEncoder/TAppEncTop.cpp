@@ -142,6 +142,9 @@ Void TAppEncTop::xInitLibCfg()
 #if EARLY_CU_DETERMINATION
   m_cTEncTop.setUseEarlyCU                   ( m_bUseEarlyCU  ); 
 #endif
+#if CBF_FAST_MODE
+  m_cTEncTop.setUseCbfFastMode            ( m_bUseCbfFastMode  );
+#endif
   m_cTEncTop.setUseMRG                       ( m_bUseMRG      ); // SOPH:
 
 #if LM_CHROMA 

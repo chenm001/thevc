@@ -247,6 +247,9 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
 #if EARLY_CU_DETERMINATION
   ("ECU", m_bUseEarlyCU, false, "Early CU setting") 
 #endif
+#if CBF_FAST_MODE
+  ("CFM", m_bUseCbfFastMode, false, "Cbf fast mode setting")
+#endif
   /* Compatability with old style -1 FOO or -0 FOO options. */
   ("1", doOldStyleCmdlineOn, "turn option <name> on")
   ("0", doOldStyleCmdlineOff, "turn option <name> off")
@@ -599,6 +602,9 @@ Void TAppEncCfg::xPrintParameter()
 #if EARLY_CU_DETERMINATION
   printf("ECU:%d ", m_bUseEarlyCU         );
 #endif
+#if CBF_FAST_MODE
+  printf("CFM:%d ", m_bUseCbfFastMode         );
+#endif
   printf("RQT:%d ", 1     );
   printf("MRG:%d ", m_bUseMRG             ); // SOPH: Merge Mode
 #if LM_CHROMA 
@@ -658,6 +664,9 @@ Void TAppEncCfg::xPrintUsage()
   printf( "                   FEN - fast encoder setting\n");  
 #if EARLY_CU_DETERMINATION
   printf( "                   ECU - Early CU setting\n");
+#endif
+#if CBF_FAST_MODE
+  printf( "                   CFM - Cbf fast mode setting\n");
 #endif
   printf( "                   MRG - merging of motion partitions\n"); // SOPH: Merge Mode
 

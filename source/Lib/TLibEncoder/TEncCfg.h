@@ -139,6 +139,9 @@ protected:
 #if EARLY_CU_DETERMINATION
   Bool      m_bUseEarlyCU;
 #endif
+#if CBF_FAST_MODE
+  Bool      m_bUseCbfFastMode;
+#endif
   Bool      m_bUseMRG; // SOPH:
 #if LM_CHROMA 
   Bool      m_bUseLMChroma; 
@@ -314,6 +317,9 @@ public:
 #if EARLY_CU_DETERMINATION
   Void      setUseEarlyCU                   ( Bool  b )     { m_bUseEarlyCU = b; }
 #endif
+#if CBF_FAST_MODE
+  Void      setUseCbfFastMode            ( Bool  b )     { m_bUseCbfFastMode = b; }
+#endif
   Void      setUseMRG                       ( Bool  b )     { m_bUseMRG     = b; } // SOPH:
   Void      setUseConstrainedIntraPred      ( Bool  b )     { m_bUseConstrainedIntraPred = b; }
 #if E057_INTRA_PCM && E192_SPS_PCM_BIT_DEPTH_SYNTAX
@@ -346,6 +352,9 @@ public:
   Bool      getUseFastEnc                   ()      { return m_bUseFastEnc; }
 #if EARLY_CU_DETERMINATION
   Bool      getUseEarlyCU                   ()      { return m_bUseEarlyCU; }
+#endif
+#if CBF_FAST_MODE
+  Bool      getUseCbfFastMode           ()      { return m_bUseCbfFastMode; }
 #endif
   Bool      getUseMRG                       ()      { return m_bUseMRG;     } // SOPH:
   Bool      getUseConstrainedIntraPred      ()      { return m_bUseConstrainedIntraPred; }

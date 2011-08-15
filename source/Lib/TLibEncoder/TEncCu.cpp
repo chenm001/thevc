@@ -496,6 +496,11 @@ Void TEncCu::xCompressCU( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, UInt u
   Bool    bSubBranch = true;
 #endif
 
+  // variable for Cbf fast mode PU decision
+#if CBF_FAST_MODE
+  Bool    doNotBlockPu = true;
+#endif
+
 #if SUB_LCU_DQP
   Bool    bTrySplitDQP  = true;
 #endif
@@ -608,6 +613,12 @@ Void TEncCu::xCompressCU( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, UInt u
         if ( !bEarlySkip )
         {
           xCheckRDCostInter( rpcBestCU, rpcTempCU, SIZE_2Nx2N );  rpcTempCU->initEstData( uiDepth, iQP );
+#if CBF_FAST_MODE
+          if(m_pcEncCfg->getUseCbfFastMode())
+          {
+            doNotBlockPu = rpcBestCU->getQtRootCbf( 0 ) != 0;
+          }
+#endif
         }
       }
 
@@ -643,7 +654,11 @@ Void TEncCu::xCompressCU( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, UInt u
         if(!( rpcBestCU->getSlice()->getSPS()->getDisInter4x4()  && (rpcBestCU->getWidth(0)==8) && (rpcBestCU->getHeight(0)==8) ))
         {
 #endif
+#if CBF_FAST_MODE
+          if( uiDepth == g_uiMaxCUDepth - g_uiAddCUDepth && doNotBlockPu)
+#else
           if( uiDepth == g_uiMaxCUDepth - g_uiAddCUDepth )
+#endif
           {
             xCheckRDCostInter( rpcBestCU, rpcTempCU, SIZE_NxN   );
 #if SUB_LCU_DQP
@@ -658,18 +673,40 @@ Void TEncCu::xCompressCU( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, UInt u
         }
 
         { // 2NxN, Nx2N
-          xCheckRDCostInter( rpcBestCU, rpcTempCU, SIZE_Nx2N  );
-#if SUB_LCU_DQP
-          rpcTempCU->initEstData( uiDepth, iQP );
-#else
-          rpcTempCU->initEstData();
+#if CBF_FAST_MODE
+          if(doNotBlockPu)
 #endif
-          xCheckRDCostInter      ( rpcBestCU, rpcTempCU, SIZE_2NxN  );
+          {
+            xCheckRDCostInter( rpcBestCU, rpcTempCU, SIZE_Nx2N  );
 #if SUB_LCU_DQP
-          rpcTempCU->initEstData( uiDepth, iQP );
+            rpcTempCU->initEstData( uiDepth, iQP );
 #else
-          rpcTempCU->initEstData();
+            rpcTempCU->initEstData();
 #endif
+#if CBF_FAST_MODE
+            if(m_pcEncCfg->getUseCbfFastMode() && rpcBestCU->getPartitionSize(0) == SIZE_Nx2N )
+            {
+              doNotBlockPu = rpcBestCU->getQtRootCbf( 0 ) != 0;
+            }
+#endif
+          }
+#if CBF_FAST_MODE
+          if(doNotBlockPu)
+#endif
+          {
+            xCheckRDCostInter      ( rpcBestCU, rpcTempCU, SIZE_2NxN  );
+#if SUB_LCU_DQP
+            rpcTempCU->initEstData( uiDepth, iQP );
+#else
+            rpcTempCU->initEstData();
+#endif
+#if CBF_FAST_MODE
+            if(m_pcEncCfg->getUseCbfFastMode() && rpcBestCU->getPartitionSize(0) == SIZE_2NxN)
+            {
+              doNotBlockPu = rpcBestCU->getQtRootCbf( 0 ) != 0;
+            }
+#endif
+          }
         }
 
 #if AMP
@@ -690,68 +727,144 @@ Void TEncCu::xCompressCU( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, UInt u
           //! Do horizontal AMP
           if ( bTestAMP_Hor )
           {
-            xCheckRDCostInter( rpcBestCU, rpcTempCU, SIZE_2NxnU );
-#if SUB_LCU_DQP
-            rpcTempCU->initEstData( uiDepth, iQP );
-#else
-            rpcTempCU->initEstData();
+#if CBF_FAST_MODE
+            if(doNotBlockPu)
 #endif
-            xCheckRDCostInter( rpcBestCU, rpcTempCU, SIZE_2NxnD );
+            {
+              xCheckRDCostInter( rpcBestCU, rpcTempCU, SIZE_2NxnU );
 #if SUB_LCU_DQP
-            rpcTempCU->initEstData( uiDepth, iQP );
+              rpcTempCU->initEstData( uiDepth, iQP );
 #else
-            rpcTempCU->initEstData();
+              rpcTempCU->initEstData();
 #endif
+#if CBF_FAST_MODE
+              if(m_pcEncCfg->getUseCbfFastMode() && rpcBestCU->getPartitionSize(0) == SIZE_2NxnU )
+              {
+                doNotBlockPu = rpcBestCU->getQtRootCbf( 0 ) != 0;
+              }
+#endif
+            }
+#if CBF_FAST_MODE
+            if(doNotBlockPu)
+#endif
+            {
+              xCheckRDCostInter( rpcBestCU, rpcTempCU, SIZE_2NxnD );
+#if SUB_LCU_DQP
+              rpcTempCU->initEstData( uiDepth, iQP );
+#else
+              rpcTempCU->initEstData();
+#endif
+#if CBF_FAST_MODE
+              if(m_pcEncCfg->getUseCbfFastMode() && rpcBestCU->getPartitionSize(0) == SIZE_2NxnD )
+              {
+                doNotBlockPu = rpcBestCU->getQtRootCbf( 0 ) != 0;
+              }
+#endif
+            }
           }
 #if AMP_MRG
           else if ( bTestMergeAMP_Hor ) 
           {
-            xCheckRDCostInter( rpcBestCU, rpcTempCU, SIZE_2NxnU, true );
-#if SUB_LCU_DQP
-            rpcTempCU->initEstData( uiDepth, iQP );
-#else
-            rpcTempCU->initEstData();
+#if CBF_FAST_MODE
+            if(doNotBlockPu)
 #endif
-            xCheckRDCostInter( rpcBestCU, rpcTempCU, SIZE_2NxnD, true );
+            {
+              xCheckRDCostInter( rpcBestCU, rpcTempCU, SIZE_2NxnU, true );
 #if SUB_LCU_DQP
-            rpcTempCU->initEstData( uiDepth, iQP );
+              rpcTempCU->initEstData( uiDepth, iQP );
 #else
-            rpcTempCU->initEstData();
+              rpcTempCU->initEstData();
 #endif
+#if CBF_FAST_MODE
+              if(m_pcEncCfg->getUseCbfFastMode() && rpcBestCU->getPartitionSize(0) == SIZE_2NxnU )
+              {
+                doNotBlockPu = rpcBestCU->getQtRootCbf( 0 ) != 0;
+              }
+#endif
+            }
+#if CBF_FAST_MODE
+            if(doNotBlockPu)
+#endif
+            {
+              xCheckRDCostInter( rpcBestCU, rpcTempCU, SIZE_2NxnD, true );
+#if SUB_LCU_DQP
+              rpcTempCU->initEstData( uiDepth, iQP );
+#else
+              rpcTempCU->initEstData();
+#endif
+#if CBF_FAST_MODE
+              if(m_pcEncCfg->getUseCbfFastMode() && rpcBestCU->getPartitionSize(0) == SIZE_2NxnD )
+              {
+                doNotBlockPu = rpcBestCU->getQtRootCbf( 0 ) != 0;
+              }
+#endif
+            }
           }
 #endif
 
           //! Do horizontal AMP
           if ( bTestAMP_Ver )
           {
-            xCheckRDCostInter( rpcBestCU, rpcTempCU, SIZE_nLx2N );
-#if SUB_LCU_DQP
-            rpcTempCU->initEstData( uiDepth, iQP );
-#else
-            rpcTempCU->initEstData();
+#if CBF_FAST_MODE
+            if(doNotBlockPu)
 #endif
-            xCheckRDCostInter( rpcBestCU, rpcTempCU, SIZE_nRx2N );
+            {
+              xCheckRDCostInter( rpcBestCU, rpcTempCU, SIZE_nLx2N );
 #if SUB_LCU_DQP
-            rpcTempCU->initEstData( uiDepth, iQP );
+              rpcTempCU->initEstData( uiDepth, iQP );
 #else
-            rpcTempCU->initEstData();
+              rpcTempCU->initEstData();
 #endif
+#if CBF_FAST_MODE
+              if(m_pcEncCfg->getUseCbfFastMode() && rpcBestCU->getPartitionSize(0) == SIZE_nLx2N )
+              {
+                doNotBlockPu = rpcBestCU->getQtRootCbf( 0 ) != 0;
+              }
+#endif
+            }
+#if CBF_FAST_MODE
+            if(doNotBlockPu)
+#endif
+            {
+              xCheckRDCostInter( rpcBestCU, rpcTempCU, SIZE_nRx2N );
+#if SUB_LCU_DQP
+              rpcTempCU->initEstData( uiDepth, iQP );
+#else
+              rpcTempCU->initEstData();
+#endif
+            }
           }
 #if AMP_MRG
           else if ( bTestMergeAMP_Ver )
           {
-            xCheckRDCostInter( rpcBestCU, rpcTempCU, SIZE_nLx2N, true );
-#if SUB_LCU_DQP
-            rpcTempCU->initEstData( uiDepth, iQP );
-#else
-            rpcTempCU->initEstData();
+#if CBF_FAST_MODE
+            if(doNotBlockPu)
 #endif
-            xCheckRDCostInter( rpcBestCU, rpcTempCU, SIZE_nRx2N, true );
+            {
+              xCheckRDCostInter( rpcBestCU, rpcTempCU, SIZE_nLx2N, true );
 #if SUB_LCU_DQP
-            rpcTempCU->initEstData( uiDepth, iQP );
+              rpcTempCU->initEstData( uiDepth, iQP );
 #else
-            rpcTempCU->initEstData();
+              rpcTempCU->initEstData();
 #endif
+#if CBF_FAST_MODE
+              if(m_pcEncCfg->getUseCbfFastMode() && rpcBestCU->getPartitionSize(0) == SIZE_nLx2N )
+              {
+                doNotBlockPu = rpcBestCU->getQtRootCbf( 0 ) != 0;
+              }
+#endif
+            }
+#if CBF_FAST_MODE
+            if(doNotBlockPu)
+#endif
+            {
+              xCheckRDCostInter( rpcBestCU, rpcTempCU, SIZE_nRx2N, true );
+#if SUB_LCU_DQP
+              rpcTempCU->initEstData( uiDepth, iQP );
+#else
+              rpcTempCU->initEstData();
+#endif
+            }
           }
 #endif
 
