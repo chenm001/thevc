@@ -447,13 +447,16 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
         {
           m_pcSAO->setPic(pcPic);
           m_pcSAO->setUseNonCrossAlf(!pcSlice->getSPS()->getLFCrossSliceBoundaryFlag());
-          m_pcSAO->InitIsFineSliceCu();
-          UInt uiStartAddr, uiEndAddr;
-          for(UInt i=0; i< uiNumSlices ; i++)
+          if (m_pcSAO->getUseNonCrossAlf())
           {
-            uiStartAddr = m_uiStoredStartCUAddrForEncodingSlice[i];
-            uiEndAddr   = m_uiStoredStartCUAddrForEncodingSlice[i+1]-1;
-            m_pcSAO->createSliceMap(i, uiStartAddr, uiEndAddr);
+            m_pcSAO->InitIsFineSliceCu();
+            UInt uiStartAddr, uiEndAddr;
+            for(UInt i=0; i< uiNumSlices ; i++)
+            {
+              uiStartAddr = m_uiStoredStartCUAddrForEncodingSlice[i];
+              uiEndAddr   = m_uiStoredStartCUAddrForEncodingSlice[i+1]-1;
+              m_pcSAO->createSliceMap(i, uiStartAddr, uiEndAddr);
+            }
           }
         }
       }

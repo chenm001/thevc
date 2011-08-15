@@ -284,13 +284,16 @@ Void TDecGop::decompressGop(TComInputBitstream* pcBitstream, TComPic*& rpcPic, B
             m_pcSAO->setPic(rpcPic);
             puiILSliceStartLCU[uiILSliceCount] = rpcPic->getNumCUsInFrame()* rpcPic->getNumPartInCU();
             m_pcSAO->setUseNonCrossAlf(!pcSlice->getSPS()->getLFCrossSliceBoundaryFlag());
-            m_pcSAO->InitIsFineSliceCu();
-
-            for(UInt i=0; i< uiILSliceCount ; i++)
+            if (m_pcSAO->getUseNonCrossAlf())
             {
-              UInt uiStartAddr = puiILSliceStartLCU[i];
-              UInt uiEndAddr   = puiILSliceStartLCU[i+1]-1;
-              m_pcSAO->createSliceMap(i, uiStartAddr, uiEndAddr);
+              m_pcSAO->InitIsFineSliceCu();
+
+              for(UInt i=0; i< uiILSliceCount ; i++)
+              {
+                UInt uiStartAddr = puiILSliceStartLCU[i];
+                UInt uiEndAddr   = puiILSliceStartLCU[i+1]-1;
+                m_pcSAO->createSliceMap(i, uiStartAddr, uiEndAddr);
+              }
             }
           }
         }

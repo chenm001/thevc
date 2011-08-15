@@ -7213,7 +7213,7 @@ Void TEncSampleAdaptiveOffset::calcAoStatsCuMap(Int iAddr, Int iPartIdx, Int iYC
           iSignDown1      =  xSign(pRec[x] - pRec[x+iStride-1]) ;
           uiEdgeType      =  iSignDown1 + m_iUpBuff1[x] + 2;
           m_iUpBuff1[x-1]   = -iSignDown1; 
-          if (pMap[x-iStride+1] == pMap[x+iStride-1])
+          if ((pMap[x-iStride+1] == pMap[x+iStride-1]) && (pMap[x+iStride-1]==pMap[x]))
           {
             iStats[m_auiEoTable[uiEdgeType]] += (pOrg[x] - pRec[x]);
             iCount[m_auiEoTable[uiEdgeType]] ++;
@@ -7521,16 +7521,9 @@ Void TEncSampleAdaptiveOffset::calcAoStatsCuMap(Int iAddr, Int iPartIdx, Int iYC
  */
 Void TEncSampleAdaptiveOffset::calcAoStatsCu(Int iAddr, Int iPartIdx, Int iYCbCr)
 {
-  if (getIsFineSlice())
+  if (getUseNonCrossAlf())
   {
-    if (getIsFineSliceCu(iAddr))
-    {
-      calcAoStatsCuMap( iAddr, iPartIdx, iYCbCr);
-    }
-    else
-    {
-      calcAoStatsCuOrg( iAddr, iPartIdx, iYCbCr);
-    }
+    calcAoStatsCuMap( iAddr, iPartIdx, iYCbCr);
   }
   else
   {
@@ -8317,7 +8310,7 @@ Void TEncSampleAdaptiveOffset::SAOProcess( Double dLambda)
 #endif
   }
 #if MTK_SAO && MTK_NONCROSS_INLOOP_FILTER && FINE_GRANULARITY_SLICES 
-  if (getIsFineSlice())
+  if (getUseNonCrossAlf())
   {
     endFGSParam();
   }
