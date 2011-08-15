@@ -4698,7 +4698,7 @@ Void TComSampleAdaptiveOffset::endFGSParam()
   Int iStrideC = m_pcPicYuvMap->getCStride();
 #endif
  
-  Int x,y;
+  Int y;
   for (Int i=0;i<m_iNumCuInWidth*m_iNumCuInHeight;i++)
   {
     pMap = m_pcPicYuvMap->getLumaAddr(i);  
