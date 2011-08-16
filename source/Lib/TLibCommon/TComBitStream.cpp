@@ -231,8 +231,8 @@ Void TComInputBitstream::read (UInt uiNumberOfBits, UInt& ruiBits)
 }
 
 /**
- * insert the contents of the bytealigned (and flushed) bitstream @src
- * into @this at byte position @pos.
+ * insert the contents of the bytealigned (and flushed) bitstream src
+ * into this at byte position pos.
  */
 void TComOutputBitstream::insertAt(const TComOutputBitstream& src, unsigned pos)
 {

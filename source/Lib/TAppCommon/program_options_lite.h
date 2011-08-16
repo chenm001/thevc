@@ -63,7 +63,7 @@ namespace df
       
       virtual ~OptionBase() {}
       
-      /* parse argument @arg, to obtain a value for the option */
+      /* parse argument arg, to obtain a value for the option */
       virtual void parse(const std::string& arg) = 0;
       /* set the argument to the default value */
       virtual void setDefault() = 0;
@@ -170,10 +170,10 @@ namespace df
       OptionSpecific(Options& parent_) : parent(parent_) {}
       
       /**
-       * Add option described by @name to the parent Options list,
-       *   with @storage for the option's value
-       *   with @default_val as the default value
-       *   with @desc as an optional help description
+       * Add option described by name to the parent Options list,
+       *   with storage for the option's value
+       *   with default_val as the default value
+       *   with desc as an optional help description
        */
       template<typename T>
       OptionSpecific&
@@ -184,8 +184,8 @@ namespace df
       }
       
       /**
-       * Add option described by @name to the parent Options list,
-       *   with @desc as an optional help description
+       * Add option described by name to the parent Options list,
+       *   with desc as an optional help description
        * instead of storing the value somewhere, a function of type
        * OptionFunc::Func is called.  It is upto this function to correctly
        * handle evaluating the option's value.

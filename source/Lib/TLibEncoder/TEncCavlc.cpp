@@ -287,7 +287,7 @@ UInt* TEncCavlc::GetLastPosVlcIndexTable()
 }
 
 /**
- * marshall the SEI message @sei.
+ * marshall the SEI message sei.
  */
 void TEncCavlc::codeSEI(const SEI& sei)
 {

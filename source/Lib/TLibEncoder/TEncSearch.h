@@ -405,8 +405,8 @@ protected:
                                    );
   
 #if GENERIC_IF
-  Void xExtDIFUpSamplingH( TComPattern* pcPattern, bool biPred  );
-  Void xExtDIFUpSamplingQ( TComPattern* pcPatternKey, TComMv halfPelRef, bool biPred );
+  Void xExtDIFUpSamplingH( TComPattern* pcPattern, Bool biPred  );
+  Void xExtDIFUpSamplingQ( TComPattern* pcPatternKey, TComMv halfPelRef, Bool biPred );
 #else
   Void xExtDIFUpSamplingH         ( TComPattern*  pcPattern, TComYuv* pcYuvExt  );
   

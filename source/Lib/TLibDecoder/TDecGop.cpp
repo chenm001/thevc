@@ -427,8 +427,8 @@ Void TDecGop::decompressGop(TComInputBitstream* pcBitstream, TComPic*& rpcPic, B
 }
 
 /**
- * Calculate and print MD5 for @pic, compare to picture_digest SEI if
- * present in @seis.  @seis may be NULL.  MD5 is printed to stdout, in
+ * Calculate and print MD5 for pic, compare to picture_digest SEI if
+ * present in seis.  seis may be NULL.  MD5 is printed to stdout, in
  * a manner suitable for the status line. Theformat is:
  *  [MD5:xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx,(yyy)]
  * Where, x..x is the md5

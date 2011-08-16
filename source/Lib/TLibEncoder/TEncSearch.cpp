@@ -5469,7 +5469,7 @@ Void TEncSearch::xExtDIFUpSamplingH ( TComPattern* pcPattern, TComYuv* pcYuvExt 
  * \param halfPelRef Half-pel mv
  * \param biPred     Flag indicating whether block is for biprediction
  */
-Void TEncSearch::xExtDIFUpSamplingQ( TComPattern* pattern, TComMv halfPelRef, bool biPred )
+Void TEncSearch::xExtDIFUpSamplingQ( TComPattern* pattern, TComMv halfPelRef, Bool biPred )
 {
   Int width      = pattern->getROIYWidth();
   Int height     = pattern->getROIYHeight();

@@ -44,8 +44,8 @@ using namespace std;
 static const char emulation_prevention_three_byte[] = {3};
 
 /**
- * write @nalu@ to bytestream @out@, performing RBSP anti startcode
- * emulation as required.  @nalu@.m_RBSPayload must be byte aligned.
+ * write nalu to bytestream out, performing RBSP anti startcode
+ * emulation as required.  nalu.m_RBSPayload must be byte aligned.
  */
 void write(ostream& out, const OutputNALUnit& nalu)
 {
@@ -132,7 +132,7 @@ void write(ostream& out, const OutputNALUnit& nalu)
 }
 
 /**
- * Write rbsp_trailing_bits to @bs@ causing it to become byte-aligned
+ * Write rbsp_trailing_bits to bs causing it to become byte-aligned
  */
 void writeRBSPTrailingBits(TComOutputBitstream& bs)
 {

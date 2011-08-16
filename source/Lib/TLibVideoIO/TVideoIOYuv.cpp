@@ -188,7 +188,7 @@ Bool TVideoIOYuv::isFail()
 }
 
 /**
- * Skip @numFrames in input.
+ * Skip numFrames in input.
  *
  * This function correctly handles cases where the input file is not
  * seekable, by consuming bytes.

@@ -92,7 +92,7 @@ public:
 
   // interface for encoding
   /**
-   * append @uiNumberOfBits@ least significant bits of @uiBits@ to
+   * append uiNumberOfBits least significant bits of uiBits to
    * the current bitstream
    */
   Void        write           ( UInt uiBits, UInt uiNumberOfBits );

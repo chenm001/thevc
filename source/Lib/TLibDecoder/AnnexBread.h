@@ -42,12 +42,12 @@ class InputByteStream
 public:
   /**
    * Create a bytestream reader that will extract bytes from
-   * @istream@.
+   * istream.
    *
    * NB, it isn't safe to access istream while in use by a
    * InputByteStream.
    *
-   * Side-effects: the exception mask of @istream@ is set to eofbit
+   * Side-effects: the exception mask of istream is set to eofbit
    */
   InputByteStream(std::istream& istream)
   : m_NumFutureBytes(0)
@@ -69,7 +69,7 @@ public:
 
   /**
    * returns true if an EOF will be encountered within the next
-   * @n@ bytes.
+   * n bytes.
    */
   bool eofBeforeNBytes(unsigned n)
   {
@@ -94,7 +94,7 @@ public:
   }
 
   /**
-   * return the next @n@ bytes in the stream without advancing
+   * return the next n bytes in the stream without advancing
    * the stream pointer.
    *
    * Returns: an unsigned integer representing an n byte bigendian

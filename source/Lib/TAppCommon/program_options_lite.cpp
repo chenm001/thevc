@@ -467,7 +467,7 @@ namespace df
       while(!!in);
     }
 
-    /* for all options in @opts@, set their storage to their specified
+    /* for all options in opts, set their storage to their specified
      * default value */
     void setDefaults(Options& opts)
     {
