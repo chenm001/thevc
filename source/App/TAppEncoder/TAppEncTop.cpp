@@ -351,7 +351,7 @@ Void TAppEncTop::xDeleteBuffer( )
 
 /** \param iNumEncoded  number of encoded frames
  */
-Void TAppEncTop::xWriteOutput(ostream& bitstreamFile, Int iNumEncoded, const list<AccessUnit>& accessUnits)
+Void TAppEncTop::xWriteOutput(std::ostream& bitstreamFile, Int iNumEncoded, const std::list<AccessUnit>& accessUnits)
 {
   Int i;
   
@@ -378,7 +378,7 @@ Void TAppEncTop::xWriteOutput(ostream& bitstreamFile, Int iNumEncoded, const lis
 /**
  *
  */
-void TAppEncTop::rateStatsAccum(const AccessUnit& au, const vector<unsigned>& annexBsizes)
+void TAppEncTop::rateStatsAccum(const AccessUnit& au, const std::vector<unsigned>& annexBsizes)
 {
   AccessUnit::const_iterator it_au = au.begin();
   vector<unsigned>::const_iterator it_stats = annexBsizes.begin();

@@ -133,7 +133,7 @@ Void TEncGOP::init ( TEncTop* pcTEncTop )
 // Public member functions
 // ====================================================================================================================
 
-Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rcListPic, TComList<TComPicYuv*>& rcListPicYuvRecOut, list<AccessUnit>& accessUnitsInGOP)
+Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rcListPic, TComList<TComPicYuv*>& rcListPicYuvRecOut, std::list<AccessUnit>& accessUnitsInGOP)
 {
   TComPic*        pcPic;
   TComPicYuv*     pcPicYuvRecOut;

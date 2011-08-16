@@ -58,7 +58,7 @@ TComOutputBitstream::~TComOutputBitstream()
   delete m_fifo;
 }
 
-TComInputBitstream::TComInputBitstream(vector<uint8_t>* buf)
+TComInputBitstream::TComInputBitstream(std::vector<uint8_t>* buf)
 {
   m_fifo = buf;
   m_fifo_idx = 0;
