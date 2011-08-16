@@ -2634,9 +2634,13 @@ Void   TEncAdaptiveLoopFilter::xEncALFLuma_qc ( TComPicYuv* pcPicOrg, TComPicYuv
 #if STAR_CROSS_SHAPES_LUMA
 #if MTK_NONCROSS_INLOOP_FILTER
   if(!m_bUseNonCrossALF)
+  {
     calcVar(0, 0, m_varImg, pDec, FILTER_LENGTH/2, VAR_SIZE, Height, Width, LumaStride);
+  }
   else
+  {
     calcVarforSlices(m_varImg, pDec, FILTER_LENGTH/2, VAR_SIZE, LumaStride);
+  }
 #else
   calcVar(m_varImg, pDec, FILTER_LENGTH/2, VAR_SIZE, Height, Width, LumaStride);
 #endif
@@ -2901,7 +2905,9 @@ Void   TEncAdaptiveLoopFilter::xstoreInBlockMatrix(imgpel* ImgOrg, imgpel* ImgDe
             for (jj=-m; jj<=m; jj++)
             {
               if ((m == 1) || (m == 2 && jj%2 == 0))
+              {
                 ELocal[p_pattern[k++]]+=(ImgDec[(i+ii)*Stride + (j+jj)]+ImgDec[(i-ii)*Stride + (j-jj)]);
+              }
             }
           }
           
@@ -3181,9 +3187,13 @@ Void   TEncAdaptiveLoopFilter::xFilteringFrameLuma_qc(imgpel* ImgOrg, imgpel* im
   lambda_val = lambda_val * (1<<(2*g_uiBitIncrement));
 #if STAR_CROSS_SHAPES_LUMA
   if (ALFp->realfiltNo == 0)
+  {
     filtNo = 0;
+  }
   else //if (ALFp->realfiltNo == 1)
+  {
     filtNo = 1;
+  }
 #else
   if (tap==9)
     filtNo =0;
@@ -3429,7 +3439,9 @@ Void TEncAdaptiveLoopFilter::xfilterFrame_en(imgpel* ImgDec, imgpel* ImgRest,int
            im2= &(ImgDec[(y-ii)*Stride + x+m]);
            for (jj=-m; jj<=m; jj++,im1++,im2--)
              if ((m == 1) || (m == 2 && jj%2 == 0))
+             {
                pixelInt+=((*im1+ *im2)*coef[*(pattern++)]);
+             }
         }
         im1= &(ImgDec[y*Stride + x-flH]);
         im2= &(ImgDec[y*Stride + x+flH]);    
@@ -4797,7 +4809,10 @@ Void TEncAdaptiveLoopFilter::setMaskWithTimeDelayedResults(TComPicYuv* pcPicOrg,
 
 #if STAR_CROSS_SHAPES_LUMA
     filtNo = m_pcTempAlfParam->realfiltNo = m_iPreviousFilterShape[m_iFilterIdx];
-    if (filtNo != 0 && filtNo != 1) continue; 
+    if (filtNo != 0 && filtNo != 1) 
+    {
+      continue;
+    }
     m_pcTempAlfParam->num_coeff = m_sqrFiltLengthTab[filtNo] ; 
 #endif
 
@@ -4875,9 +4890,13 @@ Void TEncAdaptiveLoopFilter::setMaskWithTimeDelayedResults(TComPicYuv* pcPicOrg,
 #if STAR_CROSS_SHAPES_LUMA
 #if MTK_NONCROSS_INLOOP_FILTER
   if(!m_bUseNonCrossALF)
+  {
     xstoreInBlockMatrix(0, 0, m_im_height, m_im_width, true, true, pOrg, pDec, cAlfParam.realfiltNo, LumaStride);
+  }
   else
+  { 
     xstoreInBlockMatrixforSlices(pOrg, pDec, cAlfParam.realfiltNo, LumaStride);
+  }
 #else
   xstoreInBlockMatrix(pOrg, pDec, cAlfParam.realfiltNo, LumaStride);
 #endif
@@ -5029,9 +5048,13 @@ Void TEncAdaptiveLoopFilter::setInitialMask(TComPicYuv* pcPicOrg, TComPicYuv* pc
 #if STAR_CROSS_SHAPES_LUMA
 #if MTK_NONCROSS_INLOOP_FILTER
   if(!m_bUseNonCrossALF)
+  {
     calcVar(0, 0, m_varImg, pDec, FILTER_LENGTH/2, VAR_SIZE, Height, Width, LumaStride);
+  }
   else
+  {
     calcVarforSlices(m_varImg, pDec, FILTER_LENGTH/2, VAR_SIZE, LumaStride);
+  }
 #else
   calcVar(m_varImg, pDec, FILTER_LENGTH/2, VAR_SIZE, Height, Width, LumaStride);
 #endif
@@ -5087,7 +5110,10 @@ Void TEncAdaptiveLoopFilter::setInitialMask(TComPicYuv* pcPicOrg, TComPicYuv* pc
       setFilterIdx(index);
 #if STAR_CROSS_SHAPES_LUMA
       Int filtNo = m_pcTempAlfParam->realfiltNo = m_iPreviousFilterShape[m_iFilterIdx];
-      if (filtNo != 0 && filtNo != 1) continue; 
+      if (filtNo != 0 && filtNo != 1) 
+      {
+        continue; 
+      }
       m_pcTempAlfParam->num_coeff = m_sqrFiltLengthTab[filtNo] ; 
 #endif
       xcalcPredFilterCoeffPrev(filtNo);
@@ -5220,9 +5246,13 @@ Void  TEncAdaptiveLoopFilter::xFirstEstimateFilteringFrameLumaAllTap(imgpel* Img
 #if MTK_NONCROSS_INLOOP_FILTER
   {
     if(!m_bUseNonCrossALF)
+    {
       xstoreInBlockMatrix(0, 0, m_im_height, m_im_width, true, true, ImgOrg, ImgDec, 2, Stride);
+    }
     else
+    {
       xstoreInBlockMatrixforSlices(ImgOrg, ImgDec, 2, Stride);
+    }
   }
 #else
   xstoreInBlockMatrix(ImgOrg, ImgDec, 2, Stride);
@@ -5397,9 +5427,13 @@ Void   TEncAdaptiveLoopFilter::xFirstFilteringFrameLumaAllTap(imgpel* ImgOrg, im
 #if MTK_NONCROSS_INLOOP_FILTER
   {
     if(!m_bUseNonCrossALF)
+    {
       xstoreInBlockMatrix(0, 0, m_im_height, m_im_width, true, true, ImgOrg, ImgDec, 2, Stride);
+    }
     else
+    {
       xstoreInBlockMatrixforSlices(ImgOrg, ImgDec, 2, Stride);
+    }
   }
 #else
   xstoreInBlockMatrix(ImgOrg, ImgDec, 2, Stride);
