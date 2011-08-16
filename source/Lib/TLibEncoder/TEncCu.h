@@ -31,8 +31,8 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/** \file     TEncCU.h
-    \brief    CU encoder class (header)
+/** \file     TEncCu.h
+    \brief    Coding Unit (CU) encoder class (header)
 */
 
 #ifndef __TENCCU__
