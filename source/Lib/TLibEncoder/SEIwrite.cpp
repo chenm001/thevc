@@ -31,9 +31,9 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "../TLibCommon/TComBitCounter.h"
-#include "../TLibCommon/TComBitStream.h"
-#include "../TLibCommon/SEI.h"
+#include "TLibCommon/TComBitCounter.h"
+#include "TLibCommon/TComBitStream.h"
+#include "TLibCommon/SEI.h"
 #include "SEIwrite.h"
 
 static void writeSEIuserDataUnregistered(TComBitIf& bs, const SEIuserDataUnregistered &sei);

@@ -39,7 +39,7 @@
 #include <cstring>
 #include <string>
 #include "TAppDecCfg.h"
-#include "../../App/TAppCommon/program_options_lite.h"
+#include "TAppCommon/program_options_lite.h"
 
 #ifdef WIN32
 #define strdup _strdup

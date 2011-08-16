@@ -35,8 +35,8 @@
  \brief    encoder search class
  */
 
-#include "../TLibCommon/TypeDef.h"
-#include "../TLibCommon/TComMotionInfo.h"
+#include "TLibCommon/TypeDef.h"
+#include "TLibCommon/TComMotionInfo.h"
 #include "TEncSearch.h"
 #include <math.h>
 

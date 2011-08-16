@@ -34,7 +34,7 @@
 #pragma once
 
 #include <ostream>
-#include "../TLibCommon/AccessUnit.h"
+#include "TLibCommon/AccessUnit.h"
 #include "NALwrite.h"
 
 /**

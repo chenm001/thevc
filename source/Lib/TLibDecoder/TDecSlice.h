@@ -42,9 +42,9 @@
 #pragma once
 #endif // _MSC_VER > 1000
 
-#include "../TLibCommon/CommonDef.h"
-#include "../TLibCommon/TComBitStream.h"
-#include "../TLibCommon/TComPic.h"
+#include "TLibCommon/CommonDef.h"
+#include "TLibCommon/TComBitStream.h"
+#include "TLibCommon/TComPic.h"
 #include "TDecEntropy.h"
 #include "TDecCu.h"
 

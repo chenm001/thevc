@@ -53,7 +53,7 @@
 #define ALF_NUM_BIT_SHIFT     8                                       ///< bit shift parameter for quantization of ALF param.
 #define ALF_ROUND_OFFSET      ( 1 << ( ALF_NUM_BIT_SHIFT - 1 ) )      ///< rounding offset for ALF quantization
 
-#include "../TLibCommon/CommonDef.h"
+#include "TLibCommon/CommonDef.h"
 
 #define NUM_BITS               9
 #define NO_TEST_FILT           3       // Filter supports (5/7/9)

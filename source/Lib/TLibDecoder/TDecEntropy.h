@@ -38,12 +38,12 @@
 #ifndef __TDECENTROPY__
 #define __TDECENTROPY__
 
-#include "../TLibCommon/CommonDef.h"
-#include "../TLibCommon/TComBitStream.h"
-#include "../TLibCommon/TComSlice.h"
-#include "../TLibCommon/TComPic.h"
-#include "../TLibCommon/TComPrediction.h"
-#include "../TLibCommon/TComAdaptiveLoopFilter.h"
+#include "TLibCommon/CommonDef.h"
+#include "TLibCommon/TComBitStream.h"
+#include "TLibCommon/TComSlice.h"
+#include "TLibCommon/TComPic.h"
+#include "TLibCommon/TComPrediction.h"
+#include "TLibCommon/TComAdaptiveLoopFilter.h"
 
 class TDecSbac;
 class TDecCavlc;

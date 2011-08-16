@@ -35,9 +35,9 @@
 
 #include <ostream>
 
-#include "../TLibCommon/TypeDef.h"
-#include "../TLibCommon/TComBitStream.h"
-#include "../TLibCommon/NAL.h"
+#include "TLibCommon/TypeDef.h"
+#include "TLibCommon/TComBitStream.h"
+#include "TLibCommon/NAL.h"
 
 /**
  * A convenience wrapper to NALUnit that also provides a

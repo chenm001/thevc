@@ -38,7 +38,7 @@
 #ifndef __TAPPENCCFG__
 #define __TAPPENCCFG__
 
-#include "../../Lib/TLibCommon/CommonDef.h"
+#include "TLibCommon/CommonDef.h"
 
 // ====================================================================================================================
 // Class definition

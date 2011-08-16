@@ -42,7 +42,7 @@ Void TDecEntropy::setEntropyDecoder         ( TDecEntropyIf* p )
   m_pcEntropyDecoderIf = p;
 }
 
-#include "../TLibCommon/TComAdaptiveLoopFilter.h"
+#include "TLibCommon/TComAdaptiveLoopFilter.h"
 
 Void TDecEntropy::decodeAux(ALFParam* pAlfParam)
 {

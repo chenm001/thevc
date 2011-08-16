@@ -35,8 +35,8 @@
 #include <algorithm>
 #include <ostream>
 
-#include "../TLibCommon/NAL.h"
-#include "../TLibCommon/TComBitStream.h"
+#include "TLibCommon/NAL.h"
+#include "TLibCommon/TComBitStream.h"
 #include "NALwrite.h"
 
 using namespace std;

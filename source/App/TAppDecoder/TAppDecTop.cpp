@@ -42,8 +42,8 @@
 #include <assert.h>
 
 #include "TAppDecTop.h"
-#include "../../Lib/TLibDecoder/AnnexBread.h"
-#include "../../Lib/TLibDecoder/NALread.h"
+#include "TLibDecoder/AnnexBread.h"
+#include "TLibDecoder/NALread.h"
 
 // ====================================================================================================================
 // Constructor / destructor / initialization / destroy

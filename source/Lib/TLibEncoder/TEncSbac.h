@@ -42,10 +42,10 @@
 #pragma once
 #endif // _MSC_VER > 1000
 
-#include "../TLibCommon/TComBitStream.h"
-#include "../TLibCommon/ContextTables.h"
-#include "../TLibCommon/ContextModel.h"
-#include "../TLibCommon/ContextModel3DBuffer.h"
+#include "TLibCommon/TComBitStream.h"
+#include "TLibCommon/ContextTables.h"
+#include "TLibCommon/ContextModel.h"
+#include "TLibCommon/ContextModel3DBuffer.h"
 #include "TEncEntropy.h"
 #include "TEncBinCoder.h"
 #include "TEncBinCoderCABAC.h"

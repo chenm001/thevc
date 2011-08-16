@@ -41,9 +41,9 @@
 #include "TEncTop.h"
 #include "TEncGOP.h"
 #include "TEncAnalyze.h"
-#include "../libmd5/MD5.h"
-#include "../TLibCommon/SEI.h"
-#include "../TLibCommon/NAL.h"
+#include "libmd5/MD5.h"
+#include "TLibCommon/SEI.h"
+#include "TLibCommon/NAL.h"
 #include "NALwrite.h"
 
 #include <time.h>

@@ -32,7 +32,7 @@
  */
 
 #include "TComPicYuv.h"
-#include "../libmd5/MD5.h"
+#include "libmd5/MD5.h"
 
 /**
  * Update md5 using n samples from plane, each sample is adjusted to

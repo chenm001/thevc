@@ -42,10 +42,10 @@
 #pragma once
 #endif // _MSC_VER > 1000
 
-#include "../TLibCommon/CommonDef.h"
-#include "../TLibCommon/TComBitStream.h"
+#include "TLibCommon/CommonDef.h"
+#include "TLibCommon/TComBitStream.h"
 #include "TEncEntropy.h"
-#include "../TLibCommon/TComRom.h"
+#include "TLibCommon/TComRom.h"
 
 class TEncTop;
 

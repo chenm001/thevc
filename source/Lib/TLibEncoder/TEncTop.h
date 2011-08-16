@@ -39,12 +39,12 @@
 #define __TENCTOP__
 
 // Include files
-#include "../TLibCommon/TComList.h"
-#include "../TLibCommon/TComPrediction.h"
-#include "../TLibCommon/TComTrQuant.h"
-#include "../TLibCommon/AccessUnit.h"
+#include "TLibCommon/TComList.h"
+#include "TLibCommon/TComPrediction.h"
+#include "TLibCommon/TComTrQuant.h"
+#include "TLibCommon/AccessUnit.h"
 
-#include "../TLibVideoIO/TVideoIOYuv.h"
+#include "TLibVideoIO/TVideoIOYuv.h"
 
 #include "TEncCfg.h"
 #include "TEncGOP.h"

@@ -31,8 +31,8 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "../TLibCommon/TComBitStream.h"
-#include "../TLibCommon/SEI.h"
+#include "TLibCommon/TComBitStream.h"
+#include "TLibCommon/SEI.h"
 #include "SEIread.h"
 
 static void parseSEIuserDataUnregistered(TComInputBitstream& bs, SEIuserDataUnregistered &sei, unsigned payloadSize);

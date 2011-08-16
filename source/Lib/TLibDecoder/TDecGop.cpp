@@ -42,8 +42,8 @@ extern bool g_md5_mismatch; ///< top level flag to signal when there is a decode
 #include "TDecSbac.h"
 #include "TDecBinCoder.h"
 #include "TDecBinCoderCABAC.h"
-#include "../libmd5/MD5.h"
-#include "../TLibCommon/SEI.h"
+#include "libmd5/MD5.h"
+#include "TLibCommon/SEI.h"
 
 #include <time.h>
 

@@ -38,12 +38,12 @@
 #ifndef __TDECTOP__
 #define __TDECTOP__
 
-#include "../TLibCommon/CommonDef.h"
-#include "../TLibCommon/TComList.h"
-#include "../TLibCommon/TComPicYuv.h"
-#include "../TLibCommon/TComPic.h"
-#include "../TLibCommon/TComTrQuant.h"
-#include "../TLibCommon/SEI.h"
+#include "TLibCommon/CommonDef.h"
+#include "TLibCommon/TComList.h"
+#include "TLibCommon/TComPicYuv.h"
+#include "TLibCommon/TComPic.h"
+#include "TLibCommon/TComTrQuant.h"
+#include "TLibCommon/SEI.h"
 
 #include "TDecGop.h"
 #include "TDecEntropy.h"

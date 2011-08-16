@@ -36,8 +36,8 @@
 #include <ostream>
 
 #include "NALread.h"
-#include "../TLibCommon/NAL.h"
-#include "../TLibCommon/TComBitStream.h"
+#include "TLibCommon/NAL.h"
+#include "TLibCommon/TComBitStream.h"
 
 using namespace std;
 

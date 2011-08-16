@@ -36,8 +36,8 @@
 */
 
 #include "TEncEntropy.h"
-#include "../TLibCommon/TypeDef.h"
-#include "../TLibCommon/TComAdaptiveLoopFilter.h"
+#include "TLibCommon/TypeDef.h"
+#include "TLibCommon/TComAdaptiveLoopFilter.h"
 
 Void TEncEntropy::setEntropyCoder ( TEncEntropyIf* e, TComSlice* pcSlice )
 {

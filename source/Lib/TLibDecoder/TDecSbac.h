@@ -46,9 +46,9 @@
 
 #include "TDecEntropy.h"
 #include "TDecBinCoder.h"
-#include "../TLibCommon/ContextTables.h"
-#include "../TLibCommon/ContextModel.h"
-#include "../TLibCommon/ContextModel3DBuffer.h"
+#include "TLibCommon/ContextTables.h"
+#include "TLibCommon/ContextModel.h"
+#include "TLibCommon/ContextModel3DBuffer.h"
 
 // ====================================================================================================================
 // Class definition

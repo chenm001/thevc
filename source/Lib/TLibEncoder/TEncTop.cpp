@@ -35,7 +35,7 @@
     \brief    encoder class
 */
 
-#include "../TLibCommon/CommonDef.h"
+#include "TLibCommon/CommonDef.h"
 #include "TEncTop.h"
 #if QP_ADAPTATION
 #include "TEncPic.h"

@@ -38,8 +38,8 @@
 #ifndef __TENCPIC__
 #define __TENCPIC__
 
-#include "../TLibCommon/CommonDef.h"
-#include "../TLibCommon/TComPic.h"
+#include "TLibCommon/CommonDef.h"
+#include "TLibCommon/TComPic.h"
 
 // ====================================================================================================================
 // Class definition

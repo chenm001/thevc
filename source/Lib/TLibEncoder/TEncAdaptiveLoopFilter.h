@@ -38,12 +38,12 @@
 #ifndef __TENCADAPTIVELOOPFILTER__
 #define __TENCADAPTIVELOOPFILTER__
 
-#include "../TLibCommon/TComAdaptiveLoopFilter.h"
-#include "../TLibCommon/TComPic.h"
+#include "TLibCommon/TComAdaptiveLoopFilter.h"
+#include "TLibCommon/TComPic.h"
 
 #include "TEncEntropy.h"
 #include "TEncSbac.h"
-#include "../TLibCommon/TComBitCounter.h"
+#include "TLibCommon/TComBitCounter.h"
 
 // ====================================================================================================================
 // Class definition

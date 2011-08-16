@@ -43,7 +43,7 @@
 #include <assert.h>
 
 #include "TAppEncTop.h"
-#include "../../Lib/TLibEncoder/AnnexBwrite.h"
+#include "TLibEncoder/AnnexBwrite.h"
 
 using namespace std;
 

@@ -38,8 +38,8 @@
 #ifndef __TDEC_BIN_CODER__
 #define __TDEC_BIN_CODER__
 
-#include "../TLibCommon/ContextModel.h"
-#include "../TLibCommon/TComBitStream.h"
+#include "TLibCommon/ContextModel.h"
+#include "TLibCommon/TComBitStream.h"
 
 
 class TDecBinIf

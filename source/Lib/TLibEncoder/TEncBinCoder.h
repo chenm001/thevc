@@ -38,8 +38,8 @@
 #ifndef __TENC_BIN_CODER__
 #define __TENC_BIN_CODER__
 
-#include "../TLibCommon/ContextModel.h"
-#include "../TLibCommon/TComBitStream.h"
+#include "TLibCommon/ContextModel.h"
+#include "TLibCommon/TComBitStream.h"
 
 
 class TEncBinCABAC;
