@@ -3495,7 +3495,7 @@ Void TEncAdaptiveLoopFilter::xfilterFrame_en(imgpel* ImgDec, imgpel* ImgRest,int
   }
 }
 
-Void TEncAdaptiveLoopFilter::xfindBestFilterVarPred(double **ySym, double ***ESym, double *pixAcc, int **filterCoeffSym, int **filterCoeffSymQuant, int filtNo, int *filters_per_fr_best, int varIndTab[], imgpel **imgY_rec, imgpel **varImg, imgpel **maskImg, imgpel **imgY_pad, double lambda_val)
+Void TEncAdaptiveLoopFilter::xfindBestFilterVarPred(double **ySym, double ***ESym, double *pixAcc, Int **filterCoeffSym, Int **filterCoeffSymQuant, Int filtNo, Int *filters_per_fr_best, Int varIndTab[], imgpel **imgY_rec, imgpel **varImg, imgpel **maskImg, imgpel **imgY_pad, double lambda_val)
 {
   int filters_per_fr, firstFilt, forceCoeff0,
   interval[NO_VAR_BINS][2], intervalBest[NO_VAR_BINS][2];
@@ -3621,7 +3621,7 @@ Void TEncAdaptiveLoopFilter::xfindBestFilterVarPred(double **ySym, double ***ESy
 }
 
 
-Void TEncAdaptiveLoopFilter::xcalcPredFilterCoeff(int filtNo)
+Void TEncAdaptiveLoopFilter::xcalcPredFilterCoeff(Int filtNo)
 {
   int *patternMap, varInd, i, k;
 #if STAR_CROSS_SHAPES_LUMA
@@ -3687,9 +3687,9 @@ Void TEncAdaptiveLoopFilter::xcalcPredFilterCoeff(int filtNo)
  * \returns bitrate
  */
 
-UInt TEncAdaptiveLoopFilter::xcodeFiltCoeff(int **filterCoeffSymQuant, int filtNo, int varIndTab[], int filters_per_fr_best, int frNo, ALFParam* ALFp)
+UInt TEncAdaptiveLoopFilter::xcodeFiltCoeff(Int **filterCoeffSymQuant, Int filtNo, Int varIndTab[], Int filters_per_fr_best, Int frNo, ALFParam* ALFp)
 #else
-Void TEncAdaptiveLoopFilter::xcodeFiltCoeff(int **filterCoeffSymQuant, int filtNo, int varIndTab[], int filters_per_fr_best, int frNo, ALFParam* ALFp)
+Void TEncAdaptiveLoopFilter::xcodeFiltCoeff(Int **filterCoeffSymQuant, Int filtNo, Int varIndTab[], Int filters_per_fr_best, Int frNo, ALFParam* ALFp)
 #endif
 {
 #if STAR_CROSS_SHAPES_LUMA
