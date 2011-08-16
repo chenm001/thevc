@@ -114,7 +114,11 @@ void destroyMatrix_int(int **m2D);
 void initMatrix_int(int ***m2D, int d1, int d2);
 
 #if MTK_NONCROSS_INLOOP_FILTER
+#if STAR_CROSS_SHAPES_LUMA
+#define EXTEND_NUM_PEL     5
+#else
 #define EXTEND_NUM_PEL    (UInt)(ALF_MAX_NUM_TAP/2)
+#endif
 #define EXTEND_NUM_PEL_C  (UInt)(ALF_MAX_NUM_TAP_C/2)
 
 /// border direction ID of slice granularity unit 
