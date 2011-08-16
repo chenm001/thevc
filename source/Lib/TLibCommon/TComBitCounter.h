@@ -31,8 +31,8 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/** \file     TComBitcounter.h
-    \brief    class for counting bits (header)
+/** \file     TComBitCounter.h
+    \brief    Class for counting bits (header)
 */
 
 #ifndef __COMBITCOUNTER__
