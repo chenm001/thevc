@@ -4297,7 +4297,7 @@ Int TEncAdaptiveLoopFilter::gnsSolveByChol(double **LHS, double *rhs, double *x,
     else
     {
       x[ 0 ] = 1.0;
-      for ( Int i = 1; i < noEq; i++ )
+      for ( i = 1; i < noEq; i++ )
       {
         x[ i ] = 0.0;
       }
