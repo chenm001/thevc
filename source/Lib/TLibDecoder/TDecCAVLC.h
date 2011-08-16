@@ -79,7 +79,7 @@ protected:
   UInt  xGetBit             ();
   Int   xReadVlc            ( Int n );
 #if CAVLC_COEF_LRG_BLK
-  Void  xParseCoeff         ( TCoeff* scoeff, Int iTableNumber, Int blSize
+  Void  xParseCoeff         ( TCoeff* scoeff, Int blockType, Int blSize
 #if CAVLC_RUNLEVEL_TABLE_REM
                             , Int isIntra
 #endif
