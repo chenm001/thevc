@@ -85,7 +85,7 @@ const Short TComInterpolationFilter::m_chromaFilter[8][NTAPS_CHROMA] =
  * \param isFirst    Flag indicating whether it is the first filtering operation
  * \param isLast     Flag indicating whether it is the last filtering operation
  */
-Void TComInterpolationFilter::filterCopy(const Short *src, Int srcStride, Short *dst, Int dstStride, Int width, Int height, Bool isFirst, Bool isLast)
+Void TComInterpolationFilter::filterCopy(const Pel *src, Int srcStride, Short *dst, Int dstStride, Int width, Int height, Bool isFirst, Bool isLast)
 {
   Int row, col;
   
