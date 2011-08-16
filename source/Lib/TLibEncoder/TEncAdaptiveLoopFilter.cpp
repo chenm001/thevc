@@ -4281,16 +4281,27 @@ Int TEncAdaptiveLoopFilter::gnsSolveByChol(double **LHS, double *rhs, double *x,
     
     /* Regularize LHS */
     for(i=0; i<noEq; i++)
+    {
       LHS[i][i] += REG;
+    }
     /* Compute upper triangular U such that U'*U = regularized LHS */
     singular = gnsCholeskyDec(LHS, U, noEq);
-    assert( singular == 1 );
-    
-    /* Solve  U'*aux = rhs for aux */  
-    gnsTransposeBacksubstitution(U, rhs, aux, noEq);   
-    
-    /* Solve U*x = aux for x */
-    gnsBacksubstitution(U, aux, noEq, x);
+    if ( singular == 1 )
+    {
+      /* Solve  U'*aux = rhs for aux */  
+      gnsTransposeBacksubstitution(U, rhs, aux, noEq);   
+      
+      /* Solve U*x = aux for x */
+      gnsBacksubstitution(U, aux, noEq, x);      
+    }
+    else
+    {
+      x[ 0 ] = 1.0;
+      for ( Int i = 1; i < noEq; i++ )
+      {
+        x[ i ] = 0.0;
+      }
+    }
   }  
   return(singular);
 }
