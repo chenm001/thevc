@@ -49,7 +49,7 @@ using namespace std;
 
 /**
  * Perform division with rounding of all pixels in img by
- * \f$ 2^{shiftbits} \f$. All pixels are clipped to [minval, maxval]
+ * 2<sup>shiftbits</sup>. All pixels are clipped to [minval, maxval]
  *
  * @param img        pointer to image to be transformed
  * @param stride     distance between vertically adjacent pixels of img.
@@ -75,7 +75,7 @@ static void invScalePlane(Pel* img, unsigned int stride, unsigned int width, uns
 }
 
 /**
- * Multiply all pixels in img by \f$ 2^{shiftbits} \f$.
+ * Multiply all pixels in img by 2<sup>shiftbits</sup>.
  *
  * @param img        pointer to image to be transformed
  * @param stride     distance between vertically adjacent pixels of img.
@@ -98,15 +98,15 @@ static void scalePlane(Pel* img, unsigned int stride, unsigned int width, unsign
 
 /**
  * Scale all pixels in img depending upon sign of shiftbits by a factor of
- * \f$ 2^{shiftbits} \f$.
+ * 2<sup>shiftbits</sup>.
  *
  * @param img        pointer to image to be transformed
  * @param stride  distance between vertically adjacent pixels of img.
  * @param width   width of active area in img.
  * @param height  height of active area in img.
  * @param shiftbits if zero, no operation performed
- *                  if > 0, multiply by \f$ 2^{shiftbits} \f$, see scalePlane()
- *                  if < 0, divide and round by \f$ 2^{shiftbits} \f$ and clip,
+ *                  if > 0, multiply by 2<sup>shiftbits</sup>, see scalePlane()
+ *                  if < 0, divide and round by 2<sup>shiftbits</sup> and clip,
  *                          see invScalePlane().
  * @param minval  minimum clipping value when dividing.
  * @param maxval  maximum clipping value when dividing.
@@ -224,7 +224,7 @@ void TVideoIOYuv::skipFrames(unsigned int numFrames, unsigned int width, unsigne
 }
 
 /**
- * Read \f$ width * height \f$ pixels from fd into dst, optionally
+ * Read width*height pixels from fd into dst, optionally
  * padding the left and right edges by edge-extension.  Input may be
  * either 8bit or 16bit little-endian lsb-aligned words.
  *
@@ -288,7 +288,7 @@ static bool readPlane(Pel* dst, istream& fd, bool is16bit,
 }
 
 /**
- * Write \f$ width * height \f$ pixels info fd from src.
+ * Write width*height pixels info fd from src.
  *
  * @param fd      output file stream
  * @param src     source image
