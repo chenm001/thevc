@@ -83,7 +83,7 @@ public:
   Void initBuffer( SliceType eSliceType, Int iQp, Short* psCtxModel );          ///< initialize 3D buffer by slice type & QP
   
   /** copy from another buffer
-   * \param pSrc buffer to copy from
+   * \param src buffer to copy from
    */
   Void copyFrom( ContextModel3DBuffer* src )
   {

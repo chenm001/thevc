@@ -1182,7 +1182,6 @@ Void TEncEntropy::encodeCoeff( TComDataCU* pcCU, TCoeff* pCoeff, UInt uiAbsPartI
  * \param uiDepth
  * \param uiWidth
  * \param uiHeight
- * \returns Void
  */
 Void TEncEntropy::encodeCoeff( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth, UInt uiWidth, UInt uiHeight, Bool& bCodeDQP )
 {
@@ -1344,7 +1343,7 @@ Void TEncEntropy::encodeQAOOnePart(SAOParam* pQaoParam, Int iPartIdx )
   }
 }
 /** encode QuadTree Split Flag
- * \param  pQaoParam, iPartIdx
+ * \param  pSaoParam, iPartIdx
  */
 #if MTK_SAO_CHROMA
 Void TEncEntropy::encodeQuadTreeSplitFlag(SAOParam* pSaoParam, Int iPartIdx, Int iYCbCr)
@@ -1391,7 +1390,7 @@ Void TEncEntropy::encodeQuadTreeSplitFlag(SAOParam* pSaoParam, Int iPartIdx)
 }
 
 /** encode Sao Param
- * \param  pQaoParam
+ * \param  pSaoParam
  */
 Void TEncEntropy::encodeSaoParam(SAOParam* pSaoParam)
 {

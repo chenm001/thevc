@@ -234,7 +234,7 @@ Void TEncBinCABAC::encodeBinEP( UInt binValue )
  * \brief Encode equiprobable bins
  *
  * \param binValues bin values
- * \param numBits number of bins
+ * \param numBins number of bins
  */
 Void TEncBinCABAC::encodeBinsEP( UInt binValues, Int numBins )
 {

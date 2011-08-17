@@ -655,7 +655,6 @@ Void TComDataCU::initEstData()
 /** initialize prediction data with enabling sub-LCU-level delta QP
 *\param  uiDepth  depth of the current CU 
 *\param  uiQP     QP for the current CU
-*\param  uiLastQP QP for the last-coded CU
 *- set CU width and CU height according to depth
 *- set QP value according to input QP 
 *- set last-coded QP value according to input last-coded QP 

@@ -62,7 +62,7 @@ ContextModel3DBuffer::ContextModel3DBuffer( UInt uiSizeZ, UInt uiSizeY, UInt uiS
  * Initialize 3D buffer with respect to slicetype, QP and given initial probability table
  *
  * \param  eSliceType      slice type
- * \param  iQP             input QP value
+ * \param  iQp             input QP value
  * \param  psCtxModel      given probability table
  */
 Void ContextModel3DBuffer::initBuffer( SliceType eSliceType, Int iQp, Short* psCtxModel )

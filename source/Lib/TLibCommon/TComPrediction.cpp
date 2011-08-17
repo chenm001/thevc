@@ -764,14 +764,14 @@ Void  TComPrediction::xPredInterLumaBlk( TComDataCU* pcCU, TComPicYuv* pcPicYuvR
 /**
  * \brief Generate motion-compensated luma block
  *
- * \param cu       Pointer to current CU
- * \param refPic   Pointer to reference picture
- * \param partAddr Address of block within CU
- * \param mv       Motion vector
- * \param width    Width of block
- * \param height   Height of block
- * \param dstPic   Pointer to destination picture
- * \param bi       Flag indicating whether bipred is used
+ * \param pcCU        Pointer to current CU
+ * \param pcPicYuvRef Pointer to reference picture
+ * \param uiPartAddr  Address of block within CU
+ * \param pcMv        Motion vector
+ * \param iWidth      Width of block
+ * \param iHeight     Height of block
+ * \param rpcYuv      Pointer to destination picture
+ * \param bi          Flag indicating whether bipred is used
  */
 Void TComPrediction::xPredInterChromaBlk( TComDataCU* pcCU, TComPicYuv* pcPicYuvRef, UInt uiPartAddr, TComMv* pcMv, Int iWidth, Int iHeight, TComYuv*& rpcYuv, Bool bi )
 {
@@ -1106,7 +1106,7 @@ Void TComPrediction::xPredIntraPlanar( Int* pSrc, Int srcStride, Pel* rpDst, Int
 #if LM_CHROMA
 /** Function for deriving chroma LM intra prediction.
  * \param pcPattern pointer to neighbouring pixel access pattern
- * \param pSrc pointer to reconstructed chroma sample array
+ * \param piSrc pointer to reconstructed chroma sample array
  * \param pPred pointer for the prediction sample array
  * \param uiPredStride the stride of the prediction sample array
  * \param uiCWidth the width of the chroma block
