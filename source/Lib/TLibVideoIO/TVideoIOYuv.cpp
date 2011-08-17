@@ -42,6 +42,7 @@
 #include <fstream>
 #include <iostream>
 
+#include "TLibCommon/TComRom.h"
 #include "TVideoIOYuv.h"
 
 using namespace std;

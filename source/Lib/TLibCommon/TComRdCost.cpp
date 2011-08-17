@@ -37,6 +37,7 @@
 
 #include <math.h>
 #include <assert.h>
+#include "TComRom.h"
 #include "TComRdCost.h"
 
 TComRdCost::TComRdCost()

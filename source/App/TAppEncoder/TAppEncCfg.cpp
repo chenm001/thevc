@@ -39,6 +39,7 @@
 #include <cassert>
 #include <cstring>
 #include <string>
+#include "TLibCommon/TComRom.h"
 #include "TAppEncCfg.h"
 #include "TAppCommon/program_options_lite.h"
 
