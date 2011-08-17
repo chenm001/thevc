@@ -36,6 +36,7 @@
  */
 
 #include "TLibCommon/TypeDef.h"
+#include "TLibCommon/TComRom.h"
 #include "TLibCommon/TComMotionInfo.h"
 #include "TEncSearch.h"
 #include <math.h>

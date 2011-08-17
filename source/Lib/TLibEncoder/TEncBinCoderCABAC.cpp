@@ -36,6 +36,7 @@
 */
 
 #include "TEncBinCoderCABAC.h"
+#include "TLibCommon/TComRom.h"
 
 
 TEncBinCABAC::TEncBinCABAC()

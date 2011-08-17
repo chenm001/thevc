@@ -50,11 +50,13 @@ using namespace std;
  * Perform division with rounding of all pixels in img by
  * \f$ 2^{shiftbits} \f$. All pixels are clipped to [minval, maxval]
  *
- * @param stride  distance between vertically adjacent pixels of img.
- * @param width   width of active area in img.
- * @param height  height of active area in img.
- * @param minval  minimum clipping value
- * @param maxval  maximum clipping value
+ * @param img        pointer to image to be transformed
+ * @param stride     distance between vertically adjacent pixels of img.
+ * @param width      width of active area in img.
+ * @param height     height of active area in img.
+ * @param shiftbits  number of rounding bits
+ * @param minval     minimum clipping value
+ * @param maxval     maximum clipping value
  */
 static void invScalePlane(Pel* img, unsigned int stride, unsigned int width, unsigned int height,
                        unsigned int shiftbits, Pel minval, Pel maxval)
@@ -74,9 +76,11 @@ static void invScalePlane(Pel* img, unsigned int stride, unsigned int width, uns
 /**
  * Multiply all pixels in img by \f$ 2^{shiftbits} \f$.
  *
- * @param stride  distance between vertically adjacent pixels of img.
- * @param width   width of active area in img.
- * @param height  height of active area in img.
+ * @param img        pointer to image to be transformed
+ * @param stride     distance between vertically adjacent pixels of img.
+ * @param width      width of active area in img.
+ * @param height     height of active area in img.
+ * @param shiftbits  number of bits to shift
  */
 static void scalePlane(Pel* img, unsigned int stride, unsigned int width, unsigned int height,
                        unsigned int shiftbits)
@@ -95,6 +99,7 @@ static void scalePlane(Pel* img, unsigned int stride, unsigned int width, unsign
  * Scale all pixels in img depending upon sign of shiftbits by a factor of
  * \f$ 2^{shiftbits} \f$.
  *
+ * @param img        pointer to image to be transformed
  * @param stride  distance between vertically adjacent pixels of img.
  * @param width   width of active area in img.
  * @param height  height of active area in img.
@@ -223,6 +228,7 @@ void TVideoIOYuv::skipFrames(unsigned int numFrames, unsigned int width, unsigne
  * either 8bit or 16bit little-endian lsb-aligned words.
  *
  * @param dst     destination image
+ * @param fd      input file stream
  * @param is16bit true if input file carries > 8bit data, false otherwise.
  * @param stride  distance between vertically adjacent pixels of dst.
  * @param width   width of active area in dst.
@@ -283,6 +289,7 @@ static bool readPlane(Pel* dst, istream& fd, bool is16bit,
 /**
  * Write \f$ width * height \f$ pixels info fd from src.
  *
+ * @param fd      output file stream
  * @param src     source image
  * @param is16bit true if input file carries > 8bit data, false otherwise.
  * @param stride  distance between vertically adjacent pixels of src.
@@ -330,13 +337,13 @@ static bool writePlane(ostream& fd, Pel* src, bool is16bit,
  * Read one Y'CbCr frame, performing any required input scaling to change
  * from the bitdepth of the input file to the internal bit-depth.
  *
- * If a bit-depth reduction is requried, and internalBitdepth >= 8, then
+ * If a bit-depth reduction is required, and internalBitdepth >= 8, then
  * the input file is assumed to be ITU-R BT.601/709 compliant, and the
  * resulting data is clipped to the appropriate legal range, as if the
  * file had been provided at the lower-bitdepth compliant to Rec601/709.
  *
  * @param pPicYuv      input picture YUV buffer class pointer
- * @param aiPad[2]     source padding size, aiPad[0] = horizontal, aiPad[1] = vertical
+ * @param aiPad        source padding size, aiPad[0] = horizontal, aiPad[1] = vertical
  * @return true for success, false in case of error
  */
 bool TVideoIOYuv::read ( TComPicYuv*  pPicYuv, Int aiPad[2] )
@@ -395,7 +402,7 @@ bool TVideoIOYuv::read ( TComPicYuv*  pPicYuv, Int aiPad[2] )
  * assumed to be at TVideoIO::m_fileBitdepth depth.
  *
  * @param pPicYuv     input picture YUV buffer class pointer
- * @param aiPad[2]     source padding size, aiPad[0] = horizontal, aiPad[1] = vertical
+ * @param aiPad       source padding size, aiPad[0] = horizontal, aiPad[1] = vertical
  * @return true for success, false in case of error
  */
 bool TVideoIOYuv::write( TComPicYuv* pPicYuv, Int aiPad[2] )

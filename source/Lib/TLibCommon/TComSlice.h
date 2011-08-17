@@ -40,6 +40,7 @@
 
 
 #include "CommonDef.h"
+#include "TComRom.h"
 #include "TComList.h"
 
 class TComPic;

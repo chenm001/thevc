@@ -47,7 +47,6 @@
 #pragma warning( disable : 4800 )
 #endif // _MSC_VER > 1000
 #include "TypeDef.h"
-#include "TComRom.h"
 
 // ====================================================================================================================
 // Version information

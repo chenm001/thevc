@@ -3184,10 +3184,9 @@ Void TComDataCU::deriveLeftBottomIdx( PartSize      eCUMode,   UInt  uiPartIdx, 
 }
 
 /** Derives the partition index of neighbouring bottom right block
- * \param in eCUMode
- * \param in uiPartIdx 
- * \param out ruiPartIdx 
- * \returns Void
+ * \param [in]  eCUMode
+ * \param [in]  uiPartIdx 
+ * \param [out] ruiPartIdxRB 
  */
 Void TComDataCU::deriveRightBottomIdx( PartSize      eCUMode,   UInt  uiPartIdx,      UInt&      ruiPartIdxRB )
 {
@@ -3331,8 +3330,7 @@ Bool TComDataCU::avoidMergeCandidate( UInt uiAbsPartIdx, UInt uiPUIdx, UInt uiDe
  * \param uiDepth
  * \param pcMvFieldNeighbours
  * \param puhInterDirNeighbours
- * \param puiNeighbourCandIdx
- * \returns Void
+ * \param numValidMergeCand
  */
 #if MRG_AMVP_FIXED_IDX_F470
 Void TComDataCU::getInterMergeCandidates( UInt uiAbsPartIdx, UInt uiPUIdx, UInt uiDepth, TComMvField* pcMvFieldNeighbours, UChar* puhInterDirNeighbours, Int& numValidMergeCand )
@@ -4210,8 +4208,6 @@ AMVP_MODE TComDataCU::getAMVPMode(UInt uiIdx)
  * \param eRefPicList
  * \param iRefIdx
  * \param pInfo
- * \param puiNeighbourCandIdx
- * \returns Void
  */
 Void TComDataCU::fillMvpCand ( UInt uiPartIdx, UInt uiPartAddr, RefPicList eRefPicList, Int iRefIdx, AMVPInfo* pInfo )
 {
