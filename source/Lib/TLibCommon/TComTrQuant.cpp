@@ -333,11 +333,11 @@ void xITr(Int *coeff, Pel *block, UInt uiStride, UInt uiTrSize)
 #else //MATRIX_MULT
 
 /** 4x4 forward transform implemented using partial butterfly structure (1D)
- *  \param block input data (residual)
- *  \param coeff output data (transform coefficients)
+ *  \param src   input data (residual)
+ *  \param dst   output data (transform coefficients)
  *  \param shift specifies right shift after 1D transform
  */
-void partialButterfly4(short block[4][4],short coeff[4][4],int shift)
+void partialButterfly4(short src[4][4],short dst[4][4],int shift)
 {
   int j;  
   int E[2],O[2];
@@ -346,20 +346,20 @@ void partialButterfly4(short block[4][4],short coeff[4][4],int shift)
   for (j=0; j<4; j++)
   {    
     /* E and O */
-    E[0] = block[j][0] + block[j][3];
-    O[0] = block[j][0] - block[j][3];
-    E[1] = block[j][1] + block[j][2];
-    O[1] = block[j][1] - block[j][2];
+    E[0] = src[j][0] + src[j][3];
+    O[0] = src[j][0] - src[j][3];
+    E[1] = src[j][1] + src[j][2];
+    O[1] = src[j][1] - src[j][2];
 
-    coeff[0][j] = (g_aiT4[0][0]*E[0] + g_aiT4[0][1]*E[1] + add)>>shift;
-    coeff[2][j] = (g_aiT4[2][0]*E[0] + g_aiT4[2][1]*E[1] + add)>>shift;
-    coeff[1][j] = (g_aiT4[1][0]*O[0] + g_aiT4[1][1]*O[1] + add)>>shift;
-    coeff[3][j] = (g_aiT4[3][0]*O[0] + g_aiT4[3][1]*O[1] + add)>>shift;
+    dst[0][j] = (g_aiT4[0][0]*E[0] + g_aiT4[0][1]*E[1] + add)>>shift;
+    dst[2][j] = (g_aiT4[2][0]*E[0] + g_aiT4[2][1]*E[1] + add)>>shift;
+    dst[1][j] = (g_aiT4[1][0]*O[0] + g_aiT4[1][1]*O[1] + add)>>shift;
+    dst[3][j] = (g_aiT4[3][0]*O[0] + g_aiT4[3][1]*O[1] + add)>>shift;
   }
 }
 
 #if NSQT
-void partialButterfly4(short *block,short *coeff,int shift, int line)
+void partialButterfly4(short *src,short *dst,int shift, int line)
 {
   int j;  
   int E[2],O[2];
@@ -368,18 +368,18 @@ void partialButterfly4(short *block,short *coeff,int shift, int line)
   for (j=0; j<line; j++)
   {    
     /* E and O */
-    E[0] = block[0] + block[3];
-    O[0] = block[0] - block[3];
-    E[1] = block[1] + block[2];
-    O[1] = block[1] - block[2];
+    E[0] = src[0] + src[3];
+    O[0] = src[0] - src[3];
+    E[1] = src[1] + src[2];
+    O[1] = src[1] - src[2];
 
-    coeff[0] = (g_aiT4[0][0]*E[0] + g_aiT4[0][1]*E[1] + add)>>shift;
-    coeff[2*line] = (g_aiT4[2][0]*E[0] + g_aiT4[2][1]*E[1] + add)>>shift;
-    coeff[line] = (g_aiT4[1][0]*O[0] + g_aiT4[1][1]*O[1] + add)>>shift;
-    coeff[3*line] = (g_aiT4[3][0]*O[0] + g_aiT4[3][1]*O[1] + add)>>shift;
+    dst[0] = (g_aiT4[0][0]*E[0] + g_aiT4[0][1]*E[1] + add)>>shift;
+    dst[2*line] = (g_aiT4[2][0]*E[0] + g_aiT4[2][1]*E[1] + add)>>shift;
+    dst[line] = (g_aiT4[1][0]*O[0] + g_aiT4[1][1]*O[1] + add)>>shift;
+    dst[3*line] = (g_aiT4[3][0]*O[0] + g_aiT4[3][1]*O[1] + add)>>shift;
 
-    block += 4;
-    coeff ++;
+    src += 4;
+    dst ++;
   }
 }
 #endif
@@ -470,11 +470,11 @@ void xTr4(short block[4][4],short coeff[4][4])
 }
 
 /** 4x4 inverse transform implemented using partial butterfly structure (1D)
- *  \param coeff input data (transform coefficients)
- *  \param block output data (residual)
+ *  \param src   input data (transform coefficients)
+ *  \param dst   output data (residual)
  *  \param shift specifies right shift after 1D transform
  */
-void partialButterflyInverse4(short tmp[4][4],short block[4][4],int shift)
+void partialButterflyInverse4(short src[4][4],short dst[4][4],int shift)
 {
   int j;    
   int E[2],O[2];
@@ -483,21 +483,21 @@ void partialButterflyInverse4(short tmp[4][4],short block[4][4],int shift)
   for (j=0; j<4; j++)
   {    
     /* Utilizing symmetry properties to the maximum to minimize the number of multiplications */    
-    O[0] = g_aiT4[1][0]*tmp[1][j] + g_aiT4[3][0]*tmp[3][j];
-    O[1] = g_aiT4[1][1]*tmp[1][j] + g_aiT4[3][1]*tmp[3][j];
-    E[0] = g_aiT4[0][0]*tmp[0][j] + g_aiT4[2][0]*tmp[2][j];
-    E[1] = g_aiT4[0][1]*tmp[0][j] + g_aiT4[2][1]*tmp[2][j];
+    O[0] = g_aiT4[1][0]*src[1][j] + g_aiT4[3][0]*src[3][j];
+    O[1] = g_aiT4[1][1]*src[1][j] + g_aiT4[3][1]*src[3][j];
+    E[0] = g_aiT4[0][0]*src[0][j] + g_aiT4[2][0]*src[2][j];
+    E[1] = g_aiT4[0][1]*src[0][j] + g_aiT4[2][1]*src[2][j];
     
     /* Combining even and odd terms at each hierarchy levels to calculate the final spatial domain vector */ 
-    block[j][0] = (E[0] + O[0] + add)>>shift;
-    block[j][1] = (E[1] + O[1] + add)>>shift;
-    block[j][2] = (E[1] - O[1] + add)>>shift;
-    block[j][3] = (E[0] - O[0] + add)>>shift;
+    dst[j][0] = (E[0] + O[0] + add)>>shift;
+    dst[j][1] = (E[1] + O[1] + add)>>shift;
+    dst[j][2] = (E[1] - O[1] + add)>>shift;
+    dst[j][3] = (E[0] - O[0] + add)>>shift;
   }
 }
 
 #if NSQT
-void partialButterflyInverse4(short *tmp,short *block,int shift, int line)
+void partialButterflyInverse4(short *src,short *dst,int shift, int line)
 {
   int j;    
   int E[2],O[2];
@@ -506,19 +506,19 @@ void partialButterflyInverse4(short *tmp,short *block,int shift, int line)
   for (j=0; j<line; j++)
   {    
     /* Utilizing symmetry properties to the maximum to minimize the number of multiplications */    
-    O[0] = g_aiT4[1][0]*tmp[line] + g_aiT4[3][0]*tmp[3*line];
-    O[1] = g_aiT4[1][1]*tmp[line] + g_aiT4[3][1]*tmp[3*line];
-    E[0] = g_aiT4[0][0]*tmp[0] + g_aiT4[2][0]*tmp[2*line];
-    E[1] = g_aiT4[0][1]*tmp[0] + g_aiT4[2][1]*tmp[2*line];
+    O[0] = g_aiT4[1][0]*src[line] + g_aiT4[3][0]*src[3*line];
+    O[1] = g_aiT4[1][1]*src[line] + g_aiT4[3][1]*src[3*line];
+    E[0] = g_aiT4[0][0]*src[0] + g_aiT4[2][0]*src[2*line];
+    E[1] = g_aiT4[0][1]*src[0] + g_aiT4[2][1]*src[2*line];
 
     /* Combining even and odd terms at each hierarchy levels to calculate the final spatial domain vector */ 
-    block[0] = (E[0] + O[0] + add)>>shift;
-    block[1] = (E[1] + O[1] + add)>>shift;
-    block[2] = (E[1] - O[1] + add)>>shift;
-    block[3] = (E[0] - O[0] + add)>>shift;
+    dst[0] = (E[0] + O[0] + add)>>shift;
+    dst[1] = (E[1] + O[1] + add)>>shift;
+    dst[2] = (E[1] - O[1] + add)>>shift;
+    dst[3] = (E[0] - O[0] + add)>>shift;
 
-    tmp   ++;
-    block += 4;
+    src   ++;
+    dst += 4;
   }
 }
 #endif
@@ -569,11 +569,11 @@ void xITr4(short coeff[4][4],short block[4][4])
 }
 
 /** 8x8 forward transform implemented using partial butterfly structure (1D)
- *  \param block input data (residual)
- *  \param coeff output data (transform coefficients)
+ *  \param src   input data (residual)
+ *  \param dst   output data (transform coefficients)
  *  \param shift specifies right shift after 1D transform
  */
-void partialButterfly8(short block[8][8],short coeff[8][8],int shift)
+void partialButterfly8(short src[8][8],short dst[8][8],int shift)
 {
   int j,k;  
   int E[4],O[4];
@@ -585,8 +585,8 @@ void partialButterfly8(short block[8][8],short coeff[8][8],int shift)
     /* E and O*/
     for (k=0;k<4;k++)
     {
-      E[k] = block[j][k] + block[j][7-k];
-      O[k] = block[j][k] - block[j][7-k];
+      E[k] = src[j][k] + src[j][7-k];
+      O[k] = src[j][k] - src[j][7-k];
     }    
     /* EE and EO */
     EE[0] = E[0] + E[3];    
@@ -594,20 +594,20 @@ void partialButterfly8(short block[8][8],short coeff[8][8],int shift)
     EE[1] = E[1] + E[2];
     EO[1] = E[1] - E[2];
 
-    coeff[0][j] = (g_aiT8[0][0]*EE[0] + g_aiT8[0][1]*EE[1] + add)>>shift;
-    coeff[4][j] = (g_aiT8[4][0]*EE[0] + g_aiT8[4][1]*EE[1] + add)>>shift; 
-    coeff[2][j] = (g_aiT8[2][0]*EO[0] + g_aiT8[2][1]*EO[1] + add)>>shift;
-    coeff[6][j] = (g_aiT8[6][0]*EO[0] + g_aiT8[6][1]*EO[1] + add)>>shift; 
+    dst[0][j] = (g_aiT8[0][0]*EE[0] + g_aiT8[0][1]*EE[1] + add)>>shift;
+    dst[4][j] = (g_aiT8[4][0]*EE[0] + g_aiT8[4][1]*EE[1] + add)>>shift; 
+    dst[2][j] = (g_aiT8[2][0]*EO[0] + g_aiT8[2][1]*EO[1] + add)>>shift;
+    dst[6][j] = (g_aiT8[6][0]*EO[0] + g_aiT8[6][1]*EO[1] + add)>>shift; 
 
-    coeff[1][j] = (g_aiT8[1][0]*O[0] + g_aiT8[1][1]*O[1] + g_aiT8[1][2]*O[2] + g_aiT8[1][3]*O[3] + add)>>shift;
-    coeff[3][j] = (g_aiT8[3][0]*O[0] + g_aiT8[3][1]*O[1] + g_aiT8[3][2]*O[2] + g_aiT8[3][3]*O[3] + add)>>shift;
-    coeff[5][j] = (g_aiT8[5][0]*O[0] + g_aiT8[5][1]*O[1] + g_aiT8[5][2]*O[2] + g_aiT8[5][3]*O[3] + add)>>shift;
-    coeff[7][j] = (g_aiT8[7][0]*O[0] + g_aiT8[7][1]*O[1] + g_aiT8[7][2]*O[2] + g_aiT8[7][3]*O[3] + add)>>shift;
+    dst[1][j] = (g_aiT8[1][0]*O[0] + g_aiT8[1][1]*O[1] + g_aiT8[1][2]*O[2] + g_aiT8[1][3]*O[3] + add)>>shift;
+    dst[3][j] = (g_aiT8[3][0]*O[0] + g_aiT8[3][1]*O[1] + g_aiT8[3][2]*O[2] + g_aiT8[3][3]*O[3] + add)>>shift;
+    dst[5][j] = (g_aiT8[5][0]*O[0] + g_aiT8[5][1]*O[1] + g_aiT8[5][2]*O[2] + g_aiT8[5][3]*O[3] + add)>>shift;
+    dst[7][j] = (g_aiT8[7][0]*O[0] + g_aiT8[7][1]*O[1] + g_aiT8[7][2]*O[2] + g_aiT8[7][3]*O[3] + add)>>shift;
   }
 }
 
 #if NSQT
-void partialButterfly8(short *block,short *coeff,int shift, int line)
+void partialButterfly8(short *src,short *dst,int shift, int line)
 {
   int j,k;  
   int E[4],O[4];
@@ -619,8 +619,8 @@ void partialButterfly8(short *block,short *coeff,int shift, int line)
     /* E and O*/
     for (k=0;k<4;k++)
     {
-      E[k] = block[k] + block[7-k];
-      O[k] = block[k] - block[7-k];
+      E[k] = src[k] + src[7-k];
+      O[k] = src[k] - src[7-k];
     }    
     /* EE and EO */
     EE[0] = E[0] + E[3];    
@@ -628,18 +628,18 @@ void partialButterfly8(short *block,short *coeff,int shift, int line)
     EE[1] = E[1] + E[2];
     EO[1] = E[1] - E[2];
 
-    coeff[0] = (g_aiT8[0][0]*EE[0] + g_aiT8[0][1]*EE[1] + add)>>shift;
-    coeff[4*line] = (g_aiT8[4][0]*EE[0] + g_aiT8[4][1]*EE[1] + add)>>shift; 
-    coeff[2*line] = (g_aiT8[2][0]*EO[0] + g_aiT8[2][1]*EO[1] + add)>>shift;
-    coeff[6*line] = (g_aiT8[6][0]*EO[0] + g_aiT8[6][1]*EO[1] + add)>>shift; 
+    dst[0] = (g_aiT8[0][0]*EE[0] + g_aiT8[0][1]*EE[1] + add)>>shift;
+    dst[4*line] = (g_aiT8[4][0]*EE[0] + g_aiT8[4][1]*EE[1] + add)>>shift; 
+    dst[2*line] = (g_aiT8[2][0]*EO[0] + g_aiT8[2][1]*EO[1] + add)>>shift;
+    dst[6*line] = (g_aiT8[6][0]*EO[0] + g_aiT8[6][1]*EO[1] + add)>>shift; 
 
-    coeff[line] = (g_aiT8[1][0]*O[0] + g_aiT8[1][1]*O[1] + g_aiT8[1][2]*O[2] + g_aiT8[1][3]*O[3] + add)>>shift;
-    coeff[3*line] = (g_aiT8[3][0]*O[0] + g_aiT8[3][1]*O[1] + g_aiT8[3][2]*O[2] + g_aiT8[3][3]*O[3] + add)>>shift;
-    coeff[5*line] = (g_aiT8[5][0]*O[0] + g_aiT8[5][1]*O[1] + g_aiT8[5][2]*O[2] + g_aiT8[5][3]*O[3] + add)>>shift;
-    coeff[7*line] = (g_aiT8[7][0]*O[0] + g_aiT8[7][1]*O[1] + g_aiT8[7][2]*O[2] + g_aiT8[7][3]*O[3] + add)>>shift;
+    dst[line] = (g_aiT8[1][0]*O[0] + g_aiT8[1][1]*O[1] + g_aiT8[1][2]*O[2] + g_aiT8[1][3]*O[3] + add)>>shift;
+    dst[3*line] = (g_aiT8[3][0]*O[0] + g_aiT8[3][1]*O[1] + g_aiT8[3][2]*O[2] + g_aiT8[3][3]*O[3] + add)>>shift;
+    dst[5*line] = (g_aiT8[5][0]*O[0] + g_aiT8[5][1]*O[1] + g_aiT8[5][2]*O[2] + g_aiT8[5][3]*O[3] + add)>>shift;
+    dst[7*line] = (g_aiT8[7][0]*O[0] + g_aiT8[7][1]*O[1] + g_aiT8[7][2]*O[2] + g_aiT8[7][3]*O[3] + add)>>shift;
 
-    block += 8;
-    coeff ++;
+    src += 8;
+    dst ++;
   }
 }
 #endif
@@ -663,11 +663,11 @@ void xTr8(short block[8][8],short coeff[8][8])
 }
 
 /** 8x8 inverse transform implemented using partial butterfly structure (1D)
- *  \param coeff input data (transform coefficients)
- *  \param block output data (residual)
+ *  \param src   input data (transform coefficients)
+ *  \param dst   output data (residual)
  *  \param shift specifies right shift after 1D transform
  */
-void partialButterflyInverse8(short tmp[8][8],short block[8][8],int shift)
+void partialButterflyInverse8(short src[8][8],short dst[8][8],int shift)
 {
   int j,k;    
   int E[4],O[4];
@@ -679,13 +679,13 @@ void partialButterflyInverse8(short tmp[8][8],short block[8][8],int shift)
     /* Utilizing symmetry properties to the maximum to minimize the number of multiplications */
     for (k=0;k<4;k++)
     {
-      O[k] = g_aiT8[ 1][k]*tmp[ 1][j] + g_aiT8[ 3][k]*tmp[ 3][j] + g_aiT8[ 5][k]*tmp[ 5][j] + g_aiT8[ 7][k]*tmp[ 7][j];
+      O[k] = g_aiT8[ 1][k]*src[ 1][j] + g_aiT8[ 3][k]*src[ 3][j] + g_aiT8[ 5][k]*src[ 5][j] + g_aiT8[ 7][k]*src[ 7][j];
     }
    
-    EO[0] = g_aiT8[2][0]*tmp[2][j] + g_aiT8[6][0]*tmp[6][j];
-    EO[1] = g_aiT8[2][1]*tmp[2][j] + g_aiT8[6][1]*tmp[6][j];
-    EE[0] = g_aiT8[0][0]*tmp[0][j] + g_aiT8[4][0]*tmp[4][j];
-    EE[1] = g_aiT8[0][1]*tmp[0][j] + g_aiT8[4][1]*tmp[4][j];
+    EO[0] = g_aiT8[2][0]*src[2][j] + g_aiT8[6][0]*src[6][j];
+    EO[1] = g_aiT8[2][1]*src[2][j] + g_aiT8[6][1]*src[6][j];
+    EE[0] = g_aiT8[0][0]*src[0][j] + g_aiT8[4][0]*src[4][j];
+    EE[1] = g_aiT8[0][1]*src[0][j] + g_aiT8[4][1]*src[4][j];
 
     /* Combining even and odd terms at each hierarchy levels to calculate the final spatial domain vector */ 
     E[0] = EE[0] + EO[0];
@@ -694,14 +694,14 @@ void partialButterflyInverse8(short tmp[8][8],short block[8][8],int shift)
     E[2] = EE[1] - EO[1];
     for (k=0;k<4;k++)
     {
-      block[j][k] = (E[k] + O[k] + add)>>shift;
-      block[j][k+4] = (E[3-k] - O[3-k] + add)>>shift;
+      dst[j][k] = (E[k] + O[k] + add)>>shift;
+      dst[j][k+4] = (E[3-k] - O[3-k] + add)>>shift;
     }        
   }
 }
 
 #if NSQT
-void partialButterflyInverse8(short *tmp,short *block,int shift, int line)
+void partialButterflyInverse8(short *src,short *dst,int shift, int line)
 {
   int j,k;    
   int E[4],O[4];
@@ -713,13 +713,13 @@ void partialButterflyInverse8(short *tmp,short *block,int shift, int line)
     /* Utilizing symmetry properties to the maximum to minimize the number of multiplications */
     for (k=0;k<4;k++)
     {
-      O[k] = g_aiT8[ 1][k]*tmp[line] + g_aiT8[ 3][k]*tmp[3*line] + g_aiT8[ 5][k]*tmp[5*line] + g_aiT8[ 7][k]*tmp[7*line];
+      O[k] = g_aiT8[ 1][k]*src[line] + g_aiT8[ 3][k]*src[3*line] + g_aiT8[ 5][k]*src[5*line] + g_aiT8[ 7][k]*src[7*line];
     }
 
-    EO[0] = g_aiT8[2][0]*tmp[ 2*line ] + g_aiT8[6][0]*tmp[ 6*line ];
-    EO[1] = g_aiT8[2][1]*tmp[ 2*line ] + g_aiT8[6][1]*tmp[ 6*line ];
-    EE[0] = g_aiT8[0][0]*tmp[ 0      ] + g_aiT8[4][0]*tmp[ 4*line ];
-    EE[1] = g_aiT8[0][1]*tmp[ 0      ] + g_aiT8[4][1]*tmp[ 4*line ];
+    EO[0] = g_aiT8[2][0]*src[ 2*line ] + g_aiT8[6][0]*src[ 6*line ];
+    EO[1] = g_aiT8[2][1]*src[ 2*line ] + g_aiT8[6][1]*src[ 6*line ];
+    EE[0] = g_aiT8[0][0]*src[ 0      ] + g_aiT8[4][0]*src[ 4*line ];
+    EE[1] = g_aiT8[0][1]*src[ 0      ] + g_aiT8[4][1]*src[ 4*line ];
 
     /* Combining even and odd terms at each hierarchy levels to calculate the final spatial domain vector */ 
     E[0] = EE[0] + EO[0];
@@ -728,11 +728,11 @@ void partialButterflyInverse8(short *tmp,short *block,int shift, int line)
     E[2] = EE[1] - EO[1];
     for (k=0;k<4;k++)
     {
-      block[ k   ] = (E[k] + O[k] + add)>>shift;
-      block[ k+4 ] = (E[3-k] - O[3-k] + add)>>shift;
+      dst[ k   ] = (E[k] + O[k] + add)>>shift;
+      dst[ k+4 ] = (E[3-k] - O[3-k] + add)>>shift;
     }   
-    tmp ++;
-    block += 8;
+    src ++;
+    dst += 8;
   }
 }
 #endif
@@ -756,11 +756,11 @@ void xITr8(short coeff[8][8],short block[8][8])
 }
 
 /** 16x16 forward transform implemented using partial butterfly structure (1D)
- *  \param block input data (residual)
- *  \param coeff output data (transform coefficients)
+ *  \param src   input data (residual)
+ *  \param dst   output data (transform coefficients)
  *  \param shift specifies right shift after 1D transform
  */
-void partialButterfly16(short block[16][16],short coeff[16][16],int shift)
+void partialButterfly16(short src[16][16],short dst[16][16],int shift)
 {
   int j,k;
   int E[8],O[8];
@@ -773,8 +773,8 @@ void partialButterfly16(short block[16][16],short coeff[16][16],int shift)
     /* E and O*/
     for (k=0;k<8;k++)
     {
-      E[k] = block[j][k] + block[j][15-k];
-      O[k] = block[j][k] - block[j][15-k];
+      E[k] = src[j][k] + src[j][15-k];
+      O[k] = src[j][k] - src[j][15-k];
     } 
     /* EE and EO */
     for (k=0;k<4;k++)
@@ -788,19 +788,19 @@ void partialButterfly16(short block[16][16],short coeff[16][16],int shift)
     EEE[1] = EE[1] + EE[2];
     EEO[1] = EE[1] - EE[2];
 
-    coeff[ 0][j] = (g_aiT16[ 0][0]*EEE[0] + g_aiT16[ 0][1]*EEE[1] + add)>>shift;        
-    coeff[ 8][j] = (g_aiT16[ 8][0]*EEE[0] + g_aiT16[ 8][1]*EEE[1] + add)>>shift;    
-    coeff[ 4][j] = (g_aiT16[ 4][0]*EEO[0] + g_aiT16[ 4][1]*EEO[1] + add)>>shift;        
-    coeff[12][j] = (g_aiT16[12][0]*EEO[0] + g_aiT16[12][1]*EEO[1] + add)>>shift;
+    dst[ 0][j] = (g_aiT16[ 0][0]*EEE[0] + g_aiT16[ 0][1]*EEE[1] + add)>>shift;        
+    dst[ 8][j] = (g_aiT16[ 8][0]*EEE[0] + g_aiT16[ 8][1]*EEE[1] + add)>>shift;    
+    dst[ 4][j] = (g_aiT16[ 4][0]*EEO[0] + g_aiT16[ 4][1]*EEO[1] + add)>>shift;        
+    dst[12][j] = (g_aiT16[12][0]*EEO[0] + g_aiT16[12][1]*EEO[1] + add)>>shift;
 
     for (k=2;k<16;k+=4)
     {
-      coeff[k][j] = (g_aiT16[k][0]*EO[0] + g_aiT16[k][1]*EO[1] + g_aiT16[k][2]*EO[2] + g_aiT16[k][3]*EO[3] + add)>>shift;      
+      dst[k][j] = (g_aiT16[k][0]*EO[0] + g_aiT16[k][1]*EO[1] + g_aiT16[k][2]*EO[2] + g_aiT16[k][3]*EO[3] + add)>>shift;      
     }
     
     for (k=1;k<16;k+=2)
     {
-      coeff[k][j] = (g_aiT16[k][0]*O[0] + g_aiT16[k][1]*O[1] + g_aiT16[k][2]*O[2] + g_aiT16[k][3]*O[3] + 
+      dst[k][j] = (g_aiT16[k][0]*O[0] + g_aiT16[k][1]*O[1] + g_aiT16[k][2]*O[2] + g_aiT16[k][3]*O[3] + 
                      g_aiT16[k][4]*O[4] + g_aiT16[k][5]*O[5] + g_aiT16[k][6]*O[6] + g_aiT16[k][7]*O[7] + add)>>shift;
     }
 
@@ -808,7 +808,7 @@ void partialButterfly16(short block[16][16],short coeff[16][16],int shift)
 }
 
 #if NSQT
-void partialButterfly16(short *block,short *coeff,int shift, int line)
+void partialButterfly16(short *src,short *dst,int shift, int line)
 {
   int j,k;
   int E[8],O[8];
@@ -821,8 +821,8 @@ void partialButterfly16(short *block,short *coeff,int shift, int line)
     /* E and O*/
     for (k=0;k<8;k++)
     {
-      E[k] = block[k] + block[15-k];
-      O[k] = block[k] - block[15-k];
+      E[k] = src[k] + src[15-k];
+      O[k] = src[k] - src[15-k];
     } 
     /* EE and EO */
     for (k=0;k<4;k++)
@@ -836,24 +836,24 @@ void partialButterfly16(short *block,short *coeff,int shift, int line)
     EEE[1] = EE[1] + EE[2];
     EEO[1] = EE[1] - EE[2];
 
-    coeff[ 0      ] = (g_aiT16[ 0][0]*EEE[0] + g_aiT16[ 0][1]*EEE[1] + add)>>shift;        
-    coeff[ 8*line ] = (g_aiT16[ 8][0]*EEE[0] + g_aiT16[ 8][1]*EEE[1] + add)>>shift;    
-    coeff[ 4*line ] = (g_aiT16[ 4][0]*EEO[0] + g_aiT16[ 4][1]*EEO[1] + add)>>shift;        
-    coeff[ 12*line] = (g_aiT16[12][0]*EEO[0] + g_aiT16[12][1]*EEO[1] + add)>>shift;
+    dst[ 0      ] = (g_aiT16[ 0][0]*EEE[0] + g_aiT16[ 0][1]*EEE[1] + add)>>shift;        
+    dst[ 8*line ] = (g_aiT16[ 8][0]*EEE[0] + g_aiT16[ 8][1]*EEE[1] + add)>>shift;    
+    dst[ 4*line ] = (g_aiT16[ 4][0]*EEO[0] + g_aiT16[ 4][1]*EEO[1] + add)>>shift;        
+    dst[ 12*line] = (g_aiT16[12][0]*EEO[0] + g_aiT16[12][1]*EEO[1] + add)>>shift;
 
     for (k=2;k<16;k+=4)
     {
-      coeff[ k*line ] = (g_aiT16[k][0]*EO[0] + g_aiT16[k][1]*EO[1] + g_aiT16[k][2]*EO[2] + g_aiT16[k][3]*EO[3] + add)>>shift;      
+      dst[ k*line ] = (g_aiT16[k][0]*EO[0] + g_aiT16[k][1]*EO[1] + g_aiT16[k][2]*EO[2] + g_aiT16[k][3]*EO[3] + add)>>shift;      
     }
 
     for (k=1;k<16;k+=2)
     {
-      coeff[ k*line ] = (g_aiT16[k][0]*O[0] + g_aiT16[k][1]*O[1] + g_aiT16[k][2]*O[2] + g_aiT16[k][3]*O[3] + 
+      dst[ k*line ] = (g_aiT16[k][0]*O[0] + g_aiT16[k][1]*O[1] + g_aiT16[k][2]*O[2] + g_aiT16[k][3]*O[3] + 
         g_aiT16[k][4]*O[4] + g_aiT16[k][5]*O[5] + g_aiT16[k][6]*O[6] + g_aiT16[k][7]*O[7] + add)>>shift;
     }
 
-    block += 16;
-    coeff ++; 
+    src += 16;
+    dst ++; 
 
   }
 }
@@ -878,11 +878,11 @@ void xTr16(short block[16][16],short coeff[16][16])
 }
 
 /** 16x16 inverse transform implemented using partial butterfly structure (1D)
- *  \param coeff input data (transform coefficients)
- *  \param block output data (residual)
+ *  \param src   input data (transform coefficients)
+ *  \param dst   output data (residual)
  *  \param shift specifies right shift after 1D transform
  */
-void partialButterflyInverse16(short tmp[16][16],short block[16][16],int shift)
+void partialButterflyInverse16(short src[16][16],short dst[16][16],int shift)
 {
   int j,k;  
   int E[8],O[8];
@@ -895,17 +895,17 @@ void partialButterflyInverse16(short tmp[16][16],short block[16][16],int shift)
     /* Utilizing symmetry properties to the maximum to minimize the number of multiplications */
     for (k=0;k<8;k++)
     {
-      O[k] = g_aiT16[ 1][k]*tmp[ 1][j] + g_aiT16[ 3][k]*tmp[ 3][j] + g_aiT16[ 5][k]*tmp[ 5][j] + g_aiT16[ 7][k]*tmp[ 7][j] + 
-             g_aiT16[ 9][k]*tmp[ 9][j] + g_aiT16[11][k]*tmp[11][j] + g_aiT16[13][k]*tmp[13][j] + g_aiT16[15][k]*tmp[15][j];
+      O[k] = g_aiT16[ 1][k]*src[ 1][j] + g_aiT16[ 3][k]*src[ 3][j] + g_aiT16[ 5][k]*src[ 5][j] + g_aiT16[ 7][k]*src[ 7][j] + 
+             g_aiT16[ 9][k]*src[ 9][j] + g_aiT16[11][k]*src[11][j] + g_aiT16[13][k]*src[13][j] + g_aiT16[15][k]*src[15][j];
     }
     for (k=0;k<4;k++)
     {
-      EO[k] = g_aiT16[ 2][k]*tmp[ 2][j] + g_aiT16[ 6][k]*tmp[ 6][j] + g_aiT16[10][k]*tmp[10][j] + g_aiT16[14][k]*tmp[14][j];
+      EO[k] = g_aiT16[ 2][k]*src[ 2][j] + g_aiT16[ 6][k]*src[ 6][j] + g_aiT16[10][k]*src[10][j] + g_aiT16[14][k]*src[14][j];
     }
-    EEO[0] = g_aiT16[4][0]*tmp[4][j] + g_aiT16[12][0]*tmp[12][j];
-    EEE[0] = g_aiT16[0][0]*tmp[0][j] + g_aiT16[ 8][0]*tmp[ 8][j];
-    EEO[1] = g_aiT16[4][1]*tmp[4][j] + g_aiT16[12][1]*tmp[12][j];
-    EEE[1] = g_aiT16[0][1]*tmp[0][j] + g_aiT16[ 8][1]*tmp[ 8][j];
+    EEO[0] = g_aiT16[4][0]*src[4][j] + g_aiT16[12][0]*src[12][j];
+    EEE[0] = g_aiT16[0][0]*src[0][j] + g_aiT16[ 8][0]*src[ 8][j];
+    EEO[1] = g_aiT16[4][1]*src[4][j] + g_aiT16[12][1]*src[12][j];
+    EEE[1] = g_aiT16[0][1]*src[0][j] + g_aiT16[ 8][1]*src[ 8][j];
 
     /* Combining even and odd terms at each hierarchy levels to calculate the final spatial domain vector */ 
     for (k=0;k<2;k++)
@@ -920,14 +920,14 @@ void partialButterflyInverse16(short tmp[16][16],short block[16][16],int shift)
     }    
     for (k=0;k<8;k++)
     {
-      block[j][k] = (E[k] + O[k] + add)>>shift;
-      block[j][k+8] = (E[7-k] - O[7-k] + add)>>shift;
+      dst[j][k] = (E[k] + O[k] + add)>>shift;
+      dst[j][k+8] = (E[7-k] - O[7-k] + add)>>shift;
     }        
   }
 }
 
 #if NSQT
-void partialButterflyInverse16(short *tmp,short *block,int shift, int line)
+void partialButterflyInverse16(short *src,short *dst,int shift, int line)
 {
   int j,k;  
   int E[8],O[8];
@@ -940,17 +940,17 @@ void partialButterflyInverse16(short *tmp,short *block,int shift, int line)
     /* Utilizing symmetry properties to the maximum to minimize the number of multiplications */
     for (k=0;k<8;k++)
     {
-      O[k] = g_aiT16[ 1][k]*tmp[ line] + g_aiT16[ 3][k]*tmp[ 3*line] + g_aiT16[ 5][k]*tmp[ 5*line] + g_aiT16[ 7][k]*tmp[ 7*line] + 
-        g_aiT16[ 9][k]*tmp[ 9*line] + g_aiT16[11][k]*tmp[11*line] + g_aiT16[13][k]*tmp[13*line] + g_aiT16[15][k]*tmp[15*line];
+      O[k] = g_aiT16[ 1][k]*src[ line] + g_aiT16[ 3][k]*src[ 3*line] + g_aiT16[ 5][k]*src[ 5*line] + g_aiT16[ 7][k]*src[ 7*line] + 
+        g_aiT16[ 9][k]*src[ 9*line] + g_aiT16[11][k]*src[11*line] + g_aiT16[13][k]*src[13*line] + g_aiT16[15][k]*src[15*line];
     }
     for (k=0;k<4;k++)
     {
-      EO[k] = g_aiT16[ 2][k]*tmp[ 2*line] + g_aiT16[ 6][k]*tmp[ 6*line] + g_aiT16[10][k]*tmp[10*line] + g_aiT16[14][k]*tmp[14*line];
+      EO[k] = g_aiT16[ 2][k]*src[ 2*line] + g_aiT16[ 6][k]*src[ 6*line] + g_aiT16[10][k]*src[10*line] + g_aiT16[14][k]*src[14*line];
     }
-    EEO[0] = g_aiT16[4][0]*tmp[ 4*line ] + g_aiT16[12][0]*tmp[ 12*line ];
-    EEE[0] = g_aiT16[0][0]*tmp[ 0      ] + g_aiT16[ 8][0]*tmp[ 8*line  ];
-    EEO[1] = g_aiT16[4][1]*tmp[ 4*line ] + g_aiT16[12][1]*tmp[ 12*line ];
-    EEE[1] = g_aiT16[0][1]*tmp[ 0      ] + g_aiT16[ 8][1]*tmp[ 8*line  ];
+    EEO[0] = g_aiT16[4][0]*src[ 4*line ] + g_aiT16[12][0]*src[ 12*line ];
+    EEE[0] = g_aiT16[0][0]*src[ 0      ] + g_aiT16[ 8][0]*src[ 8*line  ];
+    EEO[1] = g_aiT16[4][1]*src[ 4*line ] + g_aiT16[12][1]*src[ 12*line ];
+    EEE[1] = g_aiT16[0][1]*src[ 0      ] + g_aiT16[ 8][1]*src[ 8*line  ];
 
     /* Combining even and odd terms at each hierarchy levels to calculate the final spatial domain vector */ 
     for (k=0;k<2;k++)
@@ -965,11 +965,11 @@ void partialButterflyInverse16(short *tmp,short *block,int shift, int line)
     }    
     for (k=0;k<8;k++)
     {
-      block[k] = (E[k] + O[k] + add)>>shift;
-      block[k+8] = (E[7-k] - O[7-k] + add)>>shift;
+      dst[k] = (E[k] + O[k] + add)>>shift;
+      dst[k+8] = (E[7-k] - O[7-k] + add)>>shift;
     }   
-    tmp ++; 
-    block += 16;
+    src ++; 
+    dst += 16;
   }
 }
 #endif
@@ -993,11 +993,11 @@ void xITr16(short coeff[16][16],short block[16][16])
 }
 
 /** 32x32 forward transform implemented using partial butterfly structure (1D)
- *  \param block input data (residual)
- *  \param coeff output data (transform coefficients)
+ *  \param src   input data (residual)
+ *  \param dst   output data (transform coefficients)
  *  \param shift specifies right shift after 1D transform
  */
-void partialButterfly32(short block[32][32],short coeff[32][32],int shift)
+void partialButterfly32(short src[32][32],short dst[32][32],int shift)
 {
   int j,k;
   int E[16],O[16];
@@ -1011,8 +1011,8 @@ void partialButterfly32(short block[32][32],short coeff[32][32],int shift)
     /* E and O*/
     for (k=0;k<16;k++)
     {
-      E[k] = block[j][k] + block[j][31-k];
-      O[k] = block[j][k] - block[j][31-k];
+      E[k] = src[j][k] + src[j][31-k];
+      O[k] = src[j][k] - src[j][31-k];
     } 
     /* EE and EO */
     for (k=0;k<8;k++)
@@ -1032,22 +1032,22 @@ void partialButterfly32(short block[32][32],short coeff[32][32],int shift)
     EEEE[1] = EEE[1] + EEE[2];
     EEEO[1] = EEE[1] - EEE[2];
 
-    coeff[ 0][j] = (g_aiT32[ 0][0]*EEEE[0] + g_aiT32[ 0][1]*EEEE[1] + add)>>shift;
-    coeff[16][j] = (g_aiT32[16][0]*EEEE[0] + g_aiT32[16][1]*EEEE[1] + add)>>shift;
-    coeff[ 8][j] = (g_aiT32[ 8][0]*EEEO[0] + g_aiT32[ 8][1]*EEEO[1] + add)>>shift; 
-    coeff[24][j] = (g_aiT32[24][0]*EEEO[0] + g_aiT32[24][1]*EEEO[1] + add)>>shift;
+    dst[ 0][j] = (g_aiT32[ 0][0]*EEEE[0] + g_aiT32[ 0][1]*EEEE[1] + add)>>shift;
+    dst[16][j] = (g_aiT32[16][0]*EEEE[0] + g_aiT32[16][1]*EEEE[1] + add)>>shift;
+    dst[ 8][j] = (g_aiT32[ 8][0]*EEEO[0] + g_aiT32[ 8][1]*EEEO[1] + add)>>shift; 
+    dst[24][j] = (g_aiT32[24][0]*EEEO[0] + g_aiT32[24][1]*EEEO[1] + add)>>shift;
     for (k=4;k<32;k+=8)
     {
-      coeff[k][j] = (g_aiT32[k][0]*EEO[0] + g_aiT32[k][1]*EEO[1] + g_aiT32[k][2]*EEO[2] + g_aiT32[k][3]*EEO[3] + add)>>shift;
+      dst[k][j] = (g_aiT32[k][0]*EEO[0] + g_aiT32[k][1]*EEO[1] + g_aiT32[k][2]*EEO[2] + g_aiT32[k][3]*EEO[3] + add)>>shift;
     }       
     for (k=2;k<32;k+=4)
     {
-      coeff[k][j] = (g_aiT32[k][0]*EO[0] + g_aiT32[k][1]*EO[1] + g_aiT32[k][2]*EO[2] + g_aiT32[k][3]*EO[3] + 
+      dst[k][j] = (g_aiT32[k][0]*EO[0] + g_aiT32[k][1]*EO[1] + g_aiT32[k][2]*EO[2] + g_aiT32[k][3]*EO[3] + 
                      g_aiT32[k][4]*EO[4] + g_aiT32[k][5]*EO[5] + g_aiT32[k][6]*EO[6] + g_aiT32[k][7]*EO[7] + add)>>shift;
     }       
     for (k=1;k<32;k+=2)
     {
-      coeff[k][j] = (g_aiT32[k][ 0]*O[ 0] + g_aiT32[k][ 1]*O[ 1] + g_aiT32[k][ 2]*O[ 2] + g_aiT32[k][ 3]*O[ 3] + 
+      dst[k][j] = (g_aiT32[k][ 0]*O[ 0] + g_aiT32[k][ 1]*O[ 1] + g_aiT32[k][ 2]*O[ 2] + g_aiT32[k][ 3]*O[ 3] + 
                      g_aiT32[k][ 4]*O[ 4] + g_aiT32[k][ 5]*O[ 5] + g_aiT32[k][ 6]*O[ 6] + g_aiT32[k][ 7]*O[ 7] +
                      g_aiT32[k][ 8]*O[ 8] + g_aiT32[k][ 9]*O[ 9] + g_aiT32[k][10]*O[10] + g_aiT32[k][11]*O[11] + 
                      g_aiT32[k][12]*O[12] + g_aiT32[k][13]*O[13] + g_aiT32[k][14]*O[14] + g_aiT32[k][15]*O[15] + add)>>shift;
@@ -1056,7 +1056,7 @@ void partialButterfly32(short block[32][32],short coeff[32][32],int shift)
 }
 
 #if NSQT
-void partialButterfly32(short *block,short *coeff,int shift, int line)
+void partialButterfly32(short *src,short *dst,int shift, int line)
 {
   int j,k;
   int E[16],O[16];
@@ -1070,8 +1070,8 @@ void partialButterfly32(short *block,short *coeff,int shift, int line)
     /* E and O*/
     for (k=0;k<16;k++)
     {
-      E[k] = block[k] + block[31-k];
-      O[k] = block[k] - block[31-k];
+      E[k] = src[k] + src[31-k];
+      O[k] = src[k] - src[31-k];
     } 
     /* EE and EO */
     for (k=0;k<8;k++)
@@ -1091,28 +1091,28 @@ void partialButterfly32(short *block,short *coeff,int shift, int line)
     EEEE[1] = EEE[1] + EEE[2];
     EEEO[1] = EEE[1] - EEE[2];
 
-    coeff[ 0       ] = (g_aiT32[ 0][0]*EEEE[0] + g_aiT32[ 0][1]*EEEE[1] + add)>>shift;
-    coeff[ 16*line ] = (g_aiT32[16][0]*EEEE[0] + g_aiT32[16][1]*EEEE[1] + add)>>shift;
-    coeff[ 8*line  ] = (g_aiT32[ 8][0]*EEEO[0] + g_aiT32[ 8][1]*EEEO[1] + add)>>shift; 
-    coeff[ 24*line ] = (g_aiT32[24][0]*EEEO[0] + g_aiT32[24][1]*EEEO[1] + add)>>shift;
+    dst[ 0       ] = (g_aiT32[ 0][0]*EEEE[0] + g_aiT32[ 0][1]*EEEE[1] + add)>>shift;
+    dst[ 16*line ] = (g_aiT32[16][0]*EEEE[0] + g_aiT32[16][1]*EEEE[1] + add)>>shift;
+    dst[ 8*line  ] = (g_aiT32[ 8][0]*EEEO[0] + g_aiT32[ 8][1]*EEEO[1] + add)>>shift; 
+    dst[ 24*line ] = (g_aiT32[24][0]*EEEO[0] + g_aiT32[24][1]*EEEO[1] + add)>>shift;
     for (k=4;k<32;k+=8)
     {
-      coeff[ k*line ] = (g_aiT32[k][0]*EEO[0] + g_aiT32[k][1]*EEO[1] + g_aiT32[k][2]*EEO[2] + g_aiT32[k][3]*EEO[3] + add)>>shift;
+      dst[ k*line ] = (g_aiT32[k][0]*EEO[0] + g_aiT32[k][1]*EEO[1] + g_aiT32[k][2]*EEO[2] + g_aiT32[k][3]*EEO[3] + add)>>shift;
     }       
     for (k=2;k<32;k+=4)
     {
-      coeff[ k*line ] = (g_aiT32[k][0]*EO[0] + g_aiT32[k][1]*EO[1] + g_aiT32[k][2]*EO[2] + g_aiT32[k][3]*EO[3] + 
+      dst[ k*line ] = (g_aiT32[k][0]*EO[0] + g_aiT32[k][1]*EO[1] + g_aiT32[k][2]*EO[2] + g_aiT32[k][3]*EO[3] + 
         g_aiT32[k][4]*EO[4] + g_aiT32[k][5]*EO[5] + g_aiT32[k][6]*EO[6] + g_aiT32[k][7]*EO[7] + add)>>shift;
     }       
     for (k=1;k<32;k+=2)
     {
-      coeff[ k*line ] = (g_aiT32[k][ 0]*O[ 0] + g_aiT32[k][ 1]*O[ 1] + g_aiT32[k][ 2]*O[ 2] + g_aiT32[k][ 3]*O[ 3] + 
+      dst[ k*line ] = (g_aiT32[k][ 0]*O[ 0] + g_aiT32[k][ 1]*O[ 1] + g_aiT32[k][ 2]*O[ 2] + g_aiT32[k][ 3]*O[ 3] + 
         g_aiT32[k][ 4]*O[ 4] + g_aiT32[k][ 5]*O[ 5] + g_aiT32[k][ 6]*O[ 6] + g_aiT32[k][ 7]*O[ 7] +
         g_aiT32[k][ 8]*O[ 8] + g_aiT32[k][ 9]*O[ 9] + g_aiT32[k][10]*O[10] + g_aiT32[k][11]*O[11] + 
         g_aiT32[k][12]*O[12] + g_aiT32[k][13]*O[13] + g_aiT32[k][14]*O[14] + g_aiT32[k][15]*O[15] + add)>>shift;
     }
-    block += 32;
-    coeff ++;
+    src += 32;
+    dst ++;
   }
 }
 #endif
@@ -1136,11 +1136,11 @@ void xTr32(short block[32][32],short coeff[32][32])
 }
 
 /** 32x32 inverse transform implemented using partial butterfly structure (1D)
- *  \param coeff input data (transform coefficients)
- *  \param block output data (residual)
+ *  \param src   input data (transform coefficients)
+ *  \param dst   output data (residual)
  *  \param shift specifies right shift after 1D transform
  */
-void partialButterflyInverse32(short tmp[32][32],short block[32][32],int shift)
+void partialButterflyInverse32(short src[32][32],short dst[32][32],int shift)
 {
   int j,k;  
   int E[16],O[16];
@@ -1154,24 +1154,24 @@ void partialButterflyInverse32(short tmp[32][32],short block[32][32],int shift)
     /* Utilizing symmetry properties to the maximum to minimize the number of multiplications */
     for (k=0;k<16;k++)
     {
-      O[k] = g_aiT32[ 1][k]*tmp[ 1][j] + g_aiT32[ 3][k]*tmp[ 3][j] + g_aiT32[ 5][k]*tmp[ 5][j] + g_aiT32[ 7][k]*tmp[ 7][j] + 
-             g_aiT32[ 9][k]*tmp[ 9][j] + g_aiT32[11][k]*tmp[11][j] + g_aiT32[13][k]*tmp[13][j] + g_aiT32[15][k]*tmp[15][j] + 
-             g_aiT32[17][k]*tmp[17][j] + g_aiT32[19][k]*tmp[19][j] + g_aiT32[21][k]*tmp[21][j] + g_aiT32[23][k]*tmp[23][j] + 
-             g_aiT32[25][k]*tmp[25][j] + g_aiT32[27][k]*tmp[27][j] + g_aiT32[29][k]*tmp[29][j] + g_aiT32[31][k]*tmp[31][j];
+      O[k] = g_aiT32[ 1][k]*src[ 1][j] + g_aiT32[ 3][k]*src[ 3][j] + g_aiT32[ 5][k]*src[ 5][j] + g_aiT32[ 7][k]*src[ 7][j] + 
+             g_aiT32[ 9][k]*src[ 9][j] + g_aiT32[11][k]*src[11][j] + g_aiT32[13][k]*src[13][j] + g_aiT32[15][k]*src[15][j] + 
+             g_aiT32[17][k]*src[17][j] + g_aiT32[19][k]*src[19][j] + g_aiT32[21][k]*src[21][j] + g_aiT32[23][k]*src[23][j] + 
+             g_aiT32[25][k]*src[25][j] + g_aiT32[27][k]*src[27][j] + g_aiT32[29][k]*src[29][j] + g_aiT32[31][k]*src[31][j];
     }
     for (k=0;k<8;k++)
     {
-      EO[k] = g_aiT32[ 2][k]*tmp[ 2][j] + g_aiT32[ 6][k]*tmp[ 6][j] + g_aiT32[10][k]*tmp[10][j] + g_aiT32[14][k]*tmp[14][j] + 
-              g_aiT32[18][k]*tmp[18][j] + g_aiT32[22][k]*tmp[22][j] + g_aiT32[26][k]*tmp[26][j] + g_aiT32[30][k]*tmp[30][j];
+      EO[k] = g_aiT32[ 2][k]*src[ 2][j] + g_aiT32[ 6][k]*src[ 6][j] + g_aiT32[10][k]*src[10][j] + g_aiT32[14][k]*src[14][j] + 
+              g_aiT32[18][k]*src[18][j] + g_aiT32[22][k]*src[22][j] + g_aiT32[26][k]*src[26][j] + g_aiT32[30][k]*src[30][j];
     }
     for (k=0;k<4;k++)
     {
-      EEO[k] = g_aiT32[4][k]*tmp[4][j] + g_aiT32[12][k]*tmp[12][j] + g_aiT32[20][k]*tmp[20][j] + g_aiT32[28][k]*tmp[28][j];
+      EEO[k] = g_aiT32[4][k]*src[4][j] + g_aiT32[12][k]*src[12][j] + g_aiT32[20][k]*src[20][j] + g_aiT32[28][k]*src[28][j];
     }
-    EEEO[0] = g_aiT32[8][0]*tmp[8][j] + g_aiT32[24][0]*tmp[24][j];
-    EEEO[1] = g_aiT32[8][1]*tmp[8][j] + g_aiT32[24][1]*tmp[24][j];
-    EEEE[0] = g_aiT32[0][0]*tmp[0][j] + g_aiT32[16][0]*tmp[16][j];    
-    EEEE[1] = g_aiT32[0][1]*tmp[0][j] + g_aiT32[16][1]*tmp[16][j];
+    EEEO[0] = g_aiT32[8][0]*src[8][j] + g_aiT32[24][0]*src[24][j];
+    EEEO[1] = g_aiT32[8][1]*src[8][j] + g_aiT32[24][1]*src[24][j];
+    EEEE[0] = g_aiT32[0][0]*src[0][j] + g_aiT32[16][0]*src[16][j];    
+    EEEE[1] = g_aiT32[0][1]*src[0][j] + g_aiT32[16][1]*src[16][j];
 
     /* Combining even and odd terms at each hierarchy levels to calculate the final spatial domain vector */
     EEE[0] = EEEE[0] + EEEO[0];
@@ -1190,14 +1190,14 @@ void partialButterflyInverse32(short tmp[32][32],short block[32][32],int shift)
     }    
     for (k=0;k<16;k++)
     {
-      block[j][k] = (E[k] + O[k] + add)>>shift;
-      block[j][k+16] = (E[15-k] - O[15-k] + add)>>shift;
+      dst[j][k] = (E[k] + O[k] + add)>>shift;
+      dst[j][k+16] = (E[15-k] - O[15-k] + add)>>shift;
     }        
   }
 }
 
 #if NSQT
-void partialButterflyInverse32(short *tmp,short *block,int shift, int line)
+void partialButterflyInverse32(short *src,short *dst,int shift, int line)
 {
   int j,k;  
   int E[16],O[16];
@@ -1211,24 +1211,24 @@ void partialButterflyInverse32(short *tmp,short *block,int shift, int line)
     /* Utilizing symmetry properties to the maximum to minimize the number of multiplications */
     for (k=0;k<16;k++)
     {
-      O[k] = g_aiT32[ 1][k]*tmp[ line  ] + g_aiT32[ 3][k]*tmp[ 3*line  ] + g_aiT32[ 5][k]*tmp[ 5*line  ] + g_aiT32[ 7][k]*tmp[ 7*line  ] + 
-        g_aiT32[ 9][k]*tmp[ 9*line  ] + g_aiT32[11][k]*tmp[ 11*line ] + g_aiT32[13][k]*tmp[ 13*line ] + g_aiT32[15][k]*tmp[ 15*line ] + 
-        g_aiT32[17][k]*tmp[ 17*line ] + g_aiT32[19][k]*tmp[ 19*line ] + g_aiT32[21][k]*tmp[ 21*line ] + g_aiT32[23][k]*tmp[ 23*line ] + 
-        g_aiT32[25][k]*tmp[ 25*line ] + g_aiT32[27][k]*tmp[ 27*line ] + g_aiT32[29][k]*tmp[ 29*line ] + g_aiT32[31][k]*tmp[ 31*line ];
+      O[k] = g_aiT32[ 1][k]*src[ line  ] + g_aiT32[ 3][k]*src[ 3*line  ] + g_aiT32[ 5][k]*src[ 5*line  ] + g_aiT32[ 7][k]*src[ 7*line  ] + 
+        g_aiT32[ 9][k]*src[ 9*line  ] + g_aiT32[11][k]*src[ 11*line ] + g_aiT32[13][k]*src[ 13*line ] + g_aiT32[15][k]*src[ 15*line ] + 
+        g_aiT32[17][k]*src[ 17*line ] + g_aiT32[19][k]*src[ 19*line ] + g_aiT32[21][k]*src[ 21*line ] + g_aiT32[23][k]*src[ 23*line ] + 
+        g_aiT32[25][k]*src[ 25*line ] + g_aiT32[27][k]*src[ 27*line ] + g_aiT32[29][k]*src[ 29*line ] + g_aiT32[31][k]*src[ 31*line ];
     }
     for (k=0;k<8;k++)
     {
-      EO[k] = g_aiT32[ 2][k]*tmp[ 2*line  ] + g_aiT32[ 6][k]*tmp[ 6*line  ] + g_aiT32[10][k]*tmp[ 10*line ] + g_aiT32[14][k]*tmp[ 14*line ] + 
-        g_aiT32[18][k]*tmp[ 18*line ] + g_aiT32[22][k]*tmp[ 22*line ] + g_aiT32[26][k]*tmp[ 26*line ] + g_aiT32[30][k]*tmp[ 30*line ];
+      EO[k] = g_aiT32[ 2][k]*src[ 2*line  ] + g_aiT32[ 6][k]*src[ 6*line  ] + g_aiT32[10][k]*src[ 10*line ] + g_aiT32[14][k]*src[ 14*line ] + 
+        g_aiT32[18][k]*src[ 18*line ] + g_aiT32[22][k]*src[ 22*line ] + g_aiT32[26][k]*src[ 26*line ] + g_aiT32[30][k]*src[ 30*line ];
     }
     for (k=0;k<4;k++)
     {
-      EEO[k] = g_aiT32[4][k]*tmp[ 4*line ] + g_aiT32[12][k]*tmp[ 12*line ] + g_aiT32[20][k]*tmp[ 20*line ] + g_aiT32[28][k]*tmp[ 28*line ];
+      EEO[k] = g_aiT32[4][k]*src[ 4*line ] + g_aiT32[12][k]*src[ 12*line ] + g_aiT32[20][k]*src[ 20*line ] + g_aiT32[28][k]*src[ 28*line ];
     }
-    EEEO[0] = g_aiT32[8][0]*tmp[ 8*line ] + g_aiT32[24][0]*tmp[ 24*line ];
-    EEEO[1] = g_aiT32[8][1]*tmp[ 8*line ] + g_aiT32[24][1]*tmp[ 24*line ];
-    EEEE[0] = g_aiT32[0][0]*tmp[ 0      ] + g_aiT32[16][0]*tmp[ 16*line ];    
-    EEEE[1] = g_aiT32[0][1]*tmp[ 0      ] + g_aiT32[16][1]*tmp[ 16*line ];
+    EEEO[0] = g_aiT32[8][0]*src[ 8*line ] + g_aiT32[24][0]*src[ 24*line ];
+    EEEO[1] = g_aiT32[8][1]*src[ 8*line ] + g_aiT32[24][1]*src[ 24*line ];
+    EEEE[0] = g_aiT32[0][0]*src[ 0      ] + g_aiT32[16][0]*src[ 16*line ];    
+    EEEE[1] = g_aiT32[0][1]*src[ 0      ] + g_aiT32[16][1]*src[ 16*line ];
 
     /* Combining even and odd terms at each hierarchy levels to calculate the final spatial domain vector */
     EEE[0] = EEEE[0] + EEEO[0];
@@ -1247,11 +1247,11 @@ void partialButterflyInverse32(short *tmp,short *block,int shift, int line)
     }    
     for (k=0;k<16;k++)
     {
-      block[ k    ] = (E[k] + O[k] + add)>>shift;
-      block[ k+16 ] = (E[15-k] - O[15-k] + add)>>shift;
+      dst[ k    ] = (E[k] + O[k] + add)>>shift;
+      dst[ k+16 ] = (E[15-k] - O[15-k] + add)>>shift;
     }
-    tmp ++;
-    block += 32;
+    src ++;
+    dst += 32;
   }
 }
 #endif
@@ -4234,12 +4234,9 @@ __inline UInt TComTrQuant::xGetCodedLevel  ( Double&                         rd6
 
 /** Calculates the cost for specific absolute transform level
  * \param uiAbsLevel scaled quantized level
- * \param bLastScanPos last scan position
- * \param ui16CtxNumSig current ctxInc for coeff_abs_significant_flag
  * \param ui16CtxNumOne current ctxInc for coeff_abs_level_greater1 (1st bin of coeff_abs_level_minus1 in AVC)
  * \param ui16CtxNumAbs current ctxInc for coeff_abs_level_greater2 (remaining bins of coeff_abs_level_minus1 in AVC)
  * \param ui16AbsGoRice Rice parameter for coeff_abs_level_minus3
- * \param ui16CtxBase current global offset for coeff_abs_level_greater1 and coeff_abs_level_greater2
  * \returns cost of given absolute transform level
  */
 __inline Double TComTrQuant::xGetICRateCost  ( UInt                            uiAbsLevel,
