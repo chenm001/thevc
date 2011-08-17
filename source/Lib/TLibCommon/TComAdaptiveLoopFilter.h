@@ -115,7 +115,7 @@ void initMatrix_int(int ***m2D, int d1, int d2);
 
 #if MTK_NONCROSS_INLOOP_FILTER
 #if STAR_CROSS_SHAPES_LUMA
-#define EXTEND_NUM_PEL     5
+#define EXTEND_NUM_PEL    (UInt)(FILTER_LENGTH/2)
 #else
 #define EXTEND_NUM_PEL    (UInt)(ALF_MAX_NUM_TAP/2)
 #endif
