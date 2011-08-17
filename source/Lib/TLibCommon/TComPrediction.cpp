@@ -762,7 +762,7 @@ Void  TComPrediction::xPredInterLumaBlk( TComDataCU* pcCU, TComPicYuv* pcPicYuvR
 
 #if GENERIC_IF
 /**
- * \brief Generate motion-compensated luma block
+ * \brief Generate motion-compensated chroma block
  *
  * \param cu       Pointer to current CU
  * \param refPic   Pointer to reference picture
@@ -773,48 +773,48 @@ Void  TComPrediction::xPredInterLumaBlk( TComDataCU* pcCU, TComPicYuv* pcPicYuvR
  * \param dstPic   Pointer to destination picture
  * \param bi       Flag indicating whether bipred is used
  */
-Void TComPrediction::xPredInterChromaBlk( TComDataCU* pcCU, TComPicYuv* pcPicYuvRef, UInt uiPartAddr, TComMv* pcMv, Int iWidth, Int iHeight, TComYuv*& rpcYuv, Bool bi )
+Void TComPrediction::xPredInterChromaBlk( TComDataCU *cu, TComPicYuv *refPic, UInt partAddr, TComMv *mv, Int width, Int height, TComYuv *&dstPic, Bool bi )
 {
-  Int     iRefStride  = pcPicYuvRef->getCStride();
-  Int     iDstStride  = rpcYuv->getCStride();
+  Int     refStride  = refPic->getCStride();
+  Int     dstStride  = dstPic->getCStride();
   
-  Int     iRefOffset  = (pcMv->getHor() >> 3) + (pcMv->getVer() >> 3) * iRefStride;
+  Int     refOffset  = (mv->getHor() >> 3) + (mv->getVer() >> 3) * refStride;
   
-  Pel*    piRefCb     = pcPicYuvRef->getCbAddr( pcCU->getAddr(), pcCU->getZorderIdxInCU() + uiPartAddr ) + iRefOffset;
-  Pel*    piRefCr     = pcPicYuvRef->getCrAddr( pcCU->getAddr(), pcCU->getZorderIdxInCU() + uiPartAddr ) + iRefOffset;
+  Pel*    refCb     = refPic->getCbAddr( cu->getAddr(), cu->getZorderIdxInCU() + partAddr ) + refOffset;
+  Pel*    refCr     = refPic->getCrAddr( cu->getAddr(), cu->getZorderIdxInCU() + partAddr ) + refOffset;
   
-  Pel* piDstCb = rpcYuv->getCbAddr( uiPartAddr );
-  Pel* piDstCr = rpcYuv->getCrAddr( uiPartAddr );
+  Pel* dstCb = dstPic->getCbAddr( partAddr );
+  Pel* dstCr = dstPic->getCrAddr( partAddr );
   
-  Int     ixFrac  = pcMv->getHor() & 0x7;
-  Int     iyFrac  = pcMv->getVer() & 0x7;
-  UInt    uiCWidth  = iWidth  >> 1;
-  UInt    uiCHeight = iHeight >> 1;
+  Int     xFrac  = mv->getHor() & 0x7;
+  Int     yFrac  = mv->getVer() & 0x7;
+  UInt    cxWidth  = width  >> 1;
+  UInt    cxHeight = height >> 1;
   
-  Int     iExtStride = m_filteredBlockTmp[0].getStride();
-  Short*  piExtY     = m_filteredBlockTmp[0].getLumaAddr();
+  Int     extStride = m_filteredBlockTmp[0].getStride();
+  Short*  extY      = m_filteredBlockTmp[0].getLumaAddr();
   
   Int filterSize = NTAPS_CHROMA;
   
   Int halfFilterSize = (filterSize>>1);
   
-  if ( iyFrac == 0 )
+  if ( yFrac == 0 )
   {
-    m_if.filterHorChroma(piRefCb, iRefStride, piDstCb,  iDstStride, uiCWidth, uiCHeight, ixFrac, !bi);    
-    m_if.filterHorChroma(piRefCr, iRefStride, piDstCr,  iDstStride, uiCWidth, uiCHeight, ixFrac, !bi);    
+    m_if.filterHorChroma(refCb, refStride, dstCb,  dstStride, cxWidth, cxHeight, xFrac, !bi);    
+    m_if.filterHorChroma(refCr, refStride, dstCr,  dstStride, cxWidth, cxHeight, xFrac, !bi);    
   }
-  else if ( ixFrac == 0 )
+  else if ( xFrac == 0 )
   {
-    m_if.filterVerChroma(piRefCb, iRefStride, piDstCb, iDstStride, uiCWidth, uiCHeight, iyFrac, true, !bi);    
-    m_if.filterVerChroma(piRefCr, iRefStride, piDstCr, iDstStride, uiCWidth, uiCHeight, iyFrac, true, !bi);    
+    m_if.filterVerChroma(refCb, refStride, dstCb, dstStride, cxWidth, cxHeight, yFrac, true, !bi);    
+    m_if.filterVerChroma(refCr, refStride, dstCr, dstStride, cxWidth, cxHeight, yFrac, true, !bi);    
   }
   else
   {
-    m_if.filterHorChroma(piRefCb - (halfFilterSize-1)*iRefStride, iRefStride, piExtY,  iExtStride, uiCWidth, uiCHeight+filterSize-1, ixFrac, false);
-    m_if.filterVerChroma(piExtY  + (halfFilterSize-1)*iExtStride, iExtStride, piDstCb, iDstStride, uiCWidth, uiCHeight  , iyFrac, false, !bi);
+    m_if.filterHorChroma(refCb - (halfFilterSize-1)*refStride, refStride, extY,  extStride, cxWidth, cxHeight+filterSize-1, xFrac, false);
+    m_if.filterVerChroma(extY  + (halfFilterSize-1)*extStride, extStride, dstCb, dstStride, cxWidth, cxHeight  , yFrac, false, !bi);
     
-    m_if.filterHorChroma(piRefCr - (halfFilterSize-1)*iRefStride, iRefStride, piExtY,  iExtStride, uiCWidth, uiCHeight+filterSize-1, ixFrac, false);
-    m_if.filterVerChroma(piExtY  + (halfFilterSize-1)*iExtStride, iExtStride, piDstCr, iDstStride, uiCWidth, uiCHeight  , iyFrac, false, !bi);    
+    m_if.filterHorChroma(refCr - (halfFilterSize-1)*refStride, refStride, extY,  extStride, cxWidth, cxHeight+filterSize-1, xFrac, false);
+    m_if.filterVerChroma(extY  + (halfFilterSize-1)*extStride, extStride, dstCr, dstStride, cxWidth, cxHeight  , yFrac, false, !bi);    
   }
 }
 #else
