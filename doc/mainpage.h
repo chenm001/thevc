@@ -9,7 +9,7 @@
  *
  *  This is the doxygen generated documentation of the HEVC HM reference software. 
  *     
- *  For detailed information see the sub-pages if this site.
+ *  For detailed information see the sub-pages of this site.
  *
  *  For information on the <b>subversion repositories</b> and the <b>software manual</b> see
  *  http://hevc.hhi.fraunhofer.de
