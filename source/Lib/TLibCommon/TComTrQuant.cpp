@@ -1402,12 +1402,21 @@ Int TComTrQuant::bitCountRDOQ(Int coeff, Int pos, Int nTab, Int lastCoeffFlag,In
                               )
 #endif
 #else
+#if TBL_RUN_ADAPT
+Int TComTrQuant::bitCountRDOQ(Int coeff, Int pos, Int nTab, Int lastCoeffFlag,Int levelMode,Int run, Int maxrun, Int *vlc_adaptive, Int N, 
+                              UInt uiTr1, Int iSum_big_coef, Int iBlockType, TComDataCU* pcCU, const UInt **pLumaRunTr1
+#if CAVLC_RUNLEVEL_TABLE_REM
+                              , Int isIntra
+#endif
+                              )
+#else
 Int TComTrQuant::bitCountRDOQ(Int coeff, Int pos, Int nTab, Int lastCoeffFlag,Int levelMode,Int run, Int maxrun, Int vlc_adaptive, Int N, 
                               UInt uiTr1, Int iSum_big_coef, Int iBlockType, TComDataCU* pcCU, const UInt **pLumaRunTr1
 #if CAVLC_RUNLEVEL_TABLE_REM
                               , Int isIntra
 #endif
                               )
+#endif
 #endif
 #else
 Int TComTrQuant::bitCountRDOQ(Int coeff, Int pos, Int nTab, Int lastCoeffFlag,Int levelMode,Int run, Int maxrun, Int vlc_adaptive, Int N, 
@@ -2633,12 +2642,21 @@ Void TComTrQuant::xRateDistOptQuant_LCEC(TComDataCU* pcCU, Int* pSrcCoeff, TCoef
           )<<uiBitShift;
 #endif
 #else
+#if TBL_RUN_ADAPT
+        iRate = bitCountRDOQ(iLevel,uiScanPos,iBlockType,iLpFlag,iLevelMode,iRun,iMaxrun, &iVlc_adaptive,
+                             coeffBlkSize,uiTr1, iSum_big_coef, iBlockType, pcCU, pLumaRunTr1
+#if CAVLC_RUNLEVEL_TABLE_REM
+                             , pcCU->isIntra(uiAbsPartIdx)
+#endif
+                             )<<uiBitShift;
+#else
         iRate = bitCountRDOQ(iLevel,uiScanPos,iBlockType,iLpFlag,iLevelMode,iRun,iMaxrun,iVlc_adaptive,
                              coeffBlkSize,uiTr1, iSum_big_coef, iBlockType, pcCU, pLumaRunTr1
 #if CAVLC_RUNLEVEL_TABLE_REM
                              , pcCU->isIntra(uiAbsPartIdx)
 #endif
                              )<<uiBitShift;
+#endif
 #endif
 #else
         if ( uiWidth == 4 )
