@@ -141,7 +141,7 @@ Void TEncTop::destroy ()
   if (m_cSPS.getUseSAO())
   {
     m_cEncSAO.destroy();
-    m_cEncSAO.destoryEncBuffer();
+    m_cEncSAO.destroyEncBuffer();
   }
 #endif
   m_cAdaptiveLoopFilter.destroy();

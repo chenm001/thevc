@@ -6644,10 +6644,9 @@ Void TEncSampleAdaptiveOffset::xQuadTreeDecisionFunc(SAOQTPart *psQTPart, Int iP
     dCostFinal = pOnePart->dMinCost;
   }
 }
-/** destory TEncSampleAdaptiveOffset class.
- * \param  
+/** delete allocated memory of TEncSampleAdaptiveOffset class.
  */
-Void TEncSampleAdaptiveOffset::destoryEncBuffer()
+Void TEncSampleAdaptiveOffset::destroyEncBuffer()
 {
 
     for (Int i=0;i<m_iNumTotalParts;i++)
@@ -6941,7 +6940,6 @@ Void TEncSampleAdaptiveOffset::startSaoEnc( TComPic* pcPic, TEncEntropy* pcEntro
 }
 
 /** end Sao Encoder.
- * \param 
  */
 Void TEncSampleAdaptiveOffset::endSaoEnc()
 {

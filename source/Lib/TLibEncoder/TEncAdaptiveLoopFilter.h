@@ -96,7 +96,7 @@ public:
   Void calcAoStatsCuOrg(Int iAddr, Int iPartIdx, Int iYCbCr);
 #endif
 
-  Void destoryEncBuffer();
+  Void destroyEncBuffer();
   Void createEncBuffer();
 };
 #endif
