@@ -45,6 +45,9 @@
 #include "TLibCommon/TComPicYuv.h"
 #include "TEncCu.h"
 
+//! \ingroup TLibEncoder
+//! \{
+
 class TEncTop;
 class TEncGOP;
 
@@ -118,6 +121,6 @@ public:
   Void    setSliceIdx(UInt i)   { m_uiSliceIdx = i;                       }
 };
 
+//! \}
 
 #endif // __TENCSLICE__
-

@@ -37,6 +37,8 @@
 
 #include "TDecBinCoderCABAC.h"
 
+//! \ingroup TLibDecoder
+//! \{
 
 TDecBinCABAC::TDecBinCABAC()
 : m_pcTComBitstream( 0 )
@@ -245,3 +247,4 @@ Void  TDecBinCABAC::xReadPCMCode(UInt uiLength, UInt& ruiCode)
   m_pcTComBitstream->read (uiLength, ruiCode);
 }
 #endif
+//! \}

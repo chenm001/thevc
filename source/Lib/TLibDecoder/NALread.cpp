@@ -41,6 +41,9 @@
 
 using namespace std;
 
+//! \ingroup TLibDecoder
+//! \{
+
 static void convertPayloadToRBSP(vector<uint8_t>& nalUnitBuf)
 {
   unsigned zeroCount = 0;
@@ -95,3 +98,4 @@ void read(InputNALUnit& nalu, vector<uint8_t>& nalUnitBuf)
     break;
   }
 }
+//! \}

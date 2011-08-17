@@ -59,6 +59,9 @@
 #include <vector>
 #endif
 
+//! \ingroup TLibEncoder
+//! \{
+
 class TEncTop;
 
 // ====================================================================================================================
@@ -164,6 +167,7 @@ enum PROCESSING_STATE
 };
 #endif
 
+//! \}
 
 #endif // __TENCGOP__
 

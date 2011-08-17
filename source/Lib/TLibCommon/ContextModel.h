@@ -45,6 +45,8 @@
 
 #include "CommonDef.h"
 
+//! \ingroup TLibCommon
+//! \{
 
 // ====================================================================================================================
 // Class definition
@@ -80,6 +82,8 @@ private:
   static const  UChar m_aucNextStateLPS[ 128 ];
   static const Int m_entropyBits[ 128 ];
 };
+
+//! \}
 
 #endif
 

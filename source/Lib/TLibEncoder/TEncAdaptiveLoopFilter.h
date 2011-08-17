@@ -45,6 +45,9 @@
 #include "TEncSbac.h"
 #include "TLibCommon/TComBitCounter.h"
 
+//! \ingroup TLibEncoder
+//! \{
+
 // ====================================================================================================================
 // Class definition
 // ====================================================================================================================
@@ -448,6 +451,8 @@ public:
   /// set shared ALF parameters in PPS enabled/disabled
   Void setSharedPPSAlfParamEnabled(Bool b) {m_bSharedPPSAlfParamEnabled = b;}
 #endif
-
 };
+
+//! \}
+
 #endif

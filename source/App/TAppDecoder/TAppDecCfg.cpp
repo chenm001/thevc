@@ -48,6 +48,9 @@
 using namespace std;
 namespace po = df::program_options_lite;
 
+//! \ingroup TAppDecoder
+//! \{
+
 // ====================================================================================================================
 // Public member functions
 // ====================================================================================================================
@@ -100,3 +103,5 @@ Bool TAppDecCfg::parseCfg( Int argc, Char* argv[] )
 
   return true;
 }
+
+//! \}

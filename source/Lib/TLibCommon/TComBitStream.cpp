@@ -43,6 +43,9 @@
 
 using namespace std;
 
+//! \ingroup TLibCommon
+//! \{
+
 // ====================================================================================================================
 // Constructor / destructor / create / destroy
 // ====================================================================================================================
@@ -242,3 +245,4 @@ void TComOutputBitstream::insertAt(const TComOutputBitstream& src, unsigned pos)
   vector<uint8_t>::iterator at = this->m_fifo->begin() + pos;
   this->m_fifo->insert(at, src.m_fifo->begin(), src.m_fifo->end());
 }
+//! \}

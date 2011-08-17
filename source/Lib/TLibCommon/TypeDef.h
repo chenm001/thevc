@@ -38,6 +38,9 @@
 #ifndef _TYPEDEF__
 #define _TYPEDEF__
 
+//! \ingroup TLibCommon
+//! \{
+
 ////////////////////////////
 // BoG Context Reduction
 ////////////////////////////
@@ -681,6 +684,8 @@ enum COEFF_SCAN_TYPE
 #endif
 };
 #endif //QC_MDCS
+
+//! \}
 
 #endif
 

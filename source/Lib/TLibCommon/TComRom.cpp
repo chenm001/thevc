@@ -43,6 +43,9 @@
 // Initialize / destroy functions
 // ====================================================================================================================
 
+//! \ingroup TLibCommon
+//! \{
+
 // initialize ROM variables
 Void initROM()
 {
@@ -2112,3 +2115,4 @@ Void initNonSquareSigLastScan(UInt* pBuffZ, UInt uiWidth, UInt uiHeight)
 
 }
 #endif
+//! \}

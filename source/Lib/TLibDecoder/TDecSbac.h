@@ -50,6 +50,9 @@
 #include "TLibCommon/ContextModel.h"
 #include "TLibCommon/ContextModel3DBuffer.h"
 
+//! \ingroup TLibDecoder
+//! \{
+
 // ====================================================================================================================
 // Class definition
 // ====================================================================================================================
@@ -210,5 +213,7 @@ private:
 #endif
 
 };
+
+//! \}
 
 #endif // !defined(AFX_TDECSBAC_H__CFCAAA19_8110_47F4_9A16_810C4B5499D5__INCLUDED_)

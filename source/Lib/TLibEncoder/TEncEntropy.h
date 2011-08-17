@@ -260,6 +260,7 @@ public:
 
 };// END CLASS DEFINITION TEncEntropy
 
+//! \}
 
 #endif // __TENCENTROPY__
 

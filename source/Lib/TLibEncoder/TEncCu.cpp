@@ -46,6 +46,9 @@
 using namespace std;
 #endif
 
+//! \ingroup TLibEncoder
+//! \{
+
 // ====================================================================================================================
 // Constructor / destructor / create / destroy
 // ====================================================================================================================
@@ -2075,3 +2078,4 @@ Void TEncCu::xCopyYuv2Tmp( UInt uiPartUnitIdx, UInt uiNextDepth )
   m_ppcRecoYuvBest[uiNextDepth]->copyToPartYuv( m_ppcRecoYuvTemp[uiCurrDepth], uiPartUnitIdx );
 }
 
+//! \}

@@ -41,6 +41,9 @@
 #include "TEncSearch.h"
 #include <math.h>
 
+//! \ingroup TLibEncoder
+//! \{
+
 static TComMv s_acMvRefineH[9] =
 {
   TComMv(  0,  0 ), // 0
@@ -5846,3 +5849,4 @@ Void TEncSearch::xExtDIFUpSamplingQ   ( TComPattern* pcPatternKey, Pel* piDst, I
 }
 #endif
 
+//! \}

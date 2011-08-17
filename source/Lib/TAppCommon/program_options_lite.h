@@ -36,6 +36,10 @@
 #include <list>
 #include <map>
 
+//! \ingroup TAppCommon
+//! \{
+
+
 namespace df
 {
   namespace program_options_lite
@@ -202,3 +206,5 @@ namespace df
     
   }; /* namespace: program_options_lite */
 }; /* namespace: df */
+
+//! \}

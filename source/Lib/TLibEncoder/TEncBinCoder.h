@@ -41,9 +41,10 @@
 #include "TLibCommon/ContextModel.h"
 #include "TLibCommon/TComBitStream.h"
 
+//! \ingroup TLibEncoder
+//! \{
 
 class TEncBinCABAC;
-
 
 class TEncBinIf
 {
@@ -74,6 +75,7 @@ public:
   virtual ~TEncBinIf() {}
 };
 
+//! \}
 
 #endif
 

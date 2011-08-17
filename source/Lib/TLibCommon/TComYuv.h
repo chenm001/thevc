@@ -43,6 +43,9 @@
 #include "CommonDef.h"
 #include "TComPicYuv.h"
 
+//! \ingroup TLibCommon
+//! \{
+
 // ====================================================================================================================
 // Class definition
 // ====================================================================================================================
@@ -189,6 +192,6 @@ public:
   UInt    getCWidth   ()    { return  m_iCWidth;  }  
 };// END CLASS DEFINITION TComYuv
 
+//! \}
 
 #endif // __TCOMYUV__
-

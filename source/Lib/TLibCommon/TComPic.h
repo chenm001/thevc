@@ -44,6 +44,9 @@
 #include "TComPicYuv.h"
 #include "TComBitStream.h"
 
+//! \ingroup TLibCommon
+//! \{
+
 class SEImessages;
 
 // ====================================================================================================================
@@ -138,6 +141,6 @@ public:
 
 };// END CLASS DEFINITION TComPic
 
+//! \}
 
 #endif // __TCOMPIC__
-

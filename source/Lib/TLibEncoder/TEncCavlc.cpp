@@ -38,6 +38,8 @@
 #include "TEncCavlc.h"
 #include "SEIwrite.h"
 
+//! \ingroup TLibEncoder
+//! \{
 
 #if ENC_DEC_TRACE
 
@@ -3462,3 +3464,4 @@ Void TEncCavlc::xCodeCoeff8x8( TCoeff* scoeff, Int n )
 }
 #endif
 
+//! \}

@@ -37,6 +37,9 @@
 
 #include "TDecCu.h"
 
+//! \ingroup TLibDecoder
+//! \{
+
 // ====================================================================================================================
 // Constructor / destructor / create / destroy
 // ====================================================================================================================
@@ -998,3 +1001,4 @@ Void TDecCu::xReconPCM( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
 }
 #endif
 
+//! \}

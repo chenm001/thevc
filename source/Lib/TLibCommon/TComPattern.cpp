@@ -39,6 +39,9 @@
 #include "TComPattern.h"
 #include "TComDataCU.h"
 
+//! \ingroup TLibCommon
+//! \{
+
 // ====================================================================================================================
 // Tables
 // ====================================================================================================================
@@ -1764,3 +1767,4 @@ Bool TComPattern::isBelowLeftAvailableForCIP( TComDataCU* pcCU, UInt uiPartIdxLT
   return bBelowLeftFlag;
 #endif
 }
+//! \}

@@ -48,6 +48,9 @@
 #include <assert.h>
 #include "CommonDef.h"
 
+//! \ingroup TLibCommon
+//! \{
+
 // ====================================================================================================================
 // Class definition
 // ====================================================================================================================
@@ -189,5 +192,6 @@ public:
   unsigned getNumBitsLeft() { return 8*((unsigned)m_fifo->size() - m_fifo_idx) + m_num_held_bits; }
 };
 
-#endif
+//! \}
 
+#endif

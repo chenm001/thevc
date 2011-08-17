@@ -34,6 +34,9 @@
 #include "TComPicYuv.h"
 #include "libmd5/MD5.h"
 
+//! \ingroup TLibCommon
+//! \{
+
 /**
  * Update md5 using n samples from plane, each sample is adjusted to
  * OUTBIT_BITDEPTH_DIV8.
@@ -111,3 +114,4 @@ void calcMD5(TComPicYuv& pic, unsigned char digest[16])
 
   md5.finalize(digest);
 }
+//! \}

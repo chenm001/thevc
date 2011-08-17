@@ -38,6 +38,9 @@
 
 using namespace std;
 
+//! \ingroup TLibDecoder
+//! \{
+
 /**
  * Parse an AVC AnnexB Bytestream bs to extract a single nalUnit
  * while accumulating bytestream statistics into stats.
@@ -159,3 +162,4 @@ byteStreamNALUnit(
   stats.m_numBytesInNALUnit = unsigned(nalUnit.size());
   return eof;
 }
+//! \}

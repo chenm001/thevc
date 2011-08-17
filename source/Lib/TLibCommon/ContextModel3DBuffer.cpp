@@ -37,6 +37,9 @@
 
 #include "ContextModel3DBuffer.h"
 
+//! \ingroup TLibCommon
+//! \{
+
 // ====================================================================================================================
 // Constructor / destructor / initialization / destroy
 // ====================================================================================================================
@@ -71,3 +74,4 @@ Void ContextModel3DBuffer::initBuffer( SliceType eSliceType, Int iQp, Short* psC
     m_contextModel[ n ].init( iQp, psCtxModel + 2 * n );
   }
 }
+//! \}

@@ -36,6 +36,9 @@
 #include "TLibCommon/SEI.h"
 #include "SEIwrite.h"
 
+//! \ingroup TLibEncoder
+//! \{
+
 static void writeSEIuserDataUnregistered(TComBitIf& bs, const SEIuserDataUnregistered &sei);
 static void writeSEIpictureDigest(TComBitIf& bs, const SEIpictureDigest& sei);
 
@@ -111,3 +114,4 @@ static void writeSEIpictureDigest(TComBitIf& bs, const SEIpictureDigest& sei)
     bs.write(sei.digest[i], 8);
   }
 }
+//! \}

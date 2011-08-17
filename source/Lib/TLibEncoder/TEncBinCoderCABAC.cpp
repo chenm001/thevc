@@ -39,6 +39,10 @@
 #include "TLibCommon/TComRom.h"
 
 
+//! \ingroup TLibEncoder
+//! \{
+
+
 TEncBinCABAC::TEncBinCABAC()
 : m_pcTComBitIf( 0 )
 , m_binCountIncrement( 0 )
@@ -337,3 +341,4 @@ Void TEncBinCABAC::writeOut()
     }      
   }    
 }
+//! \}

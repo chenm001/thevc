@@ -38,6 +38,9 @@
 #include "TDecCAVLC.h"
 #include "SEIread.h"
 
+//! \ingroup TLibDecoder
+//! \{
+
 #if ENC_DEC_TRACE
 
 #define READ_CODE(size, code, name)     xReadCodeTr ( size, code, name )
@@ -3719,3 +3722,4 @@ Void TDecCavlc::xParseCoeff(TCoeff* scoeff, Int blockType, Int blSize
 
 #endif
 
+//! \}

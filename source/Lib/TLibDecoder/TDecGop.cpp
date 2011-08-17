@@ -47,6 +47,9 @@ extern bool g_md5_mismatch; ///< top level flag to signal when there is a decode
 
 #include <time.h>
 
+//! \ingroup TLibDecoder
+//! \{
+
 static void calcAndPrintMD5Status(TComPicYuv& pic, const SEImessages* seis);
 
 // ====================================================================================================================
@@ -467,3 +470,4 @@ static void calcAndPrintMD5Status(TComPicYuv& pic, const SEImessages* seis)
     printf("[rxMD5:%s] ", digestToString(seis->picture_digest->digest));
   }
 }
+//! \}

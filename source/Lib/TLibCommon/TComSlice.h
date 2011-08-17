@@ -43,6 +43,9 @@
 #include "TComRom.h"
 #include "TComList.h"
 
+//! \ingroup TLibCommon
+//! \{
+
 class TComPic;
 
 // ====================================================================================================================
@@ -564,6 +567,6 @@ protected:
                          UInt                uiTLayer );
 };// END CLASS DEFINITION TComSlice
 
+//! \}
 
 #endif // __TCOMSLICE__
-

@@ -40,6 +40,9 @@
 
 #include <map>
 
+//! \ingroup TLibEncoder
+//! \{
+
 // ====================================================================================================================
 // Constructor / destructor / create / destroy
 // ====================================================================================================================
@@ -2315,3 +2318,4 @@ Void TEncSbac::estSignificantCoefficientsBit( estBitsSbacStruct* pcEstBitsSbac, 
     pcEstBitsSbac->m_levelAbsBits[ ctxIdx ][ 1 ] = ctxAbs[ ctxIdx ].getEntropyBits( 1 );    
   }
 }
+//! \}

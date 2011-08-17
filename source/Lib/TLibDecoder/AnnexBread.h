@@ -37,6 +37,9 @@
 #include <istream>
 #include <vector>
 
+//! \ingroup TLibDecoder
+//! \{
+
 class InputByteStream
 {
 public:
@@ -172,3 +175,5 @@ struct AnnexBStats
 };
 
 bool byteStreamNALUnit(InputByteStream& bs, std::vector<uint8_t>& nalUnit, AnnexBStats& stats);
+
+//! \}

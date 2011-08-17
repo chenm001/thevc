@@ -52,6 +52,9 @@
 
 struct InputNALUnit;
 
+//! \ingroup TLibDecoder
+//! \{
+
 #if E045_SLICE_COMMON_INFO_SHARING
 #define MAX_NUM_PPS 1
 #define MAX_NUM_PPS_BUFFER (MAX_NUM_PPS +1)
@@ -154,6 +157,8 @@ protected:
   
 };// END CLASS DEFINITION TDecTop
 
+
+//! \}
 
 #endif // __TDECTOP__
 

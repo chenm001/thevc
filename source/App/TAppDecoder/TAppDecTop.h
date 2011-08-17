@@ -48,6 +48,9 @@
 #include "TLibDecoder/TDecTop.h"
 #include "TAppDecCfg.h"
 
+//! \ingroup TAppDecoder
+//! \{
+
 // ====================================================================================================================
 // Class definition
 // ====================================================================================================================
@@ -79,6 +82,8 @@ protected:
   
   Void  xWriteOutput      ( TComList<TComPic*>* pcListPic ); ///< write YUV to file
 };
+
+//! \}
 
 #endif
 

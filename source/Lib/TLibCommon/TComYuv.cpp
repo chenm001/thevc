@@ -47,6 +47,9 @@
 #include "TComInterpolationFilter.h"
 #endif
 
+//! \ingroup TLibCommon
+//! \{
+
 TComYuv::TComYuv()
 {
   m_apiBufY = NULL;
@@ -644,3 +647,4 @@ Pel* TComYuv::getCrAddrPix( UInt iBlkX, UInt iBlkY )
   return m_apiBufV + ( iBlkY ) * getCStride() + ( iBlkX );
 }
 #endif
+//! \}

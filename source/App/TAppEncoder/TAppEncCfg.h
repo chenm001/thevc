@@ -40,6 +40,9 @@
 
 #include "TLibCommon/CommonDef.h"
 
+//! \ingroup TAppEncoder
+//! \{
+
 // ====================================================================================================================
 // Class definition
 // ====================================================================================================================
@@ -204,6 +207,8 @@ public:
   Bool  parseCfg  ( Int argc, Char* argv[] );                 ///< parse configuration file to fill member variables
   
 };// END CLASS DEFINITION TAppEncCfg
+
+//! \}
 
 #endif // __TAPPENCCFG__
 

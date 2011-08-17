@@ -45,6 +45,9 @@
 #include "CommonDef.h"
 #include "ContextModel.h"
 
+//! \ingroup TLibCommon
+//! \{
+
 // ====================================================================================================================
 // Class definition
 // ====================================================================================================================
@@ -88,5 +91,7 @@ public:
     ::memcpy( m_contextModel, src->m_contextModel, sizeof(ContextModel) * m_sizeXYZ );
   }
 };
+
+//! \}
 
 #endif // _HM_CONTEXT_MODEL_3DBUFFER_H_

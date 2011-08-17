@@ -39,6 +39,9 @@
 #include "TLibCommon/TComBitStream.h"
 #include "TLibCommon/NAL.h"
 
+//! \ingroup TLibEncoder
+//! \{
+
 /**
  * A convenience wrapper to NALUnit that also provides a
  * bitstream object.
@@ -78,3 +81,5 @@ inline NALUnitEBSP::NALUnitEBSP(const OutputNALUnit& nalu)
 {
   write(m_nalUnitData, nalu);
 }
+
+//! \}

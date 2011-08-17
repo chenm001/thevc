@@ -33,6 +33,9 @@
 #pragma once
 #include "libmd5.h"
 
+//! \ingroup libMD5
+//! \{
+
 class MD5 {
 public:
   /**
@@ -81,4 +84,4 @@ digestToString(unsigned char digest[16])
   }
   return string;
 }
-
+//! \}

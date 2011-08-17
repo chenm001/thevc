@@ -43,6 +43,9 @@
 #include "TComPattern.h"
 #include "TComMv.h"
 
+//! \ingroup TLibCommon
+//! \{
+
 class DistParam;
 class TComPattern;
 
@@ -219,6 +222,6 @@ public:
   
 };// END CLASS DEFINITION TComRdCost
 
+//! \}
 
 #endif // __TCOMRDCOST__
-

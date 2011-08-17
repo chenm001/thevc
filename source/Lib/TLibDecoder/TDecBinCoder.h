@@ -41,6 +41,8 @@
 #include "TLibCommon/ContextModel.h"
 #include "TLibCommon/TComBitStream.h"
 
+//! \ingroup TLibDecoder
+//! \{
 
 class TDecBinIf
 {
@@ -65,5 +67,6 @@ public:
   virtual ~TDecBinIf() {}
 };
 
-#endif
+//! \}
 
+#endif

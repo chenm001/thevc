@@ -40,6 +40,9 @@
 
 #include "TLibCommon/CommonDef.h"
 
+//! \ingroup TLibCommon
+//! \{
+
 /**
  * \brief static class for CABAC tables
  */
@@ -52,5 +55,6 @@ public:
 };
 
 
-#endif
+//! \}
 
+#endif

@@ -42,6 +42,9 @@
 #include "CommonDef.h"
 #include "TComRom.h"
 
+//! \ingroup TLibCommon
+//! \{
+
 // ====================================================================================================================
 // Class definition
 // ====================================================================================================================
@@ -163,5 +166,6 @@ public:
 
 void calcMD5(TComPicYuv& pic, unsigned char digest[16]);
 
-#endif // __TCOMPICYUV__
+//! \}
 
+#endif // __TCOMPICYUV__

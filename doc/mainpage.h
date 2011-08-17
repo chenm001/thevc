@@ -2,14 +2,14 @@
 
 /**
  * \file mainpage.h
- * \brief HEVC referece documentation main page (no functional user)
+ * \brief HEVC referece documentation main page (no functional use)
  * \mainpage
  *
  * \section Introduction
  *
- *   This is the Doxygen generated documentation of the HEVC HM reference software. 
+ *  This is the doxygen generated documentation of the HEVC HM reference software. 
  *     
- *  For detailed documentation see the comments in each file.
+ *  For detailed information see the sub-pages if this site.
  *
  *  For information on the <b>subversion repositories</b> and the <b>software manual</b> see
  *  http://hevc.hhi.fraunhofer.de
@@ -52,6 +52,14 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  *
  *  \note
- *     tags are used for document system "doxygen"
- *     available at http://www.doxygen.org
+ *     This document is automatically generated from the source code and special documentation tags.
+ *     For more details on the used documentation system see http://www.doxygen.org
+ *
+ *  \defgroup TLibCommon   TLibCommon  - Library containing functionality that is shared between encoder and decoder
+ *  \defgroup TLibEncoder  TLibEncoder - Library containing encoder functionality
+ *  \defgroup TLibDecoder  TLibDecoder - Library containing encoder functionality
+ *  \defgroup libMD5       libMD5      - MD5 helper functions
+ *  \defgroup TAppCommon   TAppCommon  - Application support library
+ *  \defgroup TAppEncoder  TAppEncoder - Encoder application
+ *  \defgroup TAppDecoder  TAppDecoder - Decoder application
  */

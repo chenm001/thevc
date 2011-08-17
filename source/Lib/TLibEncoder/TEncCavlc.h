@@ -47,6 +47,9 @@
 #include "TEncEntropy.h"
 #include "TLibCommon/TComRom.h"
 
+//! \ingroup TLibEncoder
+//! \{
+
 class TEncTop;
 
 // ====================================================================================================================
@@ -285,6 +288,8 @@ public:
   Bool  getAdaptFlag          ()          { return m_bAdaptFlag; }
   Void  setAdaptFlag          ( Bool b )  { m_bAdaptFlag = b;     }
 };
+
+//! \}
 
 #endif // !defined(AFX_TENCCAVLC_H__EE8A0B30_945B_4169_B290_24D3AD52296F__INCLUDED_)
 

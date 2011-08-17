@@ -42,6 +42,9 @@
 
 using namespace std;
 
+//! \ingroup TLibEncoder
+//! \{
+
 /** Constructor
  */
 TEncPreanalyzer::TEncPreanalyzer()
@@ -134,3 +137,5 @@ Void TEncPreanalyzer::xPreanalyze( TEncPic* pcEPic )
     pcAQLayer->setAvgActivity( dAvgAct );
   }
 }
+//! \}
+

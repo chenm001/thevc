@@ -52,6 +52,9 @@
 #include "TEncSbac.h"
 #include "TEncCfg.h"
 
+//! \ingroup TLibEncoder
+//! \{
+
 class TEncCu;
 
 // ====================================================================================================================
@@ -453,6 +456,6 @@ protected:
   
 };// END CLASS DEFINITION TEncSearch
 
+//! \}
 
 #endif // __TENCSEARCH__
-

@@ -44,6 +44,9 @@
 #include "TComSlice.h"
 #include "TComDataCU.h"
 
+//! \ingroup TLibCommon
+//! \{
+
 // ====================================================================================================================
 // Class definition
 // ====================================================================================================================
@@ -92,6 +95,7 @@ public:
   UInt        getNumPartInHeight()      { return m_uiNumPartInHeight;           }
 };// END CLASS DEFINITION TComPicSym
 
+//! \}
 
 #endif // __TCOMPICSYM__
 

@@ -37,6 +37,9 @@
 
 #include "TDecEntropy.h"
 
+//! \ingroup TLibDecoder
+//! \{
+
 Void TDecEntropy::setEntropyDecoder         ( TDecEntropyIf* p )
 {
   m_pcEntropyDecoderIf = p;
@@ -1505,3 +1508,4 @@ Void TDecEntropy::decodeSaoParam(SAOParam* pQaoParam)
 }
 
 #endif
+//! \}

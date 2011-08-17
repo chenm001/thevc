@@ -45,6 +45,9 @@
 #include "TLibDecoder/AnnexBread.h"
 #include "TLibDecoder/NALread.h"
 
+//! \ingroup TAppDecoder
+//! \{
+
 // ====================================================================================================================
 // Constructor / destructor / initialization / destroy
 // ====================================================================================================================
@@ -233,3 +236,5 @@ Void TAppDecTop::xWriteOutput( TComList<TComPic*>* pcListPic )
     iterPic++;
   }
 }
+
+//! \}

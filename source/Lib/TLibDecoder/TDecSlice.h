@@ -48,6 +48,9 @@
 #include "TDecEntropy.h"
 #include "TDecCu.h"
 
+//! \ingroup TLibDecoder
+//! \{
+
 // ====================================================================================================================
 // Class definition
 // ====================================================================================================================
@@ -72,6 +75,8 @@ public:
   Void  decompressSlice   ( TComInputBitstream* pcBitstream, TComPic*& rpcPic );
 
 };
+
+//! \}
 
 #endif
 

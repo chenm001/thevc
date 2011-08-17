@@ -41,6 +41,8 @@
 #include "TLibCommon/TComCABACTables.h"
 #include "TDecBinCoder.h"
 
+//! \ingroup TLibDecoder
+//! \{
 
 class TDecBinCABAC : public TDecBinIf
 {
@@ -72,6 +74,7 @@ private:
   Int                 m_bitsNeeded;
 };
 
+//! \}
 
 #endif
 

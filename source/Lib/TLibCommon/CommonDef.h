@@ -48,6 +48,9 @@
 #endif // _MSC_VER > 1000
 #include "TypeDef.h"
 
+//! \ingroup TLibCommon
+//! \{
+
 // ====================================================================================================================
 // Version information
 // ====================================================================================================================
@@ -238,6 +241,7 @@ typedef _AlfParam    ALFParam;
 typedef _SaoParam    SAOParam;
 #endif
 
+//! \}
 
 #endif // end of #ifndef  __COMMONDEF__
 

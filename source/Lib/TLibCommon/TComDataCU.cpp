@@ -39,6 +39,9 @@
 #include "TComDataCU.h"
 #include "TComPic.h"
 
+//! \ingroup TLibCommon
+//! \{
+
 // ====================================================================================================================
 // Constructor / destructor / create / destroy
 // ====================================================================================================================
@@ -5400,3 +5403,4 @@ Void TComDataCU::getPixOffset(UInt uiTrMode,  UInt ui, UInt uiAbsPartIdx, UInt u
   }
 }
 #endif
+//! \}

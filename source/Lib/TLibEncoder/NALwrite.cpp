@@ -41,6 +41,9 @@
 
 using namespace std;
 
+//! \ingroup TLibEncoder
+//! \{
+
 static const char emulation_prevention_three_byte[] = {3};
 
 /**
@@ -139,3 +142,4 @@ void writeRBSPTrailingBits(TComOutputBitstream& bs)
   bs.write( 1, 1 );
   bs.writeAlignZero();
 }
+//! \}

@@ -50,6 +50,9 @@
 using namespace std;
 namespace po = df::program_options_lite;
 
+//! \ingroup TAppEncoder
+//! \{
+
 /* configuration helper funcs */
 void doOldStyleCmdlineOn(po::Options& opts, const std::string& arg);
 void doOldStyleCmdlineOff(po::Options& opts, const std::string& arg);
@@ -739,3 +742,5 @@ void doOldStyleCmdlineOff(po::Options& opts, const std::string& arg)
 {
   translateOldStyleCmdline("0", opts, arg);
 }
+
+//! \}

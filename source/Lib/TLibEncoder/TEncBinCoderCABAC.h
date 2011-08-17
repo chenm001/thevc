@@ -41,6 +41,9 @@
 #include "TLibCommon/TComCABACTables.h"
 #include "TEncBinCoder.h"
 
+//! \ingroup TLibEncoder
+//! \{
+
 
 class TEncBinCABAC : public TEncBinIf
 {
@@ -90,6 +93,7 @@ private:
   Int                 m_binCountIncrement;
 };
 
+//! \}
 
 #endif
 

@@ -43,6 +43,9 @@
 #include "TComDataCU.h"
 #include "ContextTables.h"
 
+//! \ingroup TLibCommon
+//! \{
+
 // ====================================================================================================================
 // Constants
 // ====================================================================================================================
@@ -348,6 +351,6 @@ __inline UInt              xGetCodedLevel  ( Double&                         rd6
   
 };// END CLASS DEFINITION TComTrQuant
 
+//! \}
 
 #endif // __TCOMTRQUANT__
-

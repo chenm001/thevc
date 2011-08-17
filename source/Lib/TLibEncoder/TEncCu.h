@@ -49,6 +49,9 @@
 #include "TEncEntropy.h"
 #include "TEncSearch.h"
 
+//! \ingroup TLibEncoder
+//! \{
+
 class TEncTop;
 class TEncSbac;
 class TEncCavlc;
@@ -170,6 +173,6 @@ protected:
 
 };
 
+//! \}
 
 #endif // __TENCMB__
-

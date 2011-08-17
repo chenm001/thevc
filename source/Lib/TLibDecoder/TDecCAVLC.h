@@ -44,6 +44,9 @@
 
 #include "TDecEntropy.h"
 
+//! \ingroup TLibDecoder
+//! \{
+
 // ====================================================================================================================
 // Class definition
 // ====================================================================================================================
@@ -240,5 +243,8 @@ public:
   Void parseAlfFlagNum      ( UInt& ruiVal, UInt minValue, UInt depth );
   Void parseAlfCtrlFlag     ( UInt &ruiAlfCtrlFlag );
 };
+
+//! \}
+
 #endif // !defined(AFX_TDECCAVLC_H__9732DD64_59B0_4A41_B29E_1A5B18821EAD__INCLUDED_)
 

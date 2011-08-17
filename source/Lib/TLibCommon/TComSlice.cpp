@@ -39,6 +39,9 @@
 #include "TComSlice.h"
 #include "TComPic.h"
 
+//! \ingroup TLibCommon
+//! \{
+
 TComSlice::TComSlice()
 : m_iPPSId                        ( -1 )
 , m_iPOC                          ( 0 )
@@ -943,3 +946,4 @@ TComPPS::~TComPPS()
 {
 }
 
+//! \}

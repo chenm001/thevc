@@ -40,6 +40,8 @@
 #include "ContextModel.h"
 
 using namespace std;
+//! \ingroup TLibCommon
+//! \{
 
 // ====================================================================================================================
 // Public member functions
@@ -104,3 +106,4 @@ const Int ContextModel::m_entropyBits[128] =
   0x0050e, 0x29af6, 0x004cc, 0x2a497, 0x0048d, 0x2ae35, 0x00451, 0x2b7d6, 0x00418, 0x2c176, 0x003e2, 0x2cb15, 0x003af, 0x2d4b5, 0x0037f, 0x2de55
 };
 
+//! \}

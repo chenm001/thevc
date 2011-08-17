@@ -47,6 +47,9 @@
 
 using namespace std;
 
+//! \ingroup TAppEncoder
+//! \{
+
 // ====================================================================================================================
 // Constructor / destructor / initialization / destroy
 // ====================================================================================================================
@@ -412,3 +415,5 @@ void TAppEncTop::printRateSummary()
   printf("Bytes for SPS/PPS/Slice (Incl. Annex B): %u (%.3f kbps)\n", m_essentialBytes, 0.008 * m_essentialBytes / time);
 #endif
 }
+
+//! \}

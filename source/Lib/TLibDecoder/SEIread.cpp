@@ -35,6 +35,9 @@
 #include "TLibCommon/SEI.h"
 #include "SEIread.h"
 
+//! \ingroup TLibDecoder
+//! \{
+
 static void parseSEIuserDataUnregistered(TComInputBitstream& bs, SEIuserDataUnregistered &sei, unsigned payloadSize);
 static void parseSEIpictureDigest(TComInputBitstream& bs, SEIpictureDigest& sei, unsigned payloadSize);
 
@@ -111,3 +114,4 @@ static void parseSEIpictureDigest(TComInputBitstream& bs, SEIpictureDigest& sei,
   }
 }
 
+//! \}

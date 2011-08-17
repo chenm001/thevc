@@ -38,6 +38,9 @@
 #include <memory.h>
 #include "TComPrediction.h"
 
+//! \ingroup TLibCommon
+//! \{
+
 // ====================================================================================================================
 // Constructor / destructor / initialize
 // ====================================================================================================================
@@ -1552,3 +1555,4 @@ Void TComPrediction::xDCPredFiltering( Int* pSrc, Int iSrcStride, Pel*& rpDst, I
   return;
 }
 #endif
+//! \}

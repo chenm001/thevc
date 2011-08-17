@@ -37,6 +37,9 @@
 #include "TLibCommon/TComBitStream.h"
 #include "TLibCommon/NAL.h"
 
+//! \ingroup TLibDecoder
+//! \{
+
 /**
  * A convenience wrapper to NALUnit that also provides a
  * bitstream object.
@@ -47,3 +50,5 @@ struct InputNALUnit : public NALUnit
 };
 
 void read(InputNALUnit& nalu, std::vector<uint8_t>& nalUnitBuf);
+
+//! \}

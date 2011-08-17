@@ -39,6 +39,9 @@
 #include "TLibCommon/TypeDef.h"
 #include "TLibCommon/TComAdaptiveLoopFilter.h"
 
+//! \ingroup TLibEncoder
+//! \{
+
 Void TEncEntropy::setEntropyCoder ( TEncEntropyIf* e, TComSlice* pcSlice )
 {
   m_pcEntropyCoderIf = e;
@@ -1435,3 +1438,4 @@ Int TEncEntropy::countNonZeroCoeffs( TCoeff* pcCoef, UInt uiSize )
   return count;
 }
 
+//! \}

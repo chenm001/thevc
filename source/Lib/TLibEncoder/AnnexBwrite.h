@@ -37,6 +37,9 @@
 #include "TLibCommon/AccessUnit.h"
 #include "NALwrite.h"
 
+//! \ingroup TLibEncoder
+//! \{
+
 /**
  * write all NALunits in au to bytestream out in a manner satisfying
  * AnnexB of AVC.  NALunits are written in the order they are found in au.
@@ -80,3 +83,4 @@ static std::vector<unsigned> writeAnnexB(std::ostream& out, const AccessUnit& au
 
   return annexBsizes;
 }
+//! \}

@@ -43,6 +43,11 @@
 #include "TComRom.h"
 #include "TComInterpolationFilter.h"
 #include <assert.h>
+
+
+//! \ingroup TLibCommon
+//! \{
+
 #if GENERIC_IF
 
 // ====================================================================================================================
@@ -416,3 +421,4 @@ Void TComInterpolationFilter::filterVerChroma(Pel *src, Int srcStride, Short *ds
 
 #endif
 
+//! \}

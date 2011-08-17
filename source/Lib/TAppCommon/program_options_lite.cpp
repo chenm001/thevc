@@ -41,6 +41,9 @@
 
 using namespace std;
 
+//! \ingroup TAppCommon
+//! \{
+
 namespace df
 {
   namespace program_options_lite
@@ -490,3 +493,5 @@ namespace df
 
   };
 };
+
+//! \}

@@ -41,6 +41,9 @@
 
 #include "TypeDef.h"
 
+//! \ingroup TLibCommon
+//! \{
+
 #if GENERIC_IF
 
 #define NTAPS_LUMA        8 ///< Number of taps for luma
@@ -78,4 +81,7 @@ public:
 };
 
 #endif // GENERIC_IF
+
+//! \}
+
 #endif
