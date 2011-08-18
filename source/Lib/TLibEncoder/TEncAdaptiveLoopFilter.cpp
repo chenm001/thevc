@@ -884,6 +884,7 @@ Void TEncAdaptiveLoopFilter::xEncodeCUAlfCtrlFlags()
 
       }
     }
+    return;
   }
 #endif
 
