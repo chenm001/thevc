@@ -122,8 +122,12 @@ void initMatrix_int(int ***m2D, int d1, int d2);
 #else
 #define EXTEND_NUM_PEL    (UInt)(ALF_MAX_NUM_TAP/2)
 #endif
-#define EXTEND_NUM_PEL_C  (UInt)(ALF_MAX_NUM_TAP_C/2)
 
+#if ALF_CHROMA_NEW_SHAPES
+#define EXTEND_NUM_PEL_C  (UInt)(EXTEND_NUM_PEL)
+#else
+#define EXTEND_NUM_PEL_C  (UInt)(ALF_MAX_NUM_TAP_C/2)
+#endif
 /// border direction ID of slice granularity unit 
 enum SGUBorderID
 {
