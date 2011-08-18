@@ -1065,7 +1065,11 @@ Void TDecSbac::parseIntraDirChroma( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt ui
 #if FIXED_MPM
   UInt uiSymbol;
 
+#if DNB_INTRA_CHR_PRED_MODE
   m_pcTDecBinIf->decodeBin( uiSymbol, m_cCUChromaPredSCModel.get( 0, 0, 0 ) );
+#else
+  m_pcTDecBinIf->decodeBin( uiSymbol, m_cCUChromaPredSCModel.get( 0, 0, pcCU->getCtxIntraDirChroma( uiAbsPartIdx ) ) );
+#endif
 
   if( uiSymbol == 0 )
   {
@@ -1075,7 +1079,11 @@ Void TDecSbac::parseIntraDirChroma( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt ui
   {
     if( pcCU->getSlice()->getSPS()->getUseLMChroma() )
     {
+#if DNB_INTRA_CHR_PRED_MODE
       m_pcTDecBinIf->decodeBin( uiSymbol, m_cCUChromaPredSCModel.get( 0, 0, 1 ) );
+#else
+      m_pcTDecBinIf->decodeBin( uiSymbol, m_cCUChromaPredSCModel.get( 0, 0, 3 ) );
+#endif
     }
     else
     {
@@ -1089,7 +1097,11 @@ Void TDecSbac::parseIntraDirChroma( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt ui
     else
     {
       UInt uiIPredMode;
+#if DNB_INTRA_CHR_PRED_MODE
       xReadUnaryMaxSymbol( uiIPredMode, m_cCUChromaPredSCModel.get( 0, 0 ) + 1, 0, 3 );
+#else
+      xReadUnaryMaxSymbol( uiIPredMode, m_cCUChromaPredSCModel.get( 0, 0 ) + 3, 0, 3 );
+#endif
 #if CHROMA_CODEWORD_SWITCH 
       uiIPredMode = ChromaMapping[uiIPredMode];
 #endif
