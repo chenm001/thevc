@@ -35,8 +35,14 @@
     \brief    encoder class
 */
 
-#include "../TLibCommon/CommonDef.h"
+#include "TLibCommon/CommonDef.h"
 #include "TEncTop.h"
+#if QP_ADAPTATION
+#include "TEncPic.h"
+#endif
+
+//! \ingroup TLibEncoder
+//! \{
 
 // ====================================================================================================================
 // Constructor / destructor / create / destroy
@@ -135,7 +141,7 @@ Void TEncTop::destroy ()
   if (m_cSPS.getUseSAO())
   {
     m_cEncSAO.destroy();
-    m_cEncSAO.destoryEncBuffer();
+    m_cEncSAO.destroyEncBuffer();
   }
 #endif
   m_cAdaptiveLoopFilter.destroy();
@@ -242,13 +248,21 @@ Void TEncTop::deletePicBuffer()
  \retval  rcListBitstreamOut  list of output bitstreams
  \retval  iNumEncoded         number of encoded pictures
  */
-Void TEncTop::encode( bool bEos, TComPicYuv* pcPicYuvOrg, TComList<TComPicYuv*>& rcListPicYuvRecOut, list<AccessUnit>& accessUnitsOut, Int& iNumEncoded )
+Void TEncTop::encode( bool bEos, TComPicYuv* pcPicYuvOrg, TComList<TComPicYuv*>& rcListPicYuvRecOut, std::list<AccessUnit>& accessUnitsOut, Int& iNumEncoded )
 {
   TComPic* pcPicCurr = NULL;
   
   // get original YUV
   xGetNewPicBuffer( pcPicCurr );
   pcPicYuvOrg->copyToPic( pcPicCurr->getPicYuvOrg() );
+  
+#if QP_ADAPTATION
+  // compute image characteristics
+  if ( getUseAdaptiveQP() )
+  {
+    m_cPreanalyzer.xPreanalyze( dynamic_cast<TEncPic*>( pcPicCurr ) );
+  }
+#endif
   
   if ( m_iPOCLast != 0 && ( m_iNumPicRcvd != m_iGOPSize && m_iGOPSize ) && !bEos )
   {
@@ -287,7 +301,44 @@ Void TEncTop::xGetNewPicBuffer ( TComPic*& rpcPic )
   // bug-fix - erase frame memory (previous GOP) which is not used for reference any more
   if (m_cListPic.size() >= (UInt)(m_iGOPSize + 2 * getNumOfReference() + 1) )  // 2)   //  K. Lee bug fix - for multiple reference > 2
   {
+#if REF_SETTING_FOR_LD
+    if ( m_bUseNewRefSetting )
+    {
+      Bool bFound = false;
+      TComList<TComPic*>::iterator  it = m_cListPic.begin();
+      while ( it != m_cListPic.end() )
+      {
+        if ( (*it)->getReconMark() == false )
+        {
+          bFound = true;
+          rpcPic = *it;
+          m_cListPic.erase( it );
+          break;
+        }
+        if ( !(*it)->getSlice(0)->isReferenced() )
+        {
+          bFound = true;
+          (*it)->setReconMark( false );
+          (*it)->getPicYuvRec()->setBorderExtension( false );
+          rpcPic = *it;
+          m_cListPic.erase( it );
+          break;
+        }
+
+        it++;
+      }
+      if ( !bFound )
+      {
+        assert(0);
+      }
+    }
+    else
+    {
+      rpcPic = m_cListPic.popFront();
+    }
+#else
     rpcPic = m_cListPic.popFront();
+#endif
     
     // is it necessary without long-term reference?
     if ( rpcPic->getERBIndex() > 0 && abs(rpcPic->getPOC() - m_iPOCLast) <= 0 )
@@ -298,8 +349,22 @@ Void TEncTop::xGetNewPicBuffer ( TComPic*& rpcPic )
       rpcPic = *(++iterPic);
       if ( abs(rpcPic->getPOC() - m_iPOCLast) <= m_iGOPSize )
       {
+#if QP_ADAPTATION
+        if ( getUseAdaptiveQP() )
+        {
+          TEncPic* pcEPic = new TEncPic;
+          pcEPic->create( m_iSourceWidth, m_iSourceHeight, g_uiMaxCUWidth, g_uiMaxCUHeight, g_uiMaxCUDepth, m_cPPS.getMaxCuDQPDepth()+1 );
+          rpcPic = pcEPic;
+        }
+        else
+        {
+          rpcPic = new TComPic;
+          rpcPic->create( m_iSourceWidth, m_iSourceHeight, g_uiMaxCUWidth, g_uiMaxCUHeight, g_uiMaxCUDepth );
+        }
+#else
         rpcPic = new TComPic;
         rpcPic->create( m_iSourceWidth, m_iSourceHeight, g_uiMaxCUWidth, g_uiMaxCUHeight, g_uiMaxCUDepth );
+#endif
       }
       else
       {
@@ -310,8 +375,22 @@ Void TEncTop::xGetNewPicBuffer ( TComPic*& rpcPic )
   }
   else
   {
+#if QP_ADAPTATION
+    if ( getUseAdaptiveQP() )
+    {
+      TEncPic* pcEPic = new TEncPic;
+      pcEPic->create( m_iSourceWidth, m_iSourceHeight, g_uiMaxCUWidth, g_uiMaxCUHeight, g_uiMaxCUDepth, m_cPPS.getMaxCuDQPDepth()+1 );
+      rpcPic = pcEPic;
+    }
+    else
+    {
+      rpcPic = new TComPic;
+      rpcPic->create( m_iSourceWidth, m_iSourceHeight, g_uiMaxCUWidth, g_uiMaxCUHeight, g_uiMaxCUDepth );
+    }
+#else
     rpcPic = new TComPic;
     rpcPic->create( m_iSourceWidth, m_iSourceHeight, g_uiMaxCUWidth, g_uiMaxCUHeight, g_uiMaxCUDepth );
+#endif
   }
   
   m_cListPic.pushBack( rpcPic );
@@ -347,7 +426,11 @@ Void TEncTop::xInitSPS()
   m_cSPS.setQuadtreeTUMaxDepthInter( m_uiQuadtreeTUMaxDepthInter    );
   m_cSPS.setQuadtreeTUMaxDepthIntra( m_uiQuadtreeTUMaxDepthIntra    );
   
+#if QP_ADAPTATION
+  m_cSPS.setUseDQP        ( m_iMaxDeltaQP != 0 || m_bUseAdaptiveQP );
+#else
   m_cSPS.setUseDQP        ( m_iMaxDeltaQP != 0  );
+#endif
   m_cSPS.setUseLDC        ( m_bUseLDC           );
   m_cSPS.setUsePAD        ( m_bUsePAD           );
   
@@ -375,6 +458,21 @@ Void TEncTop::xInitSPS()
   }
 #endif
   
+#if AMP
+  for (i = 0; i < g_uiMaxCUDepth-1; i++ )
+  {
+    // m_cSPS.setAMPAcc( i, m_bUseAMP );
+    m_cSPS.setAMPAcc( i, 1 );
+  }
+
+  // m_cSPS.setUseAMP ( m_bUseAMP );
+
+  for (i = g_uiMaxCUDepth-1; i < g_uiMaxCUDepth; i++ )
+  {
+    m_cSPS.setAMPAcc(i, 0);
+  }
+#endif
+
   m_cSPS.setBitDepth    ( g_uiBitDepth        );
   m_cSPS.setBitIncrement( g_uiBitIncrement    );
 
@@ -423,6 +521,14 @@ Void TEncTop::xInitSPS()
 #if E057_INTRA_PCM && E192_SPS_PCM_FILTER_DISABLE_SYNTAX
   m_cSPS.setPCMFilterDisableFlag  ( m_bPCMFilterDisableFlag );
 #endif
+
+#if REF_SETTING_FOR_LD
+  m_cSPS.setUseNewRefSetting( m_bUseNewRefSetting );
+  if ( m_bUseNewRefSetting )
+  {
+    m_cSPS.setMaxNumRefFrames( m_iNumOfReference );
+  }
+#endif
 }
 
 Void TEncTop::xInitPPS()
@@ -461,3 +567,4 @@ Void TEncTop::xInitPPS()
   }
 #endif
 }
+//! \}

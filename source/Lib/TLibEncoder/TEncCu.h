@@ -31,23 +31,26 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/** \file     TEncCU.h
-    \brief    CU encoder class (header)
+/** \file     TEncCu.h
+    \brief    Coding Unit (CU) encoder class (header)
 */
 
 #ifndef __TENCCU__
 #define __TENCCU__
 
 // Include files
-#include "../TLibCommon/CommonDef.h"
-#include "../TLibCommon/TComYuv.h"
-#include "../TLibCommon/TComPrediction.h"
-#include "../TLibCommon/TComTrQuant.h"
-#include "../TLibCommon/TComBitCounter.h"
-#include "../TLibCommon/TComDataCU.h"
+#include "TLibCommon/CommonDef.h"
+#include "TLibCommon/TComYuv.h"
+#include "TLibCommon/TComPrediction.h"
+#include "TLibCommon/TComTrQuant.h"
+#include "TLibCommon/TComBitCounter.h"
+#include "TLibCommon/TComDataCU.h"
 
 #include "TEncEntropy.h"
 #include "TEncSearch.h"
+
+//! \ingroup TLibEncoder
+//! \{
 
 class TEncTop;
 class TEncSbac;
@@ -116,9 +119,16 @@ protected:
 #if FINE_GRANULARITY_SLICES
   Void  finishCU            ( TComDataCU*  pcCU, UInt uiAbsPartIdx,           UInt uiDepth        );
 #endif
+#if AMP_ENC_SPEEDUP
+  Void  xCompressCU         ( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, UInt uiDepth, PartSize eParentPartSize = SIZE_NONE );
+#else
   Void  xCompressCU         ( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, UInt uiDepth        );
+#endif
   Void  xEncodeCU           ( TComDataCU*  pcCU, UInt uiAbsPartIdx,           UInt uiDepth        );
   
+#if QP_ADAPTATION
+  Int   xComputeQP          ( TComDataCU* pcCU, UInt uiDepth );
+#endif
 #if SUB_LCU_DQP
   Void  xCheckBestMode      ( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, UInt uiDepth        );
 #endif
@@ -128,9 +138,16 @@ protected:
   Void  xCheckRDCostMerge2Nx2N( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU                  );
   
   Void  xCheckRDCostSkip    ( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, Bool bBSkipRes      );
+#if AMP_MRG
+  Void  xCheckRDCostInter   ( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, PartSize ePartSize, Bool bUseMRG = false  );
+#else
   Void  xCheckRDCostInter   ( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, PartSize ePartSize  );
+#endif
   Void  xCheckRDCostIntra   ( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, PartSize ePartSize  );
   Void  xCheckBestMode      ( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU                      );
+#if SUB_LCU_DQP
+  Void  xCheckDQP           ( TComDataCU*  pcCU );
+#endif
   
 #if E057_INTRA_PCM
   Void  xCheckIntraPCM      ( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU                      );
@@ -145,8 +162,17 @@ protected:
 
   Bool getdQPFlag           ()                        { return m_bEncodeDQP;        }
   Void setdQPFlag           ( Bool b )                { m_bEncodeDQP = b;           }
+
+#if AMP_ENC_SPEEDUP 
+#if AMP_MRG
+  Void deriveTestModeAMP (TComDataCU *&rpcBestCU, PartSize eParentPartSize, Bool &bTestAMP_Hor, Bool &bTestAMP_Ver, Bool &bTestMergeAMP_Hor, Bool &bTestMergeAMP_Ver);
+#else
+  Void deriveTestModeAMP (TComDataCU *&rpcBestCU, PartSize eParentPartSize, Bool &bTestAMP_Hor, Bool &bTestAMP_Ver);
+#endif
+#endif
+
 };
 
+//! \}
 
 #endif // __TENCMB__
-

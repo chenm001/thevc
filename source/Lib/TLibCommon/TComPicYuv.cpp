@@ -47,6 +47,9 @@
 
 #include "TComPicYuv.h"
 
+//! \ingroup TLibCommon
+//! \{
+
 TComPicYuv::TComPicYuv()
 {
   m_apiPicBufY      = NULL;   // Buffer (including margin)
@@ -76,8 +79,13 @@ Void TComPicYuv::create( Int iPicWidth, Int iPicHeight, UInt uiMaxCUWidth, UInt 
   Int numCuInWidth  = m_iPicWidth  / m_iCuWidth  + (m_iPicWidth  % m_iCuWidth  != 0);
   Int numCuInHeight = m_iPicHeight / m_iCuHeight + (m_iPicHeight % m_iCuHeight != 0);
   
+#if GENERIC_IF
+  m_iLumaMarginX    = g_uiMaxCUWidth  + 16; // for 16-byte alignment
+  m_iLumaMarginY    = g_uiMaxCUHeight + 8;  // margin for 8-tap filter
+#else
   m_iLumaMarginX    = g_uiMaxCUWidth  + 12; // up to 12-tap DIF
   m_iLumaMarginY    = g_uiMaxCUHeight + 12; // up to 12-tap DIF
+#endif
   
   m_iChromaMarginX  = m_iLumaMarginX>>1;
   m_iChromaMarginY  = m_iLumaMarginY>>1;
@@ -144,8 +152,13 @@ Void TComPicYuv::createLuma( Int iPicWidth, Int iPicHeight, UInt uiMaxCUWidth, U
   Int numCuInWidth  = m_iPicWidth  / m_iCuWidth  + (m_iPicWidth  % m_iCuWidth  != 0);
   Int numCuInHeight = m_iPicHeight / m_iCuHeight + (m_iPicHeight % m_iCuHeight != 0);
   
+#if GENERIC_IF
+  m_iLumaMarginX    = g_uiMaxCUWidth  + 16; // for 16-byte alignment
+  m_iLumaMarginY    = g_uiMaxCUHeight + 8;  // margin for 8-tap filter
+#else
   m_iLumaMarginX    = g_uiMaxCUWidth  + 12; // up to 12-tap DIF
   m_iLumaMarginY    = g_uiMaxCUHeight + 12; // up to 12-tap DIF
+#endif
   
   m_apiPicBufY      = (Pel*)xMalloc( Pel, ( m_iPicWidth       + (m_iLumaMarginX  <<1)) * ( m_iPicHeight       + (m_iLumaMarginY  <<1)));
   m_piPicOrgY       = m_apiPicBufY + m_iLumaMarginY   * getStride()  + m_iLumaMarginX;
@@ -407,3 +420,4 @@ Void TComPicYuv::xFixedRoundingPic()
 }
 #endif
 
+//! \}

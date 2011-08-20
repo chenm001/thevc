@@ -43,6 +43,9 @@
 #include<stdio.h>
 #include<iostream>
 
+//! \ingroup TLibCommon
+//! \{
+
 // ====================================================================================================================
 // Macros
 // ====================================================================================================================
@@ -60,9 +63,15 @@ Void         initROM();
 Void         destroyROM();
 Void         initFrameScanXY( UInt* pBuff, UInt* pBuffX, UInt* pBuffY, Int iWidth, Int iHeight );
 #if QC_MDCS
+#if DIAG_SCAN
+Void         initSigLastScan(UInt* pBuffZ, UInt* pBuffH, UInt* pBuffV, UInt* pBuffD, Int iWidth, Int iHeight, Int iDepth);
+#else
 Void         initSigLastScan(UInt* pBuffZ, UInt* pBuffH, UInt* pBuffV, Int iWidth, Int iHeight, Int iDepth);
+#endif
 #endif //QC_MDCS
-
+#if NSQT
+Void         initNonSquareSigLastScan(UInt* pBuffZ, UInt uiWidth, UInt uiHeight);
+#endif
 // ====================================================================================================================
 // Data structure related table & variable
 // ====================================================================================================================
@@ -70,9 +79,16 @@ Void         initSigLastScan(UInt* pBuffZ, UInt* pBuffH, UInt* pBuffV, Int iWidt
 // flexible conversion from relative to absolute index
 extern       UInt   g_auiZscanToRaster[ MAX_NUM_SPU_W*MAX_NUM_SPU_W ];
 extern       UInt   g_auiRasterToZscan[ MAX_NUM_SPU_W*MAX_NUM_SPU_W ];
+#if REDUCE_UPPER_MOTION_DATA
+extern       UInt   g_motionRefer[ MAX_NUM_SPU_W*MAX_NUM_SPU_W ];
+#endif
 
 Void         initZscanToRaster ( Int iMaxDepth, Int iDepth, UInt uiStartVal, UInt*& rpuiCurrIdx );
 Void         initRasterToZscan ( UInt uiMaxCUWidth, UInt uiMaxCUHeight, UInt uiMaxDepth         );
+
+#if REDUCE_UPPER_MOTION_DATA
+Void          initMotionReferIdx ( UInt uiMaxCUWidth, UInt uiMaxCUHeight, UInt uiMaxDepth );
+#endif
 
 // conversion of partition index to picture pel position
 extern       UInt   g_auiRasterToPelX[ MAX_NUM_SPU_W*MAX_NUM_SPU_W ];
@@ -90,7 +106,11 @@ extern       UInt g_uiMaxCUHeight;
 extern       UInt g_uiMaxCUDepth;
 extern       UInt g_uiAddCUDepth;
 
+#if AMP
+extern       UInt g_auiPUOffset[8];
+#else
 extern       UInt g_auiPUOffset[4];
+#endif
 
 #define QUANT_IQUANT_SHIFT    20 // Q(QP%6) * IQ(QP%6) = 2^20
 #define QUANT_SHIFT           14 // Q(4) = 2^14
@@ -100,8 +120,8 @@ extern       UInt g_auiPUOffset[4];
 #define SHIFT_INV_1ST          7 // Shift after first inverse transform stage
 #define SHIFT_INV_2ND         12 // Shift after second inverse transform stage
 
-extern UInt g_auiQ[6];             // Q(QP%6)  
-extern UInt g_auiIQ[6];            // IQ(QP%6)
+extern Int g_quantScales[6];             // Q(QP%6)  
+extern Int g_invQuantScales[6];          // IQ(QP%6)
 extern const short g_aiT4[4][4];
 extern const short g_aiT8[8][8];
 extern const short g_aiT16[16][16];
@@ -122,23 +142,35 @@ extern       UInt*  g_auiFrameScanX [ MAX_CU_DEPTH  ];    // raster index (x) fr
 extern       UInt*  g_auiFrameScanY [ MAX_CU_DEPTH  ];    // raster index (y) from scanning index
 extern       UInt   g_auiAntiScan8[64];                   // 2D context mapping for coefficients
 #if QC_MDCS
+#if DIAG_SCAN
+extern       UInt*  g_auiSigLastScan[4][ MAX_CU_DEPTH ];  // raster index from scanning index (zigzag, hor, ver, diag)
+#else
 extern       UInt*  g_auiSigLastScan[3][ MAX_CU_DEPTH ];  // raster index from scanning index (zigzag, hor, ver)
+#endif
 #endif //QC_MDCS
-#if PCP_SIGMAP_SIMPLE_LAST
+
+#if NSQT
+extern       UInt*  g_auiNonSquareSigLastScan[ 2 ];      // raster index from scanning index (zigzag)
+#endif 
+
+#if MODIFIED_LAST_CODING
+extern const UInt   g_uiLastCtx[32];
+#else
 extern       UInt   g_uiCtxXYOffset[ MAX_CU_DEPTH ];      //!< context offset for last pos coding
 extern       UInt   g_uiCtxXY      [ 31 ];                //!< context mapping for last pos coding
 #endif
 
-#if E253
 extern const UInt   g_auiGoRiceRange[4];                  //!< maximum value coded with Rice codes
 extern const UInt   g_auiGoRicePrefixLen[4];              //!< prefix length for each maximum value
 extern const UInt   g_aauiGoRiceUpdate[4][16];            //!< parameter update rules for Rice codes
-#endif
 
 // ====================================================================================================================
 // CAVLC table
 // ====================================================================================================================
 
+#if TBL_RUN_ADAPT
+extern const Int    atable[5];
+#endif
 extern const UChar  g_aucCodeTable3[7][15];
 extern const UChar  g_aucLenTable3 [7][15];
 extern const UChar  g_aucCodeTableTZ4[3][4];
@@ -164,7 +196,12 @@ extern const UInt    g_auiLumaRun8x8[28][29];
 extern const UInt    g_auiLumaRun8x8[29][2][64];
 #endif
 
-#if MTK_DCM_MPM
+#if FIXED_MPM
+extern const UInt    g_auiIntraModeTableD17[17];
+extern const UInt    g_auiIntraModeTableE17[17];
+extern const UInt    g_auiIntraModeTableD34[34];
+extern const UInt    g_auiIntraModeTableE34[34];
+#elif MTK_DCM_MPM
 extern const UInt    g_auiIntraModeTableD17[2][16];
 extern const UInt    g_auiIntraModeTableE17[2][16];
 extern const UInt    g_auiIntraModeTableD34[2][33];
@@ -178,6 +215,7 @@ extern const UInt    g_auiIntraModeTableE34[33];
 
 extern const UInt    g_auiVlcTable8x8Inter[29];
 extern const UInt    g_auiVlcTable8x8Intra[29];
+
 #if RUNLEVEL_TABLE_CUT 
 extern const UInt    g_acstructLumaRun8x8[28][29];
 #else
@@ -189,14 +227,26 @@ extern const UInt   g_auiVlcTable16x16Intra[29];
 extern const UInt   g_auiVlcTable16x16Inter[29];
 #endif
 
+#if FIXED_MPM
+extern const UInt huff17_2[18];
+extern const UInt lengthHuff17_2[18];
+extern const UInt huff34_2[35];
+extern const UInt lengthHuff34_2[35];
+#else
 extern const UInt huff17_2[2][17];
 extern const UInt lengthHuff17_2[2][17];
 extern const UInt huff34_2[2][34];
 extern const UInt lengthHuff34_2[2][34];
+#endif
 
 #if CAVLC_COEF_LRG_BLK
 extern const UInt   *g_pLumaRunTr14x4[5]; 
+#if MOD_INTRA_TABLE
+extern const UInt   *g_pLumaRunTr116x16[2];
+extern const UInt   *g_pLumaRunTr18x8[2]; 
+#else
 extern const UInt   *g_pLumaRunTr18x8[5]; 
+#endif
 #else
 extern const UInt    g_auiLumaRunTr14x4[5][15];
 extern const UInt    g_auiLumaRunTr18x8[5][29];
@@ -246,8 +296,13 @@ extern const UInt g_auiMI1TableEOnly1RefNoL1[8];
 extern const UInt g_auiMI1TableDOnly1RefNoL1[8];
 #endif
 
+#if AMP
+extern const UInt g_auiInterModeTableE[4][11];
+extern const UInt g_auiInterModeTableD[4][11];
+#else
 extern const UInt g_auiInterModeTableE[4][7];
 extern const UInt g_auiInterModeTableD[4][7];
+#endif
 // ====================================================================================================================
 // ADI table
 // ====================================================================================================================
@@ -260,7 +315,11 @@ extern const UChar  g_aucIntraModeNumFast[7];
 
 extern const UChar g_aucIntraModeNumAng[7];
 extern const UChar g_aucIntraModeBitsAng[7];
+#if FIXED_MPM
+extern const UChar g_aucAngModeMapping[4][35];
+#else
 extern const UChar g_aucAngModeMapping[4][34];
+#endif
 #if ADD_PLANAR_MODE || LM_CHROMA
 extern const UChar g_aucAngIntraModeOrder[NUM_INTRA_MODE];
 #else
@@ -343,10 +402,15 @@ __inline UInt xRunLevelInd(Int lev, Int run, Int maxrun, UInt lrg1Pos)
  * \returns the codeword index
  * This function derives codeword index in CAVLC run-level coding .
  */
+#if CAVLC_RUNLEVEL_TABLE_REM
+__inline UInt xRunLevelIndInter(Int lev, Int run, Int maxrun, Int scale)
+#else
 __inline UInt xRunLevelIndInter(Int lev, Int run, Int maxrun)
+#endif
 {
   UInt cn;
-  
+
+#if !CAVLC_RUNLEVEL_TABLE_REM
   if (maxrun < 28)
   {
     if (lev == 0)
@@ -359,10 +423,18 @@ __inline UInt xRunLevelIndInter(Int lev, Int run, Int maxrun)
     }
   }
   else
+#endif
   {
     if (lev == 0)
     {
       cn = run;
+#if CAVLC_RUNLEVEL_TABLE_REM
+      {
+        int thr = (maxrun + 1) >> scale;
+        if (run >= thr)
+          cn = (run > maxrun) ? thr : (run+1);
+      }
+#endif
     }
     else
     {
@@ -451,9 +523,15 @@ __inline void xLastLevelIndInv(Int& lev, Int& last_pos, Int N, UInt cx)
 }
 #endif
 
+#if CHROMA_CODEWORD_SWITCH
+#if FIXED_MPM
+extern const UChar ChromaMapping[4];
+#else
 extern const UChar ChromaMapping[2][5];
+#endif
+#endif
 
-#if ADD_PLANAR_MODE
+#if ADD_PLANAR_MODE && !FIXED_MPM
 __inline Void mapPlanartoDC(  UInt& curDir ) { curDir = (curDir == PLANAR_IDX) ? 2 : curDir; }
 __inline Void mapPlanartoDC(   Int& curDir ) { curDir = (curDir == PLANAR_IDX) ? 2 : curDir; }
 #endif
@@ -552,5 +630,8 @@ __inline Void adaptCodeword( UInt uiCodeIdx, UChar * pucTableCounter, UChar & ru
   }
 }
 #endif
+
+//! \}
+
 #endif  //__TCOMROM__
 

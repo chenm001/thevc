@@ -38,41 +38,43 @@
 #ifndef __TDEC_BIN_CODER_CABAC__
 #define __TDEC_BIN_CODER_CABAC__
 
-#include "../TLibCommon/TComCABACTables.h"
+#include "TLibCommon/TComCABACTables.h"
 #include "TDecBinCoder.h"
 
+//! \ingroup TLibDecoder
+//! \{
 
 class TDecBinCABAC : public TDecBinIf
 {
 public:
   TDecBinCABAC ();
   virtual ~TDecBinCABAC();
-
+  
   Void  init              ( TComInputBitstream* pcTComBitstream );
   Void  uninit            ();
-
+  
   Void  start             ();
   Void  finish            ();
-
+  
   Void  decodeBin         ( UInt& ruiBin, ContextModel& rcCtxModel );
   Void  decodeBinEP       ( UInt& ruiBin                           );
+  Void  decodeBinsEP      ( UInt& ruiBin, Int numBins              );
   Void  decodeBinTrm      ( UInt& ruiBin                           );
-
+  
 #if E057_INTRA_PCM
   Void  resetBac          ();
   Void  decodePCMAlignBits();
   Void  xReadPCMCode      (UInt uiLength, UInt& ruiCode);
 #endif
-
-private:
-  Void  xReadBit          ( UInt& ruiVal );
-
+  
 private:
   TComInputBitstream* m_pcTComBitstream;
   UInt                m_uiRange;
   UInt                m_uiValue;
+  Int                 m_bitsNeeded;
 };
 
+//! \}
 
 #endif
 

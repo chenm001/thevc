@@ -33,6 +33,9 @@
 #pragma once
 #include "libmd5.h"
 
+//! \ingroup libMD5
+//! \{
+
 class MD5 {
 public:
   /**
@@ -44,7 +47,7 @@ public:
   }
 
   /**
-   * compute digest over @buf of length @len.
+   * compute digest over buf of length len.
    * multiple calls may extend the digest over more data.
    */
   void update(unsigned char *buf, unsigned len)
@@ -53,7 +56,7 @@ public:
   }
 
   /**
-   * flush any outstanding MD5 data, write the digest into @digest.
+   * flush any outstanding MD5 data, write the digest into digest.
    */
   void finalize(unsigned char digest[16])
   {
@@ -65,7 +68,7 @@ private:
 };
 
 /**
- * Produce an ascii(hex) representation of the 128bit @digest.
+ * Produce an ascii(hex) representation of the 128bit digest.
  *
  * Returns: a statically allocated null-terminated string.  DO NOT FREE.
  */
@@ -81,4 +84,4 @@ digestToString(unsigned char digest[16])
   }
   return string;
 }
-
+//! \}

@@ -3,7 +3,7 @@ CONFIG 			= LIBRARY
 
 # set pathes to the correct directories
 SRC_DIR			= ../../../../source/Lib/TLibEncoder
-INC_DIR			= ../../../../source/Lib/TLibEncoder
+INC_DIR			= ../../../../source/Lib
 LIB_DIR			= ../../../../lib
 BIN_DIR			= ../../../../bin
 
@@ -45,6 +45,8 @@ OBJS          	= \
 			$(OBJ_DIR)/TEncSearch.o \
 			$(OBJ_DIR)/TEncSlice.o \
 			$(OBJ_DIR)/TEncTop.o \
+			$(OBJ_DIR)/TEncPic.o \
+			$(OBJ_DIR)/TEncPreanalyzer.o \
 
 LIBS				= -lpthread
 

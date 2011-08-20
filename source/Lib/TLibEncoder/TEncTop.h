@@ -39,12 +39,12 @@
 #define __TENCTOP__
 
 // Include files
-#include "../TLibCommon/TComList.h"
-#include "../TLibCommon/TComPrediction.h"
-#include "../TLibCommon/TComTrQuant.h"
-#include "../TLibCommon/AccessUnit.h"
+#include "TLibCommon/TComList.h"
+#include "TLibCommon/TComPrediction.h"
+#include "TLibCommon/TComTrQuant.h"
+#include "TLibCommon/AccessUnit.h"
 
-#include "../TLibVideoIO/TVideoIOYuv.h"
+#include "TLibVideoIO/TVideoIOYuv.h"
 
 #include "TEncCfg.h"
 #include "TEncGOP.h"
@@ -54,6 +54,12 @@
 #include "TEncSbac.h"
 #include "TEncSearch.h"
 #include "TEncAdaptiveLoopFilter.h"
+#if QP_ADAPTATION
+#include "TEncPreanalyzer.h"
+#endif
+
+//! \ingroup TLibEncoder
+//! \{
 
 // ====================================================================================================================
 // Class definition
@@ -101,6 +107,11 @@ private:
   TEncBinCABAC***         m_pppcBinCoderCABAC;            ///< temporal CABAC state storage for RD computation
   TEncBinCABAC            m_cRDGoOnBinCoderCABAC;         ///< going on bin coder CABAC for RD stage
   
+#if QP_ADAPTATION
+  // quality control
+  TEncPreanalyzer         m_cPreanalyzer;                 ///< image characteristics analyzer for TM5-step3-like adaptive QP
+#endif
+
 protected:
   Void  xGetNewPicBuffer  ( TComPic*& rpcPic );           ///< get picture buffer which will be processed
   Void  xInitSPS          ();                             ///< initialize SPS from encoder options
@@ -154,6 +165,6 @@ public:
   
 };
 
+//! \}
 
 #endif // __TENCTOP__
-

@@ -37,6 +37,8 @@
 
 #include "TDecBinCoderCABAC.h"
 
+//! \ingroup TLibDecoder
+//! \{
 
 TDecBinCABAC::TDecBinCABAC()
 : m_pcTComBitstream( 0 )
@@ -62,12 +64,12 @@ TDecBinCABAC::uninit()
 Void
 TDecBinCABAC::start()
 {
+  assert( m_pcTComBitstream->getNumBitsUntilByteAligned() == 0 );
+  
   m_uiRange    = 510;
-  m_uiValue    = 0;
-  for( UInt ui = 0; ui < 9; ui++ )
-  {
-    xReadBit( m_uiValue );
-  }
+  m_bitsNeeded = -8;
+  m_uiValue    = m_pcTComBitstream->readByte() << 8;
+  m_uiValue   |= m_pcTComBitstream->readByte();
 }
 
 Void
@@ -78,67 +80,139 @@ TDecBinCABAC::finish()
 Void
 TDecBinCABAC::decodeBin( UInt& ruiBin, ContextModel &rcCtxModel )
 {
-  UInt  uiLPS   = TComCABACTables::sm_aucLPSTable[ rcCtxModel.getState() ][ ( m_uiRange >> 6 ) & 3 ];
-  m_uiRange    -= uiLPS;
-  if( m_uiValue < m_uiRange )
+  UInt uiLPS = TComCABACTables::sm_aucLPSTable[ rcCtxModel.getState() ][ ( m_uiRange >> 6 ) - 4 ];
+  m_uiRange -= uiLPS;
+  UInt scaledRange = m_uiRange << 7;
+  
+  if( m_uiValue < scaledRange )
   {
-    ruiBin      = rcCtxModel.getMps();
+    // MPS path
+    ruiBin = rcCtxModel.getMps();
     rcCtxModel.updateMPS();
+    
+    if ( scaledRange >= ( 256 << 7 ) )
+    {
+      return;
+    }
+    
+    m_uiRange = scaledRange >> 6;
+    m_uiValue += m_uiValue;
+    
+    if ( ++m_bitsNeeded == 0 )
+    {
+      m_bitsNeeded = -8;
+      m_uiValue += m_pcTComBitstream->readByte();      
+    }
   }
   else
   {
-    m_uiValue  -= m_uiRange;
-    m_uiRange   = uiLPS;
+    // LPS path
+    Int numBits = TComCABACTables::sm_aucRenormTable[ uiLPS >> 3 ];
+    m_uiValue   = ( m_uiValue - scaledRange ) << numBits;
+    m_uiRange   = uiLPS << numBits;
     ruiBin      = 1 - rcCtxModel.getMps();
     rcCtxModel.updateLPS();
-  }
-  while( m_uiRange < 256 )
-  {
-    m_uiRange  += m_uiRange;
-    xReadBit( m_uiValue );
+    
+    m_bitsNeeded += numBits;
+    
+    if ( m_bitsNeeded >= 0 )
+    {
+      m_uiValue += m_pcTComBitstream->readByte() << m_bitsNeeded;
+      m_bitsNeeded -= 8;
+    }
   }
 }
 
 Void
 TDecBinCABAC::decodeBinEP( UInt& ruiBin )
 {
-  xReadBit( m_uiValue );
-  if( m_uiValue >= m_uiRange )
+  m_uiValue += m_uiValue;
+  
+  if ( ++m_bitsNeeded >= 0 )
   {
-    ruiBin      = 1;
-    m_uiValue  -= m_uiRange;
+    m_bitsNeeded = -8;
+    m_uiValue += m_pcTComBitstream->readByte();
   }
-  else
+  
+  ruiBin = 0;
+  UInt scaledRange = m_uiRange << 7;
+  if ( m_uiValue >= scaledRange )
   {
-    ruiBin      = 0;
+    ruiBin = 1;
+    m_uiValue -= scaledRange;
   }
+}
+
+Void TDecBinCABAC::decodeBinsEP( UInt& ruiBin, Int numBins )
+{
+  UInt bins = 0;
+  
+  while ( numBins > 8 )
+  {
+    m_uiValue = ( m_uiValue << 8 ) + ( m_pcTComBitstream->readByte() << ( 8 + m_bitsNeeded ) );
+    
+    UInt scaledRange = m_uiRange << 15;
+    for ( Int i = 0; i < 8; i++ )
+    {
+      bins += bins;
+      scaledRange >>= 1;
+      if ( m_uiValue >= scaledRange )
+      {
+        bins++;
+        m_uiValue -= scaledRange;
+      }
+    }
+    numBins -= 8;
+  }
+  
+  m_bitsNeeded += numBins;
+  m_uiValue <<= numBins;
+  
+  if ( m_bitsNeeded >= 0 )
+  {
+    m_uiValue += m_pcTComBitstream->readByte() << m_bitsNeeded;
+    m_bitsNeeded -= 8;
+  }
+  
+  UInt scaledRange = m_uiRange << ( numBins + 7 );
+  for ( Int i = 0; i < numBins; i++ )
+  {
+    bins += bins;
+    scaledRange >>= 1;
+    if ( m_uiValue >= scaledRange )
+    {
+      bins++;
+      m_uiValue -= scaledRange;
+    }
+  }
+  
+  ruiBin = bins;
 }
 
 Void
 TDecBinCABAC::decodeBinTrm( UInt& ruiBin )
 {
   m_uiRange -= 2;
-  if( m_uiValue >= m_uiRange )
+  UInt scaledRange = m_uiRange << 7;
+  if( m_uiValue >= scaledRange )
   {
     ruiBin = 1;
   }
   else
   {
     ruiBin = 0;
-    while( m_uiRange < 256 )
+    if ( scaledRange < ( 256 << 7 ) )
     {
-      m_uiRange += m_uiRange;
-      xReadBit( m_uiValue );
+      m_uiRange = scaledRange >> 6;
+      m_uiValue += m_uiValue;
+      
+      if ( ++m_bitsNeeded == 0 )
+      {
+        m_bitsNeeded = -8;
+        m_uiValue += m_pcTComBitstream->readByte();      
+      }
     }
   }
-}
-
-Void  
-TDecBinCABAC::xReadBit( UInt& ruiVal )
-{
-  UInt uiBit = 0;
-  m_pcTComBitstream->read( 1, uiBit );
-  ruiVal  = ( ruiVal << 1 ) | uiBit;
 }
 
 #if E057_INTRA_PCM
@@ -148,12 +222,8 @@ TDecBinCABAC::xReadBit( UInt& ruiVal )
 Void TDecBinCABAC::resetBac()
 {
   m_uiRange    = 510;
-  m_uiValue    = 0;
-
-  for( UInt ui = 0; ui < 9; ui++ )
-  {
-    xReadBit( m_uiValue );
-  }
+  m_bitsNeeded = -8;
+  m_uiValue    = m_pcTComBitstream->read( 16 );
 }
 /** Decode PCM alignment zero bits.
  * \returns Void
@@ -161,13 +231,9 @@ Void TDecBinCABAC::resetBac()
 Void TDecBinCABAC::decodePCMAlignBits()
 {
   Int iNum = m_pcTComBitstream->getNumBitsUntilByteAligned();
-
-  for( UInt ui = 0; ui < iNum ; ui++ )
-  {
-    UInt uiBit = 0;
-
-    m_pcTComBitstream->read( 1, uiBit );
-  }
+  
+  UInt uiBit = 0;
+  m_pcTComBitstream->read( iNum, uiBit );
 }
 
 /** Read a PCM code.
@@ -181,3 +247,4 @@ Void  TDecBinCABAC::xReadPCMCode(UInt uiLength, UInt& ruiCode)
   m_pcTComBitstream->read (uiLength, ruiCode);
 }
 #endif
+//! \}

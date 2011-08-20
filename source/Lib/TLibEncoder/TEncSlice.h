@@ -39,11 +39,14 @@
 #define __TENCSLICE__
 
 // Include files
-#include "../TLibCommon/CommonDef.h"
-#include "../TLibCommon/TComList.h"
-#include "../TLibCommon/TComPic.h"
-#include "../TLibCommon/TComPicYuv.h"
+#include "TLibCommon/CommonDef.h"
+#include "TLibCommon/TComList.h"
+#include "TLibCommon/TComPic.h"
+#include "TLibCommon/TComPicYuv.h"
 #include "TEncCu.h"
+
+//! \ingroup TLibEncoder
+//! \{
 
 class TEncTop;
 class TEncGOP;
@@ -118,6 +121,6 @@ public:
   Void    setSliceIdx(UInt i)   { m_uiSliceIdx = i;                       }
 };
 
+//! \}
 
 #endif // __TENCSLICE__
-

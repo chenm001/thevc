@@ -38,7 +38,11 @@
 #ifndef __TCOMADAPTIVELOOPFILTER__
 #define __TCOMADAPTIVELOOPFILTER__
 
+#include "CommonDef.h"
 #include "TComPic.h"
+
+//! \ingroup TLibCommon
+//! \{
 
 // ====================================================================================================================
 // Constants
@@ -53,7 +57,6 @@
 #define ALF_NUM_BIT_SHIFT     8                                       ///< bit shift parameter for quantization of ALF param.
 #define ALF_ROUND_OFFSET      ( 1 << ( ALF_NUM_BIT_SHIFT - 1 ) )      ///< rounding offset for ALF quantization
 
-#include "../TLibCommon/CommonDef.h"
 
 #define NUM_BITS               9
 #define NO_TEST_FILT           3       // Filter supports (5/7/9)
@@ -66,9 +69,20 @@
 #define VAR_SIZE               3
 #endif
 
+#if STAR_CROSS_SHAPES_LUMA
+// max tap = max_horizontal_tap = 11
+#define FILTER_LENGTH         11
+#else
 #define FILTER_LENGTH          9
+#endif
 
+#if STAR_CROSS_SHAPES_LUMA
+// ((max_horizontal_tap * max_vertical_tap) / 2 + 2) = ((11 * 5) / 2 + 2)
+#define MAX_SQR_FILT_LENGTH   29
+#else
 #define MAX_SQR_FILT_LENGTH   ((FILTER_LENGTH*FILTER_LENGTH) / 2 + 2)
+#endif
+
 #if TI_ALF_MAX_VSIZE_7
 #define SQR_FILT_LENGTH_9SYM  ((9*9) / 4 + 2 - 1) 
 #else
@@ -76,11 +90,21 @@
 #endif
 #define SQR_FILT_LENGTH_7SYM  ((7*7) / 4 + 2) 
 #define SQR_FILT_LENGTH_5SYM  ((5*5) / 4 + 2) 
+#if STAR_CROSS_SHAPES_LUMA
+// max_tap + 2 = 11 + 2 
+#define MAX_SCAN_VAL    13
+#else
 #define MAX_SCAN_VAL    11
+#endif
 #define MAX_EXP_GOLOMB  16
 
 #define imgpel  unsigned short
 
+#if STAR_CROSS_SHAPES_LUMA
+extern Int depthIntShape0Sym[10];
+extern Int depthIntShape1Sym[9];
+extern Int *pDepthIntTabShapes[NO_TEST_FILT];
+#endif
 #if TI_ALF_MAX_VSIZE_7
 extern Int depthInt9x9Sym[21];
 #else
@@ -93,9 +117,17 @@ void destroyMatrix_int(int **m2D);
 void initMatrix_int(int ***m2D, int d1, int d2);
 
 #if MTK_NONCROSS_INLOOP_FILTER
+#if STAR_CROSS_SHAPES_LUMA
+#define EXTEND_NUM_PEL    (UInt)(FILTER_LENGTH/2)
+#else
 #define EXTEND_NUM_PEL    (UInt)(ALF_MAX_NUM_TAP/2)
-#define EXTEND_NUM_PEL_C  (UInt)(ALF_MAX_NUM_TAP_C/2)
+#endif
 
+#if ALF_CHROMA_NEW_SHAPES
+#define EXTEND_NUM_PEL_C  (UInt)(EXTEND_NUM_PEL)
+#else
+#define EXTEND_NUM_PEL_C  (UInt)(ALF_MAX_NUM_TAP_C/2)
+#endif
 /// border direction ID of slice granularity unit 
 enum SGUBorderID
 {
@@ -170,6 +202,12 @@ protected:
 
   Bool m_bSaoFlag;
   SAOQTPart *m_psQAOPart;
+#if MTK_SAO_CHROMA
+  Bool m_bSaoFlagCb;
+  Bool m_bSaoFlagCr;
+  SAOQTPart *m_psQAOPartCb;
+  SAOQTPart *m_psQAOPartCr;
+#endif
 
   SliceType  m_eSliceType;
   Int        m_iPicNalReferenceIdc;
@@ -200,32 +238,36 @@ protected:
   Bool  *m_bIsFineSliceCu;
   TComPicYuv* m_pcPicYuvMap;
 #endif
+#if MTK_SAO_REMOVE_SKIP
+  TComPicYuv* m_pcPicYuvTmp;
+#endif
 
 public:
   Void create( UInt uiSourceWidth, UInt uiSourceHeight, UInt uiMaxCUWidth, UInt uiMaxCUHeight, UInt uiMaxCUDepth );
   Void destroy ();
-  Void xCreateQAOParts();
-  Void xDestroyQAOParts();
-  Void xInitALfOnePart(Int part_level, Int part_row, Int part_col, Int parent_part_idx, Int StartCUX, Int EndCUX, Int StartCUY, Int EndCUY);
+  Void xCreateQAOParts (SAOQTPart *psQTPart);
+  Void xDestroyQAOParts(SAOQTPart *psQTPart);
   Void xMakeSubPartList(Int part_level, Int part_row, Int part_col, Int* pList, Int& rListLength, Int NumPartInRow);
-  Void xSetQTPartCUInfo();
 
   Bool getQAOFlag      () {return m_bSaoFlag;}
   Int  getMaxSplitLevel() {return (Int)m_uiMaxSplitLevel;}
   SAOQTPart * getQTPart() {return m_psQAOPart;}
 
   Void SAOProcess(TComPic* pcPic, SAOParam* pcQaoParam);
-  Void resetQTPart();
-  Void xAoOnePart(UInt uiPartIdx, TComPicYuv* pcPicYuvRec, TComPicYuv* pcPicYuvExt);
-  Void xProcessQuadTreeAo(UInt uiPartIdx, TComPicYuv* pcPicYuvRec, TComPicYuv* pcPicYuvExt);
+  Void resetQTPart(SAOQTPart *psQTPart);
+  Void xSetQTPartCUInfo(SAOQTPart *psQTPart);
+  Void xInitALfOnePart(SAOQTPart *psQTPart, Int part_level, Int part_row, Int part_col, Int parent_part_idx, Int StartCUX, Int EndCUX, Int StartCUY, Int EndCUY);
+  Void AoProcessCu(Int iAddr, Int iAoType, Int iYCbCr);
+  Void xAoOnePart(SAOQTPart *psQTPart, UInt uiPartIdx, Int iYCbCr);
+  Void xProcessQuadTreeAo(SAOQTPart *psQTPart, UInt uiPartIdx, Int iYCbCr);
+  Pel* getPicYuvAddr(TComPicYuv* pcPicYuv, Int iYCbCr,Int iAddr);
   Void copyQaoData(SAOParam* pcQaoParam);
 
   Void InitSao(SAOParam* pSaoParam);
-  Void AoProcessCu(Int iAddr, Int iPartIdx);
 
 #if SAO_FGS_MNIF
-  Void AoProcessCuOrg(Int iAddr, Int iPartIdx);  //!< LCU-basd SAO process without slice granularity 
-  Void AoProcessCuMap(Int iAddr, Int iPartIdx);  //!< LCU-basd SAO process with slice granularity
+  Void AoProcessCuOrg(Int iAddr, Int iPartIdx, Int iYCbCr);  //!< LCU-basd SAO process without slice granularity 
+  Void AoProcessCuMap(Int iAddr, Int iPartIdx, Int iYCbCr);  //!< LCU-basd SAO process with slice granularity
   Bool getIsFineSlice(){return m_iSGDepth && m_bUseNonCrossALF;}    //!< check slice granularity and non cross ALF
   Bool getIsFineSliceCu(Int iAddr){return m_bIsFineSliceCu[iAddr];} //!< check slice granularity and non cross ALF for current LCU
 
@@ -237,8 +279,6 @@ public:
   Int  getSliceGranularityDepth()           { return m_iSGDepth;   }//!< get slice granularity depth
   Void createSliceMap(UInt iSliceIdx, UInt uiStartAddr, UInt uiEndAddr);//!< create slice map
   Void InitIsFineSliceCu(){memset(m_bIsFineSliceCu,0, sizeof(Bool)*m_iNumCuInWidth*m_iNumCuInHeight);} //!< Init is fine slice LCU
-  Void startFGSParam(); //!< start FGS parameters
-  Void endFGSParam();   //!< end FGS parameters
   Void setPic(TComPic* pcPic){m_pcPic = pcPic;} //!< set pic
 #endif
 
@@ -454,6 +494,18 @@ protected:
   // ------------------------------------------------------------------------------------------------------------------
   // For luma component
   // ------------------------------------------------------------------------------------------------------------------
+#if STAR_CROSS_SHAPES_LUMA
+  static Int patternShape0Sym[17];
+  static Int weightsShape0Sym[10];
+  static Int patternShape0Sym_Quart[29];
+  static Int patternShape1Sym[15];
+  static Int weightsShape1Sym[9];
+  static Int patternShape1Sym_Quart[29];
+  static Int *patternTabFiltShapes[NO_TEST_FILT];
+  static Int *patternTabShapes[NO_TEST_FILT]; 
+  static Int *patternMapTabShapes[NO_TEST_FILT];
+  static Int *weightsTabShapes[NO_TEST_FILT];
+#endif
 #if TI_ALF_MAX_VSIZE_7
   static Int m_pattern9x9Sym[39];
   static Int m_weights9x9Sym[21];
@@ -468,6 +520,11 @@ protected:
   static Int m_pattern5x5Sym[13];
   static Int m_weights5x5Sym[8];
   static Int m_pattern5x5Sym_Quart[45];
+#if STAR_CROSS_SHAPES_LUMA
+  static Int pattern11x5SymShape0[17];
+  static Int pattern11x5SymShape1[15];
+  static Int pattern11x5Sym11x5[55];
+#endif
 #if TI_ALF_MAX_VSIZE_7
   static Int m_pattern9x9Sym_9[39];
 #else
@@ -654,4 +711,7 @@ public:
 
 
 };
+
+//! \}
+
 #endif
