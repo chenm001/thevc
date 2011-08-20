@@ -38,6 +38,9 @@
 #include "NALread.h"
 #include "TDecTop.h"
 
+//! \ingroup TLibDecoder
+//! \{
+
 TDecTop::TDecTop()
 : m_SEIs(0)
 {
@@ -198,7 +201,11 @@ Void TDecTop::executeDeblockAndAlf(UInt& ruiPOC, TComList<TComPic*>*& rpcListPic
   TComPic*&   pcPic         = m_pcPic;
 
   // Execute Deblock and ALF only + Cleanup
+#if REF_SETTING_FOR_LD
+  m_cGopDecoder.decompressGop(NULL, pcPic, true, m_cListPic );
+#else
   m_cGopDecoder.decompressGop(NULL, pcPic, true);
+#endif
 
   // Apply decoder picture marking at the end of coding
   pcPic->getSlice( 0 )->decodingTLayerSwitchingMarking( m_cListPic );
@@ -227,7 +234,20 @@ Bool TDecTop::decode(InputNALUnit& nalu, Int& iSkipFrame, Int& iPOCLastDisplay)
   {
     case NAL_UNIT_SPS:
       m_cEntropyDecoder.decodeSPS( &m_cSPS );
-      
+
+#if AMP    
+      for (Int i = 0; i < m_cSPS.getMaxCUDepth() - 1; i++)
+      {
+        // m_cSPS.setAMPAcc( i, m_cSPS.getUseAMP() );
+        m_cSPS.setAMPAcc( i, 1 );
+      }
+
+      for (Int i = m_cSPS.getMaxCUDepth() - 1; i < m_cSPS.getMaxCUDepth(); i++)
+      {
+        m_cSPS.setAMPAcc( i, 0 );
+      }
+#endif
+
       // create ALF temporary buffer
       m_cAdaptiveLoopFilter.create( m_cSPS.getWidth(), m_cSPS.getHeight(), g_uiMaxCUWidth, g_uiMaxCUHeight, g_uiMaxCUDepth );
 #if MTK_SAO
@@ -313,6 +333,16 @@ Bool TDecTop::decode(InputNALUnit& nalu, Int& iSkipFrame, Int& iPOCLastDisplay)
       m_apcSlicePilot->setReferenced(nalu.m_RefIDC != NAL_REF_IDC_PRIORITY_LOWEST);
       m_cEntropyDecoder.decodeSliceHeader (m_apcSlicePilot);
 
+      if ( m_apcSlicePilot->getSymbolMode() )
+      {
+        Int numBitsForByteAlignment = nalu.m_Bitstream->getNumBitsUntilByteAligned();
+        if ( numBitsForByteAlignment > 0 )
+        {
+          UInt bitsForByteAlignment;
+          nalu.m_Bitstream->read( numBitsForByteAlignment, bitsForByteAlignment );
+          assert( bitsForByteAlignment == ( ( 1 << numBitsForByteAlignment ) - 1 ) );
+        }
+      }
       m_apcSlicePilot->setTLayerInfo(nalu.m_TemporalID);
 
       if (m_apcSlicePilot->isNextSlice() && m_apcSlicePilot->getPOC()!=m_uiPrevPOC && !m_bFirstSliceInSequence)
@@ -413,6 +443,31 @@ Bool TDecTop::decode(InputNALUnit& nalu, Int& iSkipFrame, Int& iPOCLastDisplay)
             pcSlice->setRefPic(pcSlice->getRefPic(REF_PIC_LIST_0, iRefIdx), REF_PIC_LIST_1, iRefIdx);
           }
         }
+#if TMVP_ONE_LIST_CHECK
+        if (pcSlice->isInterB())
+        {
+          Bool bLowDelay = true;
+          Int  iCurrPOC  = pcSlice->getPOC();
+          Int iRefIdx = 0;
+
+          for (iRefIdx = 0; iRefIdx < pcSlice->getNumRefIdx(REF_PIC_LIST_0) && bLowDelay; iRefIdx++)
+          {
+            if ( pcSlice->getRefPic(REF_PIC_LIST_0, iRefIdx)->getPOC() > iCurrPOC )
+            {
+              bLowDelay = false;
+            }
+          }
+          for (iRefIdx = 0; iRefIdx < pcSlice->getNumRefIdx(REF_PIC_LIST_1) && bLowDelay; iRefIdx++)
+          {
+            if ( pcSlice->getRefPic(REF_PIC_LIST_1, iRefIdx)->getPOC() > iCurrPOC )
+            {
+              bLowDelay = false;
+            }
+          }
+
+          pcSlice->setCheckLDC(bLowDelay);            
+        }
+#endif
         
         //---------------
         pcSlice->setRefPOCList();
@@ -444,7 +499,11 @@ Bool TDecTop::decode(InputNALUnit& nalu, Int& iSkipFrame, Int& iPOCLastDisplay)
       pcPic->setCurrSliceIdx(m_uiSliceIdx);
 
       //  Decode a picture
+#if REF_SETTING_FOR_LD
+      m_cGopDecoder.decompressGop(nalu.m_Bitstream, pcPic, false, m_cListPic );
+#else
       m_cGopDecoder.decompressGop(nalu.m_Bitstream, pcPic, false);
+#endif
 
       m_bFirstSliceInPicture = false;
       m_uiSliceIdx++;
@@ -568,3 +627,4 @@ Void TDecTop::updatePPSBuffer()
 #endif
 
 
+//! \}

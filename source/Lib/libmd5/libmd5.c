@@ -17,6 +17,9 @@
 #include <string.h>
 #include "libmd5.h"
 
+//! \ingroup libMD5
+//! \{
+
 static void MD5Transform(uint32_t buf[4], uint32_t const in[16]);
 
 #ifndef __BIG_ENDIAN__

@@ -38,14 +38,14 @@
 #ifndef __TENCENTROPY__
 #define __TENCENTROPY__
 
-#include "../TLibCommon/TComSlice.h"
-#include "../TLibCommon/TComDataCU.h"
-#include "../TLibCommon/TComBitStream.h"
-#include "../TLibCommon/ContextModel.h"
-#include "../TLibCommon/TComPic.h"
-#include "../TLibCommon/TComTrQuant.h"
+#include "TLibCommon/TComSlice.h"
+#include "TLibCommon/TComDataCU.h"
+#include "TLibCommon/TComBitStream.h"
+#include "TLibCommon/ContextModel.h"
+#include "TLibCommon/TComPic.h"
+#include "TLibCommon/TComTrQuant.h"
 #if E045_SLICE_COMMON_INFO_SHARING
-#include "../TLibCommon/TComAdaptiveLoopFilter.h"
+#include "TLibCommon/TComAdaptiveLoopFilter.h"
 #endif
 
 class TEncSbac;
@@ -245,15 +245,22 @@ public:
   Int golombEncode(int coeff, int k);
   Int lengthGolomb(int coeffVal, int k);
 #if MTK_SAO
+#if MTK_SAO_CHROMA
+  Void    encodeQAOOnePart(SAOParam* pQaoParam, Int part_idx, Int iYCbCr);
+  Void    encodeQuadTreeSplitFlag(SAOParam* pQaoParam, Int part_idx, Int iYCbCr);
+  Void    encodeSaoParam(SAOParam* pQaoParam) ;
+#else
   Void    encodeQAOOnePart(SAOParam* pQaoParam, Int part_idx);
   Void    encodeQuadTreeSplitFlag(SAOParam* pQaoParam, Int part_idx);
   Void    encodeSaoParam(SAOParam* pQaoParam) ;
+#endif
 #endif
 
   static Int countNonZeroCoeffs( TCoeff* pcCoef, UInt uiSize );
 
 };// END CLASS DEFINITION TEncEntropy
 
+//! \}
 
 #endif // __TENCENTROPY__
 

@@ -39,6 +39,9 @@
 #include "TComSlice.h"
 #include "TComPic.h"
 
+//! \ingroup TLibCommon
+//! \{
+
 TComSlice::TComSlice()
 : m_iPPSId                        ( -1 )
 , m_iPOC                          ( 0 )
@@ -51,6 +54,9 @@ TComSlice::TComSlice()
 , m_eERBIndex                     ( ERB_NONE )
 , m_bRefPicListModificationFlagLC ( false )
 , m_bRefPicListCombinationFlag    ( false )
+#if TMVP_ONE_LIST_CHECK
+, m_bCheckLDC                     ( false )
+#endif
 , m_iSliceQpDelta                 ( 0 )
 , m_iDepth                        ( 0 )
 , m_bRefenced                     ( false )
@@ -58,7 +64,12 @@ TComSlice::TComSlice()
 , m_pcPPS                         ( NULL )
 , m_pcPic                         ( NULL )
 , m_uiColDir                      ( 0 )
+#if ALF_CHROMA_LAMBDA || SAO_CHROMA_LAMBDA
+, m_dLambdaLuma( 0.0 )
+, m_dLambdaChroma( 0.0 )
+#else
 , m_dLambda                       ( 0.0 )
+#endif
 , m_bNoBackPredFlag               ( false )
 , m_bRefIdxCombineCoding          ( false )
 , m_uiTLayer                      ( 0 )
@@ -122,6 +133,9 @@ Void TComSlice::initSlice()
   m_bRefIdxCombineCoding = false;
   m_bRefPicListCombinationFlag = false;
   m_bRefPicListModificationFlagLC = false;
+#if TMVP_ONE_LIST_CHECK
+  m_bCheckLDC = false;
+#endif
 
   m_aiNumRefIdx[REF_PIC_LIST_C]      = 0;
 
@@ -624,7 +638,9 @@ Void TComSlice::copySliceInfo(TComSlice *pSrc)
   }
   m_bRefPicListModificationFlagLC = pSrc->m_bRefPicListModificationFlagLC;
   m_bRefPicListCombinationFlag    = pSrc->m_bRefPicListCombinationFlag;
-
+#if TMVP_ONE_LIST_CHECK
+  m_bCheckLDC             = pSrc->m_bCheckLDC;
+#endif
   m_iSliceQpDelta        = pSrc->m_iSliceQpDelta;
   for (i = 0; i < 2; i++)
   {
@@ -645,7 +661,12 @@ Void TComSlice::copySliceInfo(TComSlice *pSrc)
   m_pcPic                = pSrc->m_pcPic;
 
   m_uiColDir             = pSrc->m_uiColDir;
+#if ALF_CHROMA_LAMBDA || SAO_CHROMA_LAMBDA 
+  m_dLambdaLuma          = pSrc->m_dLambdaLuma;
+  m_dLambdaChroma        = pSrc->m_dLambdaChroma;
+#else
   m_dLambda              = pSrc->m_dLambda;
+#endif
   for (i = 0; i < 2; i++)
   {
     for (j = 0; j < MAX_NUM_REF; j++)
@@ -723,7 +744,7 @@ Void TComSlice::decodingMarking( TComList<TComPic*>& rcListPic, Int iGOPSIze, In
   while ( iterPic != rcListPic.end() )
   {
     TComPic* rpcPic = *(iterPic);
-    if ( rpcPic->getSlice( 0 )->isReferenced() ) 
+    if ( rpcPic->getSlice( 0 )->isReferenced() && rpcPic->getReconMark() ) 
     {
       if ( rpcPic != getPic() )
       {
@@ -777,6 +798,58 @@ Void TComSlice::decodingTLayerSwitchingMarking( TComList<TComPic*>& rcListPic )
   }
 }
 
+#if REF_SETTING_FOR_LD
+Int TComSlice::getActualRefNumber( TComList<TComPic*>& rcListPic )
+{
+  Int iActualNumOfReference = 0;
+
+  TComList<TComPic*>::iterator iterPic = rcListPic.begin();
+  while ( iterPic != rcListPic.end() )
+  {
+    TComPic* rpcPic = *(iterPic);
+    if ( rpcPic->getSlice( 0 )->isReferenced() && rpcPic->getReconMark() ) 
+    {
+      iActualNumOfReference++;
+    }
+    iterPic++;
+  }
+
+  return iActualNumOfReference;
+}
+
+Void TComSlice::decodingRefMarkingForLD( TComList<TComPic*>& rcListPic, Int iMaxNumRefFrames, Int iCurrentPOC )
+{
+  assert( iMaxNumRefFrames >= 1 );
+  while( getActualRefNumber( rcListPic ) > iMaxNumRefFrames )
+  {
+    sortPicList( rcListPic );
+    TComList<TComPic*>::iterator it = rcListPic.begin();
+    while( it != rcListPic.end() )
+    {
+      if ( (*it)->getSlice(0)->isReferenced() && (*it)->getSlice(0)->getPOC() != iCurrentPOC && (*it)->getSlice(0)->getPOC() % 4 != 0 )
+      {
+        (*it)->getSlice(0)->setReferenced( false );   // mark POC%4!=0 as unused for reference
+        break;
+      }
+      it++;
+    }
+    if ( it == rcListPic.end() )  // all the reference frames POC%4== 0, mark the first reference frame as unused for reference
+    {
+      it = rcListPic.begin();
+      while( it != rcListPic.end() )
+      {
+        if ( (*it)->getSlice(0)->isReferenced() )
+        {
+          (*it)->getSlice(0)->setReferenced( false );
+          break;
+        }
+        it++;
+      }
+    }
+  }
+}
+#endif
+
 
 // ------------------------------------------------------------------------------------------------
 // Sequence parameter set (SPS)
@@ -803,6 +876,9 @@ TComSPS::TComSPS()
 #if E057_INTRA_PCM
 , m_uiPCMLog2MinSize          (  7)
 #endif
+#if DISABLE_4x4_INTER
+, m_bDisInter4x4              (  1)
+#endif    
 , m_bUseALF                   (false)
 , m_bUseDQP                   (false)
 , m_bUseLDC                   (false)
@@ -830,6 +906,10 @@ TComSPS::TComSPS()
 , m_bUseSAO                   (false) 
 #endif
 , m_bTemporalIdNestingFlag    (false)
+#if REF_SETTING_FOR_LD
+, m_bUseNewRefSetting         (false)
+, m_uiMaxNumRefFrames         (  0)
+#endif
 {
   // AMVP parameter
   ::memset( m_aeAMVPMode, 0, sizeof( m_aeAMVPMode ) );
@@ -841,6 +921,7 @@ TComSPS::~TComSPS()
 
 TComPPS::TComPPS()
 : m_PPSId                       (0)
+, m_SPSId                       (0)
 , m_bConstrainedIntraPred       (false)
 #if SUB_LCU_DQP
 , m_pcSPS                       (NULL)
@@ -865,3 +946,4 @@ TComPPS::~TComPPS()
 {
 }
 
+//! \}

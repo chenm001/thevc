@@ -44,6 +44,9 @@
 #include "TComPicYuv.h"
 #include "TComBitStream.h"
 
+//! \ingroup TLibCommon
+//! \{
+
 class SEImessages;
 
 // ====================================================================================================================
@@ -72,7 +75,11 @@ public:
   virtual ~TComPic();
   
   Void          create( Int iWidth, Int iHeight, UInt uiMaxWidth, UInt uiMaxHeight, UInt uiMaxDepth, Bool bIsVirtual = false );
+#if QP_ADAPTATION
+  virtual Void  destroy();
+#else
   Void          destroy();
+#endif
   
   UInt          getTLayer()                { return m_uiTLayer;   }
   Void          setTLayer( UInt uiTLayer ) { m_uiTLayer = uiTLayer; }
@@ -119,21 +126,21 @@ public:
   Void          allocateNewSlice()           {m_apcPicSym->allocateNewSlice();         }
   Void          clearSliceBuffer()           {m_apcPicSym->clearSliceBuffer();         }
   
-  /** transfer ownership of @seis to @this picture */
+  /** transfer ownership of seis to this picture */
   void setSEIs(SEImessages* seis) { m_SEIs = seis; }
 
   /**
    * return the current list of SEI messages associated with this picture.
-   * Pointer is valid until @this->destroy() is called */
+   * Pointer is valid until this->destroy() is called */
   SEImessages* getSEIs() { return m_SEIs; }
 
   /**
    * return the current list of SEI messages associated with this picture.
-   * Pointer is valid until @this->destroy() is called */
+   * Pointer is valid until this->destroy() is called */
   const SEImessages* getSEIs() const { return m_SEIs; }
 
 };// END CLASS DEFINITION TComPic
 
+//! \}
 
 #endif // __TCOMPIC__
-

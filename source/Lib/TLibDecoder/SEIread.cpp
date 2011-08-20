@@ -31,15 +31,18 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "../TLibCommon/TComBitStream.h"
-#include "../TLibCommon/SEI.h"
+#include "TLibCommon/TComBitStream.h"
+#include "TLibCommon/SEI.h"
 #include "SEIread.h"
+
+//! \ingroup TLibDecoder
+//! \{
 
 static void parseSEIuserDataUnregistered(TComInputBitstream& bs, SEIuserDataUnregistered &sei, unsigned payloadSize);
 static void parseSEIpictureDigest(TComInputBitstream& bs, SEIpictureDigest& sei, unsigned payloadSize);
 
 /**
- * unmarshal a single SEI message from bitstream @bs
+ * unmarshal a single SEI message from bitstream bs
  */
 void parseSEImessage(TComInputBitstream& bs, SEImessages& seis)
 {
@@ -71,8 +74,8 @@ void parseSEImessage(TComInputBitstream& bs, SEImessages& seis)
 }
 
 /**
- * parse bitstream @bs and unpack a user_data_unregistered SEI message
- * of @payloasSize bytes into @sei.
+ * parse bitstream bs and unpack a user_data_unregistered SEI message
+ * of payloasSize bytes into sei.
  */
 static void parseSEIuserDataUnregistered(TComInputBitstream& bs, SEIuserDataUnregistered &sei, unsigned payloadSize)
 {
@@ -97,8 +100,8 @@ static void parseSEIuserDataUnregistered(TComInputBitstream& bs, SEIuserDataUnre
 }
 
 /**
- * parse bitstream @bs and unpack a picture_digest SEI message
- * of @payloadSize bytes into @sei.
+ * parse bitstream bs and unpack a picture_digest SEI message
+ * of payloadSize bytes into sei.
  */
 static void parseSEIpictureDigest(TComInputBitstream& bs, SEIpictureDigest& sei, unsigned payloadSize)
 {
@@ -111,3 +114,4 @@ static void parseSEIpictureDigest(TComInputBitstream& bs, SEIpictureDigest& sei,
   }
 }
 
+//! \}

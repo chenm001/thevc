@@ -38,12 +38,13 @@
 #ifndef __TENC_BIN_CODER__
 #define __TENC_BIN_CODER__
 
-#include "../TLibCommon/ContextModel.h"
-#include "../TLibCommon/TComBitStream.h"
+#include "TLibCommon/ContextModel.h"
+#include "TLibCommon/TComBitStream.h"
 
+//! \ingroup TLibEncoder
+//! \{
 
 class TEncBinCABAC;
-
 
 class TEncBinIf
 {
@@ -66,6 +67,7 @@ public:
 
   virtual Void  encodeBin         ( UInt  uiBin,  ContextModel& rcCtxModel )  = 0;
   virtual Void  encodeBinEP       ( UInt  uiBin                            )  = 0;
+  virtual Void  encodeBinsEP      ( UInt  uiBins, Int numBins              )  = 0;
   virtual Void  encodeBinTrm      ( UInt  uiBin                            )  = 0;
 
   virtual TEncBinCABAC*   getTEncBinCABAC   ()  { return 0; }
@@ -73,6 +75,7 @@ public:
   virtual ~TEncBinIf() {}
 };
 
+//! \}
 
 #endif
 

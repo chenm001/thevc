@@ -38,8 +38,11 @@
 #ifndef __TENC_BIN_CODER_CABAC__
 #define __TENC_BIN_CODER_CABAC__
 
-#include "../TLibCommon/TComCABACTables.h"
+#include "TLibCommon/TComCABACTables.h"
 #include "TEncBinCoder.h"
+
+//! \ingroup TLibEncoder
+//! \{
 
 
 class TEncBinCABAC : public TEncBinIf
@@ -60,35 +63,37 @@ public:
   Void  encodePCMAlignBits();
   Void  xWritePCMCode     (UInt uiCode, UInt uiLength);
 #endif
-
+  
   Void  resetBits         ();
   UInt  getNumWrittenBits ();
   
-  Void  encodeBin         ( UInt  uiBin,  ContextModel& rcCtxModel );
-  Void  encodeBinEP       ( UInt  uiBin                            );
-  Void  encodeBinTrm      ( UInt  uiBin                            );
+  Void  encodeBin         ( UInt  binValue,  ContextModel& rcCtxModel );
+  Void  encodeBinEP       ( UInt  binValue                            );
+  Void  encodeBinsEP      ( UInt  binValues, Int numBins              );
+  Void  encodeBinTrm      ( UInt  binValue                            );
   
   TEncBinCABAC* getTEncBinCABAC()  { return this; }
   
-  Void  setBinsCoded              ( UInt uiVal )  { m_uiBinsCoded = uiVal;          }
-  UInt  getBinsCoded              ()              { return m_uiBinsCoded;           }
-  Void  setBinCountingEnableFlag  ( Bool bFlag )  { m_bBinCountingEnabled = bFlag;  }
-  Bool  getBinCountingEnableFlag  ()              { return m_bBinCountingEnabled;   }
-protected:
-  Void  xWriteBit               ( UInt uiBit );
-  Void  xWriteBitAndBitsToFollow( UInt uiBit );
+  Void  setBinsCoded              ( UInt uiVal )  { m_uiBinsCoded = uiVal;               }
+  UInt  getBinsCoded              ()              { return m_uiBinsCoded;                }
+  Void  setBinCountingEnableFlag  ( Bool bFlag )  { m_binCountIncrement = bFlag ? 1 : 0; }
+  Bool  getBinCountingEnableFlag  ()              { return m_binCountIncrement != 0;     }
   
 private:
+  Void testAndWriteOut();
+  Void writeOut();
+  
   TComBitIf*          m_pcTComBitIf;
   UInt                m_uiLow;
   UInt                m_uiRange;
-  UInt                m_uiBitsToFollow;
-  UInt                m_uiByte;
-  UInt                m_uiBitsLeft;
+  UInt                m_bufferedByte;
+  Int                 m_numBufferedBytes;
+  Int                 m_bitsLeft;
   UInt                m_uiBinsCoded;
-  Bool                m_bBinCountingEnabled;
+  Int                 m_binCountIncrement;
 };
 
+//! \}
 
 #endif
 

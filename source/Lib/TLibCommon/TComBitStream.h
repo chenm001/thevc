@@ -48,6 +48,9 @@
 #include <assert.h>
 #include "CommonDef.h"
 
+//! \ingroup TLibCommon
+//! \{
+
 // ====================================================================================================================
 // Class definition
 // ====================================================================================================================
@@ -92,7 +95,7 @@ public:
 
   // interface for encoding
   /**
-   * append @uiNumberOfBits@ least significant bits of @uiBits@ to
+   * append uiNumberOfBits least significant bits of uiBits to
    * the current bitstream
    */
   Void        write           ( UInt uiBits, UInt uiNumberOfBits );
@@ -173,15 +176,22 @@ public:
   // interface for decoding
   Void        pseudoRead      ( UInt uiNumberOfBits, UInt& ruiBits );
   Void        read            ( UInt uiNumberOfBits, UInt& ruiBits );
+  Void        readByte        ( UInt &ruiBits )
+  {
+    assert(m_fifo_idx < m_fifo->size());
+    ruiBits = (*m_fifo)[m_fifo_idx++];
+  }
 
   // Peek at bits in word-storage. Used in determining if we have completed reading of current bitstream and therefore slice in LCEC.
   UInt        peekBits (UInt uiBits) { unsigned tmp; pseudoRead(uiBits, tmp); return tmp; }
 
   // utility functions
   unsigned read(unsigned numberOfBits) { UInt tmp; read(numberOfBits, tmp); return tmp; }
+  UInt     readByte() { UInt tmp; readByte( tmp ); return tmp; }
   unsigned getNumBitsUntilByteAligned() { return m_num_held_bits & (0x7); }
   unsigned getNumBitsLeft() { return 8*((unsigned)m_fifo->size() - m_fifo_idx) + m_num_held_bits; }
 };
 
-#endif
+//! \}
 
+#endif

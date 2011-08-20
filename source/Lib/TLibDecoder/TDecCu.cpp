@@ -37,6 +37,9 @@
 
 #include "TDecCu.h"
 
+//! \ingroup TLibDecoder
+//! \{
+
 // ====================================================================================================================
 // Constructor / destructor / create / destroy
 // ====================================================================================================================
@@ -91,6 +94,9 @@ Void TDecCu::create( UInt uiMaxDepth, UInt uiMaxWidth, UInt uiMaxHeight )
   
   // initialize conversion matrix from partition index to pel
   initRasterToPelXY( uiMaxWidth, uiMaxHeight, m_uiMaxDepth );
+#if REDUCE_UPPER_MOTION_DATA
+  initMotionReferIdx ( uiMaxWidth, uiMaxHeight, m_uiMaxDepth );
+#endif
 }
 
 Void TDecCu::destroy()
@@ -327,18 +333,48 @@ Void TDecCu::xDecodeCU( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
       m_ppcCU[uiDepth]->copyInterPredInfoFrom( pcCU, uiAbsPartIdx, REF_PIC_LIST_1 );
       TComMvField cMvFieldNeighbours[MRG_MAX_NUM_CANDS << 1]; // double length for mv of both lists
       UChar uhInterDirNeighbours[MRG_MAX_NUM_CANDS];
+#if MRG_AMVP_FIXED_IDX_F470
+      Int numValidMergeCand = 0;
+#else
       UInt uiNeighbourCandIdx[MRG_MAX_NUM_CANDS]; //MVs with same idx => same cand
+#endif
       for( UInt ui = 0; ui < MRG_MAX_NUM_CANDS; ++ui )
       {
         uhInterDirNeighbours[ui] = 0;
+#if !MRG_AMVP_FIXED_IDX_F470
         uiNeighbourCandIdx[ui] = 0;
+#endif
       }
+#if MRG_AMVP_FIXED_IDX_F470
+      m_pcEntropyDecoder->decodeMergeIndex( pcCU, 0, uiAbsPartIdx, SIZE_2Nx2N, uhInterDirNeighbours, cMvFieldNeighbours, uiDepth );
+      m_ppcCU[uiDepth]->getInterMergeCandidates( 0, 0, uiDepth, cMvFieldNeighbours, uhInterDirNeighbours, numValidMergeCand );
+
+      UInt uiMergeIndex = pcCU->getMergeIndex(uiAbsPartIdx);
+      pcCU->setInterDirSubParts( uhInterDirNeighbours[uiMergeIndex], uiAbsPartIdx, 0, uiDepth );
+
+      TComMv cTmpMv( 0, 0 );
+      if ( pcCU->getSlice()->getNumRefIdx( REF_PIC_LIST_0 ) > 0  ) //if ( ref. frame list0 has at least 1 entry )
+      {
+        pcCU->setMVPIdxSubParts( 0, REF_PIC_LIST_0, uiAbsPartIdx, 0, uiDepth);
+        pcCU->setMVPNumSubParts( 0, REF_PIC_LIST_0, uiAbsPartIdx, 0, uiDepth);
+        pcCU->getCUMvField( REF_PIC_LIST_0 )->setAllMvd( cTmpMv, SIZE_2Nx2N, uiAbsPartIdx, uiDepth );
+        pcCU->getCUMvField( REF_PIC_LIST_0 )->setAllMvField( cMvFieldNeighbours[ 2*uiMergeIndex ], SIZE_2Nx2N, uiAbsPartIdx, uiDepth );
+      }
+      if ( pcCU->getSlice()->getNumRefIdx( REF_PIC_LIST_1 ) > 0 ) //if ( ref. frame list1 has at least 1 entry )
+      {
+        pcCU->setMVPIdxSubParts( 0, REF_PIC_LIST_1, uiAbsPartIdx, 0, uiDepth);
+        pcCU->setMVPNumSubParts( 0, REF_PIC_LIST_1, uiAbsPartIdx, 0, uiDepth);
+        pcCU->getCUMvField( REF_PIC_LIST_1 )->setAllMvd( cTmpMv, SIZE_2Nx2N, uiAbsPartIdx, uiDepth );
+        pcCU->getCUMvField( REF_PIC_LIST_1 )->setAllMvField( cMvFieldNeighbours[ 2*uiMergeIndex + 1 ], SIZE_2Nx2N, uiAbsPartIdx, uiDepth );
+      }
+#else
       m_ppcCU[uiDepth]->getInterMergeCandidates( 0, 0, uiDepth, cMvFieldNeighbours, uhInterDirNeighbours, uiNeighbourCandIdx );
       for(UInt uiIter = 0; uiIter < MRG_MAX_NUM_CANDS; uiIter++ )
       {
         pcCU->setNeighbourCandIdxSubParts( uiIter, uiNeighbourCandIdx[uiIter], uiAbsPartIdx, 0, uiDepth );
       }
       m_pcEntropyDecoder->decodeMergeIndex( pcCU, 0, uiAbsPartIdx, SIZE_2Nx2N, uhInterDirNeighbours, cMvFieldNeighbours, uiDepth );
+#endif
     }
     else
 #endif
@@ -625,7 +661,12 @@ TDecCu::xIntraRecChromaBlk( TComDataCU* pcCU,
                                      m_pcPrediction->getPredicBuf       (),
                                      m_pcPrediction->getPredicBufWidth  (),
                                      m_pcPrediction->getPredicBufHeight (),
-                                     bAboveAvail, bLeftAvail, 2 );
+                                     bAboveAvail, bLeftAvail, 
+#if LM_CHROMA_SIMPLIFICATION
+                                     true );
+#else
+                                     2 );
+#endif
 
     m_pcPrediction->getLumaRecPixels( pcCU->getPattern(), uiWidth, uiHeight );
   }
@@ -646,7 +687,11 @@ TDecCu::xIntraRecChromaBlk( TComDataCU* pcCU,
   }
   else
   {
+#if FIXED_MPM
+    if( uiChromaPredMode == DM_CHROMA_IDX )
+#else
     if( uiChromaPredMode == 4 )
+#endif
     {
       uiChromaPredMode = pcCU->getLumaIntraDir( 0 );
     }
@@ -956,3 +1001,4 @@ Void TDecCu::xReconPCM( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
 }
 #endif
 
+//! \}

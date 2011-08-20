@@ -47,7 +47,9 @@
 #pragma warning( disable : 4800 )
 #endif // _MSC_VER > 1000
 #include "TypeDef.h"
-#include "TComRom.h"
+
+//! \ingroup TLibCommon
+//! \{
 
 // ====================================================================================================================
 // Version information
@@ -122,10 +124,11 @@
 // ====================================================================================================================
 
 extern UInt g_uiIBDI_MAX;
-/** clip #x#, such that 0 <= #x# <= g_uiIBDI_MAX */
+
+/** clip x, such that 0 <= x <= #g_uiIBDI_MAX */
 template <typename T> inline T Clip(T x) { return std::min<T>(T(g_uiIBDI_MAX), std::max<T>( T(0), x)); }
 
-/** clip #a#, such that #MinVal# <= #a# <= #MaxVal# */
+/** clip a, such that minVal <= a <= maxVal */
 template <typename T> inline T Clip3( T minVal, T maxVal, T a) { return std::min<T> (std::max<T> (minVal, a) , maxVal); }  ///< general min/max clip
 
 #define DATA_ALIGN                  1                                                                 ///< use 32-bit aligned malloc/free
@@ -152,7 +155,12 @@ template <typename T> inline T Clip3( T minVal, T maxVal, T a) { return std::min
 #define MAX_TR1                           4
 
 // AMVP: advanced motion vector prediction
+#if MRG_AMVP_FIXED_IDX_F470
+#define AMVP_MAX_NUM_CANDS          2           ///< max number of final candidates
+#define AMVP_MAX_NUM_CANDS_MEM      3           ///< max number of candidates
+#else
 #define AMVP_MAX_NUM_CANDS          5           ///< max number of final candidates
+#endif
 // MERGE
 #define MRG_MAX_NUM_CANDS           5
 
@@ -182,15 +190,6 @@ template <typename T> inline T Clip3( T minVal, T maxVal, T a) { return std::min
 
 // Early-skip threshold (encoder)
 #define EARLY_SKIP_THRES            1.50        ///< if RD < thres*avg[BestSkipRD]
-
-#ifdef TRANS_PRECISION_EXT
-const int g_iShift8x8    = 2;
-const int g_iShift16x16  = 2;
-const int g_iShift32x32  = 2;
-const int g_iShift64x64  = 2;
-#endif
-
-/* End of Rounding control */
 
 enum NalRefIdc
 {
@@ -242,6 +241,7 @@ typedef _AlfParam    ALFParam;
 typedef _SaoParam    SAOParam;
 #endif
 
+//! \}
 
 #endif // end of #ifndef  __COMMONDEF__
 
