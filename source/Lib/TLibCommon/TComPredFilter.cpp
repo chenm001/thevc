@@ -35,6 +35,9 @@
     \brief    interpolation filter class
 */
 
+//! \ingroup TLibCommon
+//! \{
+
 #include "TComPredFilter.h"
 
 // ====================================================================================================================
@@ -46,3 +49,4 @@ TComPredFilter::TComPredFilter()
   // initial number of taps for Luma
 }
 
+//! \}

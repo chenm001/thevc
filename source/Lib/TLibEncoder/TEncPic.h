@@ -38,8 +38,11 @@
 #ifndef __TENCPIC__
 #define __TENCPIC__
 
-#include "../TLibCommon/CommonDef.h"
-#include "../TLibCommon/TComPic.h"
+#include "TLibCommon/CommonDef.h"
+#include "TLibCommon/TComPic.h"
+
+//! \ingroup TLibEncoder
+//! \{
 
 // ====================================================================================================================
 // Class definition
@@ -105,5 +108,7 @@ public:
   TEncPicQPAdaptationLayer* getAQLayer( UInt uiDepth )  { return &m_acAQLayer[uiDepth]; }
   UInt                      getMaxAQDepth()             { return m_uiMaxAQDepth;        }
 };
+
+//! \}
 
 #endif // __TENCPIC__

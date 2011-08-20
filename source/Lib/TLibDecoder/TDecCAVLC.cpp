@@ -38,6 +38,9 @@
 #include "TDecCAVLC.h"
 #include "SEIread.h"
 
+//! \ingroup TLibDecoder
+//! \{
+
 #if ENC_DEC_TRACE
 
 #define READ_CODE(size, code, name)     xReadCodeTr ( size, code, name )
@@ -3515,14 +3518,12 @@ Void TDecCavlc::xParseCoeff8x8(TCoeff* scoeff, int n)
 
 
 #if CAVLC_COEF_LRG_BLK
-/** Function for parsing a block of transform coeffcients in CAVLC.
- * \param scoeff pointer to transform coefficient buffer
- * \param n block type information, e.g. luma, chroma, intra, inter, etc. 
- * \param blSize block size
- * \returns 
- * This function performs parsing for a block of transform coefficient in CAVLC. 
+/** Function for parsing a block of transform coefficients in CAVLC.
+ * \param scoeff    pointer to transform coefficient buffer
+ * \param blockType block type information, e.g. luma, chroma, intra, inter, etc. 
+ * \param blSize    block size
  */
-Void TDecCavlc::xParseCoeff(TCoeff* scoeff, int n, Int blSize
+Void TDecCavlc::xParseCoeff(TCoeff* scoeff, Int blockType, Int blSize
 #if CAVLC_RUNLEVEL_TABLE_REM
                             , Int isIntra
 #endif
@@ -3547,7 +3548,7 @@ Void TDecCavlc::xParseCoeff(TCoeff* scoeff, int n, Int blSize
   memset(scoeff,0,sizeof(TCoeff)*noCoeff);
 
 #if CAVLC_RUNLEVEL_TABLE_REM
-  Int scale = (isIntra && n < 2) ? 0 : 3;
+  Int scale = (isIntra && blockType < 2) ? 0 : 3;
 #endif
 
   /* Get the last nonzero coeff */
@@ -3555,24 +3556,24 @@ Void TDecCavlc::xParseCoeff(TCoeff* scoeff, int n, Int blSize
   {
     /* Decode according to current LP table */
     // ADAPT_VLC_NUM
-    tmp = g_auiLastPosVlcNum[n][min(16u,m_uiLastPosVlcIndex[n])];
+    tmp = g_auiLastPosVlcNum[blockType][min(16u,m_uiLastPosVlcIndex[blockType])];
     cn = xReadVlc( tmp );
     xLastLevelIndInv(combo.level, combo.last_pos, blSize, cn);
 
     /* Adapt LP table */
 #if CAVLC_COEF_LRG_BLK_CHROMA
-    cn = (blSize==8 || n<2)?cn:(cn>>2);
+    cn = (blSize==8 || blockType<2)?cn:(cn>>2);
 #else
     cn = (blSize==8)?cn:(cn>>2);
 #endif
     // ADAPT_VLC_NUM
-    m_uiLastPosVlcIndex[n] += cn == m_uiLastPosVlcIndex[n] ? 0 : (cn < m_uiLastPosVlcIndex[n] ? -1 : 1);
+    m_uiLastPosVlcIndex[blockType] += cn == m_uiLastPosVlcIndex[blockType] ? 0 : (cn < m_uiLastPosVlcIndex[blockType] ? -1 : 1);
   }
   else
   {
     /* Get the last nonzero coeff */
     Int y,cy;
-    Int nTab = max(0,n-2);
+    Int nTab = max(0,blockType-2);
     
     /* Decode according to current LP table */
     tmp = xReadVlc( 2 );
@@ -3607,12 +3608,12 @@ Void TDecCavlc::xParseCoeff(TCoeff* scoeff, int n, Int blSize
   done = 0;
 
 #if MOD_INTRA_TABLE
-  const UInt *vlcTable = (n == 2||n == 5)?  g_auiVlcTable8x8Intra:
+  const UInt *vlcTable = (blockType == 2||blockType == 5)?  g_auiVlcTable8x8Intra:
     ((blSize<=8)? g_auiVlcTable8x8Inter:g_auiVlcTable16x16Inter);
 
   const UInt **pLumaRunTr1 = (blSize==4)? g_pLumaRunTr14x4: ((blSize==8)? g_pLumaRunTr18x8: g_pLumaRunTr116x16);
 #else
-  const UInt *vlcTable = (n == 2||n == 5)? ((blSize<=8)? g_auiVlcTable8x8Intra:g_auiVlcTable16x16Intra):
+  const UInt *vlcTable = (blockType == 2||blockType == 5)? ((blSize<=8)? g_auiVlcTable8x8Intra:g_auiVlcTable16x16Intra):
     ((blSize<=8)? g_auiVlcTable8x8Inter:g_auiVlcTable16x16Inter);
   const UInt **pLumaRunTr1 = (blSize==4)? g_pLumaRunTr14x4:g_pLumaRunTr18x8;
 #endif
@@ -3621,7 +3622,7 @@ Void TDecCavlc::xParseCoeff(TCoeff* scoeff, int n, Int blSize
     maxrun = noCoeff - 1 -i;
     tmprun = min(maxrun,28);
 #if MOD_INTRA_TABLE 
-    if (tmprun < 28 || blSize<=8 || (n!=2&&n!=5))
+    if (tmprun < 28 || blSize<=8 || (blockType!=2&&blockType!=5))
     {
       tmp = vlcTable[tmprun];
     }
@@ -3636,7 +3637,7 @@ Void TDecCavlc::xParseCoeff(TCoeff* scoeff, int n, Int blSize
 
     /* Go into run mode */
     cn = xReadVlc( tmp );
-    if (n == 2 || n == 5)
+    if (blockType == 2 || blockType == 5)
     {
 #if MOD_INTRA_TABLE
       xRunLevelIndInv(&combo, maxrun, pLumaRunTr1[aiTableTr1[(blSize&4)>>2][tr1]][tmprun], cn);
@@ -3663,7 +3664,7 @@ Void TDecCavlc::xParseCoeff(TCoeff* scoeff, int n, Int blSize
         tmp = (tmp>>1)+2;
 
         sum_big_coef += tmp;
-        if (blSize==4 ||i > switch_thr[n] || sum_big_coef > 2)
+        if (blSize==4 ||i > switch_thr[blockType] || sum_big_coef > 2)
         {
 #if TBL_RUN_ADAPT
         if (tmp > atable[vlc_adaptive])
@@ -3721,3 +3722,4 @@ Void TDecCavlc::xParseCoeff(TCoeff* scoeff, int n, Int blSize
 
 #endif
 
+//! \}

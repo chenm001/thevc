@@ -41,15 +41,18 @@
 #include "TEncTop.h"
 #include "TEncGOP.h"
 #include "TEncAnalyze.h"
-#include "../libmd5/MD5.h"
-#include "../TLibCommon/SEI.h"
-#include "../TLibCommon/NAL.h"
+#include "libmd5/MD5.h"
+#include "TLibCommon/SEI.h"
+#include "TLibCommon/NAL.h"
 #include "NALwrite.h"
 
 #include <time.h>
 #include <math.h>
 
 using namespace std;
+
+//! \ingroup TLibEncoder
+//! \{
 
 // ====================================================================================================================
 // Constructor / destructor / initialization / destroy
@@ -133,7 +136,7 @@ Void TEncGOP::init ( TEncTop* pcTEncTop )
 // Public member functions
 // ====================================================================================================================
 
-Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rcListPic, TComList<TComPicYuv*>& rcListPicYuvRecOut, list<AccessUnit>& accessUnitsInGOP)
+Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rcListPic, TComList<TComPicYuv*>& rcListPicYuvRecOut, std::list<AccessUnit>& accessUnitsInGOP)
 {
   TComPic*        pcPic;
   TComPicYuv*     pcPicYuvRecOut;
@@ -447,13 +450,16 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
         {
           m_pcSAO->setPic(pcPic);
           m_pcSAO->setUseNonCrossAlf(!pcSlice->getSPS()->getLFCrossSliceBoundaryFlag());
-          m_pcSAO->InitIsFineSliceCu();
-          UInt uiStartAddr, uiEndAddr;
-          for(UInt i=0; i< uiNumSlices ; i++)
+          if (m_pcSAO->getUseNonCrossAlf())
           {
-            uiStartAddr = m_uiStoredStartCUAddrForEncodingSlice[i];
-            uiEndAddr   = m_uiStoredStartCUAddrForEncodingSlice[i+1]-1;
-            m_pcSAO->createSliceMap(i, uiStartAddr, uiEndAddr);
+            m_pcSAO->InitIsFineSliceCu();
+            UInt uiStartAddr, uiEndAddr;
+            for(UInt i=0; i< uiNumSlices ; i++)
+            {
+              uiStartAddr = m_uiStoredStartCUAddrForEncodingSlice[i];
+              uiEndAddr   = m_uiStoredStartCUAddrForEncodingSlice[i+1]-1;
+              m_pcSAO->createSliceMap(i, uiStartAddr, uiEndAddr);
+            }
           }
         }
       }
@@ -1463,3 +1469,4 @@ Double TEncGOP::xCalculateRVM()
 }
 #endif
 
+//! \}

@@ -35,10 +35,14 @@
  \brief    encoder search class
  */
 
-#include "../TLibCommon/TypeDef.h"
-#include "../TLibCommon/TComMotionInfo.h"
+#include "TLibCommon/TypeDef.h"
+#include "TLibCommon/TComRom.h"
+#include "TLibCommon/TComMotionInfo.h"
 #include "TEncSearch.h"
 #include <math.h>
+
+//! \ingroup TLibEncoder
+//! \{
 
 static TComMv s_acMvRefineH[9] =
 {
@@ -2370,16 +2374,26 @@ Void TEncSearch::xGetInterPredictionError( TComDataCU* pcCU, TComYuv* pcYuvOrg, 
  * \param bValid 
  * \returns Void
  */
+#if MRG_AMVP_FIXED_IDX_F470
+Void TEncSearch::xMergeEstimation( TComDataCU* pcCU, TComYuv* pcYuvOrg, Int iPUIdx, UInt& uiInterDir, TComMvField* pacMvField, UInt& uiMergeIndex, UInt& ruiCost, UInt& ruiBits )
+#else
 Void TEncSearch::xMergeEstimation( TComDataCU* pcCU, TComYuv* pcYuvOrg, Int iPUIdx, UInt& uiInterDir, TComMvField* pacMvField, UInt& uiMergeIndex, UInt& ruiCost, UInt& ruiBits, UChar* puhNeighCands,Bool& bValid )
+#endif
 {
   TComMvField  cMvFieldNeighbours[MRG_MAX_NUM_CANDS << 1]; // double length for mv of both lists
   UChar uhInterDirNeighbours[MRG_MAX_NUM_CANDS];
+#if MRG_AMVP_FIXED_IDX_F470
+  Int numValidMergeCand = 0;
+#else
   UInt uiNeighbourCandIdx[MRG_MAX_NUM_CANDS]; //MVs with same idx => same cand
+#endif
 
   for( UInt ui = 0; ui < MRG_MAX_NUM_CANDS; ++ui )
   {
     uhInterDirNeighbours[ui] = 0;
+#if !MRG_AMVP_FIXED_IDX_F470
     uiNeighbourCandIdx[ui] = 0;
+#endif
   }
 
   UInt uiAbsPartIdx = 0;
@@ -2388,7 +2402,11 @@ Void TEncSearch::xMergeEstimation( TComDataCU* pcCU, TComYuv* pcYuvOrg, Int iPUI
 
   pcCU->getPartIndexAndSize( iPUIdx, uiAbsPartIdx, iWidth, iHeight );
   UInt uiDepth = pcCU->getDepth( uiAbsPartIdx );
+#if MRG_AMVP_FIXED_IDX_F470
+  pcCU->getInterMergeCandidates( uiAbsPartIdx, iPUIdx, uiDepth, cMvFieldNeighbours,uhInterDirNeighbours, numValidMergeCand );
+#else
   pcCU->getInterMergeCandidates( uiAbsPartIdx, iPUIdx, uiDepth, cMvFieldNeighbours,uhInterDirNeighbours, uiNeighbourCandIdx );
+#endif
 
 #if MRG_AMVP_FIXED_IDX_F470
   UInt uiNumCand = MRG_MAX_NUM_CANDS;
@@ -2406,17 +2424,21 @@ Void TEncSearch::xMergeEstimation( TComDataCU* pcCU, TComYuv* pcYuvOrg, Int iPUI
   ruiCost = MAX_UINT;
   ruiBits = MAX_UINT;
 
+#if !MRG_AMVP_FIXED_IDX_F470
   bValid = false;
+#endif
 
+#if MRG_AMVP_FIXED_IDX_F470
+  for( UInt uiMergeCand = 0; uiMergeCand < numValidMergeCand; ++uiMergeCand )
+  {
+    {
+#else
   for( UInt uiMergeCand = 0; uiMergeCand < MRG_MAX_NUM_CANDS; ++uiMergeCand )
   {
-#if MRG_AMVP_FIXED_IDX_F470
-    if( uiNeighbourCandIdx[uiMergeCand] > 0 )
-#else
     if( uiNeighbourCandIdx[uiMergeCand] == ( uiMergeCand + 1 ) )
-#endif
     {
       bValid = true;
+#endif
       UInt uiCostCand = MAX_UINT;
       UInt uiBitsCand = 0;
       
@@ -2460,11 +2482,13 @@ Void TEncSearch::xMergeEstimation( TComDataCU* pcCU, TComYuv* pcYuvOrg, Int iPUI
         pacMvField[1] = cMvFieldNeighbours[1 + 2*uiMergeCand];
         uiInterDir = uhInterDirNeighbours[uiMergeCand];
         uiMergeIndex = uiMergeCand;
+#if !MRG_AMVP_FIXED_IDX_F470
         for( UInt ui = 0; ui < MRG_MAX_NUM_CANDS; ui++ )
         {
-          UChar uhNeighCand = uiNeighbourCandIdx[ui]; 
+          UChar uhNeighCand = uiNeighbourCandIdx[ui];
           puhNeighCands[ui] = uhNeighCand;
         }
+#endif
       }
     }
   }
@@ -3121,6 +3145,9 @@ Void TEncSearch::predInterSearch( TComDataCU* pcCU, TComYuv* pcOrgYuv, TComYuv*&
       // find Merge result
       UInt uiMRGError = MAX_UINT;
       UInt uiMRGBits = MAX_UINT;
+#if MRG_AMVP_FIXED_IDX_F470
+      xMergeEstimation( pcCU, pcOrgYuv, iPartIdx, uiMRGInterDir, cMRGMvField, uiMRGIndex, uiMRGError, uiMRGBits );
+#else
       Bool bMergeValid = false;
       UChar ucNeighCand[MRG_MAX_NUM_CANDS];
       for( UInt ui = 0; ui < MRG_MAX_NUM_CANDS; ui++ )
@@ -3128,13 +3155,21 @@ Void TEncSearch::predInterSearch( TComDataCU* pcCU, TComYuv* pcOrgYuv, TComYuv*&
         ucNeighCand[ui] = 0;
       }
       xMergeEstimation( pcCU, pcOrgYuv, iPartIdx, uiMRGInterDir, cMRGMvField, uiMRGIndex, uiMRGError, uiMRGBits, ucNeighCand, bMergeValid );
+#endif
       UInt uiMRGCost = uiMRGError + m_pcRdCost->getCost( uiMRGBits );
 
+#if !MRG_AMVP_FIXED_IDX_F470
       for( UInt ui = 0; ui < MRG_MAX_NUM_CANDS; ui++ )
       {
         pcCU->setNeighbourCandIdxSubParts( ui, ucNeighCand[ui], uiPartAddr, iPartIdx, pcCU->getDepth( uiPartAddr ) );
       }
+#endif
+
+#if MRG_AMVP_FIXED_IDX_F470
+      if ( uiMRGCost < uiMECost )
+#else
       if ( bMergeValid && uiMRGCost < uiMECost )
+#endif
       {
         // set Merge result
         pcCU->setMergeFlagSubParts ( true,          uiPartAddr, iPartIdx, pcCU->getDepth( uiPartAddr ) );
@@ -3485,8 +3520,12 @@ UInt TEncSearch::xGetTemplateCost( TComDataCU* pcCU,
   TComPicYuv* pcPicYuvRef = pcCU->getSlice()->getRefPic( eRefPicList, iRefIdx )->getPicYuvRec();
   
   // prediction pattern
+#if GENERIC_IF
+  xPredInterLumaBlk( pcCU, pcPicYuvRef, uiPartAddr, &cMvCand, iSizeX, iSizeY, pcTemplateCand, false );
+#else
   xPredInterLumaBlk( pcCU, pcPicYuvRef, uiPartAddr, &cMvCand, iSizeX, iSizeY, pcTemplateCand );
-
+#endif
+  
   // calc distortion
 #if ZERO_MVD_EST
   m_pcRdCost->getMotionCost( 1, 0 );
@@ -5438,7 +5477,7 @@ Void TEncSearch::xExtDIFUpSamplingH ( TComPattern* pcPattern, TComYuv* pcYuvExt 
  * \param halfPelRef Half-pel mv
  * \param biPred     Flag indicating whether block is for biprediction
  */
-Void TEncSearch::xExtDIFUpSamplingQ( TComPattern* pattern, TComMv halfPelRef, bool biPred )
+Void TEncSearch::xExtDIFUpSamplingQ( TComPattern* pattern, TComMv halfPelRef, Bool biPred )
 {
   Int width      = pattern->getROIYWidth();
   Int height     = pattern->getROIYHeight();
@@ -5814,3 +5853,4 @@ Void TEncSearch::xExtDIFUpSamplingQ   ( TComPattern* pcPatternKey, Pel* piDst, I
 }
 #endif
 
+//! \}

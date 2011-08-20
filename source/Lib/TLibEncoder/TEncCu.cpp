@@ -31,8 +31,8 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/** \file     TEncCU.cpp
-    \brief    CU encoder class
+/** \file     TEncCu.cpp
+    \brief    Coding Unit (CU) encoder class
 */
 
 #include <stdio.h>
@@ -45,6 +45,9 @@
 #include <algorithm>
 using namespace std;
 #endif
+
+//! \ingroup TLibEncoder
+//! \{
 
 // ====================================================================================================================
 // Constructor / destructor / create / destroy
@@ -496,6 +499,11 @@ Void TEncCu::xCompressCU( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, UInt u
   Bool    bSubBranch = true;
 #endif
 
+  // variable for Cbf fast mode PU decision
+#if CBF_FAST_MODE
+  Bool    doNotBlockPu = true;
+#endif
+
 #if SUB_LCU_DQP
   Bool    bTrySplitDQP  = true;
 #endif
@@ -608,6 +616,12 @@ Void TEncCu::xCompressCU( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, UInt u
         if ( !bEarlySkip )
         {
           xCheckRDCostInter( rpcBestCU, rpcTempCU, SIZE_2Nx2N );  rpcTempCU->initEstData( uiDepth, iQP );
+#if CBF_FAST_MODE
+          if(m_pcEncCfg->getUseCbfFastMode())
+          {
+            doNotBlockPu = rpcBestCU->getQtRootCbf( 0 ) != 0;
+          }
+#endif
         }
       }
 
@@ -643,7 +657,11 @@ Void TEncCu::xCompressCU( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, UInt u
         if(!( rpcBestCU->getSlice()->getSPS()->getDisInter4x4()  && (rpcBestCU->getWidth(0)==8) && (rpcBestCU->getHeight(0)==8) ))
         {
 #endif
+#if CBF_FAST_MODE
+          if( uiDepth == g_uiMaxCUDepth - g_uiAddCUDepth && doNotBlockPu)
+#else
           if( uiDepth == g_uiMaxCUDepth - g_uiAddCUDepth )
+#endif
           {
             xCheckRDCostInter( rpcBestCU, rpcTempCU, SIZE_NxN   );
 #if SUB_LCU_DQP
@@ -658,18 +676,40 @@ Void TEncCu::xCompressCU( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, UInt u
         }
 
         { // 2NxN, Nx2N
-          xCheckRDCostInter( rpcBestCU, rpcTempCU, SIZE_Nx2N  );
-#if SUB_LCU_DQP
-          rpcTempCU->initEstData( uiDepth, iQP );
-#else
-          rpcTempCU->initEstData();
+#if CBF_FAST_MODE
+          if(doNotBlockPu)
 #endif
-          xCheckRDCostInter      ( rpcBestCU, rpcTempCU, SIZE_2NxN  );
+          {
+            xCheckRDCostInter( rpcBestCU, rpcTempCU, SIZE_Nx2N  );
 #if SUB_LCU_DQP
-          rpcTempCU->initEstData( uiDepth, iQP );
+            rpcTempCU->initEstData( uiDepth, iQP );
 #else
-          rpcTempCU->initEstData();
+            rpcTempCU->initEstData();
 #endif
+#if CBF_FAST_MODE
+            if(m_pcEncCfg->getUseCbfFastMode() && rpcBestCU->getPartitionSize(0) == SIZE_Nx2N )
+            {
+              doNotBlockPu = rpcBestCU->getQtRootCbf( 0 ) != 0;
+            }
+#endif
+          }
+#if CBF_FAST_MODE
+          if(doNotBlockPu)
+#endif
+          {
+            xCheckRDCostInter      ( rpcBestCU, rpcTempCU, SIZE_2NxN  );
+#if SUB_LCU_DQP
+            rpcTempCU->initEstData( uiDepth, iQP );
+#else
+            rpcTempCU->initEstData();
+#endif
+#if CBF_FAST_MODE
+            if(m_pcEncCfg->getUseCbfFastMode() && rpcBestCU->getPartitionSize(0) == SIZE_2NxN)
+            {
+              doNotBlockPu = rpcBestCU->getQtRootCbf( 0 ) != 0;
+            }
+#endif
+          }
         }
 
 #if AMP
@@ -690,68 +730,144 @@ Void TEncCu::xCompressCU( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, UInt u
           //! Do horizontal AMP
           if ( bTestAMP_Hor )
           {
-            xCheckRDCostInter( rpcBestCU, rpcTempCU, SIZE_2NxnU );
-#if SUB_LCU_DQP
-            rpcTempCU->initEstData( uiDepth, iQP );
-#else
-            rpcTempCU->initEstData();
+#if CBF_FAST_MODE
+            if(doNotBlockPu)
 #endif
-            xCheckRDCostInter( rpcBestCU, rpcTempCU, SIZE_2NxnD );
+            {
+              xCheckRDCostInter( rpcBestCU, rpcTempCU, SIZE_2NxnU );
 #if SUB_LCU_DQP
-            rpcTempCU->initEstData( uiDepth, iQP );
+              rpcTempCU->initEstData( uiDepth, iQP );
 #else
-            rpcTempCU->initEstData();
+              rpcTempCU->initEstData();
 #endif
+#if CBF_FAST_MODE
+              if(m_pcEncCfg->getUseCbfFastMode() && rpcBestCU->getPartitionSize(0) == SIZE_2NxnU )
+              {
+                doNotBlockPu = rpcBestCU->getQtRootCbf( 0 ) != 0;
+              }
+#endif
+            }
+#if CBF_FAST_MODE
+            if(doNotBlockPu)
+#endif
+            {
+              xCheckRDCostInter( rpcBestCU, rpcTempCU, SIZE_2NxnD );
+#if SUB_LCU_DQP
+              rpcTempCU->initEstData( uiDepth, iQP );
+#else
+              rpcTempCU->initEstData();
+#endif
+#if CBF_FAST_MODE
+              if(m_pcEncCfg->getUseCbfFastMode() && rpcBestCU->getPartitionSize(0) == SIZE_2NxnD )
+              {
+                doNotBlockPu = rpcBestCU->getQtRootCbf( 0 ) != 0;
+              }
+#endif
+            }
           }
 #if AMP_MRG
           else if ( bTestMergeAMP_Hor ) 
           {
-            xCheckRDCostInter( rpcBestCU, rpcTempCU, SIZE_2NxnU, true );
-#if SUB_LCU_DQP
-            rpcTempCU->initEstData( uiDepth, iQP );
-#else
-            rpcTempCU->initEstData();
+#if CBF_FAST_MODE
+            if(doNotBlockPu)
 #endif
-            xCheckRDCostInter( rpcBestCU, rpcTempCU, SIZE_2NxnD, true );
+            {
+              xCheckRDCostInter( rpcBestCU, rpcTempCU, SIZE_2NxnU, true );
 #if SUB_LCU_DQP
-            rpcTempCU->initEstData( uiDepth, iQP );
+              rpcTempCU->initEstData( uiDepth, iQP );
 #else
-            rpcTempCU->initEstData();
+              rpcTempCU->initEstData();
 #endif
+#if CBF_FAST_MODE
+              if(m_pcEncCfg->getUseCbfFastMode() && rpcBestCU->getPartitionSize(0) == SIZE_2NxnU )
+              {
+                doNotBlockPu = rpcBestCU->getQtRootCbf( 0 ) != 0;
+              }
+#endif
+            }
+#if CBF_FAST_MODE
+            if(doNotBlockPu)
+#endif
+            {
+              xCheckRDCostInter( rpcBestCU, rpcTempCU, SIZE_2NxnD, true );
+#if SUB_LCU_DQP
+              rpcTempCU->initEstData( uiDepth, iQP );
+#else
+              rpcTempCU->initEstData();
+#endif
+#if CBF_FAST_MODE
+              if(m_pcEncCfg->getUseCbfFastMode() && rpcBestCU->getPartitionSize(0) == SIZE_2NxnD )
+              {
+                doNotBlockPu = rpcBestCU->getQtRootCbf( 0 ) != 0;
+              }
+#endif
+            }
           }
 #endif
 
           //! Do horizontal AMP
           if ( bTestAMP_Ver )
           {
-            xCheckRDCostInter( rpcBestCU, rpcTempCU, SIZE_nLx2N );
-#if SUB_LCU_DQP
-            rpcTempCU->initEstData( uiDepth, iQP );
-#else
-            rpcTempCU->initEstData();
+#if CBF_FAST_MODE
+            if(doNotBlockPu)
 #endif
-            xCheckRDCostInter( rpcBestCU, rpcTempCU, SIZE_nRx2N );
+            {
+              xCheckRDCostInter( rpcBestCU, rpcTempCU, SIZE_nLx2N );
 #if SUB_LCU_DQP
-            rpcTempCU->initEstData( uiDepth, iQP );
+              rpcTempCU->initEstData( uiDepth, iQP );
 #else
-            rpcTempCU->initEstData();
+              rpcTempCU->initEstData();
 #endif
+#if CBF_FAST_MODE
+              if(m_pcEncCfg->getUseCbfFastMode() && rpcBestCU->getPartitionSize(0) == SIZE_nLx2N )
+              {
+                doNotBlockPu = rpcBestCU->getQtRootCbf( 0 ) != 0;
+              }
+#endif
+            }
+#if CBF_FAST_MODE
+            if(doNotBlockPu)
+#endif
+            {
+              xCheckRDCostInter( rpcBestCU, rpcTempCU, SIZE_nRx2N );
+#if SUB_LCU_DQP
+              rpcTempCU->initEstData( uiDepth, iQP );
+#else
+              rpcTempCU->initEstData();
+#endif
+            }
           }
 #if AMP_MRG
           else if ( bTestMergeAMP_Ver )
           {
-            xCheckRDCostInter( rpcBestCU, rpcTempCU, SIZE_nLx2N, true );
-#if SUB_LCU_DQP
-            rpcTempCU->initEstData( uiDepth, iQP );
-#else
-            rpcTempCU->initEstData();
+#if CBF_FAST_MODE
+            if(doNotBlockPu)
 #endif
-            xCheckRDCostInter( rpcBestCU, rpcTempCU, SIZE_nRx2N, true );
+            {
+              xCheckRDCostInter( rpcBestCU, rpcTempCU, SIZE_nLx2N, true );
 #if SUB_LCU_DQP
-            rpcTempCU->initEstData( uiDepth, iQP );
+              rpcTempCU->initEstData( uiDepth, iQP );
 #else
-            rpcTempCU->initEstData();
+              rpcTempCU->initEstData();
 #endif
+#if CBF_FAST_MODE
+              if(m_pcEncCfg->getUseCbfFastMode() && rpcBestCU->getPartitionSize(0) == SIZE_nLx2N )
+              {
+                doNotBlockPu = rpcBestCU->getQtRootCbf( 0 ) != 0;
+              }
+#endif
+            }
+#if CBF_FAST_MODE
+            if(doNotBlockPu)
+#endif
+            {
+              xCheckRDCostInter( rpcBestCU, rpcTempCU, SIZE_nRx2N, true );
+#if SUB_LCU_DQP
+              rpcTempCU->initEstData( uiDepth, iQP );
+#else
+              rpcTempCU->initEstData();
+#endif
+            }
           }
 #endif
 
@@ -1434,32 +1550,46 @@ Void TEncCu::xCheckRDCostMerge2Nx2N( TComDataCU*& rpcBestCU, TComDataCU*& rpcTem
   assert( rpcTempCU->getSlice()->getSliceType() != I_SLICE );
   TComMvField  cMvFieldNeighbours[MRG_MAX_NUM_CANDS << 1]; // double length for mv of both lists
   UChar uhInterDirNeighbours[MRG_MAX_NUM_CANDS];
+#if MRG_AMVP_FIXED_IDX_F470
+  Int numValidMergeCand = 0;
+#else
   UInt uiNeighbourCandIdx[MRG_MAX_NUM_CANDS]; //MVs with same idx => same cand
+#endif
 
   for( UInt ui = 0; ui < MRG_MAX_NUM_CANDS; ++ui )
   {
     uhInterDirNeighbours[ui] = 0;
+#if !MRG_AMVP_FIXED_IDX_F470
     uiNeighbourCandIdx[ui] = 0;
+#endif
   }
   UChar uhDepth = rpcTempCU->getDepth( 0 );
   rpcTempCU->setPartSizeSubParts( SIZE_2Nx2N, 0, uhDepth ); // interprets depth relative to LCU level
+#if MRG_AMVP_FIXED_IDX_F470
+  rpcTempCU->getInterMergeCandidates( 0, 0, uhDepth, cMvFieldNeighbours,uhInterDirNeighbours, numValidMergeCand );
+#else
   rpcTempCU->getInterMergeCandidates( 0, 0, uhDepth, cMvFieldNeighbours,uhInterDirNeighbours, uiNeighbourCandIdx );
+#endif
   
+#if MRG_AMVP_FIXED_IDX_F470
+  for( UInt uiMergeCand = 0; uiMergeCand < numValidMergeCand; ++uiMergeCand )
+  {
+    {
+#else
   Bool bValidCands = false;
   for( UInt uiMergeCand = 0; uiMergeCand < MRG_MAX_NUM_CANDS; ++uiMergeCand )
   {
-#if MRG_AMVP_FIXED_IDX_F470
-    if( uiNeighbourCandIdx[uiMergeCand] > 0 )
-#else
     if( uiNeighbourCandIdx[uiMergeCand] == ( uiMergeCand + 1 ) )
-#endif
     {
+#endif
 #if HHI_MRG_SKIP
       TComYuv* pcPredYuvTemp = NULL;
       for( UInt uiNoResidual = 0; uiNoResidual < 2; ++uiNoResidual )
       {
 #endif
+#if !MRG_AMVP_FIXED_IDX_F470
       bValidCands = true;
+#endif
       // set MC parameters
 #if HHI_MRG_SKIP
       rpcTempCU->setPredModeSubParts( MODE_SKIP, 0, uhDepth ); // interprets depth relative to LCU level
@@ -1470,10 +1600,12 @@ Void TEncCu::xCheckRDCostMerge2Nx2N( TComDataCU*& rpcBestCU, TComDataCU*& rpcTem
       rpcTempCU->setMergeFlagSubParts( true, 0, 0, uhDepth ); // interprets depth relative to LCU level
       rpcTempCU->setMergeIndexSubParts( uiMergeCand, 0, 0, uhDepth ); // interprets depth relative to LCU level
       rpcTempCU->setInterDirSubParts( uhInterDirNeighbours[uiMergeCand], 0, 0, uhDepth ); // interprets depth relative to LCU level
+#if !MRG_AMVP_FIXED_IDX_F470
       for( UInt uiInner = 0; uiInner < MRG_MAX_NUM_CANDS; uiInner++ )
       {
         rpcTempCU->setNeighbourCandIdxSubParts( uiInner, uiNeighbourCandIdx[uiInner], 0, 0,uhDepth );
       }
+#endif
       rpcTempCU->getCUMvField( REF_PIC_LIST_0 )->setAllMvField( cMvFieldNeighbours[0 + 2*uiMergeCand], SIZE_2Nx2N, 0, 0 ); // interprets depth relative to rpcTempCU level
       rpcTempCU->getCUMvField( REF_PIC_LIST_1 )->setAllMvField( cMvFieldNeighbours[1 + 2*uiMergeCand], SIZE_2Nx2N, 0, 0 ); // interprets depth relative to rpcTempCU level
 
@@ -1534,6 +1666,7 @@ Void TEncCu::xCheckRDCostMerge2Nx2N( TComDataCU*& rpcBestCU, TComDataCU*& rpcTem
 #endif
     }
   }
+#if !MRG_AMVP_FIXED_IDX_F470
   if( bValidCands )
   {
     for( UInt uiMergeCand = 0; uiMergeCand < MRG_MAX_NUM_CANDS; uiMergeCand++ )
@@ -1541,6 +1674,7 @@ Void TEncCu::xCheckRDCostMerge2Nx2N( TComDataCU*& rpcBestCU, TComDataCU*& rpcTem
       rpcBestCU->setNeighbourCandIdxSubParts( uiMergeCand, uiNeighbourCandIdx[uiMergeCand], 0, 0,uhDepth );
     }
   }
+#endif
 }
 
 #if AMP_MRG
@@ -1705,6 +1839,7 @@ Void TEncCu::xCheckBestMode( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU )
   {
     TComYuv* pcYuv;
     UChar uhDepth = rpcBestCU->getDepth(0);
+#if !MRG_AMVP_FIXED_IDX_F470
     if( rpcTempCU->getSlice()->getSPS()->getUseMRG() && uhDepth == rpcTempCU->getDepth( 0 ) && rpcTempCU->getSlice()->getSliceType() != I_SLICE && rpcTempCU->getPartitionSize( 0 ) == SIZE_2Nx2N && !rpcTempCU->getMergeFlag( 0 ) )
     {
       for( UInt ui = 0; ui < MRG_MAX_NUM_CANDS; ui++ )
@@ -1712,7 +1847,8 @@ Void TEncCu::xCheckBestMode( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU )
         rpcTempCU->setNeighbourCandIdxSubParts( ui, rpcBestCU->getNeighbourCandIdx( ui, 0 ), 0, 0, uhDepth );
       }          
     }      
-    
+#endif
+
     // Change Information data
     TComDataCU* pcCU = rpcBestCU;
     rpcBestCU = rpcTempCU;
@@ -1747,6 +1883,7 @@ Void TEncCu::xCheckBestMode( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, UIn
   if( rpcTempCU->getTotalCost() < rpcBestCU->getTotalCost() )
   {
     TComYuv* pcYuv;
+#if !MRG_AMVP_FIXED_IDX_F470
     if( rpcTempCU->getSlice()->getSPS()->getUseMRG() && uiDepth == rpcTempCU->getDepth( 0 ) && rpcTempCU->getSlice()->getSliceType() != I_SLICE && rpcTempCU->getPartitionSize( 0 ) == SIZE_2Nx2N && !rpcTempCU->getMergeFlag( 0 ) )
     {
       for( UInt ui = 0; ui < MRG_MAX_NUM_CANDS; ui++ )
@@ -1754,6 +1891,7 @@ Void TEncCu::xCheckBestMode( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, UIn
         rpcTempCU->setNeighbourCandIdxSubParts( ui, rpcBestCU->getNeighbourCandIdx( ui, 0 ), 0, 0, uiDepth );
       }          
     }      
+#endif
 
     // Change Information data
     TComDataCU* pcCU = rpcBestCU;
@@ -1940,3 +2078,4 @@ Void TEncCu::xCopyYuv2Tmp( UInt uiPartUnitIdx, UInt uiNextDepth )
   m_ppcRecoYuvBest[uiNextDepth]->copyToPartYuv( m_ppcRecoYuvTemp[uiCurrDepth], uiPartUnitIdx );
 }
 
+//! \}

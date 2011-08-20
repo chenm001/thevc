@@ -40,6 +40,9 @@
 #include <stdio.h>
 #include <math.h>
 
+//! \ingroup TLibEncoder
+//! \{
+
 // ====================================================================================================================
 // Constants
 // ====================================================================================================================
@@ -157,22 +160,22 @@ Int* TEncAdaptiveLoopFilter::m_iTapPosTabIn9x9Sym[NO_TEST_FILT] =
 #endif
 
 #if STAR_CROSS_SHAPES_LUMA
-Int TEncAdaptiveLoopFilter::m_aiFilterPosShape0_In11x5Sym[10] =
+Int TEncAdaptiveLoopFilter::m_aiFilterPosShape0In11x5Sym[10] =
 {
-        3,    5,    7,
-          15,16,17,
-       25,26,27,28
+   3,    5,    7,
+     15,16,17,
+  25,26,27,28
 };
-Int TEncAdaptiveLoopFilter::m_aiFilterPosShape1_In11x5Sym[9] =
+Int TEncAdaptiveLoopFilter::m_aiFilterPosShape1In11x5Sym[9] =
 {
-                    5, 
-                   16, 
-    22,23,24,25,26,27,28
+                  5, 
+                 16, 
+  22,23,24,25,26,27,28
 };
 
 Int* TEncAdaptiveLoopFilter::m_iFilterTabIn11x5Sym[NO_TEST_FILT] =
 {
-  m_aiFilterPosShape0_In11x5Sym, m_aiFilterPosShape1_In11x5Sym
+  m_aiFilterPosShape0In11x5Sym, m_aiFilterPosShape1In11x5Sym
 };
 #endif
 // ====================================================================================================================
@@ -194,10 +197,10 @@ TEncAdaptiveLoopFilter::TEncAdaptiveLoopFilter()
   m_pcPicYuvBest = NULL;
   m_pcPicYuvTmp = NULL;
 #if STAR_CROSS_SHAPES_LUMA
-  pcAlfParam_Shape0 = NULL;
-  pcAlfParam_Shape1 = NULL;
-  pcPicYuvRec_Shape0 = NULL;
-  pcPicYuvRec_Shape1 = NULL;
+  pcAlfParamShape0 = NULL;
+  pcAlfParamShape1 = NULL;
+  pcPicYuvRecShape0 = NULL;
+  pcPicYuvRecShape1 = NULL;
 #endif
 #if MTK_NONCROSS_INLOOP_FILTER
   m_pcSliceYuvTmp = NULL;
@@ -306,17 +309,17 @@ Void TEncAdaptiveLoopFilter::startALFEnc( TComPic* pcPic, TEncEntropy* pcEntropy
   allocALFParam(m_pcBestAlfParam);
   allocALFParam(m_pcTempAlfParam);
 #if STAR_CROSS_SHAPES_LUMA
-  pcPicYuvRec_Shape0 = new TComPicYuv();
-  pcPicYuvRec_Shape0->createLuma(iWidth, iHeight, g_uiMaxCUWidth, g_uiMaxCUHeight, g_uiMaxCUDepth);
+  pcPicYuvRecShape0 = new TComPicYuv();
+  pcPicYuvRecShape0->createLuma(iWidth, iHeight, g_uiMaxCUWidth, g_uiMaxCUHeight, g_uiMaxCUDepth);
  
-  pcPicYuvRec_Shape1 = new TComPicYuv();
-  pcPicYuvRec_Shape1->createLuma(iWidth, iHeight, g_uiMaxCUWidth, g_uiMaxCUHeight, g_uiMaxCUDepth);
+  pcPicYuvRecShape1 = new TComPicYuv();
+  pcPicYuvRecShape1->createLuma(iWidth, iHeight, g_uiMaxCUWidth, g_uiMaxCUHeight, g_uiMaxCUDepth);
   
-  pcAlfParam_Shape0 = new ALFParam;
-  pcAlfParam_Shape1 = new ALFParam;
+  pcAlfParamShape0 = new ALFParam;
+  pcAlfParamShape1 = new ALFParam;
 
-  allocALFParam(pcAlfParam_Shape0);  
-  allocALFParam(pcAlfParam_Shape1);
+  allocALFParam(pcAlfParamShape0);  
+  allocALFParam(pcAlfParamShape1);
 #endif
   m_im_width = iWidth;
   m_im_height = iHeight;
@@ -375,19 +378,19 @@ Void TEncAdaptiveLoopFilter::endALFEnc()
   delete m_pcBestAlfParam;
   delete m_pcTempAlfParam;
 #if STAR_CROSS_SHAPES_LUMA
-  pcPicYuvRec_Shape0->destroyLuma();
-  delete pcPicYuvRec_Shape0;
-  pcPicYuvRec_Shape0 = NULL;
+  pcPicYuvRecShape0->destroyLuma();
+  delete pcPicYuvRecShape0;
+  pcPicYuvRecShape0 = NULL;
 
-  pcPicYuvRec_Shape1->destroyLuma();
-  delete pcPicYuvRec_Shape1;
-  pcPicYuvRec_Shape1 = NULL;
+  pcPicYuvRecShape1->destroyLuma();
+  delete pcPicYuvRecShape1;
+  pcPicYuvRecShape1 = NULL;
 
-  freeALFParam(pcAlfParam_Shape0);
-  freeALFParam(pcAlfParam_Shape1);
+  freeALFParam(pcAlfParamShape0);
+  freeALFParam(pcAlfParamShape1);
 
-  delete pcAlfParam_Shape0;
-  delete pcAlfParam_Shape1;
+  delete pcAlfParamShape0;
+  delete pcAlfParamShape1;
 #endif
   // delete qc filters
   destroyMatrix4D_double(m_EGlobalSym, NO_TEST_FILT,  NO_VAR_BINS);
@@ -881,6 +884,7 @@ Void TEncAdaptiveLoopFilter::xEncodeCUAlfCtrlFlags()
 
       }
     }
+    return;
   }
 #endif
 
@@ -951,20 +955,20 @@ Void TEncAdaptiveLoopFilter::xCalcCorrelationFunc(Pel* pOrg, Pel* pCmp, Int iTap
   const Int* pFiltPos;
   
 #if ALF_CHROMA_NEW_SHAPES
-  Int fl_h, fl_v, ii, jj, m, N;
+  Int flH, flV, ii, jj, m, N;
   N = m_sqrFiltLengthTab[iTap] - 1;
-  pFiltPos = patternTab_shapes[iTap];
+  pFiltPos = patternTabShapes[iTap];
   // star shape
   if (iTap == 0)
   {
-      fl_h   = 2;
-      fl_v   = 2;
+      flH   = 2;
+      flV   = 2;
   }
   // cross shape
   else
   {
-      fl_h   = 5;
-      fl_v   = 2;
+      flH   = 5;
+      flV   = 2;
   }
 #else
   switch(iTap)
@@ -1012,9 +1016,9 @@ Void TEncAdaptiveLoopFilter::xCalcCorrelationFunc(Pel* pOrg, Pel* pCmp, Int iTap
 #if ALF_CHROMA_NEW_SHAPES
       if(iTap == 0)
       {
-        for (ii=-fl_v; ii<0; ii++)
+        for (ii=-flV; ii<0; ii++)
         {
-          m = (ii == -fl_v) ? 2 : 1;
+          m = (ii == -flV) ? 2 : 1;
           for (jj=-m; jj<=m; jj++)
           {
             if ((m == 1) || (m == 2 && jj%2 == 0))
@@ -1023,7 +1027,7 @@ Void TEncAdaptiveLoopFilter::xCalcCorrelationFunc(Pel* pOrg, Pel* pCmp, Int iTap
             }
           }
         }
-        for (jj=-fl_h; jj<0; jj++)
+        for (jj=-flH; jj<0; jj++)
         {
           pTerm[pFiltPos[i++]] += (pCmp[(y)*iCmpStride + (x+jj)]+pCmp[(y)*iCmpStride + (x-jj)]);
         }
@@ -1031,11 +1035,11 @@ Void TEncAdaptiveLoopFilter::xCalcCorrelationFunc(Pel* pOrg, Pel* pCmp, Int iTap
       }
       else
       {
-        for (ii=-fl_v; ii<0; ii++)
+        for (ii=-flV; ii<0; ii++)
         {
           pTerm[pFiltPos[i++]] += (pCmp[(y+ii)*iCmpStride + x]+pCmp[(y-ii)*iCmpStride + x]);
         }
-        for (jj=-fl_h; jj<0; jj++)
+        for (jj=-flH; jj<0; jj++)
         {
           pTerm[pFiltPos[i++]] += (pCmp[(y)*iCmpStride + (x+jj)]+pCmp[(y)*iCmpStride + (x-jj)]);
         }
@@ -1853,7 +1857,7 @@ Void TEncAdaptiveLoopFilter::xcollectStatCodeFilterCoeffForce0(int **pDiffQFilte
   minKStart, minBitsKStart, bitsKStart;
   
 #if STAR_CROSS_SHAPES_LUMA
-  pDepthInt = pDepthIntTab_shapes[fl];
+  pDepthInt = pDepthIntTabShapes[fl];
 #else
   pDepthInt=pDepthIntTab[fl-2];
 #endif
@@ -2194,7 +2198,7 @@ Int   TEncAdaptiveLoopFilter::xcodeFilterCoeff(int **pDiffQFilterCoeffIntPP, int
   minKStart, minBitsKStart, bitsKStart;
   
 #if STAR_CROSS_SHAPES_LUMA
-  pDepthInt = pDepthIntTab_shapes[fl];
+  pDepthInt = pDepthIntTabShapes[fl];
 #else
   pDepthInt = pDepthIntTab[fl-2];
 #endif
@@ -2447,68 +2451,68 @@ Void   TEncAdaptiveLoopFilter::xEncALFLuma_qc ( TComPicYuv* pcPicOrg, TComPicYuv
     {
 #endif
 #if STAR_CROSS_SHAPES_LUMA
-      static int best_filter_shape = 0;
+      static Int best_filter_shape = 0;
       if (m_uiVarGenMethod == 0)
       {
-          UInt64 uiMinRate_Shape0 = MAX_INT;
-          UInt64 uiMinDist_Shape0 = MAX_INT;
-          Double dMinCost_Shape0  = MAX_DOUBLE;
+        UInt64 MinRate_Shape0 = MAX_INT;
+        UInt64 MinDist_Shape0 = MAX_INT;
+        Double MinCost_Shape0 = MAX_DOUBLE;
           
-          UInt64 uiMinRate_Shape1 = MAX_INT;
-          UInt64 uiMinDist_Shape1 = MAX_INT;
-          Double dMinCost_Shape1  = MAX_DOUBLE;
+        UInt64 MinRate_Shape1 = MAX_INT;
+        UInt64 MinDist_Shape1 = MAX_INT;
+        Double MinCost_Shape1 = MAX_DOUBLE;
           
-          for (int filter_shape = 0; filter_shape < 2 ;filter_shape ++)
+        for (Int filter_shape = 0; filter_shape < 2 ;filter_shape ++)
+        {
+          pcAlfParam->realfiltNo = filter_shape;
+          pcAlfParam->num_coeff = m_pcTempAlfParam->num_coeff = m_sqrFiltLengthTab[filter_shape];
+          xFirstFilteringFrameLuma(pOrg, pDec, (imgpel*)m_pcPicYuvTmp->getLumaAddr(), pcAlfParam, pcAlfParam->realfiltNo, LumaStride);
+          xCalcRDCost(pcPicOrg, m_pcPicYuvTmp, pcAlfParam, uiRate, uiDist, dCost);
+          if (filter_shape == 0)
           {
-              pcAlfParam->realfiltNo = filter_shape;
-              pcAlfParam->num_coeff = m_pcTempAlfParam->num_coeff = m_sqrFiltLengthTab[filter_shape];
-              xFirstFilteringFrameLuma(pOrg, pDec, (imgpel*)m_pcPicYuvTmp->getLumaAddr(), pcAlfParam, pcAlfParam->realfiltNo, LumaStride);
-              xCalcRDCost(pcPicOrg, m_pcPicYuvTmp, pcAlfParam, uiRate, uiDist, dCost);
-              if (filter_shape == 0)
-              {
-                  // copy Shape0
-                  uiMinRate_Shape0 = uiRate;
-                  uiMinDist_Shape0 = uiDist;
-                  dMinCost_Shape0  = dCost;
-                  m_pcPicYuvTmp->copyToPicLuma(pcPicYuvRec_Shape0);
-                  copyALFParam(pcAlfParam_Shape0, pcAlfParam);
-              }
-              else //if (filter_shape == 1)
-              {
-                  // copy Shape1
-                  uiMinRate_Shape1 = uiRate;
-                  uiMinDist_Shape1 = uiDist;
-                  dMinCost_Shape1  = dCost;
-                  m_pcPicYuvTmp->copyToPicLuma(pcPicYuvRec_Shape1);
-                  copyALFParam(pcAlfParam_Shape1, pcAlfParam);
-              }
+            // copy Shape0
+            MinRate_Shape0 = uiRate;
+            MinDist_Shape0 = uiDist;
+            MinCost_Shape0 = dCost;
+            m_pcPicYuvTmp->copyToPicLuma(pcPicYuvRecShape0);
+            copyALFParam(pcAlfParamShape0, pcAlfParam);
           }
+          else //if (filter_shape == 1)
+          {
+            // copy Shape1
+            MinRate_Shape1 = uiRate;
+            MinDist_Shape1 = uiDist;
+            MinCost_Shape1  = dCost;
+            m_pcPicYuvTmp->copyToPicLuma(pcPicYuvRecShape1);
+            copyALFParam(pcAlfParamShape1, pcAlfParam);
+          }
+        }
           
-          if (dMinCost_Shape0 <= dMinCost_Shape1)
-          {
-              pcPicYuvRec_Shape0->copyToPicLuma(m_pcPicYuvTmp);
-              copyALFParam(pcAlfParam, pcAlfParam_Shape0);
-              uiRate = uiMinRate_Shape0;
-              uiDist = uiMinDist_Shape0;
-              dCost = dMinCost_Shape0;
-              best_filter_shape = 0;
-          }
-          else //if (dMinCost_Shape1 < dMinCost_Shape0)
-          {
-              pcPicYuvRec_Shape1->copyToPicLuma(m_pcPicYuvTmp);
-              copyALFParam(pcAlfParam, pcAlfParam_Shape1);
-              uiRate = uiMinRate_Shape1;
-              uiDist = uiMinDist_Shape1;
-              dCost = dMinCost_Shape1;
-              best_filter_shape = 1;
-          }
+        if (MinCost_Shape0 <= MinCost_Shape1)
+        {
+          pcPicYuvRecShape0->copyToPicLuma(m_pcPicYuvTmp);
+          copyALFParam(pcAlfParam, pcAlfParamShape0);
+          uiRate = MinRate_Shape0;
+          uiDist = MinDist_Shape0;
+          dCost = MinCost_Shape0;
+          best_filter_shape = 0;
+        }
+        else //if (MinCost_Shape1 < MinCost_Shape0)
+        {
+          pcPicYuvRecShape1->copyToPicLuma(m_pcPicYuvTmp);
+          copyALFParam(pcAlfParam, pcAlfParamShape1);
+          uiRate = MinRate_Shape1;
+          uiDist = MinDist_Shape1;
+          dCost = MinCost_Shape1;
+          best_filter_shape = 1;
+        }
       }
       else
       {
-          pcAlfParam->realfiltNo = best_filter_shape;
-          pcAlfParam->num_coeff = m_pcTempAlfParam->num_coeff = m_sqrFiltLengthTab[pcAlfParam->realfiltNo];
-          xFirstFilteringFrameLuma(pOrg, pDec, (imgpel*)m_pcPicYuvTmp->getLumaAddr(), pcAlfParam, pcAlfParam->realfiltNo, LumaStride);
-          xCalcRDCost(pcPicOrg, m_pcPicYuvTmp, pcAlfParam, uiRate, uiDist, dCost);
+        pcAlfParam->realfiltNo = best_filter_shape;
+        pcAlfParam->num_coeff = m_pcTempAlfParam->num_coeff = m_sqrFiltLengthTab[pcAlfParam->realfiltNo];
+        xFirstFilteringFrameLuma(pOrg, pDec, (imgpel*)m_pcPicYuvTmp->getLumaAddr(), pcAlfParam, pcAlfParam->realfiltNo, LumaStride);
+        xCalcRDCost(pcPicOrg, m_pcPicYuvTmp, pcAlfParam, uiRate, uiDist, dCost);
       }
 #else
       xFirstFilteringFrameLuma(pOrg, pDec, (imgpel*)m_pcPicYuvTmp->getLumaAddr(), pcAlfParam, pcAlfParam->tap, LumaStride); 
@@ -2634,9 +2638,13 @@ Void   TEncAdaptiveLoopFilter::xEncALFLuma_qc ( TComPicYuv* pcPicOrg, TComPicYuv
 #if STAR_CROSS_SHAPES_LUMA
 #if MTK_NONCROSS_INLOOP_FILTER
   if(!m_bUseNonCrossALF)
+  {
     calcVar(0, 0, m_varImg, pDec, FILTER_LENGTH/2, VAR_SIZE, Height, Width, LumaStride);
+  }
   else
+  {
     calcVarforSlices(m_varImg, pDec, FILTER_LENGTH/2, VAR_SIZE, LumaStride);
+  }
 #else
   calcVar(m_varImg, pDec, FILTER_LENGTH/2, VAR_SIZE, Height, Width, LumaStride);
 #endif
@@ -2653,63 +2661,63 @@ Void   TEncAdaptiveLoopFilter::xEncALFLuma_qc ( TComPicYuv* pcPicOrg, TComPicYuv
 #endif
 
 #if STAR_CROSS_SHAPES_LUMA
-    if(m_iALFEncodePassReduction == 0)
+  if(m_iALFEncodePassReduction == 0)
+  {
+    UInt64 MinRate_Shape0 = MAX_INT;
+    UInt64 MinDist_Shape0 = MAX_INT;
+    Double MinCost_Shape0 = MAX_DOUBLE;
+
+    UInt64 MinRate_Shape1 = MAX_INT;
+    UInt64 MinDist_Shape1 = MAX_INT;
+    Double dMinCost_Shape1 = MAX_DOUBLE;
+
+    for (Int filter_shape = 0; filter_shape < 2 ;filter_shape ++)
     {
-      UInt64 uiMinRate_Shape0 = MAX_INT;
-      UInt64 uiMinDist_Shape0 = MAX_INT;
-      Double dMinCost_Shape0  = MAX_DOUBLE;
-
-      UInt64 uiMinRate_Shape1 = MAX_INT;
-      UInt64 uiMinDist_Shape1 = MAX_INT;
-      Double dMinCost_Shape1  = MAX_DOUBLE;
-
-      for (int filter_shape = 0; filter_shape < 2 ;filter_shape ++)
-      {
-          m_pcTempAlfParam->realfiltNo = filter_shape;
-          m_pcTempAlfParam->num_coeff = m_sqrFiltLengthTab[filter_shape];  
-          xFirstFilteringFrameLuma(pOrg, pDec, pRest, m_pcTempAlfParam, m_pcTempAlfParam->realfiltNo, LumaStride); 
-          xCalcRDCost(pcPicOrg, m_pcPicYuvTmp, m_pcTempAlfParam, uiRate, uiDist, dCost); 
-          if (filter_shape == 0)
-          {    
-              // copy Shape0
-              uiMinRate_Shape0 = uiRate;
-              uiMinDist_Shape0 = uiDist;
-              dMinCost_Shape0  = dCost;
-              m_pcPicYuvTmp->copyToPicLuma(pcPicYuvRec_Shape0);
-              copyALFParam(pcAlfParam_Shape0, m_pcTempAlfParam);
-          }
-          else //if (filter_shape == 1) 
-          {
-              // copy Shape1
-              uiMinRate_Shape1 = uiRate;
-              uiMinDist_Shape1 = uiDist;
-              dMinCost_Shape1  = dCost;
-              m_pcPicYuvTmp->copyToPicLuma(pcPicYuvRec_Shape1);
-              copyALFParam(pcAlfParam_Shape1, m_pcTempAlfParam);
-          }
+      m_pcTempAlfParam->realfiltNo = filter_shape;
+      m_pcTempAlfParam->num_coeff = m_sqrFiltLengthTab[filter_shape];  
+      xFirstFilteringFrameLuma(pOrg, pDec, pRest, m_pcTempAlfParam, m_pcTempAlfParam->realfiltNo, LumaStride); 
+      xCalcRDCost(pcPicOrg, m_pcPicYuvTmp, m_pcTempAlfParam, uiRate, uiDist, dCost); 
+      if (filter_shape == 0)
+      {    
+        // copy Shape0
+        MinRate_Shape0 = uiRate;
+        MinDist_Shape0 = uiDist;
+        MinCost_Shape0 = dCost;
+        m_pcPicYuvTmp->copyToPicLuma(pcPicYuvRecShape0);
+        copyALFParam(pcAlfParamShape0, m_pcTempAlfParam);
       }
-      if (dMinCost_Shape0 <= dMinCost_Shape1)
+      else //if (filter_shape == 1) 
       {
-          pcPicYuvRec_Shape0->copyToPicLuma(m_pcPicYuvTmp);
-          copyALFParam(m_pcTempAlfParam, pcAlfParam_Shape0);
-          uiRate = uiMinRate_Shape0;
-          uiDist = uiMinDist_Shape0;
-          dCost = dMinCost_Shape0;
-      }
-      else //if (dMinCost_Shape1 < dMinCost_Shape0)
-      {
-          pcPicYuvRec_Shape1->copyToPicLuma(m_pcPicYuvTmp);
-          copyALFParam(m_pcTempAlfParam, pcAlfParam_Shape1);
-          uiRate = uiMinRate_Shape1;
-          uiDist = uiMinDist_Shape1;
-          dCost = dMinCost_Shape1;
+        // copy Shape1
+        MinRate_Shape1 = uiRate;
+        MinDist_Shape1 = uiDist;
+        MinCost_Shape1 = dCost;
+        m_pcPicYuvTmp->copyToPicLuma(pcPicYuvRecShape1);
+        copyALFParam(pcAlfParamShape1, m_pcTempAlfParam);
       }
     }
-    else
+    if (MinCost_Shape0 <= MinCost_Shape1)
     {
-      xFirstFilteringFrameLumaAllTap(pOrg, pDec, pRest, LumaStride);
-      xCalcRDCost(pcPicOrg, pcPicRest, m_pcTempAlfParam, uiRate, uiDist, dCost); // change this function final coding 
+      pcPicYuvRecShape0->copyToPicLuma(m_pcPicYuvTmp);
+      copyALFParam(m_pcTempAlfParam, pcAlfParamShape0);
+      uiRate = MinRate_Shape0;
+      uiDist = MinDist_Shape0;
+      dCost = MinCost_Shape0;
     }
+    else //if (MinCost_Shape1 < MinCost_Shape0)
+    {
+      pcPicYuvRecShape1->copyToPicLuma(m_pcPicYuvTmp);
+      copyALFParam(m_pcTempAlfParam, pcAlfParamShape1);
+      uiRate = MinRate_Shape1;
+      uiDist = MinDist_Shape1;
+      dCost = MinCost_Shape1;
+    }
+  }
+  else
+  {
+    xFirstFilteringFrameLumaAllTap(pOrg, pDec, pRest, LumaStride);
+    xCalcRDCost(pcPicOrg, pcPicRest, m_pcTempAlfParam, uiRate, uiDist, dCost); // change this function final coding 
+  }
 #else
 #if MQT_ALF_NPASS
   if(m_iALFEncodePassReduction)
@@ -2765,8 +2773,8 @@ Void   TEncAdaptiveLoopFilter::xstoreInBlockMatrix(imgpel* ImgOrg, imgpel* ImgDe
 #if STAR_CROSS_SHAPES_LUMA
   Int sqrFiltLength = m_pcTempAlfParam->num_coeff;
   Int fl2 = FILTER_LENGTH/2; //extended size at each side of the frame
-  Int fl_h = 0;// horizontal_tap / 2
-  Int fl_v = 0;// vertical_tap / 2
+  Int flH = 0;// horizontal_tap / 2
+  Int flV = 0;// vertical_tap / 2
   Int m = 0;
 #else
   Int fl =tap/2;
@@ -2792,13 +2800,13 @@ Void   TEncAdaptiveLoopFilter::xstoreInBlockMatrix(imgpel* ImgOrg, imgpel* ImgDe
   filtNo=tap;
   if (tap == 0)
   {
-      fl_h   = 2;
-      fl_v   = 2;
+    flH   = 2;
+    flV   = 2;
   }
   else //if (tap == 1 || tap == 2)
   {
-      fl_h   = 5;
-      fl_v   = 2;
+    flH   = 5;
+    flV   = 2;
   }
 #else
   if (tap==9)
@@ -2812,7 +2820,7 @@ Void   TEncAdaptiveLoopFilter::xstoreInBlockMatrix(imgpel* ImgOrg, imgpel* ImgDe
 #endif
 
 #if STAR_CROSS_SHAPES_LUMA
-  p_pattern= patternTab_shapes[filtNo];
+  p_pattern= patternTabShapes[filtNo];
 #else
   p_pattern= m_patternTab[filtNo];
 #endif
@@ -2871,7 +2879,6 @@ Void   TEncAdaptiveLoopFilter::xstoreInBlockMatrix(imgpel* ImgOrg, imgpel* ImgDe
         }
         else
         {
-
 #else
         Int condition = (m_maskImg[i][j] == 1);
         if (m_iDesignCurrentFilter)
@@ -2881,11 +2888,9 @@ Void   TEncAdaptiveLoopFilter::xstoreInBlockMatrix(imgpel* ImgOrg, imgpel* ImgDe
         if(!condition)
         {
 #endif
-
 #else
         if (m_maskImg[i][j] == 0 && count_valid > 0)
-        {
-
+        { 
         }
         else
         {
@@ -2898,18 +2903,20 @@ Void   TEncAdaptiveLoopFilter::xstoreInBlockMatrix(imgpel* ImgOrg, imgpel* ImgDe
           k=0; 
           memset(ELocal, 0, sqrFiltLength*sizeof(int));
           
-          for (ii=-fl_v; ii<0; ii++)
+          for (ii=-flV; ii<0; ii++)
           {
-              m = (ii == -fl_v)? 2: 1;
-              for (jj=-m; jj<=m; jj++)
+            m = (ii == -flV)? 2: 1;
+            for (jj=-m; jj<=m; jj++)
+            {
+              if ((m == 1) || (m == 2 && jj%2 == 0))
               {
-                  if ((m == 1) || (m == 2 && jj%2 == 0))
-                    ELocal[p_pattern[k++]]+=(ImgDec[(i+ii)*Stride + (j+jj)]+ImgDec[(i-ii)*Stride + (j-jj)]);
+                ELocal[p_pattern[k++]]+=(ImgDec[(i+ii)*Stride + (j+jj)]+ImgDec[(i-ii)*Stride + (j-jj)]);
               }
+            }
           }
           
-          for (jj=-fl_h; jj<0; jj++)
-              ELocal[p_pattern[k++]]+=(ImgDec[(i)*Stride + (j+jj)]+ImgDec[(i)*Stride + (j-jj)]);
+          for (jj=-flH; jj<0; jj++)
+            ELocal[p_pattern[k++]]+=(ImgDec[(i)*Stride + (j+jj)]+ImgDec[(i)*Stride + (j-jj)]);
 
           ELocal[p_pattern[k++]]+=ImgDec[(i)*Stride + (j)];
           ELocal[sqrFiltLength-1]=1;
@@ -2960,7 +2967,6 @@ Void   TEncAdaptiveLoopFilter::xstoreInBlockMatrix(imgpel* ImgOrg, imgpel* ImgDe
         if(!condition)
         {
 #endif
-
 #else
         if (m_maskImg[i][j] == 0 && count_valid > 0)
         {
@@ -2977,11 +2983,11 @@ Void   TEncAdaptiveLoopFilter::xstoreInBlockMatrix(imgpel* ImgOrg, imgpel* ImgDe
           k=0; 
           memset(ELocal, 0, sqrFiltLength*sizeof(int));
           
-          for (ii=-fl_v; ii<0; ii++)
-              ELocal[p_pattern[k++]]+=(ImgDec[(i+ii)*Stride + j]+ImgDec[(i-ii)*Stride + j]);
+          for (ii=-flV; ii<0; ii++)
+            ELocal[p_pattern[k++]]+=(ImgDec[(i+ii)*Stride + j]+ImgDec[(i-ii)*Stride + j]);
           
-          for (jj=-fl_h; jj<0; jj++)
-              ELocal[p_pattern[k++]]+=(ImgDec[(i)*Stride + (j+jj)]+ImgDec[(i)*Stride + (j-jj)]);
+          for (jj=-flH; jj<0; jj++)
+            ELocal[p_pattern[k++]]+=(ImgDec[(i)*Stride + (j+jj)]+ImgDec[(i)*Stride + (j-jj)]);
 
           ELocal[p_pattern[k++]]+=ImgDec[(i)*Stride + (j)];
           ELocal[sqrFiltLength-1]=1;
@@ -3032,7 +3038,6 @@ Void   TEncAdaptiveLoopFilter::xstoreInBlockMatrix(imgpel* ImgOrg, imgpel* ImgDe
         if(!condition)
         {
 #endif
-
 #else
         if (m_maskImg[i][j] == 0 && count_valid > 0)
         {
@@ -3049,13 +3054,13 @@ Void   TEncAdaptiveLoopFilter::xstoreInBlockMatrix(imgpel* ImgOrg, imgpel* ImgDe
           k=0; 
           memset(ELocal, 0, sqrFiltLength*sizeof(int));
           
-          for (ii=-fl_v; ii<0; ii++)
+          for (ii=-flV; ii<0; ii++)
           {
-              for (jj=-fl_h; jj<=fl_h; jj++)
-                  ELocal[p_pattern[k++]]+=(ImgDec[(i+ii)*Stride + (j+jj)]+ImgDec[(i-ii)*Stride + (j-jj)]);
+            for (jj=-flH; jj<=flH; jj++)
+              ELocal[p_pattern[k++]]+=(ImgDec[(i+ii)*Stride + (j+jj)]+ImgDec[(i-ii)*Stride + (j-jj)]);
           }
-          for (jj=-fl_h; jj<0; jj++)
-              ELocal[p_pattern[k++]]+=(ImgDec[(i)*Stride + (j+jj)]+ImgDec[(i)*Stride + (j-jj)]);
+          for (jj=-flH; jj<0; jj++)
+            ELocal[p_pattern[k++]]+=(ImgDec[(i)*Stride + (j+jj)]+ImgDec[(i)*Stride + (j-jj)]);
 
           ELocal[p_pattern[k++]]+=ImgDec[(i)*Stride + (j)];
           ELocal[sqrFiltLength-1]=1;
@@ -3186,9 +3191,13 @@ Void   TEncAdaptiveLoopFilter::xFilteringFrameLuma_qc(imgpel* ImgOrg, imgpel* im
   lambda_val = lambda_val * (1<<(2*g_uiBitIncrement));
 #if STAR_CROSS_SHAPES_LUMA
   if (ALFp->realfiltNo == 0)
-      filtNo = 0;
+  {
+    filtNo = 0;
+  }
   else //if (ALFp->realfiltNo == 1)
-      filtNo = 1;
+  {
+    filtNo = 1;
+  }
 #else
   if (tap==9)
     filtNo =0;
@@ -3247,19 +3256,19 @@ Void TEncAdaptiveLoopFilter::xfilterFrame_en(imgpel* ImgDec, imgpel* ImgRest,int
   
 #if !MQT_BA_RA
 #if STAR_CROSS_SHAPES_LUMA
-  Int fl_temp_h = 0;// horizontal_tap / 2
-  Int fl_temp_v = 0;// vertical_tap / 2
+  Int flH = 0;// horizontal_tap / 2
+  Int flV = 0;// vertical_tap / 2
   Int m = 0;
-  pattern = patternTab_filt_shapes[filtNo];
+  pattern = patternTabFiltShapes[filtNo];
   if (filtNo == 0)
   {
-      fl_temp_h = 2;
-      fl_temp_v = 2;    
+    flH = 2;
+    flV = 2;    
   }
   else //if (filtNo == 1)
   {
-      fl_temp_h = 5;
-      fl_temp_v = 2;    
+    flH = 5;
+    flV = 2;    
   }
 #else 
   pattern=m_patternTab_filt[filtNo];
@@ -3337,7 +3346,6 @@ Void TEncAdaptiveLoopFilter::xfilterFrame_en(imgpel* ImgDec, imgpel* ImgRest,int
         pixelInt += coef[25]* (p_imgY_pad[j-fl+2]+p_imgY_pad[j-fl-2]);
         pixelInt += coef[26]* (p_imgY_pad[j-fl+1]+p_imgY_pad[j-fl-1]);
         pixelInt += coef[27]* (p_imgY_pad[j-fl]);
-
       }
 #else
       if (filtNo == 2) //5x5
@@ -3419,62 +3427,64 @@ Void TEncAdaptiveLoopFilter::xfilterFrame_en(imgpel* ImgDec, imgpel* ImgRest,int
 #if STAR_CROSS_SHAPES_LUMA
   if (filtNo == 0)
   {
-      for (y=0, i = fl; i < m_im_height+fl; i++, y++)
+    for (y=0, i = fl; i < m_im_height+fl; i++, y++)
+    {
+      for (x=0, j = fl; j < m_im_width+fl; j++, x++)
       {
-          for (x=0, j = fl; j < m_im_width+fl; j++, x++)
-          {
-              int varInd=m_varImg[i-fl][j-fl];
-              imgpel *im1,*im2;
-              int *coef = m_filterCoeffPrevSelected[varInd];
-              pattern = patternTab_filt_shapes[filtNo];
-              pixelInt= m_filterCoeffPrevSelected[varInd][sqrFiltLength-1]; 
-              for (ii=-fl_temp_v; ii<0; ii++)
-              {
-                  m = (ii == -fl_temp_v)? 2: 1;
-                  im1= &(ImgDec[(y+ii)*Stride + x-m]);
-                  im2= &(ImgDec[(y-ii)*Stride + x+m]);
-                  for (jj=-m; jj<=m; jj++,im1++,im2--)
-                      if ((m == 1) || (m == 2 && jj%2 == 0))
-                          pixelInt+=((*im1+ *im2)*coef[*(pattern++)]);
-              }
-              im1= &(ImgDec[y*Stride + x-fl_temp_h]);
-              im2= &(ImgDec[y*Stride + x+fl_temp_h]);    
-              for (jj=-fl_temp_h; jj<0; jj++,im1++,im2--)
-                  pixelInt+=((*im1+ *im2)*coef[*(pattern++)]);
-              pixelInt+=(ImgDec[y*Stride + x]*coef[*(pattern++)]);
+        int varInd=m_varImg[i-fl][j-fl];
+        imgpel *im1,*im2;
+        int *coef = m_filterCoeffPrevSelected[varInd];
+        pattern = patternTabFiltShapes[filtNo];
+        pixelInt= m_filterCoeffPrevSelected[varInd][sqrFiltLength-1]; 
+        for (ii=-flV; ii<0; ii++)
+        {
+           m = (ii == -flV)? 2: 1;
+           im1= &(ImgDec[(y+ii)*Stride + x-m]);
+           im2= &(ImgDec[(y-ii)*Stride + x+m]);
+           for (jj=-m; jj<=m; jj++,im1++,im2--)
+             if ((m == 1) || (m == 2 && jj%2 == 0))
+             {
+               pixelInt+=((*im1+ *im2)*coef[*(pattern++)]);
+             }
+        }
+        im1= &(ImgDec[y*Stride + x-flH]);
+        im2= &(ImgDec[y*Stride + x+flH]);    
+        for (jj=-flH; jj<0; jj++,im1++,im2--)
+          pixelInt+=((*im1+ *im2)*coef[*(pattern++)]);
+        pixelInt+=(ImgDec[y*Stride + x]*coef[*(pattern++)]);
 
-              pixelInt=(int)((pixelInt+offset) >> (NUM_BITS - 1));
-              ImgRest[y*Stride + x] = Clip3(0, g_uiIBDI_MAX, pixelInt);
-          }
+        pixelInt=(int)((pixelInt+offset) >> (NUM_BITS - 1));
+        ImgRest[y*Stride + x] = Clip3(0, g_uiIBDI_MAX, pixelInt);
       }
+    }
   }
   else //if (filtNo == 1)
   {
-      for (y=0, i = fl; i < m_im_height+fl; i++, y++)
+    for (y=0, i = fl; i < m_im_height+fl; i++, y++)
+    {
+      for (x=0, j = fl; j < m_im_width+fl; j++, x++)
       {
-          for (x=0, j = fl; j < m_im_width+fl; j++, x++)
-          {
-              int varInd=m_varImg[i-fl][j-fl];
-              imgpel *im1,*im2;
-              int *coef = m_filterCoeffPrevSelected[varInd];
-              pattern = patternTab_filt_shapes[filtNo];
-              pixelInt= m_filterCoeffPrevSelected[varInd][sqrFiltLength-1];
-              for (ii=-fl_temp_v; ii<0; ii++)
-              {
-                  im1= &(ImgDec[(y+ii)*Stride + x]);
-                  im2= &(ImgDec[(y-ii)*Stride + x]);
-                  pixelInt+=((*im1+ *im2)*coef[*(pattern++)]);
-              }
-              im1= &(ImgDec[y*Stride + x-fl_temp_h]);
-              im2= &(ImgDec[y*Stride + x+fl_temp_h]);    
-              for (jj=-fl_temp_h; jj<0; jj++,im1++,im2--)
-                  pixelInt+=((*im1+ *im2)*coef[*(pattern++)]);
-              pixelInt+=(ImgDec[y*Stride + x]*coef[*(pattern++)]);
+        int varInd=m_varImg[i-fl][j-fl];
+        imgpel *im1,*im2;
+        int *coef = m_filterCoeffPrevSelected[varInd];
+        pattern = patternTabFiltShapes[filtNo];
+        pixelInt= m_filterCoeffPrevSelected[varInd][sqrFiltLength-1];
+        for (ii=-flV; ii<0; ii++)
+        {
+          im1= &(ImgDec[(y+ii)*Stride + x]);
+          im2= &(ImgDec[(y-ii)*Stride + x]);
+          pixelInt+=((*im1+ *im2)*coef[*(pattern++)]);
+        }
+        im1= &(ImgDec[y*Stride + x-flH]);
+        im2= &(ImgDec[y*Stride + x+flH]);    
+        for (jj=-flH; jj<0; jj++,im1++,im2--)
+          pixelInt+=((*im1+ *im2)*coef[*(pattern++)]);
+        pixelInt+=(ImgDec[y*Stride + x]*coef[*(pattern++)]);
 
-              pixelInt=(int)((pixelInt+offset) >> (NUM_BITS - 1));
-              ImgRest[y*Stride + x] = Clip3(0, g_uiIBDI_MAX, pixelInt);
-          }
+        pixelInt=(int)((pixelInt+offset) >> (NUM_BITS - 1));
+        ImgRest[y*Stride + x] = Clip3(0, g_uiIBDI_MAX, pixelInt);
       }
+    }
   }
 #else
 #if TI_ALF_MAX_VSIZE_7
@@ -3501,7 +3511,7 @@ Void TEncAdaptiveLoopFilter::xfilterFrame_en(imgpel* ImgDec, imgpel* ImgRest,int
   }
 }
 
-Void TEncAdaptiveLoopFilter::xfindBestFilterVarPred(double **ySym, double ***ESym, double *pixAcc, int **filterCoeffSym, int **filterCoeffSymQuant, int filtNo, int *filters_per_fr_best, int varIndTab[], imgpel **imgY_rec, imgpel **varImg, imgpel **maskImg, imgpel **imgY_pad, double lambda_val)
+Void TEncAdaptiveLoopFilter::xfindBestFilterVarPred(double **ySym, double ***ESym, double *pixAcc, Int **filterCoeffSym, Int **filterCoeffSymQuant, Int filtNo, Int *filters_per_fr_best, Int varIndTab[], imgpel **imgY_rec, imgpel **varImg, imgpel **maskImg, imgpel **imgY_pad, double lambda_val)
 {
   int filters_per_fr, firstFilt, forceCoeff0,
   interval[NO_VAR_BINS][2], intervalBest[NO_VAR_BINS][2];
@@ -3533,7 +3543,7 @@ Void TEncAdaptiveLoopFilter::xfindBestFilterVarPred(double **ySym, double ***ESy
   sqrFiltLength= m_sqrFiltLengthTab[filtNo] ;
   // in HM-3.x fl specifies the filter tap - in our proposal fl specifies the filter number (0: Cross5x5 - 1: Cross11x5)
   Int fl = filtNo;
-  weights = weightsTab_shapes[filtNo];               
+  weights = weightsTabShapes[filtNo];               
 #else   
   sqrFiltLength=m_sqrFiltLengthTab[filtNo];   
   Int fl = m_flTab[filtNo];
@@ -3627,24 +3637,23 @@ Void TEncAdaptiveLoopFilter::xfindBestFilterVarPred(double **ySym, double ***ESy
 }
 
 
-Void TEncAdaptiveLoopFilter::xcalcPredFilterCoeff(int filtNo)
+Void TEncAdaptiveLoopFilter::xcalcPredFilterCoeff(Int filtNo)
 {
   int *patternMap, varInd, i, k;
-  
 #if STAR_CROSS_SHAPES_LUMA
-  patternMap = patternMapTab_shapes[filtNo];
+  patternMap = patternMapTabShapes[filtNo];
 #if MQT_ALF_NPASS && !MQT_BA_RA
   if (m_iALFEncodePassReduction && (!m_iUsePreviousFilter || !m_iDesignCurrentFilter))
   {
-      if((m_iCurrentPOC%m_iGOPSize) == 0)
-      {
-          m_iPreviousFilterShape[0]= m_iPreviousFilterShape[m_iGOPSize]; 
-          m_iPreviousFilterShape[m_iGOPSize]= filtNo; 
-      }
-      else
-      {
-          m_iPreviousFilterShape[m_iCurrentPOC%m_iGOPSize] = filtNo;
-      }
+    if((m_iCurrentPOC%m_iGOPSize) == 0)
+    {
+      m_iPreviousFilterShape[0]= m_iPreviousFilterShape[m_iGOPSize]; 
+      m_iPreviousFilterShape[m_iGOPSize]= filtNo; 
+    }
+    else
+    {
+      m_iPreviousFilterShape[m_iCurrentPOC%m_iGOPSize] = filtNo;
+    }
   }
 #endif
 #else
@@ -3694,16 +3703,16 @@ Void TEncAdaptiveLoopFilter::xcalcPredFilterCoeff(int filtNo)
  * \returns bitrate
  */
 
-UInt TEncAdaptiveLoopFilter::xcodeFiltCoeff(int **filterCoeffSymQuant, int filtNo, int varIndTab[], int filters_per_fr_best, int frNo, ALFParam* ALFp)
+UInt TEncAdaptiveLoopFilter::xcodeFiltCoeff(Int **filterCoeffSymQuant, Int filtNo, Int varIndTab[], Int filters_per_fr_best, Int frNo, ALFParam* ALFp)
 #else
-Void TEncAdaptiveLoopFilter::xcodeFiltCoeff(int **filterCoeffSymQuant, int filtNo, int varIndTab[], int filters_per_fr_best, int frNo, ALFParam* ALFp)
+Void TEncAdaptiveLoopFilter::xcodeFiltCoeff(Int **filterCoeffSymQuant, Int filtNo, Int varIndTab[], Int filters_per_fr_best, Int frNo, ALFParam* ALFp)
 #endif
 {
 #if STAR_CROSS_SHAPES_LUMA
-  int varInd, forceCoeff0, codedVarBins[NO_VAR_BINS], coeffBits, createBistream;   
-  int sqrFiltLength = m_sqrFiltLengthTab[filtNo] ; 
+  Int varInd, forceCoeff0, codedVarBins[NO_VAR_BINS], coeffBits, createBistream;   
+  Int sqrFiltLength = m_sqrFiltLengthTab[filtNo] ; 
   // in HM-3.x fl specifies the filter tap - in our proposal fl specifies the filter number (0: Cross5x5 - 1: Cross11x5)
-  int fl = filtNo;
+  Int fl = filtNo;
 #else
   int varInd, forceCoeff0, codedVarBins[NO_VAR_BINS], coeffBits, createBistream,   sqrFiltLength=m_sqrFiltLengthTab[filtNo], 
   fl=m_flTab[filtNo];
@@ -4748,7 +4757,7 @@ Void TEncAdaptiveLoopFilter::saveFilterCoeffToBuffer(Int **filterCoeffPrevSelect
       ::memcpy(m_aiFilterCoeffSaved[iBufferIndex][varInd],filterCoeffPrevSelected[varInd], sizeof(Int)*MAX_SQR_FILT_LENGTH );
     }
 #if STAR_CROSS_SHAPES_LUMA
-     m_iPreviousFilterShape[iBufferIndex]= filtNo; 
+    m_iPreviousFilterShape[iBufferIndex]= filtNo; 
 #endif
 
   }
@@ -4791,7 +4800,7 @@ Void TEncAdaptiveLoopFilter::setMaskWithTimeDelayedResults(TComPicYuv* pcPicOrg,
 #if MQT_BA_RA
   m_pcTempAlfParam->alf_pcr_region_flag = m_uiVarGenMethod;
 #endif
-    m_pcTempAlfParam->cu_control_flag = 0;
+  m_pcTempAlfParam->cu_control_flag = 0;
 #else
   Int iTap = 9;
   Int filtNo = 0;
@@ -4815,7 +4824,10 @@ Void TEncAdaptiveLoopFilter::setMaskWithTimeDelayedResults(TComPicYuv* pcPicOrg,
 
 #if STAR_CROSS_SHAPES_LUMA
     filtNo = m_pcTempAlfParam->realfiltNo = m_iPreviousFilterShape[m_iFilterIdx];
-    if (filtNo != 0 && filtNo != 1) continue; 
+    if (filtNo != 0 && filtNo != 1) 
+    {
+      continue;
+    }
     m_pcTempAlfParam->num_coeff = m_sqrFiltLengthTab[filtNo] ; 
 #endif
 
@@ -4893,9 +4905,13 @@ Void TEncAdaptiveLoopFilter::setMaskWithTimeDelayedResults(TComPicYuv* pcPicOrg,
 #if STAR_CROSS_SHAPES_LUMA
 #if MTK_NONCROSS_INLOOP_FILTER
   if(!m_bUseNonCrossALF)
+  {
     xstoreInBlockMatrix(0, 0, m_im_height, m_im_width, true, true, pOrg, pDec, cAlfParam.realfiltNo, LumaStride);
+  }
   else
+  { 
     xstoreInBlockMatrixforSlices(pOrg, pDec, cAlfParam.realfiltNo, LumaStride);
+  }
 #else
   xstoreInBlockMatrix(pOrg, pDec, cAlfParam.realfiltNo, LumaStride);
 #endif
@@ -5047,9 +5063,13 @@ Void TEncAdaptiveLoopFilter::setInitialMask(TComPicYuv* pcPicOrg, TComPicYuv* pc
 #if STAR_CROSS_SHAPES_LUMA
 #if MTK_NONCROSS_INLOOP_FILTER
   if(!m_bUseNonCrossALF)
+  {
     calcVar(0, 0, m_varImg, pDec, FILTER_LENGTH/2, VAR_SIZE, Height, Width, LumaStride);
+  }
   else
+  {
     calcVarforSlices(m_varImg, pDec, FILTER_LENGTH/2, VAR_SIZE, LumaStride);
+  }
 #else
   calcVar(m_varImg, pDec, FILTER_LENGTH/2, VAR_SIZE, Height, Width, LumaStride);
 #endif
@@ -5105,7 +5125,10 @@ Void TEncAdaptiveLoopFilter::setInitialMask(TComPicYuv* pcPicOrg, TComPicYuv* pc
       setFilterIdx(index);
 #if STAR_CROSS_SHAPES_LUMA
       Int filtNo = m_pcTempAlfParam->realfiltNo = m_iPreviousFilterShape[m_iFilterIdx];
-      if (filtNo != 0 && filtNo != 1) continue; 
+      if (filtNo != 0 && filtNo != 1) 
+      {
+        continue; 
+      }
       m_pcTempAlfParam->num_coeff = m_sqrFiltLengthTab[filtNo] ; 
 #endif
       xcalcPredFilterCoeffPrev(filtNo);
@@ -5238,9 +5261,13 @@ Void  TEncAdaptiveLoopFilter::xFirstEstimateFilteringFrameLumaAllTap(imgpel* Img
 #if MTK_NONCROSS_INLOOP_FILTER
   {
     if(!m_bUseNonCrossALF)
+    {
       xstoreInBlockMatrix(0, 0, m_im_height, m_im_width, true, true, ImgOrg, ImgDec, 2, Stride);
+    }
     else
+    {
       xstoreInBlockMatrixforSlices(ImgOrg, ImgDec, 2, Stride);
+    }
   }
 #else
   xstoreInBlockMatrix(ImgOrg, ImgDec, 2, Stride);
@@ -5415,9 +5442,13 @@ Void   TEncAdaptiveLoopFilter::xFirstFilteringFrameLumaAllTap(imgpel* ImgOrg, im
 #if MTK_NONCROSS_INLOOP_FILTER
   {
     if(!m_bUseNonCrossALF)
+    {
       xstoreInBlockMatrix(0, 0, m_im_height, m_im_width, true, true, ImgOrg, ImgDec, 2, Stride);
+    }
     else
+    {
       xstoreInBlockMatrixforSlices(ImgOrg, ImgDec, 2, Stride);
+    }
   }
 #else
   xstoreInBlockMatrix(ImgOrg, ImgDec, 2, Stride);
@@ -6565,7 +6596,7 @@ Void TEncSampleAdaptiveOffset::xQuadTreeDecisionFunc(SAOQTPart *psQTPart, Int iP
     {
       if( m_bUseSBACRD )  
       {
-        if ( 0 == iPartIdx) //initialize RD with previous depth buffer
+        if ( 0 == i) //initialize RD with previous depth buffer
         {
           m_pppcRDSbacCoder[uhNextDepth][CI_CURR_BEST]->load(m_pppcRDSbacCoder[uiDepth][CI_CURR_BEST]);
         }
@@ -6578,7 +6609,7 @@ Void TEncSampleAdaptiveOffset::xQuadTreeDecisionFunc(SAOQTPart *psQTPart, Int iP
       dCostSplit += dCostFinal;
       if( m_bUseSBACRD )
       {
-        m_pppcRDSbacCoder[uhNextDepth][CI_NEXT_BEST]->store(m_pppcRDSbacCoder[uiDepth][CI_TEMP_BEST]);
+        m_pppcRDSbacCoder[uhNextDepth][CI_NEXT_BEST]->load(m_pppcRDSbacCoder[uhNextDepth][CI_TEMP_BEST]);
       }
     }
 
@@ -6590,6 +6621,10 @@ Void TEncSampleAdaptiveOffset::xQuadTreeDecisionFunc(SAOQTPart *psQTPart, Int iP
       pOnePart->bEnableFlag = false;
       pOnePart->iLength     =  0;
       pOnePart->iBestType   = -1;
+      if( m_bUseSBACRD )
+      {
+        m_pppcRDSbacCoder[uiDepth][CI_NEXT_BEST]->load(m_pppcRDSbacCoder[uhNextDepth][CI_NEXT_BEST]);
+      }
     }
     else
     {
@@ -6599,6 +6634,10 @@ Void TEncSampleAdaptiveOffset::xQuadTreeDecisionFunc(SAOQTPart *psQTPart, Int iP
       {
         xPartTreeDisable(psQTPart, pOnePart->DownPartsIdx[i]);
       }
+      if( m_bUseSBACRD )
+      {
+        m_pppcRDSbacCoder[uiDepth][CI_NEXT_BEST]->load(m_pppcRDSbacCoder[uiDepth][CI_TEMP_BEST]);
+      }
     }
   }
   else
@@ -6606,10 +6645,9 @@ Void TEncSampleAdaptiveOffset::xQuadTreeDecisionFunc(SAOQTPart *psQTPart, Int iP
     dCostFinal = pOnePart->dMinCost;
   }
 }
-/** destory TEncSampleAdaptiveOffset class.
- * \param  
+/** delete allocated memory of TEncSampleAdaptiveOffset class.
  */
-Void TEncSampleAdaptiveOffset::destoryEncBuffer()
+Void TEncSampleAdaptiveOffset::destroyEncBuffer()
 {
 
     for (Int i=0;i<m_iNumTotalParts;i++)
@@ -6903,7 +6941,6 @@ Void TEncSampleAdaptiveOffset::startSaoEnc( TComPic* pcPic, TEncEntropy* pcEntro
 }
 
 /** end Sao Encoder.
- * \param 
  */
 Void TEncSampleAdaptiveOffset::endSaoEnc()
 {
@@ -7009,7 +7046,7 @@ Void TEncSampleAdaptiveOffset::calcAoStatsCuMap(Int iAddr, Int iPartIdx, Int iYC
     iLcuHeight = uiBPelY - uiTPelY;
 
     pRec       = m_pcPic->getPicYuvRec()->getLumaAddr(iAddr);
-    pMap       =  m_pcPicYuvMap->getCbAddr(iAddr);    
+    pMap       = m_pcPicYuvMap->getLumaAddr(iAddr);    
     iStride    = m_pcPic->getStride();
   }
 
@@ -7223,7 +7260,7 @@ Void TEncSampleAdaptiveOffset::calcAoStatsCuMap(Int iAddr, Int iPartIdx, Int iYC
           iSignDown1      =  xSign(pRec[x] - pRec[x+iStride-1]) ;
           uiEdgeType      =  iSignDown1 + m_iUpBuff1[x] + 2;
           m_iUpBuff1[x-1]   = -iSignDown1; 
-          if (pMap[x-iStride+1] == pMap[x+iStride-1])
+          if ((pMap[x-iStride+1] == pMap[x+iStride-1]) && (pMap[x+iStride-1]==pMap[x]))
           {
             iStats[m_auiEoTable[uiEdgeType]] += (pOrg[x] - pRec[x]);
             iCount[m_auiEoTable[uiEdgeType]] ++;
@@ -7531,16 +7568,9 @@ Void TEncSampleAdaptiveOffset::calcAoStatsCuMap(Int iAddr, Int iPartIdx, Int iYC
  */
 Void TEncSampleAdaptiveOffset::calcAoStatsCu(Int iAddr, Int iPartIdx, Int iYCbCr)
 {
-  if (getIsFineSlice())
+  if (getUseNonCrossAlf())
   {
-    if (getIsFineSliceCu(iAddr))
-    {
-      calcAoStatsCuMap( iAddr, iPartIdx, iYCbCr);
-    }
-    else
-    {
-      calcAoStatsCuOrg( iAddr, iPartIdx, iYCbCr);
-    }
+    calcAoStatsCuMap( iAddr, iPartIdx, iYCbCr);
   }
   else
   {
@@ -8326,12 +8356,7 @@ Void TEncSampleAdaptiveOffset::SAOProcess( Double dLambda)
     xProcessQuadTreeAo(m_psQAOPart, 0, 0);
 #endif
   }
-#if MTK_SAO && MTK_NONCROSS_INLOOP_FILTER && FINE_GRANULARITY_SLICES 
-  if (getIsFineSlice())
-  {
-    endFGSParam();
-  }
-#endif
 
 }
 #endif
+//! \}

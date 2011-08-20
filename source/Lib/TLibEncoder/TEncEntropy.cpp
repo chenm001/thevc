@@ -36,8 +36,11 @@
 */
 
 #include "TEncEntropy.h"
-#include "../TLibCommon/TypeDef.h"
-#include "../TLibCommon/TComAdaptiveLoopFilter.h"
+#include "TLibCommon/TypeDef.h"
+#include "TLibCommon/TComAdaptiveLoopFilter.h"
+
+//! \ingroup TLibEncoder
+//! \{
 
 Void TEncEntropy::setEntropyCoder ( TEncEntropyIf* e, TComSlice* pcSlice )
 {
@@ -192,7 +195,7 @@ Int TEncEntropy::codeFilterCoeff(ALFParam* ALFp)
   minKStart, minBitsKStart, bitsKStart;
   
 #if STAR_CROSS_SHAPES_LUMA
-  pDepthInt = pDepthIntTab_shapes[filtNo];
+  pDepthInt = pDepthIntTabShapes[filtNo];
 #else 
   pDepthInt = pDepthIntTab[fl-2];
 #endif
@@ -369,15 +372,11 @@ Void TEncEntropy::codeFilt(ALFParam* pAlfParam)
  */
 Void TEncEntropy::encodeMergeFlag( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiPUIdx )
 { 
-#if !CHANGE_GET_MERGE_CANDIDATE
+#if !CHANGE_GET_MERGE_CANDIDATE && !MRG_AMVP_FIXED_IDX_F470
   UInt uiNumCand = 0;
   for(UInt uiIter = 0; uiIter < MRG_MAX_NUM_CANDS; uiIter++ )
   {
-#if MRG_AMVP_FIXED_IDX_F470
-    if( pcCU->getNeighbourCandIdx( uiIter, uiAbsPartIdx ) > 0 )
-#else
     if( pcCU->getNeighbourCandIdx( uiIter, uiAbsPartIdx ) == uiIter + 1 )
-#endif
     {
       uiNumCand++;
       break;
@@ -388,7 +387,7 @@ Void TEncEntropy::encodeMergeFlag( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiP
 #endif
     // at least one merge candidate exists
     m_pcEntropyCoderIf->codeMergeFlag( pcCU, uiAbsPartIdx );
-#if !CHANGE_GET_MERGE_CANDIDATE
+#if !CHANGE_GET_MERGE_CANDIDATE && !MRG_AMVP_FIXED_IDX_F470
   }
   else
   {
@@ -1183,7 +1182,6 @@ Void TEncEntropy::encodeCoeff( TComDataCU* pcCU, TCoeff* pCoeff, UInt uiAbsPartI
  * \param uiDepth
  * \param uiWidth
  * \param uiHeight
- * \returns Void
  */
 Void TEncEntropy::encodeCoeff( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth, UInt uiWidth, UInt uiHeight, Bool& bCodeDQP )
 {
@@ -1345,7 +1343,7 @@ Void TEncEntropy::encodeQAOOnePart(SAOParam* pQaoParam, Int iPartIdx )
   }
 }
 /** encode QuadTree Split Flag
- * \param  pQaoParam, iPartIdx
+ * \param  pSaoParam, iPartIdx
  */
 #if MTK_SAO_CHROMA
 Void TEncEntropy::encodeQuadTreeSplitFlag(SAOParam* pSaoParam, Int iPartIdx, Int iYCbCr)
@@ -1392,7 +1390,7 @@ Void TEncEntropy::encodeQuadTreeSplitFlag(SAOParam* pSaoParam, Int iPartIdx)
 }
 
 /** encode Sao Param
- * \param  pQaoParam
+ * \param  pSaoParam
  */
 Void TEncEntropy::encodeSaoParam(SAOParam* pSaoParam)
 {
@@ -1439,3 +1437,4 @@ Int TEncEntropy::countNonZeroCoeffs( TCoeff* pcCoef, UInt uiSize )
   return count;
 }
 
+//! \}

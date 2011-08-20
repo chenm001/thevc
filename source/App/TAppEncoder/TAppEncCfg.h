@@ -38,7 +38,10 @@
 #ifndef __TAPPENCCFG__
 #define __TAPPENCCFG__
 
-#include "../../Lib/TLibCommon/CommonDef.h"
+#include "TLibCommon/CommonDef.h"
+
+//! \ingroup TAppEncoder
+//! \{
 
 // ====================================================================================================================
 // Class definition
@@ -166,6 +169,9 @@ protected:
 #if EARLY_CU_DETERMINATION
   Bool      m_bUseEarlyCU;                                    ///< flag for using Early CU setting
 #endif  
+#if CBF_FAST_MODE
+  Bool      m_bUseCbfFastMode;                              ///< flag for using Cbf Fast PU Mode Decision
+#endif  
   Int       m_iSliceMode;           ///< 0: Disable all Recon slice limits, 1 : Maximum number of largest coding units per slice, 2: Maximum number of bytes in a slice
   Int       m_iSliceArgument;       ///< If m_iSliceMode==1, m_iSliceArgument=max. # of largest coding units. If m_iSliceMode==2, m_iSliceArgument=max. # of bytes.
   Int       m_iEntropySliceMode;    ///< 0: Disable all entropy slice limits, 1 : Maximum number of largest coding units per slice, 2: Constraint based entropy slice
@@ -201,6 +207,8 @@ public:
   Bool  parseCfg  ( Int argc, Char* argv[] );                 ///< parse configuration file to fill member variables
   
 };// END CLASS DEFINITION TAppEncCfg
+
+//! \}
 
 #endif // __TAPPENCCFG__
 

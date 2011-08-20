@@ -47,6 +47,9 @@
 
 #include "TComPicYuv.h"
 
+//! \ingroup TLibCommon
+//! \{
+
 TComPicYuv::TComPicYuv()
 {
   m_apiPicBufY      = NULL;   // Buffer (including margin)
@@ -417,3 +420,4 @@ Void TComPicYuv::xFixedRoundingPic()
 }
 #endif
 
+//! \}

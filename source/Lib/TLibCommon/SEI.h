@@ -33,6 +33,9 @@
 
 #pragma once
 
+//! \ingroup TLibCommon
+//! \{
+
 /**
  * Abstract class representing an SEI message with lightweight RTTI.
  */
@@ -108,3 +111,4 @@ public:
   SEIuserDataUnregistered* user_data_unregistered;
   SEIpictureDigest* picture_digest;
 };
+//! \}

@@ -33,9 +33,12 @@
 
 #pragma once
 
-#include "../TLibCommon/TypeDef.h"
-#include "../TLibCommon/TComBitStream.h"
-#include "../TLibCommon/NAL.h"
+#include "TLibCommon/TypeDef.h"
+#include "TLibCommon/TComBitStream.h"
+#include "TLibCommon/NAL.h"
+
+//! \ingroup TLibDecoder
+//! \{
 
 /**
  * A convenience wrapper to NALUnit that also provides a
@@ -47,3 +50,5 @@ struct InputNALUnit : public NALUnit
 };
 
 void read(InputNALUnit& nalu, std::vector<uint8_t>& nalUnitBuf);
+
+//! \}

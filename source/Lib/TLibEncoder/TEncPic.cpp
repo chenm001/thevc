@@ -37,6 +37,9 @@
 
 #include "TEncPic.h"
 
+//! \ingroup TLibEncoder
+//! \{
+
 /** Constructor
  */
 TEncQPAdaptationUnit::TEncQPAdaptationUnit()
@@ -148,3 +151,5 @@ Void TEncPic::destroy()
   }
   TComPic::destroy();
 }
+//! \}
+

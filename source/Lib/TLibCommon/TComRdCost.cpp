@@ -37,7 +37,11 @@
 
 #include <math.h>
 #include <assert.h>
+#include "TComRom.h"
 #include "TComRdCost.h"
+
+//! \ingroup TLibCommon
+//! \{
 
 TComRdCost::TComRdCost()
 {
@@ -2587,3 +2591,4 @@ UInt TComRdCost::xGetHADs( DistParam* pcDtParam )
   return ( uiSum >> g_uiBitIncrement );
 }
 
+//! \}

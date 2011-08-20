@@ -90,3 +90,5 @@ struct NALUnitEBSP : public NALUnit
    */
   NALUnitEBSP(const OutputNALUnit& nalu);
 };
+//! \}
+//! \}

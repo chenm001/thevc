@@ -43,9 +43,12 @@
 #include <assert.h>
 
 #include "TAppEncTop.h"
-#include "../../Lib/TLibEncoder/AnnexBwrite.h"
+#include "TLibEncoder/AnnexBwrite.h"
 
 using namespace std;
+
+//! \ingroup TAppEncoder
+//! \{
 
 // ====================================================================================================================
 // Constructor / destructor / initialization / destroy
@@ -141,6 +144,9 @@ Void TAppEncTop::xInitLibCfg()
   m_cTEncTop.setUseFastEnc                   ( m_bUseFastEnc  );
 #if EARLY_CU_DETERMINATION
   m_cTEncTop.setUseEarlyCU                   ( m_bUseEarlyCU  ); 
+#endif
+#if CBF_FAST_MODE
+  m_cTEncTop.setUseCbfFastMode            ( m_bUseCbfFastMode  );
 #endif
   m_cTEncTop.setUseMRG                       ( m_bUseMRG      ); // SOPH:
 
@@ -348,7 +354,7 @@ Void TAppEncTop::xDeleteBuffer( )
 
 /** \param iNumEncoded  number of encoded frames
  */
-Void TAppEncTop::xWriteOutput(ostream& bitstreamFile, Int iNumEncoded, const list<AccessUnit>& accessUnits)
+Void TAppEncTop::xWriteOutput(std::ostream& bitstreamFile, Int iNumEncoded, const std::list<AccessUnit>& accessUnits)
 {
   Int i;
   
@@ -375,7 +381,7 @@ Void TAppEncTop::xWriteOutput(ostream& bitstreamFile, Int iNumEncoded, const lis
 /**
  *
  */
-void TAppEncTop::rateStatsAccum(const AccessUnit& au, const vector<unsigned>& annexBsizes)
+void TAppEncTop::rateStatsAccum(const AccessUnit& au, const std::vector<unsigned>& annexBsizes)
 {
   AccessUnit::const_iterator it_au = au.begin();
   vector<unsigned>::const_iterator it_stats = annexBsizes.begin();
@@ -409,3 +415,5 @@ void TAppEncTop::printRateSummary()
   printf("Bytes for SPS/PPS/Slice (Incl. Annex B): %u (%.3f kbps)\n", m_essentialBytes, 0.008 * m_essentialBytes / time);
 #endif
 }
+
+//! \}

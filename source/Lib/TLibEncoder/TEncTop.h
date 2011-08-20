@@ -39,12 +39,12 @@
 #define __TENCTOP__
 
 // Include files
-#include "../TLibCommon/TComList.h"
-#include "../TLibCommon/TComPrediction.h"
-#include "../TLibCommon/TComTrQuant.h"
-#include "../TLibCommon/AccessUnit.h"
+#include "TLibCommon/TComList.h"
+#include "TLibCommon/TComPrediction.h"
+#include "TLibCommon/TComTrQuant.h"
+#include "TLibCommon/AccessUnit.h"
 
-#include "../TLibVideoIO/TVideoIOYuv.h"
+#include "TLibVideoIO/TVideoIOYuv.h"
 
 #include "TEncCfg.h"
 #include "TEncGOP.h"
@@ -57,6 +57,9 @@
 #if QP_ADAPTATION
 #include "TEncPreanalyzer.h"
 #endif
+
+//! \ingroup TLibEncoder
+//! \{
 
 // ====================================================================================================================
 // Class definition
@@ -162,6 +165,6 @@ public:
   
 };
 
+//! \}
 
 #endif // __TENCTOP__
-

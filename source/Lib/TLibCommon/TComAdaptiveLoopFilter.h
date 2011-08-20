@@ -38,7 +38,11 @@
 #ifndef __TCOMADAPTIVELOOPFILTER__
 #define __TCOMADAPTIVELOOPFILTER__
 
+#include "CommonDef.h"
 #include "TComPic.h"
+
+//! \ingroup TLibCommon
+//! \{
 
 // ====================================================================================================================
 // Constants
@@ -53,7 +57,6 @@
 #define ALF_NUM_BIT_SHIFT     8                                       ///< bit shift parameter for quantization of ALF param.
 #define ALF_ROUND_OFFSET      ( 1 << ( ALF_NUM_BIT_SHIFT - 1 ) )      ///< rounding offset for ALF quantization
 
-#include "../TLibCommon/CommonDef.h"
 
 #define NUM_BITS               9
 #define NO_TEST_FILT           3       // Filter supports (5/7/9)
@@ -100,7 +103,7 @@
 #if STAR_CROSS_SHAPES_LUMA
 extern Int depthIntShape0Sym[10];
 extern Int depthIntShape1Sym[9];
-extern Int *pDepthIntTab_shapes[NO_TEST_FILT];
+extern Int *pDepthIntTabShapes[NO_TEST_FILT];
 #endif
 #if TI_ALF_MAX_VSIZE_7
 extern Int depthInt9x9Sym[21];
@@ -114,9 +117,17 @@ void destroyMatrix_int(int **m2D);
 void initMatrix_int(int ***m2D, int d1, int d2);
 
 #if MTK_NONCROSS_INLOOP_FILTER
+#if STAR_CROSS_SHAPES_LUMA
+#define EXTEND_NUM_PEL    (UInt)(FILTER_LENGTH/2)
+#else
 #define EXTEND_NUM_PEL    (UInt)(ALF_MAX_NUM_TAP/2)
-#define EXTEND_NUM_PEL_C  (UInt)(ALF_MAX_NUM_TAP_C/2)
+#endif
 
+#if ALF_CHROMA_NEW_SHAPES
+#define EXTEND_NUM_PEL_C  (UInt)(EXTEND_NUM_PEL)
+#else
+#define EXTEND_NUM_PEL_C  (UInt)(ALF_MAX_NUM_TAP_C/2)
+#endif
 /// border direction ID of slice granularity unit 
 enum SGUBorderID
 {
@@ -268,8 +279,6 @@ public:
   Int  getSliceGranularityDepth()           { return m_iSGDepth;   }//!< get slice granularity depth
   Void createSliceMap(UInt iSliceIdx, UInt uiStartAddr, UInt uiEndAddr);//!< create slice map
   Void InitIsFineSliceCu(){memset(m_bIsFineSliceCu,0, sizeof(Bool)*m_iNumCuInWidth*m_iNumCuInHeight);} //!< Init is fine slice LCU
-  Void startFGSParam(); //!< start FGS parameters
-  Void endFGSParam();   //!< end FGS parameters
   Void setPic(TComPic* pcPic){m_pcPic = pcPic;} //!< set pic
 #endif
 
@@ -492,10 +501,10 @@ protected:
   static Int patternShape1Sym[15];
   static Int weightsShape1Sym[9];
   static Int patternShape1Sym_Quart[29];
-  static Int *patternTab_filt_shapes[NO_TEST_FILT];
-  static Int *patternTab_shapes[NO_TEST_FILT]; 
-  static Int *patternMapTab_shapes[NO_TEST_FILT];
-  static Int *weightsTab_shapes[NO_TEST_FILT];
+  static Int *patternTabFiltShapes[NO_TEST_FILT];
+  static Int *patternTabShapes[NO_TEST_FILT]; 
+  static Int *patternMapTabShapes[NO_TEST_FILT];
+  static Int *weightsTabShapes[NO_TEST_FILT];
 #endif
 #if TI_ALF_MAX_VSIZE_7
   static Int m_pattern9x9Sym[39];
@@ -512,9 +521,9 @@ protected:
   static Int m_weights5x5Sym[8];
   static Int m_pattern5x5Sym_Quart[45];
 #if STAR_CROSS_SHAPES_LUMA
-  static Int pattern11x5Sym_Shape0[17];
-  static Int pattern11x5Sym_Shape1[15];
-  static Int pattern11x5Sym_11x5[55];
+  static Int pattern11x5SymShape0[17];
+  static Int pattern11x5SymShape1[15];
+  static Int pattern11x5Sym11x5[55];
 #endif
 #if TI_ALF_MAX_VSIZE_7
   static Int m_pattern9x9Sym_9[39];
@@ -702,4 +711,7 @@ public:
 
 
 };
+
+//! \}
+
 #endif

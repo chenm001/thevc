@@ -31,8 +31,8 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/** \file     TComBitcounter.h
-    \brief    class for counting bits (header)
+/** \file     TComBitCounter.h
+    \brief    Class for counting bits (header)
 */
 
 #ifndef __COMBITCOUNTER__
@@ -43,6 +43,9 @@
 #endif // _MSC_VER > 1000
 
 #include "TComBitStream.h"
+
+//! \ingroup TLibCommon
+//! \{
 
 // ====================================================================================================================
 // Class definition
@@ -63,5 +66,6 @@ public:
   UInt getNumberOfWrittenBits() const { return m_uiBitCounter; }
 };
 
-#endif
+//! \}
 
+#endif

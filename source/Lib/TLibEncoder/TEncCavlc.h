@@ -42,10 +42,13 @@
 #pragma once
 #endif // _MSC_VER > 1000
 
-#include "../TLibCommon/CommonDef.h"
-#include "../TLibCommon/TComBitStream.h"
+#include "TLibCommon/CommonDef.h"
+#include "TLibCommon/TComBitStream.h"
 #include "TEncEntropy.h"
-#include "../TLibCommon/TComRom.h"
+#include "TLibCommon/TComRom.h"
+
+//! \ingroup TLibEncoder
+//! \{
 
 class TEncTop;
 
@@ -179,7 +182,7 @@ protected:
   Void  xWriteVlc             ( UInt uiTableNumber, UInt uiCodeNumber );
 
 #if CAVLC_COEF_LRG_BLK
-  Void  xCodeCoeff             ( TCoeff* scoeff, Int n, Int blSize
+  Void  xCodeCoeff             ( TCoeff* scoeff, Int blockType, Int blSize
 #if CAVLC_RUNLEVEL_TABLE_REM
                                , Int isIntra
 #endif
@@ -285,6 +288,8 @@ public:
   Bool  getAdaptFlag          ()          { return m_bAdaptFlag; }
   Void  setAdaptFlag          ( Bool b )  { m_bAdaptFlag = b;     }
 };
+
+//! \}
 
 #endif // !defined(AFX_TENCCAVLC_H__EE8A0B30_945B_4169_B290_24D3AD52296F__INCLUDED_)
 

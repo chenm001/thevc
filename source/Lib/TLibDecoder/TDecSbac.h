@@ -46,9 +46,12 @@
 
 #include "TDecEntropy.h"
 #include "TDecBinCoder.h"
-#include "../TLibCommon/ContextTables.h"
-#include "../TLibCommon/ContextModel.h"
-#include "../TLibCommon/ContextModel3DBuffer.h"
+#include "TLibCommon/ContextTables.h"
+#include "TLibCommon/ContextModel.h"
+#include "TLibCommon/ContextModel3DBuffer.h"
+
+//! \ingroup TLibDecoder
+//! \{
 
 // ====================================================================================================================
 // Class definition
@@ -166,28 +169,27 @@ private:
   UInt m_uiLastDQpNonZero;
   UInt m_uiLastQp;
   
-  ContextModel3DBuffer m_cCUSkipFlagSCModel;
+  ContextModel         m_contextModels[MAX_NUM_CTX_MOD];
+  Int                  m_numContextModels;
   ContextModel3DBuffer m_cCUSplitFlagSCModel;
+  ContextModel3DBuffer m_cCUSkipFlagSCModel;
   ContextModel3DBuffer m_cCUMergeFlagExtSCModel;
   ContextModel3DBuffer m_cCUMergeIdxExtSCModel;
-  ContextModel3DBuffer m_cCUAlfCtrlFlagSCModel;
   ContextModel3DBuffer m_cCUPartSizeSCModel;
   ContextModel3DBuffer m_cCUPredModeSCModel;
-  
+  ContextModel3DBuffer m_cCUAlfCtrlFlagSCModel;
   ContextModel3DBuffer m_cCUIntraPredSCModel;
 #if ADD_PLANAR_MODE && !FIXED_MPM
   ContextModel3DBuffer m_cPlanarFlagSCModel;
 #endif
   ContextModel3DBuffer m_cCUChromaPredSCModel;
+  ContextModel3DBuffer m_cCUDeltaQpSCModel;
   ContextModel3DBuffer m_cCUInterDirSCModel;
   ContextModel3DBuffer m_cCURefPicSCModel;
   ContextModel3DBuffer m_cCUMvdSCModel;
-  
+  ContextModel3DBuffer m_cCUQtCbfSCModel;
   ContextModel3DBuffer m_cCUTransSubdivFlagSCModel;
   ContextModel3DBuffer m_cCUQtRootCbfSCModel;
-  ContextModel3DBuffer m_cCUDeltaQpSCModel;
-  
-  ContextModel3DBuffer m_cCUQtCbfSCModel;
   
   ContextModel3DBuffer m_cCUSigSCModel;
   ContextModel3DBuffer m_cCuCtxLastX;
@@ -211,5 +213,7 @@ private:
 #endif
 
 };
+
+//! \}
 
 #endif // !defined(AFX_TDECSBAC_H__CFCAAA19_8110_47F4_9A16_810C4B5499D5__INCLUDED_)

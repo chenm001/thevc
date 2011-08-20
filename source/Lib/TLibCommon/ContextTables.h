@@ -39,9 +39,14 @@
 #ifndef __CONTEXTTABLES__
 #define __CONTEXTTABLES__
 
+//! \ingroup TLibCommon
+//! \{
+
 // ====================================================================================================================
 // Constants
 // ====================================================================================================================
+
+#define MAX_NUM_CTX_MOD             512       ///< maximum number of supported contexts
 
 #define NUM_SPLIT_FLAG_CTX            3       ///< number of context models for split flag
 #define NUM_SKIP_FLAG_CTX             3       ///< number of context models for skip flag
@@ -1229,5 +1234,8 @@ INIT_TRANS_SUBDIV_FLAG[3][NUM_TRANS_SUBDIV_FLAG_CTX][2] =
     {    0,   64 }, {    0,   64 }
   }
 };
+
+//! \}
+
 #endif
 

@@ -43,6 +43,9 @@
 #include<stdio.h>
 #include<iostream>
 
+//! \ingroup TLibCommon
+//! \{
+
 // ====================================================================================================================
 // Macros
 // ====================================================================================================================
@@ -117,8 +120,8 @@ extern       UInt g_auiPUOffset[4];
 #define SHIFT_INV_1ST          7 // Shift after first inverse transform stage
 #define SHIFT_INV_2ND         12 // Shift after second inverse transform stage
 
-extern UInt g_auiQ[6];             // Q(QP%6)  
-extern UInt g_auiIQ[6];            // IQ(QP%6)
+extern Int g_quantScales[6];             // Q(QP%6)  
+extern Int g_invQuantScales[6];          // IQ(QP%6)
 extern const short g_aiT4[4][4];
 extern const short g_aiT8[8][8];
 extern const short g_aiT16[16][16];
@@ -627,5 +630,8 @@ __inline Void adaptCodeword( UInt uiCodeIdx, UChar * pucTableCounter, UChar & ru
   }
 }
 #endif
+
+//! \}
+
 #endif  //__TCOMROM__
 

@@ -39,6 +39,9 @@
 #include "TEncSlice.h"
 #include <math.h>
 
+//! \ingroup TLibEncoder
+//! \{
+
 // ====================================================================================================================
 // Constructor / destructor / create / destroy
 // ====================================================================================================================
@@ -998,3 +1001,4 @@ Void TEncSlice::xDetermineStartAndBoundingCUAddr  ( UInt& uiStartCUAddr, UInt& u
     }
   }
 }
+//! \}

@@ -38,14 +38,14 @@
 #ifndef __TENCENTROPY__
 #define __TENCENTROPY__
 
-#include "../TLibCommon/TComSlice.h"
-#include "../TLibCommon/TComDataCU.h"
-#include "../TLibCommon/TComBitStream.h"
-#include "../TLibCommon/ContextModel.h"
-#include "../TLibCommon/TComPic.h"
-#include "../TLibCommon/TComTrQuant.h"
+#include "TLibCommon/TComSlice.h"
+#include "TLibCommon/TComDataCU.h"
+#include "TLibCommon/TComBitStream.h"
+#include "TLibCommon/ContextModel.h"
+#include "TLibCommon/TComPic.h"
+#include "TLibCommon/TComTrQuant.h"
 #if E045_SLICE_COMMON_INFO_SHARING
-#include "../TLibCommon/TComAdaptiveLoopFilter.h"
+#include "TLibCommon/TComAdaptiveLoopFilter.h"
 #endif
 
 class TEncSbac;
@@ -260,6 +260,7 @@ public:
 
 };// END CLASS DEFINITION TEncEntropy
 
+//! \}
 
 #endif // __TENCENTROPY__
 

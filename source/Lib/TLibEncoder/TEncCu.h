@@ -31,23 +31,26 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/** \file     TEncCU.h
-    \brief    CU encoder class (header)
+/** \file     TEncCu.h
+    \brief    Coding Unit (CU) encoder class (header)
 */
 
 #ifndef __TENCCU__
 #define __TENCCU__
 
 // Include files
-#include "../TLibCommon/CommonDef.h"
-#include "../TLibCommon/TComYuv.h"
-#include "../TLibCommon/TComPrediction.h"
-#include "../TLibCommon/TComTrQuant.h"
-#include "../TLibCommon/TComBitCounter.h"
-#include "../TLibCommon/TComDataCU.h"
+#include "TLibCommon/CommonDef.h"
+#include "TLibCommon/TComYuv.h"
+#include "TLibCommon/TComPrediction.h"
+#include "TLibCommon/TComTrQuant.h"
+#include "TLibCommon/TComBitCounter.h"
+#include "TLibCommon/TComDataCU.h"
 
 #include "TEncEntropy.h"
 #include "TEncSearch.h"
+
+//! \ingroup TLibEncoder
+//! \{
 
 class TEncTop;
 class TEncSbac;
@@ -170,6 +173,6 @@ protected:
 
 };
 
+//! \}
 
 #endif // __TENCMB__
-

@@ -35,11 +35,14 @@
     \brief    encoder class
 */
 
-#include "../TLibCommon/CommonDef.h"
+#include "TLibCommon/CommonDef.h"
 #include "TEncTop.h"
 #if QP_ADAPTATION
 #include "TEncPic.h"
 #endif
+
+//! \ingroup TLibEncoder
+//! \{
 
 // ====================================================================================================================
 // Constructor / destructor / create / destroy
@@ -138,7 +141,7 @@ Void TEncTop::destroy ()
   if (m_cSPS.getUseSAO())
   {
     m_cEncSAO.destroy();
-    m_cEncSAO.destoryEncBuffer();
+    m_cEncSAO.destroyEncBuffer();
   }
 #endif
   m_cAdaptiveLoopFilter.destroy();
@@ -245,7 +248,7 @@ Void TEncTop::deletePicBuffer()
  \retval  rcListBitstreamOut  list of output bitstreams
  \retval  iNumEncoded         number of encoded pictures
  */
-Void TEncTop::encode( bool bEos, TComPicYuv* pcPicYuvOrg, TComList<TComPicYuv*>& rcListPicYuvRecOut, list<AccessUnit>& accessUnitsOut, Int& iNumEncoded )
+Void TEncTop::encode( bool bEos, TComPicYuv* pcPicYuvOrg, TComList<TComPicYuv*>& rcListPicYuvRecOut, std::list<AccessUnit>& accessUnitsOut, Int& iNumEncoded )
 {
   TComPic* pcPicCurr = NULL;
   
@@ -301,17 +304,20 @@ Void TEncTop::xGetNewPicBuffer ( TComPic*& rpcPic )
 #if REF_SETTING_FOR_LD
     if ( m_bUseNewRefSetting )
     {
+      Bool bFound = false;
       TComList<TComPic*>::iterator  it = m_cListPic.begin();
       while ( it != m_cListPic.end() )
       {
         if ( (*it)->getReconMark() == false )
         {
+          bFound = true;
           rpcPic = *it;
           m_cListPic.erase( it );
           break;
         }
         if ( !(*it)->getSlice(0)->isReferenced() )
         {
+          bFound = true;
           (*it)->setReconMark( false );
           (*it)->getPicYuvRec()->setBorderExtension( false );
           rpcPic = *it;
@@ -321,7 +327,7 @@ Void TEncTop::xGetNewPicBuffer ( TComPic*& rpcPic )
 
         it++;
       }
-      if ( it == m_cListPic.end() )
+      if ( !bFound )
       {
         assert(0);
       }
@@ -561,3 +567,4 @@ Void TEncTop::xInitPPS()
   }
 #endif
 }
+//! \}

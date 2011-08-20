@@ -42,15 +42,18 @@
 #pragma once
 #endif // _MSC_VER > 1000
 
-#include "../TLibCommon/TComBitStream.h"
-#include "../TLibCommon/ContextTables.h"
-#include "../TLibCommon/ContextModel.h"
-#include "../TLibCommon/ContextModel3DBuffer.h"
+#include "TLibCommon/TComBitStream.h"
+#include "TLibCommon/ContextTables.h"
+#include "TLibCommon/ContextModel.h"
+#include "TLibCommon/ContextModel3DBuffer.h"
 #include "TEncEntropy.h"
 #include "TEncBinCoder.h"
 #include "TEncBinCoderCABAC.h"
 
 class TEncTop;
+
+//! \ingroup TLibEncoder
+//! \{
 
 // ====================================================================================================================
 // Class definition
@@ -198,11 +201,12 @@ public:
   Void estSignificantMapBit          ( estBitsSbacStruct* pcEstBitsSbac, UInt uiCTXIdx, TextType eTType );
   Void estSignificantCoefficientsBit ( estBitsSbacStruct* pcEstBitsSbac, UInt uiCTXIdx, TextType eTType );
   
-  __inline Int  biari_no_bits        ( Short symbol, ContextModel& rcSCModel );
-  
   TEncBinIf* getEncBinIf()  { return m_pcBinIf; }
 private:
   UInt                 m_uiLastQp;
+  
+  ContextModel         m_contextModels[MAX_NUM_CTX_MOD];
+  Int                  m_numContextModels;
   ContextModel3DBuffer m_cCUSplitFlagSCModel;
   ContextModel3DBuffer m_cCUSkipFlagSCModel;
   ContextModel3DBuffer m_cCUMergeFlagExtSCModel;
@@ -245,5 +249,7 @@ private:
 #endif
 
 };
+
+//! \}
 
 #endif // !defined(AFX_TENCSBAC_H__DDA7CDC4_EDE3_4015_9D32_2156249C82AA__INCLUDED_)

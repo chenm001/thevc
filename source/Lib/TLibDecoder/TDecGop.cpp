@@ -42,10 +42,13 @@ extern bool g_md5_mismatch; ///< top level flag to signal when there is a decode
 #include "TDecSbac.h"
 #include "TDecBinCoder.h"
 #include "TDecBinCoderCABAC.h"
-#include "../libmd5/MD5.h"
-#include "../TLibCommon/SEI.h"
+#include "libmd5/MD5.h"
+#include "TLibCommon/SEI.h"
 
 #include <time.h>
+
+//! \ingroup TLibDecoder
+//! \{
 
 static void calcAndPrintMD5Status(TComPicYuv& pic, const SEImessages* seis);
 
@@ -284,13 +287,16 @@ Void TDecGop::decompressGop(TComInputBitstream* pcBitstream, TComPic*& rpcPic, B
             m_pcSAO->setPic(rpcPic);
             puiILSliceStartLCU[uiILSliceCount] = rpcPic->getNumCUsInFrame()* rpcPic->getNumPartInCU();
             m_pcSAO->setUseNonCrossAlf(!pcSlice->getSPS()->getLFCrossSliceBoundaryFlag());
-            m_pcSAO->InitIsFineSliceCu();
-
-            for(UInt i=0; i< uiILSliceCount ; i++)
+            if (m_pcSAO->getUseNonCrossAlf())
             {
-              UInt uiStartAddr = puiILSliceStartLCU[i];
-              UInt uiEndAddr   = puiILSliceStartLCU[i+1]-1;
-              m_pcSAO->createSliceMap(i, uiStartAddr, uiEndAddr);
+              m_pcSAO->InitIsFineSliceCu();
+
+              for(UInt i=0; i< uiILSliceCount ; i++)
+              {
+                UInt uiStartAddr = puiILSliceStartLCU[i];
+                UInt uiEndAddr   = puiILSliceStartLCU[i+1]-1;
+                m_pcSAO->createSliceMap(i, uiStartAddr, uiEndAddr);
+              }
             }
           }
         }
@@ -424,8 +430,8 @@ Void TDecGop::decompressGop(TComInputBitstream* pcBitstream, TComPic*& rpcPic, B
 }
 
 /**
- * Calculate and print MD5 for @pic, compare to picture_digest SEI if
- * present in @seis.  @seis may be NULL.  MD5 is printed to stdout, in
+ * Calculate and print MD5 for pic, compare to picture_digest SEI if
+ * present in seis.  seis may be NULL.  MD5 is printed to stdout, in
  * a manner suitable for the status line. Theformat is:
  *  [MD5:xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx,(yyy)]
  * Where, x..x is the md5
@@ -464,3 +470,4 @@ static void calcAndPrintMD5Status(TComPicYuv& pic, const SEImessages* seis)
     printf("[rxMD5:%s] ", digestToString(seis->picture_digest->digest));
   }
 }
+//! \}

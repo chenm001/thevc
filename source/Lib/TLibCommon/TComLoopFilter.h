@@ -41,6 +41,9 @@
 #include "CommonDef.h"
 #include "TComPic.h"
 
+//! \ingroup TLibCommon
+//! \{
+
 #define DEBLOCK_SMALLEST_BLOCK  8
 
 // ====================================================================================================================
@@ -207,5 +210,6 @@ public:
   Void loopFilterPic( TComPic* pcPic );
 };
 
-#endif
+//! \}
 
+#endif

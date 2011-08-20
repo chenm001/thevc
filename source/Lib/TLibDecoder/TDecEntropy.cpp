@@ -37,12 +37,15 @@
 
 #include "TDecEntropy.h"
 
+//! \ingroup TLibDecoder
+//! \{
+
 Void TDecEntropy::setEntropyDecoder         ( TDecEntropyIf* p )
 {
   m_pcEntropyDecoderIf = p;
 }
 
-#include "../TLibCommon/TComAdaptiveLoopFilter.h"
+#include "TLibCommon/TComAdaptiveLoopFilter.h"
 
 Void TDecEntropy::decodeAux(ALFParam* pAlfParam)
 {
@@ -139,7 +142,7 @@ Void TDecEntropy::readFilterCodingParams(ALFParam* pAlfParam)
 #if STAR_CROSS_SHAPES_LUMA
   // Determine maxScanVal
   maxScanVal = 0;
-  pDepthInt = pDepthIntTab_shapes[pAlfParam->realfiltNo];
+  pDepthInt = pDepthIntTabShapes[pAlfParam->realfiltNo];
 #else
   int fl;
   
@@ -210,7 +213,7 @@ Void TDecEntropy::readFilterCoeffs(ALFParam* pAlfParam)
   int ind, scanPos, i;
   int *pDepthInt;
 #if STAR_CROSS_SHAPES_LUMA
-  pDepthInt = pDepthIntTab_shapes[pAlfParam->realfiltNo];
+  pDepthInt = pDepthIntTabShapes[pAlfParam->realfiltNo];
 #else
   int fl;
   
@@ -445,7 +448,7 @@ Void TDecEntropy::decodeSkipFlag( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDe
  */
 Void TDecEntropy::decodeMergeFlag( TComDataCU* pcSubCU, UInt uiAbsPartIdx, UInt uiDepth, UInt uiPUIdx )
 { 
-#if !CHANGE_GET_MERGE_CANDIDATE
+#if !CHANGE_GET_MERGE_CANDIDATE && !MRG_AMVP_FIXED_IDX_F470
   UInt uiNumCand = 0;
   for(UInt uiIter = 0; uiIter < MRG_MAX_NUM_CANDS; uiIter++ )
   {
@@ -460,7 +463,7 @@ Void TDecEntropy::decodeMergeFlag( TComDataCU* pcSubCU, UInt uiAbsPartIdx, UInt 
 #endif
     // at least one merge candidate exists
     m_pcEntropyDecoderIf->parseMergeFlag( pcSubCU, uiAbsPartIdx, uiDepth, uiPUIdx );
-#if !CHANGE_GET_MERGE_CANDIDATE
+#if !CHANGE_GET_MERGE_CANDIDATE && !MRG_AMVP_FIXED_IDX_F470
   }
   else
   {
@@ -643,15 +646,21 @@ Void TDecEntropy::decodePUWise( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDept
   {
     TComMvField cMvFieldNeighbours[MRG_MAX_NUM_CANDS << 1]; // double length for mv of both lists
     UChar uhInterDirNeighbours[MRG_MAX_NUM_CANDS];
+#if MRG_AMVP_FIXED_IDX_F470
+    Int numValidMergeCand = 0;
+#else
     UInt uiNeighbourCandIdx[MRG_MAX_NUM_CANDS]; //MVs with same idx => same cand
+#endif
     for( UInt ui = 0; ui < MRG_MAX_NUM_CANDS; ++ui )
     {
       uhInterDirNeighbours[ui] = 0;
+#if !MRG_AMVP_FIXED_IDX_F470
       uiNeighbourCandIdx[ui] = 0;
+#endif
     }
     if ( pcCU->getSlice()->getSPS()->getUseMRG() )
     {
-#if !CHANGE_GET_MERGE_CANDIDATE
+#if !CHANGE_GET_MERGE_CANDIDATE && !MRG_AMVP_FIXED_IDX_F470
       pcSubCU->getInterMergeCandidates( uiSubPartIdx-uiAbsPartIdx, uiPartIdx, uiDepth, cMvFieldNeighbours, uhInterDirNeighbours, uiNeighbourCandIdx );
       for(UInt uiIter = 0; uiIter < MRG_MAX_NUM_CANDS; uiIter++ )
       {
@@ -671,9 +680,7 @@ Void TDecEntropy::decodePUWise( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDept
     {
 #if MRG_AMVP_FIXED_IDX_F470
       decodeMergeIndex( pcCU, uiPartIdx, uiSubPartIdx, ePartSize, uhInterDirNeighbours, cMvFieldNeighbours, uiDepth );
-#if CHANGE_GET_MERGE_CANDIDATE
-      pcSubCU->getInterMergeCandidates( uiSubPartIdx-uiAbsPartIdx, uiPartIdx, uiDepth, cMvFieldNeighbours, uhInterDirNeighbours, uiNeighbourCandIdx );
-#endif
+      pcSubCU->getInterMergeCandidates( uiSubPartIdx-uiAbsPartIdx, uiPartIdx, uiDepth, cMvFieldNeighbours, uhInterDirNeighbours, numValidMergeCand );
       UInt uiMergeIndex = pcCU->getMergeIndex(uiSubPartIdx);
       pcCU->setInterDirSubParts( uhInterDirNeighbours[uiMergeIndex], uiSubPartIdx, uiPartIdx, uiDepth );
 
@@ -1501,3 +1508,4 @@ Void TDecEntropy::decodeSaoParam(SAOParam* pQaoParam)
 }
 
 #endif
+//! \}

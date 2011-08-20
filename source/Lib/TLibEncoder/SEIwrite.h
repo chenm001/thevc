@@ -36,4 +36,9 @@
 class TComBitIf;
 class SEI;
 
+//! \ingroup TLibEncoder
+//! \{
+
 void writeSEImessage(TComBitIf& bs, const SEI& sei);
+
+//! \}

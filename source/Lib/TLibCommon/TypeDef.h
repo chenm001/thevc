@@ -38,6 +38,9 @@
 #ifndef _TYPEDEF__
 #define _TYPEDEF__
 
+//! \ingroup TLibCommon
+//! \{
+
 ////////////////////////////
 // BoG Context Reduction
 ////////////////////////////
@@ -64,10 +67,14 @@
 #define AMVP_NO_INTERM_DUPL_CHECK_F050       1       // F050 : Disable the redundancy checking during the derivation of top MVP for AMVP 
 #define MV_LIMIT_SCALE_F088                  1       // F088 : limit number of spatial MVP scaling to one
 #define DISABLE_4x4_INTER                    1       // Coding one flag into SPS to enable/disable INTER4x4 
-#define REDUCE_UPPER_MOTION_DATA             1       // F060 : motion data line buffer compression
+#define REDUCE_UPPER_MOTION_DATA             0       // F060 : motion data line buffer compression
 #define MRG_AMVP_FIXED_IDX_F470              1       // 1:Merge/AMVP indices are coded in truncated unary codes of fixed maximum length
 #define AVOID_NEIGHBOR_REF_F470              1       // 1:Disable adaptive switching methods for inter_pred_flag and ref_idx_lx
+#if MRG_AMVP_FIXED_IDX_F470
 #define MRG_AMVP_ADD_CAND_F470               1       // 1:add new candidates following original ones
+#else
+#define MRG_AMVP_ADD_CAND_F470               0
+#endif
 #define NSQT                                 1       // F410 & F412 : Non-Square Quadtree Transform
 ////////////////////////////
 // JCT-VC F end
@@ -177,7 +184,9 @@
 
 #define CAVLC_RUNLEVEL_TABLE_REM        1           // CAVLC coding of run-level without table (JCTVC-F543)
 
+#if !MRG_AMVP_ADD_CAND_F470
 #define AVOID_ZERO_MERGE_CANDIDATE      1           // (JCTVC-E146/E118) insert zero MV if no merge candidates are available
+#endif
 #define CHANGE_MERGE_CONTEXT            1           // (JCTVC-E146/E118) change merge flag context derivation
 #define CHANGE_GET_MERGE_CANDIDATE      1           // (JCTVC-E146/E118) merge flag parsing independent of number of merge candidates
 #if CHANGE_GET_MERGE_CANDIDATE && !CHANGE_MERGE_CONTEXT
@@ -310,6 +319,8 @@
 
 #define EARLY_CU_DETERMINATION            1 //JCTVC-F092
 
+#define CBF_FAST_MODE                      1 //JCTVC-F045
+
 // ====================================================================================================================
 // Basic type redefinition
 // ====================================================================================================================
@@ -323,8 +334,6 @@ typedef       short               Short;
 typedef       unsigned short      UShort;
 typedef       int                 Int;
 typedef       unsigned int        UInt;
-typedef       long                Long;
-typedef       unsigned long       ULong;
 typedef       double              Double;
 
 // ====================================================================================================================
@@ -675,6 +684,8 @@ enum COEFF_SCAN_TYPE
 #endif
 };
 #endif //QC_MDCS
+
+//! \}
 
 #endif
 

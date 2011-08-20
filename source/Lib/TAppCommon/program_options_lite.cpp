@@ -41,6 +41,9 @@
 
 using namespace std;
 
+//! \ingroup TAppCommon
+//! \{
+
 namespace df
 {
   namespace program_options_lite
@@ -467,7 +470,7 @@ namespace df
       while(!!in);
     }
 
-    /* for all options in @opts@, set their storage to their specified
+    /* for all options in opts, set their storage to their specified
      * default value */
     void setDefaults(Options& opts)
     {
@@ -490,3 +493,5 @@ namespace df
 
   };
 };
+
+//! \}

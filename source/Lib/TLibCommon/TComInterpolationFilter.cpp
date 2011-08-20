@@ -43,6 +43,11 @@
 #include "TComRom.h"
 #include "TComInterpolationFilter.h"
 #include <assert.h>
+
+
+//! \ingroup TLibCommon
+//! \{
+
 #if GENERIC_IF
 
 // ====================================================================================================================
@@ -85,7 +90,7 @@ const Short TComInterpolationFilter::m_chromaFilter[8][NTAPS_CHROMA] =
  * \param isFirst    Flag indicating whether it is the first filtering operation
  * \param isLast     Flag indicating whether it is the last filtering operation
  */
-Void TComInterpolationFilter::filterCopy(const Short *src, Int srcStride, Short *dst, Int dstStride, Int width, Int height, Bool isFirst, Bool isLast)
+Void TComInterpolationFilter::filterCopy(const Pel *src, Int srcStride, Short *dst, Int dstStride, Int width, Int height, Bool isFirst, Bool isLast)
 {
   Int row, col;
   
@@ -315,7 +320,6 @@ Void TComInterpolationFilter::filterVer(Pel *src, Int srcStride, Short *dst, Int
  * \param  height     Height of block
  * \param  frac       Fractional sample offset
  * \param  isLast     Flag indicating whether it is the last filtering operation
- * \param  isSmallBlock Flag indicating whether an alternate filter should be used
  */
 Void TComInterpolationFilter::filterHorLuma(Pel *src, Int srcStride, Short *dst, Int dstStride, Int width, Int height, Int frac, Bool isLast )
 {
@@ -343,7 +347,6 @@ Void TComInterpolationFilter::filterHorLuma(Pel *src, Int srcStride, Short *dst,
  * \param  frac       Fractional sample offset
  * \param  isFirst    Flag indicating whether it is the first filtering operation
  * \param  isLast     Flag indicating whether it is the last filtering operation
- * \param  isSmallBlock Flag indicating whether an alternate filter should be used
  */
 Void TComInterpolationFilter::filterVerLuma(Pel *src, Int srcStride, Short *dst, Int dstStride, Int width, Int height, Int frac, Bool isFirst, Bool isLast )
 {
@@ -370,7 +373,6 @@ Void TComInterpolationFilter::filterVerLuma(Pel *src, Int srcStride, Short *dst,
  * \param  height     Height of block
  * \param  frac       Fractional sample offset
  * \param  isLast     Flag indicating whether it is the last filtering operation
- * \param  isSmallBlock Flag indicating whether an alternate filter should be used
  */
 Void TComInterpolationFilter::filterHorChroma(Pel *src, Int srcStride, Short *dst, Int dstStride, Int width, Int height, Int frac, Bool isLast )
 {
@@ -398,7 +400,6 @@ Void TComInterpolationFilter::filterHorChroma(Pel *src, Int srcStride, Short *ds
  * \param  frac       Fractional sample offset
  * \param  isFirst    Flag indicating whether it is the first filtering operation
  * \param  isLast     Flag indicating whether it is the last filtering operation
- * \param  isSmallBlock Flag indicating whether an alternate filter should be used
  */
 Void TComInterpolationFilter::filterVerChroma(Pel *src, Int srcStride, Short *dst, Int dstStride, Int width, Int height, Int frac, Bool isFirst, Bool isLast )
 {
@@ -416,3 +417,4 @@ Void TComInterpolationFilter::filterVerChroma(Pel *src, Int srcStride, Short *ds
 
 #endif
 
+//! \}

@@ -38,6 +38,9 @@
 #include "NALread.h"
 #include "TDecTop.h"
 
+//! \ingroup TLibDecoder
+//! \{
+
 TDecTop::TDecTop()
 : m_SEIs(0)
 {
@@ -624,3 +627,4 @@ Void TDecTop::updatePPSBuffer()
 #endif
 
 
+//! \}

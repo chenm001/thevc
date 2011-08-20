@@ -39,18 +39,21 @@
 #define __TENCSEARCH__
 
 // Include files
-#include "../TLibCommon/TComYuv.h"
-#include "../TLibCommon/TComMotionInfo.h"
-#include "../TLibCommon/TComPattern.h"
+#include "TLibCommon/TComYuv.h"
+#include "TLibCommon/TComMotionInfo.h"
+#include "TLibCommon/TComPattern.h"
 #if !GENERIC_IF
-#include "../TLibCommon/TComPredFilter.h"
+#include "TLibCommon/TComPredFilter.h"
 #endif
-#include "../TLibCommon/TComPrediction.h"
-#include "../TLibCommon/TComTrQuant.h"
-#include "../TLibCommon/TComPic.h"
+#include "TLibCommon/TComPrediction.h"
+#include "TLibCommon/TComTrQuant.h"
+#include "TLibCommon/TComPic.h"
 #include "TEncEntropy.h"
 #include "TEncSbac.h"
 #include "TEncCfg.h"
+
+//! \ingroup TLibEncoder
+//! \{
 
 class TEncCu;
 
@@ -338,9 +341,12 @@ protected:
                                     TComMvField*    pacMvField,
                                     UInt&           uiMergeIndex,
                                     UInt&           ruiCost,
-                                    UInt&           ruiBits,
-                                    UChar*          puhNeighCands,
-                                    Bool&           bValid );
+                                    UInt&           ruiBits
+#if !MRG_AMVP_FIXED_IDX_F470
+                                  , UChar*          puhNeighCands,
+                                    Bool&           bValid
+#endif
+                                   );
   // -------------------------------------------------------------------------------------------------------------------
   // motion estimation
   // -------------------------------------------------------------------------------------------------------------------
@@ -402,8 +408,8 @@ protected:
                                    );
   
 #if GENERIC_IF
-  Void xExtDIFUpSamplingH( TComPattern* pcPattern, bool biPred  );
-  Void xExtDIFUpSamplingQ( TComPattern* pcPatternKey, TComMv halfPelRef, bool biPred );
+  Void xExtDIFUpSamplingH( TComPattern* pcPattern, Bool biPred  );
+  Void xExtDIFUpSamplingQ( TComPattern* pcPatternKey, TComMv halfPelRef, Bool biPred );
 #else
   Void xExtDIFUpSamplingH         ( TComPattern*  pcPattern, TComYuv* pcYuvExt  );
   
@@ -450,6 +456,6 @@ protected:
   
 };// END CLASS DEFINITION TEncSearch
 
+//! \}
 
 #endif // __TENCSEARCH__
-

@@ -43,6 +43,9 @@
 #include "TComDataCU.h"
 #include "ContextTables.h"
 
+//! \ingroup TLibCommon
+//! \{
+
 // ====================================================================================================================
 // Constants
 // ====================================================================================================================
@@ -72,10 +75,10 @@ typedef struct
   Int level[4];
   Int pre_level;
   Int coeff_ctr;
-  Long levelDouble;
+  Int levelDouble;
   Double errLevel[4];
   Int noLevels;
-  Long levelQ;
+  Int levelQ;
   Bool lowerInt;
   UInt quantInd;
 #if CAVLC_RDOQ_MOD
@@ -181,7 +184,7 @@ public:
                                      const UInt                      uiLog2BlkSize,
                                      const UInt                      uiStride );
 protected:
-  Long*    m_plTempCoeff;
+  Int*    m_plTempCoeff;
   
   QpParam  m_cQP;
 #if RDOQ_CHROMA_LAMBDA
@@ -203,21 +206,20 @@ private:
   // forward Transform
 #if INTRA_DST_TYPE_7
 #if NSQT
-  Void xT   ( UInt uiMode,Pel* pResidual, UInt uiStride, Long* plCoeff, Int iWidth, Int iHeight );
+  Void xT   ( UInt uiMode,Pel* pResidual, UInt uiStride, Int* plCoeff, Int iWidth, Int iHeight );
 #else
-  Void xT   ( UInt uiMode,Pel* pResidual, UInt uiStride, Long* plCoeff, Int iSize );
+  Void xT   ( UInt uiMode,Pel* pResidual, UInt uiStride, Int* plCoeff, Int iSize );
 #endif
 #else
 #if NSQT
-  Void xT   ( Pel* pResidual, UInt uiStride, Long* plCoeff, Int iWidth, Int iHeight );
+  Void xT   ( Pel* pResidual, UInt uiStride, Int* plCoeff, Int iWidth, Int iHeight );
 #else
-  Void xT   ( Pel* pResidual, UInt uiStride, Long* plCoeff, Int iSize );
+  Void xT   ( Pel* pResidual, UInt uiStride, Int* plCoeff, Int iSize );
 #endif
 #endif
   
   // quantization
-  Void xQuant     ( TComDataCU* pcCU, Long* pSrc, TCoeff* pDes, Int iWidth, Int iHeight, UInt& uiAcSum, TextType eTType, UInt uiAbsPartIdx );
-  Void xQuantLTR  ( TComDataCU* pcCU, Long* pSrc, TCoeff* pDes, Int iWidth, Int iHeight, UInt& uiAcSum, TextType eTType, UInt uiAbsPartIdx );
+  Void xQuant( TComDataCU* pcCU, Int* pSrc, TCoeff* pDes, Int iWidth, Int iHeight, UInt& uiAcSum, TextType eTType, UInt uiAbsPartIdx );
 
   // RDOQ functions
 #if CAVLC_RDOQ_MOD
@@ -252,12 +254,21 @@ private:
                               );
 #endif
 #else
+#if TBL_RUN_ADAPT
+  Int            bitCountRDOQ(Int coeff, Int pos, Int nTab, Int lastCoeffFlag,Int levelMode,Int run, Int maxrun, Int *vlc_adaptive, Int N, 
+                              UInt uiTr1, Int iSum_big_coef, Int iBlockType, TComDataCU* pcCU, const UInt **pLumaRunTr1
+#if CAVLC_RUNLEVEL_TABLE_REM
+                              , Int isIntra
+#endif
+                              );
+#else
   Int            bitCountRDOQ(Int coeff, Int pos, Int nTab, Int lastCoeffFlag,Int levelMode,Int run, Int maxrun, Int vlc_adaptive, Int N, 
                               UInt uiTr1, Int iSum_big_coef, Int iBlockType, TComDataCU* pcCU, const UInt **pLumaRunTr1
 #if CAVLC_RUNLEVEL_TABLE_REM
                               , Int isIntra
 #endif
                               );
+#endif
 #endif
 #else
   Int            bitCountRDOQ(Int coeff, Int pos, Int nTab, Int lastCoeffFlag,Int levelMode,Int run, Int maxrun, Int vlc_adaptive, Int N, 
@@ -267,7 +278,7 @@ private:
 UInt             getCurrLineNum(UInt uiScanIdx, UInt uiPosX, UInt uiPosY);
 #endif
   Void           xRateDistOptQuant_LCEC ( TComDataCU*                     pcCU,
-                                          Long*                           plSrcCoeff,
+                                          Int*                            plSrcCoeff,
                                           TCoeff*                         piDstCoeff,
                                           UInt                            uiWidth,
                                           UInt                            uiHeight,
@@ -276,7 +287,7 @@ UInt             getCurrLineNum(UInt uiScanIdx, UInt uiPosX, UInt uiPosY);
                                           UInt                            uiAbsPartIdx );
   
   Void           xRateDistOptQuant ( TComDataCU*                     pcCU,
-                                     Long*                           plSrcCoeff,
+                                     Int*                            plSrcCoeff,
                                      TCoeff*                         piDstCoeff,
                                      UInt                            uiWidth,
                                      UInt                            uiHeight,
@@ -287,7 +298,7 @@ UInt             getCurrLineNum(UInt uiScanIdx, UInt uiPosX, UInt uiPosY);
 __inline UInt              xGetCodedLevel  ( Double&                         rd64CodedCost,
                                              Double&                         rd64CodedCost0,
                                              Double&                         rd64CodedCostSig,
-                                             Long                            lLevelDouble,
+                                             Int                             lLevelDouble,
                                              UInt                            uiMaxAbsLevel,
                                              UShort                          ui16CtxNumSig,
                                              UShort                          ui16CtxNumOne,
@@ -301,7 +312,7 @@ __inline UInt              xGetCodedLevel  ( Double&                         rd6
                                      Double&                         rd64CodedCost,
                                      Double&                         rd64CodedLastCost,
                                      UInt&                           ruiBestNonZeroLevel,
-                                     Long                            lLevelDouble,
+                                     Int                             lLevelDouble,
                                      UInt                            uiMaxAbsLevel,
                                      UShort                          ui16CtxNumSig,
                                      UShort                          ui16CtxNumOne,
@@ -330,26 +341,25 @@ __inline UInt              xGetCodedLevel  ( Double&                         rd6
   
   
   // dequantization
-  Void xDeQuant         ( TCoeff* pSrc,     Long* pDes,       Int iWidth, Int iHeight );
-  Void xDeQuantLTR      ( TCoeff* pSrc,     Long*  pDes,      Int iWidth, Int iHeight );
+  Void xDeQuant( const TCoeff* pSrc,     Int* pDes,       Int iWidth, Int iHeight );
   
   // inverse transform
 #if INTRA_DST_TYPE_7
 #if NSQT
-  Void xIT    ( UInt uiMode, Long* plCoef, Pel* pResidual, UInt uiStride, Int iWidth, Int iHeight );
+  Void xIT    ( UInt uiMode, Int* plCoef, Pel* pResidual, UInt uiStride, Int iWidth, Int iHeight );
 #else
-  Void xIT    ( UInt uiMode, Long* plCoef, Pel* pResidual, UInt uiStride, Int iSize );
+  Void xIT    ( UInt uiMode, Int* plCoef, Pel* pResidual, UInt uiStride, Int iSize );
 #endif
 #else
 #if NSQT
-  Void xIT    ( Long* plCoef, Pel* pResidual, UInt uiStride, Int iWidth, Int iHeight );
+  Void xIT    ( Int* plCoef, Pel* pResidual, UInt uiStride, Int iWidth, Int iHeight );
 #else
-  Void xIT    ( Long* plCoef, Pel* pResidual, UInt uiStride, Int iSize );
+  Void xIT    ( Int* plCoef, Pel* pResidual, UInt uiStride, Int iSize );
 #endif
 #endif
   
 };// END CLASS DEFINITION TComTrQuant
 
+//! \}
 
 #endif // __TCOMTRQUANT__
-

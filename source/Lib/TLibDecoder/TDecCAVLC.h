@@ -44,6 +44,9 @@
 
 #include "TDecEntropy.h"
 
+//! \ingroup TLibDecoder
+//! \{
+
 // ====================================================================================================================
 // Class definition
 // ====================================================================================================================
@@ -79,7 +82,7 @@ protected:
   UInt  xGetBit             ();
   Int   xReadVlc            ( Int n );
 #if CAVLC_COEF_LRG_BLK
-  Void  xParseCoeff         ( TCoeff* scoeff, Int iTableNumber, Int blSize
+  Void  xParseCoeff         ( TCoeff* scoeff, Int blockType, Int blSize
 #if CAVLC_RUNLEVEL_TABLE_REM
                             , Int isIntra
 #endif
@@ -240,5 +243,8 @@ public:
   Void parseAlfFlagNum      ( UInt& ruiVal, UInt minValue, UInt depth );
   Void parseAlfCtrlFlag     ( UInt &ruiAlfCtrlFlag );
 };
+
+//! \}
+
 #endif // !defined(AFX_TDECCAVLC_H__9732DD64_59B0_4A41_B29E_1A5B18821EAD__INCLUDED_)
 

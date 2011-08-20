@@ -39,6 +39,9 @@
 #include "TComSlice.h"
 #include "TComMv.h"
 
+//! \ingroup TLibCommon
+//! \{
+
 // ====================================================================================================================
 // Constants
 // ====================================================================================================================
@@ -1583,3 +1586,4 @@ __inline Int TComLoopFilter::xCalcD( Pel* piSrc, Int iOffset)
   return abs( piSrc[-iOffset*3] - 2*piSrc[-iOffset*2] + piSrc[-iOffset] ) + abs( piSrc[0] - 2*piSrc[iOffset] + piSrc[iOffset*2] );
 }
 #endif
+//! \}

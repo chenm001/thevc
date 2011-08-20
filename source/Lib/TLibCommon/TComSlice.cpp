@@ -39,6 +39,9 @@
 #include "TComSlice.h"
 #include "TComPic.h"
 
+//! \ingroup TLibCommon
+//! \{
+
 TComSlice::TComSlice()
 : m_iPPSId                        ( -1 )
 , m_iPOC                          ( 0 )
@@ -741,7 +744,7 @@ Void TComSlice::decodingMarking( TComList<TComPic*>& rcListPic, Int iGOPSIze, In
   while ( iterPic != rcListPic.end() )
   {
     TComPic* rpcPic = *(iterPic);
-    if ( rpcPic->getSlice( 0 )->isReferenced() ) 
+    if ( rpcPic->getSlice( 0 )->isReferenced() && rpcPic->getReconMark() ) 
     {
       if ( rpcPic != getPic() )
       {
@@ -804,7 +807,7 @@ Int TComSlice::getActualRefNumber( TComList<TComPic*>& rcListPic )
   while ( iterPic != rcListPic.end() )
   {
     TComPic* rpcPic = *(iterPic);
-    if ( rpcPic->getSlice( 0 )->isReferenced() ) 
+    if ( rpcPic->getSlice( 0 )->isReferenced() && rpcPic->getReconMark() ) 
     {
       iActualNumOfReference++;
     }
@@ -943,3 +946,4 @@ TComPPS::~TComPPS()
 {
 }
 
+//! \}
