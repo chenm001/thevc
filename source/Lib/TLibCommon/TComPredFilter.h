@@ -42,9 +42,6 @@
 #include "TComPic.h"
 #include "TComMotionInfo.h"
 
-//! \ingroup TLibCommon
-//! \{
-
 // ====================================================================================================================
 // Constants
 // ====================================================================================================================
@@ -2223,7 +2220,5 @@ __inline Int TComPredFilter::xCTI_Filter_VI04_C_OCT3( Int* pSrc, Int iStride )
 
   return iSum;
 }
-
-//! \}
 
 #endif // __TCOMPREDFILTER__

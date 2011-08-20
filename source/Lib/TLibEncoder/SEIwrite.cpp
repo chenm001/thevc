@@ -31,13 +31,10 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "TLibCommon/TComBitCounter.h"
-#include "TLibCommon/TComBitStream.h"
-#include "TLibCommon/SEI.h"
+#include "../TLibCommon/TComBitCounter.h"
+#include "../TLibCommon/TComBitStream.h"
+#include "../TLibCommon/SEI.h"
 #include "SEIwrite.h"
-
-//! \ingroup TLibEncoder
-//! \{
 
 static void writeSEIuserDataUnregistered(TComBitIf& bs, const SEIuserDataUnregistered &sei);
 static void writeSEIpictureDigest(TComBitIf& bs, const SEIpictureDigest& sei);
@@ -58,8 +55,8 @@ void writeSEIpayloadData(TComBitIf& bs, const SEI& sei)
 }
 
 /**
- * marshal a single SEI message sei, storing the marshalled representation
- * in bitstream bs.
+ * marshal a single SEI message @sei, storing the marshalled representation
+ * in bitstream @bs.
  */
 void writeSEImessage(TComBitIf& bs, const SEI& sei)
 {
@@ -86,8 +83,8 @@ void writeSEImessage(TComBitIf& bs, const SEI& sei)
 }
 
 /**
- * marshal a user_data_unregistered SEI message sei, storing the marshalled
- * representation in bitstream bs.
+ * marshal a user_data_unregistered SEI message @sei, storing the marshalled
+ * representation in bitstream @bs.
  */
 static void writeSEIuserDataUnregistered(TComBitIf& bs, const SEIuserDataUnregistered &sei)
 {
@@ -104,7 +101,7 @@ static void writeSEIuserDataUnregistered(TComBitIf& bs, const SEIuserDataUnregis
 
 /**
  * marshal a picture_digest SEI message, storing the marshalled
- * representation in bitstream bs.
+ * representation in bitstream @bs.
  */
 static void writeSEIpictureDigest(TComBitIf& bs, const SEIpictureDigest& sei)
 {
@@ -114,4 +111,3 @@ static void writeSEIpictureDigest(TComBitIf& bs, const SEIpictureDigest& sei)
     bs.write(sei.digest[i], 8);
   }
 }
-//! \}

@@ -43,12 +43,6 @@
 
 #include "CommonDef.h"
 #include "TComYuv.h"
-#if GENERIC_IF
-#include "TComInterpolationFilter.h"
-#endif
-
-//! \ingroup TLibCommon
-//! \{
 
 TComYuv::TComYuv()
 {
@@ -337,55 +331,6 @@ Void TComYuv::copyPartToPartChroma( TComYuv* pcYuvDst, UInt uiPartIdx, UInt iWid
   }
 }
 
-#if NSQT
-Void TComYuv::copyPartToPartLumaMxN  ( TComYuv* pcYuvDst, UInt uiPix_X,UInt uiPix_Y, UInt iWidth, UInt iHeight )
-{
-  Pel* pSrc =           getLumaAddrPix( uiPix_X, uiPix_Y );
-  Pel* pDst = pcYuvDst->getLumaAddrPix( uiPix_X, uiPix_Y );
-  if( pSrc == pDst )
-  {
-    //th not a good idea
-    //th best would be to fix the caller 
-    return ;
-  }
-
-  UInt  iSrcStride = getStride();
-  UInt  iDstStride = pcYuvDst->getStride();
-  for ( UInt y = iHeight; y != 0; y-- )
-  {
-    ::memcpy( pDst, pSrc, iWidth * sizeof( Pel ) );
-    pSrc += iSrcStride;
-    pDst += iDstStride;
-  }
-}
-Void TComYuv::copyPartToPartChromaMxN( TComYuv* pcYuvDst, UInt uiPix_X,UInt uiPix_Y, UInt iWidth, UInt iHeight )
-{
-  Pel*  pSrcU =           getCbAddrPix( uiPix_X, uiPix_Y );
-  Pel*  pSrcV =           getCrAddrPix( uiPix_X, uiPix_Y );
-  Pel*  pDstU = pcYuvDst->getCbAddrPix( uiPix_X, uiPix_Y );
-  Pel*  pDstV = pcYuvDst->getCrAddrPix( uiPix_X, uiPix_Y );
-
-  if( pSrcU == pDstU && pSrcV == pDstV)
-  {
-    //th not a good idea
-    //th best would be to fix the caller 
-    return ;
-  }
-
-  UInt   iSrcStride = getCStride();
-  UInt   iDstStride = pcYuvDst->getCStride();
-  for ( UInt y = iHeight; y != 0; y-- )
-  {
-    ::memcpy( pDstU, pSrcU, iWidth * sizeof( Pel ) );
-    ::memcpy( pDstV, pSrcV, iWidth * sizeof( Pel ) );
-    pSrcU += iSrcStride;
-    pSrcV += iSrcStride;
-    pDstU += iDstStride;
-    pDstV += iDstStride;
-  }
-}
-#endif
-
 Void TComYuv::addClip( TComYuv* pcYuvSrc0, TComYuv* pcYuvSrc1, UInt uiTrUnitIdx, UInt uiPartSize )
 {
   addClipLuma   ( pcYuvSrc0, pcYuvSrc1, uiTrUnitIdx, uiPartSize     );
@@ -524,24 +469,6 @@ Void TComYuv::addAvg( TComYuv* pcYuvSrc0, TComYuv* pcYuvSrc1, UInt iPartUnitIdx,
   UInt  iSrc0Stride = pcYuvSrc0->getStride();
   UInt  iSrc1Stride = pcYuvSrc1->getStride();
   UInt  iDstStride  = getStride();
-#if GENERIC_IF
-  Int shiftNum = IF_INTERNAL_PREC + 1 - ( g_uiBitDepth + g_uiBitIncrement );
-  Int offset = ( 1 << ( shiftNum - 1 ) ) + 2 * IF_INTERNAL_OFFS;
-  
-  for ( y = 0; y < iHeight; y++ )
-  {
-    for ( x = 0; x < iWidth; x += 4 )
-    {
-      pDstY[ x + 0 ] = Clip( ( pSrcY0[ x + 0 ] + pSrcY1[ x + 0 ] + offset ) >> shiftNum );
-      pDstY[ x + 1 ] = Clip( ( pSrcY0[ x + 1 ] + pSrcY1[ x + 1 ] + offset ) >> shiftNum );
-      pDstY[ x + 2 ] = Clip( ( pSrcY0[ x + 2 ] + pSrcY1[ x + 2 ] + offset ) >> shiftNum );
-      pDstY[ x + 3 ] = Clip( ( pSrcY0[ x + 3 ] + pSrcY1[ x + 3 ] + offset ) >> shiftNum );
-    }
-    pSrcY0 += iSrc0Stride;
-    pSrcY1 += iSrc1Stride;
-    pDstY  += iDstStride;
-  }
-#else
   Int shiftNum = 15 - (g_uiBitDepth + g_uiBitIncrement);
   Int offset = (1<<(shiftNum - 1));
   
@@ -559,7 +486,6 @@ Void TComYuv::addAvg( TComYuv* pcYuvSrc0, TComYuv* pcYuvSrc1, UInt iPartUnitIdx,
     pSrcY1 += iSrc1Stride;
     pDstY  += iDstStride;
   }
-#endif
   
   iSrc0Stride = pcYuvSrc0->getCStride();
   iSrc1Stride = pcYuvSrc1->getCStride();
@@ -632,19 +558,3 @@ Void TComYuv::removeHighFreq( TComYuv* pcYuvSrc, UInt uiPartIdx, UInt uiWidht, U
     pDstV += iDstStride;
   }
 }
-
-#if NSQT
-Pel* TComYuv::getLumaAddrPix( UInt iBlkX, UInt iBlkY )
-{
-  return m_apiBufY + iBlkY * getStride() + iBlkX;
-}
-Pel* TComYuv::getCbAddrPix( UInt iBlkX, UInt iBlkY )
-{
-  return m_apiBufU + ( iBlkY ) * getCStride() + ( iBlkX );
-}
-Pel* TComYuv::getCrAddrPix( UInt iBlkX, UInt iBlkY )
-{
-  return m_apiBufV + ( iBlkY ) * getCStride() + ( iBlkX );
-}
-#endif
-//! \}

@@ -42,21 +42,18 @@
 #pragma once
 #endif // _MSC_VER > 1000
 
-#include "TLibCommon/CommonDef.h"
-#include "TLibCommon/TComBitStream.h"
-#include "TLibCommon/TComList.h"
-#include "TLibCommon/TComPicYuv.h"
-#include "TLibCommon/TComPic.h"
-#include "TLibCommon/TComLoopFilter.h"
-#include "TLibCommon/TComAdaptiveLoopFilter.h"
+#include "../TLibCommon/CommonDef.h"
+#include "../TLibCommon/TComBitStream.h"
+#include "../TLibCommon/TComList.h"
+#include "../TLibCommon/TComPicYuv.h"
+#include "../TLibCommon/TComPic.h"
+#include "../TLibCommon/TComLoopFilter.h"
+#include "../TLibCommon/TComAdaptiveLoopFilter.h"
 
 #include "TDecEntropy.h"
 #include "TDecSlice.h"
 #include "TDecBinCoder.h"
 #include "TDecBinCoderCABAC.h"
-
-//! \ingroup TLibDecoder
-//! \{
 
 // ====================================================================================================================
 // Class definition
@@ -105,11 +102,7 @@ public:
                  );
   Void  create  ();
   Void  destroy ();
-#if REF_SETTING_FOR_LD
-  Void  decompressGop(TComInputBitstream* pcBitstream, TComPic*& rpcPic, Bool bExecuteDeblockAndAlf, TComList<TComPic*>& rcListPic );
-#else
   Void  decompressGop(TComInputBitstream* pcBitstream, TComPic*& rpcPic, Bool bExecuteDeblockAndAlf );
-#endif
   Void  setGopSize( Int i) { m_iGopSize = i; }
 
   void setPictureDigestEnabled(bool enabled) { m_pictureDigestEnabled = enabled; }
@@ -121,8 +114,6 @@ private:
 #endif
 
 };
-
-//! \}
 
 #endif // !defined(AFX_TDECGOP_H__29440B7A_7CC0_48C7_8DD5_1A531D3CED45__INCLUDED_)
 

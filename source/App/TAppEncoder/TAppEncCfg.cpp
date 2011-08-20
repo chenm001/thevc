@@ -39,9 +39,8 @@
 #include <cassert>
 #include <cstring>
 #include <string>
-#include "TLibCommon/TComRom.h"
 #include "TAppEncCfg.h"
-#include "TAppCommon/program_options_lite.h"
+#include "../../App/TAppCommon/program_options_lite.h"
 
 #ifdef WIN32
 #define strdup _strdup
@@ -49,9 +48,6 @@
 
 using namespace std;
 namespace po = df::program_options_lite;
-
-//! \ingroup TAppEncoder
-//! \{
 
 /* configuration helper funcs */
 void doOldStyleCmdlineOn(po::Options& opts, const std::string& arg);
@@ -160,9 +156,7 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
   ("LCModification", m_bLCMod, false, "enables signalling of combined reference list derivation")
   ("NRF", m_bUseNRF,  true, "non-reference frame marking in last layer")
   ("BQP", m_bUseBQP, false, "hier-P style QP assignment in low-delay mode")
-#if DISABLE_4x4_INTER
-  ("DisableInter4x4", m_bDisInter4x4, true, "Disable Inter 4x4")
-#endif
+
   /* motion options */
   ("FastSearch", m_iFastSearch, 1, "0:Full search  1:Diamond  2:PMVFAST")
   ("SearchRange,-sr",m_iSearchRange, 96, "motion search range")
@@ -176,10 +170,6 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
   ("MaxDeltaQP,d",  m_iMaxDeltaQP,        0, "max dQp offset for block")
 #if SUB_LCU_DQP
   ("MaxCuDQPDepth,-dqd",  m_iMaxCuDQPDepth,        0, "max depth for a minimum CuDQP")
-#endif
-#if QP_ADAPTATION
-  ("AdaptiveQP,-aq", m_bUseAdaptiveQP, false, "QP adaptation based on a psycho-visual model")
-  ("MaxQPAdaptationRange,-aqr", m_iQPAdaptationRange, 6, "QP adaptation range")
 #endif
   ("dQPFile,m",     cfg_dQPFile, string(""), "dQP file name")
   ("RDOQ",          m_bUseRDOQ, true)
@@ -243,17 +233,8 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
   ("SEIpictureDigest", m_pictureDigestEnabled, true, "Control generation of picture_digest SEI messages\n"
                                               "\t1: use MD5\n"
                                               "\t0: disable")
-#if REF_SETTING_FOR_LD
-  ("UsingNewRefSetting", m_bUseNewRefSetting, false, "Use 1+X reference frame setting for LD" )
-#endif
-
   ("FEN", m_bUseFastEnc, false, "fast encoder setting")
-#if EARLY_CU_DETERMINATION
-  ("ECU", m_bUseEarlyCU, false, "Early CU setting") 
-#endif
-#if CBF_FAST_MODE
-  ("CFM", m_bUseCbfFastMode, false, "Cbf fast mode setting")
-#endif
+  
   /* Compatability with old style -1 FOO or -0 FOO options. */
   ("1", doOldStyleCmdlineOn, "turn option <name> on")
   ("0", doOldStyleCmdlineOff, "turn option <name> off")
@@ -341,24 +322,6 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
       fclose(fpt);
     }
   }
-
-#if REF_SETTING_FOR_LD
-  if ( m_iGOPSize > 1 )
-  {
-    if ( m_bUseNewRefSetting )
-    {
-      printf( "\nwarning: new reference frame setting can be 1 only when GOP size is 1 (LD case), set to 0" );
-      m_bUseNewRefSetting = false;
-    }
-  }
-  if ( m_iRateGOPSize != 4 )
-  {
-    if ( m_bUseNewRefSetting )
-    {
-      printf( "\nwarning: new reference frame setting was originally designed for default LD setting (rateGOPSize=4), no action" );
-    }
-  }
-#endif
   
   // check validity of input parameters
   xCheckParameter();
@@ -402,9 +365,6 @@ Void TAppEncCfg::xCheckParameter()
   xConfirmPara( m_iMaxDeltaQP > 7,                                                          "Absolute Delta QP exceeds supported range (0 to 7)" );
 #if SUB_LCU_DQP
   xConfirmPara( m_iMaxCuDQPDepth > m_uiMaxCUDepth - 1,                                          "Absolute depth for a minimum CuDQP exceeds maximum coding unit depth" );
-#endif
-#if QP_ADAPTATION
-  xConfirmPara( m_iQPAdaptationRange <= 0,                                                  "QP Adaptation Range must be more than 0" );
 #endif
   xConfirmPara( m_iFrameToBeEncoded != 1 && m_iFrameToBeEncoded <= m_iGOPSize,              "Total Number of Frames to be encoded must be larger than GOP size");
   xConfirmPara( (m_uiMaxCUWidth  >> m_uiMaxCUDepth) < 4,                                    "Minimum partition width size should be larger than or equal to 8");
@@ -472,12 +432,7 @@ Void TAppEncCfg::xCheckParameter()
   {
     m_bUseSBACRD = false;
   }
-
-
-#if REF_SETTING_FOR_LD
-  xConfirmPara( m_bUseNewRefSetting && m_iGOPSize>1, "New reference frame setting was only designed for LD setting" );
-#endif
-
+  
 #undef xConfirmPara
   if (check_failed)
   {
@@ -553,21 +508,13 @@ Void TAppEncCfg::xPrintParameter()
   printf("Intra period                 : %d\n", m_iIntraPeriod );
   printf("Decoding refresh type        : %d\n", m_iDecodingRefreshType );
   printf("QP                           : %5.2f\n", m_fQP );
-#if SUB_LCU_DQP
-  printf("Max dQP signaling depth      : %d\n", m_iMaxCuDQPDepth);
-#endif
-#if QP_ADAPTATION
-  printf("QP adaptation                : %d (range=%d)\n", m_bUseAdaptiveQP, (m_bUseAdaptiveQP ? m_iQPAdaptationRange : 0) );
-#endif
   printf("GOP size                     : %d\n", m_iGOPSize );
   printf("Rate GOP size                : %d\n", m_iRateGOPSize );
   printf("Internal bit depth           : %d\n", m_uiInternalBitDepth );
 #if E057_INTRA_PCM && E192_SPS_PCM_BIT_DEPTH_SYNTAX
   printf("PCM sample bit depth         : %d\n", m_uiPCMBitDepthLuma );
 #endif
-#if DISABLE_4x4_INTER
-  printf("DisableInter4x4              : %d\n", m_bDisInter4x4);  
-#endif
+
   if ( m_iSymbolMode == 0 )
   {
     printf("Entropy coder                : VLC\n");
@@ -603,12 +550,6 @@ Void TAppEncCfg::xPrintParameter()
   printf("LComb:%d ", m_bUseLComb         );
   printf("LCMod:%d ", m_bLCMod         );
   printf("FEN:%d ", m_bUseFastEnc         );
-#if EARLY_CU_DETERMINATION
-  printf("ECU:%d ", m_bUseEarlyCU         );
-#endif
-#if CBF_FAST_MODE
-  printf("CFM:%d ", m_bUseCbfFastMode         );
-#endif
   printf("RQT:%d ", 1     );
   printf("MRG:%d ", m_bUseMRG             ); // SOPH: Merge Mode
 #if LM_CHROMA 
@@ -644,9 +585,6 @@ Void TAppEncCfg::xPrintParameter()
 #if E057_INTRA_PCM
   printf("PCM:%d ", ((1<<m_uiPCMLog2MinSize) <= m_uiMaxCUWidth)? 1 : 0);
 #endif
-#if REF_SETTING_FOR_LD
-  printf("NewRefSetting:%d ", m_bUseNewRefSetting?1:0);
-#endif
   printf("\n\n");
   
   fflush(stdout);
@@ -666,12 +604,6 @@ Void TAppEncCfg::xPrintUsage()
   printf( "                   PAD - automatic source padding of multiple of 16\n");
   printf( "                   ASR - adaptive motion search range\n");
   printf( "                   FEN - fast encoder setting\n");  
-#if EARLY_CU_DETERMINATION
-  printf( "                   ECU - Early CU setting\n");
-#endif
-#if CBF_FAST_MODE
-  printf( "                   CFM - Cbf fast mode setting\n");
-#endif
   printf( "                   MRG - merging of motion partitions\n"); // SOPH: Merge Mode
 
 #if LM_CHROMA 
@@ -742,5 +674,3 @@ void doOldStyleCmdlineOff(po::Options& opts, const std::string& arg)
 {
   translateOldStyleCmdline("0", opts, arg);
 }
-
-//! \}

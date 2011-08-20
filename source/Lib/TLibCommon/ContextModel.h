@@ -45,8 +45,6 @@
 
 #include "CommonDef.h"
 
-//! \ingroup TLibCommon
-//! \{
 
 // ====================================================================================================================
 // Class definition
@@ -62,28 +60,28 @@ public:
   UChar getState  ()                { return ( m_ucState >> 1 ); }                    ///< get current state
   UChar getMps    ()                { return ( m_ucState  & 1 ); }                    ///< get curret MPS
   
-  Void init ( Int   iQp, Short asCtxInit[] );                                              ///< initialize state with initial prob.
+  Void        init      ( Int   iQp, 
+                         Short asCtxInit[] );                                              ///< initialize state with initial prob.
   
-  Void updateLPS ()
+  Void        updateLPS ()
   {
-    m_ucState = m_aucNextStateLPS[ m_ucState ];
+    UChar ucMPS = ( m_ucState > 1    ? m_ucState  & 1 :    1   - ( m_ucState & 1 ) );
+    m_ucState   = ( m_aucNextStateLPS[ m_ucState >> 1 ] << 1 ) + ucMPS;
   }
   
-  Void updateMPS ()
+  Void        updateMPS ()
   {
-    m_ucState = m_aucNextStateMPS[ m_ucState ];
+    m_ucState   = ( m_aucNextStateMPS[ m_ucState >> 1 ] << 1 ) + ( m_ucState & 1 );
   }
   
   Int getEntropyBits(Short val) { return m_entropyBits[m_ucState ^ val]; }
   
 private:
   UChar         m_ucState;                                                                  ///< internal state variable
-  static const  UChar m_aucNextStateMPS[ 128 ];
-  static const  UChar m_aucNextStateLPS[ 128 ];
+  static const  UChar m_aucNextStateMPS[ 64 ];
+  static const  UChar m_aucNextStateLPS[ 64 ];
   static const Int m_entropyBits[ 128 ];
 };
-
-//! \}
 
 #endif
 

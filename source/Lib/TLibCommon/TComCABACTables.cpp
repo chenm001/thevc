@@ -37,9 +37,6 @@
 
 #include "TComCABACTables.h"
 
-//! \ingroup TLibCommon
-//! \{
-
 const UChar TComCABACTables::sm_aucLPSTable[64][4] =
 {
   { 128, 176, 208, 240},
@@ -108,16 +105,3 @@ const UChar TComCABACTables::sm_aucLPSTable[64][4] =
   {   2,   2,   2,   2}
 };
 
-const UChar TComCABACTables::sm_aucRenormTable[32] =
-{
-  6,  5,  4,  4,
-  3,  3,  3,  3,
-  2,  2,  2,  2,
-  2,  2,  2,  2,
-  1,  1,  1,  1,
-  1,  1,  1,  1,
-  1,  1,  1,  1,
-  1,  1,  1,  1
-};
-
-//! \}

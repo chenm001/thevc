@@ -33,12 +33,7 @@
 
 #pragma once
 
-//! \ingroup TLibDecoder
-//! \{
-
 class TComInputBitstream;
 class SEImessages;
 
 void parseSEImessage(TComInputBitstream& bs, SEImessages& seis);
-
-//! \}

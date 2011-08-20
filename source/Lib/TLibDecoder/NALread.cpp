@@ -36,13 +36,10 @@
 #include <ostream>
 
 #include "NALread.h"
-#include "TLibCommon/NAL.h"
-#include "TLibCommon/TComBitStream.h"
+#include "../TLibCommon/NAL.h"
+#include "../TLibCommon/TComBitStream.h"
 
 using namespace std;
-
-//! \ingroup TLibDecoder
-//! \{
 
 static void convertPayloadToRBSP(vector<uint8_t>& nalUnitBuf)
 {
@@ -98,4 +95,3 @@ void read(InputNALUnit& nalu, vector<uint8_t>& nalUnitBuf)
     break;
   }
 }
-//! \}

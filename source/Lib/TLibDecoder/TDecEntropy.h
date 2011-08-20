@@ -38,19 +38,16 @@
 #ifndef __TDECENTROPY__
 #define __TDECENTROPY__
 
-#include "TLibCommon/CommonDef.h"
-#include "TLibCommon/TComBitStream.h"
-#include "TLibCommon/TComSlice.h"
-#include "TLibCommon/TComPic.h"
-#include "TLibCommon/TComPrediction.h"
-#include "TLibCommon/TComAdaptiveLoopFilter.h"
+#include "../TLibCommon/CommonDef.h"
+#include "../TLibCommon/TComBitStream.h"
+#include "../TLibCommon/TComSlice.h"
+#include "../TLibCommon/TComPic.h"
+#include "../TLibCommon/TComPrediction.h"
+#include "../TLibCommon/TComAdaptiveLoopFilter.h"
 
 class TDecSbac;
 class TDecCavlc;
 class SEImessages;
-
-//! \ingroup TLibDecoder
-//! \{
 
 // ====================================================================================================================
 // Class definition
@@ -215,19 +212,13 @@ public:
 #endif
 
 #if MTK_SAO
-#if MTK_SAO_CHROMA
-  Void decodeQAOOnePart(SAOParam* pQaoParam, Int part_idx, Int iYCbCr);
-  Void decodeQuadTreeSplitFlag(SAOParam* pQaoParam, Int part_idx, Int iYCbCr);
-#else
   Void decodeQAOOnePart(SAOParam* pQaoParam, Int part_idx);
   Void decodeQuadTreeSplitFlag(SAOParam* pQaoParam, Int part_idx);
-#endif
   Void decodeSaoParam(SAOParam* pQaoParam) ;
 #endif
 
 };// END CLASS DEFINITION TDecEntropy
 
-//! \}
 
 #endif // __TDECENTROPY__
 

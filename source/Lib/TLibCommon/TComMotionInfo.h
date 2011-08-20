@@ -43,9 +43,6 @@
 #include "CommonDef.h"
 #include "TComMv.h"
 
-//! \ingroup TLibCommon
-//! \{
-
 // ====================================================================================================================
 // Type definition
 // ====================================================================================================================
@@ -53,11 +50,7 @@
 /// parameters for AMVP
 typedef struct _AMVPInfo
 {
-#if MRG_AMVP_FIXED_IDX_F470
-  TComMv m_acMvCand[ AMVP_MAX_NUM_CANDS_MEM ];  ///< array of motion vector predictor candidates
-#else
   TComMv m_acMvCand[ AMVP_MAX_NUM_CANDS ];  ///< array of motion vector predictor candidates
-#endif
   Int    iN;                                ///< number of motion vector predictor candidates
 } AMVPInfo;
 
@@ -100,14 +93,9 @@ private:
   Char*     m_piRefIdx;
   UInt      m_uiNumPartition;
   AMVPInfo  m_cAMVPInfo;
-    
-#if AMP
-  template <typename T>
-  Void setAll( T *p, T const & val, PartSize eCUMode, Int iPartAddr, UInt uiDepth, Int iPartIdx );
-#else
+  
   template <typename T>
   Void setAll( T *p, T const & val, PartSize eCUMode, Int iPartAddr, UInt uiDepth );
-#endif
 
 public:
   TComCUMvField() : m_pcMv(NULL), m_pcMvd(NULL), m_piRefIdx(NULL), m_uiNumPartition(0) {}
@@ -144,18 +132,12 @@ public:
   // set
   // ------------------------------------------------------------------------------------------------------------------
   
-#if AMP
-  Void    setAllMv     ( TComMv const & rcMv,         PartSize eCUMode, Int iPartAddr, UInt uiDepth, Int iPartIdx=0 );
-  Void    setAllMvd    ( TComMv const & rcMvd,        PartSize eCUMode, Int iPartAddr, UInt uiDepth, Int iPartIdx=0 );
-  Void    setAllRefIdx ( Int iRefIdx,                 PartSize eMbMode, Int iPartAddr, UInt uiDepth, Int iPartIdx=0 );
-  Void    setAllMvField( TComMvField const & mvField, PartSize eMbMode, Int iPartAddr, UInt uiDepth, Int iPartIdx=0 );
-#else
+  
   Void    setAllMv     ( TComMv const & rcMv,         PartSize eCUMode, Int iPartAddr, UInt uiDepth );
   Void    setAllMvd    ( TComMv const & rcMvd,        PartSize eCUMode, Int iPartAddr, UInt uiDepth );
   Void    setAllRefIdx ( Int iRefIdx,                 PartSize eMbMode, Int iPartAddr, UInt uiDepth );
   Void    setAllMvField( TComMvField const & mvField, PartSize eMbMode, Int iPartAddr, UInt uiDepth );
-#endif 
-
+  
   Void setNumPartition( Int iNumPart )
   {
     m_uiNumPartition = iNumPart;
@@ -174,6 +156,5 @@ public:
   
 };
 
-//! \}
-
 #endif // __TCOMMOTIONINFO__
+

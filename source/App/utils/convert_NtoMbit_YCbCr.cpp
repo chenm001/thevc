@@ -35,7 +35,7 @@
 
 #include "TLibCommon/TComPicYuv.h"
 #include "TLibVideoIO/TVideoIOYuv.h"
-#include "TAppCommon/program_options_lite.h"
+#include "../../App/TAppCommon/program_options_lite.h"
 
 using namespace std;
 namespace po = df::program_options_lite;

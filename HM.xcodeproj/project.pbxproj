@@ -112,6 +112,8 @@
 		6782E0EE11AD694400E8FFB8 /* decmain.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6782E0E711AD694400E8FFB8 /* decmain.cpp */; };
 		6782E0EF11AD694400E8FFB8 /* TAppDecCfg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6782E0E811AD694400E8FFB8 /* TAppDecCfg.cpp */; };
 		6782E0F111AD694400E8FFB8 /* TAppDecTop.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6782E0EC11AD694400E8FFB8 /* TAppDecTop.cpp */; };
+		7104E1DF12005B0E00F42AA8 /* program_options_lite.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7104E1DD12005B0E00F42AA8 /* program_options_lite.cpp */; };
+		7104E1E012005B0E00F42AA8 /* program_options_lite.h in Headers */ = {isa = PBXBuildFile; fileRef = 7104E1DE12005B0E00F42AA8 /* program_options_lite.h */; };
 		7104E1E312005B5600F42AA8 /* libTAppCommon.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 7104E1CD12005ABA00F42AA8 /* libTAppCommon.a */; };
 		710DD68B1335295200BE8EDE /* libTAppCommon.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 7104E1CD12005ABA00F42AA8 /* libTAppCommon.a */; };
 		712FAEAA1379BA2F00DB5314 /* AccessUnit.h in Headers */ = {isa = PBXBuildFile; fileRef = 712FAEA81379BA2F00DB5314 /* AccessUnit.h */; };
@@ -123,17 +125,9 @@
 		712FAEB71379BA6600DB5314 /* AnnexBread.h in Headers */ = {isa = PBXBuildFile; fileRef = 712FAEB31379BA6600DB5314 /* AnnexBread.h */; };
 		712FAEB81379BA6600DB5314 /* NALread.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 712FAEB41379BA6600DB5314 /* NALread.cpp */; };
 		712FAEB91379BA6600DB5314 /* NALread.h in Headers */ = {isa = PBXBuildFile; fileRef = 712FAEB51379BA6600DB5314 /* NALread.h */; };
-		7184647713FAE75800747BF9 /* program_options_lite.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7184647513FAE75800747BF9 /* program_options_lite.cpp */; };
-		7184647813FAE75800747BF9 /* program_options_lite.h in Headers */ = {isa = PBXBuildFile; fileRef = 7184647613FAE75800747BF9 /* program_options_lite.h */; };
 		71AD603911EBC28500F5F1FE /* libTLibCommon.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 6767959411AD61BB00421804 /* libTLibCommon.a */; };
 		71AD603A11EBC28D00F5F1FE /* libTLibEncoder.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 6767961911AD626F00421804 /* libTLibEncoder.a */; };
 		71AD603B11EBC29600F5F1FE /* libTLibVideoIO.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 6767964B11AD629200421804 /* libTLibVideoIO.a */; };
-		DB7795C213F1226500C92469 /* TEncPic.cpp in Sources */ = {isa = PBXBuildFile; fileRef = DB7795BE13F1226500C92469 /* TEncPic.cpp */; };
-		DB7795C313F1226500C92469 /* TEncPic.h in Headers */ = {isa = PBXBuildFile; fileRef = DB7795BF13F1226500C92469 /* TEncPic.h */; };
-		DB7795C413F1226500C92469 /* TEncPreanalyzer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = DB7795C013F1226500C92469 /* TEncPreanalyzer.cpp */; };
-		DB7795C513F1226500C92469 /* TEncPreanalyzer.h in Headers */ = {isa = PBXBuildFile; fileRef = DB7795C113F1226500C92469 /* TEncPreanalyzer.h */; };
-		DBDDB3AB13E26B4400A70251 /* TComInterpolationFilter.cpp in Sources */ = {isa = PBXBuildFile; fileRef = DBDDB3A913E26B4400A70251 /* TComInterpolationFilter.cpp */; };
-		DBDDB3AC13E26B4400A70251 /* TComInterpolationFilter.h in Headers */ = {isa = PBXBuildFile; fileRef = DBDDB3AA13E26B4400A70251 /* TComInterpolationFilter.h */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -320,14 +314,6 @@
 		712FAEB31379BA6600DB5314 /* AnnexBread.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AnnexBread.h; path = source/Lib/TLibDecoder/AnnexBread.h; sourceTree = "<group>"; };
 		712FAEB41379BA6600DB5314 /* NALread.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = NALread.cpp; path = source/Lib/TLibDecoder/NALread.cpp; sourceTree = "<group>"; };
 		712FAEB51379BA6600DB5314 /* NALread.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = NALread.h; path = source/Lib/TLibDecoder/NALread.h; sourceTree = "<group>"; };
-		7184647513FAE75800747BF9 /* program_options_lite.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = program_options_lite.cpp; path = source/Lib/TAppCommon/program_options_lite.cpp; sourceTree = "<group>"; };
-		7184647613FAE75800747BF9 /* program_options_lite.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = program_options_lite.h; path = source/Lib/TAppCommon/program_options_lite.h; sourceTree = "<group>"; };
-		DB7795BE13F1226500C92469 /* TEncPic.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = TEncPic.cpp; path = source/Lib/TLibEncoder/TEncPic.cpp; sourceTree = "<group>"; };
-		DB7795BF13F1226500C92469 /* TEncPic.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TEncPic.h; path = source/Lib/TLibEncoder/TEncPic.h; sourceTree = "<group>"; };
-		DB7795C013F1226500C92469 /* TEncPreanalyzer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = TEncPreanalyzer.cpp; path = source/Lib/TLibEncoder/TEncPreanalyzer.cpp; sourceTree = "<group>"; };
-		DB7795C113F1226500C92469 /* TEncPreanalyzer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TEncPreanalyzer.h; path = source/Lib/TLibEncoder/TEncPreanalyzer.h; sourceTree = "<group>"; };
-		DBDDB3A913E26B4400A70251 /* TComInterpolationFilter.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = TComInterpolationFilter.cpp; path = source/Lib/TLibCommon/TComInterpolationFilter.cpp; sourceTree = "<group>"; };
-		DBDDB3AA13E26B4400A70251 /* TComInterpolationFilter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TComInterpolationFilter.h; path = source/Lib/TLibCommon/TComInterpolationFilter.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -394,8 +380,6 @@
 		08FB7794FE84155DC02AAC07 /* Trinity */ = {
 			isa = PBXGroup;
 			children = (
-				7184647513FAE75800747BF9 /* program_options_lite.cpp */,
-				7184647613FAE75800747BF9 /* program_options_lite.h */,
 				08FB7795FE84155DC02AAC07 /* Source */,
 				C6859E8C029090F304C91782 /* Documentation */,
 				1AB674ADFE9D54B511CA2CBB /* Products */,
@@ -456,8 +440,6 @@
 				676795A411AD61FC00421804 /* TComBitStream.h */,
 				676795A511AD61FC00421804 /* TComDataCU.cpp */,
 				676795A611AD61FC00421804 /* TComDataCU.h */,
-				DBDDB3A913E26B4400A70251 /* TComInterpolationFilter.cpp */,
-				DBDDB3AA13E26B4400A70251 /* TComInterpolationFilter.h */,
 				676795A711AD61FC00421804 /* TComList.h */,
 				676795A811AD61FC00421804 /* TComLoopFilter.cpp */,
 				676795A911AD61FC00421804 /* TComLoopFilter.h */,
@@ -545,10 +527,6 @@
 				6767962611AD628100421804 /* TEncEntropy.h */,
 				6767962711AD628100421804 /* TEncGOP.cpp */,
 				6767962811AD628100421804 /* TEncGOP.h */,
-				DB7795BE13F1226500C92469 /* TEncPic.cpp */,
-				DB7795BF13F1226500C92469 /* TEncPic.h */,
-				DB7795C013F1226500C92469 /* TEncPreanalyzer.cpp */,
-				DB7795C113F1226500C92469 /* TEncPreanalyzer.h */,
 				6767962911AD628100421804 /* TEncSbac.cpp */,
 				6767962A11AD628100421804 /* TEncSbac.h */,
 				6767962B11AD628100421804 /* TEncSearch.cpp */,
@@ -647,9 +625,6 @@
 				65EA1B951357451300988950 /* SEI.h in Headers */,
 				712FAEAA1379BA2F00DB5314 /* AccessUnit.h in Headers */,
 				712FAEAB1379BA2F00DB5314 /* NAL.h in Headers */,
-				DBDDB3AC13E26B4400A70251 /* TComInterpolationFilter.h in Headers */,
-				DB7795C313F1226500C92469 /* TEncPic.h in Headers */,
-				DB7795C513F1226500C92469 /* TEncPreanalyzer.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -707,7 +682,7 @@
 			isa = PBXHeadersBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				7184647813FAE75800747BF9 /* program_options_lite.h in Headers */,
+				7104E1E012005B0E00F42AA8 /* program_options_lite.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -898,9 +873,6 @@
 				671E0D5011B6AD8C00F3747B /* TComCABACTables.cpp in Sources */,
 				65EA1B89135744C400988950 /* libmd5.c in Sources */,
 				65EA1B97135745D500988950 /* TComPicYuvMD5.cpp in Sources */,
-				DBDDB3AB13E26B4400A70251 /* TComInterpolationFilter.cpp in Sources */,
-				DB7795C213F1226500C92469 /* TEncPic.cpp in Sources */,
-				DB7795C413F1226500C92469 /* TEncPreanalyzer.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -974,7 +946,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				7184647713FAE75800747BF9 /* program_options_lite.cpp in Sources */,
+				7104E1DF12005B0E00F42AA8 /* program_options_lite.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1032,7 +1004,6 @@
 				GCC_OPTIMIZATION_LEVEL = 0;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				HEADER_SEARCH_PATHS = source/Lib;
 				ONLY_ACTIVE_ARCH = YES;
 				PREBINDING = NO;
 				SDKROOT = macosx10.6;
@@ -1048,7 +1019,6 @@
 				GCC_WARN_ABOUT_RETURN_TYPE = YES;
 				GCC_WARN_NON_VIRTUAL_DESTRUCTOR = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				HEADER_SEARCH_PATHS = source/Lib;
 				PREBINDING = NO;
 				SDKROOT = macosx10.6;
 			};

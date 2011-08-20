@@ -45,9 +45,6 @@
 #include "CommonDef.h"
 #include "ContextModel.h"
 
-//! \ingroup TLibCommon
-//! \{
-
 // ====================================================================================================================
 // Class definition
 // ====================================================================================================================
@@ -62,8 +59,8 @@ protected:
   const UInt    m_sizeXYZ;      ///< total size of 3D buffer
   
 public:
-  ContextModel3DBuffer  ( UInt uiSizeZ, UInt uiSizeY, UInt uiSizeX, ContextModel *basePtr, Int &count );
-  ~ContextModel3DBuffer () {}
+  ContextModel3DBuffer  ( UInt uiSizeZ, UInt uiSizeY, UInt uiSizeX );
+  ~ContextModel3DBuffer ();
   
   // access functions
   ContextModel& get( UInt uiZ, UInt uiY, UInt uiX )
@@ -83,7 +80,7 @@ public:
   Void initBuffer( SliceType eSliceType, Int iQp, Short* psCtxModel );          ///< initialize 3D buffer by slice type & QP
   
   /** copy from another buffer
-   * \param src buffer to copy from
+   * \param pSrc buffer to copy from
    */
   Void copyFrom( ContextModel3DBuffer* src )
   {
@@ -91,7 +88,5 @@ public:
     ::memcpy( m_contextModel, src->m_contextModel, sizeof(ContextModel) * m_sizeXYZ );
   }
 };
-
-//! \}
 
 #endif // _HM_CONTEXT_MODEL_3DBUFFER_H_

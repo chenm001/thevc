@@ -43,9 +43,6 @@
 #include "TComPattern.h"
 #include "TComMv.h"
 
-//! \ingroup TLibCommon
-//! \{
-
 class DistParam;
 class TComPattern;
 
@@ -99,15 +96,8 @@ private:
   Int                     m_iBlkWidth;
   Int                     m_iBlkHeight;
   
-#if AMP_SAD
-  FpDistFunc              m_afpDistortFunc[64]; // [eDFunc]
-#else  
   FpDistFunc              m_afpDistortFunc[33]; // [eDFunc]
-#endif  
   
-#if WEIGHTED_CHROMA_DISTORTION
-  Double                  m_chromaDistortionWeight;   
-#endif
   Double                  m_dLambda;
   Double                  m_sqrtLambda;
   UInt                    m_uiLambdaMotionSAD;
@@ -130,9 +120,6 @@ public:
   Double  calcRdCost  ( UInt   uiBits, UInt   uiDistortion, Bool bFlag = false, DFunc eDFunc = DF_DEFAULT );
   Double  calcRdCost64( UInt64 uiBits, UInt64 uiDistortion, Bool bFlag = false, DFunc eDFunc = DF_DEFAULT );
   
-#if WEIGHTED_CHROMA_DISTORTION
-  Void    setChromaDistortionWeight      ( Double chromaDistortionWeight) { m_chromaDistortionWeight = chromaDistortionWeight; };
-#endif
   Void    setLambda      ( Double dLambda );
   Void    setFrameLambda ( Double dLambda ) { m_dFrameLambda = dLambda; }
   
@@ -184,19 +171,6 @@ private:
   static UInt xGetSAD64         ( DistParam* pcDtParam );
   static UInt xGetSAD16N        ( DistParam* pcDtParam );
   
-#if AMP_SAD
-  static UInt xGetSAD12         ( DistParam* pcDtParam );
-  static UInt xGetSAD24         ( DistParam* pcDtParam );
-  static UInt xGetSAD48         ( DistParam* pcDtParam );
-
-#if !GENERIC_IF
-  static UInt xGetSADs12        ( DistParam* pcDtParam );
-  static UInt xGetSADs24        ( DistParam* pcDtParam );
-  static UInt xGetSADs48        ( DistParam* pcDtParam );
-#endif
-#endif
-
-#if !GENERIC_IF
   static UInt xGetSADs          ( DistParam* pcDtParam );
   static UInt xGetSADs4         ( DistParam* pcDtParam );
   static UInt xGetSADs8         ( DistParam* pcDtParam );
@@ -204,7 +178,6 @@ private:
   static UInt xGetSADs32        ( DistParam* pcDtParam );
   static UInt xGetSADs64        ( DistParam* pcDtParam );
   static UInt xGetSADs16N       ( DistParam* pcDtParam );
-#endif
   
   static UInt xGetHADs4         ( DistParam* pcDtParam );
   static UInt xGetHADs8         ( DistParam* pcDtParam );
@@ -214,14 +187,10 @@ private:
   static UInt xCalcHADs8x8      ( Pel *piOrg, Pel *piCurr, Int iStrideOrg, Int iStrideCur, Int iStep );
   
 public:
-#if WEIGHTED_CHROMA_DISTORTION
-  UInt   getDistPart( Pel* piCur, Int iCurStride,  Pel* piOrg, Int iOrgStride, UInt uiBlkWidth, UInt uiBlkHeight, Bool bWeighted = false, DFunc eDFunc = DF_SSE );
-#else
   UInt   getDistPart( Pel* piCur, Int iCurStride,  Pel* piOrg, Int iOrgStride, UInt uiBlkWidth, UInt uiBlkHeight, DFunc eDFunc = DF_SSE );
-#endif
   
 };// END CLASS DEFINITION TComRdCost
 
-//! \}
 
 #endif // __TCOMRDCOST__
+

@@ -45,10 +45,7 @@
 #include <stdio.h>
 #include <memory.h>
 #include <assert.h>
-#include "TLibCommon/CommonDef.h"
-
-//! \ingroup TLibEncoder
-//! \{
+#include "../TLibCommon/CommonDef.h"
 
 // ====================================================================================================================
 // Class definition
@@ -154,6 +151,5 @@ extern TEncAnalyze             m_gcAnalyzeI;
 extern TEncAnalyze             m_gcAnalyzeP;
 extern TEncAnalyze             m_gcAnalyzeB;
 
-//! \}
-
 #endif // !defined(AFX_TENCANALYZE_H__C79BCAA2_6AC8_4175_A0FE_CF02F5829233__INCLUDED_)
+

@@ -43,9 +43,6 @@
 
 using namespace std;
 
-//! \ingroup TLibCommon
-//! \{
-
 // ====================================================================================================================
 // Constructor / destructor / create / destroy
 // ====================================================================================================================
@@ -61,7 +58,7 @@ TComOutputBitstream::~TComOutputBitstream()
   delete m_fifo;
 }
 
-TComInputBitstream::TComInputBitstream(std::vector<uint8_t>* buf)
+TComInputBitstream::TComInputBitstream(vector<uint8_t>* buf)
 {
   m_fifo = buf;
   m_fifo_idx = 0;
@@ -234,8 +231,8 @@ Void TComInputBitstream::read (UInt uiNumberOfBits, UInt& ruiBits)
 }
 
 /**
- * insert the contents of the bytealigned (and flushed) bitstream src
- * into this at byte position pos.
+ * insert the contents of the bytealigned (and flushed) bitstream @src
+ * into @this at byte position @pos.
  */
 void TComOutputBitstream::insertAt(const TComOutputBitstream& src, unsigned pos)
 {
@@ -245,4 +242,3 @@ void TComOutputBitstream::insertAt(const TComOutputBitstream& src, unsigned pos)
   vector<uint8_t>::iterator at = this->m_fifo->begin() + pos;
   this->m_fifo->insert(at, src.m_fifo->begin(), src.m_fifo->end());
 }
-//! \}

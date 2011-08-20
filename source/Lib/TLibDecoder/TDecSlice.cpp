@@ -37,9 +37,6 @@
 
 #include "TDecSlice.h"
 
-//! \ingroup TLibDecoder
-//! \{
-
 //////////////////////////////////////////////////////////////////////
 // Construction/Destruction
 //////////////////////////////////////////////////////////////////////
@@ -111,4 +108,3 @@ Void TDecSlice::decompressSlice(TComInputBitstream* pcBitstream, TComPic*& rpcPi
   }
 
 }
-//! \}

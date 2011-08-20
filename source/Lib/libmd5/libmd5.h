@@ -33,9 +33,6 @@
 #pragma once
 #include <stdint.h>
 
-//! \ingroup libMD5
-//! \{
-
 typedef struct _context_md5_t {
   uint32_t buf[4];
   uint32_t bits[2];
@@ -51,5 +48,3 @@ void MD5Final(unsigned char digest[16], context_md5_t *ctx);
 #ifdef __cplusplus
 }
 #endif
-
-//! \}

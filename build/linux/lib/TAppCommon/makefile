@@ -2,8 +2,8 @@
 CONFIG 			= LIBRARY
 
 # set pathes to the correct directories
-SRC_DIR			= ../../../../source/Lib/TAppCommon
-INC_DIR			= ../../../../source/Lib
+SRC_DIR			= ../../../../source/App/TAppCommon
+INC_DIR			= ../../../../source/App/TAppCommon
 LIB_DIR			= ../../../../lib
 BIN_DIR			= ../../../../bin
 

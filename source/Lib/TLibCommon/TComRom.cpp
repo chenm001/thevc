@@ -43,9 +43,6 @@
 // Initialize / destroy functions
 // ====================================================================================================================
 
-//! \ingroup TLibCommon
-//! \{
-
 // initialize ROM variables
 Void initROM()
 {
@@ -73,28 +70,11 @@ Void initROM()
     g_auiSigLastScan[0][i] = new UInt[ c*c ];
     g_auiSigLastScan[1][i] = new UInt[ c*c ];
     g_auiSigLastScan[2][i] = new UInt[ c*c ];
-#if DIAG_SCAN
-    g_auiSigLastScan[3][i] = new UInt[ c*c ];
-    initSigLastScan( g_auiSigLastScan[0][i], g_auiSigLastScan[1][i], g_auiSigLastScan[2][i], g_auiSigLastScan[3][i], c, c, i);
-#else
     initSigLastScan( g_auiSigLastScan[0][i], g_auiSigLastScan[1][i], g_auiSigLastScan[2][i], c, c, i);
-#endif
 #endif //QC_MDCS
 
     c <<= 1;
   }  
-
-#if NSQT
-  UInt uiWidth[ 2 ]  = { 16, 32 };
-  UInt uiHeight[ 2 ] = { 4,  8  };
-  for ( i = 0; i < 2; i++ )
-  {
-    UInt uiW = uiWidth[ i ];
-    UInt uiH = uiHeight[ i ];
-    g_auiNonSquareSigLastScan[ i ] = new UInt[ uiW * uiH ];
-    initNonSquareSigLastScan( g_auiNonSquareSigLastScan[ i ], uiW, uiH);
-  }
-#endif
 }
 
 Void destroyROM()
@@ -110,9 +90,6 @@ Void destroyROM()
     delete[] g_auiSigLastScan[0][i];
     delete[] g_auiSigLastScan[1][i];
     delete[] g_auiSigLastScan[2][i];
-#if DIAG_SCAN
-    delete[] g_auiSigLastScan[3][i];
-#endif
 #endif //QC_MDCS
   }
 }
@@ -130,15 +107,8 @@ UInt g_auiZscanToRaster [ MAX_NUM_SPU_W*MAX_NUM_SPU_W ] = { 0, };
 UInt g_auiRasterToZscan [ MAX_NUM_SPU_W*MAX_NUM_SPU_W ] = { 0, };
 UInt g_auiRasterToPelX  [ MAX_NUM_SPU_W*MAX_NUM_SPU_W ] = { 0, };
 UInt g_auiRasterToPelY  [ MAX_NUM_SPU_W*MAX_NUM_SPU_W ] = { 0, };
-#if REDUCE_UPPER_MOTION_DATA
-UInt g_motionRefer   [ MAX_NUM_SPU_W*MAX_NUM_SPU_W ] = { 0, }; 
-#endif
 
-#if AMP
-UInt g_auiPUOffset[8] = { 0, 8, 4, 4, 2, 10, 1, 5};
-#else
 UInt g_auiPUOffset[4] = { 0, 8, 4, 4 };
-#endif
 
 Void initZscanToRaster ( Int iMaxDepth, Int iDepth, UInt uiStartVal, UInt*& rpuiCurrIdx )
 {
@@ -172,47 +142,6 @@ Void initRasterToZscan ( UInt uiMaxCUWidth, UInt uiMaxCUHeight, UInt uiMaxDepth 
     g_auiRasterToZscan[ g_auiZscanToRaster[i] ] = i;
   }
 }
-
-#if REDUCE_UPPER_MOTION_DATA
-/** generate motion data compression mapping table
-* \param uiMaxCUWidth, width of LCU
-* \param uiMaxCUHeight, hight of LCU
-* \param uiMaxDepth, max depth of LCU
-* \returns Void
-*/
-Void initMotionReferIdx ( UInt uiMaxCUWidth, UInt uiMaxCUHeight, UInt uiMaxDepth )
-{
-  Int  minCUWidth  = (Int)uiMaxCUWidth  >> ( (Int)uiMaxDepth - 1 );
-  Int  minCUHeight = (Int)uiMaxCUHeight >> ( (Int)uiMaxDepth - 1 );
-
-  Int  numPartInWidth  = (Int)uiMaxCUWidth  / (Int)minCUWidth;
-  Int  numPartInHeight = (Int)uiMaxCUHeight / (Int)minCUHeight;
-
-  for ( Int i = 0; i < numPartInWidth*numPartInHeight; i++ )
-  {
-    g_motionRefer[i] = i;
-  }
-
-  Int compressionNum = 2;
-
-  for ( Int i = numPartInWidth*(numPartInHeight-1); i < numPartInWidth*numPartInHeight; i += compressionNum*2)
-  {
-    for ( Int j = 1; j < compressionNum; j++ )
-    {
-      g_motionRefer[g_auiRasterToZscan[i+j]] = g_auiRasterToZscan[i];
-    }
-  }
-
-  for ( Int i = numPartInWidth*(numPartInHeight-1)+compressionNum*2-1; i < numPartInWidth*numPartInHeight; i += compressionNum*2)
-  {
-    for ( Int j = 1; j < compressionNum; j++ )
-    {
-      g_motionRefer[g_auiRasterToZscan[i-j]] = g_auiRasterToZscan[i];
-    }
-  }
-}
-
-#endif
 
 Void initRasterToPelXY ( UInt uiMaxCUWidth, UInt uiMaxCUHeight, UInt uiMaxDepth )
 {
@@ -306,12 +235,12 @@ void Idx2LevelRowCol(int idx, int *level, int *row, int *col)
 }
 #endif
 
-Int g_quantScales[6] =
+UInt g_auiQ[6] =
 {
   26214,23302,20560,18396,16384,14564
 };    
 
-Int g_invQuantScales[6] =
+UInt g_auiIQ[6] =
 {
   40,45,51,57,64,72
 };
@@ -409,9 +338,6 @@ const UChar g_aucChromaScale[52]=
 #define M1 (UInt)-1
 #endif
 
-#if TBL_RUN_ADAPT
-const Int atable[5] = {3,7,15,31,0xfffffff};
-#endif
 // Below table need to be optimized
 const UInt g_auiCbpVlcNum[2][8] =
 {
@@ -566,13 +492,8 @@ const UInt g_auiMI1TableEOnly1RefNoL1[8] = {0,2,3,4,1,6,5,7};
 const UInt g_auiMI1TableDOnly1RefNoL1[8] = {0,4,1,2,3,6,5,7};
 #endif
 
-#if AMP
-const UInt g_auiInterModeTableE[4][11] = {{0,1,2,3,4,5,6,7,8,9,10},{0,1,2,3,4,5,6,7,8,9,10},{0,1,2,3,4,5,6,7,8,9,10},{6,0,1,2,3,4,5,7,8,9,10}};
-const UInt g_auiInterModeTableD[4][11] = {{0,1,2,3,4,5,6,7,8,9,10},{0,1,2,3,4,5,6,7,8,9,10},{0,1,2,3,4,5,6,7,8,9,10},{1,2,3,4,5,6,0,7,8,9,10}};
-#else
 const UInt g_auiInterModeTableE[4][7] = {{0,1,2,3,4,5,6},{0,1,2,3,4,5,6},{0,1,2,3,4,5,6},{6,0,1,2,3,4,5}};
 const UInt g_auiInterModeTableD[4][7] = {{0,1,2,3,4,5,6},{0,1,2,3,4,5,6},{0,1,2,3,4,5,6},{1,2,3,4,5,6,0}};
-#endif
 
 // Below table need to be optimized
 const UInt g_auiMITableVlcNum[15] = 
@@ -627,12 +548,6 @@ const UInt g_auiLPTableD8[8][128] =
 
 #if MTK_DCM_MPM
 
-#if FIXED_MPM
-const UInt  g_auiIntraModeTableD17[17] = { 0, 3, 2, 15, 8, 11, 1, 10, 7, 4, 14, 9, 6, 5, 13, 12, 0 };
-const UInt  g_auiIntraModeTableE17[17] = { 0, 6, 2, 1, 9, 13, 12, 8, 4, 11, 7, 5, 15, 14, 10, 3, 0 };
-const UInt  g_auiIntraModeTableD34[34] = { 0, 2, 3, 29, 1, 8, 30, 21, 28, 16, 7, 15, 20, 31, 9, 11, 6, 4, 5, 12, 10, 14, 22, 19, 17, 27, 13, 18, 23, 26, 32, 24, 25, 0 };
-const UInt  g_auiIntraModeTableE34[34] = { 0, 4, 1, 2, 17, 18, 16, 10, 5, 14, 20, 15, 19, 26, 21, 11, 9, 24, 27, 23, 12, 7, 22, 28, 31, 32, 29, 25, 8, 3, 6, 13, 30, 0 };
-#else
 const UInt  g_auiIntraModeTableD17[2][16]=
 {
   {0, 15, 11, 10, 13,  7,  9, 4, 14,  2, 3, 6,  8, 5, 12, 1},
@@ -653,7 +568,6 @@ const UInt  g_auiIntraModeTableE34[2][33]=
   {1, 5, 0, 31, 20, 29, 27,  9, 11, 30, 17, 12, 22, 32, 19, 8, 10, 24, 21, 15, 4, 6, 14, 23, 25, 28, 26, 18, 7, 2,  3, 13, 16},
   {3, 1, 0, 30, 21, 31, 25, 10, 19, 23, 12, 13, 29, 27, 11, 8, 17, 20, 16,  7, 5, 9, 22, 24, 28, 26, 18,  6, 2, 4, 14, 15,  0}
 };
-#endif
 
 #else
 const UInt  g_auiIntraModeTableD17[16]={15,0,11,7,14,10,13,4,9,2,3,1,8,6,12,5};
@@ -691,7 +605,6 @@ const UInt g_auiLastPosVlcNum[10][17] =
 
 
 #if RUNLEVEL_TABLE_CUT
-#if !CAVLC_RUNLEVEL_TABLE_REM
 const UInt g_auiLumaRun8x8[28][29] =
 {
   {1,   0,  M1,  M1,  M1,  M1,  M1,  M1,  M1,  M1,  M1,  M1,  M1,  M1,  M1,  M1,  M1,  M1,  M1,  M1,  M1,  M1,  M1,  M1,  M1,  M1,  M1,  M1,  M1},
@@ -723,7 +636,6 @@ const UInt g_auiLumaRun8x8[28][29] =
   {1,   2,   4,   7,  11,  15,  12,   9,  10,   8,   5,   3,   6,  14,  16,  22,  23,  24,  20,  19,  13,  18,  26,  27,  25,  21,  17,   0,  M1},
   {1,   2,   3,   5,   6,  10,  14,  13,  11,   9,  12,   7,   4,   8,  16,  18,  21,  23,  25,  20,  22,  15,  19,  27,  28,  26,  24,  17,   0}
 };
-#endif
 #else
 const UInt g_auiLumaRun8x8[29][2][64] =
 {
@@ -1146,26 +1058,6 @@ const UInt g_auiLumaRun8x8[29][2][64] =
 };
 #endif
 
-#if MOD_INTRA_TABLE 
-const UInt g_auiLumaRunTr14x4[5][15]=
-{
-  {0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-  {2, 2, 2, 2, 3, 2, 2, 4, 4, 2, 4, 4, 2, 2, 2},
-  {2, 2, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, M1},
-  {1, 1, 1, 2, 2, 1, 2, 2, 2, 2, 2, 2, 2, M1, M1},
-  {1, 1, 1, 2, 1, 1, 2, 2, 0, 0, 2, 0, 0, M1, M1}
-};
-const UInt g_auiLumaRunTr18x8[2][29]=
-{
-  {2,2,1,2,2,2,2,4,2,2,2,2,2,4,4,6,4,4,4,4,4,4,6,6,4,4,4,6,6},
-  {2,3,3,3,3,2,4,8,4,2,4,4,4,6,6,8,6,6,6,8,8,8,10,12,8,8,8,10,14}
-};
-const UInt g_auiLumaRunTr116x16[2][29]=
-{
-  {1,1,1,2,2,2,2,2,2,2,2,4,4,4,4,4,4,6,6,6,4,4,6,6,6,6,8,6,10},
-  {1,3,2,3,4,4,4,6,6,6,6,6,8,14,10,8,8,10,10,16,12,10,10,12,12,12,28,16,22}
-};
-#else
 const UInt g_auiLumaRunTr14x4[5][15]=
 {
     {0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0},
@@ -1182,7 +1074,6 @@ const UInt g_auiLumaRunTr18x8[5][29]=
     {2, 1, 2, 2, 3, 3, 4, 4, 5, 5, 5, 6, 6, 7, 7, 7, 8, 9, 9, 10, 10, 11, 11, 12, 12, 13, 13, 13, 13},
     {2, 1, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 4, 5, 5, 5, 5, 5, 6, 6, 6, 6, 6, 6, 7, 7, 8}
 };
-#endif
 
 #if CAVLC_COEF_LRG_BLK
 const UInt *g_pLumaRunTr14x4[5] =
@@ -1190,45 +1081,22 @@ const UInt *g_pLumaRunTr14x4[5] =
   &g_auiLumaRunTr14x4[0][0], &g_auiLumaRunTr14x4[1][0], &g_auiLumaRunTr14x4[2][0], 
   &g_auiLumaRunTr14x4[3][0], &g_auiLumaRunTr14x4[4][0]
 };
-#if MOD_INTRA_TABLE
-const UInt *g_pLumaRunTr18x8[2] = 
-{ 
-  &g_auiLumaRunTr18x8[0][0], &g_auiLumaRunTr18x8[1][0]
-};
-const UInt *g_pLumaRunTr116x16[2] = 
-{ 
-  &g_auiLumaRunTr116x16[0][0], &g_auiLumaRunTr116x16[1][0]
-};
-#else
+
 const UInt *g_pLumaRunTr18x8[5] =
 { 
   &g_auiLumaRunTr18x8[0][0], &g_auiLumaRunTr18x8[1][0], &g_auiLumaRunTr18x8[2][0], 
   &g_auiLumaRunTr18x8[3][0], &g_auiLumaRunTr18x8[4][0]
 };
 #endif
-#endif
 
-const UInt g_auiVlcTable8x8Inter[29]   = {8,0,0,5,5,5,5,5,5,5,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,3};
-#if MOD_INTRA_TABLE
-const UInt g_auiVlcTable8x8Intra[29]   = {8,0,0,0,0,1,5,5,5,5,5,5,5,5,5,5,5,5,1,1,1,1,1,1,1,1,1,1,1}; 
-#else 
-const UInt g_auiVlcTable8x8Intra[29]   = {8,0,0,5,5,5,5,5,5,5,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,3};
-#endif
+const UInt g_auiVlcTable8x8Inter[29] = {8,0,0,5,5,5,5,5,5,5,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,3};
+const UInt g_auiVlcTable8x8Intra[29] = {8,0,0,5,5,5,5,5,5,5,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,3};
 #if CAVLC_COEF_LRG_BLK
-#if MOD_INTRA_TABLE == 0
 const UInt g_auiVlcTable16x16Intra[29] = {8,0,0,0,0,5,5,5,5,5,5,5,5,5,5,5,5,5,1,1,1,1,1,1,1,1,1,1,2};
-#endif
 const UInt g_auiVlcTable16x16Inter[29] = {8,0,1,1,1,1,2,2,2,2,2,2,2,6,6,6,6,6,6,3,3,3,3,3,3,3,3,3,3};
 #endif
 
 #if MTK_DCM_MPM
-
-#if FIXED_MPM
-const UInt huff17_2[18]       = { 1, 0, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 31, 30, 0 };
-const UInt lengthHuff17_2[18] = { 1, 4, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 6, 6, 0 };
-const UInt huff34_2[35]       = { 1, 0, 5, 4, 3, 2, 24, 23, 22, 21, 20, 19, 18, 17, 16, 15, 14, 13, 12, 62, 61, 60, 59, 58, 57, 56, 55, 54, 53, 52, 51, 50, 127, 126, 0 };
-const UInt lengthHuff34_2[35] = { 1, 4, 5, 5, 5, 5, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 8, 8, 0 };
-#else
 const UInt huff17_2[2][17]=
 {
   {1, 7, 6, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 3, 2, 1, 0},
@@ -1249,8 +1117,6 @@ const UInt lengthHuff34_2[2][34]=
   {1, 4,  5,  5,  5,  5,  5,  5,  6,  6,  6,  6,  6,  6,  6,  6,  7,  7,  7,  7,  7,  7,  7,  7,  7,  7,  7,  7,  7,  7,  8,  8,  8, 8 },
   {1, 4,  5,  5,  5,  5,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  7,  7,  7,  7,  7,  7,  7,  7,  7,  7,  7,  7,  7,  7, 0 }
 };
-#endif
-
 #else
 const UInt huff17_2[2][17]=
 {
@@ -1275,7 +1141,6 @@ const UInt lengthHuff34_2[2][34]=
 #endif
 
 #if RUNLEVEL_TABLE_CUT
-#if !CAVLC_RUNLEVEL_TABLE_REM
 const UInt g_acstructLumaRun8x8[28][29] =
 {
   {  1,  0, M1, M1, M1, M1, M1, M1, M1, M1, M1, M1, M1, M1, M1, M1, M1, M1, M1, M1, M1, M1, M1, M1, M1, M1, M1, M1, M1},
@@ -1307,7 +1172,6 @@ const UInt g_acstructLumaRun8x8[28][29] =
   { 27,  0,  1, 11,  2, 10, 12,  3,  9,  7,  8,  4,  6, 20, 13,  5, 14, 26, 21, 19, 18, 25, 15, 16, 17, 24, 22, 23, M1},
   { 28,  0,  1,  2, 12,  3,  4, 11, 13,  9,  5,  8, 10,  7,  6, 21, 14, 27, 15, 22, 19, 16, 20, 17, 26, 18, 25, 23, 24}
 };
-#endif
 #else
 const LastCoeffStruct g_acstructLumaRun8x8[29][127] =
 {
@@ -1638,16 +1502,9 @@ const UChar g_aucDCTDSTMode_Vert[NUM_INTRA_MODE] =
 const UChar g_aucDCTDSTMode_Vert[34] =
 #endif
 { //0  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33
-#if FIXED_MPM
-  1, 1, 0, 0, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0 
-#if LM_CHROMA
- , 0
-#endif
-#else
   1, 0, 0, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0 ,0 
 #if ADD_PLANAR_MODE || LM_CHROMA
 ,1, 0
-#endif
 #endif
 };
 #if ADD_PLANAR_MODE || LM_CHROMA
@@ -1656,16 +1513,9 @@ const UChar g_aucDCTDSTMode_Hor[NUM_INTRA_MODE] =
 const UChar g_aucDCTDSTMode_Hor[34] =
 #endif
 { //0  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33
-#if FIXED_MPM
-  1, 0, 1, 0, 1, 1, 0, 0, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1 
-#if ADD_PLANAR_MODE || LM_CHROMA
- , 0
-#endif
-#else
   0, 1, 0, 1, 1, 0, 0, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1 ,1 
 #if ADD_PLANAR_MODE || LM_CHROMA
 ,1, 0
-#endif
 #endif
 };
 #endif  // for INTRA_DST_TYPE_7
@@ -1717,46 +1567,6 @@ const UChar g_aucAngIntraModeOrder[NUM_INTRA_MODE] =
 const UChar g_aucAngIntraModeOrder[34] =
 #endif
 {     //  ModeOrder LogicalOrderInPredFunctions
-#if FIXED_MPM
-  34, //  PLANAR_IDX PLANAR PLANAR
-  9,  //  0 VER     DC
-  25, //  1 HOR     VER-8 (diagonal from top-left to bottom-right = HOR-8)
-  0,  //  2 DC      VER-7
-  1,  //  4 VER-8   VER-6
-  5,  //  5 VER-4   VER-5
-  13, //  6 VER+4   VER-4
-  17, //  7 VER+8   VER-3
-  21, //  8 HOR-4   VER-2
-  29, //  9 HOR+4   VER-1
-  33, // 10 HOR+8   VER
-  3,  // 11 VER-6   VER+1
-  7,  // 12 VER-2   VER+2
-  11, // 13 VER+2   VER+3
-  15, // 14 VER+6   VER+4
-  19, // 15 HOR-6   VER+5
-  23, // 16 HOR-2   VER+6
-  27, // 17 HOR+2   VER+7
-  31, // 18 HOR+6   VER+8
-  2,  // 19 VER-7   HOR-7
-  4,  // 20 VER-5   HOR-6
-  6,  // 21 VER-3   HOR-5
-  8,  // 22 VER-1   HOR-4
-  10, // 23 VER+1   HOR-3
-  12, // 24 VER+3   HOR-2
-  14, // 25 VER+5   HOR-1
-  16, // 26 VER+7   HOR
-  18, // 27 HOR-7   HOR+1
-  20, // 28 HOR-5   HOR+2
-  22, // 29 HOR-3   HOR+3
-  24, // 30 HOR-1   HOR+4
-  26, // 31 HOR+1   HOR+5
-  28, // 32 HOR+3   HOR+6
-  30, // 33 HOR+5   HOR+7
-  32, // 34 HOR+7   HOR+8
-#if LM_CHROMA
-  0, // LM_CHROMA_IDX 
-#endif
-#else
   9,  //  0 VER     DC
   25, //  1 HOR     VER-8 (diagonal from top-left to bottom-right = HOR-8)
   0,  //  2 DC      VER-7
@@ -1792,28 +1602,11 @@ const UChar g_aucAngIntraModeOrder[34] =
   30, // 32 HOR+5   HOR+7
   32, // 33 HOR+7   HOR+8
 #if ADD_PLANAR_MODE || LM_CHROMA
-#if FIXED_MPM
-  34, // PLANAR_IDX PLANAR PLANAR
-#else
   0, // PLANAR_IDX PLANAR PLANAR
-#endif
   0, // LM_CHROMA_IDX 
-#endif
 #endif
 };
 
-#if FIXED_MPM
-const UChar g_aucIntraModeNumAng[7] =
-{
-  4,  //   2x2
-  18,  //   4x4
-  35,  //   8x8
-  35,  //  16x16
-  35,  //  32x32
-  4,  //  64x64
-  6   // 128x128
-};
-#else
 const UChar g_aucIntraModeNumAng[7] =
 {
   3,  //   2x2
@@ -1824,7 +1617,6 @@ const UChar g_aucIntraModeNumAng[7] =
   3,  //  64x64
   5   // 128x128
 };
-#endif
 
 const UChar g_aucIntraModeBitsAng[7] =
 {
@@ -1837,15 +1629,6 @@ const UChar g_aucIntraModeBitsAng[7] =
   3   // 128x128   5   2+1
 };
 
-#if FIXED_MPM
-const UChar g_aucAngModeMapping[4][35] = // intra mode conversion for most probable
-{
-  {3,  4,  3,  3,  5,  5,  5,  1,  1,  1,  1,  1,  1,  1,  3,  3,  3,  3,  3,  3,  3,  2,  2,  2,  2,  2,  2,  2,  2,  2,  3,  3,  3,  3},        // conversion to 5 modes
-  {3,  4,  4,  3,  5,  5,  5,  3,  1,  1,  1,  3,  6,  6,  6,  3,  7,  7,  4,  3,  8,  8,  8,  3,  2,  2,  2,  3,  9,  9,  9,  3,  3,  3},        // conversion to 9 modes
-  {3,  4,  4,  11, 11, 5,  12, 12, 1,  1,  1,  13, 13, 6,  6,  14, 14, 7,  15, 15, 8,  8,  16, 16, 2,  2,  2,  17, 17, 9,  9,  3,  3,  10},       // conversion to 17 modes
-  {3,  3,  3,  3,  3,  3,  3,  1,  1,  1,  1,  1,  1,  1,  3,  3,  3,  3,  3,  3,  3,  2,  2,  2,  2,  2,  2,  2,  2,  2,  3,  3,  3,  3}         // conversion to 3 modes
-};
-#else
 const UChar g_aucAngModeMapping[4][34] = // intra mode conversion for most probable
 {
   {2,3,2,2,4, 4,4,0,0,0, 0,0,0,0,2, 2,2,2,2,2, 2,1,1,1,1, 1,1,1,1,1, 2,2,2,2},               // conversion to 5 modes
@@ -1853,7 +1636,6 @@ const UChar g_aucAngModeMapping[4][34] = // intra mode conversion for most proba
   {2,3,3,10,10, 4,11,11,0,0, 0,12,12,5,5, 13,13,6,14,14, 7,7,15,15,1, 1,1,16,16,8, 8,2,2,9}, // conversion to 17 modes
   {2,2,2,2,2, 2,2,0,0,0, 0,0,0,0,2, 2,2,2,2,2, 2,1,1,1,1, 1,1,1,1,1, 2,2,2,2}                // conversion to 3 modes
 };
-#endif
 
 // ====================================================================================================================
 // Bit-depth
@@ -1891,26 +1673,10 @@ UInt* g_auiFrameScanXY[ MAX_CU_DEPTH  ];
 UInt* g_auiFrameScanX [ MAX_CU_DEPTH  ];
 UInt* g_auiFrameScanY [ MAX_CU_DEPTH  ];
 #if QC_MDCS
-#if DIAG_SCAN
-UInt* g_auiSigLastScan[4][ MAX_CU_DEPTH ];
-#else
 UInt* g_auiSigLastScan[3][ MAX_CU_DEPTH ];
-#endif
 #endif //QC_MDCS
 
-#if NSQT
-UInt* g_auiNonSquareSigLastScan[ 2 ];
-#endif
-
-#if MODIFIED_LAST_CODING
-const UInt g_uiLastCtx[ 32 ] =
-{
-  0, 1, 2, 2, // 4x4
-  3, 4, 5, 5, // 8x8
-  6, 7, 8, 9, 10, 10, 11, 11, // 16x16
-  12, 13, 14, 15, 16, 16, 16, 16, 17, 17, 17, 17, 18, 18, 18, 18 // 32x32
-};
-#else
+#if PCP_SIGMAP_SIMPLE_LAST
 UInt g_uiCtxXYOffset[ MAX_CU_DEPTH ] =
 {
   15, 15, 15, 8, 3, 0, 0
@@ -1925,6 +1691,7 @@ UInt g_uiCtxXY[ 31 ] =
 // scanning order to 8x8 context model mapping table
 UInt  g_auiAntiScan8  [64];
 
+#if E253
 // Rice parameters for absolute transform levels
 const UInt g_auiGoRiceRange[4] =
 {
@@ -1951,6 +1718,7 @@ const UInt g_aauiGoRiceUpdate[4][16] =
     3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3
   }
 };
+#endif
 
 // initialize g_auiFrameScanXY
 Void initFrameScanXY( UInt* pBuff, UInt* pBuffX, UInt* pBuffY, Int iWidth, Int iHeight )
@@ -2007,35 +1775,8 @@ Void initFrameScanXY( UInt* pBuff, UInt* pBuffX, UInt* pBuffY, Int iWidth, Int i
 }
 
 #if QC_MDCS
-#if DIAG_SCAN
-Void initSigLastScan(UInt* pBuffZ, UInt* pBuffH, UInt* pBuffV, UInt* pBuffD, Int iWidth, Int iHeight, Int iDepth)
-#else
 Void initSigLastScan(UInt* pBuffZ, UInt* pBuffH, UInt* pBuffV, Int iWidth, Int iHeight, Int iDepth)
-#endif
 {
-#if DIAG_SCAN
-  const UInt  uiNumScanPos  = UInt( iWidth * iWidth );
-  UInt        uiNextScanPos = 0;
-
-  for( UInt uiScanLine = 0; uiNextScanPos < uiNumScanPos; uiScanLine++ )
-  {
-    int    iPrimDim  = int( uiScanLine );
-    int    iScndDim  = 0;
-    while( iPrimDim >= iWidth )
-    {
-      iScndDim++;
-      iPrimDim--;
-    }
-    while( iPrimDim >= 0 && iScndDim < iWidth )
-    {
-      pBuffD[ uiNextScanPos ] = iPrimDim * iWidth + iScndDim ;
-      uiNextScanPos++;
-      iScndDim++;
-      iPrimDim--;
-    }
-  }
-#endif
-  
   memcpy(pBuffZ, g_auiFrameScanXY[iDepth], sizeof(UInt)*iWidth*iHeight);
 
   UInt uiCnt = 0;
@@ -2060,59 +1801,9 @@ Void initSigLastScan(UInt* pBuffZ, UInt* pBuffH, UInt* pBuffV, Int iWidth, Int i
 }
 #endif //QC_MDCS
 
-#if CHROMA_CODEWORD_SWITCH
-#if FIXED_MPM
-const UChar ChromaMapping[4] = {0, 1, 3, 2};
-#else
 const UChar ChromaMapping[2][5] = 
 {
   {0, 1, 3, 2, 4},
   {0, 1, 2, 4, 3}
 };
-#endif
-#endif
-#if NSQT
-Void initNonSquareSigLastScan(UInt* pBuffZ, UInt uiWidth, UInt uiHeight)
-{
 
-  Int x, y, c = 0;
-
-  // starting point
-  pBuffZ[ c++ ] = 0;
-
-  // loop
-  x=0; y=1;
-  while (1)
-  {
-    // increase loop
-    while ( y>=0 )
-    {
-      if ( x >= 0 && x < uiWidth && y >= 0 && y < uiHeight )
-      {
-        pBuffZ[ c++ ] = x + y * uiWidth;
-      }
-      x++;
-      y--;
-    }
-    y=0;
-
-    // decrease loop
-    while ( x>=0 )
-    {
-      if ( x >= 0 && x < uiWidth && y >= 0 && y < uiHeight )
-      {
-        pBuffZ[ c++ ] = x + y * uiWidth;
-      }
-      x--;
-      y++;
-    }
-    x=0;
-
-    // termination condition
-    if ( c >= uiWidth * uiHeight ) 
-      break;
-  }
-
-}
-#endif
-//! \}

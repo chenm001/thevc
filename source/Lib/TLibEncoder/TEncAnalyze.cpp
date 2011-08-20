@@ -37,9 +37,6 @@
 
 #include "TEncAnalyze.h"
 
-//! \ingroup TLibEncoder
-//! \{
-
 //////////////////////////////////////////////////////////////////////
 // Construction/Destruction
 //////////////////////////////////////////////////////////////////////
@@ -49,4 +46,3 @@ TEncAnalyze             m_gcAnalyzeI;
 TEncAnalyze             m_gcAnalyzeP;
 TEncAnalyze             m_gcAnalyzeB;
 
-//! \}

@@ -41,13 +41,10 @@
 #include <list>
 #include <ostream>
 
-#include "TLibEncoder/TEncTop.h"
-#include "TLibVideoIO/TVideoIOYuv.h"
-#include "TLibCommon/AccessUnit.h"
+#include "../../Lib/TLibEncoder/TEncTop.h"
+#include "../../Lib/TLibVideoIO/TVideoIOYuv.h"
+#include "../../Lib/TLibCommon/AccessUnit.h"
 #include "TAppEncCfg.h"
-
-//! \ingroup TAppEncoder
-//! \{
 
 // ====================================================================================================================
 // Class definition
@@ -95,8 +92,6 @@ public:
   TEncTop&    getTEncTop  ()   { return  m_cTEncTop; }      ///< return encoder class pointer reference
   
 };// END CLASS DEFINITION TAppEncTop
-
-//! \}
 
 #endif // __TAPPENCTOP__
 

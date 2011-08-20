@@ -42,11 +42,11 @@
 
 #include <stdlib.h>
 
-#include "TLibCommon/TComList.h"
-#include "TLibCommon/TComPic.h"
-#include "TLibCommon/TComBitCounter.h"
-#include "TLibCommon/TComLoopFilter.h"
-#include "TLibCommon/AccessUnit.h"
+#include "../TLibCommon/TComList.h"
+#include "../TLibCommon/TComPic.h"
+#include "../TLibCommon/TComBitCounter.h"
+#include "../TLibCommon/TComLoopFilter.h"
+#include "../TLibCommon/AccessUnit.h"
 #include "TEncAdaptiveLoopFilter.h"
 #include "TEncSlice.h"
 #include "TEncEntropy.h"
@@ -58,9 +58,6 @@
 #if RVM_VCEGAM10
 #include <vector>
 #endif
-
-//! \ingroup TLibEncoder
-//! \{
 
 class TEncTop;
 
@@ -167,7 +164,6 @@ enum PROCESSING_STATE
 };
 #endif
 
-//! \}
 
 #endif // __TENCGOP__
 

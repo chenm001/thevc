@@ -38,10 +38,7 @@
 #ifndef __TAPPENCCFG__
 #define __TAPPENCCFG__
 
-#include "TLibCommon/CommonDef.h"
-
-//! \ingroup TAppEncoder
-//! \{
+#include "../../Lib/TLibCommon/CommonDef.h"
 
 // ====================================================================================================================
 // Class definition
@@ -79,9 +76,7 @@ protected:
   Bool      m_bUseGPB;                                        ///< flag for using generalized P & B structure
   Bool      m_bUseLComb;                                      ///< flag for using combined reference list for uni-prediction in B-slices (JCTVC-D421)
   Bool      m_bLCMod;                                         ///< flag for specifying whether the combined reference list for uni-prediction in B-slices is uploaded explicitly
-#if DISABLE_4x4_INTER
-  Bool      m_bDisInter4x4;
-#endif
+
   // coding quality
   Double    m_fQP;                                            ///< QP value of key-picture (floating point)
   Int       m_iQP;                                            ///< QP value of key-picture (integer)
@@ -92,10 +87,6 @@ protected:
   UInt      m_uiDeltaQpRD;                                    ///< dQP range for multi-pass slice QP optimization
 #if SUB_LCU_DQP
   Int       m_iMaxCuDQPDepth;                                 ///< Max. depth for a minimum CuDQPSize (0:default)
-#endif
-#if QP_ADAPTATION
-  Bool      m_bUseAdaptiveQP;                                 ///< Flag for enabling QP adaptation based on a psycho-visual model
-  Int       m_iQPAdaptationRange;                             ///< dQP range by QP adaptation
 #endif
   
   Bool      m_bTLayering;                                     ///< indicates whether temporal IDs are set based on the hierarchical coding structure
@@ -166,12 +157,7 @@ protected:
   Int       m_iSearchRange;                                   ///< ME search range
   Int       m_bipredSearchRange;                              ///< ME search range for bipred refinement
   Bool      m_bUseFastEnc;                                    ///< flag for using fast encoder setting
-#if EARLY_CU_DETERMINATION
-  Bool      m_bUseEarlyCU;                                    ///< flag for using Early CU setting
-#endif  
-#if CBF_FAST_MODE
-  Bool      m_bUseCbfFastMode;                              ///< flag for using Cbf Fast PU Mode Decision
-#endif  
+  
   Int       m_iSliceMode;           ///< 0: Disable all Recon slice limits, 1 : Maximum number of largest coding units per slice, 2: Maximum number of bytes in a slice
   Int       m_iSliceArgument;       ///< If m_iSliceMode==1, m_iSliceArgument=max. # of largest coding units. If m_iSliceMode==2, m_iSliceArgument=max. # of bytes.
   Int       m_iEntropySliceMode;    ///< 0: Disable all entropy slice limits, 1 : Maximum number of largest coding units per slice, 2: Constraint based entropy slice
@@ -186,10 +172,6 @@ protected:
   Bool      m_bUseConstrainedIntraPred;                       ///< flag for using constrained intra prediction
   
   bool m_pictureDigestEnabled; ///< enable(1)/disable(0) md5 computation and SEI signalling
-
-#if REF_SETTING_FOR_LD
-  Bool      m_bUseNewRefSetting;
-#endif
 
   // internal member functions
   Void  xSetGlobal      ();                                   ///< set global variables
@@ -207,8 +189,6 @@ public:
   Bool  parseCfg  ( Int argc, Char* argv[] );                 ///< parse configuration file to fill member variables
   
 };// END CLASS DEFINITION TAppEncCfg
-
-//! \}
 
 #endif // __TAPPENCCFG__
 

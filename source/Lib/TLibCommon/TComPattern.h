@@ -42,9 +42,6 @@
 #include <stdio.h>
 #include "CommonDef.h"
 
-//! \ingroup TLibCommon
-//! \{
-
 // ====================================================================================================================
 // Class definition
 // ====================================================================================================================
@@ -105,7 +102,7 @@ private:
   TComPatternParam  m_cPatternY;
   TComPatternParam  m_cPatternCb;
   TComPatternParam  m_cPatternCr;
-#if MN_DC_PRED_FILTER && !UNIFICATION_OF_AVAILABILITY
+#if MN_DC_PRED_FILTER
   Bool m_bAboveFlagForDCFilt;
   Bool m_bLeftFlagForDCFilt;
   Bool m_bDCPredFilterFlag;
@@ -126,7 +123,7 @@ public:
   Int   getROIYWidth()            { return m_cPatternY.m_iROIWidth;       }
   Int   getROIYHeight()           { return m_cPatternY.m_iROIHeight;      }
   Int   getPatternLStride()       { return m_cPatternY.m_iPatternStride;  }
-#if MN_DC_PRED_FILTER && !UNIFICATION_OF_AVAILABILITY
+#if MN_DC_PRED_FILTER
   Bool  getDCPredFilterFlag()     { return m_bDCPredFilterFlag; }
 #endif
 
@@ -169,11 +166,7 @@ public:
                                Bool&       bAbove,
                                Bool&       bLeft
 #if LM_CHROMA
-#if LM_CHROMA_SIMPLIFICATION
-                              ,Bool        bLMmode = false // using for LM chroma or not
-#else
-                              ,UInt uiExt = 1 // number of extension lines, default is one, for LM chroma two lines are necessary for downsampling
-#endif
+                               ,UInt uiExt = 1 // number of extension lines, default is one, for LM chroma two lines are necessary for downsampling
 #endif
                                );
   
@@ -191,35 +184,12 @@ private:
 
 #if REFERENCE_SAMPLE_PADDING
   /// padding of unavailable reference samples for intra prediction
-#if LM_CHROMA_SIMPLIFICATION
-  Void  fillReferenceSamples        ( TComDataCU* pcCU, Pel* piRoiOrigin, Int* piAdiTemp, Bool* bNeighborFlags, Int iNumIntraNeighbor, Int iUnitSize, Int iNumUnitsInCu, Int iTotalUnits, UInt uiCuWidth, UInt uiCuHeight, UInt uiWidth, UInt uiHeight, Int iPicStride, Bool bLMmode = false);
-#else
   Void  fillReferenceSamples        ( TComDataCU* pcCU, Pel* piRoiOrigin, Int* piAdiTemp, Bool* bNeighborFlags, Int iNumIntraNeighbor, Int iUnitSize, Int iNumUnitsInCu, Int iTotalUnits, UInt uiCuWidth, UInt uiCuHeight, UInt uiWidth, UInt uiHeight, Int iPicStride);
 #if LM_CHROMA
   Void  fill2ReferenceSamples_LM    ( TComDataCU* pcCU, Pel* piRoiOrigin, Int* piAdiTemp, Bool* bNeighborFlags, Int iNumIntraNeighbor, Int iUnitSize, Int iNumUnitsInCu, Int iTotalUnits, UInt uiCuWidth, UInt uiCuHeight, UInt uiWidth, UInt uiHeight, Int iPicStride);
 #endif
-#endif
   
 #endif
-
-
-#if UNIFY_INTRA_AVAIL
-
-  /// constrained intra prediction
-  Bool  isAboveLeftAvailable  ( TComDataCU* pcCU, UInt uiPartIdxLT );
-#if REFERENCE_SAMPLE_PADDING
-  Int   isAboveAvailable      ( TComDataCU* pcCU, UInt uiPartIdxLT, UInt uiPartIdxRT, Bool* bValidFlags );
-  Int   isLeftAvailable       ( TComDataCU* pcCU, UInt uiPartIdxLT, UInt uiPartIdxLB, Bool* bValidFlags );
-  Int   isAboveRightAvailable ( TComDataCU* pcCU, UInt uiPartIdxLT, UInt uiPartIdxRT, Bool* bValidFlags );
-  Int   isBelowLeftAvailable  ( TComDataCU* pcCU, UInt uiPartIdxLT, UInt uiPartIdxLB, Bool* bValidFlags );
-#else
-  Bool  isAboveAvailable      ( TComDataCU* pcCU, UInt uiPartIdxLT, UInt uiPartIdxRT );
-  Bool  isLeftAvailable       ( TComDataCU* pcCU, UInt uiPartIdxLT, UInt uiPartIdxLB );
-  Bool  isAboveRightAvailable ( TComDataCU* pcCU, UInt uiPartIdxLT, UInt uiPartIdxRT );
-  Bool  isBelowLeftAvailable  ( TComDataCU* pcCU, UInt uiPartIdxLT, UInt uiPartIdxLB );
-#endif
-
-#else //UNIFY_INTRA_AVAIL
   /// constrained intra prediction
   Bool  isAboveLeftAvailableForCIP  ( TComDataCU* pcCU, UInt uiPartIdxLT );
 #if REFERENCE_SAMPLE_PADDING
@@ -233,10 +203,7 @@ private:
   Bool  isAboveRightAvailableForCIP ( TComDataCU* pcCU, UInt uiPartIdxLT, UInt uiPartIdxRT );
   Bool  isBelowLeftAvailableForCIP  ( TComDataCU* pcCU, UInt uiPartIdxLT, UInt uiPartIdxLB );
 #endif
-
-#endif
 };
 
-//! \}
-
 #endif // __TCOMPATTERN__
+

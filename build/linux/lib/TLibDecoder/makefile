@@ -3,7 +3,7 @@ CONFIG 			= LIBRARY
 
 # set pathes to the correct directories
 SRC_DIR			= ../../../../source/Lib/TLibDecoder
-INC_DIR			= ../../../../source/Lib
+INC_DIR			= ../../../../source/Lib/TLibDecoder
 LIB_DIR			= ../../../../lib
 BIN_DIR			= ../../../../bin
 

@@ -38,11 +38,9 @@
 #ifndef __TDEC_BIN_CODER__
 #define __TDEC_BIN_CODER__
 
-#include "TLibCommon/ContextModel.h"
-#include "TLibCommon/TComBitStream.h"
+#include "../TLibCommon/ContextModel.h"
+#include "../TLibCommon/TComBitStream.h"
 
-//! \ingroup TLibDecoder
-//! \{
 
 class TDecBinIf
 {
@@ -55,7 +53,6 @@ public:
 
   virtual Void  decodeBin         ( UInt& ruiBin, ContextModel& rcCtxModel )  = 0;
   virtual Void  decodeBinEP       ( UInt& ruiBin                           )  = 0;
-  virtual Void  decodeBinsEP      ( UInt& ruiBins, Int numBins             )  = 0;
   virtual Void  decodeBinTrm      ( UInt& ruiBin                           )  = 0;
   
 #if E057_INTRA_PCM
@@ -67,6 +64,5 @@ public:
   virtual ~TDecBinIf() {}
 };
 
-//! \}
-
 #endif
+

@@ -38,15 +38,12 @@
 #ifndef __TENCADAPTIVELOOPFILTER__
 #define __TENCADAPTIVELOOPFILTER__
 
-#include "TLibCommon/TComAdaptiveLoopFilter.h"
-#include "TLibCommon/TComPic.h"
+#include "../TLibCommon/TComAdaptiveLoopFilter.h"
+#include "../TLibCommon/TComPic.h"
 
 #include "TEncEntropy.h"
 #include "TEncSbac.h"
-#include "TLibCommon/TComBitCounter.h"
-
-//! \ingroup TLibEncoder
-//! \{
+#include "../TLibCommon/TComBitCounter.h"
 
 // ====================================================================================================================
 // Class definition
@@ -73,30 +70,25 @@ private:
   Double *m_dCostPartBest ;//[MAX_NUM_QAO_PART]; 
   Int64  *m_iDistOrg;      //[MAX_NUM_QAO_PART]; 
   Int    *m_iTypePartBest ;//[MAX_NUM_QAO_PART]; 
-#if SAO_CLIP_OFFSET
-  Int     m_iOffsetTh;
-#endif
+
   Bool    m_bUseSBACRD;
 
 public:
   Void startSaoEnc( TComPic* pcPic, TEncEntropy* pcEntropyCoder, TEncSbac*** pppcRDSbacCoder, TEncSbac* pcRDGoOnSbacCoder);
   Void endSaoEnc();
-#if SAO_CHROMA_LAMBDA
-  Void SAOProcess(Double dLambda, Double dLambdaChroma);
-#else
   Void SAOProcess(Double dLambda);
-#endif
-  Void xQuadTreeDecisionFunc(SAOQTPart *psQTPart, Int iPartIdx, Double &dCostFinal, Int iMaxLevel, Double dLambda);
-  Void xQAOOnePart(SAOQTPart *psQTPart, Int iPartIdx, Double dLambda);
-  Void xPartTreeDisable(SAOQTPart *psQTPart, Int iPartIdx);
-  Void xGetQAOStats(SAOQTPart *psQTPart, Int iYCbCr);
-  Void calcAoStatsCu(Int iAddr, Int iPartIdx, Int iYCbCr);
+  Void xQuadTreeDecisionFunc(Int iPartIdx, TComPicYuv* pcPicOrg, TComPicYuv* pcPicDec, TComPicYuv* pcPicRest, Double &dCostFinal);
+  Void xQAOOnePart(SAOQTPart* pQAOOnePart, Int iPartIdx);
+  Void xPartTreeDisable(Int iPartIdx);
+  Void xGetQAOStats(TComPicYuv* pcPicOrg, TComPicYuv* pcPicDec, TComPicYuv* pcPicRest);
+  Void calcAoStatsCu(Int iAddr, Int iPartIdx);
+
 #if SAO_FGS_MNIF
-  Void calcAoStatsCuMap(Int iAddr, Int iPartIdx, Int iYCbCr);
-  Void calcAoStatsCuOrg(Int iAddr, Int iPartIdx, Int iYCbCr);
+  Void calcAoStatsCuMap(Int iAddr, Int iPartIdx);
+  Void calcAoStatsCuOrg(Int iAddr, Int iPartIdx);
 #endif
 
-  Void destroyEncBuffer();
+  Void destoryEncBuffer();
   Void createEncBuffer();
 };
 #endif
@@ -114,10 +106,6 @@ private:
   
   Double** m_ppdAlfCorr;
   Double* m_pdDoubleAlfCoeff;
-#if ALF_CHROMA_NEW_SHAPES
-  Double** m_ppdAlfCorrCb;
-  Double** m_ppdAlfCorrCr;
-#endif
   
   SliceType m_eSliceType;
   Int m_iPicNalReferenceIdc;
@@ -134,13 +122,6 @@ private:
   TComPicYuv* m_pcPicYuvBest;
   TComPicYuv* m_pcPicYuvTmp;
   
-#if STAR_CROSS_SHAPES_LUMA
-  ALFParam* pcAlfParamShape0;
-  ALFParam* pcAlfParamShape1;
-  TComPicYuv* pcPicYuvRecShape0;
-  TComPicYuv* pcPicYuvRecShape1;
-#endif
-
   UInt m_uiNumSCUInCU;
   
   Int m_varIndTab[NO_VAR_BINS];
@@ -174,15 +155,8 @@ private:
 #if MQT_BA_RA
   Int***   m_aiFilterCoeffSavedMethods[NUM_ALF_CLASS_METHOD];  //!< time-delayed filter set buffer
   Int***   m_aiFilterCoeffSaved;                               //!< the current accessing time-delayed filter buffer pointer
-#if STAR_CROSS_SHAPES_LUMA
-  Int*    m_iPreviousFilterShapeMethods[NUM_ALF_CLASS_METHOD];
-  Int*    m_iPreviousFilterShape;
-#endif
 #else
   Int  m_aiFilterCoeffSaved[9][NO_VAR_BINS][MAX_SQR_FILT_LENGTH];
-#if STAR_CROSS_SHAPES_LUMA
-  Int  m_iPreviousFilterShape[2];
-#endif
 #endif
   Int  m_iGOPSize;                //!< GOP size
   Int  m_iCurrentPOC;             //!< POC
@@ -198,12 +172,6 @@ private:
   static Int  m_aiTapPos7x7_In9x9Sym[14]; //!< for N-pass encoding- filter tap relative position in 9x9 footprint
   static Int  m_aiTapPos5x5_In9x9Sym[8];  //!< for N-pass encoding- filter tap relative position in 9x9 footprint
   static Int* m_iTapPosTabIn9x9Sym[NO_TEST_FILT];
-#endif
-
-#if STAR_CROSS_SHAPES_LUMA
-  static Int  m_aiFilterPosShape0In11x5Sym[10]; //!< for N-pass encoding- filter shape relative position in 19x5 footprint
-  static Int  m_aiFilterPosShape1In11x5Sym[9]; //!< for N-pass encoding- filter shape relative position in 19x5 footprint
-  static Int* m_iFilterTabIn11x5Sym[NO_TEST_FILT];
 #endif
 
 #if MTK_NONCROSS_INLOOP_FILTER
@@ -269,11 +237,8 @@ private:
 
 #if MQT_BA_RA
   /// save filter coefficients to buffer
-#if STAR_CROSS_SHAPES_LUMA
-  Void  saveFilterCoeffToBuffer(Int **filterCoeffPrevSelected,Int filtNo);
-#else
   Void  saveFilterCoeffToBuffer(Int **filterCoeffPrevSelected);
-#endif
+
   /// set initial m_maskImg with previous (time-delayed) filters
   Void  setMaskWithTimeDelayedResults(TComPicYuv* pcPicOrg, TComPicYuv* pcPicDec);
 
@@ -327,15 +292,8 @@ private:
 
 
 protected:
-#if ALF_CHROMA_NEW_SHAPES
-  Void   xFilterTapDecisionChroma      (UInt64 uiLumaRate, TComPicYuv* pcPicOrg, TComPicYuv* pcPicDec, TComPicYuv* pcPicRest, UInt64& ruiDist, UInt64& ruiBits);
-  UInt64 xCalcRateChroma               (ALFParam* pAlfParam);
-  Void   xCalcALFCoeffChroma           (Int iChromaIdc, Int iShape, Int* piCoeff);
-  Int64  xFastFiltDistEstimationChroma (Double** ppdCorr, Int* piCoeff, Int iSqrFiltLength);
-#else
   /// do ALF for chroma
   Void xEncALFChroma          ( UInt64 uiLumaRate, TComPicYuv* pcPicOrg, TComPicYuv* pcPicDec, TComPicYuv* pcPicRest, UInt64& ruiDist, UInt64& ruiBits );
-#endif
 public:
   TEncAdaptiveLoopFilter          ();
   virtual ~TEncAdaptiveLoopFilter () {}
@@ -347,11 +305,7 @@ public:
   Void endALFEnc();
   
   /// estimate ALF parameters
-#if ALF_CHROMA_LAMBDA  
-  Void ALFProcess(ALFParam* pcAlfParam, Double dLambdaLuma, Double dLambdaChroma, UInt64& ruiDist, UInt64& ruiBits, UInt& ruiMaxAlfCtrlDepth );
-#else
   Void ALFProcess(ALFParam* pcAlfParam, Double dLambda, UInt64& ruiDist, UInt64& ruiBits, UInt& ruiMaxAlfCtrlDepth );
-#endif
 
 #if E057_INTRA_PCM && E192_SPS_PCM_FILTER_DISABLE_SYNTAX
   Void PCMLFDisableProcess (TComPic* pcPic);
@@ -451,8 +405,6 @@ public:
   /// set shared ALF parameters in PPS enabled/disabled
   Void setSharedPPSAlfParamEnabled(Bool b) {m_bSharedPPSAlfParamEnabled = b;}
 #endif
+
 };
-
-//! \}
-
 #endif

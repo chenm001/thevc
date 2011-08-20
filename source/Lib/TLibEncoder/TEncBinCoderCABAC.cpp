@@ -36,16 +36,11 @@
 */
 
 #include "TEncBinCoderCABAC.h"
-#include "TLibCommon/TComRom.h"
-
-
-//! \ingroup TLibEncoder
-//! \{
 
 
 TEncBinCABAC::TEncBinCABAC()
 : m_pcTComBitIf( 0 )
-, m_binCountIncrement( 0 )
+, m_bBinCountingEnabled(0)
 {
 }
 
@@ -53,52 +48,38 @@ TEncBinCABAC::~TEncBinCABAC()
 {
 }
 
-Void TEncBinCABAC::init( TComBitIf* pcTComBitIf )
+Void
+TEncBinCABAC::init( TComBitIf* pcTComBitIf )
 {
   m_pcTComBitIf = pcTComBitIf;
 }
 
-Void TEncBinCABAC::uninit()
+Void
+TEncBinCABAC::uninit()
 {
   m_pcTComBitIf = 0;
 }
 
-Void TEncBinCABAC::start()
+Void
+TEncBinCABAC::start()
 {
-  m_uiLow            = 0;
-  m_uiRange          = 510;
-  m_bitsLeft         = 23;
-  m_numBufferedBytes = 0;
-  m_bufferedByte     = 0xff;
+  m_uiLow           = 0;
+  m_uiRange         = 510;
+  m_uiBitsToFollow  = 0;
+  m_uiByte          = 0;
+  m_uiBitsLeft      = 9;
 }
 
-Void TEncBinCABAC::finish()
+Void
+TEncBinCABAC::finish()
 {
-  if ( m_uiLow >> ( 32 - m_bitsLeft ) )
+  xWriteBitAndBitsToFollow( ( m_uiLow >> 9 ) & 1 );
+  xWriteBit               ( ( m_uiLow >> 8 ) & 1 );
+  // xWriteBit               ( 1 ); // stop bit, already written in TEncGOP::compressGOP
+  if( 8 - m_uiBitsLeft != 0 )
   {
-    //assert( m_numBufferedBytes > 0 );
-    //assert( m_bufferedByte != 0xff );
-    m_pcTComBitIf->write( m_bufferedByte + 1, 8 );
-    while ( m_numBufferedBytes > 1 )
-    {
-      m_pcTComBitIf->write( 0x00, 8 );
-      m_numBufferedBytes--;
-    }
-    m_uiLow -= 1 << ( 32 - m_bitsLeft );
+    m_pcTComBitIf->write  ( m_uiByte, 8 - m_uiBitsLeft );
   }
-  else
-  {
-    if ( m_numBufferedBytes > 0 )
-    {
-      m_pcTComBitIf->write( m_bufferedByte, 8 );
-    }
-    while ( m_numBufferedBytes > 1 )
-    {
-      m_pcTComBitIf->write( 0xff, 8 );
-      m_numBufferedBytes--;
-    }    
-  }
-  m_pcTComBitIf->write( m_uiLow >> 8, 24 - m_bitsLeft );
 }
 
 #if E057_INTRA_PCM
@@ -107,7 +88,11 @@ Void TEncBinCABAC::finish()
  */
 Void TEncBinCABAC::resetBac()
 {
-  start();
+  m_uiLow           = 0;
+  m_uiRange         = 510;
+  m_uiBitsToFollow  = 0;
+  m_uiByte          = 0;
+  m_uiBitsLeft      = 9;
 }
 
 /** Encode PCM alignment zero bits.
@@ -115,9 +100,17 @@ Void TEncBinCABAC::resetBac()
  */
 Void TEncBinCABAC::encodePCMAlignBits()
 {
-  finish();
-  m_pcTComBitIf->write( 1, 1 ); // stop bit
+  xWriteBitAndBitsToFollow( ( m_uiLow >> 9 ) & 1 );
+  xWriteBit               ( ( m_uiLow >> 8 ) & 1 );
+  xWriteBit               ( 1 ); // stop bit
+
+  if( 8 - m_uiBitsLeft != 0 )
+  {
+    m_pcTComBitIf->write  ( m_uiByte, 8 - m_uiBitsLeft );
+  }
   m_pcTComBitIf->writeAlignZero(); // pcm align zero
+  m_uiBitsLeft  = 8;
+  m_uiByte      = 0;
 }
 
 /** Write a PCM code.
@@ -125,48 +118,46 @@ Void TEncBinCABAC::encodePCMAlignBits()
  * \param uiLength code bit-depth
  * \returns Void
  */
-Void TEncBinCABAC::xWritePCMCode(UInt uiCode, UInt uiLength)
+Void  TEncBinCABAC::xWritePCMCode(UInt uiCode, UInt uiLength)
 {
-  m_pcTComBitIf->write(uiCode, uiLength);
+  m_pcTComBitIf->write  (uiCode, uiLength);
 }
 #endif
 
-Void TEncBinCABAC::copyState( TEncBinIf* pcTEncBinIf )
+Void
+TEncBinCABAC::copyState( TEncBinIf* pcTEncBinIf )
 {
   TEncBinCABAC* pcTEncBinCABAC = pcTEncBinIf->getTEncBinCABAC();
   m_uiLow           = pcTEncBinCABAC->m_uiLow;
   m_uiRange         = pcTEncBinCABAC->m_uiRange;
-  m_bitsLeft        = pcTEncBinCABAC->m_bitsLeft;
-  m_bufferedByte    = pcTEncBinCABAC->m_bufferedByte;
-  m_numBufferedBytes = pcTEncBinCABAC->m_numBufferedBytes;
+  m_uiBitsToFollow  = pcTEncBinCABAC->m_uiBitsToFollow;
+  m_uiByte          = pcTEncBinCABAC->m_uiByte;
+  m_uiBitsLeft      = pcTEncBinCABAC->m_uiBitsLeft;
 }
 
-Void TEncBinCABAC::resetBits()
+Void  
+TEncBinCABAC::resetBits()
 {
-  m_uiLow            = 0;
-  m_bitsLeft         = 23;
-  m_numBufferedBytes = 0;
-  m_bufferedByte     = 0xff;
+  m_uiLow          &= 255;
+  m_uiBitsToFollow  = 0;
+  m_uiByte          = 0;
+  m_uiBitsLeft      = 9;
 #if FINE_GRANULARITY_SLICES
-  if ( m_binCountIncrement )
+  if (m_bBinCountingEnabled)
   {
-    m_uiBinsCoded = 0;
+    m_uiBinsCoded=0;
   }
 #endif
 }
 
-UInt TEncBinCABAC::getNumWrittenBits()
+UInt
+TEncBinCABAC::getNumWrittenBits()
 {
-  return m_pcTComBitIf->getNumberOfWrittenBits() + 8 * m_numBufferedBytes + 23 - m_bitsLeft;
+  return m_pcTComBitIf->getNumberOfWrittenBits() + 8 + m_uiBitsToFollow - m_uiBitsLeft + 1;
 }
 
-/**
- * \brief Encode bin
- *
- * \param binValue   bin value
- * \param rcCtxModel context model
- */
-Void TEncBinCABAC::encodeBin( UInt binValue, ContextModel &rcCtxModel )
+Void
+TEncBinCABAC::encodeBin( UInt uiBin, ContextModel &rcCtxModel )
 {
   {
     DTRACE_CABAC_VL( g_nSymbolCounter++ )
@@ -176,42 +167,45 @@ Void TEncBinCABAC::encodeBin( UInt binValue, ContextModel &rcCtxModel )
     DTRACE_CABAC_V( uiBin )
     DTRACE_CABAC_T( "\n" )
   }
-  m_uiBinsCoded += m_binCountIncrement;
-  
+  if (m_bBinCountingEnabled) 
+  {
+    m_uiBinsCoded++;
+  }
   UInt  uiLPS   = TComCABACTables::sm_aucLPSTable[ rcCtxModel.getState() ][ ( m_uiRange >> 6 ) & 3 ];
   m_uiRange    -= uiLPS;
-  
-  if( binValue != rcCtxModel.getMps() )
+  if( uiBin != rcCtxModel.getMps() )
   {
-    Int numBits = TComCABACTables::sm_aucRenormTable[ uiLPS >> 3 ];
-    m_uiLow     = ( m_uiLow + m_uiRange ) << numBits;
-    m_uiRange   = uiLPS << numBits;
+    m_uiLow    += m_uiRange;
+    m_uiRange   = uiLPS;
     rcCtxModel.updateLPS();
-    
-    m_bitsLeft -= numBits;
   }
   else
   {
     rcCtxModel.updateMPS();
-    if ( m_uiRange >= 256 )
-    {
-      return;
-    }
-    
-    m_uiLow <<= 1;
-    m_uiRange <<= 1;
-    m_bitsLeft--;
   }
-  
-  testAndWriteOut();
+  while( m_uiRange < 256 )
+  {
+    if( m_uiLow >= 512 )
+    {
+      xWriteBitAndBitsToFollow( 1 );
+      m_uiLow -= 512;
+    }
+    else if( m_uiLow < 256 )
+    {
+      xWriteBitAndBitsToFollow( 0 );
+    }
+    else
+    {
+      m_uiBitsToFollow++;
+      m_uiLow         -= 256;
+    }
+    m_uiLow   <<= 1;
+    m_uiRange <<= 1;
+  }
 }
 
-/**
- * \brief Encode equiprobable bin
- *
- * \param binValue bin value
- */
-Void TEncBinCABAC::encodeBinEP( UInt binValue )
+Void
+TEncBinCABAC::encodeBinEP( UInt uiBin )
 {
   {
     DTRACE_CABAC_VL( g_nSymbolCounter++ )
@@ -219,126 +213,113 @@ Void TEncBinCABAC::encodeBinEP( UInt binValue )
     DTRACE_CABAC_V( uiBin )
     DTRACE_CABAC_T( "\n" )
   }
-  m_uiBinsCoded += m_binCountIncrement;
+  if (m_bBinCountingEnabled)
+  {
+    m_uiBinsCoded++;
+  }
   m_uiLow <<= 1;
-  if( binValue )
+  if( uiBin )
   {
     m_uiLow += m_uiRange;
   }
-  m_bitsLeft--;
-  
-  testAndWriteOut();
+  if( m_uiLow >= 1024 )
+  {
+    xWriteBitAndBitsToFollow( 1 );
+    m_uiLow -= 1024;
+  }
+  else if( m_uiLow < 512 )
+  {
+    xWriteBitAndBitsToFollow( 0 );
+  }
+  else
+  {
+    m_uiBitsToFollow++;
+    m_uiLow         -= 512;
+  }
 }
 
-/**
- * \brief Encode equiprobable bins
- *
- * \param binValues bin values
- * \param numBins number of bins
- */
-Void TEncBinCABAC::encodeBinsEP( UInt binValues, Int numBins )
+Void
+TEncBinCABAC::encodeBinTrm( UInt uiBin )
 {
-  m_uiBinsCoded += numBins & -m_binCountIncrement;
-  
-  for ( Int i = 0; i < numBins; i++ )
+  if (m_bBinCountingEnabled)
   {
-    DTRACE_CABAC_VL( g_nSymbolCounter++ )
-    DTRACE_CABAC_T( "\tEPsymbol=" )
-    DTRACE_CABAC_V( ( binValues >> ( numBins - 1 - i ) ) & 1 )
-    DTRACE_CABAC_T( "\n" )
+    m_uiBinsCoded++;
   }
-  
-  while ( numBins > 8 )
-  {
-    numBins -= 8;
-    UInt pattern = binValues >> numBins; 
-    m_uiLow <<= 8;
-    m_uiLow += m_uiRange * pattern;
-    binValues -= pattern << numBins;
-    m_bitsLeft -= 8;
-    
-    testAndWriteOut();
-  }
-  
-  m_uiLow <<= numBins;
-  m_uiLow += m_uiRange * binValues;
-  m_bitsLeft -= numBins;
-  
-  testAndWriteOut();
-}
-
-/**
- * \brief Encode terminating bin
- *
- * \param binValue bin value
- */
-Void TEncBinCABAC::encodeBinTrm( UInt binValue )
-{
-  m_uiBinsCoded += m_binCountIncrement;
   m_uiRange -= 2;
-  if( binValue )
+  if( uiBin )
   {
     m_uiLow  += m_uiRange;
-    m_uiLow <<= 7;
-    m_uiRange = 2 << 7;
-    m_bitsLeft -= 7;
+    m_uiRange = 2;
   }
-  else if ( m_uiRange >= 256 )
+  while( m_uiRange < 256 )
   {
-    return;
-  }
-  else
-  {
-    m_uiLow   <<= 1;
-    m_uiRange <<= 1;
-    m_bitsLeft--;    
-  }
-  
-  testAndWriteOut();
-}
-
-Void TEncBinCABAC::testAndWriteOut()
-{
-  if ( m_bitsLeft < 12 )
-  {
-    writeOut();
-  }
-}
-
-/**
- * \brief Move bits from register into bitstream
- */
-Void TEncBinCABAC::writeOut()
-{
-  UInt leadByte = m_uiLow >> (24 - m_bitsLeft);
-  m_bitsLeft += 8;
-  m_uiLow &= 0xffffffffu >> m_bitsLeft;
-  
-  if ( leadByte == 0xff )
-  {
-    m_numBufferedBytes++;
-  }
-  else
-  {
-    if ( m_numBufferedBytes > 0 )
+    if( m_uiLow >= 512 )
     {
-      UInt carry = leadByte >> 8;
-      UInt byte = m_bufferedByte + carry;
-      m_bufferedByte = leadByte & 0xff;
-      m_pcTComBitIf->write( byte, 8 );
-      
-      byte = ( 0xff + carry ) & 0xff;
-      while ( m_numBufferedBytes > 1 )
-      {
-        m_pcTComBitIf->write( byte, 8 );
-        m_numBufferedBytes--;
-      }
+      xWriteBitAndBitsToFollow( 1 );
+      m_uiLow -= 512;
+    }
+    else if( m_uiLow < 256 )
+    {
+      xWriteBitAndBitsToFollow( 0 );
     }
     else
     {
-      m_numBufferedBytes = 1;
-      m_bufferedByte = leadByte;
-    }      
-  }    
+      m_uiBitsToFollow++;
+      m_uiLow         -= 256;
+    }
+    m_uiLow   <<= 1;
+    m_uiRange <<= 1;
+  }
 }
-//! \}
+
+Void  
+TEncBinCABAC::xWriteBit( UInt uiBit )
+{
+  m_uiByte += m_uiByte + uiBit;
+  if( ! --m_uiBitsLeft )
+  {
+    m_pcTComBitIf->write( m_uiByte, 8 );
+    m_uiBitsLeft  = 8;
+    m_uiByte      = 0;
+  }
+}
+
+/**
+ * Write output bits, including withheld bits as counted by m_uiBitsToFollow
+ * \param uiBit bit value to be following by its inverse
+ */
+Void TEncBinCABAC::xWriteBitAndBitsToFollow( UInt uiBit )
+{
+  UInt invBit = uiBit ^ 1;
+  
+  // Check whether bits will fit into current byte buffer without requiring a flush
+  if (m_uiBitsToFollow < m_uiBitsLeft - 1)
+  {
+    // Add bit equal to uiBit into byte buffer followed by m_uiBitsToFollows bits equal to !uiBit
+    m_uiByte = ((2 * m_uiByte + 1 ) << m_uiBitsToFollow) - invBit; 
+    
+    m_uiBitsLeft = (m_uiBitsLeft - 1) - m_uiBitsToFollow;
+  }
+  else
+  {
+    // Fill byte buffer with bit equal to uiBit followed by as many bits equal to !uiBit as will fit
+    m_uiByte = ((2 * m_uiByte + 1 ) << (m_uiBitsLeft - 1)) - invBit;
+    
+    // Flush byte buffer
+    m_pcTComBitIf->write( m_uiByte, 8 );
+    
+    m_uiBitsToFollow -= m_uiBitsLeft - 1;
+    
+    while (m_uiBitsToFollow >= 8)
+    {
+      // Write byte equal to 0x00 if uiBit is equal to 1, and 0xff otherwise
+      m_pcTComBitIf->write( (invBit << 8) - invBit, 8 );
+      m_uiBitsToFollow -= 8;
+    }
+    
+    // Set byte buffer with m_uiBitsToFollows bits equal to !uiBit
+    m_uiByte = (invBit << m_uiBitsToFollow) - invBit;
+    m_uiBitsLeft = 8 - m_uiBitsToFollow;
+  }
+  m_uiBitsToFollow = 0;
+}

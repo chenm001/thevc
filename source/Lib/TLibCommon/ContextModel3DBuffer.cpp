@@ -37,21 +37,24 @@
 
 #include "ContextModel3DBuffer.h"
 
-//! \ingroup TLibCommon
-//! \{
-
 // ====================================================================================================================
 // Constructor / destructor / initialization / destroy
 // ====================================================================================================================
 
-ContextModel3DBuffer::ContextModel3DBuffer( UInt uiSizeZ, UInt uiSizeY, UInt uiSizeX, ContextModel *basePtr, Int &count )
-: m_sizeX  ( uiSizeX )
-, m_sizeXY ( uiSizeX * uiSizeY )
-, m_sizeXYZ( uiSizeX * uiSizeY * uiSizeZ )
+ContextModel3DBuffer::ContextModel3DBuffer( UInt uiSizeZ, UInt uiSizeY, UInt uiSizeX ) :
+m_sizeX  ( uiSizeX ),
+m_sizeXY ( uiSizeX * uiSizeY ),
+m_sizeXYZ( uiSizeX * uiSizeY * uiSizeZ )
 {
   // allocate 3D buffer
-  m_contextModel = basePtr;
-  count += m_sizeXYZ;
+  m_contextModel = new ContextModel[ m_sizeXYZ ];
+}
+
+ContextModel3DBuffer::~ContextModel3DBuffer()
+{
+  // delete 3D buffer
+  delete [] m_contextModel;
+  m_contextModel = NULL;
 }
 
 // ====================================================================================================================
@@ -62,7 +65,7 @@ ContextModel3DBuffer::ContextModel3DBuffer( UInt uiSizeZ, UInt uiSizeY, UInt uiS
  * Initialize 3D buffer with respect to slicetype, QP and given initial probability table
  *
  * \param  eSliceType      slice type
- * \param  iQp             input QP value
+ * \param  iQP             input QP value
  * \param  psCtxModel      given probability table
  */
 Void ContextModel3DBuffer::initBuffer( SliceType eSliceType, Int iQp, Short* psCtxModel )
@@ -74,4 +77,3 @@ Void ContextModel3DBuffer::initBuffer( SliceType eSliceType, Int iQp, Short* psC
     m_contextModel[ n ].init( iQp, psCtxModel + 2 * n );
   }
 }
-//! \}

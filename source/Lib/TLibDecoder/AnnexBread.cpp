@@ -38,15 +38,12 @@
 
 using namespace std;
 
-//! \ingroup TLibDecoder
-//! \{
-
 /**
- * Parse an AVC AnnexB Bytestream bs to extract a single nalUnit
- * while accumulating bytestream statistics into stats.
+ * Parse an AVC AnnexB Bytestream @bs@ to extract a single @nalUnit@
+ * while accumulating bytestream statistics into @stats@.
  *
  * If EOF occurs while trying to extract a NALunit, an exception
- * of std::ios_base::failure is thrown.  The contsnts of stats will
+ * of std::ios_base::failure is thrown.  The contsnts of @stats@ will
  * be correct at this point.
  */
 static void
@@ -138,8 +135,8 @@ _byteStreamNALUnit(
 }
 
 /**
- * Parse an AVC AnnexB Bytestream bs to extract a single nalUnit
- * while accumulating bytestream statistics into stats.
+ * Parse an AVC AnnexB Bytestream @bs@ to extract a single @nalUnit@
+ * while accumulating bytestream statistics into @stats@.
  *
  * Returns false if EOF was reached (NB, nalunit data may be valid),
  *         otherwise true.
@@ -162,4 +159,3 @@ byteStreamNALUnit(
   stats.m_numBytesInNALUnit = unsigned(nalUnit.size());
   return eof;
 }
-//! \}

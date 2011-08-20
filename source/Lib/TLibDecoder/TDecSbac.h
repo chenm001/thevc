@@ -46,12 +46,9 @@
 
 #include "TDecEntropy.h"
 #include "TDecBinCoder.h"
-#include "TLibCommon/ContextTables.h"
-#include "TLibCommon/ContextModel.h"
-#include "TLibCommon/ContextModel3DBuffer.h"
-
-//! \ingroup TLibDecoder
-//! \{
+#include "../TLibCommon/ContextTables.h"
+#include "../TLibCommon/ContextModel.h"
+#include "../TLibCommon/ContextModel3DBuffer.h"
 
 // ====================================================================================================================
 // Class definition
@@ -95,9 +92,12 @@ private:
   Void  xReadUnarySymbol    ( UInt& ruiSymbol, ContextModel* pcSCModel, Int iOffset );
   Void  xReadUnaryMaxSymbol ( UInt& ruiSymbol, ContextModel* pcSCModel, Int iOffset, UInt uiMaxSymbol );
   Void  xReadEpExGolomb     ( UInt& ruiSymbol, UInt uiCount );
+#if E253
   Void  xReadGoRiceExGolomb ( UInt &ruiSymbol, UInt &ruiGoRiceParam );
+#else
+  Void  xReadExGolombLevel  ( UInt& ruiSymbol, ContextModel& rcSCModel  );
+#endif
   
-#if !MODIFIED_MVD_CODING
 #if MVD_CTX
   Void  xReadMvd            ( Int& riMvdComp, UInt uiAbsSumL, UInt uiAbsSumA, UInt uiCtx );
 #else
@@ -105,7 +105,6 @@ private:
 #endif
 
   Void  xReadExGolombMvd    ( UInt& ruiSymbol, ContextModel* pcSCModel, UInt uiMaxBin );
-#endif
   
 private:
   TComInputBitstream* m_pcBitstream;
@@ -162,38 +161,45 @@ public:
   Void parseCbfTrdiv      ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiTrDepth, UInt uiDepth, UInt& uiSubdiv ) {}
 #endif
 
+#if PCP_SIGMAP_SIMPLE_LAST
   __inline Void parseLastSignificantXY( UInt& uiPosLastX, UInt& uiPosLastY, const UInt uiWidth, const TextType eTType, const UInt uiCTXIdx, const UInt uiScanIdx );
+#endif
   Void parseCoeffNxN      ( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx, UInt uiWidth, UInt uiHeight, UInt uiDepth, TextType eTType );
   
 private:
   UInt m_uiLastDQpNonZero;
   UInt m_uiLastQp;
   
-  ContextModel         m_contextModels[MAX_NUM_CTX_MOD];
-  Int                  m_numContextModels;
-  ContextModel3DBuffer m_cCUSplitFlagSCModel;
   ContextModel3DBuffer m_cCUSkipFlagSCModel;
+  ContextModel3DBuffer m_cCUSplitFlagSCModel;
   ContextModel3DBuffer m_cCUMergeFlagExtSCModel;
   ContextModel3DBuffer m_cCUMergeIdxExtSCModel;
+  ContextModel3DBuffer m_cCUAlfCtrlFlagSCModel;
   ContextModel3DBuffer m_cCUPartSizeSCModel;
   ContextModel3DBuffer m_cCUPredModeSCModel;
-  ContextModel3DBuffer m_cCUAlfCtrlFlagSCModel;
+  
   ContextModel3DBuffer m_cCUIntraPredSCModel;
-#if ADD_PLANAR_MODE && !FIXED_MPM
+#if ADD_PLANAR_MODE
   ContextModel3DBuffer m_cPlanarFlagSCModel;
 #endif
   ContextModel3DBuffer m_cCUChromaPredSCModel;
-  ContextModel3DBuffer m_cCUDeltaQpSCModel;
   ContextModel3DBuffer m_cCUInterDirSCModel;
   ContextModel3DBuffer m_cCURefPicSCModel;
   ContextModel3DBuffer m_cCUMvdSCModel;
-  ContextModel3DBuffer m_cCUQtCbfSCModel;
+  
   ContextModel3DBuffer m_cCUTransSubdivFlagSCModel;
   ContextModel3DBuffer m_cCUQtRootCbfSCModel;
+  ContextModel3DBuffer m_cCUDeltaQpSCModel;
+  
+  ContextModel3DBuffer m_cCUQtCbfSCModel;
   
   ContextModel3DBuffer m_cCUSigSCModel;
+#if PCP_SIGMAP_SIMPLE_LAST
   ContextModel3DBuffer m_cCuCtxLastX;
   ContextModel3DBuffer m_cCuCtxLastY;
+#else  
+  ContextModel3DBuffer m_cCULastSCModel;
+#endif
   ContextModel3DBuffer m_cCUOneSCModel;
   ContextModel3DBuffer m_cCUAbsSCModel;
   
@@ -202,10 +208,6 @@ private:
   ContextModel3DBuffer m_cALFFlagSCModel;
   ContextModel3DBuffer m_cALFUvlcSCModel;
   ContextModel3DBuffer m_cALFSvlcSCModel;
-#if AMP
-  ContextModel3DBuffer m_cCUXPosiSCModel;
-  ContextModel3DBuffer m_cCUYPosiSCModel;
-#endif
 #if MTK_SAO
   ContextModel3DBuffer m_cAOFlagSCModel;
   ContextModel3DBuffer m_cAOUvlcSCModel;
@@ -213,7 +215,5 @@ private:
 #endif
 
 };
-
-//! \}
 
 #endif // !defined(AFX_TDECSBAC_H__CFCAAA19_8110_47F4_9A16_810C4B5499D5__INCLUDED_)

@@ -31,18 +31,10 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/** 
- \file     AccessUnit.h
- \brief    Access Unit class (header)
- */
-
 #pragma once
 
 #include <list>
 #include "NAL.h"
-
-//! \ingroup TLibCommon
-//! \{
 
 /**
  * An AccessUnit is a list of one or more NAL units, according to the
@@ -65,5 +57,3 @@ public:
       delete *it;
   }
 };
-
-//! \}

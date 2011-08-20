@@ -39,21 +39,16 @@
 #define __TENCSEARCH__
 
 // Include files
-#include "TLibCommon/TComYuv.h"
-#include "TLibCommon/TComMotionInfo.h"
-#include "TLibCommon/TComPattern.h"
-#if !GENERIC_IF
-#include "TLibCommon/TComPredFilter.h"
-#endif
-#include "TLibCommon/TComPrediction.h"
-#include "TLibCommon/TComTrQuant.h"
-#include "TLibCommon/TComPic.h"
+#include "../TLibCommon/TComYuv.h"
+#include "../TLibCommon/TComMotionInfo.h"
+#include "../TLibCommon/TComPattern.h"
+#include "../TLibCommon/TComPredFilter.h"
+#include "../TLibCommon/TComPrediction.h"
+#include "../TLibCommon/TComTrQuant.h"
+#include "../TLibCommon/TComPic.h"
 #include "TEncEntropy.h"
 #include "TEncSbac.h"
 #include "TEncCfg.h"
-
-//! \ingroup TLibEncoder
-//! \{
 
 class TEncCu;
 
@@ -127,13 +122,7 @@ public:
 protected:
   
   /// sub-function for motion vector refinement used in fractional-pel accuracy
-  UInt  xPatternRefinement( TComPattern* pcPatternKey,
-#if GENERIC_IF
-                           TComMv baseRefMv,
-#else
-                           Pel* piRef, Int iRefStride, Int iIntStep,
-#endif
-                           Int iFrac, TComMv& rcMvFrac );
+  UInt  xPatternRefinement( TComPattern* pcPatternKey, Pel* piRef, Int iRefStride, Int iIntStep, Int iFrac, TComMv& rcMvFrac );
   
 #if (!REFERENCE_SAMPLE_PADDING)
   Bool predIntraLumaDirAvailable( UInt uiMode, UInt uiWidthBit, Bool bAboveAvail, Bool bLeftAvail);
@@ -184,12 +173,8 @@ public:
                                   TComYuv*&   rpcPredYuv,
                                   TComYuv*&   rpcResiYuv,
                                   TComYuv*&   rpcRecoYuv,
-                                  Bool        bUseRes = false
-#if AMP_MRG
-                                 ,Bool        bUseMRG = false
-#endif
-                                );
-
+                                  Bool        bUseRes = false );
+  
   /// encoder estimation - intra prediction (skip)
   Void predInterSkipSearch      ( TComDataCU* pcCU,
                                   TComYuv*    pcOrgYuv,
@@ -341,12 +326,9 @@ protected:
                                     TComMvField*    pacMvField,
                                     UInt&           uiMergeIndex,
                                     UInt&           ruiCost,
-                                    UInt&           ruiBits
-#if !MRG_AMVP_FIXED_IDX_F470
-                                  , UChar*          puhNeighCands,
-                                    Bool&           bValid
-#endif
-                                   );
+                                    UInt&           ruiBits,
+                                    UChar*          puhNeighCands,
+                                    Bool&           bValid );
   // -------------------------------------------------------------------------------------------------------------------
   // motion estimation
   // -------------------------------------------------------------------------------------------------------------------
@@ -402,15 +384,8 @@ protected:
                                     TComMv&       rcMvHalf,
                                     TComMv&       rcMvQter,
                                     UInt&         ruiCost 
-#if GENERIC_IF
-                                   ,Bool biPred
-#endif
                                    );
   
-#if GENERIC_IF
-  Void xExtDIFUpSamplingH( TComPattern* pcPattern, Bool biPred  );
-  Void xExtDIFUpSamplingQ( TComPattern* pcPatternKey, TComMv halfPelRef, Bool biPred );
-#else
   Void xExtDIFUpSamplingH         ( TComPattern*  pcPattern, TComYuv* pcYuvExt  );
   
   Void xExtDIFUpSamplingQ         ( TComPattern* pcPatternKey,
@@ -421,7 +396,7 @@ protected:
                                     Int*          piSrc,
                                     Int           iSrcStride,
                                     UInt          uiFilter  );
-#endif  
+  
   
   // -------------------------------------------------------------------------------------------------------------------
   // T & Q & Q-1 & T-1
@@ -433,11 +408,7 @@ protected:
 #else
   Void xEstimateResidualQT( TComDataCU* pcCU, UInt uiQuadrant, UInt uiAbsPartIdx, TComYuv* pcResi, const UInt uiDepth, Double &rdCost, UInt &ruiBits, UInt &ruiDist, UInt *puiZeroDist );
 #endif
-#if NSQT
-  Void xSetResidualQTData( TComDataCU* pcCU, UInt uiQuadrant, UInt uiAbsPartIdx, TComYuv* pcResi, UInt uiDepth, Bool bSpatial );
-#else
   Void xSetResidualQTData( TComDataCU* pcCU, UInt uiAbsPartIdx, TComYuv* pcResi, UInt uiDepth, Bool bSpatial );
-#endif
   
   UInt  xModeBitsIntra ( TComDataCU* pcCU, UInt uiMode, UInt uiPU, UInt uiPartOffset, UInt uiDepth, UInt uiInitTrDepth );
   UInt  xUpdateCandList( UInt uiMode, Double uiCost, UInt uiFastCandNum, UInt * CandModeList, Double * CandCostList );
@@ -456,6 +427,6 @@ protected:
   
 };// END CLASS DEFINITION TEncSearch
 
-//! \}
 
 #endif // __TENCSEARCH__
+

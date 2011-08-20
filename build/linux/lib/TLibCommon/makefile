@@ -3,7 +3,7 @@ CONFIG 			= LIBRARY
 
 # set pathes to the correct directories
 SRC_DIR			= ../../../../source/Lib/TLibCommon
-INC_DIR			= ../../../../source/Lib
+INC_DIR			= ../../../../source/Lib/TLibCommon
 LIB_DIR			= ../../../../lib
 BIN_DIR			= ../../../../bin
 
@@ -52,7 +52,6 @@ OBJS          	= \
 			$(OBJ_DIR)/TComSlice.o \
 			$(OBJ_DIR)/TComTrQuant.o \
 			$(OBJ_DIR)/TComYuv.o \
-			$(OBJ_DIR)/TComInterpolationFilter.o \
 			$(OBJ_DIR)/libmd5.o \
 
 LIBS				= -lpthread

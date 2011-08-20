@@ -40,9 +40,6 @@
 #include <time.h>
 #include "TAppDecTop.h"
 
-//! \ingroup TAppDecoder
-//! \{
-
 bool g_md5_mismatch = false; ///< top level flag that indicates if there has been a decoding mismatch
 
 // ====================================================================================================================
@@ -93,4 +90,4 @@ int main(int argc, char* argv[])
   return g_md5_mismatch ? EXIT_FAILURE : EXIT_SUCCESS;
 }
 
-//! \}
+

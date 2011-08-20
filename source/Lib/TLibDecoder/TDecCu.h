@@ -42,12 +42,9 @@
 #pragma once
 #endif // _MSC_VER > 1000
 
-#include "TLibCommon/TComTrQuant.h"
-#include "TLibCommon/TComPrediction.h"
+#include "../TLibCommon/TComTrQuant.h"
+#include "../TLibCommon/TComPrediction.h"
 #include "TDecEntropy.h"
-
-//! \ingroup TLibDecoder
-//! \{
 
 // ====================================================================================================================
 // Class definition
@@ -126,8 +123,6 @@ protected:
   Bool getdQPFlag               ()                        { return m_bDecodeDQP;        }
   Void setdQPFlag               ( Bool b )                { m_bDecodeDQP = b;           }
 };
-
-//! \}
 
 #endif
 

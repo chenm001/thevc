@@ -34,15 +34,12 @@
 #pragma once
 
 #include <ostream>
-#include "TLibCommon/AccessUnit.h"
+#include "../TLibCommon/AccessUnit.h"
 #include "NALwrite.h"
 
-//! \ingroup TLibEncoder
-//! \{
-
 /**
- * write all NALunits in au to bytestream out in a manner satisfying
- * AnnexB of AVC.  NALunits are written in the order they are found in au.
+ * write all NALunits in @au@ to bytestream @out@ in a manner satisfying
+ * AnnexB of AVC.  NALunits are written in the order they are found in @au@.
  * the zero_byte word is appended to:
  *  - the initial startcode in the access unit,
  *  - any SPS/PPS nal units
@@ -83,4 +80,3 @@ static std::vector<unsigned> writeAnnexB(std::ostream& out, const AccessUnit& au
 
   return annexBsizes;
 }
-//! \}

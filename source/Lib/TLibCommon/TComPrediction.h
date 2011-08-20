@@ -44,25 +44,14 @@
 #include "TComMotionInfo.h"
 #include "TComPattern.h"
 #include "TComTrQuant.h"
-#if GENERIC_IF
-#include "TComInterpolationFilter.h"
-#else
 #include "TComPredFilter.h"
-#endif
-
-//! \ingroup TLibCommon
-//! \{
 
 // ====================================================================================================================
 // Class definition
 // ====================================================================================================================
 
 /// prediction class
-#if GENERIC_IF
-class TComPrediction
-#else
 class TComPrediction : public TComPredFilter
-#endif
 {
 protected:
   Int*      m_piYuvExt;
@@ -71,23 +60,12 @@ protected:
   
   TComYuv   m_acYuvPred[2];
   TComYuv   m_cYuvPredTemp;
-#if !GENERIC_IF
   TComYuv   m_cYuvExt;
-#else
-  TComYuv m_filteredBlock[4][4];
-  TComYuv m_filteredBlockTmp[4];
-  
-  TComInterpolationFilter m_if;
-#endif
   
 #if LM_CHROMA
   Pel*   m_pLumaRecBuffer;       ///< array for downsampled reconstructed luma sample 
   Int    m_iLumaRecStride;       ///< stride of #m_pLumaRecBuffer array
-#if LM_CHROMA_SIMPLIFICATION
-  UInt   m_uiaShift[ 63 ];       // Table for multiplication to substitue of division operation
-#else
-  UInt   m_uiaShift[ 65 ];       // Table for multiplication to substitue of division operation
-#endif
+  UInt   m_uiaShift[ 65 ];       ///< Table for multiplication to substitue of division operation
 #endif
 
   Void xPredIntraAng            ( Int* pSrc, Int srcStride, Pel*& rpDst, Int dstStride, UInt width, UInt height, UInt dirMode, Bool blkAboveAvailable, Bool blkLeftAvailable );
@@ -102,22 +80,15 @@ protected:
   // motion compensation functions
   Void xPredInterUni            ( TComDataCU* pcCU,                          UInt uiPartAddr,               Int iWidth, Int iHeight, RefPicList eRefPicList, TComYuv*& rpcYuvPred, Int iPartIdx, Bool bi=false          );
   Void xPredInterBi             ( TComDataCU* pcCU,                          UInt uiPartAddr,               Int iWidth, Int iHeight,                         TComYuv*& rpcYuvPred, Int iPartIdx          );
-#if GENERIC_IF
-  Void xPredInterLumaBlk  ( TComDataCU *cu, TComPicYuv *refPic, UInt partAddr, TComMv *mv, Int width, Int height, TComYuv *&dstPic, Bool bi );
-  Void xPredInterChromaBlk( TComDataCU *cu, TComPicYuv *refPic, UInt partAddr, TComMv *mv, Int width, Int height, TComYuv *&dstPic, Bool bi );
-#else
   Void xPredInterLumaBlk        ( TComDataCU* pcCU, TComPicYuv* pcPicYuvRef, UInt uiPartAddr, TComMv* pcMv, Int iWidth, Int iHeight,                         TComYuv*& rpcYuv );
   Void xPredInterChromaBlk      ( TComDataCU* pcCU, TComPicYuv* pcPicYuvRef, UInt uiPartAddr, TComMv* pcMv, Int iWidth, Int iHeight,                         TComYuv*& rpcYuv                            );
-#endif
   Void xWeightedAverage         ( TComDataCU* pcCU, TComYuv* pcYuvSrc0, TComYuv* pcYuvSrc1, Int iRefIdx0, Int iRefIdx1, UInt uiPartAddr, Int iWidth, Int iHeight, TComYuv*& rpcYuvDst );
-#if !GENERIC_IF
   Void xDCTIF_FilterC ( Pel*  piRefC, Int iRefStride,Pel*  piDstC,Int iDstStride,Int iWidth, Int iHeight,Int iMVyFrac,Int iMVxFrac);
 
   Void xPredInterLumaBlk_ha        ( TComDataCU* pcCU, TComPicYuv* pcPicYuvRef, UInt uiPartAddr, TComMv* pcMv, Int iWidth, Int iHeight,                         TComYuv*& rpcYuv );
   Void xPredInterChromaBlk_ha      ( TComDataCU* pcCU, TComPicYuv* pcPicYuvRef, UInt uiPartAddr, TComMv* pcMv, Int iWidth, Int iHeight,                         TComYuv*& rpcYuv                            );
   Void xDCTIF_FilterC_ha ( Pel*  piRefC, Int iRefStride,Pel*  piDstC,Int iDstStride,Int iWidth, Int iHeight,Int iMVyFrac,Int iMVxFrac);
-#endif
-  
+
 #if LM_CHROMA
   Void xGetLLSPrediction ( TComPattern* pcPattern, Int* pSrc0, Int iSrcStride, Pel* pDst0, Int iDstStride, UInt uiWidth, UInt uiHeight, UInt uiExt0 );
 #endif
@@ -155,6 +126,6 @@ public:
 
 };
 
-//! \}
 
 #endif // __TCOMPREDICTION__
+

@@ -40,11 +40,7 @@
 
 
 #include "CommonDef.h"
-#include "TComRom.h"
 #include "TComList.h"
-
-//! \ingroup TLibCommon
-//! \{
 
 class TComPic;
 
@@ -80,9 +76,6 @@ private:
 #if E057_INTRA_PCM
   UInt        m_uiPCMLog2MinSize;
 #endif
-#if DISABLE_4x4_INTER
-  Bool        m_bDisInter4x4;
-#endif    
   Bool        m_bUseALF;
   Bool        m_bUseDQP;
   Bool        m_bUseLDC;
@@ -123,11 +116,6 @@ private:
 
   Bool        m_bTemporalIdNestingFlag; // temporal_id_nesting_flag
 
-#if REF_SETTING_FOR_LD
-  Bool        m_bUseNewRefSetting;
-  UInt        m_uiMaxNumRefFrames;
-#endif
-
 public:
   TComSPS();
   virtual ~TComSPS();
@@ -153,10 +141,6 @@ public:
 #if E057_INTRA_PCM
   Void setPCMLog2MinSize  ( UInt u ) { m_uiPCMLog2MinSize = u;      }
   UInt getPCMLog2MinSize  ()         { return  m_uiPCMLog2MinSize;  }
-#endif
-#if DISABLE_4x4_INTER
-  Bool getDisInter4x4()         { return m_bDisInter4x4;        }
-  Void setDisInter4x4      ( Bool b ) { m_bDisInter4x4  = b;          }
 #endif
   Void setMinTrDepth  ( UInt u ) { m_uiMinTrDepth = u;      }
   UInt getMinTrDepth  ()         { return  m_uiMinTrDepth;  }
@@ -209,12 +193,6 @@ public:
   AMVP_MODE getAMVPMode ( UInt uiDepth ) { assert(uiDepth < g_uiMaxCUDepth);  return m_aeAMVPMode[uiDepth]; }
   Void      setAMVPMode ( UInt uiDepth, AMVP_MODE eMode) { assert(uiDepth < g_uiMaxCUDepth);  m_aeAMVPMode[uiDepth] = eMode; }
   
-#if AMP
-  // AMP accuracy
-  Int       getAMPAcc   ( UInt uiDepth ) { return m_iAMPAcc[uiDepth]; }
-  Void      setAMPAcc   ( UInt uiDepth, Int iAccu ) { assert( uiDepth < g_uiMaxCUDepth);  m_iAMPAcc[uiDepth] = iAccu; }
-#endif  
-
   // Bit-depth
   UInt      getBitDepth     ()         { return m_uiBitDepth;     }
   Void      setBitDepth     ( UInt u ) { m_uiBitDepth = u;        }
@@ -245,13 +223,6 @@ public:
 #if E057_INTRA_PCM && E192_SPS_PCM_FILTER_DISABLE_SYNTAX
   Void      setPCMFilterDisableFlag     ( Bool   bValue  )    { m_bPCMFilterDisableFlag = bValue; }
   Bool      getPCMFilterDisableFlag     ()                    { return m_bPCMFilterDisableFlag;   } 
-#endif
-
-#if REF_SETTING_FOR_LD
-  Void      setUseNewRefSetting    ( Bool b ) { m_bUseNewRefSetting = b;    }
-  Bool      getUseNewRefSetting    ()         { return m_bUseNewRefSetting; }
-  Void      setMaxNumRefFrames     ( UInt u ) { m_uiMaxNumRefFrames = u;    }
-  UInt      getMaxNumRefFrames     ()         { return m_uiMaxNumRefFrames; }
 #endif
 };
 
@@ -351,10 +322,6 @@ private:
   Bool        m_bRefPicListModificationFlagLC;
   Bool        m_bRefPicListCombinationFlag;
 
-#if TMVP_ONE_LIST_CHECK
-  Bool        m_bCheckLDC;
-#endif
-
   //  Data
   Int         m_iSliceQpDelta;
   TComPic*    m_apcRefPicList [2][MAX_NUM_REF];
@@ -371,13 +338,8 @@ private:
   
   UInt        m_uiColDir;  // direction to get colocated CUs
   
-#if ALF_CHROMA_LAMBDA || SAO_CHROMA_LAMBDA
-  Double      m_dLambdaLuma;
-  Double      m_dLambdaChroma;
-#else
   Double      m_dLambda;
-#endif
-
+  
   Bool        m_abEqualRef  [2][MAX_NUM_REF][MAX_NUM_REF];
   
   Bool        m_bNoBackPredFlag;
@@ -432,10 +394,7 @@ public:
   Int       getRefPOC           ( RefPicList e, Int iRefIdx)    { return  m_aiRefPOCList[e][iRefIdx];   }
   Int       getDepth            ()                              { return  m_iDepth;                     }
   UInt      getColDir           ()                              { return  m_uiColDir;                   }
-#if TMVP_ONE_LIST_CHECK
-  Bool      getCheckLDC     ()                                  { return m_bCheckLDC; }
-#endif
-
+  
   Int       getRefIdxOfLC       (RefPicList e, Int iRefIdx)     { return m_iRefIdxOfLC[e][iRefIdx];           }
   Int       getListIdFromIdxOfLC(Int iRefIdx)                   { return m_eListIdFromIdxOfLC[iRefIdx];       }
   Int       getRefIdxFromIdxOfLC(Int iRefIdx)                   { return m_iRefIdxFromIdxOfLC[iRefIdx];       }
@@ -473,22 +432,13 @@ public:
   Void      setRefPicList       ( TComList<TComPic*>& rcListPic );
   Void      setRefPOCList       ();
   Void      setColDir           ( UInt uiDir ) { m_uiColDir = uiDir; }
-#if TMVP_ONE_LIST_CHECK
-  Void      setCheckLDC         ( Bool b )                      { m_bCheckLDC = b; }
-#endif
   
   Bool      isIntra         ()                          { return  m_eSliceType == I_SLICE;  }
   Bool      isInterB        ()                          { return  m_eSliceType == B_SLICE;  }
   Bool      isInterP        ()                          { return  m_eSliceType == P_SLICE;  }
   
-#if ALF_CHROMA_LAMBDA || SAO_CHROMA_LAMBDA  
-  Void      setLambda( Double d, Double e ) { m_dLambdaLuma = d; m_dLambdaChroma = e;}
-  Double    getLambdaLuma() { return m_dLambdaLuma;        }
-  Double    getLambdaChroma() { return m_dLambdaChroma;        }
-#else
   Void      setLambda( Double d ) { m_dLambda = d; }
   Double    getLambda() { return m_dLambda;        }
-#endif
   
   Void      initEqualRef();
   Bool      isEqualRef  ( RefPicList e, Int iRefIdx1, Int iRefIdx2 )
@@ -519,11 +469,6 @@ public:
   Void setTLayerInfo( UInt uiTLayer );
   Void decodingMarking( TComList<TComPic*>& rcListPic, Int iGOPSIze, Int& iMaxRefPicNum ); 
   Void decodingTLayerSwitchingMarking( TComList<TComPic*>& rcListPic );
-
-#if REF_SETTING_FOR_LD
-  Int getActualRefNumber( TComList<TComPic*>& rcListPic );
-  Void decodingRefMarkingForLD( TComList<TComPic*>& rcListPic, Int iMaxNumRefFrames, Int iCurrentPOC );
-#endif
 
   Void setSliceMode                     ( UInt uiMode )     { m_uiSliceMode = uiMode;                     }
   UInt getSliceMode                     ()                  { return m_uiSliceMode;                       }
@@ -567,6 +512,6 @@ protected:
                          UInt                uiTLayer );
 };// END CLASS DEFINITION TComSlice
 
-//! \}
 
 #endif // __TCOMSLICE__
+

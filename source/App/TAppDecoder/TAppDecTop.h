@@ -42,14 +42,11 @@
 #pragma once
 #endif // _MSC_VER > 1000
 
-#include "TLibVideoIO/TVideoIOYuv.h"
-#include "TLibCommon/TComList.h"
-#include "TLibCommon/TComPicYuv.h"
-#include "TLibDecoder/TDecTop.h"
+#include "../../Lib/TLibVideoIO/TVideoIOYuv.h"
+#include "../../Lib/TLibCommon/TComList.h"
+#include "../../Lib/TLibCommon/TComPicYuv.h"
+#include "../../Lib/TLibDecoder/TDecTop.h"
 #include "TAppDecCfg.h"
-
-//! \ingroup TAppDecoder
-//! \{
 
 // ====================================================================================================================
 // Class definition
@@ -82,8 +79,6 @@ protected:
   
   Void  xWriteOutput      ( TComList<TComPic*>* pcListPic ); ///< write YUV to file
 };
-
-//! \}
 
 #endif
 

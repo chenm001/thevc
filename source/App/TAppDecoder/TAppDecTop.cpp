@@ -42,11 +42,8 @@
 #include <assert.h>
 
 #include "TAppDecTop.h"
-#include "TLibDecoder/AnnexBread.h"
-#include "TLibDecoder/NALread.h"
-
-//! \ingroup TAppDecoder
-//! \{
+#include "../../Lib/TLibDecoder/AnnexBread.h"
+#include "../../Lib/TLibDecoder/NALread.h"
 
 // ====================================================================================================================
 // Constructor / destructor / initialization / destroy
@@ -193,6 +190,7 @@ Void TAppDecTop::xInitDecLib()
 }
 
 /** \param pcListPic list of pictures to be written to file
+    \param bFirst    first picture?
     \todo            DYN_REF_FREE should be revised
  */
 Void TAppDecTop::xWriteOutput( TComList<TComPic*>* pcListPic )
@@ -235,5 +233,3 @@ Void TAppDecTop::xWriteOutput( TComList<TComPic*>* pcListPic )
     iterPic++;
   }
 }
-
-//! \}

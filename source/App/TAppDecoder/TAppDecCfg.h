@@ -42,10 +42,7 @@
 #pragma once
 #endif // _MSC_VER > 1000
 
-#include "TLibCommon/CommonDef.h"
-
-//! \ingroup TAppDecoder
-//! \{
+#include "../../Lib/TLibCommon/CommonDef.h"
 
 // ====================================================================================================================
 // Class definition
@@ -68,8 +65,6 @@ public:
   
   Bool  parseCfg        ( Int argc, Char* argv[] );   ///< initialize option class from configuration
 };
-
-//! \}
 
 #endif
 

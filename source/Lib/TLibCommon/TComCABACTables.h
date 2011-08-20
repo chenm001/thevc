@@ -38,10 +38,7 @@
 #ifndef __TCOM_CABAC_TABLES__
 #define __TCOM_CABAC_TABLES__
 
-#include "TLibCommon/CommonDef.h"
-
-//! \ingroup TLibCommon
-//! \{
+#include "../TLibCommon/CommonDef.h"
 
 /**
  * \brief static class for CABAC tables
@@ -51,10 +48,8 @@ class TComCABACTables
 {
 public:
   const static UChar  sm_aucLPSTable[64][4];
-  const static UChar  sm_aucRenormTable[32];
 };
 
 
-//! \}
-
 #endif
+
