@@ -309,8 +309,6 @@
 		6782E0EC11AD694400E8FFB8 /* TAppDecTop.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = TAppDecTop.cpp; path = source/App/TAppDecoder/TAppDecTop.cpp; sourceTree = "<group>"; };
 		6782E0ED11AD694400E8FFB8 /* TAppDecTop.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TAppDecTop.h; path = source/App/TAppDecoder/TAppDecTop.h; sourceTree = "<group>"; };
 		7104E1CD12005ABA00F42AA8 /* libTAppCommon.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libTAppCommon.a; sourceTree = BUILT_PRODUCTS_DIR; };
-		7104E1DD12005B0E00F42AA8 /* program_options_lite.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = program_options_lite.cpp; path = source/App/TAppCommon/program_options_lite.cpp; sourceTree = "<group>"; };
-		7104E1DE12005B0E00F42AA8 /* program_options_lite.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = program_options_lite.h; path = source/App/TAppCommon/program_options_lite.h; sourceTree = "<group>"; };
 		712FAEA81379BA2F00DB5314 /* AccessUnit.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AccessUnit.h; path = source/Lib/TLibCommon/AccessUnit.h; sourceTree = "<group>"; };
 		712FAEA91379BA2F00DB5314 /* NAL.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = NAL.h; path = source/Lib/TLibCommon/NAL.h; sourceTree = "<group>"; };
 		712FAEAC1379BA4900DB5314 /* AnnexBwrite.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AnnexBwrite.h; path = source/Lib/TLibEncoder/AnnexBwrite.h; sourceTree = "<group>"; };
@@ -394,8 +392,6 @@
 		08FB7794FE84155DC02AAC07 /* Trinity */ = {
 			isa = PBXGroup;
 			children = (
-				7184647513FAE75800747BF9 /* program_options_lite.cpp */,
-				7184647613FAE75800747BF9 /* program_options_lite.h */,
 				08FB7795FE84155DC02AAC07 /* Source */,
 				C6859E8C029090F304C91782 /* Documentation */,
 				1AB674ADFE9D54B511CA2CBB /* Products */,
@@ -597,8 +593,8 @@
 		7104E1DC12005AE200F42AA8 /* TAppCommon */ = {
 			isa = PBXGroup;
 			children = (
-				7104E1DD12005B0E00F42AA8 /* program_options_lite.cpp */,
-				7104E1DE12005B0E00F42AA8 /* program_options_lite.h */,
+				7184647513FAE75800747BF9 /* program_options_lite.cpp */,
+				7184647613FAE75800747BF9 /* program_options_lite.h */,
 			);
 			name = TAppCommon;
 			sourceTree = "<group>";
