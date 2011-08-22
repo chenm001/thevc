@@ -3906,7 +3906,12 @@ Void TComDataCU::getInterMergeCandidates( UInt uiAbsPartIdx, UInt uiPUIdx, UInt 
     abCandIsInter[ i ] = false;
   }
 
+#if MRG_UNIFIED_POS_F419
   UInt uiArrayAddr = 0;
+#else
+  uiArrayAddr = 0;
+#endif
+    
   for (int i=0; i<MRG_MAX_NUM_CANDS; i++)
   {
     if (abCandIsInterFlag[i])
