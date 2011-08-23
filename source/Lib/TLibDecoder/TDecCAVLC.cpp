@@ -493,13 +493,17 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice)
     // }
   }
   // !!!! Syntax elements not in the WD  !!!!!
-  xReadFlag ( uiCode ); rpcSlice->setSymbolMode( uiCode );
   
-  xReadFlag (uiCode);   rpcSlice->setDRBFlag          (uiCode ? 1 : 0);
-  if ( !rpcSlice->getDRBFlag() )
+  if (!bEntropySlice)
   {
-    xReadCode(2, uiCode); rpcSlice->setERBIndex( (ERBIndex)uiCode );    assert (uiCode == ERB_NONE || uiCode == ERB_LTR);
-  }  
+    xReadFlag ( uiCode ); rpcSlice->setSymbolMode( uiCode );
+    
+    xReadFlag (uiCode);   rpcSlice->setDRBFlag          (uiCode ? 1 : 0);
+    if ( !rpcSlice->getDRBFlag() )
+    {
+      xReadCode(2, uiCode); rpcSlice->setERBIndex( (ERBIndex)uiCode );    assert (uiCode == ERB_NONE || uiCode == ERB_LTR);
+    }      
+  }
   
   return;
 }
