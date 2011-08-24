@@ -164,7 +164,9 @@ void TEncSearch::init(TEncCfg*      pcEncCfg,
   m_puiDFilter = s_auiDFilter + 4;
   
   // initialize motion cost
+#if !FIX203
   m_pcRdCost->initRateDistortionModel( m_iSearchRange << 2 );
+#endif
   
   for( Int iNum = 0; iNum < AMVP_MAX_NUM_CANDS+1; iNum++)
   {
