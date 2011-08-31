@@ -50,7 +50,9 @@ TComRdCost::TComRdCost()
 
 TComRdCost::~TComRdCost()
 {
+#if !FIX203
   xUninit();
+#endif
 }
 
 // Calculate RD functions
@@ -217,15 +219,20 @@ Void TComRdCost::init()
   m_afpDistortFunc[27] = TComRdCost::xGetHADs;
   m_afpDistortFunc[28] = TComRdCost::xGetHADs;
   
+#if !FIX203
   m_puiComponentCostOriginP = NULL;
   m_puiComponentCost        = NULL;
   m_puiVerCost              = NULL;
   m_puiHorCost              = NULL;
+#endif
   m_uiCost                  = 0;
   m_iCostScale              = 0;
+#if !FIX203
   m_iSearchLimit            = 0xdeaddead;
+#endif
 }
 
+#if !FIX203
 Void TComRdCost::initRateDistortionModel( Int iSubPelSearchLimit )
 {
   // make it larger
@@ -258,6 +265,7 @@ Void TComRdCost::xUninit()
     m_puiComponentCostOriginP = NULL;
   }
 }
+#endif
 
 UInt TComRdCost::xGetComponentBits( Int iVal )
 {

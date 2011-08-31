@@ -504,7 +504,10 @@ public:
   
   UInt          getCtxSplitFlag                 ( UInt   uiAbsPartIdx, UInt uiDepth                   );
   UInt          getCtxQtCbf                     ( UInt   uiAbsPartIdx, TextType eType, UInt uiTrDepth );
+#if !DNB_QT_ROOT_CBF
   UInt          getCtxQtRootCbf                 ( UInt   uiAbsPartIdx                                 );
+#endif
+
 #if !DNB_REF_FRAME_IDX
   UInt          getCtxRefIdx                    ( UInt   uiAbsPartIdx, RefPicList eRefPicList         );
 #endif

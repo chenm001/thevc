@@ -54,6 +54,7 @@
 #define DNB_INTER_PRED_MODE               1           ///< F606:               disable of neighbour evaluation for inter_pred_flag (use depth for that)
 #define DNB_CHROMA_CBF_FLAGS              1           ///< F606:               disable of neighbour evaluation for chroma cbf (use depth for that)
 #define DNB_LUMA_CBF_FLAGS                1           ///< F429:               disable of neighbour evaluation for luma cbf
+#define DNB_QT_ROOT_CBF                   1           ///< F429 / F606:        disable of neighbour evaluation for no_residual_data_flag
 
 #define WEIGHTED_CHROMA_DISTORTION  1   ///< F386: weighting of chroma for RDO
 #define RDOQ_CHROMA_LAMBDA          1   ///< F386: weighting of chroma for RDOQ
