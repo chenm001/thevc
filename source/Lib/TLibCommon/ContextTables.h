@@ -97,7 +97,11 @@
 #endif
 #define NUM_TRANS_SUBDIV_FLAG_CTX     10      ///< number of context models for transform subdivision flags
 #define NUM_QT_CBF_CTX                5       ///< number of context models for QT CBF
+#if DNB_QT_ROOT_CBF
+#define NUM_QT_ROOT_CBF_CTX           1       ///< number of context models for QT ROOT CBF
+#else
 #define NUM_QT_ROOT_CBF_CTX           4       ///< number of context models for QT ROOT CBF
+#endif
 #define NUM_DELTA_QP_CTX              4       ///< number of context models for dQP
 
 #if UNIFIED_SCAN
@@ -501,7 +505,21 @@ INIT_QT_CBF[3][3*NUM_QT_CBF_CTX][2] =
     {  -19,   45 }, {  -48,  123 }, {  -21,   94 }, {   -9,   73 }, {  -42,  138 }
   }
 };
-
+#if DNB_QT_ROOT_CBF
+static const Short
+INIT_QT_ROOT_CBF[3][NUM_QT_ROOT_CBF_CTX][2] =
+{
+  {
+    {    0,   64 }
+  },
+  {
+    {  -22,   85 }
+  },
+  {
+    {  -36,  103 }
+  }
+};
+#else
 static const Short
 INIT_QT_ROOT_CBF[3][NUM_QT_ROOT_CBF_CTX][2] =
 {
@@ -515,6 +533,7 @@ INIT_QT_ROOT_CBF[3][NUM_QT_ROOT_CBF_CTX][2] =
     {  -36,  103 }, {  -21,   95 }, {  -21,   97 }, {  -24,  114 },
   }
 };
+#endif
 
 #if MODIFIED_LAST_CODING
 static const Short

@@ -550,7 +550,6 @@ Void TEncAdaptiveLoopFilter::ALFProcess( ALFParam* pcAlfParam, Double dLambda, U
     
     uiMinRate = uiOrigRate;
     uiMinDist = uiOrigDist;
-    dMinCost = dMinCost;
     
     m_pcEntropyCoder->setAlfCtrl(false);
     pcPicYuvExtRec->copyToPicLuma(pcPicYuvRec);

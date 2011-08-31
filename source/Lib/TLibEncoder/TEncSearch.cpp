@@ -164,7 +164,9 @@ void TEncSearch::init(TEncCfg*      pcEncCfg,
   m_puiDFilter = s_auiDFilter + 4;
   
   // initialize motion cost
+#if !FIX203
   m_pcRdCost->initRateDistortionModel( m_iSearchRange << 2 );
+#endif
   
   for( Int iNum = 0; iNum < AMVP_MAX_NUM_CANDS+1; iNum++)
   {
@@ -2109,6 +2111,12 @@ TEncSearch::estIntraPredChromaQT( TComDataCU* pcCU,
   //----- check chroma modes -----
   for( UInt uiMode = uiMinMode; uiMode < uiMaxMode; uiMode++ )
   {
+#if FIXED_MPM && LM_CHROMA
+    if ( !pcCU->getSlice()->getSPS()->getUseLMChroma() && uiModeList[uiMode] == LM_CHROMA_IDX )
+    {
+      continue;
+    }
+#endif
     //----- restore context models -----
     if( m_bUseSBACRD )
     {

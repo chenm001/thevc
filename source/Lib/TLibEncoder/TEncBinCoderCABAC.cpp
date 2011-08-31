@@ -173,7 +173,7 @@ Void TEncBinCABAC::encodeBin( UInt binValue, ContextModel &rcCtxModel )
     DTRACE_CABAC_T( "\tstate=" )
     DTRACE_CABAC_V( ( rcCtxModel.getState() << 1 ) + rcCtxModel.getMps() )
     DTRACE_CABAC_T( "\tsymbol=" )
-    DTRACE_CABAC_V( uiBin )
+    DTRACE_CABAC_V( binValue )
     DTRACE_CABAC_T( "\n" )
   }
   m_uiBinsCoded += m_binCountIncrement;
@@ -216,7 +216,7 @@ Void TEncBinCABAC::encodeBinEP( UInt binValue )
   {
     DTRACE_CABAC_VL( g_nSymbolCounter++ )
     DTRACE_CABAC_T( "\tEPsymbol=" )
-    DTRACE_CABAC_V( uiBin )
+    DTRACE_CABAC_V( binValue )
     DTRACE_CABAC_T( "\n" )
   }
   m_uiBinsCoded += m_binCountIncrement;

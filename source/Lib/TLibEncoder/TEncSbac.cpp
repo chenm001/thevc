@@ -611,6 +611,7 @@ Void TEncSbac::codeMergeFlag( TComDataCU* pcCU, UInt uiAbsPartIdx )
   DTRACE_CABAC_V( pcCU->getAddr() );
   DTRACE_CABAC_T( "\tuiAbsPartIdx: " );
   DTRACE_CABAC_V( uiAbsPartIdx );
+#if !(DNB_MERGE_FLAG)
   for( UInt ui = 0; ui < MRG_MAX_NUM_CANDS; ui++ )
   {
     DTRACE_CABAC_T( "\tNumMrgCand: " );
@@ -618,6 +619,7 @@ Void TEncSbac::codeMergeFlag( TComDataCU* pcCU, UInt uiAbsPartIdx )
     DTRACE_CABAC_T( "\t==\t" );
     DTRACE_CABAC_V( UInt( pcCU->getNeighbourCandIdx( ui, uiAbsPartIdx ) ) );
   }
+#endif
   DTRACE_CABAC_T( "\n" );
 }
 
@@ -726,6 +728,7 @@ Void TEncSbac::codeMergeIndex( TComDataCU* pcCU, UInt uiAbsPartIdx )
   DTRACE_CABAC_T( "\tparseMergeIndex()" );
   DTRACE_CABAC_T( "\tuiMRGIdx= " );
   DTRACE_CABAC_V( pcCU->getMergeIndex( uiAbsPartIdx ) );
+#if !(MRG_AMVP_FIXED_IDX_F470)
   DTRACE_CABAC_T( "\tuiNumCand= " );
   DTRACE_CABAC_V( uiNumCand );
   DTRACE_CABAC_T( "\tbLeftInvolved= " );
@@ -736,6 +739,7 @@ Void TEncSbac::codeMergeIndex( TComDataCU* pcCU, UInt uiAbsPartIdx )
   DTRACE_CABAC_V( bCollocatedInvolved );
   DTRACE_CABAC_T( "\tbCornerRTInvolved= " );
   DTRACE_CABAC_V( bCornerInvolved );
+#endif
   DTRACE_CABAC_T( "\n" );
 }
 
@@ -1399,7 +1403,11 @@ Void TEncSbac::codeIPCMInfo( TComDataCU* pcCU, UInt uiAbsPartIdx)
 Void TEncSbac::codeQtRootCbf( TComDataCU* pcCU, UInt uiAbsPartIdx )
 {
   UInt uiCbf = pcCU->getQtRootCbf( uiAbsPartIdx );
+#if DNB_QT_ROOT_CBF
+  UInt uiCtx = 0;
+#else
   UInt uiCtx = pcCU->getCtxQtRootCbf( uiAbsPartIdx );
+#endif
   m_pcBinIf->encodeBin( uiCbf , m_cCUQtRootCbfSCModel.get( 0, 0, uiCtx ) );
   DTRACE_CABAC_VL( g_nSymbolCounter++ )
   DTRACE_CABAC_T( "\tparseQtRootCbf()" )
