@@ -303,7 +303,6 @@ Void TComDataCU::initCU( TComPic* pcPic, UInt iCUAddr )
   m_uiNumPartition     = pcPic->getNumPartInCU();
   
   Int iSizeInUchar = sizeof( UChar ) * m_uiNumPartition;
-  Int iSizeInUInt  = sizeof( UInt  ) * m_uiNumPartition;
   Int iSizeInBool  = sizeof( Bool  ) * m_uiNumPartition;
   
   memset( m_phQP,               pcSlice->getSliceQp(), iSizeInUchar );
@@ -733,7 +732,6 @@ Void TComDataCU::initEstData( UInt uiDepth, UInt uiQP )
   m_uiTotalBits        = 0;
 
   Int iSizeInUchar = sizeof( UChar  ) * m_uiNumPartition;
-  Int iSizeInUInt  = sizeof( UInt   ) * m_uiNumPartition;
   Int iSizeInBool  = sizeof( Bool   ) * m_uiNumPartition;
   memset( m_phQP,              uiQP, iSizeInUchar );
   memset( m_puiAlfCtrlFlag,     0, iSizeInBool );
@@ -823,7 +821,6 @@ Void TComDataCU::initSubCU( TComDataCU* pcCU, UInt uiPartUnitIdx, UInt uiDepth )
   m_uiNumPartition     = pcCU->getTotalNumPart() >> 2;
   
   Int iSizeInUchar = sizeof( UChar  ) * m_uiNumPartition;
-  Int iSizeInUInt  = sizeof( UInt   ) * m_uiNumPartition;
   Int iSizeInBool  = sizeof( Bool   ) * m_uiNumPartition;
   
 #if SUB_LCU_DQP

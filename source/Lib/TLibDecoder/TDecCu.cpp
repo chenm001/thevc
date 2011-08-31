@@ -396,7 +396,11 @@ Void TDecCu::xDecodeCU( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
         }
       }
     }
+#if FINE_GRANULARITY_SLICES
     xFinishDecodeCU( pcCU, uiAbsPartIdx, uiDepth, ruiIsLast );
+#else
+    xFinishDecodeCU( pcCU, uiAbsPartIdx, uiDepth );
+#endif
     return;
   }
   m_pcEntropyDecoder->decodePredMode( pcCU, uiAbsPartIdx, uiDepth );
@@ -409,7 +413,11 @@ Void TDecCu::xDecodeCU( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
 
     if(pcCU->getIPCMFlag(uiAbsPartIdx))
     {
+#if FINE_GRANULARITY_SLICES
       xFinishDecodeCU( pcCU, uiAbsPartIdx, uiDepth, ruiIsLast );
+#else
+      xFinishDecodeCU( pcCU, uiAbsPartIdx, uiDepth );
+#endif
       return;
     }
   }
@@ -425,8 +433,11 @@ Void TDecCu::xDecodeCU( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
   Bool bCodeDQP = getdQPFlag();
   m_pcEntropyDecoder->decodeCoeff( pcCU, uiAbsPartIdx, uiDepth, uiCurrWidth, uiCurrHeight, bCodeDQP );
   setdQPFlag( bCodeDQP );
-  
+#if FINE_GRANULARITY_SLICES  
   xFinishDecodeCU( pcCU, uiAbsPartIdx, uiDepth, ruiIsLast );
+#else
+  xFinishDecodeCU( pcCU, uiAbsPartIdx, uiDepth );
+#endif
 }
 
 #if FINE_GRANULARITY_SLICES
