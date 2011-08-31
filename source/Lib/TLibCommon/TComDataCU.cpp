@@ -2476,6 +2476,7 @@ UInt TComDataCU::getCtxQtCbf( UInt uiAbsPartIdx, TextType eType, UInt uiTrDepth 
 #endif
 }
 
+#if !DNB_QT_ROOT_CBF
 UInt TComDataCU::getCtxQtRootCbf( UInt uiAbsPartIdx )
 {
   UInt uiCtx = 0;
@@ -2509,6 +2510,7 @@ UInt TComDataCU::getCtxQtRootCbf( UInt uiAbsPartIdx )
   return uiCtx;
 }
 
+#endif
 UInt TComDataCU::getQuadtreeTULog2MinSizeInCU( UInt uiIdx )
 {
   UInt uiLog2MinTUSizeInCU = g_aucConvertToBit[getWidth( uiIdx )] + 2;

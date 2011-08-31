@@ -1464,7 +1464,11 @@ Void TDecSbac::parseTransformSubdivFlag( UInt& ruiSubdivFlag, UInt uiLog2Transfo
 Void TDecSbac::parseQtRootCbf( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth, UInt& uiQtRootCbf )
 {
   UInt uiSymbol;
+#if DNB_QT_ROOT_CBF
+  const UInt uiCtx = 0;
+#else
   const UInt uiCtx = pcCU->getCtxQtRootCbf( uiAbsPartIdx );
+#endif
   m_pcTDecBinIf->decodeBin( uiSymbol , m_cCUQtRootCbfSCModel.get( 0, 0, uiCtx ) );
   DTRACE_CABAC_VL( g_nSymbolCounter++ )
   DTRACE_CABAC_T( "\tparseQtRootCbf()" )
