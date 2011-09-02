@@ -917,6 +917,18 @@ TComSPS::TComSPS()
 
 TComSPS::~TComSPS()
 {
+#if TILES
+  if( m_iNumColumnsMinus1 > 0 && m_iUniformSpacingIdr == 0 )
+  {
+    delete [] m_puiColumnWidth; 
+    m_puiColumnWidth = NULL;
+  }
+  if( m_iNumRowsMinus1 > 0 && m_iUniformSpacingIdr == 0 )
+  {
+    delete [] m_puiRowHeight;
+    m_puiRowHeight = NULL;
+  }
+#endif
 }
 
 TComPPS::TComPPS()
@@ -944,6 +956,18 @@ TComPPS::TComPPS()
 
 TComPPS::~TComPPS()
 {
+#if TILES
+  if( m_iNumColumnsMinus1 > 0 && m_iUniformSpacingIdr == 0 )
+  {
+    delete [] m_puiColumnWidth; 
+    m_puiColumnWidth = NULL;
+  }
+  if( m_iNumRowsMinus1 > 0 && m_iUniformSpacingIdr == 0 )
+  {
+    delete [] m_puiRowHeight;
+    m_puiRowHeight = NULL;
+  }
+#endif
 }
 
 //! \}

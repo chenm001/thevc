@@ -107,6 +107,10 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
   string cfg_BitstreamFile;
   string cfg_ReconFile;
   string cfg_dQPFile;
+#if TILES
+  string cfg_ColumnWidth;
+  string cfg_RowHeight;
+#endif
   po::Options opts;
   opts.addOptions()
   ("help", do_help, false, "this help text")
@@ -239,6 +243,15 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
 #if E057_INTRA_PCM && E192_SPS_PCM_FILTER_DISABLE_SYNTAX
     ("PCMFilterDisableFlag", m_bPCMFilterDisableFlag, false)
 #endif
+#if TILES
+    ("TileInfoPresentFlag",         m_iColumnRowInfoPresent,         1,          "0: tiles parameters are NOT present in the PPS. 1: tiles parameters are present in the PPS")
+    ("UniformSpacingIdc",           m_iUniformSpacingIdr,            0,          "Indicates if the column and row boundaries are distributed uniformly")
+    ("TileBoundaryIndependenceIdc", m_iTileBoundaryIndependenceIdr,  1,          "Indicates if the column and row boundaries break the prediction")
+    ("NumTileColumnsMinus1",        m_iNumColumnsMinus1,             0,          "Number of columns in a picture minus 1")
+    ("ColumnWidthArray",            cfg_ColumnWidth,                 string(""), "Array containing ColumnWidth values in units of LCU")
+    ("NumTileRowsMinus1",           m_iNumRowsMinus1,                0,          "Number of rows in a picture minus 1")
+    ("RowHeightArray",              cfg_RowHeight,                   string(""), "Array containing RowHeight values in units of LCU")
+#endif
   /* Misc. */
   ("SEIpictureDigest", m_pictureDigestEnabled, true, "Control generation of picture_digest SEI messages\n"
                                               "\t1: use MD5\n"
@@ -284,6 +297,10 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
   m_pchReconFile = cfg_ReconFile.empty() ? NULL : strdup(cfg_ReconFile.c_str());
   m_pchdQPFile = cfg_dQPFile.empty() ? NULL : strdup(cfg_dQPFile.c_str());
   
+#if TILES
+  m_pchColumnWidth = cfg_ColumnWidth.empty() ? NULL: strdup(cfg_ColumnWidth.c_str());
+  m_pchRowHeight = cfg_RowHeight.empty() ? NULL : strdup(cfg_RowHeight.c_str());
+#endif
   if (m_iRateGOPSize == -1)
   {
     /* if rateGOPSize has not been specified, the default value is GOPSize */
@@ -646,6 +663,9 @@ Void TAppEncCfg::xPrintParameter()
 #endif
 #if REF_SETTING_FOR_LD
   printf("NewRefSetting:%d ", m_bUseNewRefSetting?1:0);
+#endif
+#if TILES 
+  printf("TileBoundaryIndependence:%d ", m_iTileBoundaryIndependenceIdr ); 
 #endif
   printf("\n\n");
   

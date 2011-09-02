@@ -177,6 +177,16 @@ protected:
 #if E057_INTRA_PCM && E192_SPS_PCM_FILTER_DISABLE_SYNTAX 
   Bool      m_bPCMFilterDisableFlag;
 #endif
+#if TILES
+  Int       m_iColumnRowInfoPresent;
+  Int       m_iUniformSpacingIdr;
+  Int       m_iTileBoundaryIndependenceIdr;
+  Int       m_iNumColumnsMinus1;
+  UInt*     m_puiColumnWidth;
+  Int       m_iNumRowsMinus1;
+  UInt*     m_puiRowHeight;
+#endif
+
   bool m_pictureDigestEnabled; ///< enable(1)/disable(0) md5 computation and SEI signalling
 
 #if REF_SETTING_FOR_LD
@@ -185,7 +195,23 @@ protected:
 
 public:
   TEncCfg()          {}
-  virtual ~TEncCfg() {}
+  virtual ~TEncCfg() {
+#if TILES
+    if( m_iUniformSpacingIdr == 0 )
+    {
+      if( m_iNumColumnsMinus1 )
+      { 
+        delete[] m_puiColumnWidth; 
+        m_puiColumnWidth = NULL;
+      }
+      if( m_iNumRowsMinus1 )
+      {
+        delete[] m_puiRowHeight;
+        m_puiRowHeight = NULL;
+      }
+    }
+#endif
+  }
   
   Void      setFrameRate                    ( Int   i )      { m_iFrameRate = i; }
   Void      setFrameSkip                    ( unsigned int i ) { m_FrameSkip = i; }
@@ -401,7 +427,81 @@ public:
   Void      setUseSAO                  (Bool bVal)     {m_bUseSAO = bVal;}
   Bool      getUseSAO                  ()              {return m_bUseSAO;}
 #endif
+#if TILES
+  Void  setColumnRowInfoPresent        ( Int i )           { m_iColumnRowInfoPresent = i; }
+  Int   getColumnRowInfoPresent        ()                  { return m_iColumnRowInfoPresent; }
+  Void  setUniformSpacingIdr           ( Int i )           { m_iUniformSpacingIdr = i; }
+  Int   getUniformSpacingIdr           ()                  { return m_iUniformSpacingIdr; }
+  Void  setTileBoundaryIndependenceIdr ( Int i )           { m_iTileBoundaryIndependenceIdr = i; }
+  Int   getTileBoundaryIndependenceIdr ()                  { return m_iTileBoundaryIndependenceIdr; }
+  Void  setNumColumnsMinus1            ( Int i )           { m_iNumColumnsMinus1 = i; }
+  Int   getNumColumnsMinus1            ()                  { return m_iNumColumnsMinus1; }
+Void  setColumnWidth ( char* str )
+{
+  char *columnWidth;
+  int  i=0;
+  Int  m_iWidthInCU = ( m_iSourceWidth%g_uiMaxCUWidth ) ? m_iSourceWidth/g_uiMaxCUWidth + 1 : m_iSourceWidth/g_uiMaxCUWidth;
 
+  if( m_iUniformSpacingIdr == 0 && m_iNumColumnsMinus1 > 0 )
+  {
+    m_puiColumnWidth = new UInt[m_iNumColumnsMinus1];
+
+    columnWidth = strtok(str, " ,-");
+    while(columnWidth!=NULL)
+    {
+      if( i>=m_iNumColumnsMinus1 )
+      {
+        printf( "The number of columns whose width are defined is larger than the allowed number of columns.\n" );
+        exit( EXIT_FAILURE );
+      }
+      *( m_puiColumnWidth + i ) = atoi( columnWidth );
+      printf("col: m_iWidthInCU= %4d i=%4d width= %4d\n",m_iWidthInCU,i,m_puiColumnWidth[i]); //AFU
+      columnWidth = strtok(NULL, " ,-");
+      i++;
+    }
+    if( i<m_iNumColumnsMinus1 )
+    {
+      printf( "The width of some columns is not defined.\n" );
+      exit( EXIT_FAILURE );
+    }
+  }
+}
+  UInt  getColumnWidth                 ( UInt columnidx )  { return *( m_puiColumnWidth + columnidx ); }
+  Void  setNumRowsMinus1               ( Int i )           { m_iNumRowsMinus1 = i; }
+  Int   getNumRowsMinus1               ()                  { return m_iNumRowsMinus1; }
+Void  setRowHeight (char* str)
+{
+  char *rowHeight;
+  int  i=0;
+  Int  m_iHeightInCU = ( m_iSourceHeight%g_uiMaxCUHeight ) ? m_iSourceHeight/g_uiMaxCUHeight + 1 : m_iSourceHeight/g_uiMaxCUHeight;
+
+  if( m_iUniformSpacingIdr == 0 && m_iNumRowsMinus1 > 0 )
+  {
+    m_puiRowHeight = new UInt[m_iNumRowsMinus1];
+
+    rowHeight = strtok(str, " ,-");
+    while(rowHeight!=NULL)
+    {
+      if( i>=m_iNumRowsMinus1 )
+      {
+        printf( "The number of rows whose height are defined is larger than the allowed number of rows.\n" );
+        exit( EXIT_FAILURE );
+      }
+      *( m_puiRowHeight + i ) = atoi( rowHeight );
+      printf("row: m_iHeightInCU=%4d i=%4d height=%4d\n",m_iHeightInCU,i,m_puiRowHeight[i]); //AFU
+      rowHeight = strtok(NULL, " ,-");
+      i++;
+    }
+    if( i<m_iNumRowsMinus1 )
+    {
+      printf( "The height of some rows is not defined.\n" );
+      exit( EXIT_FAILURE );
+   }
+  }
+}
+  UInt  getRowHeight                   ( UInt rowIdx )     { return *( m_puiRowHeight + rowIdx ); }
+  Void  xCheckGSParameters();
+#endif
   void setPictureDigestEnabled(bool b) { m_pictureDigestEnabled = b; }
   bool getPictureDigestEnabled() { return m_pictureDigestEnabled; }
 

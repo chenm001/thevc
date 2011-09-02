@@ -182,6 +182,10 @@ public:
     ruiBits = (*m_fifo)[m_fifo_idx++];
   }
 
+#if TILES
+  Void        readOutTrailingBits ();
+#endif
+
   // Peek at bits in word-storage. Used in determining if we have completed reading of current bitstream and therefore slice in LCEC.
   UInt        peekBits (UInt uiBits) { unsigned tmp; pseudoRead(uiBits, tmp); return tmp; }
 
@@ -190,6 +194,10 @@ public:
   UInt     readByte() { UInt tmp; readByte( tmp ); return tmp; }
   unsigned getNumBitsUntilByteAligned() { return m_num_held_bits & (0x7); }
   unsigned getNumBitsLeft() { return 8*((unsigned)m_fifo->size() - m_fifo_idx) + m_num_held_bits; }
+#if OL_USE_WPP
+  Void      addSubstream    ( TComBitstream* pcSubstream, Bool bWriteHeader );
+  Void      extractSubstream( TComBitstream* pcBitstream, Bool bReadHeader  );
+#endif
 };
 
 //! \}

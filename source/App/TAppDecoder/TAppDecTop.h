@@ -61,6 +61,9 @@ class TAppDecTop : public TAppDecCfg
 private:
   // class interface
   TDecTop                         m_cTDecTop;                     ///< decoder class
+#if OL_USE_WPP
+  TComBitstream**                 m_appcSubstreams;               ///< bitstream class used for substreams
+#endif
   TVideoIOYuv                     m_cTVideoIOYuvReconFile;        ///< reconstruction YUV class
   
   // for output control

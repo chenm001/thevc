@@ -287,6 +287,9 @@ public:
   
   Bool  getAdaptFlag          ()          { return m_bAdaptFlag; }
   Void  setAdaptFlag          ( Bool b )  { m_bAdaptFlag = b;     }
+#if TILES
+  Void updateContextTables           ( SliceType eSliceType, Int iQp ) { return;   }
+#endif
 };
 
 //! \}

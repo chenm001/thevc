@@ -242,6 +242,9 @@ public:
   Void parseAlfCtrlFlag     ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
   Void parseAlfFlagNum      ( UInt& ruiVal, UInt minValue, UInt depth );
   Void parseAlfCtrlFlag     ( UInt &ruiAlfCtrlFlag );
+#if TILES
+  Void updateContextTables( SliceType eSliceType, Int iQp ) { return; }
+#endif    
 };
 
 //! \}

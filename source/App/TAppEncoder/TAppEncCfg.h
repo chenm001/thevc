@@ -183,6 +183,16 @@ protected:
 #if MTK_NONCROSS_INLOOP_FILTER
   Bool m_bLFCrossSliceBoundaryFlag;  ///< 0: Cross-slice-boundary in-loop filtering 1: non-cross-slice-boundary in-loop filtering
 #endif
+#if TILES
+  Int       m_iColumnRowInfoPresent;
+  Int       m_iUniformSpacingIdr;
+  Int       m_iTileBoundaryIndependenceIdr;
+  Int       m_iNumColumnsMinus1;
+  char*     m_pchColumnWidth;
+  Int       m_iNumRowsMinus1;
+  char*     m_pchRowHeight;
+#endif
+
   Bool      m_bUseConstrainedIntraPred;                       ///< flag for using constrained intra prediction
   
   bool m_pictureDigestEnabled; ///< enable(1)/disable(0) md5 computation and SEI signalling

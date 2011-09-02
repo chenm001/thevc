@@ -60,10 +60,34 @@ TAppDecTop::TAppDecTop()
 
 Void TAppDecTop::create()
 {
+#if OL_USE_WPP
+  m_appcSubstreams = new TComBitstream*[OL_ALLOC_SUBSTREAMS];
+  for ( UInt ui = 0 ; ui < OL_ALLOC_SUBSTREAMS ; ui++ )
+  {
+      m_appcSubstreams[ui] = new TComBitstream;
+      m_appcSubstreams[ui]->create(BITS_BUF_SIZE);
+  }
+#endif
 }
 
 Void TAppDecTop::destroy()
 {
+#if OL_USE_WPP
+  if ( m_appcSubstreams )
+  {
+    for ( UInt ui = 0 ; ui < OL_ALLOC_SUBSTREAMS ; ui++ )
+  {
+     if ( m_appcSubstreams[ui] )
+     {
+        m_appcSubstreams[ui]->destroy();
+      delete m_appcSubstreams[ui];
+      m_appcSubstreams[ui] = NULL;
+     }
+  }
+  delete[] m_appcSubstreams;
+  m_appcSubstreams = NULL;
+  }
+#endif
 }
 
 // ====================================================================================================================
@@ -80,6 +104,9 @@ Void TAppDecTop::destroy()
  */
 Void TAppDecTop::decode()
 {
+#if OL_USE_WPP
+  TComBitstream**     ppcSubstreams = m_appcSubstreams;
+#endif
   UInt                uiPOC;
   TComList<TComPic*>* pcListPic = NULL;
 
@@ -127,6 +154,11 @@ Void TAppDecTop::decode()
       read(nalu, nalUnit);
       bNewPicture = m_cTDecTop.decode(nalu, m_iSkipFrame, m_iPOCLastDisplay);
       if (bNewPicture)
+#if OL_USE_WPP
+      if (!bFirstSliceDecoded) m_cTDecTop.decode( bEos, pcBitstream, ppcSubstreams, uiPOC, pcListPic, m_iSkipFrame, m_iPOCLastDisplay);
+#else
+      //if (!bFirstSliceDecoded) m_cTDecTop.decode( bEos, pcBitstream, uiPOC, pcListPic, m_iSkipFrame, m_iPOCLastDisplay);
+#endif
       {
         bitstreamFile.clear();
         /* location points to the current nalunit payload[1] due to the
@@ -138,10 +170,27 @@ Void TAppDecTop::decode()
       }
     }
     if (bNewPicture || !bitstreamFile)
+#if OL_USE_WPP
+    Bool bNewPicture     = m_cTDecTop.decode( bEos, pcBitstream, ppcSubstreams, uiPOC, pcListPic, m_iSkipFrame, m_iPOCLastDisplay);
+#else
+    //Bool bNewPicture     = m_cTDecTop.decode( bEos, pcBitstream, uiPOC, pcListPic, m_iSkipFrame, m_iPOCLastDisplay);
+#endif
     {
       m_cTDecTop.executeDeblockAndAlf(uiPOC, pcListPic, m_iSkipFrame, m_iPOCLastDisplay);
     }
 
+#if OL_USE_WPP
+    m_cTDecTop.decode( bEos, pcBitstream, ppcSubstreams, uiPOC, pcListPic );
+#else
+    //m_cTDecTop.decode( bEos, pcBitstream, uiPOC, pcListPic );
+#endif
+#if OL_USE_WPP
+        for (UInt ui = 0; ui < OL_ALLOC_SUBSTREAMS; ui++)
+        {
+          ppcSubstreams[ui]->destroy();
+          ppcSubstreams[ui]->create(sps->getWidth() * sps->getHeight() * 2);
+        }
+#endif
     if( pcListPic )
     {
       if ( m_pchReconFile && !recon_opened )

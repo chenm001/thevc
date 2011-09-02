@@ -90,6 +90,10 @@ private:
   TEncCavlc               m_cCavlcCoder;                  ///< CAVLC encoder
   TEncSbac                m_cSbacCoder;                   ///< SBAC encoder
   TEncBinCABAC            m_cBinCoderCABAC;               ///< bin coder CABAC
+#if OL_USE_WPP
+  TEncSbac*               m_pcSbacCoders;                 ///< SBAC encoders (to encode substreams )
+  TEncBinCABAC*           m_pcBinCoderCABACs;             ///< bin coders CABAC (one per substream)
+#endif
   
   // processing unit
   TEncGOP                 m_cGOPEncoder;                  ///< GOP encoder
@@ -106,7 +110,15 @@ private:
   TEncSbac                m_cRDGoOnSbacCoder;             ///< going on SBAC model for RD stage
   TEncBinCABAC***         m_pppcBinCoderCABAC;            ///< temporal CABAC state storage for RD computation
   TEncBinCABAC            m_cRDGoOnBinCoderCABAC;         ///< going on bin coder CABAC for RD stage
-  
+#if OL_USE_WPP
+  TComBitCounter*         m_pcBitCounters;                 ///< bit counters for RD optimization per substream
+  TComRdCost*             m_pcRdCosts;                     ///< RD cost computation class per substream
+  TEncSbac****            m_ppppcRDSbacCoders;             ///< temporal storage for RD computation per substream
+  TEncSbac*               m_pcRDGoOnSbacCoders;            ///< going on SBAC model for RD stage per substream
+  TEncBinCABAC****        m_ppppcBinCodersCABAC;           ///< temporal CABAC state storage for RD computation per substream
+  TEncBinCABAC*           m_pcRDGoOnBinCodersCABAC;        ///< going on bin coder CABAC for RD stage per substream
+#endif 
+
 #if QP_ADAPTATION
   // quality control
   TEncPreanalyzer         m_cPreanalyzer;                 ///< image characteristics analyzer for TM5-step3-like adaptive QP
@@ -117,6 +129,10 @@ protected:
   Void  xInitSPS          ();                             ///< initialize SPS from encoder options
   Void  xInitPPS          ();                             ///< initialize PPS from encoder options
   
+#if TILES
+  Void  xInitPPSforTiles  ();
+#endif
+
 public:
   TEncTop();
   virtual ~TEncTop();
@@ -146,11 +162,21 @@ public:
   TEncCavlc*              getCavlcCoder         () { return  &m_cCavlcCoder;          }
   TEncSbac*               getSbacCoder          () { return  &m_cSbacCoder;           }
   TEncBinCABAC*           getBinCABAC           () { return  &m_cBinCoderCABAC;       }
+#if OL_USE_WPP
+  TEncSbac*               getSbacCoders     () { return  m_pcSbacCoders;      }
+  TEncBinCABAC*           getBinCABACs          () { return  m_pcBinCoderCABACs;      }
+#endif
   
   TComBitCounter*         getBitCounter         () { return  &m_cBitCounter;          }
   TComRdCost*             getRdCost             () { return  &m_cRdCost;              }
   TEncSbac***             getRDSbacCoder        () { return  m_pppcRDSbacCoder;       }
   TEncSbac*               getRDGoOnSbacCoder    () { return  &m_cRDGoOnSbacCoder;     }
+#if OL_USE_WPP
+  TComBitCounter*         getBitCounters        () { return  m_pcBitCounters;         }
+  TComRdCost*             getRdCosts            () { return  m_pcRdCosts;             }
+  TEncSbac****            getRDSbacCoders       () { return  m_ppppcRDSbacCoders;     }
+  TEncSbac*               getRDGoOnSbacCoders   () { return  m_pcRDGoOnSbacCoders;   }
+#endif
   
   TComSPS*                getSPS                () { return  &m_cSPS;                 }
   TComPPS*                getPPS                () { return  &m_cPPS;                 }
@@ -158,10 +184,19 @@ public:
   // -------------------------------------------------------------------------------------------------------------------
   // encoder function
   // -------------------------------------------------------------------------------------------------------------------
-  
+
   /// encode several number of pictures until end-of-sequence
   Void encode( bool bEos, TComPicYuv* pcPicYuvOrg, TComList<TComPicYuv*>& rcListPicYuvRecOut,
               std::list<AccessUnit>& accessUnitsOut, Int& iNumEncoded );
+#if OL_USE_WPP
+  /// encode several number of pictures until end-of-sequence
+  Void encode( bool bEos, TComPicYuv* pcPicYuvOrg, TComList<TComPicYuv*>& rcListPicYuvRecOut,
+               TComList<TComBitstream*>& rcListBitstreamOut, TComList<TComBitstream*>*& rpcListsSubstreamsOut, Int& iNumEncoded );
+#else
+  /// encode several number of pictures until end-of-sequence
+  //Void encode( bool bEos, TComPicYuv* pcPicYuvOrg, TComList<TComPicYuv*>& rcListPicYuvRecOut,
+  //            TComList<TComBitstream*>& rcListBitstreamOut, Int& iNumEncoded );
+#endif
   
 };
 

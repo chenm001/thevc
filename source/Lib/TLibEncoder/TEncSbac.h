@@ -86,6 +86,10 @@ public:
   Void  load                   ( TEncSbac* pScr  );
   Void  loadIntraDirModeLuma   ( TEncSbac* pScr  );
   Void  store                  ( TEncSbac* pDest );
+#if OL_USE_WPP
+  Void  loadContexts           ( TEncSbac* pScr  );
+  Void  mergeContextsWith    ( TEncSbac* pSrc  );
+#endif
   Void  resetBits              ()                { m_pcBinIf->resetBits(); m_pcBitIf->resetBits(); }
   UInt  getNumberOfWrittenBits ()                { return m_pcBinIf->getNumWrittenBits(); }
   //--SBAC RD
@@ -132,6 +136,9 @@ private:
   Void  xWriteExGolombMvd    ( UInt uiSymbol, ContextModel* pcSCModel, UInt uiMaxBin );
 #endif
   Void  xCopyFrom            ( TEncSbac* pSrc );
+#if OL_USE_WPP
+  Void  xCopyContextsFrom    ( TEncSbac* pSrc );  
+#endif
   
 protected:
   TComBitIf*    m_pcBitIf;
@@ -200,6 +207,12 @@ public:
   Void estCBFBit                     ( estBitsSbacStruct* pcEstBitsSbac, UInt uiCTXIdx, TextType eTType );
   Void estSignificantMapBit          ( estBitsSbacStruct* pcEstBitsSbac, UInt uiCTXIdx, TextType eTType );
   Void estSignificantCoefficientsBit ( estBitsSbacStruct* pcEstBitsSbac, UInt uiCTXIdx, TextType eTType );
+  
+
+#if TILES
+  Void updateContextTables            ( SliceType eSliceType, Int iQp );
+#endif
+
   
   TEncBinIf* getEncBinIf()  { return m_pcBinIf; }
 private:

@@ -67,6 +67,11 @@ public:
   Void  xReadPCMCode      (UInt uiLength, UInt& ruiCode);
 #endif
   
+#if OL_USE_WPP
+  Void  copyState         ( TDecBinIf* pcTDecBinIf );
+  TDecBinCABAC* getTDecBinCABAC()  { return this; }
+#endif
+
 private:
   TComInputBitstream* m_pcTComBitstream;
   UInt                m_uiRange;

@@ -141,6 +141,10 @@ public:
 #endif
   virtual Void estBit               (estBitsSbacStruct* pcEstBitsSbac, UInt uiCTXIdx, TextType eTType) = 0;
   
+#if TILES
+  virtual Void updateContextTables           ( SliceType eSliceType, Int iQp )                  = 0;
+#endif
+
   virtual ~TEncEntropyIf() {}
 
 };
@@ -221,6 +225,9 @@ public:
   Void encodeQtCbf             ( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eType, UInt uiTrDepth );
   Void encodeQtRootCbf         ( TComDataCU* pcCU, UInt uiAbsPartIdx );
   Void encodeQP                ( TComDataCU* pcCU, UInt uiAbsPartIdx, Bool bRD = false );
+#if TILES
+  Void updateContextTables     ( SliceType eSliceType, Int iQp ) { m_pcEntropyCoderIf->updateContextTables( eSliceType, iQp ); }
+#endif
   
 private:
   Void xEncodeTransformSubdiv  ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth, UInt uiInnerQuadIdx, UInt& uiYCbfFront3, UInt& uiUCbfFront3, UInt& uiVCbfFront3 );

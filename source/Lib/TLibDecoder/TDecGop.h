@@ -73,6 +73,10 @@ private:
   TDecEntropy*          m_pcEntropyDecoder;
   TDecSbac*             m_pcSbacDecoder;
   TDecBinCABAC*         m_pcBinCABAC;
+#if OL_USE_WPP
+  TDecSbac*             m_pcSbacDecoders; // independant CABAC decoders
+  TDecBinCABAC*         m_pcBinCABACs;
+#endif
   TDecCavlc*            m_pcCavlcDecoder;
   TDecSlice*            m_pcSliceDecoder;
   TComLoopFilter*       m_pcLoopFilter;
@@ -95,6 +99,10 @@ public:
   Void  init    ( TDecEntropy*            pcEntropyDecoder, 
                  TDecSbac*               pcSbacDecoder, 
                  TDecBinCABAC*           pcBinCABAC,
+#if OL_USE_WPP
+                 TDecSbac*               pcSbacDecoders, 
+                 TDecBinCABAC*           pcBinCABACs,
+#endif
                  TDecCavlc*              pcCavlcDecoder, 
                  TDecSlice*              pcSliceDecoder, 
                  TComLoopFilter*         pcLoopFilter, 
@@ -109,6 +117,11 @@ public:
   Void  decompressGop(TComInputBitstream* pcBitstream, TComPic*& rpcPic, Bool bExecuteDeblockAndAlf, TComList<TComPic*>& rcListPic );
 #else
   Void  decompressGop(TComInputBitstream* pcBitstream, TComPic*& rpcPic, Bool bExecuteDeblockAndAlf );
+#endif
+#if OL_USE_WPP
+  Void  decompressGop ( Bool bEos, TComBitstream* pcBitstream, TComBitstream** ppcSubstreams, TComPic*& rpcPic, Bool bExecuteDeblockAndAlf );
+#else
+  //Void  decompressGop ( Bool bEos, TComBitstream* pcBitstream, TComPic*& rpcPic, Bool bExecuteDeblockAndAlf );
 #endif
   Void  setGopSize( Int i) { m_iGopSize = i; }
 

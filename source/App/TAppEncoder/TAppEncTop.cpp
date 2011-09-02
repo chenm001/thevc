@@ -59,10 +59,16 @@ TAppEncTop::TAppEncTop()
   m_iFrameRcvd = 0;
   m_totalBytes = 0;
   m_essentialBytes = 0;
+#if OL_USE_WPP
+  m_pcListsSubstreams = new TComList<TComBitstream*>[OL_ALLOC_SUBSTREAMS];  // create one list for each substream number
+#endif
 }
 
 TAppEncTop::~TAppEncTop()
 {
+#if OL_USE_WPP
+  delete[] m_pcListsSubstreams;
+#endif
 }
 
 Void TAppEncTop::xInitLibCfg()
@@ -199,6 +205,19 @@ Void TAppEncTop::xInitLibCfg()
 #if REF_SETTING_FOR_LD
   m_cTEncTop.setUseNewRefSetting( m_bUseNewRefSetting );
 #endif
+#if TILES
+  m_cTEncTop.setColumnRowInfoPresent       ( m_iColumnRowInfoPresent );
+  m_cTEncTop.setUniformSpacingIdr          ( m_iUniformSpacingIdr );
+  m_cTEncTop.setTileBoundaryIndependenceIdr( m_iTileBoundaryIndependenceIdr );
+  m_cTEncTop.setNumColumnsMinus1           ( m_iNumColumnsMinus1 );
+  m_cTEncTop.setNumRowsMinus1              ( m_iNumRowsMinus1 );
+  if(m_iUniformSpacingIdr==0)
+  {
+    m_cTEncTop.setColumnWidth              ( m_pchColumnWidth );
+    m_cTEncTop.setRowHeight                ( m_pchRowHeight );
+  }
+  m_cTEncTop.xCheckGSParameters();
+#endif
 }
 
 Void TAppEncTop::xCreateLib()
@@ -252,6 +271,11 @@ Void TAppEncTop::encode()
 
   TComPicYuv*       pcPicYuvOrg = new TComPicYuv;
   TComPicYuv*       pcPicYuvRec = NULL;
+#if OL_USE_WPP
+  TComBitstream**   ppcSubstreams = new TComBitstream*[OL_ALLOC_SUBSTREAMS];
+  for ( UInt ui = 0 ; ui < OL_ALLOC_SUBSTREAMS ; ui++ )
+    ppcSubstreams[ui] = NULL;
+#endif
   
   // initialize internal class & member variables
   xInitLibCfg();
@@ -271,7 +295,12 @@ Void TAppEncTop::encode()
   {
     // get buffers
     xGetBuffer(pcPicYuvRec);
-    
+#if OL_USE_WPP
+    xGetBuffer( pcPicYuvRec, pcBitstream, ppcSubstreams );
+#else
+    //xGetBuffer( pcPicYuvRec, pcBitstream );
+#endif
+
     // read input YUV file
     m_cTVideoIOYuvInputFile.read( pcPicYuvOrg, m_aiPad );
     
@@ -284,6 +313,11 @@ Void TAppEncTop::encode()
     
     // call encoding function for one frame
     m_cTEncTop.encode( bEos, pcPicYuvOrg, m_cListPicYuvRec, outputAccessUnits, iNumEncoded );
+#if OL_USE_WPP
+    m_cTEncTop.encode( bEos, pcPicYuvOrg, m_cListPicYuvRec, m_cListBitstream, m_pcListsSubstreams, iNumEncoded );
+#else
+    //m_cTEncTop.encode( bEos, pcPicYuvOrg, m_cListPicYuvRec, m_cListBitstream, iNumEncoded );
+#endif
     
     // write bistream to file if necessary
     if ( iNumEncoded > 0 )
@@ -306,6 +340,17 @@ Void TAppEncTop::encode()
   
   printRateSummary();
 
+#if OL_USE_WPP
+  for ( UInt ui = 0 ; ui < OL_ALLOC_SUBSTREAMS ; ui++ )
+  {
+  if ( ppcSubstreams[ui] )
+  {
+     ppcSubstreams[ui]->destroy();
+     delete ppcSubstreams[ui];
+  }
+  }
+  delete ppcSubstreams;
+#endif
   return;
 }
 
@@ -320,21 +365,61 @@ Void TAppEncTop::encode()
  .
  */
 Void TAppEncTop::xGetBuffer( TComPicYuv*& rpcPicYuvRec)
+#if OL_USE_WPP
+Void TAppEncTop::xGetBuffer( TComPicYuv*& rpcPicYuvRec, TComBitstream*& rpcBitStream, TComBitstream**& rppcSubstreams )
+#else
+//Void TAppEncTop::xGetBuffer( TComPicYuv*& rpcPicYuvRec, TComBitstream*& rpcBitStream )
+#endif
 {
   assert( m_iGOPSize > 0 );
+#if OL_USE_WPP
+    for ( UInt ui = 0 ; ui < OL_ALLOC_SUBSTREAMS ; ui++ )
+    {
+    rppcSubstreams[ui] = new TComBitstream;
+    rppcSubstreams[ui]->create( (m_iSourceWidth * m_iSourceHeight * 3) >> 1 );
+    m_pcListsSubstreams[ui].pushBack( rppcSubstreams[ui] );
+    }
+#endif
+#if OL_USE_WPP
+  for ( UInt ui = 0 ; ui < OL_ALLOC_SUBSTREAMS ; ui++ )
+  {
+     rppcSubstreams[ui] = m_pcListsSubstreams[ui].popFront();
+     m_pcListsSubstreams[ui].pushBack( rppcSubstreams[ui] );
+  }
+#endif
   
   // org. buffer
   if ( m_cListPicYuvRec.size() == (UInt)m_iGOPSize )
   {
     rpcPicYuvRec = m_cListPicYuvRec.popFront();
+
+#if OL_USE_WPP
+  for ( UInt ui = 0 ; ui < OL_ALLOC_SUBSTREAMS ; ui++ )
+  {
+     rppcSubstreams[ui] = m_pcListsSubstreams[ui].popFront();
+     rppcSubstreams[ui]->rewindStreamPacket();
+    }
+#endif
   }
   else
   {
     rpcPicYuvRec = new TComPicYuv;
     
     rpcPicYuvRec->create( m_iSourceWidth, m_iSourceHeight, m_uiMaxCUWidth, m_uiMaxCUHeight, m_uiMaxCUDepth );
+
+#if OL_USE_WPP
+  for ( UInt ui = 0 ; ui < OL_ALLOC_SUBSTREAMS ; ui++ )
+  {
+     rppcSubstreams[ui] = new TComBitstream;
+     rppcSubstreams[ui]->create( (m_iSourceWidth * m_iSourceHeight * 3) >> 1 );
+    }
+#endif
   }
   m_cListPicYuvRec.pushBack( rpcPicYuvRec );
+#if OL_USE_WPP
+  for ( UInt ui = 0 ; ui < OL_ALLOC_SUBSTREAMS ; ui++ )
+     m_pcListsSubstreams[ui].pushBack( rppcSubstreams[ui] );
+#endif
 }
 
 Void TAppEncTop::xDeleteBuffer( )

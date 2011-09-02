@@ -63,6 +63,25 @@ TEncTop::TEncTop()
 #endif
 
   m_iMaxRefPicNum     = 0;
+
+#if OL_USE_WPP
+  m_pcSbacCoders      = new TEncSbac     [OL_ALLOC_SUBSTREAMS];
+  m_pcBinCoderCABACs    = new TEncBinCABAC   [OL_ALLOC_SUBSTREAMS];
+  m_ppppcRDSbacCoders   = new TEncSbac***  [OL_ALLOC_SUBSTREAMS];
+  m_ppppcBinCodersCABAC   = new TEncBinCABAC***[OL_ALLOC_SUBSTREAMS];
+  m_pcRDGoOnSbacCoders    = new TEncSbac    [OL_ALLOC_SUBSTREAMS];
+  m_pcRDGoOnBinCodersCABAC  = new TEncBinCABAC  [OL_ALLOC_SUBSTREAMS];
+  m_pcBitCounters     = new TComBitCounter[OL_ALLOC_SUBSTREAMS];
+  m_pcRdCosts       = new TComRdCost  [OL_ALLOC_SUBSTREAMS];
+
+  for ( UInt ui = 0 ; ui < OL_ALLOC_SUBSTREAMS ; ui++ )
+  {
+    m_ppppcRDSbacCoders[ui]  =  NULL;
+    m_ppppcBinCodersCABAC[ui]=  NULL;
+    m_pcRDGoOnSbacCoders[ui].init( &m_pcRDGoOnBinCodersCABAC[ui] );
+    m_pcSbacCoders[ui].init( &m_pcBinCoderCABACs[ui] );
+  }
+#endif
 }
 
 TEncTop::~TEncTop()
@@ -121,6 +140,26 @@ Void TEncTop::create ()
         m_pppcRDSbacCoder   [iDepth][iCIIdx]->init( m_pppcBinCoderCABAC [iDepth][iCIIdx] );
       }
     }
+#if OL_USE_WPP
+  for ( UInt ui = 0 ; ui < OL_ALLOC_SUBSTREAMS ; ui++ )
+  {
+    m_ppppcRDSbacCoders[ui]  = new TEncSbac** [g_uiMaxCUDepth+1];
+    m_ppppcBinCodersCABAC[ui]= new TEncBinCABAC** [g_uiMaxCUDepth+1];
+    
+    for ( Int iDepth = 0; iDepth < g_uiMaxCUDepth+1; iDepth++ )
+    {
+      m_ppppcRDSbacCoders[ui][iDepth]  = new TEncSbac*     [CI_NUM];
+      m_ppppcBinCodersCABAC[ui][iDepth]= new TEncBinCABAC* [CI_NUM];
+
+      for (Int iCIIdx = 0; iCIIdx < CI_NUM; iCIIdx ++ )
+      {
+        m_ppppcRDSbacCoders  [ui][iDepth][iCIIdx] = new TEncSbac;
+        m_ppppcBinCodersCABAC[ui][iDepth][iCIIdx] = new TEncBinCABAC;
+        m_ppppcRDSbacCoders  [ui][iDepth][iCIIdx]->init( m_ppppcBinCodersCABAC[ui][iDepth][iCIIdx] );
+      }
+    }
+  }
+#endif
   }
 }
 
@@ -168,6 +207,36 @@ Void TEncTop::destroy ()
     
     delete [] m_pppcRDSbacCoder;
     delete [] m_pppcBinCoderCABAC;
+
+#if OL_USE_WPP
+  for ( UInt ui = 0 ; ui < OL_ALLOC_SUBSTREAMS ; ui++ )
+  {
+    for ( iDepth = 0; iDepth < g_uiMaxCUDepth+1; iDepth++ )
+    {
+      for (Int iCIIdx = 0; iCIIdx < CI_NUM; iCIIdx ++ )
+      {
+        delete m_ppppcRDSbacCoders  [ui][iDepth][iCIIdx];
+        delete m_ppppcBinCodersCABAC[ui][iDepth][iCIIdx];
+      }
+    }
+
+    for ( iDepth = 0; iDepth < g_uiMaxCUDepth+1; iDepth++ )
+    {
+      delete [] m_ppppcRDSbacCoders  [ui][iDepth];
+      delete [] m_ppppcBinCodersCABAC[ui][iDepth];
+    }
+    delete[] m_ppppcRDSbacCoders  [ui];
+    delete[] m_ppppcBinCodersCABAC[ui];
+  }
+  delete[] m_pcSbacCoders;
+  delete[] m_pcBinCoderCABACs;
+  delete[] m_ppppcRDSbacCoders;
+  delete[] m_ppppcBinCodersCABAC;
+  delete[] m_pcRDGoOnSbacCoders;  
+  delete[] m_pcRDGoOnBinCodersCABAC;
+  delete[] m_pcBitCounters;
+  delete[] m_pcRdCosts;
+#endif
   }
   
   // destroy ROM
@@ -188,6 +257,10 @@ Void TEncTop::init()
   m_cPPS.setSPS(&m_cSPS);
 #endif
   xInitPPS();
+
+#if TILES
+  xInitPPSforTiles();
+#endif
 
   // initialize processing unit classes
   m_cGOPEncoder.  init( this );
@@ -249,6 +322,12 @@ Void TEncTop::deletePicBuffer()
  \retval  iNumEncoded         number of encoded pictures
  */
 Void TEncTop::encode( bool bEos, TComPicYuv* pcPicYuvOrg, TComList<TComPicYuv*>& rcListPicYuvRecOut, std::list<AccessUnit>& accessUnitsOut, Int& iNumEncoded )
+#if OL_USE_WPP
+Void TEncTop::encode( bool bEos, TComPicYuv* pcPicYuvOrg, TComList<TComPicYuv*>& rcListPicYuvRecOut, TComList<TComBitstream*>& rcListBitstreamOut, TComList<TComBitstream*>*& rpcListsSubstreamsOut, Int&
+iNumEncoded )
+#else
+//Void TEncTop::encode( bool bEos, TComPicYuv* pcPicYuvOrg, TComList<TComPicYuv*>& rcListPicYuvRecOut, TComList<TComBitstream*>& rcListBitstreamOut, Int& iNumEncoded )
+#endif
 {
   TComPic* pcPicCurr = NULL;
   
@@ -272,6 +351,11 @@ Void TEncTop::encode( bool bEos, TComPicYuv* pcPicYuvOrg, TComList<TComPicYuv*>&
   
   // compress GOP
   m_cGOPEncoder.compressGOP(m_iPOCLast, m_iNumPicRcvd, m_cListPic, rcListPicYuvRecOut, accessUnitsOut);
+#if OL_USE_WPP
+  m_cGOPEncoder.compressGOP( m_iPOCLast, m_iNumPicRcvd, m_cListPic, rcListPicYuvRecOut, rcListBitstreamOut, rpcListsSubstreamsOut );
+#else
+  //m_cGOPEncoder.compressGOP( m_iPOCLast, m_iNumPicRcvd, m_cListPic, rcListPicYuvRecOut, rcListBitstreamOut );
+#endif
   
   iNumEncoded         = m_iNumPicRcvd;
   m_iNumPicRcvd       = 0;
@@ -529,6 +613,18 @@ Void TEncTop::xInitSPS()
     m_cSPS.setMaxNumRefFrames( m_iNumOfReference );
   }
 #endif
+
+#if TILES
+  m_cSPS.setUniformSpacingIdr( m_iUniformSpacingIdr );
+  m_cSPS.setTileBoundaryIndependenceIdr( m_iTileBoundaryIndependenceIdr );
+  m_cSPS.setNumColumnsMinus1( m_iNumColumnsMinus1 );
+  m_cSPS.setNumRowsMinus1( m_iNumRowsMinus1 );
+  if( m_iUniformSpacingIdr == 0 )
+  {
+    m_cSPS.setColumnWidth( m_puiColumnWidth );
+    m_cSPS.setRowHeight( m_puiRowHeight );
+  }
+#endif
 }
 
 Void TEncTop::xInitPPS()
@@ -567,4 +663,79 @@ Void TEncTop::xInitPPS()
   }
 #endif
 }
+
+
+#if TILES
+Void  TEncTop::xInitPPSforTiles()
+{
+    m_cPPS.setColumnRowInfoPresent( m_iColumnRowInfoPresent );
+    m_cPPS.setUniformSpacingIdr( m_iUniformSpacingIdr );
+    m_cPPS.setTileBoundaryIndependenceIdr( m_iTileBoundaryIndependenceIdr );
+    m_cPPS.setNumColumnsMinus1( m_iNumColumnsMinus1 );
+    m_cPPS.setNumRowsMinus1( m_iNumRowsMinus1 );
+    if( m_iUniformSpacingIdr == 0 )
+    {
+      m_cPPS.setColumnWidth( m_puiColumnWidth );
+      m_cPPS.setRowHeight( m_puiRowHeight );
+    }
+}
+
+Void  TEncCfg::xCheckGSParameters()
+{
+  Int   iWidthInCU = ( m_iSourceWidth%g_uiMaxCUWidth ) ? m_iSourceWidth/g_uiMaxCUWidth + 1 : m_iSourceWidth/g_uiMaxCUWidth;
+  Int   iHeightInCU = ( m_iSourceHeight%g_uiMaxCUHeight ) ? m_iSourceHeight/g_uiMaxCUHeight + 1 : m_iSourceHeight/g_uiMaxCUHeight;
+  UInt  uiCummulativeColumnWidth = 0;
+  UInt  uiCummulativeRowHeight = 0;
+
+  //check the column relative parameters
+  if( m_iNumColumnsMinus1 >= (1<<(LOG2_MAX_NUM_COLUMNS_MINUS1+1)) )
+  {
+    printf( "The number of columns is larger than the maximum allowed number of columns.\n" );
+    exit( EXIT_FAILURE );
+  }
+
+  if( m_iNumColumnsMinus1 >= iWidthInCU )
+  {
+    printf( "The current picture can not have so many columns.\n" );
+    exit( EXIT_FAILURE );
+  }
+
+  if( m_iNumColumnsMinus1 && m_iUniformSpacingIdr==0 )
+  {
+    for(Int i=0; i<m_iNumColumnsMinus1; i++)
+      uiCummulativeColumnWidth += m_puiColumnWidth[i];
+
+    if( uiCummulativeColumnWidth >= iWidthInCU )
+    {
+      printf( "The width of the column is too large.\n" );
+      exit( EXIT_FAILURE );
+    }
+  }
+
+  //check the row relative parameters
+  if( m_iNumRowsMinus1 >= (1<<(LOG2_MAX_NUM_ROWS_MINUS1+1)) )
+  {
+    printf( "The number of rows is larger than the maximum allowed number of rows.\n" );
+    exit( EXIT_FAILURE );
+  }
+
+  if( m_iNumRowsMinus1 >= iHeightInCU )
+  {
+    printf( "The current picture can not have so many rows.\n" );
+    exit( EXIT_FAILURE );
+  }
+
+  if( m_iNumRowsMinus1 && m_iUniformSpacingIdr==0 )
+  {
+    for(Int i=0; i<m_iNumRowsMinus1; i++)
+      uiCummulativeRowHeight += m_puiRowHeight[i];
+
+    if( uiCummulativeRowHeight >= iHeightInCU )
+    {
+      printf( "The height of the row is too large.\n" );
+      exit( EXIT_FAILURE );
+    }
+  }
+}
+#endif
 //! \}

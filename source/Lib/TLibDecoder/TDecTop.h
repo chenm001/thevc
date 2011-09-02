@@ -102,6 +102,10 @@ private:
   TDecCavlc               m_cCavlcDecoder;
   TDecSbac                m_cSbacDecoder;
   TDecBinCABAC            m_cBinCABAC;
+#if OL_USE_WPP
+  TDecSbac*               m_pcSbacDecoders;
+  TDecBinCABAC*           m_pcBinCABACs;
+#endif
   TComLoopFilter          m_cLoopFilter;
   TComAdaptiveLoopFilter  m_cAdaptiveLoopFilter;
 #if MTK_SAO
@@ -128,6 +132,20 @@ public:
   Void  init();
   Bool  decode(InputNALUnit& nalu, Int& iSkipFrame, Int& iPOCLastDisplay);
   
+#if OL_USE_WPP
+#if DCM_SKIP_DECODING_FRAMES
+  Bool  decode (Bool bEos, TComBitstream* pcBitstream,  TComBitstream** ppcSubstreams, UInt& ruiPOC, TComList<TComPic*>*& rpcListPic, Int& iSkipFrame, Int& iPOCLastDisplay);
+#else
+  Bool  decode ( Bool bEos, TComBitstream* pcBitstream, TComBitstream** ppcSubstreams, UInt& ruiPOC, TComList<TComPic*>*& rpcListPic );
+#endif
+#else
+//#if DCM_SKIP_DECODING_FRAMES
+///  Bool  decode (Bool bEos, TComBitstream* pcBitstream, UInt& ruiPOC, TComList<TComPic*>*& rpcListPic, Int& iSkipFrame, Int& iPOCLastDisplay);
+//#else
+//  Bool  decode ( Bool bEos, TComBitstream* pcBitstream, UInt& ruiPOC, TComList<TComPic*>*& rpcListPic );
+//#endif
+#endif
+
   TComSPS *getSPS() { return (m_uiValidPS & 1) ? &m_cSPS : NULL; }
   
   Void  deletePicBuffer();

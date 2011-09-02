@@ -47,6 +47,10 @@
 #include "TLibCommon/TComPic.h"
 #include "TDecEntropy.h"
 #include "TDecCu.h"
+#if OL_USE_WPP
+#include "TDecSbac.h"
+#include "TDecBinCoderCABAC.h"
+#endif
 
 //! \ingroup TLibDecoder
 //! \{
@@ -64,6 +68,11 @@ private:
   TDecCu*         m_pcCuDecoder;
   UInt            m_uiCurrSliceIdx;
 
+#if OL_USE_WPP
+  TDecSbac*       m_pcBufferSbacDecoders;   ///< line to store temporary contexts
+  TDecBinCABAC*   m_pcBufferBinCABACs;
+#endif
+  
 public:
   TDecSlice();
   virtual ~TDecSlice();
@@ -73,7 +82,11 @@ public:
   Void  destroy           ();
   
   Void  decompressSlice   ( TComInputBitstream* pcBitstream, TComPic*& rpcPic );
-
+#if OL_USE_WPP
+  Void  decompressSlice   ( TComBitstream* pcBitstream, TComBitstream** ppcSubstreams, TComPic*& rpcPic, TDecSbac* pcSbacDecoder, TDecSbac* pcSbacDecoders );
+#else
+  //Void  decompressSlice   ( TComBitstream* pcBitstream, TComPic*& rpcPic );
+#endif
 };
 
 //! \}

@@ -77,6 +77,17 @@ TDecBinCABAC::finish()
 {
 }
 
+#if OL_USE_WPP
+Void
+TDecBinCABAC::copyState( TDecBinIf* pcTDecBinIf )
+{
+  TDecBinCABAC* pcTDecBinCABAC = pcTDecBinIf->getTDecBinCABAC();
+  m_uiRange   = pcTDecBinCABAC->m_uiRange;
+  m_uiValue   = pcTDecBinCABAC->m_uiValue;
+}
+#endif
+
+
 Void
 TDecBinCABAC::decodeBin( UInt& ruiBin, ContextModel &rcCtxModel )
 {

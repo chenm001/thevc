@@ -130,6 +130,10 @@ public:
   virtual Void parseAoUvlc       ( UInt& ruiVal           ) = 0;
   virtual Void parseAoSvlc       ( Int&  riVal            ) = 0;
 #endif
+#if TILES
+  virtual Void updateContextTables( SliceType eSliceType, Int iQp ) = 0;
+#endif
+  
   virtual ~TDecEntropyIf() {}
 };
 
@@ -192,6 +196,9 @@ public:
   Void decodeTransformIdx      ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
   Void decodeQP                ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
   
+#if TILES
+  Void updateContextTables    ( SliceType eSliceType, Int iQp ) { m_pcEntropyDecoderIf->updateContextTables( eSliceType, iQp ); }
+#endif  
   
   
 private:

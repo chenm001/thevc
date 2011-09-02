@@ -149,6 +149,135 @@ Void TComOutputBitstream::writeAlignZero()
   m_num_held_bits = 0;
 }
 
+#if OL_USE_WPP
+/**
+ - add substream to the end of the current bitstream
+ .
+ \param  pcSubstream  substream to be added
+ \param  bWriteHeader write header of the added substream
+ */
+Void   TComBitstream::addSubstream( TComBitstream* pcSubstream, Bool bWriteHeader )
+{
+  UInt uiSubstrmSize = 0;
+  uiSubstrmSize = pcSubstream->m_pulStreamPacket - pcSubstream->m_apulStreamPacketBegin + 1;
+  //printf("ss %d words, 1st 0x%08x", uiSubstrmSize, pcSubstream->m_apulStreamPacketBegin[0]);
+
+  //compute number of bits in the current substream
+  UInt uiNumCompleteWord  = ( uiSubstrmSize - 1 );
+  UInt uiNumRemainingBits = 32 - pcSubstream->m_iValidBits;
+  UInt uiNumbits      = 32*uiNumCompleteWord + uiNumRemainingBits;
+  //printf(" %d bits\n", uiNumbits);
+
+  //write substream header
+  if ( bWriteHeader )
+  {
+  //the 2 first bits are used to give the size of the header
+  if ( uiNumbits < (1<<8) )
+  {
+     this->write(0, 2);
+     this->write(uiNumbits, 8);
+  }
+  else if ( uiNumbits < (1<<16) )
+  {
+     this->write(1, 2);
+     this->write(uiNumbits, 16);
+  }
+  else if ( uiNumbits < (1<<24) )
+  {
+     this->write(2, 2);
+     this->write(uiNumbits, 24);
+  }
+  else if ( uiNumbits < (1<<31) )
+  {
+     this->write(3, 2);
+     this->write(uiNumbits, 32);
+  }
+  else
+  {
+    printf("Error in TComBitstream::addSubstream function...\n");
+    exit(-1);
+  }
+  }
+
+  //write complete words
+  for ( UInt ui = 0 ; ui < uiNumCompleteWord ; ui++ )
+  this->write( xSwap(pcSubstream->m_apulStreamPacketBegin[ui]) , 32 );
+
+  //write the last word if it is not a complete 32 word
+  if ( pcSubstream->m_iValidBits < 32 )
+  {
+  UInt uiWord = pcSubstream->m_ulCurrentBits >> pcSubstream->m_iValidBits;
+  this->write( uiWord , uiNumRemainingBits );
+  }
+}
+
+/**
+ - extract substream from a bitstream
+ .
+ \param  pcBitstream  bitstream which contains substreams
+ \param  bReadHeader  read header of the current substream
+ */
+Void   TComBitstream::extractSubstream( TComBitstream* pcBitstream, Bool bReadHeader )
+{
+  UInt uiNumCompleteWord = 0;
+  UInt uiNumRemainingBits= 0;
+  UInt uiNumbits = 0;
+  
+  //read substream header
+  if ( bReadHeader ) 
+  {
+  UInt uiNumbitsHeader = 0;
+  pcBitstream->read(2, uiNumbitsHeader);
+  
+  switch ( uiNumbitsHeader )
+  {
+  case 0:
+    pcBitstream->read(8,  uiNumbits);
+    break;
+  case 1:
+    pcBitstream->read(16, uiNumbits);
+    break;
+  case 2:
+    pcBitstream->read(24, uiNumbits);
+    break;
+  case 3:
+    pcBitstream->read(32, uiNumbits);
+    break;
+  default:
+    printf("Error in TComBitstream::addSubstream function...\n");
+    exit(-1);
+    break;
+  }
+  }
+
+  //printf("ss %d bits\n", ( bReadHeader ) ? uiNumbits : pcBitstream->m_uiBitsLeft); fflush(stdout);
+  
+  uiNumCompleteWord  = ( bReadHeader ) ? uiNumbits / 32 : pcBitstream->m_uiBitsLeft / 32;
+  uiNumRemainingBits = ( bReadHeader ) ? uiNumbits % 32 : pcBitstream->m_uiBitsLeft % 32;
+  
+  //keep number of bytes to init parsing of the current substream
+  UInt uiNumBytes = pcBitstream->m_uiBitsLeft >> 3;
+  
+  //read and write complete words
+  UInt uiWord = 0;
+  this->rewindStreamPacket();
+  for ( UInt ui = 0 ; ui < uiNumCompleteWord ; ui++ )
+  {
+  pcBitstream->read(32, uiWord);
+  this->m_pulStreamPacket[ui] = xSwap(uiWord);
+  }
+  
+  //last word
+  if ( uiNumRemainingBits )
+  {
+  pcBitstream->read(uiNumRemainingBits, uiWord);
+  uiWord = uiWord << (32 - uiNumRemainingBits);
+  this->m_pulStreamPacket[uiNumCompleteWord] = xSwap(uiWord);
+  }
+  this->initParsing( uiNumBytes + 4 );
+}
+#endif
+
 /**
  * read #uiNumberOfBits# from bitstream without updating the bitstream
  * state, storing the result in #ruiBits#.
@@ -245,4 +374,15 @@ void TComOutputBitstream::insertAt(const TComOutputBitstream& src, unsigned pos)
   vector<uint8_t>::iterator at = this->m_fifo->begin() + pos;
   this->m_fifo->insert(at, src.m_fifo->begin(), src.m_fifo->end());
 }
+#if TILES
+Void TComInputBitstream::readOutTrailingBits ()
+{
+  UInt uiBits = 0;
+
+  while ( ( getNumBitsLeft() > 0 ) && (getNumBitsUntilByteAligned()!=0) )
+  {
+    read ( 1, uiBits );
+  }
+}
+#endif
 //! \}

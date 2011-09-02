@@ -194,6 +194,21 @@
 #error CHANGE_GET_MERGE_CANDIDATE can only be defined with CHANGE_MERGE_CONTEXT
 #endif
 
+////////////////////////////////
+// ORANGE LABS defines section start
+////////////////////////////////
+#define OL_USE_WPP    0     //Set to 1 to use Wavefront Parallel Processing, 0 otherwise
+#define OL_NUM_SUBSTREAMS     2   //Number of substreams to use to encode/decode the image using WPP
+#define OL_TILE_SUBSTREAMS    1   // 0 => OL_NUM_SUBSTREAMS per frame, 1 => OL_NUM_SUBSTREAMS per tile.
+#define OL_MAX_TILES          4   // if OL_TILE_SUBSTREAMS, this indicates the most tiles one can have. (Doesn't change the coded stream,
+                                  // just to limit allocations.)
+#define OL_ALLOC_SUBSTREAMS   (OL_NUM_SUBSTREAMS*(OL_TILE_SUBSTREAMS == 0 ? 1 : OL_MAX_TILES))
+#define OL_SHIFT              1   //Index of the upper-line LCU to get the probabilities from (use 1 for upper-right LCU)
+
+////////////////////////////////
+// ORANGE LABS defines section end
+////////////////////////////////
+
 #define MTK_NONCROSS_INLOOP_FILTER        1           ///< Allow non-cross-slice-boundary in-loop filtering, including DB & ALF (JCTVC-D128)
 
 #define RVM_VCEGAM10 1 // RVM model proposed in VCEG-AM10
@@ -243,6 +258,16 @@
 /////////////////////////////////
 // AHG SLICES defines section end
 /////////////////////////////////
+
+#define TILES                              1
+#define LOG2_MAX_NUM_COLUMNS_MINUS1        7
+#define LOG2_MAX_NUM_ROWS_MINUS1           7
+#define LOG2_MAX_COLUMN_WIDTH              13
+#define LOG2_MAX_ROW_HEIGHT                13
+
+#if OL_USE_WPP && OL_TILE_SUBSTREAMS && !TILES
+#error OL_TILE_SUBSTREAMS requires TILES.
+#endif
 
 #define MTK_SAO                           1           // JCTVC-E049: Sample adaptive offset
 #define MTK_SAO_CHROMA                    1           // JCTVC-F057: Sample adaptive offset for Chroma
@@ -689,4 +714,3 @@ enum COEFF_SCAN_TYPE
 //! \}
 
 #endif
-

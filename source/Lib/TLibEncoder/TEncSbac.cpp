@@ -168,6 +168,60 @@ Void TEncSbac::resetEntropy           ()
   return;
 }
 
+#if TILES
+Void TEncSbac::updateContextTables( SliceType eSliceType, Int iQp )
+{
+  m_pcBinIf->encodeBinTrm(1);
+  m_pcBinIf->finish();
+
+  m_cCUSplitFlagSCModel.initBuffer       ( eSliceType, iQp, (Short*)INIT_SPLIT_FLAG );
+  
+  m_cCUSkipFlagSCModel.initBuffer        ( eSliceType, iQp, (Short*)INIT_SKIP_FLAG );
+  m_cCUAlfCtrlFlagSCModel.initBuffer     ( eSliceType, iQp, (Short*)INIT_ALF_CTRL_FLAG );
+  m_cCUMergeFlagExtSCModel.initBuffer    ( eSliceType, iQp, (Short*)INIT_MERGE_FLAG_EXT);
+  m_cCUMergeIdxExtSCModel.initBuffer     ( eSliceType, iQp, (Short*)INIT_MERGE_IDX_EXT);
+  m_cCUPartSizeSCModel.initBuffer        ( eSliceType, iQp, (Short*)INIT_PART_SIZE );
+#if AMP
+  m_cCUXPosiSCModel.initBuffer           ( eSliceType, iQp, (Short*)INIT_CU_X_POS );
+  m_cCUYPosiSCModel.initBuffer           ( eSliceType, iQp, (Short*)INIT_CU_Y_POS );
+#endif
+  m_cCUPredModeSCModel.initBuffer        ( eSliceType, iQp, (Short*)INIT_PRED_MODE );
+  m_cCUIntraPredSCModel.initBuffer       ( eSliceType, iQp, (Short*)INIT_INTRA_PRED_MODE );
+#if ADD_PLANAR_MODE && !FIXED_MPM
+  m_cPlanarFlagSCModel.initBuffer        ( eSliceType, iQp, (Short*)INIT_PLANARFLAG );
+#endif
+  m_cCUChromaPredSCModel.initBuffer      ( eSliceType, iQp, (Short*)INIT_CHROMA_PRED_MODE );
+  m_cCUInterDirSCModel.initBuffer        ( eSliceType, iQp, (Short*)INIT_INTER_DIR );
+  m_cCUMvdSCModel.initBuffer             ( eSliceType, iQp, (Short*)INIT_MVD );
+  m_cCURefPicSCModel.initBuffer          ( eSliceType, iQp, (Short*)INIT_REF_PIC );
+  m_cCUDeltaQpSCModel.initBuffer         ( eSliceType, iQp, (Short*)INIT_DQP );
+  m_cCUQtCbfSCModel.initBuffer           ( eSliceType, iQp, (Short*)INIT_QT_CBF );
+  m_cCUQtRootCbfSCModel.initBuffer       ( eSliceType, iQp, (Short*)INIT_QT_ROOT_CBF );
+  m_cCUSigSCModel.initBuffer             ( eSliceType, iQp, (Short*)INIT_SIG_FLAG );
+#if MODIFIED_LAST_CODING
+  m_cCuCtxLastX.initBuffer               ( eSliceType, iQp, (Short*)INIT_LAST );
+  m_cCuCtxLastY.initBuffer               ( eSliceType, iQp, (Short*)INIT_LAST );
+#else
+  m_cCuCtxLastX.initBuffer               ( eSliceType, iQp, (Short*)INIT_LAST_X );
+  m_cCuCtxLastY.initBuffer               ( eSliceType, iQp, (Short*)INIT_LAST_Y );
+#endif
+  m_cCUOneSCModel.initBuffer             ( eSliceType, iQp, (Short*)INIT_ONE_FLAG );
+  m_cCUAbsSCModel.initBuffer             ( eSliceType, iQp, (Short*)INIT_ABS_FLAG );
+  m_cMVPIdxSCModel.initBuffer            ( eSliceType, iQp, (Short*)INIT_MVP_IDX );
+  m_cALFFlagSCModel.initBuffer           ( eSliceType, iQp, (Short*)INIT_ALF_FLAG );
+  m_cALFUvlcSCModel.initBuffer           ( eSliceType, iQp, (Short*)INIT_ALF_UVLC );
+  m_cALFSvlcSCModel.initBuffer           ( eSliceType, iQp, (Short*)INIT_ALF_SVLC );
+  m_cCUTransSubdivFlagSCModel.initBuffer ( eSliceType, iQp, (Short*)INIT_TRANS_SUBDIV_FLAG );
+#if MTK_SAO
+  m_cAOFlagSCModel.initBuffer           ( eSliceType, iQp, (Short*)INIT_AO_FLAG );
+  m_cAOUvlcSCModel.initBuffer           ( eSliceType, iQp, (Short*)INIT_AO_UVLC );
+  m_cAOSvlcSCModel.initBuffer           ( eSliceType, iQp, (Short*)INIT_AO_SVLC );
+#endif
+
+  m_pcBinIf->start();
+}
+#endif
+
 void TEncSbac::codeSEI(const SEI&)
 {
   assert(0);
@@ -2350,4 +2404,93 @@ Void TEncSbac::estSignificantCoefficientsBit( estBitsSbacStruct* pcEstBitsSbac, 
     pcEstBitsSbac->m_levelAbsBits[ ctxIdx ][ 1 ] = ctxAbs[ ctxIdx ].getEntropyBits( 1 );    
   }
 }
+
+#if OL_USE_WPP
+Void TEncSbac::xCopyContextsFrom( TEncSbac* pSrc )
+{  
+  m_cCUSplitFlagSCModel      .copyFrom( &pSrc->m_cCUSplitFlagSCModel      );
+  m_cCUSkipFlagSCModel       .copyFrom( &pSrc->m_cCUSkipFlagSCModel       );
+  m_cCUMergeFlagExtSCModel   .copyFrom( &pSrc->m_cCUMergeFlagExtSCModel   );
+  m_cCUMergeIdxExtSCModel    .copyFrom( &pSrc->m_cCUMergeIdxExtSCModel    );
+  m_cCUAlfCtrlFlagSCModel    .copyFrom( &pSrc->m_cCUAlfCtrlFlagSCModel    );
+  m_cCUPartSizeSCModel       .copyFrom( &pSrc->m_cCUPartSizeSCModel       );
+  m_cCUPredModeSCModel       .copyFrom( &pSrc->m_cCUPredModeSCModel       );
+  m_cCUIntraPredSCModel      .copyFrom( &pSrc->m_cCUIntraPredSCModel      );
+#if ADD_PLANAR_MODE
+  m_cPlanarFlagSCModel       .copyFrom( &pSrc->m_cPlanarFlagSCModel       );
+#endif
+  m_cCUChromaPredSCModel     .copyFrom( &pSrc->m_cCUChromaPredSCModel     );
+  m_cCUInterDirSCModel       .copyFrom( &pSrc->m_cCUInterDirSCModel       );
+  m_cCUMvdSCModel            .copyFrom( &pSrc->m_cCUMvdSCModel            );
+  m_cCURefPicSCModel         .copyFrom( &pSrc->m_cCURefPicSCModel         );
+  m_cCUDeltaQpSCModel        .copyFrom( &pSrc->m_cCUDeltaQpSCModel        );
+  m_cCUQtCbfSCModel          .copyFrom( &pSrc->m_cCUQtCbfSCModel          );
+  m_cCUQtRootCbfSCModel      .copyFrom( &pSrc->m_cCUQtRootCbfSCModel      );
+  m_cCUSigSCModel            .copyFrom( &pSrc->m_cCUSigSCModel            );
+#if PCP_SIGMAP_SIMPLE_LAST
+  m_cCuCtxLastX              .copyFrom( &pSrc->m_cCuCtxLastX              );
+  m_cCuCtxLastY              .copyFrom( &pSrc->m_cCuCtxLastY              );
+#else
+  m_cCULastSCModel           .copyFrom( &pSrc->m_cCULastSCModel           );
+#endif
+  m_cCUOneSCModel            .copyFrom( &pSrc->m_cCUOneSCModel            );
+  m_cCUAbsSCModel            .copyFrom( &pSrc->m_cCUAbsSCModel            );
+  m_cMVPIdxSCModel           .copyFrom( &pSrc->m_cMVPIdxSCModel           );
+  m_cALFFlagSCModel          .copyFrom( &pSrc->m_cALFFlagSCModel          );
+  m_cALFUvlcSCModel          .copyFrom( &pSrc->m_cALFUvlcSCModel          );
+  m_cALFSvlcSCModel          .copyFrom( &pSrc->m_cALFSvlcSCModel          );
+#if MTK_SAO
+  m_cAOFlagSCModel           .copyFrom( &pSrc->m_cAOFlagSCModel           );
+  m_cAOUvlcSCModel           .copyFrom( &pSrc->m_cAOUvlcSCModel           );
+  m_cAOSvlcSCModel           .copyFrom( &pSrc->m_cAOSvlcSCModel           );
+#endif
+  m_cCUTransSubdivFlagSCModel.copyFrom( &pSrc->m_cCUTransSubdivFlagSCModel);
+}
+
+Void  TEncSbac::loadContexts ( TEncSbac* pScr)
+{
+  this->xCopyContextsFrom(pScr);
+}
+
+Void  TEncSbac::mergeContextsWith( TEncSbac* pSrc)
+{
+  m_cCUSplitFlagSCModel      .mergeWith( &pSrc->m_cCUSplitFlagSCModel      );
+  m_cCUSkipFlagSCModel       .mergeWith( &pSrc->m_cCUSkipFlagSCModel       );
+  m_cCUMergeFlagExtSCModel   .mergeWith( &pSrc->m_cCUMergeFlagExtSCModel   );
+  m_cCUMergeIdxExtSCModel    .mergeWith( &pSrc->m_cCUMergeIdxExtSCModel    );
+  m_cCUAlfCtrlFlagSCModel    .mergeWith( &pSrc->m_cCUAlfCtrlFlagSCModel    );
+  m_cCUPartSizeSCModel       .mergeWith( &pSrc->m_cCUPartSizeSCModel       );
+  m_cCUPredModeSCModel       .mergeWith( &pSrc->m_cCUPredModeSCModel       );
+  m_cCUIntraPredSCModel      .mergeWith( &pSrc->m_cCUIntraPredSCModel      );
+#if ADD_PLANAR_MODE
+  m_cPlanarFlagSCModel       .mergeWith( &pSrc->m_cPlanarFlagSCModel       );
+#endif
+  m_cCUChromaPredSCModel     .mergeWith( &pSrc->m_cCUChromaPredSCModel     );
+  m_cCUInterDirSCModel       .mergeWith( &pSrc->m_cCUInterDirSCModel       );
+  m_cCUMvdSCModel            .mergeWith( &pSrc->m_cCUMvdSCModel            );
+  m_cCURefPicSCModel         .mergeWith( &pSrc->m_cCURefPicSCModel         );
+  m_cCUDeltaQpSCModel        .mergeWith( &pSrc->m_cCUDeltaQpSCModel        );
+  m_cCUQtCbfSCModel          .mergeWith( &pSrc->m_cCUQtCbfSCModel          );
+  m_cCUQtRootCbfSCModel      .mergeWith( &pSrc->m_cCUQtRootCbfSCModel      );
+  m_cCUSigSCModel            .mergeWith( &pSrc->m_cCUSigSCModel            );
+#if PCP_SIGMAP_SIMPLE_LAST
+  m_cCuCtxLastX              .mergeWith( &pSrc->m_cCuCtxLastX              );
+  m_cCuCtxLastY              .mergeWith( &pSrc->m_cCuCtxLastY              );
+#else
+  m_cCULastSCModel           .mergeWith( &pSrc->m_cCULastSCModel           );
+#endif
+  m_cCUOneSCModel            .mergeWith( &pSrc->m_cCUOneSCModel            );
+  m_cCUAbsSCModel            .mergeWith( &pSrc->m_cCUAbsSCModel            );
+  m_cMVPIdxSCModel           .mergeWith( &pSrc->m_cMVPIdxSCModel           );
+  m_cALFFlagSCModel          .mergeWith( &pSrc->m_cALFFlagSCModel          );
+  m_cALFUvlcSCModel          .mergeWith( &pSrc->m_cALFUvlcSCModel          );
+  m_cALFSvlcSCModel          .mergeWith( &pSrc->m_cALFSvlcSCModel          );
+#if MTK_SAO
+  m_cAOFlagSCModel           .mergeWith( &pSrc->m_cAOFlagSCModel           );
+  m_cAOUvlcSCModel           .mergeWith( &pSrc->m_cAOUvlcSCModel           );
+  m_cAOSvlcSCModel           .mergeWith( &pSrc->m_cAOSvlcSCModel           );
+#endif
+  m_cCUTransSubdivFlagSCModel.mergeWith( &pSrc->m_cCUTransSubdivFlagSCModel);
+}
+#endif
 //! \}

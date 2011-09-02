@@ -331,6 +331,28 @@ Void TEncCavlc::codePPS( TComPPS* pcPPS )
     WRITE_UVLC( pcPPS->getMaxCuDQPDepth(),                   "max_cu_qp_delta_depth" );
   }
 #endif
+
+#if TILES
+  WRITE_CODE( pcPPS->getColumnRowInfoPresent(), 1,           "tile_info_present_flag" );
+  if( pcPPS->getColumnRowInfoPresent() == 1 )
+  {
+    WRITE_CODE( pcPPS->getUniformSpacingIdr(), 1,                                   "uniform_spacing_idc" );
+    WRITE_CODE( pcPPS->getTileBoundaryIndependenceIdr(), 1,                         "tile_boundary_independence_idc" );
+    WRITE_CODE( pcPPS->getNumColumnsMinus1(), LOG2_MAX_NUM_COLUMNS_MINUS1,          "num_tile_columns_minus1" );
+    WRITE_CODE( pcPPS->getNumRowsMinus1(), LOG2_MAX_NUM_ROWS_MINUS1,                "num_tile_rows_minus1" );
+    if( pcPPS->getUniformSpacingIdr() == 0 )
+    {
+      for(UInt i=0; i<pcPPS->getNumColumnsMinus1(); i++)
+      {
+        WRITE_CODE( pcPPS->getColumnWidth(i), LOG2_MAX_COLUMN_WIDTH,                "column_width" );
+      }
+      for(UInt i=0; i<pcPPS->getNumRowsMinus1(); i++)
+      {
+        WRITE_CODE( pcPPS->getRowHeight(i), LOG2_MAX_ROW_HEIGHT,                    "row_height" );
+      }
+    }
+  }
+#endif
   return;
 }
 
@@ -437,6 +459,23 @@ Void TEncCavlc::codeSPS( TComSPS* pcSPS )
   if ( pcSPS->getUseNewRefSetting() )
   {
     xWriteUvlc( pcSPS->getMaxNumRefFrames() );
+  }
+#endif
+#if TILES
+  WRITE_CODE( pcSPS->getUniformSpacingIdr(), 1,                          "uniform_spacing_idc" );
+  WRITE_CODE( pcSPS->getTileBoundaryIndependenceIdr(), 1,                "tile_boundary_independence_idc" );
+  WRITE_CODE( pcSPS->getNumColumnsMinus1(), LOG2_MAX_NUM_COLUMNS_MINUS1, "num_tile_columns_minus1" );
+  WRITE_CODE( pcSPS->getNumRowsMinus1(), LOG2_MAX_NUM_ROWS_MINUS1,       "num_tile_rows_minus1" );
+  if( pcSPS->getUniformSpacingIdr()==0 )
+  {
+    for(UInt i=0; i<pcSPS->getNumColumnsMinus1(); i++)
+    {
+      WRITE_CODE( pcSPS->getColumnWidth(i), LOG2_MAX_COLUMN_WIDTH,       "column_width" );
+    }
+    for(UInt i=0; i<pcSPS->getNumRowsMinus1(); i++)
+    {
+      WRITE_CODE( pcSPS->getRowHeight(i), LOG2_MAX_ROW_HEIGHT,           "row_height" );
+    }
   }
 #endif
 }
@@ -560,7 +599,11 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
   }
 #if FINE_GRANULARITY_SLICES
   //write slice address
+#if TILES
+  int iAddress = (pcSlice->getPic()->getPicSym()->getCUOrderMap(iLCUAddress) << iReqBitsInner) + iInnerAddress;
+#else
   int iAddress    = (iLCUAddress << iReqBitsInner) + iInnerAddress;
+#endif
   WRITE_FLAG( iAddress==0, "first_slice_in_pic_flag" );
   if(iAddress>0) 
   {

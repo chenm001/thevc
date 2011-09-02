@@ -61,6 +61,9 @@ public:
   
   UChar getState  ()                { return ( m_ucState >> 1 ); }                    ///< get current state
   UChar getMps    ()                { return ( m_ucState  & 1 ); }                    ///< get curret MPS
+#if OL_USE_WPP
+  Void  setStateAndMps( UChar ucState, UChar ucMPS) { m_ucState = (ucState << 1) + ucMPS; } ///< set state and MPS
+#endif
   
   Void init ( Int   iQp, Short asCtxInit[] );                                              ///< initialize state with initial prob.
   

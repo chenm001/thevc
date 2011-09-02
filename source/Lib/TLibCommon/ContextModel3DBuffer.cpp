@@ -36,6 +36,9 @@
 */
 
 #include "ContextModel3DBuffer.h"
+#if OL_USE_WPP
+#include <math.h>
+#endif
 
 //! \ingroup TLibCommon
 //! \{
@@ -74,4 +77,69 @@ Void ContextModel3DBuffer::initBuffer( SliceType eSliceType, Int iQp, Short* psC
     m_contextModel[ n ].init( iQp, psCtxModel + 2 * n );
   }
 }
+
+#if OL_USE_WPP
+/**
+ - merge 3D context buffer with another 3D context buffer
+ .
+ \param  pSrc          given 3D buffer
+ */
+Void ContextModel3DBuffer::mergeWith( ContextModel3DBuffer* pSrc )
+{
+  UInt x, y, z;
+  UChar ucCurrState, ucSrcState, ucState, ucCurrMps, ucSrcMps, ucMps;
+
+  Double alpha= 0.94921714877105312;
+
+  for ( z = 0; z < m_uiSizeZ; z++ )
+  {
+  for ( y = 0; y < m_uiSizeY ; y++ )
+  {
+     for ( x = 0; x < m_uiSizeX ; x++ )
+     {
+       ContextModel *pcCurrContextModel = &(this->get( z, y, x ));
+       ContextModel *pcSrcContextModel  = &(pSrc->get( z, y, x ));
+
+       ucCurrState = pcCurrContextModel->getState();
+       ucSrcState  = pcSrcContextModel-> getState();
+       
+       ucCurrMps   = pcCurrContextModel->getMps();     
+       ucSrcMps    = pcSrcContextModel-> getMps();
+       
+       if( ucCurrMps == ucSrcMps )
+       {
+        ucState = (UChar) ( ( log( (pow(alpha, ucCurrState) + pow(alpha, ucSrcState)) * 0.5 ) / log(alpha) ) + 0.5 );
+        pcCurrContextModel->setStateAndMps(ucState, ucCurrMps);
+       }
+       else
+       {
+        Double probaCurr = pow(alpha, ucCurrState)*0.5;
+        Double probaSrc  = pow(alpha, ucSrcState) *0.5;
+        
+        Double proba = ( probaCurr + ( 1 - probaSrc ) ) / 2.0;
+
+        if ( proba <= 0.5 ) 
+        {
+         ucMps = ucCurrMps;
+        }
+        else
+        { 
+         ucMps = ucSrcMps;
+         proba = 1.0 - proba;
+        }
+        
+        ucState = (UChar) ( ( log(proba/0.5) / log(alpha) ) + 0.5 );
+        pcCurrContextModel->setStateAndMps(ucState, ucMps);
+       }
+       if ( ucState == 63 )
+       {
+        printf("Error in ContextModel3DBuffer::mergeWith function, producing suspicious state = 63\n");
+        exit(-1);
+       }
+     }
+  }
+  }
+}
+#endif
+
 //! \}

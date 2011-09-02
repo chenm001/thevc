@@ -43,6 +43,9 @@
 
 //! \ingroup TLibDecoder
 //! \{
+#if OL_USE_WPP
+class TDecBinCABAC;
+#endif
 
 class TDecBinIf
 {
@@ -65,6 +68,11 @@ public:
 #endif
 
   virtual ~TDecBinIf() {}
+
+#if OL_USE_WPP
+  virtual Void  copyState         ( TDecBinIf* pcTDecBinIf )                  = 0;
+  virtual TDecBinCABAC*   getTDecBinCABAC   ()  { return 0; }
+#endif
 };
 
 //! \}
