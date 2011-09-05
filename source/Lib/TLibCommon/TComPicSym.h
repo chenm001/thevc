@@ -146,10 +146,10 @@ public:
 #endif
   TComTile*    getTComTile  ( UInt tileIdx )                         { return *(m_apcTComTile + tileIdx); }
   Void         setCUOrderMap( Int encCUOrder, Int cuAddr )           { *(m_puiCUOrderMap + encCUOrder) = cuAddr; }
-  UInt         getCUOrderMap( Int encCUOrder )                       { return *(m_puiCUOrderMap + (encCUOrder>=m_uiNumCUsInFrame ? m_uiNumCUsInFrame-1 : encCUOrder)); }
+  UInt         getCUOrderMap( Int encCUOrder )                       { return *(m_puiCUOrderMap + (encCUOrder>=m_uiNumCUsInFrame ? m_uiNumCUsInFrame : encCUOrder)); }
   UInt         getTileIdxMap( Int i )                                { return *(m_puiTileIdxMap + i); }
   Void         setInverseCUOrderMap( Int cuAddr, Int encCUOrder )    { *(m_puiInverseCUOrderMap + cuAddr) = encCUOrder; }
-  UInt         getInverseCUOrderMap( Int cuAddr )                    { return *(m_puiInverseCUOrderMap + (cuAddr>=(m_uiNumCUsInFrame+1) ? m_uiNumCUsInFrame+1 : cuAddr)); }
+  UInt         getInverseCUOrderMap( Int cuAddr )                    { return *(m_puiInverseCUOrderMap + (cuAddr>=m_uiNumCUsInFrame ? m_uiNumCUsInFrame : cuAddr)); }
 #if !FINE_GRANULARITY_SLICES
   Void         setTempInverseCUOrderMap( Int cuAddr, Int encCUOrder ){ *(m_puiTempInverseCUOrderMap + cuAddr) = encCUOrder; }
   UInt         getTempInverseCUOrderMap( Int cuAddr )                { return *(m_puiTempInverseCUOrderMap + cuAddr); }

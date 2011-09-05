@@ -503,6 +503,7 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
       pcPic->getPicSym()->setCUOrderMap(p, uiEncCUAddr);
       pcPic->getPicSym()->setInverseCUOrderMap(uiEncCUAddr, p);
     }
+    pcPic->getPicSym()->setCUOrderMap(pcPic->getPicSym()->getNumberOfCUsInFrame(), pcPic->getPicSym()->getNumberOfCUsInFrame());
     pcPic->getPicSym()->setInverseCUOrderMap(pcPic->getPicSym()->getNumberOfCUsInFrame(), pcPic->getPicSym()->getNumberOfCUsInFrame());
 #if OL_USE_WPP && OL_TILE_SUBSTREAMS
     // We've got substreams per tile -- ensure we're not overflowing our allocations.

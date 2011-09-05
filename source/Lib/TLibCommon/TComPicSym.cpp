@@ -94,7 +94,7 @@ Void TComPicSym::create  ( Int iPicWidth, Int iPicHeight, UInt uiMaxWidth, UInt 
     m_apcTComTile[i] = new TComTile;
   }
 
-  m_puiCUOrderMap = new UInt[m_uiNumCUsInFrame];
+  m_puiCUOrderMap = new UInt[m_uiNumCUsInFrame+1];
   m_puiTileIdxMap = new UInt[m_uiNumCUsInFrame];
   m_puiInverseCUOrderMap = new UInt[m_uiNumCUsInFrame+1];
 

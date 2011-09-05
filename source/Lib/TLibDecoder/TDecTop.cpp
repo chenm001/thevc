@@ -567,6 +567,7 @@ Bool TDecTop::decode (Bool bEos, TComBitstream* pcBitstream, TComBitstream** pcS
         pcPic->getPicSym()->setTempInverseCUOrderMap(uiEncCUAddr, i);
 #endif
       }
+      pcPic->getPicSym()->setCUOrderMap(pcPic->getPicSym()->getNumberOfCUsInFrame(), pcPic->getPicSym()->getNumberOfCUsInFrame());
       pcPic->getPicSym()->setInverseCUOrderMap(pcPic->getPicSym()->getNumberOfCUsInFrame(), pcPic->getPicSym()->getNumberOfCUsInFrame());
 
 #if FINE_GRANULARITY_SLICES
