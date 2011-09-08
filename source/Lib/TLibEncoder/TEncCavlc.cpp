@@ -480,6 +480,13 @@ Void TEncCavlc::codeSPS( TComSPS* pcSPS )
 #endif
 }
 
+#if TILES_DECODER
+Void TEncCavlc::writeTileLWHeader( UInt uiTileIdx, UInt uiBitsUsed )
+{
+  xWriteCode( uiTileIdx, uiBitsUsed );
+}
+#endif
+
 Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
 {
 #if ENC_DEC_TRACE  

@@ -169,6 +169,8 @@ Void TEncSbac::resetEntropy           ()
 }
 
 #if TILES
+/** The function does the followng: Write out terminate bit. Flush CABAC. Intialize CABAC states. Start CABAC.
+ */
 Void TEncSbac::updateContextTables( SliceType eSliceType, Int iQp )
 {
   m_pcBinIf->encodeBinTrm(1);
@@ -220,6 +222,16 @@ Void TEncSbac::updateContextTables( SliceType eSliceType, Int iQp )
 
   m_pcBinIf->start();
 }
+
+#if TILES_DECODER
+Void TEncSbac::writeTileLWHeader( UInt uiTileIdx, UInt uiBitsUsed )
+{
+  for (Int iShift=uiBitsUsed-1; iShift>=0; iShift--)
+  {
+    m_pcBinIf->encodeBinEP ( uiTileIdx & (1 << iShift) );
+  }
+}
+#endif
 #endif
 
 void TEncSbac::codeSEI(const SEI&)

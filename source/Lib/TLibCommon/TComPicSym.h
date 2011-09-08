@@ -111,6 +111,9 @@ private:
 #if !FINE_GRANULARITY_SLICES
   UInt*         m_puiTempInverseCUOrderMap;
 #endif
+#if TILES_DECODER
+  UInt          m_uiBitsUsedByTileIdx;
+#endif
 #endif
 
 public:
@@ -158,6 +161,9 @@ public:
   UInt         xCalculateNxtCUAddr( UInt uiCurrCUAddr );
   UInt         getPicSCUEncOrder( UInt SCUAddr );
   UInt         getPicSCUAddr( UInt SCUEncOrder );
+#if TILES_DECODER
+  UInt         getBitsUsedByTileIdx()                                { return m_uiBitsUsedByTileIdx; }
+#endif
 #endif  
 };// END CLASS DEFINITION TComPicSym
 

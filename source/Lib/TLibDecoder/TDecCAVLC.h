@@ -243,7 +243,12 @@ public:
   Void parseAlfFlagNum      ( UInt& ruiVal, UInt minValue, UInt depth );
   Void parseAlfCtrlFlag     ( UInt &ruiAlfCtrlFlag );
 #if TILES
-  Void updateContextTables( SliceType eSliceType, Int iQp ) { return; }
+#if TILES_DECODER
+  Void updateContextTables  ( SliceType eSliceType, Int iQp, Bool bCheckForLWTileHeader, Bool& bLWTileHeaderFoundFlag ) { return; }
+  Void readTileLWHeader     ( UInt& uiTileIdx, UInt uiBitsUsed );
+#else
+  Void updateContextTables  ( SliceType eSliceType, Int iQp ) { return; }
+#endif
 #endif    
 };
 

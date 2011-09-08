@@ -379,6 +379,12 @@ Void TDecCavlc::parseSPS(TComSPS* pcSPS)
   return;
 }
 
+#if TILES_DECODER
+Void TDecCavlc::readTileLWHeader   ( UInt& uiTileIdx, UInt uiBitsUsed )
+{
+  xReadCode ( uiBitsUsed, uiTileIdx );
+}
+#endif
 
 Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice)
 {
@@ -573,6 +579,60 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice)
       xReadCode(2, uiCode); rpcSlice->setERBIndex( (ERBIndex)uiCode );    assert (uiCode == ERB_NONE || uiCode == ERB_LTR);
     }      
   }
+
+
+#if TILES_DECODER
+  if (!bEntropySlice)
+  {
+    // Reading location information
+    if (rpcSlice->getSPS()->getTileBoundaryIndependenceIdr())
+    {   
+      xReadCode(1, uiCode); // read flag indicating if location information signaled in slice header
+      Bool bTileLocationInformationInSliceHeaderFlag = (uiCode)? true : false;
+
+      xReadCode(1, uiCode); // read flag indicating if lightweight tile headers transmitted
+      rpcSlice->setLWTileHeaderFlag( uiCode );
+
+      if (bTileLocationInformationInSliceHeaderFlag)
+      {
+        // location count
+        xReadCode(5, uiCode); // number of tiles for which location information signaled
+        rpcSlice->setTileLocationCount ( uiCode + 1 );
+
+        xReadCode(5, uiCode); // number of bits used by diff
+        Int iBitsUsedByDiff = uiCode + 1;
+
+        // read out tile start location
+        Int iLastSize = 0;
+        for (UInt uiIdx=0; uiIdx<rpcSlice->getTileLocationCount(); uiIdx++)
+        {
+          Int iAbsDiff, iCurSize, iCurDiff;
+          if (uiIdx==0)
+          {
+            xReadCode(iBitsUsedByDiff-1, uiCode); iAbsDiff  = uiCode;
+            rpcSlice->setTileLocation( uiIdx, iAbsDiff );
+            iCurDiff  = iAbsDiff;
+            iLastSize = iAbsDiff;
+          }
+          else
+          {
+            xReadCode(1, uiCode); // read sign
+            Int iSign = (uiCode) ? -1 : +1;
+
+            xReadCode(iBitsUsedByDiff-1, uiCode); iAbsDiff  = uiCode;
+            iCurDiff  = (iSign) * iAbsDiff;
+            iCurSize  = iLastSize + iCurDiff;
+            iLastSize = iCurSize;
+            rpcSlice->setTileLocation( uiIdx, rpcSlice->getTileLocation( uiIdx-1 ) + iCurSize ); // calculate byte location
+          }
+        }
+      }
+
+      // read out trailing bits
+      m_pcBitstream->readOutTrailingBits();
+    }
+  }
+#endif
   
   return;
 }

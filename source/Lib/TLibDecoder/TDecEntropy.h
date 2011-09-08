@@ -131,7 +131,12 @@ public:
   virtual Void parseAoSvlc       ( Int&  riVal            ) = 0;
 #endif
 #if TILES
+#if TILES_DECODER
+  virtual Void updateContextTables( SliceType eSliceType, Int iQp, Bool bCheckForLWTileHeader, Bool& bLWTileHeaderFoundFlag ) = 0;
+  virtual Void readTileLWHeader   ( UInt& uiTileIdx, UInt uiBitsUsed ) = 0;
+#else
   virtual Void updateContextTables( SliceType eSliceType, Int iQp ) = 0;
+#endif
 #endif
   
   virtual ~TDecEntropyIf() {}
@@ -197,7 +202,12 @@ public:
   Void decodeQP                ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
   
 #if TILES
+#if TILES_DECODER
+  Void readTileLWHeader       ( UInt& uiTileIdx, UInt uiBitsUsed )  {  m_pcEntropyDecoderIf->readTileLWHeader( uiTileIdx, uiBitsUsed ); }
+  Void updateContextTables    ( SliceType eSliceType, Int iQp, Bool bCheckForLWTileHeader, Bool& bLWTileHeaderFoundFlag ) { m_pcEntropyDecoderIf->updateContextTables( eSliceType, iQp, bCheckForLWTileHeader, bLWTileHeaderFoundFlag ); }
+#else
   Void updateContextTables    ( SliceType eSliceType, Int iQp ) { m_pcEntropyDecoderIf->updateContextTables( eSliceType, iQp ); }
+#endif
 #endif  
   
   

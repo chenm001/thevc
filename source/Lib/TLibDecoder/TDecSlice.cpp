@@ -246,10 +246,18 @@ Void TDecSlice::decompressSlice(TComBitstream* pcBitstream, TComBitstream** ppcS
          iCUAddr!=0 && iCUAddr!=iStartCUAddr && rpcPic->getPicSym()->getTileBoundaryIndependenceIdr()) // !1st in frame && !1st in slice && tile-independant
 #endif
     {
+#if TILES_DECODER
+      Bool bLWTileHeaderFoundFlag = false;
+#endif
       if (pcSlice->getSymbolMode())
       {
 #if !OL_USE_WPP
-          /*m_pcEntropyDecoder->updateContextTables( pcSlice->getSliceType(), pcSlice->getSliceQp() );*/
+#if TILES_DECODER
+        Bool bCheckForLWTileHeader = pcSlice->getLWTileHeaderFlag() ? true : false;
+        m_pcEntropyDecoder->updateContextTables( pcSlice->getSliceType(), pcSlice->getSliceQp(), bCheckForLWTileHeader, bLWTileHeaderFoundFlag );
+#else
+        m_pcEntropyDecoder->updateContextTables( pcSlice->getSliceType(), pcSlice->getSliceQp() );
+#endif
 #elif OL_TILE_SUBSTREAMS
       // We're crossing into another tile, tiles are independent.
       // There's normally a reset at that point.  If we have "substreams per frame" we leave the original reset.  If
@@ -269,8 +277,37 @@ Void TDecSlice::decompressSlice(TComBitstream* pcBitstream, TComBitstream** ppcS
       }
       else
       {
-        /*m_pcEntropyDecoder->resetEntropy( pcSlice );*/
+        m_pcEntropyDecoder->resetEntropy( pcSlice );
+#if TILES_DECODER
+        pcBitstream->readOutTrailingBits();
+        UInt uiCode;
+        pcSlice->setLWTileHeaderFlag( 0 );
+        if (pcBitstream->getNumBitsLeft() >= 24)
+        {
+          uiCode = pcBitstream->peekBits(24);
+          if (uiCode == 0x000002)
+          {
+            bLWTileHeaderFoundFlag = true;
+          }
+        }
+
+        if (bLWTileHeaderFoundFlag)
+        {
+          // reserved 
+          pcBitstream->read(8,  uiCode); // 0x00
+          pcBitstream->read(8,  uiCode); // 0x00 
+          pcBitstream->read(8,  uiCode); // 0x02
+        }
+#endif
       }
+#if TILES_DECODER
+      if (bLWTileHeaderFoundFlag)
+      {
+        UInt uiTileIdx;
+        // Read tile header
+        m_pcEntropyDecoder->readTileLWHeader( uiTileIdx, rpcPic->getPicSym()->getBitsUsedByTileIdx() );
+      }
+#endif
     }
 #endif
 
@@ -306,5 +343,6 @@ Void TDecSlice::decompressSlice(TComBitstream* pcBitstream, TComBitstream** ppcS
   }
 #endif
   }
+
 }
 //! \}

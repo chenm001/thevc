@@ -160,6 +160,10 @@ Void TEncSlice::initEncSlice( TComPic* pcPic, Int iPOCLast, UInt uiPOCCurr, Int 
   Double dLambda;
   
   rpcSlice = pcPic->getSlice(0);
+#if TILES_DECODER
+  rpcSlice->setSPS( pSPS );
+  rpcSlice->setPPS( pPPS );
+#endif
   rpcSlice->setSliceBits(0);
   rpcSlice->setPic( pcPic );
   rpcSlice->initSlice();
@@ -413,8 +417,10 @@ Void TEncSlice::initEncSlice( TComPic* pcPic, Int iPOCLast, UInt uiPOCCurr, Int 
   rpcSlice->setTLayer( pcPic->getTLayer() );
   rpcSlice->setTLayerSwitchingFlag( pPPS->getTLayerSwitchingFlag( pcPic->getTLayer() ) );
 
+#if !TILES_DECODER
   rpcSlice->setSPS( pSPS );
   rpcSlice->setPPS( pPPS );
+#endif
 
   // reference picture usage indicator for next frames
   rpcSlice->setDRBFlag          ( true );
@@ -1013,6 +1019,9 @@ Void TEncSlice::encodeSlice   ( TComPic*& rpcPic, TComBitstream*& rpcBitstream, 
 
 #if FINE_GRANULARITY_SLICES
 #if TILES
+#if TILES_DECODER
+  Int iLWTileHeaderWrittenInSlice = 0;
+#endif
   UInt uiEncCUOrder;
   uiCUAddr = rpcPic->getPicSym()->getCUOrderMap( uiStartCUAddr /rpcPic->getNumPartInCU());  /*for tiles, uiStartCUAddr is NOT the real raster scan address, it is actually
                                                                                               an encoding order index, so we need to convert the index (uiStartCUAddr)
@@ -1131,6 +1140,10 @@ rpcPic->getPicSym()->getTempInverseCUOrderMap(pcSlice->getEntropySliceCurStartCU
     if( uiCUAddr == rpcPic->getPicSym()->getTComTile(rpcPic->getPicSym()->getTileIdxMap(uiCUAddr))->getFirstCUAddr() && 
         uiCUAddr!=0 && uiEncCUOrder!=uiStartCUAddr  &&  rpcPic->getPicSym()->getTileBoundaryIndependenceIdr())
     {
+#if TILES_DECODER
+      Int iTileIdx            = rpcPic->getPicSym()->getTileIdxMap(uiCUAddr);
+      Bool bWriteLWTileHeader = ( (((Int)((iLWTileHeaderWrittenInSlice+1)*m_pcCfg->getMaxLWTileHeaderOffset()+0.5)) == iTileIdx ) && iLWTileHeaderWrittenInSlice < (m_pcCfg->getMaxLWTileHeaderEntryPoints()-1)) ? true : false;
+#endif
       if (iSymbolMode)
       {
 #if OL_USE_WPP
@@ -1153,15 +1166,33 @@ rpcPic->getPicSym()->getTempInverseCUOrderMap(pcSlice->getEntropySliceCurStartCU
         }
 #endif
 #else // !OL_USE_WPP
-        /*m_pcEntropyCoder->updateContextTables( pcSlice->getSliceType(), pcSlice->getSliceQp() );
+        m_pcEntropyCoder->updateContextTables( pcSlice->getSliceType(), pcSlice->getSliceQp() );
         pcBitstream->write( 1, 1 );
-        pcBitstream->writeAlignZero();*/
+        pcBitstream->writeAlignZero();
 #endif
       }
       else
       {
-        /*m_pcEntropyCoder->resetEntropy();*/
+        m_pcEntropyCoder->resetEntropy();
+#if TILES_DECODER
+        pcBitstream->writeAlignZero();
+#endif
       }
+#if TILES_DECODER
+      if (m_pcCfg->getLWTileHeaderFlag() && bWriteLWTileHeader)
+      {
+        // reserved 0x000002
+        pcBitstream->write(0, 8);
+        pcBitstream->write(0, 8);
+        pcBitstream->write(2, 8);
+        // Write tile header
+        m_pcEntropyCoder->writeTileLWHeader(iTileIdx, rpcPic->getPicSym()->getBitsUsedByTileIdx()); // Tile index
+        iLWTileHeaderWrittenInSlice++;
+      }
+      UInt uiLocationCount = pcSlice->getTileLocationCount();
+      pcSlice->setTileLocation( uiLocationCount, pcBitstream->getNumberOfWrittenBits() >> 3 );      
+      pcSlice->setTileLocationCount( uiLocationCount + 1 );
+#endif
     }
 #endif
 

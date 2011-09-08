@@ -251,6 +251,11 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
     ("ColumnWidthArray",            cfg_ColumnWidth,                 string(""), "Array containing ColumnWidth values in units of LCU")
     ("NumTileRowsMinus1",           m_iNumRowsMinus1,                0,          "Number of rows in a picture minus 1")
     ("RowHeightArray",              cfg_RowHeight,                   string(""), "Array containing RowHeight values in units of LCU")
+#if TILES_DECODER
+    ("TileLocationInSliceHeaderFlag", m_iTileLocationInSliceHeaderFlag, 0,       "If TileBoundaryIndependenceIdc==1, 0: Disable transmission of tile location in slice header. 1: Transmit tile locations in slice header.")
+    ("LWTileHeaderFlag",              m_iLWTileHeaderFlag,              0,       "If TileBoundaryIndependenceIdc==1, 0: Disable transmission of lightweight tile header. 1: Transmit light weight tile header.")
+    ("MaxLWTileHeaderEntryPoints",    m_iMaxLWTileHeaderEntryPoints,    4,       "Maximum number of uniformly-spaced tile entry points (using light weigh tile headers). Default=4. If number of tiles < MaxLWTileHeaderEntryPoints then all tiles have entry points.")
+#endif
 #endif
   /* Misc. */
   ("SEIpictureDigest", m_pictureDigestEnabled, true, "Control generation of picture_digest SEI messages\n"
@@ -666,6 +671,41 @@ Void TAppEncCfg::xPrintParameter()
 #endif
 #if TILES 
   printf("TileBoundaryIndependence:%d ", m_iTileBoundaryIndependenceIdr ); 
+#if TILES_DECODER
+  if (m_iTileBoundaryIndependenceIdr)
+  {
+    printf("TileLocationInSliceHdr:%d ", m_iTileLocationInSliceHeaderFlag);
+  }
+  else
+  {
+    if (m_iTileLocationInSliceHeaderFlag)
+    {
+      printf("\nWarning! TileLocationInSliceHeaderFlag set to 1 when TileBoundaryIndependence set to 0. The TileLocationInSliceHeaderFlag will be over-ridden and set to 0.");
+      m_iTileLocationInSliceHeaderFlag = 0;
+    }
+  }
+
+  if (m_iTileBoundaryIndependenceIdr)
+  {
+    printf("LWTileHdr:%d", m_iLWTileHeaderFlag);
+    if (m_iLWTileHeaderFlag)
+    {
+      printf("[%d] ", m_iMaxLWTileHeaderEntryPoints);
+    }
+    else
+    {
+      printf(" ");
+    }
+  }
+  else
+  {
+    if (m_iLWTileHeaderFlag)
+    {
+      printf("\nWarning! LWTileHdr set to 1 when TileBoundaryIndependence set to 0. The LWTileHdr will be over-ridden and set to 0.");
+      m_iLWTileHeaderFlag = 0;
+    }
+  }
+#endif
 #endif
   printf("\n\n");
   

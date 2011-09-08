@@ -147,6 +147,10 @@ public:
    */
   std::vector<uint8_t>& getFIFO() { return *m_fifo; }
 
+#if TILES_DECODER
+  unsigned char getBitsHeld()        { return m_held_bits; }
+#endif
+
   /** Return a reference to the internal fifo */
   const std::vector<uint8_t>& getFIFO() const { return *m_fifo; }
 };

@@ -269,6 +269,12 @@
 #error OL_TILE_SUBSTREAMS requires TILES.
 #endif
 
+#if TILES
+#define TILES_DECODER                       1 // JCTVC-F594 - signalling of tile location
+#else
+#define TILES_DECODER                       0
+#endif
+
 #define MTK_SAO                           1           // JCTVC-E049: Sample adaptive offset
 #define MTK_SAO_CHROMA                    1           // JCTVC-F057: Sample adaptive offset for Chroma
 #define MTK_SAO_REMOVE_SKIP               1
@@ -346,6 +352,7 @@
 #define EARLY_CU_DETERMINATION            1 //JCTVC-F092
 
 #define CBF_FAST_MODE                      1 //JCTVC-F045
+
 
 // ====================================================================================================================
 // Basic type redefinition

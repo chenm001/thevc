@@ -174,7 +174,12 @@ public:
   Void parseCoeffNxN      ( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx, UInt uiWidth, UInt uiHeight, UInt uiDepth, TextType eTType );
   
 #if TILES
+#if TILES_DECODER
+  Void updateContextTables( SliceType eSliceType, Int iQp, Bool bCheckForLWTileHeader, Bool& bLWTileHeaderFoundFlag );
+  Void readTileLWHeader   ( UInt& uiTileIdx, UInt uiBitsUsed );
+#else
   Void updateContextTables( SliceType eSliceType, Int iQp );
+#endif
 #endif
 
 private:

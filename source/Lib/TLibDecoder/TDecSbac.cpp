@@ -164,12 +164,42 @@ Void TDecSbac::resetEntropy          (TComSlice* pcSlice)
 }
 
 #if TILES
+#if TILES_DECODER
+/** The function does the followng: Read out terminate bit. Flush CABAC. Byte-align for next tile. 
+ * If light weight tile header check requested and present then set found flag to true and read the reserved word 0x000002. 
+ * Intialize CABAC states. Start CABAC.
+ * \returns Updates bLWTileHeaderFoundFlag to true if light weight tile header detected, otherwise set it to false.
+ */
+Void TDecSbac::updateContextTables( SliceType eSliceType, Int iQp, Bool bCheckForLWTileHeader, Bool& bLWTileHeaderFoundFlag )
+#else
 Void TDecSbac::updateContextTables( SliceType eSliceType, Int iQp )
+#endif
 {
   UInt uiBit;
   m_pcTDecBinIf->decodeBinTrm(uiBit);
-  m_pcTDecBinIf->finish();
+  m_pcTDecBinIf->finish();  
   m_pcBitstream->readOutTrailingBits();
+
+#if TILES_DECODER
+  UInt uiCode;
+  bLWTileHeaderFoundFlag = false;
+  if (bCheckForLWTileHeader)
+  {
+    if (m_pcBitstream->getNumBitsLeft() >= 24)
+    {
+      uiCode = m_pcBitstream->peekBits(24);
+      if (uiCode == 0x000002)
+      {
+        bLWTileHeaderFoundFlag = true;
+      }
+    }
+
+    if (bLWTileHeaderFoundFlag)
+    {
+      m_pcBitstream->read(24, uiCode); // 0x000002
+    }
+  }
+#endif
 
   m_cCUSplitFlagSCModel.initBuffer       ( eSliceType, iQp, (Short*)INIT_SPLIT_FLAG );
   m_cCUSkipFlagSCModel.initBuffer        ( eSliceType, iQp, (Short*)INIT_SKIP_FLAG );
@@ -216,6 +246,22 @@ Void TDecSbac::updateContextTables( SliceType eSliceType, Int iQp )
 
   m_pcTDecBinIf->start();
 }
+
+#if TILES_DECODER
+Void TDecSbac::readTileLWHeader( UInt& uiTileIdx, UInt uiBitsUsed )
+{
+  UInt uiSymbol;
+  uiTileIdx = 0;
+  for (Int iShift=uiBitsUsed-1; iShift>=0; iShift--)
+  {
+    m_pcTDecBinIf->decodeBinEP ( uiSymbol );
+    if (uiSymbol)
+    {
+      uiTileIdx |= (1<<iShift);
+    }
+  }
+}
+#endif
 #endif
 
 Void TDecSbac::parseTerminatingBit( UInt& ruiBit )

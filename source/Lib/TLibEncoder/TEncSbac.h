@@ -210,7 +210,10 @@ public:
   
 
 #if TILES
-  Void updateContextTables            ( SliceType eSliceType, Int iQp );
+  Void updateContextTables           ( SliceType eSliceType, Int iQp   );
+#if TILES_DECODER
+  Void writeTileLWHeader             ( UInt uiTileIdx, UInt uiBitsUsed );
+#endif
 #endif
 
   

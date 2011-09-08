@@ -90,6 +90,10 @@ TComSlice::TComSlice()
 , m_uiEntropySliceCounter         ( 0 )
 , m_bFinalized                    ( false )
 #endif
+#if TILES_DECODER
+, m_uiTileByteLocation            ( NULL )
+, m_uiTileCount                   ( 0 )
+#endif
 {
   m_aiNumRefIdx[0] = m_aiNumRefIdx[1] = m_aiNumRefIdx[2] = 0;
   
@@ -115,6 +119,13 @@ TComSlice::TComSlice()
 
 TComSlice::~TComSlice()
 {
+#if TILES_DECODER
+  if (m_uiTileByteLocation) 
+  {
+    delete [] m_uiTileByteLocation;
+    m_uiTileByteLocation = NULL;
+  }
+#endif
 }
 
 
@@ -141,6 +152,17 @@ Void TComSlice::initSlice()
 
 #if FINE_GRANULARITY_SLICES
   m_bFinalized=false;
+#endif
+
+#if TILES_DECODER
+  Int iWidth             = m_pcSPS->getWidth();
+  Int iHeight            = m_pcSPS->getHeight();
+  UInt uiWidthInCU       = ( iWidth %g_uiMaxCUWidth  ) ? iWidth /g_uiMaxCUWidth  + 1 : iWidth /g_uiMaxCUWidth;
+  UInt uiHeightInCU      = ( iHeight%g_uiMaxCUHeight ) ? iHeight/g_uiMaxCUHeight + 1 : iHeight/g_uiMaxCUHeight;
+  UInt uiNumCUsInFrame   = uiWidthInCU * uiHeightInCU;
+
+  m_uiTileCount          = 0;
+  m_uiTileByteLocation   = new UInt[uiNumCUsInFrame];
 #endif
 }
 
@@ -695,6 +717,9 @@ Void TComSlice::copySliceInfo(TComSlice *pSrc)
   m_uiEntropySliceCurEndCUAddr    = pSrc->m_uiEntropySliceCurEndCUAddr;
   m_bNextSlice                    = pSrc->m_bNextSlice;
   m_bNextEntropySlice             = pSrc->m_bNextEntropySlice;
+#if TILES_DECODER
+  m_iLWTileHeaderFlag             = pSrc->m_iLWTileHeaderFlag;
+#endif
 }
 
 /** Function for setting the slice's temporal layer ID and corresponding temporal_layer_switching_point_flag.

@@ -346,6 +346,9 @@ Bool TDecTop::decode (Bool bEos, TComBitstream* pcBitstream, TComBitstream** pcS
       assert( 3 == m_uiValidPS );
       if (m_bFirstSliceInPicture)
       {
+#if TILES_DECODER
+        m_apcSlicePilot->setSPS(&m_cSPS);
+#endif
         m_apcSlicePilot->initSlice();
         m_uiSliceIdx     = 0;
         m_uiLastSliceIdx = 0;
@@ -386,6 +389,7 @@ Bool TDecTop::decode (Bool bEos, TComBitstream* pcBitstream, TComBitstream** pcS
           assert( bitsForByteAlignment == ( ( 1 << numBitsForByteAlignment ) - 1 ) );
         }
       }
+
       m_apcSlicePilot->setTLayerInfo(nalu.m_TemporalID);
 
       if (m_apcSlicePilot->isNextSlice() && m_apcSlicePilot->getPOC()!=m_uiPrevPOC && !m_bFirstSliceInSequence)

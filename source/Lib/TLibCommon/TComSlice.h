@@ -496,7 +496,13 @@ private:
   UInt        m_uiEntropySliceCounter;
   Bool        m_bFinalized;
 #endif
-  
+
+#if TILES_DECODER
+  UInt        *m_uiTileByteLocation;
+  UInt        m_uiTileCount;
+  Int         m_iLWTileHeaderFlag;
+#endif
+
 public:
   TComSlice();
   virtual ~TComSlice();
@@ -650,7 +656,14 @@ public:
   Void setFinalized                     ( Bool uiVal )      { m_bFinalized = uiVal;                       }
   Bool getFinalized                     ()                  { return m_bFinalized;                        }
 #endif
-  
+#if TILES_DECODER
+  Void setTileLocationCount             ( UInt uiCount )      { m_uiTileCount = uiCount;                  }
+  UInt getTileLocationCount             ()                    { return m_uiTileCount;                     }
+  Void setTileLocation                  ( Int i, UInt uiLOC ) { m_uiTileByteLocation[i] = uiLOC;          }
+  UInt getTileLocation                  ( Int i )             { return m_uiTileByteLocation[i];           }
+  Void setLWTileHeaderFlag              ( Int iFlag )         { m_iLWTileHeaderFlag = iFlag;              }
+  Int  getLWTileHeaderFlag()                                  { return m_iLWTileHeaderFlag;               }
+#endif
 protected:
   TComPic*  xGetRefPic  (TComList<TComPic*>& rcListPic,
                          Bool                bDRBFlag,

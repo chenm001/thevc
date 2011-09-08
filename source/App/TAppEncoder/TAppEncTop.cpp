@@ -217,6 +217,15 @@ Void TAppEncTop::xInitLibCfg()
     m_cTEncTop.setRowHeight                ( m_pchRowHeight );
   }
   m_cTEncTop.xCheckGSParameters();
+#if TILES_DECODER
+  m_cTEncTop.setTileLocationInSliceHeaderFlag ( m_iTileLocationInSliceHeaderFlag );
+  m_cTEncTop.setLWTileHeaderFlag              ( m_iLWTileHeaderFlag );
+  m_cTEncTop.setMaxLWTileHeaderEntryPoints    ( m_iMaxLWTileHeaderEntryPoints );
+  
+  Int uiTilesCount          = (m_iNumRowsMinus1+1) * (m_iNumColumnsMinus1+1);
+  m_dMaxLWTileHeaderOffset  = ((Double)uiTilesCount) / m_iMaxLWTileHeaderEntryPoints;
+  m_cTEncTop.setMaxLWTileHeaderOffset         ( m_dMaxLWTileHeaderOffset );
+#endif
 #endif
 }
 

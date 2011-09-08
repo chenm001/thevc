@@ -132,6 +132,10 @@ public:
 #else
   //Void  compressGOP ( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rcListPic, TComList<TComPicYuv*>& rcListPicYuvRec, TComList<TComBitstream*> rcListBitstream );
 #endif
+#if TILES_DECODER
+  Void xWriteTileLocationToSliceHeader (OutputNALUnit& rNalu, TComOutputBitstream*& rpcBitstreamRedirect, TComSlice*& rpcSlice);
+#endif
+
   
   Int   getGOPSize()          { return  m_iGopSize;  }
   Int   getRateGOPSize()      { return  m_iRateGopSize;  }
