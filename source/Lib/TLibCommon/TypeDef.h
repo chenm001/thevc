@@ -275,6 +275,8 @@
 #define TILES_DECODER                       0
 #endif
 
+#define SHARP_MEMLEAK_BUGFIX              1
+
 #define MTK_SAO                           1           // JCTVC-E049: Sample adaptive offset
 #define MTK_SAO_CHROMA                    1           // JCTVC-F057: Sample adaptive offset for Chroma
 #define MTK_SAO_REMOVE_SKIP               1

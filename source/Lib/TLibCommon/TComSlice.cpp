@@ -972,6 +972,15 @@ TComPPS::TComPPS()
 #if E045_SLICE_COMMON_INFO_SHARING
 , m_bSharedPPSInfoEnabled       (false)
 #endif
+#if TILES
+, m_iColumnRowInfoPresent        (0)
+, m_iUniformSpacingIdr           (0)
+, m_iTileBoundaryIndependenceIdr (0)
+, m_iNumColumnsMinus1            (0)
+, m_puiColumnWidth               (NULL)
+, m_iNumRowsMinus1               (0)
+, m_puiRowHeight                 (NULL)
+#endif
 {
   for ( UInt i = 0; i < MAX_TLAYER; i++ )
   {
@@ -984,12 +993,12 @@ TComPPS::~TComPPS()
 #if TILES
   if( m_iNumColumnsMinus1 > 0 && m_iUniformSpacingIdr == 0 )
   {
-    delete [] m_puiColumnWidth; 
+    if (m_puiColumnWidth) delete [] m_puiColumnWidth; 
     m_puiColumnWidth = NULL;
   }
   if( m_iNumRowsMinus1 > 0 && m_iUniformSpacingIdr == 0 )
   {
-    delete [] m_puiRowHeight;
+    if (m_puiRowHeight) delete [] m_puiRowHeight;
     m_puiRowHeight = NULL;
   }
 #endif

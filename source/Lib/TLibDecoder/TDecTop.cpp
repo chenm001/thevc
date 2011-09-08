@@ -372,7 +372,11 @@ Bool TDecTop::decode (Bool bEos, TComBitstream* pcBitstream, TComBitstream** pcS
       m_apcSlicePilot->setSliceIdx(m_uiSliceIdx);
       if (!m_bFirstSliceInPicture)
       {
+#if SHARP_MEMLEAK_BUGFIX
+        m_apcSlicePilot->copySliceInfo( pcPic->getPicSym()->getSlice(m_uiSliceIdx-1) );
+#else
         memcpy(m_apcSlicePilot, pcPic->getPicSym()->getSlice(m_uiSliceIdx-1), sizeof(TComSlice));
+#endif
       }
 
       m_apcSlicePilot->setNalUnitType(nalu.m_UnitType);
