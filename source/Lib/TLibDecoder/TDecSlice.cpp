@@ -108,16 +108,8 @@ Void TDecSlice::decompressSlice(TComBitstream* pcBitstream, TComBitstream** ppcS
 #endif
 #else
 #if TILES
-  Int   iStartCUAddr;
-  if(rpcPic->getPicSym()->getInverseCUOrderMap(rpcPic->getSlice(rpcPic->getCurrSliceIdx())->getSliceCurStartCUAddr()) > 
-     rpcPic->getPicSym()->getInverseCUOrderMap(rpcPic->getSlice(rpcPic->getCurrSliceIdx())->getEntropySliceCurStartCUAddr()))
-  {
-    iStartCUAddr = rpcPic->getSlice(rpcPic->getCurrSliceIdx())->getSliceCurStartCUAddr();
-  }
-  else
-  {
-    iStartCUAddr = rpcPic->getSlice(rpcPic->getCurrSliceIdx())->getEntropySliceCurStartCUAddr();
-  }
+  Int   iStartCUEncOrder = max(rpcPic->getSlice(rpcPic->getCurrSliceIdx())->getSliceCurStartCUAddr(), rpcPic->getSlice(rpcPic->getCurrSliceIdx())->getEntropySliceCurStartCUAddr());
+  Int   iStartCUAddr = rpcPic->getPicSym()->getCUOrderMap(iStartCUEncOrder);
 #else
   Int   iStartCUAddr = max(rpcPic->getSlice(rpcPic->getCurrSliceIdx())->getSliceCurStartCUAddr(), rpcPic->getSlice(rpcPic->getCurrSliceIdx())->getEntropySliceCurStartCUAddr());
 #endif

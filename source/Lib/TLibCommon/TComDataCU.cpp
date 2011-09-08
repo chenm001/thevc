@@ -1534,10 +1534,10 @@ TComDataCU* TComDataCU::getPULeft( UInt& uiLPartUnitIdx, UInt uiCurrPartUnitIdx,
 #else
 #if TILES
   if( (bEnforceSliceRestriction &&
-      (m_pcCULeft==NULL || m_pcCULeft->getSlice()==NULL || m_pcPic->getPicSym()->getInverseCUOrderMap( m_pcCULeft->getAddr()) < m_pcPic->getPicSym()->getTempInverseCUOrderMap(m_uiSliceStartCU) ||
+      (m_pcCULeft==NULL || m_pcCULeft->getSlice()==NULL || m_pcPic->getPicSym()->getInverseCUOrderMap( m_pcCULeft->getAddr()) < m_uiSliceStartCU ||
       (m_pcPic->getPicSym()->getTileBoundaryIndependenceIdr() && m_pcPic->getPicSym()->getTileIdxMap( m_pcCULeft->getAddr() ) != m_pcPic->getPicSym()->getTileIdxMap(getAddr()) ))) ||
       (bEnforceEntropySliceRestriction &&
-      (m_pcCULeft==NULL || m_pcCULeft->getSlice()==NULL || m_pcPic->getPicSym()->getInverseCUOrderMap( m_pcCULeft->getAddr()) < m_pcPic->getPicSym()->getTempInverseCUOrderMap(m_uiEntropySliceStartCU) ||
+      (m_pcCULeft==NULL || m_pcCULeft->getSlice()==NULL || m_pcPic->getPicSym()->getInverseCUOrderMap( m_pcCULeft->getAddr()) < m_uiEntropySliceStartCU ||
       (m_pcPic->getPicSym()->getTileBoundaryIndependenceIdr() && m_pcPic->getPicSym()->getTileIdxMap( m_pcCULeft->getAddr() ) != m_pcPic->getPicSym()->getTileIdxMap(getAddr()) )))
     )
 #else
@@ -1616,10 +1616,10 @@ TComDataCU* TComDataCU::getPUAbove( UInt& uiAPartUnitIdx, UInt uiCurrPartUnitIdx
 #else
 #if TILES
   if( (bEnforceSliceRestriction &&
-      (m_pcCUAbove==NULL || m_pcCUAbove->getSlice()==NULL || m_pcPic->getPicSym()->getInverseCUOrderMap( m_pcCUAbove->getAddr()) < m_pcPic->getPicSym()->getTempInverseCUOrderMap(m_uiSliceStartCU) ||
+      (m_pcCUAbove==NULL || m_pcCUAbove->getSlice()==NULL || m_pcPic->getPicSym()->getInverseCUOrderMap( m_pcCUAbove->getAddr()) < m_uiSliceStartCU ||
       (m_pcPic->getPicSym()->getTileBoundaryIndependenceIdr() && m_pcPic->getPicSym()->getTileIdxMap( m_pcCUAbove->getAddr() ) != m_pcPic->getPicSym()->getTileIdxMap(getAddr()) ))) ||
       (bEnforceEntropySliceRestriction &&
-      (m_pcCUAbove==NULL || m_pcCUAbove->getSlice()==NULL || m_pcPic->getPicSym()->getInverseCUOrderMap( m_pcCUAbove->getAddr()) < m_pcPic->getPicSym()->getTempInverseCUOrderMap(m_uiEntropySliceStartCU) ||
+      (m_pcCUAbove==NULL || m_pcCUAbove->getSlice()==NULL || m_pcPic->getPicSym()->getInverseCUOrderMap( m_pcCUAbove->getAddr()) < m_uiEntropySliceStartCU ||
       (m_pcPic->getPicSym()->getTileBoundaryIndependenceIdr() && m_pcPic->getPicSym()->getTileIdxMap( m_pcCUAbove->getAddr() ) != m_pcPic->getPicSym()->getTileIdxMap(getAddr()) )))
     )
 #else
@@ -1698,10 +1698,10 @@ TComDataCU* TComDataCU::getPUAboveLeft( UInt& uiALPartUnitIdx, UInt uiCurrPartUn
 #else
 #if TILES
     if( (bEnforceSliceRestriction &&
-        (m_pcCUAbove==NULL || m_pcCUAbove->getSlice()==NULL || m_pcPic->getPicSym()->getInverseCUOrderMap( m_pcCUAbove->getAddr()) < m_pcPic->getPicSym()->getTempInverseCUOrderMap(m_uiSliceStartCU) ||
+        (m_pcCUAbove==NULL || m_pcCUAbove->getSlice()==NULL || m_pcPic->getPicSym()->getInverseCUOrderMap( m_pcCUAbove->getAddr()) < m_uiSliceStartCU ||
         (m_pcPic->getPicSym()->getTileBoundaryIndependenceIdr() && m_pcPic->getPicSym()->getTileIdxMap( m_pcCUAbove->getAddr() ) != m_pcPic->getPicSym()->getTileIdxMap(getAddr()) ))) ||
         (bEnforceEntropySliceRestriction &&
-        (m_pcCUAbove==NULL || m_pcCUAbove->getSlice()==NULL || m_pcPic->getPicSym()->getInverseCUOrderMap( m_pcCUAbove->getAddr()) < m_pcPic->getPicSym()->getTempInverseCUOrderMap(m_uiEntropySliceStartCU) ||
+        (m_pcCUAbove==NULL || m_pcCUAbove->getSlice()==NULL || m_pcPic->getPicSym()->getInverseCUOrderMap( m_pcCUAbove->getAddr()) < m_uiEntropySliceStartCU ||
         (m_pcPic->getPicSym()->getTileBoundaryIndependenceIdr() && m_pcPic->getPicSym()->getTileIdxMap( m_pcCUAbove->getAddr() ) != m_pcPic->getPicSym()->getTileIdxMap(getAddr()) )))
       )
 #else
@@ -1736,10 +1736,10 @@ TComDataCU* TComDataCU::getPUAboveLeft( UInt& uiALPartUnitIdx, UInt uiCurrPartUn
 #else
 #if TILES
     if( (bEnforceSliceRestriction &&
-        (m_pcCULeft==NULL || m_pcCULeft->getSlice()==NULL || m_pcPic->getPicSym()->getInverseCUOrderMap( m_pcCULeft->getAddr()) < m_pcPic->getPicSym()->getTempInverseCUOrderMap(m_uiSliceStartCU) ||
+        (m_pcCULeft==NULL || m_pcCULeft->getSlice()==NULL || m_pcPic->getPicSym()->getInverseCUOrderMap( m_pcCULeft->getAddr()) < m_uiSliceStartCU ||
         (m_pcPic->getPicSym()->getTileBoundaryIndependenceIdr() && m_pcPic->getPicSym()->getTileIdxMap( m_pcCULeft->getAddr() ) != m_pcPic->getPicSym()->getTileIdxMap(getAddr()) ))) ||
         (bEnforceEntropySliceRestriction &&
-        (m_pcCULeft==NULL || m_pcCULeft->getSlice()==NULL || m_pcPic->getPicSym()->getInverseCUOrderMap( m_pcCULeft->getAddr()) < m_pcPic->getPicSym()->getTempInverseCUOrderMap(m_uiEntropySliceStartCU) ||
+        (m_pcCULeft==NULL || m_pcCULeft->getSlice()==NULL || m_pcPic->getPicSym()->getInverseCUOrderMap( m_pcCULeft->getAddr()) < m_uiEntropySliceStartCU ||
         (m_pcPic->getPicSym()->getTileBoundaryIndependenceIdr() && m_pcPic->getPicSym()->getTileIdxMap( m_pcCULeft->getAddr() ) != m_pcPic->getPicSym()->getTileIdxMap(getAddr()) )))
       )
 #else
@@ -1778,10 +1778,10 @@ TComDataCU* TComDataCU::getPUAboveLeft( UInt& uiALPartUnitIdx, UInt uiCurrPartUn
 #else
 #if TILES
   if( (bEnforceSliceRestriction &&
-      (m_pcCUAboveLeft==NULL || m_pcCUAboveLeft->getSlice()==NULL || m_pcPic->getPicSym()->getInverseCUOrderMap( m_pcCUAboveLeft->getAddr()) < m_pcPic->getPicSym()->getTempInverseCUOrderMap(m_uiSliceStartCU) ||
+      (m_pcCUAboveLeft==NULL || m_pcCUAboveLeft->getSlice()==NULL || m_pcPic->getPicSym()->getInverseCUOrderMap( m_pcCUAboveLeft->getAddr()) < m_uiSliceStartCU ||
       (m_pcPic->getPicSym()->getTileBoundaryIndependenceIdr() && m_pcPic->getPicSym()->getTileIdxMap( m_pcCUAboveLeft->getAddr() ) != m_pcPic->getPicSym()->getTileIdxMap(getAddr()) ))) ||
       (bEnforceEntropySliceRestriction &&
-      (m_pcCUAboveLeft==NULL || m_pcCUAboveLeft->getSlice()==NULL || m_pcPic->getPicSym()->getInverseCUOrderMap( m_pcCUAboveLeft->getAddr()) < m_pcPic->getPicSym()->getTempInverseCUOrderMap(m_uiEntropySliceStartCU) ||
+      (m_pcCUAboveLeft==NULL || m_pcCUAboveLeft->getSlice()==NULL || m_pcPic->getPicSym()->getInverseCUOrderMap( m_pcCUAboveLeft->getAddr()) < m_uiEntropySliceStartCU ||
       (m_pcPic->getPicSym()->getTileBoundaryIndependenceIdr() && m_pcPic->getPicSym()->getTileIdxMap( m_pcCUAboveLeft->getAddr() ) != m_pcPic->getPicSym()->getTileIdxMap(getAddr()) )))
     )
 #else
@@ -1872,10 +1872,10 @@ TComDataCU* TComDataCU::getPUAboveRight( UInt& uiARPartUnitIdx, UInt uiCurrPartU
 #else
 #if TILES
     if( (bEnforceSliceRestriction &&
-        (m_pcCUAbove==NULL || m_pcCUAbove->getSlice()==NULL || m_pcPic->getPicSym()->getInverseCUOrderMap( m_pcCUAbove->getAddr()) < m_pcPic->getPicSym()->getTempInverseCUOrderMap(m_uiSliceStartCU) ||
+        (m_pcCUAbove==NULL || m_pcCUAbove->getSlice()==NULL || m_pcPic->getPicSym()->getInverseCUOrderMap( m_pcCUAbove->getAddr()) < m_uiSliceStartCU ||
         (m_pcPic->getPicSym()->getTileBoundaryIndependenceIdr() && m_pcPic->getPicSym()->getTileIdxMap( m_pcCUAbove->getAddr() ) != m_pcPic->getPicSym()->getTileIdxMap(getAddr()) ))) ||
         (bEnforceEntropySliceRestriction &&
-        (m_pcCUAbove==NULL || m_pcCUAbove->getSlice()==NULL || m_pcPic->getPicSym()->getInverseCUOrderMap( m_pcCUAbove->getAddr()) < m_pcPic->getPicSym()->getTempInverseCUOrderMap(m_uiEntropySliceStartCU) ||
+        (m_pcCUAbove==NULL || m_pcCUAbove->getSlice()==NULL || m_pcPic->getPicSym()->getInverseCUOrderMap( m_pcCUAbove->getAddr()) < m_uiEntropySliceStartCU ||
         (m_pcPic->getPicSym()->getTileBoundaryIndependenceIdr() && m_pcPic->getPicSym()->getTileIdxMap( m_pcCUAbove->getAddr() ) != m_pcPic->getPicSym()->getTileIdxMap(getAddr()) )))
       )
 #else
@@ -1922,11 +1922,11 @@ TComDataCU* TComDataCU::getPUAboveRight( UInt& uiARPartUnitIdx, UInt uiCurrPartU
 #else
 #if TILES
   if( (bEnforceSliceRestriction &&
-      (m_pcCUAboveRight==NULL || m_pcCUAboveRight->getSlice()==NULL || m_pcPic->getPicSym()->getInverseCUOrderMap( m_pcCUAboveRight->getAddr()) < m_pcPic->getPicSym()->getTempInverseCUOrderMap(m_uiSliceStartCU) ||
+      (m_pcCUAboveRight==NULL || m_pcCUAboveRight->getSlice()==NULL || m_pcPic->getPicSym()->getInverseCUOrderMap( m_pcCUAboveRight->getAddr()) < m_uiSliceStartCU ||
        m_pcPic->getPicSym()->getInverseCUOrderMap( m_pcCUAboveRight->getAddr()) > m_pcPic->getPicSym()->getInverseCUOrderMap( getAddr()) ||
       (m_pcPic->getPicSym()->getTileBoundaryIndependenceIdr() && m_pcPic->getPicSym()->getTileIdxMap( m_pcCUAboveRight->getAddr() ) != m_pcPic->getPicSym()->getTileIdxMap(getAddr()) ))) ||
       (bEnforceEntropySliceRestriction &&
-      (m_pcCUAboveRight==NULL || m_pcCUAboveRight->getSlice()==NULL || m_pcPic->getPicSym()->getInverseCUOrderMap( m_pcCUAboveRight->getAddr()) < m_pcPic->getPicSym()->getTempInverseCUOrderMap(m_uiEntropySliceStartCU) ||
+      (m_pcCUAboveRight==NULL || m_pcCUAboveRight->getSlice()==NULL || m_pcPic->getPicSym()->getInverseCUOrderMap( m_pcCUAboveRight->getAddr()) < m_uiEntropySliceStartCU ||
        m_pcPic->getPicSym()->getInverseCUOrderMap( m_pcCUAboveRight->getAddr()) > m_pcPic->getPicSym()->getInverseCUOrderMap( getAddr()) ||
       (m_pcPic->getPicSym()->getTileBoundaryIndependenceIdr() && m_pcPic->getPicSym()->getTileIdxMap( m_pcCUAboveRight->getAddr() ) != m_pcPic->getPicSym()->getTileIdxMap(getAddr()) )))
     )
@@ -2007,10 +2007,10 @@ TComDataCU* TComDataCU::getPUBelowLeft( UInt& uiBLPartUnitIdx, UInt uiCurrPartUn
 #else
 #if TILES
     if( (bEnforceSliceRestriction &&
-        (m_pcCULeft==NULL || m_pcCULeft->getSlice()==NULL || m_pcPic->getPicSym()->getInverseCUOrderMap( m_pcCULeft->getAddr()) < m_pcPic->getPicSym()->getTempInverseCUOrderMap(m_uiSliceStartCU) ||
+        (m_pcCULeft==NULL || m_pcCULeft->getSlice()==NULL || m_pcPic->getPicSym()->getInverseCUOrderMap( m_pcCULeft->getAddr()) < m_uiSliceStartCU ||
         (m_pcPic->getPicSym()->getTileBoundaryIndependenceIdr() && m_pcPic->getPicSym()->getTileIdxMap( m_pcCULeft->getAddr() ) != m_pcPic->getPicSym()->getTileIdxMap(getAddr()) ))) ||
         (bEnforceEntropySliceRestriction &&
-        (m_pcCULeft==NULL || m_pcCULeft->getSlice()==NULL || m_pcPic->getPicSym()->getInverseCUOrderMap( m_pcCULeft->getAddr()) < m_pcPic->getPicSym()->getTempInverseCUOrderMap(m_uiEntropySliceStartCU) ||
+        (m_pcCULeft==NULL || m_pcCULeft->getSlice()==NULL || m_pcPic->getPicSym()->getInverseCUOrderMap( m_pcCULeft->getAddr()) < m_uiEntropySliceStartCU ||
         (m_pcPic->getPicSym()->getTileBoundaryIndependenceIdr() && m_pcPic->getPicSym()->getTileIdxMap( m_pcCULeft->getAddr() ) != m_pcPic->getPicSym()->getTileIdxMap(getAddr()) )))
       )
 #else
@@ -2098,10 +2098,10 @@ TComDataCU* TComDataCU::getPUBelowLeftAdi(UInt& uiBLPartUnitIdx, UInt uiPuHeight
 #else
 #if TILES
     if( (bEnforceSliceRestriction &&
-        (m_pcCULeft==NULL || m_pcCULeft->getSlice()==NULL || m_pcPic->getPicSym()->getInverseCUOrderMap( m_pcCULeft->getAddr()) < m_pcPic->getPicSym()->getTempInverseCUOrderMap(m_uiSliceStartCU) ||
+        (m_pcCULeft==NULL || m_pcCULeft->getSlice()==NULL || m_pcPic->getPicSym()->getInverseCUOrderMap( m_pcCULeft->getAddr()) < m_uiSliceStartCU ||
         (m_pcPic->getPicSym()->getTileBoundaryIndependenceIdr() && m_pcPic->getPicSym()->getTileIdxMap( m_pcCULeft->getAddr() ) != m_pcPic->getPicSym()->getTileIdxMap(getAddr()) ))) ||
         (bEnforceEntropySliceRestriction &&
-        (m_pcCULeft==NULL || m_pcCULeft->getSlice()==NULL || m_pcPic->getPicSym()->getInverseCUOrderMap( m_pcCULeft->getAddr()) < m_pcPic->getPicSym()->getTempInverseCUOrderMap(m_uiEntropySliceStartCU) ||
+        (m_pcCULeft==NULL || m_pcCULeft->getSlice()==NULL || m_pcPic->getPicSym()->getInverseCUOrderMap( m_pcCULeft->getAddr()) < m_uiEntropySliceStartCU ||
         (m_pcPic->getPicSym()->getTileBoundaryIndependenceIdr() && m_pcPic->getPicSym()->getTileIdxMap( m_pcCULeft->getAddr() ) != m_pcPic->getPicSym()->getTileIdxMap(getAddr()) )))
       )
 #else
@@ -2190,10 +2190,10 @@ TComDataCU* TComDataCU::getPUAboveRightAdi(UInt&  uiARPartUnitIdx, UInt uiPuWidt
 #else
 #if TILES
     if( (bEnforceSliceRestriction &&
-        (m_pcCUAbove==NULL || m_pcCUAbove->getSlice()==NULL || m_pcPic->getPicSym()->getInverseCUOrderMap( m_pcCUAbove->getAddr()) < m_pcPic->getPicSym()->getTempInverseCUOrderMap(m_uiSliceStartCU) ||
+        (m_pcCUAbove==NULL || m_pcCUAbove->getSlice()==NULL || m_pcPic->getPicSym()->getInverseCUOrderMap( m_pcCUAbove->getAddr()) < m_uiSliceStartCU ||
         (m_pcPic->getPicSym()->getTileBoundaryIndependenceIdr() && m_pcPic->getPicSym()->getTileIdxMap( m_pcCUAbove->getAddr() ) != m_pcPic->getPicSym()->getTileIdxMap(getAddr()) ))) ||
         (bEnforceEntropySliceRestriction &&
-        (m_pcCUAbove==NULL || m_pcCUAbove->getSlice()==NULL || m_pcPic->getPicSym()->getInverseCUOrderMap( m_pcCUAbove->getAddr()) < m_pcPic->getPicSym()->getTempInverseCUOrderMap(m_uiEntropySliceStartCU) ||
+        (m_pcCUAbove==NULL || m_pcCUAbove->getSlice()==NULL || m_pcPic->getPicSym()->getInverseCUOrderMap( m_pcCUAbove->getAddr()) < m_uiEntropySliceStartCU ||
         (m_pcPic->getPicSym()->getTileBoundaryIndependenceIdr() && m_pcPic->getPicSym()->getTileIdxMap( m_pcCUAbove->getAddr() ) != m_pcPic->getPicSym()->getTileIdxMap(getAddr()) )))
       )
 #else
@@ -2233,11 +2233,11 @@ TComDataCU* TComDataCU::getPUAboveRightAdi(UInt&  uiARPartUnitIdx, UInt uiPuWidt
 #else
 #if TILES
   if( (bEnforceSliceRestriction &&
-      (m_pcCUAboveRight==NULL || m_pcCUAboveRight->getSlice()==NULL || m_pcPic->getPicSym()->getInverseCUOrderMap( m_pcCUAboveRight->getAddr()) < m_pcPic->getPicSym()->getTempInverseCUOrderMap(m_uiSliceStartCU) ||
+      (m_pcCUAboveRight==NULL || m_pcCUAboveRight->getSlice()==NULL || m_pcPic->getPicSym()->getInverseCUOrderMap( m_pcCUAboveRight->getAddr()) < m_uiSliceStartCU ||
        m_pcPic->getPicSym()->getInverseCUOrderMap( m_pcCUAboveRight->getAddr()) > m_pcPic->getPicSym()->getInverseCUOrderMap( getAddr()) ||
       (m_pcPic->getPicSym()->getTileBoundaryIndependenceIdr() && m_pcPic->getPicSym()->getTileIdxMap( m_pcCUAboveRight->getAddr() ) != m_pcPic->getPicSym()->getTileIdxMap(getAddr()) ))) ||
       (bEnforceEntropySliceRestriction &&
-      (m_pcCUAboveRight==NULL || m_pcCUAboveRight->getSlice()==NULL || m_pcPic->getPicSym()->getInverseCUOrderMap( m_pcCUAboveRight->getAddr()) < m_pcPic->getPicSym()->getTempInverseCUOrderMap(m_uiEntropySliceStartCU) ||
+      (m_pcCUAboveRight==NULL || m_pcCUAboveRight->getSlice()==NULL || m_pcPic->getPicSym()->getInverseCUOrderMap( m_pcCUAboveRight->getAddr()) < m_uiEntropySliceStartCU ||
        m_pcPic->getPicSym()->getInverseCUOrderMap( m_pcCUAboveRight->getAddr()) > m_pcPic->getPicSym()->getInverseCUOrderMap( getAddr()) ||
       (m_pcPic->getPicSym()->getTileBoundaryIndependenceIdr() && m_pcPic->getPicSym()->getTileIdxMap( m_pcCUAboveRight->getAddr() ) != m_pcPic->getPicSym()->getTileIdxMap(getAddr()) )))
     )
@@ -2310,8 +2310,18 @@ TComDataCU* TComDataCU::getQpMinCuLeft( UInt& uiLPartUnitIdx, UInt uiCurrAbsIdxI
     ||(bEnforceEntropySliceRestriction && (m_pcCULeft==NULL || m_pcCULeft->getSlice()==NULL || m_pcCULeft->getSCUAddr()+uiLPartUnitIdx < m_pcPic->getCU( getAddr() )->getEntropySliceStartCU(uiAbsZorderQpMinCUIdx))))
 #endif
 #else
+#if TILES
+  if( (bEnforceSliceRestriction &&
+        (m_pcCULeft==NULL || m_pcCULeft->getSlice()==NULL || m_pcPic->getPicSym()->getInverseCUOrderMap( m_pcCULeft->getAddr()) < m_uiSliceStartCU ||
+        (m_pcPic->getPicSym()->getTileBoundaryIndependenceIdr() && m_pcPic->getPicSym()->getTileIdxMap( m_pcCULeft->getAddr() ) != m_pcPic->getPicSym()->getTileIdxMap(getAddr()) ))) ||
+        (bEnforceEntropySliceRestriction &&
+        (m_pcCULeft==NULL || m_pcCULeft->getSlice()==NULL || m_pcPic->getPicSym()->getInverseCUOrderMap( m_pcCULeft->getAddr()) < m_uiEntropySliceStartCU ||
+        (m_pcPic->getPicSym()->getTileBoundaryIndependenceIdr() && m_pcPic->getPicSym()->getTileIdxMap( m_pcCULeft->getAddr() ) != m_pcPic->getPicSym()->getTileIdxMap(getAddr()) )))
+      )
+#else
   if ( (bEnforceSliceRestriction && (m_pcCULeft==NULL || m_pcCULeft->getSlice()==NULL || m_pcCULeft->getAddr() < m_uiSliceStartCU)) ||
     (bEnforceEntropySliceRestriction && (m_pcCULeft==NULL || m_pcCULeft->getSlice()==NULL || m_pcCULeft->getAddr() < m_uiEntropySliceStartCU)) )
+#endif
 #endif
   {
     return NULL;

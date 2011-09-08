@@ -586,7 +586,11 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
   if (pcSlice->isNextSlice())
   {
 #if !FINE_GRANULARITY_SLICES
+#if TILES
+    WRITE_UVLC( pcSlice->getPic()->getPicSym()->getCUOrderMap(pcSlice->getSliceCurStartCUAddr()), "slice_address" );        // Start CU addr for slice
+#else
     WRITE_UVLC( pcSlice->getSliceCurStartCUAddr(), "slice_address" );        // Start CU addr for slice
+#endif
 #else
     // Calculate slice address
     iLCUAddress = (pcSlice->getSliceCurStartCUAddr()/pcSlice->getPic()->getNumPartInCU());
@@ -596,7 +600,11 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
   else
   {
 #if !FINE_GRANULARITY_SLICES
+#if TILES
+    WRITE_UVLC( pcSlice->getPic()->getPicSym()->getCUOrderMap(pcSlice->getEntropySliceCurStartCUAddr()), "slice_address" ); // Start CU addr for entropy slice
+#else
     WRITE_UVLC( pcSlice->getEntropySliceCurStartCUAddr(), "slice_address" ); // Start CU addr for entropy slice
+#endif
 #else
     // Calculate slice address
     iLCUAddress = (pcSlice->getEntropySliceCurStartCUAddr()/pcSlice->getPic()->getNumPartInCU());

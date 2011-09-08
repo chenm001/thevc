@@ -446,6 +446,9 @@ Bool TDecTop::decode (Bool bEos, TComBitstream* pcBitstream, TComBitstream** pcS
         pcPic->getPicSym()->setNumColumnsMinus1( pcSlice->getPPS()->getNumColumnsMinus1() );
         pcPic->getPicSym()->setNumRowsMinus1( pcSlice->getPPS()->getNumRowsMinus1() );
 
+        //create the TComTileArray
+        pcPic->getPicSym()->xCreateTComTileArray();
+
         if( pcSlice->getPPS()->getUniformSpacingIdr() == 1)
         {
           //set the width for each tile
@@ -505,6 +508,9 @@ Bool TDecTop::decode (Bool bEos, TComBitstream* pcBitstream, TComBitstream** pcS
         //set NumColumnsMins1 and NumRowsMinus1
         pcPic->getPicSym()->setNumColumnsMinus1( pcSlice->getSPS()->getNumColumnsMinus1() );
         pcPic->getPicSym()->setNumRowsMinus1( pcSlice->getSPS()->getNumRowsMinus1() );
+
+        //create the TComTileArray
+        pcPic->getPicSym()->xCreateTComTileArray();
 
         //automatically set the column and row boundary if UniformSpacingIdr = 1
         if( pcSlice->getSPS()->getUniformSpacingIdr() == 1 )
@@ -567,9 +573,6 @@ Bool TDecTop::decode (Bool bEos, TComBitstream* pcBitstream, TComBitstream** pcS
       {
         pcPic->getPicSym()->setCUOrderMap(i, uiEncCUAddr);
         pcPic->getPicSym()->setInverseCUOrderMap(uiEncCUAddr, i);
-#if !FINE_GRANULARITY_SLICES
-        pcPic->getPicSym()->setTempInverseCUOrderMap(uiEncCUAddr, i);
-#endif
       }
       pcPic->getPicSym()->setCUOrderMap(pcPic->getPicSym()->getNumberOfCUsInFrame(), pcPic->getPicSym()->getNumberOfCUsInFrame());
       pcPic->getPicSym()->setInverseCUOrderMap(pcPic->getPicSym()->getNumberOfCUsInFrame(), pcPic->getPicSym()->getNumberOfCUsInFrame());
@@ -582,6 +585,13 @@ Bool TDecTop::decode (Bool bEos, TComBitstream* pcBitstream, TComBitstream** pcS
       {
         pcSlice->setSliceCurStartCUAddr(pcPic->getPicSym()->getPicSCUEncOrder(pcSlice->getSliceCurStartCUAddr()));
         pcSlice->setSliceCurEndCUAddr(pcPic->getPicSym()->getPicSCUEncOrder(pcSlice->getSliceCurEndCUAddr()));
+      }
+#else
+      //convert the start and end CU addresses of the slice and entropy slice into encoding order
+      pcSlice->setEntropySliceCurStartCUAddr( pcPic->getPicSym()->getInverseCUOrderMap(pcSlice->getEntropySliceCurStartCUAddr()) );
+      if(pcSlice->isNextSlice())
+      {
+        pcSlice->setSliceCurStartCUAddr(pcPic->getPicSym()->getInverseCUOrderMap(pcSlice->getSliceCurStartCUAddr()));
       }
 #endif
 #endif

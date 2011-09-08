@@ -385,6 +385,9 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
       pcPic->getPicSym()->setNumColumnsMinus1( pcSlice->getPPS()->getNumColumnsMinus1() );
       pcPic->getPicSym()->setNumRowsMinus1( pcSlice->getPPS()->getNumRowsMinus1() );
 
+      //create the TComTileArray
+      pcPic->getPicSym()->xCreateTComTileArray();
+
       if( pcSlice->getPPS()->getUniformSpacingIdr() == 1 )
       {
         //set the width for each tile
@@ -444,6 +447,9 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
       //set NumColumnsMins1 and NumRowsMinus1
       pcPic->getPicSym()->setNumColumnsMinus1( pcSlice->getSPS()->getNumColumnsMinus1() );
       pcPic->getPicSym()->setNumRowsMinus1( pcSlice->getSPS()->getNumRowsMinus1() );
+
+      //create the TComTileArray
+      pcPic->getPicSym()->xCreateTComTileArray();
 
       if( pcSlice->getSPS()->getUniformSpacingIdr() == 1 )
       {

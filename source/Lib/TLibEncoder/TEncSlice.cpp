@@ -1201,8 +1201,13 @@ rpcPic->getPicSym()->getTempInverseCUOrderMap(pcSlice->getEntropySliceCurStartCU
     g_bJustDoIt = g_bEncDecTraceEnable;
 #endif
 #if TILES
+#if FINE_GRANULARITY_SLICES
     if ( (m_pcCfg->getSliceMode()!=0 || m_pcCfg->getEntropySliceMode()!=0) && 
       uiCUAddr == rpcPic->getPicSym()->getCUOrderMap((uiBoundingCUAddr+rpcPic->getNumPartInCU()-1)/rpcPic->getNumPartInCU()-1) )
+#else
+    if ( (m_pcCfg->getSliceMode()!=0 || m_pcCfg->getEntropySliceMode()!=0) && 
+      uiCUAddr == rpcPic->getPicSym()->getCUOrderMap(uiBoundingCUAddr-1) )
+#endif
 #else
     if ( (m_pcCfg->getSliceMode()!=0 || m_pcCfg->getEntropySliceMode()!=0) && uiCUAddr==uiBoundingCUAddr-1 )
 #endif

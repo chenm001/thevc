@@ -108,9 +108,6 @@ private:
   UInt*         m_puiCUOrderMap;       //the map of LCU raster scan address relative to LCU encoding order 
   UInt*         m_puiTileIdxMap;       //the map of the tile index relative to LCU raster scan address 
   UInt*         m_puiInverseCUOrderMap;
-#if !FINE_GRANULARITY_SLICES
-  UInt*         m_puiTempInverseCUOrderMap;
-#endif
 #if TILES_DECODER
   UInt          m_uiBitsUsedByTileIdx;
 #endif
@@ -153,14 +150,11 @@ public:
   UInt         getTileIdxMap( Int i )                                { return *(m_puiTileIdxMap + i); }
   Void         setInverseCUOrderMap( Int cuAddr, Int encCUOrder )    { *(m_puiInverseCUOrderMap + cuAddr) = encCUOrder; }
   UInt         getInverseCUOrderMap( Int cuAddr )                    { return *(m_puiInverseCUOrderMap + (cuAddr>=m_uiNumCUsInFrame ? m_uiNumCUsInFrame : cuAddr)); }
-#if !FINE_GRANULARITY_SLICES
-  Void         setTempInverseCUOrderMap( Int cuAddr, Int encCUOrder ){ *(m_puiTempInverseCUOrderMap + cuAddr) = encCUOrder; }
-  UInt         getTempInverseCUOrderMap( Int cuAddr )                { return *(m_puiTempInverseCUOrderMap + cuAddr); }
-#endif
-  Void         xInitTiles();
-  UInt         xCalculateNxtCUAddr( UInt uiCurrCUAddr );
   UInt         getPicSCUEncOrder( UInt SCUAddr );
   UInt         getPicSCUAddr( UInt SCUEncOrder );
+  Void         xCreateTComTileArray();
+  Void         xInitTiles();
+  UInt         xCalculateNxtCUAddr( UInt uiCurrCUAddr );
 #if TILES_DECODER
   UInt         getBitsUsedByTileIdx()                                { return m_uiBitsUsedByTileIdx; }
 #endif
