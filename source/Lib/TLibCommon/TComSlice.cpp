@@ -94,6 +94,9 @@ TComSlice::TComSlice()
 , m_uiTileByteLocation            ( NULL )
 , m_uiTileCount                   ( 0 )
 #endif
+#if OL_USE_WPP
+, m_puiSubstreamSizes             ( NULL )
+#endif
 {
   m_aiNumRefIdx[0] = m_aiNumRefIdx[1] = m_aiNumRefIdx[2] = 0;
   
@@ -125,6 +128,10 @@ TComSlice::~TComSlice()
     delete [] m_uiTileByteLocation;
     m_uiTileByteLocation = NULL;
   }
+#endif
+#if OL_USE_WPP
+  delete[] m_puiSubstreamSizes;
+  m_puiSubstreamSizes = NULL;
 #endif
 }
 
@@ -165,6 +172,14 @@ Void TComSlice::initSlice()
   m_uiTileByteLocation   = new UInt[uiNumCUsInFrame];
 #endif
 }
+
+#if OL_USE_WPP
+Void  TComSlice::allocSubstreamSizes(UInt uiNumSubstreams)
+{
+  delete[] m_puiSubstreamSizes;
+  m_puiSubstreamSizes = new UInt[uiNumSubstreams > 0 ? uiNumSubstreams-1 : 0];
+}
+#endif
 
 Void  TComSlice::sortPicList        (TComList<TComPic*>& rcListPic)
 {
@@ -971,6 +986,11 @@ TComPPS::TComPPS()
 #endif
 #if E045_SLICE_COMMON_INFO_SHARING
 , m_bSharedPPSInfoEnabled       (false)
+#endif
+#if OL_USE_WPP
+,  m_iEntropyCodingSynchro      (0)
+,  m_bCabacIstateReset          (false)
+,  m_iNumSubstreams             (1)
 #endif
 #if TILES
 , m_iColumnRowInfoPresent        (0)

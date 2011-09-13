@@ -69,7 +69,7 @@ private:
   UInt            m_uiCurrSliceIdx;
 
 #if OL_USE_WPP
-  TDecSbac*       m_pcBufferSbacDecoders;   ///< line to store temporary contexts
+  TDecSbac*       m_pcBufferSbacDecoders;   ///< line to store temporary contexts, one per column of tiles.
   TDecBinCABAC*   m_pcBufferBinCABACs;
 #endif
   
@@ -81,11 +81,10 @@ public:
   Void  create            ( TComSlice* pcSlice, Int iWidth, Int iHeight, UInt uiMaxWidth, UInt uiMaxHeight, UInt uiMaxDepth );
   Void  destroy           ();
   
-  Void  decompressSlice   ( TComInputBitstream* pcBitstream, TComPic*& rpcPic );
 #if OL_USE_WPP
-  Void  decompressSlice   ( TComBitstream* pcBitstream, TComBitstream** ppcSubstreams, TComPic*& rpcPic, TDecSbac* pcSbacDecoder, TDecSbac* pcSbacDecoders );
+  Void  decompressSlice   ( TComInputBitstream* pcBitstream, TComInputBitstream** ppcSubstreams,   TComPic*& rpcPic, TDecSbac* pcSbacDecoder, TDecSbac* pcSbacDecoders );
 #else
-  //Void  decompressSlice   ( TComBitstream* pcBitstream, TComPic*& rpcPic );
+  Void  decompressSlice   ( TComInputBitstream* pcBitstream, TComPic*& rpcPic, TDecSbac* pcSbacDecoder );
 #endif
 };
 

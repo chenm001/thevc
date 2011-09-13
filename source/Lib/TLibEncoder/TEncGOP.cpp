@@ -135,11 +135,7 @@ Void TEncGOP::init ( TEncTop* pcTEncTop )
 // ====================================================================================================================
 // Public member functions
 // ====================================================================================================================
-#if OL_USE_WPP
-Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rcListPic, TComList<TComPicYuv*>& rcListPicYuvRecOut, TComList<TComBitstream*> rcListBitstreamOut, TComList<TComBitstream*>* rpcListsSubstreamsOut )
-#else
 Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rcListPic, TComList<TComPicYuv*>& rcListPicYuvRecOut, std::list<AccessUnit>& accessUnitsInGOP)
-#endif
 {
   TComPic*        pcPic;
   TComPicYuv*     pcPicYuvRecOut;
@@ -149,9 +145,8 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
   pcBitstreamRedirect = new TComOutputBitstream;
 #endif
 #if OL_USE_WPP
-  TEncSbac*     pcSbacCoders = m_pcEncTop->getSbacCoders();
-  TComBitstream** ppcSubstreamsOut;
-  ppcSubstreamsOut = new TComBitstream*[OL_ALLOC_SUBSTREAMS];
+  TEncSbac* pcSbacCoders = NULL;
+  TComOutputBitstream* pcSubstreamsOut = NULL;
 #endif  
 
   xInitGOP( iPOCLast, iNumPicRcvd, rcListPic, rcListPicYuvRecOut );
@@ -190,21 +185,7 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
       accessUnitsInGOP.push_back(AccessUnit());
       AccessUnit& accessUnit = accessUnitsInGOP.back();
       xGetBuffer( rcListPic, rcListPicYuvRecOut, iNumPicRcvd, iTimeOffset, pcPic, pcPicYuvRecOut, uiPOCCurr );
-#if OL_USE_WPP
-    xGetBuffer( rcListPic, rcListPicYuvRecOut, rcListBitstreamOut, rpcListsSubstreamsOut, iNumPicRcvd, iTimeOffset,  pcPic, pcPicYuvRecOut, pcBitstreamOut, ppcSubstreamsOut, uiPOCCurr );
-#else
-      //xGetBuffer( rcListPic, rcListPicYuvRecOut, rcListBitstreamOut, iNumPicRcvd, iTimeOffset,  pcPic, pcPicYuvRecOut, pcBitstreamOut, uiPOCCurr );
-#endif
-      
 
-#if OL_USE_WPP
-    for ( UInt ui = 0 ; ui < OL_ALLOC_SUBSTREAMS ; ui++ )
-    {
-    ppcSubstreamsOut[ui]->resetBits();
-    ppcSubstreamsOut[ui]->rewindStreamPacket();
-    }
-#endif
-      
       //  Slice data initialization
       pcPic->clearSliceBuffer();
       assert(pcPic->getNumAllocatedSlice() == 1);
@@ -506,6 +487,11 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
 
     //intialize each tile of the current picture
     pcPic->getPicSym()->xInitTiles();
+
+#if OL_USE_WPP
+    // Allocate some coders, now we know how many tiles there are.
+    Int iNumSubstreams = pcSlice->getPPS()->getNumSubstreams();
+#endif
     
     //generate the Coding Order Map and Inverse Coding Order Map
     for(p=0, uiEncCUAddr=0; p<pcPic->getPicSym()->getNumberOfCUsInFrame(); p++, uiEncCUAddr = pcPic->getPicSym()->xCalculateNxtCUAddr(uiEncCUAddr))
@@ -515,16 +501,22 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
     }
     pcPic->getPicSym()->setCUOrderMap(pcPic->getPicSym()->getNumberOfCUsInFrame(), pcPic->getPicSym()->getNumberOfCUsInFrame());    
     pcPic->getPicSym()->setInverseCUOrderMap(pcPic->getPicSym()->getNumberOfCUsInFrame(), pcPic->getPicSym()->getNumberOfCUsInFrame());
-#if OL_USE_WPP && OL_TILE_SUBSTREAMS
-    // We've got substreams per tile -- ensure we're not overflowing our allocations.
-    if (pcPic->getPicSym()->getNumTiles() > OL_MAX_TILES)
+#else
+#if OL_USE_WPP
+    // Allocate some coders, now we know how many tiles there are.
+    Int iNumSubstreams = pcSlice->getPPS()->getNumSubstreams();
+#endif // OL_USE_WPP
+#endif
+#if OL_USE_WPP
+    if (pcSlice->getPPS()->getEntropyCodingMode())
     {
-      printf("too many tiles: %d; OL_MAX_TILES defined as %d\n", pcPic->getPicSym()->getNumTiles(), OL_MAX_TILES);
-      fflush(stdout);
-      abort();
+      // Allocate some coders, now we know how many tiles there are.
+      m_pcEncTop->createWPPCoders(iNumSubstreams);
+      pcSbacCoders = m_pcEncTop->getSbacCoders();
+      pcSubstreamsOut = new TComOutputBitstream[iNumSubstreams];
     }
 #endif
-#endif
+
       UInt uiStartCUAddrSliceIdx = 0; // used to index "m_uiStoredStartCUAddrForEncodingSlice" containing locations of slice boundaries
       UInt uiStartCUAddrSlice    = 0; // used to keep track of current slice's starting CU addr.
       pcSlice->setSliceCurStartCUAddr( uiStartCUAddrSlice ); // Setting "start CU addr" for current slice
@@ -834,6 +826,14 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
         }
         skippedSlice=false;
 #endif
+#if OL_USE_WPP
+        if (pcSlice->getPPS()->getEntropyCodingMode())
+        {
+          pcSlice->allocSubstreamSizes( iNumSubstreams );
+          for ( UInt ui = 0 ; ui < iNumSubstreams; ui++ )
+            pcSubstreamsOut[ui].clear();
+        }
+#endif
 
 #if !E045_SLICE_COMMON_INFO_SHARING
         // Get ready for writing slice header (other than the first one in the picture)
@@ -872,20 +872,28 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
           }
           else
           {
+#if OL_USE_WPP
+          // We've not completed our slice header info yet, do the alignment later.
+#else
             nalu.m_Bitstream.writeAlignOne(); // Byte-alignment before CABAC data
+#endif
           }
 #else
+#if OL_USE_WPP
+          // We've not completed our slice header info yet, do the alignment later.
+#else
           nalu.m_Bitstream.writeAlignOne(); // Byte-alignment before CABAC data
+#endif
 #endif
           m_pcSbacCoder->init( (TEncBinIf*)m_pcBinCABAC );
           m_pcEntropyCoder->setEntropyCoder ( m_pcSbacCoder, pcSlice );
           m_pcEntropyCoder->resetEntropy    ();
 #if OL_USE_WPP
-        for ( UInt ui = 0 ; ui < OL_ALLOC_SUBSTREAMS ; ui++ )
-        {
-          m_pcEntropyCoder->setEntropyCoder ( &pcSbacCoders[ui], pcSlice );
-          m_pcEntropyCoder->resetEntropy    ();
-        }
+          for ( UInt ui = 0 ; ui < pcSlice->getPPS()->getNumSubstreams() ; ui++ )
+          {
+            m_pcEntropyCoder->setEntropyCoder ( &pcSbacCoders[ui], pcSlice );
+            m_pcEntropyCoder->resetEntropy    ();
+          }
 #endif
         }
 
@@ -962,16 +970,16 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
           m_pcSbacCoder->init( (TEncBinIf*)m_pcBinCABAC );
           if ( pcSlice->getSymbolMode() )
           {
-            m_pcEntropyCoder->setEntropyCoder ( m_pcSbacCoder, pcSlice );
 #if OL_USE_WPP
-              for ( UInt ui = 0 ; ui < OL_ALLOC_SUBSTREAMS ; ui++ )
-              {
-                m_pcEntropyCoder->setEntropyCoder ( &pcSbacCoders[ui], pcSlice );
-                m_pcEntropyCoder->resetEntropy    ();
-              }
-              m_pcEntropyCoder->setEntropyCoder ( &pcSbacCoders[0], pcSlice );  //ALF is written in substream #0 with CABAC coder #0 (see ALF param encoding below)
+            for ( UInt ui = 0 ; ui < pcSlice->getPPS()->getNumSubstreams() ; ui++ )
+            {
+              m_pcEntropyCoder->setEntropyCoder ( &pcSbacCoders[ui], pcSlice );
+              m_pcEntropyCoder->resetEntropy    ();
+            }
+            pcSbacCoders[0].load(m_pcSbacCoder);
+            m_pcEntropyCoder->setEntropyCoder ( &pcSbacCoders[0], pcSlice );  //ALF is written in substream #0 with CABAC coder #0 (see ALF param encoding below)
 #else
-              //m_pcEntropyCoder->setEntropyCoder ( m_pcSbacCoder, pcSlice );
+            m_pcEntropyCoder->setEntropyCoder ( m_pcSbacCoder, pcSlice );
 #endif
           }
           else
@@ -990,12 +998,19 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
             m_pcEntropyCoder->setBitstream(&nalu.m_Bitstream);
           }
 #else
+#if OL_USE_WPP
+          if (pcSlice->getSymbolMode())
+            m_pcEntropyCoder->setBitstream    ( &pcSubstreamsOut[0] );
+          else
+            m_pcEntropyCoder->setBitstream(&nalu.m_Bitstream);
+#else
           m_pcEntropyCoder->setBitstream(&nalu.m_Bitstream);
 #endif
+#endif
 #if OL_USE_WPP
-        m_pcEntropyCoder->setBitstream    ( ppcSubstreamsOut[0] );
-#else
-            //m_pcEntropyCoder->setBitstream    ( pcBitstreamOut );
+          // for now, override the TILES_DECODER setting in order to write substreams.
+          if (pcSlice->getSymbolMode())
+            m_pcEntropyCoder->setBitstream    ( &pcSubstreamsOut[0] );
 #endif
 
 #if E045_SLICE_COMMON_INFO_SHARING
@@ -1063,20 +1078,103 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
         pcSlice->setFinalized(true);
 #endif
 
+#if OL_USE_WPP
+        if (pcSlice->getSymbolMode())
+          m_pcSbacCoder->load( &pcSbacCoders[0] );
+#endif
 #if TILES_DECODER
         if (pcSlice->getSPS()->getTileBoundaryIndependenceIdr())
         {
           if (!bEntropySlice) pcSlice->setTileLocationCount( 0 );
+#if OL_USE_WPP
+          m_pcSliceEncoder->encodeSlice(pcPic, pcBitstreamRedirect, pcSubstreamsOut); // redirect is only used for CAVLC tile position info.
+#else
           m_pcSliceEncoder->encodeSlice(pcPic, pcBitstreamRedirect);
+#endif
         }
         else
         {
-          m_pcSliceEncoder->encodeSlice(pcPic, &nalu.m_Bitstream);
-        }
+#if OL_USE_WPP
+          m_pcSliceEncoder->encodeSlice(pcPic, &nalu.m_Bitstream, pcSubstreamsOut); // nalu.m_Bitstream is only used for CAVLC tile position info.
 #else
-        // File writing
-        m_pcSliceEncoder->encodeSlice(pcPic, &nalu.m_Bitstream);
+          m_pcSliceEncoder->encodeSlice(pcPic, &nalu.m_Bitstream);
 #endif
+        }
+#else // !TILES_DECODER
+#if OL_USE_WPP
+        m_pcSliceEncoder->encodeSlice(pcPic, pcSubstreamsOut);
+#else
+        m_pcSliceEncoder->encodeSlice(pcPic, &nalu.m_Bitstream);
+#endif // OL_USE_WPP
+#endif // TILES_DECODER
+
+#if OL_USE_WPP
+        if ( pcSlice->getSymbolMode() )
+        {
+          // Construct the final bitstream by flushing and concatenating substreams.
+          // The final bitstream is either nalu.m_Bitstream or pcBitstreamRedirect;
+          UInt* puiSubstreamSizes = pcSlice->getSubstreamSizes();
+#if TILES_DECODER
+          Int iLWTileHeaderWrittenInSlice = 0;
+          UInt uiTotalCodedSize = 0; // for padding calcs.
+          UInt uiNumSubstreamsPerTile = iNumSubstreams;
+          if (pcPic->getPicSym()->getTileBoundaryIndependenceIdr())
+            uiNumSubstreamsPerTile /= pcPic->getPicSym()->getNumTiles();
+#endif
+          for ( UInt ui = 0 ; ui < iNumSubstreams; ui++ )
+          {
+            // Flush all substreams -- this includes empty ones.
+            // Terminating bit and flush.
+            m_pcEntropyCoder->setEntropyCoder   ( &pcSbacCoders[ui], pcSlice );
+            m_pcEntropyCoder->setBitstream      (  &pcSubstreamsOut[ui] );
+            m_pcEntropyCoder->encodeTerminatingBit( 1 );
+            m_pcEntropyCoder->encodeSliceFinish();
+            pcSubstreamsOut[ui].write( 1, 1 ); // stop bit.
+#if TILES_DECODER
+            // Byte alignment is necessary for LWTileHeader to be useful.
+            // Is the next substream going to have a tile indicator?  If so, we add padding here.
+            uiTotalCodedSize += pcSubstreamsOut[ui].getNumberOfWrittenBits();
+
+            if (pcPic->getPicSym()->getTileBoundaryIndependenceIdr()
+                && m_pcCfg->getLWTileHeaderFlag() == 1)
+            {
+              Int iTileIdxNext = (ui+1)/uiNumSubstreamsPerTile;
+              Bool bWriteLWTileHeaderNext = ui+uiNumSubstreamsPerTile < iNumSubstreams
+                                            && ( (((Int)((iLWTileHeaderWrittenInSlice+1)*m_pcCfg->getMaxLWTileHeaderOffset()+0.5)) == iTileIdxNext ) && iLWTileHeaderWrittenInSlice < (m_pcCfg->getMaxLWTileHeaderEntryPoints()-1));
+              if (bWriteLWTileHeaderNext)
+              {
+                // byte align.
+                while (uiTotalCodedSize&0x7)
+                {
+                  pcSubstreamsOut[ui].write(0, 1);
+                  uiTotalCodedSize++;
+                }
+              }
+            }
+#endif
+            if (ui+1 < pcSlice->getPPS()->getNumSubstreams())
+              puiSubstreamSizes[ui] = pcSubstreamsOut[ui].getNumberOfWrittenBits();
+          }
+
+          // Complete the slice header info.
+          m_pcEntropyCoder->setEntropyCoder   ( m_pcCavlcCoder, pcSlice );
+          m_pcEntropyCoder->setBitstream(&nalu.m_Bitstream);
+          m_pcEntropyCoder->encodeSliceHeaderSubstreamTable(pcSlice);
+
+          // Substreams...
+#if TILES_DECODER
+          TComOutputBitstream *pcOut = pcBitstreamRedirect;
+          // xWriteTileLocation will perform byte-alignment...
+#else
+          TComOutputBitstream *pcOut = &nalu.m_Bitstream;
+          nalu.m_Bitstream.writeAlignOne(); // Byte-alignment before CABAC data
+#endif
+          for ( UInt ui = 0 ; ui < pcSlice->getPPS()->getNumSubstreams(); ui++ )
+          {
+            pcOut->addSubstream(&pcSubstreamsOut[ui]);
+          }
+        }
+#endif // OL_USE_WPP
 
 #if TILES_DECODER
         UInt uiBoundingAddrSlice, uiBoundingAddrEntropySlice;
@@ -1090,41 +1188,15 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
         }
 #endif
 
-        writeRBSPTrailingBits(nalu.m_Bitstream);
-        accessUnit.push_back(new NALUnitEBSP(nalu));
 #if OL_USE_WPP
-        m_pcSbacCoder->load( &pcSbacCoders[0] );
-        m_pcSliceEncoder->encodeSlice( pcPic, pcBitstreamOut, ppcSubstreamsOut );
-#if TILES
-        UInt uiNSubstreams = OL_NUM_SUBSTREAMS*(OL_TILE_SUBSTREAMS == 0 ? 1 : pcPic->getPicSym()->getNumTiles());
+        if (pcSlice->getSymbolMode())
+          nalu.m_Bitstream.writeAlignZero();
+        else
+          writeRBSPTrailingBits(nalu.m_Bitstream);
 #else
-        UInt uiNSubstreams = OL_NUM_SUBSTREAMS;
+        writeRBSPTrailingBits(nalu.m_Bitstream);
 #endif
-        for ( UInt ui = 0 ; ui < uiNSubstreams; ui++ )
-        {
-          // Flush all substreams -- this includes empty ones for the moment.
-          {
-            // Terminating bit and flush.
-            m_pcEntropyCoder->setEntropyCoder   ( &pcSbacCoders[ui], pcSlice );
-            m_pcEntropyCoder->setBitstream      (  ppcSubstreamsOut[ui] );
-            m_pcEntropyCoder->encodeTerminatingBit( 1 );
-            m_pcEntropyCoder->encodeSliceFinish();
-            ppcSubstreamsOut[ui]->write( 1, 1 ); // stop bit.
-          }
-          // No header on last substream.
-          //printf("writing %d with %d bits\n", ui, ppcSubstreamsOut[ui]->getNumberOfWrittenBits());
-          pcBitstreamOut->addSubstream(ppcSubstreamsOut[ui], ui < uiNSubstreams-1);
-          ppcSubstreamsOut[ui]->resetBits();
-          ppcSubstreamsOut[ui]->rewindStreamPacket();
-        }
-        pcBitstreamOut->writeAlignZero();
-#else
-        //m_pcSliceEncoder->encodeSlice( pcPic, pcBitstreamOut );
-        //  End of bitstream & byte align
-        //pcBitstreamOut->write( 1, 1 );
-        //pcBitstreamOut->writeAlignZero();
-#endif
-
+        accessUnit.push_back(new NALUnitEBSP(nalu));
 #if !TILES_DECODER
         UInt uiBoundingAddrSlice, uiBoundingAddrEntropySlice;
         uiBoundingAddrSlice        = m_uiStoredStartCUAddrForEncodingSlice[uiStartCUAddrSliceIdx];          
@@ -1317,7 +1389,7 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
   }
   
 #if OL_USE_WPP
-  delete[] ppcSubstreamsOut;
+  delete[] pcSubstreamsOut;
 #endif
 #if TILES_DECODER
   delete pcBitstreamRedirect;
@@ -1447,17 +1519,6 @@ Void TEncGOP::xInitGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rcLis
   return;
 }
 
-#if OL_USE_WPP
-Void TEncGOP::xGetBuffer( TComList<TComPic*>&       rcListPic,
-                         TComList<TComPicYuv*>&    rcListPicYuvRecOut,
-              TComList<TComBitstream*>*& rpcListsSubstreamsOut,
-                         Int                       iNumPicRcvd,
-                         Int                       iTimeOffset,
-                         TComPic*&                 rpcPic,
-                         TComPicYuv*&              rpcPicYuvRecOut,
-              TComBitstream**&           rppcSubstreamsOut,
-                         UInt                      uiPOCCurr )
-#else
 Void TEncGOP::xGetBuffer( TComList<TComPic*>&       rcListPic,
                          TComList<TComPicYuv*>&    rcListPicYuvRecOut,
                          Int                       iNumPicRcvd,
@@ -1465,7 +1526,6 @@ Void TEncGOP::xGetBuffer( TComList<TComPic*>&       rcListPic,
                          TComPic*&                 rpcPic,
                          TComPicYuv*&              rpcPicYuvRecOut,
                          UInt                      uiPOCCurr )
-#endif
 {
   Int i;
   //  Rec. output
@@ -1476,20 +1536,6 @@ Void TEncGOP::xGetBuffer( TComList<TComPic*>&       rcListPic,
   }
   
   rpcPicYuvRecOut = *(iterPicYuvRec);
-  
-
-#if OL_USE_WPP
-  //  Substreams output
-  for ( UInt ui = 0 ; ui < OL_ALLOC_SUBSTREAMS ; ui++ )
-  {
-    TComList<TComBitstream*>::iterator  iterSubstreams = rpcListsSubstreamsOut[ui].begin();
-    for ( i = 0; i < m_iNumPicCoded; i++ )
-    {
-    iterSubstreams++;
-    }
-    rppcSubstreamsOut[ui] = *(iterSubstreams);
-  }
-#endif
   
   //  Current pic.
   TComList<TComPic*>::iterator        iterPic       = rcListPic.begin();

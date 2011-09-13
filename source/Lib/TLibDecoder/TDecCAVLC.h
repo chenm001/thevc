@@ -250,6 +250,9 @@ public:
   Void updateContextTables  ( SliceType eSliceType, Int iQp ) { return; }
 #endif
 #endif    
+#if OL_FLUSH
+  Void decodeFlush() {};
+#endif
 };
 
 //! \}

@@ -153,6 +153,11 @@ public:
 
   /** Return a reference to the internal fifo */
   const std::vector<uint8_t>& getFIFO() const { return *m_fifo; }
+
+#if OL_USE_WPP
+  unsigned char getHeldBits     () { return m_held_bits; }
+  Void          addSubstream    ( TComOutputBitstream* pcSubstream );
+#endif
 };
 
 /**
@@ -180,11 +185,19 @@ public:
   // interface for decoding
   Void        pseudoRead      ( UInt uiNumberOfBits, UInt& ruiBits );
   Void        read            ( UInt uiNumberOfBits, UInt& ruiBits );
+#if OL_FLUSH && !OL_FLUSH_ALIGN
+  Void        readByte        ( UInt &ruiBits )
+  {
+    // More expensive, but reads "bytes" that are not aligned.
+    read(8, ruiBits);
+  }
+#else
   Void        readByte        ( UInt &ruiBits )
   {
     assert(m_fifo_idx < m_fifo->size());
     ruiBits = (*m_fifo)[m_fifo_idx++];
   }
+#endif // OL_FLUSH && !OL_FLUSH_ALIGN
 
 #if TILES
   Void        readOutTrailingBits ();
@@ -199,8 +212,8 @@ public:
   unsigned getNumBitsUntilByteAligned() { return m_num_held_bits & (0x7); }
   unsigned getNumBitsLeft() { return 8*((unsigned)m_fifo->size() - m_fifo_idx) + m_num_held_bits; }
 #if OL_USE_WPP
-  Void      addSubstream    ( TComBitstream* pcSubstream, Bool bWriteHeader );
-  Void      extractSubstream( TComBitstream* pcBitstream, Bool bReadHeader  );
+  TComInputBitstream *extractSubstream( UInt uiNumBits );
+  Void                deleteFifo();
 #endif
 };
 

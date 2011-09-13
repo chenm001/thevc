@@ -154,127 +154,20 @@ Void TComOutputBitstream::writeAlignZero()
  - add substream to the end of the current bitstream
  .
  \param  pcSubstream  substream to be added
- \param  bWriteHeader write header of the added substream
  */
-Void   TComBitstream::addSubstream( TComBitstream* pcSubstream, Bool bWriteHeader )
+Void   TComOutputBitstream::addSubstream( TComOutputBitstream* pcSubstream )
 {
-  UInt uiSubstrmSize = 0;
-  uiSubstrmSize = pcSubstream->m_pulStreamPacket - pcSubstream->m_apulStreamPacketBegin + 1;
-  //printf("ss %d words, 1st 0x%08x", uiSubstrmSize, pcSubstream->m_apulStreamPacketBegin[0]);
+  UInt uiNumBits = pcSubstream->getNumberOfWrittenBits();
 
-  //compute number of bits in the current substream
-  UInt uiNumCompleteWord  = ( uiSubstrmSize - 1 );
-  UInt uiNumRemainingBits = 32 - pcSubstream->m_iValidBits;
-  UInt uiNumbits      = 32*uiNumCompleteWord + uiNumRemainingBits;
-  //printf(" %d bits\n", uiNumbits);
-
-  //write substream header
-  if ( bWriteHeader )
+  const vector<uint8_t>& rbsp = pcSubstream->getFIFO();
+  for (vector<uint8_t>::const_iterator it = rbsp.begin(); it != rbsp.end();)
   {
-  //the 2 first bits are used to give the size of the header
-  if ( uiNumbits < (1<<8) )
+    write(*it++, 8);
+  }
+  if (uiNumBits&0x7)
   {
-     this->write(0, 2);
-     this->write(uiNumbits, 8);
+    write(pcSubstream->getHeldBits()>>(8-(uiNumBits&0x7)), uiNumBits&0x7);
   }
-  else if ( uiNumbits < (1<<16) )
-  {
-     this->write(1, 2);
-     this->write(uiNumbits, 16);
-  }
-  else if ( uiNumbits < (1<<24) )
-  {
-     this->write(2, 2);
-     this->write(uiNumbits, 24);
-  }
-  else if ( uiNumbits < (1<<31) )
-  {
-     this->write(3, 2);
-     this->write(uiNumbits, 32);
-  }
-  else
-  {
-    printf("Error in TComBitstream::addSubstream function...\n");
-    exit(-1);
-  }
-  }
-
-  //write complete words
-  for ( UInt ui = 0 ; ui < uiNumCompleteWord ; ui++ )
-  this->write( xSwap(pcSubstream->m_apulStreamPacketBegin[ui]) , 32 );
-
-  //write the last word if it is not a complete 32 word
-  if ( pcSubstream->m_iValidBits < 32 )
-  {
-  UInt uiWord = pcSubstream->m_ulCurrentBits >> pcSubstream->m_iValidBits;
-  this->write( uiWord , uiNumRemainingBits );
-  }
-}
-
-/**
- - extract substream from a bitstream
- .
- \param  pcBitstream  bitstream which contains substreams
- \param  bReadHeader  read header of the current substream
- */
-Void   TComBitstream::extractSubstream( TComBitstream* pcBitstream, Bool bReadHeader )
-{
-  UInt uiNumCompleteWord = 0;
-  UInt uiNumRemainingBits= 0;
-  UInt uiNumbits = 0;
-  
-  //read substream header
-  if ( bReadHeader ) 
-  {
-  UInt uiNumbitsHeader = 0;
-  pcBitstream->read(2, uiNumbitsHeader);
-  
-  switch ( uiNumbitsHeader )
-  {
-  case 0:
-    pcBitstream->read(8,  uiNumbits);
-    break;
-  case 1:
-    pcBitstream->read(16, uiNumbits);
-    break;
-  case 2:
-    pcBitstream->read(24, uiNumbits);
-    break;
-  case 3:
-    pcBitstream->read(32, uiNumbits);
-    break;
-  default:
-    printf("Error in TComBitstream::addSubstream function...\n");
-    exit(-1);
-    break;
-  }
-  }
-
-  //printf("ss %d bits\n", ( bReadHeader ) ? uiNumbits : pcBitstream->m_uiBitsLeft); fflush(stdout);
-  
-  uiNumCompleteWord  = ( bReadHeader ) ? uiNumbits / 32 : pcBitstream->m_uiBitsLeft / 32;
-  uiNumRemainingBits = ( bReadHeader ) ? uiNumbits % 32 : pcBitstream->m_uiBitsLeft % 32;
-  
-  //keep number of bytes to init parsing of the current substream
-  UInt uiNumBytes = pcBitstream->m_uiBitsLeft >> 3;
-  
-  //read and write complete words
-  UInt uiWord = 0;
-  this->rewindStreamPacket();
-  for ( UInt ui = 0 ; ui < uiNumCompleteWord ; ui++ )
-  {
-  pcBitstream->read(32, uiWord);
-  this->m_pulStreamPacket[ui] = xSwap(uiWord);
-  }
-  
-  //last word
-  if ( uiNumRemainingBits )
-  {
-  pcBitstream->read(uiNumRemainingBits, uiWord);
-  uiWord = uiWord << (32 - uiNumRemainingBits);
-  this->m_pulStreamPacket[uiNumCompleteWord] = xSwap(uiWord);
-  }
-  this->initParsing( uiNumBytes + 4 );
 }
 #endif
 
@@ -385,4 +278,42 @@ Void TComInputBitstream::readOutTrailingBits ()
   }
 }
 #endif
+
+#if OL_USE_WPP
+/**
+ - extract substream from the current bitstream
+ .
+ \param  pcBitstream  bitstream which contains substreams
+ \param  uiNumBits    number of bits to transfer
+ */
+TComInputBitstream *TComInputBitstream::extractSubstream( UInt uiNumBits )
+{
+  UInt uiNumBytes = uiNumBits/8;
+  std::vector<uint8_t>* buf = new std::vector<uint8_t>;
+  UInt uiByte;
+  for (UInt ui = 0; ui < uiNumBytes; ui++)
+  {
+    read(8, uiByte);
+    buf->push_back(uiByte);
+  }
+  if (uiNumBits&0x7)
+  {
+    uiByte = 0;
+    read(uiNumBits&0x7, uiByte);
+    uiByte <<= 8-(uiNumBits&0x7);
+    buf->push_back(uiByte);
+  }
+#if OL_FLUSH && !OL_FLUSH_ALIGN
+  buf->push_back(0); // The final chunk might not start byte aligned.
+#endif
+  return new TComInputBitstream(buf);
+}
+
+Void TComInputBitstream::deleteFifo()
+{
+  delete m_fifo;
+  m_fifo = NULL;
+}
+#endif
+
 //! \}

@@ -90,9 +90,6 @@ public:
     assert( m_sizeXYZ == src->m_sizeXYZ );
     ::memcpy( m_contextModel, src->m_contextModel, sizeof(ContextModel) * m_sizeXYZ );
   }
-#if OL_USE_WPP
-  Void mergeWith ( ContextModel3DBuffer *pSrc           );       ///< merge current context with another context
-#endif
 };
 
 //! \}

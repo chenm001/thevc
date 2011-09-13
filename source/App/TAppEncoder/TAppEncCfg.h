@@ -199,6 +199,12 @@ protected:
 #endif
 #endif
 
+#if OL_USE_WPP
+  Int       m_iWaveFrontSynchro;
+  Int       m_iWaveFrontFlush;
+  Int       m_iWaveFrontSubstreams;
+#endif
+
   Bool      m_bUseConstrainedIntraPred;                       ///< flag for using constrained intra prediction
   
   bool m_pictureDigestEnabled; ///< enable(1)/disable(0) md5 computation and SEI signalling

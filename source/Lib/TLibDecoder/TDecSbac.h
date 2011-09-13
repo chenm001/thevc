@@ -74,7 +74,9 @@ public:
   Void loadContexts                  ( TDecSbac* pScr );
   Void xCopyFrom           ( TDecSbac* pSrc );
   Void xCopyContextsFrom       ( TDecSbac* pSrc );
-  Void mergeContextsWith       ( TDecSbac* pSrc );
+#endif
+#if OL_FLUSH
+  Void decodeFlush();
 #endif
 
   Void  resetEntropy              ( TComSlice* pcSlice     );

@@ -65,22 +65,14 @@ TEncTop::TEncTop()
   m_iMaxRefPicNum     = 0;
 
 #if OL_USE_WPP
-  m_pcSbacCoders      = new TEncSbac     [OL_ALLOC_SUBSTREAMS];
-  m_pcBinCoderCABACs    = new TEncBinCABAC   [OL_ALLOC_SUBSTREAMS];
-  m_ppppcRDSbacCoders   = new TEncSbac***  [OL_ALLOC_SUBSTREAMS];
-  m_ppppcBinCodersCABAC   = new TEncBinCABAC***[OL_ALLOC_SUBSTREAMS];
-  m_pcRDGoOnSbacCoders    = new TEncSbac    [OL_ALLOC_SUBSTREAMS];
-  m_pcRDGoOnBinCodersCABAC  = new TEncBinCABAC  [OL_ALLOC_SUBSTREAMS];
-  m_pcBitCounters     = new TComBitCounter[OL_ALLOC_SUBSTREAMS];
-  m_pcRdCosts       = new TComRdCost  [OL_ALLOC_SUBSTREAMS];
-
-  for ( UInt ui = 0 ; ui < OL_ALLOC_SUBSTREAMS ; ui++ )
-  {
-    m_ppppcRDSbacCoders[ui]  =  NULL;
-    m_ppppcBinCodersCABAC[ui]=  NULL;
-    m_pcRDGoOnSbacCoders[ui].init( &m_pcRDGoOnBinCodersCABAC[ui] );
-    m_pcSbacCoders[ui].init( &m_pcBinCoderCABACs[ui] );
-  }
+  m_pcSbacCoders           = NULL;
+  m_pcBinCoderCABACs       = NULL;
+  m_ppppcRDSbacCoders      = NULL;
+  m_ppppcBinCodersCABAC    = NULL;
+  m_pcRDGoOnSbacCoders     = NULL;
+  m_pcRDGoOnBinCodersCABAC = NULL;
+  m_pcBitCounters          = NULL;
+  m_pcRdCosts              = NULL;
 #endif
 }
 
@@ -140,28 +132,53 @@ Void TEncTop::create ()
         m_pppcRDSbacCoder   [iDepth][iCIIdx]->init( m_pppcBinCoderCABAC [iDepth][iCIIdx] );
       }
     }
-#if OL_USE_WPP
-  for ( UInt ui = 0 ; ui < OL_ALLOC_SUBSTREAMS ; ui++ )
-  {
-    m_ppppcRDSbacCoders[ui]  = new TEncSbac** [g_uiMaxCUDepth+1];
-    m_ppppcBinCodersCABAC[ui]= new TEncBinCABAC** [g_uiMaxCUDepth+1];
-    
-    for ( Int iDepth = 0; iDepth < g_uiMaxCUDepth+1; iDepth++ )
-    {
-      m_ppppcRDSbacCoders[ui][iDepth]  = new TEncSbac*     [CI_NUM];
-      m_ppppcBinCodersCABAC[ui][iDepth]= new TEncBinCABAC* [CI_NUM];
+  }
+}
 
-      for (Int iCIIdx = 0; iCIIdx < CI_NUM; iCIIdx ++ )
+#if OL_USE_WPP
+Void TEncTop::createWPPCoders(Int iNumSubstreams)
+{
+  if (m_pcSbacCoders != NULL)
+    return; // already generated.
+
+  m_iNumSubstreams         = iNumSubstreams;
+  m_pcSbacCoders           = new TEncSbac       [iNumSubstreams];
+  m_pcBinCoderCABACs       = new TEncBinCABAC   [iNumSubstreams];
+  m_pcRDGoOnSbacCoders     = new TEncSbac       [iNumSubstreams];
+  m_pcRDGoOnBinCodersCABAC = new TEncBinCABAC   [iNumSubstreams];
+  m_pcBitCounters          = new TComBitCounter [iNumSubstreams];
+  m_pcRdCosts              = new TComRdCost     [iNumSubstreams];
+
+  for ( UInt ui = 0 ; ui < iNumSubstreams; ui++ )
+  {
+    m_pcRDGoOnSbacCoders[ui].init( &m_pcRDGoOnBinCodersCABAC[ui] );
+    m_pcSbacCoders[ui].init( &m_pcBinCoderCABACs[ui] );
+  }
+  if( m_bUseSBACRD )
+  {
+    m_ppppcRDSbacCoders      = new TEncSbac***    [iNumSubstreams];
+    m_ppppcBinCodersCABAC    = new TEncBinCABAC***[iNumSubstreams];
+    for ( UInt ui = 0 ; ui < iNumSubstreams ; ui++ )
+    {
+      m_ppppcRDSbacCoders[ui]  = new TEncSbac** [g_uiMaxCUDepth+1];
+      m_ppppcBinCodersCABAC[ui]= new TEncBinCABAC** [g_uiMaxCUDepth+1];
+      
+      for ( Int iDepth = 0; iDepth < g_uiMaxCUDepth+1; iDepth++ )
       {
-        m_ppppcRDSbacCoders  [ui][iDepth][iCIIdx] = new TEncSbac;
-        m_ppppcBinCodersCABAC[ui][iDepth][iCIIdx] = new TEncBinCABAC;
-        m_ppppcRDSbacCoders  [ui][iDepth][iCIIdx]->init( m_ppppcBinCodersCABAC[ui][iDepth][iCIIdx] );
+        m_ppppcRDSbacCoders[ui][iDepth]  = new TEncSbac*     [CI_NUM];
+        m_ppppcBinCodersCABAC[ui][iDepth]= new TEncBinCABAC* [CI_NUM];
+
+        for (Int iCIIdx = 0; iCIIdx < CI_NUM; iCIIdx ++ )
+        {
+          m_ppppcRDSbacCoders  [ui][iDepth][iCIIdx] = new TEncSbac;
+          m_ppppcBinCodersCABAC[ui][iDepth][iCIIdx] = new TEncBinCABAC;
+          m_ppppcRDSbacCoders  [ui][iDepth][iCIIdx]->init( m_ppppcBinCodersCABAC[ui][iDepth][iCIIdx] );
+        }
       }
     }
   }
-#endif
-  }
 }
+#endif
 
 Void TEncTop::destroy ()
 {
@@ -209,35 +226,37 @@ Void TEncTop::destroy ()
     delete [] m_pppcBinCoderCABAC;
 
 #if OL_USE_WPP
-  for ( UInt ui = 0 ; ui < OL_ALLOC_SUBSTREAMS ; ui++ )
-  {
-    for ( iDepth = 0; iDepth < g_uiMaxCUDepth+1; iDepth++ )
+    for ( UInt ui = 0; ui < m_iNumSubstreams; ui++ )
     {
-      for (Int iCIIdx = 0; iCIIdx < CI_NUM; iCIIdx ++ )
+      for ( iDepth = 0; iDepth < g_uiMaxCUDepth+1; iDepth++ )
       {
-        delete m_ppppcRDSbacCoders  [ui][iDepth][iCIIdx];
-        delete m_ppppcBinCodersCABAC[ui][iDepth][iCIIdx];
+        for (Int iCIIdx = 0; iCIIdx < CI_NUM; iCIIdx ++ )
+        {
+          delete m_ppppcRDSbacCoders  [ui][iDepth][iCIIdx];
+          delete m_ppppcBinCodersCABAC[ui][iDepth][iCIIdx];
+        }
       }
-    }
 
-    for ( iDepth = 0; iDepth < g_uiMaxCUDepth+1; iDepth++ )
-    {
-      delete [] m_ppppcRDSbacCoders  [ui][iDepth];
-      delete [] m_ppppcBinCodersCABAC[ui][iDepth];
+      for ( iDepth = 0; iDepth < g_uiMaxCUDepth+1; iDepth++ )
+      {
+        delete [] m_ppppcRDSbacCoders  [ui][iDepth];
+        delete [] m_ppppcBinCodersCABAC[ui][iDepth];
+      }
+      delete[] m_ppppcRDSbacCoders  [ui];
+      delete[] m_ppppcBinCodersCABAC[ui];
     }
-    delete[] m_ppppcRDSbacCoders  [ui];
-    delete[] m_ppppcBinCodersCABAC[ui];
+    delete[] m_ppppcRDSbacCoders;
+    delete[] m_ppppcBinCodersCABAC;
+#endif
   }
+#if OL_USE_WPP
   delete[] m_pcSbacCoders;
   delete[] m_pcBinCoderCABACs;
-  delete[] m_ppppcRDSbacCoders;
-  delete[] m_ppppcBinCodersCABAC;
   delete[] m_pcRDGoOnSbacCoders;  
   delete[] m_pcRDGoOnBinCodersCABAC;
   delete[] m_pcBitCounters;
   delete[] m_pcRdCosts;
 #endif
-  }
   
   // destroy ROM
   destroyROM();
@@ -322,12 +341,6 @@ Void TEncTop::deletePicBuffer()
  \retval  iNumEncoded         number of encoded pictures
  */
 Void TEncTop::encode( bool bEos, TComPicYuv* pcPicYuvOrg, TComList<TComPicYuv*>& rcListPicYuvRecOut, std::list<AccessUnit>& accessUnitsOut, Int& iNumEncoded )
-#if OL_USE_WPP
-Void TEncTop::encode( bool bEos, TComPicYuv* pcPicYuvOrg, TComList<TComPicYuv*>& rcListPicYuvRecOut, TComList<TComBitstream*>& rcListBitstreamOut, TComList<TComBitstream*>*& rpcListsSubstreamsOut, Int&
-iNumEncoded )
-#else
-//Void TEncTop::encode( bool bEos, TComPicYuv* pcPicYuvOrg, TComList<TComPicYuv*>& rcListPicYuvRecOut, TComList<TComBitstream*>& rcListBitstreamOut, Int& iNumEncoded )
-#endif
 {
   TComPic* pcPicCurr = NULL;
   
@@ -351,11 +364,6 @@ iNumEncoded )
   
   // compress GOP
   m_cGOPEncoder.compressGOP(m_iPOCLast, m_iNumPicRcvd, m_cListPic, rcListPicYuvRecOut, accessUnitsOut);
-#if OL_USE_WPP
-  m_cGOPEncoder.compressGOP( m_iPOCLast, m_iNumPicRcvd, m_cListPic, rcListPicYuvRecOut, rcListBitstreamOut, rpcListsSubstreamsOut );
-#else
-  //m_cGOPEncoder.compressGOP( m_iPOCLast, m_iNumPicRcvd, m_cListPic, rcListPicYuvRecOut, rcListBitstreamOut );
-#endif
   
   iNumEncoded         = m_iNumPicRcvd;
   m_iNumPicRcvd       = 0;
@@ -662,6 +670,12 @@ Void TEncTop::xInitPPS()
     m_cPPS.setMinCuDQPSize( m_cPPS.getSPS()->getMaxCUWidth() >> ( m_cPPS.getMaxCuDQPDepth()) );
   }
 #endif
+#if OL_USE_WPP
+  m_cPPS.setEntropyCodingMode(getSymbolMode()); // In the PPS now, but also remains in slice header!
+  m_cPPS.setEntropyCodingSynchro(m_iWaveFrontSynchro);
+  m_cPPS.setCabacIstateReset(m_iWaveFrontFlush != 0);
+  m_cPPS.setNumSubstreams(m_iWaveFrontSubstreams);
+#endif
 }
 
 
@@ -678,6 +692,11 @@ Void  TEncTop::xInitPPSforTiles()
       m_cPPS.setColumnWidth( m_puiColumnWidth );
       m_cPPS.setRowHeight( m_puiRowHeight );
     }
+#if OL_USE_WPP
+    // # substreams is "per tile" when tiles are independent.
+    if (m_iTileBoundaryIndependenceIdr)
+      m_cPPS.setNumSubstreams(m_iWaveFrontSubstreams * (m_iNumColumnsMinus1+1)*(m_iNumRowsMinus1+1));
+#endif
 }
 
 Void  TEncCfg::xCheckGSParameters()

@@ -55,6 +55,9 @@ public:
   
   Void  start             ();
   Void  finish            ();
+#if OL_FLUSH
+  Void  flush             ();
+#endif
   
   Void  decodeBin         ( UInt& ruiBin, ContextModel& rcCtxModel );
   Void  decodeBinEP       ( UInt& ruiBin                           );
@@ -76,6 +79,9 @@ private:
   TComInputBitstream* m_pcTComBitstream;
   UInt                m_uiRange;
   UInt                m_uiValue;
+#if OL_FLUSH && !OL_FLUSH_ALIGN
+  UInt                m_uiLastByte;
+#endif
   Int                 m_bitsNeeded;
 };
 

@@ -386,12 +386,10 @@ Void TEncCu::encodeCU ( TComDataCU* pcCU, Bool bForceTerminate )
 #endif
 
 #if OL_USE_WPP
-  // The 1-terminating bit is added to all streams, so don't add it here.
+  // The 1-terminating bit is added to all streams, so don't add it here when it's 1.
   if (!bTerminateSlice)
     m_pcEntropyCoder->encodeTerminatingBit( bTerminateSlice ? 1 : 0 );
 #else
-    //m_pcEntropyCoder->encodeTerminatingBit( bTerminateSlice ? 1 : 0 );
-#endif
   m_pcEntropyCoder->encodeTerminatingBit( bTerminateSlice ? 1 : 0 );
   
   // Encode slice finish
@@ -399,7 +397,40 @@ Void TEncCu::encodeCU ( TComDataCU* pcCU, Bool bForceTerminate )
   {
     m_pcEntropyCoder->encodeSliceFinish();
   }
+#endif // OL_USE_WPP
 #endif
+#if OL_FLUSH
+#if FINE_GRANULARITY_SLICES
+  bool bTerminateSlice = bForceTerminate;
+  UInt uiCUAddr = pcCU->getAddr();
+#endif
+    /* If at the end of an LCU line but not at the end of a substream, perform CABAC flush */
+    if (!bTerminateSlice && pcCU->getSlice()->getPPS()->getCabacIstateReset())
+    {
+      Int iNumSubstreams = pcCU->getSlice()->getPPS()->getNumSubstreams();
+      UInt uiWidthInLCUs = pcCU->getPic()->getPicSym()->getFrameWidthInCU();
+      UInt uiCol     = uiCUAddr % uiWidthInLCUs;
+      UInt uiLin     = uiCUAddr / uiWidthInLCUs;
+#if TILES
+      Int iBreakDep = pcCU->getPic()->getPicSym()->getTileBoundaryIndependenceIdr();
+      UInt uiTileStartLCU = pcCU->getPic()->getPicSym()->getTComTile(pcCU->getPic()->getPicSym()->getTileIdxMap(uiCUAddr))->getFirstCUAddr();
+      UInt uiTileLCUX = uiTileStartLCU % uiWidthInLCUs;
+      UInt uiTileLCUY = uiTileStartLCU / uiWidthInLCUs;
+      UInt uiTileWidth = pcCU->getPic()->getPicSym()->getTComTile(pcCU->getPic()->getPicSym()->getTileIdxMap(uiCUAddr))->getTileWidth();
+      UInt uiTileHeight = pcCU->getPic()->getPicSym()->getTComTile(pcCU->getPic()->getPicSym()->getTileIdxMap(uiCUAddr))->getTileHeight();
+      Int iNumSubstreamsPerTile = iNumSubstreams;
+      if (iBreakDep)
+        iNumSubstreamsPerTile /= pcCU->getPic()->getPicSym()->getNumTiles();
+      if (iBreakDep && uiCol == uiTileLCUX+uiTileWidth-1 && uiLin+iNumSubstreamsPerTile < uiTileLCUY+uiTileHeight
+          || !iBreakDep && uiCol == uiWidthInLCUs-1 && uiLin+iNumSubstreams < pcCU->getPic()->getFrameHeightInCU())
+#else
+      if (uiCol == uiWidthInLCUs-1 && uiLin+iNumSubstreams < pcCU->getPic()->getFrameHeightInCU())
+#endif
+      {
+        m_pcEntropyCoder->encodeFlush();
+      }
+    }
+#endif // OL_FLUSH
 }
 
 // ====================================================================================================================
@@ -1325,12 +1356,20 @@ Void TEncCu::finishCU( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
     &&((uiPosY+pcCU->getHeight(uiAbsPartIdx))%uiGranularityWidth==0||(uiPosY+pcCU->getHeight(uiAbsPartIdx)==uiHeight));
   if(granularityBoundary)
   {
+#if OL_USE_WPP
+    // The 1-terminating bit is added to all streams, so don't add it here when it's 1.
+    if (!bTerminateSlice)
+      m_pcEntropyCoder->encodeTerminatingBit( bTerminateSlice ? 1 : 0 );
+#else
     m_pcEntropyCoder->encodeTerminatingBit( bTerminateSlice ? 1 : 0 );
+#endif
   }
+#if !OL_USE_WPP
   if ( bTerminateSlice )
   {
     m_pcEntropyCoder->encodeSliceFinish();
   }
+#endif
   // Calculate slice end IF this CU puts us over slice bit size.
   unsigned iGranularitySize = pcCU->getPic()->getNumPartInCU()>>(pcSlice->getPPS()->getSliceGranularity()<<1);
   int iGranularityEnd = ((pcCU->getSCUAddr()+uiAbsPartIdx)/iGranularitySize)*iGranularitySize;

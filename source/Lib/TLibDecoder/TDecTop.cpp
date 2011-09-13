@@ -78,10 +78,6 @@ Void TDecTop::create()
   m_cGopDecoder.create();
   m_apcSlicePilot = new TComSlice;
   m_uiSliceIdx = m_uiLastSliceIdx = 0;
-#if OL_USE_WPP
-  m_pcSbacDecoders = new TDecSbac[OL_ALLOC_SUBSTREAMS];
-  m_pcBinCABACs    = new TDecBinCABAC[OL_ALLOC_SUBSTREAMS];
-#endif
 }
 
 Void TDecTop::destroy()
@@ -94,19 +90,6 @@ Void TDecTop::destroy()
   delete m_apcSlicePilot;
   m_apcSlicePilot = NULL;
   
-#if OL_USE_WPP
-  if ( m_pcSbacDecoders )
-  {
-  delete[] m_pcSbacDecoders;
-  m_pcSbacDecoders = NULL;
-  }
-  if ( m_pcBinCABACs )
-  {
-  delete[] m_pcBinCABACs;
-  m_pcBinCABACs = NULL;
-  }
-#endif
-
   m_cSliceDecoder.destroy();
 }
 
@@ -114,18 +97,10 @@ Void TDecTop::init()
 {
   // initialize ROM
   initROM();
-#if OL_USE_WPP
-#if MTK_SAO
-  m_cGopDecoder.  init( &m_cEntropyDecoder, &m_cSbacDecoder, &m_cBinCABAC, m_pcSbacDecoders, m_pcBinCABACs, &m_cCavlcDecoder, &m_cSliceDecoder, &m_cLoopFilter, &m_cAdaptiveLoopFilter, &m_cSAO);
-#else
-  m_cGopDecoder.  init( &m_cEntropyDecoder, &m_cSbacDecoder, &m_cBinCABAC, m_pcSbacDecoders, m_pcBinCABACs, &m_cCavlcDecoder, &m_cSliceDecoder, &m_cLoopFilter, &m_cAdaptiveLoopFilter );
-#endif
-#else
 #if MTK_SAO
   m_cGopDecoder.  init( &m_cEntropyDecoder, &m_cSbacDecoder, &m_cBinCABAC, &m_cCavlcDecoder, &m_cSliceDecoder, &m_cLoopFilter, &m_cAdaptiveLoopFilter, &m_cSAO);
 #else
   m_cGopDecoder.  init( &m_cEntropyDecoder, &m_cSbacDecoder, &m_cBinCABAC, &m_cCavlcDecoder, &m_cSliceDecoder, &m_cLoopFilter, &m_cAdaptiveLoopFilter );
-#endif
 #endif
   m_cSliceDecoder.init( &m_cEntropyDecoder, &m_cCuDecoder );
   m_cEntropyDecoder.init(&m_cPrediction);
@@ -226,11 +201,6 @@ Void TDecTop::executeDeblockAndAlf(UInt& ruiPOC, TComList<TComPic*>*& rpcListPic
   TComPic*&   pcPic         = m_pcPic;
 
   // Execute Deblock and ALF only + Cleanup
-#if OL_USE_WPP
-  m_cGopDecoder.decompressGop ( bEos, pcBitstream, NULL, pcPic, true);
-#else
-  //m_cGopDecoder.decompressGop ( bEos, pcBitstream, pcPic, true);
-#endif
 #if REF_SETTING_FOR_LD
   m_cGopDecoder.decompressGop(NULL, pcPic, true, m_cListPic );
 #else
@@ -250,19 +220,6 @@ Void TDecTop::executeDeblockAndAlf(UInt& ruiPOC, TComList<TComPic*>*& rpcListPic
 }
 
 Bool TDecTop::decode(InputNALUnit& nalu, Int& iSkipFrame, Int& iPOCLastDisplay)
-#if OL_USE_WPP
-#if DCM_SKIP_DECODING_FRAMES
-Bool TDecTop::decode (Bool bEos, TComBitstream* pcBitstream, TComBitstream** ppcSubstreams, UInt& ruiPOC, TComList<TComPic*>*& rpcListPic, Int& iSkipFrame,  Int& iPOCLastDisplay)
-#else
-Bool TDecTop::decode (Bool bEos, TComBitstream* pcBitstream, TComBitstream** pcSubstreams, UInt& ruiPOC, TComList<TComPic*>*& rpcListPic)
-#endif
-#else
-//#if DCM_SKIP_DECODING_FRAMES
-//Bool TDecTop::decode (Bool bEos, TComBitstream* pcBitstream, UInt& ruiPOC, TComList<TComPic*>*& rpcListPic, Int& iSkipFrame,  Int& iPOCLastDisplay)
-//#else
-//Bool TDecTop::decode (Bool bEos, TComBitstream* pcBitstream, UInt& ruiPOC, TComList<TComPic*>*& rpcListPic)
-//#endif
-#endif
 {
   TComPic*&   pcPic         = m_pcPic;
 #if E045_SLICE_COMMON_INFO_SHARING
@@ -719,11 +676,6 @@ Bool TDecTop::decode (Bool bEos, TComBitstream* pcBitstream, TComBitstream** pcS
       m_cGopDecoder.decompressGop(nalu.m_Bitstream, pcPic, false, m_cListPic );
 #else
       m_cGopDecoder.decompressGop(nalu.m_Bitstream, pcPic, false);
-#endif
-#if OL_USE_WPP
-      m_cGopDecoder.decompressGop ( bEos, pcBitstream, ppcSubstreams, pcPic, false );
-#else
-      //m_cGopDecoder.decompressGop ( bEos, pcBitstream, pcPic, false );
 #endif
 
       m_bFirstSliceInPicture = false;

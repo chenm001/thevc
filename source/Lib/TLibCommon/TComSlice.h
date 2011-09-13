@@ -337,6 +337,13 @@ private:
   UInt*    m_puiRowHeight;
 #endif
   
+#if OL_USE_WPP
+  Int      m_iEntropyCodingMode; // !!! in PPS now, but also remains in slice header!
+  Int      m_iEntropyCodingSynchro;
+  Bool     m_bCabacIstateReset;
+  Int      m_iNumSubstreams;
+#endif
+
 public:
   TComPPS();
   virtual ~TComPPS();
@@ -416,7 +423,16 @@ public:
   }
   UInt     getRowHeight           (UInt rowIdx)    { return *( m_puiRowHeight + rowIdx ); }
 #endif
-
+#if OL_USE_WPP
+  Void     setEntropyCodingMode(Int iEntropyCodingMode)       { m_iEntropyCodingMode = iEntropyCodingMode; }
+  Int      getEntropyCodingMode()                             { return m_iEntropyCodingMode; }
+  Void     setEntropyCodingSynchro(Int iEntropyCodingSynchro) { m_iEntropyCodingSynchro = iEntropyCodingSynchro; }
+  Int      getEntropyCodingSynchro()                          { return m_iEntropyCodingSynchro; }
+  Void     setCabacIstateReset(Bool bCabacIstateReset)        { m_bCabacIstateReset = bCabacIstateReset; }
+  Bool     getCabacIstateReset()                              { return m_bCabacIstateReset; }
+  Void     setNumSubstreams(Int iNumSubstreams)               { m_iNumSubstreams = iNumSubstreams; }
+  Int      getNumSubstreams()                                 { return m_iNumSubstreams; }
+#endif
 };
 
 /// slice header class
@@ -501,6 +517,10 @@ private:
   UInt        *m_uiTileByteLocation;
   UInt        m_uiTileCount;
   Int         m_iLWTileHeaderFlag;
+#endif
+
+#if OL_USE_WPP
+  UInt*       m_puiSubstreamSizes;
 #endif
 
 public:
@@ -663,6 +683,10 @@ public:
   UInt getTileLocation                  ( Int i )             { return m_uiTileByteLocation[i];           }
   Void setLWTileHeaderFlag              ( Int iFlag )         { m_iLWTileHeaderFlag = iFlag;              }
   Int  getLWTileHeaderFlag()                                  { return m_iLWTileHeaderFlag;               }
+#endif
+#if OL_USE_WPP
+  Void allocSubstreamSizes              ( UInt uiNumSubstreams );
+  UInt* getSubstreamSizes               ()                  { return m_puiSubstreamSizes; }
 #endif
 protected:
   TComPic*  xGetRefPic  (TComList<TComPic*>& rcListPic,

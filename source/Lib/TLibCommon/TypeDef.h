@@ -197,13 +197,14 @@
 ////////////////////////////////
 // ORANGE LABS defines section start
 ////////////////////////////////
-#define OL_USE_WPP    0     //Set to 1 to use Wavefront Parallel Processing, 0 otherwise
-#define OL_NUM_SUBSTREAMS     2   //Number of substreams to use to encode/decode the image using WPP
-#define OL_TILE_SUBSTREAMS    1   // 0 => OL_NUM_SUBSTREAMS per frame, 1 => OL_NUM_SUBSTREAMS per tile.
-#define OL_MAX_TILES          4   // if OL_TILE_SUBSTREAMS, this indicates the most tiles one can have. (Doesn't change the coded stream,
-                                  // just to limit allocations.)
-#define OL_ALLOC_SUBSTREAMS   (OL_NUM_SUBSTREAMS*(OL_TILE_SUBSTREAMS == 0 ? 1 : OL_MAX_TILES))
-#define OL_SHIFT              1   //Index of the upper-line LCU to get the probabilities from (use 1 for upper-right LCU)
+#define OL_USE_WPP    1     //Set to 1 to enable Wavefront Parallel Processing, 0 otherwise
+#if OL_USE_WPP
+#define OL_FLUSH 1          //Set to 1 to enable Wavefront Flush.
+#define OL_FLUSH_ALIGN 0    // align flush to byte boundary.  This preserves byte operations in CABAC (faster) but at the expense of an average
+                            // of 4 bits per flush!
+                            // Setting to 0 will slow cabac by an as yet unknown amount.
+                            // This is here just to perform timing tests -- OL_FLUSH_ALIGN should be 0 for WPP.
+#endif
 
 ////////////////////////////////
 // ORANGE LABS defines section end
@@ -264,10 +265,6 @@
 #define LOG2_MAX_NUM_ROWS_MINUS1           7
 #define LOG2_MAX_COLUMN_WIDTH              13
 #define LOG2_MAX_ROW_HEIGHT                13
-
-#if OL_USE_WPP && OL_TILE_SUBSTREAMS && !TILES
-#error OL_TILE_SUBSTREAMS requires TILES.
-#endif
 
 #if TILES
 #define TILES_DECODER                       1 // JCTVC-F594 - signalling of tile location

@@ -111,6 +111,7 @@ private:
   TEncBinCABAC***         m_pppcBinCoderCABAC;            ///< temporal CABAC state storage for RD computation
   TEncBinCABAC            m_cRDGoOnBinCoderCABAC;         ///< going on bin coder CABAC for RD stage
 #if OL_USE_WPP
+  Int                     m_iNumSubstreams;                ///< # of top-level elements allocated.
   TComBitCounter*         m_pcBitCounters;                 ///< bit counters for RD optimization per substream
   TComRdCost*             m_pcRdCosts;                     ///< RD cost computation class per substream
   TEncSbac****            m_ppppcRDSbacCoders;             ///< temporal storage for RD computation per substream
@@ -141,6 +142,10 @@ public:
   Void      destroy         ();
   Void      init            ();
   Void      deletePicBuffer ();
+
+#if OL_USE_WPP
+  Void      createWPPCoders(Int iNumSubstreams);
+#endif
   
   // -------------------------------------------------------------------------------------------------------------------
   // member access functions
@@ -188,16 +193,6 @@ public:
   /// encode several number of pictures until end-of-sequence
   Void encode( bool bEos, TComPicYuv* pcPicYuvOrg, TComList<TComPicYuv*>& rcListPicYuvRecOut,
               std::list<AccessUnit>& accessUnitsOut, Int& iNumEncoded );
-#if OL_USE_WPP
-  /// encode several number of pictures until end-of-sequence
-  Void encode( bool bEos, TComPicYuv* pcPicYuvOrg, TComList<TComPicYuv*>& rcListPicYuvRecOut,
-               TComList<TComBitstream*>& rcListBitstreamOut, TComList<TComBitstream*>*& rpcListsSubstreamsOut, Int& iNumEncoded );
-#else
-  /// encode several number of pictures until end-of-sequence
-  //Void encode( bool bEos, TComPicYuv* pcPicYuvOrg, TComList<TComPicYuv*>& rcListPicYuvRecOut,
-  //            TComList<TComBitstream*>& rcListBitstreamOut, Int& iNumEncoded );
-#endif
-  
 };
 
 //! \}

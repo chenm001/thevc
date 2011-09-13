@@ -63,9 +63,6 @@ private:
   TVideoIOYuv                m_cTVideoIOYuvReconFile;       ///< output reconstruction file
   
   TComList<TComPicYuv*>      m_cListPicYuvRec;              ///< list of reconstruction YUV files
-#if OL_USE_WPP
-  TComList<TComBitstream*>*  m_pcListsSubstreams;         ///< lists of substreams
-#endif
   
   Int                        m_iFrameRcvd;                  ///< number of received frames
   
@@ -81,13 +78,6 @@ protected:
   
   /// obtain required buffers
   Void xGetBuffer(TComPicYuv*& rpcPicYuvRec);
-#if OL_USE_WPP
-  Void  xGetBuffer        ( TComPicYuv*& rpcPicYuvRec,
-                            TComBitstream*& rpcBitStream, TComBitstream**& rppcSubstreams );
-#else
-  //Void  xGetBuffer        ( TComPicYuv*& rpcPicYuvRec,
-  //                         TComBitstream*& rpcBitStream );
-#endif
   
   /// delete allocated buffers
   Void  xDeleteBuffer     ();

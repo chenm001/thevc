@@ -67,6 +67,10 @@ public:
   virtual Void  resetEntropy          (TComSlice* pcSlice)                = 0;
   virtual Void  setBitstream          ( TComInputBitstream* p )  = 0;
 
+#if OL_FLUSH
+  virtual Void  decodeFlush()                                                                      = 0;
+#endif
+
   virtual Void  parseSPS                  ( TComSPS* pcSPS )                                      = 0;
   virtual Void  parsePPS                  ( TComPPS* pcPPS )                                      = 0;
   virtual void parseSEI(SEImessages&) = 0;
@@ -240,6 +244,9 @@ public:
   Void decodeQuadTreeSplitFlag(SAOParam* pQaoParam, Int part_idx);
 #endif
   Void decodeSaoParam(SAOParam* pQaoParam) ;
+#endif
+#if OL_FLUSH
+  Void decodeFlush() { m_pcEntropyDecoderIf->decodeFlush(); }
 #endif
 
 };// END CLASS DEFINITION TDecEntropy

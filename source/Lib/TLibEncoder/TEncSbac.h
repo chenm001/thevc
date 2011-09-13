@@ -88,7 +88,6 @@ public:
   Void  store                  ( TEncSbac* pDest );
 #if OL_USE_WPP
   Void  loadContexts           ( TEncSbac* pScr  );
-  Void  mergeContextsWith    ( TEncSbac* pSrc  );
 #endif
   Void  resetBits              ()                { m_pcBinIf->resetBits(); m_pcBitIf->resetBits(); }
   UInt  getNumberOfWrittenBits ()                { return m_pcBinIf->getNumWrittenBits(); }
@@ -98,8 +97,15 @@ public:
   Void  codePPS                 ( TComPPS* pcPPS     );
   void codeSEI(const SEI&);
   Void  codeSliceHeader         ( TComSlice* pcSlice );
+#if OL_USE_WPP
+  Void  codeSliceHeaderSubstreamTable( TComSlice* pcSlice );
+#endif
   Void  codeTerminatingBit      ( UInt uilsLast      );
   Void  codeSliceFinish         ();
+#if OL_FLUSH
+  Void  codeFlush               ();
+  Void  encodeStart             ();
+#endif
   
   Void  codeAlfFlag       ( UInt uiCode );
   Void  codeAlfUvlc       ( UInt uiCode );

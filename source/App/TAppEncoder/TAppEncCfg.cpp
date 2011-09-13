@@ -257,6 +257,11 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
     ("MaxLWTileHeaderEntryPoints",    m_iMaxLWTileHeaderEntryPoints,    4,       "Maximum number of uniformly-spaced tile entry points (using light weigh tile headers). Default=4. If number of tiles < MaxLWTileHeaderEntryPoints then all tiles have entry points.")
 #endif
 #endif
+#if OL_USE_WPP
+    ("WaveFrontSynchro",            m_iWaveFrontSynchro,             1,          "0: no synchro; 1 synchro with TR; 2 TRR etc")
+    ("WaveFrontFlush",              m_iWaveFrontFlush,               1,          "Flush and terminate CABAC coding for each LCU line")
+    ("WaveFrontSubstreams",         m_iWaveFrontSubstreams,          1,          "# coded substreams wanted; per tile if TileBoundaryIndependenceIdc is 1, otherwise per frame")
+#endif
   /* Misc. */
   ("SEIpictureDigest", m_pictureDigestEnabled, true, "Control generation of picture_digest SEI messages\n"
                                               "\t1: use MD5\n"
@@ -500,6 +505,14 @@ Void TAppEncCfg::xCheckParameter()
   xConfirmPara( m_bUseNewRefSetting && m_iGOPSize>1, "New reference frame setting was only designed for LD setting" );
 #endif
 
+#if OL_USE_WPP
+  xConfirmPara( m_iWaveFrontSynchro < 0, "WaveFrontSynchro cannot be negative" );
+  xConfirmPara( m_iWaveFrontFlush < 0, "WaveFrontFlush cannot be negative" );
+  xConfirmPara( m_iWaveFrontSubstreams <= 0, "WaveFrontSubstreams must be positive" );
+  xConfirmPara( m_iWaveFrontSubstreams > 1 && !m_iWaveFrontSynchro, "Must have WaveFrontSynchro > 0 in order to have WaveFrontSubstreams > 1" );
+  xConfirmPara( m_iWaveFrontSynchro > 0 && m_iSymbolMode == 0, "WaveFrontSynchro > 0 requires CABAC" );
+#endif
+
 #undef xConfirmPara
   if (check_failed)
   {
@@ -706,6 +719,10 @@ Void TAppEncCfg::xPrintParameter()
     }
   }
 #endif
+#endif
+#if OL_USE_WPP
+  printf(" WaveFrontSynchro:%d WaveFrontFlush:%d WaveFrontSubstreams:%d",
+          m_iWaveFrontSynchro, m_iWaveFrontFlush, m_iWaveFrontSubstreams);
 #endif
   printf("\n\n");
   
