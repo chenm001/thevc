@@ -201,7 +201,12 @@ Void TDecBinCABAC::decodeBinsEP( UInt& ruiBin, Int numBins )
   
   while ( numBins > 8 )
   {
+#if OL_FLUSH && !OL_FLUSH_ALIGN
+    m_uiLastByte = m_pcTComBitstream->readByte();
+    m_uiValue = ( m_uiValue << 8 ) + ( m_uiLastByte << ( 8 + m_bitsNeeded ) );
+#else
     m_uiValue = ( m_uiValue << 8 ) + ( m_pcTComBitstream->readByte() << ( 8 + m_bitsNeeded ) );
+#endif
     
     UInt scaledRange = m_uiRange << 15;
     for ( Int i = 0; i < 8; i++ )
