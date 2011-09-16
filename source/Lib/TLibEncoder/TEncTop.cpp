@@ -694,7 +694,7 @@ Void  TEncTop::xInitPPSforTiles()
     }
 #if OL_USE_WPP
     // # substreams is "per tile" when tiles are independent.
-    if (m_iTileBoundaryIndependenceIdr)
+    if (m_iTileBoundaryIndependenceIdr && m_iWaveFrontSynchro)
       m_cPPS.setNumSubstreams(m_iWaveFrontSubstreams * (m_iNumColumnsMinus1+1)*(m_iNumRowsMinus1+1));
 #endif
 }

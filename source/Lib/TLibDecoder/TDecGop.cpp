@@ -373,7 +373,7 @@ Void TDecGop::decompressGop(TComInputBitstream* pcBitstream, TComPic*& rpcPic, B
 #endif
     
 #if OL_USE_WPP
-    if (iSymbolMode)
+    if (iSymbolMode && pcSlice->getPPS()->getEntropyCodingSynchro())
     {
       // deallocate all created substreams, including internal buffers.
       for (UInt ui = 0; ui < uiNumSubstreams; ui++)

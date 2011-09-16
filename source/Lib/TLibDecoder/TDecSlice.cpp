@@ -172,21 +172,23 @@ Void TDecSlice::decompressSlice(TComInputBitstream* pcBitstream, TComPic*& rpcPi
     pcCU->initCU( rpcPic, iCUAddr );
 
 #if OL_USE_WPP
+#if TILES
+    iBreakDep = rpcPic->getPicSym()->getTileBoundaryIndependenceIdr();
+    uiTileCol = rpcPic->getPicSym()->getTileIdxMap(iCUAddr) % (rpcPic->getPicSym()->getNumColumnsMinus1()+1); // what column of tiles are we in?
+    uiTileStartLCU = rpcPic->getPicSym()->getTComTile(rpcPic->getPicSym()->getTileIdxMap(iCUAddr))->getFirstCUAddr();
+    uiTileLCUX = uiTileStartLCU % uiWidthInLCUs;
+    uiTileLCUY = uiTileStartLCU / uiWidthInLCUs;
+    uiTileWidth = rpcPic->getPicSym()->getTComTile(rpcPic->getPicSym()->getTileIdxMap(iCUAddr))->getTileWidth();
+    uiTileHeight = rpcPic->getPicSym()->getTComTile(rpcPic->getPicSym()->getTileIdxMap(iCUAddr))->getTileHeight();
+    uiSliceStartLCU = pcSlice->getSliceCurStartCUAddr();
+    uiCol     = iCUAddr % uiWidthInLCUs;
+    uiLin     = iCUAddr / uiWidthInLCUs;
+#endif
     // inherit from TR if necessary, select substream to use.
-    if( iSymbolMode )
+    if( iSymbolMode && pcSlice->getPPS()->getEntropyCodingSynchro() )
     {
 #if TILES
-      iBreakDep = rpcPic->getPicSym()->getTileBoundaryIndependenceIdr();
-      uiTileCol = rpcPic->getPicSym()->getTileIdxMap(iCUAddr) % (rpcPic->getPicSym()->getNumColumnsMinus1()+1); // what column of tiles are we in?
-      uiTileStartLCU = rpcPic->getPicSym()->getTComTile(rpcPic->getPicSym()->getTileIdxMap(iCUAddr))->getFirstCUAddr();
-      uiTileLCUX = uiTileStartLCU % uiWidthInLCUs;
-      uiTileLCUY = uiTileStartLCU / uiWidthInLCUs;
-      uiTileWidth = rpcPic->getPicSym()->getTComTile(rpcPic->getPicSym()->getTileIdxMap(iCUAddr))->getTileWidth();
-      uiTileHeight = rpcPic->getPicSym()->getTComTile(rpcPic->getPicSym()->getTileIdxMap(iCUAddr))->getTileHeight();
-      uiSliceStartLCU = pcSlice->getSliceCurStartCUAddr();
-      uiCol     = iCUAddr % uiWidthInLCUs;
-      uiLin     = iCUAddr / uiWidthInLCUs;
-      if (iBreakDep)
+      if (iBreakDep && pcSlice->getPPS()->getEntropyCodingSynchro())
       {
         // independent tiles => substreams are "per tile".  iNumSubstreams has already been multiplied.
         iNumSubstreamsPerTile = iNumSubstreams/rpcPic->getPicSym()->getNumTiles();
@@ -275,6 +277,11 @@ Void TDecSlice::decompressSlice(TComInputBitstream* pcBitstream, TComPic*& rpcPi
 #endif // TILES
       pcSbacDecoder->load(&pcSbacDecoders[uiSubStrm]);  //this load is used to simplify the code (avoid to change all the call to pcSbacDecoders)
     }
+    else if ( iSymbolMode && !pcSlice->getPPS()->getEntropyCodingSynchro() )
+    {
+      // Set variables to appropriate values to avoid later code change.
+      iNumSubstreamsPerTile = 1;
+    }
 #endif // OL_USE_WPP
 
 #if TILES
@@ -288,18 +295,25 @@ Void TDecSlice::decompressSlice(TComInputBitstream* pcBitstream, TComPic*& rpcPi
       if (pcSlice->getSymbolMode())
       {
 #if OL_USE_WPP
-        // We're crossing into another tile, tiles are independent.
-        // When tiles are independent, we have "substreams per tile".  Each substream has already been terminated, and we no longer
-        // have to perform it here.
-        // For TILES_DECODER, there can be a header at the start of the 1st substream in a tile.  These are read when the substreams
-        // are extracted, not here.
-#else
+        if (pcSlice->getPPS()->getEntropyCodingSynchro())
+        {
+          // We're crossing into another tile, tiles are independent.
+          // When tiles are independent, we have "substreams per tile".  Each substream has already been terminated, and we no longer
+          // have to perform it here.
+          // For TILES_DECODER, there can be a header at the start of the 1st substream in a tile.  These are read when the substreams
+          // are extracted, not here.
+        }
+        else
+        {
+#endif // OL_USE_WPP
 #if TILES_DECODER
         Bool bCheckForLWTileHeader = pcSlice->getLWTileHeaderFlag() ? true : false;
         m_pcEntropyDecoder->updateContextTables( pcSlice->getSliceType(), pcSlice->getSliceQp(), bCheckForLWTileHeader, bLWTileHeaderFoundFlag );
 #else
         m_pcEntropyDecoder->updateContextTables( pcSlice->getSliceType(), pcSlice->getSliceQp() );
 #endif
+#if OL_USE_WPP
+        }
 #endif
       }
       else

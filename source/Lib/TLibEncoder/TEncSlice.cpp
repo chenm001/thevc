@@ -688,7 +688,7 @@ Void TEncSlice::compressSlice( TComPic*& rpcPic )
       UInt uiSliceStartLCU = pcSlice->getSliceCurStartCUAddr();
       uiCol     = uiCUAddr % uiWidthInLCUs;
       uiLin     = uiCUAddr / uiWidthInLCUs;
-      if (iBreakDep)
+      if (iBreakDep && pcSlice->getPPS()->getEntropyCodingSynchro())
       {
         // independent tiles => substreams are "per tile".  iNumSubstreams has already been multiplied.
         Int iNumSubstreamsPerTile = iNumSubstreams/rpcPic->getPicSym()->getNumTiles();
@@ -1090,7 +1090,7 @@ Void TEncSlice::encodeSlice   ( TComPic*& rpcPic, TComOutputBitstream* pcBitstre
       UInt uiSliceStartLCU = pcSlice->getSliceCurStartCUAddr();
       uiCol     = uiCUAddr % uiWidthInLCUs;
       uiLin     = uiCUAddr / uiWidthInLCUs;
-      if (iBreakDep)
+      if (iBreakDep && pcSlice->getPPS()->getEntropyCodingSynchro())
       {
         // independent tiles => substreams are "per tile".  iNumSubstreams has already been multiplied.
         Int iNumSubstreamsPerTile = iNumSubstreams/rpcPic->getPicSym()->getNumTiles();
@@ -1199,8 +1199,17 @@ Void TEncSlice::encodeSlice   ( TComPic*& rpcPic, TComOutputBitstream* pcBitstre
         // We're crossing into another tile, tiles are independent.
         // When tiles are independent, we have "substreams per tile".  Each substream has already been terminated, and we no longer
         // have to perform it here.
-        // m_pcEntropyCoder->updateContextTables( pcSlice->getSliceType(), pcSlice->getSliceQp() );
-#else // !OL_USE_WPP
+        if (pcSlice->getPPS()->getEntropyCodingSynchro())
+        {
+          ; // do nothing.
+        }
+        else
+        {
+          m_pcEntropyCoder->updateContextTables( pcSlice->getSliceType(), pcSlice->getSliceQp() );
+          pcSubstreams[uiSubStrm].write( 1, 1 );
+          pcSubstreams[uiSubStrm].writeAlignZero();
+        }
+#else
         m_pcEntropyCoder->updateContextTables( pcSlice->getSliceType(), pcSlice->getSliceQp() );
         pcBitstream->write( 1, 1 );
         pcBitstream->writeAlignZero();
@@ -1215,7 +1224,7 @@ Void TEncSlice::encodeSlice   ( TComPic*& rpcPic, TComOutputBitstream* pcBitstre
       }
 #if TILES_DECODER
 #if OL_USE_WPP
-      if (pcSlice->getPPS()->getEntropyCodingSynchro())
+      if (iSymbolMode)
       {
       // Write LWTileHeader into the appropriate substream (nothing has been written to it yet).
       if (m_pcCfg->getLWTileHeaderFlag() && bWriteLWTileHeader)

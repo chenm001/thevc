@@ -419,7 +419,7 @@ Void TEncCu::encodeCU ( TComDataCU* pcCU, Bool bForceTerminate )
       UInt uiTileWidth = pcCU->getPic()->getPicSym()->getTComTile(pcCU->getPic()->getPicSym()->getTileIdxMap(uiCUAddr))->getTileWidth();
       UInt uiTileHeight = pcCU->getPic()->getPicSym()->getTComTile(pcCU->getPic()->getPicSym()->getTileIdxMap(uiCUAddr))->getTileHeight();
       Int iNumSubstreamsPerTile = iNumSubstreams;
-      if (iBreakDep)
+      if (iBreakDep && pcCU->getSlice()->getPPS()->getEntropyCodingSynchro())
         iNumSubstreamsPerTile /= pcCU->getPic()->getPicSym()->getNumTiles();
       if (iBreakDep && uiCol == uiTileLCUX+uiTileWidth-1 && uiLin+iNumSubstreamsPerTile < uiTileLCUY+uiTileHeight
           || !iBreakDep && uiCol == uiWidthInLCUs-1 && uiLin+iNumSubstreams < pcCU->getPic()->getFrameHeightInCU())
