@@ -46,6 +46,7 @@
 #include "TLibCommon/NAL.h"
 #include "NALwrite.h"
 
+
 #include <time.h>
 #include <math.h>
 
@@ -1163,8 +1164,17 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
 
           // Substreams...
 #if TILES_DECODER
-          TComOutputBitstream *pcOut = pcBitstreamRedirect;
-          // xWriteTileLocation will perform byte-alignment...
+          TComOutputBitstream *pcOut = pcSlice->getSPS()->getTileBoundaryIndependenceIdr()
+                                        ? pcBitstreamRedirect
+                                        : &nalu.m_Bitstream;
+          if (pcSlice->getSPS()->getTileBoundaryIndependenceIdr())
+          {
+            // xWriteTileLocation will perform byte-alignment...
+          }
+          else
+          {
+            nalu.m_Bitstream.writeAlignOne(); // Byte-alignment before CABAC data
+          }
 #else
           TComOutputBitstream *pcOut = &nalu.m_Bitstream;
           nalu.m_Bitstream.writeAlignOne(); // Byte-alignment before CABAC data
