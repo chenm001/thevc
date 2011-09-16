@@ -144,7 +144,7 @@ Void TDecSlice::decompressSlice(TComInputBitstream* pcBitstream, TComPic*& rpcPi
   }
 
   UInt uiWidthInLCUs  = rpcPic->getPicSym()->getFrameWidthInCU();
-  UInt uiHeightInLCUs = rpcPic->getPicSym()->getFrameHeightInCU();
+  //UInt uiHeightInLCUs = rpcPic->getPicSym()->getFrameHeightInCU();
   UInt uiCol=0, uiLin=0, uiSubStrm=0;
 #if TILES
   Int iBreakDep;
@@ -155,7 +155,7 @@ Void TDecSlice::decompressSlice(TComInputBitstream* pcBitstream, TComPic*& rpcPi
   UInt uiTileLCUY;
   UInt uiTileWidth;
   UInt uiTileHeight;
-  Int iNumSubstreamsPerTile; // if independent.
+  Int iNumSubstreamsPerTile = 1; // if independent.
 #endif
 #endif
 
@@ -285,12 +285,14 @@ Void TDecSlice::decompressSlice(TComInputBitstream* pcBitstream, TComPic*& rpcPi
 #endif // OL_USE_WPP
 
 #if TILES
+#if !OL_USE_WPP
     TComSlice *pcSlice = rpcPic->getSlice(rpcPic->getCurrSliceIdx());
+#endif
     if ( iCUAddr == rpcPic->getPicSym()->getTComTile(rpcPic->getPicSym()->getTileIdxMap(iCUAddr))->getFirstCUAddr() && // 1st in tile.
-         iCUAddr!=0 && iCUAddr!=iStartCUAddr && rpcPic->getPicSym()->getTileBoundaryIndependenceIdr()) // !1st in frame && !1st in slice && tile-independant
+         iCUAddr!=0 && iCUAddr!=rpcPic->getPicSym()->getPicSCUAddr(rpcPic->getSlice(rpcPic->getCurrSliceIdx())->getSliceCurStartCUAddr())/rpcPic->getNumPartInCU() && rpcPic->getPicSym()->getTileBoundaryIndependenceIdr()) // !1st in frame && !1st in slice && tile-independant
     {
 #if TILES_DECODER
-      Bool bLWTileHeaderFoundFlag = false;
+      Bool bTileMarkerFoundFlag = false;
 #endif
       if (pcSlice->getSymbolMode())
       {
@@ -307,8 +309,8 @@ Void TDecSlice::decompressSlice(TComInputBitstream* pcBitstream, TComPic*& rpcPi
         {
 #endif // OL_USE_WPP
 #if TILES_DECODER
-        Bool bCheckForLWTileHeader = pcSlice->getLWTileHeaderFlag() ? true : false;
-        m_pcEntropyDecoder->updateContextTables( pcSlice->getSliceType(), pcSlice->getSliceQp(), bCheckForLWTileHeader, bLWTileHeaderFoundFlag );
+        Bool bCheckForTileMarker = pcSlice->getTileMarkerFlag() ? true : false;
+        m_pcEntropyDecoder->updateContextTables( pcSlice->getSliceType(), pcSlice->getSliceQp(), bCheckForTileMarker, bTileMarkerFoundFlag );
 #else
         m_pcEntropyDecoder->updateContextTables( pcSlice->getSliceType(), pcSlice->getSliceQp() );
 #endif
@@ -322,17 +324,17 @@ Void TDecSlice::decompressSlice(TComInputBitstream* pcBitstream, TComPic*& rpcPi
 #if TILES_DECODER
         pcBitstream->readOutTrailingBits();
         UInt uiCode;
-        pcSlice->setLWTileHeaderFlag( 0 );
+        pcSlice->setTileMarkerFlag( 0 );
         if (pcBitstream->getNumBitsLeft() >= 24)
         {
           uiCode = pcBitstream->peekBits(24);
           if (uiCode == 0x000002)
           {
-            bLWTileHeaderFoundFlag = true;
+            bTileMarkerFoundFlag = true;
           }
         }
 
-        if (bLWTileHeaderFoundFlag)
+        if (bTileMarkerFoundFlag)
         {
           // reserved 
           pcBitstream->read(8,  uiCode); // 0x00
@@ -342,11 +344,11 @@ Void TDecSlice::decompressSlice(TComInputBitstream* pcBitstream, TComPic*& rpcPi
 #endif
       }
 #if TILES_DECODER
-      if (bLWTileHeaderFoundFlag)
+      if (bTileMarkerFoundFlag)
       {
         UInt uiTileIdx;
-        // Read tile header
-        m_pcEntropyDecoder->readTileLWHeader( uiTileIdx, rpcPic->getPicSym()->getBitsUsedByTileIdx() );
+        // Read tile marker
+        m_pcEntropyDecoder->readTileMarker( uiTileIdx, rpcPic->getPicSym()->getBitsUsedByTileIdx() );
       }
 #endif
     }

@@ -148,6 +148,13 @@ Void TComPicSym::allocateNewSlice()
   assert(m_uiNumCUsInFrame >= m_uiNumAllocatedSlice);
 #endif
   m_apcTComSlice[m_uiNumAllocatedSlice ++] = new TComSlice;
+#if TILES_DECODER
+  if (m_uiNumAllocatedSlice>=2)
+  {
+    m_apcTComSlice[m_uiNumAllocatedSlice-1]->copySliceInfo( m_apcTComSlice[m_uiNumAllocatedSlice-2] );
+    m_apcTComSlice[m_uiNumAllocatedSlice-1]->initSlice();
+  }
+#endif
 }
 
 Void TComPicSym::clearSliceBuffer()

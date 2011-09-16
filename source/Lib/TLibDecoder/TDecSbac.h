@@ -177,8 +177,8 @@ public:
   
 #if TILES
 #if TILES_DECODER
-  Void updateContextTables( SliceType eSliceType, Int iQp, Bool bCheckForLWTileHeader, Bool& bLWTileHeaderFoundFlag );
-  Void readTileLWHeader   ( UInt& uiTileIdx, UInt uiBitsUsed );
+  Void updateContextTables( SliceType eSliceType, Int iQp, Bool bCheckForTileMarker, Bool& bTileMarkerFoundFlag );
+  Void readTileMarker   ( UInt& uiTileIdx, UInt uiBitsUsed );
 #else
   Void updateContextTables( SliceType eSliceType, Int iQp );
 #endif

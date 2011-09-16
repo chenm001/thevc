@@ -494,7 +494,7 @@ Void TEncCavlc::codeSPS( TComSPS* pcSPS )
 }
 
 #if TILES_DECODER
-Void TEncCavlc::writeTileLWHeader( UInt uiTileIdx, UInt uiBitsUsed )
+Void TEncCavlc::writeTileMarker( UInt uiTileIdx, UInt uiBitsUsed )
 {
   xWriteCode( uiTileIdx, uiBitsUsed );
 }

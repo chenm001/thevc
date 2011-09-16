@@ -136,8 +136,8 @@ public:
 #endif
 #if TILES
 #if TILES_DECODER
-  virtual Void updateContextTables( SliceType eSliceType, Int iQp, Bool bCheckForLWTileHeader, Bool& bLWTileHeaderFoundFlag ) = 0;
-  virtual Void readTileLWHeader   ( UInt& uiTileIdx, UInt uiBitsUsed ) = 0;
+  virtual Void updateContextTables( SliceType eSliceType, Int iQp, Bool bCheckForTileMarker, Bool& bTileMarkerFoundFlag ) = 0;
+  virtual Void readTileMarker   ( UInt& uiTileIdx, UInt uiBitsUsed ) = 0;
 #else
   virtual Void updateContextTables( SliceType eSliceType, Int iQp ) = 0;
 #endif
@@ -207,8 +207,8 @@ public:
   
 #if TILES
 #if TILES_DECODER
-  Void readTileLWHeader       ( UInt& uiTileIdx, UInt uiBitsUsed )  {  m_pcEntropyDecoderIf->readTileLWHeader( uiTileIdx, uiBitsUsed ); }
-  Void updateContextTables    ( SliceType eSliceType, Int iQp, Bool bCheckForLWTileHeader, Bool& bLWTileHeaderFoundFlag ) { m_pcEntropyDecoderIf->updateContextTables( eSliceType, iQp, bCheckForLWTileHeader, bLWTileHeaderFoundFlag ); }
+  Void readTileMarker       ( UInt& uiTileIdx, UInt uiBitsUsed )  {  m_pcEntropyDecoderIf->readTileMarker( uiTileIdx, uiBitsUsed ); }
+  Void updateContextTables    ( SliceType eSliceType, Int iQp, Bool bCheckForTileMarker, Bool& bTileMarkerFoundFlag ) { m_pcEntropyDecoderIf->updateContextTables( eSliceType, iQp, bCheckForTileMarker, bTileMarkerFoundFlag ); }
 #else
   Void updateContextTables    ( SliceType eSliceType, Int iQp ) { m_pcEntropyDecoderIf->updateContextTables( eSliceType, iQp ); }
 #endif

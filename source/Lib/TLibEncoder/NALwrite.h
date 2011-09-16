@@ -82,4 +82,8 @@ inline NALUnitEBSP::NALUnitEBSP(const OutputNALUnit& nalu)
   write(m_nalUnitData, nalu);
 }
 
+#if TILES_DECODER
+void copyNaluData(OutputNALUnit& naluDest, const OutputNALUnit& naluSrc);
+#endif
+
 //! \}

@@ -733,7 +733,7 @@ Void TComSlice::copySliceInfo(TComSlice *pSrc)
   m_bNextSlice                    = pSrc->m_bNextSlice;
   m_bNextEntropySlice             = pSrc->m_bNextEntropySlice;
 #if TILES_DECODER
-  m_iLWTileHeaderFlag             = pSrc->m_iLWTileHeaderFlag;
+  m_iTileMarkerFlag             = pSrc->m_iTileMarkerFlag;
 #endif
 }
 
@@ -987,11 +987,6 @@ TComPPS::TComPPS()
 #if E045_SLICE_COMMON_INFO_SHARING
 , m_bSharedPPSInfoEnabled       (false)
 #endif
-#if OL_USE_WPP
-,  m_iEntropyCodingSynchro      (0)
-,  m_bCabacIstateReset          (false)
-,  m_iNumSubstreams             (1)
-#endif
 #if TILES
 , m_iColumnRowInfoPresent        (0)
 , m_iUniformSpacingIdr           (0)
@@ -1000,6 +995,11 @@ TComPPS::TComPPS()
 , m_puiColumnWidth               (NULL)
 , m_iNumRowsMinus1               (0)
 , m_puiRowHeight                 (NULL)
+#endif
+#if OL_USE_WPP
+,  m_iEntropyCodingSynchro      (0)
+,  m_bCabacIstateReset          (false)
+,  m_iNumSubstreams             (1)
 #endif
 {
   for ( UInt i = 0; i < MAX_TLAYER; i++ )

@@ -393,7 +393,7 @@ Void TDecCavlc::parseSPS(TComSPS* pcSPS)
 }
 
 #if TILES_DECODER
-Void TDecCavlc::readTileLWHeader   ( UInt& uiTileIdx, UInt uiBitsUsed )
+Void TDecCavlc::readTileMarker   ( UInt& uiTileIdx, UInt uiBitsUsed )
 {
   xReadCode ( uiBitsUsed, uiTileIdx );
 }
@@ -638,8 +638,8 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice)
       xReadCode(1, uiCode); // read flag indicating if location information signaled in slice header
       Bool bTileLocationInformationInSliceHeaderFlag = (uiCode)? true : false;
 
-      xReadCode(1, uiCode); // read flag indicating if lightweight tile headers transmitted
-      rpcSlice->setLWTileHeaderFlag( uiCode );
+      xReadCode(1, uiCode); // read flag indicating if lightweight tile markers transmitted
+      rpcSlice->setTileMarkerFlag( uiCode );
 
       if (bTileLocationInformationInSliceHeaderFlag)
       {

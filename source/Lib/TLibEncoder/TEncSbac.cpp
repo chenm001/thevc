@@ -171,10 +171,10 @@ Void TEncSbac::resetEntropy           ()
 #if TILES
 /** The function does the followng: Write out terminate bit. Flush CABAC. Intialize CABAC states. Start CABAC.
  */
-Void TEncSbac::updateContextTables( SliceType eSliceType, Int iQp )
+Void TEncSbac::updateContextTables( SliceType eSliceType, Int iQp, Bool bExecuteFinish )
 {
   m_pcBinIf->encodeBinTrm(1);
-  m_pcBinIf->finish();
+  if (bExecuteFinish) m_pcBinIf->finish();
 
   m_cCUSplitFlagSCModel.initBuffer       ( eSliceType, iQp, (Short*)INIT_SPLIT_FLAG );
   
@@ -224,7 +224,7 @@ Void TEncSbac::updateContextTables( SliceType eSliceType, Int iQp )
 }
 
 #if TILES_DECODER
-Void TEncSbac::writeTileLWHeader( UInt uiTileIdx, UInt uiBitsUsed )
+Void TEncSbac::writeTileMarker( UInt uiTileIdx, UInt uiBitsUsed )
 {
   for (Int iShift=uiBitsUsed-1; iShift>=0; iShift--)
   {

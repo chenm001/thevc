@@ -301,12 +301,15 @@ Bool TDecTop::decode(InputNALUnit& nalu, Int& iSkipFrame, Int& iPOCLastDisplay)
     {
       // make sure we already received both parameter sets
       assert( 3 == m_uiValidPS );
+#if TILES_DECODER
+      m_apcSlicePilot->setSPS(&m_cSPS);
+      m_apcSlicePilot->initSlice();
+#endif
       if (m_bFirstSliceInPicture)
       {
-#if TILES_DECODER
-        m_apcSlicePilot->setSPS(&m_cSPS);
-#endif
+#if !TILES_DECODER
         m_apcSlicePilot->initSlice();
+#endif
         m_uiSliceIdx     = 0;
         m_uiLastSliceIdx = 0;
 #if E045_SLICE_COMMON_INFO_SHARING
@@ -329,7 +332,7 @@ Bool TDecTop::decode(InputNALUnit& nalu, Int& iSkipFrame, Int& iPOCLastDisplay)
       m_apcSlicePilot->setSliceIdx(m_uiSliceIdx);
       if (!m_bFirstSliceInPicture)
       {
-#if SHARP_MEMLEAK_BUGFIX
+#if TILES_DECODER
         m_apcSlicePilot->copySliceInfo( pcPic->getPicSym()->getSlice(m_uiSliceIdx-1) );
 #else
         memcpy(m_apcSlicePilot, pcPic->getPicSym()->getSlice(m_uiSliceIdx-1), sizeof(TComSlice));

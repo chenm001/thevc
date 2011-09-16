@@ -188,9 +188,9 @@ protected:
 #if TILES_DECODER
   Int       m_iTileLocationInSliceHeaderFlag; //< enable(1)/disable(0) transmitssion of tile location in slice header
 
-  Int       m_iLWTileHeaderFlag;              //< enable(1)/disable(0) transmitssion of light weight tile header
-  Int       m_iMaxLWTileHeaderEntryPoints;    //< maximum number of tile headers allowed in a slice (controls degree of parallelism)
-  Double    m_dMaxLWTileHeaderOffset;         //< Calculated offset. Light weight tile headers will be transmitted for TileIdx= Offset, 2*Offset, 3*Offset ... 
+  Int       m_iTileMarkerFlag;              //< enable(1)/disable(0) transmitssion of light weight tile marker
+  Int       m_iMaxTileMarkerEntryPoints;    //< maximum number of tile markers allowed in a slice (controls degree of parallelism)
+  Double    m_dMaxTileMarkerOffset;         //< Calculated offset. Light weight tile markers will be transmitted for TileIdx= Offset, 2*Offset, 3*Offset ... 
 #endif
 #endif
 
@@ -225,7 +225,7 @@ public:
     }
 #if TILES_DECODER
     m_iTileLocationInSliceHeaderFlag = 0;
-    m_iLWTileHeaderFlag              = 0;
+    m_iTileMarkerFlag              = 0;
 #endif
 #endif
   }
@@ -521,12 +521,12 @@ public:
 #if TILES_DECODER
   Int  getTileLocationInSliceHeaderFlag ()                 { return m_iTileLocationInSliceHeaderFlag; }
   Void setTileLocationInSliceHeaderFlag ( Int iFlag )      { m_iTileLocationInSliceHeaderFlag = iFlag;}
-  Int  getLWTileHeaderFlag              ()                 { return m_iLWTileHeaderFlag;              }
-  Void setLWTileHeaderFlag              ( Int iFlag )      { m_iLWTileHeaderFlag = iFlag;             }
-  Int  getMaxLWTileHeaderEntryPoints    ()                 { return m_iMaxLWTileHeaderEntryPoints;    }
-  Void setMaxLWTileHeaderEntryPoints    ( Int iCount )     { m_iMaxLWTileHeaderEntryPoints = iCount;  }
-  Double getMaxLWTileHeaderOffset       ()                 { return m_dMaxLWTileHeaderOffset;         }
-  Void setMaxLWTileHeaderOffset         ( Double dCount )  { m_dMaxLWTileHeaderOffset = dCount;       }
+  Int  getTileMarkerFlag              ()                 { return m_iTileMarkerFlag;              }
+  Void setTileMarkerFlag              ( Int iFlag )      { m_iTileMarkerFlag = iFlag;             }
+  Int  getMaxTileMarkerEntryPoints    ()                 { return m_iMaxTileMarkerEntryPoints;    }
+  Void setMaxTileMarkerEntryPoints    ( Int iCount )     { m_iMaxTileMarkerEntryPoints = iCount;  }
+  Double getMaxTileMarkerOffset       ()                 { return m_dMaxTileMarkerOffset;         }
+  Void setMaxTileMarkerOffset         ( Double dCount )  { m_dMaxTileMarkerOffset = dCount;       }
 #endif
 #endif
 #if OL_USE_WPP

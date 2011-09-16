@@ -253,8 +253,8 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
     ("RowHeightArray",              cfg_RowHeight,                   string(""), "Array containing RowHeight values in units of LCU")
 #if TILES_DECODER
     ("TileLocationInSliceHeaderFlag", m_iTileLocationInSliceHeaderFlag, 0,       "If TileBoundaryIndependenceIdc==1, 0: Disable transmission of tile location in slice header. 1: Transmit tile locations in slice header.")
-    ("LWTileHeaderFlag",              m_iLWTileHeaderFlag,              0,       "If TileBoundaryIndependenceIdc==1, 0: Disable transmission of lightweight tile header. 1: Transmit light weight tile header.")
-    ("MaxLWTileHeaderEntryPoints",    m_iMaxLWTileHeaderEntryPoints,    4,       "Maximum number of uniformly-spaced tile entry points (using light weigh tile headers). Default=4. If number of tiles < MaxLWTileHeaderEntryPoints then all tiles have entry points.")
+    ("TileMarkerFlag",              m_iTileMarkerFlag,              0,       "If TileBoundaryIndependenceIdc==1, 0: Disable transmission of lightweight tile marker. 1: Transmit light weight tile marker.")
+    ("MaxTileMarkerEntryPoints",    m_iMaxTileMarkerEntryPoints,    4,       "Maximum number of uniformly-spaced tile entry points (using light weigh tile markers). Default=4. If number of tiles < MaxTileMarkerEntryPoints then all tiles have entry points.")
 #endif
 #endif
 #if OL_USE_WPP
@@ -700,10 +700,10 @@ Void TAppEncCfg::xPrintParameter()
 
   if (m_iTileBoundaryIndependenceIdr)
   {
-    printf("LWTileHdr:%d", m_iLWTileHeaderFlag);
-    if (m_iLWTileHeaderFlag)
+    printf("TileMarker:%d", m_iTileMarkerFlag);
+    if (m_iTileMarkerFlag)
     {
-      printf("[%d] ", m_iMaxLWTileHeaderEntryPoints);
+      printf("[%d] ", m_iMaxTileMarkerEntryPoints);
     }
     else
     {
@@ -712,10 +712,10 @@ Void TAppEncCfg::xPrintParameter()
   }
   else
   {
-    if (m_iLWTileHeaderFlag)
+    if (m_iTileMarkerFlag)
     {
-      printf("\nWarning! LWTileHdr set to 1 when TileBoundaryIndependence set to 0. The LWTileHdr will be over-ridden and set to 0.");
-      m_iLWTileHeaderFlag = 0;
+      printf("\nWarning! TileMarker set to 1 when TileBoundaryIndependence set to 0. TileMarker will be over-ridden and set to 0.");
+      m_iTileMarkerFlag = 0;
     }
   }
 #endif

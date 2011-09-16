@@ -60,6 +60,7 @@ TDecBinCABAC::uninit()
 {
   m_pcTComBitstream = 0;
 }
+
 Void
 TDecBinCABAC::start()
 {

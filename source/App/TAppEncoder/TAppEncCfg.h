@@ -193,9 +193,9 @@ protected:
   char*     m_pchRowHeight;
 #if TILES_DECODER
   Int       m_iTileLocationInSliceHeaderFlag; //< enable(1)/disable(0) transmitssion of tile location in slice header
-  Int       m_iLWTileHeaderFlag;              //< enable(1)/disable(0) transmitssion of light weight tile header
-  Int       m_iMaxLWTileHeaderEntryPoints;    //< maximum number of tile headers allowed in a slice (controls degree of parallelism)
-  Double    m_dMaxLWTileHeaderOffset;         //< Calculated offset. Light weight tile headers will be transmitted for TileIdx= Offset, 2*Offset, 3*Offset ... 
+  Int       m_iTileMarkerFlag;              //< enable(1)/disable(0) transmitssion of light weight tile marker
+  Int       m_iMaxTileMarkerEntryPoints;    //< maximum number of tile markers allowed in a slice (controls degree of parallelism)
+  Double    m_dMaxTileMarkerOffset;         //< Calculated offset. Light weight tile markers will be transmitted for TileIdx= Offset, 2*Offset, 3*Offset ... 
 #endif
 #endif
 

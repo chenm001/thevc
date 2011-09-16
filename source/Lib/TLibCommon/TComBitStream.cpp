@@ -277,6 +277,18 @@ Void TComInputBitstream::readOutTrailingBits ()
     read ( 1, uiBits );
   }
 }
+#if TILES_DECODER
+TComOutputBitstream& TComOutputBitstream::operator= (const TComOutputBitstream& src)
+{
+  vector<uint8_t>::iterator at = this->m_fifo->begin();
+  this->m_fifo->insert(at, src.m_fifo->begin(), src.m_fifo->end());
+
+  this->m_num_held_bits        = src.m_num_held_bits;
+  this->m_held_bits            = src.m_held_bits;
+
+  return *this;
+}
+#endif
 #endif
 
 #if OL_USE_WPP

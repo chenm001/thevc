@@ -241,29 +241,29 @@ Void TDecGop::decompressGop(TComInputBitstream* pcBitstream, TComPic*& rpcPic, B
       }
 
 #if TILES_DECODER
-      // We have to check for LWTileHeaders, too.
+      // We have to check for TileMarkers, too.
       // We simply perform the processing here, for now, and throw the header away if found.
-      bool bSkipLWTileHeader = pcSlice->getLWTileHeaderFlag() ? true : false;
+      bool bSkipTileMarker = pcSlice->getTileMarkerFlag() ? true : false;
       UInt uiCode;
       UInt uiTileIdx;
-      bool bLWTileHeaderFoundFlag;
+      bool bTileMarkerFoundFlag;
 #endif
       for ( UInt ui = 0 ; ui+1 < uiNumSubstreams; ui++ )
       {
 #if TILES_DECODER
-        bLWTileHeaderFoundFlag = false;
-        if (bSkipLWTileHeader)
+        bTileMarkerFoundFlag = false;
+        if (bSkipTileMarker)
         {
           if (ppcSubstreams[uiNumSubstreams - 1 - ui]->getNumBitsLeft() >= 24)
           {
             uiCode = ppcSubstreams[uiNumSubstreams - 1 - ui]->peekBits(24);
             if (uiCode == 0x000002)
             {
-              bLWTileHeaderFoundFlag = true;
+              bTileMarkerFoundFlag = true;
             }
           }
 
-          if (bLWTileHeaderFoundFlag)
+          if (bTileMarkerFoundFlag)
           {
             ppcSubstreams[uiNumSubstreams - 1 - ui]->read(24, uiCode); // 0x000002
           }
@@ -273,27 +273,27 @@ Void TDecGop::decompressGop(TComInputBitstream* pcBitstream, TComPic*& rpcPic, B
         m_pcEntropyDecoder->setBitstream      (  ppcSubstreams   [uiNumSubstreams - 1 - ui] );
         m_pcEntropyDecoder->resetEntropy      (pcSlice);
 #if TILES_DECODER
-        if (bLWTileHeaderFoundFlag)
+        if (bTileMarkerFoundFlag)
         {
-          m_pcEntropyDecoder->readTileLWHeader(uiTileIdx, rpcPic->getPicSym()->getBitsUsedByTileIdx());
+          m_pcEntropyDecoder->readTileMarker(uiTileIdx, rpcPic->getPicSym()->getBitsUsedByTileIdx());
         }
 #endif
       }
 
 #if TILES_DECODER
-      bLWTileHeaderFoundFlag = false;
-      if (bSkipLWTileHeader)
+      bTileMarkerFoundFlag = false;
+      if (bSkipTileMarker)
       {
         if (ppcSubstreams[0]->getNumBitsLeft() >= 24)
         {
           uiCode = ppcSubstreams[0]->peekBits(24);
           if (uiCode == 0x000002)
           {
-            bLWTileHeaderFoundFlag = true;
+            bTileMarkerFoundFlag = true;
           }
         }
 
-        if (bLWTileHeaderFoundFlag)
+        if (bTileMarkerFoundFlag)
         {
           ppcSubstreams[0]->read(24, uiCode); // 0x000002
         }
@@ -303,9 +303,9 @@ Void TDecGop::decompressGop(TComInputBitstream* pcBitstream, TComPic*& rpcPic, B
       m_pcEntropyDecoder->setBitstream      ( ppcSubstreams[0] );
       m_pcEntropyDecoder->resetEntropy      (pcSlice);
 #if TILES_DECODER
-      if (bLWTileHeaderFoundFlag)
+      if (bTileMarkerFoundFlag)
       {
-        m_pcEntropyDecoder->readTileLWHeader(uiTileIdx, rpcPic->getPicSym()->getBitsUsedByTileIdx());
+        m_pcEntropyDecoder->readTileMarker(uiTileIdx, rpcPic->getPicSym()->getBitsUsedByTileIdx());
       }
 #endif
     }

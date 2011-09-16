@@ -216,9 +216,10 @@ public:
   
 
 #if TILES
-  Void updateContextTables           ( SliceType eSliceType, Int iQp   );
+  Void updateContextTables           ( SliceType eSliceType, Int iQp, Bool bExecuteFinish=true  );
+  Void updateContextTables           ( SliceType eSliceType, Int iQp  ) { this->updateContextTables( eSliceType, iQp, true); };
 #if TILES_DECODER
-  Void writeTileLWHeader             ( UInt uiTileIdx, UInt uiBitsUsed );
+  Void writeTileMarker               ( UInt uiTileIdx, UInt uiBitsUsed );
 #endif
 #endif
 

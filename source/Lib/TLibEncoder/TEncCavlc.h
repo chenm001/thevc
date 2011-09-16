@@ -295,9 +295,10 @@ public:
   Bool  getAdaptFlag          ()          { return m_bAdaptFlag; }
   Void  setAdaptFlag          ( Bool b )  { m_bAdaptFlag = b;     }
 #if TILES
-  Void updateContextTables           ( SliceType eSliceType, Int iQp ) { return;   }
+  Void updateContextTables           ( SliceType eSliceType, Int iQp, Bool bExecuteFinish=true ) { return;   }
+  Void updateContextTables           ( SliceType eSliceType, Int iQp  )                          { return;   }
 #if TILES_DECODER
-  Void writeTileLWHeader      ( UInt uiTileIdx, UInt uiBitsUsed );
+  Void writeTileMarker               ( UInt uiTileIdx, UInt uiBitsUsed );
 #endif
 #endif
 };

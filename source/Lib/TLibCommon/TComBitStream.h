@@ -148,7 +148,8 @@ public:
   std::vector<uint8_t>& getFIFO() { return *m_fifo; }
 
 #if TILES_DECODER
-  unsigned char getBitsHeld()        { return m_held_bits; }
+  unsigned char getBitsHeld  ()         { return m_held_bits;            }
+  TComOutputBitstream& operator= (const TComOutputBitstream& src);
 #endif
 
   /** Return a reference to the internal fifo */

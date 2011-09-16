@@ -213,12 +213,12 @@ Void TAppEncTop::xInitLibCfg()
   m_cTEncTop.xCheckGSParameters();
 #if TILES_DECODER
   m_cTEncTop.setTileLocationInSliceHeaderFlag ( m_iTileLocationInSliceHeaderFlag );
-  m_cTEncTop.setLWTileHeaderFlag              ( m_iLWTileHeaderFlag );
-  m_cTEncTop.setMaxLWTileHeaderEntryPoints    ( m_iMaxLWTileHeaderEntryPoints );
+  m_cTEncTop.setTileMarkerFlag              ( m_iTileMarkerFlag );
+  m_cTEncTop.setMaxTileMarkerEntryPoints    ( m_iMaxTileMarkerEntryPoints );
   
   Int uiTilesCount          = (m_iNumRowsMinus1+1) * (m_iNumColumnsMinus1+1);
-  m_dMaxLWTileHeaderOffset  = ((Double)uiTilesCount) / m_iMaxLWTileHeaderEntryPoints;
-  m_cTEncTop.setMaxLWTileHeaderOffset         ( m_dMaxLWTileHeaderOffset );
+  m_dMaxTileMarkerOffset  = ((Double)uiTilesCount) / m_iMaxTileMarkerEntryPoints;
+  m_cTEncTop.setMaxTileMarkerOffset         ( m_dMaxTileMarkerOffset );
 #endif
 #endif
 #if OL_USE_WPP

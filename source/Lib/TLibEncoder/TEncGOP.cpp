@@ -46,7 +46,6 @@
 #include "TLibCommon/NAL.h"
 #include "NALwrite.h"
 
-
 #include <time.h>
 #include <math.h>
 
@@ -142,8 +141,12 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
   TComPicYuv*     pcPicYuvRecOut;
   TComSlice*      pcSlice;
 #if TILES_DECODER
-  TComOutputBitstream   *pcBitstreamRedirect;
+  TComOutputBitstream  *pcBitstreamRedirect;
   pcBitstreamRedirect = new TComOutputBitstream;
+  OutputNALUnit        *naluBuffered             = NULL;
+  Bool                  bIteratorAtListStart     = false;
+  AccessUnit::iterator  itLocationToPushSliceHeaderNALU; // used to store location where NALU containing slice header is to be inserted
+  UInt                  uiOneBitstreamPerSliceLength = 0;
 #endif
 #if OL_USE_WPP
   TEncSbac* pcSbacCoders = NULL;
@@ -850,24 +853,20 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
         OutputNALUnit nalu(pcSlice->getNalUnitType(), pcSlice->isReferenced() ? NAL_REF_IDC_PRIORITY_HIGHEST: NAL_REF_IDC_PRIORITY_LOWEST, pcSlice->getTLayer(), true);
 #if TILES_DECODER
         Bool bEntropySlice = (!pcSlice->isNextSlice());
-        if (pcSlice->getSPS()->getTileBoundaryIndependenceIdr() && bEntropySlice)
+        if (!bEntropySlice)
         {
-          m_pcEntropyCoder->setBitstream(pcBitstreamRedirect);
+          uiOneBitstreamPerSliceLength = 0;
         }
-        else
-        {
-          m_pcEntropyCoder->setBitstream(&nalu.m_Bitstream);
-        }
-#else
-        m_pcEntropyCoder->setBitstream(&nalu.m_Bitstream);
 #endif
+        m_pcEntropyCoder->setBitstream(&nalu.m_Bitstream);
         m_pcEntropyCoder->encodeSliceHeader(pcSlice);
+
 
         // is it needed?
         if ( pcSlice->getSymbolMode() )
         {
 #if TILES_DECODER
-          if (pcSlice->getSPS()->getTileBoundaryIndependenceIdr())
+          if (pcSlice->getSPS()->getTileBoundaryIndependenceIdr()  && !bEntropySlice)
           {
             pcBitstreamRedirect->writeAlignOne();
           }
@@ -990,7 +989,7 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
           m_pcEntropyCoder->resetEntropy    ();
 #if TILES_DECODER
           // File writing
-          if (pcSlice->getSPS()->getTileBoundaryIndependenceIdr())
+          if (pcSlice->getSPS()->getTileBoundaryIndependenceIdr()  && !bEntropySlice)
           {
             m_pcEntropyCoder->setBitstream(pcBitstreamRedirect);
           }
@@ -1083,14 +1082,16 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
         if (pcSlice->getSymbolMode())
           m_pcSbacCoder->load( &pcSbacCoders[0] );
 #endif
+
 #if TILES_DECODER
-        if (pcSlice->getSPS()->getTileBoundaryIndependenceIdr())
+        pcSlice->setTileOffstForMultES( uiOneBitstreamPerSliceLength );
+        if (pcSlice->getSPS()->getTileBoundaryIndependenceIdr()  && !bEntropySlice)
         {
-          if (!bEntropySlice) pcSlice->setTileLocationCount( 0 );
+          pcSlice->setTileLocationCount ( 0 );
 #if OL_USE_WPP
           m_pcSliceEncoder->encodeSlice(pcPic, pcBitstreamRedirect, pcSubstreamsOut); // redirect is only used for CAVLC tile position info.
 #else
-          m_pcSliceEncoder->encodeSlice(pcPic, pcBitstreamRedirect);
+          m_pcSliceEncoder->encodeSlice(pcPic, pcBitstreamRedirect);          
 #endif
         }
         else
@@ -1116,7 +1117,7 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
           // The final bitstream is either nalu.m_Bitstream or pcBitstreamRedirect;
           UInt* puiSubstreamSizes = pcSlice->getSubstreamSizes();
 #if TILES_DECODER
-          Int iLWTileHeaderWrittenInSlice = 0;
+          Int iTileMarkerWrittenInSlice = 0;
           UInt uiTotalCodedSize = 0; // for padding calcs.
           UInt uiNumSubstreamsPerTile = iNumSubstreams;
           if (pcPic->getPicSym()->getTileBoundaryIndependenceIdr() && pcSlice->getPPS()->getEntropyCodingSynchro())
@@ -1132,17 +1133,17 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
             m_pcEntropyCoder->encodeSliceFinish();
             pcSubstreamsOut[ui].write( 1, 1 ); // stop bit.
 #if TILES_DECODER
-            // Byte alignment is necessary for LWTileHeader to be useful.
+            // Byte alignment is necessary for TileMarker to be useful.
             // Is the next substream going to have a tile indicator?  If so, we add padding here.
             uiTotalCodedSize += pcSubstreamsOut[ui].getNumberOfWrittenBits();
 
             if (pcPic->getPicSym()->getTileBoundaryIndependenceIdr()
-                && m_pcCfg->getLWTileHeaderFlag() == 1)
+                && m_pcCfg->getTileMarkerFlag() == 1)
             {
               Int iTileIdxNext = (ui+1)/uiNumSubstreamsPerTile;
-              Bool bWriteLWTileHeaderNext = ui+uiNumSubstreamsPerTile < iNumSubstreams
-                                            && ( (((Int)((iLWTileHeaderWrittenInSlice+1)*m_pcCfg->getMaxLWTileHeaderOffset()+0.5)) == iTileIdxNext ) && iLWTileHeaderWrittenInSlice < (m_pcCfg->getMaxLWTileHeaderEntryPoints()-1));
-              if (bWriteLWTileHeaderNext)
+              Bool bWriteTileMarkerNext = ui+uiNumSubstreamsPerTile < iNumSubstreams
+                                            && ( (((Int)((iTileMarkerWrittenInSlice+1)*m_pcCfg->getMaxTileMarkerOffset()+0.5)) == iTileIdxNext ) && iTileMarkerWrittenInSlice < (m_pcCfg->getMaxTileMarkerEntryPoints()-1));
+              if (bWriteTileMarkerNext)
               {
                 // byte align.
                 while (uiTotalCodedSize&0x7)
@@ -1164,17 +1165,8 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
 
           // Substreams...
 #if TILES_DECODER
-          TComOutputBitstream *pcOut = pcSlice->getSPS()->getTileBoundaryIndependenceIdr()
-                                        ? pcBitstreamRedirect
-                                        : &nalu.m_Bitstream;
-          if (pcSlice->getSPS()->getTileBoundaryIndependenceIdr())
-          {
-            // xWriteTileLocation will perform byte-alignment...
-          }
-          else
-          {
-            nalu.m_Bitstream.writeAlignOne(); // Byte-alignment before CABAC data
-          }
+          TComOutputBitstream *pcOut = pcBitstreamRedirect;
+          // xWriteTileLocation will perform byte-alignment...
 #else
           TComOutputBitstream *pcOut = &nalu.m_Bitstream;
           nalu.m_Bitstream.writeAlignOne(); // Byte-alignment before CABAC data
@@ -1192,12 +1184,90 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
         uiBoundingAddrEntropySlice = m_uiStoredStartCUAddrForEncodingEntropySlice[uiStartCUAddrEntropySliceIdx];          
         uiNextCUAddr               = min(uiBoundingAddrSlice, uiBoundingAddrEntropySlice);
         Bool bNextCUInNewSlice     = (uiNextCUAddr >= uiRealEndAddress) || (uiNextCUAddr == m_uiStoredStartCUAddrForEncodingSlice[uiStartCUAddrSliceIdx]);
-        if (pcSlice->getSPS()->getTileBoundaryIndependenceIdr() && bNextCUInNewSlice)
+
+        // If current NALU is the first NALU of slice (containing slice header) and more NALUs exist (due to multiple entropy slices) then buffer it.
+        // If current NALU is the last NALU of slice and a NALU was buffered, then (a) Write current NALU (b) Update an write buffered NALU at approproate location in NALU list.
+        Bool bNALUAlignedWrittenToList    = false; // used to ensure current NALU is not written more than once to the NALU list.
+        if (pcSlice->getSPS()->getTileBoundaryIndependenceIdr())
+        {
+          if (bNextCUInNewSlice)
+          {
+            if (!bEntropySlice) // there were no entropy slices
+            {
+              xWriteTileLocationToSliceHeader(nalu, pcBitstreamRedirect, pcSlice);
+            }
+            // (a) writing current NALU
+            writeRBSPTrailingBits(nalu.m_Bitstream);
+            accessUnit.push_back(new NALUnitEBSP(nalu));
+            bNALUAlignedWrittenToList = true;
+
+            // (b) update and write buffered NALU
+            if (bEntropySlice) // if entropy slices existed in the slice then perform concatenation for the buffered nalu-bitstream and buffered payload bitstream
+            {
+              // Perform bitstream concatenation of slice header and partial slice payload
+              xWriteTileLocationToSliceHeader((*naluBuffered), pcBitstreamRedirect, pcSlice);
+              if (!bIteratorAtListStart)
+              {
+                itLocationToPushSliceHeaderNALU++;
+              }
+              accessUnit.insert(itLocationToPushSliceHeaderNALU, (new NALUnitEBSP((*naluBuffered))) );
+
+              // free buffered nalu
+              delete naluBuffered;
+              naluBuffered     = NULL;
+            }
+          }
+          else // another entropy slice exists
+          {
+            // Is this start-of-slice NALU? i.e. the one containing slice header. If Yes, then buffer it.
+            if (!bEntropySlice)
+            {
+              // store a pointer to where NALU for slice header is to be written in NALU list
+              itLocationToPushSliceHeaderNALU = accessUnit.end();
+              if (accessUnit.begin() == accessUnit.end())
+              {
+                bIteratorAtListStart = true;
+              }
+              else
+              {
+                bIteratorAtListStart = false;
+                itLocationToPushSliceHeaderNALU--;
+              }
+
+              // buffer nalu for later writing
+              naluBuffered = new OutputNALUnit(pcSlice->getNalUnitType(), pcSlice->isReferenced() ? NAL_REF_IDC_PRIORITY_HIGHEST: NAL_REF_IDC_PRIORITY_LOWEST, pcSlice->getTLayer(), true);
+              copyNaluData( (*naluBuffered), nalu );
+
+              // perform byte-alignment to get appropriate bitstream length (used for explicit tile location signaling in slice header)
+              writeRBSPTrailingBits((*pcBitstreamRedirect));
+              bNALUAlignedWrittenToList = true; // This is not really a write to bitsream but buffered for later. The flag is set to prevent writing of current NALU to list.
+              uiOneBitstreamPerSliceLength += pcBitstreamRedirect->getNumberOfWrittenBits() + 24; // length of bitstream after byte-alignment + 3 byte startcode 0x000001
+            }
+            else // write out entropy slice
+            {
+              writeRBSPTrailingBits(nalu.m_Bitstream);
+              accessUnit.push_back(new NALUnitEBSP(nalu));
+              bNALUAlignedWrittenToList = true; 
+              uiOneBitstreamPerSliceLength += nalu.m_Bitstream.getNumberOfWrittenBits() + 24; // length of bitstream after byte-alignment + 3 byte startcode 0x000001            
+            }
+          }
+        }
+#if OL_USE_WPP
+        else
         {
           xWriteTileLocationToSliceHeader(nalu, pcBitstreamRedirect, pcSlice);
+          writeRBSPTrailingBits(nalu.m_Bitstream);
+          accessUnit.push_back(new NALUnitEBSP(nalu));
+          bNALUAlignedWrittenToList = true; 
+          uiOneBitstreamPerSliceLength += nalu.m_Bitstream.getNumberOfWrittenBits() + 24; // length of bitstream after byte-alignment + 3 byte startcode 0x000001            
         }
 #endif
+#endif
 
+#if TILES_DECODER
+        if (!bNALUAlignedWrittenToList)
+        {
+#endif
 #if OL_USE_WPP
         if (pcSlice->getSymbolMode())
           nalu.m_Bitstream.writeAlignZero();
@@ -1207,6 +1277,12 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
         writeRBSPTrailingBits(nalu.m_Bitstream);
 #endif
         accessUnit.push_back(new NALUnitEBSP(nalu));
+#if TILES_DECODER
+        uiOneBitstreamPerSliceLength += nalu.m_Bitstream.getNumberOfWrittenBits() + 24; // length of bitstream after byte-alignment + 3 byte startcode 0x000001
+        }
+#endif
+
+
 #if !TILES_DECODER
         UInt uiBoundingAddrSlice, uiBoundingAddrEntropySlice;
         uiBoundingAddrSlice        = m_uiStoredStartCUAddrForEncodingSlice[uiStartCUAddrSliceIdx];          
@@ -1879,105 +1955,108 @@ Void TEncGOP::xWriteTileLocationToSliceHeader (OutputNALUnit& rNalu, TComOutputB
 {
   UChar *pucStart =  reinterpret_cast<UChar*>(rpcBitstreamRedirect->getByteStream());
 
-  Int iTransmitTileLocationInSliceHeader = (rpcSlice->getTileLocationCount()==0 || m_pcCfg->getTileLocationInSliceHeaderFlag()==0) ? 0 : 1;
-  rNalu.m_Bitstream.write(iTransmitTileLocationInSliceHeader, 1);   // write flag indicating whether tile location information communicated in slice header
-
-  Int iTransmitLWHeader = (rpcSlice->getTileLocationCount()==0 || m_pcCfg->getLWTileHeaderFlag()==0) ? 0 : 1;
-  rNalu.m_Bitstream.write(iTransmitLWHeader, 1);                    // write flag indicating whether light weight tile headers are written in slice
-
-  if (iTransmitTileLocationInSliceHeader)
+  if (rpcSlice->getSPS()->getTileBoundaryIndependenceIdr())
   {
-    rNalu.m_Bitstream.write(rpcSlice->getTileLocationCount()-1, 5);   // write number of tiles
+    Int iTransmitTileLocationInSliceHeader = (rpcSlice->getTileLocationCount()==0 || m_pcCfg->getTileLocationInSliceHeaderFlag()==0) ? 0 : 1;
+    rNalu.m_Bitstream.write(iTransmitTileLocationInSliceHeader, 1);   // write flag indicating whether tile location information communicated in slice header
 
-    Int *aiDiff;
-    aiDiff = new Int [rpcSlice->getTileLocationCount()];
+    Int iTransmitLWHeader = (m_pcCfg->getTileMarkerFlag()==0) ? 0 : 1;
+    rNalu.m_Bitstream.write(iTransmitLWHeader, 1);                    // write flag indicating whether light weight tile markers are written in slice
 
-    // Find largest number of bits required by Diff
-    Int iLastSize = 0, iDiffMax = 0, iDiffMin = 0;
-    for (UInt uiIdx=0; uiIdx<rpcSlice->getTileLocationCount(); uiIdx++)
+    if (iTransmitTileLocationInSliceHeader)
     {
-      Int iCurDiff, iCurSize;
-      if (uiIdx==0)
-      {
-        iCurDiff  = rpcSlice->getTileLocation( uiIdx );
-        iLastSize = rpcSlice->getTileLocation( uiIdx );
-      }
-      else
-      {
-        iCurSize  = rpcSlice->getTileLocation( uiIdx )  - rpcSlice->getTileLocation( uiIdx-1 );
-        iCurDiff  = iCurSize - iLastSize;
-        iLastSize = iCurSize;
-      }
-      // Store Diff so it may be written to slice header later without re-calculating.
-      aiDiff[uiIdx] = iCurDiff;
+      rNalu.m_Bitstream.write(rpcSlice->getTileLocationCount()-1, 5);   // write number of tiles
 
-      if (iCurDiff>iDiffMax)
+      Int *aiDiff;
+      aiDiff = new Int [rpcSlice->getTileLocationCount()];
+
+      // Find largest number of bits required by Diff
+      Int iLastSize = 0, iDiffMax = 0, iDiffMin = 0;
+      for (UInt uiIdx=0; uiIdx<rpcSlice->getTileLocationCount(); uiIdx++)
       {
-        iDiffMax = iCurDiff;
-      }
-      if (iCurDiff<iDiffMin)
-      {
-        iDiffMin = iCurDiff;
-      }
-    }
-
-    Int iDiffMinAbs, iDiffMaxAbs;
-    iDiffMinAbs = (iDiffMin<0) ? (-iDiffMin) : iDiffMin;
-    iDiffMaxAbs = (iDiffMax<0) ? (-iDiffMax) : iDiffMax;
-
-    Int iBitsUsedByDiff = 0, iDiffAbsLargest;
-    iDiffAbsLargest = (iDiffMinAbs < iDiffMaxAbs) ? iDiffMaxAbs : iDiffMinAbs;        
-    while (1)
-    {
-      if (iDiffAbsLargest >= (1 << iBitsUsedByDiff) )
-      {
-        iBitsUsedByDiff++;
-      }
-      else
-      {
-        break;
-      }
-    }
-    iBitsUsedByDiff++;
-
-    if (iBitsUsedByDiff > 32)
-    {
-      printf("\nDiff magnitude uses more than 32-bits");
-      assert ( 0 );
-      exit ( 0 ); // trying to catch any problems with using fixed bits for Diff information
-    }
-
-    rNalu.m_Bitstream.write( iBitsUsedByDiff-1, 5 ); // write number of bits used by Diff
-
-    // Write diff to slice header (rNalu)
-    for (UInt uiIdx=0; uiIdx<rpcSlice->getTileLocationCount(); uiIdx++)
-    {
-      Int iCurDiff = aiDiff[uiIdx];
-
-      // write sign of diff
-      if (uiIdx!=0)
-      {
-        if (iCurDiff<0)          
+        Int iCurDiff, iCurSize;
+        if (uiIdx==0)
         {
-          rNalu.m_Bitstream.write(1, 1);
+          iCurDiff  = rpcSlice->getTileLocation( uiIdx );
+          iLastSize = rpcSlice->getTileLocation( uiIdx );
         }
         else
         {
-          rNalu.m_Bitstream.write(0, 1);
+          iCurSize  = rpcSlice->getTileLocation( uiIdx )  - rpcSlice->getTileLocation( uiIdx-1 );
+          iCurDiff  = iCurSize - iLastSize;
+          iLastSize = iCurSize;
+        }
+        // Store Diff so it may be written to slice header later without re-calculating.
+        aiDiff[uiIdx] = iCurDiff;
+
+        if (iCurDiff>iDiffMax)
+        {
+          iDiffMax = iCurDiff;
+        }
+        if (iCurDiff<iDiffMin)
+        {
+          iDiffMin = iCurDiff;
         }
       }
 
-      // write abs value of diff
-      Int iAbsDiff = (iCurDiff<0) ? (-iCurDiff) : iCurDiff;
-      if (iAbsDiff > ((((UInt64)1)<<32)-1))
-      {
-        printf("\niAbsDiff exceeds 32-bit limit");
-        exit(0);
-      }
-      rNalu.m_Bitstream.write( iAbsDiff, iBitsUsedByDiff-1 ); 
-    }
+      Int iDiffMinAbs, iDiffMaxAbs;
+      iDiffMinAbs = (iDiffMin<0) ? (-iDiffMin) : iDiffMin;
+      iDiffMaxAbs = (iDiffMax<0) ? (-iDiffMax) : iDiffMax;
 
-    delete [] aiDiff;
+      Int iBitsUsedByDiff = 0, iDiffAbsLargest;
+      iDiffAbsLargest = (iDiffMinAbs < iDiffMaxAbs) ? iDiffMaxAbs : iDiffMinAbs;        
+      while (1)
+      {
+        if (iDiffAbsLargest >= (1 << iBitsUsedByDiff) )
+        {
+          iBitsUsedByDiff++;
+        }
+        else
+        {
+          break;
+        }
+      }
+      iBitsUsedByDiff++;
+
+      if (iBitsUsedByDiff > 32)
+      {
+        printf("\nDiff magnitude uses more than 32-bits");
+        assert ( 0 );
+        exit ( 0 ); // trying to catch any problems with using fixed bits for Diff information
+      }
+
+      rNalu.m_Bitstream.write( iBitsUsedByDiff-1, 5 ); // write number of bits used by Diff
+
+      // Write diff to slice header (rNalu)
+      for (UInt uiIdx=0; uiIdx<rpcSlice->getTileLocationCount(); uiIdx++)
+      {
+        Int iCurDiff = aiDiff[uiIdx];
+
+        // write sign of diff
+        if (uiIdx!=0)
+        {
+          if (iCurDiff<0)          
+          {
+            rNalu.m_Bitstream.write(1, 1);
+          }
+          else
+          {
+            rNalu.m_Bitstream.write(0, 1);
+          }
+        }
+
+        // write abs value of diff
+        Int iAbsDiff = (iCurDiff<0) ? (-iCurDiff) : iCurDiff;
+        if (iAbsDiff > ((((UInt64)1)<<32)-1))
+        {
+          printf("\niAbsDiff exceeds 32-bit limit");
+          exit(0);
+        }
+        rNalu.m_Bitstream.write( iAbsDiff, iBitsUsedByDiff-1 ); 
+      }
+
+      delete [] aiDiff;
+    }
   }
 
   // Byte-align
