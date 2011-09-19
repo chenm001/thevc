@@ -110,6 +110,11 @@ TDecBinCABAC::flush()
 #endif // OL_FLUSH
 
 #if OL_USE_WPP
+/**
+ - Copy CABAC state.
+ .
+ \param pcTDecBinIf The source CABAC engine.
+ */
 Void
 TDecBinCABAC::copyState( TDecBinIf* pcTDecBinIf )
 {

@@ -174,6 +174,11 @@ Void TComSlice::initSlice()
 }
 
 #if OL_USE_WPP
+/**
+ - allocate table to contain substream sizes to be written to the slice header.
+ .
+ \param uiNumSubstreams Number of substreams -- the allocation will be this value - 1.
+ */
 Void  TComSlice::allocSubstreamSizes(UInt uiNumSubstreams)
 {
   delete[] m_puiSubstreamSizes;

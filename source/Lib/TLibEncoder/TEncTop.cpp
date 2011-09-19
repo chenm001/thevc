@@ -136,6 +136,11 @@ Void TEncTop::create ()
 }
 
 #if OL_USE_WPP
+/**
+ - Allocate coders required for wavefront for the nominated number of substreams.
+ .
+ \param iNumSubstreams Determines how much information to allocate.
+ */
 Void TEncTop::createWPPCoders(Int iNumSubstreams)
 {
   if (m_pcSbacCoders != NULL)

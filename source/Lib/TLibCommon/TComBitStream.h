@@ -213,8 +213,8 @@ public:
   unsigned getNumBitsUntilByteAligned() { return m_num_held_bits & (0x7); }
   unsigned getNumBitsLeft() { return 8*((unsigned)m_fifo->size() - m_fifo_idx) + m_num_held_bits; }
 #if OL_USE_WPP
-  TComInputBitstream *extractSubstream( UInt uiNumBits );
-  Void                deleteFifo();
+  TComInputBitstream *extractSubstream( UInt uiNumBits ); // Read the nominated number of bits, and return as a bitstream.
+  Void                deleteFifo(); // Delete internal fifo of bitstream.
 #endif
 };
 

@@ -688,6 +688,11 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
 }
 
 #if OL_USE_WPP
+/**
+ - write wavefront substreams sizes for the slice header.
+ .
+ \param pcSlice Where we find the substream size information.
+ */
 Void TEncCavlc::codeSliceHeaderSubstreamTable( TComSlice* pcSlice )
 {
   UInt uiNumSubstreams = pcSlice->getPPS()->getNumSubstreams();

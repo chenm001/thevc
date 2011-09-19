@@ -2435,6 +2435,11 @@ Void TEncSbac::estSignificantCoefficientsBit( estBitsSbacStruct* pcEstBitsSbac, 
 }
 
 #if OL_USE_WPP
+/**
+ - Initialize our context information from the nominated source.
+ .
+ \param pSrc From where to copy context information.
+ */
 Void TEncSbac::xCopyContextsFrom( TEncSbac* pSrc )
 {  
   m_cCUSplitFlagSCModel       .copyFrom( &pSrc->m_cCUSplitFlagSCModel       );

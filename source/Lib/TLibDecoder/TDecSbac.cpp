@@ -2422,6 +2422,11 @@ Void TDecSbac::parseAoSvlc (Int&  riVal)
 #endif
 
 #if OL_USE_WPP
+/**
+ - Initialize our contexts from the nominated source.
+ .
+ \param pSrc Contexts to be copied.
+ */
 Void TDecSbac::xCopyContextsFrom( TDecSbac* pSrc )
 {
   m_cCUSplitFlagSCModel       .copyFrom( &pSrc->m_cCUSplitFlagSCModel       );

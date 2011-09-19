@@ -321,6 +321,9 @@ TComInputBitstream *TComInputBitstream::extractSubstream( UInt uiNumBits )
   return new TComInputBitstream(buf);
 }
 
+/**
+ - delete internal fifo
+ */
 Void TComInputBitstream::deleteFifo()
 {
   delete m_fifo;
