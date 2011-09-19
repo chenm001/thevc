@@ -2060,7 +2060,7 @@ Void TEncGOP::xWriteTileLocationToSliceHeader (OutputNALUnit& rNalu, TComOutputB
   }
 
   // Byte-align
-  rNalu.m_Bitstream.writeAlignZero();
+  rNalu.m_Bitstream.writeAlignOne();
 
   // Perform bitstream concatenation
   UInt uiBitCount  = rpcBitstreamRedirect->getNumberOfWrittenBits();
