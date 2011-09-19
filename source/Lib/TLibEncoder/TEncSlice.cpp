@@ -706,19 +706,19 @@ Void TEncSlice::compressSlice( TComPic*& rpcPic )
         // We'll sync if the TR is available.
         TComDataCU *pcCUUp = pcCU->getCUAbove();
         UInt uiWidthInCU = rpcPic->getFrameWidthInCU();
+        UInt uiMaxParts = 1<<(pcSlice->getSPS()->getMaxCUDepth()<<1);
         TComDataCU *pcCUTR = NULL;
         if ( pcCUUp && (uiCUAddr%uiWidthInCU+pcSlice->getPPS()->getEntropyCodingSynchro()) < uiWidthInCU  )
           pcCUTR = rpcPic->getCU( uiCUAddr - uiWidthInCU + pcSlice->getPPS()->getEntropyCodingSynchro() );
 #if FINE_GRANULARITY_SLICES
-        /* Got to get the corner conditions right. */
         if ( (true/*bEnforceSliceRestriction*/ &&
              (pcCUTR==NULL || pcCUTR->getSlice()==NULL || 
-             pcCUTR->getSCUAddr() < rpcPic->getCU( uiCUAddr )->getSliceStartCU(0/*!!!uiCurrPartUnitIdx*/)||
+             pcCUTR->getSCUAddr()+uiMaxParts-1 < pcSlice->getSliceCurStartCUAddr() ||
              (rpcPic->getPicSym()->getTileBoundaryIndependenceIdr() && rpcPic->getPicSym()->getTileIdxMap( pcCUTR->getAddr() ) != rpcPic->getPicSym()->getTileIdxMap(uiCUAddr))
              ))||
              (true/*bEnforceEntropySliceRestriction*/ &&
              (pcCUTR==NULL || pcCUTR->getSlice()==NULL || 
-             pcCUTR->getSCUAddr()+0/*!!uiLPartUnitIdx*/ < rpcPic->getCU( uiCUAddr )->getEntropySliceStartCU(0/*!!!uiCurrPartUnitIdx*/)||
+             pcCUTR->getSCUAddr()+uiMaxParts-1 < pcSlice->getEntropySliceCurStartCUAddr() ||
              (rpcPic->getPicSym()->getTileBoundaryIndependenceIdr() && rpcPic->getPicSym()->getTileIdxMap( pcCUTR->getAddr() ) != rpcPic->getPicSym()->getTileIdxMap(uiCUAddr))
              ))
            )
@@ -751,21 +751,25 @@ Void TEncSlice::compressSlice( TComPic*& rpcPic )
         // We'll sync if the TR is available.
         TComDataCU *pcCUUp = pcCU->getCUAbove();
         UInt uiWidthInCU = rpcPic->getFrameWidthInCU();
+        UInt uiMaxParts = 1<<(pcSlice->getSPS()->getMaxCUDepth()<<1);
         TComDataCU *pcCUTR = NULL;
         if ( pcCUUp && (uiCUAddr%uiWidthInCU+pcSlice->getPPS()->getEntropyCodingSynchro()) < uiWidthInCU  )
           pcCUTR = rpcPic->getCU( uiCUAddr - uiWidthInCU + pcSlice->getPPS()->getEntropyCodingSynchro() );
 #if FINE_GRANULARITY_SLICES
-        // !!! Gotta get corner conditions right.
         if ((true/*bEnforceSliceRestriction*/ &&
-            (pcCUTR==NULL || pcCUTR->getSlice()==NULL || pcCUTR->getSCUAddr()+0/*!!!uiBLPartUnitIdx*/ < rpcPic->getCU( uiCUAddr )->getSliceStartCU       (0/*!!!uiCurrPartUnitIdx*/)))
+            (pcCUTR==NULL || pcCUTR->getSlice()==NULL || pcCUTR->getSCUAddr()+uiMaxParts-1 < pcSlice->getSliceCurStartCUAddr()))
           ||(true/*bEnforceEntropySliceRestriction*/ &&
-            (pcCUTR==NULL || pcCUTR->getSlice()==NULL || pcCUTR->getSCUAddr()+0/*!!!uiBLPartUnitIdx*/ < rpcPic->getCU( uiCUAddr )->getEntropySliceStartCU(0/*!!!uiCurrPartUnitIdx*/))))
+            (pcCUTR==NULL || pcCUTR->getSlice()==NULL || pcCUTR->getSCUAddr()+uiMaxParts-1 < pcSlice->getEntropySliceCurStartCUAddr())))
 #else
-        if (pcCUTR != NULL
-            && pcCUTR->getSlice() != NULL
-            && pcCUTR->getAddr() >= pcSlice->getSliceCurStartCUAddr()
-            && pcCUTR->getAddr() >= pcSlice->getEntropySliceCurStartCUAddr())
+        if (pcCUTR == NULL
+            || pcCUTR->getSlice() == NULL
+            || pcCUTR->getAddr() < pcSlice->getSliceCurStartCUAddr()
+            || pcCUTR->getAddr() < pcSlice->getEntropySliceCurStartCUAddr())
 #endif
+        {
+          // TR is not available.
+        }
+        else
         {
           // TR is available, we use it.
           ppppcRDSbacCoders[uiSubStrm][0][CI_CURR_BEST]->loadContexts( &m_pcBufferSbacCoders[0] );
@@ -1141,20 +1145,20 @@ Void TEncSlice::encodeSlice   ( TComPic*& rpcPic, TComOutputBitstream* pcBitstre
         // We'll sync if the TR is available.
         TComDataCU *pcCUUp = rpcPic->getCU( uiCUAddr )->getCUAbove();
         UInt uiWidthInCU = rpcPic->getFrameWidthInCU();
+        UInt uiMaxParts = 1<<(pcSlice->getSPS()->getMaxCUDepth()<<1);
         TComDataCU *pcCUTR = NULL;
         if ( pcCUUp && (uiCUAddr%uiWidthInCU+pcSlice->getPPS()->getEntropyCodingSynchro()) < uiWidthInCU  )
           pcCUTR = rpcPic->getCU( uiCUAddr - uiWidthInCU + pcSlice->getPPS()->getEntropyCodingSynchro() );
 
 #if FINE_GRANULARITY_SLICES
-        /* Got to get the corner conditions right. */
         if ( (true/*bEnforceSliceRestriction*/ &&
              (pcCUTR==NULL || pcCUTR->getSlice()==NULL || 
-             pcCUTR->getSCUAddr() < rpcPic->getCU( uiCUAddr )->getSliceStartCU(0/*!!!uiCurrPartUnitIdx*/)||
+             pcCUTR->getSCUAddr()+uiMaxParts-1 < pcSlice->getSliceCurStartCUAddr()||
              (rpcPic->getPicSym()->getTileBoundaryIndependenceIdr() && rpcPic->getPicSym()->getTileIdxMap( pcCUTR->getAddr() ) != rpcPic->getPicSym()->getTileIdxMap(uiCUAddr))
              ))||
              (true/*bEnforceEntropySliceRestriction*/ &&
              (pcCUTR==NULL || pcCUTR->getSlice()==NULL || 
-             pcCUTR->getSCUAddr()+0/*!!uiLPartUnitIdx*/ < rpcPic->getCU( uiCUAddr )->getEntropySliceStartCU(0/*!!!uiCurrPartUnitIdx*/)||
+             pcCUTR->getSCUAddr()+uiMaxParts-1 < pcSlice->getEntropySliceCurStartCUAddr()||
              (rpcPic->getPicSym()->getTileBoundaryIndependenceIdr() && rpcPic->getPicSym()->getTileIdxMap( pcCUTR->getAddr() ) != rpcPic->getPicSym()->getTileIdxMap(uiCUAddr))
              ))
            )
@@ -1190,22 +1194,26 @@ Void TEncSlice::encodeSlice   ( TComPic*& rpcPic, TComOutputBitstream* pcBitstre
         // We'll sync if the TR is available.
         TComDataCU *pcCUUp = rpcPic->getCU( uiCUAddr )->getCUAbove();
         UInt uiWidthInCU = rpcPic->getFrameWidthInCU();
+        UInt uiMaxParts = 1<<(pcSlice->getSPS()->getMaxCUDepth()<<1);
         TComDataCU *pcCUTR = NULL;
         if ( pcCUUp && (uiCUAddr%uiWidthInCU+pcSlice->getPPS()->getEntropyCodingSynchro()) < uiWidthInCU  )
           pcCUTR = rpcPic->getCU( uiCUAddr - uiWidthInCU + pcSlice->getPPS()->getEntropyCodingSynchro() );
 
 #if FINE_GRANULARITY_SLICES
-        // !!! Gotta get corner conditions right.
         if ((true/*bEnforceSliceRestriction*/ &&
-            (pcCUTR==NULL || pcCUTR->getSlice()==NULL || pcCUTR->getSCUAddr()+0/*!!!uiBLPartUnitIdx*/ < rpcPic->getCU( uiCUAddr )->getSliceStartCU       (0/*!!!uiCurrPartUnitIdx*/)))
+            (pcCUTR==NULL || pcCUTR->getSlice()==NULL || pcCUTR->getSCUAddr()+uiMaxParts-1 < pcSlice->getSliceCurStartCUAddr()))
           ||(true/*bEnforceEntropySliceRestriction*/ &&
-            (pcCUTR==NULL || pcCUTR->getSlice()==NULL || pcCUTR->getSCUAddr()+0/*!!!uiBLPartUnitIdx*/ < rpcPic->getCU( uiCUAddr )->getEntropySliceStartCU(0/*!!!uiCurrPartUnitIdx*/))))
+            (pcCUTR==NULL || pcCUTR->getSlice()==NULL || pcCUTR->getSCUAddr()+uiMaxParts-1 < pcSlice->getEntropySliceCurStartCUAddr())))
 #else
-        if (pcCUTR != NULL
-            && pcCUTR->getSlice() != NULL
-            && pcCUTR->getAddr() >= pcSlice->getSliceCurStartCUAddr()
-            && pcCUTR->getAddr() >= pcSlice->getEntropySliceCurStartCUAddr())
+        if (pcCUTR == NULL
+            || pcCUTR->getSlice() == NULL
+            || pcCUTR->getAddr() < pcSlice->getSliceCurStartCUAddr()
+            || pcCUTR->getAddr() < pcSlice->getEntropySliceCurStartCUAddr())
 #endif
+        {
+          // TR is not available.
+        }
+        else
         {
           // TR is available, we use it.
           pcSbacCoders[uiSubStrm].loadContexts( &m_pcBufferSbacCoders[0] );

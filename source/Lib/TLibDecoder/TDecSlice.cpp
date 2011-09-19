@@ -159,7 +159,6 @@ Void TDecSlice::decompressSlice(TComInputBitstream* pcBitstream, TComPic*& rpcPi
 #endif
 #endif
 
-
 #if TILES
   for( Int iCUAddr = iStartCUAddr; !uiIsLast && iCUAddr < rpcPic->getNumCUsInFrame(); iCUAddr = rpcPic->getPicSym()->xCalculateNxtCUAddr(iCUAddr) )
 #else
@@ -210,17 +209,17 @@ Void TDecSlice::decompressSlice(TComInputBitstream* pcBitstream, TComPic*& rpcPi
         TComDataCU *pcCUTR = NULL;
         if ( pcCUUp && (iCUAddr%uiWidthInCU+pcSlice->getPPS()->getEntropyCodingSynchro()) < uiWidthInCU  )
           pcCUTR = rpcPic->getCU( iCUAddr - uiWidthInCU + pcSlice->getPPS()->getEntropyCodingSynchro() );
+        UInt uiMaxParts = 1<<(pcSlice->getSPS()->getMaxCUDepth()<<1);
 
 #if FINE_GRANULARITY_SLICES
-        // !!! Corner conditions right.
         if ( (true/*bEnforceSliceRestriction*/ &&
              (pcCUTR==NULL || pcCUTR->getSlice()==NULL || 
-             pcCUTR->getSCUAddr() < rpcPic->getCU( iCUAddr )->getSliceStartCU(0/*!!!uiCurrPartUnitIdx*/)||
+             pcCUTR->getSCUAddr()+uiMaxParts-1 < pcSlice->getSliceCurStartCUAddr()||
              (rpcPic->getPicSym()->getTileBoundaryIndependenceIdr() && rpcPic->getPicSym()->getTileIdxMap( pcCUTR->getAddr() ) != rpcPic->getPicSym()->getTileIdxMap(iCUAddr))
              ))||
              (true/*bEnforceEntropySliceRestriction*/ &&
              (pcCUTR==NULL || pcCUTR->getSlice()==NULL || 
-             pcCUTR->getSCUAddr()+0/*!!uiLPartUnitIdx*/ < rpcPic->getCU( iCUAddr )->getEntropySliceStartCU(0/*!!!uiCurrPartUnitIdx*/)||
+             pcCUTR->getSCUAddr()+uiMaxParts-1 < pcSlice->getEntropySliceCurStartCUAddr()||
              (rpcPic->getPicSym()->getTileBoundaryIndependenceIdr() && rpcPic->getPicSym()->getTileIdxMap( pcCUTR->getAddr() ) != rpcPic->getPicSym()->getTileIdxMap(iCUAddr))
              ))
            )
@@ -254,21 +253,25 @@ Void TDecSlice::decompressSlice(TComInputBitstream* pcBitstream, TComPic*& rpcPi
         // We'll sync if the TR is available.
         TComDataCU *pcCUUp = pcCU->getCUAbove();
         UInt uiWidthInCU = rpcPic->getFrameWidthInCU();
+        UInt uiMaxParts = 1<<(pcSlice->getSPS()->getMaxCUDepth()<<1);
         TComDataCU *pcCUTR = NULL;
         if ( pcCUUp && (iCUAddr%uiWidthInCU+pcSlice->getPPS()->getEntropyCodingSynchro()) < uiWidthInCU  )
           pcCUTR = rpcPic->getCU( iCUAddr - uiWidthInCU + pcSlice->getPPS()->getEntropyCodingSynchro() );
 #if FINE_GRANULARITY_SLICES
-        // !!! Gotta get corner conditions right.
         if ((true/*bEnforceSliceRestriction*/ &&
-            (pcCUTR==NULL || pcCUTR->getSlice()==NULL || pcCUTR->getSCUAddr()+0/*!!!uiBLPartUnitIdx*/ < rpcPic->getCU( iCUAddr )->getSliceStartCU       (0/*!!!uiCurrPartUnitIdx*/)))
+            (pcCUTR==NULL || pcCUTR->getSlice()==NULL || pcCUTR->getSCUAddr()+uiMaxParts-1 < pcSlice->getSliceCurStartCUAddr()))
           ||(true/*bEnforceEntropySliceRestriction*/ &&
-            (pcCUTR==NULL || pcCUTR->getSlice()==NULL || pcCUTR->getSCUAddr()+0/*!!!uiBLPartUnitIdx*/ < rpcPic->getCU( iCUAddr )->getEntropySliceStartCU(0/*!!!uiCurrPartUnitIdx*/))))
+            (pcCUTR==NULL || pcCUTR->getSlice()==NULL || pcCUTR->getSCUAddr()+uiMaxParts-1 < pcSlice->getEntropySliceCurStartCUAddr())))
 #else
-        if (pcCUTR != NULL
-            && pcCUTR->getSlice() != NULL
-            && pcCUTR->getAddr() >= pcSlice->getSliceCurStartCUAddr()
-            && pcCUTR->getAddr() >= pcSlice->getEntropySliceCurStartCUAddr())
+        if (pcCUTR == NULL
+            || pcCUTR->getSlice() == NULL
+            || pcCUTR->getAddr() < pcSlice->getSliceCurStartCUAddr()
+            || pcCUTR->getAddr() < pcSlice->getEntropySliceCurStartCUAddr())
 #endif
+        {
+          // TR is not available.
+        }
+        else
         {
           // TR is available, we use it.
           pcSbacDecoders[uiSubStrm].loadContexts( &m_pcBufferSbacDecoders[0] );
@@ -280,7 +283,9 @@ Void TDecSlice::decompressSlice(TComInputBitstream* pcBitstream, TComPic*& rpcPi
     else if ( iSymbolMode && !pcSlice->getPPS()->getEntropyCodingSynchro() )
     {
       // Set variables to appropriate values to avoid later code change.
+#if TILES
       iNumSubstreamsPerTile = 1;
+#endif
     }
 #endif // OL_USE_WPP
 
