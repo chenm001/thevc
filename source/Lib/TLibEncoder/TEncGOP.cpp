@@ -1167,6 +1167,15 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
 #if TILES_DECODER
           TComOutputBitstream *pcOut = pcBitstreamRedirect;
           // xWriteTileLocation will perform byte-alignment...
+          if (pcSlice->getSPS()->getTileBoundaryIndependenceIdr())
+          {
+            if (bEntropySlice)
+            {
+              // In these cases, padding is necessary here.
+              pcOut = &nalu.m_Bitstream;
+              pcOut->writeAlignOne();
+            }
+          }
 #else
           TComOutputBitstream *pcOut = &nalu.m_Bitstream;
           nalu.m_Bitstream.writeAlignOne(); // Byte-alignment before CABAC data

@@ -194,21 +194,14 @@
 #error CHANGE_GET_MERGE_CANDIDATE can only be defined with CHANGE_MERGE_CONTEXT
 #endif
 
-////////////////////////////////
-// ORANGE LABS defines section start
-////////////////////////////////
-#define OL_USE_WPP    1     //Set to 1 to enable Wavefront Parallel Processing, 0 otherwise
+#define OL_USE_WPP    1     // Set to 1 to enable Wavefront Parallel Processing, 0 otherwise
 #if OL_USE_WPP
-#define OL_FLUSH 1          //Set to 1 to enable Wavefront Flush.
-#define OL_FLUSH_ALIGN 0    // align flush to byte boundary.  This preserves byte operations in CABAC (faster) but at the expense of an average
-                            // of 4 bits per flush!
+#define OL_FLUSH 1          // Set to 1 to enable Wavefront Flush.
+#define OL_FLUSH_ALIGN 0    // Align flush to byte boundary.  This preserves byte operations in CABAC (faster) but at the expense of an average
+                            // of 4 bits per flush.
                             // Setting to 0 will slow cabac by an as yet unknown amount.
                             // This is here just to perform timing tests -- OL_FLUSH_ALIGN should be 0 for WPP.
 #endif
-
-////////////////////////////////
-// ORANGE LABS defines section end
-////////////////////////////////
 
 #define MTK_NONCROSS_INLOOP_FILTER        1           ///< Allow non-cross-slice-boundary in-loop filtering, including DB & ALF (JCTVC-D128)
 
