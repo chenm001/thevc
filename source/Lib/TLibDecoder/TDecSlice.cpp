@@ -377,8 +377,8 @@ Void TDecSlice::decompressSlice(TComInputBitstream* pcBitstream, TComPic*& rpcPi
       if (!uiIsLast && pcSlice->getPPS()->getCabacIstateReset())
       {
 #if TILES
-        if (iBreakDep && uiCol == uiTileLCUX+uiTileWidth-1 && uiLin+iNumSubstreamsPerTile < uiTileLCUY+uiTileHeight
-            || !iBreakDep && uiCol == uiWidthInLCUs-1 && uiLin+iNumSubstreams < pcCU->getPic()->getFrameHeightInCU())
+        if ((iBreakDep && (uiCol == uiTileLCUX+uiTileWidth-1) && (uiLin+iNumSubstreamsPerTile < uiTileLCUY+uiTileHeight))
+            || (!iBreakDep && (uiCol == uiWidthInLCUs-1) && (uiLin+iNumSubstreams < pcCU->getPic()->getFrameHeightInCU())))
 #else
         if (uiCol == uiWidthInLCUs-1 && uiLin+iNumSubstreams < pcCU->getPic()->getFrameHeightInCU() )
 #endif
