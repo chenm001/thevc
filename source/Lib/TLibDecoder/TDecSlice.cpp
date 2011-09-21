@@ -207,30 +207,30 @@ Void TDecSlice::decompressSlice(TComInputBitstream* pcBitstream, TComPic*& rpcPi
         TComDataCU *pcCUUp = pcCU->getCUAbove();
         UInt uiWidthInCU = rpcPic->getFrameWidthInCU();
         TComDataCU *pcCUTR = NULL;
-        if ( pcCUUp && (iCUAddr%uiWidthInCU+pcSlice->getPPS()->getEntropyCodingSynchro()) < uiWidthInCU  )
+        if ( pcCUUp && ((iCUAddr%uiWidthInCU+pcSlice->getPPS()->getEntropyCodingSynchro()) < uiWidthInCU)  )
           pcCUTR = rpcPic->getCU( iCUAddr - uiWidthInCU + pcSlice->getPPS()->getEntropyCodingSynchro() );
         UInt uiMaxParts = 1<<(pcSlice->getSPS()->getMaxCUDepth()<<1);
 
 #if FINE_GRANULARITY_SLICES
         if ( (true/*bEnforceSliceRestriction*/ &&
-             (pcCUTR==NULL || pcCUTR->getSlice()==NULL || 
-             pcCUTR->getSCUAddr()+uiMaxParts-1 < pcSlice->getSliceCurStartCUAddr()||
-             (rpcPic->getPicSym()->getTileBoundaryIndependenceIdr() && rpcPic->getPicSym()->getTileIdxMap( pcCUTR->getAddr() ) != rpcPic->getPicSym()->getTileIdxMap(iCUAddr))
+             ((pcCUTR==NULL) || (pcCUTR->getSlice()==NULL) || 
+             ((pcCUTR->getSCUAddr()+uiMaxParts-1) < pcSlice->getSliceCurStartCUAddr()) ||
+             (rpcPic->getPicSym()->getTileBoundaryIndependenceIdr() && (rpcPic->getPicSym()->getTileIdxMap( pcCUTR->getAddr() ) != rpcPic->getPicSym()->getTileIdxMap(iCUAddr)))
              ))||
              (true/*bEnforceEntropySliceRestriction*/ &&
-             (pcCUTR==NULL || pcCUTR->getSlice()==NULL || 
-             pcCUTR->getSCUAddr()+uiMaxParts-1 < pcSlice->getEntropySliceCurStartCUAddr()||
-             (rpcPic->getPicSym()->getTileBoundaryIndependenceIdr() && rpcPic->getPicSym()->getTileIdxMap( pcCUTR->getAddr() ) != rpcPic->getPicSym()->getTileIdxMap(iCUAddr))
+             ((pcCUTR==NULL) || (pcCUTR->getSlice()==NULL) || 
+             ((pcCUTR->getSCUAddr()+uiMaxParts-1) < pcSlice->getEntropySliceCurStartCUAddr()) ||
+             (rpcPic->getPicSym()->getTileBoundaryIndependenceIdr() && (rpcPic->getPicSym()->getTileIdxMap( pcCUTR->getAddr() ) != rpcPic->getPicSym()->getTileIdxMap(iCUAddr)))
              ))
            )
 #else
         if( (true/*bEnforceSliceRestriction*/ &&
-            (pcCUTR==NULL || pcCUTR->getSlice()==NULL || rpcPic->getPicSym()->getInverseCUOrderMap( pcCUTR->getAddr()) < rpcPic->getPicSym()->getTempInverseCUOrderMap(uiSliceStartLCU) ||
-            (rpcPic->getPicSym()->getTileBoundaryIndependenceIdr() && rpcPic->getPicSym()->getTileIdxMap( pcCUTR->getAddr() ) != rpcPic->getPicSym()->getTileIdxMap(iCUAddr) ))) ||
+            ((pcCUTR==NULL) || (pcCUTR->getSlice()==NULL) || (rpcPic->getPicSym()->getInverseCUOrderMap( pcCUTR->getAddr()) < rpcPic->getPicSym()->getTempInverseCUOrderMap(uiSliceStartLCU)) ||
+            (rpcPic->getPicSym()->getTileBoundaryIndependenceIdr() && (rpcPic->getPicSym()->getTileIdxMap( pcCUTR->getAddr() ) != rpcPic->getPicSym()->getTileIdxMap(iCUAddr)) ))) ||
             (true/*bEnforceEntropySliceRestriction*/ &&
-            (pcCUTR==NULL || pcCUTR->getSlice()==NULL || rpcPic->getPicSym()->getInverseCUOrderMap( pcCUTR->getAddr()) < rpcPic->getPicSym()->getTempInverseCUOrderMap(pcSlice->getEntropySliceCurStartCUAddr())
+            ((pcCUTR==NULL) || (pcCUTR->getSlice()==NULL) || (rpcPic->getPicSym()->getInverseCUOrderMap( pcCUTR->getAddr()) < rpcPic->getPicSym()->getTempInverseCUOrderMap(pcSlice->getEntropySliceCurStartCUAddr()))
     ||
-            (rpcPic->getPicSym()->getTileBoundaryIndependenceIdr() && rpcPic->getPicSym()->getTileIdxMap( pcCUTR->getAddr() ) != rpcPic->getPicSym()->getTileIdxMap(iCUAddr) )))
+            (rpcPic->getPicSym()->getTileBoundaryIndependenceIdr() && (rpcPic->getPicSym()->getTileIdxMap( pcCUTR->getAddr() ) != rpcPic->getPicSym()->getTileIdxMap(iCUAddr)) )))
           )
 #endif
         {
@@ -255,18 +255,18 @@ Void TDecSlice::decompressSlice(TComInputBitstream* pcBitstream, TComPic*& rpcPi
         UInt uiWidthInCU = rpcPic->getFrameWidthInCU();
         UInt uiMaxParts = 1<<(pcSlice->getSPS()->getMaxCUDepth()<<1);
         TComDataCU *pcCUTR = NULL;
-        if ( pcCUUp && (iCUAddr%uiWidthInCU+pcSlice->getPPS()->getEntropyCodingSynchro()) < uiWidthInCU  )
+        if ( pcCUUp && ((iCUAddr%uiWidthInCU+pcSlice->getPPS()->getEntropyCodingSynchro()) < uiWidthInCU)  )
           pcCUTR = rpcPic->getCU( iCUAddr - uiWidthInCU + pcSlice->getPPS()->getEntropyCodingSynchro() );
 #if FINE_GRANULARITY_SLICES
         if ((true/*bEnforceSliceRestriction*/ &&
-            (pcCUTR==NULL || pcCUTR->getSlice()==NULL || pcCUTR->getSCUAddr()+uiMaxParts-1 < pcSlice->getSliceCurStartCUAddr()))
+            ((pcCUTR==NULL) || (pcCUTR->getSlice()==NULL) || ((pcCUTR->getSCUAddr()+uiMaxParts-1) < pcSlice->getSliceCurStartCUAddr())))
           ||(true/*bEnforceEntropySliceRestriction*/ &&
-            (pcCUTR==NULL || pcCUTR->getSlice()==NULL || pcCUTR->getSCUAddr()+uiMaxParts-1 < pcSlice->getEntropySliceCurStartCUAddr())))
+            ((pcCUTR==NULL) || (pcCUTR->getSlice()==NULL) || ((pcCUTR->getSCUAddr()+uiMaxParts-1) < pcSlice->getEntropySliceCurStartCUAddr()))))
 #else
-        if (pcCUTR == NULL
-            || pcCUTR->getSlice() == NULL
-            || pcCUTR->getAddr() < pcSlice->getSliceCurStartCUAddr()
-            || pcCUTR->getAddr() < pcSlice->getEntropySliceCurStartCUAddr())
+        if ((pcCUTR == NULL)
+            || (pcCUTR->getSlice() == NULL)
+            || (pcCUTR->getAddr() < pcSlice->getSliceCurStartCUAddr())
+            || (pcCUTR->getAddr() < pcSlice->getEntropySliceCurStartCUAddr()))
 #endif
         {
           // TR is not available.
@@ -293,8 +293,8 @@ Void TDecSlice::decompressSlice(TComInputBitstream* pcBitstream, TComPic*& rpcPi
 #if !OL_USE_WPP
     TComSlice *pcSlice = rpcPic->getSlice(rpcPic->getCurrSliceIdx());
 #endif
-    if ( iCUAddr == rpcPic->getPicSym()->getTComTile(rpcPic->getPicSym()->getTileIdxMap(iCUAddr))->getFirstCUAddr() && // 1st in tile.
-         iCUAddr!=0 && iCUAddr!=rpcPic->getPicSym()->getPicSCUAddr(rpcPic->getSlice(rpcPic->getCurrSliceIdx())->getSliceCurStartCUAddr())/rpcPic->getNumPartInCU() && rpcPic->getPicSym()->getTileBoundaryIndependenceIdr()) // !1st in frame && !1st in slice && tile-independant
+    if ( (iCUAddr == rpcPic->getPicSym()->getTComTile(rpcPic->getPicSym()->getTileIdxMap(iCUAddr))->getFirstCUAddr()) && // 1st in tile.
+         (iCUAddr!=0) && (iCUAddr!=rpcPic->getPicSym()->getPicSCUAddr(rpcPic->getSlice(rpcPic->getCurrSliceIdx())->getSliceCurStartCUAddr())/rpcPic->getNumPartInCU()) && rpcPic->getPicSym()->getTileBoundaryIndependenceIdr()) // !1st in frame && !1st in slice && tile-independant
     {
 #if TILES_DECODER
       Bool bTileMarkerFoundFlag = false;
@@ -380,7 +380,7 @@ Void TDecSlice::decompressSlice(TComInputBitstream* pcBitstream, TComPic*& rpcPi
         if ((iBreakDep && (uiCol == uiTileLCUX+uiTileWidth-1) && (uiLin+iNumSubstreamsPerTile < uiTileLCUY+uiTileHeight))
             || (!iBreakDep && (uiCol == uiWidthInLCUs-1) && (uiLin+iNumSubstreams < pcCU->getPic()->getFrameHeightInCU())))
 #else
-        if (uiCol == uiWidthInLCUs-1 && uiLin+iNumSubstreams < pcCU->getPic()->getFrameHeightInCU() )
+        if ((uiCol == uiWidthInLCUs-1) && (uiLin+iNumSubstreams < pcCU->getPic()->getFrameHeightInCU()) )
 #endif
         {
           m_pcEntropyDecoder->decodeFlush();
@@ -391,12 +391,12 @@ Void TDecSlice::decompressSlice(TComInputBitstream* pcBitstream, TComPic*& rpcPi
 
       //Store probabilities of second LCU in line into buffer
 #if TILES
-      if (pcSlice->getPPS()->getEntropyCodingSynchro() && uiCol == uiTileLCUX+pcSlice->getPPS()->getEntropyCodingSynchro())
+      if (pcSlice->getPPS()->getEntropyCodingSynchro() && (uiCol == uiTileLCUX+pcSlice->getPPS()->getEntropyCodingSynchro()))
       {
         m_pcBufferSbacDecoders[uiTileCol].loadContexts( &pcSbacDecoders[uiSubStrm] );
       }
 #else
-      if (pcSlice->getPPS()->getEntropyCodingSynchro() && uiCol == pcSlice->getPPS()->getEntropyCodingSynchro())
+      if (pcSlice->getPPS()->getEntropyCodingSynchro() && (uiCol == pcSlice->getPPS()->getEntropyCodingSynchro()))
       {
         //printf("saving context into 0 for ss%d at %d (col %d)\n", uiSubStrm, iCUAddr, uiCol);
         m_pcBufferSbacDecoders[0].loadContexts( &pcSbacDecoders[uiSubStrm] );

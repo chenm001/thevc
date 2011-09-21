@@ -1141,8 +1141,8 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
                 && m_pcCfg->getTileMarkerFlag() == 1)
             {
               Int iTileIdxNext = (ui+1)/uiNumSubstreamsPerTile;
-              Bool bWriteTileMarkerNext = ui+uiNumSubstreamsPerTile < iNumSubstreams
-                                            && ( (((Int)((iTileMarkerWrittenInSlice+1)*m_pcCfg->getMaxTileMarkerOffset()+0.5)) == iTileIdxNext ) && iTileMarkerWrittenInSlice < (m_pcCfg->getMaxTileMarkerEntryPoints()-1));
+              Bool bWriteTileMarkerNext = (ui+uiNumSubstreamsPerTile < iNumSubstreams)
+                                            && ( (((Int)((iTileMarkerWrittenInSlice+1)*m_pcCfg->getMaxTileMarkerOffset()+0.5)) == iTileIdxNext ) && (iTileMarkerWrittenInSlice < (m_pcCfg->getMaxTileMarkerEntryPoints()-1)));
               if (bWriteTileMarkerNext)
               {
                 // byte align.
