@@ -51,6 +51,33 @@
 // Class definition
 // ====================================================================================================================
 
+#if TILES
+class TComTile
+{
+private:
+  UInt      m_uiTileWidth;
+  UInt      m_uiTileHeight;
+  UInt      m_uiRightEdgePosInCU;
+  UInt      m_uiBottomEdgePosInCU;
+  UInt      m_uiFirstCUAddr;
+
+public:  
+  TComTile();
+  virtual ~TComTile();
+
+  Void      setTileWidth         ( UInt i )            { m_uiTileWidth = i; }
+  UInt      getTileWidth         ()                    { return m_uiTileWidth; }
+  Void      setTileHeight        ( UInt i )            { m_uiTileHeight = i; }
+  UInt      getTileHeight        ()                    { return m_uiTileHeight; }
+  Void      setRightEdgePosInCU  ( UInt i )            { m_uiRightEdgePosInCU = i; }
+  UInt      getRightEdgePosInCU  ()                    { return m_uiRightEdgePosInCU; }
+  Void      setBottomEdgePosInCU ( UInt i )            { m_uiBottomEdgePosInCU = i; }
+  UInt      getBottomEdgePosInCU ()                    { return m_uiBottomEdgePosInCU; }
+  Void      setFirstCUAddr       ( UInt i )            { m_uiFirstCUAddr = i; }
+  UInt      getFirstCUAddr       ()                    { return m_uiFirstCUAddr; }
+};
+#endif
+
 /// picture symbol class
 class TComPicSym
 {
@@ -73,6 +100,19 @@ private:
   UInt          m_uiNumAllocatedSlice;
   TComDataCU**  m_apcTComDataCU;        ///< array of CU data
   
+#if TILES
+  Int           m_iTileBoundaryIndependenceIdr;
+  Int           m_iNumColumnsMinus1; 
+  Int           m_iNumRowsMinus1;
+  TComTile**    m_apcTComTile;
+  UInt*         m_puiCUOrderMap;       //the map of LCU raster scan address relative to LCU encoding order 
+  UInt*         m_puiTileIdxMap;       //the map of the tile index relative to LCU raster scan address 
+  UInt*         m_puiInverseCUOrderMap;
+#if TILES_DECODER
+  UInt          m_uiBitsUsedByTileIdx;
+#endif
+#endif
+
 public:
   Void        create  ( Int iPicWidth, Int iPicHeight, UInt uiMaxWidth, UInt uiMaxHeight, UInt uiMaxDepth );
   Void        destroy ();
@@ -93,6 +133,32 @@ public:
   UInt        getNumPartition()         { return m_uiNumPartitions;             }
   UInt        getNumPartInWidth()       { return m_uiNumPartInWidth;            }
   UInt        getNumPartInHeight()      { return m_uiNumPartInHeight;           }
+
+#if TILES
+  Void         setTileBoundaryIndependenceIdr( Int i )               { m_iTileBoundaryIndependenceIdr = i; }
+  Int          getTileBoundaryIndependenceIdr()                      { return m_iTileBoundaryIndependenceIdr; }
+  Void         setNumColumnsMinus1( Int i )                          { m_iNumColumnsMinus1 = i; }
+  Int          getNumColumnsMinus1()                                 { return m_iNumColumnsMinus1; }  
+  Void         setNumRowsMinus1( Int i )                             { m_iNumRowsMinus1 = i; }
+  Int          getNumRowsMinus1()                                    { return m_iNumRowsMinus1; }
+#if OL_USE_WPP
+  Int          getNumTiles()                                         { return (m_iNumRowsMinus1+1)*(m_iNumColumnsMinus1+1); }
+#endif
+  TComTile*    getTComTile  ( UInt tileIdx )                         { return *(m_apcTComTile + tileIdx); }
+  Void         setCUOrderMap( Int encCUOrder, Int cuAddr )           { *(m_puiCUOrderMap + encCUOrder) = cuAddr; }
+  UInt         getCUOrderMap( Int encCUOrder )                       { return *(m_puiCUOrderMap + (encCUOrder>=m_uiNumCUsInFrame ? m_uiNumCUsInFrame : encCUOrder)); }
+  UInt         getTileIdxMap( Int i )                                { return *(m_puiTileIdxMap + i); }
+  Void         setInverseCUOrderMap( Int cuAddr, Int encCUOrder )    { *(m_puiInverseCUOrderMap + cuAddr) = encCUOrder; }
+  UInt         getInverseCUOrderMap( Int cuAddr )                    { return *(m_puiInverseCUOrderMap + (cuAddr>=m_uiNumCUsInFrame ? m_uiNumCUsInFrame : cuAddr)); }
+  UInt         getPicSCUEncOrder( UInt SCUAddr );
+  UInt         getPicSCUAddr( UInt SCUEncOrder );
+  Void         xCreateTComTileArray();
+  Void         xInitTiles();
+  UInt         xCalculateNxtCUAddr( UInt uiCurrCUAddr );
+#if TILES_DECODER
+  UInt         getBitsUsedByTileIdx()                                { return m_uiBitsUsedByTileIdx; }
+#endif
+#endif  
 };// END CLASS DEFINITION TComPicSym
 
 //! \}

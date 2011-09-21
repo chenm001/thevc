@@ -305,6 +305,19 @@ Void TEncCavlc::codePPS( TComPPS* pcPPS )
   WRITE_UVLC( pcPPS->getPPSId(),                             "pic_parameter_set_id" );
   WRITE_UVLC( pcPPS->getSPSId(),                             "seq_parameter_set_id" );
   // entropy_coding_mode_flag
+#if OL_USE_WPP
+  // We code the entropy_coding_mode_flag, it's needed for tests.
+  WRITE_FLAG( pcPPS->getEntropyCodingMode() ? 1 : 0,         "entropy_coding_mode_flag" );
+  if (pcPPS->getEntropyCodingMode())
+  {
+    WRITE_UVLC( pcPPS->getEntropyCodingSynchro(),            "entropy_coding_synchro" );
+    WRITE_FLAG( pcPPS->getCabacIstateReset() ? 1 : 0,        "cabac_istate_reset" );
+    if ( pcPPS->getEntropyCodingSynchro() )
+    {
+      WRITE_UVLC( pcPPS->getNumSubstreams()-1,               "num_substreams_minus1" );
+    }
+  }
+#endif
   WRITE_UVLC( pcPPS->getNumTLayerSwitchingFlags(),           "num_temporal_layer_switching_point_flags" );
   for( UInt i = 0; i < pcPPS->getNumTLayerSwitchingFlags(); i++ ) 
   {
@@ -329,6 +342,28 @@ Void TEncCavlc::codePPS( TComPPS* pcPPS )
   if( pcPPS->getSPS()->getUseDQP() )
   {
     WRITE_UVLC( pcPPS->getMaxCuDQPDepth(),                   "max_cu_qp_delta_depth" );
+  }
+#endif
+
+#if TILES
+  WRITE_CODE( pcPPS->getColumnRowInfoPresent(), 1,           "tile_info_present_flag" );
+  if( pcPPS->getColumnRowInfoPresent() == 1 )
+  {
+    WRITE_CODE( pcPPS->getUniformSpacingIdr(), 1,                                   "uniform_spacing_idc" );
+    WRITE_CODE( pcPPS->getTileBoundaryIndependenceIdr(), 1,                         "tile_boundary_independence_idc" );
+    WRITE_CODE( pcPPS->getNumColumnsMinus1(), LOG2_MAX_NUM_COLUMNS_MINUS1,          "num_tile_columns_minus1" );
+    WRITE_CODE( pcPPS->getNumRowsMinus1(), LOG2_MAX_NUM_ROWS_MINUS1,                "num_tile_rows_minus1" );
+    if( pcPPS->getUniformSpacingIdr() == 0 )
+    {
+      for(UInt i=0; i<pcPPS->getNumColumnsMinus1(); i++)
+      {
+        WRITE_CODE( pcPPS->getColumnWidth(i), LOG2_MAX_COLUMN_WIDTH,                "column_width" );
+      }
+      for(UInt i=0; i<pcPPS->getNumRowsMinus1(); i++)
+      {
+        WRITE_CODE( pcPPS->getRowHeight(i), LOG2_MAX_ROW_HEIGHT,                    "row_height" );
+      }
+    }
   }
 #endif
   return;
@@ -439,7 +474,31 @@ Void TEncCavlc::codeSPS( TComSPS* pcSPS )
     xWriteUvlc( pcSPS->getMaxNumRefFrames() );
   }
 #endif
+#if TILES
+  WRITE_CODE( pcSPS->getUniformSpacingIdr(), 1,                          "uniform_spacing_idc" );
+  WRITE_CODE( pcSPS->getTileBoundaryIndependenceIdr(), 1,                "tile_boundary_independence_idc" );
+  WRITE_CODE( pcSPS->getNumColumnsMinus1(), LOG2_MAX_NUM_COLUMNS_MINUS1, "num_tile_columns_minus1" );
+  WRITE_CODE( pcSPS->getNumRowsMinus1(), LOG2_MAX_NUM_ROWS_MINUS1,       "num_tile_rows_minus1" );
+  if( pcSPS->getUniformSpacingIdr()==0 )
+  {
+    for(UInt i=0; i<pcSPS->getNumColumnsMinus1(); i++)
+    {
+      WRITE_CODE( pcSPS->getColumnWidth(i), LOG2_MAX_COLUMN_WIDTH,       "column_width" );
+    }
+    for(UInt i=0; i<pcSPS->getNumRowsMinus1(); i++)
+    {
+      WRITE_CODE( pcSPS->getRowHeight(i), LOG2_MAX_ROW_HEIGHT,           "row_height" );
+    }
+  }
+#endif
 }
+
+#if TILES_DECODER
+Void TEncCavlc::writeTileMarker( UInt uiTileIdx, UInt uiBitsUsed )
+{
+  xWriteCode( uiTileIdx, uiBitsUsed );
+}
+#endif
 
 Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
 {
@@ -540,7 +599,11 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
   if (pcSlice->isNextSlice())
   {
 #if !FINE_GRANULARITY_SLICES
+#if TILES
+    WRITE_UVLC( pcSlice->getPic()->getPicSym()->getCUOrderMap(pcSlice->getSliceCurStartCUAddr()), "slice_address" );        // Start CU addr for slice
+#else
     WRITE_UVLC( pcSlice->getSliceCurStartCUAddr(), "slice_address" );        // Start CU addr for slice
+#endif
 #else
     // Calculate slice address
     iLCUAddress = (pcSlice->getSliceCurStartCUAddr()/pcSlice->getPic()->getNumPartInCU());
@@ -550,7 +613,11 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
   else
   {
 #if !FINE_GRANULARITY_SLICES
+#if TILES
+    WRITE_UVLC( pcSlice->getPic()->getPicSym()->getCUOrderMap(pcSlice->getEntropySliceCurStartCUAddr()), "slice_address" ); // Start CU addr for entropy slice
+#else
     WRITE_UVLC( pcSlice->getEntropySliceCurStartCUAddr(), "slice_address" ); // Start CU addr for entropy slice
+#endif
 #else
     // Calculate slice address
     iLCUAddress = (pcSlice->getEntropySliceCurStartCUAddr()/pcSlice->getPic()->getNumPartInCU());
@@ -560,7 +627,11 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
   }
 #if FINE_GRANULARITY_SLICES
   //write slice address
+#if TILES
+  int iAddress = (pcSlice->getPic()->getPicSym()->getCUOrderMap(iLCUAddress) << iReqBitsInner) + iInnerAddress;
+#else
   int iAddress    = (iLCUAddress << iReqBitsInner) + iInnerAddress;
+#endif
   WRITE_FLAG( iAddress==0, "first_slice_in_pic_flag" );
   if(iAddress>0) 
   {
@@ -615,6 +686,52 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
     }
   }
 }
+
+#if OL_USE_WPP
+/**
+ - write wavefront substreams sizes for the slice header.
+ .
+ \param pcSlice Where we find the substream size information.
+ */
+Void TEncCavlc::codeSliceHeaderSubstreamTable( TComSlice* pcSlice )
+{
+  UInt uiNumSubstreams = pcSlice->getPPS()->getNumSubstreams();
+  UInt*puiSubstreamSizes = pcSlice->getSubstreamSizes();
+
+  // Write header information for all substreams except the last.
+  for (UInt ui = 0; ui+1 < uiNumSubstreams; ui++)
+  {
+    UInt uiNumbits = puiSubstreamSizes[ui];
+
+    //the 2 first bits are used to give the size of the header
+    if ( uiNumbits < (1<<8) )
+    {
+      xWriteCode(0,         2  );
+      xWriteCode(uiNumbits, 8  );
+    }
+    else if ( uiNumbits < (1<<16) )
+    {
+      xWriteCode(1,         2  );
+      xWriteCode(uiNumbits, 16 );
+    }
+    else if ( uiNumbits < (1<<24) )
+    {
+      xWriteCode(2,         2  );
+      xWriteCode(uiNumbits, 24 );
+    }
+    else if ( uiNumbits < (1<<31) )
+    {
+      xWriteCode(3,         2  );
+      xWriteCode(uiNumbits, 32 );
+    }
+    else
+    {
+      printf("Error in codeSliceHeaderTable\n");
+      exit(-1);
+    }
+  }
+}
+#endif
 
 Void TEncCavlc::codeTerminatingBit      ( UInt uilsLast )
 {

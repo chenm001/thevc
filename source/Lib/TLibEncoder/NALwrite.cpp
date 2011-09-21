@@ -142,4 +142,19 @@ void writeRBSPTrailingBits(TComOutputBitstream& bs)
   bs.write( 1, 1 );
   bs.writeAlignZero();
 }
+
+#if TILES_DECODER
+/**
+ * Copy NALU from naluSrc to naluDest
+ */
+void copyNaluData(OutputNALUnit& naluDest, const OutputNALUnit& naluSrc)
+{
+  naluDest.m_UnitType   = naluSrc.m_UnitType;
+  naluDest.m_RefIDC     = naluSrc.m_RefIDC;
+  naluDest.m_TemporalID = naluSrc.m_TemporalID;
+  naluDest.m_OutputFlag = naluSrc.m_OutputFlag;
+  naluDest.m_Bitstream  = naluSrc.m_Bitstream;
+}
+#endif
+
 //! \}

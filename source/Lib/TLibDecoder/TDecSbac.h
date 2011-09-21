@@ -69,6 +69,16 @@ public:
   Void  init                      ( TDecBinIf* p )    { m_pcTDecBinIf = p; }
   Void  uninit                    (              )    { m_pcTDecBinIf = 0; }
   
+#if OL_USE_WPP
+  Void load                          ( TDecSbac* pScr );
+  Void loadContexts                  ( TDecSbac* pScr );
+  Void xCopyFrom           ( TDecSbac* pSrc );
+  Void xCopyContextsFrom       ( TDecSbac* pSrc );
+#endif
+#if OL_FLUSH
+  Void decodeFlush();
+#endif
+
   Void  resetEntropy              ( TComSlice* pcSlice     );
   Void  setBitstream              ( TComInputBitstream* p  ) { m_pcBitstream = p; m_pcTDecBinIf->init( p ); }
   
@@ -165,6 +175,15 @@ public:
   __inline Void parseLastSignificantXY( UInt& uiPosLastX, UInt& uiPosLastY, const UInt uiWidth, const TextType eTType, const UInt uiCTXIdx, const UInt uiScanIdx );
   Void parseCoeffNxN      ( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx, UInt uiWidth, UInt uiHeight, UInt uiDepth, TextType eTType );
   
+#if TILES
+#if TILES_DECODER
+  Void updateContextTables( SliceType eSliceType, Int iQp, Bool bCheckForTileMarker, Bool& bTileMarkerFoundFlag );
+  Void readTileMarker   ( UInt& uiTileIdx, UInt uiBitsUsed );
+#else
+  Void updateContextTables( SliceType eSliceType, Int iQp );
+#endif
+#endif
+
 private:
   UInt m_uiLastDQpNonZero;
   UInt m_uiLastQp;

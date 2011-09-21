@@ -194,6 +194,15 @@
 #error CHANGE_GET_MERGE_CANDIDATE can only be defined with CHANGE_MERGE_CONTEXT
 #endif
 
+#define OL_USE_WPP    1     // Set to 1 to enable Wavefront Parallel Processing, 0 otherwise
+#if OL_USE_WPP
+#define OL_FLUSH 1          // Set to 1 to enable Wavefront Flush.
+#define OL_FLUSH_ALIGN 0    // Align flush to byte boundary.  This preserves byte operations in CABAC (faster) but at the expense of an average
+                            // of 4 bits per flush.
+                            // Setting to 0 will slow cabac by an as yet unknown amount.
+                            // This is here just to perform timing tests -- OL_FLUSH_ALIGN should be 0 for WPP.
+#endif
+
 #define MTK_NONCROSS_INLOOP_FILTER        1           ///< Allow non-cross-slice-boundary in-loop filtering, including DB & ALF (JCTVC-D128)
 
 #define RVM_VCEGAM10 1 // RVM model proposed in VCEG-AM10
@@ -243,6 +252,18 @@
 /////////////////////////////////
 // AHG SLICES defines section end
 /////////////////////////////////
+
+#define TILES                              1
+#define LOG2_MAX_NUM_COLUMNS_MINUS1        7
+#define LOG2_MAX_NUM_ROWS_MINUS1           7
+#define LOG2_MAX_COLUMN_WIDTH              13
+#define LOG2_MAX_ROW_HEIGHT                13
+
+#if TILES
+#define TILES_DECODER                       1 // JCTVC-F594 - signalling of tile location
+#else
+#define TILES_DECODER                       0
+#endif
 
 #define MTK_SAO                           1           // JCTVC-E049: Sample adaptive offset
 #define MTK_SAO_CHROMA                    1           // JCTVC-F057: Sample adaptive offset for Chroma
@@ -321,6 +342,7 @@
 #define EARLY_CU_DETERMINATION            1 //JCTVC-F092
 
 #define CBF_FAST_MODE                      1 //JCTVC-F045
+
 
 // ====================================================================================================================
 // Basic type redefinition
@@ -689,4 +711,3 @@ enum COEFF_SCAN_TYPE
 //! \}
 
 #endif
-

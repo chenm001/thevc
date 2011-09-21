@@ -242,6 +242,17 @@ public:
   Void parseAlfCtrlFlag     ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
   Void parseAlfFlagNum      ( UInt& ruiVal, UInt minValue, UInt depth );
   Void parseAlfCtrlFlag     ( UInt &ruiAlfCtrlFlag );
+#if TILES
+#if TILES_DECODER
+  Void updateContextTables  ( SliceType eSliceType, Int iQp, Bool bCheckForTileMarker, Bool& bTileMarkerFoundFlag ) { return; }
+  Void readTileMarker     ( UInt& uiTileIdx, UInt uiBitsUsed );
+#else
+  Void updateContextTables  ( SliceType eSliceType, Int iQp ) { return; }
+#endif
+#endif    
+#if OL_FLUSH
+  Void decodeFlush() {};
+#endif
 };
 
 //! \}

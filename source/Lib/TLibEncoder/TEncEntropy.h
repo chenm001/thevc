@@ -77,8 +77,15 @@ public:
   virtual Void  codePPS                 ( TComPPS* pcPPS )                                      = 0;
   virtual void codeSEI(const SEI&) = 0;
   virtual Void  codeSliceHeader         ( TComSlice* pcSlice )                                  = 0;
+#if OL_USE_WPP
+  virtual Void  codeSliceHeaderSubstreamTable( TComSlice* pcSlice )                             = 0;
+#endif
   virtual Void  codeTerminatingBit      ( UInt uilsLast )                                       = 0;
   virtual Void  codeSliceFinish         ()                                                      = 0;
+#if OL_FLUSH
+  virtual Void  codeFlush               ()                                                      = 0;
+  virtual Void  encodeStart             ()                                                      = 0;
+#endif
   
   virtual Void codeAlfCtrlDepth() = 0;
   virtual Void codeMVPIdx ( TComDataCU* pcCU, UInt uiAbsPartIdx, RefPicList eRefList ) = 0;
@@ -141,6 +148,14 @@ public:
 #endif
   virtual Void estBit               (estBitsSbacStruct* pcEstBitsSbac, UInt uiCTXIdx, TextType eTType) = 0;
   
+#if TILES
+  virtual Void updateContextTables ( SliceType eSliceType, Int iQp, Bool bExecuteFinish )   = 0;
+  virtual Void updateContextTables ( SliceType eSliceType, Int iQp )   = 0;
+#if TILES_DECODER
+  virtual Void writeTileMarker             ( UInt uiTileIdx, UInt uiBitsUsed ) = 0;
+#endif
+#endif
+
   virtual ~TEncEntropyIf() {}
 
 };
@@ -158,8 +173,16 @@ public:
   Void    resetEntropy              ()                        { m_pcEntropyCoderIf->resetEntropy();  }
   
   Void    encodeSliceHeader         ( TComSlice* pcSlice );
+#if OL_USE_WPP
+  Void    encodeSliceHeaderSubstreamTable( TComSlice* pcSlice );
+#endif
   Void    encodeTerminatingBit      ( UInt uiIsLast );
   Void    encodeSliceFinish         ();
+#if OL_FLUSH
+  Void    encodeFlush               ();
+  Void    encodeStart               ();
+#endif
+
   
   Void encodeAlfParam(ALFParam* pAlfParam);
   
@@ -221,6 +244,13 @@ public:
   Void encodeQtCbf             ( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eType, UInt uiTrDepth );
   Void encodeQtRootCbf         ( TComDataCU* pcCU, UInt uiAbsPartIdx );
   Void encodeQP                ( TComDataCU* pcCU, UInt uiAbsPartIdx, Bool bRD = false );
+#if TILES
+  Void updateContextTables     ( SliceType eSliceType, Int iQp, Bool bExecuteFinish )   { m_pcEntropyCoderIf->updateContextTables( eSliceType, iQp, bExecuteFinish );     }
+  Void updateContextTables     ( SliceType eSliceType, Int iQp )                        { m_pcEntropyCoderIf->updateContextTables( eSliceType, iQp, true );               }
+#if TILES_DECODER
+  Void writeTileMarker              ( UInt uiTileIdx, UInt uiBitsUsed ) { m_pcEntropyCoderIf->writeTileMarker( uiTileIdx, uiBitsUsed ); }
+#endif
+#endif
   
 private:
   Void xEncodeTransformSubdiv  ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth, UInt uiInnerQuadIdx, UInt& uiYCbfFront3, UInt& uiUCbfFront3, UInt& uiVCbfFront3 );

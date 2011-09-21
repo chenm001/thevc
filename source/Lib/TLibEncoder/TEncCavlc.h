@@ -218,8 +218,15 @@ public:
   Void  codePPS                 ( TComPPS* pcPPS );
   void codeSEI(const SEI&);
   Void  codeSliceHeader         ( TComSlice* pcSlice );
+#if OL_USE_WPP
+  Void  codeSliceHeaderSubstreamTable( TComSlice* pcSlice );
+#endif
   Void  codeTerminatingBit      ( UInt uilsLast );
   Void  codeSliceFinish         ();
+#if OL_FLUSH
+  Void  codeFlush               () {}
+  Void  encodeStart             () {}
+#endif
   
   Void codeMVPIdx ( TComDataCU* pcCU, UInt uiAbsPartIdx, RefPicList eRefList );
   Void codeAlfFlag       ( UInt uiCode );
@@ -287,6 +294,13 @@ public:
   
   Bool  getAdaptFlag          ()          { return m_bAdaptFlag; }
   Void  setAdaptFlag          ( Bool b )  { m_bAdaptFlag = b;     }
+#if TILES
+  Void updateContextTables           ( SliceType eSliceType, Int iQp, Bool bExecuteFinish=true ) { return;   }
+  Void updateContextTables           ( SliceType eSliceType, Int iQp  )                          { return;   }
+#if TILES_DECODER
+  Void writeTileMarker               ( UInt uiTileIdx, UInt uiBitsUsed );
+#endif
+#endif
 };
 
 //! \}

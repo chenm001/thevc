@@ -60,6 +60,10 @@ TDecGop::TDecGop()
 {
   m_iGopSize = 0;
   m_dDecTime = 0;
+#if OL_USE_WPP
+  m_pcSbacDecoders = NULL;
+  m_pcBinCABACs = NULL;
+#endif
 }
 
 TDecGop::~TDecGop()
@@ -173,6 +177,11 @@ Void TDecGop::decompressGop(TComInputBitstream* pcBitstream, TComPic*& rpcPic, B
 #endif
 {
   TComSlice*  pcSlice = rpcPic->getSlice(rpcPic->getCurrSliceIdx());
+#if OL_USE_WPP
+  // Table of extracted substreams.
+  // These must be deallocated AND their internal fifos, too.
+  TComInputBitstream **ppcSubstreams = NULL;
+#endif
 
   //-- For time output for each slice
   long iBeforeTime = clock();
@@ -213,9 +222,103 @@ Void TDecGop::decompressGop(TComInputBitstream* pcBitstream, TComPic*& rpcPic, B
       m_pcEntropyDecoder->setEntropyDecoder (m_pcCavlcDecoder);
     }
     
+#if OL_USE_WPP
+    UInt uiNumSubstreams = pcSlice->getPPS()->getNumSubstreams();
+#endif
+
+#if OL_USE_WPP
+    if (iSymbolMode)
+    {
+      //init each couple {EntropyDecoder, Substream}
+      UInt *puiSubstreamSizes = pcSlice->getSubstreamSizes();
+      ppcSubstreams    = new TComInputBitstream*[uiNumSubstreams];
+      m_pcSbacDecoders = new TDecSbac[uiNumSubstreams];
+      m_pcBinCABACs    = new TDecBinCABAC[uiNumSubstreams];
+      for ( UInt ui = 0 ; ui < uiNumSubstreams ; ui++ )
+      {
+        m_pcSbacDecoders[ui].init(&m_pcBinCABACs[ui]);
+        ppcSubstreams[ui] = pcBitstream->extractSubstream(ui+1 < uiNumSubstreams ? puiSubstreamSizes[ui] : pcBitstream->getNumBitsLeft());
+      }
+
+#if TILES_DECODER
+      // We have to check for TileMarkers, too.
+      // We simply perform the processing here, for now, and throw the header away if found.
+      bool bSkipTileMarker = pcSlice->getTileMarkerFlag() ? true : false;
+      UInt uiCode;
+      UInt uiTileIdx;
+      bool bTileMarkerFoundFlag;
+#endif
+      for ( UInt ui = 0 ; ui+1 < uiNumSubstreams; ui++ )
+      {
+#if TILES_DECODER
+        bTileMarkerFoundFlag = false;
+        if (bSkipTileMarker)
+        {
+          if (ppcSubstreams[uiNumSubstreams - 1 - ui]->getNumBitsLeft() >= 24)
+          {
+            uiCode = ppcSubstreams[uiNumSubstreams - 1 - ui]->peekBits(24);
+            if (uiCode == 0x000002)
+            {
+              bTileMarkerFoundFlag = true;
+            }
+          }
+
+          if (bTileMarkerFoundFlag)
+          {
+            ppcSubstreams[uiNumSubstreams - 1 - ui]->read(24, uiCode); // 0x000002
+          }
+        }
+#endif
+        m_pcEntropyDecoder->setEntropyDecoder ( &m_pcSbacDecoders[uiNumSubstreams - 1 - ui] );
+        m_pcEntropyDecoder->setBitstream      (  ppcSubstreams   [uiNumSubstreams - 1 - ui] );
+        m_pcEntropyDecoder->resetEntropy      (pcSlice);
+#if TILES_DECODER
+        if (bTileMarkerFoundFlag)
+        {
+          m_pcEntropyDecoder->readTileMarker(uiTileIdx, rpcPic->getPicSym()->getBitsUsedByTileIdx());
+        }
+#endif
+      }
+
+#if TILES_DECODER
+      bTileMarkerFoundFlag = false;
+      if (bSkipTileMarker)
+      {
+        if (ppcSubstreams[0]->getNumBitsLeft() >= 24)
+        {
+          uiCode = ppcSubstreams[0]->peekBits(24);
+          if (uiCode == 0x000002)
+          {
+            bTileMarkerFoundFlag = true;
+          }
+        }
+
+        if (bTileMarkerFoundFlag)
+        {
+          ppcSubstreams[0]->read(24, uiCode); // 0x000002
+        }
+      }
+#endif
+      m_pcEntropyDecoder->setEntropyDecoder ( m_pcSbacDecoder  );
+      m_pcEntropyDecoder->setBitstream      ( ppcSubstreams[0] );
+      m_pcEntropyDecoder->resetEntropy      (pcSlice);
+#if TILES_DECODER
+      if (bTileMarkerFoundFlag)
+      {
+        m_pcEntropyDecoder->readTileMarker(uiTileIdx, rpcPic->getPicSym()->getBitsUsedByTileIdx());
+      }
+#endif
+    }
+    else
+    {
+      m_pcEntropyDecoder->setBitstream      (pcBitstream);
+      m_pcEntropyDecoder->resetEntropy      (pcSlice);
+    }
+#else
     m_pcEntropyDecoder->setBitstream      (pcBitstream);
     m_pcEntropyDecoder->resetEntropy      (pcSlice);
-    
+#endif
+
     if (uiStartCUAddr==0)  // decode SAO params only from first slice header
     {
 #if MTK_SAO
@@ -259,8 +362,30 @@ Void TDecGop::decompressGop(TComInputBitstream* pcBitstream, TComPic*& rpcPic, B
     }
 #endif
 
-    m_pcSliceDecoder->decompressSlice(pcBitstream, rpcPic);
+#if OL_USE_WPP
+    if (iSymbolMode)
+      m_pcSbacDecoders[0].load(m_pcSbacDecoder);
+    m_pcSliceDecoder->decompressSlice( pcBitstream, ppcSubstreams, rpcPic, m_pcSbacDecoder, m_pcSbacDecoders);
+    if (iSymbolMode)
+      m_pcEntropyDecoder->setBitstream(  ppcSubstreams[uiNumSubstreams-1] );
+#else
+    m_pcSliceDecoder->decompressSlice(pcBitstream, rpcPic, m_pcSbacDecoder);
+#endif
     
+#if OL_USE_WPP
+    if (iSymbolMode && pcSlice->getPPS()->getEntropyCodingSynchro())
+    {
+      // deallocate all created substreams, including internal buffers.
+      for (UInt ui = 0; ui < uiNumSubstreams; ui++)
+      {
+        ppcSubstreams[ui]->deleteFifo();
+        delete ppcSubstreams[ui];
+      }
+      delete[] ppcSubstreams;
+      delete[] m_pcSbacDecoders; m_pcSbacDecoders = NULL;
+      delete[] m_pcBinCABACs; m_pcBinCABACs = NULL;
+    }
+#endif
     m_dDecTime += (double)(clock()-iBeforeTime) / CLOCKS_PER_SEC;
   }
   else

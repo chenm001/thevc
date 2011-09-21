@@ -86,6 +86,9 @@ public:
   Void  load                   ( TEncSbac* pScr  );
   Void  loadIntraDirModeLuma   ( TEncSbac* pScr  );
   Void  store                  ( TEncSbac* pDest );
+#if OL_USE_WPP
+  Void  loadContexts           ( TEncSbac* pScr  );
+#endif
   Void  resetBits              ()                { m_pcBinIf->resetBits(); m_pcBitIf->resetBits(); }
   UInt  getNumberOfWrittenBits ()                { return m_pcBinIf->getNumWrittenBits(); }
   //--SBAC RD
@@ -94,8 +97,15 @@ public:
   Void  codePPS                 ( TComPPS* pcPPS     );
   void codeSEI(const SEI&);
   Void  codeSliceHeader         ( TComSlice* pcSlice );
+#if OL_USE_WPP
+  Void  codeSliceHeaderSubstreamTable( TComSlice* pcSlice );
+#endif
   Void  codeTerminatingBit      ( UInt uilsLast      );
   Void  codeSliceFinish         ();
+#if OL_FLUSH
+  Void  codeFlush               ();
+  Void  encodeStart             ();
+#endif
   
   Void  codeAlfFlag       ( UInt uiCode );
   Void  codeAlfUvlc       ( UInt uiCode );
@@ -132,6 +142,9 @@ private:
   Void  xWriteExGolombMvd    ( UInt uiSymbol, ContextModel* pcSCModel, UInt uiMaxBin );
 #endif
   Void  xCopyFrom            ( TEncSbac* pSrc );
+#if OL_USE_WPP
+  Void  xCopyContextsFrom    ( TEncSbac* pSrc );  
+#endif
   
 protected:
   TComBitIf*    m_pcBitIf;
@@ -200,6 +213,16 @@ public:
   Void estCBFBit                     ( estBitsSbacStruct* pcEstBitsSbac, UInt uiCTXIdx, TextType eTType );
   Void estSignificantMapBit          ( estBitsSbacStruct* pcEstBitsSbac, UInt uiCTXIdx, TextType eTType );
   Void estSignificantCoefficientsBit ( estBitsSbacStruct* pcEstBitsSbac, UInt uiCTXIdx, TextType eTType );
+  
+
+#if TILES
+  Void updateContextTables           ( SliceType eSliceType, Int iQp, Bool bExecuteFinish=true  );
+  Void updateContextTables           ( SliceType eSliceType, Int iQp  ) { this->updateContextTables( eSliceType, iQp, true); };
+#if TILES_DECODER
+  Void writeTileMarker               ( UInt uiTileIdx, UInt uiBitsUsed );
+#endif
+#endif
+
   
   TEncBinIf* getEncBinIf()  { return m_pcBinIf; }
 private:

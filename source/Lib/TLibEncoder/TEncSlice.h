@@ -92,6 +92,10 @@ private:
   Double*                 m_pdRdPicLambda;                      ///< array of lambda candidates
   Double*                 m_pdRdPicQp;                          ///< array of picture QP candidates (double-type for lambda)
   Int*                    m_piRdPicQp;                          ///< array of picture QP candidates (int-type)
+#if OL_USE_WPP
+  TEncBinCABAC*           m_pcBufferBinCoderCABACs;       ///< line of bin coder CABAC
+  TEncSbac*               m_pcBufferSbacCoders;                 ///< line to store temporary contexts
+#endif
   
   UInt                    m_uiSliceIdx;
 public:
@@ -109,7 +113,15 @@ public:
   // compress and encode slice
   Void    precompressSlice    ( TComPic*& rpcPic                                );      ///< precompress slice for multi-loop opt.
   Void    compressSlice       ( TComPic*& rpcPic                                );      ///< analysis stage of slice
+#if OL_USE_WPP
+#if TILES_DECODER
+  Void    encodeSlice         ( TComPic*& rpcPic, TComOutputBitstream* rpcBitstream, TComOutputBitstream* pcSubstreams  );
+#else
+  Void    encodeSlice         ( TComPic*& rpcPic,                                    TComOutputBitstream* pcSubstreams  );
+#endif
+#else
   Void    encodeSlice         ( TComPic*& rpcPic, TComOutputBitstream* rpcBitstream  );      ///< entropy coding of slice
+#endif
   
   // misc. functions
   Void    setSearchRange      ( TComSlice* pcSlice  );                                  ///< set ME range adaptively

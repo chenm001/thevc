@@ -147,8 +147,18 @@ public:
    */
   std::vector<uint8_t>& getFIFO() { return *m_fifo; }
 
+#if TILES_DECODER
+  unsigned char getBitsHeld  ()         { return m_held_bits;            }
+  TComOutputBitstream& operator= (const TComOutputBitstream& src);
+#endif
+
   /** Return a reference to the internal fifo */
   const std::vector<uint8_t>& getFIFO() const { return *m_fifo; }
+
+#if OL_USE_WPP
+  unsigned char getHeldBits     () { return m_held_bits; }
+  Void          addSubstream    ( TComOutputBitstream* pcSubstream );
+#endif
 };
 
 /**
@@ -176,11 +186,23 @@ public:
   // interface for decoding
   Void        pseudoRead      ( UInt uiNumberOfBits, UInt& ruiBits );
   Void        read            ( UInt uiNumberOfBits, UInt& ruiBits );
+#if OL_FLUSH && !OL_FLUSH_ALIGN
+  Void        readByte        ( UInt &ruiBits )
+  {
+    // More expensive, but reads "bytes" that are not aligned.
+    read(8, ruiBits);
+  }
+#else
   Void        readByte        ( UInt &ruiBits )
   {
     assert(m_fifo_idx < m_fifo->size());
     ruiBits = (*m_fifo)[m_fifo_idx++];
   }
+#endif // OL_FLUSH && !OL_FLUSH_ALIGN
+
+#if TILES
+  Void        readOutTrailingBits ();
+#endif
 
   // Peek at bits in word-storage. Used in determining if we have completed reading of current bitstream and therefore slice in LCEC.
   UInt        peekBits (UInt uiBits) { unsigned tmp; pseudoRead(uiBits, tmp); return tmp; }
@@ -190,6 +212,10 @@ public:
   UInt     readByte() { UInt tmp; readByte( tmp ); return tmp; }
   unsigned getNumBitsUntilByteAligned() { return m_num_held_bits & (0x7); }
   unsigned getNumBitsLeft() { return 8*((unsigned)m_fifo->size() - m_fifo_idx) + m_num_held_bits; }
+#if OL_USE_WPP
+  TComInputBitstream *extractSubstream( UInt uiNumBits ); // Read the nominated number of bits, and return as a bitstream.
+  Void                deleteFifo(); // Delete internal fifo of bitstream.
+#endif
 };
 
 //! \}

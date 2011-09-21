@@ -150,6 +150,19 @@ Void TDecCavlc::parsePPS(TComPPS* pcPPS)
   READ_UVLC( uiCode, "pic_parameter_set_id");                      pcPPS->setPPSId (uiCode);
   READ_UVLC( uiCode, "seq_parameter_set_id");                      pcPPS->setSPSId (uiCode);
   // entropy_coding_mode_flag
+#if OL_USE_WPP
+  // We code the entropy_coding_mode_flag, it's needed for tests.
+  READ_FLAG( uiCode, "entropy_coding_mode_flag" );                 pcPPS->setEntropyCodingMode( uiCode ? true : false );
+  if (pcPPS->getEntropyCodingMode())
+  {
+    READ_UVLC( uiCode, "entropy_coding_synchro" );                 pcPPS->setEntropyCodingSynchro( uiCode );
+    READ_FLAG( uiCode, "cabac_istate_reset" );                     pcPPS->setCabacIstateReset( uiCode ? true : false );
+    if ( pcPPS->getEntropyCodingSynchro() )
+    {
+      READ_UVLC( uiCode, "num_substreams_minus1" );                pcPPS->setNumSubstreams(uiCode+1);
+    }
+  }
+#endif
   READ_UVLC( uiCode, "num_temporal_layer_switching_point_flags" ); pcPPS->setNumTLayerSwitchingFlags( uiCode );
   for ( UInt i = 0; i < pcPPS->getNumTLayerSwitchingFlags(); i++ )
   {
@@ -184,6 +197,43 @@ Void TDecCavlc::parsePPS(TComPPS* pcPPS)
 #endif
 
 
+#if TILES
+  READ_CODE ( 1, uiCode, "tile_info_present_flag" );
+  pcPPS->setColumnRowInfoPresent(uiCode);
+  if( pcPPS->getColumnRowInfoPresent() == 1 )
+  {
+    READ_CODE ( 1, uiCode, "uniform_spacing_idc" );  
+    pcPPS->setUniformSpacingIdr( uiCode );
+    READ_CODE ( 1, uiCode, "tile_boundary_independence_idc" );  
+    pcPPS->setTileBoundaryIndependenceIdr( uiCode );
+
+    READ_CODE ( LOG2_MAX_NUM_COLUMNS_MINUS1, uiCode, "num_tile_columns_minus1" );   
+    pcPPS->setNumColumnsMinus1( uiCode );  
+    READ_CODE ( LOG2_MAX_NUM_ROWS_MINUS1, uiCode, "num_tile_rows_minus1" );  
+    pcPPS->setNumRowsMinus1( uiCode );  
+
+    if( pcPPS->getUniformSpacingIdr() == 0 )
+    {
+      UInt* columnWidth = (UInt*)malloc(pcPPS->getNumColumnsMinus1()*sizeof(UInt));
+      for(UInt i=0; i<pcPPS->getNumColumnsMinus1(); i++)
+      { 
+        READ_CODE( LOG2_MAX_COLUMN_WIDTH, uiCode, "column_width" );  
+        columnWidth[i] = uiCode;  
+      }
+      pcPPS->setColumnWidth(columnWidth);
+      free(columnWidth);
+
+      UInt* rowHeight = (UInt*)malloc(pcPPS->getNumRowsMinus1()*sizeof(UInt));
+      for(UInt i=0; i<pcPPS->getNumRowsMinus1(); i++)
+      {
+        READ_CODE( LOG2_MAX_ROW_HEIGHT, uiCode, "row_height" );  
+        rowHeight[i] = uiCode;  
+      }
+      pcPPS->setRowHeight(rowHeight);
+      free(rowHeight);  
+    }
+  }
+#endif
   return;
 }
 
@@ -307,9 +357,47 @@ Void TDecCavlc::parseSPS(TComSPS* pcSPS)
   }
 #endif
 
+#if TILES
+  READ_CODE ( 1, uiCode, "uniform_spacing_idc" ); 
+  pcSPS->setUniformSpacingIdr( uiCode );
+  READ_CODE ( 1, uiCode, "tile_boundary_independence_idc" );  
+  pcSPS->setTileBoundaryIndependenceIdr( uiCode );
+ 
+  READ_CODE ( LOG2_MAX_NUM_COLUMNS_MINUS1, uiCode, "num_tile_columns_minus1" );
+  pcSPS->setNumColumnsMinus1( uiCode );  
+  READ_CODE ( LOG2_MAX_NUM_ROWS_MINUS1, uiCode, "num_tile_rows_minus1" ); 
+  pcSPS->setNumRowsMinus1( uiCode ); 
+  if( pcSPS->getUniformSpacingIdr() == 0 )
+  {
+    UInt* columnWidth = (UInt*)malloc(pcSPS->getNumColumnsMinus1()*sizeof(UInt));
+    for(UInt i=0; i<pcSPS->getNumColumnsMinus1(); i++)
+    { 
+      READ_CODE( LOG2_MAX_COLUMN_WIDTH, uiCode, "column_width" );
+      columnWidth[i] = uiCode;  
+    }
+    pcSPS->setColumnWidth(columnWidth);
+    free(columnWidth);
+  
+    UInt* rowHeight = (UInt*)malloc(pcSPS->getNumRowsMinus1()*sizeof(UInt));
+    for(UInt i=0; i<pcSPS->getNumRowsMinus1(); i++)
+    {
+      READ_CODE( LOG2_MAX_ROW_HEIGHT, uiCode, "row_height" );
+      rowHeight[i] = uiCode;  
+    }
+    pcSPS->setRowHeight(rowHeight);
+    free(rowHeight);  
+  }
+#endif
+
   return;
 }
 
+#if TILES_DECODER
+Void TDecCavlc::readTileMarker   ( UInt& uiTileIdx, UInt uiBitsUsed )
+{
+  xReadCode ( uiBitsUsed, uiTileIdx );
+}
+#endif
 
 Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice)
 {
@@ -504,6 +592,95 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice)
       xReadCode(2, uiCode); rpcSlice->setERBIndex( (ERBIndex)uiCode );    assert (uiCode == ERB_NONE || uiCode == ERB_LTR);
     }      
   }
+
+
+#if OL_USE_WPP
+  if (rpcSlice->getPPS()->getEntropyCodingSynchro())
+  {
+    UInt uiNumSubstreams = rpcSlice->getPPS()->getNumSubstreams();
+    rpcSlice->allocSubstreamSizes(uiNumSubstreams);
+    UInt *puiSubstreamSizes = rpcSlice->getSubstreamSizes();
+
+    for (UInt ui = 0; ui+1 < uiNumSubstreams; ui++)
+    {
+      xReadCode(2, uiCode);
+      
+      switch ( uiCode )
+      {
+      case 0:
+        xReadCode(8,  uiCode);
+        break;
+      case 1:
+        xReadCode(16, uiCode);
+        break;
+      case 2:
+        xReadCode(24, uiCode);
+        break;
+      case 3:
+        xReadCode(32, uiCode);
+        break;
+      default:
+        printf("Error in parseSliceHeader\n");
+        exit(-1);
+        break;
+      }
+      puiSubstreamSizes[ui] = uiCode;
+    }
+  }
+#endif
+
+#if TILES_DECODER
+  if (!bEntropySlice)
+  {
+    // Reading location information
+    if (rpcSlice->getSPS()->getTileBoundaryIndependenceIdr())
+    {   
+      xReadCode(1, uiCode); // read flag indicating if location information signaled in slice header
+      Bool bTileLocationInformationInSliceHeaderFlag = (uiCode)? true : false;
+
+      xReadCode(1, uiCode); // read flag indicating if lightweight tile markers transmitted
+      rpcSlice->setTileMarkerFlag( uiCode );
+
+      if (bTileLocationInformationInSliceHeaderFlag)
+      {
+        // location count
+        xReadCode(5, uiCode); // number of tiles for which location information signaled
+        rpcSlice->setTileLocationCount ( uiCode + 1 );
+
+        xReadCode(5, uiCode); // number of bits used by diff
+        Int iBitsUsedByDiff = uiCode + 1;
+
+        // read out tile start location
+        Int iLastSize = 0;
+        for (UInt uiIdx=0; uiIdx<rpcSlice->getTileLocationCount(); uiIdx++)
+        {
+          Int iAbsDiff, iCurSize, iCurDiff;
+          if (uiIdx==0)
+          {
+            xReadCode(iBitsUsedByDiff-1, uiCode); iAbsDiff  = uiCode;
+            rpcSlice->setTileLocation( uiIdx, iAbsDiff );
+            iCurDiff  = iAbsDiff;
+            iLastSize = iAbsDiff;
+          }
+          else
+          {
+            xReadCode(1, uiCode); // read sign
+            Int iSign = (uiCode) ? -1 : +1;
+
+            xReadCode(iBitsUsedByDiff-1, uiCode); iAbsDiff  = uiCode;
+            iCurDiff  = (iSign) * iAbsDiff;
+            iCurSize  = iLastSize + iCurDiff;
+            iLastSize = iCurSize;
+            rpcSlice->setTileLocation( uiIdx, rpcSlice->getTileLocation( uiIdx-1 ) + iCurSize ); // calculate byte location
+          }
+        }
+      }
+
+      // read out trailing bits
+      m_pcBitstream->readOutTrailingBits();
+    }
+  }
+#endif
   
   return;
 }

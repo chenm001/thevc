@@ -67,6 +67,10 @@ public:
   virtual Void  resetEntropy          (TComSlice* pcSlice)                = 0;
   virtual Void  setBitstream          ( TComInputBitstream* p )  = 0;
 
+#if OL_FLUSH
+  virtual Void  decodeFlush()                                                                      = 0;
+#endif
+
   virtual Void  parseSPS                  ( TComSPS* pcSPS )                                      = 0;
   virtual Void  parsePPS                  ( TComPPS* pcPPS )                                      = 0;
   virtual void parseSEI(SEImessages&) = 0;
@@ -130,6 +134,15 @@ public:
   virtual Void parseAoUvlc       ( UInt& ruiVal           ) = 0;
   virtual Void parseAoSvlc       ( Int&  riVal            ) = 0;
 #endif
+#if TILES
+#if TILES_DECODER
+  virtual Void updateContextTables( SliceType eSliceType, Int iQp, Bool bCheckForTileMarker, Bool& bTileMarkerFoundFlag ) = 0;
+  virtual Void readTileMarker   ( UInt& uiTileIdx, UInt uiBitsUsed ) = 0;
+#else
+  virtual Void updateContextTables( SliceType eSliceType, Int iQp ) = 0;
+#endif
+#endif
+  
   virtual ~TDecEntropyIf() {}
 };
 
@@ -192,6 +205,14 @@ public:
   Void decodeTransformIdx      ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
   Void decodeQP                ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
   
+#if TILES
+#if TILES_DECODER
+  Void readTileMarker       ( UInt& uiTileIdx, UInt uiBitsUsed )  {  m_pcEntropyDecoderIf->readTileMarker( uiTileIdx, uiBitsUsed ); }
+  Void updateContextTables    ( SliceType eSliceType, Int iQp, Bool bCheckForTileMarker, Bool& bTileMarkerFoundFlag ) { m_pcEntropyDecoderIf->updateContextTables( eSliceType, iQp, bCheckForTileMarker, bTileMarkerFoundFlag ); }
+#else
+  Void updateContextTables    ( SliceType eSliceType, Int iQp ) { m_pcEntropyDecoderIf->updateContextTables( eSliceType, iQp ); }
+#endif
+#endif  
   
   
 private:
@@ -223,6 +244,9 @@ public:
   Void decodeQuadTreeSplitFlag(SAOParam* pQaoParam, Int part_idx);
 #endif
   Void decodeSaoParam(SAOParam* pQaoParam) ;
+#endif
+#if OL_FLUSH
+  Void decodeFlush() { m_pcEntropyDecoderIf->decodeFlush(); }
 #endif
 
 };// END CLASS DEFINITION TDecEntropy
