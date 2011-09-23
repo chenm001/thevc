@@ -93,6 +93,8 @@ TComSlice::TComSlice()
 #if TILES_DECODER
 , m_uiTileByteLocation            ( NULL )
 , m_uiTileCount                   ( 0 )
+, m_iTileMarkerFlag               ( 0 )
+, m_uiTileOffstForMultES          ( 0 )
 #endif
 #if OL_USE_WPP
 , m_puiSubstreamSizes             ( NULL )
