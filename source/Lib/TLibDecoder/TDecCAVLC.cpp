@@ -630,6 +630,7 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice)
 #endif
 
 #if TILES_DECODER
+  rpcSlice->setTileMarkerFlag ( 0 ); // default
   if (!bEntropySlice)
   {
     // Reading location information
