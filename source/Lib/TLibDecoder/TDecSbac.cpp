@@ -178,6 +178,18 @@ Void TDecSbac::updateContextTables( SliceType eSliceType, Int iQp )
   UInt uiBit;
   m_pcTDecBinIf->decodeBinTrm(uiBit);
   m_pcTDecBinIf->finish();  
+#if OL_USE_WPP && !OL_FLUSH_ALIGN
+  // Account for misaligned CABAC.
+  Int iCABACReadAhead = m_pcTDecBinIf->getBitsReadAhead();
+  iCABACReadAhead--;
+  Int iStreamBits = 8-m_pcBitstream->getNumBitsUntilByteAligned();
+  if (iCABACReadAhead >= iStreamBits)
+  {
+    // Misaligned CABAC has read into the 1st byte of the next tile.
+    // Back up a byte prior to alignment.
+    m_pcBitstream->backupByte();
+  }
+#endif
   m_pcBitstream->readOutTrailingBits();
 
 #if TILES_DECODER

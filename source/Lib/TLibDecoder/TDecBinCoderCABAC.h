@@ -73,6 +73,9 @@ public:
 #if OL_USE_WPP
   Void  copyState         ( TDecBinIf* pcTDecBinIf );
   TDecBinCABAC* getTDecBinCABAC()  { return this; }
+#if !OL_FLUSH_ALIGN
+  Int   getBitsReadAhead() { return -m_bitsNeeded; }
+#endif
 #endif
 
 private:
@@ -82,6 +85,7 @@ private:
 #if OL_FLUSH && !OL_FLUSH_ALIGN
   UInt                m_uiLastByte;
 #endif
+public:
   Int                 m_bitsNeeded;
 };
 

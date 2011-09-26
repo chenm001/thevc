@@ -215,6 +215,9 @@ public:
 #if OL_USE_WPP
   TComInputBitstream *extractSubstream( UInt uiNumBits ); // Read the nominated number of bits, and return as a bitstream.
   Void                deleteFifo(); // Delete internal fifo of bitstream.
+#if !OL_FLUSH_ALIGN
+  Void                backupByte() { m_fifo_idx--; }
+#endif
 #endif
 };
 
