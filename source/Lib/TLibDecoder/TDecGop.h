@@ -49,6 +49,7 @@
 #include "TLibCommon/TComPic.h"
 #include "TLibCommon/TComLoopFilter.h"
 #include "TLibCommon/TComAdaptiveLoopFilter.h"
+#include "TLibCommon/TComSampleAdaptiveOffset.h"
 
 #include "TDecEntropy.h"
 #include "TDecSlice.h"
@@ -83,8 +84,8 @@ private:
   
   // Adaptive Loop filter
   TComAdaptiveLoopFilter*       m_pcAdaptiveLoopFilter;
-#if MTK_SAO
-  TComSampleAdaptiveOffset*              m_pcSAO;
+#if SAO
+  TComSampleAdaptiveOffset*     m_pcSAO;
   SAOParam              m_cSaoParam;
 #endif
   ALFParam              m_cAlfParam;
@@ -103,8 +104,8 @@ public:
                  TDecSlice*              pcSliceDecoder, 
                  TComLoopFilter*         pcLoopFilter, 
                  TComAdaptiveLoopFilter* pcAdaptiveLoopFilter
-#if MTK_SAO
-                 ,TComSampleAdaptiveOffset*                pcSAO
+#if SAO
+                 ,TComSampleAdaptiveOffset* pcSAO
 #endif
                  );
   Void  create  ();

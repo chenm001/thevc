@@ -96,10 +96,10 @@ public:
   Void  parseAlfUvlc              ( UInt& ruiVal           );
   Void  parseAlfSvlc              ( Int&  riVal            );
   Void  parseAlfCtrlDepth         ( UInt& ruiAlfCtrlDepth  );
-#if MTK_SAO
-  Void  parseAoFlag              ( UInt& ruiVal           );
-  Void  parseAoUvlc              ( UInt& ruiVal           );
-  Void  parseAoSvlc              ( Int&  riVal            );
+#if SAO
+  Void  parseSaoFlag              ( UInt& ruiVal           );
+  Void  parseSaoUvlc              ( UInt& ruiVal           );
+  Void  parseSaoSvlc              ( Int&  riVal            );
 #endif
 private:
   Void  xReadUnarySymbol    ( UInt& ruiSymbol, ContextModel* pcSCModel, Int iOffset );
@@ -225,10 +225,10 @@ private:
   ContextModel3DBuffer m_cCUXPosiSCModel;
   ContextModel3DBuffer m_cCUYPosiSCModel;
 #endif
-#if MTK_SAO
-  ContextModel3DBuffer m_cAOFlagSCModel;
-  ContextModel3DBuffer m_cAOUvlcSCModel;
-  ContextModel3DBuffer m_cAOSvlcSCModel;
+#if SAO
+  ContextModel3DBuffer m_cSaoFlagSCModel;
+  ContextModel3DBuffer m_cSaoUvlcSCModel;
+  ContextModel3DBuffer m_cSaoSvlcSCModel;
 #endif
 
 };

@@ -439,7 +439,7 @@ Void TEncCavlc::codeSPS( TComSPS* pcSPS )
 #if MTK_NONCROSS_INLOOP_FILTER
   WRITE_FLAG( pcSPS->getLFCrossSliceBoundaryFlag()?1 : 0,                            "loop_filter_across_slice_flag");
 #endif
-#if MTK_SAO
+#if SAO
   WRITE_FLAG( pcSPS->getUseSAO() ? 1 : 0,                                            "sample_adaptive_offset_enabled_flag");
 #endif
   WRITE_FLAG( (pcSPS->getUseALF ()) ? 1 : 0,                                         "adaptive_loop_filter_enabled_flag");
@@ -2677,18 +2677,18 @@ Void TEncCavlc::codeAlfSvlc( Int iCode )
 {
   xWriteSvlc( iCode );
 }
-#if MTK_SAO
-Void TEncCavlc::codeAoFlag( UInt uiCode )
+#if SAO
+Void TEncCavlc::codeSaoFlag( UInt uiCode )
 {
   xWriteFlag( uiCode );
 }
 
-Void TEncCavlc::codeAoUvlc( UInt uiCode )
+Void TEncCavlc::codeSaoUvlc( UInt uiCode )
 {
     xWriteUvlc( uiCode );
 }
 
-Void TEncCavlc::codeAoSvlc( Int iCode )
+Void TEncCavlc::codeSaoSvlc( Int iCode )
 {
     xWriteSvlc( iCode );
 }

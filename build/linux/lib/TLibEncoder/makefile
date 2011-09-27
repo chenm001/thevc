@@ -36,6 +36,7 @@ OBJS          	= \
 			$(OBJ_DIR)/SEIwrite.o \
 			$(OBJ_DIR)/TEncBinCoderCABAC.o \
 			$(OBJ_DIR)/TEncAdaptiveLoopFilter.o \
+			$(OBJ_DIR)/TEncSampleAdaptiveOffset.o \
 			$(OBJ_DIR)/TEncAnalyze.o \
 			$(OBJ_DIR)/TEncCavlc.o \
 			$(OBJ_DIR)/TEncCu.o \

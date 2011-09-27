@@ -92,7 +92,7 @@ Void TEncTop::create ()
   m_cGOPEncoder.        create( getSourceWidth(), getSourceHeight(), g_uiMaxCUWidth, g_uiMaxCUHeight );
   m_cSliceEncoder.      create( getSourceWidth(), getSourceHeight(), g_uiMaxCUWidth, g_uiMaxCUHeight, g_uiMaxCUDepth );
   m_cCuEncoder.         create( g_uiMaxCUDepth, g_uiMaxCUWidth, g_uiMaxCUHeight );
-#if MTK_SAO
+#if SAO
   if (m_bUseSAO)
   {
     m_cEncSAO.create( getSourceWidth(), getSourceHeight(), g_uiMaxCUWidth, g_uiMaxCUHeight, g_uiMaxCUDepth );
@@ -198,7 +198,7 @@ Void TEncTop::destroy ()
   m_cGOPEncoder.        destroy();
   m_cSliceEncoder.      destroy();
   m_cCuEncoder.         destroy();
-#if MTK_SAO
+#if SAO
   if (m_cSPS.getUseSAO())
   {
     m_cEncSAO.destroy();
@@ -576,8 +576,8 @@ Void TEncTop::xInitSPS()
 #if MTK_NONCROSS_INLOOP_FILTER
   m_cSPS.setLFCrossSliceBoundaryFlag( m_bLFCrossSliceBoundaryFlag );
 #endif
-#if MTK_SAO
-  m_cSPS.setUseSAO             ( m_bUseSAO         );
+#if SAO
+  m_cSPS.setUseSAO( m_bUseSAO );
 #endif
 
   if ( m_bTLayering )

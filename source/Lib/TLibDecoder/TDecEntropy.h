@@ -44,6 +44,7 @@
 #include "TLibCommon/TComPic.h"
 #include "TLibCommon/TComPrediction.h"
 #include "TLibCommon/TComAdaptiveLoopFilter.h"
+#include "TLibCommon/TComSampleAdaptiveOffset.h"
 
 class TDecSbac;
 class TDecCavlc;
@@ -129,10 +130,10 @@ public:
   virtual Int  getSliceGranularity()                      = 0;
 #endif
 
-#if MTK_SAO
-  virtual Void parseAoFlag       ( UInt& ruiVal           ) = 0;
-  virtual Void parseAoUvlc       ( UInt& ruiVal           ) = 0;
-  virtual Void parseAoSvlc       ( Int&  riVal            ) = 0;
+#if SAO
+  virtual Void parseSaoFlag       ( UInt& ruiVal           ) = 0;
+  virtual Void parseSaoUvlc       ( UInt& ruiVal           ) = 0;
+  virtual Void parseSaoSvlc       ( Int&  riVal            ) = 0;
 #endif
 #if TILES
 #if TILES_DECODER
@@ -235,15 +236,10 @@ public:
   Void setSliceGranularity (Int iSliceGranularity) {m_pcEntropyDecoderIf->setSliceGranularity(iSliceGranularity);}
 #endif
 
-#if MTK_SAO
-#if MTK_SAO_CHROMA
-  Void decodeQAOOnePart(SAOParam* pQaoParam, Int part_idx, Int iYCbCr);
-  Void decodeQuadTreeSplitFlag(SAOParam* pQaoParam, Int part_idx, Int iYCbCr);
-#else
-  Void decodeQAOOnePart(SAOParam* pQaoParam, Int part_idx);
-  Void decodeQuadTreeSplitFlag(SAOParam* pQaoParam, Int part_idx);
-#endif
-  Void decodeSaoParam(SAOParam* pQaoParam) ;
+#if SAO
+  Void decodeSaoOnePart       (SAOParam* pSaoParam, Int iPartIdx, Int iYCbCr);
+  Void decodeQuadTreeSplitFlag(SAOParam* pSaoParam, Int iPartIdx, Int iYCbCr);
+  Void decodeSaoParam         (SAOParam* pSaoParam);
 #endif
 #if OL_FLUSH
   Void decodeFlush() { m_pcEntropyDecoderIf->decodeFlush(); }

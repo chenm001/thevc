@@ -51,55 +51,6 @@
 // ====================================================================================================================
 // Class definition
 // ====================================================================================================================
-#if MTK_SAO
-
-class TEncSampleAdaptiveOffset : public TComSampleAdaptiveOffset
-{
-private:
-  Double            m_dLambdaLuma;
-  Double            m_dLambdaChroma;
-
-  TEncEntropy*      m_pcEntropyCoder;
-  TEncSbac***       m_pppcRDSbacCoder;
-  TEncSbac*         m_pcRDGoOnSbacCoder;
-  TEncBinCABAC***   m_pppcBinCoderCABAC;            ///< temporal CABAC state storage for RD computation
-
-  Int64  ***m_iCount ;     //[MAX_NUM_QAO_PART][MAX_NUM_QAO_TYPE][MAX_NUM_QAO_CLASS]; 
-  Int64  ***m_iOffset;     //[MAX_NUM_QAO_PART][MAX_NUM_QAO_TYPE][MAX_NUM_QAO_CLASS]; 
-  Int64  ***m_iOffsetOrg  ;      //[MAX_NUM_QAO_PART][MAX_NUM_QAO_TYPE]; 
-  Int64  **m_iRate  ;      //[MAX_NUM_QAO_PART][MAX_NUM_QAO_TYPE]; 
-  Int64  **m_iDist  ;      //[MAX_NUM_QAO_PART][MAX_NUM_QAO_TYPE]; 
-  Double **m_dCost  ;      //[MAX_NUM_QAO_PART][MAX_NUM_QAO_TYPE]; 
-  Double *m_dCostPartBest ;//[MAX_NUM_QAO_PART]; 
-  Int64  *m_iDistOrg;      //[MAX_NUM_QAO_PART]; 
-  Int    *m_iTypePartBest ;//[MAX_NUM_QAO_PART]; 
-#if SAO_CLIP_OFFSET
-  Int     m_iOffsetTh;
-#endif
-  Bool    m_bUseSBACRD;
-
-public:
-  Void startSaoEnc( TComPic* pcPic, TEncEntropy* pcEntropyCoder, TEncSbac*** pppcRDSbacCoder, TEncSbac* pcRDGoOnSbacCoder);
-  Void endSaoEnc();
-#if SAO_CHROMA_LAMBDA
-  Void SAOProcess(Double dLambda, Double dLambdaChroma);
-#else
-  Void SAOProcess(Double dLambda);
-#endif
-  Void xQuadTreeDecisionFunc(SAOQTPart *psQTPart, Int iPartIdx, Double &dCostFinal, Int iMaxLevel, Double dLambda);
-  Void xQAOOnePart(SAOQTPart *psQTPart, Int iPartIdx, Double dLambda);
-  Void xPartTreeDisable(SAOQTPart *psQTPart, Int iPartIdx);
-  Void xGetQAOStats(SAOQTPart *psQTPart, Int iYCbCr);
-  Void calcAoStatsCu(Int iAddr, Int iPartIdx, Int iYCbCr);
-#if SAO_FGS_MNIF
-  Void calcAoStatsCuMap(Int iAddr, Int iPartIdx, Int iYCbCr);
-  Void calcAoStatsCuOrg(Int iAddr, Int iPartIdx, Int iYCbCr);
-#endif
-
-  Void destroyEncBuffer();
-  Void createEncBuffer();
-};
-#endif
 
 /// estimation part of adaptive loop filter class
 class TEncAdaptiveLoopFilter : public TComAdaptiveLoopFilter

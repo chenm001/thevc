@@ -117,7 +117,7 @@ private:
 #if MTK_NONCROSS_INLOOP_FILTER
   Bool        m_bLFCrossSliceBoundaryFlag;
 #endif
-#if MTK_SAO
+#if SAO
   Bool        m_bUseSAO; 
 #endif
 
@@ -235,7 +235,7 @@ public:
   Bool      getLFCrossSliceBoundaryFlag     ()                    { return m_bLFCrossSliceBoundaryFlag;   } 
 #endif
 
-#if MTK_SAO
+#if SAO
   Void setUseSAO                  (Bool bVal)  {m_bUseSAO = bVal;}
   Bool getUseSAO                  ()           {return m_bUseSAO;}
 #endif

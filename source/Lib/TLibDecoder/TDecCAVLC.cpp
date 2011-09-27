@@ -322,8 +322,8 @@ Void TDecCavlc::parseSPS(TComSPS* pcSPS)
 #if MTK_NONCROSS_INLOOP_FILTER
   READ_FLAG( uiCode, "loop_filter_across_slice_flag" );          pcSPS->setLFCrossSliceBoundaryFlag( uiCode ? true : false);
 #endif
-#if MTK_SAO
-  READ_FLAG( uiCode, "sample_adaptive_offset_enabled_flag" );    pcSPS->setUseSAO       ( uiCode ? true : false );  
+#if SAO
+  READ_FLAG( uiCode, "sample_adaptive_offset_enabled_flag" );    pcSPS->setUseSAO ( uiCode ? true : false );  
 #endif
   READ_FLAG( uiCode, "adaptive_loop_filter_enabled_flag" );      pcSPS->setUseALF ( uiCode ? true : false );
 #if E057_INTRA_PCM && E192_SPS_PCM_FILTER_DISABLE_SYNTAX
@@ -2772,17 +2772,18 @@ Void TDecCavlc::parseAlfSvlc (Int&  riVal)
 
 
 
-#if MTK_SAO
-Void TDecCavlc::parseAoFlag (UInt& ruiVal)
+#if SAO
+Void TDecCavlc::parseSaoFlag (UInt& ruiVal)
 {
   xReadFlag( ruiVal );
 }
-Void TDecCavlc::parseAoUvlc (UInt& ruiVal)
+
+Void TDecCavlc::parseSaoUvlc (UInt& ruiVal)
 {
   xReadUvlc( ruiVal );
 }
 
-Void TDecCavlc::parseAoSvlc (Int&  riVal)
+Void TDecCavlc::parseSaoSvlc (Int&  riVal)
 {
   xReadSvlc( riVal );
 }

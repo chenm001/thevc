@@ -120,10 +120,10 @@ public:
 #endif
 
   Void codeAlfCtrlFlag       ( UInt uiSymbol );
-#if MTK_SAO
-  Void  codeAoFlag       ( UInt uiCode );
-  Void  codeAoUvlc       ( UInt uiCode );
-  Void  codeAoSvlc       ( Int  uiCode );
+#if SAO
+  Void  codeSaoFlag       ( UInt uiCode );
+  Void  codeSaoUvlc       ( UInt uiCode );
+  Void  codeSaoSvlc       ( Int  uiCode );
 #endif
 
 private:
@@ -265,10 +265,10 @@ private:
   ContextModel3DBuffer m_cCUXPosiSCModel;
   ContextModel3DBuffer m_cCUYPosiSCModel;
 #endif
-#if MTK_SAO
-  ContextModel3DBuffer m_cAOFlagSCModel;
-  ContextModel3DBuffer m_cAOUvlcSCModel;
-  ContextModel3DBuffer m_cAOSvlcSCModel;
+#if SAO
+  ContextModel3DBuffer m_cSaoFlagSCModel;
+  ContextModel3DBuffer m_cSaoUvlcSCModel;
+  ContextModel3DBuffer m_cSaoSvlcSCModel;
 #endif
 
 };

@@ -196,10 +196,10 @@ public:
   Void  parseAlfFlag        ( UInt& ruiVal );
   Void  parseAlfUvlc        ( UInt& ruiVal );
   Void  parseAlfSvlc        ( Int&  riVal  );
-#if MTK_SAO
-  Void  parseAoFlag        ( UInt& ruiVal );
-  Void  parseAoUvlc        ( UInt& ruiVal );
-  Void  parseAoSvlc        ( Int&  riVal  );
+#if SAO
+  Void  parseSaoFlag        ( UInt& ruiVal );
+  Void  parseSaoUvlc        ( UInt& ruiVal );
+  Void  parseSaoSvlc        ( Int&  riVal  );
 #endif
   
   Void  parseSPS            ( TComSPS* pcSPS );

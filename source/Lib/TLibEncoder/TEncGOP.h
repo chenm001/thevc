@@ -48,6 +48,7 @@
 #include "TLibCommon/TComLoopFilter.h"
 #include "TLibCommon/AccessUnit.h"
 #include "TEncAdaptiveLoopFilter.h"
+#include "TEncSampleAdaptiveOffset.h"
 #include "TEncSlice.h"
 #include "TEncEntropy.h"
 #include "TEncCavlc.h"
@@ -94,7 +95,7 @@ private:
   // Adaptive Loop filter
   TEncAdaptiveLoopFilter* m_pcAdaptiveLoopFilter;
   //--Adaptive Loop filter
-#if MTK_SAO
+#if SAO
   TEncSampleAdaptiveOffset*  m_pcSAO;
 #endif
   TComBitCounter*         m_pcBitCounter;
@@ -147,7 +148,7 @@ public:
 protected:
   Void  xInitGOP          ( Int iPOC, Int iNumPicRcvd, TComList<TComPic*>& rcListPic, TComList<TComPicYuv*>& rcListPicYuvRecOut );
   Void  xGetBuffer        ( TComList<TComPic*>& rcListPic, TComList<TComPicYuv*>& rcListPicYuvRecOut, Int iNumPicRcvd, Int iTimeOffset, TComPic*& rpcPic, TComPicYuv*& rpcPicYuvRecOut, UInt uiPOCCurr );
-
+  
   NalUnitType getNalUnitType( UInt uiPOCCurr );
 
   Void  xCalculateAddPSNR ( TComPic* pcPic, TComPicYuv* pcPicD, const AccessUnit&, Double dEncTime );

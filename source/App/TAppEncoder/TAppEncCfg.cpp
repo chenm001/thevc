@@ -216,7 +216,7 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
 #endif
 
   ("ALF", m_bUseALF, true, "Adaptive Loop Filter")
-#if MTK_SAO
+#if SAO
   ("SAO", m_bUseSAO, true, "SAO")   
 #endif
 
@@ -673,8 +673,8 @@ Void TAppEncCfg::xPrintParameter()
   }
 #endif
   printf("CIP:%d ", m_bUseConstrainedIntraPred);
-#if MTK_SAO
-  printf("SAO:%d ",    (m_bUseSAO)?(1):(0));
+#if SAO
+  printf("SAO:%d ", (m_bUseSAO)?(1):(0));
 #endif
 #if E057_INTRA_PCM
   printf("PCM:%d ", ((1<<m_uiPCMLog2MinSize) <= m_uiMaxCUWidth)? 1 : 0);

@@ -949,7 +949,7 @@ TComSPS::TComSPS()
 #if MTK_NONCROSS_INLOOP_FILTER
 , m_bLFCrossSliceBoundaryFlag (false)
 #endif
-#if MTK_SAO
+#if SAO
 , m_bUseSAO                   (false) 
 #endif
 , m_bTemporalIdNestingFlag    (false)

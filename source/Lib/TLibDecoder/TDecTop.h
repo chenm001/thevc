@@ -104,7 +104,7 @@ private:
   TDecBinCABAC            m_cBinCABAC;
   TComLoopFilter          m_cLoopFilter;
   TComAdaptiveLoopFilter  m_cAdaptiveLoopFilter;
-#if MTK_SAO
+#if SAO
   TComSampleAdaptiveOffset m_cSAO;
 #endif
 

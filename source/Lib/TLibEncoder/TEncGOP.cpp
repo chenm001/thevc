@@ -126,7 +126,7 @@ Void TEncGOP::init ( TEncTop* pcTEncTop )
   // Adaptive Loop filter
   m_pcAdaptiveLoopFilter = pcTEncTop->getAdaptiveLoopFilter();
   //--Adaptive Loop filter
-#if MTK_SAO
+#if SAO
   m_pcSAO                = pcTEncTop->getSAO();
 #endif
 
@@ -189,7 +189,7 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
       accessUnitsInGOP.push_back(AccessUnit());
       AccessUnit& accessUnit = accessUnitsInGOP.back();
       xGetBuffer( rcListPic, rcListPicYuvRecOut, iNumPicRcvd, iTimeOffset, pcPic, pcPicYuvRecOut, uiPOCCurr );
-
+      
       //  Slice data initialization
       pcPic->clearSliceBuffer();
       assert(pcPic->getNumAllocatedSlice() == 1);
@@ -605,7 +605,7 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
       m_uiStoredStartCUAddrForEncodingEntropySlice[uiStartCUAddrEntropySliceIdx++]  = pcSlice->getSliceCurEndCUAddr();
       
       pcSlice = pcPic->getSlice(0);
-#if MTK_SAO  // PRE_DF
+#if SAO  // PRE_DF
       SAOParam cSaoParam;
 #endif
 
@@ -613,7 +613,7 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
       m_pcLoopFilter->setCfg(pcSlice->getLoopFilterDisable(), m_pcCfg->getLoopFilterAlphaC0Offget(), m_pcCfg->getLoopFilterBetaOffget());
       m_pcLoopFilter->loopFilterPic( pcPic );
 
-#if MTK_SAO && MTK_NONCROSS_INLOOP_FILTER && FINE_GRANULARITY_SLICES 
+#if SAO && MTK_NONCROSS_INLOOP_FILTER && FINE_GRANULARITY_SLICES 
       pcSlice = pcPic->getSlice(0);
 
       if(pcSlice->getSPS()->getUseSAO())
@@ -622,13 +622,13 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
         m_pcSAO->setSliceGranularityDepth(pcSlice->getPPS()->getSliceGranularity());
         if(uiNumSlices == 1)
         {
-          m_pcSAO->setUseNonCrossAlf(false);
+          m_pcSAO->setUseNIF(false);
         }
         else
         {
           m_pcSAO->setPic(pcPic);
-          m_pcSAO->setUseNonCrossAlf(!pcSlice->getSPS()->getLFCrossSliceBoundaryFlag());
-          if (m_pcSAO->getUseNonCrossAlf())
+          m_pcSAO->setUseNIF(!pcSlice->getSPS()->getLFCrossSliceBoundaryFlag());
+          if (m_pcSAO->getUseNIF())
           {
             m_pcSAO->InitIsFineSliceCu();
             UInt uiStartAddr, uiEndAddr;
@@ -640,7 +640,7 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
             }
           }
         }
-      }
+        m_pcSAO->allocSaoParam(&cSaoParam);      }
 #endif
 
 #if E045_SLICE_COMMON_INFO_SHARING
@@ -724,7 +724,7 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
 
 #if E045_SLICE_COMMON_INFO_SHARING
       UInt uiMaxAlfCtrlDepth = 0;
-#if MTK_SAO
+#if SAO
       Int processingState = (pcSlice->getSPS()->getUseALF() || pcSlice->getSPS()->getUseSAO())?(EXECUTE_INLOOPFILTER):(ENCODE_SLICE);
 #else
       Int processingState = (pcSlice->getSPS()->getUseALF() )?(EXECUTE_INLOOPFILTER):(ENCODE_SLICE);
@@ -914,11 +914,11 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
             m_pcEntropyCoder->setEntropyCoder ( m_pcCavlcCoder, pcSlice );
           }
 
-#if MTK_SAO
+#if SAO
           if ( pcSlice->getSPS()->getUseSAO() )
           {
-            m_pcEntropyCoder->resetEntropy    ();
-            m_pcEntropyCoder->setBitstream    ( m_pcBitCounter );
+            m_pcEntropyCoder->resetEntropy();
+            m_pcEntropyCoder->setBitstream( m_pcBitCounter );
             m_pcSAO->startSaoEnc(pcPic, m_pcEntropyCoder, m_pcEncTop->getRDSbacCoder(), m_pcCfg->getUseSBACRD() ?  m_pcEncTop->getRDGoOnSbacCoder() : NULL);
 #if SAO_CHROMA_LAMBDA 
             m_pcSAO->SAOProcess(pcPic->getSlice(0)->getLambdaLuma(), pcPic->getSlice(0)->getLambdaChroma());
@@ -929,7 +929,6 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
             m_pcSAO->SAOProcess(pcPic->getSlice(0)->getLambda());
 #endif
 #endif
-            m_pcSAO->copyQaoData(&cSaoParam);
             m_pcSAO->endSaoEnc();
 
 #if E057_INTRA_PCM && E192_SPS_PCM_FILTER_DISABLE_SYNTAX
@@ -1017,7 +1016,7 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
           if(uiNextCUAddr == 0) //SAO parameters are in the first slice header
           {
 #endif
-#if MTK_SAO
+#if SAO
           if (pcSlice->getSPS()->getUseSAO())
           {
             m_pcEntropyCoder->encodeSaoParam(&cSaoParam);
@@ -1316,22 +1315,21 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
               m_pcEntropyCoder->setEntropyCoder ( m_pcCavlcCoder, pcSlice );
             }
 
-#if MTK_SAO
+#if SAO
             if ( pcSlice->getSPS()->getUseSAO() )
             {
-              m_pcEntropyCoder->resetEntropy    ();
-              m_pcEntropyCoder->setBitstream    ( m_pcBitCounter );
+              m_pcEntropyCoder->resetEntropy();
+              m_pcEntropyCoder->setBitstream( m_pcBitCounter );
               m_pcSAO->startSaoEnc(pcPic, m_pcEntropyCoder, m_pcEncTop->getRDSbacCoder(), m_pcCfg->getUseSBACRD() ?  m_pcEncTop->getRDGoOnSbacCoder() : NULL);
 #if SAO_CHROMA_LAMBDA 
-              m_pcSAO->SAOProcess(pcPic->getSlice(0)->getLambdaLuma(), pcPic->getSlice(0)->getLambdaChroma());
+              m_pcSAO->SAOProcess(&cSaoParam, pcPic->getSlice(0)->getLambdaLuma(), pcPic->getSlice(0)->getLambdaChroma());
 #else
 #if ALF_CHROMA_LAMBDA
-              m_pcSAO->SAOProcess(pcPic->getSlice(0)->getLambdaLuma());
+              m_pcSAO->SAOProcess(&cSaoParam, pcPic->getSlice(0)->getLambdaLuma());
 #else
-              m_pcSAO->SAOProcess(pcPic->getSlice(0)->getLambda());
+              m_pcSAO->SAOProcess(&cSaoParam, pcPic->getSlice(0)->getLambda());
 #endif
 #endif
-              m_pcSAO->copyQaoData(&cSaoParam);
               m_pcSAO->endSaoEnc();
 
 #if E057_INTRA_PCM && E192_SPS_PCM_FILTER_DISABLE_SYNTAX
@@ -1401,8 +1399,7 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
         }
 #endif
       } // end iteration over slices
-      
-      
+      if(pcSlice->getSPS()->getUseSAO())      {        m_pcSAO->freeSaoParam(&cSaoParam);      }      
 #if MTK_NONCROSS_INLOOP_FILTER || E045_SLICE_COMMON_INFO_SHARING
       if(pcSlice->getSPS()->getUseALF())
       {

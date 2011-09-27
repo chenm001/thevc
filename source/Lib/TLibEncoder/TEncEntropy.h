@@ -46,6 +46,7 @@
 #include "TLibCommon/TComTrQuant.h"
 #if E045_SLICE_COMMON_INFO_SHARING
 #include "TLibCommon/TComAdaptiveLoopFilter.h"
+#include "TLibCommon/TComSampleAdaptiveOffset.h"
 #endif
 
 class TEncSbac;
@@ -141,10 +142,10 @@ public:
   virtual Void codeAlfFlagNum       ( UInt uiCode, UInt minValue ) = 0;
 #endif
   virtual Void codeAlfCtrlFlag      ( UInt uiSymbol ) = 0;
-#if MTK_SAO
-  virtual Void codeAoFlag          ( UInt uiCode ) = 0;
-  virtual Void codeAoUvlc          ( UInt uiCode ) = 0;
-  virtual Void codeAoSvlc          ( Int   iCode ) = 0;
+#if SAO
+  virtual Void codeSaoFlag          ( UInt uiCode ) = 0;
+  virtual Void codeSaoUvlc          ( UInt uiCode ) = 0;
+  virtual Void codeSaoSvlc          ( Int   iCode ) = 0;
 #endif
   virtual Void estBit               (estBitsSbacStruct* pcEstBitsSbac, UInt uiCTXIdx, TextType eTType) = 0;
   
@@ -274,16 +275,10 @@ public:
                         int **FilterCoeff, int kMinTab[]);
   Int golombEncode(int coeff, int k);
   Int lengthGolomb(int coeffVal, int k);
-#if MTK_SAO
-#if MTK_SAO_CHROMA
-  Void    encodeQAOOnePart(SAOParam* pQaoParam, Int part_idx, Int iYCbCr);
-  Void    encodeQuadTreeSplitFlag(SAOParam* pQaoParam, Int part_idx, Int iYCbCr);
-  Void    encodeSaoParam(SAOParam* pQaoParam) ;
-#else
-  Void    encodeQAOOnePart(SAOParam* pQaoParam, Int part_idx);
-  Void    encodeQuadTreeSplitFlag(SAOParam* pQaoParam, Int part_idx);
-  Void    encodeSaoParam(SAOParam* pQaoParam) ;
-#endif
+#if SAO
+  Void    encodeSaoOnePart       (SAOParam* pSaoParam, Int iPartIdx, Int iYCbCr);
+  Void    encodeQuadTreeSplitFlag(SAOParam* pSaoParam, Int iPartIdx, Int iYCbCr);
+  Void    encodeSaoParam         (SAOParam* pSaoParam);
 #endif
 
   static Int countNonZeroCoeffs( TCoeff* pcCoef, UInt uiSize );
