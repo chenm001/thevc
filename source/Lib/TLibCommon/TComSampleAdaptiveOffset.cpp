@@ -599,10 +599,18 @@ Void TComSampleAdaptiveOffset::createSliceMap(UInt iSliceIdx, UInt uiStartAddr, 
   {
     if (m_bIsFineSliceCu[iLcuIdx])
     {
+#if TILES
+      pMap = m_pcPicYuvMap->getLumaAddr(m_pcPic->getPicSym()->getCUOrderMap(iLcuIdx));
+#if SAO_CHROMA
+      pMapCb = m_pcPicYuvMap->getCbAddr(m_pcPic->getPicSym()->getCUOrderMap(iLcuIdx));
+      pMapCr = m_pcPicYuvMap->getCrAddr(m_pcPic->getPicSym()->getCUOrderMap(iLcuIdx));
+#endif
+#else
       pMap = m_pcPicYuvMap->getLumaAddr(iLcuIdx);
 #if SAO_CHROMA
       pMapCb = m_pcPicYuvMap->getCbAddr(iLcuIdx);
       pMapCr = m_pcPicYuvMap->getCrAddr(iLcuIdx);
+#endif
 #endif
       UInt uiFirstCUInStartLCUTmp = (iLcuIdx == uiStartLCU) ? uiFirstCUInStartLCU : 0;
       UInt uiLastCUInEndLCUTmp    = (iLcuIdx == uiEndLCU  ) ? uiLastCUInEndLCU+1 : uiNumSUInLCU;
@@ -628,10 +636,18 @@ Void TComSampleAdaptiveOffset::createSliceMap(UInt iSliceIdx, UInt uiStartAddr, 
     }
     else
     {
+#if TILES
+      pMap = m_pcPicYuvMap->getLumaAddr(m_pcPic->getPicSym()->getCUOrderMap(iLcuIdx));
+#if SAO_CHROMA
+      pMapCb = m_pcPicYuvMap->getCbAddr(m_pcPic->getPicSym()->getCUOrderMap(iLcuIdx));
+      pMapCr = m_pcPicYuvMap->getCrAddr(m_pcPic->getPicSym()->getCUOrderMap(iLcuIdx));
+#endif
+#else
       pMap = m_pcPicYuvMap->getLumaAddr(iLcuIdx);
 #if SAO_CHROMA
       pMapCb = m_pcPicYuvMap->getCbAddr(iLcuIdx);
       pMapCr = m_pcPicYuvMap->getCrAddr(iLcuIdx);
+#endif
 #endif
       for (l=0;l<uiMaxCUHeight;l++)
       {
