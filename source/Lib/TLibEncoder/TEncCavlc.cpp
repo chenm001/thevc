@@ -346,22 +346,22 @@ Void TEncCavlc::codePPS( TComPPS* pcPPS )
 #endif
 
 #if TILES
-  WRITE_CODE( pcPPS->getColumnRowInfoPresent(), 1,           "tile_info_present_flag" );
+  WRITE_FLAG( pcPPS->getColumnRowInfoPresent(),           "tile_info_present_flag" );
   if( pcPPS->getColumnRowInfoPresent() == 1 )
   {
-    WRITE_CODE( pcPPS->getUniformSpacingIdr(), 1,                                   "uniform_spacing_idc" );
-    WRITE_CODE( pcPPS->getTileBoundaryIndependenceIdr(), 1,                         "tile_boundary_independence_idc" );
-    WRITE_CODE( pcPPS->getNumColumnsMinus1(), LOG2_MAX_NUM_COLUMNS_MINUS1,          "num_tile_columns_minus1" );
-    WRITE_CODE( pcPPS->getNumRowsMinus1(), LOG2_MAX_NUM_ROWS_MINUS1,                "num_tile_rows_minus1" );
+    WRITE_FLAG( pcPPS->getUniformSpacingIdr(),                                   "uniform_spacing_idc" );
+    WRITE_FLAG( pcPPS->getTileBoundaryIndependenceIdr(),                         "tile_boundary_independence_idc" );
+    WRITE_UVLC( pcPPS->getNumColumnsMinus1(),                                    "num_tile_columns_minus1" );
+    WRITE_UVLC( pcPPS->getNumRowsMinus1(),                                       "num_tile_rows_minus1" );
     if( pcPPS->getUniformSpacingIdr() == 0 )
     {
       for(UInt i=0; i<pcPPS->getNumColumnsMinus1(); i++)
       {
-        WRITE_CODE( pcPPS->getColumnWidth(i), LOG2_MAX_COLUMN_WIDTH,                "column_width" );
+        WRITE_UVLC( pcPPS->getColumnWidth(i),                                    "column_width" );
       }
       for(UInt i=0; i<pcPPS->getNumRowsMinus1(); i++)
       {
-        WRITE_CODE( pcPPS->getRowHeight(i), LOG2_MAX_ROW_HEIGHT,                    "row_height" );
+        WRITE_UVLC( pcPPS->getRowHeight(i),                                      "row_height" );
       }
     }
   }
@@ -475,19 +475,19 @@ Void TEncCavlc::codeSPS( TComSPS* pcSPS )
   }
 #endif
 #if TILES
-  WRITE_CODE( pcSPS->getUniformSpacingIdr(), 1,                          "uniform_spacing_idc" );
-  WRITE_CODE( pcSPS->getTileBoundaryIndependenceIdr(), 1,                "tile_boundary_independence_idc" );
-  WRITE_CODE( pcSPS->getNumColumnsMinus1(), LOG2_MAX_NUM_COLUMNS_MINUS1, "num_tile_columns_minus1" );
-  WRITE_CODE( pcSPS->getNumRowsMinus1(), LOG2_MAX_NUM_ROWS_MINUS1,       "num_tile_rows_minus1" );
+  WRITE_FLAG( pcSPS->getUniformSpacingIdr(),                          "uniform_spacing_idc" );
+  WRITE_FLAG( pcSPS->getTileBoundaryIndependenceIdr(),                "tile_boundary_independence_idc" );
+  WRITE_UVLC( pcSPS->getNumColumnsMinus1(),                           "num_tile_columns_minus1" );
+  WRITE_UVLC( pcSPS->getNumRowsMinus1(),                              "num_tile_rows_minus1" );
   if( pcSPS->getUniformSpacingIdr()==0 )
   {
     for(UInt i=0; i<pcSPS->getNumColumnsMinus1(); i++)
     {
-      WRITE_CODE( pcSPS->getColumnWidth(i), LOG2_MAX_COLUMN_WIDTH,       "column_width" );
+      WRITE_UVLC( pcSPS->getColumnWidth(i),                           "column_width" );
     }
     for(UInt i=0; i<pcSPS->getNumRowsMinus1(); i++)
     {
-      WRITE_CODE( pcSPS->getRowHeight(i), LOG2_MAX_ROW_HEIGHT,           "row_height" );
+      WRITE_UVLC( pcSPS->getRowHeight(i),                             "row_height" );
     }
   }
 #endif
