@@ -6161,7 +6161,7 @@ Void TEncAdaptiveLoopFilter::xFilterTapDecisionChroma( UInt64 uiLumaRate, TComPi
     if(!m_bUseNonCrossALF)
       xCalcCorrelationFunc(0, 0, pOrg, pCmp, iShape, (pcPicOrg->getWidth()>>1), (pcPicOrg->getHeight()>>1), pcPicOrg->getCStride(), pcPicDec->getCStride(), true);
     else
-      xCalcCorrelationFuncforChromaSlices(ALF_Cb, pOrg, pCmp, iShape, pcPicOrg->getCStride(), pcPicDec->getCStride());
+      xCalcCorrelationFuncforChromaSlices(ALF_Cr, pOrg, pCmp, iShape, pcPicOrg->getCStride(), pcPicDec->getCStride());
 #else        
     xCalcCorrelationFunc(pOrg, pCmp, iShape, (pcPicOrg->getWidth()>>1), (pcPicOrg->getHeight()>>1), pcPicOrg->getCStride(), pcPicDec->getCStride());
 #endif
