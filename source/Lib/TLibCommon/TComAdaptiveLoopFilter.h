@@ -322,7 +322,10 @@ public:
   /// get TComPic pointer
   TComPic* getPic      ()          {return m_pcPic;}
 
+  Bool isValidSlice()               {return m_bValidSlice;}
+
 private: 
+  Bool     m_bValidSlice;
   TComPic* m_pcPic;                  //!< pointer to TComPic
   Int*     m_piSliceSUMap;           //!< pointer to slice ID map
   CAlfLCU* m_pcAlfLCU;               //!< ALF LCU units

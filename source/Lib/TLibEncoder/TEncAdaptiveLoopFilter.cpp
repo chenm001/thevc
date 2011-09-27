@@ -872,6 +872,8 @@ Void TEncAdaptiveLoopFilter::xEncodeCUAlfCtrlFlags()
   {
     for(UInt s=0; s< m_uiNumSlicesInPic; s++)
     {
+      if(!m_pSlice[s].isValidSlice()) continue;
+
       for(UInt idx=0; idx< m_pSlice[s].getNumLCUs(); idx++)
       {
         CAlfLCU& cAlfLCU = m_pSlice[s][idx];
@@ -1404,6 +1406,8 @@ Void TEncAdaptiveLoopFilter::xCalcRDCost(ALFParam* pAlfParam, UInt64& ruiRate, U
       ruiRate = m_pcEntropyCoder->getNumberOfWrittenBits();
       for(UInt s=0; s< m_uiNumSlicesInPic; s++)
       {
+        if(!m_pSlice[s].isValidSlice()) continue;
+
         m_pcEntropyCoder->resetEntropy();
         m_pcEntropyCoder->resetBits();
         m_pcEntropyCoder->encodeAlfCtrlParam(pAlfParam, m_uiNumSlicesInPic, &(m_pSlice[s]));
@@ -1477,6 +1481,8 @@ Void TEncAdaptiveLoopFilter::xCalcRDCost(TComPicYuv* pcPicOrg, TComPicYuv* pcPic
       ruiRate = m_pcEntropyCoder->getNumberOfWrittenBits();
       for(UInt s=0; s< m_uiNumSlicesInPic; s++)
       {
+        if(!m_pSlice[s].isValidSlice()) continue;
+
         m_pcEntropyCoder->resetEntropy();
         m_pcEntropyCoder->resetBits();
         m_pcEntropyCoder->encodeAlfCtrlParam(pAlfParam, m_uiNumSlicesInPic, &(m_pSlice[s]));
@@ -1555,6 +1561,8 @@ Void TEncAdaptiveLoopFilter::xCalcRDCostChroma(TComPicYuv* pcPicOrg, TComPicYuv*
       ruiRate = m_pcEntropyCoder->getNumberOfWrittenBits();
       for(UInt s=0; s< m_uiNumSlicesInPic; s++)
       {
+        if(!m_pSlice[s].isValidSlice()) continue;
+
         m_pcEntropyCoder->resetEntropy();
         m_pcEntropyCoder->resetBits();
         m_pcEntropyCoder->encodeAlfCtrlParam(pAlfParam, m_uiNumSlicesInPic, &(m_pSlice[s]));
@@ -1712,6 +1720,8 @@ Void TEncAdaptiveLoopFilter::xCopyDecToRestCUs(TComPicYuv* pcPicDec, TComPicYuv*
 
     for(s=0; s< m_uiNumSlicesInPic; s++)
     {
+      if(!m_pSlice[s].isValidSlice()) continue;
+
       iAlfDepth = m_pSlice[s].getCUCtrlDepth();
 
       for(idx = 0; idx < m_pSlice[s].getNumLCUs(); idx++)
@@ -5783,6 +5793,8 @@ Void TEncAdaptiveLoopFilter::calcVarforSlices(imgpel **varmap, imgpel *imgY_Dec,
   {
     CAlfSlice* pSlice = &(m_pSlice[s]);
 
+    if(!pSlice->isValidSlice()) continue;
+
     pSlice->copySliceLuma(pPicSlice, pPicSrc, img_stride);
     pSlice->extendSliceBorderLuma(pPicSlice, img_stride, (UInt)EXTEND_NUM_PEL);
     calcVarforOneSlice(pSlice, varmap, (imgpel*)pPicSlice, pad_size, fl, img_stride);
@@ -5805,6 +5817,8 @@ Void TEncAdaptiveLoopFilter::xfilterSlices_en(imgpel* ImgDec, imgpel* ImgRest,in
   for(UInt s=0; s< m_uiNumSlicesInPic; s++)
   {
     CAlfSlice* pSlice = &(m_pSlice[s]);
+
+    if(!pSlice->isValidSlice()) continue;
 
     pSlice->copySliceLuma(pPicSlice, pPicSrc, iStride);
     pSlice->extendSliceBorderLuma(pPicSlice, iStride, EXTEND_NUM_PEL);
@@ -5854,12 +5868,20 @@ Void   TEncAdaptiveLoopFilter::xstoreInBlockMatrixforSlices(imgpel* ImgOrg, imgp
   Pel* pPicSrc   = (Pel *)ImgDec;
   Pel* pPicSlice = m_pcSliceYuvTmp->getLumaAddr();
 
+  UInt iLastValidSliceID =0;
   for(UInt s=0; s< m_uiNumSlicesInPic; s++)
+    if(m_pSlice[s].isValidSlice())
+      iLastValidSliceID = s;
+
+  for(UInt s=0; s<= iLastValidSliceID; s++)
   {
     CAlfSlice* pSlice = &(m_pSlice[s]);
+
+    if(!pSlice->isValidSlice()) continue;
+
     pSlice->copySliceLuma(pPicSlice, pPicSrc, iStride);
     pSlice->extendSliceBorderLuma(pPicSlice, iStride, (UInt)EXTEND_NUM_PEL);
-    xstoreInBlockMatrixforOneSlice(pSlice, ImgOrg, (imgpel*)pPicSlice, tap, iStride, (s==0), (s== m_uiNumSlicesInPic-1));
+    xstoreInBlockMatrixforOneSlice(pSlice, ImgOrg, (imgpel*)pPicSlice, tap, iStride, (s==0), (s== iLastValidSliceID));
   }
 }
 
@@ -5931,14 +5953,21 @@ Void TEncAdaptiveLoopFilter::xCalcCorrelationFuncforChromaSlices(Int ComponentID
   Pel* pPicSrc   = pCmp;
   Pel* pPicSlice = (ComponentID == ALF_Cb)?(m_pcSliceYuvTmp->getCbAddr()):(m_pcSliceYuvTmp->getCrAddr());
 
+  UInt iLastValidSliceID =0;
   for(UInt s=0; s< m_uiNumSlicesInPic; s++)
+    if(m_pSlice[s].isValidSlice())
+      iLastValidSliceID = s;
+
+  for(UInt s=0; s<= iLastValidSliceID; s++)
   {
     CAlfSlice* pSlice = &(m_pSlice[s]);
+
+    if(!pSlice->isValidSlice()) continue;
 
     pSlice->copySliceChroma(pPicSlice, pPicSrc, iCmpStride);
     pSlice->extendSliceBorderChroma(pPicSlice, iCmpStride, (UInt)EXTEND_NUM_PEL_C);
 
-    xCalcCorrelationFuncforChromaOneSlice(pSlice, pOrg, pPicSlice, iTap, iCmpStride,(s==m_uiNumSlicesInPic-1));
+    xCalcCorrelationFuncforChromaOneSlice(pSlice, pOrg, pPicSlice, iTap, iCmpStride,(s== iLastValidSliceID));
   }
 }
 
@@ -6000,6 +6029,8 @@ Void TEncAdaptiveLoopFilter::xFrameChromaforSlices(Int ComponentID, TComPicYuv* 
   {
     CAlfSlice* pSlice = &(m_pSlice[s]);
 
+    if(!pSlice->isValidSlice()) continue;
+
     pSlice->copySliceChroma(pPicSlice, pPicDec, iStride);
     pSlice->extendSliceBorderChroma(pPicSlice, iStride, (UInt)EXTEND_NUM_PEL_C);
 
@@ -6017,6 +6048,8 @@ Void TEncAdaptiveLoopFilter::getCtrlFlagsForSlices(Bool bCUCtrlEnabled, Int iCUC
   for(UInt s=0; s< m_uiNumSlicesInPic; s++)
   {
     CAlfSlice& cSlice = m_pSlice[s];
+
+    if(!cSlice.isValidSlice()) continue;
 
     cSlice.setCUCtrlEnabled(bCUCtrlEnabled);
     if(bCUCtrlEnabled)
@@ -6039,6 +6072,8 @@ Void TEncAdaptiveLoopFilter::transferCtrlFlagsToAlfParam(UInt& ruiNumFlags, UInt
   for(UInt s=0; s< m_uiNumSlicesInPic; s++)
   {
     CAlfSlice& cSlice = m_pSlice[s];
+
+    if(!cSlice.isValidSlice()) continue;
 
     for(UInt idx=0; idx < cSlice.getNumLCUs(); idx++)
     {
@@ -6360,6 +6395,8 @@ UInt64 TEncAdaptiveLoopFilter::xCalcRateChroma(ALFParam* pAlfParam)
     uiRate = m_pcEntropyCoder->getNumberOfWrittenBits();
     for(UInt s=0; s< m_uiNumSlicesInPic; s++)
     {
+      if(!m_pSlice[s].isValidSlice()) continue;
+
       m_pcEntropyCoder->resetEntropy();
       m_pcEntropyCoder->resetBits();
       m_pcEntropyCoder->encodeAlfCtrlParam(pAlfParam, m_uiNumSlicesInPic, &(m_pSlice[s]));

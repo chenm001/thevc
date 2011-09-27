@@ -1036,6 +1036,8 @@ Void TComAdaptiveLoopFilter::xALFLuma_qc(TComPic* pcPic, ALFParam* pcAlfParam, T
     {
       CAlfSlice* pSlice = &(m_pSlice[s]);
 
+      if(!pSlice->isValidSlice()) continue;
+
       pSlice->copySliceLuma((Pel*)pDec, (Pel*)pRest, LumaStride);
       pSlice->extendSliceBorderLuma((Pel*)pDec, LumaStride, (UInt)EXTEND_NUM_PEL);
 
@@ -2333,6 +2335,9 @@ Void TComAdaptiveLoopFilter::xALFChroma(ALFParam* pcAlfParam, TComPicYuv* pcPicD
       for(UInt s=0; s< m_uiNumSlicesInPic; s++)
       {
         CAlfSlice* pSlice = &(m_pSlice[s]);
+
+        if(!pSlice->isValidSlice()) continue;
+
         pSlice->copySliceChroma(pDec, pRest, iStride);
         pSlice->extendSliceBorderChroma(pDec, iStride, (UInt)EXTEND_NUM_PEL_C);
 #if ALF_CHROMA_NEW_SHAPES
@@ -2368,6 +2373,9 @@ Void TComAdaptiveLoopFilter::xALFChroma(ALFParam* pcAlfParam, TComPicYuv* pcPicD
       for(UInt s=0; s< m_uiNumSlicesInPic; s++)
       {
         CAlfSlice* pSlice = &(m_pSlice[s]);
+
+        if(!pSlice->isValidSlice()) continue;
+
         pSlice->copySliceChroma(pDec, pRest, iStride);
         pSlice->extendSliceBorderChroma(pDec, iStride, (UInt)EXTEND_NUM_PEL_C);
 #if ALF_CHROMA_NEW_SHAPES
@@ -3027,6 +3035,9 @@ Void TComAdaptiveLoopFilter::transferCtrlFlagsFromAlfParam(ALFParam* pcAlfParam)
   UInt uiNumFlags = 0;
   for(UInt s=0; s< m_uiNumSlicesInPic; s++)
   {
+
+    if(!m_pSlice[s].isValidSlice()) continue;
+
     transferCtrlFlagsFromAlfParamOneSlice(s,bCUCtrlEnabled, iAlfDepth, &(puiFlags[uiNumFlags]));
     uiNumFlags += m_pSlice[s].getNumCtrlFlags();
   }
@@ -4006,6 +4017,7 @@ Void CAlfSlice::init(TComPic* pcPic, Int iSGDepth, Int* piSliceSUMap)
   m_piSliceSUMap   = piSliceSUMap;
   m_bCUCtrlEnabled = false;
   m_iCUCtrlDepth   = -1;
+  m_bValidSlice    = true;
 }
 
 /** Create one ALF slice unit
@@ -4042,9 +4054,24 @@ Void CAlfSlice::create(Int iSliceID, UInt uiStartAddr, UInt uiEndAddr)
   m_uiStartLCU             = uiStartAddr / uiNumSUInLCU;
 #endif
 
+  m_uiEndLCU               = uiEndAddr   / uiNumSUInLCU;
+  m_uiLastCUInEndLCU       = uiEndAddr   % uiNumSUInLCU;   
+  m_bValidSlice            = true;
+
+  Bool bSliceInOneLCU      = (m_uiStartLCU == m_uiEndLCU);
+
   while(!( uiLPelX < uiPicWidth ) || !( uiTPelY < uiPicHeight ))
   {
     uiCurrSU ++;
+
+    if(bSliceInOneLCU)
+    {
+      if(uiCurrSU > m_uiLastCUInEndLCU)
+      {
+        m_bValidSlice = false;
+        break;
+      }
+    }
 
     if(uiCurrSU >= uiNumSUInLCU )
     {
@@ -4055,6 +4082,11 @@ Void CAlfSlice::create(Int iSliceID, UInt uiStartAddr, UInt uiEndAddr)
     uiLPelX = uiLCUX + g_auiRasterToPelX[ g_auiZscanToRaster[uiCurrSU] ];
     uiTPelY = uiLCUY + g_auiRasterToPelY[ g_auiZscanToRaster[uiCurrSU] ];
 
+  }
+
+  if(!m_bValidSlice)
+  {
+    return;
   }
 
   if(uiCurrSU != m_uiFirstCUInStartLCU)
@@ -4074,10 +4106,6 @@ Void CAlfSlice::create(Int iSliceID, UInt uiStartAddr, UInt uiEndAddr)
 
   }
 
-
-  //end LCU and SU address
-  m_uiLastCUInEndLCU       = uiEndAddr   % uiNumSUInLCU;
-  m_uiEndLCU               = uiEndAddr   / uiNumSUInLCU;
 
   m_uiNumLCUs              = m_uiEndLCU - m_uiStartLCU +1;
 
