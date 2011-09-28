@@ -171,7 +171,7 @@ Void TComSlice::initSlice()
   UInt uiNumCUsInFrame   = uiWidthInCU * uiHeightInCU;
 
   m_uiTileCount          = 0;
-  m_uiTileByteLocation   = new UInt[uiNumCUsInFrame];
+  if (m_uiTileByteLocation==NULL) m_uiTileByteLocation   = new UInt[uiNumCUsInFrame];
 #endif
 }
 

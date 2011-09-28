@@ -261,6 +261,7 @@
 
 #if TILES
 #define TILES_DECODER                       1 // JCTVC-F594 - signalling of tile location
+#define MAX_MARKER_PER_NALU                 1000
 #else
 #define TILES_DECODER                       0
 #endif

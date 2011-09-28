@@ -244,11 +244,9 @@ public:
   Void parseAlfCtrlFlag     ( UInt &ruiAlfCtrlFlag );
 #if TILES
 #if TILES_DECODER
-  Void updateContextTables  ( SliceType eSliceType, Int iQp, Bool bCheckForTileMarker, Bool& bTileMarkerFoundFlag ) { return; }
   Void readTileMarker     ( UInt& uiTileIdx, UInt uiBitsUsed );
-#else
-  Void updateContextTables  ( SliceType eSliceType, Int iQp ) { return; }
 #endif
+  Void updateContextTables  ( SliceType eSliceType, Int iQp ) { return; }
 #endif    
 #if OL_FLUSH
   Void decodeFlush() {};

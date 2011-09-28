@@ -1053,6 +1053,9 @@ Void TEncSlice::encodeSlice   ( TComPic*& rpcPic, TComOutputBitstream* pcBitstre
   TEncTop* pcEncTop = (TEncTop*) m_pcCfg;
   TEncSbac* pcSbacCoders = pcEncTop->getSbacCoders(); //coder for each substream
   Int iNumSubstreams = pcSlice->getPPS()->getNumSubstreams();
+#if TILES_DECODER
+  UInt uiBitsOriginallyInSubstreams = 0;
+#endif
   if( pcSlice->getSymbolMode() )
   {
 #if TILES
@@ -1062,6 +1065,13 @@ Void TEncSlice::encodeSlice   ( TComPic*& rpcPic, TComOutputBitstream* pcBitstre
 #endif
     for (UInt ui = 0; ui < uiTilesAcross; ui++)
       m_pcBufferSbacCoders[ui].load(m_pcSbacCoder); //init. state
+
+#if TILES_DECODER
+    for (Int iSubstrmIdx=0; iSubstrmIdx < iNumSubstreams; iSubstrmIdx++)
+    {
+      uiBitsOriginallyInSubstreams += pcSubstreams[iSubstrmIdx].getNumberOfWrittenBits();
+    }
+#endif
   }
 
   UInt uiWidthInLCUs  = rpcPic->getPicSym()->getFrameWidthInCU();
@@ -1073,24 +1083,11 @@ Void TEncSlice::encodeSlice   ( TComPic*& rpcPic, TComOutputBitstream* pcBitstre
   UInt uiTileLCUX     = 0;
   UInt uiTileLCUY     = 0;
 #endif
-#if TILES_DECODER
-  UInt uiBitsOriginallyInSubstreams = 0;
-  if (iSymbolMode)
-  {
-    for (Int iSubstrmIdx=0; iSubstrmIdx < iNumSubstreams; iSubstrmIdx++)
-    {
-      uiBitsOriginallyInSubstreams += pcSubstreams[iSubstrmIdx].getNumberOfWrittenBits();
-    }
-  }
-#endif
 #endif
 
 
 #if FINE_GRANULARITY_SLICES
 #if TILES
-#if TILES_DECODER
-  Int iTileMarkerWrittenInSlice = 0;
-#endif
   UInt uiEncCUOrder;
   uiCUAddr = rpcPic->getPicSym()->getCUOrderMap( uiStartCUAddr /rpcPic->getNumPartInCU());  /*for tiles, uiStartCUAddr is NOT the real raster scan address, it is actually
                                                                                               an encoding order index, so we need to convert the index (uiStartCUAddr)
@@ -1235,7 +1232,14 @@ Void TEncSlice::encodeSlice   ( TComPic*& rpcPic, TComOutputBitstream* pcBitstre
     {
 #if TILES_DECODER
       Int iTileIdx            = rpcPic->getPicSym()->getTileIdxMap(uiCUAddr);
-      Bool bWriteTileMarker = ( (((Int)((iTileMarkerWrittenInSlice+1)*m_pcCfg->getMaxTileMarkerOffset()+0.5)) == iTileIdx ) && iTileMarkerWrittenInSlice < (m_pcCfg->getMaxTileMarkerEntryPoints()-1)) ? true : false;
+      Bool bWriteTileMarker   = false;
+      // check if current iTileIdx should have a marker
+      for (Int iEntryIdx=0; iEntryIdx<m_pcCfg->getMaxTileMarkerEntryPoints()-1; iEntryIdx++)
+      {
+        bWriteTileMarker = ( (((Int)((iEntryIdx+1)*m_pcCfg->getMaxTileMarkerOffset()+0.5)) == iTileIdx ) && iEntryIdx < (m_pcCfg->getMaxTileMarkerEntryPoints()-1)) ? true : false;
+        if (bWriteTileMarker)
+          break;
+      }
 #endif
       if (iSymbolMode)
       {
@@ -1263,7 +1267,7 @@ Void TEncSlice::encodeSlice   ( TComPic*& rpcPic, TComOutputBitstream* pcBitstre
       {
         m_pcEntropyCoder->resetEntropy();
 #if TILES_DECODER
-        pcBitstream->writeAlignZero();
+        pcBitstream->writeAlignOne();
 #endif
       }
 #if TILES_DECODER
@@ -1273,13 +1277,12 @@ Void TEncSlice::encodeSlice   ( TComPic*& rpcPic, TComOutputBitstream* pcBitstre
         // Write TileMarker into the appropriate substream (nothing has been written to it yet).
         if (m_pcCfg->getTileMarkerFlag() && bWriteTileMarker)
         {
-          // reserved 0x000002
-          pcSubstreams[uiSubStrm].write(0, 8);
-          pcSubstreams[uiSubStrm].write(0, 8);
-          pcSubstreams[uiSubStrm].write(2, 8);
-          // Write tile marker
+          // Log locations where tile markers are to be inserted during emulation prevention
+          UInt uiMarkerCount = pcSubstreams[uiSubStrm].getTileMarkerLocationCount();
+          pcSubstreams[uiSubStrm].setTileMarkerLocation     ( uiMarkerCount, pcSubstreams[uiSubStrm].getNumberOfWrittenBits() >> 3 );
+          pcSubstreams[uiSubStrm].setTileMarkerLocationCount( uiMarkerCount + 1 );
+          // Write tile index
           m_pcEntropyCoder->writeTileMarker(iTileIdx, rpcPic->getPicSym()->getBitsUsedByTileIdx()); // Tile index
-          iTileMarkerWrittenInSlice++;
         }
 
         
@@ -1298,17 +1301,21 @@ Void TEncSlice::encodeSlice   ( TComPic*& rpcPic, TComOutputBitstream* pcBitstre
 #endif
       if (m_pcCfg->getTileMarkerFlag() && bWriteTileMarker)
       {
-        // reserved 0x000002
-        pcBitstream->write(0, 8);
-        pcBitstream->write(0, 8);
-        pcBitstream->write(2, 8);
-        // Write tile marker
+        // Log locations where tile markers are to be inserted during emulation prevention
+        UInt uiMarkerCount = pcBitstream->getTileMarkerLocationCount();
+        pcBitstream->setTileMarkerLocation     ( uiMarkerCount, pcBitstream->getNumberOfWrittenBits() >> 3 );
+        pcBitstream->setTileMarkerLocationCount( uiMarkerCount + 1 );
+        // Write tile index
         m_pcEntropyCoder->writeTileMarker(iTileIdx, rpcPic->getPicSym()->getBitsUsedByTileIdx()); // Tile index
-        iTileMarkerWrittenInSlice++;
       }
       UInt uiLocationCount = pcSlice->getTileLocationCount();
       // add bits coded in previous entropy slices + bits coded so far      
-      pcSlice->setTileLocation( uiLocationCount, (pcSlice->getTileOffstForMultES() + pcBitstream->getNumberOfWrittenBits()) >> 3 ); 
+      UInt uiLength = (pcSlice->getTileOffstForMultES() + pcBitstream->getNumberOfWrittenBits()) >> 3;
+      if (uiLength==0)
+      {
+        printf("\nWarning! Distance between slice header and tile start is zero."); // this should not occur
+      }
+      pcSlice->setTileLocation( uiLocationCount, uiLength ); 
       pcSlice->setTileLocationCount( uiLocationCount + 1 );
 #if OL_USE_WPP
       }

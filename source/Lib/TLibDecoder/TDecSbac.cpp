@@ -164,16 +164,10 @@ Void TDecSbac::resetEntropy          (TComSlice* pcSlice)
 }
 
 #if TILES
-#if TILES_DECODER
-/** The function does the followng: Read out terminate bit. Flush CABAC. Byte-align for next tile. 
- * If light weight tile marker check requested and present then set found flag to true and read the reserved word 0x000002. 
- * Intialize CABAC states. Start CABAC.
- * \returns Updates bTileMarkerFoundFlag to true if light weight tile marker detected, otherwise set it to false.
+/** The function does the following: Read out terminate bit. Flush CABAC. Byte-align for next tile.
+ *  Intialize CABAC states. Start CABAC.
  */
-Void TDecSbac::updateContextTables( SliceType eSliceType, Int iQp, Bool bCheckForTileMarker, Bool& bTileMarkerFoundFlag )
-#else
 Void TDecSbac::updateContextTables( SliceType eSliceType, Int iQp )
-#endif
 {
   UInt uiBit;
   m_pcTDecBinIf->decodeBinTrm(uiBit);
@@ -191,27 +185,6 @@ Void TDecSbac::updateContextTables( SliceType eSliceType, Int iQp )
   }
 #endif
   m_pcBitstream->readOutTrailingBits();
-
-#if TILES_DECODER
-  UInt uiCode;
-  bTileMarkerFoundFlag = false;
-  if (bCheckForTileMarker)
-  {
-    if (m_pcBitstream->getNumBitsLeft() >= 24)
-    {
-      uiCode = m_pcBitstream->peekBits(24);
-      if (uiCode == 0x000002)
-      {
-        bTileMarkerFoundFlag = true;
-      }
-    }
-
-    if (bTileMarkerFoundFlag)
-    {
-      m_pcBitstream->read(24, uiCode); // 0x000002
-    }
-  }
-#endif
 
   m_cCUSplitFlagSCModel.initBuffer       ( eSliceType, iQp, (Short*)INIT_SPLIT_FLAG );
   m_cCUSkipFlagSCModel.initBuffer        ( eSliceType, iQp, (Short*)INIT_SKIP_FLAG );

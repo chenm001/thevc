@@ -855,11 +855,16 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
         Bool bEntropySlice = (!pcSlice->isNextSlice());
         if (!bEntropySlice)
         {
-          uiOneBitstreamPerSliceLength = 0;
+          uiOneBitstreamPerSliceLength = 0; // start of a new slice
         }
+
+        // used while writing slice header
+        Int iTransmitLWHeader = (m_pcCfg->getTileMarkerFlag()==0) ? 0 : 1;
+        pcSlice->setTileMarkerFlag ( iTransmitLWHeader );
 #endif
         m_pcEntropyCoder->setBitstream(&nalu.m_Bitstream);
         m_pcEntropyCoder->encodeSliceHeader(pcSlice);
+
 
 
         // is it needed?
@@ -1117,7 +1122,6 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
           // The final bitstream is either nalu.m_Bitstream or pcBitstreamRedirect;
           UInt* puiSubstreamSizes = pcSlice->getSubstreamSizes();
 #if TILES_DECODER
-          Int iTileMarkerWrittenInSlice = 0;
           UInt uiTotalCodedSize = 0; // for padding calcs.
           UInt uiNumSubstreamsPerTile = iNumSubstreams;
           if (pcPic->getPicSym()->getTileBoundaryIndependenceIdr() && pcSlice->getPPS()->getEntropyCodingSynchro())
@@ -1132,18 +1136,15 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
             m_pcEntropyCoder->encodeTerminatingBit( 1 );
             m_pcEntropyCoder->encodeSliceFinish();
             pcSubstreamsOut[ui].write( 1, 1 ); // stop bit.
-#if TILES_DECODER
-            // Byte alignment is necessary for TileMarker to be useful.
-            // Is the next substream going to have a tile indicator?  If so, we add padding here.
+#if TILES
+            // Byte alignment is necessary between tiles when tiles are independent.
             uiTotalCodedSize += pcSubstreamsOut[ui].getNumberOfWrittenBits();
 
-            if (pcPic->getPicSym()->getTileBoundaryIndependenceIdr()
-                && m_pcCfg->getTileMarkerFlag() == 1)
+            if (pcPic->getPicSym()->getTileBoundaryIndependenceIdr())
             {
-              Int iTileIdxNext = (ui+1)/uiNumSubstreamsPerTile;
-              Bool bWriteTileMarkerNext = (ui+uiNumSubstreamsPerTile < iNumSubstreams)
-                                            && ( (((Int)((iTileMarkerWrittenInSlice+1)*m_pcCfg->getMaxTileMarkerOffset()+0.5)) == iTileIdxNext ) && (iTileMarkerWrittenInSlice < (m_pcCfg->getMaxTileMarkerEntryPoints()-1)));
-              if (bWriteTileMarkerNext)
+              Bool bNextSubstreamInNewTile = ((ui+1) < iNumSubstreams)
+                                             && ((ui+1)%uiNumSubstreamsPerTile == 0);
+              if (bNextSubstreamInNewTile)
               {
                 // byte align.
                 while (uiTotalCodedSize&0x7)
@@ -1152,6 +1153,12 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
                   uiTotalCodedSize++;
                 }
               }
+#if TILES_DECODER
+              Bool bRecordOffsetNext = m_pcCfg->getTileLocationInSliceHeaderFlag()
+                                            && bNextSubstreamInNewTile;
+              if (bRecordOffsetNext)
+                pcSlice->setTileLocation(ui/uiNumSubstreamsPerTile, pcSlice->getTileOffstForMultES()+(uiTotalCodedSize>>3));
+#endif
             }
 #endif
             if (ui+1 < pcSlice->getPPS()->getNumSubstreams())
@@ -1180,11 +1187,26 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
           TComOutputBitstream *pcOut = &nalu.m_Bitstream;
           nalu.m_Bitstream.writeAlignOne(); // Byte-alignment before CABAC data
 #endif
+#if TILES_DECODER
+          UInt uiAccumulatedLength = 0;
+#endif
           for ( UInt ui = 0 ; ui < pcSlice->getPPS()->getNumSubstreams(); ui++ )
           {
             pcOut->addSubstream(&pcSubstreamsOut[ui]);
+
+#if TILES_DECODER
+            // Update tile marker location information
+            for (Int uiMrkIdx = 0; uiMrkIdx < pcSubstreamsOut[ui].getTileMarkerLocationCount(); uiMrkIdx++)
+            {
+              UInt uiBottom = pcOut->getTileMarkerLocationCount();
+              pcOut->setTileMarkerLocation      ( uiBottom, uiAccumulatedLength + pcSubstreamsOut[ui].getTileMarkerLocation( uiMrkIdx ) );
+              pcOut->setTileMarkerLocationCount ( uiBottom + 1 );
+            }
+            uiAccumulatedLength = (pcOut->getNumberOfWrittenBits() >> 3);
+#endif
           }
         }
+
 #endif // OL_USE_WPP
 
 #if TILES_DECODER
@@ -1215,7 +1237,11 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
             {
               // Perform bitstream concatenation of slice header and partial slice payload
               xWriteTileLocationToSliceHeader((*naluBuffered), pcBitstreamRedirect, pcSlice);
-              if (!bIteratorAtListStart)
+              if (bIteratorAtListStart)
+              {
+                itLocationToPushSliceHeaderNALU = accessUnit.begin();
+              }
+              else
               {
                 itLocationToPushSliceHeaderNALU++;
               }
@@ -1250,14 +1276,14 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
               // perform byte-alignment to get appropriate bitstream length (used for explicit tile location signaling in slice header)
               writeRBSPTrailingBits((*pcBitstreamRedirect));
               bNALUAlignedWrittenToList = true; // This is not really a write to bitsream but buffered for later. The flag is set to prevent writing of current NALU to list.
-              uiOneBitstreamPerSliceLength += pcBitstreamRedirect->getNumberOfWrittenBits() + 24; // length of bitstream after byte-alignment + 3 byte startcode 0x000001
+              uiOneBitstreamPerSliceLength += pcBitstreamRedirect->getNumberOfWrittenBits(); // length of bitstream after byte-alignment
             }
             else // write out entropy slice
             {
               writeRBSPTrailingBits(nalu.m_Bitstream);
               accessUnit.push_back(new NALUnitEBSP(nalu));
               bNALUAlignedWrittenToList = true; 
-              uiOneBitstreamPerSliceLength += nalu.m_Bitstream.getNumberOfWrittenBits() + 24; // length of bitstream after byte-alignment + 3 byte startcode 0x000001            
+              uiOneBitstreamPerSliceLength += nalu.m_Bitstream.getNumberOfWrittenBits(); // length of bitstream after byte-alignment
             }
           }
         }
@@ -1268,7 +1294,7 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
           writeRBSPTrailingBits(nalu.m_Bitstream);
           accessUnit.push_back(new NALUnitEBSP(nalu));
           bNALUAlignedWrittenToList = true; 
-          uiOneBitstreamPerSliceLength += nalu.m_Bitstream.getNumberOfWrittenBits() + 24; // length of bitstream after byte-alignment + 3 byte startcode 0x000001            
+          uiOneBitstreamPerSliceLength += nalu.m_Bitstream.getNumberOfWrittenBits(); // length of bitstream after byte-alignment
         }
 #endif
 #endif
@@ -1290,7 +1316,6 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
         uiOneBitstreamPerSliceLength += nalu.m_Bitstream.getNumberOfWrittenBits() + 24; // length of bitstream after byte-alignment + 3 byte startcode 0x000001
         }
 #endif
-
 
 #if !TILES_DECODER
         UInt uiBoundingAddrSlice, uiBoundingAddrEntropySlice;
@@ -1962,15 +1987,10 @@ Double TEncGOP::xCalculateRVM()
  */
 Void TEncGOP::xWriteTileLocationToSliceHeader (OutputNALUnit& rNalu, TComOutputBitstream*& rpcBitstreamRedirect, TComSlice*& rpcSlice)
 {
-  UChar *pucStart =  reinterpret_cast<UChar*>(rpcBitstreamRedirect->getByteStream());
-
   if (rpcSlice->getSPS()->getTileBoundaryIndependenceIdr())
   {
     Int iTransmitTileLocationInSliceHeader = (rpcSlice->getTileLocationCount()==0 || m_pcCfg->getTileLocationInSliceHeaderFlag()==0) ? 0 : 1;
     rNalu.m_Bitstream.write(iTransmitTileLocationInSliceHeader, 1);   // write flag indicating whether tile location information communicated in slice header
-
-    Int iTransmitLWHeader = (m_pcCfg->getTileMarkerFlag()==0) ? 0 : 1;
-    rNalu.m_Bitstream.write(iTransmitLWHeader, 1);                    // write flag indicating whether light weight tile markers are written in slice
 
     if (iTransmitTileLocationInSliceHeader)
     {
@@ -2071,21 +2091,39 @@ Void TEncGOP::xWriteTileLocationToSliceHeader (OutputNALUnit& rNalu, TComOutputB
   // Byte-align
   rNalu.m_Bitstream.writeAlignOne();
 
-  // Perform bitstream concatenation
-  UInt uiBitCount  = rpcBitstreamRedirect->getNumberOfWrittenBits();
-  UInt uiWriteByteCount = 0;
-  while (uiWriteByteCount < (uiBitCount >> 3) )
+  // Update tile marker locations
+  TComOutputBitstream *pcOut = &rNalu.m_Bitstream;
+  UInt uiAccumulatedLength   = pcOut->getNumberOfWrittenBits() >> 3;
+  for (Int uiMrkIdx = 0; uiMrkIdx < rpcBitstreamRedirect->getTileMarkerLocationCount(); uiMrkIdx++)
   {
-    UInt uiBits = (*pucStart);
-    rNalu.m_Bitstream.write(uiBits, 8);
-    pucStart++;
-    uiWriteByteCount++;
+    UInt uiBottom = pcOut->getTileMarkerLocationCount();
+    pcOut->setTileMarkerLocation      ( uiBottom, uiAccumulatedLength + rpcBitstreamRedirect->getTileMarkerLocation( uiMrkIdx ) );
+    pcOut->setTileMarkerLocationCount ( uiBottom + 1 );
   }
-  UInt uiBitsHeld = (uiBitCount & 0x07);
-  for (UInt uiIdx=0; uiIdx < uiBitsHeld; uiIdx++)
+
+  // Perform bitstream concatenation
+  if (rpcBitstreamRedirect->getNumberOfWrittenBits() > 0)
   {
-    rNalu.m_Bitstream.write((rpcBitstreamRedirect->getBitsHeld() & (1 << (7-uiIdx))) >> (7-uiIdx), 1);
-  }          
+    UInt uiBitCount  = rpcBitstreamRedirect->getNumberOfWrittenBits();
+    if (rpcBitstreamRedirect->getByteStreamLength()>0)
+    {
+      UChar *pucStart  =  reinterpret_cast<UChar*>(rpcBitstreamRedirect->getByteStream());
+      UInt uiWriteByteCount = 0;
+      while (uiWriteByteCount < (uiBitCount >> 3) )
+      {
+        UInt uiBits = (*pucStart);
+        rNalu.m_Bitstream.write(uiBits, 8);
+        pucStart++;
+        uiWriteByteCount++;
+      }
+    }
+    UInt uiBitsHeld = (uiBitCount & 0x07);
+    for (UInt uiIdx=0; uiIdx < uiBitsHeld; uiIdx++)
+    {
+      rNalu.m_Bitstream.write((rpcBitstreamRedirect->getHeldBits() & (1 << (7-uiIdx))) >> (7-uiIdx), 1);
+    }          
+  }
+
   m_pcEntropyCoder->setBitstream(&rNalu.m_Bitstream);
 
   delete rpcBitstreamRedirect;

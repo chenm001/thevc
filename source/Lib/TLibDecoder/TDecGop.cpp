@@ -234,80 +234,47 @@ Void TDecGop::decompressGop(TComInputBitstream* pcBitstream, TComPic*& rpcPic, B
       ppcSubstreams    = new TComInputBitstream*[uiNumSubstreams];
       m_pcSbacDecoders = new TDecSbac[uiNumSubstreams];
       m_pcBinCABACs    = new TDecBinCABAC[uiNumSubstreams];
+#if TILES_DECODER
+      UInt uiBytesRead = pcBitstream->getByteLocation();
+#endif
       for ( UInt ui = 0 ; ui < uiNumSubstreams ; ui++ )
       {
         m_pcSbacDecoders[ui].init(&m_pcBinCABACs[ui]);
-        ppcSubstreams[ui] = pcBitstream->extractSubstream(ui+1 < uiNumSubstreams ? puiSubstreamSizes[ui] : pcBitstream->getNumBitsLeft());
-      }
-
 #if TILES_DECODER
-      // We have to check for TileMarkers, too.
-      // We simply perform the processing here, for now, and throw the header away if found.
-      bool bSkipTileMarker = pcSlice->getTileMarkerFlag() ? true : false;
-      UInt uiCode;
-      UInt uiTileIdx;
-      bool bTileMarkerFoundFlag;
+        UInt uiSubstreamSize = (ui+1 < uiNumSubstreams ? puiSubstreamSizes[ui] : pcBitstream->getNumBitsLeft()) >> 3;
 #endif
-      for ( UInt ui = 0 ; ui+1 < uiNumSubstreams; ui++ )
-      {
+        ppcSubstreams[ui] = pcBitstream->extractSubstream(ui+1 < uiNumSubstreams ? puiSubstreamSizes[ui] : pcBitstream->getNumBitsLeft());
 #if TILES_DECODER
-        bTileMarkerFoundFlag = false;
-        if (bSkipTileMarker)
+        // update location information from where tile markers were extracted
+        if (pcSlice->getSPS()->getTileBoundaryIndependenceIdr())
         {
-          if (ppcSubstreams[uiNumSubstreams - 1 - ui]->getNumBitsLeft() >= 24)
+          UInt uiDestIdx       = 0;
+          for (UInt uiSrcIdx = 0; uiSrcIdx<pcBitstream->getTileMarkerLocationCount(); uiSrcIdx++)
           {
-            uiCode = ppcSubstreams[uiNumSubstreams - 1 - ui]->peekBits(24);
-            if (uiCode == 0x000002)
+            UInt uiLocation = pcBitstream->getTileMarkerLocation(uiSrcIdx);
+            if (uiBytesRead<=uiLocation  &&  uiLocation<(uiBytesRead+uiSubstreamSize))
             {
-              bTileMarkerFoundFlag = true;
+              ppcSubstreams[ui]->setTileMarkerLocation( uiDestIdx, uiLocation - uiBytesRead );
+              ppcSubstreams[ui]->setTileMarkerLocationCount( uiDestIdx+1 );
+              uiDestIdx++;
             }
           }
-
-          if (bTileMarkerFoundFlag)
-          {
-            ppcSubstreams[uiNumSubstreams - 1 - ui]->read(24, uiCode); // 0x000002
-          }
+          ppcSubstreams[ui]->setTileMarkerLocationCount( uiDestIdx );
+          uiBytesRead += uiSubstreamSize;
         }
 #endif
+      }
+
+      for ( UInt ui = 0 ; ui+1 < uiNumSubstreams; ui++ )
+      {
         m_pcEntropyDecoder->setEntropyDecoder ( &m_pcSbacDecoders[uiNumSubstreams - 1 - ui] );
         m_pcEntropyDecoder->setBitstream      (  ppcSubstreams   [uiNumSubstreams - 1 - ui] );
         m_pcEntropyDecoder->resetEntropy      (pcSlice);
-#if TILES_DECODER
-        if (bTileMarkerFoundFlag)
-        {
-          m_pcEntropyDecoder->readTileMarker(uiTileIdx, rpcPic->getPicSym()->getBitsUsedByTileIdx());
-        }
-#endif
       }
 
-#if TILES_DECODER
-      bTileMarkerFoundFlag = false;
-      if (bSkipTileMarker)
-      {
-        if (ppcSubstreams[0]->getNumBitsLeft() >= 24)
-        {
-          uiCode = ppcSubstreams[0]->peekBits(24);
-          if (uiCode == 0x000002)
-          {
-            bTileMarkerFoundFlag = true;
-          }
-        }
-
-        if (bTileMarkerFoundFlag)
-        {
-          ppcSubstreams[0]->read(24, uiCode); // 0x000002
-        }
-      }
-#endif
       m_pcEntropyDecoder->setEntropyDecoder ( m_pcSbacDecoder  );
       m_pcEntropyDecoder->setBitstream      ( ppcSubstreams[0] );
       m_pcEntropyDecoder->resetEntropy      (pcSlice);
-#if TILES_DECODER
-      if (bTileMarkerFoundFlag)
-      {
-        m_pcEntropyDecoder->readTileMarker(uiTileIdx, rpcPic->getPicSym()->getBitsUsedByTileIdx());
-      }
-#endif
     }
     else
     {

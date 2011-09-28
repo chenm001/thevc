@@ -474,6 +474,7 @@ Void TEncCavlc::codeSPS( TComSPS* pcSPS )
     xWriteUvlc( pcSPS->getMaxNumRefFrames() );
   }
 #endif
+
 #if TILES
   WRITE_FLAG( pcSPS->getUniformSpacingIdr(),                          "uniform_spacing_idc" );
   WRITE_FLAG( pcSPS->getTileBoundaryIndependenceIdr(),                "tile_boundary_independence_idc" );
@@ -685,6 +686,13 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
       xWriteCode  (pcSlice->getERBIndex(), 2);
     }
   }
+
+#if TILES_DECODER
+  if (!bEntropySlice)
+  {
+    xWriteFlag  (pcSlice->getTileMarkerFlag() ? 1 : 0 );
+  }
+#endif
 }
 
 #if OL_USE_WPP

@@ -593,6 +593,17 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice)
     }      
   }
 
+#if TILES_DECODER
+  rpcSlice->setTileMarkerFlag ( 0 ); // default
+  if (!bEntropySlice)
+  {
+    if (rpcSlice->getSPS()->getTileBoundaryIndependenceIdr())
+    {   
+      xReadCode(1, uiCode); // read flag indicating if tile markers transmitted
+      rpcSlice->setTileMarkerFlag( uiCode );
+    }
+  }
+#endif
 
 #if OL_USE_WPP
   if (rpcSlice->getPPS()->getEntropyCodingSynchro())
@@ -630,7 +641,6 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice)
 #endif
 
 #if TILES_DECODER
-  rpcSlice->setTileMarkerFlag ( 0 ); // default
   if (!bEntropySlice)
   {
     // Reading location information
@@ -638,9 +648,6 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice)
     {   
       xReadCode(1, uiCode); // read flag indicating if location information signaled in slice header
       Bool bTileLocationInformationInSliceHeaderFlag = (uiCode)? true : false;
-
-      xReadCode(1, uiCode); // read flag indicating if lightweight tile markers transmitted
-      rpcSlice->setTileMarkerFlag( uiCode );
 
       if (bTileLocationInformationInSliceHeaderFlag)
       {

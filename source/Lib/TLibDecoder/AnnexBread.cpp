@@ -110,7 +110,11 @@ _byteStreamNALUnit(
    * decoded using the NAL unit decoding process
    */
   /* NB, (unsigned)x > 2 implies n!=0 && n!=1 */
+#if 1 // TILES_DECODER
+  while (bs.eofBeforeNBytes(24/8) || bs.peekBytes(24/8) > 1) // since 0x000002 tile marker may exist in the bitstream
+#else
   while (bs.eofBeforeNBytes(24/8) || bs.peekBytes(24/8) > 2)
+#endif
     nalUnit.push_back(bs.readByte());
 
   /* 5. When the current position in the byte stream is:

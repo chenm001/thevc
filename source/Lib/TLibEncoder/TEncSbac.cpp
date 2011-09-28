@@ -228,7 +228,7 @@ Void TEncSbac::writeTileMarker( UInt uiTileIdx, UInt uiBitsUsed )
 {
   for (Int iShift=uiBitsUsed-1; iShift>=0; iShift--)
   {
-    m_pcBinIf->encodeBinEP ( uiTileIdx & (1 << iShift) );
+    m_pcBinIf->encodeBinEP ( (uiTileIdx & (1 << iShift)) >> iShift );
   }
 }
 #endif
