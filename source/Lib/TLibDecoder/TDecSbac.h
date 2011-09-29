@@ -79,7 +79,13 @@ public:
   Void decodeFlush();
 #endif
 
+#if F747_APS
+  Void  resetEntropywithQPandInitIDC ( Int  iQp, Int iID);
+  Void  resetEntropy                 ( Int  iQp, Int iID      ) { resetEntropywithQPandInitIDC(iQp, iID);                                      }
+  Void  resetEntropy                 ( TComSlice* pcSlice     ) { resetEntropywithQPandInitIDC(pcSlice->getSliceQp(), pcSlice->getSliceType());}
+#else
   Void  resetEntropy              ( TComSlice* pcSlice     );
+#endif
   Void  setBitstream              ( TComInputBitstream* p  ) { m_pcBitstream = p; m_pcTDecBinIf->init( p ); }
   
   Void  setAlfCtrl                ( Bool bAlfCtrl          ) { m_bAlfCtrl = bAlfCtrl;                   }
@@ -182,6 +188,10 @@ public:
 #else
   Void updateContextTables( SliceType eSliceType, Int iQp );
 #endif
+#endif
+
+#if F747_APS
+  Void parseAPSInitInfo(TComAPS& cAPS) {printf("Not supported in parseAPSInitInfo()\n");assert(0);exit(1);}
 #endif
 
 private:

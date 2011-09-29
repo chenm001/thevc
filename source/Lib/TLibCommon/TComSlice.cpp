@@ -703,6 +703,10 @@ Void TComSlice::copySliceInfo(TComSlice *pSrc)
   m_pcSPS                = pSrc->m_pcSPS;
   m_pcPPS                = pSrc->m_pcPPS;
   m_pcPic                = pSrc->m_pcPic;
+#if F747_APS
+  m_pcAPS                = pSrc->m_pcAPS;
+  m_iAPSId               = pSrc->m_iAPSId;
+#endif
 
   m_uiColDir             = pSrc->m_uiColDir;
 #if ALF_CHROMA_LAMBDA || SAO_CHROMA_LAMBDA 
@@ -991,8 +995,10 @@ TComPPS::TComPPS()
 #if FINE_GRANULARITY_SLICES
 , m_iSliceGranularity           (0)
 #endif
+#if !F747_APS
 #if E045_SLICE_COMMON_INFO_SHARING
 , m_bSharedPPSInfoEnabled       (false)
+#endif
 #endif
 #if TILES
 , m_iColumnRowInfoPresent        (0)
@@ -1030,5 +1036,66 @@ TComPPS::~TComPPS()
   }
 #endif
 }
+
+#if F747_APS
+TComAPS::TComAPS()
+{
+  m_apsID = 0;
+  m_bAlfEnabled = false;
+  m_bSaoEnabled = false;
+  m_pSaoParam = NULL;
+  m_pAlfParam = NULL;
+  m_bCABACForAPS = false;
+  m_CABACinitIDC = -1;
+  m_CABACinitQP = -1;
+}
+
+TComAPS::~TComAPS()
+{
+
+}
+
+TComAPS& TComAPS::operator= (const TComAPS& src)
+{
+  m_apsID       = src.m_apsID;
+  m_bAlfEnabled = src.m_bAlfEnabled;
+  m_bSaoEnabled = src.m_bSaoEnabled;
+  m_pSaoParam   = src.m_pSaoParam; 
+  m_pAlfParam   = src.m_pAlfParam; 
+  m_bCABACForAPS= src.m_bCABACForAPS;
+  m_CABACinitIDC= src.m_CABACinitIDC;
+  m_CABACinitQP = src.m_CABACinitQP;
+
+  return *this;
+}
+
+Void TComAPS::createSaoParam()
+{
+  m_pSaoParam = new SAOParam;
+}
+
+Void TComAPS::destroySaoParam()
+{
+  if(m_pSaoParam != NULL)
+  {
+    delete m_pSaoParam;
+    m_pSaoParam = NULL;
+  }
+}
+
+Void TComAPS::createAlfParam()
+{
+  m_pAlfParam = new ALFParam;
+}
+Void TComAPS::destroyAlfParam()
+{
+  if(m_pAlfParam != NULL)
+  {
+    delete m_pAlfParam;
+    m_pAlfParam = NULL;
+  }
+}
+#endif
+
 
 //! \}

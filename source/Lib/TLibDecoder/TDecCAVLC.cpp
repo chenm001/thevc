@@ -141,6 +141,35 @@ void TDecCavlc::parseSEI(SEImessages& seis)
   assert(m_pcBitstream->getNumBitsLeft() == 8); /* rsbp_trailing_bits */
 }
 
+#if F747_APS
+Void TDecCavlc::parseAPSInitInfo(TComAPS& cAPS)
+{
+  UInt uiCode;
+  //aps ID
+  xReadUvlc(uiCode);      cAPS.setAPSID(uiCode);
+  //SAO flag
+  xReadFlag(uiCode);      cAPS.setSaoEnabled( (uiCode==1)?true:false );
+  //ALF flag
+  xReadFlag(uiCode);      cAPS.setAlfEnabled( (uiCode==1)?true:false );
+
+  if(cAPS.getSaoEnabled() || cAPS.getAlfEnabled())
+  {
+    //CABAC usage flag
+    xReadFlag(uiCode);    cAPS.setCABACForAPS( (uiCode==1)?true:false );
+    if(cAPS.getCABACForAPS())
+    {
+      Int iCode;
+      //CABAC init IDC
+      xReadUvlc(uiCode);   cAPS.setCABACinitIDC( uiCode );
+      //CABAC init QP
+      xReadSvlc(iCode);    cAPS.setCABACinitQP( iCode + 26);
+    }
+  }
+}
+#endif
+
+
+
 Void TDecCavlc::parsePPS(TComPPS* pcPPS)
 {
 #if ENC_DEC_TRACE  
@@ -176,10 +205,12 @@ Void TDecCavlc::parsePPS(TComPPS* pcPPS)
 #if FINE_GRANULARITY_SLICES
   READ_CODE( 2, uiCode, "slice_granularity" );                     pcPPS->setSliceGranularity(uiCode);
 #endif
+
+#if !F747_APS
 #if E045_SLICE_COMMON_INFO_SHARING
   READ_FLAG( uiCode, "shared_pps_info_enabled_flag" );             pcPPS->setSharedPPSInfoEnabled( uiCode ? true : false);
 #endif
-
+#endif
   // alf_param() ?
 
 #if SUB_LCU_DQP
@@ -419,6 +450,12 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice)
     //   slice_type
     READ_UVLC (    uiCode, "slice_type" );            rpcSlice->setSliceType((SliceType)uiCode);
     READ_UVLC (    uiCode, "pic_parameter_set_id" );  rpcSlice->setPPSId(uiCode);
+#if F747_APS
+    if(rpcSlice->getSPS()->getUseSAO() || rpcSlice->getSPS()->getUseALF())
+    {
+      READ_UVLC (    uiCode, "aps_id" );  rpcSlice->setAPSId(uiCode);
+    }
+#endif
     //   frame_num
     //   if( IdrPicFlag )
     //     idr_pic_id

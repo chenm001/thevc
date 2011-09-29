@@ -161,8 +161,15 @@ private:
   TComPicYuv* m_pcSliceYuvTmp;    //!< temporary picture buffer when non-across slice boundary ALF is enabled
 #endif
 
+#if !F747_APS
 #if E045_SLICE_COMMON_INFO_SHARING
   Bool  m_bSharedPPSAlfParamEnabled; //!< true for shared ALF parameters in PPS enabled
+#endif
+#endif
+
+#if F747_APS
+  Bool m_bAlfCUCtrlEnabled;                         //!< if input ALF CU control param is NULL, this variable is set to be false (Disable CU control)
+  std::vector<AlfCUCtrlInfo> m_vBestAlfCUCtrlParam; //!< ALF CU control parameters container to store the ALF CU control parameters after RDO
 #endif
 
 private:
@@ -197,9 +204,17 @@ private:
   
   // distortion / misc functions
   UInt64 xCalcSSD             ( Pel* pOrg, Pel* pCmp, Int iWidth, Int iHeight, Int iStride );
+#if F747_APS
+  Void   xCalcRDCost          ( TComPicYuv* pcPicOrg, TComPicYuv* pcPicCmp, ALFParam* pAlfParam, UInt64& ruiRate, UInt64& ruiDist, Double& rdCost, std::vector<AlfCUCtrlInfo>* pvAlfCUCtrlParam = NULL);
+#else
   Void   xCalcRDCost          ( TComPicYuv* pcPicOrg, TComPicYuv* pcPicCmp, ALFParam* pAlfParam, UInt64& ruiRate, UInt64& ruiDist, Double& rdCost );
+#endif
   Void   xCalcRDCostChroma    ( TComPicYuv* pcPicOrg, TComPicYuv* pcPicCmp, ALFParam* pAlfParam, UInt64& ruiRate, UInt64& ruiDist, Double& rdCost );
+#if F747_APS
+  Void   xCalcRDCost          ( ALFParam* pAlfParam, UInt64& ruiRate, UInt64 uiDist, Double& rdCost, std::vector<AlfCUCtrlInfo>* pvAlfCUCtrlParam = NULL);
+#else
   Void   xCalcRDCost          ( ALFParam* pAlfParam, UInt64& ruiRate, UInt64 uiDist, Double& rdCost );
+#endif
   Int    xGauss               ( Double **a, Int N );
   
 #if MQT_ALF_NPASS
@@ -264,7 +279,11 @@ private:
   Void getCtrlFlagsForSlices(Bool bCUCtrlEnabled, Int iCUCtrlDepth);
 
   /// Copy CU control flags to ALF parameters
+#if F747_APS
+  Void transferCtrlFlagsToAlfParam(std::vector<AlfCUCtrlInfo>& vAlfCUCtrlInfo);
+#else
   Void transferCtrlFlagsToAlfParam(UInt& ruiNumFlags, UInt* puiFlags);
+#endif
 
   /// Calculate autocorrelations and crosscorrelations for chroma slices
   Void xCalcCorrelationFuncforChromaSlices  (Int ComponentID, Pel* pOrg, Pel* pCmp, Int iTap, Int iOrgStride, Int iCmpStride);
@@ -299,9 +318,21 @@ public:
   
   /// estimate ALF parameters
 #if ALF_CHROMA_LAMBDA  
+
+#if F747_APS
+  Void ALFProcess(ALFParam* pcAlfParam, std::vector<AlfCUCtrlInfo>* pvAlfCtrlParam, Double dLambdaLuma, Double dLambdaChroma, UInt64& ruiDist, UInt64& ruiBits);
+#else
   Void ALFProcess(ALFParam* pcAlfParam, Double dLambdaLuma, Double dLambdaChroma, UInt64& ruiDist, UInt64& ruiBits, UInt& ruiMaxAlfCtrlDepth );
+#endif
+
+#else
+
+#if F747_APS
+  Void ALFProcess(ALFParam* pcAlfParam, std::vector<AlfCUCtrlInfo>* pvAlfCtrlParam, Double dLambda, UInt64& ruiDist, UInt64& ruiBits);
 #else
   Void ALFProcess(ALFParam* pcAlfParam, Double dLambda, UInt64& ruiDist, UInt64& ruiBits, UInt& ruiMaxAlfCtrlDepth );
+#endif
+
 #endif
 
 #if E057_INTRA_PCM && E192_SPS_PCM_FILTER_DISABLE_SYNTAX
@@ -313,10 +344,16 @@ public:
                                          UInt64& ruiMinDist, Double& rdMinCost );
   Void xCUAdaptiveControl_qc           ( TComPicYuv* pcPicOrg, TComPicYuv* pcPicDec, TComPicYuv* pcPicRest, UInt64& ruiMinRate, 
                                          UInt64& ruiMinDist, Double& rdMinCost );
+#if F747_APS
+  Void xSetCUAlfCtrlFlags_qc            (UInt uiAlfCtrlDepth, TComPicYuv* pcPicOrg, TComPicYuv* pcPicDec, TComPicYuv* pcPicRest, UInt64& ruiDist, std::vector<AlfCUCtrlInfo>& vAlfCUCtrlParam);
+  Void xSetCUAlfCtrlFlag_qc             (TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth, UInt uiAlfCtrlDepth, TComPicYuv* pcPicOrg,
+                                         TComPicYuv* pcPicDec, TComPicYuv* pcPicRest, UInt64& ruiDist, std::vector<UInt>& vCUCtrlFlag);
+#else
   Void xSetCUAlfCtrlFlags_qc            (UInt uiAlfCtrlDepth, TComPicYuv* pcPicOrg, TComPicYuv* pcPicDec, TComPicYuv* pcPicRest, 
                                          UInt64& ruiDist, ALFParam *pAlfParam);
   Void xSetCUAlfCtrlFlag_qc             (TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth, UInt uiAlfCtrlDepth, TComPicYuv* pcPicOrg,
                                          TComPicYuv* pcPicDec, TComPicYuv* pcPicRest, UInt64& ruiDist, ALFParam *pAlfParam);
+#endif
   Void xReDesignFilterCoeff_qc          (TComPicYuv* pcPicOrg, TComPicYuv* pcPicDec,  TComPicYuv* pcPicRest, Bool bReadCorr);
   Void xFilterTapDecision_qc            (TComPicYuv* pcPicOrg, TComPicYuv* pcPicDec, TComPicYuv* pcPicRest, UInt64& ruiMinRate, 
                                          UInt64& ruiMinDist, Double& rdMinCost);
@@ -398,10 +435,13 @@ public:
 #endif
 #endif
 
+#if !F747_APS
 #if E045_SLICE_COMMON_INFO_SHARING
   /// set shared ALF parameters in PPS enabled/disabled
   Void setSharedPPSAlfParamEnabled(Bool b) {m_bSharedPPSAlfParamEnabled = b;}
 #endif
+#endif
+
 };
 
 //! \}

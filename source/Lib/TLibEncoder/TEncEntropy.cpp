@@ -456,7 +456,9 @@ Void TEncEntropy::encodeMergeIndex( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt ui
 
 Void TEncEntropy::encodeAlfParam(ALFParam* pAlfParam)
 {
+#if !F747_APS
   m_pcEntropyCoderIf->codeAlfFlag(pAlfParam->alf_flag);
+#endif
   if (!pAlfParam->alf_flag)
   {
     return;
@@ -517,6 +519,30 @@ Void TEncEntropy::encodeAlfCtrlFlag(UInt uiFlag)
 /** Encode ALF CU control flag parameters
  * \param pAlfParam ALF parameters
  */
+#if F747_APS
+Void TEncEntropy::encodeAlfCtrlParam(AlfCUCtrlInfo& cAlfParam, Int iNumCUsInPic)
+{
+  // region control parameters for luma
+  m_pcEntropyCoderIf->codeAlfFlag(cAlfParam.cu_control_flag);
+
+  if (cAlfParam.cu_control_flag == 0)
+  { 
+    return;
+  }
+
+  m_pcEntropyCoderIf->codeAlfCtrlDepth();
+
+  Int iSymbol    = ((Int)cAlfParam.num_alf_cu_flag - iNumCUsInPic);
+  m_pcEntropyCoderIf->codeAlfSvlc(iSymbol);
+
+  for(UInt i=0; i< cAlfParam.num_alf_cu_flag; i++)
+  {
+    m_pcEntropyCoderIf->codeAlfCtrlFlag( cAlfParam.alf_cu_flag[i] );
+  }
+}
+
+#else
+
 #if E045_SLICE_COMMON_INFO_SHARING
 Void TEncEntropy::encodeAlfCtrlParam( ALFParam* pAlfParam, UInt uiNumSlices, CAlfSlice* pcAlfSlice)
 #else
@@ -587,6 +613,8 @@ Void TEncEntropy::encodeAlfCtrlParam( ALFParam* pAlfParam )
   }
 #endif
 }
+
+#endif
 
 /** encode prediction mode
  * \param pcCU
@@ -1368,7 +1396,9 @@ Void TEncEntropy::encodeQuadTreeSplitFlag(SAOParam* pSaoParam, Int iPartIdx, Int
  */
 Void TEncEntropy::encodeSaoParam(SAOParam* pSaoParam)
 {
+#if !F747_APS
   m_pcEntropyCoderIf->codeSaoFlag(pSaoParam->bSaoFlag[0]); 
+#endif
   if (pSaoParam->bSaoFlag[0])
   {
     encodeQuadTreeSplitFlag(pSaoParam, 0, 0);

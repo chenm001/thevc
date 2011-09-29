@@ -296,6 +296,32 @@ void TEncCavlc::codeSEI(const SEI& sei)
   writeSEImessage(*m_pcBitIf, sei);
 }
 
+#if F747_APS
+Void  TEncCavlc::codeAPSInitInfo(TComAPS* pcAPS)
+{
+  //APS ID
+  xWriteUvlc(pcAPS->getAPSID());
+  //SAO flag
+  xWriteFlag(pcAPS->getSaoEnabled()?1:0);
+  //ALF flag
+  xWriteFlag(pcAPS->getAlfEnabled()?1:0);
+
+  if(pcAPS->getSaoEnabled() || pcAPS->getAlfEnabled())
+  {
+    //CABAC usage flag
+    xWriteFlag(pcAPS->getCABACForAPS()?1:0);
+    if(pcAPS->getCABACForAPS())
+    {
+      //CABAC init IDC
+      xWriteUvlc(pcAPS->getCABACinitIDC());
+      //CABAC init QP
+      xWriteSvlc(pcAPS->getCABACinitQP()-26);
+    }
+  }
+}
+#endif
+
+
 Void TEncCavlc::codePPS( TComPPS* pcPPS )
 {
 #if ENC_DEC_TRACE  
@@ -330,12 +356,14 @@ Void TEncCavlc::codePPS( TComPPS* pcPPS )
 #if FINE_GRANULARITY_SLICES
   WRITE_CODE( pcPPS->getSliceGranularity(), 2,               "slice_granularity");
 #endif
+#if !F747_APS
 #if E045_SLICE_COMMON_INFO_SHARING
   WRITE_FLAG( pcPPS->getSharedPPSInfoEnabled() ? 1: 0,       "shared_pps_info_enabled_flag" );
 #endif
   //   if( shared_pps_info_enabled_flag )
   //     if( adaptive_loop_filter_enabled_flag )
   //       alf_param( )
+#endif
   //   if( cu_qp_delta_enabled_flag )
   //     max_cu_qp_delta_depth
 #if SUB_LCU_DQP
@@ -513,6 +541,13 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
   {
     WRITE_UVLC( pcSlice->getSliceType(),       "slice_type" );
     WRITE_UVLC( pcSlice->getPPS()->getPPSId(), "pic_parameter_set_id" );
+#if F747_APS
+    if(pcSlice->getSPS()->getUseSAO() || pcSlice->getSPS()->getUseALF())
+    {
+      WRITE_UVLC( pcSlice->getAPS()->getAPSID(), "aps_id");
+    }
+#endif
+
     // frame_num
     // if( IdrPicFlag )
     //   idr_pic_id

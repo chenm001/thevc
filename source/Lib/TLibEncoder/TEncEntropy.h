@@ -157,6 +157,11 @@ public:
 #endif
 #endif
 
+#if F747_APS
+  virtual Void codeAPSInitInfo  (TComAPS* pcAPS)= 0;
+  virtual Void codeFinish       (Bool bEnd)= 0;
+#endif
+
   virtual ~TEncEntropyIf() {}
 
 };
@@ -224,12 +229,17 @@ public:
   Void encodeAlfCtrlFlag(UInt uiFlag);
 #endif
 
+#if F747_APS
+  Void encodeAlfCtrlParam(AlfCUCtrlInfo& cAlfParam, Int iNumCUsInPic);
+#else
 #if E045_SLICE_COMMON_INFO_SHARING
   /// encode ALF CU control flags
   Void encodeAlfCtrlParam      ( ALFParam *pAlfParam, UInt uiNumSlices= 1, CAlfSlice* pcAlfSlice= NULL);
 #else
   Void encodeAlfCtrlParam      ( ALFParam *pAlfParam );
 #endif
+#endif
+
   Void encodePredMode          ( TComDataCU* pcCU, UInt uiAbsPartIdx, Bool bRD = false );
   Void encodePartSize          ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth, Bool bRD = false );
 #if E057_INTRA_PCM
@@ -253,6 +263,11 @@ public:
 #endif
 #endif
   
+#if F747_APS
+  Void encodeAPSInitInfo          (TComAPS* pcAPS) {m_pcEntropyCoderIf->codeAPSInitInfo(pcAPS);}
+  Void encodeFinish               (Bool bEnd) {m_pcEntropyCoderIf->codeFinish(bEnd);}
+#endif
+
 private:
   Void xEncodeTransformSubdiv  ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth, UInt uiInnerQuadIdx, UInt& uiYCbfFront3, UInt& uiUCbfFront3, UInt& uiVCbfFront3 );
   Void xEncodeCoeff            ( TComDataCU* pcCU, TCoeff* pcCoeff, UInt uiAbsPartIdx, UInt uiDepth, UInt uiWidth, UInt uiHeight, UInt uiTrIdx, UInt uiCurrTrIdx, TextType eType, Bool& bCodeDQP );

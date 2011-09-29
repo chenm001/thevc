@@ -144,7 +144,16 @@ public:
   Void  preLoopFilterPicAll  ( TComPic* pcPic, UInt64& ruiDist, UInt64& ruiBits );
   
   TEncSlice*  getSliceEncoder()   { return m_pcSliceEncoder; }
+
+#if F747_APS
+  Void freeAPS     (TComAPS* pAPS, TComSPS* pSPS);
+  Void allocAPS    (TComAPS* pAPS, TComSPS* pSPS);
+protected:
+  Void encodeAPS   (TComAPS* pcAPS, TComOutputBitstream& APSbs, TComSlice* pcSlice);            //!< encode APS syntax elements
+  Void assignNewAPS(TComAPS& cAPS, Int apsID, std::vector<TComAPS>& vAPS, TComSlice* pcSlice);  //!< Assign APS object into APS container
+#endif
   
+
 protected:
   Void  xInitGOP          ( Int iPOC, Int iNumPicRcvd, TComList<TComPic*>& rcListPic, TComList<TComPicYuv*>& rcListPicYuvRecOut );
   Void  xGetBuffer        ( TComList<TComPic*>& rcListPic, TComList<TComPicYuv*>& rcListPicYuvRecOut, Int iNumPicRcvd, Int iTimeOffset, TComPic*& rpcPic, TComPicYuv*& rpcPicYuvRecOut, UInt uiPOCCurr );
@@ -167,7 +176,11 @@ protected:
 enum PROCESSING_STATE
 {
   EXECUTE_INLOOPFILTER,
+#if F747_APS
+  ENCODE_APS,
+#else
   ENCODE_PPS,
+#endif
   ENCODE_SLICE
 };
 #endif

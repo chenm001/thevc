@@ -103,6 +103,9 @@ private:
   // SPS
   TComSPS                 m_cSPS;                         ///< SPS
   TComPPS                 m_cPPS;                         ///< PPS
+#if F747_APS
+  std::vector<TComAPS>    m_vAPS;  //!< APS container
+#endif
   
   // RD cost computation
   TComBitCounter          m_cBitCounter;                  ///< bit counter for RD optimization
@@ -186,7 +189,10 @@ public:
   
   TComSPS*                getSPS                () { return  &m_cSPS;                 }
   TComPPS*                getPPS                () { return  &m_cPPS;                 }
-  
+#if F747_APS
+  std::vector<TComAPS>&   getAPS                () { return m_vAPS; }
+#endif
+
   // -------------------------------------------------------------------------------------------------------------------
   // encoder function
   // -------------------------------------------------------------------------------------------------------------------

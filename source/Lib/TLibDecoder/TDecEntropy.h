@@ -65,6 +65,9 @@ public:
   virtual Void setAlfCtrl(Bool bAlfCtrl)  = 0;
   virtual Void setMaxAlfCtrlDepth(UInt uiMaxAlfCtrlDepth)  = 0;
   
+#if F747_APS
+  virtual Void  resetEntropy          (Int  iQp, Int iID) = 0;
+#endif
   virtual Void  resetEntropy          (TComSlice* pcSlice)                = 0;
   virtual Void  setBitstream          ( TComInputBitstream* p )  = 0;
 
@@ -144,6 +147,10 @@ public:
 #endif
 #endif
   
+#if F747_APS
+  virtual Void parseAPSInitInfo   (TComAPS& cAPS) = 0;
+#endif
+
   virtual ~TDecEntropyIf() {}
 };
 
@@ -164,6 +171,9 @@ public:
   
   Void    setEntropyDecoder           ( TDecEntropyIf* p );
   Void    setBitstream                ( TComInputBitstream* p ) { m_pcEntropyDecoderIf->setBitstream(p);                    }
+#if F747_APS
+  Void    resetEntropy                (Int  iQp, Int iID) { m_pcEntropyDecoderIf->resetEntropy(iQp, iID);                    }
+#endif
   Void    resetEntropy                ( TComSlice* p)           { m_pcEntropyDecoderIf->resetEntropy(p);                    }
 
   Void    decodeSPS                   ( TComSPS* pcSPS     )    { m_pcEntropyDecoderIf->parseSPS(pcSPS);                    }
@@ -184,13 +194,16 @@ public:
   Void decodeMergeFlag         ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth, UInt uiPUIdx );
   Void decodeMergeIndex        ( TComDataCU* pcSubCU, UInt uiPartIdx, UInt uiPartAddr, PartSize eCUMode, UChar* puhInterDirNeighbours, TComMvField* pcMvFieldNeighbours, UInt uiDepth );
   Void decodeAlfCtrlFlag       ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
+#if F747_APS
+  Void decodeAlfCtrlParam      (AlfCUCtrlInfo& cAlfParam, Int iNumCUsInPic);
+#else
 #if E045_SLICE_COMMON_INFO_SHARING
   /// decode ALF CU control flags
   Void decodeAlfCtrlParam      ( ALFParam *pAlfParam , Bool bFirstSliceInPic);
 #else
   Void decodeAlfCtrlParam      ( ALFParam *pAlfParam );
 #endif
-  
+#endif
   Void decodePredMode          ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
   Void decodePartSize          ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
   
@@ -243,6 +256,10 @@ public:
 #endif
 #if OL_FLUSH
   Void decodeFlush() { m_pcEntropyDecoderIf->decodeFlush(); }
+#endif
+
+#if F747_APS
+  Void decodeAPSInitInfo       (TComAPS& cAPS) {m_pcEntropyDecoderIf->parseAPSInitInfo(cAPS);}
 #endif
 
 };// END CLASS DEFINITION TDecEntropy

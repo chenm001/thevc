@@ -114,6 +114,13 @@ Void TEncTop::create ()
   }
 #endif
 
+#if F747_APS
+  if(m_bUseSAO || m_bUseALF)
+  {
+    m_vAPS.reserve(MAX_NUM_SUPPORTED_APS);
+  }
+#endif
+
   // if SBAC-based RD optimization is used
   if( m_bUseSBACRD )
   {
@@ -191,6 +198,14 @@ Void TEncTop::destroy ()
   if(m_bUseALF)
   {
     m_cAdaptiveLoopFilter.destroyAlfGlobalBuffers();
+  }
+#endif
+
+#if F747_APS
+  for(Int i=0; i< m_vAPS.size(); i++)
+  {
+    TComAPS& cAPS = m_vAPS[i];
+    m_cGOPEncoder.freeAPS(&cAPS, &m_cSPS);
   }
 #endif
 

@@ -77,6 +77,14 @@
 #define MRG_AMVP_ADD_CAND_F470               0
 #endif
 #define NSQT                                 1       // F410 & F412 : Non-Square Quadtree Transform
+
+#define F747_APS                             1       // F747 : Adaptation Parameter Set (APS)
+#if F747_APS
+  #define APS_BITS_FOR_SAO_BYTE_LENGTH 12           
+  #define APS_BITS_FOR_ALF_BYTE_LENGTH 8
+#endif
+
+
 ////////////////////////////
 // JCT-VC F end
 ////////////////////////////
@@ -454,7 +462,9 @@ struct _SaoParam
 struct _AlfParam
 {
   Int alf_flag;                           ///< indicates use of ALF
+#if !F747_APS
   Int cu_control_flag;                    ///< coding unit based control flag
+#endif
   Int chroma_idc;                         ///< indicates use of ALF for chroma
 #if !STAR_CROSS_SHAPES_LUMA
 #if TI_ALF_MAX_VSIZE_7
@@ -503,10 +513,12 @@ struct _AlfParam
   Int minKStart;
   Int maxScanVal;
   Int kMinTab[42];
+#if !F747_APS
   UInt num_alf_cu_flag;
   UInt num_cus_in_frame;
   UInt alf_max_depth;
   UInt *alf_cu_flag;
+#endif
 
 #if MQT_BA_RA
   Int alf_pcr_region_flag; 

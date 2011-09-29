@@ -295,9 +295,10 @@ Void TDecEntropy::decodeAlfParam(ALFParam* pAlfParam)
 {
   UInt uiSymbol;
   Int iSymbol;
+#if !F747_APS
   m_pcEntropyDecoderIf->parseAlfFlag(uiSymbol);
   pAlfParam->alf_flag = uiSymbol;
-  
+#endif  
   if (!pAlfParam->alf_flag)
   {
     m_pcEntropyDecoderIf->setAlfCtrl(false);
@@ -351,9 +352,43 @@ Void TDecEntropy::decodeAlfParam(ALFParam* pAlfParam)
 #endif
 }
 
-/** decode ALF CU control parameters
- * \param pAlfParam ALF paramters
+/** decode ALF CU control parameters for one slice
+ * \param [in,out] cAlfParam ALF CU control parameters
+ * \param [in] iNumCUsinPic number of LCUs in picture for ALF
  */
+
+#if F747_APS
+Void TDecEntropy::decodeAlfCtrlParam(AlfCUCtrlInfo& cAlfParam, Int iNumCUsInPic)
+{
+  UInt uiSymbol;
+  Int iSymbol;
+
+  m_pcEntropyDecoderIf->parseAlfFlag(uiSymbol);
+  cAlfParam.cu_control_flag = uiSymbol;
+  if (cAlfParam.cu_control_flag)
+  {
+    m_pcEntropyDecoderIf->setAlfCtrl(true);
+    m_pcEntropyDecoderIf->parseAlfCtrlDepth(uiSymbol);
+    m_pcEntropyDecoderIf->setMaxAlfCtrlDepth(uiSymbol);
+    cAlfParam.alf_max_depth = uiSymbol;
+  }
+  else
+  {
+    m_pcEntropyDecoderIf->setAlfCtrl(false);
+    return;
+  }
+
+  m_pcEntropyDecoderIf->parseAlfSvlc(iSymbol);
+  cAlfParam.num_alf_cu_flag = (UInt)(iSymbol + iNumCUsInPic);
+  cAlfParam.alf_cu_flag.resize(cAlfParam.num_alf_cu_flag);
+
+  for(UInt i=0; i< cAlfParam.num_alf_cu_flag; i++)
+  {
+    m_pcEntropyDecoderIf->parseAlfCtrlFlag( cAlfParam.alf_cu_flag[i] );
+  }
+}
+#else
+
 #if E045_SLICE_COMMON_INFO_SHARING
 Void TDecEntropy::decodeAlfCtrlParam( ALFParam* pAlfParam , Bool bFirstSliceInPic)
 #else
@@ -429,6 +464,8 @@ Void TDecEntropy::decodeAlfCtrlParam( ALFParam* pAlfParam )
     m_pcEntropyDecoderIf->parseAlfCtrlFlag( pAlfParam->alf_cu_flag[i] );
   }
 }
+
+#endif
 
 Void TDecEntropy::decodeAlfCtrlFlag( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
 {
@@ -1420,8 +1457,10 @@ Void TDecEntropy::decodeSaoParam(SAOParam* pSaoParam)
 {
   UInt uiSymbol;
 
+#if !F747_APS
   m_pcEntropyDecoderIf->parseSaoFlag(uiSymbol);
   pSaoParam->bSaoFlag[0] = uiSymbol? true:false;
+#endif
 
   if (pSaoParam->bSaoFlag[0])
   {

@@ -355,4 +355,29 @@ Void TEncBinCABAC::writeOut()
     }      
   }    
 }
+
+#if F747_APS 
+/** flush bits when CABAC termination
+  * \param [in] bEnd true means this flushing happens at the end of RBSP. No need to encode stop bit
+  */
+Void TEncBinCABAC::encodeFlush(Bool bEnd)
+{
+  m_uiRange = 2;
+
+  m_uiLow  += 2;
+  m_uiLow <<= 7;
+  m_uiRange = 2 << 7;
+  m_bitsLeft -= 7;
+  testAndWriteOut();
+  finish();
+
+  if(!bEnd)
+  {
+    m_pcTComBitIf->write( 1, 1 ); // stop bit
+  }
+}
+#endif
+
+
+
 //! \}

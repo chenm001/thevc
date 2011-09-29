@@ -146,6 +146,11 @@ private:
   Void  xCopyContextsFrom    ( TEncSbac* pSrc );  
 #endif
   
+#if F747_APS
+  Void codeAPSInitInfo(TComAPS* pcAPS) {printf("Not supported in codeAPSInitInfo()\n"); assert(0); exit(1);}
+  Void codeFinish     (Bool bEnd)      { m_pcBinIf->encodeFlush(bEnd); }  //<! flush bits when CABAC termination
+#endif
+
 protected:
   TComBitIf*    m_pcBitIf;
   TComSlice*    m_pcSlice;

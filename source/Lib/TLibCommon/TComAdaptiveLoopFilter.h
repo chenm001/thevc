@@ -161,6 +161,23 @@ enum ALFClassficationMethod
 // Class definition
 // ====================================================================================================================
 
+#if F747_APS
+/// ALF CU control parameters
+struct AlfCUCtrlInfo
+{
+  Int  cu_control_flag;                    //!< slice-level ALF CU control enabled/disabled flag 
+  UInt num_alf_cu_flag;                    //!< number of ALF CU control flags
+  UInt alf_max_depth;                      //!< ALF CU control depth
+  std::vector<UInt> alf_cu_flag;           //!< ALF CU control flags (container)
+
+  const AlfCUCtrlInfo& operator= (const AlfCUCtrlInfo& src);  //!< "=" operator
+  AlfCUCtrlInfo():cu_control_flag(0), num_alf_cu_flag(0), alf_max_depth(0) {} //!< constructor
+
+};
+#endif
+
+
+
 #if MTK_NONCROSS_INLOOP_FILTER
 
 /// slice granularity unit information
@@ -300,6 +317,11 @@ public:
 
   /// Get number of LCUs of this slice
   UInt getNumLCUs      ()          {return m_uiNumLCUs;}
+
+#if F747_APS
+  /// Get ALF CU control enabled/disable for this slice
+  Bool getCUCtrlEnabled()          {return m_bCUCtrlEnabled;   }
+#endif
 
   /// Set ALF CU control enabled/disable for this slice
   Void setCUCtrlEnabled(Bool b)    {m_bCUCtrlEnabled = b;   }
@@ -461,8 +483,12 @@ protected:
 #endif
 
   /// ALF for luma component
+#if F747_APS
+  Void xALFLuma_qc( TComPic* pcPic, ALFParam* pcAlfParam, std::vector<AlfCUCtrlInfo>& vAlfCUCtrlParam, TComPicYuv* pcPicDec, TComPicYuv* pcPicRest );
+#else
   Void xALFLuma_qc( TComPic* pcPic, ALFParam* pcAlfParam, TComPicYuv* pcPicDec, TComPicYuv* pcPicRest );
-  
+#endif
+
   Void reconstructFilterCoeffs(ALFParam* pcAlfParam,int **pfilterCoeffSym, int bit_depth);
   Void getCurrentFilter(int **filterCoeffSym,ALFParam* pcAlfParam);
   // memory allocation
@@ -491,7 +517,12 @@ protected:
   Void subfilterFrame(imgpel *imgY_rec_post, imgpel *imgY_rec, int filtNo, int start_height, int end_height, int start_width, int end_width, int Stride);
   Void filterFrame(imgpel *imgY_rec_post, imgpel *imgY_rec, int filtNo, int Stride);
   UInt  m_uiNumCUsInFrame;
+#if F747_APS
+  Void  setAlfCtrlFlags(AlfCUCtrlInfo* pAlfParam, TComDataCU *pcCU, UInt uiAbsPartIdx, UInt uiDepth, UInt &idx);
+#else
   Void  setAlfCtrlFlags (ALFParam *pAlfParam, TComDataCU *pcCU, UInt uiAbsPartIdx, UInt uiDepth, UInt &idx);
+#endif
+
 #if E057_INTRA_PCM && E192_SPS_PCM_FILTER_DISABLE_SYNTAX
   Void xPCMRestoration        (TComPic* pcPic);
   Void xPCMCURestoration      (TComDataCU* pcCU, UInt uiAbsZorderIdx, UInt uiDepth);
@@ -533,7 +564,12 @@ public:
   Void predictALFCoeffChroma  ( ALFParam* pAlfParam );                  ///< prediction of chroma ALF coefficients
   
   // interface function
+#if F747_APS
+  Void ALFProcess             ( TComPic* pcPic, ALFParam* pcAlfParam, std::vector<AlfCUCtrlInfo>& vAlfCUCtrlParam ); ///< interface function for ALF process
+#else
   Void ALFProcess             ( TComPic* pcPic, ALFParam* pcAlfParam ); ///< interface function for ALF process
+#endif
+
 #if E057_INTRA_PCM && E192_SPS_PCM_FILTER_DISABLE_SYNTAX
   Void PCMLFDisableProcess    ( TComPic* pcPic);                        ///< interface function for ALF process 
 #endif
@@ -544,15 +580,28 @@ public:
   static Int ALFFlHToFlV(Int flH);
 #endif
 
+#if F747_APS
+public:
+  /// get number of LCU in picture for ALF process
+  Int  getNumCUsInPic()  {return m_uiNumCUsInFrame;}
+#endif
 
 #if MTK_NONCROSS_INLOOP_FILTER
 public:
 
+#if F747_APS
+  /// Copy ALF CU control flags from ALF parameters for slices
+  Void transferCtrlFlagsFromAlfParam(std::vector<AlfCUCtrlInfo>& vAlfParamSlices);
+  /// Copy ALF CU control flags from ALF parameter for one slice
+  Void transferCtrlFlagsFromAlfParamOneSlice(UInt s, Bool bCUCtrlEnabled, Int iAlfDepth, std::vector<UInt>& vCtrlFlags);
+#else
   /// Copy ALF CU control flags from ALF parameters for slices
   Void transferCtrlFlagsFromAlfParam(ALFParam* pcAlfParam);
   
   /// Copy ALF CU control flags from ALF parameter for one slice
   Void transferCtrlFlagsFromAlfParamOneSlice(UInt s, Bool bCUCtrlEnabled, Int iAlfDepth, UInt* puiFlags);
+#endif
+
 #if FINE_GRANULARITY_SLICES
   /// Set slice granularity
   Void setSliceGranularityDepth(Int iDepth) { m_iSGDepth = iDepth;}

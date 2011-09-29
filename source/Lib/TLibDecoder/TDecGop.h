@@ -86,9 +86,13 @@ private:
   TComAdaptiveLoopFilter*       m_pcAdaptiveLoopFilter;
 #if SAO
   TComSampleAdaptiveOffset*     m_pcSAO;
+#if !F747_APS
   SAOParam              m_cSaoParam;
 #endif
+#endif
+#if !F747_APS
   ALFParam              m_cAlfParam;
+#endif
   Double                m_dDecTime;
 
   bool m_pictureDigestEnabled; ///< if true, handle picture_digest SEI messages
@@ -119,10 +123,12 @@ public:
 
   void setPictureDigestEnabled(bool enabled) { m_pictureDigestEnabled = enabled; }
 
+#if !F747_APS
 #if E045_SLICE_COMMON_INFO_SHARING
 private:
   /// copy shared ALF parameters from PPS
   Void copySharedAlfParamFromPPS(ALFParam* pAlfDst, ALFParam* pAlfSrc);
+#endif
 #endif
 
 };
