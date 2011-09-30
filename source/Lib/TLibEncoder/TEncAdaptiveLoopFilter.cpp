@@ -6107,7 +6107,6 @@ Void TEncAdaptiveLoopFilter::calcVarforSlices(imgpel **varmap, imgpel *imgY_Dec,
     if(!pSlice->isValidSlice()) continue;
 
     pSlice->copySliceLuma(pPicSlice, pPicSrc, img_stride);
-    pSlice->extendSliceBorderLuma(pPicSlice, img_stride, (UInt)EXTEND_NUM_PEL);
     calcVarforOneSlice(pSlice, varmap, (imgpel*)pPicSlice, pad_size, fl, img_stride);
   }
 }
@@ -6132,8 +6131,7 @@ Void TEncAdaptiveLoopFilter::xfilterSlices_en(imgpel* ImgDec, imgpel* ImgRest,in
     if(!pSlice->isValidSlice()) continue;
 
     pSlice->copySliceLuma(pPicSlice, pPicSrc, iStride);
-    pSlice->extendSliceBorderLuma(pPicSlice, iStride, EXTEND_NUM_PEL);
-
+    pSlice->extendSliceBorderLuma(pPicSlice, iStride, filtNo);
     xfilterOneSlice_en(pSlice, (imgpel*)pPicSlice, ImgRest, filtNo, iStride);
   }
 }
@@ -6191,7 +6189,7 @@ Void   TEncAdaptiveLoopFilter::xstoreInBlockMatrixforSlices(imgpel* ImgOrg, imgp
     if(!pSlice->isValidSlice()) continue;
 
     pSlice->copySliceLuma(pPicSlice, pPicSrc, iStride);
-    pSlice->extendSliceBorderLuma(pPicSlice, iStride, (UInt)EXTEND_NUM_PEL);
+    pSlice->extendSliceBorderLuma(pPicSlice, iStride, tap);
     xstoreInBlockMatrixforOneSlice(pSlice, ImgOrg, (imgpel*)pPicSlice, tap, iStride, (s==0), (s== iLastValidSliceID));
   }
 }
@@ -6276,8 +6274,7 @@ Void TEncAdaptiveLoopFilter::xCalcCorrelationFuncforChromaSlices(Int ComponentID
     if(!pSlice->isValidSlice()) continue;
 
     pSlice->copySliceChroma(pPicSlice, pPicSrc, iCmpStride);
-    pSlice->extendSliceBorderChroma(pPicSlice, iCmpStride, (UInt)EXTEND_NUM_PEL_C);
-
+    pSlice->extendSliceBorderChroma(pPicSlice, iCmpStride, iTap);
     xCalcCorrelationFuncforChromaOneSlice(pSlice, pOrg, pPicSlice, iTap, iCmpStride,(s== iLastValidSliceID));
   }
 }
@@ -6343,8 +6340,7 @@ Void TEncAdaptiveLoopFilter::xFrameChromaforSlices(Int ComponentID, TComPicYuv* 
     if(!pSlice->isValidSlice()) continue;
 
     pSlice->copySliceChroma(pPicSlice, pPicDec, iStride);
-    pSlice->extendSliceBorderChroma(pPicSlice, iStride, (UInt)EXTEND_NUM_PEL_C);
-
+    pSlice->extendSliceBorderChroma(pPicSlice, iStride, iTap);
     xFrameChromaforOneSlice(pSlice, ComponentID, m_pcSliceYuvTmp, pcPicRestYuv, qh, iTap);
   }
 }

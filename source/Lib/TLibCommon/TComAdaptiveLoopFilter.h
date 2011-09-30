@@ -117,17 +117,7 @@ void destroyMatrix_int(int **m2D);
 void initMatrix_int(int ***m2D, int d1, int d2);
 
 #if MTK_NONCROSS_INLOOP_FILTER
-#if STAR_CROSS_SHAPES_LUMA
-#define EXTEND_NUM_PEL    (UInt)(FILTER_LENGTH/2)
-#else
-#define EXTEND_NUM_PEL    (UInt)(ALF_MAX_NUM_TAP/2)
-#endif
 
-#if ALF_CHROMA_NEW_SHAPES
-#define EXTEND_NUM_PEL_C  (UInt)(EXTEND_NUM_PEL)
-#else
-#define EXTEND_NUM_PEL_C  (UInt)(ALF_MAX_NUM_TAP_C/2)
-#endif
 /// border direction ID of slice granularity unit 
 enum SGUBorderID
 {
@@ -209,10 +199,10 @@ public:
   Void destroy();
 
   /// Extend slice boundary border for one luma LCU
-  Void extendLumaBorder(Pel* pImg, Int iStride, UInt uiExtSize);
+  Void extendLumaBorder(Pel* pImg, Int iStride, Int filtNo);
 
   /// Extend slice boundary border for one chroma LCU
-  Void extendChromaBorder(Pel* pImg, Int iStride, UInt uiExtSize);
+  Void extendChromaBorder(Pel* pImg, Int iStride, UInt filtNo);
 
   /// Copy one luma LCU
   Void copyLuma(Pel* pImgDst, Pel* pImgSrc, Int iStride);
@@ -249,10 +239,9 @@ public:
 
   /// get TComDataCU pointer
   TComDataCU* getCU   ()         {return m_pcCU;}
-protected:
 
   /// Extend slice boundary border
-  Void extendBorderCoreFunction(Pel* pPel, Int iStride, Bool* pbAvail, UInt uiWidth, UInt uiHeight, UInt uiExtSize);
+  Void extendBorderCoreFunction(Pel* pPel, Int iStride, Bool* pbAvail, UInt uiWidth, UInt uiHeight, UInt uiExtSizeX, UInt uiExtSizeY, Bool bPaddingForCalculatingBAIndex = false);
 
   /// get corresponding TComDataCU pointer
   UInt getCUAddr() {return m_uiCUAddr;}
@@ -301,10 +290,10 @@ public:
   Void destroy();
 
   /// Extend slice boundary for one luma slice
-  Void extendSliceBorderLuma(Pel* pPelSrc, Int iStride, UInt uiExtSize);
+  Void extendSliceBorderLuma(Pel* pPelSrc, Int iStride, Int filtNo);
 
   /// Extend slice boundary for one chroma slice
-  Void extendSliceBorderChroma(Pel* pPelSrc, Int iStride, UInt uiExtSize);
+  Void extendSliceBorderChroma(Pel* pPelSrc, Int iStride, UInt filtNo);
 
   /// Copy one luma slice
   Void copySliceLuma(Pel* pPicDst, Pel* pPicSrc, Int iStride);

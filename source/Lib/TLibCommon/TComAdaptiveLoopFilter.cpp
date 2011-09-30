@@ -1101,7 +1101,6 @@ Void TComAdaptiveLoopFilter::xALFLuma_qc(TComPic* pcPic, ALFParam* pcAlfParam, T
       if(!pSlice->isValidSlice()) continue;
 
       pSlice->copySliceLuma((Pel*)pDec, (Pel*)pRest, LumaStride);
-      pSlice->extendSliceBorderLuma((Pel*)pDec, LumaStride, (UInt)EXTEND_NUM_PEL);
 
 #if MQT_BA_RA
       if(m_uiVarGenMethod != ALF_RA)
@@ -1111,6 +1110,8 @@ Void TComAdaptiveLoopFilter::xALFLuma_qc(TComPic* pcPic, ALFParam* pcAlfParam, T
 #if MQT_BA_RA
       }
 #endif
+      pSlice->extendSliceBorderLuma((Pel*)pDec, LumaStride, pcAlfParam->realfiltNo);
+
       xFilterOneSlice(pSlice, pDec, pRest, LumaStride, pcAlfParam);
 
     }
@@ -2401,10 +2402,11 @@ Void TComAdaptiveLoopFilter::xALFChroma(ALFParam* pcAlfParam, TComPicYuv* pcPicD
         if(!pSlice->isValidSlice()) continue;
 
         pSlice->copySliceChroma(pDec, pRest, iStride);
-        pSlice->extendSliceBorderChroma(pDec, iStride, (UInt)EXTEND_NUM_PEL_C);
 #if ALF_CHROMA_NEW_SHAPES
+        pSlice->extendSliceBorderChroma(pDec, iStride, pcAlfParam->realfiltNo_chroma);
         xFrameChromaforOneSlice(pSlice, ALF_Cb, pcPicDec, pcPicRest, pcAlfParam->coeff_chroma, pcAlfParam->realfiltNo_chroma);
 #else
+        pSlice->extendSliceBorderChroma(pDec, iStride, pcAlfParam->tap_chroma);
         xFrameChromaforOneSlice(pSlice, ALF_Cb, pcPicDec, pcPicRest, pcAlfParam->coeff_chroma, pcAlfParam->tap_chroma);
 #endif
       }
@@ -2439,10 +2441,11 @@ Void TComAdaptiveLoopFilter::xALFChroma(ALFParam* pcAlfParam, TComPicYuv* pcPicD
         if(!pSlice->isValidSlice()) continue;
 
         pSlice->copySliceChroma(pDec, pRest, iStride);
-        pSlice->extendSliceBorderChroma(pDec, iStride, (UInt)EXTEND_NUM_PEL_C);
 #if ALF_CHROMA_NEW_SHAPES
+        pSlice->extendSliceBorderChroma(pDec, iStride, pcAlfParam->realfiltNo_chroma);
         xFrameChromaforOneSlice(pSlice, ALF_Cr, pcPicDec, pcPicRest, pcAlfParam->coeff_chroma, pcAlfParam->realfiltNo_chroma);
 #else
+        pSlice->extendSliceBorderChroma(pDec, iStride, pcAlfParam->tap_chroma);
         xFrameChromaforOneSlice(pSlice, ALF_Cr, pcPicDec, pcPicRest, pcAlfParam->coeff_chroma, pcAlfParam->tap_chroma);
 #endif
       }
@@ -2984,6 +2987,13 @@ Void TComAdaptiveLoopFilter::calcVarforOneSlice(CAlfSlice* pSlice, imgpel **imgY
       xpos    = (Int)cAlfLCU[j].posX;
       iHeight = (Int)cAlfLCU[j].height;
       iWidth  = (Int)cAlfLCU[j].width;
+
+      if(m_bUseNonCrossALF)
+      {
+        imgpel* pPel = imgY_pad + (ypos * img_stride) + xpos;
+        cAlfLCU.extendBorderCoreFunction((Pel*)pPel, img_stride, cAlfLCU[j].isBorderAvailable, iWidth, iHeight, fl, fl, true);
+      }
+
 #if MQT_BA_RA
       calcVar(ypos, xpos, imgY_var, imgY_pad, pad_size, fl, iHeight, iWidth, img_stride);
 #else
@@ -3595,14 +3605,16 @@ Void CAlfLCU::setSGUBorderAvailability(UInt uiNumLCUInPicWidth, UInt uiNumLCUInP
 
 
 /** Extend slice boundary border
- * \param pPel starting pixel position in picture buffer
- * \param iStride stride size of picture buffer
- * \param pbAvail neighboring availabilities for current processing block
- * \param uiWidth pixel width of current processing block
- * \param uiHeight pixel height of current processing block
- * \param uiExtSize extension size
+ * \param [in,out] pPel starting pixel position in picture buffer
+ * \param [in] iStride stride size of picture buffer
+ * \param [in] pbAvail neighboring availabilities for current processing block
+ * \param [in] uiWidth pixel width of current processing block
+ * \param [in] uiHeight pixel height of current processing block
+ * \param [in] uiExtSizeX extension size in horizontal direction
+ * \param [in] uiExtSizeY extension size in vertical direction
+ * \param [in] bPaddingForCalculatingBAIndex default value is false. "false" means function triggered by filtering process. "true" means function triggered by BA index calculation process.
  */
-Void CAlfLCU::extendBorderCoreFunction(Pel* pPel, Int iStride, Bool* pbAvail, UInt uiWidth, UInt uiHeight, UInt uiExtSize)
+Void CAlfLCU::extendBorderCoreFunction(Pel* pPel, Int iStride, Bool* pbAvail, UInt uiWidth, UInt uiHeight, UInt uiExtSizeX, UInt uiExtSizeY, Bool bPaddingForCalculatingBAIndex)
 {
   Pel* pPelDst;
   Pel* pPelSrc;
@@ -3614,16 +3626,23 @@ Void CAlfLCU::extendBorderCoreFunction(Pel* pPel, Int iStride, Bool* pbAvail, UI
     {
       continue;
     }
+#if BA_SUB
+    if(bPaddingForCalculatingBAIndex)
+    {
+      if( !(pos == SGU_T  || pos == SGU_L || pos == SGU_TL ) )
+        continue;
+    }
+#endif
 
     switch(pos)
     {
     case SGU_L:
       {
-        pPelDst = pPel - uiExtSize;
+        pPelDst = pPel - uiExtSizeX;
         pPelSrc = pPel;
         for(j=0; j< uiHeight; j++)
         {
-          for(i=0; i< uiExtSize; i++)
+          for(i=0; i< uiExtSizeX; i++)
           {
             pPelDst[i] = *pPelSrc;
           }
@@ -3638,7 +3657,7 @@ Void CAlfLCU::extendBorderCoreFunction(Pel* pPel, Int iStride, Bool* pbAvail, UI
         pPelSrc = pPelDst -1;
         for(j=0; j< uiHeight; j++)
         {
-          for(i=0; i< uiExtSize; i++)
+          for(i=0; i< uiExtSizeX; i++)
           {
             pPelDst[i] = *pPelSrc;
           }
@@ -3650,23 +3669,26 @@ Void CAlfLCU::extendBorderCoreFunction(Pel* pPel, Int iStride, Bool* pbAvail, UI
       break;
     case SGU_T:
       {
+        UInt padWidth = (pbAvail[SGU_TR])?(uiWidth- uiExtSizeX):(uiWidth);
         pPelSrc = pPel;
         pPelDst = pPel - iStride;
-
-        for(j=0; j< uiExtSize; j++)
+        for(j=0; j< uiExtSizeY; j++)
         {
-          ::memcpy(pPelDst, pPelSrc, sizeof(Pel)*uiWidth);
+          ::memcpy(pPelDst, pPelSrc, sizeof(Pel)*padWidth);
           pPelDst -= iStride;
         }
       }
       break;
     case SGU_B:
       {
-        pPelDst = pPel + uiHeight*iStride;
+        UInt padWidth  = (pbAvail[SGU_BL])?(uiWidth- uiExtSizeX):(uiWidth);
+        UInt padOffset = (pbAvail[SGU_BL])?(uiExtSizeX):(0);
+
+        pPelDst = pPel + uiHeight*iStride + padOffset;
         pPelSrc = pPelDst - iStride;
-        for(j=0; j< uiExtSize; j++)
+        for(j=0; j< uiExtSizeY; j++)
         {
-          ::memcpy(pPelDst, pPelSrc, sizeof(Pel)*uiWidth);
+          ::memcpy(pPelDst, pPelSrc, sizeof(Pel)*padWidth);
           pPelDst += iStride;
         }
 
@@ -3676,17 +3698,14 @@ Void CAlfLCU::extendBorderCoreFunction(Pel* pPel, Int iStride, Bool* pbAvail, UI
       {
         if( (!pbAvail[SGU_T]) && (!pbAvail[SGU_L]))
         {
-          pPelSrc = pPel  - uiExtSize;
+          pPelSrc = pPel  - uiExtSizeX;
           pPelDst = pPelSrc - iStride;
-          for(j=0; j< uiExtSize; j++)
+          for(j=0; j< uiExtSizeY; j++)
           {
-            ::memcpy(pPelDst, pPelSrc, sizeof(Pel)*uiExtSize);
+            ::memcpy(pPelDst, pPelSrc, sizeof(Pel)*uiExtSizeX);
             pPelDst -= iStride;
           }         
         }
-
-
-
       }
       break;
     case SGU_TR:
@@ -3695,9 +3714,9 @@ Void CAlfLCU::extendBorderCoreFunction(Pel* pPel, Int iStride, Bool* pbAvail, UI
         {
           pPelSrc = pPel + uiWidth;
           pPelDst = pPelSrc - iStride;
-          for(j=0; j< uiExtSize; j++)
+          for(j=0; j< uiExtSizeY; j++)
           {
-            ::memcpy(pPelDst, pPelSrc, sizeof(Pel)*uiExtSize);
+            ::memcpy(pPelDst, pPelSrc, sizeof(Pel)*uiExtSizeX);
             pPelDst -= iStride;
           }
 
@@ -3709,11 +3728,11 @@ Void CAlfLCU::extendBorderCoreFunction(Pel* pPel, Int iStride, Bool* pbAvail, UI
       {
         if( (!pbAvail[SGU_B]) && (!pbAvail[SGU_L]))
         {
-          pPelDst = pPel + uiHeight*iStride; pPelDst-= uiExtSize;
+          pPelDst = pPel + uiHeight*iStride; pPelDst-= uiExtSizeX;
           pPelSrc = pPelDst - iStride;
-          for(j=0; j< uiExtSize; j++)
+          for(j=0; j< uiExtSizeY; j++)
           {
-            ::memcpy(pPelDst, pPelSrc, sizeof(Pel)*uiExtSize);
+            ::memcpy(pPelDst, pPelSrc, sizeof(Pel)*uiExtSizeX);
             pPelDst += iStride;
           }
 
@@ -3726,9 +3745,9 @@ Void CAlfLCU::extendBorderCoreFunction(Pel* pPel, Int iStride, Bool* pbAvail, UI
         {
           pPelDst = pPel + uiHeight*iStride; pPelDst += uiWidth;
           pPelSrc = pPelDst - iStride;
-          for(j=0; j< uiExtSize; j++)
+          for(j=0; j< uiExtSizeY; j++)
           {
-            ::memcpy(pPelDst, pPelSrc, sizeof(Pel)*uiExtSize);
+            ::memcpy(pPelDst, pPelSrc, sizeof(Pel)*uiExtSizeX);
             pPelDst += iStride;
           }
         }
@@ -3748,12 +3767,23 @@ Void CAlfLCU::extendBorderCoreFunction(Pel* pPel, Int iStride, Bool* pbAvail, UI
 }
 
 /** Extend slice boundary border for one luma LCU
- * \param pImg picture buffer
- * \param iStride stride size of picture buffer
- * \param uiExtSize extension size
+ * \param [in, out] pImg picture buffer
+ * \param [in] iStride stride size of picture buffer
+ * \param [in] filtNo filter shape
  */
-Void CAlfLCU::extendLumaBorder(Pel* pImg, Int iStride, UInt uiExtSize)
+Void CAlfLCU::extendLumaBorder(Pel* pImg, Int iStride, Int filtNo)
 {
+#if STAR_CROSS_SHAPES_LUMA
+  UInt uiExtSizeX = (filtNo == 0)?(2):(5);
+  UInt uiExtSizeY = 2;
+#else
+  UInt uiExtSizeX = m_flTab[filtNo];
+#if TI_ALF_MAX_VSIZE_7
+  UInt uiExtSizeY = (filtNo == 2)? (m_flTab[2]):(7/2);
+#else
+  UInt uiExtSizeY = m_flTab[filtNo];
+#endif
+#endif
   UInt uiWidth, uiHeight;
   UInt posX, posY;
   Pel* pPel;
@@ -3768,18 +3798,30 @@ Void CAlfLCU::extendLumaBorder(Pel* pImg, Int iStride, UInt uiExtSize)
     uiHeight = rSGU.height;
     pbAvail  = rSGU.isBorderAvailable;    
     pPel     = pImg + (posY * iStride)+ posX;    
-    extendBorderCoreFunction(pPel, iStride, pbAvail, uiWidth, uiHeight, uiExtSize);
+    extendBorderCoreFunction(pPel, iStride, pbAvail, uiWidth, uiHeight, uiExtSizeX, uiExtSizeY);
   }
 }
 
 
 /** Extend slice boundary border for one chroma LCU
- * \param pImg picture buffer
- * \param iStride stride size of picture buffer
- * \param uiExtSize extension size
+* \param [in, out] pImg picture buffer
+* \param [in] iStride stride size of picture buffer
+* \param [in] filtNo filter shape
  */
-Void CAlfLCU::extendChromaBorder(Pel* pImg, Int iStride, UInt uiExtSize)
+Void CAlfLCU::extendChromaBorder(Pel* pImg, Int iStride, UInt filtNo)
 {
+#if STAR_CROSS_SHAPES_LUMA
+  UInt uiExtSizeX = (filtNo == 0)?(2):(5);
+  UInt uiExtSizeY = 2;
+#else
+  UInt uiExtSizeX = m_flTab[filtNo];
+#if TI_ALF_MAX_VSIZE_7
+  UInt uiExtSizeY = (filtNo == 2)? (m_flTab[2]):(7/2);
+#else
+  UInt uiExtSizeY = m_flTab[filtNo];
+#endif
+#endif
+
   UInt uiWidth, uiHeight;
   UInt posX, posY;
   Pel* pPel;
@@ -3794,7 +3836,7 @@ Void CAlfLCU::extendChromaBorder(Pel* pImg, Int iStride, UInt uiExtSize)
     uiHeight = rSGU.height >> 1;
     pbAvail  = rSGU.isBorderAvailable;    
     pPel     = pImg + (posY * iStride)+ posX;    
-    extendBorderCoreFunction(pPel, iStride, pbAvail, uiWidth, uiHeight, uiExtSize);
+    extendBorderCoreFunction(pPel, iStride, pbAvail, uiWidth, uiHeight, uiExtSizeX, uiExtSizeY);
   }
 }
 
@@ -4245,28 +4287,43 @@ Void CAlfSlice::destroy()
 }
 
 /** Extend slice boundary for one luma slice
- * \param pPelSrc picture buffer
- * \param iStride stride size of picture buffer
- * \param uiExtSize extension size
+ * \param [in,out] pPelSrc picture buffer
+ * \param [in] iStride stride size of picture buffer
+ * \param [in] filtNo filter shape
  */
-Void CAlfSlice::extendSliceBorderLuma(Pel* pPelSrc, Int iStride, UInt uiExtSize)
+Void CAlfSlice::extendSliceBorderLuma(Pel* pPelSrc, Int iStride, Int filtNo)
 {
   for(UInt idx = 0; idx < m_uiNumLCUs; idx++)
   {
-    m_pcAlfLCU[idx].extendLumaBorder(pPelSrc, iStride, uiExtSize);
+    m_pcAlfLCU[idx].extendLumaBorder(pPelSrc, iStride, filtNo);
   }
 }
 
 /** Extend slice boundary for one chroma slice
- * \param pPelSrc picture buffer
- * \param iStride stride size of picture buffer
- * \param uiExtSize extension size
+* \param [in,out] pPelSrc picture buffer
+* \param [in] iStride stride size of picture buffer
+* \param [in] filtNo filter shape
  */
-Void CAlfSlice::extendSliceBorderChroma(Pel* pPelSrc, Int iStride, UInt uiExtSize)
+Void CAlfSlice::extendSliceBorderChroma(Pel* pPelSrc, Int iStride, UInt filtNo)
 {
+#if !ALF_CHROMA_NEW_SHAPES
+  Int iTap = filtNo;
+  if(iTap == 9)
+  {
+    filtNo = 0;
+  }
+  else if(iTap == 7)
+  {
+    filtNo = 1;
+  }
+  else
+  {
+    filtNo = 2;
+  }
+#endif
   for(UInt idx = 0; idx < m_uiNumLCUs; idx++)
   {
-    m_pcAlfLCU[idx].extendChromaBorder(pPelSrc, iStride, uiExtSize);
+    m_pcAlfLCU[idx].extendChromaBorder(pPelSrc, iStride, filtNo);
   }
 
 }
