@@ -44,6 +44,9 @@
 #include "TLibCommon/TComPic.h"
 #include "TLibCommon/TComPicYuv.h"
 #include "TEncCu.h"
+#if WEIGHT_PRED
+#include "WeightPredAnalysis.h"
+#endif
 
 //! \ingroup TLibEncoder
 //! \{
@@ -57,6 +60,9 @@ class TEncGOP;
 
 /// slice encoder class
 class TEncSlice
+#if WEIGHT_PRED
+  : public WeightPredAnalysis
+#endif
 {
 private:
   // encoder configuration

@@ -253,6 +253,9 @@ public:
 #if OL_FLUSH
   Void decodeFlush() {};
 #endif
+#if WEIGHT_PRED
+  Void parseWeightPredTable ( TComSlice* pcSlice );
+#endif
 };
 
 //! \}

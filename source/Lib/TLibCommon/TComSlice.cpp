@@ -120,6 +120,10 @@ TComSlice::TComSlice()
     m_aiRefPOCList  [0][iNumCount] = 0;
     m_aiRefPOCList  [1][iNumCount] = 0;
   }
+#if WEIGHT_PRED
+  resetWpScaling(m_weightPredTable);
+  initWpAcDcParam();
+#endif
 }
 
 TComSlice::~TComSlice()
@@ -742,6 +746,11 @@ Void TComSlice::copySliceInfo(TComSlice *pSrc)
 #if TILES_DECODER
   m_iTileMarkerFlag             = pSrc->m_iTileMarkerFlag;
 #endif
+#if WEIGHT_PRED
+  for ( int e=0 ; e<2 ; e++ )
+    for ( int n=0 ; n<MAX_NUM_REF ; n++ )
+      memcpy(m_weightPredTable[e][n], pSrc->m_weightPredTable[e][n], sizeof(wpScalingParam)*3 );
+#endif
 }
 
 /** Function for setting the slice's temporal layer ID and corresponding temporal_layer_switching_point_flag.
@@ -897,6 +906,98 @@ Void TComSlice::decodingRefMarkingForLD( TComList<TComPic*>& rcListPic, Int iMax
 }
 #endif
 
+#if WEIGHT_PRED
+/** get AC and DC values for weighted pred
+ * \param *wp
+ * \returns Void
+ */
+Void  TComSlice::getWpAcDcParam(wpACDCParam *&wp)
+{
+  wp = m_weightACDCParam;
+}
+
+/** init AC and DC values for weighted pred
+ * \returns Void
+ */
+Void  TComSlice::initWpAcDcParam()
+{
+  for(Int iComp = 0; iComp < 3; iComp++ )
+  {
+    m_weightACDCParam[iComp].iAC = 0;
+    m_weightACDCParam[iComp].iDC = 0;
+  }
+}
+
+/** get WP tables for weighted pred
+ * \param RefPicList
+ * \param iRefIdx
+ * \param *&wpScalingParam
+ * \returns Void
+ */
+Void  TComSlice::getWpScaling( RefPicList e, Int iRefIdx, wpScalingParam *&wp )
+{
+  wp = m_weightPredTable[e][iRefIdx];
+}
+
+/** reset Default WP tables settings : no weight. 
+ * \param wpScalingParam
+ * \returns Void
+ */
+Void  TComSlice::resetWpScaling(wpScalingParam  wp[2][MAX_NUM_REF][3])
+{
+  for ( int e=0 ; e<2 ; e++ ) 
+  {
+    for ( int i=0 ; i<MAX_NUM_REF ; i++ )
+    {
+      for ( int yuv=0 ; yuv<3 ; yuv++ ) 
+      {
+        wpScalingParam  *pwp = &(wp[e][i][yuv]);
+        pwp->bPresentFlag      = false;
+        pwp->uiLog2WeightDenom = 0;
+        pwp->uiLog2WeightDenom = 0;
+        pwp->iWeight           = 1;
+        pwp->iOffset           = 0;
+      }
+    }
+  }
+}
+
+/** init WP table
+ * \returns Void
+ */
+Void  TComSlice::initWpScaling()
+{
+  initWpScaling(m_weightPredTable);
+}
+
+/** set WP tables 
+ * \param wpScalingParam
+ * \returns Void
+ */
+Void  TComSlice::initWpScaling(wpScalingParam  wp[2][MAX_NUM_REF][3])
+{
+  for ( int e=0 ; e<2 ; e++ ) 
+  {
+    for ( int i=0 ; i<MAX_NUM_REF ; i++ )
+    {
+      for ( int yuv=0 ; yuv<3 ; yuv++ ) 
+      {
+        wpScalingParam  *pwp = &(wp[e][i][yuv]);
+        if ( !pwp->bPresentFlag ) {
+          // Inferring values not present :
+          pwp->iWeight = (1 << pwp->uiLog2WeightDenom);
+          pwp->iOffset = 0;
+        }
+
+        pwp->w      = pwp->iWeight;
+        pwp->o      = pwp->iOffset * (1 << (g_uiBitDepth-8));
+        pwp->shift  = pwp->uiLog2WeightDenom;
+        pwp->round  = (pwp->uiLog2WeightDenom>=1) ? (1 << (pwp->uiLog2WeightDenom-1)) : (0);
+      }
+    }
+  }
+}
+#endif
 
 // ------------------------------------------------------------------------------------------------
 // Sequence parameter set (SPS)

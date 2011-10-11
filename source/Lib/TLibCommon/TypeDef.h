@@ -77,6 +77,7 @@
 #define MRG_AMVP_ADD_CAND_F470               0
 #endif
 #define NSQT                                 1       // F410 & F412 : Non-Square Quadtree Transform
+#define WEIGHT_PRED                          1       ///< F265 & F326: enable weighted prediction
 ////////////////////////////
 // JCT-VC F end
 ////////////////////////////

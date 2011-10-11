@@ -454,6 +454,11 @@ protected:
                                    TComYuv*      pcYuvPred,
                                    TComYuv*&     rpcYuvResi );
   
+#if WEIGHT_PRED
+  Void  setWpScalingDistParam( TComDataCU* pcCU, Int iRefIdx, RefPicList eRefPicListCur );
+  inline  Void  setDistParamComp( UInt uiComp )  { m_cDistParam.uiComp = uiComp; }
+#endif
+  
 };// END CLASS DEFINITION TEncSearch
 
 //! \}
