@@ -157,6 +157,11 @@ Void TAppEncTop::xInitLibCfg()
 #if E057_INTRA_PCM
   m_cTEncTop.setPCMLog2MinSize          ( m_uiPCMLog2MinSize);
 #endif
+#if WEIGHT_PRED
+  //====== Weighted Prediction ========
+  m_cTEncTop.setUseWP                   ( m_bUseWeightPred      );
+  m_cTEncTop.setWPBiPredIdc             ( m_uiBiPredIdc         );
+#endif
   //====== Slice ========
   m_cTEncTop.setSliceMode               ( m_iSliceMode                );
   m_cTEncTop.setSliceArgument           ( m_iSliceArgument            );
