@@ -179,14 +179,12 @@ Void  WeightPredAnalysis::xCheckWPEnable(TComSlice *slice)
 Bool  WeightPredAnalysis::xEstimateWPParamSlice(TComSlice *slice)
 {
   Int iDenom  = 6;
-  Int iDefaultWeight = ((Int)1<<iDenom);
   Int iRealDenom = iDenom + (g_uiBitDepth+g_uiBitIncrement-8);
   Int iRealOffset = ((Int)1<<(iRealDenom-1));
 
   if(slice->getNumRefIdx(REF_PIC_LIST_0)>3)
   {
     iDenom  = 7;
-    iDefaultWeight = ((Int)1<<iDenom);
     iRealDenom = iDenom + (g_uiBitDepth+g_uiBitIncrement-8);
     iRealOffset = ((Int)1<<(iRealDenom-1));
   }

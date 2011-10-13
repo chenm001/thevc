@@ -150,7 +150,9 @@ Void TDecSlice::decompressSlice(TComInputBitstream* pcBitstream, TComPic*& rpcPi
   Int iBreakDep;
   UInt uiTileCol;
   UInt uiTileStartLCU;
+#if !FINE_GRANULARITY_SLICES
   UInt uiSliceStartLCU;
+#endif
   UInt uiTileLCUX;
   UInt uiTileLCUY;
   UInt uiTileWidth;
@@ -179,7 +181,9 @@ Void TDecSlice::decompressSlice(TComInputBitstream* pcBitstream, TComPic*& rpcPi
     uiTileLCUY = uiTileStartLCU / uiWidthInLCUs;
     uiTileWidth = rpcPic->getPicSym()->getTComTile(rpcPic->getPicSym()->getTileIdxMap(iCUAddr))->getTileWidth();
     uiTileHeight = rpcPic->getPicSym()->getTComTile(rpcPic->getPicSym()->getTileIdxMap(iCUAddr))->getTileHeight();
+#if !FINE_GRANULARITY_SLICES
     uiSliceStartLCU = pcSlice->getSliceCurStartCUAddr();
+#endif
     uiCol     = iCUAddr % uiWidthInLCUs;
     uiLin     = iCUAddr / uiWidthInLCUs;
 #endif

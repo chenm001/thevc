@@ -80,7 +80,6 @@ Void TComWeightPrediction::addWeightBi( TComYuv* pcYuvSrc0, TComYuv* pcYuvSrc1, 
   
   // Luma : --------------------------------------------
   Int w0      = wp0[0].w;
-  Int o0      = wp0[0].o;
   Int offset  = wp0[0].offset;
 #if GENERIC_IF
   Int shiftNum = IF_INTERNAL_PREC - ( g_uiBitDepth + g_uiBitIncrement );
@@ -90,7 +89,6 @@ Void TComWeightPrediction::addWeightBi( TComYuv* pcYuvSrc0, TComYuv* pcYuvSrc1, 
   Int shift   = wp0[0].shift + shiftNum;
   Int round   = (1<<(shift-1)) * bRound;
   Int w1      = wp1[0].w;
-  Int o1      = wp1[0].o;
 
   UInt  iSrc0Stride = pcYuvSrc0->getStride();
   UInt  iSrc1Stride = pcYuvSrc1->getStride();
@@ -113,12 +111,10 @@ Void TComWeightPrediction::addWeightBi( TComYuv* pcYuvSrc0, TComYuv* pcYuvSrc1, 
   
   // Chroma U : --------------------------------------------
   w0      = wp0[1].w;
-  o0      = wp0[1].o;
   offset  = wp0[1].offset;
   shift   = wp0[1].shift + shiftNum;
   round   = (1<<(shift-1));
   w1      = wp1[1].w;
-  o1      = wp1[1].o;
 
   iSrc0Stride = pcYuvSrc0->getCStride();
   iSrc1Stride = pcYuvSrc1->getCStride();
@@ -142,12 +138,10 @@ Void TComWeightPrediction::addWeightBi( TComYuv* pcYuvSrc0, TComYuv* pcYuvSrc1, 
 
   // Chroma V : --------------------------------------------
   w0      = wp0[2].w;
-  o0      = wp0[2].o;
   offset  = wp0[2].offset;
   shift   = wp0[2].shift + shiftNum;
   round   = (1<<(shift-1));
   w1      = wp1[2].w;
-  o1      = wp1[2].o;
 
   for ( y = iHeight-1; y >= 0; y-- )
   {

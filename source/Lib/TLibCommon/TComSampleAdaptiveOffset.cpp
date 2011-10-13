@@ -1794,9 +1794,7 @@ Void TComSampleAdaptiveOffset::xSaoAllPart(SAOQTPart *psQTPart, Int iYCbCr)
 Void TComSampleAdaptiveOffset::initTmpSaoQuadTree(SAOQTPart *psQTPart, Int iYCbCr)
 {
   Pel *pRec;
-  Int iStride;
   Int iPicWidthTmp;
-  Int iPicHeightTmp;
   
 
   memset(m_iLcuPartIdx,-1, sizeof(Int)*m_iNumCuInWidth*m_iNumCuInHeight);
@@ -1805,23 +1803,17 @@ Void TComSampleAdaptiveOffset::initTmpSaoQuadTree(SAOQTPart *psQTPart, Int iYCbC
   if (iYCbCr == 0)
   {
     pRec       = m_pcPic->getPicYuvRec()->getLumaAddr();
-    iStride    = m_pcPic->getStride();
     iPicWidthTmp = m_iPicWidth;
-    iPicHeightTmp = m_iPicHeight;
   } 
   else if (iYCbCr == 1)
   {
     pRec       = m_pcPic->getPicYuvRec()->getCbAddr();
-    iStride    = m_pcPic->getCStride();
     iPicWidthTmp =  m_iPicWidth>>1;
-    iPicHeightTmp = m_iPicHeight>>1;
   }
   else 
   {
     pRec       = m_pcPic->getPicYuvRec()->getCrAddr();
-    iStride    = m_pcPic->getCStride();
     iPicWidthTmp =  m_iPicWidth>>1;
-    iPicHeightTmp = m_iPicHeight>>1;
   }
 
   memcpy(m_pTmpU1, pRec, sizeof(Pel)*iPicWidthTmp);

@@ -682,7 +682,6 @@ Void TEncSlice::compressSlice( TComPic*& rpcPic )
   UInt uiTileCol      = 0;
   UInt uiTileStartLCU = 0;
   UInt uiTileLCUX     = 0;
-  UInt uiTileLCUY     = 0;
 #endif
 #endif
 
@@ -722,7 +721,6 @@ Void TEncSlice::compressSlice( TComPic*& rpcPic )
       uiTileCol = rpcPic->getPicSym()->getTileIdxMap(uiCUAddr) % (rpcPic->getPicSym()->getNumColumnsMinus1()+1); // what column of tiles are we in?
       uiTileStartLCU = rpcPic->getPicSym()->getTComTile(rpcPic->getPicSym()->getTileIdxMap(uiCUAddr))->getFirstCUAddr();
       uiTileLCUX = uiTileStartLCU % uiWidthInLCUs;
-      uiTileLCUY = uiTileStartLCU / uiWidthInLCUs;
       //UInt uiSliceStartLCU = pcSlice->getSliceCurStartCUAddr();
       uiCol     = uiCUAddr % uiWidthInLCUs;
       uiLin     = uiCUAddr / uiWidthInLCUs;
@@ -1122,7 +1120,6 @@ Void TEncSlice::encodeSlice   ( TComPic*& rpcPic, TComOutputBitstream* pcBitstre
   UInt uiTileCol      = 0;
   UInt uiTileStartLCU = 0;
   UInt uiTileLCUX     = 0;
-  UInt uiTileLCUY     = 0;
 #endif
 #endif
 
@@ -1161,7 +1158,6 @@ Void TEncSlice::encodeSlice   ( TComPic*& rpcPic, TComOutputBitstream* pcBitstre
       uiTileCol = rpcPic->getPicSym()->getTileIdxMap(uiCUAddr) % (rpcPic->getPicSym()->getNumColumnsMinus1()+1); // what column of tiles are we in?
       uiTileStartLCU = rpcPic->getPicSym()->getTComTile(rpcPic->getPicSym()->getTileIdxMap(uiCUAddr))->getFirstCUAddr();
       uiTileLCUX = uiTileStartLCU % uiWidthInLCUs;
-      uiTileLCUY = uiTileStartLCU / uiWidthInLCUs;
       //UInt uiSliceStartLCU = pcSlice->getSliceCurStartCUAddr();
       uiCol     = uiCUAddr % uiWidthInLCUs;
       uiLin     = uiCUAddr / uiWidthInLCUs;
