@@ -85,7 +85,6 @@ private:
 #if OL_FLUSH && !OL_FLUSH_ALIGN
   UInt                m_uiLastByte;
 #endif
-public:
   Int                 m_bitsNeeded;
 };
 

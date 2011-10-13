@@ -183,11 +183,9 @@ public:
   
 #if TILES
 #if TILES_DECODER
-  Void updateContextTables( SliceType eSliceType, Int iQp, Bool bCheckForTileMarker, Bool& bTileMarkerFoundFlag );
   Void readTileMarker   ( UInt& uiTileIdx, UInt uiBitsUsed );
-#else
-  Void updateContextTables( SliceType eSliceType, Int iQp );
 #endif
+  Void updateContextTables( SliceType eSliceType, Int iQp );
 #endif
 
 #if F747_APS

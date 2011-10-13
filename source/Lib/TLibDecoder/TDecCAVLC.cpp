@@ -236,18 +236,18 @@ Void TDecCavlc::parsePPS(TComPPS* pcPPS)
 #endif
 
 #if TILES
-  READ_CODE ( 1, uiCode, "tile_info_present_flag" );
+  READ_FLAG ( uiCode, "tile_info_present_flag" );
   pcPPS->setColumnRowInfoPresent(uiCode);
   if( pcPPS->getColumnRowInfoPresent() == 1 )
   {
-    READ_CODE ( 1, uiCode, "uniform_spacing_idc" );  
+    READ_FLAG ( uiCode, "uniform_spacing_idc" );  
     pcPPS->setUniformSpacingIdr( uiCode );
-    READ_CODE ( 1, uiCode, "tile_boundary_independence_idc" );  
+    READ_FLAG ( uiCode, "tile_boundary_independence_idc" );  
     pcPPS->setTileBoundaryIndependenceIdr( uiCode );
 
-    READ_CODE ( LOG2_MAX_NUM_COLUMNS_MINUS1, uiCode, "num_tile_columns_minus1" );   
+    READ_UVLC ( uiCode, "num_tile_columns_minus1" );   
     pcPPS->setNumColumnsMinus1( uiCode );  
-    READ_CODE ( LOG2_MAX_NUM_ROWS_MINUS1, uiCode, "num_tile_rows_minus1" );  
+    READ_UVLC ( uiCode, "num_tile_rows_minus1" );  
     pcPPS->setNumRowsMinus1( uiCode );  
 
     if( pcPPS->getUniformSpacingIdr() == 0 )
@@ -255,7 +255,7 @@ Void TDecCavlc::parsePPS(TComPPS* pcPPS)
       UInt* columnWidth = (UInt*)malloc(pcPPS->getNumColumnsMinus1()*sizeof(UInt));
       for(UInt i=0; i<pcPPS->getNumColumnsMinus1(); i++)
       { 
-        READ_CODE( LOG2_MAX_COLUMN_WIDTH, uiCode, "column_width" );  
+        READ_UVLC( uiCode, "column_width" );  
         columnWidth[i] = uiCode;  
       }
       pcPPS->setColumnWidth(columnWidth);
@@ -264,7 +264,7 @@ Void TDecCavlc::parsePPS(TComPPS* pcPPS)
       UInt* rowHeight = (UInt*)malloc(pcPPS->getNumRowsMinus1()*sizeof(UInt));
       for(UInt i=0; i<pcPPS->getNumRowsMinus1(); i++)
       {
-        READ_CODE( LOG2_MAX_ROW_HEIGHT, uiCode, "row_height" );  
+        READ_UVLC( uiCode, "row_height" );  
         rowHeight[i] = uiCode;  
       }
       pcPPS->setRowHeight(rowHeight);
@@ -396,21 +396,21 @@ Void TDecCavlc::parseSPS(TComSPS* pcSPS)
 #endif
 
 #if TILES
-  READ_CODE ( 1, uiCode, "uniform_spacing_idc" ); 
+  READ_FLAG ( uiCode, "uniform_spacing_idc" ); 
   pcSPS->setUniformSpacingIdr( uiCode );
-  READ_CODE ( 1, uiCode, "tile_boundary_independence_idc" );  
+  READ_FLAG ( uiCode, "tile_boundary_independence_idc" );  
   pcSPS->setTileBoundaryIndependenceIdr( uiCode );
  
-  READ_CODE ( LOG2_MAX_NUM_COLUMNS_MINUS1, uiCode, "num_tile_columns_minus1" );
+  READ_UVLC ( uiCode, "num_tile_columns_minus1" );
   pcSPS->setNumColumnsMinus1( uiCode );  
-  READ_CODE ( LOG2_MAX_NUM_ROWS_MINUS1, uiCode, "num_tile_rows_minus1" ); 
+  READ_UVLC ( uiCode, "num_tile_rows_minus1" ); 
   pcSPS->setNumRowsMinus1( uiCode ); 
   if( pcSPS->getUniformSpacingIdr() == 0 )
   {
     UInt* columnWidth = (UInt*)malloc(pcSPS->getNumColumnsMinus1()*sizeof(UInt));
     for(UInt i=0; i<pcSPS->getNumColumnsMinus1(); i++)
     { 
-      READ_CODE( LOG2_MAX_COLUMN_WIDTH, uiCode, "column_width" );
+      READ_UVLC( uiCode, "column_width" );
       columnWidth[i] = uiCode;  
     }
     pcSPS->setColumnWidth(columnWidth);
@@ -419,7 +419,7 @@ Void TDecCavlc::parseSPS(TComSPS* pcSPS)
     UInt* rowHeight = (UInt*)malloc(pcSPS->getNumRowsMinus1()*sizeof(UInt));
     for(UInt i=0; i<pcSPS->getNumRowsMinus1(); i++)
     {
-      READ_CODE( LOG2_MAX_ROW_HEIGHT, uiCode, "row_height" );
+      READ_UVLC( uiCode, "row_height" );
       rowHeight[i] = uiCode;  
     }
     pcSPS->setRowHeight(rowHeight);
@@ -646,6 +646,17 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice)
     }      
   }
 
+#if TILES_DECODER
+  rpcSlice->setTileMarkerFlag ( 0 ); // default
+  if (!bEntropySlice)
+  {
+    if (rpcSlice->getSPS()->getTileBoundaryIndependenceIdr())
+    {   
+      xReadCode(1, uiCode); // read flag indicating if tile markers transmitted
+      rpcSlice->setTileMarkerFlag( uiCode );
+    }
+  }
+#endif
 
 #if OL_USE_WPP
   if (rpcSlice->getPPS()->getEntropyCodingSynchro())
@@ -683,7 +694,6 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice)
 #endif
 
 #if TILES_DECODER
-  rpcSlice->setTileMarkerFlag ( 0 ); // default
   if (!bEntropySlice)
   {
     // Reading location information
@@ -691,9 +701,6 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice)
     {   
       xReadCode(1, uiCode); // read flag indicating if location information signaled in slice header
       Bool bTileLocationInformationInSliceHeaderFlag = (uiCode)? true : false;
-
-      xReadCode(1, uiCode); // read flag indicating if lightweight tile markers transmitted
-      rpcSlice->setTileMarkerFlag( uiCode );
 
       if (bTileLocationInformationInSliceHeaderFlag)
       {
