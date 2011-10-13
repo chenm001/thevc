@@ -227,6 +227,13 @@ Void TDecCavlc::parsePPS(TComPPS* pcPPS)
   }
 #endif
 
+#if WEIGHT_PRED
+  READ_FLAG( uiCode, "weighted_pred_flag" );          // Use of Weighting Prediction (P_SLICE)
+  pcPPS->setUseWP( uiCode==1 );
+  READ_CODE( 2, uiCode, "weighted_bipred_idc" );      // Use of Bi-Directional Weighting Prediction (B_SLICE)
+  pcPPS->setWPBiPredIdc( uiCode );
+  printf("TDecCavlc::parsePPS():\tm_bUseWeightPred=%d\tm_uiBiPredIdc=%d\n", pcPPS->getUseWP(), pcPPS->getWPBiPredIdc());
+#endif
 
 #if TILES
   READ_CODE ( 1, uiCode, "tile_info_present_flag" );
@@ -617,6 +624,15 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice)
     //   }
     // }
   }
+
+#if WEIGHT_PRED
+  if ( (rpcSlice->getPPS()->getUseWP() && rpcSlice->getSliceType()==P_SLICE) || (rpcSlice->getPPS()->getWPBiPredIdc() && rpcSlice->getSliceType()==B_SLICE) )
+  {
+    parseWeightPredTable(rpcSlice);
+    rpcSlice->initWpScaling();
+  }
+#endif
+
   // !!!! Syntax elements not in the WD  !!!!!
   
   if (!bEntropySlice)
@@ -3940,6 +3956,101 @@ Void TDecCavlc::xParseCoeff(TCoeff* scoeff, Int blockType, Int blSize
   return;
 }
 
+#endif
+
+#if WEIGHT_PRED
+/** parse explicit wp tables
+ * \param TComSlice* pcSlice
+ * \returns Void
+ */
+Void TDecCavlc::parseWeightPredTable( TComSlice* pcSlice )
+{
+  wpScalingParam  *wp;
+  Bool            bChroma     = true; // color always present in HEVC ?
+  TComPPS*        pps         = pcSlice->getPPS();
+  SliceType       eSliceType  = pcSlice->getSliceType();
+  Int             iNbRef       = (eSliceType == B_SLICE ) ? (2) : (1);
+  UInt            uiLog2WeightDenomLuma, uiLog2WeightDenomChroma;
+  UInt            uiMode      = 0;
+
+  if ( (eSliceType==P_SLICE && pps->getUseWP()) || (eSliceType==B_SLICE && pps->getWPBiPredIdc()==1) )
+    uiMode = 1;
+  else if ( eSliceType==B_SLICE && pps->getWPBiPredIdc()==2 )
+    uiMode = 2;
+
+  if ( uiMode == 1 )  // explicit
+  {
+    printf("\nTDecCavlc::parseWeightPredTable(poc=%d) explicit...\n", pcSlice->getPOC());
+    xReadUvlc( uiLog2WeightDenomLuma );     // ue(v): luma_log2_weight_denom
+    if( bChroma ) {                         // color always present in HEVC ?
+      xReadUvlc( uiLog2WeightDenomChroma ); // ue(v): chroma_log2_weight_denom
+    }
+
+    for ( Int iNumRef=0 ; iNumRef<iNbRef ; iNumRef++ ) 
+    {
+      RefPicList  eRefPicList = ( iNumRef ? REF_PIC_LIST_1 : REF_PIC_LIST_0 );
+      for ( Int iRefIdx=0 ; iRefIdx<pcSlice->getNumRefIdx(eRefPicList) ; iRefIdx++ ) 
+      {
+        pcSlice->getWpScaling(eRefPicList, iRefIdx, wp);
+
+        wp[0].uiLog2WeightDenom = uiLog2WeightDenomLuma;
+        wp[1].uiLog2WeightDenom = uiLog2WeightDenomChroma;
+        wp[2].uiLog2WeightDenom = uiLog2WeightDenomChroma;
+
+        UInt  uiCode;
+        xReadFlag( uiCode );           // u(1): luma_weight_l0_flag
+        wp[0].bPresentFlag = ( uiCode == 1 );
+        if ( wp[0].bPresentFlag ) 
+        {
+          xReadSvlc( wp[0].iWeight ); // se(v): luma_weight_l0[i]
+          xReadSvlc( wp[0].iOffset ); // se(v): luma_offset_l0[i]
+        }
+        else 
+        {
+          wp[0].iWeight = (1 << wp[0].uiLog2WeightDenom);
+          wp[0].iOffset = 0;
+        }
+        if ( bChroma ) 
+        {
+          xReadFlag( uiCode );           // u(1): chroma_weight_l0_flag
+          wp[1].bPresentFlag = ( uiCode == 1 );
+          wp[2].bPresentFlag = ( uiCode == 1 );
+          if ( wp[1].bPresentFlag ) 
+          {
+            for ( Int j=1 ; j<3 ; j++ ) 
+            {
+              xReadSvlc( wp[j].iWeight ); // se(v): chroma_weight_l0[i][j]
+              xReadSvlc( wp[j].iOffset ); // se(v): chroma_offset_l0[i][j]
+            }
+          }
+          else 
+          {
+            for ( Int j=1 ; j<3 ; j++ ) 
+            {
+              wp[j].iWeight = (1 << wp[j].uiLog2WeightDenom);
+              wp[j].iOffset = 0;
+            }
+          }
+        }
+      }
+
+      for ( Int iRefIdx=pcSlice->getNumRefIdx(eRefPicList) ; iRefIdx<MAX_NUM_REF ; iRefIdx++ ) 
+      {
+        pcSlice->getWpScaling(eRefPicList, iRefIdx, wp);
+
+        wp[0].bPresentFlag = false;
+        wp[1].bPresentFlag = false;
+        wp[2].bPresentFlag = false;
+      }
+    }
+  }
+  else if ( uiMode == 2 )  // implicit
+  {
+    printf("\nTDecCavlc::parseWeightPredTable(poc=%d) implicit...\n", pcSlice->getPOC());
+  }
+  else
+    assert(0);
+}
 #endif
 
 //! \}

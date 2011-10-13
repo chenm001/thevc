@@ -373,6 +373,11 @@ Void TEncCavlc::codePPS( TComPPS* pcPPS )
   }
 #endif
 
+#if WEIGHT_PRED
+  WRITE_FLAG( pcPPS->getUseWP() ? 1 : 0,  "weighted_pred_flat" );   // Use of Weighting Prediction (P_SLICE)
+  WRITE_CODE( pcPPS->getWPBiPredIdc(), 2, "weighted_bipred_idc" );  // Use of Weighting Bi-Prediction (B_SLICE)
+#endif
+
 #if TILES
   WRITE_CODE( pcPPS->getColumnRowInfoPresent(), 1,           "tile_info_present_flag" );
   if( pcPPS->getColumnRowInfoPresent() == 1 )
@@ -706,6 +711,13 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
   // }
   }
   
+#if WEIGHT_PRED
+  if ( (pcSlice->getPPS()->getUseWP() && pcSlice->getSliceType()==P_SLICE) || (pcSlice->getPPS()->getWPBiPredIdc()==1 && pcSlice->getSliceType()==B_SLICE) )
+  {
+    codeWeightPredTable( pcSlice );
+  }
+#endif
+
   // !!!! sytnax elements not in the WD !!!!
   
   if (!bEntropySlice)
@@ -3613,6 +3625,55 @@ Void TEncCavlc::xCodeCoeff8x8( TCoeff* scoeff, Int n )
   }
   
   return;
+}
+#endif
+
+#if WEIGHT_PRED
+/** code explicit wp tables
+ * \param TComSlice* pcSlice
+ * \returns Void
+ */
+Void TEncCavlc::codeWeightPredTable( TComSlice* pcSlice )
+{
+  wpScalingParam  *wp;
+  Bool            bChroma     = true; // color always present in HEVC ?
+  Int             iNbRef       = (pcSlice->getSliceType() == B_SLICE ) ? (2) : (1);
+  Bool            bDenomCoded  = false;
+
+  for ( Int iNumRef=0 ; iNumRef<iNbRef ; iNumRef++ ) 
+  {
+    RefPicList  eRefPicList = ( iNumRef ? REF_PIC_LIST_1 : REF_PIC_LIST_0 );
+    for ( Int iRefIdx=0 ; iRefIdx<pcSlice->getNumRefIdx(eRefPicList) ; iRefIdx++ ) 
+    {
+      pcSlice->getWpScaling(eRefPicList, iRefIdx, wp);
+      if ( !bDenomCoded ) 
+      {
+        xWriteUvlc( wp[0].uiLog2WeightDenom );    // ue(v): luma_log2_weight_denom
+        if( bChroma )
+          xWriteUvlc( wp[1].uiLog2WeightDenom );  // ue(v): chroma_log2_weight_denom
+        bDenomCoded = true;
+      }
+
+      xWriteFlag( wp[0].bPresentFlag );           // u(1): luma_weight_l0_flag
+      if ( wp[0].bPresentFlag ) 
+      {
+        xWriteSvlc( wp[0].iWeight );              // se(v): luma_weight_l0[i]
+        xWriteSvlc( wp[0].iOffset );              // se(v): luma_offset_l0[i]
+      }
+      if ( bChroma ) 
+      {
+        xWriteFlag( wp[1].bPresentFlag );         // u(1): chroma_weight_l0_flag
+        if ( wp[1].bPresentFlag )
+        {
+          for ( Int j=1 ; j<3 ; j++ ) 
+          {
+            xWriteSvlc( wp[j].iWeight );          // se(v): chroma_weight_l0[i][j]
+            xWriteSvlc( wp[j].iOffset );          // se(v): chroma_offset_l0[i][j]
+          }
+        }
+      }
+    }
+  }
 }
 #endif
 

@@ -43,6 +43,11 @@
 #include "TComPattern.h"
 #include "TComMv.h"
 
+#if WEIGHT_PRED
+  #include "TComSlice.h"
+  #include "TComRdCostWeightPrediction.h"
+#endif
+
 //! \ingroup TLibCommon
 //! \{
 
@@ -74,7 +79,13 @@ public:
   Int   iCols;
   Int   iStep;
   FpDistFunc DistFunc;
-  
+
+#if WEIGHT_PRED
+  Bool            bApplyWeight;     // whether weithed prediction is used or not
+  wpScalingParam  *wpCur;           // weithed prediction scaling parameters for current ref
+  UInt            uiComp;           // uiComp = 0 (luma Y), 1 (chroma U), 2 (chroma V)
+#endif
+
   // (vertical) subsampling shift (for reducing complexity)
   // - 0 = no subsampling, 1 = even rows, 2 = every 4th, etc.
   Int   iSubShift;
@@ -95,6 +106,9 @@ public:
 
 /// RD cost computation class
 class TComRdCost
+#if WEIGHT_PRED
+  : public TComRdCostWeightPrediction
+#endif
 {
 private:
   // for distortion

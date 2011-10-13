@@ -264,7 +264,9 @@ public:
   Void parseAPSInitInfo(TComAPS& cAPS);
 #endif
 
-
+#if WEIGHT_PRED
+  Void parseWeightPredTable ( TComSlice* pcSlice );
+#endif
 };
 
 //! \}

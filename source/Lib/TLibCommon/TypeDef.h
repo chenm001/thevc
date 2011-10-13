@@ -85,6 +85,7 @@
 #endif
 
 
+#define WEIGHT_PRED                          1       ///< F265 & F326: enable weighted prediction
 ////////////////////////////
 // JCT-VC F end
 ////////////////////////////

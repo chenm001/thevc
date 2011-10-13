@@ -290,10 +290,13 @@ public:
   
   Void codeCoeffNxN      ( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx, UInt uiWidth, UInt uiHeight, UInt uiDepth, TextType eTType );
   
-  Void estBit             (estBitsSbacStruct* pcEstBitsSbac, UInt uiCTXIdx, TextType eTType);
+  Void estBit            ( estBitsSbacStruct* pcEstBitsSbac, UInt uiCTXIdx, TextType eTType);
   
-  Bool  getAdaptFlag          ()          { return m_bAdaptFlag; }
-  Void  setAdaptFlag          ( Bool b )  { m_bAdaptFlag = b;     }
+  Bool getAdaptFlag      ()          { return m_bAdaptFlag; }
+  Void setAdaptFlag      ( Bool b )  { m_bAdaptFlag = b;     }
+#if WEIGHT_PRED
+  Void codeWeightPredTable           ( TComSlice* pcSlice );
+#endif
 #if TILES
   Void updateContextTables           ( SliceType eSliceType, Int iQp, Bool bExecuteFinish=true ) { return;   }
   Void updateContextTables           ( SliceType eSliceType, Int iQp  )                          { return;   }
