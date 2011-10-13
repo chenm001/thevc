@@ -77,6 +77,14 @@
 #define MRG_AMVP_ADD_CAND_F470               0
 #endif
 #define NSQT                                 1       // F410 & F412 : Non-Square Quadtree Transform
+
+#define F747_APS                             1       // F747 : Adaptation Parameter Set (APS)
+#if F747_APS
+  #define APS_BITS_FOR_SAO_BYTE_LENGTH 12           
+  #define APS_BITS_FOR_ALF_BYTE_LENGTH 8
+#endif
+
+
 ////////////////////////////
 // JCT-VC F end
 ////////////////////////////
@@ -265,12 +273,11 @@
 #define TILES_DECODER                       0
 #endif
 
-#define MTK_SAO                           1           // JCTVC-E049: Sample adaptive offset
-#define MTK_SAO_CHROMA                    1           // JCTVC-F057: Sample adaptive offset for Chroma
-#define MTK_SAO_REMOVE_SKIP               1
-
-#define SAO_ACCURATE_OFFSET               1           // JCTVC-F396
-#define SAO_CLIP_OFFSET                   1           // JCTVC-F396
+#define SAO                           1           // JCTVC-E049: Sample adaptive offset
+#define SAO_CHROMA                    1           // JCTVC-F057: Sample adaptive offset for Chroma
+#define SAO_CROSS_LCU_BOUNDARIES      1
+#define SAO_ACCURATE_OFFSET           1           // JCTVC-F396
+#define SAO_CLIP_OFFSET               1           // JCTVC-F396
 
 #define MQT_ALF_NPASS                       1
 
@@ -343,7 +350,6 @@
 
 #define CBF_FAST_MODE                      1 //JCTVC-F045
 
-
 // ====================================================================================================================
 // Basic type redefinition
 // ====================================================================================================================
@@ -390,18 +396,19 @@ typedef       Int             TCoeff;     ///< transform coefficient
 /// parameters for adaptive loop filter
 class TComPicSym;
 
-#if MTK_SAO
+#if SAO
 
 #define NUM_DOWN_PART 4
+#define NUM_MAX_OFFSET  32
 
-enum QAOTypeLen
+enum SAOTypeLen
 {
   SAO_EO_LEN    = 4, 
   SAO_EO_LEN_2D = 6, 
   SAO_BO_LEN    = 16
 };
 
-enum QAOType
+enum SAOType
 {
   SAO_EO_0 = 0, 
   SAO_EO_1,
@@ -424,13 +431,6 @@ typedef struct _SaoQTPart
   Int         EndCUX;
   Int         EndCUY;
 
-  Int         part_xs;
-  Int         part_xe;
-  Int         part_ys;
-  Int         part_ye;
-  Int         part_width;
-  Int         part_height;
-
   Int         PartIdx;
   Int         PartLevel;
   Int         PartCol;
@@ -439,16 +439,9 @@ typedef struct _SaoQTPart
   Int         DownPartsIdx[NUM_DOWN_PART];
   Int         UpPartIdx;
 
-  Int*        pSubPartList;
-  Int         iLengthSubPartList;
-
-  Bool        bBottomLevel;
   Bool        bSplit;
-  //    Bool        bAvailable;
 
   //---- encoder only start -----//
-  Int64***    pppiCorr; //[filt_type][corr_row][corr_col]
-  Int**       ppCoeff;  //[filt_type][coeff]
   Bool        bProcessed;
   Double      dMinCost;
   Int64       iMinDist;
@@ -458,14 +451,8 @@ typedef struct _SaoQTPart
 
 struct _SaoParam
 {
-  Bool       bSaoFlag;
-  SAOQTPart* psSaoPart;
-#if MTK_SAO_CHROMA
-  Bool       bSaoFlagCb;
-  Bool       bSaoFlagCr;
-  SAOQTPart* psSaoPartCb;
-  SAOQTPart* psSaoPartCr;
-#endif
+  Bool       bSaoFlag[3];
+  SAOQTPart* psSaoPart[3];
   Int        iMaxSplitLevel;
   Int        iNumClass[MAX_NUM_SAO_TYPE];
 };
@@ -475,7 +462,9 @@ struct _SaoParam
 struct _AlfParam
 {
   Int alf_flag;                           ///< indicates use of ALF
+#if !F747_APS
   Int cu_control_flag;                    ///< coding unit based control flag
+#endif
   Int chroma_idc;                         ///< indicates use of ALF for chroma
 #if !STAR_CROSS_SHAPES_LUMA
 #if TI_ALF_MAX_VSIZE_7
@@ -524,10 +513,12 @@ struct _AlfParam
   Int minKStart;
   Int maxScanVal;
   Int kMinTab[42];
+#if !F747_APS
   UInt num_alf_cu_flag;
   UInt num_cus_in_frame;
   UInt alf_max_depth;
   UInt *alf_cu_flag;
+#endif
 
 #if MQT_BA_RA
   Int alf_pcr_region_flag; 
@@ -711,3 +702,4 @@ enum COEFF_SCAN_TYPE
 //! \}
 
 #endif
+

@@ -179,6 +179,11 @@ private:
 
   
 public:
+
+#if F747_APS
+  /// rest entropy coder by intial QP and IDC in CABAC
+  Void  resetEntropy        (Int  iQp, Int iID) { printf("Not supported yet\n"); assert(0); exit(1);}
+#endif
   Void  resetEntropy        ( TComSlice* pcSlice  );
   Void  setBitstream        ( TComInputBitstream* p )   { m_pcBitstream = p; }
   Void  setAlfCtrl          ( Bool bAlfCtrl )            { m_bAlfCtrl = bAlfCtrl; }
@@ -196,10 +201,10 @@ public:
   Void  parseAlfFlag        ( UInt& ruiVal );
   Void  parseAlfUvlc        ( UInt& ruiVal );
   Void  parseAlfSvlc        ( Int&  riVal  );
-#if MTK_SAO
-  Void  parseAoFlag        ( UInt& ruiVal );
-  Void  parseAoUvlc        ( UInt& ruiVal );
-  Void  parseAoSvlc        ( Int&  riVal  );
+#if SAO
+  Void  parseSaoFlag        ( UInt& ruiVal );
+  Void  parseSaoUvlc        ( UInt& ruiVal );
+  Void  parseSaoSvlc        ( Int&  riVal  );
 #endif
   
   Void  parseSPS            ( TComSPS* pcSPS );
@@ -253,6 +258,13 @@ public:
 #if OL_FLUSH
   Void decodeFlush() {};
 #endif
+
+#if F747_APS
+  /// parse APF flags before SAO and ALF parameters
+  Void parseAPSInitInfo(TComAPS& cAPS);
+#endif
+
+
 };
 
 //! \}

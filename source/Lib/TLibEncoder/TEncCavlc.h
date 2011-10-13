@@ -233,10 +233,10 @@ public:
   Void codeAlfUvlc       ( UInt uiCode );
   Void codeAlfSvlc       ( Int   iCode );
   Void codeAlfCtrlDepth();
-#if MTK_SAO
-  Void codeAoFlag       ( UInt uiCode );
-  Void codeAoUvlc       ( UInt uiCode );
-  Void codeAoSvlc       ( Int   iCode );
+#if SAO
+  Void codeSaoFlag       ( UInt uiCode );
+  Void codeSaoUvlc       ( UInt uiCode );
+  Void codeSaoSvlc       ( Int   iCode );
 #endif
   Void codeSkipFlag      ( TComDataCU* pcCU, UInt uiAbsPartIdx );
   Void codeMergeFlag     ( TComDataCU* pcCU, UInt uiAbsPartIdx );
@@ -301,6 +301,13 @@ public:
   Void writeTileMarker               ( UInt uiTileIdx, UInt uiBitsUsed );
 #endif
 #endif
+
+#if F747_APS
+  Void  codeAPSInitInfo(TComAPS* pcAPS);  //!< code APS flags before encoding SAO and ALF parameters
+  Void  codeFinish(Bool bEnd) { /*do nothing*/}
+#endif
+
+
 };
 
 //! \}

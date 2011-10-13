@@ -79,7 +79,13 @@ public:
   Void decodeFlush();
 #endif
 
+#if F747_APS
+  Void  resetEntropywithQPandInitIDC ( Int  iQp, Int iID);
+  Void  resetEntropy                 ( Int  iQp, Int iID      ) { resetEntropywithQPandInitIDC(iQp, iID);                                      }
+  Void  resetEntropy                 ( TComSlice* pcSlice     ) { resetEntropywithQPandInitIDC(pcSlice->getSliceQp(), pcSlice->getSliceType());}
+#else
   Void  resetEntropy              ( TComSlice* pcSlice     );
+#endif
   Void  setBitstream              ( TComInputBitstream* p  ) { m_pcBitstream = p; m_pcTDecBinIf->init( p ); }
   
   Void  setAlfCtrl                ( Bool bAlfCtrl          ) { m_bAlfCtrl = bAlfCtrl;                   }
@@ -96,10 +102,10 @@ public:
   Void  parseAlfUvlc              ( UInt& ruiVal           );
   Void  parseAlfSvlc              ( Int&  riVal            );
   Void  parseAlfCtrlDepth         ( UInt& ruiAlfCtrlDepth  );
-#if MTK_SAO
-  Void  parseAoFlag              ( UInt& ruiVal           );
-  Void  parseAoUvlc              ( UInt& ruiVal           );
-  Void  parseAoSvlc              ( Int&  riVal            );
+#if SAO
+  Void  parseSaoFlag              ( UInt& ruiVal           );
+  Void  parseSaoUvlc              ( UInt& ruiVal           );
+  Void  parseSaoSvlc              ( Int&  riVal            );
 #endif
 private:
   Void  xReadUnarySymbol    ( UInt& ruiSymbol, ContextModel* pcSCModel, Int iOffset );
@@ -184,6 +190,10 @@ public:
 #endif
 #endif
 
+#if F747_APS
+  Void parseAPSInitInfo(TComAPS& cAPS) {printf("Not supported in parseAPSInitInfo()\n");assert(0);exit(1);}
+#endif
+
 private:
   UInt m_uiLastDQpNonZero;
   UInt m_uiLastQp;
@@ -225,10 +235,10 @@ private:
   ContextModel3DBuffer m_cCUXPosiSCModel;
   ContextModel3DBuffer m_cCUYPosiSCModel;
 #endif
-#if MTK_SAO
-  ContextModel3DBuffer m_cAOFlagSCModel;
-  ContextModel3DBuffer m_cAOUvlcSCModel;
-  ContextModel3DBuffer m_cAOSvlcSCModel;
+#if SAO
+  ContextModel3DBuffer m_cSaoFlagSCModel;
+  ContextModel3DBuffer m_cSaoUvlcSCModel;
+  ContextModel3DBuffer m_cSaoSvlcSCModel;
 #endif
 
 };

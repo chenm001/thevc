@@ -87,10 +87,10 @@ TDecSbac::TDecSbac()
 , m_cCUXPosiSCModel           ( 1,             1,               NUM_CU_X_POS_CTX              , m_contextModels + m_numContextModels, m_numContextModels)
 , m_cCUYPosiSCModel           ( 1,             1,               NUM_CU_Y_POS_CTX              , m_contextModels + m_numContextModels, m_numContextModels)
 #endif
-#if MTK_SAO
-, m_cAOFlagSCModel            ( 1,             1,               NUM_AO_FLAG_CTX              , m_contextModels + m_numContextModels, m_numContextModels)
-, m_cAOUvlcSCModel            ( 1,             1,               NUM_AO_UVLC_CTX              , m_contextModels + m_numContextModels, m_numContextModels)
-, m_cAOSvlcSCModel            ( 1,             1,               NUM_AO_SVLC_CTX              , m_contextModels + m_numContextModels, m_numContextModels)
+#if SAO
+, m_cSaoFlagSCModel           ( 1,             1,               NUM_SAO_FLAG_CTX              , m_contextModels + m_numContextModels, m_numContextModels)
+, m_cSaoUvlcSCModel           ( 1,             1,               NUM_SAO_UVLC_CTX              , m_contextModels + m_numContextModels, m_numContextModels)
+, m_cSaoSvlcSCModel           ( 1,             1,               NUM_SAO_SVLC_CTX              , m_contextModels + m_numContextModels, m_numContextModels)
 #endif
 {
   assert( m_numContextModels <= MAX_NUM_CTX_MOD );
@@ -107,11 +107,18 @@ TDecSbac::~TDecSbac()
 // Public member functions
 // ====================================================================================================================
 
+#if F747_APS
+Void TDecSbac::resetEntropywithQPandInitIDC (Int  iQp, Int iID)
+{
+  SliceType eSliceType = (SliceType)iID;
+
+#else
+
 Void TDecSbac::resetEntropy          (TComSlice* pcSlice)
 {
   Int  iQp              = pcSlice->getSliceQp();
   SliceType eSliceType  = pcSlice->getSliceType();
-  
+#endif  
   m_cCUSplitFlagSCModel.initBuffer       ( eSliceType, iQp, (Short*)INIT_SPLIT_FLAG );
   m_cCUSkipFlagSCModel.initBuffer        ( eSliceType, iQp, (Short*)INIT_SKIP_FLAG );
   m_cCUMergeFlagExtSCModel.initBuffer    ( eSliceType, iQp, (Short*)INIT_MERGE_FLAG_EXT );
@@ -148,10 +155,10 @@ Void TDecSbac::resetEntropy          (TComSlice* pcSlice)
   m_cALFFlagSCModel.initBuffer           ( eSliceType, iQp, (Short*)INIT_ALF_FLAG );
   m_cALFUvlcSCModel.initBuffer           ( eSliceType, iQp, (Short*)INIT_ALF_UVLC );
   m_cALFSvlcSCModel.initBuffer           ( eSliceType, iQp, (Short*)INIT_ALF_SVLC );
-#if MTK_SAO
-  m_cAOFlagSCModel.initBuffer           ( eSliceType, iQp, (Short*)INIT_AO_FLAG );
-  m_cAOUvlcSCModel.initBuffer           ( eSliceType, iQp, (Short*)INIT_AO_UVLC );
-  m_cAOSvlcSCModel.initBuffer           ( eSliceType, iQp, (Short*)INIT_AO_SVLC );
+#if SAO
+  m_cSaoFlagSCModel.initBuffer           ( eSliceType, iQp, (Short*)INIT_SAO_FLAG );
+  m_cSaoUvlcSCModel.initBuffer           ( eSliceType, iQp, (Short*)INIT_SAO_UVLC );
+  m_cSaoSvlcSCModel.initBuffer           ( eSliceType, iQp, (Short*)INIT_SAO_SVLC );
 #endif
   m_cCUTransSubdivFlagSCModel.initBuffer ( eSliceType, iQp, (Short*)INIT_TRANS_SUBDIV_FLAG );
   
@@ -178,6 +185,18 @@ Void TDecSbac::updateContextTables( SliceType eSliceType, Int iQp )
   UInt uiBit;
   m_pcTDecBinIf->decodeBinTrm(uiBit);
   m_pcTDecBinIf->finish();  
+#if OL_USE_WPP && !OL_FLUSH_ALIGN
+  // Account for misaligned CABAC.
+  Int iCABACReadAhead = m_pcTDecBinIf->getBitsReadAhead();
+  iCABACReadAhead--;
+  Int iStreamBits = 8-m_pcBitstream->getNumBitsUntilByteAligned();
+  if (iCABACReadAhead >= iStreamBits)
+  {
+    // Misaligned CABAC has read into the 1st byte of the next tile.
+    // Back up a byte prior to alignment.
+    m_pcBitstream->backupByte();
+  }
+#endif
   m_pcBitstream->readOutTrailingBits();
 
 #if TILES_DECODER
@@ -237,10 +256,10 @@ Void TDecSbac::updateContextTables( SliceType eSliceType, Int iQp )
   m_cALFFlagSCModel.initBuffer           ( eSliceType, iQp, (Short*)INIT_ALF_FLAG );
   m_cALFUvlcSCModel.initBuffer           ( eSliceType, iQp, (Short*)INIT_ALF_UVLC );
   m_cALFSvlcSCModel.initBuffer           ( eSliceType, iQp, (Short*)INIT_ALF_SVLC );
-#if MTK_SAO
-  m_cAOFlagSCModel.initBuffer           ( eSliceType, iQp, (Short*)INIT_AO_FLAG );
-  m_cAOUvlcSCModel.initBuffer           ( eSliceType, iQp, (Short*)INIT_AO_UVLC );
-  m_cAOSvlcSCModel.initBuffer           ( eSliceType, iQp, (Short*)INIT_AO_SVLC );
+#if SAO
+  m_cSaoFlagSCModel.initBuffer           ( eSliceType, iQp, (Short*)INIT_SAO_FLAG );
+  m_cSaoUvlcSCModel.initBuffer           ( eSliceType, iQp, (Short*)INIT_SAO_UVLC );
+  m_cSaoSvlcSCModel.initBuffer           ( eSliceType, iQp, (Short*)INIT_SAO_SVLC );
 #endif
   m_cCUTransSubdivFlagSCModel.initBuffer ( eSliceType, iQp, (Short*)INIT_TRANS_SUBDIV_FLAG );
 
@@ -2356,21 +2375,21 @@ Void TDecSbac::parseAlfSvlc (Int&  riVal)
   riVal = i*iSign;
 }
 
-#if MTK_SAO
-Void TDecSbac::parseAoFlag (UInt& ruiVal)
+#if SAO
+Void TDecSbac::parseSaoFlag (UInt& ruiVal)
 {
   UInt uiSymbol;
-  m_pcTDecBinIf->decodeBin( uiSymbol, m_cAOFlagSCModel.get( 0, 0, 0 ) );
+  m_pcTDecBinIf->decodeBin( uiSymbol, m_cSaoFlagSCModel.get( 0, 0, 0 ) );
 
   ruiVal = uiSymbol;
 }
 
-Void TDecSbac::parseAoUvlc (UInt& ruiVal)
+Void TDecSbac::parseSaoUvlc (UInt& ruiVal)
 {
   UInt uiCode;
   Int  i;
 
-  m_pcTDecBinIf->decodeBin( uiCode, m_cAOUvlcSCModel.get( 0, 0, 0 ) );
+  m_pcTDecBinIf->decodeBin( uiCode, m_cSaoUvlcSCModel.get( 0, 0, 0 ) );
   if ( uiCode == 0 )
   {
     ruiVal = 0;
@@ -2380,7 +2399,7 @@ Void TDecSbac::parseAoUvlc (UInt& ruiVal)
   i=1;
   while (1)
   {
-    m_pcTDecBinIf->decodeBin( uiCode, m_cAOUvlcSCModel.get( 0, 0, 1 ) );
+    m_pcTDecBinIf->decodeBin( uiCode, m_cSaoUvlcSCModel.get( 0, 0, 1 ) );
     if ( uiCode == 0 ) break;
     i++;
   }
@@ -2388,13 +2407,13 @@ Void TDecSbac::parseAoUvlc (UInt& ruiVal)
   ruiVal = i;
 }
 
-Void TDecSbac::parseAoSvlc (Int&  riVal)
+Void TDecSbac::parseSaoSvlc (Int&  riVal)
 {
   UInt uiCode;
   Int  iSign;
   Int  i;
 
-  m_pcTDecBinIf->decodeBin( uiCode, m_cAOSvlcSCModel.get( 0, 0, 0 ) );
+  m_pcTDecBinIf->decodeBin( uiCode, m_cSaoSvlcSCModel.get( 0, 0, 0 ) );
 
   if ( uiCode == 0 )
   {
@@ -2403,7 +2422,7 @@ Void TDecSbac::parseAoSvlc (Int&  riVal)
   }
 
   // read sign
-  m_pcTDecBinIf->decodeBin( uiCode, m_cAOSvlcSCModel.get( 0, 0, 1 ) );
+  m_pcTDecBinIf->decodeBin( uiCode, m_cSaoSvlcSCModel.get( 0, 0, 1 ) );
 
   if ( uiCode == 0 ) iSign =  1;
   else               iSign = -1;
@@ -2412,7 +2431,7 @@ Void TDecSbac::parseAoSvlc (Int&  riVal)
   i=1;
   while (1)
   {
-    m_pcTDecBinIf->decodeBin( uiCode, m_cAOSvlcSCModel.get( 0, 0, 2 ) );
+    m_pcTDecBinIf->decodeBin( uiCode, m_cSaoSvlcSCModel.get( 0, 0, 2 ) );
     if ( uiCode == 0 ) break;
     i++;
   }
@@ -2465,10 +2484,10 @@ Void TDecSbac::xCopyContextsFrom( TDecSbac* pSrc )
   m_cALFFlagSCModel           .copyFrom( &pSrc->m_cALFFlagSCModel           );
   m_cALFUvlcSCModel           .copyFrom( &pSrc->m_cALFUvlcSCModel           );
   m_cALFSvlcSCModel           .copyFrom( &pSrc->m_cALFSvlcSCModel           );
-#if MTK_SAO
-  m_cAOFlagSCModel            .copyFrom( &pSrc->m_cAOFlagSCModel            );
-  m_cAOUvlcSCModel            .copyFrom( &pSrc->m_cAOUvlcSCModel            );
-  m_cAOSvlcSCModel            .copyFrom( &pSrc->m_cAOSvlcSCModel            );
+#if SAO
+  m_cSaoFlagSCModel            .copyFrom( &pSrc->m_cSaoFlagSCModel            );
+  m_cSaoUvlcSCModel            .copyFrom( &pSrc->m_cSaoUvlcSCModel            );
+  m_cSaoSvlcSCModel            .copyFrom( &pSrc->m_cSaoSvlcSCModel            );
 #endif
   m_cCUTransSubdivFlagSCModel .copyFrom( &pSrc->m_cCUTransSubdivFlagSCModel );
 }

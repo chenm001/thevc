@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="9,00"
+	Version="9.00"
 	Name="TLibEncoder"
 	ProjectGUID="{47E90995-1FC5-4EE4-A94D-AD474169F0E1}"
 	RootNamespace="TLibEncoder"
@@ -326,6 +326,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\source\Lib\TLibEncoder\TEncSampleAdaptiveOffset.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\source\Lib\TLibEncoder\TEncSbac.cpp"
 				>
 			</File>
@@ -400,6 +404,10 @@
 			</File>
 			<File
 				RelativePath="..\..\source\Lib\TLibEncoder\TEncPreanalyzer.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\source\Lib\TLibEncoder\TEncSampleAdaptiveOffset.h"
 				>
 			</File>
 			<File

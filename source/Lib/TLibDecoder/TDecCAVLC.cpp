@@ -141,6 +141,35 @@ void TDecCavlc::parseSEI(SEImessages& seis)
   assert(m_pcBitstream->getNumBitsLeft() == 8); /* rsbp_trailing_bits */
 }
 
+#if F747_APS
+Void TDecCavlc::parseAPSInitInfo(TComAPS& cAPS)
+{
+  UInt uiCode;
+  //aps ID
+  xReadUvlc(uiCode);      cAPS.setAPSID(uiCode);
+  //SAO flag
+  xReadFlag(uiCode);      cAPS.setSaoEnabled( (uiCode==1)?true:false );
+  //ALF flag
+  xReadFlag(uiCode);      cAPS.setAlfEnabled( (uiCode==1)?true:false );
+
+  if(cAPS.getSaoEnabled() || cAPS.getAlfEnabled())
+  {
+    //CABAC usage flag
+    xReadFlag(uiCode);    cAPS.setCABACForAPS( (uiCode==1)?true:false );
+    if(cAPS.getCABACForAPS())
+    {
+      Int iCode;
+      //CABAC init IDC
+      xReadUvlc(uiCode);   cAPS.setCABACinitIDC( uiCode );
+      //CABAC init QP
+      xReadSvlc(iCode);    cAPS.setCABACinitQP( iCode + 26);
+    }
+  }
+}
+#endif
+
+
+
 Void TDecCavlc::parsePPS(TComPPS* pcPPS)
 {
 #if ENC_DEC_TRACE  
@@ -176,10 +205,12 @@ Void TDecCavlc::parsePPS(TComPPS* pcPPS)
 #if FINE_GRANULARITY_SLICES
   READ_CODE( 2, uiCode, "slice_granularity" );                     pcPPS->setSliceGranularity(uiCode);
 #endif
+
+#if !F747_APS
 #if E045_SLICE_COMMON_INFO_SHARING
   READ_FLAG( uiCode, "shared_pps_info_enabled_flag" );             pcPPS->setSharedPPSInfoEnabled( uiCode ? true : false);
 #endif
-
+#endif
   // alf_param() ?
 
 #if SUB_LCU_DQP
@@ -322,8 +353,8 @@ Void TDecCavlc::parseSPS(TComSPS* pcSPS)
 #if MTK_NONCROSS_INLOOP_FILTER
   READ_FLAG( uiCode, "loop_filter_across_slice_flag" );          pcSPS->setLFCrossSliceBoundaryFlag( uiCode ? true : false);
 #endif
-#if MTK_SAO
-  READ_FLAG( uiCode, "sample_adaptive_offset_enabled_flag" );    pcSPS->setUseSAO       ( uiCode ? true : false );  
+#if SAO
+  READ_FLAG( uiCode, "sample_adaptive_offset_enabled_flag" );    pcSPS->setUseSAO ( uiCode ? true : false );  
 #endif
   READ_FLAG( uiCode, "adaptive_loop_filter_enabled_flag" );      pcSPS->setUseALF ( uiCode ? true : false );
 #if E057_INTRA_PCM && E192_SPS_PCM_FILTER_DISABLE_SYNTAX
@@ -419,6 +450,12 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice)
     //   slice_type
     READ_UVLC (    uiCode, "slice_type" );            rpcSlice->setSliceType((SliceType)uiCode);
     READ_UVLC (    uiCode, "pic_parameter_set_id" );  rpcSlice->setPPSId(uiCode);
+#if F747_APS
+    if(rpcSlice->getSPS()->getUseSAO() || rpcSlice->getSPS()->getUseALF())
+    {
+      READ_UVLC (    uiCode, "aps_id" );  rpcSlice->setAPSId(uiCode);
+    }
+#endif
     //   frame_num
     //   if( IdrPicFlag )
     //     idr_pic_id
@@ -630,6 +667,7 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice)
 #endif
 
 #if TILES_DECODER
+  rpcSlice->setTileMarkerFlag ( 0 ); // default
   if (!bEntropySlice)
   {
     // Reading location information
@@ -2771,17 +2809,18 @@ Void TDecCavlc::parseAlfSvlc (Int&  riVal)
 
 
 
-#if MTK_SAO
-Void TDecCavlc::parseAoFlag (UInt& ruiVal)
+#if SAO
+Void TDecCavlc::parseSaoFlag (UInt& ruiVal)
 {
   xReadFlag( ruiVal );
 }
-Void TDecCavlc::parseAoUvlc (UInt& ruiVal)
+
+Void TDecCavlc::parseSaoUvlc (UInt& ruiVal)
 {
   xReadUvlc( ruiVal );
 }
 
-Void TDecCavlc::parseAoSvlc (Int&  riVal)
+Void TDecCavlc::parseSaoSvlc (Int&  riVal)
 {
   xReadSvlc( riVal );
 }

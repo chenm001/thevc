@@ -54,6 +54,7 @@
 #include "TEncSbac.h"
 #include "TEncSearch.h"
 #include "TEncAdaptiveLoopFilter.h"
+#include "TEncSampleAdaptiveOffset.h"
 #if QP_ADAPTATION
 #include "TEncPreanalyzer.h"
 #endif
@@ -82,8 +83,8 @@ private:
   // coding tool
   TComTrQuant             m_cTrQuant;                     ///< transform & quantization class
   TComLoopFilter          m_cLoopFilter;                  ///< deblocking filter class
-#if MTK_SAO
-  TEncSampleAdaptiveOffset  m_cEncSAO;                    ///< sample adaptive offset class
+#if SAO
+  TEncSampleAdaptiveOffset m_cEncSAO;                     ///< sample adaptive offset class
 #endif
   TEncAdaptiveLoopFilter  m_cAdaptiveLoopFilter;          ///< adaptive loop filter class
   TEncEntropy             m_cEntropyCoder;                ///< entropy encoder
@@ -102,6 +103,9 @@ private:
   // SPS
   TComSPS                 m_cSPS;                         ///< SPS
   TComPPS                 m_cPPS;                         ///< PPS
+#if F747_APS
+  std::vector<TComAPS>    m_vAPS;  //!< APS container
+#endif
   
   // RD cost computation
   TComBitCounter          m_cBitCounter;                  ///< bit counter for RD optimization
@@ -157,8 +161,8 @@ public:
   TComTrQuant*            getTrQuant            () { return  &m_cTrQuant;             }
   TComLoopFilter*         getLoopFilter         () { return  &m_cLoopFilter;          }
   TEncAdaptiveLoopFilter* getAdaptiveLoopFilter () { return  &m_cAdaptiveLoopFilter;  }
-#if MTK_SAO
-  TEncSampleAdaptiveOffset* getSAO                () { return  &m_cEncSAO;              }
+#if SAO
+  TEncSampleAdaptiveOffset* getSAO              () { return  &m_cEncSAO;              }
 #endif
   TEncGOP*                getGOPEncoder         () { return  &m_cGOPEncoder;          }
   TEncSlice*              getSliceEncoder       () { return  &m_cSliceEncoder;        }
@@ -185,7 +189,10 @@ public:
   
   TComSPS*                getSPS                () { return  &m_cSPS;                 }
   TComPPS*                getPPS                () { return  &m_cPPS;                 }
-  
+#if F747_APS
+  std::vector<TComAPS>&   getAPS                () { return m_vAPS; }
+#endif
+
   // -------------------------------------------------------------------------------------------------------------------
   // encoder function
   // -------------------------------------------------------------------------------------------------------------------

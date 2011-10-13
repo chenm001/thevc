@@ -92,7 +92,7 @@ Void TEncTop::create ()
   m_cGOPEncoder.        create( getSourceWidth(), getSourceHeight(), g_uiMaxCUWidth, g_uiMaxCUHeight );
   m_cSliceEncoder.      create( getSourceWidth(), getSourceHeight(), g_uiMaxCUWidth, g_uiMaxCUHeight, g_uiMaxCUDepth );
   m_cCuEncoder.         create( g_uiMaxCUDepth, g_uiMaxCUWidth, g_uiMaxCUHeight );
-#if MTK_SAO
+#if SAO
   if (m_bUseSAO)
   {
     m_cEncSAO.create( getSourceWidth(), getSourceHeight(), g_uiMaxCUWidth, g_uiMaxCUHeight, g_uiMaxCUDepth );
@@ -111,6 +111,13 @@ Void TEncTop::create ()
   {
     m_cAdaptiveLoopFilter.setGOPSize( getGOPSize() );
     m_cAdaptiveLoopFilter.createAlfGlobalBuffers(m_iALFEncodePassReduction);
+  }
+#endif
+
+#if F747_APS
+  if(m_bUseSAO || m_bUseALF)
+  {
+    m_vAPS.reserve(MAX_NUM_SUPPORTED_APS);
   }
 #endif
 
@@ -194,11 +201,19 @@ Void TEncTop::destroy ()
   }
 #endif
 
+#if F747_APS
+  for(Int i=0; i< m_vAPS.size(); i++)
+  {
+    TComAPS& cAPS = m_vAPS[i];
+    m_cGOPEncoder.freeAPS(&cAPS, &m_cSPS);
+  }
+#endif
+
   // destroy processing unit classes
   m_cGOPEncoder.        destroy();
   m_cSliceEncoder.      destroy();
   m_cCuEncoder.         destroy();
-#if MTK_SAO
+#if SAO
   if (m_cSPS.getUseSAO())
   {
     m_cEncSAO.destroy();
@@ -576,8 +591,8 @@ Void TEncTop::xInitSPS()
 #if MTK_NONCROSS_INLOOP_FILTER
   m_cSPS.setLFCrossSliceBoundaryFlag( m_bLFCrossSliceBoundaryFlag );
 #endif
-#if MTK_SAO
-  m_cSPS.setUseSAO             ( m_bUseSAO         );
+#if SAO
+  m_cSPS.setUseSAO( m_bUseSAO );
 #endif
 
   if ( m_bTLayering )

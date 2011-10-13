@@ -124,7 +124,7 @@ protected:
   UInt      m_uiPCMBitDepthLuma;                              ///< PCM bit-depth for luma
 #endif
 
-#if MTK_SAO
+#if SAO
   Bool      m_bUseSAO; 
 #endif
 

@@ -244,67 +244,6 @@ Void initRasterToPelXY ( UInt uiMaxCUWidth, UInt uiMaxCUHeight, UInt uiMaxDepth 
   }
 };
 
-#if MTK_SAO
-Int  LevelRowCol2Idx(int level, int row, int col)
-{
-  Int idx;
-  if (level == 0)
-  {
-    idx = 0;
-  }
-  else if (level == 1)
-  {
-    idx = 1 + row*2 + col;
-  }
-  else if (level == 2)
-  {
-    idx = 5 + row*4 + col;
-  }
-  else if (level == 3)
-  {
-    idx = 21 + row*8 + col;
-  }
-  else // (level == 4)
-  {
-    idx = 85 + row*16 + col;
-  }
-  return idx;
-}
-
-void Idx2LevelRowCol(int idx, int *level, int *row, int *col)
-{
-  if (idx == 0)
-  {
-    *level = 0;
-    *row = 0;
-    *col = 0;
-  }
-  else if (idx>=1 && idx<=4)
-  {
-    *level = 1;
-    *row = (idx-1) / 2;
-    *col = (idx-1) % 2;
-  }
-  else if (idx>=5 && idx<=20)
-  {
-    *level = 2;
-    *row = (idx-5) / 4;
-    *col = (idx-5) % 4;
-  }
-  else if (idx>=21 && idx<=84)
-  {
-    *level = 3;
-    *row = (idx-21) / 8;
-    *col = (idx-21) % 8;
-  }
-  else // (idx>=85 && idx<=340)
-  {
-    *level = 4;
-    *row = (idx-85) / 16;
-    *col = (idx-85) % 16;
-  }
-}
-#endif
 
 Int g_quantScales[6] =
 {

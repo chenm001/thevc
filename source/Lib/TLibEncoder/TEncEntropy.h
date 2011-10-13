@@ -46,6 +46,7 @@
 #include "TLibCommon/TComTrQuant.h"
 #if E045_SLICE_COMMON_INFO_SHARING
 #include "TLibCommon/TComAdaptiveLoopFilter.h"
+#include "TLibCommon/TComSampleAdaptiveOffset.h"
 #endif
 
 class TEncSbac;
@@ -141,10 +142,10 @@ public:
   virtual Void codeAlfFlagNum       ( UInt uiCode, UInt minValue ) = 0;
 #endif
   virtual Void codeAlfCtrlFlag      ( UInt uiSymbol ) = 0;
-#if MTK_SAO
-  virtual Void codeAoFlag          ( UInt uiCode ) = 0;
-  virtual Void codeAoUvlc          ( UInt uiCode ) = 0;
-  virtual Void codeAoSvlc          ( Int   iCode ) = 0;
+#if SAO
+  virtual Void codeSaoFlag          ( UInt uiCode ) = 0;
+  virtual Void codeSaoUvlc          ( UInt uiCode ) = 0;
+  virtual Void codeSaoSvlc          ( Int   iCode ) = 0;
 #endif
   virtual Void estBit               (estBitsSbacStruct* pcEstBitsSbac, UInt uiCTXIdx, TextType eTType) = 0;
   
@@ -154,6 +155,11 @@ public:
 #if TILES_DECODER
   virtual Void writeTileMarker             ( UInt uiTileIdx, UInt uiBitsUsed ) = 0;
 #endif
+#endif
+
+#if F747_APS
+  virtual Void codeAPSInitInfo  (TComAPS* pcAPS)= 0;
+  virtual Void codeFinish       (Bool bEnd)= 0;
 #endif
 
   virtual ~TEncEntropyIf() {}
@@ -223,12 +229,17 @@ public:
   Void encodeAlfCtrlFlag(UInt uiFlag);
 #endif
 
+#if F747_APS
+  Void encodeAlfCtrlParam(AlfCUCtrlInfo& cAlfParam, Int iNumCUsInPic);
+#else
 #if E045_SLICE_COMMON_INFO_SHARING
   /// encode ALF CU control flags
   Void encodeAlfCtrlParam      ( ALFParam *pAlfParam, UInt uiNumSlices= 1, CAlfSlice* pcAlfSlice= NULL);
 #else
   Void encodeAlfCtrlParam      ( ALFParam *pAlfParam );
 #endif
+#endif
+
   Void encodePredMode          ( TComDataCU* pcCU, UInt uiAbsPartIdx, Bool bRD = false );
   Void encodePartSize          ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth, Bool bRD = false );
 #if E057_INTRA_PCM
@@ -252,6 +263,11 @@ public:
 #endif
 #endif
   
+#if F747_APS
+  Void encodeAPSInitInfo          (TComAPS* pcAPS) {m_pcEntropyCoderIf->codeAPSInitInfo(pcAPS);}
+  Void encodeFinish               (Bool bEnd) {m_pcEntropyCoderIf->codeFinish(bEnd);}
+#endif
+
 private:
   Void xEncodeTransformSubdiv  ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth, UInt uiInnerQuadIdx, UInt& uiYCbfFront3, UInt& uiUCbfFront3, UInt& uiVCbfFront3 );
   Void xEncodeCoeff            ( TComDataCU* pcCU, TCoeff* pcCoeff, UInt uiAbsPartIdx, UInt uiDepth, UInt uiWidth, UInt uiHeight, UInt uiTrIdx, UInt uiCurrTrIdx, TextType eType, Bool& bCodeDQP );
@@ -274,16 +290,10 @@ public:
                         int **FilterCoeff, int kMinTab[]);
   Int golombEncode(int coeff, int k);
   Int lengthGolomb(int coeffVal, int k);
-#if MTK_SAO
-#if MTK_SAO_CHROMA
-  Void    encodeQAOOnePart(SAOParam* pQaoParam, Int part_idx, Int iYCbCr);
-  Void    encodeQuadTreeSplitFlag(SAOParam* pQaoParam, Int part_idx, Int iYCbCr);
-  Void    encodeSaoParam(SAOParam* pQaoParam) ;
-#else
-  Void    encodeQAOOnePart(SAOParam* pQaoParam, Int part_idx);
-  Void    encodeQuadTreeSplitFlag(SAOParam* pQaoParam, Int part_idx);
-  Void    encodeSaoParam(SAOParam* pQaoParam) ;
-#endif
+#if SAO
+  Void    encodeSaoOnePart       (SAOParam* pSaoParam, Int iPartIdx, Int iYCbCr);
+  Void    encodeQuadTreeSplitFlag(SAOParam* pSaoParam, Int iPartIdx, Int iYCbCr);
+  Void    encodeSaoParam         (SAOParam* pSaoParam);
 #endif
 
   static Int countNonZeroCoeffs( TCoeff* pcCoef, UInt uiSize );

@@ -48,6 +48,16 @@
 
 class TComPic;
 
+
+// ====================================================================================================================
+// Constants
+// ====================================================================================================================
+
+#if F747_APS
+/// max number of supported APS in software
+#define MAX_NUM_SUPPORTED_APS 1
+#endif
+
 // ====================================================================================================================
 // Class definition
 // ====================================================================================================================
@@ -117,7 +127,7 @@ private:
 #if MTK_NONCROSS_INLOOP_FILTER
   Bool        m_bLFCrossSliceBoundaryFlag;
 #endif
-#if MTK_SAO
+#if SAO
   Bool        m_bUseSAO; 
 #endif
 
@@ -235,7 +245,7 @@ public:
   Bool      getLFCrossSliceBoundaryFlag     ()                    { return m_bLFCrossSliceBoundaryFlag;   } 
 #endif
 
-#if MTK_SAO
+#if SAO
   Void setUseSAO                  (Bool bVal)  {m_bUseSAO = bVal;}
   Bool getUseSAO                  ()           {return m_bUseSAO;}
 #endif
@@ -322,9 +332,11 @@ private:
   Int         m_iSliceGranularity;
 #endif
 
+#if !F747_APS
 #if E045_SLICE_COMMON_INFO_SHARING
   Bool        m_bSharedPPSInfoEnabled;  //!< Shared info. in PPS is enabled/disabled
   ALFParam    m_cSharedAlfParam;        //!< Shared ALF parameters in PPS 
+#endif
 #endif
 
 #if TILES
@@ -375,6 +387,7 @@ public:
   UInt      getMinCuDQPSize     ()         { return m_uiMinCuDQPSize; }
 #endif
 
+#if !F747_APS
 #if E045_SLICE_COMMON_INFO_SHARING
   ///  set shared PPS info enabled/disabled
   Void      setSharedPPSInfoEnabled(Bool b) {m_bSharedPPSInfoEnabled = b;   }
@@ -383,7 +396,7 @@ public:
   /// get shared ALF parameters in PPS
   ALFParam* getSharedAlfParam()             {return &m_cSharedAlfParam;     }
 #endif
-
+#endif
 
 #if TILES
   Void     setColumnRowInfoPresent          ( Int i )           { m_iColumnRowInfoPresent = i; }
@@ -435,12 +448,63 @@ public:
 #endif
 };
 
+
+#if F747_APS
+/// APS class
+class TComAPS
+{
+public:
+  TComAPS();
+  virtual ~TComAPS();
+
+  Void      setAPSID      (Int iID)   {m_apsID = iID;            }  //!< set APS ID 
+  Int       getAPSID      ()          {return m_apsID;           }  //!< get APS ID
+  Void      setSaoEnabled (Bool bVal) {m_bSaoEnabled = bVal;     }  //!< set SAO enabled/disabled in APS
+  Bool      getSaoEnabled ()          {return m_bSaoEnabled;     }  //!< get SAO enabled/disabled in APS
+  Void      setAlfEnabled (Bool bVal) {m_bAlfEnabled = bVal;     }  //!< set ALF enabled/disabled in APS
+  Bool      getAlfEnabled ()          {return m_bAlfEnabled;     }  //!< get ALF enabled/disabled in APS
+
+  ALFParam* getAlfParam   ()          {return m_pAlfParam;       }  //!< get ALF parameters in APS
+  SAOParam* getSaoParam   ()          {return m_pSaoParam;       }  //!< get SAO parameters in APS
+
+  Void      createSaoParam();   //!< create SAO parameter object
+  Void      destroySaoParam();  //!< destroy SAO parameter object
+
+  Void      createAlfParam();   //!< create ALF parameter object
+  Void      destroyAlfParam();  //!< destroy ALF parameter object
+  Void      setCABACForAPS(Bool bVal) {m_bCABACForAPS = bVal;    }  //!< set CABAC enabled/disabled in APS
+  Bool      getCABACForAPS()          {return m_bCABACForAPS;    }  //!< get CABAC enabled/disabled in APS
+  Void      setCABACinitIDC(Int iVal) {m_CABACinitIDC = iVal;    }  //!< set CABAC initial IDC number for APS coding
+  Int       getCABACinitIDC()         {return m_CABACinitIDC;    }  //!< get CABAC initial IDC number for APS coding
+  Void      setCABACinitQP(Int iVal)  {m_CABACinitQP = iVal;     }  //!< set CABAC initial QP value for APS coding
+  Int       getCABACinitQP()          {return m_CABACinitQP;     }  //!< get CABAC initial QP value for APS coding
+
+private:
+  Int         m_apsID;        //!< APS ID
+  Bool        m_bSaoEnabled;  //!< SAO enabled/disabled in APS (true for enabled)
+  Bool        m_bAlfEnabled;  //!< ALF enabled/disabled in APS (true for enabled)
+  SAOParam*   m_pSaoParam;    //!< SAO parameter object pointer 
+  ALFParam*   m_pAlfParam;    //!< ALF parameter object pointer
+  Bool        m_bCABACForAPS; //!< CABAC coding enabled/disabled for APS (true for enabling CABAC)
+  Int         m_CABACinitIDC; //!< CABAC initial IDC number for APS coding
+  Int         m_CABACinitQP;  //!< CABAC initial QP value for APS coding
+
+public:
+  TComAPS& operator= (const TComAPS& src);  //!< "=" operator for APS object
+};
+#endif
+
+
+
 /// slice header class
 class TComSlice
 {
   
 private:
   //  Bitstream writing
+#if F747_APS
+  Int         m_iAPSId; //!< APS ID in slice header
+#endif
   Int         m_iPPSId;               ///< picture parameter set ID
   Int         m_iPOC;
   NalUnitType m_eNalUnitType;         ///< Nal unit type for the slice
@@ -478,7 +542,10 @@ private:
   TComSPS*    m_pcSPS;
   TComPPS*    m_pcPPS;
   TComPic*    m_pcPic;
-  
+#if F747_APS
+  TComAPS*    m_pcAPS;  //!< pointer to APS parameter object
+#endif
+
   UInt        m_uiColDir;  // direction to get colocated CUs
   
 #if ALF_CHROMA_LAMBDA || SAO_CHROMA_LAMBDA
@@ -538,6 +605,12 @@ public:
 
   Void      setPPSId        ( Int PPSId )         { m_iPPSId = PPSId; }
   Int       getPPSId        () { return m_iPPSId; }
+#if F747_APS
+  Void      setAPS          ( TComAPS* pcAPS ) { m_pcAPS = pcAPS; } //!< set APS pointer
+  TComAPS*  getAPS          ()                 { return m_pcAPS;  } //!< get APS pointer
+  Void      setAPSId        ( Int Id)          { m_iAPSId =Id;    } //!< set APS ID
+  Int       getAPSId        ()                 { return m_iAPSId; } //!< get APS ID
+#endif
   
   SliceType getSliceType    ()                          { return  m_eSliceType;         }
   Int       getPOC          ()                          { return  m_iPOC;           }

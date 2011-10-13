@@ -120,10 +120,10 @@ public:
 #endif
 
   Void codeAlfCtrlFlag       ( UInt uiSymbol );
-#if MTK_SAO
-  Void  codeAoFlag       ( UInt uiCode );
-  Void  codeAoUvlc       ( UInt uiCode );
-  Void  codeAoSvlc       ( Int  uiCode );
+#if SAO
+  Void  codeSaoFlag       ( UInt uiCode );
+  Void  codeSaoUvlc       ( UInt uiCode );
+  Void  codeSaoSvlc       ( Int  uiCode );
 #endif
 
 private:
@@ -146,6 +146,11 @@ private:
   Void  xCopyContextsFrom    ( TEncSbac* pSrc );  
 #endif
   
+#if F747_APS
+  Void codeAPSInitInfo(TComAPS* pcAPS) {printf("Not supported in codeAPSInitInfo()\n"); assert(0); exit(1);}
+  Void codeFinish     (Bool bEnd)      { m_pcBinIf->encodeFlush(bEnd); }  //<! flush bits when CABAC termination
+#endif
+
 protected:
   TComBitIf*    m_pcBitIf;
   TComSlice*    m_pcSlice;
@@ -265,10 +270,10 @@ private:
   ContextModel3DBuffer m_cCUXPosiSCModel;
   ContextModel3DBuffer m_cCUYPosiSCModel;
 #endif
-#if MTK_SAO
-  ContextModel3DBuffer m_cAOFlagSCModel;
-  ContextModel3DBuffer m_cAOUvlcSCModel;
-  ContextModel3DBuffer m_cAOSvlcSCModel;
+#if SAO
+  ContextModel3DBuffer m_cSaoFlagSCModel;
+  ContextModel3DBuffer m_cSaoUvlcSCModel;
+  ContextModel3DBuffer m_cSaoSvlcSCModel;
 #endif
 
 };

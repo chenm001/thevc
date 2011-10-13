@@ -123,10 +123,10 @@
 #define NUM_ALF_UVLC_CTX              2       ///< number of context models for ALF UVLC (filter length)
 #define NUM_ALF_SVLC_CTX              3       ///< number of context models for ALF SVLC (filter coeff.)
 
-#if MTK_SAO
-#define NUM_AO_FLAG_CTX              1       ///< number of context models for AO flag
-#define NUM_AO_UVLC_CTX              2       ///< number of context models for AO UVLC (filter length)
-#define NUM_AO_SVLC_CTX              3       ///< number of context models for AO SVLC (filter coeff.)
+#if SAO
+#define NUM_SAO_FLAG_CTX              1       ///< number of context models for SAO flag
+#define NUM_SAO_UVLC_CTX              2       ///< number of context models for SAO UVLC
+#define NUM_SAO_SVLC_CTX              3       ///< number of context models for SAO SVLC
 #endif
 
 // ====================================================================================================================
@@ -1187,10 +1187,10 @@ INIT_ALF_SVLC[3][NUM_ALF_SVLC_CTX][2] =
     {    1,   73 }, {    2,   61 }, {    0,   64 }
   }
 };
-#if MTK_SAO
-// initial probability for ALF flag
+#if SAO
+// initial probability for SAO flag
 static const Short
-INIT_AO_FLAG[3][NUM_AO_FLAG_CTX][2] =
+INIT_SAO_FLAG[3][NUM_SAO_FLAG_CTX][2] =
 {
   {
     {   50,  -48 }
@@ -1203,9 +1203,9 @@ INIT_AO_FLAG[3][NUM_AO_FLAG_CTX][2] =
   }
 };
 
-// initial probability for ALF side information (unsigned)
+// initial probability for SAO side information (unsigned)
 static const Short
-INIT_AO_UVLC[3][NUM_AO_UVLC_CTX][2] =
+INIT_SAO_UVLC[3][NUM_SAO_UVLC_CTX][2] =
 {
   {
     {    1,   66 }, {   -3,   77 }
@@ -1218,9 +1218,9 @@ INIT_AO_UVLC[3][NUM_AO_UVLC_CTX][2] =
   }
 };
 
-// initial probability for ALF side information (signed)
+// initial probability for SAO side information (signed)
 static const Short
-INIT_AO_SVLC[3][NUM_AO_SVLC_CTX][2] =
+INIT_SAO_SVLC[3][NUM_SAO_SVLC_CTX][2] =
 {
   {
     {   11,   57 }, {   -1,   62 }, {    0,   64 }

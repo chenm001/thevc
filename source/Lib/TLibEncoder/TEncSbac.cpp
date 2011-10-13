@@ -92,10 +92,10 @@ TEncSbac::TEncSbac()
 , m_cCUXPosiSCModel           ( 1,             1,               NUM_CU_X_POS_CTX              , m_contextModels + m_numContextModels, m_numContextModels)
 , m_cCUYPosiSCModel           ( 1,             1,               NUM_CU_Y_POS_CTX              , m_contextModels + m_numContextModels, m_numContextModels)
 #endif
-#if MTK_SAO
-, m_cAOFlagSCModel            ( 1,             1,               NUM_AO_FLAG_CTX              , m_contextModels + m_numContextModels, m_numContextModels)
-, m_cAOUvlcSCModel            ( 1,             1,               NUM_AO_UVLC_CTX              , m_contextModels + m_numContextModels, m_numContextModels)
-, m_cAOSvlcSCModel            ( 1,             1,               NUM_AO_SVLC_CTX              , m_contextModels + m_numContextModels, m_numContextModels)
+#if SAO
+, m_cSaoFlagSCModel           ( 1,             1,               NUM_SAO_FLAG_CTX              , m_contextModels + m_numContextModels, m_numContextModels)
+, m_cSaoUvlcSCModel           ( 1,             1,               NUM_SAO_UVLC_CTX              , m_contextModels + m_numContextModels, m_numContextModels)
+, m_cSaoSvlcSCModel           ( 1,             1,               NUM_SAO_SVLC_CTX              , m_contextModels + m_numContextModels, m_numContextModels)
 #endif
 {
   assert( m_numContextModels <= MAX_NUM_CTX_MOD );
@@ -155,10 +155,10 @@ Void TEncSbac::resetEntropy           ()
   m_cALFUvlcSCModel.initBuffer           ( eSliceType, iQp, (Short*)INIT_ALF_UVLC );
   m_cALFSvlcSCModel.initBuffer           ( eSliceType, iQp, (Short*)INIT_ALF_SVLC );
   m_cCUTransSubdivFlagSCModel.initBuffer ( eSliceType, iQp, (Short*)INIT_TRANS_SUBDIV_FLAG );
-#if MTK_SAO
-  m_cAOFlagSCModel.initBuffer           ( eSliceType, iQp, (Short*)INIT_AO_FLAG );
-  m_cAOUvlcSCModel.initBuffer           ( eSliceType, iQp, (Short*)INIT_AO_UVLC );
-  m_cAOSvlcSCModel.initBuffer           ( eSliceType, iQp, (Short*)INIT_AO_SVLC );
+#if SAO
+  m_cSaoFlagSCModel.initBuffer           ( eSliceType, iQp, (Short*)INIT_SAO_FLAG );
+  m_cSaoUvlcSCModel.initBuffer           ( eSliceType, iQp, (Short*)INIT_SAO_UVLC );
+  m_cSaoSvlcSCModel.initBuffer           ( eSliceType, iQp, (Short*)INIT_SAO_SVLC );
 #endif
   // new structure
   m_uiLastQp = iQp;
@@ -214,10 +214,10 @@ Void TEncSbac::updateContextTables( SliceType eSliceType, Int iQp, Bool bExecute
   m_cALFUvlcSCModel.initBuffer           ( eSliceType, iQp, (Short*)INIT_ALF_UVLC );
   m_cALFSvlcSCModel.initBuffer           ( eSliceType, iQp, (Short*)INIT_ALF_SVLC );
   m_cCUTransSubdivFlagSCModel.initBuffer ( eSliceType, iQp, (Short*)INIT_TRANS_SUBDIV_FLAG );
-#if MTK_SAO
-  m_cAOFlagSCModel.initBuffer           ( eSliceType, iQp, (Short*)INIT_AO_FLAG );
-  m_cAOUvlcSCModel.initBuffer           ( eSliceType, iQp, (Short*)INIT_AO_UVLC );
-  m_cAOSvlcSCModel.initBuffer           ( eSliceType, iQp, (Short*)INIT_AO_SVLC );
+#if SAO
+  m_cSaoFlagSCModel.initBuffer           ( eSliceType, iQp, (Short*)INIT_SAO_FLAG );
+  m_cSaoUvlcSCModel.initBuffer           ( eSliceType, iQp, (Short*)INIT_SAO_UVLC );
+  m_cSaoSvlcSCModel.initBuffer           ( eSliceType, iQp, (Short*)INIT_SAO_SVLC );
 #endif
 
   m_pcBinIf->start();
@@ -2235,59 +2235,61 @@ Void TEncSbac::codeAlfSvlc       ( Int iCode )
   }
 }
 
-#if MTK_SAO
-Void TEncSbac::codeAoFlag       ( UInt uiCode )
+#if SAO
+Void TEncSbac::codeSaoFlag       ( UInt uiCode )
 {
   UInt uiSymbol = ( ( uiCode == 0 ) ? 0 : 1 );
-  m_pcBinIf->encodeBin( uiSymbol, m_cAOFlagSCModel.get( 0, 0, 0 ) );
+  m_pcBinIf->encodeBin( uiSymbol, m_cSaoFlagSCModel.get( 0, 0, 0 ) );
 }
-Void TEncSbac::codeAoUvlc       ( UInt uiCode )
+
+Void TEncSbac::codeSaoUvlc       ( UInt uiCode )
 {
   Int i;
 
   if ( uiCode == 0 )
   {
-    m_pcBinIf->encodeBin( 0, m_cAOUvlcSCModel.get( 0, 0, 0 ) );
+    m_pcBinIf->encodeBin( 0, m_cSaoUvlcSCModel.get( 0, 0, 0 ) );
   }
   else
   {
-    m_pcBinIf->encodeBin( 1, m_cAOUvlcSCModel.get( 0, 0, 0 ) );
+    m_pcBinIf->encodeBin( 1, m_cSaoUvlcSCModel.get( 0, 0, 0 ) );
     for ( i=0; i<uiCode-1; i++ )
     {
-      m_pcBinIf->encodeBin( 1, m_cAOUvlcSCModel.get( 0, 0, 1 ) );
+      m_pcBinIf->encodeBin( 1, m_cSaoUvlcSCModel.get( 0, 0, 1 ) );
     }
-    m_pcBinIf->encodeBin( 0, m_cAOUvlcSCModel.get( 0, 0, 1 ) );
+    m_pcBinIf->encodeBin( 0, m_cSaoUvlcSCModel.get( 0, 0, 1 ) );
   }
 }
-Void TEncSbac::codeAoSvlc       ( Int iCode )
+
+Void TEncSbac::codeSaoSvlc       ( Int iCode )
 {
   Int i;
 
   if ( iCode == 0 )
   {
-    m_pcBinIf->encodeBin( 0, m_cAOSvlcSCModel.get( 0, 0, 0 ) );
+    m_pcBinIf->encodeBin( 0, m_cSaoSvlcSCModel.get( 0, 0, 0 ) );
   }
   else
   {
-    m_pcBinIf->encodeBin( 1, m_cAOSvlcSCModel.get( 0, 0, 0 ) );
+    m_pcBinIf->encodeBin( 1, m_cSaoSvlcSCModel.get( 0, 0, 0 ) );
 
     // write sign
     if ( iCode > 0 )
     {
-      m_pcBinIf->encodeBin( 0, m_cAOSvlcSCModel.get( 0, 0, 1 ) );
+      m_pcBinIf->encodeBin( 0, m_cSaoSvlcSCModel.get( 0, 0, 1 ) );
     }
     else
     {
-      m_pcBinIf->encodeBin( 1, m_cAOSvlcSCModel.get( 0, 0, 1 ) );
+      m_pcBinIf->encodeBin( 1, m_cSaoSvlcSCModel.get( 0, 0, 1 ) );
       iCode = -iCode;
     }
 
     // write magnitude
     for ( i=0; i<iCode-1; i++ )
     {
-      m_pcBinIf->encodeBin( 1, m_cAOSvlcSCModel.get( 0, 0, 2 ) );
+      m_pcBinIf->encodeBin( 1, m_cSaoSvlcSCModel.get( 0, 0, 2 ) );
     }
-    m_pcBinIf->encodeBin( 0, m_cAOSvlcSCModel.get( 0, 0, 2 ) );
+    m_pcBinIf->encodeBin( 0, m_cSaoSvlcSCModel.get( 0, 0, 2 ) );
   }
 }
 #endif
@@ -2479,10 +2481,10 @@ Void TEncSbac::xCopyContextsFrom( TEncSbac* pSrc )
   m_cALFFlagSCModel           .copyFrom( &pSrc->m_cALFFlagSCModel           );
   m_cALFUvlcSCModel           .copyFrom( &pSrc->m_cALFUvlcSCModel           );
   m_cALFSvlcSCModel           .copyFrom( &pSrc->m_cALFSvlcSCModel           );
-#if MTK_SAO
-  m_cAOFlagSCModel            .copyFrom( &pSrc->m_cAOFlagSCModel            );
-  m_cAOUvlcSCModel            .copyFrom( &pSrc->m_cAOUvlcSCModel            );
-  m_cAOSvlcSCModel            .copyFrom( &pSrc->m_cAOSvlcSCModel            );
+#if SAO
+  m_cSaoFlagSCModel            .copyFrom( &pSrc->m_cSaoFlagSCModel            );
+  m_cSaoUvlcSCModel            .copyFrom( &pSrc->m_cSaoUvlcSCModel            );
+  m_cSaoSvlcSCModel            .copyFrom( &pSrc->m_cSaoSvlcSCModel            );
 #endif
   m_cCUTransSubdivFlagSCModel .copyFrom( &pSrc->m_cCUTransSubdivFlagSCModel );
 }

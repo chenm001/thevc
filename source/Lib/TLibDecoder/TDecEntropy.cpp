@@ -46,6 +46,7 @@ Void TDecEntropy::setEntropyDecoder         ( TDecEntropyIf* p )
 }
 
 #include "TLibCommon/TComAdaptiveLoopFilter.h"
+#include "TLibCommon/TComSampleAdaptiveOffset.h"
 
 Void TDecEntropy::decodeAux(ALFParam* pAlfParam)
 {
@@ -294,9 +295,10 @@ Void TDecEntropy::decodeAlfParam(ALFParam* pAlfParam)
 {
   UInt uiSymbol;
   Int iSymbol;
+#if !F747_APS
   m_pcEntropyDecoderIf->parseAlfFlag(uiSymbol);
   pAlfParam->alf_flag = uiSymbol;
-  
+#endif  
   if (!pAlfParam->alf_flag)
   {
     m_pcEntropyDecoderIf->setAlfCtrl(false);
@@ -350,9 +352,43 @@ Void TDecEntropy::decodeAlfParam(ALFParam* pAlfParam)
 #endif
 }
 
-/** decode ALF CU control parameters
- * \param pAlfParam ALF paramters
+/** decode ALF CU control parameters for one slice
+ * \param [in,out] cAlfParam ALF CU control parameters
+ * \param [in] iNumCUsinPic number of LCUs in picture for ALF
  */
+
+#if F747_APS
+Void TDecEntropy::decodeAlfCtrlParam(AlfCUCtrlInfo& cAlfParam, Int iNumCUsInPic)
+{
+  UInt uiSymbol;
+  Int iSymbol;
+
+  m_pcEntropyDecoderIf->parseAlfFlag(uiSymbol);
+  cAlfParam.cu_control_flag = uiSymbol;
+  if (cAlfParam.cu_control_flag)
+  {
+    m_pcEntropyDecoderIf->setAlfCtrl(true);
+    m_pcEntropyDecoderIf->parseAlfCtrlDepth(uiSymbol);
+    m_pcEntropyDecoderIf->setMaxAlfCtrlDepth(uiSymbol);
+    cAlfParam.alf_max_depth = uiSymbol;
+  }
+  else
+  {
+    m_pcEntropyDecoderIf->setAlfCtrl(false);
+    return;
+  }
+
+  m_pcEntropyDecoderIf->parseAlfSvlc(iSymbol);
+  cAlfParam.num_alf_cu_flag = (UInt)(iSymbol + iNumCUsInPic);
+  cAlfParam.alf_cu_flag.resize(cAlfParam.num_alf_cu_flag);
+
+  for(UInt i=0; i< cAlfParam.num_alf_cu_flag; i++)
+  {
+    m_pcEntropyDecoderIf->parseAlfCtrlFlag( cAlfParam.alf_cu_flag[i] );
+  }
+}
+#else
+
 #if E045_SLICE_COMMON_INFO_SHARING
 Void TDecEntropy::decodeAlfCtrlParam( ALFParam* pAlfParam , Bool bFirstSliceInPic)
 #else
@@ -428,6 +464,8 @@ Void TDecEntropy::decodeAlfCtrlParam( ALFParam* pAlfParam )
     m_pcEntropyDecoderIf->parseAlfCtrlFlag( pAlfParam->alf_cu_flag[i] );
   }
 }
+
+#endif
 
 Void TDecEntropy::decodeAlfCtrlFlag( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
 {
@@ -1330,35 +1368,16 @@ Void TDecEntropy::decodeCoeff( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth
   xDecodeCoeff( pcCU, pcCU->getCoeffCr() + uiChromaOffset, uiAbsPartIdx, uiDepth, uiWidth>>1, uiHeight>>1, 0, uiChromaTrMode, TEXT_CHROMA_V, bCodeDQP );
 }
 
-#if MTK_SAO
-/** decodeQAO One Part
- * \param  pQaoParam, iPartIdx
+#if SAO
+/** Decode SAO for one partition
+ * \param  pSaoParam, iPartIdx
  */
-#if MTK_SAO_CHROMA
-Void TDecEntropy::decodeQAOOnePart(SAOParam* pQaoParam, Int iPartIdx, Int iYCbCr)
-#else
-Void TDecEntropy::decodeQAOOnePart(SAOParam* pQaoParam, Int iPartIdx)
-#endif
+Void TDecEntropy::decodeSaoOnePart(SAOParam* pSaoParam, Int iPartIdx, Int iYCbCr)
 {
   UInt uiSymbol;
   Int iSymbol;  
-#if MTK_SAO_CHROMA
-  SAOQTPart*  pAlfPart = NULL;
-  if (iYCbCr == 0)
-  {
-    pAlfPart = &(pQaoParam->psSaoPart[iPartIdx]);
-  }
-  else if (iYCbCr == 1)
-  {
-    pAlfPart = &(pQaoParam->psSaoPartCb[iPartIdx]);
-  }
-  else 
-  {
-    pAlfPart = &(pQaoParam->psSaoPartCr[iPartIdx]);
-  }
-#else
-  SAOQTPart*  pAlfPart = &(pQaoParam->psSaoPart[iPartIdx]);
-#endif
+  SAOQTPart*  pSaoPart = NULL;
+  pSaoPart = &(pSaoParam->psSaoPart[iYCbCr][iPartIdx]);
 
   static Int iTypeLength[MAX_NUM_SAO_TYPE] = {
     SAO_EO_LEN,
@@ -1368,140 +1387,101 @@ Void TDecEntropy::decodeQAOOnePart(SAOParam* pQaoParam, Int iPartIdx)
     SAO_BO_LEN,
     SAO_BO_LEN
   };  
-  if(!pAlfPart->bSplit)
+  if(!pSaoPart->bSplit)
   {
-
-    m_pcEntropyDecoderIf->parseAoUvlc(uiSymbol);
-
+    m_pcEntropyDecoderIf->parseSaoUvlc(uiSymbol);
     if (uiSymbol)
     {
-      pAlfPart->iBestType = uiSymbol-1;
-      pAlfPart->bEnableFlag = true;
+      pSaoPart->iBestType = uiSymbol-1;
+      pSaoPart->bEnableFlag = true;
     }
     else
     {
-      pAlfPart->iBestType = -1;
-      pAlfPart->bEnableFlag = false;
+      pSaoPart->iBestType = -1;
+      pSaoPart->bEnableFlag = false;
     }
 
-    if (pAlfPart->bEnableFlag)
+    if (pSaoPart->bEnableFlag)
     {
-
-      pAlfPart->iLength = iTypeLength[pAlfPart->iBestType];
-
-      for(Int i=0; i< pAlfPart->iLength; i++)
+      pSaoPart->iLength = iTypeLength[pSaoPart->iBestType];
+      for(Int i=0; i< pSaoPart->iLength; i++)
       {
-        m_pcEntropyDecoderIf->parseAoSvlc(iSymbol);
-        pAlfPart->iOffset[i] = iSymbol;
+        m_pcEntropyDecoderIf->parseSaoSvlc(iSymbol);
+        pSaoPart->iOffset[i] = iSymbol;
       }
-
     }
     return;
   }
 
   //split
-  if (pAlfPart->PartLevel < pQaoParam->iMaxSplitLevel)
+  if (pSaoPart->PartLevel < pSaoParam->iMaxSplitLevel)
   {
     for(Int i=0;i<NUM_DOWN_PART;i++)
     {
-#if MTK_SAO_CHROMA
-      decodeQAOOnePart(pQaoParam, pAlfPart->DownPartsIdx[i], iYCbCr);
-#else
-      decodeQAOOnePart(pQaoParam, pAlfPart->DownPartsIdx[i]);
-#endif
+      decodeSaoOnePart(pSaoParam, pSaoPart->DownPartsIdx[i], iYCbCr);
     }
   }
 }
-/** decode QuadTree Split Flag
- * \param  pQaoParam, iPartIdx
+
+/** Decode quadtree split flag
+ * \param  pSaoParam, iPartIdx
  */
-#if MTK_SAO_CHROMA
-Void TDecEntropy::decodeQuadTreeSplitFlag(SAOParam* pQaoParam, Int iPartIdx, Int iYCbCr)
-#else
-Void TDecEntropy::decodeQuadTreeSplitFlag(SAOParam* pQaoParam, Int iPartIdx)
-#endif
+Void TDecEntropy::decodeQuadTreeSplitFlag(SAOParam* pSaoParam, Int iPartIdx, Int iYCbCr)
 {
   UInt uiSymbol;
-#if MTK_SAO_CHROMA
-  SAOQTPart*  pAlfPart = NULL;
-  if (iYCbCr == 0)
-  {
-    pAlfPart= &(pQaoParam->psSaoPart[iPartIdx]);
-  }
-  else if ( iYCbCr == 1 )
-  {
-    pAlfPart= &(pQaoParam->psSaoPartCb[iPartIdx]);
-  }
-  else 
-  {
-    pAlfPart= &(pQaoParam->psSaoPartCr[iPartIdx]);
-  }
-#else
-  SAOQTPart*  pAlfPart = &(pQaoParam->psSaoPart[iPartIdx]);
-#endif
+  SAOQTPart*  pSaoPart = NULL;
+  pSaoPart= &(pSaoParam->psSaoPart[iYCbCr][iPartIdx]);
 
-  if(pAlfPart->PartLevel < pQaoParam->iMaxSplitLevel)
+  if(pSaoPart->PartLevel < pSaoParam->iMaxSplitLevel)
   {
-
-    //send one flag
-    m_pcEntropyDecoderIf->parseAoFlag(uiSymbol); 
-    pAlfPart->bSplit = uiSymbol? true:false; 
-
-    if(pAlfPart->bSplit)
+    m_pcEntropyDecoderIf->parseSaoFlag(uiSymbol); 
+    pSaoPart->bSplit = uiSymbol? true:false; 
+    if(pSaoPart->bSplit)
     {
       for (Int i=0;i<NUM_DOWN_PART;i++)
       {
-#if MTK_SAO_CHROMA
-        decodeQuadTreeSplitFlag(pQaoParam, pAlfPart->DownPartsIdx[i], iYCbCr);
-#else
-        decodeQuadTreeSplitFlag(pQaoParam, pAlfPart->DownPartsIdx[i]);
-#endif
+        decodeQuadTreeSplitFlag(pSaoParam, pSaoPart->DownPartsIdx[i], iYCbCr);
       }
     }
   }
-
+  else
+  {
+    pSaoPart->bSplit = false; 
+  }
 }
-/** decode Sao Param
- * \param  pQaoParam
+
+/** Decode SAO parameters
+ * \param  pSaoParam
  */
-Void TDecEntropy::decodeSaoParam(SAOParam* pQaoParam)
+Void TDecEntropy::decodeSaoParam(SAOParam* pSaoParam)
 {
   UInt uiSymbol;
 
-  m_pcEntropyDecoderIf->parseAoFlag(uiSymbol);
+#if !F747_APS
+  m_pcEntropyDecoderIf->parseSaoFlag(uiSymbol);
+  pSaoParam->bSaoFlag[0] = uiSymbol? true:false;
+#endif
 
-  if (uiSymbol)
+  if (pSaoParam->bSaoFlag[0])
   {
-    pQaoParam->bSaoFlag = true;
-  }
-  else
-  {
-    pQaoParam->bSaoFlag = false;
-  }
-
-  if (pQaoParam->bSaoFlag)
-  {
-#if MTK_SAO_CHROMA
-    decodeQuadTreeSplitFlag(pQaoParam, 0, 0);
-    decodeQAOOnePart(pQaoParam, 0, 0);
-    m_pcEntropyDecoderIf->parseAoFlag(uiSymbol);
-
-    pQaoParam->bSaoFlagCb = uiSymbol? true:false;
-    if (pQaoParam->bSaoFlagCb)
+    decodeQuadTreeSplitFlag(pSaoParam, 0, 0);
+    decodeSaoOnePart(pSaoParam, 0, 0);
+#if SAO_CHROMA
+    m_pcEntropyDecoderIf->parseSaoFlag(uiSymbol);
+    pSaoParam->bSaoFlag[1] = uiSymbol? true:false;
+    if (pSaoParam->bSaoFlag[1])
     {
-      decodeQuadTreeSplitFlag(pQaoParam, 0, 1);
-      decodeQAOOnePart(pQaoParam, 0, 1);
+      decodeQuadTreeSplitFlag(pSaoParam, 0, 1);
+      decodeSaoOnePart(pSaoParam, 0, 1);
     }
-    m_pcEntropyDecoderIf->parseAoFlag(uiSymbol);
-    pQaoParam->bSaoFlagCr = uiSymbol? true:false;
-    if (pQaoParam->bSaoFlagCr)
+
+    m_pcEntropyDecoderIf->parseSaoFlag(uiSymbol);
+    pSaoParam->bSaoFlag[2] = uiSymbol? true:false;
+    if (pSaoParam->bSaoFlag[2])
     {
-      decodeQuadTreeSplitFlag(pQaoParam, 0, 2);
-      decodeQAOOnePart(pQaoParam, 0, 2);
+      decodeQuadTreeSplitFlag(pSaoParam, 0, 2);
+      decodeSaoOnePart(pSaoParam, 0, 2);
     }
-#else
-    decodeQuadTreeSplitFlag(pQaoParam, 0);
-    decodeQAOOnePart(pQaoParam, 0);
 #endif
   }
 
