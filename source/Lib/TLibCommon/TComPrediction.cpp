@@ -1469,8 +1469,8 @@ Void TComPrediction::xGetLLSPrediction( TComPattern* pcPattern, Int* pSrc0, Int 
         }
         else {
           Short n = CountLeadingZerosOnes(a);
-          a = a >> (6-n);
-          iShift -= (6-n);
+          a = a >> (9-n);
+          iShift -= (9-n);
         }
       }
 #endif
