@@ -43,12 +43,6 @@
 
 #if WEIGHT_PRED
 
-#ifdef MSYS_LINUX
-  typedef long long LInt;
-#else
-  typedef __int64 LInt;
-#endif
-
 class  WeightPredAnalysis {
 
   Bool m_weighted_pred_flag;
