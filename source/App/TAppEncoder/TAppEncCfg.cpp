@@ -262,8 +262,8 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
 #endif
 #endif
 #if OL_USE_WPP
-    ("WaveFrontSynchro",            m_iWaveFrontSynchro,             1,          "0: no synchro; 1 synchro with TR; 2 TRR etc")
-    ("WaveFrontFlush",              m_iWaveFrontFlush,               1,          "Flush and terminate CABAC coding for each LCU line")
+    ("WaveFrontSynchro",            m_iWaveFrontSynchro,             0,          "0: no synchro; 1 synchro with TR; 2 TRR etc")
+    ("WaveFrontFlush",              m_iWaveFrontFlush,               0,          "Flush and terminate CABAC coding for each LCU line")
     ("WaveFrontSubstreams",         m_iWaveFrontSubstreams,          1,          "# coded substreams wanted; per tile if TileBoundaryIndependenceIdc is 1, otherwise per frame")
 #endif
   /* Misc. */
