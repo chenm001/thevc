@@ -38,7 +38,7 @@
 #ifndef __TCOMSLICE__
 #define __TCOMSLICE__
 
-
+#include <cstring>
 #include "CommonDef.h"
 #include "TComRom.h"
 #include "TComList.h"
