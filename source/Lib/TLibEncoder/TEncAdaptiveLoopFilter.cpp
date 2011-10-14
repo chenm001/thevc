@@ -5143,7 +5143,9 @@ Void TEncAdaptiveLoopFilter::setMaskWithTimeDelayedResults(TComPicYuv* pcPicOrg,
       copyALFParam(&cAlfParam, m_pcTempAlfParam);
     }
   }
-
+#if STAR_CROSS_SHAPES_LUMA
+  copyALFParam(m_pcTempAlfParam, &cAlfParam);
+#endif
   //decided the best CU control depth
   m_pcPicYuvBest->copyToPicLuma(m_pcPicYuvTmp);
   m_pcEntropyCoder->setAlfCtrl(true);
