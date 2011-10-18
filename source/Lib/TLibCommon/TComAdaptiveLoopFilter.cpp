@@ -661,7 +661,7 @@ Void TComAdaptiveLoopFilter::create( Int iPicWidth, Int iPicHeight, UInt uiMaxCU
   initMatrix_int(&m_imgY_hor, m_img_height+2*VAR_SIZE+3, m_img_width+2*VAR_SIZE+3);
   for(Int i=0; i< NUM_ALF_CLASS_METHOD; i++)
   {
-    get_mem2Dpel(&(m_varImgMethods[i]), m_img_width, m_img_width);
+    get_mem2Dpel(&(m_varImgMethods[i]), m_img_height, m_img_width);
   }
 #endif   
 
