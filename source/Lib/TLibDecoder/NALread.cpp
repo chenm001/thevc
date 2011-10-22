@@ -53,6 +53,7 @@ static void convertPayloadToRBSP(vector<uint8_t>& nalUnitBuf)
   vector<uint8_t>::iterator it_read, it_write;
 
 #if TILES_DECODER
+  UInt *auiStoredTileMarkerLocation = new UInt[MAX_MARKER_PER_NALU];
   // Remove tile markers and note the bitstream location
   for (it_read = it_write = nalUnitBuf.begin(); it_read != nalUnitBuf.end(); it_read++ )
   {
@@ -66,6 +67,7 @@ static void convertPayloadToRBSP(vector<uint8_t>& nalUnitBuf)
         UInt uiCount     = pcBitstream->getTileMarkerLocationCount();
         bTileMarkerFound = true;
         pcBitstream->setTileMarkerLocation( uiCount, uiDistance );
+        auiStoredTileMarkerLocation[uiCount] = uiDistance;
         pcBitstream->setTileMarkerLocationCount( uiCount + 1 );
         
       }
@@ -89,7 +91,7 @@ static void convertPayloadToRBSP(vector<uint8_t>& nalUnitBuf)
       UInt uiDistance = it_read - nalUnitBuf.begin();
       for (UInt uiIdx=0; uiIdx<pcBitstream->getTileMarkerLocationCount(); uiIdx++)
       {
-        if (pcBitstream->getTileMarkerLocation( uiIdx ) >= uiDistance)
+        if (auiStoredTileMarkerLocation[ uiIdx ] >= uiDistance)
         {
           pcBitstream->setTileMarkerLocation( uiIdx, pcBitstream->getTileMarkerLocation( uiIdx )-1 );
         }
@@ -103,6 +105,9 @@ static void convertPayloadToRBSP(vector<uint8_t>& nalUnitBuf)
   }
 
   nalUnitBuf.resize(it_write - nalUnitBuf.begin());
+#if TILES_DECODER
+  delete [] auiStoredTileMarkerLocation;
+#endif
 }
 
 /**
