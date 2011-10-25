@@ -891,7 +891,6 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
         m_pcEntropyCoder->encodeSliceHeader(pcSlice);
 
 
-
         // is it needed?
         if ( pcSlice->getSymbolMode() )
         {
@@ -1078,6 +1077,37 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
                 m_pcEntropyCoder->setAlfCtrl(false);
               }
               m_pcEntropyCoder->encodeAlfCtrlParam(cAlfCUCtrlParam, m_pcAdaptiveLoopFilter->getNumCUsInPic());
+#if F747_CABAC_FLUSH_SLICE_HEADER
+              if (pcSlice->getSymbolMode())
+              {
+                m_pcEntropyCoder->encodeFinish(0);
+#if OL_USE_WPP
+                pcSubstreamsOut[0].writeAlignOne();// for now, override the TILES_DECODER setting in order to write substreams (as done above).
+#else           
+                     
+#if TILES_DECODER
+                if (pcSlice->getSPS()->getTileBoundaryIndependenceIdr()  && !bEntropySlice)
+                {
+                  pcBitstreamRedirect->writeAlignOne();
+                }
+                else
+                {
+                  nalu.m_Bitstream.writeAlignOne();
+                }                
+#else
+                nalu.m_Bitstream.writeAlignOne();
+#endif
+                
+#endif
+                m_pcSbacCoder->init( (TEncBinIf*)m_pcBinCABAC );
+#if OL_USE_WPP
+                m_pcEntropyCoder->setEntropyCoder ( &pcSbacCoders[0], pcSlice );
+#else
+                m_pcEntropyCoder->setEntropyCoder ( m_pcSbacCoder, pcSlice );
+#endif                                
+                m_pcEntropyCoder->resetEntropy    ();
+              }
+#endif              
             }
 #else
             if (cAlfParam.cu_control_flag)
@@ -1362,6 +1392,7 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
         uiOneBitstreamPerSliceLength += nalu.m_Bitstream.getNumberOfWrittenBits() + 24; // length of bitstream after byte-alignment + 3 byte startcode 0x000001
         }
 #endif
+
 
 #if !TILES_DECODER
         UInt uiBoundingAddrSlice, uiBoundingAddrEntropySlice;
