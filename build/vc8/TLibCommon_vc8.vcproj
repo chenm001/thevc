@@ -360,6 +360,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\source\Lib\TLibCommon\TComSampleAdaptiveOffset.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\source\Lib\TLibCommon\TComSlice.cpp"
 				>
 			</File>
@@ -487,6 +491,10 @@
 			</File>
 			<File
 				RelativePath="..\..\source\Lib\TLibCommon\TComRom.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\source\Lib\TLibCommon\TComSampleAdaptiveOffset.h"
 				>
 			</File>
 			<File
