@@ -132,6 +132,16 @@
 		DB7795C313F1226500C92469 /* TEncPic.h in Headers */ = {isa = PBXBuildFile; fileRef = DB7795BF13F1226500C92469 /* TEncPic.h */; };
 		DB7795C413F1226500C92469 /* TEncPreanalyzer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = DB7795C013F1226500C92469 /* TEncPreanalyzer.cpp */; };
 		DB7795C513F1226500C92469 /* TEncPreanalyzer.h in Headers */ = {isa = PBXBuildFile; fileRef = DB7795C113F1226500C92469 /* TEncPreanalyzer.h */; };
+		DBC9C94014477F6400A77A93 /* TComSampleAdaptiveOffset.cpp in Sources */ = {isa = PBXBuildFile; fileRef = DBC9C93E14477F6400A77A93 /* TComSampleAdaptiveOffset.cpp */; };
+		DBC9C94114477F6400A77A93 /* TComSampleAdaptiveOffset.h in Headers */ = {isa = PBXBuildFile; fileRef = DBC9C93F14477F6400A77A93 /* TComSampleAdaptiveOffset.h */; };
+		DBC9C94514477FAE00A77A93 /* TEncSampleAdaptiveOffset.cpp in Sources */ = {isa = PBXBuildFile; fileRef = DBC9C94314477FAE00A77A93 /* TEncSampleAdaptiveOffset.cpp */; };
+		DBC9C94614477FAE00A77A93 /* TEncSampleAdaptiveOffset.h in Headers */ = {isa = PBXBuildFile; fileRef = DBC9C94414477FAE00A77A93 /* TEncSampleAdaptiveOffset.h */; };
+		DBC9C94B1447847400A77A93 /* TComRdCostWeightPrediction.cpp in Sources */ = {isa = PBXBuildFile; fileRef = DBC9C9471447847400A77A93 /* TComRdCostWeightPrediction.cpp */; };
+		DBC9C94C1447847400A77A93 /* TComRdCostWeightPrediction.h in Headers */ = {isa = PBXBuildFile; fileRef = DBC9C9481447847400A77A93 /* TComRdCostWeightPrediction.h */; };
+		DBC9C94D1447847400A77A93 /* TComWeightPrediction.cpp in Sources */ = {isa = PBXBuildFile; fileRef = DBC9C9491447847400A77A93 /* TComWeightPrediction.cpp */; };
+		DBC9C94E1447847400A77A93 /* TComWeightPrediction.h in Headers */ = {isa = PBXBuildFile; fileRef = DBC9C94A1447847400A77A93 /* TComWeightPrediction.h */; };
+		DBC9C9511447855200A77A93 /* WeightPredAnalysis.cpp in Sources */ = {isa = PBXBuildFile; fileRef = DBC9C94F1447855200A77A93 /* WeightPredAnalysis.cpp */; };
+		DBC9C9521447855200A77A93 /* WeightPredAnalysis.h in Headers */ = {isa = PBXBuildFile; fileRef = DBC9C9501447855200A77A93 /* WeightPredAnalysis.h */; };
 		DBDDB3AB13E26B4400A70251 /* TComInterpolationFilter.cpp in Sources */ = {isa = PBXBuildFile; fileRef = DBDDB3A913E26B4400A70251 /* TComInterpolationFilter.cpp */; };
 		DBDDB3AC13E26B4400A70251 /* TComInterpolationFilter.h in Headers */ = {isa = PBXBuildFile; fileRef = DBDDB3AA13E26B4400A70251 /* TComInterpolationFilter.h */; };
 /* End PBXBuildFile section */
@@ -324,6 +334,16 @@
 		DB7795BF13F1226500C92469 /* TEncPic.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TEncPic.h; path = source/Lib/TLibEncoder/TEncPic.h; sourceTree = "<group>"; };
 		DB7795C013F1226500C92469 /* TEncPreanalyzer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = TEncPreanalyzer.cpp; path = source/Lib/TLibEncoder/TEncPreanalyzer.cpp; sourceTree = "<group>"; };
 		DB7795C113F1226500C92469 /* TEncPreanalyzer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TEncPreanalyzer.h; path = source/Lib/TLibEncoder/TEncPreanalyzer.h; sourceTree = "<group>"; };
+		DBC9C93E14477F6400A77A93 /* TComSampleAdaptiveOffset.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = TComSampleAdaptiveOffset.cpp; path = source/Lib/TLibCommon/TComSampleAdaptiveOffset.cpp; sourceTree = "<group>"; };
+		DBC9C93F14477F6400A77A93 /* TComSampleAdaptiveOffset.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TComSampleAdaptiveOffset.h; path = source/Lib/TLibCommon/TComSampleAdaptiveOffset.h; sourceTree = "<group>"; };
+		DBC9C94314477FAE00A77A93 /* TEncSampleAdaptiveOffset.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = TEncSampleAdaptiveOffset.cpp; path = source/Lib/TLibEncoder/TEncSampleAdaptiveOffset.cpp; sourceTree = "<group>"; };
+		DBC9C94414477FAE00A77A93 /* TEncSampleAdaptiveOffset.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TEncSampleAdaptiveOffset.h; path = source/Lib/TLibEncoder/TEncSampleAdaptiveOffset.h; sourceTree = "<group>"; };
+		DBC9C9471447847400A77A93 /* TComRdCostWeightPrediction.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = TComRdCostWeightPrediction.cpp; path = source/Lib/TLibCommon/TComRdCostWeightPrediction.cpp; sourceTree = "<group>"; };
+		DBC9C9481447847400A77A93 /* TComRdCostWeightPrediction.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TComRdCostWeightPrediction.h; path = source/Lib/TLibCommon/TComRdCostWeightPrediction.h; sourceTree = "<group>"; };
+		DBC9C9491447847400A77A93 /* TComWeightPrediction.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = TComWeightPrediction.cpp; path = source/Lib/TLibCommon/TComWeightPrediction.cpp; sourceTree = "<group>"; };
+		DBC9C94A1447847400A77A93 /* TComWeightPrediction.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TComWeightPrediction.h; path = source/Lib/TLibCommon/TComWeightPrediction.h; sourceTree = "<group>"; };
+		DBC9C94F1447855200A77A93 /* WeightPredAnalysis.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = WeightPredAnalysis.cpp; path = source/Lib/TLibEncoder/WeightPredAnalysis.cpp; sourceTree = "<group>"; };
+		DBC9C9501447855200A77A93 /* WeightPredAnalysis.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = WeightPredAnalysis.h; path = source/Lib/TLibEncoder/WeightPredAnalysis.h; sourceTree = "<group>"; };
 		DBDDB3A913E26B4400A70251 /* TComInterpolationFilter.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = TComInterpolationFilter.cpp; path = source/Lib/TLibCommon/TComInterpolationFilter.cpp; sourceTree = "<group>"; };
 		DBDDB3AA13E26B4400A70251 /* TComInterpolationFilter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TComInterpolationFilter.h; path = source/Lib/TLibCommon/TComInterpolationFilter.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -473,8 +493,12 @@
 				676795B811AD61FC00421804 /* TComPrediction.h */,
 				676795B911AD61FC00421804 /* TComRdCost.cpp */,
 				676795BA11AD61FC00421804 /* TComRdCost.h */,
+				DBC9C9471447847400A77A93 /* TComRdCostWeightPrediction.cpp */,
+				DBC9C9481447847400A77A93 /* TComRdCostWeightPrediction.h */,
 				676795BB11AD61FC00421804 /* TComRom.cpp */,
 				676795BC11AD61FC00421804 /* TComRom.h */,
+				DBC9C93E14477F6400A77A93 /* TComSampleAdaptiveOffset.cpp */,
+				DBC9C93F14477F6400A77A93 /* TComSampleAdaptiveOffset.h */,
 				676795BD11AD61FC00421804 /* TComSlice.cpp */,
 				676795BE11AD61FC00421804 /* TComSlice.h */,
 				65EA1B941357451300988950 /* SEI.h */,
@@ -482,6 +506,8 @@
 				65EA1B91135744FE00988950 /* SEIwrite.cpp */,
 				676795BF11AD61FC00421804 /* TComTrQuant.cpp */,
 				676795C011AD61FC00421804 /* TComTrQuant.h */,
+				DBC9C9491447847400A77A93 /* TComWeightPrediction.cpp */,
+				DBC9C94A1447847400A77A93 /* TComWeightPrediction.h */,
 				676795C111AD61FC00421804 /* TComYuv.cpp */,
 				676795C211AD61FC00421804 /* TComYuv.h */,
 				676795C311AD61FC00421804 /* TypeDef.h */,
@@ -545,6 +571,8 @@
 				DB7795BF13F1226500C92469 /* TEncPic.h */,
 				DB7795C013F1226500C92469 /* TEncPreanalyzer.cpp */,
 				DB7795C113F1226500C92469 /* TEncPreanalyzer.h */,
+				DBC9C94314477FAE00A77A93 /* TEncSampleAdaptiveOffset.cpp */,
+				DBC9C94414477FAE00A77A93 /* TEncSampleAdaptiveOffset.h */,
 				6767962911AD628100421804 /* TEncSbac.cpp */,
 				6767962A11AD628100421804 /* TEncSbac.h */,
 				6767962B11AD628100421804 /* TEncSearch.cpp */,
@@ -553,6 +581,8 @@
 				6767962E11AD628100421804 /* TEncSlice.h */,
 				6767962F11AD628100421804 /* TEncTop.cpp */,
 				6767963011AD628100421804 /* TEncTop.h */,
+				DBC9C94F1447855200A77A93 /* WeightPredAnalysis.cpp */,
+				DBC9C9501447855200A77A93 /* WeightPredAnalysis.h */,
 			);
 			name = TLibEncoder;
 			sourceTree = "<group>";
@@ -646,6 +676,9 @@
 				DBDDB3AC13E26B4400A70251 /* TComInterpolationFilter.h in Headers */,
 				DB7795C313F1226500C92469 /* TEncPic.h in Headers */,
 				DB7795C513F1226500C92469 /* TEncPreanalyzer.h in Headers */,
+				DBC9C94114477F6400A77A93 /* TComSampleAdaptiveOffset.h in Headers */,
+				DBC9C94C1447847400A77A93 /* TComRdCostWeightPrediction.h in Headers */,
+				DBC9C94E1447847400A77A93 /* TComWeightPrediction.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -688,6 +721,8 @@
 				65EA1B92135744FE00988950 /* SEIwrite.h in Headers */,
 				712FAEAF1379BA4900DB5314 /* AnnexBwrite.h in Headers */,
 				712FAEB11379BA4900DB5314 /* NALwrite.h in Headers */,
+				DBC9C94614477FAE00A77A93 /* TEncSampleAdaptiveOffset.h in Headers */,
+				DBC9C9521447855200A77A93 /* WeightPredAnalysis.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -897,6 +932,9 @@
 				DBDDB3AB13E26B4400A70251 /* TComInterpolationFilter.cpp in Sources */,
 				DB7795C213F1226500C92469 /* TEncPic.cpp in Sources */,
 				DB7795C413F1226500C92469 /* TEncPreanalyzer.cpp in Sources */,
+				DBC9C94014477F6400A77A93 /* TComSampleAdaptiveOffset.cpp in Sources */,
+				DBC9C94B1447847400A77A93 /* TComRdCostWeightPrediction.cpp in Sources */,
+				DBC9C94D1447847400A77A93 /* TComWeightPrediction.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -935,6 +973,8 @@
 				671E0D8111B6ADE900F3747B /* TEncBinCoderCABAC.cpp in Sources */,
 				65EA1B93135744FE00988950 /* SEIwrite.cpp in Sources */,
 				712FAEB01379BA4900DB5314 /* NALwrite.cpp in Sources */,
+				DBC9C94514477FAE00A77A93 /* TEncSampleAdaptiveOffset.cpp in Sources */,
+				DBC9C9511447855200A77A93 /* WeightPredAnalysis.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

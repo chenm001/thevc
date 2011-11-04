@@ -55,11 +55,16 @@ struct InputNALUnit;
 //! \ingroup TLibDecoder
 //! \{
 
+#if F747_APS
+
+#define APS_RESERVED_BUFFER_SIZE 2 //!< must be equal to or larger than 2 to handle bitstream parsing
+
+#else
 #if E045_SLICE_COMMON_INFO_SHARING
 #define MAX_NUM_PPS 1
 #define MAX_NUM_PPS_BUFFER (MAX_NUM_PPS +1)
 #endif
-
+#endif
 
 // ====================================================================================================================
 // Class definition
@@ -80,6 +85,11 @@ private:
   UInt                    m_uiValidPS;
   TComList<TComPic*>      m_cListPic;         //  Dynamic buffer
   TComSPS                 m_cSPS;
+
+#if F747_APS
+  TComPPS                 m_cPPS;               //!< PPS
+  std::vector<std::vector<TComAPS> >   m_vAPS;  //!< APS container
+#else
 #if E045_SLICE_COMMON_INFO_SHARING
   TComPPS*                m_pcPPS;       //!< PPS
   TComPPS*                m_pcPPSBuffer; //!< PPS buffer
@@ -87,6 +97,7 @@ private:
   Int                     m_iPPSCounter; //!< PPS counter
 #else
   TComPPS                 m_cPPS;
+#endif
 #endif
   TComSlice*              m_apcSlicePilot;
   
@@ -104,7 +115,7 @@ private:
   TDecBinCABAC            m_cBinCABAC;
   TComLoopFilter          m_cLoopFilter;
   TComAdaptiveLoopFilter  m_cAdaptiveLoopFilter;
-#if MTK_SAO
+#if SAO
   TComSampleAdaptiveOffset m_cSAO;
 #endif
 
@@ -138,6 +149,13 @@ protected:
   Void  xGetNewPicBuffer  (TComSlice* pcSlice, TComPic*& rpcPic);
   Void  xUpdateGopSize    (TComSlice* pcSlice);
 
+#if F747_APS
+  Void      decodeAPS(TComInputBitstream* bs, TComAPS& cAPS); //!< decode process for APS
+  TComAPS*  popAPS   (UInt apsID);  //!< pop APS parameter object pointer with APS ID equal to apsID
+  Void      pushAPS  (TComAPS& cAPS); //!< push APS object into APS container
+  Void      allocAPS (TComAPS* pAPS); //!< memory allocation for APS
+  Void      freeAPS  (TComAPS* pAPS); //!< memory deallocation for APS
+#else
 #if E045_SLICE_COMMON_INFO_SHARING
   /// create PPS buffer
   Void     createPPSBuffer      ();
@@ -154,7 +172,8 @@ protected:
   /// signal if the PPS is available
   Bool     hasNewPPS            ()   {return m_pbHasNewPPS[m_iPPSCounter];}
 #endif
-  
+#endif
+
 };// END CLASS DEFINITION TDecTop
 
 

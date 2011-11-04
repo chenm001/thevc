@@ -54,6 +54,7 @@
 #define DNB_INTER_PRED_MODE               1           ///< F606:               disable of neighbour evaluation for inter_pred_flag (use depth for that)
 #define DNB_CHROMA_CBF_FLAGS              1           ///< F606:               disable of neighbour evaluation for chroma cbf (use depth for that)
 #define DNB_LUMA_CBF_FLAGS                1           ///< F429:               disable of neighbour evaluation for luma cbf
+#define DNB_QT_ROOT_CBF                   1           ///< F429 / F606:        disable of neighbour evaluation for no_residual_data_flag
 
 #define WEIGHTED_CHROMA_DISTORTION  1   ///< F386: weighting of chroma for RDO
 #define RDOQ_CHROMA_LAMBDA          1   ///< F386: weighting of chroma for RDOQ
@@ -76,6 +77,17 @@
 #define MRG_AMVP_ADD_CAND_F470               0
 #endif
 #define NSQT                                 1       // F410 & F412 : Non-Square Quadtree Transform
+
+#define F747_APS                             1       // F747 : Adaptation Parameter Set (APS)
+#if F747_APS
+  #define APS_BITS_FOR_SAO_BYTE_LENGTH 12           
+  #define APS_BITS_FOR_ALF_BYTE_LENGTH 8
+#endif
+
+#define F747_CABAC_FLUSH_SLICE_HEADER        1       // F747 & F399: CABAC Flush after slice header
+
+
+#define WEIGHT_PRED                          1       ///< F265 & F326: enable weighted prediction
 ////////////////////////////
 // JCT-VC F end
 ////////////////////////////
@@ -193,6 +205,15 @@
 #error CHANGE_GET_MERGE_CANDIDATE can only be defined with CHANGE_MERGE_CONTEXT
 #endif
 
+#define OL_USE_WPP    1     // Set to 1 to enable Wavefront Parallel Processing, 0 otherwise
+#if OL_USE_WPP
+#define OL_FLUSH 1          // Set to 1 to enable Wavefront Flush.
+#define OL_FLUSH_ALIGN 0    // Align flush to byte boundary.  This preserves byte operations in CABAC (faster) but at the expense of an average
+                            // of 4 bits per flush.
+                            // Setting to 0 will slow cabac by an as yet unknown amount.
+                            // This is here just to perform timing tests -- OL_FLUSH_ALIGN should be 0 for WPP.
+#endif
+
 #define MTK_NONCROSS_INLOOP_FILTER        1           ///< Allow non-cross-slice-boundary in-loop filtering, including DB & ALF (JCTVC-D128)
 
 #define RVM_VCEGAM10 1 // RVM model proposed in VCEG-AM10
@@ -243,12 +264,24 @@
 // AHG SLICES defines section end
 /////////////////////////////////
 
-#define MTK_SAO                           1           // JCTVC-E049: Sample adaptive offset
-#define MTK_SAO_CHROMA                    1           // JCTVC-F057: Sample adaptive offset for Chroma
-#define MTK_SAO_REMOVE_SKIP               1
+#define TILES                              1
+#define LOG2_MAX_NUM_COLUMNS_MINUS1        7
+#define LOG2_MAX_NUM_ROWS_MINUS1           7
+#define LOG2_MAX_COLUMN_WIDTH              13
+#define LOG2_MAX_ROW_HEIGHT                13
 
-#define SAO_ACCURATE_OFFSET               1           // JCTVC-F396
-#define SAO_CLIP_OFFSET                   1           // JCTVC-F396
+#if TILES
+#define TILES_DECODER                       1 // JCTVC-F594 - signalling of tile location
+#define MAX_MARKER_PER_NALU                 1000
+#else
+#define TILES_DECODER                       0
+#endif
+
+#define SAO                           1           // JCTVC-E049: Sample adaptive offset
+#define SAO_CHROMA                    1           // JCTVC-F057: Sample adaptive offset for Chroma
+#define SAO_CROSS_LCU_BOUNDARIES      1
+#define SAO_ACCURATE_OFFSET           1           // JCTVC-F396
+#define SAO_CLIP_OFFSET               1           // JCTVC-F396
 
 #define MQT_ALF_NPASS                       1
 
@@ -367,18 +400,19 @@ typedef       Int             TCoeff;     ///< transform coefficient
 /// parameters for adaptive loop filter
 class TComPicSym;
 
-#if MTK_SAO
+#if SAO
 
 #define NUM_DOWN_PART 4
+#define NUM_MAX_OFFSET  32
 
-enum QAOTypeLen
+enum SAOTypeLen
 {
   SAO_EO_LEN    = 4, 
   SAO_EO_LEN_2D = 6, 
   SAO_BO_LEN    = 16
 };
 
-enum QAOType
+enum SAOType
 {
   SAO_EO_0 = 0, 
   SAO_EO_1,
@@ -401,13 +435,6 @@ typedef struct _SaoQTPart
   Int         EndCUX;
   Int         EndCUY;
 
-  Int         part_xs;
-  Int         part_xe;
-  Int         part_ys;
-  Int         part_ye;
-  Int         part_width;
-  Int         part_height;
-
   Int         PartIdx;
   Int         PartLevel;
   Int         PartCol;
@@ -416,16 +443,9 @@ typedef struct _SaoQTPart
   Int         DownPartsIdx[NUM_DOWN_PART];
   Int         UpPartIdx;
 
-  Int*        pSubPartList;
-  Int         iLengthSubPartList;
-
-  Bool        bBottomLevel;
   Bool        bSplit;
-  //    Bool        bAvailable;
 
   //---- encoder only start -----//
-  Int64***    pppiCorr; //[filt_type][corr_row][corr_col]
-  Int**       ppCoeff;  //[filt_type][coeff]
   Bool        bProcessed;
   Double      dMinCost;
   Int64       iMinDist;
@@ -435,14 +455,8 @@ typedef struct _SaoQTPart
 
 struct _SaoParam
 {
-  Bool       bSaoFlag;
-  SAOQTPart* psSaoPart;
-#if MTK_SAO_CHROMA
-  Bool       bSaoFlagCb;
-  Bool       bSaoFlagCr;
-  SAOQTPart* psSaoPartCb;
-  SAOQTPart* psSaoPartCr;
-#endif
+  Bool       bSaoFlag[3];
+  SAOQTPart* psSaoPart[3];
   Int        iMaxSplitLevel;
   Int        iNumClass[MAX_NUM_SAO_TYPE];
 };
@@ -452,7 +466,9 @@ struct _SaoParam
 struct _AlfParam
 {
   Int alf_flag;                           ///< indicates use of ALF
+#if !F747_APS
   Int cu_control_flag;                    ///< coding unit based control flag
+#endif
   Int chroma_idc;                         ///< indicates use of ALF for chroma
 #if !STAR_CROSS_SHAPES_LUMA
 #if TI_ALF_MAX_VSIZE_7
@@ -501,10 +517,12 @@ struct _AlfParam
   Int minKStart;
   Int maxScanVal;
   Int kMinTab[42];
+#if !F747_APS
   UInt num_alf_cu_flag;
   UInt num_cus_in_frame;
   UInt alf_max_depth;
   UInt *alf_cu_flag;
+#endif
 
 #if MQT_BA_RA
   Int alf_pcr_region_flag; 

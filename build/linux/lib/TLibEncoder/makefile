@@ -36,6 +36,7 @@ OBJS          	= \
 			$(OBJ_DIR)/SEIwrite.o \
 			$(OBJ_DIR)/TEncBinCoderCABAC.o \
 			$(OBJ_DIR)/TEncAdaptiveLoopFilter.o \
+			$(OBJ_DIR)/TEncSampleAdaptiveOffset.o \
 			$(OBJ_DIR)/TEncAnalyze.o \
 			$(OBJ_DIR)/TEncCavlc.o \
 			$(OBJ_DIR)/TEncCu.o \
@@ -47,6 +48,7 @@ OBJS          	= \
 			$(OBJ_DIR)/TEncTop.o \
 			$(OBJ_DIR)/TEncPic.o \
 			$(OBJ_DIR)/TEncPreanalyzer.o \
+			$(OBJ_DIR)/WeightPredAnalysis.o \
 
 LIBS				= -lpthread
 

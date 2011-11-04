@@ -214,7 +214,11 @@ enum NalUnitType
   NAL_UNIT_END_OF_SEQUENCE,
   NAL_UNIT_END_OF_STREAM,
   NAL_UNIT_FILLER_DATA,
+#if F747_APS
+  NAL_UNIT_APS,
+#else
   NAL_UNIT_RESERVED_13,
+#endif
   NAL_UNIT_RESERVED_14,
   NAL_UNIT_RESERVED_15,
   NAL_UNIT_RESERVED_16,
@@ -237,7 +241,7 @@ enum NalUnitType
 };
 
 typedef _AlfParam    ALFParam;
-#if MTK_SAO
+#if SAO
 typedef _SaoParam    SAOParam;
 #endif
 

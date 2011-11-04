@@ -49,6 +49,7 @@
 #include "TLibCommon/TComPic.h"
 #include "TLibCommon/TComLoopFilter.h"
 #include "TLibCommon/TComAdaptiveLoopFilter.h"
+#include "TLibCommon/TComSampleAdaptiveOffset.h"
 
 #include "TDecEntropy.h"
 #include "TDecSlice.h"
@@ -73,17 +74,25 @@ private:
   TDecEntropy*          m_pcEntropyDecoder;
   TDecSbac*             m_pcSbacDecoder;
   TDecBinCABAC*         m_pcBinCABAC;
+#if OL_USE_WPP
+  TDecSbac*             m_pcSbacDecoders; // independant CABAC decoders
+  TDecBinCABAC*         m_pcBinCABACs;
+#endif
   TDecCavlc*            m_pcCavlcDecoder;
   TDecSlice*            m_pcSliceDecoder;
   TComLoopFilter*       m_pcLoopFilter;
   
   // Adaptive Loop filter
   TComAdaptiveLoopFilter*       m_pcAdaptiveLoopFilter;
-#if MTK_SAO
-  TComSampleAdaptiveOffset*              m_pcSAO;
+#if SAO
+  TComSampleAdaptiveOffset*     m_pcSAO;
+#if !F747_APS
   SAOParam              m_cSaoParam;
 #endif
+#endif
+#if !F747_APS
   ALFParam              m_cAlfParam;
+#endif
   Double                m_dDecTime;
 
   bool m_pictureDigestEnabled; ///< if true, handle picture_digest SEI messages
@@ -99,8 +108,8 @@ public:
                  TDecSlice*              pcSliceDecoder, 
                  TComLoopFilter*         pcLoopFilter, 
                  TComAdaptiveLoopFilter* pcAdaptiveLoopFilter
-#if MTK_SAO
-                 ,TComSampleAdaptiveOffset*                pcSAO
+#if SAO
+                 ,TComSampleAdaptiveOffset* pcSAO
 #endif
                  );
   Void  create  ();
@@ -114,10 +123,12 @@ public:
 
   void setPictureDigestEnabled(bool enabled) { m_pictureDigestEnabled = enabled; }
 
+#if !F747_APS
 #if E045_SLICE_COMMON_INFO_SHARING
 private:
   /// copy shared ALF parameters from PPS
   Void copySharedAlfParamFromPPS(ALFParam* pAlfDst, ALFParam* pAlfSrc);
+#endif
 #endif
 
 };

@@ -90,6 +90,15 @@ TComSlice::TComSlice()
 , m_uiEntropySliceCounter         ( 0 )
 , m_bFinalized                    ( false )
 #endif
+#if TILES_DECODER
+, m_uiTileByteLocation            ( NULL )
+, m_uiTileCount                   ( 0 )
+, m_iTileMarkerFlag               ( 0 )
+, m_uiTileOffstForMultES          ( 0 )
+#endif
+#if OL_USE_WPP
+, m_puiSubstreamSizes             ( NULL )
+#endif
 {
   m_aiNumRefIdx[0] = m_aiNumRefIdx[1] = m_aiNumRefIdx[2] = 0;
   
@@ -111,10 +120,25 @@ TComSlice::TComSlice()
     m_aiRefPOCList  [0][iNumCount] = 0;
     m_aiRefPOCList  [1][iNumCount] = 0;
   }
+#if WEIGHT_PRED
+  resetWpScaling(m_weightPredTable);
+  initWpAcDcParam();
+#endif
 }
 
 TComSlice::~TComSlice()
 {
+#if TILES_DECODER
+  if (m_uiTileByteLocation) 
+  {
+    delete [] m_uiTileByteLocation;
+    m_uiTileByteLocation = NULL;
+  }
+#endif
+#if OL_USE_WPP
+  delete[] m_puiSubstreamSizes;
+  m_puiSubstreamSizes = NULL;
+#endif
 }
 
 
@@ -142,7 +166,31 @@ Void TComSlice::initSlice()
 #if FINE_GRANULARITY_SLICES
   m_bFinalized=false;
 #endif
+
+#if TILES_DECODER
+  Int iWidth             = m_pcSPS->getWidth();
+  Int iHeight            = m_pcSPS->getHeight();
+  UInt uiWidthInCU       = ( iWidth %g_uiMaxCUWidth  ) ? iWidth /g_uiMaxCUWidth  + 1 : iWidth /g_uiMaxCUWidth;
+  UInt uiHeightInCU      = ( iHeight%g_uiMaxCUHeight ) ? iHeight/g_uiMaxCUHeight + 1 : iHeight/g_uiMaxCUHeight;
+  UInt uiNumCUsInFrame   = uiWidthInCU * uiHeightInCU;
+
+  m_uiTileCount          = 0;
+  if (m_uiTileByteLocation==NULL) m_uiTileByteLocation   = new UInt[uiNumCUsInFrame];
+#endif
 }
+
+#if OL_USE_WPP
+/**
+ - allocate table to contain substream sizes to be written to the slice header.
+ .
+ \param uiNumSubstreams Number of substreams -- the allocation will be this value - 1.
+ */
+Void  TComSlice::allocSubstreamSizes(UInt uiNumSubstreams)
+{
+  delete[] m_puiSubstreamSizes;
+  m_puiSubstreamSizes = new UInt[uiNumSubstreams > 0 ? uiNumSubstreams-1 : 0];
+}
+#endif
 
 Void  TComSlice::sortPicList        (TComList<TComPic*>& rcListPic)
 {
@@ -659,6 +707,10 @@ Void TComSlice::copySliceInfo(TComSlice *pSrc)
   m_pcSPS                = pSrc->m_pcSPS;
   m_pcPPS                = pSrc->m_pcPPS;
   m_pcPic                = pSrc->m_pcPic;
+#if F747_APS
+  m_pcAPS                = pSrc->m_pcAPS;
+  m_iAPSId               = pSrc->m_iAPSId;
+#endif
 
   m_uiColDir             = pSrc->m_uiColDir;
 #if ALF_CHROMA_LAMBDA || SAO_CHROMA_LAMBDA 
@@ -695,6 +747,14 @@ Void TComSlice::copySliceInfo(TComSlice *pSrc)
   m_uiEntropySliceCurEndCUAddr    = pSrc->m_uiEntropySliceCurEndCUAddr;
   m_bNextSlice                    = pSrc->m_bNextSlice;
   m_bNextEntropySlice             = pSrc->m_bNextEntropySlice;
+#if TILES_DECODER
+  m_iTileMarkerFlag             = pSrc->m_iTileMarkerFlag;
+#endif
+#if WEIGHT_PRED
+  for ( int e=0 ; e<2 ; e++ )
+    for ( int n=0 ; n<MAX_NUM_REF ; n++ )
+      memcpy(m_weightPredTable[e][n], pSrc->m_weightPredTable[e][n], sizeof(wpScalingParam)*3 );
+#endif
 }
 
 /** Function for setting the slice's temporal layer ID and corresponding temporal_layer_switching_point_flag.
@@ -850,6 +910,98 @@ Void TComSlice::decodingRefMarkingForLD( TComList<TComPic*>& rcListPic, Int iMax
 }
 #endif
 
+#if WEIGHT_PRED
+/** get AC and DC values for weighted pred
+ * \param *wp
+ * \returns Void
+ */
+Void  TComSlice::getWpAcDcParam(wpACDCParam *&wp)
+{
+  wp = m_weightACDCParam;
+}
+
+/** init AC and DC values for weighted pred
+ * \returns Void
+ */
+Void  TComSlice::initWpAcDcParam()
+{
+  for(Int iComp = 0; iComp < 3; iComp++ )
+  {
+    m_weightACDCParam[iComp].iAC = 0;
+    m_weightACDCParam[iComp].iDC = 0;
+  }
+}
+
+/** get WP tables for weighted pred
+ * \param RefPicList
+ * \param iRefIdx
+ * \param *&wpScalingParam
+ * \returns Void
+ */
+Void  TComSlice::getWpScaling( RefPicList e, Int iRefIdx, wpScalingParam *&wp )
+{
+  wp = m_weightPredTable[e][iRefIdx];
+}
+
+/** reset Default WP tables settings : no weight. 
+ * \param wpScalingParam
+ * \returns Void
+ */
+Void  TComSlice::resetWpScaling(wpScalingParam  wp[2][MAX_NUM_REF][3])
+{
+  for ( int e=0 ; e<2 ; e++ ) 
+  {
+    for ( int i=0 ; i<MAX_NUM_REF ; i++ )
+    {
+      for ( int yuv=0 ; yuv<3 ; yuv++ ) 
+      {
+        wpScalingParam  *pwp = &(wp[e][i][yuv]);
+        pwp->bPresentFlag      = false;
+        pwp->uiLog2WeightDenom = 0;
+        pwp->uiLog2WeightDenom = 0;
+        pwp->iWeight           = 1;
+        pwp->iOffset           = 0;
+      }
+    }
+  }
+}
+
+/** init WP table
+ * \returns Void
+ */
+Void  TComSlice::initWpScaling()
+{
+  initWpScaling(m_weightPredTable);
+}
+
+/** set WP tables 
+ * \param wpScalingParam
+ * \returns Void
+ */
+Void  TComSlice::initWpScaling(wpScalingParam  wp[2][MAX_NUM_REF][3])
+{
+  for ( int e=0 ; e<2 ; e++ ) 
+  {
+    for ( int i=0 ; i<MAX_NUM_REF ; i++ )
+    {
+      for ( int yuv=0 ; yuv<3 ; yuv++ ) 
+      {
+        wpScalingParam  *pwp = &(wp[e][i][yuv]);
+        if ( !pwp->bPresentFlag ) {
+          // Inferring values not present :
+          pwp->iWeight = (1 << pwp->uiLog2WeightDenom);
+          pwp->iOffset = 0;
+        }
+
+        pwp->w      = pwp->iWeight;
+        pwp->o      = pwp->iOffset * (1 << (g_uiBitDepth-8));
+        pwp->shift  = pwp->uiLog2WeightDenom;
+        pwp->round  = (pwp->uiLog2WeightDenom>=1) ? (1 << (pwp->uiLog2WeightDenom-1)) : (0);
+      }
+    }
+  }
+}
+#endif
 
 // ------------------------------------------------------------------------------------------------
 // Sequence parameter set (SPS)
@@ -902,7 +1054,7 @@ TComSPS::TComSPS()
 #if MTK_NONCROSS_INLOOP_FILTER
 , m_bLFCrossSliceBoundaryFlag (false)
 #endif
-#if MTK_SAO
+#if SAO
 , m_bUseSAO                   (false) 
 #endif
 , m_bTemporalIdNestingFlag    (false)
@@ -917,6 +1069,18 @@ TComSPS::TComSPS()
 
 TComSPS::~TComSPS()
 {
+#if TILES
+  if( m_iNumColumnsMinus1 > 0 && m_iUniformSpacingIdr == 0 )
+  {
+    delete [] m_puiColumnWidth; 
+    m_puiColumnWidth = NULL;
+  }
+  if( m_iNumRowsMinus1 > 0 && m_iUniformSpacingIdr == 0 )
+  {
+    delete [] m_puiRowHeight;
+    m_puiRowHeight = NULL;
+  }
+#endif
 }
 
 TComPPS::TComPPS()
@@ -932,8 +1096,24 @@ TComPPS::TComPPS()
 #if FINE_GRANULARITY_SLICES
 , m_iSliceGranularity           (0)
 #endif
+#if !F747_APS
 #if E045_SLICE_COMMON_INFO_SHARING
 , m_bSharedPPSInfoEnabled       (false)
+#endif
+#endif
+#if TILES
+, m_iColumnRowInfoPresent        (0)
+, m_iUniformSpacingIdr           (0)
+, m_iTileBoundaryIndependenceIdr (0)
+, m_iNumColumnsMinus1            (0)
+, m_puiColumnWidth               (NULL)
+, m_iNumRowsMinus1               (0)
+, m_puiRowHeight                 (NULL)
+#endif
+#if OL_USE_WPP
+,  m_iEntropyCodingSynchro      (0)
+,  m_bCabacIstateReset          (false)
+,  m_iNumSubstreams             (1)
 #endif
 {
   for ( UInt i = 0; i < MAX_TLAYER; i++ )
@@ -944,6 +1124,79 @@ TComPPS::TComPPS()
 
 TComPPS::~TComPPS()
 {
+#if TILES
+  if( m_iNumColumnsMinus1 > 0 && m_iUniformSpacingIdr == 0 )
+  {
+    if (m_puiColumnWidth) delete [] m_puiColumnWidth; 
+    m_puiColumnWidth = NULL;
+  }
+  if( m_iNumRowsMinus1 > 0 && m_iUniformSpacingIdr == 0 )
+  {
+    if (m_puiRowHeight) delete [] m_puiRowHeight;
+    m_puiRowHeight = NULL;
+  }
+#endif
 }
+
+#if F747_APS
+TComAPS::TComAPS()
+{
+  m_apsID = 0;
+  m_bAlfEnabled = false;
+  m_bSaoEnabled = false;
+  m_pSaoParam = NULL;
+  m_pAlfParam = NULL;
+  m_bCABACForAPS = false;
+  m_CABACinitIDC = -1;
+  m_CABACinitQP = -1;
+}
+
+TComAPS::~TComAPS()
+{
+
+}
+
+TComAPS& TComAPS::operator= (const TComAPS& src)
+{
+  m_apsID       = src.m_apsID;
+  m_bAlfEnabled = src.m_bAlfEnabled;
+  m_bSaoEnabled = src.m_bSaoEnabled;
+  m_pSaoParam   = src.m_pSaoParam; 
+  m_pAlfParam   = src.m_pAlfParam; 
+  m_bCABACForAPS= src.m_bCABACForAPS;
+  m_CABACinitIDC= src.m_CABACinitIDC;
+  m_CABACinitQP = src.m_CABACinitQP;
+
+  return *this;
+}
+
+Void TComAPS::createSaoParam()
+{
+  m_pSaoParam = new SAOParam;
+}
+
+Void TComAPS::destroySaoParam()
+{
+  if(m_pSaoParam != NULL)
+  {
+    delete m_pSaoParam;
+    m_pSaoParam = NULL;
+  }
+}
+
+Void TComAPS::createAlfParam()
+{
+  m_pAlfParam = new ALFParam;
+}
+Void TComAPS::destroyAlfParam()
+{
+  if(m_pAlfParam != NULL)
+  {
+    delete m_pAlfParam;
+    m_pAlfParam = NULL;
+  }
+}
+#endif
+
 
 //! \}

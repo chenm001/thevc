@@ -238,7 +238,11 @@ public:
   UInt&         getAddr               ()                        { return m_uiCUAddr;        }
   UInt&         getZorderIdxInCU      ()                        { return m_uiAbsIdxInLCU; }
 #if FINE_GRANULARITY_SLICES
+#if TILES
+  UInt          getSCUAddr            ();
+#else
   UInt          getSCUAddr            ()                        { return m_uiCUAddr*(1<<(m_pcSlice->getSPS()->getMaxCUDepth()<<1))+m_uiAbsIdxInLCU;}
+#endif
 #endif
   UInt          getCUPelX             ()                        { return m_uiCUPelX;        }
   UInt          getCUPelY             ()                        { return m_uiCUPelY;        }
@@ -504,7 +508,10 @@ public:
   
   UInt          getCtxSplitFlag                 ( UInt   uiAbsPartIdx, UInt uiDepth                   );
   UInt          getCtxQtCbf                     ( UInt   uiAbsPartIdx, TextType eType, UInt uiTrDepth );
+#if !DNB_QT_ROOT_CBF
   UInt          getCtxQtRootCbf                 ( UInt   uiAbsPartIdx                                 );
+#endif
+
 #if !DNB_REF_FRAME_IDX
   UInt          getCtxRefIdx                    ( UInt   uiAbsPartIdx, RefPicList eRefPicList         );
 #endif

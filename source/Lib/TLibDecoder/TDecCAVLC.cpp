@@ -141,6 +141,35 @@ void TDecCavlc::parseSEI(SEImessages& seis)
   assert(m_pcBitstream->getNumBitsLeft() == 8); /* rsbp_trailing_bits */
 }
 
+#if F747_APS
+Void TDecCavlc::parseAPSInitInfo(TComAPS& cAPS)
+{
+  UInt uiCode;
+  //aps ID
+  xReadUvlc(uiCode);      cAPS.setAPSID(uiCode);
+  //SAO flag
+  xReadFlag(uiCode);      cAPS.setSaoEnabled( (uiCode==1)?true:false );
+  //ALF flag
+  xReadFlag(uiCode);      cAPS.setAlfEnabled( (uiCode==1)?true:false );
+
+  if(cAPS.getSaoEnabled() || cAPS.getAlfEnabled())
+  {
+    //CABAC usage flag
+    xReadFlag(uiCode);    cAPS.setCABACForAPS( (uiCode==1)?true:false );
+    if(cAPS.getCABACForAPS())
+    {
+      Int iCode;
+      //CABAC init IDC
+      xReadUvlc(uiCode);   cAPS.setCABACinitIDC( uiCode );
+      //CABAC init QP
+      xReadSvlc(iCode);    cAPS.setCABACinitQP( iCode + 26);
+    }
+  }
+}
+#endif
+
+
+
 Void TDecCavlc::parsePPS(TComPPS* pcPPS)
 {
 #if ENC_DEC_TRACE  
@@ -150,6 +179,19 @@ Void TDecCavlc::parsePPS(TComPPS* pcPPS)
   READ_UVLC( uiCode, "pic_parameter_set_id");                      pcPPS->setPPSId (uiCode);
   READ_UVLC( uiCode, "seq_parameter_set_id");                      pcPPS->setSPSId (uiCode);
   // entropy_coding_mode_flag
+#if OL_USE_WPP
+  // We code the entropy_coding_mode_flag, it's needed for tests.
+  READ_FLAG( uiCode, "entropy_coding_mode_flag" );                 pcPPS->setEntropyCodingMode( uiCode ? true : false );
+  if (pcPPS->getEntropyCodingMode())
+  {
+    READ_UVLC( uiCode, "entropy_coding_synchro" );                 pcPPS->setEntropyCodingSynchro( uiCode );
+    READ_FLAG( uiCode, "cabac_istate_reset" );                     pcPPS->setCabacIstateReset( uiCode ? true : false );
+    if ( pcPPS->getEntropyCodingSynchro() )
+    {
+      READ_UVLC( uiCode, "num_substreams_minus1" );                pcPPS->setNumSubstreams(uiCode+1);
+    }
+  }
+#endif
   READ_UVLC( uiCode, "num_temporal_layer_switching_point_flags" ); pcPPS->setNumTLayerSwitchingFlags( uiCode );
   for ( UInt i = 0; i < pcPPS->getNumTLayerSwitchingFlags(); i++ )
   {
@@ -163,10 +205,12 @@ Void TDecCavlc::parsePPS(TComPPS* pcPPS)
 #if FINE_GRANULARITY_SLICES
   READ_CODE( 2, uiCode, "slice_granularity" );                     pcPPS->setSliceGranularity(uiCode);
 #endif
+
+#if !F747_APS
 #if E045_SLICE_COMMON_INFO_SHARING
   READ_FLAG( uiCode, "shared_pps_info_enabled_flag" );             pcPPS->setSharedPPSInfoEnabled( uiCode ? true : false);
 #endif
-
+#endif
   // alf_param() ?
 
 #if SUB_LCU_DQP
@@ -183,7 +227,51 @@ Void TDecCavlc::parsePPS(TComPPS* pcPPS)
   }
 #endif
 
+#if WEIGHT_PRED
+  READ_FLAG( uiCode, "weighted_pred_flag" );          // Use of Weighting Prediction (P_SLICE)
+  pcPPS->setUseWP( uiCode==1 );
+  READ_CODE( 2, uiCode, "weighted_bipred_idc" );      // Use of Bi-Directional Weighting Prediction (B_SLICE)
+  pcPPS->setWPBiPredIdc( uiCode );
+  printf("TDecCavlc::parsePPS():\tm_bUseWeightPred=%d\tm_uiBiPredIdc=%d\n", pcPPS->getUseWP(), pcPPS->getWPBiPredIdc());
+#endif
 
+#if TILES
+  READ_FLAG ( uiCode, "tile_info_present_flag" );
+  pcPPS->setColumnRowInfoPresent(uiCode);
+  if( pcPPS->getColumnRowInfoPresent() == 1 )
+  {
+    READ_FLAG ( uiCode, "uniform_spacing_idc" );  
+    pcPPS->setUniformSpacingIdr( uiCode );
+    READ_FLAG ( uiCode, "tile_boundary_independence_idc" );  
+    pcPPS->setTileBoundaryIndependenceIdr( uiCode );
+
+    READ_UVLC ( uiCode, "num_tile_columns_minus1" );   
+    pcPPS->setNumColumnsMinus1( uiCode );  
+    READ_UVLC ( uiCode, "num_tile_rows_minus1" );  
+    pcPPS->setNumRowsMinus1( uiCode );  
+
+    if( pcPPS->getUniformSpacingIdr() == 0 )
+    {
+      UInt* columnWidth = (UInt*)malloc(pcPPS->getNumColumnsMinus1()*sizeof(UInt));
+      for(UInt i=0; i<pcPPS->getNumColumnsMinus1(); i++)
+      { 
+        READ_UVLC( uiCode, "column_width" );  
+        columnWidth[i] = uiCode;  
+      }
+      pcPPS->setColumnWidth(columnWidth);
+      free(columnWidth);
+
+      UInt* rowHeight = (UInt*)malloc(pcPPS->getNumRowsMinus1()*sizeof(UInt));
+      for(UInt i=0; i<pcPPS->getNumRowsMinus1(); i++)
+      {
+        READ_UVLC( uiCode, "row_height" );  
+        rowHeight[i] = uiCode;  
+      }
+      pcPPS->setRowHeight(rowHeight);
+      free(rowHeight);  
+    }
+  }
+#endif
   return;
 }
 
@@ -272,8 +360,8 @@ Void TDecCavlc::parseSPS(TComSPS* pcSPS)
 #if MTK_NONCROSS_INLOOP_FILTER
   READ_FLAG( uiCode, "loop_filter_across_slice_flag" );          pcSPS->setLFCrossSliceBoundaryFlag( uiCode ? true : false);
 #endif
-#if MTK_SAO
-  READ_FLAG( uiCode, "sample_adaptive_offset_enabled_flag" );    pcSPS->setUseSAO       ( uiCode ? true : false );  
+#if SAO
+  READ_FLAG( uiCode, "sample_adaptive_offset_enabled_flag" );    pcSPS->setUseSAO ( uiCode ? true : false );  
 #endif
   READ_FLAG( uiCode, "adaptive_loop_filter_enabled_flag" );      pcSPS->setUseALF ( uiCode ? true : false );
 #if E057_INTRA_PCM && E192_SPS_PCM_FILTER_DISABLE_SYNTAX
@@ -307,9 +395,47 @@ Void TDecCavlc::parseSPS(TComSPS* pcSPS)
   }
 #endif
 
+#if TILES
+  READ_FLAG ( uiCode, "uniform_spacing_idc" ); 
+  pcSPS->setUniformSpacingIdr( uiCode );
+  READ_FLAG ( uiCode, "tile_boundary_independence_idc" );  
+  pcSPS->setTileBoundaryIndependenceIdr( uiCode );
+ 
+  READ_UVLC ( uiCode, "num_tile_columns_minus1" );
+  pcSPS->setNumColumnsMinus1( uiCode );  
+  READ_UVLC ( uiCode, "num_tile_rows_minus1" ); 
+  pcSPS->setNumRowsMinus1( uiCode ); 
+  if( pcSPS->getUniformSpacingIdr() == 0 )
+  {
+    UInt* columnWidth = (UInt*)malloc(pcSPS->getNumColumnsMinus1()*sizeof(UInt));
+    for(UInt i=0; i<pcSPS->getNumColumnsMinus1(); i++)
+    { 
+      READ_UVLC( uiCode, "column_width" );
+      columnWidth[i] = uiCode;  
+    }
+    pcSPS->setColumnWidth(columnWidth);
+    free(columnWidth);
+  
+    UInt* rowHeight = (UInt*)malloc(pcSPS->getNumRowsMinus1()*sizeof(UInt));
+    for(UInt i=0; i<pcSPS->getNumRowsMinus1(); i++)
+    {
+      READ_UVLC( uiCode, "row_height" );
+      rowHeight[i] = uiCode;  
+    }
+    pcSPS->setRowHeight(rowHeight);
+    free(rowHeight);  
+  }
+#endif
+
   return;
 }
 
+#if TILES_DECODER
+Void TDecCavlc::readTileMarker   ( UInt& uiTileIdx, UInt uiBitsUsed )
+{
+  xReadCode ( uiBitsUsed, uiTileIdx );
+}
+#endif
 
 Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice)
 {
@@ -331,6 +457,12 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice)
     //   slice_type
     READ_UVLC (    uiCode, "slice_type" );            rpcSlice->setSliceType((SliceType)uiCode);
     READ_UVLC (    uiCode, "pic_parameter_set_id" );  rpcSlice->setPPSId(uiCode);
+#if F747_APS
+    if(rpcSlice->getSPS()->getUseSAO() || rpcSlice->getSPS()->getUseALF())
+    {
+      READ_UVLC (    uiCode, "aps_id" );  rpcSlice->setAPSId(uiCode);
+    }
+#endif
     //   frame_num
     //   if( IdrPicFlag )
     //     idr_pic_id
@@ -492,6 +624,15 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice)
     //   }
     // }
   }
+
+#if WEIGHT_PRED
+  if ( (rpcSlice->getPPS()->getUseWP() && rpcSlice->getSliceType()==P_SLICE) || (rpcSlice->getPPS()->getWPBiPredIdc() && rpcSlice->getSliceType()==B_SLICE) )
+  {
+    parseWeightPredTable(rpcSlice);
+    rpcSlice->initWpScaling();
+  }
+#endif
+
   // !!!! Syntax elements not in the WD  !!!!!
   
   if (!bEntropySlice)
@@ -504,6 +645,103 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice)
       xReadCode(2, uiCode); rpcSlice->setERBIndex( (ERBIndex)uiCode );    assert (uiCode == ERB_NONE || uiCode == ERB_LTR);
     }      
   }
+
+#if TILES_DECODER
+  rpcSlice->setTileMarkerFlag ( 0 ); // default
+  if (!bEntropySlice)
+  {
+    if (rpcSlice->getSPS()->getTileBoundaryIndependenceIdr())
+    {   
+      xReadCode(1, uiCode); // read flag indicating if tile markers transmitted
+      rpcSlice->setTileMarkerFlag( uiCode );
+    }
+  }
+#endif
+
+#if OL_USE_WPP
+  if (rpcSlice->getPPS()->getEntropyCodingSynchro())
+  {
+    UInt uiNumSubstreams = rpcSlice->getPPS()->getNumSubstreams();
+    rpcSlice->allocSubstreamSizes(uiNumSubstreams);
+    UInt *puiSubstreamSizes = rpcSlice->getSubstreamSizes();
+
+    for (UInt ui = 0; ui+1 < uiNumSubstreams; ui++)
+    {
+      xReadCode(2, uiCode);
+      
+      switch ( uiCode )
+      {
+      case 0:
+        xReadCode(8,  uiCode);
+        break;
+      case 1:
+        xReadCode(16, uiCode);
+        break;
+      case 2:
+        xReadCode(24, uiCode);
+        break;
+      case 3:
+        xReadCode(32, uiCode);
+        break;
+      default:
+        printf("Error in parseSliceHeader\n");
+        exit(-1);
+        break;
+      }
+      puiSubstreamSizes[ui] = uiCode;
+    }
+  }
+#endif
+
+#if TILES_DECODER
+  if (!bEntropySlice)
+  {
+    // Reading location information
+    if (rpcSlice->getSPS()->getTileBoundaryIndependenceIdr())
+    {   
+      xReadCode(1, uiCode); // read flag indicating if location information signaled in slice header
+      Bool bTileLocationInformationInSliceHeaderFlag = (uiCode)? true : false;
+
+      if (bTileLocationInformationInSliceHeaderFlag)
+      {
+        // location count
+        xReadCode(5, uiCode); // number of tiles for which location information signaled
+        rpcSlice->setTileLocationCount ( uiCode + 1 );
+
+        xReadCode(5, uiCode); // number of bits used by diff
+        Int iBitsUsedByDiff = uiCode + 1;
+
+        // read out tile start location
+        Int iLastSize = 0;
+        for (UInt uiIdx=0; uiIdx<rpcSlice->getTileLocationCount(); uiIdx++)
+        {
+          Int iAbsDiff, iCurSize, iCurDiff;
+          if (uiIdx==0)
+          {
+            xReadCode(iBitsUsedByDiff-1, uiCode); iAbsDiff  = uiCode;
+            rpcSlice->setTileLocation( uiIdx, iAbsDiff );
+            iCurDiff  = iAbsDiff;
+            iLastSize = iAbsDiff;
+          }
+          else
+          {
+            xReadCode(1, uiCode); // read sign
+            Int iSign = (uiCode) ? -1 : +1;
+
+            xReadCode(iBitsUsedByDiff-1, uiCode); iAbsDiff  = uiCode;
+            iCurDiff  = (iSign) * iAbsDiff;
+            iCurSize  = iLastSize + iCurDiff;
+            iLastSize = iCurSize;
+            rpcSlice->setTileLocation( uiIdx, rpcSlice->getTileLocation( uiIdx-1 ) + iCurSize ); // calculate byte location
+          }
+        }
+      }
+
+      // read out trailing bits
+      m_pcBitstream->readOutTrailingBits();
+    }
+  }
+#endif
   
   return;
 }
@@ -2594,17 +2832,18 @@ Void TDecCavlc::parseAlfSvlc (Int&  riVal)
 
 
 
-#if MTK_SAO
-Void TDecCavlc::parseAoFlag (UInt& ruiVal)
+#if SAO
+Void TDecCavlc::parseSaoFlag (UInt& ruiVal)
 {
   xReadFlag( ruiVal );
 }
-Void TDecCavlc::parseAoUvlc (UInt& ruiVal)
+
+Void TDecCavlc::parseSaoUvlc (UInt& ruiVal)
 {
   xReadUvlc( ruiVal );
 }
 
-Void TDecCavlc::parseAoSvlc (Int&  riVal)
+Void TDecCavlc::parseSaoSvlc (Int&  riVal)
 {
   xReadSvlc( riVal );
 }
@@ -3724,6 +3963,101 @@ Void TDecCavlc::xParseCoeff(TCoeff* scoeff, Int blockType, Int blSize
   return;
 }
 
+#endif
+
+#if WEIGHT_PRED
+/** parse explicit wp tables
+ * \param TComSlice* pcSlice
+ * \returns Void
+ */
+Void TDecCavlc::parseWeightPredTable( TComSlice* pcSlice )
+{
+  wpScalingParam  *wp;
+  Bool            bChroma     = true; // color always present in HEVC ?
+  TComPPS*        pps         = pcSlice->getPPS();
+  SliceType       eSliceType  = pcSlice->getSliceType();
+  Int             iNbRef       = (eSliceType == B_SLICE ) ? (2) : (1);
+  UInt            uiLog2WeightDenomLuma, uiLog2WeightDenomChroma;
+  UInt            uiMode      = 0;
+
+  if ( (eSliceType==P_SLICE && pps->getUseWP()) || (eSliceType==B_SLICE && pps->getWPBiPredIdc()==1) )
+    uiMode = 1;
+  else if ( eSliceType==B_SLICE && pps->getWPBiPredIdc()==2 )
+    uiMode = 2;
+
+  if ( uiMode == 1 )  // explicit
+  {
+    printf("\nTDecCavlc::parseWeightPredTable(poc=%d) explicit...\n", pcSlice->getPOC());
+    xReadUvlc( uiLog2WeightDenomLuma );     // ue(v): luma_log2_weight_denom
+    if( bChroma ) {                         // color always present in HEVC ?
+      xReadUvlc( uiLog2WeightDenomChroma ); // ue(v): chroma_log2_weight_denom
+    }
+
+    for ( Int iNumRef=0 ; iNumRef<iNbRef ; iNumRef++ ) 
+    {
+      RefPicList  eRefPicList = ( iNumRef ? REF_PIC_LIST_1 : REF_PIC_LIST_0 );
+      for ( Int iRefIdx=0 ; iRefIdx<pcSlice->getNumRefIdx(eRefPicList) ; iRefIdx++ ) 
+      {
+        pcSlice->getWpScaling(eRefPicList, iRefIdx, wp);
+
+        wp[0].uiLog2WeightDenom = uiLog2WeightDenomLuma;
+        wp[1].uiLog2WeightDenom = uiLog2WeightDenomChroma;
+        wp[2].uiLog2WeightDenom = uiLog2WeightDenomChroma;
+
+        UInt  uiCode;
+        xReadFlag( uiCode );           // u(1): luma_weight_l0_flag
+        wp[0].bPresentFlag = ( uiCode == 1 );
+        if ( wp[0].bPresentFlag ) 
+        {
+          xReadSvlc( wp[0].iWeight ); // se(v): luma_weight_l0[i]
+          xReadSvlc( wp[0].iOffset ); // se(v): luma_offset_l0[i]
+        }
+        else 
+        {
+          wp[0].iWeight = (1 << wp[0].uiLog2WeightDenom);
+          wp[0].iOffset = 0;
+        }
+        if ( bChroma ) 
+        {
+          xReadFlag( uiCode );           // u(1): chroma_weight_l0_flag
+          wp[1].bPresentFlag = ( uiCode == 1 );
+          wp[2].bPresentFlag = ( uiCode == 1 );
+          if ( wp[1].bPresentFlag ) 
+          {
+            for ( Int j=1 ; j<3 ; j++ ) 
+            {
+              xReadSvlc( wp[j].iWeight ); // se(v): chroma_weight_l0[i][j]
+              xReadSvlc( wp[j].iOffset ); // se(v): chroma_offset_l0[i][j]
+            }
+          }
+          else 
+          {
+            for ( Int j=1 ; j<3 ; j++ ) 
+            {
+              wp[j].iWeight = (1 << wp[j].uiLog2WeightDenom);
+              wp[j].iOffset = 0;
+            }
+          }
+        }
+      }
+
+      for ( Int iRefIdx=pcSlice->getNumRefIdx(eRefPicList) ; iRefIdx<MAX_NUM_REF ; iRefIdx++ ) 
+      {
+        pcSlice->getWpScaling(eRefPicList, iRefIdx, wp);
+
+        wp[0].bPresentFlag = false;
+        wp[1].bPresentFlag = false;
+        wp[2].bPresentFlag = false;
+      }
+    }
+  }
+  else if ( uiMode == 2 )  // implicit
+  {
+    printf("\nTDecCavlc::parseWeightPredTable(poc=%d) implicit...\n", pcSlice->getPOC());
+  }
+  else
+    assert(0);
+}
 #endif
 
 //! \}

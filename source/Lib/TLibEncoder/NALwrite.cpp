@@ -50,7 +50,11 @@ static const char emulation_prevention_three_byte[] = {3};
  * write nalu to bytestream out, performing RBSP anti startcode
  * emulation as required.  nalu.m_RBSPayload must be byte aligned.
  */
+#if TILES_DECODER
+void write(ostream& out, OutputNALUnit& nalu)
+#else
 void write(ostream& out, const OutputNALUnit& nalu)
+#endif
 {
   TComOutputBitstream bsNALUHeader;
 
@@ -92,16 +96,29 @@ void write(ostream& out, const OutputNALUnit& nalu)
    *  - 0x00000302
    *  - 0x00000303
    */
+#if TILES_DECODER
+  vector<uint8_t>& rbsp   = nalu.m_Bitstream.getFIFO();
+  UInt uiTileMarkerCount  = nalu.m_Bitstream.getTileMarkerLocationCount();
+#else
   const vector<uint8_t>& rbsp = nalu.m_Bitstream.getFIFO();
+#endif
 
+#if TILES_DECODER
+  for (vector<uint8_t>::iterator it = rbsp.begin(); it != rbsp.end();)
+#else
   for (vector<uint8_t>::const_iterator it = rbsp.begin(); it != rbsp.end();)
+#endif
   {
     /* 1) find the next emulated 00 00 {00,01,02,03}
      * 2a) if not found, write all remaining bytes out, stop.
      * 2b) otherwise, write all non-emulated bytes out
      * 3) insert emulation_prevention_three_byte
      */
+#if TILES_DECODER
+    vector<uint8_t>::iterator found = it;
+#else
     vector<uint8_t>::const_iterator found = it;
+#endif
     do
     {
       /* NB, end()-1, prevents finding a trailing two byte sequence */
@@ -114,6 +131,22 @@ void write(ostream& out, const OutputNALUnit& nalu)
         break;
     } while (true);
 
+#if TILES_DECODER
+    UInt uiDistance = found - rbsp.begin();
+    for ( UInt uiMrkrIdx = 0; uiMrkrIdx < uiTileMarkerCount ; uiMrkrIdx++ )
+    {    
+      UInt uiByteLocation   = nalu.m_Bitstream.getTileMarkerLocation( uiMrkrIdx );
+      if (found != rbsp.end() && uiByteLocation > (uiDistance - 2) )
+      {
+        nalu.m_Bitstream.setTileMarkerLocation( uiMrkrIdx, uiByteLocation+1 );
+      }
+    }
+    it = found;
+    if (found != rbsp.end())
+    {
+      it = rbsp.insert(found, emulation_prevention_three_byte[0]);
+    }
+#else
     /* found is the first byte that shouldn't be written out this time */
     out.write((char*)&*it, found - it);
     it = found;
@@ -121,7 +154,29 @@ void write(ostream& out, const OutputNALUnit& nalu)
     {
       out.write(emulation_prevention_three_byte, 1);
     }
+#endif
   }
+
+#if TILES_DECODER
+  // Insert tile markers
+  TComOutputBitstream cTileMarker;
+  UInt uiMarker = 0x000002;
+  cTileMarker.write(uiMarker, 24);
+  for ( UInt uiInsertIdx   = 0; uiInsertIdx < uiTileMarkerCount ; uiInsertIdx++ )
+  {
+    UInt uiByteLocation   = nalu.m_Bitstream.getTileMarkerLocation( uiInsertIdx );
+    nalu.m_Bitstream.insertAt( cTileMarker, uiByteLocation ); // 0x000002
+
+    // update tile marker byte locations of yet to be written markers
+    for ( UInt uiUpdateLOCIdx = uiInsertIdx+1; uiUpdateLOCIdx < uiTileMarkerCount; uiUpdateLOCIdx++ )
+    {
+      UInt uiLocation = nalu.m_Bitstream.getTileMarkerLocation( uiUpdateLOCIdx );
+      nalu.m_Bitstream.setTileMarkerLocation( uiUpdateLOCIdx, uiLocation + 3 );
+    }
+  }
+  out.write((char*)&(*rbsp.begin()), rbsp.end() - rbsp.begin());
+#endif
+
 
   /* 7.4.1.1
    * ... when the last byte of the RBSP data is equal to 0x00 (which can
@@ -142,4 +197,19 @@ void writeRBSPTrailingBits(TComOutputBitstream& bs)
   bs.write( 1, 1 );
   bs.writeAlignZero();
 }
+
+#if TILES_DECODER
+/**
+ * Copy NALU from naluSrc to naluDest
+ */
+void copyNaluData(OutputNALUnit& naluDest, const OutputNALUnit& naluSrc)
+{
+  naluDest.m_UnitType   = naluSrc.m_UnitType;
+  naluDest.m_RefIDC     = naluSrc.m_RefIDC;
+  naluDest.m_TemporalID = naluSrc.m_TemporalID;
+  naluDest.m_OutputFlag = naluSrc.m_OutputFlag;
+  naluDest.m_Bitstream  = naluSrc.m_Bitstream;
+}
+#endif
+
 //! \}

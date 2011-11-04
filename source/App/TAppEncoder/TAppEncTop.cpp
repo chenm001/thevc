@@ -157,6 +157,11 @@ Void TAppEncTop::xInitLibCfg()
 #if E057_INTRA_PCM
   m_cTEncTop.setPCMLog2MinSize          ( m_uiPCMLog2MinSize);
 #endif
+#if WEIGHT_PRED
+  //====== Weighted Prediction ========
+  m_cTEncTop.setUseWP                   ( m_bUseWeightPred      );
+  m_cTEncTop.setWPBiPredIdc             ( m_uiBiPredIdc         );
+#endif
   //====== Slice ========
   m_cTEncTop.setSliceMode               ( m_iSliceMode                );
   m_cTEncTop.setSliceArgument           ( m_iSliceArgument            );
@@ -184,8 +189,8 @@ Void TAppEncTop::xInitLibCfg()
   }
   m_cTEncTop.setLFCrossSliceBoundaryFlag( m_bLFCrossSliceBoundaryFlag );
 #endif
-#if MTK_SAO
-  m_cTEncTop.setUseSAO               ( m_bUseSAO         );
+#if SAO
+  m_cTEncTop.setUseSAO ( m_bUseSAO );
 #endif
 #if E057_INTRA_PCM && E192_SPS_PCM_BIT_DEPTH_SYNTAX
   m_cTEncTop.setPCMInputBitDepthFlag  ( m_bPCMInputBitDepthFlag); 
@@ -198,6 +203,33 @@ Void TAppEncTop::xInitLibCfg()
 
 #if REF_SETTING_FOR_LD
   m_cTEncTop.setUseNewRefSetting( m_bUseNewRefSetting );
+#endif
+#if TILES
+  m_cTEncTop.setColumnRowInfoPresent       ( m_iColumnRowInfoPresent );
+  m_cTEncTop.setUniformSpacingIdr          ( m_iUniformSpacingIdr );
+  m_cTEncTop.setTileBoundaryIndependenceIdr( m_iTileBoundaryIndependenceIdr );
+  m_cTEncTop.setNumColumnsMinus1           ( m_iNumColumnsMinus1 );
+  m_cTEncTop.setNumRowsMinus1              ( m_iNumRowsMinus1 );
+  if(m_iUniformSpacingIdr==0)
+  {
+    m_cTEncTop.setColumnWidth              ( m_pchColumnWidth );
+    m_cTEncTop.setRowHeight                ( m_pchRowHeight );
+  }
+  m_cTEncTop.xCheckGSParameters();
+#if TILES_DECODER
+  m_cTEncTop.setTileLocationInSliceHeaderFlag ( m_iTileLocationInSliceHeaderFlag );
+  m_cTEncTop.setTileMarkerFlag              ( m_iTileMarkerFlag );
+  m_cTEncTop.setMaxTileMarkerEntryPoints    ( m_iMaxTileMarkerEntryPoints );
+  
+  Int uiTilesCount          = (m_iNumRowsMinus1+1) * (m_iNumColumnsMinus1+1);
+  m_dMaxTileMarkerOffset  = ((Double)uiTilesCount) / m_iMaxTileMarkerEntryPoints;
+  m_cTEncTop.setMaxTileMarkerOffset         ( m_dMaxTileMarkerOffset );
+#endif
+#endif
+#if OL_USE_WPP
+  m_cTEncTop.setWaveFrontSynchro           ( m_iWaveFrontSynchro );
+  m_cTEncTop.setWaveFrontFlush             ( m_iWaveFrontFlush );
+  m_cTEncTop.setWaveFrontSubstreams        ( m_iWaveFrontSubstreams );
 #endif
 }
 
@@ -271,7 +303,7 @@ Void TAppEncTop::encode()
   {
     // get buffers
     xGetBuffer(pcPicYuvRec);
-    
+
     // read input YUV file
     m_cTVideoIOYuvInputFile.read( pcPicYuvOrg, m_aiPad );
     
@@ -327,12 +359,14 @@ Void TAppEncTop::xGetBuffer( TComPicYuv*& rpcPicYuvRec)
   if ( m_cListPicYuvRec.size() == (UInt)m_iGOPSize )
   {
     rpcPicYuvRec = m_cListPicYuvRec.popFront();
+
   }
   else
   {
     rpcPicYuvRec = new TComPicYuv;
     
     rpcPicYuvRec->create( m_iSourceWidth, m_iSourceHeight, m_uiMaxCUWidth, m_uiMaxCUHeight, m_uiMaxCUDepth );
+
   }
   m_cListPicYuvRec.pushBack( rpcPicYuvRec );
 }

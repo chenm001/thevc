@@ -60,9 +60,17 @@ TDecTop::TDecTop()
   m_uiPrevPOC               = UInt(-1);
   m_bFirstSliceInPicture    = true;
   m_bFirstSliceInSequence   = true;
+#if F747_APS
+  m_vAPS.resize(MAX_NUM_SUPPORTED_APS);
+  for(Int i=0; i< MAX_NUM_SUPPORTED_APS; i++)
+  {
+    m_vAPS[i].reserve(APS_RESERVED_BUFFER_SIZE);
+  }
+#else
 #if E045_SLICE_COMMON_INFO_SHARING
   m_pcPPSBuffer = NULL;
   m_pbHasNewPPS = NULL;
+#endif
 #endif
 }
 
@@ -82,8 +90,27 @@ Void TDecTop::create()
 
 Void TDecTop::destroy()
 {
+
+#if F747_APS
+  if(m_vAPS.size() != 0)
+  {
+    for(Int i=0; i< m_vAPS.size(); i++)
+    {
+      std::vector<TComAPS>& vAPS = m_vAPS[i];
+
+      if(vAPS.size() != 0)
+      {
+        for(Int j=0; j< vAPS.size(); j++)
+        {
+          freeAPS( &vAPS[j]);
+        }
+      }
+    }
+  }
+#else
 #if E045_SLICE_COMMON_INFO_SHARING
   destroyPPSBuffer();
+#endif
 #endif
   m_cGopDecoder.destroy();
   
@@ -97,10 +124,10 @@ Void TDecTop::init()
 {
   // initialize ROM
   initROM();
-#if MTK_SAO
-  m_cGopDecoder.  init( &m_cEntropyDecoder, &m_cSbacDecoder, &m_cBinCABAC, &m_cCavlcDecoder, &m_cSliceDecoder, &m_cLoopFilter, &m_cAdaptiveLoopFilter, &m_cSAO);
+#if SAO
+  m_cGopDecoder.init( &m_cEntropyDecoder, &m_cSbacDecoder, &m_cBinCABAC, &m_cCavlcDecoder, &m_cSliceDecoder, &m_cLoopFilter, &m_cAdaptiveLoopFilter, &m_cSAO);
 #else
-  m_cGopDecoder.  init( &m_cEntropyDecoder, &m_cSbacDecoder, &m_cBinCABAC, &m_cCavlcDecoder, &m_cSliceDecoder, &m_cLoopFilter, &m_cAdaptiveLoopFilter );
+  m_cGopDecoder.init( &m_cEntropyDecoder, &m_cSbacDecoder, &m_cBinCABAC, &m_cCavlcDecoder, &m_cSliceDecoder, &m_cLoopFilter, &m_cAdaptiveLoopFilter );
 #endif
   m_cSliceDecoder.init( &m_cEntropyDecoder, &m_cCuDecoder );
   m_cEntropyDecoder.init(&m_cPrediction);
@@ -123,7 +150,7 @@ Void TDecTop::deletePicBuffer ( )
   // destroy ALF temporary buffers
   m_cAdaptiveLoopFilter.destroy();
 
-#if MTK_SAO
+#if SAO
   m_cSAO.destroy();
 #endif
   
@@ -222,10 +249,11 @@ Void TDecTop::executeDeblockAndAlf(UInt& ruiPOC, TComList<TComPic*>*& rpcListPic
 Bool TDecTop::decode(InputNALUnit& nalu, Int& iSkipFrame, Int& iPOCLastDisplay)
 {
   TComPic*&   pcPic         = m_pcPic;
+#if !F747_APS
 #if E045_SLICE_COMMON_INFO_SHARING
   static TComPPS*    pcNewPPS = NULL;
 #endif
-
+#endif
   // Initialize entropy decoder
   m_cEntropyDecoder.setEntropyDecoder (&m_cCavlcDecoder);
   m_cEntropyDecoder.setBitstream      (nalu.m_Bitstream);
@@ -250,7 +278,7 @@ Bool TDecTop::decode(InputNALUnit& nalu, Int& iSkipFrame, Int& iPOCLastDisplay)
 
       // create ALF temporary buffer
       m_cAdaptiveLoopFilter.create( m_cSPS.getWidth(), m_cSPS.getHeight(), g_uiMaxCUWidth, g_uiMaxCUHeight, g_uiMaxCUDepth );
-#if MTK_SAO
+#if SAO
       m_cSAO.create( m_cSPS.getWidth(), m_cSPS.getHeight(), g_uiMaxCUWidth, g_uiMaxCUHeight, g_uiMaxCUDepth );
 #endif
 #if PARALLEL_MERGED_DEBLK
@@ -258,15 +286,22 @@ Bool TDecTop::decode(InputNALUnit& nalu, Int& iSkipFrame, Int& iPOCLastDisplay)
 #else
       m_cLoopFilter.        create( g_uiMaxCUDepth );
 #endif
+#if !F747_APS
 #if E045_SLICE_COMMON_INFO_SHARING
       createPPSBuffer();
+#endif
 #endif
       m_uiValidPS |= 1;
       
       return false;
 
     case NAL_UNIT_PPS:
-
+#if F747_APS
+#if SUB_LCU_DQP
+      m_cPPS.setSPS(&m_cSPS);
+#endif
+      m_cEntropyDecoder.decodePPS( &m_cPPS );
+#else
 #if E045_SLICE_COMMON_INFO_SHARING
       pcNewPPS = getNewPPSBuffer();
 #if SUB_LCU_DQP
@@ -287,8 +322,21 @@ Bool TDecTop::decode(InputNALUnit& nalu, Int& iSkipFrame, Int& iPOCLastDisplay)
 #endif
       m_cEntropyDecoder.decodePPS( &m_cPPS );
 #endif
+#endif
+
       m_uiValidPS |= 2;
       return false;
+
+#if F747_APS
+    case NAL_UNIT_APS:
+      {
+        TComAPS  cAPS;
+        allocAPS(&cAPS);
+        decodeAPS(nalu.m_Bitstream, cAPS);
+        pushAPS(cAPS);
+      }
+      return false;
+#endif
 
     case NAL_UNIT_SEI:
       m_SEIs = new SEImessages;
@@ -301,11 +349,18 @@ Bool TDecTop::decode(InputNALUnit& nalu, Int& iSkipFrame, Int& iPOCLastDisplay)
     {
       // make sure we already received both parameter sets
       assert( 3 == m_uiValidPS );
+#if TILES_DECODER
+      m_apcSlicePilot->setSPS(&m_cSPS);
+      m_apcSlicePilot->initSlice();
+#endif
       if (m_bFirstSliceInPicture)
       {
+#if !TILES_DECODER
         m_apcSlicePilot->initSlice();
+#endif
         m_uiSliceIdx     = 0;
         m_uiLastSliceIdx = 0;
+#if !F747_APS
 #if E045_SLICE_COMMON_INFO_SHARING
         if(hasNewPPS())
         {
@@ -313,20 +368,30 @@ Bool TDecTop::decode(InputNALUnit& nalu, Int& iSkipFrame, Int& iPOCLastDisplay)
           updatePPSBuffer();
         }
 #endif
+#endif
       }
       m_apcSlicePilot->setSliceIdx(m_uiSliceIdx);
 
       //  Read slice header
       m_apcSlicePilot->setSPS( &m_cSPS );
+
+#if F747_APS
+      m_apcSlicePilot->setPPS( &m_cPPS );
+#else
 #if E045_SLICE_COMMON_INFO_SHARING
       m_apcSlicePilot->setPPS( m_pcPPS );
 #else
       m_apcSlicePilot->setPPS( &m_cPPS );
 #endif
+#endif
       m_apcSlicePilot->setSliceIdx(m_uiSliceIdx);
       if (!m_bFirstSliceInPicture)
       {
+#if TILES_DECODER || OL_USE_WPP
+        m_apcSlicePilot->copySliceInfo( pcPic->getPicSym()->getSlice(m_uiSliceIdx-1) );
+#else
         memcpy(m_apcSlicePilot, pcPic->getPicSym()->getSlice(m_uiSliceIdx-1), sizeof(TComSlice));
+#endif
       }
 
       m_apcSlicePilot->setNalUnitType(nalu.m_UnitType);
@@ -343,6 +408,7 @@ Bool TDecTop::decode(InputNALUnit& nalu, Int& iSkipFrame, Int& iPOCLastDisplay)
           assert( bitsForByteAlignment == ( ( 1 << numBitsForByteAlignment ) - 1 ) );
         }
       }
+
       m_apcSlicePilot->setTLayerInfo(nalu.m_TemporalID);
 
       if (m_apcSlicePilot->isNextSlice() && m_apcSlicePilot->getPOC()!=m_uiPrevPOC && !m_bFirstSliceInSequence)
@@ -350,6 +416,13 @@ Bool TDecTop::decode(InputNALUnit& nalu, Int& iSkipFrame, Int& iPOCLastDisplay)
         m_uiPrevPOC = m_apcSlicePilot->getPOC();
         return true;
       }
+#if F747_APS
+      if(m_cSPS.getUseSAO() || m_cSPS.getUseALF())
+      {
+        m_apcSlicePilot->setAPS( popAPS(m_apcSlicePilot->getAPSId())  );
+      }
+#endif
+
       if (m_apcSlicePilot->isNextSlice()) 
         m_uiPrevPOC = m_apcSlicePilot->getPOC();
       m_bFirstSliceInSequence = false;
@@ -384,6 +457,171 @@ Bool TDecTop::decode(InputNALUnit& nalu, Int& iSkipFrame, Int& iPOCLastDisplay)
       //  Set picture slice pointer
       TComSlice*  pcSlice = m_apcSlicePilot;
       Bool bNextSlice     = pcSlice->isNextSlice();
+
+#if TILES
+      UInt uiCummulativeTileWidth;
+      UInt uiCummulativeTileHeight;
+      UInt i, j, p;
+
+      if( pcSlice->getPPS()->getColumnRowInfoPresent() == 1 )
+      {
+        //set the TileBoundaryIndependenceIdr
+        pcPic->getPicSym()->setTileBoundaryIndependenceIdr( pcSlice->getPPS()->getTileBoundaryIndependenceIdr() );
+
+        //set NumColumnsMins1 and NumRowsMinus1
+        pcPic->getPicSym()->setNumColumnsMinus1( pcSlice->getPPS()->getNumColumnsMinus1() );
+        pcPic->getPicSym()->setNumRowsMinus1( pcSlice->getPPS()->getNumRowsMinus1() );
+
+        //create the TComTileArray
+        pcPic->getPicSym()->xCreateTComTileArray();
+
+        if( pcSlice->getPPS()->getUniformSpacingIdr() == 1)
+        {
+          //set the width for each tile
+          for(j=0; j < pcPic->getPicSym()->getNumRowsMinus1()+1; j++)
+          {
+            for(p=0; p < pcPic->getPicSym()->getNumColumnsMinus1()+1; p++)
+            {
+              pcPic->getPicSym()->getTComTile( j * (pcPic->getPicSym()->getNumColumnsMinus1()+1) + p )->
+                setTileWidth( (p+1)*pcPic->getPicSym()->getFrameWidthInCU()/(pcPic->getPicSym()->getNumColumnsMinus1()+1) 
+                - (p*pcPic->getPicSym()->getFrameWidthInCU())/(pcPic->getPicSym()->getNumColumnsMinus1()+1) );
+            }
+          }
+
+          //set the height for each tile
+          for(j=0; j < pcPic->getPicSym()->getNumColumnsMinus1()+1; j++)
+          {
+            for(p=0; p < pcPic->getPicSym()->getNumRowsMinus1()+1; p++)
+            {
+              pcPic->getPicSym()->getTComTile( p * (pcPic->getPicSym()->getNumColumnsMinus1()+1) + j )->
+                setTileHeight( (p+1)*pcPic->getPicSym()->getFrameHeightInCU()/(pcPic->getPicSym()->getNumRowsMinus1()+1) 
+                - (p*pcPic->getPicSym()->getFrameHeightInCU())/(pcPic->getPicSym()->getNumRowsMinus1()+1) );   
+            }
+          }
+        }
+        else
+        {
+          //set the width for each tile
+          for(j=0; j < pcSlice->getPPS()->getNumRowsMinus1()+1; j++)
+          {
+            uiCummulativeTileWidth = 0;
+            for(i=0; i < pcSlice->getPPS()->getNumColumnsMinus1(); i++)
+            {
+              pcPic->getPicSym()->getTComTile(j * (pcSlice->getPPS()->getNumColumnsMinus1()+1) + i)->setTileWidth( pcSlice->getPPS()->getColumnWidth(i) );
+              uiCummulativeTileWidth += pcSlice->getPPS()->getColumnWidth(i);
+            }
+            pcPic->getPicSym()->getTComTile(j * (pcSlice->getPPS()->getNumColumnsMinus1()+1) + i)->setTileWidth( pcPic->getPicSym()->getFrameWidthInCU()-uiCummulativeTileWidth );
+          }
+  
+          //set the height for each tile
+          for(j=0; j < pcSlice->getPPS()->getNumColumnsMinus1()+1; j++)
+          {
+            uiCummulativeTileHeight = 0;
+            for(i=0; i < pcSlice->getPPS()->getNumRowsMinus1(); i++)
+            { 
+              pcPic->getPicSym()->getTComTile(i * (pcSlice->getPPS()->getNumColumnsMinus1()+1) + j)->setTileHeight( pcSlice->getPPS()->getRowHeight(i) );
+              uiCummulativeTileHeight += pcSlice->getPPS()->getRowHeight(i);
+            }
+            pcPic->getPicSym()->getTComTile(i * (pcSlice->getPPS()->getNumColumnsMinus1()+1) + j)->setTileHeight( pcPic->getPicSym()->getFrameHeightInCU()-uiCummulativeTileHeight );
+          }
+        }
+      }
+      else
+      {
+        //set the TileBoundaryIndependenceIdr
+        pcPic->getPicSym()->setTileBoundaryIndependenceIdr( pcSlice->getSPS()->getTileBoundaryIndependenceIdr() );
+
+        //set NumColumnsMins1 and NumRowsMinus1
+        pcPic->getPicSym()->setNumColumnsMinus1( pcSlice->getSPS()->getNumColumnsMinus1() );
+        pcPic->getPicSym()->setNumRowsMinus1( pcSlice->getSPS()->getNumRowsMinus1() );
+
+        //create the TComTileArray
+        pcPic->getPicSym()->xCreateTComTileArray();
+
+        //automatically set the column and row boundary if UniformSpacingIdr = 1
+        if( pcSlice->getSPS()->getUniformSpacingIdr() == 1 )
+        {
+          //set the width for each tile
+          for(j=0; j < pcPic->getPicSym()->getNumRowsMinus1()+1; j++)
+          {
+            for(p=0; p < pcPic->getPicSym()->getNumColumnsMinus1()+1; p++)
+            {
+              pcPic->getPicSym()->getTComTile( j * (pcPic->getPicSym()->getNumColumnsMinus1()+1) + p )->
+                setTileWidth( (p+1)*pcPic->getPicSym()->getFrameWidthInCU()/(pcPic->getPicSym()->getNumColumnsMinus1()+1) 
+                - (p*pcPic->getPicSym()->getFrameWidthInCU())/(pcPic->getPicSym()->getNumColumnsMinus1()+1) );
+            }
+          }
+
+          //set the height for each tile
+          for(j=0; j < pcPic->getPicSym()->getNumColumnsMinus1()+1; j++)
+          {
+            for(p=0; p < pcPic->getPicSym()->getNumRowsMinus1()+1; p++)
+            {
+              pcPic->getPicSym()->getTComTile( p * (pcPic->getPicSym()->getNumColumnsMinus1()+1) + j )->
+                setTileHeight( (p+1)*pcPic->getPicSym()->getFrameHeightInCU()/(pcPic->getPicSym()->getNumRowsMinus1()+1) 
+                - (p*pcPic->getPicSym()->getFrameHeightInCU())/(pcPic->getPicSym()->getNumRowsMinus1()+1) );   
+            }
+          }
+        }
+        else
+        {
+          //set the width for each tile
+          for(j=0; j < pcSlice->getSPS()->getNumRowsMinus1()+1; j++)
+          {
+            uiCummulativeTileWidth = 0;
+            for(i=0; i < pcSlice->getSPS()->getNumColumnsMinus1(); i++)
+            {
+              pcPic->getPicSym()->getTComTile(j * (pcSlice->getSPS()->getNumColumnsMinus1()+1) + i)->setTileWidth( pcSlice->getSPS()->getColumnWidth(i) );
+              uiCummulativeTileWidth += pcSlice->getSPS()->getColumnWidth(i);
+            }
+            pcPic->getPicSym()->getTComTile(j * (pcSlice->getSPS()->getNumColumnsMinus1()+1) + i)->setTileWidth( pcPic->getPicSym()->getFrameWidthInCU()-uiCummulativeTileWidth );
+          }
+  
+          //set the height for each tile
+          for(j=0; j < pcSlice->getSPS()->getNumColumnsMinus1()+1; j++)
+          {
+            uiCummulativeTileHeight = 0;
+            for(i=0; i < pcSlice->getSPS()->getNumRowsMinus1(); i++)
+            { 
+              pcPic->getPicSym()->getTComTile(i * (pcSlice->getSPS()->getNumColumnsMinus1()+1) + j)->setTileHeight( pcSlice->getSPS()->getRowHeight(i) );
+              uiCummulativeTileHeight += pcSlice->getSPS()->getRowHeight(i);
+            }
+            pcPic->getPicSym()->getTComTile(i * (pcSlice->getSPS()->getNumColumnsMinus1()+1) + j)->setTileHeight( pcPic->getPicSym()->getFrameHeightInCU()-uiCummulativeTileHeight );
+          }
+        }
+      }
+
+      pcPic->getPicSym()->xInitTiles();
+
+      //generate the Coding Order Map and Inverse Coding Order Map
+      UInt uiEncCUAddr;
+      for(i=0, uiEncCUAddr=0; i<pcPic->getPicSym()->getNumberOfCUsInFrame(); i++, uiEncCUAddr = pcPic->getPicSym()->xCalculateNxtCUAddr(uiEncCUAddr))
+      {
+        pcPic->getPicSym()->setCUOrderMap(i, uiEncCUAddr);
+        pcPic->getPicSym()->setInverseCUOrderMap(uiEncCUAddr, i);
+      }
+      pcPic->getPicSym()->setCUOrderMap(pcPic->getPicSym()->getNumberOfCUsInFrame(), pcPic->getPicSym()->getNumberOfCUsInFrame());
+      pcPic->getPicSym()->setInverseCUOrderMap(pcPic->getPicSym()->getNumberOfCUsInFrame(), pcPic->getPicSym()->getNumberOfCUsInFrame());
+
+#if FINE_GRANULARITY_SLICES
+      //convert the start and end CU addresses of the slice and entropy slice into encoding order
+      pcSlice->setEntropySliceCurStartCUAddr( pcPic->getPicSym()->getPicSCUEncOrder(pcSlice->getEntropySliceCurStartCUAddr()) );
+      pcSlice->setEntropySliceCurEndCUAddr( pcPic->getPicSym()->getPicSCUEncOrder(pcSlice->getEntropySliceCurEndCUAddr()) );
+      if(pcSlice->isNextSlice())
+      {
+        pcSlice->setSliceCurStartCUAddr(pcPic->getPicSym()->getPicSCUEncOrder(pcSlice->getSliceCurStartCUAddr()));
+        pcSlice->setSliceCurEndCUAddr(pcPic->getPicSym()->getPicSCUEncOrder(pcSlice->getSliceCurEndCUAddr()));
+      }
+#else
+      //convert the start and end CU addresses of the slice and entropy slice into encoding order
+      pcSlice->setEntropySliceCurStartCUAddr( pcPic->getPicSym()->getInverseCUOrderMap(pcSlice->getEntropySliceCurStartCUAddr()) );
+      if(pcSlice->isNextSlice())
+      {
+        pcSlice->setSliceCurStartCUAddr(pcPic->getPicSym()->getInverseCUOrderMap(pcSlice->getSliceCurStartCUAddr()));
+      }
+#endif
+#endif
+
       if (m_bFirstSliceInPicture) 
       {
         if(pcPic->getNumAllocatedSlice() != 1)
@@ -483,7 +721,9 @@ Bool TDecTop::decode(InputNALUnit& nalu, Int& iSkipFrame, Int& iPOCLastDisplay)
           if ( pcSlice->getNumRefIdx(RefPicList( 0 ) ) == pcSlice->getNumRefIdx(RefPicList( 1 ) ) )
           {
             pcSlice->setNoBackPredFlag( true );
-            int i;
+#if !TILES
+            Int i;
+#endif
             for ( i=0; i < pcSlice->getNumRefIdx(RefPicList( 1 ) ); i++ )
             {
               if ( pcSlice->getRefPOC(RefPicList(1), i) != pcSlice->getRefPOC(RefPicList(0), i) ) 
@@ -561,6 +801,166 @@ Bool TDecTop::isRandomAccessSkipPicture(Int& iSkipFrame,  Int& iPOCLastDisplay)
   // if we reach here, then the picture is not skipped.
   return false; 
 }
+
+#if F747_APS
+/** decode APS syntax elements
+ * \param [in] bs bistream pointer
+ * \param [in,out] cAPS APS object to store the decoded results
+ */
+Void TDecTop::decodeAPS(TComInputBitstream* bs, TComAPS& cAPS)
+{
+  Int iBitLeft;
+
+  m_cEntropyDecoder.decodeAPSInitInfo(cAPS);
+
+  if(cAPS.getSaoEnabled())
+  {
+    cAPS.getSaoParam()->bSaoFlag[0] = true;
+
+    //read SAO bitstream length in byte
+    UInt uiBsLength = bs->read(APS_BITS_FOR_SAO_BYTE_LENGTH);
+    assert(uiBsLength > 0);
+
+    //read byte-alignment bits
+    Int numBitsForByteAlignment = bs->getNumBitsUntilByteAligned();
+    if ( numBitsForByteAlignment > 0 )
+    {
+      UInt bitsForByteAlignment;
+      bs->read( numBitsForByteAlignment, bitsForByteAlignment );
+      assert( bitsForByteAlignment == ( ( 1 << numBitsForByteAlignment ) - 1 ) );
+    }
+
+    iBitLeft = bs->getNumBitsLeft();
+
+    if (cAPS.getCABACForAPS())
+    {
+      m_cSbacDecoder.init((TDecBinIf*)(&m_cBinCABAC));
+      m_cEntropyDecoder.setEntropyDecoder(&m_cSbacDecoder);
+      m_cEntropyDecoder.setBitstream(bs);
+      m_cEntropyDecoder.resetEntropy(cAPS.getCABACinitQP(), cAPS.getCABACinitIDC());
+    }
+    else
+    {
+      m_cEntropyDecoder.setEntropyDecoder (&m_cCavlcDecoder);
+      m_cEntropyDecoder.setBitstream(bs);
+    }
+    m_cEntropyDecoder.decodeSaoParam( cAPS.getSaoParam());
+    iBitLeft = bs->getNumBitsLeft() - (iBitLeft - (uiBsLength << 3));
+    assert(iBitLeft >= 0);
+    if(iBitLeft) bs->read(iBitLeft); //garbage bits. 
+    //else  trailing bits
+  }
+
+  if(cAPS.getAlfEnabled())
+  {
+    cAPS.getAlfParam()->alf_flag = 1;
+    //read ALF bitstream length in byte
+    UInt uiBsLength = bs->read(APS_BITS_FOR_ALF_BYTE_LENGTH);
+    assert(uiBsLength > 0);
+
+    //read byte-alignment bits
+    Int numBitsForByteAlignment = bs->getNumBitsUntilByteAligned();
+    if ( numBitsForByteAlignment > 0 )
+    {
+      UInt bitsForByteAlignment;
+      bs->read( numBitsForByteAlignment, bitsForByteAlignment );
+      assert( bitsForByteAlignment == ( ( 1 << numBitsForByteAlignment ) - 1 ) );
+    }
+
+    if (cAPS.getCABACForAPS())
+    {
+      m_cSbacDecoder.init((TDecBinIf*)(&m_cBinCABAC));
+      m_cEntropyDecoder.setEntropyDecoder(&m_cSbacDecoder);
+      m_cEntropyDecoder.setBitstream(bs);
+      m_cEntropyDecoder.resetEntropy(cAPS.getCABACinitQP(), cAPS.getCABACinitIDC());
+    }
+    else
+    {
+      m_cEntropyDecoder.setEntropyDecoder (&m_cCavlcDecoder);
+      m_cEntropyDecoder.setBitstream(bs);
+    }
+    m_cEntropyDecoder.decodeAlfParam( cAPS.getAlfParam());
+  }
+
+}
+
+/** Pop APS object pointer from APS container
+ * \param [in] APS ID
+ * \return APS pointer
+ */
+
+TComAPS* TDecTop::popAPS (UInt apsID)
+{
+  std::vector<TComAPS>& vAPS = m_vAPS[apsID];
+
+  if(vAPS.size() > 1)
+  {
+    for(Int i=0; i< vAPS.size()-1; i++)
+    {
+      freeAPS(&vAPS[0]);
+    }
+    vAPS.erase(vAPS.begin(), vAPS.end()-1);
+  }
+
+  assert(vAPS.size() == 1);
+
+  //pop APS link
+  return &(vAPS.front());
+
+}
+
+/** Push APS object into APS container
+ * \param [in] cAPS APS object to be pushed.
+ */
+
+Void TDecTop::pushAPS  (TComAPS& cAPS)
+{
+  UInt apsID = cAPS.getAPSID();
+  assert(apsID < MAX_NUM_SUPPORTED_APS);
+
+  std::vector<TComAPS>& vAPS = m_vAPS[apsID];
+
+  if(vAPS.size() < APS_RESERVED_BUFFER_SIZE)
+  {
+    vAPS.push_back(cAPS);
+  }
+  else
+  {
+    vAPS[APS_RESERVED_BUFFER_SIZE-1] = cAPS;
+  }
+
+}
+
+
+Void TDecTop::allocAPS (TComAPS* pAPS)
+{
+  if(m_cSPS.getUseSAO())
+  {
+    pAPS->createSaoParam();
+    m_cSAO.allocSaoParam(pAPS->getSaoParam());
+  }
+  if(m_cSPS.getUseALF())
+  {
+    pAPS->createAlfParam();
+    m_cAdaptiveLoopFilter.allocALFParam(pAPS->getAlfParam());
+  }
+}
+Void TDecTop::freeAPS (TComAPS* pAPS)
+{
+  if(m_cSPS.getUseSAO())
+  {
+    m_cSAO.freeSaoParam(pAPS->getSaoParam());
+    pAPS->destroySaoParam();
+  }
+  if(m_cSPS.getUseALF())
+  {
+    m_cAdaptiveLoopFilter.freeALFParam(pAPS->getAlfParam());
+    pAPS->destroyAlfParam();
+  }
+}
+
+#else
+
 #if E045_SLICE_COMMON_INFO_SHARING
 Void TDecTop::createPPSBuffer()
 {
@@ -624,6 +1024,7 @@ Void TDecTop::updatePPSBuffer()
 }
 
 
+#endif
 #endif
 
 

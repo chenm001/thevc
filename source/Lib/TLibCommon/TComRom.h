@@ -95,10 +95,6 @@ extern       UInt   g_auiRasterToPelX[ MAX_NUM_SPU_W*MAX_NUM_SPU_W ];
 extern       UInt   g_auiRasterToPelY[ MAX_NUM_SPU_W*MAX_NUM_SPU_W ];
 
 Void         initRasterToPelXY ( UInt uiMaxCUWidth, UInt uiMaxCUHeight, UInt uiMaxDepth );
-#if MTK_SAO
-Int  LevelRowCol2Idx(int level, int row, int col);
-void Idx2LevelRowCol(int idx, int *level, int *row, int *col);
-#endif
 
 // global variable (LCU width/height, max. CU depth)
 extern       UInt g_uiMaxCUWidth;

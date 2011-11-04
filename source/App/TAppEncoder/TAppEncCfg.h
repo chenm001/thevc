@@ -124,7 +124,7 @@ protected:
   UInt      m_uiPCMBitDepthLuma;                              ///< PCM bit-depth for luma
 #endif
 
-#if MTK_SAO
+#if SAO
   Bool      m_bUseSAO; 
 #endif
 
@@ -183,12 +183,40 @@ protected:
 #if MTK_NONCROSS_INLOOP_FILTER
   Bool m_bLFCrossSliceBoundaryFlag;  ///< 0: Cross-slice-boundary in-loop filtering 1: non-cross-slice-boundary in-loop filtering
 #endif
+#if TILES
+  Int       m_iColumnRowInfoPresent;
+  Int       m_iUniformSpacingIdr;
+  Int       m_iTileBoundaryIndependenceIdr;
+  Int       m_iNumColumnsMinus1;
+  char*     m_pchColumnWidth;
+  Int       m_iNumRowsMinus1;
+  char*     m_pchRowHeight;
+#if TILES_DECODER
+  Int       m_iTileLocationInSliceHeaderFlag; //< enable(1)/disable(0) transmitssion of tile location in slice header
+  Int       m_iTileMarkerFlag;              //< enable(1)/disable(0) transmitssion of light weight tile marker
+  Int       m_iMaxTileMarkerEntryPoints;    //< maximum number of tile markers allowed in a slice (controls degree of parallelism)
+  Double    m_dMaxTileMarkerOffset;         //< Calculated offset. Light weight tile markers will be transmitted for TileIdx= Offset, 2*Offset, 3*Offset ... 
+#endif
+#endif
+
+#if OL_USE_WPP
+  Int       m_iWaveFrontSynchro; //< 0: no WPP. >= 1: WPP is enabled, the "Top right" from which inheritance occurs is this LCU offset in the line above the current.
+  Int       m_iWaveFrontFlush; //< enable(1)/disable(0) the CABAC flush at the end of each line of LCUs.
+  Int       m_iWaveFrontSubstreams; //< If iWaveFrontSynchro, this is the number of substreams per frame (dependent tiles) or per tile (independent tiles).
+#endif
+
   Bool      m_bUseConstrainedIntraPred;                       ///< flag for using constrained intra prediction
   
   bool m_pictureDigestEnabled; ///< enable(1)/disable(0) md5 computation and SEI signalling
 
 #if REF_SETTING_FOR_LD
   Bool      m_bUseNewRefSetting;
+#endif
+
+  // weighted prediction
+#if WEIGHT_PRED
+  Bool      m_bUseWeightPred;                                 ///< Use of explicit Weighting Prediction for P_SLICE
+  UInt      m_uiBiPredIdc;                                    ///< Use of Bi-Directional Weighting Prediction (B_SLICE): explicit(1) or implicit(2)
 #endif
 
   // internal member functions

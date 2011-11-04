@@ -51,55 +51,6 @@
 // ====================================================================================================================
 // Class definition
 // ====================================================================================================================
-#if MTK_SAO
-
-class TEncSampleAdaptiveOffset : public TComSampleAdaptiveOffset
-{
-private:
-  Double            m_dLambdaLuma;
-  Double            m_dLambdaChroma;
-
-  TEncEntropy*      m_pcEntropyCoder;
-  TEncSbac***       m_pppcRDSbacCoder;
-  TEncSbac*         m_pcRDGoOnSbacCoder;
-  TEncBinCABAC***   m_pppcBinCoderCABAC;            ///< temporal CABAC state storage for RD computation
-
-  Int64  ***m_iCount ;     //[MAX_NUM_QAO_PART][MAX_NUM_QAO_TYPE][MAX_NUM_QAO_CLASS]; 
-  Int64  ***m_iOffset;     //[MAX_NUM_QAO_PART][MAX_NUM_QAO_TYPE][MAX_NUM_QAO_CLASS]; 
-  Int64  ***m_iOffsetOrg  ;      //[MAX_NUM_QAO_PART][MAX_NUM_QAO_TYPE]; 
-  Int64  **m_iRate  ;      //[MAX_NUM_QAO_PART][MAX_NUM_QAO_TYPE]; 
-  Int64  **m_iDist  ;      //[MAX_NUM_QAO_PART][MAX_NUM_QAO_TYPE]; 
-  Double **m_dCost  ;      //[MAX_NUM_QAO_PART][MAX_NUM_QAO_TYPE]; 
-  Double *m_dCostPartBest ;//[MAX_NUM_QAO_PART]; 
-  Int64  *m_iDistOrg;      //[MAX_NUM_QAO_PART]; 
-  Int    *m_iTypePartBest ;//[MAX_NUM_QAO_PART]; 
-#if SAO_CLIP_OFFSET
-  Int     m_iOffsetTh;
-#endif
-  Bool    m_bUseSBACRD;
-
-public:
-  Void startSaoEnc( TComPic* pcPic, TEncEntropy* pcEntropyCoder, TEncSbac*** pppcRDSbacCoder, TEncSbac* pcRDGoOnSbacCoder);
-  Void endSaoEnc();
-#if SAO_CHROMA_LAMBDA
-  Void SAOProcess(Double dLambda, Double dLambdaChroma);
-#else
-  Void SAOProcess(Double dLambda);
-#endif
-  Void xQuadTreeDecisionFunc(SAOQTPart *psQTPart, Int iPartIdx, Double &dCostFinal, Int iMaxLevel, Double dLambda);
-  Void xQAOOnePart(SAOQTPart *psQTPart, Int iPartIdx, Double dLambda);
-  Void xPartTreeDisable(SAOQTPart *psQTPart, Int iPartIdx);
-  Void xGetQAOStats(SAOQTPart *psQTPart, Int iYCbCr);
-  Void calcAoStatsCu(Int iAddr, Int iPartIdx, Int iYCbCr);
-#if SAO_FGS_MNIF
-  Void calcAoStatsCuMap(Int iAddr, Int iPartIdx, Int iYCbCr);
-  Void calcAoStatsCuOrg(Int iAddr, Int iPartIdx, Int iYCbCr);
-#endif
-
-  Void destroyEncBuffer();
-  Void createEncBuffer();
-};
-#endif
 
 /// estimation part of adaptive loop filter class
 class TEncAdaptiveLoopFilter : public TComAdaptiveLoopFilter
@@ -210,8 +161,15 @@ private:
   TComPicYuv* m_pcSliceYuvTmp;    //!< temporary picture buffer when non-across slice boundary ALF is enabled
 #endif
 
+#if !F747_APS
 #if E045_SLICE_COMMON_INFO_SHARING
   Bool  m_bSharedPPSAlfParamEnabled; //!< true for shared ALF parameters in PPS enabled
+#endif
+#endif
+
+#if F747_APS
+  Bool m_bAlfCUCtrlEnabled;                         //!< if input ALF CU control param is NULL, this variable is set to be false (Disable CU control)
+  std::vector<AlfCUCtrlInfo> m_vBestAlfCUCtrlParam; //!< ALF CU control parameters container to store the ALF CU control parameters after RDO
 #endif
 
 private:
@@ -246,9 +204,17 @@ private:
   
   // distortion / misc functions
   UInt64 xCalcSSD             ( Pel* pOrg, Pel* pCmp, Int iWidth, Int iHeight, Int iStride );
+#if F747_APS
+  Void   xCalcRDCost          ( TComPicYuv* pcPicOrg, TComPicYuv* pcPicCmp, ALFParam* pAlfParam, UInt64& ruiRate, UInt64& ruiDist, Double& rdCost, std::vector<AlfCUCtrlInfo>* pvAlfCUCtrlParam = NULL);
+#else
   Void   xCalcRDCost          ( TComPicYuv* pcPicOrg, TComPicYuv* pcPicCmp, ALFParam* pAlfParam, UInt64& ruiRate, UInt64& ruiDist, Double& rdCost );
+#endif
   Void   xCalcRDCostChroma    ( TComPicYuv* pcPicOrg, TComPicYuv* pcPicCmp, ALFParam* pAlfParam, UInt64& ruiRate, UInt64& ruiDist, Double& rdCost );
+#if F747_APS
+  Void   xCalcRDCost          ( ALFParam* pAlfParam, UInt64& ruiRate, UInt64 uiDist, Double& rdCost, std::vector<AlfCUCtrlInfo>* pvAlfCUCtrlParam = NULL);
+#else
   Void   xCalcRDCost          ( ALFParam* pAlfParam, UInt64& ruiRate, UInt64 uiDist, Double& rdCost );
+#endif
   Int    xGauss               ( Double **a, Int N );
   
 #if MQT_ALF_NPASS
@@ -313,7 +279,11 @@ private:
   Void getCtrlFlagsForSlices(Bool bCUCtrlEnabled, Int iCUCtrlDepth);
 
   /// Copy CU control flags to ALF parameters
+#if F747_APS
+  Void transferCtrlFlagsToAlfParam(std::vector<AlfCUCtrlInfo>& vAlfCUCtrlInfo);
+#else
   Void transferCtrlFlagsToAlfParam(UInt& ruiNumFlags, UInt* puiFlags);
+#endif
 
   /// Calculate autocorrelations and crosscorrelations for chroma slices
   Void xCalcCorrelationFuncforChromaSlices  (Int ComponentID, Pel* pOrg, Pel* pCmp, Int iTap, Int iOrgStride, Int iCmpStride);
@@ -348,9 +318,21 @@ public:
   
   /// estimate ALF parameters
 #if ALF_CHROMA_LAMBDA  
+
+#if F747_APS
+  Void ALFProcess(ALFParam* pcAlfParam, std::vector<AlfCUCtrlInfo>* pvAlfCtrlParam, Double dLambdaLuma, Double dLambdaChroma, UInt64& ruiDist, UInt64& ruiBits);
+#else
   Void ALFProcess(ALFParam* pcAlfParam, Double dLambdaLuma, Double dLambdaChroma, UInt64& ruiDist, UInt64& ruiBits, UInt& ruiMaxAlfCtrlDepth );
+#endif
+
+#else
+
+#if F747_APS
+  Void ALFProcess(ALFParam* pcAlfParam, std::vector<AlfCUCtrlInfo>* pvAlfCtrlParam, Double dLambda, UInt64& ruiDist, UInt64& ruiBits);
 #else
   Void ALFProcess(ALFParam* pcAlfParam, Double dLambda, UInt64& ruiDist, UInt64& ruiBits, UInt& ruiMaxAlfCtrlDepth );
+#endif
+
 #endif
 
 #if E057_INTRA_PCM && E192_SPS_PCM_FILTER_DISABLE_SYNTAX
@@ -362,10 +344,16 @@ public:
                                          UInt64& ruiMinDist, Double& rdMinCost );
   Void xCUAdaptiveControl_qc           ( TComPicYuv* pcPicOrg, TComPicYuv* pcPicDec, TComPicYuv* pcPicRest, UInt64& ruiMinRate, 
                                          UInt64& ruiMinDist, Double& rdMinCost );
+#if F747_APS
+  Void xSetCUAlfCtrlFlags_qc            (UInt uiAlfCtrlDepth, TComPicYuv* pcPicOrg, TComPicYuv* pcPicDec, TComPicYuv* pcPicRest, UInt64& ruiDist, std::vector<AlfCUCtrlInfo>& vAlfCUCtrlParam);
+  Void xSetCUAlfCtrlFlag_qc             (TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth, UInt uiAlfCtrlDepth, TComPicYuv* pcPicOrg,
+                                         TComPicYuv* pcPicDec, TComPicYuv* pcPicRest, UInt64& ruiDist, std::vector<UInt>& vCUCtrlFlag);
+#else
   Void xSetCUAlfCtrlFlags_qc            (UInt uiAlfCtrlDepth, TComPicYuv* pcPicOrg, TComPicYuv* pcPicDec, TComPicYuv* pcPicRest, 
                                          UInt64& ruiDist, ALFParam *pAlfParam);
   Void xSetCUAlfCtrlFlag_qc             (TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth, UInt uiAlfCtrlDepth, TComPicYuv* pcPicOrg,
                                          TComPicYuv* pcPicDec, TComPicYuv* pcPicRest, UInt64& ruiDist, ALFParam *pAlfParam);
+#endif
   Void xReDesignFilterCoeff_qc          (TComPicYuv* pcPicOrg, TComPicYuv* pcPicDec,  TComPicYuv* pcPicRest, Bool bReadCorr);
   Void xFilterTapDecision_qc            (TComPicYuv* pcPicOrg, TComPicYuv* pcPicDec, TComPicYuv* pcPicRest, UInt64& ruiMinRate, 
                                          UInt64& ruiMinDist, Double& rdMinCost);
@@ -447,10 +435,13 @@ public:
 #endif
 #endif
 
+#if !F747_APS
 #if E045_SLICE_COMMON_INFO_SHARING
   /// set shared ALF parameters in PPS enabled/disabled
   Void setSharedPPSAlfParamEnabled(Bool b) {m_bSharedPPSAlfParamEnabled = b;}
 #endif
+#endif
+
 };
 
 //! \}

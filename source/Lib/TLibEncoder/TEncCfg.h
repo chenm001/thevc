@@ -103,7 +103,7 @@ protected:
   Int       m_iLoopFilterAlphaC0Offset;
   Int       m_iLoopFilterBetaOffset;
   
-#if MTK_SAO
+#if SAO
   Bool      m_bUseSAO;
 #endif
 
@@ -177,15 +177,64 @@ protected:
 #if E057_INTRA_PCM && E192_SPS_PCM_FILTER_DISABLE_SYNTAX 
   Bool      m_bPCMFilterDisableFlag;
 #endif
+#if TILES
+  Int       m_iColumnRowInfoPresent;
+  Int       m_iUniformSpacingIdr;
+  Int       m_iTileBoundaryIndependenceIdr;
+  Int       m_iNumColumnsMinus1;
+  UInt*     m_puiColumnWidth;
+  Int       m_iNumRowsMinus1;
+  UInt*     m_puiRowHeight;
+#if TILES_DECODER
+  Int       m_iTileLocationInSliceHeaderFlag; //< enable(1)/disable(0) transmitssion of tile location in slice header
+
+  Int       m_iTileMarkerFlag;              //< enable(1)/disable(0) transmitssion of light weight tile marker
+  Int       m_iMaxTileMarkerEntryPoints;    //< maximum number of tile markers allowed in a slice (controls degree of parallelism)
+  Double    m_dMaxTileMarkerOffset;         //< Calculated offset. Light weight tile markers will be transmitted for TileIdx= Offset, 2*Offset, 3*Offset ... 
+#endif
+#endif
+
+#if OL_USE_WPP
+  Int       m_iWaveFrontSynchro;
+  Int       m_iWaveFrontFlush;
+  Int       m_iWaveFrontSubstreams;
+#endif
+
   bool m_pictureDigestEnabled; ///< enable(1)/disable(0) md5 computation and SEI signalling
 
 #if REF_SETTING_FOR_LD
   Bool      m_bUseNewRefSetting;
 #endif
 
+#if WEIGHT_PRED
+  //====== Weighted Prediction ========
+  Bool      m_bUseWeightPred;       //< Use of Weighting Prediction (P_SLICE)
+  UInt      m_uiBiPredIdc;          //< Use of Bi-Directional Weighting Prediction (B_SLICE)
+#endif
+
 public:
   TEncCfg()          {}
-  virtual ~TEncCfg() {}
+  virtual ~TEncCfg() {
+#if TILES
+    if( m_iUniformSpacingIdr == 0 )
+    {
+      if( m_iNumColumnsMinus1 )
+      { 
+        delete[] m_puiColumnWidth; 
+        m_puiColumnWidth = NULL;
+      }
+      if( m_iNumRowsMinus1 )
+      {
+        delete[] m_puiRowHeight;
+        m_puiRowHeight = NULL;
+      }
+    }
+#if TILES_DECODER
+    m_iTileLocationInSliceHeaderFlag = 0;
+    m_iTileMarkerFlag              = 0;
+#endif
+#endif
+  }
   
   Void      setFrameRate                    ( Int   i )      { m_iFrameRate = i; }
   Void      setFrameSkip                    ( unsigned int i ) { m_FrameSkip = i; }
@@ -397,17 +446,116 @@ public:
   Void      setLFCrossSliceBoundaryFlag     ( Bool   bValue  )    { m_bLFCrossSliceBoundaryFlag = bValue; }
   Bool      getLFCrossSliceBoundaryFlag     ()                    { return m_bLFCrossSliceBoundaryFlag;   }
 #endif
-#if MTK_SAO
+#if SAO
   Void      setUseSAO                  (Bool bVal)     {m_bUseSAO = bVal;}
   Bool      getUseSAO                  ()              {return m_bUseSAO;}
 #endif
+#if TILES
+  Void  setColumnRowInfoPresent        ( Int i )           { m_iColumnRowInfoPresent = i; }
+  Int   getColumnRowInfoPresent        ()                  { return m_iColumnRowInfoPresent; }
+  Void  setUniformSpacingIdr           ( Int i )           { m_iUniformSpacingIdr = i; }
+  Int   getUniformSpacingIdr           ()                  { return m_iUniformSpacingIdr; }
+  Void  setTileBoundaryIndependenceIdr ( Int i )           { m_iTileBoundaryIndependenceIdr = i; }
+  Int   getTileBoundaryIndependenceIdr ()                  { return m_iTileBoundaryIndependenceIdr; }
+  Void  setNumColumnsMinus1            ( Int i )           { m_iNumColumnsMinus1 = i; }
+  Int   getNumColumnsMinus1            ()                  { return m_iNumColumnsMinus1; }
+  Void  setColumnWidth ( char* str )
+  {
+    char *columnWidth;
+    int  i=0;
+    Int  m_iWidthInCU = ( m_iSourceWidth%g_uiMaxCUWidth ) ? m_iSourceWidth/g_uiMaxCUWidth + 1 : m_iSourceWidth/g_uiMaxCUWidth;
 
+    if( m_iUniformSpacingIdr == 0 && m_iNumColumnsMinus1 > 0 )
+    {
+      m_puiColumnWidth = new UInt[m_iNumColumnsMinus1];
+
+      columnWidth = strtok(str, " ,-");
+      while(columnWidth!=NULL)
+      {
+        if( i>=m_iNumColumnsMinus1 )
+        {
+          printf( "The number of columns whose width are defined is larger than the allowed number of columns.\n" );
+          exit( EXIT_FAILURE );
+        }
+        *( m_puiColumnWidth + i ) = atoi( columnWidth );
+        printf("col: m_iWidthInCU= %4d i=%4d width= %4d\n",m_iWidthInCU,i,m_puiColumnWidth[i]); //AFU
+        columnWidth = strtok(NULL, " ,-");
+        i++;
+      }
+      if( i<m_iNumColumnsMinus1 )
+      {
+        printf( "The width of some columns is not defined.\n" );
+        exit( EXIT_FAILURE );
+      }
+    }
+  }
+  UInt  getColumnWidth                 ( UInt columnidx )  { return *( m_puiColumnWidth + columnidx ); }
+  Void  setNumRowsMinus1               ( Int i )           { m_iNumRowsMinus1 = i; }
+  Int   getNumRowsMinus1               ()                  { return m_iNumRowsMinus1; }
+  Void  setRowHeight (char* str)
+  {
+    char *rowHeight;
+    int  i=0;
+    Int  m_iHeightInCU = ( m_iSourceHeight%g_uiMaxCUHeight ) ? m_iSourceHeight/g_uiMaxCUHeight + 1 : m_iSourceHeight/g_uiMaxCUHeight;
+
+    if( m_iUniformSpacingIdr == 0 && m_iNumRowsMinus1 > 0 )
+    {
+      m_puiRowHeight = new UInt[m_iNumRowsMinus1];
+
+      rowHeight = strtok(str, " ,-");
+      while(rowHeight!=NULL)
+      {
+        if( i>=m_iNumRowsMinus1 )
+        {
+          printf( "The number of rows whose height are defined is larger than the allowed number of rows.\n" );
+          exit( EXIT_FAILURE );
+        }
+        *( m_puiRowHeight + i ) = atoi( rowHeight );
+        printf("row: m_iHeightInCU=%4d i=%4d height=%4d\n",m_iHeightInCU,i,m_puiRowHeight[i]); //AFU
+        rowHeight = strtok(NULL, " ,-");
+        i++;
+      }
+      if( i<m_iNumRowsMinus1 )
+      {
+        printf( "The height of some rows is not defined.\n" );
+        exit( EXIT_FAILURE );
+     }
+    }
+  }
+  UInt  getRowHeight                   ( UInt rowIdx )     { return *( m_puiRowHeight + rowIdx ); }
+  Void  xCheckGSParameters();
+#if TILES_DECODER
+  Int  getTileLocationInSliceHeaderFlag ()                 { return m_iTileLocationInSliceHeaderFlag; }
+  Void setTileLocationInSliceHeaderFlag ( Int iFlag )      { m_iTileLocationInSliceHeaderFlag = iFlag;}
+  Int  getTileMarkerFlag              ()                 { return m_iTileMarkerFlag;              }
+  Void setTileMarkerFlag              ( Int iFlag )      { m_iTileMarkerFlag = iFlag;             }
+  Int  getMaxTileMarkerEntryPoints    ()                 { return m_iMaxTileMarkerEntryPoints;    }
+  Void setMaxTileMarkerEntryPoints    ( Int iCount )     { m_iMaxTileMarkerEntryPoints = iCount;  }
+  Double getMaxTileMarkerOffset       ()                 { return m_dMaxTileMarkerOffset;         }
+  Void setMaxTileMarkerOffset         ( Double dCount )  { m_dMaxTileMarkerOffset = dCount;       }
+#endif
+#endif
+#if OL_USE_WPP
+  Void  setWaveFrontSynchro(Int iWaveFrontSynchro)       { m_iWaveFrontSynchro = iWaveFrontSynchro; }
+  Int   getWaveFrontsynchro()                            { return m_iWaveFrontSynchro; }
+  Void  setWaveFrontFlush(Int iWaveFrontFlush)           { m_iWaveFrontFlush = iWaveFrontFlush; }
+  Int   getWaveFrontFlush()                              { return m_iWaveFrontFlush; }
+  Void  setWaveFrontSubstreams(Int iWaveFrontSubstreams) { m_iWaveFrontSubstreams = iWaveFrontSubstreams; }
+  Int   getWaveFrontSubstreams()                         { return m_iWaveFrontSubstreams; }
+#endif
   void setPictureDigestEnabled(bool b) { m_pictureDigestEnabled = b; }
   bool getPictureDigestEnabled() { return m_pictureDigestEnabled; }
 
 #if REF_SETTING_FOR_LD
   Void      setUseNewRefSetting    ( Bool b ) { m_bUseNewRefSetting = b;    }
   Bool      getUseNewRefSetting    ()         { return m_bUseNewRefSetting; }
+#endif
+
+#if WEIGHT_PRED
+  Void      setUseWP               ( Bool  b )   { m_bUseWeightPred    = b;    }
+  Void      setWPBiPredIdc         ( UInt u )    { m_uiBiPredIdc       = u;    }
+  Bool      getUseWP               ()            { return m_bUseWeightPred;    }
+  UInt      getWPBiPredIdc         ()            { return m_uiBiPredIdc;       }
 #endif
 
 };

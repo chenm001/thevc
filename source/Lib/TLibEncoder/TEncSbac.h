@@ -86,6 +86,9 @@ public:
   Void  load                   ( TEncSbac* pScr  );
   Void  loadIntraDirModeLuma   ( TEncSbac* pScr  );
   Void  store                  ( TEncSbac* pDest );
+#if OL_USE_WPP
+  Void  loadContexts           ( TEncSbac* pScr  );
+#endif
   Void  resetBits              ()                { m_pcBinIf->resetBits(); m_pcBitIf->resetBits(); }
   UInt  getNumberOfWrittenBits ()                { return m_pcBinIf->getNumWrittenBits(); }
   //--SBAC RD
@@ -94,8 +97,15 @@ public:
   Void  codePPS                 ( TComPPS* pcPPS     );
   void codeSEI(const SEI&);
   Void  codeSliceHeader         ( TComSlice* pcSlice );
+#if OL_USE_WPP
+  Void  codeSliceHeaderSubstreamTable( TComSlice* pcSlice );
+#endif
   Void  codeTerminatingBit      ( UInt uilsLast      );
   Void  codeSliceFinish         ();
+#if OL_FLUSH
+  Void  codeFlush               ();
+  Void  encodeStart             ();
+#endif
   
   Void  codeAlfFlag       ( UInt uiCode );
   Void  codeAlfUvlc       ( UInt uiCode );
@@ -110,10 +120,10 @@ public:
 #endif
 
   Void codeAlfCtrlFlag       ( UInt uiSymbol );
-#if MTK_SAO
-  Void  codeAoFlag       ( UInt uiCode );
-  Void  codeAoUvlc       ( UInt uiCode );
-  Void  codeAoSvlc       ( Int  uiCode );
+#if SAO
+  Void  codeSaoFlag       ( UInt uiCode );
+  Void  codeSaoUvlc       ( UInt uiCode );
+  Void  codeSaoSvlc       ( Int  uiCode );
 #endif
 
 private:
@@ -132,7 +142,15 @@ private:
   Void  xWriteExGolombMvd    ( UInt uiSymbol, ContextModel* pcSCModel, UInt uiMaxBin );
 #endif
   Void  xCopyFrom            ( TEncSbac* pSrc );
+#if OL_USE_WPP
+  Void  xCopyContextsFrom    ( TEncSbac* pSrc );  
+#endif
   
+#if F747_APS
+  Void codeAPSInitInfo(TComAPS* pcAPS) {printf("Not supported in codeAPSInitInfo()\n"); assert(0); exit(1);}
+  Void codeFinish     (Bool bEnd)      { m_pcBinIf->encodeFlush(bEnd); }  //<! flush bits when CABAC termination
+#endif
+
 protected:
   TComBitIf*    m_pcBitIf;
   TComSlice*    m_pcSlice;
@@ -201,6 +219,16 @@ public:
   Void estSignificantMapBit          ( estBitsSbacStruct* pcEstBitsSbac, UInt uiCTXIdx, TextType eTType );
   Void estSignificantCoefficientsBit ( estBitsSbacStruct* pcEstBitsSbac, UInt uiCTXIdx, TextType eTType );
   
+
+#if TILES
+  Void updateContextTables           ( SliceType eSliceType, Int iQp, Bool bExecuteFinish=true  );
+  Void updateContextTables           ( SliceType eSliceType, Int iQp  ) { this->updateContextTables( eSliceType, iQp, true); };
+#if TILES_DECODER
+  Void writeTileMarker               ( UInt uiTileIdx, UInt uiBitsUsed );
+#endif
+#endif
+
+  
   TEncBinIf* getEncBinIf()  { return m_pcBinIf; }
 private:
   UInt                 m_uiLastQp;
@@ -242,10 +270,10 @@ private:
   ContextModel3DBuffer m_cCUXPosiSCModel;
   ContextModel3DBuffer m_cCUYPosiSCModel;
 #endif
-#if MTK_SAO
-  ContextModel3DBuffer m_cAOFlagSCModel;
-  ContextModel3DBuffer m_cAOUvlcSCModel;
-  ContextModel3DBuffer m_cAOSvlcSCModel;
+#if SAO
+  ContextModel3DBuffer m_cSaoFlagSCModel;
+  ContextModel3DBuffer m_cSaoUvlcSCModel;
+  ContextModel3DBuffer m_cSaoSvlcSCModel;
 #endif
 
 };

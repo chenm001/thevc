@@ -101,6 +101,20 @@ Void TEncBinCABAC::finish()
   m_pcTComBitIf->write( m_uiLow >> 8, 24 - m_bitsLeft );
 }
 
+#if OL_FLUSH
+Void TEncBinCABAC::flush()
+{
+  encodeBinTrm(1);
+  finish();
+  m_pcTComBitIf->write(1, 1);
+#if OL_FLUSH_ALIGN
+  m_pcTComBitIf->writeAlignZero();
+#endif
+
+  start();
+}
+#endif
+
 #if E057_INTRA_PCM
 /** Reset BAC register and counter values.
  * \returns Void
@@ -173,7 +187,7 @@ Void TEncBinCABAC::encodeBin( UInt binValue, ContextModel &rcCtxModel )
     DTRACE_CABAC_T( "\tstate=" )
     DTRACE_CABAC_V( ( rcCtxModel.getState() << 1 ) + rcCtxModel.getMps() )
     DTRACE_CABAC_T( "\tsymbol=" )
-    DTRACE_CABAC_V( uiBin )
+    DTRACE_CABAC_V( binValue )
     DTRACE_CABAC_T( "\n" )
   }
   m_uiBinsCoded += m_binCountIncrement;
@@ -216,7 +230,7 @@ Void TEncBinCABAC::encodeBinEP( UInt binValue )
   {
     DTRACE_CABAC_VL( g_nSymbolCounter++ )
     DTRACE_CABAC_T( "\tEPsymbol=" )
-    DTRACE_CABAC_V( uiBin )
+    DTRACE_CABAC_V( binValue )
     DTRACE_CABAC_T( "\n" )
   }
   m_uiBinsCoded += m_binCountIncrement;
@@ -341,4 +355,29 @@ Void TEncBinCABAC::writeOut()
     }      
   }    
 }
+
+#if F747_APS 
+/** flush bits when CABAC termination
+  * \param [in] bEnd true means this flushing happens at the end of RBSP. No need to encode stop bit
+  */
+Void TEncBinCABAC::encodeFlush(Bool bEnd)
+{
+  m_uiRange = 2;
+
+  m_uiLow  += 2;
+  m_uiLow <<= 7;
+  m_uiRange = 2 << 7;
+  m_bitsLeft -= 7;
+  testAndWriteOut();
+  finish();
+
+  if(!bEnd)
+  {
+    m_pcTComBitIf->write( 1, 1 ); // stop bit
+  }
+}
+#endif
+
+
+
 //! \}

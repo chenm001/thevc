@@ -352,7 +352,15 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\source\Lib\TLibCommon\TComRdCostWeightPrediction.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\source\Lib\TLibCommon\TComRom.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\source\Lib\TLibCommon\TComSampleAdaptiveOffset.cpp"
 				>
 			</File>
 			<File
@@ -361,6 +369,10 @@
 			</File>
 			<File
 				RelativePath="..\..\source\Lib\TLibCommon\TComTrQuant.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\source\Lib\TLibCommon\TComWeightPrediction.cpp"
 				>
 			</File>
 			<File
@@ -474,7 +486,15 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\source\Lib\TLibCommon\TComRdCostWeightPrediction.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\source\Lib\TLibCommon\TComRom.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\source\Lib\TLibCommon\TComSampleAdaptiveOffset.h"
 				>
 			</File>
 			<File
@@ -483,6 +503,10 @@
 			</File>
 			<File
 				RelativePath="..\..\source\Lib\TLibCommon\TComTrQuant.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\source\Lib\TLibCommon\TComWeightPrediction.h"
 				>
 			</File>
 			<File

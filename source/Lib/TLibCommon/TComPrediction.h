@@ -49,6 +49,9 @@
 #else
 #include "TComPredFilter.h"
 #endif
+#if WEIGHT_PRED
+  #include "TComWeightPrediction.h"
+#endif
 
 //! \ingroup TLibCommon
 //! \{
@@ -59,9 +62,16 @@
 
 /// prediction class
 #if GENERIC_IF
+#if WEIGHT_PRED
+class TComPrediction : public TComWeightPrediction
+#else
 class TComPrediction
+#endif
 #else
 class TComPrediction : public TComPredFilter
+#if WEIGHT_PRED
+  , public TComWeightPrediction
+#endif
 #endif
 {
 protected:

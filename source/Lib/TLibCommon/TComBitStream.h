@@ -87,6 +87,10 @@ class TComOutputBitstream : public TComBitIf
   unsigned int m_num_held_bits; /// number of bits not flushed to bytestream.
   unsigned char m_held_bits; /// the bits held and not flushed to bytestream.
                              /// this value is always msb-aligned, bigendian.
+#if TILES_DECODER
+  UInt m_uiTileMarkerLocationCount;
+  UInt *m_puiTileMarkerLocation;
+#endif
 
 public:
   // create / destroy
@@ -147,8 +151,26 @@ public:
    */
   std::vector<uint8_t>& getFIFO() { return *m_fifo; }
 
+#if TILES_DECODER || OL_USE_WPP
+  UChar getHeldBits  ()          { return m_held_bits;          }
+#endif
+
+#if TILES_DECODER
+  TComOutputBitstream& operator= (const TComOutputBitstream& src);
+  UInt  getTileMarkerLocationCount   ( )                     { return m_uiTileMarkerLocationCount   ; }
+  Void  setTileMarkerLocationCount   ( UInt i )              { m_uiTileMarkerLocationCount = i      ; }  
+  UInt  getTileMarkerLocation        ( UInt i)               { return m_puiTileMarkerLocation[i]    ; }
+  Void  setTileMarkerLocation        ( UInt i, UInt uiLOC )  { m_puiTileMarkerLocation[i] = uiLOC   ; }
+  /** Return a reference to the internal fifo */
+  std::vector<uint8_t>& getFIFO() const { return *m_fifo; }
+#else
   /** Return a reference to the internal fifo */
   const std::vector<uint8_t>& getFIFO() const { return *m_fifo; }
+#endif
+
+#if OL_USE_WPP
+  Void          addSubstream    ( TComOutputBitstream* pcSubstream );
+#endif
 };
 
 /**
@@ -164,6 +186,10 @@ protected:
 
   unsigned int m_num_held_bits;
   unsigned char m_held_bits;
+#if TILES_DECODER
+  UInt m_uiTileMarkerLocationCount;
+  UInt *m_puiTileMarkerLocation;
+#endif
 
 public:
   /**
@@ -172,15 +198,39 @@ public:
    * will hold a reference to #buf#
    */
   TComInputBitstream(std::vector<uint8_t>* buf);
+#if TILES_DECODER
+  ~TComInputBitstream();
+#endif
 
   // interface for decoding
   Void        pseudoRead      ( UInt uiNumberOfBits, UInt& ruiBits );
   Void        read            ( UInt uiNumberOfBits, UInt& ruiBits );
+#if OL_FLUSH && !OL_FLUSH_ALIGN
+  Void        readByte        ( UInt &ruiBits )
+  {
+    // More expensive, but reads "bytes" that are not aligned.
+    read(8, ruiBits);
+  }
+#else
   Void        readByte        ( UInt &ruiBits )
   {
     assert(m_fifo_idx < m_fifo->size());
     ruiBits = (*m_fifo)[m_fifo_idx++];
   }
+#endif // OL_FLUSH && !OL_FLUSH_ALIGN
+
+#if TILES
+  Void        readOutTrailingBits ();
+#if TILES_DECODER
+  UChar getHeldBits  ()          { return m_held_bits;          }
+  TComOutputBitstream& operator= (const TComOutputBitstream& src);
+  UInt  getTileMarkerLocationCount   ( )                     { return m_uiTileMarkerLocationCount   ; }
+  Void  setTileMarkerLocationCount   ( UInt i )              { m_uiTileMarkerLocationCount = i      ; }  
+  UInt  getTileMarkerLocation        ( UInt i)               { return m_puiTileMarkerLocation[i]    ; }
+  Void  setTileMarkerLocation        ( UInt i, UInt uiLOC )  { m_puiTileMarkerLocation[i] = uiLOC   ; }
+  UInt  getByteLocation              ( )                     { return m_fifo_idx                    ; }
+#endif
+#endif
 
   // Peek at bits in word-storage. Used in determining if we have completed reading of current bitstream and therefore slice in LCEC.
   UInt        peekBits (UInt uiBits) { unsigned tmp; pseudoRead(uiBits, tmp); return tmp; }
@@ -190,6 +240,13 @@ public:
   UInt     readByte() { UInt tmp; readByte( tmp ); return tmp; }
   unsigned getNumBitsUntilByteAligned() { return m_num_held_bits & (0x7); }
   unsigned getNumBitsLeft() { return 8*((unsigned)m_fifo->size() - m_fifo_idx) + m_num_held_bits; }
+#if OL_USE_WPP
+  TComInputBitstream *extractSubstream( UInt uiNumBits ); // Read the nominated number of bits, and return as a bitstream.
+  Void                deleteFifo(); // Delete internal fifo of bitstream.
+#if !OL_FLUSH_ALIGN
+  Void                backupByte() { m_fifo_idx--; }
+#endif
+#endif
 };
 
 //! \}

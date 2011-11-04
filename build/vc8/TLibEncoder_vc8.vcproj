@@ -323,6 +323,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\source\Lib\TLibEncoder\TEncSampleAdaptiveOffset.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\source\Lib\TLibEncoder\TEncSbac.cpp"
 				>
 			</File>
@@ -336,6 +340,10 @@
 			</File>
 			<File
 				RelativePath="..\..\source\Lib\TLibEncoder\TEncTop.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\source\Lib\TLibEncoder\WeightPredAnalysis.cpp"
 				>
 			</File>
 		</Filter>
@@ -400,6 +408,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\source\Lib\TLibEncoder\TEncSampleAdaptiveOffset.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\source\Lib\TLibEncoder\TEncSbac.h"
 				>
 			</File>
@@ -413,6 +425,10 @@
 			</File>
 			<File
 				RelativePath="..\..\source\Lib\TLibEncoder\TEncTop.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\source\Lib\TLibEncoder\WeightPredAnalysis.h"
 				>
 			</File>
 		</Filter>

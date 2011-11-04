@@ -117,17 +117,7 @@ void destroyMatrix_int(int **m2D);
 void initMatrix_int(int ***m2D, int d1, int d2);
 
 #if MTK_NONCROSS_INLOOP_FILTER
-#if STAR_CROSS_SHAPES_LUMA
-#define EXTEND_NUM_PEL    (UInt)(FILTER_LENGTH/2)
-#else
-#define EXTEND_NUM_PEL    (UInt)(ALF_MAX_NUM_TAP/2)
-#endif
 
-#if ALF_CHROMA_NEW_SHAPES
-#define EXTEND_NUM_PEL_C  (UInt)(EXTEND_NUM_PEL)
-#else
-#define EXTEND_NUM_PEL_C  (UInt)(ALF_MAX_NUM_TAP_C/2)
-#endif
 /// border direction ID of slice granularity unit 
 enum SGUBorderID
 {
@@ -161,129 +151,21 @@ enum ALFClassficationMethod
 // Class definition
 // ====================================================================================================================
 
-#if MTK_SAO
-
-#define CRANGE_EXT                     512
-#define CRANGE                         4096
-#define CRANGE_ALL                     (CRANGE + (CRANGE_EXT*2))  
-#define AO_MAX_DEPTH                   4
-#define MAX_NUM_QAO_PART               341
-#define MTK_QAO_BO_BITS                5
-#define LUMA_GROUP_NUM                 (1<<MTK_QAO_BO_BITS)
-#define MAX_NUM_QAO_CLASS              32
-#define SAO_RDCO 0
-#define SAO_FGS_MNIF                   MTK_SAO && FINE_GRANULARITY_SLICES && MTK_NONCROSS_INLOOP_FILTER
-
-class TComSampleAdaptiveOffset
+#if F747_APS
+/// ALF CU control parameters
+struct AlfCUCtrlInfo
 {
-protected:
-  TComPic*          m_pcPic;
+  Int  cu_control_flag;                    //!< slice-level ALF CU control enabled/disabled flag 
+  UInt num_alf_cu_flag;                    //!< number of ALF CU control flags
+  UInt alf_max_depth;                      //!< ALF CU control depth
+  std::vector<UInt> alf_cu_flag;           //!< ALF CU control flags (container)
 
-
-  static UInt m_uiMaxDepth;
-  static const Int m_aiNumPartsInRow[5];
-  static const Int m_aiNumPartsLevel[5];
-  static const Int m_aiNumCulPartsLevel[5];
-  static const UInt m_auiEoTable[9];
-  static const UInt m_auiEoTable2D[9];
-  static const UInt m_iWeightAO[MAX_NUM_SAO_TYPE];
-  Int m_iOffsetBo[4096];
-  Int m_iOffsetEo[LUMA_GROUP_NUM];
-
-  Int  m_iPicWidth;
-  Int  m_iPicHeight;
-  UInt m_uiMaxSplitLevel;
-  UInt m_uiMaxCUWidth;
-  UInt m_uiMaxCUHeight;
-  Int  m_iNumCuInWidth;
-  Int  m_iNumCuInHeight;
-  Int  m_iNumTotalParts;
-  static Int  m_iNumClass[MAX_NUM_SAO_TYPE];
-
-  Bool m_bSaoFlag;
-  SAOQTPart *m_psQAOPart;
-#if MTK_SAO_CHROMA
-  Bool m_bSaoFlagCb;
-  Bool m_bSaoFlagCr;
-  SAOQTPart *m_psQAOPartCb;
-  SAOQTPart *m_psQAOPartCr;
-#endif
-
-  SliceType  m_eSliceType;
-  Int        m_iPicNalReferenceIdc;
-
-  UInt m_uiAoBitDepth;
-  UInt m_uiQP;
-
-  Bool  m_bBcEnable;
-  Int   m_iMinY;
-  Int   m_iMaxY;
-  Int   m_iMinCb;
-  Int   m_iMaxCb;
-  Int   m_iMinCr;
-  Int   m_iMaxCr;
-  Pel   *m_pClipTable;
-  Pel   m_pClipTableBase[CRANGE_ALL];
-  Pel   *m_ppLumaTableBo0;
-  Pel   *m_ppLumaTableBo1;
-
-  Int   *m_iUpBuff1;
-  Int   *m_iUpBuff2;
-  Int   *m_iUpBufft;
-  Int   *ipSwap;
-#if SAO_FGS_MNIF
-  Bool  m_bUseNonCrossALF;       //!< true for performing non-cross slice boundary ALF
-  UInt  m_uiNumSlicesInPic;      //!< number of slices in picture
-  Int   m_iSGDepth;              //!< slice granularity depth
-  Bool  *m_bIsFineSliceCu;
-  TComPicYuv* m_pcPicYuvMap;
-#endif
-#if MTK_SAO_REMOVE_SKIP
-  TComPicYuv* m_pcPicYuvTmp;
-#endif
-
-public:
-  Void create( UInt uiSourceWidth, UInt uiSourceHeight, UInt uiMaxCUWidth, UInt uiMaxCUHeight, UInt uiMaxCUDepth );
-  Void destroy ();
-  Void xCreateQAOParts (SAOQTPart *psQTPart);
-  Void xDestroyQAOParts(SAOQTPart *psQTPart);
-  Void xMakeSubPartList(Int part_level, Int part_row, Int part_col, Int* pList, Int& rListLength, Int NumPartInRow);
-
-  Bool getQAOFlag      () {return m_bSaoFlag;}
-  Int  getMaxSplitLevel() {return (Int)m_uiMaxSplitLevel;}
-  SAOQTPart * getQTPart() {return m_psQAOPart;}
-
-  Void SAOProcess(TComPic* pcPic, SAOParam* pcQaoParam);
-  Void resetQTPart(SAOQTPart *psQTPart);
-  Void xSetQTPartCUInfo(SAOQTPart *psQTPart);
-  Void xInitALfOnePart(SAOQTPart *psQTPart, Int part_level, Int part_row, Int part_col, Int parent_part_idx, Int StartCUX, Int EndCUX, Int StartCUY, Int EndCUY);
-  Void AoProcessCu(Int iAddr, Int iAoType, Int iYCbCr);
-  Void xAoOnePart(SAOQTPart *psQTPart, UInt uiPartIdx, Int iYCbCr);
-  Void xProcessQuadTreeAo(SAOQTPart *psQTPart, UInt uiPartIdx, Int iYCbCr);
-  Pel* getPicYuvAddr(TComPicYuv* pcPicYuv, Int iYCbCr,Int iAddr);
-  Void copyQaoData(SAOParam* pcQaoParam);
-
-  Void InitSao(SAOParam* pSaoParam);
-
-#if SAO_FGS_MNIF
-  Void AoProcessCuOrg(Int iAddr, Int iPartIdx, Int iYCbCr);  //!< LCU-basd SAO process without slice granularity 
-  Void AoProcessCuMap(Int iAddr, Int iPartIdx, Int iYCbCr);  //!< LCU-basd SAO process with slice granularity
-  Bool getIsFineSlice(){return m_iSGDepth && m_bUseNonCrossALF;}    //!< check slice granularity and non cross ALF
-  Bool getIsFineSliceCu(Int iAddr){return m_bIsFineSliceCu[iAddr];} //!< check slice granularity and non cross ALF for current LCU
-
-  Void setNumSlicesInPic(UInt uiNum) {m_uiNumSlicesInPic = uiNum;}  //!< set num of slices in picture
-  UInt getNumSlicesInPic()           {return m_uiNumSlicesInPic;}   //!< get num of slices in picture
-  Void setUseNonCrossAlf(Bool bVal)  {m_bUseNonCrossALF = bVal;}    //!< set use non cross Alf
-  Bool getUseNonCrossAlf()           {return m_bUseNonCrossALF;}    //!< get use non cross Alf
-  Void setSliceGranularityDepth(Int iDepth) { m_iSGDepth = iDepth; }//!< set slice granularity depth
-  Int  getSliceGranularityDepth()           { return m_iSGDepth;   }//!< get slice granularity depth
-  Void createSliceMap(UInt iSliceIdx, UInt uiStartAddr, UInt uiEndAddr);//!< create slice map
-  Void InitIsFineSliceCu(){memset(m_bIsFineSliceCu,0, sizeof(Bool)*m_iNumCuInWidth*m_iNumCuInHeight);} //!< Init is fine slice LCU
-  Void setPic(TComPic* pcPic){m_pcPic = pcPic;} //!< set pic
-#endif
+  const AlfCUCtrlInfo& operator= (const AlfCUCtrlInfo& src);  //!< "=" operator
+  AlfCUCtrlInfo():cu_control_flag(0), num_alf_cu_flag(0), alf_max_depth(0) {} //!< constructor
 
 };
 #endif
+
 
 
 #if MTK_NONCROSS_INLOOP_FILTER
@@ -317,10 +199,10 @@ public:
   Void destroy();
 
   /// Extend slice boundary border for one luma LCU
-  Void extendLumaBorder(Pel* pImg, Int iStride, UInt uiExtSize);
+  Void extendLumaBorder(Pel* pImg, Int iStride, Int filtNo);
 
   /// Extend slice boundary border for one chroma LCU
-  Void extendChromaBorder(Pel* pImg, Int iStride, UInt uiExtSize);
+  Void extendChromaBorder(Pel* pImg, Int iStride, UInt filtNo);
 
   /// Copy one luma LCU
   Void copyLuma(Pel* pImgDst, Pel* pImgSrc, Int iStride);
@@ -357,10 +239,9 @@ public:
 
   /// get TComDataCU pointer
   TComDataCU* getCU   ()         {return m_pcCU;}
-protected:
 
   /// Extend slice boundary border
-  Void extendBorderCoreFunction(Pel* pPel, Int iStride, Bool* pbAvail, UInt uiWidth, UInt uiHeight, UInt uiExtSize);
+  Void extendBorderCoreFunction(Pel* pPel, Int iStride, Bool* pbAvail, UInt uiWidth, UInt uiHeight, UInt uiExtSizeX, UInt uiExtSizeY, Bool bPaddingForCalculatingBAIndex = false);
 
   /// get corresponding TComDataCU pointer
   UInt getCUAddr() {return m_uiCUAddr;}
@@ -409,10 +290,10 @@ public:
   Void destroy();
 
   /// Extend slice boundary for one luma slice
-  Void extendSliceBorderLuma(Pel* pPelSrc, Int iStride, UInt uiExtSize);
+  Void extendSliceBorderLuma(Pel* pPelSrc, Int iStride, Int filtNo);
 
   /// Extend slice boundary for one chroma slice
-  Void extendSliceBorderChroma(Pel* pPelSrc, Int iStride, UInt uiExtSize);
+  Void extendSliceBorderChroma(Pel* pPelSrc, Int iStride, UInt filtNo);
 
   /// Copy one luma slice
   Void copySliceLuma(Pel* pPicDst, Pel* pPicSrc, Int iStride);
@@ -425,6 +306,11 @@ public:
 
   /// Get number of LCUs of this slice
   UInt getNumLCUs      ()          {return m_uiNumLCUs;}
+
+#if F747_APS
+  /// Get ALF CU control enabled/disable for this slice
+  Bool getCUCtrlEnabled()          {return m_bCUCtrlEnabled;   }
+#endif
 
   /// Set ALF CU control enabled/disable for this slice
   Void setCUCtrlEnabled(Bool b)    {m_bCUCtrlEnabled = b;   }
@@ -447,7 +333,10 @@ public:
   /// get TComPic pointer
   TComPic* getPic      ()          {return m_pcPic;}
 
+  Bool isValidSlice()               {return m_bValidSlice;}
+
 private: 
+  Bool     m_bValidSlice;
   TComPic* m_pcPic;                  //!< pointer to TComPic
   Int*     m_piSliceSUMap;           //!< pointer to slice ID map
   CAlfLCU* m_pcAlfLCU;               //!< ALF LCU units
@@ -583,8 +472,12 @@ protected:
 #endif
 
   /// ALF for luma component
+#if F747_APS
+  Void xALFLuma_qc( TComPic* pcPic, ALFParam* pcAlfParam, std::vector<AlfCUCtrlInfo>& vAlfCUCtrlParam, TComPicYuv* pcPicDec, TComPicYuv* pcPicRest );
+#else
   Void xALFLuma_qc( TComPic* pcPic, ALFParam* pcAlfParam, TComPicYuv* pcPicDec, TComPicYuv* pcPicRest );
-  
+#endif
+
   Void reconstructFilterCoeffs(ALFParam* pcAlfParam,int **pfilterCoeffSym, int bit_depth);
   Void getCurrentFilter(int **filterCoeffSym,ALFParam* pcAlfParam);
   // memory allocation
@@ -613,7 +506,12 @@ protected:
   Void subfilterFrame(imgpel *imgY_rec_post, imgpel *imgY_rec, int filtNo, int start_height, int end_height, int start_width, int end_width, int Stride);
   Void filterFrame(imgpel *imgY_rec_post, imgpel *imgY_rec, int filtNo, int Stride);
   UInt  m_uiNumCUsInFrame;
+#if F747_APS
+  Void  setAlfCtrlFlags(AlfCUCtrlInfo* pAlfParam, TComDataCU *pcCU, UInt uiAbsPartIdx, UInt uiDepth, UInt &idx);
+#else
   Void  setAlfCtrlFlags (ALFParam *pAlfParam, TComDataCU *pcCU, UInt uiAbsPartIdx, UInt uiDepth, UInt &idx);
+#endif
+
 #if E057_INTRA_PCM && E192_SPS_PCM_FILTER_DISABLE_SYNTAX
   Void xPCMRestoration        (TComPic* pcPic);
   Void xPCMCURestoration      (TComDataCU* pcCU, UInt uiAbsZorderIdx, UInt uiDepth);
@@ -655,7 +553,12 @@ public:
   Void predictALFCoeffChroma  ( ALFParam* pAlfParam );                  ///< prediction of chroma ALF coefficients
   
   // interface function
+#if F747_APS
+  Void ALFProcess             ( TComPic* pcPic, ALFParam* pcAlfParam, std::vector<AlfCUCtrlInfo>& vAlfCUCtrlParam ); ///< interface function for ALF process
+#else
   Void ALFProcess             ( TComPic* pcPic, ALFParam* pcAlfParam ); ///< interface function for ALF process
+#endif
+
 #if E057_INTRA_PCM && E192_SPS_PCM_FILTER_DISABLE_SYNTAX
   Void PCMLFDisableProcess    ( TComPic* pcPic);                        ///< interface function for ALF process 
 #endif
@@ -666,15 +569,28 @@ public:
   static Int ALFFlHToFlV(Int flH);
 #endif
 
+#if F747_APS
+public:
+  /// get number of LCU in picture for ALF process
+  Int  getNumCUsInPic()  {return m_uiNumCUsInFrame;}
+#endif
 
 #if MTK_NONCROSS_INLOOP_FILTER
 public:
 
+#if F747_APS
+  /// Copy ALF CU control flags from ALF parameters for slices
+  Void transferCtrlFlagsFromAlfParam(std::vector<AlfCUCtrlInfo>& vAlfParamSlices);
+  /// Copy ALF CU control flags from ALF parameter for one slice
+  Void transferCtrlFlagsFromAlfParamOneSlice(UInt s, Bool bCUCtrlEnabled, Int iAlfDepth, std::vector<UInt>& vCtrlFlags);
+#else
   /// Copy ALF CU control flags from ALF parameters for slices
   Void transferCtrlFlagsFromAlfParam(ALFParam* pcAlfParam);
   
   /// Copy ALF CU control flags from ALF parameter for one slice
   Void transferCtrlFlagsFromAlfParamOneSlice(UInt s, Bool bCUCtrlEnabled, Int iAlfDepth, UInt* puiFlags);
+#endif
+
 #if FINE_GRANULARITY_SLICES
   /// Set slice granularity
   Void setSliceGranularityDepth(Int iDepth) { m_iSGDepth = iDepth;}

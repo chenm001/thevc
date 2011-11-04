@@ -54,7 +54,15 @@ public:
 
   virtual Void  start             ()                                          = 0;
   virtual Void  finish            ()                                          = 0;
-  virtual Void  copyState         ( TEncBinIf* pcTEncBinIf )                  = 0;    
+  virtual Void  copyState         ( TEncBinIf* pcTEncBinIf )                  = 0;
+#if OL_FLUSH
+  virtual Void  flush            ()                                           = 0;
+#endif
+
+#if F747_APS
+  virtual Void  encodeFlush     (Bool bEnd) = 0;
+#endif
+
 
 #if E057_INTRA_PCM
   virtual Void  resetBac          ()                                          = 0;

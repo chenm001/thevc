@@ -212,8 +212,14 @@ TEncAdaptiveLoopFilter::TEncAdaptiveLoopFilter()
 #endif
 #endif
 
+#if !F747_APS
 #if E045_SLICE_COMMON_INFO_SHARING
   m_bSharedPPSAlfParamEnabled = false;
+#endif
+#endif
+
+#if F747_APS
+  m_bAlfCUCtrlEnabled = false;
 #endif
 
 }
@@ -433,13 +439,19 @@ Void TEncAdaptiveLoopFilter::endALFEnc()
 #if ALF_CHROMA_LAMBDA  
 /**
  \param pcAlfParam           ALF parameter
+ \param [out] pvAlfCtrlParam ALF CU control parameters container for slices
  \param dLambdaLuma          luma lambda value for RD cost computation
  \param dLambdaChroma        chroma lambda value for RD cost computation
  \retval ruiDist             distortion
  \retval ruiBits             required bits
  \retval ruiMaxAlfCtrlDepth  optimal partition depth
  */
+#if F747_APS
+Void TEncAdaptiveLoopFilter::ALFProcess( ALFParam* pcAlfParam, std::vector<AlfCUCtrlInfo>* pvAlfCtrlParam, Double dLambdaLuma, Double dLambdaChroma, UInt64& ruiDist, UInt64& ruiBits)
+#else
 Void TEncAdaptiveLoopFilter::ALFProcess( ALFParam* pcAlfParam, Double dLambdaLuma, Double dLambdaChroma, UInt64& ruiDist, UInt64& ruiBits, UInt& ruiMaxAlfCtrlDepth )
+#endif
+
 #else
 /**
  \param pcAlfParam           ALF parameter
@@ -448,7 +460,12 @@ Void TEncAdaptiveLoopFilter::ALFProcess( ALFParam* pcAlfParam, Double dLambdaLum
  \retval ruiBits             required bits
  \retval ruiMaxAlfCtrlDepth  optimal partition depth
  */
+#if F747_APS
+Void TEncAdaptiveLoopFilter::ALFProcess( ALFParam* pcAlfParam, std::vector<AlfCUCtrlInfo>* pvAlfCtrlParam, Double dLambda, UInt64& ruiDist, UInt64& ruiBits)
+#else
 Void TEncAdaptiveLoopFilter::ALFProcess( ALFParam* pcAlfParam, Double dLambda, UInt64& ruiDist, UInt64& ruiBits, UInt& ruiMaxAlfCtrlDepth )
+#endif
+
 #endif
 {
 #if !STAR_CROSS_SHAPES_LUMA
@@ -503,8 +520,9 @@ Void TEncAdaptiveLoopFilter::ALFProcess( ALFParam* pcAlfParam, Double dLambda, U
   // calc original cost
   xCalcRDCost( pcPicOrg, pcPicYuvRec, NULL, uiOrigRate, uiOrigDist, dOrigCost );
   m_pcBestAlfParam->alf_flag = 0;
+#if !F747_APS
   m_pcBestAlfParam->cu_control_flag = 0;
-  
+#endif  
   // initialize temp_alfps
   m_pcTempAlfParam->alf_flag        = 1;
 #if !STAR_CROSS_SHAPES_LUMA
@@ -515,8 +533,24 @@ Void TEncAdaptiveLoopFilter::ALFProcess( ALFParam* pcAlfParam, Double dLambda, U
   m_pcTempAlfParam->num_coeff       = num_coef;
 #endif
   m_pcTempAlfParam->chroma_idc      = 0;
+#if !F747_APS
   m_pcTempAlfParam->cu_control_flag = 0;
-  
+#endif
+
+#if F747_APS
+  m_bAlfCUCtrlEnabled = (pvAlfCtrlParam != NULL)?true:false;
+  if(m_bAlfCUCtrlEnabled)
+  {
+    m_vBestAlfCUCtrlParam.resize(m_uiNumSlicesInPic);
+    for(Int s=0; s< m_uiNumSlicesInPic; s++)
+      m_vBestAlfCUCtrlParam[s].cu_control_flag = 0;
+  }
+  else
+  {
+    m_vBestAlfCUCtrlParam.clear();
+  }
+#endif
+
 #if MQT_ALF_NPASS
   setALFEncodingParam(m_pcPic);
 #endif
@@ -546,13 +580,21 @@ Void TEncAdaptiveLoopFilter::ALFProcess( ALFParam* pcAlfParam, Double dLambda, U
   else
   {
     m_pcBestAlfParam->alf_flag        = 0;
+#if !F747_APS
     m_pcBestAlfParam->cu_control_flag = 0;
-    
+#endif
+
     uiMinRate = uiOrigRate;
     uiMinDist = uiOrigDist;
-    dMinCost = dMinCost;
     
     m_pcEntropyCoder->setAlfCtrl(false);
+#if F747_APS
+    if(m_bAlfCUCtrlEnabled)
+    {
+      for(Int s=0; s< m_uiNumSlicesInPic; s++)
+        m_vBestAlfCUCtrlParam[s].cu_control_flag = 0;
+    }
+#endif
     pcPicYuvExtRec->copyToPicLuma(pcPicYuvRec);
     
     ruiBits = uiOrigRate;
@@ -575,8 +617,17 @@ Void TEncAdaptiveLoopFilter::ALFProcess( ALFParam* pcAlfParam, Double dLambda, U
   // copy to best storage
   copyALFParam(pcAlfParam, m_pcBestAlfParam);
   
+#if F747_APS
+  if(m_bAlfCUCtrlEnabled)
+  {
+    for(Int s=0; s< m_uiNumSlicesInPic; s++)
+      (*pvAlfCtrlParam)[s]= m_vBestAlfCUCtrlParam[s];
+  }
+#else
   // store best depth
   ruiMaxAlfCtrlDepth = m_pcEntropyCoder->getMaxAlfCtrlDepth();
+#endif
+
 }
 
 #if E057_INTRA_PCM && E192_SPS_PCM_FILTER_DISABLE_SYNTAX
@@ -873,6 +924,8 @@ Void TEncAdaptiveLoopFilter::xEncodeCUAlfCtrlFlags()
   {
     for(UInt s=0; s< m_uiNumSlicesInPic; s++)
     {
+      if(!m_pSlice[s].isValidSlice()) continue;
+
       for(UInt idx=0; idx< m_pSlice[s].getNumLCUs(); idx++)
       {
         CAlfLCU& cAlfLCU = m_pSlice[s][idx];
@@ -1363,19 +1416,25 @@ Void TEncAdaptiveLoopFilter::xClearFilterCoefInt(Int* qh, Int N)
 }
 
 /** Calculate RD cost
- * \param pAlfParam ALF parameters
- * \param uiDist distortion
- * \returns ruiRate bitrate
- * \returns rdCost RD cost
+ * \param [in] pAlfParam ALF parameters
+ * \param [out] ruiRate coding bits
+ * \param [in] uiDist distortion
+ * \param [out] rdCost rate-distortion cost
+ * \param [in] pvAlfCUCtrlParam ALF CU control parameters
  */
+#if F747_APS
+Void TEncAdaptiveLoopFilter::xCalcRDCost(ALFParam* pAlfParam, UInt64& ruiRate, UInt64 uiDist, Double& rdCost, std::vector<AlfCUCtrlInfo>* pvAlfCUCtrlParam)
+#else
 Void TEncAdaptiveLoopFilter::xCalcRDCost(ALFParam* pAlfParam, UInt64& ruiRate, UInt64 uiDist, Double& rdCost)
+#endif
 {
   if(pAlfParam != NULL)
   {
+#if !F747_APS
 #if E045_SLICE_COMMON_INFO_SHARING
     ruiRate = 0;
 #endif
-
+#endif
     Int* piTmpCoef;
     piTmpCoef = new Int[ALF_MAX_NUM_COEF];
     
@@ -1386,6 +1445,29 @@ Void TEncAdaptiveLoopFilter::xCalcRDCost(ALFParam* pAlfParam, UInt64& ruiRate, U
     m_pcEntropyCoder->resetEntropy();
     m_pcEntropyCoder->resetBits();
     m_pcEntropyCoder->encodeAlfParam(pAlfParam);
+
+#if F747_APS
+    ruiRate = m_pcEntropyCoder->getNumberOfWrittenBits();
+
+    if(pvAlfCUCtrlParam != NULL)
+    {
+      for(UInt s=0; s< m_uiNumSlicesInPic; s++)
+      {
+        if(m_uiNumSlicesInPic > 1)
+        {
+          if(!m_pSlice[s].isValidSlice()) continue;
+        }
+        m_pcEntropyCoder->resetEntropy();
+        m_pcEntropyCoder->resetBits();
+        m_pcEntropyCoder->encodeAlfCtrlParam( (*pvAlfCUCtrlParam)[s], m_uiNumCUsInFrame);
+        ruiRate += m_pcEntropyCoder->getNumberOfWrittenBits();
+      }
+    }
+    else
+    {
+      ruiRate += m_uiNumSlicesInPic;
+    }
+#else
 
 #if E045_SLICE_COMMON_INFO_SHARING
     if(m_uiNumSlicesInPic ==1)
@@ -1405,6 +1487,8 @@ Void TEncAdaptiveLoopFilter::xCalcRDCost(ALFParam* pAlfParam, UInt64& ruiRate, U
       ruiRate = m_pcEntropyCoder->getNumberOfWrittenBits();
       for(UInt s=0; s< m_uiNumSlicesInPic; s++)
       {
+        if(!m_pSlice[s].isValidSlice()) continue;
+
         m_pcEntropyCoder->resetEntropy();
         m_pcEntropyCoder->resetBits();
         m_pcEntropyCoder->encodeAlfCtrlParam(pAlfParam, m_uiNumSlicesInPic, &(m_pSlice[s]));
@@ -1421,6 +1505,7 @@ Void TEncAdaptiveLoopFilter::xCalcRDCost(ALFParam* pAlfParam, UInt64& ruiRate, U
       m_pcEntropyCoder->encodeAlfCtrlParam(pAlfParam);
     }
     ruiRate = m_pcEntropyCoder->getNumberOfWrittenBits();
+#endif
 #endif
     memcpy(pAlfParam->coeff, piTmpCoef, sizeof(int)*pAlfParam->num_coeff);
     delete[] piTmpCoef;
@@ -1435,19 +1520,26 @@ Void TEncAdaptiveLoopFilter::xCalcRDCost(ALFParam* pAlfParam, UInt64& ruiRate, U
 }
 
 /** Calculate RD cost
- * \param pcPicOrg original picture buffer
- * \param pcPicCmp compared picture buffer
- * \param pAlfParam ALF parameters
- * \returns ruiRate bitrate
- * \returns uiDist distortion
- * \returns rdCost RD cost
+ * \param [in] pcPicOrg original picture buffer
+ * \param [in] pcPicCmp compared picture buffer
+ * \param [in] pAlfParam ALF parameters
+ * \param [out] ruiRate coding bits
+ * \param [out] ruiDist distortion
+ * \param [out] rdCost rate-distortion cost
+ * \param [in] pvAlfCUCtrlParam ALF CU control parameters
  */
+#if F747_APS
+Void TEncAdaptiveLoopFilter::xCalcRDCost(TComPicYuv* pcPicOrg, TComPicYuv* pcPicCmp, ALFParam* pAlfParam, UInt64& ruiRate, UInt64& ruiDist, Double& rdCost, std::vector<AlfCUCtrlInfo>* pvAlfCUCtrlParam)
+#else
 Void TEncAdaptiveLoopFilter::xCalcRDCost(TComPicYuv* pcPicOrg, TComPicYuv* pcPicCmp, ALFParam* pAlfParam, UInt64& ruiRate, UInt64& ruiDist, Double& rdCost)
+#endif
 {
   if(pAlfParam != NULL)
   {
+#if !F747_APS
 #if E045_SLICE_COMMON_INFO_SHARING
     ruiRate = 0;
+#endif
 #endif
     Int* piTmpCoef;
     piTmpCoef = new Int[ALF_MAX_NUM_COEF];
@@ -1460,6 +1552,31 @@ Void TEncAdaptiveLoopFilter::xCalcRDCost(TComPicYuv* pcPicOrg, TComPicYuv* pcPic
     m_pcEntropyCoder->resetBits();
     m_pcEntropyCoder->encodeAlfParam(pAlfParam);
     
+#if F747_APS
+    ruiRate = m_pcEntropyCoder->getNumberOfWrittenBits();
+
+    if(pvAlfCUCtrlParam != NULL)
+    {
+      for(UInt s=0; s< m_uiNumSlicesInPic; s++)
+      {
+        if(m_uiNumSlicesInPic > 1)
+        {
+          if(!m_pSlice[s].isValidSlice()) continue;
+        }
+        m_pcEntropyCoder->resetEntropy();
+        m_pcEntropyCoder->resetBits();
+        m_pcEntropyCoder->encodeAlfCtrlParam( (*pvAlfCUCtrlParam)[s], m_uiNumCUsInFrame);
+        ruiRate += m_pcEntropyCoder->getNumberOfWrittenBits();
+      }
+
+    }
+    else
+    {
+      ruiRate += m_uiNumSlicesInPic;
+    }
+
+#else
+
 #if E045_SLICE_COMMON_INFO_SHARING
     if(m_uiNumSlicesInPic ==1)
     {
@@ -1478,6 +1595,8 @@ Void TEncAdaptiveLoopFilter::xCalcRDCost(TComPicYuv* pcPicOrg, TComPicYuv* pcPic
       ruiRate = m_pcEntropyCoder->getNumberOfWrittenBits();
       for(UInt s=0; s< m_uiNumSlicesInPic; s++)
       {
+        if(!m_pSlice[s].isValidSlice()) continue;
+
         m_pcEntropyCoder->resetEntropy();
         m_pcEntropyCoder->resetBits();
         m_pcEntropyCoder->encodeAlfCtrlParam(pAlfParam, m_uiNumSlicesInPic, &(m_pSlice[s]));
@@ -1494,6 +1613,7 @@ Void TEncAdaptiveLoopFilter::xCalcRDCost(TComPicYuv* pcPicOrg, TComPicYuv* pcPic
       m_pcEntropyCoder->encodeAlfCtrlParam(pAlfParam);
     }
     ruiRate = m_pcEntropyCoder->getNumberOfWrittenBits();
+#endif
 #endif
     memcpy(pAlfParam->coeff, piTmpCoef, sizeof(int)*pAlfParam->num_coeff);
     delete[] piTmpCoef;
@@ -1523,8 +1643,11 @@ Void TEncAdaptiveLoopFilter::xCalcRDCostChroma(TComPicYuv* pcPicOrg, TComPicYuv*
 #if ALF_CHROMA_NEW_SHAPES
     ruiRate = xCalcRateChroma(pAlfParam);
 #else
+
+#if !F747_APS
 #if E045_SLICE_COMMON_INFO_SHARING
     ruiRate = 0;
+#endif
 #endif
 
     Int* piTmpCoef;
@@ -1538,6 +1661,29 @@ Void TEncAdaptiveLoopFilter::xCalcRDCostChroma(TComPicYuv* pcPicOrg, TComPicYuv*
     m_pcEntropyCoder->resetBits();
     m_pcEntropyCoder->encodeAlfParam(pAlfParam);
     
+#if F747_APS
+    ruiRate = m_pcEntropyCoder->getNumberOfWrittenBits();
+    if (m_vBestAlfCUCtrlParam.size() != 0)
+    {
+      for(UInt s=0; s< m_uiNumSlicesInPic; s++)
+      {
+        if( m_uiNumSlicesInPic > 1)
+        {
+          if(!m_pSlice[s].isValidSlice())
+            continue;
+        }
+        m_pcEntropyCoder->resetEntropy();
+        m_pcEntropyCoder->resetBits();
+        m_pcEntropyCoder->encodeAlfCtrlParam( m_vBestAlfCUCtrlParam[s], m_uiNumCUsInFrame);
+        ruiRate += m_pcEntropyCoder->getNumberOfWrittenBits();
+      }
+    }
+    else
+    {
+      ruiRate += m_uiNumSlicesInPic;
+    }
+
+#else
 #if E045_SLICE_COMMON_INFO_SHARING
     if(m_uiNumSlicesInPic ==1)
     {
@@ -1556,6 +1702,8 @@ Void TEncAdaptiveLoopFilter::xCalcRDCostChroma(TComPicYuv* pcPicOrg, TComPicYuv*
       ruiRate = m_pcEntropyCoder->getNumberOfWrittenBits();
       for(UInt s=0; s< m_uiNumSlicesInPic; s++)
       {
+        if(!m_pSlice[s].isValidSlice()) continue;
+
         m_pcEntropyCoder->resetEntropy();
         m_pcEntropyCoder->resetBits();
         m_pcEntropyCoder->encodeAlfCtrlParam(pAlfParam, m_uiNumSlicesInPic, &(m_pSlice[s]));
@@ -1573,6 +1721,8 @@ Void TEncAdaptiveLoopFilter::xCalcRDCostChroma(TComPicYuv* pcPicOrg, TComPicYuv*
     }
     ruiRate = m_pcEntropyCoder->getNumberOfWrittenBits();
 #endif
+#endif
+
     memcpy(pAlfParam->coeff_chroma, piTmpCoef, sizeof(int)*pAlfParam->num_coeff_chroma);
     delete[] piTmpCoef;
     piTmpCoef = NULL;
@@ -1713,6 +1863,8 @@ Void TEncAdaptiveLoopFilter::xCopyDecToRestCUs(TComPicYuv* pcPicDec, TComPicYuv*
 
     for(s=0; s< m_uiNumSlicesInPic; s++)
     {
+      if(!m_pSlice[s].isValidSlice()) continue;
+
       iAlfDepth = m_pSlice[s].getCUCtrlDepth();
 
       for(idx = 0; idx < m_pSlice[s].getNumLCUs(); idx++)
@@ -2376,7 +2528,10 @@ Void   TEncAdaptiveLoopFilter::xEncALFLuma_qc ( TComPicYuv* pcPicOrg, TComPicYuv
 
     pcAlfParam->alf_flag        = 1;
     pcAlfParam->chroma_idc      = 0;
+#if !F747_APS
     pcAlfParam->cu_control_flag = 0;
+#endif
+
 #if !STAR_CROSS_SHAPES_LUMA
     pcAlfParam->tap = tap;
 #if TI_ALF_MAX_VSIZE_7
@@ -2574,7 +2729,9 @@ Void   TEncAdaptiveLoopFilter::xEncALFLuma_qc ( TComPicYuv* pcPicOrg, TComPicYuv
     m_aiFilterCoeffSaved = m_aiFilterCoeffSavedMethods[m_uiVarGenMethod];
 
     cAlfParamWithBestMethod.alf_flag = 1;
+#if !F747_APS
     cAlfParamWithBestMethod.cu_control_flag = 0;
+#endif
     cAlfParamWithBestMethod.chroma_idc = 0;
     cAlfParamWithBestMethod.alf_pcr_region_flag = m_uiVarGenMethod;
 #if STAR_CROSS_SHAPES_LUMA
@@ -3773,13 +3930,53 @@ Void TEncAdaptiveLoopFilter::xcodeFiltCoeff(Int **filterCoeffSymQuant, Int filtN
 
 
 /** set ALF CU control flags
- * \param uiAlfCtrlDepth ALF CU control depth
- * \param pcPicOrg picture of original signal
- * \param pcPicDec picture before filtering
- * \param pcPicRest picture after filtering
- * \return ruiDist distortion after CU control
- * \return pAlfParam ALF parameters (CU control flags & number of CU control flags will be assigned)
+ * \param [in] uiAlfCtrlDepth ALF CU control depth
+ * \param [in] pcPicOrg picture of original signal
+ * \param [in] pcPicDec picture before filtering
+ * \param [in] pcPicRest picture after filtering
+ * \param [out] ruiDist distortion after CU control
+ * \param [in,out]vAlfCUCtrlParam ALF CU control parameters 
  */
+#if F747_APS
+Void TEncAdaptiveLoopFilter::xSetCUAlfCtrlFlags_qc(UInt uiAlfCtrlDepth, TComPicYuv* pcPicOrg, TComPicYuv* pcPicDec, TComPicYuv* pcPicRest, UInt64& ruiDist, std::vector<AlfCUCtrlInfo>& vAlfCUCtrlParam)
+{
+  ruiDist = 0;
+
+  if(m_uiNumSlicesInPic ==1)
+  {
+    AlfCUCtrlInfo& cAlfCUCtrlParam = vAlfCUCtrlParam[0];
+
+    cAlfCUCtrlParam.cu_control_flag = 1;
+    cAlfCUCtrlParam.alf_max_depth   = uiAlfCtrlDepth;
+
+    cAlfCUCtrlParam.alf_cu_flag.reserve(m_uiNumCUsInFrame << ((g_uiMaxCUDepth-1)*2));
+    cAlfCUCtrlParam.alf_cu_flag.resize(0);
+
+    for( UInt uiCUAddr = 0; uiCUAddr < m_pcPic->getNumCUsInFrame() ; uiCUAddr++ )
+    {
+      TComDataCU* pcCU = m_pcPic->getCU( uiCUAddr );
+      xSetCUAlfCtrlFlag_qc(pcCU, 0, 0, uiAlfCtrlDepth, pcPicOrg, pcPicDec, pcPicRest, ruiDist, cAlfCUCtrlParam.alf_cu_flag);
+    }
+
+    cAlfCUCtrlParam.num_alf_cu_flag = cAlfCUCtrlParam.alf_cu_flag.size();
+  }
+  else
+  {
+    std::vector<UInt> uiFlags;
+
+    for( UInt uiCUAddr = 0; uiCUAddr < m_pcPic->getNumCUsInFrame() ; uiCUAddr++ )
+    {
+      TComDataCU* pcCU = m_pcPic->getCU( uiCUAddr );
+      xSetCUAlfCtrlFlag_qc(pcCU, 0, 0, uiAlfCtrlDepth, pcPicOrg, pcPicDec, pcPicRest, ruiDist, uiFlags);
+    }
+
+    getCtrlFlagsForSlices(true, (Int)uiAlfCtrlDepth);
+    transferCtrlFlagsToAlfParam( vAlfCUCtrlParam );
+  }
+
+}
+
+#else
 Void TEncAdaptiveLoopFilter::xSetCUAlfCtrlFlags_qc(UInt uiAlfCtrlDepth, TComPicYuv* pcPicOrg, TComPicYuv* pcPicDec, TComPicYuv* pcPicRest, UInt64& ruiDist, ALFParam *pAlfParam)
 {
   ruiDist = 0;
@@ -3800,8 +3997,14 @@ Void TEncAdaptiveLoopFilter::xSetCUAlfCtrlFlags_qc(UInt uiAlfCtrlDepth, TComPicY
 #endif
 
 }
+#endif
 
+
+#if F747_APS
+Void TEncAdaptiveLoopFilter::xSetCUAlfCtrlFlag_qc(TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth, UInt uiAlfCtrlDepth, TComPicYuv* pcPicOrg, TComPicYuv* pcPicDec, TComPicYuv* pcPicRest, UInt64& ruiDist, std::vector<UInt>& vCUCtrlFlag)
+#else
 Void TEncAdaptiveLoopFilter::xSetCUAlfCtrlFlag_qc(TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth, UInt uiAlfCtrlDepth, TComPicYuv* pcPicOrg, TComPicYuv* pcPicDec, TComPicYuv* pcPicRest, UInt64& ruiDist, ALFParam *pAlfParam)
+#endif
 {
   Bool bBoundary = false;
   UInt uiLPelX   = pcCU->getCUPelX() + g_auiRasterToPelX[ g_auiZscanToRaster[uiAbsPartIdx] ];
@@ -3823,7 +4026,11 @@ Void TEncAdaptiveLoopFilter::xSetCUAlfCtrlFlag_qc(TComDataCU* pcCU, UInt uiAbsPa
       uiTPelY   = pcCU->getCUPelY() + g_auiRasterToPelY[ g_auiZscanToRaster[uiAbsPartIdx] ];
       
       if( ( uiLPelX < pcCU->getSlice()->getSPS()->getWidth() ) && ( uiTPelY < pcCU->getSlice()->getSPS()->getHeight() ) )
+#if F747_APS
+        xSetCUAlfCtrlFlag_qc(pcCU, uiAbsPartIdx, uiDepth+1, uiAlfCtrlDepth, pcPicOrg, pcPicDec, pcPicRest, ruiDist, vCUCtrlFlag);
+#else
         xSetCUAlfCtrlFlag_qc(pcCU, uiAbsPartIdx, uiDepth+1, uiAlfCtrlDepth, pcPicOrg, pcPicDec, pcPicRest, ruiDist, pAlfParam);
+#endif
     }
     return;
   }
@@ -3879,7 +4086,11 @@ Void TEncAdaptiveLoopFilter::xSetCUAlfCtrlFlag_qc(TComDataCU* pcCU, UInt uiAbsPa
   {
     ruiDist += uiFiltSSD;
     pcCU->setAlfCtrlFlagSubParts(1, uiAbsPartIdx, uiSetDepth);
+#if F747_APS
+    vCUCtrlFlag.push_back(1);
+#else
     pAlfParam->alf_cu_flag[pAlfParam->num_alf_cu_flag]=1;
+#endif
     for (int i=uiTPelY ;i<=min(uiBPelY,(unsigned int)(pcPicOrg->getHeight()-1))  ;i++)
     {
       for (int j=uiLPelX ;j<=min(uiRPelX,(unsigned int)(pcPicOrg->getWidth()-1)) ;j++)
@@ -3892,7 +4103,11 @@ Void TEncAdaptiveLoopFilter::xSetCUAlfCtrlFlag_qc(TComDataCU* pcCU, UInt uiAbsPa
   {
     ruiDist += uiRecSSD;
     pcCU->setAlfCtrlFlagSubParts(0, uiAbsPartIdx, uiSetDepth);
+#if F747_APS
+    vCUCtrlFlag.push_back(0);
+#else
     pAlfParam->alf_cu_flag[pAlfParam->num_alf_cu_flag]=0;
+#endif
     for (int i=uiTPelY ;i<=min(uiBPelY,(unsigned int)(pcPicOrg->getHeight()-1))  ;i++)
     {
       for (int j=uiLPelX ;j<=min(uiRPelX,(unsigned int)(pcPicOrg->getWidth()-1)) ;j++)
@@ -3901,7 +4116,9 @@ Void TEncAdaptiveLoopFilter::xSetCUAlfCtrlFlag_qc(TComDataCU* pcCU, UInt uiAbsPa
       }
     }
   }
+#if !F747_APS
   pAlfParam->num_alf_cu_flag++;
+#endif
 }
 
 Void TEncAdaptiveLoopFilter::xReDesignFilterCoeff_qc(TComPicYuv* pcPicOrg, TComPicYuv* pcPicDec, TComPicYuv* pcPicRest, Bool bReadCorr)
@@ -3936,6 +4153,12 @@ Void TEncAdaptiveLoopFilter::xReDesignFilterCoeff_qc(TComPicYuv* pcPicOrg, TComP
 }
 Void TEncAdaptiveLoopFilter::xCUAdaptiveControl_qc(TComPicYuv* pcPicOrg, TComPicYuv* pcPicDec, TComPicYuv* pcPicRest, UInt64& ruiMinRate, UInt64& ruiMinDist, Double& rdMinCost)
 {
+#if F747_APS
+  if(!m_bAlfCUCtrlEnabled) return;
+  Bool bChanged = false;
+  std::vector<AlfCUCtrlInfo> vAlfCUCtrlParamTemp(m_vBestAlfCUCtrlParam);
+#endif
+
 #if MQT_ALF_NPASS
   imgpel** maskImgTemp;
 
@@ -3958,8 +4181,10 @@ Void TEncAdaptiveLoopFilter::xCUAdaptiveControl_qc(TComPicYuv* pcPicOrg, TComPic
     m_pcEntropyCoder->setMaxAlfCtrlDepth(uiDepth);
     pcPicRest->copyToPicLuma(m_pcPicYuvTmp);
     copyALFParam(m_pcTempAlfParam, &cFrmAlfParam);
+#if !F747_APS
     m_pcTempAlfParam->cu_control_flag = 1;
-    
+#endif
+
 #if MQT_ALF_NPASS
     for (UInt uiRD = 0; uiRD <= m_iALFNumOfRedesign; uiRD++)
 #else
@@ -3975,12 +4200,20 @@ Void TEncAdaptiveLoopFilter::xCUAdaptiveControl_qc(TComPicYuv* pcPicOrg, TComPic
       UInt64 uiRate, uiDist;
       Double dCost;
      //m_pcPicYuvTmp: filtered signal, pcPicDec: orig reconst
+#if F747_APS
+      xSetCUAlfCtrlFlags_qc(uiDepth, pcPicOrg, pcPicDec, m_pcPicYuvTmp, uiDist, vAlfCUCtrlParamTemp); 
+      xCalcRDCost(m_pcTempAlfParam, uiRate, uiDist, dCost, &vAlfCUCtrlParamTemp);
+#else
       xSetCUAlfCtrlFlags_qc(uiDepth, pcPicOrg, pcPicDec, m_pcPicYuvTmp, uiDist, m_pcTempAlfParam); //set up varImg here
       
       xCalcRDCost(m_pcTempAlfParam, uiRate, uiDist, dCost);
-      
+#endif      
       if (dCost < rdMinCost)
       {
+#if F747_APS
+        bChanged = true;
+        m_vBestAlfCUCtrlParam = vAlfCUCtrlParamTemp;
+#endif
         uiBestDepth = uiDepth;
         rdMinCost = dCost;
         ruiMinDist = uiDist;
@@ -3998,8 +4231,12 @@ Void TEncAdaptiveLoopFilter::xCUAdaptiveControl_qc(TComPicYuv* pcPicOrg, TComPic
       }
     }
   }
-  
+
+#if F747_APS
+  if(bChanged)
+#else  
   if (m_pcBestAlfParam->cu_control_flag)
+#endif
   {
 #if MQT_ALF_NPASS
     if(m_iALFEncodePassReduction == 2)
@@ -4018,11 +4255,14 @@ Void TEncAdaptiveLoopFilter::xCUAdaptiveControl_qc(TComPicYuv* pcPicOrg, TComPic
 
       UInt64 uiRate, uiDist;
       Double dCost;
-
+#if F747_APS
+      xSetCUAlfCtrlFlags_qc(uiDepth, pcPicOrg, pcPicDec, m_pcPicYuvTmp, uiDist, vAlfCUCtrlParamTemp); 
+      xCalcRDCost(m_pcTempAlfParam, uiRate, uiDist, dCost, &vAlfCUCtrlParamTemp);
+#else
       xSetCUAlfCtrlFlags_qc(uiDepth, pcPicOrg, pcPicDec, m_pcPicYuvTmp, uiDist, m_pcTempAlfParam); //set up varImg here
 
       xCalcRDCost(m_pcTempAlfParam, uiRate, uiDist, dCost);
-
+#endif
       if (dCost < rdMinCost)
       {
         rdMinCost = dCost;
@@ -4031,6 +4271,9 @@ Void TEncAdaptiveLoopFilter::xCUAdaptiveControl_qc(TComPicYuv* pcPicOrg, TComPic
         m_pcPicYuvTmp->copyToPicLuma(m_pcPicYuvBest);
         copyALFParam(m_pcBestAlfParam, m_pcTempAlfParam);
         xCopyTmpAlfCtrlFlagsFrom();
+#if F747_APS
+        m_vBestAlfCUCtrlParam = vAlfCUCtrlParamTemp;
+#endif
       }
     }
 #endif
@@ -4043,7 +4286,9 @@ Void TEncAdaptiveLoopFilter::xCUAdaptiveControl_qc(TComPicYuv* pcPicOrg, TComPic
     if(m_uiNumSlicesInPic > 1)
     {
       getCtrlFlagsForSlices(true, (Int)uiBestDepth);
+#if !F747_APS
       transferCtrlFlagsToAlfParam(m_pcBestAlfParam->num_alf_cu_flag, m_pcBestAlfParam->alf_cu_flag);
+#endif
     }
 #endif
 
@@ -4091,8 +4336,25 @@ Void TEncAdaptiveLoopFilter::xFilterTapDecision_qc(TComPicYuv* pcPicOrg, TComPic
   UInt64 uiRate, uiDist;
   Double dCost;
   
+#if F747_APS
+  std::vector<AlfCUCtrlInfo> vAlfCUCtrlParamTemp;
+  UInt                       uiBestDepth;
+
+  Bool bAlfCUCtrlUsed = false;
+  for(Int s=0; s< m_uiNumSlicesInPic; s++)
+  {
+    if(m_vBestAlfCUCtrlParam[s].cu_control_flag == 1)
+      bAlfCUCtrlUsed = true;
+  }
+
+  if(bAlfCUCtrlUsed)
+  {
+    uiBestDepth         = m_vBestAlfCUCtrlParam[0].alf_max_depth;
+    vAlfCUCtrlParamTemp = m_vBestAlfCUCtrlParam;
+#else
   if (m_pcBestAlfParam->cu_control_flag)
   {
+#endif
     xCopyTmpAlfCtrlFlagsFrom();
   }
   
@@ -4108,11 +4370,20 @@ Void TEncAdaptiveLoopFilter::xFilterTapDecision_qc(TComPicYuv* pcPicOrg, TComPic
     m_pcTempAlfParam->num_coeff = (Int)(iTap*iTap/4) + 2; 
 #endif
     
+#if F747_APS
+    if(bAlfCUCtrlUsed)
+#else
     if (m_pcTempAlfParam->cu_control_flag)
+#endif
     {
       xReDesignFilterCoeff_qc(pcPicOrg, pcPicDec, m_pcPicYuvTmp, false);
+#if F747_APS
+      xSetCUAlfCtrlFlags_qc(uiBestDepth, pcPicOrg, pcPicDec, m_pcPicYuvTmp, uiDist, vAlfCUCtrlParamTemp); 
+      xCalcRDCost(m_pcTempAlfParam, uiRate, uiDist, dCost, &vAlfCUCtrlParamTemp);
+#else
       xSetCUAlfCtrlFlags_qc(m_pcEntropyCoder->getMaxAlfCtrlDepth(), pcPicOrg, pcPicDec, m_pcPicYuvTmp, uiDist, m_pcTempAlfParam);
       xCalcRDCost(m_pcTempAlfParam, uiRate, uiDist, dCost);
+#endif
     }
 
     else
@@ -4139,21 +4410,37 @@ Void TEncAdaptiveLoopFilter::xFilterTapDecision_qc(TComPicYuv* pcPicOrg, TComPic
       m_pcPicYuvTmp->copyToPicLuma(m_pcPicYuvBest);
       copyALFParam(m_pcBestAlfParam, m_pcTempAlfParam);
       bChanged = true;
+
+#if F747_APS
+      if (bAlfCUCtrlUsed)
+      {
+        m_vBestAlfCUCtrlParam = vAlfCUCtrlParamTemp;
+#else
       if (m_pcTempAlfParam->cu_control_flag)
       {
+#endif
         xCopyTmpAlfCtrlFlagsFrom();
       }
+
     }
   }
   
+#if F747_APS
+  if(bAlfCUCtrlUsed)
+#else
   if (m_pcBestAlfParam->cu_control_flag)
+#endif
   {
     xCopyTmpAlfCtrlFlagsTo();
 #if MTK_NONCROSS_INLOOP_FILTER
     if(m_uiNumSlicesInPic > 1)
     {
+#if F747_APS
+      getCtrlFlagsForSlices(true, (Int)uiBestDepth);
+#else
       getCtrlFlagsForSlices(true, (Int)m_pcEntropyCoder->getMaxAlfCtrlDepth());
       transferCtrlFlagsToAlfParam(m_pcBestAlfParam->num_alf_cu_flag, m_pcBestAlfParam->alf_cu_flag);
+#endif
     }
 #endif
 
@@ -4169,6 +4456,7 @@ Void TEncAdaptiveLoopFilter::xFilterTapDecision_qc(TComPicYuv* pcPicOrg, TComPic
   }
   
   copyALFParam(m_pcTempAlfParam, m_pcBestAlfParam);
+
 }
 #endif
 
@@ -4790,7 +5078,9 @@ Void TEncAdaptiveLoopFilter::setMaskWithTimeDelayedResults(TComPicYuv* pcPicOrg,
   ALFParam  cAlfParam;
   allocALFParam(&cAlfParam);
   cAlfParam.alf_flag        = 0;
+#if !F747_APS
   cAlfParam.cu_control_flag = 0;
+#endif
   cAlfParam.chroma_idc      = 0;
 
   //filter frame with the previous time-delayed filters
@@ -4800,7 +5090,10 @@ Void TEncAdaptiveLoopFilter::setMaskWithTimeDelayedResults(TComPicYuv* pcPicOrg,
 #if MQT_BA_RA
   m_pcTempAlfParam->alf_pcr_region_flag = m_uiVarGenMethod;
 #endif
+
+#if !F747_APS
   m_pcTempAlfParam->cu_control_flag = 0;
+#endif
 #else
   Int iTap = 9;
   Int filtNo = 0;
@@ -4808,7 +5101,9 @@ Void TEncAdaptiveLoopFilter::setMaskWithTimeDelayedResults(TComPicYuv* pcPicOrg,
 #if MQT_BA_RA
   m_pcTempAlfParam->alf_pcr_region_flag = m_uiVarGenMethod;
 #endif
+#if !F747_APS
   m_pcTempAlfParam->cu_control_flag = 0;
+#endif
   m_pcTempAlfParam->tap = iTap;
 #if TI_ALF_MAX_VSIZE_7
   m_pcTempAlfParam->tapV      = TComAdaptiveLoopFilter::ALFTapHToTapV(iTap);
@@ -4848,20 +5143,34 @@ Void TEncAdaptiveLoopFilter::setMaskWithTimeDelayedResults(TComPicYuv* pcPicOrg,
       copyALFParam(&cAlfParam, m_pcTempAlfParam);
     }
   }
-
+#if STAR_CROSS_SHAPES_LUMA
+  filtNo = cAlfParam.realfiltNo;
+  copyALFParam(m_pcTempAlfParam, &cAlfParam);
+#endif
   //decided the best CU control depth
   m_pcPicYuvBest->copyToPicLuma(m_pcPicYuvTmp);
   m_pcEntropyCoder->setAlfCtrl(true);
 
+#if F747_APS
+  UInt uiCUCtrlFlag = 0;
+
+  if(m_bAlfCUCtrlEnabled)
+  {
+    std::vector<AlfCUCtrlInfo> vAlfCUCtrlParamTemp(m_vBestAlfCUCtrlParam);
+#endif
   Int maxDepth = g_uiMaxCUDepth;
   if (pcPicOrg->getWidth() < 1000) maxDepth = 2;
   for (UInt uiDepth = 0; uiDepth < maxDepth; uiDepth++)
   {
     m_pcEntropyCoder->setMaxAlfCtrlDepth(uiDepth);
+#if F747_APS
+    xSetCUAlfCtrlFlags_qc(uiDepth, pcPicOrg, pcPicDec, m_pcPicYuvTmp, uiDist, vAlfCUCtrlParamTemp);
+#else
     copyALFParam(m_pcTempAlfParam, &cAlfParam);
     m_pcTempAlfParam->cu_control_flag = 1;
 
     xSetCUAlfCtrlFlags_qc(uiDepth, pcPicOrg, pcPicDec, m_pcPicYuvTmp, uiDist, m_pcTempAlfParam); //set up varImg here
+#endif
     m_pcEntropyCoder->resetEntropy();
     m_pcEntropyCoder->resetBits();
     xEncodeCUAlfCtrlFlags();
@@ -4871,12 +5180,24 @@ Void TEncAdaptiveLoopFilter::setMaskWithTimeDelayedResults(TComPicYuv* pcPicOrg,
     if (dCost < dMinCost)
     {
       dMinCost    = dCost;
+#if F747_APS
+      uiCUCtrlFlag = 1;
+#else
       copyALFParam(&cAlfParam, m_pcTempAlfParam);
+#endif
       ::memcpy(bestImgMask[0], m_maskImg[0], sizeof(imgpel)*m_im_height* m_im_width);
     }
   }
+#if F747_APS
+  }
+#endif
+
+#if F747_APS
+  if(uiCUCtrlFlag == 1)
+#else
   //set initial maskImg for first filtering & calculate the SSD of non-filtered region for estimating filtering distortion
   if (cAlfParam.cu_control_flag)
+#endif
   {
     ::memcpy(m_maskImg[0], bestImgMask[0], sizeof(imgpel)*m_im_height* m_im_width);
 
@@ -5249,7 +5570,9 @@ Void  TEncAdaptiveLoopFilter::xFirstEstimateFilteringFrameLumaAllTap(imgpel* Img
   m_iMatrixBaseFiltNo = 0;
 #endif
   m_pcTempAlfParam->alf_flag = 1;
+#if !F747_APS
   m_pcTempAlfParam->cu_control_flag = 0;
+#endif
   m_pcTempAlfParam->chroma_idc = 0;
   m_pcTempAlfParam->alf_pcr_region_flag = m_uiVarGenMethod;
 
@@ -5784,8 +6107,9 @@ Void TEncAdaptiveLoopFilter::calcVarforSlices(imgpel **varmap, imgpel *imgY_Dec,
   {
     CAlfSlice* pSlice = &(m_pSlice[s]);
 
+    if(!pSlice->isValidSlice()) continue;
+
     pSlice->copySliceLuma(pPicSlice, pPicSrc, img_stride);
-    pSlice->extendSliceBorderLuma(pPicSlice, img_stride, (UInt)EXTEND_NUM_PEL);
     calcVarforOneSlice(pSlice, varmap, (imgpel*)pPicSlice, pad_size, fl, img_stride);
   }
 }
@@ -5807,9 +6131,10 @@ Void TEncAdaptiveLoopFilter::xfilterSlices_en(imgpel* ImgDec, imgpel* ImgRest,in
   {
     CAlfSlice* pSlice = &(m_pSlice[s]);
 
-    pSlice->copySliceLuma(pPicSlice, pPicSrc, iStride);
-    pSlice->extendSliceBorderLuma(pPicSlice, iStride, EXTEND_NUM_PEL);
+    if(!pSlice->isValidSlice()) continue;
 
+    pSlice->copySliceLuma(pPicSlice, pPicSrc, iStride);
+    pSlice->extendSliceBorderLuma(pPicSlice, iStride, filtNo);
     xfilterOneSlice_en(pSlice, (imgpel*)pPicSlice, ImgRest, filtNo, iStride);
   }
 }
@@ -5855,12 +6180,20 @@ Void   TEncAdaptiveLoopFilter::xstoreInBlockMatrixforSlices(imgpel* ImgOrg, imgp
   Pel* pPicSrc   = (Pel *)ImgDec;
   Pel* pPicSlice = m_pcSliceYuvTmp->getLumaAddr();
 
+  UInt iLastValidSliceID =0;
   for(UInt s=0; s< m_uiNumSlicesInPic; s++)
+    if(m_pSlice[s].isValidSlice())
+      iLastValidSliceID = s;
+
+  for(UInt s=0; s<= iLastValidSliceID; s++)
   {
     CAlfSlice* pSlice = &(m_pSlice[s]);
+
+    if(!pSlice->isValidSlice()) continue;
+
     pSlice->copySliceLuma(pPicSlice, pPicSrc, iStride);
-    pSlice->extendSliceBorderLuma(pPicSlice, iStride, (UInt)EXTEND_NUM_PEL);
-    xstoreInBlockMatrixforOneSlice(pSlice, ImgOrg, (imgpel*)pPicSlice, tap, iStride, (s==0), (s== m_uiNumSlicesInPic-1));
+    pSlice->extendSliceBorderLuma(pPicSlice, iStride, tap);
+    xstoreInBlockMatrixforOneSlice(pSlice, ImgOrg, (imgpel*)pPicSlice, tap, iStride, (s==0), (s== iLastValidSliceID));
   }
 }
 
@@ -5932,14 +6265,20 @@ Void TEncAdaptiveLoopFilter::xCalcCorrelationFuncforChromaSlices(Int ComponentID
   Pel* pPicSrc   = pCmp;
   Pel* pPicSlice = (ComponentID == ALF_Cb)?(m_pcSliceYuvTmp->getCbAddr()):(m_pcSliceYuvTmp->getCrAddr());
 
+  UInt iLastValidSliceID =0;
   for(UInt s=0; s< m_uiNumSlicesInPic; s++)
+    if(m_pSlice[s].isValidSlice())
+      iLastValidSliceID = s;
+
+  for(UInt s=0; s<= iLastValidSliceID; s++)
   {
     CAlfSlice* pSlice = &(m_pSlice[s]);
 
-    pSlice->copySliceChroma(pPicSlice, pPicSrc, iCmpStride);
-    pSlice->extendSliceBorderChroma(pPicSlice, iCmpStride, (UInt)EXTEND_NUM_PEL_C);
+    if(!pSlice->isValidSlice()) continue;
 
-    xCalcCorrelationFuncforChromaOneSlice(pSlice, pOrg, pPicSlice, iTap, iCmpStride,(s==m_uiNumSlicesInPic-1));
+    pSlice->copySliceChroma(pPicSlice, pPicSrc, iCmpStride);
+    pSlice->extendSliceBorderChroma(pPicSlice, iCmpStride, iTap);
+    xCalcCorrelationFuncforChromaOneSlice(pSlice, pOrg, pPicSlice, iTap, iCmpStride,(s== iLastValidSliceID));
   }
 }
 
@@ -6001,9 +6340,10 @@ Void TEncAdaptiveLoopFilter::xFrameChromaforSlices(Int ComponentID, TComPicYuv* 
   {
     CAlfSlice* pSlice = &(m_pSlice[s]);
 
-    pSlice->copySliceChroma(pPicSlice, pPicDec, iStride);
-    pSlice->extendSliceBorderChroma(pPicSlice, iStride, (UInt)EXTEND_NUM_PEL_C);
+    if(!pSlice->isValidSlice()) continue;
 
+    pSlice->copySliceChroma(pPicSlice, pPicDec, iStride);
+    pSlice->extendSliceBorderChroma(pPicSlice, iStride, iTap);
     xFrameChromaforOneSlice(pSlice, ComponentID, m_pcSliceYuvTmp, pcPicRestYuv, qh, iTap);
   }
 }
@@ -6019,6 +6359,8 @@ Void TEncAdaptiveLoopFilter::getCtrlFlagsForSlices(Bool bCUCtrlEnabled, Int iCUC
   {
     CAlfSlice& cSlice = m_pSlice[s];
 
+    if(!cSlice.isValidSlice()) continue;
+
     cSlice.setCUCtrlEnabled(bCUCtrlEnabled);
     if(bCUCtrlEnabled)
     {
@@ -6032,6 +6374,43 @@ Void TEncAdaptiveLoopFilter::getCtrlFlagsForSlices(Bool bCUCtrlEnabled, Int iCUC
  * \return ruiNumFlags reference to the flag of number of ALF CU control flags
  * \return puiFlags pointer to the buffer of ALF CU control flags
  */
+
+#if F747_APS
+Void TEncAdaptiveLoopFilter::transferCtrlFlagsToAlfParam(std::vector<AlfCUCtrlInfo>& vAlfCUCtrlParam)
+{
+  for(UInt s=0; s< m_uiNumSlicesInPic; s++)
+  {
+    if(! m_pSlice[s].isValidSlice()) continue;
+
+    CAlfSlice&     cSlice            = m_pSlice[s];
+    AlfCUCtrlInfo& cSliceCUCtrlParam = vAlfCUCtrlParam[s];
+
+    cSliceCUCtrlParam.cu_control_flag = cSlice.getCUCtrlEnabled()?1:0;
+
+    cSliceCUCtrlParam.alf_cu_flag.reserve(m_uiNumCUsInFrame << ((g_uiMaxCUDepth-1)*2));
+    cSliceCUCtrlParam.alf_cu_flag.resize(0);
+
+    if(cSliceCUCtrlParam.cu_control_flag ==1)
+    {
+      cSliceCUCtrlParam.alf_max_depth   = cSlice.getCUCtrlDepth();
+
+      for(UInt idx=0; idx < cSlice.getNumLCUs(); idx++)
+      {
+        CAlfLCU& cAlfLCU    = cSlice[idx];
+        UInt     uiNumFlags = cAlfLCU.getNumCtrlFlags();
+        for(UInt i=0; i< uiNumFlags; i++)
+        {
+          cSliceCUCtrlParam.alf_cu_flag.push_back(cAlfLCU.getCUCtrlFlag(i));
+        }
+      }
+    }
+    cSliceCUCtrlParam.num_alf_cu_flag = cSliceCUCtrlParam.alf_cu_flag.size();
+  }
+}
+
+
+#else
+
 Void TEncAdaptiveLoopFilter::transferCtrlFlagsToAlfParam(UInt& ruiNumFlags, UInt* puiFlags)
 {
   UInt* puiSliceFlags = puiFlags;
@@ -6040,6 +6419,8 @@ Void TEncAdaptiveLoopFilter::transferCtrlFlagsToAlfParam(UInt& ruiNumFlags, UInt
   for(UInt s=0; s< m_uiNumSlicesInPic; s++)
   {
     CAlfSlice& cSlice = m_pSlice[s];
+
+    if(!cSlice.isValidSlice()) continue;
 
     for(UInt idx=0; idx < cSlice.getNumLCUs(); idx++)
     {
@@ -6060,7 +6441,7 @@ Void TEncAdaptiveLoopFilter::transferCtrlFlagsToAlfParam(UInt& ruiNumFlags, UInt
 
 }
 
-
+#endif
 
 
 #endif
@@ -6127,7 +6508,7 @@ Void TEncAdaptiveLoopFilter::xFilterTapDecisionChroma( UInt64 uiLumaRate, TComPi
     if(!m_bUseNonCrossALF)
       xCalcCorrelationFunc(0, 0, pOrg, pCmp, iShape, (pcPicOrg->getWidth()>>1), (pcPicOrg->getHeight()>>1), pcPicOrg->getCStride(), pcPicDec->getCStride(), true);
     else
-      xCalcCorrelationFuncforChromaSlices(ALF_Cb, pOrg, pCmp, iShape, pcPicOrg->getCStride(), pcPicDec->getCStride());
+      xCalcCorrelationFuncforChromaSlices(ALF_Cr, pOrg, pCmp, iShape, pcPicOrg->getCStride(), pcPicDec->getCStride());
 #else        
     xCalcCorrelationFunc(pOrg, pCmp, iShape, (pcPicOrg->getWidth()>>1), (pcPicOrg->getHeight()>>1), pcPicOrg->getCStride(), pcPicDec->getCStride());
 #endif
@@ -6329,8 +6710,10 @@ Void TEncAdaptiveLoopFilter::xCalcALFCoeffChroma(Int iChromaIdc, Int iShape, Int
 UInt64 TEncAdaptiveLoopFilter::xCalcRateChroma(ALFParam* pAlfParam)
 {
   UInt64 uiRate;
+#if !F747_APS
 #if E045_SLICE_COMMON_INFO_SHARING
   uiRate = 0;
+#endif
 #endif
   Int* piTmpCoef;
   piTmpCoef = new Int[ALF_MAX_NUM_COEF_C];
@@ -6342,6 +6725,29 @@ UInt64 TEncAdaptiveLoopFilter::xCalcRateChroma(ALFParam* pAlfParam)
   m_pcEntropyCoder->resetEntropy();
   m_pcEntropyCoder->resetBits();
   m_pcEntropyCoder->encodeAlfParam(pAlfParam);
+#if F747_APS
+  uiRate = m_pcEntropyCoder->getNumberOfWrittenBits();
+  if (m_vBestAlfCUCtrlParam.size() != 0)
+  {
+    for(UInt s=0; s< m_uiNumSlicesInPic; s++)
+    {
+      if( m_uiNumSlicesInPic > 1)
+      {
+        if(!m_pSlice[s].isValidSlice())
+          continue;
+      }
+      m_pcEntropyCoder->resetEntropy();
+      m_pcEntropyCoder->resetBits();
+      m_pcEntropyCoder->encodeAlfCtrlParam( m_vBestAlfCUCtrlParam[s], m_uiNumCUsInFrame);
+      uiRate += m_pcEntropyCoder->getNumberOfWrittenBits();
+    }
+  }
+  else
+  {
+    uiRate += m_uiNumSlicesInPic;
+  }
+
+#else
 
 #if E045_SLICE_COMMON_INFO_SHARING
   if(m_uiNumSlicesInPic ==1)
@@ -6361,6 +6767,8 @@ UInt64 TEncAdaptiveLoopFilter::xCalcRateChroma(ALFParam* pAlfParam)
     uiRate = m_pcEntropyCoder->getNumberOfWrittenBits();
     for(UInt s=0; s< m_uiNumSlicesInPic; s++)
     {
+      if(!m_pSlice[s].isValidSlice()) continue;
+
       m_pcEntropyCoder->resetEntropy();
       m_pcEntropyCoder->resetBits();
       m_pcEntropyCoder->encodeAlfCtrlParam(pAlfParam, m_uiNumSlicesInPic, &(m_pSlice[s]));
@@ -6378,6 +6786,7 @@ UInt64 TEncAdaptiveLoopFilter::xCalcRateChroma(ALFParam* pAlfParam)
   }
   uiRate = m_pcEntropyCoder->getNumberOfWrittenBits();
 #endif
+#endif
   memcpy(pAlfParam->coeff_chroma, piTmpCoef, sizeof(int)*pAlfParam->num_coeff_chroma);
   delete[] piTmpCoef;
   piTmpCoef = NULL;
@@ -6386,1977 +6795,4 @@ UInt64 TEncAdaptiveLoopFilter::xCalcRateChroma(ALFParam* pAlfParam)
 }
 #endif
 
-#if MTK_SAO
-inline Double xRoundIbdi2(Double x)
-{
-#if FULL_NBIT
-  Int bitDepthMinus8 = g_uiBitDepth - 8;
-  return ((x)>0) ? (Int)(((Int)(x)+(1<<(bitDepthMinus8-1)))/(1<<bitDepthMinus8)) : ((Int)(((Int)(x)-(1<<(bitDepthMinus8-1)))/(1<<bitDepthMinus8)));
-#else
-  return ((x)>0) ? (Int)(((Int)(x)+(1<<(g_uiBitIncrement-1)))/(1<<g_uiBitIncrement)) : ((Int)(((Int)(x)-(1<<(g_uiBitIncrement-1)))/(1<<g_uiBitIncrement)));
-#endif
-}
-
-inline Double xRoundIbdi(Double x)
-{
-#if FULL_NBIT
-  return (g_uiBitDepth > 8 ? xRoundIbdi2((x)) : ((x)>=0 ? ((Int)((x)+0.5)) : ((Int)((x)-0.5)))) ;
-#else
-  return (g_uiBitIncrement >0 ? xRoundIbdi2((x)) : ((x)>=0 ? ((Int)((x)+0.5)) : ((Int)((x)-0.5)))) ;
-#endif
-}
-
-/** run QAO One Part.
- * \param  pQAOOnePart, iPartIdx
- */
-Void TEncSampleAdaptiveOffset::xQAOOnePart(SAOQTPart *psQTPart, Int iPartIdx, Double dLambda)
-{
-  Int iTypeIdx;
-  Int iNumTotalType = MAX_NUM_SAO_TYPE;
-  SAOQTPart*  pOnePart = &(psQTPart[iPartIdx]);
-
-  Int64 iEstDist;
-  Int64 iOffsetOrg;
-  Int64 iOffset;
-  Int64 iCount;
-  Int iClassIdx;
-  Int uiShift = g_uiBitIncrement << 1;
-  //   Double dAreaWeight =  (pOnePart->part_xe - pOnePart->part_xs + 1) * (pOnePart->part_ye - pOnePart->part_ys + 1);
-  Double dAreaWeight =  0;
-  Double dComplexityCost = 0;
-  Int    iQaoPara1 = SAO_RDCO;
-
-  UInt uiDepth = pOnePart->PartLevel;
-
-  //   m_iDistOrg [iPartIdx] = 0;
-
-  m_iDistOrg [iPartIdx] =  (Int64)((Double)(iQaoPara1)/10000 * dLambda * dAreaWeight);
-
-  for (iTypeIdx=-1; iTypeIdx<iNumTotalType; iTypeIdx++)
-  {
-    if( m_bUseSBACRD )
-    {
-      m_pcRDGoOnSbacCoder->load(m_pppcRDSbacCoder[uiDepth][CI_CURR_BEST]); // pcCU->getDepth(0) ==> m_puhDepth[uiIdx]
-      m_pcRDGoOnSbacCoder->resetBits();
-    }
-    else
-    {
-      m_pcEntropyCoder->resetEntropy();
-      m_pcEntropyCoder->resetBits();
-    }
-
-    iEstDist = 0;
-
-    m_pcEntropyCoder->m_pcEntropyCoderIf->codeAoUvlc(iTypeIdx+1);
-
-    if (iTypeIdx>=0)
-    {
-
-      for(iClassIdx=1; iClassIdx < m_iNumClass[iTypeIdx]+1; iClassIdx++)
-      {
-        if(m_iCount [iPartIdx][iTypeIdx][iClassIdx])
-        {
-#if SAO_ACCURATE_OFFSET
-#if FULL_NBIT
-          m_iOffset[iPartIdx][iTypeIdx][iClassIdx]    = (Int64) xRoundIbdi((Double)(m_iOffsetOrg[iPartIdx][iTypeIdx][iClassIdx]<<g_uiBitDepth-8) / (Double)(m_iCount [iPartIdx][iTypeIdx][iClassIdx]<<m_uiAoBitDepth));
-#else
-          m_iOffset[iPartIdx][iTypeIdx][iClassIdx]    = (Int64) xRoundIbdi((Double)(m_iOffsetOrg[iPartIdx][iTypeIdx][iClassIdx]<<g_uiBitIncrement) / (Double)(m_iCount [iPartIdx][iTypeIdx][iClassIdx]<<m_uiAoBitDepth));
-#endif
-#else
-          m_iOffset[iPartIdx][iTypeIdx][iClassIdx]    = (Int64) xRoundIbdi((Double)(m_iOffsetOrg[iPartIdx][iTypeIdx][iClassIdx]<<m_uiAoBitDepth) / (Double)m_iCount [iPartIdx][iTypeIdx][iClassIdx]);
-#endif
-#if SAO_CLIP_OFFSET
-          m_iOffset[iPartIdx][iTypeIdx][iClassIdx] = Clip3(-m_iOffsetTh, m_iOffsetTh-1, (Int)m_iOffset[iPartIdx][iTypeIdx][iClassIdx]);
-#endif
-        }
-        else
-        {
-          m_iOffsetOrg[iPartIdx][iTypeIdx][iClassIdx] = 0;
-          m_iOffset[iPartIdx][iTypeIdx][iClassIdx] = 0;
-        }
-
-        iCount     =  m_iCount [iPartIdx][iTypeIdx][iClassIdx];
-#if SAO_ACCURATE_OFFSET
-        iOffset    =  m_iOffset[iPartIdx][iTypeIdx][iClassIdx] << m_uiAoBitDepth;
-#else
-#if FULL_NBIT
-        iOffset    =  m_iOffset[iPartIdx][iTypeIdx][iClassIdx] << (g_uiBitDepth-8-m_uiAoBitDepth);
-#else
-        iOffset    =  m_iOffset[iPartIdx][iTypeIdx][iClassIdx] << (g_uiBitIncrement-m_uiAoBitDepth);
-#endif
-#endif
-        iOffsetOrg =  m_iOffsetOrg[iPartIdx][iTypeIdx][iClassIdx];
-        iEstDist   += (( iCount*iOffset*iOffset-iOffsetOrg*iOffset*2 ) >> uiShift);
-        m_pcEntropyCoder->m_pcEntropyCoderIf->codeAoSvlc((Int)m_iOffset[iPartIdx][iTypeIdx][iClassIdx]);
-      }
-      m_iDist[iPartIdx][iTypeIdx] = iEstDist;
-      m_iRate[iPartIdx][iTypeIdx] = m_pcEntropyCoder->getNumberOfWrittenBits();
-
-      m_dCost[iPartIdx][iTypeIdx] = (Double)((Double)m_iDist[iPartIdx][iTypeIdx] + dLambda * (Double) m_iRate[iPartIdx][iTypeIdx]);
-      dComplexityCost = (Double)(iQaoPara1)/10000 * dLambda * (Double)m_iWeightAO[iTypeIdx] * dAreaWeight;
-      m_dCost[iPartIdx][iTypeIdx] = (Double)((Double)m_iDist[iPartIdx][iTypeIdx] + dLambda * (Double) m_iRate[iPartIdx][iTypeIdx]) + dComplexityCost;
-
-      //       printf("\n%3d:%10.f, %10.0f, %10.0f",iPartIdx,(Double)m_iDist[iPartIdx][iTypeIdx], dComplexityCost);
-
-      //        printf("\n%d, %d, %6d, %6d, %f", iPartIdx, iTypeIdx, (Int)m_iDist[iPartIdx][iTypeIdx], (Int)m_iRate[iPartIdx][iTypeIdx], m_dCost[iPartIdx][iTypeIdx]);
-      if(m_dCost[iPartIdx][iTypeIdx] < m_dCostPartBest[iPartIdx])
-      {
-        m_iDistOrg [iPartIdx] = (Int64)dComplexityCost;
-        m_dCostPartBest[iPartIdx] = m_dCost[iPartIdx][iTypeIdx];
-        m_iTypePartBest[iPartIdx] = iTypeIdx;
-        if( m_bUseSBACRD )
-          m_pcRDGoOnSbacCoder->store( m_pppcRDSbacCoder[pOnePart->PartLevel][CI_TEMP_BEST] );
-      }
-    }
-    else
-    {
-
-      if(m_iDistOrg[iPartIdx] < m_dCostPartBest[iPartIdx] )
-      {
-        m_dCostPartBest[iPartIdx] = (Double) m_iDistOrg[iPartIdx] + m_pcEntropyCoder->getNumberOfWrittenBits()*dLambda ; 
-        m_iTypePartBest[iPartIdx] = -1;
-        if( m_bUseSBACRD )
-          m_pcRDGoOnSbacCoder->store( m_pppcRDSbacCoder[pOnePart->PartLevel][CI_TEMP_BEST] );
-      }
-    }
-  }
-
-  pOnePart->bProcessed = true;
-  pOnePart->bSplit     = false;
-  pOnePart->iMinDist   =        m_iTypePartBest[iPartIdx] >= 0 ? m_iDist[iPartIdx][m_iTypePartBest[iPartIdx]] : m_iDistOrg[iPartIdx];
-  pOnePart->iMinRate   = (Int) (m_iTypePartBest[iPartIdx] >= 0 ? m_iRate[iPartIdx][m_iTypePartBest[iPartIdx]] : 0);
-  pOnePart->dMinCost   = pOnePart->iMinDist + dLambda * pOnePart->iMinRate;
-  pOnePart->iBestType  = m_iTypePartBest[iPartIdx];
-  if (pOnePart->iBestType != -1)
-  {
-    pOnePart->bEnableFlag =  1;
-    pOnePart->iLength = m_iNumClass[pOnePart->iBestType];
-    for (Int i=0; i<pOnePart->iLength ; i++)
-      pOnePart->iOffset[i] = (Int) m_iOffset[iPartIdx][pOnePart->iBestType][i+1];
-  }
-  else
-  {
-    pOnePart->bEnableFlag =  0;
-    pOnePart->iLength     =  0;
-  }
-
-}
-
-/** run Part Tree Disable.
- * \param  pQAOOnePart, iPartIdx
- */
-Void TEncSampleAdaptiveOffset::xPartTreeDisable(SAOQTPart *psQTPart, Int iPartIdx)
-{
-  SAOQTPart*  pOnePart= &(psQTPart[iPartIdx]);
-
-  pOnePart->bEnableFlag = false;
-  pOnePart->bSplit      = false;
-  pOnePart->iLength     =  0;
-  pOnePart->iBestType   = -1;
-
-  if (pOnePart->PartLevel < m_uiMaxSplitLevel)
-  {
-    for (Int i=0; i<NUM_DOWN_PART; i++)
-    {
-      xPartTreeDisable(psQTPart, pOnePart->DownPartsIdx[i]);
-    }
-  }
-
-}
-
-
-/** run QuadTree Decision Function.
- * \param  iPartIdx, pcPicOrg, pcPicDec, pcPicRest, &dCostFinal
- */
-Void TEncSampleAdaptiveOffset::xQuadTreeDecisionFunc(SAOQTPart *psQTPart, Int iPartIdx, Double &dCostFinal, Int iMaxLevel, Double dLambda)
-{
-  SAOQTPart*  pOnePart = &(psQTPart[iPartIdx]);
-
-  UInt uiDepth = pOnePart->PartLevel;
-  UInt uhNextDepth = uiDepth+1;
-
-  if (iPartIdx == 0)
-  {
-    dCostFinal = 0;
-  }
-
-  //QAO for this part
-  if(!pOnePart->bProcessed)
-  {
-    xQAOOnePart (psQTPart, iPartIdx, dLambda);
-  }
-
-  //QAO for sub 4 parts
-  if (pOnePart->PartLevel < iMaxLevel)
-  {
-    Double      dCostNotSplit = dLambda + pOnePart->dMinCost;
-    Double      dCostSplit    = dLambda;
-
-    for (Int i=0; i< NUM_DOWN_PART ;i++)
-    {
-      if( m_bUseSBACRD )  
-      {
-        if ( 0 == i) //initialize RD with previous depth buffer
-        {
-          m_pppcRDSbacCoder[uhNextDepth][CI_CURR_BEST]->load(m_pppcRDSbacCoder[uiDepth][CI_CURR_BEST]);
-        }
-        else
-        {
-          m_pppcRDSbacCoder[uhNextDepth][CI_CURR_BEST]->load(m_pppcRDSbacCoder[uhNextDepth][CI_NEXT_BEST]);
-        }
-      }  
-      xQuadTreeDecisionFunc(psQTPart, pOnePart->DownPartsIdx[i], dCostFinal, iMaxLevel, dLambda);
-      dCostSplit += dCostFinal;
-      if( m_bUseSBACRD )
-      {
-        m_pppcRDSbacCoder[uhNextDepth][CI_NEXT_BEST]->load(m_pppcRDSbacCoder[uhNextDepth][CI_TEMP_BEST]);
-      }
-    }
-
-
-    if(dCostSplit < dCostNotSplit)
-    {
-      dCostFinal = dCostSplit;
-      pOnePart->bSplit      = true;
-      pOnePart->bEnableFlag = false;
-      pOnePart->iLength     =  0;
-      pOnePart->iBestType   = -1;
-      if( m_bUseSBACRD )
-      {
-        m_pppcRDSbacCoder[uiDepth][CI_NEXT_BEST]->load(m_pppcRDSbacCoder[uhNextDepth][CI_NEXT_BEST]);
-      }
-    }
-    else
-    {
-      dCostFinal = dCostNotSplit;
-      pOnePart->bSplit = false;
-      for (Int i=0; i<NUM_DOWN_PART; i++)
-      {
-        xPartTreeDisable(psQTPart, pOnePart->DownPartsIdx[i]);
-      }
-      if( m_bUseSBACRD )
-      {
-        m_pppcRDSbacCoder[uiDepth][CI_NEXT_BEST]->load(m_pppcRDSbacCoder[uiDepth][CI_TEMP_BEST]);
-      }
-    }
-  }
-  else
-  {
-    dCostFinal = pOnePart->dMinCost;
-  }
-}
-/** delete allocated memory of TEncSampleAdaptiveOffset class.
- */
-Void TEncSampleAdaptiveOffset::destroyEncBuffer()
-{
-
-    for (Int i=0;i<m_iNumTotalParts;i++)
-    {
-      for (Int j=0;j<MAX_NUM_SAO_TYPE;j++)
-      {
-        if (m_iCount [i][j])
-        {
-          delete [] m_iCount [i][j]; 
-        }
-        if (m_iOffset[i][j])
-        {
-          delete [] m_iOffset[i][j]; 
-        }
-        if (m_iOffsetOrg[i][j])
-        {
-          delete [] m_iOffsetOrg[i][j]; 
-        }
-      }
-      if (m_iRate[i])
-      {
-        delete [] m_iRate[i];
-      }
-      if (m_iDist[i])
-      {
-        delete [] m_iDist[i]; 
-      }
-      if (m_dCost[i])
-      {
-        delete [] m_dCost[i]; 
-      }
-      if (m_iCount [i])
-      {
-        delete [] m_iCount [i]; 
-      }
-      if (m_iOffset[i])
-      {
-        delete [] m_iOffset[i]; 
-      }
-      if (m_iOffsetOrg[i])
-      {
-        delete [] m_iOffsetOrg[i]; 
-      }
-
-    }
-    if (m_iDistOrg)
-    {
-      delete [] m_iDistOrg ; m_iDistOrg = NULL;
-    }
-    if (m_dCostPartBest)
-    {
-      delete [] m_dCostPartBest ; m_dCostPartBest = NULL;
-    }
-    if (m_iTypePartBest)
-    {
-      delete [] m_iTypePartBest ; m_iTypePartBest = NULL;
-    }
-    if (m_iRate)
-    {
-      delete [] m_iRate ; m_iRate = NULL;
-    }
-    if (m_iDist)
-    {
-      delete [] m_iDist ; m_iDist = NULL;
-    }
-    if (m_dCost)
-    {
-      delete [] m_dCost ; m_dCost = NULL;
-    }
-    if (m_iCount)
-    {
-      delete [] m_iCount  ; m_iCount = NULL;
-    }
-    if (m_iOffset)
-    {
-      delete [] m_iOffset ; m_iOffset = NULL;
-    }
-    if (m_iOffsetOrg)
-    {
-      delete [] m_iOffsetOrg ; m_iOffsetOrg = NULL;
-    }
-
-    {
-      Int iMaxDepth = 4;
-      Int iDepth;
-      for ( iDepth = 0; iDepth < iMaxDepth+1; iDepth++ )
-      {
-        for (Int iCIIdx = 0; iCIIdx < CI_NUM; iCIIdx ++ )
-        {
-          delete m_pppcRDSbacCoder[iDepth][iCIIdx];
-          delete m_pppcBinCoderCABAC[iDepth][iCIIdx];
-        }
-      }
-
-      for ( iDepth = 0; iDepth < iMaxDepth+1; iDepth++ )
-      {
-        delete [] m_pppcRDSbacCoder[iDepth];
-        delete [] m_pppcBinCoderCABAC[iDepth];
-      }
-
-      delete [] m_pppcRDSbacCoder;
-      delete [] m_pppcBinCoderCABAC;
-    }
-
-}
-Void TEncSampleAdaptiveOffset::createEncBuffer()
-{
-    m_iDistOrg = new Int64 [m_iNumTotalParts]; 
-    m_dCostPartBest = new Double [m_iNumTotalParts]; 
-    m_iTypePartBest = new Int [m_iNumTotalParts]; 
-
-    m_iRate = new Int64* [m_iNumTotalParts];
-    m_iDist = new Int64* [m_iNumTotalParts];
-    m_dCost = new Double*[m_iNumTotalParts];
-
-    m_iCount  = new Int64 **[m_iNumTotalParts];
-    m_iOffset = new Int64 **[m_iNumTotalParts];
-    m_iOffsetOrg = new Int64 **[m_iNumTotalParts];
-
-    for (Int i=0;i<m_iNumTotalParts;i++)
-    {
-      m_iRate[i] = new Int64  [MAX_NUM_SAO_TYPE];
-      m_iDist[i] = new Int64  [MAX_NUM_SAO_TYPE]; 
-      m_dCost[i] = new Double [MAX_NUM_SAO_TYPE]; 
-
-      m_iCount [i] = new Int64 *[MAX_NUM_SAO_TYPE]; 
-      m_iOffset[i] = new Int64 *[MAX_NUM_SAO_TYPE]; 
-      m_iOffsetOrg[i] = new Int64 *[MAX_NUM_SAO_TYPE]; 
-
-      for (Int j=0;j<MAX_NUM_SAO_TYPE;j++)
-      {
-        m_iCount [i][j] = new Int64 [MAX_NUM_QAO_CLASS]; 
-        m_iOffset[i][j] = new Int64 [MAX_NUM_QAO_CLASS]; 
-        m_iOffsetOrg[i][j]=  new Int64 [MAX_NUM_QAO_CLASS]; 
-      }
-    }
-    {
-      Int iMaxDepth = 4;
-      m_pppcRDSbacCoder = new TEncSbac** [iMaxDepth+1];
-      m_pppcBinCoderCABAC = new TEncBinCABAC** [iMaxDepth+1];
-
-      for ( Int iDepth = 0; iDepth < iMaxDepth+1; iDepth++ )
-      {
-        m_pppcRDSbacCoder[iDepth] = new TEncSbac* [CI_NUM];
-        m_pppcBinCoderCABAC[iDepth] = new TEncBinCABAC* [CI_NUM];
-
-        for (Int iCIIdx = 0; iCIIdx < CI_NUM; iCIIdx ++ )
-        {
-          m_pppcRDSbacCoder[iDepth][iCIIdx] = new TEncSbac;
-          m_pppcBinCoderCABAC [iDepth][iCIIdx] = new TEncBinCABAC;
-          m_pppcRDSbacCoder   [iDepth][iCIIdx]->init( m_pppcBinCoderCABAC [iDepth][iCIIdx] );
-        }
-      }
-    }
-}
-
-/** start Sao Encoder.
- * \param pcPic, pcEntropyCoder, pppcRDSbacCoder, pcRDGoOnSbacCoder 
- */
-Void TEncSampleAdaptiveOffset::startSaoEnc( TComPic* pcPic, TEncEntropy* pcEntropyCoder, TEncSbac*** pppcRDSbacCoder, TEncSbac* pcRDGoOnSbacCoder)
-{
-  if( pcRDGoOnSbacCoder )
-    m_bUseSBACRD = true;
-  else
-    m_bUseSBACRD = false;
-
-  m_pcPic = pcPic;
-  m_pcEntropyCoder = pcEntropyCoder;
-
-  m_pcRDGoOnSbacCoder = pcRDGoOnSbacCoder;
-  m_pcEntropyCoder->resetEntropy();
-  m_pcEntropyCoder->resetBits();
-
-  if( m_bUseSBACRD )
-  {
-    m_pcRDGoOnSbacCoder->store( m_pppcRDSbacCoder[0][CI_NEXT_BEST]);
-    m_pppcRDSbacCoder[0][CI_CURR_BEST]->load( m_pppcRDSbacCoder[0][CI_NEXT_BEST]);
-  }
-
-  m_bSaoFlag = 0;
-
-#if MTK_SAO_CHROMA
-  m_bSaoFlagCb = 0;
-  m_bSaoFlagCr = 0;
-#endif
-
-  for (Int i=0;i<m_iNumTotalParts;i++)
-  {
-    m_dCostPartBest[i] = MAX_DOUBLE;
-    m_iTypePartBest[i] = -1;
-    m_iDistOrg[i] = 0;
-    for (Int j=0;j<MAX_NUM_SAO_TYPE;j++)
-    {
-      m_iDist[i][j] = 0;
-      m_iRate[i][j] = 0;
-      m_dCost[i][j] = 0;
-      for (Int k=0;k<MAX_NUM_QAO_CLASS;k++)
-      {
-        m_iCount [i][j][k] = 0;
-        m_iOffset[i][j][k] = 0;
-        m_iOffsetOrg[i][j][k] = 0;
-      }  
-    }
-  }
-
-  for(Int i=0; i< m_aiNumCulPartsLevel[m_uiMaxSplitLevel]; i++)
-  {
-    m_psQAOPart[i].bEnableFlag   =  0;
-    m_psQAOPart[i].iBestType     = -1;
-    m_psQAOPart[i].iLength       =  0;
-    m_psQAOPart[i].bSplit        =  false; 
-    m_psQAOPart[i].bProcessed    = false;
-    m_psQAOPart[i].dMinCost      = MAX_DOUBLE;
-    m_psQAOPart[i].iMinDist      = MAX_INT;
-    m_psQAOPart[i].iMinRate      = MAX_INT;
-
-    for (Int j=0;j<MAX_NUM_QAO_CLASS;j++)
-    {
-      m_psQAOPart[i].iOffset[j] = 0;
-    }
-  }
-
-  for(Int i=0; i< m_aiNumCulPartsLevel[m_uiMaxSplitLevel]; i++)
-  {
-    m_psQAOPart[i].bEnableFlag   =  0;
-    m_psQAOPart[i].iBestType     = -1;
-    m_psQAOPart[i].iLength       =  0;
-    for (Int j=0;j<MAX_NUM_QAO_CLASS;j++)
-    {
-      m_psQAOPart[i].iOffset[j] = 0;
-    }
-  }
-#if MTK_SAO_CHROMA
-  for(Int i=0; i< m_aiNumCulPartsLevel[m_uiMaxSplitLevel]; i++)
-  {
-    m_psQAOPartCb[i].bEnableFlag   =  0;
-    m_psQAOPartCb[i].iBestType     = -1;
-    m_psQAOPartCb[i].iLength       =  0;
-    m_psQAOPartCb[i].bSplit        =  false; 
-    m_psQAOPartCb[i].bProcessed    = false;
-    m_psQAOPartCb[i].dMinCost      = MAX_DOUBLE;
-    m_psQAOPartCb[i].iMinDist      = MAX_INT;
-    m_psQAOPartCb[i].iMinRate      = MAX_INT;
-
-    for (Int j=0;j<MAX_NUM_QAO_CLASS;j++)
-    {
-      m_psQAOPartCb[i].iOffset[j] = 0;
-    }
-  }
-
-  for(Int i=0; i< m_aiNumCulPartsLevel[m_uiMaxSplitLevel]; i++)
-  {
-    m_psQAOPartCb[i].bEnableFlag   =  0;
-    m_psQAOPartCb[i].iBestType     = -1;
-    m_psQAOPartCb[i].iLength       =  0;
-    for (Int j=0;j<MAX_NUM_QAO_CLASS;j++)
-    {
-      m_psQAOPartCb[i].iOffset[j] = 0;
-    }
-  }
-
-  for(Int i=0; i< m_aiNumCulPartsLevel[m_uiMaxSplitLevel]; i++)
-  {
-    m_psQAOPartCr[i].bEnableFlag   =  0;
-    m_psQAOPartCr[i].iBestType     = -1;
-    m_psQAOPartCr[i].iLength       =  0;
-    m_psQAOPartCr[i].bSplit        =  false; 
-    m_psQAOPartCr[i].bProcessed    = false;
-    m_psQAOPartCr[i].dMinCost      = MAX_DOUBLE;
-    m_psQAOPartCr[i].iMinDist      = MAX_INT;
-    m_psQAOPartCr[i].iMinRate      = MAX_INT;
-
-    for (Int j=0;j<MAX_NUM_QAO_CLASS;j++)
-    {
-      m_psQAOPartCr[i].iOffset[j] = 0;
-    }
-  }
-
-  for(Int i=0; i< m_aiNumCulPartsLevel[m_uiMaxSplitLevel]; i++)
-  {
-    m_psQAOPartCr[i].bEnableFlag   =  0;
-    m_psQAOPartCr[i].iBestType     = -1;
-    m_psQAOPartCr[i].iLength       =  0;
-    for (Int j=0;j<MAX_NUM_QAO_CLASS;j++)
-    {
-      m_psQAOPartCr[i].iOffset[j] = 0;
-    }
-  }
-#endif
-
-}
-
-/** end Sao Encoder.
- */
-Void TEncSampleAdaptiveOffset::endSaoEnc()
-{
-  m_pcPic = NULL;
-  m_pcEntropyCoder = NULL;
-}
-
-inline int xSign(int x)
-{
-  return ((x >> 31) | ((int)( (((unsigned int) -x)) >> 31)));
-}
-
-#if SAO_FGS_MNIF
-/** calculate SAO statistics for current LCU with slice granularity
- * \param iAddr, iPartIdx
- */
-Void TEncSampleAdaptiveOffset::calcAoStatsCuMap(Int iAddr, Int iPartIdx, Int iYCbCr)
-#if MTK_SAO_REMOVE_SKIP
-{
-  Int x,y;
-  TComDataCU *pTmpCu = m_pcPic->getCU(iAddr);
-  TComSPS *pTmpSPS =  m_pcPic->getSlice(0)->getSPS();
-
-  Pel* pOrg      ;
-  Pel* pRec      ;
-  Pel* pMap      ;    
-
-  Int iStride    ;
-  Int iLcuWidth  = pTmpSPS->getMaxCUHeight();
-  Int iLcuHeight = pTmpSPS->getMaxCUWidth();
-  Int iPicWidth  = pTmpSPS->getWidth();
-  Int iPicHeight = pTmpSPS->getHeight();
-  UInt uiLPelX   = pTmpCu->getCUPelX();
-  UInt uiTPelY   = pTmpCu->getCUPelY();
-  UInt uiRPelX;//   = uiLPelX + iLcuWidth;
-  UInt uiBPelY;//   = uiTPelY + iLcuHeight;
-  Int64* iStats ;
-  Int64* iCount ;
-  Int iClassIdx;
-  Int iPicWidthTmp;
-  Int iPicHeightTmp;
-  Int iStartX;
-  Int iStartY;
-  Int iEndX;
-  Int iEndY;
-
-  if (iYCbCr == 1 )
-  {
-    iPicWidthTmp  = iPicWidth    >> 1;
-    iPicHeightTmp = iPicHeight   >> 1;
-    iLcuWidth     = iLcuWidth    >> 1;
-    iLcuHeight    = iLcuHeight   >> 1;
-    uiLPelX       = uiLPelX      >> 1;
-    uiTPelY       = uiTPelY      >> 1;
-
-    uiRPelX    = uiLPelX + iLcuWidth  ;
-    uiBPelY    = uiTPelY + iLcuHeight ;
-
-    uiRPelX    = uiRPelX > iPicWidthTmp ? iPicWidthTmp : uiRPelX;
-    uiBPelY    = uiBPelY > iPicHeightTmp? iPicHeightTmp: uiBPelY;
-
-    iLcuWidth  = uiRPelX - uiLPelX;
-    iLcuHeight = uiBPelY - uiTPelY;
-
-    pRec       = m_pcPic->getPicYuvRec()->getCbAddr(iAddr);
-    pMap       =  m_pcPicYuvMap->getCbAddr(iAddr);    
-    iStride    = m_pcPic->getCStride();
-  }
-  else if (iYCbCr == 2)
-  {
-    iPicWidthTmp  = iPicWidth  >> 1;
-    iPicHeightTmp = iPicHeight >> 1;
-    iLcuWidth    = iLcuWidth    >> 1;
-    iLcuHeight   = iLcuHeight   >> 1;
-    uiLPelX      = uiLPelX      >> 1;
-    uiTPelY      = uiTPelY      >> 1;
-
-    uiRPelX    = uiLPelX + iLcuWidth  ;
-    uiBPelY    = uiTPelY + iLcuHeight ;
-
-    uiRPelX    = uiRPelX > iPicWidthTmp ? iPicWidthTmp : uiRPelX;
-    uiBPelY    = uiBPelY > iPicHeightTmp? iPicHeightTmp: uiBPelY;
-
-    iLcuWidth  = uiRPelX - uiLPelX;
-    iLcuHeight = uiBPelY - uiTPelY;
-
-    pRec       = m_pcPic->getPicYuvRec()->getCrAddr(iAddr);
-    pMap       =  m_pcPicYuvMap->getCrAddr(iAddr);    
-    iStride    = m_pcPic->getCStride();
-  }
-  else
-  {
-    iPicWidthTmp  = iPicWidth  ;
-    iPicHeightTmp = iPicHeight ;
-
-    uiRPelX    = uiLPelX + iLcuWidth  ;
-    uiBPelY    = uiTPelY + iLcuHeight ;
-
-    uiRPelX    = uiRPelX > iPicWidth ? iPicWidth : uiRPelX;
-    uiBPelY    = uiBPelY > iPicHeight? iPicHeight: uiBPelY;
-
-    iLcuWidth  = uiRPelX - uiLPelX;
-    iLcuHeight = uiBPelY - uiTPelY;
-
-    pRec       = m_pcPic->getPicYuvRec()->getLumaAddr(iAddr);
-    pMap       = m_pcPicYuvMap->getLumaAddr(iAddr);    
-    iStride    = m_pcPic->getStride();
-  }
-
-
-  //   if(m_iAoType == BO_0 || m_iAoType == BO_1)
-  {
-    iStats = m_iOffsetOrg[iPartIdx][SAO_BO_0];
-    iCount = m_iCount    [iPartIdx][SAO_BO_0];
-
-    pOrg = getPicYuvAddr(m_pcPic->getPicYuvOrg(), iYCbCr, iAddr);
-    pRec = getPicYuvAddr(m_pcPic->getPicYuvRec(), iYCbCr, iAddr);
-
-    for (y=0; y<iLcuHeight; y++)
-    {
-      for (x=0; x<iLcuWidth; x++)
-      {
-        iClassIdx =  m_ppLumaTableBo0[pRec[x]];
-        if (iClassIdx)
-        {
-          iStats[iClassIdx] += (pOrg[x] - pRec[x]); 
-          iCount[iClassIdx] ++;
-        }
-      }
-      pOrg += iStride;
-      pRec += iStride;
-    }
-
-    iStats = m_iOffsetOrg[iPartIdx][SAO_BO_1];
-    iCount = m_iCount    [iPartIdx][SAO_BO_1];
-
-    pOrg = getPicYuvAddr(m_pcPic->getPicYuvOrg(), iYCbCr, iAddr);
-    pRec = getPicYuvAddr(m_pcPic->getPicYuvRec(), iYCbCr, iAddr);
-
-    for (y=0; y<iLcuHeight; y++)
-    {
-      for (x=0; x<iLcuWidth; x++)
-      {
-        iClassIdx =  m_ppLumaTableBo1[pRec[x]];
-        if (iClassIdx)
-        {
-          iStats[iClassIdx] += (pOrg[x] - pRec[x]); 
-          iCount[iClassIdx] ++;
-        }
-      }
-      pOrg += iStride;
-      pRec += iStride;
-    }
-  }
-
-  Int iSignLeft;
-  Int iSignRight;
-  Int iSignDown;
-  Int iSignDown1;
-  Int iSignDown2;
-
-  UInt uiEdgeType;
-
-  //   if (m_iAoType == EO_0  || m_iAoType == EO_1 || m_iAoType == EO_2 || m_iAoType == EO_3)
-  {
-    //     if (m_iAoType == EO_0  )
-    {
-      iStats = m_iOffsetOrg[iPartIdx][SAO_EO_0];
-      iCount = m_iCount    [iPartIdx][SAO_EO_0];
-
-      pOrg = getPicYuvAddr(m_pcPic->getPicYuvOrg(), iYCbCr, iAddr);
-      pRec = getPicYuvAddr(m_pcPic->getPicYuvRec(), iYCbCr, iAddr);
-      pMap = getPicYuvAddr(m_pcPicYuvMap, iYCbCr, iAddr);
-
-      iStartX = (uiLPelX == 0)            ? 1 : 0;
-      iEndX   = (uiRPelX == iPicWidthTmp) ? iLcuWidth-1 : iLcuWidth;
-
-      for (y=0; y<iLcuHeight; y++)
-      {
-        iSignLeft  = xSign(pRec[iStartX] - pRec[iStartX-1]);
-        for (x=iStartX; x< iEndX; x++)
-        {
-          iSignRight =  xSign(pRec[x] - pRec[x+1]); 
-          uiEdgeType =  iSignRight + iSignLeft + 2;
-          iSignLeft  = -iSignRight;
-          if (pMap[x-1] == pMap[x+1])
-          {
-            iStats[m_auiEoTable[uiEdgeType]] += (pOrg[x] - pRec[x]);
-            iCount[m_auiEoTable[uiEdgeType]] ++;
-          }
-        }
-        pOrg += iStride;
-        pRec += iStride;
-        pMap += iStride;
-      }
-    }
-
-    //     if (m_iAoType == EO_1  )
-    {
-      iStats = m_iOffsetOrg[iPartIdx][SAO_EO_1];
-      iCount = m_iCount    [iPartIdx][SAO_EO_1];
-
-      pOrg = getPicYuvAddr(m_pcPic->getPicYuvOrg(), iYCbCr, iAddr);
-      pRec = getPicYuvAddr(m_pcPic->getPicYuvRec(), iYCbCr, iAddr);
-      pMap = getPicYuvAddr(m_pcPicYuvMap, iYCbCr, iAddr);
-
-      iStartY = (uiTPelY == 0) ?             1 : 0;
-      iEndY   = (uiBPelY == iPicHeightTmp) ? iLcuHeight-1 : iLcuHeight;
-
-      if (iStartY == 1)
-      {
-        pOrg += iStride;
-        pRec += iStride;
-        pMap += iStride;
-      }
-
-      for (x=0; x< iLcuWidth; x++)
-      {
-        m_iUpBuff1[x] = xSign(pRec[x] - pRec[x-iStride]);
-      }
-      for (y=iStartY; y<iEndY; y++)
-      {
-        for (x=0; x<iLcuWidth; x++)
-        {
-          iSignDown  =  xSign(pRec[x] - pRec[x+iStride]); 
-          uiEdgeType =  iSignDown + m_iUpBuff1[x] + 2;
-          m_iUpBuff1[x]= -iSignDown;
-          if (pMap[x-iStride] == pMap[x+iStride])
-          {
-            iStats[m_auiEoTable[uiEdgeType]] += (pOrg[x] - pRec[x]);
-            iCount[m_auiEoTable[uiEdgeType]] ++;
-          }
-        }
-        pOrg += iStride;
-        pRec += iStride;
-        pMap += iStride;
-      }
-    }
-    //     if (m_iAoType == EO_2  )
-    {
-      iStats = m_iOffsetOrg[iPartIdx][SAO_EO_2];
-      iCount = m_iCount    [iPartIdx][SAO_EO_2];
-
-      pOrg = getPicYuvAddr(m_pcPic->getPicYuvOrg(), iYCbCr, iAddr);
-      pRec = getPicYuvAddr(m_pcPic->getPicYuvRec(), iYCbCr, iAddr);
-      pMap = getPicYuvAddr(m_pcPicYuvMap, iYCbCr, iAddr);
-
-      iStartX = (uiLPelX == 0)            ? 1 : 0;
-      iEndX   = (uiRPelX == iPicWidthTmp) ? iLcuWidth-1 : iLcuWidth;
-
-      iStartY = (uiTPelY == 0) ?             1 : 0;
-      iEndY   = (uiBPelY == iPicHeightTmp) ? iLcuHeight-1 : iLcuHeight;
-
-      if (iStartY == 1)
-      {
-        pOrg += iStride;
-        pRec += iStride;
-        pMap += iStride;
-      }
-      for (x=iStartX; x<iEndX; x++)
-      {
-        m_iUpBuff1[x] = xSign(pRec[x] - pRec[x-iStride-1]);
-      }
-      for (y=iStartY; y<iEndY; y++)
-      {
-        iSignDown2 = xSign(pRec[iStride+iStartX] - pRec[iStartX-1]);
-        for (x=iStartX; x<iEndX; x++)
-        {
-          iSignDown1      =  xSign(pRec[x] - pRec[x+iStride+1]) ;
-          uiEdgeType      =  iSignDown1 + m_iUpBuff1[x] + 2;
-          m_iUpBufft[x+1] = -iSignDown1; 
-          if (pMap[x-iStride-1] == pMap[x+iStride+1] )
-          {
-            iStats[m_auiEoTable[uiEdgeType]] += (pOrg[x] - pRec[x]);
-            iCount[m_auiEoTable[uiEdgeType]] ++;
-          }
-        }
-        m_iUpBufft[iStartX] = iSignDown2;
-        ipSwap     = m_iUpBuff1;
-        m_iUpBuff1 = m_iUpBufft;
-        m_iUpBufft = ipSwap;
-
-        pRec += iStride;
-        pOrg += iStride;
-        pMap += iStride;
-      }
-    } 
-    //     if (m_iAoType == EO_3  )
-    {
-      iStats = m_iOffsetOrg[iPartIdx][SAO_EO_3];
-      iCount = m_iCount    [iPartIdx][SAO_EO_3];
-
-      pOrg = getPicYuvAddr(m_pcPic->getPicYuvOrg(), iYCbCr, iAddr);
-      pRec = getPicYuvAddr(m_pcPic->getPicYuvRec(), iYCbCr, iAddr);
-      pMap = getPicYuvAddr(m_pcPicYuvMap, iYCbCr, iAddr);
-
-      iStartX = (uiLPelX == 0)            ? 1 : 0;
-      iEndX   = (uiRPelX == iPicWidthTmp) ? iLcuWidth-1 : iLcuWidth;
-
-      iStartY = (uiTPelY == 0) ?             1 : 0;
-      iEndY   = (uiBPelY == iPicHeightTmp) ? iLcuHeight-1 : iLcuHeight;
-
-      if (iStartY == 1)
-      {
-        pOrg += iStride;
-        pRec += iStride;
-        pMap += iStride;
-      }
-      for (x=iStartX-1; x<iEndX; x++)
-      {
-        m_iUpBuff1[x] = xSign(pRec[x] - pRec[x-iStride+1]);
-      }
-      for (y=iStartY; y<iEndY; y++)
-      {
-        for (x=iStartX; x<iEndX; x++)
-        {
-          iSignDown1      =  xSign(pRec[x] - pRec[x+iStride-1]) ;
-          uiEdgeType      =  iSignDown1 + m_iUpBuff1[x] + 2;
-          m_iUpBuff1[x-1]   = -iSignDown1; 
-          if ((pMap[x-iStride+1] == pMap[x+iStride-1]) && (pMap[x+iStride-1]==pMap[x]))
-          {
-            iStats[m_auiEoTable[uiEdgeType]] += (pOrg[x] - pRec[x]);
-            iCount[m_auiEoTable[uiEdgeType]] ++;
-          }
-        }
-        m_iUpBuff1[iEndX-1] = xSign(pRec[iEndX-1 + iStride] - pRec[iEndX]);
-
-        pRec += iStride;
-        pOrg += iStride;
-        pMap += iStride;
-      } 
-    } 
-  }
-}
-#else
-{
-  Int x,y;
-  TComDataCU *pTmpCu = m_pcPic->getCU(iAddr);
-  TComSPS *pTmpSPS =  m_pcPic->getSlice(0)->getSPS();
-
-  Pel* pOrg      ;
-  Pel* pRec      ;
-  Pel* pMap      ;    
-
-  Int iStride    ;
-  Int iLcuWidth  = pTmpSPS->getMaxCUHeight();
-  Int iLcuHeight = pTmpSPS->getMaxCUWidth();
-  Int iPicWidth  = pTmpSPS->getWidth();
-  Int iPicHeight = pTmpSPS->getHeight();
-  UInt uiLPelX   = pTmpCu->getCUPelX();
-  UInt uiTPelY   = pTmpCu->getCUPelY();
-  UInt uiRPelX;//   = uiLPelX + iLcuWidth;
-  UInt uiBPelY;//   = uiTPelY + iLcuHeight;
-  Int64* iStats ;
-  Int64* iCount ;
-  Int iClassIdx;
-  Int iPicWidthTmp;
-  Int iPicHeightTmp;
-
-  if (iYCbCr == 1 )
-  {
-    iPicWidthTmp  = iPicWidth  >> 1;
-    iPicHeightTmp = iPicHeight >> 1;
-    iLcuWidth     = iLcuWidth    >> 1;
-    iLcuHeight    = iLcuHeight   >> 1;
-    uiLPelX       = uiLPelX      >> 1;
-    uiTPelY       = uiTPelY      >> 1;
-
-    uiRPelX    = uiLPelX + iLcuWidth  ;
-    uiBPelY    = uiTPelY + iLcuHeight ;
-
-    uiRPelX    = uiRPelX > iPicWidthTmp ? iPicWidthTmp : uiRPelX;
-    uiBPelY    = uiBPelY > iPicHeightTmp? iPicHeightTmp: uiBPelY;
-
-    iLcuWidth  = uiRPelX - uiLPelX;
-    iLcuHeight = uiBPelY - uiTPelY;
-
-    pRec       = m_pcPic->getPicYuvRec()->getCbAddr(iAddr);
-    pMap       =  m_pcPicYuvMap->getCbAddr(iAddr);    
-    iStride    = m_pcPic->getCStride();
-  }
-  else if (iYCbCr == 2)
-  {
-    iPicWidthTmp  = iPicWidth  >> 1;
-    iPicHeightTmp = iPicHeight >> 1;
-    iLcuWidth    = iLcuWidth    >> 1;
-    iLcuHeight   = iLcuHeight   >> 1;
-    uiLPelX      = uiLPelX      >> 1;
-    uiTPelY      = uiTPelY      >> 1;
-
-    uiRPelX    = uiLPelX + iLcuWidth  ;
-    uiBPelY    = uiTPelY + iLcuHeight ;
-
-    uiRPelX    = uiRPelX > iPicWidthTmp ? iPicWidthTmp : uiRPelX;
-    uiBPelY    = uiBPelY > iPicHeightTmp? iPicHeightTmp: uiBPelY;
-
-    iLcuWidth  = uiRPelX - uiLPelX;
-    iLcuHeight = uiBPelY - uiTPelY;
-
-    pRec       = m_pcPic->getPicYuvRec()->getCrAddr(iAddr);
-    pMap       =  m_pcPicYuvMap->getCrAddr(iAddr);    
-    iStride    = m_pcPic->getCStride();
-  }
-  else
-  {
-
-    uiRPelX    = uiLPelX + iLcuWidth  ;
-    uiBPelY    = uiTPelY + iLcuHeight ;
-
-    uiRPelX    = uiRPelX > iPicWidth ? iPicWidth : uiRPelX;
-    uiBPelY    = uiBPelY > iPicHeight? iPicHeight: uiBPelY;
-
-    iLcuWidth  = uiRPelX - uiLPelX;
-    iLcuHeight = uiBPelY - uiTPelY;
-
-    pRec       = m_pcPic->getPicYuvRec()->getLumaAddr(iAddr);
-    pMap       =  m_pcPicYuvMap->getCbAddr(iAddr);    
-    iStride    = m_pcPic->getStride();
-  }
-
-
-  //   if(m_iAoType == BO_0 || m_iAoType == BO_1)
-  {
-    iStats = m_iOffsetOrg[iPartIdx][SAO_BO_0];
-    iCount = m_iCount    [iPartIdx][SAO_BO_0];
-
-    pOrg = getPicYuvAddr(m_pcPic->getPicYuvOrg(), iYCbCr, iAddr);
-    pRec = getPicYuvAddr(m_pcPic->getPicYuvRec(), iYCbCr, iAddr);
-
-    for (y=0; y<iLcuHeight; y++)
-    {
-      for (x=0; x<iLcuWidth; x++)
-      {
-        iClassIdx =  m_ppLumaTableBo0[pRec[x]];
-        if (iClassIdx)
-        {
-          iStats[iClassIdx] += (pOrg[x] - pRec[x]); 
-          iCount[iClassIdx] ++;
-        }
-      }
-      pOrg += iStride;
-      pRec += iStride;
-    }
-
-    iStats = m_iOffsetOrg[iPartIdx][SAO_BO_1];
-    iCount = m_iCount    [iPartIdx][SAO_BO_1];
-
-    pOrg = getPicYuvAddr(m_pcPic->getPicYuvOrg(), iYCbCr, iAddr);
-    pRec = getPicYuvAddr(m_pcPic->getPicYuvRec(), iYCbCr, iAddr);
-
-    for (y=0; y<iLcuHeight; y++)
-    {
-      for (x=0; x<iLcuWidth; x++)
-      {
-        iClassIdx =  m_ppLumaTableBo1[pRec[x]];
-        if (iClassIdx)
-        {
-          iStats[iClassIdx] += (pOrg[x] - pRec[x]); 
-          iCount[iClassIdx] ++;
-        }
-      }
-      pOrg += iStride;
-      pRec += iStride;
-    }
-  }
-
-  Int iSignLeft;
-  Int iSignRight;
-  Int iSignDown;
-  Int iSignDown1;
-  Int iSignDown2;
-
-  UInt uiEdgeType;
-
-  //   if (m_iAoType == EO_0  || m_iAoType == EO_1 || m_iAoType == EO_2 || m_iAoType == EO_3)
-  {
-    //     if (m_iAoType == EO_0  )
-    {
-      iStats = m_iOffsetOrg[iPartIdx][SAO_EO_0];
-      iCount = m_iCount    [iPartIdx][SAO_EO_0];
-
-      pOrg = getPicYuvAddr(m_pcPic->getPicYuvOrg(), iYCbCr, iAddr);
-      pRec = getPicYuvAddr(m_pcPic->getPicYuvRec(), iYCbCr, iAddr);
-      pMap = getPicYuvAddr(m_pcPicYuvMap, iYCbCr, iAddr);
-
-      for (y=0; y<iLcuHeight; y++)
-      {
-        iSignLeft  = xSign(pRec[1] - pRec[0]);
-        for (x=1; x<iLcuWidth-1; x++)
-        {
-          iSignRight =  xSign(pRec[x] - pRec[x+1]); 
-          uiEdgeType =  iSignRight + iSignLeft + 2;
-          iSignLeft  = -iSignRight;
-          if (pMap[x-1] == pMap[x+1])
-          {
-            iStats[m_auiEoTable[uiEdgeType]] += (pOrg[x] - pRec[x]);
-            iCount[m_auiEoTable[uiEdgeType]] ++;
-          }
-        }
-        pOrg += iStride;
-        pRec += iStride;
-        pMap += iStride;
-      }
-    }
-
-    //     if (m_iAoType == EO_1  )
-    {
-      iStats = m_iOffsetOrg[iPartIdx][SAO_EO_1];
-      iCount = m_iCount    [iPartIdx][SAO_EO_1];
-
-      pOrg = getPicYuvAddr(m_pcPic->getPicYuvOrg(), iYCbCr, iAddr);
-      pRec = getPicYuvAddr(m_pcPic->getPicYuvRec(), iYCbCr, iAddr);
-      pMap = getPicYuvAddr(m_pcPicYuvMap, iYCbCr, iAddr);
-
-      pOrg += iStride;
-      pRec += iStride;
-      pMap += iStride;
-
-      for (x=0; x< iLcuWidth; x++)
-      {
-        m_iUpBuff1[x] = xSign(pRec[x] - pRec[x-iStride]);
-      }
-
-      for (y=1; y<iLcuHeight-1; y++)
-      {
-        for (x=0; x<iLcuWidth; x++)
-        {
-
-          iSignDown  =  xSign(pRec[x] - pRec[x+iStride]); 
-          uiEdgeType =  iSignDown + m_iUpBuff1[x] + 2;
-          m_iUpBuff1[x]= -iSignDown;
-          if (pMap[x-iStride] == pMap[x+iStride])
-          {
-            iStats[m_auiEoTable[uiEdgeType]] += (pOrg[x] - pRec[x]);
-            iCount[m_auiEoTable[uiEdgeType]] ++;
-          }
-        }
-        pOrg += iStride;
-        pRec += iStride;
-        pMap += iStride;
-      }
-    }
-    //     if (m_iAoType == EO_2  )
-    {
-      iStats = m_iOffsetOrg[iPartIdx][SAO_EO_2];
-      iCount = m_iCount    [iPartIdx][SAO_EO_2];
-
-      pOrg = getPicYuvAddr(m_pcPic->getPicYuvOrg(), iYCbCr, iAddr);
-      pRec = getPicYuvAddr(m_pcPic->getPicYuvRec(), iYCbCr, iAddr);
-      pMap = getPicYuvAddr(m_pcPicYuvMap, iYCbCr, iAddr);
-
-      pOrg += iStride;
-      pRec += iStride;
-      pMap += iStride;
-      for (x=1; x<iLcuWidth; x++)
-      {
-        m_iUpBuff1[x] = xSign(pRec[x] - pRec[x-iStride-1]);
-      }
-      for (y=1; y<iLcuHeight-1; y++)
-      {
-        iSignDown2 = xSign(pRec[iStride+1] - pRec[0]);
-        for (x=1; x<iLcuWidth-1; x++)
-        {
-          iSignDown1      =  xSign(pRec[x] - pRec[x+iStride+1]) ;
-          uiEdgeType      =  iSignDown1 + m_iUpBuff1[x] + 2;
-          m_iUpBufft[x+1] = -iSignDown1; 
-          if (pMap[x-iStride-1] == pMap[x+iStride+1] )
-          {
-            iStats[m_auiEoTable[uiEdgeType]] += (pOrg[x] - pRec[x]);
-            iCount[m_auiEoTable[uiEdgeType]] ++;
-          }
-        }
-        m_iUpBufft[1] = iSignDown2;
-        ipSwap     = m_iUpBuff1;
-        m_iUpBuff1 = m_iUpBufft;
-        m_iUpBufft = ipSwap;
-
-        pRec += iStride;
-        pOrg += iStride;
-        pMap += iStride;
-      }
-    } 
-    //     if (m_iAoType == EO_3  )
-    {
-      iStats = m_iOffsetOrg[iPartIdx][SAO_EO_3];
-      iCount = m_iCount    [iPartIdx][SAO_EO_3];
-
-      pOrg = getPicYuvAddr(m_pcPic->getPicYuvOrg(), iYCbCr, iAddr);
-      pRec = getPicYuvAddr(m_pcPic->getPicYuvRec(), iYCbCr, iAddr);
-      pMap = getPicYuvAddr(m_pcPicYuvMap, iYCbCr, iAddr);
-
-      pOrg += iStride;
-      pRec += iStride;
-      pMap += iStride;
-      for (x=0; x<iLcuWidth-1; x++)
-      {
-        m_iUpBuff1[x] = xSign(pRec[x] - pRec[x-iStride+1]);
-      }
-
-      for (y=1; y<iLcuHeight-1; y++)
-      {
-        for (x=1; x<iLcuWidth-1; x++)
-        {
-          iSignDown1      =  xSign(pRec[x] - pRec[x+iStride-1]) ;
-          uiEdgeType      =  iSignDown1 + m_iUpBuff1[x] + 2;
-          m_iUpBuff1[x-1]   = -iSignDown1; 
-          if (pMap[x-iStride+1] == pMap[x+iStride-1])
-          {
-            iStats[m_auiEoTable[uiEdgeType]] += (pOrg[x] - pRec[x]);
-            iCount[m_auiEoTable[uiEdgeType]] ++;
-          }
-        }
-        m_iUpBuff1[iLcuWidth-2] = xSign(pRec[iLcuWidth-2 + iStride] - pRec[iLcuWidth-1]);
-
-        pRec += iStride;
-        pOrg += iStride;
-        pMap += iStride;
-      } 
-    } 
-  }
-}
-#endif
-/** calculate SAO statistics for current LCU
- * \param iAddr, iPartIdx
- */
-Void TEncSampleAdaptiveOffset::calcAoStatsCu(Int iAddr, Int iPartIdx, Int iYCbCr)
-{
-  if (getUseNonCrossAlf())
-  {
-    calcAoStatsCuMap( iAddr, iPartIdx, iYCbCr);
-  }
-  else
-  {
-    calcAoStatsCuOrg( iAddr, iPartIdx, iYCbCr);
-  }
-}
-#endif
-/** calculate SAO statistics for current LCU without slice granularity
- * \param iAddr, iPartIdx
- */
-#if SAO_FGS_MNIF
-Void TEncSampleAdaptiveOffset::calcAoStatsCuOrg(Int iAddr, Int iPartIdx, Int iYCbCr)
-#else
-Void TEncSampleAdaptiveOffset::calcAoStatsCu(Int iAddr, Int iPartIdx, Int iYCbCr)
-#endif
-#if MTK_SAO_REMOVE_SKIP
-{
-  Int x,y;
-  TComDataCU *pTmpCu = m_pcPic->getCU(iAddr);
-  TComSPS *pTmpSPS =  m_pcPic->getSlice(0)->getSPS();
-
-  Pel* pOrg      ;
-  Pel* pRec      ;
-  Int iStride    ;
-  Int iLcuWidth  = pTmpSPS->getMaxCUHeight();
-  Int iLcuHeight = pTmpSPS->getMaxCUWidth();
-  Int iPicWidth  = pTmpSPS->getWidth();
-  Int iPicHeight = pTmpSPS->getHeight();
-  UInt uiLPelX   = pTmpCu->getCUPelX();
-  UInt uiTPelY   = pTmpCu->getCUPelY();
-  UInt uiRPelX;//   = uiLPelX + iLcuWidth;
-  UInt uiBPelY;//   = uiTPelY + iLcuHeight;
-  Int64* iStats ;
-  Int64* iCount ;
-  Int iClassIdx;
-  Int iPicWidthTmp;
-  Int iPicHeightTmp;
-  Int iStartX;
-  Int iStartY;
-  Int iEndX;
-  Int iEndY;
-
-  if (iYCbCr == 1 )
-  {
-    iPicWidthTmp  = iPicWidth  >> 1;
-    iPicHeightTmp = iPicHeight >> 1;
-    iLcuWidth     = iLcuWidth    >> 1;
-    iLcuHeight    = iLcuHeight   >> 1;
-    uiLPelX       = uiLPelX      >> 1;
-    uiTPelY       = uiTPelY      >> 1;
-
-    uiRPelX    = uiLPelX + iLcuWidth  ;
-    uiBPelY    = uiTPelY + iLcuHeight ;
-
-    uiRPelX    = uiRPelX > iPicWidthTmp ? iPicWidthTmp : uiRPelX;
-    uiBPelY    = uiBPelY > iPicHeightTmp? iPicHeightTmp: uiBPelY;
-
-    iLcuWidth  = uiRPelX - uiLPelX;
-    iLcuHeight = uiBPelY - uiTPelY;
-
-    pRec       = m_pcPic->getPicYuvRec()->getCbAddr(iAddr);
-    iStride    = m_pcPic->getCStride();
-  }
-  else if (iYCbCr == 2)
-  {
-    iPicWidthTmp  = iPicWidth  >> 1;
-    iPicHeightTmp = iPicHeight >> 1;
-    iLcuWidth    = iLcuWidth    >> 1;
-    iLcuHeight   = iLcuHeight   >> 1;
-    uiLPelX      = uiLPelX      >> 1;
-    uiTPelY      = uiTPelY      >> 1;
-
-    uiRPelX    = uiLPelX + iLcuWidth  ;
-    uiBPelY    = uiTPelY + iLcuHeight ;
-
-    uiRPelX    = uiRPelX > iPicWidthTmp ? iPicWidthTmp : uiRPelX;
-    uiBPelY    = uiBPelY > iPicHeightTmp? iPicHeightTmp: uiBPelY;
-
-    iLcuWidth  = uiRPelX - uiLPelX;
-    iLcuHeight = uiBPelY - uiTPelY;
-
-    pRec       = m_pcPic->getPicYuvRec()->getCrAddr(iAddr);
-    iStride    = m_pcPic->getCStride();
-  }
-  else
-  {
-    iPicWidthTmp  = iPicWidth  ;
-    iPicHeightTmp = iPicHeight ;
-
-    uiRPelX    = uiLPelX + iLcuWidth  ;
-    uiBPelY    = uiTPelY + iLcuHeight ;
-
-    uiRPelX    = uiRPelX > iPicWidth ? iPicWidth : uiRPelX;
-    uiBPelY    = uiBPelY > iPicHeight? iPicHeight: uiBPelY;
-
-    iLcuWidth  = uiRPelX - uiLPelX;
-    iLcuHeight = uiBPelY - uiTPelY;
-
-    pRec       = m_pcPic->getPicYuvRec()->getLumaAddr(iAddr);
-    iStride    = m_pcPic->getStride();
-  }
-
-
-  //   if(m_iAoType == BO_0 || m_iAoType == BO_1)
-  {
-    iStats = m_iOffsetOrg[iPartIdx][SAO_BO_0];
-    iCount = m_iCount    [iPartIdx][SAO_BO_0];
-
-    pOrg = getPicYuvAddr(m_pcPic->getPicYuvOrg(), iYCbCr, iAddr);
-    pRec = getPicYuvAddr(m_pcPic->getPicYuvRec(), iYCbCr, iAddr);
-
-    for (y=0; y<iLcuHeight; y++)
-    {
-      for (x=0; x<iLcuWidth; x++)
-      {
-        iClassIdx =  m_ppLumaTableBo0[pRec[x]];
-        if (iClassIdx)
-        {
-          iStats[iClassIdx] += (pOrg[x] - pRec[x]); 
-          iCount[iClassIdx] ++;
-        }
-      }
-      pOrg += iStride;
-      pRec += iStride;
-    }
-
-    iStats = m_iOffsetOrg[iPartIdx][SAO_BO_1];
-    iCount = m_iCount    [iPartIdx][SAO_BO_1];
-
-    pOrg = getPicYuvAddr(m_pcPic->getPicYuvOrg(), iYCbCr, iAddr);
-    pRec = getPicYuvAddr(m_pcPic->getPicYuvRec(), iYCbCr, iAddr);
-
-    for (y=0; y<iLcuHeight; y++)
-    {
-      for (x=0; x<iLcuWidth; x++)
-      {
-        iClassIdx =  m_ppLumaTableBo1[pRec[x]];
-        if (iClassIdx)
-        {
-          iStats[iClassIdx] += (pOrg[x] - pRec[x]); 
-          iCount[iClassIdx] ++;
-        }
-      }
-      pOrg += iStride;
-      pRec += iStride;
-    }
-  }
-
-  Int iSignLeft;
-  Int iSignRight;
-  Int iSignDown;
-  Int iSignDown1;
-  Int iSignDown2;
-
-  UInt uiEdgeType;
-
-  //   if (m_iAoType == EO_0  || m_iAoType == EO_1 || m_iAoType == EO_2 || m_iAoType == EO_3)
-  {
-    //     if (m_iAoType == EO_0  )
-    {
-
-      iStats = m_iOffsetOrg[iPartIdx][SAO_EO_0];
-      iCount = m_iCount    [iPartIdx][SAO_EO_0];
-
-      pOrg = getPicYuvAddr(m_pcPic->getPicYuvOrg(), iYCbCr, iAddr);
-      pRec = getPicYuvAddr(m_pcPic->getPicYuvRec(), iYCbCr, iAddr);
-
-      iStartX = (uiLPelX == 0)            ? 1 : 0;
-      iEndX   = (uiRPelX == iPicWidthTmp) ? iLcuWidth-1 : iLcuWidth;
-
-      for (y=0; y<iLcuHeight; y++)
-      {
-        iSignLeft  = xSign(pRec[iStartX] - pRec[iStartX-1]);
-        for (x=iStartX; x< iEndX; x++)
-        {
-          iSignRight =  xSign(pRec[x] - pRec[x+1]); 
-          uiEdgeType =  iSignRight + iSignLeft + 2;
-          iSignLeft  = -iSignRight;
-
-          iStats[m_auiEoTable[uiEdgeType]] += (pOrg[x] - pRec[x]);
-          iCount[m_auiEoTable[uiEdgeType]] ++;
-        }
-        pOrg += iStride;
-        pRec += iStride;
-      }
-    }
-
-    //     if (m_iAoType == EO_1  )
-    {
-
-      iStats = m_iOffsetOrg[iPartIdx][SAO_EO_1];
-      iCount = m_iCount    [iPartIdx][SAO_EO_1];
-
-      pOrg = getPicYuvAddr(m_pcPic->getPicYuvOrg(), iYCbCr, iAddr);
-      pRec = getPicYuvAddr(m_pcPic->getPicYuvRec(), iYCbCr, iAddr);
-
-      iStartY = (uiTPelY == 0) ?             1 : 0;
-      iEndY   = (uiBPelY == iPicHeightTmp) ? iLcuHeight-1 : iLcuHeight;
-      if (iStartY == 1)
-      {
-        pOrg += iStride;
-        pRec += iStride;
-      }
-
-      for (x=0; x< iLcuWidth; x++)
-      {
-        m_iUpBuff1[x] = xSign(pRec[x] - pRec[x-iStride]);
-      }
-      for (y=iStartY; y<iEndY; y++)
-      {
-        for (x=0; x<iLcuWidth; x++)
-        {
-          iSignDown  =  xSign(pRec[x] - pRec[x+iStride]); 
-          uiEdgeType =  iSignDown + m_iUpBuff1[x] + 2;
-          m_iUpBuff1[x]= -iSignDown;
-
-          iStats[m_auiEoTable[uiEdgeType]] += (pOrg[x] - pRec[x]);
-          iCount[m_auiEoTable[uiEdgeType]] ++;
-        }
-        pOrg += iStride;
-        pRec += iStride;
-      }
-    }
-    //     if (m_iAoType == EO_2  )
-    {
-      iStats = m_iOffsetOrg[iPartIdx][SAO_EO_2];
-      iCount = m_iCount    [iPartIdx][SAO_EO_2];
-
-      pOrg = getPicYuvAddr(m_pcPic->getPicYuvOrg(), iYCbCr, iAddr);
-      pRec = getPicYuvAddr(m_pcPic->getPicYuvRec(), iYCbCr, iAddr);
-
-      iStartX = (uiLPelX == 0)            ? 1 : 0;
-      iEndX   = (uiRPelX == iPicWidthTmp) ? iLcuWidth-1 : iLcuWidth;
-
-      iStartY = (uiTPelY == 0) ?             1 : 0;
-      iEndY   = (uiBPelY == iPicHeightTmp) ? iLcuHeight-1 : iLcuHeight;
-
-      if (iStartY == 1)
-      {
-        pOrg += iStride;
-        pRec += iStride;
-      }
-
-      for (x=iStartX; x<iEndX; x++)
-      {
-        m_iUpBuff1[x] = xSign(pRec[x] - pRec[x-iStride-1]);
-      }
-      for (y=iStartY; y<iEndY; y++)
-      {
-        iSignDown2 = xSign(pRec[iStride+iStartX] - pRec[iStartX-1]);
-        for (x=iStartX; x<iEndX; x++)
-        {
-          iSignDown1      =  xSign(pRec[x] - pRec[x+iStride+1]) ;
-          uiEdgeType      =  iSignDown1 + m_iUpBuff1[x] + 2;
-          m_iUpBufft[x+1] = -iSignDown1; 
-          iStats[m_auiEoTable[uiEdgeType]] += (pOrg[x] - pRec[x]);
-          iCount[m_auiEoTable[uiEdgeType]] ++;
-        }
-        m_iUpBufft[iStartX] = iSignDown2;
-        ipSwap     = m_iUpBuff1;
-        m_iUpBuff1 = m_iUpBufft;
-        m_iUpBufft = ipSwap;
-
-        pRec += iStride;
-        pOrg += iStride;
-      }
-    } 
-    //     if (m_iAoType == EO_3  )
-    {
-      iStats = m_iOffsetOrg[iPartIdx][SAO_EO_3];
-      iCount = m_iCount    [iPartIdx][SAO_EO_3];
-
-      pOrg = getPicYuvAddr(m_pcPic->getPicYuvOrg(), iYCbCr, iAddr);
-      pRec = getPicYuvAddr(m_pcPic->getPicYuvRec(), iYCbCr, iAddr);
-
-      iStartX = (uiLPelX == 0)            ? 1 : 0;
-      iEndX   = (uiRPelX == iPicWidthTmp) ? iLcuWidth-1 : iLcuWidth;
-
-      iStartY = (uiTPelY == 0) ?             1 : 0;
-      iEndY   = (uiBPelY == iPicHeightTmp) ? iLcuHeight-1 : iLcuHeight;
-
-      if (iStartY == 1)
-      {
-        pOrg += iStride;
-        pRec += iStride;
-      }
-
-      for (x=iStartX-1; x<iEndX; x++)
-      {
-        m_iUpBuff1[x] = xSign(pRec[x] - pRec[x-iStride+1]);
-      }
-
-      for (y=iStartY; y<iEndY; y++)
-      {
-        for (x=iStartX; x<iEndX; x++)
-        {
-          iSignDown1      =  xSign(pRec[x] - pRec[x+iStride-1]) ;
-          uiEdgeType      =  iSignDown1 + m_iUpBuff1[x] + 2;
-          m_iUpBuff1[x-1]   = -iSignDown1; 
-          iStats[m_auiEoTable[uiEdgeType]] += (pOrg[x] - pRec[x]);
-          iCount[m_auiEoTable[uiEdgeType]] ++;
-        }
-        m_iUpBuff1[iEndX-1] = xSign(pRec[iEndX-1 + iStride] - pRec[iEndX]);
-
-        pRec += iStride;
-        pOrg += iStride;
-      } 
-    } 
-  }
-}
-#else
-{
-  Int x,y;
-  TComDataCU *pTmpCu = m_pcPic->getCU(iAddr);
-  TComSPS *pTmpSPS =  m_pcPic->getSlice(0)->getSPS();
-
-  Pel* pOrg      ;
-  Pel* pRec      ;
-  Int iStride    ;
-  Int iLcuWidth  = pTmpSPS->getMaxCUHeight();
-  Int iLcuHeight = pTmpSPS->getMaxCUWidth();
-  Int iPicWidth  = pTmpSPS->getWidth();
-  Int iPicHeight = pTmpSPS->getHeight();
-  UInt uiLPelX   = pTmpCu->getCUPelX();
-  UInt uiTPelY   = pTmpCu->getCUPelY();
-  UInt uiRPelX;//   = uiLPelX + iLcuWidth;
-  UInt uiBPelY;//   = uiTPelY + iLcuHeight;
-  Int64* iStats ;
-  Int64* iCount ;
-  Int iClassIdx;
-  Int iPicWidthTmp;
-  Int iPicHeightTmp;
-
-  if (iYCbCr == 1 )
-  {
-    iPicWidthTmp  = iPicWidth  >> 1;
-    iPicHeightTmp = iPicHeight >> 1;
-    iLcuWidth     = iLcuWidth    >> 1;
-    iLcuHeight    = iLcuHeight   >> 1;
-    uiLPelX       = uiLPelX      >> 1;
-    uiTPelY       = uiTPelY      >> 1;
-
-    uiRPelX    = uiLPelX + iLcuWidth  ;
-    uiBPelY    = uiTPelY + iLcuHeight ;
-
-    uiRPelX    = uiRPelX > iPicWidthTmp ? iPicWidthTmp : uiRPelX;
-    uiBPelY    = uiBPelY > iPicHeightTmp? iPicHeightTmp: uiBPelY;
-
-    iLcuWidth  = uiRPelX - uiLPelX;
-    iLcuHeight = uiBPelY - uiTPelY;
-
-    pRec       = m_pcPic->getPicYuvRec()->getCbAddr(iAddr);
-    iStride    = m_pcPic->getCStride();
-  }
-  else if (iYCbCr == 2)
-  {
-    iPicWidthTmp  = iPicWidth  >> 1;
-    iPicHeightTmp = iPicHeight >> 1;
-    iLcuWidth    = iLcuWidth    >> 1;
-    iLcuHeight   = iLcuHeight   >> 1;
-    uiLPelX      = uiLPelX      >> 1;
-    uiTPelY      = uiTPelY      >> 1;
-
-    uiRPelX    = uiLPelX + iLcuWidth  ;
-    uiBPelY    = uiTPelY + iLcuHeight ;
-
-    uiRPelX    = uiRPelX > iPicWidthTmp ? iPicWidthTmp : uiRPelX;
-    uiBPelY    = uiBPelY > iPicHeightTmp? iPicHeightTmp: uiBPelY;
-
-    iLcuWidth  = uiRPelX - uiLPelX;
-    iLcuHeight = uiBPelY - uiTPelY;
-
-    pRec       = m_pcPic->getPicYuvRec()->getCrAddr(iAddr);
-    iStride    = m_pcPic->getCStride();
-  }
-  else
-  {
-
-    uiRPelX    = uiLPelX + iLcuWidth  ;
-    uiBPelY    = uiTPelY + iLcuHeight ;
-
-    uiRPelX    = uiRPelX > iPicWidth ? iPicWidth : uiRPelX;
-    uiBPelY    = uiBPelY > iPicHeight? iPicHeight: uiBPelY;
-
-    iLcuWidth  = uiRPelX - uiLPelX;
-    iLcuHeight = uiBPelY - uiTPelY;
-
-    pRec       = m_pcPic->getPicYuvRec()->getLumaAddr(iAddr);
-    iStride    = m_pcPic->getStride();
-  }
-
-
-  //   if(m_iAoType == BO_0 || m_iAoType == BO_1)
-  {
-    iStats = m_iOffsetOrg[iPartIdx][SAO_BO_0];
-    iCount = m_iCount    [iPartIdx][SAO_BO_0];
-
-    pOrg = getPicYuvAddr(m_pcPic->getPicYuvOrg(), iYCbCr, iAddr);
-    pRec = getPicYuvAddr(m_pcPic->getPicYuvRec(), iYCbCr, iAddr);
-
-    for (y=0; y<iLcuHeight; y++)
-    {
-      for (x=0; x<iLcuWidth; x++)
-      {
-        iClassIdx =  m_ppLumaTableBo0[pRec[x]];
-        if (iClassIdx)
-        {
-          iStats[iClassIdx] += (pOrg[x] - pRec[x]); 
-          iCount[iClassIdx] ++;
-        }
-      }
-      pOrg += iStride;
-      pRec += iStride;
-    }
-
-    iStats = m_iOffsetOrg[iPartIdx][SAO_BO_1];
-    iCount = m_iCount    [iPartIdx][SAO_BO_1];
-
-    pOrg = getPicYuvAddr(m_pcPic->getPicYuvOrg(), iYCbCr, iAddr);
-    pRec = getPicYuvAddr(m_pcPic->getPicYuvRec(), iYCbCr, iAddr);
-
-    for (y=0; y<iLcuHeight; y++)
-    {
-      for (x=0; x<iLcuWidth; x++)
-      {
-        iClassIdx =  m_ppLumaTableBo1[pRec[x]];
-        if (iClassIdx)
-        {
-          iStats[iClassIdx] += (pOrg[x] - pRec[x]); 
-          iCount[iClassIdx] ++;
-        }
-      }
-      pOrg += iStride;
-      pRec += iStride;
-    }
-  }
-
-  Int iSignLeft;
-  Int iSignRight;
-  Int iSignDown;
-  Int iSignDown1;
-  Int iSignDown2;
-
-  UInt uiEdgeType;
-
-  //   if (m_iAoType == EO_0  || m_iAoType == EO_1 || m_iAoType == EO_2 || m_iAoType == EO_3)
-  {
-    //     if (m_iAoType == EO_0  )
-    {
-      iStats = m_iOffsetOrg[iPartIdx][SAO_EO_0];
-      iCount = m_iCount    [iPartIdx][SAO_EO_0];
-
-      pOrg = getPicYuvAddr(m_pcPic->getPicYuvOrg(), iYCbCr, iAddr);
-      pRec = getPicYuvAddr(m_pcPic->getPicYuvRec(), iYCbCr, iAddr);
-      for (y=0; y<iLcuHeight; y++)
-      {
-        iSignLeft  = xSign(pRec[1] - pRec[0]);
-        for (x=1; x<iLcuWidth-1; x++)
-        {
-          iSignRight =  xSign(pRec[x] - pRec[x+1]); 
-          uiEdgeType =  iSignRight + iSignLeft + 2;
-          iSignLeft  = -iSignRight;
-
-          iStats[m_auiEoTable[uiEdgeType]] += (pOrg[x] - pRec[x]);
-          iCount[m_auiEoTable[uiEdgeType]] ++;
-        }
-        pOrg += iStride;
-        pRec += iStride;
-      }
-    }
-
-    //     if (m_iAoType == EO_1  )
-    {
-      iStats = m_iOffsetOrg[iPartIdx][SAO_EO_1];
-      iCount = m_iCount    [iPartIdx][SAO_EO_1];
-
-      pOrg = getPicYuvAddr(m_pcPic->getPicYuvOrg(), iYCbCr, iAddr);
-      pRec = getPicYuvAddr(m_pcPic->getPicYuvRec(), iYCbCr, iAddr);
-      pOrg += iStride;
-      pRec += iStride;
-
-      for (x=0; x< iLcuWidth; x++)
-      {
-        m_iUpBuff1[x] = xSign(pRec[x] - pRec[x-iStride]);
-      }
-
-      for (y=1; y<iLcuHeight-1; y++)
-      {
-        for (x=0; x<iLcuWidth; x++)
-        {
-
-          iSignDown  =  xSign(pRec[x] - pRec[x+iStride]); 
-          uiEdgeType =  iSignDown + m_iUpBuff1[x] + 2;
-          m_iUpBuff1[x]= -iSignDown;
-
-          iStats[m_auiEoTable[uiEdgeType]] += (pOrg[x] - pRec[x]);
-          iCount[m_auiEoTable[uiEdgeType]] ++;
-
-        }
-        pOrg += iStride;
-        pRec += iStride;
-      }
-    }
-    //     if (m_iAoType == EO_2  )
-    {
-      iStats = m_iOffsetOrg[iPartIdx][SAO_EO_2];
-      iCount = m_iCount    [iPartIdx][SAO_EO_2];
-
-      pOrg = getPicYuvAddr(m_pcPic->getPicYuvOrg(), iYCbCr, iAddr);
-      pRec = getPicYuvAddr(m_pcPic->getPicYuvRec(), iYCbCr, iAddr);
-      pOrg += iStride;
-      pRec += iStride;
-      for (x=1; x<iLcuWidth; x++)
-      {
-        m_iUpBuff1[x] = xSign(pRec[x] - pRec[x-iStride-1]);
-      }
-      for (y=1; y<iLcuHeight-1; y++)
-      {
-        iSignDown2 = xSign(pRec[iStride+1] - pRec[0]);
-        for (x=1; x<iLcuWidth-1; x++)
-        {
-          iSignDown1      =  xSign(pRec[x] - pRec[x+iStride+1]) ;
-          uiEdgeType      =  iSignDown1 + m_iUpBuff1[x] + 2;
-          m_iUpBufft[x+1] = -iSignDown1; 
-          iStats[m_auiEoTable[uiEdgeType]] += (pOrg[x] - pRec[x]);
-          iCount[m_auiEoTable[uiEdgeType]] ++;
-        }
-        m_iUpBufft[1] = iSignDown2;
-        ipSwap     = m_iUpBuff1;
-        m_iUpBuff1 = m_iUpBufft;
-        m_iUpBufft = ipSwap;
-
-        pRec += iStride;
-        pOrg += iStride;
-      }
-    } 
-    //     if (m_iAoType == EO_3  )
-    {
-      iStats = m_iOffsetOrg[iPartIdx][SAO_EO_3];
-      iCount = m_iCount    [iPartIdx][SAO_EO_3];
-
-      pOrg = getPicYuvAddr(m_pcPic->getPicYuvOrg(), iYCbCr, iAddr);
-      pRec = getPicYuvAddr(m_pcPic->getPicYuvRec(), iYCbCr, iAddr);
-      pOrg += iStride;
-      pRec += iStride;
-      for (x=0; x<iLcuWidth-1; x++)
-      {
-        m_iUpBuff1[x] = xSign(pRec[x] - pRec[x-iStride+1]);
-      }
-
-      for (y=1; y<iLcuHeight-1; y++)
-      {
-        for (x=1; x<iLcuWidth-1; x++)
-        {
-          iSignDown1      =  xSign(pRec[x] - pRec[x+iStride-1]) ;
-          uiEdgeType      =  iSignDown1 + m_iUpBuff1[x] + 2;
-          m_iUpBuff1[x-1]   = -iSignDown1; 
-          iStats[m_auiEoTable[uiEdgeType]] += (pOrg[x] - pRec[x]);
-          iCount[m_auiEoTable[uiEdgeType]] ++;
-        }
-        m_iUpBuff1[iLcuWidth-2] = xSign(pRec[iLcuWidth-2 + iStride] - pRec[iLcuWidth-1]);
-
-        pRec += iStride;
-        pOrg += iStride;
-      } 
-    } 
-  }
-}
-#endif
-/** run get QAO Stats
- * \param pcPicYuvOrg, pcPicYuvRec, pcPicYuvExt
- */
-Void TEncSampleAdaptiveOffset::xGetQAOStats(SAOQTPart *psQTPart, Int iYCbCr)
-{
-  Int iLevelIdx, iPartIdx, iTypeIdx, iClassIdx;
-  Int i;
-  Int iNumTotalType = MAX_NUM_SAO_TYPE;
-  Int LcuIdxX;
-  Int LcuIdxY;
-  Int iAddr;
-  Int iFrameWidthInCU = m_pcPic->getFrameWidthInCU();
-  Int iDownPartIdx;
-  Int iPartStart;
-  Int iPartEnd;
-  SAOQTPart*  pOnePart; 
-
-  if (m_uiMaxSplitLevel == 0)
-  {
-    iPartIdx = 0;
-    pOnePart = &(psQTPart[iPartIdx]);
-    for (LcuIdxY = pOnePart->StartCUY; LcuIdxY<= pOnePart->EndCUY; LcuIdxY++)
-    {
-      for (LcuIdxX = pOnePart->StartCUX; LcuIdxX<= pOnePart->EndCUX; LcuIdxX++)
-      {
-        iAddr = LcuIdxY*iFrameWidthInCU + LcuIdxX;
-        calcAoStatsCu(iAddr, iPartIdx, iYCbCr);
-      }
-    }
-
-  }
-  else
-  {
-    for(iPartIdx=m_aiNumCulPartsLevel[m_uiMaxSplitLevel-1]; iPartIdx<m_aiNumCulPartsLevel[m_uiMaxSplitLevel]; iPartIdx++)
-    {
-      pOnePart = &(psQTPart[iPartIdx]);
-      for (LcuIdxY = pOnePart->StartCUY; LcuIdxY<= pOnePart->EndCUY; LcuIdxY++)
-      {
-        for (LcuIdxX = pOnePart->StartCUX; LcuIdxX<= pOnePart->EndCUX; LcuIdxX++)
-        {
-          iAddr = LcuIdxY*iFrameWidthInCU + LcuIdxX;
-          calcAoStatsCu(iAddr, iPartIdx, iYCbCr);
-        }
-      }
-    }
-    for (iLevelIdx = m_uiMaxSplitLevel-1; iLevelIdx>=0; iLevelIdx-- )
-    {
-      iPartStart = (iLevelIdx > 0) ? m_aiNumCulPartsLevel[iLevelIdx-1] : 0;
-      iPartEnd   = m_aiNumCulPartsLevel[iLevelIdx];
-
-      for(iPartIdx = iPartStart; iPartIdx < iPartEnd; iPartIdx++)
-      {
-        pOnePart = &(psQTPart[iPartIdx]);
-        for (i=0; i< NUM_DOWN_PART; i++)
-        {
-          iDownPartIdx = pOnePart->DownPartsIdx[i];
-          for (iTypeIdx=0; iTypeIdx<iNumTotalType; iTypeIdx++)
-          {
-            for (iClassIdx=0; iClassIdx<m_iNumClass[iTypeIdx]+1; iClassIdx++)
-            {
-              m_iOffsetOrg[iPartIdx][iTypeIdx][iClassIdx] += m_iOffsetOrg[iDownPartIdx][iTypeIdx][iClassIdx];
-              m_iCount [iPartIdx][iTypeIdx][iClassIdx]    += m_iCount [iDownPartIdx][iTypeIdx][iClassIdx];
-            }
-          }
-        }
-      }
-    }
-  }
-}
-
-
-#if SAO_CHROMA_LAMBDA 
-/** Sample adaptive offset Process
- * \param dLambdaLuma
- * \param dLambdaChroma
- */
-Void TEncSampleAdaptiveOffset::SAOProcess( Double dLambdaLuma, Double dLambdaChroma)
-#else
-/** Sample adaptive offset Process
- * \param dLambda
- */
-Void TEncSampleAdaptiveOffset::SAOProcess( Double dLambda)
-#endif
-{
-
-#if MTK_SAO_REMOVE_SKIP
-  m_pcPic->getPicYuvRec()->copyToPic( m_pcPicYuvTmp );
-#endif
-
-  m_eSliceType           =  m_pcPic->getSlice(0)->getSliceType();
-  m_iPicNalReferenceIdc  = (m_pcPic->getSlice(0)->isReferenced() ? 1 :0);
-
-#if SAO_CHROMA_LAMBDA 
-  m_dLambdaLuma    = dLambdaLuma;
-  m_dLambdaChroma  = dLambdaChroma;
-#else
-  m_dLambdaLuma    = dLambda;
-  m_dLambdaChroma  = dLambda;
-#endif
-
-#if SAO_ACCURATE_OFFSET
-#if FULL_NBIT
-  m_uiAoBitDepth = g_uiBitDepth + (g_uiBitDepth-8) - min((Int)(g_uiBitDepth + (g_uiBitDepth-8)), 10);
-#else
-  m_uiAoBitDepth = g_uiBitDepth + g_uiBitIncrement - min((Int)(g_uiBitDepth + g_uiBitIncrement), 10);
-#endif
-
-#else
-#if FULL_NBIT
-  if (g_uiBitDepth>9)
-#else
-  if (g_uiBitIncrement>1)
-#endif
-  {
-    m_uiAoBitDepth = 1;
-  }
-  else
-  {
-    m_uiAoBitDepth = 0;
-  }
-#endif
-#if SAO_CLIP_OFFSET
-  const Int iOffsetBitRange8Bit = 4;
-#if SAO_ACCURATE_OFFSET
-  Int iOffsetBitDepth = g_uiBitDepth + g_uiBitIncrement - m_uiAoBitDepth;
-#else
-  Int iOffsetBitDepth = g_uiBitDepth + m_uiAoBitDepth;
-#endif
-  Int iOffsetBitRange = iOffsetBitRange8Bit + (iOffsetBitDepth - 8);
-  m_iOffsetTh = 1 << (iOffsetBitRange - 1);
-#endif
-
-  Double dCostFinal = 0;
-
-#if MTK_SAO_CHROMA
-  Double dCostFinalCb = 0;
-  Double dCostFinalCr = 0;
-  xGetQAOStats(m_psQAOPart, 0);
-  xQuadTreeDecisionFunc(m_psQAOPart, 0, dCostFinal, m_uiMaxSplitLevel, m_dLambdaLuma);
-#else
-  xGetQAOStats(m_psQAOPart, 0);
-  xQuadTreeDecisionFunc(m_psQAOPart, 0, dCostFinal, m_uiMaxSplitLevel, m_dLambdaLuma);
-#endif
-  m_bSaoFlag = dCostFinal < m_iDistOrg[0] ? 1:0;
-
-  if(m_bSaoFlag)
-  {
-#if MTK_SAO_CHROMA
-    xProcessQuadTreeAo(m_psQAOPart, 0, 0);
-
-    for (Int i=0;i<m_iNumTotalParts;i++)
-    {
-      m_dCostPartBest[i] = MAX_DOUBLE;
-      m_iTypePartBest[i] = -1;
-      m_iDistOrg[i] = 0;
-      for (Int j=0;j<MAX_NUM_SAO_TYPE;j++)
-      {
-        m_iDist[i][j] = 0;
-        m_iRate[i][j] = 0;
-        m_dCost[i][j] = 0;
-        for (Int k=0;k<MAX_NUM_QAO_CLASS;k++)
-        {
-          m_iCount [i][j][k] = 0;
-          m_iOffset[i][j][k] = 0;
-          m_iOffsetOrg[i][j][k] = 0;
-        }  
-      }
-    }
-    xGetQAOStats(m_psQAOPartCb, 1);
-    xQuadTreeDecisionFunc(m_psQAOPartCb, 0, dCostFinalCb, m_uiMaxSplitLevel, m_dLambdaChroma);
-
-    if (dCostFinalCb<0)
-    {
-      m_bSaoFlagCb = 1;
-      xProcessQuadTreeAo(m_psQAOPartCb, 0, 1);
-    }
-    else
-    {
-      m_bSaoFlagCb = 0;
-    }
-
-    for (Int i=0;i<m_iNumTotalParts;i++)
-    {
-      m_dCostPartBest[i] = MAX_DOUBLE;
-      m_iTypePartBest[i] = -1;
-      m_iDistOrg[i] = 0;
-      for (Int j=0;j<MAX_NUM_SAO_TYPE;j++)
-      {
-        m_iDist[i][j] = 0;
-        m_iRate[i][j] = 0;
-        m_dCost[i][j] = 0;
-        for (Int k=0;k<MAX_NUM_QAO_CLASS;k++)
-        {
-          m_iCount [i][j][k] = 0;
-          m_iOffset[i][j][k] = 0;
-          m_iOffsetOrg[i][j][k] = 0;
-        }  
-      }
-    }
-
-    xGetQAOStats(m_psQAOPartCr, 2);
-    xQuadTreeDecisionFunc(m_psQAOPartCr, 0, dCostFinalCr, m_uiMaxSplitLevel, m_dLambdaChroma);
-    if (dCostFinalCr<0)
-    {
-      m_bSaoFlagCr = 1;
-      xProcessQuadTreeAo(m_psQAOPartCr, 0, 2);
-    }
-    else
-    {
-      m_bSaoFlagCr = 0;
-    }
-
-#else
-    xProcessQuadTreeAo(m_psQAOPart, 0, 0);
-#endif
-  }
-
-}
-#endif
 //! \}

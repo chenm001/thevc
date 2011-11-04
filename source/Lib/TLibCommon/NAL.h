@@ -88,7 +88,11 @@ struct NALUnitEBSP : public NALUnit
    * the NALUnit header, then the rbsp_bytes including any
    * emulation_prevention_three_byte symbols.
    */
+#if TILES_DECODER
+  NALUnitEBSP(OutputNALUnit& nalu);
+#else
   NALUnitEBSP(const OutputNALUnit& nalu);
+#endif
 };
 //! \}
 //! \}

@@ -107,6 +107,10 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
   string cfg_BitstreamFile;
   string cfg_ReconFile;
   string cfg_dQPFile;
+#if TILES
+  string cfg_ColumnWidth;
+  string cfg_RowHeight;
+#endif
   po::Options opts;
   opts.addOptions()
   ("help", do_help, false, "this help text")
@@ -212,7 +216,7 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
 #endif
 
   ("ALF", m_bUseALF, true, "Adaptive Loop Filter")
-#if MTK_SAO
+#if SAO
   ("SAO", m_bUseSAO, true, "SAO")   
 #endif
 
@@ -238,6 +242,29 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
 #endif
 #if E057_INTRA_PCM && E192_SPS_PCM_FILTER_DISABLE_SYNTAX
     ("PCMFilterDisableFlag", m_bPCMFilterDisableFlag, false)
+#endif
+#if WEIGHT_PRED
+    ("weighted_pred_flag,-wpP",     m_bUseWeightPred, false, "weighted prediction flag (P-Slices)")
+    ("weighted_bipred_idc,-wpBidc", m_uiBiPredIdc,    0u,    "weighted bipred idc (B-Slices)")
+#endif
+#if TILES
+    ("TileInfoPresentFlag",         m_iColumnRowInfoPresent,         1,          "0: tiles parameters are NOT present in the PPS. 1: tiles parameters are present in the PPS")
+    ("UniformSpacingIdc",           m_iUniformSpacingIdr,            0,          "Indicates if the column and row boundaries are distributed uniformly")
+    ("TileBoundaryIndependenceIdc", m_iTileBoundaryIndependenceIdr,  1,          "Indicates if the column and row boundaries break the prediction")
+    ("NumTileColumnsMinus1",        m_iNumColumnsMinus1,             0,          "Number of columns in a picture minus 1")
+    ("ColumnWidthArray",            cfg_ColumnWidth,                 string(""), "Array containing ColumnWidth values in units of LCU")
+    ("NumTileRowsMinus1",           m_iNumRowsMinus1,                0,          "Number of rows in a picture minus 1")
+    ("RowHeightArray",              cfg_RowHeight,                   string(""), "Array containing RowHeight values in units of LCU")
+#if TILES_DECODER
+    ("TileLocationInSliceHeaderFlag", m_iTileLocationInSliceHeaderFlag, 0,       "If TileBoundaryIndependenceIdc==1, 0: Disable transmission of tile location in slice header. 1: Transmit tile locations in slice header.")
+    ("TileMarkerFlag",              m_iTileMarkerFlag,              0,       "If TileBoundaryIndependenceIdc==1, 0: Disable transmission of lightweight tile marker. 1: Transmit light weight tile marker.")
+    ("MaxTileMarkerEntryPoints",    m_iMaxTileMarkerEntryPoints,    4,       "Maximum number of uniformly-spaced tile entry points (using light weigh tile markers). Default=4. If number of tiles < MaxTileMarkerEntryPoints then all tiles have entry points.")
+#endif
+#endif
+#if OL_USE_WPP
+    ("WaveFrontSynchro",            m_iWaveFrontSynchro,             0,          "0: no synchro; 1 synchro with TR; 2 TRR etc")
+    ("WaveFrontFlush",              m_iWaveFrontFlush,               0,          "Flush and terminate CABAC coding for each LCU line")
+    ("WaveFrontSubstreams",         m_iWaveFrontSubstreams,          1,          "# coded substreams wanted; per tile if TileBoundaryIndependenceIdc is 1, otherwise per frame")
 #endif
   /* Misc. */
   ("SEIpictureDigest", m_pictureDigestEnabled, true, "Control generation of picture_digest SEI messages\n"
@@ -284,6 +311,10 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
   m_pchReconFile = cfg_ReconFile.empty() ? NULL : strdup(cfg_ReconFile.c_str());
   m_pchdQPFile = cfg_dQPFile.empty() ? NULL : strdup(cfg_dQPFile.c_str());
   
+#if TILES
+  m_pchColumnWidth = cfg_ColumnWidth.empty() ? NULL: strdup(cfg_ColumnWidth.c_str());
+  m_pchRowHeight = cfg_RowHeight.empty() ? NULL : strdup(cfg_RowHeight.c_str());
+#endif
   if (m_iRateGOPSize == -1)
   {
     /* if rateGOPSize has not been specified, the default value is GOPSize */
@@ -478,6 +509,14 @@ Void TAppEncCfg::xCheckParameter()
   xConfirmPara( m_bUseNewRefSetting && m_iGOPSize>1, "New reference frame setting was only designed for LD setting" );
 #endif
 
+#if OL_USE_WPP
+  xConfirmPara( m_iWaveFrontSynchro < 0, "WaveFrontSynchro cannot be negative" );
+  xConfirmPara( m_iWaveFrontFlush < 0, "WaveFrontFlush cannot be negative" );
+  xConfirmPara( m_iWaveFrontSubstreams <= 0, "WaveFrontSubstreams must be positive" );
+  xConfirmPara( m_iWaveFrontSubstreams > 1 && !m_iWaveFrontSynchro, "Must have WaveFrontSynchro > 0 in order to have WaveFrontSubstreams > 1" );
+  xConfirmPara( m_iWaveFrontSynchro > 0 && m_iSymbolMode == 0, "WaveFrontSynchro > 0 requires CABAC" );
+#endif
+
 #undef xConfirmPara
   if (check_failed)
   {
@@ -638,8 +677,8 @@ Void TAppEncCfg::xPrintParameter()
   }
 #endif
   printf("CIP:%d ", m_bUseConstrainedIntraPred);
-#if MTK_SAO
-  printf("SAO:%d ",    (m_bUseSAO)?(1):(0));
+#if SAO
+  printf("SAO:%d ", (m_bUseSAO)?(1):(0));
 #endif
 #if E057_INTRA_PCM
   printf("PCM:%d ", ((1<<m_uiPCMLog2MinSize) <= m_uiMaxCUWidth)? 1 : 0);
@@ -647,6 +686,53 @@ Void TAppEncCfg::xPrintParameter()
 #if REF_SETTING_FOR_LD
   printf("NewRefSetting:%d ", m_bUseNewRefSetting?1:0);
 #endif
+#if WEIGHT_PRED
+  printf("WPP:%d ", (Int)m_bUseWeightPred);
+  printf("WPB:%d ", m_uiBiPredIdc);
+#endif
+#if TILES 
+  printf("TileBoundaryIndependence:%d ", m_iTileBoundaryIndependenceIdr ); 
+#if TILES_DECODER
+  if (m_iTileBoundaryIndependenceIdr)
+  {
+    printf("TileLocationInSliceHdr:%d ", m_iTileLocationInSliceHeaderFlag);
+  }
+  else
+  {
+    if (m_iTileLocationInSliceHeaderFlag)
+    {
+      printf("\nWarning! TileLocationInSliceHeaderFlag set to 1 when TileBoundaryIndependence set to 0. The TileLocationInSliceHeaderFlag will be over-ridden and set to 0.");
+      m_iTileLocationInSliceHeaderFlag = 0;
+    }
+  }
+
+  if (m_iTileBoundaryIndependenceIdr)
+  {
+    printf("TileMarker:%d", m_iTileMarkerFlag);
+    if (m_iTileMarkerFlag)
+    {
+      printf("[%d] ", m_iMaxTileMarkerEntryPoints);
+    }
+    else
+    {
+      printf(" ");
+    }
+  }
+  else
+  {
+    if (m_iTileMarkerFlag)
+    {
+      printf("\nWarning! TileMarker set to 1 when TileBoundaryIndependence set to 0. TileMarker will be over-ridden and set to 0.");
+      m_iTileMarkerFlag = 0;
+    }
+  }
+#endif
+#endif
+#if OL_USE_WPP
+  printf(" WaveFrontSynchro:%d WaveFrontFlush:%d WaveFrontSubstreams:%d",
+          m_iWaveFrontSynchro, m_iWaveFrontFlush, m_iWaveFrontSubstreams);
+#endif
+
   printf("\n\n");
   
   fflush(stdout);

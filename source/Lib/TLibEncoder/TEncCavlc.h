@@ -218,18 +218,25 @@ public:
   Void  codePPS                 ( TComPPS* pcPPS );
   void codeSEI(const SEI&);
   Void  codeSliceHeader         ( TComSlice* pcSlice );
+#if OL_USE_WPP
+  Void  codeSliceHeaderSubstreamTable( TComSlice* pcSlice );
+#endif
   Void  codeTerminatingBit      ( UInt uilsLast );
   Void  codeSliceFinish         ();
+#if OL_FLUSH
+  Void  codeFlush               () {}
+  Void  encodeStart             () {}
+#endif
   
   Void codeMVPIdx ( TComDataCU* pcCU, UInt uiAbsPartIdx, RefPicList eRefList );
   Void codeAlfFlag       ( UInt uiCode );
   Void codeAlfUvlc       ( UInt uiCode );
   Void codeAlfSvlc       ( Int   iCode );
   Void codeAlfCtrlDepth();
-#if MTK_SAO
-  Void codeAoFlag       ( UInt uiCode );
-  Void codeAoUvlc       ( UInt uiCode );
-  Void codeAoSvlc       ( Int   iCode );
+#if SAO
+  Void codeSaoFlag       ( UInt uiCode );
+  Void codeSaoUvlc       ( UInt uiCode );
+  Void codeSaoSvlc       ( Int   iCode );
 #endif
   Void codeSkipFlag      ( TComDataCU* pcCU, UInt uiAbsPartIdx );
   Void codeMergeFlag     ( TComDataCU* pcCU, UInt uiAbsPartIdx );
@@ -283,10 +290,27 @@ public:
   
   Void codeCoeffNxN      ( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx, UInt uiWidth, UInt uiHeight, UInt uiDepth, TextType eTType );
   
-  Void estBit             (estBitsSbacStruct* pcEstBitsSbac, UInt uiCTXIdx, TextType eTType);
+  Void estBit            ( estBitsSbacStruct* pcEstBitsSbac, UInt uiCTXIdx, TextType eTType);
   
-  Bool  getAdaptFlag          ()          { return m_bAdaptFlag; }
-  Void  setAdaptFlag          ( Bool b )  { m_bAdaptFlag = b;     }
+  Bool getAdaptFlag      ()          { return m_bAdaptFlag; }
+  Void setAdaptFlag      ( Bool b )  { m_bAdaptFlag = b;     }
+#if WEIGHT_PRED
+  Void codeWeightPredTable           ( TComSlice* pcSlice );
+#endif
+#if TILES
+  Void updateContextTables           ( SliceType eSliceType, Int iQp, Bool bExecuteFinish=true ) { return;   }
+  Void updateContextTables           ( SliceType eSliceType, Int iQp  )                          { return;   }
+#if TILES_DECODER
+  Void writeTileMarker               ( UInt uiTileIdx, UInt uiBitsUsed );
+#endif
+#endif
+
+#if F747_APS
+  Void  codeAPSInitInfo(TComAPS* pcAPS);  //!< code APS flags before encoding SAO and ALF parameters
+  Void  codeFinish(Bool bEnd) { /*do nothing*/}
+#endif
+
+
 };
 
 //! \}

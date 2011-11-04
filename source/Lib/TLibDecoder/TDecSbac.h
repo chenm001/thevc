@@ -69,7 +69,23 @@ public:
   Void  init                      ( TDecBinIf* p )    { m_pcTDecBinIf = p; }
   Void  uninit                    (              )    { m_pcTDecBinIf = 0; }
   
+#if OL_USE_WPP
+  Void load                          ( TDecSbac* pScr );
+  Void loadContexts                  ( TDecSbac* pScr );
+  Void xCopyFrom           ( TDecSbac* pSrc );
+  Void xCopyContextsFrom       ( TDecSbac* pSrc );
+#endif
+#if OL_FLUSH
+  Void decodeFlush();
+#endif
+
+#if F747_APS
+  Void  resetEntropywithQPandInitIDC ( Int  iQp, Int iID);
+  Void  resetEntropy                 ( Int  iQp, Int iID      ) { resetEntropywithQPandInitIDC(iQp, iID);                                      }
+  Void  resetEntropy                 ( TComSlice* pcSlice     ) { resetEntropywithQPandInitIDC(pcSlice->getSliceQp(), pcSlice->getSliceType());}
+#else
   Void  resetEntropy              ( TComSlice* pcSlice     );
+#endif
   Void  setBitstream              ( TComInputBitstream* p  ) { m_pcBitstream = p; m_pcTDecBinIf->init( p ); }
   
   Void  setAlfCtrl                ( Bool bAlfCtrl          ) { m_bAlfCtrl = bAlfCtrl;                   }
@@ -86,10 +102,10 @@ public:
   Void  parseAlfUvlc              ( UInt& ruiVal           );
   Void  parseAlfSvlc              ( Int&  riVal            );
   Void  parseAlfCtrlDepth         ( UInt& ruiAlfCtrlDepth  );
-#if MTK_SAO
-  Void  parseAoFlag              ( UInt& ruiVal           );
-  Void  parseAoUvlc              ( UInt& ruiVal           );
-  Void  parseAoSvlc              ( Int&  riVal            );
+#if SAO
+  Void  parseSaoFlag              ( UInt& ruiVal           );
+  Void  parseSaoUvlc              ( UInt& ruiVal           );
+  Void  parseSaoSvlc              ( Int&  riVal            );
 #endif
 private:
   Void  xReadUnarySymbol    ( UInt& ruiSymbol, ContextModel* pcSCModel, Int iOffset );
@@ -165,6 +181,17 @@ public:
   __inline Void parseLastSignificantXY( UInt& uiPosLastX, UInt& uiPosLastY, const UInt uiWidth, const TextType eTType, const UInt uiCTXIdx, const UInt uiScanIdx );
   Void parseCoeffNxN      ( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx, UInt uiWidth, UInt uiHeight, UInt uiDepth, TextType eTType );
   
+#if TILES
+#if TILES_DECODER
+  Void readTileMarker   ( UInt& uiTileIdx, UInt uiBitsUsed );
+#endif
+  Void updateContextTables( SliceType eSliceType, Int iQp );
+#endif
+
+#if F747_APS
+  Void parseAPSInitInfo(TComAPS& cAPS) {printf("Not supported in parseAPSInitInfo()\n");assert(0);exit(1);}
+#endif
+
 private:
   UInt m_uiLastDQpNonZero;
   UInt m_uiLastQp;
@@ -206,10 +233,10 @@ private:
   ContextModel3DBuffer m_cCUXPosiSCModel;
   ContextModel3DBuffer m_cCUYPosiSCModel;
 #endif
-#if MTK_SAO
-  ContextModel3DBuffer m_cAOFlagSCModel;
-  ContextModel3DBuffer m_cAOUvlcSCModel;
-  ContextModel3DBuffer m_cAOSvlcSCModel;
+#if SAO
+  ContextModel3DBuffer m_cSaoFlagSCModel;
+  ContextModel3DBuffer m_cSaoUvlcSCModel;
+  ContextModel3DBuffer m_cSaoSvlcSCModel;
 #endif
 
 };

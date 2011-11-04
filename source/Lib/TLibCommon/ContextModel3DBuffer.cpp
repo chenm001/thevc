@@ -74,4 +74,6 @@ Void ContextModel3DBuffer::initBuffer( SliceType eSliceType, Int iQp, Short* psC
     m_contextModel[ n ].init( iQp, psCtxModel + 2 * n );
   }
 }
+
+
 //! \}

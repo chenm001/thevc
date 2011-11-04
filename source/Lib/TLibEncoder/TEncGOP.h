@@ -48,6 +48,7 @@
 #include "TLibCommon/TComLoopFilter.h"
 #include "TLibCommon/AccessUnit.h"
 #include "TEncAdaptiveLoopFilter.h"
+#include "TEncSampleAdaptiveOffset.h"
 #include "TEncSlice.h"
 #include "TEncEntropy.h"
 #include "TEncCavlc.h"
@@ -94,7 +95,7 @@ private:
   // Adaptive Loop filter
   TEncAdaptiveLoopFilter* m_pcAdaptiveLoopFilter;
   //--Adaptive Loop filter
-#if MTK_SAO
+#if SAO
   TEncSampleAdaptiveOffset*  m_pcSAO;
 #endif
   TComBitCounter*         m_pcBitCounter;
@@ -127,6 +128,10 @@ public:
   
   Void  init        ( TEncTop* pcTEncTop );
   Void  compressGOP ( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rcListPic, TComList<TComPicYuv*>& rcListPicYuvRec, std::list<AccessUnit>& accessUnitsInGOP );
+#if TILES_DECODER
+  Void xWriteTileLocationToSliceHeader (OutputNALUnit& rNalu, TComOutputBitstream*& rpcBitstreamRedirect, TComSlice*& rpcSlice);
+#endif
+
   
   Int   getGOPSize()          { return  m_iGopSize;  }
   Int   getRateGOPSize()      { return  m_iRateGopSize;  }
@@ -139,7 +144,16 @@ public:
   Void  preLoopFilterPicAll  ( TComPic* pcPic, UInt64& ruiDist, UInt64& ruiBits );
   
   TEncSlice*  getSliceEncoder()   { return m_pcSliceEncoder; }
+
+#if F747_APS
+  Void freeAPS     (TComAPS* pAPS, TComSPS* pSPS);
+  Void allocAPS    (TComAPS* pAPS, TComSPS* pSPS);
+protected:
+  Void encodeAPS   (TComAPS* pcAPS, TComOutputBitstream& APSbs, TComSlice* pcSlice);            //!< encode APS syntax elements
+  Void assignNewAPS(TComAPS& cAPS, Int apsID, std::vector<TComAPS>& vAPS, TComSlice* pcSlice);  //!< Assign APS object into APS container
+#endif
   
+
 protected:
   Void  xInitGOP          ( Int iPOC, Int iNumPicRcvd, TComList<TComPic*>& rcListPic, TComList<TComPicYuv*>& rcListPicYuvRecOut );
   Void  xGetBuffer        ( TComList<TComPic*>& rcListPic, TComList<TComPicYuv*>& rcListPicYuvRecOut, Int iNumPicRcvd, Int iTimeOffset, TComPic*& rpcPic, TComPicYuv*& rpcPicYuvRecOut, UInt uiPOCCurr );
@@ -162,7 +176,11 @@ protected:
 enum PROCESSING_STATE
 {
   EXECUTE_INLOOPFILTER,
+#if F747_APS
+  ENCODE_APS,
+#else
   ENCODE_PPS,
+#endif
   ENCODE_SLICE
 };
 #endif

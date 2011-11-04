@@ -60,6 +60,10 @@ TDecGop::TDecGop()
 {
   m_iGopSize = 0;
   m_dDecTime = 0;
+#if OL_USE_WPP
+  m_pcSbacDecoders = NULL;
+  m_pcBinCABACs = NULL;
+#endif
 }
 
 TDecGop::~TDecGop()
@@ -85,7 +89,7 @@ Void TDecGop::init( TDecEntropy*            pcEntropyDecoder,
                    TDecSlice*              pcSliceDecoder, 
                    TComLoopFilter*         pcLoopFilter, 
                    TComAdaptiveLoopFilter* pcAdaptiveLoopFilter 
-#if MTK_SAO
+#if SAO
                    ,TComSampleAdaptiveOffset* pcSAO
 #endif                   
                    )
@@ -97,7 +101,7 @@ Void TDecGop::init( TDecEntropy*            pcEntropyDecoder,
   m_pcSliceDecoder        = pcSliceDecoder;
   m_pcLoopFilter          = pcLoopFilter;
   m_pcAdaptiveLoopFilter  = pcAdaptiveLoopFilter;
-#if MTK_SAO
+#if SAO
   m_pcSAO  = pcSAO;
 #endif
 
@@ -107,6 +111,8 @@ Void TDecGop::init( TDecEntropy*            pcEntropyDecoder,
 // ====================================================================================================================
 // Private member functions
 // ====================================================================================================================
+
+#if !F747_APS
 #if E045_SLICE_COMMON_INFO_SHARING
 Void TDecGop::copySharedAlfParamFromPPS(ALFParam* pAlfDst, ALFParam* pAlfSrc)
 {
@@ -161,7 +167,7 @@ Void TDecGop::copySharedAlfParamFromPPS(ALFParam* pAlfDst, ALFParam* pAlfSrc)
   }
 }
 #endif
-
+#endif
 
 // ====================================================================================================================
 // Public member functions
@@ -173,6 +179,11 @@ Void TDecGop::decompressGop(TComInputBitstream* pcBitstream, TComPic*& rpcPic, B
 #endif
 {
   TComSlice*  pcSlice = rpcPic->getSlice(rpcPic->getCurrSliceIdx());
+#if OL_USE_WPP
+  // Table of extracted substreams.
+  // These must be deallocated AND their internal fifos, too.
+  TComInputBitstream **ppcSubstreams = NULL;
+#endif
 
   //-- For time output for each slice
   long iBeforeTime = clock();
@@ -182,6 +193,9 @@ Void TDecGop::decompressGop(TComInputBitstream* pcBitstream, TComPic*& rpcPic, B
   static Bool  bFirst = true;
   static UInt  uiILSliceCount;
   static UInt* puiILSliceStartLCU;
+#endif
+#if F747_APS
+  static std::vector<AlfCUCtrlInfo> vAlfCUCtrlSlices;
 #endif
 
   if (!bExecuteDeblockAndAlf)
@@ -213,15 +227,120 @@ Void TDecGop::decompressGop(TComInputBitstream* pcBitstream, TComPic*& rpcPic, B
       m_pcEntropyDecoder->setEntropyDecoder (m_pcCavlcDecoder);
     }
     
+#if OL_USE_WPP
+    UInt uiNumSubstreams = pcSlice->getPPS()->getNumSubstreams();
+#endif
+
+#if OL_USE_WPP
+    if (iSymbolMode)
+    {
+      //init each couple {EntropyDecoder, Substream}
+      UInt *puiSubstreamSizes = pcSlice->getSubstreamSizes();
+      ppcSubstreams    = new TComInputBitstream*[uiNumSubstreams];
+      m_pcSbacDecoders = new TDecSbac[uiNumSubstreams];
+      m_pcBinCABACs    = new TDecBinCABAC[uiNumSubstreams];
+#if TILES_DECODER
+      UInt uiBitsRead = pcBitstream->getByteLocation()<<3;
+#endif
+      for ( UInt ui = 0 ; ui < uiNumSubstreams ; ui++ )
+      {
+        m_pcSbacDecoders[ui].init(&m_pcBinCABACs[ui]);
+#if TILES_DECODER
+        UInt uiSubstreamSizeBits = (ui+1 < uiNumSubstreams ? puiSubstreamSizes[ui] : pcBitstream->getNumBitsLeft());
+#endif
+        ppcSubstreams[ui] = pcBitstream->extractSubstream(ui+1 < uiNumSubstreams ? puiSubstreamSizes[ui] : pcBitstream->getNumBitsLeft());
+#if TILES_DECODER
+        // update location information from where tile markers were extracted
+        if (pcSlice->getSPS()->getTileBoundaryIndependenceIdr())
+        {
+          UInt uiDestIdx       = 0;
+          for (UInt uiSrcIdx = 0; uiSrcIdx<pcBitstream->getTileMarkerLocationCount(); uiSrcIdx++)
+          {
+            UInt uiLocation = pcBitstream->getTileMarkerLocation(uiSrcIdx);
+            if ((uiBitsRead>>3)<=uiLocation  &&  uiLocation<((uiBitsRead+uiSubstreamSizeBits)>>3))
+            {
+              ppcSubstreams[ui]->setTileMarkerLocation( uiDestIdx, uiLocation - (uiBitsRead>>3) );
+              ppcSubstreams[ui]->setTileMarkerLocationCount( uiDestIdx+1 );
+              uiDestIdx++;
+            }
+          }
+          ppcSubstreams[ui]->setTileMarkerLocationCount( uiDestIdx );
+          uiBitsRead += uiSubstreamSizeBits;
+        }
+#endif
+      }
+
+      for ( UInt ui = 0 ; ui+1 < uiNumSubstreams; ui++ )
+      {
+        m_pcEntropyDecoder->setEntropyDecoder ( &m_pcSbacDecoders[uiNumSubstreams - 1 - ui] );
+        m_pcEntropyDecoder->setBitstream      (  ppcSubstreams   [uiNumSubstreams - 1 - ui] );
+        m_pcEntropyDecoder->resetEntropy      (pcSlice);
+      }
+
+      m_pcEntropyDecoder->setEntropyDecoder ( m_pcSbacDecoder  );
+      m_pcEntropyDecoder->setBitstream      ( ppcSubstreams[0] );
+      m_pcEntropyDecoder->resetEntropy      (pcSlice);
+    }
+    else
+    {
+      m_pcEntropyDecoder->setBitstream      (pcBitstream);
+      m_pcEntropyDecoder->resetEntropy      (pcSlice);
+    }
+#else
     m_pcEntropyDecoder->setBitstream      (pcBitstream);
     m_pcEntropyDecoder->resetEntropy      (pcSlice);
-    
+#endif
+
+#if F747_APS
+    if(uiSliceStartCuAddr == uiStartCUAddr)
+    {
+      if(pcSlice->getSPS()->getUseALF())
+      {
+        AlfCUCtrlInfo cAlfCUCtrlOneSlice;
+        if(pcSlice->getAPS()->getAlfEnabled())
+        {
+          m_pcEntropyDecoder->decodeAlfCtrlParam( cAlfCUCtrlOneSlice, m_pcAdaptiveLoopFilter->getNumCUsInPic());
+#if F747_CABAC_FLUSH_SLICE_HEADER                      
+          if ( iSymbolMode )
+          {            
+#if OL_USE_WPP
+            Int numBitsForByteAlignment = ppcSubstreams[0]->getNumBitsUntilByteAligned();
+#else            
+            Int numBitsForByteAlignment = pcBitstream->getNumBitsUntilByteAligned();
+#endif
+            if ( numBitsForByteAlignment > 0 )
+            {
+              UInt bitsForByteAlignment;
+#if OL_USE_WPP
+              ppcSubstreams[0]->read( numBitsForByteAlignment, bitsForByteAlignment );
+#else                
+              pcBitstream->read( numBitsForByteAlignment, bitsForByteAlignment );
+#endif
+              assert( bitsForByteAlignment == ( ( 1 << numBitsForByteAlignment ) - 1 ) );
+            }
+            
+            m_pcSbacDecoder->init( (TDecBinIf*)m_pcBinCABAC );
+            m_pcEntropyDecoder->setEntropyDecoder (m_pcSbacDecoder);
+#if OL_USE_WPP
+            m_pcEntropyDecoder->setBitstream(ppcSubstreams[0]);
+#else            
+            m_pcEntropyDecoder->setBitstream(pcBitstream);
+#endif            
+            m_pcEntropyDecoder->resetEntropy(pcSlice);
+          }
+#endif
+          vAlfCUCtrlSlices.push_back(cAlfCUCtrlOneSlice);
+        }
+      }
+    }
+
+#else
     if (uiStartCUAddr==0)  // decode SAO params only from first slice header
     {
-#if MTK_SAO
+#if SAO
       if( rpcPic->getSlice(0)->getSPS()->getUseSAO() )
       {  
-        m_pcSAO->InitSao(&m_cSaoParam);
+        m_pcSAO->allocSaoParam(&m_cSaoParam);
         m_pcEntropyDecoder->decodeSaoParam(&m_cSaoParam);
       }
 #endif
@@ -259,8 +378,32 @@ Void TDecGop::decompressGop(TComInputBitstream* pcBitstream, TComPic*& rpcPic, B
     }
 #endif
 
-    m_pcSliceDecoder->decompressSlice(pcBitstream, rpcPic);
+#endif
+
+#if OL_USE_WPP
+    if (iSymbolMode)
+      m_pcSbacDecoders[0].load(m_pcSbacDecoder);
+    m_pcSliceDecoder->decompressSlice( pcBitstream, ppcSubstreams, rpcPic, m_pcSbacDecoder, m_pcSbacDecoders);
+    if (iSymbolMode)
+      m_pcEntropyDecoder->setBitstream(  ppcSubstreams[uiNumSubstreams-1] );
+#else
+    m_pcSliceDecoder->decompressSlice(pcBitstream, rpcPic, m_pcSbacDecoder);
+#endif
     
+#if OL_USE_WPP
+    if (iSymbolMode && pcSlice->getPPS()->getEntropyCodingSynchro())
+    {
+      // deallocate all created substreams, including internal buffers.
+      for (UInt ui = 0; ui < uiNumSubstreams; ui++)
+      {
+        ppcSubstreams[ui]->deleteFifo();
+        delete ppcSubstreams[ui];
+      }
+      delete[] ppcSubstreams;
+      delete[] m_pcSbacDecoders; m_pcSbacDecoders = NULL;
+      delete[] m_pcBinCABACs; m_pcBinCABACs = NULL;
+    }
+#endif
     m_dDecTime += (double)(clock()-iBeforeTime) / CLOCKS_PER_SEC;
   }
   else
@@ -268,26 +411,32 @@ Void TDecGop::decompressGop(TComInputBitstream* pcBitstream, TComPic*& rpcPic, B
     // deblocking filter
     m_pcLoopFilter->setCfg(pcSlice->getLoopFilterDisable(), 0, 0);
     m_pcLoopFilter->loopFilterPic( rpcPic );
-#if MTK_SAO
+#if SAO
     {
 
-#if MTK_SAO && MTK_NONCROSS_INLOOP_FILTER && FINE_GRANULARITY_SLICES 
+#if SAO && MTK_NONCROSS_INLOOP_FILTER && FINE_GRANULARITY_SLICES 
       if( pcSlice->getSPS()->getUseSAO() )
       {
         m_pcSAO->setNumSlicesInPic( uiILSliceCount );
         m_pcSAO->setSliceGranularityDepth(pcSlice->getPPS()->getSliceGranularity());
+#if F747_APS
+        if(pcSlice->getAPS()->getSaoEnabled())
+        {
+#endif
         if(uiILSliceCount == 1)
         {
-          m_pcSAO->setUseNonCrossAlf(false);
+          m_pcSAO->setUseNIF(false);
         }
         else
         {
+#if !F747_APS
           if(m_cSaoParam.bSaoFlag)
           {
+#endif
             m_pcSAO->setPic(rpcPic);
             puiILSliceStartLCU[uiILSliceCount] = rpcPic->getNumCUsInFrame()* rpcPic->getNumPartInCU();
-            m_pcSAO->setUseNonCrossAlf(!pcSlice->getSPS()->getLFCrossSliceBoundaryFlag());
-            if (m_pcSAO->getUseNonCrossAlf())
+            m_pcSAO->setUseNIF(!pcSlice->getSPS()->getLFCrossSliceBoundaryFlag());
+            if (m_pcSAO->getUseNIF())
             {
               m_pcSAO->InitIsFineSliceCu();
 
@@ -298,19 +447,39 @@ Void TDecGop::decompressGop(TComInputBitstream* pcBitstream, TComPic*& rpcPic, B
                 m_pcSAO->createSliceMap(i, uiStartAddr, uiEndAddr);
               }
             }
+#if !F747_APS
           }
+#endif
         }
+#if !F747_APS
       }
 #endif
+
+#endif
+
+#if !F747_APS
       if( rpcPic->getSlice(0)->getSPS()->getUseSAO())
       {
+#endif
 
+#if F747_APS
+        m_pcSAO->SAOProcess(rpcPic, pcSlice->getAPS()->getSaoParam());  
+#else
         m_pcSAO->SAOProcess(rpcPic, &m_cSaoParam);  
+#endif
 
 #if E057_INTRA_PCM && E192_SPS_PCM_FILTER_DISABLE_SYNTAX
         m_pcAdaptiveLoopFilter->PCMLFDisableProcess(rpcPic);
 #endif
+#if !F747_APS
+        m_pcSAO->freeSaoParam(&m_cSaoParam);
       }
+#endif
+#if F747_APS
+      }
+    }
+#endif
+
     }
 #endif
 
@@ -322,6 +491,10 @@ Void TDecGop::decompressGop(TComInputBitstream* pcBitstream, TComPic*& rpcPic, B
       m_pcAdaptiveLoopFilter->setNumSlicesInPic( uiILSliceCount );
 #if FINE_GRANULARITY_SLICES
       m_pcAdaptiveLoopFilter->setSliceGranularityDepth(pcSlice->getPPS()->getSliceGranularity());
+#endif
+#if F747_APS
+      if(pcSlice->getAPS()->getAlfEnabled())
+      {
 #endif
       if(uiILSliceCount == 1)
       {
@@ -351,7 +524,12 @@ Void TDecGop::decompressGop(TComInputBitstream* pcBitstream, TComPic*& rpcPic, B
         }
       }
 #endif
+
+#if F747_APS
+      m_pcAdaptiveLoopFilter->ALFProcess(rpcPic, pcSlice->getAPS()->getAlfParam(), vAlfCUCtrlSlices);
+#else
       m_pcAdaptiveLoopFilter->ALFProcess(rpcPic, &m_cAlfParam);
+#endif
 
 #if E057_INTRA_PCM && E192_SPS_PCM_FILTER_DISABLE_SYNTAX
       m_pcAdaptiveLoopFilter->PCMLFDisableProcess(rpcPic);
@@ -363,7 +541,13 @@ Void TDecGop::decompressGop(TComInputBitstream* pcBitstream, TComPic*& rpcPic, B
         m_pcAdaptiveLoopFilter->destroySlice();
       }
 #endif
+#if !F747_APS
       m_pcAdaptiveLoopFilter->freeALFParam(&m_cAlfParam);
+#endif
+#if F747_APS
+      }
+#endif
+
     }
     
 #if AMVP_BUFFERCOMPRESS
@@ -425,6 +609,9 @@ Void TDecGop::decompressGop(TComInputBitstream* pcBitstream, TComPic*& rpcPic, B
 
 #if MTK_NONCROSS_INLOOP_FILTER
     uiILSliceCount = 0;
+#endif
+#if F747_APS
+    vAlfCUCtrlSlices.clear();
 #endif
   }
 }

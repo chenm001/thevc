@@ -38,7 +38,7 @@
 #ifndef __TCOMSLICE__
 #define __TCOMSLICE__
 
-
+#include <cstring>
 #include "CommonDef.h"
 #include "TComRom.h"
 #include "TComList.h"
@@ -47,6 +47,16 @@
 //! \{
 
 class TComPic;
+
+
+// ====================================================================================================================
+// Constants
+// ====================================================================================================================
+
+#if F747_APS
+/// max number of supported APS in software
+#define MAX_NUM_SUPPORTED_APS 1
+#endif
 
 // ====================================================================================================================
 // Class definition
@@ -117,10 +127,19 @@ private:
 #if MTK_NONCROSS_INLOOP_FILTER
   Bool        m_bLFCrossSliceBoundaryFlag;
 #endif
-#if MTK_SAO
+#if SAO
   Bool        m_bUseSAO; 
 #endif
 
+#if TILES
+  Int      m_iUniformSpacingIdr;
+  Int      m_iTileBoundaryIndependenceIdr;
+  Int      m_iNumColumnsMinus1;
+  UInt*    m_puiColumnWidth;
+  Int      m_iNumRowsMinus1;
+  UInt*    m_puiRowHeight;
+#endif
+  
   Bool        m_bTemporalIdNestingFlag; // temporal_id_nesting_flag
 
 #if REF_SETTING_FOR_LD
@@ -226,7 +245,7 @@ public:
   Bool      getLFCrossSliceBoundaryFlag     ()                    { return m_bLFCrossSliceBoundaryFlag;   } 
 #endif
 
-#if MTK_SAO
+#if SAO
   Void setUseSAO                  (Bool bVal)  {m_bUseSAO = bVal;}
   Bool getUseSAO                  ()           {return m_bUseSAO;}
 #endif
@@ -253,6 +272,42 @@ public:
   Void      setMaxNumRefFrames     ( UInt u ) { m_uiMaxNumRefFrames = u;    }
   UInt      getMaxNumRefFrames     ()         { return m_uiMaxNumRefFrames; }
 #endif
+#if TILES
+  Void     setUniformSpacingIdr             ( Int i )           { m_iUniformSpacingIdr = i; }
+  Int      getUniformSpacingIdr             ()                  { return m_iUniformSpacingIdr; }
+  Void     setTileBoundaryIndependenceIdr   ( Int i )           { m_iTileBoundaryIndependenceIdr = i; }
+  Int      getTileBoundaryIndependenceIdr   ()                  { return m_iTileBoundaryIndependenceIdr; }
+  Void     setNumColumnsMinus1              ( Int i )           { m_iNumColumnsMinus1 = i; }
+  Int      getNumColumnsMinus1              ()                  { return m_iNumColumnsMinus1; }
+  Void     setColumnWidth ( UInt* columnWidth )
+  {
+    if( m_iUniformSpacingIdr == 0 && m_iNumColumnsMinus1 > 0 )
+    {
+      m_puiColumnWidth = new UInt[ m_iNumColumnsMinus1 ];
+
+      for(Int i=0; i<m_iNumColumnsMinus1; i++)
+      {
+        m_puiColumnWidth[i] = columnWidth[i];
+     }
+    }
+  }
+  UInt     getColumnWidth  (UInt columnIdx) { return *( m_puiColumnWidth + columnIdx ); }
+  Void     setNumRowsMinus1( Int i )        { m_iNumRowsMinus1 = i; }
+  Int      getNumRowsMinus1()               { return m_iNumRowsMinus1; }
+  Void     setRowHeight    ( UInt* rowHeight )
+  {
+    if( m_iUniformSpacingIdr == 0 && m_iNumRowsMinus1 > 0 )
+    {
+      m_puiRowHeight = new UInt[ m_iNumRowsMinus1 ];
+
+      for(Int i=0; i<m_iNumRowsMinus1; i++)
+      {
+        m_puiRowHeight[i] = rowHeight[i];
+      }
+    }
+  }
+  UInt     getRowHeight           (UInt rowIdx)    { return *( m_puiRowHeight + rowIdx ); }
+#endif
 };
 
 /// PPS class
@@ -277,9 +332,33 @@ private:
   Int         m_iSliceGranularity;
 #endif
 
+#if !F747_APS
 #if E045_SLICE_COMMON_INFO_SHARING
   Bool        m_bSharedPPSInfoEnabled;  //!< Shared info. in PPS is enabled/disabled
   ALFParam    m_cSharedAlfParam;        //!< Shared ALF parameters in PPS 
+#endif
+#endif
+
+#if WEIGHT_PRED
+  Bool        m_bUseWeightPred;           // Use of Weighting Prediction (P_SLICE)
+  UInt        m_uiBiPredIdc;              // Use of Weighting Bi-Prediction (B_SLICE)
+#endif
+
+#if TILES
+  Int      m_iColumnRowInfoPresent;
+  Int      m_iUniformSpacingIdr;
+  Int      m_iTileBoundaryIndependenceIdr;
+  Int      m_iNumColumnsMinus1;
+  UInt*    m_puiColumnWidth;
+  Int      m_iNumRowsMinus1;
+  UInt*    m_puiRowHeight;
+#endif
+  
+#if OL_USE_WPP
+  Int      m_iEntropyCodingMode; // !!! in PPS now, but also remains in slice header!
+  Int      m_iEntropyCodingSynchro;
+  Bool     m_bCabacIstateReset;
+  Int      m_iNumSubstreams;
 #endif
 
 public:
@@ -313,6 +392,7 @@ public:
   UInt      getMinCuDQPSize     ()         { return m_uiMinCuDQPSize; }
 #endif
 
+#if !F747_APS
 #if E045_SLICE_COMMON_INFO_SHARING
   ///  set shared PPS info enabled/disabled
   Void      setSharedPPSInfoEnabled(Bool b) {m_bSharedPPSInfoEnabled = b;   }
@@ -321,9 +401,130 @@ public:
   /// get shared ALF parameters in PPS
   ALFParam* getSharedAlfParam()             {return &m_cSharedAlfParam;     }
 #endif
+#endif
 
+#if WEIGHT_PRED
+  Bool getUseWP                     ()          { return m_bUseWeightPred;  }
+  UInt getWPBiPredIdc               ()          { return m_uiBiPredIdc;     }
 
+  Void setUseWP                     ( Bool b )  { m_bUseWeightPred = b;     }
+  Void setWPBiPredIdc               ( UInt u )  { m_uiBiPredIdc = u;        }
+#endif
+
+#if TILES
+  Void     setColumnRowInfoPresent          ( Int i )           { m_iColumnRowInfoPresent = i; }
+  Int      getColumnRowInfoPresent          ()                  { return m_iColumnRowInfoPresent; }
+  Void     setUniformSpacingIdr             ( Int i )           { m_iUniformSpacingIdr = i; }
+  Int      getUniformSpacingIdr             ()                  { return m_iUniformSpacingIdr; }
+  Void     setTileBoundaryIndependenceIdr   ( Int i )           { m_iTileBoundaryIndependenceIdr = i; }
+  Int      getTileBoundaryIndependenceIdr   ()                  { return m_iTileBoundaryIndependenceIdr; }
+  Void     setNumColumnsMinus1              ( Int i )           { m_iNumColumnsMinus1 = i; }
+  Int      getNumColumnsMinus1              ()                  { return m_iNumColumnsMinus1; }
+  Void     setColumnWidth ( UInt* columnWidth )
+  {
+    if( m_iUniformSpacingIdr == 0 && m_iNumColumnsMinus1 > 0 )
+    {
+      m_puiColumnWidth = new UInt[ m_iNumColumnsMinus1 ];
+
+      for(Int i=0; i<m_iNumColumnsMinus1; i++)
+      {
+        m_puiColumnWidth[i] = columnWidth[i];
+      }
+    }
+  }
+  UInt     getColumnWidth  (UInt columnIdx) { return *( m_puiColumnWidth + columnIdx ); }
+  Void     setNumRowsMinus1( Int i )        { m_iNumRowsMinus1 = i; }
+  Int      getNumRowsMinus1()               { return m_iNumRowsMinus1; }
+  Void     setRowHeight    ( UInt* rowHeight )
+  {
+    if( m_iUniformSpacingIdr == 0 && m_iNumRowsMinus1 > 0 )
+    {
+      m_puiRowHeight = new UInt[ m_iNumRowsMinus1 ];
+
+      for(Int i=0; i<m_iNumRowsMinus1; i++)
+      {
+        m_puiRowHeight[i] = rowHeight[i];
+      }
+    }
+  }
+  UInt     getRowHeight           (UInt rowIdx)    { return *( m_puiRowHeight + rowIdx ); }
+#endif
+#if OL_USE_WPP
+  Void     setEntropyCodingMode(Int iEntropyCodingMode)       { m_iEntropyCodingMode = iEntropyCodingMode; }
+  Int      getEntropyCodingMode()                             { return m_iEntropyCodingMode; }
+  Void     setEntropyCodingSynchro(Int iEntropyCodingSynchro) { m_iEntropyCodingSynchro = iEntropyCodingSynchro; }
+  Int      getEntropyCodingSynchro()                          { return m_iEntropyCodingSynchro; }
+  Void     setCabacIstateReset(Bool bCabacIstateReset)        { m_bCabacIstateReset = bCabacIstateReset; }
+  Bool     getCabacIstateReset()                              { return m_bCabacIstateReset; }
+  Void     setNumSubstreams(Int iNumSubstreams)               { m_iNumSubstreams = iNumSubstreams; }
+  Int      getNumSubstreams()                                 { return m_iNumSubstreams; }
+#endif
 };
+
+#if F747_APS
+/// APS class
+class TComAPS
+{
+public:
+  TComAPS();
+  virtual ~TComAPS();
+
+  Void      setAPSID      (Int iID)   {m_apsID = iID;            }  //!< set APS ID 
+  Int       getAPSID      ()          {return m_apsID;           }  //!< get APS ID
+  Void      setSaoEnabled (Bool bVal) {m_bSaoEnabled = bVal;     }  //!< set SAO enabled/disabled in APS
+  Bool      getSaoEnabled ()          {return m_bSaoEnabled;     }  //!< get SAO enabled/disabled in APS
+  Void      setAlfEnabled (Bool bVal) {m_bAlfEnabled = bVal;     }  //!< set ALF enabled/disabled in APS
+  Bool      getAlfEnabled ()          {return m_bAlfEnabled;     }  //!< get ALF enabled/disabled in APS
+
+  ALFParam* getAlfParam   ()          {return m_pAlfParam;       }  //!< get ALF parameters in APS
+  SAOParam* getSaoParam   ()          {return m_pSaoParam;       }  //!< get SAO parameters in APS
+
+  Void      createSaoParam();   //!< create SAO parameter object
+  Void      destroySaoParam();  //!< destroy SAO parameter object
+
+  Void      createAlfParam();   //!< create ALF parameter object
+  Void      destroyAlfParam();  //!< destroy ALF parameter object
+  Void      setCABACForAPS(Bool bVal) {m_bCABACForAPS = bVal;    }  //!< set CABAC enabled/disabled in APS
+  Bool      getCABACForAPS()          {return m_bCABACForAPS;    }  //!< get CABAC enabled/disabled in APS
+  Void      setCABACinitIDC(Int iVal) {m_CABACinitIDC = iVal;    }  //!< set CABAC initial IDC number for APS coding
+  Int       getCABACinitIDC()         {return m_CABACinitIDC;    }  //!< get CABAC initial IDC number for APS coding
+  Void      setCABACinitQP(Int iVal)  {m_CABACinitQP = iVal;     }  //!< set CABAC initial QP value for APS coding
+  Int       getCABACinitQP()          {return m_CABACinitQP;     }  //!< get CABAC initial QP value for APS coding
+
+private:
+  Int         m_apsID;        //!< APS ID
+  Bool        m_bSaoEnabled;  //!< SAO enabled/disabled in APS (true for enabled)
+  Bool        m_bAlfEnabled;  //!< ALF enabled/disabled in APS (true for enabled)
+  SAOParam*   m_pSaoParam;    //!< SAO parameter object pointer 
+  ALFParam*   m_pAlfParam;    //!< ALF parameter object pointer
+  Bool        m_bCABACForAPS; //!< CABAC coding enabled/disabled for APS (true for enabling CABAC)
+  Int         m_CABACinitIDC; //!< CABAC initial IDC number for APS coding
+  Int         m_CABACinitQP;  //!< CABAC initial QP value for APS coding
+
+public:
+  TComAPS& operator= (const TComAPS& src);  //!< "=" operator for APS object
+};
+#endif
+
+
+#if WEIGHT_PRED
+typedef struct {
+  // Explicit weighted prediction parameters parsed in slice header,
+  // or Implicit weighted prediction parameters (8 bits depth values).
+  Bool        bPresentFlag;
+  UInt        uiLog2WeightDenom;
+  Int         iWeight;
+  Int         iOffset;
+
+  // Weighted prediction scaling values built from above parameters (bitdepth scaled):
+  Int         w, o, offset, shift, round;
+} wpScalingParam;
+
+typedef struct {
+  Int64 iAC;
+  Int64 iDC;
+} wpACDCParam;
+#endif
 
 /// slice header class
 class TComSlice
@@ -331,6 +532,9 @@ class TComSlice
   
 private:
   //  Bitstream writing
+#if F747_APS
+  Int         m_iAPSId; //!< APS ID in slice header
+#endif
   Int         m_iPPSId;               ///< picture parameter set ID
   Int         m_iPOC;
   NalUnitType m_eNalUnitType;         ///< Nal unit type for the slice
@@ -368,7 +572,10 @@ private:
   TComSPS*    m_pcSPS;
   TComPPS*    m_pcPPS;
   TComPic*    m_pcPic;
-  
+#if F747_APS
+  TComAPS*    m_pcAPS;  //!< pointer to APS parameter object
+#endif
+
   UInt        m_uiColDir;  // direction to get colocated CUs
   
 #if ALF_CHROMA_LAMBDA || SAO_CHROMA_LAMBDA
@@ -402,7 +609,23 @@ private:
   UInt        m_uiEntropySliceCounter;
   Bool        m_bFinalized;
 #endif
-  
+
+#if WEIGHT_PRED
+  wpScalingParam  m_weightPredTable[2][MAX_NUM_REF][3]; // [REF_PIC_LIST_0 or REF_PIC_LIST_1][refIdx][0:Y, 1:U, 2:V]
+  wpACDCParam    m_weightACDCParam[3];                 // [0:Y, 1:U, 2:V]
+#endif
+
+#if TILES_DECODER
+  UInt        *m_uiTileByteLocation;
+  UInt        m_uiTileCount;
+  Int         m_iTileMarkerFlag;
+  UInt        m_uiTileOffstForMultES;
+#endif
+
+#if OL_USE_WPP
+  UInt*       m_puiSubstreamSizes;
+#endif
+
 public:
   TComSlice();
   virtual ~TComSlice();
@@ -417,6 +640,12 @@ public:
 
   Void      setPPSId        ( Int PPSId )         { m_iPPSId = PPSId; }
   Int       getPPSId        () { return m_iPPSId; }
+#if F747_APS
+  Void      setAPS          ( TComAPS* pcAPS ) { m_pcAPS = pcAPS; } //!< set APS pointer
+  TComAPS*  getAPS          ()                 { return m_pcAPS;  } //!< get APS pointer
+  Void      setAPSId        ( Int Id)          { m_iAPSId =Id;    } //!< set APS ID
+  Int       getAPSId        ()                 { return m_iAPSId; } //!< get APS ID
+#endif
   
   SliceType getSliceType    ()                          { return  m_eSliceType;         }
   Int       getPOC          ()                          { return  m_iPOC;           }
@@ -556,7 +785,33 @@ public:
   Void setFinalized                     ( Bool uiVal )      { m_bFinalized = uiVal;                       }
   Bool getFinalized                     ()                  { return m_bFinalized;                        }
 #endif
+#if WEIGHT_PRED
+  Void  setWpScaling    ( wpScalingParam  wp[2][MAX_NUM_REF][3] ) { memcpy(m_weightPredTable, wp, sizeof(wpScalingParam)*2*MAX_NUM_REF*3); }
+  Void  getWpScaling    ( RefPicList e, Int iRefIdx, wpScalingParam *&wp);
+
+  Void  resetWpScaling  (wpScalingParam  wp[2][MAX_NUM_REF][3]);
+  Void  initWpScaling    (wpScalingParam  wp[2][MAX_NUM_REF][3]);
+  Void  initWpScaling   ();
+  inline Bool applyWP   () { return( (m_eSliceType==P_SLICE && m_pcPPS->getUseWP()) || (m_eSliceType==B_SLICE && m_pcPPS->getWPBiPredIdc()) ); }
   
+  Void  setWpAcDcParam  ( wpACDCParam wp[3] ) { memcpy(m_weightACDCParam, wp, sizeof(wpACDCParam)*3); }
+  Void  getWpAcDcParam  ( wpACDCParam *&wp );
+  Void  initWpAcDcParam ();
+#endif
+#if TILES_DECODER
+  Void setTileLocationCount             ( UInt uiCount )      { m_uiTileCount = uiCount;                  }
+  UInt getTileLocationCount             ()                    { return m_uiTileCount;                     }
+  Void setTileLocation                  ( Int i, UInt uiLOC ) { m_uiTileByteLocation[i] = uiLOC;          }
+  UInt getTileLocation                  ( Int i )             { return m_uiTileByteLocation[i];           }
+  Void setTileMarkerFlag                ( Int iFlag )         { m_iTileMarkerFlag = iFlag;                }
+  Int  getTileMarkerFlag                ()                    { return m_iTileMarkerFlag;                 }
+  Void setTileOffstForMultES            (UInt uiOffset )      { m_uiTileOffstForMultES = uiOffset;        }
+  UInt getTileOffstForMultES            ()                    { return m_uiTileOffstForMultES;            }
+#endif
+#if OL_USE_WPP
+  Void allocSubstreamSizes              ( UInt uiNumSubstreams );
+  UInt* getSubstreamSizes               ()                  { return m_puiSubstreamSizes; }
+#endif
 protected:
   TComPic*  xGetRefPic  (TComList<TComPic*>& rcListPic,
                          Bool                bDRBFlag,
