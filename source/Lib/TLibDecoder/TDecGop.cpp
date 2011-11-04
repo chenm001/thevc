@@ -300,6 +300,35 @@ Void TDecGop::decompressGop(TComInputBitstream* pcBitstream, TComPic*& rpcPic, B
         if(pcSlice->getAPS()->getAlfEnabled())
         {
           m_pcEntropyDecoder->decodeAlfCtrlParam( cAlfCUCtrlOneSlice, m_pcAdaptiveLoopFilter->getNumCUsInPic());
+#if F747_CABAC_FLUSH_SLICE_HEADER                      
+          if ( iSymbolMode )
+          {            
+#if OL_USE_WPP
+            Int numBitsForByteAlignment = ppcSubstreams[0]->getNumBitsUntilByteAligned();
+#else            
+            Int numBitsForByteAlignment = pcBitstream->getNumBitsUntilByteAligned();
+#endif
+            if ( numBitsForByteAlignment > 0 )
+            {
+              UInt bitsForByteAlignment;
+#if OL_USE_WPP
+              ppcSubstreams[0]->read( numBitsForByteAlignment, bitsForByteAlignment );
+#else                
+              pcBitstream->read( numBitsForByteAlignment, bitsForByteAlignment );
+#endif
+              assert( bitsForByteAlignment == ( ( 1 << numBitsForByteAlignment ) - 1 ) );
+            }
+            
+            m_pcSbacDecoder->init( (TDecBinIf*)m_pcBinCABAC );
+            m_pcEntropyDecoder->setEntropyDecoder (m_pcSbacDecoder);
+#if OL_USE_WPP
+            m_pcEntropyDecoder->setBitstream(ppcSubstreams[0]);
+#else            
+            m_pcEntropyDecoder->setBitstream(pcBitstream);
+#endif            
+            m_pcEntropyDecoder->resetEntropy(pcSlice);
+          }
+#endif
           vAlfCUCtrlSlices.push_back(cAlfCUCtrlOneSlice);
         }
       }
