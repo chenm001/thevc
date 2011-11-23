@@ -43,10 +43,10 @@
 
 #if ENC_DEC_TRACE
 
-#define WRITE_CODE(size, code, name)     xWriteCodeTr ( size, code, name )
-#define WRITE_UVLC(      code, name)     xWriteUvlcTr (       code, name )
-#define WRITE_SVLC(      code, name)     xWriteSvlcTr (       code, name )
-#define WRITE_FLAG(      code, name)     xWriteFlagTr (       code, name )
+#define WRITE_CODE( value, length, name)    xWriteCodeTr ( value, length, name )
+#define WRITE_UVLC( value,         name)    xWriteUvlcTr ( value,         name )
+#define WRITE_SVLC( value,         name)    xWriteSvlcTr ( value,         name )
+#define WRITE_FLAG( value,         name)    xWriteFlagTr ( value,         name )
 
 Void  xWriteUvlcTr          ( UInt value,               const Char *pSymbolName);
 Void  xWriteSvlcTr          ( Int  value,               const Char *pSymbolName);
@@ -98,10 +98,10 @@ Void  TEncCavlc::xWriteFlagTr(UInt value, const Char *pSymbolName)
 
 #else
 
-#define WRITE_CODE(size, code, name)     xWriteCode ( size, code )
-#define WRITE_UVLC(      code, name)     xWriteUvlc (       code )
-#define WRITE_SVLC(      code, name)     xWriteSvlc (       code )
-#define WRITE_FLAG(      code, name)     xWriteFlag (       code )
+#define WRITE_CODE( value, length, name)     xWriteCode ( value, length )
+#define WRITE_UVLC( value,         name)     xWriteUvlc ( value )
+#define WRITE_SVLC( value,         name)     xWriteSvlc ( value )
+#define WRITE_FLAG( value,         name)     xWriteFlag ( value )
 
 #endif
 
