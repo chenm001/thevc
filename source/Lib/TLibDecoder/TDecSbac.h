@@ -96,7 +96,7 @@ public:
   void parseSEI(SEImessages&) {}
   Void  parseSliceHeader          ( TComSlice*& rpcSlice   ) {}
   Void  parseTerminatingBit       ( UInt& ruiBit );
-  Void  parseMVPIdx               ( TComDataCU* pcCU, Int& riMVPIdx, Int iMVPNum, UInt uiAbsPartIdx, UInt uiDepth, RefPicList eRefList );
+  Void  parseMVPIdx               ( Int& riMVPIdx          );
   
   Void  parseAlfFlag              ( UInt& ruiVal           );
   Void  parseAlfUvlc              ( UInt& ruiVal           );

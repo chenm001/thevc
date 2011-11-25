@@ -81,7 +81,7 @@ public:
   virtual Void  parseSliceHeader          ( TComSlice*& rpcSlice )                                = 0;
   virtual Void  parseTerminatingBit       ( UInt& ruilsLast )                                     = 0;
   
-  virtual Void parseMVPIdx      ( TComDataCU* pcCU, Int& riMVPIdx, Int iMVPNum, UInt uiAbsPartIdx, UInt uiDepth, RefPicList eRefList ) = 0;
+  virtual Void parseMVPIdx        ( Int& riMVPIdx ) = 0;
   
 public:
   virtual Void parseSkipFlag      ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth ) = 0;

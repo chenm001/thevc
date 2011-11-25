@@ -213,7 +213,7 @@ public:
   Void  parseSliceHeader    ( TComSlice*& rpcSlice );
   Void  parseTerminatingBit ( UInt& ruiBit );
   
-  Void  parseMVPIdx         ( TComDataCU* pcCU, Int& riMVPIdx, Int iMVPNum, UInt uiAbsPartIdx, UInt uiDepth, RefPicList eRefList );
+  Void  parseMVPIdx         ( Int& riMVPIdx );
   
   Void  parseSkipFlag       ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
   Void parseMergeFlag       ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth, UInt uiPUIdx );

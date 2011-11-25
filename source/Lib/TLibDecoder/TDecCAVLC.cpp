@@ -909,7 +909,7 @@ Void TDecCavlc::parseSkipFlag( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth
  * \param eRefList
  * \returns Void
  */
-Void TDecCavlc::parseMVPIdx( TComDataCU* pcCU, Int& riMVPIdx, Int iMVPNum, UInt uiAbsPartIdx, UInt uiDepth, RefPicList eRefList )
+Void TDecCavlc::parseMVPIdx( Int& riMVPIdx )
 {
   UInt uiSymbol;
   xReadUnaryMaxSymbol(uiSymbol, AMVP_MAX_NUM_CANDS-1);

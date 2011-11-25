@@ -775,7 +775,7 @@ Void TDecEntropy::decodeMvdPU( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth
 
 Void TDecEntropy::decodeMVPIdxPU( TComDataCU* pcSubCU, UInt uiPartAddr, UInt uiDepth, UInt uiPartIdx, RefPicList eRefList )
 {
-  Int iMVPIdx;
+  Int iMVPIdx = -1;
 
   TComMv cZeroMv( 0, 0 );
   TComMv cMv     = cZeroMv;
@@ -785,12 +785,11 @@ Void TDecEntropy::decodeMVPIdxPU( TComDataCU* pcSubCU, UInt uiPartAddr, UInt uiD
   AMVPInfo* pAMVPInfo = pcSubCUMvField->getAMVPInfo();
 
   iRefIdx = pcSubCUMvField->getRefIdx(uiPartAddr);
-  iMVPIdx = -1;
   cMv = cZeroMv;
 
   if ( (pcSubCU->getInterDir(uiPartAddr) & ( 1 << eRefList )) && (pcSubCU->getAMVPMode(uiPartAddr) == AM_EXPL) )
   {
-    m_pcEntropyDecoderIf->parseMVPIdx( pcSubCU, iMVPIdx, pAMVPInfo->iN, uiPartAddr, uiDepth, eRefList );
+    m_pcEntropyDecoderIf->parseMVPIdx( iMVPIdx );
   }
   pcSubCU->fillMvpCand(uiPartIdx, uiPartAddr, eRefList, iRefIdx, pAMVPInfo);
   pcSubCU->setMVPNumSubParts(pAMVPInfo->iN, eRefList, uiPartAddr, uiPartIdx, uiDepth);
