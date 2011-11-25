@@ -3996,12 +3996,10 @@ Void TComDataCU::getInterMergeCandidates( UInt uiAbsPartIdx, UInt uiPUIdx, UInt 
 #endif
 
 #if !MRG_AMVP_ADD_CAND_F470
-#if AVOID_ZERO_MERGE_CANDIDATE
-if( numValidMergeCand == 0 )
-{
-  numValidMergeCand = 1;
+  if( numValidMergeCand == 0 )
+  {
+    numValidMergeCand = 1;
   }
-#endif
 #endif
 }
 

@@ -187,9 +187,6 @@
 
 #define CAVLC_RUNLEVEL_TABLE_REM        1           // CAVLC coding of run-level without table (JCTVC-F543)
 
-#if !MRG_AMVP_ADD_CAND_F470
-#define AVOID_ZERO_MERGE_CANDIDATE      1           // (JCTVC-E146/E118) insert zero MV if no merge candidates are available
-#endif
 #define CHANGE_MERGE_CONTEXT            1           // (JCTVC-E146/E118) change merge flag context derivation
 #define CHANGE_GET_MERGE_CANDIDATE      1           // (JCTVC-E146/E118) merge flag parsing independent of number of merge candidates
 #if CHANGE_GET_MERGE_CANDIDATE && !CHANGE_MERGE_CONTEXT
