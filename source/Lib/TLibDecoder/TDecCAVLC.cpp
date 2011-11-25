@@ -1715,7 +1715,6 @@ Void TDecCavlc::parseInterDir( TComDataCU* pcCU, UInt& ruiInterDir, UInt uiAbsPa
       uiMaxVal = uiValNumRefIdxOfL0 + uiValNumRefIdxOfL1 + uiValNumRefIdxOfL0*uiValNumRefIdxOfL1;
     }
 
-#if CAVLC_UNIFY_INTER_TABLE_FIX
     Bool bCodeException = false;
     if ( pcCU->getSlice()->getNumRefIdx(REF_PIC_LIST_C) > 4 ||
          pcCU->getSlice()->getNumRefIdx(REF_PIC_LIST_0) > 2 ||
@@ -1728,7 +1727,6 @@ Void TDecCavlc::parseInterDir( TComDataCU* pcCU, UInt& ruiInterDir, UInt uiAbsPa
       bCodeException = false;
       uiMaxVal--;
     }
-#endif
 
     xReadUnaryMaxSymbol( tmp, uiMaxVal );
 
@@ -1740,11 +1738,7 @@ Void TDecCavlc::parseInterDir( TComDataCU* pcCU, UInt& ruiInterDir, UInt uiAbsPa
     cx = tmp;
     adaptCodeword(cx, m_ucMI1TableCounter,  m_ucMI1TableCounterSum,  m_uiMITableD,  NULL, 4 );
     
-#if CAVLC_UNIFY_INTER_TABLE_FIX
     if (uiIndex < uiMaxVal || !bCodeException )
-#else
-    if (uiIndex < uiMaxVal)
-#endif
     {
       if (uiNumRefIdxOfLC > 0)
       {
