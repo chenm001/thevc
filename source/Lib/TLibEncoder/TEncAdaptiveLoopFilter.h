@@ -157,9 +157,7 @@ private:
   static Int* m_iFilterTabIn11x5Sym[NO_TEST_FILT];
 #endif
 
-#if MTK_NONCROSS_INLOOP_FILTER
   TComPicYuv* m_pcSliceYuvTmp;    //!< temporary picture buffer when non-across slice boundary ALF is enabled
-#endif
 
 #if !F747_APS
   Bool  m_bSharedPPSAlfParamEnabled; //!< true for shared ALF parameters in PPS enabled
@@ -186,11 +184,7 @@ private:
   Void xEncodeCUAlfCtrlFlag   ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth);
   
   // functions related to correlation computation
-#if MTK_NONCROSS_INLOOP_FILTER
   Void xCalcCorrelationFunc   ( Int ypos, Int xpos, Pel* pOrg, Pel* pCmp, Int iTap, Int iWidth, Int iHeight, Int iOrgStride, Int iCmpStride, Bool bSymmCopyBlockMatrix);
-#else
-  Void xCalcCorrelationFunc   ( Pel* pOrg, Pel* pCmp, Int iTap, Int iWidth, Int iHeight, Int iOrgStride, Int iCmpStride);
-#endif
 
   // functions related to filtering
   Void xFilterCoefQuickSort   ( Double *coef_data, Int *coef_num, Int upper, Int lower );
@@ -257,7 +251,6 @@ private:
 #endif
 
 
-#if MTK_NONCROSS_INLOOP_FILTER
   /// Calculate block autocorrelations and crosscorrelations for ALF slices
   Void xstoreInBlockMatrixforSlices  (imgpel* ImgOrg, imgpel* ImgDec, Int tap, Int iStride);
 
@@ -291,8 +284,6 @@ private:
 
   /// Calculate block autocorrelations and crosscorrelations for one chroma slice
   Void xFrameChromaforSlices                (Int ComponentID, TComPicYuv* pcPicDec, TComPicYuv* pcPicRest, Int *qh, Int iTap);
-#endif
-
 
 protected:
 #if ALF_CHROMA_NEW_SHAPES
@@ -356,17 +347,9 @@ public:
   Void xFilterTapDecision_qc            (TComPicYuv* pcPicOrg, TComPicYuv* pcPicDec, TComPicYuv* pcPicRest, UInt64& ruiMinRate, 
                                          UInt64& ruiMinDist, Double& rdMinCost);
   Void xFirstFilteringFrameLuma         (imgpel* ImgOrg, imgpel* ImgDec, imgpel* ImgRest, ALFParam* ALFp, Int tap,  Int Stride);
-#if MTK_NONCROSS_INLOOP_FILTER
   Void xstoreInBlockMatrix(Int ypos, Int xpos, Int iheight, Int iwidth, Bool bResetBlockMatrix, Bool bSymmCopyBlockMatrix, imgpel* ImgOrg, imgpel* ImgDec, Int tap, Int Stride);
-#else
-  Void xstoreInBlockMatrix(imgpel* ImgOrg, imgpel* ImgDec, Int tap, Int Stride);
-#endif
   Void xFilteringFrameLuma_qc(imgpel* ImgOrg, imgpel* imgY_pad, imgpel* ImgFilt, ALFParam* ALFp, Int tap, Int Stride);
-#if MTK_NONCROSS_INLOOP_FILTER
   Void xfilterFrame_en(int ypos, int xpos, int iheight, int iwidth, imgpel* ImgDec, imgpel* ImgRest,int filtNo, int Stride);
-#else
-  Void xfilterFrame_en(imgpel* ImgDec, imgpel* ImgRest,int filtNo, int Stride);
-#endif
   Void xcalcPredFilterCoeff(Int filtNo);
 #if MQT_ALF_NPASS  
   /// code filter coefficients

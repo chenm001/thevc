@@ -112,12 +112,8 @@ public:
   Void  codeAlfSvlc       ( Int  uiCode );
   Void  codeAlfCtrlDepth  ();
 
-#if MTK_NONCROSS_INLOOP_FILTER
   /// Code number of ALF CU control flags
   Void codeAlfFlagNum        ( UInt uiCode, UInt minValue, Int iDepth);
-#else
-  Void codeAlfFlagNum        ( UInt uiCode, UInt minValue );
-#endif
 
   Void codeAlfCtrlFlag       ( UInt uiSymbol );
 #if SAO
@@ -162,14 +158,14 @@ protected:
   
   // Adaptive loop filter
   UInt          m_uiMaxAlfCtrlDepth;
-#if FINE_GRANULARITY_SLICES && MTK_NONCROSS_INLOOP_FILTER
+#if FINE_GRANULARITY_SLICES
   Int           m_iSliceGranularity; //!< slice granularity
 #endif
   //--Adaptive loop filter
   
 public:
 
-#if FINE_GRANULARITY_SLICES && MTK_NONCROSS_INLOOP_FILTER
+#if FINE_GRANULARITY_SLICES
   /// set slice granularity
   Void setSliceGranularity(Int iSliceGranularity)  {m_iSliceGranularity = iSliceGranularity;}
 

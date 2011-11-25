@@ -179,8 +179,6 @@
                             // This is here just to perform timing tests -- OL_FLUSH_ALIGN should be 0 for WPP.
 #endif
 
-#define MTK_NONCROSS_INLOOP_FILTER        1           ///< Allow non-cross-slice-boundary in-loop filtering, including DB & ALF (JCTVC-D128)
-
 #define RVM_VCEGAM10 1 // RVM model proposed in VCEG-AM10
 #if RVM_VCEGAM10
 #define RVM_VCEGAM10_M 4

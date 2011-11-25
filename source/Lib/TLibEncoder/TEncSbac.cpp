@@ -99,7 +99,7 @@ TEncSbac::TEncSbac()
 #endif
 {
   assert( m_numContextModels <= MAX_NUM_CTX_MOD );
-#if FINE_GRANULARITY_SLICES && MTK_NONCROSS_INLOOP_FILTER
+#if FINE_GRANULARITY_SLICES
   m_iSliceGranularity = 0;
 #endif
 }
@@ -1817,23 +1817,15 @@ Void TEncSbac::codeAlfFlag       ( UInt uiCode )
   m_pcBinIf->encodeBin( uiSymbol, m_cALFFlagSCModel.get( 0, 0, 0 ) );
 }
 
-#if MTK_NONCROSS_INLOOP_FILTER
 /** Code number of ALF CU control flags
  * \param uiCode number of ALF CU control flags
  * \param minValue predictor of number of ALF CU control flags
  * \param iDepth the possible max. processing CU depth
  */
 Void TEncSbac::codeAlfFlagNum( UInt uiCode, UInt minValue, Int iDepth)
-#else
-Void TEncSbac::codeAlfFlagNum( UInt uiCode, UInt minValue )
-#endif
 {
   UInt uiLength = 0;
-#if MTK_NONCROSS_INLOOP_FILTER
   UInt maxValue = (minValue << (iDepth*2));
-#else
-  UInt maxValue = (minValue << (this->getMaxAlfCtrlDepth()*2));
-#endif
   assert((uiCode>=minValue)&&(uiCode<=maxValue));
   UInt temp = maxValue - minValue;
   for(UInt i=0; i<32; i++)

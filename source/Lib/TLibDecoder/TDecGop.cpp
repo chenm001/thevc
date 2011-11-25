@@ -187,18 +187,15 @@ Void TDecGop::decompressGop(TComInputBitstream* pcBitstream, TComPic*& rpcPic, B
   long iBeforeTime = clock();
   
   UInt uiStartCUAddr   = pcSlice->getEntropySliceCurStartCUAddr();
-#if MTK_NONCROSS_INLOOP_FILTER
   static Bool  bFirst = true;
   static UInt  uiILSliceCount;
   static UInt* puiILSliceStartLCU;
-#endif
 #if F747_APS
   static std::vector<AlfCUCtrlInfo> vAlfCUCtrlSlices;
 #endif
 
   if (!bExecuteDeblockAndAlf)
   {
-#if MTK_NONCROSS_INLOOP_FILTER
     if(bFirst)
     {
       uiILSliceCount = 0;
@@ -212,7 +209,6 @@ Void TDecGop::decompressGop(TComInputBitstream* pcBitstream, TComPic*& rpcPic, B
       puiILSliceStartLCU[uiILSliceCount] = uiSliceStartCuAddr;
       uiILSliceCount++;
     }
-#endif //MTK_NONCROSS_INLOOP_FILTER
 
     UInt iSymbolMode = pcSlice->getSymbolMode();
     if (iSymbolMode)
@@ -401,7 +397,7 @@ Void TDecGop::decompressGop(TComInputBitstream* pcBitstream, TComPic*& rpcPic, B
 #if SAO
     {
 
-#if SAO && MTK_NONCROSS_INLOOP_FILTER && FINE_GRANULARITY_SLICES 
+#if SAO && FINE_GRANULARITY_SLICES 
       if( pcSlice->getSPS()->getUseSAO() )
       {
         m_pcSAO->setNumSlicesInPic( uiILSliceCount );
@@ -474,7 +470,6 @@ Void TDecGop::decompressGop(TComInputBitstream* pcBitstream, TComPic*& rpcPic, B
     // adaptive loop filter
     if( pcSlice->getSPS()->getUseALF() )
     {
-#if MTK_NONCROSS_INLOOP_FILTER  
       m_pcAdaptiveLoopFilter->setNumSlicesInPic( uiILSliceCount );
 #if FINE_GRANULARITY_SLICES
       m_pcAdaptiveLoopFilter->setSliceGranularityDepth(pcSlice->getPPS()->getSliceGranularity());
@@ -510,7 +505,6 @@ Void TDecGop::decompressGop(TComInputBitstream* pcBitstream, TComPic*& rpcPic, B
           (*m_pcAdaptiveLoopFilter)[i].create(i, uiStartAddr, uiEndAddr);
         }
       }
-#endif
 
 #if F747_APS
       m_pcAdaptiveLoopFilter->ALFProcess(rpcPic, pcSlice->getAPS()->getAlfParam(), vAlfCUCtrlSlices);
@@ -522,12 +516,10 @@ Void TDecGop::decompressGop(TComInputBitstream* pcBitstream, TComPic*& rpcPic, B
       m_pcAdaptiveLoopFilter->PCMLFDisableProcess(rpcPic);
 #endif
 
-#if MTK_NONCROSS_INLOOP_FILTER
       if(uiILSliceCount > 1)
       {
         m_pcAdaptiveLoopFilter->destroySlice();
       }
-#endif
 #if !F747_APS
       m_pcAdaptiveLoopFilter->freeALFParam(&m_cAlfParam);
 #endif
@@ -594,9 +586,7 @@ Void TDecGop::decompressGop(TComInputBitstream* pcBitstream, TComPic*& rpcPic, B
       }
 #endif
 
-#if MTK_NONCROSS_INLOOP_FILTER
     uiILSliceCount = 0;
-#endif
 #if F747_APS
     vAlfCUCtrlSlices.clear();
 #endif

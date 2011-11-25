@@ -109,12 +109,6 @@ private:
   UInt*                   m_uiStoredStartCUAddrForEncodingSlice;
   UInt*                   m_uiStoredStartCUAddrForEncodingEntropySlice;
 
-// #if MTK_NONCROSS_INLOOP_FILTER
-//   UInt                    m_uiILSliceCount;
-//   UInt*                   m_puiILSliceStartLCU;
-//   UInt*                   m_puiILSliceEndLCU;
-// #endif
-
 #if RVM_VCEGAM10
   std::vector<Int> m_vRVM_RP;
 #endif

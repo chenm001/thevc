@@ -125,7 +125,7 @@ public:
   virtual Void parseAlfFlagNum    ( UInt& ruiVal, UInt minValue, UInt depth ) = 0;
   virtual Void parseAlfCtrlFlag   ( UInt &ruiAlfCtrlFlag ) = 0;
 
-#if FINE_GRANULARITY_SLICES && MTK_NONCROSS_INLOOP_FILTER
+#if FINE_GRANULARITY_SLICES
   /// set slice granularity
   virtual Void setSliceGranularity(Int iSliceGranularity) = 0;
 
@@ -236,7 +236,7 @@ public:
   Void decodeFilterCoeff (ALFParam* pAlfParam);
   Int golombDecode(Int k);
 
-#if FINE_GRANULARITY_SLICES && MTK_NONCROSS_INLOOP_FILTER
+#if FINE_GRANULARITY_SLICES
   /// set slice granularity
   Void setSliceGranularity (Int iSliceGranularity) {m_pcEntropyDecoderIf->setSliceGranularity(iSliceGranularity);}
 #endif

@@ -116,7 +116,6 @@ extern Int *pDepthIntTab[NO_TEST_FILT];
 void destroyMatrix_int(int **m2D);
 void initMatrix_int(int ***m2D, int d1, int d2);
 
-#if MTK_NONCROSS_INLOOP_FILTER
 
 /// border direction ID of slice granularity unit 
 enum SGUBorderID
@@ -137,7 +136,6 @@ enum AlfChromaID
   ALF_Cb = 0,
   ALF_Cr = 1
 };
-#endif
 
 #if MQT_BA_RA
 enum ALFClassficationMethod
@@ -166,9 +164,6 @@ struct AlfCUCtrlInfo
 };
 #endif
 
-
-
-#if MTK_NONCROSS_INLOOP_FILTER
 
 /// slice granularity unit information
 struct AlfSGUInfo
@@ -361,10 +356,6 @@ public:
 };
 
 
-
-#endif 
-
-
 /// adaptive loop filter class
 class TComAdaptiveLoopFilter
 {
@@ -448,7 +439,6 @@ protected:
   Int **m_filterCoeffSymTmp;
   
 
-#if MTK_NONCROSS_INLOOP_FILTER
   Bool        m_bUseNonCrossALF;       //!< true for performing non-cross slice boundary ALF
 
   UInt        m_uiNumSlicesInPic;      //!< number of slices in picture
@@ -465,7 +455,6 @@ protected:
 
   /// Perform ALF for one chroma slice
   Void xFrameChromaforOneSlice    (CAlfSlice* pSlice, Int ComponentID, TComPicYuv* pcPicDec, TComPicYuv* pcPicRest, Int *qh, Int iTap);
-#endif
 
 #if MQT_BA_RA
   Void createRegionIndexMap(imgpel **imgY_var, Int img_width, Int img_height);
@@ -495,11 +484,7 @@ protected:
   Void get_mem2Dpel(imgpel ***array2D, int rows, int columns);
   Void no_mem_exit(const char *where);
   Void xError(const char *text, int code);
-#if MTK_NONCROSS_INLOOP_FILTER
   Void calcVar(int ypos, int xpos, imgpel **imgY_var, imgpel *imgY_pad, int pad_size, int fl, int img_height, int img_width, int img_stride);
-#else
-  Void calcVar(imgpel **imgY_var, imgpel *imgY_pad, int pad_size, int fl, int img_height, int img_width, int img_stride);
-#endif
   Void DecFilter_qc(imgpel* imgY_rec,ALFParam* pcAlfParam, int Stride);
   Void xSubCUAdaptive_qc(TComDataCU* pcCU, ALFParam* pcAlfParam, imgpel *imgY_rec_post, imgpel *imgY_rec, UInt uiAbsPartIdx, UInt uiDepth, Int Stride);
   Void xCUAdaptive_qc(TComPic* pcPic, ALFParam* pcAlfParam, imgpel *imgY_rec_post, imgpel *imgY_rec, Int Stride);
@@ -526,11 +511,7 @@ protected:
   Void xALFChroma   ( ALFParam* pcAlfParam, TComPicYuv* pcPicDec, TComPicYuv* pcPicRest );
   
   /// sub function: non-adaptive ALF process for chroma
-#if MTK_NONCROSS_INLOOP_FILTER
   Void xFrameChroma ( Int ypos, Int xpos, Int iHeight, Int iWidth, TComPicYuv* pcPicDec, TComPicYuv* pcPicRest, Int *qh, Int iTap, Int iColor );
-#else
-  Void xFrameChroma ( TComPicYuv* pcPicDec, TComPicYuv* pcPicRest, Int *qh, Int iTap, Int iColor );
-#endif
 
 public:
   TComAdaptiveLoopFilter();
@@ -572,7 +553,6 @@ public:
   Int  getNumCUsInPic()  {return m_uiNumCUsInFrame;}
 #endif
 
-#if MTK_NONCROSS_INLOOP_FILTER
 public:
 
 #if F747_APS
@@ -620,8 +600,6 @@ public:
     assert(i < m_uiNumSlicesInPic);
     return m_pSlice[i];
   }
-#endif
-
 
 };
 

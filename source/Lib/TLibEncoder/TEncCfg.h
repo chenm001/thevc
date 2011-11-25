@@ -166,9 +166,7 @@ protected:
 #if FINE_GRANULARITY_SLICES
   Int       m_iSliceGranularity;
 #endif
-#if MTK_NONCROSS_INLOOP_FILTER
   Bool      m_bLFCrossSliceBoundaryFlag;
-#endif
 #if E057_INTRA_PCM && E192_SPS_PCM_BIT_DEPTH_SYNTAX
   Bool      m_bPCMInputBitDepthFlag;
   UInt      m_uiPCMBitDepthLuma;
@@ -442,10 +440,8 @@ public:
   Void  setSliceGranularity            ( Int  i )      { m_iSliceGranularity = i;       }
   Int   getSliceGranularity            ()              { return m_iSliceGranularity;    }
 #endif
-#if MTK_NONCROSS_INLOOP_FILTER
   Void      setLFCrossSliceBoundaryFlag     ( Bool   bValue  )    { m_bLFCrossSliceBoundaryFlag = bValue; }
   Bool      getLFCrossSliceBoundaryFlag     ()                    { return m_bLFCrossSliceBoundaryFlag;   }
-#endif
 #if SAO
   Void      setUseSAO                  (Bool bVal)     {m_bUseSAO = bVal;}
   Bool      getUseSAO                  ()              {return m_bUseSAO;}

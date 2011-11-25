@@ -182,13 +182,11 @@ Void TAppEncTop::xInitLibCfg()
   
   m_cTEncTop.setSliceGranularity        ( m_iSliceGranularity         );
 #endif
-#if MTK_NONCROSS_INLOOP_FILTER
   if(m_iSliceMode == 0 )
   {
     m_bLFCrossSliceBoundaryFlag = true;
   }
   m_cTEncTop.setLFCrossSliceBoundaryFlag( m_bLFCrossSliceBoundaryFlag );
-#endif
 #if SAO
   m_cTEncTop.setUseSAO ( m_bUseSAO );
 #endif

@@ -129,7 +129,7 @@ private:
   
   Bool m_bAlfCtrl;
   UInt m_uiMaxAlfCtrlDepth;
-#if FINE_GRANULARITY_SLICES && MTK_NONCROSS_INLOOP_FILTER
+#if FINE_GRANULARITY_SLICES
   Int           m_iSliceGranularity; //!< slice granularity
 #endif
 
@@ -138,7 +138,7 @@ public:
   Void parseAlfFlagNum    ( UInt& ruiVal, UInt minValue, UInt depth );
   Void parseAlfCtrlFlag   ( UInt &ruiAlfCtrlFlag );
 
-#if FINE_GRANULARITY_SLICES && MTK_NONCROSS_INLOOP_FILTER
+#if FINE_GRANULARITY_SLICES
   /// set slice granularity
   Void setSliceGranularity(Int iSliceGranularity)  {m_iSliceGranularity = iSliceGranularity;}
 

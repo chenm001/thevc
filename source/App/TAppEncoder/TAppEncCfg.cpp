@@ -230,9 +230,7 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
 #if FINE_GRANULARITY_SLICES
     ("SliceGranularity",     m_iSliceGranularity,    0, "0: Slices always end at LCU borders. 1-3: slices may end at a depth of 1-3 below LCU level.")
 #endif
-#if MTK_NONCROSS_INLOOP_FILTER
     ("LFCrossSliceBoundaryFlag", m_bLFCrossSliceBoundaryFlag, true)
-#endif
     ("ConstrainedIntraPred", m_bUseConstrainedIntraPred, false, "Constrained Intra Prediction")
 #if E057_INTRA_PCM
     ("PCMLog2MinSize", m_uiPCMLog2MinSize, 7u)

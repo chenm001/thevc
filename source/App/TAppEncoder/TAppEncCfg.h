@@ -180,9 +180,7 @@ protected:
 #if FINE_GRANULARITY_SLICES
   Int       m_iSliceGranularity;///< 0: Slices always end at LCU borders. 1-3: slices may end at a depth of 1-3 below LCU level.
 #endif
-#if MTK_NONCROSS_INLOOP_FILTER
   Bool m_bLFCrossSliceBoundaryFlag;  ///< 0: Cross-slice-boundary in-loop filtering 1: non-cross-slice-boundary in-loop filtering
-#endif
 #if TILES
   Int       m_iColumnRowInfoPresent;
   Int       m_iUniformSpacingIdr;

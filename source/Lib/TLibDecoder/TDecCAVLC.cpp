@@ -111,7 +111,7 @@ TDecCavlc::TDecCavlc()
 {
   m_bAlfCtrl = false;
   m_uiMaxAlfCtrlDepth = 0;
-#if FINE_GRANULARITY_SLICES && MTK_NONCROSS_INLOOP_FILTER
+#if FINE_GRANULARITY_SLICES
   m_iSliceGranularity = 0;
 #endif
 }
@@ -355,9 +355,7 @@ Void TDecCavlc::parseSPS(TComSPS* pcSPS)
 #if LM_CHROMA 
   READ_FLAG( uiCode, "chroma_pred_from_luma_enabled_flag" );     pcSPS->setUseLMChroma ( uiCode ? true : false ); 
 #endif
-#if MTK_NONCROSS_INLOOP_FILTER
   READ_FLAG( uiCode, "loop_filter_across_slice_flag" );          pcSPS->setLFCrossSliceBoundaryFlag( uiCode ? true : false);
-#endif
 #if SAO
   READ_FLAG( uiCode, "sample_adaptive_offset_enabled_flag" );    pcSPS->setUseSAO ( uiCode ? true : false );  
 #endif

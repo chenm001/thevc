@@ -75,7 +75,7 @@ protected:
   UInt          m_uiRun;
   Bool          m_bAlfCtrl;
   UInt          m_uiMaxAlfCtrlDepth;
-#if FINE_GRANULARITY_SLICES && MTK_NONCROSS_INLOOP_FILTER
+#if FINE_GRANULARITY_SLICES
   Int           m_iSliceGranularity;  //!< slice granularity
 #endif
   UInt          m_uiLPTableE4[3][32];
@@ -241,7 +241,7 @@ public:
   Void codeMergeIndex    ( TComDataCU* pcCU, UInt uiAbsPartIdx );
   Void codeAlfCtrlFlag   ( TComDataCU* pcCU, UInt uiAbsPartIdx );
 
-#if FINE_GRANULARITY_SLICES && MTK_NONCROSS_INLOOP_FILTER
+#if FINE_GRANULARITY_SLICES
   /// set slice granularity
   Void setSliceGranularity(Int iSliceGranularity)  {m_iSliceGranularity = iSliceGranularity;}
 
@@ -249,12 +249,8 @@ public:
   Int  getSliceGranularity()                       {return m_iSliceGranularity;             }
 #endif
 
-#if MTK_NONCROSS_INLOOP_FILTER
   /// Code number of ALF CU control flags
   Void codeAlfFlagNum    ( UInt uiCode, UInt minValue, Int iDepth);
-#else
-  Void codeAlfFlagNum    ( UInt uiCode, UInt minValue );
-#endif
 
   Void codeAlfCtrlFlag   ( UInt uiSymbol );
   Void codeInterModeFlag( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth, UInt uiEncMode );

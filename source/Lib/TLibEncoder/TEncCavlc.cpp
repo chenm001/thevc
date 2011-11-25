@@ -120,7 +120,7 @@ TEncCavlc::TEncCavlc()
   m_uiMaxAlfCtrlDepth = 0;
   
   m_bAdaptFlag        = true;    // adaptive VLC table
-#if FINE_GRANULARITY_SLICES && MTK_NONCROSS_INLOOP_FILTER
+#if FINE_GRANULARITY_SLICES
   m_iSliceGranularity = 0;
 #endif
 }
@@ -465,9 +465,7 @@ Void TEncCavlc::codeSPS( TComSPS* pcSPS )
 #if LM_CHROMA
   WRITE_FLAG  ( (pcSPS->getUseLMChroma ()) ? 1 : 0,                                  "chroma_pred_from_luma_enabled_flag" ); 
 #endif
-#if MTK_NONCROSS_INLOOP_FILTER
   WRITE_FLAG( pcSPS->getLFCrossSliceBoundaryFlag()?1 : 0,                            "loop_filter_across_slice_flag");
-#endif
 #if SAO
   WRITE_FLAG( pcSPS->getUseSAO() ? 1 : 0,                                            "sample_adaptive_offset_enabled_flag");
 #endif
@@ -2550,23 +2548,15 @@ Void TEncCavlc::codeAlfFlag( UInt uiCode )
   xWriteFlag( uiCode );
 }
 
-#if MTK_NONCROSS_INLOOP_FILTER
 /** Code number of ALF CU control flags
  * \param uiCode number of ALF CU control flags
  * \param minValue predictor of number of ALF CU control flags
  * \param iDepth the possible max. processing CU depth
  */
 Void TEncCavlc::codeAlfFlagNum( UInt uiCode, UInt minValue, Int iDepth)
-#else
-Void TEncCavlc::codeAlfFlagNum( UInt uiCode, UInt minValue )
-#endif
 {
   UInt uiLength = 0;
-#if MTK_NONCROSS_INLOOP_FILTER
   UInt maxValue = (minValue << (iDepth*2));
-#else
-  UInt maxValue = (minValue << (this->getMaxAlfCtrlDepth()*2));
-#endif
   assert((uiCode>=minValue)&&(uiCode<=maxValue));
   UInt temp = maxValue - minValue;
   for(UInt i=0; i<32; i++)

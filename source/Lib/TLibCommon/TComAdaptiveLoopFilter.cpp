@@ -449,12 +449,9 @@ const AlfCUCtrlInfo& AlfCUCtrlInfo::operator= (const AlfCUCtrlInfo& src)
 TComAdaptiveLoopFilter::TComAdaptiveLoopFilter()
 {
   m_pcTempPicYuv = NULL;
-#if MTK_NONCROSS_INLOOP_FILTER
   m_pSlice       = NULL;
   m_iSGDepth     = 0;
   m_piSliceSUMap = NULL;
-#endif
-
 }
 
 Void TComAdaptiveLoopFilter:: xError(const char *text, int code)
@@ -966,16 +963,12 @@ Void TComAdaptiveLoopFilter::ALFProcess(TComPic* pcPic, ALFParam* pcAlfParam)
   
   TComPicYuv* pcPicYuvRec    = pcPic->getPicYuvRec();
   TComPicYuv* pcPicYuvExtRec = m_pcTempPicYuv;
-#if MTK_NONCROSS_INLOOP_FILTER
   if(!m_bUseNonCrossALF)
   {
-#endif     
   pcPicYuvRec   ->copyToPic          ( pcPicYuvExtRec );
   pcPicYuvExtRec->setBorderExtension ( false );
   pcPicYuvExtRec->extendPicBorder    ();
-#if MTK_NONCROSS_INLOOP_FILTER
   }
-#endif
 
 #if F747_APS
   if(m_uiNumSlicesInPic == 1)
@@ -999,7 +992,6 @@ Void TComAdaptiveLoopFilter::ALFProcess(TComPic* pcPic, ALFParam* pcAlfParam)
 #else
   if(pcAlfParam->cu_control_flag)
   {
-#if MTK_NONCROSS_INLOOP_FILTER
     if(m_uiNumSlicesInPic == 1)
     {
       UInt idx = 0;
@@ -1013,14 +1005,6 @@ Void TComAdaptiveLoopFilter::ALFProcess(TComPic* pcPic, ALFParam* pcAlfParam)
     {
       transferCtrlFlagsFromAlfParam(pcAlfParam);
     }
-#else
-    UInt idx = 0;
-    for(UInt uiCUAddr = 0; uiCUAddr < pcPic->getNumCUsInFrame(); uiCUAddr++)
-    {
-      TComDataCU *pcCU = pcPic->getCU(uiCUAddr);
-      setAlfCtrlFlags(pcAlfParam, pcCU, 0, 0, idx);
-    }
-#endif
   }
   xALFLuma_qc(pcPic, pcAlfParam, pcPicYuvExtRec, pcPicYuvRec);
 #endif  
@@ -1057,13 +1041,10 @@ Void TComAdaptiveLoopFilter::xALFLuma_qc(TComPic* pcPic, ALFParam* pcAlfParam, T
   m_imgY_var       = m_varImgMethods[m_uiVarGenMethod];
 #endif
 
-#if MTK_NONCROSS_INLOOP_FILTER
   memset(m_imgY_temp[0],0,sizeof(int)*(m_img_height+2*VAR_SIZE)*(m_img_width+2*VAR_SIZE));
   if(!m_bUseNonCrossALF)
   {
     calcVar(0, 0, m_imgY_var, pDec, FILTER_LENGTH/2, VAR_SIZE, m_img_height, m_img_width, LumaStride);
-#endif
-
 
 #if F747_APS
   Bool bCUCtrlEnabled = false;
@@ -1088,7 +1069,6 @@ Void TComAdaptiveLoopFilter::xALFLuma_qc(TComPic* pcPic, ALFParam* pcAlfParam, T
     //then do whole frame filtering
     filterFrame(pRest, pDec, pcAlfParam->realfiltNo, LumaStride);
   }
-#if MTK_NONCROSS_INLOOP_FILTER
   }
   else
   {
@@ -1114,8 +1094,6 @@ Void TComAdaptiveLoopFilter::xALFLuma_qc(TComPic* pcPic, ALFParam* pcAlfParam, T
 
     }
   }
-#endif
-
 }
 
 
@@ -1123,9 +1101,6 @@ Void TComAdaptiveLoopFilter::DecFilter_qc(imgpel* imgY_rec,ALFParam* pcAlfParam,
 {
   int i;
   int numBits = NUM_BITS; 
-#if !MTK_NONCROSS_INLOOP_FILTER
-  int fl=FILTER_LENGTH/2;
-#endif
   int **pfilterCoeffSym;
   pfilterCoeffSym= m_filterCoeffSym;
   
@@ -1143,11 +1118,6 @@ Void TComAdaptiveLoopFilter::DecFilter_qc(imgpel* imgY_rec,ALFParam* pcAlfParam,
     }
   }
   getCurrentFilter(pfilterCoeffSym,pcAlfParam);
-#if !MTK_NONCROSS_INLOOP_FILTER
-  memset(m_imgY_temp[0],0,sizeof(int)*(m_img_height+2*VAR_SIZE)*(m_img_width+2*VAR_SIZE));
-  
-  calcVar(m_imgY_var, imgY_rec, fl, VAR_SIZE, m_img_height, m_img_width, Stride);
-#endif
 }
 
 Void TComAdaptiveLoopFilter::getCurrentFilter(int **filterCoeffSym,ALFParam* pcAlfParam)
@@ -1244,11 +1214,7 @@ static imgpel Clip_post(int high, int val)
 {
   return (imgpel)(((val > high)? high: val));
 }
-#if MTK_NONCROSS_INLOOP_FILTER
 Void TComAdaptiveLoopFilter::calcVar(int ypos, int xpos, imgpel **imgY_var, imgpel *imgY_pad, int pad_size, int fl, int img_height, int img_width, int img_stride)
-#else
-Void TComAdaptiveLoopFilter::calcVar(imgpel **imgY_var, imgpel *imgY_pad, int pad_size, int fl, int img_height, int img_width, int img_stride)
-#endif
 {
 
 #if MQT_BA_RA
@@ -1260,17 +1226,10 @@ Void TComAdaptiveLoopFilter::calcVar(imgpel **imgY_var, imgpel *imgY_pad, int pa
   static Int shift_h     = (Int)(log((double)VAR_SIZE_H)/log(2.0));
   static Int shift_w     = (Int)(log((double)VAR_SIZE_W)/log(2.0));
 
-#if MTK_NONCROSS_INLOOP_FILTER
   Int start_height = ypos;
   Int start_width  = xpos;
   Int end_height   = ypos + img_height;
   Int end_width    = xpos + img_width;
-#else
-  Int start_height = 0;
-  Int start_width = 0;
-  Int end_height = img_height;
-  Int end_width = img_width;
-#endif
   Int i, j;
   Int fl2plusOne= (VAR_SIZE<<1)+1; //3
   Int pad_offset = pad_size-fl-1;
@@ -1349,11 +1308,7 @@ Void TComAdaptiveLoopFilter::calcVar(imgpel **imgY_var, imgpel *imgY_pad, int pa
       imgpel *p_imgY_pad_up   = &imgY_pad[(pad_offset+i+1-pad_size) * img_stride + pad_offset-pad_size];
       imgpel *p_imgY_pad_down = &imgY_pad[(pad_offset+i-1-pad_size) * img_stride + pad_offset-pad_size];
       p_imgY_temp = (int*)&m_imgY_temp[i-1][0];
-#if MTK_NONCROSS_INLOOP_FILTER
       p_imgY_var  = &imgY_var [ypos+ i-1][xpos];
-#else
-      p_imgY_var  = &imgY_var [i-1][0];
-#endif
       for(j = 1; j < img_width +fl2plusOne; j++)
       {
         *(p_imgY_temp) = abs((p_imgY_pad[j]<<1) - p_imgY_pad[j+1] - p_imgY_pad[j-1])+
@@ -1401,12 +1356,7 @@ Void TComAdaptiveLoopFilter::calcVar(imgpel **imgY_var, imgpel *imgY_pad, int pa
     p_imgY_temp_sum=(int*)&m_imgY_temp[y][j - fl];
     for(jj = j - fl; jj <= j + fl; jj++)
       sum_0+=*(p_imgY_temp_sum++);
-#if MTK_NONCROSS_INLOOP_FILTER
-    imgY_var[ypos+ i - fl][xpos+ j - fl] 
-#else
-    imgY_var[i - fl][j - fl] 
-#endif
-    = (imgpel) Clip_post(var_max, (int) ((sum_0 * mult_fact_int)>>shift));
+    imgY_var[ypos+ i - fl][xpos+ j - fl]  = (imgpel) Clip_post(var_max, (int) ((sum_0 * mult_fact_int)>>shift));
     //--------------------------------------------------------------------------------------------
     sum = sum_0;
     for(j = fl+1; j < img_width + fl; ++j)
@@ -1416,23 +1366,14 @@ Void TComAdaptiveLoopFilter::calcVar(imgpel **imgY_var, imgpel *imgY_pad, int pa
         m_imgY_temp[y][k] += (m_imgY_temp[ii][k]);
 
       sum += (m_imgY_temp[y][k]-m_imgY_temp[y][j - fl-1]);
-#if MTK_NONCROSS_INLOOP_FILTER
-      imgY_var[ypos+ i - fl][xpos+ j - fl] 
-#else
-      imgY_var[i - fl][j - fl] 
-#endif
-      = (imgpel) Clip_post(var_max, (int) ((sum * mult_fact_int)>>shift));
+      imgY_var[ypos+ i - fl][xpos+ j - fl]  = (imgpel) Clip_post(var_max, (int) ((sum * mult_fact_int)>>shift));
 
     }
     //--------------------------------------------------------------------------------------------
 
     for(i = fl+1; i < img_height + fl; ++i)
     {
-#if MTK_NONCROSS_INLOOP_FILTER
       imgpel  *pimgY_var= &imgY_var[ypos+ i-fl][xpos];
-#else
-      imgpel  *pimgY_var= &imgY_var[i-fl][0];
-#endif
       int *p_imgY_temp1;
       int *p_imgY_temp2;
       sum = sum_0;
@@ -2323,7 +2264,6 @@ Void TComAdaptiveLoopFilter::xALFChroma(ALFParam* pcAlfParam, TComPicYuv* pcPicD
 {
   if((pcAlfParam->chroma_idc>>1)&0x01)
   {
-#if MTK_NONCROSS_INLOOP_FILTER
     if(!m_bUseNonCrossALF)
 #if ALF_CHROMA_NEW_SHAPES
       xFrameChroma(0, 0, (m_img_height>>1), (m_img_width>>1), pcPicDec, pcPicRest, pcAlfParam->coeff_chroma, pcAlfParam->realfiltNo_chroma, 0);
@@ -2352,18 +2292,10 @@ Void TComAdaptiveLoopFilter::xALFChroma(ALFParam* pcAlfParam, TComPicYuv* pcPicD
 #endif
       }
     }
-#else
-#if ALF_CHROMA_NEW_SHAPES
-    xFrameChroma(pcPicDec, pcPicRest, pcAlfParam->coeff_chroma, pcAlfParam->realfiltNo_chroma, 0);
-#else
-    xFrameChroma(pcPicDec, pcPicRest, pcAlfParam->coeff_chroma, pcAlfParam->tap_chroma, 0);
-#endif
-#endif
   }
   
   if(pcAlfParam->chroma_idc&0x01)
   {
-#if MTK_NONCROSS_INLOOP_FILTER
     if(!m_bUseNonCrossALF)
 #if ALF_CHROMA_NEW_SHAPES
       xFrameChroma(0, 0, (m_img_height>>1), (m_img_width>>1), pcPicDec, pcPicRest, pcAlfParam->coeff_chroma, pcAlfParam->realfiltNo_chroma, 1);
@@ -2391,13 +2323,6 @@ Void TComAdaptiveLoopFilter::xALFChroma(ALFParam* pcAlfParam, TComPicYuv* pcPicD
 #endif
       }
     }
-#else
-#if ALF_CHROMA_NEW_SHAPES
-    xFrameChroma(pcPicDec, pcPicRest, pcAlfParam->coeff_chroma, pcAlfParam->realfiltNo_chroma, 1);
-#else
-    xFrameChroma(pcPicDec, pcPicRest, pcAlfParam->coeff_chroma, pcAlfParam->tap_chroma, 1);
-#endif
-#endif
   }
 }
 
@@ -2408,11 +2333,7 @@ Void TComAdaptiveLoopFilter::xALFChroma(ALFParam* pcAlfParam, TComPicYuv* pcPicD
  \param iTap        filter tap
  \param iColor      0 for Cb and 1 for Cr
  */
-#if MTK_NONCROSS_INLOOP_FILTER
 Void TComAdaptiveLoopFilter::xFrameChroma(Int ypos, Int xpos, Int iHeight, Int iWidth, TComPicYuv* pcPicDec, TComPicYuv* pcPicRest, Int *qh, Int iTap, Int iColor )
-#else
-Void TComAdaptiveLoopFilter::xFrameChroma( TComPicYuv* pcPicDec, TComPicYuv* pcPicRest, Int *qh, Int iTap, Int iColor )
-#endif
 {
 #if ALF_CHROMA_NEW_SHAPES
   Int x, y, value, N;
@@ -2428,10 +2349,6 @@ Void TComAdaptiveLoopFilter::xFrameChroma( TComPicYuv* pcPicDec, TComPicYuv* pcP
 #else
   N      = (iTap*iTap+1)>>1;
 #endif
-#if !MTK_NONCROSS_INLOOP_FILTER
-  Int iHeight = pcPicRest->getHeight() >> 1;
-  Int iWidth = pcPicRest->getWidth() >> 1;
-#endif  
   Pel* pDec;
   Int iDecStride = pcPicDec->getCStride();
   
@@ -2450,7 +2367,6 @@ Void TComAdaptiveLoopFilter::xFrameChroma( TComPicYuv* pcPicDec, TComPicYuv* pcP
     pDec = pcPicDec->getCbAddr();
     pRest = pcPicRest->getCbAddr();
   }
-#if MTK_NONCROSS_INLOOP_FILTER
   if(m_bUseNonCrossALF)
   {
     pDec  += ( ypos*iDecStride  + xpos);
@@ -2462,7 +2378,6 @@ Void TComAdaptiveLoopFilter::xFrameChroma( TComPicYuv* pcPicDec, TComPicYuv* pcP
     assert(iHeight == pcPicRest->getHeight() >> 1);
     assert(iWidth  == pcPicRest->getWidth()  >> 1);
   }
-#endif
 
 #if !ALF_CHROMA_NEW_SHAPES
   Pel* pTmpDec1, *pTmpDec2;
@@ -2848,8 +2763,6 @@ Void TComAdaptiveLoopFilter::setAlfCtrlFlags(ALFParam *pAlfParam, TComDataCU *pc
     idx++;
   }
 }
-
-#if MTK_NONCROSS_INLOOP_FILTER
 
 /** create ALF slice units
  * \param pcPic picture related parameters
@@ -4301,7 +4214,6 @@ Void CAlfSlice::getCtrlFlagsForOneSlice()
   }
 }
 
-#endif
 
 #if E057_INTRA_PCM && E192_SPS_PCM_FILTER_DISABLE_SYNTAX
 /** PCM LF disable process. 

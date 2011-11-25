@@ -125,7 +125,7 @@ public:
   virtual Void codeAlfFlag          ( UInt uiCode ) = 0;
   virtual Void codeAlfUvlc          ( UInt uiCode ) = 0;
   virtual Void codeAlfSvlc          ( Int   iCode ) = 0;
-#if FINE_GRANULARITY_SLICES && MTK_NONCROSS_INLOOP_FILTER
+#if FINE_GRANULARITY_SLICES
   /// set slice granularity
   virtual Void setSliceGranularity(Int iSliceGranularity) = 0;
 
@@ -133,12 +133,8 @@ public:
   virtual Int  getSliceGranularity()                      = 0;
 #endif
 
-#if MTK_NONCROSS_INLOOP_FILTER
   /// Code number of ALF CU control flags
   virtual Void codeAlfFlagNum       ( UInt uiCode, UInt minValue, Int iDepth) = 0;
-#else
-  virtual Void codeAlfFlagNum       ( UInt uiCode, UInt minValue ) = 0;
-#endif
   virtual Void codeAlfCtrlFlag      ( UInt uiSymbol ) = 0;
 #if SAO
   virtual Void codeSaoFlag          ( UInt uiCode ) = 0;
@@ -213,7 +209,6 @@ public:
   Void encodeMergeIndex   ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiPUIdx, Bool bRD = false );
   Void encodeAlfCtrlFlag       ( TComDataCU* pcCU, UInt uiAbsPartIdx, Bool bRD = false );
 
-#if MTK_NONCROSS_INLOOP_FILTER
 #if FINE_GRANULARITY_SLICES
   /// set slice granularity
   Void setSliceGranularity (Int iSliceGranularity) {m_pcEntropyCoderIf->setSliceGranularity(iSliceGranularity);}
@@ -221,7 +216,6 @@ public:
 
   /// encode ALF CU control flag
   Void encodeAlfCtrlFlag(UInt uiFlag);
-#endif
 
 #if F747_APS
   Void encodeAlfCtrlParam(AlfCUCtrlInfo& cAlfParam, Int iNumCUsInPic);

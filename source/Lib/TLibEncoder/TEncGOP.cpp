@@ -332,9 +332,7 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
         m_pcSliceEncoder->setSearchRange(pcSlice);
       }
 
-#if MTK_NONCROSS_INLOOP_FILTER
       UInt uiNumSlices = 1;
-#endif
 
 #if FINE_GRANULARITY_SLICES
       UInt uiInternalAddress = pcPic->getNumPartInCU()-4;
@@ -585,9 +583,7 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
             pcSlice->setSliceCurStartCUAddr         ( uiStartCUAddrSlice      );
             pcSlice->setEntropySliceCurStartCUAddr  ( uiStartCUAddrSlice      );
             pcSlice->setSliceBits(0);
-#if MTK_NONCROSS_INLOOP_FILTER
             uiNumSlices ++;
-#endif
           }
         }
         else if (pcSlice->isNextEntropySlice() || (bNoBinBitConstraintViolated && m_pcCfg->getEntropySliceMode()==SHARP_FIXED_NUMBER_OF_LCU_IN_ENTROPY_SLICE))
@@ -617,7 +613,7 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
       m_pcLoopFilter->setCfg(pcSlice->getLoopFilterDisable(), m_pcCfg->getLoopFilterAlphaC0Offget(), m_pcCfg->getLoopFilterBetaOffget());
       m_pcLoopFilter->loopFilterPic( pcPic );
 
-#if SAO && MTK_NONCROSS_INLOOP_FILTER && FINE_GRANULARITY_SLICES 
+#if SAO && FINE_GRANULARITY_SLICES 
       pcSlice = pcPic->getSlice(0);
 
       if(pcSlice->getSPS()->getUseSAO())

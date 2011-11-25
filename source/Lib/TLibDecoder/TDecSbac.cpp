@@ -94,7 +94,7 @@ TDecSbac::TDecSbac()
 #endif
 {
   assert( m_numContextModels <= MAX_NUM_CTX_MOD );
-#if FINE_GRANULARITY_SLICES && MTK_NONCROSS_INLOOP_FILTER
+#if FINE_GRANULARITY_SLICES
   m_iSliceGranularity = 0;
 #endif
 }

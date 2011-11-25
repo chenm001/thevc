@@ -107,7 +107,7 @@ private:
   UInt                  m_uiRun;
   Bool m_bAlfCtrl;
   UInt m_uiMaxAlfCtrlDepth;
-#if FINE_GRANULARITY_SLICES && MTK_NONCROSS_INLOOP_FILTER
+#if FINE_GRANULARITY_SLICES
   Int           m_iSliceGranularity; //!< slice granularity
 #endif
   UInt                      m_uiLPTableD4[3][32];
@@ -186,7 +186,7 @@ public:
   Void  setBitstream        ( TComInputBitstream* p )   { m_pcBitstream = p; }
   Void  setAlfCtrl          ( Bool bAlfCtrl )            { m_bAlfCtrl = bAlfCtrl; }
   Void  setMaxAlfCtrlDepth  ( UInt uiMaxAlfCtrlDepth )  { m_uiMaxAlfCtrlDepth = uiMaxAlfCtrlDepth; }
-#if FINE_GRANULARITY_SLICES && MTK_NONCROSS_INLOOP_FILTER
+#if FINE_GRANULARITY_SLICES
   /// set slice granularity
   Void setSliceGranularity(Int iSliceGranularity)  {m_iSliceGranularity = iSliceGranularity;}
 

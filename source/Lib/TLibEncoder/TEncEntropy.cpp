@@ -458,7 +458,6 @@ Void TEncEntropy::encodeAlfCtrlFlag( TComDataCU* pcCU, UInt uiAbsPartIdx, Bool b
 }
 
 
-#if MTK_NONCROSS_INLOOP_FILTER
 /** Encode ALF CU control flag
  * \param uiFlag ALF CU control flag: 0 or 1
  */
@@ -467,7 +466,6 @@ Void TEncEntropy::encodeAlfCtrlFlag(UInt uiFlag)
   assert(uiFlag == 0 || uiFlag == 1);
   m_pcEntropyCoderIf->codeAlfCtrlFlag( uiFlag );
 }
-#endif
 
 
 /** Encode ALF CU control flag parameters

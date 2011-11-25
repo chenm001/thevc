@@ -1051,9 +1051,7 @@ TComSPS::TComSPS()
 , m_bPCMFilterDisableFlag     (false)
 #endif
 , m_uiMaxTrSize               ( 32)
-#if MTK_NONCROSS_INLOOP_FILTER
 , m_bLFCrossSliceBoundaryFlag (false)
-#endif
 #if SAO
 , m_bUseSAO                   (false) 
 #endif
