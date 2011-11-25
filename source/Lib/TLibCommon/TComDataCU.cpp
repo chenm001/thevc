@@ -4360,9 +4360,7 @@ Void TComDataCU::fillMvpCand ( UInt uiPartIdx, UInt uiPartAddr, RefPicList eRefP
   PartSize eCUMode = getPartitionSize( 0 );
   
   TComMv cMvPred;
-#if MV_LIMIT_SCALE_F088
   Bool bAddedSmvp = false;
-#endif   
 
   pInfo->iN = 0;  
   if (iRefIdx < 0)
@@ -4388,15 +4386,11 @@ Void TComDataCU::fillMvpCand ( UInt uiPartIdx, UInt uiPartAddr, RefPicList eRefP
   if(!bAdded)
   {
     bAdded = xAddMVPCandOrder( pInfo, eRefPicList, iRefIdx, uiPartIdxLB, MD_BELOW_LEFT);
-#if MV_LIMIT_SCALE_F088
     bAddedSmvp = bAdded;
-#endif
     if (!bAdded) 
     {
       bAdded = xAddMVPCandOrder( pInfo, eRefPicList, iRefIdx, uiPartIdxLB, MD_LEFT );
-#if MV_LIMIT_SCALE_F088
       bAddedSmvp = bAdded;
-#endif
     }
   }
   // Above predictor search
@@ -4411,10 +4405,8 @@ Void TComDataCU::fillMvpCand ( UInt uiPartIdx, UInt uiPartAddr, RefPicList eRefP
   {
     bAdded = xAddMVPCand( pInfo, eRefPicList, iRefIdx, uiPartIdxLT, MD_ABOVE_LEFT);
   }
-#if MV_LIMIT_SCALE_F088
   bAdded = bAddedSmvp;
   if (pInfo->iN==2) bAdded = true;
-#endif
 
   if(!bAdded)
   {
@@ -4679,7 +4671,6 @@ Bool TComDataCU::xAddMVPCand( AMVPInfo* pInfo, RefPicList eRefPicList, Int iRefI
     pInfo->m_acMvCand[ pInfo->iN++] = cMvPred;
     return true;
   }
-#if MV_LIMIT_SCALE_F088
 
   if ( pcTmpCU == NULL ) 
     return false;
@@ -4707,7 +4698,6 @@ Bool TComDataCU::xAddMVPCand( AMVPInfo* pInfo, RefPicList eRefPicList, Int iRefI
       return true;
     }
   }
-#endif
   return false;
 }
 
@@ -4814,20 +4804,6 @@ Bool TComDataCU::xAddMVPCandOrder( AMVPInfo* pInfo, RefPicList eRefPicList, Int 
   Int iNeibPOC = iCurrPOC;
   Int iNeibRefPOC;
 
-#if !MV_LIMIT_SCALE_F088
-  if( pcTmpCU->getCUMvField(eRefPicList2nd)->getRefIdx(uiIdx) >= 0 )
-  {
-    iNeibRefPOC = pcTmpCU->getSlice()->getRefPOC( eRefPicList2nd, pcTmpCU->getCUMvField(eRefPicList2nd)->getRefIdx(uiIdx) );
-    if( iNeibRefPOC == iCurrRefPOC ) // Same Reference Frame But Diff List//
-    {
-      TComMv cMvPred = pcTmpCU->getCUMvField(eRefPicList2nd)->getMv(uiIdx);
-
-      clipMv(cMvPred);
-      pInfo->m_acMvCand[ pInfo->iN++] = cMvPred;
-      return true;
-    }
-  }
-#endif
   //---------------  V1 (END) ------------------//
   if( pcTmpCU->getCUMvField(eRefPicList)->getRefIdx(uiIdx) >= 0)
   {
