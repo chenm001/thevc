@@ -139,7 +139,6 @@ protected:
   UInt          m_uiSplitTableD[4][7];
 #endif
 
-#if CAVLC_COUNTER_ADAPT
 #if CAVLC_RQT_CBP
   UChar         m_ucCBP_YUV_TableCounter[4][4];
   UChar         m_ucCBP_4Y_TableCounter[2][2];
@@ -160,7 +159,6 @@ protected:
 
   UChar         m_ucSplitTableCounterSum[4];
   UChar         m_ucMI1TableCounterSum;
-#endif
 
   Void  xWriteCode            ( UInt uiCode, UInt uiLength );
   Void  xWriteUvlc            ( UInt uiCode );

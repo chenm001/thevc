@@ -154,7 +154,6 @@ private:
   UInt                  m_uiMI2TableD[15]; 
   UInt                  m_uiMITableVlcIdx;
 
-#if CAVLC_COUNTER_ADAPT
 #if CAVLC_RQT_CBP
   UChar         m_ucCBP_YUV_TableCounter[4][4];
   UChar         m_ucCBP_4Y_TableCounter[2][2];
@@ -175,7 +174,6 @@ private:
   UChar         m_ucSplitTableCounter[4][4];
   UChar         m_ucSplitTableCounterSum[4];
   UChar         m_ucMI1TableCounterSum;
-#endif
 
   
 public:

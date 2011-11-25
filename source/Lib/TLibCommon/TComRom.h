@@ -564,7 +564,7 @@ extern UInt64 g_nSymbolCounter;
 #define DTRACE_CABAC_N
 
 #endif
-#if CAVLC_COUNTER_ADAPT
+
 /** Function for codeword adaptation
  * \param uiCodeIdx codeword index of the syntax element being coded
  * \param pucTableCounter pointer to counter array
@@ -625,7 +625,6 @@ __inline Void adaptCodeword( UInt uiCodeIdx, UChar * pucTableCounter, UChar & ru
     }
   }
 }
-#endif
 
 //! \}
 

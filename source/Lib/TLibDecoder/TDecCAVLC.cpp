@@ -822,7 +822,6 @@ Void TDecCavlc::resetEntropy          (TComSlice* pcSlice)
 #endif
   m_uiMITableVlcIdx = 0;
 
-#if CAVLC_COUNTER_ADAPT
 #if CAVLC_RQT_CBP
   ::memset(m_ucCBP_YUV_TableCounter, 0, 4*4*sizeof(UChar));
   ::memset(m_ucCBP_4Y_TableCounter,  0, 2*2*sizeof(UChar));
@@ -848,7 +847,6 @@ Void TDecCavlc::resetEntropy          (TComSlice* pcSlice)
 
   m_ucSplitTableCounterSum[0] = m_ucSplitTableCounterSum[1] = m_ucSplitTableCounterSum[2]= m_ucSplitTableCounterSum[3] = 0;
   m_ucMI1TableCounterSum = 0;
-#endif
 }
 
 Void TDecCavlc::parseTerminatingBit( UInt& ruiBit )
@@ -963,17 +961,7 @@ Void TDecCavlc::parseSplitFlag     ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt u
     UInt x = m_uiSplitTableD[uiDepth][cx];
     /* Adapt table */
     uiMode = x;
-#if CAVLC_COUNTER_ADAPT
     adaptCodeword(cx, m_ucSplitTableCounter[uiDepth],  m_ucSplitTableCounterSum[uiDepth],   m_uiSplitTableD[uiDepth],  NULL, 4 );
-#else
-    if (cx>0)
-    {    
-      UInt cy = max(0,cx-1);
-      UInt y = m_uiSplitTableD[uiDepth][cy];
-      m_uiSplitTableD[uiDepth][cy] = x;
-      m_uiSplitTableD[uiDepth][cx] = y;
-    }
-#endif
     uiDepth = uiDepthRemember;
   }
 
@@ -1709,11 +1697,7 @@ Void TDecCavlc::parseInterDir( TComDataCU* pcCU, UInt& ruiInterDir, UInt uiAbsPa
   if ( pcCU->getSlice()->getRefIdxCombineCoding() )
   {
     UInt uiIndex,tmp;
-#if CAVLC_COUNTER_ADAPT
     Int x,cx;
-#else
-    Int x,cx,y,cy;
-#endif
     
     UInt *m_uiMITableD = m_uiMI1TableD;
 
@@ -1754,15 +1738,7 @@ Void TDecCavlc::parseInterDir( TComDataCU* pcCU, UInt& ruiInterDir, UInt uiAbsPa
     /* Adapt table */
     
     cx = tmp;
-#if CAVLC_COUNTER_ADAPT
     adaptCodeword(cx, m_ucMI1TableCounter,  m_ucMI1TableCounterSum,  m_uiMITableD,  NULL, 4 );
-#else
-    cy = max(0,cx-1);  
-    y = m_uiMITableD[cy];
-    m_uiMITableD[cy] = x;
-    m_uiMITableD[cx] = y;
-    m_uiMITableVlcIdx += cx == m_uiMITableVlcIdx ? 0 : (cx < m_uiMITableVlcIdx ? -1 : 1);
-#endif
     
 #if CAVLC_UNIFY_INTER_TABLE_FIX
     if (uiIndex < uiMaxVal || !bCodeException )
@@ -1832,11 +1808,7 @@ Void TDecCavlc::parseInterDir( TComDataCU* pcCU, UInt& ruiInterDir, UInt uiAbsPa
   {
     UInt uiIndex,uiInterDir,tmp;
 
-#if CAVLC_COUNTER_ADAPT
     Int x,cx;
-#else
-    Int x,cx,y,cy;
-#endif
 
     UInt uiMaxVal = 7;
     uiMaxVal = 8;
@@ -1877,15 +1849,7 @@ Void TDecCavlc::parseInterDir( TComDataCU* pcCU, UInt& ruiInterDir, UInt uiAbsPa
     
     cx = tmp;
 
-#if CAVLC_COUNTER_ADAPT
     adaptCodeword(cx, m_ucMI1TableCounter,  m_ucMI1TableCounterSum,  m_uiMITableD,  NULL, 4 );
-#else
-    cy = max(0,cx-1);
-    y = m_uiMITableD[cy];
-    m_uiMITableD[cy] = x;
-    m_uiMITableD[cx] = y;
-    m_uiMITableVlcIdx += cx == m_uiMITableVlcIdx ? 0 : (cx < m_uiMITableVlcIdx ? -1 : 1);
-#endif
     {
       uiInterDir = min(2,uiIndex>>1);  
       if ( uiIndex >=4 )
@@ -2384,11 +2348,7 @@ Void TDecCavlc::parseCbf( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eType, U
     UInt uiCbf,tmp;
     UInt uiCBP,uiCbfY,uiCbfU,uiCbfV;
 
-#if CAVLC_COUNTER_ADAPT
     Int n, cx;
-#else
-    Int n,x,cx,y,cy;
-#endif
 
     /* Start adaptation */
     n = pcCU->isIntra( uiAbsPartIdx ) ? 0 : 1;
@@ -2407,19 +2367,10 @@ Void TDecCavlc::parseCbf( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eType, U
     /* Adapt LP table */
     cx = tmp;
 
-#if CAVLC_COUNTER_ADAPT
 #if CAVLC_RQT_CBP
     adaptCodeword(cx, m_ucCBP_YUV_TableCounter[n],  m_ucCBP_YUV_TableCounterSum[n],  m_uiCBP_YUV_TableD[n],  NULL, 4);
 #else
     adaptCodeword(cx, m_ucCBFTableCounter[n],  m_ucCBFTableCounterSum[n],  m_uiCBPTableD[n],  NULL, 4);
-#endif
-#else
-    cy = max(0,cx-1);
-    x = uiCBP;
-    y = m_uiCBPTableD[n][cy];
-    m_uiCBPTableD[n][cy] = x;
-    m_uiCBPTableD[n][cx] = y;
-    m_uiCbpVlcIdx[n] += cx == m_uiCbpVlcIdx[n] ? 0 : (cx < m_uiCbpVlcIdx[n] ? -1 : 1);
 #endif
 
     uiCbfY = (uiCBP>>0)&1;
@@ -2442,12 +2393,7 @@ Void TDecCavlc::parseBlockCbf( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eTy
   assert(uiTrDepth > 0);
   UInt uiCbf4, uiCbf;
   
-#if CAVLC_COUNTER_ADAPT
   Int cx;
-#else
-  Int x,cx,y,cy;
-#endif
-
   UInt tmp;
   
   UInt n = (pcCU->isIntra(uiAbsPartIdx) && eType == TEXT_LUMA)? 0:1;
@@ -2465,18 +2411,10 @@ Void TDecCavlc::parseBlockCbf( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eTy
 
   cx = tmp;
 
-#if CAVLC_COUNTER_ADAPT
 #if CAVLC_RQT_CBP
   adaptCodeword(cx, m_ucCBP_4Y_TableCounter[n], m_ucCBP_4Y_TableCounterSum[n], m_uiCBP_4Y_TableD[n], NULL, 2);
 #else
   adaptCodeword(cx, m_ucBlkCBPTableCounter[n],  m_ucBlkCBPTableCounterSum[n],  m_uiBlkCBPTableD[n],  NULL, 2);
-#endif
-#else
-  cy = max(0,cx-1);
-  x = uiCbf4;
-  y = m_uiBlkCBPTableD[n][cy];
-  m_uiBlkCBPTableD[n][cy] = x;
-  m_uiBlkCBPTableD[n][cx] = y;
 #endif
 
 #if CAVLC_RQT_CBP
