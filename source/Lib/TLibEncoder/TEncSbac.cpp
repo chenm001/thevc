@@ -427,11 +427,7 @@ Void TEncSbac::xCopyFrom( TEncSbac* pSrc )
 Void TEncSbac::codeMVPIdx ( TComDataCU* pcCU, UInt uiAbsPartIdx, RefPicList eRefList )
 {
   Int iSymbol = pcCU->getMVPIdx(eRefList, uiAbsPartIdx);
-#if MRG_AMVP_FIXED_IDX_F470
   Int iNum = AMVP_MAX_NUM_CANDS;
-#else
-  Int iNum    = pcCU->getMVPNum(eRefList, uiAbsPartIdx);
-#endif
 
   xWriteUnaryMaxSymbol(iSymbol, m_cMVPIdxSCModel.get(0), 1, iNum-1);
 }
@@ -665,24 +661,7 @@ Void TEncSbac::codeMergeFlag( TComDataCU* pcCU, UInt uiAbsPartIdx )
   m_pcBinIf->encodeBin( uiSymbol, *m_cCUMergeFlagExtSCModel.get( 0 ) );
 #else
   UInt uiCtx = 0;
-#if CHANGE_MERGE_CONTEXT || MRG_AMVP_FIXED_IDX_F470
   uiCtx = pcCU->getCtxMergeFlag( uiAbsPartIdx );
-#else
-  for(UInt uiIter = 0; uiIter < MRG_MAX_NUM_CANDS; uiIter++ )
-  {
-    if( pcCU->getNeighbourCandIdx( uiIter, uiAbsPartIdx ) == uiIter + 1 )
-    {
-      if( uiIter == 0 )
-      {
-        uiCtx++;
-      }
-      else if( uiIter == 1 )
-      {
-        uiCtx++;
-      }
-    }
-  }
-#endif
   UInt uiSymbol = pcCU->getMergeFlag( uiAbsPartIdx ) ? 1 : 0;
   m_pcBinIf->encodeBin( uiSymbol, m_cCUMergeFlagExtSCModel.get( 0, 0, uiCtx ) );
 #endif
@@ -713,91 +692,9 @@ Void TEncSbac::codeMergeFlag( TComDataCU* pcCU, UInt uiAbsPartIdx )
  */
 Void TEncSbac::codeMergeIndex( TComDataCU* pcCU, UInt uiAbsPartIdx )
 {
-#if MRG_AMVP_FIXED_IDX_F470
   UInt uiNumCand = MRG_MAX_NUM_CANDS;
   UInt auiCtx[4] = { 0, 1, 2, 3 };
-#else
-  Bool bLeftInvolved = false;
-  Bool bAboveInvolved = false;
-  Bool bCollocatedInvolved = false;
-  Bool bCornerInvolved = false;
-  UInt uiNumCand = 0;
-  for( UInt uiIter = 0; uiIter < MRG_MAX_NUM_CANDS; ++uiIter )
-  {
-    if( pcCU->getNeighbourCandIdx( uiIter, uiAbsPartIdx ) == uiIter + 1 )
-    {
-      uiNumCand++;
-      if( uiIter == 0 )
-      {
-        bLeftInvolved = true;
-      }
-      else if( uiIter == 1 )
-      {
-        bAboveInvolved = true;
-      }
-      else if( uiIter == 2 )
-      {
-        bCollocatedInvolved = true;
-      }
-      else if( uiIter == 3 )
-      {
-        bCornerInvolved = true;
-      }
-    }
-  }
-  assert( uiNumCand > 1 );
-
-  UInt auiCtx[4] = { 0, 0, 0, 3 };
-  if( bLeftInvolved && bAboveInvolved )
-  {
-    auiCtx[0] = 0;
-  }
-  else if( bLeftInvolved || bAboveInvolved )
-  {
-    auiCtx[0] = bCollocatedInvolved ? 1 : 2;
-  }
-  else
-  {
-    auiCtx[0] = bCollocatedInvolved ? 2 : 3;
-  }
-
-  if( uiNumCand >= 3 )
-  {
-    if( bAboveInvolved )
-  {
-      auiCtx[1] = bCollocatedInvolved ? 1 : 2;
-    }
-    else
-    {
-      auiCtx[1] = bCollocatedInvolved ? 2 : 3;
-    }
-  }
-
-  if( uiNumCand >= 4 )
-  {
-    auiCtx[2] =  bCollocatedInvolved ? 2 : 3;
-  }
-#endif
-
   UInt uiUnaryIdx = pcCU->getMergeIndex( uiAbsPartIdx );
-#if !(MRG_AMVP_FIXED_IDX_F470)
-  if( !bCornerInvolved && uiUnaryIdx > 3 )
-  {
-    --uiUnaryIdx;
-  }
-  if( !bCollocatedInvolved && uiUnaryIdx > 2 )
-  {
-    --uiUnaryIdx;
-  }
-  if( !bAboveInvolved && uiUnaryIdx > 1 )
-  {
-    --uiUnaryIdx;
-  }
-  if( !bLeftInvolved && uiUnaryIdx > 0 )
-  {
-    --uiUnaryIdx;
-  }
-#endif
   for( UInt ui = 0; ui < uiNumCand - 1; ++ui )
   {
     const UInt uiSymbol = ui == uiUnaryIdx ? 0 : 1;
@@ -811,18 +708,6 @@ Void TEncSbac::codeMergeIndex( TComDataCU* pcCU, UInt uiAbsPartIdx )
   DTRACE_CABAC_T( "\tparseMergeIndex()" );
   DTRACE_CABAC_T( "\tuiMRGIdx= " );
   DTRACE_CABAC_V( pcCU->getMergeIndex( uiAbsPartIdx ) );
-#if !(MRG_AMVP_FIXED_IDX_F470)
-  DTRACE_CABAC_T( "\tuiNumCand= " );
-  DTRACE_CABAC_V( uiNumCand );
-  DTRACE_CABAC_T( "\tbLeftInvolved= " );
-  DTRACE_CABAC_V( bLeftInvolved );
-  DTRACE_CABAC_T( "\tbAboveInvolved= " );
-  DTRACE_CABAC_V( bAboveInvolved );
-  DTRACE_CABAC_T( "\tbCollocatedInvolved= " );
-  DTRACE_CABAC_V( bCollocatedInvolved );
-  DTRACE_CABAC_T( "\tbCornerRTInvolved= " );
-  DTRACE_CABAC_V( bCornerInvolved );
-#endif
   DTRACE_CABAC_T( "\n" );
 }
 

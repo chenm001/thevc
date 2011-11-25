@@ -335,19 +335,11 @@ Void TDecCu::xDecodeCU( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
       m_ppcCU[uiDepth]->copyInterPredInfoFrom( pcCU, uiAbsPartIdx, REF_PIC_LIST_1 );
       TComMvField cMvFieldNeighbours[MRG_MAX_NUM_CANDS << 1]; // double length for mv of both lists
       UChar uhInterDirNeighbours[MRG_MAX_NUM_CANDS];
-#if MRG_AMVP_FIXED_IDX_F470
       Int numValidMergeCand = 0;
-#else
-      UInt uiNeighbourCandIdx[MRG_MAX_NUM_CANDS]; //MVs with same idx => same cand
-#endif
       for( UInt ui = 0; ui < MRG_MAX_NUM_CANDS; ++ui )
       {
         uhInterDirNeighbours[ui] = 0;
-#if !MRG_AMVP_FIXED_IDX_F470
-        uiNeighbourCandIdx[ui] = 0;
-#endif
       }
-#if MRG_AMVP_FIXED_IDX_F470
       m_pcEntropyDecoder->decodeMergeIndex( pcCU, 0, uiAbsPartIdx, SIZE_2Nx2N, uhInterDirNeighbours, cMvFieldNeighbours, uiDepth );
       m_ppcCU[uiDepth]->getInterMergeCandidates( 0, 0, uiDepth, cMvFieldNeighbours, uhInterDirNeighbours, numValidMergeCand );
 
@@ -369,14 +361,6 @@ Void TDecCu::xDecodeCU( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
         pcCU->getCUMvField( REF_PIC_LIST_1 )->setAllMvd( cTmpMv, SIZE_2Nx2N, uiAbsPartIdx, uiDepth );
         pcCU->getCUMvField( REF_PIC_LIST_1 )->setAllMvField( cMvFieldNeighbours[ 2*uiMergeIndex + 1 ], SIZE_2Nx2N, uiAbsPartIdx, uiDepth );
       }
-#else
-      m_ppcCU[uiDepth]->getInterMergeCandidates( 0, 0, uiDepth, cMvFieldNeighbours, uhInterDirNeighbours, uiNeighbourCandIdx );
-      for(UInt uiIter = 0; uiIter < MRG_MAX_NUM_CANDS; uiIter++ )
-      {
-        pcCU->setNeighbourCandIdxSubParts( uiIter, uiNeighbourCandIdx[uiIter], uiAbsPartIdx, 0, uiDepth );
-      }
-      m_pcEntropyDecoder->decodeMergeIndex( pcCU, 0, uiAbsPartIdx, SIZE_2Nx2N, uhInterDirNeighbours, cMvFieldNeighbours, uiDepth );
-#endif
     }
     else
 #endif

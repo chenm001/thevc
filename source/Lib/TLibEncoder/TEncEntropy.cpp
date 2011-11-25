@@ -391,28 +391,8 @@ Void TEncEntropy::codeFilt(ALFParam* pAlfParam)
  */
 Void TEncEntropy::encodeMergeFlag( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiPUIdx )
 { 
-#if !CHANGE_GET_MERGE_CANDIDATE && !MRG_AMVP_FIXED_IDX_F470
-  UInt uiNumCand = 0;
-  for(UInt uiIter = 0; uiIter < MRG_MAX_NUM_CANDS; uiIter++ )
-  {
-    if( pcCU->getNeighbourCandIdx( uiIter, uiAbsPartIdx ) == uiIter + 1 )
-    {
-      uiNumCand++;
-      break;
-    }
-  }
-  if ( uiNumCand )
-  {
-#endif
-    // at least one merge candidate exists
-    m_pcEntropyCoderIf->codeMergeFlag( pcCU, uiAbsPartIdx );
-#if !CHANGE_GET_MERGE_CANDIDATE && !MRG_AMVP_FIXED_IDX_F470
-  }
-  else
-  {
-    assert( !pcCU->getMergeFlag( uiAbsPartIdx ) );
-  }
-#endif
+  // at least one merge candidate exists
+  m_pcEntropyCoderIf->codeMergeFlag( pcCU, uiAbsPartIdx );
 }
 
 #if HHI_MRG_SKIP
@@ -436,18 +416,7 @@ Void TEncEntropy::encodeMergeIndex( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt ui
   }
 #endif
 
-#if MRG_AMVP_FIXED_IDX_F470
   UInt uiNumCand = MRG_MAX_NUM_CANDS;
-#else
-  UInt uiNumCand = 0;
-  for(UInt uiIter = 0; uiIter < MRG_MAX_NUM_CANDS; uiIter++ )
-  {
-    if( pcCU->getNeighbourCandIdx( uiIter, uiAbsPartIdx ) == uiIter + 1 )
-    {
-      uiNumCand++;
-    }
-  }
-#endif
   if ( uiNumCand > 1 )
   {
     m_pcEntropyCoderIf->codeMergeIndex( pcCU, uiAbsPartIdx );
@@ -1076,11 +1045,7 @@ Void TEncEntropy::encodeMvdPU( TComDataCU* pcCU, UInt uiAbsPartIdx, RefPicList e
 
 Void TEncEntropy::encodeMVPIdxPU( TComDataCU* pcCU, UInt uiAbsPartIdx, RefPicList eRefList )
 {
-#if MRG_AMVP_FIXED_IDX_F470
   if ( (pcCU->getInterDir( uiAbsPartIdx ) & ( 1 << eRefList )) && (pcCU->getAMVPMode(uiAbsPartIdx) == AM_EXPL) )
-#else
-  if ( (pcCU->getInterDir( uiAbsPartIdx ) & ( 1 << eRefList )) && (pcCU->getMVPNum(eRefList, uiAbsPartIdx)> 1) && (pcCU->getAMVPMode(uiAbsPartIdx) == AM_EXPL) )
-#endif
   {
     m_pcEntropyCoderIf->codeMVPIdx( pcCU, uiAbsPartIdx, eRefList );
   }

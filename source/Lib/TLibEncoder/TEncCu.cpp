@@ -1623,45 +1623,23 @@ Void TEncCu::xCheckRDCostMerge2Nx2N( TComDataCU*& rpcBestCU, TComDataCU*& rpcTem
   assert( rpcTempCU->getSlice()->getSliceType() != I_SLICE );
   TComMvField  cMvFieldNeighbours[MRG_MAX_NUM_CANDS << 1]; // double length for mv of both lists
   UChar uhInterDirNeighbours[MRG_MAX_NUM_CANDS];
-#if MRG_AMVP_FIXED_IDX_F470
   Int numValidMergeCand = 0;
-#else
-  UInt uiNeighbourCandIdx[MRG_MAX_NUM_CANDS]; //MVs with same idx => same cand
-#endif
 
   for( UInt ui = 0; ui < MRG_MAX_NUM_CANDS; ++ui )
   {
     uhInterDirNeighbours[ui] = 0;
-#if !MRG_AMVP_FIXED_IDX_F470
-    uiNeighbourCandIdx[ui] = 0;
-#endif
   }
   UChar uhDepth = rpcTempCU->getDepth( 0 );
   rpcTempCU->setPartSizeSubParts( SIZE_2Nx2N, 0, uhDepth ); // interprets depth relative to LCU level
-#if MRG_AMVP_FIXED_IDX_F470
   rpcTempCU->getInterMergeCandidates( 0, 0, uhDepth, cMvFieldNeighbours,uhInterDirNeighbours, numValidMergeCand );
-#else
-  rpcTempCU->getInterMergeCandidates( 0, 0, uhDepth, cMvFieldNeighbours,uhInterDirNeighbours, uiNeighbourCandIdx );
-#endif
   
-#if MRG_AMVP_FIXED_IDX_F470
   for( UInt uiMergeCand = 0; uiMergeCand < numValidMergeCand; ++uiMergeCand )
   {
     {
-#else
-  Bool bValidCands = false;
-  for( UInt uiMergeCand = 0; uiMergeCand < MRG_MAX_NUM_CANDS; ++uiMergeCand )
-  {
-    if( uiNeighbourCandIdx[uiMergeCand] == ( uiMergeCand + 1 ) )
-    {
-#endif
 #if HHI_MRG_SKIP
       TComYuv* pcPredYuvTemp = NULL;
       for( UInt uiNoResidual = 0; uiNoResidual < 2; ++uiNoResidual )
       {
-#endif
-#if !MRG_AMVP_FIXED_IDX_F470
-      bValidCands = true;
 #endif
       // set MC parameters
 #if HHI_MRG_SKIP
@@ -1673,12 +1651,6 @@ Void TEncCu::xCheckRDCostMerge2Nx2N( TComDataCU*& rpcBestCU, TComDataCU*& rpcTem
       rpcTempCU->setMergeFlagSubParts( true, 0, 0, uhDepth ); // interprets depth relative to LCU level
       rpcTempCU->setMergeIndexSubParts( uiMergeCand, 0, 0, uhDepth ); // interprets depth relative to LCU level
       rpcTempCU->setInterDirSubParts( uhInterDirNeighbours[uiMergeCand], 0, 0, uhDepth ); // interprets depth relative to LCU level
-#if !MRG_AMVP_FIXED_IDX_F470
-      for( UInt uiInner = 0; uiInner < MRG_MAX_NUM_CANDS; uiInner++ )
-      {
-        rpcTempCU->setNeighbourCandIdxSubParts( uiInner, uiNeighbourCandIdx[uiInner], 0, 0,uhDepth );
-      }
-#endif
       rpcTempCU->getCUMvField( REF_PIC_LIST_0 )->setAllMvField( cMvFieldNeighbours[0 + 2*uiMergeCand], SIZE_2Nx2N, 0, 0 ); // interprets depth relative to rpcTempCU level
       rpcTempCU->getCUMvField( REF_PIC_LIST_1 )->setAllMvField( cMvFieldNeighbours[1 + 2*uiMergeCand], SIZE_2Nx2N, 0, 0 ); // interprets depth relative to rpcTempCU level
 
@@ -1739,15 +1711,6 @@ Void TEncCu::xCheckRDCostMerge2Nx2N( TComDataCU*& rpcBestCU, TComDataCU*& rpcTem
 #endif
     }
   }
-#if !MRG_AMVP_FIXED_IDX_F470
-  if( bValidCands )
-  {
-    for( UInt uiMergeCand = 0; uiMergeCand < MRG_MAX_NUM_CANDS; uiMergeCand++ )
-    {
-      rpcBestCU->setNeighbourCandIdxSubParts( uiMergeCand, uiNeighbourCandIdx[uiMergeCand], 0, 0,uhDepth );
-    }
-  }
-#endif
 }
 
 #if AMP_MRG
@@ -1912,15 +1875,6 @@ Void TEncCu::xCheckBestMode( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU )
   {
     TComYuv* pcYuv;
     UChar uhDepth = rpcBestCU->getDepth(0);
-#if !MRG_AMVP_FIXED_IDX_F470
-    if( rpcTempCU->getSlice()->getSPS()->getUseMRG() && uhDepth == rpcTempCU->getDepth( 0 ) && rpcTempCU->getSlice()->getSliceType() != I_SLICE && rpcTempCU->getPartitionSize( 0 ) == SIZE_2Nx2N && !rpcTempCU->getMergeFlag( 0 ) )
-    {
-      for( UInt ui = 0; ui < MRG_MAX_NUM_CANDS; ui++ )
-      {
-        rpcTempCU->setNeighbourCandIdxSubParts( ui, rpcBestCU->getNeighbourCandIdx( ui, 0 ), 0, 0, uhDepth );
-      }          
-    }      
-#endif
 
     // Change Information data
     TComDataCU* pcCU = rpcBestCU;
@@ -1956,16 +1910,6 @@ Void TEncCu::xCheckBestMode( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, UIn
   if( rpcTempCU->getTotalCost() < rpcBestCU->getTotalCost() )
   {
     TComYuv* pcYuv;
-#if !MRG_AMVP_FIXED_IDX_F470
-    if( rpcTempCU->getSlice()->getSPS()->getUseMRG() && uiDepth == rpcTempCU->getDepth( 0 ) && rpcTempCU->getSlice()->getSliceType() != I_SLICE && rpcTempCU->getPartitionSize( 0 ) == SIZE_2Nx2N && !rpcTempCU->getMergeFlag( 0 ) )
-    {
-      for( UInt ui = 0; ui < MRG_MAX_NUM_CANDS; ui++ )
-      {
-        rpcTempCU->setNeighbourCandIdxSubParts( ui, rpcBestCU->getNeighbourCandIdx( ui, 0 ), 0, 0, uiDepth );
-      }          
-    }      
-#endif
-
     // Change Information data
     TComDataCU* pcCU = rpcBestCU;
     rpcBestCU = rpcTempCU;

@@ -342,10 +342,6 @@ protected:
                                     UInt&           uiMergeIndex,
                                     UInt&           ruiCost,
                                     UInt&           ruiBits
-#if !MRG_AMVP_FIXED_IDX_F470
-                                  , UChar*          puhNeighCands,
-                                    Bool&           bValid
-#endif
                                    );
   // -------------------------------------------------------------------------------------------------------------------
   // motion estimation

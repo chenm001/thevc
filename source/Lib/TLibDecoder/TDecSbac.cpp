@@ -692,24 +692,7 @@ Void TDecSbac::parseMergeFlag ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDept
   pcCU->setMergeFlagSubParts( uiSymbol ? true : false, uiAbsPartIdx, uiPUIdx, uiDepth );
 #else
   UInt uiCtx = 0;
-#if CHANGE_MERGE_CONTEXT || MRG_AMVP_FIXED_IDX_F470
   uiCtx = pcCU->getCtxMergeFlag( uiAbsPartIdx );
-#else
-  for(UInt uiIter = 0; uiIter < MRG_MAX_NUM_CANDS; uiIter++ )
-  {
-    if( pcCU->getNeighbourCandIdx( uiIter, uiAbsPartIdx ) == uiIter + 1 )
-    {
-      if( uiIter == 0 )
-      {
-        uiCtx++;
-      }
-      else if( uiIter == 1 )
-      {
-        uiCtx++;
-      }
-    }
-  }
-#endif
   m_pcTDecBinIf->decodeBin( uiSymbol, m_cCUMergeFlagExtSCModel.get( 0, 0, uiCtx ) );
   pcCU->setMergeFlagSubParts( uiSymbol ? true : false, uiAbsPartIdx, uiPUIdx, uiDepth );
 #endif
@@ -735,73 +718,10 @@ Void TDecSbac::parseMergeFlag ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDept
 
 Void TDecSbac::parseMergeIndex ( TComDataCU* pcCU, UInt& ruiMergeIndex, UInt uiAbsPartIdx, UInt uiDepth )
 {
-#if MRG_AMVP_FIXED_IDX_F470
   UInt uiNumCand = MRG_MAX_NUM_CANDS;
   UInt auiCtx[4] = { 0, 1, 2, 3 };
-#else
-  Bool bLeftInvolved = false;
-  Bool bAboveInvolved = false;
-  Bool bCollocatedInvolved = false;
-  Bool bCornerInvolved = false;
-  UInt uiNumCand = 0;
-  for( UInt uiIter = 0; uiIter < MRG_MAX_NUM_CANDS; ++uiIter )
-  {
-    if( pcCU->getNeighbourCandIdx( uiIter, uiAbsPartIdx ) == uiIter + 1 )
-    {
-      uiNumCand++;
-      if( uiIter == 0 )
-      {
-        bLeftInvolved = true;
-      }
-      else if( uiIter == 1 )
-      {
-        bAboveInvolved = true;
-      }
-      else if( uiIter == 2 )
-      {
-        bCollocatedInvolved = true;
-      }
-      else if( uiIter == 3 )
-      {
-        bCornerInvolved = true;
-      }
-    }
-  }
-  assert( uiNumCand > 1 );
-
-  UInt auiCtx[4] = { 0, 0, 0, 3 };
-  if( bLeftInvolved && bAboveInvolved )
-  {
-    auiCtx[0] = 0;
-  }
-  else if( bLeftInvolved || bAboveInvolved )
-  {
-    auiCtx[0] = bCollocatedInvolved ? 1 : 2;
-  }
-  else
-  {
-    auiCtx[0] = bCollocatedInvolved ? 2 : 3;
-  }
-
-  if( uiNumCand >= 3 )
-  {
-    if( bAboveInvolved )
-    {
-      auiCtx[1] = bCollocatedInvolved ? 1 : 2;
-    }
-    else
-    {
-      auiCtx[1] = bCollocatedInvolved ? 2 : 3;
-    }
-  }
-
-  if( uiNumCand >= 4 )
-  {
-    auiCtx[2] =  bCollocatedInvolved ? 2 : 3;
-  }
-#endif
-
   UInt uiUnaryIdx = 0;
+
   for( ; uiUnaryIdx < uiNumCand - 1; ++uiUnaryIdx )
   {
     UInt uiSymbol = 0;
@@ -811,53 +731,19 @@ Void TDecSbac::parseMergeIndex ( TComDataCU* pcCU, UInt& ruiMergeIndex, UInt uiA
       break;
     }
   }
-#if !(MRG_AMVP_FIXED_IDX_F470)
-  if( !bLeftInvolved )
-  {
-    ++uiUnaryIdx;
-  }
-  if( !bAboveInvolved && uiUnaryIdx >= 1 )
-  {
-    ++uiUnaryIdx;
-  }
-  if( !bCollocatedInvolved && uiUnaryIdx >= 2 )
-  {
-    ++uiUnaryIdx;
-  }
-  if( !bCornerInvolved && uiUnaryIdx >= 3 )
-  {
-    ++uiUnaryIdx;
-  }
-#endif
   ruiMergeIndex = uiUnaryIdx;
 
   DTRACE_CABAC_VL( g_nSymbolCounter++ )
   DTRACE_CABAC_T( "\tparseMergeIndex()" )
   DTRACE_CABAC_T( "\tuiMRGIdx= " )
   DTRACE_CABAC_V( ruiMergeIndex )
-#if !(MRG_AMVP_FIXED_IDX_F470)
-  DTRACE_CABAC_T( "\tuiNumCand= " )
-  DTRACE_CABAC_V( uiNumCand )
-  DTRACE_CABAC_T( "\tbLeftInvolved= " )
-  DTRACE_CABAC_V( bLeftInvolved )
-  DTRACE_CABAC_T( "\tbAboveInvolved= " )
-  DTRACE_CABAC_V( bAboveInvolved )
-  DTRACE_CABAC_T( "\tbCollocatedInvolved= " )
-  DTRACE_CABAC_V( bCollocatedInvolved )
-  DTRACE_CABAC_T( "\tbCornerRTInvolved= " )
-  DTRACE_CABAC_V( bCornerInvolved )
-#endif
   DTRACE_CABAC_T( "\n" )
 }
 
 Void TDecSbac::parseMVPIdx      ( TComDataCU* pcCU, Int& riMVPIdx, Int iMVPNum, UInt uiAbsPartIdx, UInt uiDepth, RefPicList eRefList )
 {
   UInt uiSymbol;
-#if MRG_AMVP_FIXED_IDX_F470
   xReadUnaryMaxSymbol(uiSymbol, m_cMVPIdxSCModel.get(0), 1, AMVP_MAX_NUM_CANDS-1);
-#else
-  xReadUnaryMaxSymbol(uiSymbol, m_cMVPIdxSCModel.get(0), 1, iMVPNum-1);
-#endif
   riMVPIdx = uiSymbol;
 }
 

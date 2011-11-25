@@ -803,12 +803,7 @@ Void TEncCavlc::codeSliceFinish ()
 Void TEncCavlc::codeMVPIdx ( TComDataCU* pcCU, UInt uiAbsPartIdx, RefPicList eRefList )
 {
   Int iSymbol = pcCU->getMVPIdx(eRefList, uiAbsPartIdx);
-#if MRG_AMVP_FIXED_IDX_F470
   Int iNum = AMVP_MAX_NUM_CANDS;
-#else
-  Int iNum    = pcCU->getMVPNum(eRefList, uiAbsPartIdx);
-#endif
-  
   xWriteUnaryMaxSymbol(iSymbol, iNum-1);
 }
 
@@ -882,58 +877,9 @@ Void TEncCavlc::codeMergeFlag    ( TComDataCU* pcCU, UInt uiAbsPartIdx )
  */
 Void TEncCavlc::codeMergeIndex    ( TComDataCU* pcCU, UInt uiAbsPartIdx )
 {
-#if MRG_AMVP_FIXED_IDX_F470
   UInt uiNumCand = MRG_MAX_NUM_CANDS;
-#else
-  Bool bLeftInvolved = false;
-  Bool bAboveInvolved = false;
-  Bool bCollocatedInvolved = false;
-  Bool bCornerInvolved = false;
-  UInt uiNumCand = 0;
-  for( UInt uiIter = 0; uiIter < MRG_MAX_NUM_CANDS; ++uiIter )
-  {
-    if( pcCU->getNeighbourCandIdx( uiIter, uiAbsPartIdx ) == uiIter + 1 )
-    {
-      uiNumCand++;
-      if( uiIter == 0 )
-      {
-        bLeftInvolved = true;
-      }
-      else if( uiIter == 1 )
-      {
-        bAboveInvolved = true;
-      }
-      else if( uiIter == 2 )
-      {
-        bCollocatedInvolved = true;
-      }
-      else if( uiIter == 3 )
-      {
-        bCornerInvolved = true;
-      }
-    }
-  }
-#endif
   assert( uiNumCand > 1 );
   UInt uiUnaryIdx = pcCU->getMergeIndex( uiAbsPartIdx );
-#if !(MRG_AMVP_FIXED_IDX_F470)
-  if( !bCornerInvolved && uiUnaryIdx > 3 )
-  {
-    --uiUnaryIdx;
-  }
-  if( !bCollocatedInvolved && uiUnaryIdx > 2 )
-  {
-    --uiUnaryIdx;
-  }
-  if( !bAboveInvolved && uiUnaryIdx > 1 )
-  {
-    --uiUnaryIdx;
-  }
-  if( !bLeftInvolved && uiUnaryIdx > 0 )
-  {
-    --uiUnaryIdx;
-  }
-#endif
   for( UInt ui = 0; ui < uiNumCand - 1; ++ui )
   {
     const UInt uiSymbol = ui == uiUnaryIdx ? 0 : 1;

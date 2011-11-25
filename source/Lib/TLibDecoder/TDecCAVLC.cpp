@@ -912,11 +912,7 @@ Void TDecCavlc::parseSkipFlag( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth
 Void TDecCavlc::parseMVPIdx( TComDataCU* pcCU, Int& riMVPIdx, Int iMVPNum, UInt uiAbsPartIdx, UInt uiDepth, RefPicList eRefList )
 {
   UInt uiSymbol;
-#if MRG_AMVP_FIXED_IDX_F470
   xReadUnaryMaxSymbol(uiSymbol, AMVP_MAX_NUM_CANDS-1);
-#else
-  xReadUnaryMaxSymbol(uiSymbol, iMVPNum-1);
-#endif
   riMVPIdx = uiSymbol;
 }
 
@@ -2867,38 +2863,7 @@ Void TDecCavlc::parseMergeFlag ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDep
  */
 Void TDecCavlc::parseMergeIndex ( TComDataCU* pcCU, UInt& ruiMergeIndex, UInt uiAbsPartIdx, UInt uiDepth )
 {
-#if MRG_AMVP_FIXED_IDX_F470
   UInt uiNumCand = MRG_MAX_NUM_CANDS;
-#else
-  Bool bLeftInvolved = false;
-  Bool bAboveInvolved = false;
-  Bool bCollocatedInvolved = false;
-  Bool bCornerInvolved = false;
-  UInt uiNumCand = 0;
-  for( UInt uiIter = 0; uiIter < MRG_MAX_NUM_CANDS; ++uiIter )
-  {
-    if( pcCU->getNeighbourCandIdx( uiIter, uiAbsPartIdx ) == uiIter + 1 )
-    {
-      uiNumCand++;
-      if( uiIter == 0 )
-      {
-        bLeftInvolved = true;
-      }
-      else if( uiIter == 1 )
-      {
-        bAboveInvolved = true;
-      }
-      else if( uiIter == 2 )
-      {
-        bCollocatedInvolved = true;
-      }
-      else if( uiIter == 3 )
-      {
-        bCornerInvolved = true;
-      }
-    }
-  }
-#endif
   assert( uiNumCand > 1 );
   UInt uiUnaryIdx = 0;
   for( ; uiUnaryIdx < uiNumCand - 1; ++uiUnaryIdx )
@@ -2910,25 +2875,6 @@ Void TDecCavlc::parseMergeIndex ( TComDataCU* pcCU, UInt& ruiMergeIndex, UInt ui
       break;
     }
   }
-#if !(MRG_AMVP_FIXED_IDX_F470)
-  if( !bLeftInvolved )
-  {
-    ++uiUnaryIdx;
-  }
-  if( !bAboveInvolved && uiUnaryIdx >= 1 )
-  {
-    ++uiUnaryIdx;
-  }
-
-  if( !bCollocatedInvolved && uiUnaryIdx >= 2 )
-  {
-    ++uiUnaryIdx;
-  }
-  if( !bCornerInvolved && uiUnaryIdx >= 3 )
-  {
-    ++uiUnaryIdx;
-  }
-#endif
   ruiMergeIndex = uiUnaryIdx;
 }
 

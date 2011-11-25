@@ -130,9 +130,6 @@ private:
   
   Bool*         m_pbMergeFlag;        ///< array of merge flags
   UChar*        m_puhMergeIndex;      ///< array of merge candidate indices
-#if !MRG_AMVP_FIXED_IDX_F470
-  UChar*        m_apuhNeighbourCandIdx[ MRG_MAX_NUM_CANDS ];///< array of motion vector predictor candidates indices
-#endif
 #if AMP_MRG
   Bool          m_bIsMergeAMP;
 #endif
@@ -330,12 +327,6 @@ public:
   UChar         getMergeIndex         ( UInt uiIdx )            { return m_puhMergeIndex[uiIdx];                  }
   Void          setMergeIndex         ( UInt uiIdx, UInt uiMergeIndex ) { m_puhMergeIndex[uiIdx] = uiMergeIndex;  }
   Void          setMergeIndexSubParts ( UInt uiMergeIndex, UInt uiAbsPartIdx, UInt uiPartIdx, UInt uiDepth );
-#if !MRG_AMVP_FIXED_IDX_F470
-  UChar*        getNeighbourCandIdx         ( UInt uiCandIdx )            { return m_apuhNeighbourCandIdx[uiCandIdx];           }
-  UChar         getNeighbourCandIdx         ( UInt uiCandIdx, UInt uiIdx ){ return m_apuhNeighbourCandIdx[uiCandIdx][uiIdx];           }
-  Void          setNeighbourCandIdx         ( UInt uiCandIdx, UInt uiIdx, UChar uhNeighCands ) { m_apuhNeighbourCandIdx[uiCandIdx][uiIdx] = uhNeighCands;}
-  Void          setNeighbourCandIdxSubParts ( UInt uiCandIdx, UChar uhNumCands, UInt uiAbsPartIdx, UInt uiPartIdx, UInt uiDepth );
-#endif
   template <typename T>
   Void          setSubPart            ( T bParameter, T* pbBaseLCU, UInt uiCUAddr, UInt uiCUDepth, UInt uiPUIdx );
 
@@ -463,11 +454,7 @@ public:
   
   Bool          hasEqualMotion              ( UInt uiAbsPartIdx, TComDataCU* pcCandCU, UInt uiCandAbsPartIdx );
   Bool          avoidMergeCandidate         ( UInt uiAbsPartIdx, UInt uiPUIdx, UInt uiDepth, TComDataCU* pcCandCU, UInt uiCandAbsPartIdx );
-#if MRG_AMVP_FIXED_IDX_F470
   Void          getInterMergeCandidates       ( UInt uiAbsPartIdx, UInt uiPUIdx, UInt uiDepth, TComMvField* pcMFieldNeighbours, UChar* puhInterDirNeighbours, Int& numValidMergeCand );
-#else
-  Void          getInterMergeCandidates       ( UInt uiAbsPartIdx, UInt uiPUIdx, UInt uiDepth, TComMvField* pcMFieldNeighbours, UChar* puhInterDirNeighbours, UInt* puiNeighbourCandIdx );
-#endif
   Void          deriveLeftRightTopIdxGeneral  ( PartSize eCUMode, UInt uiAbsPartIdx, UInt uiPartIdx, UInt& ruiPartIdxLT, UInt& ruiPartIdxRT );
   Void          deriveLeftBottomIdxGeneral    ( PartSize eCUMode, UInt uiAbsPartIdx, UInt uiPartIdx, UInt& ruiPartIdxLB );
   
