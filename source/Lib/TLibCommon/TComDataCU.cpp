@@ -3622,7 +3622,6 @@ Void TComDataCU::getInterMergeCandidates( UInt uiAbsPartIdx, UInt uiPUIdx, UInt 
     }
   }
   // col [2]
-#if MRG_NEIGH_COL
 #if MRG_TMVP_REFIDX
   Int iRefIdxSkip[2] = {-1, -1};
   TComDataCU* pcTmpCU = NULL;
@@ -3810,7 +3809,6 @@ Void TComDataCU::getInterMergeCandidates( UInt uiAbsPartIdx, UInt uiPUIdx, UInt 
     }
   }
   uiIdx++;
-#endif // MRG_NEIGH_COL
 
   for( UInt uiOuter = 0; uiOuter < MRG_MAX_NUM_CANDS; uiOuter++ )
   {
