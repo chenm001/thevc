@@ -4699,11 +4699,7 @@ Bool TComDataCU::xGetColMVP( RefPicList eRefPicList, Int uiCUAddr, Int uiPartUni
     {
       bSaveIt = true;
     }
-#if AMVPTEMPORALMOD
     else if (bCrosses == bFirstCrosses && l == eRefPicList)
-#else
-    else if (bCrosses == bFirstCrosses && iColDist < iFirstColDist)
-#endif
     {
       bSaveIt = true;
     }
@@ -4834,11 +4830,7 @@ Bool TComDataCU::xGetCenterCol( UInt uiPartIdx, RefPicList eRefPicList, int iRef
       bSaveIt = true;
     else if (bCrosses && !bFirstCrosses)
       bSaveIt = true;
-#if AMVPTEMPORALMOD
     else if (bCrosses == bFirstCrosses && l == eRefPicList)
-#else
-    else if (bCrosses == bFirstCrosses && iColDist < iFirstColDist)
-#endif
       bSaveIt = true;
     
     if (bSaveIt)
