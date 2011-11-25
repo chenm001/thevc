@@ -698,12 +698,10 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
   //   }
   //   if( slice_type = = B )
   //   collocated_from_l0_flag
-#if AMVP_NEIGH_COL
     if ( pcSlice->getSliceType() == B_SLICE )
     {
       WRITE_FLAG( pcSlice->getColDir(), "collocated_from_l0_flag" );
     }
-#endif
     //   if( adaptive_loop_filter_enabled_flag ) {
   //     if( !shared_pps_info_enabled_flag )
   //       alf_param( )

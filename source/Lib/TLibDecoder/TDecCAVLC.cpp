@@ -609,13 +609,11 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice)
     //   }
     //   if( slice_type = = B )
     //     collocated_from_l0_flag
-#if AMVP_NEIGH_COL
     if ( rpcSlice->getSliceType() == B_SLICE )
     {
       READ_FLAG( uiCode, "collocated_from_l0_flag" );
       rpcSlice->setColDir(uiCode);
     }
-#endif
     
     //   if( adaptive_loop_filter_enabled_flag ) {
     //     if( !shared_pps_info_enabled_flag )

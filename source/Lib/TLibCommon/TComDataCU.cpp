@@ -4212,7 +4212,6 @@ Void TComDataCU::fillMvpCand ( UInt uiPartIdx, UInt uiPartAddr, RefPicList eRefP
   }
   
   // Get Temporal Motion Predictor
-#if AMVP_NEIGH_COL
   int iRefIdx_Col = iRefIdx;
   TComMv cColMv;
   UInt uiPartIdxRB;
@@ -4275,7 +4274,6 @@ Void TComDataCU::fillMvpCand ( UInt uiPartIdx, UInt uiPartAddr, RefPicList eRefP
 #endif
   //----  co-located RightBottom Temporal Predictor  ---//
 
-#endif // AMVP_NEIGH_COL
   // Check No MV Candidate
   xUniqueMVPCand( pInfo );
 
