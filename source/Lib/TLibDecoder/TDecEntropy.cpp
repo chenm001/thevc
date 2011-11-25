@@ -762,7 +762,6 @@ Void TDecEntropy::decodePUWise( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDept
     {
       if ( pcCU->getSlice()->getSymbolMode() == 0 )
       {
-#if AVOID_NEIGHBOR_REF_F470
         if ( !pcCU->getSlice()->isInterB() )
         {
           pcCU->getSlice()->setRefIdxCombineCoding( false );
@@ -771,16 +770,6 @@ Void TDecEntropy::decodePUWise( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDept
         {
           pcCU->getSlice()->setRefIdxCombineCoding( true );
         }
-#else
-        if ( pcCU->isSuroundingRefIdxException( uiAbsPartIdx ) )
-        {
-          pcCU->getSlice()->setRefIdxCombineCoding( false );
-        }
-        else
-        {
-          pcCU->getSlice()->setRefIdxCombineCoding( true );
-        }
-#endif
       }
       decodeInterDirPU( pcCU, uiSubPartIdx, uiDepth, uiPartIdx );
       for ( UInt uiRefListIdx = 0; uiRefListIdx < 2; uiRefListIdx++ )

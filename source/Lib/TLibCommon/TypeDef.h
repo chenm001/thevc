@@ -67,7 +67,6 @@
 #define DISABLE_4x4_INTER                    1       // Coding one flag into SPS to enable/disable INTER4x4 
 #define REDUCE_UPPER_MOTION_DATA             0       // F060 : motion data line buffer compression
 #define MRG_AMVP_FIXED_IDX_F470              1       // 1:Merge/AMVP indices are coded in truncated unary codes of fixed maximum length
-#define AVOID_NEIGHBOR_REF_F470              1       // 1:Disable adaptive switching methods for inter_pred_flag and ref_idx_lx
 #if MRG_AMVP_FIXED_IDX_F470
 #define MRG_AMVP_ADD_CAND_F470               1       // 1:add new candidates following original ones
 #else

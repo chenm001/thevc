@@ -497,10 +497,6 @@ public:
 #elif MTK_DCM_MPM
   Int           getIntraDirLumaPredictor        ( UInt uiAbsPartIdx, Int uiIntraDirPred[]                 );
 #endif
-
-#if !AVOID_NEIGHBOR_REF_F470
-  Bool          isSuroundingRefIdxException     ( UInt   uiAbsPartIdx );
-#endif
   
   // -------------------------------------------------------------------------------------------------------------------
   // member functions for SBAC context
@@ -512,9 +508,6 @@ public:
   UInt          getCtxQtRootCbf                 ( UInt   uiAbsPartIdx                                 );
 #endif
 
-#if !DNB_REF_FRAME_IDX
-  UInt          getCtxRefIdx                    ( UInt   uiAbsPartIdx, RefPicList eRefPicList         );
-#endif
   UInt          getCtxSkipFlag                  ( UInt   uiAbsPartIdx                                 );
 #if !DNB_ALF_CTRL_FLAG
   UInt          getCtxAlfCtrlFlag               ( UInt   uiAbsPartIdx                                 );

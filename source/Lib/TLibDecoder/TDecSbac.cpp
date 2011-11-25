@@ -1384,7 +1384,7 @@ Void TDecSbac::parseRefFrmIdx( TComDataCU* pcCU, Int& riRefFrmIdx, UInt uiAbsPar
 #else
     UInt uiCtx;
 
-    uiCtx = pcCU->getCtxRefIdx( uiAbsPartIdx, RefPicList(pcCU->getSlice()->getListIdFromIdxOfLC(0)) );
+    uiCtx = 0;
 
     m_pcTDecBinIf->decodeBin ( uiSymbol, m_cCURefPicSCModel.get( 0, 0, uiCtx ) );
 
@@ -1409,7 +1409,7 @@ Void TDecSbac::parseRefFrmIdx( TComDataCU* pcCU, Int& riRefFrmIdx, UInt uiAbsPar
       uiSymbol++;
     }
 #else
-    UInt uiCtx = pcCU->getCtxRefIdx( uiAbsPartIdx, eRefList );
+    UInt uiCtx = 0;
     
     m_pcTDecBinIf->decodeBin ( uiSymbol, m_cCURefPicSCModel.get( 0, 0, uiCtx ) );
     if ( uiSymbol )
