@@ -4260,7 +4260,6 @@ Void TComDataCU::fillMvpCand ( UInt uiPartIdx, UInt uiPartAddr, RefPicList eRefP
   {
     pInfo->m_acMvCand[pInfo->iN++] = cColMv;
   }
-#if FT_TCTR_AMVP
   else 
   {
     UInt uiPartIdxCenter;
@@ -4271,7 +4270,6 @@ Void TComDataCU::fillMvpCand ( UInt uiPartIdx, UInt uiPartAddr, RefPicList eRefP
       pInfo->m_acMvCand[pInfo->iN++] = cColMv;
     }
   }
-#endif
   //----  co-located RightBottom Temporal Predictor  ---//
 
   // Check No MV Candidate
