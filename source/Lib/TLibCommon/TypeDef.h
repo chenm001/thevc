@@ -113,7 +113,6 @@
 // FOR AMVP AND MERGE
 #define AMVP_BUFFERCOMPRESS               1           ///< motion vector buffer compression
 #define AMVP_DECIMATION_FACTOR            4
-#define MV_COMPRESS_MODE_REFIDX           1           ///< (JCTVC-E147) compress all inter prediction parameters according to 1)
 
 #define REMOVE_INTERMEDIATE_CLIPPING      1          // No intermediate clipping in bi-prediction JCTVC-E242
 #define GENERIC_IF 1 ///< JCTVC-F537: generic interpolation functions
