@@ -2797,7 +2797,6 @@ UInt TComDataCU::getCtxSkipFlag( UInt uiAbsPartIdx )
 UInt TComDataCU::getCtxMergeFlag( UInt uiAbsPartIdx )
 {
   UInt uiCtx = 0;
-#if CHANGE_MERGE_CONTEXT
   TComDataCU* pcTempCU;
   UInt        uiTempPartIdx;
 
@@ -2808,7 +2807,6 @@ UInt TComDataCU::getCtxMergeFlag( UInt uiAbsPartIdx )
   // Get BCBP of above PU
   pcTempCU = getPUAbove( uiTempPartIdx, m_uiAbsIdxInLCU + uiAbsPartIdx );
   uiCtx   += ( pcTempCU ) ? pcTempCU->getMergeFlag( uiTempPartIdx ) : 0;
-#endif
   return uiCtx;
 }
 #endif

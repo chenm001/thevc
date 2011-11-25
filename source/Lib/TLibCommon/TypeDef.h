@@ -178,12 +178,6 @@
 
 #define CAVLC_RUNLEVEL_TABLE_REM        1           // CAVLC coding of run-level without table (JCTVC-F543)
 
-#define CHANGE_MERGE_CONTEXT            1           // (JCTVC-E146/E118) change merge flag context derivation
-#define CHANGE_GET_MERGE_CANDIDATE      1           // (JCTVC-E146/E118) merge flag parsing independent of number of merge candidates
-#if CHANGE_GET_MERGE_CANDIDATE && !CHANGE_MERGE_CONTEXT
-#error CHANGE_GET_MERGE_CANDIDATE can only be defined with CHANGE_MERGE_CONTEXT
-#endif
-
 #define OL_USE_WPP    1     // Set to 1 to enable Wavefront Parallel Processing, 0 otherwise
 #if OL_USE_WPP
 #define OL_FLUSH 1          // Set to 1 to enable Wavefront Flush.
