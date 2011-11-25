@@ -1272,73 +1272,35 @@ Void TComAdaptiveLoopFilter::calcVar(imgpel **imgY_var, imgpel *imgY_pad, int pa
   Int end_width = img_width;
 #endif
   Int i, j;
-#if (!BA_SUB)
-  Int *p_imgY_temp;
-#if FULL_NBIT
-  Int shift= (11+ g_uiBitIncrement + g_uiBitDepth - 8);
-#else
-  Int shift= (11+ g_uiBitIncrement);
-#endif
-#endif
   Int fl2plusOne= (VAR_SIZE<<1)+1; //3
   Int pad_offset = pad_size-fl-1;
   Int var_max= NO_VAR_BINS-1;
-#if (!BA_SUB)
-  Int mult_fact_int_tab[4]= {1,114,41,21};
-  Int mult_fact_int = mult_fact_int_tab[VAR_SIZE];
-#endif
   Int avg_var;
   Int vertical, horizontal;
   Int direction;
   Int step1 = NO_VAR_BINS/3 - 1;
   Int th[NO_VAR_BINS] = {0, 1, 2, 2, 2, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4}; 
 
-#if BA_SUB
-  for(i = 1+start_height+1; i < end_height + fl2plusOne; i=i+2) // BA_SUB: Compute at sub-sample by 2
-#else
-  for(i = 1+start_height; i < end_height + fl2plusOne; i++)
-#endif
+  for(i = 1+start_height+1; i < end_height + fl2plusOne; i=i+2) // Compute at sub-sample by 2
   {
     Int yoffset = (pad_offset+i-pad_size) * img_stride + pad_offset-pad_size;
     imgpel *p_imgY_pad = &imgY_pad[yoffset];
     imgpel *p_imgY_pad_up   = &imgY_pad[yoffset + img_stride];
     imgpel *p_imgY_pad_down = &imgY_pad[yoffset - img_stride];
-#if !BA_SUB
-    p_imgY_temp = (Int*)&m_imgY_temp[i-1][start_width];
-#endif
-#if BA_SUB
-    for(j = 1+start_width+1; j < end_width +fl2plusOne; j=j+2)  // BA_SUB: Compute at sub-sample by 2
-#else
-    for(j = 1+start_width; j < end_width +fl2plusOne; j++)  
-#endif
+    for(j = 1+start_width+1; j < end_width +fl2plusOne; j=j+2)  // Compute at sub-sample by 2
     {
       vertical = abs((p_imgY_pad[j]<<1) - p_imgY_pad_down[j] - p_imgY_pad_up[j]);
       horizontal = abs((p_imgY_pad[j]<<1) - p_imgY_pad[j+1] - p_imgY_pad[j-1]);
       m_imgY_ver[i-1][j-1] = vertical;
       m_imgY_hor[i-1][j-1] = horizontal;
-#if (!BA_SUB) // BA_SUB: Compute just once for each 4x4 block
-      *(p_imgY_temp++) = vertical + horizontal;
-#endif
     }
-
-#if (!BA_SUB) // BA_SUB: No 3x3 summation
-    for(j = 1+start_width; j < end_width + fl2plusOne; j=j+4)  
-    {
-      m_imgY_temp [i-1][j] =  (m_imgY_temp [i-1][j-1] + m_imgY_temp [i-1][j+4])
-        + ((m_imgY_temp [i-1][j] + m_imgY_temp [i-1][j+3]) << 1)
-        + ((m_imgY_temp [i-1][j+1] + m_imgY_temp [i-1][j+2]) * 3);
-      m_imgY_ver[i-1][j] = m_imgY_ver[i-1][j] + m_imgY_ver[i-1][j+1] + m_imgY_ver[i-1][j+2] + m_imgY_ver[i-1][j+3];      
-      m_imgY_hor[i-1][j] = m_imgY_hor[i-1][j] + m_imgY_hor[i-1][j+1] + m_imgY_hor[i-1][j+2] + m_imgY_hor[i-1][j+3];    
-    }
-#endif
   }
 
   for(i = 1+start_height; i < end_height + 1; i=i+4)
   {
     for(j = 1+start_width; j < end_width + 1; j=j+4)  
     {
-#if BA_SUB
-      // BA_SUB: in a 4x4 block, only need 4 pixels as below
+      // in a 4x4 block, only need 4 pixels as below
       m_imgY_ver[i-1][j-1] = m_imgY_ver[i][j] + m_imgY_ver[i+2][j] + m_imgY_ver[i][j+2] + m_imgY_ver[i+2][j+2];  
       m_imgY_hor[i-1][j-1] = m_imgY_hor[i][j] + m_imgY_hor[i+2][j] + m_imgY_hor[i][j+2] + m_imgY_hor[i+2][j+2];
       
@@ -1346,32 +1308,13 @@ Void TComAdaptiveLoopFilter::calcVar(imgpel **imgY_var, imgpel *imgY_pad, int pa
       if (m_imgY_ver[i-1][j-1] > 2*m_imgY_hor[i-1][j-1]) direction = 1; //vertical
       if (m_imgY_hor[i-1][j-1] > 2*m_imgY_ver[i-1][j-1]) direction = 2; //horizontal
 
-      m_imgY_temp [i-1][j-1] = m_imgY_ver[i-1][j-1] + m_imgY_hor[i-1][j-1]; // BA_SUB: Compute just once for each 4x4 block
+      m_imgY_temp [i-1][j-1] = m_imgY_ver[i-1][j-1] + m_imgY_hor[i-1][j-1]; // Compute just once for each 4x4 block
       
-      avg_var = m_imgY_temp [i-1][j-1]>>2; // BA_SUB: average for 4 pixels
+      avg_var = m_imgY_temp [i-1][j-1]>>2; // average for 4 pixels
       avg_var = (imgpel) Clip_post(var_max, avg_var>>(g_uiBitIncrement+1));
       avg_var = th[avg_var];
       avg_var = Clip_post(step1, (Int) avg_var ) + (step1+1)*direction;
       imgY_var[(i - 1)>>shift_h][(j - 1)>>shift_w] = avg_var;
-
-#else
-      m_imgY_temp [i-1][j-1] =  (m_imgY_temp [i-1][j]+m_imgY_temp [i+4][j])
-        + ((m_imgY_temp [i][j]+m_imgY_temp [i+3][j]) << 1)
-        + ((m_imgY_temp [i+1][j]+m_imgY_temp [i+2][j]) * 3);
-
-      m_imgY_ver[i-1][j-1] = m_imgY_ver[i][j] + m_imgY_ver[i+1][j] + m_imgY_ver[i+2][j] + m_imgY_ver[i+3][j];  
-      m_imgY_hor[i-1][j-1] = m_imgY_hor[i][j] + m_imgY_hor[i+1][j] + m_imgY_hor[i+2][j] + m_imgY_hor[i+3][j];    
-      avg_var = m_imgY_temp [i-1][j-1]>>(shift_h + shift_w);
-      avg_var = (imgpel) Clip_post(var_max, (avg_var * mult_fact_int)>>shift);
-      avg_var = th[avg_var];
-
-      direction = 0;
-      if (m_imgY_ver[i-1][j-1] > 2*m_imgY_hor[i-1][j-1]) direction = 1; //vertical
-      if (m_imgY_hor[i-1][j-1] > 2*m_imgY_ver[i-1][j-1]) direction = 2; //horizontal
-
-      avg_var = Clip_post(step1, (Int) avg_var ) + (step1+1)*direction; 
-      imgY_var[(i - 1)>>shift_h][(j - 1)>>shift_w] = avg_var;
-#endif
     }
   }
 
@@ -3616,13 +3559,11 @@ Void CAlfLCU::extendBorderCoreFunction(Pel* pPel, Int iStride, Bool* pbAvail, UI
     {
       continue;
     }
-#if BA_SUB
     if(bPaddingForCalculatingBAIndex)
     {
       if( !(pos == SGU_T  || pos == SGU_L || pos == SGU_TL ) )
         continue;
     }
-#endif
 
     switch(pos)
     {
