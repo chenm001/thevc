@@ -140,14 +140,10 @@ Void TEncSampleAdaptiveOffset::rdoSaoOnePart(SAOQTPart *psQTPart, Int iPartIdx, 
       {
         if(m_iCount [iPartIdx][iTypeIdx][iClassIdx])
         {
-#if SAO_ACCURATE_OFFSET
 #if FULL_NBIT
           m_iOffset[iPartIdx][iTypeIdx][iClassIdx] = (Int64) xRoundIbdi((Double)(m_iOffsetOrg[iPartIdx][iTypeIdx][iClassIdx]<<g_uiBitDepth-8) / (Double)(m_iCount [iPartIdx][iTypeIdx][iClassIdx]<<m_uiSaoBitIncrease));
 #else
           m_iOffset[iPartIdx][iTypeIdx][iClassIdx] = (Int64) xRoundIbdi((Double)(m_iOffsetOrg[iPartIdx][iTypeIdx][iClassIdx]<<g_uiBitIncrement) / (Double)(m_iCount [iPartIdx][iTypeIdx][iClassIdx]<<m_uiSaoBitIncrease));
-#endif
-#else
-          m_iOffset[iPartIdx][iTypeIdx][iClassIdx] = (Int64) xRoundIbdi((Double)(m_iOffsetOrg[iPartIdx][iTypeIdx][iClassIdx]<<m_uiSaoBitIncrease) / (Double)m_iCount [iPartIdx][iTypeIdx][iClassIdx]);
 #endif
 #if SAO_CLIP_OFFSET
           m_iOffset[iPartIdx][iTypeIdx][iClassIdx] = Clip3(-m_iOffsetTh, m_iOffsetTh-1, (Int)m_iOffset[iPartIdx][iTypeIdx][iClassIdx]);
@@ -160,15 +156,7 @@ Void TEncSampleAdaptiveOffset::rdoSaoOnePart(SAOQTPart *psQTPart, Int iPartIdx, 
         }
 
         iCount     =  m_iCount [iPartIdx][iTypeIdx][iClassIdx];
-#if SAO_ACCURATE_OFFSET
         iOffset    =  m_iOffset[iPartIdx][iTypeIdx][iClassIdx] << m_uiSaoBitIncrease;
-#else
-#if FULL_NBIT
-        iOffset    =  m_iOffset[iPartIdx][iTypeIdx][iClassIdx] << (g_uiBitDepth-8-m_uiSaoBitIncrease);
-#else
-        iOffset    =  m_iOffset[iPartIdx][iTypeIdx][iClassIdx] << (g_uiBitIncrement-m_uiSaoBitIncrease);
-#endif
-#endif
         iOffsetOrg =  m_iOffsetOrg[iPartIdx][iTypeIdx][iClassIdx];
         iEstDist   += (( iCount*iOffset*iOffset-iOffsetOrg*iOffset*2 ) >> uiShift);
         m_pcEntropyCoder->m_pcEntropyCoderIf->codeSaoSvlc((Int)m_iOffset[iPartIdx][iTypeIdx][iClassIdx]);
@@ -1676,34 +1664,15 @@ Void TEncSampleAdaptiveOffset::SAOProcess(SAOParam *pcSaoParam, Double dLambda)
   m_dLambdaChroma  = dLambda;
 #endif
 
-#if SAO_ACCURATE_OFFSET
 #if FULL_NBIT
   m_uiSaoBitIncrease = g_uiBitDepth + (g_uiBitDepth-8) - min((Int)(g_uiBitDepth + (g_uiBitDepth-8)), 10);
 #else
   m_uiSaoBitIncrease = g_uiBitDepth + g_uiBitIncrement - min((Int)(g_uiBitDepth + g_uiBitIncrement), 10);
 #endif
 
-#else
-#if FULL_NBIT
-  if (g_uiBitDepth>9)
-#else
-  if (g_uiBitIncrement>1)
-#endif
-  {
-    m_uiSaoBitIncrease = 1;
-  }
-  else
-  {
-    m_uiSaoBitIncrease = 0;
-  }
-#endif
 #if SAO_CLIP_OFFSET
   const Int iOffsetBitRange8Bit = 4;
-#if SAO_ACCURATE_OFFSET
   Int iOffsetBitDepth = g_uiBitDepth + g_uiBitIncrement - m_uiSaoBitIncrease;
-#else
-  Int iOffsetBitDepth = g_uiBitDepth + m_uiSaoBitIncrease;
-#endif
   Int iOffsetBitRange = iOffsetBitRange8Bit + (iOffsetBitDepth - 8);
   m_iOffsetTh = 1 << (iOffsetBitRange - 1);
 #endif
