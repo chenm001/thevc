@@ -1567,9 +1567,6 @@ Void TEncSbac::codeCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx
   //----- encode significance map -----
   const UInt   uiLog2BlockSize   = g_aucConvertToBit[ uiWidth ] + 2;
   const UInt   uiMaxNumCoeff     = 1 << ( uiLog2BlockSize << 1 );
-#if !UNIFIED_SCAN
-  const UInt   uiNum4x4Blk       = max<UInt>( 1, uiMaxNumCoeff >> 4 );
-#endif
 #if QC_MDCS
 #if DIAG_SCAN
   UInt uiScanIdx = pcCU->getCoefScanIdx(uiAbsPartIdx, uiWidth, eTType==TEXT_LUMA, pcCU->isIntra(uiAbsPartIdx));
@@ -1621,11 +1618,7 @@ Void TEncSbac::codeCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx
   //===== code significance flag =====
   ContextModel * const baseCtx = m_cCUSigSCModel.get( 0, eTType );
   
-#if UNIFIED_SCAN
   for( UInt uiScanPos = scanPosLast-1; uiScanPos != -1; uiScanPos-- )
-#else
-  for( UInt uiScanPos = 0; uiScanPos < scanPosLast; uiScanPos++ )
-#endif
   {
     UInt  uiBlkPos  = scan[ uiScanPos ]; 
     UInt  uiPosY    = uiBlkPos >> uiLog2BlockSize;
@@ -1635,7 +1628,6 @@ Void TEncSbac::codeCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx
     m_pcBinIf->encodeBin( uiSig, baseCtx[ uiCtxSig ] );
   }
 
-#if UNIFIED_SCAN
   const Int  iLastScanSet      = scanPosLast >> LOG2_SCAN_SET_SIZE;
   UInt uiNumOne                = 0;
   UInt uiGoRiceParam           = 0;
@@ -1733,208 +1725,6 @@ Void TEncSbac::codeCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx
       uiNumOne >>= 1;
     }
   }
-#else
-  /*
-   * Sign and bin0 PCP (Section 3.2 and 3.3 of JCTVC-B088)
-   */
-  Int  c1, c2;
-  UInt uiGoRiceParam = 0;
-
-  if( uiNum4x4Blk > 1 )
-  {
-    Bool b1stBlk  = true;
-    UInt uiNumOne = 0;
-    
-    for( UInt uiSubBlk = 0; uiSubBlk < uiNum4x4Blk; uiSubBlk++ )
-    {
-      UInt uiCtxSet    = 0;
-      UInt uiSubNumSig = 0;
-      UInt uiSubPosX   = 0;
-      UInt uiSubPosY   = 0;
-      uiGoRiceParam    = 0;
-
-      uiSubPosX = g_auiFrameScanX[ g_aucConvertToBit[ uiWidth ] - 1 ][ uiSubBlk ] << 2;
-      uiSubPosY = g_auiFrameScanY[ g_aucConvertToBit[ uiWidth ] - 1 ][ uiSubBlk ] << 2;
-      
-      TCoeff* piCurr = &pcCoef[ uiSubPosX + uiSubPosY * uiWidth ];
-      
-      for( UInt uiY = 0; uiY < 4; uiY++ )
-      {
-        for( UInt uiX = 0; uiX < 4; uiX++ )
-        {
-          if( piCurr[ uiX ] )
-          {
-            uiSubNumSig++;
-          }
-        }
-        piCurr += uiWidth;
-      }
-      
-      if( uiSubNumSig > 0 )
-      {
-        c1 = 1;
-        c2 = 0;
-        
-        if( b1stBlk )
-        {
-          b1stBlk  = false;
-          uiCtxSet = 5;
-        }
-        else
-        {
-          uiCtxSet = ( uiNumOne >> 2 ) + 1;
-          uiNumOne = 0;
-        }
-        
-        TCoeff sigCoeff[16];
-        Int sigCoeffCount = 0;
-        ContextModel *baseCtxMod;
-        
-        baseCtxMod = m_cCUOneSCModel.get( 0, eTType ) + 5 * uiCtxSet;
-        for( UInt uiScanPos = 0; uiScanPos < 16; uiScanPos++ )
-        {
-          UInt  uiBlkPos  = g_auiFrameScanXY[ 1 ][ 15 - uiScanPos ];
-          UInt  uiPosY    = uiBlkPos >> 2;
-          UInt  uiPosX    = uiBlkPos & 3;
-          UInt  uiIndex   = ( ( uiSubPosY + uiPosY ) << uiLog2BlockSize ) + uiSubPosX + uiPosX;
-          TCoeff val = pcCoef[uiIndex];
-          
-          if( val )
-          {
-            sigCoeff[sigCoeffCount++] = val;
-            UInt symbol = abs(val) > 1;
-            m_pcBinIf->encodeBin( symbol, baseCtxMod[c1] );
-            
-            if( symbol )
-            {
-              c1 = 0;
-            }
-            else if( c1 & 3 ) // Increment if c1 is 1, 2 or 3 (but not 0 or 4)
-            {
-              c1++;
-            }
-          }
-        }
-        
-        if (c1 == 0)
-        {
-          baseCtxMod = m_cCUAbsSCModel.get( 0, eTType ) + 5 * uiCtxSet;
-          for (Int idx = 0; idx < sigCoeffCount; idx++)
-          {
-            UInt absVal = abs(sigCoeff[idx]);
-            if (absVal > 1)
-            {
-              UInt symbol = absVal > 2;
-              
-              m_pcBinIf->encodeBin( symbol, baseCtxMod[c2] );
-              
-#if !CABAC_COEFF_DATA_REORDER
-              if( symbol )
-              {
-                xWriteGoRiceExGolomb( absVal - 3, uiGoRiceParam );
-              }
-#endif
-              c2 += (c2 < 4); // Increment c2 up to a maximum value of 4
-              uiNumOne++;
-            }
-          }
-        }
-        
-        for (Int idx = 0; idx < sigCoeffCount; idx++)
-        {
-          m_pcBinIf->encodeBinEP( sigCoeff[idx] < 0 );
-        }
-        
-#if CABAC_COEFF_DATA_REORDER
-        if (c1 == 0)
-        {
-          for (Int idx = 0; idx < sigCoeffCount; idx++)
-          {
-            UInt absVal = abs(sigCoeff[idx]);
-            if (absVal > 2)
-            {
-              xWriteGoRiceExGolomb( absVal - 3, uiGoRiceParam );
-            }
-          }
-        }
-#endif
-      }
-    }
-  }
-  else
-  {
-    c1 = 1;
-    c2 = 0;
-    TCoeff sigCoeff[16];
-    Int sigCoeffCount = 0;
-    ContextModel *baseCtxMod;
-    
-    baseCtxMod = m_cCUOneSCModel.get( 0, eTType );    
-    for( UInt uiScanPos = 0; uiScanPos < 16; uiScanPos++ )
-    {
-      UInt uiIndex = g_auiFrameScanXY[ 1 ][ 15 - uiScanPos ];
-      TCoeff val = pcCoef[uiIndex];
-      
-      if( val )
-      {
-        sigCoeff[sigCoeffCount++] = val;
-        UInt symbol = abs(val) > 1;
-        m_pcBinIf->encodeBin( symbol, baseCtxMod[c1] );
-        
-        if( symbol )
-        {
-          c1 = 0;
-        }
-        else if( c1 & 3 ) // Increment if c1 is 1, 2 or 3 (but not 0 or 4)
-        {
-          c1++;
-        }
-      }
-    }
-    
-    if (c1 == 0)
-    {
-      baseCtxMod = m_cCUAbsSCModel.get( 0, eTType );    
-      for (Int idx = 0; idx < sigCoeffCount; idx++)
-      {
-        UInt absVal = abs(sigCoeff[idx]);
-        if (absVal > 1)
-        {
-          UInt symbol = absVal > 2;
-          
-          m_pcBinIf->encodeBin( symbol, baseCtxMod[c2] );
-          
-#if !CABAC_COEFF_DATA_REORDER
-          if( symbol )
-          {
-            xWriteGoRiceExGolomb( absVal - 3, uiGoRiceParam );
-          }
-#endif
-          c2 += (c2 < 4); // Increment c2 up to a maximum value of 4
-        }
-      }
-    }
-    
-    for (Int idx = 0; idx < sigCoeffCount; idx++)
-    {
-      m_pcBinIf->encodeBinEP( sigCoeff[idx] < 0 );
-    }
-    
-#if CABAC_COEFF_DATA_REORDER
-    if (c1 == 0)
-    {
-      for (Int idx = 0; idx < sigCoeffCount; idx++)
-      {
-        UInt absVal = abs(sigCoeff[idx]);
-        if (absVal > 2)
-        {
-          xWriteGoRiceExGolomb( absVal - 3, uiGoRiceParam );
-        }
-      }
-    }
-#endif
-  }
-#endif
   return;
 }
 
@@ -2233,20 +2023,11 @@ Void TEncSbac::estSignificantMapBit( estBitsSbacStruct* pcEstBitsSbac, UInt uiCT
   Int firstCtx, numCtx = 15;
   switch (uiCTXIdx)
   {
-#if UNIFIED_SCAN
     case 2: // 32x32
     case 3: // 16x16
       firstCtx = 31;
       numCtx = 13;
       break;
-#else
-    case 2: // 32x32
-      firstCtx = 35;
-      break;
-    case 3: // 16x16
-      firstCtx = 31;
-      break;
-#endif
     case 4: // 8x8
       firstCtx = 15;
       numCtx = 16;

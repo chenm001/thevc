@@ -117,11 +117,8 @@
 #define REMOVE_INTERMEDIATE_CLIPPING      1          // No intermediate clipping in bi-prediction JCTVC-E242
 #define GENERIC_IF 1 ///< JCTVC-F537: generic interpolation functions
 
-#define UNIFIED_SCAN                      1           // JCTVC-F288+F132(F746) Unified Scans for significance map and coefficient level
-#if UNIFIED_SCAN
 #define SCAN_SET_SIZE                     16
 #define LOG2_SCAN_SET_SIZE                4
-#endif
 #define DIAG_SCAN                         1           ///< JCTVC-F129: use up-right diagonal scan rather than zig-zag for CABAC           
 #define CABAC_COEFF_DATA_REORDER          1           ///< JCTVC-F130: reordering of CABAC coefficient data
 #define QC_MDIS                           1           // JCTVC-D282: enable mode dependent intra smoothing

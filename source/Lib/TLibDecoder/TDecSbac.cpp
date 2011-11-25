@@ -1696,9 +1696,6 @@ Void TDecSbac::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartId
   const UInt  uiLog2BlockSize   = g_aucConvertToBit[ uiWidth ] + 2;
   const UInt  uiMaxNumCoeff     = 1 << ( uiLog2BlockSize << 1 );
   const UInt  uiMaxNumCoeffM1   = uiMaxNumCoeff - 1;
-#if !UNIFIED_SCAN
-  const UInt  uiNum4x4Blk       = max<UInt>( 1, uiMaxNumCoeff >> 4 );
-#endif
 #if QC_MDCS
 #if DIAG_SCAN
   UInt uiScanIdx = pcCU->getCoefScanIdx(uiAbsPartIdx, uiWidth, eTType==TEXT_LUMA, pcCU->isIntra(uiAbsPartIdx));
@@ -1720,7 +1717,6 @@ Void TDecSbac::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartId
   sigCoeffCount++;
 
   //===== decode significance flags =====
-#if UNIFIED_SCAN
   UInt uiScanPosLast   = uiBlkPosLast;
   if( uiScanIdx == SCAN_ZIGZAG )
   {
@@ -1749,7 +1745,6 @@ Void TDecSbac::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartId
   {
     uiScanPosLast = uiPosLastY + (uiPosLastX<<uiLog2BlockSize);
   }
-#endif // UNIFIED_SCAN
 
 #if DIAG_SCAN
   uiScanIdx = ( uiScanIdx == SCAN_ZIGZAG ) ? SCAN_DIAG : uiScanIdx; // Map zigzag to diagonal scan
@@ -1762,19 +1757,9 @@ Void TDecSbac::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartId
 #endif
   
   ContextModel * const baseCtx = m_cCUSigSCModel.get( 0, eTType );
-#if UNIFIED_SCAN
   for( UInt uiScanPos = uiScanPosLast-1; uiScanPos != -1; uiScanPos-- )
-#else  
-  for( UInt uiScanPos = 0; uiScanPos < uiMaxNumCoeffM1; uiScanPos++ )
-#endif
   {
     UInt uiBlkPos = scan[ uiScanPos ];
-#if !UNIFIED_SCAN
-    if( uiBlkPosLast == uiBlkPos )
-    {
-      break;
-    }
-#endif
     UInt  uiPosY    = uiBlkPos >> uiLog2BlockSize;
     UInt  uiPosX    = uiBlkPos - ( uiPosY << uiLog2BlockSize );
     UInt  uiSig     = 0;
@@ -1784,7 +1769,6 @@ Void TDecSbac::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartId
     sigCoeffCount += uiSig;
   }
 
-#if UNIFIED_SCAN
   const Int  iLastScanSet      = uiScanPosLast >> LOG2_SCAN_SET_SIZE;
   UInt uiNumOne                = 0;
   UInt uiGoRiceParam           = 0;
@@ -1900,235 +1884,6 @@ Void TDecSbac::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartId
       uiNumOne >>= 1;
     }
   }
-#else
-  /*
-   * Sign and bin0 PCP (Section 3.2 and 3.3 of JCTVC-B088)
-   */
-  Int  c1, c2;
-  UInt uiSign;
-  UInt uiLevel;
-  UInt uiGoRiceParam = 0;
-
-  if( uiNum4x4Blk > 1 )
-  {
-    Bool b1stBlk  = true;
-    UInt uiNumOne = 0;
-    
-    for( UInt uiSubBlk = 0; uiSubBlk < uiNum4x4Blk && sigCoeffCount > 0; uiSubBlk++ )
-    {
-      UInt uiCtxSet    = 0;
-      UInt uiSubNumSig = 0;
-      UInt uiSubPosX   = 0;
-      UInt uiSubPosY   = 0;
-      uiGoRiceParam    = 0;
-
-      uiSubPosX = g_auiFrameScanX[ g_aucConvertToBit[ uiWidth ] - 1 ][ uiSubBlk ] << 2;
-      uiSubPosY = g_auiFrameScanY[ g_aucConvertToBit[ uiWidth ] - 1 ][ uiSubBlk ] << 2;
-      
-      TCoeff* piCurr = &pcCoef[ uiSubPosX + uiSubPosY * uiWidth ];
-      
-      for( UInt uiY = 0; uiY < 4; uiY++ )
-      {
-        for( UInt uiX = 0; uiX < 4; uiX++ )
-        {
-          if( piCurr[ uiX ] )
-          {
-            uiSubNumSig++;
-          }
-        }
-        piCurr += uiWidth;
-      }
-      sigCoeffCount -= uiSubNumSig;
-      
-      if( uiSubNumSig > 0 )
-      {
-        c1 = 1;
-        c2 = 0;
-        
-        if( b1stBlk )
-        {
-          b1stBlk  = false;
-          uiCtxSet = 5;
-        }
-        else
-        {
-          uiCtxSet = ( uiNumOne >> 2 ) + 1;
-          uiNumOne = 0;
-        }
-        
-        TCoeff sigCoeff[16];
-        ContextModel *baseCtxMod;
-
-        baseCtxMod = m_cCUOneSCModel.get( 0, eTType ) + 5 * uiCtxSet;
-        for (Int idx = 0; idx < uiSubNumSig; idx++)
-        {
-          m_pcTDecBinIf->decodeBin( uiLevel, baseCtxMod[c1] );
-          if( uiLevel == 1 )
-          {
-            c1 = 0;
-          }
-          else if( c1 & 3)
-          {
-            c1++;
-          }
-          sigCoeff[ idx ] = uiLevel + 1;      
-        }
-        
-        if (c1 == 0)
-        {
-          baseCtxMod = m_cCUAbsSCModel.get( 0, eTType ) + 5 * uiCtxSet;
-          for (Int idx = 0; idx < uiSubNumSig; idx++)
-          {
-            if( sigCoeff[idx] == 2 )
-            {
-              m_pcTDecBinIf->decodeBin( uiLevel, baseCtxMod[c2] );
-              
-#if CABAC_COEFF_DATA_REORDER
-              sigCoeff[idx] = uiLevel + 2;
-#else
-              if( uiLevel )
-              {
-                xReadGoRiceExGolomb( uiLevel, uiGoRiceParam );
-                sigCoeff[idx] = uiLevel + 3;
-              }
-#endif
-              c2 += (c2 < 4);
-              
-              uiNumOne++;
-            }
-          }
-        }
-        
-#if CABAC_COEFF_DATA_REORDER
-        UInt coeffSign[16];
-        
-        for (Int idx = 0; idx < uiSubNumSig; idx++)
-        {
-          m_pcTDecBinIf->decodeBinEP( coeffSign[idx] );
-        }
-        
-        if (c1 == 0)
-        {
-          for (Int idx = 0; idx < uiSubNumSig; idx++)
-          {
-            if( sigCoeff[idx] == 3 )
-            {
-              xReadGoRiceExGolomb( uiLevel, uiGoRiceParam );
-              sigCoeff[idx] = uiLevel + 3;
-            }
-          }
-        }
-#endif
-        Int idx = 0;
-        for( UInt uiScanPos = 0; uiScanPos < 16; uiScanPos++ )
-        {
-          UInt  uiBlkPos  = g_auiFrameScanXY[ 1 ][ 15 - uiScanPos ];
-          UInt  uiPosY    = uiBlkPos >> 2;
-          UInt  uiPosX    = uiBlkPos & 3;
-          UInt  uiIndex   = ((uiSubPosY + uiPosY) << uiLog2BlockSize) + uiSubPosX + uiPosX;
-          
-          uiLevel = pcCoef[ uiIndex ];
-          
-          if( uiLevel )
-          {
-#if CABAC_COEFF_DATA_REORDER
-            uiSign = coeffSign[idx];
-#else
-            m_pcTDecBinIf->decodeBinEP( uiSign );
-#endif
-            TCoeff val = sigCoeff[idx++];
-            pcCoef[ uiIndex ] = ( uiSign ? -(Int)val : (Int)val );
-          }
-        }
-      }
-    }
-  }
-  else
-  {
-    c1 = 1;
-    c2 = 0;
-    UInt uiSubNumSig = sigCoeffCount;
-    TCoeff sigCoeff[16];
-    ContextModel *baseCtxMod;
-    
-    baseCtxMod = m_cCUOneSCModel.get( 0, eTType );    
-    for (Int idx = 0; idx < uiSubNumSig; idx++)
-    {
-      m_pcTDecBinIf->decodeBin( uiLevel, baseCtxMod[c1] );
-      if( uiLevel == 1 )
-      {
-        c1 = 0;
-      }
-      else if( c1 & 3)
-      {
-        c1++;
-      }
-      sigCoeff[ idx ] = uiLevel + 1;      
-    }
-    
-    if (c1 == 0)
-    {
-      baseCtxMod = m_cCUAbsSCModel.get( 0, eTType );    
-      for (Int idx = 0; idx < uiSubNumSig; idx++)
-      {
-        if( sigCoeff[idx] == 2 )
-        {
-          m_pcTDecBinIf->decodeBin( uiLevel, baseCtxMod[c2] );
-          
-#if CABAC_COEFF_DATA_REORDER
-          sigCoeff[idx] = uiLevel + 2;
-#else
-          if( uiLevel )
-          {
-            xReadGoRiceExGolomb( uiLevel, uiGoRiceParam );
-            sigCoeff[idx] = uiLevel + 3;
-          }
-#endif
-          c2 += (c2 < 4);
-        }
-      }
-    }
-    
-#if CABAC_COEFF_DATA_REORDER
-    UInt coeffSign[16];
-    
-    for (Int idx = 0; idx < uiSubNumSig; idx++)
-    {
-      m_pcTDecBinIf->decodeBinEP( coeffSign[idx] );
-    }
-    
-    if (c1 == 0)
-    {
-      for (Int idx = 0; idx < uiSubNumSig; idx++)
-      {
-        if( sigCoeff[idx] == 3 )
-        {
-          xReadGoRiceExGolomb( uiLevel, uiGoRiceParam );
-          sigCoeff[idx] = uiLevel + 3;
-        }
-      }
-    }
-#endif
-    Int idx = 0;
-    for( UInt uiScanPos = 0; uiScanPos < 16; uiScanPos++ )
-    {
-      UInt uiIndex = g_auiFrameScanXY[ 1 ][ 15 - uiScanPos ];
-      uiLevel = pcCoef[ uiIndex ];
-      
-      if( uiLevel )
-      {
-#if CABAC_COEFF_DATA_REORDER
-        uiSign = coeffSign[idx];
-#else
-        m_pcTDecBinIf->decodeBinEP( uiSign );
-#endif
-        TCoeff val = sigCoeff[idx++];
-        pcCoef[ uiIndex ] = ( uiSign ? -(Int)val : (Int)val );
-      }
-    }
-  }
-#endif
-  
   return;
 }
 
