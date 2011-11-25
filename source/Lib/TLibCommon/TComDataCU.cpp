@@ -2852,7 +2852,6 @@ Void TComDataCU::setCbfSubParts( UInt uiCbf, TextType eTType, UInt uiAbsPartIdx,
   memset( m_puhCbf[g_aucConvertTxtTypeToIdx[eTType]] + uiAbsPartIdx, uiCbf, sizeof( UChar ) * uiCurrPartNumb );
 }
 
-#if HHI_MRG_SKIP
 /** Sets a coded block flag for all sub-partitions of a partition
  * \param uiCbf The value of the coded block flag to be set
  * \param eTType
@@ -2865,7 +2864,6 @@ Void TComDataCU::setCbfSubParts ( UInt uiCbf, TextType eTType, UInt uiAbsPartIdx
 {
   setSubPart<UChar>( uiCbf, m_puhCbf[g_aucConvertTxtTypeToIdx[eTType]], uiAbsPartIdx, uiDepth, uiPartIdx );
 }
-#endif
 
 Void TComDataCU::setDepthSubParts( UInt uiDepth, UInt uiAbsPartIdx )
 {
@@ -4367,13 +4365,11 @@ Bool TComDataCU::isSkipped( UInt uiPartIdx )
   {
     return false;
   }
-#if HHI_MRG_SKIP
   if ( getSlice()->getSPS()->getUseMRG() )
   {
   return ( m_pePredMode[ uiPartIdx ] == MODE_SKIP && getMergeFlag( uiPartIdx ) && !getQtRootCbf( uiPartIdx ) );
   }
   else
-#endif
   {
     if ( m_pcSlice->isInterP() )
     {

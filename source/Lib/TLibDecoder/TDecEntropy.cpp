@@ -1198,14 +1198,10 @@ Void TDecEntropy::decodeCoeff( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth
     else
     {
       UInt uiQtRootCbf = 1;
-#if HHI_MRG_SKIP
       if( !( pcCU->getPartitionSize( uiAbsPartIdx) == SIZE_2Nx2N && pcCU->getMergeFlag( uiAbsPartIdx ) ) )
       {
         m_pcEntropyDecoderIf->parseQtRootCbf( pcCU, uiAbsPartIdx, uiDepth, uiQtRootCbf );
       }
-#else
-      m_pcEntropyDecoderIf->parseQtRootCbf( pcCU, uiAbsPartIdx, uiDepth, uiQtRootCbf );
-#endif
       if ( !uiQtRootCbf )
       {
         pcCU->setCbfSubParts( 0, 0, 0, uiAbsPartIdx, uiDepth );

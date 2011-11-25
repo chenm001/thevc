@@ -997,13 +997,11 @@ Void TDecCavlc::parseSplitFlag     ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt u
       pcCU->setTrIdxSubParts( 0, uiAbsPartIdx, uiDepth );
       pcCU->setCbfSubParts  ( 0, 0, 0, uiAbsPartIdx, uiDepth );
 
-#if HHI_MRG_SKIP
       if ( pcCU->getSlice()->getSPS()->getUseMRG() )
       {
       pcCU->setMergeFlagSubParts( true, uiAbsPartIdx, 0, uiDepth );
       } 
       else
-#endif
       {
         if ( pcCU->getSlice()->isInterP() )
         {

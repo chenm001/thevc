@@ -395,7 +395,6 @@ Void TEncEntropy::encodeMergeFlag( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiP
   m_pcEntropyCoderIf->codeMergeFlag( pcCU, uiAbsPartIdx );
 }
 
-#if HHI_MRG_SKIP
 /** encode merge index
  * \param pcCU
  * \param uiAbsPartIdx
@@ -404,17 +403,12 @@ Void TEncEntropy::encodeMergeFlag( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiP
  * \returns Void
  */
 Void TEncEntropy::encodeMergeIndex( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiPUIdx, Bool bRD )
-#else
-Void TEncEntropy::encodeMergeIndex( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiPUIdx )
-#endif
 {
-#if HHI_MRG_SKIP
   if( bRD )
   {
     uiAbsPartIdx = 0;
     assert( pcCU->getPartitionSize(uiAbsPartIdx) == SIZE_2Nx2N );
   }
-#endif
 
   UInt uiNumCand = MRG_MAX_NUM_CANDS;
   if ( uiNumCand > 1 )
@@ -1231,14 +1225,10 @@ Void TEncEntropy::encodeCoeff( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth
     }
     else
     {
-#if  HHI_MRG_SKIP
       if( !(pcCU->getMergeFlag( uiAbsPartIdx ) && pcCU->getPartitionSize(uiAbsPartIdx) == SIZE_2Nx2N ) )
       {
         m_pcEntropyCoderIf->codeQtRootCbf( pcCU, uiAbsPartIdx );
       }
-#else
-      m_pcEntropyCoderIf->codeQtRootCbf( pcCU, uiAbsPartIdx );
-#endif
       if ( !pcCU->getQtRootCbf( uiAbsPartIdx ) )
       {
         return;

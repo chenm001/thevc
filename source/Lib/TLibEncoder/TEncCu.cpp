@@ -622,14 +622,6 @@ Void TEncCu::xCompressCU( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, UInt u
 
         if( pcPic->getSlice(0)->getSPS()->getUseMRG() )
         {
-#if !HHI_MRG_SKIP
-          xCheckRDCostAMVPSkip ( rpcBestCU, rpcTempCU );
-#if SUB_LCU_DQP
-          rpcTempCU->initEstData( uiDepth, iQP );
-#else
-          rpcTempCU->initEstData();
-#endif
-#endif
           xCheckRDCostMerge2Nx2N( rpcBestCU, rpcTempCU );
 #if SUB_LCU_DQP
           rpcTempCU->initEstData( uiDepth, iQP );
@@ -1529,13 +1521,11 @@ Void TEncCu::xEncodeCU( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
   
   if( pcCU->isSkipped( uiAbsPartIdx ) )
   {
-#if HHI_MRG_SKIP
     if ( pcCU->getSlice()->getSPS()->getUseMRG() )
     {
       m_pcEntropyCoder->encodeMergeIndex( pcCU, uiAbsPartIdx, 0 );
     } 
     else
-#endif
     {
       for ( UInt uiRefListIdx = 0; uiRefListIdx < 2; uiRefListIdx++ )
       {        
@@ -1636,17 +1626,11 @@ Void TEncCu::xCheckRDCostMerge2Nx2N( TComDataCU*& rpcBestCU, TComDataCU*& rpcTem
   for( UInt uiMergeCand = 0; uiMergeCand < numValidMergeCand; ++uiMergeCand )
   {
     {
-#if HHI_MRG_SKIP
       TComYuv* pcPredYuvTemp = NULL;
       for( UInt uiNoResidual = 0; uiNoResidual < 2; ++uiNoResidual )
       {
-#endif
       // set MC parameters
-#if HHI_MRG_SKIP
       rpcTempCU->setPredModeSubParts( MODE_SKIP, 0, uhDepth ); // interprets depth relative to LCU level
-#else
-      rpcTempCU->setPredModeSubParts( MODE_INTER, 0, uhDepth ); // interprets depth relative to LCU level
-#endif
       rpcTempCU->setPartSizeSubParts( SIZE_2Nx2N, 0, uhDepth ); // interprets depth relative to LCU level
       rpcTempCU->setMergeFlagSubParts( true, 0, 0, uhDepth ); // interprets depth relative to LCU level
       rpcTempCU->setMergeIndexSubParts( uiMergeCand, 0, 0, uhDepth ); // interprets depth relative to LCU level
@@ -1654,7 +1638,6 @@ Void TEncCu::xCheckRDCostMerge2Nx2N( TComDataCU*& rpcBestCU, TComDataCU*& rpcTem
       rpcTempCU->getCUMvField( REF_PIC_LIST_0 )->setAllMvField( cMvFieldNeighbours[0 + 2*uiMergeCand], SIZE_2Nx2N, 0, 0 ); // interprets depth relative to rpcTempCU level
       rpcTempCU->getCUMvField( REF_PIC_LIST_1 )->setAllMvField( cMvFieldNeighbours[1 + 2*uiMergeCand], SIZE_2Nx2N, 0, 0 ); // interprets depth relative to rpcTempCU level
 
-#if HHI_MRG_SKIP
       // do MC
       if ( uiNoResidual == 0 )
       {
@@ -1680,19 +1663,6 @@ Void TEncCu::xCheckRDCostMerge2Nx2N( TComDataCU*& rpcBestCU, TComDataCU*& rpcTem
                                                 m_ppcRecoYuvTemp[uhDepth],
                                                 (uiNoResidual? true:false) );     
       Bool bQtRootCbf = rpcTempCU->getQtRootCbf(0) == 1;
-#else
-      // do MC
-      m_pcPredSearch->motionCompensation ( rpcTempCU, m_ppcPredYuvTemp[uhDepth] );
-
-      // estimate residual and encode everything
-      m_pcPredSearch->encodeResAndCalcRdInterCU( rpcTempCU,
-                                                 m_ppcOrigYuv    [uhDepth],
-                                                 m_ppcPredYuvTemp[uhDepth],
-                                                 m_ppcResiYuvTemp[uhDepth],
-                                                 m_ppcResiYuvBest[uhDepth],
-                                                 m_ppcRecoYuvTemp[uhDepth],
-                                                 false );
-#endif
 
 #if SUB_LCU_DQP
       UInt uiOrgQP = rpcTempCU->getQP( 0 );
@@ -1704,11 +1674,9 @@ Void TEncCu::xCheckRDCostMerge2Nx2N( TComDataCU*& rpcBestCU, TComDataCU*& rpcTem
       rpcTempCU->initEstData();
 #endif
 
-#if HHI_MRG_SKIP
       if (!bQtRootCbf)
         break;
       }
-#endif
     }
   }
 }

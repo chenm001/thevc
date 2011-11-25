@@ -4047,13 +4047,11 @@ Void TEncSearch::encodeResAndCalcRdInterCU( TComDataCU* pcCU, TComYuv* pcYuvOrg,
     
     m_pcEntropyCoder->resetBits();
     m_pcEntropyCoder->encodeSkipFlag(pcCU, 0, true);
-#if HHI_MRG_SKIP
     if ( pcCU->getSlice()->getSPS()->getUseMRG() )
     {
       m_pcEntropyCoder->encodeMergeIndex( pcCU, 0, 0, true );
     } 
     else
-#endif
     {
       for ( UInt uiRefListIdx = 0; uiRefListIdx < 2; uiRefListIdx++ )
       {
@@ -5311,13 +5309,11 @@ Void  TEncSearch::xAddSymbolBitsInter( TComDataCU* pcCU, UInt uiQp, UInt uiTrMod
     ruiBits = m_pcEntropyCoder->getNumberOfWrittenBits();
     
     m_pcEntropyCoder->resetBits();
-#if HHI_MRG_SKIP
     if ( pcCU->getSlice()->getSPS()->getUseMRG() )
     {
       m_pcEntropyCoder->encodeMergeIndex(pcCU, 0, 0, true);
     } 
     else
-#endif
     {
       for ( UInt uiRefListIdx = 0; uiRefListIdx < 2; uiRefListIdx++ )
       {        
@@ -5333,12 +5329,10 @@ Void  TEncSearch::xAddSymbolBitsInter( TComDataCU* pcCU, UInt uiQp, UInt uiTrMod
   {
     m_pcEntropyCoder->resetBits();
     m_pcEntropyCoder->encodeSkipFlag ( pcCU, 0, true );
-#if HHI_MRG_SKIP
     if (pcCU->getPredictionMode(0) == MODE_SKIP)
     {
       pcCU->setPredModeSubParts( MODE_INTER, 0, pcCU->getDepth(0) );
     }
-#endif
     m_pcEntropyCoder->encodePredMode( pcCU, 0, true );
     m_pcEntropyCoder->encodePartSize( pcCU, 0, pcCU->getDepth(0), true );
     m_pcEntropyCoder->encodePredInfo( pcCU, 0, true );

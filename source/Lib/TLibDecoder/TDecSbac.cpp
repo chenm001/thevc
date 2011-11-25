@@ -640,13 +640,11 @@ Void TDecSbac::parseSkipFlag( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth 
     pcCU->setPartSizeSubParts( SIZE_2Nx2N, uiAbsPartIdx, uiDepth );
     pcCU->setSizeSubParts( g_uiMaxCUWidth>>uiDepth, g_uiMaxCUHeight>>uiDepth, uiAbsPartIdx, uiDepth );
     
-#if HHI_MRG_SKIP
     if ( pcCU->getSlice()->getSPS()->getUseMRG() )
     {
-    pcCU->setMergeFlagSubParts( true , uiAbsPartIdx, 0, uiDepth );
+      pcCU->setMergeFlagSubParts( true , uiAbsPartIdx, 0, uiDepth );
     } 
     else
-#endif // HHI_MRG_SKIP
     {
       TComMv cZeroMv(0,0);
       pcCU->getCUMvField( REF_PIC_LIST_0 )->setAllMvd    ( cZeroMv, SIZE_2Nx2N, uiAbsPartIdx, uiDepth );
