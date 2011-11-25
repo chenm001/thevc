@@ -4401,36 +4401,15 @@ Void TComDataCU::fillMvpCand ( UInt uiPartIdx, UInt uiPartAddr, RefPicList eRefP
   }
   // Above predictor search
   bAdded = xAddMVPCand( pInfo, eRefPicList, iRefIdx, uiPartIdxRT, MD_ABOVE_RIGHT);
-#if !AMVP_NO_INTERM_DUPL_CHECK_F050  
-  if (bAdded && pInfo->iN==2 && pInfo->m_acMvCand[0] == pInfo->m_acMvCand[1])
-  {
-    pInfo->iN--; //remove duplicate entries
-    bAdded = false;
-  }
-#endif
 
   if (!bAdded) 
   {
     bAdded = xAddMVPCand( pInfo, eRefPicList, iRefIdx, uiPartIdxRT, MD_ABOVE);
-#if !AMVP_NO_INTERM_DUPL_CHECK_F050  
-    if (bAdded && pInfo->iN==2 && pInfo->m_acMvCand[0] == pInfo->m_acMvCand[1])
-    {
-      pInfo->iN--; //remove duplicate entries
-      bAdded = false;
-    }
-#endif
   }
 
   if(!bAdded)
   {
     bAdded = xAddMVPCand( pInfo, eRefPicList, iRefIdx, uiPartIdxLT, MD_ABOVE_LEFT);
-#if !AMVP_NO_INTERM_DUPL_CHECK_F050  
-    if (bAdded && pInfo->iN==2 && pInfo->m_acMvCand[0] == pInfo->m_acMvCand[1])
-    {
-      pInfo->iN--; //remove duplicate entries
-      bAdded = false;
-    }
-#endif
   }
 #if MV_LIMIT_SCALE_F088
   bAdded = bAddedSmvp;
@@ -4440,40 +4419,14 @@ Void TComDataCU::fillMvpCand ( UInt uiPartIdx, UInt uiPartAddr, RefPicList eRefP
   if(!bAdded)
   {
     bAdded = xAddMVPCandOrder( pInfo, eRefPicList, iRefIdx, uiPartIdxRT, MD_ABOVE_RIGHT);
-#if !AMVP_NO_INTERM_DUPL_CHECK_F050  
-    if (bAdded && pInfo->iN==2 && pInfo->m_acMvCand[0] == pInfo->m_acMvCand[1])
-    {
-      pInfo->iN--; //remove duplicate entries
-      bAdded = false;
-#if MV_LIMIT_SCALE_F088
-      bAdded  =  true;
-#endif
-    }
-#endif
     if (!bAdded) 
     {
       bAdded = xAddMVPCandOrder( pInfo, eRefPicList, iRefIdx, uiPartIdxRT, MD_ABOVE);
-#if !AMVP_NO_INTERM_DUPL_CHECK_F050  
-      if (bAdded && pInfo->iN==2 && pInfo->m_acMvCand[0] == pInfo->m_acMvCand[1])
-      {
-        pInfo->iN--; //remove duplicate entries
-        bAdded = false;
-#if MV_LIMIT_SCALE_F088
-        bAdded  =  true;
-#endif
-      }
-#endif
     }
 
     if(!bAdded)
     {
       bAdded = xAddMVPCandOrder( pInfo, eRefPicList, iRefIdx, uiPartIdxLT, MD_ABOVE_LEFT);
-#if !AMVP_NO_INTERM_DUPL_CHECK_F050  
-      if (bAdded && pInfo->iN==2 && pInfo->m_acMvCand[0] == pInfo->m_acMvCand[1])
-      {
-        pInfo->iN--; //remove duplicate entries
-      }
-#endif
     }
   }
   
