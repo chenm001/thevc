@@ -44,10 +44,8 @@
 #include "TLibCommon/ContextModel.h"
 #include "TLibCommon/TComPic.h"
 #include "TLibCommon/TComTrQuant.h"
-#if E045_SLICE_COMMON_INFO_SHARING
 #include "TLibCommon/TComAdaptiveLoopFilter.h"
 #include "TLibCommon/TComSampleAdaptiveOffset.h"
-#endif
 
 class TEncSbac;
 class TEncCavlc;
@@ -228,12 +226,8 @@ public:
 #if F747_APS
   Void encodeAlfCtrlParam(AlfCUCtrlInfo& cAlfParam, Int iNumCUsInPic);
 #else
-#if E045_SLICE_COMMON_INFO_SHARING
   /// encode ALF CU control flags
   Void encodeAlfCtrlParam      ( ALFParam *pAlfParam, UInt uiNumSlices= 1, CAlfSlice* pcAlfSlice= NULL);
-#else
-  Void encodeAlfCtrlParam      ( ALFParam *pAlfParam );
-#endif
 #endif
 
   Void encodePredMode          ( TComDataCU* pcCU, UInt uiAbsPartIdx, Bool bRD = false );

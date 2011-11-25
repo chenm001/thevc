@@ -213,9 +213,7 @@ TEncAdaptiveLoopFilter::TEncAdaptiveLoopFilter()
 #endif
 
 #if !F747_APS
-#if E045_SLICE_COMMON_INFO_SHARING
   m_bSharedPPSAlfParamEnabled = false;
-#endif
 #endif
 
 #if F747_APS
@@ -1431,9 +1429,7 @@ Void TEncAdaptiveLoopFilter::xCalcRDCost(ALFParam* pAlfParam, UInt64& ruiRate, U
   if(pAlfParam != NULL)
   {
 #if !F747_APS
-#if E045_SLICE_COMMON_INFO_SHARING
     ruiRate = 0;
-#endif
 #endif
     Int* piTmpCoef;
     piTmpCoef = new Int[ALF_MAX_NUM_COEF];
@@ -1469,7 +1465,6 @@ Void TEncAdaptiveLoopFilter::xCalcRDCost(ALFParam* pAlfParam, UInt64& ruiRate, U
     }
 #else
 
-#if E045_SLICE_COMMON_INFO_SHARING
     if(m_uiNumSlicesInPic ==1)
     {
       if(m_bSharedPPSAlfParamEnabled)
@@ -1495,17 +1490,6 @@ Void TEncAdaptiveLoopFilter::xCalcRDCost(ALFParam* pAlfParam, UInt64& ruiRate, U
         ruiRate += m_pcEntropyCoder->getNumberOfWrittenBits();
       }
     }
-#else
-    if(pAlfParam->cu_control_flag)
-    {
-#if FINE_GRANULARITY_SLICES && MTK_NONCROSS_INLOOP_FILTER
-      m_pcEntropyCoder->setSliceGranularity(m_iSGDepth);
-#endif
-
-      m_pcEntropyCoder->encodeAlfCtrlParam(pAlfParam);
-    }
-    ruiRate = m_pcEntropyCoder->getNumberOfWrittenBits();
-#endif
 #endif
     memcpy(pAlfParam->coeff, piTmpCoef, sizeof(int)*pAlfParam->num_coeff);
     delete[] piTmpCoef;
@@ -1537,9 +1521,7 @@ Void TEncAdaptiveLoopFilter::xCalcRDCost(TComPicYuv* pcPicOrg, TComPicYuv* pcPic
   if(pAlfParam != NULL)
   {
 #if !F747_APS
-#if E045_SLICE_COMMON_INFO_SHARING
     ruiRate = 0;
-#endif
 #endif
     Int* piTmpCoef;
     piTmpCoef = new Int[ALF_MAX_NUM_COEF];
@@ -1577,7 +1559,6 @@ Void TEncAdaptiveLoopFilter::xCalcRDCost(TComPicYuv* pcPicOrg, TComPicYuv* pcPic
 
 #else
 
-#if E045_SLICE_COMMON_INFO_SHARING
     if(m_uiNumSlicesInPic ==1)
     {
       if(m_bSharedPPSAlfParamEnabled)
@@ -1603,17 +1584,6 @@ Void TEncAdaptiveLoopFilter::xCalcRDCost(TComPicYuv* pcPicOrg, TComPicYuv* pcPic
         ruiRate += m_pcEntropyCoder->getNumberOfWrittenBits();
       }
     }
-#else
-    if(pAlfParam->cu_control_flag)
-    {
-#if FINE_GRANULARITY_SLICES && MTK_NONCROSS_INLOOP_FILTER
-      m_pcEntropyCoder->setSliceGranularity(m_iSGDepth);
-#endif
-
-      m_pcEntropyCoder->encodeAlfCtrlParam(pAlfParam);
-    }
-    ruiRate = m_pcEntropyCoder->getNumberOfWrittenBits();
-#endif
 #endif
     memcpy(pAlfParam->coeff, piTmpCoef, sizeof(int)*pAlfParam->num_coeff);
     delete[] piTmpCoef;
@@ -1645,9 +1615,7 @@ Void TEncAdaptiveLoopFilter::xCalcRDCostChroma(TComPicYuv* pcPicOrg, TComPicYuv*
 #else
 
 #if !F747_APS
-#if E045_SLICE_COMMON_INFO_SHARING
     ruiRate = 0;
-#endif
 #endif
 
     Int* piTmpCoef;
@@ -1684,7 +1652,6 @@ Void TEncAdaptiveLoopFilter::xCalcRDCostChroma(TComPicYuv* pcPicOrg, TComPicYuv*
     }
 
 #else
-#if E045_SLICE_COMMON_INFO_SHARING
     if(m_uiNumSlicesInPic ==1)
     {
       if(m_bSharedPPSAlfParamEnabled)
@@ -1710,17 +1677,6 @@ Void TEncAdaptiveLoopFilter::xCalcRDCostChroma(TComPicYuv* pcPicOrg, TComPicYuv*
         ruiRate += m_pcEntropyCoder->getNumberOfWrittenBits();
       }
     }
-#else
-    if(pAlfParam->cu_control_flag)
-    {
-#if FINE_GRANULARITY_SLICES && MTK_NONCROSS_INLOOP_FILTER
-      m_pcEntropyCoder->setSliceGranularity(m_iSGDepth);
-#endif
-
-      m_pcEntropyCoder->encodeAlfCtrlParam(pAlfParam);
-    }
-    ruiRate = m_pcEntropyCoder->getNumberOfWrittenBits();
-#endif
 #endif
 
     memcpy(pAlfParam->coeff_chroma, piTmpCoef, sizeof(int)*pAlfParam->num_coeff_chroma);
@@ -6711,9 +6667,7 @@ UInt64 TEncAdaptiveLoopFilter::xCalcRateChroma(ALFParam* pAlfParam)
 {
   UInt64 uiRate;
 #if !F747_APS
-#if E045_SLICE_COMMON_INFO_SHARING
   uiRate = 0;
-#endif
 #endif
   Int* piTmpCoef;
   piTmpCoef = new Int[ALF_MAX_NUM_COEF_C];
@@ -6749,7 +6703,6 @@ UInt64 TEncAdaptiveLoopFilter::xCalcRateChroma(ALFParam* pAlfParam)
 
 #else
 
-#if E045_SLICE_COMMON_INFO_SHARING
   if(m_uiNumSlicesInPic ==1)
   {
     if(m_bSharedPPSAlfParamEnabled)
@@ -6775,17 +6728,6 @@ UInt64 TEncAdaptiveLoopFilter::xCalcRateChroma(ALFParam* pAlfParam)
       uiRate += m_pcEntropyCoder->getNumberOfWrittenBits();
     }
   }
-#else
-  if(pAlfParam->cu_control_flag)
-  {
-#if FINE_GRANULARITY_SLICES && MTK_NONCROSS_INLOOP_FILTER
-    m_pcEntropyCoder->setSliceGranularity(m_iSGDepth);
-#endif
-
-    m_pcEntropyCoder->encodeAlfCtrlParam(pAlfParam);
-  }
-  uiRate = m_pcEntropyCoder->getNumberOfWrittenBits();
-#endif
 #endif
   memcpy(pAlfParam->coeff_chroma, piTmpCoef, sizeof(int)*pAlfParam->num_coeff_chroma);
   delete[] piTmpCoef;

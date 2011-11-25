@@ -67,10 +67,8 @@ TDecTop::TDecTop()
     m_vAPS[i].reserve(APS_RESERVED_BUFFER_SIZE);
   }
 #else
-#if E045_SLICE_COMMON_INFO_SHARING
   m_pcPPSBuffer = NULL;
   m_pbHasNewPPS = NULL;
-#endif
 #endif
 }
 
@@ -108,9 +106,7 @@ Void TDecTop::destroy()
     }
   }
 #else
-#if E045_SLICE_COMMON_INFO_SHARING
   destroyPPSBuffer();
-#endif
 #endif
   m_cGopDecoder.destroy();
   
@@ -250,9 +246,7 @@ Bool TDecTop::decode(InputNALUnit& nalu, Int& iSkipFrame, Int& iPOCLastDisplay)
 {
   TComPic*&   pcPic         = m_pcPic;
 #if !F747_APS
-#if E045_SLICE_COMMON_INFO_SHARING
   static TComPPS*    pcNewPPS = NULL;
-#endif
 #endif
   // Initialize entropy decoder
   m_cEntropyDecoder.setEntropyDecoder (&m_cCavlcDecoder);
@@ -287,9 +281,7 @@ Bool TDecTop::decode(InputNALUnit& nalu, Int& iSkipFrame, Int& iPOCLastDisplay)
       m_cLoopFilter.        create( g_uiMaxCUDepth );
 #endif
 #if !F747_APS
-#if E045_SLICE_COMMON_INFO_SHARING
       createPPSBuffer();
-#endif
 #endif
       m_uiValidPS |= 1;
       
@@ -302,7 +294,6 @@ Bool TDecTop::decode(InputNALUnit& nalu, Int& iSkipFrame, Int& iPOCLastDisplay)
 #endif
       m_cEntropyDecoder.decodePPS( &m_cPPS );
 #else
-#if E045_SLICE_COMMON_INFO_SHARING
       pcNewPPS = getNewPPSBuffer();
 #if SUB_LCU_DQP
       pcNewPPS->setSPS(&m_cSPS);
@@ -316,12 +307,6 @@ Bool TDecTop::decode(InputNALUnit& nalu, Int& iSkipFrame, Int& iPOCLastDisplay)
         }
       }
       signalNewPPSAvailable();
-#else
-#if SUB_LCU_DQP
-      m_cPPS.setSPS(&m_cSPS);
-#endif
-      m_cEntropyDecoder.decodePPS( &m_cPPS );
-#endif
 #endif
 
       m_uiValidPS |= 2;
@@ -361,13 +346,11 @@ Bool TDecTop::decode(InputNALUnit& nalu, Int& iSkipFrame, Int& iPOCLastDisplay)
         m_uiSliceIdx     = 0;
         m_uiLastSliceIdx = 0;
 #if !F747_APS
-#if E045_SLICE_COMMON_INFO_SHARING
         if(hasNewPPS())
         {
           m_pcPPS = pcNewPPS;
           updatePPSBuffer();
         }
-#endif
 #endif
       }
       m_apcSlicePilot->setSliceIdx(m_uiSliceIdx);
@@ -378,11 +361,7 @@ Bool TDecTop::decode(InputNALUnit& nalu, Int& iSkipFrame, Int& iPOCLastDisplay)
 #if F747_APS
       m_apcSlicePilot->setPPS( &m_cPPS );
 #else
-#if E045_SLICE_COMMON_INFO_SHARING
       m_apcSlicePilot->setPPS( m_pcPPS );
-#else
-      m_apcSlicePilot->setPPS( &m_cPPS );
-#endif
 #endif
       m_apcSlicePilot->setSliceIdx(m_uiSliceIdx);
       if (!m_bFirstSliceInPicture)
@@ -961,7 +940,6 @@ Void TDecTop::freeAPS (TComAPS* pAPS)
 
 #else
 
-#if E045_SLICE_COMMON_INFO_SHARING
 Void TDecTop::createPPSBuffer()
 {
   m_pcPPSBuffer = new TComPPS[MAX_NUM_PPS_BUFFER];
@@ -1024,7 +1002,6 @@ Void TDecTop::updatePPSBuffer()
 }
 
 
-#endif
 #endif
 
 

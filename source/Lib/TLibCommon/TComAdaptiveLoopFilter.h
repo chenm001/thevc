@@ -544,9 +544,6 @@ public:
   Void allocALFParam  ( ALFParam* pAlfParam );
   Void freeALFParam   ( ALFParam* pAlfParam );
   Void copyALFParam   ( ALFParam* pDesAlfParam, ALFParam* pSrcAlfParam );
-#if (!E045_SLICE_COMMON_INFO_SHARING)
-  Void  setNumCUsInFrame        (TComPic *pcPic);
-#endif
   
   // predict filter coefficients
   Void predictALFCoeff        ( ALFParam* pAlfParam );                  ///< prediction of luma ALF coefficients

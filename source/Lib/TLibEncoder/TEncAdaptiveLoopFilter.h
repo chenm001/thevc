@@ -162,9 +162,7 @@ private:
 #endif
 
 #if !F747_APS
-#if E045_SLICE_COMMON_INFO_SHARING
   Bool  m_bSharedPPSAlfParamEnabled; //!< true for shared ALF parameters in PPS enabled
-#endif
 #endif
 
 #if F747_APS
@@ -436,10 +434,8 @@ public:
 #endif
 
 #if !F747_APS
-#if E045_SLICE_COMMON_INFO_SHARING
   /// set shared ALF parameters in PPS enabled/disabled
   Void setSharedPPSAlfParamEnabled(Bool b) {m_bSharedPPSAlfParamEnabled = b;}
-#endif
 #endif
 
 };

@@ -207,9 +207,7 @@ Void TDecCavlc::parsePPS(TComPPS* pcPPS)
 #endif
 
 #if !F747_APS
-#if E045_SLICE_COMMON_INFO_SHARING
   READ_FLAG( uiCode, "shared_pps_info_enabled_flag" );             pcPPS->setSharedPPSInfoEnabled( uiCode ? true : false);
-#endif
 #endif
   // alf_param() ?
 

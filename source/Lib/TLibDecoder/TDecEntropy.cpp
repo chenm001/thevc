@@ -332,24 +332,6 @@ Void TDecEntropy::decodeAlfParam(ALFParam* pAlfParam)
       pAlfParam->coeff_chroma[pos] = iSymbol;
     }
   }
-#if !E045_SLICE_COMMON_INFO_SHARING    
-  // region control parameters for luma
-  m_pcEntropyDecoderIf->parseAlfFlag(uiSymbol);
-  pAlfParam->cu_control_flag = uiSymbol;
-  if (pAlfParam->cu_control_flag)
-  {
-    m_pcEntropyDecoderIf->setAlfCtrl(true);
-    m_pcEntropyDecoderIf->parseAlfCtrlDepth(uiSymbol);
-    m_pcEntropyDecoderIf->setMaxAlfCtrlDepth(uiSymbol);
-    pAlfParam->alf_max_depth = uiSymbol;
-    decodeAlfCtrlParam(pAlfParam);
-  }
-  else
-  {
-    m_pcEntropyDecoderIf->setAlfCtrl(false);
-    m_pcEntropyDecoderIf->setMaxAlfCtrlDepth(0); //unncessary
-  }
-#endif
 }
 
 /** decode ALF CU control parameters for one slice
@@ -389,15 +371,10 @@ Void TDecEntropy::decodeAlfCtrlParam(AlfCUCtrlInfo& cAlfParam, Int iNumCUsInPic)
 }
 #else
 
-#if E045_SLICE_COMMON_INFO_SHARING
 Void TDecEntropy::decodeAlfCtrlParam( ALFParam* pAlfParam , Bool bFirstSliceInPic)
-#else
-Void TDecEntropy::decodeAlfCtrlParam( ALFParam* pAlfParam )
-#endif
 {
   UInt uiSymbol;
 
-#if E045_SLICE_COMMON_INFO_SHARING
   if(pAlfParam->alf_flag ==0)
   {
     return;
@@ -416,33 +393,12 @@ Void TDecEntropy::decodeAlfCtrlParam( ALFParam* pAlfParam )
     m_pcEntropyDecoderIf->setAlfCtrl(false);
     return;
   }
-#endif
 
-#if E045_SLICE_COMMON_INFO_SHARING
   Int iSymbol;
   m_pcEntropyDecoderIf->parseAlfSvlc(iSymbol);
 
   uiSymbol = (UInt)(iSymbol + (Int)pAlfParam->num_cus_in_frame);
-#else
 
-#if MTK_NONCROSS_INLOOP_FILTER
-  Int  iDepth         = pAlfParam->alf_max_depth;
-#if FINE_GRANULARITY_SLICES
-  Int  iGranularity   = m_pcEntropyDecoderIf->getSliceGranularity();
-  if(iGranularity > iDepth)
-  {
-    iDepth = iGranularity;
-  }
-#endif
-  m_pcEntropyDecoderIf->parseAlfFlagNum( uiSymbol, pAlfParam->num_cus_in_frame, iDepth );
-#else
-  m_pcEntropyDecoderIf->parseAlfFlagNum( uiSymbol, pAlfParam->num_cus_in_frame, pAlfParam->alf_max_depth );
-#endif
-
-#endif
-
-
-#if E045_SLICE_COMMON_INFO_SHARING
   if(bFirstSliceInPic)
   {
     pAlfParam->num_alf_cu_flag = 0;
@@ -451,15 +407,8 @@ Void TDecEntropy::decodeAlfCtrlParam( ALFParam* pAlfParam )
   UInt uiSliceAlfFlagsPos = pAlfParam->num_alf_cu_flag;
 
   pAlfParam->num_alf_cu_flag += uiSliceNumAlfFlags;
-#else
-  pAlfParam->num_alf_cu_flag = uiSymbol;
-#endif
 
-#if E045_SLICE_COMMON_INFO_SHARING
   for(UInt i=uiSliceAlfFlagsPos; i<pAlfParam->num_alf_cu_flag; i++)
-#else
-  for(UInt i=0; i<pAlfParam->num_alf_cu_flag; i++)
-#endif
   {
     m_pcEntropyDecoderIf->parseAlfCtrlFlag( pAlfParam->alf_cu_flag[i] );
   }

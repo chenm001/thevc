@@ -124,11 +124,9 @@ public:
   void setPictureDigestEnabled(bool enabled) { m_pictureDigestEnabled = enabled; }
 
 #if !F747_APS
-#if E045_SLICE_COMMON_INFO_SHARING
 private:
   /// copy shared ALF parameters from PPS
   Void copySharedAlfParamFromPPS(ALFParam* pAlfDst, ALFParam* pAlfSrc);
-#endif
 #endif
 
 };

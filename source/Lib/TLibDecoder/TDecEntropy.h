@@ -195,12 +195,8 @@ public:
 #if F747_APS
   Void decodeAlfCtrlParam      (AlfCUCtrlInfo& cAlfParam, Int iNumCUsInPic);
 #else
-#if E045_SLICE_COMMON_INFO_SHARING
   /// decode ALF CU control flags
   Void decodeAlfCtrlParam      ( ALFParam *pAlfParam , Bool bFirstSliceInPic);
-#else
-  Void decodeAlfCtrlParam      ( ALFParam *pAlfParam );
-#endif
 #endif
   Void decodePredMode          ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
   Void decodePartSize          ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );

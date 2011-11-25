@@ -113,7 +113,6 @@ Void TDecGop::init( TDecEntropy*            pcEntropyDecoder,
 // ====================================================================================================================
 
 #if !F747_APS
-#if E045_SLICE_COMMON_INFO_SHARING
 Void TDecGop::copySharedAlfParamFromPPS(ALFParam* pAlfDst, ALFParam* pAlfSrc)
 {
   pAlfDst->alf_flag = pAlfSrc->alf_flag;
@@ -166,7 +165,6 @@ Void TDecGop::copySharedAlfParamFromPPS(ALFParam* pAlfDst, ALFParam* pAlfSrc)
     ::memcpy(pAlfDst->coeff_chroma, pAlfSrc->coeff_chroma, sizeof(Int)*pAlfDst->num_coeff_chroma);
   }
 }
-#endif
 #endif
 
 // ====================================================================================================================
@@ -347,20 +345,10 @@ Void TDecGop::decompressGop(TComInputBitstream* pcBitstream, TComPic*& rpcPic, B
 
       if ( rpcPic->getSlice(0)->getSPS()->getUseALF() )
       {
-#if (!E045_SLICE_COMMON_INFO_SHARING)
-        m_pcAdaptiveLoopFilter->setNumCUsInFrame(rpcPic);
-#endif
         m_pcAdaptiveLoopFilter->allocALFParam(&m_cAlfParam);
-#if !E045_SLICE_COMMON_INFO_SHARING
-#if FINE_GRANULARITY_SLICES && MTK_NONCROSS_INLOOP_FILTER
-        m_pcEntropyDecoder->setSliceGranularity(pcSlice->getPPS()->getSliceGranularity());
-#endif
-        m_pcEntropyDecoder->decodeAlfParam( &m_cAlfParam );
-#endif
       }
     }
    
-#if E045_SLICE_COMMON_INFO_SHARING
     if(uiSliceStartCuAddr == uiStartCUAddr)
     {
       if( pcSlice->getSPS()->getUseALF())
@@ -376,7 +364,6 @@ Void TDecGop::decompressGop(TComInputBitstream* pcBitstream, TComPic*& rpcPic, B
         m_pcEntropyDecoder->decodeAlfCtrlParam( &m_cAlfParam, (uiStartCUAddr==0));
       }
     }
-#endif
 
 #endif
 

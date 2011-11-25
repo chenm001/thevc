@@ -1097,9 +1097,7 @@ TComPPS::TComPPS()
 , m_iSliceGranularity           (0)
 #endif
 #if !F747_APS
-#if E045_SLICE_COMMON_INFO_SHARING
 , m_bSharedPPSInfoEnabled       (false)
-#endif
 #endif
 #if TILES
 , m_iColumnRowInfoPresent        (0)

@@ -446,15 +446,6 @@ Void TEncEntropy::encodeAlfParam(ALFParam* pAlfParam)
       m_pcEntropyCoderIf->codeAlfSvlc(pAlfParam->coeff_chroma[pos]);
     }
   }
-#if !E045_SLICE_COMMON_INFO_SHARING
-  // region control parameters for luma
-  m_pcEntropyCoderIf->codeAlfFlag(pAlfParam->cu_control_flag);
-  if (pAlfParam->cu_control_flag)
-  {
-    assert( (pAlfParam->cu_control_flag && m_pcEntropyCoderIf->getAlfCtrl()) || (!pAlfParam->cu_control_flag && !m_pcEntropyCoderIf->getAlfCtrl()));
-    m_pcEntropyCoderIf->codeAlfCtrlDepth();
-  }
-#endif
 }
 
 Void TEncEntropy::encodeAlfCtrlFlag( TComDataCU* pcCU, UInt uiAbsPartIdx, Bool bRD )
@@ -506,14 +497,9 @@ Void TEncEntropy::encodeAlfCtrlParam(AlfCUCtrlInfo& cAlfParam, Int iNumCUsInPic)
 
 #else
 
-#if E045_SLICE_COMMON_INFO_SHARING
 Void TEncEntropy::encodeAlfCtrlParam( ALFParam* pAlfParam, UInt uiNumSlices, CAlfSlice* pcAlfSlice)
-#else
-Void TEncEntropy::encodeAlfCtrlParam( ALFParam* pAlfParam )
-#endif
 {
 
-#if E045_SLICE_COMMON_INFO_SHARING
   if(pAlfParam->alf_flag == 0)
   {
     return;
@@ -527,41 +513,19 @@ Void TEncEntropy::encodeAlfCtrlParam( ALFParam* pAlfParam )
   }
 
   m_pcEntropyCoderIf->codeAlfCtrlDepth();
-#endif
 
-#if E045_SLICE_COMMON_INFO_SHARING
   UInt uiNumAlfCUFlags = (uiNumSlices == 1)?(pAlfParam->num_alf_cu_flag):(pcAlfSlice->getNumCtrlFlags());
 
   Int iSymbol    = ((Int)uiNumAlfCUFlags - (Int)pAlfParam->num_cus_in_frame);
   m_pcEntropyCoderIf->codeAlfSvlc(iSymbol);
-#else
 
-#if MTK_NONCROSS_INLOOP_FILTER
-  Int  iDepth         = m_pcEntropyCoderIf->getMaxAlfCtrlDepth();
-#if FINE_GRANULARITY_SLICES
-  Int  iGranularity   = m_pcEntropyCoderIf->getSliceGranularity();
-  if(iGranularity > iDepth)
-  {
-    iDepth = iGranularity;
-  }
-#endif
-  m_pcEntropyCoderIf->codeAlfFlagNum( pAlfParam->num_alf_cu_flag, pAlfParam->num_cus_in_frame, iDepth);
-#else
-  m_pcEntropyCoderIf->codeAlfFlagNum( pAlfParam->num_alf_cu_flag, pAlfParam->num_cus_in_frame );
-#endif
-
-#endif
-
-#if E045_SLICE_COMMON_INFO_SHARING
   if(uiNumSlices ==1)
-#endif
   {
     for(UInt i=0; i<pAlfParam->num_alf_cu_flag; i++)
     {
       m_pcEntropyCoderIf->codeAlfCtrlFlag( pAlfParam->alf_cu_flag[i] );
     }
   }
-#if E045_SLICE_COMMON_INFO_SHARING
   else
   {
     for(UInt idx=0; idx < pcAlfSlice->getNumLCUs(); idx++)
@@ -574,7 +538,6 @@ Void TEncEntropy::encodeAlfCtrlParam( ALFParam* pAlfParam )
       }
     }
   }
-#endif
 }
 
 #endif

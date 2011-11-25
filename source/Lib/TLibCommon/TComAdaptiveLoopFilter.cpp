@@ -670,7 +670,6 @@ Void TComAdaptiveLoopFilter::create( Int iPicWidth, Int iPicHeight, UInt uiMaxCU
   initMatrix_int(&m_filterCoeffTmp, NO_VAR_BINS, MAX_SQR_FILT_LENGTH);      
   initMatrix_int(&m_filterCoeffSymTmp, NO_VAR_BINS, MAX_SQR_FILT_LENGTH);   
 
-#if E045_SLICE_COMMON_INFO_SHARING
   UInt uiNumLCUsInWidth   = m_img_width  / uiMaxCUWidth;
   UInt uiNumLCUsInHeight  = m_img_height / uiMaxCUHeight;
 
@@ -678,7 +677,6 @@ Void TComAdaptiveLoopFilter::create( Int iPicWidth, Int iPicHeight, UInt uiMaxCU
   uiNumLCUsInHeight += ( m_img_height % uiMaxCUHeight ) ? 1 : 0;
 
   m_uiNumCUsInFrame = uiNumLCUsInWidth* uiNumLCUsInHeight; 
-#endif
 
 
 #if MQT_BA_RA
@@ -2854,14 +2852,6 @@ Void TComAdaptiveLoopFilter::xFrameChroma( TComPicYuv* pcPicDec, TComPicYuv* pcP
   }
 }
 
-#if !F747_APS
-#if !E045_SLICE_COMMON_INFO_SHARING
-Void TComAdaptiveLoopFilter::setNumCUsInFrame(TComPic *pcPic)
-{
-  m_uiNumCUsInFrame = pcPic->getNumCUsInFrame();
-}
-#endif
-#endif
 
 #if F747_APS
 Void TComAdaptiveLoopFilter::setAlfCtrlFlags(AlfCUCtrlInfo* pAlfParam, TComDataCU *pcCU, UInt uiAbsPartIdx, UInt uiDepth, UInt &idx)

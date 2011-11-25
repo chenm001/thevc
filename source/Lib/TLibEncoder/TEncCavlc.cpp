@@ -355,9 +355,7 @@ Void TEncCavlc::codePPS( TComPPS* pcPPS )
   WRITE_CODE( pcPPS->getSliceGranularity(), 2,               "slice_granularity");
 #endif
 #if !F747_APS
-#if E045_SLICE_COMMON_INFO_SHARING
   WRITE_FLAG( pcPPS->getSharedPPSInfoEnabled() ? 1: 0,       "shared_pps_info_enabled_flag" );
-#endif
   //   if( shared_pps_info_enabled_flag )
   //     if( adaptive_loop_filter_enabled_flag )
   //       alf_param( )

@@ -333,10 +333,8 @@ private:
 #endif
 
 #if !F747_APS
-#if E045_SLICE_COMMON_INFO_SHARING
   Bool        m_bSharedPPSInfoEnabled;  //!< Shared info. in PPS is enabled/disabled
   ALFParam    m_cSharedAlfParam;        //!< Shared ALF parameters in PPS 
-#endif
 #endif
 
 #if WEIGHT_PRED
@@ -393,14 +391,12 @@ public:
 #endif
 
 #if !F747_APS
-#if E045_SLICE_COMMON_INFO_SHARING
   ///  set shared PPS info enabled/disabled
   Void      setSharedPPSInfoEnabled(Bool b) {m_bSharedPPSInfoEnabled = b;   }
   /// get shared PPS info enabled/disabled flag
   Bool      getSharedPPSInfoEnabled()       {return m_bSharedPPSInfoEnabled;}
   /// get shared ALF parameters in PPS
   ALFParam* getSharedAlfParam()             {return &m_cSharedAlfParam;     }
-#endif
 #endif
 
 #if WEIGHT_PRED
