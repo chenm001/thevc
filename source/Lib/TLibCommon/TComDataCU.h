@@ -182,10 +182,8 @@ protected:
   /// compute scaling factor from POC difference
   Int           xGetDistScaleFactor   ( Int iCurrPOC, Int iCurrRefPOC, Int iColPOC, Int iColRefPOC );
   
-#if FT_TCTR_AMVP || FT_TCTR_MRG
   Void xDeriveCenterIdx( PartSize eCUMode, UInt uiPartIdx, UInt& ruiPartIdxCenter );
   Bool xGetCenterCol( UInt uiPartIdx, RefPicList eRefPicList, int iRefIdx, TComMv *pcMv );
-#endif
   
 #if MRG_AMVP_ADD_CAND_F470
   Void xCheckDuplicateCand(TComMvField* pcMvFieldNeighbours, UChar* puhInterDirNeighbours, bool* pbCandIsInter, UInt& ruiArrayAddr);

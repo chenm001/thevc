@@ -112,7 +112,6 @@
 
 // COLOCATED PREDICTOR
 // FOR MERGE
-#define FT_TCTR_MRG                       1           ///< central colocated in MERGE
 #define MRG_TMVP_REFIDX                   1           ///< (JCTVC-E481 - D274 (2) ) refidx derivation for merge TMVP  
 // FOR AMVP
 #define AMVP_NEIGH_COL                    1           ///< use of colocated MB in AMVP

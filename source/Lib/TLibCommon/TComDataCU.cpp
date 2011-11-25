@@ -3752,7 +3752,6 @@ Void TComDataCU::getInterMergeCandidates( UInt uiAbsPartIdx, UInt uiPUIdx, UInt 
   iRefIdx = 0; // scaled to 1st ref pic for List0/List1
 #endif
   
-#if FT_TCTR_MRG
   Bool bExistMV = false;
   UInt uiPartIdxCenter;
   UInt uiCurLCUIdx = getAddr();
@@ -3763,9 +3762,6 @@ Void TComDataCU::getInterMergeCandidates( UInt uiAbsPartIdx, UInt uiPUIdx, UInt 
     bExistMV = xGetColMVP( REF_PIC_LIST_0, uiCurLCUIdx, uiPartIdxCenter,  cColMv, iRefIdx );
   }
   if( bExistMV )
-#else
-  if (uiLCUIdx >= 0 && xGetColMVP( REF_PIC_LIST_0, uiLCUIdx, uiAbsPartAddr, cColMv, iRefIdx ) )
-#endif
   {
     UInt uiArrayAddr = iCount;
     abCandIsInter[uiArrayAddr] = true;
@@ -3780,17 +3776,13 @@ Void TComDataCU::getInterMergeCandidates( UInt uiAbsPartIdx, UInt uiPUIdx, UInt 
 #if MRG_TMVP_REFIDX
       iRefIdx = iRefIdxSkip[1];
 #endif
-#if FT_TCTR_MRG
       bExistMV = uiLCUIdx >= 0 && xGetColMVP( REF_PIC_LIST_1, uiLCUIdx, uiAbsPartAddr, cColMv, iRefIdx);
       if( bExistMV == false )
       {
         bExistMV = xGetColMVP( REF_PIC_LIST_1, uiCurLCUIdx, uiPartIdxCenter,  cColMv, iRefIdx );
       }
       if( bExistMV )
-#else
-      if (xGetColMVP( REF_PIC_LIST_1, uiLCUIdx, uiAbsPartAddr, cColMv, iRefIdx) )
-#endif
-  {
+      {
 #if MRG_TMVP_REFIDX
         pcMvFieldNeighbours[ ( uiArrayAddr << 1 ) + 1 ].setMvField( cColMv, iRefIdx );
 #else
@@ -4786,7 +4778,6 @@ Int TComDataCU::xGetDistScaleFactor(Int iCurrPOC, Int iCurrRefPOC, Int iColPOC, 
   }
 }
 
-#if FT_TCTR_AMVP || FT_TCTR_MRG
 /** 
  * \param eCUMode
  * \param uiPartIdx 
@@ -4880,7 +4871,6 @@ Bool TComDataCU::xGetCenterCol( UInt uiPartIdx, RefPicList eRefPicList, int iRef
   
   return true;
 }
-#endif
 
 #if AMVP_BUFFERCOMPRESS
 Void TComDataCU::compressMV()
