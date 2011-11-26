@@ -118,22 +118,14 @@ private:
   Int **m_diffFilterCoeffQuant;
   Int **m_FilterCoeffQuantTemp;
   
-#if MQT_ALF_NPASS
   Int  m_iUsePreviousFilter;     //!< for N-pass encoding- 1: time-delayed filtering is allowed. 0: not allowed.
   Int  m_iDesignCurrentFilter;   //!< for N-pass encoding- 1: design filters for current slice. 0: design filters for future slice reference
   Int  m_iFilterIdx;             //!< for N-pass encoding- the index of filter set buffer
-#if MQT_BA_RA
   Int***   m_aiFilterCoeffSavedMethods[NUM_ALF_CLASS_METHOD];  //!< time-delayed filter set buffer
   Int***   m_aiFilterCoeffSaved;                               //!< the current accessing time-delayed filter buffer pointer
 #if STAR_CROSS_SHAPES_LUMA
   Int*    m_iPreviousFilterShapeMethods[NUM_ALF_CLASS_METHOD];
   Int*    m_iPreviousFilterShape;
-#endif
-#else
-  Int  m_aiFilterCoeffSaved[9][NO_VAR_BINS][MAX_SQR_FILT_LENGTH];
-#if STAR_CROSS_SHAPES_LUMA
-  Int  m_iPreviousFilterShape[2];
-#endif
 #endif
   Int  m_iGOPSize;                //!< GOP size
   Int  m_iCurrentPOC;             //!< POC
@@ -149,7 +141,6 @@ private:
   static Int  m_aiTapPos7x7_In9x9Sym[14]; //!< for N-pass encoding- filter tap relative position in 9x9 footprint
   static Int  m_aiTapPos5x5_In9x9Sym[8];  //!< for N-pass encoding- filter tap relative position in 9x9 footprint
   static Int* m_iTapPosTabIn9x9Sym[NO_TEST_FILT];
-#endif
 
 #if STAR_CROSS_SHAPES_LUMA
   static Int  m_aiFilterPosShape0In11x5Sym[10]; //!< for N-pass encoding- filter shape relative position in 19x5 footprint
@@ -209,7 +200,6 @@ private:
 #endif
   Int    xGauss               ( Double **a, Int N );
   
-#if MQT_ALF_NPASS
   /// Retrieve correlations from other correlation matrix
   Void  xretriveBlockMatrix    (Int iNumTaps, Int* piTapPosInMaxFilter, Double*** pppdEBase, Double*** pppdETarget, Double** ppdyBase, Double** ppdyTarget );
 
@@ -248,7 +238,6 @@ private:
 
   /// Estimate total filtering cost of all groups
   Int64 xEstimateFiltDist      (Int filters_per_fr, Int* VarIndTab, Double*** pppdE, Double** ppdy, Int** ppiCoeffSet, Int iFiltLength);
-#endif
 
 
   /// Calculate block autocorrelations and crosscorrelations for ALF slices
@@ -351,12 +340,8 @@ public:
   Void xFilteringFrameLuma_qc(imgpel* ImgOrg, imgpel* imgY_pad, imgpel* ImgFilt, ALFParam* ALFp, Int tap, Int Stride);
   Void xfilterFrame_en(int ypos, int xpos, int iheight, int iwidth, imgpel* ImgDec, imgpel* ImgRest,int filtNo, int Stride);
   Void xcalcPredFilterCoeff(Int filtNo);
-#if MQT_ALF_NPASS  
   /// code filter coefficients
   UInt xcodeFiltCoeff(Int **filterCoeffSymQuant, Int filtNo, Int varIndTab[], Int filters_per_fr_best, Int frNo, ALFParam* ALFp);
-#else
-  Void xcodeFiltCoeff(Int **filterCoeffSymQuant, Int filtNo, Int varIndTab[], Int filters_per_fr_best, Int frNo, ALFParam* ALFp);
-#endif
   Void xfindBestFilterVarPred(double **ySym, double ***ESym, double *pixAcc, Int **filterCoeffSym, Int **filterCoeffSymQuant,
                               Int filtNo, Int *filters_per_fr_best, Int varIndTab[], imgpel **imgY_rec, imgpel **varImg, 
                               imgpel **maskImg, imgpel **imgY_pad, double lambda_val);
@@ -400,21 +385,17 @@ public:
   Void gnsTransposeBacksubstitution(double U[MAX_SQR_FILT_LENGTH][MAX_SQR_FILT_LENGTH], double rhs[], double x[],
                                     int order);
   Int gnsCholeskyDec(double **inpMatr, double outMatr[MAX_SQR_FILT_LENGTH][MAX_SQR_FILT_LENGTH], int noEq);
-#if MQT_ALF_NPASS
   /// set GOP size
   Void  setGOPSize(Int val) { m_iGOPSize = val; }
 
   /// set N-pass encoding. 0: 16-pass encoding, 1: 1-pass encoding, 2: 2-pass encoding
   Void  setALFEncodePassReduction (Int iVal) {m_iALFEncodePassReduction = iVal;}
 
-#if MQT_BA_RA
   /// create ALF global buffers
   Void createAlfGlobalBuffers(Int iALFEncodePassReduction);
 
   /// destroy ALF global buffers
   Void destroyAlfGlobalBuffers();
-#endif
-#endif
 
 #if !F747_APS
   /// set shared ALF parameters in PPS enabled/disabled

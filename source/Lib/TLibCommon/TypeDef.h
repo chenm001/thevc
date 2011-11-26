@@ -244,8 +244,6 @@
 #define SAO_CHROMA                    1           // JCTVC-F057: Sample adaptive offset for Chroma
 #define SAO_CROSS_LCU_BOUNDARIES      1
 
-#define MQT_ALF_NPASS                       1
-
 #define MQT_BA_RA                        1  // JCTVC-E323+E046
 #if MQT_BA_RA
 #define VAR_SIZE_H           4

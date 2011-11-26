@@ -106,13 +106,11 @@ Void TEncTop::create ()
   m_cLoopFilter.        create( g_uiMaxCUDepth );
 #endif
   
-#if MQT_BA_RA && MQT_ALF_NPASS
   if(m_bUseALF)
   {
     m_cAdaptiveLoopFilter.setGOPSize( getGOPSize() );
     m_cAdaptiveLoopFilter.createAlfGlobalBuffers(m_iALFEncodePassReduction);
   }
-#endif
 
 #if F747_APS
   if(m_bUseSAO || m_bUseALF)
@@ -194,12 +192,10 @@ Void TEncTop::createWPPCoders(Int iNumSubstreams)
 
 Void TEncTop::destroy ()
 {
-#if MQT_BA_RA && MQT_ALF_NPASS
   if(m_bUseALF)
   {
     m_cAdaptiveLoopFilter.destroyAlfGlobalBuffers();
   }
-#endif
 
 #if F747_APS
   for(Int i=0; i< m_vAPS.size(); i++)
@@ -320,12 +316,10 @@ Void TEncTop::init()
   // initialize encoder search class
   m_cSearch.init( this, &m_cTrQuant, m_iSearchRange, m_bipredSearchRange, m_iFastSearch, 0, &m_cEntropyCoder, &m_cRdCost, getRDSbacCoder(), getRDGoOnSbacCoder() );
 
-#if MQT_ALF_NPASS
   if(m_bUseALF)
   {
     m_cAdaptiveLoopFilter.setALFEncodePassReduction( m_iALFEncodePassReduction );
   }
-#endif
 
   m_iMaxRefPicNum = 0;
 }

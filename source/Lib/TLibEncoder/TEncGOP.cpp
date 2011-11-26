@@ -1891,9 +1891,6 @@ Void TEncGOP::xInitGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rcLis
   
   assert (m_iGopSize > 0); 
 
-#if MQT_ALF_NPASS && !MQT_BA_RA
-  m_pcAdaptiveLoopFilter->setGOPSize( m_iGopSize );
-#endif
   return;
 }
 

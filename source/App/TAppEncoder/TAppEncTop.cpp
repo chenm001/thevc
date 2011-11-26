@@ -125,9 +125,7 @@ Void TAppEncTop::xInitLibCfg()
   m_cTEncTop.setUseASR                       ( m_bUseASR      );
   m_cTEncTop.setUseHADME                     ( m_bUseHADME    );
   m_cTEncTop.setUseALF                       ( m_bUseALF      );
-#if MQT_ALF_NPASS
   m_cTEncTop.setALFEncodePassReduction       ( m_iALFEncodePassReduction );
-#endif
   m_cTEncTop.setUseGPB                       ( m_bUseGPB      );
   m_cTEncTop.setUseLComb                     ( m_bUseLComb    );
   m_cTEncTop.setLCMod                        ( m_bLCMod         );

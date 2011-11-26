@@ -125,9 +125,7 @@ protected:
   //====== Tool list ========
   Bool      m_bUseSBACRD;
   Bool      m_bUseALF;
-#if MQT_ALF_NPASS
   Int       m_iALFEncodePassReduction;
-#endif
   Bool      m_bUseASR;
   Bool      m_bUseHADME;
   Bool      m_bUseGPB;
@@ -387,10 +385,8 @@ public:
   Bool      getUseASR                       ()      { return m_bUseASR;     }
   Bool      getUseHADME                     ()      { return m_bUseHADME;   }
   Bool      getUseALF                       ()      { return m_bUseALF;     }
-#if MQT_ALF_NPASS
   Void      setALFEncodePassReduction       (Int i)  { m_iALFEncodePassReduction = i; }
   Int       getALFEncodePassReduction       ()       { return m_iALFEncodePassReduction; }
-#endif
   Bool      getUseGPB                       ()      { return m_bUseGPB;     }
   Bool      getUseLComb                     ()      { return m_bUseLComb;   }
   Bool      getLCMod                        ()      { return m_bLCMod; }
