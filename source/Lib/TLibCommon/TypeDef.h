@@ -121,7 +121,6 @@
 #define LOG2_SCAN_SET_SIZE                4
 #define DIAG_SCAN                         1           ///< JCTVC-F129: use up-right diagonal scan rather than zig-zag for CABAC           
 #define CABAC_COEFF_DATA_REORDER          1           ///< JCTVC-F130: reordering of CABAC coefficient data
-#define QC_MDIS                           1           // JCTVC-D282: enable mode dependent intra smoothing
 #define QC_MDCS                           1           // JCTVC-D393: mode dependent coefficients coding 
 #define RUNLEVEL_TABLE_CUT                1           // JCTVC-E384: Run-Level table size reduction
 #if RUNLEVEL_TABLE_CUT
@@ -253,11 +252,9 @@
   #define ALF_CHROMA_NEW_SHAPES        1 // JCTVC-F303, JCTVC-F042, JCTVC-F157: ALF using the same shapes as for luma
 #endif
 
-#if QC_MDIS
 #define MN_MDIS_SIMPLIFICATION       1       ///< JCTVC-E069: simplification of MDIS
 #if MN_MDIS_SIMPLIFICATION
 #define MDIS2                        1       ///< JCTVC-F126: MDIS modifications
-#endif
 #endif
 #define MN_DC_PRED_FILTER            1       ///< JCTVC-E069: DC prediction samples filtering
 #define UNIFICATION_OF_AVAILABILITY  1       ///< JCTVC-F178: unification of sample availability for DC

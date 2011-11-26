@@ -46,7 +46,6 @@
 // Tables
 // ====================================================================================================================
 
-#if QC_MDIS
 #if ADD_PLANAR_MODE || LM_CHROMA
 const UChar TComPattern::m_aucIntraFilter[5][NUM_INTRA_MODE] =
 #else
@@ -219,7 +218,6 @@ const UChar TComPattern::m_aucIntraFilter[5][34] =
 #endif
 #endif
 };
-#endif
 
 // ====================================================================================================================
 // Public member functions (TComPatternParam)
@@ -586,7 +584,6 @@ Void TComPattern::initAdiPattern( TComDataCU* pcCU, UInt uiZorderIdxInPart, UInt
   }
 #endif // REFERENCE_SAMPLE_PADDING
   
-#if QC_MDIS
   Int   i;
   // generate filtered intra prediction samples
   Int iBufSize = uiCuHeight2 + uiCuWidth2 + 1;  // left and left above border + above and above right border + top left corner = length of 3. filter buffer
@@ -637,7 +634,6 @@ Void TComPattern::initAdiPattern( TComDataCU* pcCU, UInt uiZorderIdxInPart, UInt
   for (i = 0; i < uiCuWidth2; i++)
     piFilteredBuf2[1 + i] = piFilterBuf[l++];
 #endif
-#endif //QC_MDIS
   
 }
 
@@ -1347,7 +1343,6 @@ Int* TComPattern::getAdiCrBuf(Int iCuWidth,Int iCuHeight, Int* piAdiBuf)
   return piAdiBuf+(iCuWidth*2+1)*(iCuHeight*2+1);
 }
 
-#if QC_MDIS
 /** Get pointer to reference samples for intra prediction
  * \param uiDirMode   prediction mode index
  * \param log2BlkSize size of block (2 = 4x4, 3 = 8x8, 4 = 16x16, 5 = 32x32, 6 = 64x64)
@@ -1384,7 +1379,6 @@ Int* TComPattern::getPredictorPtr( UInt uiDirMode, UInt log2BlkSize, Int* piAdiB
 
   return piSrc;
 }
-#endif //QC_MDIS
 
 #if UNIFY_INTRA_AVAIL
 Bool TComPattern::isAboveLeftAvailable( TComDataCU* pcCU, UInt uiPartIdxLT )

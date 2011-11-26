@@ -111,12 +111,10 @@ private:
   Bool m_bDCPredFilterFlag;
 #endif
   
-#if QC_MDIS
 #if ADD_PLANAR_MODE || LM_CHROMA
   static const UChar m_aucIntraFilter[5][NUM_INTRA_MODE];
 #else
   static const UChar m_aucIntraFilter[5][34];
-#endif
 #endif
   
 public:
@@ -135,9 +133,7 @@ public:
   Int*  getAdiCbBuf               ( Int iCuWidth, Int iCuHeight, Int* piAdiBuf );
   Int*  getAdiCrBuf               ( Int iCuWidth, Int iCuHeight, Int* piAdiBuf );
   
-#if QC_MDIS
   Int*  getPredictorPtr           ( UInt uiDirMode, UInt uiWidthBits, Int* piAdiBuf );
-#endif //QC_MDIS
   // -------------------------------------------------------------------------------------------------------------------
   // initialization functions
   // -------------------------------------------------------------------------------------------------------------------
