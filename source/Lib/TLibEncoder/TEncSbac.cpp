@@ -1469,12 +1469,10 @@ __inline Void TEncSbac::codeLastSignificantXY( UInt uiPosX, UInt uiPosY, const U
   UInt  uiCtxLast;
   const UInt uiCtxOffset = g_uiCtxXYOffset[uiCTXIdx];
 
-#if QC_MDCS
   if( uiScanIdx == SCAN_VER )
   {
     swap( uiPosX, uiPosY );
   }
-#endif
   
   for(uiCtxLast=0; uiCtxLast<uiPosX; uiCtxLast++)
   {
@@ -1567,14 +1565,12 @@ Void TEncSbac::codeCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx
   //----- encode significance map -----
   const UInt   uiLog2BlockSize   = g_aucConvertToBit[ uiWidth ] + 2;
   const UInt   uiMaxNumCoeff     = 1 << ( uiLog2BlockSize << 1 );
-#if QC_MDCS
 #if DIAG_SCAN
   UInt uiScanIdx = pcCU->getCoefScanIdx(uiAbsPartIdx, uiWidth, eTType==TEXT_LUMA, pcCU->isIntra(uiAbsPartIdx));
   uiScanIdx = ( uiScanIdx == SCAN_ZIGZAG ) ? SCAN_DIAG : uiScanIdx; // Map zigzag to diagonal scan
 #else
   const UInt uiScanIdx = pcCU->getCoefScanIdx(uiAbsPartIdx, uiWidth, eTType==TEXT_LUMA, pcCU->isIntra(uiAbsPartIdx));
 #endif
-#endif //QC_MDCS
   
 #if NSQT
   static TCoeff orgCoeff[ 256 ];
@@ -1589,11 +1585,7 @@ Void TEncSbac::codeCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx
   }
 #endif
 
-#if QC_MDCS
   const UInt * const scan = g_auiSigLastScan[ uiScanIdx ][ uiLog2BlockSize - 1 ];
-#else
-  const UInt * const scan = g_auiFrameScanXY[ uiLog2BlockSize - 1 ];
-#endif
   
   // Find position of last coefficient
   Int scanPosLast = -1;
@@ -1609,11 +1601,7 @@ Void TEncSbac::codeCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx
   // Code position of last coefficient
   Int posLastY = posLast >> uiLog2BlockSize;
   Int posLastX = posLast - ( posLastY << uiLog2BlockSize );
-#if QC_MDCS
   codeLastSignificantXY(posLastX, posLastY, uiWidth, eTType, uiCTXIdx, uiScanIdx);
-#else
-  codeLastSignificantXY(posLastX, posLastY, uiWidth, eTType, uiCTXIdx, 0);
-#endif
   
   //===== code significance flag =====
   ContextModel * const baseCtx = m_cCUSigSCModel.get( 0, eTType );

@@ -517,9 +517,7 @@ public:
   UInt&         getTotalBits()                  { return m_uiTotalBits;       }
   UInt&         getTotalNumPart()               { return m_uiNumPartition;    }
 
-#if QC_MDCS
   UInt          getCoefScanIdx(UInt uiAbsPartIdx, UInt uiWidth, Bool bIsLuma, Bool bIsIntra);
-#endif //QC_MDCS
 
 #if NSQT
   Bool useNonSquareTrans( UInt uiTrMode );

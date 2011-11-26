@@ -2354,30 +2354,13 @@ Void TComTrQuant::xRateDistOptQuant_LCEC(TComDataCU* pcCU, Int* pSrcCoeff, TCoef
   iShiftQBits = (1 <<( q_bits - 1));
   
   
-#if QC_MDCS
 #if CAVLC_COEF_LRG_BLK
   UInt uiLog2BlkSize = g_aucConvertToBit[ pcCU->isIntra( uiAbsPartIdx ) ? uiWidth : uiBlSize   ] + 2;
 #else
   UInt uiLog2BlkSize = g_aucConvertToBit[ pcCU->isIntra( uiAbsPartIdx ) ? uiWidth : min(8,uiWidth)    ] + 2;
 #endif
   const UInt uiScanIdx = pcCU->getCoefScanIdx(uiAbsPartIdx, uiWidth, eTType==TEXT_LUMA, pcCU->isIntra(uiAbsPartIdx));
-#else
-  const UInt* pucScan;
-  if( !pcCU->isIntra(uiAbsPartIdx ))
-  {
-#if CAVLC_COEF_LRG_BLK
-    pucScan = g_auiFrameScanXY[ g_aucConvertToBit[ uiBlSize ] + 1];
-#else
-    pucScan = g_auiFrameScanXY[ g_aucConvertToBit[ min(uiWidth, 8) ] + 1];
-#endif
-  }
-  else
-  {
-    pucScan = g_auiFrameScanXY[ g_aucConvertToBit[ uiWidth ] + 1];
-  }
-#endif //QC_MDCS
-  
-  
+    
   UInt uiShift_local = iShift;
   UInt uiRes_local = (uiWidth - 1);
   UInt uiWidth_local = uiShift_local;
@@ -2424,11 +2407,7 @@ Void TComTrQuant::xRateDistOptQuant_LCEC(TComDataCU* pcCU, Int* pSrcCoeff, TCoef
     else 
 #endif
     {
-#if QC_MDCS
       iPos = g_auiSigLastScan[uiScanIdx][uiLog2BlkSize-1][iScanning];
-#else
-      iPos = pucScan[iScanning];
-#endif //QC_MDCS
     }
     j = iPos >> uiShift_local;
     i = iPos &  uiRes_local;
@@ -2765,11 +2744,7 @@ Void TComTrQuant::xRateDistOptQuant_LCEC(TComDataCU* pcCU, Int* pSrcCoeff, TCoef
   {
     for (iScanning=noCoeff-1; iScanning>=0; iScanning--) 
     {
-#if QC_MDCS
       iPos = g_auiSigLastScan[uiScanIdx][uiLog2BlkSize-1][iScanning];
-#else
-      iPos = pucScan[iScanning];
-#endif //QC_MDCS
       j = iPos >>  (g_aucConvertToBit[ maxBlSize ] + 2);
       i = iPos & (maxBlSize-1);
       iPos = (j<<(g_aucConvertToBit[ uiWidth ] + 2))+i;
@@ -2782,11 +2757,7 @@ Void TComTrQuant::xRateDistOptQuant_LCEC(TComDataCU* pcCU, Int* pSrcCoeff, TCoef
   {
     for (iScanning = noCoeff - 1; iScanning >= 0; iScanning--) 
     {
-#if QC_MDCS
       iPos = g_auiSigLastScan[uiScanIdx][uiLog2BlkSize-1][iScanning];
-#else
-      iPos = pucScan[iScanning];
-#endif //QC_MDCS
       j = iPos >> 3;
       i = iPos & 0x7;
       iPos = uiWidth * j + i;
@@ -2807,11 +2778,7 @@ Void TComTrQuant::xRateDistOptQuant_LCEC(TComDataCU* pcCU, Int* pSrcCoeff, TCoef
       else 
 #endif
       {
-#if QC_MDCS
         iPos = g_auiSigLastScan[uiScanIdx][uiLog2BlkSize-1][iScanning];
-#else
-        iPos = pucScan[iScanning];
-#endif //QC_MDCS
       }
       pDstCoeff[iPos] = sQuantCoeff[iScanning];
       uiAbsSum += abs(sQuantCoeff[iScanning]);
@@ -3479,7 +3446,6 @@ Void TComTrQuant::xIT( Int* plCoef, Pel* pResidual, UInt uiStride, Int iSize )
 #endif  
 }
     
-#if QC_MDCS
 UInt TComTrQuant::getCurrLineNum(UInt uiScanIdx, UInt uiPosX, UInt uiPosY)
 {
   UInt uiLineNum = 0;
@@ -3499,7 +3465,6 @@ UInt TComTrQuant::getCurrLineNum(UInt uiScanIdx, UInt uiPosX, UInt uiPosY)
   
   return uiLineNum;
 }
-#endif
 
 /** RDOQ with CABAC
  * \param pcCU pointer to coding unit structure
@@ -3558,14 +3523,12 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
   Double     d64BlockUncodedCost = 0;
   const UInt uiLog2BlkSize       = g_aucConvertToBit[ uiWidth ] + 2;
   const UInt uiMaxNumCoeff       = 1 << ( uiLog2BlkSize << 1 );
-#if QC_MDCS
 #if DIAG_SCAN
   UInt uiScanIdx = pcCU->getCoefScanIdx(uiAbsPartIdx, uiWidth, eTType==TEXT_LUMA, pcCU->isIntra(uiAbsPartIdx));
   uiScanIdx = ( uiScanIdx == SCAN_ZIGZAG ) ? SCAN_DIAG : uiScanIdx; // Map value zigzag to diagonal scan
 #else
   const UInt uiScanIdx = pcCU->getCoefScanIdx(uiAbsPartIdx, uiWidth, eTType==TEXT_LUMA, pcCU->isIntra(uiAbsPartIdx));
 #endif
-#endif //QC_MDCS
 #if NSQT
   static Int  orgSrcCoeff[ 256 ];
   if( bNonSqureFlag )

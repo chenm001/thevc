@@ -274,9 +274,7 @@ private:
   Int            bitCountRDOQ(Int coeff, Int pos, Int nTab, Int lastCoeffFlag,Int levelMode,Int run, Int maxrun, Int vlc_adaptive, Int N, 
                               UInt uiTr1, Int iSum_big_coef, Int iBlockType, TComDataCU* pcCU);
 #endif
-#if QC_MDCS
 UInt             getCurrLineNum(UInt uiScanIdx, UInt uiPosX, UInt uiPosY);
-#endif
   Void           xRateDistOptQuant_LCEC ( TComDataCU*                     pcCU,
                                           Int*                            plSrcCoeff,
                                           TCoeff*                         piDstCoeff,

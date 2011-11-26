@@ -121,7 +121,6 @@
 #define LOG2_SCAN_SET_SIZE                4
 #define DIAG_SCAN                         1           ///< JCTVC-F129: use up-right diagonal scan rather than zig-zag for CABAC           
 #define CABAC_COEFF_DATA_REORDER          1           ///< JCTVC-F130: reordering of CABAC coefficient data
-#define QC_MDCS                           1           // JCTVC-D393: mode dependent coefficients coding 
 #define RUNLEVEL_TABLE_CUT                1           // JCTVC-E384: Run-Level table size reduction
 #if RUNLEVEL_TABLE_CUT
 #define CAVLC_COEF_LRG_BLK                1           // JCTVC-E383: enable large block coeff. coding
@@ -624,7 +623,6 @@ enum AMVP_MODE
   AM_EXPL,              ///< explicit signalling of motion vector index
 };
 
-#if QC_MDCS
 /// coefficient scanning type used in ACS
 enum COEFF_SCAN_TYPE
 {
@@ -637,7 +635,6 @@ enum COEFF_SCAN_TYPE
   SCAN_VER              ///< vertical first scan
 #endif
 };
-#endif //QC_MDCS
 
 //! \}
 

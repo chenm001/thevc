@@ -69,7 +69,6 @@ Void initROM()
     g_auiFrameScanX [ i ] = new UInt[ c*c ];
     g_auiFrameScanY [ i ] = new UInt[ c*c ];
     initFrameScanXY( g_auiFrameScanXY[i], g_auiFrameScanX[i], g_auiFrameScanY[i], c, c );
-#if QC_MDCS
     g_auiSigLastScan[0][i] = new UInt[ c*c ];
     g_auiSigLastScan[1][i] = new UInt[ c*c ];
     g_auiSigLastScan[2][i] = new UInt[ c*c ];
@@ -79,7 +78,6 @@ Void initROM()
 #else
     initSigLastScan( g_auiSigLastScan[0][i], g_auiSigLastScan[1][i], g_auiSigLastScan[2][i], c, c, i);
 #endif
-#endif //QC_MDCS
 
     c <<= 1;
   }  
@@ -106,14 +104,12 @@ Void destroyROM()
     delete[] g_auiFrameScanXY[i];
     delete[] g_auiFrameScanX [i];
     delete[] g_auiFrameScanY [i];
-#if QC_MDCS
     delete[] g_auiSigLastScan[0][i];
     delete[] g_auiSigLastScan[1][i];
     delete[] g_auiSigLastScan[2][i];
 #if DIAG_SCAN
     delete[] g_auiSigLastScan[3][i];
 #endif
-#endif //QC_MDCS
   }
 }
 
@@ -1829,13 +1825,11 @@ UInt64 g_nSymbolCounter = 0;
 UInt* g_auiFrameScanXY[ MAX_CU_DEPTH  ];
 UInt* g_auiFrameScanX [ MAX_CU_DEPTH  ];
 UInt* g_auiFrameScanY [ MAX_CU_DEPTH  ];
-#if QC_MDCS
 #if DIAG_SCAN
 UInt* g_auiSigLastScan[4][ MAX_CU_DEPTH ];
 #else
 UInt* g_auiSigLastScan[3][ MAX_CU_DEPTH ];
 #endif
-#endif //QC_MDCS
 
 #if NSQT
 UInt* g_auiNonSquareSigLastScan[ 2 ];
@@ -1945,7 +1939,6 @@ Void initFrameScanXY( UInt* pBuff, UInt* pBuffX, UInt* pBuffY, Int iWidth, Int i
   }
 }
 
-#if QC_MDCS
 #if DIAG_SCAN
 Void initSigLastScan(UInt* pBuffZ, UInt* pBuffH, UInt* pBuffV, UInt* pBuffD, Int iWidth, Int iHeight, Int iDepth)
 #else
@@ -1997,7 +1990,6 @@ Void initSigLastScan(UInt* pBuffZ, UInt* pBuffH, UInt* pBuffV, Int iWidth, Int i
     }
   }    
 }
-#endif //QC_MDCS
 
 #if CHROMA_CODEWORD_SWITCH
 #if FIXED_MPM

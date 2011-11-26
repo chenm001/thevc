@@ -4866,7 +4866,6 @@ Void TComDataCU::compressMV()
 }
 #endif 
 
-#if QC_MDCS
 UInt TComDataCU::getCoefScanIdx(UInt uiAbsPartIdx, UInt uiWidth, Bool bIsLuma, Bool bIsIntra)
 {
 #if ADD_PLANAR_MODE || LM_CHROMA
@@ -4992,7 +4991,6 @@ UInt TComDataCU::getCoefScanIdx(UInt uiAbsPartIdx, UInt uiWidth, Bool bIsLuma, B
 
   return uiScanIdx;
 }
-#endif //QC_MDCS
 
 #if NSQT
 Bool TComDataCU::useNonSquareTrans(UInt uiTrMode)
