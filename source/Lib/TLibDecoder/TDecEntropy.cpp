@@ -69,10 +69,8 @@ Void TDecEntropy::decodeAux(ALFParam* pAlfParam)
   pAlfParam->filtNo = 1; //nonZeroCoeffs
 #endif
 
-#if MQT_BA_RA
   m_pcEntropyDecoderIf->parseAlfFlag (uiSymbol);
   pAlfParam->alf_pcr_region_flag = uiSymbol;  
-#endif
 
   m_pcEntropyDecoderIf->parseAlfUvlc(uiSymbol);
 #if STAR_CROSS_SHAPES_LUMA

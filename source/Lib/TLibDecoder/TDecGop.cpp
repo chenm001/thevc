@@ -121,9 +121,7 @@ Void TDecGop::copySharedAlfParamFromPPS(ALFParam* pAlfDst, ALFParam* pAlfSrc)
     return;
   }
 
-#if MQT_BA_RA
   pAlfDst->alf_pcr_region_flag= pAlfSrc->alf_pcr_region_flag;  
-#endif  
   pAlfDst->filters_per_group  = pAlfSrc->filters_per_group;
   pAlfDst->filtNo             = pAlfSrc->filtNo;
   pAlfDst->realfiltNo         = pAlfSrc->realfiltNo;

@@ -244,12 +244,9 @@
 #define SAO_CHROMA                    1           // JCTVC-F057: Sample adaptive offset for Chroma
 #define SAO_CROSS_LCU_BOUNDARIES      1
 
-#define MQT_BA_RA                        1  // JCTVC-E323+E046
-#if MQT_BA_RA
 #define VAR_SIZE_H           4
 #define VAR_SIZE_W           4
 #define NO_VAR_BIN          16
-#endif
 
 #define STAR_CROSS_SHAPES_LUMA 1 // JCTVC-F303: ALF using vertical-size 5 filters with up to 9 coefficients
 #if STAR_CROSS_SHAPES_LUMA
@@ -446,27 +443,15 @@ struct _AlfParam
   //CodeAux related
   Int realfiltNo;
   Int filtNo;
-#if MQT_BA_RA 
   Int filterPattern[NO_VAR_BIN];
-#else
-  Int filterPattern[16];
-#endif
   Int startSecondFilter;
   Int noFilters;
-#if MQT_BA_RA 
   Int varIndTab[NO_VAR_BIN];
-#else
-  Int varIndTab[16];
-#endif
   
   //Coeff send related
   Int filters_per_group_diff; //this can be updated using codedVarBins
   Int filters_per_group;
-#if MQT_BA_RA  
   Int codedVarBins[NO_VAR_BIN]; 
-#else
-  Int codedVarBins[16]; 
-#endif 
   Int forceCoeff0;
   Int predMethod;
   Int **coeffmulti;
@@ -480,9 +465,7 @@ struct _AlfParam
   UInt *alf_cu_flag;
 #endif
 
-#if MQT_BA_RA
   Int alf_pcr_region_flag; 
-#endif
 };
 
 /// parameters for deblocking filter

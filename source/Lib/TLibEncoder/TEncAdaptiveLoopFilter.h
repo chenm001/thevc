@@ -215,7 +215,6 @@ private:
   /// set initial m_maskImg
   Void  setInitialMask(TComPicYuv* pcPicOrg, TComPicYuv* pcPicDec);
 
-#if MQT_BA_RA
   /// save filter coefficients to buffer
 #if STAR_CROSS_SHAPES_LUMA
   Void  saveFilterCoeffToBuffer(Int **filterCoeffPrevSelected,Int filtNo);
@@ -227,11 +226,6 @@ private:
 
   /// Estimate RD cost of all filter size & store the best one
   Void  xFirstEstimateFilteringFrameLumaAllTap(imgpel* ImgOrg, imgpel* ImgDec, Int Stride, ALFParam* pcAlfSaved, UInt64& ruiRate, UInt64& ruiDist,Double& rdCost);
-
-
-#else
-  Void  xFirstFilteringFrameLumaAllTap(imgpel* ImgOrg, imgpel* ImgDec, imgpel* ImgRest, Int Stride);
-#endif
 
   /// Estimate filtering distortion by correlation values and filter coefficients
   Int64 xFastFiltDistEstimation(Double** ppdE, Double* pdy, Int* piCoeff, Int iFiltLength);

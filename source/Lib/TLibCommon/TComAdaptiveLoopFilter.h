@@ -63,11 +63,7 @@
 #define NO_VAR_BINS           16 
 #define NO_FILTERS            16
 
-#if MQT_BA_RA 
-#define VAR_SIZE               1 // JCTVC-E323+E046
-#else
-#define VAR_SIZE               3
-#endif
+#define VAR_SIZE               1
 
 #if STAR_CROSS_SHAPES_LUMA
 // max tap = max_horizontal_tap = 11
@@ -137,14 +133,12 @@ enum AlfChromaID
   ALF_Cr = 1
 };
 
-#if MQT_BA_RA
 enum ALFClassficationMethod
 {
   ALF_BA =0,
   ALF_RA,
   NUM_ALF_CLASS_METHOD
 };
-#endif
 // ====================================================================================================================
 // Class definition
 // ====================================================================================================================
@@ -426,12 +420,10 @@ protected:
   imgpel **m_imgY_var;
   Int    **m_imgY_temp;
   
-#if MQT_BA_RA
   Int**    m_imgY_ver;
   Int**    m_imgY_hor;
   UInt     m_uiVarGenMethod;
   imgpel** m_varImgMethods[NUM_ALF_CLASS_METHOD];
-#endif 
 
   Int **m_filterCoeffSym;
   Int **m_filterCoeffPrevSelected;
@@ -456,9 +448,7 @@ protected:
   /// Perform ALF for one chroma slice
   Void xFrameChromaforOneSlice    (CAlfSlice* pSlice, Int ComponentID, TComPicYuv* pcPicDec, TComPicYuv* pcPicRest, Int *qh, Int iTap);
 
-#if MQT_BA_RA
   Void createRegionIndexMap(imgpel **imgY_var, Int img_width, Int img_height);
-#endif
 
   /// ALF for luma component
 #if F747_APS

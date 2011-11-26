@@ -154,9 +154,7 @@ Void TEncEntropy::codeAux(ALFParam* pAlfParam)
 #endif
   //  m_pcEntropyCoderIf->codeAlfUvlc(pAlfParam->realfiltNo); 
 
-#if MQT_BA_RA  
   m_pcEntropyCoderIf->codeAlfFlag(pAlfParam->alf_pcr_region_flag);
-#endif
 
 #if STAR_CROSS_SHAPES_LUMA
   m_pcEntropyCoderIf->codeAlfUvlc(pAlfParam->realfiltNo); 
