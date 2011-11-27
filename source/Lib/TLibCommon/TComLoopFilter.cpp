@@ -388,7 +388,7 @@ Void TComLoopFilter::xSetEdgefilterTU( TComDataCU* pcCU, UInt uiAbsZorderIdx, UI
       if( ( pcCU->getDepth( uiAbsZorderIdx) && pcCU->getDepth( uiAbsZorderIdx) == uiDepth) || 
         ( pcCU->getWidth( 0 ) == 64 && ( uiDepth - pcCU->getDepth( uiAbsZorderIdx) == 1  ) ) ) 
       {
-        const UInt iBaseUnitIdx = uiLCUWidthInBaseUnits >> ( uiDepth + 1 );
+        const UInt iBaseUnitIdx = uiLCUWidthInBaseUnits >> ( uiDepth + 2 );
 #if AMP
         UInt offset = ( pcCU->getPartitionSize( uiAbsZorderIdx ) == SIZE_Nx2N || pcCU->getPartitionSize( uiAbsZorderIdx ) == SIZE_nLx2N || pcCU->getPartitionSize( uiAbsZorderIdx ) == SIZE_nRx2N ) ? iBaseUnitIdx : iBaseUnitIdx * uiLCUWidthInBaseUnits;
 #else
