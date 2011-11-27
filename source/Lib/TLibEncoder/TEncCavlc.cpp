@@ -2272,8 +2272,6 @@ Void TEncCavlc::codeCoeffNxN    ( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPa
   }
   
   // initialize scan
-  const UInt*  pucScan;
-  
 #if CAVLC_COEF_LRG_BLK
 #if CAVLC_COEF_LRG_BLK_CHROMA
   UInt maxBlSize = 32;
