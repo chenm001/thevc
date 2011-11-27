@@ -3359,7 +3359,7 @@ Void TEncAdaptiveLoopFilter::xSetCUAlfCtrlFlags_qc(UInt uiAlfCtrlDepth, TComPicY
       xSetCUAlfCtrlFlag_qc(pcCU, 0, 0, uiAlfCtrlDepth, pcPicOrg, pcPicDec, pcPicRest, ruiDist, cAlfCUCtrlParam.alf_cu_flag);
     }
 
-    cAlfCUCtrlParam.num_alf_cu_flag = cAlfCUCtrlParam.alf_cu_flag.size();
+    cAlfCUCtrlParam.num_alf_cu_flag = (UInt)cAlfCUCtrlParam.alf_cu_flag.size();
   }
   else
   {
@@ -5466,7 +5466,7 @@ Void TEncAdaptiveLoopFilter::transferCtrlFlagsToAlfParam(std::vector<AlfCUCtrlIn
         }
       }
     }
-    cSliceCUCtrlParam.num_alf_cu_flag = cSliceCUCtrlParam.alf_cu_flag.size();
+    cSliceCUCtrlParam.num_alf_cu_flag = (UInt)cSliceCUCtrlParam.alf_cu_flag.size();
   }
 }
 

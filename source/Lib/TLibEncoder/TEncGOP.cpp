@@ -1615,7 +1615,7 @@ Void TEncGOP::assignNewAPS(TComAPS& cAPS, Int apsID, std::vector<TComAPS>& vAPS,
     }
   }
   //assign new APS into APS container
-  Int apsBufSize= vAPS.size();
+  Int apsBufSize= (Int)vAPS.size();
 
   if(apsID >= apsBufSize)
   {
