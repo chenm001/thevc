@@ -63,7 +63,7 @@ static void convertPayloadToRBSP(vector<uint8_t>& nalUnitBuf)
       if ( (*(it_read) == 0x00) && (*(it_read+1) == 0x00) && (*(it_read+2) == 0x02) ) // tile marker detected
       {
         it_read += 2;
-        UInt uiDistance  = it_write - nalUnitBuf.begin();
+        UInt uiDistance  = (UInt) (it_write - nalUnitBuf.begin());
         UInt uiCount     = pcBitstream->getTileMarkerLocationCount();
         bTileMarkerFound = true;
         pcBitstream->setTileMarkerLocation( uiCount, uiDistance );
@@ -88,7 +88,7 @@ static void convertPayloadToRBSP(vector<uint8_t>& nalUnitBuf)
     {
 #if TILES_DECODER
       // update tile marker location
-      UInt uiDistance = it_read - nalUnitBuf.begin();
+      UInt uiDistance = (UInt) (it_read - nalUnitBuf.begin());
       for (UInt uiIdx=0; uiIdx<pcBitstream->getTileMarkerLocationCount(); uiIdx++)
       {
         if (auiStoredTileMarkerLocation[ uiIdx ] >= uiDistance)
