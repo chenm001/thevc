@@ -827,9 +827,6 @@ Void TEncEntropy::encodePUWise( TComDataCU* pcCU, UInt uiAbsPartIdx, Bool bRD )
   {
     if ( pcCU->getSlice()->getSPS()->getUseMRG() )
     {
-#if PART_MRG
-      if (pcCU->getWidth( uiAbsPartIdx ) <= 8 || uiNumPU != 2 || uiPartIdx != 0)
-#endif
       {
         encodeMergeFlag( pcCU, uiSubPartIdx, uiPartIdx );
       }

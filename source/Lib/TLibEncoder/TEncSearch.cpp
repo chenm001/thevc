@@ -2411,21 +2411,6 @@ Void TEncSearch::predInterSearch( TComDataCU* pcCU, TComYuv* pcOrgYuv, TComYuv*&
     
     pcCU->getPartIndexAndSize( iPartIdx, uiPartAddr, iRoiWidth, iRoiHeight );
     
-#if PART_MRG 
-    Bool bTestNormalMC = true;
-    if (pcCU->getSlice()->getSPS()->getUseMRG() && pcCU->getWidth( 0 ) > 8 && iNumPart == 2 && iPartIdx == 0)
-      bTestNormalMC = false;
-#if AMP_MRG
-    if ( bUseMRG && pcCU->getWidth( 0 ) > 8 && iNumPart == 2 && iPartIdx == 1 )
-    {
-      bTestNormalMC = false;
-    }
-#endif
-
-    if (bTestNormalMC)
-    {
-#endif
-
 #if !PART_MRG && AMP_MRG
     Bool bTestNormalMC = true;
     
@@ -2747,9 +2732,6 @@ Void TEncSearch::predInterSearch( TComDataCU* pcCU, TComYuv* pcOrgYuv, TComYuv*&
       }
     }
 #endif
-#if PART_MRG 
-    } //end if bTestNormalMC
-#endif
 
 #if !PART_MRG && AMP_MRG
     } //end if bTestNormalMC
@@ -3008,24 +2990,6 @@ Void TEncSearch::predInterSearch( TComDataCU* pcCU, TComYuv* pcOrgYuv, TComYuv*&
 #endif
         }
       }
-#if PART_MRG 
-#if AMP_MRG
-      if (!bTestNormalMC && !bMergeValid && iPartIdx == 0 )
-#else
-      if (!bTestNormalMC && !bMergeValid)
-#endif
-      {
-        assert(pcCU->getWidth( 0 ) > 8 && iNumPart == 2 && iPartIdx == 0);
-        return;
-      }
-#if AMP_MRG
-      if (!bTestNormalMC && !bMergeValid && iPartIdx == 1 )
-      {
-        pcCU->setMergeAMP (false);
-        return;
-      }
-#endif
-#endif
     }
 
     //  MC
