@@ -276,7 +276,7 @@ extern       UInt g_uiBitDepth;
 extern       UInt g_uiBitIncrement;
 extern       UInt g_uiIBDI_MAX;
 extern       UInt g_uiBASE_MAX;
-#if E057_INTRA_PCM && E192_SPS_PCM_BIT_DEPTH_SYNTAX
+#if E192_SPS_PCM_BIT_DEPTH_SYNTAX
 extern       UInt g_uiPCMBitDepthLuma;
 extern       UInt g_uiPCMBitDepthChroma;
 #endif

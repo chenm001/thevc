@@ -284,7 +284,7 @@ public:
 
 #endif
 
-#if E057_INTRA_PCM && E192_SPS_PCM_FILTER_DISABLE_SYNTAX
+#if E192_SPS_PCM_FILTER_DISABLE_SYNTAX
   Void PCMLFDisableProcess (TComPic* pcPic);
 #endif
 
