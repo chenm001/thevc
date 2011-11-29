@@ -60,9 +60,7 @@ class TComBitIf
 {
 public:
   virtual Void        writeAlignOne         () {};
-#if E057_INTRA_PCM
   virtual Void        writeAlignZero        () {};
-#endif
   virtual Void        write                 ( UInt uiBits, UInt uiNumberOfBits )  = 0;
   virtual Void        resetBits             ()                                    = 0;
   virtual UInt getNumberOfWrittenBits() const = 0;

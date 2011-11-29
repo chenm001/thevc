@@ -115,7 +115,6 @@ Void TEncBinCABAC::flush()
 }
 #endif
 
-#if E057_INTRA_PCM
 /** Reset BAC register and counter values.
  * \returns Void
  */
@@ -143,7 +142,6 @@ Void TEncBinCABAC::xWritePCMCode(UInt uiCode, UInt uiLength)
 {
   m_pcTComBitIf->write(uiCode, uiLength);
 }
-#endif
 
 Void TEncBinCABAC::copyState( TEncBinIf* pcTEncBinIf )
 {

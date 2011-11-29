@@ -150,9 +150,7 @@ protected:
   UInt      m_uiDeltaQpRD;
   
   Bool      m_bUseConstrainedIntraPred;
-#if E057_INTRA_PCM
   UInt      m_uiPCMLog2MinSize;
-#endif
   //====== Slice ========
   Int       m_iSliceMode;
   Int       m_iSliceArgument; 
@@ -374,9 +372,7 @@ public:
 #if E057_INTRA_PCM && E192_SPS_PCM_FILTER_DISABLE_SYNTAX
   Void      setPCMFilterDisableFlag         ( Bool  b )     {  m_bPCMFilterDisableFlag = b; }
 #endif
-#if E057_INTRA_PCM
   Void      setPCMLog2MinSize               ( UInt u )     { m_uiPCMLog2MinSize = u;      }
-#endif
   Void      setdQPs                         ( Int*  p )     { m_aidQP       = p; }
   Void      setDeltaQpRD                    ( UInt  u )     {m_uiDeltaQpRD  = u; }
   Bool      getUseSBACRD                    ()      { return m_bUseSBACRD;  }
@@ -408,9 +404,7 @@ public:
 #if E057_INTRA_PCM && E192_SPS_PCM_FILTER_DISABLE_SYNTAX
   Bool      getPCMFilterDisableFlag         ()      { return m_bPCMFilterDisableFlag;   } 
 #endif
-#if E057_INTRA_PCM
   UInt      getPCMLog2MinSize               ()      { return  m_uiPCMLog2MinSize;  }
-#endif
 
   Bool getUseLMChroma                       ()      { return m_bUseLMChroma;        }
   Void setUseLMChroma                       ( Bool b ) { m_bUseLMChroma  = b;       }

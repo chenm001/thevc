@@ -64,11 +64,9 @@ public:
   virtual Void  decodeBinsEP      ( UInt& ruiBins, Int numBins             )  = 0;
   virtual Void  decodeBinTrm      ( UInt& ruiBin                           )  = 0;
   
-#if E057_INTRA_PCM
   virtual Void  resetBac          ()                                          = 0;
   virtual Void  decodePCMAlignBits()                                          = 0;
   virtual Void  xReadPCMCode      (UInt uiLength, UInt& ruiCode)              = 0;
-#endif
 
   virtual ~TDecBinIf() {}
 

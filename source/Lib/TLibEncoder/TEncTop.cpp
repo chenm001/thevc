@@ -521,9 +521,7 @@ Void TEncTop::xInitSPS()
   m_cSPS.setMinTrDepth    ( 0                   );
   m_cSPS.setMaxTrDepth    ( 1                   );
   
-#if E057_INTRA_PCM
   m_cSPS.setPCMLog2MinSize (m_uiPCMLog2MinSize);
-#endif
 
   m_cSPS.setUseALF        ( m_bUseALF           );
   

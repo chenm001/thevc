@@ -145,9 +145,7 @@ protected:
   Bool      m_bUseLMChroma;                                  ///< JL: Chroma intra prediction based on luma signal
 
   // coding tools (PCM)
-#if E057_INTRA_PCM
   UInt      m_uiPCMLog2MinSize;                               ///< log2 of minimum PCM block size
-#endif
 #if E057_INTRA_PCM && E192_SPS_PCM_FILTER_DISABLE_SYNTAX
   Bool      m_bPCMFilterDisableFlag;                          ///< PCM filter disable flag
 #endif

@@ -75,9 +75,7 @@ protected:
   Void  xReadFlagTr           (              UInt& rValue, const Char *pSymbolName);
 #endif
   
-#if E057_INTRA_PCM
   Void  xReadPCMAlignZero     ();
-#endif
 
   UInt  xGetBit             ();
   Int   xReadVlc            ( Int n );
@@ -229,9 +227,7 @@ public:
   Void parseBlockCbf        ( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eType, UInt uiTrDepth, UInt uiDepth, UInt uiQPartNum );
   Void parseCoeffNxN        ( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx, UInt uiWidth, UInt uiHeight, UInt uiDepth, TextType eTType );
   
-#if E057_INTRA_PCM
   Void parseIPCMInfo        ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth);
-#endif
 
   Void parseAlfCtrlDepth    ( UInt& ruiAlfCtrlDepth );
   Void parseAlfCtrlFlag     ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );

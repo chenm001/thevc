@@ -725,12 +725,10 @@ Void TComLoopFilter::xEdgeFilterLuma( TComDataCU* pcCU, UInt uiAbsZorderIdx, UIn
 
   Int  iStride = pcPicYuvRec->getStride();
   Int  iQP = pcCU->getQP( uiAbsZorderIdx );
-#if E057_INTRA_PCM
   if(pcCU->getIPCMFlag( uiAbsZorderIdx )) 
   {
     iQP = 0; 
   }
-#endif
   UInt uiNumParts = pcCU->getPic()->getNumPartInWidth()>>uiDepth;
   
   UInt  uiPelsInPart = g_uiMaxCUWidth >> g_uiMaxCUDepth;
@@ -1080,12 +1078,10 @@ Void TComLoopFilter::xEdgeFilterChroma( TComDataCU* pcCU, UInt uiAbsZorderIdx, U
   Pel*        piSrcCr     = pcPicYuvRec->getCrAddr( pcCU->getAddr(), uiAbsZorderIdx );
   
   Int   iQP = QpUV((Int) pcCU->getQP( uiAbsZorderIdx ));
-#if E057_INTRA_PCM
   if(pcCU->getIPCMFlag( uiAbsZorderIdx )) 
   {
     iQP = QpUV(0); 
   }
-#endif
 
   UInt  uiPelsInPartChroma = g_uiMaxCUWidth >> (g_uiMaxCUDepth+1);
   

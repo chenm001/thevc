@@ -895,7 +895,6 @@ TEncSearch::xEncIntraHeader( TComDataCU*  pcCU,
       
       m_pcEntropyCoder  ->encodePartSize( pcCU, 0, pcCU->getDepth(0), true );
 
-#if E057_INTRA_PCM
       if (pcCU->isIntra(0) && pcCU->getPartitionSize(0) == SIZE_2Nx2N )
       {
         m_pcEntropyCoder->encodeIPCMInfo( pcCU, 0, true );
@@ -905,7 +904,6 @@ TEncSearch::xEncIntraHeader( TComDataCU*  pcCU,
           return;
         }
       }
-#endif
     }
     // luma prediction mode
     if( pcCU->getPartitionSize(0) == SIZE_2Nx2N )
@@ -2043,7 +2041,6 @@ TEncSearch::estIntraPredChromaQT( TComDataCU* pcCU,
   }
 }
 
-#if E057_INTRA_PCM
 /** Function for encoding and reconstructing luma/chroma samples of a PCM mode CU.
  * \param pcCU pointer to current CU
  * \param uiAbsPartIdx part index
@@ -2223,7 +2220,6 @@ Void TEncSearch::IPCMSearch( TComDataCU* pcCU, TComYuv* pcOrgYuv, TComYuv*& rpcP
 
   pcCU->copyToPic(uiDepth, 0, 0);
 }
-#endif
 
 Void TEncSearch::xGetInterPredictionError( TComDataCU* pcCU, TComYuv* pcYuvOrg, Int iPartIdx, UInt& ruiErr, Bool bHadamard )
 {

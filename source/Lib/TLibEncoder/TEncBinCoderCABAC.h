@@ -61,11 +61,9 @@ public:
   Void  flush            ();
 #endif
 
-#if E057_INTRA_PCM
   Void  resetBac          ();
   Void  encodePCMAlignBits();
   Void  xWritePCMCode     (UInt uiCode, UInt uiLength);
-#endif
   
 #if F747_APS
   Void encodeFlush(Bool bEnd);  //!< flush bits when CABAC termination

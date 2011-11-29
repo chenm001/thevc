@@ -359,7 +359,6 @@ Void TDecSbac::xReadGoRiceExGolomb( UInt &ruiSymbol, UInt &ruiGoRiceParam )
 }
 
 
-#if E057_INTRA_PCM
 /** Parse I_PCM information. 
  * \param pcCU
  * \param uiAbsPartIdx 
@@ -457,7 +456,6 @@ Void TDecSbac::parseIPCMInfo ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth
     m_pcTDecBinIf->resetBac();
   }
 }
-#endif
 
 Void TDecSbac::parseAlfCtrlDepth( UInt& ruiAlfCtrlDepth )
 {
