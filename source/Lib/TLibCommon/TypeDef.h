@@ -207,8 +207,6 @@
 #define VAR_SIZE_W           4
 #define NO_VAR_BIN          16
 
-#define MN_DC_PRED_FILTER_UNIFIED    1       ///< JCTVC-F252 using unified filter for all block size
-
 #define MVD_CTX            1           // JCTVC-E324: Modified context selection for MVD
 #define PARALLEL_DEBLK_DECISION      1 // JCTC-E224: Parallel decisions
 #define PARALLEL_MERGED_DEBLK        1 // JCTC-E224, JCTVC-E181: Parallel decisions + Parallel filtering
