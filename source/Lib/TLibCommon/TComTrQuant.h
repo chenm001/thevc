@@ -158,11 +158,11 @@ public:
   // transform & inverse transform functions
   Void transformNxN         ( TComDataCU* pcCU, Pel*   pcResidual, UInt uiStride, TCoeff* rpcCoeff, UInt uiWidth, UInt uiHeight,
                              UInt& uiAbsSum, TextType eTType, UInt uiAbsPartIdx );
-
+#if INTRA_DST_TYPE_7
   Void invtransformNxN      (TextType eText, UInt uiMode,Pel* rpcResidual, UInt uiStride, TCoeff*   pcCoeff, UInt uiWidth, UInt uiHeight);
-
-
-
+#else
+  Void invtransformNxN      ( Pel* rpcResidual, UInt uiStride, TCoeff*   pcCoeff, UInt uiWidth, UInt uiHeight );
+#endif
   Void invRecurTransformNxN ( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eTxt, Pel* rpcResidual, UInt uiAddr,   UInt uiStride, UInt uiWidth, UInt uiHeight,
                              UInt uiMaxTrMode,  UInt uiTrMode, TCoeff* rpcCoeff );
   
@@ -204,19 +204,19 @@ protected:
   
 private:
   // forward Transform
-
+#if INTRA_DST_TYPE_7
 #if NSQT
   Void xT   ( UInt uiMode,Pel* pResidual, UInt uiStride, Int* plCoeff, Int iWidth, Int iHeight );
 #else
   Void xT   ( UInt uiMode,Pel* pResidual, UInt uiStride, Int* plCoeff, Int iSize );
 #endif
-
-
-
-
-
-
-
+#else
+#if NSQT
+  Void xT   ( Pel* pResidual, UInt uiStride, Int* plCoeff, Int iWidth, Int iHeight );
+#else
+  Void xT   ( Pel* pResidual, UInt uiStride, Int* plCoeff, Int iSize );
+#endif
+#endif
   
   // quantization
   Void xQuant( TComDataCU* pcCU, Int* pSrc, TCoeff* pDes, Int iWidth, Int iHeight, UInt& uiAcSum, TextType eTType, UInt uiAbsPartIdx );
@@ -326,19 +326,19 @@ __inline UInt              xGetCodedLevel  ( Double&                         rd6
   Void xDeQuant( const TCoeff* pSrc,     Int* pDes,       Int iWidth, Int iHeight );
   
   // inverse transform
-
+#if INTRA_DST_TYPE_7
 #if NSQT
   Void xIT    ( UInt uiMode, Int* plCoef, Pel* pResidual, UInt uiStride, Int iWidth, Int iHeight );
 #else
   Void xIT    ( UInt uiMode, Int* plCoef, Pel* pResidual, UInt uiStride, Int iSize );
 #endif
-
-
-
-
-
-
-
+#else
+#if NSQT
+  Void xIT    ( Int* plCoef, Pel* pResidual, UInt uiStride, Int iWidth, Int iHeight );
+#else
+  Void xIT    ( Int* plCoef, Pel* pResidual, UInt uiStride, Int iSize );
+#endif
+#endif
   
 };// END CLASS DEFINITION TComTrQuant
 
