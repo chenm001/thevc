@@ -342,11 +342,7 @@ Void TComPrediction::predIntraLumaAng(TComPattern* pcTComPattern, UInt uiDirMode
   // Create the prediction
   if ( uiDirMode == PLANAR_IDX )
   {
-#if REFERENCE_SAMPLE_PADDING
     xPredIntraPlanar( ptrSrc+sw+1, sw, pDst, uiStride, iWidth, iHeight );
-#else
-    xPredIntraPlanar( ptrSrc+sw+1, sw, pDst, uiStride, iWidth, iHeight, bAbove, bLeft );
-#endif
   }
   else
   {
@@ -370,11 +366,7 @@ Void TComPrediction::predIntraChromaAng( TComPattern* pcTComPattern, Int* piSrc,
 
   if ( uiDirMode == PLANAR_IDX )
   {
-#if REFERENCE_SAMPLE_PADDING
     xPredIntraPlanar( ptrSrc+sw+1, sw, pDst, uiStride, iWidth, iHeight );
-#else
-    xPredIntraPlanar( ptrSrc+sw+1, sw, pDst, uiStride, iWidth, iHeight, bAbove, bLeft );
-#endif
   }
   else
   {
@@ -984,7 +976,6 @@ Void TComPrediction::getMvPredAMVP( TComDataCU* pcCU, UInt uiPartIdx, UInt uiPar
   return;
 }
 
-#if REFERENCE_SAMPLE_PADDING
 /** Function for deriving planar intra prediction.
  * \param pSrc pointer to reconstructed sample array
  * \param srcStride the stride of the reconstructed sample array
@@ -996,21 +987,6 @@ Void TComPrediction::getMvPredAMVP( TComDataCU* pcCU, UInt uiPartIdx, UInt uiPar
  * This function derives the prediction samples for planar mode (intra coding).
  */
 Void TComPrediction::xPredIntraPlanar( Int* pSrc, Int srcStride, Pel* rpDst, Int dstStride, UInt width, UInt height )
-#else
-/** Function for deriving planar intra prediction.
- * \param pSrc pointer to reconstructed sample array
- * \param srcStride the stride of the reconstructed sample array
- * \param rpDst reference to pointer for the prediction sample array
- * \param dstStride the stride of the prediction sample array
- * \param width the width of the block
- * \param height the height of the block
- * \param blkAboveAvailable boolean indication if the block above is available
- * \param blkLeftAvailable boolean indication if the block to the left is available
- *
- * This function derives the prediction samples for planar mode (intra coding).
- */
-Void TComPrediction::xPredIntraPlanar( Int* pSrc, Int srcStride, Pel* rpDst, Int dstStride, UInt width, UInt height, Bool blkAboveAvailable, Bool blkLeftAvailable )
-#endif
 {
   assert(width == height);
 
@@ -1023,7 +999,6 @@ Void TComPrediction::xPredIntraPlanar( Int* pSrc, Int srcStride, Pel* rpDst, Int
   UInt shift2D = shift1D + 1;
 
   // Get left and above reference column and row
-#if REFERENCE_SAMPLE_PADDING
 #if PLANAR_F483
   for(k=0;k<blkSize+1;k++)
 #else
@@ -1033,49 +1008,6 @@ Void TComPrediction::xPredIntraPlanar( Int* pSrc, Int srcStride, Pel* rpDst, Int
     topRow[k] = pSrc[k-srcStride];
     leftColumn[k] = pSrc[k*srcStride-1];
   }
-#else
-  // PLANAR_F483 not supported here
-  if (!blkAboveAvailable && !blkLeftAvailable)
-  {
-    for(k=0;k<blkSize;k++)
-    {
-      leftColumn[k] = topRow[k] = ( 1 << ( g_uiBitDepth + g_uiBitIncrement - 1 ) );
-    }
-  }
-  else
-  {
-    if(blkAboveAvailable)
-    {
-      for(k=0;k<blkSize;k++)
-      {
-        topRow[k] = pSrc[k-srcStride];
-      }
-    }
-    else
-    {
-      Int leftSample = pSrc[-1];
-      for(k=0;k<blkSize;k++)
-      {
-        topRow[k] = leftSample;
-      }
-    }
-    if(blkLeftAvailable)
-    {
-      for(k=0;k<blkSize;k++)
-      {
-        leftColumn[k] = pSrc[k*srcStride-1];
-      }
-    }
-    else
-    {
-      Int aboveSample = pSrc[-srcStride];
-      for(k=0;k<blkSize;k++)
-      {
-        leftColumn[k] = aboveSample;
-      }
-    }
-  }
-#endif
 
   // Prepare intermediate variables used in interpolation
 #if PLANAR_F483

@@ -1711,10 +1711,6 @@ TEncSearch::estIntraPredQT( TComDataCU* pcCU,
       for( Int modeIdx = 0; modeIdx < numModesAvailable; modeIdx++ )
       {
         UInt uiMode = modeIdx;
-#if !REFERENCE_SAMPLE_PADDING
-        if ( !predIntraLumaDirAvailable( uiMode, uiWidthBit, bAboveAvail, bLeftAvail ) )
-          continue;
-#endif
 
         predIntraLumaAng( pcCU->getPattern(), uiMode, piPred, uiStride, uiWidth, uiHeight, pcCU, bAboveAvail, bLeftAvail );
         
@@ -1727,10 +1723,6 @@ TEncSearch::estIntraPredQT( TComDataCU* pcCU,
         CandNum += xUpdateCandList( uiMode, cost, numModesForFullRD, uiRdModeList, CandCostList );
       }
     
-#if !REFERENCE_SAMPLE_PADDING
-      // Number of modes might be less than desired if too few are actually available
-      numModesForFullRD = min<Int>( numModesForFullRD, CandNum );
-#endif
 #if FAST_UDI_USE_MPM
       Int uiPreds[2] = {-1, -1};
       Int iMode = -1;
@@ -1781,11 +1773,6 @@ TEncSearch::estIntraPredQT( TComDataCU* pcCU,
       // set luma prediction mode
       UInt uiOrgMode = uiRdModeList[uiMode];
       
-#if (!REFERENCE_SAMPLE_PADDING)
-      if ( !predIntraLumaDirAvailable( uiOrgMode, uiWidthBit, bAboveAvail, bLeftAvail ) )
-        continue;
-#endif
-
       pcCU->setLumaIntraDirSubParts ( uiOrgMode, uiPartOffset, uiDepth + uiInitTrDepth );
       
       // set context models
@@ -1849,11 +1836,6 @@ TEncSearch::estIntraPredQT( TComDataCU* pcCU,
       UInt uiOrgMode = uiBestPUMode;
 #endif
       
-#if (!REFERENCE_SAMPLE_PADDING)
-      if ( !predIntraLumaDirAvailable( uiOrgMode, uiWidthBit, bAboveAvail, bLeftAvail ) )
-        continue;
-#endif
-
       pcCU->setLumaIntraDirSubParts ( uiOrgMode, uiPartOffset, uiDepth + uiInitTrDepth );
       
       // set context models
@@ -2240,19 +2222,6 @@ Void TEncSearch::IPCMSearch( TComDataCU* pcCU, TComYuv* pcOrgYuv, TComYuv*& rpcP
   pcCU->getTotalDistortion() = uiDistortion;
 
   pcCU->copyToPic(uiDepth, 0, 0);
-}
-#endif
-
-#if (!REFERENCE_SAMPLE_PADDING)
-Bool TEncSearch::predIntraLumaDirAvailable( UInt uiMode, UInt uiWidthBit, Bool bAboveAvail, Bool bLeftAvail)
-{
-  Bool bDirAvailable = true;
-  UInt uiNewMode     = g_aucAngIntraModeOrder[uiMode];
-  
-  if ( uiNewMode > 0 && ( ( (!bAboveAvail) && uiNewMode < 18 ) || ( (!bLeftAvail) && uiNewMode > 17 ) ) )
-    bDirAvailable = false;
-  
-  return bDirAvailable;
 }
 #endif
 

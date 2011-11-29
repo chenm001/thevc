@@ -209,7 +209,6 @@
 
 #define PARALLEL_DEBLK_DECISION      1 // JCTC-E224: Parallel decisions
 #define PARALLEL_MERGED_DEBLK        1 // JCTC-E224, JCTVC-E181: Parallel decisions + Parallel filtering
-#define REFERENCE_SAMPLE_PADDING                1   // JCTVC-E488 padding of unavailable reference samples for intra prediction
 
 #define MATRIX_MULT                             0   // Brute force matrix multiplication instead of partial butterfly
 
