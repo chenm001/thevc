@@ -53,9 +53,6 @@ TComPrediction::TComPrediction()
 
 TComPrediction::~TComPrediction()
 {
-#if !GENERIC_IF
-  m_cYuvExt.destroy();
-#endif
   
   delete[] m_piYuvExt;
 
@@ -69,7 +66,6 @@ TComPrediction::~TComPrediction()
     delete [] m_pLumaRecBuffer;
   }
   
-#if GENERIC_IF
   Int i, j;
   for (i = 0; i < 4; i++)
   {
@@ -79,14 +75,12 @@ TComPrediction::~TComPrediction()
     }
     m_filteredBlockTmp[i].destroy();
   }
-#endif
 }
 
 Void TComPrediction::initTempBuff()
 {
   if( m_piYuvExt == NULL )
   {
-#if GENERIC_IF
     Int extWidth  = g_uiMaxCUWidth + 16; 
     Int extHeight = g_uiMaxCUHeight + 1;
     Int i, j;
@@ -100,11 +94,6 @@ Void TComPrediction::initTempBuff()
     }
     m_iYuvExtHeight  = ((g_uiMaxCUHeight + 2) << 4);
     m_iYuvExtStride = ((g_uiMaxCUWidth  + 8) << 4);
-#else
-    m_iYuvExtHeight  = ((g_uiMaxCUHeight + 2) << 4);
-    m_iYuvExtStride = ((g_uiMaxCUWidth  + 8) << 4);
-    m_cYuvExt.create( m_iYuvExtStride, m_iYuvExtHeight );
-#endif
     m_piYuvExt = new Int[ m_iYuvExtStride * m_iYuvExtHeight ];
 
     // new structure
@@ -444,28 +433,8 @@ Void TComPrediction::xPredInterUni ( TComDataCU* pcCU, UInt uiPartAddr, Int iWid
   Int         iRefIdx     = pcCU->getCUMvField( eRefPicList )->getRefIdx( uiPartAddr );           assert (iRefIdx >= 0);
   TComMv      cMv         = pcCU->getCUMvField( eRefPicList )->getMv( uiPartAddr );
   pcCU->clipMv(cMv);
-#if GENERIC_IF
   xPredInterLumaBlk  ( pcCU, pcCU->getSlice()->getRefPic( eRefPicList, iRefIdx )->getPicYuvRec(), uiPartAddr, &cMv, iWidth, iHeight, rpcYuvPred, bi );
   xPredInterChromaBlk( pcCU, pcCU->getSlice()->getRefPic( eRefPicList, iRefIdx )->getPicYuvRec(), uiPartAddr, &cMv, iWidth, iHeight, rpcYuvPred, bi );
-#else
-  if(!bi)
-  {
-    xPredInterLumaBlk ( pcCU, pcCU->getSlice()->getRefPic( eRefPicList, iRefIdx )->getPicYuvRec()    , uiPartAddr, &cMv, iWidth, iHeight, rpcYuvPred );
-  }
-  else
-  {
-    xPredInterLumaBlk_ha  ( pcCU, pcCU->getSlice()->getRefPic( eRefPicList, iRefIdx )->getPicYuvRec()    , uiPartAddr, &cMv, iWidth, iHeight, rpcYuvPred );
-  }
-
-  if (!bi)
-  {
-    xPredInterChromaBlk     ( pcCU, pcCU->getSlice()->getRefPic( eRefPicList, iRefIdx )->getPicYuvRec(), uiPartAddr, &cMv, iWidth, iHeight, rpcYuvPred );
-  }
-  else
-  {
-    xPredInterChromaBlk_ha ( pcCU, pcCU->getSlice()->getRefPic( eRefPicList, iRefIdx )->getPicYuvRec()    , uiPartAddr, &cMv, iWidth, iHeight, rpcYuvPred );
-  }
-#endif
 }
 
 Void TComPrediction::xPredInterBi ( TComDataCU* pcCU, UInt uiPartAddr, Int iWidth, Int iHeight, TComYuv*& rpcYuvPred, Int iPartIdx )
@@ -511,7 +480,6 @@ Void TComPrediction::xPredInterBi ( TComDataCU* pcCU, UInt uiPartAddr, Int iWidt
   xWeightedAverage( pcCU, &m_acYuvPred[0], &m_acYuvPred[1], iRefIdx[0], iRefIdx[1], uiPartAddr, iWidth, iHeight, rpcYuvPred );
 }
 
-#if GENERIC_IF
 /**
  * \brief Generate motion-compensated luma block
  *
@@ -556,208 +524,7 @@ Void TComPrediction::xPredInterLumaBlk( TComDataCU *cu, TComPicYuv *refPic, UInt
     m_if.filterVerLuma(tmp + (halfFilterSize-1)*tmpStride, tmpStride, dst, dstStride, width, height,              yFrac, false, !bi);    
   }
 }
-#else
-Void  TComPrediction::xPredInterLumaBlk_ha( TComDataCU* pcCU, TComPicYuv* pcPicYuvRef, UInt uiPartAddr, TComMv* pcMv, Int iWidth, Int iHeight, TComYuv*& rpcYuv )
-{
-  Int     iRefStride = pcPicYuvRef->getStride();
-  Int     iDstStride = rpcYuv->getStride();
 
-  Int     iRefOffset = ( pcMv->getHor() >> 2 ) + ( pcMv->getVer() >> 2 ) * iRefStride;
-  Pel*    piRefY     = pcPicYuvRef->getLumaAddr( pcCU->getAddr(), pcCU->getZorderIdxInCU() + uiPartAddr ) + iRefOffset;
-
-  Int     ixFrac  = pcMv->getHor() & 0x3;
-  Int     iyFrac  = pcMv->getVer() & 0x3;
-
-  Pel* piDstY = rpcYuv->getLumaAddr( uiPartAddr );
-  UInt shiftNum = 14-g_uiBitDepth-g_uiBitIncrement;
-  //  Integer point
-  if ( ixFrac == 0 && iyFrac == 0 )
-  {
-    for ( Int y = 0; y < iHeight; y++ )
-    {
-      for(Int x=0; x<iWidth; x++)
-      {
-        piDstY[x] = piRefY[x]<<shiftNum;
-      }
-      piDstY += iDstStride;
-      piRefY += iRefStride;
-    }
-  }
-  else if ( iyFrac == 0 )
-  {
-    switch ( ixFrac )
-    {
-      case 1:
-        xCTI_FilterQuarter0Hor_ha( piRefY, iRefStride, 1, iWidth, iHeight, iDstStride, 1, piDstY );
-        break;
-      case 2:
-        xCTI_FilterHalfHor_ha ( piRefY, iRefStride, 1, iWidth, iHeight, iDstStride, 1, piDstY );
-        break;
-      case 3:
-        xCTI_FilterQuarter1Hor_ha( piRefY, iRefStride, 1, iWidth, iHeight, iDstStride, 1, piDstY );
-        break;
-      default:
-        assert(false);
-        break;
-    }
-  }
-  else if ( ixFrac == 0)
-  {
-    switch ( iyFrac )
-    {
-      case 1:
-        xCTI_FilterQuarter0Ver_ha( piRefY, iRefStride, 1, iWidth, iHeight, iDstStride, 1, piDstY );
-        break;
-      case 2:
-        xCTI_FilterHalfVer_ha ( piRefY, iRefStride, 1, iWidth, iHeight, iDstStride, 1, piDstY );
-        break;
-      case 3:
-        xCTI_FilterQuarter1Ver_ha( piRefY, iRefStride, 1, iWidth, iHeight, iDstStride, 1, piDstY );
-        break;
-      default:
-        assert(false);
-        break;
-    }
-  }
-  else
-  {
-    Int   iExtStride = m_iYuvExtStride;//m_cYuvExt.getStride();
-    Int*  piExtY     = m_piYuvExt;//m_cYuvExt.getLumaAddr();
-    
-    switch ( iyFrac )
-    {
-      case 1:
-        xCTI_FilterQuarter0Ver (piRefY - 3,  iRefStride, 1, iWidth + 7, iHeight, iExtStride, 1, piExtY );
-        break;
-      case 2:
-        xCTI_FilterHalfVer (piRefY - 3,  iRefStride, 1, iWidth +7, iHeight, iExtStride, 1, piExtY );
-        break;
-      case 3:
-        xCTI_FilterQuarter1Ver (piRefY -3,  iRefStride, 1, iWidth + 7, iHeight, iExtStride, 1, piExtY );
-        break;
-      default:
-        assert(false);
-        break;
-    }
-    
-    switch ( ixFrac )
-    {
-      case 1:
-        xCTI_FilterQuarter0Hor_ha (piExtY + 3,  iExtStride, 1, iWidth, iHeight, iDstStride, 1, piDstY );
-        break;
-      case 2:
-        xCTI_FilterHalfHor_ha (piExtY + 3,  iExtStride, 1, iWidth    , iHeight, iDstStride, 1, piDstY );
-        break;
-      case 3:
-        xCTI_FilterQuarter1Hor_ha (piExtY + 3,  iExtStride, 1, iWidth, iHeight, iDstStride, 1, piDstY );
-        break;
-      default:
-        assert(false);
-        break;
-    }
-  }
-}
-
-Void  TComPrediction::xPredInterLumaBlk( TComDataCU* pcCU, TComPicYuv* pcPicYuvRef, UInt uiPartAddr, TComMv* pcMv, Int iWidth, Int iHeight, TComYuv*& rpcYuv )
-{
-  Int     iRefStride = pcPicYuvRef->getStride();
-  Int     iDstStride = rpcYuv->getStride();
-
-  Int     iRefOffset = ( pcMv->getHor() >> 2 ) + ( pcMv->getVer() >> 2 ) * iRefStride;
-  Pel*    piRefY     = pcPicYuvRef->getLumaAddr( pcCU->getAddr(), pcCU->getZorderIdxInCU() + uiPartAddr ) + iRefOffset;
-
-  Int     ixFrac  = pcMv->getHor() & 0x3;
-  Int     iyFrac  = pcMv->getVer() & 0x3;
-
-  Pel* piDstY = rpcYuv->getLumaAddr( uiPartAddr );
-
-  //  Integer point
-  if ( ixFrac == 0 && iyFrac == 0 )
-  {
-    for ( Int y = 0; y < iHeight; y++ )
-    {
-      ::memcpy(piDstY, piRefY, sizeof(Pel)*iWidth);
-      piDstY += iDstStride;
-      piRefY += iRefStride;
-    }
-  }
-  else if ( iyFrac == 0 )
-  {
-    switch ( ixFrac )
-    {
-      case 1:
-        xCTI_FilterQuarter0Hor( piRefY, iRefStride, 1, iWidth, iHeight, iDstStride, 1, piDstY );
-        break;
-      case 2:
-        xCTI_FilterHalfHor ( piRefY, iRefStride, 1, iWidth, iHeight, iDstStride, 1, piDstY );
-        break;
-      case 3:
-        xCTI_FilterQuarter1Hor( piRefY, iRefStride, 1, iWidth, iHeight, iDstStride, 1, piDstY );
-        break;
-      default:
-        assert(false);
-        break;
-    }
-  }
-  else if ( ixFrac == 0)
-  {
-    switch ( iyFrac )
-    {
-      case 1:
-        xCTI_FilterQuarter0Ver( piRefY, iRefStride, 1, iWidth, iHeight, iDstStride, 1, piDstY );
-        break;
-      case 2:
-        xCTI_FilterHalfVer ( piRefY, iRefStride, 1, iWidth, iHeight, iDstStride, 1, piDstY );
-        break;
-      case 3:
-        xCTI_FilterQuarter1Ver( piRefY, iRefStride, 1, iWidth, iHeight, iDstStride, 1, piDstY );
-        break;
-      default:
-        assert(false);
-        break;
-    }
-  }
-  else
-  {
-    Int   iExtStride = m_iYuvExtStride;//m_cYuvExt.getStride();
-    Int*  piExtY     = m_piYuvExt;//m_cYuvExt.getLumaAddr();
-
-    switch ( iyFrac )
-    {
-      case 1:
-        xCTI_FilterQuarter0Ver (piRefY - 3,  iRefStride, 1, iWidth + 7, iHeight, iExtStride, 1, piExtY );
-        break;
-      case 2:
-        xCTI_FilterHalfVer (piRefY - 3,  iRefStride, 1, iWidth +7, iHeight, iExtStride, 1, piExtY );
-        break;
-      case 3:
-        xCTI_FilterQuarter1Ver (piRefY -3,  iRefStride, 1, iWidth + 7, iHeight, iExtStride, 1, piExtY );
-        break;
-      default:
-        assert(false);
-        break;
-    }
-    
-    switch ( ixFrac )
-    {
-      case 1:
-        xCTI_FilterQuarter0Hor (piExtY + 3,  iExtStride, 1, iWidth, iHeight, iDstStride, 1, piDstY );
-        break;
-      case 2:
-        xCTI_FilterHalfHor (piExtY + 3,  iExtStride, 1, iWidth    , iHeight, iDstStride, 1, piDstY );
-        break;
-      case 3:
-        xCTI_FilterQuarter1Hor (piExtY + 3,  iExtStride, 1, iWidth, iHeight, iDstStride, 1, piDstY );
-        break;
-      default:
-        assert(false);
-        break;
-    }
-  }
-}
-#endif
-
-#if GENERIC_IF
 /**
  * \brief Generate motion-compensated chroma block
  *
@@ -814,128 +581,6 @@ Void TComPrediction::xPredInterChromaBlk( TComDataCU *cu, TComPicYuv *refPic, UI
     m_if.filterVerChroma(extY  + (halfFilterSize-1)*extStride, extStride, dstCr, dstStride, cxWidth, cxHeight  , yFrac, false, !bi);    
   }
 }
-#else
-Void TComPrediction::xPredInterChromaBlk_ha( TComDataCU* pcCU, TComPicYuv* pcPicYuvRef, UInt uiPartAddr, TComMv* pcMv, Int iWidth, Int iHeight, TComYuv*& rpcYuv )
-{
-  Int     iRefStride  = pcPicYuvRef->getCStride();
-  Int     iDstStride  = rpcYuv->getCStride();
-
-  Int     iRefOffset  = (pcMv->getHor() >> 3) + (pcMv->getVer() >> 3) * iRefStride;
-
-  Pel*    piRefCb     = pcPicYuvRef->getCbAddr( pcCU->getAddr(), pcCU->getZorderIdxInCU() + uiPartAddr ) + iRefOffset;
-  Pel*    piRefCr     = pcPicYuvRef->getCrAddr( pcCU->getAddr(), pcCU->getZorderIdxInCU() + uiPartAddr ) + iRefOffset;
-
-  Pel* piDstCb = rpcYuv->getCbAddr( uiPartAddr );
-  Pel* piDstCr = rpcYuv->getCrAddr( uiPartAddr );
-
-  Int     ixFrac  = pcMv->getHor() & 0x7;
-  Int     iyFrac  = pcMv->getVer() & 0x7;
-  UInt    uiCWidth  = iWidth  >> 1;
-  UInt    uiCHeight = iHeight >> 1;
-
-  xDCTIF_FilterC_ha(piRefCb, iRefStride,piDstCb,iDstStride,uiCWidth,uiCHeight, iyFrac, ixFrac);
-  xDCTIF_FilterC_ha(piRefCr, iRefStride,piDstCr,iDstStride,uiCWidth,uiCHeight, iyFrac, ixFrac);
-  return;
-}
-
-//--
-Void TComPrediction::xPredInterChromaBlk( TComDataCU* pcCU, TComPicYuv* pcPicYuvRef, UInt uiPartAddr, TComMv* pcMv, Int iWidth, Int iHeight, TComYuv*& rpcYuv )
-{
-  Int     iRefStride  = pcPicYuvRef->getCStride();
-  Int     iDstStride  = rpcYuv->getCStride();
-
-  Int     iRefOffset  = (pcMv->getHor() >> 3) + (pcMv->getVer() >> 3) * iRefStride;
-
-  Pel*    piRefCb     = pcPicYuvRef->getCbAddr( pcCU->getAddr(), pcCU->getZorderIdxInCU() + uiPartAddr ) + iRefOffset;
-  Pel*    piRefCr     = pcPicYuvRef->getCrAddr( pcCU->getAddr(), pcCU->getZorderIdxInCU() + uiPartAddr ) + iRefOffset;
-
-  Pel* piDstCb = rpcYuv->getCbAddr( uiPartAddr );
-  Pel* piDstCr = rpcYuv->getCrAddr( uiPartAddr );
-
-  Int     ixFrac  = pcMv->getHor() & 0x7;
-  Int     iyFrac  = pcMv->getVer() & 0x7;
-  UInt    uiCWidth  = iWidth  >> 1;
-  UInt    uiCHeight = iHeight >> 1;
-
-  xDCTIF_FilterC(piRefCb, iRefStride,piDstCb,iDstStride,uiCWidth,uiCHeight, iyFrac, ixFrac);
-  xDCTIF_FilterC(piRefCr, iRefStride,piDstCr,iDstStride,uiCWidth,uiCHeight, iyFrac, ixFrac);
-  return;
-}
-
-Void  TComPrediction::xDCTIF_FilterC ( Pel*  piRefC, Int iRefStride,Pel*  piDstC,Int iDstStride,
-                                       Int iWidth, Int iHeight,Int iMVyFrac,Int iMVxFrac)
-{
-  // Integer point
-  if ( iMVxFrac == 0 && iMVyFrac == 0 )
-  {
-    for ( Int y = 0; y < iHeight; y++ )
-    {
-      ::memcpy(piDstC, piRefC, sizeof(Pel)*iWidth);
-      piDstC += iDstStride;
-      piRefC += iRefStride;
-    }
-    return;
-  }
-
-  if ( iMVyFrac == 0 )
-  {
-    xCTI_Filter1DHorC (piRefC, iRefStride,  iWidth, iHeight, iDstStride,  piDstC, iMVxFrac );
-    return;
-  }
-
-  if ( iMVxFrac == 0 )
-  {
-    xCTI_Filter1DVerC (piRefC, iRefStride,  iWidth, iHeight, iDstStride,  piDstC, iMVyFrac );
-    return;
-  }
-
-  Int   iExtStride = m_iYuvExtStride;
-  Int*  piExtC     = m_piYuvExt;
-
-  xCTI_Filter2DVerC (piRefC - 1,  iRefStride,  iWidth + 3, iHeight, iExtStride,  piExtC, iMVyFrac );
-  xCTI_Filter2DHorC (piExtC + 1,  iExtStride,  iWidth             , iHeight, iDstStride,  piDstC, iMVxFrac );
-}
-
-Void  TComPrediction::xDCTIF_FilterC_ha ( Pel*  piRefC, Int iRefStride,Pel*  piDstC,Int iDstStride, Int iWidth, Int iHeight,Int iMVyFrac,Int iMVxFrac)
-{
-  UInt    shiftNumOrg = 6 - g_uiBitIncrement + 8 - g_uiBitDepth;
-  // Integer point
-  if ( iMVxFrac == 0 && iMVyFrac == 0 )
-  {
-    for (Int y = 0; y < iHeight; y++ )
-    {
-      for(Int x=0; x<iWidth; x++)
-      {
-        piDstC[x] = (piRefC[x]<<shiftNumOrg);
-      }
-      piDstC += iDstStride;
-      piRefC += iRefStride;
-    }
-    return;
-  }
-
-  if ( iMVyFrac == 0 )
-  {
-    xCTI_Filter1DHorC_ha (piRefC, iRefStride,  iWidth, iHeight, iDstStride,  piDstC, iMVxFrac );
-    return;
-
-  }
-
-  if ( iMVxFrac == 0 )
-  {
-    xCTI_Filter1DVerC_ha (piRefC, iRefStride,  iWidth, iHeight, iDstStride,  piDstC, iMVyFrac );
-    return;
-  }
-
-  Int   iExtStride = m_iYuvExtStride;
-  Int*  piExtC     = m_piYuvExt;
-
-  xCTI_Filter2DVerC (piRefC - 1,  iRefStride,  iWidth + 3, iHeight, iExtStride,  piExtC, iMVyFrac );
-  xCTI_Filter2DHorC_ha (piExtC + 1,  iExtStride,  iWidth , iHeight, iDstStride,  piDstC, iMVxFrac );
-  return;
-
-}
-#endif
 
 Void TComPrediction::xWeightedAverage( TComDataCU* pcCU, TComYuv* pcYuvSrc0, TComYuv* pcYuvSrc1, Int iRefIdx0, Int iRefIdx1, UInt uiPartIdx, Int iWidth, Int iHeight, TComYuv*& rpcYuvDst )
 {

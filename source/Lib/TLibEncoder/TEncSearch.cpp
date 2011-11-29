@@ -639,11 +639,7 @@ __inline Void TEncSearch::xTZ8PointDiamondSearch( TComPattern* pcPatternKey, Int
 //<--
 
 UInt TEncSearch::xPatternRefinement( TComPattern* pcPatternKey,
-#if GENERIC_IF
                                     TComMv baseRefMv,
-#else
-                                    Pel* piRef, Int iRefStride, Int iIntStep,
-#endif
                                     Int iFrac, TComMv& rcMvFrac )
 {
   UInt  uiDist;
@@ -651,19 +647,14 @@ UInt TEncSearch::xPatternRefinement( TComPattern* pcPatternKey,
   UInt  uiDirecBest = 0;
   
   Pel*  piRefPos;
-#if GENERIC_IF
   Int iRefStride = m_filteredBlock[0][0].getStride();
   m_pcRdCost->setDistParam( pcPatternKey, m_filteredBlock[0][0].getLumaAddr(), iRefStride, 1, m_cDistParam, m_pcEncCfg->getUseHADME() );
-#else
-  m_pcRdCost->setDistParam( pcPatternKey, piRef, iRefStride, iIntStep, m_cDistParam, m_pcEncCfg->getUseHADME() );
-#endif
   
   TComMv* pcMvRefine = (iFrac == 2 ? s_acMvRefineH : s_acMvRefineQ);
   
   for (UInt i = 0; i < 9; i++)
   {
     TComMv cMvTest = pcMvRefine[i];
-#if GENERIC_IF
     cMvTest += baseRefMv;
     
     Int horVal = cMvTest.getHor() * iFrac;
@@ -675,10 +666,6 @@ UInt TEncSearch::xPatternRefinement( TComPattern* pcPatternKey,
       piRefPos += iRefStride;
     cMvTest = pcMvRefine[i];
     cMvTest += rcMvFrac;
-#else
-    cMvTest += rcMvFrac;
-    piRefPos = piRef + (pcMvRefine[i].getHor() + iRefStride * pcMvRefine[i].getVer()) * iFrac;
-#endif
 
 #if WEIGHT_PRED
     setDistParamComp(0);  // Y component
@@ -3330,11 +3317,7 @@ UInt TEncSearch::xGetTemplateCost( TComDataCU* pcCU,
     xPredInterLumaBlk( pcCU, pcPicYuvRef, uiPartAddr, &cMvCand, iSizeX, iSizeY, pcTemplateCand, false );
   }
 #else
-#if GENERIC_IF
   xPredInterLumaBlk( pcCU, pcPicYuvRef, uiPartAddr, &cMvCand, iSizeX, iSizeY, pcTemplateCand, false );
-#else
-  xPredInterLumaBlk( pcCU, pcPicYuvRef, uiPartAddr, &cMvCand, iSizeX, iSizeY, pcTemplateCand );
-#endif
 #endif
 
 #if WEIGHT_PRED
@@ -3438,9 +3421,7 @@ Void TEncSearch::xMotionEstimation( TComDataCU* pcCU, TComYuv* pcYuvOrg, Int iPa
   
   {
     xPatternSearchFracDIF( pcCU, pcPatternKey, piRefY, iRefStride, &rcMv, cMvHalf, cMvQter, ruiCost
-#if GENERIC_IF
                           ,bBi
-#endif
                           );
   }
   
@@ -3735,9 +3716,7 @@ Void TEncSearch::xPatternSearchFracDIF(TComDataCU* pcCU,
                                        TComMv& rcMvHalf,
                                        TComMv& rcMvQter,
                                        UInt& ruiCost
-#if GENERIC_IF
                                        ,Bool biPred
-#endif
                                        )
 {
   //  Reference pattern initialization (integer scale)
@@ -3750,48 +3729,23 @@ Void TEncSearch::xPatternSearchFracDIF(TComDataCU* pcCU,
                           pcPatternKey->getROIYHeight(),
                           iRefStride,
                           0, 0, 0, 0 );
-#if !GENERIC_IF
-  Pel*  piRef;
-  iRefStride  = m_cYuvExt.getStride();
-#endif
   
   //  Half-pel refinement
-#if GENERIC_IF
   xExtDIFUpSamplingH ( &cPatternRoi, biPred );
-#else
-  xExtDIFUpSamplingH ( &cPatternRoi, &m_cYuvExt );
-  piRef = m_cYuvExt.getLumaAddr() + ((iRefStride + 4) << 2);
-#endif
   
   rcMvHalf = *pcMvInt;   rcMvHalf <<= 1;    // for mv-cost
-#if GENERIC_IF
   TComMv baseRefMv(0, 0);
   ruiCost = xPatternRefinement( pcPatternKey, baseRefMv, 2, rcMvHalf   );
-#else
-  ruiCost = xPatternRefinement( pcPatternKey, piRef, iRefStride, 4, 2, rcMvHalf   );
-#endif
   
   m_pcRdCost->setCostScale( 0 );
   
-#if GENERIC_IF
   xExtDIFUpSamplingQ ( &cPatternRoi, rcMvHalf, biPred );
   baseRefMv = rcMvHalf;
   baseRefMv <<= 1;
-#else
-  //  Quater-pel refinement
-  Pel*  piSrcPel = cPatternRoi.getROIY() + (rcMvHalf.getHor() >> 1) + cPatternRoi.getPatternLStride() * (rcMvHalf.getVer() >> 1);
-  Int*  piSrc    = m_piYuvExt  + ((m_iYuvExtStride + 4) << 2) + (rcMvHalf.getHor() << 1) + m_iYuvExtStride * (rcMvHalf.getVer() << 1);
-  piRef += (rcMvHalf.getHor() << 1) + iRefStride * (rcMvHalf.getVer() << 1);
-  xExtDIFUpSamplingQ ( pcPatternKey, piRef, iRefStride, piSrcPel, cPatternRoi.getPatternLStride(), piSrc, m_iYuvExtStride, m_puiDFilter[rcMvHalf.getHor()+rcMvHalf.getVer()*3] );
-#endif
   
   rcMvQter = *pcMvInt;   rcMvQter <<= 1;    // for mv-cost
   rcMvQter += rcMvHalf;  rcMvQter <<= 1;
-#if GENERIC_IF
   ruiCost = xPatternRefinement( pcPatternKey, baseRefMv, 1, rcMvQter );
-#else
-  ruiCost = xPatternRefinement( pcPatternKey, piRef, iRefStride, 4, 1, rcMvQter );
-#endif  
 }
 
 Void TEncSearch::predInterSkipSearch( TComDataCU* pcCU, TComYuv* pcOrgYuv, TComYuv*& rpcPredYuv, TComYuv*& rpcResiYuv, TComYuv*& rpcRecoYuv )
@@ -5172,7 +5126,6 @@ Void  TEncSearch::xAddSymbolBitsInter( TComDataCU* pcCU, UInt uiQp, UInt uiTrMod
   }
 }
 
-#if GENERIC_IF
 /**
  * \brief Generate half-sample interpolated block
  *
@@ -5212,57 +5165,7 @@ Void TEncSearch::xExtDIFUpSamplingH( TComPattern* pattern, Bool biPred )
   dstPtr = m_filteredBlock[2][2].getLumaAddr();
   m_if.filterVerLuma(intPtr, intStride, dstPtr, dstStride, width+1, height+1, 2, false, true);
 }
-#else
-Void TEncSearch::xExtDIFUpSamplingH ( TComPattern* pcPattern, TComYuv* pcYuvExt  )
-{
-  Int   x, y;
-  
-  Int   iWidth      = pcPattern->getROIYWidth();
-  Int   iHeight     = pcPattern->getROIYHeight();
-  
-  Int   iPatStride  = pcPattern->getPatternLStride();
-  Int   iExtStride  = pcYuvExt ->getStride();
-  
-  Int*  piSrcY;
-  Int*  piDstY;
-  Pel*  piDstYPel;
-  Pel*  piSrcYPel;
-  
-  //  Copy integer-pel
-  piSrcYPel = pcPattern->getROIY() - 4 - iPatStride;
-  piDstY    = m_piYuvExt;//pcYuvExt->getLumaAddr();
-  piDstYPel = pcYuvExt->getLumaAddr();
-  for ( y = 0; y < iHeight + 2; y++ )
-  {
-    for ( x = 0; x < iWidth + 8; x++ )
-    {
-      piDstYPel[x << 2] = piSrcYPel[x];
-    }
-    piSrcYPel +=  iPatStride;
-    piDstY    += (m_iYuvExtStride << 2);
-    piDstYPel += (iExtStride      << 2);
-  }
 
-  //  Half-pel NORM. : vertical
-  piSrcYPel = pcPattern->getROIY()    - iPatStride - 4;
-  piDstY    = m_piYuvExt              + (m_iYuvExtStride<<1);
-  piDstYPel = pcYuvExt->getLumaAddr() + (iExtStride<<1);
-  xCTI_FilterHalfVer     (piSrcYPel, iPatStride,     1, iWidth + 8, iHeight + 1, m_iYuvExtStride<<2, 4, piDstY, iExtStride<<2, piDstYPel);
-  
-  //  Half-pel interpolation : horizontal
-  piSrcYPel = pcPattern->getROIY()   -  iPatStride - 1;
-  piDstYPel = pcYuvExt->getLumaAddr() + 14;
-  xCTI_FilterHalfHor (piSrcYPel, iPatStride,     1,  iWidth + 1, iHeight + 1,  iExtStride<<2, 4, piDstYPel);
-  
-  //  Half-pel interpolation : center
-  piSrcY    = m_piYuvExt              + (m_iYuvExtStride<<1) + (3 << 2);
-  piDstYPel = pcYuvExt->getLumaAddr() + (iExtStride<<1)      + 14;
-  xCTI_FilterHalfHor       (piSrcY, m_iYuvExtStride<<2, 4, iWidth + 1, iHeight + 1,iExtStride<<2, 4, piDstYPel);
-
-}
-#endif
-
-#if GENERIC_IF
 /**
  * \brief Generate quarter-sample interpolated blocks
  *
@@ -5423,228 +5326,6 @@ Void TEncSearch::xExtDIFUpSamplingQ( TComPattern* pattern, TComMv halfPelRef, Bo
   dstPtr = m_filteredBlock[3][3].getLumaAddr();
   m_if.filterVerLuma(intPtr, intStride, dstPtr, dstStride, width, height, 3, false, true);
 }
-#else
-Void TEncSearch::xExtDIFUpSamplingQ   ( TComPattern* pcPatternKey, Pel* piDst, Int iDstStride, Pel* piSrcPel, Int iSrcPelStride, Int* piSrc, Int iSrcStride, UInt uiFilter )
-{
-  Int   x, y;
-  
-  Int   iWidth      = pcPatternKey->getROIYWidth();
-  Int   iHeight     = pcPatternKey->getROIYHeight();
-  
-  Int*  piSrcY;
-  Int*  piDstY;
-  Pel*  piDstYPel;
-  Pel*  piSrcYPel;
-  
-  Int iSrcStride4 = (iSrcStride<<2);
-  Int iDstStride4 = (iDstStride<<2);
-  
-  switch (uiFilter)
-  {
-    case 0:
-    {
-      //  Quater-pel interpolation : vertical
-      piSrcYPel = piSrcPel - 3;
-      piDstY    = piSrc - 14 - iSrcStride;
-      xCTI_FilterQuarter0Ver(piSrcYPel, iSrcPelStride, 1, iWidth + 7, iHeight, iSrcStride4, 4, piDstY);
-      
-      piSrcYPel = piSrcPel - 3;
-      piDstY    = piSrc - 14 + iSrcStride;
-      xCTI_FilterQuarter1Ver(piSrcYPel, iSrcPelStride, 1, iWidth + 7, iHeight, iSrcStride4, 4, piDstY);
-      // Above three pixels
-      piSrcY    = piSrc-2 - iSrcStride;
-      piDstYPel = piDst-1 - iDstStride;
-      xCTI_FilterQuarter0Hor(piSrcY, iSrcStride4, 4, iWidth, iHeight, iDstStride4, 4, piDstYPel);
-      
-      piSrcY    = piSrc-2 - iSrcStride;
-      piDstYPel = piDst   - iDstStride;;
-      xCTI_FilterHalfHor(piSrcY, iSrcStride4, 4, iWidth, iHeight, iDstStride4, 4, piDstYPel);
-      
-      piSrcY    = piSrc-2 - iSrcStride;
-      piDstYPel = piDst+1 - iDstStride;
-      xCTI_FilterQuarter1Hor(piSrcY, iSrcStride4, 4, iWidth, iHeight, iDstStride4, 4, piDstYPel);
-      
-      // Middle two pixels
-      piSrcY    = piSrc-2;
-      piDstYPel = piDst-1;
-      xCTI_FilterQuarter0Hor(piSrcY, iSrcStride4, 4, iWidth, iHeight, iDstStride4, 4, piDstYPel);
-      
-      piSrcY    = piSrc-2;
-      piDstYPel = piDst+1;
-      xCTI_FilterQuarter1Hor(piSrcY, iSrcStride4, 4, iWidth, iHeight, iDstStride4, 4, piDstYPel);
-      
-      // Below three pixels
-      piSrcY    = piSrc-2 + iSrcStride;
-      piDstYPel = piDst-1 + iDstStride;
-      xCTI_FilterQuarter0Hor(piSrcY, iSrcStride4, 4, iWidth, iHeight, iDstStride4, 4, piDstYPel);
-      
-      piSrcY    = piSrc-2 + iSrcStride;
-      piDstYPel = piDst   + iDstStride;;
-      xCTI_FilterHalfHor(piSrcY, iSrcStride4, 4, iWidth, iHeight, iDstStride4, 4, piDstYPel);
-      
-      piSrcY    = piSrc-2 + iSrcStride;
-      piDstYPel = piDst+1 + iDstStride;
-      xCTI_FilterQuarter1Hor(piSrcY, iSrcStride4, 4, iWidth, iHeight, iDstStride4, 4, piDstYPel);
-      break;
-    }
-    case 1:
-    {
-      //  Quater-pel interpolation : vertical
-      piSrcYPel = piSrcPel - 4;
-      piDstY    = piSrc-16 - iSrcStride;
-      xCTI_FilterQuarter0Ver(piSrcYPel, iSrcPelStride, 1, iWidth + 8, iHeight, iSrcStride4, 4, piDstY);
-      
-      piSrcYPel = piSrcPel - 4;
-      piDstY    = piSrc-16 + iSrcStride;
-      xCTI_FilterQuarter1Ver(piSrcYPel, iSrcPelStride, 1, iWidth + 8, iHeight, iSrcStride4, 4, piDstY);
-      // Left three pixels
-      piSrcY    = piSrc-4 - iSrcStride;
-      piDstYPel = piDst-1 - iDstStride;
-      xCTI_FilterQuarter1Hor(piSrcY, iSrcStride4, 4, iWidth, iHeight, iDstStride4, 4, piDstYPel);
-      
-      piSrcY    = piSrc-4;
-      piDstYPel = piDst-1;
-      xCTI_FilterQuarter1Hor(piSrcY, iSrcStride4, 4, iWidth, iHeight, iDstStride4, 4, piDstYPel);
-      
-      piSrcY    = piSrc-4 + iSrcStride;
-      piDstYPel = piDst-1 + iDstStride;
-      xCTI_FilterQuarter1Hor(piSrcY, iSrcStride4, 4, iWidth, iHeight, iDstStride4, 4, piDstYPel);
-      
-      // Middle two pixels
-      piSrcY    = piSrc - iSrcStride;
-      piDstYPel = piDst - iDstStride;
-      Int iSrcStride2 = (iSrcStride<<1);
-      Int iDstStride2 = (iDstStride<<1);
-      
-      for (y=0; y < iHeight*2; y++)
-      {
-        for (x=0; x < iWidth; x++)
-        {
-          piDstYPel[x*4] = Clip( (piSrcY[x*4] +  32) >>  6 );
-        }
-        piSrcY+=iSrcStride2;
-        piDstYPel+=iDstStride2;
-      }
-      
-      // Right three pixels
-      piSrcY    = piSrc   - iSrcStride;
-      piDstYPel = piDst+1 - iDstStride;
-      xCTI_FilterQuarter0Hor(piSrcY, iSrcStride4, 4, iWidth, iHeight, iDstStride4, 4, piDstYPel);
-      
-      piSrcY    = piSrc;
-      piDstYPel = piDst+1;
-      xCTI_FilterQuarter0Hor(piSrcY, iSrcStride4, 4, iWidth, iHeight, iDstStride4, 4, piDstYPel);
-      
-      piSrcY    = piSrc   + iSrcStride;
-      piDstYPel = piDst+1 + iDstStride;
-      xCTI_FilterQuarter0Hor(piSrcY, iSrcStride4, 4, iWidth, iHeight, iDstStride4, 4, piDstYPel);
-      
-      break;
-    }
-    case 2:
-    {
-      //  Quater-pel interpolation : vertical
-      piSrcYPel = piSrcPel - 3 - iSrcPelStride;;
-      piDstY    = piSrc - 14 - iSrcStride;
-      xCTI_FilterQuarter1Ver(piSrcYPel, iSrcPelStride, 1, iWidth + 7, iHeight, iSrcStride4, 4, piDstY);
-      
-      piSrcYPel = piSrcPel - 3;
-      piDstY    = piSrc - 14 + iSrcStride;
-      xCTI_FilterQuarter0Ver(piSrcYPel, iSrcPelStride, 1, iWidth + 7, iHeight, iSrcStride4, 4, piDstY);
-      // Above three pixels
-      piSrcY    = piSrc-2 - iSrcStride;
-      piDstYPel = piDst-1 - iDstStride;
-      xCTI_FilterQuarter0Hor(piSrcY, iSrcStride4, 4, iWidth, iHeight, iDstStride4, 4, piDstYPel);
-      
-      piSrcY    = piSrc-2 - iSrcStride;
-      piDstYPel = piDst   - iDstStride;;
-      xCTI_FilterHalfHor(piSrcY, iSrcStride4, 4, iWidth, iHeight, iDstStride4, 4, piDstYPel);
-      
-      piSrcY    = piSrc-2 - iSrcStride;
-      piDstYPel = piDst+1 - iDstStride;
-      xCTI_FilterQuarter1Hor(piSrcY, iSrcStride4, 4, iWidth, iHeight, iDstStride4, 4, piDstYPel);
-      
-      // Middle two pixels
-      piDstYPel = piDst - 1;
-      xCTI_FilterQuarter0Hor(piSrcPel, iSrcPelStride, 1, iWidth, iHeight, iDstStride4, 4, piDstYPel);
-      
-      piDstYPel = piDst + 1;
-      xCTI_FilterQuarter1Hor(piSrcPel, iSrcPelStride, 1, iWidth, iHeight, iDstStride4, 4, piDstYPel);
-      
-      // Below three pixels
-      piSrcY    = piSrc-2 + iSrcStride;
-      piDstYPel = piDst-1 + iDstStride;
-      xCTI_FilterQuarter0Hor(piSrcY, iSrcStride4, 4, iWidth, iHeight, iDstStride4, 4, piDstYPel);
-      
-      piSrcY    = piSrc-2 + iSrcStride;
-      piDstYPel = piDst   + iDstStride;;
-      xCTI_FilterHalfHor(piSrcY, iSrcStride4, 4, iWidth, iHeight, iDstStride4, 4, piDstYPel);
-      
-      piSrcY    = piSrc-2 + iSrcStride;
-      piDstYPel = piDst+1 + iDstStride;
-      xCTI_FilterQuarter1Hor(piSrcY, iSrcStride4, 4, iWidth, iHeight, iDstStride4, 4, piDstYPel);
-      break;
-    }
-    case 3:
-    {
-      //  Quater-pel interpolation : vertical
-      piSrcYPel = piSrcPel-4 - iSrcPelStride;
-      piDstY    = piSrc-16 - iSrcStride;
-      xCTI_FilterQuarter1Ver(piSrcYPel, iSrcPelStride, 1, iWidth + 8, iHeight, iSrcStride4, 4, piDstY);
-      
-      piSrcYPel = piSrcPel-4;
-      piDstY    = piSrc-16 + iSrcStride;
-      xCTI_FilterQuarter0Ver(piSrcYPel, iSrcPelStride, 1, iWidth + 8, iHeight, iSrcStride4, 4, piDstY);
-      // Left three pixels
-      piSrcY    = piSrc-4 - iSrcStride;
-      piDstYPel = piDst-1 - iDstStride;
-      xCTI_FilterQuarter1Hor(piSrcY, iSrcStride4, 4, iWidth, iHeight, iDstStride4, 4, piDstYPel);
-      
-      piSrcYPel = piSrcPel-1;
-      piDstYPel = piDst-1;
-      xCTI_FilterQuarter1Hor(piSrcYPel, iSrcPelStride, 1, iWidth, iHeight, iDstStride4, 4, piDstYPel);
-      
-      piSrcY    = piSrc-4 + iSrcStride;
-      piDstYPel = piDst-1 + iDstStride;
-      xCTI_FilterQuarter1Hor(piSrcY, iSrcStride4, 4, iWidth, iHeight, iDstStride4, 4, piDstYPel);
-      
-      // Middle two pixels
-      piSrcY    = piSrc - iSrcStride;
-      piDstYPel = piDst - iDstStride;
-      Int iSrcStride2 = (iSrcStride<<1);
-      Int iDstStride2 = (iDstStride<<1);
-      
-      for (y=0; y < iHeight*2; y++)
-      {
-        for (x=0; x < iWidth; x++)
-        {
-          piDstYPel[x*4] = Clip( (piSrcY[x*4] + 32) >>  6 );
-        }
-        piSrcY+=iSrcStride2;
-        piDstYPel+=iDstStride2;
-      }
-      
-      // Right three pixels
-      piSrcY    = piSrc   - iSrcStride;
-      piDstYPel = piDst+1 - iDstStride;
-      xCTI_FilterQuarter0Hor(piSrcY, iSrcStride4, 4, iWidth, iHeight, iDstStride4, 4, piDstYPel);
-      
-      piDstYPel = piDst+1;
-      xCTI_FilterQuarter0Hor(piSrcPel, iSrcPelStride, 1, iWidth, iHeight, iDstStride4, 4, piDstYPel);
-      
-      piSrcY    = piSrc   + iSrcStride;
-      piDstYPel = piDst+1 + iDstStride;
-      xCTI_FilterQuarter0Hor(piSrcY, iSrcStride4, 4, iWidth, iHeight, iDstStride4, 4, piDstYPel);
-      
-      break;
-    }
-    default:
-    {
-      assert(0);
-    }
-  }
-}
-#endif
 
 #if WEIGHT_PRED
 /** set wp tables

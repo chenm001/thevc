@@ -42,9 +42,6 @@
 #include "TLibCommon/TComYuv.h"
 #include "TLibCommon/TComMotionInfo.h"
 #include "TLibCommon/TComPattern.h"
-#if !GENERIC_IF
-#include "TLibCommon/TComPredFilter.h"
-#endif
 #include "TLibCommon/TComPrediction.h"
 #include "TLibCommon/TComTrQuant.h"
 #include "TLibCommon/TComPic.h"
@@ -128,11 +125,7 @@ protected:
   
   /// sub-function for motion vector refinement used in fractional-pel accuracy
   UInt  xPatternRefinement( TComPattern* pcPatternKey,
-#if GENERIC_IF
                            TComMv baseRefMv,
-#else
-                           Pel* piRef, Int iRefStride, Int iIntStep,
-#endif
                            Int iFrac, TComMv& rcMvFrac );
   
   typedef struct
@@ -392,26 +385,11 @@ protected:
                                     TComMv&       rcMvHalf,
                                     TComMv&       rcMvQter,
                                     UInt&         ruiCost 
-#if GENERIC_IF
                                    ,Bool biPred
-#endif
                                    );
   
-#if GENERIC_IF
   Void xExtDIFUpSamplingH( TComPattern* pcPattern, Bool biPred  );
   Void xExtDIFUpSamplingQ( TComPattern* pcPatternKey, TComMv halfPelRef, Bool biPred );
-#else
-  Void xExtDIFUpSamplingH         ( TComPattern*  pcPattern, TComYuv* pcYuvExt  );
-  
-  Void xExtDIFUpSamplingQ         ( TComPattern* pcPatternKey,
-                                    Pel*          piDst,
-                                    Int           iDstStride,
-                                    Pel*          piSrcPel,
-                                    Int           iSrcPelStride,
-                                    Int*          piSrc,
-                                    Int           iSrcStride,
-                                    UInt          uiFilter  );
-#endif  
   
   // -------------------------------------------------------------------------------------------------------------------
   // T & Q & Q-1 & T-1

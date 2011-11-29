@@ -99,8 +99,6 @@
 #define AMVP_BUFFERCOMPRESS               1           ///< motion vector buffer compression
 #define AMVP_DECIMATION_FACTOR            4
 
-#define GENERIC_IF 1 ///< JCTVC-F537: generic interpolation functions
-
 #define SCAN_SET_SIZE                     16
 #define LOG2_SCAN_SET_SIZE                4
 #define DIAG_SCAN                         1           ///< JCTVC-F129: use up-right diagonal scan rather than zig-zag for CABAC           

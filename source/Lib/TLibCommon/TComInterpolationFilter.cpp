@@ -48,8 +48,6 @@
 //! \ingroup TLibCommon
 //! \{
 
-#if GENERIC_IF
-
 // ====================================================================================================================
 // Tables
 // ====================================================================================================================
@@ -414,7 +412,5 @@ Void TComInterpolationFilter::filterVerChroma(Pel *src, Int srcStride, Short *ds
     filterVer<NTAPS_CHROMA>(src, srcStride, dst, dstStride, width, height, isFirst, isLast, m_chromaFilter[frac]);    
   }
 }
-
-#endif
 
 //! \}
