@@ -3542,11 +3542,7 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
   Int     iBestLastIdxP1      = 0;
   if( !pcCU->isIntra( uiAbsPartIdx ) && eTType == TEXT_LUMA && pcCU->getTransformIdx( uiAbsPartIdx ) == 0 )
   {
-#if DNB_QT_ROOT_CBF
     ui16CtxCbf   = 0;
-#else
-    ui16CtxCbf   = pcCU->getCtxQtRootCbf( uiAbsPartIdx );
-#endif
     d64BestCost  = d64BlockUncodedCost + xGetICost( m_pcEstBitsSbac->blockRootCbpBits[ ui16CtxCbf ][ 0 ] );
     d64BaseCost += xGetICost( m_pcEstBitsSbac->blockRootCbpBits[ ui16CtxCbf ][ 1 ] );
   }

@@ -41,12 +41,6 @@
 //! \ingroup TLibCommon
 //! \{
 
-////////////////////////////
-// BoG Context Reduction
-////////////////////////////
-
-#define DNB_QT_ROOT_CBF                   1           ///< F429 / F606:        disable of neighbour evaluation for no_residual_data_flag
-
 #define WEIGHTED_CHROMA_DISTORTION  1   ///< F386: weighting of chroma for RDO
 #define RDOQ_CHROMA_LAMBDA          1   ///< F386: weighting of chroma for RDOQ
 #define ALF_CHROMA_LAMBDA           1   ///< F386: weighting of chroma for ALF

@@ -77,11 +77,7 @@
 #define NUM_REF_NO_CTX                4       ///< number of context models for reference index
 #define NUM_TRANS_SUBDIV_FLAG_CTX     10      ///< number of context models for transform subdivision flags
 #define NUM_QT_CBF_CTX                5       ///< number of context models for QT CBF
-#if DNB_QT_ROOT_CBF
 #define NUM_QT_ROOT_CBF_CTX           1       ///< number of context models for QT ROOT CBF
-#else
-#define NUM_QT_ROOT_CBF_CTX           4       ///< number of context models for QT ROOT CBF
-#endif
 #define NUM_DELTA_QP_CTX              4       ///< number of context models for dQP
 
 #define NUM_SIG_FLAG_CTX              44      ///< number of context models for sig flag
@@ -386,7 +382,6 @@ INIT_QT_CBF[3][3*NUM_QT_CBF_CTX][2] =
     {  -19,   45 }, {  -48,  123 }, {  -21,   94 }, {   -9,   73 }, {  -42,  138 }
   }
 };
-#if DNB_QT_ROOT_CBF
 static const Short
 INIT_QT_ROOT_CBF[3][NUM_QT_ROOT_CBF_CTX][2] =
 {
@@ -400,21 +395,6 @@ INIT_QT_ROOT_CBF[3][NUM_QT_ROOT_CBF_CTX][2] =
     {  -36,  103 }
   }
 };
-#else
-static const Short
-INIT_QT_ROOT_CBF[3][NUM_QT_ROOT_CBF_CTX][2] =
-{
-  {
-    {    0,   64 }, {    0,   64 }, {    0,   64 }, {    0,   64 },
-  },
-  {
-    {  -22,   85 }, {  -15,   86 }, {  -13,   84 }, {  -23,  116 },
-  },
-  {
-    {  -36,  103 }, {  -21,   95 }, {  -21,   97 }, {  -24,  114 },
-  }
-};
-#endif
 
 static const Short
 INIT_LAST[3][2*NUM_CTX_LAST_FLAG_XY][2] =

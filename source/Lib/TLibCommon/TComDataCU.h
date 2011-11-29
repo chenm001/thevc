@@ -482,9 +482,6 @@ public:
   
   UInt          getCtxSplitFlag                 ( UInt   uiAbsPartIdx, UInt uiDepth                   );
   UInt          getCtxQtCbf                     ( UInt   uiAbsPartIdx, TextType eType, UInt uiTrDepth );
-#if !DNB_QT_ROOT_CBF
-  UInt          getCtxQtRootCbf                 ( UInt   uiAbsPartIdx                                 );
-#endif
 
   UInt          getCtxSkipFlag                  ( UInt   uiAbsPartIdx                                 );
   UInt          getCtxInterDir                  ( UInt   uiAbsPartIdx                                 );

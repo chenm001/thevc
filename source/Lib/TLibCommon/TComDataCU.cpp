@@ -2585,41 +2585,6 @@ UInt TComDataCU::getCtxQtCbf( UInt uiAbsPartIdx, TextType eType, UInt uiTrDepth 
   }
 }
 
-#if !DNB_QT_ROOT_CBF
-UInt TComDataCU::getCtxQtRootCbf( UInt uiAbsPartIdx )
-{
-  UInt uiCtx = 0;
-  TComDataCU* pcTempCU;
-  UInt        uiTempPartIdx;
-  
-  // Get RootCbf of left PU
-  pcTempCU = getPULeft( uiTempPartIdx, m_uiAbsIdxInLCU + uiAbsPartIdx );
-  if ( pcTempCU )
-  {
-#if E057_INTRA_PCM
-    if(pcTempCU->getIPCMFlag(uiTempPartIdx) == true)
-      uiCtx = 1;
-    else
-#endif
-    uiCtx = pcTempCU->getQtRootCbf( uiTempPartIdx );
-  }
-  
-  // Get RootCbf of above PU
-  pcTempCU = getPUAbove( uiTempPartIdx, m_uiAbsIdxInLCU + uiAbsPartIdx );
-  if ( pcTempCU )
-  {
-#if E057_INTRA_PCM
-    if(pcTempCU->getIPCMFlag(uiTempPartIdx) == true)
-      uiCtx += 2;
-    else
-#endif
-    uiCtx += pcTempCU->getQtRootCbf( uiTempPartIdx ) << 1;
-  }
-  
-  return uiCtx;
-}
-
-#endif
 UInt TComDataCU::getQuadtreeTULog2MinSizeInCU( UInt uiIdx )
 {
   UInt uiLog2MinTUSizeInCU = g_aucConvertToBit[getWidth( uiIdx )] + 2;
