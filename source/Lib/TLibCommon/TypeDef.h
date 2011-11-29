@@ -164,8 +164,8 @@
 #define DC_IDX                 3                     // index for intra DC mode
 #define NUM_CHROMA_MODE        6                     // total number of chroma modes
 #define DM_CHROMA_IDX          36                    // chroma mode index for derived from luma intra mode
-#if !ADD_PLANAR_MODE || !MTK_DCM_MPM
-#error "ADD_PLANAR_MODE and MTK_DCM_MPM should be enabled"
+#if !MTK_DCM_MPM
+#error "MTK_DCM_MPM should be enabled"
 #endif
 
 
