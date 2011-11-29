@@ -352,7 +352,6 @@ Void TComPrediction::predIntraLumaAng(TComPattern* pcTComPattern, UInt uiDirMode
   {
     xPredIntraAng( ptrSrc+sw+1, sw, pDst, uiStride, iWidth, iHeight, g_aucAngIntraModeOrder[ uiDirMode ], bAbove,  bLeft );
 
-#if MN_DC_PRED_FILTER
 #if UNIFICATION_OF_AVAILABILITY
     if( (uiDirMode == DC_IDX ) && bAbove && bLeft )
 #else
@@ -361,7 +360,6 @@ Void TComPrediction::predIntraLumaAng(TComPattern* pcTComPattern, UInt uiDirMode
     {
       xDCPredFiltering( ptrSrc+sw+1, sw, pDst, uiStride, iWidth, iHeight);
     }
-#endif
   }
 }
 
@@ -1412,7 +1410,6 @@ Void TComPrediction::xGetLLSPrediction( TComPattern* pcPattern, Int* pSrc0, Int 
 
 }
 
-#if MN_DC_PRED_FILTER
 /** Function for filtering intra DC predictor.
  * \param pSrc pointer to reconstructed sample array
  * \param iSrcStride the stride of the reconstructed sample array
@@ -1503,5 +1500,4 @@ Void TComPrediction::xDCPredFiltering( Int* pSrc, Int iSrcStride, Pel*& rpDst, I
 
   return;
 }
-#endif
 //! \}
