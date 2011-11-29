@@ -217,8 +217,6 @@
 #define E192_SPS_PCM_BIT_DEPTH_SYNTAX       1 // JCTVC-E192: PCM bit depth
 #define E192_SPS_PCM_FILTER_DISABLE_SYNTAX  1 // JCTVC-E192: PCM filter disable flag
 
-#define F118_LUMA_DEBLOCK  1                  // JCTVC-F118: Luma part of the deblocking filter 
-
 #define TMVP_ONE_LIST_CHECK    1 //JCTVC-F587: Reduction of reference picture list checking for temporal motion vector prediction
 
 #define UNIFY_INTRA_AVAIL      1    ////<JCTVC-F477, "Unification of the Availability Checking method for Intra prediction>

@@ -331,12 +331,10 @@ Void TComLoopFilter::xSetEdgefilterMultiple( TComDataCU* pcCU, UInt uiScanIdx, U
     m_aapbEdgeFilter[iDir][0][uiBsIdx] = bValue;
     m_aapbEdgeFilter[iDir][1][uiBsIdx] = bValue;
     m_aapbEdgeFilter[iDir][2][uiBsIdx] = bValue;
-#if F118_LUMA_DEBLOCK
     if (iEdgeIdx == 0)
     {
       m_aapucBS[iDir][0][uiBsIdx] = bValue;
     }
-#endif
   }
 }
 #else
@@ -352,12 +350,10 @@ Void TComLoopFilter::xSetEdgefilterMultiple( TComDataCU* pcCU, UInt uiAbsZorderI
     m_aapbEdgeFilter[iDir][0][uiBsIdx] = bValue;
     m_aapbEdgeFilter[iDir][1][uiBsIdx] = bValue;
     m_aapbEdgeFilter[iDir][2][uiBsIdx] = bValue;
-#if F118_LUMA_DEBLOCK
     if (iEdgeIdx == 0)
     {
       m_aapucBS[iDir][0][uiBsIdx] = bValue;
     }
-#endif
   }
 }
 #endif
@@ -614,11 +610,7 @@ Void TComLoopFilter::xGetBoundaryStrengthSingle ( TComDataCU* pcCU, UInt uiAbsZo
   //-- Set BS for not Intra MB : BS = 2 or 1 or 0
   if ( !pcCUP->isIntra(uiPartP) && !pcCUQ->isIntra(uiPartQ) )
   {
-#if F118_LUMA_DEBLOCK
     if ( m_aapucBS[iDir][0][uiAbsPartIdx] && (pcCUQ->getCbf( uiPartQ, TEXT_LUMA, pcCUQ->getTransformIdx(uiPartQ)) != 0 || pcCUP->getCbf( uiPartP, TEXT_LUMA, pcCUP->getTransformIdx(uiPartP) ) != 0) )
-#else
-    if ( pcCUQ->getCbf( uiPartQ, TEXT_LUMA, pcCUQ->getTransformIdx(uiPartQ)) != 0 || pcCUP->getCbf( uiPartP, TEXT_LUMA, pcCUP->getTransformIdx(uiPartP) ) != 0)
-#endif
     {
       uiBs = 2;
     }
@@ -740,10 +732,8 @@ Void TComLoopFilter::xEdgeFilterLuma( TComDataCU* pcCU, UInt uiAbsZorderIdx, UIn
   Pel*  piTmpSrc1;
   UInt* piDecisions_D;
   UInt* piDecisions_Sample;
-#if F118_LUMA_DEBLOCK
   UInt* piDecisions_DP;
   UInt* piDecisions_DQ;
-#endif
 #endif  
 
 #if E057_INTRA_PCM && E192_SPS_PCM_FILTER_DISABLE_SYNTAX 
@@ -801,27 +791,19 @@ Void TComLoopFilter::xEdgeFilterLuma( TComDataCU* pcCU, UInt uiAbsZorderIdx, UIn
     {
       Int iBeta = betatable_8x8[iIndexB]*iBitdepthScale;
       
-#if F118_LUMA_DEBLOCK
       Int iSideThreshold = (iBeta+(iBeta>>1))>>3;
       Int iThrCut = iTc*10;
-#endif          
       for (UInt iBlkIdx = 0; iBlkIdx< uiBlocksInPart; iBlkIdx ++)
       {
         Int iTmp=iIdx*uiPelsInPart+iBlkIdx*DEBLOCK_SMALLEST_BLOCK;
-#if F118_LUMA_DEBLOCK
         Int iDP = xCalcDP( piTmpSrc+iSrcStep*(iTmp+2), iOffset) + xCalcDP( piTmpSrc+iSrcStep*(iTmp+5), iOffset);
         Int iDQ = xCalcDQ( piTmpSrc+iSrcStep*(iTmp+2), iOffset) + xCalcDQ( piTmpSrc+iSrcStep*(iTmp+5), iOffset);
         Int iD = iDP + iDQ;
-#else
-        Int iD = xCalcD( piTmpSrc+iSrcStep*(iTmp+2), iOffset) + xCalcD( piTmpSrc+iSrcStep*(iTmp+5), iOffset);
-#endif        
         
         if (iD < iBeta)
         {
-#if F118_LUMA_DEBLOCK
           Bool bFilterP = (iDP < iSideThreshold);  
           Bool bFilterQ = (iDQ < iSideThreshold);
-#endif
 #if E057_INTRA_PCM && E192_SPS_PCM_FILTER_DISABLE_SYNTAX 
           if(bPCMFilter)
           {
@@ -846,17 +828,9 @@ Void TComLoopFilter::xEdgeFilterLuma( TComDataCU* pcCU, UInt uiAbsZorderIdx, UIn
           for ( UInt i = 0; i < DEBLOCK_SMALLEST_BLOCK; i++)
           {
 #if E057_INTRA_PCM && E192_SPS_PCM_FILTER_DISABLE_SYNTAX 
-#if F118_LUMA_DEBLOCK
             xPelFilterLuma( piTmpSrc+iSrcStep*(iTmp+i), iOffset, iD, iBeta, iTc, bPartPNoFilter, bPartQNoFilter, iThrCut, bFilterP, bFilterQ);
 #else
-            xPelFilterLuma( piTmpSrc+iSrcStep*(iTmp+i), iOffset, iD, iBeta, iTc, bPartPNoFilter, bPartQNoFilter);
-#endif
-#else
-#if F118_LUMA_DEBLOCK
             xPelFilterLuma( piTmpSrc+iSrcStep*(iTmp+i), iOffset, iD, iBeta, iTc, iThrCut, bFilterP, bFilterQ);
-#else
-            xPelFilterLuma( piTmpSrc+iSrcStep*(iTmp+i), iOffset, iD, iBeta, iTc);
-#endif
 #endif
           }
         }
@@ -865,38 +839,28 @@ Void TComLoopFilter::xEdgeFilterLuma( TComDataCU* pcCU, UInt uiAbsZorderIdx, UIn
     else if (iDecideExecute==DECIDE_FILTER && uiBs)
     {
       Int iBeta = betatable_8x8[iIndexB]*iBitdepthScale;
-#if F118_LUMA_DEBLOCK
       Int iSideThreshold = (iBeta+(iBeta>>1))>>3;
-#endif
       
       piDecisions_D      = (iIdx*uiPelsInPart)/DEBLOCK_SMALLEST_BLOCK + m_decisions_D     [(iEdge*uiPelsInPart)/DEBLOCK_SMALLEST_BLOCK];
       piDecisions_Sample =  iIdx*uiPelsInPart                         + m_decisions_Sample[(iEdge*uiPelsInPart)/DEBLOCK_SMALLEST_BLOCK];
       
-#if F118_LUMA_DEBLOCK
       piDecisions_DP      = (iIdx*uiPelsInPart)/DEBLOCK_SMALLEST_BLOCK + m_decisions_DP     [(iEdge*uiPelsInPart)/DEBLOCK_SMALLEST_BLOCK];
       piDecisions_DQ      = (iIdx*uiPelsInPart)/DEBLOCK_SMALLEST_BLOCK + m_decisions_DQ     [(iEdge*uiPelsInPart)/DEBLOCK_SMALLEST_BLOCK];
-#endif      
       for (UInt iBlkIdx = 0; iBlkIdx< uiBlocksInPart; iBlkIdx ++)
       {
         Int iTmp=iIdx*uiPelsInPart+iBlkIdx*DEBLOCK_SMALLEST_BLOCK;
-#if F118_LUMA_DEBLOCK
         Int iDP = xCalcDP( piTmpSrc+iSrcStep*(iTmp+2), iOffset) + xCalcDP( piTmpSrc+iSrcStep*(iTmp+5), iOffset);
         Int iDQ = xCalcDQ( piTmpSrc+iSrcStep*(iTmp+2), iOffset) + xCalcDQ( piTmpSrc+iSrcStep*(iTmp+5), iOffset);
         Int iD = iDP + iDQ;
-#else
-        Int iD = xCalcD( piTmpSrc+(iTmp+2), iOffset) + xCalcD( piTmpSrc+(iTmp+5), iOffset);
-#endif
         piTmpSrc1 = piTmpSrc+iTmp;
         
         if (iD < iBeta)
         {
           *piDecisions_D++=1;
-#if F118_LUMA_DEBLOCK
           Bool bFilterP = (iDP < iSideThreshold);  
           Bool bFilterQ = (iDQ < iSideThreshold);
           *piDecisions_DP++=bFilterP;
           *piDecisions_DQ++=bFilterQ;
-#endif
           for ( UInt i = 0; i < DEBLOCK_SMALLEST_BLOCK; i++)
           {
             *piDecisions_Sample++ = xPelFilterLumaDecision( piTmpSrc1++, iOffset, iD, iBeta, iTc);
@@ -912,20 +876,16 @@ Void TComLoopFilter::xEdgeFilterLuma( TComDataCU* pcCU, UInt uiAbsZorderIdx, UIn
     else if ( uiBs ) // EXECUTE_FILTER
     {
       piDecisions_D      = (iIdx*uiPelsInPart)/DEBLOCK_SMALLEST_BLOCK + m_decisions_D     [(iEdge*uiPelsInPart)/DEBLOCK_SMALLEST_BLOCK];
-#if F118_LUMA_DEBLOCK
       piDecisions_DP      = (iIdx*uiPelsInPart)/DEBLOCK_SMALLEST_BLOCK + m_decisions_DP     [(iEdge*uiPelsInPart)/DEBLOCK_SMALLEST_BLOCK];
       piDecisions_DQ      = (iIdx*uiPelsInPart)/DEBLOCK_SMALLEST_BLOCK + m_decisions_DQ     [(iEdge*uiPelsInPart)/DEBLOCK_SMALLEST_BLOCK];
       Int iThrCut = iTc*10;
-#endif
       piDecisions_Sample =  iIdx*uiPelsInPart                         + m_decisions_Sample[(iEdge*uiPelsInPart)/DEBLOCK_SMALLEST_BLOCK];
       piTmpSrc1          = piTmpSrc+iIdx*uiPelsInPart;
       
       for (UInt iBlkIdx = 0; iBlkIdx< uiBlocksInPart; iBlkIdx ++)
       {
-#if F118_LUMA_DEBLOCK
         *piDecisions_DP++;
         *piDecisions_DQ++;
-#endif
         if ( *piDecisions_D++ )
         {
 #if E057_INTRA_PCM && E192_SPS_PCM_FILTER_DISABLE_SYNTAX 
@@ -953,17 +913,9 @@ Void TComLoopFilter::xEdgeFilterLuma( TComDataCU* pcCU, UInt uiAbsZorderIdx, UIn
           for ( UInt i = 0; i < DEBLOCK_SMALLEST_BLOCK; i++)
           {
 #if E057_INTRA_PCM && E192_SPS_PCM_FILTER_DISABLE_SYNTAX 
-#if F118_LUMA_DEBLOCK
             xPelFilterLumaExecution( piTmpSrc1++, iOffset, iTc, *piDecisions_Sample++,  bPartPNoFilter, bPartQNoFilter, iThrCut, *piDecisions_DP, *piDecisions_DQ);
 #else
-            xPelFilterLumaExecution( piTmpSrc1++, iOffset, iTc, *piDecisions_Sample++,  bPartPNoFilter, bPartQNoFilter);
-#endif
-#else
-#if F118_LUMA_DEBLOCK
             xPelFilterLumaExecution( piTmpSrc1++, iOffset, iTc, *piDecisions_Sample++, iThrCut, *piDecisions_DP, *piDecisions_DQ);
-#else
-            xPelFilterLumaExecution( piTmpSrc1++, iOffset, iTc, *piDecisions_Sample++  );
-#endif
 #endif
           }
         }
@@ -976,10 +928,8 @@ Void TComLoopFilter::xEdgeFilterLuma( TComDataCU* pcCU, UInt uiAbsZorderIdx, UIn
     }
 #else
     Int iBeta = betatable_8x8[iIndexB]*iBitdepthScale;
-#if F118_LUMA_DEBLOCK
     Int iSideThreshold = (iBeta+(iBeta>>1))>>3;
     Int iThrCut = iTc*10;
-#endif    
     
     
     for (UInt iBlkIdx = 0; iBlkIdx< uiBlocksInPart; iBlkIdx ++)
@@ -987,28 +937,18 @@ Void TComLoopFilter::xEdgeFilterLuma( TComDataCU* pcCU, UInt uiAbsZorderIdx, UIn
       if ( uiBs )
       {
 #if PARALLEL_MERGED_DEBLK
-#if F118_LUMA_DEBLOCK
         Int iDP = xCalcDP( piTmpSrcJudge+iSrcStep*(iIdx*uiPelsInPart+iBlkIdx*DEBLOCK_SMALLEST_BLOCK+2), iOffset) + xCalcDP( piTmpSrcJudge+iSrcStep*(iIdx*uiPelsInPart+iBlkIdx*DEBLOCK_SMALLEST_BLOCK+5), iOffset);
         Int iDQ = xCalcDQ( piTmpSrcJudge+iSrcStep*(iIdx*uiPelsInPart+iBlkIdx*DEBLOCK_SMALLEST_BLOCK+2), iOffset) + xCalcDQ( piTmpSrcJudge+iSrcStep*(iIdx*uiPelsInPart+iBlkIdx*DEBLOCK_SMALLEST_BLOCK+5), iOffset);
         Int iD = iDP + iDQ;
-#else
-        Int iD = xCalcD( piTmpSrcJudge+iSrcStep*(iIdx*uiPelsInPart+iBlkIdx*DEBLOCK_SMALLEST_BLOCK+2), iOffset) + xCalcD( piTmpSrcJudge+iSrcStep*(iIdx*uiPelsInPart+iBlkIdx*DEBLOCK_SMALLEST_BLOCK+5), iOffset);
-#endif
 #else  
-#if F118_LUMA_DEBLOCK
         Int iDP = xCalcDP( piTmpSrc+iSrcStep*(iIdx*uiPelsInPart+iBlkIdx*DEBLOCK_SMALLEST_BLOCK+2), iOffset) + xCalcDP( piTmpSrc+iSrcStep*(iIdx*uiPelsInPart+iBlkIdx*DEBLOCK_SMALLEST_BLOCK+5), iOffset);
         Int iDQ = xCalcDQ( piTmpSrc+iSrcStep*(iIdx*uiPelsInPart+iBlkIdx*DEBLOCK_SMALLEST_BLOCK+2), iOffset) + xCalcDQ( piTmpSrc+iSrcStep*(iIdx*uiPelsInPart+iBlkIdx*DEBLOCK_SMALLEST_BLOCK+5), iOffset);
         Int iD = iDP + iDQ;
-#else
-        Int iD = xCalcD( piTmpSrc+iSrcStep*(iIdx*uiPelsInPart+iBlkIdx*DEBLOCK_SMALLEST_BLOCK+2), iOffset) + xCalcD( piTmpSrc+iSrcStep*(iIdx*uiPelsInPart+iBlkIdx*DEBLOCK_SMALLEST_BLOCK+5), iOffset);
-#endif
 #endif
         if (iD < iBeta)
         {
-#if F118_LUMA_DEBLOCK
           Bool bFilterP = (iDP < iSideThreshold);  
           Bool bFilterQ = (iDQ < iSideThreshold);
-#endif
 #if E057_INTRA_PCM && E192_SPS_PCM_FILTER_DISABLE_SYNTAX 
           if(bPCMFilter)
           {
@@ -1034,31 +974,15 @@ Void TComLoopFilter::xEdgeFilterLuma( TComDataCU* pcCU, UInt uiAbsZorderIdx, UIn
           {
 #if PARALLEL_MERGED_DEBLK
 #if E057_INTRA_PCM && E192_SPS_PCM_FILTER_DISABLE_SYNTAX 
-#if F118_LUMA_DEBLOCK
             xPelFilterLuma( piTmpSrc+iSrcStep*(iIdx*uiPelsInPart+iBlkIdx*DEBLOCK_SMALLEST_BLOCK+i), iOffset, iD, iBeta, iTc , piTmpSrcJudge+iSrcStep*(iIdx*uiPelsInPart+iBlkIdx*DEBLOCK_SMALLEST_BLOCK+i), bPartPNoFilter, bPartQNoFilter, iThrCut, bFilterP, bFilterQ);
 #else
-            xPelFilterLuma( piTmpSrc+iSrcStep*(iIdx*uiPelsInPart+iBlkIdx*DEBLOCK_SMALLEST_BLOCK+i), iOffset, iD, iBeta, iTc , piTmpSrcJudge+iSrcStep*(iIdx*uiPelsInPart+iBlkIdx*DEBLOCK_SMALLEST_BLOCK+i), bPartPNoFilter, bPartQNoFilter);
-#endif
-#else
-#if F118_LUMA_DEBLOCK
             xPelFilterLuma( piTmpSrc+iSrcStep*(iIdx*uiPelsInPart+iBlkIdx*DEBLOCK_SMALLEST_BLOCK+i), iOffset, iD, iBeta, iTc , piTmpSrcJudge+iSrcStep*(iIdx*uiPelsInPart+iBlkIdx*DEBLOCK_SMALLEST_BLOCK+i),iThrCut, bFilterP, bFilterQ);
-#else
-            xPelFilterLuma( piTmpSrc+iSrcStep*(iIdx*uiPelsInPart+iBlkIdx*DEBLOCK_SMALLEST_BLOCK+i), iOffset, iD, iBeta, iTc , piTmpSrcJudge+iSrcStep*(iIdx*uiPelsInPart+iBlkIdx*DEBLOCK_SMALLEST_BLOCK+i));
-#endif
 #endif
 #else   
 #if E057_INTRA_PCM && E192_SPS_PCM_FILTER_DISABLE_SYNTAX 
-#if F118_LUMA_DEBLOCK
             xPelFilterLuma( piTmpSrc+iSrcStep*(iIdx*uiPelsInPart+iBlkIdx*DEBLOCK_SMALLEST_BLOCK+i), iOffset, iD, iBeta, iTc , bPartPNoFilter, bPartQNoFilter, iThrCut, bFilterP, bFilterQ);
 #else
-            xPelFilterLuma( piTmpSrc+iSrcStep*(iIdx*uiPelsInPart+iBlkIdx*DEBLOCK_SMALLEST_BLOCK+i), iOffset, iD, iBeta, iTc , bPartPNoFilter, bPartQNoFilter);
-#endif
-#else
-#if F118_LUMA_DEBLOCK
             xPelFilterLuma( piTmpSrc+iSrcStep*(iIdx*uiPelsInPart+iBlkIdx*DEBLOCK_SMALLEST_BLOCK+i), iOffset, iD, iBeta, iTc, iThrCut, bFilterP, bFilterQ );
-#else
-            xPelFilterLuma( piTmpSrc+iSrcStep*(iIdx*uiPelsInPart+iBlkIdx*DEBLOCK_SMALLEST_BLOCK+i), iOffset, iD, iBeta, iTc );
-#endif
 #endif
 #endif
           }
@@ -1252,13 +1176,8 @@ __inline Void TComLoopFilter::xPelFilterLumaStrong(Pel* piSrc, Int iOffset, Pel 
  \param m5            sample value
  \param m6            sample value
  */
-#if F118_LUMA_DEBLOCK
 __inline Void TComLoopFilter::xPelFilterLumaWeak(Pel* piSrc, Int iOffset, Int tc, Pel m1, Pel m2, Pel m3, Pel m4, Pel m5, Pel m6, Int iThrCut, Bool bFilterSecondP, Bool bFilterSecondQ)
-#else
-__inline Void TComLoopFilter::xPelFilterLumaWeak(Pel* piSrc, Int iOffset, Int tc, Pel m1, Pel m2, Pel m3, Pel m4, Pel m5, Pel m6)
-#endif
 {
-#if F118_LUMA_DEBLOCK
   Int delta = (9*(m4-m3) -3*(m5-m2) + 8)>>4 ;
 
   if ( abs(delta) < iThrCut )
@@ -1279,21 +1198,12 @@ __inline Void TComLoopFilter::xPelFilterLumaWeak(Pel* piSrc, Int iOffset, Int tc
       piSrc[ iOffset] = Clip((m5+delta2));
     }
   }
-#else
-  Int delta = Clip3(-tc, tc, ((13*(m4-m3) + 4*(m5-m2) - 5*(m6-m1)+16)>>5) );
-
-  piSrc[-iOffset] = Clip(m3+delta);
-  piSrc[0] = Clip(m4-delta);
-  piSrc[-iOffset*2] = Clip(m2+delta/2);
-  piSrc[ iOffset] = Clip(m5-delta/2);
-#endif
 }
 #endif
 
 
 #if PARALLEL_MERGED_DEBLK
 #if E057_INTRA_PCM && E192_SPS_PCM_FILTER_DISABLE_SYNTAX 
-#if F118_LUMA_DEBLOCK
 /**
  - Deblocking for the luminance component with strong or weak filter
  .
@@ -1303,33 +1213,18 @@ __inline Void TComLoopFilter::xPelFilterLumaWeak(Pel* piSrc, Int iOffset, Int tc
 */
 __inline Void TComLoopFilter::xPelFilterLuma( Pel* piSrc, Int iOffset, Int d, Int beta, Int tc , Pel* piSrcJudge, Bool bPartPNoFilter, Bool bPartQNoFilter, Int iThrCut, Bool bFilterSecondP, Bool bFilterSecondQ)
 #else
-__inline Void TComLoopFilter::xPelFilterLuma( Pel* piSrc, Int iOffset, Int d, Int beta, Int tc , Pel* piSrcJudge, Bool bPartPNoFilter, Bool bPartQNoFilter)
-#endif
-#else
-#if F118_LUMA_DEBLOCK
 /**
  - Deblocking for the luminance component with strong or weak filter
  .
  \param piSrcJudge    pointer to picture data for decision
 */
 __inline Void TComLoopFilter::xPelFilterLuma( Pel* piSrc, Int iOffset, Int d, Int beta, Int tc , Pel* piSrcJudge, Int iThrCut, Bool bFilterSecondP, Bool bFilterSecondQ)
-#else
-__inline Void TComLoopFilter::xPelFilterLuma( Pel* piSrc, Int iOffset, Int d, Int beta, Int tc , Pel* piSrcJudge)
-#endif
 #endif
 #else
 #if E057_INTRA_PCM && E192_SPS_PCM_FILTER_DISABLE_SYNTAX 
-#if F118_LUMA_DEBLOCK
 __inline Void TComLoopFilter::xPelFilterLuma( Pel* piSrc, Int iOffset, Int d, Int beta, Int tc , Bool bPartPNoFilter, Bool bPartQNoFilter, Int iThrCut, Bool bFilterSecondP, Bool bFilterSecondQ)
 #else
-__inline Void TComLoopFilter::xPelFilterLuma( Pel* piSrc, Int iOffset, Int d, Int beta, Int tc , Bool bPartPNoFilter, Bool bPartQNoFilter)
-#endif
-#else
-#if F118_LUMA_DEBLOCK
 __inline Void TComLoopFilter::xPelFilterLuma( Pel* piSrc, Int iOffset, Int d, Int beta, Int tc, Int iThrCut, Bool bFilterSecondP, Bool bFilterSecondQ)
-#else
-__inline Void TComLoopFilter::xPelFilterLuma( Pel* piSrc, Int iOffset, Int d, Int beta, Int tc )
-#endif
 #endif
 #endif
 {
@@ -1378,14 +1273,9 @@ __inline Void TComLoopFilter::xPelFilterLuma( Pel* piSrc, Int iOffset, Int d, In
   else
   {
 #if (PARALLEL_DEBLK_DECISION && !PARALLEL_MERGED_DEBLK)
-#if F118_LUMA_DEBLOCK
     xPelFilterLumaWeak(piSrc, iOffset, tc, m1, m2, m3, m4, m5, m6, iThrCut, bFilterSecondP, bFilterSecondQ);
-#else
-    xPelFilterLumaWeak(piSrc, iOffset, tc, m1, m2, m3, m4, m5, m6);
-#endif
 #else    
     /* Weak filter */
-#if F118_LUMA_DEBLOCK
     delta = (9*(m4-m3) -3*(m5-m2) + 8)>>4 ;
 
     if ( abs(delta) < iThrCut )
@@ -1406,14 +1296,6 @@ __inline Void TComLoopFilter::xPelFilterLuma( Pel* piSrc, Int iOffset, Int d, In
         piSrc[ iOffset] = Clip((m5+delta2));
       }
     }
-#else
-    delta = Clip3(-tc, tc, ((13*(m4-m3) + 4*(m5-m2) - 5*(m6-m1)+16)>>5) );
-    
-    piSrc[-iOffset] = Clip(m3+delta);
-    piSrc[0] = Clip(m4-delta);
-    piSrc[-iOffset*2] = Clip(m2+delta/2);
-    piSrc[ iOffset] = Clip(m5-delta/2);
-#endif
 #endif
   }
 
@@ -1435,7 +1317,6 @@ __inline Void TComLoopFilter::xPelFilterLuma( Pel* piSrc, Int iOffset, Int d, In
 
 #if (PARALLEL_DEBLK_DECISION && !PARALLEL_MERGED_DEBLK)
 #if E057_INTRA_PCM && E192_SPS_PCM_FILTER_DISABLE_SYNTAX 
-#if F118_LUMA_DEBLOCK
 
 /**
  - Deblocking of one line/column for the luminance component
@@ -1449,10 +1330,6 @@ __inline Void TComLoopFilter::xPelFilterLuma( Pel* piSrc, Int iOffset, Int d, In
  */
 __inline Void TComLoopFilter::xPelFilterLumaExecution( Pel* piSrc, Int iOffset, Int tc, Int strongFilter, Bool bPartPNoFilter, Bool bPartQNoFilter, Int iThrCut, Bool bFilterSecondP, Bool bFilterSecondQ)
 #else
-__inline Void TComLoopFilter::xPelFilterLumaExecution( Pel* piSrc, Int iOffset, Int tc, Int strongFilter, Bool bPartPNoFilter, Bool bPartQNoFilter)
-#endif
-#else
-#if F118_LUMA_DEBLOCK
 /**
  - Deblocking of one line/column for the luminance component
  .
@@ -1462,9 +1339,6 @@ __inline Void TComLoopFilter::xPelFilterLumaExecution( Pel* piSrc, Int iOffset, 
  \param strongFilter  indicator to use either strong or weak filter      
  */
 __inline Void TComLoopFilter::xPelFilterLumaExecution( Pel* piSrc, Int iOffset, Int tc, Int strongFilter, Int iThrCut, Bool bFilterSecondP, Bool bFilterSecondQ)
-#else
-__inline Void TComLoopFilter::xPelFilterLumaExecution( Pel* piSrc, Int iOffset, Int tc, Int strongFilter)
-#endif
 #endif
 {
 #if E057_INTRA_PCM && E192_SPS_PCM_FILTER_DISABLE_SYNTAX 
@@ -1482,11 +1356,7 @@ __inline Void TComLoopFilter::xPelFilterLumaExecution( Pel* piSrc, Int iOffset, 
   }
   else //weak filtering
   {
-#if F118_LUMA_DEBLOCK
     xPelFilterLumaWeak(piSrc, iOffset, tc, piSrc[-iOffset*3], piSrc[-iOffset*2], piSrc[-iOffset], piSrc[0], piSrc[ iOffset], piSrc[ iOffset*2], iThrCut, bFilterSecondP, bFilterSecondQ);
-#else
-    xPelFilterLumaWeak(piSrc, iOffset, tc, piSrc[-iOffset*3], piSrc[-iOffset*2], piSrc[-iOffset], piSrc[0], piSrc[ iOffset], piSrc[ iOffset*2]);
-#endif
   }
 
 #if E057_INTRA_PCM && E192_SPS_PCM_FILTER_DISABLE_SYNTAX 
@@ -1545,7 +1415,6 @@ __inline Void TComLoopFilter::xPelFilterChroma( Pel* piSrc, Int iOffset, Int tc 
 }
 
 
-#if F118_LUMA_DEBLOCK
 __inline Int TComLoopFilter::xCalcDP( Pel* piSrc, Int iOffset)
 {
   return abs( piSrc[-iOffset*3] - 2*piSrc[-iOffset*2] + piSrc[-iOffset] ) ;
@@ -1554,10 +1423,4 @@ __inline Int TComLoopFilter::xCalcDQ( Pel* piSrc, Int iOffset)
 {
   return abs( piSrc[0] - 2*piSrc[iOffset] + piSrc[iOffset*2] );
 }
-#else
-__inline Int TComLoopFilter::xCalcD( Pel* piSrc, Int iOffset)
-{
-  return abs( piSrc[-iOffset*3] - 2*piSrc[-iOffset*2] + piSrc[-iOffset] ) + abs( piSrc[0] - 2*piSrc[iOffset] + piSrc[iOffset*2] );
-}
-#endif
 //! \}
