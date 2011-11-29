@@ -289,15 +289,11 @@ Bool TDecTop::decode(InputNALUnit& nalu, Int& iSkipFrame, Int& iPOCLastDisplay)
 
     case NAL_UNIT_PPS:
 #if F747_APS
-#if SUB_LCU_DQP
       m_cPPS.setSPS(&m_cSPS);
-#endif
       m_cEntropyDecoder.decodePPS( &m_cPPS );
 #else
       pcNewPPS = getNewPPSBuffer();
-#if SUB_LCU_DQP
       pcNewPPS->setSPS(&m_cSPS);
-#endif
       m_cEntropyDecoder.decodePPS( pcNewPPS );
       if(pcNewPPS->getSharedPPSInfoEnabled())
       {

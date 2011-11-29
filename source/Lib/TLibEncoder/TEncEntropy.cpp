@@ -984,11 +984,7 @@ Void TEncEntropy::xEncodeCoeff( TComDataCU* pcCU, TCoeff* pcCoeff, UInt uiAbsPar
     {
       if ( bCodeDQP )
       {
-#if SUB_LCU_DQP
         encodeQP( pcCU, uiAbsPartIdx );
-#else
-        encodeQP( pcCU, 0 );
-#endif
         bCodeDQP = false;
       }
     }

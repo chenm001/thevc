@@ -211,7 +211,6 @@ Void TDecCavlc::parsePPS(TComPPS* pcPPS)
 #endif
   // alf_param() ?
 
-#if SUB_LCU_DQP
   if( pcPPS->getSPS()->getUseDQP() )
   {
     READ_UVLC( uiCode, "max_cu_qp_delta_depth");
@@ -223,7 +222,6 @@ Void TDecCavlc::parsePPS(TComPPS* pcPPS)
     pcPPS->setMaxCuDQPDepth( 0 );
     pcPPS->setMinCuDQPSize( pcPPS->getSPS()->getMaxCUWidth() >> ( pcPPS->getMaxCuDQPDepth()) );
   }
-#endif
 
 #if WEIGHT_PRED
   READ_FLAG( uiCode, "weighted_pred_flag" );          // Use of Weighting Prediction (P_SLICE)
@@ -1581,19 +1579,11 @@ Void TDecCavlc::parseDeltaQP( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth 
   Int  iDQp;
   
   xReadSvlc( iDQp );
-#if SUB_LCU_DQP
   uiQp = pcCU->getRefQP( uiAbsPartIdx ) + iDQp;
-#else
-  uiQp = pcCU->getSlice()->getSliceQp() + iDQp;
-#endif
 
-#if SUB_LCU_DQP
   UInt uiAbsQpCUPartIdx = (uiAbsPartIdx>>(8-(pcCU->getSlice()->getPPS()->getMaxCuDQPDepth()<<1)))<<(8-(pcCU->getSlice()->getPPS()->getMaxCuDQPDepth()<<1)) ;
   UInt uiQpCUDepth =   min(uiDepth,pcCU->getSlice()->getPPS()->getMaxCuDQPDepth()) ;
   pcCU->setQPSubParts( uiQp, uiAbsQpCUPartIdx, uiQpCUDepth );
-#else
-  pcCU->setQPSubParts( uiQp, uiAbsPartIdx, uiDepth );
-#endif
 }
 
 #if CAVLC_RQT_CBP

@@ -542,55 +542,6 @@ Void TComDataCU::initCU( TComPic* pcPic, UInt iCUAddr )
 }
 #endif
 
-#if !SUB_LCU_DQP
-// initialize prediction data
-Void TComDataCU::initEstData()
-{
-  m_dTotalCost         = MAX_DOUBLE;
-  m_uiTotalDistortion  = 0;
-  m_uiTotalBits        = 0;
-  
-#if FINE_GRANULARITY_SLICES  
-  m_uiTotalBins        = 0;
-#endif  
-  Int iSizeInUchar = sizeof( UChar  ) * m_uiNumPartition;
-  Int iSizeInUInt  = sizeof( UInt   ) * m_uiNumPartition;
-  Int iSizeInBool  = sizeof( Bool   ) * m_uiNumPartition;
-  memset( m_phQP,              getSlice()->getSliceQp(), iSizeInUchar );
-  memset( m_puiAlfCtrlFlag,     0, iSizeInBool );
-  memset( m_pbIPCMFlag,        0, iSizeInBool );
-  memset( m_pbMergeFlag,        0, iSizeInBool  );
-  memset( m_puhMergeIndex,      0, iSizeInUchar );
-  memset( m_puhLumaIntraDir,    2, iSizeInUchar );
-  memset( m_puhChromaIntraDir,  0, iSizeInUchar );
-  memset( m_puhInterDir,        0, iSizeInUchar );
-  memset( m_puhTrIdx,           0, iSizeInUchar );
-  memset( m_puhCbf[0],          0, iSizeInUchar );
-  memset( m_puhCbf[1],          0, iSizeInUchar );
-  memset( m_puhCbf[2],          0, iSizeInUchar );
-  
-  memset( m_apiMVPIdx[0], -1, sizeof(m_apiMVPIdx[0][0]) * m_uiNumPartition);
-  memset( m_apiMVPIdx[1], -1, sizeof(m_apiMVPIdx[1][0]) * m_uiNumPartition);
-  memset( m_apiMVPNum[0], -1, sizeof(m_apiMVPNum[0][0]) * m_uiNumPartition);
-  memset( m_apiMVPNum[1], -1, sizeof(m_apiMVPNum[1][0]) * m_uiNumPartition);
-  
-  memset( m_pePartSize, SIZE_NONE, sizeof( *m_pePartSize) * m_uiNumPartition );
-  memset( m_pePredMode, MODE_NONE, sizeof( *m_pePredMode) * m_uiNumPartition );
-  
-  UInt uiTmp = m_puhWidth[0]*m_puhHeight[0];
-  memset( m_pcTrCoeffY , 0, sizeof(TCoeff)*uiTmp );
-  memset( m_pcIPCMSampleY , 0, sizeof( Pel ) * uiTmp );
-
-  uiTmp >>= 2;
-  memset( m_pcTrCoeffCb, 0, sizeof(TCoeff)*uiTmp );
-  memset( m_pcTrCoeffCr, 0, sizeof(TCoeff)*uiTmp );
-  memset( m_pcIPCMSampleCb , 0, sizeof( Pel ) * uiTmp );
-  memset( m_pcIPCMSampleCr , 0, sizeof( Pel ) * uiTmp );
-
-  m_acCUMvField[0].clearMvField();
-  m_acCUMvField[1].clearMvField();
-}
-#else
 /** initialize prediction data with enabling sub-LCU-level delta QP
 *\param  uiDepth  depth of the current CU 
 *\param  uiQP     QP for the current CU
@@ -711,16 +662,11 @@ Void TComDataCU::initEstData( UInt uiDepth, UInt uiQP )
   m_acCUMvField[1].clearMvField();
 #endif
 }
-#endif
 
 
 // initialize Sub partition
 #if !FINE_GRANULARITY_SLICES
-#if SUB_LCU_DQP
 Void TComDataCU::initSubCU( TComDataCU* pcCU, UInt uiPartUnitIdx, UInt uiDepth, UInt uiQP )
-#else
-Void TComDataCU::initSubCU( TComDataCU* pcCU, UInt uiPartUnitIdx, UInt uiDepth )
-#endif
 {
   assert( uiPartUnitIdx<4 );
   
@@ -730,13 +676,8 @@ Void TComDataCU::initSubCU( TComDataCU* pcCU, UInt uiPartUnitIdx, UInt uiDepth )
   m_pcSlice            = pcCU->getSlice();
   m_uiCUAddr           = pcCU->getAddr();
   m_uiAbsIdxInLCU      = pcCU->getZorderIdxInCU() + uiPartOffset;
-#if SUB_LCU_DQP
   m_uiCUPelX           = pcCU->getCUPelX() + ( (g_uiMaxCUWidth>>uiDepth) )*( uiPartUnitIdx &  1 );
   m_uiCUPelY           = pcCU->getCUPelY() + ( (g_uiMaxCUWidth>>uiDepth) )*( uiPartUnitIdx >> 1 );
-#else
-  m_uiCUPelX           = pcCU->getCUPelX() + ( pcCU->getWidth (0) >> 1 )*( uiPartUnitIdx &  1 );
-  m_uiCUPelY           = pcCU->getCUPelY() + ( pcCU->getHeight(0) >> 1 )*( uiPartUnitIdx >> 1 );
-#endif
   
   m_dTotalCost         = MAX_DOUBLE;
   m_uiTotalDistortion  = 0;
@@ -747,11 +688,7 @@ Void TComDataCU::initSubCU( TComDataCU* pcCU, UInt uiPartUnitIdx, UInt uiDepth )
   Int iSizeInUchar = sizeof( UChar  ) * m_uiNumPartition;
   Int iSizeInBool  = sizeof( Bool   ) * m_uiNumPartition;
   
-#if SUB_LCU_DQP
   memset( m_phQP,              uiQP, iSizeInUchar );
-#else
-  memset( m_phQP,              getSlice()->getSliceQp(), iSizeInUchar );
-#endif
   memset( m_puiAlfCtrlFlag,     0, iSizeInBool );
   memset( m_pbIPCMFlag,        0, iSizeInBool  );
   memset( m_pbMergeFlag,        0, iSizeInBool  );
@@ -802,11 +739,7 @@ Void TComDataCU::initSubCU( TComDataCU* pcCU, UInt uiPartUnitIdx, UInt uiDepth )
   m_uiEntropySliceStartCU   = pcCU->getEntropySliceStartCU();
 }
 #else
-#if SUB_LCU_DQP
 Void TComDataCU::initSubCU( TComDataCU* pcCU, UInt uiPartUnitIdx, UInt uiDepth, UInt uiQP )
-#else
-Void TComDataCU::initSubCU( TComDataCU* pcCU, UInt uiPartUnitIdx, UInt uiDepth )
-#endif
 {
   assert( uiPartUnitIdx<4 );
 
@@ -829,11 +762,7 @@ Void TComDataCU::initSubCU( TComDataCU* pcCU, UInt uiPartUnitIdx, UInt uiDepth )
   Int iSizeInUchar = sizeof( UChar  ) * m_uiNumPartition;
   Int iSizeInBool  = sizeof( Bool   ) * m_uiNumPartition;
 
-#if SUB_LCU_DQP
   memset( m_phQP,              uiQP, iSizeInUchar );
-#else
-  memset( m_phQP,              getSlice()->getSliceQp(), iSizeInUchar );
-#endif
 
   memset( m_puiAlfCtrlFlag,     0, iSizeInBool );
   memset( m_pbMergeFlag,        0, iSizeInBool  );
@@ -2058,7 +1987,6 @@ TComDataCU* TComDataCU::getPUAboveRightAdi(UInt&  uiARPartUnitIdx, UInt uiPuWidt
   return m_pcCUAboveRight;
 }
 
-#if SUB_LCU_DQP
 /** Get left QpMinCu
 *\param   uiLPartUnitIdx
 *\param   uiCurrAbsIdxInLCU
@@ -2198,7 +2126,6 @@ UChar TComDataCU::getLastCodedQP( UInt uiAbsPartIdx )
     }
   }
 }
-#endif
 
 Int TComDataCU::getMostProbableIntraDirLuma( UInt uiAbsPartIdx )
 {

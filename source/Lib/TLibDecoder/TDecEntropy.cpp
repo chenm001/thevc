@@ -914,11 +914,7 @@ Void TDecEntropy::xDecodeCoeff( TComDataCU* pcCU, TCoeff* pcCoeff, UInt uiAbsPar
     {
       if ( bCodeDQP )
       {
-#if SUB_LCU_DQP
         decodeQP( pcCU, uiAbsPartIdx, uiDepth);
-#else
-        decodeQP( pcCU, 0, 0 );
-#endif
         bCodeDQP = false;
       }
     }   

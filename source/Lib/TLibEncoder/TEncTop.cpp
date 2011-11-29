@@ -288,9 +288,7 @@ Void TEncTop::init()
   xInitSPS();
   
   // initialize PPS
-#if SUB_LCU_DQP
   m_cPPS.setSPS(&m_cSPS);
-#endif
   xInitPPS();
 
 #if TILES
@@ -666,7 +664,6 @@ Void TEncTop::xInitPPS()
     }
   }   
 
-#if SUB_LCU_DQP
   if( m_cPPS.getSPS()->getUseDQP() )
   {
     m_cPPS.setMaxCuDQPDepth( m_iMaxCuDQPDepth );
@@ -677,7 +674,6 @@ Void TEncTop::xInitPPS()
     m_cPPS.setMaxCuDQPDepth( 0 );
     m_cPPS.setMinCuDQPSize( m_cPPS.getSPS()->getMaxCUWidth() >> ( m_cPPS.getMaxCuDQPDepth()) );
   }
-#endif
 #if OL_USE_WPP
   m_cPPS.setEntropyCodingMode(getSymbolMode()); // In the PPS now, but also remains in slice header!
   m_cPPS.setEntropyCodingSynchro(m_iWaveFrontSynchro);

@@ -1075,11 +1075,9 @@ TComPPS::TComPPS()
 : m_PPSId                       (0)
 , m_SPSId                       (0)
 , m_bConstrainedIntraPred       (false)
-#if SUB_LCU_DQP
 , m_pcSPS                       (NULL)
 , m_uiMaxCuDQPDepth             (0)
 , m_uiMinCuDQPSize              (0)
-#endif
 , m_uiNumTlayerSwitchingFlags   (0)
 #if FINE_GRANULARITY_SLICES
 , m_iSliceGranularity           (0)

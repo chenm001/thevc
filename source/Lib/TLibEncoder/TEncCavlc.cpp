@@ -303,12 +303,10 @@ Void TEncCavlc::codePPS( TComPPS* pcPPS )
 #endif
   //   if( cu_qp_delta_enabled_flag )
   //     max_cu_qp_delta_depth
-#if SUB_LCU_DQP
   if( pcPPS->getSPS()->getUseDQP() )
   {
     WRITE_UVLC( pcPPS->getMaxCuDQPDepth(),                   "max_cu_qp_delta_depth" );
   }
-#endif
 
 #if WEIGHT_PRED
   WRITE_FLAG( pcPPS->getUseWP() ? 1 : 0,  "weighted_pred_flat" );   // Use of Weighting Prediction (P_SLICE)
@@ -1428,11 +1426,7 @@ Void TEncCavlc::codeMvd( TComDataCU* pcCU, UInt uiAbsPartIdx, RefPicList eRefLis
 
 Void TEncCavlc::codeDeltaQP( TComDataCU* pcCU, UInt uiAbsPartIdx )
 {
-#if SUB_LCU_DQP
   Int iDQp  = pcCU->getQP( uiAbsPartIdx ) - pcCU->getRefQP( uiAbsPartIdx );
-#else
-  Int iDQp  = pcCU->getQP( uiAbsPartIdx ) - pcCU->getSlice()->getSliceQp();
-#endif
 
   xWriteSvlc( iDQp );
   

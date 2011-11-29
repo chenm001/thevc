@@ -306,12 +306,10 @@ private:
   Int         m_SPSId;                    // seq_parameter_set_id
   Bool        m_bConstrainedIntraPred;    // constrained_intra_pred_flag
  
-#if SUB_LCU_DQP
   // access channel
   TComSPS*    m_pcSPS;
   UInt        m_uiMaxCuDQPDepth;
   UInt        m_uiMinCuDQPSize;
-#endif
 
   UInt        m_uiNumTlayerSwitchingFlags;            // num_temporal_layer_switching_point_flags
   Bool        m_abTLayerSwitchingFlag[ MAX_TLAYER ];  // temporal_layer_switching_point_flag
@@ -369,14 +367,12 @@ public:
   Bool      getTLayerSwitchingFlag( UInt uiTLayer )                       { assert( uiTLayer < MAX_TLAYER ); return m_abTLayerSwitchingFlag[ uiTLayer ]; }
   Void      setTLayerSwitchingFlag( UInt uiTLayer, Bool bValue )          { m_abTLayerSwitchingFlag[ uiTLayer ] = bValue; }
 
-#if SUB_LCU_DQP
   Void      setSPS              ( TComSPS* pcSPS ) { m_pcSPS = pcSPS; }
   TComSPS*  getSPS              ()         { return m_pcSPS;          }
   Void      setMaxCuDQPDepth    ( UInt u ) { m_uiMaxCuDQPDepth = u;   }
   UInt      getMaxCuDQPDepth    ()         { return m_uiMaxCuDQPDepth;}
   Void      setMinCuDQPSize     ( UInt u ) { m_uiMinCuDQPSize = u;    }
   UInt      getMinCuDQPSize     ()         { return m_uiMinCuDQPSize; }
-#endif
 
 #if !F747_APS
   ///  set shared PPS info enabled/disabled

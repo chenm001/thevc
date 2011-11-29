@@ -111,9 +111,7 @@ Void TAppEncTop::xInitLibCfg()
 
   //====== Quality control ========
   m_cTEncTop.setMaxDeltaQP                   ( m_iMaxDeltaQP  );
-#if SUB_LCU_DQP
   m_cTEncTop.setMaxCuDQPDepth                ( m_iMaxCuDQPDepth  );
-#endif
 #if QP_ADAPTATION
   m_cTEncTop.setUseAdaptiveQP                ( m_bUseAdaptiveQP  );
   m_cTEncTop.setQPAdaptationRange            ( m_iQPAdaptationRange );
