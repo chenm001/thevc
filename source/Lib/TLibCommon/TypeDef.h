@@ -207,7 +207,6 @@
 #define VAR_SIZE_W           4
 #define NO_VAR_BIN          16
 
-#define UNIFICATION_OF_AVAILABILITY  1       ///< JCTVC-F178: unification of sample availability for DC
 #define MN_DC_PRED_FILTER_UNIFIED    1       ///< JCTVC-F252 using unified filter for all block size
 
 #define MVD_CTX            1           // JCTVC-E324: Modified context selection for MVD

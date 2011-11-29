@@ -297,26 +297,15 @@ Void TComPattern::initPattern( TComDataCU* pcCU, UInt uiPartDepth, UInt uiAbsPar
     if( pcCU->getPULeft         ( uiPartDum,             uiPartIdxLT,    true, false ) ) { bNeighborFlags[1] = true; iNumIntraNeighbor++; }
     if( pcCU->getPUBelowLeftAdi ( uiPartDum, uiCuHeight, uiPartIdxLB, 1, true, false ) ) { bNeighborFlags[0] = true; iNumIntraNeighbor++; }
     if( pcCU->getPUAboveLeft    ( uiPartDum,             uiPartIdxLT,    true, false ) ) { bNeighborFlags[2] = true; iNumIntraNeighbor++; }
-#if MN_DC_PRED_FILTER && !UNIFICATION_OF_AVAILABILITY
-    m_bAboveFlagForDCFilt = bNeighborFlags[3];
-    m_bLeftFlagForDCFilt  = bNeighborFlags[1];
-#endif
 #else // REFERENCE_SAMPLE_PADDING
     if( pcCU->getPUAbove        ( uiPartDum,             uiPartIdxLT,    true, false ) ) bAboveFlag      = true;
     if( pcCU->getPUAboveRightAdi( uiPartDum, uiCuWidth,  uiPartIdxRT, 1, true, false ) ) bAboveRightFlag = true;
     if( pcCU->getPULeft         ( uiPartDum,             uiPartIdxLT,    true, false ) ) bLeftFlag       = true;
     if( pcCU->getPUBelowLeftAdi ( uiPartDum, uiCuHeight, uiPartIdxLB, 1, true, false ) ) bBelowLeftFlag  = true;
     if( pcCU->getPUAboveLeft    ( uiPartDum,             uiPartIdxLT,    true, false ) ) bAboveLeftFlag  = true;
-#if MN_DC_PRED_FILTER && !UNIFICATION_OF_AVAILABILITY
-    m_bAboveFlagForDCFilt = bAboveFlag;
-    m_bLeftFlagForDCFilt  = bLeftFlag;
-#endif
 #endif // REFERENCE_SAMPLE_PADDING
   }
 #endif //UNIFY_INTRA_AVAIL
-#if MN_DC_PRED_FILTER && !UNIFICATION_OF_AVAILABILITY
-  m_bDCPredFilterFlag = (m_bAboveFlagForDCFilt && m_bLeftFlagForDCFilt) ? true : false;
-#endif
   
 #if REFERENCE_SAMPLE_PADDING
   bAbove = true;
@@ -979,9 +968,6 @@ Bool TComPattern::isAboveAvailableForCIP( TComDataCU* pcCU, UInt uiPartIdxLT, UI
 #else
   Bool bAboveFlag = true;
 #endif
-#if MN_DC_PRED_FILTER && !UNIFICATION_OF_AVAILABILITY
-  m_bAboveFlagForDCFilt = true;
-#endif
 
   for ( UInt uiRasterPart = uiRasterPartBegin; uiRasterPart < uiRasterPartEnd; uiRasterPart += uiIdxStep )
   {
@@ -999,9 +985,6 @@ Bool TComPattern::isAboveAvailableForCIP( TComDataCU* pcCU, UInt uiPartIdxLT, UI
     else
     {
       *pbValidFlags = false;
-#if MN_DC_PRED_FILTER && !UNIFICATION_OF_AVAILABILITY
-      m_bAboveFlagForDCFilt = false;
-#endif
     }
   }
   else
@@ -1014,9 +997,6 @@ Bool TComPattern::isAboveAvailableForCIP( TComDataCU* pcCU, UInt uiPartIdxLT, UI
     else
     {
       *pbValidFlags = false;
-#if MN_DC_PRED_FILTER && !UNIFICATION_OF_AVAILABILITY
-      m_bAboveFlagForDCFilt = false;
-#endif
     }
   }
 #else //#if UNIFY_INTRA_AVAIL
@@ -1028,9 +1008,6 @@ Bool TComPattern::isAboveAvailableForCIP( TComDataCU* pcCU, UInt uiPartIdxLT, UI
   else
   {
     *pbValidFlags = false;
-#if MN_DC_PRED_FILTER && !UNIFICATION_OF_AVAILABILITY
-    m_bAboveFlagForDCFilt = false;
-#endif
   }
 
 #endif //#if UNIFY_INTRA_AVAIL
@@ -1039,9 +1016,6 @@ Bool TComPattern::isAboveAvailableForCIP( TComDataCU* pcCU, UInt uiPartIdxLT, UI
     if ( !pcCUAbove || pcCUAbove->getPredictionMode( uiPartAbove ) != MODE_INTRA )
     {
       bAboveFlag = false;
-#if MN_DC_PRED_FILTER && !UNIFICATION_OF_AVAILABILITY
-      m_bAboveFlagForDCFilt = false;
-#endif
       break;
     }
 #endif
@@ -1076,9 +1050,6 @@ Bool TComPattern::isLeftAvailableForCIP( TComDataCU* pcCU, UInt uiPartIdxLT, UIn
 #else
   Bool bLeftFlag = true;
 #endif
-#if MN_DC_PRED_FILTER && !UNIFICATION_OF_AVAILABILITY
-  m_bLeftFlagForDCFilt = true;
-#endif
 
   for ( UInt uiRasterPart = uiRasterPartBegin; uiRasterPart < uiRasterPartEnd; uiRasterPart += uiIdxStep )
   {
@@ -1096,9 +1067,6 @@ Bool TComPattern::isLeftAvailableForCIP( TComDataCU* pcCU, UInt uiPartIdxLT, UIn
     else
     {
       *pbValidFlags = false;
-#if MN_DC_PRED_FILTER && !UNIFICATION_OF_AVAILABILITY
-      m_bLeftFlagForDCFilt = false;
-#endif
     }
   }
   else
@@ -1111,9 +1079,6 @@ Bool TComPattern::isLeftAvailableForCIP( TComDataCU* pcCU, UInt uiPartIdxLT, UIn
     else
     {
       *pbValidFlags = false;
-#if MN_DC_PRED_FILTER && !UNIFICATION_OF_AVAILABILITY
-      m_bLeftFlagForDCFilt = false;
-#endif
     }
   }
 #else //#if UNIFY_INTRA_AVAIL
@@ -1125,9 +1090,6 @@ Bool TComPattern::isLeftAvailableForCIP( TComDataCU* pcCU, UInt uiPartIdxLT, UIn
   else
   {
     *pbValidFlags = false;
-#if MN_DC_PRED_FILTER && !UNIFICATION_OF_AVAILABILITY
-    m_bLeftFlagForDCFilt = false;
-#endif
   }
 #endif //#if UNIFY_INTRA_AVAIL
     pbValidFlags--; // opposite direction
@@ -1135,9 +1097,6 @@ Bool TComPattern::isLeftAvailableForCIP( TComDataCU* pcCU, UInt uiPartIdxLT, UIn
     if ( !pcCULeft || pcCULeft->getPredictionMode( uiPartLeft ) != MODE_INTRA )
     {
       bLeftFlag = false;
-#if MN_DC_PRED_FILTER && !UNIFICATION_OF_AVAILABILITY
-      m_bLeftFlagForDCFilt = false;
-#endif
       break;
     }
 #endif
