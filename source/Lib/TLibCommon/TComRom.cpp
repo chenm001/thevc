@@ -464,42 +464,8 @@ const UInt g_auiBlkCbpVlcNum[15] =
 };
 #endif
 
-#if UNIFY_INTER_TABLE
 const UInt g_auiComMI1TableE[9] = {0,1,2,3,4,5,6,7,8};
 const UInt g_auiComMI1TableD[9] = {0,1,2,3,4,5,6,7,8};
-#else
-const UInt g_auiMI1TableE[8] = {0,2,1,4,3,6,5,7};
-const UInt g_auiMI1TableD[8] = {0,2,1,4,3,6,5,7};
-const UInt g_auiMI2TableE[15] = {0,1,3,2,6,5,4,7,9,8,13,12,11,14,10};
-const UInt g_auiMI2TableD[15] = {0,1,3,2,6,5,4,7,9,8,14,12,11,10,13};
-
-const UInt g_auiMI1TableENoL1[8] = {0,1,6,7,2,4,3,5};
-const UInt g_auiMI1TableDNoL1[8] = {0,1,4,6,5,7,2,3};
-const UInt g_auiMI2TableENoL1[15] = {0,1,2,12,14,13,3,4,6,5,10,9,8,11,7};
-const UInt g_auiMI2TableDNoL1[15] = {0,1,2,6,7,9,8,14,12,11,10,13,3,5,4};
-
-// as there are two lists used for bi-directional prediction, and one list for uni-directional prediction
-// for uni-directional prediction, when pcSlice->getNoBackPredFlag() is true, list 0 is used for uni-directional prediction
-// when pcSlice->getNoBackPredFlag() is false, combined list is used for uni-directional prediction
-// the meaning of the elements are as follows:
-/*
- 0: uni-directional prediction, frame 0
- 1: uni-directional prediction, frame 1
- 2: uni-directional prediction, frame 2
- 3: uni-directional prediction, frame 3
- 4: bi-directional prediction, frame (0, 0)
- 5: bi-directional prediction, frame (0, 1)
- 6: bi-directional prediction, frame (1, 0)
- 7: bi-directional prediction, frame (1, 1)
- 8: exception, for uni-directional prediction, if combined list, reference frame index >= 4 (count from 0) is exception
- if GPB (only list0 is used), reference frame index >= 2 (count from 0) is exception
- for bi-directional prediction, reference frame index >= 2 (count from 0 ) is exception
- */
-const UInt g_auiMI1TableEOnly1Ref[8] = {0,3,1,4,2,6,5,7};
-const UInt g_auiMI1TableDOnly1Ref[8] = {0,2,4,1,3,6,5,7};
-const UInt g_auiMI1TableEOnly1RefNoL1[8] = {0,2,3,4,1,6,5,7};
-const UInt g_auiMI1TableDOnly1RefNoL1[8] = {0,4,1,2,3,6,5,7};
-#endif
 
 #if AMP
 const UInt g_auiInterModeTableE[4][11] = {{0,1,2,3,4,5,6,7,8,9,10},{0,1,2,3,4,5,6,7,8,9,10},{0,1,2,3,4,5,6,7,8,9,10},{6,0,1,2,3,4,5,7,8,9,10}};

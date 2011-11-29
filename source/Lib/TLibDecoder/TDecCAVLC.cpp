@@ -763,39 +763,7 @@ Void TDecCavlc::resetEntropy          (TComSlice* pcSlice)
   m_uiBlkCbpVlcIdx = 0;
 #endif
 
-#if UNIFY_INTER_TABLE
   ::memcpy(m_uiMI1TableD, g_auiComMI1TableD, 9*sizeof(UInt));
-#else  
-  ::memcpy(m_uiMI1TableD,        g_auiMI1TableD,        8*sizeof(UInt));
-  ::memcpy(m_uiMI2TableD,        g_auiMI2TableD,        15*sizeof(UInt));
-  
-  if ( pcSlice->getNoBackPredFlag() || pcSlice->getNumRefIdx(REF_PIC_LIST_C)>0)
-  {
-    ::memcpy(m_uiMI1TableD,        g_auiMI1TableDNoL1,        8*sizeof(UInt));
-    ::memcpy(m_uiMI2TableD,        g_auiMI2TableDNoL1,        15*sizeof(UInt));
-  }
-  
-  if ( pcSlice->getNumRefIdx(REF_PIC_LIST_0) <= 1 && pcSlice->getNumRefIdx(REF_PIC_LIST_1) <= 1 )
-  {
-    if ( pcSlice->getNoBackPredFlag() || ( pcSlice->getNumRefIdx(REF_PIC_LIST_C) > 0 && pcSlice->getNumRefIdx(REF_PIC_LIST_C) <= 1 ) )
-    {
-      ::memcpy(m_uiMI1TableD,        g_auiMI1TableDOnly1RefNoL1,        8*sizeof(UInt));
-    }
-    else
-    {
-      ::memcpy(m_uiMI1TableD,        g_auiMI1TableDOnly1Ref,        8*sizeof(UInt));
-    }
-  }
-  if (pcSlice->getNumRefIdx(REF_PIC_LIST_C)>0)
-  {
-    m_uiMI1TableD[8] = 8;
-  }
-  else  // GPB case
-  {
-    m_uiMI1TableD[8] = m_uiMI1TableD[6];
-    m_uiMI1TableD[6] = 8;
-  }
-#endif
   
   ::memcpy(m_uiIntraModeTableD17, g_auiIntraModeTableD17, 17*sizeof(UInt));
   ::memcpy(m_uiIntraModeTableD34, g_auiIntraModeTableD34, 34*sizeof(UInt));
@@ -1372,7 +1340,6 @@ Void TDecCavlc::parseInterDir( TComDataCU* pcCU, UInt& ruiInterDir, UInt uiAbsPa
 {
   UInt uiSymbol;
 
-#if UNIFY_INTER_TABLE
   UInt uiNumRefIdxOfLC = pcCU->getSlice()->getNumRefIdx(REF_PIC_LIST_C);
   UInt uiValNumRefIdxOfLC = min(4,pcCU->getSlice()->getNumRefIdx(REF_PIC_LIST_C));
   UInt uiValNumRefIdxOfL0 = min(2,pcCU->getSlice()->getNumRefIdx(REF_PIC_LIST_0));
@@ -1481,87 +1448,6 @@ Void TDecCavlc::parseInterDir( TComDataCU* pcCU, UInt& ruiInterDir, UInt uiAbsPa
       return;
     }
   }
-#else  //UNIFY_INTER_TABLE  
-  if ( pcCU->getSlice()->getRefIdxCombineCoding() )
-  {
-    UInt uiIndex,uiInterDir,tmp;
-
-    Int x,cx;
-
-    UInt uiMaxVal = 7;
-    uiMaxVal = 8;
-    if ( pcCU->getSlice()->getNumRefIdx( REF_PIC_LIST_0 ) <= 1 && pcCU->getSlice()->getNumRefIdx( REF_PIC_LIST_1 ) <= 1 )
-    {
-      if ( pcCU->getSlice()->getNoBackPredFlag() || ( pcCU->getSlice()->getNumRefIdx(REF_PIC_LIST_C) > 0 && pcCU->getSlice()->getNumRefIdx(REF_PIC_LIST_C) <= 1 ) )
-      {
-        uiMaxVal = 1;
-      }
-      else
-      {
-        uiMaxVal = 2;
-      }
-    }
-    else if ( pcCU->getSlice()->getNumRefIdx( REF_PIC_LIST_0 ) <= 2 && pcCU->getSlice()->getNumRefIdx( REF_PIC_LIST_1 ) <= 2 )
-    {
-      if ( pcCU->getSlice()->getNoBackPredFlag() || ( pcCU->getSlice()->getNumRefIdx(REF_PIC_LIST_C) > 0 && pcCU->getSlice()->getNumRefIdx(REF_PIC_LIST_C) <= 2 ) )
-      {
-        uiMaxVal = 5;
-      }
-      else
-      {
-        uiMaxVal = 7;
-      }
-    }
-    else if ( pcCU->getSlice()->getNumRefIdx(REF_PIC_LIST_C) <= 0 )
-    {
-      uiMaxVal = 4+1+MS_LCEC_UNI_EXCEPTION_THRES;
-    }
-    
-    xReadUnaryMaxSymbol( tmp, uiMaxVal );
-
-    UInt *m_uiMITableD = m_uiMI1TableD;
-    x = m_uiMITableD[tmp];
-    uiIndex = x;
-    
-    /* Adapt table */
-    
-    cx = tmp;
-
-    adaptCodeword(cx, m_ucMI1TableCounter,  m_ucMI1TableCounterSum,  m_uiMITableD,  NULL, 4 );
-    {
-      uiInterDir = min(2,uiIndex>>1);  
-      if ( uiIndex >=4 )
-      {
-        uiInterDir = 2;
-      }
-      else
-      {
-        uiInterDir = 0;
-      }
-      if(uiInterDir!=2 && pcCU->getSlice()->getNumRefIdx(REF_PIC_LIST_C)>0)
-      {
-        uiInterDir = 0;
-        m_iRefFrame0[uiAbsPartIdx] = uiIndex;
-      }
-      else if (uiInterDir==0)
-      {
-        m_iRefFrame0[uiAbsPartIdx] = uiIndex;
-      }
-      else if (uiInterDir==1)
-        m_iRefFrame1[uiAbsPartIdx] = uiIndex&1;
-      else
-      {
-        m_iRefFrame0[uiAbsPartIdx] = (uiIndex>>1)&1;
-        m_iRefFrame1[uiAbsPartIdx] = (uiIndex>>0)&1;
-      }
-    }
-    ruiInterDir = uiInterDir+1;
-    if ( x < 8 )
-    {
-      return;
-    }
-  }
-#endif //UNIFY_INTER_TABLE
   
   m_iRefFrame0[uiAbsPartIdx] = 1000;
   m_iRefFrame1[uiAbsPartIdx] = 1000;

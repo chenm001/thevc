@@ -120,8 +120,6 @@
 
 #define ZERO_MVD_EST                          0           ///< Zero Mvd Estimation in normal mode
 
-#define UNIFY_INTER_TABLE                     1           // JCTVC-E381 CAVLC: Inter pred coding
-
 #define MV_SCALE_ROUNDING_F142            1           ///< Modified rounding when scaling motion vectors (JCTVC-F142)
 
 #define NUM_INTRA_MODE 36

@@ -243,26 +243,8 @@ extern const UInt    g_auiBlkCbpVlcNum[15];
 #endif//
 extern const UInt    g_auiCbpVlcNum[2][8];
 
-#if UNIFY_INTER_TABLE
 extern const UInt g_auiComMI1TableE[9];
 extern const UInt g_auiComMI1TableD[9];
-#else
-extern const UInt g_auiMI1TableE[8];
-extern const UInt g_auiMI1TableD[8];
-extern const UInt g_auiMI2TableE[15];
-extern const UInt g_auiMI2TableD[15];
-extern const UInt g_auiMITableVlcNum[15];
-
-extern const UInt g_auiMI1TableENoL1[8];
-extern const UInt g_auiMI1TableDNoL1[8];
-extern const UInt g_auiMI2TableENoL1[15];
-extern const UInt g_auiMI2TableDNoL1[15];
-
-extern const UInt g_auiMI1TableEOnly1Ref[8];
-extern const UInt g_auiMI1TableDOnly1Ref[8];
-extern const UInt g_auiMI1TableEOnly1RefNoL1[8];
-extern const UInt g_auiMI1TableDOnly1RefNoL1[8];
-#endif
 
 #if AMP
 extern const UInt g_auiInterModeTableE[4][11];
