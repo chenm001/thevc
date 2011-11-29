@@ -616,12 +616,10 @@ Void TComLoopFilter::xGetBoundaryStrengthSingle ( TComDataCU* pcCU, UInt uiAbsZo
     }
     else
     {
-#if REDUCE_UPPER_MOTION_DATA
       if (iDir == EDGE_HOR)
       {
         pcCUP = pcCUQ->getPUAbove(uiPartP, uiPartQ, !pcCU->getSlice()->getSPS()->getLFCrossSliceBoundaryFlag(), false, true);
       }
-#endif
       if (pcSlice->isInterB())
       {
         Int iRefIdx;
