@@ -78,11 +78,7 @@
 #define NUM_INTER_DIR_CTX             4       ///< number of context models for inter prediction direction
 #define NUM_MV_RES_CTX                2       ///< number of context models for motion vector difference
 
-#if DNB_REF_FRAME_IDX
 #define NUM_REF_NO_CTX                4       ///< number of context models for reference index
-#else
-#define NUM_REF_NO_CTX                6       ///< number of context models for reference index
-#endif
 #define NUM_TRANS_SUBDIV_FLAG_CTX     10      ///< number of context models for transform subdivision flags
 #define NUM_QT_CBF_CTX                5       ///< number of context models for QT CBF
 #if DNB_QT_ROOT_CBF
@@ -362,7 +358,6 @@ Short INIT_MVD[3][NUM_MV_RES_CTX][2] =
 };
 
 // initial probability for reference frame index
-#if DNB_REF_FRAME_IDX
 static const Short
 INIT_REF_PIC[3][NUM_REF_NO_CTX][2] =
 {
@@ -376,24 +371,6 @@ INIT_REF_PIC[3][NUM_REF_NO_CTX][2] =
     {   -9,   55 }, {  -12,   86 }, {  -18,   55 }, {    0,   64 }
   }
 };
-#else
-static const Short
-INIT_REF_PIC[3][NUM_REF_NO_CTX][2] =
-{
-  {
-    {    0,   64 }, {    0,   64 }, {    0,   64 }, {    0,   64 }, 
-    {    0,   64 }, {    0,   64 }
-  },
-  {
-    {   -6,   59 }, {  -10,   75 }, {   -8,   75 }, {  -17,   96 }, 
-    {    1,   59 }, {    0,   64 }
-  },
-  {
-    {   -9,   55 }, {   -9,   71 }, {   -9,   76 }, {  -12,   86 }, 
-    {  -18,   55 }, {    0,   64 }
-  }
-};
-#endif
 
 // initial probability for dQP
 static const Short
