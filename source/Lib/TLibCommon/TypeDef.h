@@ -99,7 +99,6 @@
 #define AMVP_BUFFERCOMPRESS               1           ///< motion vector buffer compression
 #define AMVP_DECIMATION_FACTOR            4
 
-#define REMOVE_INTERMEDIATE_CLIPPING      1          // No intermediate clipping in bi-prediction JCTVC-E242
 #define GENERIC_IF 1 ///< JCTVC-F537: generic interpolation functions
 
 #define SCAN_SET_SIZE                     16
