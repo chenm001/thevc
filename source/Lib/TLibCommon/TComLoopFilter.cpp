@@ -1153,14 +1153,14 @@ __inline Int TComLoopFilter::xPelFilterLumaDecision( Pel* piSrc, Int iOffset, In
  */
 __inline Void TComLoopFilter::xPelFilterLumaStrong(Pel* piSrc, Int iOffset, Pel m0, Pel m1, Pel m2, Pel m3, Pel m4, Pel m5, Pel m6, Pel m7)
 {
-  piSrc[-iOffset] = Clip(( m1 + 2*m2 + 2*m3 + 2*m4 + m5 + 4) >> 3 );
-  piSrc[0] = Clip(( m2 + 2*m3 + 2*m4 + 2*m5 + m6 + 4) >> 3 );
+  piSrc[-iOffset] = ( m1 + 2*m2 + 2*m3 + 2*m4 + m5 + 4) >> 3;
+  piSrc[0] = ( m2 + 2*m3 + 2*m4 + 2*m5 + m6 + 4) >> 3;
 
-  piSrc[-iOffset*2] = Clip(( m1 + m2 + m3 + m4 + 2)>>2);
-  piSrc[ iOffset] = Clip(( m3 + m4 + m5 + m6 + 2)>>2);
+  piSrc[-iOffset*2] = ( m1 + m2 + m3 + m4 + 2)>>2;
+  piSrc[ iOffset] = ( m3 + m4 + m5 + m6 + 2)>>2;
 
-  piSrc[-iOffset*3] = Clip(( 2*m0 + 3*m1 + m2 + m3 + m4 + 4 )>>3);
-  piSrc[ iOffset*2] = Clip(( m3 + m4 + m5 + 3*m6 + 2*m7 +4 )>>3);  
+  piSrc[-iOffset*3] = ( 2*m0 + 3*m1 + m2 + m3 + m4 + 4 )>>3;
+  piSrc[ iOffset*2] = ( m3 + m4 + m5 + 3*m6 + 2*m7 +4 )>>3;  
 }
 
 /**
@@ -1260,14 +1260,14 @@ __inline Void TComLoopFilter::xPelFilterLuma( Pel* piSrc, Int iOffset, Int d, In
 #if (PARALLEL_DEBLK_DECISION && !PARALLEL_MERGED_DEBLK)
     xPelFilterLumaStrong(piSrc, iOffset, m0, m1, m2, m3, m4, m5, m6, m7);
 #else  
-    piSrc[-iOffset] = Clip(( m1 + 2*m2 + 2*m3 + 2*m4 + m5 + 4) >> 3 );
-    piSrc[0] = Clip(( m2 + 2*m3 + 2*m4 + 2*m5 + m6 + 4) >> 3 );
+    piSrc[-iOffset] = ( m1 + 2*m2 + 2*m3 + 2*m4 + m5 + 4) >> 3;
+    piSrc[0] = ( m2 + 2*m3 + 2*m4 + 2*m5 + m6 + 4) >> 3;
     
-    piSrc[-iOffset*2] = Clip(( m1 + m2 + m3 + m4 + 2)>>2);
-    piSrc[ iOffset] = Clip(( m3 + m4 + m5 + m6 + 2)>>2);
+    piSrc[-iOffset*2] = ( m1 + m2 + m3 + m4 + 2)>>2;
+    piSrc[ iOffset] = ( m3 + m4 + m5 + m6 + 2)>>2;
     
-    piSrc[-iOffset*3] = Clip(( 2*m0 + 3*m1 + m2 + m3 + m4 + 4 )>>3);
-    piSrc[ iOffset*2] = Clip(( m3 + m4 + m5 + 3*m6 + 2*m7 +4 )>>3);
+    piSrc[-iOffset*3] = ( 2*m0 + 3*m1 + m2 + m3 + m4 + 4 )>>3;
+    piSrc[ iOffset*2] = ( m3 + m4 + m5 + 3*m6 + 2*m7 +4 )>>3;
 #endif
   }
   else
