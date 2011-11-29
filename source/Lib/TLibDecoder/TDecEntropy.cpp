@@ -61,13 +61,7 @@ Void TDecEntropy::decodeAux(ALFParam* pAlfParam)
   pAlfParam->filters_per_group = 0;
   
   memset (pAlfParam->filterPattern, 0 , sizeof(Int)*NO_VAR_BINS);
-#if ENABLE_FORCECOEFF0
-  m_pcEntropyDecoderIf->parseAlfFlag(uiSymbol);
-  if (!uiSymbol) pAlfParam->filtNo = -1;
-  else pAlfParam->filtNo = uiSymbol; //nonZeroCoeffs
-#else
   pAlfParam->filtNo = 1; //nonZeroCoeffs
-#endif
 
   m_pcEntropyDecoderIf->parseAlfFlag (uiSymbol);
   pAlfParam->alf_pcr_region_flag = uiSymbol;  
@@ -253,24 +247,7 @@ Void TDecEntropy::decodeFilt(ALFParam* pAlfParam)
     pAlfParam->filters_per_group_diff = pAlfParam->filters_per_group;
     if (pAlfParam->filters_per_group > 1)
     {
-#if ENABLE_FORCECOEFF0
-      m_pcEntropyDecoderIf->parseAlfFlag (uiSymbol);
-      pAlfParam->forceCoeff0 = uiSymbol;
-
-      if (pAlfParam->forceCoeff0)
-      {
-        pAlfParam->filters_per_group_diff = 0;
-        for (int i=0; i<pAlfParam->filters_per_group; i++)
-        {
-          m_pcEntropyDecoderIf->parseAlfFlag (uiSymbol);
-          pAlfParam->codedVarBins[i] = uiSymbol;
-          pAlfParam->filters_per_group_diff += uiSymbol;
-        }
-      }
-      else
-#else
       pAlfParam->forceCoeff0 = 0;
-#endif
       {
         for (int i=0; i<NO_VAR_BINS; i++)
           pAlfParam->codedVarBins[i] = 1;

@@ -138,16 +138,6 @@ Void TEncEntropy::codeAuxCountBit(ALFParam* pAlfParam, Int64* ruiRate)
 
 Void TEncEntropy::codeAux(ALFParam* pAlfParam)
 {
-#if ENABLE_FORCECOEFF0
-  if (pAlfParam->filtNo>=0)
-  {
-    m_pcEntropyCoderIf->codeAlfFlag(1); 
-  }
-  else 
-  {
-    m_pcEntropyCoderIf->codeAlfFlag(0);
-  }
-#endif
 #if !STAR_CROSS_SHAPES_LUMA
   Int FiltTab[3] = {9, 7, 5};
   Int Tab = FiltTab[pAlfParam->realfiltNo];
@@ -366,16 +356,6 @@ Void TEncEntropy::codeFilt(ALFParam* pAlfParam)
 {
   if(pAlfParam->filters_per_group > 1)
   {
-#if ENABLE_FORCECOEFF0
-    m_pcEntropyCoderIf->codeAlfFlag (pAlfParam->forceCoeff0);
-    if (pAlfParam->forceCoeff0)
-    {
-      for (int i=0; i<pAlfParam->filters_per_group; i++)
-      {
-        m_pcEntropyCoderIf->codeAlfFlag (pAlfParam->codedVarBins[i]);
-      }
-    }
-#endif 
     m_pcEntropyCoderIf->codeAlfFlag (pAlfParam->predMethod);
   }
   codeFilterCoeff (pAlfParam);

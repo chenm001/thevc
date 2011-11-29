@@ -1990,17 +1990,9 @@ Void TEncAdaptiveLoopFilter::xdecideCoeffForce0(int codedVarBins[NO_VAR_BINS], d
   for(filtNo=0; filtNo<filters_per_fr; filtNo++)
   {
     // No coeffcient prediction bits used
-#if ENABLE_FORCECOEFF0
-    double lagrangianDiff;
-    lagrangianDiff=errorForce0CoeffTab[filtNo][0]-(errorForce0CoeffTab[filtNo][1]+lambda*bitsVarBin[filtNo]);
-    codedVarBins[filtNo]=(lagrangianDiff>0)? 1 : 0;
-    errorForce0Coeff[0]+=errorForce0CoeffTab[filtNo][codedVarBins[filtNo]];
-    errorForce0Coeff[1]+=errorForce0CoeffTab[filtNo][1];
-#else
     codedVarBins[filtNo]= 1;
     errorForce0Coeff[0]+=errorForce0CoeffTab[filtNo][codedVarBins[filtNo]];
     errorForce0Coeff[1]+=errorForce0CoeffTab[filtNo][1];
-#endif
   }   
 }
 
