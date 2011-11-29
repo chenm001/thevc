@@ -198,7 +198,6 @@
 #define VAR_SIZE_W           4
 #define NO_VAR_BIN          16
 
-#define PARALLEL_DEBLK_DECISION      1 // JCTC-E224: Parallel decisions
 #define PARALLEL_MERGED_DEBLK        1 // JCTC-E224, JCTVC-E181: Parallel decisions + Parallel filtering
 
 #define MATRIX_MULT                             0   // Brute force matrix multiplication instead of partial butterfly
