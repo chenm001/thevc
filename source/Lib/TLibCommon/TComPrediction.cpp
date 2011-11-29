@@ -117,13 +117,8 @@ Void TComPrediction::initTempBuff()
   m_iLumaRecStride =  (g_uiMaxCUWidth>>1) + 1;
   m_pLumaRecBuffer = new Pel[ m_iLumaRecStride * m_iLumaRecStride ];
 
-#if LM_CHROMA_SIMPLIFICATION
   for( Int i = 1; i < 64; i++ )
     m_uiaShift[i-1] = ( (1 << 15) + i/2 ) / i;
-#else
-  for( Int i = 1; i < 66; i++ )
-    m_uiaShift[i-1] = ( (1 << 15) + i/2 ) / i;
-#endif
 }
 
 // ====================================================================================================================
@@ -1177,11 +1172,7 @@ Void TComPrediction::getLumaRecPixels( TComPattern* pcPattern, UInt uiCWidth, UI
 
   // top left corner downsampled from ADI buffer
   // don't need this point
-#if !LM_CHROMA_SIMPLIFICATION       
-  pDst[0] = ( piSrc[0] + piSrc[ iSrcStride ] ) >> 1;
-#endif
 
-#if LM_CHROMA_SIMPLIFICATION
   // top row downsampled from ADI buffer
   pDst++;     
   piSrc ++;
@@ -1199,27 +1190,6 @@ Void TComPrediction::getLumaRecPixels( TComPattern* pcPattern, UInt uiCWidth, UI
     piSrc += iSrcStride << 1; 
     pDst += iDstStride;    
   }
-#else
-  // top row
-  pDst++;
-  piSrc++;
-  for (Int i = 0; i < uiCWidth; i++)
-  {
-    pDst[i] = ( piSrc[ 2*i ] + piSrc[ 2*i + iSrcStride ] ) >> 1;
-  }
-
-  // left column downsampled from ADI buffer
-  pDst = pDst0 - 1;
-  piSrc = ptrSrc + ( iSrcStride << 1 ); // addressing 3rd row, where reference column is stored
-
-  for (Int j = 0; j < uiCHeight; j++)
-  {
-    pDst[0] = ( piSrc[ 2*j ] + piSrc[ 2*j + 1 ] ) >> 1;
-
-    pDst += iDstStride;    
-  }
-
-#endif
 
   // inner part from reconstructed picture buffer
   for( Int j = 0; j < uiCHeight; j++ )
@@ -1260,7 +1230,6 @@ Int GetMSB( UInt x )
   return iMSB;
 }
 
-#if LM_CHROMA_SIMPLIFICATION
 /** Function for counting leading number of zeros/ones
  * \param x input value
  \ This function counts leading number of zeros for positive numbers and
@@ -1293,7 +1262,6 @@ Short CountLeadingZerosOnes (Short x)
   }
   return clz;
 }
-#endif
 
 /** Function for deriving LM intra prediction.
  * \param pcPattern pointer to neighbouring pixel access pattern
@@ -1351,12 +1319,7 @@ Void TComPrediction::xGetLLSPrediction( TComPattern* pcPattern, Int* pSrc0, Int 
   }
   iCountShift += iCountShift > 0 ? 1 : ( g_aucConvertToBit[ uiWidth ] + 2 );
 
-#if LM_CHROMA_SIMPLIFICATION
   Int iTempShift = ( g_uiBitDepth + g_uiBitIncrement ) + g_aucConvertToBit[ uiWidth ] + 3 - 15;
-#else
-  Int iBitdepth = ( ( g_uiBitDepth + g_uiBitIncrement ) + g_aucConvertToBit[ uiWidth ] + 3 ) * 2;
-  Int iTempShift = max( ( iBitdepth - 31 + 1) / 2, 0);
-#endif
 
   if(iTempShift > 0)
   {
@@ -1380,15 +1343,6 @@ Void TComPrediction::xGetLLSPrediction( TComPattern* pcPattern, Int* pSrc0, Int 
     Int a1 = ( xy << iCountShift ) - y * x;
     Int a2 = ( xx << iCountShift ) - x * x;              
 
-#if !LM_CHROMA_SIMPLIFICATION
-    if( a2 == 0 || a1 == 0 )
-    {
-      a = 0;
-      b = ( y + ( 1 << ( iCountShift - 1 ) ) )>> iCountShift;
-      iShift = 0;
-    }
-    else
-#endif
     {
       const Int iShiftA2 = 6;
       const Int iShiftA1 = 15;
@@ -1418,14 +1372,10 @@ Void TComPrediction::xGetLLSPrediction( TComPattern* pcPattern, Int* pSrc0, Int 
 
       a1s = a1 >> iScaleShiftA1;
 
-#if LM_CHROMA_SIMPLIFICATION
       if (a2s >= 1)
         a = a1s * m_uiaShift[ a2s - 1];
       else
         a = 0;
-#else
-      a = a1s * m_uiaShift[ abs( a2s ) ];
-#endif
 
       if( iScaleShiftA < 0 )
       {
@@ -1436,20 +1386,8 @@ Void TComPrediction::xGetLLSPrediction( TComPattern* pcPattern, Int* pSrc0, Int 
         a = a >> iScaleShiftA;
       }
       
-#if LM_CHROMA_SIMPLIFICATION
        a = Clip3(-( 1 << 15 ), ( 1 << 15 ) - 1, a); 
-#else
-      if( a > ( 1 << 15 ) - 1 )
-      {
-        a = ( 1 << 15 ) - 1;
-      }
-      else if( a < -( 1 << 15 ) )
-      {
-        a = -( 1 << 15 );
-      }
-#endif
      
-#if LM_CHROMA_SIMPLIFICATION
       {
         Int minA = -(1 << (6));
         Int maxA = (1 << 6) - 1;
@@ -1462,7 +1400,6 @@ Void TComPrediction::xGetLLSPrediction( TComPattern* pcPattern, Int* pSrc0, Int 
           iShift -= (9-n);
         }
       }
-#endif
 
       b = (  y - ( ( a * x ) >> iShift ) + ( 1 << ( iCountShift - 1 ) ) ) >> iCountShift;
     }

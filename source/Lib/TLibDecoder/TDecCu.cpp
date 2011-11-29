@@ -645,11 +645,7 @@ TDecCu::xIntraRecChromaBlk( TComDataCU* pcCU,
                                      m_pcPrediction->getPredicBufWidth  (),
                                      m_pcPrediction->getPredicBufHeight (),
                                      bAboveAvail, bLeftAvail, 
-#if LM_CHROMA_SIMPLIFICATION
                                      true );
-#else
-                                     2 );
-#endif
 
     m_pcPrediction->getLumaRecPixels( pcCU->getPattern(), uiWidth, uiHeight );
   }

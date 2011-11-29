@@ -271,11 +271,7 @@ Void TComPattern::initPattern( TComDataCU* pcCU, UInt uiPartDepth, UInt uiAbsPar
   m_cPatternCr.setPatternParamCU( pcCU, 2, uiWidth >> 1, uiHeight >> 1, uiOffsetLeft, uiOffsetRight, uiOffsetAbove, 0, uiPartDepth, uiAbsPartIdx );
 }
 
-#if LM_CHROMA_SIMPLIFICATION
   Void TComPattern::initAdiPattern( TComDataCU* pcCU, UInt uiZorderIdxInPart, UInt uiPartDepth, Int* piAdiBuf, Int iOrgBufStride, Int iOrgBufHeight, Bool& bAbove, Bool& bLeft, Bool bLMmode )
-#else
-  Void TComPattern::initAdiPattern( TComDataCU* pcCU, UInt uiZorderIdxInPart, UInt uiPartDepth, Int* piAdiBuf, Int iOrgBufStride, Int iOrgBufHeight, Bool& bAbove, Bool& bLeft, UInt uiExt )
-#endif
 {
   Pel*  piRoiOrigin;
   Int*  piAdiTemp;
@@ -407,19 +403,7 @@ Void TComPattern::initPattern( TComDataCU* pcCU, UInt uiPartDepth, UInt uiAbsPar
   piAdiTemp   = piAdiBuf;
 
 #if REFERENCE_SAMPLE_PADDING
-#if LM_CHROMA_SIMPLIFICATION
     fillReferenceSamples ( pcCU, piRoiOrigin, piAdiTemp, bNeighborFlags, iNumIntraNeighbor, iUnitSize, iNumUnitsInCu, iTotalUnits, uiCuWidth, uiCuHeight, uiWidth, uiHeight, iPicStride, bLMmode);
-#else
-  if( uiExt == 2 )
-  {
-    fill2ReferenceSamples_LM ( pcCU, piRoiOrigin, piAdiTemp, bNeighborFlags, iNumIntraNeighbor, iUnitSize, iNumUnitsInCu, iTotalUnits, uiCuWidth, uiCuHeight, uiWidth, uiHeight, iPicStride);
-    return;
-  }
-  else if( uiExt == 1 )
-  {
-    fillReferenceSamples ( pcCU, piRoiOrigin, piAdiTemp, bNeighborFlags, iNumIntraNeighbor, iUnitSize, iNumUnitsInCu, iTotalUnits, uiCuWidth, uiCuHeight, uiWidth, uiHeight, iPicStride);
-  }
-#endif
   
 #else // REFERENCE_SAMPLE_PADDING
   //BB: fill border with DC value - needed if( bAboveFlag=false || bLeftFlag=false )
@@ -784,11 +768,7 @@ Void TComPattern::initAdiPatternChroma( TComDataCU* pcCU, UInt uiZorderIdxInPart
 }
 
 #if REFERENCE_SAMPLE_PADDING
-#if LM_CHROMA_SIMPLIFICATION
 Void TComPattern::fillReferenceSamples( TComDataCU* pcCU, Pel* piRoiOrigin, Int* piAdiTemp, Bool* bNeighborFlags, Int iNumIntraNeighbor, Int iUnitSize, Int iNumUnitsInCu, Int iTotalUnits, UInt uiCuWidth, UInt uiCuHeight, UInt uiWidth, UInt uiHeight, Int iPicStride, Bool bLMmode )
-#else
-Void TComPattern::fillReferenceSamples( TComDataCU* pcCU, Pel* piRoiOrigin, Int* piAdiTemp, Bool* bNeighborFlags, Int iNumIntraNeighbor, Int iUnitSize, Int iNumUnitsInCu, Int iTotalUnits, UInt uiCuWidth, UInt uiCuHeight, UInt uiWidth, UInt uiHeight, Int iPicStride)
-#endif
 {
   Pel* piRoiTemp;
   Int  i, j;
@@ -815,12 +795,10 @@ Void TComPattern::fillReferenceSamples( TComDataCU* pcCU, Pel* piRoiOrigin, Int*
     // Fill left border with rec. samples
     piRoiTemp = piRoiOrigin - 1;
 
-#if LM_CHROMA_SIMPLIFICATION
     if (bLMmode)
     {
       piRoiTemp --; // move to the second left column
     }
-#endif
 
     for (i=0; i<uiCuHeight; i++)
     {
@@ -880,12 +858,10 @@ Void TComPattern::fillReferenceSamples( TComDataCU* pcCU, Pel* piRoiOrigin, Int*
 
     // Fill left & below-left samples
     piRoiTemp += iPicStride;
-#if LM_CHROMA_SIMPLIFICATION
     if (bLMmode)
     {
       piRoiTemp --; // move the second left column
     }
-#endif
     piAdiLineTemp--;
     pbNeighborFlags--;
     for (j=0; j<iNumUnits2; j++)
@@ -989,242 +965,6 @@ Void TComPattern::fillReferenceSamples( TComDataCU* pcCU, Pel* piRoiOrigin, Int*
     }
   }
 }
-
-#if LM_CHROMA && !LM_CHROMA_SIMPLIFICATION
-/** Function for deriving the neighboring luma reference pixels which is specifically used for luma-based chroma intra prediction method.
-  // In this funtioned, first two rows in output buffer correspond to two rows of above reference pixels, 
-  // and next two rows correspond to two columns of left reference pixels
- */
-Void TComPattern::fill2ReferenceSamples_LM( TComDataCU* pcCU, Pel* piRoiOrigin, Int* piAdiTemp, Bool* bNeighborFlags, Int iNumIntraNeighbor, Int iUnitSize, Int iNumUnitsInCu, Int iTotalUnits, UInt uiCuWidth, UInt uiCuHeight, UInt uiWidth, UInt uiHeight, Int iPicStride)
-{
-  Pel* piRoiTemp1, *piRoiTemp2;
-  Int  i, j;
-  Int  iDCValue = ( 1<<( g_uiBitDepth + g_uiBitIncrement - 1) );
-  
-  Int iTempStride = max( uiWidth, uiHeight );
-  Int* piAdiTemp1 = piAdiTemp;
-  Int* piAdiTemp2 = piAdiTemp1 + iTempStride;
-  Int* piAdiTemp3 = piAdiTemp2 + iTempStride;
-  Int* piAdiTemp4 = piAdiTemp3 + iTempStride;
-
-  if (iNumIntraNeighbor == 0)
-  {
-    // Fill border with DC value
-    for (i=0; i<uiWidth; i++)
-    {
-      piAdiTemp1[i] = iDCValue;
-    }
-    memcpy( piAdiTemp2, piAdiTemp1, sizeof( Int ) * iTempStride );
-    memcpy( piAdiTemp3, piAdiTemp1, sizeof( Int ) * iTempStride );
-    memcpy( piAdiTemp4, piAdiTemp1, sizeof( Int ) * iTempStride );
-  }
-  else if (iNumIntraNeighbor == iTotalUnits)
-  {
-    // Fill top-left border with rec. samples
-    // actually two point shoud be taken, but one pixel is considered since for LM top-left in not needed
-    // top-left reference can be removed at all
-    piRoiTemp1 = piRoiOrigin - iPicStride * 2 - 1;
-    piRoiTemp2 = piRoiOrigin - iPicStride - 1;
-    piAdiTemp1[0] = piRoiTemp1[0];
-    piAdiTemp2[0] = piRoiTemp2[0];
-    
-    // Fill left border with rec. samples
-    piRoiTemp1 = piRoiOrigin - 2;
-    piRoiTemp2 = piRoiOrigin - 1;
-    for (i=0; i<uiCuHeight; i++)
-    {
-      piAdiTemp3[i] = piRoiTemp1[0];
-      piAdiTemp4[i] = piRoiTemp2[0];
-      piRoiTemp1 += iPicStride;
-      piRoiTemp2 += iPicStride;
-    }
-
-    // Fill below left border with rec. samples
-    piRoiTemp1 = piRoiOrigin + uiCuHeight - 2;
-    piRoiTemp2 = piRoiOrigin + uiCuHeight - 1;
-    for (i=0; i<uiCuHeight; i++)
-    {
-      piAdiTemp3[uiCuHeight + i] = piRoiTemp1[0];
-      piAdiTemp4[uiCuHeight + i] = piRoiTemp2[0];
-      piRoiTemp1 += iPicStride;
-      piRoiTemp2 += iPicStride;
-    }
-
-    // Fill top border with rec. samples
-    piRoiTemp1 = piRoiOrigin - iPicStride*2;
-    piRoiTemp2 = piRoiOrigin - iPicStride;
-    for (i=0; i<uiCuWidth; i++)
-    {
-      piAdiTemp1[1+i] = piRoiTemp1[i];
-      piAdiTemp2[1+i] = piRoiTemp2[i];
-    }
-
-    // Fill top right border with rec. samples
-    piRoiTemp1 = piRoiOrigin - iPicStride * 2 + uiCuWidth;
-    piRoiTemp2 = piRoiOrigin - iPicStride + uiCuWidth;
-    for (i=0; i<uiCuWidth; i++)
-    {
-      piAdiTemp1[1+uiCuWidth+i] = piRoiTemp1[i];
-      piAdiTemp2[1+uiCuWidth+i] = piRoiTemp2[i];
-    }
-  }
-  else // reference samples are partially available
-  {
-    Int  iNumUnits2 = iNumUnitsInCu<<1;
-    Int  iTotalSamples = iTotalUnits*iUnitSize;
-    Pel  piAdiLine1[5 * MAX_CU_SIZE];
-    Pel  piAdiLine2[5 * MAX_CU_SIZE];
-    Pel  *piAdiLineTemp1, *piAdiLineTemp2; 
-    Bool *pbNeighborFlags;
-    Int  iPrev, iNext, iCurr;
-    Pel  piRef1 = 0, piRef2 = 0;
-
-    // Initialize
-    for (i=0; i<iTotalSamples; i++)
-      piAdiLine1[i] = iDCValue;
-
-    memcpy( piAdiLine2, piAdiLine1, sizeof( Pel ) * iTotalSamples );
-
-    // Fill top-left sample
-    piRoiTemp1 = piRoiOrigin - iPicStride * 2 - 1;
-    piRoiTemp2 = piRoiOrigin - iPicStride - 1;
-    piAdiLineTemp1 = piAdiLine1 + (iNumUnits2*iUnitSize);
-    piAdiLineTemp2 = piAdiLine2 + (iNumUnits2*iUnitSize);
-    pbNeighborFlags = bNeighborFlags + iNumUnits2;
-    if (*pbNeighborFlags)
-    {
-      piAdiLineTemp1[0] = piRoiTemp1[0];
-      piAdiLineTemp2[0] = piRoiTemp2[0];
-      for (i=1; i<iUnitSize; i++)
-      {
-        piAdiLineTemp1[i] = piAdiLineTemp1[0];
-        piAdiLineTemp2[i] = piAdiLineTemp2[0];
-      }
-    }
-
-    // Fill left & below-left samples
-    piRoiTemp1 = piRoiOrigin - 2;
-    piRoiTemp2 = piRoiOrigin - 1;
-    piAdiLineTemp1--;
-    piAdiLineTemp2--;
-    pbNeighborFlags--;
-    for (j=0; j<iNumUnits2; j++)
-    {
-      if (*pbNeighborFlags)
-      {
-        for (i=0; i<iUnitSize; i++)
-        {
-          piAdiLineTemp1[-i] = piRoiTemp1[i*iPicStride];
-          piAdiLineTemp2[-i] = piRoiTemp2[i*iPicStride];
-        }
-      }
-      piRoiTemp1 += iUnitSize*iPicStride;
-      piRoiTemp2 += iUnitSize*iPicStride;
-      piAdiLineTemp1 -= iUnitSize;
-      piAdiLineTemp2 -= iUnitSize;
-      pbNeighborFlags--;
-    }
-    
-    // Fill above & above-right samples
-    piRoiTemp1 = piRoiOrigin - iPicStride * 2;
-    piRoiTemp2 = piRoiOrigin - iPicStride;
-    piAdiLineTemp1 = piAdiLine1 + ((iNumUnits2+1)*iUnitSize);
-    piAdiLineTemp2 = piAdiLine2 + ((iNumUnits2+1)*iUnitSize);
-    pbNeighborFlags = bNeighborFlags + iNumUnits2 + 1;
-    for (j=0; j<iNumUnits2; j++)
-    {
-      if (*pbNeighborFlags)
-      {
-        for (i=0; i<iUnitSize; i++)
-        {
-          piAdiLineTemp1[i] = piRoiTemp1[i];
-          piAdiLineTemp2[i] = piRoiTemp2[i];
-        }
-      }
-      piRoiTemp1 += iUnitSize;
-      piRoiTemp2 += iUnitSize;
-      piAdiLineTemp1 += iUnitSize;
-      piAdiLineTemp2 += iUnitSize;
-      pbNeighborFlags++;
-    }
-
-    // Pad reference samples when necessary
-    iPrev = -1;
-    iCurr = 0;
-    iNext = 1;
-    piAdiLineTemp1 = piAdiLine1;
-    piAdiLineTemp2 = piAdiLine2;
-    while (iCurr < iTotalUnits)
-    {
-      if (bNeighborFlags[iCurr])
-      {
-        // Move on to next block if current unit is available
-        piAdiLineTemp1 += iUnitSize;
-        piAdiLineTemp2 += iUnitSize;
-        iPrev++;
-        iCurr++;
-        iNext++;
-      }
-      else
-      {
-        // Interpolate from nearest samples if current unit is not available
-        
-        while (iNext < iTotalUnits && !bNeighborFlags[iNext])
-          iNext++;
-
-        if (iPrev >= 0 && iNext < iTotalUnits)
-        {
-          piRef1 = (piAdiLine1[iCurr*iUnitSize-1] + piAdiLine1[iNext*iUnitSize] + 1) >> 1;
-          piRef2 = (piAdiLine2[iCurr*iUnitSize-1] + piAdiLine2[iNext*iUnitSize] + 1) >> 1;
-        }
-        else if (iPrev >= 0)
-        {
-          piRef1 = piAdiLine1[iCurr*iUnitSize-1];
-          piRef2 = piAdiLine2[iCurr*iUnitSize-1];
-        }
-        else if (iNext < iTotalUnits)
-        {
-          piRef1 = piAdiLine1[iNext*iUnitSize];
-          piRef2 = piAdiLine2[iNext*iUnitSize];
-        }
-        else
-          printf("\nERROR! No valid samples to interpolate.\n");
-
-        // Pad unavailable samples with new value
-        while (iCurr < iNext)
-        {
-          for (i=0; i<iUnitSize; i++)
-          {
-            piAdiLineTemp1[i] = piRef1;
-            piAdiLineTemp2[i] = piRef2;
-          }
-          piAdiLineTemp1 += iUnitSize;
-          piAdiLineTemp2 += iUnitSize;
-          iPrev++;
-          iCurr++;
-        }
-        iNext++;
-      }
-    }
-
-    // Copy processed samples
-    piAdiLineTemp1 = piAdiLine1 + uiHeight + iUnitSize - 2;
-    piAdiLineTemp2 = piAdiLine2 + uiHeight + iUnitSize - 2;
-    for (i=0; i<uiWidth; i++)
-    {
-      piAdiTemp1[i] = piAdiLineTemp1[i];
-      piAdiTemp2[i] = piAdiLineTemp2[i];
-    }
-    piAdiLineTemp1 = piAdiLine1 + uiHeight - 1;
-    piAdiLineTemp2 = piAdiLine2 + uiHeight - 1;
-    for (i=1; i<uiHeight; i++)
-    {
-      piAdiTemp3[i-1] = piAdiLineTemp1[-i];
-      piAdiTemp4[i-1] = piAdiLineTemp2[-i];
-    }
-  }
-}
-#endif // LM_CHROMA
 
 #endif // REFERENCE_SAMPLE_PADDING
 

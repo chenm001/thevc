@@ -160,11 +160,7 @@ public:
                                Int         iOrgBufHeight,
                                Bool&       bAbove,
                                Bool&       bLeft
-#if LM_CHROMA_SIMPLIFICATION
                               ,Bool        bLMmode = false // using for LM chroma or not
-#else
-                              ,UInt uiExt = 1 // number of extension lines, default is one, for LM chroma two lines are necessary for downsampling
-#endif
                                );
   
   /// set chroma parameters from CU data for accessing ADI data
@@ -181,12 +177,7 @@ private:
 
 #if REFERENCE_SAMPLE_PADDING
   /// padding of unavailable reference samples for intra prediction
-#if LM_CHROMA_SIMPLIFICATION
   Void  fillReferenceSamples        ( TComDataCU* pcCU, Pel* piRoiOrigin, Int* piAdiTemp, Bool* bNeighborFlags, Int iNumIntraNeighbor, Int iUnitSize, Int iNumUnitsInCu, Int iTotalUnits, UInt uiCuWidth, UInt uiCuHeight, UInt uiWidth, UInt uiHeight, Int iPicStride, Bool bLMmode = false);
-#else
-  Void  fillReferenceSamples        ( TComDataCU* pcCU, Pel* piRoiOrigin, Int* piAdiTemp, Bool* bNeighborFlags, Int iNumIntraNeighbor, Int iUnitSize, Int iNumUnitsInCu, Int iTotalUnits, UInt uiCuWidth, UInt uiCuHeight, UInt uiWidth, UInt uiHeight, Int iPicStride);
-  Void  fill2ReferenceSamples_LM    ( TComDataCU* pcCU, Pel* piRoiOrigin, Int* piAdiTemp, Bool* bNeighborFlags, Int iNumIntraNeighbor, Int iUnitSize, Int iNumUnitsInCu, Int iTotalUnits, UInt uiCuWidth, UInt uiCuHeight, UInt uiWidth, UInt uiHeight, Int iPicStride);
-#endif
   
 #endif
 
