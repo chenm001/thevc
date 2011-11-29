@@ -1440,17 +1440,28 @@ Void TEncCu::xCheckRDCostInter( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, 
   m_pcPredSearch->predInterSearch ( rpcTempCU, m_ppcOrigYuv[uhDepth], m_ppcPredYuvTemp[uhDepth], m_ppcResiYuvTemp[uhDepth], m_ppcRecoYuvTemp[uhDepth] );
 #endif
 
+#if PART_MRG
   if (rpcTempCU->getSlice()->getSPS()->getUseMRG() && rpcTempCU->getWidth(0) > 8 && !rpcTempCU->getMergeFlag(0) && (ePartSize != SIZE_2Nx2N && ePartSize != SIZE_NxN))
   {
     return;
   }
+#endif
 
+#if PART_MRG
   if (rpcTempCU->getSlice()->getSPS()->getUseMRG() && rpcTempCU->getWidth(0) > 8 && !rpcTempCU->getMergeFlag(0) && (ePartSize != SIZE_2Nx2N && ePartSize != SIZE_NxN))
   {
     return;
   }
 
 #if AMP_MRG
+  if ( !rpcTempCU->getMergeAMP() )
+  {
+    return;
+  }
+#endif
+#endif
+
+#if !PART_MRG && AMP_MRG
   if ( !rpcTempCU->getMergeAMP() )
   {
     return;

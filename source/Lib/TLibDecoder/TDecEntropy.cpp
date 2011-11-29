@@ -475,11 +475,13 @@ Void TDecEntropy::decodePUWise( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDept
     }
     if ( pcCU->getSlice()->getSPS()->getUseMRG() )
     {
+#if PART_MRG
       if (pcCU->getWidth( uiAbsPartIdx ) > 8 && uiNumPU == 2 && uiPartIdx == 0)
       {
         pcCU->setMergeFlagSubParts( true, uiSubPartIdx, uiPartIdx, uiDepth );
       }
       else
+  #endif
       decodeMergeFlag( pcCU, uiSubPartIdx, uiDepth, uiPartIdx );
     }
     if ( pcCU->getMergeFlag( uiSubPartIdx ) )
