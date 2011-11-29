@@ -148,11 +148,7 @@ Void TDecGop::copySharedAlfParamFromPPS(ALFParam* pAlfDst, ALFParam* pAlfSrc)
   pAlfDst->chroma_idc         = pAlfSrc->chroma_idc;
   if(pAlfDst->chroma_idc)
   {
-#if ALF_CHROMA_NEW_SHAPES
     pAlfDst->realfiltNo_chroma = pAlfSrc->realfiltNo_chroma;
-#else
-    pAlfDst->tap_chroma       = pAlfSrc->tap_chroma;
-#endif
     pAlfDst->num_coeff_chroma = pAlfSrc->num_coeff_chroma;
     ::memcpy(pAlfDst->coeff_chroma, pAlfSrc->coeff_chroma, sizeof(Int)*pAlfDst->num_coeff_chroma);
   }

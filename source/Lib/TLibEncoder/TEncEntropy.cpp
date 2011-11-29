@@ -396,11 +396,7 @@ Void TEncEntropy::encodeAlfParam(ALFParam* pAlfParam)
   m_pcEntropyCoderIf->codeAlfUvlc(pAlfParam->chroma_idc);
   if(pAlfParam->chroma_idc)
   {
-#if ALF_CHROMA_NEW_SHAPES
     m_pcEntropyCoderIf->codeAlfUvlc(pAlfParam->realfiltNo_chroma);
-#else
-    m_pcEntropyCoderIf->codeAlfUvlc((pAlfParam->tap_chroma-5)/2);
-#endif
     
     // filter coefficients for chroma
     for(pos=0; pos<pAlfParam->num_coeff_chroma; pos++)

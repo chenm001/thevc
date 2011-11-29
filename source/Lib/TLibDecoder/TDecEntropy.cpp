@@ -248,14 +248,9 @@ Void TDecEntropy::decodeAlfParam(ALFParam* pAlfParam)
   if(pAlfParam->chroma_idc)
   {
     m_pcEntropyDecoderIf->parseAlfUvlc(uiSymbol);
-#if ALF_CHROMA_NEW_SHAPES
     Int sqrFiltLengthTab[2] = {10, 9};
     pAlfParam->realfiltNo_chroma = uiSymbol;
     pAlfParam->num_coeff_chroma = sqrFiltLengthTab[pAlfParam->realfiltNo_chroma];
-#else
-    pAlfParam->tap_chroma = (uiSymbol<<1) + 5;
-    pAlfParam->num_coeff_chroma = ((pAlfParam->tap_chroma*pAlfParam->tap_chroma+1)>>1) + 1;
-#endif
     
     // filter coefficients for chroma
     for(pos=0; pos<pAlfParam->num_coeff_chroma; pos++)

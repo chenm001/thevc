@@ -728,11 +728,7 @@ Void TComAdaptiveLoopFilter::copyALFParam(ALFParam* pDesAlfParam, ALFParam* pSrc
 #endif
   pDesAlfParam->chroma_idc = pSrcAlfParam->chroma_idc;
   pDesAlfParam->num_coeff = pSrcAlfParam->num_coeff;
-#if ALF_CHROMA_NEW_SHAPES
   pDesAlfParam->realfiltNo_chroma = pSrcAlfParam->realfiltNo_chroma;
-#else
-  pDesAlfParam->tap_chroma = pSrcAlfParam->tap_chroma;
-#endif
   pDesAlfParam->num_coeff_chroma = pSrcAlfParam->num_coeff_chroma;
 
   pDesAlfParam->alf_pcr_region_flag = pSrcAlfParam->alf_pcr_region_flag;
@@ -781,34 +777,11 @@ Void TComAdaptiveLoopFilter::predictALFCoeff( ALFParam* pAlfParam)
 
 Void TComAdaptiveLoopFilter::predictALFCoeffChroma( ALFParam* pAlfParam )
 {
-#if ALF_CHROMA_NEW_SHAPES
   Int i, sum, pred, N;
   const Int* pFiltMag = NULL;
 
   pFiltMag = weightsTabShapes[pAlfParam->realfiltNo_chroma];
   N = pAlfParam->num_coeff_chroma - 1;
-#else
-  Int i, sum, pred, tap, N;
-  const Int* pFiltMag = NULL;
-  
-  tap = pAlfParam->tap_chroma;
-  switch(tap)
-  {
-    case 5:
-      pFiltMag = m_aiSymmetricMag5x5;
-      break;
-    case 7:
-      pFiltMag = m_aiSymmetricMag7x7;
-      break;
-    case 9:
-      pFiltMag = m_aiSymmetricMag9x9;
-      break;
-    default:
-      assert(0);
-      break;
-  }
-  N = (tap*tap+1)>>1;
-#endif
   sum=0;
   for(i=0; i<N;i++)
   {
@@ -1443,11 +1416,7 @@ Void TComAdaptiveLoopFilter::xALFChroma(ALFParam* pcAlfParam, TComPicYuv* pcPicD
   if((pcAlfParam->chroma_idc>>1)&0x01)
   {
     if(!m_bUseNonCrossALF)
-#if ALF_CHROMA_NEW_SHAPES
       xFrameChroma(0, 0, (m_img_height>>1), (m_img_width>>1), pcPicDec, pcPicRest, pcAlfParam->coeff_chroma, pcAlfParam->realfiltNo_chroma, 0);
-#else
-      xFrameChroma(0, 0, (m_img_height>>1), (m_img_width>>1), pcPicDec, pcPicRest, pcAlfParam->coeff_chroma, pcAlfParam->tap_chroma, 0);
-#endif
     else
     {
       Int iStride   = pcPicRest->getCStride();
@@ -1461,13 +1430,8 @@ Void TComAdaptiveLoopFilter::xALFChroma(ALFParam* pcAlfParam, TComPicYuv* pcPicD
         if(!pSlice->isValidSlice()) continue;
 
         pSlice->copySliceChroma(pDec, pRest, iStride);
-#if ALF_CHROMA_NEW_SHAPES
         pSlice->extendSliceBorderChroma(pDec, iStride, pcAlfParam->realfiltNo_chroma);
         xFrameChromaforOneSlice(pSlice, ALF_Cb, pcPicDec, pcPicRest, pcAlfParam->coeff_chroma, pcAlfParam->realfiltNo_chroma);
-#else
-        pSlice->extendSliceBorderChroma(pDec, iStride, pcAlfParam->tap_chroma);
-        xFrameChromaforOneSlice(pSlice, ALF_Cb, pcPicDec, pcPicRest, pcAlfParam->coeff_chroma, pcAlfParam->tap_chroma);
-#endif
       }
     }
   }
@@ -1475,11 +1439,7 @@ Void TComAdaptiveLoopFilter::xALFChroma(ALFParam* pcAlfParam, TComPicYuv* pcPicD
   if(pcAlfParam->chroma_idc&0x01)
   {
     if(!m_bUseNonCrossALF)
-#if ALF_CHROMA_NEW_SHAPES
       xFrameChroma(0, 0, (m_img_height>>1), (m_img_width>>1), pcPicDec, pcPicRest, pcAlfParam->coeff_chroma, pcAlfParam->realfiltNo_chroma, 1);
-#else
-      xFrameChroma(0, 0, (m_img_height>>1), (m_img_width>>1), pcPicDec, pcPicRest, pcAlfParam->coeff_chroma, pcAlfParam->tap_chroma, 1);
-#endif
     else
     {
       Int iStride   = pcPicRest->getCStride();
@@ -1492,13 +1452,8 @@ Void TComAdaptiveLoopFilter::xALFChroma(ALFParam* pcAlfParam, TComPicYuv* pcPicD
         if(!pSlice->isValidSlice()) continue;
 
         pSlice->copySliceChroma(pDec, pRest, iStride);
-#if ALF_CHROMA_NEW_SHAPES
         pSlice->extendSliceBorderChroma(pDec, iStride, pcAlfParam->realfiltNo_chroma);
         xFrameChromaforOneSlice(pSlice, ALF_Cr, pcPicDec, pcPicRest, pcAlfParam->coeff_chroma, pcAlfParam->realfiltNo_chroma);
-#else
-        pSlice->extendSliceBorderChroma(pDec, iStride, pcAlfParam->tap_chroma);
-        xFrameChromaforOneSlice(pSlice, ALF_Cr, pcPicDec, pcPicRest, pcAlfParam->coeff_chroma, pcAlfParam->tap_chroma);
-#endif
       }
     }
   }
@@ -1513,20 +1468,10 @@ Void TComAdaptiveLoopFilter::xALFChroma(ALFParam* pcAlfParam, TComPicYuv* pcPicD
  */
 Void TComAdaptiveLoopFilter::xFrameChroma(Int ypos, Int xpos, Int iHeight, Int iWidth, TComPicYuv* pcPicDec, TComPicYuv* pcPicRest, Int *qh, Int iTap, Int iColor )
 {
-#if ALF_CHROMA_NEW_SHAPES
   Int x, y, value, N;
   Pel *pImgPad1,*pImgPad2,*pImgPad3,*pImgPad4;
-#else
-  Int i, x, y, value, N;
-  //  Pel PixSum[ALF_MAX_NUM_COEF_C];// th
-  Pel PixSum[ALF_MAX_NUM_COEF]; 
-#endif
   
-#if ALF_CHROMA_NEW_SHAPES
   N = m_sqrFiltLengthTab[iTap] - 1;
-#else
-  N      = (iTap*iTap+1)>>1;
-#endif
   Pel* pDec;
   Int iDecStride = pcPicDec->getCStride();
   
@@ -1557,14 +1502,8 @@ Void TComAdaptiveLoopFilter::xFrameChroma(Int ypos, Int xpos, Int iHeight, Int i
     assert(iWidth  == pcPicRest->getWidth()  >> 1);
   }
 
-#if !ALF_CHROMA_NEW_SHAPES
-  Pel* pTmpDec1, *pTmpDec2;
-  Pel* pTmpPixSum;
-#endif
-  
   switch(iTap)
   {
-#if ALF_CHROMA_NEW_SHAPES
   case 0:
     for (y = 0; y < iHeight; y++)
     {
@@ -1628,260 +1567,6 @@ Void TComAdaptiveLoopFilter::xFrameChroma(Int ypos, Int xpos, Int iHeight, Int i
       pDec += iDecStride;
     }
     break;
-#else
-    case 5:
-    {
-      Int iJump = iDecStride - 4;
-      pDec -= iDecStride*2;
-      for (y = 0; y < iHeight; y++)
-      {
-        for (x = 0; x < iWidth; x++)
-        {
-          pTmpDec1 = pDec+x-2;
-          pTmpDec2 = pTmpDec1+4+(4*iDecStride);
-          pTmpPixSum = PixSum;
-          
-          *pTmpPixSum = ((*pTmpDec1) + (*pTmpDec2));
-          pTmpPixSum++; pTmpDec1++; pTmpDec2--;
-          *pTmpPixSum = ((*pTmpDec1) + (*pTmpDec2));
-          pTmpPixSum++; pTmpDec1++; pTmpDec2--;
-          *pTmpPixSum = ((*pTmpDec1) + (*pTmpDec2));
-          pTmpPixSum++; pTmpDec1++; pTmpDec2--;
-          *pTmpPixSum = ((*pTmpDec1) + (*pTmpDec2));
-          pTmpPixSum++; pTmpDec1++; pTmpDec2--;
-          *pTmpPixSum = ((*pTmpDec1) + (*pTmpDec2));
-          pTmpPixSum++; pTmpDec1 += iJump; pTmpDec2 -= iJump;
-          
-          *pTmpPixSum = ((*pTmpDec1) + (*pTmpDec2));
-          pTmpPixSum++; pTmpDec1++; pTmpDec2--;
-          *pTmpPixSum = ((*pTmpDec1) + (*pTmpDec2));
-          pTmpPixSum++; pTmpDec1++; pTmpDec2--;
-          *pTmpPixSum = ((*pTmpDec1) + (*pTmpDec2));
-          pTmpPixSum++; pTmpDec1++; pTmpDec2--;
-          *pTmpPixSum = ((*pTmpDec1) + (*pTmpDec2));
-          pTmpPixSum++; pTmpDec1++; pTmpDec2--;
-          *pTmpPixSum = ((*pTmpDec1) + (*pTmpDec2));
-          pTmpPixSum++; pTmpDec1 += iJump; pTmpDec2 -= iJump;
-          
-          *pTmpPixSum = ((*pTmpDec1) + (*pTmpDec2));
-          pTmpPixSum++; pTmpDec1++; pTmpDec2--;
-          *pTmpPixSum = ((*pTmpDec1) + (*pTmpDec2));
-          pTmpPixSum++; pTmpDec1++;
-          *pTmpPixSum = (*pTmpDec1);
-          
-          value = 0;
-          for(i=0; i<N; i++)
-          {
-            value += qh[i]*PixSum[i];
-          }
-          // DC offset
-          value += qh[N] << iShift;
-          value = (value + ALF_ROUND_OFFSET)>>ALF_NUM_BIT_SHIFT;
-          
-          pRest[x] = (Pel) Clip(value);
-        }
-        pRest += iRestStride;
-        pDec += iDecStride;
-      }
-    }
-      break;
-    case 7:
-    {
-      Int iJump = iDecStride - 6;
-      pDec -= iDecStride*3;
-      for (y = 0; y < iHeight; y++)
-      {
-        for (x = 0; x < iWidth; x++)
-        {
-          pTmpDec1 = pDec+x-3;
-          pTmpDec2 = pTmpDec1+6+(6*iDecStride);
-          pTmpPixSum = PixSum;
-          
-          *pTmpPixSum = ((*pTmpDec1) + (*pTmpDec2));
-          pTmpPixSum++; pTmpDec1++; pTmpDec2--;
-          *pTmpPixSum = ((*pTmpDec1) + (*pTmpDec2));
-          pTmpPixSum++; pTmpDec1++; pTmpDec2--;
-          *pTmpPixSum = ((*pTmpDec1) + (*pTmpDec2));
-          pTmpPixSum++; pTmpDec1++; pTmpDec2--;
-          *pTmpPixSum = ((*pTmpDec1) + (*pTmpDec2));
-          pTmpPixSum++; pTmpDec1++; pTmpDec2--;
-          *pTmpPixSum = ((*pTmpDec1) + (*pTmpDec2));
-          pTmpPixSum++; pTmpDec1++; pTmpDec2--;
-          *pTmpPixSum = ((*pTmpDec1) + (*pTmpDec2));
-          pTmpPixSum++; pTmpDec1++; pTmpDec2--;
-          *pTmpPixSum = ((*pTmpDec1) + (*pTmpDec2));
-          pTmpPixSum++; pTmpDec1 += iJump; pTmpDec2 -= iJump;
-          
-          *pTmpPixSum = ((*pTmpDec1) + (*pTmpDec2));
-          pTmpPixSum++; pTmpDec1++; pTmpDec2--;
-          *pTmpPixSum = ((*pTmpDec1) + (*pTmpDec2));
-          pTmpPixSum++; pTmpDec1++; pTmpDec2--;
-          *pTmpPixSum = ((*pTmpDec1) + (*pTmpDec2));
-          pTmpPixSum++; pTmpDec1++; pTmpDec2--;
-          *pTmpPixSum = ((*pTmpDec1) + (*pTmpDec2));
-          pTmpPixSum++; pTmpDec1++; pTmpDec2--;
-          *pTmpPixSum = ((*pTmpDec1) + (*pTmpDec2));
-          pTmpPixSum++; pTmpDec1++; pTmpDec2--;
-          *pTmpPixSum = ((*pTmpDec1) + (*pTmpDec2));
-          pTmpPixSum++; pTmpDec1++; pTmpDec2--;
-          *pTmpPixSum = ((*pTmpDec1) + (*pTmpDec2));
-          pTmpPixSum++; pTmpDec1 += iJump; pTmpDec2 -= iJump;
-          
-          *pTmpPixSum = ((*pTmpDec1) + (*pTmpDec2));
-          pTmpPixSum++; pTmpDec1++; pTmpDec2--;
-          *pTmpPixSum = ((*pTmpDec1) + (*pTmpDec2));
-          pTmpPixSum++; pTmpDec1++; pTmpDec2--;
-          *pTmpPixSum = ((*pTmpDec1) + (*pTmpDec2));
-          pTmpPixSum++; pTmpDec1++; pTmpDec2--;
-          *pTmpPixSum = ((*pTmpDec1) + (*pTmpDec2));
-          pTmpPixSum++; pTmpDec1++; pTmpDec2--;
-          *pTmpPixSum = ((*pTmpDec1) + (*pTmpDec2));
-          pTmpPixSum++; pTmpDec1++; pTmpDec2--;
-          *pTmpPixSum = ((*pTmpDec1) + (*pTmpDec2));
-          pTmpPixSum++; pTmpDec1++; pTmpDec2--;
-          *pTmpPixSum = ((*pTmpDec1) + (*pTmpDec2));
-          pTmpPixSum++; pTmpDec1 += iJump; pTmpDec2 -= iJump;
-          
-          *pTmpPixSum = ((*pTmpDec1) + (*pTmpDec2));
-          pTmpPixSum++; pTmpDec1++; pTmpDec2--;
-          *pTmpPixSum = ((*pTmpDec1) + (*pTmpDec2));
-          pTmpPixSum++; pTmpDec1++; pTmpDec2--;
-          *pTmpPixSum = ((*pTmpDec1) + (*pTmpDec2));
-          pTmpPixSum++; pTmpDec1++;
-          *pTmpPixSum = (*pTmpDec1);
-          
-          value = 0;
-          for(i=0; i<N; i++)
-          {
-            value += qh[i]*PixSum[i];
-          }
-          // DC offset
-          value += qh[N] << iShift;
-          value = (value + ALF_ROUND_OFFSET)>>ALF_NUM_BIT_SHIFT;
-          
-          pRest[x] = (Pel) Clip(value);
-        }
-        pRest += iRestStride;
-        pDec += iDecStride;
-      }
-    }
-      break;
-    case 9:
-    {
-      Int iJump = iDecStride - 8;
-      pDec -= iDecStride*4;
-      for (y = 0; y < iHeight; y++)
-      {
-        for (x = 0; x < iWidth; x++)
-        {
-          pTmpDec1 = pDec+x-4;
-          pTmpDec2 = pTmpDec1+8+(8*iDecStride);
-          pTmpPixSum = PixSum;
-          
-          *pTmpPixSum = ((*pTmpDec1) + (*pTmpDec2));
-          pTmpPixSum++; pTmpDec1++; pTmpDec2--;
-          *pTmpPixSum = ((*pTmpDec1) + (*pTmpDec2));
-          pTmpPixSum++; pTmpDec1++; pTmpDec2--;
-          *pTmpPixSum = ((*pTmpDec1) + (*pTmpDec2));
-          pTmpPixSum++; pTmpDec1++; pTmpDec2--;
-          *pTmpPixSum = ((*pTmpDec1) + (*pTmpDec2));
-          pTmpPixSum++; pTmpDec1++; pTmpDec2--;
-          *pTmpPixSum = ((*pTmpDec1) + (*pTmpDec2));
-          pTmpPixSum++; pTmpDec1++; pTmpDec2--;
-          *pTmpPixSum = ((*pTmpDec1) + (*pTmpDec2));
-          pTmpPixSum++; pTmpDec1++; pTmpDec2--;
-          *pTmpPixSum = ((*pTmpDec1) + (*pTmpDec2));
-          pTmpPixSum++; pTmpDec1++; pTmpDec2--;
-          *pTmpPixSum = ((*pTmpDec1) + (*pTmpDec2));
-          pTmpPixSum++; pTmpDec1++; pTmpDec2--;
-          *pTmpPixSum = ((*pTmpDec1) + (*pTmpDec2));
-          pTmpPixSum++; pTmpDec1 += iJump; pTmpDec2 -= iJump;
-          
-          *pTmpPixSum = ((*pTmpDec1) + (*pTmpDec2));
-          pTmpPixSum++; pTmpDec1++; pTmpDec2--;
-          *pTmpPixSum = ((*pTmpDec1) + (*pTmpDec2));
-          pTmpPixSum++; pTmpDec1++; pTmpDec2--;
-          *pTmpPixSum = ((*pTmpDec1) + (*pTmpDec2));
-          pTmpPixSum++; pTmpDec1++; pTmpDec2--;
-          *pTmpPixSum = ((*pTmpDec1) + (*pTmpDec2));
-          pTmpPixSum++; pTmpDec1++; pTmpDec2--;
-          *pTmpPixSum = ((*pTmpDec1) + (*pTmpDec2));
-          pTmpPixSum++; pTmpDec1++; pTmpDec2--;
-          *pTmpPixSum = ((*pTmpDec1) + (*pTmpDec2));
-          pTmpPixSum++; pTmpDec1++; pTmpDec2--;
-          *pTmpPixSum = ((*pTmpDec1) + (*pTmpDec2));
-          pTmpPixSum++; pTmpDec1++; pTmpDec2--;
-          *pTmpPixSum = ((*pTmpDec1) + (*pTmpDec2));
-          pTmpPixSum++; pTmpDec1++; pTmpDec2--;
-          *pTmpPixSum = ((*pTmpDec1) + (*pTmpDec2));
-          pTmpPixSum++; pTmpDec1 += iJump; pTmpDec2 -= iJump;
-          
-          *pTmpPixSum = ((*pTmpDec1) + (*pTmpDec2));
-          pTmpPixSum++; pTmpDec1++; pTmpDec2--;
-          *pTmpPixSum = ((*pTmpDec1) + (*pTmpDec2));
-          pTmpPixSum++; pTmpDec1++; pTmpDec2--;
-          *pTmpPixSum = ((*pTmpDec1) + (*pTmpDec2));
-          pTmpPixSum++; pTmpDec1++; pTmpDec2--;
-          *pTmpPixSum = ((*pTmpDec1) + (*pTmpDec2));
-          pTmpPixSum++; pTmpDec1++; pTmpDec2--;
-          *pTmpPixSum = ((*pTmpDec1) + (*pTmpDec2));
-          pTmpPixSum++; pTmpDec1++; pTmpDec2--;
-          *pTmpPixSum = ((*pTmpDec1) + (*pTmpDec2));
-          pTmpPixSum++; pTmpDec1++; pTmpDec2--;
-          *pTmpPixSum = ((*pTmpDec1) + (*pTmpDec2));
-          pTmpPixSum++; pTmpDec1++; pTmpDec2--;
-          *pTmpPixSum = ((*pTmpDec1) + (*pTmpDec2));
-          pTmpPixSum++; pTmpDec1++; pTmpDec2--;
-          *pTmpPixSum = ((*pTmpDec1) + (*pTmpDec2));
-          pTmpPixSum++; pTmpDec1 += iJump; pTmpDec2 -= iJump;
-          
-          *pTmpPixSum = ((*pTmpDec1) + (*pTmpDec2));
-          pTmpPixSum++; pTmpDec1++; pTmpDec2--;
-          *pTmpPixSum = ((*pTmpDec1) + (*pTmpDec2));
-          pTmpPixSum++; pTmpDec1++; pTmpDec2--;
-          *pTmpPixSum = ((*pTmpDec1) + (*pTmpDec2));
-          pTmpPixSum++; pTmpDec1++; pTmpDec2--;
-          *pTmpPixSum = ((*pTmpDec1) + (*pTmpDec2));
-          pTmpPixSum++; pTmpDec1++; pTmpDec2--;
-          *pTmpPixSum = ((*pTmpDec1) + (*pTmpDec2));
-          pTmpPixSum++; pTmpDec1++; pTmpDec2--;
-          *pTmpPixSum = ((*pTmpDec1) + (*pTmpDec2));
-          pTmpPixSum++; pTmpDec1++; pTmpDec2--;
-          *pTmpPixSum = ((*pTmpDec1) + (*pTmpDec2));
-          pTmpPixSum++; pTmpDec1++; pTmpDec2--;
-          *pTmpPixSum = ((*pTmpDec1) + (*pTmpDec2));
-          pTmpPixSum++; pTmpDec1++; pTmpDec2--;
-          *pTmpPixSum = ((*pTmpDec1) + (*pTmpDec2));
-          pTmpPixSum++; pTmpDec1 += iJump; pTmpDec2 -= iJump;
-          
-          
-          *pTmpPixSum = ((*pTmpDec1) + (*pTmpDec2));
-          pTmpPixSum++; pTmpDec1++; pTmpDec2--;
-          *pTmpPixSum = ((*pTmpDec1) + (*pTmpDec2));
-          pTmpPixSum++; pTmpDec1++; pTmpDec2--;
-          *pTmpPixSum = ((*pTmpDec1) + (*pTmpDec2));
-          pTmpPixSum++; pTmpDec1++; pTmpDec2--;
-          *pTmpPixSum = ((*pTmpDec1) + (*pTmpDec2));
-          pTmpPixSum++; pTmpDec1++;
-          *pTmpPixSum =(*pTmpDec1);
-          
-          value = 0;
-          for(i=0; i<N; i++)
-          {
-            value += qh[i]*PixSum[i];
-          }
-          // DC offset
-          value += qh[N] << iShift;
-          value = (value + ALF_ROUND_OFFSET)>>ALF_NUM_BIT_SHIFT;
-          
-          pRest[x] = (Pel) Clip(value);
-        }
-        pRest += iRestStride;
-        pDec += iDecStride;
-      }
-    }
-      break;
-#endif
     default:
       assert(0);
       break;
@@ -3301,21 +2986,6 @@ Void CAlfSlice::extendSliceBorderLuma(Pel* pPelSrc, Int iStride, Int filtNo)
  */
 Void CAlfSlice::extendSliceBorderChroma(Pel* pPelSrc, Int iStride, UInt filtNo)
 {
-#if !ALF_CHROMA_NEW_SHAPES
-  Int iTap = filtNo;
-  if(iTap == 9)
-  {
-    filtNo = 0;
-  }
-  else if(iTap == 7)
-  {
-    filtNo = 1;
-  }
-  else
-  {
-    filtNo = 2;
-  }
-#endif
   for(UInt idx = 0; idx < m_uiNumLCUs; idx++)
   {
     m_pcAlfLCU[idx].extendChromaBorder(pPelSrc, iStride, filtNo);
