@@ -2572,7 +2572,6 @@ UInt TComDataCU::getCtxSplitFlag( UInt uiAbsPartIdx, UInt uiDepth )
 
 UInt TComDataCU::getCtxQtCbf( UInt uiAbsPartIdx, TextType eType, UInt uiTrDepth )
 {
-#if DNB_LUMA_CBF_FLAGS && DNB_CHROMA_CBF_FLAGS
   if( eType )
   {
     return uiTrDepth;
@@ -2584,53 +2583,6 @@ UInt TComDataCU::getCtxQtCbf( UInt uiAbsPartIdx, TextType eType, UInt uiTrDepth 
     const UInt uiCtx = uiTrDepth == 0 || uiLog2TrafoSize == getSlice()->getSPS()->getQuadtreeTULog2MaxSize() ? 1 : 0;
     return uiCtx;
   }
-#else
-  if( eType != TEXT_LUMA )
-  {
-    return uiTrDepth;
-  }
-
-  UInt uiCtx = 0;
-  const UInt uiDepth = getDepth( uiAbsPartIdx );
-  const UInt uiLog2TrafoSize = g_aucConvertToBit[getSlice()->getSPS()->getMaxCUWidth()]+2 - uiDepth - uiTrDepth;
-  
-  if( uiTrDepth == 0 || uiLog2TrafoSize == getSlice()->getSPS()->getQuadtreeTULog2MaxSize() )
-  {
-  if( eType != TEXT_LUMA )
-  {
-    TComDataCU* pcTempCU;
-    UInt        uiTempPartIdx, uiTempTrDepth;
-    
-    // Get Cbf of left PU
-    pcTempCU = getPULeft( uiTempPartIdx, m_uiAbsIdxInLCU + uiAbsPartIdx );
-    if ( pcTempCU )
-    {
-      uiTempTrDepth = pcTempCU->getTransformIdx( uiTempPartIdx );
-#if E057_INTRA_PCM
-      if(pcTempCU->getIPCMFlag(uiTempPartIdx) == true)
-        uiCtx = 1;
-      else
-#endif
-      uiCtx = pcTempCU->getCbf( uiTempPartIdx, eType, uiTempTrDepth );
-    }
-    
-    // Get Cbf of above PU
-    pcTempCU = getPUAbove( uiTempPartIdx, m_uiAbsIdxInLCU + uiAbsPartIdx );
-    if ( pcTempCU )
-    {
-      uiTempTrDepth = pcTempCU->getTransformIdx( uiTempPartIdx );
-#if E057_INTRA_PCM
-      if(pcTempCU->getIPCMFlag(uiTempPartIdx) == true)
-        uiCtx += 2;
-      else
-#endif
-      uiCtx += pcTempCU->getCbf( uiTempPartIdx, eType, uiTempTrDepth ) << 1;
-    }
-  }
-    uiCtx++;
-  }
-  return uiCtx;
-#endif
 }
 
 #if !DNB_QT_ROOT_CBF
