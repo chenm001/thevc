@@ -217,8 +217,6 @@
 #define E192_SPS_PCM_BIT_DEPTH_SYNTAX       1 // JCTVC-E192: PCM bit depth
 #define E192_SPS_PCM_FILTER_DISABLE_SYNTAX  1 // JCTVC-E192: PCM filter disable flag
 
-#define UNIFY_INTRA_AVAIL      1    ////<JCTVC-F477, "Unification of the Availability Checking method for Intra prediction>
-
 #define AMP                                   1           ///< JCTVC-F379: asymmetric motion partition
 #if AMP
 #define AMP_SAD                               1           ///< dedicated SAD functions for AMP
