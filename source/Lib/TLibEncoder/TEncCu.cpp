@@ -1440,7 +1440,7 @@ Void TEncCu::xCheckRDCostInter( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, 
   m_pcPredSearch->predInterSearch ( rpcTempCU, m_ppcOrigYuv[uhDepth], m_ppcPredYuvTemp[uhDepth], m_ppcResiYuvTemp[uhDepth], m_ppcRecoYuvTemp[uhDepth] );
 #endif
 
-#if !PART_MRG && AMP_MRG
+#if AMP_MRG
   if ( !rpcTempCU->getMergeAMP() )
   {
     return;
