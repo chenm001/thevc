@@ -1055,7 +1055,6 @@ Void TDecSbac::parseIntraDirChroma( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt ui
 Void TDecSbac::parseInterDir( TComDataCU* pcCU, UInt& ruiInterDir, UInt uiAbsPartIdx, UInt uiDepth )
 {
   UInt uiSymbol;
-#if DNB_INTER_PRED_MODE
   const UInt uiCtx = pcCU->getCtxInterDir( uiAbsPartIdx );
   ContextModel *pCtx = m_cCUInterDirSCModel.get( 0 );
   m_pcTDecBinIf->decodeBin( uiSymbol, *( pCtx + uiCtx ) );
@@ -1077,28 +1076,6 @@ Void TDecSbac::parseInterDir( TComDataCU* pcCU, UInt& ruiInterDir, UInt uiAbsPar
     pCtx++;
     m_pcTDecBinIf->decodeBin( uiSymbol, *( pCtx + 3 ) );
   }
-#else
-  UInt uiCtx = pcCU->getCtxInterDir( uiAbsPartIdx );
-  
-  m_pcTDecBinIf->decodeBin( uiSymbol, m_cCUInterDirSCModel.get( 0, 0, uiCtx ) );
-  
-  if ( uiSymbol )
-  {
-    uiSymbol = 2;
-  }
-  else if(pcCU->getSlice()->getNumRefIdx(REF_PIC_LIST_C) > 0)
-  {
-    uiSymbol = 0;
-  }
-  else if ( pcCU->getSlice()->getNoBackPredFlag() )
-  {
-    uiSymbol = 0;
-  }
-  else
-  {
-    m_pcTDecBinIf->decodeBin( uiSymbol, m_cCUInterDirSCModel.get( 0, 0, 3 ) );
-  }
-#endif
   uiSymbol++;
   ruiInterDir = uiSymbol;
   return;
