@@ -83,12 +83,10 @@ private:
   TComPicYuv* m_pcPicYuvBest;
   TComPicYuv* m_pcPicYuvTmp;
   
-#if STAR_CROSS_SHAPES_LUMA
   ALFParam* pcAlfParamShape0;
   ALFParam* pcAlfParamShape1;
   TComPicYuv* pcPicYuvRecShape0;
   TComPicYuv* pcPicYuvRecShape1;
-#endif
 
   UInt m_uiNumSCUInCU;
   
@@ -121,10 +119,8 @@ private:
   Int  m_iFilterIdx;             //!< for N-pass encoding- the index of filter set buffer
   Int***   m_aiFilterCoeffSavedMethods[NUM_ALF_CLASS_METHOD];  //!< time-delayed filter set buffer
   Int***   m_aiFilterCoeffSaved;                               //!< the current accessing time-delayed filter buffer pointer
-#if STAR_CROSS_SHAPES_LUMA
   Int*    m_iPreviousFilterShapeMethods[NUM_ALF_CLASS_METHOD];
   Int*    m_iPreviousFilterShape;
-#endif
   Int  m_iGOPSize;                //!< GOP size
   Int  m_iCurrentPOC;             //!< POC
   Int  m_iALFEncodePassReduction; //!< 0: 16-pass encoding, 1: 1-pass encoding, 2: 2-pass encoding
@@ -136,11 +132,9 @@ private:
   static Int  m_aiTapPos5x5_In9x9Sym[8];  //!< for N-pass encoding- filter tap relative position in 9x9 footprint
   static Int* m_iTapPosTabIn9x9Sym[NO_TEST_FILT];
 
-#if STAR_CROSS_SHAPES_LUMA
   static Int  m_aiFilterPosShape0In11x5Sym[10]; //!< for N-pass encoding- filter shape relative position in 19x5 footprint
   static Int  m_aiFilterPosShape1In11x5Sym[9]; //!< for N-pass encoding- filter shape relative position in 19x5 footprint
   static Int* m_iFilterTabIn11x5Sym[NO_TEST_FILT];
-#endif
 
   TComPicYuv* m_pcSliceYuvTmp;    //!< temporary picture buffer when non-across slice boundary ALF is enabled
 
@@ -210,11 +204,7 @@ private:
   Void  setInitialMask(TComPicYuv* pcPicOrg, TComPicYuv* pcPicDec);
 
   /// save filter coefficients to buffer
-#if STAR_CROSS_SHAPES_LUMA
   Void  saveFilterCoeffToBuffer(Int **filterCoeffPrevSelected,Int filtNo);
-#else
-  Void  saveFilterCoeffToBuffer(Int **filterCoeffPrevSelected);
-#endif
   /// set initial m_maskImg with previous (time-delayed) filters
   Void  setMaskWithTimeDelayedResults(TComPicYuv* pcPicOrg, TComPicYuv* pcPicDec);
 

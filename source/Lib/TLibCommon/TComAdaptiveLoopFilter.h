@@ -65,38 +65,24 @@
 
 #define VAR_SIZE               1
 
-#if STAR_CROSS_SHAPES_LUMA
 // max tap = max_horizontal_tap = 11
 #define FILTER_LENGTH         11
-#else
-#define FILTER_LENGTH          9
-#endif
 
-#if STAR_CROSS_SHAPES_LUMA
 // ((max_horizontal_tap * max_vertical_tap) / 2 + 2) = ((11 * 5) / 2 + 2)
 #define MAX_SQR_FILT_LENGTH   29
-#else
-#define MAX_SQR_FILT_LENGTH   ((FILTER_LENGTH*FILTER_LENGTH) / 2 + 2)
-#endif
 
 #define SQR_FILT_LENGTH_9SYM  ((9*9) / 4 + 2 - 1) 
 #define SQR_FILT_LENGTH_7SYM  ((7*7) / 4 + 2) 
 #define SQR_FILT_LENGTH_5SYM  ((5*5) / 4 + 2) 
-#if STAR_CROSS_SHAPES_LUMA
 // max_tap + 2 = 11 + 2 
 #define MAX_SCAN_VAL    13
-#else
-#define MAX_SCAN_VAL    11
-#endif
 #define MAX_EXP_GOLOMB  16
 
 #define imgpel  unsigned short
 
-#if STAR_CROSS_SHAPES_LUMA
 extern Int depthIntShape0Sym[10];
 extern Int depthIntShape1Sym[9];
 extern Int *pDepthIntTabShapes[NO_TEST_FILT];
-#endif
 extern Int depthInt9x9Sym[21];
 extern Int depthInt7x7Sym[14];
 extern Int depthInt5x5Sym[8];
@@ -358,7 +344,6 @@ protected:
   // ------------------------------------------------------------------------------------------------------------------
   // For luma component
   // ------------------------------------------------------------------------------------------------------------------
-#if STAR_CROSS_SHAPES_LUMA
   static Int patternShape0Sym[17];
   static Int weightsShape0Sym[10];
   static Int patternShape0Sym_Quart[29];
@@ -369,7 +354,6 @@ protected:
   static Int *patternTabShapes[NO_TEST_FILT]; 
   static Int *patternMapTabShapes[NO_TEST_FILT];
   static Int *weightsTabShapes[NO_TEST_FILT];
-#endif
   static Int m_pattern9x9Sym[39];
   static Int m_weights9x9Sym[21];
   static Int m_pattern9x9Sym_Quart[42];
@@ -379,11 +363,9 @@ protected:
   static Int m_pattern5x5Sym[13];
   static Int m_weights5x5Sym[8];
   static Int m_pattern5x5Sym_Quart[45];
-#if STAR_CROSS_SHAPES_LUMA
   static Int pattern11x5SymShape0[17];
   static Int pattern11x5SymShape1[15];
   static Int pattern11x5Sym11x5[55];
-#endif
   static Int m_pattern9x9Sym_9[39];
   static Int m_pattern9x9Sym_7[25];
   static Int m_pattern9x9Sym_5[13];

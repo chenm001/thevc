@@ -51,12 +51,7 @@ Void TDecEntropy::setEntropyDecoder         ( TDecEntropyIf* p )
 Void TDecEntropy::decodeAux(ALFParam* pAlfParam)
 {
   UInt uiSymbol;
-#if STAR_CROSS_SHAPES_LUMA
   Int sqrFiltLengthTab[2] = {10, 9}; 
-#else
-  Int sqrFiltLengthTab[3] = {SQR_FILT_LENGTH_9SYM, SQR_FILT_LENGTH_7SYM, SQR_FILT_LENGTH_5SYM};
-  Int FiltTab[3] = {9, 7, 5};
-#endif
   
   pAlfParam->filters_per_group = 0;
   
@@ -67,14 +62,7 @@ Void TDecEntropy::decodeAux(ALFParam* pAlfParam)
   pAlfParam->alf_pcr_region_flag = uiSymbol;  
 
   m_pcEntropyDecoderIf->parseAlfUvlc(uiSymbol);
-#if STAR_CROSS_SHAPES_LUMA
   pAlfParam->realfiltNo = uiSymbol;
-#else
-  Int TabIdx = uiSymbol;
-  pAlfParam->realfiltNo = 2-TabIdx;
-  pAlfParam->tap = FiltTab[pAlfParam->realfiltNo];
-  pAlfParam->tapV = TComAdaptiveLoopFilter::ALFTapHToTapV(pAlfParam->tap);
-#endif
   pAlfParam->num_coeff = sqrFiltLengthTab[pAlfParam->realfiltNo];
   
   if (pAlfParam->filtNo>=0)
@@ -130,25 +118,9 @@ Void TDecEntropy::readFilterCodingParams(ALFParam* pAlfParam)
   int kMin;
   int maxScanVal;
   int *pDepthInt;
-#if STAR_CROSS_SHAPES_LUMA
   // Determine maxScanVal
   maxScanVal = 0;
   pDepthInt = pDepthIntTabShapes[pAlfParam->realfiltNo];
-#else
-  int fl;
-  
-  // Determine fl
-  if(pAlfParam->num_coeff == SQR_FILT_LENGTH_9SYM)
-    fl = 4;
-  else if(pAlfParam->num_coeff == SQR_FILT_LENGTH_7SYM)
-    fl = 3;
-  else
-    fl = 2;
-  
-  // Determine maxScanVal
-  maxScanVal = 0;
-  pDepthInt = pDepthIntTab[fl - 2];
-#endif
   for(ind = 0; ind < pAlfParam->num_coeff; ind++)
     maxScanVal = max(maxScanVal, pDepthInt[ind]);
   
@@ -203,20 +175,7 @@ Void TDecEntropy::readFilterCoeffs(ALFParam* pAlfParam)
 {
   int ind, scanPos, i;
   int *pDepthInt;
-#if STAR_CROSS_SHAPES_LUMA
   pDepthInt = pDepthIntTabShapes[pAlfParam->realfiltNo];
-#else
-  int fl;
-  
-  if(pAlfParam->num_coeff == SQR_FILT_LENGTH_9SYM)
-    fl = 4;
-  else if(pAlfParam->num_coeff == SQR_FILT_LENGTH_7SYM)
-    fl = 3;
-  else
-    fl = 2;
-  
-  pDepthInt = pDepthIntTab[fl - 2];
-#endif
   
   for(ind = 0; ind < pAlfParam->filters_per_group_diff; ++ind)
   {

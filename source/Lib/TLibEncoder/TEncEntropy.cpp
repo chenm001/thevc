@@ -138,19 +138,11 @@ Void TEncEntropy::codeAuxCountBit(ALFParam* pAlfParam, Int64* ruiRate)
 
 Void TEncEntropy::codeAux(ALFParam* pAlfParam)
 {
-#if !STAR_CROSS_SHAPES_LUMA
-  Int FiltTab[3] = {9, 7, 5};
-  Int Tab = FiltTab[pAlfParam->realfiltNo];
-#endif
   //  m_pcEntropyCoderIf->codeAlfUvlc(pAlfParam->realfiltNo); 
 
   m_pcEntropyCoderIf->codeAlfFlag(pAlfParam->alf_pcr_region_flag);
 
-#if STAR_CROSS_SHAPES_LUMA
   m_pcEntropyCoderIf->codeAlfUvlc(pAlfParam->realfiltNo); 
-#else
-  m_pcEntropyCoderIf->codeAlfUvlc((Tab-5)/2); 
-#endif
   
   if (pAlfParam->filtNo>=0)
   {
@@ -193,19 +185,11 @@ Int TEncEntropy::codeFilterCoeff(ALFParam* ALFp)
   int filters_per_group = ALFp->filters_per_group_diff;
   int sqrFiltLength = ALFp->num_coeff;
   int filtNo = ALFp->realfiltNo;
-#if !STAR_CROSS_SHAPES_LUMA
-  int flTab[]={9/2, 7/2, 5/2};
-  int fl = flTab[filtNo];
-#endif
   int i, k, kMin, kStart, minBits, ind, scanPos, maxScanVal, coeffVal, len = 0,
   *pDepthInt=NULL, kMinTab[MAX_SQR_FILT_LENGTH], bitsCoeffScan[MAX_SCAN_VAL][MAX_EXP_GOLOMB],
   minKStart, minBitsKStart, bitsKStart;
   
-#if STAR_CROSS_SHAPES_LUMA
   pDepthInt = pDepthIntTabShapes[filtNo];
-#else 
-  pDepthInt = pDepthIntTab[fl-2];
-#endif
   
   maxScanVal = 0;
   for(i = 0; i < sqrFiltLength; i++)

@@ -125,10 +125,6 @@ Void TDecGop::copySharedAlfParamFromPPS(ALFParam* pAlfDst, ALFParam* pAlfSrc)
   pAlfDst->filters_per_group  = pAlfSrc->filters_per_group;
   pAlfDst->filtNo             = pAlfSrc->filtNo;
   pAlfDst->realfiltNo         = pAlfSrc->realfiltNo;
-#if !STAR_CROSS_SHAPES_LUMA
-  pAlfDst->tap                = pAlfSrc->tap;
-  pAlfDst->tapV               = pAlfSrc->tapV;
-#endif
   pAlfDst->num_coeff          = pAlfSrc->num_coeff;
   pAlfDst->noFilters          = pAlfSrc->noFilters;
   pAlfDst->startSecondFilter  = pAlfSrc->startSecondFilter;
