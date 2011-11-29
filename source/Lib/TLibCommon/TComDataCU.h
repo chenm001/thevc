@@ -487,9 +487,6 @@ public:
 #endif
 
   UInt          getCtxSkipFlag                  ( UInt   uiAbsPartIdx                                 );
-#if !DNB_ALF_CTRL_FLAG
-  UInt          getCtxAlfCtrlFlag               ( UInt   uiAbsPartIdx                                 );
-#endif
   UInt          getCtxInterDir                  ( UInt   uiAbsPartIdx                                 );
   
 #if FINE_GRANULARITY_SLICES

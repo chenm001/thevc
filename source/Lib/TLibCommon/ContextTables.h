@@ -54,11 +54,7 @@
 #define NUM_MERGE_FLAG_EXT_CTX        1       ///< number of context models for merge flag of merge extended
 #define NUM_MERGE_IDX_EXT_CTX         4       ///< number of context models for merge index of merge extended
 
-#if DNB_ALF_CTRL_FLAG
 #define NUM_ALF_CTRL_FLAG_CTX         1       ///< number of context models for ALF control flag
-#else
-#define NUM_ALF_CTRL_FLAG_CTX         3       ///< number of context models for ALF control flag
-#endif
 #define NUM_PART_SIZE_CTX             5       ///< number of context models for partition size
 #if AMP
 #define NUM_CU_X_POS_CTX              2       ///< number of context models for partition size (AMP)
@@ -140,7 +136,6 @@ INIT_SKIP_FLAG[3][NUM_SKIP_FLAG_CTX][2] =
 };
 
 // initial probability for skip flag
-#if DNB_ALF_CTRL_FLAG
 static const Short
 INIT_ALF_CTRL_FLAG[3][NUM_ALF_CTRL_FLAG_CTX][2] =
 {
@@ -154,21 +149,6 @@ INIT_ALF_CTRL_FLAG[3][NUM_ALF_CTRL_FLAG_CTX][2] =
     {    0,   64 }
   }
 };
-#else
-static const Short
-INIT_ALF_CTRL_FLAG[3][NUM_ALF_CTRL_FLAG_CTX][2] =
-{
-  {
-    {    0,   64 }, {    0,   64 }, {    0,   64 }
-  },
-  {
-    {    0,   64 }, {    0,   64 }, {    0,   64 }
-  },
-  {
-    {    0,   64 }, {    0,   64 }, {    0,   64 }
-  }
-};
-#endif
 
 // initial probability for merge flag
 static const Short

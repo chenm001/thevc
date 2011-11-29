@@ -2726,25 +2726,6 @@ UInt TComDataCU::getQuadtreeTULog2MinSizeInCU( UInt uiIdx )
   return uiLog2MinTUSizeInCU;
 }
 
-#if !DNB_ALF_CTRL_FLAG
-UInt TComDataCU::getCtxAlfCtrlFlag( UInt uiAbsPartIdx )
-{
-  TComDataCU* pcTempCU;
-  UInt        uiTempPartIdx;
-  UInt        uiCtx = 0;
-  
-  // Get BCBP of left PU
-  pcTempCU = getPULeft( uiTempPartIdx, m_uiAbsIdxInLCU + uiAbsPartIdx );
-  uiCtx    = ( pcTempCU ) ? pcTempCU->getAlfCtrlFlag( uiTempPartIdx ) : 0;
-  
-  // Get BCBP of above PU
-  pcTempCU = getPUAbove( uiTempPartIdx, m_uiAbsIdxInLCU + uiAbsPartIdx );
-  uiCtx   += ( pcTempCU ) ? pcTempCU->getAlfCtrlFlag( uiTempPartIdx ) : 0;
-  
-  return uiCtx;
-}
-#endif
-
 UInt TComDataCU::getCtxSkipFlag( UInt uiAbsPartIdx )
 {
   TComDataCU* pcTempCU;

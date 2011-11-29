@@ -45,7 +45,6 @@
 // BoG Context Reduction
 ////////////////////////////
 
-#define DNB_ALF_CTRL_FLAG                 1           ///< F429:               disable of neighbour evaluation for alf_ctrl_flag
 #define DNB_INTER_PRED_MODE               1           ///< F606:               disable of neighbour evaluation for inter_pred_flag (use depth for that)
 #define DNB_CHROMA_CBF_FLAGS              1           ///< F606:               disable of neighbour evaluation for chroma cbf (use depth for that)
 #define DNB_LUMA_CBF_FLAGS                1           ///< F429:               disable of neighbour evaluation for luma cbf
