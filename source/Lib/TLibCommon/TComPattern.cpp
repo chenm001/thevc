@@ -48,7 +48,6 @@
 
 const UChar TComPattern::m_aucIntraFilter[5][NUM_INTRA_MODE] =
 {
-#if MN_MDIS_SIMPLIFICATION
 #if MDIS2
   {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
   }, //4x4
@@ -70,18 +69,6 @@ const UChar TComPattern::m_aucIntraFilter[5][NUM_INTRA_MODE] =
   {0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0
   }, //32x32
   {0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
-  }, //64x64
-#endif
-#else
-  {0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
-  }, //4x4
-  {0, 0, 0, 0, 1, 1, 2, 2, 2, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
-}, //8x8
-  {0, 0, 0, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
-  }, //16x16
-  {0, 0, 0, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0
-  }, //32x32
-  {0, 0, 0, 0, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
   }, //64x64
 #endif
 };
@@ -464,22 +451,6 @@ Void TComPattern::initPattern( TComDataCU* pcCU, UInt uiPartDepth, UInt uiAbsPar
   for (i = 0; i < uiCuWidth2; i++)
     piFilteredBuf1[1 + i] = piFilterBufN[l++];
 
-#if !MN_MDIS_SIMPLIFICATION
-  // 2. filtering with [1 2 1]
-  piFilterBuf[0] = piFilterBufN[0];                   
-  piFilterBuf[iBufSize - 1] = piFilterBufN[iBufSize - 1];
-  for (i = 1; i < iBufSize - 1; i++)
-    piFilterBuf[i] = (piFilterBufN[i - 1] + 2 * piFilterBufN[i] + piFilterBufN[i + 1] + 2) >> 2;
-
-  // fill 2. filter buffer with filtered values
-  l=0;
-  for (i = 0; i < uiCuHeight2; i++)
-    piFilteredBuf2[uiWidth * (uiCuHeight2 - i)] = piFilterBuf[l++];
-  piFilteredBuf2[0] = piFilterBuf[l++];
-  for (i = 0; i < uiCuWidth2; i++)
-    piFilteredBuf2[1 + i] = piFilterBuf[l++];
-#endif
-  
 }
 
 Void TComPattern::initAdiPatternChroma( TComDataCU* pcCU, UInt uiZorderIdxInPart, UInt uiPartDepth, Int* piAdiBuf, Int iOrgBufStride, Int iOrgBufHeight, Bool& bAbove, Bool& bLeft )
@@ -958,11 +929,7 @@ Int* TComPattern::getPredictorPtr( UInt uiDirMode, UInt log2BlkSize, Int* piAdiB
   assert(log2BlkSize >= 2 && log2BlkSize < 7);
   UChar ucFiltIdx = m_aucIntraFilter[log2BlkSize - 2][uiDirMode];
 
-#if MN_MDIS_SIMPLIFICATION
   assert( ucFiltIdx <= 1 );
-#else
-  assert( ucFiltIdx <= 2 );
-#endif
 
   Int width  = 1 << log2BlkSize;
   Int height = 1 << log2BlkSize;
@@ -971,11 +938,7 @@ Int* TComPattern::getPredictorPtr( UInt uiDirMode, UInt log2BlkSize, Int* piAdiB
 
   if ( ucFiltIdx )
   {
-#if MN_MDIS_SIMPLIFICATION
     piSrc += (2 * width + 1) * (2 * height + 1);
-#else
-    piSrc += ((2 * width + 1) * (2 * height + 1)) << (ucFiltIdx - 1);
-#endif
   }
 
   return piSrc;

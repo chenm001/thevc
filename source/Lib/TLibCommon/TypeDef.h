@@ -207,10 +207,7 @@
 #define VAR_SIZE_W           4
 #define NO_VAR_BIN          16
 
-#define MN_MDIS_SIMPLIFICATION       1       ///< JCTVC-E069: simplification of MDIS
-#if MN_MDIS_SIMPLIFICATION
 #define MDIS2                        1       ///< JCTVC-F126: MDIS modifications
-#endif
 #define MN_DC_PRED_FILTER            1       ///< JCTVC-E069: DC prediction samples filtering
 #define UNIFICATION_OF_AVAILABILITY  1       ///< JCTVC-F178: unification of sample availability for DC
 #if MN_DC_PRED_FILTER
