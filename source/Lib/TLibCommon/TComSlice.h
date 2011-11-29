@@ -539,9 +539,7 @@ private:
   Bool        m_bRefPicListModificationFlagLC;
   Bool        m_bRefPicListCombinationFlag;
 
-#if TMVP_ONE_LIST_CHECK
   Bool        m_bCheckLDC;
-#endif
 
   //  Data
   Int         m_iSliceQpDelta;
@@ -645,9 +643,7 @@ public:
   Int       getRefPOC           ( RefPicList e, Int iRefIdx)    { return  m_aiRefPOCList[e][iRefIdx];   }
   Int       getDepth            ()                              { return  m_iDepth;                     }
   UInt      getColDir           ()                              { return  m_uiColDir;                   }
-#if TMVP_ONE_LIST_CHECK
   Bool      getCheckLDC     ()                                  { return m_bCheckLDC; }
-#endif
 
   Int       getRefIdxOfLC       (RefPicList e, Int iRefIdx)     { return m_iRefIdxOfLC[e][iRefIdx];           }
   Int       getListIdFromIdxOfLC(Int iRefIdx)                   { return m_eListIdFromIdxOfLC[iRefIdx];       }
@@ -686,9 +682,7 @@ public:
   Void      setRefPicList       ( TComList<TComPic*>& rcListPic );
   Void      setRefPOCList       ();
   Void      setColDir           ( UInt uiDir ) { m_uiColDir = uiDir; }
-#if TMVP_ONE_LIST_CHECK
   Void      setCheckLDC         ( Bool b )                      { m_bCheckLDC = b; }
-#endif
   
   Bool      isIntra         ()                          { return  m_eSliceType == I_SLICE;  }
   Bool      isInterB        ()                          { return  m_eSliceType == B_SLICE;  }

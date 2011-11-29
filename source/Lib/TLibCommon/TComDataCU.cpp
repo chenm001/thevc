@@ -4297,7 +4297,6 @@ Bool TComDataCU::xGetColMVP( RefPicList eRefPicList, Int uiCUAddr, Int uiPartUni
     return false;
   }
 
-#if TMVP_ONE_LIST_CHECK
   eColRefPicList = getSlice()->getCheckLDC() ? eRefPicList : RefPicList(1-getSlice()->getColDir());
 
   Int iColRefIdx = pColCU->getCUMvField(RefPicList(eColRefPicList))->getRefIdx(uiAbsPartAddr);
@@ -4315,45 +4314,6 @@ Bool TComDataCU::xGetColMVP( RefPicList eRefPicList, Int uiCUAddr, Int uiPartUni
 
   // Scale the vector.
   iColRefPOC = pColCU->getSlice()->getRefPOC(eColRefPicList, iColRefIdx);
-#else
-  // Prefer a vector crossing us.  Prefer shortest.
-  eColRefPicList = REF_PIC_LIST_0;
-  bool bFirstCrosses = false;
-  Int  iFirstColDist = -1;
-
-  for (Int l = 0; l < 2; l++)
-  {
-    bool bSaveIt = false;
-    int iColRefIdx = pColCU->getCUMvField(RefPicList(l))->getRefIdx(uiAbsPartAddr);
-    if (iColRefIdx < 0)
-    {
-      continue;
-    }
-    iColRefPOC = pColCU->getSlice()->getRefPOC(RefPicList(l), iColRefIdx);
-    int iColDist = abs(iColRefPOC - iColPOC);
-    bool bCrosses = iColPOC < iCurrPOC ? iColRefPOC > iCurrPOC : iColRefPOC < iCurrPOC;
-    if (iFirstColDist < 0)
-    {
-      bSaveIt = true;
-    }
-    else if (bCrosses && !bFirstCrosses)
-    {
-      bSaveIt = true;
-    }
-    else if (bCrosses == bFirstCrosses && l == eRefPicList)
-    {
-      bSaveIt = true;
-    }
-    if (bSaveIt)
-    {
-      bFirstCrosses = bCrosses;
-      iFirstColDist = iColDist;
-      eColRefPicList = RefPicList(l);
-    }
-  }
-  // Scale the vector.
-  iColRefPOC = pColCU->getSlice()->getRefPOC(eColRefPicList, pColCU->getCUMvField(eColRefPicList)->getRefIdx(uiAbsPartAddr));
-#endif
   cColMv = pColCU->getCUMvField(eColRefPicList)->getMv(uiAbsPartAddr);
 
   iCurrRefPOC = m_pcSlice->getRefPic(eRefPicList, riRefIdx)->getPOC();

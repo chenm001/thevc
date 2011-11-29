@@ -660,7 +660,6 @@ Bool TDecTop::decode(InputNALUnit& nalu, Int& iSkipFrame, Int& iPOCLastDisplay)
             pcSlice->setRefPic(pcSlice->getRefPic(REF_PIC_LIST_0, iRefIdx), REF_PIC_LIST_1, iRefIdx);
           }
         }
-#if TMVP_ONE_LIST_CHECK
         if (pcSlice->isInterB())
         {
           Bool bLowDelay = true;
@@ -684,7 +683,6 @@ Bool TDecTop::decode(InputNALUnit& nalu, Int& iSkipFrame, Int& iPOCLastDisplay)
 
           pcSlice->setCheckLDC(bLowDelay);            
         }
-#endif
         
         //---------------
         pcSlice->setRefPOCList();

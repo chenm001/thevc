@@ -272,7 +272,6 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
       if (pcSlice->getSliceType() == B_SLICE)
       {
         pcSlice->setColDir(uiColDir);
-#if TMVP_ONE_LIST_CHECK
         Bool bLowDelay = true;
         Int  iCurrPOC  = pcSlice->getPOC();
         Int iRefIdx = 0;
@@ -293,7 +292,6 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
         }
 
         pcSlice->setCheckLDC(bLowDelay);  
-#endif
       }
       
       uiColDir = 1-uiColDir;
