@@ -375,7 +375,7 @@ Void TComPrediction::motionCompensation ( TComDataCU* pcCU, TComYuv* pcYuvPred, 
     pcCU->getPartIndexAndSize( iPartIdx, uiPartAddr, iWidth, iHeight );
     if ( eRefPicList != REF_PIC_LIST_X )
     {
-#if (WEIGHT_PRED && GENERIC_IF)
+#if (WEIGHT_PRED)
       if( pcCU->getSlice()->getPPS()->getUseWP())
         xPredInterUni (pcCU, uiPartAddr, iWidth, iHeight, eRefPicList, pcYuvPred, iPartIdx, true );
       else
@@ -404,7 +404,7 @@ Void TComPrediction::motionCompensation ( TComDataCU* pcCU, TComYuv* pcYuvPred, 
 
     if ( eRefPicList != REF_PIC_LIST_X )
     {
-#if (WEIGHT_PRED && GENERIC_IF)
+#if (WEIGHT_PRED)
       if( pcCU->getSlice()->getPPS()->getUseWP())
         xPredInterUni (pcCU, uiPartAddr, iWidth, iHeight, eRefPicList, pcYuvPred, iPartIdx, true );
       else
@@ -461,7 +461,7 @@ Void TComPrediction::xPredInterBi ( TComDataCU* pcCU, UInt uiPartAddr, Int iWidt
     }
     else
     {
-#if (WEIGHT_PRED && GENERIC_IF)
+#if (WEIGHT_PRED)
       if ( pcCU->getSlice()->getPPS()->getWPBiPredIdc() )
         xPredInterUni ( pcCU, uiPartAddr, iWidth, iHeight, eRefPicList, pcMbYuv, iPartIdx, true );
       else
