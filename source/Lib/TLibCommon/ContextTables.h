@@ -74,11 +74,7 @@
 #define NUM_PLANARFLAG_CTX            2       ///< number of context models for planar mode flag (intra prediction)
 #endif
 
-#if DNB_INTRA_CHR_PRED_MODE
 #define NUM_CHROMA_PRED_CTX           2       ///< number of context models for intra prediction (chroma)
-#else
-#define NUM_CHROMA_PRED_CTX           4       ///< number of context models for intra prediction (chroma)
-#endif
 #define NUM_INTER_DIR_CTX             4       ///< number of context models for inter prediction direction
 #define NUM_MV_RES_CTX                2       ///< number of context models for motion vector difference
 
@@ -321,7 +317,6 @@ INIT_PLANARFLAG[3][NUM_PLANARFLAG_CTX][2] =
 #endif
 
 // initial probability for intra direction of chroma
-#if DNB_INTRA_CHR_PRED_MODE
 static const Short
 INIT_CHROMA_PRED_MODE[3][NUM_CHROMA_PRED_CTX][2] =
 {
@@ -335,21 +330,6 @@ INIT_CHROMA_PRED_MODE[3][NUM_CHROMA_PRED_CTX][2] =
     {  0,   64 }, {   0,   64 }
   }
 };
-#else
-static const Short
-INIT_CHROMA_PRED_MODE[3][4][2] =
-{
-  {
-    {  0,   64 }, {   0,   64 }, {  0,  64 }, {  0,  64 }
-  },
-  {
-    {  0,   64 }, {   0,   64 }, {  0,  64 }, {  0,  64 }
-  },
-  {
-    {  0,   64 }, {   0,   64 }, {  0,  64 }, {  0,  64 }
-  }
-};
-#endif
 
 // initial probability for temporal direction
 static const Short

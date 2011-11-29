@@ -843,28 +843,16 @@ Void TEncSbac::codeIntraDirLumaAng( TComDataCU* pcCU, UInt uiAbsPartIdx )
 Void TEncSbac::codeIntraDirChroma( TComDataCU* pcCU, UInt uiAbsPartIdx )
 {
 #if FIXED_MPM
-#if !DNB_INTRA_CHR_PRED_MODE
-  UInt uiCtx            = pcCU->getCtxIntraDirChroma( uiAbsPartIdx );
-# endif
   UInt uiIntraDirChroma = pcCU->getChromaIntraDir( uiAbsPartIdx );
 
   if( uiIntraDirChroma == DM_CHROMA_IDX ) 
   {
-#if DNB_INTRA_CHR_PRED_MODE
     m_pcBinIf->encodeBin( 0, m_cCUChromaPredSCModel.get( 0, 0, 0 ) );
-#else
-    m_pcBinIf->encodeBin( 0, m_cCUChromaPredSCModel.get( 0, 0, uiCtx ) );
-#endif
   } 
   else if( uiIntraDirChroma == LM_CHROMA_IDX )
   {
-#if DNB_INTRA_CHR_PRED_MODE
     m_pcBinIf->encodeBin( 1, m_cCUChromaPredSCModel.get( 0, 0, 0 ) );
     m_pcBinIf->encodeBin( 0, m_cCUChromaPredSCModel.get( 0, 0, 1 ) );
-#else
-    m_pcBinIf->encodeBin( 1, m_cCUChromaPredSCModel.get( 0, 0, uiCtx ) );
-    m_pcBinIf->encodeBin( 0, m_cCUChromaPredSCModel.get( 0, 0, 3 ) );
-#endif
   }
   else
   { 
@@ -879,34 +867,19 @@ Void TEncSbac::codeIntraDirChroma( TComDataCU* pcCU, UInt uiAbsPartIdx )
         break;
       }
     }
-#if DNB_INTRA_CHR_PRED_MODE
     m_pcBinIf->encodeBin( 1, m_cCUChromaPredSCModel.get( 0, 0, 0 ) );
-#else
-    m_pcBinIf->encodeBin( 1, m_cCUChromaPredSCModel.get( 0, 0, uiCtx ) );
-#endif
 
     if (pcCU->getSlice()->getSPS()->getUseLMChroma())
     {
-#if DNB_INTRA_CHR_PRED_MODE
       m_pcBinIf->encodeBin( 1, m_cCUChromaPredSCModel.get( 0, 0, 1 ));
-#else
-      m_pcBinIf->encodeBin( 1, m_cCUChromaPredSCModel.get( 0, 0, 3 ));
-#endif
     }
 #if CHROMA_CODEWORD_SWITCH 
     uiIntraDirChroma = ChromaMapping[uiIntraDirChroma];
 #endif
-#if DNB_INTRA_CHR_PRED_MODE
     xWriteUnaryMaxSymbol( uiIntraDirChroma, m_cCUChromaPredSCModel.get( 0, 0 ) + 1, 0, 3 );
-#else
-    xWriteUnaryMaxSymbol( uiIntraDirChroma, m_cCUChromaPredSCModel.get( 0, 0 ) + 3, 0, 3 );
-#endif
   }
   return;
 #else
-# if !DNB_INTRA_CHR_PRED_MODE
-  UInt uiCtx            = pcCU->getCtxIntraDirChroma( uiAbsPartIdx );
-# endif
   UInt uiIntraDirChroma = pcCU->getChromaIntraDir   ( uiAbsPartIdx );
   
 #if ADD_PLANAR_MODE
@@ -979,21 +952,12 @@ Void TEncSbac::codeIntraDirChroma( TComDataCU* pcCU, UInt uiAbsPartIdx )
   
   if ( 0 == uiIntraDirChroma )
   {
-#if DNB_INTRA_CHR_PRED_MODE
     m_pcBinIf->encodeBin( 0, *m_cCUChromaPredSCModel.get( 0 ) );
-#else
-    m_pcBinIf->encodeBin( 0, m_cCUChromaPredSCModel.get( 0, 0, uiCtx ) );
-#endif
   }
   else
   {
-#if DNB_INTRA_CHR_PRED_MODE
     m_pcBinIf->encodeBin( 1, *m_cCUChromaPredSCModel.get( 0 ) );
     xWriteUnaryMaxSymbol( uiIntraDirChroma - 1, m_cCUChromaPredSCModel.get( 0 ) + 1, 0, iMax );
-#else
-    m_pcBinIf->encodeBin( 1, m_cCUChromaPredSCModel.get( 0, 0, uiCtx ) );
-    xWriteUnaryMaxSymbol( uiIntraDirChroma - 1, m_cCUChromaPredSCModel.get( 0, 0 ) + 3, 0, iMax );
-#endif
   }
 
 #if ADD_PLANAR_MODE
