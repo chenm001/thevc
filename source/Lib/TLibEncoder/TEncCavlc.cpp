@@ -146,28 +146,10 @@ Void TEncCavlc::resetEntropy()
   ::memcpy(m_uiLPTableD4, g_auiLPTableD4, 3*32*sizeof(UInt));
   ::memcpy(m_uiLastPosVlcIndex, g_auiLastPosVlcIndex, 10*sizeof(UInt));
   
-#if FIXED_MPM
   ::memcpy( m_uiIntraModeTableD17, g_auiIntraModeTableD17, 17*sizeof(UInt) );
   ::memcpy( m_uiIntraModeTableE17, g_auiIntraModeTableE17, 17*sizeof(UInt) );
   ::memcpy( m_uiIntraModeTableD34, g_auiIntraModeTableD34, 34*sizeof(UInt) );
   ::memcpy( m_uiIntraModeTableE34, g_auiIntraModeTableE34, 34*sizeof(UInt) );
-#elif MTK_DCM_MPM
-  ::memcpy(m_uiIntraModeTableD17[0], g_auiIntraModeTableD17[0], 16*sizeof(UInt));
-  ::memcpy(m_uiIntraModeTableE17[0], g_auiIntraModeTableE17[0], 16*sizeof(UInt));
-  ::memcpy(m_uiIntraModeTableD17[1], g_auiIntraModeTableD17[1], 16*sizeof(UInt));
-  ::memcpy(m_uiIntraModeTableE17[1], g_auiIntraModeTableE17[1], 16*sizeof(UInt));
-
-  ::memcpy(m_uiIntraModeTableD34[0], g_auiIntraModeTableD34[0], 33*sizeof(UInt));
-  ::memcpy(m_uiIntraModeTableE34[0], g_auiIntraModeTableE34[0], 33*sizeof(UInt));
-  ::memcpy(m_uiIntraModeTableD34[1], g_auiIntraModeTableD34[1], 33*sizeof(UInt));
-  ::memcpy(m_uiIntraModeTableE34[1], g_auiIntraModeTableE34[1], 33*sizeof(UInt));
-#else
-  ::memcpy(m_uiIntraModeTableD17, g_auiIntraModeTableD17, 16*sizeof(UInt));
-  ::memcpy(m_uiIntraModeTableE17, g_auiIntraModeTableE17, 16*sizeof(UInt));
-
-  ::memcpy(m_uiIntraModeTableD34, g_auiIntraModeTableD34, 33*sizeof(UInt));
-  ::memcpy(m_uiIntraModeTableE34, g_auiIntraModeTableE34, 33*sizeof(UInt));
-#endif
   
 #if CAVLC_RQT_CBP
   ::memcpy(m_uiCBP_YUV_TableE, g_auiCBP_YUV_TableE, 4*8*sizeof(UInt));
@@ -1096,15 +1078,6 @@ Void TEncCavlc::codeIntraDirLumaAng( TComDataCU* pcCU, UInt uiAbsPartIdx )
   Int iDir         = pcCU->getLumaIntraDir( uiAbsPartIdx );
   Int iIntraIdx = pcCU->getIntraSizeIdx(uiAbsPartIdx);
 
-#if ADD_PLANAR_MODE && !FIXED_MPM
-  UInt planarFlag    = 0;
-  if (iDir == PLANAR_IDX)
-  {
-    iDir = 2;
-    planarFlag = 1;
-  }
-#endif
- 
   Int uiPreds[2] = {-1, -1};
   Int uiPredNum = pcCU->getIntraDirLumaPredictor(uiAbsPartIdx, uiPreds);  
 
@@ -1123,14 +1096,7 @@ Void TEncCavlc::codeIntraDirLumaAng( TComDataCU* pcCU, UInt uiAbsPartIdx )
     if(uiPredIdx != -1)
     {
       xWriteFlag(1);
-#if FIXED_MPM
       xWriteFlag( (UInt)uiPredIdx );
-#else
-      if(uiPredNum == 2)
-      {
-        xWriteFlag((UInt)uiPredIdx);
-      }
-#endif
     }
     else
     {
@@ -1157,7 +1123,6 @@ Void TEncCavlc::codeIntraDirLumaAng( TComDataCU* pcCU, UInt uiAbsPartIdx )
      UInt  *m_uiIntraModeTableD;
      UInt  *m_uiIntraModeTableE;
 
-#if FIXED_MPM
      if( g_aucIntraModeBitsAng[iIntraIdx] == 5 )
      {
        huff = huff17_2;
@@ -1205,66 +1170,7 @@ Void TEncCavlc::codeIntraDirLumaAng( TComDataCU* pcCU, UInt uiAbsPartIdx )
          m_uiIntraModeTableE[iDirLarger] = iRankIntraMode;
        }
      }
-#else
-     if ( g_aucIntraModeBitsAng[iIntraIdx] == 5 )
-     {
-       huff = huff17_2[uiPredNum - 1];
-       lengthHuff = lengthHuff17_2[uiPredNum - 1];
-       m_uiIntraModeTableD = m_uiIntraModeTableD17[uiPredNum - 1];
-       m_uiIntraModeTableE = m_uiIntraModeTableE17[uiPredNum - 1];
-     }
-     else
-     {
-       huff = huff34_2[uiPredNum - 1];
-       lengthHuff = lengthHuff34_2[uiPredNum - 1];
-       m_uiIntraModeTableD = m_uiIntraModeTableD34[uiPredNum - 1];
-       m_uiIntraModeTableE = m_uiIntraModeTableE34[uiPredNum - 1];
-     }
-
-     if(uiPredIdx != -1)
-     {
-       uiCode=huff[0];
-       uiLength=lengthHuff[0];
-       xWriteCode(uiCode, uiLength);
-
-       if(uiPredNum == 2)
-       {
-         xWriteFlag((UInt)uiPredIdx);
-       }
-     }
-     else
-     {
-       for(Int i = (uiPredNum - 1); i >= 0; i--)
-       {
-         iDir = iDir > uiPreds[i] ? iDir - 1 : iDir;
-       }
-       iRankIntraMode=m_uiIntraModeTableE[iDir];
-
-       uiCode=huff[iRankIntraMode+1];
-       uiLength=lengthHuff[iRankIntraMode+1];
-
-       xWriteCode(uiCode, uiLength);
-
-       if ( m_bAdaptFlag )
-       {
-         iRankIntraModeLarger = max(0,iRankIntraMode-1);
-         iDirLarger = m_uiIntraModeTableD[iRankIntraModeLarger];
-  
-         m_uiIntraModeTableD[iRankIntraModeLarger] = iDir;
-         m_uiIntraModeTableD[iRankIntraMode] = iDirLarger;
-         m_uiIntraModeTableE[iDir] = iRankIntraModeLarger;
-         m_uiIntraModeTableE[iDirLarger] = iRankIntraMode;
-       }
-     }
-#endif
   }
-#if ADD_PLANAR_MODE && !FIXED_MPM
-  iDir = pcCU->getLumaIntraDir( uiAbsPartIdx );
-  if ( (iDir == PLANAR_IDX) || (iDir == 2) )
-  {
-    xWriteFlag( planarFlag );
-  }
-#endif
 }
 #else
 Void TEncCavlc::codeIntraDirLumaAng( TComDataCU* pcCU, UInt uiAbsPartIdx )
@@ -1378,7 +1284,6 @@ Void TEncCavlc::codeIntraDirLumaAng( TComDataCU* pcCU, UInt uiAbsPartIdx )
 
 Void TEncCavlc::codeIntraDirChroma( TComDataCU* pcCU, UInt uiAbsPartIdx )
 {
-#if FIXED_MPM
   UInt uiIntraDirChroma = pcCU->getChromaIntraDir( uiAbsPartIdx );
 
   if (uiIntraDirChroma == DM_CHROMA_IDX ) 
@@ -1418,64 +1323,6 @@ Void TEncCavlc::codeIntraDirChroma( TComDataCU* pcCU, UInt uiAbsPartIdx )
     xWriteUnaryMaxSymbol( uiIntraDirChroma, 3 );
   }
   return;
-#else
-  UInt uiIntraDirChroma = pcCU->getChromaIntraDir   ( uiAbsPartIdx );
-  
-  UInt planarFlag = 0;
-  if (uiIntraDirChroma == PLANAR_IDX)
-  {
-    uiIntraDirChroma = 2;
-    planarFlag = 1;
-  }
-
-  UInt uiMode = pcCU->getLumaIntraDir(uiAbsPartIdx);
-  if ( (uiMode == 2 ) || (uiMode == PLANAR_IDX) )
-  {
-    uiMode = 4;
-  }
-  Bool bUseLMFlag = pcCU->getSlice()->getSPS()->getUseLMChroma();
-
-  Int  iMaxMode = bUseLMFlag ? 3 : 4;
-
-  Int  iMax = uiMode < iMaxMode ? 3 : 4; 
-  
-  //switch codeword
-  if (uiIntraDirChroma == 4)
-  {
-    uiIntraDirChroma = 0;
-  }
-  else if (uiIntraDirChroma == LM_CHROMA_IDX )
-  {
-    uiIntraDirChroma = 1;
-  }
-  else
-  {
-    if (uiIntraDirChroma < uiMode)
-    {
-      uiIntraDirChroma++;
-    }
-    
-    if (bUseLMFlag)
-    {
-      uiIntraDirChroma++;
-    }
-#if CHROMA_CODEWORD_SWITCH
-    uiIntraDirChroma = ChromaMapping[iMax-3][uiIntraDirChroma];
-#endif
-  }
-
-  xWriteUnaryMaxSymbol( uiIntraDirChroma, iMax);
-
-  uiIntraDirChroma = pcCU->getChromaIntraDir( uiAbsPartIdx );
-  uiMode = pcCU->getLumaIntraDir(uiAbsPartIdx);
-  mapPlanartoDC( uiIntraDirChroma );
-  mapPlanartoDC( uiMode );
-  if ( (uiIntraDirChroma == 2) && (uiMode != 2) )
-  {
-    xWriteFlag( planarFlag );
-  }
-  return;
-#endif
 }
 
 Void TEncCavlc::codeInterDir( TComDataCU* pcCU, UInt uiAbsPartIdx )

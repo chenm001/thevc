@@ -159,8 +159,6 @@
 
 #define MTK_DCM_MPM 1 // MostProbableModeSignaling
 
-#define FIXED_MPM                        1           ///< Fixed number of MPMs for intra mode parsing. Solution A of JCTVC-F765
-#if FIXED_MPM
 #undef PLANAR_IDX
 #define PLANAR_IDX             0
 #define DC_IDX                 3                     // index for intra DC mode
@@ -168,7 +166,6 @@
 #define DM_CHROMA_IDX          36                    // chroma mode index for derived from luma intra mode
 #if !ADD_PLANAR_MODE || !MTK_DCM_MPM
 #error "ADD_PLANAR_MODE and MTK_DCM_MPM should be enabled"
-#endif
 #endif
 
 

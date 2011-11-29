@@ -64,9 +64,6 @@ TEncSbac::TEncSbac()
 , m_cCUPredModeSCModel        ( 1,             1,               NUM_PRED_MODE_CTX             , m_contextModels + m_numContextModels, m_numContextModels)
 , m_cCUAlfCtrlFlagSCModel     ( 1,             1,               NUM_ALF_CTRL_FLAG_CTX         , m_contextModels + m_numContextModels, m_numContextModels)
 , m_cCUIntraPredSCModel       ( 1,             1,               NUM_ADI_CTX                   , m_contextModels + m_numContextModels, m_numContextModels)
-#if ADD_PLANAR_MODE && !FIXED_MPM
-, m_cPlanarFlagSCModel        ( 1,             1,               NUM_PLANARFLAG_CTX            , m_contextModels + m_numContextModels, m_numContextModels)
-#endif
 , m_cCUChromaPredSCModel      ( 1,             1,               NUM_CHROMA_PRED_CTX           , m_contextModels + m_numContextModels, m_numContextModels)
 , m_cCUDeltaQpSCModel         ( 1,             1,               NUM_DELTA_QP_CTX              , m_contextModels + m_numContextModels, m_numContextModels)
 , m_cCUInterDirSCModel        ( 1,             1,               NUM_INTER_DIR_CTX             , m_contextModels + m_numContextModels, m_numContextModels)
@@ -126,9 +123,6 @@ Void TEncSbac::resetEntropy           ()
 #endif
   m_cCUPredModeSCModel.initBuffer        ( eSliceType, iQp, (Short*)INIT_PRED_MODE );
   m_cCUIntraPredSCModel.initBuffer       ( eSliceType, iQp, (Short*)INIT_INTRA_PRED_MODE );
-#if ADD_PLANAR_MODE && !FIXED_MPM
-  m_cPlanarFlagSCModel.initBuffer        ( eSliceType, iQp, (Short*)INIT_PLANARFLAG );
-#endif
   m_cCUChromaPredSCModel.initBuffer      ( eSliceType, iQp, (Short*)INIT_CHROMA_PRED_MODE );
   m_cCUInterDirSCModel.initBuffer        ( eSliceType, iQp, (Short*)INIT_INTER_DIR );
   m_cCUMvdSCModel.initBuffer             ( eSliceType, iQp, (Short*)INIT_MVD );
@@ -180,9 +174,6 @@ Void TEncSbac::updateContextTables( SliceType eSliceType, Int iQp, Bool bExecute
 #endif
   m_cCUPredModeSCModel.initBuffer        ( eSliceType, iQp, (Short*)INIT_PRED_MODE );
   m_cCUIntraPredSCModel.initBuffer       ( eSliceType, iQp, (Short*)INIT_INTRA_PRED_MODE );
-#if ADD_PLANAR_MODE && !FIXED_MPM
-  m_cPlanarFlagSCModel.initBuffer        ( eSliceType, iQp, (Short*)INIT_PLANARFLAG );
-#endif
   m_cCUChromaPredSCModel.initBuffer      ( eSliceType, iQp, (Short*)INIT_CHROMA_PRED_MODE );
   m_cCUInterDirSCModel.initBuffer        ( eSliceType, iQp, (Short*)INIT_INTER_DIR );
   m_cCUMvdSCModel.initBuffer             ( eSliceType, iQp, (Short*)INIT_MVD );
@@ -388,9 +379,6 @@ Void  TEncSbac::loadIntraDirModeLuma( TEncSbac* pSrc)
   m_pcBinIf->copyState( pSrc->m_pcBinIf );
   
   this->m_cCUIntraPredSCModel      .copyFrom( &pSrc->m_cCUIntraPredSCModel       );
-#if ADD_PLANAR_MODE && !FIXED_MPM
-  this->m_cPlanarFlagSCModel       .copyFrom( &pSrc->m_cPlanarFlagSCModel        );
-#endif
 }
 
 
@@ -705,14 +693,6 @@ Void TEncSbac::codeIntraDirLumaAng( TComDataCU* pcCU, UInt uiAbsPartIdx )
 {
   UInt uiDir         = pcCU->getLumaIntraDir( uiAbsPartIdx );
   Int iIntraIdx = pcCU->getIntraSizeIdx(uiAbsPartIdx);
-#if ADD_PLANAR_MODE && !FIXED_MPM
-  UInt planarFlag    = 0;
-  if (uiDir == PLANAR_IDX)
-  {
-    uiDir = 2;
-    planarFlag = 1;
-  }
-#endif
   
   Int uiPreds[2] = {-1, -1};
   Int uiPredNum = pcCU->getIntraDirLumaPredictor(uiAbsPartIdx, uiPreds);  
@@ -730,14 +710,7 @@ Void TEncSbac::codeIntraDirLumaAng( TComDataCU* pcCU, UInt uiAbsPartIdx )
   if(uiPredIdx != -1)
   {
     m_pcBinIf->encodeBin( 1, m_cCUIntraPredSCModel.get( 0, 0, 0 ) );
-#if FIXED_MPM
     m_pcBinIf->encodeBin( uiPredIdx, m_cCUIntraPredSCModel.get( 0, 0, 2 ) );
-#else
-    if(uiPredNum == 2)
-    {
-      m_pcBinIf->encodeBin( uiPredIdx, m_cCUIntraPredSCModel.get( 0, 0, 2 ) );
-    }
-#endif
   }
   else
   {
@@ -764,13 +737,6 @@ Void TEncSbac::codeIntraDirLumaAng( TComDataCU* pcCU, UInt uiAbsPartIdx )
       m_pcBinIf->encodeBin( uiDir - 31, m_cCUIntraPredSCModel.get(0, 0, 1) );                  
     }
    }
-#if ADD_PLANAR_MODE && !FIXED_MPM
-  uiDir = pcCU->getLumaIntraDir( uiAbsPartIdx );
-  if ( (uiDir == PLANAR_IDX) || (uiDir == 2) )
-  {
-    m_pcBinIf->encodeBin( planarFlag, m_cPlanarFlagSCModel.get(0,0,0) );
-  }
-#endif
   return;
 }
 #else
@@ -831,7 +797,6 @@ Void TEncSbac::codeIntraDirLumaAng( TComDataCU* pcCU, UInt uiAbsPartIdx )
 #endif
 Void TEncSbac::codeIntraDirChroma( TComDataCU* pcCU, UInt uiAbsPartIdx )
 {
-#if FIXED_MPM
   UInt uiIntraDirChroma = pcCU->getChromaIntraDir( uiAbsPartIdx );
 
   if( uiIntraDirChroma == DM_CHROMA_IDX ) 
@@ -868,71 +833,6 @@ Void TEncSbac::codeIntraDirChroma( TComDataCU* pcCU, UInt uiAbsPartIdx )
     xWriteUnaryMaxSymbol( uiIntraDirChroma, m_cCUChromaPredSCModel.get( 0, 0 ) + 1, 0, 3 );
   }
   return;
-#else
-  UInt uiIntraDirChroma = pcCU->getChromaIntraDir   ( uiAbsPartIdx );
-  
-  UInt planarFlag       = 0;
-  if (uiIntraDirChroma == PLANAR_IDX)
-  {
-    uiIntraDirChroma = 2;
-    planarFlag = 1;
-  }
- 
-  UInt uiMode = pcCU->getLumaIntraDir(uiAbsPartIdx);
-  if ( (uiMode == 2 ) || (uiMode == PLANAR_IDX) )
-  {
-    uiMode = 4;
-  }
-
-  Bool bUseLMFlag = pcCU->getSlice()->getSPS()->getUseLMChroma();
-
-  Int  iMaxMode = bUseLMFlag ? 3 : 4;
-
-  Int  iMax = uiMode < iMaxMode ? 2 : 3; 
-  
-  //switch codeword
-  if (uiIntraDirChroma == 4) 
-  {
-    uiIntraDirChroma = 0;
-  } 
-  else if (uiIntraDirChroma == LM_CHROMA_IDX )
-  {
-    uiIntraDirChroma = 1;
-  }
-  else
-  {
-    if (uiIntraDirChroma < uiMode)
-      uiIntraDirChroma++;
-
-    if (bUseLMFlag)
-      uiIntraDirChroma++;
-
-#if CHROMA_CODEWORD_SWITCH
-    uiIntraDirChroma = ChromaMapping[iMax-2][uiIntraDirChroma];
-#endif
-  }
-
-
-  if ( 0 == uiIntraDirChroma )
-  {
-    m_pcBinIf->encodeBin( 0, *m_cCUChromaPredSCModel.get( 0 ) );
-  }
-  else
-  {
-    m_pcBinIf->encodeBin( 1, *m_cCUChromaPredSCModel.get( 0 ) );
-    xWriteUnaryMaxSymbol( uiIntraDirChroma - 1, m_cCUChromaPredSCModel.get( 0 ) + 1, 0, iMax );
-  }
-
-  uiIntraDirChroma = pcCU->getChromaIntraDir( uiAbsPartIdx );
-  uiMode = pcCU->getLumaIntraDir(uiAbsPartIdx);
-  mapPlanartoDC( uiIntraDirChroma );
-  mapPlanartoDC( uiMode );
-  if ( (uiIntraDirChroma == 2) && (uiMode != 2) )
-  {
-    m_pcBinIf->encodeBin( planarFlag, m_cPlanarFlagSCModel.get(0,0,1) );
-  }
-  return;
-#endif
 }
 
 Void TEncSbac::codeInterDir( TComDataCU* pcCU, UInt uiAbsPartIdx )
@@ -1784,9 +1684,6 @@ Void TEncSbac::xCopyContextsFrom( TEncSbac* pSrc )
 #endif
   m_cCUPredModeSCModel        .copyFrom( &pSrc->m_cCUPredModeSCModel        );
   m_cCUIntraPredSCModel       .copyFrom( &pSrc->m_cCUIntraPredSCModel       );
-#if ADD_PLANAR_MODE && !FIXED_MPM
-  m_cPlanarFlagSCModel        .copyFrom( &pSrc->m_cPlanarFlagSCModel        );
-#endif
   m_cCUChromaPredSCModel      .copyFrom( &pSrc->m_cCUChromaPredSCModel      );
   m_cCUInterDirSCModel        .copyFrom( &pSrc->m_cCUInterDirSCModel        );
   m_cCUMvdSCModel             .copyFrom( &pSrc->m_cCUMvdSCModel             );

@@ -196,9 +196,6 @@ private:
   ContextModel3DBuffer m_cCUPredModeSCModel;
   ContextModel3DBuffer m_cCUAlfCtrlFlagSCModel;
   ContextModel3DBuffer m_cCUIntraPredSCModel;
-#if ADD_PLANAR_MODE && !FIXED_MPM
-  ContextModel3DBuffer m_cPlanarFlagSCModel;
-#endif
   ContextModel3DBuffer m_cCUChromaPredSCModel;
   ContextModel3DBuffer m_cCUDeltaQpSCModel;
   ContextModel3DBuffer m_cCUInterDirSCModel;

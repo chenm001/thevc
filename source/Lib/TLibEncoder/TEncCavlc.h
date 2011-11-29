@@ -86,25 +86,11 @@ protected:
 #endif
   UInt          m_uiLastPosVlcIndex[10];
   
-#if FIXED_MPM
   UInt          m_uiIntraModeTableD17[17];
   UInt          m_uiIntraModeTableE17[17];
 
   UInt          m_uiIntraModeTableD34[34];
   UInt          m_uiIntraModeTableE34[34];
-#elif MTK_DCM_MPM
-  UInt          m_uiIntraModeTableD17[2][16];
-  UInt          m_uiIntraModeTableE17[2][16];
-
-  UInt          m_uiIntraModeTableD34[2][33];
-  UInt          m_uiIntraModeTableE34[2][33];
-#else
-  UInt          m_uiIntraModeTableD17[16];
-  UInt          m_uiIntraModeTableE17[16];
-
-  UInt          m_uiIntraModeTableD34[33];
-  UInt          m_uiIntraModeTableE34[33];
-#endif
   
 #if CAVLC_RQT_CBP
   UInt          m_uiCBP_YUV_TableE[4][8];

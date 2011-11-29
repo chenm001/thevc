@@ -66,9 +66,6 @@
 #else
 #define NUM_ADI_CTX                   2
 #endif
-#if ADD_PLANAR_MODE && !FIXED_MPM
-#define NUM_PLANARFLAG_CTX            2       ///< number of context models for planar mode flag (intra prediction)
-#endif
 
 #define NUM_CHROMA_PRED_CTX           2       ///< number of context models for intra prediction (chroma)
 #define NUM_INTER_DIR_CTX             4       ///< number of context models for inter prediction direction
@@ -267,23 +264,6 @@ INIT_INTRA_PRED_MODE[3][NUM_ADI_CTX][2] =
   },
   {
     {    0,   51 }, {    1,   55 }
-  }
-};
-#endif
-
-#if ADD_PLANAR_MODE && !FIXED_MPM
-// initial probability for planar mode flag
-static const Short
-INIT_PLANARFLAG[3][NUM_PLANARFLAG_CTX][2] =
-{
-  {
-    {    0,   64 }, {    0,   64 }
-  },
-  {
-    {    0,   64 }, {    0,   64 }
-  },
-  {
-    {    0,   64 }, {    0,   64 }
   }
 };
 #endif

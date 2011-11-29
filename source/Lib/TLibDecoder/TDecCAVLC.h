@@ -116,16 +116,8 @@ private:
 #endif
   UInt                      m_uiLastPosVlcIndex[10];
   
-#if FIXED_MPM
   UInt                      m_uiIntraModeTableD17[17];
   UInt                      m_uiIntraModeTableD34[34];
-#elif MTK_DCM_MPM
-  UInt                      m_uiIntraModeTableD17[2][16];
-  UInt                      m_uiIntraModeTableD34[2][33];
-#else
-  UInt                      m_uiIntraModeTableD17[16];
-  UInt                      m_uiIntraModeTableD34[33];
-#endif
 #if AMP
   UInt                      m_uiSplitTableD[4][11];
 #else

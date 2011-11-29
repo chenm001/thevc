@@ -1134,11 +1134,7 @@ TEncSearch::xIntraCodingChromaBlk( TComDataCU* pcCU,
   UInt      uiRecIPredStride  = pcCU->getPic()->getPicYuvRec()->getCStride();
   
   //===== update chroma mode =====
-#if FIXED_MPM
   if( uiChromaPredMode == DM_CHROMA_IDX )
-#else
-  if( uiChromaPredMode == 4 )
-#endif
   {
     uiChromaPredMode          = pcCU->getLumaIntraDir( 0 );
   }
@@ -1694,11 +1690,7 @@ TEncSearch::estIntraPredQT( TComDataCU* pcCU,
     pcCU->getPattern()->initAdiPattern( pcCU, uiPartOffset, uiInitTrDepth, m_piYuvExt, m_iYuvExtStride, m_iYuvExtHeight, bAboveAvail, bLeftAvail );
     
     //===== determine set of modes to be tested (using prediction signal only) =====
-#if ADD_PLANAR_MODE && !FIXED_MPM
-    Int numModesAvailable     = g_aucIntraModeNumAng[uiWidthBit] + 1;
-#else
     Int numModesAvailable     = g_aucIntraModeNumAng[uiWidthBit];
-#endif
     Pel* piOrg         = pcOrgYuv ->getLumaAddr( uiPU, uiWidth );
     Pel* piPred        = pcPredYuv->getLumaAddr( uiPU, uiWidth );
     UInt uiStride      = pcPredYuv->getStride();
@@ -1718,11 +1710,7 @@ TEncSearch::estIntraPredQT( TComDataCU* pcCU,
       
       for( Int modeIdx = 0; modeIdx < numModesAvailable; modeIdx++ )
       {
-#if ADD_PLANAR_MODE && !FIXED_MPM
-        UInt uiMode = (modeIdx == 0) ? PLANAR_IDX : modeIdx - 1;
-#else
         UInt uiMode = modeIdx;
-#endif
 #if !REFERENCE_SAMPLE_PADDING
         if ( !predIntraLumaDirAvailable( uiMode, uiWidthBit, bAboveAvail, bLeftAvail ) )
           continue;
@@ -1744,7 +1732,6 @@ TEncSearch::estIntraPredQT( TComDataCU* pcCU,
       numModesForFullRD = min<Int>( numModesForFullRD, CandNum );
 #endif
 #if FAST_UDI_USE_MPM
-#if FIXED_MPM
       Int uiPreds[2] = {-1, -1};
       Int iMode = -1;
       Int numCand = pcCU->getIntraDirLumaPredictor( uiPartOffset, uiPreds, &iMode );
@@ -1756,11 +1743,6 @@ TEncSearch::estIntraPredQT( TComDataCU* pcCU,
 
       for( Int j=0; j < numCand; j++)
 
-#elif MTK_DCM_MPM
-      Int uiPreds[2] = {-1, -1};
-      Int numCand = pcCU->getIntraDirLumaPredictor(uiPartOffset, uiPreds);  
-      for( Int j=0; j < numCand; j++)
-#endif
       {
         Bool mostProbableModeIncluded = false;
 #if MTK_DCM_MPM
@@ -1769,12 +1751,6 @@ TEncSearch::estIntraPredQT( TComDataCU* pcCU,
         Int mostProbableMode = pcCU->getMostProbableIntraDirLuma( uiPartOffset );
 #endif
         
-#if ADD_PLANAR_MODE && !FIXED_MPM
-        if (mostProbableMode == 2)
-        {
-          mostProbableMode = PLANAR_IDX;
-        }
-#endif
         for( Int i=0; i < numModesForFullRD; i++)
         {
           mostProbableModeIncluded |= (mostProbableMode == uiRdModeList[i]);
@@ -1790,11 +1766,7 @@ TEncSearch::estIntraPredQT( TComDataCU* pcCU,
     {
       for( Int i=0; i < numModesForFullRD; i++)
       {
-#if ADD_PLANAR_MODE && !FIXED_MPM
-        uiRdModeList[i] = (i == 0) ? PLANAR_IDX : i-1; 
-#else
         uiRdModeList[i] = i;
-#endif
       }
     }
     
@@ -2041,44 +2013,10 @@ TEncSearch::estIntraPredChromaQT( TComDataCU* pcCU,
   Double  dBestCost   = MAX_DOUBLE;
   
   //----- init mode list -----
-#if FIXED_MPM
   UInt  uiMinMode = 0;
   UInt  uiModeList[ NUM_CHROMA_MODE ];
   pcCU->getAllowedChromaDir( 0, uiModeList );
   UInt  uiMaxMode = NUM_CHROMA_MODE;
-#else
-  UInt uiModeList[6];
-  UInt uiMaxMode = 0;
-
-  UInt uiLumaMode = pcCU->getLumaIntraDir(0);
-
-  if (uiLumaMode != PLANAR_IDX)
-  {
-    uiModeList[uiMaxMode++] = PLANAR_IDX;    
-  }
-  
-  for ( Int i = 0; i < 3; i++ )
-  {
-    if (uiLumaMode != i)
-    {
-      uiModeList[uiMaxMode++] = i;      
-    }
-  }
-  
-  if ( pcCU->getSlice()->getSPS()->getUseLMChroma() )
-  {
-    uiModeList[uiMaxMode++] = LM_CHROMA_IDX;
-  }
-  else
-  if (uiLumaMode != 3)
-  {
-    uiModeList[uiMaxMode++] = 3;
-  }
-    
-  uiModeList[uiMaxMode++] = 4;
-  
-  UInt  uiMinMode = 0;
-#endif
 
   //----- check chroma modes -----
   for( UInt uiMode = uiMinMode; uiMode < uiMaxMode; uiMode++ )

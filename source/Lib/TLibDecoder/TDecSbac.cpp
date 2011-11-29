@@ -59,9 +59,6 @@ TDecSbac::TDecSbac()
 , m_cCUPredModeSCModel        ( 1,             1,               NUM_PRED_MODE_CTX             , m_contextModels + m_numContextModels, m_numContextModels)
 , m_cCUAlfCtrlFlagSCModel     ( 1,             1,               NUM_ALF_CTRL_FLAG_CTX         , m_contextModels + m_numContextModels, m_numContextModels)
 , m_cCUIntraPredSCModel       ( 1,             1,               NUM_ADI_CTX                   , m_contextModels + m_numContextModels, m_numContextModels)
-#if ADD_PLANAR_MODE && !FIXED_MPM
-, m_cPlanarFlagSCModel        ( 1,             1,               NUM_PLANARFLAG_CTX            , m_contextModels + m_numContextModels, m_numContextModels)
-#endif
 , m_cCUChromaPredSCModel      ( 1,             1,               NUM_CHROMA_PRED_CTX           , m_contextModels + m_numContextModels, m_numContextModels)
 , m_cCUDeltaQpSCModel         ( 1,             1,               NUM_DELTA_QP_CTX              , m_contextModels + m_numContextModels, m_numContextModels)
 , m_cCUInterDirSCModel        ( 1,             1,               NUM_INTER_DIR_CTX             , m_contextModels + m_numContextModels, m_numContextModels)
@@ -127,9 +124,6 @@ Void TDecSbac::resetEntropy          (TComSlice* pcSlice)
 #endif
   m_cCUPredModeSCModel.initBuffer        ( eSliceType, iQp, (Short*)INIT_PRED_MODE );
   m_cCUIntraPredSCModel.initBuffer       ( eSliceType, iQp, (Short*)INIT_INTRA_PRED_MODE );
-#if ADD_PLANAR_MODE && !FIXED_MPM
-  m_cPlanarFlagSCModel.initBuffer        ( eSliceType, iQp, (Short*)INIT_PLANARFLAG );
-#endif
   m_cCUChromaPredSCModel.initBuffer      ( eSliceType, iQp, (Short*)INIT_CHROMA_PRED_MODE );
   m_cCUInterDirSCModel.initBuffer        ( eSliceType, iQp, (Short*)INIT_INTER_DIR );
   m_cCUMvdSCModel.initBuffer             ( eSliceType, iQp, (Short*)INIT_MVD );
@@ -196,9 +190,6 @@ Void TDecSbac::updateContextTables( SliceType eSliceType, Int iQp )
 #endif
   m_cCUPredModeSCModel.initBuffer        ( eSliceType, iQp, (Short*)INIT_PRED_MODE );
   m_cCUIntraPredSCModel.initBuffer       ( eSliceType, iQp, (Short*)INIT_INTRA_PRED_MODE );
-#if ADD_PLANAR_MODE && !FIXED_MPM
-  m_cPlanarFlagSCModel.initBuffer        ( eSliceType, iQp, (Short*)INIT_PLANARFLAG );
-#endif
   m_cCUChromaPredSCModel.initBuffer      ( eSliceType, iQp, (Short*)INIT_CHROMA_PRED_MODE );
   m_cCUInterDirSCModel.initBuffer        ( eSliceType, iQp, (Short*)INIT_INTER_DIR );
   m_cCUMvdSCModel.initBuffer             ( eSliceType, iQp, (Short*)INIT_MVD );
@@ -810,20 +801,8 @@ Void TDecSbac::parseIntraDirLumaAng  ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt
  
   if ( uiSymbol )
   {
-#if FIXED_MPM
     m_pcTDecBinIf->decodeBin( uiSymbol, m_cCUIntraPredSCModel.get( 0, 0, 2 ) );
     intraPredMode = uiPreds[uiSymbol];
-#else
-    if(uiPredNum == 1)   
-    {
-      intraPredMode = uiPreds[0];
-    }
-    else 
-    {
-      m_pcTDecBinIf->decodeBin( uiSymbol, m_cCUIntraPredSCModel.get( 0, 0, 2) );
-      intraPredMode = uiPreds[uiSymbol];
-    }
-#endif
   }
   else
   {
@@ -847,18 +826,6 @@ Void TDecSbac::parseIntraDirLumaAng  ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt
     }
   }
   
-#if ADD_PLANAR_MODE && !FIXED_MPM
-  if (intraPredMode == 2)
-  {
-    UInt planarFlag;
-    m_pcTDecBinIf->decodeBin( planarFlag, m_cPlanarFlagSCModel.get(0,0,0) );
-    if ( planarFlag )
-    {
-      intraPredMode = PLANAR_IDX;
-    }
-  }
-#endif
-
   pcCU->setLumaIntraDirSubParts( (UChar)intraPredMode, uiAbsPartIdx, uiDepth );
 }
 #else
@@ -915,7 +882,6 @@ Void TDecSbac::parseIntraDirLumaAng  ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt
 #endif
 Void TDecSbac::parseIntraDirChroma( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
 {
-#if FIXED_MPM
   UInt uiSymbol;
 
   m_pcTDecBinIf->decodeBin( uiSymbol, m_cCUChromaPredSCModel.get( 0, 0, 0 ) );
@@ -953,69 +919,6 @@ Void TDecSbac::parseIntraDirChroma( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt ui
   }
   pcCU->setChromIntraDirSubParts( uiSymbol, uiAbsPartIdx, uiDepth );
   return;
-#else
-  UInt uiSymbol;
-  
-  UInt uiMode = pcCU->getLumaIntraDir(uiAbsPartIdx);
-  if ( (uiMode == 2 ) || (uiMode == PLANAR_IDX) )
-  {
-    uiMode = 4;
-  }
-
-  Int  iMaxMode = pcCU->getSlice()->getSPS()->getUseLMChroma() ? 3 : 4;
-  Int  iMax = uiMode < iMaxMode ? 2 : 3; 
-  
-  m_pcTDecBinIf->decodeBin( uiSymbol, *m_cCUChromaPredSCModel.get( 0 ) );
-  
-  if ( uiSymbol )
-  {
-    xReadUnaryMaxSymbol( uiSymbol, m_cCUChromaPredSCModel.get( 0 ) + 1, 0, iMax );
-    uiSymbol++;
-  }
-  
-  //switch codeword
-  if (uiSymbol == 0)
-  {
-    uiSymbol = 4;
-  } 
-  else if (uiSymbol == 1 && pcCU->getSlice()->getSPS()->getUseLMChroma())
-  {
-    uiSymbol = LM_CHROMA_IDX;
-  }
-  else 
-  {
-#if CHROMA_CODEWORD_SWITCH
-    uiSymbol = ChromaMapping[iMax-2][uiSymbol];
-#endif
-    
-    if (pcCU->getSlice()->getSPS()->getUseLMChroma())
-       uiSymbol --;
-
-    if (uiSymbol <= uiMode)
-       uiSymbol --;
-  }
-
-  if (uiSymbol == 2)
-  {
-    uiMode = pcCU->getLumaIntraDir(uiAbsPartIdx);
-    if (uiMode == 2)
-    {
-      uiSymbol = PLANAR_IDX;
-    }
-    else if (uiMode != PLANAR_IDX)
-    {
-      UInt planarFlag;
-      m_pcTDecBinIf->decodeBin( planarFlag, m_cPlanarFlagSCModel.get(0,0,1) );
-      if ( planarFlag )
-      {
-        uiSymbol = PLANAR_IDX;
-      }
-    }
-  }
-  pcCU->setChromIntraDirSubParts( uiSymbol, uiAbsPartIdx, uiDepth );
-  
-  return;
-#endif
 }
 
 Void TDecSbac::parseInterDir( TComDataCU* pcCU, UInt& ruiInterDir, UInt uiAbsPartIdx, UInt uiDepth )
@@ -1741,9 +1644,6 @@ Void TDecSbac::xCopyContextsFrom( TDecSbac* pSrc )
 #endif
   m_cCUPredModeSCModel        .copyFrom( &pSrc->m_cCUPredModeSCModel        );
   m_cCUIntraPredSCModel       .copyFrom( &pSrc->m_cCUIntraPredSCModel       );
-#if ADD_PLANAR_MODE && !FIXED_MPM
-  m_cPlanarFlagSCModel        .copyFrom( &pSrc->m_cPlanarFlagSCModel        );
-#endif
   m_cCUChromaPredSCModel      .copyFrom( &pSrc->m_cCUChromaPredSCModel      );
   m_cCUInterDirSCModel        .copyFrom( &pSrc->m_cCUInterDirSCModel        );
   m_cCUMvdSCModel             .copyFrom( &pSrc->m_cCUMvdSCModel             );

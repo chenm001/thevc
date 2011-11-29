@@ -562,33 +562,10 @@ const UInt g_auiLPTableD8[8][128] =
 
 #if MTK_DCM_MPM
 
-#if FIXED_MPM
 const UInt  g_auiIntraModeTableD17[17] = { 0, 3, 2, 15, 8, 11, 1, 10, 7, 4, 14, 9, 6, 5, 13, 12, 0 };
 const UInt  g_auiIntraModeTableE17[17] = { 0, 6, 2, 1, 9, 13, 12, 8, 4, 11, 7, 5, 15, 14, 10, 3, 0 };
 const UInt  g_auiIntraModeTableD34[34] = { 0, 2, 3, 29, 1, 8, 30, 21, 28, 16, 7, 15, 20, 31, 9, 11, 6, 4, 5, 12, 10, 14, 22, 19, 17, 27, 13, 18, 23, 26, 32, 24, 25, 0 };
 const UInt  g_auiIntraModeTableE34[34] = { 0, 4, 1, 2, 17, 18, 16, 10, 5, 14, 20, 15, 19, 26, 21, 11, 9, 24, 27, 23, 12, 7, 22, 28, 31, 32, 29, 25, 8, 3, 6, 13, 30, 0 };
-#else
-const UInt  g_auiIntraModeTableD17[2][16]=
-{
-  {0, 15, 11, 10, 13,  7,  9, 4, 14,  2, 3, 6,  8, 5, 12, 1},
-  {14,10,  9,  0, 13,  7,  2, 8,  3, 12, 6, 4, 11, 1,  5, 0}  
-};
-const UInt  g_auiIntraModeTableE17[2][16]=
-{
-  {0, 15,  9, 10,  7, 13, 11, 5, 12, 6, 3,  2, 14, 4,  8, 1},
-  {3, 13,  6,  8, 11, 14, 10, 5,  7, 2, 1, 12,  9, 4,  0, 0}
-};
-const UInt  g_auiIntraModeTableD34[2][33]=
-{
-  {2, 0, 29, 30, 20,  1, 21, 28, 15,  7, 16,  8, 11, 31, 22, 19, 32, 10, 27, 14,  4, 18, 12, 23, 17, 24, 26,  6, 25,  5, 9, 3, 13},
-  {2, 1, 28,  0, 29, 20, 27, 19, 15, 21,  7, 14, 10, 11, 30, 31, 18, 16, 26,  8, 17,  4, 22,  9, 23,  6, 25, 13, 24, 12, 3, 5,  0}
-};
-const UInt  g_auiIntraModeTableE34[2][33]=
-{
-  {1, 5, 0, 31, 20, 29, 27,  9, 11, 30, 17, 12, 22, 32, 19, 8, 10, 24, 21, 15, 4, 6, 14, 23, 25, 28, 26, 18, 7, 2,  3, 13, 16},
-  {3, 1, 0, 30, 21, 31, 25, 10, 19, 23, 12, 13, 29, 27, 11, 8, 17, 20, 16,  7, 5, 9, 22, 24, 28, 26, 18,  6, 2, 4, 14, 15,  0}
-};
-#endif
 
 #else
 const UInt  g_auiIntraModeTableD17[16]={15,0,11,7,14,10,13,4,9,2,3,1,8,6,12,5};
@@ -1158,33 +1135,10 @@ const UInt g_auiVlcTable16x16Inter[29] = {8,0,1,1,1,1,2,2,2,2,2,2,2,6,6,6,6,6,6,
 
 #if MTK_DCM_MPM
 
-#if FIXED_MPM
 const UInt huff17_2[18]       = { 1, 0, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 31, 30, 0 };
 const UInt lengthHuff17_2[18] = { 1, 4, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 6, 6, 0 };
 const UInt huff34_2[35]       = { 1, 0, 5, 4, 3, 2, 24, 23, 22, 21, 20, 19, 18, 17, 16, 15, 14, 13, 12, 62, 61, 60, 59, 58, 57, 56, 55, 54, 53, 52, 51, 50, 127, 126, 0 };
 const UInt lengthHuff34_2[35] = { 1, 4, 5, 5, 5, 5, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 8, 8, 0 };
-#else
-const UInt huff17_2[2][17]=
-{
-  {1, 7, 6, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 3, 2, 1, 0},
-  {1, 0, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 0},
-};
-const UInt lengthHuff17_2[2][17]=
-{
-  {1, 4, 4, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 6, 6, 6, 6},
-  {1, 4, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 0},
-};
-const UInt huff34_2[2][34]=
-{
-  {1, 0, 7, 6, 5, 4, 3, 2, 23, 22, 21, 20, 19, 18, 17, 16, 61, 60, 59, 58, 57, 56, 55, 54, 53, 52, 51, 50, 49, 48, 127, 126, 125, 124 },
-  {1, 0, 5, 4, 3, 2, 24, 23, 22, 21, 20, 19, 18, 17, 16, 15, 14, 13, 12, 63, 62, 61, 60, 59, 58, 57, 56, 55, 54, 53, 52, 51,50, 0 }
-};
-const UInt lengthHuff34_2[2][34]=
-{
-  {1, 4,  5,  5,  5,  5,  5,  5,  6,  6,  6,  6,  6,  6,  6,  6,  7,  7,  7,  7,  7,  7,  7,  7,  7,  7,  7,  7,  7,  7,  8,  8,  8, 8 },
-  {1, 4,  5,  5,  5,  5,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  7,  7,  7,  7,  7,  7,  7,  7,  7,  7,  7,  7,  7,  7, 0 }
-};
-#endif
 
 #else
 const UInt huff17_2[2][17]=
@@ -1568,19 +1522,11 @@ const short g_as_DST_MAT_4 [4][4]=
 // 0 implies use DCT, 1 implies DST
 const UChar g_aucDCTDSTMode_Vert[NUM_INTRA_MODE] =
 { //0  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33
-#if FIXED_MPM
   1, 1, 0, 0, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0
-#else
-  1, 0, 0, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0 ,0, 1, 0
-#endif
 };
 const UChar g_aucDCTDSTMode_Hor[NUM_INTRA_MODE] =
 { //0  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33
-#if FIXED_MPM
   1, 0, 1, 0, 1, 1, 0, 0, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0
-#else
-  0, 1, 0, 1, 1, 0, 0, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1 ,1, 1, 0
-#endif
 };
 
 
@@ -1626,7 +1572,6 @@ const UChar g_aucConvertTxtTypeToIdx[4] = { 0, 1, 1, 2 };
 //   gives a logical index used in the prediction functions.
 const UChar g_aucAngIntraModeOrder[NUM_INTRA_MODE] =
 {     //  ModeOrder LogicalOrderInPredFunctions
-#if FIXED_MPM
   34, //  PLANAR_IDX PLANAR PLANAR
   9,  //  0 VER     DC
   25, //  1 HOR     VER-8 (diagonal from top-left to bottom-right = HOR-8)
@@ -1663,51 +1608,8 @@ const UChar g_aucAngIntraModeOrder[NUM_INTRA_MODE] =
   30, // 33 HOR+5   HOR+7
   32, // 34 HOR+7   HOR+8
   0, // LM_CHROMA_IDX 
-#else
-  9,  //  0 VER     DC
-  25, //  1 HOR     VER-8 (diagonal from top-left to bottom-right = HOR-8)
-  0,  //  2 DC      VER-7
-  1,  //  3 VER-8   VER-6
-  5,  //  4 VER-4   VER-5
-  13, //  5 VER+4   VER-4
-  17, //  6 VER+8   VER-3
-  21, //  7 HOR-4   VER-2
-  29, //  8 HOR+4   VER-1
-  33, //  9 HOR+8   VER
-  3,  // 10 VER-6   VER+1
-  7,  // 11 VER-2   VER+2
-  11, // 12 VER+2   VER+3
-  15, // 13 VER+6   VER+4
-  19, // 14 HOR-6   VER+5
-  23, // 15 HOR-2   VER+6
-  27, // 16 HOR+2   VER+7
-  31, // 17 HOR+6   VER+8
-  2,  // 18 VER-7   HOR-7
-  4,  // 19 VER-5   HOR-6
-  6,  // 20 VER-3   HOR-5
-  8,  // 21 VER-1   HOR-4
-  10, // 22 VER+1   HOR-3
-  12, // 23 VER+3   HOR-2
-  14, // 24 VER+5   HOR-1
-  16, // 25 VER+7   HOR
-  18, // 26 HOR-7   HOR+1
-  20, // 27 HOR-5   HOR+2
-  22, // 28 HOR-3   HOR+3
-  24, // 29 HOR-1   HOR+4
-  26, // 30 HOR+1   HOR+5
-  28, // 31 HOR+3   HOR+6
-  30, // 32 HOR+5   HOR+7
-  32, // 33 HOR+7   HOR+8
-#if FIXED_MPM
-  34, // PLANAR_IDX PLANAR PLANAR
-#else
-  0, // PLANAR_IDX PLANAR PLANAR
-#endif
-  0, // LM_CHROMA_IDX 
-#endif
 };
 
-#if FIXED_MPM
 const UChar g_aucIntraModeNumAng[7] =
 {
   4,  //   2x2
@@ -1718,18 +1620,6 @@ const UChar g_aucIntraModeNumAng[7] =
   4,  //  64x64
   6   // 128x128
 };
-#else
-const UChar g_aucIntraModeNumAng[7] =
-{
-  3,  //   2x2
-  17,  //   4x4
-  34,  //   8x8
-  34,  //  16x16
-  34,  //  32x32
-  3,  //  64x64
-  5   // 128x128
-};
-#endif
 
 const UChar g_aucIntraModeBitsAng[7] =
 {
@@ -1742,7 +1632,6 @@ const UChar g_aucIntraModeBitsAng[7] =
   3   // 128x128   5   2+1
 };
 
-#if FIXED_MPM
 const UChar g_aucAngModeMapping[4][35] = // intra mode conversion for most probable
 {
   {3,  4,  3,  3,  5,  5,  5,  1,  1,  1,  1,  1,  1,  1,  3,  3,  3,  3,  3,  3,  3,  2,  2,  2,  2,  2,  2,  2,  2,  2,  3,  3,  3,  3},        // conversion to 5 modes
@@ -1750,15 +1639,6 @@ const UChar g_aucAngModeMapping[4][35] = // intra mode conversion for most proba
   {3,  4,  4,  11, 11, 5,  12, 12, 1,  1,  1,  13, 13, 6,  6,  14, 14, 7,  15, 15, 8,  8,  16, 16, 2,  2,  2,  17, 17, 9,  9,  3,  3,  10},       // conversion to 17 modes
   {3,  3,  3,  3,  3,  3,  3,  1,  1,  1,  1,  1,  1,  1,  3,  3,  3,  3,  3,  3,  3,  2,  2,  2,  2,  2,  2,  2,  2,  2,  3,  3,  3,  3}         // conversion to 3 modes
 };
-#else
-const UChar g_aucAngModeMapping[4][34] = // intra mode conversion for most probable
-{
-  {2,3,2,2,4, 4,4,0,0,0, 0,0,0,0,2, 2,2,2,2,2, 2,1,1,1,1, 1,1,1,1,1, 2,2,2,2},               // conversion to 5 modes
-  {2,3,3,2,4, 4,4,2,0,0, 0,2,5,5,5, 2,6,6,3,2, 7,7,7,2,1, 1,1,2,8,8, 8,2,2,2},               // conversion to 9 modes
-  {2,3,3,10,10, 4,11,11,0,0, 0,12,12,5,5, 13,13,6,14,14, 7,7,15,15,1, 1,1,16,16,8, 8,2,2,9}, // conversion to 17 modes
-  {2,2,2,2,2, 2,2,0,0,0, 0,0,0,0,2, 2,2,2,2,2, 2,1,1,1,1, 1,1,1,1,1, 2,2,2,2}                // conversion to 3 modes
-};
-#endif
 
 // ====================================================================================================================
 // Bit-depth
@@ -1950,15 +1830,7 @@ Void initSigLastScan(UInt* pBuffZ, UInt* pBuffH, UInt* pBuffV, Int iWidth, Int i
 }
 
 #if CHROMA_CODEWORD_SWITCH
-#if FIXED_MPM
 const UChar ChromaMapping[4] = {0, 1, 3, 2};
-#else
-const UChar ChromaMapping[2][5] = 
-{
-  {0, 1, 3, 2, 4},
-  {0, 1, 2, 4, 3}
-};
-#endif
 #endif
 #if NSQT
 Void initNonSquareSigLastScan(UInt* pBuffZ, UInt uiWidth, UInt uiHeight)
