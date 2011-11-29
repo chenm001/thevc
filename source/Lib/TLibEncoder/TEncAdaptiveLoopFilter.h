@@ -59,9 +59,7 @@ private:
   static const Int m_aiSymmetricArray9x9[81];     ///< scan index for 9x9 filter
   static const Int m_aiSymmetricArray7x7[49];     ///< scan index for 7x7 filter
   static const Int m_aiSymmetricArray5x5[25];     ///< scan index for 5x5 filter
-#if TI_ALF_MAX_VSIZE_7
   static const Int m_aiSymmetricArray9x7[63];     ///< scan index for 9x7 filter
-#endif
   
   Double** m_ppdAlfCorr;
   Double* m_pdDoubleAlfCoeff;
@@ -133,11 +131,7 @@ private:
   Int  m_iALFNumOfRedesign;       //!< number of redesigning filter for each CU control depth
   Int  m_iMatrixBaseFiltNo;       //!< the coorelation buffer that can be reused.
 
-#if TI_ALF_MAX_VSIZE_7
   static Int  m_aiTapPos9x9_In9x9Sym[21]; //!< for N-pass encoding- filter tap relative position in 9x9 footprint
-#else
-  static Int  m_aiTapPos9x9_In9x9Sym[22];
-#endif
   static Int  m_aiTapPos7x7_In9x9Sym[14]; //!< for N-pass encoding- filter tap relative position in 9x9 footprint
   static Int  m_aiTapPos5x5_In9x9Sym[8];  //!< for N-pass encoding- filter tap relative position in 9x9 footprint
   static Int* m_iTapPosTabIn9x9Sym[NO_TEST_FILT];

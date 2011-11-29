@@ -73,9 +73,7 @@ Void TDecEntropy::decodeAux(ALFParam* pAlfParam)
   Int TabIdx = uiSymbol;
   pAlfParam->realfiltNo = 2-TabIdx;
   pAlfParam->tap = FiltTab[pAlfParam->realfiltNo];
-#if TI_ALF_MAX_VSIZE_7
   pAlfParam->tapV = TComAdaptiveLoopFilter::ALFTapHToTapV(pAlfParam->tap);
-#endif
 #endif
   pAlfParam->num_coeff = sqrFiltLengthTab[pAlfParam->realfiltNo];
   

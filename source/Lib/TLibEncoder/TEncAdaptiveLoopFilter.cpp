@@ -86,7 +86,6 @@ const Int TEncAdaptiveLoopFilter::m_aiSymmetricArray5x5[25] =
   4,  3,  2,  1,  0,
 };
 
-#if TI_ALF_MAX_VSIZE_7
 const Int TEncAdaptiveLoopFilter::m_aiSymmetricArray9x7[63] =
 {
    0,  1,  2,  3,  4,  5,  6,  7,  8,
@@ -97,58 +96,30 @@ const Int TEncAdaptiveLoopFilter::m_aiSymmetricArray9x7[63] =
   17, 16, 15, 14, 13, 12, 11, 10,  9,
    8,  7,  6,  5,  4,  3,  2,  1,  0
 };
-#endif
 
-#if TI_ALF_MAX_VSIZE_7
 Int TEncAdaptiveLoopFilter::m_aiTapPos9x9_In9x9Sym[21] =
-#else
-Int TEncAdaptiveLoopFilter::m_aiTapPos9x9_In9x9Sym[22] =
-#endif
 {
-#if TI_ALF_MAX_VSIZE_7
                   0,  1,  2,
               3,  4,  5,  6,  7,
           8,  9, 10, 11, 12, 13, 14,
      15, 16, 17, 18, 19, 20
-#else
-                   0,
-               1,  2,  3,
-           4,  5,  6,  7,  8,
-       9, 10, 11, 12, 13, 14, 15,
-  16, 17, 18, 19, 20, 21
-#endif
 };
 
 Int TEncAdaptiveLoopFilter::m_aiTapPos7x7_In9x9Sym[14] =
 {                 
-#if TI_ALF_MAX_VSIZE_7
                   1,    
               4,  5,  6,    
           9, 10, 11, 12, 13,    
      16, 17, 18, 19, 20
 
-#else
-
-               2,
-           5,  6,  7,
-      10, 11, 12, 13, 14,
-  17, 18, 19, 20, 21
-#endif
 };
 
 Int TEncAdaptiveLoopFilter::m_aiTapPos5x5_In9x9Sym[8]  =
 {
 
-#if TI_ALF_MAX_VSIZE_7
             5,
        10, 11, 12, 
    17, 18, 19, 20
-#else
-           6,
-      11, 12, 13,
-  18, 19, 20, 21
-
-#endif
 
 };
 
@@ -451,12 +422,8 @@ Void TEncAdaptiveLoopFilter::ALFProcess( ALFParam* pcAlfParam, Double dLambda, U
   
   // set global variables
   tap         = ALF_MAX_NUM_TAP;
-#if TI_ALF_MAX_VSIZE_7
   Int tapV = TComAdaptiveLoopFilter::ALFTapHToTapV(tap);
   num_coef = (tap * tapV + 1) >> 1;
-#else
-  num_coef    = (tap*tap+1)>>1;
-#endif
   num_coef    = num_coef + 1; // DC offset
 #endif
   
@@ -501,9 +468,7 @@ Void TEncAdaptiveLoopFilter::ALFProcess( ALFParam* pcAlfParam, Double dLambda, U
   m_pcTempAlfParam->alf_flag        = 1;
 #if !STAR_CROSS_SHAPES_LUMA
   m_pcTempAlfParam->tap             = tap;
-#if TI_ALF_MAX_VSIZE_7
   m_pcTempAlfParam->tapV            = tapV;
-#endif
   m_pcTempAlfParam->num_coeff       = num_coef;
 #endif
   m_pcTempAlfParam->chroma_idc      = 0;
@@ -961,13 +926,9 @@ Void TEncAdaptiveLoopFilter::xCalcCorrelationFunc(Int ypos, Int xpos, Pel* pOrg,
   //ext_offset  = tap>>1;
   
 #if !ALF_CHROMA_NEW_SHAPES
-#if TI_ALF_MAX_VSIZE_7
   Int iTapV   = TComAdaptiveLoopFilter::ALFTapHToTapV(iTap);
   Int N       = (iTap * iTapV + 1) >> 1;
   Int offsetV = iTapV >> 1;
-#else
-  Int N      = (iTap*iTap+1)>>1;
-#endif
   Int offset = iTap>>1;
 #endif
   
@@ -999,18 +960,10 @@ Void TEncAdaptiveLoopFilter::xCalcCorrelationFunc(Int ypos, Int xpos, Pel* pOrg,
       pFiltPos = m_aiSymmetricArray7x7;
       break;
     case 9:
-#if TI_ALF_MAX_VSIZE_7
       pFiltPos = m_aiSymmetricArray9x7;
-#else
-      pFiltPos = m_aiSymmetricArray9x9;
-#endif
       break;
     default:
-#if TI_ALF_MAX_VSIZE_7
       pFiltPos = m_aiSymmetricArray9x7;
-#else
-      pFiltPos = m_aiSymmetricArray9x9;
-#endif
       assert(0);
       break;
   }
@@ -1058,11 +1011,7 @@ Void TEncAdaptiveLoopFilter::xCalcCorrelationFunc(Int ypos, Int xpos, Pel* pOrg,
         pTerm[pFiltPos[i++]] += pCmp[y*iCmpStride + x];
       }
 #else
-#if TI_ALF_MAX_VSIZE_7
       for (Int yy = y - offsetV; yy <= y + offsetV; yy++)
-#else
-      for(Int yy=y-offset; yy<=y+offset; yy++)
-#endif
       {
         for(Int xx=x-offset; xx<=x+offset; xx++)
         {
@@ -1241,28 +1190,16 @@ Void TEncAdaptiveLoopFilter::xQuantFilterCoef(Double* h, Int* qh, Int tap, int b
       pFiltMag = m_aiSymmetricMag7x7;
       break;
     case 9:
-#if TI_ALF_MAX_VSIZE_7
       pFiltMag = m_aiSymmetricMag9x7;
-#else
-      pFiltMag = m_aiSymmetricMag9x9;
-#endif
       break;
     default:
-#if TI_ALF_MAX_VSIZE_7
       pFiltMag = m_aiSymmetricMag9x7;
-#else
-      pFiltMag = m_aiSymmetricMag9x9;
-#endif
       assert(0);
       break;
   }
   
-#if TI_ALF_MAX_VSIZE_7
   Int tapV = TComAdaptiveLoopFilter::ALFTapHToTapV(tap);
   N = (tap * tapV + 1) >> 1;
-#else
-  N = (tap*tap+1)>>1;
-#endif
 #endif
   
   dh = new Double[N];
@@ -2372,12 +2309,8 @@ Void   TEncAdaptiveLoopFilter::xEncALFLuma_qc ( TComPicYuv* pcPicOrg, TComPicYuv
 #if !STAR_CROSS_SHAPES_LUMA
   Int tap               = ALF_MIN_NUM_TAP;
   m_pcTempAlfParam->tap = tap;
-#if TI_ALF_MAX_VSIZE_7
   m_pcTempAlfParam->tapV = TComAdaptiveLoopFilter::ALFTapHToTapV(m_pcTempAlfParam->tap);
   m_pcTempAlfParam->num_coeff = TComAdaptiveLoopFilter::ALFTapHToNumCoeff(m_pcTempAlfParam->tap);
-#else
-  m_pcTempAlfParam->num_coeff = (Int)tap*tap/4 + 2; 
-#endif
 #endif
 
   static Bool   bFirst = true;
@@ -2412,12 +2345,8 @@ Void   TEncAdaptiveLoopFilter::xEncALFLuma_qc ( TComPicYuv* pcPicOrg, TComPicYuv
 
 #if !STAR_CROSS_SHAPES_LUMA
     pcAlfParam->tap = tap;
-#if TI_ALF_MAX_VSIZE_7
     pcAlfParam->tapV = TComAdaptiveLoopFilter::ALFTapHToTapV(pcAlfParam->tap);
     pcAlfParam->num_coeff = TComAdaptiveLoopFilter::ALFTapHToNumCoeff(pcAlfParam->tap);
-#else
-    pcAlfParam->num_coeff = (Int)tap*tap/4 + 2; 
-#endif
 #endif
 
     switch(i)
@@ -2588,9 +2517,7 @@ Void   TEncAdaptiveLoopFilter::xEncALFLuma_qc ( TComPicYuv* pcPicOrg, TComPicYuv
 #else
     cAlfParamWithBestMethod.tap = pcAlfParam->tap;
     cAlfParamWithBestMethod.num_coeff = pcAlfParam->num_coeff;
-#if TI_ALF_MAX_VSIZE_7
     cAlfParamWithBestMethod.tapV = pcAlfParam->tapV;
-#endif
 #endif
     reconstructFilterCoeffs( pcAlfParam, m_filterCoeffSym, NUM_BITS);
     xcalcPredFilterCoeff(pcAlfParam->realfiltNo);
@@ -2648,12 +2575,8 @@ Void   TEncAdaptiveLoopFilter::xstoreInBlockMatrix(Int ypos, Int xpos, Int iheig
   Int m = 0;
 #else
   Int fl =tap/2;
-#if TI_ALF_MAX_VSIZE_7
   Int flV = TComAdaptiveLoopFilter::ALFFlHToFlV(fl);
   Int sqrFiltLength = TComAdaptiveLoopFilter::ALFTapHToNumCoeff(tap);
-#else
-  Int sqrFiltLength=(((tap*tap)/4 + 1) + 1);
-#endif
   Int fl2=9/2; //extended size at each side of the frame
 #endif
   Int ELocal[MAX_SQR_FILT_LENGTH];
@@ -2860,11 +2783,7 @@ Void   TEncAdaptiveLoopFilter::xstoreInBlockMatrix(Int ypos, Int xpos, Int iheig
           varInd = m_varImg[i/var_step_size_h][j/var_step_size_w];
           k=0; 
           memset(ELocal, 0, sqrFiltLength*sizeof(int));
-#if TI_ALF_MAX_VSIZE_7
           for (ii = -flV; ii < 0; ii++)
-#else
-          for (ii=-fl; ii<0; ii++)
-#endif
           {
             for (jj=-fl-ii; jj<=fl+ii; jj++)
             {  
@@ -3054,9 +2973,6 @@ Void TEncAdaptiveLoopFilter::xfilterFrame_en(int ypos, int xpos, int iheight, in
       }
       else
       {
-#if !TI_ALF_MAX_VSIZE_7
-        pixelInt += coef[4]* (imgY_rec[(i-fl+4)*Stride + j-fl]+imgY_rec[(i-fl-4)*Stride + j-fl]);
-#endif          
         p_imgY_pad = imgY_rec + (i-fl+3)*Stride;
         p_imgY_pad0 = imgY_rec + (i-fl-3)*Stride;
         pixelInt += coef[12]* (p_imgY_pad[j-fl+1]+p_imgY_pad0[j-fl-1]);
@@ -3731,12 +3647,8 @@ Void TEncAdaptiveLoopFilter::xFilterTapDecision_qc(TComPicYuv* pcPicOrg, TComPic
   {
     copyALFParam(m_pcTempAlfParam, m_pcBestAlfParam);
     m_pcTempAlfParam->tap = iTap;
-#if TI_ALF_MAX_VSIZE_7
     m_pcTempAlfParam->tapV = TComAdaptiveLoopFilter::ALFTapHToTapV(m_pcTempAlfParam->tap);
     m_pcTempAlfParam->num_coeff = TComAdaptiveLoopFilter::ALFTapHToNumCoeff(m_pcTempAlfParam->tap); 
-#else
-    m_pcTempAlfParam->num_coeff = (Int)(iTap*iTap/4) + 2; 
-#endif
     
 #if F747_APS
     if(bAlfCUCtrlUsed)
@@ -4463,12 +4375,8 @@ Void TEncAdaptiveLoopFilter::setMaskWithTimeDelayedResults(TComPicYuv* pcPicOrg,
   m_pcTempAlfParam->cu_control_flag = 0;
 #endif
   m_pcTempAlfParam->tap = iTap;
-#if TI_ALF_MAX_VSIZE_7
   m_pcTempAlfParam->tapV      = TComAdaptiveLoopFilter::ALFTapHToTapV(iTap);
   m_pcTempAlfParam->num_coeff = TComAdaptiveLoopFilter::ALFTapHToNumCoeff(iTap);
-#else
-  m_pcTempAlfParam->num_coeff = iTap*iTap/4 + 2;
-#endif
 #endif
 
   for (Int index=0; index<2; index++)
@@ -4834,12 +4742,8 @@ Void  TEncAdaptiveLoopFilter::xFirstEstimateFilteringFrameLumaAllTap(imgpel* Img
   for(Int iTap = ALF_MAX_NUM_TAP; iTap>=ALF_MIN_NUM_TAP; iTap -= 2)
   {
     m_pcTempAlfParam->tap = iTap;
-#if TI_ALF_MAX_VSIZE_7
     m_pcTempAlfParam->tapV      = TComAdaptiveLoopFilter::ALFTapHToTapV(iTap);
     m_pcTempAlfParam->num_coeff = TComAdaptiveLoopFilter::ALFTapHToNumCoeff(iTap);
-#else
-    m_pcTempAlfParam->num_coeff = iTap*iTap/4 + 2;
-#endif
 
     if (iTap==9)
     {

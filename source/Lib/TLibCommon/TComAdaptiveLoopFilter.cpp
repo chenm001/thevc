@@ -97,43 +97,27 @@ Int TComAdaptiveLoopFilter::patternShape1Sym_Quart[29] =
 };
 #endif
 
-#if TI_ALF_MAX_VSIZE_7
 Int TComAdaptiveLoopFilter::m_pattern9x9Sym[39] = 
-#else
-Int TComAdaptiveLoopFilter::m_pattern9x9Sym[41] = 
-#endif
 {
                    0,
                1,  2,  3,
            4,  5,  6,  7,  8,
        9, 10, 11, 12, 13, 14, 15,
-#if TI_ALF_MAX_VSIZE_7
       16, 17, 18, 19, 18, 17, 16,
-#else
-  16, 17, 18, 19, 20, 19, 18, 17, 16,
-#endif
       15, 14, 13, 12, 11, 10,  9, 
            8,  7,  6,  5,  4,
                3,  2,  1,
                    0
 };
  
-#if TI_ALF_MAX_VSIZE_7
 Int TComAdaptiveLoopFilter::m_weights9x9Sym[21] = 
-#else
-Int TComAdaptiveLoopFilter::m_weights9x9Sym[22] = 
-#endif
 {
-#if !TI_ALF_MAX_VSIZE_7
-                   2,
-#endif
                2,  2,  2,   
            2,  2,  2,  2,  2, 
        2,  2,  2,  2,  2,  2,  2,  
    2,  2,  2,  2,  1,  1
 };
 
-#if TI_ALF_MAX_VSIZE_7
 Int TComAdaptiveLoopFilter::m_pattern9x9Sym_Quart[42] = 
 {
    0,  0,  0,  0,  0,  0,  0,  0,  0,
@@ -142,16 +126,6 @@ Int TComAdaptiveLoopFilter::m_pattern9x9Sym_Quart[42] =
    0,  9, 10, 11, 12, 13, 14, 15,  0,
   16, 17, 18, 19, 20, 21
 };
-#else
-Int TComAdaptiveLoopFilter::m_pattern9x9Sym_Quart[42] = 
-{
-   0,  0,  0,  0,  1,  0,  0,  0,  0,
-   0,  0,  0,  2,  3,  4,  0,  0,  0,
-   0,  0,  5,  6,  7,  8,  9,  0,  0,  
-   0, 10, 11, 12, 13, 14, 15, 16,  0,
-  17, 18, 19, 20, 21, 22
-};
-#endif
 
 Int TComAdaptiveLoopFilter::m_pattern7x7Sym[25] = 
 {
@@ -206,15 +180,8 @@ Int TComAdaptiveLoopFilter::m_pattern5x5Sym_Quart[45] =
    0,  0,  5,  6,  7,  8,  0,  0,  0,  
 };
 
-#if TI_ALF_MAX_VSIZE_7
 Int TComAdaptiveLoopFilter::m_pattern9x9Sym_9[39] = 
-#else
-Int TComAdaptiveLoopFilter::m_pattern9x9Sym_9[41] = 
-#endif
 {
-#if !TI_ALF_MAX_VSIZE_7
-                   4,
-#endif
               12, 13, 14,  
           20, 21, 22, 23, 24, 
       28, 29, 30, 31, 32, 33, 34,      
@@ -222,9 +189,6 @@ Int TComAdaptiveLoopFilter::m_pattern9x9Sym_9[41] =
       34, 33, 32, 31, 30, 29, 28,  
           24, 23, 22, 21, 20, 
               14, 13, 12,
-#if !TI_ALF_MAX_VSIZE_7
-                   4,  
-#endif
 };
 
 Int TComAdaptiveLoopFilter::m_pattern9x9Sym_7[25] = 
@@ -352,15 +316,8 @@ Int depthIntShape1Sym[9] =
 };
 #endif
 
-#if TI_ALF_MAX_VSIZE_7
 Int depthInt9x9Sym[21] = 
-#else
-Int depthInt9x9Sym[22] = 
-#endif
 {
-#if !TI_ALF_MAX_VSIZE_7
-              5, 
-#endif
            5, 6, 5, 
         5, 6, 7, 6, 5,
      5, 6, 7, 8, 7, 6, 5,
@@ -421,7 +378,6 @@ const Int TComAdaptiveLoopFilter::m_aiSymmetricMag5x5[13] =
   2, 2, 1
 };
 
-#if TI_ALF_MAX_VSIZE_7
 const Int TComAdaptiveLoopFilter::m_aiSymmetricMag9x7[32] =
 {
   2, 2, 2, 2, 2, 2, 2, 2, 2,
@@ -429,7 +385,6 @@ const Int TComAdaptiveLoopFilter::m_aiSymmetricMag9x7[32] =
   2, 2, 2, 2, 2, 2, 2, 2, 2,
   2, 2, 2, 2, 1
 };
-#endif
 
 // ====================================================================================================================
 // Constructor / destructor / create / destroy
@@ -698,7 +653,6 @@ Void TComAdaptiveLoopFilter::destroy()
 // Public member functions
 // ====================================================================================================================
 
-#if TI_ALF_MAX_VSIZE_7
 Int TComAdaptiveLoopFilter::ALFTapHToTapV(Int tapH)
 {
   return min<UInt>(tapH, 7);
@@ -721,7 +675,6 @@ Int TComAdaptiveLoopFilter::ALFTapHToNumCoeff(Int tapH)
   
   return num_coeff;
 }
-#endif
 
 // --------------------------------------------------------------------------------------------------------------------
 // allocate / free / copy functions
@@ -791,9 +744,7 @@ Void TComAdaptiveLoopFilter::copyALFParam(ALFParam* pDesAlfParam, ALFParam* pSrc
   pDesAlfParam->chroma_idc = pSrcAlfParam->chroma_idc;
 #if !STAR_CROSS_SHAPES_LUMA
   pDesAlfParam->tap = pSrcAlfParam->tap;
-#if TI_ALF_MAX_VSIZE_7
   pDesAlfParam->tapV = pSrcAlfParam->tapV;
-#endif
 #endif
   pDesAlfParam->num_coeff = pSrcAlfParam->num_coeff;
 #if ALF_CHROMA_NEW_SHAPES
@@ -844,9 +795,7 @@ Void TComAdaptiveLoopFilter::predictALFCoeff( ALFParam* pAlfParam)
   const Int* pFiltMag = NULL;
   
   tap = pAlfParam->tap;
-#if TI_ALF_MAX_VSIZE_7
   Int tapV = pAlfParam->tapV;
-#endif
   
   switch(tap)
   {
@@ -857,21 +806,13 @@ Void TComAdaptiveLoopFilter::predictALFCoeff( ALFParam* pAlfParam)
       pFiltMag = m_aiSymmetricMag7x7;
       break;
     case 9:
-#if TI_ALF_MAX_VSIZE_7
       pFiltMag = m_aiSymmetricMag9x7;
-#else
-      pFiltMag = m_aiSymmetricMag9x9;
-#endif
       break;
     default:
       assert(0);
       break;
   }
-#if TI_ALF_MAX_VSIZE_7
   N = (tap * tapV + 1) >> 1;
-#else
-  N = (tap * tap + 1) >> 1;
-#endif
 #endif
   sum=0;
   for(i=0; i<N-1;i++)
@@ -1503,9 +1444,6 @@ Void TComAdaptiveLoopFilter::filterFrame(imgpel *imgYRecPost, imgpel *imgYRec, i
         if (j%varStepSizeWidth==0) coef = m_filterCoeffPrevSelected[*(pImgYVar++)];
         pixelInt=coef[lastCoef];
 
-#if !TI_ALF_MAX_VSIZE_7
-        pixelInt += coef[4]* (imgYRec[(i+4)*stride + j]+imgYRec[(i-4)*stride + j]);
-#endif        
         pixelInt += coef[12]* (pImgYPad5[j+1]+pImgYPad6[j-1]);
         pixelInt += coef[13]* (pImgYPad5[j]+pImgYPad6[j]);
         pixelInt += coef[14]* (pImgYPad5[j-1]+pImgYPad6[j+1]);
@@ -1735,9 +1673,6 @@ Void TComAdaptiveLoopFilter::subfilterFrame(imgpel *imgYRecPost, imgpel *imgYRec
         if (j%varStepSizeWidth==0) coef = m_filterCoeffPrevSelected[*(pImgYVar++)];
         pixelInt=coef[lastCoef];
 
-#if !TI_ALF_MAX_VSIZE_7
-        pixelInt += coef[4]* (imgYRec[(i+4)*stride + j]+imgYRec[(i-4)*stride + j]);
-#endif        
         pixelInt += coef[12]* (pImgYPad5[j+1]+pImgYPad6[j-1]);
         pixelInt += coef[13]* (pImgYPad5[j]+pImgYPad6[j]);
         pixelInt += coef[14]* (pImgYPad5[j-1]+pImgYPad6[j+1]);
@@ -3177,11 +3112,7 @@ Void CAlfLCU::extendLumaBorder(Pel* pImg, Int iStride, Int filtNo)
   UInt uiExtSizeY = 2;
 #else
   UInt uiExtSizeX = m_flTab[filtNo];
-#if TI_ALF_MAX_VSIZE_7
   UInt uiExtSizeY = (filtNo == 2)? (m_flTab[2]):(7/2);
-#else
-  UInt uiExtSizeY = m_flTab[filtNo];
-#endif
 #endif
   UInt uiWidth, uiHeight;
   UInt posX, posY;
@@ -3214,11 +3145,7 @@ Void CAlfLCU::extendChromaBorder(Pel* pImg, Int iStride, UInt filtNo)
   UInt uiExtSizeY = 2;
 #else
   UInt uiExtSizeX = m_flTab[filtNo];
-#if TI_ALF_MAX_VSIZE_7
   UInt uiExtSizeY = (filtNo == 2)? (m_flTab[2]):(7/2);
-#else
-  UInt uiExtSizeY = m_flTab[filtNo];
-#endif
 #endif
 
   UInt uiWidth, uiHeight;

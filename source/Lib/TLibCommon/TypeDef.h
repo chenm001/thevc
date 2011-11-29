@@ -170,8 +170,6 @@
 #endif
 #endif
 
-#define TI_ALF_MAX_VSIZE_7 1
-
 #define FULL_NBIT 0 ///< When enabled, does not use g_uiBitIncrement anymore to support > 8 bit data
 
 /////////////////////////////////
@@ -378,12 +376,8 @@ struct _AlfParam
 #endif
   Int chroma_idc;                         ///< indicates use of ALF for chroma
 #if !STAR_CROSS_SHAPES_LUMA
-#if TI_ALF_MAX_VSIZE_7
   Int tap;                                ///< number of filter taps - horizontal
   Int tapV;                               ///< number of filter taps - vertical
-#else
-  Int tap;                                ///< number of filter taps
-#endif
 #endif
   Int num_coeff;                          ///< number of filter coefficients
   Int *coeff;                             ///< filter coefficient array

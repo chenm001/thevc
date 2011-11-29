@@ -79,11 +79,7 @@
 #define MAX_SQR_FILT_LENGTH   ((FILTER_LENGTH*FILTER_LENGTH) / 2 + 2)
 #endif
 
-#if TI_ALF_MAX_VSIZE_7
 #define SQR_FILT_LENGTH_9SYM  ((9*9) / 4 + 2 - 1) 
-#else
-#define SQR_FILT_LENGTH_9SYM  ((9*9) / 4 + 2) 
-#endif
 #define SQR_FILT_LENGTH_7SYM  ((7*7) / 4 + 2) 
 #define SQR_FILT_LENGTH_5SYM  ((5*5) / 4 + 2) 
 #if STAR_CROSS_SHAPES_LUMA
@@ -101,11 +97,7 @@ extern Int depthIntShape0Sym[10];
 extern Int depthIntShape1Sym[9];
 extern Int *pDepthIntTabShapes[NO_TEST_FILT];
 #endif
-#if TI_ALF_MAX_VSIZE_7
 extern Int depthInt9x9Sym[21];
-#else
-extern Int depthInt9x9Sym[22];
-#endif
 extern Int depthInt7x7Sym[14];
 extern Int depthInt5x5Sym[8];
 extern Int *pDepthIntTab[NO_TEST_FILT];
@@ -358,9 +350,7 @@ protected:
   static const  Int m_aiSymmetricMag9x9[41];             ///< quantization scaling factor for 9x9 filter
   static const  Int m_aiSymmetricMag7x7[25];             ///< quantization scaling factor for 7x7 filter
   static const  Int m_aiSymmetricMag5x5[13];             ///< quantization scaling factor for 5x5 filter
-#if TI_ALF_MAX_VSIZE_7
   static const  Int m_aiSymmetricMag9x7[32];             ///< quantization scaling factor for 9x7 filter
-#endif
   
   // temporary picture buffer
   TComPicYuv*   m_pcTempPicYuv;                          ///< temporary picture buffer for ALF processing
@@ -380,13 +370,8 @@ protected:
   static Int *patternMapTabShapes[NO_TEST_FILT];
   static Int *weightsTabShapes[NO_TEST_FILT];
 #endif
-#if TI_ALF_MAX_VSIZE_7
   static Int m_pattern9x9Sym[39];
   static Int m_weights9x9Sym[21];
-#else
-  static Int m_pattern9x9Sym[41];
-  static Int m_weights9x9Sym[22];
-#endif
   static Int m_pattern9x9Sym_Quart[42];
   static Int m_pattern7x7Sym[25];
   static Int m_weights7x7Sym[14];
@@ -399,11 +384,7 @@ protected:
   static Int pattern11x5SymShape1[15];
   static Int pattern11x5Sym11x5[55];
 #endif
-#if TI_ALF_MAX_VSIZE_7
   static Int m_pattern9x9Sym_9[39];
-#else
-  static Int m_pattern9x9Sym_9[41];
-#endif
   static Int m_pattern9x9Sym_7[25];
   static Int m_pattern9x9Sym_5[13];
   
@@ -531,11 +512,9 @@ public:
   Void PCMLFDisableProcess    ( TComPic* pcPic);                        ///< interface function for ALF process 
 #endif
 
-#if TI_ALF_MAX_VSIZE_7
   static Int ALFTapHToTapV(Int tapH);
   static Int ALFTapHToNumCoeff(Int tapH);
   static Int ALFFlHToFlV(Int flH);
-#endif
 
 #if F747_APS
 public:

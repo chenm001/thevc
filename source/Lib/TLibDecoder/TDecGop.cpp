@@ -127,9 +127,7 @@ Void TDecGop::copySharedAlfParamFromPPS(ALFParam* pAlfDst, ALFParam* pAlfSrc)
   pAlfDst->realfiltNo         = pAlfSrc->realfiltNo;
 #if !STAR_CROSS_SHAPES_LUMA
   pAlfDst->tap                = pAlfSrc->tap;
-#if TI_ALF_MAX_VSIZE_7
   pAlfDst->tapV               = pAlfSrc->tapV;
-#endif
 #endif
   pAlfDst->num_coeff          = pAlfSrc->num_coeff;
   pAlfDst->noFilters          = pAlfSrc->noFilters;
