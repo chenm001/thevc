@@ -2585,17 +2585,10 @@ UInt TComDataCU::getCtxQtCbf( UInt uiAbsPartIdx, TextType eType, UInt uiTrDepth 
     return uiCtx;
   }
 #else
-#if DNB_CHROMA_CBF_FLAGS
   if( eType != TEXT_LUMA )
   {
     return uiTrDepth;
   }
-#else
-  if( getPredictionMode( uiAbsPartIdx ) != MODE_INTRA && eType != TEXT_LUMA )
-  {
-    return uiTrDepth;
-  }
-#endif
 
   UInt uiCtx = 0;
   const UInt uiDepth = getDepth( uiAbsPartIdx );
