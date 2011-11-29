@@ -120,10 +120,7 @@
 
 #define ZERO_MVD_EST                          0           ///< Zero Mvd Estimation in normal mode
 
-#define LM_CHROMA                             1           // JCTVC-E266: Chroma intra prediction based on luma signal
-#if LM_CHROMA
 #define LM_CHROMA_SIMPLIFICATION              1           // JCTVC-F760: LM simplification: One line luma reference pixel buffer, alpha 7 bits.
-#endif
 
 #define UNIFY_INTER_TABLE                     1           // JCTVC-E381 CAVLC: Inter pred coding
 
@@ -131,12 +128,10 @@
 
 #define ADD_PLANAR_MODE                   1           ///< enable/disable Planar mode for intra prediction (JCTVC-E321)
 
-#if ADD_PLANAR_MODE || LM_CHROMA
 #define NUM_INTRA_MODE 36
 #define PLANAR_IDX     34
 #define LM_CHROMA_IDX  35
 #define PLANAR_F483 1 ///< Modify samples used for planar prediction as per JCTVC-F483
-#endif
 #define CHROMA_CODEWORD_SWITCH 0 ///< Enable chroma codeword switch (disabled as per JCTVC-F465)
 
 #define IBDI_DISTORTION                0           ///< enable/disable SSE modification when IBDI is used (JCTVC-D152)

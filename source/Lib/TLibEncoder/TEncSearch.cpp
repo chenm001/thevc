@@ -1148,7 +1148,6 @@ TEncSearch::xIntraCodingChromaBlk( TComDataCU* pcCU,
   Bool  bLeftAvail  = false;
   pcCU->getPattern()->initPattern         ( pcCU, uiTrDepth, uiAbsPartIdx );
 
-#if LM_CHROMA
   if( uiChromaPredMode == LM_CHROMA_IDX && uiChromaId == 0 )
   {
 #if LM_CHROMA_SIMPLIFICATION
@@ -1158,13 +1157,11 @@ TEncSearch::xIntraCodingChromaBlk( TComDataCU* pcCU,
 #endif
     getLumaRecPixels( pcCU->getPattern(), uiWidth, uiHeight );
   }
-#endif
   
   pcCU->getPattern()->initAdiPatternChroma( pcCU, uiAbsPartIdx, uiTrDepth, m_piYuvExt, m_iYuvExtStride, m_iYuvExtHeight, bAboveAvail, bLeftAvail );
   Int*  pPatChroma  = ( uiChromaId > 0 ? pcCU->getPattern()->getAdiCrBuf( uiWidth, uiHeight, m_piYuvExt ) : pcCU->getPattern()->getAdiCbBuf( uiWidth, uiHeight, m_piYuvExt ) );
   
   //===== get prediction signal =====
-#if LM_CHROMA
   if( uiChromaPredMode == LM_CHROMA_IDX )
   {
     predLMIntraChroma( pcCU->getPattern(), pPatChroma, piPred, uiStride, uiWidth, uiHeight, uiChromaId );
@@ -1173,9 +1170,6 @@ TEncSearch::xIntraCodingChromaBlk( TComDataCU* pcCU,
   {
     predIntraChromaAng( pcCU->getPattern(), pPatChroma, uiChromaPredMode, piPred, uiStride, uiWidth, uiHeight, pcCU, bAboveAvail, bLeftAvail );  
   }
-#else // LM_CHROMA
-  predIntraChromaAng( pcCU->getPattern(), pPatChroma, uiChromaPredMode, piPred, uiStride, uiWidth, uiHeight, pcCU, bAboveAvail, bLeftAvail );
-#endif
   
   //===== get residual signal =====
   {
@@ -2077,13 +2071,11 @@ TEncSearch::estIntraPredChromaQT( TComDataCU* pcCU,
     }
   }
   
-#if LM_CHROMA
   if ( pcCU->getSlice()->getSPS()->getUseLMChroma() )
   {
     uiModeList[uiMaxMode++] = LM_CHROMA_IDX;
   }
   else
-#endif
   if (uiLumaMode != 3)
   {
     uiModeList[uiMaxMode++] = 3;

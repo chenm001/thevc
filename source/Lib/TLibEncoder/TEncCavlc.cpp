@@ -462,9 +462,7 @@ Void TEncCavlc::codeSPS( TComSPS* pcSPS )
 #endif
   WRITE_UVLC( pcSPS->getQuadtreeTUMaxDepthInter() - 1,                               "max_transform_hierarchy_depth_inter" );
   WRITE_UVLC( pcSPS->getQuadtreeTUMaxDepthIntra() - 1,                               "max_transform_hierarchy_depth_intra" );
-#if LM_CHROMA
   WRITE_FLAG  ( (pcSPS->getUseLMChroma ()) ? 1 : 0,                                  "chroma_pred_from_luma_enabled_flag" ); 
-#endif
   WRITE_FLAG( pcSPS->getLFCrossSliceBoundaryFlag()?1 : 0,                            "loop_filter_across_slice_flag");
 #if SAO
   WRITE_FLAG( pcSPS->getUseSAO() ? 1 : 0,                                            "sample_adaptive_offset_enabled_flag");
@@ -1443,7 +1441,6 @@ Void TEncCavlc::codeIntraDirChroma( TComDataCU* pcCU, UInt uiAbsPartIdx )
     uiMode = 4;
   }
 #endif
-#if LM_CHROMA
   Bool bUseLMFlag = pcCU->getSlice()->getSPS()->getUseLMChroma();
 
   Int  iMaxMode = bUseLMFlag ? 3 : 4;
@@ -1476,27 +1473,6 @@ Void TEncCavlc::codeIntraDirChroma( TComDataCU* pcCU, UInt uiAbsPartIdx )
   }
 
   xWriteUnaryMaxSymbol( uiIntraDirChroma, iMax);
-
-#else //<--LM_CHROMA
-  Int  iMax = uiMode < 4 ? 3 : 4; 
-  
-  //switch codeword
-  if (uiIntraDirChroma == 4)
-  {
-    uiIntraDirChroma = 0;
-  }
-  else
-  {
-    if (uiIntraDirChroma < uiMode)
-    {
-      uiIntraDirChroma++;
-    }
-#if CHROMA_CODEWORD_SWITCH
-    uiIntraDirChroma = ChromaMapping[iMax-3][uiIntraDirChroma];
-#endif
-  }
-  xWriteUnaryMaxSymbol( uiIntraDirChroma, iMax);
-#endif //<-- LM_CHROMA
 
 #if ADD_PLANAR_MODE
   uiIntraDirChroma = pcCU->getChromaIntraDir( uiAbsPartIdx );

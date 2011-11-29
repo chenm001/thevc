@@ -46,9 +46,7 @@
 // ====================================================================================================================
 
 TComPrediction::TComPrediction()
-#if LM_CHROMA
 : m_pLumaRecBuffer(0)
-#endif
 {
   m_piYuvExt = NULL;
 }
@@ -66,12 +64,10 @@ TComPrediction::~TComPrediction()
 
   m_cYuvPredTemp.destroy();
 
-#if LM_CHROMA  
   if( m_pLumaRecBuffer )
   {
     delete [] m_pLumaRecBuffer;
   }
-#endif
   
 #if GENERIC_IF
   Int i, j;
@@ -118,7 +114,6 @@ Void TComPrediction::initTempBuff()
     m_cYuvPredTemp.create( g_uiMaxCUWidth, g_uiMaxCUHeight );
   }
 
-#if LM_CHROMA                      
   m_iLumaRecStride =  (g_uiMaxCUWidth>>1) + 1;
   m_pLumaRecBuffer = new Pel[ m_iLumaRecStride * m_iLumaRecStride ];
 
@@ -128,7 +123,6 @@ Void TComPrediction::initTempBuff()
 #else
   for( Int i = 1; i < 66; i++ )
     m_uiaShift[i-1] = ( (1 << 15) + i/2 ) / i;
-#endif
 #endif
 }
 
@@ -1137,7 +1131,6 @@ Void TComPrediction::xPredIntraPlanar( Int* pSrc, Int srcStride, Pel* rpDst, Int
 }
 #endif
 
-#if LM_CHROMA
 /** Function for deriving chroma LM intra prediction.
  * \param pcPattern pointer to neighbouring pixel access pattern
  * \param piSrc pointer to reconstructed chroma sample array
@@ -1495,7 +1488,6 @@ Void TComPrediction::xGetLLSPrediction( TComPattern* pcPattern, Int* pSrc0, Int 
   // <-- end of get prediction
 
 }
-#endif
 
 #if MN_DC_PRED_FILTER
 /** Function for filtering intra DC predictor.

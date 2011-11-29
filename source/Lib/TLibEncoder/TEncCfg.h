@@ -144,9 +144,7 @@ protected:
   Bool      m_bUseCbfFastMode;
 #endif
   Bool      m_bUseMRG; // SOPH:
-#if LM_CHROMA 
   Bool      m_bUseLMChroma; 
-#endif
 
   Int*      m_aidQP;
   UInt      m_uiDeltaQpRD;
@@ -414,10 +412,8 @@ public:
   UInt      getPCMLog2MinSize               ()      { return  m_uiPCMLog2MinSize;  }
 #endif
 
-#if LM_CHROMA 
   Bool getUseLMChroma                       ()      { return m_bUseLMChroma;        }
   Void setUseLMChroma                       ( Bool b ) { m_bUseLMChroma  = b;       }
-#endif
 
   Int*      getdQPs                         ()      { return m_aidQP;       }
   UInt      getDeltaQpRD                    ()      { return m_uiDeltaQpRD; }

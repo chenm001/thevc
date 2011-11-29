@@ -307,11 +307,7 @@ extern const UChar g_aucAngModeMapping[4][35];
 #else
 extern const UChar g_aucAngModeMapping[4][34];
 #endif
-#if ADD_PLANAR_MODE || LM_CHROMA
 extern const UChar g_aucAngIntraModeOrder[NUM_INTRA_MODE];
-#else
-extern const UChar g_aucAngIntraModeOrder[34];
-#endif
 
 // ====================================================================================================================
 // Bit-depth
@@ -335,13 +331,8 @@ extern const UChar g_aucConvertTxtTypeToIdx[4];
 // ==========================================
 // Mode-Dependent DST Matrices
 extern const short g_as_DST_MAT_4 [4][4];
-#if ADD_PLANAR_MODE || LM_CHROMA
 extern const UChar g_aucDCTDSTMode_Vert[NUM_INTRA_MODE];
 extern const UChar g_aucDCTDSTMode_Hor[NUM_INTRA_MODE];
-#else
-extern const UChar g_aucDCTDSTMode_Vert[34];
-extern const UChar g_aucDCTDSTMode_Hor[34];
-#endif
 // ==========================================
 
 // ====================================================================================================================

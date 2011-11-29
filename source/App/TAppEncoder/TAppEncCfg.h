@@ -142,9 +142,7 @@ protected:
   // coding tools (inter - merge motion partitions)
   Bool      m_bUseMRG;                                        ///< SOPH: flag for using motion partition Merge Mode
   
-#if LM_CHROMA 
   Bool      m_bUseLMChroma;                                  ///< JL: Chroma intra prediction based on luma signal
-#endif
 
   // coding tools (PCM)
 #if E057_INTRA_PCM

@@ -629,13 +629,6 @@ TDecCu::xIntraRecChromaBlk( TComDataCU* pcCU,
   
   UInt      uiChromaPredMode  = pcCU->getChromaIntraDir( 0 );
   
-#if !LM_CHROMA
-  if( uiChromaPredMode == 4 )
-  {
-    uiChromaPredMode          = pcCU->getLumaIntraDir( 0 );
-  }
-#endif
-  
   UInt      uiZOrder          = pcCU->getZorderIdxInCU() + uiAbsPartIdx;
   Pel*      piRecIPred        = ( uiChromaId > 0 ? pcCU->getPic()->getPicYuvRec()->getCrAddr( pcCU->getAddr(), uiZOrder ) : pcCU->getPic()->getPicYuvRec()->getCbAddr( pcCU->getAddr(), uiZOrder ) );
   UInt      uiRecIPredStride  = pcCU->getPic()->getPicYuvRec()->getCStride();
@@ -645,7 +638,6 @@ TDecCu::xIntraRecChromaBlk( TComDataCU* pcCU,
   Bool  bLeftAvail  = false;
   pcCU->getPattern()->initPattern         ( pcCU, uiTrDepth, uiAbsPartIdx );
 
-#if LM_CHROMA
   if( uiChromaPredMode == LM_CHROMA_IDX && uiChromaId == 0 )
   {
     pcCU->getPattern()->initAdiPattern( pcCU, uiAbsPartIdx, uiTrDepth, 
@@ -661,7 +653,6 @@ TDecCu::xIntraRecChromaBlk( TComDataCU* pcCU,
 
     m_pcPrediction->getLumaRecPixels( pcCU->getPattern(), uiWidth, uiHeight );
   }
-#endif
   
   pcCU->getPattern()->initAdiPatternChroma( pcCU, uiAbsPartIdx, uiTrDepth, 
                                            m_pcPrediction->getPredicBuf       (),
@@ -671,7 +662,6 @@ TDecCu::xIntraRecChromaBlk( TComDataCU* pcCU,
   Int* pPatChroma   = ( uiChromaId > 0 ? pcCU->getPattern()->getAdiCrBuf( uiWidth, uiHeight, m_pcPrediction->getPredicBuf() ) : pcCU->getPattern()->getAdiCbBuf( uiWidth, uiHeight, m_pcPrediction->getPredicBuf() ) );
   
   //===== get prediction signal =====
-#if LM_CHROMA
   if( uiChromaPredMode == LM_CHROMA_IDX )
   {
     m_pcPrediction->predLMIntraChroma( pcCU->getPattern(), pPatChroma, piPred, uiStride, uiWidth, uiHeight, uiChromaId );
@@ -688,9 +678,6 @@ TDecCu::xIntraRecChromaBlk( TComDataCU* pcCU,
     }
     m_pcPrediction->predIntraChromaAng( pcCU->getPattern(), pPatChroma, uiChromaPredMode, piPred, uiStride, uiWidth, uiHeight, pcCU, bAboveAvail, bLeftAvail );  
   }
-#else // LM_CHROMA
-  m_pcPrediction->predIntraChromaAng( pcCU->getPattern(), pPatChroma, uiChromaPredMode, piPred, uiStride, uiWidth, uiHeight, pcCU, bAboveAvail, bLeftAvail );
-#endif
 
   //===== inverse transform =====
   m_pcTrQuant->setQPforQuant  ( pcCU->getQP(0), !pcCU->getSlice()->getDepth(), pcCU->getSlice()->getSliceType(), eText );
@@ -758,7 +745,6 @@ TDecCu::xReconIntraQT( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
   }
 #endif
 
-#if LM_CHROMA
   for( UInt uiPU = 0; uiPU < uiNumPart; uiPU++ )
   {
     xIntraLumaRecQT( pcCU, uiInitTrDepth, uiPU * uiNumQParts, m_ppcYuvReco[uiDepth], m_ppcYuvReco[uiDepth], m_ppcYuvResi[uiDepth] );
@@ -768,17 +754,8 @@ TDecCu::xReconIntraQT( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
   {
     xIntraChromaRecQT( pcCU, uiInitTrDepth, uiPU * uiNumQParts, m_ppcYuvReco[uiDepth], m_ppcYuvReco[uiDepth], m_ppcYuvResi[uiDepth] );
   }
-#else
-
-  for( UInt uiPU = 0; uiPU < uiNumPart; uiPU++ )
-  {
-    xIntraRecQT( pcCU, uiInitTrDepth, uiPU * uiNumQParts, m_ppcYuvReco[uiDepth], m_ppcYuvReco[uiDepth], m_ppcYuvResi[uiDepth] );
-  }
-#endif
 
 }
-
-#if LM_CHROMA
 
 /** Function for deriving recontructed PU/CU Luma sample with QTree structure
  * \param pcCU pointer of current CU
@@ -848,7 +825,6 @@ TDecCu::xIntraChromaRecQT( TComDataCU* pcCU,
     }
   }
 }
-#endif
 
 Void TDecCu::xCopyToPic( TComDataCU* pcCU, TComPic* pcPic, UInt uiZorderIdx, UInt uiDepth )
 {

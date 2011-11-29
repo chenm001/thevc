@@ -892,8 +892,6 @@ Void TEncSbac::codeIntraDirChroma( TComDataCU* pcCU, UInt uiAbsPartIdx )
   }
 #endif
 
-#if LM_CHROMA
-
   Bool bUseLMFlag = pcCU->getSlice()->getSPS()->getUseLMChroma();
 
   Int  iMaxMode = bUseLMFlag ? 3 : 4;
@@ -923,26 +921,6 @@ Void TEncSbac::codeIntraDirChroma( TComDataCU* pcCU, UInt uiAbsPartIdx )
   }
 
 
-#else // <-- LM_CHROMA
-  Int  iMax = uiMode < 4 ? 2 : 3; 
-  
-  //switch codeword
-  if (uiIntraDirChroma == 4)
-  {
-    uiIntraDirChroma = 0;
-  } 
-  else
-  {
-    if (uiIntraDirChroma < uiMode)
-    {
-      uiIntraDirChroma++;
-    }
-#if CHROMA_CODEWORD_SWITCH
-    uiIntraDirChroma = ChromaMapping[iMax-2][uiIntraDirChroma];
-#endif
-  }
-#endif // <-- LM_CHROMA
-  
   if ( 0 == uiIntraDirChroma )
   {
     m_pcBinIf->encodeBin( 0, *m_cCUChromaPredSCModel.get( 0 ) );

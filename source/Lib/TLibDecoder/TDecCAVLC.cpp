@@ -352,9 +352,7 @@ Void TDecCavlc::parseSPS(TComSPS* pcSPS)
   // BB: these parameters may be removed completly and replaced by the fixed values
   pcSPS->setMinTrDepth( 0 );
   pcSPS->setMaxTrDepth( 1 );
-#if LM_CHROMA 
   READ_FLAG( uiCode, "chroma_pred_from_luma_enabled_flag" );     pcSPS->setUseLMChroma ( uiCode ? true : false ); 
-#endif
   READ_FLAG( uiCode, "loop_filter_across_slice_flag" );          pcSPS->setLFCrossSliceBoundaryFlag( uiCode ? true : false);
 #if SAO
   READ_FLAG( uiCode, "sample_adaptive_offset_enabled_flag" );    pcSPS->setUseSAO ( uiCode ? true : false );  
@@ -1602,7 +1600,6 @@ Void TDecCavlc::parseIntraDirChroma( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt u
     uiMode = 4;
   }
 #endif
-#if LM_CHROMA
   Int  iMaxMode = pcCU->getSlice()->getSPS()->getUseLMChroma() ? 3 : 4;
 
   Int  iMax = uiMode < iMaxMode ? 3 : 4; 
@@ -1630,28 +1627,6 @@ Void TDecCavlc::parseIntraDirChroma( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt u
     if (uiSymbol <= uiMode)
        uiSymbol --;
   }
-
-#else // -- LM_CHROMA
-
-  Int  iMax = uiMode < 4 ? 3 : 4;
-  xReadUnaryMaxSymbol( uiSymbol, iMax );
-  
-  //switch codeword
-  if (uiSymbol == 0)
-  {
-    uiSymbol = 4;
-  }
-  else
-  {
-#if CHROMA_CODEWORD_SWITCH
-    uiSymbol = ChromaMapping[iMax-3][uiSymbol];
-#endif
-    if (uiSymbol <= uiMode)
-    {
-      uiSymbol --;
-    }
-  }
-#endif // --> LM_CHROMA
 
   //printf("uiMode %d, chroma %d, codeword %d, imax %d\n", uiMode, uiSymbol, uiRead, iMax);
 

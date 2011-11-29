@@ -1036,9 +1036,7 @@ TComSPS::TComSPS()
 , m_bUseLDC                   (false)
 , m_bUsePAD                   (false)
 , m_bUseMRG                   (false)
-#if LM_CHROMA 
 , m_bUseLMChroma              (false)
-#endif
 , m_bUseLComb                 (false)
 , m_bLCMod                    (false)
 , m_uiBitDepth                (  8)

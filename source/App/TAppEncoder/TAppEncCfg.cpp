@@ -211,9 +211,7 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
   /* Coding tools */
   ("MRG", m_bUseMRG, true, "merging of motion partitions")
 
-#if LM_CHROMA 
   ("LMChroma", m_bUseLMChroma, true, "intra chroma prediction based on recontructed luma")
-#endif
 
   ("ALF", m_bUseALF, true, "Adaptive Loop Filter")
 #if SAO
@@ -644,9 +642,7 @@ Void TAppEncCfg::xPrintParameter()
 #endif
   printf("RQT:%d ", 1     );
   printf("MRG:%d ", m_bUseMRG             ); // SOPH: Merge Mode
-#if LM_CHROMA 
   printf("LMC:%d ", m_bUseLMChroma        ); 
-#endif
 #if FINE_GRANULARITY_SLICES
   printf("Slice: G=%d M=%d ", m_iSliceGranularity, m_iSliceMode);
   if (m_iSliceMode!=0)
@@ -754,9 +750,7 @@ Void TAppEncCfg::xPrintUsage()
 #endif
   printf( "                   MRG - merging of motion partitions\n"); // SOPH: Merge Mode
 
-#if LM_CHROMA 
   printf( "                   LMC - intra chroma prediction based on luma\n");
-#endif
 
   printf( "\n" );
   printf( "  Example 1) TAppEncoder.exe -c test.cfg -q 32 -g 8 -f 9 -s 64 -h 4\n");

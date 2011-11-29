@@ -966,7 +966,6 @@ Void TDecSbac::parseIntraDirChroma( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt ui
   }
 #endif
 
-#if LM_CHROMA
   Int  iMaxMode = pcCU->getSlice()->getSPS()->getUseLMChroma() ? 3 : 4;
   Int  iMax = uiMode < iMaxMode ? 2 : 3; 
   
@@ -999,33 +998,6 @@ Void TDecSbac::parseIntraDirChroma( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt ui
     if (uiSymbol <= uiMode)
        uiSymbol --;
   }
-#else // <-- LM_CHROMA
-  Int  iMax = uiMode < 4 ? 2 : 3;
-  
-  m_pcTDecBinIf->decodeBin( uiSymbol, m_cCUChromaPredSCModel.get( 0, 0, pcCU->getCtxIntraDirChroma( uiAbsPartIdx ) ) );
-  
-  if ( uiSymbol )
-  {
-    xReadUnaryMaxSymbol( uiSymbol, m_cCUChromaPredSCModel.get( 0, 0 ) + 3, 0, iMax );
-    uiSymbol++;
-  }
-  
-  //switch codeword
-  if (uiSymbol == 0)
-  {
-    uiSymbol = 4;
-  } 
-  else
-  {
-#if CHROMA_CODEWORD_SWITCH
-    uiSymbol = ChromaMapping[iMax-2][uiSymbol];
-#endif
-    if (uiSymbol <= uiMode)
-    {
-      uiSymbol --;
-    }
-  }
-#endif // <-- LM_CHROMA
 
 #if ADD_PLANAR_MODE
   if (uiSymbol == 2)

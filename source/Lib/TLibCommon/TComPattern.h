@@ -111,11 +111,7 @@ private:
   Bool m_bDCPredFilterFlag;
 #endif
   
-#if ADD_PLANAR_MODE || LM_CHROMA
   static const UChar m_aucIntraFilter[5][NUM_INTRA_MODE];
-#else
-  static const UChar m_aucIntraFilter[5][34];
-#endif
   
 public:
   
@@ -164,12 +160,10 @@ public:
                                Int         iOrgBufHeight,
                                Bool&       bAbove,
                                Bool&       bLeft
-#if LM_CHROMA
 #if LM_CHROMA_SIMPLIFICATION
                               ,Bool        bLMmode = false // using for LM chroma or not
 #else
                               ,UInt uiExt = 1 // number of extension lines, default is one, for LM chroma two lines are necessary for downsampling
-#endif
 #endif
                                );
   
@@ -191,9 +185,7 @@ private:
   Void  fillReferenceSamples        ( TComDataCU* pcCU, Pel* piRoiOrigin, Int* piAdiTemp, Bool* bNeighborFlags, Int iNumIntraNeighbor, Int iUnitSize, Int iNumUnitsInCu, Int iTotalUnits, UInt uiCuWidth, UInt uiCuHeight, UInt uiWidth, UInt uiHeight, Int iPicStride, Bool bLMmode = false);
 #else
   Void  fillReferenceSamples        ( TComDataCU* pcCU, Pel* piRoiOrigin, Int* piAdiTemp, Bool* bNeighborFlags, Int iNumIntraNeighbor, Int iUnitSize, Int iNumUnitsInCu, Int iTotalUnits, UInt uiCuWidth, UInt uiCuHeight, UInt uiWidth, UInt uiHeight, Int iPicStride);
-#if LM_CHROMA
   Void  fill2ReferenceSamples_LM    ( TComDataCU* pcCU, Pel* piRoiOrigin, Int* piAdiTemp, Bool* bNeighborFlags, Int iNumIntraNeighbor, Int iUnitSize, Int iNumUnitsInCu, Int iTotalUnits, UInt uiCuWidth, UInt uiCuHeight, UInt uiWidth, UInt uiHeight, Int iPicStride);
-#endif
 #endif
   
 #endif

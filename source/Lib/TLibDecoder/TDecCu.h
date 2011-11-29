@@ -118,10 +118,8 @@ protected:
   
   Void xCopyToPic               ( TComDataCU* pcCU, TComPic* pcPic, UInt uiZorderIdx, UInt uiDepth );
 
-#if LM_CHROMA
   Void  xIntraLumaRecQT         ( TComDataCU* pcCU, UInt uiTrDepth, UInt uiAbsPartIdx, TComYuv* pcRecoYuv, TComYuv* pcPredYuv, TComYuv* pcResiYuv );
   Void  xIntraChromaRecQT       ( TComDataCU* pcCU, UInt uiTrDepth, UInt uiAbsPartIdx, TComYuv* pcRecoYuv, TComYuv* pcPredYuv, TComYuv* pcResiYuv );
-#endif
 
   Bool getdQPFlag               ()                        { return m_bDecodeDQP;        }
   Void setdQPFlag               ( Bool b )                { m_bDecodeDQP = b;           }
