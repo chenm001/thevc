@@ -268,12 +268,7 @@
 
 #define MATRIX_MULT                             0   // Brute force matrix multiplication instead of partial butterfly
 
-// Discrete Sine Transform (DST) Type - 7
-// Currently DST operates with E-243 only
-#define INTRA_DST_TYPE_7                      1           // JCTVC-E125 4x4 DST
-#if INTRA_DST_TYPE_7
 #define REG_DCT 65535
-#endif
 
 #define E057_INTRA_PCM                      1 // JCTVC-E057 PCM operation mode 2: Signal I_PCM flag when CU is 2Nx2N intra and its size is larger than or equal to 1<<(LOG2_MIN_I_PCM_CODING_BLOCK_SIZE_MINUS3+3).
 #if E057_INTRA_PCM
