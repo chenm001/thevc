@@ -688,7 +688,6 @@ Void TEncSbac::codeTransformSubdivFlag( UInt uiSymbol, UInt uiCtx )
   DTRACE_CABAC_V( uiCtx )
   DTRACE_CABAC_T( "\n" )
 }
-#if MTK_DCM_MPM
 Void TEncSbac::codeIntraDirLumaAng( TComDataCU* pcCU, UInt uiAbsPartIdx )
 {
   UInt uiDir         = pcCU->getLumaIntraDir( uiAbsPartIdx );
@@ -739,62 +738,6 @@ Void TEncSbac::codeIntraDirLumaAng( TComDataCU* pcCU, UInt uiAbsPartIdx )
    }
   return;
 }
-#else
-Void TEncSbac::codeIntraDirLumaAng( TComDataCU* pcCU, UInt uiAbsPartIdx )
-{
-  UInt uiDir         = pcCU->getLumaIntraDir( uiAbsPartIdx );
-  Int  iMostProbable = pcCU->getMostProbableIntraDirLuma( uiAbsPartIdx );
-  UInt planarFlag    = 0;
-  if (uiDir == PLANAR_IDX)
-  {
-    uiDir = 2;
-    planarFlag = 1;
-  }
-  
-  if (uiDir == iMostProbable)
-    m_pcBinIf->encodeBin( 1, m_cCUIntraPredSCModel.get( 0, 0, 0 ) );
-  else
-  {
-    m_pcBinIf->encodeBin( 0, m_cCUIntraPredSCModel.get( 0, 0, 0 ) );
-    uiDir = uiDir > iMostProbable ? uiDir - 1 : uiDir;
-    Int iIntraIdx = pcCU->getIntraSizeIdx(uiAbsPartIdx);
-    if ( g_aucIntraModeBitsAng[iIntraIdx] < 6 )
-    {
-      m_pcBinIf->encodeBin((uiDir & 0x01), m_cCUIntraPredSCModel.get(0, 0, 1));
-      if ( g_aucIntraModeBitsAng[iIntraIdx] > 2 ) m_pcBinIf->encodeBin((uiDir & 0x02) >> 1, m_cCUIntraPredSCModel.get(0, 0, 1));
-      if ( g_aucIntraModeBitsAng[iIntraIdx] > 3 ) m_pcBinIf->encodeBin((uiDir & 0x04) >> 2, m_cCUIntraPredSCModel.get(0, 0, 1));
-      if ( g_aucIntraModeBitsAng[iIntraIdx] > 4 ) m_pcBinIf->encodeBin((uiDir & 0x08) >> 3, m_cCUIntraPredSCModel.get(0, 0, 1));
-    }
-    else
-    {
-      if (uiDir < 31)
-      { // uiDir is here 0...32, 5 bits for uiDir 0...30, 31 is an escape code for coding one more bit for 31 and 32
-        m_pcBinIf->encodeBin((uiDir & 0x01),      m_cCUIntraPredSCModel.get(0, 0, 1));
-        m_pcBinIf->encodeBin((uiDir & 0x02) >> 1, m_cCUIntraPredSCModel.get(0, 0, 1));
-        m_pcBinIf->encodeBin((uiDir & 0x04) >> 2, m_cCUIntraPredSCModel.get(0, 0, 1));
-        m_pcBinIf->encodeBin((uiDir & 0x08) >> 3, m_cCUIntraPredSCModel.get(0, 0, 1));
-        m_pcBinIf->encodeBin((uiDir & 0x10) >> 4, m_cCUIntraPredSCModel.get(0, 0, 1));
-      }
-      else
-      {
-        m_pcBinIf->encodeBin(1, m_cCUIntraPredSCModel.get(0, 0, 1));
-        m_pcBinIf->encodeBin(1, m_cCUIntraPredSCModel.get(0, 0, 1));
-        m_pcBinIf->encodeBin(1, m_cCUIntraPredSCModel.get(0, 0, 1));
-        m_pcBinIf->encodeBin(1, m_cCUIntraPredSCModel.get(0, 0, 1));
-        m_pcBinIf->encodeBin(1, m_cCUIntraPredSCModel.get(0, 0, 1));
-        m_pcBinIf->encodeBin((uiDir == 32) ? 1 : 0, m_cCUIntraPredSCModel.get(0, 0, 1));
-      }
-    }
-  }
-  
-  uiDir = pcCU->getLumaIntraDir( uiAbsPartIdx );
-  if ( (uiDir == PLANAR_IDX) || (uiDir == 2) )
-  {
-    m_pcBinIf->encodeBin( planarFlag, m_cPlanarFlagSCModel.get(0,0,0) );
-  }
-  return;
-}
-#endif
 Void TEncSbac::codeIntraDirChroma( TComDataCU* pcCU, UInt uiAbsPartIdx )
 {
   UInt uiIntraDirChroma = pcCU->getChromaIntraDir( uiAbsPartIdx );

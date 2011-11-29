@@ -1745,11 +1745,7 @@ TEncSearch::estIntraPredQT( TComDataCU* pcCU,
 
       {
         Bool mostProbableModeIncluded = false;
-#if MTK_DCM_MPM
         Int mostProbableMode = uiPreds[j];
-#else
-        Int mostProbableMode = pcCU->getMostProbableIntraDirLuma( uiPartOffset );
-#endif
         
         for( Int i=0; i < numModesForFullRD; i++)
         {

@@ -2357,7 +2357,6 @@ Void TComDataCU::getAllowedChromaDir( UInt uiAbsPartIdx, UInt* uiModeList )
   }
 }
 
-#if MTK_DCM_MPM
 /** Get most probable intra modes
 *\param   uiAbsPartIdx
 *\param   uiIntraDirPred  pointer to the array for MPM storage
@@ -2443,7 +2442,6 @@ Int TComDataCU::getIntraDirLumaPredictor( UInt uiAbsPartIdx, Int* uiIntraDirPred
 
   return uiPredNum;
 }
-#endif
 
 Int TComDataCU::getLeftIntraDirLuma( UInt uiAbsPartIdx )
 {

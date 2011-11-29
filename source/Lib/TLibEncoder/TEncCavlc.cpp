@@ -1072,7 +1072,6 @@ Void TEncCavlc::codeIPCMInfo( TComDataCU* pcCU, UInt uiAbsPartIdx)
 }
 #endif
 
-#if MTK_DCM_MPM
 Void TEncCavlc::codeIntraDirLumaAng( TComDataCU* pcCU, UInt uiAbsPartIdx )
 {
   Int iDir         = pcCU->getLumaIntraDir( uiAbsPartIdx );
@@ -1172,115 +1171,6 @@ Void TEncCavlc::codeIntraDirLumaAng( TComDataCU* pcCU, UInt uiAbsPartIdx )
      }
   }
 }
-#else
-Void TEncCavlc::codeIntraDirLumaAng( TComDataCU* pcCU, UInt uiAbsPartIdx )
-{
-  Int iDir         = pcCU->getLumaIntraDir( uiAbsPartIdx );
-  Int iMostProbable = pcCU->getMostProbableIntraDirLuma( uiAbsPartIdx );
-  Int iIntraIdx = pcCU->getIntraSizeIdx(uiAbsPartIdx);
-  UInt uiCode, uiLength;
-  Int iRankIntraMode, iRankIntraModeLarger, iDirLarger;
-  UInt planarFlag    = 0;
-  if (iDir == PLANAR_IDX)
-  {
-    iDir = 2;
-    planarFlag = 1;
-  }
-
-  UInt ind=(pcCU->getLeftIntraDirLuma( uiAbsPartIdx )==pcCU->getAboveIntraDirLuma( uiAbsPartIdx ))? 0 : 1;
-  
-  const UInt *huff17=huff17_2[ind];
-  const UInt *lengthHuff17=lengthHuff17_2[ind];
-  const UInt *huff34=huff34_2[ind];
-  const UInt *lengthHuff34=lengthHuff34_2[ind];
-
-  if ( g_aucIntraModeBitsAng[iIntraIdx] < 5 )
-  {
-    if (iDir == iMostProbable)
-      xWriteFlag( 1 );
-    else
-    {
-      if (iDir>iMostProbable)
-        iDir--;
-      xWriteFlag( 0 );
-      xWriteFlag( iDir & 0x01 ? 1 : 0 );
-      if ( g_aucIntraModeBitsAng[iIntraIdx] > 2 ) xWriteFlag( iDir & 0x02 ? 1 : 0 );
-      if ( g_aucIntraModeBitsAng[iIntraIdx] > 3 ) xWriteFlag( iDir & 0x04 ? 1 : 0 );
-    }
-  }
-  else if ( g_aucIntraModeBitsAng[iIntraIdx] == 5 )
-  {
-
-    if (iDir==iMostProbable)
-    {
-      uiCode=huff17[0];
-      uiLength=lengthHuff17[0];
-    }
-    else
-    { 
-      if (iDir>iMostProbable)
-      {
-        iDir--;
-      }
-      iRankIntraMode=m_uiIntraModeTableE17[iDir];
-
-      uiCode=huff17[iRankIntraMode+1];
-      uiLength=lengthHuff17[iRankIntraMode+1];
-
-      if ( m_bAdaptFlag )
-      {
-        iRankIntraModeLarger = max(0,iRankIntraMode-1);
-        iDirLarger = m_uiIntraModeTableD17[iRankIntraModeLarger];
-        
-        m_uiIntraModeTableD17[iRankIntraModeLarger] = iDir;
-        m_uiIntraModeTableD17[iRankIntraMode] = iDirLarger;
-        m_uiIntraModeTableE17[iDir] = iRankIntraModeLarger;
-        m_uiIntraModeTableE17[iDirLarger] = iRankIntraMode;
-      }
-    }
-    xWriteCode(uiCode, uiLength);
-  }
-  else
-  {
-    if (iDir==iMostProbable)
-    {
-      uiCode=huff34[0];
-      uiLength=lengthHuff34[0];
-    }
-    else
-    {
-      if (iDir>iMostProbable)
-      {
-        iDir--;
-      }
-      iRankIntraMode=m_uiIntraModeTableE34[iDir];
-
-      uiCode=huff34[iRankIntraMode+1];
-      uiLength=lengthHuff34[iRankIntraMode+1];
-
-      if ( m_bAdaptFlag )
-      {
-        iRankIntraModeLarger = max(0,iRankIntraMode-1);
-        iDirLarger = m_uiIntraModeTableD34[iRankIntraModeLarger];
-
-        m_uiIntraModeTableD34[iRankIntraModeLarger] = iDir;
-        m_uiIntraModeTableD34[iRankIntraMode] = iDirLarger;
-        m_uiIntraModeTableE34[iDir] = iRankIntraModeLarger;
-        m_uiIntraModeTableE34[iDirLarger] = iRankIntraMode;
-      }
-    }
-
-    xWriteCode(uiCode, uiLength);
-  }
-
-  iDir = pcCU->getLumaIntraDir( uiAbsPartIdx );
-  if ( (iDir == PLANAR_IDX) || (iDir == 2) )
-  {
-    xWriteFlag( planarFlag );
-  }
-
-}
-#endif
 
 Void TEncCavlc::codeIntraDirChroma( TComDataCU* pcCU, UInt uiAbsPartIdx )
 {

@@ -157,16 +157,11 @@
 #define RVM_VCEGAM10_M 4
 #endif
 
-#define MTK_DCM_MPM 1 // MostProbableModeSignaling
-
 #undef PLANAR_IDX
 #define PLANAR_IDX             0
 #define DC_IDX                 3                     // index for intra DC mode
 #define NUM_CHROMA_MODE        6                     // total number of chroma modes
 #define DM_CHROMA_IDX          36                    // chroma mode index for derived from luma intra mode
-#if !MTK_DCM_MPM
-#error "MTK_DCM_MPM should be enabled"
-#endif
 
 
 #define FAST_UDI_USE_MPM 1
