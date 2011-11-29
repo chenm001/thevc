@@ -568,11 +568,11 @@ TDecCu::xIntraRecLumaBlk( TComDataCU* pcCU,
   
   //===== inverse transform =====
   m_pcTrQuant->setQPforQuant  ( pcCU->getQP(0), !pcCU->getSlice()->getDepth(), pcCU->getSlice()->getSliceType(), TEXT_LUMA );
-#if INTRA_DST_TYPE_7
+
   m_pcTrQuant->invtransformNxN( TEXT_LUMA, pcCU->getLumaIntraDir( uiAbsPartIdx ), piResi, uiStride, pcCoeff, uiWidth, uiHeight );
-#else
-  m_pcTrQuant->invtransformNxN( piResi, uiStride, pcCoeff, uiWidth, uiHeight );
-#endif  
+
+
+
 
   
   //===== reconstruction =====
@@ -698,11 +698,11 @@ TDecCu::xIntraRecChromaBlk( TComDataCU* pcCU,
 
   //===== inverse transform =====
   m_pcTrQuant->setQPforQuant  ( pcCU->getQP(0), !pcCU->getSlice()->getDepth(), pcCU->getSlice()->getSliceType(), eText );
-#if INTRA_DST_TYPE_7 
+
   m_pcTrQuant->invtransformNxN( eText, REG_DCT, piResi, uiStride, pcCoeff, uiWidth, uiHeight );
-#else
-  m_pcTrQuant->invtransformNxN( piResi, uiStride, pcCoeff, uiWidth, uiHeight );
-#endif
+
+
+
 
   //===== reconstruction =====
   {

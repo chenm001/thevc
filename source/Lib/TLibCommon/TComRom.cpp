@@ -1557,7 +1557,7 @@ const LastCoeffStruct g_acstructLumaRun8x8[29][127] =
 #endif
 
 // Mode-Dependent DCT/DST 
-#if INTRA_DST_TYPE_7
+
 const short g_as_DST_MAT_4 [4][4]=
 {
   {29,   55,    74,   84},
@@ -1603,7 +1603,7 @@ const UChar g_aucDCTDSTMode_Hor[34] =
 #endif
 #endif
 };
-#endif  // for INTRA_DST_TYPE_7
+
 
 
 
