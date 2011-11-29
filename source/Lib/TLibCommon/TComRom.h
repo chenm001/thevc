@@ -145,12 +145,7 @@ extern       UInt*  g_auiSigLastScan[3][ MAX_CU_DEPTH ];  // raster index from s
 extern       UInt*  g_auiNonSquareSigLastScan[ 2 ];      // raster index from scanning index (zigzag)
 #endif 
 
-#if MODIFIED_LAST_CODING
 extern const UInt   g_uiLastCtx[32];
-#else
-extern       UInt   g_uiCtxXYOffset[ MAX_CU_DEPTH ];      //!< context offset for last pos coding
-extern       UInt   g_uiCtxXY      [ 31 ];                //!< context mapping for last pos coding
-#endif
 
 extern const UInt   g_auiGoRiceRange[4];                  //!< maximum value coded with Rice codes
 extern const UInt   g_auiGoRicePrefixLen[4];              //!< prefix length for each maximum value

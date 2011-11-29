@@ -296,14 +296,9 @@ __inline UInt              xGetCodedLevel  ( Double&                         rd6
                                      UShort                          ui16CtxNumOne,
                                      UShort                          ui16CtxNumAbs,
                                      UShort                          ui16AbsGoRice ) const;
-#if MODIFIED_LAST_CODING
   __inline Double xGetRateLast     ( const UInt                      uiPosX,
                                      const UInt                      uiPosY,
                                      const UInt                      uiBlkWdth     ) const;
-#else
-  __inline Double xGetRateLast     ( UInt                            uiPosX,
-                                     UInt                            uiPosY        ) const;
-#endif
   __inline Double xGetRateSigCoef (  UShort                          uiSignificance,
                                      UShort                          ui16CtxNumSig ) const;
   __inline Double xGetICost        ( Double                          dRate         ) const; 

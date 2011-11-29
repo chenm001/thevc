@@ -3565,11 +3565,7 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
     {
       UInt   uiPosY       = uiBlkPos >> uiLog2BlkSize;
       UInt   uiPosX       = uiBlkPos - ( uiPosY << uiLog2BlkSize );
-#if MODIFIED_LAST_CODING
       Double d64CostLast= uiScanIdx == SCAN_VER ? xGetRateLast( uiPosY, uiPosX, uiWidth ) : xGetRateLast( uiPosX, uiPosY, uiWidth );
-#else
-      Double d64CostLast= uiScanIdx == SCAN_VER ? xGetRateLast( uiPosY, uiPosX ) : xGetRateLast( uiPosX, uiPosY );
-#endif
       Double totalCost = d64BaseCost + d64CostLast - pdCostSig[ iScanPos ];
       if( totalCost < d64BestCost )
       {
@@ -3803,7 +3799,6 @@ __inline Double TComTrQuant::xGetICRateCost  ( UInt                            u
  * \param uiPosY Y coordinate of the last significant coefficient
  * \returns cost of last significant coefficient
  */
-#if MODIFIED_LAST_CODING
 /*
  * \param uiWidth width of the transform unit (TU)
 */
@@ -3838,13 +3833,6 @@ __inline Double TComTrQuant::xGetRateLast   ( const UInt                      ui
 
   return xGetICost( uiCost );
 }
-#else
-__inline Double TComTrQuant::xGetRateLast   ( UInt                            uiPosX,
-                                              UInt                            uiPosY ) const
-{
-  return xGetICost( m_pcEstBitsSbac->lastXBits[ uiPosX ] + m_pcEstBitsSbac->lastYBits[ uiPosY ] );
-}
-#endif
 
  /** Calculates the cost for specific absolute transform level
  * \param uiAbsLevel scaled quantized level

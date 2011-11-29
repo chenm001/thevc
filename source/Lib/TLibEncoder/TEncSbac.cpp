@@ -137,13 +137,8 @@ Void TEncSbac::resetEntropy           ()
   m_cCUQtCbfSCModel.initBuffer           ( eSliceType, iQp, (Short*)INIT_QT_CBF );
   m_cCUQtRootCbfSCModel.initBuffer       ( eSliceType, iQp, (Short*)INIT_QT_ROOT_CBF );
   m_cCUSigSCModel.initBuffer             ( eSliceType, iQp, (Short*)INIT_SIG_FLAG );
-#if MODIFIED_LAST_CODING
   m_cCuCtxLastX.initBuffer               ( eSliceType, iQp, (Short*)INIT_LAST );
   m_cCuCtxLastY.initBuffer               ( eSliceType, iQp, (Short*)INIT_LAST );
-#else
-  m_cCuCtxLastX.initBuffer               ( eSliceType, iQp, (Short*)INIT_LAST_X );
-  m_cCuCtxLastY.initBuffer               ( eSliceType, iQp, (Short*)INIT_LAST_Y );
-#endif
   m_cCUOneSCModel.initBuffer             ( eSliceType, iQp, (Short*)INIT_ONE_FLAG );
   m_cCUAbsSCModel.initBuffer             ( eSliceType, iQp, (Short*)INIT_ABS_FLAG );
   m_cMVPIdxSCModel.initBuffer            ( eSliceType, iQp, (Short*)INIT_MVP_IDX );
@@ -196,13 +191,8 @@ Void TEncSbac::updateContextTables( SliceType eSliceType, Int iQp, Bool bExecute
   m_cCUQtCbfSCModel.initBuffer           ( eSliceType, iQp, (Short*)INIT_QT_CBF );
   m_cCUQtRootCbfSCModel.initBuffer       ( eSliceType, iQp, (Short*)INIT_QT_ROOT_CBF );
   m_cCUSigSCModel.initBuffer             ( eSliceType, iQp, (Short*)INIT_SIG_FLAG );
-#if MODIFIED_LAST_CODING
   m_cCuCtxLastX.initBuffer               ( eSliceType, iQp, (Short*)INIT_LAST );
   m_cCuCtxLastY.initBuffer               ( eSliceType, iQp, (Short*)INIT_LAST );
-#else
-  m_cCuCtxLastX.initBuffer               ( eSliceType, iQp, (Short*)INIT_LAST_X );
-  m_cCuCtxLastY.initBuffer               ( eSliceType, iQp, (Short*)INIT_LAST_Y );
-#endif
   m_cCUOneSCModel.initBuffer             ( eSliceType, iQp, (Short*)INIT_ONE_FLAG );
   m_cCUAbsSCModel.initBuffer             ( eSliceType, iQp, (Short*)INIT_ABS_FLAG );
   m_cMVPIdxSCModel.initBuffer            ( eSliceType, iQp, (Short*)INIT_MVP_IDX );
@@ -1354,7 +1344,6 @@ Void TEncSbac::codeQtRootCbf( TComDataCU* pcCU, UInt uiAbsPartIdx )
  */
 __inline Void TEncSbac::codeLastSignificantXY( UInt uiPosX, UInt uiPosY, const UInt uiWidth, const TextType eTType, const UInt uiCTXIdx, const UInt uiScanIdx )
 {  
-#if MODIFIED_LAST_CODING
   // swap
   if( uiScanIdx == SCAN_VER )
   {
@@ -1419,33 +1408,6 @@ __inline Void TEncSbac::codeLastSignificantXY( UInt uiPosX, UInt uiPosY, const U
       uiCount++;
     }
   }
-#else
-  UInt  uiCtxLast;
-  const UInt uiCtxOffset = g_uiCtxXYOffset[uiCTXIdx];
-
-  if( uiScanIdx == SCAN_VER )
-  {
-    swap( uiPosX, uiPosY );
-  }
-  
-  for(uiCtxLast=0; uiCtxLast<uiPosX; uiCtxLast++)
-  {
-    m_pcBinIf->encodeBin( 0, m_cCuCtxLastX.get( 0, eTType, uiCtxOffset + g_uiCtxXY[uiCtxLast] ) );
-  }
-  if(uiPosX < uiWidth - 1)
-  {
-    m_pcBinIf->encodeBin( 1, m_cCuCtxLastX.get( 0, eTType, uiCtxOffset + g_uiCtxXY[uiCtxLast] ) );
-  }
-
-  for(uiCtxLast=0; uiCtxLast<uiPosY; uiCtxLast++)
-  {
-    m_pcBinIf->encodeBin( 0, m_cCuCtxLastY.get( 0, eTType, uiCtxOffset + g_uiCtxXY[uiCtxLast] ) );
-  }
-  if(uiPosY < uiWidth - 1)
-  {
-    m_pcBinIf->encodeBin( 1, m_cCuCtxLastY.get( 0, eTType, uiCtxOffset + g_uiCtxXY[uiCtxLast] ) );
-  }
-#endif
 }
 
 Void TEncSbac::codeCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx, UInt uiWidth, UInt uiHeight, UInt uiDepth, TextType eTType )
@@ -1896,10 +1858,6 @@ Void TEncSbac::estSignificantMapBit( estBitsSbacStruct* pcEstBitsSbac, UInt uiCT
   }
 
   Int iBitsX = 0, iBitsY = 0;
-#if !MODIFIED_LAST_CODING
-  const UInt uiCtxOffset = g_uiCtxXYOffset[uiCTXIdx];
-#endif
-#if MODIFIED_LAST_CODING
   const UInt uiWidth       = ( 1 << ( 7 - uiCTXIdx ) );
   const UInt uiMinWidth    = min<UInt>( 4, uiWidth );
   const UInt uiHalfWidth   = uiWidth >> 1;
@@ -1907,23 +1865,13 @@ Void TEncSbac::estSignificantMapBit( estBitsSbacStruct* pcEstBitsSbac, UInt uiCT
   const UInt uiWidthM1     = max<UInt>( uiMinWidth, uiHalfWidth + 1 ) - 1;
   ContextModel *pCtxX      = m_cCuCtxLastX.get( 0, eTType );
   ContextModel *pCtxY      = m_cCuCtxLastY.get( 0, eTType );
-#else
-  const UInt uiWidthM1   = (1 << (7-uiCTXIdx)) - 1;
-#endif
   for ( UInt uiCtx = 0; uiCtx < uiWidthM1; uiCtx++ )
   {
-#if MODIFIED_LAST_CODING
     Int ctxOffset = puiCtxIdx[ uiCtx ];
     pcEstBitsSbac->lastXBits[ uiCtx ] = iBitsX + pCtxX[ ctxOffset ].getEntropyBits( 1 );
     pcEstBitsSbac->lastYBits[ uiCtx ] = iBitsY + pCtxY[ ctxOffset ].getEntropyBits( 1 );
     iBitsX += pCtxX[ ctxOffset ].getEntropyBits( 0 );
     iBitsY += pCtxY[ ctxOffset ].getEntropyBits( 0 );
-#else
-    pcEstBitsSbac->lastXBits[uiCtx] = iBitsX + m_cCuCtxLastX.get( 0, eTType, uiCtxOffset + g_uiCtxXY[uiCtx] ).getEntropyBits( 1 );
-    pcEstBitsSbac->lastYBits[uiCtx] = iBitsY + m_cCuCtxLastY.get( 0, eTType, uiCtxOffset + g_uiCtxXY[uiCtx] ).getEntropyBits( 1 );
-    iBitsX += m_cCuCtxLastX.get( 0, eTType, uiCtxOffset + g_uiCtxXY[uiCtx] ).getEntropyBits( 0 );
-    iBitsY += m_cCuCtxLastY.get( 0, eTType, uiCtxOffset + g_uiCtxXY[uiCtx] ).getEntropyBits( 0 );
-#endif
   }
   pcEstBitsSbac->lastXBits[uiWidthM1] = iBitsX;
   pcEstBitsSbac->lastYBits[uiWidthM1] = iBitsY;
@@ -1985,13 +1933,8 @@ Void TEncSbac::xCopyContextsFrom( TEncSbac* pSrc )
   m_cCUQtCbfSCModel           .copyFrom( &pSrc->m_cCUQtCbfSCModel           );
   m_cCUQtRootCbfSCModel       .copyFrom( &pSrc->m_cCUQtRootCbfSCModel       );
   m_cCUSigSCModel             .copyFrom( &pSrc->m_cCUSigSCModel             );
-#if MODIFIED_LAST_CODING
   m_cCuCtxLastX               .copyFrom( &pSrc->m_cCuCtxLastX               );
   m_cCuCtxLastY               .copyFrom( &pSrc->m_cCuCtxLastY               );
-#else
-  m_cCuCtxLastX               .copyFrom( &pSrc->m_cCuCtxLastX               );
-  m_cCuCtxLastY               .copyFrom( &pSrc->m_cCuCtxLastY               );
-#endif
   m_cCUOneSCModel             .copyFrom( &pSrc->m_cCUOneSCModel             );
   m_cCUAbsSCModel             .copyFrom( &pSrc->m_cCUAbsSCModel             );
   m_cMVPIdxSCModel            .copyFrom( &pSrc->m_cMVPIdxSCModel            );

@@ -138,13 +138,8 @@ Void TDecSbac::resetEntropy          (TComSlice* pcSlice)
   m_cCUQtCbfSCModel.initBuffer           ( eSliceType, iQp, (Short*)INIT_QT_CBF );
   m_cCUQtRootCbfSCModel.initBuffer       ( eSliceType, iQp, (Short*)INIT_QT_ROOT_CBF );
   m_cCUSigSCModel.initBuffer             ( eSliceType, iQp, (Short*)INIT_SIG_FLAG );
-#if MODIFIED_LAST_CODING
   m_cCuCtxLastX.initBuffer               ( eSliceType, iQp, (Short*)INIT_LAST );
   m_cCuCtxLastY.initBuffer               ( eSliceType, iQp, (Short*)INIT_LAST );
-#else
-  m_cCuCtxLastX.initBuffer               ( eSliceType, iQp, (Short*)INIT_LAST_X );
-  m_cCuCtxLastY.initBuffer               ( eSliceType, iQp, (Short*)INIT_LAST_Y );
-#endif
   m_cCUOneSCModel.initBuffer             ( eSliceType, iQp, (Short*)INIT_ONE_FLAG );
   m_cCUAbsSCModel.initBuffer             ( eSliceType, iQp, (Short*)INIT_ABS_FLAG );
   m_cMVPIdxSCModel.initBuffer            ( eSliceType, iQp, (Short*)INIT_MVP_IDX );
@@ -212,13 +207,8 @@ Void TDecSbac::updateContextTables( SliceType eSliceType, Int iQp )
   m_cCUQtCbfSCModel.initBuffer           ( eSliceType, iQp, (Short*)INIT_QT_CBF );
   m_cCUQtRootCbfSCModel.initBuffer       ( eSliceType, iQp, (Short*)INIT_QT_ROOT_CBF );
   m_cCUSigSCModel.initBuffer             ( eSliceType, iQp, (Short*)INIT_SIG_FLAG );
-#if MODIFIED_LAST_CODING
   m_cCuCtxLastX.initBuffer               ( eSliceType, iQp, (Short*)INIT_LAST );
   m_cCuCtxLastY.initBuffer               ( eSliceType, iQp, (Short*)INIT_LAST );
-#else
-  m_cCuCtxLastX.initBuffer               ( eSliceType, iQp, (Short*)INIT_LAST_X );
-  m_cCuCtxLastY.initBuffer               ( eSliceType, iQp, (Short*)INIT_LAST_Y );
-#endif
   m_cCUOneSCModel.initBuffer             ( eSliceType, iQp, (Short*)INIT_ONE_FLAG );
   m_cCUAbsSCModel.initBuffer             ( eSliceType, iQp, (Short*)INIT_ABS_FLAG );
   m_cMVPIdxSCModel.initBuffer            ( eSliceType, iQp, (Short*)INIT_MVP_IDX );
@@ -1398,7 +1388,6 @@ Void TDecSbac::parseQtCbf( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eType, 
  */
 __inline Void TDecSbac::parseLastSignificantXY( UInt& uiPosLastX, UInt& uiPosLastY, const UInt uiWidth, const TextType eTType, const UInt uiCTXIdx, const UInt uiScanIdx )
 {
-#if MODIFIED_LAST_CODING
   UInt uiLast;
   const UInt uiMinWidth    = min<UInt>( 4, uiWidth );
   const UInt uiHalfWidth   = uiWidth >> 1;
@@ -1460,33 +1449,6 @@ __inline Void TDecSbac::parseLastSignificantXY( UInt& uiPosLastX, UInt& uiPosLas
   {
     swap( uiPosLastX, uiPosLastY );
   }
-#else
-  UInt uiLast;
-  const UInt uiCtxOffset = g_uiCtxXYOffset[uiCTXIdx];
-
-  for(uiPosLastX=0; uiPosLastX<uiWidth-1; uiPosLastX++)
-  {
-    m_pcTDecBinIf->decodeBin( uiLast, m_cCuCtxLastX.get( 0, eTType, uiCtxOffset + g_uiCtxXY[uiPosLastX] ) );
-    if(uiLast)
-    {
-      break;
-    }
-  }
-
-  for(uiPosLastY=0; uiPosLastY<uiWidth-1; uiPosLastY++)
-  {
-    m_pcTDecBinIf->decodeBin( uiLast, m_cCuCtxLastY.get( 0, eTType, uiCtxOffset + g_uiCtxXY[uiPosLastY] ) );
-    if(uiLast)
-    {
-      break;
-    }
-  }
-
-  if( uiScanIdx == SCAN_VER )
-  {
-    swap( uiPosLastX, uiPosLastY );
-  }
-#endif
 }
 
 Void TDecSbac::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx, UInt uiWidth, UInt uiHeight, UInt uiDepth, TextType eTType )
@@ -1918,13 +1880,8 @@ Void TDecSbac::xCopyContextsFrom( TDecSbac* pSrc )
   m_cCUQtCbfSCModel           .copyFrom( &pSrc->m_cCUQtCbfSCModel           );
   m_cCUQtRootCbfSCModel       .copyFrom( &pSrc->m_cCUQtRootCbfSCModel       );
   m_cCUSigSCModel             .copyFrom( &pSrc->m_cCUSigSCModel             );
-#if MODIFIED_LAST_CODING
   m_cCuCtxLastX               .copyFrom( &pSrc->m_cCuCtxLastX               );
   m_cCuCtxLastY               .copyFrom( &pSrc->m_cCuCtxLastY               );
-#else
-  m_cCuCtxLastX               .copyFrom( &pSrc->m_cCuCtxLastX               );
-  m_cCuCtxLastY               .copyFrom( &pSrc->m_cCuCtxLastY               );
-#endif
   m_cCUOneSCModel             .copyFrom( &pSrc->m_cCUOneSCModel             );
   m_cCUAbsSCModel             .copyFrom( &pSrc->m_cCUAbsSCModel             );
   m_cMVPIdxSCModel            .copyFrom( &pSrc->m_cMVPIdxSCModel            );
