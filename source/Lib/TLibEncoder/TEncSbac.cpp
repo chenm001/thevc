@@ -71,11 +71,7 @@ TEncSbac::TEncSbac()
 , m_cCUDeltaQpSCModel         ( 1,             1,               NUM_DELTA_QP_CTX              , m_contextModels + m_numContextModels, m_numContextModels)
 , m_cCUInterDirSCModel        ( 1,             1,               NUM_INTER_DIR_CTX             , m_contextModels + m_numContextModels, m_numContextModels)
 , m_cCURefPicSCModel          ( 1,             1,               NUM_REF_NO_CTX                , m_contextModels + m_numContextModels, m_numContextModels)
-#if MODIFIED_MVD_CODING
 , m_cCUMvdSCModel             ( 1,             1,               NUM_MV_RES_CTX                , m_contextModels + m_numContextModels, m_numContextModels)
-#else
-, m_cCUMvdSCModel             ( 1,             2,               NUM_MV_RES_CTX                , m_contextModels + m_numContextModels, m_numContextModels)
-#endif
 , m_cCUQtCbfSCModel           ( 1,             3,               NUM_QT_CBF_CTX                , m_contextModels + m_numContextModels, m_numContextModels)
 , m_cCUTransSubdivFlagSCModel ( 1,             1,               NUM_TRANS_SUBDIV_FLAG_CTX     , m_contextModels + m_numContextModels, m_numContextModels)
 , m_cCUQtRootCbfSCModel       ( 1,             1,               NUM_QT_ROOT_CBF_CTX           , m_contextModels + m_numContextModels, m_numContextModels)
@@ -1133,7 +1129,6 @@ Void TEncSbac::codeRefFrmIdx( TComDataCU* pcCU, UInt uiAbsPartIdx, RefPicList eR
 
 Void TEncSbac::codeMvd( TComDataCU* pcCU, UInt uiAbsPartIdx, RefPicList eRefList )
 {
-#if MODIFIED_MVD_CODING
   const TComCUMvField* pcCUMvField = pcCU->getCUMvField( eRefList );
   const Int iHor = pcCUMvField->getMvd( uiAbsPartIdx ).getHor();
   const Int iVer = pcCUMvField->getMvd( uiAbsPartIdx ).getVer();
@@ -1177,47 +1172,6 @@ Void TEncSbac::codeMvd( TComDataCU* pcCU, UInt uiAbsPartIdx, RefPicList eRefList
 
     m_pcBinIf->encodeBinEP( 0 > iVer ? 1 : 0 );
   }
-#else
-  TComCUMvField* pcCUMvField = pcCU->getCUMvField( eRefList );
-  Int iHor = pcCUMvField->getMvd( uiAbsPartIdx ).getHor();
-  Int iVer = pcCUMvField->getMvd( uiAbsPartIdx ).getVer();
-  
-  UInt uiAbsPartIdxL, uiAbsPartIdxA;
-#if MVD_CTX
-  Int iHorPredL, iVerPredL;
-  Int iHorPredA, iVerPredA;
-#else
-  Int iHorPred, iVerPred;
-#endif
-
-  TComDataCU* pcCUL   = pcCU->getPULeft ( uiAbsPartIdxL, pcCU->getZorderIdxInCU() + uiAbsPartIdx );
-#if REDUCE_UPPER_MOTION_DATA
-  TComDataCU* pcCUA   = pcCU->getPUAbove( uiAbsPartIdxA, pcCU->getZorderIdxInCU() + uiAbsPartIdx, true, true, true );
-#else
-  TComDataCU* pcCUA   = pcCU->getPUAbove( uiAbsPartIdxA, pcCU->getZorderIdxInCU() + uiAbsPartIdx );
-#endif
-  
-  TComCUMvField* pcCUMvFieldL = ( pcCUL == NULL || pcCUL->isIntra( uiAbsPartIdxL ) ) ? NULL : pcCUL->getCUMvField( eRefList );
-  TComCUMvField* pcCUMvFieldA = ( pcCUA == NULL || pcCUA->isIntra( uiAbsPartIdxA ) ) ? NULL : pcCUA->getCUMvField( eRefList );
-  
-#if MVD_CTX
-  iHorPredA = ( (pcCUMvFieldA == NULL) ? 0 : pcCUMvFieldA->getMvd( uiAbsPartIdxA ).getAbsHor() );
-  iVerPredA = ( (pcCUMvFieldA == NULL) ? 0 : pcCUMvFieldA->getMvd( uiAbsPartIdxA ).getAbsVer() );
-  iHorPredL = ( (pcCUMvFieldL == NULL) ? 0 : pcCUMvFieldL->getMvd( uiAbsPartIdxL ).getAbsHor() );
-  iVerPredL = ( (pcCUMvFieldL == NULL) ? 0 : pcCUMvFieldL->getMvd( uiAbsPartIdxL ).getAbsVer() );
-
-  xWriteMvd( iHor, iHorPredL, iHorPredA, 0 );
-  xWriteMvd( iVer, iVerPredL, iVerPredA, 1 );
-#else  
-  iHorPred = ( (pcCUMvFieldL == NULL) ? 0 : pcCUMvFieldL->getMvd( uiAbsPartIdxL ).getAbsHor() ) +
-  ( (pcCUMvFieldA == NULL) ? 0 : pcCUMvFieldA->getMvd( uiAbsPartIdxA ).getAbsHor() );
-  iVerPred = ( (pcCUMvFieldL == NULL) ? 0 : pcCUMvFieldL->getMvd( uiAbsPartIdxL ).getAbsVer() ) +
-  ( (pcCUMvFieldA == NULL) ? 0 : pcCUMvFieldA->getMvd( uiAbsPartIdxA ).getAbsVer() );
-
-  xWriteMvd( iHor, iHorPred, 0 );
-  xWriteMvd( iVer, iVerPred, 1 );
-#endif
-#endif
   
   return;
 }
@@ -1715,89 +1669,6 @@ Void TEncSbac::codeCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx
   }
   return;
 }
-
-#if !MODIFIED_MVD_CODING
-#if MVD_CTX
-/** Encode a motion vector difference
- * \param iMvd motion vector difference
- * \param uiAbsSumL motion vector difference of left PU
- * \param uiAbsSumA motion vector difference of above PU
- * \param uiCtx index for context set based on vertical or horizontal component
- */
-Void TEncSbac::xWriteMvd( Int iMvd, UInt uiAbsSumL, UInt uiAbsSumA, UInt uiCtx )
-#else
-Void TEncSbac::xWriteMvd( Int iMvd, UInt uiAbsSum, UInt uiCtx )
-#endif
-{
-  UInt uiLocalCtx = 0;
-#if MVD_CTX
-  uiLocalCtx += (uiAbsSumA>16) ? 1 : 0;
-  uiLocalCtx += (uiAbsSumL>16) ? 1 : 0;
-#else
-  if ( uiAbsSum >= 3 )
-  {
-    uiLocalCtx += ( uiAbsSum > 32 ) ? 2 : 1;
-  }
-#endif
-
-  UInt uiSymbol = ( 0 == iMvd ) ? 0 : 1;
-  m_pcBinIf->encodeBin( uiSymbol, m_cCUMvdSCModel.get( 0, uiCtx, uiLocalCtx ) );
-  if ( 0 == uiSymbol )
-  {
-    return;
-  }
-  
-  UInt uiSign = 0;
-  if ( 0 > iMvd )
-  {
-    uiSign = 1;
-    iMvd   = -iMvd;
-  }
-  xWriteExGolombMvd( iMvd-1, &m_cCUMvdSCModel.get( 0, uiCtx, 3 ), 3 );
-  m_pcBinIf->encodeBinEP( uiSign );
-  
-  return;
-}
-
-Void  TEncSbac::xWriteExGolombMvd( UInt uiSymbol, ContextModel* pcSCModel, UInt uiMaxBin )
-{
-  if ( ! uiSymbol )
-  {
-    m_pcBinIf->encodeBin( 0, *pcSCModel );
-    return;
-  }
-  
-  m_pcBinIf->encodeBin( 1, *pcSCModel );
-  
-  Bool bNoExGo = ( uiSymbol < 8 );
-  UInt uiCount = 1;
-  pcSCModel++;
-  
-  while ( --uiSymbol && ++uiCount <= 8 )
-  {
-    m_pcBinIf->encodeBin( 1, *pcSCModel );
-    if ( uiCount == 2 )
-    {
-      pcSCModel++;
-    }
-    if ( uiCount == uiMaxBin )
-    {
-      pcSCModel++;
-    }
-  }
-  
-  if ( bNoExGo )
-  {
-    m_pcBinIf->encodeBin( 0, *pcSCModel );
-  }
-  else
-  {
-    xWriteEpExGolomb( uiSymbol, 3 );
-  }
-  
-  return;
-}
-#endif
 
 Void TEncSbac::codeAlfFlag       ( UInt uiCode )
 {

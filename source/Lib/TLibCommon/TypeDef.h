@@ -45,7 +45,6 @@
 // BoG Context Reduction
 ////////////////////////////
 
-#define MODIFIED_MVD_CODING               1           ///< F455 / F423:        modified binarization, coding and bin reordering of MVD
 #define MODIFIED_LAST_CODING              1           ///< F375:               modified binarization and coding of last significant position
 #define DNB_MERGE_FLAG                    1           ///< F429:               disable of neighbour evaluation for merge_flag
 #define DNB_INTRA_CHR_PRED_MODE           1           ///< F497:               disable of neighbour evaluation for intra_chroma_pred_mode

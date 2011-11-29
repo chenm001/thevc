@@ -129,14 +129,6 @@ private:
   Void  xWriteGoRiceExGolomb ( UInt uiSymbol, UInt &ruiGoRiceParam );
   Void  xWriteTerminatingBit ( UInt uiBit );
   
-#if !MODIFIED_MVD_CODING
-#if MVD_CTX
-  Void  xWriteMvd            ( Int iMvd, UInt uiAbsSumL, UInt uiAbsSumA, UInt uiCtx );
-#else
-  Void  xWriteMvd            ( Int iMvd, UInt uiAbsSum, UInt uiCtx );
-#endif
-  Void  xWriteExGolombMvd    ( UInt uiSymbol, ContextModel* pcSCModel, UInt uiMaxBin );
-#endif
   Void  xCopyFrom            ( TEncSbac* pSrc );
 #if OL_USE_WPP
   Void  xCopyContextsFrom    ( TEncSbac* pSrc );  

@@ -66,11 +66,7 @@ TDecSbac::TDecSbac()
 , m_cCUDeltaQpSCModel         ( 1,             1,               NUM_DELTA_QP_CTX              , m_contextModels + m_numContextModels, m_numContextModels)
 , m_cCUInterDirSCModel        ( 1,             1,               NUM_INTER_DIR_CTX             , m_contextModels + m_numContextModels, m_numContextModels)
 , m_cCURefPicSCModel          ( 1,             1,               NUM_REF_NO_CTX                , m_contextModels + m_numContextModels, m_numContextModels)
-#if MODIFIED_MVD_CODING
 , m_cCUMvdSCModel             ( 1,             1,               NUM_MV_RES_CTX                , m_contextModels + m_numContextModels, m_numContextModels)
-#else
-, m_cCUMvdSCModel             ( 1,             2,               NUM_MV_RES_CTX                , m_contextModels + m_numContextModels, m_numContextModels)
-#endif
 , m_cCUQtCbfSCModel           ( 1,             3,               NUM_QT_CBF_CTX                , m_contextModels + m_numContextModels, m_numContextModels)
 , m_cCUTransSubdivFlagSCModel ( 1,             1,               NUM_TRANS_SUBDIV_FLAG_CTX     , m_contextModels + m_numContextModels, m_numContextModels)
 , m_cCUQtRootCbfSCModel       ( 1,             1,               NUM_QT_ROOT_CBF_CTX           , m_contextModels + m_numContextModels, m_numContextModels)
@@ -294,98 +290,6 @@ Void TDecSbac::xReadUnaryMaxSymbol( UInt& ruiSymbol, ContextModel* pcSCModel, In
   
   ruiSymbol = uiSymbol;
 }
-
-#if !MODIFIED_MVD_CODING
-#if MVD_CTX
-/** Decode a motion vector difference
- * \param riMvdComp motion vector difference
- * \param uiAbsSumL motion vector difference of left PU
- * \param uiAbsSumA motion vector difference of above PU
- * \param uiCtx index for context set based on vertical or horizontal component
- */
-Void TDecSbac::xReadMvd( Int& riMvdComp, UInt uiAbsSumL, UInt uiAbsSumA, UInt uiCtx )
-#else
-Void TDecSbac::xReadMvd( Int& riMvdComp, UInt uiAbsSum, UInt uiCtx )
-#endif
-{
-  UInt uiLocalCtx = 0;
-
-#if MVD_CTX
-  uiLocalCtx += (uiAbsSumA>16) ? 1 : 0;
-  uiLocalCtx += (uiAbsSumL>16) ? 1 : 0;
-#else
-  if( uiAbsSum >= 3 )
-  {
-    uiLocalCtx += ( uiAbsSum > 32) ? 2 : 1;
-  }
-#endif
-
-  riMvdComp = 0;
-  
-  UInt uiSymbol;
-  m_pcTDecBinIf->decodeBin( uiSymbol, m_cCUMvdSCModel.get( 0, uiCtx, uiLocalCtx ) );
-  
-  if (!uiSymbol)
-  {
-    return;
-  }
-  
-  xReadExGolombMvd( uiSymbol, &m_cCUMvdSCModel.get( 0, uiCtx, 3 ), 3 );
-  uiSymbol++;
-  
-  UInt uiSign;
-  m_pcTDecBinIf->decodeBinEP( uiSign );
-  
-  riMvdComp = ( 0 != uiSign ) ? -(Int)uiSymbol : (Int)uiSymbol;
-  
-  return;
-}
-
-Void TDecSbac::xReadExGolombMvd( UInt& ruiSymbol, ContextModel* pcSCModel, UInt uiMaxBin )
-{
-  UInt uiSymbol;
-  
-  m_pcTDecBinIf->decodeBin( ruiSymbol, pcSCModel[0] );
-  
-  if( !ruiSymbol )
-  {
-    return;
-  }
-  
-  m_pcTDecBinIf->decodeBin( uiSymbol, pcSCModel[1] );
-  
-  ruiSymbol = 1;
-  
-  if( !uiSymbol )
-  {
-    return;
-  }
-  
-  pcSCModel += 2;
-  UInt uiCount = 2;
-  
-  do
-  {
-    if( uiMaxBin == uiCount )
-    {
-      pcSCModel++;
-    }
-    m_pcTDecBinIf->decodeBin( uiSymbol, *pcSCModel );
-    uiCount++;
-  }
-  while( uiSymbol && ( uiCount != 8 ) );
-  
-  ruiSymbol = uiCount - 1;
-  
-  if( uiSymbol )
-  {
-    xReadEpExGolomb( uiSymbol, 3 );
-    ruiSymbol += uiSymbol + 1;
-  }
-  
-  return;
-}
-#endif
 
 Void TDecSbac::xReadEpExGolomb( UInt& ruiSymbol, UInt uiCount )
 {
@@ -1311,7 +1215,6 @@ Void TDecSbac::parseRefFrmIdx( TComDataCU* pcCU, Int& riRefFrmIdx, UInt uiAbsPar
 
 Void TDecSbac::parseMvd( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiPartIdx, UInt uiDepth, RefPicList eRefList )
 {
-#if MODIFIED_MVD_CODING
   UInt uiSymbol;
   UInt uiHorAbs;
   UInt uiVerAbs;
@@ -1365,62 +1268,6 @@ Void TDecSbac::parseMvd( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiPartIdx, UI
   pcCU->getCUMvField( eRefList )->setAllMvd( cMv, pcCU->getPartitionSize( uiAbsPartIdx ), uiAbsPartIdx, uiDepth, uiPartIdx );
 #else
   pcCU->getCUMvField( eRefList )->setAllMvd( cMv, pcCU->getPartitionSize( uiAbsPartIdx ), uiAbsPartIdx, uiDepth );
-#endif
-#else
-  Int iHor, iVer;
-  UInt uiAbsPartIdxL, uiAbsPartIdxA;
-#if MVD_CTX
-  Int iHorPredL, iVerPredL;
-  Int iHorPredA, iVerPredA;
-#else
-  Int iHorPred, iVerPred;
-#endif
-
-  TComDataCU* pcCUL   = pcCU->getPULeft ( uiAbsPartIdxL, pcCU->getZorderIdxInCU() + uiAbsPartIdx );
-#if REDUCE_UPPER_MOTION_DATA
-  TComDataCU* pcCUA   = pcCU->getPUAbove( uiAbsPartIdxA, pcCU->getZorderIdxInCU() + uiAbsPartIdx, true, true, true );
-#else
-  TComDataCU* pcCUA   = pcCU->getPUAbove( uiAbsPartIdxA, pcCU->getZorderIdxInCU() + uiAbsPartIdx );
-#endif
-  
-  TComCUMvField* pcCUMvFieldL = ( pcCUL == NULL || pcCUL->isIntra( uiAbsPartIdxL ) ) ? NULL : pcCUL->getCUMvField( eRefList );
-  TComCUMvField* pcCUMvFieldA = ( pcCUA == NULL || pcCUA->isIntra( uiAbsPartIdxA ) ) ? NULL : pcCUA->getCUMvField( eRefList );
-
-#if MVD_CTX
-  iHorPredL = ( (pcCUMvFieldL == NULL) ? 0 : pcCUMvFieldL->getMvd( uiAbsPartIdxL ).getAbsHor() );
-  iVerPredL = ( (pcCUMvFieldL == NULL) ? 0 : pcCUMvFieldL->getMvd( uiAbsPartIdxL ).getAbsVer() );
-  iHorPredA = ( (pcCUMvFieldA == NULL) ? 0 : pcCUMvFieldA->getMvd( uiAbsPartIdxA ).getAbsHor() );
-  iVerPredA = ( (pcCUMvFieldA == NULL) ? 0 : pcCUMvFieldA->getMvd( uiAbsPartIdxA ).getAbsVer() );
-#else
-  iHorPred = ( (pcCUMvFieldL == NULL) ? 0 : pcCUMvFieldL->getMvd( uiAbsPartIdxL ).getAbsHor() ) +
-  ( (pcCUMvFieldA == NULL) ? 0 : pcCUMvFieldA->getMvd( uiAbsPartIdxA ).getAbsHor() );
-  iVerPred = ( (pcCUMvFieldL == NULL) ? 0 : pcCUMvFieldL->getMvd( uiAbsPartIdxL ).getAbsVer() ) +
-  ( (pcCUMvFieldA == NULL) ? 0 : pcCUMvFieldA->getMvd( uiAbsPartIdxA ).getAbsVer() );
-#endif
-
-  TComMv cTmpMv( 0, 0 );
-#if AMP
-  pcCU->getCUMvField( eRefList )->setAllMv( cTmpMv, pcCU->getPartitionSize( uiAbsPartIdx ), uiAbsPartIdx, uiDepth, uiPartIdx );
-#else
-  pcCU->getCUMvField( eRefList )->setAllMv( cTmpMv, pcCU->getPartitionSize( uiAbsPartIdx ), uiAbsPartIdx, uiDepth );
-#endif
-  
-#if MVD_CTX
-  xReadMvd( iHor, iHorPredL, iHorPredA, 0 );
-  xReadMvd( iVer, iVerPredL, iVerPredA, 1 );
-#else
-  xReadMvd( iHor, iHorPred, 0 );
-  xReadMvd( iVer, iVerPred, 1 );
-#endif  
-
-  // set mvd
-  TComMv cMv( iHor, iVer );
-#if AMP
-  pcCU->getCUMvField( eRefList )->setAllMvd( cMv, pcCU->getPartitionSize( uiAbsPartIdx ), uiAbsPartIdx, uiDepth, uiPartIdx );
-#else
-  pcCU->getCUMvField( eRefList )->setAllMvd( cMv, pcCU->getPartitionSize( uiAbsPartIdx ), uiAbsPartIdx, uiDepth );
-#endif
-
 #endif
   return;
 }

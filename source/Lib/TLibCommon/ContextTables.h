@@ -84,11 +84,7 @@
 #define NUM_CHROMA_PRED_CTX           4       ///< number of context models for intra prediction (chroma)
 #endif
 #define NUM_INTER_DIR_CTX             4       ///< number of context models for inter prediction direction
-#if MODIFIED_MVD_CODING
 #define NUM_MV_RES_CTX                2       ///< number of context models for motion vector difference
-#else
-#define NUM_MV_RES_CTX                7       ///< number of context models for motion vector difference
-#endif
 
 #if DNB_REF_FRAME_IDX
 #define NUM_REF_NO_CTX                4       ///< number of context models for reference index
@@ -395,7 +391,6 @@ INIT_INTER_DIR[3][4][2] =
 };
 
 // initial probability for motion vector difference
-#if MODIFIED_MVD_CODING
 static const
 Short INIT_MVD[3][NUM_MV_RES_CTX][2] =
 {
@@ -409,29 +404,6 @@ Short INIT_MVD[3][NUM_MV_RES_CTX][2] =
     {    0,   64 }, {    0,   64 }
   }
 };
-#else
-static const Short INIT_MVD[3][14][2] =
-{
-  {
-    {    0,   64 }, {    0,   64 }, {    0,   64 }, {    0,   64 }, 
-    {    0,   64 }, {    0,   64 }, {    0,   64 }, {    0,   64 }, 
-    {    0,   64 }, {    0,   64 }, {    0,   64 }, {    0,   64 }, 
-    {    0,   64 }, {    0,   64 }
-  },
-  {
-    {   -6,   80 }, {   -6,   84 }, {   -9,   90 }, {    4,   62 }, 
-    {   13,   55 }, {    2,   70 }, {    8,   74 }, {   -6,   77 }, 
-    {   -7,   84 }, {   -9,   89 }, {    5,   59 }, {   10,   62 }, 
-    {    4,   68 }, {    7,   75 }
-  },
-  {
-    {   -4,   75 }, {   -5,   82 }, {  -12,   94 }, {    7,   55 }, 
-    {   11,   59 }, {    6,   63 }, {    8,   71 }, {   -2,   71 }, 
-    {   -5,   81 }, {  -21,  111 }, {    6,   58 }, {   10,   60 }, 
-    {    5,   64 }, {   10,   67 }
-  }
-};
-#endif
 
 // initial probability for reference frame index
 #if DNB_REF_FRAME_IDX
