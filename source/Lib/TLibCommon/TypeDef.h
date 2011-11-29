@@ -124,8 +124,6 @@
 
 #define MV_SCALE_ROUNDING_F142            1           ///< Modified rounding when scaling motion vectors (JCTVC-F142)
 
-#define ADD_PLANAR_MODE                   1           ///< enable/disable Planar mode for intra prediction (JCTVC-E321)
-
 #define NUM_INTRA_MODE 36
 #define PLANAR_IDX     34
 #define LM_CHROMA_IDX  35

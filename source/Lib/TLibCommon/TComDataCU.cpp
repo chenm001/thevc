@@ -2304,9 +2304,7 @@ Int TComDataCU::getMostProbableIntraDirLuma( UInt uiAbsPartIdx )
   iLeftIntraDir  = pcTempCU ? ( pcTempCU->isIntra( uiTempPartIdx ) ? pcTempCU->getLumaIntraDir( uiTempPartIdx ) : DC_IDX ) : NOT_VALID;
 #else
   iLeftIntraDir  = pcTempCU ? ( pcTempCU->isIntra( uiTempPartIdx ) ? pcTempCU->getLumaIntraDir( uiTempPartIdx ) : 2 ) : NOT_VALID;
-#if ADD_PLANAR_MODE
   mapPlanartoDC( iLeftIntraDir );
-#endif
 #endif
   
   // Get intra direction of above PU
@@ -2315,9 +2313,7 @@ Int TComDataCU::getMostProbableIntraDirLuma( UInt uiAbsPartIdx )
   iAboveIntraDir = pcTempCU ? ( pcTempCU->isIntra( uiTempPartIdx ) ? pcTempCU->getLumaIntraDir( uiTempPartIdx ) : DC_IDX ) : NOT_VALID;
 #else
   iAboveIntraDir = pcTempCU ? ( pcTempCU->isIntra( uiTempPartIdx ) ? pcTempCU->getLumaIntraDir( uiTempPartIdx ) : 2 ) : NOT_VALID;
-#if ADD_PLANAR_MODE
   mapPlanartoDC( iAboveIntraDir );
-#endif
 #endif
   
   iMostProbable  = min( iLeftIntraDir, iAboveIntraDir );
@@ -2412,9 +2408,7 @@ Int TComDataCU::getIntraDirLumaPredictor( UInt uiAbsPartIdx, Int uiIntraDirPred[
   iLeftIntraDir  = pcTempCU ? ( pcTempCU->isIntra( uiTempPartIdx ) ? pcTempCU->getLumaIntraDir( uiTempPartIdx ) : DC_IDX ) : DC_IDX;
 #else
   iLeftIntraDir  = pcTempCU ? ( pcTempCU->isIntra( uiTempPartIdx ) ? pcTempCU->getLumaIntraDir( uiTempPartIdx ) : 2 ) : 2;
-#if ADD_PLANAR_MODE
   mapPlanartoDC( iLeftIntraDir );
-#endif
 #endif
 
   // Get intra direction of above PU
@@ -2424,9 +2418,7 @@ Int TComDataCU::getIntraDirLumaPredictor( UInt uiAbsPartIdx, Int uiIntraDirPred[
   iAboveIntraDir = pcTempCU ? ( pcTempCU->isIntra( uiTempPartIdx ) ? pcTempCU->getLumaIntraDir( uiTempPartIdx ) : DC_IDX ) : DC_IDX;
 #else
   iAboveIntraDir = pcTempCU ? ( pcTempCU->isIntra( uiTempPartIdx ) ? pcTempCU->getLumaIntraDir( uiTempPartIdx ) : 2 ) : 2;
-#if ADD_PLANAR_MODE
   mapPlanartoDC( iAboveIntraDir );
-#endif
 #endif
 
   Int iIdx  = getIntraSizeIdx(uiAbsPartIdx);
@@ -2526,9 +2518,7 @@ Int TComDataCU::getLeftIntraDirLuma( UInt uiAbsPartIdx )
   iLeftIntraDir  = pcTempCU ? ( pcTempCU->isIntra( uiTempPartIdx ) ? pcTempCU->getLumaIntraDir( uiTempPartIdx ) : DC_IDX ) : NOT_VALID;
 #else
   iLeftIntraDir  = pcTempCU ? ( pcTempCU->isIntra( uiTempPartIdx ) ? pcTempCU->getLumaIntraDir( uiTempPartIdx ) : 2 ) : NOT_VALID;
-#if ADD_PLANAR_MODE
   mapPlanartoDC( iLeftIntraDir );
-#endif
 #endif
 
   return iLeftIntraDir;
@@ -2546,9 +2536,7 @@ Int TComDataCU::getAboveIntraDirLuma( UInt uiAbsPartIdx )
   iAboveIntraDir = pcTempCU ? ( pcTempCU->isIntra( uiTempPartIdx ) ? pcTempCU->getLumaIntraDir( uiTempPartIdx ) : DC_IDX ) : NOT_VALID;
 #else
   iAboveIntraDir = pcTempCU ? ( pcTempCU->isIntra( uiTempPartIdx ) ? pcTempCU->getLumaIntraDir( uiTempPartIdx ) : 2 ) : NOT_VALID;
-#if ADD_PLANAR_MODE
   mapPlanartoDC( iAboveIntraDir );
-#endif
 #endif
 
   return iAboveIntraDir;

@@ -340,7 +340,6 @@ Void TComPrediction::predIntraLumaAng(TComPattern* pcTComPattern, UInt uiDirMode
   Int sw = 2 * iWidth + 1;
 
   // Create the prediction
-#if ADD_PLANAR_MODE
   if ( uiDirMode == PLANAR_IDX )
   {
 #if REFERENCE_SAMPLE_PADDING
@@ -350,7 +349,6 @@ Void TComPrediction::predIntraLumaAng(TComPattern* pcTComPattern, UInt uiDirMode
 #endif
   }
   else
-#endif
   {
     xPredIntraAng( ptrSrc+sw+1, sw, pDst, uiStride, iWidth, iHeight, g_aucAngIntraModeOrder[ uiDirMode ], bAbove,  bLeft );
 
@@ -384,7 +382,6 @@ Void TComPrediction::predIntraChromaAng( TComPattern* pcTComPattern, Int* piSrc,
   // get starting pixel in block
   Int sw = 2 * iWidth + 1;
 
-#if ADD_PLANAR_MODE
   if ( uiDirMode == PLANAR_IDX )
   {
 #if REFERENCE_SAMPLE_PADDING
@@ -394,7 +391,6 @@ Void TComPrediction::predIntraChromaAng( TComPattern* pcTComPattern, Int* piSrc,
 #endif
   }
   else
-#endif
   {
     // Create the prediction
     xPredIntraAng( ptrSrc+sw+1, sw, pDst, uiStride, iWidth, iHeight, g_aucAngIntraModeOrder[ uiDirMode ], bAbove,  bLeft );    
@@ -1002,7 +998,6 @@ Void TComPrediction::getMvPredAMVP( TComDataCU* pcCU, UInt uiPartIdx, UInt uiPar
   return;
 }
 
-#if ADD_PLANAR_MODE
 #if REFERENCE_SAMPLE_PADDING
 /** Function for deriving planar intra prediction.
  * \param pSrc pointer to reconstructed sample array
@@ -1124,7 +1119,6 @@ Void TComPrediction::xPredIntraPlanar( Int* pSrc, Int srcStride, Pel* rpDst, Int
     }
   }
 }
-#endif
 
 /** Function for deriving chroma LM intra prediction.
  * \param pcPattern pointer to neighbouring pixel access pattern

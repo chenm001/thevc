@@ -2052,12 +2052,10 @@ TEncSearch::estIntraPredChromaQT( TComDataCU* pcCU,
 
   UInt uiLumaMode = pcCU->getLumaIntraDir(0);
 
-#if ADD_PLANAR_MODE
   if (uiLumaMode != PLANAR_IDX)
   {
     uiModeList[uiMaxMode++] = PLANAR_IDX;    
   }
-#endif
   
   for ( Int i = 0; i < 3; i++ )
   {

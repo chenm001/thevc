@@ -901,7 +901,6 @@ Void TDecSbac::parseIntraDirLumaAng  ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt
       uiIPredMode++;
   }
   
-#if ADD_PLANAR_MODE
   if (uiIPredMode == 2)
   {
     UInt planarFlag;
@@ -911,7 +910,6 @@ Void TDecSbac::parseIntraDirLumaAng  ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt
       uiIPredMode = PLANAR_IDX;
     }
   }
-#endif
   pcCU->setLumaIntraDirSubParts( (UChar)uiIPredMode, uiAbsPartIdx, uiDepth );
 }
 #endif
@@ -959,12 +957,10 @@ Void TDecSbac::parseIntraDirChroma( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt ui
   UInt uiSymbol;
   
   UInt uiMode = pcCU->getLumaIntraDir(uiAbsPartIdx);
-#if ADD_PLANAR_MODE
   if ( (uiMode == 2 ) || (uiMode == PLANAR_IDX) )
   {
     uiMode = 4;
   }
-#endif
 
   Int  iMaxMode = pcCU->getSlice()->getSPS()->getUseLMChroma() ? 3 : 4;
   Int  iMax = uiMode < iMaxMode ? 2 : 3; 
@@ -999,7 +995,6 @@ Void TDecSbac::parseIntraDirChroma( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt ui
        uiSymbol --;
   }
 
-#if ADD_PLANAR_MODE
   if (uiSymbol == 2)
   {
     uiMode = pcCU->getLumaIntraDir(uiAbsPartIdx);
@@ -1017,7 +1012,6 @@ Void TDecSbac::parseIntraDirChroma( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt ui
       }
     }
   }
-#endif
   pcCU->setChromIntraDirSubParts( uiSymbol, uiAbsPartIdx, uiDepth );
   
   return;

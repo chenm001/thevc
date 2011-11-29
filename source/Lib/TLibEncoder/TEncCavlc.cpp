@@ -1274,14 +1274,12 @@ Void TEncCavlc::codeIntraDirLumaAng( TComDataCU* pcCU, UInt uiAbsPartIdx )
   Int iIntraIdx = pcCU->getIntraSizeIdx(uiAbsPartIdx);
   UInt uiCode, uiLength;
   Int iRankIntraMode, iRankIntraModeLarger, iDirLarger;
-#if ADD_PLANAR_MODE
   UInt planarFlag    = 0;
   if (iDir == PLANAR_IDX)
   {
     iDir = 2;
     planarFlag = 1;
   }
-#endif
 
   UInt ind=(pcCU->getLeftIntraDirLuma( uiAbsPartIdx )==pcCU->getAboveIntraDirLuma( uiAbsPartIdx ))? 0 : 1;
   
@@ -1369,13 +1367,11 @@ Void TEncCavlc::codeIntraDirLumaAng( TComDataCU* pcCU, UInt uiAbsPartIdx )
     xWriteCode(uiCode, uiLength);
   }
 
-#if ADD_PLANAR_MODE
   iDir = pcCU->getLumaIntraDir( uiAbsPartIdx );
   if ( (iDir == PLANAR_IDX) || (iDir == 2) )
   {
     xWriteFlag( planarFlag );
   }
-#endif
 
 }
 #endif
@@ -1425,22 +1421,18 @@ Void TEncCavlc::codeIntraDirChroma( TComDataCU* pcCU, UInt uiAbsPartIdx )
 #else
   UInt uiIntraDirChroma = pcCU->getChromaIntraDir   ( uiAbsPartIdx );
   
-#if ADD_PLANAR_MODE
   UInt planarFlag = 0;
   if (uiIntraDirChroma == PLANAR_IDX)
   {
     uiIntraDirChroma = 2;
     planarFlag = 1;
   }
-#endif
 
   UInt uiMode = pcCU->getLumaIntraDir(uiAbsPartIdx);
-#if ADD_PLANAR_MODE
   if ( (uiMode == 2 ) || (uiMode == PLANAR_IDX) )
   {
     uiMode = 4;
   }
-#endif
   Bool bUseLMFlag = pcCU->getSlice()->getSPS()->getUseLMChroma();
 
   Int  iMaxMode = bUseLMFlag ? 3 : 4;
@@ -1474,7 +1466,6 @@ Void TEncCavlc::codeIntraDirChroma( TComDataCU* pcCU, UInt uiAbsPartIdx )
 
   xWriteUnaryMaxSymbol( uiIntraDirChroma, iMax);
 
-#if ADD_PLANAR_MODE
   uiIntraDirChroma = pcCU->getChromaIntraDir( uiAbsPartIdx );
   uiMode = pcCU->getLumaIntraDir(uiAbsPartIdx);
   mapPlanartoDC( uiIntraDirChroma );
@@ -1483,7 +1474,6 @@ Void TEncCavlc::codeIntraDirChroma( TComDataCU* pcCU, UInt uiAbsPartIdx )
   {
     xWriteFlag( planarFlag );
   }
-#endif
   return;
 #endif
 }

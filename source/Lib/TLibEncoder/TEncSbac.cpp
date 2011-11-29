@@ -778,14 +778,12 @@ Void TEncSbac::codeIntraDirLumaAng( TComDataCU* pcCU, UInt uiAbsPartIdx )
 {
   UInt uiDir         = pcCU->getLumaIntraDir( uiAbsPartIdx );
   Int  iMostProbable = pcCU->getMostProbableIntraDirLuma( uiAbsPartIdx );
-#if ADD_PLANAR_MODE
   UInt planarFlag    = 0;
   if (uiDir == PLANAR_IDX)
   {
     uiDir = 2;
     planarFlag = 1;
   }
-#endif
   
   if (uiDir == iMostProbable)
     m_pcBinIf->encodeBin( 1, m_cCUIntraPredSCModel.get( 0, 0, 0 ) );
@@ -823,13 +821,11 @@ Void TEncSbac::codeIntraDirLumaAng( TComDataCU* pcCU, UInt uiAbsPartIdx )
     }
   }
   
-#if ADD_PLANAR_MODE
   uiDir = pcCU->getLumaIntraDir( uiAbsPartIdx );
   if ( (uiDir == PLANAR_IDX) || (uiDir == 2) )
   {
     m_pcBinIf->encodeBin( planarFlag, m_cPlanarFlagSCModel.get(0,0,0) );
   }
-#endif
   return;
 }
 #endif
@@ -875,22 +871,18 @@ Void TEncSbac::codeIntraDirChroma( TComDataCU* pcCU, UInt uiAbsPartIdx )
 #else
   UInt uiIntraDirChroma = pcCU->getChromaIntraDir   ( uiAbsPartIdx );
   
-#if ADD_PLANAR_MODE
   UInt planarFlag       = 0;
   if (uiIntraDirChroma == PLANAR_IDX)
   {
     uiIntraDirChroma = 2;
     planarFlag = 1;
   }
-#endif
  
   UInt uiMode = pcCU->getLumaIntraDir(uiAbsPartIdx);
-#if ADD_PLANAR_MODE
   if ( (uiMode == 2 ) || (uiMode == PLANAR_IDX) )
   {
     uiMode = 4;
   }
-#endif
 
   Bool bUseLMFlag = pcCU->getSlice()->getSPS()->getUseLMChroma();
 
@@ -931,7 +923,6 @@ Void TEncSbac::codeIntraDirChroma( TComDataCU* pcCU, UInt uiAbsPartIdx )
     xWriteUnaryMaxSymbol( uiIntraDirChroma - 1, m_cCUChromaPredSCModel.get( 0 ) + 1, 0, iMax );
   }
 
-#if ADD_PLANAR_MODE
   uiIntraDirChroma = pcCU->getChromaIntraDir( uiAbsPartIdx );
   uiMode = pcCU->getLumaIntraDir(uiAbsPartIdx);
   mapPlanartoDC( uiIntraDirChroma );
@@ -940,7 +931,6 @@ Void TEncSbac::codeIntraDirChroma( TComDataCU* pcCU, UInt uiAbsPartIdx )
   {
     m_pcBinIf->encodeBin( planarFlag, m_cPlanarFlagSCModel.get(0,0,1) );
   }
-#endif
   return;
 #endif
 }
