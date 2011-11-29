@@ -2596,10 +2596,8 @@ UInt TComDataCU::getCtxQtCbf( UInt uiAbsPartIdx, TextType eType, UInt uiTrDepth 
   
   if( uiTrDepth == 0 || uiLog2TrafoSize == getSlice()->getSPS()->getQuadtreeTULog2MaxSize() )
   {
-#if DNB_LUMA_CBF_FLAGS
   if( eType != TEXT_LUMA )
   {
-#endif
     TComDataCU* pcTempCU;
     UInt        uiTempPartIdx, uiTempTrDepth;
     
@@ -2628,9 +2626,7 @@ UInt TComDataCU::getCtxQtCbf( UInt uiAbsPartIdx, TextType eType, UInt uiTrDepth 
 #endif
       uiCtx += pcTempCU->getCbf( uiTempPartIdx, eType, uiTempTrDepth ) << 1;
     }
-#if DNB_LUMA_CBF_FLAGS
   }
-#endif
     uiCtx++;
   }
   return uiCtx;
