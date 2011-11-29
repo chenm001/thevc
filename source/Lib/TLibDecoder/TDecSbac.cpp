@@ -579,15 +579,8 @@ Void TDecSbac::parseSkipFlag( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth 
 Void TDecSbac::parseMergeFlag ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth, UInt uiPUIdx )
 {
   UInt uiSymbol;
-#if DNB_MERGE_FLAG
   m_pcTDecBinIf->decodeBin( uiSymbol, *m_cCUMergeFlagExtSCModel.get( 0 ) );
   pcCU->setMergeFlagSubParts( uiSymbol ? true : false, uiAbsPartIdx, uiPUIdx, uiDepth );
-#else
-  UInt uiCtx = 0;
-  uiCtx = pcCU->getCtxMergeFlag( uiAbsPartIdx );
-  m_pcTDecBinIf->decodeBin( uiSymbol, m_cCUMergeFlagExtSCModel.get( 0, 0, uiCtx ) );
-  pcCU->setMergeFlagSubParts( uiSymbol ? true : false, uiAbsPartIdx, uiPUIdx, uiDepth );
-#endif
 
   DTRACE_CABAC_VL( g_nSymbolCounter++ );
   DTRACE_CABAC_T( "\tMergeFlag: " );
@@ -596,15 +589,6 @@ Void TDecSbac::parseMergeFlag ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDept
   DTRACE_CABAC_V( pcCU->getAddr() );
   DTRACE_CABAC_T( "\tuiAbsPartIdx: " );
   DTRACE_CABAC_V( uiAbsPartIdx );
-#if !(DNB_MERGE_FLAG)
-  for( UInt ui = 0; ui < MRG_MAX_NUM_CANDS; ui++ )
-  {
-    DTRACE_CABAC_T( "\tNumMrgCand: " );
-    DTRACE_CABAC_V( ui );
-    DTRACE_CABAC_T( "\t==\t" );
-    DTRACE_CABAC_V( UInt( pcCU->getNeighbourCandIdx( ui, uiAbsPartIdx ) ) );
-  }
-#endif
   DTRACE_CABAC_T( "\n" );
 }
 

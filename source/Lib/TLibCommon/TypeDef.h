@@ -45,7 +45,6 @@
 // BoG Context Reduction
 ////////////////////////////
 
-#define DNB_MERGE_FLAG                    1           ///< F429:               disable of neighbour evaluation for merge_flag
 #define DNB_INTRA_CHR_PRED_MODE           1           ///< F497:               disable of neighbour evaluation for intra_chroma_pred_mode
 #define DNB_REF_FRAME_IDX                 1           ///< F429 / F497 / F606: disable of neighbour evaluation for ref_frame_idx
 #define DNB_ALF_CTRL_FLAG                 1           ///< F429:               disable of neighbour evaluation for alf_ctrl_flag

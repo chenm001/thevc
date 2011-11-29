@@ -494,9 +494,6 @@ public:
 #if !DNB_INTRA_CHR_PRED_MODE
   UInt          getCtxIntraDirChroma            ( UInt   uiAbsPartIdx                                 );
 #endif
-#if !DNB_MERGE_FLAG
-  UInt          getCtxMergeFlag                 ( UInt uiAbsPartIdx                                   );
-#endif
   
 #if FINE_GRANULARITY_SLICES
   UInt          getSliceStartCU         ( UInt pos )                  { return m_uiSliceStartCU[pos-m_uiAbsIdxInLCU];                                                                                          }

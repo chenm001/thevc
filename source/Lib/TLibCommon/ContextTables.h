@@ -51,11 +51,7 @@
 #define NUM_SPLIT_FLAG_CTX            3       ///< number of context models for split flag
 #define NUM_SKIP_FLAG_CTX             3       ///< number of context models for skip flag
 
-#if DNB_MERGE_FLAG
 #define NUM_MERGE_FLAG_EXT_CTX        1       ///< number of context models for merge flag of merge extended
-#else
-#define NUM_MERGE_FLAG_EXT_CTX        3       ///< number of context models for merge flag of merge extended
-#endif
 #define NUM_MERGE_IDX_EXT_CTX         4       ///< number of context models for merge index of merge extended
 
 #if DNB_ALF_CTRL_FLAG
@@ -183,7 +179,6 @@ INIT_ALF_CTRL_FLAG[3][NUM_ALF_CTRL_FLAG_CTX][2] =
 #endif
 
 // initial probability for merge flag
-#if DNB_MERGE_FLAG
 static const Short
 INIT_MERGE_FLAG_EXT[3][NUM_MERGE_FLAG_EXT_CTX][2] =
 {
@@ -197,21 +192,6 @@ INIT_MERGE_FLAG_EXT[3][NUM_MERGE_FLAG_EXT_CTX][2] =
     {    0,   64 }
   }
 };
-#else
-static const Short
-INIT_MERGE_FLAG_EXT[3][NUM_MERGE_FLAG_EXT_CTX][2] =
-{
-  {
-    {    0,   64 }, {    0,   64 }, {    0,   64 }
-  },
-  {
-    {    0,   64 }, {    0,   64 }, {    0,   64 }
-  },
-  {
-    {    0,   64 }, {    0,   64 }, {    0,   64 }
-  }
-};
-#endif
 
 static const Short
 INIT_MERGE_IDX_EXT[3][NUM_MERGE_IDX_EXT_CTX][2] =

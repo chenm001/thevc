@@ -2789,28 +2789,6 @@ UInt TComDataCU::getCtxSkipFlag( UInt uiAbsPartIdx )
   return uiCtx;
 }
 
-#if !DNB_MERGE_FLAG
-/** CABAC context derivation for merge flag
- * \param uiAbsPartIdx
- * \returns context offset
- */
-UInt TComDataCU::getCtxMergeFlag( UInt uiAbsPartIdx )
-{
-  UInt uiCtx = 0;
-  TComDataCU* pcTempCU;
-  UInt        uiTempPartIdx;
-
-  // Get BCBP of left PU
-  pcTempCU = getPULeft( uiTempPartIdx, m_uiAbsIdxInLCU + uiAbsPartIdx );
-  uiCtx    = ( pcTempCU ) ? pcTempCU->getMergeFlag( uiTempPartIdx ) : 0;
-
-  // Get BCBP of above PU
-  pcTempCU = getPUAbove( uiTempPartIdx, m_uiAbsIdxInLCU + uiAbsPartIdx );
-  uiCtx   += ( pcTempCU ) ? pcTempCU->getMergeFlag( uiTempPartIdx ) : 0;
-  return uiCtx;
-}
-#endif
-
 UInt TComDataCU::getCtxInterDir( UInt uiAbsPartIdx )
 {
 #if DNB_INTER_PRED_MODE

@@ -642,15 +642,8 @@ Void TEncSbac::codeSkipFlag( TComDataCU* pcCU, UInt uiAbsPartIdx )
  */
 Void TEncSbac::codeMergeFlag( TComDataCU* pcCU, UInt uiAbsPartIdx )
 {
-#if DNB_MERGE_FLAG
   const UInt uiSymbol = pcCU->getMergeFlag( uiAbsPartIdx ) ? 1 : 0;
   m_pcBinIf->encodeBin( uiSymbol, *m_cCUMergeFlagExtSCModel.get( 0 ) );
-#else
-  UInt uiCtx = 0;
-  uiCtx = pcCU->getCtxMergeFlag( uiAbsPartIdx );
-  UInt uiSymbol = pcCU->getMergeFlag( uiAbsPartIdx ) ? 1 : 0;
-  m_pcBinIf->encodeBin( uiSymbol, m_cCUMergeFlagExtSCModel.get( 0, 0, uiCtx ) );
-#endif
 
   DTRACE_CABAC_VL( g_nSymbolCounter++ );
   DTRACE_CABAC_T( "\tMergeFlag: " );
@@ -659,15 +652,6 @@ Void TEncSbac::codeMergeFlag( TComDataCU* pcCU, UInt uiAbsPartIdx )
   DTRACE_CABAC_V( pcCU->getAddr() );
   DTRACE_CABAC_T( "\tuiAbsPartIdx: " );
   DTRACE_CABAC_V( uiAbsPartIdx );
-#if !(DNB_MERGE_FLAG)
-  for( UInt ui = 0; ui < MRG_MAX_NUM_CANDS; ui++ )
-  {
-    DTRACE_CABAC_T( "\tNumMrgCand: " );
-    DTRACE_CABAC_V( ui );
-    DTRACE_CABAC_T( "\t==\t" );
-    DTRACE_CABAC_V( UInt( pcCU->getNeighbourCandIdx( ui, uiAbsPartIdx ) ) );
-  }
-#endif
   DTRACE_CABAC_T( "\n" );
 }
 
