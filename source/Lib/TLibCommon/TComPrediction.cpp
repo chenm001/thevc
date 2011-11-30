@@ -660,7 +660,11 @@ Void TComPrediction::xPredIntraPlanar( Int* pSrc, Int srcStride, Pel* rpDst, Int
 
   Int k, l, bottomLeft, topRight;
   Int horPred;
+#if PLANAR_F483
+  Int leftColumn[MAX_CU_SIZE+1], topRow[MAX_CU_SIZE+1], bottomRow[MAX_CU_SIZE+1], rightColumn[MAX_CU_SIZE+1];
+#else
   Int leftColumn[MAX_CU_SIZE], topRow[MAX_CU_SIZE], bottomRow[MAX_CU_SIZE], rightColumn[MAX_CU_SIZE];
+#endif
   UInt blkSize = width;
   UInt offset2D = width;
   UInt shift1D = g_aucConvertToBit[ width ] + 2;
