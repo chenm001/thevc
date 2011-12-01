@@ -4391,9 +4391,13 @@ Bool TComDataCU::useNonSquareTrans(UInt uiTrMode)
 #else
      ( m_pePartSize[0] == SIZE_Nx2N || m_pePartSize[0] == SIZE_2NxN ) )
 #endif
-     return true;
+   {
+     return getSlice()->getSPS()->getUseNSQT();
+   }
    else
+   {
      return false;
+   }
 }
 
 Void TComDataCU::getPixOffset(UInt uiTrMode,  UInt ui, UInt uiAbsPartIdx, UInt uiDepth, UInt& uiPix_X, UInt& uiPix_Y, TextType eTxt)

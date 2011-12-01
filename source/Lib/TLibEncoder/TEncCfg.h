@@ -92,6 +92,10 @@ protected:
   UInt      m_uiQuadtreeTUMaxDepthInter;
   UInt      m_uiQuadtreeTUMaxDepthIntra;
   
+#if NSQT
+  Bool      m_useNSQT;
+#endif
+  
   //====== B Slice ========
   Bool      m_bHierarchicalCoding;              //  hierarchical-B coding
   
@@ -263,6 +267,10 @@ public:
   Void      setQuadtreeTULog2MinSize        ( UInt  u )      { m_uiQuadtreeTULog2MinSize = u; }
   Void      setQuadtreeTUMaxDepthInter      ( UInt  u )      { m_uiQuadtreeTUMaxDepthInter = u; }
   Void      setQuadtreeTUMaxDepthIntra      ( UInt  u )      { m_uiQuadtreeTUMaxDepthIntra = u; }
+  
+#if NSQT
+  Void setUseNSQT( Bool b ) { m_useNSQT = b; }
+#endif
   
   //====== b; Slice ========
   Void      setHierarchicalCoding           ( Bool  b )      { m_bHierarchicalCoding = b; }

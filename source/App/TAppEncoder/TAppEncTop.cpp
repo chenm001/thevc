@@ -93,6 +93,11 @@ Void TAppEncTop::xInitLibCfg()
 #if DISABLE_4x4_INTER
   m_cTEncTop.setDisInter4x4                  ( m_bDisInter4x4);
 #endif
+  
+#if NSQT
+  m_cTEncTop.setUseNSQT( m_enableNSQT );
+#endif
+  
   //===== Slice ========
   m_cTEncTop.setHierarchicalCoding           ( m_bHierarchicalCoding );
   

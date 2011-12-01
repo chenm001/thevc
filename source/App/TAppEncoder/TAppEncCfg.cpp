@@ -167,6 +167,9 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
 #if DISABLE_4x4_INTER
   ("DisableInter4x4", m_bDisInter4x4, true, "Disable Inter 4x4")
 #endif
+#if NSQT
+  ("NSQT", m_enableNSQT, true, "Enable non-square transforms")
+#endif
   /* motion options */
   ("FastSearch", m_iFastSearch, 1, "0:Full search  1:Diamond  2:PMVFAST")
   ("SearchRange,-sr",m_iSearchRange, 96, "motion search range")

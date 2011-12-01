@@ -454,6 +454,11 @@ Void TEncCavlc::codeSPS( TComSPS* pcSPS )
     }
   }
 #endif
+  
+  // Software-only flags
+#if NSQT
+  WRITE_FLAG( pcSPS->getUseNSQT(), "enable_nsqt" );
+#endif
 }
 
 #if TILES_DECODER

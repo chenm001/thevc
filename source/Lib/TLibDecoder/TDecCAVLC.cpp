@@ -417,6 +417,12 @@ Void TDecCavlc::parseSPS(TComSPS* pcSPS)
   }
 #endif
 
+  // Software-only flags
+#if NSQT
+  READ_FLAG( uiCode, "enable_nsqt" );
+  pcSPS->setUseNSQT( uiCode );
+#endif
+  
   return;
 }
 

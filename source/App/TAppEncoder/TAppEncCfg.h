@@ -82,6 +82,9 @@ protected:
 #if DISABLE_4x4_INTER
   Bool      m_bDisInter4x4;
 #endif
+#if NSQT
+  Bool      m_enableNSQT;                                     ///< flag for enabling NSQT
+#endif
   // coding quality
   Double    m_fQP;                                            ///< QP value of key-picture (floating point)
   Int       m_iQP;                                            ///< QP value of key-picture (integer)
