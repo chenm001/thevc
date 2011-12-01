@@ -165,10 +165,6 @@ extern const UChar  g_aucLenTableTO4 [4][5];
 extern const UChar  g_aucACTab[6];
 extern const UChar  g_aucFrameBits[32];
 
-#if !CAVLC_COEF_LRG_BLK
-extern const UInt    g_auiLPTableE8[8][128];
-extern const UInt    g_auiLPTableD8[8][128];
-#endif
 extern const UInt    g_auiLPTableE4[3][32];
 extern const UInt    g_auiLPTableD4[3][32];
 extern const UInt    g_auiLastPosVlcIndex[10];
@@ -193,27 +189,20 @@ extern const UInt    g_acstructLumaRun8x8[28][29];
 extern const LastCoeffStruct g_acstructLumaRun8x8[29][127];
 #endif
 
-#if CAVLC_COEF_LRG_BLK
 extern const UInt   g_auiVlcTable16x16Intra[29];
 extern const UInt   g_auiVlcTable16x16Inter[29];
-#endif
 
 extern const UInt huff17_2[18];
 extern const UInt lengthHuff17_2[18];
 extern const UInt huff34_2[35];
 extern const UInt lengthHuff34_2[35];
 
-#if CAVLC_COEF_LRG_BLK
 extern const UInt   *g_pLumaRunTr14x4[5]; 
 #if MOD_INTRA_TABLE
 extern const UInt   *g_pLumaRunTr116x16[2];
 extern const UInt   *g_pLumaRunTr18x8[2]; 
 #else
 extern const UInt   *g_pLumaRunTr18x8[5]; 
-#endif
-#else
-extern const UInt    g_auiLumaRunTr14x4[5][15];
-extern const UInt    g_auiLumaRunTr18x8[5][29];
 #endif
 
 #if CAVLC_RQT_CBP
@@ -397,7 +386,6 @@ __inline UInt xLeadingZeros(UInt uiCode)
 
 extern       Char   g_aucConvertToBit  [ MAX_CU_SIZE+1 ];   // from width to log2(width)-2
 
-#if CAVLC_COEF_LRG_BLK
 /** Function for deriving codeword index in coding last significant position and level information.
  * \param lev a value indicating coefficient level greater than one or not
  * \param last_pos last significant coefficient position
@@ -452,7 +440,6 @@ __inline void xLastLevelIndInv(Int& lev, Int& last_pos, Int N, UInt cx)
     last_pos = cx - N2;
   }
 }
-#endif
 
 #define ENC_DEC_TRACE 0
 

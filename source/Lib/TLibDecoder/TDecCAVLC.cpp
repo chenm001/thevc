@@ -745,9 +745,6 @@ Void TDecCavlc::resetEntropy          (TComSlice* pcSlice)
   m_bRunLengthCoding = ! pcSlice->isIntra();
   m_uiRun = 0;
   
-#if !CAVLC_COEF_LRG_BLK
-  ::memcpy(m_uiLPTableD8,        g_auiLPTableD8,        10*128*sizeof(UInt));
-#endif
   ::memcpy(m_uiLPTableD4,        g_auiLPTableD4,        3*32*sizeof(UInt));
   ::memcpy(m_uiLastPosVlcIndex,  g_auiLastPosVlcIndex,  10*sizeof(UInt));
 
@@ -2004,7 +2001,6 @@ Void TDecCavlc::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartI
   // point to coefficient
   TCoeff* piCoeff = pcCoef;
    
-#if CAVLC_COEF_LRG_BLK
 #if CAVLC_COEF_LRG_BLK_CHROMA
   UInt maxBlSize = 32;
 #else
@@ -2012,27 +2008,15 @@ Void TDecCavlc::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartI
 #endif
   UInt uiBlSize = min(maxBlSize,uiWidth);
   UInt uiNoCoeff = uiBlSize*uiBlSize;
-#else
-  //UInt uiConvBit = g_aucConvertToBit[ Min(8,uiWidth) ];
-  UInt uiConvBit = g_aucConvertToBit[ pcCU->isIntra( uiAbsPartIdx ) ? uiWidth : min(8,uiWidth)    ];
-#endif
   
   UInt uiBlkPos;
-#if CAVLC_COEF_LRG_BLK
   UInt uiLog2BlkSize = g_aucConvertToBit[ pcCU->isIntra( uiAbsPartIdx ) ? uiWidth : uiBlSize] + 2;
-#else
-  UInt uiLog2BlkSize = g_aucConvertToBit[ pcCU->isIntra( uiAbsPartIdx ) ? uiWidth : min(8,uiWidth)    ] + 2;
-#endif
   const UInt uiScanIdx = pcCU->getCoefScanIdx(uiAbsPartIdx, uiWidth, eTType==TEXT_LUMA, pcCU->isIntra(uiAbsPartIdx));
   
 
   UInt uiScanning;
   
-#if CAVLC_COEF_LRG_BLK
   static TCoeff scoeff[1024];
-#else
-  TCoeff scoeff[64];
-#endif
   Int iBlockType;
   if( uiSize == 2*2 )
   {
@@ -2042,15 +2026,11 @@ Void TDecCavlc::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartI
     else
       iBlockType = 2 + ( pcCU->isIntra(uiAbsPartIdx) ? 0 : pcCU->getSlice()->getSliceType() );
 
-#if CAVLC_COEF_LRG_BLK
     xParseCoeff( scoeff, iBlockType, 4
 #if CAVLC_RUNLEVEL_TABLE_REM
                , pcCU->isIntra(uiAbsPartIdx)
 #endif
                );
-#else
-    xParseCoeff4x4( scoeff, iBlockType );
-#endif
     
     for (uiScanning=0; uiScanning<4; uiScanning++)
     {
@@ -2064,15 +2044,11 @@ Void TDecCavlc::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartI
       iBlockType = eTType-2;
     else
       iBlockType = 2 + ( pcCU->isIntra(uiAbsPartIdx) ? 0 : pcCU->getSlice()->getSliceType() );
-#if CAVLC_COEF_LRG_BLK
     xParseCoeff( scoeff, iBlockType, 4
 #if CAVLC_RUNLEVEL_TABLE_REM
                , pcCU->isIntra(uiAbsPartIdx)
 #endif
                );
-#else
-    xParseCoeff4x4( scoeff, iBlockType );
-#endif
     
     for (uiScanning=0; uiScanning<16; uiScanning++)
     {
@@ -2086,15 +2062,11 @@ Void TDecCavlc::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartI
       iBlockType = eTType-2;
     else
       iBlockType = 2 + ( pcCU->isIntra(uiAbsPartIdx) ? 0 : pcCU->getSlice()->getSliceType() );
-#if CAVLC_COEF_LRG_BLK
     xParseCoeff( scoeff, iBlockType, 8
 #if CAVLC_RUNLEVEL_TABLE_REM
                , pcCU->isIntra(uiAbsPartIdx)
 #endif
                );
-#else
-    xParseCoeff8x8( scoeff, iBlockType );
-#endif
     
     for (uiScanning=0; uiScanning<64; uiScanning++)
     {
@@ -2111,31 +2083,18 @@ Void TDecCavlc::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartI
         iBlockType = eTType-2;
       else
         iBlockType = 5 + ( pcCU->isIntra(uiAbsPartIdx) ? 0 : pcCU->getSlice()->getSliceType() );
-#if CAVLC_COEF_LRG_BLK 
       xParseCoeff( scoeff, iBlockType, uiBlSize
 #if CAVLC_RUNLEVEL_TABLE_REM
                  , pcCU->isIntra(uiAbsPartIdx)
 #endif
                  );
-#else
-      xParseCoeff8x8( scoeff, iBlockType );
-#endif
       
-#if CAVLC_COEF_LRG_BLK
       for (uiScanning=0; uiScanning<uiNoCoeff; uiScanning++)
       {
         uiBlkPos = g_auiSigLastScan[uiScanIdx][uiLog2BlkSize-1][uiScanning]; 
         uiBlkPos = (uiBlkPos/uiBlSize)* uiWidth + (uiBlkPos&(uiBlSize-1));
         piCoeff[ uiBlkPos ] =  scoeff[uiNoCoeff-uiScanning-1];
       }
-#else
-      for (uiScanning=0; uiScanning<64; uiScanning++)
-      {  
-        uiBlkPos = g_auiSigLastScan[uiScanIdx][uiLog2BlkSize-1][uiScanning]; 
-        uiBlkPos = (uiBlkPos/8)* uiWidth + uiBlkPos%8;
-        piCoeff[ uiBlkPos ] =  scoeff[63-uiScanning];
-      }
-#endif
       return;
     }
     
@@ -2148,7 +2107,6 @@ Void TDecCavlc::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartI
       else
         iBlockType = 5 + ( pcCU->isIntra(uiAbsPartIdx) ? 0 : pcCU->getSlice()->getSliceType() );
 
-#if CAVLC_COEF_LRG_BLK
       xParseCoeff( scoeff, iBlockType, uiBlSize
 #if CAVLC_RUNLEVEL_TABLE_REM
                  , pcCU->isIntra(uiAbsPartIdx)
@@ -2159,15 +2117,6 @@ Void TDecCavlc::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartI
         uiBlkPos = g_auiSigLastScan[uiScanIdx][uiLog2BlkSize-1][uiScanning]; 
         piCoeff[ uiBlkPos ] =  scoeff[uiNoCoeff - uiScanning - 1];
       }
-#else
-      xParseCoeff8x8( scoeff, iBlockType );
-      
-      for (uiScanning=0; uiScanning<64; uiScanning++)
-      {
-        uiBlkPos = g_auiSigLastScan[uiScanIdx][uiLog2BlkSize-1][uiScanning]; 
-        piCoeff[ uiBlkPos ] =  scoeff[63-uiScanning];
-      }
-#endif
     }
   }
   
@@ -2468,11 +2417,7 @@ UInt TDecCavlc::xGetBit()
 
 Int TDecCavlc::xReadVlc( Int n )
 {
-#if CAVLC_COEF_LRG_BLK
   assert( n>=0 && n<=13 );
-#else
-  assert( n>=0 && n<=11 );
-#endif
   
   UInt zeroes=0, done=0, tmp;
   UInt cw, bit;
@@ -2636,7 +2581,6 @@ Int TDecCavlc::xReadVlc( Int n )
       val--;
     }
   }
-#if CAVLC_COEF_LRG_BLK
   else if (n == 12)
   {
     while (!done)
@@ -2693,166 +2637,9 @@ Int TDecCavlc::xReadVlc( Int n )
     }
     val = (zeroes<<4)+cw;
   }
-#endif
   
   return val;
 }
-
-#if !CAVLC_COEF_LRG_BLK
-Void TDecCavlc::xParseCoeff4x4( TCoeff* scoeff, Int n )
-{
-  Int i;
-  UInt sign;
-  Int tmp;
-  Int vlc,cn,this_pos;
-  Int maxrun;
-  Int last_position;
-  Int atable[5] = {4,6,14,28,0xfffffff};
-  Int vlc_adaptive=0;
-  Int done;
-  LastCoeffStruct combo;
-  
-  Int nTab;
-  Int tr1;
-  nTab=max(0,n-2);
-
-  for (i = 0; i < 16; i++)
-  {
-    scoeff[i] = 0;
-  }
-  
-  {
-    /* Get the last nonzero coeff */
-    Int x,y,cx,cy,vlcNum;
-    Int vlcTable[8] = {2,2,2};
-    
-    /* Decode according to current LP table */
-    vlcNum = vlcTable[nTab];
-    tmp = xReadVlc( vlcNum );
-    cn = m_uiLPTableD4[nTab][tmp];
-    combo.level = (cn>15);
-    combo.last_pos = cn&0x0f;
-    
-    /* Adapt LP table */
-    cx = tmp;
-    cy = max( 0, cx-1 );
-    x = cn;
-    y = m_uiLPTableD4[nTab][cy];
-    m_uiLPTableD4[nTab][cy] = x;
-    m_uiLPTableD4[nTab][cx] = y;
-  }
-  
-  if ( combo.level == 1 )
-  {
-    tmp = xReadVlc( 0 );
-    sign = tmp&1;
-    tmp = (tmp>>1)+2;
-  }
-  else
-  {
-    tmp = 1;
-    xReadFlag( sign );
-  }
-  
-  if (tmp>1)
-  {
-    tr1=0;
-  }
-  else
-  {
-    tr1=1;
-  }
-
-  if ( sign )
-  {
-    tmp = -tmp;
-  }
-  
-  last_position = combo.last_pos;
-  this_pos = 15 - last_position;
-  scoeff[this_pos] = tmp;
-  i = this_pos;
-  i++;
-  
-  done = 0;
-  {
-    while (!done && i < 16)
-    {
-      maxrun = 15-i;
-      if(n==2)
-        vlc = g_auiVlcTable8x8Intra[maxrun];
-      else
-        vlc = g_auiVlcTable8x8Inter[maxrun];
-      
-      /* Go into run mode */
-      cn = xReadVlc( vlc );
-      if(n==2)
-      {
-        xRunLevelIndInv(&combo, maxrun, g_auiLumaRunTr14x4[tr1][maxrun], cn);
-      }
-      else
-      {
-#if RUNLEVEL_TABLE_CUT
-        xRunLevelIndInterInv(&combo, maxrun, cn);
-#else
-        combo = g_acstructLumaRun8x8[maxrun][cn];
-#endif
-      }
-      i += combo.last_pos;
-      /* No sign for last zeroes */
-      if (i < 16)
-      {
-        if (combo.level == 1)
-        {
-          tmp = xReadVlc( 0 );
-          sign = tmp&1;
-          tmp = (tmp>>1)+2;
-          done = 1;
-        }
-        else
-        {
-          tmp = 1;
-          xReadFlag( sign );
-        }
-        if ( sign )
-        {
-          tmp = -tmp;
-        }
-        scoeff[i] = tmp;
-      }
-      i++;
-      if (tr1>0 && tr1<MAX_TR1)
-      {
-        tr1++;
-      }
-    }
-  }
-  if (i < 16)
-  {
-    /* Get the rest in level mode */
-    while ( i < 16 )
-    {
-      tmp = xReadVlc( vlc_adaptive );
-      if ( tmp > atable[vlc_adaptive] )
-      {
-        vlc_adaptive++;
-      }
-      if ( tmp )
-      {
-        xReadFlag( sign );
-        if ( sign )
-        {
-          tmp = -tmp;
-        }
-      }
-      scoeff[i] = tmp;
-      i++;
-    }
-  }
-  
-  return;
-}
-#endif
 
 Void TDecCavlc::xRunLevelIndInv(LastCoeffStruct *combo, Int maxrun, UInt lrg1Pos, UInt cn)
 {
@@ -2952,172 +2739,6 @@ Void TDecCavlc::xRunLevelIndInterInv(LastCoeffStruct *combo, Int maxrun, UInt cn
 }
 #endif
 
-#if !CAVLC_COEF_LRG_BLK
-Void TDecCavlc::xParseCoeff8x8(TCoeff* scoeff, int n)
-{
-  Int i;
-  UInt sign;
-  Int tmp;
-  LastCoeffStruct combo;
-  Int vlc,cn,this_pos;
-  Int maxrun;
-  Int last_position;
-  Int atable[5] = {4,6,14,28,0xfffffff};
-  Int vlc_adaptive=0;
-  Int done;
-  Int tr1;
-  
-  static const Int switch_thr[10] = {49,49,0,49,49,0,49,49,49,49};
-  Int sum_big_coef = 0;
-  
-  for (i = 0; i < 64; i++)
-  {
-    scoeff[i] = 0;
-  }
-  
-  /* Get the last nonzero coeff */
-  {
-    Int x,y,cx,cy,vlcNum;
-    
-    /* Decode according to current LP table */
-    // ADAPT_VLC_NUM
-    vlcNum = g_auiLastPosVlcNum[n][min(16,m_uiLastPosVlcIndex[n])];
-    tmp = xReadVlc( vlcNum );
-    cn = m_uiLPTableD8[n][tmp];
-    combo.level = (cn>63);
-    combo.last_pos = cn&0x3f;
-    
-    /* Adapt LP table */
-    cx = tmp;
-    cy = max(0,cx-1);
-    x = cn;
-    y = m_uiLPTableD8[n][cy];
-    m_uiLPTableD8[n][cy] = x;
-    m_uiLPTableD8[n][cx] = y;
-
-    // ADAPT_VLC_NUM
-    m_uiLastPosVlcIndex[n] += cx == m_uiLastPosVlcIndex[n] ? 0 : (cx < m_uiLastPosVlcIndex[n] ? -1 : 1);
-  }
-  
-  if (combo.level == 1)
-  {
-    tmp = xReadVlc( 0 );
-    sign = tmp&1;
-    tmp = (tmp>>1)+2;
-  }
-  else
-  {
-    tmp = 1;
-    xReadFlag( sign );
-  }
-
-  if (tmp>1)
-  {
-    tr1=0;
-  }
-  else
-  {
-    tr1=1;
-  }
-
-  if ( sign )
-  {
-    tmp = -tmp;
-  }
-  
-  last_position = combo.last_pos;
-  this_pos = 63 - last_position;
-  scoeff[this_pos] = tmp;
-  i = this_pos;
-  i++;
-  
-  done = 0;
-  {
-    while (!done && i < 64)
-    {
-      maxrun = 63-i;
-      if (n == 2 || n == 5)
-        vlc = g_auiVlcTable8x8Intra[min(maxrun,28)];
-      else
-        vlc = g_auiVlcTable8x8Inter[min(maxrun,28)];
-      
-      /* Go into run mode */
-      cn = xReadVlc( vlc );
-      if (n == 2 || n == 5)
-        xRunLevelIndInv(&combo, maxrun, g_auiLumaRunTr18x8[tr1][min(maxrun,28)], cn);
-      else
-#if RUNLEVEL_TABLE_CUT
-        xRunLevelIndInterInv(&combo, maxrun, cn);
-#else
-        combo = g_acstructLumaRun8x8[min(maxrun,28)][cn];
-#endif
-      i += combo.last_pos;
-      /* No sign for last zeroes */
-      if (i < 64)
-      {
-        if (combo.level == 1)
-        {
-          tmp = xReadVlc( 0 );
-          sign = tmp&1;
-          tmp = (tmp>>1)+2;
-          
-          sum_big_coef += tmp;
-          if (i > switch_thr[n] || sum_big_coef > 2)
-          {
-            done = 1;
-          }
-        }
-        else
-        {
-          tmp = 1;
-          xReadFlag( sign );
-        }
-        if ( sign )
-        {
-          tmp = -tmp;
-        }
-        scoeff[i] = tmp;
-      }
-      i++;
-      if (tr1==0 || combo.level != 0)
-      {
-        tr1=0;
-      }
-      else if( tr1 < MAX_TR1)
-      {
-        tr1++;
-      }
-    }
-  }
-  if (i < 64)
-  {
-    /* Get the rest in level mode */
-    while (i<64)
-    {
-      tmp = xReadVlc( vlc_adaptive );
-      
-      if (tmp>atable[vlc_adaptive])
-      {
-        vlc_adaptive++;
-      }
-      if (tmp)
-      {
-        xReadFlag( sign );
-        if ( sign )
-        {
-          tmp = -tmp;
-        }
-      }
-      scoeff[i] = tmp;
-      i++;
-    }
-  }
-  return;
-}
-#endif
-
-
-#if CAVLC_COEF_LRG_BLK
 /** Function for parsing a block of transform coefficients in CAVLC.
  * \param scoeff    pointer to transform coefficient buffer
  * \param blockType block type information, e.g. luma, chroma, intra, inter, etc. 
@@ -3319,8 +2940,6 @@ Void TDecCavlc::xParseCoeff(TCoeff* scoeff, Int blockType, Int blSize
 
   return;
 }
-
-#endif
 
 #if WEIGHT_PRED
 /** parse explicit wp tables
