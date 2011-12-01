@@ -2199,9 +2199,7 @@ Void TEncCavlc::xCodeCoeff( TCoeff* scoeff, Int blockType, Int blSize
                           )
 {
   static const int switch_thr[10] = {49,49,0,49,49,0,49,49,49,49};
-#if MOD_INTRA_TABLE
   static const int aiTableTr1[2][5] = {{0, 1, 1, 1, 0},{0, 1, 2, 3, 4}};
-#endif
   int i, noCoeff = blSize*blSize;
   unsigned int cn;
   int level,vlc,sign,done,last_pos,start;
@@ -2285,7 +2283,6 @@ Void TEncCavlc::xCodeCoeff( TCoeff* scoeff, Int blockType, Int blSize
   {
     /* Go into run mode */
     run_done = 0;
-#if MOD_INTRA_TABLE
     UInt const *vlcTable;
     if(blockType==2||blockType==5)
     {
@@ -2296,11 +2293,6 @@ Void TEncCavlc::xCodeCoeff( TCoeff* scoeff, Int blockType, Int blSize
       vlcTable= blSize<=8? g_auiVlcTable8x8Inter: g_auiVlcTable16x16Inter;
     }
     const UInt **pLumaRunTr1 =(blSize==4)? g_pLumaRunTr14x4:((blSize==8)? g_pLumaRunTr18x8: g_pLumaRunTr116x16);
-#else
-    const UInt *vlcTable = (blockType==2||blockType==5)? ((blSize<=8)? g_auiVlcTable8x8Intra:g_auiVlcTable16x16Intra):
-      ((blSize<=8)? g_auiVlcTable8x8Inter:g_auiVlcTable16x16Inter);
-    const UInt **pLumaRunTr1 = (blSize==4)? g_pLumaRunTr14x4:g_pLumaRunTr18x8;
-#endif
 
 
 
@@ -2308,7 +2300,6 @@ Void TEncCavlc::xCodeCoeff( TCoeff* scoeff, Int blockType, Int blSize
     {
       maxrun = noCoeff-i-1;
       tmprun = min(maxrun, 28);
-#if MOD_INTRA_TABLE 
       if (tmprun < 28 || blSize<=8 || (blockType!=2&&blockType!=5))
       {
         vlc = vlcTable[tmprun];
@@ -2317,9 +2308,6 @@ Void TEncCavlc::xCodeCoeff( TCoeff* scoeff, Int blockType, Int blSize
       {
         vlc = 2;
       }
-#else
-      vlc = vlcTable[tmprun];
-#endif
       run = 0;
       done = 0;
       while (!done)
@@ -2335,11 +2323,7 @@ Void TEncCavlc::xCodeCoeff( TCoeff* scoeff, Int blockType, Int blSize
 
           if(blockType == 2 || blockType == 5)
           {
-#if MOD_INTRA_TABLE
             cn = xRunLevelInd(lev, run, maxrun, pLumaRunTr1[aiTableTr1[(blSize&4)>>2][tr1]][tmprun]);
-#else
-            cn = xRunLevelInd(lev, run, maxrun, pLumaRunTr1[tr1][tmprun]);
-#endif
           }
           else
           {
@@ -2387,11 +2371,7 @@ Void TEncCavlc::xCodeCoeff( TCoeff* scoeff, Int blockType, Int blSize
           {
             if(blockType == 2 || blockType == 5)
             {
-#if MOD_INTRA_TABLE
               cn = xRunLevelInd(0, run, maxrun, pLumaRunTr1[aiTableTr1[(blSize&4)>>2][tr1]][tmprun]);
-#else
-              cn = xRunLevelInd(0, run, maxrun, pLumaRunTr1[tr1][tmprun]);
-#endif
             }
             else
             {

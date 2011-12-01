@@ -188,12 +188,8 @@ extern const UInt huff34_2[35];
 extern const UInt lengthHuff34_2[35];
 
 extern const UInt   *g_pLumaRunTr14x4[5]; 
-#if MOD_INTRA_TABLE
 extern const UInt   *g_pLumaRunTr116x16[2];
 extern const UInt   *g_pLumaRunTr18x8[2]; 
-#else
-extern const UInt   *g_pLumaRunTr18x8[5]; 
-#endif
 
 extern const UInt    g_auiCBP_YUV_TableE[4][8];
 extern const UInt    g_auiCBP_YUV_TableD[4][8];
