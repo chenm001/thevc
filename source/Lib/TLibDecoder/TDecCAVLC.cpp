@@ -1591,7 +1591,6 @@ Void TDecCavlc::parseCbfTrdiv( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiTrDep
   n = pcCU->isIntra( uiAbsPartIdx ) ? 0 : 1;
   uiCbfY = uiCbfU = uiCbfV = 0;
 
-#if LG_MRG_2Nx2N_CBF
   Bool bMRG_2Nx2N_TrDepth_Is_Zero = false;
   if(  uiTrDepth==0 
     && pcCU->getPartitionSize( uiAbsPartIdx) == SIZE_2Nx2N 
@@ -1599,7 +1598,6 @@ Void TDecCavlc::parseCbfTrdiv( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiTrDep
   {
     bMRG_2Nx2N_TrDepth_Is_Zero = true;
   }
-#endif
 
   if(uiFlagPattern < 8)
   {
@@ -1670,7 +1668,6 @@ Void TDecCavlc::parseCbfTrdiv( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiTrDep
     }
     else if (uiFlagPattern == 14)
     {
-#if LG_MRG_2Nx2N_CBF
       if (bMRG_2Nx2N_TrDepth_Is_Zero)
       {
         UInt i;
@@ -1695,7 +1692,6 @@ Void TDecCavlc::parseCbfTrdiv( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiTrDep
       }
       else
       {      
-#endif
         UInt  uiIdx = uiTrDepth? (2 + n) : n;
         xReadUnaryMaxSymbol(cx, 7);
         uiCBP = m_uiCBP_YUV_TableD[uiIdx][cx];
@@ -1703,15 +1699,12 @@ Void TDecCavlc::parseCbfTrdiv( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiTrDep
         uiCbfY = (uiCBP>>2)&1;
         uiCbfU = (uiCBP>>1)&1;
         uiCbfV = (uiCBP>>0)&1;
-#if LG_MRG_2Nx2N_CBF
       }
-#endif
     }
     else if ( uiFlagPattern == 11 || uiFlagPattern == 13 || uiFlagPattern == 15)
     {
       UInt uiSymbol, i;
       UInt uiCbfUV;
-#if LG_MRG_2Nx2N_CBF
       if (bMRG_2Nx2N_TrDepth_Is_Zero)
       {        
         xReadUnaryMaxSymbol(uiSymbol, 5);
@@ -1735,7 +1728,6 @@ Void TDecCavlc::parseCbfTrdiv( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiTrDep
       }
       else
       {
-#endif  
       m_pcBitstream->pseudoRead(6, uiSymbol);
       for (i=0;i<8;i++)
       {
@@ -1752,9 +1744,7 @@ Void TDecCavlc::parseCbfTrdiv( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiTrDep
       uiCbfY = uiCBP >> 2;
       uiCbfUV = (uiCBP >> 1)& 0x01;
       uiSubdiv = uiCBP & 0x01;
-#if LG_MRG_2Nx2N_CBF
       }
-#endif
 
       uiCbfU = 0; uiCbfV = 0;
       if (uiFlagPattern == 15)
