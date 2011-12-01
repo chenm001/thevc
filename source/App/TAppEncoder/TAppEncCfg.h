@@ -85,6 +85,9 @@ protected:
 #if NSQT
   Bool      m_enableNSQT;                                     ///< flag for enabling NSQT
 #endif
+#if AMP
+  Bool      m_enableAMP;
+#endif
   // coding quality
   Double    m_fQP;                                            ///< QP value of key-picture (floating point)
   Int       m_iQP;                                            ///< QP value of key-picture (integer)

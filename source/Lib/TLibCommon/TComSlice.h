@@ -90,7 +90,10 @@ private:
   UInt        m_uiPCMLog2MinSize;
 #if DISABLE_4x4_INTER
   Bool        m_bDisInter4x4;
-#endif    
+#endif
+#if AMP
+  Bool        m_useAMP;
+#endif
   Bool        m_bUseALF;
   Bool        m_bUseDQP;
   Bool        m_bUseLDC;
@@ -171,6 +174,10 @@ public:
 #if DISABLE_4x4_INTER
   Bool getDisInter4x4()         { return m_bDisInter4x4;        }
   Void setDisInter4x4      ( Bool b ) { m_bDisInter4x4  = b;          }
+#endif
+#if AMP
+  Bool getUseAMP() { return m_useAMP; }
+  Void setUseAMP( Bool b ) { m_useAMP = b; }
 #endif
   Void setMinTrDepth  ( UInt u ) { m_uiMinTrDepth = u;      }
   UInt getMinTrDepth  ()         { return  m_uiMinTrDepth;  }

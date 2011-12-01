@@ -170,6 +170,9 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
 #if NSQT
   ("NSQT", m_enableNSQT, true, "Enable non-square transforms")
 #endif
+#if AMP
+  ("AMP", m_enableAMP, true, "Enable asymmetric motion partitions")
+#endif
   /* motion options */
   ("FastSearch", m_iFastSearch, 1, "0:Full search  1:Diamond  2:PMVFAST")
   ("SearchRange,-sr",m_iSearchRange, 96, "motion search range")

@@ -561,11 +561,11 @@ Void TEncTop::xInitSPS()
 #if AMP
   for (i = 0; i < g_uiMaxCUDepth-1; i++ )
   {
-    // m_cSPS.setAMPAcc( i, m_bUseAMP );
-    m_cSPS.setAMPAcc( i, 1 );
+    m_cSPS.setAMPAcc( i, m_useAMP );
+    //m_cSPS.setAMPAcc( i, 1 );
   }
 
-  // m_cSPS.setUseAMP ( m_bUseAMP );
+  m_cSPS.setUseAMP ( m_useAMP );
 
   for (i = g_uiMaxCUDepth-1; i < g_uiMaxCUDepth; i++ )
   {

@@ -86,6 +86,9 @@ protected:
 #if DISABLE_4x4_INTER
   Bool      m_bDisInter4x4;
 #endif
+#if AMP
+  Bool m_useAMP;
+#endif
   //======= Transform =============
   UInt      m_uiQuadtreeTULog2MaxSize;
   UInt      m_uiQuadtreeTULog2MinSize;
@@ -270,6 +273,9 @@ public:
   
 #if NSQT
   Void setUseNSQT( Bool b ) { m_useNSQT = b; }
+#endif
+#if AMP
+  Void setUseAMP( Bool b ) { m_useAMP = b; }
 #endif
   
   //====== b; Slice ========

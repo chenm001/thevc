@@ -428,6 +428,9 @@ Void TEncCavlc::codeSPS( TComSPS* pcSPS )
 #if NSQT
   WRITE_FLAG( pcSPS->getUseNSQT(), "enable_nsqt" );
 #endif
+#if AMP
+  WRITE_FLAG( pcSPS->getUseAMP(), "enable_amp" );
+#endif
 }
 
 #if TILES_DECODER

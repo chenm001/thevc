@@ -422,7 +422,10 @@ Void TDecCavlc::parseSPS(TComSPS* pcSPS)
   READ_FLAG( uiCode, "enable_nsqt" );
   pcSPS->setUseNSQT( uiCode );
 #endif
-  
+#if AMP
+  READ_FLAG( uiCode, "enable_amp" );
+  pcSPS->setUseAMP( uiCode );
+#endif
   return;
 }
 
