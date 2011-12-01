@@ -102,7 +102,6 @@
 #define CABAC_COEFF_DATA_REORDER          1           ///< JCTVC-F130: reordering of CABAC coefficient data
 #define CAVLC_RDOQ_MOD                    1           // JCTVC-F296: reduce positions for LAST checking and modify bits estimation
 #define MOD_INTRA_TABLE                   1           // JCTVC-F612: modified intra table for coefficients coding
-#define TBL_RUN_ADAPT                     1           // JCTVC-F467: cavlc table adaptation from last run-mode
 
 #define FAST_UDI_MAX_RDMODE_NUM               35          ///< maximum number of RD comparison in fast-UDI estimation loop 
 

@@ -221,29 +221,15 @@ private:
 #endif
   UInt           xCountVlcBits(UInt uiTableNumber, UInt uiCodeNumber);
 #if CAVLC_RDOQ_MOD
-#if TBL_RUN_ADAPT
   Int            bitCountRDOQ(Int coeff, Int pos, Int nTab, Int lastCoeffFlag,Int levelMode,Int run, Int maxrun, Int* vlc_adaptive, Int N, 
                               UInt uiTr1, Int iSum_big_coef, Int iBlockType, TComDataCU* pcCU, const UInt **pLumaRunTr1, Int iNextRun
                               , Int isIntra
                               );
 #else
-  Int            bitCountRDOQ(Int coeff, Int pos, Int nTab, Int lastCoeffFlag,Int levelMode,Int run, Int maxrun, Int vlc_adaptive, Int N, 
-                              UInt uiTr1, Int iSum_big_coef, Int iBlockType, TComDataCU* pcCU, const UInt **pLumaRunTr1, Int iNextRun
-                              , Int isIntra
-                              );
-#endif
-#else
-#if TBL_RUN_ADAPT
   Int            bitCountRDOQ(Int coeff, Int pos, Int nTab, Int lastCoeffFlag,Int levelMode,Int run, Int maxrun, Int *vlc_adaptive, Int N, 
                               UInt uiTr1, Int iSum_big_coef, Int iBlockType, TComDataCU* pcCU, const UInt **pLumaRunTr1
                               , Int isIntra
                               );
-#else
-  Int            bitCountRDOQ(Int coeff, Int pos, Int nTab, Int lastCoeffFlag,Int levelMode,Int run, Int maxrun, Int vlc_adaptive, Int N, 
-                              UInt uiTr1, Int iSum_big_coef, Int iBlockType, TComDataCU* pcCU, const UInt **pLumaRunTr1
-                              , Int isIntra
-                              );
-#endif
 #endif
 UInt             getCurrLineNum(UInt uiScanIdx, UInt uiPosX, UInt uiPosY);
   Void           xRateDistOptQuant_LCEC ( TComDataCU*                     pcCU,

@@ -151,9 +151,7 @@ extern const UInt   g_aauiGoRiceUpdate[4][16];            //!< parameter update 
 // CAVLC table
 // ====================================================================================================================
 
-#if TBL_RUN_ADAPT
 extern const Int    atable[5];
-#endif
 extern const UChar  g_aucCodeTable3[7][15];
 extern const UChar  g_aucLenTable3 [7][15];
 extern const UChar  g_aucCodeTableTZ4[3][4];
