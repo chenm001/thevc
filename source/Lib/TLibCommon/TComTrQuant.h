@@ -81,9 +81,7 @@ typedef struct
   Int levelQ;
   Bool lowerInt;
   UInt quantInd;
-#if CAVLC_RDOQ_MOD
   Int iNextRun;
-#endif
 } levelDataStruct;
 
 typedef struct
@@ -210,27 +208,14 @@ private:
   Void xQuant( TComDataCU* pcCU, Int* pSrc, TCoeff* pDes, Int iWidth, Int iHeight, UInt& uiAcSum, TextType eTType, UInt uiAbsPartIdx );
 
   // RDOQ functions
-#if CAVLC_RDOQ_MOD
   Int            xCodeCoeffCountBitsLast(TCoeff* scoeff, levelDataStruct* levelData, Int nTab, UInt uiNoCoeff, Int iStartLast
                                         , Int isIntra
                                         );
-#else
-  Int            xCodeCoeffCountBitsLast(TCoeff* scoeff, levelDataStruct* levelData, Int nTab, UInt uiNoCoeff
-                                        , Int isIntra
-                                        );
-#endif
   UInt           xCountVlcBits(UInt uiTableNumber, UInt uiCodeNumber);
-#if CAVLC_RDOQ_MOD
   Int            bitCountRDOQ(Int coeff, Int pos, Int nTab, Int lastCoeffFlag,Int levelMode,Int run, Int maxrun, Int* vlc_adaptive, Int N, 
                               UInt uiTr1, Int iSum_big_coef, Int iBlockType, TComDataCU* pcCU, const UInt **pLumaRunTr1, Int iNextRun
                               , Int isIntra
                               );
-#else
-  Int            bitCountRDOQ(Int coeff, Int pos, Int nTab, Int lastCoeffFlag,Int levelMode,Int run, Int maxrun, Int *vlc_adaptive, Int N, 
-                              UInt uiTr1, Int iSum_big_coef, Int iBlockType, TComDataCU* pcCU, const UInt **pLumaRunTr1
-                              , Int isIntra
-                              );
-#endif
 UInt             getCurrLineNum(UInt uiScanIdx, UInt uiPosX, UInt uiPosY);
   Void           xRateDistOptQuant_LCEC ( TComDataCU*                     pcCU,
                                           Int*                            plSrcCoeff,
