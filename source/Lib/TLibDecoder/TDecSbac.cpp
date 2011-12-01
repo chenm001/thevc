@@ -1113,6 +1113,9 @@ __inline Void TDecSbac::parseLastSignificantXY( UInt& uiPosLastX, UInt& uiPosLas
     }
   }
 
+#if BYPASS_FOR_LAST_COEFF_MOD
+  Int lastX = uiLast;
+#else
   if( !uiLast && uiHalfWidth >= uiMinWidth )
   {
     UInt uiCount = 0, uiTemp = 0;
@@ -1125,7 +1128,8 @@ __inline Void TDecSbac::parseLastSignificantXY( UInt& uiPosLastX, UInt& uiPosLas
     }
     uiPosLastX += uiTemp;
   }
-
+#endif
+  
   // posY
   for( uiPosLastY = 0; uiPosLastY < uiMaxWidth-1; uiPosLastY++ )
   {
@@ -1137,6 +1141,7 @@ __inline Void TDecSbac::parseLastSignificantXY( UInt& uiPosLastX, UInt& uiPosLas
     }
   }
 
+#if !BYPASS_FOR_LAST_COEFF_MOD
   if( !uiLast && uiHalfWidth >= uiMinWidth )
   {
     UInt uiCount = 0, uiTemp = 0;
@@ -1149,7 +1154,21 @@ __inline Void TDecSbac::parseLastSignificantXY( UInt& uiPosLastX, UInt& uiPosLas
     }
     uiPosLastY += uiTemp;
   }
-
+#else
+  if ( !lastX && uiHalfWidth >= uiMinWidth )
+  {
+    UInt temp;
+    m_pcTDecBinIf->decodeBinsEP( temp, uiLog2BlkSize );
+    uiPosLastX += temp;
+  }
+  if ( !uiLast && uiHalfWidth >= uiMinWidth )
+  {
+    UInt temp;
+    m_pcTDecBinIf->decodeBinsEP( temp, uiLog2BlkSize );
+    uiPosLastY += temp;
+  }
+#endif
+  
   if( uiScanIdx == SCAN_VER )
   {
     swap( uiPosLastX, uiPosLastY );

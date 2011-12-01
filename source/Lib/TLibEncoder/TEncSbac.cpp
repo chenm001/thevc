@@ -1074,6 +1074,7 @@ __inline Void TEncSbac::codeLastSignificantXY( UInt uiPosX, UInt uiPosY, const U
     m_pcBinIf->encodeBin( 1, *( pCtxX + puiCtxIdx[ uiCtxLast ] ) );
   }
 
+#if !BYPASS_FOR_LAST_COEFF_MOD
   if( uiPosX0 >= uiHalfWidth && uiHalfWidth >= uiMinWidth )
   {
     uiPosX0     -= uiHalfWidth;
@@ -1084,7 +1085,8 @@ __inline Void TEncSbac::codeLastSignificantXY( UInt uiPosX, UInt uiPosY, const U
       uiCount++;
     }
   }
-
+#endif
+  
   // posY
   for( uiCtxLast = 0; uiCtxLast < uiPosY; uiCtxLast++ )
   {
@@ -1095,6 +1097,7 @@ __inline Void TEncSbac::codeLastSignificantXY( UInt uiPosX, UInt uiPosY, const U
     m_pcBinIf->encodeBin( 1, *( pCtxY + puiCtxIdx[ uiCtxLast ] ) );
   }
 
+#if !BYPASS_FOR_LAST_COEFF_MOD
   if( uiPosY0 >= uiHalfWidth && uiHalfWidth >= uiMinWidth )
   {
     uiPosY0     -= uiHalfWidth;
@@ -1105,6 +1108,17 @@ __inline Void TEncSbac::codeLastSignificantXY( UInt uiPosX, UInt uiPosY, const U
       uiCount++;
     }
   }
+#else  
+  if ( uiPosX0 >= uiHalfWidth && uiHalfWidth >= uiMinWidth )
+  {
+    m_pcBinIf->encodeBinsEP( uiPosX0 - uiHalfWidth, uiLog2BlkSize );
+  }
+  if ( uiPosY0 >= uiHalfWidth && uiHalfWidth >= uiMinWidth )
+  {
+    m_pcBinIf->encodeBinsEP( uiPosY0 - uiHalfWidth, uiLog2BlkSize );
+  }
+#endif
+
 }
 
 Void TEncSbac::codeCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx, UInt uiWidth, UInt uiHeight, UInt uiDepth, TextType eTType )
