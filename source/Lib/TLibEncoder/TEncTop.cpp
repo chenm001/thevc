@@ -305,8 +305,14 @@ Void TEncTop::init()
   aTable4 = m_pcCavlcCoder->GetLP4Table();
   aTableLastPosVlcIndex=m_pcCavlcCoder->GetLastPosVlcIndexTable();
   
-  m_cTrQuant.init( g_uiMaxCUWidth, g_uiMaxCUHeight, 1 << m_uiQuadtreeTULog2MaxSize, m_iSymbolMode, aTable4, aTable8, 
-    aTableLastPosVlcIndex, m_bUseRDOQ, true );
+  m_cTrQuant.init( g_uiMaxCUWidth, g_uiMaxCUHeight, 1 << m_uiQuadtreeTULog2MaxSize,
+#if DISABLE_CAVLC
+                  0,
+#else
+                  m_iSymbolMode,
+#endif
+                  aTable4, aTable8, 
+                  aTableLastPosVlcIndex, m_bUseRDOQ, true );
   
   // initialize encoder search class
   m_cSearch.init( this, &m_cTrQuant, m_iSearchRange, m_bipredSearchRange, m_iFastSearch, 0, &m_cEntropyCoder, &m_cRdCost, getRDSbacCoder(), getRDGoOnSbacCoder() );
@@ -675,7 +681,11 @@ Void TEncTop::xInitPPS()
     m_cPPS.setMinCuDQPSize( m_cPPS.getSPS()->getMaxCUWidth() >> ( m_cPPS.getMaxCuDQPDepth()) );
   }
 #if OL_USE_WPP
+#if DISABLE_CAVLC
+  m_cPPS.setEntropyCodingMode( 1 ); // In the PPS now, but also remains in slice header!
+#else
   m_cPPS.setEntropyCodingMode(getSymbolMode()); // In the PPS now, but also remains in slice header!
+#endif
   m_cPPS.setEntropyCodingSynchro(m_iWaveFrontSynchro);
   m_cPPS.setCabacIstateReset(m_iWaveFrontFlush != 0);
   m_cPPS.setNumSubstreams(m_iWaveFrontSubstreams);

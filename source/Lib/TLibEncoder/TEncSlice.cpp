@@ -400,7 +400,9 @@ Void TEncSlice::initEncSlice( TComPic* pcPic, Int iPOCLast, UInt uiPOCCurr, Int 
   rpcSlice->setNumRefIdx        ( REF_PIC_LIST_0, eSliceType == P_SLICE ? m_pcCfg->getNumOfReference() : (eSliceType == B_SLICE ? (m_pcCfg->getNumOfReferenceB_L0()) : 0 ) );
   rpcSlice->setNumRefIdx        ( REF_PIC_LIST_1, eSliceType == B_SLICE ? (m_pcCfg->getNumOfReferenceB_L1()) : 0 );
   
+#if !DISABLE_CAVLC
   rpcSlice->setSymbolMode       ( m_pcCfg->getSymbolMode());
+#endif
   rpcSlice->setLoopFilterDisable( m_pcCfg->getLoopFilterDisable() );
   
   rpcSlice->setDepth            ( iDepth );
@@ -823,17 +825,21 @@ Void TEncSlice::compressSlice( TComPic*& rpcPic )
         uiCUAddr!=rpcPic->getPicSym()->getPicSCUAddr(rpcPic->getSlice(rpcPic->getCurrSliceIdx())->getSliceCurStartCUAddr())/rpcPic->getNumPartInCU()  &&  // cannot be first CU of slice
         rpcPic->getPicSym()->getTileBoundaryIndependenceIdr())                                                                                            // tile independence must be enabled
     {
+#if !DISABLE_CAVLC
       if (pcSlice->getSymbolMode())
+#endif
       {
         m_pcEntropyCoder->updateContextTables ( pcSlice->getSliceType(), pcSlice->getSliceQp(), false );
         m_pcEntropyCoder->setEntropyCoder     ( m_pppcRDSbacCoder[0][CI_CURR_BEST], pcSlice );
         m_pcEntropyCoder->updateContextTables ( pcSlice->getSliceType(), pcSlice->getSliceQp() );
         m_pcEntropyCoder->setEntropyCoder     ( m_pcSbacCoder, pcSlice );
       }
+#if !DISABLE_CAVLC
       else
       {
         m_pcEntropyCoder->resetEntropy();
       }
+#endif
     }
 #endif
 
@@ -1057,18 +1063,22 @@ Void TEncSlice::encodeSlice   ( TComPic*& rpcPic, TComOutputBitstream* pcBitstre
   uiBoundingCUAddr=pcSlice->getEntropySliceCurEndCUAddr();
 #endif
   // choose entropy coder
+#if !DISABLE_CAVLC
   Int iSymbolMode = pcSlice->getSymbolMode();
   if (iSymbolMode)
+#endif
   {
     m_pcSbacCoder->init( (TEncBinIf*)m_pcBinCABAC );
     m_pcEntropyCoder->setEntropyCoder ( m_pcSbacCoder, pcSlice );
   }
+#if !DISABLE_CAVLC
   else
   {
     m_pcCavlcCoder  ->setAdaptFlag( true );
     m_pcEntropyCoder->setEntropyCoder ( m_pcCavlcCoder, pcSlice );
     m_pcEntropyCoder->resetEntropy();
   }
+#endif
   
 #if OL_USE_WPP
   // Appropriate substream bitstream is switched later.
@@ -1095,7 +1105,9 @@ Void TEncSlice::encodeSlice   ( TComPic*& rpcPic, TComOutputBitstream* pcBitstre
 #if TILES_DECODER
   UInt uiBitsOriginallyInSubstreams = 0;
 #endif
+#if !DISABLE_CAVLC
   if( pcSlice->getSymbolMode() )
+#endif
   {
 #if TILES
     UInt uiTilesAcross = rpcPic->getPicSym()->getNumColumnsMinus1()+1;
@@ -1278,7 +1290,9 @@ Void TEncSlice::encodeSlice   ( TComPic*& rpcPic, TComOutputBitstream* pcBitstre
           break;
       }
 #endif
+#if !DISABLE_CAVLC
       if (iSymbolMode)
+#endif
       {
 #if OL_USE_WPP
         // We're crossing into another tile, tiles are independent.
@@ -1300,6 +1314,7 @@ Void TEncSlice::encodeSlice   ( TComPic*& rpcPic, TComOutputBitstream* pcBitstre
         pcBitstream->writeAlignZero();
 #endif
       }
+#if !DISABLE_CAVLC
       else
       {
         m_pcEntropyCoder->resetEntropy();
@@ -1307,9 +1322,12 @@ Void TEncSlice::encodeSlice   ( TComPic*& rpcPic, TComOutputBitstream* pcBitstre
         pcBitstream->writeAlignOne();
 #endif
       }
+#endif
 #if TILES_DECODER
 #if OL_USE_WPP
+#if !DISABLE_CAVLC
       if (iSymbolMode)
+#endif
       {
         // Write TileMarker into the appropriate substream (nothing has been written to it yet).
         if (m_pcCfg->getTileMarkerFlag() && bWriteTileMarker)
@@ -1333,30 +1351,32 @@ Void TEncSlice::encodeSlice   ( TComPic*& rpcPic, TComOutputBitstream* pcBitstre
         pcSlice->setTileLocation( uiLocationCount, (pcSlice->getTileOffstForMultES() + uiAccumulatedSubstreamLength - uiBitsOriginallyInSubstreams) >> 3 ); 
         pcSlice->setTileLocationCount( uiLocationCount + 1 );
       }
+#if !DISABLE_CAVLC
       else
-      {
 #endif
-      if (m_pcCfg->getTileMarkerFlag() && bWriteTileMarker)
-      {
-        // Log locations where tile markers are to be inserted during emulation prevention
-        UInt uiMarkerCount = pcBitstream->getTileMarkerLocationCount();
-        pcBitstream->setTileMarkerLocation     ( uiMarkerCount, pcBitstream->getNumberOfWrittenBits() >> 3 );
-        pcBitstream->setTileMarkerLocationCount( uiMarkerCount + 1 );
-        // Write tile index
-        m_pcEntropyCoder->writeTileMarker(iTileIdx, rpcPic->getPicSym()->getBitsUsedByTileIdx()); // Tile index
-      }
-      UInt uiLocationCount = pcSlice->getTileLocationCount();
-      // add bits coded in previous entropy slices + bits coded so far      
-      UInt uiLength = (pcSlice->getTileOffstForMultES() + pcBitstream->getNumberOfWrittenBits()) >> 3;
-      if (uiLength==0)
-      {
-        printf("\nWarning! Distance between slice header and tile start is zero."); // this should not occur
-      }
-      pcSlice->setTileLocation( uiLocationCount, uiLength ); 
-      pcSlice->setTileLocationCount( uiLocationCount + 1 );
-#if OL_USE_WPP
-      }
 #endif // OL_USE_WPP
+#if !DISABLE_CAVLC
+      {
+        if (m_pcCfg->getTileMarkerFlag() && bWriteTileMarker)
+        {
+          // Log locations where tile markers are to be inserted during emulation prevention
+          UInt uiMarkerCount = pcBitstream->getTileMarkerLocationCount();
+          pcBitstream->setTileMarkerLocation     ( uiMarkerCount, pcBitstream->getNumberOfWrittenBits() >> 3 );
+          pcBitstream->setTileMarkerLocationCount( uiMarkerCount + 1 );
+          // Write tile index
+          m_pcEntropyCoder->writeTileMarker(iTileIdx, rpcPic->getPicSym()->getBitsUsedByTileIdx()); // Tile index
+        }
+        UInt uiLocationCount = pcSlice->getTileLocationCount();
+        // add bits coded in previous entropy slices + bits coded so far      
+        UInt uiLength = (pcSlice->getTileOffstForMultES() + pcBitstream->getNumberOfWrittenBits()) >> 3;
+        if (uiLength==0)
+        {
+          printf("\nWarning! Distance between slice header and tile start is zero."); // this should not occur
+        }
+        pcSlice->setTileLocation( uiLocationCount, uiLength ); 
+        pcSlice->setTileLocationCount( uiLocationCount + 1 );
+      }
+#endif
 #endif // TILES_DECODER
     }
 #endif // TILES

@@ -104,8 +104,10 @@ Void TAppEncTop::xInitLibCfg()
   //===== Slice ========
   m_cTEncTop.setHierarchicalCoding           ( m_bHierarchicalCoding );
   
+#if !DISABLE_CAVLC
   //====== Entropy Coding ========
   m_cTEncTop.setSymbolMode                   ( m_iSymbolMode );
+#endif
   
   //====== Loop/Deblock Filter ========
   m_cTEncTop.setLoopFilterDisable            ( m_bLoopFilterDisable       );

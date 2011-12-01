@@ -512,6 +512,7 @@ Void TDecEntropy::decodePUWise( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDept
     }
     else
     {
+#if !DISABLE_CAVLC
       if ( pcCU->getSlice()->getSymbolMode() == 0 )
       {
         if ( !pcCU->getSlice()->isInterB() )
@@ -523,6 +524,7 @@ Void TDecEntropy::decodePUWise( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDept
           pcCU->getSlice()->setRefIdxCombineCoding( true );
         }
       }
+#endif
       decodeInterDirPU( pcCU, uiSubPartIdx, uiDepth, uiPartIdx );
       for ( UInt uiRefListIdx = 0; uiRefListIdx < 2; uiRefListIdx++ )
       {        
@@ -680,6 +682,7 @@ Void TDecEntropy::xDecodeTransformSubdiv( TComDataCU* pcCU, UInt uiAbsPartIdx, U
   UInt uiSubdiv;
   const UInt uiLog2TrafoSize = g_aucConvertToBit[pcCU->getSlice()->getSPS()->getMaxCUWidth()]+2 - uiDepth;
 
+#if !DISABLE_CAVLC
   if(pcCU->getSlice()->getSymbolMode()==0)
   {
     // code CBP and transform split flag jointly
@@ -687,6 +690,7 @@ Void TDecEntropy::xDecodeTransformSubdiv( TComDataCU* pcCU, UInt uiAbsPartIdx, U
     m_pcEntropyDecoderIf->parseCbfTrdiv( pcCU, uiAbsPartIdx, uiTrDepth, uiDepth, uiSubdiv );
   }
   else
+#endif
   {//CABAC
   if( pcCU->getPredictionMode(uiAbsPartIdx) == MODE_INTRA && pcCU->getPartitionSize(uiAbsPartIdx) == SIZE_NxN && uiDepth == pcCU->getDepth(uiAbsPartIdx) )
   {
@@ -719,6 +723,7 @@ Void TDecEntropy::xDecodeTransformSubdiv( TComDataCU* pcCU, UInt uiAbsPartIdx, U
   
   const UInt uiTrDepth = uiDepth - pcCU->getDepth( uiAbsPartIdx );
   
+#if !DISABLE_CAVLC
   if(pcCU->getSlice()->getSymbolMode()==0)
   {
     if( uiSubdiv )
@@ -742,6 +747,7 @@ Void TDecEntropy::xDecodeTransformSubdiv( TComDataCU* pcCU, UInt uiAbsPartIdx, U
     }
   }
   else
+#endif
   {
     if( uiLog2TrafoSize <= pcCU->getSlice()->getSPS()->getQuadtreeTULog2MaxSize() )
     {
@@ -981,19 +987,23 @@ Void TDecEntropy::decodeCoeff( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth
     
     pcCU->convertTransIdx( uiAbsPartIdx, pcCU->getTransformIdx(uiAbsPartIdx), uiLumaTrMode, uiChromaTrMode );
     
+#if !DISABLE_CAVLC
     if (pcCU->getSlice()->getSymbolMode() == 0)
     {
       if(pcCU->getCbf(uiAbsPartIdx, TEXT_LUMA, 0)==0 && pcCU->getCbf(uiAbsPartIdx, TEXT_CHROMA_U, 0)==0
          && pcCU->getCbf(uiAbsPartIdx, TEXT_CHROMA_V, 0)==0)
         return;
     }
+#endif
   }
   else
   {
+#if !DISABLE_CAVLC
     if (pcCU->getSlice()->getSymbolMode()==0)
     {
     }
     else
+#endif
     {
       UInt uiQtRootCbf = 1;
       if( !( pcCU->getPartitionSize( uiAbsPartIdx) == SIZE_2Nx2N && pcCU->getMergeFlag( uiAbsPartIdx ) ) )
@@ -1010,12 +1020,14 @@ Void TDecEntropy::decodeCoeff( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth
     
     decodeTransformIdx( pcCU, uiAbsPartIdx, pcCU->getDepth(uiAbsPartIdx) );
     
+#if !DISABLE_CAVLC
     if (pcCU->getSlice()->getSymbolMode() == 0)
     {
       if(pcCU->getCbf(uiAbsPartIdx, TEXT_LUMA, 0)==0 && pcCU->getCbf(uiAbsPartIdx, TEXT_CHROMA_U, 0)==0
          && pcCU->getCbf(uiAbsPartIdx, TEXT_CHROMA_V, 0)==0)
          return;
     }
+#endif
     pcCU->convertTransIdx( uiAbsPartIdx, pcCU->getTransformIdx(uiAbsPartIdx), uiLumaTrMode, uiChromaTrMode );
   }
   

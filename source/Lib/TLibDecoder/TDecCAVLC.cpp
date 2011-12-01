@@ -634,7 +634,9 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice)
   
   if (!bEntropySlice)
   {
+#if !DISABLE_CAVLC
     xReadFlag ( uiCode ); rpcSlice->setSymbolMode( uiCode );
+#endif
     
     xReadFlag (uiCode);   rpcSlice->setDRBFlag          (uiCode ? 1 : 0);
     if ( !rpcSlice->getDRBFlag() )

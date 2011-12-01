@@ -373,7 +373,9 @@ Bool TDecTop::decode(InputNALUnit& nalu, Int& iSkipFrame, Int& iPOCLastDisplay)
       m_apcSlicePilot->setReferenced(nalu.m_RefIDC != NAL_REF_IDC_PRIORITY_LOWEST);
       m_cEntropyDecoder.decodeSliceHeader (m_apcSlicePilot);
 
+#if !DISABLE_CAVLC
       if ( m_apcSlicePilot->getSymbolMode() )
+#endif
       {
         Int numBitsForByteAlignment = nalu.m_Bitstream->getNumBitsUntilByteAligned();
         if ( numBitsForByteAlignment > 0 )

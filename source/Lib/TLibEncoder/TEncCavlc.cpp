@@ -626,8 +626,10 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
   // !!!! sytnax elements not in the WD !!!!
   
   if (!bEntropySlice)
-  {  
+  {
+#if !DISABLE_CAVLC
     xWriteFlag  (pcSlice->getSymbolMode() > 0 ? 1 : 0); // entropy_coding_mode_flag -> PPS
+#endif
     
     // ????
     xWriteFlag  (pcSlice->getDRBFlag() ? 1 : 0 );

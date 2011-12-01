@@ -300,7 +300,9 @@ Void TDecSlice::decompressSlice(TComInputBitstream* pcBitstream, TComPic*& rpcPi
     if ( (iCUAddr == rpcPic->getPicSym()->getTComTile(rpcPic->getPicSym()->getTileIdxMap(iCUAddr))->getFirstCUAddr()) && // 1st in tile.
          (iCUAddr!=0) && (iCUAddr!=rpcPic->getPicSym()->getPicSCUAddr(rpcPic->getSlice(rpcPic->getCurrSliceIdx())->getSliceCurStartCUAddr())/rpcPic->getNumPartInCU()) && rpcPic->getPicSym()->getTileBoundaryIndependenceIdr()) // !1st in frame && !1st in slice && tile-independant
     {
+#if !DISABLE_CAVLC
       if (pcSlice->getSymbolMode())
+#endif
       {
 #if OL_USE_WPP
         if (pcSlice->getPPS()->getEntropyCodingSynchro())
@@ -319,6 +321,7 @@ Void TDecSlice::decompressSlice(TComInputBitstream* pcBitstream, TComPic*& rpcPi
         }
 #endif
       }
+#if !DISABLE_CAVLC
       else
       {
         m_pcEntropyDecoder->resetEntropy( pcSlice );
@@ -326,23 +329,32 @@ Void TDecSlice::decompressSlice(TComInputBitstream* pcBitstream, TComPic*& rpcPi
         pcBitstream->readOutTrailingBits();
 #endif
       }
+#endif
 #if TILES_DECODER
       Bool bTileMarkerFoundFlag = false;
 #if OL_USE_WPP
       TComInputBitstream *pcTmpPtr;
+#if !DISABLE_CAVLC
       if (pcSlice->getSymbolMode()==1)
+#endif
       {
         pcTmpPtr = ppcSubstreams[uiSubStrm]; // for CABAC
       }
+#if !DISABLE_CAVLC
       else
       {
         pcTmpPtr = pcBitstream;              // for VLC
       }
+#endif
 
       for (UInt uiIdx=0; uiIdx<pcTmpPtr->getTileMarkerLocationCount(); uiIdx++)
       {
+#if DISABLE_CAVLC
+        if ( pcTmpPtr->getByteLocation() == (pcTmpPtr->getTileMarkerLocation( uiIdx )+2) )
+#else
         if ((pcSlice->getSymbolMode()==0 && pcTmpPtr->getByteLocation() == pcTmpPtr->getTileMarkerLocation( uiIdx )) ||  // VLC
             (pcSlice->getSymbolMode()==1 && pcTmpPtr->getByteLocation() == (pcTmpPtr->getTileMarkerLocation( uiIdx )+2)) ) // CABAC, 2 bytes consumed in CABAC->start()
+#endif
         {
           bTileMarkerFoundFlag = true;
           break;
@@ -353,8 +365,12 @@ Void TDecSlice::decompressSlice(TComInputBitstream* pcBitstream, TComPic*& rpcPi
       {
         // If tile marker was found at this location then we need to read tile index data.
         // NOTE: This is sensitive to the logged position of tile markers in bitstream.
+#if DISABLE_CAVLC
+        if ( pcBitstream->getByteLocation() == (pcBitstream->getTileMarkerLocation( uiIdx )+2) )
+#else
         if ((pcSlice->getSymbolMode()==0 && pcBitstream->getByteLocation() == pcBitstream->getTileMarkerLocation( uiIdx )) ||  // VLC
             (pcSlice->getSymbolMode()==1 && pcBitstream->getByteLocation() == pcBitstream->getTileMarkerLocation( uiIdx )+2) ) // CABAC, 2 bytes consumed in CABAC->start()
+#endif
         {
           bTileMarkerFoundFlag = true;
           break;

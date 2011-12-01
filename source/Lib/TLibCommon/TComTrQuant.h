@@ -193,7 +193,9 @@ protected:
   
   UInt     *m_uiLPTableE8;
   UInt     *m_uiLPTableE4;
+#if !DISABLE_CAVLC 
   Int      m_iSymbolMode;
+#endif
   UInt     *m_uiLastPosVlcIndex;
   
 private:

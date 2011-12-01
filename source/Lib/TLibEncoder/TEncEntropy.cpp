@@ -572,11 +572,13 @@ Void TEncEntropy::xEncodeTransformSubdiv( TComDataCU* pcCU, UInt uiAbsPartIdx, U
 {
   const UInt uiSubdiv = pcCU->getTransformIdx( uiAbsPartIdx ) + pcCU->getDepth( uiAbsPartIdx ) > uiDepth;
   const UInt uiLog2TrafoSize = g_aucConvertToBit[pcCU->getSlice()->getSPS()->getMaxCUWidth()]+2 - uiDepth;
+#if !DISABLE_CAVLC
   if(pcCU->getSlice()->getSymbolMode() == 0)
   {
     m_pcEntropyCoderIf->codeCbfTrdiv( pcCU, uiAbsPartIdx, uiDepth );
   }
   else
+#endif
   {//CABAC
     if( pcCU->getPredictionMode(uiAbsPartIdx) == MODE_INTRA && pcCU->getPartitionSize(uiAbsPartIdx) == SIZE_NxN && uiDepth == pcCU->getDepth(uiAbsPartIdx) )
     {
@@ -614,6 +616,7 @@ Void TEncEntropy::xEncodeTransformSubdiv( TComDataCU* pcCU, UInt uiAbsPartIdx, U
     }
   }
 
+#if !DISABLE_CAVLC
   if(pcCU->getSlice()->getSymbolMode() == 0)
   {
     if( uiSubdiv )
@@ -633,6 +636,7 @@ Void TEncEntropy::xEncodeTransformSubdiv( TComDataCU* pcCU, UInt uiAbsPartIdx, U
     }
   }
   else
+#endif
   {
     if( uiLog2TrafoSize <= pcCU->getSlice()->getSPS()->getQuadtreeTULog2MaxSize() )
     {
@@ -835,6 +839,7 @@ Void TEncEntropy::encodePUWise( TComDataCU* pcCU, UInt uiAbsPartIdx, Bool bRD )
     }
     else
     {
+#if !DISABLE_CAVLC
       if ( pcCU->getSlice()->getSymbolMode() == 0 )
       {
         if ( !pcCU->getSlice()->isInterB() )
@@ -846,6 +851,7 @@ Void TEncEntropy::encodePUWise( TComDataCU* pcCU, UInt uiAbsPartIdx, Bool bRD )
           pcCU->getSlice()->setRefIdxCombineCoding( true );
         }
       }
+#endif
       encodeInterDirPU( pcCU, uiSubPartIdx );
       for ( UInt uiRefListIdx = 0; uiRefListIdx < 2; uiRefListIdx++ )
       {
@@ -1076,10 +1082,12 @@ Void TEncEntropy::encodeCoeff( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth
   }
   else
   {
+#if !DISABLE_CAVLC
     if (pcCU->getSlice()->getSymbolMode()==0)
     {
     }
     else
+#endif
     {
       if( !(pcCU->getMergeFlag( uiAbsPartIdx ) && pcCU->getPartitionSize(uiAbsPartIdx) == SIZE_2Nx2N ) )
       {

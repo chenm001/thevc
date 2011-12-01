@@ -102,8 +102,10 @@ protected:
   //====== B Slice ========
   Bool      m_bHierarchicalCoding;              //  hierarchical-B coding
   
+#if !DISABLE_CAVLC
   //====== Entropy Coding ========
   Int       m_iSymbolMode;                      //  (CAVLC, CABAC)
+#endif
   
   //====== Loop/Deblock Filter ========
   Bool      m_bLoopFilterDisable;
@@ -281,8 +283,10 @@ public:
   //====== b; Slice ========
   Void      setHierarchicalCoding           ( Bool  b )      { m_bHierarchicalCoding = b; }
   
+#if !DISABLE_CAVLC
   //====== Entropy Coding ========
   Void      setSymbolMode                   ( Int   i )      { m_iSymbolMode = i; }
+#endif
   
   //====== Loop/Deblock Filter ========
   Void      setLoopFilterDisable            ( Bool  b )      { m_bLoopFilterDisable       = b; }
@@ -332,8 +336,10 @@ public:
   //==== b; Slice ========
   Bool      getHierarchicalCoding           ()      { return  m_bHierarchicalCoding; }
   
+#if !DISABLE_CAVLC
   //==== Entropy Coding ========
   Int       getSymbolMode                   ()      { return  m_iSymbolMode; }
+#endif
   
   //==== Loop/Deblock Filter ========
   Bool      getLoopFilterDisable            ()      { return  m_bLoopFilterDisable;       }

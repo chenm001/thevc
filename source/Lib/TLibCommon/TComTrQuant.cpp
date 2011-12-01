@@ -2191,11 +2191,13 @@ Void TComTrQuant::xQuant(TComDataCU* pcCU, Int* pSrc, TCoeff* pDes, Int iWidth, 
   
   if ( m_bUseRDOQ && (eTType == TEXT_LUMA || RDOQ_CHROMA) )
   {
+#if !DISABLE_CAVLC
     if ( m_iSymbolMode == 0)
     {
       xRateDistOptQuant_LCEC(pcCU, piCoef, pDes, iWidth, iHeight, uiAcSum, eTType, uiAbsPartIdx );
     }
     else
+#endif
     {
       xRateDistOptQuant( pcCU, piCoef, pDes, iWidth, iHeight, uiAcSum, eTType, uiAbsPartIdx );
     }
@@ -2247,6 +2249,7 @@ Void TComTrQuant::xQuant(TComDataCU* pcCU, Int* pSrc, TCoeff* pDes, Int iWidth, 
       iSign   = (iLevel < 0 ? -1: 1);      
 
       iLevel = (abs(iLevel) * uiQ + iAdd ) >> iQBits;
+#if !DISABLE_CAVLC
       if (pcCU->isIntra( uiAbsPartIdx ))
       {
         if (m_iSymbolMode == 0 && n>=64 && eTType != TEXT_LUMA)
@@ -2261,6 +2264,7 @@ Void TComTrQuant::xQuant(TComDataCU* pcCU, Int* pSrc, TCoeff* pDes, Int iWidth, 
           iLevel = 0;
         }
       }
+#endif
       uiAcSum += iLevel;
       iLevel *= iSign;        
       piQCoef[uiBlockPos] = iLevel;
@@ -2320,7 +2324,9 @@ Void TComTrQuant::init( UInt uiMaxWidth, UInt uiMaxHeight, UInt uiMaxTrSize, Int
   m_uiLPTableE8 = aTableLP8;
   m_uiLPTableE4 = aTableLP4;
   m_uiLastPosVlcIndex=aTableLastPosVlcIndex;
-  m_iSymbolMode = iSymbolMode;  
+#if !DISABLE_CAVLC
+  m_iSymbolMode = iSymbolMode;
+#endif
 }
 
 Void TComTrQuant::transformNxN( TComDataCU* pcCU, Pel* pcResidual, UInt uiStride, TCoeff* rpcCoeff, UInt uiWidth, UInt uiHeight, UInt& uiAbsSum, TextType eTType, UInt uiAbsPartIdx )
