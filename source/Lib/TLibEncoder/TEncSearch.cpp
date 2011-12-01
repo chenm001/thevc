@@ -4088,7 +4088,7 @@ Void TEncSearch::xEstimateResidualQT( TComDataCU* pcCU, UInt uiQuadrant, UInt ui
       if( ( uiLog2TrSize == pcCU->getSlice()->getSPS()->getQuadtreeTULog2MinSize() && !uiTrModeC ) || ( 1 << uiLog2TrSizeC ) == 4 )
       {
         uiTrWidthC = uiTrHeightC =  1<<uiLog2TrSizeC;
-        if( uiTrModeC > 1 )
+        if( uiTrModeC > 1  && uiLog2TrSize != (pcCU->getSlice()->getSPS()->getQuadtreeTULog2MaxSize() - 1 ) )
         {
           bNonSquareFlagChroma = true;
         }
@@ -4882,7 +4882,7 @@ Void TEncSearch::xSetResidualQTData( TComDataCU* pcCU, UInt uiAbsPartIdx, TComYu
           if( ( uiLog2TrSize == pcCU->getSlice()->getSPS()->getQuadtreeTULog2MinSize() && !uiTrModeC ) || ( 1 << uiLog2TrSizeC ) == 4 )
           {
             uiTrWidthC = uiTrHeightC =  1 << uiLog2TrSizeC;
-            if( uiTrModeC > 1 )
+            if( uiTrModeC > 1  && uiLog2TrSize != (pcCU->getSlice()->getSPS()->getQuadtreeTULog2MaxSize() - 1 ) )
             {
               bNonSquareFlagChroma = 1;
             }

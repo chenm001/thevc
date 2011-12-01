@@ -2368,7 +2368,6 @@ Void TComTrQuant::invRecurTransformNxN( TComDataCU* pcCU, UInt uiAbsPartIdx, Tex
   pcCU->convertTransIdx( uiAbsPartIdx, pcCU->getTransformIdx( uiAbsPartIdx ), uiLumaTrMode, uiChromaTrMode );
   const UInt uiStopTrMode = eTxt == TEXT_LUMA ? uiLumaTrMode : uiChromaTrMode;
 #if NSQT
-  UChar    uhDepth   = pcCU->getDepth( uiAbsPartIdx ); 
   PartSize ePartSize = pcCU->getPartitionSize( uiAbsPartIdx );
 #endif
   
@@ -2437,9 +2436,12 @@ Void TComTrQuant::invRecurTransformNxN( TComDataCU* pcCU, UInt uiAbsPartIdx, Tex
     UInt uiCoefOffset = uiWidth * uiHeight;
     UInt uiPartOffset = pcCU->getTotalNumPart() >> (uiTrMode<<1);
 #if NSQT
-    if( pcCU->useNonSquareTrans( uiTrMode ) && ! ( uiWidth == 4 && uiTrMode == 1 ) )
+    if( pcCU->useNonSquareTrans( uiTrMode ) && ! ( ( uiWidth == 4 && uiTrMode == 1 ) || 
+      ( eTxt != TEXT_LUMA && uiTrMode > 1 && ( ( 1 << pcCU->getSlice()->getSPS()->getQuadtreeTULog2MaxSize() ) >> 2 ) == 4 ) ) )
     {
-      if( uiTrMode == 1 || ( ( uhDepth == 0 || uiWidth == 4 ) && uiTrMode == 2 ) )
+      UInt uiDepth      = pcCU->getDepth( uiAbsPartIdx ) + uiTrMode;
+      UInt uiLog2TrSize = g_aucConvertToBit[ pcCU->getSlice()->getSPS()->getMaxCUWidth() >> uiDepth ] + 2;
+      if( uiTrMode == 1 || ( uiTrMode == 2 && ( uiWidth == 4 || uiLog2TrSize == ( pcCU->getSlice()->getSPS()->getQuadtreeTULog2MaxSize() - 1 ) ) ) )
       {
 #if AMP
         if( ePartSize == SIZE_Nx2N || ePartSize == SIZE_nLx2N || ePartSize == SIZE_nRx2N )
@@ -2447,11 +2449,11 @@ Void TComTrQuant::invRecurTransformNxN( TComDataCU* pcCU, UInt uiAbsPartIdx, Tex
         if( ePartSize == SIZE_Nx2N )
 #endif
         {
-          uiAddrOffset = ( uiTrMode == 1 || ( uhDepth == 0 && uiTrMode == 2 ) ) ? uiWidth >> 1 : uiAddrOffset;
+          uiAddrOffset = ( uiTrMode == 1 || ( uiLog2TrSize == ( pcCU->getSlice()->getSPS()->getQuadtreeTULog2MaxSize() - 1 ) && uiTrMode == 2 ) ) ? uiWidth >> 1 : uiAddrOffset;
         }
         else
         {
-          uiAddrOffset = ( uiTrMode == 1 || ( uhDepth == 0 && uiTrMode == 2 ) ) ? ( uiWidth >> 1 ) * uiStride : uiWidth;
+          uiAddrOffset = ( uiTrMode == 1 || ( uiLog2TrSize == ( pcCU->getSlice()->getSPS()->getQuadtreeTULog2MaxSize() - 1 ) && uiTrMode == 2 ) ) ? ( uiWidth >> 1 ) * uiStride : uiWidth;  
         }
 
         invRecurTransformNxN( pcCU, uiAbsPartIdx, eTxt, rpcResidual, uiAddr                    , uiStride, uiWidth, uiHeight, uiMaxTrMode, uiTrMode, rpcCoeff ); rpcCoeff += uiCoefOffset; uiAbsPartIdx += uiPartOffset;

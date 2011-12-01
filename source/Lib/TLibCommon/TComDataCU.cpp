@@ -4417,7 +4417,8 @@ Void TComDataCU::getPixOffset(UInt uiTrMode,  UInt ui, UInt uiAbsPartIdx, UInt u
     uiPix_X = uiPartDir ? 0 : ui * ( 1 << ( uiLog2TrSize - 1 ) );
     uiPix_Y = uiPartDir ? ui * ( 1 << ( uiLog2TrSize - 1 ) ) : 0;
   }
-  else if( getWidth( 0 ) == 64 && uiTrMode == 2 )
+  else if( ( ( eTxt == TEXT_LUMA && uiLog2TrSize == ( getSlice()->getSPS()->getQuadtreeTULog2MaxSize() - 1 ) ) 
+    || ( eTxt != TEXT_LUMA && uiLog2TrSize == ( getSlice()->getSPS()->getQuadtreeTULog2MaxSize() - 2 ) ) ) && uiTrMode == 2)
   {
     UInt uiQPartNumSubdiv = getPic()->getNumPartInCU() >> ( ( uiDepth - 1 ) << 1 );
     UInt uilastdepth = uiAbsPartIdx / uiQPartNumSubdiv;
