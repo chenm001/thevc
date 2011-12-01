@@ -712,7 +712,11 @@ const UInt g_auiGoRiceRange[4] =
 
 const UInt g_auiGoRicePrefixLen[4] =
 {
+#if CABAC_RICE_FIX
+  8, 10, 10, 8
+#else
   8, 10, 11, 8
+#endif
 };
 
 const UInt g_aauiGoRiceUpdate[4][16] =

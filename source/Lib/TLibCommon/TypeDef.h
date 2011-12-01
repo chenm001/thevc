@@ -41,6 +41,8 @@
 //! \ingroup TLibCommon
 //! \{
 
+#define CABAC_RICE_FIX 1 ///< G495: fixing an entry in g_auiGoRicePrefixLen table
+
 #define WEIGHTED_CHROMA_DISTORTION  1   ///< F386: weighting of chroma for RDO
 #define RDOQ_CHROMA_LAMBDA          1   ///< F386: weighting of chroma for RDOQ
 #define ALF_CHROMA_LAMBDA           1   ///< F386: weighting of chroma for ALF
