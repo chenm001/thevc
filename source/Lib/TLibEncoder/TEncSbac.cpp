@@ -770,9 +770,6 @@ Void TEncSbac::codeIntraDirChroma( TComDataCU* pcCU, UInt uiAbsPartIdx )
     {
       m_pcBinIf->encodeBin( 1, m_cCUChromaPredSCModel.get( 0, 0, 1 ));
     }
-#if CHROMA_CODEWORD_SWITCH 
-    uiIntraDirChroma = ChromaMapping[uiIntraDirChroma];
-#endif
     xWriteUnaryMaxSymbol( uiIntraDirChroma, m_cCUChromaPredSCModel.get( 0, 0 ) + 1, 0, 3 );
   }
   return;

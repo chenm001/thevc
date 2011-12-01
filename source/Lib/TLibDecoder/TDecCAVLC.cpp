@@ -1324,9 +1324,6 @@ Void TDecCavlc::parseIntraDirChroma( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt u
     else
     {
       xReadUnaryMaxSymbol( uiSymbol, 3 );
-#if CHROMA_CODEWORD_SWITCH 
-      uiSymbol = ChromaMapping[uiSymbol];
-#endif
       UInt uiAllowedChromaDir[ NUM_CHROMA_MODE ];
       pcCU->getAllowedChromaDir( uiAbsPartIdx, uiAllowedChromaDir );
       uiSymbol = uiAllowedChromaDir[ uiSymbol ];

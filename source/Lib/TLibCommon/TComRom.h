@@ -454,10 +454,6 @@ __inline void xLastLevelIndInv(Int& lev, Int& last_pos, Int N, UInt cx)
 }
 #endif
 
-#if CHROMA_CODEWORD_SWITCH
-extern const UChar ChromaMapping[4];
-#endif
-
 #define ENC_DEC_TRACE 0
 
 

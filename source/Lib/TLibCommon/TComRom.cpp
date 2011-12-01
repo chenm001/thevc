@@ -1755,9 +1755,6 @@ Void initSigLastScan(UInt* pBuffZ, UInt* pBuffH, UInt* pBuffV, Int iWidth, Int i
   }    
 }
 
-#if CHROMA_CODEWORD_SWITCH
-const UChar ChromaMapping[4] = {0, 1, 3, 2};
-#endif
 #if NSQT
 Void initNonSquareSigLastScan(UInt* pBuffZ, UInt uiWidth, UInt uiHeight)
 {

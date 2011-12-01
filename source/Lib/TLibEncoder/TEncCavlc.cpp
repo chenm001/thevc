@@ -1164,10 +1164,6 @@ Void TEncCavlc::codeIntraDirChroma( TComDataCU* pcCU, UInt uiAbsPartIdx )
       xWriteFlag(1);
     }
 
-#if CHROMA_CODEWORD_SWITCH 
-    uiIntraDirChroma = ChromaMapping[uiIntraDirChroma];
-#endif
-
     xWriteUnaryMaxSymbol( uiIntraDirChroma, 3 );
   }
   return;
