@@ -699,7 +699,6 @@ TEncSearch::xEncSubdivCbfQT( TComDataCU*  pcCU,
   UInt  uiSubdiv        = ( uiTrMode > uiTrDepth ? 1 : 0 );
   UInt  uiLog2TrafoSize = g_aucConvertToBit[pcCU->getSlice()->getSPS()->getMaxCUWidth()] + 2 - uiFullDepth;
 
-#if CAVLC_RQT_CBP
   if(pcCU->getSlice()->getSymbolMode() == 0)
   {
     if(bLuma && bChroma)
@@ -730,12 +729,9 @@ TEncSearch::xEncSubdivCbfQT( TComDataCU*  pcCU,
       }
     }
   }
-#endif
 
-#if CAVLC_RQT_CBP
   if(pcCU->getSlice()->getSymbolMode())
   {
-#endif
   if( pcCU->getPredictionMode(0) == MODE_INTRA && pcCU->getPartitionSize(0) == SIZE_NxN && uiTrDepth == 0 )
   {
     assert( uiSubdiv );
@@ -760,9 +756,7 @@ TEncSearch::xEncSubdivCbfQT( TComDataCU*  pcCU,
       m_pcEntropyCoder->encodeTransformSubdivFlag( uiSubdiv, uiFullDepth );
     }
   }
-#if CAVLC_RQT_CBP
   }
-#endif
   
   if( pcCU->getSlice()->getSymbolMode() && bChroma )
   {
@@ -812,22 +806,10 @@ TEncSearch::xEncCoeffQT( TComDataCU*  pcCU,
   if( uiSubdiv )
   {
     UInt uiQPartNum = pcCU->getPic()->getNumPartInCU() >> ( ( uiFullDepth + 1 ) << 1 );
-#if !CAVLC_RQT_CBP
-    if ( pcCU->getSlice()->getSymbolMode() || pcCU->getCbf( uiAbsPartIdx, eTextType, uiTrDepth ))
-    {
-      if(pcCU->getSlice()->getSymbolMode() == 0)
-      {
-        if( eTextType == TEXT_LUMA || uiLog2TrafoSize-1 > pcCU->getSlice()->getSPS()->getQuadtreeTULog2MinSize() )
-          m_pcEntropyCoder->m_pcEntropyCoderIf->codeBlockCbf(pcCU, uiAbsPartIdx, eTextType, uiTrDepth + 1, uiQPartNum, true);
-      }
-#endif
       for( UInt uiPart = 0; uiPart < 4; uiPart++ )
       {
         xEncCoeffQT( pcCU, uiTrDepth + 1, uiAbsPartIdx + uiPart * uiQPartNum, eTextType, bRealCoeff );
       }
-#if !CAVLC_RQT_CBP
-    }
-#endif
     return;
   }
   
@@ -4584,17 +4566,13 @@ Void TEncSearch::xEstimateResidualQT( TComDataCU* pcCU, UInt uiQuadrant, UInt ui
     
     m_pcEntropyCoder->resetBits();
 
-#if CAVLC_RQT_CBP
     if (pcCU->getSlice()->getSymbolMode())
     {
-#endif
     if( uiLog2TrSize > pcCU->getQuadtreeTULog2MinSizeInCU(uiAbsPartIdx) )
     {
       m_pcEntropyCoder->encodeTransformSubdivFlag( 0, uiDepth );
     }
-#if CAVLC_RQT_CBP
     }
-#endif
     
     if (pcCU->getSlice()->getSymbolMode())
     {
@@ -4732,25 +4710,19 @@ Void TEncSearch::xEncodeResidualQT( TComDataCU* pcCU, UInt uiAbsPartIdx, const U
   
   const UInt uiLog2TrSize = g_aucConvertToBit[pcCU->getSlice()->getSPS()->getMaxCUWidth() >> uiDepth]+2;
 
-#if CAVLC_RQT_CBP
   if(pcCU->getSlice()->getSymbolMode() == 0 )
   {
     if( bSubdivAndCbf && uiCurrTrMode != 0)
       m_pcEntropyCoder->m_pcEntropyCoderIf->codeCbfTrdiv( pcCU, uiAbsPartIdx, uiDepth ); 
   }
-#endif
 
-#if CAVLC_RQT_CBP
   if(pcCU->getSlice()->getSymbolMode())
   {
-#endif
   if( bSubdivAndCbf && uiLog2TrSize <= pcCU->getSlice()->getSPS()->getQuadtreeTULog2MaxSize() && uiLog2TrSize > pcCU->getQuadtreeTULog2MinSizeInCU(uiAbsPartIdx) )
   {
     m_pcEntropyCoder->encodeTransformSubdivFlag( bSubdiv, uiDepth );
   }
-#if CAVLC_RQT_CBP
   }
-#endif
   
   if (pcCU->getSlice()->getSymbolMode())
   {
@@ -4828,13 +4800,6 @@ Void TEncSearch::xEncodeResidualQT( TComDataCU* pcCU, UInt uiAbsPartIdx, const U
     if( bSubdivAndCbf || pcCU->getCbf( uiAbsPartIdx, eType, uiCurrTrMode ) )
     {
       const UInt uiQPartNumSubdiv = pcCU->getPic()->getNumPartInCU() >> ((uiDepth + 1 ) << 1);
-#if !CAVLC_RQT_CBP
-      if(pcCU->getSlice()->getSymbolMode() == 0)
-      {
-        if( !bSubdivAndCbf && (eType == TEXT_LUMA || uiLog2TrSize-1 > pcCU->getSlice()->getSPS()->getQuadtreeTULog2MinSize()) )
-          m_pcEntropyCoder->m_pcEntropyCoderIf->codeBlockCbf(pcCU, uiAbsPartIdx, eType, uiCurrTrMode + 1, uiQPartNumSubdiv, true);
-      }
-#endif
       for( UInt ui = 0; ui < 4; ++ui )
       {
         xEncodeResidualQT( pcCU, uiAbsPartIdx + ui * uiQPartNumSubdiv, uiDepth + 1, bSubdivAndCbf, eType );

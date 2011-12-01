@@ -147,7 +147,6 @@ Void TEncCavlc::resetEntropy()
   ::memcpy( m_uiIntraModeTableD34, g_auiIntraModeTableD34, 34*sizeof(UInt) );
   ::memcpy( m_uiIntraModeTableE34, g_auiIntraModeTableE34, 34*sizeof(UInt) );
   
-#if CAVLC_RQT_CBP
   ::memcpy(m_uiCBP_YUV_TableE, g_auiCBP_YUV_TableE, 4*8*sizeof(UInt));
   ::memcpy(m_uiCBP_YUV_TableD, g_auiCBP_YUV_TableD, 4*8*sizeof(UInt));
   ::memcpy(m_uiCBP_YS_TableE,  g_auiCBP_YS_TableE,  2*4*sizeof(UInt));
@@ -157,15 +156,6 @@ Void TEncCavlc::resetEntropy()
   ::memcpy(m_uiCBP_4Y_TableE,  g_auiCBP_4Y_TableE,  2*15*sizeof(UInt));
   ::memcpy(m_uiCBP_4Y_TableD,  g_auiCBP_4Y_TableD,  2*15*sizeof(UInt));
   m_uiCBP_4Y_VlcIdx = 0;
-#else
-  ::memcpy(m_uiCBPTableE, g_auiCBPTableE, 2*8*sizeof(UInt));
-  ::memcpy(m_uiCBPTableD, g_auiCBPTableD, 2*8*sizeof(UInt));
-  m_uiCbpVlcIdx[0] = 0;
-  m_uiCbpVlcIdx[1] = 0;
-  ::memcpy(m_uiBlkCBPTableE, g_auiBlkCBPTableE, 2*15*sizeof(UInt));
-  ::memcpy(m_uiBlkCBPTableD, g_auiBlkCBPTableD, 2*15*sizeof(UInt));
-  m_uiBlkCbpVlcIdx = 0;
-#endif
 
   ::memcpy(m_uiMI1TableE, g_auiComMI1TableE, 9*sizeof(UInt));
   ::memcpy(m_uiMI1TableD, g_auiComMI1TableD, 9*sizeof(UInt));
@@ -180,28 +170,18 @@ Void TEncCavlc::resetEntropy()
   
   m_uiMITableVlcIdx = 0;  
 
-#if CAVLC_RQT_CBP
   ::memset(m_ucCBP_YUV_TableCounter,   0,        4*4*sizeof(UChar));
   ::memset(m_ucCBP_4Y_TableCounter,    0,        2*2*sizeof(UChar));
   ::memset(m_ucCBP_YCS_TableCounter,   0,        2*4*sizeof(UChar));
   ::memset(m_ucCBP_YS_TableCounter,    0,        2*3*sizeof(UChar));
-#else
-  ::memset(m_ucCBFTableCounter,        0,        2*4*sizeof(UChar));
-  ::memset(m_ucBlkCBPTableCounter,     0,        2*2*sizeof(UChar));
-#endif
 
   ::memset(m_ucMI1TableCounter,        0,          4*sizeof(UChar));
   ::memset(m_ucSplitTableCounter,      0,        4*4*sizeof(UChar));
 
-#if CAVLC_RQT_CBP
   m_ucCBP_YUV_TableCounterSum[0] = m_ucCBP_YUV_TableCounterSum[1] = m_ucCBP_YUV_TableCounterSum[2] = m_ucCBP_YUV_TableCounterSum[3] = 0;
   m_ucCBP_4Y_TableCounterSum[0] = m_ucCBP_4Y_TableCounterSum[1] = 0;
   m_ucCBP_YCS_TableCounterSum[0] = m_ucCBP_YCS_TableCounterSum[1] = 0;
   m_ucCBP_YS_TableCounterSum[0] = m_ucCBP_YS_TableCounterSum[1] = 0;
-#else
-  m_ucCBFTableCounterSum[0] = m_ucCBFTableCounterSum[1] = 0;
-  m_ucBlkCBPTableCounterSum[0] = m_ucBlkCBPTableCounterSum[1] = 0;
-#endif
   m_ucSplitTableCounterSum[0] = m_ucSplitTableCounterSum[1] = m_ucSplitTableCounterSum[2]= m_ucSplitTableCounterSum[3] = 0;
   m_ucMI1TableCounterSum = 0;
 }
@@ -1423,7 +1403,6 @@ Void TEncCavlc::codeDeltaQP( TComDataCU* pcCU, UInt uiAbsPartIdx )
   return;
 }
 
-#if CAVLC_RQT_CBP
 /** Function for coding cbf and split flag
 * \param pcCU pointer to CU
 * \param uiAbsPartIdx CU index
@@ -1659,7 +1638,6 @@ UInt TEncCavlc::xGetFlagPattern( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDep
   }
   return ((patternYUV<<1)+patternDiv);
 }
-#endif
 
 Void TEncCavlc::codeCbf( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eType, UInt uiTrDepth )
 {
@@ -1675,21 +1653,12 @@ Void TEncCavlc::codeCbf( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eType, UI
     /* Start adaptation */
     n = pcCU->isIntra( uiAbsPartIdx ) ? 0 : 1;
     x = uiCBP;
-#if CAVLC_RQT_CBP
     cx = m_uiCBP_YUV_TableE[n][x];
     UInt vlcn = 0;
-#else
-    cx = m_uiCBPTableE[n][x];
-    UInt vlcn = g_auiCbpVlcNum[n][m_uiCbpVlcIdx[n]];
-#endif
 
     if ( m_bAdaptFlag )
     {                
-#if CAVLC_RQT_CBP
       adaptCodeword(cx, m_ucCBP_YUV_TableCounter[n], m_ucCBP_YUV_TableCounterSum[n], m_uiCBP_YUV_TableD[n], m_uiCBP_YUV_TableE[n], 4);
-#else
-      adaptCodeword(cx, m_ucCBFTableCounter[n],  m_ucCBFTableCounterSum[n],  m_uiCBPTableD[n],  m_uiCBPTableE[n], 4);
-#endif
     }
     xWriteVlc( vlcn, cx );
   }
@@ -1718,31 +1687,16 @@ Void TEncCavlc::codeBlockCbf( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eTyp
   Int cx;
   UInt n = (pcCU->isIntra(uiAbsPartIdx) && eType == TEXT_LUMA)? 0:1;
 
-#if CAVLC_RQT_CBP
   cx = m_uiCBP_4Y_TableE[n][uiCbf];
   UInt vlcn = (n==0)?g_auiCBP_4Y_VlcNum[m_uiCBP_4Y_VlcIdx]:11;
-#else
-  cx = m_uiBlkCBPTableE[n][uiCbf];
-  UInt vlcn = (n==0)?g_auiBlkCbpVlcNum[m_uiBlkCbpVlcIdx]:11;
-#endif
 
 
   if ( m_bAdaptFlag )
   {                
-
-#if CAVLC_RQT_CBP
     adaptCodeword(cx, m_ucCBP_4Y_TableCounter[n],  m_ucCBP_4Y_TableCounterSum[n],  m_uiCBP_4Y_TableD[n],  m_uiCBP_4Y_TableE[n], 2);
-#else
-    adaptCodeword(cx, m_ucBlkCBPTableCounter[n],  m_ucBlkCBPTableCounterSum[n],  m_uiBlkCBPTableD[n],  m_uiBlkCBPTableE[n], 2);
-#endif
 
-#if CAVLC_RQT_CBP
     if(n==0)
       m_uiCBP_4Y_VlcIdx += cx == m_uiCBP_4Y_VlcIdx ? 0 : (cx < m_uiCBP_4Y_VlcIdx ? -1 : 1);
-#else
-    if(n==0)
-      m_uiBlkCbpVlcIdx += cx == m_uiBlkCbpVlcIdx ? 0 : (cx < m_uiBlkCbpVlcIdx ? -1 : 1);
-#endif
   }
   
   xWriteVlc( vlcn, cx );

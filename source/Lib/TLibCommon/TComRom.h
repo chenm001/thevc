@@ -197,7 +197,6 @@ extern const UInt   *g_pLumaRunTr18x8[2];
 extern const UInt   *g_pLumaRunTr18x8[5]; 
 #endif
 
-#if CAVLC_RQT_CBP
 extern const UInt    g_auiCBP_YUV_TableE[4][8];
 extern const UInt    g_auiCBP_YUV_TableD[4][8];
 extern const UInt    g_auiCBP_YS_TableE[2][4];
@@ -211,13 +210,6 @@ extern const UInt    g_auiCBP_YC_TableD[2][4];
 extern const UInt    g_auiCBP_4Y_TableE[2][15];
 extern const UInt    g_auiCBP_4Y_TableD[2][15];
 extern const UInt    g_auiCBP_4Y_VlcNum[15];
-#else
-extern const UInt    g_auiCBPTableE[2][8];
-extern const UInt    g_auiCBPTableD[2][8];
-extern const UInt    g_auiBlkCBPTableE[2][15];
-extern const UInt    g_auiBlkCBPTableD[2][15];
-extern const UInt    g_auiBlkCbpVlcNum[15];
-#endif//
 extern const UInt    g_auiCbpVlcNum[2][8];
 
 extern const UInt g_auiComMI1TableE[9];

@@ -748,19 +748,11 @@ Void TDecCavlc::resetEntropy          (TComSlice* pcSlice)
   ::memcpy(m_uiLPTableD4,        g_auiLPTableD4,        3*32*sizeof(UInt));
   ::memcpy(m_uiLastPosVlcIndex,  g_auiLastPosVlcIndex,  10*sizeof(UInt));
 
-#if CAVLC_RQT_CBP
   ::memcpy(m_uiCBP_YUV_TableD, g_auiCBP_YUV_TableD, 4*8*sizeof(UInt));
   ::memcpy(m_uiCBP_YS_TableD,  g_auiCBP_YS_TableD,  2*4*sizeof(UInt));
   ::memcpy(m_uiCBP_YCS_TableD, g_auiCBP_YCS_TableD, 2*8*sizeof(UInt));
   ::memcpy(m_uiCBP_4Y_TableD,  g_auiCBP_4Y_TableD,  2*15*sizeof(UInt));
   m_uiCBP_4Y_VlcIdx = 0;
-#else
-  m_uiCbpVlcIdx[0] = 0;
-  m_uiCbpVlcIdx[1] = 0;
-  ::memcpy(m_uiCBPTableD,        g_auiCBPTableD,        2*8*sizeof(UInt));
-  ::memcpy(m_uiBlkCBPTableD,     g_auiBlkCBPTableD,     2*15*sizeof(UInt));
-  m_uiBlkCbpVlcIdx = 0;
-#endif
 
   ::memcpy(m_uiMI1TableD, g_auiComMI1TableD, 9*sizeof(UInt));
   
@@ -773,28 +765,18 @@ Void TDecCavlc::resetEntropy          (TComSlice* pcSlice)
 #endif
   m_uiMITableVlcIdx = 0;
 
-#if CAVLC_RQT_CBP
   ::memset(m_ucCBP_YUV_TableCounter, 0, 4*4*sizeof(UChar));
   ::memset(m_ucCBP_4Y_TableCounter,  0, 2*2*sizeof(UChar));
   ::memset(m_ucCBP_YCS_TableCounter, 0, 2*4*sizeof(UChar));
   ::memset(m_ucCBP_YS_TableCounter,  0, 2*3*sizeof(UChar));
-#else
-  ::memset(m_ucCBFTableCounter,        0,        2*4*sizeof(UChar));
-  ::memset(m_ucBlkCBPTableCounter,     0,        2*2*sizeof(UChar));
-#endif
 
   ::memset(m_ucMI1TableCounter,        0,          4*sizeof(UChar));
   ::memset(m_ucSplitTableCounter,      0,        4*4*sizeof(UChar));
 
-#if CAVLC_RQT_CBP
   m_ucCBP_YUV_TableCounterSum[0] = m_ucCBP_YUV_TableCounterSum[1] = m_ucCBP_YUV_TableCounterSum[2] = m_ucCBP_YUV_TableCounterSum[3] = 0;
   m_ucCBP_4Y_TableCounterSum[0] = m_ucCBP_4Y_TableCounterSum[1] = 0;
   m_ucCBP_YCS_TableCounterSum[0] = m_ucCBP_YCS_TableCounterSum[1] = 0;
   m_ucCBP_YS_TableCounterSum[0] = m_ucCBP_YS_TableCounterSum[1] = 0;
-#else
-  m_ucCBFTableCounterSum[0] = m_ucCBFTableCounterSum[1] = 0;
-  m_ucBlkCBPTableCounterSum[0] = m_ucBlkCBPTableCounterSum[1] = 0;
-#endif
 
   m_ucSplitTableCounterSum[0] = m_ucSplitTableCounterSum[1] = m_ucSplitTableCounterSum[2]= m_ucSplitTableCounterSum[3] = 0;
   m_ucMI1TableCounterSum = 0;
@@ -1586,7 +1568,6 @@ Void TDecCavlc::parseDeltaQP( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth 
   pcCU->setQPSubParts( uiQp, uiAbsQpCUPartIdx, uiQpCUDepth );
 }
 
-#if CAVLC_RQT_CBP
 /** Function for parsing cbf and split 
  * \param pcCU pointer to CU
  * \param uiAbsPartIdx CU index
@@ -1890,7 +1871,7 @@ UInt TDecCavlc::xGetFlagPattern( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDep
 
   return ((patternYUV<<1)+patternDiv);
 }
-#endif
+
 Void TDecCavlc::parseCbf( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eType, UInt uiTrDepth, UInt uiDepth )
 {
   if (eType == TEXT_ALL)
@@ -1902,26 +1883,14 @@ Void TDecCavlc::parseCbf( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eType, U
 
     /* Start adaptation */
     n = pcCU->isIntra( uiAbsPartIdx ) ? 0 : 1;
-#if CAVLC_RQT_CBP
     UInt vlcn = 0;
-#else
-    UInt vlcn = g_auiCbpVlcNum[n][m_uiCbpVlcIdx[n]];
-#endif
     tmp = xReadVlc( vlcn );    
-#if CAVLC_RQT_CBP
     uiCBP = m_uiCBP_YUV_TableD[n][tmp];
-#else
-    uiCBP = m_uiCBPTableD[n][tmp];
-#endif
 
     /* Adapt LP table */
     cx = tmp;
 
-#if CAVLC_RQT_CBP
     adaptCodeword(cx, m_ucCBP_YUV_TableCounter[n],  m_ucCBP_YUV_TableCounterSum[n],  m_uiCBP_YUV_TableD[n],  NULL, 4);
-#else
-    adaptCodeword(cx, m_ucCBFTableCounter[n],  m_ucCBFTableCounterSum[n],  m_uiCBPTableD[n],  NULL, 4);
-#endif
 
     uiCbfY = (uiCBP>>0)&1;
     uiCbfU = (uiCBP>>1)&1;
@@ -1947,33 +1916,16 @@ Void TDecCavlc::parseBlockCbf( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eTy
   UInt tmp;
   
   UInt n = (pcCU->isIntra(uiAbsPartIdx) && eType == TEXT_LUMA)? 0:1;
-#if CAVLC_RQT_CBP
   UInt vlcn = (n==0)?g_auiCBP_4Y_VlcNum[m_uiCBP_4Y_VlcIdx]:11;
-#else
-  UInt vlcn = (n==0)?g_auiBlkCbpVlcNum[m_uiBlkCbpVlcIdx]:11;
-#endif
   tmp = xReadVlc( vlcn );    
-#if CAVLC_RQT_CBP
   uiCbf4 = m_uiCBP_4Y_TableD[n][tmp];
-#else
-  uiCbf4 = m_uiBlkCBPTableD[n][tmp];
-#endif
 
   cx = tmp;
 
-#if CAVLC_RQT_CBP
   adaptCodeword(cx, m_ucCBP_4Y_TableCounter[n], m_ucCBP_4Y_TableCounterSum[n], m_uiCBP_4Y_TableD[n], NULL, 2);
-#else
-  adaptCodeword(cx, m_ucBlkCBPTableCounter[n],  m_ucBlkCBPTableCounterSum[n],  m_uiBlkCBPTableD[n],  NULL, 2);
-#endif
 
-#if CAVLC_RQT_CBP
   if(n==0)
     m_uiCBP_4Y_VlcIdx += cx == m_uiCBP_4Y_VlcIdx ? 0 : (cx < m_uiCBP_4Y_VlcIdx ? -1 : 1);
-#else
-  if(n==0)
-    m_uiBlkCbpVlcIdx += cx == m_uiBlkCbpVlcIdx ? 0 : (cx < m_uiBlkCbpVlcIdx ? -1 : 1);
-#endif
 
   uiCbf4++;
   uiCbf = pcCU->getCbf( uiAbsPartIdx, eType );

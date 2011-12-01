@@ -118,7 +118,6 @@
 #define FIXED_ROUNDING_FRAME_MEMORY    0           ///< enable/disable fixed rounding to 8-bitdepth of frame memory when IBDI is used  
 
 #define MS_LCEC_UNI_EXCEPTION_THRES     1           // for GPB case, uni-prediction, > MS_LCEC_UNI_EXCEPTION_THRES is exception
-#define CAVLC_RQT_CBP                   1           //CAVLC coding of cbf and split flag, JCTVC-E404
 
 #define REF_SETTING_FOR_LD              1           // reference frame setting for low delay setting (JCTVC-F701)
                                                     // using one nearest frame as reference frame, and the other frames are high quality (POC%4==0) frames (1+X)

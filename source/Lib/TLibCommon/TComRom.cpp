@@ -345,7 +345,6 @@ const UInt g_auiCbpVlcNum[2][8] =
   {0, 0, 0, 0, 0, 0, 0, 0}
 };
 
-#if CAVLC_RQT_CBP
 const UInt g_auiCBP_YUV_TableE[4][8] = 
 {
   {2,5,6,7,0,3,4,1},
@@ -424,36 +423,6 @@ const UInt g_auiCBP_4Y_VlcNum[15] =
 {
   1,  2,  2,  2, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11
 };
-#else
-const UInt g_auiCBPTableE[2][8] = 
-{
-  {2,0,6,4,5,3,7,1},
-  {0,1,6,3,4,2,7,5}
-};
-
-const UInt g_auiCBPTableD[2][8] = 
-{
-  {1,7,0,5,3,4,2,6},
-  {0,1,5,3,4,7,2,6}
-};
-
-const UInt g_auiBlkCBPTableE[2][15] = 
-{
-  {14, 13, 10, 12, 9, 8, 4, 11, 7, 6, 3, 5, 2, 1, 0},
-  {0, 1, 4, 2, 5, 6, 10, 3, 7, 8, 11, 9, 12, 13, 14}
-};
-
-const UInt g_auiBlkCBPTableD[2][15] = 
-{
-  {14, 13, 12, 10, 6, 11, 9, 8, 5, 4, 2, 7, 3, 1, 0},
-  {0, 1, 3, 7, 2, 4, 5, 8, 9, 11, 6, 10 ,12, 13, 14} 
-};
-
-const UInt g_auiBlkCbpVlcNum[15] = 
-{
-  1,  2,  2,  2, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11
-};
-#endif
 
 const UInt g_auiComMI1TableE[9] = {0,1,2,3,4,5,6,7,8};
 const UInt g_auiComMI1TableD[9] = {0,1,2,3,4,5,6,7,8};
