@@ -1739,11 +1739,7 @@ Void TEncCavlc::codeCoeffNxN    ( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPa
   }
   
   // initialize scan
-#if CAVLC_COEF_LRG_BLK_CHROMA
   UInt maxBlSize = 32;
-#else
-  UInt maxBlSize = (eTType==TEXT_LUMA)?32:8;
-#endif
   UInt uiBlSize = min(maxBlSize,uiWidth);
   UInt uiNoCoeff = uiBlSize*uiBlSize;
   
@@ -2091,7 +2087,6 @@ Void TEncCavlc::xWriteVlc(UInt uiTableNumber, UInt uiCodeNumber)
     uiTemp = 1<<(uiTableNumber-4);
     uiCode = uiTemp+uiCodeNumber%uiTemp;
     uiLength = 1+(uiTableNumber-4)+(uiCodeNumber>>(uiTableNumber-4));
-#if CAVLC_COEF_LRG_BLK_CHROMA 
     if (uiLength>32)
     {
       if (uiLength>64)
@@ -2102,7 +2097,6 @@ Void TEncCavlc::xWriteVlc(UInt uiTableNumber, UInt uiCodeNumber)
       xWriteCode(0, uiLength-32);
       uiLength  = 32;
     }
-#endif
   }
   else if (uiTableNumber == 8)
   {
@@ -2150,13 +2144,11 @@ Void TEncCavlc::xWriteVlc(UInt uiTableNumber, UInt uiCodeNumber)
       uiTemp = 1<<4;
       uiCode = uiTemp+(uiCodeNumber+5)%uiTemp;
       uiLength = 5+((uiCodeNumber+5)>>4);
-#if CAVLC_COEF_LRG_BLK_CHROMA
       if (uiLength>32)
       {
         xWriteCode(0, uiLength-32);
         uiLength  = 32;
       }
-#endif
     }
   }
   else if (uiTableNumber == 10)
@@ -2256,11 +2248,7 @@ Void TEncCavlc::xCodeCoeff( TCoeff* scoeff, Int blockType, Int blSize
     if ( m_bAdaptFlag )
     {
       // ADAPT_VLC_NUM
-#if CAVLC_COEF_LRG_BLK_CHROMA
       cn = (blSize==8 || blockType<2)? cn:(cn>>2);
-#else
-      cn = (blSize==8)? cn:(cn>>2);
-#endif
       m_uiLastPosVlcIndex[blockType] += cn == m_uiLastPosVlcIndex[blockType] ? 0 : (cn < m_uiLastPosVlcIndex[blockType] ? -1 : 1);
     }
   }

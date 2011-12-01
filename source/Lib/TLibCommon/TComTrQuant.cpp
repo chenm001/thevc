@@ -1994,11 +1994,7 @@ Void TComTrQuant::xRateDistOptQuant_LCEC(TComDataCU* pcCU, Int* pSrcCoeff, TCoef
   q_bits    = m_cQP.m_iBits;
   
   UInt noCoeff=(uiWidth < 8 ? 16 : 64);
-#if CAVLC_COEF_LRG_BLK_CHROMA
   UInt maxBlSize = 32;
-#else
-  UInt maxBlSize = (eTType==TEXT_LUMA)? 32:8;
-#endif
   UInt uiBlSize = min(uiWidth,maxBlSize);
   noCoeff = uiBlSize*uiBlSize;
   
