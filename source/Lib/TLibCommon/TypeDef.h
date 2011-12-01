@@ -108,7 +108,6 @@
 #define CAVLC_COEF_LRG_BLK_CHROMA         1           // JCTVC-F608: enable big block coding for chroma
 #define MOD_INTRA_TABLE                   1           // JCTVC-F612: modified intra table for coefficients coding
 #define TBL_RUN_ADAPT                     1           // JCTVC-F467: cavlc table adaptation from last run-mode
-#define REMOVE_DIRECT_INTRA_DC_CODING     1           // JCTVC-F465: Removal of direct coding of Intra DC coefficient in CAVLC
 
 #define FAST_UDI_MAX_RDMODE_NUM               35          ///< maximum number of RD comparison in fast-UDI estimation loop 
 

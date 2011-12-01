@@ -1824,29 +1824,6 @@ Void TEncCavlc::codeCoeffNxN    ( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPa
 #endif
   Int iBlockType;
 
-#if !REMOVE_DIRECT_INTRA_DC_CODING
-  UInt uiCodeDCCoef = 0;
-  TCoeff dcCoeff = 0;
-  if (pcCU->isIntra(uiAbsPartIdx))
-  {
-    UInt uiAbsPartIdxL, uiAbsPartIdxA;
-    TComDataCU* pcCUL   = pcCU->getPULeft (uiAbsPartIdxL, pcCU->getZorderIdxInCU() + uiAbsPartIdx);
-    TComDataCU* pcCUA   = pcCU->getPUAbove(uiAbsPartIdxA, pcCU->getZorderIdxInCU() + uiAbsPartIdx);
-    if (pcCUL == NULL && pcCUA == NULL)
-    {
-      uiCodeDCCoef = 1;
-      xWriteVlc((eTType == TEXT_LUMA ? 3 : 1) , abs(piCoeff[0]));
-      if (piCoeff[0] != 0)
-      {
-        UInt sign = (piCoeff[0] < 0) ? 1 : 0;
-        xWriteFlag(sign);
-      }
-      dcCoeff = piCoeff[0];
-      piCoeff[0] = 1;
-    }
-  }
-#endif
-  
   if( uiSize == 2*2 )
   {
     // hack: re-use 4x4 coding
@@ -2006,12 +1983,6 @@ Void TEncCavlc::codeCoeffNxN    ( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPa
     //#endif
   }
   
-#if !REMOVE_DIRECT_INTRA_DC_CODING
-  if (uiCodeDCCoef == 1)
-  {
-    piCoeff[0] = dcCoeff;
-  }
-#endif
 #if NSQT
   if( bNonSqureFlag && !pcCU->isIntra( uiAbsPartIdx ) )
   {
