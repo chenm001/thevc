@@ -100,7 +100,6 @@
 #define LOG2_SCAN_SET_SIZE                4
 #define DIAG_SCAN                         1           ///< JCTVC-F129: use up-right diagonal scan rather than zig-zag for CABAC           
 #define CABAC_COEFF_DATA_REORDER          1           ///< JCTVC-F130: reordering of CABAC coefficient data
-#define RUNLEVEL_TABLE_CUT                1           // JCTVC-E384: Run-Level table size reduction
 #define CAVLC_RDOQ_MOD                    1           // JCTVC-F296: reduce positions for LAST checking and modify bits estimation
 #define CAVLC_COEF_LRG_BLK_CHROMA         1           // JCTVC-F608: enable big block coding for chroma
 #define MOD_INTRA_TABLE                   1           // JCTVC-F612: modified intra table for coefficients coding

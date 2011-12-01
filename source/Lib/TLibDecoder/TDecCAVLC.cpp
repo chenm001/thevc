@@ -2686,7 +2686,6 @@ Void TDecCavlc::xRunLevelIndInv(LastCoeffStruct *combo, Int maxrun, UInt lrg1Pos
   combo->last_pos = run;
 }
 
-#if RUNLEVEL_TABLE_CUT
 /** Function for deriving run and level value in CAVLC run-level coding 
  * \param combo pointer to a struct of run and level
  * \param maxrun maximum length of run for a given coefficient location
@@ -2737,7 +2736,6 @@ Void TDecCavlc::xRunLevelIndInterInv(LastCoeffStruct *combo, Int maxrun, UInt cn
     }
   }
 }
-#endif
 
 /** Function for parsing a block of transform coefficients in CAVLC.
  * \param scoeff    pointer to transform coefficient buffer

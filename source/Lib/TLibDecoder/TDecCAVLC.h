@@ -85,12 +85,10 @@ protected:
 #endif
                             );
   Void  xRunLevelIndInv     (LastCoeffStruct *combo, Int maxrun, UInt lrg1Pos, UInt cn);
-#if RUNLEVEL_TABLE_CUT
 #if CAVLC_RUNLEVEL_TABLE_REM
   Void  xRunLevelIndInterInv(LastCoeffStruct *combo, Int maxrun, UInt cn, UInt scale);
 #else
   Void  xRunLevelIndInterInv(LastCoeffStruct *combo, Int maxrun, UInt cn);
-#endif
 #endif
   
 private:

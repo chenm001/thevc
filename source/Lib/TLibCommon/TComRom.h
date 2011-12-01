@@ -169,11 +169,7 @@ extern const UInt    g_auiLPTableE4[3][32];
 extern const UInt    g_auiLPTableD4[3][32];
 extern const UInt    g_auiLastPosVlcIndex[10];
 extern const UInt    g_auiLastPosVlcNum[10][17];
-#if RUNLEVEL_TABLE_CUT
 extern const UInt    g_auiLumaRun8x8[28][29];
-#else
-extern const UInt    g_auiLumaRun8x8[29][2][64];
-#endif
 
 extern const UInt    g_auiIntraModeTableD17[17];
 extern const UInt    g_auiIntraModeTableE17[17];
@@ -183,11 +179,7 @@ extern const UInt    g_auiIntraModeTableE34[34];
 extern const UInt    g_auiVlcTable8x8Inter[29];
 extern const UInt    g_auiVlcTable8x8Intra[29];
 
-#if RUNLEVEL_TABLE_CUT 
 extern const UInt    g_acstructLumaRun8x8[28][29];
-#else
-extern const LastCoeffStruct g_acstructLumaRun8x8[29][127];
-#endif
 
 extern const UInt   g_auiVlcTable16x16Intra[29];
 extern const UInt   g_auiVlcTable16x16Inter[29];
@@ -314,7 +306,6 @@ __inline UInt xRunLevelInd(Int lev, Int run, Int maxrun, UInt lrg1Pos)
   return(cn);
 }
 
-#if RUNLEVEL_TABLE_CUT
 /** Function for deriving codeword index in CAVLC run-level coding 
  * \param lev a value indicating coefficient level greater than one or not
  * \param run length of run
@@ -364,7 +355,6 @@ __inline UInt xRunLevelIndInter(Int lev, Int run, Int maxrun)
 
   return(cn);
 }
-#endif
 
 
 __inline UInt xLeadingZeros(UInt uiCode)
