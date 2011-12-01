@@ -305,39 +305,19 @@ __inline UInt xRunLevelInd(Int lev, Int run, Int maxrun, UInt lrg1Pos)
  * \returns the codeword index
  * This function derives codeword index in CAVLC run-level coding .
  */
-#if CAVLC_RUNLEVEL_TABLE_REM
 __inline UInt xRunLevelIndInter(Int lev, Int run, Int maxrun, Int scale)
-#else
-__inline UInt xRunLevelIndInter(Int lev, Int run, Int maxrun)
-#endif
 {
   UInt cn;
 
-#if !CAVLC_RUNLEVEL_TABLE_REM
-  if (maxrun < 28)
-  {
-    if (lev == 0)
-    {
-      cn = g_auiLumaRun8x8[maxrun][run];
-    }
-    else
-    {
-      cn = maxrun + g_auiLumaRun8x8[maxrun][run] + 1;  
-    }
-  }
-  else
-#endif
   {
     if (lev == 0)
     {
       cn = run;
-#if CAVLC_RUNLEVEL_TABLE_REM
       {
         int thr = (maxrun + 1) >> scale;
         if (run >= thr)
           cn = (run > maxrun) ? thr : (run+1);
       }
-#endif
     }
     else
     {

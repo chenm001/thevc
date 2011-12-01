@@ -1979,9 +1979,7 @@ Void TDecCavlc::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartI
       iBlockType = 2 + ( pcCU->isIntra(uiAbsPartIdx) ? 0 : pcCU->getSlice()->getSliceType() );
 
     xParseCoeff( scoeff, iBlockType, 4
-#if CAVLC_RUNLEVEL_TABLE_REM
                , pcCU->isIntra(uiAbsPartIdx)
-#endif
                );
     
     for (uiScanning=0; uiScanning<4; uiScanning++)
@@ -1997,9 +1995,7 @@ Void TDecCavlc::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartI
     else
       iBlockType = 2 + ( pcCU->isIntra(uiAbsPartIdx) ? 0 : pcCU->getSlice()->getSliceType() );
     xParseCoeff( scoeff, iBlockType, 4
-#if CAVLC_RUNLEVEL_TABLE_REM
                , pcCU->isIntra(uiAbsPartIdx)
-#endif
                );
     
     for (uiScanning=0; uiScanning<16; uiScanning++)
@@ -2015,9 +2011,7 @@ Void TDecCavlc::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartI
     else
       iBlockType = 2 + ( pcCU->isIntra(uiAbsPartIdx) ? 0 : pcCU->getSlice()->getSliceType() );
     xParseCoeff( scoeff, iBlockType, 8
-#if CAVLC_RUNLEVEL_TABLE_REM
                , pcCU->isIntra(uiAbsPartIdx)
-#endif
                );
     
     for (uiScanning=0; uiScanning<64; uiScanning++)
@@ -2036,9 +2030,7 @@ Void TDecCavlc::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartI
       else
         iBlockType = 5 + ( pcCU->isIntra(uiAbsPartIdx) ? 0 : pcCU->getSlice()->getSliceType() );
       xParseCoeff( scoeff, iBlockType, uiBlSize
-#if CAVLC_RUNLEVEL_TABLE_REM
                  , pcCU->isIntra(uiAbsPartIdx)
-#endif
                  );
       
       for (uiScanning=0; uiScanning<uiNoCoeff; uiScanning++)
@@ -2060,9 +2052,7 @@ Void TDecCavlc::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartI
         iBlockType = 5 + ( pcCU->isIntra(uiAbsPartIdx) ? 0 : pcCU->getSlice()->getSliceType() );
 
       xParseCoeff( scoeff, iBlockType, uiBlSize
-#if CAVLC_RUNLEVEL_TABLE_REM
                  , pcCU->isIntra(uiAbsPartIdx)
-#endif
                  );
       for (uiScanning=0; uiScanning<uiNoCoeff; uiScanning++)
       {
@@ -2645,41 +2635,19 @@ Void TDecCavlc::xRunLevelIndInv(LastCoeffStruct *combo, Int maxrun, UInt lrg1Pos
  * \returns
  * This function derives run and level value in CAVLC run-level coding based on codeword index and maximum run value.  
  */
-#if CAVLC_RUNLEVEL_TABLE_REM
 Void TDecCavlc::xRunLevelIndInterInv(LastCoeffStruct *combo, Int maxrun, UInt cn, UInt scale)
-#else
-Void TDecCavlc::xRunLevelIndInterInv(LastCoeffStruct *combo, Int maxrun, UInt cn)
-#endif
 {
 
-#if !CAVLC_RUNLEVEL_TABLE_REM
-  if (maxrun<28)
-  {
-    if(cn > maxrun+1)
-    {
-      combo->level = 1;
-      combo->last_pos = g_acstructLumaRun8x8[maxrun][cn-maxrun-1];
-    }
-    else
-    {
-      combo->level = 0;
-      combo->last_pos = g_acstructLumaRun8x8[maxrun][cn];
-    }
-  }
-  else
-#endif
   {
     if(cn<maxrun+2)
     {
       combo->level = 0;
       combo->last_pos = cn;
-#if CAVLC_RUNLEVEL_TABLE_REM
       {
         int thr = (maxrun + 1) >> scale;
         if (combo->last_pos >= thr)
           combo->last_pos = (combo->last_pos == thr) ? (maxrun+1) : (combo->last_pos-1);
       }
-#endif
     }
     else
     {
@@ -2695,9 +2663,7 @@ Void TDecCavlc::xRunLevelIndInterInv(LastCoeffStruct *combo, Int maxrun, UInt cn
  * \param blSize    block size
  */
 Void TDecCavlc::xParseCoeff(TCoeff* scoeff, Int blockType, Int blSize
-#if CAVLC_RUNLEVEL_TABLE_REM
                             , Int isIntra
-#endif
                             )
 {
   static const Int switch_thr[10] = {49,49,0,49,49,0,49,49,49,49};
@@ -2718,9 +2684,7 @@ Void TDecCavlc::xParseCoeff(TCoeff* scoeff, Int blockType, Int blSize
 
   memset(scoeff,0,sizeof(TCoeff)*noCoeff);
 
-#if CAVLC_RUNLEVEL_TABLE_REM
   Int scale = (isIntra && blockType < 2) ? 0 : 3;
-#endif
 
   /* Get the last nonzero coeff */
   if(blSize >=8 )
@@ -2818,11 +2782,7 @@ Void TDecCavlc::xParseCoeff(TCoeff* scoeff, Int blockType, Int blSize
     }
     else
     {
-#if CAVLC_RUNLEVEL_TABLE_REM
       xRunLevelIndInterInv(&combo, maxrun, cn, scale);
-#else
-      xRunLevelIndInterInv(&combo, maxrun, cn);
-#endif
     }
 
     i += combo.last_pos;

@@ -1338,32 +1338,24 @@ UInt TComTrQuant::xCountVlcBits(UInt uiTableNumber, UInt uiCodeNumber)
 #if TBL_RUN_ADAPT
 Int TComTrQuant::bitCountRDOQ(Int coeff, Int pos, Int nTab, Int lastCoeffFlag,Int levelMode,Int run, Int maxrun, Int* vlc_adaptive, Int N, 
                               UInt uiTr1, Int iSum_big_coef, Int iBlockType, TComDataCU* pcCU, const UInt **pLumaRunTr1, Int iNextRun
-#if CAVLC_RUNLEVEL_TABLE_REM
                               , Int isIntra
-#endif
                               )
 #else
 Int TComTrQuant::bitCountRDOQ(Int coeff, Int pos, Int nTab, Int lastCoeffFlag,Int levelMode,Int run, Int maxrun, Int vlc_adaptive, Int N, 
                               UInt uiTr1, Int iSum_big_coef, Int iBlockType, TComDataCU* pcCU, const UInt **pLumaRunTr1, Int iNextRun
-#if CAVLC_RUNLEVEL_TABLE_REM
                               , Int isIntra
-#endif
                               )
 #endif
 #else
 #if TBL_RUN_ADAPT
 Int TComTrQuant::bitCountRDOQ(Int coeff, Int pos, Int nTab, Int lastCoeffFlag,Int levelMode,Int run, Int maxrun, Int *vlc_adaptive, Int N, 
                               UInt uiTr1, Int iSum_big_coef, Int iBlockType, TComDataCU* pcCU, const UInt **pLumaRunTr1
-#if CAVLC_RUNLEVEL_TABLE_REM
                               , Int isIntra
-#endif
                               )
 #else
 Int TComTrQuant::bitCountRDOQ(Int coeff, Int pos, Int nTab, Int lastCoeffFlag,Int levelMode,Int run, Int maxrun, Int vlc_adaptive, Int N, 
                               UInt uiTr1, Int iSum_big_coef, Int iBlockType, TComDataCU* pcCU, const UInt **pLumaRunTr1
-#if CAVLC_RUNLEVEL_TABLE_REM
                               , Int isIntra
-#endif
                               )
 #endif
 #endif
@@ -1371,9 +1363,7 @@ Int TComTrQuant::bitCountRDOQ(Int coeff, Int pos, Int nTab, Int lastCoeffFlag,In
   UInt cn, n, level, lev;
   Int vlc,x,cx,vlcNum,bits;
   static const int vlcTable4[3] = {2,2,2};             // Y4x4I,Y4x4P,Y4x4B,
-#if CAVLC_RUNLEVEL_TABLE_REM
   Int scale = (isIntra && iBlockType < 2) ? 0 : 3;
-#endif
 #if MOD_INTRA_TABLE
   static const int aiTableTr1[2][5] = {{0, 1, 1, 1, 0},{0, 1, 2, 3, 4}};
 #endif  
@@ -1460,11 +1450,7 @@ Int TComTrQuant::bitCountRDOQ(Int coeff, Int pos, Int nTab, Int lastCoeffFlag,In
         }
         else
         {
-#if CAVLC_RUNLEVEL_TABLE_REM
           cn = xRunLevelIndInter(lev, run, maxrun, scale);
-#else
-          cn = xRunLevelIndInter(lev, run, maxrun);
-#endif
         }
 #if MOD_INTRA_TABLE 
         if (tmprun < 28 || N<=8 || (nTab!=2&&nTab!=5) )
@@ -1535,11 +1521,7 @@ Int TComTrQuant::bitCountRDOQ(Int coeff, Int pos, Int nTab, Int lastCoeffFlag,In
         }
         else
         {
-#if CAVLC_RUNLEVEL_TABLE_REM
           cn = xRunLevelIndInter(0, run + 1, maxrun, scale);
-#else
-          cn = xRunLevelIndInter(0, run + 1, maxrun);
-#endif
         }
         bits=xCountVlcBits( vlc, cn );
       }
@@ -1577,11 +1559,7 @@ Int TComTrQuant::bitCountRDOQ(Int coeff, Int pos, Int nTab, Int lastCoeffFlag,In
             }
             else
             {
-#if CAVLC_RUNLEVEL_TABLE_REM
               cn = xRunLevelIndInter(0, run + 1 + iNextRun, maxrun, scale);
-#else
-              cn = xRunLevelIndInter(0, run + 1 + iNextRun, maxrun);
-#endif
             }
 #else
             if(nTab == 2 || nTab == 5)
@@ -1594,11 +1572,7 @@ Int TComTrQuant::bitCountRDOQ(Int coeff, Int pos, Int nTab, Int lastCoeffFlag,In
             }
             else
             {
-#if CAVLC_RUNLEVEL_TABLE_REM
               cn = xRunLevelIndInter(0, run + 1, maxrun, scale);
-#else
-              cn = xRunLevelIndInter(0, run + 1, maxrun);
-#endif
             }
 #endif
           }
@@ -1701,11 +1675,7 @@ Int TComTrQuant::bitCountRDOQ(Int coeff, Int pos, Int nTab, Int lastCoeffFlag,In
             }
             else
             {
-#if CAVLC_RUNLEVEL_TABLE_REM
               cn = xRunLevelIndInter(0, iNextRun, maxrunTemp, scale);
-#else
-              cn = xRunLevelIndInter(0, iNextRun, maxrunTemp);
-#endif
             }
 #else
             if(nTab == 2 || nTab == 5)
@@ -1718,11 +1688,7 @@ Int TComTrQuant::bitCountRDOQ(Int coeff, Int pos, Int nTab, Int lastCoeffFlag,In
             }
             else
             {
-#if CAVLC_RUNLEVEL_TABLE_REM
               cn = xRunLevelIndInter(0, 0, maxrunTemp, scale);
-#else
-              cn = xRunLevelIndInter(0, 0, maxrunTemp);
-#endif
             }
 #endif
             bits -= xCountVlcBits( vlc, cn );
@@ -1738,15 +1704,11 @@ Int TComTrQuant::bitCountRDOQ(Int coeff, Int pos, Int nTab, Int lastCoeffFlag,In
 }
 #if CAVLC_RDOQ_MOD
 Int TComTrQuant::xCodeCoeffCountBitsLast(TCoeff* scoeff, levelDataStruct* levelData, Int nTab, UInt N, Int iStartLast
-#if CAVLC_RUNLEVEL_TABLE_REM
                                          , Int isIntra
-#endif
                                          )
 #else
 Int TComTrQuant::xCodeCoeffCountBitsLast(TCoeff* scoeff, levelDataStruct* levelData, Int nTab, UInt N
-#if CAVLC_RUNLEVEL_TABLE_REM
                                          , Int isIntra
-#endif
                                          )
 #endif
 {
@@ -1760,9 +1722,7 @@ Int TComTrQuant::xCodeCoeffCountBitsLast(TCoeff* scoeff, levelDataStruct* levelD
   UInt uiLumaRunNoTr14x4[15]={2, 1, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 2};
   UInt uiLumaRunNoTr18x8[29]={2, 2, 2, 3, 3, 3, 4, 4, 4, 5, 5, 5, 5, 6, 6, 6, 6, 7, 7, 7, 8, 8, 8, 9, 9, 9, 9, 9, 13};
 
-#if CAVLC_RUNLEVEL_TABLE_REM
   Int scale = (isIntra && nTab < 2) ? 0 : 3;
-#endif
 
   if ( N == 4 )
   {
@@ -1944,11 +1904,7 @@ Int TComTrQuant::xCodeCoeffCountBitsLast(TCoeff* scoeff, levelDataStruct* levelD
         else
         {
           vlc = vlcTableInter[tmprun];
-#if CAVLC_RUNLEVEL_TABLE_REM
           cn = xRunLevelIndInter(quantCoeffInfo[i].nextLev, run, maxrun, scale);
-#else
-          cn = xRunLevelIndInter(quantCoeffInfo[i].nextLev, run, maxrun);
-#endif
         }
         bitsRun[i] += xCountVlcBits( vlc, cn );
       }
@@ -2242,15 +2198,11 @@ Void TComTrQuant::xRateDistOptQuant_LCEC(TComDataCU* pcCU, Int* pSrcCoeff, TCoef
   // Last Position
 #if CAVLC_RDOQ_MOD
   lastPosMin = xCodeCoeffCountBitsLast(sQuantCoeff, levelData, iBlockType, uiBlSize, iStartLast
-#if CAVLC_RUNLEVEL_TABLE_REM
                                       , pcCU->isIntra(uiAbsPartIdx)
-#endif
                                       );
 #else
   lastPosMin = xCodeCoeffCountBitsLast(sQuantCoeff, levelData, iBlockType, uiBlSize
-#if CAVLC_RUNLEVEL_TABLE_REM
                                       , pcCU->isIntra(uiAbsPartIdx)
-#endif
                                       );
 #endif
   memset(&sQuantCoeff[lastPosMin+1],0,sizeof(TCoeff) * (noCoeff - (lastPosMin + 1)));
@@ -2299,32 +2251,24 @@ Void TComTrQuant::xRateDistOptQuant_LCEC(TComDataCU* pcCU, Int* pSrcCoeff, TCoef
 #if TBL_RUN_ADAPT
         iRate = bitCountRDOQ(iLevel,uiScanPos,iBlockType,iLpFlag,iLevelMode,iRun,iMaxrun,&iVlc_adaptive,
           coeffBlkSize,uiTr1, iSum_big_coef, iBlockType, pcCU, pLumaRunTr1, psLevelData->iNextRun
-#if CAVLC_RUNLEVEL_TABLE_REM
           , pcCU->isIntra(uiAbsPartIdx)
-#endif
           )<<uiBitShift;
 #else
         iRate = bitCountRDOQ(iLevel,uiScanPos,iBlockType,iLpFlag,iLevelMode,iRun,iMaxrun,iVlc_adaptive,
           coeffBlkSize,uiTr1, iSum_big_coef, iBlockType, pcCU, pLumaRunTr1, psLevelData->iNextRun
-#if CAVLC_RUNLEVEL_TABLE_REM
           , pcCU->isIntra(uiAbsPartIdx)
-#endif
           )<<uiBitShift;
 #endif
 #else
 #if TBL_RUN_ADAPT
         iRate = bitCountRDOQ(iLevel,uiScanPos,iBlockType,iLpFlag,iLevelMode,iRun,iMaxrun, &iVlc_adaptive,
                              coeffBlkSize,uiTr1, iSum_big_coef, iBlockType, pcCU, pLumaRunTr1
-#if CAVLC_RUNLEVEL_TABLE_REM
                              , pcCU->isIntra(uiAbsPartIdx)
-#endif
                              )<<uiBitShift;
 #else
         iRate = bitCountRDOQ(iLevel,uiScanPos,iBlockType,iLpFlag,iLevelMode,iRun,iMaxrun,iVlc_adaptive,
                              coeffBlkSize,uiTr1, iSum_big_coef, iBlockType, pcCU, pLumaRunTr1
-#if CAVLC_RUNLEVEL_TABLE_REM
                              , pcCU->isIntra(uiAbsPartIdx)
-#endif
                              )<<uiBitShift;
 #endif
 #endif

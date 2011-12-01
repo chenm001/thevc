@@ -212,15 +212,11 @@ private:
   // RDOQ functions
 #if CAVLC_RDOQ_MOD
   Int            xCodeCoeffCountBitsLast(TCoeff* scoeff, levelDataStruct* levelData, Int nTab, UInt uiNoCoeff, Int iStartLast
-#if CAVLC_RUNLEVEL_TABLE_REM
                                         , Int isIntra
-#endif
                                         );
 #else
   Int            xCodeCoeffCountBitsLast(TCoeff* scoeff, levelDataStruct* levelData, Int nTab, UInt uiNoCoeff
-#if CAVLC_RUNLEVEL_TABLE_REM
                                         , Int isIntra
-#endif
                                         );
 #endif
   UInt           xCountVlcBits(UInt uiTableNumber, UInt uiCodeNumber);
@@ -228,32 +224,24 @@ private:
 #if TBL_RUN_ADAPT
   Int            bitCountRDOQ(Int coeff, Int pos, Int nTab, Int lastCoeffFlag,Int levelMode,Int run, Int maxrun, Int* vlc_adaptive, Int N, 
                               UInt uiTr1, Int iSum_big_coef, Int iBlockType, TComDataCU* pcCU, const UInt **pLumaRunTr1, Int iNextRun
-#if CAVLC_RUNLEVEL_TABLE_REM
                               , Int isIntra
-#endif
                               );
 #else
   Int            bitCountRDOQ(Int coeff, Int pos, Int nTab, Int lastCoeffFlag,Int levelMode,Int run, Int maxrun, Int vlc_adaptive, Int N, 
                               UInt uiTr1, Int iSum_big_coef, Int iBlockType, TComDataCU* pcCU, const UInt **pLumaRunTr1, Int iNextRun
-#if CAVLC_RUNLEVEL_TABLE_REM
                               , Int isIntra
-#endif
                               );
 #endif
 #else
 #if TBL_RUN_ADAPT
   Int            bitCountRDOQ(Int coeff, Int pos, Int nTab, Int lastCoeffFlag,Int levelMode,Int run, Int maxrun, Int *vlc_adaptive, Int N, 
                               UInt uiTr1, Int iSum_big_coef, Int iBlockType, TComDataCU* pcCU, const UInt **pLumaRunTr1
-#if CAVLC_RUNLEVEL_TABLE_REM
                               , Int isIntra
-#endif
                               );
 #else
   Int            bitCountRDOQ(Int coeff, Int pos, Int nTab, Int lastCoeffFlag,Int levelMode,Int run, Int maxrun, Int vlc_adaptive, Int N, 
                               UInt uiTr1, Int iSum_big_coef, Int iBlockType, TComDataCU* pcCU, const UInt **pLumaRunTr1
-#if CAVLC_RUNLEVEL_TABLE_REM
                               , Int isIntra
-#endif
                               );
 #endif
 #endif

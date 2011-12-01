@@ -80,16 +80,10 @@ protected:
   UInt  xGetBit             ();
   Int   xReadVlc            ( Int n );
   Void  xParseCoeff         ( TCoeff* scoeff, Int blockType, Int blSize
-#if CAVLC_RUNLEVEL_TABLE_REM
                             , Int isIntra
-#endif
                             );
   Void  xRunLevelIndInv     (LastCoeffStruct *combo, Int maxrun, UInt lrg1Pos, UInt cn);
-#if CAVLC_RUNLEVEL_TABLE_REM
   Void  xRunLevelIndInterInv(LastCoeffStruct *combo, Int maxrun, UInt cn, UInt scale);
-#else
-  Void  xRunLevelIndInterInv(LastCoeffStruct *combo, Int maxrun, UInt cn);
-#endif
   
 private:
   TComInputBitstream*   m_pcBitstream;

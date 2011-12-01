@@ -1769,9 +1769,7 @@ Void TEncCavlc::codeCoeffNxN    ( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPa
       iBlockType = 2 + ( pcCU->isIntra(uiAbsPartIdx) ? 0 : pcCU->getSlice()->getSliceType() );
     
     xCodeCoeff( scoeff, iBlockType, 4
-#if CAVLC_RUNLEVEL_TABLE_REM
               , pcCU->isIntra(uiAbsPartIdx)
-#endif
               );
   }
   else if ( uiSize == 4*4 )
@@ -1787,9 +1785,7 @@ Void TEncCavlc::codeCoeffNxN    ( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPa
       iBlockType = 2 + ( pcCU->isIntra(uiAbsPartIdx) ? 0 : pcCU->getSlice()->getSliceType() );
     
     xCodeCoeff( scoeff, iBlockType, 4
-#if CAVLC_RUNLEVEL_TABLE_REM
               , pcCU->isIntra(uiAbsPartIdx)
-#endif
               );
   }
   else if ( uiSize == 8*8 )
@@ -1815,9 +1811,7 @@ Void TEncCavlc::codeCoeffNxN    ( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPa
       iBlockType = 2 + ( pcCU->isIntra(uiAbsPartIdx) ? 0 : pcCU->getSlice()->getSliceType() );
     
     xCodeCoeff( scoeff, iBlockType, 8
-#if CAVLC_RUNLEVEL_TABLE_REM
               , pcCU->isIntra(uiAbsPartIdx)
-#endif
               );
   }
   else
@@ -1862,9 +1856,7 @@ Void TEncCavlc::codeCoeffNxN    ( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPa
       iBlockType = 5 + ( pcCU->isIntra(uiAbsPartIdx) ? 0 : pcCU->getSlice()->getSliceType() );
     }
     xCodeCoeff( scoeff, iBlockType, uiBlSize
-#if CAVLC_RUNLEVEL_TABLE_REM
               , pcCU->isIntra(uiAbsPartIdx)
-#endif
               );
 
     //#endif
@@ -2211,9 +2203,7 @@ Void TEncCavlc::xWriteVlc(UInt uiTableNumber, UInt uiCodeNumber)
  * \param blSize block size
  */
 Void TEncCavlc::xCodeCoeff( TCoeff* scoeff, Int blockType, Int blSize
-#if CAVLC_RUNLEVEL_TABLE_REM
                           , Int isIntra
-#endif
                           )
 {
   static const int switch_thr[10] = {49,49,0,49,49,0,49,49,49,49};
@@ -2231,9 +2221,7 @@ Void TEncCavlc::xCodeCoeff( TCoeff* scoeff, Int blockType, Int blSize
   int sum_big_coef = 0;
   Int tr1;
 
-#if CAVLC_RUNLEVEL_TABLE_REM
   Int scale = (isIntra && blockType < 2) ? 0 : 3;
-#endif
 
   /* Do the last coefficient first */
   i = 0;
@@ -2370,11 +2358,7 @@ Void TEncCavlc::xCodeCoeff( TCoeff* scoeff, Int blockType, Int blSize
           }
           else
           {
-#if CAVLC_RUNLEVEL_TABLE_REM
             cn = xRunLevelIndInter(lev, run, maxrun, scale);
-#else
-            cn = xRunLevelIndInter(lev, run, maxrun);
-#endif
           }
 
           xWriteVlc( vlc, cn );
@@ -2428,11 +2412,7 @@ Void TEncCavlc::xCodeCoeff( TCoeff* scoeff, Int blockType, Int blSize
             }
             else
             {
-#if CAVLC_RUNLEVEL_TABLE_REM
               cn = xRunLevelIndInter(0, run, maxrun, scale);
-#else
-              cn = xRunLevelIndInter(0, run, maxrun);
-#endif
             }
 
             xWriteVlc( vlc, cn );

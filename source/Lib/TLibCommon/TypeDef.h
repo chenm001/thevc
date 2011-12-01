@@ -124,8 +124,6 @@
                                                     // this should be done with encoder only decision
                                                     // but because of the absence of reference frame management, the related code was hard coded currently
 
-#define CAVLC_RUNLEVEL_TABLE_REM        1           // CAVLC coding of run-level without table (JCTVC-F543)
-
 #define OL_USE_WPP    1     // Set to 1 to enable Wavefront Parallel Processing, 0 otherwise
 #if OL_USE_WPP
 #define OL_FLUSH 1          // Set to 1 to enable Wavefront Flush.

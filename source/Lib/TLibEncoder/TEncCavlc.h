@@ -144,9 +144,7 @@ protected:
   Void  xWriteVlc             ( UInt uiTableNumber, UInt uiCodeNumber );
 
   Void  xCodeCoeff             ( TCoeff* scoeff, Int blockType, Int blSize
-#if CAVLC_RUNLEVEL_TABLE_REM
                                , Int isIntra
-#endif
                                );
   
   UInt  xConvertToUInt        ( Int iValue ) {  return ( iValue <= 0) ? -iValue<<1 : (iValue<<1)-1; }
