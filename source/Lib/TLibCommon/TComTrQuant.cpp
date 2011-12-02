@@ -279,7 +279,11 @@ void xITr(Int *coeff, Pel *block, UInt uiStride, UInt uiTrSize, UInt uiMode)
       {        
         iSum += iT[k*uiTrSize+i]*coeff[k*uiTrSize+j]; 
       }
+#if IT_CLIPPING
+      tmp[i*uiTrSize+j] = Clip3(-32768, 32767, (iSum + add_1st)>>shift_1st); // Clipping is normative
+#else
       tmp[i*uiTrSize+j] = (iSum + add_1st)>>shift_1st;
+#endif
     }
   }   
   if (uiTrSize==4)
@@ -303,7 +307,11 @@ void xITr(Int *coeff, Pel *block, UInt uiStride, UInt uiTrSize, UInt uiMode)
       {        
         iSum += iT[k*uiTrSize+j]*tmp[i*uiTrSize+k];
       }
+#if IT_CLIPPING
+      block[i*uiStride+j = Clip3(-32768, 32767, (iSum + add_2nd)>>shift_2nd); // Clipping is non-normative
+#else
       block[i*uiStride+j] = (iSum + add_2nd)>>shift_2nd;
+#endif
     }
   }
 }
@@ -382,6 +390,7 @@ void fastForwardDst(short block[4][4],short coeff[4][4],int shift)  // input blo
     coeff[3][i] =  ( 55 * c[2] - 29 * c[1]         + c[3]               + rnd_factor ) >> shift;
   }
 }
+
 void fastInverseDst(short tmp[4][4],short block[4][4],int shift)  // input tmp, output block
 {
   int i, c[4];
@@ -394,10 +403,17 @@ void fastInverseDst(short tmp[4][4],short block[4][4],int shift)  // input tmp, 
     c[2] = tmp[0][i] - tmp[3][i];
     c[3] = 74* tmp[1][i];
 
+#if IT_CLIPPING
+    block[i][0] = Clip3( -32768, 32767, ( 29 * c[0] + 55 * c[1]     + c[3]               + rnd_factor ) >> shift );
+    block[i][1] = Clip3( -32768, 32767, ( 55 * c[2] - 29 * c[1]     + c[3]               + rnd_factor ) >> shift );
+    block[i][2] = Clip3( -32768, 32767, ( 74 * (tmp[0][i] - tmp[2][i]  + tmp[3][i])      + rnd_factor ) >> shift );
+    block[i][3] = Clip3( -32768, 32767, ( 55 * c[0] + 29 * c[2]     - c[3]               + rnd_factor ) >> shift );
+#else
     block[i][0] =  ( 29 * c[0] + 55 * c[1]     + c[3]               + rnd_factor ) >> shift;
     block[i][1] =  ( 55 * c[2] - 29 * c[1]     + c[3]               + rnd_factor ) >> shift;
     block[i][2] =  ( 74 * (tmp[0][i] - tmp[2][i]  + tmp[3][i])      + rnd_factor ) >> shift;
     block[i][3] =  ( 55 * c[0] + 29 * c[2]     - c[3]               + rnd_factor ) >> shift;
+#endif
   }
 }
 /** 4x4 forward transform (2D)
@@ -452,11 +468,18 @@ void partialButterflyInverse4(short src[4][4],short dst[4][4],int shift)
     E[0] = g_aiT4[0][0]*src[0][j] + g_aiT4[2][0]*src[2][j];
     E[1] = g_aiT4[0][1]*src[0][j] + g_aiT4[2][1]*src[2][j];
     
-    /* Combining even and odd terms at each hierarchy levels to calculate the final spatial domain vector */ 
+    /* Combining even and odd terms at each hierarchy levels to calculate the final spatial domain vector */
+#if IT_CLIPPING
+    dst[j][0] = Clip3( -32768, 32767, (E[0] + O[0] + add)>>shift );
+    dst[j][1] = Clip3( -32768, 32767, (E[1] + O[1] + add)>>shift );
+    dst[j][2] = Clip3( -32768, 32767, (E[1] - O[1] + add)>>shift );
+    dst[j][3] = Clip3( -32768, 32767, (E[0] - O[0] + add)>>shift );
+#else
     dst[j][0] = (E[0] + O[0] + add)>>shift;
     dst[j][1] = (E[1] + O[1] + add)>>shift;
     dst[j][2] = (E[1] - O[1] + add)>>shift;
     dst[j][3] = (E[0] - O[0] + add)>>shift;
+#endif
   }
 }
 
@@ -475,12 +498,19 @@ void partialButterflyInverse4(short *src,short *dst,int shift, int line)
     E[0] = g_aiT4[0][0]*src[0] + g_aiT4[2][0]*src[2*line];
     E[1] = g_aiT4[0][1]*src[0] + g_aiT4[2][1]*src[2*line];
 
-    /* Combining even and odd terms at each hierarchy levels to calculate the final spatial domain vector */ 
+    /* Combining even and odd terms at each hierarchy levels to calculate the final spatial domain vector */
+#if IT_CLIPPING
+    dst[0] = Clip3( -32768, 32767, (E[0] + O[0] + add)>>shift );
+    dst[1] = Clip3( -32768, 32767, (E[1] + O[1] + add)>>shift );
+    dst[2] = Clip3( -32768, 32767, (E[1] - O[1] + add)>>shift );
+    dst[3] = Clip3( -32768, 32767, (E[0] - O[0] + add)>>shift );
+#else
     dst[0] = (E[0] + O[0] + add)>>shift;
     dst[1] = (E[1] + O[1] + add)>>shift;
     dst[2] = (E[1] - O[1] + add)>>shift;
     dst[3] = (E[0] - O[0] + add)>>shift;
-
+#endif
+            
     src   ++;
     dst += 4;
   }
@@ -646,8 +676,13 @@ void partialButterflyInverse8(short src[8][8],short dst[8][8],int shift)
     E[2] = EE[1] - EO[1];
     for (k=0;k<4;k++)
     {
+#if IT_CLIPPING
+      dst[j][k]   = Clip3( -32768, 32767, (E[k] + O[k] + add)>>shift );
+      dst[j][k+4] = Clip3( -32768, 32767, (E[3-k] - O[3-k] + add)>>shift );
+#else
       dst[j][k] = (E[k] + O[k] + add)>>shift;
       dst[j][k+4] = (E[3-k] - O[3-k] + add)>>shift;
+#endif
     }        
   }
 }
@@ -680,8 +715,13 @@ void partialButterflyInverse8(short *src,short *dst,int shift, int line)
     E[2] = EE[1] - EO[1];
     for (k=0;k<4;k++)
     {
+#if IT_CLIPPING
+      dst[ k   ] = Clip3( -32768, 32767, (E[k] + O[k] + add)>>shift );
+      dst[ k+4 ] = Clip3( -32768, 32767, (E[3-k] - O[3-k] + add)>>shift );
+#else
       dst[ k   ] = (E[k] + O[k] + add)>>shift;
       dst[ k+4 ] = (E[3-k] - O[3-k] + add)>>shift;
+#endif
     }   
     src ++;
     dst += 8;
@@ -872,8 +912,13 @@ void partialButterflyInverse16(short src[16][16],short dst[16][16],int shift)
     }    
     for (k=0;k<8;k++)
     {
+#if IT_CLIPPING
+      dst[j][k]   = Clip3( -32768, 32767, (E[k] + O[k] + add)>>shift );
+      dst[j][k+8] = Clip3( -32768, 32767, (E[7-k] - O[7-k] + add)>>shift );
+#else
       dst[j][k] = (E[k] + O[k] + add)>>shift;
       dst[j][k+8] = (E[7-k] - O[7-k] + add)>>shift;
+#endif
     }        
   }
 }
@@ -917,8 +962,13 @@ void partialButterflyInverse16(short *src,short *dst,int shift, int line)
     }    
     for (k=0;k<8;k++)
     {
+#if IT_CLIPPING
+      dst[k]   = Clip3( -32768, 32767, (E[k] + O[k] + add)>>shift );
+      dst[k+8] = Clip3( -32768, 32767, (E[7-k] - O[7-k] + add)>>shift );
+#else
       dst[k] = (E[k] + O[k] + add)>>shift;
       dst[k+8] = (E[7-k] - O[7-k] + add)>>shift;
+#endif
     }   
     src ++; 
     dst += 16;
@@ -1142,8 +1192,13 @@ void partialButterflyInverse32(short src[32][32],short dst[32][32],int shift)
     }    
     for (k=0;k<16;k++)
     {
+#if IT_CLIPPING
+      dst[j][k]    = Clip3( -32768, 32767, (E[k] + O[k] + add)>>shift );
+      dst[j][k+16] = Clip3( -32768, 32767, (E[15-k] - O[15-k] + add)>>shift );
+#else
       dst[j][k] = (E[k] + O[k] + add)>>shift;
       dst[j][k+16] = (E[15-k] - O[15-k] + add)>>shift;
+#endif
     }        
   }
 }
@@ -1199,8 +1254,13 @@ void partialButterflyInverse32(short *src,short *dst,int shift, int line)
     }    
     for (k=0;k<16;k++)
     {
+#if IT_CLIPPING
+      dst[k]    = Clip3( -32768, 32767, (E[k] + O[k] + add)>>shift );
+      dst[k+16] = Clip3( -32768, 32767, (E[15-k] - O[15-k] + add)>>shift );
+#else
       dst[ k    ] = (E[k] + O[k] + add)>>shift;
       dst[ k+16 ] = (E[15-k] - O[15-k] + add)>>shift;
+#endif
     }
     src ++;
     dst += 32;
