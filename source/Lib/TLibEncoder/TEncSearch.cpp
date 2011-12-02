@@ -91,10 +91,6 @@ TEncSearch::TEncSearch()
   m_pcEncCfg = NULL;
   m_pcEntropyCoder = NULL;
   m_pTempPel = NULL;
-
-#if WEIGHT_PRED
-  setWpScalingDistParam( NULL, -1, REF_PIC_LIST_X );
-#endif
 }
 
 TEncSearch::~TEncSearch()
@@ -256,10 +252,6 @@ __inline Void TEncSearch::xTZSearchHelp( TComPattern* pcPatternKey, IntTZSearchS
       m_cDistParam.iSubShift = 1;
     }
   }
-
-#if WEIGHT_PRED
-  setDistParamComp(0);  // Y component
-#endif
 
   // distortion
   uiSad = m_cDistParam.DistFunc( &m_cDistParam );
@@ -670,10 +662,6 @@ UInt TEncSearch::xPatternRefinement( TComPattern* pcPatternKey,
       piRefPos += iRefStride;
     cMvTest = pcMvRefine[i];
     cMvTest += rcMvFrac;
-
-#if WEIGHT_PRED
-    setDistParamComp(0);  // Y component
-#endif
 
     m_cDistParam.pCur = piRefPos;
     uiDist = m_cDistParam.DistFunc( &m_cDistParam );
@@ -2217,10 +2205,6 @@ Void TEncSearch::xGetInterPredictionError( TComDataCU* pcCU, TComYuv* pcYuvOrg, 
 
   DistParam cDistParam;
 
-#if WEIGHT_PRED
-  cDistParam.bApplyWeight = false;
-#endif
-
   m_pcRdCost->setDistParam( cDistParam, 
                             pcYuvOrg->getLumaAddr( uiAbsPartIdx ), pcYuvOrg->getStride(), 
                             m_tmpYuvPred .getLumaAddr( uiAbsPartIdx ), m_tmpYuvPred .getStride(), 
@@ -2394,11 +2378,7 @@ Void TEncSearch::predInterSearch( TComDataCU* pcCU, TComYuv* pcOrgYuv, TComYuv*&
   
   AMVPInfo aacAMVPInfo[2][33];
   
-#if WEIGHT_PRED
   Int           iRefIdx[2]={0,0}; //If un-initialized, may cause SEGV in bi-directional prediction iterative stage.
-#else
-  Int           iRefIdx[2];
-#endif
   Int           iRefIdxBi[2];
   
   UInt          uiPartAddr;
@@ -3032,10 +3012,6 @@ Void TEncSearch::predInterSearch( TComDataCU* pcCU, TComYuv* pcOrgYuv, TComYuv*&
     
   } //  end of for ( Int iPartIdx = 0; iPartIdx < iNumPart; iPartIdx++ )
 
-#if WEIGHT_PRED
-  setWpScalingDistParam( pcCU, -1, REF_PIC_LIST_X );
-#endif
-
   return;
 }
 
@@ -3306,25 +3282,7 @@ UInt TEncSearch::xGetTemplateCost( TComDataCU* pcCU,
 #endif
 
   // prediction pattern
-#if (WEIGHT_PRED)
-  if ( pcCU->getSlice()->getPPS()->getUseWP() && pcCU->getSlice()->getSliceType()==P_SLICE )
-  {
-    xPredInterLumaBlk( pcCU, pcPicYuvRef, uiPartAddr, &cMvCand, iSizeX, iSizeY, pcTemplateCand, true );
-  }
-  else
-  {
-    xPredInterLumaBlk( pcCU, pcPicYuvRef, uiPartAddr, &cMvCand, iSizeX, iSizeY, pcTemplateCand, false );
-  }
-#else
   xPredInterLumaBlk( pcCU, pcPicYuvRef, uiPartAddr, &cMvCand, iSizeX, iSizeY, pcTemplateCand, false );
-#endif
-
-#if WEIGHT_PRED
-  if ( pcCU->getSlice()->getPPS()->getUseWP() && pcCU->getSlice()->getSliceType()==P_SLICE )
-  {
-    xWeightedPredictionUni( pcCU, pcTemplateCand, uiPartAddr, iSizeX, iSizeY, eRefPicList, pcTemplateCand, uiPartIdx, iRefIdx );
-  }
-#endif 
 
   // calc distortion
 #if ZERO_MVD_EST
@@ -3405,9 +3363,6 @@ Void TEncSearch::xMotionEstimation( TComDataCU* pcCU, TComYuv* pcYuvOrg, Int iPa
   m_pcRdCost->setPredictor  ( *pcMvPred );
   m_pcRdCost->setCostScale  ( 2 );
 
-#if WEIGHT_PRED
-  setWpScalingDistParam( pcCU, iRefIdxPred, eRefPicList );
-#endif
   //  Do integer search
   if ( !m_iFastSearch || bBi )
   {
@@ -3504,10 +3459,6 @@ Void TEncSearch::xPatternSearch( TComPattern* pcPatternKey, Pel* piRefY, Int iRe
       //  find min. distortion position
       piRefSrch = piRefY + x;
       m_cDistParam.pCur = piRefSrch;
-
-#if WEIGHT_PRED
-      setDistParamComp(0);
-#endif
 
       uiSad = m_cDistParam.DistFunc( &m_cDistParam );
       
@@ -5382,49 +5333,5 @@ Void TEncSearch::xExtDIFUpSamplingQ( TComPattern* pattern, TComMv halfPelRef, Bo
   dstPtr = m_filteredBlock[3][3].getLumaAddr();
   m_if.filterVerLuma(intPtr, intStride, dstPtr, dstStride, width, height, 3, false, true);
 }
-
-#if WEIGHT_PRED
-/** set wp tables
- * \param TComDataCU* pcCU
- * \param iRefIdx
- * \param eRefPicListCur
- * \returns Void
- */
-Void  TEncSearch::setWpScalingDistParam( TComDataCU* pcCU, Int iRefIdx, RefPicList eRefPicListCur )
-{
-  if ( iRefIdx<0 )
-  {
-    m_cDistParam.bApplyWeight = false;
-    return;
-  }
-
-  TComSlice       *pcSlice  = pcCU->getSlice();
-  TComPPS         *pps      = pcCU->getSlice()->getPPS();
-  wpScalingParam  *wp0 , *wp1;
-
-  m_cDistParam.bApplyWeight = ( pcSlice->getSliceType()==P_SLICE && pps->getUseWP() ) || ( pcSlice->getSliceType()==B_SLICE && pps->getWPBiPredIdc() ) ;
-
-  if ( !m_cDistParam.bApplyWeight ) return;
-
-  Int iRefIdx0 = ( eRefPicListCur == REF_PIC_LIST_0 ) ? iRefIdx : (-1);
-  Int iRefIdx1 = ( eRefPicListCur == REF_PIC_LIST_1 ) ? iRefIdx : (-1);
-
-  getWpScaling( pcCU, iRefIdx0, iRefIdx1, wp0 , wp1 );
-
-  if ( iRefIdx0 < 0 ) wp0 = NULL;
-  if ( iRefIdx1 < 0 ) wp1 = NULL;
-
-  m_cDistParam.wpCur  = NULL;
-
-  if ( eRefPicListCur == REF_PIC_LIST_0 )
-  {
-    m_cDistParam.wpCur = wp0;
-  }
-  else
-  {
-    m_cDistParam.wpCur = wp1;
-  }
-}
-#endif
 
 //! \}

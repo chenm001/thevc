@@ -227,10 +227,6 @@ public:
   /// parse APF flags before SAO and ALF parameters
   Void parseAPSInitInfo(TComAPS& cAPS);
 #endif
-
-#if WEIGHT_PRED
-  Void parseWeightPredTable ( TComSlice* pcSlice );
-#endif
 };
 
 //! \}

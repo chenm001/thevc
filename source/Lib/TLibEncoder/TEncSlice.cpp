@@ -520,9 +520,6 @@ Void TEncSlice::initEncSlice( TComPic* pcPic, Int iPOCLast, UInt uiPOCCurr, Int 
 #if G091_SIGNAL_MAX_NUM_MERGE_CANDS
   rpcSlice->setMaxNumMergeCand      (MRG_MAX_NUM_CANDS_SIGNALED);
 #endif
-#if WEIGHT_PRED
-  xStoreWPparam( pPPS->getUseWP(), pPPS->getWPBiPredIdc() );
-#endif
 }
 
 // ====================================================================================================================
@@ -700,40 +697,6 @@ Void TEncSlice::compressSlice( TComPic*& rpcPic )
     m_pcEntropyCoder->setBitstream    ( m_pcBitCounter );
   }
   
-#if WEIGHT_PRED
-  //------------------------------------------------------------------------------
-  //  Weighted Prediction parameters estimation.
-  //------------------------------------------------------------------------------
-  // calculate AC/DC values for current picture
-  if( pcSlice->getPPS()->getUseWP() || pcSlice->getPPS()->getWPBiPredIdc() )
-  {
-    xCalcACDCParamSlice(pcSlice);
-  }
-
-  Bool bWp_explicit = (pcSlice->getSliceType()==P_SLICE && pcSlice->getPPS()->getUseWP()) || (pcSlice->getSliceType()==B_SLICE && pcSlice->getPPS()->getWPBiPredIdc()==1);
-  Bool bWp_implicit = (pcSlice->getSliceType()==B_SLICE && pcSlice->getPPS()->getWPBiPredIdc()==2);
-
-  if ( bWp_explicit || bWp_implicit )
-  {
-    //------------------------------------------------------------------------------
-    //  Weighted Prediction implemented at Slice level. SliceMode=2 is not supported yet.
-    //------------------------------------------------------------------------------
-    if ( pcSlice->getSliceMode()==2 || pcSlice->getEntropySliceMode()==2 )
-    {
-      printf("Weighted Prediction is not supported with slice mode determined by max number of bins.\n"); exit(0);
-    }
-
-    if( bWp_explicit )
-      xEstimateWPParamSlice( pcSlice );
-
-    pcSlice->initWpScaling();
-
-    // check WP on/off
-    if( bWp_explicit )
-      xCheckWPEnable( pcSlice );
-  }
-#endif
-
   // initialize ALF parameters
   m_pcEntropyCoder->setAlfCtrl(false);
   m_pcEntropyCoder->setMaxAlfCtrlDepth(0); //unnecessary
@@ -1121,9 +1084,6 @@ Void TEncSlice::compressSlice( TComPic*& rpcPic )
   pcSlice->setEntropySliceCurEndCUAddr( uiCUAddr );
 #endif
   pcSlice->setSliceBits( (UInt)(pcSlice->getSliceBits() + uiBitsCoded) );
-#endif
-#if WEIGHT_PRED
-  xRestoreWPparam( pcSlice );
 #endif
 }
 

@@ -230,12 +230,6 @@ protected:
 #endif
 #endif
 
-  // weighted prediction
-#if WEIGHT_PRED
-  Bool      m_bUseWeightPred;                                 ///< Use of explicit Weighting Prediction for P_SLICE
-  UInt      m_uiBiPredIdc;                                    ///< Use of Bi-Directional Weighting Prediction (B_SLICE): explicit(1) or implicit(2)
-#endif
-
   // internal member functions
   Void  xSetGlobal      ();                                   ///< set global variables
   Void  xCheckParameter ();                                   ///< check validity of configuration values

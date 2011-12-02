@@ -444,11 +444,6 @@ UInt TComRdCost::getDistPart( Pel* piCur, Int iCurStride,  Pel* piOrg, Int iOrgS
   cDtParam.iStrideCur = iCurStride;
   cDtParam.iStep      = 1;
 
-#if WEIGHT_PRED
-  cDtParam.bApplyWeight = false;
-  cDtParam.uiComp       = 255;    // just for assert: to be sure it was set before use, since only values 0,1 or 2 are allowed.
-#endif
-
 #if WEIGHTED_CHROMA_DISTORTION
   if (bWeighted)
   {
@@ -475,12 +470,6 @@ UInt TComRdCost::getDistPart( Pel* piCur, Int iCurStride,  Pel* piOrg, Int iOrgS
 
 UInt TComRdCost::xGetSAD( DistParam* pcDtParam )
 {
-#if WEIGHT_PRED
-  if ( pcDtParam->bApplyWeight )
-  {
-    return xGetSADw( pcDtParam );
-  }
-#endif
   Pel* piOrg   = pcDtParam->pOrg;
   Pel* piCur   = pcDtParam->pCur;
   Int  iRows   = pcDtParam->iRows;
@@ -505,12 +494,6 @@ UInt TComRdCost::xGetSAD( DistParam* pcDtParam )
 
 UInt TComRdCost::xGetSAD4( DistParam* pcDtParam )
 {
-#if WEIGHT_PRED
-  if ( pcDtParam->bApplyWeight ) 
-  {
-    return xGetSADw( pcDtParam );
-  }
-#endif
   Pel* piOrg   = pcDtParam->pOrg;
   Pel* piCur   = pcDtParam->pCur;
   Int  iRows   = pcDtParam->iRows;
@@ -538,12 +521,6 @@ UInt TComRdCost::xGetSAD4( DistParam* pcDtParam )
 
 UInt TComRdCost::xGetSAD8( DistParam* pcDtParam )
 {
-#if WEIGHT_PRED
-  if ( pcDtParam->bApplyWeight )
-  {
-    return xGetSADw( pcDtParam );
-  }
-#endif
   Pel* piOrg      = pcDtParam->pOrg;
   Pel* piCur      = pcDtParam->pCur;
   Int  iRows      = pcDtParam->iRows;
@@ -575,12 +552,6 @@ UInt TComRdCost::xGetSAD8( DistParam* pcDtParam )
 
 UInt TComRdCost::xGetSAD16( DistParam* pcDtParam )
 {
-#if WEIGHT_PRED
-  if ( pcDtParam->bApplyWeight )
-  {
-    return xGetSADw( pcDtParam );
-  }
-#endif
   Pel* piOrg   = pcDtParam->pOrg;
   Pel* piCur   = pcDtParam->pCur;
   Int  iRows   = pcDtParam->iRows;
@@ -621,12 +592,6 @@ UInt TComRdCost::xGetSAD16( DistParam* pcDtParam )
 #if AMP_SAD
 UInt TComRdCost::xGetSAD12( DistParam* pcDtParam )
 {
-#if WEIGHT_PRED
-  if ( pcDtParam->bApplyWeight )
-  {
-    return xGetSADw( pcDtParam );
-  }
-#endif
   Pel* piOrg   = pcDtParam->pOrg;
   Pel* piCur   = pcDtParam->pCur;
   Int  iRows   = pcDtParam->iRows;
@@ -705,12 +670,6 @@ UInt TComRdCost::xGetSAD16N( DistParam* pcDtParam )
 
 UInt TComRdCost::xGetSAD32( DistParam* pcDtParam )
 {
-#if WEIGHT_PRED
-  if ( pcDtParam->bApplyWeight )
-  {
-    return xGetSADw( pcDtParam );
-  }
-#endif
   Pel* piOrg   = pcDtParam->pOrg;
   Pel* piCur   = pcDtParam->pCur;
   Int  iRows   = pcDtParam->iRows;
@@ -767,12 +726,6 @@ UInt TComRdCost::xGetSAD32( DistParam* pcDtParam )
 #if AMP_SAD
 UInt TComRdCost::xGetSAD24( DistParam* pcDtParam )
 {
-#if WEIGHT_PRED
-  if ( pcDtParam->bApplyWeight )
-  {
-    return xGetSADw( pcDtParam );
-  }
-#endif
   Pel* piOrg   = pcDtParam->pOrg;
   Pel* piCur   = pcDtParam->pCur;
   Int  iRows   = pcDtParam->iRows;
@@ -822,12 +775,6 @@ UInt TComRdCost::xGetSAD24( DistParam* pcDtParam )
 
 UInt TComRdCost::xGetSAD64( DistParam* pcDtParam )
 {
-#if WEIGHT_PRED
-  if ( pcDtParam->bApplyWeight )
-  {
-    return xGetSADw( pcDtParam );
-  }
-#endif
   Pel* piOrg   = pcDtParam->pOrg;
   Pel* piCur   = pcDtParam->pCur;
   Int  iRows   = pcDtParam->iRows;
@@ -916,12 +863,6 @@ UInt TComRdCost::xGetSAD64( DistParam* pcDtParam )
 #if AMP_SAD
 UInt TComRdCost::xGetSAD48( DistParam* pcDtParam )
 {
-#if WEIGHT_PRED
-  if ( pcDtParam->bApplyWeight )
-  {
-    return xGetSADw( pcDtParam );
-  }
-#endif
   Pel* piOrg   = pcDtParam->pOrg;
   Pel* piCur   = pcDtParam->pCur;
   Int  iRows   = pcDtParam->iRows;
@@ -1317,12 +1258,6 @@ UInt TComRdCost::xGetSSE64( DistParam* pcDtParam )
 #else
 UInt TComRdCost::xGetSSE( DistParam* pcDtParam )
 {
-#if WEIGHT_PRED
-  if ( pcDtParam->bApplyWeight )
-  {
-    return xGetSSEw( pcDtParam );
-  }
-#endif
   Pel* piOrg   = pcDtParam->pOrg;
   Pel* piCur   = pcDtParam->pCur;
   Int  iRows   = pcDtParam->iRows;
@@ -1351,13 +1286,6 @@ UInt TComRdCost::xGetSSE( DistParam* pcDtParam )
 
 UInt TComRdCost::xGetSSE4( DistParam* pcDtParam )
 {
-#if WEIGHT_PRED
-  if ( pcDtParam->bApplyWeight )
-  {
-    assert( pcDtParam->iCols == 4 );
-    return xGetSSEw( pcDtParam );
-  }
-#endif
   Pel* piOrg   = pcDtParam->pOrg;
   Pel* piCur   = pcDtParam->pCur;
   Int  iRows   = pcDtParam->iRows;
@@ -1386,13 +1314,6 @@ UInt TComRdCost::xGetSSE4( DistParam* pcDtParam )
 
 UInt TComRdCost::xGetSSE8( DistParam* pcDtParam )
 {
-#if WEIGHT_PRED
-  if ( pcDtParam->bApplyWeight )
-  {
-    assert( pcDtParam->iCols == 8 );
-    return xGetSSEw( pcDtParam );
-  }
-#endif
   Pel* piOrg   = pcDtParam->pOrg;
   Pel* piCur   = pcDtParam->pCur;
   Int  iRows   = pcDtParam->iRows;
@@ -1424,13 +1345,6 @@ UInt TComRdCost::xGetSSE8( DistParam* pcDtParam )
 
 UInt TComRdCost::xGetSSE16( DistParam* pcDtParam )
 {
-#if WEIGHT_PRED
-  if ( pcDtParam->bApplyWeight )
-  {
-    assert( pcDtParam->iCols == 16 );
-    return xGetSSEw( pcDtParam );
-  }
-#endif
   Pel* piOrg   = pcDtParam->pOrg;
   Pel* piCur   = pcDtParam->pCur;
   Int  iRows   = pcDtParam->iRows;
@@ -1471,12 +1385,6 @@ UInt TComRdCost::xGetSSE16( DistParam* pcDtParam )
 
 UInt TComRdCost::xGetSSE16N( DistParam* pcDtParam )
 {
-#if WEIGHT_PRED
-  if ( pcDtParam->bApplyWeight )
-  {
-    return xGetSSEw( pcDtParam );
-  }
-#endif
   Pel* piOrg   = pcDtParam->pOrg;
   Pel* piCur   = pcDtParam->pCur;
   Int  iRows   = pcDtParam->iRows;
@@ -1520,13 +1428,6 @@ UInt TComRdCost::xGetSSE16N( DistParam* pcDtParam )
 
 UInt TComRdCost::xGetSSE32( DistParam* pcDtParam )
 {
-#if WEIGHT_PRED
-  if ( pcDtParam->bApplyWeight )
-  {
-    assert( pcDtParam->iCols == 32 );
-    return xGetSSEw( pcDtParam );
-  }
-#endif
   Pel* piOrg   = pcDtParam->pOrg;
   Pel* piCur   = pcDtParam->pCur;
   Int  iRows   = pcDtParam->iRows;
@@ -1582,13 +1483,6 @@ UInt TComRdCost::xGetSSE32( DistParam* pcDtParam )
 
 UInt TComRdCost::xGetSSE64( DistParam* pcDtParam )
 {
-#if WEIGHT_PRED
-  if ( pcDtParam->bApplyWeight )
-  {
-    assert( pcDtParam->iCols == 64 );
-    return xGetSSEw( pcDtParam );
-  }
-#endif
   Pel* piOrg   = pcDtParam->pOrg;
   Pel* piCur   = pcDtParam->pCur;
   Int  iRows   = pcDtParam->iRows;
@@ -2130,12 +2024,6 @@ UInt TComRdCost::xCalcHADs4x16( Pel *piOrg, Pel *piCur, Int iStrideOrg, Int iStr
 
 UInt TComRdCost::xGetHADs4( DistParam* pcDtParam )
 {
-#if WEIGHT_PRED
-  if ( pcDtParam->bApplyWeight )
-  {
-    return xGetHADs4w( pcDtParam );
-  }
-#endif
   Pel* piOrg   = pcDtParam->pOrg;
   Pel* piCur   = pcDtParam->pCur;
   Int  iRows   = pcDtParam->iRows;
@@ -2160,12 +2048,6 @@ UInt TComRdCost::xGetHADs4( DistParam* pcDtParam )
 
 UInt TComRdCost::xGetHADs8( DistParam* pcDtParam )
 {
-#if WEIGHT_PRED
-  if ( pcDtParam->bApplyWeight )
-  {
-    return xGetHADs8w( pcDtParam );
-  }
-#endif
   Pel* piOrg   = pcDtParam->pOrg;
   Pel* piCur   = pcDtParam->pCur;
   Int  iRows   = pcDtParam->iRows;
@@ -2198,12 +2080,6 @@ UInt TComRdCost::xGetHADs8( DistParam* pcDtParam )
 
 UInt TComRdCost::xGetHADs( DistParam* pcDtParam )
 {
-#if WEIGHT_PRED
-  if ( pcDtParam->bApplyWeight )
-  {
-    return xGetHADsw( pcDtParam );
-  }
-#endif
   Pel* piOrg   = pcDtParam->pOrg;
   Pel* piCur   = pcDtParam->pCur;
   Int  iRows   = pcDtParam->iRows;

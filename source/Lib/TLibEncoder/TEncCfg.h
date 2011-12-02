@@ -252,12 +252,6 @@ protected:
 #endif
 #endif
 
-#if WEIGHT_PRED
-  //====== Weighted Prediction ========
-  Bool      m_bUseWeightPred;       //< Use of Weighting Prediction (P_SLICE)
-  UInt      m_uiBiPredIdc;          //< Use of Bi-Directional Weighting Prediction (B_SLICE)
-#endif
-
 public:
   TEncCfg()          {}
   virtual ~TEncCfg() {
@@ -632,13 +626,6 @@ public:
   Void      setUseNewRefSetting    ( Bool b ) { m_bUseNewRefSetting = b;    }
   Bool      getUseNewRefSetting    ()         { return m_bUseNewRefSetting; }
 #endif
-#endif
-
-#if WEIGHT_PRED
-  Void      setUseWP               ( Bool  b )   { m_bUseWeightPred    = b;    }
-  Void      setWPBiPredIdc         ( UInt u )    { m_uiBiPredIdc       = u;    }
-  Bool      getUseWP               ()            { return m_bUseWeightPred;    }
-  UInt      getWPBiPredIdc         ()            { return m_uiBiPredIdc;       }
 #endif
 
 };
