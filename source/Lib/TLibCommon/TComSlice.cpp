@@ -77,8 +77,6 @@ TComSlice::TComSlice()
 , m_uiSliceCurStartCUAddr         ( 0 )
 , m_uiSliceCurEndCUAddr           ( 0 )
 , m_uiSliceIdx                    ( 0 )
-, m_uiEntropySliceMode            ( 0 )
-, m_uiEntropySliceArgument        ( 0 )
 , m_uiEntropySliceCurStartCUAddr  ( 0 )
 , m_uiEntropySliceCurEndCUAddr    ( 0 )
 , m_bNextSlice                    ( false )
@@ -921,8 +919,6 @@ Void TComSlice::copySliceInfo(TComSlice *pSrc)
   m_uiSliceCurStartCUAddr         = pSrc->m_uiSliceCurStartCUAddr;
   m_uiSliceCurEndCUAddr           = pSrc->m_uiSliceCurEndCUAddr;
   m_uiSliceIdx                    = pSrc->m_uiSliceIdx;
-  m_uiEntropySliceMode            = pSrc->m_uiEntropySliceMode;
-  m_uiEntropySliceArgument        = pSrc->m_uiEntropySliceArgument; 
   m_uiEntropySliceCurStartCUAddr  = pSrc->m_uiEntropySliceCurStartCUAddr;
   m_uiEntropySliceCurEndCUAddr    = pSrc->m_uiEntropySliceCurEndCUAddr;
   m_bNextSlice                    = pSrc->m_bNextSlice;

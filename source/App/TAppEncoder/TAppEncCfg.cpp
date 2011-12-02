@@ -267,8 +267,6 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
 #if G215_ALF_NUM_FILTER
   ("ALFMaxNumFilter,-ALFMNF", m_iALFMaxNumberFilters, 16, "16: No Constrained, 1-15: Constrained max number of filter")
 #endif
-    ("EntropySliceMode",     m_iEntropySliceMode,    0, "0: Disable all entropy slice limits, 1: Enforce max # of LCUs, 2: Enforce constraint based entropy slices")
-    ("EntropySliceArgument", m_iEntropySliceArgument,0, "if EntropySliceMode==1 SliceArgument represents max # of LCUs. if EntropySliceMode==2 EntropySliceArgument represents max # of bins.")
     ("LFCrossSliceBoundaryFlag", m_bLFCrossSliceBoundaryFlag, true)
     ("ConstrainedIntraPred", m_bUseConstrainedIntraPred, false, "Constrained Intra Prediction")
     ("PCMLog2MinSize", m_uiPCMLog2MinSize, 7u)
@@ -521,11 +519,6 @@ Void TAppEncCfg::xCheckParameter()
   xConfirmPara(  m_uiPCMLog2MinSize < 3,                                        "PCMLog2MinSize must be 3 or greater.");
   xConfirmPara(  m_uiPCMLog2MinSize > 7,                                        "PCMLog2MinSize must be 7 or smaller.");
 
-  xConfirmPara( m_iEntropySliceMode < 0 || m_iEntropySliceMode > 2, "EntropySliceMode exceeds supported range (0 to 2)" );
-  if (m_iEntropySliceMode!=0)
-  {
-    xConfirmPara( m_iEntropySliceArgument < 1 ,         "EntropySliceArgument should be larger than or equal to 1" );
-  }
 #if !DISABLE_CAVLC
   xConfirmPara( m_iSymbolMode < 0 || m_iSymbolMode > 1,                                     "SymbolMode must be equal to 0 or 1" );
 #endif
@@ -920,20 +913,6 @@ Void TAppEncCfg::xPrintParameter()
   printf("RQT:%d ", 1     );
   printf("MRG:%d ", m_bUseMRG             ); // SOPH: Merge Mode
   printf("LMC:%d ", m_bUseLMChroma        ); 
-#if FINE_GRANULARITY_SLICES
-  printf("EntropySlice: M=%d ",m_iEntropySliceMode);
-  if (m_iEntropySliceMode!=0)
-  {
-    printf("A=%d ", m_iEntropySliceArgument);
-  }
-#else
-  printf("Slice:%d ",0);
-  printf("EntropySlice:%d ",m_iEntropySliceMode);
-  if (m_iEntropySliceMode!=0)
-  {
-    printf("(%d) ", m_iEntropySliceArgument);
-  }
-#endif
   printf("CIP:%d ", m_bUseConstrainedIntraPred);
 #if SAO
   printf("SAO:%d ", (m_bUseSAO)?(1):(0));

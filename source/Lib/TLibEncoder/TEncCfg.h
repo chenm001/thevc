@@ -203,9 +203,6 @@ protected:
   
   Bool      m_bUseConstrainedIntraPred;
   UInt      m_uiPCMLog2MinSize;
-  //====== Entropy Slice ========
-  Int       m_iEntropySliceMode;
-  Int       m_iEntropySliceArgument;
   Bool      m_bLFCrossSliceBoundaryFlag;
 #if E192_SPS_PCM_BIT_DEPTH_SYNTAX
   Bool      m_bPCMInputBitDepthFlag;
@@ -499,11 +496,6 @@ public:
   Int*      getdQPs                         ()      { return m_aidQP;       }
   UInt      getDeltaQpRD                    ()      { return m_uiDeltaQpRD; }
 
-  //====== Entropy Slice ========
-  Void  setEntropySliceMode            ( Int  i )      { m_iEntropySliceMode = i;       }
-  Void  setEntropySliceArgument        ( Int  i )      { m_iEntropySliceArgument = i;   }
-  Int   getEntropySliceMode            ()              { return m_iEntropySliceMode;    }
-  Int   getEntropySliceArgument        ()              { return m_iEntropySliceArgument;}
   Void      setLFCrossSliceBoundaryFlag     ( Bool   bValue  )    { m_bLFCrossSliceBoundaryFlag = bValue; }
   Bool      getLFCrossSliceBoundaryFlag     ()                    { return m_bLFCrossSliceBoundaryFlag;   }
 #if SAO

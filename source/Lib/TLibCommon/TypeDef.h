@@ -249,9 +249,6 @@
 /////////////////////////////////
 #define FINE_GRANULARITY_SLICES 1
 
-// Entropy slice options
-#define SHARP_FIXED_NUMBER_OF_LCU_IN_ENTROPY_SLICE            1          ///< OPTION IDENTIFIER. Limit maximum number of largest coding tree blocks in an entropy slice
-#define SHARP_MULTIPLE_CONSTRAINT_BASED_ENTROPY_SLICE         2          ///< OPTION IDENTIFIER. Limit maximum number of bins/bits in an entropy slice
 /////////////////////////////////
 // AHG SLICES defines section end
 /////////////////////////////////

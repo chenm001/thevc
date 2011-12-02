@@ -687,7 +687,7 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
             uiNumSlices ++;
           }
         }
-        else if (pcSlice->isNextEntropySlice() || (bNoBinBitConstraintViolated && m_pcCfg->getEntropySliceMode()==SHARP_FIXED_NUMBER_OF_LCU_IN_ENTROPY_SLICE))
+        else if (pcSlice->isNextEntropySlice())
         {
           uiStartCUAddrEntropySlice                                                     = pcSlice->getEntropySliceCurEndCUAddr();
           m_uiStoredStartCUAddrForEncodingEntropySlice[uiStartCUAddrEntropySliceIdx++]  = uiStartCUAddrEntropySlice;

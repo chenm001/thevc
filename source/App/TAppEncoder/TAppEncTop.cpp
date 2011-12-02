@@ -180,16 +180,6 @@ Void TAppEncTop::xInitLibCfg()
   m_cTEncTop.setUseConstrainedIntraPred      ( m_bUseConstrainedIntraPred );
   m_cTEncTop.setPCMLog2MinSize          ( m_uiPCMLog2MinSize);
 
-  //====== Entropy Slice ========
-  m_cTEncTop.setEntropySliceMode        ( m_iEntropySliceMode         );
-  m_cTEncTop.setEntropySliceArgument    ( m_iEntropySliceArgument     );
-#if FINE_GRANULARITY_SLICES
-  int iNumPartInCU = 1<<(m_uiMaxCUDepth<<1);
-  if(m_iEntropySliceMode==SHARP_FIXED_NUMBER_OF_LCU_IN_ENTROPY_SLICE)
-  {
-    m_cTEncTop.setEntropySliceArgument ( m_iEntropySliceArgument * iNumPartInCU );
-  }
-#endif
   m_bLFCrossSliceBoundaryFlag = true;
   m_cTEncTop.setLFCrossSliceBoundaryFlag( m_bLFCrossSliceBoundaryFlag );
 #if SAO

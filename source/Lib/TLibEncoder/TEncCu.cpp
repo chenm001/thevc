@@ -991,20 +991,6 @@ Void TEncCu::xCompressCU( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, UInt u
       Bool bEntropyLimit=false;
       Bool bSliceLimit=false;
       bSliceLimit=false;
-      if(rpcBestCU->getSlice()->getEntropySliceMode()==SHARP_MULTIPLE_CONSTRAINT_BASED_ENTROPY_SLICE&&m_pcEncCfg->getUseSBACRD())
-      {
-        if(rpcBestCU->getTotalBins()>rpcBestCU->getSlice()->getEntropySliceArgument())
-        {
-          bEntropyLimit=true;
-        }
-      }
-      else if(rpcBestCU->getSlice()->getEntropySliceMode()==SHARP_MULTIPLE_CONSTRAINT_BASED_ENTROPY_SLICE)
-      {
-        if(rpcBestCU->getTotalBits()>rpcBestCU->getSlice()->getEntropySliceArgument())
-        {
-          bEntropyLimit=true;
-        }
-      }
       // CHECK_ME: always true?
       if(rpcBestCU->getDepth(0)>=0)
       {
@@ -1121,25 +1107,6 @@ Void TEncCu::finishCU( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
   if(iGranularityEnd<=pcSlice->getEntropySliceCurStartCUAddr()) 
   {
     iGranularityEnd+=max(iGranularitySize,(pcCU->getPic()->getNumPartInCU()>>(uiDepth<<1)));
-  }
-  // Set entropy slice end parameter
-  if(m_pcEncCfg->getUseSBACRD()) 
-  {
-    TEncBinCABAC *pppcRDSbacCoder = (TEncBinCABAC *) m_pppcRDSbacCoder[0][CI_CURR_BEST]->getEncBinIf();
-    UInt uiBinsCoded = pppcRDSbacCoder->getBinsCoded();
-    if(pcSlice->getEntropySliceMode()==SHARP_MULTIPLE_CONSTRAINT_BASED_ENTROPY_SLICE&&!pcSlice->getFinalized()&&pcSlice->getEntropySliceCounter()+uiBinsCoded>pcSlice->getEntropySliceArgument())
-    {
-      pcSlice->setEntropySliceCurEndCUAddr(iGranularityEnd);
-      return;
-    }
-  }
-  else
-  {
-    if(pcSlice->getEntropySliceMode()==SHARP_MULTIPLE_CONSTRAINT_BASED_ENTROPY_SLICE&&!pcSlice->getFinalized()&&pcSlice->getEntropySliceCounter()+m_pcBitCounter->getNumberOfWrittenBits()>pcSlice->getEntropySliceArgument()) 
-    {
-      pcSlice->setEntropySliceCurEndCUAddr(iGranularityEnd);
-      return;
-    }
   }
   if(granularityBoundary)
   {
