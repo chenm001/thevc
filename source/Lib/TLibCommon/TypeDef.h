@@ -41,9 +41,10 @@
 //! \ingroup TLibCommon
 //! \{
 
-#define CABAC_RICE_FIX 1 ///< G495: fixing an entry in g_auiGoRicePrefixLen table
+#define CABAC_RICE_FIX            1 ///< G495: fixing an entry in g_auiGoRicePrefixLen table
 #define BYPASS_FOR_LAST_COEFF_MOD 1 ///< grouping of bypass bins for last_significant_coeff_x/y, MSB first
-#define DISABLE_CAVLC 1 ///< disable second entropy coder
+#define DISABLE_CAVLC             1 ///< disable second entropy coder
+#define MOD_IF_G778A              1 ///< modified interpolation filter according to set A in G778
 
 #define WEIGHTED_CHROMA_DISTORTION  1   ///< F386: weighting of chroma for RDO
 #define RDOQ_CHROMA_LAMBDA          1   ///< F386: weighting of chroma for RDOQ
