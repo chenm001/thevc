@@ -57,7 +57,7 @@
 
 // RDOQ parameter
 
-
+#if !DISABLE_CAVLC
 static const int VLClength[14][128] =
 {
   { 1, 2, 3, 4, 5, 6, 7, 9, 9,11,11,11,11,13,13,13,13,13,13,13,13,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19},
@@ -73,9 +73,10 @@ static const int VLClength[14][128] =
   { 1, 3, 3, 5, 5, 5, 5, 7, 7, 7, 7, 7, 7, 7, 7, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,15},
 
   { 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8},
-  { 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8}
-  ,{ 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,12,12,12,12,12,12,12,12,12,12,12,12,12,12,12,12}
+  { 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8},
+  { 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,12,12,12,12,12,12,12,12,12,12,12,12,12,12,12,12}
 };
+#endif
 
 // ====================================================================================================================
 // Qp class member functions
@@ -219,7 +220,7 @@ void xTr(Pel *block, Int *coeff, UInt uiStride, UInt uiTrSize, UInt uiMode)
       }
       coeff[i*uiTrSize+j] = (iSum + add_2nd)>>shift_2nd; 
     }
-  }  
+  }
 }
 
 /** NxN inverse transform (2D) using brute force matrix multiplication (3 nested loops)
@@ -234,6 +235,7 @@ void xITr(Int *coeff, Pel *block, UInt uiStride, UInt uiTrSize, UInt uiMode)
   int i,j,k,iSum;
   Int tmp[32*32];
   const short *iT;
+  
   if (uiTrSize==4)
   {
     iT  = g_aiT4[0];
@@ -254,6 +256,7 @@ void xITr(Int *coeff, Pel *block, UInt uiStride, UInt uiTrSize, UInt uiMode)
   {
     assert(0);
   }
+  
   int shift_1st = SHIFT_INV_1ST;
   int add_1st = 1<<(shift_1st-1);  
 #if FULL_NBIT
@@ -269,6 +272,7 @@ void xITr(Int *coeff, Pel *block, UInt uiStride, UInt uiTrSize, UInt uiMode)
       iT  =  g_as_DST_MAT_4[0];
     }
   }
+  
   /* Horizontal transform */
   for (i=0; i<uiTrSize; i++)
   {    
@@ -286,6 +290,7 @@ void xITr(Int *coeff, Pel *block, UInt uiStride, UInt uiTrSize, UInt uiMode)
 #endif
     }
   }   
+  
   if (uiTrSize==4)
   {
     if (uiMode != REG_DCT && g_aucDCTDSTMode_Hor[uiMode] )   // Check for DCT or DST
@@ -297,6 +302,7 @@ void xITr(Int *coeff, Pel *block, UInt uiStride, UInt uiTrSize, UInt uiMode)
       iT  = g_aiT4[0];
     }
   }
+  
   /* Vertical transform */
   for (i=0; i<uiTrSize; i++)
   {   
@@ -308,7 +314,7 @@ void xITr(Int *coeff, Pel *block, UInt uiStride, UInt uiTrSize, UInt uiMode)
         iSum += iT[k*uiTrSize+j]*tmp[i*uiTrSize+k];
       }
 #if IT_CLIPPING
-      block[i*uiStride+j = Clip3(-32768, 32767, (iSum + add_2nd)>>shift_2nd); // Clipping is non-normative
+      block[i*uiStride+j] = Clip3(-32768, 32767, (iSum + add_2nd)>>shift_2nd); // Clipping is non-normative
 #else
       block[i*uiStride+j] = (iSum + add_2nd)>>shift_2nd;
 #endif
@@ -1370,6 +1376,7 @@ void xITrMxN(short *coeff,short *block, int iWidth, int iHeight)
 
 #endif //MATRIX_MULT
 
+#if !DISABLE_CAVLC
 UInt TComTrQuant::xCountVlcBits(UInt uiTableNumber, UInt uiCodeNumber)
 {
   UInt uiLength = 0;
@@ -2270,6 +2277,7 @@ Void TComTrQuant::xRateDistOptQuant_LCEC(TComDataCU* pcCU, Int* pSrcCoeff, TCoef
     }
   }
 }
+#endif
 
 Void TComTrQuant::xQuant(TComDataCU* pcCU, Int* pSrc, TCoeff* pDes, Int iWidth, Int iHeight, UInt& uiAcSum, TextType eTType, UInt uiAbsPartIdx )
 {
@@ -2413,10 +2421,10 @@ Void TComTrQuant::init( UInt uiMaxWidth, UInt uiMaxHeight, UInt uiMaxTrSize, Int
   m_uiMaxTrSize  = uiMaxTrSize;
   m_bEnc         = bEnc;
   m_bUseRDOQ     = bUseRDOQ;
+#if !DISABLE_CAVLC
   m_uiLPTableE8 = aTableLP8;
   m_uiLPTableE4 = aTableLP4;
   m_uiLastPosVlcIndex=aTableLastPosVlcIndex;
-#if !DISABLE_CAVLC
   m_iSymbolMode = iSymbolMode;
 #endif
 }
@@ -2877,27 +2885,7 @@ Void TComTrQuant::xIT( UInt uiMode, Int* plCoef, Pel* pResidual, UInt uiStride, 
   }
 #endif  
 }
-    
-UInt TComTrQuant::getCurrLineNum(UInt uiScanIdx, UInt uiPosX, UInt uiPosY)
-{
-  UInt uiLineNum = 0;
-  
-  switch (uiScanIdx)
-  {
-    case SCAN_ZIGZAG:
-      uiLineNum = uiPosY + uiPosX;
-      break;
-    case SCAN_HOR:
-      uiLineNum = uiPosY;
-      break;
-    case SCAN_VER:
-      uiLineNum = uiPosX;
-      break;
-  }
-  
-  return uiLineNum;
-}
-
+ 
 /** RDOQ with CABAC
  * \param pcCU pointer to coding unit structure
  * \param plSrcCoeff pointer to input buffer

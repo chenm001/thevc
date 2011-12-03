@@ -70,6 +70,7 @@ typedef struct
   Int scanNonZigzag[2];         ///< flag for non zigzag scan
 } estBitsSbacStruct;
 
+#if !DISABLE_CAVLC
 typedef struct
 {
   Int level[4];
@@ -92,9 +93,8 @@ typedef struct
   Int nexLevelVal;
 } quantLevelStruct;
 
-
-
 class TEncCavlc;
+#endif
 
 // ====================================================================================================================
 // Class definition
@@ -191,12 +191,12 @@ protected:
   Bool     m_bEnc;
   Bool     m_bUseRDOQ;
   
+#if !DISABLE_CAVLC 
   UInt     *m_uiLPTableE8;
   UInt     *m_uiLPTableE4;
-#if !DISABLE_CAVLC 
   Int      m_iSymbolMode;
-#endif
   UInt     *m_uiLastPosVlcIndex;
+#endif
   
 private:
   // forward Transform
@@ -210,6 +210,7 @@ private:
   Void xQuant( TComDataCU* pcCU, Int* pSrc, TCoeff* pDes, Int iWidth, Int iHeight, UInt& uiAcSum, TextType eTType, UInt uiAbsPartIdx );
 
   // RDOQ functions
+#if !DISABLE_CAVLC
   Int            xCodeCoeffCountBitsLast(TCoeff* scoeff, levelDataStruct* levelData, Int nTab, UInt uiNoCoeff, Int iStartLast
                                         , Int isIntra
                                         );
@@ -218,7 +219,6 @@ private:
                               UInt uiTr1, Int iSum_big_coef, Int iBlockType, TComDataCU* pcCU, const UInt **pLumaRunTr1, Int iNextRun
                               , Int isIntra
                               );
-UInt             getCurrLineNum(UInt uiScanIdx, UInt uiPosX, UInt uiPosY);
   Void           xRateDistOptQuant_LCEC ( TComDataCU*                     pcCU,
                                           Int*                            plSrcCoeff,
                                           TCoeff*                         piDstCoeff,
@@ -227,6 +227,7 @@ UInt             getCurrLineNum(UInt uiScanIdx, UInt uiPosX, UInt uiPosY);
                                           UInt&                           uiAbsSum,
                                           TextType                        eTType,
                                           UInt                            uiAbsPartIdx );
+#endif
   
   Void           xRateDistOptQuant ( TComDataCU*                     pcCU,
                                      Int*                            plSrcCoeff,
