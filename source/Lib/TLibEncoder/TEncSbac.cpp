@@ -1032,14 +1032,14 @@ Void TEncSbac::codeQtRootCbf( TComDataCU* pcCU, UInt uiAbsPartIdx )
 /** Encode (X,Y) position of the last significant coefficient
  * \param uiPosX X component of last coefficient
  * \param uiPosY Y component of last coefficient
- * \param uiWidth block width
+ * \param width  Block width
+ * \param height Block height
  * \param eTType plane type / luminance or chrominance
  * \param uiCTXIdx block size context
  * \param uiScanIdx scan type (zig-zag, hor, ver)
- * \returns Void
  * This method encodes the X and Y component within a block of the last significant coefficient.
  */
-__inline Void TEncSbac::codeLastSignificantXY( UInt uiPosX, UInt uiPosY, const UInt uiWidth, const TextType eTType, const UInt uiCTXIdx, const UInt uiScanIdx )
+Void TEncSbac::codeLastSignificantXY( UInt uiPosX, UInt uiPosY, Int width, Int height, TextType eTType, UInt uiCTXIdx, UInt uiScanIdx )
 {  
   // swap
   if( uiScanIdx == SCAN_VER )
@@ -1048,38 +1048,47 @@ __inline Void TEncSbac::codeLastSignificantXY( UInt uiPosX, UInt uiPosY, const U
   }
 
   UInt uiCtxLast;
+  const UInt *puiCtxIdx;
   UInt uiPosX0 = uiPosX;
   UInt uiPosY0 = uiPosY;
-  const UInt uiMinWidth    = min<UInt>( 4, uiWidth );
-  const UInt uiHalfWidth   = uiWidth >> 1;
-  const UInt uiLog2BlkSize = g_aucConvertToBit[ uiHalfWidth ] + 2;
-  const UInt uiMaxWidth    = max<UInt>( uiMinWidth, uiHalfWidth + 1 );
-  const UInt *puiCtxIdx    = g_uiLastCtx + ( uiHalfWidth >= uiMinWidth ? uiHalfWidth : 0 );
+  Int minWidth    = min<Int>( 4, width );
+  Int minHeight   = min<Int>( 4, height );
+  Int halfWidth   = width >> 1;
+  Int halfHeight  = height >> 1;
+  Int log2BlkWidth  = g_aucConvertToBit[ halfWidth  ] + 2;
+  Int log2BlkHeight = g_aucConvertToBit[ halfHeight ] + 2;
+  Int maxWidth    = max<Int>( minWidth,  halfWidth  + 1 );
+  Int maxHeight   = max<Int>( minHeight, halfHeight + 1 );
   ContextModel *pCtxX      = m_cCuCtxLastX.get( 0, eTType );
   ContextModel *pCtxY      = m_cCuCtxLastY.get( 0, eTType );
 
-  if( uiHalfWidth >= uiMinWidth )
+  if ( halfWidth >= minWidth )
   {
-    uiPosX = min<UInt>( uiPosX, uiHalfWidth );
-    uiPosY = min<UInt>( uiPosY, uiHalfWidth );
+    uiPosX = min<UInt>( uiPosX, halfWidth );
+  }
+  if ( halfHeight >= minHeight )
+  {
+    uiPosY = min<UInt>( uiPosY, halfHeight );
   }
 
   // posX
+  puiCtxIdx    = g_uiLastCtx + ( halfWidth >= minWidth ? halfWidth : 0 );
+
   for( uiCtxLast = 0; uiCtxLast < uiPosX; uiCtxLast++ )
   {
     m_pcBinIf->encodeBin( 0, *( pCtxX + puiCtxIdx[ uiCtxLast ] ) );
   }
-  if( uiPosX < uiMaxWidth - 1 )
+  if( uiPosX < maxWidth - 1 )
   {
     m_pcBinIf->encodeBin( 1, *( pCtxX + puiCtxIdx[ uiCtxLast ] ) );
   }
 
 #if !BYPASS_FOR_LAST_COEFF_MOD
-  if( uiPosX0 >= uiHalfWidth && uiHalfWidth >= uiMinWidth )
+  if( uiPosX0 >= halfWidth && halfWidth >= minWidth )
   {
-    uiPosX0     -= uiHalfWidth;
+    uiPosX0     -= halfWidth;
     UInt uiCount = 0;
-    while( uiCount < uiLog2BlkSize )
+    while( uiCount < log2BlkWidth )
     {
       m_pcBinIf->encodeBinEP( ( uiPosX0 >> uiCount ) & 1 );
       uiCount++;
@@ -1088,34 +1097,36 @@ __inline Void TEncSbac::codeLastSignificantXY( UInt uiPosX, UInt uiPosY, const U
 #endif
   
   // posY
+  puiCtxIdx    = g_uiLastCtx + ( halfHeight >= minHeight ? halfHeight : 0 );
+  
   for( uiCtxLast = 0; uiCtxLast < uiPosY; uiCtxLast++ )
   {
     m_pcBinIf->encodeBin( 0, *( pCtxY + puiCtxIdx[ uiCtxLast ] ) );
   }
-  if( uiPosY < uiMaxWidth - 1 )
+  if( uiPosY < maxHeight - 1 )
   {
     m_pcBinIf->encodeBin( 1, *( pCtxY + puiCtxIdx[ uiCtxLast ] ) );
   }
 
 #if !BYPASS_FOR_LAST_COEFF_MOD
-  if( uiPosY0 >= uiHalfWidth && uiHalfWidth >= uiMinWidth )
+  if( uiPosY0 >= halfHeight && halfHeight >= minHeight )
   {
-    uiPosY0     -= uiHalfWidth;
+    uiPosY0     -= halfHeight;
     UInt uiCount = 0;
-    while( uiCount < uiLog2BlkSize )
+    while( uiCount < log2BlkHeight )
     {
       m_pcBinIf->encodeBinEP( ( uiPosY0 >> uiCount ) & 1 );
       uiCount++;
     }
   }
 #else  
-  if ( uiPosX0 >= uiHalfWidth && uiHalfWidth >= uiMinWidth )
+  if ( uiPosX0 >= halfWidth && halfWidth >= minWidth )
   {
-    m_pcBinIf->encodeBinsEP( uiPosX0 - uiHalfWidth, uiLog2BlkSize );
+    m_pcBinIf->encodeBinsEP( uiPosX0 - halfWidth, log2BlkWidth );
   }
-  if ( uiPosY0 >= uiHalfWidth && uiHalfWidth >= uiMinWidth )
+  if ( uiPosY0 >= halfHeight && halfHeight >= minHeight )
   {
-    m_pcBinIf->encodeBinsEP( uiPosY0 - uiHalfWidth, uiLog2BlkSize );
+    m_pcBinIf->encodeBinsEP( uiPosY0 - halfHeight, log2BlkHeight );
   }
 #endif
 
@@ -1232,7 +1243,7 @@ Void TEncSbac::codeCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx
   // Code position of last coefficient
   Int posLastY = posLast >> uiLog2BlockSize;
   Int posLastX = posLast - ( posLastY << uiLog2BlockSize );
-  codeLastSignificantXY(posLastX, posLastY, uiWidth, eTType, uiCTXIdx, uiScanIdx);
+  codeLastSignificantXY(posLastX, posLastY, uiWidth, uiWidth, eTType, uiCTXIdx, uiScanIdx);
   
   //===== code significance flag =====
   ContextModel * const baseCtx = m_cCUSigSCModel.get( 0, eTType );
