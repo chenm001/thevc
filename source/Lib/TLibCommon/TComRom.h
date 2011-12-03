@@ -138,7 +138,11 @@ extern       UInt*  g_auiSigLastScan[3][ MAX_CU_DEPTH ];  // raster index from s
 #endif
 
 #if NSQT
+#if NSQT_TX_ORDER
+extern       UInt*  g_auiNonSquareSigLastScan[ 4 ];      // raster index from scanning index (zigzag)
+#else
 extern       UInt*  g_auiNonSquareSigLastScan[ 2 ];      // raster index from scanning index (zigzag)
+#endif
 #endif 
 
 extern const UInt   g_uiLastCtx[32];

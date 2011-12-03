@@ -83,9 +83,15 @@ Void initROM()
   }  
 
 #if NSQT
+#if NSQT_TX_ORDER
+  UInt uiWidth[ 4 ]  = { 16, 32, 4,  8  };
+  UInt uiHeight[ 4 ] = { 4,  8,  16, 32 };
+  for ( i = 0; i < 4; i++ )
+#else
   UInt uiWidth[ 2 ]  = { 16, 32 };
   UInt uiHeight[ 2 ] = { 4,  8  };
   for ( i = 0; i < 2; i++ )
+#endif
   {
     UInt uiW = uiWidth[ i ];
     UInt uiH = uiHeight[ i ];
@@ -690,7 +696,11 @@ UInt* g_auiSigLastScan[3][ MAX_CU_DEPTH ];
 #endif
 
 #if NSQT
+#if NSQT_TX_ORDER
+UInt* g_auiNonSquareSigLastScan[ 4 ];
+#else
 UInt* g_auiNonSquareSigLastScan[ 2 ];
+#endif
 #endif
 
 const UInt g_uiLastCtx[ 32 ] =
@@ -851,38 +861,78 @@ Void initNonSquareSigLastScan(UInt* pBuffZ, UInt uiWidth, UInt uiHeight)
   pBuffZ[ c++ ] = 0;
 
   // loop
-  x=0; y=1;
-  while (1)
+#if NSQT_TX_ORDER
+  if ( uiWidth > uiHeight )
+#endif
   {
-    // increase loop
-    while ( y>=0 )
+    x=0; y=1;
+    while (1)
     {
-      if ( x >= 0 && x < uiWidth && y >= 0 && y < uiHeight )
+      // increase loop
+      while ( y>=0 )
       {
-        pBuffZ[ c++ ] = x + y * uiWidth;
+        if ( x >= 0 && x < uiWidth && y >= 0 && y < uiHeight )
+        {
+          pBuffZ[ c++ ] = x + y * uiWidth;
+        }
+        x++;
+        y--;
       }
-      x++;
-      y--;
-    }
-    y=0;
+      y=0;
 
-    // decrease loop
-    while ( x>=0 )
-    {
-      if ( x >= 0 && x < uiWidth && y >= 0 && y < uiHeight )
+      // decrease loop
+      while ( x>=0 )
       {
-        pBuffZ[ c++ ] = x + y * uiWidth;
+        if ( x >= 0 && x < uiWidth && y >= 0 && y < uiHeight )
+        {
+          pBuffZ[ c++ ] = x + y * uiWidth;
+        }
+        x--;
+        y++;
       }
-      x--;
-      y++;
-    }
-    x=0;
+      x=0;
 
-    // termination condition
-    if ( c >= uiWidth * uiHeight ) 
-      break;
+      // termination condition
+      if ( c >= uiWidth * uiHeight ) 
+        break;
+    }
   }
+#if NSQT_TX_ORDER
+  else
+  {
+    x=1; y=0;
+    while (1)
+    {
+      // increase loop
+      while ( x>=0 )
+      {
+        if ( x >= 0 && x < uiWidth && y >= 0 && y < uiHeight )
+        {
+          pBuffZ[ c++ ] = x + y * uiWidth;
+        }
+        x--;
+        y++;
+      }
+      x=0;
 
+      // decrease loop
+      while ( y>=0 )
+      {
+        if ( x >= 0 && x < uiWidth && y >= 0 && y < uiHeight )
+        {
+          pBuffZ[ c++ ] = x + y * uiWidth;
+        }
+        x++;
+        y--;
+      }
+      y=0;
+
+      // termination condition
+      if ( c >= uiWidth * uiHeight ) 
+        break;
+    }
+  }
+#endif
 }
 #endif
 //! \}

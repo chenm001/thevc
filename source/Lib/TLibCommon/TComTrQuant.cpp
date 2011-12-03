@@ -1314,6 +1314,18 @@ void xTrMxN(short *block,short *coeff, int iWidth, int iHeight)
     partialButterfly32( block, tmp, shift_1st, iHeight );
     partialButterfly8( tmp, coeff, shift_2nd, iWidth );
   }
+#if NSQT_TX_ORDER
+  else if( iWidth == 4 && iHeight == 16)
+  {
+    partialButterfly4( block, tmp, shift_1st, iHeight );
+    partialButterfly16( tmp, coeff, shift_2nd, iWidth );
+  }
+  else if( iWidth == 8 && iHeight == 32 )
+  {
+    partialButterfly8( block, tmp, shift_1st, iHeight );
+    partialButterfly32( tmp, coeff, shift_2nd, iWidth );
+  }
+#endif
 }
 /** MxN inverse transform (2D)
 *  \param coeff input data (transform coefficients)
@@ -1341,6 +1353,18 @@ void xITrMxN(short *coeff,short *block, int iWidth, int iHeight)
     partialButterflyInverse8(coeff,tmp,shift_1st,iWidth);
     partialButterflyInverse32(tmp,block,shift_2nd,iHeight);
   }
+#if NSQT_TX_ORDER
+  else if( iWidth == 4 && iHeight == 16)
+  {
+    partialButterflyInverse16(coeff,tmp,shift_1st,iWidth);
+    partialButterflyInverse4(tmp,block,shift_2nd,iHeight);
+  }
+  else if( iWidth == 8 && iHeight == 32)
+  {
+    partialButterflyInverse32(coeff,tmp,shift_1st,iWidth);
+    partialButterflyInverse8(tmp,block,shift_2nd,iHeight);
+  }
+#endif
 }
 #endif
 
@@ -1892,7 +1916,11 @@ Void TComTrQuant::xRateDistOptQuant_LCEC(TComDataCU* pcCU, Int* pSrcCoeff, TCoef
   {
     UInt uiWidthBit  = g_aucConvertToBit[ uiWidth ] + 2;
     UInt uiHeightBit = g_aucConvertToBit[ uiHeight ] + 2;
+#if NSQT_TX_ORDER
+    uiNonSqureScanTableIdx = ( uiWidth * uiHeight ) == 64 ? 2 * ( uiHeight > uiWidth ) : 2 * ( uiHeight > uiWidth ) + 1;
+#else
     uiNonSqureScanTableIdx = ( uiWidth * uiHeight ) == 64 ? 0 : 1;
+#endif
     uiWidth  = 1 << ( ( uiWidthBit + uiHeightBit) >> 1 );
     uiHeight = uiWidth;
   }    
@@ -2271,7 +2299,11 @@ Void TComTrQuant::xQuant(TComDataCU* pcCU, Int* pSrc, TCoeff* pDes, Int iWidth, 
     {
       UInt uiWidthBit  = g_aucConvertToBit[ iWidth ] + 2;
       UInt uiHeightBit = g_aucConvertToBit[ iHeight ] + 2;
+#if NSQT_TX_ORDER
+      uiNonSqureScanTableIdx = ( iWidth * iHeight ) == 64 ? 2 * ( iHeight > iWidth ) : 2 * ( iHeight > iWidth ) + 1;
+#else
       uiNonSqureScanTableIdx = ( iWidth * iHeight ) == 64 ? 0 : 1;
+#endif
       iWidth  = 1 << ( ( uiWidthBit + uiHeightBit) >> 1 );
       iHeight = iWidth;
     }    
@@ -2479,7 +2511,11 @@ Void TComTrQuant::invRecurTransformNxN( TComDataCU* pcCU, UInt uiAbsPartIdx, Tex
       if( uiTrWidth != uiTrHeight )
       {
         TCoeff  orgCoeff[ 256 ];
+#if NSQT_TX_ORDER
+        UInt uiNonSqureScanTableIdx = ( uiTrWidth * uiTrHeight ) == 64 ? 2 * ( uiTrHeight > uiTrWidth ) : 2 * ( uiTrHeight > uiTrWidth ) + 1;
+#else
         UInt uiNonSqureScanTableIdx = ( uiTrWidth * uiTrHeight ) == 64 ? 0 : 1;
+#endif
         memcpy( &orgCoeff[0], rpcCoeff, uiWidth * uiHeight * sizeof( TCoeff ) ); 
         for( UInt uiScanPos = 0; uiScanPos < uiWidth * uiHeight; uiScanPos++ )
         {
@@ -2586,17 +2622,22 @@ Void TComTrQuant::xT( UInt uiMode, Pel* piBlkResi, UInt uiStride, Int* psCoeff, 
   Int iSize = iWidth; 
   if( iWidth != iHeight)
   {
+#if !NSQT_TX_ORDER
     Int iMaxSize = max( iWidth , iHeight);
     Int iMinSize = min( iWidth , iHeight);    
+#endif
     short block[ 64 * 64 ];
     short coeff[ 64 * 64 ];
+#if !NSQT_TX_ORDER
     if( iWidth > iHeight)
+#endif
     {
       for (j = 0; j < iHeight; j++)
       {    
         memcpy( block + j * iWidth, piBlkResi + j * uiStride, iWidth * sizeof( short ) );      
       }
     }
+#if !NSQT_TX_ORDER
     else
     {
       for ( j = 0; j < iHeight; j ++)
@@ -2609,6 +2650,9 @@ Void TComTrQuant::xT( UInt uiMode, Pel* piBlkResi, UInt uiStride, Int* psCoeff, 
       } 
     }
     xTrMxN( block, coeff, iMaxSize, iMinSize );
+#else
+    xTrMxN( block, coeff, iWidth, iHeight );
+#endif
     for ( j = 0; j < iHeight * iWidth; j++ )
     {    
       psCoeff[ j ] = coeff[ j ];
@@ -2720,22 +2764,29 @@ Void TComTrQuant::xIT( UInt uiMode, Int* plCoef, Pel* pResidual, UInt uiStride, 
   Int iSize = iWidth; 
   if( iWidth != iHeight )
   {
+#if !NSQT_TX_ORDER
     Int iMaxSize = max( iWidth , iHeight);
     Int iMinSize = min( iWidth , iHeight);
+#endif
     short block[ 64 * 64 ];
     short coeff[ 64 * 64 ];
     for ( j = 0; j < iHeight * iWidth; j++ )
     {    
       coeff[j] = (short)plCoef[j];
     }
+#if NSQT_TX_ORDER
+    xITrMxN( coeff, block, iWidth, iHeight );
+#else
     xITrMxN( coeff, block, iMaxSize, iMinSize );
     if( iWidth > iHeight )
+#endif
     {
       for ( j = 0; j < iHeight; j++ )
       {    
         memcpy( pResidual + j * uiStride, block + j * iWidth, iWidth * sizeof(short) );      
       }
     }
+#if !NSQT_TX_ORDER
     else
     {
       for ( j = 0; j < iHeight; j++ )
@@ -2747,6 +2798,7 @@ Void TComTrQuant::xIT( UInt uiMode, Int* plCoef, Pel* pResidual, UInt uiStride, 
         pResidual += uiStride;
       } 
     }
+#endif
     return ;
   }
 #endif
@@ -2878,7 +2930,11 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
   {
     UInt uiWidthBit  = g_aucConvertToBit[ uiWidth ] + 2;
     UInt uiHeightBit = g_aucConvertToBit[ uiHeight ] + 2;
+#if NSQT_TX_ORDER
+    uiNonSqureScanTableIdx = ( uiWidth * uiHeight ) == 64 ? 2 * ( uiHeight > uiWidth ) : 2 * ( uiHeight > uiWidth ) + 1;
+#else
     uiNonSqureScanTableIdx = ( uiWidth * uiHeight ) == 64 ? 0 : 1;
+#endif
     uiWidth  = 1 << ( ( uiWidthBit + uiHeightBit ) >> 1 );
     uiHeight = uiWidth;
   }    
