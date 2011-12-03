@@ -1323,12 +1323,6 @@ Void TEncSbac::codeCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx
           {
             UInt symbol = absCoeff[ idx ] > 2;
             m_pcBinIf->encodeBin( symbol, baseCtxMod[c2] );
-#if !CABAC_COEFF_DATA_REORDER
-            if( symbol )
-            {
-              xWriteGoRiceExGolomb( absCoeff[ idx ] - 3, uiGoRiceParam );
-            }     
-#endif
             c2 += (c2 < 4); // Increment c2 up to a maximum value of 4
             uiNumOne++;
           }
@@ -1337,7 +1331,6 @@ Void TEncSbac::codeCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx
       
       m_pcBinIf->encodeBinsEP( coeffSigns, numNonZero );
       
-#if CABAC_COEFF_DATA_REORDER
       if (c1 == 0)
       {
         for ( Int idx = 0; idx < numNonZero; idx++ )
@@ -1348,7 +1341,6 @@ Void TEncSbac::codeCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx
           }
         }        
       }
-#endif
     }
     else
     {

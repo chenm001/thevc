@@ -1363,23 +1363,13 @@ Void TDecSbac::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartId
           if( absCoeff[ idx ] == 2 ) 
           {
             m_pcTDecBinIf->decodeBin( uiBin, baseCtxMod[c2] );
-#if CABAC_COEFF_DATA_REORDER
             absCoeff[ idx ] = uiBin + 2;
-#else
-            if( uiBin )
-            {
-              UInt uiLevel;
-              xReadGoRiceExGolomb( uiLevel, uiGoRiceParam );
-              absCoeff[ idx ] = uiLevel + 3;
-            }
-#endif
             c2 += (c2 < 4);
             uiNumOne++;
           }
         }
       }
       
-#if CABAC_COEFF_DATA_REORDER
       UInt coeffSigns;
       m_pcTDecBinIf->decodeBinsEP( coeffSigns, numNonZero );
       coeffSigns <<= 32 - numNonZero;
@@ -1396,18 +1386,13 @@ Void TDecSbac::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartId
           }
         }
       }
-#endif
+      
       for( Int idx = 0; idx < numNonZero; idx++ )
       {
         Int blkPos = pos[ idx ];
-#if CABAC_COEFF_DATA_REORDER
         Int sign = static_cast<Int>( coeffSigns ) >> 31;
         pcCoef[ blkPos ] = ( absCoeff[ idx ] ^ sign ) - sign;
         coeffSigns <<= 1;
-#else
-        m_pcTDecBinIf->decodeBinEP( uiBin );
-        pcCoef[ blkPos ] = ( uiBin ? -absCoeff[ idx ] : absCoeff[ idx ] );
-#endif
       }
     }
     else
