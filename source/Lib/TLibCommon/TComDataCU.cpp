@@ -2264,8 +2264,12 @@ Int TComDataCU::getLeftIntraDirLuma( UInt uiAbsPartIdx )
 
   // Get intra direction of left PU
   pcTempCU = getPULeft( uiTempPartIdx, m_uiAbsIdxInLCU + uiAbsPartIdx );
+#if PLANAR_IS_DEFAULT
+  iLeftIntraDir  = pcTempCU ? ( pcTempCU->isIntra( uiTempPartIdx ) ? pcTempCU->getLumaIntraDir( uiTempPartIdx ) : PLANAR_IDX ) : NOT_VALID;
+#else
   iLeftIntraDir  = pcTempCU ? ( pcTempCU->isIntra( uiTempPartIdx ) ? pcTempCU->getLumaIntraDir( uiTempPartIdx ) : DC_IDX ) : NOT_VALID;
-
+#endif
+  
   return iLeftIntraDir;
 }
 
@@ -2277,8 +2281,12 @@ Int TComDataCU::getAboveIntraDirLuma( UInt uiAbsPartIdx )
 
   // Get intra direction of above PU
   pcTempCU = getPUAbove( uiTempPartIdx, m_uiAbsIdxInLCU + uiAbsPartIdx );
+#if PLANAR_IS_DEFAULT
+  iAboveIntraDir = pcTempCU ? ( pcTempCU->isIntra( uiTempPartIdx ) ? pcTempCU->getLumaIntraDir( uiTempPartIdx ) : PLANAR_IDX ) : NOT_VALID;
+#else
   iAboveIntraDir = pcTempCU ? ( pcTempCU->isIntra( uiTempPartIdx ) ? pcTempCU->getLumaIntraDir( uiTempPartIdx ) : DC_IDX ) : NOT_VALID;
-
+#endif
+  
   return iAboveIntraDir;
 }
 

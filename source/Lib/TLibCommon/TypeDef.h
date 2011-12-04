@@ -50,6 +50,7 @@
 #define CABAC_RICE_UPDATE_MOD     1 ///< modified Rice parameter update function G700
 #define BYPASS_FOR_INTRA_MODE     1 ///< use bypass bins for intra luma mode coding G707
 #define WEIGHT_PRED_IMP           1 ///< high-precision offset for weighted bipred G065
+#define PLANAR_IS_DEFAULT         1 ///< default to planar if neighbor not available G119
 
 #define WEIGHTED_CHROMA_DISTORTION  1   ///< F386: weighting of chroma for RDO
 #define RDOQ_CHROMA_LAMBDA          1   ///< F386: weighting of chroma for RDOQ
