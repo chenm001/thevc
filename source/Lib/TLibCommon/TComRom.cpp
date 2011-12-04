@@ -631,7 +631,11 @@ const UChar g_aucIntraModeNumAng[7] =
   35,  //   8x8
   35,  //  16x16
   35,  //  32x32
+#if INTRA_MODES_64X64
+  35,  //  64x64
+#else
   4,  //  64x64
+#endif
   6   // 128x128
 };
 
@@ -642,7 +646,11 @@ const UChar g_aucIntraModeBitsAng[7] =
   6,  //   8x8    34   5+esc
   6,  //  16x16   34   5+esc
   6,  //  32x32   34   5+esc
+#if INTRA_MODES_64X64
+  6,  //  64x64   34   5+esc
+#else
   2,  //  64x64    3   1+1
+#endif
   3   // 128x128   5   2+1
 };
 
