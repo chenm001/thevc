@@ -433,8 +433,6 @@ public:
   // member functions for symbol prediction (most probable / mode conversion)
   // -------------------------------------------------------------------------------------------------------------------
   
-  Int           getMostProbableIntraDirLuma     ( UInt uiAbsPartIdx                                       );
-  
   UInt          getIntraSizeIdx                 ( UInt uiAbsPartIdx                                       );
   Void          convertTransIdx                 ( UInt uiAbsPartIdx, UInt uiTrIdx, UInt& ruiLumaTrMode, UInt& ruiChromaTrMode );
   

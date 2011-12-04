@@ -2105,44 +2105,6 @@ UChar TComDataCU::getLastCodedQP( UInt uiAbsPartIdx )
   }
 }
 
-Int TComDataCU::getMostProbableIntraDirLuma( UInt uiAbsPartIdx )
-{
-  TComDataCU* pcTempCU;
-  UInt        uiTempPartIdx;
-  Int         iLeftIntraDir, iAboveIntraDir, iMostProbable;
-  
-  // Get intra direction of left PU
-  pcTempCU = getPULeft( uiTempPartIdx, m_uiAbsIdxInLCU + uiAbsPartIdx, true, false );
-  iLeftIntraDir  = pcTempCU ? ( pcTempCU->isIntra( uiTempPartIdx ) ? pcTempCU->getLumaIntraDir( uiTempPartIdx ) : DC_IDX ) : NOT_VALID;
-  
-  // Get intra direction of above PU
-  pcTempCU = getPUAbove( uiTempPartIdx, m_uiAbsIdxInLCU + uiAbsPartIdx, true, false );
-  iAboveIntraDir = pcTempCU ? ( pcTempCU->isIntra( uiTempPartIdx ) ? pcTempCU->getLumaIntraDir( uiTempPartIdx ) : DC_IDX ) : NOT_VALID;
-  
-  iMostProbable  = min( iLeftIntraDir, iAboveIntraDir );
-  
-  // Mode conversion process for blocks with different number of available prediction directions
-  Int iIdx  = getIntraSizeIdx(uiAbsPartIdx);
-  
-  if ( iMostProbable >= g_aucIntraModeNumAng[iIdx] )
-  {
-    if ( g_aucIntraModeNumAng[iIdx] == 6 )
-    {
-      iMostProbable = g_aucAngModeMapping[0][g_aucAngIntraModeOrder[iMostProbable]];
-    }
-    else if ( g_aucIntraModeNumAng[iIdx] == 4 )
-    {
-      iMostProbable = g_aucAngModeMapping[3][g_aucAngIntraModeOrder[iMostProbable]];
-    }
-    else
-    {
-      iMostProbable = g_aucAngModeMapping[1][g_aucAngIntraModeOrder[iMostProbable]]; 
-    }
-  } 
-  
-  return ( NOT_VALID == iMostProbable ) ? 2 : iMostProbable;
-}
-
 /** Get allowed chroma intra modes
 *\param   uiAbsPartIdx
 *\param   uiModeList  pointer to chroma intra modes array
@@ -2198,6 +2160,9 @@ Int TComDataCU::getIntraDirLumaPredictor( UInt uiAbsPartIdx, Int* uiIntraDirPred
    
   if ( iLeftIntraDir >= g_aucIntraModeNumAng[iIdx] ) 
   {
+#if REMAP_TO_PLANAR
+    iLeftIntraDir = PLANAR_IDX;
+#else
    if ( g_aucIntraModeNumAng[iIdx] == 6 )
    {
       iLeftIntraDir = g_aucAngModeMapping[0][g_aucAngIntraModeOrder[iLeftIntraDir]];
@@ -2210,11 +2175,15 @@ Int TComDataCU::getIntraDirLumaPredictor( UInt uiAbsPartIdx, Int* uiIntraDirPred
    {
       iLeftIntraDir = g_aucAngModeMapping[1][g_aucAngIntraModeOrder[iLeftIntraDir]]; 
    }
+#endif
   }
    
    
  if ( iAboveIntraDir >= g_aucIntraModeNumAng[iIdx] ) 
  {
+#if REMAP_TO_PLANAR
+   iAboveIntraDir = PLANAR_IDX;
+#else
    if ( g_aucIntraModeNumAng[iIdx] == 6 )
    {
       iAboveIntraDir = g_aucAngModeMapping[0][g_aucAngIntraModeOrder[iAboveIntraDir]];
@@ -2227,6 +2196,7 @@ Int TComDataCU::getIntraDirLumaPredictor( UInt uiAbsPartIdx, Int* uiIntraDirPred
    {
       iAboveIntraDir = g_aucAngModeMapping[1][g_aucAngIntraModeOrder[iAboveIntraDir]]; 
    }
+#endif
  }
    
  if(iLeftIntraDir == iAboveIntraDir)

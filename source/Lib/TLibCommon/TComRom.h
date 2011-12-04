@@ -232,7 +232,9 @@ extern const UChar  g_aucIntraModeNumFast[7];
 
 extern const UChar g_aucIntraModeNumAng[7];
 extern const UChar g_aucIntraModeBitsAng[7];
+#if !REMAP_TO_PLANAR
 extern const UChar g_aucAngModeMapping[4][35];
+#endif
 extern const UChar g_aucAngIntraModeOrder[NUM_INTRA_MODE];
 
 // ====================================================================================================================

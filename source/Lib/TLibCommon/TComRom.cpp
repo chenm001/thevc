@@ -646,6 +646,7 @@ const UChar g_aucIntraModeBitsAng[7] =
   3   // 128x128   5   2+1
 };
 
+#if !REMAP_TO_PLANAR
 const UChar g_aucAngModeMapping[4][35] = // intra mode conversion for most probable
 {
   {3,  4,  3,  3,  5,  5,  5,  1,  1,  1,  1,  1,  1,  1,  3,  3,  3,  3,  3,  3,  3,  2,  2,  2,  2,  2,  2,  2,  2,  2,  3,  3,  3,  3},        // conversion to 5 modes
@@ -653,6 +654,7 @@ const UChar g_aucAngModeMapping[4][35] = // intra mode conversion for most proba
   {3,  4,  4,  11, 11, 5,  12, 12, 1,  1,  1,  13, 13, 6,  6,  14, 14, 7,  15, 15, 8,  8,  16, 16, 2,  2,  2,  17, 17, 9,  9,  3,  3,  10},       // conversion to 17 modes
   {3,  3,  3,  3,  3,  3,  3,  1,  1,  1,  1,  1,  1,  1,  3,  3,  3,  3,  3,  3,  3,  2,  2,  2,  2,  2,  2,  2,  2,  2,  3,  3,  3,  3}         // conversion to 3 modes
 };
+#endif
 
 // ====================================================================================================================
 // Bit-depth
