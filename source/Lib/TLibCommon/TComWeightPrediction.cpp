@@ -332,7 +332,11 @@ Void TComWeightPrediction::getWpScaling( TComDataCU* pcCU, Int iRefIdx0, Int iRe
       wp0[yuv].o      = wp0[yuv].iOffset * (1 << (m_ibdi-8));
       wp1[yuv].w      = wp1[yuv].iWeight;
       wp1[yuv].o      = wp1[yuv].iOffset * (1 << (m_ibdi-8));
+#if WEIGHT_PRED_IMP
+      wp0[yuv].offset = wp0[yuv].o + wp1[yuv].o;
+#else
       wp0[yuv].offset = ( ( wp0[yuv].o + wp1[yuv].o + 1 ) >> 1 );
+#endif
       wp0[yuv].shift  = wp0[yuv].uiLog2WeightDenom + 1;
       wp0[yuv].round  = (1 << wp0[yuv].uiLog2WeightDenom);
       wp1[yuv].offset = wp0[yuv].offset;
@@ -403,7 +407,9 @@ Void TComWeightPrediction::xWeightedPredictionBi( TComDataCU* pcCU, TComYuv* pcY
     addWeightUni( pcYuvSrc1, uiPartIdx, iWidth, iHeight, pwp1, rpcYuvDst );
   }
   else
+  {
     assert (0);
+  }
 }
 
 /** weighted prediction for uni-pred
@@ -422,7 +428,9 @@ Void TComWeightPrediction::xWeightedPredictionUni( TComDataCU* pcCU, TComYuv* pc
 { 
   wpScalingParam  *pwp, *pwpTmp;
   if ( iRefIdx < 0 )
+  {
     iRefIdx   = pcCU->getCUMvField( eRefPicList )->getRefIdx( uiPartAddr );
+  }
   assert (iRefIdx >= 0);
 
   Int ibdi = (g_uiBitDepth+g_uiBitIncrement);
