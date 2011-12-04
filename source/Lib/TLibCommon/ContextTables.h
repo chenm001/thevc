@@ -61,7 +61,12 @@
 #define NUM_CU_Y_POS_CTX              2       ///< number of context models for partition size (AMP)
 #endif
 #define NUM_PRED_MODE_CTX             2       ///< number of context models for prediction mode
+
+#if BYPASS_FOR_INTRA_MODE
+#define NUM_ADI_CTX                   1       ///< number of context models for intra prediction
+#else
 #define NUM_ADI_CTX                   3       ///< number of context models for intra prediction
+#endif
 
 #define NUM_CHROMA_PRED_CTX           2       ///< number of context models for intra prediction (chroma)
 #define NUM_INTER_DIR_CTX             4       ///< number of context models for inter prediction direction
@@ -237,6 +242,17 @@ INIT_PRED_MODE[3][NUM_PRED_MODE_CTX][2] =
 static const Short
 INIT_INTRA_PRED_MODE[3][NUM_ADI_CTX][2] =
 {
+#if BYPASS_FOR_INTRA_MODE
+  {
+    {    2,   54 }
+  },
+  {
+    {    0,   50 }
+  },
+  {
+    {    0,   51 }
+  }
+#else
   {
     {    2,   54 }, {  -3,   65  }, {   -3,   65 }
   },
@@ -246,6 +262,7 @@ INIT_INTRA_PRED_MODE[3][NUM_ADI_CTX][2] =
   {
     {    0,   51 }, {  1,   55   }, {    1,   55 }
   }
+#endif
 };
 
 // initial probability for intra direction of chroma

@@ -783,6 +783,7 @@ Void TDecSbac::parsePredMode( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth 
   iPredMode += uiSymbol;
   pcCU->setPredModeSubParts( (PredMode)iPredMode, uiAbsPartIdx, uiDepth );
 }
+  
 Void TDecSbac::parseIntraDirLumaAng  ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
 {
   
@@ -798,22 +799,35 @@ Void TDecSbac::parseIntraDirLumaAng  ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt
  
   if ( uiSymbol )
   {
+#if BYPASS_FOR_INTRA_MODE
+    m_pcTDecBinIf->decodeBinEP( uiSymbol );
+#else
     m_pcTDecBinIf->decodeBin( uiSymbol, m_cCUIntraPredSCModel.get( 0, 0, 2 ) );
+#endif
     intraPredMode = uiPreds[uiSymbol];
   }
   else
   {
     intraPredMode = 0;
     
+#if BYPASS_FOR_INTRA_MODE
+    m_pcTDecBinIf->decodeBinsEP( uiSymbol, g_aucIntraModeBitsAng[iIntraIdx] - 1 );
+    intraPredMode = uiSymbol;
+#else
     for ( Int i = 0; i < g_aucIntraModeBitsAng[iIntraIdx] - 1; i++ )
     {
       m_pcTDecBinIf->decodeBin( uiSymbol, m_cCUIntraPredSCModel.get( 0, 0, 1 ) );
       intraPredMode |= uiSymbol << i;
     }
+#endif
     
     if ( intraPredMode == 31 )
     {
+#if BYPASS_FOR_INTRA_MODE
+      m_pcTDecBinIf->decodeBinEP( uiSymbol );
+#else
       m_pcTDecBinIf->decodeBin( uiSymbol, m_cCUIntraPredSCModel.get( 0, 0, 1 ) );
+#endif
       intraPredMode += uiSymbol;      
     }
     

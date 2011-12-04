@@ -709,7 +709,11 @@ Void TEncSbac::codeIntraDirLumaAng( TComDataCU* pcCU, UInt uiAbsPartIdx )
   if(uiPredIdx != -1)
   {
     m_pcBinIf->encodeBin( 1, m_cCUIntraPredSCModel.get( 0, 0, 0 ) );
+#if BYPASS_FOR_INTRA_MODE
+    m_pcBinIf->encodeBinEP( uiPredIdx );
+#else
     m_pcBinIf->encodeBin( uiPredIdx, m_cCUIntraPredSCModel.get( 0, 0, 2 ) );
+#endif
   }
   else
   {
@@ -722,18 +726,27 @@ Void TEncSbac::codeIntraDirLumaAng( TComDataCU* pcCU, UInt uiAbsPartIdx )
 
     if ( uiDir < 31 )
     {
+#if BYPASS_FOR_INTRA_MODE
+      m_pcBinIf->encodeBinsEP( uiDir, g_aucIntraModeBitsAng[ iIntraIdx ] - 1 );
+#else
       for ( Int i = 0; i < g_aucIntraModeBitsAng[ iIntraIdx ] - 1; i++ )
       {
         m_pcBinIf->encodeBin( ( uiDir >> i ) & 1, m_cCUIntraPredSCModel.get(0, 0, 1) );            
-      }      
+      }
+#endif
     }
     else
     {
+#if BYPASS_FOR_INTRA_MODE
+      m_pcBinIf->encodeBinsEP( 31, 5 );
+      m_pcBinIf->encodeBinEP( uiDir - 31 );
+#else
       for ( Int i = 0; i < 5; i++ )
       {
         m_pcBinIf->encodeBin( 1, m_cCUIntraPredSCModel.get(0, 0, 1) );            
       }      
-      m_pcBinIf->encodeBin( uiDir - 31, m_cCUIntraPredSCModel.get(0, 0, 1) );                  
+      m_pcBinIf->encodeBin( uiDir - 31, m_cCUIntraPredSCModel.get(0, 0, 1) );
+#endif
     }
    }
   return;
