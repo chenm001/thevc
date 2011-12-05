@@ -97,11 +97,6 @@ public:
   Void  codePPS                 ( TComPPS* pcPPS     );
   void codeSEI(const SEI&);
   Void  codeSliceHeader         ( TComSlice* pcSlice );
-#if G220_PURE_VLC_SAO_ALF
-#if TILES_DECODER
-  Void codeTileMarkerFlag(TComSlice* pcSlice) {printf("Not supported\n"); assert(0); exit(1);}
-#endif
-#endif
 #if OL_USE_WPP
   Void  codeSliceHeaderSubstreamTable( TComSlice* pcSlice );
 #endif

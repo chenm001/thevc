@@ -478,7 +478,7 @@ Void TEncCavlc::codeSPS( TComSPS* pcSPS )
 
 #if TILES
   WRITE_FLAG( 0,                                                      "uniform_spacing_idc" );
-  WRITE_FLAG( pcSPS->getTileBoundaryIndependenceIdr(),                "tile_boundary_independence_idc" );
+  WRITE_FLAG( 0,                                                      "tile_boundary_independence_idc" );
   WRITE_UVLC( 0,                                                      "num_tile_columns_minus1" );
   WRITE_UVLC( 0,                                                      "num_tile_rows_minus1" );
 #endif
@@ -759,31 +759,7 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
   assert(MRG_MAX_NUM_CANDS_SIGNALED<=MRG_MAX_NUM_CANDS);
   WRITE_UVLC(MRG_MAX_NUM_CANDS - pcSlice->getMaxNumMergeCand(), "maxNumMergeCand");
 #endif
-
-#if !G220_PURE_VLC_SAO_ALF
-#if TILES_DECODER
-  if (!bEntropySlice && pcSlice->getSPS()->getTileBoundaryIndependenceIdr())
-  {
-    xWriteFlag  ( 0 );
-  }
-#endif
-#endif
 }
-
-
-#if G220_PURE_VLC_SAO_ALF
-#if TILES_DECODER
-Void TEncCavlc::codeTileMarkerFlag(TComSlice* pcSlice) 
-{
-  Bool bEntropySlice = (!pcSlice->isNextSlice());
-  if (!bEntropySlice && pcSlice->getSPS()->getTileBoundaryIndependenceIdr())
-  {
-    xWriteFlag  (pcSlice->getTileMarkerFlag() ? 1 : 0 );
-  }
-}
-#endif
-#endif
-
 
 #if OL_USE_WPP
 /**

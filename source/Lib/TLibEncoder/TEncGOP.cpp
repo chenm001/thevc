@@ -463,9 +463,6 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
     
     //derive the tile parameters from SPS
     {
-      //initialize TileBoundaryIndependenceIdr for the current picture
-      pcPic->getPicSym()->setTileBoundaryIndependenceIdr( pcSlice->getSPS()->getTileBoundaryIndependenceIdr() );
-
       //create the TComTileArray
       pcPic->getPicSym()->xCreateTComTileArray();
 
@@ -872,9 +869,6 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
             }
           }
         }
-#if TILES_DECODER
-        m_pcEntropyCoder->encodeTileMarkerFlag(pcSlice);
-#endif
 #endif
 
 
@@ -884,18 +878,11 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
 #endif
         {
 #if TILES_DECODER
-          if (pcSlice->getSPS()->getTileBoundaryIndependenceIdr()  && !bEntropySlice)
-          {
-            pcBitstreamRedirect->writeAlignOne();
-          }
-          else
-          {
 #if OL_USE_WPP
           // We've not completed our slice header info yet, do the alignment later.
 #else
             nalu.m_Bitstream.writeAlignOne(); // Byte-alignment before CABAC data
 #endif
-          }
 #else
 #if OL_USE_WPP
           // We've not completed our slice header info yet, do the alignment later.
@@ -944,14 +931,7 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
           m_pcEntropyCoder->resetEntropy    ();
 #if TILES_DECODER
           // File writing
-          if (pcSlice->getSPS()->getTileBoundaryIndependenceIdr()  && !bEntropySlice)
-          {
-            m_pcEntropyCoder->setBitstream(pcBitstreamRedirect);
-          }
-          else
-          {
             m_pcEntropyCoder->setBitstream(&nalu.m_Bitstream);
-          }
 #else
 #if OL_USE_WPP
           if (pcSlice->getSymbolMode())
@@ -1084,16 +1064,6 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
 
 #if TILES_DECODER
         pcSlice->setTileOffstForMultES( uiOneBitstreamPerSliceLength );
-        if (pcSlice->getSPS()->getTileBoundaryIndependenceIdr()  && !bEntropySlice)
-        {
-          pcSlice->setTileLocationCount ( 0 );
-#if OL_USE_WPP
-          m_pcSliceEncoder->encodeSlice(pcPic, pcBitstreamRedirect, pcSubstreamsOut); // redirect is only used for CAVLC tile position info.
-#else
-          m_pcSliceEncoder->encodeSlice(pcPic, pcBitstreamRedirect);          
-#endif
-        }
-        else
         {
 #if OL_USE_WPP
           m_pcSliceEncoder->encodeSlice(pcPic, &nalu.m_Bitstream, pcSubstreamsOut); // nalu.m_Bitstream is only used for CAVLC tile position info.
@@ -1118,7 +1088,6 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
           // The final bitstream is either nalu.m_Bitstream or pcBitstreamRedirect;
           UInt* puiSubstreamSizes = pcSlice->getSubstreamSizes();
 #if TILES_DECODER
-          UInt uiTotalCodedSize = 0; // for padding calcs.
           UInt uiNumSubstreamsPerTile = iNumSubstreams;
 #endif
           for ( UInt ui = 0 ; ui < iNumSubstreams; ui++ )
@@ -1130,25 +1099,6 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
             m_pcEntropyCoder->encodeTerminatingBit( 1 );
             m_pcEntropyCoder->encodeSliceFinish();
             pcSubstreamsOut[ui].write( 1, 1 ); // stop bit.
-#if TILES
-            // Byte alignment is necessary between tiles when tiles are independent.
-            uiTotalCodedSize += pcSubstreamsOut[ui].getNumberOfWrittenBits();
-
-            if (pcPic->getPicSym()->getTileBoundaryIndependenceIdr())
-            {
-              Bool bNextSubstreamInNewTile = ((ui+1) < iNumSubstreams)
-                                             && ((ui+1)%uiNumSubstreamsPerTile == 0);
-              if (bNextSubstreamInNewTile)
-              {
-                // byte align.
-                while (uiTotalCodedSize&0x7)
-                {
-                  pcSubstreamsOut[ui].write(0, 1);
-                  uiTotalCodedSize++;
-                }
-              }
-            }
-#endif
             if (ui+1 < pcSlice->getPPS()->getNumSubstreams())
               puiSubstreamSizes[ui] = pcSubstreamsOut[ui].getNumberOfWrittenBits();
           }
@@ -1161,16 +1111,6 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
           // Substreams...
 #if TILES_DECODER
           TComOutputBitstream *pcOut = pcBitstreamRedirect;
-          // xWriteTileLocation will perform byte-alignment...
-          if (pcSlice->getSPS()->getTileBoundaryIndependenceIdr())
-          {
-            if (bEntropySlice)
-            {
-              // In these cases, padding is necessary here.
-              pcOut = &nalu.m_Bitstream;
-              pcOut->writeAlignOne();
-            }
-          }
 #else
           TComOutputBitstream *pcOut = &nalu.m_Bitstream;
           nalu.m_Bitstream.writeAlignOne(); // Byte-alignment before CABAC data
@@ -1207,76 +1147,7 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
         // If current NALU is the first NALU of slice (containing slice header) and more NALUs exist (due to multiple entropy slices) then buffer it.
         // If current NALU is the last NALU of slice and a NALU was buffered, then (a) Write current NALU (b) Update an write buffered NALU at approproate location in NALU list.
         Bool bNALUAlignedWrittenToList    = false; // used to ensure current NALU is not written more than once to the NALU list.
-        if (pcSlice->getSPS()->getTileBoundaryIndependenceIdr())
-        {
-          if (bNextCUInNewSlice)
-          {
-            if (!bEntropySlice) // there were no entropy slices
-            {
-              xWriteTileLocationToSliceHeader(nalu, pcBitstreamRedirect, pcSlice);
-            }
-            // (a) writing current NALU
-            writeRBSPTrailingBits(nalu.m_Bitstream);
-            accessUnit.push_back(new NALUnitEBSP(nalu));
-            bNALUAlignedWrittenToList = true;
-
-            // (b) update and write buffered NALU
-            if (bEntropySlice) // if entropy slices existed in the slice then perform concatenation for the buffered nalu-bitstream and buffered payload bitstream
-            {
-              // Perform bitstream concatenation of slice header and partial slice payload
-              xWriteTileLocationToSliceHeader((*naluBuffered), pcBitstreamRedirect, pcSlice);
-              if (bIteratorAtListStart)
-              {
-                itLocationToPushSliceHeaderNALU = accessUnit.begin();
-              }
-              else
-              {
-                itLocationToPushSliceHeaderNALU++;
-              }
-              accessUnit.insert(itLocationToPushSliceHeaderNALU, (new NALUnitEBSP((*naluBuffered))) );
-
-              // free buffered nalu
-              delete naluBuffered;
-              naluBuffered     = NULL;
-            }
-          }
-          else // another entropy slice exists
-          {
-            // Is this start-of-slice NALU? i.e. the one containing slice header. If Yes, then buffer it.
-            if (!bEntropySlice)
-            {
-              // store a pointer to where NALU for slice header is to be written in NALU list
-              itLocationToPushSliceHeaderNALU = accessUnit.end();
-              if (accessUnit.begin() == accessUnit.end())
-              {
-                bIteratorAtListStart = true;
-              }
-              else
-              {
-                bIteratorAtListStart = false;
-                itLocationToPushSliceHeaderNALU--;
-              }
-
-              // buffer nalu for later writing
-              naluBuffered = new OutputNALUnit(pcSlice->getNalUnitType(), pcSlice->isReferenced() ? NAL_REF_IDC_PRIORITY_HIGHEST: NAL_REF_IDC_PRIORITY_LOWEST, pcSlice->getTLayer(), true);
-              copyNaluData( (*naluBuffered), nalu );
-
-              // perform byte-alignment to get appropriate bitstream length (used for explicit tile location signaling in slice header)
-              writeRBSPTrailingBits((*pcBitstreamRedirect));
-              bNALUAlignedWrittenToList = true; // This is not really a write to bitsream but buffered for later. The flag is set to prevent writing of current NALU to list.
-              uiOneBitstreamPerSliceLength += pcBitstreamRedirect->getNumberOfWrittenBits(); // length of bitstream after byte-alignment
-            }
-            else // write out entropy slice
-            {
-              writeRBSPTrailingBits(nalu.m_Bitstream);
-              accessUnit.push_back(new NALUnitEBSP(nalu));
-              bNALUAlignedWrittenToList = true; 
-              uiOneBitstreamPerSliceLength += nalu.m_Bitstream.getNumberOfWrittenBits(); // length of bitstream after byte-alignment
-            }
-          }
-        }
 #if OL_USE_WPP
-        else
         {
           xWriteTileLocationToSliceHeader(nalu, pcBitstreamRedirect, pcSlice);
           writeRBSPTrailingBits(nalu.m_Bitstream);
@@ -2306,11 +2177,6 @@ Double TEncGOP::xCalculateRVM()
  */
 Void TEncGOP::xWriteTileLocationToSliceHeader (OutputNALUnit& rNalu, TComOutputBitstream*& rpcBitstreamRedirect, TComSlice*& rpcSlice)
 {
-  if (rpcSlice->getSPS()->getTileBoundaryIndependenceIdr())
-  {
-    rNalu.m_Bitstream.write(0, 1);   // write flag indicating whether tile location information communicated in slice header
-  }
-
   // Byte-align
   rNalu.m_Bitstream.writeAlignOne();
 

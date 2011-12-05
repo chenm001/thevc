@@ -271,9 +271,6 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
 #if E192_SPS_PCM_FILTER_DISABLE_SYNTAX
     ("PCMFilterDisableFlag", m_bPCMFilterDisableFlag, false)
 #endif
-#if TILES
-    ("TileBoundaryIndependenceIdc", m_iTileBoundaryIndependenceIdr,  1,          "Indicates if the column and row boundaries break the prediction")
-#endif
 #if OL_USE_WPP
     ("WaveFrontSynchro",            m_iWaveFrontSynchro,             0,          "0: no synchro; 1 synchro with TR; 2 TRR etc")
     ("WaveFrontFlush",              m_iWaveFrontFlush,               0,          "Flush and terminate CABAC coding for each LCU line")
@@ -902,9 +899,6 @@ Void TAppEncCfg::xPrintParameter()
 #if REF_SETTING_FOR_LD
   printf("NewRefSetting:%d ", m_bUseNewRefSetting?1:0);
 #endif
-#endif
-#if TILES 
-  printf("TileBoundaryIndependence:%d ", m_iTileBoundaryIndependenceIdr ); 
 #endif
 #if OL_USE_WPP
   printf(" WaveFrontSynchro:%d WaveFrontFlush:%d WaveFrontSubstreams:%d",

@@ -538,9 +538,6 @@ Bool TDecTop::decode(InputNALUnit& nalu, Int& iSkipFrame, Int& iPOCLastDisplay)
       UInt i, j, p;
 
       {
-        //set the TileBoundaryIndependenceIdr
-        pcPic->getPicSym()->setTileBoundaryIndependenceIdr( pcSlice->getSPS()->getTileBoundaryIndependenceIdr() );
-
         //create the TComTileArray
         pcPic->getPicSym()->xCreateTComTileArray();
 

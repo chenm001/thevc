@@ -211,9 +211,6 @@ protected:
 #if E192_SPS_PCM_FILTER_DISABLE_SYNTAX 
   Bool      m_bPCMFilterDisableFlag;
 #endif
-#if TILES
-  Int       m_iTileBoundaryIndependenceIdr;
-#endif
 
 #if OL_USE_WPP
   Int       m_iWaveFrontSynchro;
@@ -466,10 +463,6 @@ public:
 #if SAO
   Void      setUseSAO                  (Bool bVal)     {m_bUseSAO = bVal;}
   Bool      getUseSAO                  ()              {return m_bUseSAO;}
-#endif
-#if TILES
-  Void  setTileBoundaryIndependenceIdr ( Int i )           { m_iTileBoundaryIndependenceIdr = i; }
-  Int   getTileBoundaryIndependenceIdr ()                  { return m_iTileBoundaryIndependenceIdr; }
 #endif
 #if OL_USE_WPP
   Void  setWaveFrontSynchro(Int iWaveFrontSynchro)       { m_iWaveFrontSynchro = iWaveFrontSynchro; }

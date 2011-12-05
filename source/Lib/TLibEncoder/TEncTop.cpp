@@ -677,10 +677,6 @@ Void TEncTop::xInitSPS()
   }
 #endif
 #endif
-
-#if TILES
-  m_cSPS.setTileBoundaryIndependenceIdr( m_iTileBoundaryIndependenceIdr );
-#endif
 }
 
 Void TEncTop::xInitPPS()
@@ -851,10 +847,9 @@ Void TEncTop::selectReferencePictureSet(TComSlice* pcSlice, UInt uiPOCCurr, UInt
 #if TILES
 Void  TEncTop::xInitPPSforTiles()
 {
-    m_cPPS.setTileBoundaryIndependenceIdr( m_iTileBoundaryIndependenceIdr );
 #if OL_USE_WPP
     // # substreams is "per tile" when tiles are independent.
-    if (m_iTileBoundaryIndependenceIdr && m_iWaveFrontSynchro)
+    if (m_iWaveFrontSynchro)
       m_cPPS.setNumSubstreams(m_iWaveFrontSubstreams);
 #endif
 }

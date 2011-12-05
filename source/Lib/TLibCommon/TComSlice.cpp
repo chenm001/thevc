@@ -1417,9 +1417,6 @@ TComPPS::TComPPS()
 #if !F747_APS
 , m_bSharedPPSInfoEnabled       (false)
 #endif
-#if TILES
-, m_iTileBoundaryIndependenceIdr (0)
-#endif
 #if OL_USE_WPP
 ,  m_iEntropyCodingSynchro      (0)
 ,  m_bCabacIstateReset          (false)

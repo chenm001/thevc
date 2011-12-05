@@ -242,25 +242,6 @@ Void TDecGop::decompressGop(TComInputBitstream* pcBitstream, TComPic*& rpcPic, B
         UInt uiSubstreamSizeBits = (ui+1 < uiNumSubstreams ? puiSubstreamSizes[ui] : pcBitstream->getNumBitsLeft());
 #endif
         ppcSubstreams[ui] = pcBitstream->extractSubstream(ui+1 < uiNumSubstreams ? puiSubstreamSizes[ui] : pcBitstream->getNumBitsLeft());
-#if TILES_DECODER
-        // update location information from where tile markers were extracted
-        if (pcSlice->getSPS()->getTileBoundaryIndependenceIdr())
-        {
-          UInt uiDestIdx       = 0;
-          for (UInt uiSrcIdx = 0; uiSrcIdx<pcBitstream->getTileMarkerLocationCount(); uiSrcIdx++)
-          {
-            UInt uiLocation = pcBitstream->getTileMarkerLocation(uiSrcIdx);
-            if ((uiBitsRead>>3)<=uiLocation  &&  uiLocation<((uiBitsRead+uiSubstreamSizeBits)>>3))
-            {
-              ppcSubstreams[ui]->setTileMarkerLocation( uiDestIdx, uiLocation - (uiBitsRead>>3) );
-              ppcSubstreams[ui]->setTileMarkerLocationCount( uiDestIdx+1 );
-              uiDestIdx++;
-            }
-          }
-          ppcSubstreams[ui]->setTileMarkerLocationCount( uiDestIdx );
-          uiBitsRead += uiSubstreamSizeBits;
-        }
-#endif
       }
 
       for ( UInt ui = 0 ; ui+1 < uiNumSubstreams; ui++ )

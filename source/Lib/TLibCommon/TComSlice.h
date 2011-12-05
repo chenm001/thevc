@@ -137,10 +137,6 @@ private:
   Bool        m_bUseSAO; 
 #endif
 
-#if TILES
-  Int      m_iTileBoundaryIndependenceIdr;
-#endif
-  
   Bool        m_bTemporalIdNestingFlag; // temporal_id_nesting_flag
 
 #if !G1002_RPS
@@ -286,10 +282,6 @@ public:
   Void      setMaxNumRefFrames     ( UInt u ) { m_uiMaxNumRefFrames = u;    }
   UInt      getMaxNumRefFrames     ()         { return m_uiMaxNumRefFrames; }
 #endif
-#endif
-#if TILES
-  Void     setTileBoundaryIndependenceIdr   ( Int i )           { m_iTileBoundaryIndependenceIdr = i; }
-  Int      getTileBoundaryIndependenceIdr   ()                  { return m_iTileBoundaryIndependenceIdr; }
 #endif
 };
 #if G1002_RPS
@@ -446,10 +438,6 @@ private:
   ALFParam    m_cSharedAlfParam;        //!< Shared ALF parameters in PPS 
 #endif
 
-#if TILES
-  Int      m_iTileBoundaryIndependenceIdr;
-#endif
-  
 #if OL_USE_WPP
   Int      m_iEntropyCodingMode; // !!! in PPS now, but also remains in slice header!
   Int      m_iEntropyCodingSynchro;
@@ -503,10 +491,6 @@ public:
   ALFParam* getSharedAlfParam()             {return &m_cSharedAlfParam;     }
 #endif
 
-#if TILES
-  Void     setTileBoundaryIndependenceIdr   ( Int i )           { m_iTileBoundaryIndependenceIdr = i; }
-  Int      getTileBoundaryIndependenceIdr   ()                  { return m_iTileBoundaryIndependenceIdr; }
-#endif
 #if OL_USE_WPP
   Void     setEntropyCodingMode(Int iEntropyCodingMode)       { m_iEntropyCodingMode = iEntropyCodingMode; }
   Int      getEntropyCodingMode()                             { return m_iEntropyCodingMode; }
