@@ -1434,7 +1434,6 @@ TComPPS::TComPPS()
 , m_bSharedPPSInfoEnabled       (false)
 #endif
 #if TILES
-, m_iColumnRowInfoPresent        (0)
 , m_iUniformSpacingIdr           (0)
 , m_iTileBoundaryIndependenceIdr (0)
 , m_iNumColumnsMinus1            (0)

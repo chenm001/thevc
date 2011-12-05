@@ -212,7 +212,6 @@ protected:
   Bool      m_bPCMFilterDisableFlag;
 #endif
 #if TILES
-  Int       m_iColumnRowInfoPresent;
   Int       m_iUniformSpacingIdr;
   Int       m_iTileBoundaryIndependenceIdr;
   Int       m_iNumColumnsMinus1;
@@ -500,8 +499,6 @@ public:
   Bool      getUseSAO                  ()              {return m_bUseSAO;}
 #endif
 #if TILES
-  Void  setColumnRowInfoPresent        ( Int i )           { m_iColumnRowInfoPresent = i; }
-  Int   getColumnRowInfoPresent        ()                  { return m_iColumnRowInfoPresent; }
   Void  setUniformSpacingIdr           ( Int i )           { m_iUniformSpacingIdr = i; }
   Int   getUniformSpacingIdr           ()                  { return m_iUniformSpacingIdr; }
   Void  setTileBoundaryIndependenceIdr ( Int i )           { m_iTileBoundaryIndependenceIdr = i; }

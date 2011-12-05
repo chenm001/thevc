@@ -859,7 +859,6 @@ Void TEncTop::selectReferencePictureSet(TComSlice* pcSlice, UInt uiPOCCurr, UInt
 #if TILES
 Void  TEncTop::xInitPPSforTiles()
 {
-    m_cPPS.setColumnRowInfoPresent( m_iColumnRowInfoPresent );
     m_cPPS.setUniformSpacingIdr( m_iUniformSpacingIdr );
     m_cPPS.setTileBoundaryIndependenceIdr( m_iTileBoundaryIndependenceIdr );
     m_cPPS.setNumColumnsMinus1( m_iNumColumnsMinus1 );

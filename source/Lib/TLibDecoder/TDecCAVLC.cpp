@@ -341,40 +341,7 @@ Void TDecCavlc::parsePPS(TComPPS* pcPPS)
 
 #if TILES
   READ_FLAG ( uiCode, "tile_info_present_flag" );
-  pcPPS->setColumnRowInfoPresent(uiCode);
-  if( pcPPS->getColumnRowInfoPresent() == 1 )
-  {
-    READ_FLAG ( uiCode, "uniform_spacing_idc" );  
-    pcPPS->setUniformSpacingIdr( uiCode );
-    READ_FLAG ( uiCode, "tile_boundary_independence_idc" );  
-    pcPPS->setTileBoundaryIndependenceIdr( uiCode );
-
-    READ_UVLC ( uiCode, "num_tile_columns_minus1" );   
-    pcPPS->setNumColumnsMinus1( uiCode );  
-    READ_UVLC ( uiCode, "num_tile_rows_minus1" );  
-    pcPPS->setNumRowsMinus1( uiCode );  
-
-    if( pcPPS->getUniformSpacingIdr() == 0 )
-    {
-      UInt* columnWidth = (UInt*)malloc(pcPPS->getNumColumnsMinus1()*sizeof(UInt));
-      for(UInt i=0; i<pcPPS->getNumColumnsMinus1(); i++)
-      { 
-        READ_UVLC( uiCode, "column_width" );  
-        columnWidth[i] = uiCode;  
-      }
-      pcPPS->setColumnWidth(columnWidth);
-      free(columnWidth);
-
-      UInt* rowHeight = (UInt*)malloc(pcPPS->getNumRowsMinus1()*sizeof(UInt));
-      for(UInt i=0; i<pcPPS->getNumRowsMinus1(); i++)
-      {
-        READ_UVLC( uiCode, "row_height" );  
-        rowHeight[i] = uiCode;  
-      }
-      pcPPS->setRowHeight(rowHeight);
-      free(rowHeight);  
-    }
-  }
+  assert(uiCode == 0);
 #endif
   return;
 }

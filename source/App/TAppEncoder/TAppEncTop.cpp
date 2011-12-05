@@ -198,7 +198,6 @@ Void TAppEncTop::xInitLibCfg()
 #endif
 #endif
 #if TILES
-  m_cTEncTop.setColumnRowInfoPresent       ( m_iColumnRowInfoPresent );
   m_cTEncTop.setUniformSpacingIdr          ( m_iUniformSpacingIdr );
   m_cTEncTop.setTileBoundaryIndependenceIdr( m_iTileBoundaryIndependenceIdr );
   m_cTEncTop.setNumColumnsMinus1           ( m_iNumColumnsMinus1 );

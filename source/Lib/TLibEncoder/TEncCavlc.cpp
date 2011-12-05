@@ -360,25 +360,7 @@ Void TEncCavlc::codePPS( TComPPS* pcPPS )
 #endif
 
 #if TILES
-  WRITE_FLAG( pcPPS->getColumnRowInfoPresent(),           "tile_info_present_flag" );
-  if( pcPPS->getColumnRowInfoPresent() == 1 )
-  {
-    WRITE_FLAG( pcPPS->getUniformSpacingIdr(),                                   "uniform_spacing_idc" );
-    WRITE_FLAG( pcPPS->getTileBoundaryIndependenceIdr(),                         "tile_boundary_independence_idc" );
-    WRITE_UVLC( pcPPS->getNumColumnsMinus1(),                                    "num_tile_columns_minus1" );
-    WRITE_UVLC( pcPPS->getNumRowsMinus1(),                                       "num_tile_rows_minus1" );
-    if( pcPPS->getUniformSpacingIdr() == 0 )
-    {
-      for(UInt i=0; i<pcPPS->getNumColumnsMinus1(); i++)
-      {
-        WRITE_UVLC( pcPPS->getColumnWidth(i),                                    "column_width" );
-      }
-      for(UInt i=0; i<pcPPS->getNumRowsMinus1(); i++)
-      {
-        WRITE_UVLC( pcPPS->getRowHeight(i),                                      "row_height" );
-      }
-    }
-  }
+  WRITE_FLAG( 0, "tile_info_present_flag" );
 #endif
   return;
 }
