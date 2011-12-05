@@ -727,7 +727,7 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
         else
         {
           m_pcSAO->setPic(pcPic);
-          m_pcSAO->setUseNIF(!pcSlice->getSPS()->getLFCrossSliceBoundaryFlag());
+          m_pcSAO->setUseNIF(!true);
           if (m_pcSAO->getUseNIF())
           {
             m_pcSAO->InitIsFineSliceCu();
@@ -767,7 +767,7 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
         }
         else
         {
-          m_pcAdaptiveLoopFilter->setUseNonCrossAlf(!pcSlice->getSPS()->getLFCrossSliceBoundaryFlag());
+          m_pcAdaptiveLoopFilter->setUseNonCrossAlf(!true);
           m_pcAdaptiveLoopFilter->createSlice(pcPic);
 
           UInt uiStartAddr, uiEndAddr;

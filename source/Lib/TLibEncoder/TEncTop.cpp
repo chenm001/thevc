@@ -621,7 +621,6 @@ Void TEncTop::xInitSPS()
   m_cSPS.setBitDepth    ( g_uiBitDepth        );
   m_cSPS.setBitIncrement( g_uiBitIncrement    );
 
-  m_cSPS.setLFCrossSliceBoundaryFlag( m_bLFCrossSliceBoundaryFlag );
 #if SAO
   m_cSPS.setUseSAO( m_bUseSAO );
 #endif

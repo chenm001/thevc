@@ -190,7 +190,6 @@ protected:
   Bool      m_bUseCbfFastMode;                              ///< flag for using Cbf Fast PU Mode Decision
 #endif  
 
-  Bool m_bLFCrossSliceBoundaryFlag;  ///< 0: Cross-slice-boundary in-loop filtering 1: non-cross-slice-boundary in-loop filtering
 #if TILES
   Int       m_iColumnRowInfoPresent;
   Int       m_iUniformSpacingIdr;

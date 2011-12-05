@@ -133,7 +133,6 @@ private:
   
   Int m_iAMPAcc[MAX_CU_DEPTH];
 
-  Bool        m_bLFCrossSliceBoundaryFlag;
 #if SAO
   Bool        m_bUseSAO; 
 #endif
@@ -263,9 +262,6 @@ public:
   Void      setBitDepth     ( UInt u ) { m_uiBitDepth = u;        }
   UInt      getBitIncrement ()         { return m_uiBitIncrement; }
   Void      setBitIncrement ( UInt u ) { m_uiBitIncrement = u;    }
-
-  Void      setLFCrossSliceBoundaryFlag     ( Bool   bValue  )    { m_bLFCrossSliceBoundaryFlag = bValue; }
-  Bool      getLFCrossSliceBoundaryFlag     ()                    { return m_bLFCrossSliceBoundaryFlag;   } 
 
 #if SAO
   Void setUseSAO                  (Bool bVal)  {m_bUseSAO = bVal;}

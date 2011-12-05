@@ -180,8 +180,6 @@ Void TAppEncTop::xInitLibCfg()
   m_cTEncTop.setUseConstrainedIntraPred      ( m_bUseConstrainedIntraPred );
   m_cTEncTop.setPCMLog2MinSize          ( m_uiPCMLog2MinSize);
 
-  m_bLFCrossSliceBoundaryFlag = true;
-  m_cTEncTop.setLFCrossSliceBoundaryFlag( m_bLFCrossSliceBoundaryFlag );
 #if SAO
   m_cTEncTop.setUseSAO ( m_bUseSAO );
 #endif

@@ -577,7 +577,7 @@ Void TComLoopFilter::xSetLoopfilterParam( TComDataCU* pcCU, UInt uiAbsZorderIdx 
   }
   if ( m_stLFCUParam.bLeftEdge )
   {
-    pcTempCU = pcCU->getPULeft( uiTempPartIdx, uiAbsZorderIdx, !pcCU->getSlice()->getSPS()->getLFCrossSliceBoundaryFlag(), false );
+    pcTempCU = pcCU->getPULeft( uiTempPartIdx, uiAbsZorderIdx, !true, false );
     if ( pcTempCU )
     {
       m_stLFCUParam.bLeftEdge = true;
@@ -598,7 +598,7 @@ Void TComLoopFilter::xSetLoopfilterParam( TComDataCU* pcCU, UInt uiAbsZorderIdx 
   }
   if ( m_stLFCUParam.bTopEdge )
   {
-    pcTempCU = pcCU->getPUAbove( uiTempPartIdx, uiAbsZorderIdx, !pcCU->getSlice()->getSPS()->getLFCrossSliceBoundaryFlag(), false );
+    pcTempCU = pcCU->getPUAbove( uiTempPartIdx, uiAbsZorderIdx, !true, false );
     if ( pcTempCU )
     {
       m_stLFCUParam.bTopEdge = true;
@@ -632,11 +632,11 @@ Void TComLoopFilter::xGetBoundaryStrengthSingle ( TComDataCU* pcCU, UInt uiAbsZo
   //-- Calculate Block Index
   if (iDir == EDGE_VER)
   {
-    pcCUP = pcCUQ->getPULeft(uiPartP, uiPartQ, !pcCU->getSlice()->getSPS()->getLFCrossSliceBoundaryFlag(), false);
+    pcCUP = pcCUQ->getPULeft(uiPartP, uiPartQ, !true, false);
   }
   else  // (iDir == EDGE_HOR)
   {
-    pcCUP = pcCUQ->getPUAbove(uiPartP, uiPartQ, !pcCU->getSlice()->getSPS()->getLFCrossSliceBoundaryFlag(), false);
+    pcCUP = pcCUQ->getPUAbove(uiPartP, uiPartQ, !true, false);
   }
   
   //-- Set BS for Intra MB : BS = 4 or 3
@@ -668,7 +668,7 @@ Void TComLoopFilter::xGetBoundaryStrengthSingle ( TComDataCU* pcCU, UInt uiAbsZo
     {
       if (iDir == EDGE_HOR)
       {
-        pcCUP = pcCUQ->getPUAbove(uiPartP, uiPartQ, !pcCU->getSlice()->getSPS()->getLFCrossSliceBoundaryFlag(), false, true);
+        pcCUP = pcCUQ->getPUAbove(uiPartP, uiPartQ, !true, false, true);
       }
       if (pcSlice->isInterB())
       {

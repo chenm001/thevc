@@ -1387,7 +1387,6 @@ TComSPS::TComSPS()
 , m_uiBitsForPOC              (  8)
 #endif
 , m_uiMaxTrSize               ( 32)
-, m_bLFCrossSliceBoundaryFlag (false)
 #if SAO
 , m_bUseSAO                   (false) 
 #endif

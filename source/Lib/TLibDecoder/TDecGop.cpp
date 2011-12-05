@@ -438,7 +438,7 @@ Void TDecGop::decompressGop(TComInputBitstream* pcBitstream, TComPic*& rpcPic, B
 #endif
             m_pcSAO->setPic(rpcPic);
             puiILSliceStartLCU[uiILSliceCount] = rpcPic->getNumCUsInFrame()* rpcPic->getNumPartInCU();
-            m_pcSAO->setUseNIF(!pcSlice->getSPS()->getLFCrossSliceBoundaryFlag());
+            m_pcSAO->setUseNIF(!true);
             if (m_pcSAO->getUseNIF())
             {
               m_pcSAO->InitIsFineSliceCu();
@@ -506,7 +506,7 @@ Void TDecGop::decompressGop(TComInputBitstream* pcBitstream, TComPic*& rpcPic, B
 #else
         puiILSliceStartLCU[uiILSliceCount] = rpcPic->getNumCUsInFrame();
 #endif
-        m_pcAdaptiveLoopFilter->setUseNonCrossAlf(!pcSlice->getSPS()->getLFCrossSliceBoundaryFlag());
+        m_pcAdaptiveLoopFilter->setUseNonCrossAlf(!true);
         m_pcAdaptiveLoopFilter->createSlice(rpcPic);
 
         for(UInt i=0; i< uiILSliceCount ; i++)

@@ -267,7 +267,6 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
 #if G215_ALF_NUM_FILTER
   ("ALFMaxNumFilter,-ALFMNF", m_iALFMaxNumberFilters, 16, "16: No Constrained, 1-15: Constrained max number of filter")
 #endif
-    ("LFCrossSliceBoundaryFlag", m_bLFCrossSliceBoundaryFlag, true)
     ("ConstrainedIntraPred", m_bUseConstrainedIntraPred, false, "Constrained Intra Prediction")
     ("PCMLog2MinSize", m_uiPCMLog2MinSize, 7u)
 #if E192_SPS_PCM_BIT_DEPTH_SYNTAX
