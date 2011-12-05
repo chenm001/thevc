@@ -138,7 +138,6 @@ private:
 #endif
 
 #if TILES
-  Int      m_iUniformSpacingIdr;
   Int      m_iTileBoundaryIndependenceIdr;
   Int      m_iNumColumnsMinus1;
   UInt*    m_puiColumnWidth;
@@ -293,15 +292,13 @@ public:
 #endif
 #endif
 #if TILES
-  Void     setUniformSpacingIdr             ( Int i )           { m_iUniformSpacingIdr = i; }
-  Int      getUniformSpacingIdr             ()                  { return m_iUniformSpacingIdr; }
   Void     setTileBoundaryIndependenceIdr   ( Int i )           { m_iTileBoundaryIndependenceIdr = i; }
   Int      getTileBoundaryIndependenceIdr   ()                  { return m_iTileBoundaryIndependenceIdr; }
   Void     setNumColumnsMinus1              ( Int i )           { m_iNumColumnsMinus1 = i; }
   Int      getNumColumnsMinus1              ()                  { return m_iNumColumnsMinus1; }
   Void     setColumnWidth ( UInt* columnWidth )
   {
-    if( m_iUniformSpacingIdr == 0 && m_iNumColumnsMinus1 > 0 )
+    if( m_iNumColumnsMinus1 > 0 )
     {
       m_puiColumnWidth = new UInt[ m_iNumColumnsMinus1 ];
 
@@ -316,7 +313,7 @@ public:
   Int      getNumRowsMinus1()               { return m_iNumRowsMinus1; }
   Void     setRowHeight    ( UInt* rowHeight )
   {
-    if( m_iUniformSpacingIdr == 0 && m_iNumRowsMinus1 > 0 )
+    if( m_iNumRowsMinus1 > 0 )
     {
       m_puiRowHeight = new UInt[ m_iNumRowsMinus1 ];
 
@@ -484,7 +481,6 @@ private:
 #endif
 
 #if TILES
-  Int      m_iUniformSpacingIdr;
   Int      m_iTileBoundaryIndependenceIdr;
   Int      m_iNumColumnsMinus1;
   UInt*    m_puiColumnWidth;
@@ -546,15 +542,13 @@ public:
 #endif
 
 #if TILES
-  Void     setUniformSpacingIdr             ( Int i )           { m_iUniformSpacingIdr = i; }
-  Int      getUniformSpacingIdr             ()                  { return m_iUniformSpacingIdr; }
   Void     setTileBoundaryIndependenceIdr   ( Int i )           { m_iTileBoundaryIndependenceIdr = i; }
   Int      getTileBoundaryIndependenceIdr   ()                  { return m_iTileBoundaryIndependenceIdr; }
   Void     setNumColumnsMinus1              ( Int i )           { m_iNumColumnsMinus1 = i; }
   Int      getNumColumnsMinus1              ()                  { return m_iNumColumnsMinus1; }
   Void     setColumnWidth ( UInt* columnWidth )
   {
-    if( m_iUniformSpacingIdr == 0 && m_iNumColumnsMinus1 > 0 )
+    if( m_iNumColumnsMinus1 > 0 )
     {
       m_puiColumnWidth = new UInt[ m_iNumColumnsMinus1 ];
 
@@ -569,7 +563,7 @@ public:
   Int      getNumRowsMinus1()               { return m_iNumRowsMinus1; }
   Void     setRowHeight    ( UInt* rowHeight )
   {
-    if( m_iUniformSpacingIdr == 0 && m_iNumRowsMinus1 > 0 )
+    if( m_iNumRowsMinus1 > 0 )
     {
       m_puiRowHeight = new UInt[ m_iNumRowsMinus1 ];
 

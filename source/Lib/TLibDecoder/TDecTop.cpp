@@ -550,32 +550,6 @@ Bool TDecTop::decode(InputNALUnit& nalu, Int& iSkipFrame, Int& iPOCLastDisplay)
         //create the TComTileArray
         pcPic->getPicSym()->xCreateTComTileArray();
 
-        //automatically set the column and row boundary if UniformSpacingIdr = 1
-        if( pcSlice->getSPS()->getUniformSpacingIdr() == 1 )
-        {
-          //set the width for each tile
-          for(j=0; j < pcPic->getPicSym()->getNumRowsMinus1()+1; j++)
-          {
-            for(p=0; p < pcPic->getPicSym()->getNumColumnsMinus1()+1; p++)
-            {
-              pcPic->getPicSym()->getTComTile( j * (pcPic->getPicSym()->getNumColumnsMinus1()+1) + p )->
-                setTileWidth( (p+1)*pcPic->getPicSym()->getFrameWidthInCU()/(pcPic->getPicSym()->getNumColumnsMinus1()+1) 
-                - (p*pcPic->getPicSym()->getFrameWidthInCU())/(pcPic->getPicSym()->getNumColumnsMinus1()+1) );
-            }
-          }
-
-          //set the height for each tile
-          for(j=0; j < pcPic->getPicSym()->getNumColumnsMinus1()+1; j++)
-          {
-            for(p=0; p < pcPic->getPicSym()->getNumRowsMinus1()+1; p++)
-            {
-              pcPic->getPicSym()->getTComTile( p * (pcPic->getPicSym()->getNumColumnsMinus1()+1) + j )->
-                setTileHeight( (p+1)*pcPic->getPicSym()->getFrameHeightInCU()/(pcPic->getPicSym()->getNumRowsMinus1()+1) 
-                - (p*pcPic->getPicSym()->getFrameHeightInCU())/(pcPic->getPicSym()->getNumRowsMinus1()+1) );   
-            }
-          }
-        }
-        else
         {
           //set the width for each tile
           for(j=0; j < pcSlice->getSPS()->getNumRowsMinus1()+1; j++)

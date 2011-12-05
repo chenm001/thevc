@@ -191,7 +191,6 @@ protected:
 #endif  
 
 #if TILES
-  Int       m_iUniformSpacingIdr;
   Int       m_iTileBoundaryIndependenceIdr;
   Int       m_iNumColumnsMinus1;
   char*     m_pchColumnWidth;

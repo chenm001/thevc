@@ -276,7 +276,6 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
     ("PCMFilterDisableFlag", m_bPCMFilterDisableFlag, false)
 #endif
 #if TILES
-    ("UniformSpacingIdc",           m_iUniformSpacingIdr,            0,          "Indicates if the column and row boundaries are distributed uniformly")
     ("TileBoundaryIndependenceIdc", m_iTileBoundaryIndependenceIdr,  1,          "Indicates if the column and row boundaries break the prediction")
     ("NumTileColumnsMinus1",        m_iNumColumnsMinus1,             0,          "Number of columns in a picture minus 1")
     ("ColumnWidthArray",            cfg_ColumnWidth,                 string(""), "Array containing ColumnWidth values in units of LCU")

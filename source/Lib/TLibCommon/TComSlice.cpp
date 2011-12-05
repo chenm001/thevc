@@ -1405,12 +1405,12 @@ TComSPS::TComSPS()
 TComSPS::~TComSPS()
 {
 #if TILES
-  if( m_iNumColumnsMinus1 > 0 && m_iUniformSpacingIdr == 0 )
+  if( m_iNumColumnsMinus1 > 0 )
   {
     delete [] m_puiColumnWidth; 
     m_puiColumnWidth = NULL;
   }
-  if( m_iNumRowsMinus1 > 0 && m_iUniformSpacingIdr == 0 )
+  if( m_iNumRowsMinus1 > 0 )
   {
     delete [] m_puiRowHeight;
     m_puiRowHeight = NULL;
@@ -1434,7 +1434,6 @@ TComPPS::TComPPS()
 , m_bSharedPPSInfoEnabled       (false)
 #endif
 #if TILES
-, m_iUniformSpacingIdr           (0)
 , m_iTileBoundaryIndependenceIdr (0)
 , m_iNumColumnsMinus1            (0)
 , m_puiColumnWidth               (NULL)
@@ -1456,12 +1455,12 @@ TComPPS::TComPPS()
 TComPPS::~TComPPS()
 {
 #if TILES
-  if( m_iNumColumnsMinus1 > 0 && m_iUniformSpacingIdr == 0 )
+  if( m_iNumColumnsMinus1 > 0 )
   {
     if (m_puiColumnWidth) delete [] m_puiColumnWidth; 
     m_puiColumnWidth = NULL;
   }
-  if( m_iNumRowsMinus1 > 0 && m_iUniformSpacingIdr == 0 )
+  if( m_iNumRowsMinus1 > 0 )
   {
     if (m_puiRowHeight) delete [] m_puiRowHeight;
     m_puiRowHeight = NULL;

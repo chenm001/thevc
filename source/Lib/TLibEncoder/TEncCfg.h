@@ -212,7 +212,6 @@ protected:
   Bool      m_bPCMFilterDisableFlag;
 #endif
 #if TILES
-  Int       m_iUniformSpacingIdr;
   Int       m_iTileBoundaryIndependenceIdr;
   Int       m_iNumColumnsMinus1;
   UInt*     m_puiColumnWidth;
@@ -245,8 +244,6 @@ public:
   TEncCfg()          {}
   virtual ~TEncCfg() {
 #if TILES
-    if( m_iUniformSpacingIdr == 0 )
-    {
       if( m_iNumColumnsMinus1 )
       { 
         delete[] m_puiColumnWidth; 
@@ -257,7 +254,6 @@ public:
         delete[] m_puiRowHeight;
         m_puiRowHeight = NULL;
       }
-    }
 #if TILES_DECODER
     m_iTileLocationInSliceHeaderFlag = 0;
     m_iTileMarkerFlag              = 0;
@@ -499,8 +495,6 @@ public:
   Bool      getUseSAO                  ()              {return m_bUseSAO;}
 #endif
 #if TILES
-  Void  setUniformSpacingIdr           ( Int i )           { m_iUniformSpacingIdr = i; }
-  Int   getUniformSpacingIdr           ()                  { return m_iUniformSpacingIdr; }
   Void  setTileBoundaryIndependenceIdr ( Int i )           { m_iTileBoundaryIndependenceIdr = i; }
   Int   getTileBoundaryIndependenceIdr ()                  { return m_iTileBoundaryIndependenceIdr; }
   Void  setNumColumnsMinus1            ( Int i )           { m_iNumColumnsMinus1 = i; }
@@ -511,7 +505,7 @@ public:
     int  i=0;
     Int  m_iWidthInCU = ( m_iSourceWidth%g_uiMaxCUWidth ) ? m_iSourceWidth/g_uiMaxCUWidth + 1 : m_iSourceWidth/g_uiMaxCUWidth;
 
-    if( m_iUniformSpacingIdr == 0 && m_iNumColumnsMinus1 > 0 )
+    if( m_iNumColumnsMinus1 > 0 )
     {
       m_puiColumnWidth = new UInt[m_iNumColumnsMinus1];
 
@@ -544,7 +538,7 @@ public:
     int  i=0;
     Int  m_iHeightInCU = ( m_iSourceHeight%g_uiMaxCUHeight ) ? m_iSourceHeight/g_uiMaxCUHeight + 1 : m_iSourceHeight/g_uiMaxCUHeight;
 
-    if( m_iUniformSpacingIdr == 0 && m_iNumRowsMinus1 > 0 )
+    if( m_iNumRowsMinus1 > 0 )
     {
       m_puiRowHeight = new UInt[m_iNumRowsMinus1];
 

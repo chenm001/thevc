@@ -473,7 +473,7 @@ Void TDecCavlc::parseSPS(TComSPS* pcSPS)
 
 #if TILES
   READ_FLAG ( uiCode, "uniform_spacing_idc" ); 
-  pcSPS->setUniformSpacingIdr( uiCode );
+  assert(uiCode == 0);
   READ_FLAG ( uiCode, "tile_boundary_independence_idc" );  
   pcSPS->setTileBoundaryIndependenceIdr( uiCode );
  
@@ -481,7 +481,6 @@ Void TDecCavlc::parseSPS(TComSPS* pcSPS)
   pcSPS->setNumColumnsMinus1( uiCode );  
   READ_UVLC ( uiCode, "num_tile_rows_minus1" ); 
   pcSPS->setNumRowsMinus1( uiCode ); 
-  if( pcSPS->getUniformSpacingIdr() == 0 )
   {
     UInt* columnWidth = (UInt*)malloc(pcSPS->getNumColumnsMinus1()*sizeof(UInt));
     for(UInt i=0; i<pcSPS->getNumColumnsMinus1(); i++)

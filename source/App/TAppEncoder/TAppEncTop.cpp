@@ -198,15 +198,11 @@ Void TAppEncTop::xInitLibCfg()
 #endif
 #endif
 #if TILES
-  m_cTEncTop.setUniformSpacingIdr          ( m_iUniformSpacingIdr );
   m_cTEncTop.setTileBoundaryIndependenceIdr( m_iTileBoundaryIndependenceIdr );
   m_cTEncTop.setNumColumnsMinus1           ( m_iNumColumnsMinus1 );
   m_cTEncTop.setNumRowsMinus1              ( m_iNumRowsMinus1 );
-  if(m_iUniformSpacingIdr==0)
-  {
     m_cTEncTop.setColumnWidth              ( m_pchColumnWidth );
     m_cTEncTop.setRowHeight                ( m_pchRowHeight );
-  }
   m_cTEncTop.xCheckGSParameters();
 #if TILES_DECODER
   m_cTEncTop.setTileLocationInSliceHeaderFlag ( m_iTileLocationInSliceHeaderFlag );

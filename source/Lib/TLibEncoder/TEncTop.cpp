@@ -679,15 +679,11 @@ Void TEncTop::xInitSPS()
 #endif
 
 #if TILES
-  m_cSPS.setUniformSpacingIdr( m_iUniformSpacingIdr );
   m_cSPS.setTileBoundaryIndependenceIdr( m_iTileBoundaryIndependenceIdr );
   m_cSPS.setNumColumnsMinus1( m_iNumColumnsMinus1 );
   m_cSPS.setNumRowsMinus1( m_iNumRowsMinus1 );
-  if( m_iUniformSpacingIdr == 0 )
-  {
-    m_cSPS.setColumnWidth( m_puiColumnWidth );
-    m_cSPS.setRowHeight( m_puiRowHeight );
-  }
+  m_cSPS.setColumnWidth( m_puiColumnWidth );
+  m_cSPS.setRowHeight( m_puiRowHeight );
 #endif
 }
 
@@ -859,15 +855,11 @@ Void TEncTop::selectReferencePictureSet(TComSlice* pcSlice, UInt uiPOCCurr, UInt
 #if TILES
 Void  TEncTop::xInitPPSforTiles()
 {
-    m_cPPS.setUniformSpacingIdr( m_iUniformSpacingIdr );
     m_cPPS.setTileBoundaryIndependenceIdr( m_iTileBoundaryIndependenceIdr );
     m_cPPS.setNumColumnsMinus1( m_iNumColumnsMinus1 );
     m_cPPS.setNumRowsMinus1( m_iNumRowsMinus1 );
-    if( m_iUniformSpacingIdr == 0 )
-    {
-      m_cPPS.setColumnWidth( m_puiColumnWidth );
-      m_cPPS.setRowHeight( m_puiRowHeight );
-    }
+    m_cPPS.setColumnWidth( m_puiColumnWidth );
+    m_cPPS.setRowHeight( m_puiRowHeight );
 #if OL_USE_WPP
     // # substreams is "per tile" when tiles are independent.
     if (m_iTileBoundaryIndependenceIdr && m_iWaveFrontSynchro)
@@ -895,7 +887,7 @@ Void  TEncCfg::xCheckGSParameters()
     exit( EXIT_FAILURE );
   }
 
-  if( m_iNumColumnsMinus1 && m_iUniformSpacingIdr==0 )
+  if( m_iNumColumnsMinus1 )
   {
     for(Int i=0; i<m_iNumColumnsMinus1; i++)
       uiCummulativeColumnWidth += m_puiColumnWidth[i];
@@ -920,7 +912,7 @@ Void  TEncCfg::xCheckGSParameters()
     exit( EXIT_FAILURE );
   }
 
-  if( m_iNumRowsMinus1 && m_iUniformSpacingIdr==0 )
+  if( m_iNumRowsMinus1 )
   {
     for(Int i=0; i<m_iNumRowsMinus1; i++)
       uiCummulativeRowHeight += m_puiRowHeight[i];
