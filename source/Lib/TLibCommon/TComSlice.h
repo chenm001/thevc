@@ -662,7 +662,6 @@ private:
 #if TILES_DECODER
   UInt        *m_uiTileByteLocation;
   UInt        m_uiTileCount;
-  Int         m_iTileMarkerFlag;
   UInt        m_uiTileOffstForMultES;
 #endif
 
@@ -856,8 +855,6 @@ public:
   UInt getTileLocationCount             ()                    { return m_uiTileCount;                     }
   Void setTileLocation                  ( Int i, UInt uiLOC ) { m_uiTileByteLocation[i] = uiLOC;          }
   UInt getTileLocation                  ( Int i )             { return m_uiTileByteLocation[i];           }
-  Void setTileMarkerFlag                ( Int iFlag )         { m_iTileMarkerFlag = iFlag;                }
-  Int  getTileMarkerFlag                ()                    { return m_iTileMarkerFlag;                 }
   Void setTileOffstForMultES            (UInt uiOffset )      { m_uiTileOffstForMultES = uiOffset;        }
   UInt getTileOffstForMultES            ()                    { return m_uiTileOffstForMultES;            }
 #endif

@@ -846,10 +846,6 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
         {
           uiOneBitstreamPerSliceLength = 0; // start of a new slice
         }
-
-        // used while writing slice header
-        Int iTransmitLWHeader = (m_pcCfg->getTileMarkerFlag()==0) ? 0 : 1;
-        pcSlice->setTileMarkerFlag ( iTransmitLWHeader );
 #endif
         m_pcEntropyCoder->setBitstream(&nalu.m_Bitstream);
         m_pcEntropyCoder->encodeSliceHeader(pcSlice);

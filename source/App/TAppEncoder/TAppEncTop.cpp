@@ -200,7 +200,6 @@ Void TAppEncTop::xInitLibCfg()
 #if TILES
   m_cTEncTop.setTileBoundaryIndependenceIdr( m_iTileBoundaryIndependenceIdr );
 #if TILES_DECODER
-  m_cTEncTop.setTileMarkerFlag              ( m_iTileMarkerFlag );
   m_cTEncTop.setMaxTileMarkerEntryPoints    ( m_iMaxTileMarkerEntryPoints );
   
   m_dMaxTileMarkerOffset  = ((Double)1) / m_iMaxTileMarkerEntryPoints;

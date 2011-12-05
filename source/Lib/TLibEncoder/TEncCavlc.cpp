@@ -764,7 +764,7 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
 #if TILES_DECODER
   if (!bEntropySlice && pcSlice->getSPS()->getTileBoundaryIndependenceIdr())
   {
-    xWriteFlag  (pcSlice->getTileMarkerFlag() ? 1 : 0 );
+    xWriteFlag  ( 0 );
   }
 #endif
 #endif

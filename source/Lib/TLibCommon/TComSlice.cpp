@@ -89,7 +89,6 @@ TComSlice::TComSlice()
 #if TILES_DECODER
 , m_uiTileByteLocation            ( NULL )
 , m_uiTileCount                   ( 0 )
-, m_iTileMarkerFlag               ( 0 )
 , m_uiTileOffstForMultES          ( 0 )
 #endif
 #if OL_USE_WPP
@@ -923,9 +922,6 @@ Void TComSlice::copySliceInfo(TComSlice *pSrc)
   m_uiEntropySliceCurEndCUAddr    = pSrc->m_uiEntropySliceCurEndCUAddr;
   m_bNextSlice                    = pSrc->m_bNextSlice;
   m_bNextEntropySlice             = pSrc->m_bNextEntropySlice;
-#if TILES_DECODER
-  m_iTileMarkerFlag             = pSrc->m_iTileMarkerFlag;
-#endif
 }
 
 #if  G1002_RPS

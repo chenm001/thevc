@@ -214,7 +214,6 @@ protected:
 #if TILES
   Int       m_iTileBoundaryIndependenceIdr;
 #if TILES_DECODER
-  Int       m_iTileMarkerFlag;              //< enable(1)/disable(0) transmitssion of light weight tile marker
   Int       m_iMaxTileMarkerEntryPoints;    //< maximum number of tile markers allowed in a slice (controls degree of parallelism)
   Double    m_dMaxTileMarkerOffset;         //< Calculated offset. Light weight tile markers will be transmitted for TileIdx= Offset, 2*Offset, 3*Offset ... 
 #endif
@@ -237,11 +236,6 @@ protected:
 public:
   TEncCfg()          {}
   virtual ~TEncCfg() {
-#if TILES
-#if TILES_DECODER
-    m_iTileMarkerFlag              = 0;
-#endif
-#endif
   }
   
   Void      setFrameRate                    ( Int   i )      { m_iFrameRate = i; }
@@ -481,8 +475,6 @@ public:
   Void  setTileBoundaryIndependenceIdr ( Int i )           { m_iTileBoundaryIndependenceIdr = i; }
   Int   getTileBoundaryIndependenceIdr ()                  { return m_iTileBoundaryIndependenceIdr; }
 #if TILES_DECODER
-  Int  getTileMarkerFlag              ()                 { return m_iTileMarkerFlag;              }
-  Void setTileMarkerFlag              ( Int iFlag )      { m_iTileMarkerFlag = iFlag;             }
   Int  getMaxTileMarkerEntryPoints    ()                 { return m_iMaxTileMarkerEntryPoints;    }
   Void setMaxTileMarkerEntryPoints    ( Int iCount )     { m_iMaxTileMarkerEntryPoints = iCount;  }
   Double getMaxTileMarkerOffset       ()                 { return m_dMaxTileMarkerOffset;         }

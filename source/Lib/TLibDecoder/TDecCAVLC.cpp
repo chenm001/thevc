@@ -835,13 +835,12 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice)
 
 #if !G220_PURE_VLC_SAO_ALF
 #if TILES_DECODER
-  rpcSlice->setTileMarkerFlag ( 0 ); // default
   if (!bEntropySlice)
   {
     if (rpcSlice->getSPS()->getTileBoundaryIndependenceIdr())
     {   
       xReadCode(1, uiCode); // read flag indicating if tile markers transmitted
-      rpcSlice->setTileMarkerFlag( uiCode );
+      assert(uiCode == 0);
     }
   }
 #endif

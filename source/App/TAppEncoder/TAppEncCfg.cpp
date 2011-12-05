@@ -274,7 +274,6 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
 #if TILES
     ("TileBoundaryIndependenceIdc", m_iTileBoundaryIndependenceIdr,  1,          "Indicates if the column and row boundaries break the prediction")
 #if TILES_DECODER
-    ("TileMarkerFlag",              m_iTileMarkerFlag,              0,       "If TileBoundaryIndependenceIdc==1, 0: Disable transmission of lightweight tile marker. 1: Transmit light weight tile marker.")
     ("MaxTileMarkerEntryPoints",    m_iMaxTileMarkerEntryPoints,    4,       "Maximum number of uniformly-spaced tile entry points (using light weigh tile markers). Default=4. If number of tiles < MaxTileMarkerEntryPoints then all tiles have entry points.")
 #endif
 #endif
@@ -909,28 +908,6 @@ Void TAppEncCfg::xPrintParameter()
 #endif
 #if TILES 
   printf("TileBoundaryIndependence:%d ", m_iTileBoundaryIndependenceIdr ); 
-#if TILES_DECODER
-  if (m_iTileBoundaryIndependenceIdr)
-  {
-    printf("TileMarker:%d", m_iTileMarkerFlag);
-    if (m_iTileMarkerFlag)
-    {
-      printf("[%d] ", m_iMaxTileMarkerEntryPoints);
-    }
-    else
-    {
-      printf(" ");
-    }
-  }
-  else
-  {
-    if (m_iTileMarkerFlag)
-    {
-      printf("\nWarning! TileMarker set to 1 when TileBoundaryIndependence set to 0. TileMarker will be over-ridden and set to 0.");
-      m_iTileMarkerFlag = 0;
-    }
-  }
-#endif
 #endif
 #if OL_USE_WPP
   printf(" WaveFrontSynchro:%d WaveFrontFlush:%d WaveFrontSubstreams:%d",

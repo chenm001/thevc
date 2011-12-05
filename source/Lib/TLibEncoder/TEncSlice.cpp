@@ -1226,18 +1226,6 @@ Void TEncSlice::encodeSlice   ( TComPic*& rpcPic, TComOutputBitstream* pcBitstre
       if (iSymbolMode)
 #endif
       {
-        // Write TileMarker into the appropriate substream (nothing has been written to it yet).
-        if (m_pcCfg->getTileMarkerFlag() && bWriteTileMarker)
-        {
-          // Log locations where tile markers are to be inserted during emulation prevention
-          UInt uiMarkerCount = pcSubstreams[uiSubStrm].getTileMarkerLocationCount();
-          pcSubstreams[uiSubStrm].setTileMarkerLocation     ( uiMarkerCount, pcSubstreams[uiSubStrm].getNumberOfWrittenBits() >> 3 );
-          pcSubstreams[uiSubStrm].setTileMarkerLocationCount( uiMarkerCount + 1 );
-          // Write tile index
-          m_pcEntropyCoder->writeTileMarker(0, rpcPic->getPicSym()->getBitsUsedByTileIdx()); // Tile index
-        }
-
-        
         UInt uiAccumulatedSubstreamLength = 0;
         for (Int iSubstrmIdx=0; iSubstrmIdx < iNumSubstreams; iSubstrmIdx++)
         {
@@ -1254,15 +1242,6 @@ Void TEncSlice::encodeSlice   ( TComPic*& rpcPic, TComOutputBitstream* pcBitstre
 #endif // OL_USE_WPP
 #if !DISABLE_CAVLC
       {
-        if (m_pcCfg->getTileMarkerFlag() && bWriteTileMarker)
-        {
-          // Log locations where tile markers are to be inserted during emulation prevention
-          UInt uiMarkerCount = pcBitstream->getTileMarkerLocationCount();
-          pcBitstream->setTileMarkerLocation     ( uiMarkerCount, pcBitstream->getNumberOfWrittenBits() >> 3 );
-          pcBitstream->setTileMarkerLocationCount( uiMarkerCount + 1 );
-          // Write tile index
-          m_pcEntropyCoder->writeTileMarker(0, rpcPic->getPicSym()->getBitsUsedByTileIdx()); // Tile index
-        }
         UInt uiLocationCount = pcSlice->getTileLocationCount();
         // add bits coded in previous entropy slices + bits coded so far      
         UInt uiLength = (pcSlice->getTileOffstForMultES() + pcBitstream->getNumberOfWrittenBits()) >> 3;
