@@ -274,7 +274,6 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
 #if TILES
     ("TileBoundaryIndependenceIdc", m_iTileBoundaryIndependenceIdr,  1,          "Indicates if the column and row boundaries break the prediction")
 #if TILES_DECODER
-    ("TileLocationInSliceHeaderFlag", m_iTileLocationInSliceHeaderFlag, 0,       "If TileBoundaryIndependenceIdc==1, 0: Disable transmission of tile location in slice header. 1: Transmit tile locations in slice header.")
     ("TileMarkerFlag",              m_iTileMarkerFlag,              0,       "If TileBoundaryIndependenceIdc==1, 0: Disable transmission of lightweight tile marker. 1: Transmit light weight tile marker.")
     ("MaxTileMarkerEntryPoints",    m_iMaxTileMarkerEntryPoints,    4,       "Maximum number of uniformly-spaced tile entry points (using light weigh tile markers). Default=4. If number of tiles < MaxTileMarkerEntryPoints then all tiles have entry points.")
 #endif
@@ -911,19 +910,6 @@ Void TAppEncCfg::xPrintParameter()
 #if TILES 
   printf("TileBoundaryIndependence:%d ", m_iTileBoundaryIndependenceIdr ); 
 #if TILES_DECODER
-  if (m_iTileBoundaryIndependenceIdr)
-  {
-    printf("TileLocationInSliceHdr:%d ", m_iTileLocationInSliceHeaderFlag);
-  }
-  else
-  {
-    if (m_iTileLocationInSliceHeaderFlag)
-    {
-      printf("\nWarning! TileLocationInSliceHeaderFlag set to 1 when TileBoundaryIndependence set to 0. The TileLocationInSliceHeaderFlag will be over-ridden and set to 0.");
-      m_iTileLocationInSliceHeaderFlag = 0;
-    }
-  }
-
   if (m_iTileBoundaryIndependenceIdr)
   {
     printf("TileMarker:%d", m_iTileMarkerFlag);
