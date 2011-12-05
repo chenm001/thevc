@@ -179,9 +179,6 @@ Void TAppEncTop::xInitLibCfg()
   m_cTEncTop.setUseLMChroma                  ( m_bUseLMChroma );
   m_cTEncTop.setUseConstrainedIntraPred      ( m_bUseConstrainedIntraPred );
   m_cTEncTop.setPCMLog2MinSize          ( m_uiPCMLog2MinSize);
-  //====== Slice ========
-  m_cTEncTop.setSliceMode               ( m_iSliceMode                );
-  m_cTEncTop.setSliceArgument           ( m_iSliceArgument            );
 
   //====== Entropy Slice ========
   m_cTEncTop.setEntropySliceMode        ( m_iEntropySliceMode         );
@@ -190,19 +187,10 @@ Void TAppEncTop::xInitLibCfg()
   int iNumPartInCU = 1<<(m_uiMaxCUDepth<<1);
   if(m_iEntropySliceMode==SHARP_FIXED_NUMBER_OF_LCU_IN_ENTROPY_SLICE)
   {
-    m_cTEncTop.setEntropySliceArgument ( m_iEntropySliceArgument * ( iNumPartInCU >> ( m_iSliceGranularity << 1 ) ) );
+    m_cTEncTop.setEntropySliceArgument ( m_iEntropySliceArgument * iNumPartInCU );
   }
-  if(m_iSliceMode==AD_HOC_SLICES_FIXED_NUMBER_OF_LCU_IN_SLICE)
-  {
-    m_cTEncTop.setSliceArgument ( m_iSliceArgument * ( iNumPartInCU >> ( m_iSliceGranularity << 1 ) ) );
-  }
-  
-  m_cTEncTop.setSliceGranularity        ( m_iSliceGranularity         );
 #endif
-  if(m_iSliceMode == 0 )
-  {
-    m_bLFCrossSliceBoundaryFlag = true;
-  }
+  m_bLFCrossSliceBoundaryFlag = true;
   m_cTEncTop.setLFCrossSliceBoundaryFlag( m_bLFCrossSliceBoundaryFlag );
 #if SAO
   m_cTEncTop.setUseSAO ( m_bUseSAO );

@@ -74,8 +74,6 @@ TComSlice::TComSlice()
 , m_bRefIdxCombineCoding          ( false )
 , m_uiTLayer                      ( 0 )
 , m_bTLayerSwitchingFlag          ( false )
-, m_uiSliceMode                   ( 0 )
-, m_uiSliceArgument               ( 0 )
 , m_uiSliceCurStartCUAddr         ( 0 )
 , m_uiSliceCurEndCUAddr           ( 0 )
 , m_uiSliceIdx                    ( 0 )
@@ -920,8 +918,6 @@ Void TComSlice::copySliceInfo(TComSlice *pSrc)
   m_uiTLayer                      = pSrc->m_uiTLayer;
   m_bTLayerSwitchingFlag          = pSrc->m_bTLayerSwitchingFlag;
 
-  m_uiSliceMode                   = pSrc->m_uiSliceMode;
-  m_uiSliceArgument               = pSrc->m_uiSliceArgument;
   m_uiSliceCurStartCUAddr         = pSrc->m_uiSliceCurStartCUAddr;
   m_uiSliceCurEndCUAddr           = pSrc->m_uiSliceCurEndCUAddr;
   m_uiSliceIdx                    = pSrc->m_uiSliceIdx;
@@ -1439,9 +1435,6 @@ TComPPS::TComPPS()
 , m_uiBitsForLongTermRefs       (0)
 #endif
 , m_uiNumTlayerSwitchingFlags   (0)
-#if FINE_GRANULARITY_SLICES
-, m_iSliceGranularity           (0)
-#endif
 #if !F747_APS
 , m_bSharedPPSInfoEnabled       (false)
 #endif

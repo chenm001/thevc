@@ -164,7 +164,7 @@ Bool TDecCu::xDecodeSliceEnd( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth)
   UInt uiCurNumParts    = pcPic->getNumPartInCU() >> (uiDepth<<1);
   UInt uiWidth = pcSlice->getSPS()->getWidth();
   UInt uiHeight = pcSlice->getSPS()->getHeight();
-  UInt uiGranularityWidth = g_uiMaxCUWidth>>(pcSlice->getPPS()->getSliceGranularity());
+  UInt uiGranularityWidth = g_uiMaxCUWidth;
   UInt uiPosX = pcCU->getCUPelX() + g_auiRasterToPelX[ g_auiZscanToRaster[uiAbsPartIdx] ];
   UInt uiPosY = pcCU->getCUPelY() + g_auiRasterToPelY[ g_auiZscanToRaster[uiAbsPartIdx] ];
 

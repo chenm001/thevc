@@ -658,7 +658,7 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
         m_pcSliceEncoder->compressSlice   ( pcPic );
 
         Bool bNoBinBitConstraintViolated = (!pcSlice->isNextSlice() && !pcSlice->isNextEntropySlice());
-        if (pcSlice->isNextSlice() || (bNoBinBitConstraintViolated && m_pcCfg->getSliceMode()==AD_HOC_SLICES_FIXED_NUMBER_OF_LCU_IN_SLICE))
+        if (pcSlice->isNextSlice())
         {
           uiStartCUAddrSlice                                              = pcSlice->getSliceCurEndCUAddr();
           // Reconstruction slice
@@ -720,7 +720,6 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
       if(pcSlice->getSPS()->getUseSAO())
       {
         m_pcSAO->setNumSlicesInPic( uiNumSlices );
-        m_pcSAO->setSliceGranularityDepth(pcSlice->getPPS()->getSliceGranularity());
         if(uiNumSlices == 1)
         {
           m_pcSAO->setUseNIF(false);
@@ -762,9 +761,6 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
         vAlfCUCtrlParam.resize(uiNumSlices);
 #endif
         m_pcAdaptiveLoopFilter->setNumSlicesInPic( uiNumSlices );
-#if FINE_GRANULARITY_SLICES
-        m_pcAdaptiveLoopFilter->setSliceGranularityDepth(pcSlice->getPPS()->getSliceGranularity());
-#endif
         if(uiNumSlices == 1)
         {
           m_pcAdaptiveLoopFilter->setUseNonCrossAlf(false);

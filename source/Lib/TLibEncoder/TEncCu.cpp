@@ -990,7 +990,7 @@ Void TEncCu::xCompressCU( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, UInt u
 #if FINE_GRANULARITY_SLICES
       Bool bEntropyLimit=false;
       Bool bSliceLimit=false;
-      bSliceLimit=rpcBestCU->getSlice()->getSliceMode()==AD_HOC_SLICES_FIXED_NUMBER_OF_BYTES_IN_SLICE&&(rpcBestCU->getTotalBits()>rpcBestCU->getSlice()->getSliceArgument()<<3);
+      bSliceLimit=false;
       if(rpcBestCU->getSlice()->getEntropySliceMode()==SHARP_MULTIPLE_CONSTRAINT_BASED_ENTROPY_SLICE&&m_pcEncCfg->getUseSBACRD())
       {
         if(rpcBestCU->getTotalBins()>rpcBestCU->getSlice()->getEntropySliceArgument())
@@ -1005,7 +1005,8 @@ Void TEncCu::xCompressCU( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, UInt u
           bEntropyLimit=true;
         }
       }
-      if(rpcBestCU->getDepth(0)>=rpcBestCU->getSlice()->getPPS()->getSliceGranularity())
+      // CHECK_ME: always true?
+      if(rpcBestCU->getDepth(0)>=0)
       {
         bSliceLimit=false;
         bEntropyLimit=false;
@@ -1093,7 +1094,7 @@ Void TEncCu::finishCU( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
   {
     bTerminateSlice = true;
   }
-  UInt uiGranularityWidth = g_uiMaxCUWidth>>(pcSlice->getPPS()->getSliceGranularity());
+  UInt uiGranularityWidth = g_uiMaxCUWidth;
   uiPosX = pcCU->getCUPelX() + g_auiRasterToPelX[ g_auiZscanToRaster[uiAbsPartIdx] ];
   uiPosY = pcCU->getCUPelY() + g_auiRasterToPelY[ g_auiZscanToRaster[uiAbsPartIdx] ];
   Bool granularityBoundary=((uiPosX+pcCU->getWidth(uiAbsPartIdx))%uiGranularityWidth==0||(uiPosX+pcCU->getWidth(uiAbsPartIdx)==uiWidth))
@@ -1115,18 +1116,11 @@ Void TEncCu::finishCU( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
   }
 #endif
   // Calculate slice end IF this CU puts us over slice bit size.
-  unsigned iGranularitySize = pcCU->getPic()->getNumPartInCU()>>(pcSlice->getPPS()->getSliceGranularity()<<1);
+  unsigned iGranularitySize = pcCU->getPic()->getNumPartInCU();
   int iGranularityEnd = ((pcCU->getSCUAddr()+uiAbsPartIdx)/iGranularitySize)*iGranularitySize;
   if(iGranularityEnd<=pcSlice->getEntropySliceCurStartCUAddr()) 
   {
     iGranularityEnd+=max(iGranularitySize,(pcCU->getPic()->getNumPartInCU()>>(uiDepth<<1)));
-  }
-  // Set slice end parameter
-  if(pcSlice->getSliceMode()==AD_HOC_SLICES_FIXED_NUMBER_OF_BYTES_IN_SLICE&&!pcSlice->getFinalized()&&pcSlice->getSliceBits()+m_pcBitCounter->getNumberOfWrittenBits()>pcSlice->getSliceArgument()<<3) 
-  {
-    pcSlice->setEntropySliceCurEndCUAddr(iGranularityEnd);
-    pcSlice->setSliceCurEndCUAddr(iGranularityEnd);
-    return;
   }
   // Set entropy slice end parameter
   if(m_pcEncCfg->getUseSBACRD()) 

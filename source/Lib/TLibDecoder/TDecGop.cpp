@@ -422,7 +422,6 @@ Void TDecGop::decompressGop(TComInputBitstream* pcBitstream, TComPic*& rpcPic, B
       if( pcSlice->getSPS()->getUseSAO() )
       {
         m_pcSAO->setNumSlicesInPic( uiILSliceCount );
-        m_pcSAO->setSliceGranularityDepth(pcSlice->getPPS()->getSliceGranularity());
 #if F747_APS
         if(pcSlice->getAPS()->getSaoEnabled())
         {
@@ -492,9 +491,6 @@ Void TDecGop::decompressGop(TComInputBitstream* pcBitstream, TComPic*& rpcPic, B
     if( pcSlice->getSPS()->getUseALF() )
     {
       m_pcAdaptiveLoopFilter->setNumSlicesInPic( uiILSliceCount );
-#if FINE_GRANULARITY_SLICES
-      m_pcAdaptiveLoopFilter->setSliceGranularityDepth(pcSlice->getPPS()->getSliceGranularity());
-#endif
 #if F747_APS
       if(pcSlice->getAPS()->getAlfEnabled())
       {

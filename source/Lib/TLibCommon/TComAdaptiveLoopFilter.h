@@ -184,7 +184,7 @@ public:
   ~CAlfLCU(){destroy();}
 public:
 
-  Void create(Int iSliceID, TComPic* pcPic, UInt uiCUAddr, UInt uiStartSU, UInt uiEndSU, Int iSGDepth); /// Create ALF LCU unit perform slice processing
+  Void create(Int iSliceID, TComPic* pcPic, UInt uiCUAddr, UInt uiStartSU, UInt uiEndSU); /// Create ALF LCU unit perform slice processing
   Void destroy(); /// Destroy ALF LCU unit
   Void extendLumaBorder(Pel* pImg, Int iStride); /// Extend slice boundary border for one luma LCU
   Void extendChromaBorder(Pel* pImg, Int iStride); /// Extend slice boundary border for one chroma LCU
@@ -238,7 +238,7 @@ public:
     destroy(); 
   }
 public:
-  Void init(TComPic* pcPic, Int iSGDepth, Int* piSliceSUMap); //!< Initialize one ALF slice unit
+  Void init(TComPic* pcPic, Int* piSliceSUMap); //!< Initialize one ALF slice unit
   Void create(Int iSliceID, UInt uiStartLCU, UInt uiEndLCU); //!< Create one ALF slice unit
   Void destroy(); //!< Destroy one ALF slice unit
   Void extendSliceBorderLuma(Pel* pPelSrc, Int iStride); //!< Extend slice boundary for one luma slice
@@ -247,6 +247,7 @@ public:
   Void copySliceChroma(Pel* pPicDst, Pel* pPicSrc, Int iStride ); //!< Copy one chroma slice
   Void getCtrlFlagsForOneSlice(); //!< Copy ALF CU Control Flags for one slice
   UInt getNumLCUs      ()          {return m_uiNumLCUs;} //!< Get number of LCUs of this slice
+
 #if F747_APS
   Bool getCUCtrlEnabled()          {return m_bCUCtrlEnabled;   } /// Get ALF CU control enabled/disable for this slice
 #endif
@@ -268,7 +269,6 @@ private:
   UInt     m_uiStartLCU;             //!< starting LCU raster-scan address in picture
   UInt     m_uiEndLCU;               //!< ending LCU raster-scan address in picture
   UInt     m_uiNumLCUs;              //!< number of LCUs in this slices
-  Int      m_iSGDepth;               //!< slice granularity
   UInt     m_uiFirstCUInStartLCU;    //!< first SU z-scan address of the starting LCU
   UInt     m_uiLastCUInEndLCU;       //!< last  SU z-scan address of the ending LCU
   Bool     m_bCUCtrlEnabled;         //!< ALF CU control enabled/disabled
@@ -407,10 +407,6 @@ public: //public methods, interface functions
   Int  getNumCUsInPic()  {return m_uiNumCUsInFrame;} //!< get number of LCU in picture for ALF process
 #endif
 
-#if FINE_GRANULARITY_SLICES
-  Void setSliceGranularityDepth(Int iDepth) { m_iSGDepth = iDepth;} //!< Set slice granularity
-  Int  getSliceGranularityDepth()           { return m_iSGDepth;  } //!< get slice granularity
-#endif
   Void setNumSlicesInPic(UInt uiNum) {m_uiNumSlicesInPic = uiNum;} //!< Set number of slices in picture
   UInt getNumSlicesInPic()           {return m_uiNumSlicesInPic;} //!< Get number of slices in picture
   Void setUseNonCrossAlf(Bool bVal)  {m_bUseNonCrossALF = bVal;} //!< Set across/non-across slice boundary ALF

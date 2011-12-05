@@ -104,7 +104,6 @@ protected:
 #if SAO_FGS_NIF
   Bool  m_bUseNIF;       //!< true for performing non-cross slice boundary ALF
   UInt  m_uiNumSlicesInPic;      //!< number of slices in picture
-  Int   m_iSGDepth;              //!< slice granularity depth
   Bool  *m_bIsFineSliceCu;
   TComPicYuv* m_pcPicYuvMap;
 #endif
@@ -149,8 +148,6 @@ public:
   UInt getNumSlicesInPic()           {return m_uiNumSlicesInPic;}   //!< get num of slices in picture
   Void setUseNIF(Bool bVal)  {m_bUseNIF = bVal;}    //!< set use non-cross-slice-boundaries in-loop filter (NIF)
   Bool getUseNIF()           {return m_bUseNIF;}    //!< get use non-cross-slice-boundaries in-loop filter (NIF)
-  Void setSliceGranularityDepth(Int iDepth) { m_iSGDepth = iDepth; }//!< set slice granularity depth
-  Int  getSliceGranularityDepth()           { return m_iSGDepth;   }//!< get slice granularity depth
   Void createSliceMap(UInt iSliceIdx, UInt uiStartAddr, UInt uiEndAddr);//!< create slice map
   Void InitIsFineSliceCu(){memset(m_bIsFineSliceCu,0, sizeof(Bool)*m_iNumCuInWidth*m_iNumCuInHeight);} //!< Init is fine slice LCU
   Void setPic(TComPic* pcPic){m_pcPic = pcPic;} //!< set pic

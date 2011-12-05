@@ -111,9 +111,6 @@ TEncSbac::TEncSbac()
 #endif
 {
   assert( m_numContextModels <= MAX_NUM_CTX_MOD );
-#if FINE_GRANULARITY_SLICES
-  m_iSliceGranularity = 0;
-#endif
 }
 
 TEncSbac::~TEncSbac()

@@ -695,9 +695,6 @@ Void TEncTop::xInitSPS()
 Void TEncTop::xInitPPS()
 {
   m_cPPS.setConstrainedIntraPred( m_bUseConstrainedIntraPred );
-#if FINE_GRANULARITY_SLICES
-  m_cPPS.setSliceGranularity(m_iSliceGranularity);
-#endif
   if ( m_cSPS.getTemporalIdNestingFlag() ) 
   {
     m_cPPS.setNumTLayerSwitchingFlags( 0 );

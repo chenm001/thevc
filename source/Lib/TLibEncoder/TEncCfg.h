@@ -203,15 +203,9 @@ protected:
   
   Bool      m_bUseConstrainedIntraPred;
   UInt      m_uiPCMLog2MinSize;
-  //====== Slice ========
-  Int       m_iSliceMode;
-  Int       m_iSliceArgument; 
   //====== Entropy Slice ========
   Int       m_iEntropySliceMode;
   Int       m_iEntropySliceArgument;
-#if FINE_GRANULARITY_SLICES
-  Int       m_iSliceGranularity;
-#endif
   Bool      m_bLFCrossSliceBoundaryFlag;
 #if E192_SPS_PCM_BIT_DEPTH_SYNTAX
   Bool      m_bPCMInputBitDepthFlag;
@@ -505,20 +499,11 @@ public:
   Int*      getdQPs                         ()      { return m_aidQP;       }
   UInt      getDeltaQpRD                    ()      { return m_uiDeltaQpRD; }
 
-  //====== Slice ========
-  Void  setSliceMode                   ( Int  i )       { m_iSliceMode = i;              }
-  Void  setSliceArgument               ( Int  i )       { m_iSliceArgument = i;          }
-  Int   getSliceMode                   ()              { return m_iSliceMode;           }
-  Int   getSliceArgument               ()              { return m_iSliceArgument;       }
   //====== Entropy Slice ========
   Void  setEntropySliceMode            ( Int  i )      { m_iEntropySliceMode = i;       }
   Void  setEntropySliceArgument        ( Int  i )      { m_iEntropySliceArgument = i;   }
   Int   getEntropySliceMode            ()              { return m_iEntropySliceMode;    }
   Int   getEntropySliceArgument        ()              { return m_iEntropySliceArgument;}
-#if FINE_GRANULARITY_SLICES
-  Void  setSliceGranularity            ( Int  i )      { m_iSliceGranularity = i;       }
-  Int   getSliceGranularity            ()              { return m_iSliceGranularity;    }
-#endif
   Void      setLFCrossSliceBoundaryFlag     ( Bool   bValue  )    { m_bLFCrossSliceBoundaryFlag = bValue; }
   Bool      getLFCrossSliceBoundaryFlag     ()                    { return m_bLFCrossSliceBoundaryFlag;   }
 #if SAO

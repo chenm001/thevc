@@ -482,10 +482,6 @@ private:
   UInt        m_uiNumTlayerSwitchingFlags;            // num_temporal_layer_switching_point_flags
   Bool        m_abTLayerSwitchingFlag[ MAX_TLAYER ];  // temporal_layer_switching_point_flag
 
-#if FINE_GRANULARITY_SLICES
-  Int         m_iSliceGranularity;
-#endif
-
 #if !F747_APS
   Bool        m_bSharedPPSInfoEnabled;  //!< Shared info. in PPS is enabled/disabled
   ALFParam    m_cSharedAlfParam;        //!< Shared ALF parameters in PPS 
@@ -517,10 +513,6 @@ public:
   Int       getSPSId ()      { return m_SPSId; }
   Void      setSPSId (Int i) { m_SPSId = i; }
   
-#if FINE_GRANULARITY_SLICES
-  Int       getSliceGranularity()        { return m_iSliceGranularity; }
-  Void      setSliceGranularity( Int i ) { m_iSliceGranularity = i;    }
-#endif
   Bool      getConstrainedIntraPred ()         { return  m_bConstrainedIntraPred; }
   Void      setConstrainedIntraPred ( Bool b ) { m_bConstrainedIntraPred = b;     }
 
@@ -735,8 +727,6 @@ private:
   UInt        m_uiTLayer;
   Bool        m_bTLayerSwitchingFlag;
 
-  UInt        m_uiSliceMode;
-  UInt        m_uiSliceArgument;
   UInt        m_uiSliceCurStartCUAddr;
   UInt        m_uiSliceCurEndCUAddr;
   UInt        m_uiSliceIdx;
@@ -921,10 +911,6 @@ public:
   UInt getMaxNumMergeCand               ()                  {return m_uiMaxNumMergeCand;                  }
 #endif
 
-  Void setSliceMode                     ( UInt uiMode )     { m_uiSliceMode = uiMode;                     }
-  UInt getSliceMode                     ()                  { return m_uiSliceMode;                       }
-  Void setSliceArgument                 ( UInt uiArgument ) { m_uiSliceArgument = uiArgument;             }
-  UInt getSliceArgument                 ()                  { return m_uiSliceArgument;                   }
   Void setSliceCurStartCUAddr           ( UInt uiAddr )     { m_uiSliceCurStartCUAddr = uiAddr;           }
   UInt getSliceCurStartCUAddr           ()                  { return m_uiSliceCurStartCUAddr;             }
   Void setSliceCurEndCUAddr             ( UInt uiAddr )     { m_uiSliceCurEndCUAddr = uiAddr;             }

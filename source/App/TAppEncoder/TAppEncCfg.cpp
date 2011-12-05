@@ -267,14 +267,8 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
 #if G215_ALF_NUM_FILTER
   ("ALFMaxNumFilter,-ALFMNF", m_iALFMaxNumberFilters, 16, "16: No Constrained, 1-15: Constrained max number of filter")
 #endif
-
-    ("SliceMode",            m_iSliceMode,           0, "0: Disable all Recon slice limits, 1: Enforce max # of LCUs, 2: Enforce max # of bytes")
-    ("SliceArgument",        m_iSliceArgument,       0, "if SliceMode==1 SliceArgument represents max # of LCUs. if SliceMode==2 SliceArgument represents max # of bytes.")
     ("EntropySliceMode",     m_iEntropySliceMode,    0, "0: Disable all entropy slice limits, 1: Enforce max # of LCUs, 2: Enforce constraint based entropy slices")
     ("EntropySliceArgument", m_iEntropySliceArgument,0, "if EntropySliceMode==1 SliceArgument represents max # of LCUs. if EntropySliceMode==2 EntropySliceArgument represents max # of bins.")
-#if FINE_GRANULARITY_SLICES
-    ("SliceGranularity",     m_iSliceGranularity,    0, "0: Slices always end at LCU borders. 1-3: slices may end at a depth of 1-3 below LCU level.")
-#endif
     ("LFCrossSliceBoundaryFlag", m_bLFCrossSliceBoundaryFlag, true)
     ("ConstrainedIntraPred", m_bUseConstrainedIntraPred, false, "Constrained Intra Prediction")
     ("PCMLog2MinSize", m_uiPCMLog2MinSize, 7u)
@@ -527,20 +521,11 @@ Void TAppEncCfg::xCheckParameter()
   xConfirmPara(  m_uiPCMLog2MinSize < 3,                                        "PCMLog2MinSize must be 3 or greater.");
   xConfirmPara(  m_uiPCMLog2MinSize > 7,                                        "PCMLog2MinSize must be 7 or smaller.");
 
-  xConfirmPara( m_iSliceMode < 0 || m_iSliceMode > 2, "SliceMode exceeds supported range (0 to 2)" );
-  if (m_iSliceMode!=0)
-  {
-    xConfirmPara( m_iSliceArgument < 1 ,         "SliceArgument should be larger than or equal to 1" );
-  }
   xConfirmPara( m_iEntropySliceMode < 0 || m_iEntropySliceMode > 2, "EntropySliceMode exceeds supported range (0 to 2)" );
   if (m_iEntropySliceMode!=0)
   {
     xConfirmPara( m_iEntropySliceArgument < 1 ,         "EntropySliceArgument should be larger than or equal to 1" );
   }
-#if FINE_GRANULARITY_SLICES
-  xConfirmPara( m_iSliceGranularity >= m_uiMaxCUDepth, "SliceGranularity must be smaller than maximum cu depth");
-  xConfirmPara( m_iSliceGranularity <0 || m_iSliceGranularity > 3, "SliceGranularity exceeds supported range (0 to 3)" );
-#endif
 #if !DISABLE_CAVLC
   xConfirmPara( m_iSymbolMode < 0 || m_iSymbolMode > 1,                                     "SymbolMode must be equal to 0 or 1" );
 #endif
@@ -936,22 +921,13 @@ Void TAppEncCfg::xPrintParameter()
   printf("MRG:%d ", m_bUseMRG             ); // SOPH: Merge Mode
   printf("LMC:%d ", m_bUseLMChroma        ); 
 #if FINE_GRANULARITY_SLICES
-  printf("Slice: G=%d M=%d ", m_iSliceGranularity, m_iSliceMode);
-  if (m_iSliceMode!=0)
-  {
-    printf("A=%d ", m_iSliceArgument);
-  }
   printf("EntropySlice: M=%d ",m_iEntropySliceMode);
   if (m_iEntropySliceMode!=0)
   {
     printf("A=%d ", m_iEntropySliceArgument);
   }
 #else
-  printf("Slice:%d ",m_iSliceMode);
-  if (m_iSliceMode!=0)
-  {
-    printf("(%d) ", m_iSliceArgument);
-  }
+  printf("Slice:%d ",0);
   printf("EntropySlice:%d ",m_iEntropySliceMode);
   if (m_iEntropySliceMode!=0)
   {

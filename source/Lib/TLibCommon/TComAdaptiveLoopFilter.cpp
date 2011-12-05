@@ -160,7 +160,6 @@ TComAdaptiveLoopFilter::TComAdaptiveLoopFilter()
 {
   m_pcTempPicYuv = NULL;
   m_pSlice       = NULL;
-  m_iSGDepth     = 0;
   m_piSliceSUMap = NULL;
 }
 
@@ -2010,7 +2009,7 @@ Void TComAdaptiveLoopFilter::createSlice(TComPic* pcPic)
   m_pSlice = new CAlfSlice[m_uiNumSlicesInPic];
   for(Int i=0; i< m_uiNumSlicesInPic; i++)
   {
-    m_pSlice[i].init(pcPic, m_iSGDepth, m_piSliceSUMap);
+    m_pSlice[i].init(pcPic, m_piSliceSUMap);
   }
 }
 
@@ -2254,7 +2253,7 @@ Void TComAdaptiveLoopFilter::transferCtrlFlagsFromAlfParamOneSlice(UInt s, Bool 
  * \param uiEndSU ending SU z-scan address of current LCU unit
  * \param iSGDepth Slice granularity
  */
-Void CAlfLCU::create(Int iSliceID, TComPic* pcPic, UInt uiCUAddr, UInt uiStartSU, UInt uiEndSU, Int iSGDepth)
+Void CAlfLCU::create(Int iSliceID, TComPic* pcPic, UInt uiCUAddr, UInt uiStartSU, UInt uiEndSU)
 {
   m_iSliceID       = iSliceID;
   m_pcPic          = pcPic;
@@ -2269,7 +2268,7 @@ Void CAlfLCU::create(Int iSliceID, TComPic* pcPic, UInt uiCUAddr, UInt uiStartSU
   UInt uiMaxNumSUInLCUWidth = m_pcPic->getNumPartInWidth();
   UInt uiMAxNumSUInLCUHeight= m_pcPic->getNumPartInHeight();
   UInt uiMaxNumSUInLCU      = uiMaxNumSUInLCUWidth*uiMAxNumSUInLCUHeight;
-  UInt uiMaxNumSUInSGU      = uiMaxNumSUInLCU >> (iSGDepth << 1);
+  UInt uiMaxNumSUInSGU      = uiMaxNumSUInLCU;
   UInt uiCurrSU, uiLPelX, uiTPelY;
 
   //create CU ctrl flag buffer
@@ -3176,10 +3175,9 @@ Void CAlfLCU::getCtrlFlagsFromCU(Int iAlfDepth)
  * \param iSGDepth slice granularity
  * \param piSliceSUMap slice ID map
  */
-Void CAlfSlice::init(TComPic* pcPic, Int iSGDepth, Int* piSliceSUMap)
+Void CAlfSlice::init(TComPic* pcPic, Int* piSliceSUMap)
 {
   m_pcPic          = pcPic;
-  m_iSGDepth       = iSGDepth;
   m_piSliceSUMap   = piSliceSUMap;
   m_bCUCtrlEnabled = false;
   m_iCUCtrlDepth   = -1;
@@ -3282,9 +3280,9 @@ Void CAlfSlice::create(Int iSliceID, UInt uiStartAddr, UInt uiEndAddr)
     UInt uiEndSU   = (uiAddr == m_uiEndLCU  )?(m_uiLastCUInEndLCU   ):(uiNumSUInLCU -1);
 
 #if TILES
-    m_pcAlfLCU[uiAddr - m_uiStartLCU].create(m_iSliceID, m_pcPic, m_pcPic->getPicSym()->getCUOrderMap(uiAddr), uiStartSU, uiEndSU, m_iSGDepth);
+    m_pcAlfLCU[uiAddr - m_uiStartLCU].create(m_iSliceID, m_pcPic, m_pcPic->getPicSym()->getCUOrderMap(uiAddr), uiStartSU, uiEndSU);
 #else
-    m_pcAlfLCU[uiAddr - m_uiStartLCU].create(m_iSliceID, m_pcPic, uiAddr, uiStartSU, uiEndSU, m_iSGDepth);
+    m_pcAlfLCU[uiAddr - m_uiStartLCU].create(m_iSliceID, m_pcPic, uiAddr, uiStartSU, uiEndSU);
 #endif
   }
 

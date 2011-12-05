@@ -123,9 +123,6 @@ TEncCavlc::TEncCavlc()
   m_uiMaxAlfCtrlDepth = 0;
   
   m_bAdaptFlag        = true;    // adaptive VLC table
-#if FINE_GRANULARITY_SLICES
-  m_iSliceGranularity = 0;
-#endif
 }
 
 TEncCavlc::~TEncCavlc()
@@ -342,7 +339,7 @@ Void TEncCavlc::codePPS( TComPPS* pcPPS )
   //   pic_init_qp_minus26  /* relative to 26 */
   WRITE_FLAG( pcPPS->getConstrainedIntraPred() ? 1 : 0,      "constrained_intra_pred_flag" );
 #if FINE_GRANULARITY_SLICES
-  WRITE_CODE( pcPPS->getSliceGranularity(), 2,               "slice_granularity");
+  WRITE_CODE( 0, 2,               "slice_granularity");
 #endif
 #if !F747_APS
   WRITE_FLAG( pcPPS->getSharedPPSInfoEnabled() ? 1: 0,       "shared_pps_info_enabled_flag" );
@@ -686,7 +683,7 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
     iReqBitsOuter++;
   }
   Int iMaxAddrInner = pcSlice->getPic()->getNumPartInCU()>>(2);
-  iMaxAddrInner = (1<<(pcSlice->getPPS()->getSliceGranularity()<<1));
+  iMaxAddrInner = 1;
   int iReqBitsInner = 0;
   
   while(iMaxAddrInner>(1<<iReqBitsInner))
@@ -706,8 +703,9 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
 #endif
 #else
     // Calculate slice address
+    // CHECK_ME: pcSlice->getSliceCurStartCUAddr() always zero!
     iLCUAddress = (pcSlice->getSliceCurStartCUAddr()/pcSlice->getPic()->getNumPartInCU());
-    iInnerAddress = (pcSlice->getSliceCurStartCUAddr()%(pcSlice->getPic()->getNumPartInCU()))>>((pcSlice->getSPS()->getMaxCUDepth()-pcSlice->getPPS()->getSliceGranularity())<<1);
+    iInnerAddress = (pcSlice->getSliceCurStartCUAddr()%(pcSlice->getPic()->getNumPartInCU()))>>(pcSlice->getSPS()->getMaxCUDepth()<<1);
 #endif
   }
   else
@@ -721,7 +719,7 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
 #else
     // Calculate slice address
     iLCUAddress = (pcSlice->getEntropySliceCurStartCUAddr()/pcSlice->getPic()->getNumPartInCU());
-    iInnerAddress = (pcSlice->getEntropySliceCurStartCUAddr()%(pcSlice->getPic()->getNumPartInCU()))>>((pcSlice->getSPS()->getMaxCUDepth()-pcSlice->getPPS()->getSliceGranularity())<<1);
+    iInnerAddress = (pcSlice->getEntropySliceCurStartCUAddr()%(pcSlice->getPic()->getNumPartInCU()))>>(pcSlice->getSPS()->getMaxCUDepth()<<1);
     
 #endif
   }
