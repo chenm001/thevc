@@ -213,10 +213,6 @@ protected:
 #endif
 #if TILES
   Int       m_iTileBoundaryIndependenceIdr;
-  Int       m_iNumColumnsMinus1;
-  UInt*     m_puiColumnWidth;
-  Int       m_iNumRowsMinus1;
-  UInt*     m_puiRowHeight;
 #if TILES_DECODER
   Int       m_iTileLocationInSliceHeaderFlag; //< enable(1)/disable(0) transmitssion of tile location in slice header
 
@@ -244,16 +240,6 @@ public:
   TEncCfg()          {}
   virtual ~TEncCfg() {
 #if TILES
-      if( m_iNumColumnsMinus1 )
-      { 
-        delete[] m_puiColumnWidth; 
-        m_puiColumnWidth = NULL;
-      }
-      if( m_iNumRowsMinus1 )
-      {
-        delete[] m_puiRowHeight;
-        m_puiRowHeight = NULL;
-      }
 #if TILES_DECODER
     m_iTileLocationInSliceHeaderFlag = 0;
     m_iTileMarkerFlag              = 0;
@@ -497,73 +483,6 @@ public:
 #if TILES
   Void  setTileBoundaryIndependenceIdr ( Int i )           { m_iTileBoundaryIndependenceIdr = i; }
   Int   getTileBoundaryIndependenceIdr ()                  { return m_iTileBoundaryIndependenceIdr; }
-  Void  setNumColumnsMinus1            ( Int i )           { m_iNumColumnsMinus1 = i; }
-  Int   getNumColumnsMinus1            ()                  { return m_iNumColumnsMinus1; }
-  Void  setColumnWidth ( char* str )
-  {
-    char *columnWidth;
-    int  i=0;
-    Int  m_iWidthInCU = ( m_iSourceWidth%g_uiMaxCUWidth ) ? m_iSourceWidth/g_uiMaxCUWidth + 1 : m_iSourceWidth/g_uiMaxCUWidth;
-
-    if( m_iNumColumnsMinus1 > 0 )
-    {
-      m_puiColumnWidth = new UInt[m_iNumColumnsMinus1];
-
-      columnWidth = strtok(str, " ,-");
-      while(columnWidth!=NULL)
-      {
-        if( i>=m_iNumColumnsMinus1 )
-        {
-          printf( "The number of columns whose width are defined is larger than the allowed number of columns.\n" );
-          exit( EXIT_FAILURE );
-        }
-        *( m_puiColumnWidth + i ) = atoi( columnWidth );
-        printf("col: m_iWidthInCU= %4d i=%4d width= %4d\n",m_iWidthInCU,i,m_puiColumnWidth[i]); //AFU
-        columnWidth = strtok(NULL, " ,-");
-        i++;
-      }
-      if( i<m_iNumColumnsMinus1 )
-      {
-        printf( "The width of some columns is not defined.\n" );
-        exit( EXIT_FAILURE );
-      }
-    }
-  }
-  UInt  getColumnWidth                 ( UInt columnidx )  { return *( m_puiColumnWidth + columnidx ); }
-  Void  setNumRowsMinus1               ( Int i )           { m_iNumRowsMinus1 = i; }
-  Int   getNumRowsMinus1               ()                  { return m_iNumRowsMinus1; }
-  Void  setRowHeight (char* str)
-  {
-    char *rowHeight;
-    int  i=0;
-    Int  m_iHeightInCU = ( m_iSourceHeight%g_uiMaxCUHeight ) ? m_iSourceHeight/g_uiMaxCUHeight + 1 : m_iSourceHeight/g_uiMaxCUHeight;
-
-    if( m_iNumRowsMinus1 > 0 )
-    {
-      m_puiRowHeight = new UInt[m_iNumRowsMinus1];
-
-      rowHeight = strtok(str, " ,-");
-      while(rowHeight!=NULL)
-      {
-        if( i>=m_iNumRowsMinus1 )
-        {
-          printf( "The number of rows whose height are defined is larger than the allowed number of rows.\n" );
-          exit( EXIT_FAILURE );
-        }
-        *( m_puiRowHeight + i ) = atoi( rowHeight );
-        printf("row: m_iHeightInCU=%4d i=%4d height=%4d\n",m_iHeightInCU,i,m_puiRowHeight[i]); //AFU
-        rowHeight = strtok(NULL, " ,-");
-        i++;
-      }
-      if( i<m_iNumRowsMinus1 )
-      {
-        printf( "The height of some rows is not defined.\n" );
-        exit( EXIT_FAILURE );
-     }
-    }
-  }
-  UInt  getRowHeight                   ( UInt rowIdx )     { return *( m_puiRowHeight + rowIdx ); }
-  Void  xCheckGSParameters();
 #if TILES_DECODER
   Int  getTileLocationInSliceHeaderFlag ()                 { return m_iTileLocationInSliceHeaderFlag; }
   Void setTileLocationInSliceHeaderFlag ( Int iFlag )      { m_iTileLocationInSliceHeaderFlag = iFlag;}

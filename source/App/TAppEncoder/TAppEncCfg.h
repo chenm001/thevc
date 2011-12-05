@@ -192,10 +192,6 @@ protected:
 
 #if TILES
   Int       m_iTileBoundaryIndependenceIdr;
-  Int       m_iNumColumnsMinus1;
-  char*     m_pchColumnWidth;
-  Int       m_iNumRowsMinus1;
-  char*     m_pchRowHeight;
 #if TILES_DECODER
   Int       m_iTileLocationInSliceHeaderFlag; //< enable(1)/disable(0) transmitssion of tile location in slice header
   Int       m_iTileMarkerFlag;              //< enable(1)/disable(0) transmitssion of light weight tile marker

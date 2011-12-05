@@ -199,18 +199,12 @@ Void TAppEncTop::xInitLibCfg()
 #endif
 #if TILES
   m_cTEncTop.setTileBoundaryIndependenceIdr( m_iTileBoundaryIndependenceIdr );
-  m_cTEncTop.setNumColumnsMinus1           ( m_iNumColumnsMinus1 );
-  m_cTEncTop.setNumRowsMinus1              ( m_iNumRowsMinus1 );
-    m_cTEncTop.setColumnWidth              ( m_pchColumnWidth );
-    m_cTEncTop.setRowHeight                ( m_pchRowHeight );
-  m_cTEncTop.xCheckGSParameters();
 #if TILES_DECODER
   m_cTEncTop.setTileLocationInSliceHeaderFlag ( m_iTileLocationInSliceHeaderFlag );
   m_cTEncTop.setTileMarkerFlag              ( m_iTileMarkerFlag );
   m_cTEncTop.setMaxTileMarkerEntryPoints    ( m_iMaxTileMarkerEntryPoints );
   
-  Int uiTilesCount          = (m_iNumRowsMinus1+1) * (m_iNumColumnsMinus1+1);
-  m_dMaxTileMarkerOffset  = ((Double)uiTilesCount) / m_iMaxTileMarkerEntryPoints;
+  m_dMaxTileMarkerOffset  = ((Double)1) / m_iMaxTileMarkerEntryPoints;
   m_cTEncTop.setMaxTileMarkerOffset         ( m_dMaxTileMarkerOffset );
 #endif
 #endif

@@ -479,16 +479,8 @@ Void TEncCavlc::codeSPS( TComSPS* pcSPS )
 #if TILES
   WRITE_FLAG( 0,                                                      "uniform_spacing_idc" );
   WRITE_FLAG( pcSPS->getTileBoundaryIndependenceIdr(),                "tile_boundary_independence_idc" );
-  WRITE_UVLC( pcSPS->getNumColumnsMinus1(),                           "num_tile_columns_minus1" );
-  WRITE_UVLC( pcSPS->getNumRowsMinus1(),                              "num_tile_rows_minus1" );
-    for(UInt i=0; i<pcSPS->getNumColumnsMinus1(); i++)
-    {
-      WRITE_UVLC( pcSPS->getColumnWidth(i),                           "column_width" );
-    }
-    for(UInt i=0; i<pcSPS->getNumRowsMinus1(); i++)
-    {
-      WRITE_UVLC( pcSPS->getRowHeight(i),                             "row_height" );
-    }
+  WRITE_UVLC( 0,                                                      "num_tile_columns_minus1" );
+  WRITE_UVLC( 0,                                                      "num_tile_rows_minus1" );
 #endif
   
   // Software-only flags

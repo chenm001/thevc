@@ -458,8 +458,6 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
 #endif
 
 #if TILES
-    UInt uiCummulativeTileWidth;
-    UInt uiCummulativeTileHeight;
     Int  p, j;
     UInt uiEncCUAddr;
     
@@ -468,38 +466,14 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
       //initialize TileBoundaryIndependenceIdr for the current picture
       pcPic->getPicSym()->setTileBoundaryIndependenceIdr( pcSlice->getSPS()->getTileBoundaryIndependenceIdr() );
 
-      //set NumColumnsMins1 and NumRowsMinus1
-      pcPic->getPicSym()->setNumColumnsMinus1( pcSlice->getSPS()->getNumColumnsMinus1() );
-      pcPic->getPicSym()->setNumRowsMinus1( pcSlice->getSPS()->getNumRowsMinus1() );
-
       //create the TComTileArray
       pcPic->getPicSym()->xCreateTComTileArray();
 
-      {
-        //set the width for each tile
-        for(j=0; j < pcPic->getPicSym()->getNumRowsMinus1()+1; j++)
-        {
-          uiCummulativeTileWidth = 0;
-          for(p=0; p < pcPic->getPicSym()->getNumColumnsMinus1(); p++)
-          {
-            pcPic->getPicSym()->getTComTile( j * (pcPic->getPicSym()->getNumColumnsMinus1()+1) + p )->setTileWidth( pcSlice->getSPS()->getColumnWidth(p) );
-            uiCummulativeTileWidth += pcSlice->getSPS()->getColumnWidth(p);
-          }
-          pcPic->getPicSym()->getTComTile(j * (pcPic->getPicSym()->getNumColumnsMinus1()+1) + p)->setTileWidth( pcPic->getPicSym()->getFrameWidthInCU()-uiCummulativeTileWidth );
-        }
+      //set the width for each tile
+      pcPic->getPicSym()->getTComTile(0)->setTileWidth( pcPic->getPicSym()->getFrameWidthInCU() );
 
-        //set the height for each tile
-        for(j=0; j < pcPic->getPicSym()->getNumColumnsMinus1()+1; j++)
-        {
-          uiCummulativeTileHeight = 0;
-          for(p=0; p < pcPic->getPicSym()->getNumRowsMinus1(); p++)
-          {
-            pcPic->getPicSym()->getTComTile( p * (pcPic->getPicSym()->getNumColumnsMinus1()+1) + j )->setTileHeight( pcSlice->getSPS()->getRowHeight(p) );
-            uiCummulativeTileHeight += pcSlice->getSPS()->getRowHeight(p);
-          }
-          pcPic->getPicSym()->getTComTile(p * (pcPic->getPicSym()->getNumColumnsMinus1()+1) + j)->setTileHeight( pcPic->getPicSym()->getFrameHeightInCU()-uiCummulativeTileHeight );
-        }
-      }
+      //set the height for each tile
+      pcPic->getPicSym()->getTComTile(0)->setTileHeight( pcPic->getPicSym()->getFrameHeightInCU() );
     }
 
     //intialize each tile of the current picture
@@ -1150,8 +1124,6 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
 #if TILES_DECODER
           UInt uiTotalCodedSize = 0; // for padding calcs.
           UInt uiNumSubstreamsPerTile = iNumSubstreams;
-          if (pcPic->getPicSym()->getTileBoundaryIndependenceIdr() && pcSlice->getPPS()->getEntropyCodingSynchro())
-            uiNumSubstreamsPerTile /= pcPic->getPicSym()->getNumTiles();
 #endif
           for ( UInt ui = 0 ; ui < iNumSubstreams; ui++ )
           {

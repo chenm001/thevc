@@ -139,10 +139,6 @@ private:
 
 #if TILES
   Int      m_iTileBoundaryIndependenceIdr;
-  Int      m_iNumColumnsMinus1;
-  UInt*    m_puiColumnWidth;
-  Int      m_iNumRowsMinus1;
-  UInt*    m_puiRowHeight;
 #endif
   
   Bool        m_bTemporalIdNestingFlag; // temporal_id_nesting_flag
@@ -294,36 +290,6 @@ public:
 #if TILES
   Void     setTileBoundaryIndependenceIdr   ( Int i )           { m_iTileBoundaryIndependenceIdr = i; }
   Int      getTileBoundaryIndependenceIdr   ()                  { return m_iTileBoundaryIndependenceIdr; }
-  Void     setNumColumnsMinus1              ( Int i )           { m_iNumColumnsMinus1 = i; }
-  Int      getNumColumnsMinus1              ()                  { return m_iNumColumnsMinus1; }
-  Void     setColumnWidth ( UInt* columnWidth )
-  {
-    if( m_iNumColumnsMinus1 > 0 )
-    {
-      m_puiColumnWidth = new UInt[ m_iNumColumnsMinus1 ];
-
-      for(Int i=0; i<m_iNumColumnsMinus1; i++)
-      {
-        m_puiColumnWidth[i] = columnWidth[i];
-     }
-    }
-  }
-  UInt     getColumnWidth  (UInt columnIdx) { return *( m_puiColumnWidth + columnIdx ); }
-  Void     setNumRowsMinus1( Int i )        { m_iNumRowsMinus1 = i; }
-  Int      getNumRowsMinus1()               { return m_iNumRowsMinus1; }
-  Void     setRowHeight    ( UInt* rowHeight )
-  {
-    if( m_iNumRowsMinus1 > 0 )
-    {
-      m_puiRowHeight = new UInt[ m_iNumRowsMinus1 ];
-
-      for(Int i=0; i<m_iNumRowsMinus1; i++)
-      {
-        m_puiRowHeight[i] = rowHeight[i];
-      }
-    }
-  }
-  UInt     getRowHeight           (UInt rowIdx)    { return *( m_puiRowHeight + rowIdx ); }
 #endif
 };
 #if G1002_RPS
@@ -482,10 +448,6 @@ private:
 
 #if TILES
   Int      m_iTileBoundaryIndependenceIdr;
-  Int      m_iNumColumnsMinus1;
-  UInt*    m_puiColumnWidth;
-  Int      m_iNumRowsMinus1;
-  UInt*    m_puiRowHeight;
 #endif
   
 #if OL_USE_WPP
@@ -544,36 +506,6 @@ public:
 #if TILES
   Void     setTileBoundaryIndependenceIdr   ( Int i )           { m_iTileBoundaryIndependenceIdr = i; }
   Int      getTileBoundaryIndependenceIdr   ()                  { return m_iTileBoundaryIndependenceIdr; }
-  Void     setNumColumnsMinus1              ( Int i )           { m_iNumColumnsMinus1 = i; }
-  Int      getNumColumnsMinus1              ()                  { return m_iNumColumnsMinus1; }
-  Void     setColumnWidth ( UInt* columnWidth )
-  {
-    if( m_iNumColumnsMinus1 > 0 )
-    {
-      m_puiColumnWidth = new UInt[ m_iNumColumnsMinus1 ];
-
-      for(Int i=0; i<m_iNumColumnsMinus1; i++)
-      {
-        m_puiColumnWidth[i] = columnWidth[i];
-      }
-    }
-  }
-  UInt     getColumnWidth  (UInt columnIdx) { return *( m_puiColumnWidth + columnIdx ); }
-  Void     setNumRowsMinus1( Int i )        { m_iNumRowsMinus1 = i; }
-  Int      getNumRowsMinus1()               { return m_iNumRowsMinus1; }
-  Void     setRowHeight    ( UInt* rowHeight )
-  {
-    if( m_iNumRowsMinus1 > 0 )
-    {
-      m_puiRowHeight = new UInt[ m_iNumRowsMinus1 ];
-
-      for(Int i=0; i<m_iNumRowsMinus1; i++)
-      {
-        m_puiRowHeight[i] = rowHeight[i];
-      }
-    }
-  }
-  UInt     getRowHeight           (UInt rowIdx)    { return *( m_puiRowHeight + rowIdx ); }
 #endif
 #if OL_USE_WPP
   Void     setEntropyCodingMode(Int iEntropyCodingMode)       { m_iEntropyCodingMode = iEntropyCodingMode; }

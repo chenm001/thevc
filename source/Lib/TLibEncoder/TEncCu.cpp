@@ -291,14 +291,12 @@ Void TEncCu::encodeCU ( TComDataCU* pcCU, Bool bForceTerminate )
       UInt uiLin     = uiCUAddr / uiWidthInLCUs;
 #if TILES
       Int iBreakDep = pcCU->getPic()->getPicSym()->getTileBoundaryIndependenceIdr();
-      UInt uiTileStartLCU = pcCU->getPic()->getPicSym()->getTComTile(pcCU->getPic()->getPicSym()->getTileIdxMap(uiCUAddr))->getFirstCUAddr();
+      UInt uiTileStartLCU = pcCU->getPic()->getPicSym()->getTComTile(0)->getFirstCUAddr();
       UInt uiTileLCUX = uiTileStartLCU % uiWidthInLCUs;
       UInt uiTileLCUY = uiTileStartLCU / uiWidthInLCUs;
-      UInt uiTileWidth = pcCU->getPic()->getPicSym()->getTComTile(pcCU->getPic()->getPicSym()->getTileIdxMap(uiCUAddr))->getTileWidth();
-      UInt uiTileHeight = pcCU->getPic()->getPicSym()->getTComTile(pcCU->getPic()->getPicSym()->getTileIdxMap(uiCUAddr))->getTileHeight();
+      UInt uiTileWidth = pcCU->getPic()->getPicSym()->getTComTile(0)->getTileWidth();
+      UInt uiTileHeight = pcCU->getPic()->getPicSym()->getTComTile(0)->getTileHeight();
       Int iNumSubstreamsPerTile = iNumSubstreams;
-      if (iBreakDep && pcCU->getSlice()->getPPS()->getEntropyCodingSynchro())
-        iNumSubstreamsPerTile /= pcCU->getPic()->getPicSym()->getNumTiles();
       if ((iBreakDep && (uiCol == uiTileLCUX+uiTileWidth-1) && (uiLin+iNumSubstreamsPerTile < uiTileLCUY+uiTileHeight))
           || (!iBreakDep && (uiCol == uiWidthInLCUs-1) && (uiLin+iNumSubstreams < pcCU->getPic()->getFrameHeightInCU())))
 #else

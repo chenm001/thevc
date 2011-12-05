@@ -478,28 +478,9 @@ Void TDecCavlc::parseSPS(TComSPS* pcSPS)
   pcSPS->setTileBoundaryIndependenceIdr( uiCode );
  
   READ_UVLC ( uiCode, "num_tile_columns_minus1" );
-  pcSPS->setNumColumnsMinus1( uiCode );  
+  assert(uiCode == 0);
   READ_UVLC ( uiCode, "num_tile_rows_minus1" ); 
-  pcSPS->setNumRowsMinus1( uiCode ); 
-  {
-    UInt* columnWidth = (UInt*)malloc(pcSPS->getNumColumnsMinus1()*sizeof(UInt));
-    for(UInt i=0; i<pcSPS->getNumColumnsMinus1(); i++)
-    { 
-      READ_UVLC( uiCode, "column_width" );
-      columnWidth[i] = uiCode;  
-    }
-    pcSPS->setColumnWidth(columnWidth);
-    free(columnWidth);
-  
-    UInt* rowHeight = (UInt*)malloc(pcSPS->getNumRowsMinus1()*sizeof(UInt));
-    for(UInt i=0; i<pcSPS->getNumRowsMinus1(); i++)
-    {
-      READ_UVLC( uiCode, "row_height" );
-      rowHeight[i] = uiCode;  
-    }
-    pcSPS->setRowHeight(rowHeight);
-    free(rowHeight);  
-  }
+  assert(uiCode == 0);
 #endif
 
   // Software-only flags

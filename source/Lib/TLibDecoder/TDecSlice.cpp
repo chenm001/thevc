@@ -123,11 +123,7 @@ Void TDecSlice::decompressSlice(TComInputBitstream* pcBitstream, TComPic*& rpcPi
 #endif
 
 #if OL_USE_WPP
-#if TILES
-  UInt uiTilesAcross   = rpcPic->getPicSym()->getNumColumnsMinus1()+1;
-#else
   UInt uiTilesAcross   = 1;
-#endif
   TComSlice*  pcSlice = rpcPic->getSlice(rpcPic->getCurrSliceIdx());
   UInt iSymbolMode    = pcSlice->getPPS()->getEntropyCodingMode();
   Int  iNumSubstreams = pcSlice->getPPS()->getNumSubstreams();
@@ -148,7 +144,6 @@ Void TDecSlice::decompressSlice(TComInputBitstream* pcBitstream, TComPic*& rpcPi
   UInt uiCol=0, uiLin=0, uiSubStrm=0;
 #if TILES
   Int iBreakDep;
-  UInt uiTileCol;
   UInt uiTileStartLCU;
 #if !FINE_GRANULARITY_SLICES
   UInt uiSliceStartLCU;
@@ -175,12 +170,11 @@ Void TDecSlice::decompressSlice(TComInputBitstream* pcBitstream, TComPic*& rpcPi
 #if OL_USE_WPP
 #if TILES
     iBreakDep = rpcPic->getPicSym()->getTileBoundaryIndependenceIdr();
-    uiTileCol = rpcPic->getPicSym()->getTileIdxMap(iCUAddr) % (rpcPic->getPicSym()->getNumColumnsMinus1()+1); // what column of tiles are we in?
-    uiTileStartLCU = rpcPic->getPicSym()->getTComTile(rpcPic->getPicSym()->getTileIdxMap(iCUAddr))->getFirstCUAddr();
+    uiTileStartLCU = rpcPic->getPicSym()->getTComTile(0)->getFirstCUAddr();
     uiTileLCUX = uiTileStartLCU % uiWidthInLCUs;
     uiTileLCUY = uiTileStartLCU / uiWidthInLCUs;
-    uiTileWidth = rpcPic->getPicSym()->getTComTile(rpcPic->getPicSym()->getTileIdxMap(iCUAddr))->getTileWidth();
-    uiTileHeight = rpcPic->getPicSym()->getTComTile(rpcPic->getPicSym()->getTileIdxMap(iCUAddr))->getTileHeight();
+    uiTileWidth = rpcPic->getPicSym()->getTComTile(0)->getTileWidth();
+    uiTileHeight = rpcPic->getPicSym()->getTComTile(0)->getTileHeight();
 #if !FINE_GRANULARITY_SLICES
     uiSliceStartLCU = pcSlice->getSliceCurStartCUAddr();
 #endif
@@ -191,18 +185,8 @@ Void TDecSlice::decompressSlice(TComInputBitstream* pcBitstream, TComPic*& rpcPi
     if( iSymbolMode && pcSlice->getPPS()->getEntropyCodingSynchro() )
     {
 #if TILES
-      if (iBreakDep && pcSlice->getPPS()->getEntropyCodingSynchro())
-      {
-        // independent tiles => substreams are "per tile".  iNumSubstreams has already been multiplied.
-        iNumSubstreamsPerTile = iNumSubstreams/rpcPic->getPicSym()->getNumTiles();
-        uiSubStrm = rpcPic->getPicSym()->getTileIdxMap(iCUAddr)*iNumSubstreamsPerTile
-                      + uiLin%iNumSubstreamsPerTile;
-      }
-      else
-      {
-        // dependent tiles => substreams are "per frame".
-        uiSubStrm = uiLin % iNumSubstreams;
-      }
+      // dependent tiles => substreams are "per frame".
+      uiSubStrm = uiLin % iNumSubstreams;
       m_pcEntropyDecoder->setBitstream( ppcSubstreams[uiSubStrm] );
       // Synchronize cabac probabilities with upper-right LCU if it's available and we're at the start of a line.
       if (pcSlice->getPPS()->getEntropyCodingSynchro() && uiCol == uiTileLCUX)
@@ -218,13 +202,11 @@ Void TDecSlice::decompressSlice(TComInputBitstream* pcBitstream, TComPic*& rpcPi
 #if FINE_GRANULARITY_SLICES
         if ( (true/*bEnforceSliceRestriction*/ &&
              ((pcCUTR==NULL) || (pcCUTR->getSlice()==NULL) || 
-             ((pcCUTR->getSCUAddr()+uiMaxParts-1) < pcSlice->getSliceCurStartCUAddr()) ||
-             (rpcPic->getPicSym()->getTileBoundaryIndependenceIdr() && (rpcPic->getPicSym()->getTileIdxMap( pcCUTR->getAddr() ) != rpcPic->getPicSym()->getTileIdxMap(iCUAddr)))
+             ((pcCUTR->getSCUAddr()+uiMaxParts-1) < pcSlice->getSliceCurStartCUAddr())
              ))||
              (true/*bEnforceEntropySliceRestriction*/ &&
              ((pcCUTR==NULL) || (pcCUTR->getSlice()==NULL) || 
-             ((pcCUTR->getSCUAddr()+uiMaxParts-1) < pcSlice->getEntropySliceCurStartCUAddr()) ||
-             (rpcPic->getPicSym()->getTileBoundaryIndependenceIdr() && (rpcPic->getPicSym()->getTileIdxMap( pcCUTR->getAddr() ) != rpcPic->getPicSym()->getTileIdxMap(iCUAddr)))
+             ((pcCUTR->getSCUAddr()+uiMaxParts-1) < pcSlice->getEntropySliceCurStartCUAddr())
              ))
            )
 #else
@@ -243,7 +225,7 @@ Void TDecSlice::decompressSlice(TComInputBitstream* pcBitstream, TComPic*& rpcPi
         else
         {
           // TR is available, we use it.
-            pcSbacDecoders[uiSubStrm].loadContexts( &m_pcBufferSbacDecoders[uiTileCol] );
+            pcSbacDecoders[uiSubStrm].loadContexts( &m_pcBufferSbacDecoders[0] );
         }
       }
 #else
@@ -297,7 +279,7 @@ Void TDecSlice::decompressSlice(TComInputBitstream* pcBitstream, TComPic*& rpcPi
 #if !OL_USE_WPP
     TComSlice *pcSlice = rpcPic->getSlice(rpcPic->getCurrSliceIdx());
 #endif
-    if ( (iCUAddr == rpcPic->getPicSym()->getTComTile(rpcPic->getPicSym()->getTileIdxMap(iCUAddr))->getFirstCUAddr()) && // 1st in tile.
+    if ( (iCUAddr == rpcPic->getPicSym()->getTComTile(0)->getFirstCUAddr()) && // 1st in tile.
          (iCUAddr!=0) && (iCUAddr!=rpcPic->getPicSym()->getPicSCUAddr(rpcPic->getSlice(rpcPic->getCurrSliceIdx())->getSliceCurStartCUAddr())/rpcPic->getNumPartInCU()) && rpcPic->getPicSym()->getTileBoundaryIndependenceIdr()) // !1st in frame && !1st in slice && tile-independant
     {
 #if !DISABLE_CAVLC
@@ -422,7 +404,7 @@ Void TDecSlice::decompressSlice(TComInputBitstream* pcBitstream, TComPic*& rpcPi
 #if TILES
       if (pcSlice->getPPS()->getEntropyCodingSynchro() && (uiCol == uiTileLCUX+pcSlice->getPPS()->getEntropyCodingSynchro()))
       {
-        m_pcBufferSbacDecoders[uiTileCol].loadContexts( &pcSbacDecoders[uiSubStrm] );
+        m_pcBufferSbacDecoders[0].loadContexts( &pcSbacDecoders[uiSubStrm] );
       }
 #else
       if (pcSlice->getPPS()->getEntropyCodingSynchro() && (uiCol == pcSlice->getPPS()->getEntropyCodingSynchro()))

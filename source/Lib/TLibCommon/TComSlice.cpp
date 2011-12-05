@@ -1404,18 +1404,6 @@ TComSPS::TComSPS()
 
 TComSPS::~TComSPS()
 {
-#if TILES
-  if( m_iNumColumnsMinus1 > 0 )
-  {
-    delete [] m_puiColumnWidth; 
-    m_puiColumnWidth = NULL;
-  }
-  if( m_iNumRowsMinus1 > 0 )
-  {
-    delete [] m_puiRowHeight;
-    m_puiRowHeight = NULL;
-  }
-#endif
 }
 
 TComPPS::TComPPS()
@@ -1435,10 +1423,6 @@ TComPPS::TComPPS()
 #endif
 #if TILES
 , m_iTileBoundaryIndependenceIdr (0)
-, m_iNumColumnsMinus1            (0)
-, m_puiColumnWidth               (NULL)
-, m_iNumRowsMinus1               (0)
-, m_puiRowHeight                 (NULL)
 #endif
 #if OL_USE_WPP
 ,  m_iEntropyCodingSynchro      (0)
@@ -1454,18 +1438,6 @@ TComPPS::TComPPS()
 
 TComPPS::~TComPPS()
 {
-#if TILES
-  if( m_iNumColumnsMinus1 > 0 )
-  {
-    if (m_puiColumnWidth) delete [] m_puiColumnWidth; 
-    m_puiColumnWidth = NULL;
-  }
-  if( m_iNumRowsMinus1 > 0 )
-  {
-    if (m_puiRowHeight) delete [] m_puiRowHeight;
-    m_puiRowHeight = NULL;
-  }
-#endif
 }
 #if G1002_RPS
 
