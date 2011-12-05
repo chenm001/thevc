@@ -192,10 +192,6 @@ protected:
 
 #if TILES
   Int       m_iTileBoundaryIndependenceIdr;
-#if TILES_DECODER
-  Int       m_iMaxTileMarkerEntryPoints;    //< maximum number of tile markers allowed in a slice (controls degree of parallelism)
-  Double    m_dMaxTileMarkerOffset;         //< Calculated offset. Light weight tile markers will be transmitted for TileIdx= Offset, 2*Offset, 3*Offset ... 
-#endif
 #endif
 
 #if OL_USE_WPP

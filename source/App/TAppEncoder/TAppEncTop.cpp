@@ -199,12 +199,6 @@ Void TAppEncTop::xInitLibCfg()
 #endif
 #if TILES
   m_cTEncTop.setTileBoundaryIndependenceIdr( m_iTileBoundaryIndependenceIdr );
-#if TILES_DECODER
-  m_cTEncTop.setMaxTileMarkerEntryPoints    ( m_iMaxTileMarkerEntryPoints );
-  
-  m_dMaxTileMarkerOffset  = ((Double)1) / m_iMaxTileMarkerEntryPoints;
-  m_cTEncTop.setMaxTileMarkerOffset         ( m_dMaxTileMarkerOffset );
-#endif
 #endif
 #if OL_USE_WPP
   m_cTEncTop.setWaveFrontSynchro           ( m_iWaveFrontSynchro );
