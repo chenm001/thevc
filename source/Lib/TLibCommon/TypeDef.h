@@ -60,6 +60,16 @@
 #define SAO_CHROMA_LAMBDA           1   ///< F386: weighting of chroma for SAO
 
 ////////////////////////////
+// JCT-VC G start
+////////////////////////////
+
+#define PREDTYPE_CLEANUP                    1      // G1042 : Harmonization of the prediction and partitioning mode binarization of P and B slices
+
+////////////////////////////
+// JCT-VC G end
+////////////////////////////
+
+////////////////////////////
 // JCT-VC F start
 ////////////////////////////
 #define DISABLE_4x4_INTER                    1       // Coding one flag into SPS to enable/disable INTER4x4 

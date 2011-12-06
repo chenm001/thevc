@@ -644,9 +644,68 @@ Void TDecSbac::parsePartSize( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth 
       m_pcTDecBinIf->decodeBin( uiSymbol, m_cCUPartSizeSCModel.get( 0, 0, 0) );
     }
     eMode = uiSymbol ? SIZE_2Nx2N : SIZE_NxN;
+#if PREDTYPE_CLEANUP  
+    UInt uiTrLevel = 0;    
+    UInt uiWidthInBit  = g_aucConvertToBit[pcCU->getWidth(uiAbsPartIdx)]+2;
+    UInt uiTrSizeInBit = g_aucConvertToBit[pcCU->getSlice()->getSPS()->getMaxTrSize()]+2;
+    uiTrLevel          = uiWidthInBit >= uiTrSizeInBit ? uiWidthInBit - uiTrSizeInBit : 0;
+    if( eMode == SIZE_NxN )
+    {
+      pcCU->setTrIdxSubParts( 1+uiTrLevel, uiAbsPartIdx, uiDepth );
+    }
+    else
+    {
+      pcCU->setTrIdxSubParts( uiTrLevel, uiAbsPartIdx, uiDepth );
+    }
+#endif // PREDTYPE_CLEANUP
   }
   else
   {
+#if PREDTYPE_CLEANUP
+      UInt uiMaxNumBits = 2;
+#if DISABLE_4x4_INTER
+      if(!pcCU->getSlice()->getSPS()->getDisInter4x4() && (pcCU->getWidth(uiAbsPartIdx)==8) && (pcCU->getHeight(uiAbsPartIdx)==8) )
+#else
+      if( (pcCU->getWidth(uiAbsPartIdx)==8) && (pcCU->getHeight(uiAbsPartIdx)==8) )
+#endif
+      {
+        uiMaxNumBits ++;
+      }
+      for ( UInt ui = 0; ui < uiMaxNumBits; ui++ )
+      {
+        m_pcTDecBinIf->decodeBin( uiSymbol, m_cCUPartSizeSCModel.get( 0, 0, ui) );
+        if ( uiSymbol )
+        {
+          break;
+        }
+        uiMode++;
+      }
+      eMode = (PartSize) uiMode;
+#if AMP
+      if ( pcCU->getSlice()->getSPS()->getAMPAcc( uiDepth ) )
+      {
+        if (eMode == SIZE_2NxN)
+        {
+          m_pcTDecBinIf->decodeBin(uiSymbol, m_cCUYPosiSCModel.get( 0, 0, 0 ));
+          if (uiSymbol == 0)
+          {
+            m_pcTDecBinIf->decodeBin(uiSymbol, m_cCUYPosiSCModel.get( 0, 0, 1 ));
+            eMode = (uiSymbol == 0? SIZE_2NxnU : SIZE_2NxnD);
+          }
+        }
+        else if (eMode == SIZE_Nx2N)
+        {
+          m_pcTDecBinIf->decodeBin(uiSymbol, m_cCUXPosiSCModel.get( 0, 0, 0 ));
+          if (uiSymbol == 0)
+          {
+            m_pcTDecBinIf->decodeBin(uiSymbol, m_cCUXPosiSCModel.get( 0, 0, 1 ));
+            eMode = (uiSymbol == 0? SIZE_nLx2N : SIZE_nRx2N);
+          }
+        }
+      }
+    }
+#endif
+#else //PREDTYPE_CLEANUP   
     {
       UInt uiMaxNumBits = 3;
 #if DISABLE_4x4_INTER
@@ -735,10 +794,10 @@ Void TDecSbac::parsePartSize( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth 
     }
 #endif
   }
-  
+#endif //PREDTYPE_CLEANUP   
   pcCU->setPartSizeSubParts( eMode, uiAbsPartIdx, uiDepth );
   pcCU->setSizeSubParts( g_uiMaxCUWidth>>uiDepth, g_uiMaxCUHeight>>uiDepth, uiAbsPartIdx, uiDepth );
-  
+#if !PREDTYPE_CLEANUP  
   UInt uiTrLevel = 0;
   
   UInt uiWidthInBit  = g_aucConvertToBit[pcCU->getWidth(uiAbsPartIdx)]+2;
@@ -756,6 +815,7 @@ Void TDecSbac::parsePartSize( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth 
       pcCU->setTrIdxSubParts( uiTrLevel, uiAbsPartIdx, uiDepth );
     }
   }
+#endif // PREDTYPE_CLEANUP
 }
 
 /** parse prediction mode
@@ -774,12 +834,16 @@ Void TDecSbac::parsePredMode( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth 
   
   UInt uiSymbol;
   Int  iPredMode = MODE_INTER;
+#if !PREDTYPE_CLEANUP   
   if ( pcCU->getSlice()->isInterB() )
   {
     pcCU->setPredModeSubParts( (PredMode)iPredMode, uiAbsPartIdx, uiDepth );
     return;
   }
   m_pcTDecBinIf->decodeBin( uiSymbol, m_cCUPredModeSCModel.get( 0, 0, 1 ) );
+#else //!PREDTYPE_CLEANUP
+  m_pcTDecBinIf->decodeBin( uiSymbol, m_cCUPredModeSCModel.get( 0, 0, 0 ) );
+#endif //!PREDTYPE_CLEANUP
   iPredMode += uiSymbol;
   pcCU->setPredModeSubParts( (PredMode)iPredMode, uiAbsPartIdx, uiDepth );
 }
