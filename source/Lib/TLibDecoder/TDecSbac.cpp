@@ -1478,8 +1478,11 @@ Void TDecSbac::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartId
       sigCoeffCount -= numNonZero;
 #endif
       uiNumOne       >>= 1;
+#if COEFF_CTX_RED
+      ContextModel *baseCtxMod = m_cCUOneSCModel.get( 0, eTType ) + 4 * uiCtxSet;
+#else
       ContextModel *baseCtxMod = m_cCUOneSCModel.get( 0, eTType ) + 5 * uiCtxSet;
-      
+#endif      
       Int absCoeff[SCAN_SET_SIZE];
       for( Int idx = 0; idx < numNonZero; idx++ )
       {
@@ -1501,7 +1504,11 @@ Void TDecSbac::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartId
       
       if (c1 == 0)
       {
+#if COEFF_CTX_RED
+        baseCtxMod = m_cCUAbsSCModel.get( 0, eTType ) + 3 * uiCtxSet;
+#else
         baseCtxMod = m_cCUAbsSCModel.get( 0, eTType ) + 5 * uiCtxSet;
+#endif
         for( Int idx = 0; idx < numNonZero; idx++ )
         {
           if( absCoeff[ idx ] == 2 ) 

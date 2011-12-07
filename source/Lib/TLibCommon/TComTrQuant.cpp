@@ -3004,8 +3004,13 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
     {
       //===== coefficient level estimation =====
       UInt  uiLevel;
+#if COEFF_CTX_RED
+      UInt  uiOneCtx         = 4 * uiCtxSet + c1;
+      UInt  uiAbsCtx         = 3 * uiCtxSet + c2;
+#else
       UInt  uiOneCtx         = 5 * uiCtxSet + c1;
       UInt  uiAbsCtx         = 5 * uiCtxSet + c2;
+#endif
       if( iScanPos == iLastScanPos )
       {
         uiLevel              = xGetCodedLevel( pdCostCoeff[ iScanPos ], pdCostCoeff0[ iScanPos ], pdCostSig[ iScanPos ], lLevelDouble, uiMaxAbsLevel, 0, uiOneCtx, uiAbsCtx, uiGoRiceParam, iQBits, dTemp, 1 );
