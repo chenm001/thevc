@@ -66,6 +66,7 @@
 #define PREDTYPE_CLEANUP                    1      // G1042 : Harmonization of the prediction and partitioning mode binarization of P and B slices
 #define UNIFIED_SCAN_PASSES                 1      // G320 : Unified scan passes for transform coefficient coding
 #define SUBBLOCK_SCAN                       1      // G323 : 4x4 sub-block based scan for large blocks
+#define CHROMA_CBF_CTX_REDUCTION            1      // G718 : Sharing contexts for cbf_cb and cbf_cr
 
 ////////////////////////////
 // JCT-VC G end
