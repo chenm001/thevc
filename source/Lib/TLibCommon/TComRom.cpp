@@ -834,6 +834,10 @@ Void initSigLastScan(UInt* pBuffZ, UInt* pBuffH, UInt* pBuffV, Int iWidth, Int i
   const UInt  uiNumScanPos  = UInt( iWidth * iWidth );
   UInt        uiNextScanPos = 0;
 
+#if SUBBLOCK_SCAN
+  if( iWidth < 16 )
+  {
+#endif
   for( UInt uiScanLine = 0; uiNextScanPos < uiNumScanPos; uiScanLine++ )
   {
     int    iPrimDim  = int( uiScanLine );
@@ -851,6 +855,42 @@ Void initSigLastScan(UInt* pBuffZ, UInt* pBuffH, UInt* pBuffV, Int iWidth, Int i
       iPrimDim--;
     }
   }
+#if SUBBLOCK_SCAN
+  }
+  else
+  {
+    UInt uiNumBlkSide = iWidth >> 2;
+    UInt uiNumBlks    = uiNumBlkSide * uiNumBlkSide;
+    UInt log2Blk      = g_aucConvertToBit[ uiNumBlkSide ] + 1;
+
+    for( UInt uiBlk = 0; uiBlk < uiNumBlks; uiBlk++ )
+    {
+      uiNextScanPos   = 0;
+      UInt initBlkPos = g_auiSigLastScan[ SCAN_DIAG ][ log2Blk ][ uiBlk ];
+      UInt offsetY    = initBlkPos / uiNumBlkSide;
+      UInt offsetX    = initBlkPos - offsetY * uiNumBlkSide;
+      UInt offsetD    = 4 * ( offsetX + offsetY * iWidth );
+      UInt offsetScan = 16 * uiBlk;
+      for( UInt uiScanLine = 0; uiNextScanPos < 16; uiScanLine++ )
+      {
+        int    iPrimDim  = int( uiScanLine );
+        int    iScndDim  = 0;
+        while( iPrimDim >= 4 )
+        {
+          iScndDim++;
+          iPrimDim--;
+        }
+        while( iPrimDim >= 0 && iScndDim < 4 )
+        {
+          pBuffD[ uiNextScanPos + offsetScan ] = iPrimDim * iWidth + iScndDim + offsetD;
+          uiNextScanPos++;
+          iScndDim++;
+          iPrimDim--;
+        }
+      }
+    }
+  }
+#endif
 #endif
   
   memcpy(pBuffZ, g_auiFrameScanXY[iDepth], sizeof(UInt)*iWidth*iHeight);

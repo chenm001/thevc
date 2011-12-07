@@ -1297,6 +1297,7 @@ Void TEncSbac::codeCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx
   //===== code significance flag =====
   ContextModel * const baseCtx = m_cCUSigSCModel.get( 0, eTType );
   
+#if !UNIFIED_SCAN_PASSES
   for( UInt uiScanPos = scanPosLast-1; uiScanPos != -1; uiScanPos-- )
   {
     UInt  uiBlkPos  = scan[ uiScanPos ]; 
@@ -1306,10 +1307,14 @@ Void TEncSbac::codeCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx
     UInt  uiCtxSig  = TComTrQuant::getSigCtxInc( pcCoef, uiPosX, uiPosY, uiLog2BlockSize, uiWidth );
     m_pcBinIf->encodeBin( uiSig, baseCtx[ uiCtxSig ] );
   }
+#endif
 
   const Int  iLastScanSet      = scanPosLast >> LOG2_SCAN_SET_SIZE;
   UInt uiNumOne                = 0;
   UInt uiGoRiceParam           = 0;
+#if UNIFIED_SCAN_PASSES
+  Int  iScanPosSig             = scanPosLast;
+#endif
 
   for( Int iSubSet = iLastScanSet; iSubSet >= 0; iSubSet-- )
   {
@@ -1319,6 +1324,32 @@ Void TEncSbac::codeCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx
     Int absCoeff[16];
     UInt coeffSigns = 0;
     
+#if UNIFIED_SCAN_PASSES
+    if( iScanPosSig == scanPosLast )
+    {
+      absCoeff[ 0 ] = abs( pcCoef[ posLast ] );
+      coeffSigns    = ( pcCoef[ posLast ] < 0 );
+      numNonZero    = 1;
+      iScanPosSig--;
+    }
+
+    for( ; iScanPosSig >= iSubPos; iScanPosSig-- )
+    {
+      UInt  uiBlkPos  = scan[ iScanPosSig ]; 
+      UInt  uiPosY    = uiBlkPos >> uiLog2BlockSize;
+      UInt  uiPosX    = uiBlkPos - ( uiPosY << uiLog2BlockSize );
+      UInt  uiSig     = 0; 
+      if( pcCoef[ uiBlkPos ] != 0 )
+      {
+        uiSig = 1;
+        absCoeff[ numNonZero ] = abs( pcCoef[ uiBlkPos ] );
+        coeffSigns = 2 * coeffSigns + ( pcCoef[ uiBlkPos ] < 0 );
+        numNonZero++;
+      }      
+      UInt  uiCtxSig  = TComTrQuant::getSigCtxInc( pcCoef, uiPosX, uiPosY, uiLog2BlockSize, uiWidth );
+      m_pcBinIf->encodeBin( uiSig, baseCtx[ uiCtxSig ] );
+    }
+#else
     const UInt * const puiSetScan  = scan + iSubPos;
     for( Int iScanPos = SCAN_SET_SIZE-1; iScanPos >= 0; iScanPos-- )
     {
@@ -1330,6 +1361,7 @@ Void TEncSbac::codeCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx
         numNonZero++;
       }
     }
+#endif
     
     if( numNonZero > 0 )
     {

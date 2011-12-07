@@ -3174,7 +3174,15 @@ UInt TComTrQuant::getSigCtxInc    ( TCoeff*                         pcCoeff,
 
   if( uiPosX + uiPosY < 5 )
   {
+#if SUBBLOCK_SCAN
+    UInt cnt = (pData[1] != 0) + (pData[2] != 0) + (pData[2*iStride] != 0) + (pData[iStride+1] != 0);
+    if( ( ( uiPosX & 3 ) || ( uiPosY & 3 ) ) && ( ( (uiPosX+1) & 3 ) || ( (uiPosY+2) & 3 ) ) )
+    {
+      cnt += pData[iStride] != 0;
+    }
+#else
     UInt cnt = (pData[1] != 0) + (pData[2] != 0) + (pData[iStride] != 0) + (pData[2*iStride] != 0) + (pData[iStride+1] != 0);
+#endif  
     return 31 + 3 + min<UInt>( 4, cnt );
   }
   
@@ -3194,7 +3202,14 @@ UInt TComTrQuant::getSigCtxInc    ( TCoeff*                         pcCoeff,
   }
   if ( uiPosY < uiWidthM1 )
   {
+#if SUBBLOCK_SCAN
+  if( ( ( uiPosX & 3 ) || ( uiPosY & 3 ) ) && ( ( (uiPosX+1) & 3 ) || ( (uiPosY+2) & 3 ) ) )
+  {
     cnt += pData[iStride] != 0;
+  }
+#else
+    cnt += pData[iStride] != 0;
+#endif
     if ( uiPosY < uiWidthM1 - 1 && cnt < 4 )
     {
       cnt += pData[2*iStride] != 0;
