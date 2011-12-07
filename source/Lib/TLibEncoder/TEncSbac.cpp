@@ -1397,7 +1397,11 @@ Void TEncSbac::codeCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx
         {
           c1 = 0;
         }
+#if COEFF_CTX_RED
+        else if( (c1 < 3) && (c1 > 0) )
+#else
         else if( c1 & 3 )
+#endif
         {
           c1++;
         }
@@ -1412,7 +1416,11 @@ Void TEncSbac::codeCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx
           {
             UInt symbol = absCoeff[ idx ] > 2;
             m_pcBinIf->encodeBin( symbol, baseCtxMod[c2] );
+#if COEFF_CTX_RED
+            c2 += (c2 < 2);
+#else
             c2 += (c2 < 4); // Increment c2 up to a maximum value of 4
+#endif
             uiNumOne++;
           }
         }

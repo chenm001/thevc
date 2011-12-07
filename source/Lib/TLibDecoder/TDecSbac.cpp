@@ -1488,7 +1488,11 @@ Void TDecSbac::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartId
         {
           c1 = 0;
         }
+#if COEFF_CTX_RED
+        else if( (c1 < 3) && (c1 > 0) )
+#else
         else if( c1 & 3 )
+#endif
         {
           c1++;
         }
@@ -1504,7 +1508,11 @@ Void TDecSbac::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartId
           {
             m_pcTDecBinIf->decodeBin( uiBin, baseCtxMod[c2] );
             absCoeff[ idx ] = uiBin + 2;
+#if COEFF_CTX_RED
+            c2 += (c2 < 2);
+#else
             c2 += (c2 < 4);
+#endif
             uiNumOne++;
           }
         }

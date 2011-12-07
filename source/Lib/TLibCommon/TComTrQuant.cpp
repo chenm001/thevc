@@ -3025,14 +3025,22 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
       if( uiLevel > 1 )
       {
         c1 = 0; 
+#if COEFF_CTX_RED
+        c2 += (c2 < 2);
+#else
         c2 += (c2 < 4);
+#endif
         uiNumOne++;
         if( uiLevel > 2 )
         {
           uiGoRiceParam = g_aauiGoRiceUpdate[ uiGoRiceParam ][ min<UInt>( uiLevel - 3, 15 ) ];
         }
       }
+#if COEFF_CTX_RED
+      else if( (c1 < 3) && (c1 > 0) && uiLevel)
+#else
       else if( (c1 & 3) && uiLevel )
+#endif
       {
         c1++;
       }
