@@ -3674,6 +3674,19 @@ Void TComDataCU::fillMvpCand ( UInt uiPartIdx, UInt uiPartAddr, RefPicList eRefP
   deriveLeftRightTopIdx( eCUMode, uiPartIdx, uiPartIdxLT, uiPartIdxRT );
   deriveLeftBottomIdx( eCUMode, uiPartIdx, uiPartIdxLB );
   
+#if REMOVE_DEPENDENCY_AMVP
+  TComDataCU* tmpCU = NULL;
+  UInt idx;
+  tmpCU = getPUBelowLeft(idx, uiPartIdxLB);
+  bAddedSmvp = (tmpCU != NULL) && (tmpCU->getPredictionMode(idx) != MODE_INTRA);
+
+  if (!bAddedSmvp)
+  {
+    tmpCU = getPULeft(idx, uiPartIdxLB);
+    bAddedSmvp = (tmpCU != NULL) && (tmpCU->getPredictionMode(idx) != MODE_INTRA);
+  }
+#endif
+
   // Left predictor search
   bAdded = xAddMVPCand( pInfo, eRefPicList, iRefIdx, uiPartIdxLB, MD_BELOW_LEFT);
   if (!bAdded) 
@@ -3684,11 +3697,15 @@ Void TComDataCU::fillMvpCand ( UInt uiPartIdx, UInt uiPartAddr, RefPicList eRefP
   if(!bAdded)
   {
     bAdded = xAddMVPCandOrder( pInfo, eRefPicList, iRefIdx, uiPartIdxLB, MD_BELOW_LEFT);
+#if !REMOVE_DEPENDENCY_AMVP
     bAddedSmvp = bAdded;
+#endif
     if (!bAdded) 
     {
       bAdded = xAddMVPCandOrder( pInfo, eRefPicList, iRefIdx, uiPartIdxLB, MD_LEFT );
+#if !REMOVE_DEPENDENCY_AMVP
       bAddedSmvp = bAdded;
+#endif
     }
   }
   // Above predictor search
