@@ -58,6 +58,9 @@
 
 typedef struct
 {
+#if MLS
+  Int significantCoeffGroupBits[NUM_SIG_CG_FLAG_CTX][2];
+#endif
   Int significantBits[NUM_SIG_FLAG_CTX][2];
   Int lastXBits[32];
   Int lastYBits[32];
@@ -177,6 +180,17 @@ public:
                                      const UInt                      uiPosY,
                                      const UInt                      uiLog2BlkSize,
                                      const UInt                      uiStride );
+#if MLS
+  static UInt getSigCoeffGroupCtxInc  ( const UInt*                   uiSigCoeffGroupFlag,
+                                     const UInt                       uiCGPosX,
+                                     const UInt                       uiCGPosY,
+                                     const UInt                       uiLog2BlockSize);
+
+  static Bool bothCGNeighboursOne  ( const UInt*                      uiSigCoeffGroupFlag,
+                                     const UInt                       uiCGPosX,
+                                     const UInt                       uiCGPosY,
+                                     const UInt                       uiLog2BlockSize);
+#endif
 protected:
   Int*    m_plTempCoeff;
   
@@ -256,6 +270,10 @@ __inline UInt              xGetCodedLevel  ( Double&                         rd6
   __inline Double xGetRateLast     ( const UInt                      uiPosX,
                                      const UInt                      uiPosY,
                                      const UInt                      uiBlkWdth     ) const;
+#if MLS
+  __inline Double xGetRateSigCoeffGroup (  UShort                    uiSignificanceCoeffGroup,
+                                     UShort                          ui16CtxNumSig ) const;
+#endif
   __inline Double xGetRateSigCoef (  UShort                          uiSignificance,
                                      UShort                          ui16CtxNumSig ) const;
   __inline Double xGetICost        ( Double                          dRate         ) const; 

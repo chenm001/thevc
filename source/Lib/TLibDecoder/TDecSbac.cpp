@@ -71,6 +71,9 @@ TDecSbac::TDecSbac()
 #endif
 , m_cCUTransSubdivFlagSCModel ( 1,             1,               NUM_TRANS_SUBDIV_FLAG_CTX     , m_contextModels + m_numContextModels, m_numContextModels)
 , m_cCUQtRootCbfSCModel       ( 1,             1,               NUM_QT_ROOT_CBF_CTX           , m_contextModels + m_numContextModels, m_numContextModels)
+#if MLS
+, m_cCUSigCoeffGroupSCModel   ( 1,             2,               NUM_SIG_CG_FLAG_CTX           , m_contextModels + m_numContextModels, m_numContextModels)
+#endif
 , m_cCUSigSCModel             ( 1,             2,               NUM_SIG_FLAG_CTX              , m_contextModels + m_numContextModels, m_numContextModels)
 , m_cCuCtxLastX               ( 1,             2,               NUM_CTX_LAST_FLAG_XY          , m_contextModels + m_numContextModels, m_numContextModels)
 , m_cCuCtxLastY               ( 1,             2,               NUM_CTX_LAST_FLAG_XY          , m_contextModels + m_numContextModels, m_numContextModels)
@@ -135,6 +138,9 @@ Void TDecSbac::resetEntropy          (TComSlice* pcSlice)
   m_cCUDeltaQpSCModel.initBuffer         ( eSliceType, iQp, (Short*)INIT_DQP );
   m_cCUQtCbfSCModel.initBuffer           ( eSliceType, iQp, (Short*)INIT_QT_CBF );
   m_cCUQtRootCbfSCModel.initBuffer       ( eSliceType, iQp, (Short*)INIT_QT_ROOT_CBF );
+#if MLS
+  m_cCUSigCoeffGroupSCModel.initBuffer   ( eSliceType, iQp, (Short*)INIT_SIG_CG_FLAG );
+#endif
   m_cCUSigSCModel.initBuffer             ( eSliceType, iQp, (Short*)INIT_SIG_FLAG );
   m_cCuCtxLastX.initBuffer               ( eSliceType, iQp, (Short*)INIT_LAST );
   m_cCuCtxLastY.initBuffer               ( eSliceType, iQp, (Short*)INIT_LAST );
@@ -201,6 +207,9 @@ Void TDecSbac::updateContextTables( SliceType eSliceType, Int iQp )
   m_cCUDeltaQpSCModel.initBuffer         ( eSliceType, iQp, (Short*)INIT_DQP );
   m_cCUQtCbfSCModel.initBuffer           ( eSliceType, iQp, (Short*)INIT_QT_CBF );
   m_cCUQtRootCbfSCModel.initBuffer       ( eSliceType, iQp, (Short*)INIT_QT_ROOT_CBF );
+#if MLS
+  m_cCUSigCoeffGroupSCModel.initBuffer   ( eSliceType, iQp, (Short*)INIT_SIG_CG_FLAG );
+#endif
   m_cCUSigSCModel.initBuffer             ( eSliceType, iQp, (Short*)INIT_SIG_FLAG );
   m_cCuCtxLastX.initBuffer               ( eSliceType, iQp, (Short*)INIT_LAST );
   m_cCuCtxLastY.initBuffer               ( eSliceType, iQp, (Short*)INIT_LAST );
@@ -1455,9 +1464,98 @@ Void TDecSbac::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartId
   
   const UInt * const scan = g_auiSigLastScan[ uiScanIdx ][ uiLog2BlockSize-1 ];
 #endif
-  
+
+#if MLS
+  ContextModel * const baseCoeffGroupCtx = m_cCUSigCoeffGroupSCModel.get( 0, eTType );
+#endif
   ContextModel * const baseCtx = m_cCUSigSCModel.get( 0, eTType );
 #if !UNIFIED_SCAN_PASSES
+#if MLS
+  const UInt * const scanCG = g_auiSigLastScan[ uiScanIdx ][ uiLog2BlockSize > 3 ? uiLog2BlockSize-2-1 : 0  ];
+  if( uiLog2BlockSize > 3 )
+  {
+    UInt uiSigCoeffGroupFlag[ MLS_GRP_NUM ];
+    ::memset( uiSigCoeffGroupFlag, 0, sizeof(UInt) * MLS_GRP_NUM );
+    
+    static const UInt uiShift  = MLS_CG_SIZE >> 1;    // 2
+    static const UInt uiCGSize = (1 << MLS_CG_SIZE);  // 16
+    const UInt uiNumBlkSide = uiWidth >> uiShift;     // uiWidth / 4
+    
+    // decode significant coefficient group flag
+    Int iCGLastScanPos = uiScanPosLast >> MLS_CG_SIZE;
+    for( Int iCGScanPos = iCGLastScanPos; iCGScanPos >= 0; iCGScanPos -- )
+    {
+      Int iCGBlkPos = scanCG[ iCGScanPos ];
+      Int iCGPosY   = iCGBlkPos / uiNumBlkSide;
+      Int iCGPosX   = iCGBlkPos - (iCGPosY * uiNumBlkSide);
+      Bool bInferredCGFlag = false;
+
+      if( iCGScanPos == iCGLastScanPos ) 
+      {
+        uiSigCoeffGroupFlag[ iCGBlkPos ] = 1;
+      }
+      else
+      {
+        if( !TComTrQuant::bothCGNeighboursOne( uiSigCoeffGroupFlag, iCGPosX, iCGPosY, uiLog2BlockSize ) && ( iCGScanPos ) )
+        {
+          UInt uiSigCoeffGroup;
+          UInt uiCtxSig  = TComTrQuant::getSigCoeffGroupCtxInc( uiSigCoeffGroupFlag, iCGPosX, iCGPosY, uiLog2BlockSize );
+          m_pcTDecBinIf->decodeBin( uiSigCoeffGroup, baseCoeffGroupCtx[ uiCtxSig ] );
+          uiSigCoeffGroupFlag[ iCGBlkPos ] = uiSigCoeffGroup;
+        }
+        else
+        {
+          uiSigCoeffGroupFlag[ iCGBlkPos ] = 1;
+          bInferredCGFlag = true;
+        }
+      }
+    
+      // decode significant coefficient flag       
+      if( uiSigCoeffGroupFlag[ iCGBlkPos ] )
+      {
+        Int  iScanPos;
+        UInt uiBlkPos, uiPosY, uiPosX, uiSig, uiCtxSig;
+        UInt uiNumNonZeroesInCG = (iCGScanPos == iCGLastScanPos)? 1 : 0;
+
+        for( Int iScanPosOffset = (iCGScanPos == iCGLastScanPos)? uiScanPosLast - iCGScanPos*uiCGSize - 1 : uiCGSize - 1; 
+          iScanPosOffset >= 0; iScanPosOffset-- )
+        {
+          iScanPos  = iCGScanPos*uiCGSize + iScanPosOffset;
+          uiBlkPos  = scan[ iScanPos ];
+          uiPosY    = uiBlkPos >> uiLog2BlockSize;
+          uiPosX    = uiBlkPos - ( uiPosY << uiLog2BlockSize );
+       
+          if (iScanPosOffset > 0 || bInferredCGFlag || uiNumNonZeroesInCG )
+          {
+            uiCtxSig = TComTrQuant::getSigCtxInc( pcCoef, uiPosX, uiPosY, uiLog2BlockSize, uiWidth );
+            m_pcTDecBinIf->decodeBin( uiSig, baseCtx[ uiCtxSig ] );
+            uiNumNonZeroesInCG += uiSig;                  
+            pcCoef[ uiBlkPos ] = uiSig;
+            sigCoeffCount += uiSig;
+          }
+          else
+          {
+            uiSig = 1;
+            pcCoef[ uiBlkPos ] = uiSig;
+            sigCoeffCount += uiSig;
+          }
+        }
+      } 
+      else
+      {
+        for( Int iScanPosOffset = uiCGSize - 1; iScanPosOffset >= 0; iScanPosOffset-- )
+        {
+          Int  iScanPos = iCGScanPos*uiCGSize + iScanPosOffset;
+          UInt uiBlkPos = scan[ iScanPos ];
+          pcCoef[ uiBlkPos ] = 0;
+        }
+      } // end if ( uiSigCoeffGroupFlag[ iCGBlkPos ] )
+    } // end for( Int iCGScanPos = iCGLastScanPos; iCGScanPos >= 0; iCGScanPos -- )
+  }
+  else
+  {
+#endif
+
   for( UInt uiScanPos = uiScanPosLast-1; uiScanPos != -1; uiScanPos-- )
   {
     UInt uiBlkPos = scan[ uiScanPos ];
@@ -1469,6 +1567,10 @@ Void TDecSbac::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartId
     pcCoef[ uiBlkPos ] = uiSig;
     sigCoeffCount += uiSig;
   }
+
+#if MLS
+  }
+#endif
 #endif
 
   const Int  iLastScanSet      = uiScanPosLast >> LOG2_SCAN_SET_SIZE;
@@ -1476,6 +1578,12 @@ Void TDecSbac::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartId
   UInt uiGoRiceParam           = 0;
 
 #if UNIFIED_SCAN_PASSES
+#if MLS
+  UInt uiSigCoeffGroupFlag[ MLS_GRP_NUM ];
+  ::memset( uiSigCoeffGroupFlag, 0, sizeof(UInt) * MLS_GRP_NUM );
+  const UInt uiNumBlkSide = uiWidth >> (MLS_CG_SIZE >> 1);
+  const UInt * const scanCG = g_auiSigLastScan[ uiScanIdx ][ uiLog2BlockSize > 3 ? uiLog2BlockSize-2-1 : 0  ];
+#endif
   Int  iScanPosSig             = (Int) uiScanPosLast;
   for( Int iSubSet = iLastScanSet; iSubSet >= 0; iSubSet-- )
 #else
@@ -1495,6 +1603,68 @@ Void TDecSbac::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartId
       numNonZero = 1;
     }
 
+#if MLS
+    if( uiLog2BlockSize > 3 )
+    {
+      // decode significant_coeffgroup_flag
+      Int iCGBlkPos = scanCG[ iSubSet ];
+      Int iCGPosY   = iCGBlkPos / uiNumBlkSide;
+      Int iCGPosX   = iCGBlkPos - (iCGPosY * uiNumBlkSide);
+      Bool bInferredCGFlag = false;
+
+      if( iSubSet == iLastScanSet ) 
+      {
+        uiSigCoeffGroupFlag[ iCGBlkPos ] = 1;
+      }
+      else
+      {
+        if( !TComTrQuant::bothCGNeighboursOne( uiSigCoeffGroupFlag, iCGPosX, iCGPosY, uiLog2BlockSize) && ( iSubSet ) )
+        {
+          UInt uiSigCoeffGroup;
+          UInt uiCtxSig  = TComTrQuant::getSigCoeffGroupCtxInc( uiSigCoeffGroupFlag, iCGPosX, iCGPosY, uiLog2BlockSize );
+          m_pcTDecBinIf->decodeBin( uiSigCoeffGroup, baseCoeffGroupCtx[ uiCtxSig ] );
+          uiSigCoeffGroupFlag[ iCGBlkPos ] = uiSigCoeffGroup;
+        }
+        else
+        {
+          uiSigCoeffGroupFlag[ iCGBlkPos ] = 1;
+          bInferredCGFlag = true;
+        }
+      }
+
+      // decode significant_coeff_flag
+      UInt uiBlkPos, uiPosY, uiPosX, uiSig, uiCtxSig;
+      for( ; iScanPosSig >= iSubPos; iScanPosSig-- )
+      {
+        uiBlkPos  = scan[ iScanPosSig ];
+        uiPosY    = uiBlkPos >> uiLog2BlockSize;
+        uiPosX    = uiBlkPos - ( uiPosY << uiLog2BlockSize );
+        uiSig     = 0;
+        
+        if( uiSigCoeffGroupFlag[ iCGBlkPos ] )
+        {
+          if( iScanPosSig > iSubPos || bInferredCGFlag || numNonZero )
+          {
+            uiCtxSig  = TComTrQuant::getSigCtxInc( pcCoef, uiPosX, uiPosY, uiLog2BlockSize, uiWidth );
+            m_pcTDecBinIf->decodeBin( uiSig, baseCtx[ uiCtxSig ] );
+          }
+          else
+          {
+            uiSig = 1;
+          }
+        }
+        pcCoef[ uiBlkPos ] = uiSig;
+        if( uiSig )
+        {
+          pos[ numNonZero ] = uiBlkPos;
+          numNonZero ++;
+        }
+      }
+    }
+    else
+    {
+#endif
+
     for( ; iScanPosSig >= iSubPos; iScanPosSig-- )
     {
       UInt uiBlkPos   = scan[ iScanPosSig ];
@@ -1510,6 +1680,10 @@ Void TDecSbac::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartId
         numNonZero ++;
       }
     }
+
+#if MLS
+  }
+#endif
 #else
     const UInt *puiSetScan  = scan + iSubPos;
     Int pos[SCAN_SET_SIZE];
@@ -1814,6 +1988,9 @@ Void TDecSbac::xCopyContextsFrom( TDecSbac* pSrc )
   m_cCUDeltaQpSCModel         .copyFrom( &pSrc->m_cCUDeltaQpSCModel         );
   m_cCUQtCbfSCModel           .copyFrom( &pSrc->m_cCUQtCbfSCModel           );
   m_cCUQtRootCbfSCModel       .copyFrom( &pSrc->m_cCUQtRootCbfSCModel       );
+#if MLS
+  m_cCUSigCoeffGroupSCModel   .copyFrom( &pSrc->m_cCUSigCoeffGroupSCModel   );
+#endif
   m_cCUSigSCModel             .copyFrom( &pSrc->m_cCUSigSCModel             );
   m_cCuCtxLastX               .copyFrom( &pSrc->m_cCuCtxLastX               );
   m_cCuCtxLastY               .copyFrom( &pSrc->m_cCuCtxLastY               );

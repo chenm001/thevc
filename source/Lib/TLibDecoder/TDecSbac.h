@@ -201,6 +201,9 @@ private:
   ContextModel3DBuffer m_cCUTransSubdivFlagSCModel;
   ContextModel3DBuffer m_cCUQtRootCbfSCModel;
   
+#if MLS
+  ContextModel3DBuffer m_cCUSigCoeffGroupSCModel;
+#endif
   ContextModel3DBuffer m_cCUSigSCModel;
   ContextModel3DBuffer m_cCuCtxLastX;
   ContextModel3DBuffer m_cCuCtxLastY;
