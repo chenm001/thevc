@@ -3435,7 +3435,11 @@ Void TComDataCU::getInterMergeCandidates( UInt uiAbsPartIdx, UInt uiPUIdx, UInt 
         }
         else
         {
-          xCheckDuplicateCand(pcMvFieldNeighbours, puhInterDirNeighbours, abCandIsInter, uiArrayAddr); 
+#if REMOVE_MRG_2ND_PRUNING
+          uiArrayAddr++;
+#else
+          xCheckDuplicateCand(pcMvFieldNeighbours, puhInterDirNeighbours, abCandIsInter, uiArrayAddr);
+#endif
           iCombinedCount++;
         }
       }
@@ -3473,7 +3477,11 @@ Void TComDataCU::getInterMergeCandidates( UInt uiAbsPartIdx, UInt uiPUIdx, UInt 
               pcMvFieldNeighbours[( uiArrayAddr << 1 ) + 1].setMvField(pcMvFieldNeighbours[(i<<1)+1].getMv(), pcMvFieldNeighbours[(i<<1)+1].getRefIdx());
             }
 
+#if REMOVE_MRG_2ND_PRUNING
+            uiArrayAddr++;
+#else
             xCheckDuplicateCand(pcMvFieldNeighbours, puhInterDirNeighbours, abCandIsInter, uiArrayAddr);
+#endif
             iScaledCount++;
           }
         }
@@ -3498,7 +3506,11 @@ Void TComDataCU::getInterMergeCandidates( UInt uiAbsPartIdx, UInt uiPUIdx, UInt 
       puhInterDirNeighbours[uiArrayAddr] = 3;
       pcMvFieldNeighbours[(uiArrayAddr << 1) + 1].setMvField(TComMv(0, 0), r);
     }
+#if REMOVE_MRG_2ND_PRUNING
+    uiArrayAddr++;
+#else
     xCheckDuplicateCand(pcMvFieldNeighbours, puhInterDirNeighbours, abCandIsInter, uiArrayAddr);
+#endif
 #if !REMOVE_LIMIT_ZEROMERGE
     iZeroCount++;
 #endif
