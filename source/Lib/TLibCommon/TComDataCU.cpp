@@ -3014,15 +3014,13 @@ Void TComDataCU::getInterMergeCandidates( UInt uiAbsPartIdx, UInt uiPUIdx, UInt 
   deriveLeftBottomIdxGeneral( cCurPS, uiAbsPartIdx, uiPUIdx, uiPartIdxLB );
 
   //left
-#if REMOVE_AVOID_MERGE
-  PartSize partSize = getPartitionSize( uiAbsPartIdx );
-  if (!(uiPUIdx == 1 && (partSize == SIZE_Nx2N || partSize == SIZE_nLx2N || partSize == SIZE_nRx2N)))
-  {
-#endif
   UInt uiLeftPartIdx = 0;
   TComDataCU* pcCULeft = 0;
   pcCULeft = getPULeft( uiLeftPartIdx, uiPartIdxLB );
 #if REMOVE_AVOID_MERGE
+  PartSize partSize = getPartitionSize( uiAbsPartIdx );
+  if (!(uiPUIdx == 1 && (partSize == SIZE_Nx2N || partSize == SIZE_nLx2N || partSize == SIZE_nRx2N)))
+  {
   if ( pcCULeft && !pcCULeft->isIntra( uiLeftPartIdx ) )
 #else
   if ( !avoidMergeCandidate( uiAbsPartIdx, uiPUIdx, uiDepth, pcCULeft, uiLeftPartIdx ) && !pcCULeft->isIntra( uiLeftPartIdx ) )
@@ -3144,6 +3142,15 @@ Void TComDataCU::getInterMergeCandidates( UInt uiAbsPartIdx, UInt uiPUIdx, UInt 
   // col [2]
 #if MRG_TMVP_REFIDX
   Int iRefIdxSkip[2] = {-1, -1};
+#if MRG_TMVP_REFIDX_G163
+  //>> G163 SP05 MRG TMVP refIdx derivation
+  for (int i=0; i<2; i++)
+  {
+    RefPicList  eRefPicList = ( i==1 ? REF_PIC_LIST_1 : REF_PIC_LIST_0 );
+    Int iRefIdxTmp = (pcCULeft != NULL) ? pcCULeft->getCUMvField(eRefPicList)->getRefIdx(uiLeftPartIdx) : -1;
+    iRefIdxSkip[i] = (iRefIdxTmp != -1) ? iRefIdxTmp : 0;
+  }
+#else
   TComDataCU* pcTmpCU = NULL;
   UInt uiIdxblk;
   Int iRefIdxLeft[2] = {-1, -1};
@@ -3208,6 +3215,7 @@ Void TComDataCU::getInterMergeCandidates( UInt uiAbsPartIdx, UInt uiPUIdx, UInt 
       iRefIdxSkip[i] = min( min(iRefIdxLeft[i], iRefIdxAbove[i]), iRefIdxCor[i]);
     }
   }
+#endif 
 #endif
   //>> MTK colocated-RightBottom
   UInt uiPartIdxRB;
