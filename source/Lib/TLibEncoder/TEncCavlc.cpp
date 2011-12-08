@@ -639,11 +639,6 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
       xWriteCode  (pcSlice->getERBIndex(), 2);
     }
   }
-#if G091_SINGAL_maxNumMergeCand
-  assert(pcSlice->getMaxNumMergeCand()<=MRG_MAX_NUM_CANDS_SINGALED);
-  assert(MRG_MAX_NUM_CANDS_SINGALED<=MRG_MAX_NUM_CANDS);
-  WRITE_UVLC(MRG_MAX_NUM_CANDS - pcSlice->getMaxNumMergeCand(), "maxNumMergeCand");
-#endif
 
 #if TILES_DECODER
   if (!bEntropySlice && pcSlice->getSPS()->getTileBoundaryIndependenceIdr())
@@ -790,14 +785,7 @@ Void TEncCavlc::codeMergeIndex    ( TComDataCU* pcCU, UInt uiAbsPartIdx )
 {
   UInt uiNumCand = MRG_MAX_NUM_CANDS;
   assert( uiNumCand > 1 );
-
-
   UInt uiUnaryIdx = pcCU->getMergeIndex( uiAbsPartIdx );
-
-#if G091_SINGAL_maxNumMergeCand
-  uiNumCand = pcCU->getSlice()->getMaxNumMergeCand();
-  if ( uiNumCand > 1 )
-#endif
   for( UInt ui = 0; ui < uiNumCand - 1; ++ui )
   {
     const UInt uiSymbol = ui == uiUnaryIdx ? 0 : 1;

@@ -41,6 +41,12 @@
 //! \ingroup TLibCommon
 //! \{
 
+#define REMOVE_AVOID_MERGE        1 //G681/G542/G593: removing avoid merge
+#define REMOVE_MV_PRED_CLIP       1 //G134: removing MV clipping
+#define REMOVE_DEPENDENCY_AMVP    1 //G542 sp2: remove dependency for derivation process of AMVP candidate
+#define REMOVE_LIMIT_ZEROMERGE    1 //G542 sp3: remove the limit of zero merging candidate
+#define REMOVE_MRG_2ND_PRUNING    1 //G397: remove the 2nd pruning process for merge candidates
+
 #define CABAC_RICE_FIX            1 ///< G495: fixing an entry in g_auiGoRicePrefixLen table
 #define BYPASS_FOR_LAST_COEFF_MOD 1 ///< grouping of bypass bins for last_significant_coeff_x/y, MSB first
 #define DISABLE_CAVLC             1 ///< disable second entropy coder
@@ -58,6 +64,8 @@
 #define RDOQ_CHROMA_LAMBDA          1   ///< F386: weighting of chroma for RDOQ
 #define ALF_CHROMA_LAMBDA           1   ///< F386: weighting of chroma for ALF
 #define SAO_CHROMA_LAMBDA           1   ///< F386: weighting of chroma for SAO
+
+#define MRG_TMVP_REFIDX_G163 1 ///< G163 : use refIdx of left PU. if not available, use 0.
 
 ////////////////////////////
 // JCT-VC F start
@@ -86,18 +94,6 @@
 // JCT-VC E start
 ////////////////////////////
 
-////////////////////////////
-// JCT-VC G start
-////////////////////////////
-
-#define G082_MOD_H_TMVP_POS                1         ///<G082, modified H TMVP position (configuration 2) for memory bandwidth reduction
-#define G091_SINGAL_maxNumMergeCand        1         ///<G091: maxNumMergeCand signaling in slice header
-#if G091_SINGAL_maxNumMergeCand
-#define MRG_MAX_NUM_CANDS_SINGALED         5         ///<G091: value of maxNumMergeCand signaled in slice header 
-#endif
-////////////////////////////
-// JCT-VC G end
-////////////////////////////
 #define MOT_TUPU_MAXDEPTH1                1           ///< E364, "Implicit TU" derivation when there is no TU tree (i.e., "max depth = 1"), the transform blocks should not cross PU boundaries
 ////////////////////////////
 // JCT-VC E end
