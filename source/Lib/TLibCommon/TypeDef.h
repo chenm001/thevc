@@ -70,6 +70,7 @@
 #define MODIFIED_LAST_XY_CODING             1      ///< G704 : Last coefficient position coding
 #define CHROMA_CBF_CTX_REDUCTION            1      ///< G718 : Sharing contexts for cbf_cb and cbf_cr
 #define PREDTYPE_CLEANUP                    1      ///< G1042: Harmonization of the prediction and partitioning mode binarization of P and B slices
+#define TU_LEVEL_COEFF_INTERLEAVE           1      ///< G112 / G381: TU level luma/chroma coefficient interleaving
 
 ////////////////////////////
 // JCT-VC G end
