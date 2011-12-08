@@ -38,6 +38,8 @@
 #ifndef _TYPEDEF__
 #define _TYPEDEF__
 
+#define REMOVE_AVOID_MERGE        1 //G681/G542/G593: removing avoid merge
+
 //! \ingroup TLibCommon
 //! \{
 
