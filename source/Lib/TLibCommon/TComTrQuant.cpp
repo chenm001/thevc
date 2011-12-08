@@ -3357,6 +3357,28 @@ __inline Double TComTrQuant::xGetICRateCost  ( UInt                            u
  * \param uiPosY Y coordinate of the last significant coefficient
  * \returns cost of last significant coefficient
  */
+#if MODIFIED_LAST_XY_CODING
+/*
+ * \param uiWidth width of the transform unit (TU)
+*/
+__inline Double TComTrQuant::xGetRateLast   ( const UInt                      uiPosX,
+                                              const UInt                      uiPosY,
+                                              const UInt                      uiBlkWdth     ) const
+{
+  UInt uiCtxX   = g_uiGroupIdx[uiPosX];
+  UInt uiCtxY   = g_uiGroupIdx[uiPosY];
+  Double uiCost = m_pcEstBitsSbac->lastXBits[ uiCtxX ] + m_pcEstBitsSbac->lastYBits[ uiCtxY ];
+  if( uiCtxX > 3 )
+  {
+    uiCost += xGetIEPRate() * ((uiCtxX-2)>>1);
+  }
+  if( uiCtxY > 3 )
+  {
+    uiCost += xGetIEPRate() * ((uiCtxY-2)>>1);
+  }
+  return xGetICost( uiCost );
+}
+#else
 /*
  * \param uiWidth width of the transform unit (TU)
 */
@@ -3391,6 +3413,7 @@ __inline Double TComTrQuant::xGetRateLast   ( const UInt                      ui
 
   return xGetICost( uiCost );
 }
+#endif
 
  /** Calculates the cost for specific absolute transform level
  * \param uiAbsLevel scaled quantized level

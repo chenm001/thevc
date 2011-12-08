@@ -87,7 +87,11 @@
 #define NUM_DELTA_QP_CTX              4       ///< number of context models for dQP
 
 #define NUM_SIG_FLAG_CTX              44      ///< number of context models for sig flag
+#if MODIFIED_LAST_XY_CODING
+#define NUM_CTX_LAST_FLAG_XY          18      ///< number of context models for last coefficient position
+#else
 #define NUM_CTX_LAST_FLAG_XY          19      ///< number of context models for PCP last flag
+#endif
 #if COEFF_CTX_RED
 #define NUM_ONE_FLAG_CTX              24      ///< number of context models for greater than one
 #define NUM_ABS_FLAG_CTX              18      ///< number of context models for magnitude
@@ -420,6 +424,45 @@ INIT_QT_ROOT_CBF[3][NUM_QT_ROOT_CBF_CTX][2] =
   }
 };
 
+#if MODIFIED_LAST_XY_CODING
+static const Short
+INIT_LAST[3][2*NUM_CTX_LAST_FLAG_XY][2] =
+{ 
+  {
+    {  -12,  92  },  {  -10,  87  },  {  -10,  80  },  {  -13,  92  },
+    {  -9,  87  },   {  -7,  86  },   {  -4,  67  },   {  -12,  92  },
+    {  -15,  106  }, {  -15,  109  }, {  -14,  99  },  {  -11,  78  },
+    {  -16,  103  }, {  -17,  117  }, {  -22,  131  }, {  -21,  123  },
+    {  -19,  112  }, {  -23,  102  }, {  -37,  118  }, {  -35,  113  },
+    {  -53,  132  }, {  -31,  106  }, {  -13,  89  },  {  -21,  99  },
+    {  0,  64  },    {  -35,  125  }, {  -22,  110  }, {  -18,  104  },
+    {  -14,  96  },  {  0,  64  },    {  0,  64  },    {  0,  64  },
+    {  0,  64  },    {  0,  64  },    {  0,  64  },    {  0,  64  }
+  },
+  {
+    {  -9,  81  },   {  -14,  86  },  {  -25,  90  },  {  -10,  88  },
+    {  -17,  99  },  {  -18,  90  },  {  -30,  103  }, {  -3,  74  },
+    {  -14,  99  },  {  -23,  114  }, {  -17,  95  },  {  -24,  87  },
+    {  -12,  83  },  {  -8,  82  },   {  -11,  97  },  {  -10,  98  },
+    {  -27,  122  }, {  -57,  148  }, {  -21,  91  },  {  -22,  90  },
+    {  -35,  100  }, {  -11,  75  },  {  -22,  100  }, {  -27,  110  },
+    {  0,  64  },    {  3,  45  },    {  -14,  93  },  {  -23,  110  },
+    {  -32,  138  }, {  0,  64  },    {  0,  64  },    {  0,  64  },
+    {  0,  64  },    {  0,  64  },    {  0,  64  },    {  0,  64  }
+  },
+  {
+    {  -9,  81  },   {  -14,  86  },  {  -25,  90  },  {  -10,  88  },
+    {  -17,  99  },  {  -18,  90  },  {  -30,  103  }, {  -3,  74  },
+    {  -14,  99  },  {  -23,  114  }, {  -17,  95  },  {  -24,  87  },
+    {  -12,  83  },  {  -8,  82  },   {  -11,  97  },  {  -10,  98  },
+    {  -27,  122  }, {  -57,  148  }, {  -21,  91  },  {  -22,  90  },
+    {  -35,  100  }, {  -11,  75  },  {  -22,  100  }, {  -27,  110  },
+    {  0,  64  },    {  3,  45  },    {  -14,  93  },  {  -23,  110  },
+    {  -32,  138  }, {  0,  64  },    {  0,  64  },    {  0,  64  },
+    {  0,  64  },    {  0,  64  },    {  0,  64  },    {  0,  64  }
+  }
+};
+#else
 static const Short
 INIT_LAST[3][2*NUM_CTX_LAST_FLAG_XY][2] =
 {
@@ -456,6 +499,7 @@ INIT_LAST[3][2*NUM_CTX_LAST_FLAG_XY][2] =
     {    0,   64 }, {    0,   64 }, {    0,   64 }, {    0,   64 }, {    0,   64 }, {    0,   64 }, {    0,   64 }
   }
 };
+#endif
 
 static const Short
 INIT_SIG_FLAG[3][2 * NUM_SIG_FLAG_CTX][2] =

@@ -1181,6 +1181,69 @@ Void TDecSbac::parseQtCbf( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eType, 
 Void TDecSbac::parseLastSignificantXY( UInt& uiPosLastX, UInt& uiPosLastY, Int width, Int height, TextType eTType, UInt uiCTXIdx, UInt uiScanIdx )
 {
   UInt uiLast;
+#if MODIFIED_LAST_XY_CODING
+  ContextModel *pCtxX = m_cCuCtxLastX.get( 0, eTType );
+  ContextModel *pCtxY = m_cCuCtxLastY.get( 0, eTType );
+
+  // posX
+  const UInt *puiCtxIdxX = g_uiLastCtx + ( g_aucConvertToBit[ width ] * ( g_aucConvertToBit[ width ] + 3 ) );
+  for( uiPosLastX = 0; uiPosLastX < g_uiGroupIdx[ width - 1 ]; uiPosLastX++ )
+  {
+    m_pcTDecBinIf->decodeBin( uiLast, *( pCtxX + puiCtxIdxX[ uiPosLastX ] ) );
+    if( !uiLast )
+    {
+      break;
+    }
+  }
+#if !BYPASS_FOR_LAST_COEFF_MOD
+  if ( uiPosLastX > 3 )
+  {
+    UInt uiTemp  = 0;
+    UInt uiCount = ( uiPosLastX - 2 ) >> 1;
+    for ( Int i = uiCount - 1; i >= 0; i-- )
+    {
+      m_pcTDecBinIf->decodeBinEP( uiLast );
+      uiTemp += uiLast << i;
+    }
+    uiPosLastX = g_uiMinInGroup[ uiPosLastX ] + uiTemp;
+  }
+#endif
+
+  // posY
+  const UInt *puiCtxIdxY = g_uiLastCtx + ( g_aucConvertToBit[ height ] * ( g_aucConvertToBit[ height ] + 3 ) );
+  for( uiPosLastY = 0; uiPosLastY < g_uiGroupIdx[ height - 1 ]; uiPosLastY++ )
+  {
+    m_pcTDecBinIf->decodeBin( uiLast, *( pCtxY + puiCtxIdxY[ uiPosLastY ] ) );
+    if( !uiLast )
+    {
+      break;
+    }
+  }
+#if BYPASS_FOR_LAST_COEFF_MOD
+  if ( uiPosLastX > 3 )
+  {
+    UInt uiTemp  = 0;
+    UInt uiCount = ( uiPosLastX - 2 ) >> 1;
+    for ( Int i = uiCount - 1; i >= 0; i-- )
+    {
+      m_pcTDecBinIf->decodeBinEP( uiLast );
+      uiTemp += uiLast << i;
+    }
+    uiPosLastX = g_uiMinInGroup[ uiPosLastX ] + uiTemp;
+  }
+#endif
+  if ( uiPosLastY > 3 )
+  {
+    UInt uiTemp  = 0;
+    UInt uiCount = ( uiPosLastY - 2 ) >> 1;
+    for ( Int i = uiCount - 1; i >= 0; i-- )
+    {
+      m_pcTDecBinIf->decodeBinEP( uiLast );
+      uiTemp += uiLast << i;
+    }
+    uiPosLastY = g_uiMinInGroup[ uiPosLastY ] + uiTemp;
+  }
+#else
   const UInt *puiCtxIdx;
   
   Int minWidth    = min<Int>( 4, width );
@@ -1263,6 +1326,7 @@ Void TDecSbac::parseLastSignificantXY( UInt& uiPosLastX, UInt& uiPosLastY, Int w
     m_pcTDecBinIf->decodeBinsEP( temp, log2BlkHeight );
     uiPosLastY += temp;
   }
+#endif
 #endif
   
   if( uiScanIdx == SCAN_VER )
