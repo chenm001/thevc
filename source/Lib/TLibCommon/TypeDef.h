@@ -38,10 +38,11 @@
 #ifndef _TYPEDEF__
 #define _TYPEDEF__
 
-#define REMOVE_AVOID_MERGE        1 //G681/G542/G593: removing avoid merge
-
 //! \ingroup TLibCommon
 //! \{
+
+#define REMOVE_AVOID_MERGE        1 //G681/G542/G593: removing avoid merge
+#define REMOVE_MV_PRED_CLIP       1 //G134: removing MV clipping
 
 #define CABAC_RICE_FIX            1 ///< G495: fixing an entry in g_auiGoRicePrefixLen table
 #define BYPASS_FOR_LAST_COEFF_MOD 1 ///< grouping of bypass bins for last_significant_coeff_x/y, MSB first

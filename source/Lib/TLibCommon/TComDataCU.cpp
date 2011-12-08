@@ -3942,7 +3942,9 @@ Bool TComDataCU::xAddMVPCand( AMVPInfo* pInfo, RefPicList eRefPicList, Int iRefI
   if ( pcTmpCU != NULL && m_pcSlice->isEqualRef(eRefPicList, pcTmpCU->getCUMvField(eRefPicList)->getRefIdx(uiIdx), iRefIdx) )
   {
     TComMv cMvPred = pcTmpCU->getCUMvField(eRefPicList)->getMv(uiIdx);
+#if !REMOVE_MV_PRED_CLIP
     clipMv(cMvPred);
+#endif
     
     pInfo->m_acMvCand[ pInfo->iN++] = cMvPred;
     return true;
@@ -3968,8 +3970,9 @@ Bool TComDataCU::xAddMVPCand( AMVPInfo* pInfo, RefPicList eRefPicList, Int iRefI
     if( iNeibRefPOC == iCurrRefPOC ) // Same Reference Frame But Diff List//
     {
       TComMv cMvPred = pcTmpCU->getCUMvField(eRefPicList2nd)->getMv(uiIdx);
-
+#if !REMOVE_MV_PRED_CLIP
       clipMv(cMvPred);
+#endif
       pInfo->m_acMvCand[ pInfo->iN++] = cMvPred;
       return true;
     }
@@ -4084,9 +4087,9 @@ Bool TComDataCU::xAddMVPCandOrder( AMVPInfo* pInfo, RefPicList eRefPicList, Int 
     {
       rcMv = cMvPred.scaleMv( iScale );
     }
-
+#if !REMOVE_MV_PRED_CLIP
     clipMv(rcMv);
-
+#endif
     pInfo->m_acMvCand[ pInfo->iN++] = rcMv;
     return true;
   }
@@ -4106,9 +4109,9 @@ Bool TComDataCU::xAddMVPCandOrder( AMVPInfo* pInfo, RefPicList eRefPicList, Int 
     {
       rcMv = cMvPred.scaleMv( iScale );
     }
-
+#if !REMOVE_MV_PRED_CLIP
     clipMv(rcMv);
-
+#endif
     pInfo->m_acMvCand[ pInfo->iN++] = rcMv;
     return true;
   }
@@ -4173,7 +4176,10 @@ Bool TComDataCU::xGetColMVP( RefPicList eRefPicList, Int uiCUAddr, Int uiPartUni
   {
     rcMv = cColMv.scaleMv( iScale );
   }
+#if !REMOVE_MV_PRED_CLIP
   clipMv(rcMv);
+#endif
+
   return true;
 }
 
@@ -4303,7 +4309,9 @@ Bool TComDataCU::xGetCenterCol( UInt uiPartIdx, RefPicList eRefPicList, int iRef
   {
     pcMv[0] = cColMv.scaleMv( iScale );
   }
+#if !REMOVE_MV_PRED_CLIP
   clipMv(pcMv[0]);
+#endif
   
   return true;
 }
