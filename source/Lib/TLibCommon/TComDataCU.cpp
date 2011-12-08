@@ -3250,6 +3250,9 @@ Void TComDataCU::getInterMergeCandidates( UInt uiAbsPartIdx, UInt uiPUIdx, UInt 
     {
       uiAbsPartAddr = g_auiRasterToZscan[ (uiAbsPartIdxTmp + uiNumPartInCUWidth + 1) % m_pcPic->getNumPartInCU() ];
       uiLCUIdx = getAddr() + m_pcPic->getFrameWidthInCU();
+#if G082_MOD_H_TMVP_POS
+      uiLCUIdx = -1 ; 
+#endif
     }
     else if ( uiAbsPartIdxTmp / uiNumPartInCUWidth < m_pcPic->getNumPartInHeight() - 1 ) // is not at the last row of LCU But is last column of LCU
     {
@@ -3260,6 +3263,9 @@ Void TComDataCU::getInterMergeCandidates( UInt uiAbsPartIdx, UInt uiPUIdx, UInt 
     {
       uiAbsPartAddr = 0;
       uiLCUIdx = getAddr() + m_pcPic->getFrameWidthInCU() + 1;
+#if G082_MOD_H_TMVP_POS
+      uiLCUIdx = -1 ; 
+#endif
     }
   }
 #if MRG_TMVP_REFIDX
@@ -3795,6 +3801,9 @@ Void TComDataCU::fillMvpCand ( UInt uiPartIdx, UInt uiPartAddr, RefPicList eRefP
     {
       uiAbsPartAddr = g_auiRasterToZscan[ (uiAbsPartIdx + uiNumPartInCUWidth + 1) % m_pcPic->getNumPartInCU() ];
       uiLCUIdx = getAddr() + m_pcPic->getFrameWidthInCU();
+#if G082_MOD_H_TMVP_POS
+      uiLCUIdx      = -1 ; 
+#endif
     }
     else if ( uiAbsPartIdx / uiNumPartInCUWidth < m_pcPic->getNumPartInHeight() - 1 ) // is not at the last row of LCU But is last column of LCU
     {
@@ -3805,6 +3814,9 @@ Void TComDataCU::fillMvpCand ( UInt uiPartIdx, UInt uiPartAddr, RefPicList eRefP
     {
       uiAbsPartAddr = 0;
       uiLCUIdx = getAddr() + m_pcPic->getFrameWidthInCU() + 1;
+#if G082_MOD_H_TMVP_POS
+      uiLCUIdx      = -1 ; 
+#endif
     }
   }
   if ( uiLCUIdx >= 0 && xGetColMVP( eRefPicList, uiLCUIdx, uiAbsPartAddr, cColMv, iRefIdx_Col ) )
@@ -4272,10 +4284,17 @@ Void TComDataCU::xDeriveCenterIdx( PartSize eCUMode, UInt uiPartIdx, UInt& ruiPa
   Int  iPartHeight;
   getPartIndexAndSize( uiPartIdx, uiPartAddr, iPartWidth, iPartHeight);
   
+#if G082_MOD_H_TMVP_POS
+  ruiPartIdxCenter = m_uiAbsIdxInLCU+uiPartAddr; // partition origin.
+  ruiPartIdxCenter = g_auiRasterToZscan[ g_auiZscanToRaster[ ruiPartIdxCenter ]
+                                        + ( iPartHeight/m_pcPic->getMinCUHeight()  )/2*m_pcPic->getNumPartInWidth()
+                                        + ( iPartWidth/m_pcPic->getMinCUWidth()  )/2];
+#else
   ruiPartIdxCenter = m_uiAbsIdxInLCU+uiPartAddr; // partition origin.
   ruiPartIdxCenter = g_auiRasterToZscan[ g_auiZscanToRaster[ ruiPartIdxCenter ]
                                         + ( iPartHeight/m_pcPic->getMinCUHeight() -1 )/2*m_pcPic->getNumPartInWidth()
                                         + ( iPartWidth/m_pcPic->getMinCUWidth()  -1 )/2];
+#endif
 }
 
 /** 

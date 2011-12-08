@@ -46,6 +46,7 @@
 #define REMOVE_DEPENDENCY_AMVP    1 //G542 sp2: remove dependency for derivation process of AMVP candidate
 #define REMOVE_LIMIT_ZEROMERGE    1 //G542 sp3: remove the limit of zero merging candidate
 #define REMOVE_MRG_2ND_PRUNING    1 //G397: remove the 2nd pruning process for merge candidates
+#define G082_MOD_H_TMVP_POS       1 //<G082, modified H TMVP position (configuration 2) for memory bandwidth reduction
 
 #define CABAC_RICE_FIX            1 ///< G495: fixing an entry in g_auiGoRicePrefixLen table
 #define BYPASS_FOR_LAST_COEFF_MOD 1 ///< grouping of bypass bins for last_significant_coeff_x/y, MSB first
