@@ -437,7 +437,9 @@ Void TEncSlice::initEncSlice( TComPic* pcPic, Int iPOCLast, UInt uiPOCCurr, Int 
   rpcSlice->setSliceArgument        ( m_pcCfg->getSliceArgument()        );
   rpcSlice->setEntropySliceMode     ( m_pcCfg->getEntropySliceMode()     );
   rpcSlice->setEntropySliceArgument ( m_pcCfg->getEntropySliceArgument() );
-
+#if G091_SINGAL_maxNumMergeCand
+  rpcSlice->setMaxNumMergeCand      (MRG_MAX_NUM_CANDS_SINGALED);
+#endif
 #if WEIGHT_PRED
   xStoreWPparam( pPPS->getUseWP(), pPPS->getWPBiPredIdc() );
 #endif

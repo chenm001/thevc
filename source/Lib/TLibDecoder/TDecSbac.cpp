@@ -582,7 +582,10 @@ Void TDecSbac::parseMergeIndex ( TComDataCU* pcCU, UInt& ruiMergeIndex, UInt uiA
   UInt uiNumCand = MRG_MAX_NUM_CANDS;
   UInt auiCtx[4] = { 0, 1, 2, 3 };
   UInt uiUnaryIdx = 0;
-
+#if G091_SINGAL_maxNumMergeCand
+  uiNumCand = pcCU->getSlice()->getMaxNumMergeCand();
+  if ( uiNumCand > 1 )
+#endif
   for( ; uiUnaryIdx < uiNumCand - 1; ++uiUnaryIdx )
   {
     UInt uiSymbol = 0;
