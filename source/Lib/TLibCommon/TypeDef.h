@@ -53,6 +53,7 @@
 #define PLANAR_IS_DEFAULT         1 ///< default to planar if neighbor not available G119
 #define REMAP_TO_PLANAR           1 ///< default to planar if neighbor out of range G119
 #define INTRA_MODES_64X64         1 ///< enable 35 intra modes for 64x64 PUs
+#define VER_HOR_FILTER            1 ///< F172: intra ver/hor prediction filter
 
 #define WEIGHTED_CHROMA_DISTORTION  1   ///< F386: weighting of chroma for RDO
 #define RDOQ_CHROMA_LAMBDA          1   ///< F386: weighting of chroma for RDOQ

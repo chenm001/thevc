@@ -79,7 +79,11 @@ protected:
   Int    m_iLumaRecStride;       ///< stride of #m_pLumaRecBuffer array
   UInt   m_uiaShift[ 63 ];       // Table for multiplication to substitue of division operation
 
+#if VER_HOR_FILTER
+  Void xPredIntraAng            ( Int* pSrc, Int srcStride, Pel*& rpDst, Int dstStride, UInt width, UInt height, UInt dirMode, Bool blkAboveAvailable, Bool blkLeftAvailable, Bool bFilter );
+#else
   Void xPredIntraAng            ( Int* pSrc, Int srcStride, Pel*& rpDst, Int dstStride, UInt width, UInt height, UInt dirMode, Bool blkAboveAvailable, Bool blkLeftAvailable );
+#endif
   Void xPredIntraPlanar         ( Int* pSrc, Int srcStride, Pel* rpDst, Int dstStride, UInt width, UInt height );
   
   // motion compensation functions
