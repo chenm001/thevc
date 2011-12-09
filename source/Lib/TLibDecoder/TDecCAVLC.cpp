@@ -448,7 +448,7 @@ Void TDecCavlc::parseSPS(TComSPS* pcSPS)
   xReadUvlc ( uiCode ); pcSPS->setPadY        ( uiCode    );
 
 #if !G1002_RPS
-  xReadFlag( uiCode ); pcSPS->setUseLDC ( uiCode ? true : false );
+  xReadFlag( uiCode ); assert(uiCode == 1);
 #endif
   xReadFlag( uiCode ); pcSPS->setUseMRG ( uiCode ? true : false );
   

@@ -455,7 +455,7 @@ Void TEncCavlc::codeSPS( TComSPS* pcSPS )
 
   // Tools
 #if !G1002_RPS
-  xWriteFlag  ( (pcSPS->getUseLDC ()) ? 1 : 0 );
+  xWriteFlag  ( 1 );
 #endif
   xWriteFlag  ( (pcSPS->getUseMRG ()) ? 1 : 0 ); // SOPH:
   

@@ -605,7 +605,7 @@ Bool TDecTop::decode(InputNALUnit& nalu, Int& iSkipFrame, Int& iPOCLastDisplay)
         pcSlice->setRefPicList( m_cListPic );
         
         // HierP + GPB case
-        if ( m_cSPS.getUseLDC() && pcSlice->isInterB() )
+        if ( pcSlice->isInterB() )
         {
           if(pcSlice->getRefPicListCombinationFlag() && (pcSlice->getNumRefIdx(REF_PIC_LIST_0) > pcSlice->getNumRefIdx(REF_PIC_LIST_1)))
           {

@@ -83,7 +83,6 @@ protected:
   Int       m_iNumOfReference;                                ///< total number of reference frames in P-slice
   Int       m_iNumOfReferenceB_L0;                            ///< total number of reference frames for reference list L0 in B-slice
   Int       m_iNumOfReferenceB_L1;                            ///< total number of reference frames for reference list L1 in B-slice
-  Bool      m_bUseLDC;                                        ///< flag for using low-delay coding mode
   Bool      m_bUseNRF;                                        ///< flag for using non-referenced frame in hierarchical structure
   Bool      m_bUseGPB;                                        ///< flag for using generalized P & B structure
 #endif

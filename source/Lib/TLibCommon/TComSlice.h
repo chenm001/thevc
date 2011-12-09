@@ -100,7 +100,6 @@ private:
 #endif
   Bool        m_bUseALF;
   Bool        m_bUseDQP;
-  Bool        m_bUseLDC;
   Bool        m_bUsePAD;
   Bool        m_bUseMRG; // SOPH:
 
@@ -214,14 +213,12 @@ public:
   Bool getUseALF      ()         { return m_bUseALF;        }
   Bool getUseDQP      ()         { return m_bUseDQP;        }
   
-  Bool getUseLDC      ()         { return m_bUseLDC;        }
   Bool getUsePAD      ()         { return m_bUsePAD;        }
   Bool getUseMRG      ()         { return m_bUseMRG;        } // SOPH:
   
   Void setUseALF      ( Bool b ) { m_bUseALF  = b;          }
   Void setUseDQP      ( Bool b ) { m_bUseDQP   = b;         }
   
-  Void setUseLDC      ( Bool b ) { m_bUseLDC   = b;         }
   Void setUsePAD      ( Bool b ) { m_bUsePAD   = b;         }
   Void setUseMRG      ( Bool b ) { m_bUseMRG  = b;          } // SOPH:
   

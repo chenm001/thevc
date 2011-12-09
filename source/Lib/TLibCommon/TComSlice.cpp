@@ -311,45 +311,6 @@ TComPic* TComSlice::xGetRefPic (TComList<TComPic*>& rcListPic,
         return  pcRefPic;
       }
     }
-    
-    if ( !m_pcSPS->getUseLDC() )
-    {
-      
-      iterPic = rcListPic.begin();
-      pcPic = *(iterPic);
-      while ( (pcPic->getPOC() != (Int)uiPOCCurr) && (iterPic != rcListPic.end()) )
-      {
-        iterPic++;
-        pcPic = *(iterPic);
-      }
-      assert (pcPic->getPOC() == (Int)uiPOCCurr);
-      
-      while(1)
-      {
-        iterPic++;
-        if (iterPic == rcListPic.end())
-          break;
-        
-        pcPic = *(iterPic);
-        if( ( !pcPic->getReconMark()                        ) ||
-          ( bDRBFlag  != pcPic->getSlice(0)->getDRBFlag()  ) ||
-          ( eERBIndex != pcPic->getSlice(0)->getERBIndex() ) )
-          continue;
-        
-      if( !pcPic->getSlice(0)->isReferenced() )
-          continue;
-      
-        if ( pcPic->getTLayer() > uiTLayer )
-          continue;
-
-        uiCount++;
-        if (uiCount == uiNthRefPic)
-        {
-          pcRefPic = pcPic;
-          return  pcRefPic;
-        }
-      }
-    }
   }
   else
   {
@@ -1364,7 +1325,6 @@ TComSPS::TComSPS()
 #endif    
 , m_bUseALF                   (false)
 , m_bUseDQP                   (false)
-, m_bUseLDC                   (false)
 , m_bUsePAD                   (false)
 , m_bUseMRG                   (false)
 , m_bUseLMChroma              (false)

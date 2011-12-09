@@ -188,7 +188,6 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
   ("NumOfReference,r",       m_iNumOfReference,     1, "Number of reference (P)")
   ("NumOfReferenceB_L0,-rb0",m_iNumOfReferenceB_L0, 1, "Number of reference (B_L0)")
   ("NumOfReferenceB_L1,-rb1",m_iNumOfReferenceB_L1, 1, "Number of reference (B_L1)")
-  ("LowDelayCoding",         m_bUseLDC,             false, "low-delay mode")
   ("GPB", m_bUseGPB, false, "generalized B instead of P in low-delay mode")
 #endif
   ("ListCombination, -lc", m_bUseLComb, true, "combined reference list for uni-prediction in B-slices")
@@ -497,10 +496,6 @@ Void TAppEncCfg::xCheckParameter()
 
 #if !DISABLE_CAVLC
   xConfirmPara( m_iSymbolMode < 0 || m_iSymbolMode > 1,                                     "SymbolMode must be equal to 0 or 1" );
-#endif
-  
-#if !G1002_RPS
-  xConfirmPara( m_bUseLComb==false && m_bUseLDC==false,         "LComb can only be 0 if LowDelayCoding is 1" );
 #endif
   
   // max CU width and height should be power of 2
@@ -872,7 +867,6 @@ Void TAppEncCfg::xPrintParameter()
   printf("ASR:%d ", m_bUseASR             );
   printf("PAD:%d ", m_bUsePAD             );
 #if !G1002_RPS
-  printf("LDC:%d ", m_bUseLDC             );
   printf("NRF:%d ", m_bUseNRF             );
   printf("BQP:%d ", m_bUseBQP             );
   printf("GPB:%d ", m_bUseGPB             );

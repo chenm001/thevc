@@ -175,9 +175,6 @@ protected:
   Bool      m_bUseLComb;
   Bool      m_bLCMod;
   Bool      m_bUseRDOQ;
-#if !G1002_RPS
-  Bool      m_bUseLDC;
-#endif
   Bool      m_bUsePAD;
 #if !G1002_RPS
   Bool      m_bUseNRF;
@@ -367,9 +364,6 @@ public:
   Void      setUseLComb                     ( Bool  b )     { m_bUseLComb   = b; }
   Void      setLCMod                        ( Bool  b )     { m_bLCMod   = b;    }
   Void      setUseRDOQ                      ( Bool  b )     { m_bUseRDOQ    = b; }
-#if !G1002_RPS
-  Void      setUseLDC                       ( Bool  b )     { m_bUseLDC     = b; }
-#endif
   Void      setUsePAD                       ( Bool  b )     { m_bUsePAD     = b; }
 #if !G1002_RPS
   Void      setUseNRF                       ( Bool  b )     { m_bUseNRF     = b; }
@@ -411,9 +405,6 @@ public:
   Bool      getUseLComb                     ()      { return m_bUseLComb;   }
   Bool      getLCMod                        ()      { return m_bLCMod; }
   Bool      getUseRDOQ                      ()      { return m_bUseRDOQ;    }
-#if !G1002_RPS
-  Bool      getUseLDC                       ()      { return m_bUseLDC;     }
-#endif
   Bool      getUsePAD                       ()      { return m_bUsePAD;     }
 #if !G1002_RPS
   Bool      getUseNRF                       ()      { return m_bUseNRF;     }

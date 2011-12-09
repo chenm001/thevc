@@ -284,7 +284,7 @@ Void TEncSlice::initEncSlice( TComPic* pcPic, Int iPOCLast, UInt uiPOCCurr, Int 
   {
     if ( ( iPOCLast != 0 ) && ( ( uiPOCCurr % m_pcCfg->getIntraPeriod() ) != 0 ) && ( m_pcGOPEncoder->getGOPSize() != 0 ) ) // P or B-slice
     {
-      if ( m_pcCfg->getUseLDC() && !m_pcCfg->getUseBQP() )
+      if ( !m_pcCfg->getUseBQP() )
       {
         if ( iDepth == 0 ) dQP += 1.0;
         else
@@ -449,10 +449,7 @@ Void TEncSlice::initEncSlice( TComPic* pcPic, Int iPOCLast, UInt uiPOCCurr, Int 
 #if HB_LAMBDA_FOR_LDC
   // restore original slice type
 #if !G1002_RPS
-  if ( m_pcCfg->getUseLDC() )
-  {
-    eSliceType = P_SLICE;
-  }
+  eSliceType = P_SLICE;
 #endif
   eSliceType = (iPOCLast == 0 || uiPOCCurr % m_pcCfg->getIntraPeriod() == 0 || m_pcGOPEncoder->getGOPSize() == 0) ? I_SLICE : eSliceType;
   

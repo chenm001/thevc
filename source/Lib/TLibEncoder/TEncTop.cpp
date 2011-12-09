@@ -573,9 +573,6 @@ Void TEncTop::xInitSPS()
 #else
   m_cSPS.setUseDQP        ( m_iMaxDeltaQP != 0  );
 #endif
-#if !G1002_RPS
-  m_cSPS.setUseLDC        ( m_bUseLDC           );
-#endif
   m_cSPS.setUsePAD        ( m_bUsePAD           );
   
   m_cSPS.setUseMRG        ( m_bUseMRG           ); // SOPH:
