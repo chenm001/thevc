@@ -759,7 +759,13 @@ Void TComLoopFilter::xEdgeFilterLuma( TComDataCU* pcCU, UInt uiAbsZorderIdx, UIn
 #endif
 
   Int  iStride = pcPicYuvRec->getStride();
+#if DBF_DQP
+  Int iQP = 0;
+  Int iQP_P = 0;
+  Int iQP_Q = 0;
+#else
   Int  iQP = pcCU->getQP( uiAbsZorderIdx );
+#endif
   if(pcCU->getIPCMFlag( uiAbsZorderIdx )) 
   {
     iQP = 0; 
@@ -769,16 +775,26 @@ Void TComLoopFilter::xEdgeFilterLuma( TComDataCU* pcCU, UInt uiAbsZorderIdx, UIn
   UInt  uiPelsInPart = g_uiMaxCUWidth >> g_uiMaxCUDepth;
   UInt  PartIdxIncr = DEBLOCK_SMALLEST_BLOCK / uiPelsInPart ? DEBLOCK_SMALLEST_BLOCK / uiPelsInPart : 1;
   UInt  uiBlocksInPart = uiPelsInPart / DEBLOCK_SMALLEST_BLOCK ? uiPelsInPart / DEBLOCK_SMALLEST_BLOCK : 1;
+#if DBF_DQP
+  UInt  uiBsAbsIdx = 0, uiBs = 0;
+#else
   UInt  uiBsAbsIdx, uiBs;
+#endif
   Int   iOffset, iSrcStep;
 
 #if E192_SPS_PCM_FILTER_DISABLE_SYNTAX 
   Bool  bPCMFilter = (pcCU->getSlice()->getSPS()->getPCMFilterDisableFlag() && ((1<<pcCU->getSlice()->getSPS()->getPCMLog2MinSize()) <= g_uiMaxCUWidth))? true : false;
   Bool  bPartPNoFilter = false;
   Bool  bPartQNoFilter = false; 
+#if DBF_DQP
+  UInt  uiPartPIdx = 0;
+  UInt  uiPartQIdx = 0;
+  TComDataCU* pcCUP = pcCU; 
+#else
   UInt  uiPartPIdx;
   UInt  uiPartQIdx;
   TComDataCU* pcCUP; 
+#endif
   TComDataCU* pcCUQ = pcCU;
 #endif
 
@@ -824,6 +840,21 @@ Void TComLoopFilter::xEdgeFilterLuma( TComDataCU* pcCU, UInt uiAbsZorderIdx, UIn
 #if DEBLK_CLEANUP_G175_G620_G638
     if ( uiBs )
     {
+#endif
+#if DBF_DQP
+      iQP_Q = pcCU->getQP( uiBsAbsIdx );
+      uiPartQIdx = uiBsAbsIdx;
+      // Derive neighboring PU index
+      if (iDir == EDGE_VER)
+      {
+        pcCUP = pcCUQ->getPULeft (uiPartPIdx, uiPartQIdx);
+      }
+      else  // (iDir == EDGE_HOR)
+      {
+        pcCUP = pcCUQ->getPUAbove(uiPartPIdx, uiPartQIdx);
+      }
+      iQP_P = pcCUP->getQP(uiPartPIdx);
+      iQP = (iQP_P + iQP_Q + 1) >> 1;
 #endif
     Int iBitdepthScale = (1<<(g_uiBitIncrement+g_uiBitDepth-8));
     
@@ -899,6 +930,7 @@ Void TComLoopFilter::xEdgeFilterLuma( TComDataCU* pcCU, UInt uiAbsZorderIdx, UIn
 #if E192_SPS_PCM_FILTER_DISABLE_SYNTAX 
         if (bPCMFilter)
         {
+#if !DBF_DQP
           // Derive current PU index
           uiPartQIdx = xCalcBsIdx(pcCUQ, uiAbsZorderIdx, iDir, iEdge, (iIdx+(iBlkIdx*DEBLOCK_SMALLEST_BLOCK/uiPelsInPart)));
 
@@ -911,7 +943,7 @@ Void TComLoopFilter::xEdgeFilterLuma( TComDataCU* pcCU, UInt uiAbsZorderIdx, UIn
           {
             pcCUP = pcCUQ->getPUAbove(uiPartPIdx, uiPartQIdx);
           }
-
+#endif
           // Check if each of PUs is I_PCM
           bPartPNoFilter = (pcCUP->getIPCMFlag(uiPartPIdx));
           bPartQNoFilter = (pcCUQ->getIPCMFlag(uiPartQIdx));

@@ -41,6 +41,8 @@
 //! \ingroup TLibCommon
 //! \{
 
+#define DBF_DQP 1    ///< average QP for deblocking filter parameter lookup
+
 #define CABAC_RICE_FIX            1 ///< G495: fixing an entry in g_auiGoRicePrefixLen table
 #define BYPASS_FOR_LAST_COEFF_MOD 1 ///< grouping of bypass bins for last_significant_coeff_x/y, MSB first
 #define DISABLE_CAVLC             1 ///< disable second entropy coder
