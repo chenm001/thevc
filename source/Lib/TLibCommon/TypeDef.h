@@ -200,6 +200,9 @@
 #define DEBLK_CLEANUP_G175_G620_G638    1 // Clean-up of deblocking filter description
 #define DEBLK_CLEANUP_CHROMA_BS         1 // Clean-up of chroma Bs (not used in HEVC deblocking)
 
+#define DEBLK_G590                      1 // Self-contained deblocking of 8x8 blocks
+
+
 #define MATRIX_MULT                             0   // Brute force matrix multiplication instead of partial butterfly
 
 #define REG_DCT 65535
