@@ -73,8 +73,6 @@ protected:
   UInt          m_uiCoeffCost;
   Bool          m_bRunLengthCoding;
   UInt          m_uiRun;
-  Bool          m_bAlfCtrl;
-  UInt          m_uiMaxAlfCtrlDepth;
   UInt          m_uiLPTableE4[3][32];
   UInt          m_uiLPTableD4[3][32];
   UInt          m_uiLastPosVlcIndex[10];
@@ -156,10 +154,6 @@ public:
   UInt* GetLastPosVlcIndexTable();
   Void  setBitstream          ( TComBitIf* p )  { m_pcBitIf = p;  }
   Void  setSlice              ( TComSlice* p )  { m_pcSlice = p;  }
-  Bool getAlfCtrl() {return m_bAlfCtrl;}
-  UInt getMaxAlfCtrlDepth() {return m_uiMaxAlfCtrlDepth;}
-  Void setAlfCtrl(Bool bAlfCtrl) {m_bAlfCtrl = bAlfCtrl;}
-  Void setMaxAlfCtrlDepth(UInt uiMaxAlfCtrlDepth) {m_uiMaxAlfCtrlDepth = uiMaxAlfCtrlDepth;}
   Void  resetBits             ()                { m_pcBitIf->resetBits(); }
   Void  resetCoeffCost        ()                { m_uiCoeffCost = 0;  }
   UInt  getNumberOfWrittenBits()                { return  m_pcBitIf->getNumberOfWrittenBits();  }
@@ -181,10 +175,6 @@ public:
 #endif
   
   Void codeMVPIdx ( TComDataCU* pcCU, UInt uiAbsPartIdx, RefPicList eRefList );
-  Void codeAlfFlag       ( UInt uiCode );
-  Void codeAlfUvlc       ( UInt uiCode );
-  Void codeAlfSvlc       ( Int   iCode );
-  Void codeAlfCtrlDepth();
 #if SAO
   Void codeSaoFlag       ( UInt uiCode );
   Void codeSaoUvlc       ( UInt uiCode );
@@ -193,12 +183,7 @@ public:
   Void codeSkipFlag      ( TComDataCU* pcCU, UInt uiAbsPartIdx );
   Void codeMergeFlag     ( TComDataCU* pcCU, UInt uiAbsPartIdx );
   Void codeMergeIndex    ( TComDataCU* pcCU, UInt uiAbsPartIdx );
-  Void codeAlfCtrlFlag   ( TComDataCU* pcCU, UInt uiAbsPartIdx );
 
-  /// Code number of ALF CU control flags
-  Void codeAlfFlagNum    ( UInt uiCode, UInt minValue, Int iDepth);
-
-  Void codeAlfCtrlFlag   ( UInt uiSymbol );
   Void codeInterModeFlag( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth, UInt uiEncMode );
   Void codeSplitFlag     ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
   

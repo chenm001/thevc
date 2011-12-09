@@ -62,7 +62,7 @@ TComSlice::TComSlice()
 , m_pcPPS                         ( NULL )
 , m_pcPic                         ( NULL )
 , m_uiColDir                      ( 0 )
-#if ALF_CHROMA_LAMBDA || SAO_CHROMA_LAMBDA
+#if SAO_CHROMA_LAMBDA
 , m_dLambdaLuma( 0.0 )
 , m_dLambdaChroma( 0.0 )
 #else
@@ -847,7 +847,7 @@ Void TComSlice::copySliceInfo(TComSlice *pSrc)
 #endif
 
   m_uiColDir             = pSrc->m_uiColDir;
-#if ALF_CHROMA_LAMBDA || SAO_CHROMA_LAMBDA 
+#if SAO_CHROMA_LAMBDA 
   m_dLambdaLuma          = pSrc->m_dLambdaLuma;
   m_dLambdaChroma        = pSrc->m_dLambdaChroma;
 #else
@@ -1316,7 +1316,6 @@ TComSPS::TComSPS()
 #if DISABLE_4x4_INTER
 , m_bDisInter4x4              (  1)
 #endif    
-, m_bUseALF                   (false)
 , m_bUseDQP                   (false)
 , m_bUsePAD                   (false)
 , m_bUseMRG                   (false)
@@ -1600,10 +1599,8 @@ TComRefPicListModification::~TComRefPicListModification()
 TComAPS::TComAPS()
 {
   m_apsID = 0;
-  m_bAlfEnabled = false;
   m_bSaoEnabled = false;
   m_pSaoParam = NULL;
-  m_pAlfParam = NULL;
   m_bCABACForAPS = false;
   m_CABACinitIDC = -1;
   m_CABACinitQP = -1;
@@ -1617,10 +1614,8 @@ TComAPS::~TComAPS()
 TComAPS& TComAPS::operator= (const TComAPS& src)
 {
   m_apsID       = src.m_apsID;
-  m_bAlfEnabled = src.m_bAlfEnabled;
   m_bSaoEnabled = src.m_bSaoEnabled;
   m_pSaoParam   = src.m_pSaoParam; 
-  m_pAlfParam   = src.m_pAlfParam; 
   m_bCABACForAPS= src.m_bCABACForAPS;
   m_CABACinitIDC= src.m_CABACinitIDC;
   m_CABACinitQP = src.m_CABACinitQP;
@@ -1639,19 +1634,6 @@ Void TComAPS::destroySaoParam()
   {
     delete m_pSaoParam;
     m_pSaoParam = NULL;
-  }
-}
-
-Void TComAPS::createAlfParam()
-{
-  m_pAlfParam = new ALFParam;
-}
-Void TComAPS::destroyAlfParam()
-{
-  if(m_pAlfParam != NULL)
-  {
-    delete m_pAlfParam;
-    m_pAlfParam = NULL;
   }
 }
 #endif

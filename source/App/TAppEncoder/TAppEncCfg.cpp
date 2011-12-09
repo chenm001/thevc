@@ -245,12 +245,9 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
 
   ("LMChroma", m_bUseLMChroma, true, "intra chroma prediction based on recontructed luma")
 
-  ("ALF", m_bUseALF, true, "Adaptive Loop Filter")
 #if SAO
   ("SAO", m_bUseSAO, true, "SAO")   
 #endif
-
-  ("ALFEncodePassReduction", m_iALFEncodePassReduction, 0, "0:Original 16-pass, 1: 1-pass, 2: 2-pass encoding")
 
 #if G215_ALF_NUM_FILTER
   ("ALFMaxNumFilter,-ALFMNF", m_iALFMaxNumberFilters, 16, "16: No Constrained, 1-15: Constrained max number of filter")
@@ -435,7 +432,6 @@ Void TAppEncCfg::xCheckParameter()
   xConfirmPara( (m_iIntraPeriod > 0 && m_iIntraPeriod < m_iGOPSize) || m_iIntraPeriod == 0, "Intra period must be more than GOP size, or -1 , not 0" );
   xConfirmPara( m_iDecodingRefreshType < 0 || m_iDecodingRefreshType > 2,                   "Decoding Refresh Type must be equal to 0, 1 or 2" );
   xConfirmPara( m_iQP < 0 || m_iQP > 51,                                                    "QP exceeds supported range (0 to 51)" );
-  xConfirmPara( m_iALFEncodePassReduction < 0 || m_iALFEncodePassReduction > 2,             "ALFEncodePassReduction must be equal to 0, 1 or 2");
 
 #if G215_ALF_NUM_FILTER
   xConfirmPara( m_iALFMaxNumberFilters < 1 || m_iALFMaxNumberFilters > 16,                  "ALFMaxNumFilter exceeds supported range (1 to 16)");  
@@ -817,7 +813,6 @@ Void TAppEncCfg::xPrintParameter()
   printf("\n");
   
   printf("TOOL CFG: ");
-  printf("ALF:%d ", m_bUseALF             );
   printf("HAD:%d ", m_bUseHADME           );
   printf("SRD:%d ", m_bUseSBACRD          );
   printf("RDQ:%d ", m_bUseRDOQ            );
@@ -860,8 +855,7 @@ Void TAppEncCfg::xPrintParameter()
 
 Void TAppEncCfg::xPrintUsage()
 {
-  printf( "          <name> = ALF - adaptive loop filter\n");
-  printf( "                   IBD - bit-depth increasement\n");
+  printf( "          <name> = IBD - bit-depth increasement\n");
   printf( "                   GPB - generalized B instead of P in low-delay mode\n");
   printf( "                   HAD - hadamard ME for fractional-pel\n");
   printf( "                   SRD - SBAC based RD estimation\n");

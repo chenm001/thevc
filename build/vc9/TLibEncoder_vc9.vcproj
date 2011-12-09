@@ -290,10 +290,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\source\Lib\TLibEncoder\TEncAdaptiveLoopFilter.cpp"
-				>
-			</File>
-			<File
 				RelativePath="..\..\source\Lib\TLibEncoder\TEncAnalyze.cpp"
 				>
 			</File>
@@ -360,10 +356,6 @@
 			</File>
 			<File
 				RelativePath="..\..\source\Lib\TLibEncoder\SEIwrite.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\source\Lib\TLibEncoder\TEncAdaptiveLoopFilter.h"
 				>
 			</File>
 			<File

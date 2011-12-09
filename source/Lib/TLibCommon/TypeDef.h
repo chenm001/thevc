@@ -79,7 +79,6 @@
 
 #define WEIGHTED_CHROMA_DISTORTION  1   ///< F386: weighting of chroma for RDO
 #define RDOQ_CHROMA_LAMBDA          1   ///< F386: weighting of chroma for RDOQ
-#define ALF_CHROMA_LAMBDA           1   ///< F386: weighting of chroma for ALF
 #define SAO_CHROMA_LAMBDA           1   ///< F386: weighting of chroma for SAO
 
 #define MRG_TMVP_REFIDX_G163 1 ///< G163 : use refIdx of left PU. if not available, use 0.
@@ -410,39 +409,6 @@ struct _SaoParam
 };
 
 #endif
-
-struct _AlfParam
-{
-  Int alf_flag;                           ///< indicates use of ALF
-#if !F747_APS
-  Int cu_control_flag;                    ///< coding unit based control flag
-#endif
-  Int chroma_idc;                         ///< indicates use of ALF for chroma
-  Int num_coeff;                          ///< number of filter coefficients
-  Int filter_shape;
-  Int filter_shape_chroma;
-  Int num_coeff_chroma;                   ///< number of filter coefficients (chroma)
-  Int *coeff_chroma;                      ///< filter coefficient array (chroma)
-  Int *filterPattern;
-  Int startSecondFilter;
-  Int filters_per_group;
-  Int predMethod;
-#if G665_ALF_COEFF_PRED
-  Int *nbSPred;
-#endif
-  Int **coeffmulti;
-  Int minKStart;
-  Int maxScanVal;
-  Int kMinTab[42];
-#if !F747_APS
-  UInt num_alf_cu_flag;
-  UInt num_cus_in_frame;
-  UInt alf_max_depth;
-  UInt *alf_cu_flag;
-#endif
-
-  Int alf_pcr_region_flag; 
-};
 
 /// parameters for deblocking filter
 typedef struct _LFCUParam

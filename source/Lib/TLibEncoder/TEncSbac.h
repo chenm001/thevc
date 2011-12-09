@@ -74,11 +74,6 @@ public:
   Void  setBitstream           ( TComBitIf* p )  { m_pcBitIf = p; m_pcBinIf->init( p ); }
   Void  setSlice               ( TComSlice* p )  { m_pcSlice = p;                       }
   
-  Bool  getAlfCtrl             ()                         { return m_bAlfCtrl;          }
-  UInt  getMaxAlfCtrlDepth     ()                         { return m_uiMaxAlfCtrlDepth; }
-  Void  setAlfCtrl             ( Bool bAlfCtrl          ) { m_bAlfCtrl          = bAlfCtrl;          }
-  Void  setMaxAlfCtrlDepth     ( UInt uiMaxAlfCtrlDepth ) { m_uiMaxAlfCtrlDepth = uiMaxAlfCtrlDepth; }
-  
   // SBAC RD
   Void  resetCoeffCost         ()                { m_uiCoeffCost = 0;  }
   UInt  getCoeffCost           ()                { return  m_uiCoeffCost;  }
@@ -107,15 +102,6 @@ public:
   Void  encodeStart             ();
 #endif
   
-  Void  codeAlfFlag       ( UInt uiCode );
-  Void  codeAlfUvlc       ( UInt uiCode );
-  Void  codeAlfSvlc       ( Int  uiCode );
-  Void  codeAlfCtrlDepth  ();
-
-  /// Code number of ALF CU control flags
-  Void codeAlfFlagNum        ( UInt uiCode, UInt minValue, Int iDepth);
-
-  Void codeAlfCtrlFlag       ( UInt uiSymbol );
 #if SAO
   Void  codeSaoFlag       ( UInt uiCode );
   Void  codeSaoUvlc       ( UInt uiCode );
@@ -143,18 +129,12 @@ protected:
   TComBitIf*    m_pcBitIf;
   TComSlice*    m_pcSlice;
   TEncBinIf*    m_pcBinIf;
-  Bool          m_bAlfCtrl;
   
   //SBAC RD
   UInt          m_uiCoeffCost;
   
-  // Adaptive loop filter
-  UInt          m_uiMaxAlfCtrlDepth;
-  //--Adaptive loop filter
-  
 public:
 
-  Void codeAlfCtrlFlag   ( TComDataCU* pcCU, UInt uiAbsPartIdx );
   Void codeSkipFlag      ( TComDataCU* pcCU, UInt uiAbsPartIdx );
   Void codeMergeFlag     ( TComDataCU* pcCU, UInt uiAbsPartIdx );
   Void codeMergeIndex    ( TComDataCU* pcCU, UInt uiAbsPartIdx );
@@ -225,7 +205,6 @@ private:
   ContextModel3DBuffer m_cCUMergeIdxExtSCModel;
   ContextModel3DBuffer m_cCUPartSizeSCModel;
   ContextModel3DBuffer m_cCUPredModeSCModel;
-  ContextModel3DBuffer m_cCUAlfCtrlFlagSCModel;
   ContextModel3DBuffer m_cCUIntraPredSCModel;
   ContextModel3DBuffer m_cCUChromaPredSCModel;
   ContextModel3DBuffer m_cCUDeltaQpSCModel;
@@ -259,9 +238,6 @@ private:
   
   ContextModel3DBuffer m_cMVPIdxSCModel;
   
-  ContextModel3DBuffer m_cALFFlagSCModel;
-  ContextModel3DBuffer m_cALFUvlcSCModel;
-  ContextModel3DBuffer m_cALFSvlcSCModel;
 #if AMP
   ContextModel3DBuffer m_cCUXPosiSCModel;
   ContextModel3DBuffer m_cCUYPosiSCModel;

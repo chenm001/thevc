@@ -48,8 +48,6 @@ TDecSbac::TDecSbac()
 // new structure here
 : m_pcBitstream               ( 0 )
 , m_pcTDecBinIf               ( NULL )
-, m_bAlfCtrl                  ( false )
-, m_uiMaxAlfCtrlDepth         ( 0 )
 , m_numContextModels          ( 0 )
 , m_cCUSplitFlagSCModel       ( 1,             1,               NUM_SPLIT_FLAG_CTX            , m_contextModels + m_numContextModels, m_numContextModels )
 , m_cCUSkipFlagSCModel        ( 1,             1,               NUM_SKIP_FLAG_CTX             , m_contextModels + m_numContextModels, m_numContextModels)
@@ -57,7 +55,6 @@ TDecSbac::TDecSbac()
 , m_cCUMergeIdxExtSCModel     ( 1,             1,               NUM_MERGE_IDX_EXT_CTX         , m_contextModels + m_numContextModels, m_numContextModels)
 , m_cCUPartSizeSCModel        ( 1,             1,               NUM_PART_SIZE_CTX             , m_contextModels + m_numContextModels, m_numContextModels)
 , m_cCUPredModeSCModel        ( 1,             1,               NUM_PRED_MODE_CTX             , m_contextModels + m_numContextModels, m_numContextModels)
-, m_cCUAlfCtrlFlagSCModel     ( 1,             1,               NUM_ALF_CTRL_FLAG_CTX         , m_contextModels + m_numContextModels, m_numContextModels)
 , m_cCUIntraPredSCModel       ( 1,             1,               NUM_ADI_CTX                   , m_contextModels + m_numContextModels, m_numContextModels)
 , m_cCUChromaPredSCModel      ( 1,             1,               NUM_CHROMA_PRED_CTX           , m_contextModels + m_numContextModels, m_numContextModels)
 , m_cCUDeltaQpSCModel         ( 1,             1,               NUM_DELTA_QP_CTX              , m_contextModels + m_numContextModels, m_numContextModels)
@@ -92,9 +89,6 @@ TDecSbac::TDecSbac()
 , m_cCUAbsSCModel             ( 1,             2,               NUM_ABS_FLAG_CTX              , m_contextModels + m_numContextModels, m_numContextModels)
 #endif
 , m_cMVPIdxSCModel            ( 1,             1,               NUM_MVP_IDX_CTX               , m_contextModels + m_numContextModels, m_numContextModels)
-, m_cALFFlagSCModel           ( 1,             1,               NUM_ALF_FLAG_CTX              , m_contextModels + m_numContextModels, m_numContextModels)
-, m_cALFUvlcSCModel           ( 1,             1,               NUM_ALF_UVLC_CTX              , m_contextModels + m_numContextModels, m_numContextModels)
-, m_cALFSvlcSCModel           ( 1,             1,               NUM_ALF_SVLC_CTX              , m_contextModels + m_numContextModels, m_numContextModels)
 #if AMP
 , m_cCUXPosiSCModel           ( 1,             1,               NUM_CU_X_POS_CTX              , m_contextModels + m_numContextModels, m_numContextModels)
 , m_cCUYPosiSCModel           ( 1,             1,               NUM_CU_Y_POS_CTX              , m_contextModels + m_numContextModels, m_numContextModels)
@@ -132,7 +126,6 @@ Void TDecSbac::resetEntropy          (TComSlice* pcSlice)
   m_cCUSkipFlagSCModel.initBuffer        ( eSliceType, iQp, (Short*)INIT_SKIP_FLAG );
   m_cCUMergeFlagExtSCModel.initBuffer    ( eSliceType, iQp, (Short*)INIT_MERGE_FLAG_EXT );
   m_cCUMergeIdxExtSCModel.initBuffer     ( eSliceType, iQp, (Short*)INIT_MERGE_IDX_EXT );
-  m_cCUAlfCtrlFlagSCModel.initBuffer     ( eSliceType, iQp, (Short*)INIT_ALF_CTRL_FLAG );
   m_cCUPartSizeSCModel.initBuffer        ( eSliceType, iQp, (Short*)INIT_PART_SIZE );
 #if AMP
   m_cCUXPosiSCModel.initBuffer           ( eSliceType, iQp, (Short*)INIT_CU_X_POS );
@@ -168,9 +161,6 @@ Void TDecSbac::resetEntropy          (TComSlice* pcSlice)
   m_cCUAbsSCModel.initBuffer             ( eSliceType, iQp, (Short*)INIT_ABS_FLAG );
 #endif
   m_cMVPIdxSCModel.initBuffer            ( eSliceType, iQp, (Short*)INIT_MVP_IDX );
-  m_cALFFlagSCModel.initBuffer           ( eSliceType, iQp, (Short*)INIT_ALF_FLAG );
-  m_cALFUvlcSCModel.initBuffer           ( eSliceType, iQp, (Short*)INIT_ALF_UVLC );
-  m_cALFSvlcSCModel.initBuffer           ( eSliceType, iQp, (Short*)INIT_ALF_SVLC );
 #if SAO
   m_cSaoFlagSCModel.initBuffer           ( eSliceType, iQp, (Short*)INIT_SAO_FLAG );
   m_cSaoUvlcSCModel.initBuffer           ( eSliceType, iQp, (Short*)INIT_SAO_UVLC );
@@ -213,7 +203,6 @@ Void TDecSbac::updateContextTables( SliceType eSliceType, Int iQp )
   m_cCUSkipFlagSCModel.initBuffer        ( eSliceType, iQp, (Short*)INIT_SKIP_FLAG );
   m_cCUMergeFlagExtSCModel.initBuffer    ( eSliceType, iQp, (Short*)INIT_MERGE_FLAG_EXT );
   m_cCUMergeIdxExtSCModel.initBuffer     ( eSliceType, iQp, (Short*)INIT_MERGE_IDX_EXT );
-  m_cCUAlfCtrlFlagSCModel.initBuffer     ( eSliceType, iQp, (Short*)INIT_ALF_CTRL_FLAG );
   m_cCUPartSizeSCModel.initBuffer        ( eSliceType, iQp, (Short*)INIT_PART_SIZE );
 #if AMP
   m_cCUXPosiSCModel.initBuffer           ( eSliceType, iQp, (Short*)INIT_CU_X_POS );
@@ -249,9 +238,6 @@ Void TDecSbac::updateContextTables( SliceType eSliceType, Int iQp )
   m_cCUAbsSCModel.initBuffer             ( eSliceType, iQp, (Short*)INIT_ABS_FLAG );
 #endif
   m_cMVPIdxSCModel.initBuffer            ( eSliceType, iQp, (Short*)INIT_MVP_IDX );
-  m_cALFFlagSCModel.initBuffer           ( eSliceType, iQp, (Short*)INIT_ALF_FLAG );
-  m_cALFUvlcSCModel.initBuffer           ( eSliceType, iQp, (Short*)INIT_ALF_UVLC );
-  m_cALFSvlcSCModel.initBuffer           ( eSliceType, iQp, (Short*)INIT_ALF_SVLC );
 #if SAO
   m_cSaoFlagSCModel.initBuffer           ( eSliceType, iQp, (Short*)INIT_SAO_FLAG );
   m_cSaoUvlcSCModel.initBuffer           ( eSliceType, iQp, (Short*)INIT_SAO_UVLC );
@@ -404,38 +390,6 @@ Void TDecSbac::xReadGoRiceExGolomb( UInt &ruiSymbol, UInt &ruiGoRiceParam )
   return;
 }
 
-
-Void TDecSbac::parseAlfCtrlDepth( UInt& ruiAlfCtrlDepth )
-{
-  UInt uiSymbol;
-  xReadUnaryMaxSymbol( uiSymbol, m_cALFUvlcSCModel.get( 0 ), 1, g_uiMaxCUDepth - 1 );
-  ruiAlfCtrlDepth = uiSymbol;
-}
-
-Void TDecSbac::parseAlfCtrlFlag( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
-{
-  if( !m_bAlfCtrl )
-  {
-    return;
-  }
-  
-  if( uiDepth > m_uiMaxAlfCtrlDepth && !pcCU->isFirstAbsZorderIdxInDepth( uiAbsPartIdx, m_uiMaxAlfCtrlDepth ) )
-  {
-    return;
-  }
-  
-  UInt uiSymbol;
-  m_pcTDecBinIf->decodeBin( uiSymbol, *m_cCUAlfCtrlFlagSCModel.get( 0 ) );
-  
-  if( uiDepth > m_uiMaxAlfCtrlDepth )
-  {
-    pcCU->setAlfCtrlFlagSubParts( uiSymbol, uiAbsPartIdx, m_uiMaxAlfCtrlDepth );
-  }
-  else
-  {
-    pcCU->setAlfCtrlFlagSubParts( uiSymbol, uiAbsPartIdx, uiDepth );
-  }
-}
 
 /** parse skip flag
  * \param pcCU
@@ -1877,106 +1831,6 @@ Void TDecSbac::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartId
   return;
 }
 
-Void TDecSbac::parseAlfFlag (UInt& ruiVal)
-{
-  UInt uiSymbol;
-  m_pcTDecBinIf->decodeBin( uiSymbol, m_cALFFlagSCModel.get( 0, 0, 0 ) );
-  
-  ruiVal = uiSymbol;
-}
-
-Void TDecSbac::parseAlfFlagNum( UInt& ruiVal, UInt minValue, UInt depth )
-{
-  UInt uiLength = 0;
-  UInt maxValue = (minValue << (depth*2));
-  UInt temp = maxValue - minValue;
-  for(UInt i=0; i<32; i++)
-  {
-    if(temp&0x1)
-    {
-      uiLength = i+1;
-    }
-    temp = (temp >> 1);
-  }
-  ruiVal = 0;
-  UInt uiBit;
-  if(uiLength)
-  {
-    while( uiLength-- )
-    {
-      m_pcTDecBinIf->decodeBinEP( uiBit );
-      ruiVal += uiBit << uiLength;
-    }
-  }
-  else
-  {
-    ruiVal = 0;
-  }
-  ruiVal += minValue;
-}
-
-Void TDecSbac::parseAlfCtrlFlag( UInt &ruiAlfCtrlFlag )
-{
-  UInt uiSymbol;
-  m_pcTDecBinIf->decodeBin( uiSymbol, m_cCUAlfCtrlFlagSCModel.get( 0, 0, 0 ) );
-  ruiAlfCtrlFlag = uiSymbol;
-}
-
-Void TDecSbac::parseAlfUvlc (UInt& ruiVal)
-{
-  UInt uiCode;
-  Int  i;
-  
-  m_pcTDecBinIf->decodeBin( uiCode, m_cALFUvlcSCModel.get( 0, 0, 0 ) );
-  if ( uiCode == 0 )
-  {
-    ruiVal = 0;
-    return;
-  }
-  
-  i=1;
-  while (1)
-  {
-    m_pcTDecBinIf->decodeBin( uiCode, m_cALFUvlcSCModel.get( 0, 0, 1 ) );
-    if ( uiCode == 0 ) break;
-    i++;
-  }
-  
-  ruiVal = i;
-}
-
-Void TDecSbac::parseAlfSvlc (Int&  riVal)
-{
-  UInt uiCode;
-  Int  iSign;
-  Int  i;
-  
-  m_pcTDecBinIf->decodeBin( uiCode, m_cALFSvlcSCModel.get( 0, 0, 0 ) );
-  
-  if ( uiCode == 0 )
-  {
-    riVal = 0;
-    return;
-  }
-  
-  // read sign
-  m_pcTDecBinIf->decodeBin( uiCode, m_cALFSvlcSCModel.get( 0, 0, 1 ) );
-  
-  if ( uiCode == 0 ) iSign =  1;
-  else               iSign = -1;
-  
-  // read magnitude
-  i=1;
-  while (1)
-  {
-    m_pcTDecBinIf->decodeBin( uiCode, m_cALFSvlcSCModel.get( 0, 0, 2 ) );
-    if ( uiCode == 0 ) break;
-    i++;
-  }
-  
-  riVal = i*iSign;
-}
-
 #if SAO
 Void TDecSbac::parseSaoFlag (UInt& ruiVal)
 {
@@ -2054,7 +1908,6 @@ Void TDecSbac::xCopyContextsFrom( TDecSbac* pSrc )
   m_cCUSkipFlagSCModel        .copyFrom( &pSrc->m_cCUSkipFlagSCModel        );
   m_cCUMergeFlagExtSCModel    .copyFrom( &pSrc->m_cCUMergeFlagExtSCModel    );
   m_cCUMergeIdxExtSCModel     .copyFrom( &pSrc->m_cCUMergeIdxExtSCModel     );
-  m_cCUAlfCtrlFlagSCModel     .copyFrom( &pSrc->m_cCUAlfCtrlFlagSCModel     );
   m_cCUPartSizeSCModel        .copyFrom( &pSrc->m_cCUPartSizeSCModel        );
 #if AMP
   m_cCUXPosiSCModel           .copyFrom( &pSrc->m_cCUXPosiSCModel           );
@@ -2090,9 +1943,6 @@ Void TDecSbac::xCopyContextsFrom( TDecSbac* pSrc )
   m_cCUAbsSCModel             .copyFrom( &pSrc->m_cCUAbsSCModel             );
 #endif
   m_cMVPIdxSCModel            .copyFrom( &pSrc->m_cMVPIdxSCModel            );
-  m_cALFFlagSCModel           .copyFrom( &pSrc->m_cALFFlagSCModel           );
-  m_cALFUvlcSCModel           .copyFrom( &pSrc->m_cALFUvlcSCModel           );
-  m_cALFSvlcSCModel           .copyFrom( &pSrc->m_cALFSvlcSCModel           );
 #if SAO
   m_cSaoFlagSCModel            .copyFrom( &pSrc->m_cSaoFlagSCModel            );
   m_cSaoUvlcSCModel            .copyFrom( &pSrc->m_cSaoUvlcSCModel            );

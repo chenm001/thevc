@@ -239,7 +239,6 @@ enum NalUnitType
   NAL_UNIT_INVALID,
 };
 
-typedef _AlfParam    ALFParam;
 #if SAO
 typedef _SaoParam    SAOParam;
 #endif

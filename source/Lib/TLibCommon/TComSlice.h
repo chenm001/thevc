@@ -97,7 +97,6 @@ private:
 #if AMP
   Bool        m_useAMP;
 #endif
-  Bool        m_bUseALF;
   Bool        m_bUseDQP;
   Bool        m_bUsePAD;
   Bool        m_bUseMRG; // SOPH:
@@ -197,13 +196,11 @@ public:
   UInt getMaxTrSize   ()         { return  m_uiMaxTrSize;   }
   
   // Tool list
-  Bool getUseALF      ()         { return m_bUseALF;        }
   Bool getUseDQP      ()         { return m_bUseDQP;        }
   
   Bool getUsePAD      ()         { return m_bUsePAD;        }
   Bool getUseMRG      ()         { return m_bUseMRG;        } // SOPH:
   
-  Void setUseALF      ( Bool b ) { m_bUseALF  = b;          }
   Void setUseDQP      ( Bool b ) { m_bUseDQP   = b;         }
   
   Void setUsePAD      ( Bool b ) { m_bUsePAD   = b;         }
@@ -398,7 +395,6 @@ private:
 
 #if !F747_APS
   Bool        m_bSharedPPSInfoEnabled;  //!< Shared info. in PPS is enabled/disabled
-  ALFParam    m_cSharedAlfParam;        //!< Shared ALF parameters in PPS 
 #endif
 
 #if OL_USE_WPP
@@ -450,8 +446,6 @@ public:
   Void      setSharedPPSInfoEnabled(Bool b) {m_bSharedPPSInfoEnabled = b;   }
   /// get shared PPS info enabled/disabled flag
   Bool      getSharedPPSInfoEnabled()       {return m_bSharedPPSInfoEnabled;}
-  /// get shared ALF parameters in PPS
-  ALFParam* getSharedAlfParam()             {return &m_cSharedAlfParam;     }
 #endif
 
 #if OL_USE_WPP
@@ -478,17 +472,12 @@ public:
   Int       getAPSID      ()          {return m_apsID;           }  //!< get APS ID
   Void      setSaoEnabled (Bool bVal) {m_bSaoEnabled = bVal;     }  //!< set SAO enabled/disabled in APS
   Bool      getSaoEnabled ()          {return m_bSaoEnabled;     }  //!< get SAO enabled/disabled in APS
-  Void      setAlfEnabled (Bool bVal) {m_bAlfEnabled = bVal;     }  //!< set ALF enabled/disabled in APS
-  Bool      getAlfEnabled ()          {return m_bAlfEnabled;     }  //!< get ALF enabled/disabled in APS
 
-  ALFParam* getAlfParam   ()          {return m_pAlfParam;       }  //!< get ALF parameters in APS
   SAOParam* getSaoParam   ()          {return m_pSaoParam;       }  //!< get SAO parameters in APS
 
   Void      createSaoParam();   //!< create SAO parameter object
   Void      destroySaoParam();  //!< destroy SAO parameter object
 
-  Void      createAlfParam();   //!< create ALF parameter object
-  Void      destroyAlfParam();  //!< destroy ALF parameter object
   Void      setCABACForAPS(Bool bVal) {m_bCABACForAPS = bVal;    }  //!< set CABAC enabled/disabled in APS
   Bool      getCABACForAPS()          {return m_bCABACForAPS;    }  //!< get CABAC enabled/disabled in APS
   Void      setCABACinitIDC(Int iVal) {m_CABACinitIDC = iVal;    }  //!< set CABAC initial IDC number for APS coding
@@ -499,9 +488,7 @@ public:
 private:
   Int         m_apsID;        //!< APS ID
   Bool        m_bSaoEnabled;  //!< SAO enabled/disabled in APS (true for enabled)
-  Bool        m_bAlfEnabled;  //!< ALF enabled/disabled in APS (true for enabled)
   SAOParam*   m_pSaoParam;    //!< SAO parameter object pointer 
-  ALFParam*   m_pAlfParam;    //!< ALF parameter object pointer
   Bool        m_bCABACForAPS; //!< CABAC coding enabled/disabled for APS (true for enabling CABAC)
   Int         m_CABACinitIDC; //!< CABAC initial IDC number for APS coding
   Int         m_CABACinitQP;  //!< CABAC initial QP value for APS coding
@@ -576,7 +563,7 @@ private:
 
   UInt        m_uiColDir;  // direction to get colocated CUs
   
-#if ALF_CHROMA_LAMBDA || SAO_CHROMA_LAMBDA
+#if SAO_CHROMA_LAMBDA
   Double      m_dLambdaLuma;
   Double      m_dLambdaChroma;
 #else
@@ -713,7 +700,7 @@ public:
   Bool      isInterB        ()                          { return  m_eSliceType == B_SLICE;  }
   Bool      isInterP        ()                          { return  m_eSliceType == P_SLICE;  }
   
-#if ALF_CHROMA_LAMBDA || SAO_CHROMA_LAMBDA  
+#if SAO_CHROMA_LAMBDA  
   Void      setLambda( Double d, Double e ) { m_dLambdaLuma = d; m_dLambdaChroma = e;}
   Double    getLambdaLuma() { return m_dLambdaLuma;        }
   Double    getLambdaChroma() { return m_dLambdaChroma;        }

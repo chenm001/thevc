@@ -136,9 +136,6 @@ Void TAppEncTop::xInitLibCfg()
   m_cTEncTop.setDeltaQpRD                    ( m_uiDeltaQpRD  );
   m_cTEncTop.setUseASR                       ( m_bUseASR      );
   m_cTEncTop.setUseHADME                     ( m_bUseHADME    );
-  m_cTEncTop.setUseALF                       ( m_bUseALF      );
-  m_cTEncTop.setALFEncodePassReduction       ( m_iALFEncodePassReduction );
-
 #if G215_ALF_NUM_FILTER
   m_cTEncTop.setALFMaxNumberFilters          ( m_iALFMaxNumberFilters ) ;
 #endif

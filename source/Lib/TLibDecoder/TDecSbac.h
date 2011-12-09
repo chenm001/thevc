@@ -88,9 +88,6 @@ public:
 #endif
   Void  setBitstream              ( TComInputBitstream* p  ) { m_pcBitstream = p; m_pcTDecBinIf->init( p ); }
   
-  Void  setAlfCtrl                ( Bool bAlfCtrl          ) { m_bAlfCtrl = bAlfCtrl;                   }
-  Void  setMaxAlfCtrlDepth        ( UInt uiMaxAlfCtrlDepth ) { m_uiMaxAlfCtrlDepth = uiMaxAlfCtrlDepth; }
-  
   Void  parseSPS                  ( TComSPS* pcSPS         ) {}
   Void  parsePPS                  ( TComPPS* pcPPS         ) {}
   void parseSEI(SEImessages&) {}
@@ -104,10 +101,6 @@ public:
   Void  parseTerminatingBit       ( UInt& ruiBit );
   Void  parseMVPIdx               ( Int& riMVPIdx          );
   
-  Void  parseAlfFlag              ( UInt& ruiVal           );
-  Void  parseAlfUvlc              ( UInt& ruiVal           );
-  Void  parseAlfSvlc              ( Int&  riVal            );
-  Void  parseAlfCtrlDepth         ( UInt& ruiAlfCtrlDepth  );
 #if SAO
   Void  parseSaoFlag              ( UInt& ruiVal           );
   Void  parseSaoUvlc              ( UInt& ruiVal           );
@@ -123,14 +116,7 @@ private:
   TComInputBitstream* m_pcBitstream;
   TDecBinIf*        m_pcTDecBinIf;
   
-  Bool m_bAlfCtrl;
-  UInt m_uiMaxAlfCtrlDepth;
-
 public:
-  Void parseAlfCtrlFlag   ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
-  Void parseAlfFlagNum    ( UInt& ruiVal, UInt minValue, UInt depth );
-  Void parseAlfCtrlFlag   ( UInt &ruiAlfCtrlFlag );
-
   Void parseSkipFlag      ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
   Void parseSplitFlag     ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
   Void parseMergeFlag     ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth, UInt uiPUIdx );
@@ -183,7 +169,6 @@ private:
   ContextModel3DBuffer m_cCUMergeIdxExtSCModel;
   ContextModel3DBuffer m_cCUPartSizeSCModel;
   ContextModel3DBuffer m_cCUPredModeSCModel;
-  ContextModel3DBuffer m_cCUAlfCtrlFlagSCModel;
   ContextModel3DBuffer m_cCUIntraPredSCModel;
   ContextModel3DBuffer m_cCUChromaPredSCModel;
   ContextModel3DBuffer m_cCUDeltaQpSCModel;
@@ -216,10 +201,6 @@ private:
 #endif
   
   ContextModel3DBuffer m_cMVPIdxSCModel;
-  
-  ContextModel3DBuffer m_cALFFlagSCModel;
-  ContextModel3DBuffer m_cALFUvlcSCModel;
-  ContextModel3DBuffer m_cALFSvlcSCModel;
 #if AMP
   ContextModel3DBuffer m_cCUXPosiSCModel;
   ContextModel3DBuffer m_cCUYPosiSCModel;

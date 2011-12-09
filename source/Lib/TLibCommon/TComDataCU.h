@@ -129,8 +129,6 @@ private:
   UChar*        m_puhInterDir;        ///< array of inter directions
   Char*         m_apiMVPIdx[2];       ///< array of motion vector predictor candidates
   Char*         m_apiMVPNum[2];       ///< array of number of possible motion vectors predictors
-  Bool*         m_puiAlfCtrlFlag;     ///< array of ALF flags
-  Bool*         m_puiTmpAlfCtrlFlag;  ///< temporal array of ALF flags
   
   // -------------------------------------------------------------------------------------------------------------------
   // misc. variables
@@ -314,16 +312,6 @@ public:
   UChar         getInterDir           ( UInt uiIdx )            { return m_puhInterDir[uiIdx];        }
   Void          setInterDir           ( UInt uiIdx, UChar  uh ) { m_puhInterDir[uiIdx] = uh;          }
   Void          setInterDirSubParts   ( UInt uiDir,  UInt uiAbsPartIdx, UInt uiPartIdx, UInt uiDepth );
-  
-  Bool*         getAlfCtrlFlag        ()                        { return m_puiAlfCtrlFlag;            }
-  Bool          getAlfCtrlFlag        ( UInt uiIdx )            { return m_puiAlfCtrlFlag[uiIdx];     }
-  Void          setAlfCtrlFlag        ( UInt uiIdx, Bool uiFlag){ m_puiAlfCtrlFlag[uiIdx] = uiFlag;   }
-  Void          setAlfCtrlFlagSubParts( Bool uiFlag, UInt uiAbsPartIdx, UInt uiDepth );
-  
-  Void          createTmpAlfCtrlFlag  ();
-  Void          destroyTmpAlfCtrlFlag ();
-  Void          copyAlfCtrlFlagToTmp  ();
-  Void          copyAlfCtrlFlagFromTmp();
   
   /// get slice ID for SU
   Int           getSUSliceID          (UInt uiIdx)              {return m_piSliceSUMap[uiIdx];      } 

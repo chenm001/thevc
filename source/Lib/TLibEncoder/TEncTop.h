@@ -53,7 +53,6 @@
 #include "TEncCavlc.h"
 #include "TEncSbac.h"
 #include "TEncSearch.h"
-#include "TEncAdaptiveLoopFilter.h"
 #include "TEncSampleAdaptiveOffset.h"
 #if QP_ADAPTATION
 #include "TEncPreanalyzer.h"
@@ -86,7 +85,6 @@ private:
 #if SAO
   TEncSampleAdaptiveOffset m_cEncSAO;                     ///< sample adaptive offset class
 #endif
-  TEncAdaptiveLoopFilter  m_cAdaptiveLoopFilter;          ///< adaptive loop filter class
   TEncEntropy             m_cEntropyCoder;                ///< entropy encoder
   TEncCavlc               m_cCavlcCoder;                  ///< CAVLC encoder
   TEncSbac                m_cSbacCoder;                   ///< SBAC encoder
@@ -166,7 +164,6 @@ public:
   
   TComTrQuant*            getTrQuant            () { return  &m_cTrQuant;             }
   TComLoopFilter*         getLoopFilter         () { return  &m_cLoopFilter;          }
-  TEncAdaptiveLoopFilter* getAdaptiveLoopFilter () { return  &m_cAdaptiveLoopFilter;  }
 #if SAO
   TEncSampleAdaptiveOffset* getSAO              () { return  &m_cEncSAO;              }
 #endif

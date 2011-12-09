@@ -109,8 +109,6 @@ Void  TDecCavlc::xReadFlagTr           (UInt& rValue, const Char *pSymbolName)
 
 TDecCavlc::TDecCavlc()
 {
-  m_bAlfCtrl = false;
-  m_uiMaxAlfCtrlDepth = 0;
 }
 
 TDecCavlc::~TDecCavlc()
@@ -235,9 +233,9 @@ Void TDecCavlc::parseAPSInitInfo(TComAPS& cAPS)
   //SAO flag
   xReadFlag(uiCode);      cAPS.setSaoEnabled( (uiCode==1)?true:false );
   //ALF flag
-  xReadFlag(uiCode);      cAPS.setAlfEnabled( (uiCode==1)?true:false );
+  xReadFlag(uiCode);      assert( uiCode==0 );
 #if !G220_PURE_VLC_SAO_ALF
-  if(cAPS.getSaoEnabled() || cAPS.getAlfEnabled())
+  if(cAPS.getSaoEnabled())
   {
     //CABAC usage flag
     xReadFlag(uiCode);    cAPS.setCABACForAPS( (uiCode==1)?true:false );
@@ -424,7 +422,7 @@ Void TDecCavlc::parseSPS(TComSPS* pcSPS)
 #if SAO
   READ_FLAG( uiCode, "sample_adaptive_offset_enabled_flag" );    pcSPS->setUseSAO ( uiCode ? true : false );  
 #endif
-  READ_FLAG( uiCode, "adaptive_loop_filter_enabled_flag" );      pcSPS->setUseALF ( uiCode ? true : false );
+  READ_FLAG( uiCode, "adaptive_loop_filter_enabled_flag" );      assert( uiCode == 0 );
 #if E192_SPS_PCM_FILTER_DISABLE_SYNTAX
   READ_FLAG( uiCode, "pcm_loop_filter_disable_flag" );           assert(uiCode == 0);
 #endif
@@ -581,7 +579,7 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice)
     }
 #endif
 #if F747_APS
-    if(rpcSlice->getSPS()->getUseSAO() || rpcSlice->getSPS()->getUseALF())
+    if(rpcSlice->getSPS()->getUseSAO())
     {
       READ_UVLC (    uiCode, "aps_id" );  rpcSlice->setAPSId(uiCode);
     }
@@ -768,13 +766,6 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice)
       READ_FLAG( uiCode, "collocated_from_l0_flag" );
       rpcSlice->setColDir(uiCode);
     }
-    
-    //   if( adaptive_loop_filter_enabled_flag ) {
-    //     if( !shared_pps_info_enabled_flag )
-    //       alf_param( )
-    //     alf_cu_control_param( )
-    //   }
-    // }
   }
 
   // !!!! Syntax elements not in the WD  !!!!!
@@ -934,36 +925,6 @@ Void TDecCavlc::parseTerminatingBit( UInt& ruiBit )
     UInt uiPeekValue = m_pcBitstream->peekBits(iBitsLeft);
     if (uiPeekValue == (1<<(iBitsLeft-1)))
       ruiBit = true;
-  }
-}
-
-Void TDecCavlc::parseAlfCtrlDepth              ( UInt& ruiAlfCtrlDepth )
-{
-  UInt uiSymbol;
-  xReadUnaryMaxSymbol(uiSymbol, g_uiMaxCUDepth-1);
-  ruiAlfCtrlDepth = uiSymbol;
-}
-
-Void TDecCavlc::parseAlfCtrlFlag( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
-{
-  if (!m_bAlfCtrl)
-    return;
-  
-  if( uiDepth > m_uiMaxAlfCtrlDepth && !pcCU->isFirstAbsZorderIdxInDepth(uiAbsPartIdx, m_uiMaxAlfCtrlDepth))
-  {
-    return;
-  }
-  
-  UInt uiSymbol;
-  xReadFlag( uiSymbol );
-  
-  if (uiDepth > m_uiMaxAlfCtrlDepth)
-  {
-    pcCU->setAlfCtrlFlagSubParts( uiSymbol, uiAbsPartIdx, m_uiMaxAlfCtrlDepth);
-  }
-  else
-  {
-    pcCU->setAlfCtrlFlagSubParts( uiSymbol, uiAbsPartIdx, uiDepth );
   }
 }
 
@@ -2115,54 +2076,6 @@ Void TDecCavlc::parseQtRootCbf( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDept
   xReadFlag( uiSymbol );
   uiQtRootCbf = uiSymbol;
 }
-
-Void TDecCavlc::parseAlfFlag (UInt& ruiVal)
-{
-  xReadFlag( ruiVal );
-}
-
-Void TDecCavlc::parseAlfFlagNum( UInt& ruiVal, UInt minValue, UInt depth )
-{
-  UInt uiLength = 0;
-  UInt maxValue = (minValue << (depth*2));
-  UInt temp = maxValue - minValue;
-  for(UInt i=0; i<32; i++)
-  {
-    if(temp&0x1)
-    {
-      uiLength = i+1;
-    }
-    temp = (temp >> 1);
-  }
-  if(uiLength)
-  {
-    xReadCode( uiLength, ruiVal );
-  }
-  else
-  {
-    ruiVal = 0;
-  }
-  ruiVal += minValue;
-}
-
-Void TDecCavlc::parseAlfCtrlFlag( UInt &ruiAlfCtrlFlag )
-{
-  UInt uiSymbol;
-  xReadFlag( uiSymbol );
-  ruiAlfCtrlFlag = uiSymbol;
-}
-
-Void TDecCavlc::parseAlfUvlc (UInt& ruiVal)
-{
-  xReadUvlc( ruiVal );
-}
-
-Void TDecCavlc::parseAlfSvlc (Int&  riVal)
-{
-  xReadSvlc( riVal );
-}
-
-
 
 #if SAO
 Void TDecCavlc::parseSaoFlag (UInt& ruiVal)

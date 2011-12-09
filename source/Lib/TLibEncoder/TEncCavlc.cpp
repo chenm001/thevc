@@ -119,9 +119,6 @@ TEncCavlc::TEncCavlc()
   m_pcBitIf           = NULL;
   m_bRunLengthCoding  = false;   //  m_bRunLengthCoding  = !rcSliceHeader.isIntra();
   m_uiCoeffCost       = 0;
-  m_bAlfCtrl = false;
-  m_uiMaxAlfCtrlDepth = 0;
-  
   m_bAdaptFlag        = true;    // adaptive VLC table
 }
 
@@ -212,9 +209,9 @@ Void  TEncCavlc::codeAPSInitInfo(TComAPS* pcAPS)
   //SAO flag
   xWriteFlag(pcAPS->getSaoEnabled()?1:0);
   //ALF flag
-  xWriteFlag(pcAPS->getAlfEnabled()?1:0);
+  xWriteFlag(0);
 #if !G220_PURE_VLC_SAO_ALF
-  if(pcAPS->getSaoEnabled() || pcAPS->getAlfEnabled())
+  if(pcAPS->getSaoEnabled())
   {
     //CABAC usage flag
     xWriteFlag(pcAPS->getCABACForAPS()?1:0);
@@ -431,7 +428,7 @@ Void TEncCavlc::codeSPS( TComSPS* pcSPS )
 #if SAO
   WRITE_FLAG( pcSPS->getUseSAO() ? 1 : 0,                                            "sample_adaptive_offset_enabled_flag");
 #endif
-  WRITE_FLAG( (pcSPS->getUseALF ()) ? 1 : 0,                                         "adaptive_loop_filter_enabled_flag");
+  WRITE_FLAG( 0,                                                                     "adaptive_loop_filter_enabled_flag");
 #if E192_SPS_PCM_FILTER_DISABLE_SYNTAX
   WRITE_FLAG( 0,                                                                     "pcm_loop_filter_disable_flag");
 #endif
@@ -539,7 +536,7 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
     }
 #endif
 #if F747_APS
-    if(pcSlice->getSPS()->getUseSAO() || pcSlice->getSPS()->getUseALF())
+    if(pcSlice->getSPS()->getUseSAO())
     {
       WRITE_UVLC( pcSlice->getAPS()->getAPSID(), "aps_id");
     }
@@ -894,32 +891,6 @@ Void TEncCavlc::codeMergeIndex    ( TComDataCU* pcCU, UInt uiAbsPartIdx )
 #if G091_SIGNAL_MAX_NUM_MERGE_CANDS
   }
 #endif
-}
-
-Void TEncCavlc::codeAlfCtrlFlag( TComDataCU* pcCU, UInt uiAbsPartIdx )
-{  
-  if (!m_bAlfCtrl)
-    return;
-  
-  if( pcCU->getDepth(uiAbsPartIdx) > m_uiMaxAlfCtrlDepth && !pcCU->isFirstAbsZorderIdxInDepth(uiAbsPartIdx, m_uiMaxAlfCtrlDepth))
-  {
-    return;
-  }
-  
-  // get context function is here
-  UInt uiSymbol = pcCU->getAlfCtrlFlag( uiAbsPartIdx ) ? 1 : 0;
-  
-  xWriteFlag( uiSymbol );
-}
-
-Void TEncCavlc::codeAlfCtrlDepth()
-{  
-  if (!m_bAlfCtrl)
-    return;
-  
-  UInt uiDepth = m_uiMaxAlfCtrlDepth;
-  
-  xWriteUnaryMaxSymbol(uiDepth, g_uiMaxCUDepth-1);
 }
 
 Void TEncCavlc::codeInterModeFlag( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth, UInt uiEncMode )
@@ -1882,51 +1853,6 @@ Void TEncCavlc::codeCoeffNxN    ( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPa
 #endif
 }
 
-Void TEncCavlc::codeAlfFlag( UInt uiCode )
-{
-  
-  xWriteFlag( uiCode );
-}
-
-/** Code number of ALF CU control flags
- * \param uiCode number of ALF CU control flags
- * \param minValue predictor of number of ALF CU control flags
- * \param iDepth the possible max. processing CU depth
- */
-Void TEncCavlc::codeAlfFlagNum( UInt uiCode, UInt minValue, Int iDepth)
-{
-  UInt uiLength = 0;
-  UInt maxValue = (minValue << (iDepth*2));
-  assert((uiCode>=minValue)&&(uiCode<=maxValue));
-  UInt temp = maxValue - minValue;
-  for(UInt i=0; i<32; i++)
-  {
-    if(temp&0x1)
-    {
-      uiLength = i+1;
-    }
-    temp = (temp >> 1);
-  }
-  if(uiLength)
-  {
-    xWriteCode( uiCode - minValue, uiLength );
-  }
-}
-
-Void TEncCavlc::codeAlfCtrlFlag( UInt uiSymbol )
-{
-  xWriteFlag( uiSymbol );
-}
-
-Void TEncCavlc::codeAlfUvlc( UInt uiCode )
-{
-  xWriteUvlc( uiCode );
-}
-
-Void TEncCavlc::codeAlfSvlc( Int iCode )
-{
-  xWriteSvlc( iCode );
-}
 #if SAO
 Void TEncCavlc::codeSaoFlag( UInt uiCode )
 {
