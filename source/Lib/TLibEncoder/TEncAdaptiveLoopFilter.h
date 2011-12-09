@@ -222,7 +222,7 @@ private:
   Int lengthPredFlags(int force0, int predMethod, int codedVarBins[NO_VAR_BINS], int filters_per_group, int createBitstream);
   Int lengthFilterCoeffs(int sqrFiltLength, int filters_per_group, int pDepthInt[], int **FilterCoeff, int kMinTab[], int createBitstream);
 #if G665_ALF_COEFF_PRED
-  Void predictALFCoeffLumaEnc(ALFParam* pcAlfParam,int **pfilterCoeffSym, int filter_shape); //!< prediction of luma ALF coefficients
+  Void predictALFCoeffLumaEnc(ALFParam* pcAlfParam, Int **pfilterCoeffSym, Int filter_shape); //!< prediction of luma ALF coefficients
 #endif
   //cholesky related
   Int   xGauss( Double **a, Int N );

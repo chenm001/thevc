@@ -344,7 +344,7 @@ struct _AlfParam
   Int filters_per_group;
   Int predMethod;
 #if G665_ALF_COEFF_PRED
-  UInt *nbSPred;
+  Int *nbSPred;
 #endif
   Int **coeffmulti;
   Int minKStart;
