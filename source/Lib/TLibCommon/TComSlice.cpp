@@ -120,9 +120,6 @@ TComSlice::TComSlice()
     m_aiRefPOCList  [0][iNumCount] = 0;
     m_aiRefPOCList  [1][iNumCount] = 0;
   }
-#if  G1002_RPS
-  m_bCombineWithReferenceFlag = 0;
-#endif
 #if WEIGHT_PRED
   resetWpScaling(m_weightPredTable);
   initWpAcDcParam();
@@ -229,46 +226,6 @@ Void  TComSlice::sortPicList        (TComList<TComPic*>& rcListPic)
     rcListPic.erase  (iterPicExtract);
   }
 }
-#if G1002_RPS
-TComPic* TComSlice::xGetRefPic (TComList<TComPic*>& rcListPic,
-                                UInt                uiPOC)
-{
-  TComList<TComPic*>::iterator  iterPic = rcListPic.begin();  
-  TComPic*                      pcPic = *(iterPic);
-  while ( iterPic != rcListPic.end() )
-  {
-    if(pcPic->getPOC() == uiPOC)
-      break;
-    iterPic++;
-    pcPic = *(iterPic);
-  }
-  return  pcPic;
-}
-
-
-TComPic* TComSlice::xGetLongTermRefPic (TComList<TComPic*>& rcListPic,
-                                UInt                uiPOC)
-{
-  TComList<TComPic*>::iterator  iterPic = rcListPic.begin();  
-  TComPic*                      pcPic = *(iterPic);
-  TComPic*                      pcStPic = pcPic;
-  while ( iterPic != rcListPic.end() )
-  {
-    pcPic = *(iterPic);
-    if(pcPic && (pcPic->getPOC()%(1<<getSPS()->getBitsForPOC())) == (uiPOC%(1<<getSPS()->getBitsForPOC())))
-    {
-      if(pcPic->getIsLongTerm())
-        return pcPic;
-      else
-        pcStPic = pcPic;
-      break;
-    }
-
-    iterPic++;
-  }
-  return  pcStPic;
-}
-#else
 
 TComPic* TComSlice::xGetRefPic (TComList<TComPic*>& rcListPic,
                                 Bool                bDRBFlag,
@@ -292,8 +249,7 @@ TComPic* TComSlice::xGetRefPic (TComList<TComPic*>& rcListPic,
   
   //  find n-th reference picture with bDRBFlag and eERBIndex
   UInt  uiCount = 0;
-
-
+  
   if( eRefPicList == REF_PIC_LIST_0 )
   {
     while(1)
@@ -310,10 +266,10 @@ TComPic* TComSlice::xGetRefPic (TComList<TComPic*>& rcListPic,
       
       if( !pcPic->getSlice(0)->isReferenced() )
         continue;
-
+      
       if ( pcPic->getTLayer() > uiTLayer )
-         continue;
-
+        continue;
+      
       uiCount++;
       if (uiCount == uiNthRefPic)
       {
@@ -349,9 +305,8 @@ TComPic* TComSlice::xGetRefPic (TComList<TComPic*>& rcListPic,
       if( !pcPic->getSlice(0)->isReferenced() )
           continue;
       
-
         if ( pcPic->getTLayer() > uiTLayer )
-           continue;
+          continue;
 
         uiCount++;
         if (uiCount == uiNthRefPic)
@@ -380,7 +335,8 @@ TComPic* TComSlice::xGetRefPic (TComList<TComPic*>& rcListPic,
         continue;
       
       if ( pcPic->getTLayer() > uiTLayer )
-         continue;
+        continue;
+
       uiCount++;
       if (uiCount == uiNthRefPic)
       {
@@ -414,7 +370,8 @@ TComPic* TComSlice::xGetRefPic (TComList<TComPic*>& rcListPic,
         continue;
       
       if ( pcPic->getTLayer() > uiTLayer )
-         continue;
+        continue;
+
       uiCount++;
       if (uiCount == uiNthRefPic)
       {
@@ -426,7 +383,6 @@ TComPic* TComSlice::xGetRefPic (TComList<TComPic*>& rcListPic,
   
   return  pcRefPic;
 }
-#endif
 
 Void TComSlice::setRefPOCList       ()
 {
@@ -467,9 +423,7 @@ Void TComSlice::generateCombinedList()
             m_iRefIdxOfL1FromRefIdxOfL0[iNumRefIdx] = m_iRefIdxFromIdxOfLC[iRefIdxLC];
             m_iRefIdxOfL0FromRefIdxOfL1[m_iRefIdxFromIdxOfLC[iRefIdxLC]] = iNumRefIdx;
             bTempRefIdxInL2 = false;
-#if !G1002_RPS
             assert(m_eListIdFromIdxOfLC[iRefIdxLC]==REF_PIC_LIST_1);
-#endif
             break;
           }
         }
@@ -492,9 +446,7 @@ Void TComSlice::generateCombinedList()
             m_iRefIdxOfL0FromRefIdxOfL1[iNumRefIdx] = m_iRefIdxFromIdxOfLC[iRefIdxLC];
             m_iRefIdxOfL1FromRefIdxOfL0[m_iRefIdxFromIdxOfLC[iRefIdxLC]] = iNumRefIdx;
             bTempRefIdxInL2 = false;
-#if !G1002_RPS
             assert(m_eListIdFromIdxOfLC[iRefIdxLC]==REF_PIC_LIST_0);
-#endif
             break;
           }
         }
@@ -508,143 +460,6 @@ Void TComSlice::generateCombinedList()
     }
   }
 }
-#if G1002_RPS
-Void TComSlice::setRefPicList( TComList<TComPic*>& rcListPic )
-{
-  if (m_eSliceType == I_SLICE)
-  {
-    ::memset( m_apcRefPicList, 0, sizeof (m_apcRefPicList));
-    ::memset( m_aiNumRefIdx,   0, sizeof ( m_aiNumRefIdx ));
-    
-    return;
-  }
-  
-  m_aiNumRefIdx[0] = getNumRefIdx(REF_PIC_LIST_0);
-  m_aiNumRefIdx[1] = getNumRefIdx(REF_PIC_LIST_1);
-
-  TComPic*  pcRefPic;
-  TComPic*  RefPicSetStCurr0[16];
-  TComPic*  RefPicSetStCurr1[16];
-  TComPic*  RefPicSetLtCurr[16];
-  UInt NumPocStCurr0 = 0;
-  UInt NumPocStCurr1 = 0;
-  UInt NumPocLtCurr = 0;
-  Int i;
-
-  for(i=0; i < m_pcRPS->getNumberOfNegativePictures(); i++)
-  {
-    pcRefPic = xGetRefPic(rcListPic, getPOC()+m_pcRPS->getDeltaPOC(i));
-    pcRefPic->setIsLongTerm(0);
-    if(m_pcRPS->getUsed(i))
-    {
-      pcRefPic->getPicYuvRec()->extendPicBorder();
-      RefPicSetStCurr0[NumPocStCurr0] = pcRefPic;
-      NumPocStCurr0++;
-    }
-  }
-  for(; i < m_pcRPS->getNumberOfNegativePictures()+m_pcRPS->getNumberOfPositivePictures(); i++)
-  {
-    pcRefPic = xGetRefPic(rcListPic, getPOC()+m_pcRPS->getDeltaPOC(i));
-    pcRefPic->setIsLongTerm(0);
-    if(m_pcRPS->getUsed(i))
-    {
-      pcRefPic->getPicYuvRec()->extendPicBorder();
-      RefPicSetStCurr1[NumPocStCurr1] = pcRefPic;
-      NumPocStCurr1++;
-    }
-  }
-  for(i = m_pcRPS->getNumberOfNegativePictures()+m_pcRPS->getNumberOfPositivePictures()+m_pcRPS->getNumberOfLongtermPictures()-1; i > m_pcRPS->getNumberOfNegativePictures()+m_pcRPS->getNumberOfPositivePictures()-1 ; i--)
-  {
-    pcRefPic = xGetLongTermRefPic(rcListPic, m_pcRPS->getPOC(i));
-    pcRefPic->setIsLongTerm(1);
-    if(m_pcRPS->getUsed(i))
-    {
-      pcRefPic = xGetLongTermRefPic(rcListPic, m_pcRPS->getPOC(i));
-      pcRefPic->getPicYuvRec()->extendPicBorder();
-      RefPicSetLtCurr[NumPocLtCurr] = pcRefPic;
-      NumPocLtCurr++;
-    }
-  }
-
-  // ref_pic_list_init
-  UInt cIdx = 0;
-  UInt num_ref_idx_l0_active_minus1 = m_aiNumRefIdx[0] - 1;
-  UInt num_ref_idx_l1_active_minus1 = m_aiNumRefIdx[1] - 1;
-  while( cIdx <= num_ref_idx_l0_active_minus1 )
-  {
-    for( i=0; i < NumPocStCurr0 && cIdx <= num_ref_idx_l0_active_minus1; cIdx++, i++ )
-      m_apcRefPicList[0][ cIdx ] = RefPicSetStCurr0[ i ];
-    for( i=0;  i < NumPocStCurr1 && cIdx <= num_ref_idx_l0_active_minus1; cIdx++, i++ )
-      m_apcRefPicList[0][ cIdx ] = RefPicSetStCurr1[ i ]; 
-    for( i=0; i < NumPocLtCurr && cIdx <= num_ref_idx_l0_active_minus1; cIdx++, i++ )
-      m_apcRefPicList[0][ cIdx ] = RefPicSetLtCurr[ i ];
-  }
-
-  if ( m_eSliceType == P_SLICE )
-    {
-      m_aiNumRefIdx[1] = 0;
-      ::memset( m_apcRefPicList[1], 0, sizeof(m_apcRefPicList[1]));
-    }
-  else
-  {
-    // ref_pic_list_init
-    cIdx = 0;
-    while( cIdx <= num_ref_idx_l1_active_minus1 )
-    {
-      for( i=0; i < NumPocStCurr1 && cIdx <= num_ref_idx_l1_active_minus1; cIdx++, i++ )
-        m_apcRefPicList[1][ cIdx ] = RefPicSetStCurr1[ i ];
-      for( i=0;  i < NumPocStCurr0 && cIdx <= num_ref_idx_l1_active_minus1; cIdx++, i++ )
-        m_apcRefPicList[1][ cIdx ] = RefPicSetStCurr0[ i ];
-      for( i=0; i < NumPocLtCurr && cIdx <= num_ref_idx_l1_active_minus1; cIdx++, i++ )
-        m_apcRefPicList[1][ cIdx ] = RefPicSetLtCurr[ i ];
-    }
-  }
-
-  //ref_pic_list_modification_l0
-  if(m_RefPicListModification.getRefPicListModificationFlagL0())
-  {
-    for( i = 0; i < m_RefPicListModification.getNumberOfRefPicListModificationsL0(); i++)
-    {
-      for( cIdx = num_ref_idx_l1_active_minus1 + 1; cIdx > i; cIdx-- )
-        m_apcRefPicList[0][ cIdx ] = m_apcRefPicList[0][ cIdx - 1];
-      if(m_RefPicListModification.getListIdcL0(i) == 0)
-        m_apcRefPicList[0][ i ] =  RefPicSetStCurr0[ m_RefPicListModification.getRefPicSetIdxL0(i) ];
-      else if(m_RefPicListModification.getListIdcL0(i) == 1)
-        m_apcRefPicList[0][ i ] =  RefPicSetStCurr1[ m_RefPicListModification.getRefPicSetIdxL0(i) ];
-      else if(m_RefPicListModification.getListIdcL0(i) == 2)
-        m_apcRefPicList[0][ i ] =  RefPicSetLtCurr[ m_RefPicListModification.getRefPicSetIdxL0(i) ];
-      UInt nIdx = i+1;
-      for( cIdx = i+1; cIdx <= num_ref_idx_l0_active_minus1 + 1; cIdx++ )
-      {
-        if( m_apcRefPicList[0][ cIdx ] != m_apcRefPicList[0][ i ] )
-          m_apcRefPicList[0][ nIdx++ ] = m_apcRefPicList[0][ cIdx ];
-      }
-    }
-  }
-  
-  //ref_pic_list_modification_l1
-  if(m_eSliceType == B_SLICE && m_RefPicListModification.getRefPicListModificationFlagL1())
-  {
-    for( i = 0; i < m_RefPicListModification.getNumberOfRefPicListModificationsL1(); i++)
-    {
-      for( cIdx = num_ref_idx_l1_active_minus1 + 1; cIdx > i; cIdx-- )
-        m_apcRefPicList[1][ cIdx ] = m_apcRefPicList[1][ cIdx - 1];
-      if(m_RefPicListModification.getListIdcL1(i) == 0)
-        m_apcRefPicList[1][ i ] =  RefPicSetStCurr1[ m_RefPicListModification.getRefPicSetIdxL1(i) ];
-      else if(m_RefPicListModification.getListIdcL1(i) == 1)
-        m_apcRefPicList[1][ i ] =  RefPicSetStCurr0[ m_RefPicListModification.getRefPicSetIdxL1(i) ];
-      else if(m_RefPicListModification.getListIdcL1(i) == 2)
-        m_apcRefPicList[1][ i ] =  RefPicSetLtCurr[ m_RefPicListModification.getRefPicSetIdxL1(i) ];
-      UInt nIdx = i+1;
-      for( cIdx = i+1; cIdx <= num_ref_idx_l1_active_minus1 + 1; cIdx++ )
-      {
-        if( m_apcRefPicList[1][ cIdx ] != m_apcRefPicList[1][ i ] )
-          m_apcRefPicList[1][ nIdx++ ] = m_apcRefPicList[1][ cIdx ];
-      }
-    }
-  }
-}
-#else
 
 Void TComSlice::setRefPicList       ( TComList<TComPic*>& rcListPic )
 {
@@ -658,7 +473,7 @@ Void TComSlice::setRefPicList       ( TComList<TComPic*>& rcListPic )
   
   m_aiNumRefIdx[0] = min ( m_aiNumRefIdx[0], (Int)(rcListPic.size())-1 );
   m_aiNumRefIdx[1] = min ( m_aiNumRefIdx[1], (Int)(rcListPic.size())-1 );
-
+  
   sortPicList(rcListPic);
   
   TComPic*  pcRefPic;
@@ -677,6 +492,7 @@ Void TComSlice::setRefPicList       ( TComList<TComPic*>& rcListPic )
       ::memset( m_apcRefPicList[eRefPicList], 0, sizeof(m_apcRefPicList[eRefPicList]));
       break;
     }
+    
     //  First DRB
     pcRefPic = xGetRefPic(rcListPic, true, ERB_NONE, m_iPOC, eRefPicList, uiOrderDRB, m_uiTLayer);
     if (pcRefPic != NULL)
@@ -729,7 +545,7 @@ Void TComSlice::setRefPicList       ( TComList<TComPic*>& rcListPic )
       uiOrderERB++;
       uiActualListSize++;
     }
-    //
+    //*/
     
     // Short term reference
     //  Residue DRB
@@ -762,7 +578,6 @@ Void TComSlice::setRefPicList       ( TComList<TComPic*>& rcListPic )
     m_aiNumRefIdx[eRefPicList] = uiActualListSize;
   }
 }
-#endif
 
 Void TComSlice::initEqualRef()
 {
@@ -889,10 +704,6 @@ Void TComSlice::copySliceInfo(TComSlice *pSrc)
   // access channel
   m_pcSPS                = pSrc->m_pcSPS;
   m_pcPPS                = pSrc->m_pcPPS;
-#if  G1002_RPS
-  m_pcRPS                = pSrc->m_pcRPS;
-#endif
-
   m_pcPic                = pSrc->m_pcPic;
 #if F747_APS
   m_pcAPS                = pSrc->m_pcAPS;
@@ -944,9 +755,6 @@ Void TComSlice::copySliceInfo(TComSlice *pSrc)
 #endif
 }
 
-#if  G1002_RPS
-int TComSlice::m_iPrevPOC = 0;
-#endif
 /** Function for setting the slice's temporal layer ID and corresponding temporal_layer_switching_point_flag.
  * \param uiTLayer Temporal layer ID of the current slice
  * The decoder calls this function to set temporal_layer_switching_point_flag for each temporal layer based on 
@@ -976,212 +784,6 @@ Void TComSlice::setTLayerInfo( UInt uiTLayer )
   m_bTLayerSwitchingFlag = m_pcPPS->getTLayerSwitchingFlag( uiTLayer );
 }
 
-#if  G1002_RPS
-/** Function for applying picture marking based on the Reference Picture Set in pReferencePictureSet.
-*/
-Void TComSlice::applyReferencePictureSet( TComList<TComPic*>& rcListPic, TComReferencePictureSet *pReferencePictureSet)
-{
-  TComPic* rpcPic;
-  Int i, isReference;
-  Int internalMarking;
-
-  Int j = 0;
-  // loop through all pictures in the reference picture buffer
-  TComList<TComPic*>::iterator iterPic = rcListPic.begin();
-  while ( iterPic != rcListPic.end())
-  {
-    j++;
-    rpcPic = *(iterPic++);
-
-    isReference = 0;
-    internalMarking = 0;
-    // loop through all pictures in the Reference Picture Set
-    // to see if the picture should be kept as reference picture
-    for(i=0;i<pReferencePictureSet->getNumberOfPositivePictures()+pReferencePictureSet->getNumberOfNegativePictures();i++)
-    {
-      if(!rpcPic->getIsLongTerm() && rpcPic->getPicSym()->getSlice(0)->getPOC() == this->getPOC() + pReferencePictureSet->getDeltaPOC(i))
-      {
-        isReference = 1;
-        rpcPic->setUsedByCurr(pReferencePictureSet->getUsed(i));
-        rpcPic->setIsLongTerm(0);
-        internalMarking = 1;
-      }
-    }
-    for(;i<pReferencePictureSet->getNumberOfPictures();i++)
-    {
-      if(rpcPic->getIsLongTerm() && (rpcPic->getPicSym()->getSlice(0)->getPOC()%(1<<rpcPic->getPicSym()->getSlice(0)->getSPS()->getBitsForPOC())) == pReferencePictureSet->getPOC(i)%(1<<rpcPic->getPicSym()->getSlice(0)->getSPS()->getBitsForPOC()))
-      {
-        isReference = 1;
-        rpcPic->setUsedByCurr(pReferencePictureSet->getUsed(i));
-      }
-    }
-    // mark the picture as "unused for reference" if it is not in
-    // the Reference Picture Set
-    if(rpcPic->getPicSym()->getSlice(0)->getPOC() != this->getPOC() && isReference == 0)    
-    {            
-      rpcPic->getSlice( 0 )->setReferenced( false );   
-    }
-  }  
-}
-
-/** Function for applying picture marking based on the Reference Picture Set in pReferencePictureSet.
-*/
-Int TComSlice::checkThatAllRefPicsAreAvailable( TComList<TComPic*>& rcListPic, TComReferencePictureSet *pReferencePictureSet, Bool outputFlag)
-{
-  TComPic* rpcPic;
-  Int i, isAvailable, j;
-  Int atLeastOneLost = 0;
-  Int atLeastOneRemoved = 0;
-  Int iPocLost = 0;
-
-  // loop through all long-term pictures in the Reference Picture Set
-  // to see if the picture should be kept as reference picture
-  for(i=pReferencePictureSet->getNumberOfNegativePictures()+pReferencePictureSet->getNumberOfPositivePictures();i<pReferencePictureSet->getNumberOfPictures();i++)
-  {
-    j = 0;
-    isAvailable = 0;
-    // loop through all pictures in the reference picture buffer
-    TComList<TComPic*>::iterator iterPic = rcListPic.begin();
-    while ( iterPic != rcListPic.end())
-    {
-      j++;
-      rpcPic = *(iterPic++);
-      if(rpcPic->getIsLongTerm() && (rpcPic->getPicSym()->getSlice(0)->getPOC()%(1<<rpcPic->getPicSym()->getSlice(0)->getSPS()->getBitsForPOC())) == pReferencePictureSet->getPOC(i)%(1<<rpcPic->getPicSym()->getSlice(0)->getSPS()->getBitsForPOC()) && rpcPic->getSlice(0)->isReferenced())
-      {
-        isAvailable = 1;
-      }
-    }
-    // if there was no such long-term check the short terms
-    if(!isAvailable)
-    {
-      iterPic = rcListPic.begin();
-      while ( iterPic != rcListPic.end())
-      {
-        j++;
-        rpcPic = *(iterPic++);
-
-        if((rpcPic->getPicSym()->getSlice(0)->getPOC()%(1<<rpcPic->getPicSym()->getSlice(0)->getSPS()->getBitsForPOC())) == (this->getPOC() + pReferencePictureSet->getDeltaPOC(i))%(1<<rpcPic->getPicSym()->getSlice(0)->getSPS()->getBitsForPOC()) && rpcPic->getSlice(0)->isReferenced())
-        {
-          isAvailable = 1;
-          rpcPic->setIsLongTerm(1);
-          break;
-        }
-      }
-    }
-    // report that a picture is lost if it is in the Reference Picture Set
-    // but not available as reference picture
-    if(isAvailable == 0)    
-    {            
-      if(!pReferencePictureSet->getUsed(i) )
-      {
-        if(outputFlag)
-          printf("\nLong-term reference picture with POC = %3d seems to have been removed or not correctly decoded.", this->getPOC() + pReferencePictureSet->getDeltaPOC(i));
-        atLeastOneRemoved = 1;
-      }
-      else
-      {
-        if(outputFlag)
-          printf("\nLong-term reference picture with POC = %3d is lost or not correctly decoded!", this->getPOC() + pReferencePictureSet->getDeltaPOC(i));
-        atLeastOneLost = 1;
-        iPocLost=this->getPOC() + pReferencePictureSet->getDeltaPOC(i);
-      }
-    }
-  }  
-  // loop through all short-term pictures in the Reference Picture Set
-  // to see if the picture should be kept as reference picture
-  for(i=0;i<pReferencePictureSet->getNumberOfNegativePictures()+pReferencePictureSet->getNumberOfPositivePictures();i++)
-  {
-    j = 0;
-    isAvailable = 0;
-    // loop through all pictures in the reference picture buffer
-    TComList<TComPic*>::iterator iterPic = rcListPic.begin();
-    while ( iterPic != rcListPic.end())
-    {
-      j++;
-      rpcPic = *(iterPic++);
-
-      if(!rpcPic->getIsLongTerm() && rpcPic->getPicSym()->getSlice(0)->getPOC() == this->getPOC() + pReferencePictureSet->getDeltaPOC(i) && rpcPic->getSlice(0)->isReferenced())
-      {
-        isAvailable = 1;
-      }
-    }
-    // report that a picture is lost if it is in the Reference Picture Set
-    // but not available as reference picture
-    if(isAvailable == 0)    
-    {            
-      if(!pReferencePictureSet->getUsed(i) )
-      {
-        if(outputFlag)
-          printf("\nShort-term reference picture with POC = %3d seems to have been removed or not correctly decoded.", this->getPOC() + pReferencePictureSet->getDeltaPOC(i));
-        atLeastOneRemoved = 1;
-      }
-      else
-      {
-        if(outputFlag)
-          printf("\nShort-term reference picture with POC = %3d is lost or not correctly decoded!", this->getPOC() + pReferencePictureSet->getDeltaPOC(i));
-        atLeastOneLost = 1;
-        iPocLost=this->getPOC() + pReferencePictureSet->getDeltaPOC(i);
-      }
-    }
-  }    
-  if(atLeastOneLost)
-  {
-    return iPocLost+1;
-  }
-  if(atLeastOneRemoved)
-  {
-    return -2;
-  }
-  else
-    return 0;
-}
-
-/** Function for constructing an explicit Reference Picture Set out of the available pictures in a referenced Reference Picture Set
-*/
-Void TComSlice::createExplicitReferencePictureSetFromReference( TComList<TComPic*>& rcListPic, TComReferencePictureSet *pReferencePictureSet)
-{
-  TComPic* rpcPic;
-  Int i, j;
-  Int k = 0;
-  Int nrOfNegativePictures = 0;
-  Int nrOfPositivePictures = 0;
-  TComReferencePictureSet* pcRPS = this->getLocalRPS();
-
-  pcRPS->create(this->getPPS()->getSPS()->getMaxNumberOfReferencePictures());
-
-  // loop through all pictures in the Reference Picture Set
-  for(i=0;i<pReferencePictureSet->getNumberOfPictures();i++)
-  {
-    j = 0;
-    // loop through all pictures in the reference picture buffer
-    TComList<TComPic*>::iterator iterPic = rcListPic.begin();
-    while ( iterPic != rcListPic.end())
-    {
-      j++;
-      rpcPic = *(iterPic++);
-
-      if(rpcPic->getPicSym()->getSlice(0)->getPOC() == this->getPOC() + pReferencePictureSet->getDeltaPOC(i) && rpcPic->getSlice(0)->isReferenced())
-      {
-        // This picture exists as a reference picture
-        // and should be added to the explicit Reference Picture Set
-        pcRPS->setDeltaPOC(k, pReferencePictureSet->getDeltaPOC(i));
-        pcRPS->setUsed(k, pReferencePictureSet->getUsed(i));
-        if(pcRPS->getDeltaPOC(k) < 0)
-          nrOfNegativePictures++;
-        else
-          nrOfPositivePictures++;
-        k++;
-      }
-    }
-  }
-  pcRPS->setNumberOfNegativePictures(nrOfNegativePictures);
-  pcRPS->setNumberOfPositivePictures(nrOfPositivePictures);
-  pcRPS->setNumberOfPictures(nrOfNegativePictures+nrOfPositivePictures);
-  this->setRPS(pcRPS);
-  this->setRPSidx(-1);
-}
-
-#else
 /** Function for mimicking decoder's reference picture buffer management.
  * \param rcListPic List of picture buffers
  * \param iGOPSIze Current GOP size
@@ -1231,7 +833,6 @@ Void TComSlice::decodingMarking( TComList<TComPic*>& rcListPic, Int iGOPSIze, In
   }
 }
 
-#endif
 /** Function for marking reference pictures with higher temporal layer IDs as not used if the current picture is a temporal layer switching point.
  * \param rcListPic List of picture buffers
  * Both the encoder and decoder call this function to mark reference pictures with temporal layer ID higher than current picture's temporal layer ID as not used.
@@ -1255,7 +856,6 @@ Void TComSlice::decodingTLayerSwitchingMarking( TComList<TComPic*>& rcListPic )
   }
 }
 
-#if  !G1002_RPS
 #if REF_SETTING_FOR_LD
 Int TComSlice::getActualRefNumber( TComList<TComPic*>& rcListPic )
 {
@@ -1308,7 +908,6 @@ Void TComSlice::decodingRefMarkingForLD( TComList<TComPic*>& rcListPic, Int iMax
 }
 #endif
 
-#endif
 #if WEIGHT_PRED
 /** get AC and DC values for weighted pred
  * \param *wp
@@ -1445,20 +1044,15 @@ TComSPS::TComSPS()
 #if E192_SPS_PCM_FILTER_DISABLE_SYNTAX
 , m_bPCMFilterDisableFlag     (false)
 #endif
-#if  G1002_RPS
-, m_uiBitsForPOC              (  8)
-#endif
 , m_uiMaxTrSize               ( 32)
 , m_bLFCrossSliceBoundaryFlag (false)
 #if SAO
 , m_bUseSAO                   (false) 
 #endif
 , m_bTemporalIdNestingFlag    (false)
-#if  !G1002_RPS
 #if REF_SETTING_FOR_LD
 , m_bUseNewRefSetting         (false)
 , m_uiMaxNumRefFrames         (  0)
-#endif
 #endif
 {
   // AMVP parameter
@@ -1488,10 +1082,6 @@ TComPPS::TComPPS()
 , m_pcSPS                       (NULL)
 , m_uiMaxCuDQPDepth             (0)
 , m_uiMinCuDQPSize              (0)
-#if G1002_RPS
-, m_bLongTermRefsPresent        (false)
-, m_uiBitsForLongTermRefs       (0)
-#endif
 , m_uiNumTlayerSwitchingFlags   (0)
 #if FINE_GRANULARITY_SLICES
 , m_iSliceGranularity           (0)
@@ -1535,128 +1125,6 @@ TComPPS::~TComPPS()
   }
 #endif
 }
-#if G1002_RPS
-
-TComReferencePictureSet::TComReferencePictureSet()
-{
-}
-
-TComReferencePictureSet::~TComReferencePictureSet()
-{
-}
-
-Void TComReferencePictureSet::create( UInt uiNumberOfPictures)
-{
-  m_uiNumberOfPictures = uiNumberOfPictures;
-  m_uiNumberOfNegativePictures = 0;
-  m_uiNumberOfPositivePictures = 0;
-  m_uiNumberOfLongtermPictures = 0;
-  m_piDeltaPOC    = new Int[uiNumberOfPictures];
-  m_piPOC    = new Int[uiNumberOfPictures];
-  m_pbUsed = new Bool[uiNumberOfPictures];
-}
-
-Void TComReferencePictureSet::destroy()
-{
-  delete [] m_piPOC;     
-  m_piPOC = NULL;
-  delete [] m_piDeltaPOC;     
-  m_piDeltaPOC = NULL;
-  delete [] m_pbUsed;     
-  m_pbUsed = NULL;
-}
-
-Void TComReferencePictureSet::setUsed(UInt uiBufferNum, Bool bUsed)
-{
-   m_pbUsed[uiBufferNum] = bUsed;
-}
-
-Void TComReferencePictureSet::setDeltaPOC(UInt uiBufferNum, Int iDeltaPOC)
-{
-   m_piDeltaPOC[uiBufferNum] = iDeltaPOC;
-}
-
-Void TComReferencePictureSet::setNumberOfPictures(UInt NumberOfPictures)
-{
-   m_uiNumberOfPictures = NumberOfPictures;
-}
-
-UInt TComReferencePictureSet::getUsed(UInt uiBufferNum)
-{
-   return (UInt)m_pbUsed[uiBufferNum];
-}
-
-Int TComReferencePictureSet::getDeltaPOC(UInt uiBufferNum)
-{
-   return m_piDeltaPOC[uiBufferNum];
-}
-
-UInt TComReferencePictureSet::getNumberOfPictures()
-{
-   return m_uiNumberOfPictures;
-}
-
-Int TComReferencePictureSet::getPOC(UInt uiBufferNum)
-{
-   return m_piPOC[uiBufferNum];
-}
-Void TComReferencePictureSet::setPOC(UInt uiBufferNum, Int iPOC)
-{
-   m_piPOC[uiBufferNum] = iPOC;
-}
-
-TComBDS::TComBDS()
-{
-}
-
-TComBDS::~TComBDS()
-{
-}
-
-Void TComBDS::create( UInt uiNumberOfReferencePictureSets)
-{
-  m_uiNumberOfReferencePictureSets = uiNumberOfReferencePictureSets;
-  m_pReferencePictureSet = new TComReferencePictureSet[uiNumberOfReferencePictureSets];
-}
-
-Void TComBDS::destroy()
-{
-  for(UInt i = 0; i < m_uiNumberOfReferencePictureSets; i++)
-  {
-     m_pReferencePictureSet[i].destroy();
-  }
-  delete [] m_pReferencePictureSet;     
-  m_uiNumberOfReferencePictureSets = 0;
-  m_pReferencePictureSet = NULL;
-}
-
-
-
-TComReferencePictureSet* TComBDS::getReferencePictureSet(UInt uiReferencePictureSetNum)
-{
-   return &m_pReferencePictureSet[uiReferencePictureSetNum];
-}
-
-UInt TComBDS::getNumberOfReferencePictureSets()
-{
-   return m_uiNumberOfReferencePictureSets;
-}
-
-Void TComBDS::setNumberOfReferencePictureSets(UInt uiNumberOfReferencePictureSets)
-{
-   m_uiNumberOfReferencePictureSets = uiNumberOfReferencePictureSets;
-}
-
-TComRefPicListModification::TComRefPicListModification()
-{
-  m_bRefPicListModificationFlagL0 = false;
-  m_bRefPicListModificationFlagL1 = false;
-}
-
-TComRefPicListModification::~TComRefPicListModification()
-{
-}
-#endif
 
 #if F747_APS
 TComAPS::TComAPS()

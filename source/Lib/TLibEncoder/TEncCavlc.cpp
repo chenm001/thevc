@@ -35,9 +35,6 @@
     \brief    CAVLC encoder class
 */
 
-#if G1002_RPS
-#include "../TLibCommon/CommonDef.h"
-#endif
 #include "TEncCavlc.h"
 #include "SEIwrite.h"
 
@@ -207,7 +204,6 @@ void TEncCavlc::codeSEI(const SEI& sei)
   writeSEImessage(*m_pcBitIf, sei);
 }
 
-
 #if F747_APS
 Void  TEncCavlc::codeAPSInitInfo(TComAPS* pcAPS)
 {
@@ -232,30 +228,6 @@ Void  TEncCavlc::codeAPSInitInfo(TComAPS* pcAPS)
   }
 }
 #endif
-#if G1002_RPS
-Void TEncCavlc::xWriteRPS( TComPPS* pcPPS, TComReferencePictureSet* pcRPS )
-{
-  xWriteUvlc(pcRPS->getNumberOfNegativePictures()); // number of negative pictures in Reference Picture Set
-  Int prev = 0;
-  for(Int j=0 ; j < pcRPS->getNumberOfNegativePictures(); j++)
-  {
-    xWriteUvlc(prev-pcRPS->getDeltaPOC(j)-1); // n_absolute_delta_poc_minus_one
-    prev = pcRPS->getDeltaPOC(j);
-    xWriteCode(pcRPS->getUsed(j), 1); //n_temporal_id
-  }      
-  if(pcPPS->getReorderPicturesAllowedFlag())
-  {
-    xWriteUvlc(pcRPS->getNumberOfPositivePictures()); // number of negative pictures in Reference Picture Set
-    prev = 0;
-    for(Int j=pcRPS->getNumberOfNegativePictures(); j < pcRPS->getNumberOfNegativePictures()+pcRPS->getNumberOfPositivePictures(); j++)
-    {
-      xWriteUvlc(pcRPS->getDeltaPOC(j)-prev-1); // p_absolute_delta_poc_minus_one
-      prev = pcRPS->getDeltaPOC(j);
-      xWriteCode(pcRPS->getUsed(j), 1); //p_temporal_id
-    }
-  }
-}
-#endif
 
 
 Void TEncCavlc::codePPS( TComPPS* pcPPS )
@@ -263,28 +235,9 @@ Void TEncCavlc::codePPS( TComPPS* pcPPS )
 #if ENC_DEC_TRACE  
   xTracePPSHeader (pcPPS);
 #endif
-#if G1002_RPS
-   TComBDS* pcRPSList = pcPPS->getRPSList();
-#endif
   
   WRITE_UVLC( pcPPS->getPPSId(),                             "pic_parameter_set_id" );
   WRITE_UVLC( pcPPS->getSPSId(),                             "seq_parameter_set_id" );
-#if G1002_RPS
-  // RPS is put before entropy_coding_mode_flag
-  // since entropy_coding_mode_flag will probably be removed from the WD
-  TComReferencePictureSet*      pcRPS;
-
-  UInt num_of_entries = pcRPSList->getNumberOfReferencePictureSets();
-
-  xWriteUvlc(num_of_entries); // number of Reference Picture Sets 
-
-  for(UInt i=0; i < num_of_entries; i++)
-  {
-    pcRPS = pcRPSList->getReferencePictureSet(i);
-    xWriteRPS(pcPPS,pcRPS);
-  }    
-  WRITE_FLAG( pcPPS->getLongTermRefsPresent() ? 1 : 0,         "long_term_ref_pics_present_flag" );
-#endif
   // entropy_coding_mode_flag
 #if OL_USE_WPP
   // We code the entropy_coding_mode_flag, it's needed for tests.
@@ -319,7 +272,6 @@ Void TEncCavlc::codePPS( TComPPS* pcPPS )
 #endif
   //   if( cu_qp_delta_enabled_flag )
   //     max_cu_qp_delta_depth
-
   if( pcPPS->getSPS()->getUseDQP() )
   {
     WRITE_UVLC( pcPPS->getMaxCuDQPDepth(),                   "max_cu_qp_delta_depth" );
@@ -383,9 +335,6 @@ Void TEncCavlc::codeSPS( TComSPS* pcSPS )
   WRITE_CODE( pcSPS->getPCMBitDepthLuma() - 1, 4,   "pcm_bit_depth_luma_minus1" );
   WRITE_CODE( pcSPS->getPCMBitDepthChroma() - 1, 4, "pcm_bit_depth_chroma_minus1" );
 #endif
-#if G1002_RPS
-  WRITE_UVLC( pcSPS->getBitsForPOC()-4,             "log2_max_pic_order_cnt_lsb_minus4" );
-#endif
 #if DISABLE_4x4_INTER
   xWriteFlag  ( (pcSPS->getDisInter4x4()) ? 1 : 0 );
 #endif  
@@ -438,13 +387,8 @@ Void TEncCavlc::codeSPS( TComSPS* pcSPS )
   xWriteUvlc  ( pcSPS->getPad (0) );
   xWriteUvlc  ( pcSPS->getPad (1) );
 
-#if G1002_RPS
-  xWriteUvlc( pcSPS->getMaxNumberOfReferencePictures()); 
-  xWriteUvlc( pcSPS->getMaxNumberOfReorderPictures()); 
   // Tools
-#else
   xWriteFlag  ( (pcSPS->getUseLDC ()) ? 1 : 0 );
-#endif
   xWriteFlag  ( (pcSPS->getUseMRG ()) ? 1 : 0 ); // SOPH:
   
   // AMVP mode for each depth
@@ -453,7 +397,6 @@ Void TEncCavlc::codeSPS( TComSPS* pcSPS )
     xWriteFlag( pcSPS->getAMVPMode(i) ? 1 : 0);
   }
 
-#if !G1002_RPS
 #if REF_SETTING_FOR_LD
   // these syntax elements should not be sent at SPS when the full reference frame management is supported
   xWriteFlag( pcSPS->getUseNewRefSetting() ? 1 : 0 );
@@ -461,7 +404,6 @@ Void TEncCavlc::codeSPS( TComSPS* pcSPS )
   {
     xWriteUvlc( pcSPS->getMaxNumRefFrames() );
   }
-#endif
 #endif
 
 #if TILES
@@ -505,52 +447,10 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
 #endif
   
   Bool bEntropySlice = (!pcSlice->isNextSlice());
-#if G1002_RPS
-  WRITE_FLAG( bEntropySlice ? 1 : 0, "entropy_slice_flag" );
-#else
   WRITE_FLAG( bEntropySlice ? 1 : 0, "lightweight_slice_flag" );
-#endif
   
   if (!bEntropySlice)
   {
-#if G1002_RPS
-    //xWriteUvlc  (pcSlice->getSliceType() );
-    if(pcSlice->getNalUnitType()==NAL_UNIT_CODED_SLICE_IDR) //should check for IDR
-    {
-      WRITE_UVLC( 0, "idr_pic_id" );
-      WRITE_FLAG( 0, "no_output_of_prior_pics_flag" );
-    }
-    else
-    {
-      xWriteCode  (pcSlice->getPOC()%(1<<pcSlice->getSPS()->getBitsForPOC()), pcSlice->getSPS()->getBitsForPOC() );   //  9 == SPS->Log2MaxFrameNum
-    
-      if(pcSlice->getRPSidx() >= 0)
-      {
-        xWriteCode  (1, 1 );                // use Reference Picture Set reference
-        xWriteUvlc (pcSlice->getRPSidx());   // Reference Picture Set id
-      }
-      else
-      {
-        xWriteCode  (0, 1 );   //  explict Reference Picture Set
-
-        Int i;
-        TComReferencePictureSet* pcRPS = pcSlice->getRPS();
-        xWriteRPS(pcSlice->getPPS(), pcRPS);
-        if(pcSlice->getPPS()->getLongTermRefsPresent())
-        {
-          xWriteUvlc(pcRPS->getNumberOfLongtermPictures()); // number of longterm pictures
-          Int maxPocLsb = 1<<pcSlice->getSPS()->getBitsForPOC();
-          Int prev = 0;
-          for(i=pcRPS->getNumberOfPictures()-1 ; i > pcRPS->getNumberOfPictures()-pcRPS->getNumberOfLongtermPictures()-1; i--)
-          {
-            WRITE_UVLC((maxPocLsb-pcRPS->getDeltaPOC(i)+prev-1)%maxPocLsb,"delta_poc_lsb_lt_minus1"); // longterm_poc
-            prev = pcRPS->getDeltaPOC(i);
-            xWriteCode(pcRPS->getUsed(i), 1); //longterm_temporal_id
-          }
-        }
-      }
-    }
-#endif
     WRITE_UVLC( pcSlice->getSliceType(),       "slice_type" );
     WRITE_UVLC( pcSlice->getPPS()->getPPSId(), "pic_parameter_set_id" );
 #if F747_APS
@@ -560,7 +460,6 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
     }
 #endif
 
-#if !G1002_RPS
     // frame_num
     // if( IdrPicFlag )
     //   idr_pic_id
@@ -576,7 +475,6 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
     //   }
     // }
     
-#endif
     // we always set num_ref_idx_active_override_flag equal to one. this might be done in a more intelligent way 
     if (!pcSlice->isIntra())
     {
@@ -595,32 +493,8 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
     {
       pcSlice->setNumRefIdx(REF_PIC_LIST_1, 0);
     }
-    // ref_pic_list_modification( )
-#if G1002_RPS
-    TComRefPicListModification* refPicListModification = pcSlice->getRefPicListModification();
-
-    WRITE_FLAG(pcSlice->getRefPicListModification()->getRefPicListModificationFlagL0() ? 1 : 0,       "ref_pic_list_modification_flag" );
-    
-    for(Int i = 0; i < refPicListModification->getNumberOfRefPicListModificationsL0(); i++)
-    {
-      WRITE_UVLC( refPicListModification->getListIdcL0(i), "ref_pic_list_modification_idc");
-      WRITE_UVLC( refPicListModification->getRefPicSetIdxL0(i), "ref_pic_set_idx");
-    }
-    if(pcSlice->getRefPicListModification()->getRefPicListModificationFlagL0())
-      WRITE_UVLC( 3, "ref_pic_list_modification_idc");
-    if(pcSlice->isInterB())
-    {    
-      WRITE_FLAG(pcSlice->getRefPicListModification()->getRefPicListModificationFlagL1() ? 1 : 0,       "ref_pic_list_modification_flag" );
-      for(Int i = 0; i < refPicListModification->getNumberOfRefPicListModificationsL1(); i++)
-      {
-        WRITE_UVLC( refPicListModification->getListIdcL1(i), "ref_pic_list_modification_idc");
-        WRITE_UVLC( refPicListModification->getRefPicSetIdxL1(i), "ref_pic_set_idx");
-      }
-      if(pcSlice->getRefPicListModification()->getRefPicListModificationFlagL1())
-        WRITE_UVLC( 3, "ref_pic_list_modification_idc");
-    }
-#endif
   }
+  // ref_pic_list_modification( )
   // ref_pic_list_combination( )
   // maybe move to own function?
   if (pcSlice->isInterB())
@@ -999,7 +873,7 @@ Void TEncCavlc::codeInterModeFlag( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiD
   if ( m_bAdaptFlag)
   {
     adaptCodeword(cx, m_ucSplitTableCounter[uiDepth],  m_ucSplitTableCounterSum[uiDepth],   m_uiSplitTableD[uiDepth],  m_uiSplitTableE[uiDepth], 4);
-    }
+  }
   return;
 }
 
@@ -1154,7 +1028,7 @@ Void TEncCavlc::codeIntraDirLumaAng( TComDataCU* pcCU, UInt uiAbsPartIdx )
     {
       xWriteFlag(1);
       xWriteFlag( (UInt)uiPredIdx );
-      }
+    }
     else
     {
       xWriteFlag(0);
@@ -1227,7 +1101,7 @@ Void TEncCavlc::codeIntraDirLumaAng( TComDataCU* pcCU, UInt uiAbsPartIdx )
          m_uiIntraModeTableE[iDirLarger] = iRankIntraMode;
        }
      }
-     }
+  }
 }
 
 Void TEncCavlc::codeIntraDirChroma( TComDataCU* pcCU, UInt uiAbsPartIdx )

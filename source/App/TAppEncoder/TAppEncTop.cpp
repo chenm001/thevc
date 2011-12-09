@@ -77,17 +77,10 @@ Void TAppEncTop::xInitLibCfg()
   m_cTEncTop.setIntraPeriod                  ( m_iIntraPeriod );
   m_cTEncTop.setDecodingRefreshType          ( m_iDecodingRefreshType );
   m_cTEncTop.setGOPSize                      ( m_iGOPSize );
-#if G1002_RPS
-  m_cTEncTop.setGopList                      ( m_pcGOPList );
-  m_cTEncTop.setExtraRPSs                     ( m_iExtraRPSs );
-  m_cTEncTop.setMaxNumberOfReorderPictures   ( m_uiMaxNumberOfReorderPictures );
-  m_cTEncTop.setMaxNumberOfReferencePictures ( m_uiMaxNumberOfReferencePictures );
-#else
   m_cTEncTop.setRateGOPSize                  ( m_iRateGOPSize );
   m_cTEncTop.setNumOfReference               ( m_iNumOfReference );
   m_cTEncTop.setNumOfReferenceB_L0           ( m_iNumOfReferenceB_L0 );
   m_cTEncTop.setNumOfReferenceB_L1           ( m_iNumOfReferenceB_L1 );
-#endif
   
   m_cTEncTop.setQP                           ( m_iQP );
   
@@ -109,9 +102,7 @@ Void TAppEncTop::xInitLibCfg()
 #endif
   
   //===== Slice ========
-#if !G1002_RPS
   m_cTEncTop.setHierarchicalCoding           ( m_bHierarchicalCoding );
-#endif
   
 #if !DISABLE_CAVLC
   //====== Entropy Coding ========
@@ -143,23 +134,19 @@ Void TAppEncTop::xInitLibCfg()
   m_cTEncTop.setUseHADME                     ( m_bUseHADME    );
   m_cTEncTop.setUseALF                       ( m_bUseALF      );
   m_cTEncTop.setALFEncodePassReduction       ( m_iALFEncodePassReduction );
-#if !G1002_RPS
-  m_cTEncTop.setUseNRF                       ( m_bUseNRF      );
-  m_cTEncTop.setUseBQP                       ( m_bUseBQP      );
   m_cTEncTop.setUseGPB                       ( m_bUseGPB      );
-  m_cTEncTop.setUseLDC                       ( m_bUseLDC      );
-
-#endif
+  m_cTEncTop.setUseLComb                     ( m_bUseLComb    );
   m_cTEncTop.setLCMod                        ( m_bLCMod         );
   m_cTEncTop.setdQPs                         ( m_aidQP        );
   m_cTEncTop.setUseRDOQ                      ( m_bUseRDOQ     );
-  m_cTEncTop.setUseLComb                     ( m_bUseLComb    );
+  m_cTEncTop.setUseLDC                       ( m_bUseLDC      );
   m_cTEncTop.setUsePAD                       ( m_bUsePAD      );
   m_cTEncTop.setQuadtreeTULog2MaxSize        ( m_uiQuadtreeTULog2MaxSize );
   m_cTEncTop.setQuadtreeTULog2MinSize        ( m_uiQuadtreeTULog2MinSize );
   m_cTEncTop.setQuadtreeTUMaxDepthInter      ( m_uiQuadtreeTUMaxDepthInter );
   m_cTEncTop.setQuadtreeTUMaxDepthIntra      ( m_uiQuadtreeTUMaxDepthIntra );
-
+  m_cTEncTop.setUseNRF                       ( m_bUseNRF      );
+  m_cTEncTop.setUseBQP                       ( m_bUseBQP      );
   m_cTEncTop.setUseFastEnc                   ( m_bUseFastEnc  );
 #if EARLY_CU_DETERMINATION
   m_cTEncTop.setUseEarlyCU                   ( m_bUseEarlyCU  ); 
@@ -214,10 +201,8 @@ Void TAppEncTop::xInitLibCfg()
 
   m_cTEncTop.setPictureDigestEnabled(m_pictureDigestEnabled);
 
-#if !G1002_RPS
 #if REF_SETTING_FOR_LD
   m_cTEncTop.setUseNewRefSetting( m_bUseNewRefSetting );
-#endif
 #endif
 #if TILES
   m_cTEncTop.setColumnRowInfoPresent       ( m_iColumnRowInfoPresent );

@@ -187,9 +187,6 @@ template <typename T> inline T Clip3( T minVal, T maxVal, T a) { return std::min
 // Early-skip threshold (encoder)
 #define EARLY_SKIP_THRES            1.50        ///< if RD < thres*avg[BestSkipRD]
 
-#if  G1002_RPS
-#define MAX_NUM_REF_PICS 64
-#endif
 enum NalRefIdc
 {
   NAL_REF_IDC_PRIORITY_LOWEST = 0,
