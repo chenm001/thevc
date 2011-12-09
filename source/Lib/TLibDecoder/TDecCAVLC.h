@@ -85,6 +85,9 @@ protected:
   Void  xRunLevelIndInv     (LastCoeffStruct *combo, Int maxrun, UInt lrg1Pos, UInt cn);
   Void  xRunLevelIndInterInv(LastCoeffStruct *combo, Int maxrun, UInt cn, UInt scale);
   
+#if G1002_RPS
+  Void  xReadRPS            (TComPPS* pcPPS, TComReferencePictureSet* pcRPS);
+#endif
 private:
   TComInputBitstream*   m_pcBitstream;
   UInt                  m_uiCoeffCost;

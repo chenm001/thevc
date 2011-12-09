@@ -74,11 +74,17 @@ class TEncGOP
 {
 private:
   //  Data
+#if G1002_RPS
+  Bool                    m_bLongtermTestPictureHasBeenCoded;
+  Bool                    m_bLongtermTestPictureHasBeenCoded2;
+#else
   Int                     m_iHrchDepth;
-  Int                     m_iGopSize;
+
   Int                     m_iRateGopSize;
+#endif
   Int                     m_iNumPicCoded;
   Bool                    m_bFirst;
+  Int                     m_iGopSize;
   
   //  Access channel
   TEncTop*                m_pcEncTop;
@@ -128,9 +134,11 @@ public:
 
   
   Int   getGOPSize()          { return  m_iGopSize;  }
+#if !G1002_RPS
   Int   getRateGOPSize()      { return  m_iRateGopSize;  }
   Int   isHierarchicalB()     { return  m_pcCfg->getHierarchicalCoding();  }
   Int   getHrchDepth()        { return  m_iHrchDepth; }
+#endif
   
   TComList<TComPic*>*   getListPic()      { return m_pcListPic; }
   

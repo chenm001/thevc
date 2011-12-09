@@ -45,6 +45,24 @@
 #include "TLibCommon/CommonDef.h"
 #include <assert.h>
 
+#if G1002_RPS
+struct GOPEntry {
+  Int m_iPOC;
+  Int m_iQPOffset;
+  Double m_iQPFactor;
+  Int m_iTemporalId;
+  Bool m_bRefPic;
+  Int m_iRefBufSize;
+  Char m_iSliceType;
+  Int m_iNumRefPics;
+  Int m_aiReferencePics[MAX_NUM_REF_PICS];
+  Int m_aiUsedByCurrPic[MAX_NUM_REF_PICS];
+  GOPEntry() : m_iPOC(-1)
+  {
+  }
+};
+std::istringstream &operator>>(std::istringstream &in, GOPEntry &entry);     //input
+#endif
 //! \ingroup TLibEncoder
 //! \{
 
@@ -67,10 +85,17 @@ protected:
   UInt      m_uiIntraPeriod;
   UInt      m_uiDecodingRefreshType;            ///< the type of decoding refresh employed for the random access.
   Int       m_iGOPSize;
+#if G1002_RPS
+  GOPEntry  m_pcGOPList[MAX_GOP];
+  Int       m_iExtraRPSs;
+  UInt      m_uiMaxNumberOfReferencePictures;
+  UInt      m_uiMaxNumberOfReorderPictures;
+#else
   Int       m_iRateGOPSize;
   Int       m_iNumOfReference;
   Int       m_iNumOfReferenceB_L0;
   Int       m_iNumOfReferenceB_L1;
+#endif
   
   Int       m_iQP;                              //  if (AdaptiveQP == OFF)
   
@@ -100,7 +125,9 @@ protected:
 #endif
   
   //====== B Slice ========
+#if !G1002_RPS
   Bool      m_bHierarchicalCoding;              //  hierarchical-B coding
+#endif
   
 #if !DISABLE_CAVLC
   //====== Entropy Coding ========
@@ -135,14 +162,18 @@ protected:
   Int       m_iALFEncodePassReduction;
   Bool      m_bUseASR;
   Bool      m_bUseHADME;
-  Bool      m_bUseGPB;
+
   Bool      m_bUseLComb;
   Bool      m_bLCMod;
   Bool      m_bUseRDOQ;
-  Bool      m_bUseLDC;
+
   Bool      m_bUsePAD;
+#if !G1002_RPS
+  Bool      m_bUseLDC;
+  Bool      m_bUseGPB;
   Bool      m_bUseNRF;
   Bool      m_bUseBQP;
+#endif
   Bool      m_bUseFastEnc;
 #if EARLY_CU_DETERMINATION
   Bool      m_bUseEarlyCU;
@@ -201,8 +232,10 @@ protected:
 
   bool m_pictureDigestEnabled; ///< enable(1)/disable(0) md5 computation and SEI signalling
 
+#if !G1002_RPS
 #if REF_SETTING_FOR_LD
   Bool      m_bUseNewRefSetting;
+#endif
 #endif
 
 #if WEIGHT_PRED
@@ -245,10 +278,18 @@ public:
   Void      setIntraPeriod                  ( Int   i )      { m_uiIntraPeriod = (UInt)i; }
   Void      setDecodingRefreshType          ( Int   i )      { m_uiDecodingRefreshType = (UInt)i; }
   Void      setGOPSize                      ( Int   i )      { m_iGOPSize = i; }
+#if G1002_RPS
+  Void      setGopList                      ( GOPEntry*  piGOPList )      {  for ( Int i = 0; i < MAX_GOP; i++ ) m_pcGOPList[i] = piGOPList[i]; }
+  Void      setExtraRPSs                    ( Int   i )      { m_iExtraRPSs = i; }
+  GOPEntry  getGOPEntry                     ( Int   i )      { return m_pcGOPList[i]; }
+  Void      setMaxNumberOfReferencePictures ( UInt u )       { m_uiMaxNumberOfReferencePictures = u;    }
+  Void      setMaxNumberOfReorderPictures   ( UInt u )       { m_uiMaxNumberOfReorderPictures = u;    }
+#else
   Void      setRateGOPSize                  ( Int   i )      { m_iRateGOPSize = i; }
   Void      setNumOfReference               ( Int   i )      { m_iNumOfReference = i; }
   Void      setNumOfReferenceB_L0           ( Int   i )      { m_iNumOfReferenceB_L0 = i; }
   Void      setNumOfReferenceB_L1           ( Int   i )      { m_iNumOfReferenceB_L1 = i; }
+#endif
   
   Void      setQP                           ( Int   i )      { m_iQP = i; }
   
@@ -281,7 +322,9 @@ public:
 #endif
   
   //====== b; Slice ========
+#if !G1002_RPS
   Void      setHierarchicalCoding           ( Bool  b )      { m_bHierarchicalCoding = b; }
+#endif
   
 #if !DISABLE_CAVLC
   //====== Entropy Coding ========
@@ -317,11 +360,16 @@ public:
   UInt      getIntraPeriod                  ()      { return  m_uiIntraPeriod; }
   UInt      getDecodingRefreshType          ()      { return  m_uiDecodingRefreshType; }
   Int       getGOPSize                      ()      { return  m_iGOPSize; }
+#if !G1002_RPS
   Int       getRateGOPSize                  ()      { return  m_iRateGOPSize; }
   Int       getNumOfReference               ()      { return  m_iNumOfReference; }
   Int       getNumOfReferenceB_L0           ()      { return  m_iNumOfReferenceB_L0; }
   Int       getNumOfReferenceB_L1           ()      { return  m_iNumOfReferenceB_L1; }
   
+#else
+  UInt      getMaxNumberOfReferencePictures ()      { return m_uiMaxNumberOfReferencePictures; }
+  UInt      getMaxNumberOfReorderPictures   ()      { return m_uiMaxNumberOfReorderPictures; }
+#endif
   Int       getQP                           ()      { return  m_iQP; }
   
   Int       getTemporalLayerQPOffset        ( Int i )      { assert (i < MAX_TLAYER ); return  m_aiTLayerQPOffset[i]; }
@@ -334,7 +382,9 @@ public:
   UInt      getQuadtreeTUMaxDepthIntra      ()      const { return m_uiQuadtreeTUMaxDepthIntra; }
   
   //==== b; Slice ========
+#if !G1002_RPS
   Bool      getHierarchicalCoding           ()      { return  m_bHierarchicalCoding; }
+#endif
   
 #if !DISABLE_CAVLC
   //==== Entropy Coding ========
@@ -363,14 +413,18 @@ public:
   Void      setUseASR                       ( Bool  b )     { m_bUseASR     = b; }
   Void      setUseHADME                     ( Bool  b )     { m_bUseHADME   = b; }
   Void      setUseALF                       ( Bool  b )     { m_bUseALF   = b; }
+#if !G1002_RPS
   Void      setUseGPB                       ( Bool  b )     { m_bUseGPB     = b; }
+  Void      setUseLDC                       ( Bool  b )     { m_bUseLDC     = b; }
+  Void      setUseNRF                       ( Bool  b )     { m_bUseNRF     = b; }
+  Void      setUseBQP                       ( Bool  b )     { m_bUseBQP     = b; }
+#endif
+
   Void      setUseLComb                     ( Bool  b )     { m_bUseLComb   = b; }
   Void      setLCMod                        ( Bool  b )     { m_bLCMod   = b;    }
   Void      setUseRDOQ                      ( Bool  b )     { m_bUseRDOQ    = b; }
-  Void      setUseLDC                       ( Bool  b )     { m_bUseLDC     = b; }
+
   Void      setUsePAD                       ( Bool  b )     { m_bUsePAD     = b; }
-  Void      setUseNRF                       ( Bool  b )     { m_bUseNRF     = b; }
-  Void      setUseBQP                       ( Bool  b )     { m_bUseBQP     = b; }
   Void      setUseFastEnc                   ( Bool  b )     { m_bUseFastEnc = b; }
 #if EARLY_CU_DETERMINATION
   Void      setUseEarlyCU                   ( Bool  b )     { m_bUseEarlyCU = b; }
@@ -395,14 +449,18 @@ public:
   Bool      getUseALF                       ()      { return m_bUseALF;     }
   Void      setALFEncodePassReduction       (Int i)  { m_iALFEncodePassReduction = i; }
   Int       getALFEncodePassReduction       ()       { return m_iALFEncodePassReduction; }
+#if !G1002_RPS
   Bool      getUseGPB                       ()      { return m_bUseGPB;     }
+  Bool      getUseNRF                       ()      { return m_bUseNRF;     }
+  Bool      getUseBQP                       ()      { return m_bUseBQP;     }
+  Bool      getUseLDC                       ()      { return m_bUseLDC;     }
+#endif
   Bool      getUseLComb                     ()      { return m_bUseLComb;   }
   Bool      getLCMod                        ()      { return m_bLCMod; }
   Bool      getUseRDOQ                      ()      { return m_bUseRDOQ;    }
-  Bool      getUseLDC                       ()      { return m_bUseLDC;     }
+
   Bool      getUsePAD                       ()      { return m_bUsePAD;     }
-  Bool      getUseNRF                       ()      { return m_bUseNRF;     }
-  Bool      getUseBQP                       ()      { return m_bUseBQP;     }
+
   Bool      getUseFastEnc                   ()      { return m_bUseFastEnc; }
 #if EARLY_CU_DETERMINATION
   Bool      getUseEarlyCU                   ()      { return m_bUseEarlyCU; }
@@ -542,9 +600,11 @@ public:
   void setPictureDigestEnabled(bool b) { m_pictureDigestEnabled = b; }
   bool getPictureDigestEnabled() { return m_pictureDigestEnabled; }
 
+#if !G1002_RPS
 #if REF_SETTING_FOR_LD
   Void      setUseNewRefSetting    ( Bool b ) { m_bUseNewRefSetting = b;    }
   Bool      getUseNewRefSetting    ()         { return m_bUseNewRefSetting; }
+#endif
 #endif
 
 #if WEIGHT_PRED
