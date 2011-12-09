@@ -423,7 +423,7 @@ Void TEncCavlc::codeSPS( TComSPS* pcSPS )
   WRITE_UVLC( pcSPS->getMaxCUDepth()-g_uiAddCUDepth,                                 "log2_diff_max_min_coding_block_size" );
   WRITE_UVLC( pcSPS->getQuadtreeTULog2MinSize() - 2,                                 "log2_min_transform_block_size_minus2" );
   WRITE_UVLC( pcSPS->getQuadtreeTULog2MaxSize() - pcSPS->getQuadtreeTULog2MinSize(), "log2_diff_max_min_transform_block_size" );
-  WRITE_UVLC( pcSPS->getPCMLog2MinSize() - 3,                                        "log2_min_pcm_coding_block_size_minus3" );
+  WRITE_UVLC( 7 - 3,                                                                 "log2_min_pcm_coding_block_size_minus3" );
   WRITE_UVLC( pcSPS->getQuadtreeTUMaxDepthInter() - 1,                               "max_transform_hierarchy_depth_inter" );
   WRITE_UVLC( pcSPS->getQuadtreeTUMaxDepthIntra() - 1,                               "max_transform_hierarchy_depth_intra" );
   WRITE_FLAG  ( (pcSPS->getUseLMChroma ()) ? 1 : 0,                                  "chroma_pred_from_luma_enabled_flag" ); 
@@ -1014,78 +1014,6 @@ Void TEncCavlc::codeQtRootCbf( TComDataCU* pcCU, UInt uiAbsPartIdx )
   xWriteFlag( uiCbf ? 1 : 0 );
 }
 
-/** Code I_PCM information. 
- * \param pcCU pointer to CU
- * \param uiAbsPartIdx CU index
- * \returns Void
- *
- * If I_PCM flag indicates that the CU is I_PCM, code its PCM alignment bits and codes.  
- */
-Void TEncCavlc::codeIPCMInfo( TComDataCU* pcCU, UInt uiAbsPartIdx)
-{
-  UInt uiIPCM = (pcCU->getIPCMFlag(uiAbsPartIdx) == true)? 1 : 0;
-
-  xWriteFlag(uiIPCM);
-
-  if (uiIPCM)
-  {
-    xWritePCMAlignZero();
-
-    UInt uiMinCoeffSize = pcCU->getPic()->getMinCUWidth()*pcCU->getPic()->getMinCUHeight();
-    UInt uiLumaOffset   = uiMinCoeffSize*uiAbsPartIdx;
-    UInt uiChromaOffset = uiLumaOffset>>2;
-
-    Pel* piPCMSample;
-    UInt uiWidth;
-    UInt uiHeight;
-    UInt uiX, uiY;
-
-    piPCMSample = pcCU->getPCMSampleY() + uiLumaOffset;
-    uiWidth = pcCU->getWidth(uiAbsPartIdx);
-    uiHeight = pcCU->getHeight(uiAbsPartIdx);
-
-    for(uiY = 0; uiY < uiHeight; uiY++)
-    {
-      for(uiX = 0; uiX < uiWidth; uiX++)
-      {
-        UInt uiSample = piPCMSample[uiX];
-
-        xWriteCode(uiSample, 8);
-      }
-      piPCMSample += uiWidth;
-    }
-
-    piPCMSample = pcCU->getPCMSampleCb() + uiChromaOffset;
-    uiWidth = pcCU->getWidth(uiAbsPartIdx)/2;
-    uiHeight = pcCU->getHeight(uiAbsPartIdx)/2;
-
-    for(uiY = 0; uiY < uiHeight; uiY++)
-    {
-      for(uiX = 0; uiX < uiWidth; uiX++)
-      {
-        UInt uiSample = piPCMSample[uiX];
-
-        xWriteCode(uiSample, 8);
-      }
-      piPCMSample += uiWidth;
-    }
-
-    piPCMSample = pcCU->getPCMSampleCr() + uiChromaOffset;
-    uiWidth = pcCU->getWidth(uiAbsPartIdx)/2;
-    uiHeight = pcCU->getHeight(uiAbsPartIdx)/2;
-
-    for(uiY = 0; uiY < uiHeight; uiY++)
-    {
-      for(uiX = 0; uiX < uiWidth; uiX++)
-      {
-        UInt uiSample = piPCMSample[uiX];
-
-        xWriteCode(uiSample, 8);
-      }
-      piPCMSample += uiWidth;
-    }
-  }
-}
 
 Void TEncCavlc::codeIntraDirLumaAng( TComDataCU* pcCU, UInt uiAbsPartIdx )
 {
@@ -2067,14 +1995,6 @@ Void TEncCavlc::xWriteSvlc     ( Int iCode )
 Void TEncCavlc::xWriteFlag( UInt uiCode )
 {
   m_pcBitIf->write( uiCode, 1 );
-}
-
-/** Write PCM alignment bits. 
- * \returns Void
- */
-Void  TEncCavlc::xWritePCMAlignZero    ()
-{
-  m_pcBitIf->writeAlignZero();
 }
 
 Void TEncCavlc::xWriteUnaryMaxSymbol( UInt uiSymbol, UInt uiMaxSymbol )

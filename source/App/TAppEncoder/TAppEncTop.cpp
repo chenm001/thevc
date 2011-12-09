@@ -168,7 +168,6 @@ Void TAppEncTop::xInitLibCfg()
 
   m_cTEncTop.setUseLMChroma                  ( m_bUseLMChroma );
   m_cTEncTop.setUseConstrainedIntraPred      ( m_bUseConstrainedIntraPred );
-  m_cTEncTop.setPCMLog2MinSize          ( m_uiPCMLog2MinSize);
 
 #if SAO
   m_cTEncTop.setUseSAO ( m_bUseSAO );

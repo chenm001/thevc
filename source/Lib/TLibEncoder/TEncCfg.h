@@ -192,7 +192,6 @@ protected:
   UInt      m_uiDeltaQpRD;
   
   Bool      m_bUseConstrainedIntraPred;
-  UInt      m_uiPCMLog2MinSize;
 
 #if OL_USE_WPP
   Int       m_iWaveFrontSynchro;
@@ -366,7 +365,6 @@ public:
 #endif
   Void      setUseMRG                       ( Bool  b )     { m_bUseMRG     = b; } // SOPH:
   Void      setUseConstrainedIntraPred      ( Bool  b )     { m_bUseConstrainedIntraPred = b; }
-  Void      setPCMLog2MinSize               ( UInt u )     { m_uiPCMLog2MinSize = u;      }
   Void      setdQPs                         ( Int*  p )     { m_aidQP       = p; }
   Void      setDeltaQpRD                    ( UInt  u )     {m_uiDeltaQpRD  = u; }
   Bool      getUseSBACRD                    ()      { return m_bUseSBACRD;  }
@@ -402,7 +400,6 @@ public:
 #if NS_HAD
   Bool      getUseNSQT                      ()      { return m_useNSQT; }
 #endif
-  UInt      getPCMLog2MinSize               ()      { return  m_uiPCMLog2MinSize;  }
 
   Bool getUseLMChroma                       ()      { return m_bUseLMChroma;        }
   Void setUseLMChroma                       ( Bool b ) { m_bUseLMChroma  = b;       }

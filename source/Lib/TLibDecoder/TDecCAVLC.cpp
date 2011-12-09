@@ -410,7 +410,7 @@ Void TDecCavlc::parseSPS(TComSPS* pcSPS)
   READ_UVLC( uiCode, "log2_min_transform_block_size_minus2" );   pcSPS->setQuadtreeTULog2MinSize( uiCode + 2 );
   READ_UVLC( uiCode, "log2_diff_max_min_transform_block_size" ); pcSPS->setQuadtreeTULog2MaxSize( uiCode + pcSPS->getQuadtreeTULog2MinSize() );
   pcSPS->setMaxTrSize( 1<<(uiCode + pcSPS->getQuadtreeTULog2MinSize()) );
-  READ_UVLC( uiCode, "log2_min_pcm_coding_block_size_minus3" );  pcSPS->setPCMLog2MinSize (uiCode+3); 
+  READ_UVLC( uiCode, "log2_min_pcm_coding_block_size_minus3" );  assert(uiCode+3 == 7); 
   READ_UVLC( uiCode, "max_transform_hierarchy_depth_inter" );    pcSPS->setQuadtreeTUMaxDepthInter( uiCode+1 );
   READ_UVLC( uiCode, "max_transform_hierarchy_depth_intra" );    pcSPS->setQuadtreeTUMaxDepthIntra( uiCode+1 );
   g_uiAddCUDepth = 0;
@@ -1217,87 +1217,6 @@ Void TDecCavlc::parsePredMode( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth
   {
     pcCU->setPredModeSubParts( MODE_INTRA, uiAbsPartIdx, uiDepth );
     return ;
-  }
-}
-
-/** Parse I_PCM information. 
- * \param pcCU pointer to CU
- * \param uiAbsPartIdx CU index
- * \param uiDepth CU depth
- * \returns Void
- *
- * If I_PCM flag indicates that the CU is I_PCM, parse its PCM alignment bits and codes.  
- */
-Void TDecCavlc::parseIPCMInfo( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
-{
-  UInt uiSymbol;
-
-  xReadFlag( uiSymbol );
-
-  if ( uiSymbol )
-  {
-    Bool bIpcmFlag   = true;
-
-    xReadPCMAlignZero();
-
-    pcCU->setPartSizeSubParts  ( SIZE_2Nx2N, uiAbsPartIdx, uiDepth );
-    pcCU->setSizeSubParts      ( g_uiMaxCUWidth>>uiDepth, g_uiMaxCUHeight>>uiDepth, uiAbsPartIdx, uiDepth );
-    pcCU->setIPCMFlagSubParts  ( bIpcmFlag, uiAbsPartIdx, uiDepth );
-
-    UInt uiMinCoeffSize = pcCU->getPic()->getMinCUWidth()*pcCU->getPic()->getMinCUHeight();
-    UInt uiLumaOffset   = uiMinCoeffSize*uiAbsPartIdx;
-    UInt uiChromaOffset = uiLumaOffset>>2;
-
-    Pel* piPCMSample;
-    UInt uiWidth;
-    UInt uiHeight;
-    UInt uiX, uiY;
-
-    piPCMSample = pcCU->getPCMSampleY() + uiLumaOffset;
-    uiWidth = pcCU->getWidth(uiAbsPartIdx);
-    uiHeight = pcCU->getHeight(uiAbsPartIdx);
-
-    for(uiY = 0; uiY < uiHeight; uiY++)
-    {
-      for(uiX = 0; uiX < uiWidth; uiX++)
-      {
-        UInt uiSample;
-        xReadCode(8, uiSample);
-
-        piPCMSample[uiX] = uiSample;
-      }
-      piPCMSample += uiWidth;
-    }
-
-    piPCMSample = pcCU->getPCMSampleCb() + uiChromaOffset;
-    uiWidth = pcCU->getWidth(uiAbsPartIdx)/2;
-    uiHeight = pcCU->getHeight(uiAbsPartIdx)/2;
-
-    for(uiY = 0; uiY < uiHeight; uiY++)
-    {
-      for(uiX = 0; uiX < uiWidth; uiX++)
-      {
-        UInt uiSample;
-        xReadCode(8, uiSample);
-        piPCMSample[uiX] = uiSample;
-      }
-      piPCMSample += uiWidth;
-    }
-
-    piPCMSample = pcCU->getPCMSampleCr() + uiChromaOffset;
-    uiWidth = pcCU->getWidth(uiAbsPartIdx)/2;
-    uiHeight = pcCU->getHeight(uiAbsPartIdx)/2;
-
-    for(uiY = 0; uiY < uiHeight; uiY++)
-    {
-      for(uiX = 0; uiX < uiWidth; uiX++)
-      {
-        UInt uiSample;
-        xReadCode(8, uiSample);
-        piPCMSample[uiX] = uiSample;
-      }
-      piPCMSample += uiWidth;
-    }
   }
 }
 
@@ -2366,30 +2285,6 @@ Void TDecCavlc::xReadSvlc( Int& riVal)
 Void TDecCavlc::xReadFlag (UInt& ruiCode)
 {
   m_pcBitstream->read( 1, ruiCode );
-}
-
-/** Parse PCM alignment zero bits.
- * \returns Void
- */
-Void TDecCavlc::xReadPCMAlignZero( )
-{
-  UInt uiNumberOfBits = m_pcBitstream->getNumBitsUntilByteAligned();
-
-  if(uiNumberOfBits)
-  {
-    UInt uiBits;
-    UInt uiSymbol;
-
-    for(uiBits = 0; uiBits < uiNumberOfBits; uiBits++)
-    {
-      xReadFlag( uiSymbol );
-
-      if(uiSymbol)
-      {
-        printf("\nWarning! pcm_align_zero include a non-zero value.\n");
-      }
-    }
-  }
 }
 
 Void TDecCavlc::xReadUnaryMaxSymbol( UInt& ruiSymbol, UInt uiMaxSymbol )

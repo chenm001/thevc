@@ -91,7 +91,6 @@ private:
   UInt        m_uiQuadtreeTULog2MinSize;
   UInt        m_uiQuadtreeTUMaxDepthInter;
   UInt        m_uiQuadtreeTUMaxDepthIntra;
-  UInt        m_uiPCMLog2MinSize;
 #if DISABLE_4x4_INTER
   Bool        m_bDisInter4x4;
 #endif
@@ -157,8 +156,6 @@ public:
   UInt getMaxCUHeight ()         { return  m_uiMaxCUHeight; }
   Void setMaxCUDepth  ( UInt u ) { m_uiMaxCUDepth = u;      }
   UInt getMaxCUDepth  ()         { return  m_uiMaxCUDepth;  }
-  Void setPCMLog2MinSize  ( UInt u ) { m_uiPCMLog2MinSize = u;      }
-  UInt getPCMLog2MinSize  ()         { return  m_uiPCMLog2MinSize;  }
 #if G1002_RPS
   Void setBitsForPOC  ( UInt u ) { m_uiBitsForPOC = u;      }
   UInt getBitsForPOC  ()         { return m_uiBitsForPOC;   }

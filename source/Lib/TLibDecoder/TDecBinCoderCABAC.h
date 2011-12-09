@@ -65,8 +65,6 @@ public:
   Void  decodeBinTrm      ( UInt& ruiBin                           );
   
   Void  resetBac          ();
-  Void  decodePCMAlignBits();
-  Void  xReadPCMCode      (UInt uiLength, UInt& ruiCode);
   
 #if OL_USE_WPP
   Void  copyState         ( TDecBinIf* pcTDecBinIf );

@@ -559,7 +559,6 @@ Void TEncTop::xInitSPS()
   m_cSPS.setMaxNumberOfReferencePictures(m_uiMaxNumberOfReferencePictures);
   m_cSPS.setMaxNumberOfReorderPictures(m_uiMaxNumberOfReorderPictures);
 #endif
-  m_cSPS.setPCMLog2MinSize (m_uiPCMLog2MinSize);
 
   m_cSPS.setUseALF        ( m_bUseALF           );
   
