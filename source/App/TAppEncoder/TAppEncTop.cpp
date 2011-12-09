@@ -146,7 +146,6 @@ Void TAppEncTop::xInitLibCfg()
 #if !G1002_RPS
   m_cTEncTop.setUseGPB                       ( m_bUseGPB      );
 #endif
-  m_cTEncTop.setUseLComb                     ( m_bUseLComb    );
   m_cTEncTop.setLCMod                        ( m_bLCMod         );
   m_cTEncTop.setdQPs                         ( m_aidQP        );
   m_cTEncTop.setUseRDOQ                      ( m_bUseRDOQ     );

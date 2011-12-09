@@ -607,15 +607,6 @@ Bool TDecTop::decode(InputNALUnit& nalu, Int& iSkipFrame, Int& iPOCLastDisplay)
         // HierP + GPB case
         if ( pcSlice->isInterB() )
         {
-          if(pcSlice->getRefPicListCombinationFlag() && (pcSlice->getNumRefIdx(REF_PIC_LIST_0) > pcSlice->getNumRefIdx(REF_PIC_LIST_1)))
-          {
-            for (Int iRefIdx = 0; iRefIdx < pcSlice->getNumRefIdx(REF_PIC_LIST_1); iRefIdx++)
-            {
-              pcSlice->setRefPic(pcSlice->getRefPic(REF_PIC_LIST_0, iRefIdx), REF_PIC_LIST_1, iRefIdx);
-            }
-          }
-          else
-          {
             Int iNumRefIdx = pcSlice->getNumRefIdx(REF_PIC_LIST_0);
             pcSlice->setNumRefIdx( REF_PIC_LIST_1, iNumRefIdx );
             
@@ -623,7 +614,6 @@ Bool TDecTop::decode(InputNALUnit& nalu, Int& iSkipFrame, Int& iPOCLastDisplay)
             {
               pcSlice->setRefPic(pcSlice->getRefPic(REF_PIC_LIST_0, iRefIdx), REF_PIC_LIST_1, iRefIdx);
             }
-          }
         }
         
         // For generalized B
@@ -665,13 +655,10 @@ Bool TDecTop::decode(InputNALUnit& nalu, Int& iSkipFrame, Int& iPOCLastDisplay)
         //---------------
         pcSlice->setRefPOCList();
         
-        if(!pcSlice->getRefPicListModificationFlagLC())
-        {
           pcSlice->generateCombinedList();
-        }
         
         pcSlice->setNoBackPredFlag( false );
-        if ( pcSlice->getSliceType() == B_SLICE && !pcSlice->getRefPicListCombinationFlag())
+        if ( pcSlice->getSliceType() == B_SLICE )
         {
           if ( pcSlice->getNumRefIdx(RefPicList( 0 ) ) == pcSlice->getNumRefIdx(RefPicList( 1 ) ) )
           {

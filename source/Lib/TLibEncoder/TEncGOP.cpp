@@ -336,17 +336,6 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
         {
           pcSlice->setSliceType( B_SLICE ); // Change slice type by force
           
-          if(pcSlice->getSPS()->getUseLComb() && (m_pcCfg->getNumOfReferenceB_L1() < m_pcCfg->getNumOfReferenceB_L0()) && (pcSlice->getNumRefIdx(REF_PIC_LIST_0)>1))
-          {
-            pcSlice->setNumRefIdx( REF_PIC_LIST_1, m_pcCfg->getNumOfReferenceB_L1() );
-
-            for (Int iRefIdx = 0; iRefIdx < m_pcCfg->getNumOfReferenceB_L1(); iRefIdx++)
-            {
-              pcSlice->setRefPic(pcSlice->getRefPic(REF_PIC_LIST_0, iRefIdx), REF_PIC_LIST_1, iRefIdx);
-            }
-          }
-          else
-          {
             Int iNumRefIdx = pcSlice->getNumRefIdx(REF_PIC_LIST_0);
             pcSlice->setNumRefIdx( REF_PIC_LIST_1, iNumRefIdx );
             
@@ -354,23 +343,11 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
             {
               pcSlice->setRefPic(pcSlice->getRefPic(REF_PIC_LIST_0, iRefIdx), REF_PIC_LIST_1, iRefIdx);
             }
-          }
         }
       }
 
 #endif
-      if (pcSlice->getSliceType() != B_SLICE || !pcSlice->getSPS()->getUseLComb())
-      {
         pcSlice->setNumRefIdx(REF_PIC_LIST_C, 0);
-        pcSlice->setRefPicListCombinationFlag(false);
-        pcSlice->setRefPicListModificationFlagLC(false);
-      }
-      else
-      {
-        pcSlice->setRefPicListCombinationFlag(pcSlice->getSPS()->getUseLComb());
-        pcSlice->setRefPicListModificationFlagLC(pcSlice->getSPS()->getLCMod());
-        pcSlice->setNumRefIdx(REF_PIC_LIST_C, pcSlice->getNumRefIdx(REF_PIC_LIST_0));
-      }
       
       if (pcSlice->getSliceType() == B_SLICE)
       {
@@ -403,7 +380,7 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
       pcSlice->setRefPOCList();
       
       pcSlice->setNoBackPredFlag( false );
-      if ( pcSlice->getSliceType() == B_SLICE && !pcSlice->getRefPicListCombinationFlag())
+      if ( pcSlice->getSliceType() == B_SLICE )
       {
         if ( pcSlice->getNumRefIdx(RefPicList( 0 ) ) == pcSlice->getNumRefIdx(RefPicList( 1 ) ) )
         {

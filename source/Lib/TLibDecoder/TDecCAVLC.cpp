@@ -693,33 +693,8 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice)
   // ref_pic_list_combination( )
   if (rpcSlice->isInterB())
   {
-    READ_FLAG( uiCode, "ref_pic_list_combination_flag" );       rpcSlice->setRefPicListCombinationFlag( uiCode ? 1 : 0 );
-    if(uiCode)
-    {
-      READ_UVLC( uiCode, "num_ref_idx_lc_active_minus1" );      rpcSlice->setNumRefIdx( REF_PIC_LIST_C, uiCode + 1 );
-      
-      READ_FLAG( uiCode, "ref_pic_list_modification_flag_lc" ); rpcSlice->setRefPicListModificationFlagLC( uiCode ? 1 : 0 );
-      if(uiCode)
-      {
-        for (UInt i=0;i<rpcSlice->getNumRefIdx(REF_PIC_LIST_C);i++)
-        {
-          READ_FLAG( uiCode, "pic_from_list_0_flag" );
-          rpcSlice->setListIdFromIdxOfLC(i, uiCode);
-          READ_UVLC( uiCode, "ref_idx_list_curr" );
-          rpcSlice->setRefIdxFromIdxOfLC(i, uiCode);
-          rpcSlice->setRefIdxOfLC((RefPicList)rpcSlice->getListIdFromIdxOfLC(i), rpcSlice->getRefIdxFromIdxOfLC(i), i);
-        }
-      }
-    }
-    else
-    {
-      rpcSlice->setRefPicListModificationFlagLC(false);
+    READ_FLAG( uiCode, "ref_pic_list_combination_flag" );       assert(uiCode == 0);
       rpcSlice->setNumRefIdx(REF_PIC_LIST_C, 0);
-    }
-  }
-  else
-  {
-    rpcSlice->setRefPicListCombinationFlag(false);      
   }
   
   // if( nal_ref_idc != 0 )

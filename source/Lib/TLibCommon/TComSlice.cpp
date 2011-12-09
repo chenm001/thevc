@@ -54,8 +54,6 @@ TComSlice::TComSlice()
 , m_bLoopFilterDisable            ( false )
 , m_bDRBFlag                      ( true )
 , m_eERBIndex                     ( ERB_NONE )
-, m_bRefPicListModificationFlagLC ( false )
-, m_bRefPicListCombinationFlag    ( false )
 , m_bCheckLDC                     ( false )
 , m_iSliceQpDelta                 ( 0 )
 , m_iDepth                        ( 0 )
@@ -149,8 +147,6 @@ Void TComSlice::initSlice()
   initEqualRef();
   m_bNoBackPredFlag = false;
   m_bRefIdxCombineCoding = false;
-  m_bRefPicListCombinationFlag = false;
-  m_bRefPicListModificationFlagLC = false;
   m_bCheckLDC = false;
 
   m_aiNumRefIdx[REF_PIC_LIST_C]      = 0;
@@ -822,8 +818,6 @@ Void TComSlice::copySliceInfo(TComSlice *pSrc)
     m_iRefIdxOfL1FromRefIdxOfL0[i] = pSrc->m_iRefIdxOfL1FromRefIdxOfL0[i];
     m_iRefIdxOfL0FromRefIdxOfL1[i] = pSrc->m_iRefIdxOfL0FromRefIdxOfL1[i];
   }
-  m_bRefPicListModificationFlagLC = pSrc->m_bRefPicListModificationFlagLC;
-  m_bRefPicListCombinationFlag    = pSrc->m_bRefPicListCombinationFlag;
   m_bCheckLDC             = pSrc->m_bCheckLDC;
   m_iSliceQpDelta        = pSrc->m_iSliceQpDelta;
   for (i = 0; i < 2; i++)
@@ -1328,7 +1322,6 @@ TComSPS::TComSPS()
 , m_bUsePAD                   (false)
 , m_bUseMRG                   (false)
 , m_bUseLMChroma              (false)
-, m_bUseLComb                 (false)
 , m_bLCMod                    (false)
 , m_uiBitDepth                (  8)
 , m_uiBitIncrement            (  0)

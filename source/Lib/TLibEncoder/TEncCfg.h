@@ -172,7 +172,6 @@ protected:
 #if !G1002_RPS
   Bool      m_bUseGPB;
 #endif
-  Bool      m_bUseLComb;
   Bool      m_bLCMod;
   Bool      m_bUseRDOQ;
   Bool      m_bUsePAD;
@@ -361,7 +360,6 @@ public:
 #if !G1002_RPS
   Void      setUseGPB                       ( Bool  b )     { m_bUseGPB     = b; }
 #endif
-  Void      setUseLComb                     ( Bool  b )     { m_bUseLComb   = b; }
   Void      setLCMod                        ( Bool  b )     { m_bLCMod   = b;    }
   Void      setUseRDOQ                      ( Bool  b )     { m_bUseRDOQ    = b; }
   Void      setUsePAD                       ( Bool  b )     { m_bUsePAD     = b; }
@@ -402,7 +400,6 @@ public:
 #if !G1002_RPS
   Bool      getUseGPB                       ()      { return m_bUseGPB;     }
 #endif
-  Bool      getUseLComb                     ()      { return m_bUseLComb;   }
   Bool      getLCMod                        ()      { return m_bLCMod; }
   Bool      getUseRDOQ                      ()      { return m_bUseRDOQ;    }
   Bool      getUsePAD                       ()      { return m_bUsePAD;     }

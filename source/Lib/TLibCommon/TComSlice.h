@@ -105,7 +105,6 @@ private:
 
   Bool        m_bUseLMChroma; // JL:
 
-  Bool        m_bUseLComb;
   Bool        m_bLCMod;
 #if NSQT
   Bool        m_useNSQT;
@@ -222,8 +221,6 @@ public:
   Void setUsePAD      ( Bool b ) { m_bUsePAD   = b;         }
   Void setUseMRG      ( Bool b ) { m_bUseMRG  = b;          } // SOPH:
   
-  Void setUseLComb    (Bool b)   { m_bUseLComb = b;         }
-  Bool getUseLComb    ()         { return m_bUseLComb;      }
   Void setLCMod       (Bool b)   { m_bLCMod = b;     }
   Bool getLCMod       ()         { return m_bLCMod;  }
 
@@ -583,8 +580,6 @@ private:
   Int         m_iRefIdxFromIdxOfLC[MAX_NUM_REF_LC];
   Int         m_iRefIdxOfL1FromRefIdxOfL0[MAX_NUM_REF_LC];
   Int         m_iRefIdxOfL0FromRefIdxOfL1[MAX_NUM_REF_LC];
-  Bool        m_bRefPicListModificationFlagLC;
-  Bool        m_bRefPicListCombinationFlag;
 
   Bool        m_bCheckLDC;
 
@@ -709,10 +704,6 @@ public:
   Int       getRefIdxFromIdxOfLC(Int iRefIdx)                   { return m_iRefIdxFromIdxOfLC[iRefIdx];       }
   Int       getRefIdxOfL0FromRefIdxOfL1(Int iRefIdx)            { return m_iRefIdxOfL0FromRefIdxOfL1[iRefIdx];}
   Int       getRefIdxOfL1FromRefIdxOfL0(Int iRefIdx)            { return m_iRefIdxOfL1FromRefIdxOfL0[iRefIdx];}
-  Bool      getRefPicListModificationFlagLC()                   {return m_bRefPicListModificationFlagLC;}
-  Void      setRefPicListModificationFlagLC(Bool bflag)         {m_bRefPicListModificationFlagLC=bflag;}     
-  Bool      getRefPicListCombinationFlag()                      {return m_bRefPicListCombinationFlag;}
-  Void      setRefPicListCombinationFlag(Bool bflag)            {m_bRefPicListCombinationFlag=bflag;}     
   Void      setListIdFromIdxOfLC(Int  iRefIdx, UInt uiVal)      { m_eListIdFromIdxOfLC[iRefIdx]=uiVal; }
   Void      setRefIdxFromIdxOfLC(Int  iRefIdx, UInt uiVal)      { m_iRefIdxFromIdxOfLC[iRefIdx]=uiVal; }
   Void      setRefIdxOfLC       (RefPicList e, Int iRefIdx, Int RefIdxLC)     { m_iRefIdxOfLC[e][iRefIdx]=RefIdxLC;}

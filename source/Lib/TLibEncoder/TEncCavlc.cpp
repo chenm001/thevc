@@ -620,21 +620,7 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
   // maybe move to own function?
   if (pcSlice->isInterB())
   {
-    WRITE_FLAG(pcSlice->getRefPicListCombinationFlag() ? 1 : 0,       "ref_pic_list_combination_flag" );
-    if(pcSlice->getRefPicListCombinationFlag())
-    {
-      WRITE_UVLC( pcSlice->getNumRefIdx(REF_PIC_LIST_C) - 1,          "num_ref_idx lc_active_minus1");
-      
-      WRITE_FLAG( pcSlice->getRefPicListModificationFlagLC() ? 1 : 0, "ref_pic_list_modification_flag_lc" );
-      if(pcSlice->getRefPicListModificationFlagLC())
-      {
-        for (UInt i=0;i<pcSlice->getNumRefIdx(REF_PIC_LIST_C);i++)
-        {
-          WRITE_FLAG( pcSlice->getListIdFromIdxOfLC(i),               "pic_from_list_0_flag" );
-          WRITE_UVLC( pcSlice->getRefIdxFromIdxOfLC(i),               "ref_idx_list_curr" );
-        }
-      }
-    }
+    WRITE_FLAG(0, "ref_pic_list_combination_flag" );
   }
     
   // if( nal_ref_idc != 0 )
