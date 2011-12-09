@@ -191,10 +191,6 @@
 #define SAO_CHROMA                    1           // JCTVC-F057: Sample adaptive offset for Chroma
 #define SAO_CROSS_LCU_BOUNDARIES      1
 
-#define VAR_SIZE_H           4
-#define VAR_SIZE_W           4
-#define NO_VAR_BIN          16
-
 #define PARALLEL_MERGED_DEBLK        1 // JCTC-E224, JCTVC-E181: Parallel decisions + Parallel filtering
 
 #define MATRIX_MULT                             0   // Brute force matrix multiplication instead of partial butterfly
@@ -337,23 +333,13 @@ struct _AlfParam
 #endif
   Int chroma_idc;                         ///< indicates use of ALF for chroma
   Int num_coeff;                          ///< number of filter coefficients
-  Int *coeff;                             ///< filter coefficient array
-  Int realfiltNo_chroma;                  ///< index of filter shape (chroma)
+  Int filter_shape;
+  Int filter_shape_chroma;
   Int num_coeff_chroma;                   ///< number of filter coefficients (chroma)
   Int *coeff_chroma;                      ///< filter coefficient array (chroma)
-  //CodeAux related
-  Int realfiltNo;
-  Int filtNo;
-  Int filterPattern[NO_VAR_BIN];
+  Int *filterPattern;
   Int startSecondFilter;
-  Int noFilters;
-  Int varIndTab[NO_VAR_BIN];
-  
-  //Coeff send related
-  Int filters_per_group_diff; //this can be updated using codedVarBins
   Int filters_per_group;
-  Int codedVarBins[NO_VAR_BIN]; 
-  Int forceCoeff0;
   Int predMethod;
   Int **coeffmulti;
   Int minKStart;

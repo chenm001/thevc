@@ -141,27 +141,19 @@ Void TEncEntropy::codeAux(ALFParam* pAlfParam)
   //  m_pcEntropyCoderIf->codeAlfUvlc(pAlfParam->realfiltNo); 
 
   m_pcEntropyCoderIf->codeAlfFlag(pAlfParam->alf_pcr_region_flag);
+  m_pcEntropyCoderIf->codeAlfUvlc(pAlfParam->filter_shape); 
+  Int noFilters = min(pAlfParam->filters_per_group-1, 2);
+  m_pcEntropyCoderIf->codeAlfUvlc(noFilters);
 
-  m_pcEntropyCoderIf->codeAlfUvlc(pAlfParam->realfiltNo); 
-  
-  if (pAlfParam->filtNo>=0)
+  if(noFilters == 1)
   {
-    if(pAlfParam->realfiltNo >= 0)
+    m_pcEntropyCoderIf->codeAlfUvlc(pAlfParam->startSecondFilter);
+  }
+  else if (noFilters == 2)
+  {
+    for (int i=1; i<NO_VAR_BINS; i++)
     {
-      // filters_per_fr
-      m_pcEntropyCoderIf->codeAlfUvlc(pAlfParam->noFilters);
-
-      if(pAlfParam->noFilters == 1)
-      {
-        m_pcEntropyCoderIf->codeAlfUvlc(pAlfParam->startSecondFilter);
-      }
-      else if (pAlfParam->noFilters == 2)
-      {
-        for (int i=1; i<NO_VAR_BINS; i++)
-        {
-          m_pcEntropyCoderIf->codeAlfFlag (pAlfParam->filterPattern[i]);
-        }
-      }
+      m_pcEntropyCoderIf->codeAlfFlag (pAlfParam->filterPattern[i]);
     }
   }
 }
@@ -182,15 +174,13 @@ Int TEncEntropy::lengthGolomb(int coeffVal, int k)
 
 Int TEncEntropy::codeFilterCoeff(ALFParam* ALFp)
 {
-  int filters_per_group = ALFp->filters_per_group_diff;
+  Int filters_per_group = ALFp->filters_per_group;
   int sqrFiltLength = ALFp->num_coeff;
-  int filtNo = ALFp->realfiltNo;
   int i, k, kMin, kStart, minBits, ind, scanPos, maxScanVal, coeffVal, len = 0,
-  *pDepthInt=NULL, kMinTab[MAX_SQR_FILT_LENGTH], bitsCoeffScan[MAX_SCAN_VAL][MAX_EXP_GOLOMB],
-  minKStart, minBitsKStart, bitsKStart;
+    *pDepthInt=NULL, kMinTab[MAX_SCAN_VAL], bitsCoeffScan[MAX_SCAN_VAL][MAX_EXP_GOLOMB],
+    minKStart, minBitsKStart, bitsKStart;
   
-  pDepthInt = pDepthIntTabShapes[filtNo];
-  
+  pDepthInt = pDepthIntTabShapes[ALFp->filter_shape];
   maxScanVal = 0;
   for(i = 0; i < sqrFiltLength; i++)
   {
@@ -396,8 +386,7 @@ Void TEncEntropy::encodeAlfParam(ALFParam* pAlfParam)
   m_pcEntropyCoderIf->codeAlfUvlc(pAlfParam->chroma_idc);
   if(pAlfParam->chroma_idc)
   {
-    m_pcEntropyCoderIf->codeAlfUvlc(pAlfParam->realfiltNo_chroma);
-    
+    m_pcEntropyCoderIf->codeAlfUvlc(pAlfParam->filter_shape_chroma);
     // filter coefficients for chroma
     for(pos=0; pos<pAlfParam->num_coeff_chroma; pos++)
     {
