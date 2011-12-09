@@ -1380,7 +1380,7 @@ Void TComAdaptiveLoopFilter::calcVar(Pel **imgYvar, Pel *imgYpad, Int stride, In
       }
 
       avgvar = (vertical + horizontal) >> 2;
-      avgvar = (Pel) Clip_post(varmax, avgvar >>(g_uiBitIncrement+1));
+      avgvar = (Pel) Clip_post(varmax, avgvar >> 1);
       avgvar = th[avgvar];
       avgvar = Clip_post(step1, (Int) avgvar ) + (step1+1)*direction;
       imgYvar[(i - 1)>>shiftH][(j - 1)>>shiftW] = avgvar;
@@ -1436,7 +1436,7 @@ Void TComAdaptiveLoopFilter::calcVar(int ypos, int xpos, Pel **imgY_var, Pel *im
       if (vertical > 2*horizontal) direction = 1; //vertical
       if (horizontal > 2*vertical) direction = 2; //horizontal
       avg_var = (vertical + horizontal)>>2;
-      avg_var = (Pel) Clip_post(var_max, avg_var>>(g_uiBitIncrement+1));
+      avg_var = (Pel) Clip_post(var_max, avg_var>>1);
       avg_var = th[avg_var];
       avg_var = Clip_post(step1, (Int) avg_var ) + (step1+1)*direction;
       imgY_var[(i - 1)>>shift_h][(j - 1)>>shift_w] = avg_var;
@@ -3472,7 +3472,7 @@ Void TComAdaptiveLoopFilter::xPCMSampleRestoration (TComDataCU* pcCU, UInt uiAbs
     uiWidth  = (g_uiMaxCUWidth >> uiDepth);
     uiHeight = (g_uiMaxCUHeight >> uiDepth);
 #if E192_SPS_PCM_BIT_DEPTH_SYNTAX
-    uiPcmLeftShiftBit = g_uiBitDepth + g_uiBitIncrement - pcCU->getSlice()->getSPS()->getPCMBitDepthLuma();
+    uiPcmLeftShiftBit = 8 - pcCU->getSlice()->getSPS()->getPCMBitDepthLuma();
 #endif
   }
   else
@@ -3492,7 +3492,7 @@ Void TComAdaptiveLoopFilter::xPCMSampleRestoration (TComDataCU* pcCU, UInt uiAbs
     uiWidth  = ((g_uiMaxCUWidth >> uiDepth)/2);
     uiHeight = ((g_uiMaxCUWidth >> uiDepth)/2);
 #if E192_SPS_PCM_BIT_DEPTH_SYNTAX
-    uiPcmLeftShiftBit = g_uiBitDepth + g_uiBitIncrement - pcCU->getSlice()->getSPS()->getPCMBitDepthChroma();
+    uiPcmLeftShiftBit = 8 - pcCU->getSlice()->getSPS()->getPCMBitDepthChroma();
 #endif
   }
 
@@ -3503,14 +3503,7 @@ Void TComAdaptiveLoopFilter::xPCMSampleRestoration (TComDataCU* pcCU, UInt uiAbs
 #if E192_SPS_PCM_BIT_DEPTH_SYNTAX
       piSrc[uiX] = (piPcm[uiX] << uiPcmLeftShiftBit);
 #else
-      if(g_uiBitIncrement > 0)
-      {
-        piSrc[uiX] = (piPcm[uiX] << g_uiBitIncrement);
-      }
-      else
-      {
-        piSrc[uiX] = piPcm[uiX];
-      }
+      piSrc[uiX] = piPcm[uiX];
 #endif
     }
     piPcm += uiWidth;

@@ -733,8 +733,6 @@ const UChar g_aucAngModeMapping[4][35] = // intra mode conversion for most proba
 // Bit-depth
 // ====================================================================================================================
 
-UInt g_uiBitDepth     = 8;    // base bit-depth
-UInt g_uiBitIncrement = 0;    // increments
 UInt g_uiIBDI_MAX     = 255;  // max. value after  IBDI
 UInt g_uiBASE_MAX     = 255;  // max. value before IBDI
 

@@ -249,7 +249,7 @@ Void TComSampleAdaptiveOffset::create( UInt uiSourceWidth, UInt uiSourceHeight, 
   0, 0, 0, 0, 0, 0, 0, 0,
   9,10,11,12,13,14,15,16}};
 
-  UInt uiInternalBitDepth = g_uiBitDepth+g_uiBitIncrement;
+  UInt uiInternalBitDepth = 9;
   UInt uiPixelRange = 1<<uiInternalBitDepth;
   UInt uiBoRangeShift = uiInternalBitDepth - SAO_BO_BITS;
 
@@ -1535,7 +1535,7 @@ Void TComSampleAdaptiveOffset::processSaoOnePart(SAOQTPart *psQTPart, UInt uiPar
     if (uiTypeIdx == SAO_BO_0 || uiTypeIdx == SAO_BO_1)
     {
       for (i=0;i<pOnePart->iLength;i++)
-        iOffset[i+1] = pOnePart->iOffset[i] << m_uiSaoBitIncrease;
+        iOffset[i+1] = pOnePart->iOffset[i];
 
       if (uiTypeIdx == SAO_BO_0 )
       {
@@ -1546,11 +1546,7 @@ Void TComSampleAdaptiveOffset::processSaoOnePart(SAOQTPart *psQTPart, UInt uiPar
         ppLumaTable = m_ppLumaTableBo1;
       }
 
-#if FULL_NBIT
-      for (i=0;i<(1<<(g_uiBitDepth));i++)
-#else
-      for (i=0;i<(1<<(g_uiBitIncrement+8));i++)
-#endif
+      for (i=0;i<(1<<8);i++)
       {
         m_iOffsetBo[i] = m_pClipTable[i + iOffset[ppLumaTable[i]]];
       }
@@ -1560,7 +1556,7 @@ Void TComSampleAdaptiveOffset::processSaoOnePart(SAOQTPart *psQTPart, UInt uiPar
     {
       for (i=0;i<pOnePart->iLength;i++)
       {
-        iOffset[i+1] = pOnePart->iOffset[i] << m_uiSaoBitIncrease;
+        iOffset[i+1] = pOnePart->iOffset[i];
       }
       for (uiEdgeType=0;uiEdgeType<6;uiEdgeType++)
       {
@@ -1683,7 +1679,7 @@ Void TComSampleAdaptiveOffset::xSaoAllPart(SAOQTPart *psQTPart, Int iYCbCr)
           if (iTypeIdx == SAO_BO_0 || iTypeIdx == SAO_BO_1)
           {
             for (i=0;i<pOnePart->iLength;i++)
-              iOffset[i+1] = pOnePart->iOffset[i] << m_uiSaoBitIncrease;
+              iOffset[i+1] = pOnePart->iOffset[i];
 
             if (iTypeIdx == SAO_BO_0 )
             {
@@ -1694,11 +1690,7 @@ Void TComSampleAdaptiveOffset::xSaoAllPart(SAOQTPart *psQTPart, Int iYCbCr)
               ppLumaTable = m_ppLumaTableBo1;
             }
 
-#if FULL_NBIT
-            for (i=0;i<(1<<(g_uiBitDepth));i++)
-#else
-            for (i=0;i<(1<<(g_uiBitIncrement+8));i++)
-#endif
+            for (i=0;i<(1<<8);i++)
             {
               m_iOffsetBo[i] = m_pClipTable[i + iOffset[ppLumaTable[i]]];
             }
@@ -1708,7 +1700,7 @@ Void TComSampleAdaptiveOffset::xSaoAllPart(SAOQTPart *psQTPart, Int iYCbCr)
           {
             for (i=0;i<pOnePart->iLength;i++)
             {
-              iOffset[i+1] = pOnePart->iOffset[i] << m_uiSaoBitIncrease;
+              iOffset[i+1] = pOnePart->iOffset[i];
             }
             for (uiEdgeType=0;uiEdgeType<6;uiEdgeType++)
             {
@@ -1846,11 +1838,6 @@ Void TComSampleAdaptiveOffset::SAOProcess(TComPic* pcPic, SAOParam* pcSaoParam)
 {
   if (pcSaoParam->bSaoFlag[0])
   {
-#if FULL_NBIT
-    m_uiSaoBitIncrease = g_uiBitDepth + (g_uiBitDepth-8) - min((Int)(g_uiBitDepth + (g_uiBitDepth-8)), 10);
-#else
-    m_uiSaoBitIncrease = g_uiBitDepth + g_uiBitIncrement - min((Int)(g_uiBitDepth + g_uiBitIncrement), 10);
-#endif
     m_pcPic = pcPic;
 
     Int iY  = 0;

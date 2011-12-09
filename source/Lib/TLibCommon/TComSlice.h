@@ -238,12 +238,6 @@ public:
   Void      setAMPAcc   ( UInt uiDepth, Int iAccu ) { assert( uiDepth < g_uiMaxCUDepth);  m_iAMPAcc[uiDepth] = iAccu; }
 #endif  
 
-  // Bit-depth
-  UInt      getBitDepth     ()         { return m_uiBitDepth;     }
-  Void      setBitDepth     ( UInt u ) { m_uiBitDepth = u;        }
-  UInt      getBitIncrement ()         { return m_uiBitIncrement; }
-  Void      setBitIncrement ( UInt u ) { m_uiBitIncrement = u;    }
-
 #if SAO
   Void setUseSAO                  (Bool bVal)  {m_bUseSAO = bVal;}
   Bool getUseSAO                  ()           {return m_bUseSAO;}

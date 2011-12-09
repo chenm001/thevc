@@ -613,9 +613,6 @@ Void TEncTop::xInitSPS()
   }
 #endif
 
-  m_cSPS.setBitDepth    ( g_uiBitDepth        );
-  m_cSPS.setBitIncrement( g_uiBitIncrement    );
-
 #if SAO
   m_cSPS.setUseSAO( m_bUseSAO );
 #endif

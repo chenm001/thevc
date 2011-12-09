@@ -851,7 +851,7 @@ Void TDecCu::xDecodePCMTexture( TComDataCU* pcCU, UInt uiPartIdx, Pel *piPCM, Pe
     uiPicStride   = pcCU->getPic()->getPicYuvRec()->getStride();
     piPicReco = pcCU->getPic()->getPicYuvRec()->getLumaAddr(pcCU->getAddr(), pcCU->getZorderIdxInCU()+uiPartIdx);
 #if E192_SPS_PCM_BIT_DEPTH_SYNTAX
-    uiPcmLeftShiftBit = g_uiBitDepth + g_uiBitIncrement - pcCU->getSlice()->getSPS()->getPCMBitDepthLuma();
+    uiPcmLeftShiftBit = 8 - pcCU->getSlice()->getSPS()->getPCMBitDepthLuma();
 #endif
   }
   else
@@ -867,7 +867,7 @@ Void TDecCu::xDecodePCMTexture( TComDataCU* pcCU, UInt uiPartIdx, Pel *piPCM, Pe
       piPicReco = pcCU->getPic()->getPicYuvRec()->getCrAddr(pcCU->getAddr(), pcCU->getZorderIdxInCU()+uiPartIdx);
     }
 #if E192_SPS_PCM_BIT_DEPTH_SYNTAX
-    uiPcmLeftShiftBit = g_uiBitDepth + g_uiBitIncrement - pcCU->getSlice()->getSPS()->getPCMBitDepthChroma();
+    uiPcmLeftShiftBit = 8 - pcCU->getSlice()->getSPS()->getPCMBitDepthChroma();
 #endif
   }
 
@@ -878,9 +878,6 @@ Void TDecCu::xDecodePCMTexture( TComDataCU* pcCU, UInt uiPartIdx, Pel *piPCM, Pe
 #if E192_SPS_PCM_BIT_DEPTH_SYNTAX
       piReco[uiX] = (piPCM[uiX] << uiPcmLeftShiftBit);
 #else
-      if(g_uiBitIncrement > 0)
-        piReco[uiX] = (piPCM[uiX] << g_uiBitIncrement);
-      else
         piReco[uiX] = piPCM[uiX];
 #endif
       piPicReco[uiX] = piReco[uiX];

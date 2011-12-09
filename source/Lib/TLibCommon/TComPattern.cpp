@@ -359,7 +359,7 @@ Void TComPattern::fillReferenceSamples( TComDataCU* pcCU, Pel* piRoiOrigin, Int*
 {
   Pel* piRoiTemp;
   Int  i, j;
-  Int  iDCValue = ( 1<<( g_uiBitDepth + g_uiBitIncrement - 1) );
+  Int  iDCValue = ( 1<<(8 - 1) );
 
   if (iNumIntraNeighbor == 0)
   {

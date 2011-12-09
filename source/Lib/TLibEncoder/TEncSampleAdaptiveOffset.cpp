@@ -72,26 +72,12 @@ TEncSampleAdaptiveOffset::~TEncSampleAdaptiveOffset()
 // Tables
 // ====================================================================================================================
 
-inline Double xRoundIbdi2(Double x)
-{
-#if FULL_NBIT
-  Int bitDepthMinus8 = g_uiBitDepth - 8;
-  return ((x)>0) ? (Int)(((Int)(x)+(1<<(bitDepthMinus8-1)))/(1<<bitDepthMinus8)) : ((Int)(((Int)(x)-(1<<(bitDepthMinus8-1)))/(1<<bitDepthMinus8)));
-#else
-  return ((x)>0) ? (Int)(((Int)(x)+(1<<(g_uiBitIncrement-1)))/(1<<g_uiBitIncrement)) : ((Int)(((Int)(x)-(1<<(g_uiBitIncrement-1)))/(1<<g_uiBitIncrement)));
-#endif
-}
-
 /** rounding with IBDI
  * \param  x
  */
 inline Double xRoundIbdi(Double x)
 {
-#if FULL_NBIT
-  return (g_uiBitDepth > 8 ? xRoundIbdi2((x)) : ((x)>=0 ? ((Int)((x)+0.5)) : ((Int)((x)-0.5)))) ;
-#else
-  return (g_uiBitIncrement >0 ? xRoundIbdi2((x)) : ((x)>=0 ? ((Int)((x)+0.5)) : ((Int)((x)-0.5)))) ;
-#endif
+  return (((x)>=0 ? ((Int)((x)+0.5)) : ((Int)((x)-0.5)))) ;
 }
 
 
@@ -110,7 +96,6 @@ Void TEncSampleAdaptiveOffset::rdoSaoOnePart(SAOQTPart *psQTPart, Int iPartIdx, 
   Int64 iOffset;
   Int64 iCount;
   Int iClassIdx;
-  Int uiShift = g_uiBitIncrement << 1;
 
   UInt uiDepth = pOnePart->PartLevel;
 
@@ -140,11 +125,7 @@ Void TEncSampleAdaptiveOffset::rdoSaoOnePart(SAOQTPart *psQTPart, Int iPartIdx, 
       {
         if(m_iCount [iPartIdx][iTypeIdx][iClassIdx])
         {
-#if FULL_NBIT
-          m_iOffset[iPartIdx][iTypeIdx][iClassIdx] = (Int64) xRoundIbdi((Double)(m_iOffsetOrg[iPartIdx][iTypeIdx][iClassIdx]<<g_uiBitDepth-8) / (Double)(m_iCount [iPartIdx][iTypeIdx][iClassIdx]<<m_uiSaoBitIncrease));
-#else
-          m_iOffset[iPartIdx][iTypeIdx][iClassIdx] = (Int64) xRoundIbdi((Double)(m_iOffsetOrg[iPartIdx][iTypeIdx][iClassIdx]<<g_uiBitIncrement) / (Double)(m_iCount [iPartIdx][iTypeIdx][iClassIdx]<<m_uiSaoBitIncrease));
-#endif
+          m_iOffset[iPartIdx][iTypeIdx][iClassIdx] = (Int64) xRoundIbdi((Double)(m_iOffsetOrg[iPartIdx][iTypeIdx][iClassIdx]) / (Double)(m_iCount [iPartIdx][iTypeIdx][iClassIdx]));
           m_iOffset[iPartIdx][iTypeIdx][iClassIdx] = Clip3(-m_iOffsetTh, m_iOffsetTh-1, (Int)m_iOffset[iPartIdx][iTypeIdx][iClassIdx]);
 #if SAO_RDO_OFFSET
           {
@@ -171,8 +152,8 @@ Void TEncSampleAdaptiveOffset::rdoSaoOnePart(SAOQTPart *psQTPart, Int iPartIdx, 
                   iTempRate = (uiLength >> 1) + ((uiLength+1) >> 1);
 
                   // Do the dequntization before distorion calculation
-                  iTempOffset    =  iIterOffset << m_uiSaoBitIncrease;
-                  iTempDist  = (( m_iCount [iPartIdx][iTypeIdx][iClassIdx]*iTempOffset*iTempOffset-m_iOffsetOrg[iPartIdx][iTypeIdx][iClassIdx]*iTempOffset*2 ) >> uiShift);
+                  iTempOffset    =  iIterOffset;
+                  iTempDist  = ( m_iCount [iPartIdx][iTypeIdx][iClassIdx]*iTempOffset*iTempOffset-m_iOffsetOrg[iPartIdx][iTypeIdx][iClassIdx]*iTempOffset*2 );
 
                   dTempCost = ((Double)iTempDist + dLambda * (Double) iTempRate);
                   if(dTempCost < dTempMinCost)
@@ -192,9 +173,9 @@ Void TEncSampleAdaptiveOffset::rdoSaoOnePart(SAOQTPart *psQTPart, Int iPartIdx, 
         }
 
         iCount     =  m_iCount [iPartIdx][iTypeIdx][iClassIdx];
-        iOffset    =  m_iOffset[iPartIdx][iTypeIdx][iClassIdx] << m_uiSaoBitIncrease;
+        iOffset    =  m_iOffset[iPartIdx][iTypeIdx][iClassIdx];
         iOffsetOrg =  m_iOffsetOrg[iPartIdx][iTypeIdx][iClassIdx];
-        iEstDist   += (( iCount*iOffset*iOffset-iOffsetOrg*iOffset*2 ) >> uiShift);
+        iEstDist   += ( iCount*iOffset*iOffset-iOffsetOrg*iOffset*2 );
         m_pcEntropyCoder->m_pcEntropyCoderIf->codeSaoSvlc((Int)m_iOffset[iPartIdx][iTypeIdx][iClassIdx]);
       }
       m_iDist[iPartIdx][iTypeIdx] = iEstDist;
@@ -1700,15 +1681,8 @@ Void TEncSampleAdaptiveOffset::SAOProcess(SAOParam *pcSaoParam, Double dLambda)
   m_dLambdaChroma  = dLambda;
 #endif
 
-#if FULL_NBIT
-  m_uiSaoBitIncrease = g_uiBitDepth + (g_uiBitDepth-8) - min((Int)(g_uiBitDepth + (g_uiBitDepth-8)), 10);
-#else
-  m_uiSaoBitIncrease = g_uiBitDepth + g_uiBitIncrement - min((Int)(g_uiBitDepth + g_uiBitIncrement), 10);
-#endif
-
   const Int iOffsetBitRange8Bit = 4;
-  Int iOffsetBitDepth = g_uiBitDepth + g_uiBitIncrement - m_uiSaoBitIncrease;
-  Int iOffsetBitRange = iOffsetBitRange8Bit + (iOffsetBitDepth - 8);
+  Int iOffsetBitRange = iOffsetBitRange8Bit;
   m_iOffsetTh = 1 << (iOffsetBitRange - 1);
   resetSAOParam(pcSaoParam);
   resetStats();

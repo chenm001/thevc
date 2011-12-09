@@ -235,7 +235,7 @@ Void  TComPicYuv::copyToPicCr (TComPicYuv*  pcPicYuvDst)
 Void TComPicYuv::getLumaMinMax( Int *pMin, Int *pMax )
 {
   Pel*  piY   = getLumaAddr();
-  Int   iMin  = (1<<(g_uiBitDepth))-1;
+  Int   iMin  = (1<<8)-1;
   Int   iMax  = 0;
   Int   x, y;
   
@@ -306,9 +306,6 @@ Void TComPicYuv::dump (char* pFileName, Bool bAdd)
     pFile = fopen (pFileName, "ab");
   }
   
-  Int     shift = g_uiBitIncrement;
-  Int     offset = (shift>0)?(1<<(shift-1)):0;
-  
   Int   x, y;
   UChar uc;
   
@@ -316,13 +313,13 @@ Void TComPicYuv::dump (char* pFileName, Bool bAdd)
   Pel*  piCb  = getCbAddr();
   Pel*  piCr  = getCrAddr();
   
-  Pel  iMax = ((1<<(g_uiBitDepth))-1);
+  Pel  iMax = ((1<<8)-1);
   
   for ( y = 0; y < m_iPicHeight; y++ )
   {
     for ( x = 0; x < m_iPicWidth; x++ )
     {
-      uc = (UChar)Clip3<Pel>(0, iMax, (piY[x]+offset)>>shift);
+      uc = (UChar)Clip3<Pel>(0, iMax, piY[x]);
       
       fwrite( &uc, sizeof(UChar), 1, pFile );
     }
@@ -333,7 +330,7 @@ Void TComPicYuv::dump (char* pFileName, Bool bAdd)
   {
     for ( x = 0; x < m_iPicWidth >> 1; x++ )
     {
-      uc = (UChar)Clip3<Pel>(0, iMax, (piCb[x]+offset)>>shift);
+      uc = (UChar)Clip3<Pel>(0, iMax, piCb[x]);
       fwrite( &uc, sizeof(UChar), 1, pFile );
     }
     piCb += getCStride();
@@ -343,7 +340,7 @@ Void TComPicYuv::dump (char* pFileName, Bool bAdd)
   {
     for ( x = 0; x < m_iPicWidth >> 1; x++ )
     {
-      uc = (UChar)Clip3<Pel>(0, iMax, (piCr[x]+offset)>>shift);
+      uc = (UChar)Clip3<Pel>(0, iMax, piCr[x]);
       fwrite( &uc, sizeof(UChar), 1, pFile );
     }
     piCr += getCStride();
@@ -360,15 +357,9 @@ Void TComPicYuv::xFixedRoundingPic()
   Int   iStride = getStride();
   Int   iWidth  = getWidth();
   Int   iHeight = getHeight();
-#if FULL_NBIT
-  Int   iOffset  = ((g_uiBitDepth-8)>0)?(1<<(g_uiBitDepth-8-1)):0;
-  Int   iMask   = (~0<<(g_uiBitDepth-8));
-  Int   iMaxBdi = g_uiBASE_MAX<<(g_uiBitDepth-8);
-#else
-  Int   iOffset  = (g_uiBitIncrement>0)?(1<<(g_uiBitIncrement-1)):0;
-  Int   iMask   = (~0<<g_uiBitIncrement);
-  Int   iMaxBdi = g_uiBASE_MAX<<g_uiBitIncrement;
-#endif
+  Int   iOffset  = 0;
+  Int   iMask   = (~0);
+  Int   iMaxBdi = g_uiBASE_MAX;
 
   for( y = 0; y < iHeight; y++ )
   {

@@ -92,11 +92,10 @@ static void md5_plane(MD5& md5, const Pel* plane, unsigned width, unsigned heigh
  */
 void calcMD5(TComPicYuv& pic, unsigned char digest[16])
 {
-  unsigned bitdepth = g_uiBitDepth + g_uiBitIncrement;
   /* choose an md5_plane packing function based on the system bitdepth */
   typedef void (*MD5PlaneFunc)(MD5&, const Pel*, unsigned, unsigned, unsigned);
   MD5PlaneFunc md5_plane_func;
-  md5_plane_func = bitdepth <= 8 ? (MD5PlaneFunc)md5_plane<1> : (MD5PlaneFunc)md5_plane<2>;
+  md5_plane_func = (MD5PlaneFunc)md5_plane<1>;
 
   MD5 md5;
   unsigned width = pic.getWidth();

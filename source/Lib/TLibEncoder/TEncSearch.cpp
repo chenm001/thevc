@@ -2039,7 +2039,6 @@ Void TEncSearch::xEncPCM (TComDataCU* pcCU, UInt uiAbsPartIdx, Pel* piOrg, Pel* 
   Pel* pReco = piReco;
   Pel* pRecoPic;
 #if E192_SPS_PCM_BIT_DEPTH_SYNTAX
-  UInt uiInternalBitDepth = g_uiBitDepth + g_uiBitIncrement;
   UInt uiPCMBitDepth;
 #endif
 
@@ -2086,9 +2085,9 @@ Void TEncSearch::xEncPCM (TComDataCU* pcCU, UInt uiAbsPartIdx, Pel* piOrg, Pel* 
     for( uiX = 0; uiX < uiWidth; uiX++ )
     {
 #if E192_SPS_PCM_BIT_DEPTH_SYNTAX
-      pPCM[uiX] = (pOrg[uiX]>>(uiInternalBitDepth - uiPCMBitDepth));
+      pPCM[uiX] = (pOrg[uiX]>>(8 - uiPCMBitDepth));
 #else
-      pPCM[uiX] = (pOrg[uiX]>>g_uiBitIncrement);
+      pPCM[uiX] = (pOrg[uiX]);
 #endif
     }
     pPCM += uiWidth;
@@ -2103,9 +2102,9 @@ Void TEncSearch::xEncPCM (TComDataCU* pcCU, UInt uiAbsPartIdx, Pel* piOrg, Pel* 
     for( uiX = 0; uiX < uiWidth; uiX++ )
     {
 #if E192_SPS_PCM_BIT_DEPTH_SYNTAX
-      pReco   [uiX] = (pPCM[uiX]<<(uiInternalBitDepth - uiPCMBitDepth));
+      pReco   [uiX] = (pPCM[uiX]<<(8 - uiPCMBitDepth));
 #else
-      pReco   [uiX] = (pPCM[uiX]<<g_uiBitIncrement);
+      pReco   [uiX] = (pPCM[uiX]);
 #endif
       pRecoPic[uiX] = pReco[uiX];
     }

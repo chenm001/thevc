@@ -89,7 +89,6 @@ protected:
   SliceType  m_eSliceType;
   Int        m_iPicNalReferenceIdc;
 
-  UInt m_uiSaoBitIncrease;
   UInt m_uiQP;
 
   Pel   *m_pClipTable;

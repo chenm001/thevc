@@ -871,7 +871,6 @@ Void TComLoopFilter::xEdgeFilterLuma( TComDataCU* pcCU, UInt uiAbsZorderIdx, UIn
 
       iQP = (iQP_P + iQP_Q + 1) >> 1;
 #endif
-    Int iBitdepthScale = (1<<(g_uiBitIncrement+g_uiBitDepth-8));
     
 #if !DEBLK_CLEANUP_G175_G620_G638
     Int uiTcOffset = ( uiBs > 2 ) ? DEFAULT_INTRA_TC_OFFSET : 0;
@@ -882,8 +881,8 @@ Void TComLoopFilter::xEdgeFilterLuma( TComDataCU* pcCU, UInt uiAbsZorderIdx, UIn
 #endif
     Int iIndexB = Clip3(0, MAX_QP, iQP );
     
-    Int iTc =  tctable_8x8[iIndexTC]*iBitdepthScale;
-    Int iBeta = betatable_8x8[iIndexB]*iBitdepthScale;
+    Int iTc =  tctable_8x8[iIndexTC];
+    Int iBeta = betatable_8x8[iIndexB];
     Int iSideThreshold = (iBeta+(iBeta>>1))>>3;
     Int iThrCut = iTc*10;
     
@@ -1166,17 +1165,15 @@ Void TComLoopFilter::xEdgeFilterChroma( TComDataCU* pcCU, UInt uiAbsZorderIdx, U
 
       iQP = QpUV((iQP_P + iQP_Q + 1) >> 1);
 #endif
-    Int iBitdepthScale = (1<<(g_uiBitIncrement+g_uiBitDepth-8));
     
 #if !DEBLK_CLEANUP_G175_G620_G638
     Int uiTcOffset = ( ucBs > 2 ) ? DEFAULT_INTRA_TC_OFFSET : 0;
     
     Int iIndexTC = Clip3(0, MAX_QP+4, iQP + uiTcOffset );
-    
 #else
     Int iIndexTC = Clip3(0, MAX_QP+DEFAULT_INTRA_TC_OFFSET, iQP + DEFAULT_INTRA_TC_OFFSET*(ucBs - 1) );
 #endif
-    Int iTc =  tctable_8x8[iIndexTC]*iBitdepthScale;
+    Int iTc =  tctable_8x8[iIndexTC];
     
 #if !DEBLK_CLEANUP_G175_G620_G638
     if ( ucBs > 2)

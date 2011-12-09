@@ -1160,7 +1160,7 @@ Void TDecSbac::parseDeltaQP( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
   {
 #if F745_DQP_BINARIZATION
     UInt uiSign;
-    UInt uiQpBdOffsetY = 6*(g_uiBitIncrement + g_uiBitDepth - 8);
+    UInt uiQpBdOffsetY = 6;
     m_pcTDecBinIf->decodeBinEP(uiSign);
 
     UInt uiMaxAbsDQpMinus1 = 24 + (uiQpBdOffsetY/2) + (uiSign);

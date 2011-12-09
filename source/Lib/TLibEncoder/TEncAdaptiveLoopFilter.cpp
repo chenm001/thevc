@@ -1064,14 +1064,13 @@ UInt64 TEncAdaptiveLoopFilter::xCalcSSD(Pel* pOrg, Pel* pCmp, Int iWidth, Int iH
   UInt64 uiSSD = 0;
   Int x, y;
   
-  UInt uiShift = g_uiBitIncrement<<1;
   Int iTemp;
   
   for( y = 0; y < iHeight; y++ )
   {
     for( x = 0; x < iWidth; x++ )
     {
-      iTemp = pOrg[x] - pCmp[x]; uiSSD += ( iTemp * iTemp ) >> uiShift;
+      iTemp = pOrg[x] - pCmp[x]; uiSSD += ( iTemp * iTemp );
     }
     pOrg += iStride;
     pCmp += iStride;
@@ -1271,8 +1270,8 @@ Void TEncAdaptiveLoopFilter::xQuantFilterCoef(Double* h, Int* qh, Int tap, int b
   // DC offset
   //  max_value = Min(  (1<<(3+Max(img_bitdepth_luma,img_bitdepth_chroma)))-1, (1<<14)-1);
   //  min_value = Max( -(1<<(3+Max(img_bitdepth_luma,img_bitdepth_chroma))),  -(1<<14)  );
-  max_value = min(  (1<<(3+g_uiBitDepth + g_uiBitIncrement))-1, (1<<14)-1);
-  min_value = max( -(1<<(3+g_uiBitDepth + g_uiBitIncrement)),  -(1<<14)  );
+  max_value = min(  (1<<(3+8))-1, (1<<14)-1);
+  min_value = max( -(1<<(3+8)),  -(1<<14)  );
   
   qh[N] =  (h[N]>=0.0)? (Int)( h[N]*(1<<(ALF_NUM_BIT_SHIFT-bit_depth+8)) + 0.5) : -(Int)(-h[N]*(1<<(ALF_NUM_BIT_SHIFT-bit_depth+8)) + 0.5);
   qh[N] = max(min_value,min(max_value, qh[N]));
@@ -2690,7 +2689,7 @@ Void   TEncAdaptiveLoopFilter::xFilteringFrameLuma(Pel* imgOrg, Pel* imgPad, Pel
   static double **ySym, ***ESym;
   Int  filters_per_fr;
   Int lambdaVal = (Int) m_dLambdaLuma;
-  lambdaVal = lambdaVal * (1<<(2*g_uiBitIncrement));
+  lambdaVal = lambdaVal;
 
   ESym=m_EGlobalSym[filtNo];  
   ySym=m_yGlobalSym[filtNo];
@@ -3933,7 +3932,7 @@ Void TEncAdaptiveLoopFilter::setMaskWithTimeDelayedResults(TComPicYuv* pcPicOrg,
   int  filters_per_fr;
   int  lambda_val = (Int)m_dLambdaLuma;
 
-  lambda_val = lambda_val * (1<<(2*g_uiBitIncrement));
+  lambda_val = lambda_val;
 
   if(!m_bUseNonCrossALF)
   {
@@ -4104,13 +4103,11 @@ Void TEncAdaptiveLoopFilter::setInitialMask(TComPicYuv* pcPicOrg, TComPicYuv* pc
 Void  TEncAdaptiveLoopFilter::decideFilterShapeLuma(Pel* ImgOrg, Pel* ImgDec, Int Stride, ALFParam* pcAlfSaved, UInt64& ruiRate, UInt64& ruiDist, Double& rdCost)
 {
   static Double **ySym, ***ESym;
-  Int    lambda_val = ((Int) m_dLambdaLuma) * (1<<(2*g_uiBitIncrement));
+  Int    lambda_val = (Int) m_dLambdaLuma;
   Int    filtNo, filters_per_fr;
   Int64  iEstimatedDist;
   UInt64 uiRate;
   Double dEstimatedCost, dEstimatedMinCost = MAX_DOUBLE;;
-
-  UInt   uiBitShift = (g_uiBitIncrement<<1);
 
   m_pcTempAlfParam->alf_flag = 1;
 #if !F747_APS
@@ -4165,7 +4162,7 @@ Void  TEncAdaptiveLoopFilter::decideFilterShapeLuma(Pel* ImgOrg, Pel* ImgDec, In
       copyALFParam(pcAlfSaved, m_pcTempAlfParam); 
       for(Int i=0; i< filters_per_fr; i++ )
       {
-        iEstimatedDist += (((Int64)m_pixAcc_merged[i]) >> uiBitShift);
+        iEstimatedDist += (((Int64)m_pixAcc_merged[i]));
       }
       ruiDist = (iEstimatedDist > 0)?((UInt64)iEstimatedDist):(0);
       rdCost  = dEstimatedMinCost + (Double)(ruiDist);
@@ -4192,7 +4189,7 @@ Void  TEncAdaptiveLoopFilter::decideFilterShapeLuma(Pel* ImgOrg, Pel* ImgDec, In
         if(m_maskImg[y][x] == 0)
         {
           iPelDiff = pOrgTemp[x] - pDecTemp[x];
-          uiOffRegionDistortion += (UInt64)(  (iPelDiff*iPelDiff) >> uiBitShift );
+          uiOffRegionDistortion += (UInt64)(  (iPelDiff*iPelDiff) );
         }
       }
       pOrgTemp += Stride;
@@ -4296,14 +4293,13 @@ Int64 TEncAdaptiveLoopFilter::xFastFiltDistEstimation(Double** ppdE, Double* pdy
   }
 
 
-  UInt uiShift = g_uiBitIncrement<<1;
   if(dDist < 0)
   {
-    iDist = -(((Int64)(-dDist + 0.5)) >> uiShift);
+    iDist = -((Int64)(-dDist + 0.5));
   }
   else //dDist >=0
   {
-    iDist= ((Int64)(dDist+0.5)) >> uiShift;
+    iDist= (Int64)(dDist+0.5);
   }
 
   return iDist;
@@ -4960,7 +4956,7 @@ Int64 TEncAdaptiveLoopFilter::xFastFiltDistEstimationChroma(Double** ppdCorr, In
     pdcoeff[i]= (Double)piCoeff[i] / (Double)(1<< ((Int)ALF_NUM_BIT_SHIFT) );
   }
 #if !ALF_DC_OFFSET_REMOVAL
-  pdcoeff[i]= (Double)piCoeff[i] / (Double)(1<< ((Int)ALF_NUM_BIT_SHIFT - g_uiBitIncrement) );
+  pdcoeff[i]= (Double)piCoeff[i] / (Double)(1<< ((Int)ALF_NUM_BIT_SHIFT) );
 #endif
 
   dDist =0;
@@ -4975,14 +4971,13 @@ Int64 TEncAdaptiveLoopFilter::xFastFiltDistEstimationChroma(Double** ppdCorr, In
     dDist += ((dsum - 2.0 * ppdCorr[i][iSqrFiltLength])* pdcoeff[i] );
   }
 
-  UInt uiShift = g_uiBitIncrement<<1;
   if(dDist < 0)
   {
-    iDist = -(((Int64)(-dDist + 0.5)) >> uiShift);
+    iDist = -((Int64)(-dDist + 0.5));
   }
   else //dDist >=0
   {
-    iDist= ((Int64)(dDist+0.5)) >> uiShift;
+    iDist= ((Int64)(dDist+0.5));
   }
 
   return iDist;
@@ -5036,7 +5031,7 @@ Void TEncAdaptiveLoopFilter::xCalcALFCoeffChroma(Int iChromaIdc, Int iShape, Int
 
   // calc coeff
   gnsSolveByChol(m_ppdAlfCorr, corr, m_pdDoubleAlfCoeff, iSqrFiltLength);
-  xQuantFilterCoef(m_pdDoubleAlfCoeff, piCoeff, iShape, g_uiBitDepth + g_uiBitIncrement);
+  xQuantFilterCoef(m_pdDoubleAlfCoeff, piCoeff, iShape, 8);
   delete [] corr;
 }
 

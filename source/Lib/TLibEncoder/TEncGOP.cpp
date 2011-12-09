@@ -1847,12 +1847,6 @@ UInt64 TEncGOP::xFindDistortionFrame (TComPicYuv* pcPic0, TComPicYuv* pcPic1)
   Int     x, y;
   Pel*  pSrc0   = pcPic0 ->getLumaAddr();
   Pel*  pSrc1   = pcPic1 ->getLumaAddr();
-#if IBDI_DISTORTION
-  Int  iShift = g_uiBitIncrement;
-  Int  iOffset = 1<<(g_uiBitIncrement-1);
-#else
-  UInt  uiShift = g_uiBitIncrement<<1;
-#endif
   Int   iTemp;
   
   Int   iStride = pcPic0->getStride();
@@ -1865,11 +1859,7 @@ UInt64 TEncGOP::xFindDistortionFrame (TComPicYuv* pcPic0, TComPicYuv* pcPic1)
   {
     for( x = 0; x < iWidth; x++ )
     {
-#if IBDI_DISTORTION
-      iTemp = ((pSrc0[x]+iOffset)>>iShift) - ((pSrc1[x]+iOffset)>>iShift); uiTotalDiff += iTemp * iTemp;
-#else
-      iTemp = pSrc0[x] - pSrc1[x]; uiTotalDiff += (iTemp*iTemp) >> uiShift;
-#endif
+      iTemp = pSrc0[x] - pSrc1[x]; uiTotalDiff += (iTemp*iTemp);
     }
     pSrc0 += iStride;
     pSrc1 += iStride;
@@ -1886,11 +1876,7 @@ UInt64 TEncGOP::xFindDistortionFrame (TComPicYuv* pcPic0, TComPicYuv* pcPic1)
   {
     for( x = 0; x < iWidth; x++ )
     {
-#if IBDI_DISTORTION
-      iTemp = ((pSrc0[x]+iOffset)>>iShift) - ((pSrc1[x]+iOffset)>>iShift); uiTotalDiff += iTemp * iTemp;
-#else
-      iTemp = pSrc0[x] - pSrc1[x]; uiTotalDiff += (iTemp*iTemp) >> uiShift;
-#endif
+      iTemp = pSrc0[x] - pSrc1[x]; uiTotalDiff += (iTemp*iTemp);
     }
     pSrc0 += iStride;
     pSrc1 += iStride;
@@ -1903,11 +1889,7 @@ UInt64 TEncGOP::xFindDistortionFrame (TComPicYuv* pcPic0, TComPicYuv* pcPic1)
   {
     for( x = 0; x < iWidth; x++ )
     {
-#if IBDI_DISTORTION
-      iTemp = ((pSrc0[x]+iOffset)>>iShift) - ((pSrc1[x]+iOffset)>>iShift); uiTotalDiff += iTemp * iTemp;
-#else
-      iTemp = pSrc0[x] - pSrc1[x]; uiTotalDiff += (iTemp*iTemp) >> uiShift;
-#endif
+      iTemp = pSrc0[x] - pSrc1[x]; uiTotalDiff += (iTemp*iTemp);
     }
     pSrc0 += iStride;
     pSrc1 += iStride;
@@ -1999,7 +1981,7 @@ Void TEncGOP::xCalculateAddPSNR( TComPic* pcPic, TComPicYuv* pcPicD, const Acces
     pRec += iStride;
   }
   
-  unsigned int maxval = 255 * (1<<(g_uiBitDepth + g_uiBitIncrement -8));
+  unsigned int maxval = 255;
   Double fRefValueY = (double) maxval * maxval * iSize;
   Double fRefValueC = fRefValueY / 4.0;
   dYPSNR            = ( uiSSDY ? 10.0 * log10( fRefValueY / (Double)uiSSDY ) : 99.99 );

@@ -990,7 +990,7 @@ Void TEncSbac::codeDeltaQP( TComDataCU* pcCU, UInt uiAbsPartIdx )
    
 #if F745_DQP_BINARIZATION
     UInt uiSign = (iDQp > 0 ? 0 : 1);
-    UInt uiQpBdOffsetY = 6*(g_uiBitIncrement + g_uiBitDepth - 8);
+    UInt uiQpBdOffsetY = 6;
 
     m_pcBinIf->encodeBinEP(uiSign);
 
