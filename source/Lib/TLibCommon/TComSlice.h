@@ -114,10 +114,6 @@ private:
   UInt        m_uiBitDepth;
   UInt        m_uiBitIncrement;
 
-#if E192_SPS_PCM_FILTER_DISABLE_SYNTAX
-  Bool        m_bPCMFilterDisableFlag;
-#endif
-
 #if G1002_RPS
   UInt        m_uiBitsForPOC;
 #endif
@@ -244,10 +240,6 @@ public:
 
   Bool      getTemporalIdNestingFlag()                { return m_bTemporalIdNestingFlag; }
   Void      setTemporalIdNestingFlag( Bool bValue )   { m_bTemporalIdNestingFlag = bValue; }
-#if E192_SPS_PCM_FILTER_DISABLE_SYNTAX
-  Void      setPCMFilterDisableFlag     ( Bool   bValue  )    { m_bPCMFilterDisableFlag = bValue; }
-  Bool      getPCMFilterDisableFlag     ()                    { return m_bPCMFilterDisableFlag;   } 
-#endif
 
 #if !G1002_RPS
 #if REF_SETTING_FOR_LD

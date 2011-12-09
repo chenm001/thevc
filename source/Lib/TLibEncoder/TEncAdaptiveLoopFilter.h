@@ -282,10 +282,6 @@ public:
   /// set shared ALF parameters in PPS enabled/disabled
   Void setSharedPPSAlfParamEnabled(Bool b) {m_bSharedPPSAlfParamEnabled = b;}
 #endif
-#if E192_SPS_PCM_FILTER_DISABLE_SYNTAX
-  Void PCMLFDisableProcess (TComPic* pcPic);
-#endif
-
 };
 
 //! \}

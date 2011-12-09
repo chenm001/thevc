@@ -426,7 +426,7 @@ Void TDecCavlc::parseSPS(TComSPS* pcSPS)
 #endif
   READ_FLAG( uiCode, "adaptive_loop_filter_enabled_flag" );      pcSPS->setUseALF ( uiCode ? true : false );
 #if E192_SPS_PCM_FILTER_DISABLE_SYNTAX
-  READ_FLAG( uiCode, "pcm_loop_filter_disable_flag" );           pcSPS->setPCMFilterDisableFlag ( uiCode ? true : false );
+  READ_FLAG( uiCode, "pcm_loop_filter_disable_flag" );           assert(uiCode == 0);
 #endif
   READ_FLAG( uiCode, "cu_qp_delta_enabled_flag" );               pcSPS->setUseDQP ( uiCode ? true : false );
   READ_FLAG( uiCode, "temporal_id_nesting_flag" );               pcSPS->setTemporalIdNestingFlag ( uiCode > 0 ? true : false );
@@ -1251,7 +1251,6 @@ Void TDecCavlc::parseIPCMInfo( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth
     Pel* piPCMSample;
     UInt uiWidth;
     UInt uiHeight;
-    UInt uiSampleBits;
     UInt uiX, uiY;
 
     piPCMSample = pcCU->getPCMSampleY() + uiLumaOffset;

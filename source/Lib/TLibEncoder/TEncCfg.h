@@ -193,9 +193,6 @@ protected:
   
   Bool      m_bUseConstrainedIntraPred;
   UInt      m_uiPCMLog2MinSize;
-#if E192_SPS_PCM_FILTER_DISABLE_SYNTAX 
-  Bool      m_bPCMFilterDisableFlag;
-#endif
 
 #if OL_USE_WPP
   Int       m_iWaveFrontSynchro;
@@ -369,9 +366,6 @@ public:
 #endif
   Void      setUseMRG                       ( Bool  b )     { m_bUseMRG     = b; } // SOPH:
   Void      setUseConstrainedIntraPred      ( Bool  b )     { m_bUseConstrainedIntraPred = b; }
-#if E192_SPS_PCM_FILTER_DISABLE_SYNTAX
-  Void      setPCMFilterDisableFlag         ( Bool  b )     {  m_bPCMFilterDisableFlag = b; }
-#endif
   Void      setPCMLog2MinSize               ( UInt u )     { m_uiPCMLog2MinSize = u;      }
   Void      setdQPs                         ( Int*  p )     { m_aidQP       = p; }
   Void      setDeltaQpRD                    ( UInt  u )     {m_uiDeltaQpRD  = u; }
@@ -407,9 +401,6 @@ public:
   Bool      getUseConstrainedIntraPred      ()      { return m_bUseConstrainedIntraPred; }
 #if NS_HAD
   Bool      getUseNSQT                      ()      { return m_useNSQT; }
-#endif
-#if E192_SPS_PCM_FILTER_DISABLE_SYNTAX
-  Bool      getPCMFilterDisableFlag         ()      { return m_bPCMFilterDisableFlag;   } 
 #endif
   UInt      getPCMLog2MinSize               ()      { return  m_uiPCMLog2MinSize;  }
 

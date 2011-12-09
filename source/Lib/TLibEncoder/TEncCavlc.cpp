@@ -433,7 +433,7 @@ Void TEncCavlc::codeSPS( TComSPS* pcSPS )
 #endif
   WRITE_FLAG( (pcSPS->getUseALF ()) ? 1 : 0,                                         "adaptive_loop_filter_enabled_flag");
 #if E192_SPS_PCM_FILTER_DISABLE_SYNTAX
-  WRITE_FLAG( pcSPS->getPCMFilterDisableFlag()?1 : 0,                                "pcm_loop_filter_disable_flag");
+  WRITE_FLAG( 0,                                                                     "pcm_loop_filter_disable_flag");
 #endif
   WRITE_FLAG( (pcSPS->getUseDQP ()) ? 1 : 0,                                         "cu_qp_delta_enabled_flag" );
   assert( pcSPS->getMaxTLayers() > 0 );         
