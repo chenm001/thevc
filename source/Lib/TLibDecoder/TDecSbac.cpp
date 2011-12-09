@@ -582,16 +582,23 @@ Void TDecSbac::parseMergeIndex ( TComDataCU* pcCU, UInt& ruiMergeIndex, UInt uiA
   UInt uiNumCand = MRG_MAX_NUM_CANDS;
   UInt auiCtx[4] = { 0, 1, 2, 3 };
   UInt uiUnaryIdx = 0;
-
-  for( ; uiUnaryIdx < uiNumCand - 1; ++uiUnaryIdx )
+#if G091_SIGNAL_MAX_NUM_MERGE_CANDS
+  uiNumCand = pcCU->getSlice()->getMaxNumMergeCand();
+  if ( uiNumCand > 1 )
   {
+#endif
+   for( ; uiUnaryIdx < uiNumCand - 1; ++uiUnaryIdx )
+   {
     UInt uiSymbol = 0;
     m_pcTDecBinIf->decodeBin( uiSymbol, m_cCUMergeIdxExtSCModel.get( 0, 0, auiCtx[uiUnaryIdx] ) );
     if( uiSymbol == 0 )
     {
       break;
     }
+   }
+#if G091_SIGNAL_MAX_NUM_MERGE_CANDS
   }
+#endif
   ruiMergeIndex = uiUnaryIdx;
 
   DTRACE_CABAC_VL( g_nSymbolCounter++ )

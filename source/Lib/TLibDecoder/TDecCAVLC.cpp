@@ -644,6 +644,11 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice)
       xReadCode(2, uiCode); rpcSlice->setERBIndex( (ERBIndex)uiCode );    assert (uiCode == ERB_NONE || uiCode == ERB_LTR);
     }      
   }
+#if G091_SIGNAL_MAX_NUM_MERGE_CANDS
+  READ_UVLC( uiCode, "MaxNumMergeCand");
+  rpcSlice->setMaxNumMergeCand(MRG_MAX_NUM_CANDS - uiCode);
+  assert(rpcSlice->getMaxNumMergeCand()==MRG_MAX_NUM_CANDS_SIGNALED);
+#endif
 
 #if TILES_DECODER
   rpcSlice->setTileMarkerFlag ( 0 ); // default
@@ -2161,15 +2166,23 @@ Void TDecCavlc::parseMergeIndex ( TComDataCU* pcCU, UInt& ruiMergeIndex, UInt ui
   UInt uiNumCand = MRG_MAX_NUM_CANDS;
   assert( uiNumCand > 1 );
   UInt uiUnaryIdx = 0;
-  for( ; uiUnaryIdx < uiNumCand - 1; ++uiUnaryIdx )
+#if G091_SIGNAL_MAX_NUM_MERGE_CANDS
+  uiNumCand = pcCU->getSlice()->getMaxNumMergeCand();
+  if ( uiNumCand > 1 )
   {
+#endif
+  for( ; uiUnaryIdx < uiNumCand - 1; ++uiUnaryIdx )
+   {
     UInt uiSymbol = 0;
     xReadFlag( uiSymbol );
     if( uiSymbol == 0 )
     {
       break;
     }
+   }
+#if G091_SIGNAL_MAX_NUM_MERGE_CANDS
   }
+#endif
   ruiMergeIndex = uiUnaryIdx;
 }
 

@@ -2270,7 +2270,13 @@ Void TEncSearch::xMergeEstimation( TComDataCU* pcCU, TComYuv* pcYuvOrg, Int iPUI
 #endif
 
       xGetInterPredictionError( pcCU, pcYuvOrg, iPUIdx, uiCostCand, m_pcEncCfg->getUseHADME() );
-      
+#if G091_SIGNAL_MAX_NUM_MERGE_CANDS
+      uiBitsCand = uiMergeCand + 1;
+      if (uiMergeCand == MRG_MAX_NUM_CANDS_SIGNALED -1)
+      {
+         uiBitsCand--;
+      }
+#else     
       if( uiNumCand == 1 )
       {
         uiBitsCand = 1;
@@ -2290,7 +2296,7 @@ Void TEncSearch::xMergeEstimation( TComDataCU* pcCU, TComYuv* pcYuvOrg, Int iPUI
           uiBitsCand = 4;
         }
       }
-
+#endif
       if ( uiCostCand < ruiCost )
       {
         ruiCost = uiCostCand;

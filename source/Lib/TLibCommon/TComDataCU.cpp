@@ -3521,7 +3521,12 @@ Void TComDataCU::getInterMergeCandidates( UInt uiAbsPartIdx, UInt uiPUIdx, UInt 
     iZeroCount++;
 #endif
   }
-
+#if G091_SIGNAL_MAX_NUM_MERGE_CANDS 
+  if (uiArrayAddr > MRG_MAX_NUM_CANDS_SIGNALED)
+  {
+     uiArrayAddr = MRG_MAX_NUM_CANDS_SIGNALED;
+  }
+#endif
   numValidMergeCand = uiArrayAddr;
 #endif
 

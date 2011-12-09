@@ -748,6 +748,11 @@ public:
   Int getActualRefNumber( TComList<TComPic*>& rcListPic );
   Void decodingRefMarkingForLD( TComList<TComPic*>& rcListPic, Int iMaxNumRefFrames, Int iCurrentPOC );
 #endif
+#if G091_SIGNAL_MAX_NUM_MERGE_CANDS
+  UInt m_uiMaxNumMergeCand;
+  Void setMaxNumMergeCand               (UInt maxNumMergeCand ) { m_uiMaxNumMergeCand = maxNumMergeCand;  }
+  UInt getMaxNumMergeCand               ()                  {return m_uiMaxNumMergeCand;                  }
+#endif
 
   Void setSliceMode                     ( UInt uiMode )     { m_uiSliceMode = uiMode;                     }
   UInt getSliceMode                     ()                  { return m_uiSliceMode;                       }
