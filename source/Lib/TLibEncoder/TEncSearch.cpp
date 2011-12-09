@@ -2248,8 +2248,6 @@ Void TEncSearch::xMergeEstimation( TComDataCU* pcCU, TComYuv* pcYuvOrg, Int iPUI
   UInt uiDepth = pcCU->getDepth( uiAbsPartIdx );
   pcCU->getInterMergeCandidates( uiAbsPartIdx, iPUIdx, uiDepth, cMvFieldNeighbours,uhInterDirNeighbours, numValidMergeCand );
 
-  UInt uiNumCand = MRG_MAX_NUM_CANDS;
-  
   ruiCost = MAX_UINT;
   ruiBits = MAX_UINT;
 
@@ -2277,6 +2275,8 @@ Void TEncSearch::xMergeEstimation( TComDataCU* pcCU, TComYuv* pcYuvOrg, Int iPUI
          uiBitsCand--;
       }
 #else     
+      UInt uiNumCand = MRG_MAX_NUM_CANDS;
+      
       if( uiNumCand == 1 )
       {
         uiBitsCand = 1;
