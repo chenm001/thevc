@@ -2038,17 +2038,11 @@ Void TEncSearch::xEncPCM (TComDataCU* pcCU, UInt uiAbsPartIdx, Pel* piOrg, Pel* 
   Pel* pResi = piResi;
   Pel* pReco = piReco;
   Pel* pRecoPic;
-#if E192_SPS_PCM_BIT_DEPTH_SYNTAX
-  UInt uiPCMBitDepth;
-#endif
 
   if( eText == TEXT_LUMA)
   {
     uiReconStride = pcCU->getPic()->getPicYuvRec()->getStride();
     pRecoPic      = pcCU->getPic()->getPicYuvRec()->getLumaAddr(pcCU->getAddr(), pcCU->getZorderIdxInCU()+uiAbsPartIdx);
-#if E192_SPS_PCM_BIT_DEPTH_SYNTAX
-    uiPCMBitDepth = pcCU->getSlice()->getSPS()->getPCMBitDepthLuma();
-#endif
   }
   else
   {
@@ -2062,9 +2056,6 @@ Void TEncSearch::xEncPCM (TComDataCU* pcCU, UInt uiAbsPartIdx, Pel* piOrg, Pel* 
     {
       pRecoPic = pcCU->getPic()->getPicYuvRec()->getCrAddr(pcCU->getAddr(), pcCU->getZorderIdxInCU()+uiAbsPartIdx);
     }
-#if E192_SPS_PCM_BIT_DEPTH_SYNTAX
-    uiPCMBitDepth = pcCU->getSlice()->getSPS()->getPCMBitDepthChroma();
-#endif
   }
 
   // Reset pred and residual
@@ -2084,11 +2075,7 @@ Void TEncSearch::xEncPCM (TComDataCU* pcCU, UInt uiAbsPartIdx, Pel* piOrg, Pel* 
   {
     for( uiX = 0; uiX < uiWidth; uiX++ )
     {
-#if E192_SPS_PCM_BIT_DEPTH_SYNTAX
-      pPCM[uiX] = (pOrg[uiX]>>(8 - uiPCMBitDepth));
-#else
       pPCM[uiX] = (pOrg[uiX]);
-#endif
     }
     pPCM += uiWidth;
     pOrg += uiStride;
@@ -2101,11 +2088,7 @@ Void TEncSearch::xEncPCM (TComDataCU* pcCU, UInt uiAbsPartIdx, Pel* piOrg, Pel* 
   {
     for( uiX = 0; uiX < uiWidth; uiX++ )
     {
-#if E192_SPS_PCM_BIT_DEPTH_SYNTAX
-      pReco   [uiX] = (pPCM[uiX]<<(8 - uiPCMBitDepth));
-#else
       pReco   [uiX] = (pPCM[uiX]);
-#endif
       pRecoPic[uiX] = pReco[uiX];
     }
     pPCM += uiWidth;

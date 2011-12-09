@@ -257,12 +257,6 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
 #endif
     ("ConstrainedIntraPred", m_bUseConstrainedIntraPred, false, "Constrained Intra Prediction")
     ("PCMLog2MinSize", m_uiPCMLog2MinSize, 7u)
-#if E192_SPS_PCM_BIT_DEPTH_SYNTAX
-    ("PCMInputBitDepthFlag", m_bPCMInputBitDepthFlag, true)
-#endif
-#if E192_SPS_PCM_FILTER_DISABLE_SYNTAX
-    ("PCMFilterDisableFlag", m_bPCMFilterDisableFlag, false)
-#endif
 #if OL_USE_WPP
     ("WaveFrontSynchro",            m_iWaveFrontSynchro,             0,          "0: no synchro; 1 synchro with TR; 2 TRR etc")
     ("WaveFrontFlush",              m_iWaveFrontFlush,               0,          "Flush and terminate CABAC coding for each LCU line")
@@ -770,11 +764,6 @@ Void TAppEncCfg::xSetGlobal()
 #else
   g_uiIBDI_MAX     = ((1<<8)-1);
 #endif
-  
-#if E192_SPS_PCM_BIT_DEPTH_SYNTAX
-  g_uiPCMBitDepthLuma = m_uiPCMBitDepthLuma = 8;
-  g_uiPCMBitDepthChroma = 8;
-#endif
 }
 
 Void TAppEncCfg::xPrintParameter()
@@ -808,9 +797,6 @@ Void TAppEncCfg::xPrintParameter()
   printf("GOP size                     : %d\n", m_iGOPSize );
 #if !G1002_RPS
   printf("Rate GOP size                : %d\n", m_iRateGOPSize );
-#endif
-#if E192_SPS_PCM_BIT_DEPTH_SYNTAX
-  printf("PCM sample bit depth         : %d\n", m_uiPCMBitDepthLuma );
 #endif
 #if DISABLE_4x4_INTER
   printf("DisableInter4x4              : %d\n", m_bDisInter4x4);  

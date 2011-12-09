@@ -193,11 +193,6 @@ protected:
   
   Bool      m_bUseConstrainedIntraPred;
   UInt      m_uiPCMLog2MinSize;
-#if E192_SPS_PCM_BIT_DEPTH_SYNTAX
-  Bool      m_bPCMInputBitDepthFlag;
-  UInt      m_uiPCMBitDepthLuma;
-  UInt      m_uiPCMBitDepthChroma;
-#endif
 #if E192_SPS_PCM_FILTER_DISABLE_SYNTAX 
   Bool      m_bPCMFilterDisableFlag;
 #endif
@@ -374,9 +369,6 @@ public:
 #endif
   Void      setUseMRG                       ( Bool  b )     { m_bUseMRG     = b; } // SOPH:
   Void      setUseConstrainedIntraPred      ( Bool  b )     { m_bUseConstrainedIntraPred = b; }
-#if E192_SPS_PCM_BIT_DEPTH_SYNTAX
-  Void      setPCMInputBitDepthFlag         ( Bool  b )     { m_bPCMInputBitDepthFlag = b; }
-#endif
 #if E192_SPS_PCM_FILTER_DISABLE_SYNTAX
   Void      setPCMFilterDisableFlag         ( Bool  b )     {  m_bPCMFilterDisableFlag = b; }
 #endif
@@ -415,9 +407,6 @@ public:
   Bool      getUseConstrainedIntraPred      ()      { return m_bUseConstrainedIntraPred; }
 #if NS_HAD
   Bool      getUseNSQT                      ()      { return m_useNSQT; }
-#endif
-#if E192_SPS_PCM_BIT_DEPTH_SYNTAX
-  Bool      getPCMInputBitDepthFlag         ()      { return m_bPCMInputBitDepthFlag;   } 
 #endif
 #if E192_SPS_PCM_FILTER_DISABLE_SYNTAX
   Bool      getPCMFilterDisableFlag         ()      { return m_bPCMFilterDisableFlag;   } 

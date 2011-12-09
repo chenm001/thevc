@@ -375,8 +375,8 @@ Void TDecCavlc::parseSPS(TComSPS* pcSPS)
 #endif
   READ_UVLC( uiCode,    "bit_depth_chroma_minus8" );
 #if E192_SPS_PCM_BIT_DEPTH_SYNTAX
-  READ_CODE( 4, uiCode, "pcm_bit_depth_luma_minus1" );           pcSPS->setPCMBitDepthLuma   ( 1 + uiCode );
-  READ_CODE( 4, uiCode, "pcm_bit_depth_chroma_minus1" );         pcSPS->setPCMBitDepthChroma ( 1 + uiCode );
+  READ_CODE( 4, uiCode, "pcm_bit_depth_luma_minus1" );           assert(uiCode == 7);
+  READ_CODE( 4, uiCode, "pcm_bit_depth_chroma_minus1" );         assert(uiCode == 7);
 #endif
 #if G1002_RPS
   READ_UVLC( uiCode,    "log2_max_pic_order_cnt_lsb_minus4" );   pcSPS->setBitsForPOC( 4 + uiCode );
@@ -1257,18 +1257,13 @@ Void TDecCavlc::parseIPCMInfo( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth
     piPCMSample = pcCU->getPCMSampleY() + uiLumaOffset;
     uiWidth = pcCU->getWidth(uiAbsPartIdx);
     uiHeight = pcCU->getHeight(uiAbsPartIdx);
-#if E192_SPS_PCM_BIT_DEPTH_SYNTAX
-    uiSampleBits = pcCU->getSlice()->getSPS()->getPCMBitDepthLuma();
-#else
-    uiSampleBits = g_uiBitDepth;
-#endif
 
     for(uiY = 0; uiY < uiHeight; uiY++)
     {
       for(uiX = 0; uiX < uiWidth; uiX++)
       {
         UInt uiSample;
-        xReadCode(uiSampleBits, uiSample);
+        xReadCode(8, uiSample);
 
         piPCMSample[uiX] = uiSample;
       }
@@ -1278,18 +1273,13 @@ Void TDecCavlc::parseIPCMInfo( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth
     piPCMSample = pcCU->getPCMSampleCb() + uiChromaOffset;
     uiWidth = pcCU->getWidth(uiAbsPartIdx)/2;
     uiHeight = pcCU->getHeight(uiAbsPartIdx)/2;
-#if E192_SPS_PCM_BIT_DEPTH_SYNTAX
-    uiSampleBits = pcCU->getSlice()->getSPS()->getPCMBitDepthChroma();
-#else
-    uiSampleBits = g_uiBitDepth;
-#endif
 
     for(uiY = 0; uiY < uiHeight; uiY++)
     {
       for(uiX = 0; uiX < uiWidth; uiX++)
       {
         UInt uiSample;
-        xReadCode(uiSampleBits, uiSample);
+        xReadCode(8, uiSample);
         piPCMSample[uiX] = uiSample;
       }
       piPCMSample += uiWidth;
@@ -1298,18 +1288,13 @@ Void TDecCavlc::parseIPCMInfo( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth
     piPCMSample = pcCU->getPCMSampleCr() + uiChromaOffset;
     uiWidth = pcCU->getWidth(uiAbsPartIdx)/2;
     uiHeight = pcCU->getHeight(uiAbsPartIdx)/2;
-#if E192_SPS_PCM_BIT_DEPTH_SYNTAX
-    uiSampleBits = pcCU->getSlice()->getSPS()->getPCMBitDepthChroma();
-#else
-    uiSampleBits = g_uiBitDepth;
-#endif
 
     for(uiY = 0; uiY < uiHeight; uiY++)
     {
       for(uiX = 0; uiX < uiWidth; uiX++)
       {
         UInt uiSample;
-        xReadCode(uiSampleBits, uiSample);
+        xReadCode(8, uiSample);
         piPCMSample[uiX] = uiSample;
       }
       piPCMSample += uiWidth;

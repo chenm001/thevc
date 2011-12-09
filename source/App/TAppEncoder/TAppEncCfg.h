@@ -123,12 +123,6 @@ protected:
   
   UInt      m_uiQuadtreeTUMaxDepthInter;
   UInt      m_uiQuadtreeTUMaxDepthIntra;
-  
-  // coding tools (PCM bit-depth)
-#if E192_SPS_PCM_BIT_DEPTH_SYNTAX
-  Bool      m_bPCMInputBitDepthFlag;                          ///< 0: PCM bit-depth is internal bit-depth. 1: PCM bit-depth is input bit-depth.
-  UInt      m_uiPCMBitDepthLuma;                              ///< PCM bit-depth for luma
-#endif
 
 #if SAO
   Bool      m_bUseSAO; 

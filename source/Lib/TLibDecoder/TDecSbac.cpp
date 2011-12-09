@@ -436,24 +436,18 @@ Void TDecSbac::parseIPCMInfo ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth
     Pel* piPCMSample;
     UInt uiWidth;
     UInt uiHeight;
-    UInt uiSampleBits;
     UInt uiX, uiY;
 
     piPCMSample = pcCU->getPCMSampleY() + uiLumaOffset;
     uiWidth = pcCU->getWidth(uiAbsPartIdx);
     uiHeight = pcCU->getHeight(uiAbsPartIdx);
-#if E192_SPS_PCM_BIT_DEPTH_SYNTAX
-    uiSampleBits = pcCU->getSlice()->getSPS()->getPCMBitDepthLuma();
-#else
-    uiSampleBits = g_uiBitDepth;
-#endif
 
     for(uiY = 0; uiY < uiHeight; uiY++)
     {
       for(uiX = 0; uiX < uiWidth; uiX++)
       {
         UInt uiSample;
-        m_pcTDecBinIf->xReadPCMCode(uiSampleBits, uiSample);
+        m_pcTDecBinIf->xReadPCMCode(8, uiSample);
         piPCMSample[uiX] = uiSample;
       }
       piPCMSample += uiWidth;
@@ -462,18 +456,13 @@ Void TDecSbac::parseIPCMInfo ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth
     piPCMSample = pcCU->getPCMSampleCb() + uiChromaOffset;
     uiWidth = pcCU->getWidth(uiAbsPartIdx)/2;
     uiHeight = pcCU->getHeight(uiAbsPartIdx)/2;
-#if E192_SPS_PCM_BIT_DEPTH_SYNTAX
-    uiSampleBits = pcCU->getSlice()->getSPS()->getPCMBitDepthChroma();
-#else
-    uiSampleBits = g_uiBitDepth;
-#endif
 
     for(uiY = 0; uiY < uiHeight; uiY++)
     {
       for(uiX = 0; uiX < uiWidth; uiX++)
       {
         UInt uiSample;
-        m_pcTDecBinIf->xReadPCMCode(uiSampleBits, uiSample);
+        m_pcTDecBinIf->xReadPCMCode(8, uiSample);
         piPCMSample[uiX] = uiSample;
       }
       piPCMSample += uiWidth;
@@ -482,18 +471,13 @@ Void TDecSbac::parseIPCMInfo ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth
     piPCMSample = pcCU->getPCMSampleCr() + uiChromaOffset;
     uiWidth = pcCU->getWidth(uiAbsPartIdx)/2;
     uiHeight = pcCU->getHeight(uiAbsPartIdx)/2;
-#if E192_SPS_PCM_BIT_DEPTH_SYNTAX
-    uiSampleBits = pcCU->getSlice()->getSPS()->getPCMBitDepthChroma();
-#else
-    uiSampleBits = g_uiBitDepth;
-#endif
 
     for(uiY = 0; uiY < uiHeight; uiY++)
     {
       for(uiX = 0; uiX < uiWidth; uiX++)
       {
         UInt uiSample;
-        m_pcTDecBinIf->xReadPCMCode(uiSampleBits, uiSample);
+        m_pcTDecBinIf->xReadPCMCode(8, uiSample);
         piPCMSample[uiX] = uiSample;
       }
       piPCMSample += uiWidth;
