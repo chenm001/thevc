@@ -104,9 +104,14 @@ Void TComLoopFilter::create( UInt uiMaxCUDepth )
   m_uiNumPartitions = 1 << ( uiMaxCUDepth<<1 );
   for( UInt uiDir = 0; uiDir < 2; uiDir++ )
   {
+#if DEBLK_CLEANUP_CHROMA_BS
+    m_aapucBS       [uiDir] = new UChar[m_uiNumPartitions];
+#endif
     for( UInt uiPlane = 0; uiPlane < 3; uiPlane++ )
     {
+#if !DEBLK_CLEANUP_CHROMA_BS
       m_aapucBS       [uiDir][uiPlane] = new UChar[m_uiNumPartitions];
+#endif
       m_aapbEdgeFilter[uiDir][uiPlane] = new Bool [m_uiNumPartitions];
     }
   }
@@ -120,9 +125,14 @@ Void TComLoopFilter::destroy()
 {
   for( UInt uiDir = 0; uiDir < 2; uiDir++ )
   {
+#if DEBLK_CLEANUP_CHROMA_BS
+    delete [] m_aapucBS       [uiDir];
+#endif
     for( UInt uiPlane = 0; uiPlane < 3; uiPlane++ )
     {
+#if !DEBLK_CLEANUP_CHROMA_BS
       delete [] m_aapucBS       [uiDir][uiPlane];
+#endif
       delete [] m_aapbEdgeFilter[uiDir][uiPlane];
     }
   }
@@ -154,9 +164,14 @@ Void TComLoopFilter::loopFilterPic( TComPic* pcPic )
   {
     TComDataCU* pcCU = pcPic->getCU( uiCUAddr );
 
+#if DEBLK_CLEANUP_CHROMA_BS
+    ::memset( m_aapucBS       [EDGE_VER], 0, sizeof( UChar ) * m_uiNumPartitions );
+#endif
     for( Int iPlane = 0; iPlane < 3; iPlane++ )
     {
+#if !DEBLK_CLEANUP_CHROMA_BS
       ::memset( m_aapucBS       [EDGE_VER][iPlane], 0, sizeof( UChar ) * m_uiNumPartitions );
+#endif
       ::memset( m_aapbEdgeFilter[EDGE_VER][iPlane], 0, sizeof( bool  ) * m_uiNumPartitions );
     }
 
@@ -169,9 +184,14 @@ Void TComLoopFilter::loopFilterPic( TComPic* pcPic )
   {
     TComDataCU* pcCU = pcPic->getCU( uiCUAddr );
 
+#if DEBLK_CLEANUP_CHROMA_BS
+      ::memset( m_aapucBS       [EDGE_HOR], 0, sizeof( UChar ) * m_uiNumPartitions );
+#endif
     for( Int iPlane = 0; iPlane < 3; iPlane++ )
     {
+#if !DEBLK_CLEANUP_CHROMA_BS
       ::memset( m_aapucBS       [EDGE_HOR][iPlane], 0, sizeof( UChar ) * m_uiNumPartitions );
+#endif
       ::memset( m_aapbEdgeFilter[EDGE_HOR][iPlane], 0, sizeof( bool  ) * m_uiNumPartitions );
     }
 
@@ -186,9 +206,14 @@ Void TComLoopFilter::loopFilterPic( TComPic* pcPic )
     
     for( Int iDir = EDGE_VER; iDir <= EDGE_HOR; iDir++ )
     {
+#if DEBLK_CLEANUP_CHROMA_BS
+      ::memset( m_aapucBS       [iDir], 0, sizeof( UChar ) * m_uiNumPartitions );
+#endif
       for( Int iPlane = 0; iPlane < 3; iPlane++ )
       {
+#if !DEBLK_CLEANUP_CHROMA_BS
         ::memset( m_aapucBS       [iDir][iPlane], 0, sizeof( UChar ) * m_uiNumPartitions );
+#endif
         ::memset( m_aapbEdgeFilter[iDir][iPlane], 0, sizeof( bool  ) * m_uiNumPartitions );
       }
     }
@@ -310,7 +335,11 @@ Void TComLoopFilter::xSetEdgefilterMultiple( TComDataCU* pcCU, UInt uiScanIdx, U
     m_aapbEdgeFilter[iDir][2][uiBsIdx] = bValue;
     if (iEdgeIdx == 0)
     {
+#if !DEBLK_CLEANUP_CHROMA_BS
       m_aapucBS[iDir][0][uiBsIdx] = bValue;
+#else
+      m_aapucBS[iDir][uiBsIdx] = bValue;
+#endif
     }
   }
 }
@@ -329,7 +358,11 @@ Void TComLoopFilter::xSetEdgefilterMultiple( TComDataCU* pcCU, UInt uiAbsZorderI
     m_aapbEdgeFilter[iDir][2][uiBsIdx] = bValue;
     if (iEdgeIdx == 0)
     {
+#if !DEBLK_CLEANUP_CHROMA_BS
       m_aapucBS[iDir][0][uiBsIdx] = bValue;
+#else
+      m_aapucBS[iDir][uiBsIdx] = bValue;
+#endif
     }
   }
 }
@@ -574,10 +607,12 @@ Void TComLoopFilter::xGetBoundaryStrengthSingle ( TComDataCU* pcCU, UInt uiAbsZo
 {
   const UInt uiHWidth  = pcCU->getWidth( uiAbsZorderIdx ) >> 1;
   const UInt uiHHeight = pcCU->getHeight( uiAbsZorderIdx ) >> 1;
+#if !DEBLK_CLEANUP_CHROMA_BS
   const bool bAtCUBoundary = iDir == EDGE_VER ? g_auiRasterToPelX[g_auiZscanToRaster[uiAbsZorderIdx]] == g_auiRasterToPelX[g_auiZscanToRaster[uiAbsPartIdx]]
   : g_auiRasterToPelY[g_auiZscanToRaster[uiAbsZorderIdx]] == g_auiRasterToPelY[g_auiZscanToRaster[uiAbsPartIdx]];
   const bool bAtCUHalf     = iDir == EDGE_VER ? ( g_auiRasterToPelX[g_auiZscanToRaster[uiAbsZorderIdx]] + uiHWidth ) == g_auiRasterToPelX[g_auiZscanToRaster[uiAbsPartIdx]]
   : ( g_auiRasterToPelY[g_auiZscanToRaster[uiAbsZorderIdx]] + uiHHeight ) == g_auiRasterToPelY[g_auiZscanToRaster[uiAbsPartIdx]];
+#endif
   TComSlice* const pcSlice = pcCU->getSlice();
   
   const UInt uiPartQ = uiAbsPartIdx;
@@ -610,7 +645,11 @@ Void TComLoopFilter::xGetBoundaryStrengthSingle ( TComDataCU* pcCU, UInt uiAbsZo
   //-- Set BS for not Intra MB : BS = 2 or 1 or 0
   if ( !pcCUP->isIntra(uiPartP) && !pcCUQ->isIntra(uiPartQ) )
   {
+#if !DEBLK_CLEANUP_CHROMA_BS
     if ( m_aapucBS[iDir][0][uiAbsPartIdx] && (pcCUQ->getCbf( uiPartQ, TEXT_LUMA, pcCUQ->getTransformIdx(uiPartQ)) != 0 || pcCUP->getCbf( uiPartP, TEXT_LUMA, pcCUP->getTransformIdx(uiPartP) ) != 0) )
+#else
+    if ( m_aapucBS[iDir][uiAbsPartIdx] && (pcCUQ->getCbf( uiPartQ, TEXT_LUMA, pcCUQ->getTransformIdx(uiPartQ)) != 0 || pcCUP->getCbf( uiPartP, TEXT_LUMA, pcCUP->getTransformIdx(uiPartP) ) != 0) )
+#endif
     {
 #if DEBLK_CLEANUP_G175_G620_G638
       uiBs = 1;
@@ -694,12 +733,16 @@ Void TComLoopFilter::xGetBoundaryStrengthSingle ( TComDataCU* pcCU, UInt uiAbsZo
     }   // enf of "if( one of BCBP == 0 )"
   }   // enf of "if( not Intra )"
   
+#if !DEBLK_CLEANUP_CHROMA_BS
   m_aapucBS[iDir][0][uiAbsPartIdx] = uiBs;
   if ( bAtCUBoundary || bAtCUHalf )
   {
     m_aapucBS[iDir][1][uiAbsPartIdx] = uiBs;
     m_aapucBS[iDir][2][uiAbsPartIdx] = uiBs;
   }
+#else
+  m_aapucBS[iDir][uiAbsPartIdx] = uiBs;
+#endif
 }
 
 
@@ -763,10 +806,17 @@ Void TComLoopFilter::xEdgeFilterLuma( TComDataCU* pcCU, UInt uiAbsZorderIdx, UIn
     for (UInt iIdxInside = 0; iIdxInside<PartIdxIncr; iIdxInside++)
     {
       uiBsAbsIdx = xCalcBsIdx( pcCU, uiAbsZorderIdx, iDir, iEdge, iIdx+iIdxInside);
+#if !DEBLK_CLEANUP_CHROMA_BS
       if (uiBs < m_aapucBS[iDir][0][uiBsAbsIdx])
       {
         uiBs = m_aapucBS[iDir][0][uiBsAbsIdx];
       }
+#else
+      if (uiBs < m_aapucBS[iDir][uiBsAbsIdx])
+      {
+        uiBs = m_aapucBS[iDir][uiBsAbsIdx];
+      }
+#endif
     }
     
 #if DEBLK_CLEANUP_G175_G620_G638
@@ -920,7 +970,11 @@ Void TComLoopFilter::xEdgeFilterChroma( TComDataCU* pcCU, UInt uiAbsZorderIdx, U
     ucBs = 0;
     
     uiBsAbsIdx = xCalcBsIdx( pcCU, uiAbsZorderIdx, iDir, iEdge, iIdx);
+#if !DEBLK_CLEANUP_CHROMA_BS
     ucBs = m_aapucBS[iDir][0][uiBsAbsIdx];
+#else
+    ucBs = m_aapucBS[iDir][uiBsAbsIdx];
+#endif
     
 #if DEBLK_CLEANUP_G175_G620_G638
     if ( ucBs > 1)
