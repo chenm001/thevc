@@ -161,8 +161,8 @@ public:
 
   Void create(Int iSliceID, TComPic* pcPic, UInt uiCUAddr, UInt uiStartSU, UInt uiEndSU, Int iSGDepth); /// Create ALF LCU unit perform slice processing
   Void destroy(); /// Destroy ALF LCU unit
-  Void extendLumaBorder(Pel* pImg, Int iStride, Int filtNo); /// Extend slice boundary border for one luma LCU
-  Void extendChromaBorder(Pel* pImg, Int iStride, UInt filtNo); /// Extend slice boundary border for one chroma LCU
+  Void extendLumaBorder(Pel* pImg, Int iStride); /// Extend slice boundary border for one luma LCU
+  Void extendChromaBorder(Pel* pImg, Int iStride); /// Extend slice boundary border for one chroma LCU
   Void copyLuma(Pel* pImgDst, Pel* pImgSrc, Int iStride); /// Copy one luma LCU
   Void copyChroma(Pel* pImgDst, Pel* pImgSrc, Int iStride); /// Copy one chroma LCU
   Void setSGUBorderAvailability(UInt uiNumLCUInPicWidth, UInt uiNumLCUInPicHeight, UInt uiNumSUInLCUWidth, UInt uiNumSUInLCUHeight,Int* piSliceIDMap); /// Set the neighboring availabilities for one slice granularity unit
@@ -175,7 +175,7 @@ public:
   UInt getEndSU       ()         {return m_uiEndSU;  } /// get ending SU z-scan address
   TComPic*    getPic  ()         {return m_pcPic;} /// get TComPic pointer
   TComDataCU* getCU   ()         {return m_pcCU;} /// get TComDataCU pointer
-  Void extendBorderCoreFunction(Pel* pPel, Int iStride, Bool* pbAvail, UInt uiWidth, UInt uiHeight, UInt uiExtSizeX, UInt uiExtSizeY, Bool bPaddingForCalculatingBAIndex = false); /// Extend slice boundary border
+  Void extendBorderCoreFunction(Pel* pPel, Int iStride, Bool* pbAvail, UInt uiWidth, UInt uiHeight, UInt uiExtSize); /// Extend slice boundary border
   UInt getCUAddr() {return m_uiCUAddr;} /// get corresponding TComDataCU pointer
 private:
   TComPic*    m_pcPic;           //!< TComPic pointer
@@ -216,8 +216,8 @@ public:
   Void init(TComPic* pcPic, Int iSGDepth, Int* piSliceSUMap); //!< Initialize one ALF slice unit
   Void create(Int iSliceID, UInt uiStartLCU, UInt uiEndLCU); //!< Create one ALF slice unit
   Void destroy(); //!< Destroy one ALF slice unit
-  Void extendSliceBorderLuma(Pel* pPelSrc, Int iStride, Int filtNo); //!< Extend slice boundary for one luma slice
-  Void extendSliceBorderChroma(Pel* pPelSrc, Int iStride, UInt filtNo); //!< Extend slice boundary for one chroma slice
+  Void extendSliceBorderLuma(Pel* pPelSrc, Int iStride); //!< Extend slice boundary for one luma slice
+  Void extendSliceBorderChroma(Pel* pPelSrc, Int iStride); //!< Extend slice boundary for one chroma slice
   Void copySliceLuma(Pel* pPicDst, Pel* pPicSrc, Int iStride); //!< Copy one luma slice
   Void copySliceChroma(Pel* pPicDst, Pel* pPicSrc, Int iStride ); //!< Copy one chroma slice
   Void getCtrlFlagsForOneSlice(); //!< Copy ALF CU Control Flags for one slice

@@ -413,6 +413,7 @@ Void TEncAdaptiveLoopFilter::ALFProcess( ALFParam* pcAlfParam, Double dLambda, U
     ruiBits = uiOrigRate;
     ruiDist = uiOrigDist;
   }
+
   // if ALF works
   if( m_pcBestAlfParam->alf_flag )
   {
@@ -3791,6 +3792,7 @@ Void TEncAdaptiveLoopFilter::calcVarforSlices(imgpel **varmap, imgpel *imgY_Dec,
     if(!pSlice->isValidSlice()) continue;
 
     pSlice->copySliceLuma(pPicSlice, pPicSrc, img_stride);
+    pSlice->extendSliceBorderLuma(pPicSlice, img_stride);
     calcVarforOneSlice(pSlice, varmap, (imgpel*)pPicSlice, fl, img_stride);
   }
 }
@@ -3814,7 +3816,7 @@ Void TEncAdaptiveLoopFilter::xfilterSlicesEncoder(imgpel* ImgDec, imgpel* ImgRes
     if(!pSlice->isValidSlice()) continue;
 
     pSlice->copySliceLuma(pPicSlice, pPicSrc, iStride);
-    pSlice->extendSliceBorderLuma(pPicSlice, iStride, filtNo);
+    pSlice->extendSliceBorderLuma(pPicSlice, iStride);
     xfilterOneSliceEncoder(pSlice, (imgpel*)pPicSlice, ImgRest, iStride, filtNo, filterCoeff, mergeTable, varImg);
   }
 }
@@ -3871,7 +3873,7 @@ Void   TEncAdaptiveLoopFilter::xstoreInBlockMatrixforSlices(imgpel* ImgOrg, imgp
     if(!pSlice->isValidSlice()) continue;
 
     pSlice->copySliceLuma(pPicSlice, pPicSrc, iStride);
-    pSlice->extendSliceBorderLuma(pPicSlice, iStride, tap);
+    pSlice->extendSliceBorderLuma(pPicSlice, iStride);
     xstoreInBlockMatrixforOneSlice(pSlice, ImgOrg, (imgpel*)pPicSlice, tap, iStride, (s==0), (s== iLastValidSliceID));
   }
 }
@@ -3956,7 +3958,7 @@ Void TEncAdaptiveLoopFilter::xCalcCorrelationFuncforChromaSlices(Int ComponentID
     if(!pSlice->isValidSlice()) continue;
 
     pSlice->copySliceChroma(pPicSlice, pPicSrc, iCmpStride);
-    pSlice->extendSliceBorderChroma(pPicSlice, iCmpStride, iTap);
+    pSlice->extendSliceBorderChroma(pPicSlice, iCmpStride);
     xCalcCorrelationFuncforChromaOneSlice(pSlice, pOrg, pPicSlice, iTap, iCmpStride,(s== iLastValidSliceID));
   }
 }
@@ -4019,7 +4021,7 @@ Void TEncAdaptiveLoopFilter::xFilterChromaSlices(Int ComponentID, TComPicYuv* pc
     if(!pSlice->isValidSlice()) continue;
 
     pSlice->copySliceChroma(pPicSlice, pPicDec, iStride);
-    pSlice->extendSliceBorderChroma(pPicSlice, iStride, filtNo);
+    pSlice->extendSliceBorderChroma(pPicSlice, iStride);
     xFilterOneChromaSlice(pSlice, (imgpel*)pPicSlice, (imgpel*)pRest, iStride, coeff, filtNo, iChromaFormatShift);
   }
 }
@@ -4221,7 +4223,6 @@ Void TEncAdaptiveLoopFilter::xFilterTapDecisionChroma( UInt64 uiLumaRate, TComPi
   UInt64 uiFiltDistCr = xCalcSSD(pcPicOrg->getCrAddr(), pcPicRest->getCrAddr(), iCWidth, iCHeight, iCStride);
   UInt64 uiOrgDistCb  = xCalcSSD(pcPicOrg->getCbAddr(), pcPicDec->getCbAddr(), iCWidth, iCHeight, iCStride);
   UInt64 uiOrgDistCr  = xCalcSSD(pcPicOrg->getCrAddr(), pcPicDec->getCrAddr(), iCWidth, iCHeight, iCStride);
-
   if(((m_pcTempAlfParam->chroma_idc)>>1 & 0x1) && (uiOrgDistCb<=uiFiltDistCb))
   {
     m_pcTempAlfParam->chroma_idc -= 2;
@@ -4232,13 +4233,13 @@ Void TEncAdaptiveLoopFilter::xFilterTapDecisionChroma( UInt64 uiLumaRate, TComPi
     m_pcTempAlfParam->chroma_idc -= 1;
     pcPicDec->copyToPicCr(pcPicRest);
   }
-  
+
   if(m_pcTempAlfParam->chroma_idc)
   {
     UInt64 uiRate, uiDist;
     Double dCost;
     xCalcRDCostChroma(pcPicOrg, pcPicRest, m_pcTempAlfParam, uiRate, uiDist, dCost);
-    
+
     if( dCost < dMinCost )
     {
       copyALFParam(m_pcBestAlfParam, m_pcTempAlfParam);
