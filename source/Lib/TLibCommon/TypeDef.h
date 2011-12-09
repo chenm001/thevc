@@ -43,6 +43,7 @@
 
 #define REMOVE_AVOID_MERGE        1 //G681/G542/G593: removing avoid merge
 #define REMOVE_MV_PRED_CLIP       1 //G134: removing MV clipping
+#define SCALING_FACTOR_CLIP_4096  1 //G223: enlarging the effective MV scaling ratio to [-16,16) by setting the limitation of MV scaling factor to +-4096
 #define REMOVE_DEPENDENCY_AMVP    1 //G542 sp2: remove dependency for derivation process of AMVP candidate
 #define REMOVE_LIMIT_ZEROMERGE    1 //G542 sp3: remove the limit of zero merging candidate
 #define REMOVE_MRG_2ND_PRUNING    1 //G397: remove the 2nd pruning process for merge candidates
