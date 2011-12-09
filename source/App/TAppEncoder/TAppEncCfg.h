@@ -86,7 +86,6 @@ protected:
   Bool      m_bUseNRF;                                        ///< flag for using non-referenced frame in hierarchical structure
   Bool      m_bUseGPB;                                        ///< flag for using generalized P & B structure
 #endif
-  Bool      m_bLCMod;                                         ///< flag for specifying whether the combined reference list for uni-prediction in B-slices is uploaded explicitly
 #if DISABLE_4x4_INTER
   Bool      m_bDisInter4x4;
 #endif

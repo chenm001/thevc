@@ -105,7 +105,6 @@ private:
 
   Bool        m_bUseLMChroma; // JL:
 
-  Bool        m_bLCMod;
 #if NSQT
   Bool        m_useNSQT;
 #endif
@@ -221,9 +220,6 @@ public:
   Void setUsePAD      ( Bool b ) { m_bUsePAD   = b;         }
   Void setUseMRG      ( Bool b ) { m_bUseMRG  = b;          } // SOPH:
   
-  Void setLCMod       (Bool b)   { m_bLCMod = b;     }
-  Bool getLCMod       ()         { return m_bLCMod;  }
-
   Bool getUseLMChroma ()         { return m_bUseLMChroma;        }
   Void setUseLMChroma ( Bool b ) { m_bUseLMChroma  = b;          }
 

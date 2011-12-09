@@ -1322,7 +1322,6 @@ TComSPS::TComSPS()
 , m_bUsePAD                   (false)
 , m_bUseMRG                   (false)
 , m_bUseLMChroma              (false)
-, m_bLCMod                    (false)
 , m_uiBitDepth                (  8)
 , m_uiBitIncrement            (  0)
 #if E192_SPS_PCM_BIT_DEPTH_SYNTAX

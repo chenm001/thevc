@@ -581,7 +581,6 @@ Void TEncTop::xInitSPS()
   
   m_cSPS.setMaxTrSize   ( 1 << m_uiQuadtreeTULog2MaxSize );
   
-  m_cSPS.setLCMod       ( m_bLCMod   );
 #if NSQT
   m_cSPS.setUseNSQT( m_useNSQT );
 #endif

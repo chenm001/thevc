@@ -190,7 +190,6 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
   ("NumOfReferenceB_L1,-rb1",m_iNumOfReferenceB_L1, 1, "Number of reference (B_L1)")
   ("GPB", m_bUseGPB, false, "generalized B instead of P in low-delay mode")
 #endif
-  ("LCModification", m_bLCMod, false, "enables signalling of combined reference list derivation")
 #if !G1002_RPS
   ("NRF", m_bUseNRF,  true, "non-reference frame marking in last layer")
   ("BQP", m_bUseBQP, false, "hier-P style QP assignment in low-delay mode")
@@ -870,7 +869,6 @@ Void TAppEncCfg::xPrintParameter()
   printf("BQP:%d ", m_bUseBQP             );
   printf("GPB:%d ", m_bUseGPB             );
 #endif
-  printf("LCMod:%d ", m_bLCMod         );
   printf("FEN:%d ", m_bUseFastEnc         );
 #if EARLY_CU_DETERMINATION
   printf("ECU:%d ", m_bUseEarlyCU         );
