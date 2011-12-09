@@ -163,7 +163,7 @@ public:
   TComLoopFilter();
   virtual ~TComLoopFilter();
   
-#if PARALLEL_MERGED_DEBLK
+#if PARALLEL_MERGED_DEBLK && !DISABLE_PARALLEL_DECISIONS
   Void  create                    ( Int width, Int height, Int maxCUWidth, Int maxCUHeight, Int uiMaxCUDepth );
 #else
   Void  create                    ( UInt uiMaxCUDepth );

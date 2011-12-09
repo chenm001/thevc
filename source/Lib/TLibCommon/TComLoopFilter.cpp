@@ -95,7 +95,7 @@ Void TComLoopFilter::setCfg( UInt uiDisableDblkIdc, Int iAlphaOffset, Int iBetaO
   m_uiDisableDeblockingFilterIdc  = uiDisableDblkIdc;
 }
 
-#if PARALLEL_MERGED_DEBLK
+#if PARALLEL_MERGED_DEBLK && !DISABLE_PARALLEL_DECISIONS
 Void TComLoopFilter::create( Int width, Int height, Int maxCUWidth, Int maxCUHeight, Int uiMaxCUDepth )
 #else
 Void TComLoopFilter::create( UInt uiMaxCUDepth )
