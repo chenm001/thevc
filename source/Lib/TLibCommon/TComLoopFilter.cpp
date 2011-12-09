@@ -111,7 +111,7 @@ Void TComLoopFilter::create( UInt uiMaxCUDepth )
     }
   }
   
-#if PARALLEL_MERGED_DEBLK
+#if PARALLEL_MERGED_DEBLK && !DISABLE_PARALLEL_DECISIONS
   m_preDeblockPic.createLuma( width, height, maxCUWidth, maxCUHeight, uiMaxCUDepth );
 #endif
 }
@@ -127,7 +127,7 @@ Void TComLoopFilter::destroy()
     }
   }
   
-#if PARALLEL_MERGED_DEBLK
+#if PARALLEL_MERGED_DEBLK && !DISABLE_PARALLEL_DECISIONS
   m_preDeblockPic.destroyLuma();
 #endif
 }
@@ -143,8 +143,10 @@ Void TComLoopFilter::loopFilterPic( TComPic* pcPic )
     return;
   
 #if PARALLEL_MERGED_DEBLK
+#if !DISABLE_PARALLEL_DECISIONS
   pcPic->getPicYuvRec()->copyToPicLuma(&m_preDeblockPic);
-
+#endif
+  
   // Horizontal filtering
   for ( UInt uiCUAddr = 0; uiCUAddr < pcPic->getNumCUsInFrame(); uiCUAddr++ )
   {
@@ -683,7 +685,7 @@ Void TComLoopFilter::xEdgeFilterLuma( TComDataCU* pcCU, UInt uiAbsZorderIdx, UIn
   TComPicYuv* pcPicYuvRec = pcCU->getPic()->getPicYuvRec();
   Pel* piSrc    = pcPicYuvRec->getLumaAddr( pcCU->getAddr(), uiAbsZorderIdx );
   Pel* piTmpSrc = piSrc;
-#if PARALLEL_MERGED_DEBLK
+#if PARALLEL_MERGED_DEBLK && !DISABLE_PARALLEL_DECISIONS
   Pel* piSrcJudge    = m_preDeblockPic.getLumaAddr( pcCU->getAddr(), uiAbsZorderIdx );
   Pel* piTmpSrcJudge = piSrcJudge;
 #endif
@@ -717,7 +719,7 @@ Void TComLoopFilter::xEdgeFilterLuma( TComDataCU* pcCU, UInt uiAbsZorderIdx, UIn
     iOffset = 1;
     iSrcStep = iStride;
     piTmpSrc += iEdge*uiPelsInPart;
-#if PARALLEL_MERGED_DEBLK
+#if PARALLEL_MERGED_DEBLK && !DISABLE_PARALLEL_DECISIONS
     piTmpSrcJudge += iEdge*uiPelsInPart;
 #endif
   }
@@ -726,7 +728,7 @@ Void TComLoopFilter::xEdgeFilterLuma( TComDataCU* pcCU, UInt uiAbsZorderIdx, UIn
     iOffset = iStride;
     iSrcStep = 1;
     piTmpSrc += iEdge*uiPelsInPart*iStride;
-#if PARALLEL_MERGED_DEBLK
+#if PARALLEL_MERGED_DEBLK && !DISABLE_PARALLEL_DECISIONS
     piTmpSrcJudge += iEdge*uiPelsInPart*iStride;
 #endif
   }
@@ -771,7 +773,7 @@ Void TComLoopFilter::xEdgeFilterLuma( TComDataCU* pcCU, UInt uiAbsZorderIdx, UIn
       if ( uiBs )
       {
 #endif
-#if PARALLEL_MERGED_DEBLK
+#if PARALLEL_MERGED_DEBLK && !DISABLE_PARALLEL_DECISIONS
         Int iDP = xCalcDP( piTmpSrcJudge+iSrcStep*(iIdx*uiPelsInPart+iBlkIdx*DEBLOCK_SMALLEST_BLOCK+2), iOffset) + xCalcDP( piTmpSrcJudge+iSrcStep*(iIdx*uiPelsInPart+iBlkIdx*DEBLOCK_SMALLEST_BLOCK+5), iOffset);
         Int iDQ = xCalcDQ( piTmpSrcJudge+iSrcStep*(iIdx*uiPelsInPart+iBlkIdx*DEBLOCK_SMALLEST_BLOCK+2), iOffset) + xCalcDQ( piTmpSrcJudge+iSrcStep*(iIdx*uiPelsInPart+iBlkIdx*DEBLOCK_SMALLEST_BLOCK+5), iOffset);
         Int iD = iDP + iDQ;
@@ -807,7 +809,7 @@ Void TComLoopFilter::xEdgeFilterLuma( TComDataCU* pcCU, UInt uiAbsZorderIdx, UIn
 #endif
           for ( UInt i = 0; i < DEBLOCK_SMALLEST_BLOCK; i++)
           {
-#if PARALLEL_MERGED_DEBLK
+#if PARALLEL_MERGED_DEBLK && !DISABLE_PARALLEL_DECISIONS
 #if E192_SPS_PCM_FILTER_DISABLE_SYNTAX 
             xPelFilterLuma( piTmpSrc+iSrcStep*(iIdx*uiPelsInPart+iBlkIdx*DEBLOCK_SMALLEST_BLOCK+i), iOffset, iD, iBeta, iTc , piTmpSrcJudge+iSrcStep*(iIdx*uiPelsInPart+iBlkIdx*DEBLOCK_SMALLEST_BLOCK+i), bPartPNoFilter, bPartQNoFilter, iThrCut, bFilterP, bFilterQ);
 #else
@@ -954,7 +956,7 @@ Void TComLoopFilter::xEdgeFilterChroma( TComDataCU* pcCU, UInt uiAbsZorderIdx, U
 }
 
 
-#if PARALLEL_MERGED_DEBLK
+#if PARALLEL_MERGED_DEBLK && !DISABLE_PARALLEL_DECISIONS
 #if E192_SPS_PCM_FILTER_DISABLE_SYNTAX 
 /**
  - Deblocking for the luminance component with strong or weak filter
@@ -990,7 +992,7 @@ __inline Void TComLoopFilter::xPelFilterLuma( Pel* piSrc, Int iOffset, Int d, In
   Pel m1  = piSrc[-iOffset*3];
   Pel m7  = piSrc[ iOffset*3];
   Pel m0  = piSrc[-iOffset*4];
-#if PARALLEL_MERGED_DEBLK
+#if PARALLEL_MERGED_DEBLK && !DISABLE_PARALLEL_DECISIONS
   Pel m4j  = piSrcJudge[0];
   Pel m3j  = piSrcJudge[-iOffset];
   Pel m7j  = piSrcJudge[ iOffset*3];

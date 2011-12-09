@@ -60,7 +60,7 @@ private:
   Bool*     m_aapbEdgeFilter[2][3];
   LFCUParam m_stLFCUParam;                  ///< status structure
   
-#if PARALLEL_MERGED_DEBLK
+#if PARALLEL_MERGED_DEBLK && !DISABLE_PARALLEL_DECISIONS
   TComPicYuv m_preDeblockPic;
 #endif
   
@@ -117,7 +117,7 @@ protected:
   Void xEdgeFilterLuma            ( TComDataCU* pcCU, UInt uiAbsZorderIdx, UInt uiDepth, Int iDir, Int iEdge );
   Void xEdgeFilterChroma          ( TComDataCU* pcCU, UInt uiAbsZorderIdx, UInt uiDepth, Int iDir, Int iEdge );
   
-#if PARALLEL_MERGED_DEBLK
+#if PARALLEL_MERGED_DEBLK && !DISABLE_PARALLEL_DECISIONS
 #if E192_SPS_PCM_FILTER_DISABLE_SYNTAX 
   __inline Void xPelFilterLuma( Pel* piSrc, Int iOffset, Int d, Int beta, Int tc, Pel* piSrcJudge, Bool bPartPNoFilter, Bool bPartQNoFilter, Int iThrCut, Bool bFilterSecondP, Bool bFilterSecondQ);
 #else
