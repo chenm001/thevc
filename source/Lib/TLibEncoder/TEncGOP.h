@@ -138,7 +138,6 @@ public:
   Int   getGOPSize()          { return  m_iGopSize;  }
 #if !G1002_RPS
   Int   getRateGOPSize()      { return  m_iRateGopSize;  }
-  Int   isHierarchicalB()     { return  m_pcCfg->getHierarchicalCoding();  }
   Int   getHrchDepth()        { return  m_iHrchDepth; }
 #endif
   

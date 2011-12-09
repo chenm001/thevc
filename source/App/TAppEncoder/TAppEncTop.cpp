@@ -108,11 +108,6 @@ Void TAppEncTop::xInitLibCfg()
   m_cTEncTop.setUseAMP( m_enableAMP );
 #endif
   
-  //===== Slice ========
-#if !G1002_RPS
-  m_cTEncTop.setHierarchicalCoding           ( m_bHierarchicalCoding );
-#endif
-  
 #if !DISABLE_CAVLC
   //====== Entropy Coding ========
   m_cTEncTop.setSymbolMode                   ( m_iSymbolMode );

@@ -322,9 +322,6 @@ Void TEncSlice::initEncSlice( TComPic* pcPic, Int iPOCLast, UInt uiPOCCurr, Int 
   }
   else
   {
-    if (m_pcCfg->getHierarchicalCoding())
-      m_pcTrQuant->setRDOQOffset(1);
-    else
       m_pcTrQuant->setRDOQOffset(0);
   }
 #endif

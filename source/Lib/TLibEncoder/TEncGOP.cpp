@@ -173,7 +173,7 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
     Int iStep       = iTimeOffset << 1;
     
     // generalized B info.
-    if ( (m_pcCfg->getHierarchicalCoding() == false) && (iDepth != 0) )
+    if ( iDepth != 0 )
     {
       iTimeOffset   = 1;
       iStep         = 1;
@@ -245,7 +245,7 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
         
 #else
       // generalized B info.
-      if ( (m_pcCfg->getHierarchicalCoding() == false) && (iDepth != 0) && (iTimeOffset == m_iGopSize) && (iPOCLast != 0) )
+      if ( (iDepth != 0) && (iTimeOffset == m_iGopSize) && (iPOCLast != 0) )
       {
         continue;
       }
@@ -1447,7 +1447,7 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
     }
     
     // generalized B info.
-    if ( m_pcCfg->getHierarchicalCoding() == false && iDepth != 0 )
+    if ( iDepth != 0 )
       break;
 #endif
   }

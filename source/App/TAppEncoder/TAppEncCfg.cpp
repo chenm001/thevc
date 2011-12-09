@@ -188,7 +188,6 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
   ("NumOfReference,r",       m_iNumOfReference,     1, "Number of reference (P)")
   ("NumOfReferenceB_L0,-rb0",m_iNumOfReferenceB_L0, 1, "Number of reference (B_L0)")
   ("NumOfReferenceB_L1,-rb1",m_iNumOfReferenceB_L1, 1, "Number of reference (B_L1)")
-  ("HierarchicalCoding",     m_bHierarchicalCoding, true)
   ("LowDelayCoding",         m_bUseLDC,             false, "low-delay mode")
   ("GPB", m_bUseGPB, false, "generalized B instead of P in low-delay mode")
 #endif

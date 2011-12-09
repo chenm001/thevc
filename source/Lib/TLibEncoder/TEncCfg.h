@@ -131,11 +131,6 @@ protected:
   Bool      m_useNSQT;
 #endif
   
-  //====== B Slice ========
-#if !G1002_RPS
-  Bool      m_bHierarchicalCoding;              //  hierarchical-B coding
-#endif
-  
 #if !DISABLE_CAVLC
   //====== Entropy Coding ========
   Int       m_iSymbolMode;                      //  (CAVLC, CABAC)
@@ -284,11 +279,6 @@ public:
   Void setUseAMP( Bool b ) { m_useAMP = b; }
 #endif
   
-  //====== b; Slice ========
-#if !G1002_RPS
-  Void      setHierarchicalCoding           ( Bool  b )      { m_bHierarchicalCoding = b; }
-#endif
-  
 #if !DISABLE_CAVLC
   //====== Entropy Coding ========
   Void      setSymbolMode                   ( Int   i )      { m_iSymbolMode = i; }
@@ -343,11 +333,6 @@ public:
   UInt      getQuadtreeTULog2MinSize        ()      const { return m_uiQuadtreeTULog2MinSize; }
   UInt      getQuadtreeTUMaxDepthInter      ()      const { return m_uiQuadtreeTUMaxDepthInter; }
   UInt      getQuadtreeTUMaxDepthIntra      ()      const { return m_uiQuadtreeTUMaxDepthIntra; }
-  
-  //==== b; Slice ========
-#if !G1002_RPS
-  Bool      getHierarchicalCoding           ()      { return  m_bHierarchicalCoding; }
-#endif
   
 #if !DISABLE_CAVLC
   //==== Entropy Coding ========
