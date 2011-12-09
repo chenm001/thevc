@@ -221,7 +221,9 @@ private:
   Int lengthGolomb(int coeffVal, int k);
   Int lengthPredFlags(int force0, int predMethod, int codedVarBins[NO_VAR_BINS], int filters_per_group, int createBitstream);
   Int lengthFilterCoeffs(int sqrFiltLength, int filters_per_group, int pDepthInt[], int **FilterCoeff, int kMinTab[], int createBitstream);
-
+#if G665_ALF_COEFF_PRED
+  Void predictALFCoeffLumaEnc(ALFParam* pcAlfParam,int **pfilterCoeffSym, int filter_shape); //!< prediction of luma ALF coefficients
+#endif
   //cholesky related
   Int   xGauss( Double **a, Int N );
   Double findFilterCoeff(double ***EGlobalSeq, double **yGlobalSeq, double *pixAccGlobalSeq, int **filterCoeffSeq,int **filterCoeffQuantSeq, int intervalBest[NO_VAR_BINS][2], int varIndTab[NO_VAR_BINS], int sqrFiltLength, int filters_per_fr, int *weights, double errorTabForce0Coeff[NO_VAR_BINS][2]);

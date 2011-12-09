@@ -216,6 +216,8 @@
 
 #define CBF_FAST_MODE                      1 //JCTVC-F045
 
+#define G665_ALF_COEFF_PRED                1 // JCTVC-G665
+
 // ====================================================================================================================
 // Basic type redefinition
 // ====================================================================================================================
@@ -341,6 +343,9 @@ struct _AlfParam
   Int startSecondFilter;
   Int filters_per_group;
   Int predMethod;
+#if G665_ALF_COEFF_PRED
+  UInt *nbSPred;
+#endif
   Int **coeffmulti;
   Int minKStart;
   Int maxScanVal;

@@ -334,6 +334,10 @@ Void TComAdaptiveLoopFilter::allocALFParam(ALFParam* pAlfParam)
     pAlfParam->coeffmulti[i] = new Int[ALF_MAX_NUM_COEF];
     ::memset(pAlfParam->coeffmulti[i],        0, sizeof(Int)*ALF_MAX_NUM_COEF );
   }
+#if G665_ALF_COEFF_PRED
+  pAlfParam->nbSPred = new UInt[NO_VAR_BINS];
+  ::memset(pAlfParam->nbSPred, 0, sizeof(UInt)*NO_VAR_BINS);
+#endif
   pAlfParam->filterPattern = new Int[NO_VAR_BINS];
   ::memset(pAlfParam->filterPattern, 0, sizeof(Int)*NO_VAR_BINS);
 #if !F747_APS
@@ -359,6 +363,11 @@ Void TComAdaptiveLoopFilter::freeALFParam(ALFParam* pAlfParam)
   }
   delete[] pAlfParam->coeffmulti;
   pAlfParam->coeffmulti = NULL;
+
+#if G665_ALF_COEFF_PRED
+  delete[] pAlfParam->nbSPred;
+  pAlfParam->nbSPred = NULL;
+#endif
 
   delete[] pAlfParam->filterPattern;
   pAlfParam->filterPattern = NULL;
@@ -392,6 +401,9 @@ Void TComAdaptiveLoopFilter::copyALFParam(ALFParam* pDesAlfParam, ALFParam* pSrc
   //Coeff send related
   pDesAlfParam->filters_per_group = pSrcAlfParam->filters_per_group; //this can be updated using codedVarBins
   pDesAlfParam->predMethod = pSrcAlfParam->predMethod;
+#if G665_ALF_COEFF_PRED
+  ::memcpy(pDesAlfParam->nbSPred, pSrcAlfParam->nbSPred, sizeof(UInt)*NO_VAR_BINS);
+#endif
   for (int i=0; i<NO_VAR_BINS; i++)
   {
     ::memcpy(pDesAlfParam->coeffmulti[i], pSrcAlfParam->coeffmulti[i], sizeof(Int)*ALF_MAX_NUM_COEF);
@@ -581,7 +593,9 @@ Void TComAdaptiveLoopFilter::decodeFilterSet(ALFParam* pcAlfParam, Int* varIndTa
         varIndTab[i] = varIndTab[i-1];
     }
   }
-
+#if G665_ALF_COEFF_PRED
+  predictALFCoeffLuma( pcAlfParam);
+#endif
   // reconstruct filter sets
   reconstructFilterCoeffs( pcAlfParam, filterCoeff);
 
@@ -743,6 +757,35 @@ Void TComAdaptiveLoopFilter::xSubCUAdaptive(TComDataCU* pcCU, Int filtNo, imgpel
       ,filtNo, m_filterCoeffSym, m_varIndTab, m_varImg);
   }
 }
+
+#if G665_ALF_COEFF_PRED
+Void TComAdaptiveLoopFilter::predictALFCoeffLuma(ALFParam* pcAlfParam)
+{
+  int sum, coeffPred, ind;
+  const Int* pFiltMag = NULL;
+  pFiltMag = weightsTabShapes[pcAlfParam->filter_shape];
+  for(ind = 0; ind < pcAlfParam->filters_per_group; ++ind)
+  {
+    sum = 0;
+    for(int i = 0; i < pcAlfParam->num_coeff-3; i++)
+      sum +=  pFiltMag[i]*pcAlfParam->coeffmulti[ind][i];
+    if(pcAlfParam->nbSPred[ind]==0)
+    {
+      if((pcAlfParam->predMethod==0)|(ind==0))
+        coeffPred = ((1<<ALF_NUM_BIT_SHIFT)-sum) >> 2;
+      else
+        coeffPred = (0-sum) >> 2;
+      pcAlfParam->coeffmulti[ind][pcAlfParam->num_coeff-3] = coeffPred + pcAlfParam->coeffmulti[ind][pcAlfParam->num_coeff-3];
+    }
+    sum += pFiltMag[pcAlfParam->num_coeff-3]*pcAlfParam->coeffmulti[ind][pcAlfParam->num_coeff-3];
+    if((pcAlfParam->predMethod==0)|(ind==0))
+      coeffPred = (1<<ALF_NUM_BIT_SHIFT)-sum;
+    else
+      coeffPred = -sum;
+    pcAlfParam->coeffmulti[ind][pcAlfParam->num_coeff-2] = coeffPred + pcAlfParam->coeffmulti[ind][pcAlfParam->num_coeff-2];
+  }
+}
+#endif
 
 Void TComAdaptiveLoopFilter::reconstructFilterCoeffs(ALFParam* pcAlfParam,int **pfilterCoeffSym)
 {

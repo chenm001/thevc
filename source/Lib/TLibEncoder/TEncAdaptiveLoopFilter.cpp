@@ -1476,6 +1476,39 @@ double TEncAdaptiveLoopFilter::xfindBestCoeffCodMethod(int **filterCoeffSymQuant
   return (lagrangian);
 }
 
+#if G665_ALF_COEFF_PRED
+Void TEncAdaptiveLoopFilter::predictALFCoeffLumaEnc(ALFParam* pcAlfParam,int **pfilterCoeffSym, int filter_shape)
+{
+  int sum, coeffPred, ind;
+  const Int* pFiltMag = NULL;
+  pFiltMag = weightsTabShapes[filter_shape];
+  for(ind = 0; ind < pcAlfParam->filters_per_group; ++ind)
+  {
+    sum = 0;
+    for(int i = 0; i < pcAlfParam->num_coeff-3; i++)
+      sum +=  pFiltMag[i]*pfilterCoeffSym[ind][i];
+    if((pcAlfParam->predMethod==0)|(ind==0))
+      coeffPred = ((1<<ALF_NUM_BIT_SHIFT)-sum) >> 2;
+    else
+      coeffPred = (0-sum) >> 2;
+    if(abs(pfilterCoeffSym[ind][pcAlfParam->num_coeff-3]-coeffPred) < abs(pfilterCoeffSym[ind][pcAlfParam->num_coeff-3]))
+      pcAlfParam->nbSPred[ind] = 0; 
+    else
+    {
+      pcAlfParam->nbSPred[ind] = 1; 
+      coeffPred = 0;
+    }
+    sum += pFiltMag[pcAlfParam->num_coeff-3]*pfilterCoeffSym[ind][pcAlfParam->num_coeff-3];
+    pfilterCoeffSym[ind][pcAlfParam->num_coeff-3] -= coeffPred; 
+    if((pcAlfParam->predMethod==0)|(ind==0))
+      coeffPred = (1<<ALF_NUM_BIT_SHIFT)-sum;
+    else
+      coeffPred = -sum;
+    pfilterCoeffSym[ind][pcAlfParam->num_coeff-2] -= coeffPred;
+  }
+}
+#endif
+
 Int TEncAdaptiveLoopFilter::xsendAllFiltersPPPred(int **FilterCoeffQuant, int fl, int sqrFiltLength, 
                                                   int filters_per_group, int createBistream, ALFParam* ALFp)
 {
@@ -1484,8 +1517,23 @@ Int TEncAdaptiveLoopFilter::xsendAllFiltersPPPred(int **FilterCoeffQuant, int fl
   int force0 = 0;
   Int64 Newbit_ct;
   
+#if G665_ALF_COEFF_PRED
+  for(ind = 0; ind < filters_per_group; ind++)
+  {
+      for(i = 0; i < sqrFiltLength; i++)
+        m_FilterCoeffQuantTemp[ind][i]=FilterCoeffQuant[ind][i];
+  }
+  ALFp->filters_per_group = filters_per_group;
+  ALFp->predMethod = 0;
+  ALFp->num_coeff = sqrFiltLength;
+  predictALFCoeffLumaEnc(ALFp, m_FilterCoeffQuantTemp, fl);
+  UInt nbFlagIntra[16];
+  for(ind = 0; ind < filters_per_group; ind++)
+    nbFlagIntra[ind] = ALFp->nbSPred[ind];
+  bit_ct0 = xcodeFilterCoeff(m_FilterCoeffQuantTemp, fl, sqrFiltLength, filters_per_group, 0);
+#else
   bit_ct0 = xcodeFilterCoeff(FilterCoeffQuant, fl, sqrFiltLength, filters_per_group, 0);
-  
+#endif  
   for(ind = 0; ind < filters_per_group; ++ind)
   {
     if(ind == 0)
@@ -1499,13 +1547,21 @@ Int TEncAdaptiveLoopFilter::xsendAllFiltersPPPred(int **FilterCoeffQuant, int fl
         m_diffFilterCoeffQuant[ind][i] = FilterCoeffQuant[ind][i] - FilterCoeffQuant[ind-1][i];
     }
   }
+#if G665_ALF_COEFF_PRED
+  ALFp->predMethod = 1;
+  predictALFCoeffLumaEnc(ALFp, m_diffFilterCoeffQuant, fl);
+#endif
   
   if(xcodeFilterCoeff(m_diffFilterCoeffQuant, fl, sqrFiltLength, filters_per_group, 0) >= bit_ct0)
   {
     predMethod = 0;  
     if(filters_per_group > 1)
       bit_ct += lengthPredFlags(force0, predMethod, NULL, 0, createBistream);
+#if G665_ALF_COEFF_PRED
+    bit_ct += xcodeFilterCoeff(m_FilterCoeffQuantTemp, fl, sqrFiltLength, filters_per_group, createBistream);
+#else
     bit_ct += xcodeFilterCoeff(FilterCoeffQuant, fl, sqrFiltLength, filters_per_group, createBistream);
+#endif
   }
   else
   {
@@ -1523,8 +1579,16 @@ Int TEncAdaptiveLoopFilter::xsendAllFiltersPPPred(int **FilterCoeffQuant, int fl
     for(i = 0; i < sqrFiltLength; i++)
     {
       if (predMethod) ALFp->coeffmulti[ind][i] = m_diffFilterCoeffQuant[ind][i];
+#if G665_ALF_COEFF_PRED
+      else ALFp->coeffmulti[ind][i] = m_FilterCoeffQuantTemp[ind][i];
+#else
       else ALFp->coeffmulti[ind][i] = FilterCoeffQuant[ind][i];
+#endif
     }
+#if G665_ALF_COEFF_PRED
+    if(predMethod==0)
+      ALFp->nbSPred[ind] = nbFlagIntra[ind];
+#endif
   }
   m_pcEntropyCoder->codeFiltCountBit(ALFp, &Newbit_ct);
   

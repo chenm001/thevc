@@ -332,6 +332,10 @@ Void TEncEntropy::codeFilt(ALFParam* pAlfParam)
   {
     m_pcEntropyCoderIf->codeAlfFlag (pAlfParam->predMethod);
   }
+#if G665_ALF_COEFF_PRED
+  for(int ind = 0; ind < pAlfParam->filters_per_group; ++ind)
+    m_pcEntropyCoderIf->codeAlfFlag (pAlfParam->nbSPred[ind]);
+#endif
   codeFilterCoeff (pAlfParam);
 }
 
