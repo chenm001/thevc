@@ -58,7 +58,7 @@
 
 typedef struct
 {
-#if MLS
+#if MULTI_LEVEL_SIGNIFICANCE
   Int significantCoeffGroupBits[NUM_SIG_CG_FLAG_CTX][2];
 #endif
   Int significantBits[NUM_SIG_FLAG_CTX][2];
@@ -180,7 +180,7 @@ public:
                                      const UInt                      uiPosY,
                                      const UInt                      uiLog2BlkSize,
                                      const UInt                      uiStride );
-#if MLS
+#if MULTI_LEVEL_SIGNIFICANCE
   static UInt getSigCoeffGroupCtxInc  ( const UInt*                   uiSigCoeffGroupFlag,
                                      const UInt                       uiCGPosX,
                                      const UInt                       uiCGPosY,
@@ -270,7 +270,7 @@ __inline UInt              xGetCodedLevel  ( Double&                         rd6
   __inline Double xGetRateLast     ( const UInt                      uiPosX,
                                      const UInt                      uiPosY,
                                      const UInt                      uiBlkWdth     ) const;
-#if MLS
+#if MULTI_LEVEL_SIGNIFICANCE
   __inline Double xGetRateSigCoeffGroup (  UShort                    uiSignificanceCoeffGroup,
                                      UShort                          ui16CtxNumSig ) const;
 #endif

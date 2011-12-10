@@ -71,7 +71,7 @@ TDecSbac::TDecSbac()
 #endif
 , m_cCUTransSubdivFlagSCModel ( 1,             1,               NUM_TRANS_SUBDIV_FLAG_CTX     , m_contextModels + m_numContextModels, m_numContextModels)
 , m_cCUQtRootCbfSCModel       ( 1,             1,               NUM_QT_ROOT_CBF_CTX           , m_contextModels + m_numContextModels, m_numContextModels)
-#if MLS
+#if MULTI_LEVEL_SIGNIFICANCE
 , m_cCUSigCoeffGroupSCModel   ( 1,             2,               NUM_SIG_CG_FLAG_CTX           , m_contextModels + m_numContextModels, m_numContextModels)
 #endif
 , m_cCUSigSCModel             ( 1,             2,               NUM_SIG_FLAG_CTX              , m_contextModels + m_numContextModels, m_numContextModels)
@@ -138,7 +138,7 @@ Void TDecSbac::resetEntropy          (TComSlice* pcSlice)
   m_cCUDeltaQpSCModel.initBuffer         ( eSliceType, iQp, (Short*)INIT_DQP );
   m_cCUQtCbfSCModel.initBuffer           ( eSliceType, iQp, (Short*)INIT_QT_CBF );
   m_cCUQtRootCbfSCModel.initBuffer       ( eSliceType, iQp, (Short*)INIT_QT_ROOT_CBF );
-#if MLS
+#if MULTI_LEVEL_SIGNIFICANCE
   m_cCUSigCoeffGroupSCModel.initBuffer   ( eSliceType, iQp, (Short*)INIT_SIG_CG_FLAG );
 #endif
   m_cCUSigSCModel.initBuffer             ( eSliceType, iQp, (Short*)INIT_SIG_FLAG );
@@ -207,7 +207,7 @@ Void TDecSbac::updateContextTables( SliceType eSliceType, Int iQp )
   m_cCUDeltaQpSCModel.initBuffer         ( eSliceType, iQp, (Short*)INIT_DQP );
   m_cCUQtCbfSCModel.initBuffer           ( eSliceType, iQp, (Short*)INIT_QT_CBF );
   m_cCUQtRootCbfSCModel.initBuffer       ( eSliceType, iQp, (Short*)INIT_QT_ROOT_CBF );
-#if MLS
+#if MULTI_LEVEL_SIGNIFICANCE
   m_cCUSigCoeffGroupSCModel.initBuffer   ( eSliceType, iQp, (Short*)INIT_SIG_CG_FLAG );
 #endif
   m_cCUSigSCModel.initBuffer             ( eSliceType, iQp, (Short*)INIT_SIG_FLAG );
@@ -1465,12 +1465,12 @@ Void TDecSbac::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartId
   const UInt * const scan = g_auiSigLastScan[ uiScanIdx ][ uiLog2BlockSize-1 ];
 #endif
 
-#if MLS
+#if MULTI_LEVEL_SIGNIFICANCE
   ContextModel * const baseCoeffGroupCtx = m_cCUSigCoeffGroupSCModel.get( 0, eTType );
 #endif
   ContextModel * const baseCtx = m_cCUSigSCModel.get( 0, eTType );
 #if !UNIFIED_SCAN_PASSES
-#if MLS
+#if MULTI_LEVEL_SIGNIFICANCE
   const UInt * const scanCG = g_auiSigLastScan[ uiScanIdx ][ uiLog2BlockSize > 3 ? uiLog2BlockSize-2-1 : 0  ];
   if( uiLog2BlockSize > 3 )
   {
@@ -1568,7 +1568,7 @@ Void TDecSbac::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartId
     sigCoeffCount += uiSig;
   }
 
-#if MLS
+#if MULTI_LEVEL_SIGNIFICANCE
   }
 #endif
 #endif
@@ -1578,7 +1578,7 @@ Void TDecSbac::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartId
   UInt uiGoRiceParam           = 0;
 
 #if UNIFIED_SCAN_PASSES
-#if MLS
+#if MULTI_LEVEL_SIGNIFICANCE
   UInt uiSigCoeffGroupFlag[ MLS_GRP_NUM ];
   ::memset( uiSigCoeffGroupFlag, 0, sizeof(UInt) * MLS_GRP_NUM );
   const UInt uiNumBlkSide = uiWidth >> (MLS_CG_SIZE >> 1);
@@ -1603,7 +1603,7 @@ Void TDecSbac::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartId
       numNonZero = 1;
     }
 
-#if MLS
+#if MULTI_LEVEL_SIGNIFICANCE
     if( uiLog2BlockSize > 3 )
     {
       // decode significant_coeffgroup_flag
@@ -1681,7 +1681,7 @@ Void TDecSbac::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartId
       }
     }
 
-#if MLS
+#if MULTI_LEVEL_SIGNIFICANCE
   }
 #endif
 #else
@@ -1988,7 +1988,7 @@ Void TDecSbac::xCopyContextsFrom( TDecSbac* pSrc )
   m_cCUDeltaQpSCModel         .copyFrom( &pSrc->m_cCUDeltaQpSCModel         );
   m_cCUQtCbfSCModel           .copyFrom( &pSrc->m_cCUQtCbfSCModel           );
   m_cCUQtRootCbfSCModel       .copyFrom( &pSrc->m_cCUQtRootCbfSCModel       );
-#if MLS
+#if MULTI_LEVEL_SIGNIFICANCE
   m_cCUSigCoeffGroupSCModel   .copyFrom( &pSrc->m_cCUSigCoeffGroupSCModel   );
 #endif
   m_cCUSigSCModel             .copyFrom( &pSrc->m_cCUSigSCModel             );

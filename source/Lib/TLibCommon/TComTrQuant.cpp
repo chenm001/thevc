@@ -42,7 +42,7 @@
 #include "TComPic.h"
 #include "ContextTables.h"
 
-#if MLS
+#if MULTI_LEVEL_SIGNIFICANCE
 typedef struct
 {
   Int    iNNZbeforePos0;
@@ -2983,7 +2983,7 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
   ::memset( pdCostCoeff, 0, sizeof(Double) *  uiMaxNumCoeff );
   ::memset( pdCostSig,   0, sizeof(Double) *  uiMaxNumCoeff );
 
-#if MLS
+#if MULTI_LEVEL_SIGNIFICANCE
   const UInt * const scanCG = g_auiSigLastScan[ uiScanIdx ][ uiLog2BlkSize > 3 ? uiLog2BlkSize-2-1 : 0  ];
   const UInt uiCGSize = (1 << MLS_CG_SIZE);         // 16
   Double pdCostCoeffGroupSig[ MLS_GRP_NUM ];
@@ -3001,7 +3001,7 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
   dTemp                       = dErrScale;
   const UInt * const scan = g_auiSigLastScan[ uiScanIdx ][ uiLog2BlkSize - 1 ];
 
-#if MLS
+#if MULTI_LEVEL_SIGNIFICANCE
   if (uiLog2BlkSize < 4)
   {
 #endif
@@ -3097,208 +3097,209 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
       d64BaseCost    += pdCostCoeff0[ iScanPos ];
     }
   }
-#if MLS
+#if MULTI_LEVEL_SIGNIFICANCE
   }
   else //(uiLog2BlkSize > 3), for 16x16 and 32x32 TU
   {      
-      ::memset( pdCostCoeffGroupSig,   0, sizeof(Double) * MLS_GRP_NUM );
-      ::memset( uiSigCoeffGroupFlag,   0, sizeof(UInt) * MLS_GRP_NUM );
+    ::memset( pdCostCoeffGroupSig,   0, sizeof(Double) * MLS_GRP_NUM );
+    ::memset( uiSigCoeffGroupFlag,   0, sizeof(UInt) * MLS_GRP_NUM );
 
-      UInt uiCGNum = uiNumBlkSide * uiNumBlkSide;
-      Int iScanPos;
-      coeffGroupRDStats rdStats;     
+    UInt uiCGNum = uiNumBlkSide * uiNumBlkSide;
+    Int iScanPos;
+    coeffGroupRDStats rdStats;     
 
-      for (Int iCGScanPos = uiCGNum-1; iCGScanPos >= 0; iCGScanPos--)
+    for (Int iCGScanPos = uiCGNum-1; iCGScanPos >= 0; iCGScanPos--)
+    {
+      UInt uiCGBlkPos = scanCG[ iCGScanPos ];
+      UInt uiCGPosY   = uiCGBlkPos / uiNumBlkSide;
+      UInt uiCGPosX   = uiCGBlkPos - (uiCGPosY * uiNumBlkSide);
+      ::memset( &rdStats, 0, sizeof (coeffGroupRDStats));
+        
+      for (Int iScanPosinCG = uiCGSize-1; iScanPosinCG >= 0; iScanPosinCG--)
       {
-          UInt uiCGBlkPos = scanCG[ iCGScanPos ];
-          UInt uiCGPosY   = uiCGBlkPos / uiNumBlkSide;
-          UInt uiCGPosX   = uiCGBlkPos - (uiCGPosY * uiNumBlkSide);
-          ::memset( &rdStats, 0, sizeof (coeffGroupRDStats));
-          
-          for (Int iScanPosinCG = uiCGSize-1; iScanPosinCG >= 0; iScanPosinCG--)
+        iScanPos = iCGScanPos*uiCGSize + iScanPosinCG;
+        //===== quantization =====
+        UInt    uiBlkPos          = scan[iScanPos];
+        Int lLevelDouble          = plSrcCoeff[ uiBlkPos ];
+        lLevelDouble              = abs(lLevelDouble * uiQ);     
+        UInt uiMaxAbsLevel        = (lLevelDouble + (1 << (iQBits - 1))) >> iQBits;
+
+        Double dErr               = Double( lLevelDouble );
+        pdCostCoeff0[ iScanPos ]  = dErr * dErr * dTemp;
+        d64BlockUncodedCost      += pdCostCoeff0[ iScanPos ];
+        piDstCoeff[ uiBlkPos ]    = uiMaxAbsLevel;
+
+        if ( uiMaxAbsLevel > 0 && iLastScanPos < 0 )
+        {
+          iLastScanPos            = iScanPos;
+          uiCtxSet                = iScanPos < SCAN_SET_SIZE ? 0 : 3;
+          iCGLastScanPos          = iCGScanPos;
+        }
+
+        if ( iLastScanPos >= 0 )
+        {
+          //===== coefficient level estimation =====
+          UInt  uiLevel;
+#if COEFF_CTX_RED
+          UInt  uiOneCtx         = 4 * uiCtxSet + c1;
+          UInt  uiAbsCtx         = 3 * uiCtxSet + c2;
+#else
+          UInt  uiOneCtx         = 5 * uiCtxSet + c1;
+          UInt  uiAbsCtx         = 5 * uiCtxSet + c2;
+#endif
+          if( iScanPos == iLastScanPos )
           {
-              iScanPos = iCGScanPos*uiCGSize + iScanPosinCG;
-              //===== quantization =====
-              UInt    uiBlkPos          = scan[iScanPos];
-              Int lLevelDouble          = plSrcCoeff[ uiBlkPos ];
-              lLevelDouble              = abs(lLevelDouble * uiQ);     
-              UInt uiMaxAbsLevel        = (lLevelDouble + (1 << (iQBits - 1))) >> iQBits;
-
-              Double dErr               = Double( lLevelDouble );
-              pdCostCoeff0[ iScanPos ]  = dErr * dErr * dTemp;
-              d64BlockUncodedCost      += pdCostCoeff0[ iScanPos ];
-              piDstCoeff[ uiBlkPos ]    = uiMaxAbsLevel;
-
-              if ( uiMaxAbsLevel > 0 && iLastScanPos < 0 )
-              {
-                  iLastScanPos            = iScanPos;
-                  uiCtxSet                = iScanPos < SCAN_SET_SIZE ? 0 : 3;
-                  iCGLastScanPos          = iCGScanPos;
-              }    
-
-              if ( iLastScanPos >= 0 )
-              {
-                  //===== coefficient level estimation =====
-                  UInt  uiLevel;
-#if COEFF_CTX_RED
-                  UInt  uiOneCtx         = 4 * uiCtxSet + c1;
-                  UInt  uiAbsCtx         = 3 * uiCtxSet + c2;
-#else
-                  UInt  uiOneCtx         = 5 * uiCtxSet + c1;
-                  UInt  uiAbsCtx         = 5 * uiCtxSet + c2;
-#endif
-                  if( iScanPos == iLastScanPos )
-                  {
-
-                      uiLevel              = xGetCodedLevel( pdCostCoeff[ iScanPos ], pdCostCoeff0[ iScanPos ], pdCostSig[ iScanPos ],                                                              lLevelDouble, uiMaxAbsLevel, 0, uiOneCtx, uiAbsCtx,                                                                                    uiGoRiceParam, iQBits, dTemp, 1 );
-                  }
-                  else
-                  {
-                      UInt   uiPosY        = uiBlkPos >> uiLog2BlkSize;
-                      UInt   uiPosX        = uiBlkPos - ( uiPosY << uiLog2BlkSize );
-                      UShort uiCtxSig      = getSigCtxInc( piDstCoeff, uiPosX, uiPosY, uiLog2BlkSize, uiWidth );
-
-                      uiLevel              = xGetCodedLevel( pdCostCoeff[ iScanPos ], pdCostCoeff0[ iScanPos ], pdCostSig[ iScanPos ],
-                                                             lLevelDouble, uiMaxAbsLevel, uiCtxSig, uiOneCtx, uiAbsCtx, uiGoRiceParam, 
-                                                             iQBits, dTemp, 0 );
-                  }
-
-                  piDstCoeff[ uiBlkPos ] = uiLevel;
-                  d64BaseCost           += pdCostCoeff [ iScanPos ];
-
-                  //===== update bin model =====
-                  if( uiLevel > 1 )
-                  {
-                      c1 = 0; 
-#if COEFF_CTX_RED
-                      c2 += (c2 < 2);
-#else
-                      c2 += (c2 < 4);
-#endif
-                      uiNumOne++;
-                      if( uiLevel > 2 )
-                      {
-                          uiGoRiceParam = g_aauiGoRiceUpdate[ uiGoRiceParam ][ min<UInt>( uiLevel - 3, 15 ) ];
-                      }
-                  }
-#if COEFF_CTX_RED
-                  else if( (c1 < 3) && (c1 > 0) && uiLevel)
-#else
-                  else if( (c1 & 3) && uiLevel )
-#endif
-                  {
-                      c1++;
-                  }
-
-                  //===== context set update =====
-                  if( ( iScanPos % SCAN_SET_SIZE == 0 ) && ( iScanPos > 0 ) )
-                  {
-                      c1                = 1;
-                      c2                = 0;
-                      uiGoRiceParam     = 0;
-                      uiCtxSet          = iScanPos == SCAN_SET_SIZE ? 0 : 3;
-                      if( uiNumOne > 0 )
-                      {
-                          uiCtxSet++;
-                          if( uiNumOne > 3 )
-                          {
-                              uiCtxSet++;
-                          }
-                      }
-                      uiNumOne    >>= 1;
-                  }
-              }
-              else
-              {
-                  d64BaseCost    += pdCostCoeff0[ iScanPos ];
-              }
-              rdStats.d64SigCost += pdCostSig[ iScanPos ];
-              if (iScanPosinCG == 0 )
-              {
-                  rdStats.d64SigCost_0 = pdCostSig[ iScanPos ];
-              }
-              if (piDstCoeff[ uiBlkPos ] )
-              {
-                  uiSigCoeffGroupFlag[ uiCGBlkPos ] = 1;
-                  rdStats.d64CodedLevelandDist += pdCostCoeff[ iScanPos ] - pdCostSig[ iScanPos ];
-                  rdStats.d64UncodedDist += pdCostCoeff0[ iScanPos ];
-                  if ( iScanPosinCG != 0 )
-                  {
-                      rdStats.iNNZbeforePos0++;
-                  }
-              }
-          } //end for (iScanPosinCG)
-
-          if (iCGLastScanPos >= 0) 
-          {
-            if ( !bothCGNeighboursOne( uiSigCoeffGroupFlag, uiCGPosX, uiCGPosY, uiLog2BlkSize ) && (iCGScanPos != 0) )
-            {
-              if (uiSigCoeffGroupFlag[ uiCGBlkPos ] == 0)
-              {
-                UInt  uiCtxSig = getSigCoeffGroupCtxInc( uiSigCoeffGroupFlag, uiCGPosX, uiCGPosY, uiLog2BlkSize);
-                d64BaseCost += xGetRateSigCoeffGroup(0, uiCtxSig) - rdStats.d64SigCost;;  
-                pdCostCoeffGroupSig[ iCGScanPos ] = xGetRateSigCoeffGroup(0, uiCtxSig);  
-              } 
-              else
-              {
-                if (iCGScanPos < iCGLastScanPos) //skip the last coefficient group, which will be handled together with last position below.
-                {
-                  if ( rdStats.iNNZbeforePos0 == 0 ) 
-                  {
-                    d64BaseCost -= rdStats.d64SigCost_0;
-                    rdStats.d64SigCost -= rdStats.d64SigCost_0;
-                  }
-                  // rd-cost if SigCoeffGroupFlag = 0, initialization
-                  Double d64CostZeroCG = d64BaseCost;
-
-                  // add SigCoeffGroupFlag cost to total cost
-                  UInt  uiCtxSig = getSigCoeffGroupCtxInc( uiSigCoeffGroupFlag, uiCGPosX, uiCGPosY, uiLog2BlkSize);
-                  if (iCGScanPos < iCGLastScanPos)
-                  {
-                    d64BaseCost  += xGetRateSigCoeffGroup(1, uiCtxSig); 
-                    d64CostZeroCG += xGetRateSigCoeffGroup(0, uiCtxSig);  
-                    pdCostCoeffGroupSig[ iCGScanPos ] = xGetRateSigCoeffGroup(1, uiCtxSig); 
-                  }
-
-                  // try to convert the current coeff group from non-zero to all-zero
-                  d64CostZeroCG += rdStats.d64UncodedDist;  // distortion for resetting non-zero levels to zero levels
-                  d64CostZeroCG -= rdStats.d64CodedLevelandDist;   // distortion and level cost for keeping all non-zero levels
-                  d64CostZeroCG -= rdStats.d64SigCost;     // sig cost for all coeffs, including zero levels and non-zerl levels
-
-                  // if we can save cost, change this block to all-zero block
-                  if ( d64CostZeroCG < d64BaseCost )      
-                  {
-                    uiSigCoeffGroupFlag[ uiCGBlkPos ] = 0;
-                    d64BaseCost = d64CostZeroCG;
-                    if (iCGScanPos < iCGLastScanPos)
-                    {
-                      pdCostCoeffGroupSig[ iCGScanPos ] = xGetRateSigCoeffGroup(0, uiCtxSig); 
-                    }
-                    // reset coeffs to 0 in this block                
-                    for (Int iScanPosinCG = uiCGSize-1; iScanPosinCG >= 0; iScanPosinCG--)
-                    {
-                      iScanPos      = iCGScanPos*uiCGSize + iScanPosinCG;
-                      UInt uiBlkPos = scan[ iScanPos ];
-
-                      if (piDstCoeff[ uiBlkPos ])
-                      {
-                        piDstCoeff [ uiBlkPos ] = 0;
-                        pdCostCoeff[ iScanPos ] = pdCostCoeff0[ iScanPos ];
-                        pdCostSig  [ iScanPos ] = 0;
-                      }
-                    }
-                  } // end if ( d64CostAllZeros < d64BaseCost )      
-                }
-              } // end if if (uiSigCoeffGroupFlag[ uiCGBlkPos ] == 0)
-            }
-            else // if ( !bothCGNeighboursOne( uiSigCoeffGroupFlag, uiCGPosX, uiCGPosY ) && (uiCGScanPos != 0) && (uiSigCoeffGroupFlag[ uiCGBlkPos ] != 0) )
-            {
-              uiSigCoeffGroupFlag[ uiCGBlkPos ] = 1;
-            } // end if ( !bothCGNeighboursOne( uiSigCoeffGroupFlag, uiCGPosX, uiCGPosY ) && (uiCGScanPos != 0) && (uiSigCoeffGroupFlag[ uiCGBlkPos ] != 0) )
+            uiLevel              = xGetCodedLevel( pdCostCoeff[ iScanPos ], pdCostCoeff0[ iScanPos ], pdCostSig[ iScanPos ], 
+                                                   lLevelDouble, uiMaxAbsLevel, 0, uiOneCtx, uiAbsCtx, uiGoRiceParam, 
+                                                   iQBits, dTemp, 1 );
           }
-     } //end for (iCGScanPos)
+          else
+          {
+            UInt   uiPosY        = uiBlkPos >> uiLog2BlkSize;
+            UInt   uiPosX        = uiBlkPos - ( uiPosY << uiLog2BlkSize );
+            UShort uiCtxSig      = getSigCtxInc( piDstCoeff, uiPosX, uiPosY, uiLog2BlkSize, uiWidth );
+
+            uiLevel              = xGetCodedLevel( pdCostCoeff[ iScanPos ], pdCostCoeff0[ iScanPos ], pdCostSig[ iScanPos ],
+                                                   lLevelDouble, uiMaxAbsLevel, uiCtxSig, uiOneCtx, uiAbsCtx, uiGoRiceParam, 
+                                                   iQBits, dTemp, 0 );
+          }
+
+          piDstCoeff[ uiBlkPos ] = uiLevel;
+          d64BaseCost           += pdCostCoeff [ iScanPos ];
+
+          //===== update bin model =====
+          if( uiLevel > 1 )
+          {
+            c1 = 0; 
+#if COEFF_CTX_RED
+            c2 += (c2 < 2);
+#else
+            c2 += (c2 < 4);
+#endif
+            uiNumOne++;
+            if( uiLevel > 2 )
+            {
+              uiGoRiceParam = g_aauiGoRiceUpdate[ uiGoRiceParam ][ min<UInt>( uiLevel - 3, 15 ) ];
+            }
+          }
+#if COEFF_CTX_RED
+          else if( (c1 < 3) && (c1 > 0) && uiLevel)
+#else
+          else if( (c1 & 3) && uiLevel )
+#endif
+          {
+            c1++;
+          }
+
+          //===== context set update =====
+          if( ( iScanPos % SCAN_SET_SIZE == 0 ) && ( iScanPos > 0 ) )
+          {
+            c1                = 1;
+            c2                = 0;
+            uiGoRiceParam     = 0;
+            uiCtxSet          = iScanPos == SCAN_SET_SIZE ? 0 : 3;
+            if( uiNumOne > 0 )
+            {
+              uiCtxSet++;
+              if( uiNumOne > 3 )
+              {
+                uiCtxSet++;
+              }
+            }
+            uiNumOne    >>= 1;
+          }
+        }
+        else
+        {
+          d64BaseCost    += pdCostCoeff0[ iScanPos ];
+        }
+        rdStats.d64SigCost += pdCostSig[ iScanPos ];
+        if (iScanPosinCG == 0 )
+        {
+          rdStats.d64SigCost_0 = pdCostSig[ iScanPos ];
+        }
+        if (piDstCoeff[ uiBlkPos ] )
+        {
+          uiSigCoeffGroupFlag[ uiCGBlkPos ] = 1;
+          rdStats.d64CodedLevelandDist += pdCostCoeff[ iScanPos ] - pdCostSig[ iScanPos ];
+          rdStats.d64UncodedDist += pdCostCoeff0[ iScanPos ];
+          if ( iScanPosinCG != 0 )
+          {
+            rdStats.iNNZbeforePos0++;
+          }
+        }
+      } //end for (iScanPosinCG)
+
+      if (iCGLastScanPos >= 0) 
+      {
+        if ( !bothCGNeighboursOne( uiSigCoeffGroupFlag, uiCGPosX, uiCGPosY, uiLog2BlkSize ) && (iCGScanPos != 0) )
+        {
+          if (uiSigCoeffGroupFlag[ uiCGBlkPos ] == 0)
+          {
+            UInt  uiCtxSig = getSigCoeffGroupCtxInc( uiSigCoeffGroupFlag, uiCGPosX, uiCGPosY, uiLog2BlkSize);
+            d64BaseCost += xGetRateSigCoeffGroup(0, uiCtxSig) - rdStats.d64SigCost;;  
+            pdCostCoeffGroupSig[ iCGScanPos ] = xGetRateSigCoeffGroup(0, uiCtxSig);  
+          } 
+          else
+          {
+            if (iCGScanPos < iCGLastScanPos) //skip the last coefficient group, which will be handled together with last position below.
+            {
+              if ( rdStats.iNNZbeforePos0 == 0 ) 
+              {
+                d64BaseCost -= rdStats.d64SigCost_0;
+                rdStats.d64SigCost -= rdStats.d64SigCost_0;
+              }
+              // rd-cost if SigCoeffGroupFlag = 0, initialization
+              Double d64CostZeroCG = d64BaseCost;
+
+              // add SigCoeffGroupFlag cost to total cost
+              UInt  uiCtxSig = getSigCoeffGroupCtxInc( uiSigCoeffGroupFlag, uiCGPosX, uiCGPosY, uiLog2BlkSize);
+              if (iCGScanPos < iCGLastScanPos)
+              {
+                d64BaseCost  += xGetRateSigCoeffGroup(1, uiCtxSig); 
+                d64CostZeroCG += xGetRateSigCoeffGroup(0, uiCtxSig);  
+                pdCostCoeffGroupSig[ iCGScanPos ] = xGetRateSigCoeffGroup(1, uiCtxSig); 
+              }
+
+              // try to convert the current coeff group from non-zero to all-zero
+              d64CostZeroCG += rdStats.d64UncodedDist;  // distortion for resetting non-zero levels to zero levels
+              d64CostZeroCG -= rdStats.d64CodedLevelandDist;   // distortion and level cost for keeping all non-zero levels
+              d64CostZeroCG -= rdStats.d64SigCost;     // sig cost for all coeffs, including zero levels and non-zerl levels
+
+              // if we can save cost, change this block to all-zero block
+              if ( d64CostZeroCG < d64BaseCost )      
+              {
+                uiSigCoeffGroupFlag[ uiCGBlkPos ] = 0;
+                d64BaseCost = d64CostZeroCG;
+                if (iCGScanPos < iCGLastScanPos)
+                {
+                  pdCostCoeffGroupSig[ iCGScanPos ] = xGetRateSigCoeffGroup(0, uiCtxSig); 
+                }
+                // reset coeffs to 0 in this block                
+                for (Int iScanPosinCG = uiCGSize-1; iScanPosinCG >= 0; iScanPosinCG--)
+                {
+                  iScanPos      = iCGScanPos*uiCGSize + iScanPosinCG;
+                  UInt uiBlkPos = scan[ iScanPos ];
+
+                  if (piDstCoeff[ uiBlkPos ])
+                  {
+                    piDstCoeff [ uiBlkPos ] = 0;
+                    pdCostCoeff[ iScanPos ] = pdCostCoeff0[ iScanPos ];
+                    pdCostSig  [ iScanPos ] = 0;
+                  }
+                }
+              } // end if ( d64CostAllZeros < d64BaseCost )      
+            }
+          } // end if if (uiSigCoeffGroupFlag[ uiCGBlkPos ] == 0)
+        }
+        else // if ( !bothCGNeighboursOne( uiSigCoeffGroupFlag, uiCGPosX, uiCGPosY ) && (uiCGScanPos != 0) && (uiSigCoeffGroupFlag[ uiCGBlkPos ] != 0) )
+        {
+          uiSigCoeffGroupFlag[ uiCGBlkPos ] = 1;
+        } // end if ( !bothCGNeighboursOne( uiSigCoeffGroupFlag, uiCGPosX, uiCGPosY ) && (uiCGScanPos != 0) && (uiSigCoeffGroupFlag[ uiCGBlkPos ] != 0) )
+      }
+    } //end for (iCGScanPos)
   }
-#endif  // #if MLS 
+#endif  // #if MULTI_LEVEL_SIGNIFICANCE 
 
   //===== estimate last position =====
   if ( iLastScanPos < 0 )
@@ -3327,7 +3328,7 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
     d64BaseCost += xGetICost( m_pcEstBitsSbac->blockCbpBits[ ui16CtxCbf ][ 1 ] );
   }
 
-#if MLS
+#if MULTI_LEVEL_SIGNIFICANCE
   if (uiLog2BlkSize < 4)
   {
 #endif
@@ -3357,7 +3358,7 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
       d64BaseCost      -= pdCostSig[ iScanPos ];
     }
   }
-#if MLS
+#if MULTI_LEVEL_SIGNIFICANCE
   }
   else //if (uiLog2BlkSize < 4)
   {
@@ -3402,7 +3403,9 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
           }
         } //end for 
         if (bFoundLast)
+        {
           break;
+        }
       } // end if (uiSigCoeffGroupFlag[ uiCGBlkPos ])
     } // end for 
   } //if (uiLog2BlkSize < 4)
@@ -3632,7 +3635,7 @@ __inline Double TComTrQuant::xGetICRateCost  ( UInt                            u
   return xGetICost( iRate );
 }
 
-#if MLS
+#if MULTI_LEVEL_SIGNIFICANCE
 __inline Double TComTrQuant::xGetRateSigCoeffGroup  ( UShort                    uiSignificanceCoeffGroup,
                                                 UShort                          ui16CtxNumSig ) const
 {
@@ -3733,7 +3736,7 @@ __inline Double TComTrQuant::xGetIEPRate      (                                 
   return 32768;
 }
 
-#if MLS
+#if MULTI_LEVEL_SIGNIFICANCE
 /** Context derivation process of coeff_abs_significant_flag
  * \param uiSigCoeffGroupFlag significance map of L1
  * \param uiBlkX column of current scan position

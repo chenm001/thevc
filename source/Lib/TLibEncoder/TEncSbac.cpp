@@ -76,7 +76,7 @@ TEncSbac::TEncSbac()
 #endif
 , m_cCUTransSubdivFlagSCModel ( 1,             1,               NUM_TRANS_SUBDIV_FLAG_CTX     , m_contextModels + m_numContextModels, m_numContextModels)
 , m_cCUQtRootCbfSCModel       ( 1,             1,               NUM_QT_ROOT_CBF_CTX           , m_contextModels + m_numContextModels, m_numContextModels)
-#if MLS
+#if MULTI_LEVEL_SIGNIFICANCE
 , m_cCUSigCoeffGroupSCModel   ( 1,             2,               NUM_SIG_CG_FLAG_CTX           , m_contextModels + m_numContextModels, m_numContextModels)
 #endif
 , m_cCUSigSCModel             ( 1,             2,               NUM_SIG_FLAG_CTX              , m_contextModels + m_numContextModels, m_numContextModels)
@@ -137,7 +137,7 @@ Void TEncSbac::resetEntropy           ()
   m_cCUDeltaQpSCModel.initBuffer         ( eSliceType, iQp, (Short*)INIT_DQP );
   m_cCUQtCbfSCModel.initBuffer           ( eSliceType, iQp, (Short*)INIT_QT_CBF );
   m_cCUQtRootCbfSCModel.initBuffer       ( eSliceType, iQp, (Short*)INIT_QT_ROOT_CBF );
-#if MLS
+#if MULTI_LEVEL_SIGNIFICANCE
   m_cCUSigCoeffGroupSCModel.initBuffer   ( eSliceType, iQp, (Short*)INIT_SIG_CG_FLAG );
 #endif
   m_cCUSigSCModel.initBuffer             ( eSliceType, iQp, (Short*)INIT_SIG_FLAG );
@@ -1356,7 +1356,7 @@ Void TEncSbac::codeCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx
   Int scanPosLast = -1;
   Int posLast;
 
-#if MLS
+#if MULTI_LEVEL_SIGNIFICANCE
   const UInt * const scanCG = g_auiSigLastScan[ uiScanIdx ][ uiLog2BlockSize > 3 ? uiLog2BlockSize-2-1 : 0 ];
   UInt uiSigCoeffGroupFlag[ MLS_GRP_NUM ];
   static const UInt uiShift = MLS_CG_SIZE >> 1;
@@ -1394,7 +1394,7 @@ Void TEncSbac::codeCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx
   }
   while ( uiNumSig > 0 );
 
-#if MLS
+#if MULTI_LEVEL_SIGNIFICANCE
   }
 #endif
 
@@ -1404,13 +1404,13 @@ Void TEncSbac::codeCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx
   codeLastSignificantXY(posLastX, posLastY, uiWidth, uiWidth, eTType, uiCTXIdx, uiScanIdx);
   
   //===== code significance flag =====
-#if MLS
+#if MULTI_LEVEL_SIGNIFICANCE
   ContextModel * const baseCoeffGroupCtx = m_cCUSigCoeffGroupSCModel.get( 0, eTType );
 #endif
   ContextModel * const baseCtx = m_cCUSigSCModel.get( 0, eTType );
   
 #if !UNIFIED_SCAN_PASSES
-#if MLS
+#if MULTI_LEVEL_SIGNIFICANCE
   if( uiLog2BlockSize > 3 )
   {
     // encode significant coefficient group flag
@@ -1484,7 +1484,7 @@ Void TEncSbac::codeCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx
     m_pcBinIf->encodeBin( uiSig, baseCtx[ uiCtxSig ] );
   }
 
-#if MLS
+#if MULTI_LEVEL_SIGNIFICANCE
   }
 #endif
 #endif
@@ -1513,7 +1513,7 @@ Void TEncSbac::codeCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx
       iScanPosSig--;
     }
 
-#if MLS
+#if MULTI_LEVEL_SIGNIFICANCE
     if( uiLog2BlockSize > 3 )
     {
       // encode significant_coeffgroup_flag
@@ -1591,7 +1591,7 @@ Void TEncSbac::codeCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx
       m_pcBinIf->encodeBin( uiSig, baseCtx[ uiCtxSig ] );
     }
 
-#if MLS
+#if MULTI_LEVEL_SIGNIFICANCE
     }
 #endif
 #else
@@ -1852,7 +1852,7 @@ Void TEncSbac::estBit( estBitsSbacStruct* pcEstBitsSbac, UInt uiCTXIdx, TextType
 {
   estCBFBit( pcEstBitsSbac, 0, eTType );
 
-#if MLS
+#if MULTI_LEVEL_SIGNIFICANCE
   estSignificantCoeffGroupMapBit( pcEstBitsSbac, uiCTXIdx, eTType );
 #endif
   
@@ -1889,7 +1889,7 @@ Void TEncSbac::estCBFBit( estBitsSbacStruct* pcEstBitsSbac, UInt uiCTXIdx, TextT
 }
 
 
-#if MLS
+#if MULTI_LEVEL_SIGNIFICANCE
 /*!
  ****************************************************************************
  * \brief
