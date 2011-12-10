@@ -3143,7 +3143,6 @@ Void TComDataCU::getInterMergeCandidates( UInt uiAbsPartIdx, UInt uiPUIdx, UInt 
 #if MRG_TMVP_REFIDX
   Int iRefIdxSkip[2] = {-1, -1};
 #if MRG_TMVP_REFIDX_G163
-  //>> G163 SP05 MRG TMVP refIdx derivation
   for (int i=0; i<2; i++)
   {
     RefPicList  eRefPicList = ( i==1 ? REF_PIC_LIST_1 : REF_PIC_LIST_0 );
