@@ -47,6 +47,9 @@
 #include "TComSlice.h"
 #include "TComRdCost.h"
 #include "TComPattern.h"
+#if INFINITE_PADDING
+#include "TComInterpolationFilter.h"
+#endif
 
 #include <algorithm>
 #include <vector>
