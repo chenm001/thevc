@@ -770,7 +770,9 @@ Void TComAdaptiveLoopFilter::predictALFCoeffLuma(ALFParam* pcAlfParam)
   {
     sum = 0;
     for(Int i = 0; i < pcAlfParam->num_coeff-3; i++)
+    {
       sum +=  pFiltMag[i]*pcAlfParam->coeffmulti[ind][i];
+    }
     if(pcAlfParam->nbSPred[ind]==0)
     {
       if((pcAlfParam->predMethod==0)|(ind==0))

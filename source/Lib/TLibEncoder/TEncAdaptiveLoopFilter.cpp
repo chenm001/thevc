@@ -1532,8 +1532,10 @@ Int TEncAdaptiveLoopFilter::xsendAllFiltersPPPred(int **FilterCoeffQuant, int fl
 #if G665_ALF_COEFF_PRED
   for(ind = 0; ind < filters_per_group; ind++)
   {
-      for(i = 0; i < sqrFiltLength; i++)
-        m_FilterCoeffQuantTemp[ind][i]=FilterCoeffQuant[ind][i];
+    for(i = 0; i < sqrFiltLength; i++)
+    {
+      m_FilterCoeffQuantTemp[ind][i]=FilterCoeffQuant[ind][i];
+    }
   }
   ALFp->filters_per_group = filters_per_group;
   ALFp->predMethod = 0;
@@ -1541,7 +1543,9 @@ Int TEncAdaptiveLoopFilter::xsendAllFiltersPPPred(int **FilterCoeffQuant, int fl
   predictALFCoeffLumaEnc(ALFp, m_FilterCoeffQuantTemp, fl);
   Int nbFlagIntra[16];
   for(ind = 0; ind < filters_per_group; ind++)
+  {
     nbFlagIntra[ind] = ALFp->nbSPred[ind];
+  }
   bit_ct0 = xcodeFilterCoeff(m_FilterCoeffQuantTemp, fl, sqrFiltLength, filters_per_group, 0);
 #else
   bit_ct0 = xcodeFilterCoeff(FilterCoeffQuant, fl, sqrFiltLength, filters_per_group, 0);
