@@ -3248,8 +3248,9 @@ Void TComDataCU::getInterMergeCandidates( UInt uiAbsPartIdx, UInt uiPUIdx, UInt 
     else if ( uiAbsPartIdxTmp % uiNumPartInCUWidth < uiNumPartInCUWidth - 1 )           // is not at the last column of LCU But is last row of LCU
     {
       uiAbsPartAddr = g_auiRasterToZscan[ (uiAbsPartIdxTmp + uiNumPartInCUWidth + 1) % m_pcPic->getNumPartInCU() ];
+#if !G082_MOD_H_TMVP_POS      
       uiLCUIdx = getAddr() + m_pcPic->getFrameWidthInCU();
-#if G082_MOD_H_TMVP_POS
+#else
       uiLCUIdx = -1 ; 
 #endif
     }
@@ -3261,8 +3262,9 @@ Void TComDataCU::getInterMergeCandidates( UInt uiAbsPartIdx, UInt uiPUIdx, UInt 
     else //is the right bottom corner of LCU                       
     {
       uiAbsPartAddr = 0;
+#if !G082_MOD_H_TMVP_POS      
       uiLCUIdx = getAddr() + m_pcPic->getFrameWidthInCU() + 1;
-#if G082_MOD_H_TMVP_POS
+#else
       uiLCUIdx = -1 ; 
 #endif
     }
@@ -3804,8 +3806,9 @@ Void TComDataCU::fillMvpCand ( UInt uiPartIdx, UInt uiPartAddr, RefPicList eRefP
     else if ( uiAbsPartIdx % uiNumPartInCUWidth < uiNumPartInCUWidth - 1 )           // is not at the last column of LCU But is last row of LCU
     {
       uiAbsPartAddr = g_auiRasterToZscan[ (uiAbsPartIdx + uiNumPartInCUWidth + 1) % m_pcPic->getNumPartInCU() ];
+#if !G082_MOD_H_TMVP_POS      
       uiLCUIdx = getAddr() + m_pcPic->getFrameWidthInCU();
-#if G082_MOD_H_TMVP_POS
+#else
       uiLCUIdx      = -1 ; 
 #endif
     }
@@ -3817,8 +3820,9 @@ Void TComDataCU::fillMvpCand ( UInt uiPartIdx, UInt uiPartAddr, RefPicList eRefP
     else //is the right bottom corner of LCU                       
     {
       uiAbsPartAddr = 0;
+#if !G082_MOD_H_TMVP_POS      
       uiLCUIdx = getAddr() + m_pcPic->getFrameWidthInCU() + 1;
-#if G082_MOD_H_TMVP_POS
+#else
       uiLCUIdx      = -1 ; 
 #endif
     }
