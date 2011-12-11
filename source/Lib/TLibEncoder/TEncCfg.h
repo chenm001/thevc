@@ -412,6 +412,9 @@ public:
 #endif
   Bool      getUseMRG                       ()      { return m_bUseMRG;     } // SOPH:
   Bool      getUseConstrainedIntraPred      ()      { return m_bUseConstrainedIntraPred; }
+#if NS_HAD
+  Bool      getUseNSQT                      ()      { return m_useNSQT; }
+#endif
 #if E192_SPS_PCM_BIT_DEPTH_SYNTAX
   Bool      getPCMInputBitDepthFlag         ()      { return m_bPCMInputBitDepthFlag;   } 
 #endif

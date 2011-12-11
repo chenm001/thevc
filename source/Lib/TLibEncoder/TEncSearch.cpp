@@ -648,7 +648,11 @@ UInt TEncSearch::xPatternRefinement( TComPattern* pcPatternKey,
   
   Pel*  piRefPos;
   Int iRefStride = m_filteredBlock[0][0].getStride();
+#if NS_HAD
+  m_pcRdCost->setDistParam( pcPatternKey, m_filteredBlock[0][0].getLumaAddr(), iRefStride, 1, m_cDistParam, m_pcEncCfg->getUseHADME(), m_pcEncCfg->getUseNSQT() );
+#else
   m_pcRdCost->setDistParam( pcPatternKey, m_filteredBlock[0][0].getLumaAddr(), iRefStride, 1, m_cDistParam, m_pcEncCfg->getUseHADME() );
+#endif
   
   TComMv* pcMvRefine = (iFrac == 2 ? s_acMvRefineH : s_acMvRefineQ);
   
@@ -2212,7 +2216,11 @@ Void TEncSearch::xGetInterPredictionError( TComDataCU* pcCU, TComYuv* pcYuvOrg, 
   m_pcRdCost->setDistParam( cDistParam, 
                             pcYuvOrg->getLumaAddr( uiAbsPartIdx ), pcYuvOrg->getStride(), 
                             m_tmpYuvPred .getLumaAddr( uiAbsPartIdx ), m_tmpYuvPred .getStride(), 
+#if NS_HAD
+                            iWidth, iHeight, m_pcEncCfg->getUseHADME(), m_pcEncCfg->getUseNSQT() );
+#else
                             iWidth, iHeight, m_pcEncCfg->getUseHADME() );
+#endif
   ruiErr = cDistParam.DistFunc( &cDistParam );
 }
 
@@ -3294,7 +3302,11 @@ UInt TEncSearch::xGetTemplateCost( TComDataCU* pcCU,
   m_pcRdCost->setDistParam( cDistParam, 
                             pcOrgYuv->getLumaAddr(uiPartAddr), pcOrgYuv->getStride(), 
                             pcTemplateCand->getLumaAddr(uiPartAddr), pcTemplateCand->getStride(), 
+#if NS_HAD
+                            iSizeX, iSizeY, m_pcEncCfg->getUseHADME(), m_pcEncCfg->getUseNSQT() );
+#else
                             iSizeX, iSizeY, m_pcEncCfg->getUseHADME() );
+#endif
   ruiDist = cDistParam.DistFunc( &cDistParam );
   uiCost = ruiDist + m_pcRdCost->getCost( m_auiMVPIdxCost[iMVPIdx][iMVPNum] );
 #else
