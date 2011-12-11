@@ -651,15 +651,15 @@ Void TEncSbac::codeMergeIndex( TComDataCU* pcCU, UInt uiAbsPartIdx )
   if ( uiNumCand > 1 )
   {
 #endif
-   for( UInt ui = 0; ui < uiNumCand - 1; ++ui )
-   {
-    const UInt uiSymbol = ui == uiUnaryIdx ? 0 : 1;
-    m_pcBinIf->encodeBin( uiSymbol, m_cCUMergeIdxExtSCModel.get( 0, 0, auiCtx[ui] ) );
-    if( uiSymbol == 0 )
+    for( UInt ui = 0; ui < uiNumCand - 1; ++ui )
     {
-      break;
+      const UInt uiSymbol = ui == uiUnaryIdx ? 0 : 1;
+      m_pcBinIf->encodeBin( uiSymbol, m_cCUMergeIdxExtSCModel.get( 0, 0, auiCtx[ui] ) );
+      if( uiSymbol == 0 )
+      {
+        break;
+      }
     }
-   }
 #if G091_SIGNAL_MAX_NUM_MERGE_CANDS
   }
 #endif

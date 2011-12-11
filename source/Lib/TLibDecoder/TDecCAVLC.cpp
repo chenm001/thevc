@@ -2171,15 +2171,15 @@ Void TDecCavlc::parseMergeIndex ( TComDataCU* pcCU, UInt& ruiMergeIndex, UInt ui
   if ( uiNumCand > 1 )
   {
 #endif
-  for( ; uiUnaryIdx < uiNumCand - 1; ++uiUnaryIdx )
-   {
-    UInt uiSymbol = 0;
-    xReadFlag( uiSymbol );
-    if( uiSymbol == 0 )
+    for( ; uiUnaryIdx < uiNumCand - 1; ++uiUnaryIdx )
     {
-      break;
+      UInt uiSymbol = 0;
+      xReadFlag( uiSymbol );
+      if( uiSymbol == 0 )
+      {
+        break;
+      }
     }
-   }
 #if G091_SIGNAL_MAX_NUM_MERGE_CANDS
   }
 #endif
