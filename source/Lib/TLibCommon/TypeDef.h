@@ -53,6 +53,7 @@
 #if G091_SIGNAL_MAX_NUM_MERGE_CANDS
 #define MRG_MAX_NUM_CANDS_SIGNALED         5   //<G091: value of maxNumMergeCand signaled in slice header 
 #endif
+#define G776_MRG_ENC_FIX          1 //<G776: Merge encoder estimation improvement
 
 #define CABAC_RICE_FIX            1 ///< G495: fixing an entry in g_auiGoRicePrefixLen table
 #define BYPASS_FOR_LAST_COEFF_MOD 1 ///< grouping of bypass bins for last_significant_coeff_x/y, MSB first

@@ -2237,7 +2237,11 @@ Void TEncSearch::xGetInterPredictionError( TComDataCU* pcCU, TComYuv* pcYuvOrg, 
  * \param bValid 
  * \returns Void
  */
+#if G776_MRG_ENC_FIX
+Void TEncSearch::xMergeEstimation( TComDataCU* pcCU, TComYuv* pcYuvOrg, Int iPUIdx, UInt& uiInterDir, TComMvField* pacMvField, UInt& uiMergeIndex, UInt& ruiCost )
+#else
 Void TEncSearch::xMergeEstimation( TComDataCU* pcCU, TComYuv* pcYuvOrg, Int iPUIdx, UInt& uiInterDir, TComMvField* pacMvField, UInt& uiMergeIndex, UInt& ruiCost, UInt& ruiBits )
+#endif
 {
   TComMvField  cMvFieldNeighbours[MRG_MAX_NUM_CANDS << 1]; // double length for mv of both lists
   UChar uhInterDirNeighbours[MRG_MAX_NUM_CANDS];
@@ -2257,8 +2261,9 @@ Void TEncSearch::xMergeEstimation( TComDataCU* pcCU, TComYuv* pcYuvOrg, Int iPUI
   pcCU->getInterMergeCandidates( uiAbsPartIdx, iPUIdx, uiDepth, cMvFieldNeighbours,uhInterDirNeighbours, numValidMergeCand );
 
   ruiCost = MAX_UINT;
+#if !G776_MRG_ENC_FIX
   ruiBits = MAX_UINT;
-
+#endif
   for( UInt uiMergeCand = 0; uiMergeCand < numValidMergeCand; ++uiMergeCand )
   {
     {
@@ -2282,7 +2287,17 @@ Void TEncSearch::xMergeEstimation( TComDataCU* pcCU, TComYuv* pcYuvOrg, Int iPUI
       {
          uiBitsCand--;
       }
+  #if G776_MRG_ENC_FIX
+      uiCostCand = uiCostCand + m_pcRdCost->getCost( uiBitsCand );
+  #endif
 #else     
+  #if G776_MRG_ENC_FIX
+      uiBitsCand = uiMergeCand+1;
+      if (uiBitsCand == MRG_MAX_NUM_CANDS)
+        uiBitsCand--;
+
+      uiCostCand = uiCostCand + m_pcRdCost->getCost( uiBitsCand );
+  #else
       UInt uiNumCand = MRG_MAX_NUM_CANDS;
       
       if( uiNumCand == 1 )
@@ -2304,11 +2319,14 @@ Void TEncSearch::xMergeEstimation( TComDataCU* pcCU, TComYuv* pcYuvOrg, Int iPUI
           uiBitsCand = 4;
         }
       }
+  #endif
 #endif
       if ( uiCostCand < ruiCost )
       {
         ruiCost = uiCostCand;
+#if !G776_MRG_ENC_FIX
         ruiBits = uiBitsCand;
+#endif
         pacMvField[0] = cMvFieldNeighbours[0 + 2*uiMergeCand];
         pacMvField[1] = cMvFieldNeighbours[1 + 2*uiMergeCand];
         uiInterDir = uhInterDirNeighbours[uiMergeCand];
@@ -2945,11 +2963,16 @@ Void TEncSearch::predInterSearch( TComDataCU* pcCU, TComYuv* pcOrgYuv, TComYuv*&
       pcCU->getMvField( pcCU, uiPartAddr, REF_PIC_LIST_1, cMEMvField[1] );
 
       // find Merge result
+#if G776_MRG_ENC_FIX
+      UInt uiMRGCost = MAX_UINT;
+      xMergeEstimation( pcCU, pcOrgYuv, iPartIdx, uiMRGInterDir, cMRGMvField, uiMRGIndex, uiMRGCost );
+#else
       UInt uiMRGError = MAX_UINT;
       UInt uiMRGBits = MAX_UINT;
       xMergeEstimation( pcCU, pcOrgYuv, iPartIdx, uiMRGInterDir, cMRGMvField, uiMRGIndex, uiMRGError, uiMRGBits );
-      UInt uiMRGCost = uiMRGError + m_pcRdCost->getCost( uiMRGBits );
 
+      UInt uiMRGCost = uiMRGError + m_pcRdCost->getCost( uiMRGBits );
+#endif
       if ( uiMRGCost < uiMECost )
       {
         // set Merge result
