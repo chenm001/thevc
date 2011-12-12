@@ -3550,6 +3550,9 @@ Void TEncAdaptiveLoopFilter::setInitialMask(TComPicYuv* pcPicOrg, TComPicYuv* pc
   Int LumaStride = pcPicOrg->getStride();
   imgpel* pDec = (imgpel*)pcPicDec->getLumaAddr();
 
+#if G609_NEW_BA_SUB
+  calcVar(m_varImg, pDec, LumaStride, m_uiVarGenMethod);
+#else
   if(!m_bUseNonCrossALF)
   {
     calcVar(0, 0, m_varImg, pDec, VAR_SIZE, Height, Width, LumaStride);
@@ -3558,6 +3561,7 @@ Void TEncAdaptiveLoopFilter::setInitialMask(TComPicYuv* pcPicOrg, TComPicYuv* pc
   {
     calcVarforSlices(m_varImg, pDec, VAR_SIZE, LumaStride);
   }
+#endif
 
   if(!m_iALFEncodePassReduction || !m_iUsePreviousFilter)
   {
@@ -3852,7 +3856,7 @@ Int64 TEncAdaptiveLoopFilter::xEstimateFiltDist(Int filters_per_fr, Int* VarIndT
   return iDist;
 
 }
-
+#if !G609_NEW_BA_SUB
 /** Calculate ALF grouping indices for ALF slices
  * \param varmap grouping indices buffer
  * \param imgY_Dec picture buffer
@@ -3881,6 +3885,7 @@ Void TEncAdaptiveLoopFilter::calcVarforSlices(imgpel **varmap, imgpel *imgY_Dec,
     calcVarforOneSlice(pSlice, varmap, (imgpel*)pPicSlice, fl, img_stride);
   }
 }
+#endif
 
 /** Calculate ALF grouping indices for ALF slices
  * \param varmap grouping indices buffer

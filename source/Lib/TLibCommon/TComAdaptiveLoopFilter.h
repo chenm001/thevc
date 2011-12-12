@@ -57,8 +57,9 @@
 #define VAR_SIZE_W            4
 #define NO_VAR_BINS           16 
 #define NO_FILTERS            16
+#if !G609_NEW_BA_SUB
 #define VAR_SIZE               1
-
+#endif
 #define MAX_SCAN_VAL          13
 #define MAX_EXP_GOLOMB        16
 
@@ -303,11 +304,15 @@ private: //private member variables
 
 protected: //protected methods
 
-
+#if !G609_NEW_BA_SUB
   Void calcVarforOneSlice         (CAlfSlice* pSlice, imgpel **imgY_var, imgpel *imgY_pad, Int fl, Int img_stride); //! Calculate ALF grouping indices for one slice
+#endif
   Void createRegionIndexMap(imgpel **imgY_var, Int img_width, Int img_height); //!< create RA index for regions
+#if G609_NEW_BA_SUB
+  Void calcVar(imgpel **imgYvar, imgpel *imgYpad, Int stride, Int adaptationMode); //!< Calculate ALF grouping indices for block-based (BA) mode
+#else
   Void calcVar(int ypos, int xpos, imgpel **imgY_var, imgpel *imgY_pad, int fl, int img_height, int img_width, int img_stride);
-
+#endif
   Void filterLuma(imgpel *pImgYRes, imgpel *pImgYPad, Int stride, Int ypos, Int yposEnd, Int xpos, Int xposEnd, Int filtNo, Int** filterSet, Int* mergeTable, imgpel** ppVarImg); //!< filtering operation for luma region
   Void filterChroma(imgpel *pImgRes, imgpel *pImgPad, Int stride, Int ypos, Int yposEnd, Int xpos, Int xposEnd, Int filtNo, Int* coef);
   Void xFilterOneSlice             (CAlfSlice* pSlice, imgpel* pDec, imgpel* pRest, Int iStride, ALFParam* pcAlfParam); //!< Perform ALF for one luma slice

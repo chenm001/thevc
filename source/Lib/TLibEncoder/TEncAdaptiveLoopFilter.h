@@ -189,7 +189,9 @@ private:
   Void  xfilterSlicesEncoder(imgpel* ImgDec, imgpel* ImgRest, Int iStride, Int filtNo, Int** filterCoeff, Int* mergeTable, imgpel** varImg); //!< Calculate ALF grouping indices for ALF slices
   Void  xfilterOneSliceEncoder(CAlfSlice* pSlice, imgpel* ImgDec, imgpel* ImgRest, Int iStride, Int filtNo, Int** filterCoeff, Int* mergeTable, imgpel** varImg); //!< calculate ALF grouping indices for one ALF slice
   Void  setALFEncodingParam(TComPic *pcPic); //!< set ALF encoding parameters
+#if !G609_NEW_BA_SUB
   Void  calcVarforSlices(imgpel **varmap, imgpel *imgY_pad, Int fl, Int img_stride); //!< Calculate ALF grouping indices for ALF slices
+#endif
   Void xReDesignFilterCoeff_qc          (TComPicYuv* pcPicOrg, TComPicYuv* pcPicDec,  TComPicYuv* pcPicRest, Bool bReadCorr);
   Void xFirstFilteringFrameLuma (imgpel* imgOrg, imgpel* imgDec, imgpel* imgRest, ALFParam* ALFp, Int filtNo, Int stride);
   Void xFilteringFrameLuma(imgpel* imgOrg, imgpel* imgPad, imgpel* imgFilt, ALFParam* ALFp, Int filtNo, Int stride);
