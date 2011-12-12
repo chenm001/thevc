@@ -76,7 +76,12 @@ Void TDecEntropy::decodeAux(ALFParam* pAlfParam)
   else if (uiSymbol > 1) // filters_per_group > 2
   {
     pAlfParam->filters_per_group = 1;
+#if G216_ALF_MERGE_FLAG_FIX
+    Int numMergeFlags = pAlfParam->alf_pcr_region_flag ? 16 : 15;
+    for (Int i=1; i<numMergeFlags; i++) 
+#else
     for (int i=1; i<NO_VAR_BINS; i++) 
+#endif
     {
       m_pcEntropyDecoderIf->parseAlfFlag (uiSymbol);
       pAlfParam->filterPattern[i] = uiSymbol;

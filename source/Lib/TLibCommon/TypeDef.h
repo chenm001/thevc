@@ -59,7 +59,8 @@
 #define ALF_CHROMA_LAMBDA           1   ///< F386: weighting of chroma for ALF
 #define SAO_CHROMA_LAMBDA           1   ///< F386: weighting of chroma for SAO
 
-#define G609_NEW_BA_SUB                  1 ///< G609: Directional feature calculation on subset of pixels
+#define G609_NEW_BA_SUB             1   ///< G609: Directional feature calculation on subset of pixels
+#define G216_ALF_MERGE_FLAG_FIX     1   ///< G216: bug fixed: removing 15th merge flag for BA mode
 
 ////////////////////////////
 // JCT-VC F start
