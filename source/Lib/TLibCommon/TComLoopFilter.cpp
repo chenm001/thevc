@@ -962,7 +962,7 @@ Void TComLoopFilter::xEdgeFilterLuma( TComDataCU* pcCU, UInt uiAbsZorderIdx, UIn
                     & xUseStrongFiltering( iOffset, 2*iD3, iBeta, iTc , piTmpSrc+iSrcStep*(iIdx*uiPelsInPart+iBlkIdx*DEBLOCK_SMALLEST_BLOCK+3));
 #endif
 
-          for ( UInt i = 0; i < DEBLOCK_SMALLEST_BLOCK/2; i++)
+          for ( Int i = 0; i < DEBLOCK_SMALLEST_BLOCK/2; i++)
           {
 #if E192_SPS_PCM_FILTER_DISABLE_SYNTAX 
             xPelFilterLuma( piTmpSrc+iSrcStep*(iIdx*uiPelsInPart+iBlkIdx*DEBLOCK_SMALLEST_BLOCK+i), iOffset, iD0+iD3, iBeta, iTc, iSw, bPartPNoFilter, bPartQNoFilter, iThrCut, bFilterP, bFilterQ);
@@ -983,7 +983,7 @@ Void TComLoopFilter::xEdgeFilterLuma( TComDataCU* pcCU, UInt uiAbsZorderIdx, UIn
           Bool iSw =  xUseStrongFiltering( iOffset, 2*iD4, iBeta, iTc , piTmpSrc+iSrcStep*(iIdx*uiPelsInPart+iBlkIdx*DEBLOCK_SMALLEST_BLOCK+4))
                     & xUseStrongFiltering( iOffset, 2*iD7, iBeta, iTc , piTmpSrc+iSrcStep*(iIdx*uiPelsInPart+iBlkIdx*DEBLOCK_SMALLEST_BLOCK+7));
 #endif
-          for ( UInt i = DEBLOCK_SMALLEST_BLOCK/2; i < DEBLOCK_SMALLEST_BLOCK; i++)
+          for ( Int i = DEBLOCK_SMALLEST_BLOCK/2; i < DEBLOCK_SMALLEST_BLOCK; i++)
           {
 #if E192_SPS_PCM_FILTER_DISABLE_SYNTAX 
             xPelFilterLuma( piTmpSrc+iSrcStep*(iIdx*uiPelsInPart+iBlkIdx*DEBLOCK_SMALLEST_BLOCK+i), iOffset, iD4+iD7, iBeta, iTc, iSw, bPartPNoFilter, bPartQNoFilter, iThrCut, bFilterP, bFilterQ);
