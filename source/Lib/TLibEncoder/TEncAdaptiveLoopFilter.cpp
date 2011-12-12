@@ -203,7 +203,7 @@ Void TEncAdaptiveLoopFilter::startALFEnc( TComPic* pcPic, TEncEntropy* pcEntropy
   initMatrix3D_double(&m_yGlobalSym, NUM_ALF_FILTER_SHAPE+1, NO_VAR_BINS, MAX_SQR_FILT_LENGTH); 
   initMatrix_int(&m_filterCoeffSymQuant, NO_VAR_BINS, ALF_MAX_NUM_COEF); 
   m_pixAcc = (double *) calloc(NO_VAR_BINS, sizeof(double));
-  initMatrix_imgpel(&m_maskImg, m_img_height, m_img_width);
+  initMatrix_Pel(&m_maskImg, m_img_height, m_img_width);
   initMatrix_double(&m_E_temp, MAX_SQR_FILT_LENGTH, MAX_SQR_FILT_LENGTH);//
   m_y_temp = (double *) calloc(MAX_SQR_FILT_LENGTH, sizeof(double));//
   initMatrix3D_double(&m_E_merged, NO_VAR_BINS, MAX_SQR_FILT_LENGTH, MAX_SQR_FILT_LENGTH);//
@@ -258,7 +258,7 @@ Void TEncAdaptiveLoopFilter::endALFEnc()
   destroyMatrix_int(m_filterCoeffSymQuant);
   
   free(m_pixAcc);
-  destroyMatrix_imgpel(m_maskImg);
+  destroyMatrix_Pel(m_maskImg);
   destroyMatrix3D_double(m_E_merged, NO_VAR_BINS);
   destroyMatrix_double(m_y_merged);
   destroyMatrix_double(m_E_temp);
@@ -366,7 +366,9 @@ Void TEncAdaptiveLoopFilter::ALFProcess( ALFParam* pcAlfParam, Double dLambda, U
   {
     m_vBestAlfCUCtrlParam.resize(m_uiNumSlicesInPic);
     for(Int s=0; s< m_uiNumSlicesInPic; s++)
+    {
       m_vBestAlfCUCtrlParam[s].cu_control_flag = 0;
+    }
   }
   else
   {
@@ -405,7 +407,9 @@ Void TEncAdaptiveLoopFilter::ALFProcess( ALFParam* pcAlfParam, Double dLambda, U
     if(m_bAlfCUCtrlEnabled)
     {
       for(Int s=0; s< m_uiNumSlicesInPic; s++)
+      {
         m_vBestAlfCUCtrlParam[s].cu_control_flag = 0;
+      }
     }
 #endif
     pcPicYuvExtRec->copyToPicLuma(pcPicYuvRec);
@@ -428,7 +432,9 @@ Void TEncAdaptiveLoopFilter::ALFProcess( ALFParam* pcAlfParam, Double dLambda, U
   if(m_bAlfCUCtrlEnabled)
   {
     for(Int s=0; s< m_uiNumSlicesInPic; s++)
+    {
       (*pvAlfCtrlParam)[s]= m_vBestAlfCUCtrlParam[s];
+    }
   }
 #else
   // store best depth
@@ -634,7 +640,10 @@ Void TEncAdaptiveLoopFilter::xEncodeCUAlfCtrlFlags()
   {
     for(UInt s=0; s< m_uiNumSlicesInPic; s++)
     {
-      if(!m_pSlice[s].isValidSlice()) continue;
+      if(!m_pSlice[s].isValidSlice()) 
+      {
+        continue;
+      }
 
       for(UInt idx=0; idx< m_pSlice[s].getNumLCUs(); idx++)
       {
@@ -742,7 +751,9 @@ Void TEncAdaptiveLoopFilter::xCalcCorrelationFunc(Int ypos, Int xpos, Pel* pImgO
           {
             m_ppdAlfCorr[k][k] += ELocal[k]*ELocal[k];
             for(l=k+1; l<N; l++)
+            {
               m_ppdAlfCorr[k][l] += ELocal[k]*ELocal[l];
+            }
 
             // DC offset
             m_ppdAlfCorr[k][N]   += ELocal[k];
@@ -750,7 +761,9 @@ Void TEncAdaptiveLoopFilter::xCalcCorrelationFunc(Int ypos, Int xpos, Pel* pImgO
           }
           // DC offset
           for(k=0; k<N; k++)
+          {
             m_ppdAlfCorr[N][k] += ELocal[k];
+          }
           m_ppdAlfCorr[N][N]   += 1;
           m_ppdAlfCorr[N][N+1] += yLocal;
         }
@@ -791,7 +804,9 @@ Void TEncAdaptiveLoopFilter::xCalcCorrelationFunc(Int ypos, Int xpos, Pel* pImgO
           {
             m_ppdAlfCorr[k][k] += ELocal[k]*ELocal[k];
             for(l=k+1; l<N; l++)
+            {
               m_ppdAlfCorr[k][l] += ELocal[k]*ELocal[l];
+            }
 
             // DC offset
             m_ppdAlfCorr[k][N]   += ELocal[k];
@@ -799,7 +814,9 @@ Void TEncAdaptiveLoopFilter::xCalcCorrelationFunc(Int ypos, Int xpos, Pel* pImgO
           }
           // DC offset
           for(k=0; k<N; k++)
+          {
             m_ppdAlfCorr[N][k] += ELocal[k];
+          }
           m_ppdAlfCorr[N][N]   += 1;
           m_ppdAlfCorr[N][N+1] += yLocal;
         }
@@ -822,7 +839,9 @@ Void TEncAdaptiveLoopFilter::xCalcCorrelationFunc(Int ypos, Int xpos, Pel* pImgO
     for(j=0; j<N-1; j++)
     {
       for(i=j+1; i<N; i++)
+      {
         m_ppdAlfCorr[i][j] = m_ppdAlfCorr[j][i];
+      }
     }
   }
 }
@@ -880,7 +899,9 @@ Int TEncAdaptiveLoopFilter::xGauss(Double **a, Int N)
   for(k=0; k<N; k++)
   {
     if (a[k][k] <0.000001)
+    {
       return 1;
+    }
   }
   
   for(k=0; k<N-1; k++)
@@ -899,7 +920,9 @@ Int TEncAdaptiveLoopFilter::xGauss(Double **a, Int N)
   {
     t = a[i][N];
     for(j=i+1; j<N; j++)
+    {
       t -= a[i][j] * a[j][N];
+    }
     a[i][N] = t / a[i][i];
   }
   return 0;
@@ -929,8 +952,14 @@ Void TEncAdaptiveLoopFilter::xFilterCoefQuickSort( Double *coef_data, Int *coef_
       j--;
     }
   } while( i <= j );
-  if ( upper < j ) xFilterCoefQuickSort(coef_data, coef_num, upper, j);
-  if ( i < lower ) xFilterCoefQuickSort(coef_data, coef_num, i, lower);
+  if ( upper < j ) 
+  {
+    xFilterCoefQuickSort(coef_data, coef_num, upper, j);
+  }
+  if ( i < lower ) 
+  {
+    xFilterCoefQuickSort(coef_data, coef_num, i, lower);
+  }
 }
 
 Void TEncAdaptiveLoopFilter::xQuantFilterCoef(Double* h, Int* qh, Int tap, int bit_depth)
@@ -967,9 +996,13 @@ Void TEncAdaptiveLoopFilter::xQuantFilterCoef(Double* h, Int* qh, Int tap, int b
   for(i=0; i<N; i++)
   {
     if(h[i]>=0.0)
+    {
       qh[i] =  (Int)( h[i]*(1<<ALF_NUM_BIT_SHIFT)+0.5);
+    }
     else
+    {
       qh[i] = -(Int)(-h[i]*(1<<ALF_NUM_BIT_SHIFT)+0.5);
+    }
     
     dh[i] = (Double)qh[i]/(Double)(1<<ALF_NUM_BIT_SHIFT) - h[i];
     dh[i]*=pFiltMag[i];
@@ -997,7 +1030,9 @@ Void TEncAdaptiveLoopFilter::xQuantFilterCoef(Double* h, Int* qh, Int tap, int b
       if( q_total_gain == total_gain+1 )
       {
         if(dh[N-1]>0)
+        {
           qh[N-1]--;
+        }
         else
         {
           i=nc[upper%N];
@@ -1019,7 +1054,9 @@ Void TEncAdaptiveLoopFilter::xQuantFilterCoef(Double* h, Int* qh, Int tap, int b
       if( q_total_gain == total_gain-1 )
       {
         if(dh[N-1]<0)
+        {
           qh[N-1]++;
+        }
         else
         {
           i=nc[lower%N];
@@ -1097,7 +1134,10 @@ Void TEncAdaptiveLoopFilter::xCalcRDCost(ALFParam* pAlfParam, UInt64& ruiRate, U
       {
         if(m_uiNumSlicesInPic > 1)
         {
-          if(!m_pSlice[s].isValidSlice()) continue;
+          if(!m_pSlice[s].isValidSlice())
+          {
+            continue;
+          }
         }
         m_pcEntropyCoder->resetEntropy();
         m_pcEntropyCoder->resetBits();
@@ -1128,7 +1168,10 @@ Void TEncAdaptiveLoopFilter::xCalcRDCost(ALFParam* pAlfParam, UInt64& ruiRate, U
       ruiRate = m_pcEntropyCoder->getNumberOfWrittenBits();
       for(UInt s=0; s< m_uiNumSlicesInPic; s++)
       {
-        if(!m_pSlice[s].isValidSlice()) continue;
+        if(!m_pSlice[s].isValidSlice())
+        {
+          continue;
+        }
 
         m_pcEntropyCoder->resetEntropy();
         m_pcEntropyCoder->resetBits();
@@ -1179,7 +1222,10 @@ Void TEncAdaptiveLoopFilter::xCalcRDCost(TComPicYuv* pcPicOrg, TComPicYuv* pcPic
       {
         if(m_uiNumSlicesInPic > 1)
         {
-          if(!m_pSlice[s].isValidSlice()) continue;
+          if(!m_pSlice[s].isValidSlice())
+          {
+            continue;
+          }
         }
         m_pcEntropyCoder->resetEntropy();
         m_pcEntropyCoder->resetBits();
@@ -1212,7 +1258,10 @@ Void TEncAdaptiveLoopFilter::xCalcRDCost(TComPicYuv* pcPicOrg, TComPicYuv* pcPic
       ruiRate = m_pcEntropyCoder->getNumberOfWrittenBits();
       for(UInt s=0; s< m_uiNumSlicesInPic; s++)
       {
-        if(!m_pSlice[s].isValidSlice()) continue;
+        if(!m_pSlice[s].isValidSlice()) 
+        {
+          continue;
+        }
 
         m_pcEntropyCoder->resetEntropy();
         m_pcEntropyCoder->resetBits();
@@ -1262,8 +1311,8 @@ Void TEncAdaptiveLoopFilter::xFilteringFrameChroma(ALFParam* pcAlfParam, TComPic
     if(!m_bUseNonCrossALF)
     {
       Int iStride   = pcPicRest->getCStride();
-      imgpel* pDec  = (imgpel*)pcPicDec->getCbAddr();
-      imgpel* pRest = (imgpel*)pcPicRest->getCbAddr();
+      Pel* pDec  = pcPicDec->getCbAddr();
+      Pel* pRest = pcPicRest->getCbAddr();
 
       filterChroma(pRest, pDec, iStride, 0, (Int)(m_img_height>>1) -1, 0, (Int)(m_img_width>>1)-1, filtNo,  coeff);
     }
@@ -1277,8 +1326,8 @@ Void TEncAdaptiveLoopFilter::xFilteringFrameChroma(ALFParam* pcAlfParam, TComPic
     if(!m_bUseNonCrossALF)
     {
       Int iStride   = pcPicRest->getCStride();
-      imgpel* pDec  = (imgpel*)pcPicDec->getCrAddr();
-      imgpel* pRest = (imgpel*)pcPicRest->getCrAddr();
+      Pel* pDec  = pcPicDec->getCrAddr();
+      Pel* pRest = pcPicRest->getCrAddr();
 
       filterChroma(pRest, pDec, iStride, 0, (Int)(m_img_height>>1) -1, 0, (Int)(m_img_width>>1)-1, filtNo,  coeff);
     }
@@ -1329,7 +1378,10 @@ Void TEncAdaptiveLoopFilter::xCopyDecToRestCUs(TComPicYuv* pcPicDec, TComPicYuv*
 
     for(s=0; s< m_uiNumSlicesInPic; s++)
     {
-      if(!m_pSlice[s].isValidSlice()) continue;
+      if(!m_pSlice[s].isValidSlice())
+      {
+        continue;
+      }
 
       iAlfDepth = m_pSlice[s].getCUCtrlDepth();
 
@@ -1493,7 +1545,10 @@ Void TEncAdaptiveLoopFilter::predictALFCoeffLumaEnc(ALFParam* pcAlfParam, Int **
   {
     sum = 0;
     for(Int i = 0; i < pcAlfParam->num_coeff-3; i++)
+    {
       sum +=  pFiltMag[i]*pfilterCoeffSym[ind][i];
+    }
+
     if((pcAlfParam->predMethod==0)|(ind==0))
     {
       coeffPred = ((1<<ALF_NUM_BIT_SHIFT)-sum) >> 2;
@@ -1577,7 +1632,9 @@ Int TEncAdaptiveLoopFilter::xsendAllFiltersPPPred(int **FilterCoeffQuant, int fl
   {
     predMethod = 0;  
     if(filters_per_group > 1)
+    {
       bit_ct += lengthPredFlags(force0, predMethod, NULL, 0, createBistream);
+    }
 #if G665_ALF_COEFF_PRED
     bit_ct += xcodeFilterCoeff(m_FilterCoeffQuantTemp, fl, sqrFiltLength, filters_per_group, createBistream);
 #else
@@ -1588,7 +1645,9 @@ Int TEncAdaptiveLoopFilter::xsendAllFiltersPPPred(int **FilterCoeffQuant, int fl
   {
     predMethod = 1;
     if(filters_per_group > 1)
+    {
       bit_ct += lengthPredFlags(force0, predMethod, NULL, 0, createBistream);
+    }
     bit_ct += xcodeFilterCoeff(m_diffFilterCoeffQuant, fl, sqrFiltLength, filters_per_group, createBistream);
   }
   ALFp->filters_per_group = filters_per_group;
@@ -1741,9 +1800,13 @@ Int TEncAdaptiveLoopFilter::lengthGolomb(int coeffVal, int k)
   int m = 2 << (k - 1);
   int q = coeffVal / m;
   if(coeffVal != 0)
+  {
     return(q + 2 + k);
+  }
   else
+  {
     return(q + 1 + k);
+  }
 }
 
 Int TEncAdaptiveLoopFilter::lengthPredFlags(int force0, int predMethod, int codedVarBins[NO_VAR_BINS], 
@@ -1752,9 +1815,13 @@ Int TEncAdaptiveLoopFilter::lengthPredFlags(int force0, int predMethod, int code
   int bit_cnt = 0;
   
   if(force0)
+  {
     bit_cnt = 2 + filters_per_group;
+  }
   else
+  {
     bit_cnt = 2;
+  }
   return bit_cnt;
   
 }
@@ -1785,9 +1852,9 @@ Void   TEncAdaptiveLoopFilter::xEncALFLuma ( TComPicYuv* pcPicOrg, TComPicYuv* p
   UInt64  uiDist;
   Double dCost;
   Int    LumaStride = pcPicOrg->getStride();
-  imgpel* pOrg = (imgpel*) pcPicOrg->getLumaAddr();
-  imgpel* pRest = (imgpel*) pcPicRest->getLumaAddr();
-  imgpel* pDec = (imgpel*) pcPicDec->getLumaAddr();
+  Pel* pOrg  = pcPicOrg->getLumaAddr();
+  Pel* pRest = pcPicRest->getLumaAddr();
+  Pel* pDec  = pcPicDec->getLumaAddr();
 
   Double    dMinMethodCost  = MAX_DOUBLE;
   UInt64    uiMinMethodDist = MAX_UINT;
@@ -1858,7 +1925,7 @@ Void   TEncAdaptiveLoopFilter::xEncALFLuma ( TComPicYuv* pcPicOrg, TComPicYuv* p
         {
           pcAlfParam->filter_shape = filter_shape;
           pcAlfParam->num_coeff = m_pcTempAlfParam->num_coeff = m_sqrFiltLengthTab[filter_shape];
-          xFirstFilteringFrameLuma(pOrg, pDec, (imgpel*)m_pcPicYuvTmp->getLumaAddr(), pcAlfParam, pcAlfParam->filter_shape, LumaStride);
+          xFirstFilteringFrameLuma(pOrg, pDec, m_pcPicYuvTmp->getLumaAddr(), pcAlfParam, pcAlfParam->filter_shape, LumaStride);
           xCalcRDCost(pcPicOrg, m_pcPicYuvTmp, pcAlfParam, uiRate, uiDist, dCost);
           if (filter_shape == 0)
           {
@@ -1903,7 +1970,7 @@ Void   TEncAdaptiveLoopFilter::xEncALFLuma ( TComPicYuv* pcPicOrg, TComPicYuv* p
       {
         pcAlfParam->filter_shape = best_filter_shape;
         pcAlfParam->num_coeff = m_pcTempAlfParam->num_coeff = m_sqrFiltLengthTab[best_filter_shape];
-        xFirstFilteringFrameLuma(pOrg, pDec, (imgpel*)m_pcPicYuvTmp->getLumaAddr(), pcAlfParam, best_filter_shape, LumaStride);
+        xFirstFilteringFrameLuma(pOrg, pDec, m_pcPicYuvTmp->getLumaAddr(), pcAlfParam, best_filter_shape, LumaStride);
         xCalcRDCost(pcPicOrg, m_pcPicYuvTmp, pcAlfParam, uiRate, uiDist, dCost);
       }
     }
@@ -1984,21 +2051,25 @@ Void   TEncAdaptiveLoopFilter::xEncALFLuma ( TComPicYuv* pcPicOrg, TComPicYuv* p
 
 
 
-Void   TEncAdaptiveLoopFilter::xFirstFilteringFrameLuma(imgpel* imgOrg, imgpel* imgDec, imgpel* imgRest, ALFParam* ALFp, Int filtNo, Int stride)
+Void   TEncAdaptiveLoopFilter::xFirstFilteringFrameLuma(Pel* imgOrg, Pel* imgDec, Pel* imgRest, ALFParam* ALFp, Int filtNo, Int stride)
 {
   if(!m_bUseNonCrossALF)
+  {
     xstoreInBlockMatrix(0, 0, m_img_height, m_img_width, true, true, imgOrg, imgDec, filtNo, stride);
+  }
   else
+  {
     xstoreInBlockMatrixforSlices(imgOrg, imgDec, filtNo, stride);
+  }
 
 
   xFilteringFrameLuma(imgOrg, imgDec, imgRest, ALFp, filtNo, stride);
 }
 
-Void   TEncAdaptiveLoopFilter::xstoreInBlockMatrix(Int ypos, Int xpos, Int iheight, Int iwidth, Bool bResetBlockMatrix, Bool bSymmCopyBlockMatrix, imgpel* pImgOrg, imgpel* pImgPad, Int filtNo, Int stride)
+Void   TEncAdaptiveLoopFilter::xstoreInBlockMatrix(Int ypos, Int xpos, Int iheight, Int iwidth, Bool bResetBlockMatrix, Bool bSymmCopyBlockMatrix, Pel* pImgOrg, Pel* pImgPad, Int filtNo, Int stride)
 {
 
-  imgpel  regionOfInterested = (m_iDesignCurrentFilter ==1)?(1):(0);
+  Pel  regionOfInterested = (m_iDesignCurrentFilter ==1)?(1):(0);
   Int     sqrFiltLength      = (filtNo == 2)?((Int)(MAX_SQR_FILT_LENGTH)):(m_sqrFiltLengthTab[filtNo]);
   Int     yposEnd            = ypos + iheight -1;
   Int     xposEnd            = xpos + iwidth  -1;
@@ -2006,7 +2077,7 @@ Void   TEncAdaptiveLoopFilter::xstoreInBlockMatrix(Int ypos, Int xpos, Int iheig
   Double **yShape            = m_yGlobalSym[filtNo];
 
   Int ELocal[MAX_SQR_FILT_LENGTH];
-  imgpel *pImgPad1, *pImgPad2, *pImgPad3, *pImgPad4;
+  Pel *pImgPad1, *pImgPad2, *pImgPad3, *pImgPad4;
   Int i,j,k,l,varInd, yLocal;
   double **E,*yy;
 
@@ -2149,8 +2220,8 @@ Void   TEncAdaptiveLoopFilter::xstoreInBlockMatrix(Int ypos, Int xpos, Int iheig
     {
       Int ii, jj;
 
-      imgpel *pImgPadT, *pImgPadTTemp;
-      imgpel *pImgPadB, *pImgPadBTemp;
+      Pel *pImgPadT, *pImgPadTTemp;
+      Pel *pImgPadB, *pImgPadBTemp;
 
       for (i= ypos; i<= yposEnd; i++)
       {
@@ -2196,7 +2267,9 @@ Void   TEncAdaptiveLoopFilter::xstoreInBlockMatrix(Int ypos, Int xpos, Int iheig
             for (k=0; k<sqrFiltLength; k++)
             {
               for (l=k; l<sqrFiltLength; l++)
+              {
                 E[k][l]+=(double)(ELocal[k]*ELocal[l]);
+              }
               yy[k]+=(double)(ELocal[k]*yLocal);
             }
 
@@ -2233,7 +2306,7 @@ Void   TEncAdaptiveLoopFilter::xstoreInBlockMatrix(Int ypos, Int xpos, Int iheig
 }
 
 
-Void   TEncAdaptiveLoopFilter::xFilteringFrameLuma(imgpel* imgOrg, imgpel* imgPad, imgpel* imgFilt, ALFParam* ALFp, Int filtNo, Int stride)
+Void   TEncAdaptiveLoopFilter::xFilteringFrameLuma(Pel* imgOrg, Pel* imgPad, Pel* imgFilt, ALFParam* ALFp, Int filtNo, Int stride)
 {
   static double **ySym, ***ESym;
   Int  filters_per_fr;
@@ -2258,7 +2331,7 @@ Void   TEncAdaptiveLoopFilter::xFilteringFrameLuma(imgpel* imgOrg, imgpel* imgPa
 }
 
 
-Void TEncAdaptiveLoopFilter::xfindBestFilterVarPred(double **ySym, double ***ESym, double *pixAcc, Int **filterCoeffSym, Int **filterCoeffSymQuant, Int filter_shape, Int *filters_per_fr_best, Int varIndTab[], imgpel **imgY_rec, imgpel **varImg, imgpel **maskImg, imgpel **imgY_pad, double lambda_val)
+Void TEncAdaptiveLoopFilter::xfindBestFilterVarPred(double **ySym, double ***ESym, double *pixAcc, Int **filterCoeffSym, Int **filterCoeffSymQuant, Int filter_shape, Int *filters_per_fr_best, Int varIndTab[], Pel **imgY_rec, Pel **varImg, Pel **maskImg, Pel **imgY_pad, double lambda_val)
 {
   Int filters_per_fr, firstFilt, interval[NO_VAR_BINS][2], intervalBest[NO_VAR_BINS][2];
   int i;
@@ -2546,9 +2619,9 @@ Void TEncAdaptiveLoopFilter::xReDesignFilterCoeff_qc(TComPicYuv* pcPicOrg, TComP
 {
   Int tap = m_pcTempAlfParam->filter_shape;
   Int    LumaStride = pcPicOrg->getStride();
-  imgpel* pOrg = (imgpel*)pcPicOrg->getLumaAddr();
-  imgpel* pDec = (imgpel*)pcPicDec->getLumaAddr();
-  imgpel* pRest = (imgpel*)pcPicRest->getLumaAddr();
+  Pel* pOrg  = pcPicOrg->getLumaAddr();
+  Pel* pDec  = pcPicDec->getLumaAddr();
+  Pel* pRest = pcPicRest->getLumaAddr();
   xFirstFilteringFrameLuma(pOrg, pDec, pRest, m_pcTempAlfParam, tap, LumaStride); 
   
   if (m_iALFEncodePassReduction)
@@ -2568,11 +2641,11 @@ Void TEncAdaptiveLoopFilter::xCUAdaptiveControl_qc(TComPicYuv* pcPicOrg, TComPic
   std::vector<AlfCUCtrlInfo> vAlfCUCtrlParamTemp(m_vBestAlfCUCtrlParam);
 #endif
 
-  imgpel** maskImgTemp;
+  Pel** maskImgTemp;
 
   if(m_iALFEncodePassReduction == 2)
   {
-    initMatrix_imgpel(&maskImgTemp, m_img_height, m_img_width);
+    initMatrix_Pel(&maskImgTemp, m_img_height, m_img_width);
   }
 
   m_pcEntropyCoder->setAlfCtrl(true);
@@ -2627,7 +2700,7 @@ Void TEncAdaptiveLoopFilter::xCUAdaptiveControl_qc(TComPicYuv* pcPicOrg, TComPic
         xCopyTmpAlfCtrlFlagsFrom();
         if(m_iALFEncodePassReduction == 2)
         {
-          ::memcpy(maskImgTemp[0], m_maskImg[0], sizeof(imgpel)*m_img_height* m_img_width);
+          ::memcpy(maskImgTemp[0], m_maskImg[0], sizeof(Pel)*m_img_height* m_img_width);
         }
       }
     }
@@ -2642,7 +2715,7 @@ Void TEncAdaptiveLoopFilter::xCUAdaptiveControl_qc(TComPicYuv* pcPicOrg, TComPic
     if(m_iALFEncodePassReduction == 2)
     {
       UInt uiDepth = uiBestDepth;
-      ::memcpy(m_maskImg[0], maskImgTemp[0], sizeof(imgpel)*m_img_height* m_img_width);
+      ::memcpy(m_maskImg[0], maskImgTemp[0], sizeof(Pel)*m_img_height* m_img_width);
       xCopyTmpAlfCtrlFlagsTo();
   
       copyALFParam(&cFrmAlfParam, m_pcBestAlfParam);
@@ -2705,7 +2778,7 @@ Void TEncAdaptiveLoopFilter::xCUAdaptiveControl_qc(TComPicYuv* pcPicOrg, TComPic
 
   if(m_iALFEncodePassReduction == 2)
   {
-    destroyMatrix_imgpel(maskImgTemp);
+    destroyMatrix_Pel(maskImgTemp);
   }
 }
 
@@ -2789,7 +2862,9 @@ Void  TEncAdaptiveLoopFilter::gnsBacksubstitution(Double R[ALF_MAX_NUM_COEF][ALF
   for (i = R_size-1; i >= 0; i--)
   {
     for (j = i + 1, sum = 0.0; j <= R_size; j++)
+    {
       sum += R[i][j] * A[j];
+    }
     
     A[i] = (z[i] - sum) / R[i][i];
   }
@@ -2891,7 +2966,9 @@ Double TEncAdaptiveLoopFilter::calculateErrorCoeffProvided(Double **A, Double *b
   {
     sum = 0;
     for (j = i + 1; j < size; j++)
+    {
       sum += (A[j][i] + A[i][j]) * c[j];
+    }
     error += (A[i][i] * c[i] + sum - 2 * b[i]) * c[i];
   }
   
@@ -3298,17 +3375,17 @@ Void TEncAdaptiveLoopFilter::saveFilterCoeffToBuffer(Int **filterSet, Int numFil
 Void TEncAdaptiveLoopFilter::setMaskWithTimeDelayedResults(TComPicYuv* pcPicOrg, TComPicYuv* pcPicDec)
 {
 
-  static imgpel** bestImgMask;
+  static Pel** bestImgMask;
   static Bool bFirst = true;
   if(bFirst)
   {
-    initMatrix_imgpel(&bestImgMask, m_img_height, m_img_width);
+    initMatrix_Pel(&bestImgMask, m_img_height, m_img_width);
     bFirst = false;
   }
 
-  imgpel* pDec       = (imgpel*)pcPicDec->getLumaAddr();
-  imgpel* pOrg       = (imgpel*)pcPicOrg->getLumaAddr();
-  imgpel* pRest      = (imgpel*)m_pcPicYuvTmp->getLumaAddr();
+  Pel*    pDec       = pcPicDec->getLumaAddr();
+  Pel*    pOrg       = pcPicOrg->getLumaAddr();
+  Pel*    pRest      = m_pcPicYuvTmp->getLumaAddr();
   Int     LumaStride = pcPicOrg->getStride();
   Int***   pppCoeffSaved     = m_aiFilterCoeffSavedMethods  [m_uiVarGenMethod];
   Int**    ppMergeTableSaved = m_mergeTableSavedMethods     [m_uiVarGenMethod];
@@ -3397,7 +3474,7 @@ Void TEncAdaptiveLoopFilter::setMaskWithTimeDelayedResults(TComPicYuv* pcPicOrg,
 #else
       copyALFParam(&cAlfParam, m_pcTempAlfParam);
 #endif
-      ::memcpy(bestImgMask[0], m_maskImg[0], sizeof(imgpel)*m_img_height* m_img_width);
+      ::memcpy(bestImgMask[0], m_maskImg[0], sizeof(Pel)*m_img_height* m_img_width);
     }
   }
 #if F747_APS
@@ -3411,7 +3488,7 @@ Void TEncAdaptiveLoopFilter::setMaskWithTimeDelayedResults(TComPicYuv* pcPicOrg,
   if (cAlfParam.cu_control_flag)
 #endif
   {
-    ::memcpy(m_maskImg[0], bestImgMask[0], sizeof(imgpel)*m_img_height* m_img_width);
+    ::memcpy(m_maskImg[0], bestImgMask[0], sizeof(Pel)*m_img_height* m_img_width);
   }
   else
   {
@@ -3557,7 +3634,7 @@ Void TEncAdaptiveLoopFilter::setInitialMask(TComPicYuv* pcPicOrg, TComPicYuv* pc
   Int Height = pcPicOrg->getHeight();
   Int Width = pcPicOrg->getWidth();
   Int LumaStride = pcPicOrg->getStride();
-  imgpel* pDec = (imgpel*)pcPicDec->getLumaAddr();
+  Pel* pDec = pcPicDec->getLumaAddr();
 
 #if G609_NEW_BA_SUB
   calcVar(m_varImg, pDec, LumaStride, m_uiVarGenMethod);
@@ -3600,7 +3677,7 @@ Void TEncAdaptiveLoopFilter::setInitialMask(TComPicYuv* pcPicOrg, TComPicYuv* pc
  * \returns rdCost              estimated R-D cost
  */
 
-Void  TEncAdaptiveLoopFilter::decideFilterShapeLuma(imgpel* ImgOrg, imgpel* ImgDec, Int Stride, ALFParam* pcAlfSaved, UInt64& ruiRate, UInt64& ruiDist, Double& rdCost)
+Void  TEncAdaptiveLoopFilter::decideFilterShapeLuma(Pel* ImgOrg, Pel* ImgDec, Int Stride, ALFParam* pcAlfSaved, UInt64& ruiRate, UInt64& ruiDist, Double& rdCost)
 {
   static Double **ySym, ***ESym;
   Int    lambda_val = ((Int) m_dLambdaLuma) * (1<<(2*g_uiBitIncrement));
@@ -3773,7 +3850,9 @@ Int64 TEncAdaptiveLoopFilter::xFastFiltDistEstimation(Double** ppdE, Double* pdy
   {
     dsum= ((Double)ppdE[i][i]) * pdcoeff[i];
     for(j=i+1; j< iFiltLength; j++)
+    {
       dsum += (Double)(2*ppdE[i][j])* pdcoeff[j];
+    }
 
     dDist += ((dsum - 2.0 * pdy[i])* pdcoeff[i] );
   }
@@ -3821,7 +3900,9 @@ Int64 TEncAdaptiveLoopFilter::xEstimateFiltDist(Int filters_per_fr, Int* VarIndT
     {
       //clean m_E_merged one line
       for(i=0; i < iFiltLength; i++)
+      {
         m_E_merged[f][j][i] = 0;
+      }
 
       //clean m_y_merged
       m_y_merged[f][j] = 0;
@@ -3842,7 +3923,9 @@ Int64 TEncAdaptiveLoopFilter::xEstimateFiltDist(Int filters_per_fr, Int* VarIndT
     for(j=0; j< iFiltLength; j++)
     {
       for(i=0; i< iFiltLength; i++)
+      {
         ppdDstE[j][i] += ppdSrcE[j][i];
+      }
 
       pdDsty[j] += pdSrcy[j];
     }
@@ -3873,7 +3956,7 @@ Int64 TEncAdaptiveLoopFilter::xEstimateFiltDist(Int filters_per_fr, Int* VarIndT
  * \param fl  VAR_SIZE
  * \param img_stride picture buffer stride
  */
-Void TEncAdaptiveLoopFilter::calcVarforSlices(imgpel **varmap, imgpel *imgY_Dec, Int fl, Int img_stride)
+Void TEncAdaptiveLoopFilter::calcVarforSlices(Pel **varmap, Pel *imgY_Dec, Int fl, Int img_stride)
 {
   if(m_uiVarGenMethod == ALF_RA)
   {
@@ -3887,11 +3970,14 @@ Void TEncAdaptiveLoopFilter::calcVarforSlices(imgpel **varmap, imgpel *imgY_Dec,
   {
     CAlfSlice* pSlice = &(m_pSlice[s]);
 
-    if(!pSlice->isValidSlice()) continue;
+    if(!pSlice->isValidSlice())
+    {
+      continue;
+    }
 
     pSlice->copySliceLuma(pPicSlice, pPicSrc, img_stride);
     pSlice->extendSliceBorderLuma(pPicSlice, img_stride);
-    calcVarforOneSlice(pSlice, varmap, (imgpel*)pPicSlice, fl, img_stride);
+    calcVarforOneSlice(pSlice, varmap, (Pel*)pPicSlice, fl, img_stride);
   }
 }
 #endif
@@ -3903,7 +3989,7 @@ Void TEncAdaptiveLoopFilter::calcVarforSlices(imgpel **varmap, imgpel *imgY_Dec,
  * \param fl  VAR_SIZE
  * \param img_stride picture buffer stride
  */
-Void TEncAdaptiveLoopFilter::xfilterSlicesEncoder(imgpel* ImgDec, imgpel* ImgRest, Int iStride, Int filtNo, Int** filterCoeff, Int* mergeTable, imgpel** varImg)
+Void TEncAdaptiveLoopFilter::xfilterSlicesEncoder(Pel* ImgDec, Pel* ImgRest, Int iStride, Int filtNo, Int** filterCoeff, Int* mergeTable, Pel** varImg)
 {
   Pel* pPicSrc   = (Pel *)ImgDec;
   Pel* pPicSlice = m_pcSliceYuvTmp->getLumaAddr();
@@ -3912,11 +3998,14 @@ Void TEncAdaptiveLoopFilter::xfilterSlicesEncoder(imgpel* ImgDec, imgpel* ImgRes
   {
     CAlfSlice* pSlice = &(m_pSlice[s]);
 
-    if(!pSlice->isValidSlice()) continue;
+    if(!pSlice->isValidSlice()) 
+    {
+      continue;
+    }
 
     pSlice->copySliceLuma(pPicSlice, pPicSrc, iStride);
     pSlice->extendSliceBorderLuma(pPicSlice, iStride);
-    xfilterOneSliceEncoder(pSlice, (imgpel*)pPicSlice, ImgRest, iStride, filtNo, filterCoeff, mergeTable, varImg);
+    xfilterOneSliceEncoder(pSlice, pPicSlice, ImgRest, iStride, filtNo, filterCoeff, mergeTable, varImg);
   }
 }
 
@@ -3927,7 +4016,7 @@ Void TEncAdaptiveLoopFilter::xfilterSlicesEncoder(imgpel* ImgDec, imgpel* ImgRes
  * \param filtNo  related to filter tap size
  * \param iStride picture buffer stride
  */
-Void TEncAdaptiveLoopFilter::xfilterOneSliceEncoder(CAlfSlice* pSlice, imgpel* ImgDec, imgpel* ImgRest, Int iStride, Int filtNo, Int** filterCoeff, Int* mergeTable, imgpel** varImg)
+Void TEncAdaptiveLoopFilter::xfilterOneSliceEncoder(CAlfSlice* pSlice, Pel* ImgDec, Pel* ImgRest, Int iStride, Int filtNo, Int** filterCoeff, Int* mergeTable, Pel** varImg)
 {
   UInt uiNumLCUs = pSlice->getNumLCUs();
 
@@ -3955,25 +4044,32 @@ Void TEncAdaptiveLoopFilter::xfilterOneSliceEncoder(CAlfSlice* pSlice, imgpel* I
  * \param tap  filter tap size
  * \param iStride picture buffer stride
  */
-Void   TEncAdaptiveLoopFilter::xstoreInBlockMatrixforSlices(imgpel* ImgOrg, imgpel* ImgDec, Int tap, Int iStride)
+Void   TEncAdaptiveLoopFilter::xstoreInBlockMatrixforSlices(Pel* ImgOrg, Pel* ImgDec, Int tap, Int iStride)
 {
   Pel* pPicSrc   = (Pel *)ImgDec;
   Pel* pPicSlice = m_pcSliceYuvTmp->getLumaAddr();
 
   UInt iLastValidSliceID =0;
   for(UInt s=0; s< m_uiNumSlicesInPic; s++)
+  {
     if(m_pSlice[s].isValidSlice())
+    {
       iLastValidSliceID = s;
+    }
+  }
 
   for(UInt s=0; s<= iLastValidSliceID; s++)
   {
     CAlfSlice* pSlice = &(m_pSlice[s]);
 
-    if(!pSlice->isValidSlice()) continue;
+    if(!pSlice->isValidSlice())
+    {
+      continue;
+    }
 
     pSlice->copySliceLuma(pPicSlice, pPicSrc, iStride);
     pSlice->extendSliceBorderLuma(pPicSlice, iStride);
-    xstoreInBlockMatrixforOneSlice(pSlice, ImgOrg, (imgpel*)pPicSlice, tap, iStride, (s==0), (s== iLastValidSliceID));
+    xstoreInBlockMatrixforOneSlice(pSlice, ImgOrg, pPicSlice, tap, iStride, (s==0), (s== iLastValidSliceID));
   }
 }
 
@@ -3987,7 +4083,7 @@ Void   TEncAdaptiveLoopFilter::xstoreInBlockMatrixforSlices(imgpel* ImgOrg, imgp
  * \param bLastSlice true for the last processing slice of the picture
  */
 Void   TEncAdaptiveLoopFilter::xstoreInBlockMatrixforOneSlice(CAlfSlice* pSlice, 
-                                                              imgpel* ImgOrg, imgpel* ImgDec, 
+                                                              Pel* ImgOrg, Pel* ImgDec, 
                                                               Int tap, Int iStride, 
                                                               Bool bFirstSlice, 
                                                               Bool bLastSlice
@@ -4047,14 +4143,21 @@ Void TEncAdaptiveLoopFilter::xCalcCorrelationFuncforChromaSlices(Int ComponentID
 
   UInt iLastValidSliceID =0;
   for(UInt s=0; s< m_uiNumSlicesInPic; s++)
+  {
     if(m_pSlice[s].isValidSlice())
+    {
       iLastValidSliceID = s;
+    }
+  }
 
   for(UInt s=0; s<= iLastValidSliceID; s++)
   {
     CAlfSlice* pSlice = &(m_pSlice[s]);
 
-    if(!pSlice->isValidSlice()) continue;
+    if(!pSlice->isValidSlice()) 
+    {
+      continue;
+    }
 
     pSlice->copySliceChroma(pPicSlice, pPicSrc, iCmpStride);
     pSlice->extendSliceBorderChroma(pPicSlice, iCmpStride);
@@ -4117,11 +4220,14 @@ Void TEncAdaptiveLoopFilter::xFilterChromaSlices(Int ComponentID, TComPicYuv* pc
   {
     CAlfSlice* pSlice = &(m_pSlice[s]);
 
-    if(!pSlice->isValidSlice()) continue;
+    if(!pSlice->isValidSlice()) 
+    {
+      continue;
+    }
 
     pSlice->copySliceChroma(pPicSlice, pPicDec, iStride);
     pSlice->extendSliceBorderChroma(pPicSlice, iStride);
-    xFilterOneChromaSlice(pSlice, (imgpel*)pPicSlice, (imgpel*)pRest, iStride, coeff, filtNo, iChromaFormatShift);
+    xFilterOneChromaSlice(pSlice, pPicSlice, pRest, iStride, coeff, filtNo, iChromaFormatShift);
   }
 }
 
@@ -4135,7 +4241,10 @@ Void TEncAdaptiveLoopFilter::getCtrlFlagsForSlices(Bool bCUCtrlEnabled, Int iCUC
   {
     CAlfSlice& cSlice = m_pSlice[s];
 
-    if(!cSlice.isValidSlice()) continue;
+    if(!cSlice.isValidSlice()) 
+    {
+      continue;
+    }
 
     cSlice.setCUCtrlEnabled(bCUCtrlEnabled);
     if(bCUCtrlEnabled)
@@ -4156,7 +4265,10 @@ Void TEncAdaptiveLoopFilter::transferCtrlFlagsToAlfParam(std::vector<AlfCUCtrlIn
 {
   for(UInt s=0; s< m_uiNumSlicesInPic; s++)
   {
-    if(! m_pSlice[s].isValidSlice()) continue;
+    if(! m_pSlice[s].isValidSlice()) 
+    {
+      continue;
+    }
 
     CAlfSlice&     cSlice            = m_pSlice[s];
     AlfCUCtrlInfo& cSliceCUCtrlParam = vAlfCUCtrlParam[s];
@@ -4196,7 +4308,10 @@ Void TEncAdaptiveLoopFilter::transferCtrlFlagsToAlfParam(UInt& ruiNumFlags, UInt
   {
     CAlfSlice& cSlice = m_pSlice[s];
 
-    if(!cSlice.isValidSlice()) continue;
+    if(!cSlice.isValidSlice()) 
+    {
+      continue;
+    }
 
     for(UInt idx=0; idx < cSlice.getNumLCUs(); idx++)
     {
@@ -4260,9 +4375,13 @@ Void TEncAdaptiveLoopFilter::xFilterTapDecisionChroma( UInt64 uiLumaRate, TComPi
     Pel *pOrg = pcPicOrg->getCbAddr();
     Pel *pCmp = pcPicDec->getCbAddr();
     if(!m_bUseNonCrossALF)
+    {
       xCalcCorrelationFunc(0, 0, pOrg, pCmp, iShape, (pcPicOrg->getWidth()>>1), (pcPicOrg->getHeight()>>1), pcPicOrg->getCStride(), pcPicDec->getCStride(), true);
+    }
     else
+    {
       xCalcCorrelationFuncforChromaSlices(ALF_Cb, pOrg, pCmp, iShape, pcPicOrg->getCStride(), pcPicDec->getCStride());
+    }
 
     // calc Cr matrix
     m_pcTempAlfParam->chroma_idc = 1;
@@ -4274,9 +4393,13 @@ Void TEncAdaptiveLoopFilter::xFilterTapDecisionChroma( UInt64 uiLumaRate, TComPi
     pOrg = pcPicOrg->getCrAddr();
     pCmp = pcPicDec->getCrAddr();
     if(!m_bUseNonCrossALF)
+    {
       xCalcCorrelationFunc(0, 0, pOrg, pCmp, iShape, (pcPicOrg->getWidth()>>1), (pcPicOrg->getHeight()>>1), pcPicOrg->getCStride(), pcPicDec->getCStride(), true);
+    }
     else
+    {
       xCalcCorrelationFuncforChromaSlices(ALF_Cr, pOrg, pCmp, iShape, pcPicOrg->getCStride(), pcPicDec->getCStride());
+    }
 
     // restore original corr pointer
     m_ppdAlfCorr = ppdTmpCorr;
@@ -4352,9 +4475,13 @@ Void TEncAdaptiveLoopFilter::xFilterTapDecisionChroma( UInt64 uiLumaRate, TComPi
       m_pcBestAlfParam->chroma_idc = 0;
       
       if((m_pcTempAlfParam->chroma_idc>>1)&0x01)
+      {
         pcPicDec->copyToPicCb(pcPicRest);
+      }
       if(m_pcTempAlfParam->chroma_idc&0x01)
+      {
         pcPicDec->copyToPicCr(pcPicRest);
+      }
       
       ruiBits += uiMinRate;
       ruiDist += uiMinDist;
@@ -4389,7 +4516,9 @@ Int64 TEncAdaptiveLoopFilter::xFastFiltDistEstimationChroma(Double** ppdCorr, In
   {
     dsum= ((Double)ppdCorr[i][i]) * pdcoeff[i];
     for(j=i+1; j< iSqrFiltLength; j++)
+    {
       dsum += (Double)(2*ppdCorr[i][j])* pdcoeff[j];
+    }
 
     dDist += ((dsum - 2.0 * ppdCorr[i][iSqrFiltLength])* pdcoeff[i] );
   }
@@ -4483,7 +4612,9 @@ UInt64 TEncAdaptiveLoopFilter::xCalcRateChroma(ALFParam* pAlfParam)
       if( m_uiNumSlicesInPic > 1)
       {
         if(!m_pSlice[s].isValidSlice())
+        {
           continue;
+        }
       }
       m_pcEntropyCoder->resetEntropy();
       m_pcEntropyCoder->resetBits();
@@ -4515,7 +4646,10 @@ UInt64 TEncAdaptiveLoopFilter::xCalcRateChroma(ALFParam* pAlfParam)
     uiRate = m_pcEntropyCoder->getNumberOfWrittenBits();
     for(UInt s=0; s< m_uiNumSlicesInPic; s++)
     {
-      if(!m_pSlice[s].isValidSlice()) continue;
+      if(!m_pSlice[s].isValidSlice())
+      {
+        continue;
+      }
 
       m_pcEntropyCoder->resetEntropy();
       m_pcEntropyCoder->resetBits();

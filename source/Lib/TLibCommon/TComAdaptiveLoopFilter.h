@@ -63,8 +63,6 @@
 #define MAX_SCAN_VAL          13
 #define MAX_EXP_GOLOMB        16
 
-#define imgpel  unsigned short
-
 ///
 /// border direction ID of ALF processing block
 ///
@@ -284,8 +282,8 @@ protected: //protected member variables
   //classification
   Int      m_varIndTab[NO_VAR_BINS];
   UInt     m_uiVarGenMethod;
-  imgpel** m_varImgMethods[NUM_ALF_CLASS_METHOD];
-  imgpel** m_varImg;
+  Pel** m_varImgMethods[NUM_ALF_CLASS_METHOD];
+  Pel** m_varImg;
 
   //parameters
   Int   m_img_height;
@@ -305,20 +303,20 @@ private: //private member variables
 protected: //protected methods
 
 #if !G609_NEW_BA_SUB
-  Void calcVarforOneSlice         (CAlfSlice* pSlice, imgpel **imgY_var, imgpel *imgY_pad, Int fl, Int img_stride); //! Calculate ALF grouping indices for one slice
+  Void calcVarforOneSlice         (CAlfSlice* pSlice, Pel **imgY_var, Pel *imgY_pad, Int fl, Int img_stride); //! Calculate ALF grouping indices for one slice
 #endif
-  Void createRegionIndexMap(imgpel **imgY_var, Int img_width, Int img_height); //!< create RA index for regions
+  Void createRegionIndexMap(Pel **imgY_var, Int img_width, Int img_height); //!< create RA index for regions
 #if G609_NEW_BA_SUB
-  Void calcVar(imgpel **imgYvar, imgpel *imgYpad, Int stride, Int adaptationMode); //!< Calculate ALF grouping indices for block-based (BA) mode
+  Void calcVar(Pel **imgYvar, Pel *imgYpad, Int stride, Int adaptationMode); //!< Calculate ALF grouping indices for block-based (BA) mode
 #else
-  Void calcVar(int ypos, int xpos, imgpel **imgY_var, imgpel *imgY_pad, int fl, int img_height, int img_width, int img_stride);
+  Void calcVar(int ypos, int xpos, Pel **imgY_var, Pel *imgY_pad, int fl, int img_height, int img_width, int img_stride);
 #endif
-  Void filterLuma(imgpel *pImgYRes, imgpel *pImgYPad, Int stride, Int ypos, Int yposEnd, Int xpos, Int xposEnd, Int filtNo, Int** filterSet, Int* mergeTable, imgpel** ppVarImg); //!< filtering operation for luma region
-  Void filterChroma(imgpel *pImgRes, imgpel *pImgPad, Int stride, Int ypos, Int yposEnd, Int xpos, Int xposEnd, Int filtNo, Int* coef);
-  Void xFilterOneSlice             (CAlfSlice* pSlice, imgpel* pDec, imgpel* pRest, Int iStride, ALFParam* pcAlfParam); //!< Perform ALF for one luma slice
-  Void xFilterOneChromaSlice(CAlfSlice* pSlice, imgpel* pDec, imgpel* pRest, Int iStride, Int *coeff, Int filtNo, Int iChromaFormatShift); //!< ALF for chroma component
-  Void xCUAdaptive   (TComPic* pcPic, Int filtNo, imgpel *imgYFilt, imgpel *imgYRec, Int Stride);
-  Void xSubCUAdaptive(TComDataCU* pcCU, Int filtNo, imgpel *imgYFilt, imgpel *imgYRec, UInt uiAbsPartIdx, UInt uiDepth, Int Stride);
+  Void filterLuma(Pel *pImgYRes, Pel *pImgYPad, Int stride, Int ypos, Int yposEnd, Int xpos, Int xposEnd, Int filtNo, Int** filterSet, Int* mergeTable, Pel** ppVarImg); //!< filtering operation for luma region
+  Void filterChroma(Pel *pImgRes, Pel *pImgPad, Int stride, Int ypos, Int yposEnd, Int xpos, Int xposEnd, Int filtNo, Int* coef);
+  Void xFilterOneSlice             (CAlfSlice* pSlice, Pel* pDec, Pel* pRest, Int iStride, ALFParam* pcAlfParam); //!< Perform ALF for one luma slice
+  Void xFilterOneChromaSlice(CAlfSlice* pSlice, Pel* pDec, Pel* pRest, Int iStride, Int *coeff, Int filtNo, Int iChromaFormatShift); //!< ALF for chroma component
+  Void xCUAdaptive   (TComPic* pcPic, Int filtNo, Pel *imgYFilt, Pel *imgYRec, Int Stride);
+  Void xSubCUAdaptive(TComDataCU* pcCU, Int filtNo, Pel *imgYFilt, Pel *imgYRec, UInt uiAbsPartIdx, UInt uiDepth, Int Stride);
   Void reconstructFilterCoeffs(ALFParam* pcAlfParam,int **pfilterCoeffSym);
 #if G665_ALF_COEFF_PRED
   Void predictALFCoeffLuma  ( ALFParam* pAlfParam );                    //!< prediction of luma ALF coefficients
@@ -328,7 +326,7 @@ protected: //protected methods
 #endif
   Void decodeFilterSet(ALFParam* pcAlfParam, Int* varIndTab, Int** filterCoeff);
   Void xALFChroma   ( ALFParam* pcAlfParam, TComPicYuv* pcPicDec, TComPicYuv* pcPicRest );
-  Void xFilterChromaOneCmp(imgpel *pDec, imgpel *pRest, Int iStride, Int iShape, Int *pCoeff);
+  Void xFilterChromaOneCmp(Pel *pDec, Pel *pRest, Int iStride, Int iShape, Int *pCoeff);
 #if F747_APS
   Void xALFLuma( TComPic* pcPic, ALFParam* pcAlfParam, std::vector<AlfCUCtrlInfo>& vAlfCUCtrlParam, TComPicYuv* pcPicDec, TComPicYuv* pcPicRest );
   Void setAlfCtrlFlags(AlfCUCtrlInfo* pAlfParam, TComDataCU *pcCU, UInt uiAbsPartIdx, UInt uiDepth, UInt &idx);
@@ -385,10 +383,10 @@ public: //public methods, interface functions
 #endif
 
 protected: //memory allocation
-  Void destroyMatrix_imgpel(imgpel **m2D);
+  Void destroyMatrix_Pel(Pel **m2D);
   Void destroyMatrix_int(int **m2D);
   Void initMatrix_int(int ***m2D, int d1, int d2);
-  Void initMatrix_imgpel(imgpel ***m2D, int d1, int d2);
+  Void initMatrix_Pel(Pel ***m2D, int d1, int d2);
   Void destroyMatrix4D_double(double ****m4D, int d1, int d2);
   Void destroyMatrix3D_double(double ***m3D, int d1);
   Void destroyMatrix_double(double **m2D);
