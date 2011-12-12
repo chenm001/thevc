@@ -389,7 +389,7 @@ Void TEncCavlc::codeSPS( TComSPS* pcSPS )
   WRITE_UVLC( pcSPS->getMaxNumberOfReorderPictures(),   "max_num_reorder_pics" ); 
 #endif
 #if DISABLE_4x4_INTER
-  xWriteFlag  ( (pcSPS->getDisInter4x4()) ? 1 : 0 );
+  WRITE_FLAG  ( (pcSPS->getDisInter4x4()) ? 1 : 0, "DisableInter4x4" );
 #endif  
 #if !G1002_RPS
   // log2_max_frame_num_minus4
@@ -439,28 +439,28 @@ Void TEncCavlc::codeSPS( TComSPS* pcSPS )
 
   // !!!KS: Syntax not in WD !!!
   
-  xWriteUvlc  ( pcSPS->getPad (0) );
-  xWriteUvlc  ( pcSPS->getPad (1) );
+  WRITE_UVLC  ( pcSPS->getPad (0), "PadX" );
+  WRITE_UVLC  ( pcSPS->getPad (1), "PadY" );
 
   // Tools
 #if !G1002_RPS
-  xWriteFlag  ( 1 );
+  WRITE_FLAG  ( 1,  "Unknow");
 #endif
-  xWriteFlag  ( (pcSPS->getUseMRG ()) ? 1 : 0 ); // SOPH:
+  WRITE_FLAG  ( (pcSPS->getUseMRG ()) ? 1 : 0, "SOPH" ); // SOPH:
   
   // AMVP mode for each depth
   for (Int i = 0; i < pcSPS->getMaxCUDepth(); i++)
   {
-    xWriteFlag( pcSPS->getAMVPMode(i) ? 1 : 0);
+    WRITE_FLAG( pcSPS->getAMVPMode(i) ? 1 : 0, "AMVPMode");
   }
 
 #if !G1002_RPS
 #if REF_SETTING_FOR_LD
   // these syntax elements should not be sent at SPS when the full reference frame management is supported
-  xWriteFlag( pcSPS->getUseNewRefSetting() ? 1 : 0 );
+  WRITE_FLAG( pcSPS->getUseNewRefSetting() ? 1 : 0, "UseNewRef" );
   if ( pcSPS->getUseNewRefSetting() )
   {
-    xWriteUvlc( pcSPS->getMaxNumRefFrames() );
+    WRITE_UVLC( pcSPS->getMaxNumRefFrames(), "MaxNumRefFrames" );
   }
 #endif
 #endif
