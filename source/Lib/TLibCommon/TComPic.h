@@ -58,7 +58,10 @@ class TComPic
 {
 private:
   UInt                  m_uiTLayer;               //  Temporal layer
-
+#if G1002_RPS
+  Bool                  m_bUsedByCurr;            //  Used by current picture
+  Bool                  m_bIsLongTerm;            //  IS long term picture
+#endif
   TComPicSym*           m_apcPicSym;              //  Symbol
   
   TComPicYuv*           m_apcPicYuv[2];           //  Texture,  0:org / 1:rec
@@ -83,6 +86,13 @@ public:
   
   UInt          getTLayer()                { return m_uiTLayer;   }
   Void          setTLayer( UInt uiTLayer ) { m_uiTLayer = uiTLayer; }
+
+#if G1002_RPS
+  Bool          getUsedByCurr()             { return m_bUsedByCurr; }
+  Void          setUsedByCurr( Bool bUsed ) { m_bUsedByCurr = bUsed; }
+  Bool          getIsLongTerm()             { return m_bIsLongTerm; }
+  Void          setIsLongTerm( Bool lt ) { m_bIsLongTerm = lt; }
+#endif
 
   TComPicSym*   getPicSym()           { return  m_apcPicSym;    }
   TComSlice*    getSlice(Int i)       { return  m_apcPicSym->getSlice(i);  }

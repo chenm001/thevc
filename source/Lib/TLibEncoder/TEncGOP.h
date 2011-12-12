@@ -74,9 +74,17 @@ class TEncGOP
 {
 private:
   //  Data
+#if G1002_RPS
+  Bool                    m_bLongtermTestPictureHasBeenCoded;
+  Bool                    m_bLongtermTestPictureHasBeenCoded2;
+#endif
+#if !G1002_RPS
   Int                     m_iHrchDepth;
+#endif
   Int                     m_iGopSize;
+#if !G1002_RPS
   Int                     m_iRateGopSize;
+#endif
   Int                     m_iNumPicCoded;
   Bool                    m_bFirst;
   
@@ -128,9 +136,11 @@ public:
 
   
   Int   getGOPSize()          { return  m_iGopSize;  }
+#if !G1002_RPS
   Int   getRateGOPSize()      { return  m_iRateGopSize;  }
   Int   isHierarchicalB()     { return  m_pcCfg->getHierarchicalCoding();  }
   Int   getHrchDepth()        { return  m_iHrchDepth; }
+#endif
   
   TComList<TComPic*>*   getListPic()      { return m_pcListPic; }
   

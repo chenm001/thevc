@@ -72,6 +72,9 @@ Bool TAppDecCfg::parseCfg( Int argc, Char* argv[] )
                                                      "YUV writing is skipped if omitted")
   ("SkipFrames,s", m_iSkipFrame, 0, "number of frames to skip before random access")
   ("OutputBitDepth,d", m_outputBitDepth, 0u, "bit depth of YUV output file (use 0 for native depth)")
+#if G1002_RPS
+  ("MaxTemporalLayer,t", m_iMaxTemporalLayer, -1, "Maximum Temporal Layer to be decoded. -1 to decode all layers")
+#endif
   ("SEIpictureDigest", m_pictureDigestEnabled, true, "Control handling of picture_digest SEI messages\n"
                                               "\t1: check\n"
                                               "\t0: ignore")
