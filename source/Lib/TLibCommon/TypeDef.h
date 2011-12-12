@@ -55,6 +55,8 @@
 #define INTRA_MODES_64X64         1 ///< enable 35 intra modes for 64x64 PUs
 #define VER_HOR_FILTER            1 ///< F172: intra ver/hor prediction filter
 
+#define REMOVE_INTRA_LINE_BUFFER  1 ///< G145: intra line buffer removal
+
 #define WEIGHTED_CHROMA_DISTORTION  1   ///< F386: weighting of chroma for RDO
 #define RDOQ_CHROMA_LAMBDA          1   ///< F386: weighting of chroma for RDOQ
 #define ALF_CHROMA_LAMBDA           1   ///< F386: weighting of chroma for ALF
