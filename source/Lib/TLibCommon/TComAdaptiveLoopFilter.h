@@ -323,6 +323,9 @@ protected: //protected methods
 #if G665_ALF_COEFF_PRED
   Void predictALFCoeffLuma  ( ALFParam* pAlfParam );                    //!< prediction of luma ALF coefficients
 #endif
+#if G214_ALF_CONSTRAINED_COEFF
+  Void checkFilterCoeffValue( Int *filter, Int filterLength, Bool isChroma );
+#endif
   Void decodeFilterSet(ALFParam* pcAlfParam, Int* varIndTab, Int** filterCoeff);
   Void xALFChroma   ( ALFParam* pcAlfParam, TComPicYuv* pcPicDec, TComPicYuv* pcPicRest );
   Void xFilterChromaOneCmp(imgpel *pDec, imgpel *pRest, Int iStride, Int iShape, Int *pCoeff);

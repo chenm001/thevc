@@ -506,6 +506,11 @@ Void TComAdaptiveLoopFilter::ALFProcess(TComPic* pcPic, ALFParam* pcAlfParam)
   if(pcAlfParam->chroma_idc)
   {
     predictALFCoeffChroma(pcAlfParam);
+
+#if G214_ALF_CONSTRAINED_COEFF
+    checkFilterCoeffValue(pcAlfParam->coeff_chroma, pcAlfParam->num_coeff_chroma, true );
+#endif
+
     xALFChroma( pcAlfParam, pcPicYuvExtRec, pcPicYuvRec);
   }
 }
@@ -513,6 +518,34 @@ Void TComAdaptiveLoopFilter::ALFProcess(TComPic* pcPic, ALFParam* pcAlfParam)
 // ====================================================================================================================
 // Protected member functions
 // ====================================================================================================================
+
+#if G214_ALF_CONSTRAINED_COEFF
+/** 
+ \param filter         filter coefficient
+ \param filterLength   filter length
+ \param isChroma       1: chroma, 0: luma
+ */
+Void TComAdaptiveLoopFilter::checkFilterCoeffValue( Int *filter, Int filterLength, Bool isChroma )
+{
+  Int maxValueNonCenter = 1 * (1 << ALF_NUM_BIT_SHIFT) - 1;
+  Int minValueNonCenter = 0 - 1 * (1 << ALF_NUM_BIT_SHIFT);
+
+  Int maxValueCenter    = 2 * (1 << ALF_NUM_BIT_SHIFT) - 1;
+  Int minValueCenter    = 0 ; 
+
+  Int pelDepth          = g_uiBitIncrement + g_uiBitDepth - (isChroma ? 2 : 0) ;
+  Int maxValueOffset    = ( 1 << (pelDepth + ALF_NUM_BIT_SHIFT))  -1;  
+  Int minValueOffset    = 0 - ( 1 << (pelDepth + ALF_NUM_BIT_SHIFT) ) ;
+
+  for(Int i = 0; i < filterLength-2; i++)
+  {
+    filter[i] = Clip3(minValueNonCenter, maxValueNonCenter, filter[i]);
+  }
+
+  filter[filterLength-2] = Clip3(minValueCenter, maxValueCenter, filter[filterLength-2]);
+  filter[filterLength-1] = Clip3(minValueOffset, maxValueOffset, filter[filterLength-1]);
+}
+#endif
 
 
 #if F747_APS
@@ -824,6 +857,14 @@ Void TComAdaptiveLoopFilter::reconstructFilterCoeffs(ALFParam* pcAlfParam,int **
         pfilterCoeffSym[ind][i] = (int)(pfilterCoeffSym[ind][i] + pfilterCoeffSym[ind - 1][i]);
     }
   }
+
+#if G214_ALF_CONSTRAINED_COEFF
+  for(ind = 0; ind < pcAlfParam->filters_per_group; ind++)
+  {
+    checkFilterCoeffValue(pfilterCoeffSym[ind], pcAlfParam->num_coeff, false );
+  }
+#endif
+
 }
 
 static imgpel Clip_post(int high, int val)

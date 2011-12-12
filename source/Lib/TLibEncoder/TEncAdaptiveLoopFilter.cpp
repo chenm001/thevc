@@ -1045,6 +1045,11 @@ Void TEncAdaptiveLoopFilter::xQuantFilterCoef(Double* h, Int* qh, Int tap, int b
   qh[N] =  (h[N]>=0.0)? (Int)( h[N]*(1<<(ALF_NUM_BIT_SHIFT-bit_depth+8)) + 0.5) : -(Int)(-h[N]*(1<<(ALF_NUM_BIT_SHIFT-bit_depth+8)) + 0.5);
   qh[N] = max(min_value,min(max_value, qh[N]));
   
+#if G214_ALF_CONSTRAINED_COEFF
+  checkFilterCoeffValue(qh, N+1, true);
+#endif
+
+
   delete[] dh;
   dh = NULL;
   
@@ -3163,6 +3168,10 @@ Double TEncAdaptiveLoopFilter::QuantizeIntegerFilterPP(Double *filterCoeff, Int 
     }
   }
   
+#if G214_ALF_CONSTRAINED_COEFF
+  checkFilterCoeffValue(filterCoeffQuant, sqrFiltLength, false);
+#endif
+
   for (i=0; i<sqrFiltLength; i++)
   {
     filterCoeff[i]=(double)filterCoeffQuant[i]/(double)factor;

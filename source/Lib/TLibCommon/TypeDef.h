@@ -61,6 +61,7 @@
 
 #define G609_NEW_BA_SUB             1   ///< G609: Directional feature calculation on subset of pixels
 #define G216_ALF_MERGE_FLAG_FIX     1   ///< G216: bug fixed: removing 15th merge flag for BA mode
+#define G214_ALF_CONSTRAINED_COEFF  1   ///< G214: Constrained ALF coefficient value
 
 ////////////////////////////
 // JCT-VC F start
