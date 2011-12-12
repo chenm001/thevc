@@ -3875,7 +3875,7 @@ Void TComDataCU::clipMv    (TComMv&  rcMv)
 {
   Int  iMvShift = 2;
 #if INFINITE_PADDING
-  Int iOffset = NTAPS_LUMA;
+  Int iOffset = 8;
   Int iHorMax = ( m_pcSlice->getSPS()->getWidth() + iOffset - m_uiCUPelX - 1 ) << iMvShift;
   Int iHorMin = (       -(Int)g_uiMaxCUWidth - iOffset - (Int)m_uiCUPelX + 1 ) << iMvShift;
   
