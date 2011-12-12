@@ -97,6 +97,10 @@ TEncAdaptiveLoopFilter::TEncAdaptiveLoopFilter()
   m_bSharedPPSAlfParamEnabled = false;
 #endif
 
+#if G215_ALF_NUM_FILTER
+  m_iALFMaxNumberFilters = NO_FILTERS;
+#endif
+
 #if F747_APS
   m_bAlfCUCtrlEnabled = false;
 #endif
@@ -2364,7 +2368,11 @@ Void TEncAdaptiveLoopFilter::xfindBestFilterVarPred(double **ySym, double ***ESy
 
     lagrangian=xfindBestCoeffCodMethod(filterCoeffSymQuant, filter_shape, sqrFiltLength, filters_per_fr, errorForce0CoeffTab, lambda_val);
 
+#if G215_ALF_NUM_FILTER
+    if (lagrangian<lagrangianMin || firstFilt==1 || filters_per_fr == m_iALFMaxNumberFilters)
+#else
     if (lagrangian<lagrangianMin || firstFilt==1)
+#endif
     {
       firstFilt=0;
       lagrangianMin=lagrangian;
