@@ -563,7 +563,7 @@ Void TComAdaptiveLoopFilter::xALFLuma(TComPic* pcPic, ALFParam* pcAlfParam, TCom
   m_uiVarGenMethod = pcAlfParam->alf_pcr_region_flag;
   m_varImg         = m_varImgMethods[m_uiVarGenMethod];
 #if G609_NEW_BA_SUB
-  calcVar(m_varImg, pDec, LumaStride, pcAlfParam->alf_pcr_region_flag);
+  calcVar(m_varImg, pRest, LumaStride, pcAlfParam->alf_pcr_region_flag);
 #endif
 
   if(!m_bUseNonCrossALF)
